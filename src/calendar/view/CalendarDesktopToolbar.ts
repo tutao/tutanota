@@ -28,7 +28,7 @@ export class CalendarDesktopToolbar implements Component<CalendarDesktopToolbarA
 			[
 				m("h1.ml-m", navConfig.title),
 				navConfig.week && this.renderWeekNumberLabel(navConfig.week),
-				m(".flex.items-center.justify-center.flex-grow", this.renderViewSelector(attrs)),
+				m(".flex.items-center.justify-center.flex-grow.height-100p", this.renderViewSelector(attrs)),
 				m(".flex.pt-xs.pb-xs", [
 					navConfig.back ?? m(".button-width-fixed"),
 					m(
@@ -67,11 +67,12 @@ export class CalendarDesktopToolbar implements Component<CalendarDesktopToolbarA
 			},
 		]
 
-		return m(".flex.plr.calendar-segment-control", [
+		return m(".flex.plr.calendar-segment-control.height-100p", [
 			m(SegmentButtonControl, {
 				selectedValue: attrs.viewType,
 				onValueSelected: (type: CalendarViewType) => attrs.onViewTypeSelected(type),
 				items: calendarViewValues,
+				maxItemWidth: 48,
 			}),
 		])
 	}

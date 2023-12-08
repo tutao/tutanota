@@ -17,7 +17,7 @@ import { NavButton, NavButtonColor } from "../../gui/base/NavButton.js"
 import { CalendarMonthView } from "./CalendarMonthView"
 import { DateTime } from "luxon"
 import { NotFoundError } from "../../api/common/error/RestError"
-import { CalendarAgendaView } from "./CalendarAgendaView"
+import { CalendarAgendaView, CalendarAgendaViewAttrs } from "./CalendarAgendaView"
 import type { GroupInfo } from "../../api/entities/sys/TypeRefs.js"
 import { showEditCalendarDialog } from "./EditCalendarDialog"
 import { styles } from "../../gui/styles"
@@ -50,7 +50,7 @@ import { DrawerMenuAttrs } from "../../gui/nav/DrawerMenu.js"
 import { BaseTopLevelView } from "../../gui/BaseTopLevelView.js"
 import { TopLevelAttrs, TopLevelView } from "../../TopLevelView.js"
 import { getEnabledMailAddressesWithUser } from "../../mail/model/MailUtils.js"
-import { CalendarEventPopupViewModel } from "./eventpopup/CalendarEventPopupViewModel.js"
+import { CalendarEventPreviewViewModel } from "./eventpopup/CalendarEventPreviewViewModel.js"
 import { isCustomizationEnabledForCustomer } from "../../api/common/utils/Utils.js"
 import { findAttendeeInAddresses, getEventWithDefaultTimes } from "../../api/common/utils/CommonCalendarUtils.js"
 import { BackgroundColumnLayout } from "../../gui/BackgroundColumnLayout.js"
@@ -270,8 +270,8 @@ export class CalendarView extends BaseTopLevelView implements TopLevelView<Calen
 									isDaySelectorExpanded: this.isDaySelectorExpanded,
 									onDateSelected: (date) => this._setUrl(CalendarViewType.AGENDA, date),
 									onShowDate: (date: Date) => this._setUrl(CalendarViewType.DAY, date),
-									htmlSanitizer: this.htmlSanitizer,
-								}),
+									eventPreviewModel: (event: CalendarEvent) => this.buildEventPreviewModel(event),
+								} satisfies CalendarAgendaViewAttrs),
 							})
 
 						default:
@@ -805,12 +805,7 @@ export class CalendarView extends BaseTopLevelView implements TopLevelView<Calen
 
 		const x = domEvent.clientX
 		const y = domEvent.clientY
-		const [calendars, mailboxDetails, htmlSanitizer] = await Promise.all([
-			this.viewModel.calendarInfos.getAsync(),
-			locator.mailModel.getUserMailboxDetails(),
-			htmlSanitizerPromise,
-		])
-		const mailboxProperties = await locator.mailModel.getMailboxProperties(mailboxDetails.mailboxGroupRoot)
+
 		// We want the popup to show at the users mouse
 		const rect = {
 			bottom: y,
@@ -820,6 +815,17 @@ export class CalendarView extends BaseTopLevelView implements TopLevelView<Calen
 			left: x,
 			right: x,
 		}
+
+		const [popupModel, htmlSanitizer] = await Promise.all([this.buildEventPreviewModel(selectedEvent), htmlSanitizerPromise])
+
+		new CalendarEventPopup(popupModel, rect, htmlSanitizer).show()
+	}
+
+	private async buildEventPreviewModel(selectedEvent: CalendarEvent) {
+		const [calendars, mailboxDetails] = await Promise.all([this.viewModel.calendarInfos.getAsync(), locator.mailModel.getUserMailboxDetails()])
+
+		const mailboxProperties = await locator.mailModel.getMailboxProperties(mailboxDetails.mailboxGroupRoot)
+
 		const userController = locator.logins.getUserController()
 		const customer = await userController.loadCustomer()
 		const ownMailAddresses = getEnabledMailAddressesWithUser(mailboxDetails, userController.userGroupInfo)
@@ -827,7 +833,7 @@ export class CalendarView extends BaseTopLevelView implements TopLevelView<Calen
 		const eventType = getEventType(selectedEvent, calendars, ownMailAddresses, userController.user)
 		const hasBusinessFeature = isCustomizationEnabledForCustomer(customer, FeatureType.BusinessFeatureEnabled) || (await userController.isNewPaidPlan())
 		const lazyIndexEntry = async () => (selectedEvent.uid != null ? locator.calendarFacade.getEventsByUid(selectedEvent.uid) : null)
-		const popupModel = new CalendarEventPopupViewModel(
+		const popupModel = new CalendarEventPreviewViewModel(
 			selectedEvent,
 			await locator.calendarModel(),
 			eventType,
@@ -836,7 +842,8 @@ export class CalendarView extends BaseTopLevelView implements TopLevelView<Calen
 			lazyIndexEntry,
 			async (mode: CalendarOperation) => locator.calendarEventModel(mode, selectedEvent, mailboxDetails, mailboxProperties, null),
 		)
-		new CalendarEventPopup(popupModel, rect, htmlSanitizer).show()
+
+		return popupModel
 	}
 
 	private showCalendarPopup(dom: HTMLElement) {

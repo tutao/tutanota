@@ -1,5 +1,5 @@
 import m, { Children, Component, Vnode } from "mithril"
-import { neverNull } from "@tutao/tutanota-utils"
+import { arrayEquals, assertNotNull, neverNull } from "@tutao/tutanota-utils"
 import { lang } from "../../misc/LanguageViewModel"
 import { getEventColor, getTimeZone } from "../date/CalendarUtils"
 import type { CalendarEvent } from "../../api/entities/tutanota/TypeRefs.js"
@@ -13,10 +13,10 @@ import { BootIcons } from "../../gui/base/icons/BootIcons.js"
 import { theme } from "../../gui/theme.js"
 import { px, size } from "../../gui/size.js"
 import { DaySelector } from "../date/DaySelector.js"
-import { EventPreviewView } from "./eventpopup/EventPreviewView.js"
-import type { HtmlSanitizer } from "../../misc/HtmlSanitizer.js"
+import { CalendarEventPreviewViewModel } from "./eventpopup/CalendarEventPreviewViewModel.js"
+import { EventDetailsView } from "./EventDetailsView.js"
 
-type Attrs = {
+export type CalendarAgendaViewAttrs = {
 	selectedDate: Date
 	/**
 	 * maps start of day timestamp to events on that day
@@ -32,19 +32,14 @@ type Attrs = {
 	onShowDate: (date: Date) => unknown
 	/**  when the selected date was changed  */
 	onDateSelected: (date: Date) => unknown
-	htmlSanitizer: Promise<HtmlSanitizer>
+	eventPreviewModel: (event: CalendarEvent) => Promise<CalendarEventPreviewViewModel>
 }
 
-export class CalendarAgendaView implements Component<Attrs> {
+export class CalendarAgendaView implements Component<CalendarAgendaViewAttrs> {
 	private selectedEvent: CalendarEvent | null = null
-	private eventDescription: string = ""
-	private htmlSanitizer: Promise<HtmlSanitizer>
+	private eventModel: CalendarEventPreviewViewModel | null = null
 
-	constructor(vnode: Vnode<Attrs>) {
-		this.htmlSanitizer = vnode.attrs.htmlSanitizer
-	}
-
-	view({ attrs }: Vnode<Attrs>): Children {
+	view({ attrs }: Vnode<CalendarAgendaViewAttrs>): Children {
 		const selectedDate = attrs.selectedDate
 
 		let containerStyle
@@ -68,7 +63,7 @@ export class CalendarAgendaView implements Component<Attrs> {
 		])
 	}
 
-	private renderDateSelector(attrs: Attrs, selectedDate: Date): Children {
+	private renderDateSelector(attrs: CalendarAgendaViewAttrs, selectedDate: Date): Children {
 		// This time width is used to create a container above the day slider
 		// So the hidden dates "seems" to be following the same margin of the view
 		const timeWidth = !styles.isDesktopLayout() ? size.calendar_hour_width_mobile : size.calendar_hour_width
@@ -116,7 +111,7 @@ export class CalendarAgendaView implements Component<Attrs> {
 			  )
 	}
 
-	private renderEventList(attrs: Attrs): Children {
+	private renderEventList(attrs: CalendarAgendaViewAttrs): Children {
 		const events = (attrs.eventsForDays.get(attrs.selectedDate.getTime()) ?? []).filter((e) => !attrs.hiddenCalendars.has(neverNull(e._ownerGroup)))
 		if (events.length === 0) {
 			return m(ColumnEmptyMessageBox, {
@@ -128,12 +123,12 @@ export class CalendarAgendaView implements Component<Attrs> {
 			return m(
 				".pt-s.flex.mlr.mb-s.col",
 				{ style: { ...(!styles.isDesktopLayout() ? { marginLeft: px(size.calendar_hour_width_mobile) } : {}) } },
-				this.renderEventsForDay(events, attrs.selectedDate, getTimeZone(), attrs.groupColors, attrs.onEventClicked),
+				this.renderEventsForDay(events, getTimeZone(), attrs),
 			)
 		}
 	}
 
-	private renderAgenda(attrs: Attrs): Children {
+	private renderAgenda(attrs: CalendarAgendaViewAttrs): Children {
 		if (!styles.isDesktopLayout()) return this.renderEventList(attrs)
 		return m(".flex.flex-grow", [
 			m(
@@ -152,10 +147,10 @@ export class CalendarAgendaView implements Component<Attrs> {
 					style: {
 						"min-width": px(size.third_col_min_width),
 						"max-width": px(size.third_col_max_width),
-						height: this.selectedEvent == null ? "100%" : "max-content",
+						height: this.selectedEvent != null && this.eventModel != null ? "max-content" : "100%",
 					},
 				},
-				this.selectedEvent == null
+				this.selectedEvent == null || !this.eventModel == null
 					? m(
 							".rel.flex-grow.height-100p",
 							m(ColumnEmptyMessageBox, {
@@ -164,23 +159,25 @@ export class CalendarAgendaView implements Component<Attrs> {
 								color: theme.list_message_bg,
 							}),
 					  )
-					: m(".flex-grow.plr-l.pt-s", [
-							m(EventPreviewView, {
-								event: this.selectedEvent,
-								sanitizedDescription: this.eventDescription,
-							}),
-					  ]),
+					: m(EventDetailsView, {
+							event: this.selectedEvent,
+							eventPreviewModel: assertNotNull(this.eventModel),
+							deleteCallback: () => (this.selectedEvent = null),
+					  }),
 			),
 		])
 	}
 
-	private renderEventsForDay(
-		events: CalendarEvent[],
-		day: Date,
-		zone: string,
-		colors: GroupColors,
-		click: (event: CalendarEvent, domEvent: MouseEvent) => unknown,
-	) {
+	private selectEventAction(event: CalendarEvent, modelPromise: (event: CalendarEvent) => Promise<CalendarEventPreviewViewModel>) {
+		modelPromise(event).then((model) => {
+			this.eventModel = model
+			this.selectedEvent = event
+			m.redraw()
+		})
+	}
+
+	private renderEventsForDay(events: CalendarEvent[], zone: string, attrs: CalendarAgendaViewAttrs) {
+		const { selectedDate: day, groupColors: colors, onEventClicked: click, eventPreviewModel: modelPromise } = attrs
 		return events.length === 0
 			? m(".mb-s", lang.get("noEntries_msg"))
 			: m(
@@ -191,17 +188,24 @@ export class CalendarAgendaView implements Component<Attrs> {
 						},
 					},
 					events.map((event) => {
+						// We need to reload the model after editing an event
+						if (
+							styles.isDesktopLayout() &&
+							this.selectedEvent != null &&
+							arrayEquals(this.selectedEvent._id as [string, string], event._id as [string, string])
+						) {
+							this.selectEventAction(event, modelPromise)
+						}
+
 						return m(
 							"",
 							m(CalendarAgendaItemView, {
 								event: event,
 								color: getEventColor(event, colors),
+								selected: event === this.selectedEvent,
 								click: (domEvent) => {
 									if (styles.isDesktopLayout()) {
-										this.htmlSanitizer.then((sanitizer) => {
-											this.eventDescription = sanitizer.sanitizeHTML(event.description).html
-											this.selectedEvent = event
-										})
+										this.selectEventAction(event, modelPromise)
 									} else {
 										click(event, domEvent)
 									}

@@ -35,7 +35,7 @@ export class DaySelectorSidebar implements Component<DaySelectorSidebarAttrs> {
 		}
 
 		return m(
-			".plr-m.pt-s",
+			".plr-m.mt-form",
 			m(".elevated-bg.plr.pt-s.pb-m.border-radius.flex.flex-column", [
 				this.renderPickerHeader(this.currentDate),
 				m(".flex-grow.overflow-hidden", [
@@ -61,14 +61,13 @@ export class DaySelectorSidebar implements Component<DaySelectorSidebarAttrs> {
 	}
 
 	private renderPickerHeader(date: Date): Children {
-		return m(".flex.flex-space-between.pb-s.items-center", [
+		return m(".flex.flex-space-between.pb.items-center.mlr-xs", [
 			this.renderSwitchMonthArrowIcon(false),
 			m(
-				".b",
+				".b.mlr-s",
 				{
 					style: {
 						fontSize: "14px",
-						marginLeft: "6px",
 					},
 				},
 				formatMonthWithFullYear(date),
@@ -80,14 +79,14 @@ export class DaySelectorSidebar implements Component<DaySelectorSidebarAttrs> {
 	private renderSwitchMonthArrowIcon(forward: boolean): Children {
 		const bgColor = hexToRgb(theme.content_button)
 		return m(
-			"button.icon.flex.justify-center.items-center.click.state-bg.mlr-s",
+			"button.icon.flex.justify-center.items-center.click.state-bg",
 			{
 				onclick: () => this.onMonthChange(forward),
 				style: {
 					borderRadius: "50%",
 					fill: theme.content_fg,
-					width: "20px",
-					height: "20px",
+					width: "26px",
+					height: "26px",
 					tabIndex: 0,
 				},
 			},
@@ -95,6 +94,8 @@ export class DaySelectorSidebar implements Component<DaySelectorSidebarAttrs> {
 				icon: forward ? Icons.ArrowForward : BootIcons.Back,
 				style: {
 					fill: theme.content_fg,
+					width: "14px",
+					height: "14px",
 				},
 			}),
 		)

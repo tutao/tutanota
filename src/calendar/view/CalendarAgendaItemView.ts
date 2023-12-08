@@ -2,6 +2,7 @@ import m, { Children, Component, Vnode } from "mithril"
 import { isAllDayEvent } from "../../api/common/utils/CommonCalendarUtils.js"
 import { formatEventTimes } from "../date/CalendarUtils.js"
 import { CalendarEvent } from "../../api/entities/tutanota/TypeRefs.js"
+import { stateBgHover } from "../../gui/builtinThemes.js"
 
 interface CalendarAgendaItemViewAttrs {
 	day: Date
@@ -9,6 +10,7 @@ interface CalendarAgendaItemViewAttrs {
 	event: CalendarEvent
 	color: string
 	click: (domEvent: MouseEvent) => unknown
+	selected?: boolean
 }
 
 export class CalendarAgendaItemView implements Component<CalendarAgendaItemViewAttrs> {
@@ -17,6 +19,10 @@ export class CalendarAgendaItemView implements Component<CalendarAgendaItemViewA
 			".flex.items-center.gap-vpad.click.state-bg.plr.border-radius.pt-s.pb-s",
 			{
 				onclick: attrs.click,
+				transition: "background 200ms",
+				style: {
+					backgroundColor: attrs.selected ? stateBgHover : null,
+				},
 			},
 			[
 				m("", {

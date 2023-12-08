@@ -47,10 +47,10 @@ async function getParsedEvent(fileData: DataFile): Promise<ParsedIcalFileContent
 }
 
 export async function showEventDetails(event: CalendarEvent, eventBubbleRect: ClientRect, mail: Mail | null): Promise<void> {
-	const [latestEvent, { CalendarEventPopup }, { CalendarEventPopupViewModel }, { htmlSanitizer }] = await Promise.all([
+	const [latestEvent, { CalendarEventPopup }, { CalendarEventPreviewViewModel }, { htmlSanitizer }] = await Promise.all([
 		getLatestEvent(event),
 		import("../view/eventpopup/CalendarEventPopup.js"),
-		import("../view/eventpopup/CalendarEventPopupViewModel.js"),
+		import("../view/eventpopup/CalendarEventPreviewViewModel.js"),
 		import("../../misc/HtmlSanitizer"),
 	])
 
@@ -79,7 +79,7 @@ export async function showEventDetails(event: CalendarEvent, eventBubbleRect: Cl
 			isCustomizationEnabledForCustomer(customer, FeatureType.BusinessFeatureEnabled) || (await locator.logins.getUserController().isNewPaidPlan())
 	}
 
-	const viewModel = new CalendarEventPopupViewModel(
+	const viewModel = new CalendarEventPreviewViewModel(
 		latestEvent,
 		await locator.calendarModel(),
 		eventType,
