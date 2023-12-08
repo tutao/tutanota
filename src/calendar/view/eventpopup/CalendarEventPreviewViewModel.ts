@@ -13,7 +13,7 @@ import { CalendarEventUidIndexEntry } from "../../../api/worker/facades/lazy/Cal
 /**
  * makes decisions about which operations are available from the popup and knows how to implement them depending on the event's type.
  */
-export class CalendarEventPopupViewModel {
+export class CalendarEventPreviewViewModel {
 	readonly canEdit: boolean
 	readonly canDelete: boolean
 	readonly canSendUpdates: boolean

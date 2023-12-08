@@ -13,8 +13,8 @@ import type { HtmlSanitizer } from "../../../misc/HtmlSanitizer.js"
 import { prepareCalendarDescription } from "../../date/CalendarUtils.js"
 import { BootIcons } from "../../../gui/base/icons/BootIcons.js"
 import { IconButton } from "../../../gui/base/IconButton.js"
-import { CalendarEventPopupViewModel } from "./CalendarEventPopupViewModel.js"
 import { convertTextToHtml } from "../../../misc/Formatter.js"
+import { CalendarEventPreviewViewModel } from "./CalendarEventPreviewViewModel.js"
 
 /**
  * small modal displaying all relevant information about an event in a compact fashion. offers limited editing capabilities to participants in the
@@ -36,7 +36,7 @@ export class CalendarEventPopup implements ModalComponent {
 	 * @param eventBubbleRect the rect where the event bubble was displayed that was clicked (if any)
 	 * @param htmlSanitizer
 	 */
-	constructor(private readonly model: CalendarEventPopupViewModel, private readonly eventBubbleRect: PosRect, htmlSanitizer: HtmlSanitizer) {
+	constructor(private readonly model: CalendarEventPreviewViewModel, private readonly eventBubbleRect: PosRect, htmlSanitizer: HtmlSanitizer) {
 		// We receive the HtmlSanitizer from outside and do the sanitization inside, so that we don't have to just assume it was already done
 		this.sanitizedDescription = prepareCalendarDescription(
 			model.calendarEvent.description,

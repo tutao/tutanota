@@ -342,6 +342,10 @@ styles.registerStyle("main", () => {
 			"margin-left": px(size.hpad_small),
 			"margin-right": px(size.hpad_small),
 		},
+		".mlr-xs": {
+			"margin-left": px(size.vpad_xs),
+			"margin-right": px(size.vpad_xs),
+		},
 		".ml-hpad_small": {
 			"margin-left": px(size.hpad_small),
 		},
@@ -2040,7 +2044,7 @@ styles.registerStyle("main", () => {
 		},
 		".calendar-segment-control > .segmentControl": {
 			display: "grid",
-			"min-width": "276px",
+			"min-width": "192px",
 			"grid-template-columns": "1fr 1fr 1fr 1fr",
 		},
 		".calendar-segment-control .segmentControlItem:first-child": {
