@@ -167,7 +167,7 @@ async function checkInboxRule(mailFacade: MailFacade, entityClient: EntityClient
 				inboxRule,
 			)
 		} else if (ruleType === InboxRuleType.RECIPIENT_BCC_EQUALS) {
-			const bccRecipients = !isLegacyMail(mail) ? (await mailFacade.loadMailDetailsBlob(mail)).recipients.ccRecipients : mail.bccRecipients
+			const bccRecipients = !isLegacyMail(mail) ? (await mailFacade.loadMailDetailsBlob(mail)).recipients.bccRecipients : mail.bccRecipients
 			return _checkEmailAddresses(
 				bccRecipients.map((m) => m.address),
 				inboxRule,
