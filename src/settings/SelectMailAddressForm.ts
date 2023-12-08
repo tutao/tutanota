@@ -51,7 +51,7 @@ export class SelectMailAddressForm implements Component<SelectMailAddressFormAtt
 	}
 
 	onupdate(vnode: Vnode<SelectMailAddressFormAttrs>) {
-		if (this.lastAttrs.selectedDomain !== vnode.attrs.selectedDomain) {
+		if (this.lastAttrs.selectedDomain.domain !== vnode.attrs.selectedDomain.domain) {
 			this.verifyMailAddress(vnode.attrs)
 		}
 		this.lastAttrs = vnode.attrs
