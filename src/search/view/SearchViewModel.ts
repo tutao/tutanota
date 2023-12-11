@@ -276,12 +276,11 @@ export class SearchViewModel {
 		const startDate = this.startDate
 
 		if (startDate && startDate.getTime() < this.search.indexState().currentMailIndexTimestamp) {
-			confirmCallback().then((confirmed) => {
+			confirmCallback().then(async (confirmed) => {
 				if (confirmed) {
-					this.indexerFacade.extendMailIndex(startDate.getTime()).then(() => {
-						this.updateSearchUrl()
-						this.updateUi()
-					})
+					await this.indexerFacade.extendMailIndex(startDate.getTime())
+					this.updateSearchUrl()
+					this.updateUi()
 				}
 			})
 		} else {
