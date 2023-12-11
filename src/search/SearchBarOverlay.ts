@@ -3,8 +3,8 @@ import { px, size } from "../gui/size"
 import { lang } from "../misc/LanguageViewModel"
 import { Button, ButtonType } from "../gui/base/Button.js"
 import { Icons } from "../gui/base/icons/Icons"
-import { downcast, isEmpty, isSameDay, isSameTypeRef, TypeRef } from "@tutao/tutanota-utils"
-import { EventTextTimeOption, FULL_INDEXED_TIMESTAMP } from "../api/common/TutanotaConstants"
+import { downcast, isEmpty, isSameTypeRef, TypeRef } from "@tutao/tutanota-utils"
+import { FULL_INDEXED_TIMESTAMP } from "../api/common/TutanotaConstants"
 import { formatDate, formatDateWithMonth, formatTimeOrDateOrYesterday } from "../misc/Formatter"
 import type { CalendarEvent, Contact, Mail } from "../api/entities/tutanota/TypeRefs.js"
 import { CalendarEventTypeRef, ContactTypeRef, MailTypeRef } from "../api/entities/tutanota/TypeRefs.js"
@@ -25,6 +25,7 @@ import { companyTeamLabel } from "../misc/ClientConstants.js"
 import { isTutanotaTeamMail } from "../api/common/mail/CommonMailUtils.js"
 import { formatEventTime } from "../calendar/date/CalendarUtils.js"
 import { isAllDayEvent } from "../api/common/utils/CommonCalendarUtils.js"
+import { formatEventDuration, getTimeZone } from "../calendar/date/CalendarUtils.js"
 
 type SearchBarOverlayAttrs = {
 	state: SearchBarState
@@ -267,7 +268,7 @@ export class SearchBarOverlay implements Component<SearchBarOverlayAttrs> {
 	private renderCalendarEventResult(event: CalendarEvent): Children {
 		return [
 			m(".top.flex-space-between", m(".name", event.summary)),
-			m(".bottom.flex-space-between", m("small.mail-address", renderCalendarEventTimesForDisplay(event))),
+			m(".bottom.flex-space-between", m("small.mail-address", formatEventDuration(event, getTimeZone(), false))),
 		]
 	}
 
@@ -312,24 +313,5 @@ export class SearchBarOverlay implements Component<SearchBarOverlayAttrs> {
 				),
 			]),
 		]
-	}
-}
-
-export function renderCalendarEventTimesForDisplay(event: CalendarEvent): string {
-	const isAllDay = isAllDayEvent(event)
-	if (isSameDay(event.startTime, event.endTime)) {
-		const datePart = event.startTime.toLocaleDateString()
-		const timesPart = isAllDay ? lang.get("allDay_label") : formatEventTime(event, EventTextTimeOption.START_END_TIME)
-		return datePart + " " + timesPart
-	} else {
-		const startDatePart = event.startTime.toLocaleDateString()
-		const endDatePart = event.endTime.toLocaleDateString()
-		if (isAllDay) {
-			return startDatePart + " - " + endDatePart + " " + lang.get("allDay_label")
-		} else {
-			const startTimePart = formatEventTime(event, EventTextTimeOption.START_TIME)
-			const endTimePart = formatEventTime(event, EventTextTimeOption.END_TIME)
-			return startDatePart + " " + startTimePart + " - " + endDatePart + " " + endTimePart
-		}
 	}
 }

@@ -6,7 +6,7 @@ import { ViewSlider } from "../../gui/nav/ViewSlider.js"
 import type { Shortcut } from "../../misc/KeyManager"
 import { keyManager } from "../../misc/KeyManager"
 import { Icons } from "../../gui/base/icons/Icons"
-import { assertNotNull, downcast, getStartOfDay, ofClass } from "@tutao/tutanota-utils"
+import { downcast, getStartOfDay, ofClass } from "@tutao/tutanota-utils"
 import type { CalendarEvent, GroupSettings, UserSettingsGroupRoot } from "../../api/entities/tutanota/TypeRefs.js"
 import { createGroupSettings } from "../../api/entities/tutanota/TypeRefs.js"
 import { defaultCalendarColor, GroupType, Keys, reverse, ShareCapability, TimeFormat, WeekStart } from "../../api/common/TutanotaConstants"
@@ -49,6 +49,7 @@ import { DrawerMenuAttrs } from "../../gui/nav/DrawerMenu.js"
 import { BaseTopLevelView } from "../../gui/BaseTopLevelView.js"
 import { TopLevelAttrs, TopLevelView } from "../../TopLevelView.js"
 import { getEventWithDefaultTimes } from "../../api/common/utils/CommonCalendarUtils.js"
+import { buildEventPreviewModel } from "./eventpopup/CalendarEventPreviewViewModel.js"
 import { BackgroundColumnLayout } from "../../gui/BackgroundColumnLayout.js"
 import { theme } from "../../gui/theme.js"
 import { CalendarMobileHeader } from "./CalendarMobileHeader.js"
@@ -753,12 +754,8 @@ export class CalendarView extends BaseTopLevelView implements TopLevelView<Calen
 			right: x,
 		}
 
-		let calendarInfos
-
-		if (this.viewModel.calendarInfos.isLoaded()) calendarInfos = assertNotNull(this.viewModel.calendarInfos.getSync())
-		else calendarInfos = await this.viewModel.calendarInfos.getAsync()
-
-		const [popupModel, htmlSanitizer] = await Promise.all([locator.calendarEventPreviewModel(selectedEvent, calendarInfos), htmlSanitizerPromise])
+		const calendars = await this.viewModel.calendarInfos.getAsync()
+		const [popupModel, htmlSanitizer] = await Promise.all([buildEventPreviewModel(selectedEvent, calendars), htmlSanitizerPromise])
 
 		new CalendarEventPopup(popupModel, rect, htmlSanitizer).show()
 	}
