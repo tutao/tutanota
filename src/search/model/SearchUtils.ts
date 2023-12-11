@@ -168,7 +168,7 @@ export function createRestriction(
 			r.attributeIds = fieldData.attributeIds
 		}
 	} else if (searchCategory === "calendar") {
-		// FIXME: do we need to put the calendar to search here?
+		// nothing to do, the calendar restriction was completely set up already.
 	} else if (searchCategory === "contact") {
 		if (field === "recipient") {
 			r.field = field
@@ -228,25 +228,39 @@ export function getRestriction(route: string): SearchRestriction {
 		category = "contact"
 	} else if (route.startsWith("/calendar") || route.startsWith("/search/calendar")) {
 		const { params } = m.parsePathname(route)
-		category = "calendar"
-		const now = new Date()
-		now.setDate(1)
-		start = getStartOfDay(now).getTime()
-
-		const endDate = incrementMonth(new Date(), 3)
-		endDate.setDate(0)
-		end = getEndOfDay(endDate).getTime()
 
 		try {
 			if (typeof params["eventSeries"] === "boolean") {
 				eventSeries = params["eventSeries"]
 			}
+
+			if (typeof params["start"] === "string") {
+				start = filterInt(params["start"])
+			}
+
+			if (typeof params["end"] === "string") {
+				end = filterInt(params["end"])
+			}
+
 			const list = params["list"]
 			if (Array.isArray(list)) {
 				listIds = list
 			}
 		} catch (e) {
 			console.log("invalid query: " + route, e)
+		}
+
+		category = "calendar"
+		if (start == null) {
+			const now = new Date()
+			now.setDate(1)
+			start = getStartOfDay(now).getTime()
+		}
+
+		if (end == null) {
+			const endDate = incrementMonth(new Date(start), 3)
+			endDate.setDate(0)
+			end = getEndOfDay(endDate).getTime()
 		}
 	} else if (route.startsWith("/settings/whitelabelaccounts")) {
 		category = "whitelabelchild"

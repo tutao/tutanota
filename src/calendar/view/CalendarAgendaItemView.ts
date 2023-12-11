@@ -12,7 +12,7 @@ export interface CalendarAgendaItemViewAttrs {
 	color: string
 	click: (domEvent: MouseEvent) => unknown
 	timeText: string
-	wrapSummary?: boolean
+	limitSummaryWidth?: boolean
 	selected?: boolean
 }
 
@@ -21,7 +21,7 @@ export class CalendarAgendaItemView implements Component<CalendarAgendaItemViewA
 		return m(
 			".flex.items-center.gap-vpad.click.plr.border-radius.pt-s.pb-s",
 			{
-				class: (styles.isDesktopLayout() ? "" : "state-bg") + (attrs.wrapSummary ? "limit-width full-width" : ""),
+				class: (styles.isDesktopLayout() ? "" : "state-bg") + (attrs.limitSummaryWidth ? "limit-width full-width" : ""),
 				onclick: attrs.click,
 				style: {
 					transition: `background ${DefaultAnimationTime}ms`,
@@ -37,8 +37,8 @@ export class CalendarAgendaItemView implements Component<CalendarAgendaItemViewA
 						backgroundColor: `#${attrs.color}`,
 					},
 				}),
-				m(".flex.col", { class: attrs.wrapSummary ? "min-width-0" : "" }, [
-					m("p.b.m-0", { class: attrs.wrapSummary ? "text-ellipsis" : "" }, attrs.event.summary),
+				m(".flex.col", { class: attrs.limitSummaryWidth ? "min-width-0" : "" }, [
+					m("p.b.m-0", { class: attrs.limitSummaryWidth ? "text-ellipsis" : "" }, attrs.event.summary),
 					m("", attrs.timeText),
 				]),
 			],

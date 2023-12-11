@@ -5,10 +5,12 @@ import {
 	filterInt,
 	findAllAndRemove,
 	findAndRemove,
+	getFirstOrThrow,
 	getFromMap,
 	getStartOfDay,
 	incrementDate,
 	insertIntoSortedArray,
+	isNotNull,
 	isSameDay,
 	isSameDayOfDate,
 	isValidDate,
@@ -707,6 +709,101 @@ export function addDaysForRecurringEvent(
 }
 
 /**
+ * get all instances of all series in a list of event series progenitors that intersect with the given range.
+ * will return a sorted array of instances (by start time), interleaving the series if necessary.
+ *
+ */
+export function generateCalendarInstancesInRange(
+	progenitors: ReadonlyArray<CalendarEvent>,
+	range: CalendarTimeRange,
+	max: number = Infinity,
+	timeZone: string = getTimeZone(),
+): Array<CalendarEvent> {
+	const ret: Array<CalendarEvent> = []
+
+	const getNextCandidate = (
+		previousCandidate: CalendarEvent,
+		generator: Generator<{
+			startTime: Date
+			endTime: Date
+		}>,
+		excludedDates: Array<DateWrapper>,
+	) => {
+		const allDay = isAllDayEvent(previousCandidate)
+		const exclusions = allDay ? excludedDates.map(({ date }) => createDateWrapper({ date: getAllDayDateForTimezone(date, timeZone) })) : excludedDates
+		let current
+
+		// not using for-of because that automatically closes the generator
+		// when breaking or returning, and we want to suspend and resume iteration.
+		while (ret.length < max) {
+			current = generator.next()
+
+			if (current.done) break
+
+			let { startTime, endTime } = current.value
+			if (startTime.getTime() > range.end) break
+			// using "<=" because an all-day-event that lasts n days spans n+1 days,
+			// ending at midnight utc on the day after. So they seem to intersect
+			// the range if it starts on the day after the event ends.
+			if (endTime.getTime() <= range.start) continue
+
+			if (!isExcludedDate(startTime, exclusions)) {
+				const nextCandidate = clone(previousCandidate)
+				if (allDay) {
+					nextCandidate.startTime = getAllDayDateUTCFromZone(startTime, timeZone)
+					nextCandidate.endTime = getAllDayDateUTCFromZone(endTime, timeZone)
+				} else {
+					nextCandidate.startTime = new Date(startTime)
+					nextCandidate.endTime = new Date(endTime)
+				}
+				return nextCandidate
+			}
+		}
+
+		return null
+	}
+
+	// we need to have one candidate for each series and then check which one gets added first.
+	// if we added one, we advance the generator that generated it to the next candidate and repeat.
+	const generators: Array<{
+		generator: Generator<{ startTime: Date; endTime: Date }>
+		excludedDates: Array<DateWrapper>
+		nextCandidate: CalendarEvent
+	}> = progenitors
+		.map((p) => {
+			const generator = generateEventOccurrences(p, timeZone)
+			const excludedDates = p.repeatRule?.excludedDates ?? []
+			const nextCandidate = getNextCandidate(p, generator, excludedDates)
+			if (nextCandidate == null) return null
+			return {
+				excludedDates,
+				generator,
+				nextCandidate,
+			}
+		})
+		.filter(isNotNull)
+
+	while (generators.length > 0) {
+		// put the smallest nextCandidate in front. we only change the first item in each iteration, so this should be quick to re-sort.
+		// still O(n²) in the best case >:(
+		// FIXME: there's definitely potential for optimization here.
+		generators.sort((a, b) => (a.nextCandidate?.startTime.getTime() ?? 0) - (b.nextCandidate?.startTime.getTime() ?? 0))
+		const first = getFirstOrThrow(generators)
+		const newNext = getNextCandidate(first.nextCandidate, first.generator, first.excludedDates)
+
+		ret.push(first.nextCandidate)
+
+		if (newNext == null) {
+			generators.splice(0, 1)
+			continue
+		}
+
+		first.nextCandidate = newNext
+	}
+	return ret
+}
+
+/**
  * Returns the end date of a repeating rule that can be used to display in the ui.
  *
  * The actual end date that is stored on the repeat rule is always one day behind the displayed end date:
@@ -731,16 +828,17 @@ export function getRepeatEndTimeForDisplay(repeatRule: RepeatRule, isAllDay: boo
 }
 
 /**
- * generates all event occurrences in chronological order
- * @param event the event to iterate occurrences on. must have a repeat rule
+ * generates all event occurrences in chronological order, including the progenitor.
+ * terminates once the end condition of the repeat rule is hit.
+ * @param event the event to iterate occurrences on.
  * @param timeZone
- * the end condition of the repeat rule is hit or the callback returns false.
  */
 function* generateEventOccurrences(event: CalendarEvent, timeZone: string): Generator<{ startTime: Date; endTime: Date }> {
 	const { repeatRule } = event
 
 	if (repeatRule == null) {
-		throw new Error("Invalid argument: event doesn't have a repeatRule" + JSON.stringify(event))
+		yield event
+		return
 	}
 
 	const frequency: RepeatPeriod = downcast(repeatRule.frequency)

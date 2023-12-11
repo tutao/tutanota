@@ -31,6 +31,7 @@ import { LayerType } from "../RootView"
 import { BaseSearchBar, BaseSearchBarAttrs } from "../gui/base/BaseSearchBar.js"
 import { SearchRouter } from "./view/SearchRouter.js"
 import { PageSize } from "../gui/base/ListUtils.js"
+import { generateCalendarInstancesInRange } from "../calendar/date/CalendarUtils.js"
 
 assertMainOrNode()
 export type ShowMoreAction = {
@@ -509,30 +510,25 @@ export class SearchBar implements Component<SearchBarAttrs> {
 		return this.downloadResults(result).then((entries) => {
 			// If there was no new search while we've been downloading the result
 			if (!locator.search.isNewSearch(result.query, result.restriction)) {
-				const filteredResults = this.filterResults(entries, result.restriction)
-
-				const overlayEntries = filteredResults.slice(0, MAX_SEARCH_PREVIEW_RESULTS)
+				const { filteredEntries, couldShowMore } = this.filterResults(entries, result.restriction)
 
 				if (
 					result.query.trim() !== "" &&
-					(overlayEntries.length === 0 ||
-						hasMoreResults(result) ||
-						overlayEntries.length < filteredResults.length ||
-						result.currentIndexTimestamp !== FULL_INDEXED_TIMESTAMP)
+					(filteredEntries.length === 0 || hasMoreResults(result) || couldShowMore || result.currentIndexTimestamp !== FULL_INDEXED_TIMESTAMP)
 				) {
 					const moreEntry: ShowMoreAction = {
 						resultCount: result.results.length,
-						shownCount: overlayEntries.length,
+						shownCount: filteredEntries.length,
 						indexTimestamp: result.currentIndexTimestamp,
 						allowShowMore:
 							!isSameTypeRef(result.restriction.type, GroupInfoTypeRef) && !isSameTypeRef(result.restriction.type, WhitelabelChildTypeRef),
 					}
-					overlayEntries.push(moreEntry)
+					filteredEntries.push(moreEntry)
 				}
 
 				this.updateState({
-					entities: overlayEntries,
-					selected: overlayEntries[0],
+					entities: filteredEntries,
+					selected: filteredEntries[0],
 				})
 			}
 		})
@@ -542,15 +538,25 @@ export class SearchBar implements Component<SearchBarAttrs> {
 		return !m.route.get().startsWith("/search")
 	}
 
-	private filterResults(instances: ReadonlyArray<Entry>, restriction: SearchRestriction): Entries {
-		let filteredInstances = instances.slice()
-
+	private filterResults(instances: Array<Entry>, restriction: SearchRestriction): { filteredEntries: Entries; couldShowMore: boolean } {
 		if (isSameTypeRef(restriction.type, ContactTypeRef)) {
 			// Sort contacts by name
-			filteredInstances.sort((o1, o2) => compareContacts(o1 as any, o2 as any))
+			return {
+				filteredEntries: instances
+					.slice() // we can't modify the given array
+					.sort((o1, o2) => compareContacts(o1 as any, o2 as any))
+					.slice(0, MAX_SEARCH_PREVIEW_RESULTS),
+				couldShowMore: instances.length > MAX_SEARCH_PREVIEW_RESULTS,
+			}
+		} else if (isSameTypeRef(restriction.type, CalendarEventTypeRef)) {
+			const range = { start: restriction.start ?? 0, end: restriction.end ?? 0 }
+			const generatedInstances = generateCalendarInstancesInRange(downcast(instances), range, MAX_SEARCH_PREVIEW_RESULTS + 1)
+			return {
+				filteredEntries: generatedInstances.slice(0, MAX_SEARCH_PREVIEW_RESULTS),
+				couldShowMore: generatedInstances.length > MAX_SEARCH_PREVIEW_RESULTS,
+			}
 		}
-
-		return filteredInstances
+		return { filteredEntries: instances.slice(0, MAX_SEARCH_PREVIEW_RESULTS), couldShowMore: instances.length > MAX_SEARCH_PREVIEW_RESULTS }
 	}
 
 	private onFocus() {

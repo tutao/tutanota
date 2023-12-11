@@ -18,6 +18,7 @@ import { ListState } from "../../gui/base/List.js"
 import {
 	assertNotNull,
 	defer,
+	downcast,
 	getEndOfDay,
 	getStartOfDay,
 	groupBy,
@@ -25,6 +26,7 @@ import {
 	isSameTypeRef,
 	isSameTypeRefNullable,
 	isToday,
+	LazyLoaded,
 	lazyMemoized,
 	neverNull,
 	ofClass,
@@ -37,7 +39,7 @@ import { ConversationViewModel, ConversationViewModelFactory } from "../../mail/
 import { createRestriction, getRestriction, searchCategoryForRestriction } from "../model/SearchUtils.js"
 import Stream from "mithril/stream"
 import { MailboxDetail, MailModel } from "../../mail/model/MailModel.js"
-import { getStartOfTheWeekOffsetForUser } from "../../calendar/date/CalendarUtils.js"
+import { CalendarTimeRange, generateCalendarInstancesInRange, getStartOfTheWeekOffsetForUser } from "../../calendar/date/CalendarUtils.js"
 import { SearchFacade } from "../../api/worker/search/SearchFacade.js"
 import { LoginController } from "../../api/main/LoginController.js"
 import { Indexer } from "../../api/worker/search/Indexer.js"
@@ -46,6 +48,10 @@ import { getMailFilterForType, MailFilterType } from "../../mail/model/MailUtils
 import { SearchRouter } from "./SearchRouter.js"
 import { MailOpenedListener } from "../../mail/view/MailViewModel.js"
 import { CalendarInfo } from "../../calendar/model/CalendarModel.js"
+import { ProgrammingError } from "../../api/common/error/ProgrammingError.js"
+import { locator } from "../../api/main/MainLocator.js"
+import { NoopProgressMonitor } from "../../api/common/utils/ProgressMonitor.js"
+import m from "mithril"
 
 const SEARCH_PAGE_SIZE = 100
 
@@ -82,6 +88,12 @@ export class SearchViewModel {
 	private resultSubscription: Stream<void> | null = null
 	private listStateSubscription: Stream<unknown> | null = null
 	loadingAllForSearchResult: SearchResult | null = null
+	private readonly lazyCalendarInfos: LazyLoaded<ReadonlyMap<string, CalendarInfo>> = new LazyLoaded(async () => {
+		const calendarModel = await locator.calendarModel()
+		const calendarInfos = await calendarModel.loadCalendarInfos(new NoopProgressMonitor())
+		m.redraw()
+		return calendarInfos
+	})
 
 	constructor(
 		private readonly router: SearchRouter,
@@ -97,6 +109,10 @@ export class SearchViewModel {
 		private readonly updateUi: () => unknown,
 	) {
 		this.listModel = this.createList()
+	}
+
+	getLazyCalendarInfos() {
+		return this.lazyCalendarInfos
 	}
 
 	readonly init = lazyMemoized(() => {
@@ -176,6 +192,7 @@ export class SearchViewModel {
 				this.selectedMailField = restriction.field
 			} else if (isSameTypeRef(restriction.type, CalendarEventTypeRef)) {
 				this.includeRepeatingEvents = restriction.eventSeries ?? true
+				this.lazyCalendarInfos.load()
 			}
 		}
 
@@ -239,6 +256,7 @@ export class SearchViewModel {
 			return PaidFunctionResult.PaidSubscriptionNeeded
 		} else {
 			if (end && isToday(end)) {
+				console.log("setting end to null")
 				this.endDate = null
 			} else {
 				this.endDate = end
@@ -247,6 +265,7 @@ export class SearchViewModel {
 			let current = this.getCurrentMailIndexDate()
 
 			if (start && current && isSameDay(current, start)) {
+				console.log("setting start to null")
 				this.startDate = null
 			} else {
 				this.startDate = start
@@ -282,7 +301,7 @@ export class SearchViewModel {
 
 	searchAgain(confirmCallback: ConfirmCallback): void {
 		const startDate = this.startDate
-		if (startDate && startDate.getTime() < this.search.indexState().currentMailIndexTimestamp) {
+		if (startDate && startDate.getTime() < this.search.indexState().currentMailIndexTimestamp && this.getCategory() === "mail") {
 			confirmCallback().then(async (confirmed) => {
 				if (confirmed) {
 					await this.indexerFacade.extendMailIndex(startDate.getTime())
@@ -327,8 +346,8 @@ export class SearchViewModel {
 		} else if (isSameTypeRefNullable(this.lastType, CalendarEventTypeRef)) {
 			restriction = createRestriction(
 				this.getCategory(),
-				this.endDate ? getEndOfDay(this.endDate).getTime() : null,
 				this.startDate ? getStartOfDay(this.startDate).getTime() : null,
+				this.endDate ? getEndOfDay(this.endDate).getTime() : null,
 				null,
 				this.selectedCalendar == null ? [] : [this.selectedCalendar.groupRoot.longEvents, this.selectedCalendar.groupRoot.shortEvents],
 				this.includeRepeatingEvents,
@@ -474,6 +493,8 @@ export class SearchViewModel {
 			sortCompare: (o1: SearchResultListEntry, o2: SearchResultListEntry) => {
 				if (isSameTypeRef(o1.entry._type, ContactTypeRef)) {
 					return compareContacts(o1.entry as any, o2.entry as any)
+				} else if (isSameTypeRef(o1.entry._type, CalendarEventTypeRef)) {
+					return downcast(o1.entry).startTime.getTime() - downcast(o2.entry).startTime.getTime()
 				} else {
 					return sortCompareByReverseId(o1.entry, o2.entry)
 				}
@@ -525,13 +546,19 @@ export class SearchViewModel {
 			}
 		} else if (isSameTypeRef(currentResult.restriction.type, CalendarEventTypeRef)) {
 			try {
-				const loadedInstances = await this.loadAndFilterInstances(currentResult.restriction.type, result.results, result, 0)
-				console.log(loadedInstances)
-				items = loadedInstances
+				const progenitors = await this.loadAndFilterInstances(currentResult.restriction.type, result.results, result, 0)
+				const { start, end } = currentResult.restriction
+				if (start == null || end == null) {
+					throw new ProgrammingError("invalid search time range for calendar")
+				}
+				const range: CalendarTimeRange = { start, end }
+				items = generateCalendarInstancesInRange(progenitors, range)
 			} finally {
 				this.updateUi()
 			}
 		} else {
+			// A - a - a | a a .. 100x a |
+			//     B     |             b |
 			// this type is not shown in the search view, e.g. group info
 			items = []
 		}
