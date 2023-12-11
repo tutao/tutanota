@@ -1,6 +1,6 @@
 import stream from "mithril/stream"
 import Stream from "mithril/stream"
-import { CalendarEvent, CalendarEventTypeRef, MailTypeRef } from "../../api/entities/tutanota/TypeRefs.js"
+import { CalendarEventTypeRef, MailTypeRef } from "../../api/entities/tutanota/TypeRefs.js"
 import { NOTHING_INDEXED_TIMESTAMP } from "../../api/common/TutanotaConstants"
 import { DbError } from "../../api/common/error/DbError"
 import type { SearchIndexStateInfo, SearchRestriction, SearchResult } from "../../api/worker/search/SearchTypes"
@@ -9,7 +9,6 @@ import type { SearchFacade } from "../../api/worker/search/SearchFacade"
 import { assertMainOrNode } from "../../api/common/Env"
 import { GroupInfo, WhitelabelChild } from "../../api/entities/sys/TypeRefs.js"
 import { tokenize } from "../../api/worker/search/Tokenizer.js"
-import { isSameEventInstance } from "../../calendar/date/CalendarUtils.js"
 import { CalendarViewModel } from "../../calendar/view/CalendarViewModel.js"
 import { listIdPart } from "../../api/common/utils/EntityUtils.js"
 
@@ -90,7 +89,6 @@ export class SearchModel {
 		} else if (isSameTypeRef(CalendarEventTypeRef, restriction.type)) {
 			const calendarViewModel = await this.calendarViewModelFactory()
 
-			// FIXME: load the correct time range
 			// we interpret restriction.start as the start of the first day of the first month we want to search
 			// restriction.end is the end of the last day of the last month we want to search
 			let currentDate = new Date(assertNotNull(restriction.start))
@@ -120,7 +118,7 @@ export class SearchModel {
 			const tokens = tokenize(query.trim())
 			// we want event instances that occur on multiple days to only appear once, but want
 			// separate instances of event series to occur on their own.
-			const alreadyAdded: Map<number, Array<CalendarEvent>> = new Map()
+			const alreadyAdded: Set<string> = new Set()
 
 			if (tokens.length > 0) {
 				for (const [startOfDay, eventsOnDay] of eventsForDays) {
@@ -128,26 +126,26 @@ export class SearchModel {
 						if (!(startOfDay >= restriction.start && startOfDay <= restriction.end)) {
 							continue
 						}
-						const startTime = event.startTime.getTime()
-						const addedEventsForThisTime = alreadyAdded.get(startTime) ?? []
-						if (addedEventsForThisTime.some((e) => isSameEventInstance(e, event))) {
+						const key = idToKey(event._id)
+						if (alreadyAdded.has(key)) {
+							// we only need the first event in the series, the view will load & then generate
+							// the series for the searched time range.
 							continue
 						}
 
 						if (restriction.listIds.length > 0 && !restriction.listIds.includes(listIdPart(event._id))) {
+							// check that the event is in the searched calendar.
 							continue
 						}
 
-						console.log(restriction.eventSeries, event.repeatRule)
 						if (restriction.eventSeries === false && event.repeatRule != null) {
-							console.log("excluded")
+							// applied "repeating" search filter
 							continue
 						}
 
 						for (const token of tokens) {
 							if (event.summary.includes(token) || event.description.includes(token)) {
-								addedEventsForThisTime.push(event)
-								alreadyAdded.set(startTime, addedEventsForThisTime)
+								alreadyAdded.add(key)
 								result.results.push(event._id)
 								break
 							}
@@ -209,6 +207,10 @@ export class SearchModel {
 	getGroupInfoRestrictionListId(): Id | null {
 		return this._groupInfoRestrictionListId
 	}
+}
+
+function idToKey(id: IdTuple): string {
+	return id.join("/")
 }
 
 function searchQueryEquals(a: SearchQuery, b: SearchQuery) {

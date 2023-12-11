@@ -10,7 +10,7 @@ import { NavButton, NavButtonColor } from "../../gui/base/NavButton.js"
 import { BootIcons } from "../../gui/base/icons/BootIcons"
 import { CalendarEvent, CalendarEventTypeRef, Contact, ContactTypeRef, Mail, MailTypeRef } from "../../api/entities/tutanota/TypeRefs.js"
 import { SearchListView, SearchListViewAttrs } from "./SearchListView"
-import { size } from "../../gui/size"
+import { px, size } from "../../gui/size"
 import { getFreeSearchStartDate, SEARCH_MAIL_FIELDS } from "../model/SearchUtils"
 import { Dialog } from "../../gui/base/Dialog"
 import { locator } from "../../api/main/MainLocator"
@@ -90,9 +90,9 @@ import { MailFilterButton } from "../../mail/view/MailFilterButton.js"
 import { listSelectionKeyboardShortcuts } from "../../gui/base/ListUtils.js"
 import { getElementId, isSameId } from "../../api/common/utils/EntityUtils.js"
 import { CalendarInfo } from "../../calendar/model/CalendarModel.js"
-import { NoopProgressMonitor } from "../../api/common/utils/ProgressMonitor.js"
 import { Checkbox, CheckboxAttrs } from "../../gui/base/Checkbox.js"
-import { EventPreviewView, EventPreviewViewAttrs } from "../../calendar/view/eventpopup/EventPreviewView.js"
+import { buildEventPreviewModel, CalendarEventPreviewViewModel } from "../../calendar/view/eventpopup/CalendarEventPreviewViewModel.js"
+import { EventDetailsView, EventDetailsViewAttrs } from "../../calendar/view/EventDetailsView.js"
 import { progressIcon } from "../../gui/base/Icon.js"
 import { getSharedGroupName } from "../../sharing/GroupUtils.js"
 
@@ -110,18 +110,15 @@ export class SearchView extends BaseTopLevelView implements TopLevelView<SearchV
 	private readonly folderColumn: ViewColumn
 	private readonly viewSlider: ViewSlider
 	private readonly searchViewModel: SearchViewModel
-	private readonly lazyCalendarInfos: LazyLoaded<Array<CalendarInfo>> = new LazyLoaded<Array<CalendarInfo>>(async () => {
-		const calendarModel = await locator.calendarModel()
-		const calendarInfos = await calendarModel.loadCalendarInfos(new NoopProgressMonitor())
-		m.redraw()
-		return Array.from(calendarInfos.values())
-	})
-	private sanitizedSelectedEventDescription: (event: CalendarEvent) => LazyLoaded<string> = memoized((event: CalendarEvent) =>
+
+	private getSanitizedPreviewData: (event: CalendarEvent) => LazyLoaded<CalendarEventPreviewViewModel> = memoized((event: CalendarEvent) =>
 		new LazyLoaded(async () => {
 			const { htmlSanitizer } = await import("../../misc/HtmlSanitizer.js")
-			return htmlSanitizer.sanitizeHTML(event.description, {
-				blockExternalContent: true,
-			}).html
+			const calendars = await this.searchViewModel.getLazyCalendarInfos().getAsync()
+			const eventPreviewModel = await buildEventPreviewModel(event, calendars)
+			m.redraw()
+
+			return eventPreviewModel
 		}).load(),
 	)
 
@@ -255,7 +252,6 @@ export class SearchView extends BaseTopLevelView implements TopLevelView<SearchV
 					this.renderMailFilterSection(),
 				)
 			} else if (isSameTypeRef(this.searchViewModel.lastType, CalendarEventTypeRef)) {
-				this.lazyCalendarInfos.load()
 				return m(SidebarSection, { name: "filter_label" }, this.renderCalendarFilterSection())
 			}
 		}
@@ -421,15 +417,7 @@ export class SearchView extends BaseTopLevelView implements TopLevelView<SearchV
 			}
 		} else if (getCurrentSearchMode() === "calendar") {
 			const selectedEvent = this.searchViewModel.getSelectedEvents()[0]
-			if (selectedEvent == null || !this.sanitizedSelectedEventDescription(selectedEvent).isLoaded()) {
-				return m(ColumnEmptyMessageBox, {
-					// FIXME
-					message: () => "no event selected",
-					icon: BootIcons.Calendar,
-					color: theme.content_message_bg,
-					backgroundColor: theme.navigation_bg,
-				})
-			}
+
 			return m(BackgroundColumnLayout, {
 				backgroundColor: theme.navigation_bg,
 				desktopToolbar: () => m(DesktopViewerToolbar, []),
@@ -444,14 +432,29 @@ export class SearchView extends BaseTopLevelView implements TopLevelView<SearchV
 						primaryAction: () => this.renderHeaderRightView(),
 					}),
 				columnLayout:
-					// see comment for .scrollbar-gutter-stable-or-fallback
-					m(
-						".fill-absolute.flex.col.overflow-y-scroll",
-						m(EventPreviewView, {
-							event: selectedEvent,
-							sanitizedDescription: this.sanitizedSelectedEventDescription(selectedEvent).getSync(),
-						} satisfies EventPreviewViewAttrs),
-					),
+					//fixme make it better, if possible, no flickering
+					selectedEvent == null
+						? m(ColumnEmptyMessageBox, {
+								message: "noEventSelect_msg",
+								icon: BootIcons.Calendar,
+								color: theme.content_message_bg,
+								backgroundColor: theme.navigation_bg,
+						  })
+						: !this.getSanitizedPreviewData(selectedEvent).isLoaded()
+						? null
+						: m(
+								".border-radius-big.mlr-l.flex.flex-grow.content-bg",
+								{
+									style: {
+										"min-width": px(size.third_col_min_width),
+										"max-width": px(size.third_col_max_width),
+										height: "max-content",
+									},
+								},
+								m(EventDetailsView, {
+									eventPreviewModel: assertNotNull(this.getSanitizedPreviewData(selectedEvent).getSync()),
+								} satisfies EventDetailsViewAttrs),
+						  ),
 			})
 		} else {
 			return m(
@@ -701,7 +704,7 @@ export class SearchView extends BaseTopLevelView implements TopLevelView<SearchV
 	private renderCalendarTimeRangeField(): Children {
 		const startDate = new Date()
 		const start = this.searchViewModel.startDate == null ? lang.get("today_label") : formatMonthWithYear(this.searchViewModel.startDate)
-		const endDate = incrementMonth(new Date(), 2)
+		const endDate = incrementMonth(startDate, 2)
 		const end = this.searchViewModel.endDate == null ? formatMonthWithYear(endDate) : formatMonthWithYear(this.searchViewModel.endDate)
 		const timeDisplayValue = start + " - " + end
 		return m(TextField, {
@@ -921,8 +924,8 @@ export class SearchView extends BaseTopLevelView implements TopLevelView<SearchV
 	}
 
 	private renderCalendarFilter(): Children {
-		if (this.lazyCalendarInfos.isLoaded()) {
-			const calendarInfos = this.lazyCalendarInfos.getSync() ?? []
+		if (this.searchViewModel.getLazyCalendarInfos().isLoaded()) {
+			const calendarInfos: Map<Id, CalendarInfo> = this.searchViewModel.getLazyCalendarInfos().getSync() ?? []
 
 			return m(
 				".mlr-button",

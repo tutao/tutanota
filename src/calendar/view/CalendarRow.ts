@@ -5,8 +5,7 @@ import m, { Children } from "mithril"
 import { SelectableRowContainer, SelectableRowContainerAttrs, SelectableRowSelectedSetter } from "../../gui/SelectableRowContainer.js"
 import { VirtualRow } from "../../gui/base/ListUtils.js"
 import { CalendarAgendaItemView, CalendarAgendaItemViewAttrs } from "./CalendarAgendaItemView.js"
-import { getEventColor, getGroupColors, getTimeZone } from "../date/CalendarUtils.js"
-import { renderCalendarEventTimesForDisplay } from "../../search/SearchBarOverlay.js"
+import { formatEventDuration, getEventColor, getGroupColors, getTimeZone } from "../date/CalendarUtils.js"
 import { ViewHolder } from "../../gui/base/List.js"
 
 export class CalendarRow implements VirtualRow<CalendarEvent> {
@@ -47,8 +46,8 @@ export class CalendarRow implements VirtualRow<CalendarEvent> {
 					click: (domEvent) => this.entity && this.onSelected(this.entity),
 					zone: getTimeZone(),
 					day: this.entity.startTime,
-					timeText: renderCalendarEventTimesForDisplay(this.entity),
-					wrapSummary: true,
+					timeText: formatEventDuration(this.entity, getTimeZone(), false), //renderCalendarEventTimesForDisplay(this.entity),
+					limitSummaryWidth: true,
 				} satisfies CalendarAgendaItemViewAttrs),
 			],
 		)
