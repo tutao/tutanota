@@ -21,6 +21,7 @@ export class CalendarEventPreviewViewModel {
 	readonly canEdit: boolean
 	readonly canDelete: boolean
 	readonly canSendUpdates: boolean
+
 	/** for editing, an event that has only one non-deleted instance is still considered repeating
 	 * because we might reschedule that instance and then unexclude some deleted instances.
 	 *
@@ -225,4 +226,29 @@ export class CalendarEventPreviewViewModel {
 	getSanitizedDescription() {
 		return this.sanitizedDescription
 	}
+}
+
+export async function buildEventPreviewModel(selectedEvent: CalendarEvent, calendars: ReadonlyMap<string, CalendarInfo>) {
+	const mailboxDetails = await locator.mailModel.getUserMailboxDetails()
+
+	const mailboxProperties = await locator.mailModel.getMailboxProperties(mailboxDetails.mailboxGroupRoot)
+
+	const userController = locator.logins.getUserController()
+	const customer = await userController.loadCustomer()
+	const ownMailAddresses = getEnabledMailAddressesWithUser(mailboxDetails, userController.userGroupInfo)
+	const ownAttendee: CalendarEventAttendee | null = findAttendeeInAddresses(selectedEvent.attendees, ownMailAddresses)
+	const eventType = getEventType(selectedEvent, calendars, ownMailAddresses, userController.user)
+	const hasBusinessFeature = isCustomizationEnabledForCustomer(customer, FeatureType.BusinessFeatureEnabled) || (await userController.isNewPaidPlan())
+	const lazyIndexEntry = async () => (selectedEvent.uid != null ? locator.calendarFacade.getEventsByUid(selectedEvent.uid) : null)
+	const popupModel = new CalendarEventPreviewViewModel(
+		selectedEvent,
+		await locator.calendarModel(),
+		eventType,
+		hasBusinessFeature,
+		ownAttendee,
+		lazyIndexEntry,
+		async (mode: CalendarOperation) => locator.calendarEventModel(mode, selectedEvent, mailboxDetails, mailboxProperties, null),
+	)
+
+	return popupModel
 }
