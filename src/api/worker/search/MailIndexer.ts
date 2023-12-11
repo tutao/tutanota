@@ -285,10 +285,7 @@ export class MailIndexer {
 	async extendIndexIfNeeded(user: User, newOldestTimestamp: number): Promise<void> {
 		if (this.currentIndexTimestamp > FULL_INDEXED_TIMESTAMP && this.currentIndexTimestamp > newOldestTimestamp) {
 			this.mailboxIndexingPromise = this.mailboxIndexingPromise
-				.then(
-					async () => await this.indexMailboxes(user, newOldestTimestamp),
-					async () => await this.indexMailboxes(user, newOldestTimestamp),
-				)
+				.then(async () => await this.indexMailboxes(user, newOldestTimestamp))
 				.catch(
 					ofClass(CancelledError, (e) => {
 						console.log("extend mail index has been cancelled", e)
