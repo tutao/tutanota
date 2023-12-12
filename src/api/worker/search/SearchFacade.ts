@@ -1,7 +1,7 @@
 import { MailTypeRef } from "../../entities/tutanota/TypeRefs.js"
 import { DbTransaction } from "./DbFacade"
 import { resolveTypeReference } from "../../common/EntityFunctions"
-import { tokenize } from "./Tokenizer"
+import { tokenize } from "@tutao/tutanota-utils"
 import type { PromiseMapFn } from "@tutao/tutanota-utils"
 import {
 	arrayHash,

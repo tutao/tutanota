@@ -34,7 +34,7 @@ export const allowedImports = {
 	date: ["polyfill-helpers", "common-min", "common", "boot", "gui-base", "main", "sharing"],
 	"mail-view": ["polyfill-helpers", "common-min", "common", "boot", "gui-base", "main"],
 	"mail-editor": ["polyfill-helpers", "common-min", "common", "boot", "gui-base", "main", "mail-view", "sanitizer", "sharing"],
-	search: ["polyfill-helpers", "common-min", "common", "boot", "gui-base", "main", "mail-view", "contacts", "date"],
+	search: ["polyfill-helpers", "common-min", "common", "boot", "gui-base", "main", "mail-view", "calendar-view", "contacts", "date"],
 	// ContactMergeView needs HtmlEditor even though ContactEditor doesn't?
 	contacts: ["polyfill-helpers", "common-min", "common", "boot", "gui-base", "main", "mail-view", "date", "mail-editor"],
 	"calendar-view": ["polyfill-helpers", "common-min", "common", "boot", "gui-base", "main", "date", "sharing"],

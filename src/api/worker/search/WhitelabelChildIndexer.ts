@@ -7,7 +7,7 @@ import type { Db, GroupData, IndexUpdate, SearchIndexEntry } from "./SearchTypes
 import { _createNewIndexUpdate, typeRefToTypeInfo, userIsGlobalAdmin } from "./IndexUtils"
 import { IndexerCore } from "./IndexerCore"
 import { SuggestionFacade } from "./SuggestionFacade"
-import { tokenize } from "./Tokenizer"
+import { tokenize } from "@tutao/tutanota-utils"
 import { EntityClient } from "../../common/EntityClient"
 import { typeModels } from "../../entities/sys/TypeModels"
 import { GroupDataOS } from "./IndexTables.js"

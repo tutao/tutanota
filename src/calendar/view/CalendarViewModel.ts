@@ -541,7 +541,6 @@ export class CalendarViewModel implements EventDragHandlerCallbacks {
 	}
 
 	async loadMonthIfNeeded(dayInMonth: Date): Promise<void> {
-		// FIXME: make sure we're not doing this in parallel
 		const month = getMonthRange(dayInMonth, this.timeZone)
 
 		if (!this._loadedMonths.has(month.start)) {
