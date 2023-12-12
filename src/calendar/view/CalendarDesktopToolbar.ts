@@ -4,7 +4,7 @@ import { theme } from "../../gui/theme.js"
 import { px, size } from "../../gui/size.js"
 import { TodayIconButton } from "./CalendarMobileHeader.js"
 import { TranslationText } from "../../misc/LanguageViewModel.js"
-import { SegmentButtonControl } from "../../gui/base/SegmentButtonControl.js"
+import { IconSegmentControl } from "../../gui/base/IconSegmentControl.js"
 import { AllIcons } from "../../gui/base/Icon.js"
 
 type CalendarDesktopToolbarAttrs = {
@@ -18,7 +18,7 @@ export class CalendarDesktopToolbar implements Component<CalendarDesktopToolbarA
 	view({ attrs }: Vnode<CalendarDesktopToolbarAttrs>): Children {
 		const { navConfig } = attrs
 		return m(
-			".flex.row.items-center.content-bg.border-radius-big.mlr-l",
+			".flex.row.items-center.content-bg.border-radius-big.mlr-l.rel",
 			{
 				style: {
 					marginLeft: `5px`,
@@ -67,14 +67,24 @@ export class CalendarDesktopToolbar implements Component<CalendarDesktopToolbarA
 			},
 		]
 
-		return m(".flex.plr.calendar-segment-control.height-100p", [
-			m(SegmentButtonControl, {
+		// always center the segment control inside the toolbar
+		return m(
+			".abs.center-h",
+			{
+				style: {
+					left: 0,
+					right: 0,
+					// need explicit width to center the control
+					width: px(size.icon_segment_control_button_width * 4),
+				},
+			},
+			m(IconSegmentControl, {
 				selectedValue: attrs.viewType,
 				onValueSelected: (type: CalendarViewType) => attrs.onViewTypeSelected(type),
 				items: calendarViewValues,
 				maxItemWidth: 48,
 			}),
-		])
+		)
 	}
 
 	private renderWeekNumberLabel(label: string): Children {
