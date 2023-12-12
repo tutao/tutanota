@@ -9,6 +9,7 @@ import "./SortedArrayTest.js"
 import "./MathUtilsTest.js"
 import "./LazyLoadedTest.js"
 import "./CsvTest.js"
+import "./TokenizerTest.js"
 
 const result = await o.run()
 o.printReport(result)
