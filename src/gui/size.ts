@@ -34,6 +34,8 @@ export const size = {
 	button_height_compact: 30,
 	button_icon_bg_size: 32,
 	button_floating_size: 56,
+	icon_segment_control_button_height: 36,
+	icon_segment_control_button_width: 48,
 
 	navbar_height: 70,
 	navbar_height_mobile: 52,

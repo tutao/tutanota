@@ -1633,6 +1633,35 @@ styles.registerStyle("main", () => {
 			"border-bottom-left-radius": px(size.border_radius_small),
 			"border-top-left-radius": px(size.border_radius_small),
 		},
+
+		// IconSegmentControl
+		".icon-segment-control": {
+			"border-radius": px(size.border_radius),
+		},
+		".icon-segment-control-item": {
+			// Make thin border between items via border-right
+			"border-top": `1px solid ${stateBgHover}`,
+			"border-bottom": `1px solid ${stateBgHover}`,
+			"border-right": `0.5px solid ${stateBgHover}`,
+			width: px(size.icon_segment_control_button_width),
+			height: px(size.icon_segment_control_button_height),
+			cursor: "pointer",
+			background: "transparent",
+		},
+		".icon-segment-control-item[active]": {
+			background: stateBgHover,
+			"transition-duration": ".3s",
+		},
+		".icon-segment-control-item:first-child": {
+			"border-bottom-left-radius": px(size.border_radius),
+			"border-top-left-radius": px(size.border_radius),
+			"border-left": `1px solid ${stateBgHover}`,
+		},
+		".icon-segment-control-item:last-child": {
+			"border-bottom-right-radius": px(size.border_radius),
+			"border-top-right-radius": px(size.border_radius),
+			"border-right": `1px solid ${stateBgHover}`,
+		},
 		// contact
 		".wrapping-row": {
 			display: "flex",
@@ -2041,27 +2070,6 @@ styles.registerStyle("main", () => {
 			opacity: "0.8",
 			top: "8px",
 			left: "6px",
-		},
-		".calendar-segment-control > .segmentControl": {
-			display: "grid",
-			"min-width": "192px",
-			"grid-template-columns": "1fr 1fr 1fr 1fr",
-		},
-		".calendar-segment-control .segmentControlItem:first-child": {
-			"border-bottom-left-radius": px(size.border_radius_big),
-			"border-top-left-radius": px(size.border_radius_big),
-		},
-		".calendar-segment-control .segmentControlItem:last-child": {
-			"border-bottom-right-radius": px(size.border_radius_big),
-			"border-top-right-radius": px(size.border_radius_big),
-		},
-		".calendar-segment-control > .segmentControl > button": {
-			"padding-left": px(size.hpad),
-			"padding-right": px(size.hpad),
-		},
-		".calendar-segment-control .active-segment": {
-			background: stateBgHover,
-			"transition-duration": ".3s",
 		},
 		".color-picker": {
 			height: px(30),
