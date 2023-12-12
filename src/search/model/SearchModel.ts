@@ -4,11 +4,10 @@ import { CalendarEventTypeRef, MailTypeRef } from "../../api/entities/tutanota/T
 import { NOTHING_INDEXED_TIMESTAMP } from "../../api/common/TutanotaConstants"
 import { DbError } from "../../api/common/error/DbError"
 import type { SearchIndexStateInfo, SearchRestriction, SearchResult } from "../../api/worker/search/SearchTypes"
-import { arrayEquals, assertNonNull, assertNotNull, incrementMonth, isSameTypeRef, lazy, ofClass } from "@tutao/tutanota-utils"
+import { arrayEquals, assertNonNull, assertNotNull, incrementMonth, isSameTypeRef, lazy, ofClass, tokenize } from "@tutao/tutanota-utils"
 import type { SearchFacade } from "../../api/worker/search/SearchFacade"
 import { assertMainOrNode } from "../../api/common/Env"
 import { GroupInfo, WhitelabelChild } from "../../api/entities/sys/TypeRefs.js"
-import { tokenize } from "../../api/worker/search/Tokenizer.js"
 import { CalendarViewModel } from "../../calendar/view/CalendarViewModel.js"
 import { listIdPart } from "../../api/common/utils/EntityUtils.js"
 
@@ -144,7 +143,7 @@ export class SearchModel {
 						}
 
 						for (const token of tokens) {
-							if (event.summary.includes(token) || event.description.includes(token)) {
+							if (event.summary.toLowerCase().includes(token) || event.description.toLowerCase().includes(token)) {
 								alreadyAdded.add(key)
 								result.results.push(event._id)
 								break
