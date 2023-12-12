@@ -146,6 +146,9 @@ export class MailEditor implements Component<MailEditorAttrs> {
 	private recipientShowConfidential: Map<string, boolean> = new Map()
 	private blockExternalContent: boolean
 	private readonly alwaysBlockExternalContent: boolean = false
+	// if we're set to block external content, but there is no content to block,
+	// we don't want to show the banner.
+	private blockedExternalContent: number = 0
 
 	constructor(vnode: Vnode<MailEditorAttrs>) {
 		const a = vnode.attrs
@@ -165,6 +168,7 @@ export class MailEditor implements Component<MailEditorAttrs> {
 			const sanitized = htmlSanitizer.sanitizeFragment(html, {
 				blockExternalContent: !isPaste && this.blockExternalContent,
 			})
+			this.blockedExternalContent = sanitized.blockedExternalContent
 
 			this.mentionedInlineImages = sanitized.inlineImageCids
 			return sanitized.fragment
@@ -179,6 +183,7 @@ export class MailEditor implements Component<MailEditorAttrs> {
 		// call this async because the editor is not initialized before this mail editor dialog is shown
 		this.editor.initialized.promise.then(() => {
 			this.editor.setHTML(model.getBody())
+
 			this.processInlineImages()
 
 			// Add mutation observer to remove attachments when corresponding DOM element is removed
@@ -504,7 +509,7 @@ export class MailEditor implements Component<MailEditorAttrs> {
 	}
 
 	private renderExternalContentBanner(attrs: MailEditorAttrs): Children | null {
-		if (!this.blockExternalContent || this.alwaysBlockExternalContent) {
+		if (!this.blockExternalContent || this.alwaysBlockExternalContent || this.blockedExternalContent === 0) {
 			return null
 		}
 

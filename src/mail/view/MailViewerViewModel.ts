@@ -54,7 +54,7 @@ import { checkApprovalStatus } from "../../misc/LoginUtils"
 import { formatDateTime, urlEncodeHtmlTags } from "../../misc/Formatter"
 import { UserError } from "../../api/main/UserError"
 import { showUserError } from "../../misc/ErrorHandlerImpl"
-import { CustomerTypeRef, GroupInfo } from "../../api/entities/sys/TypeRefs.js"
+import { GroupInfo } from "../../api/entities/sys/TypeRefs.js"
 import { LoadingStateTracker } from "../../offline/LoadingState"
 import { ProgrammingError } from "../../api/common/error/ProgrammingError"
 import { InitAsResponseArgs, SendMailModel } from "../editor/SendMailModel"
@@ -629,7 +629,7 @@ export class MailViewerViewModel {
 				? ContentBlockingStatus.AlwaysBlock
 				: isAllowedAndAuthenticatedExternalSender
 				? ContentBlockingStatus.AlwaysShow
-				: this.sanitizeResult.externalContent > 0
+				: this.sanitizeResult.blockedExternalContent > 0
 				? ContentBlockingStatus.Block
 				: ContentBlockingStatus.NoExternalContent
 		m.redraw()
@@ -876,7 +876,7 @@ export class MailViewerViewModel {
 						bodyText: prependEmailSignature(body, this.logins),
 						replyTos: [],
 					},
-					this.isBlockingExternalImages(),
+					this.isBlockingExternalImages() || !this.isShowingExternalContent(),
 					this.getLoadedInlineImages(),
 					mailboxDetails,
 				)
@@ -902,7 +902,7 @@ export class MailViewerViewModel {
 			blockExternalContent,
 			allowRelativeLinks: isTutanotaTeamMail(mail),
 		})
-		const { fragment, inlineImageCids, links, externalContent } = sanitizeResult
+		const { fragment, inlineImageCids, links, blockedExternalContent } = sanitizeResult
 
 		/**
 		 * Check if we need to improve contrast for dark theme. We apply the contrast fix if any of the following is contained in
@@ -924,7 +924,7 @@ export class MailViewerViewModel {
 			fragment,
 			inlineImageCids,
 			links,
-			externalContent,
+			blockedExternalContent,
 		}
 	}
 

@@ -23,7 +23,7 @@ o.spec("ThemeController", function () {
 		// this is called in the constructor. Eh!
 		when(htmlSanitizerMock.sanitizeHTML(matchers.anything())).thenReturn({
 			html: "sanitized",
-			externalContent: 0,
+			blockedExternalContent: 0,
 			inlineImageCids: [],
 			links: [],
 		})

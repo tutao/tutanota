@@ -34,7 +34,7 @@ export type SanitizedHTML = {
 	/** Clean HTML text */
 	html: string
 	/** Number of blocked external content that was encountered */
-	externalContent: number
+	blockedExternalContent: number
 	/** Collected cid: URLs, normally used for inline content */
 	inlineImageCids: Array<string>
 	/** Collected href link elements */
@@ -50,7 +50,7 @@ export type SanitizedFragment = {
 	/** Clean HTML fragment */
 	fragment: DocumentFragment
 	/** Number of blocked external content that was encountered */
-	externalContent: number
+	blockedExternalContent: number
 	/** Collected cid: URLs, normally used for inline content */
 	inlineImageCids: Array<string>
 	/** Collected href link elements */
@@ -130,7 +130,7 @@ export class HtmlSanitizer {
 		const cleanHtml = this.purifier.sanitize(html, config)
 		return {
 			html: cleanHtml,
-			externalContent: this.externalContent,
+			blockedExternalContent: this.externalContent,
 			inlineImageCids: this.inlineImageCids,
 			links: this.links,
 		}
@@ -144,7 +144,7 @@ export class HtmlSanitizer {
 		const cleanSvg = this.purifier.sanitize(svg, config)
 		return {
 			html: cleanSvg,
-			externalContent: this.externalContent,
+			blockedExternalContent: this.externalContent,
 			inlineImageCids: this.inlineImageCids,
 			links: this.links,
 		}
@@ -202,7 +202,7 @@ export class HtmlSanitizer {
 		const cleanFragment = this.purifier.sanitize(html, config)
 		return {
 			fragment: cleanFragment,
-			externalContent: this.externalContent,
+			blockedExternalContent: this.externalContent,
 			inlineImageCids: this.inlineImageCids,
 			links: this.links,
 		}
