@@ -62,7 +62,7 @@ const sanitizerStub: Partial<HtmlSanitizer> = {
 	sanitizeHTML: () => {
 		return {
 			html: "",
-			externalContent: 0,
+			blockedExternalContent: 0,
 			inlineImageCids: [],
 			links: [],
 		}
