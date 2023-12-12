@@ -142,7 +142,7 @@ export class CalendarAgendaView implements Component<CalendarAgendaViewAttrs> {
 				[this.renderEventList(attrs)],
 			),
 			m(
-				".border-radius-big.ml-l.flex.flex-grow" + (this.selectedEvent == null ? "" : ".content-bg"),
+				".border-radius-big.ml-l.flex-grow" + (this.selectedEvent == null ? "" : ".content-bg"),
 				{
 					style: {
 						"min-width": px(size.third_col_min_width),

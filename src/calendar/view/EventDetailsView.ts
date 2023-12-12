@@ -23,13 +23,22 @@ export class EventDetailsView implements Component<EventDetailsViewAttrs> {
 		this.model = attrs.eventPreviewModel
 		return this.model == null || !this.sanitizedSelectedEventDescription(attrs.event).isLoaded()
 			? null
-			: m(".flex-grow.plr-l.pt-s.pb-s", [
-					m(".flex.flex-end", [this.renderSendUpdateButton(), this.renderEditButton(), this.renderDeleteButton(attrs.deleteCallback)]),
-					m(EventPreviewView, {
-						event: attrs.event,
-						sanitizedDescription: this.sanitizedSelectedEventDescription(attrs.event).getSync(),
-						participation: this.model.getParticipationSetterAndThen(() => null),
-					}),
+			: m(".pl-l.pb-s.flex.pr", [
+					m(
+						".flex-grow",
+						{
+							style: {
+								// align text to the buttons on the right
+								paddingTop: "6px",
+							},
+						},
+						m(EventPreviewView, {
+							event: attrs.event,
+							sanitizedDescription: this.sanitizedSelectedEventDescription(attrs.event).getSync(),
+							participation: this.model.getParticipationSetterAndThen(() => null),
+						}),
+					),
+					m(".flex.mt-xs", [this.renderSendUpdateButton(), this.renderEditButton(), this.renderDeleteButton(attrs.deleteCallback)]),
 			  ])
 	}
 
