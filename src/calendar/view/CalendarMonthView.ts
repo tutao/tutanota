@@ -42,7 +42,7 @@ import { PageView } from "../../gui/base/PageView.js"
 type CalendarMonthAttrs = {
 	selectedDate: Date
 	onDateSelected: (date: Date, calendarViewTypeToShow: CalendarViewType) => unknown
-	eventsForDays: Map<number, Array<CalendarEvent>>
+	eventsForDays: ReadonlyMap<number, Array<CalendarEvent>>
 	getEventsOnDaysToRender: (range: Array<Date>) => EventsOnDays
 	onNewEvent: (date: Date | null) => unknown
 	onEventClicked: CalendarEventBubbleClickHandler

@@ -4,16 +4,12 @@ import { Icons } from "../../gui/base/icons/Icons.js"
 import { Button, ButtonColor, ButtonType } from "../../gui/base/Button.js"
 import { BootIcons } from "../../gui/base/icons/BootIcons.js"
 import { EventPreviewView } from "./eventpopup/EventPreviewView.js"
-import { CalendarEvent } from "../../api/entities/tutanota/TypeRefs.js"
 import { createAsyncDropdown } from "../../gui/base/Dropdown.js"
 import { Dialog } from "../../gui/base/Dialog.js"
 import { CalendarEventPreviewViewModel } from "./eventpopup/CalendarEventPreviewViewModel.js"
-import { LazyLoaded, memoized } from "@tutao/tutanota-utils"
 
 export interface EventDetailsViewAttrs {
-	event: CalendarEvent
 	eventPreviewModel: CalendarEventPreviewViewModel
-	deleteCallback: () => unknown
 }
 
 export class EventDetailsView implements Component<EventDetailsViewAttrs> {
@@ -21,25 +17,24 @@ export class EventDetailsView implements Component<EventDetailsViewAttrs> {
 
 	view({ attrs }: Vnode<EventDetailsViewAttrs>) {
 		this.model = attrs.eventPreviewModel
-		return this.model == null || !this.sanitizedSelectedEventDescription(attrs.event).isLoaded()
-			? null
-			: m(".pl-l.pb-s.flex.pr", [
-					m(
-						".flex-grow",
-						{
-							style: {
-								// align text to the buttons on the right
-								paddingTop: "6px",
-							},
-						},
-						m(EventPreviewView, {
-							event: attrs.event,
-							sanitizedDescription: this.sanitizedSelectedEventDescription(attrs.event).getSync(),
-							participation: this.model.getParticipationSetterAndThen(() => null),
-						}),
-					),
-					m(".flex.mt-xs", [this.renderSendUpdateButton(), this.renderEditButton(), this.renderDeleteButton(attrs.deleteCallback)]),
-			  ])
+
+		return m(".pl-l.pb-s.flex.pr", [
+			m(
+				".flex-grow",
+				{
+					style: {
+						// align text to the buttons on the right
+						paddingTop: "6px",
+					},
+				},
+				m(EventPreviewView, {
+					event: this.model.calendarEvent,
+					sanitizedDescription: this.model.getSanitizedDescription(),
+					participation: this.model.getParticipationSetterAndThen(() => null),
+				}),
+			),
+			m(".flex.mt-xs", [this.renderSendUpdateButton(), this.renderEditButton(), this.renderDeleteButton()]),
+		])
 	}
 
 	private renderEditButton(): Children {
@@ -52,13 +47,13 @@ export class EventDetailsView implements Component<EventDetailsViewAttrs> {
 		})
 	}
 
-	private renderDeleteButton(callback: () => unknown): Children {
+	private renderDeleteButton(): Children {
 		if (this.model == null || !this.model.canDelete) return null
 		return m(IconButton, {
 			title: "delete_action",
 			icon: Icons.Trash,
 			colors: ButtonColor.DrawerNav,
-			click: (event, dom) => this.handleDeleteButtonClick(event, dom, callback),
+			click: (event, dom) => this.handleDeleteButtonClick(event, dom),
 		})
 	}
 
@@ -73,7 +68,7 @@ export class EventDetailsView implements Component<EventDetailsViewAttrs> {
 		})
 	}
 
-	private async handleDeleteButtonClick(ev: MouseEvent, receiver: HTMLElement, callback: () => unknown) {
+	private async handleDeleteButtonClick(ev: MouseEvent, receiver: HTMLElement) {
 		if (await this.model?.isRepeatingForDeleting()) {
 			createAsyncDropdown({
 				lazyButtons: () =>
@@ -82,19 +77,18 @@ export class EventDetailsView implements Component<EventDetailsViewAttrs> {
 							label: "deleteSingleEventRecurrence_action",
 							click: async () => {
 								await this.model?.deleteSingle()
-								callback()
 							},
 						},
 						{
 							label: "deleteAllEventRecurrence_action",
-							click: () => this.confirmDeleteClose(callback),
+							click: () => this.confirmDeleteClose(),
 						},
 					]),
 				width: 300,
 			})(ev, receiver)
 		} else {
 			// noinspection JSIgnoredPromiseFromCall
-			this.confirmDeleteClose(callback)
+			this.confirmDeleteClose()
 		}
 	}
 
@@ -131,18 +125,8 @@ export class EventDetailsView implements Component<EventDetailsViewAttrs> {
 		if (confirmed) await this.model?.sendUpdates()
 	}
 
-	private async confirmDeleteClose(callback: () => unknown): Promise<void> {
+	private async confirmDeleteClose(): Promise<void> {
 		if (!(await Dialog.confirm("deleteEventConfirmation_msg"))) return
 		await this.model?.deleteAll()
-		callback()
 	}
-
-	private sanitizedSelectedEventDescription: (event: CalendarEvent) => LazyLoaded<string> = memoized((event: CalendarEvent) =>
-		new LazyLoaded(async () => {
-			const { htmlSanitizer } = await import("../../misc/HtmlSanitizer.js")
-			return htmlSanitizer.sanitizeHTML(event.description, {
-				blockExternalContent: true,
-			}).html
-		}).load(),
-	)
 }

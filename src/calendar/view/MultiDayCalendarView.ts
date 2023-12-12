@@ -55,7 +55,7 @@ export type Attrs = {
 	onChangeViewPeriod: (next: boolean) => unknown
 	temporaryEvents: Array<CalendarEvent>
 	dragHandlerCallbacks: EventDragHandlerCallbacks
-	eventsForDays: Map<number, Array<CalendarEvent>>
+	eventsForDays: ReadonlyMap<number, Array<CalendarEvent>>
 	isDaySelectorExpanded: boolean
 }
 

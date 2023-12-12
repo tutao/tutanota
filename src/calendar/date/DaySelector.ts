@@ -18,7 +18,7 @@ export interface DaySelectorAttrs {
 	wide: boolean
 	startOfTheWeekOffset: number
 	isDaySelectorExpanded: boolean
-	eventsForDays: Map<number, Array<CalendarEvent>>
+	eventsForDays: ReadonlyMap<number, Array<CalendarEvent>>
 	handleDayPickerSwipe: (isNext: boolean) => void
 	showDaySelection: boolean
 	highlightToday: boolean

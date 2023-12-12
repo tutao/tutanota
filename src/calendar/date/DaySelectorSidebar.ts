@@ -13,7 +13,7 @@ export interface DaySelectorSidebarAttrs {
 	selectedDate: Date
 	onDateSelected: (date: Date, dayClick: boolean) => unknown
 	startOfTheWeekOffset: number
-	eventsForDays: Map<number, Array<CalendarEvent>>
+	eventsForDays: ReadonlyMap<number, Array<CalendarEvent>>
 	showDaySelection: boolean
 	highlightToday: boolean
 	highlightSelectedWeek: boolean

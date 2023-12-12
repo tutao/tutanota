@@ -1,14 +1,18 @@
 import { CalendarEvent, CalendarEventAttendee } from "../../../api/entities/tutanota/TypeRefs.js"
-import { calendarEventHasMoreThanOneOccurrencesLeft } from "../../date/CalendarUtils.js"
+import { calendarEventHasMoreThanOneOccurrencesLeft, getEventType } from "../../date/CalendarUtils.js"
 import { CalendarEventModel, CalendarOperation, EventSaveResult, EventType, getNonOrganizerAttendees } from "../../date/eventeditor/CalendarEventModel.js"
 import { NotFoundError } from "../../../api/common/error/RestError.js"
-import { CalendarModel } from "../../model/CalendarModel.js"
+import { CalendarInfo, CalendarModel } from "../../model/CalendarModel.js"
 import { showExistingCalendarEventEditDialog } from "../eventeditor/CalendarEventEditDialog.js"
 import { ProgrammingError } from "../../../api/common/error/ProgrammingError.js"
-import { CalendarAttendeeStatus } from "../../../api/common/TutanotaConstants.js"
+import { CalendarAttendeeStatus, FeatureType } from "../../../api/common/TutanotaConstants.js"
 import m from "mithril"
 import { clone, Thunk } from "@tutao/tutanota-utils"
 import { CalendarEventUidIndexEntry } from "../../../api/worker/facades/lazy/CalendarFacade.js"
+import { locator } from "../../../api/main/MainLocator.js"
+import { getEnabledMailAddressesWithUser } from "../../../mail/model/MailUtils.js"
+import { findAttendeeInAddresses } from "../../../api/common/utils/CommonCalendarUtils.js"
+import { isCustomizationEnabledForCustomer } from "../../../api/common/utils/Utils.js"
 
 /**
  * makes decisions about which operations are available from the popup and knows how to implement them depending on the event's type.
@@ -28,6 +32,8 @@ export class CalendarEventPreviewViewModel {
 	 *          probably the best reason to make single-instance attendee editing possible asap.
 	 */
 	readonly isRepeatingForEditing: boolean
+
+	private sanitizedDescription: string | null = null
 
 	private processing: boolean = false
 	private readonly _ownAttendee: CalendarEventAttendee | null
@@ -208,4 +214,44 @@ export class CalendarEventPreviewViewModel {
 			model.editModels.whoModel.shouldSendUpdates = false
 		}
 	}
+
+	async sanitizeDescription(): Promise<void> {
+		const { htmlSanitizer } = await import("../../../misc/HtmlSanitizer.js")
+		this.sanitizedDescription = htmlSanitizer.sanitizeHTML(this.calendarEvent.description, {
+			blockExternalContent: true,
+		}).html
+	}
+
+	getSanitizedDescription() {
+		return this.sanitizedDescription
+	}
+}
+
+export async function buildEventPreviewModel(selectedEvent: CalendarEvent, calendars: ReadonlyMap<string, CalendarInfo>) {
+	const mailboxDetails = await locator.mailModel.getUserMailboxDetails()
+
+	const mailboxProperties = await locator.mailModel.getMailboxProperties(mailboxDetails.mailboxGroupRoot)
+
+	const userController = locator.logins.getUserController()
+	const customer = await userController.loadCustomer()
+	const ownMailAddresses = getEnabledMailAddressesWithUser(mailboxDetails, userController.userGroupInfo)
+	const ownAttendee: CalendarEventAttendee | null = findAttendeeInAddresses(selectedEvent.attendees, ownMailAddresses)
+	const eventType = getEventType(selectedEvent, calendars, ownMailAddresses, userController.user)
+	const hasBusinessFeature = isCustomizationEnabledForCustomer(customer, FeatureType.BusinessFeatureEnabled) || (await userController.isNewPaidPlan())
+	const lazyIndexEntry = async () => (selectedEvent.uid != null ? locator.calendarFacade.getEventsByUid(selectedEvent.uid) : null)
+	const popupModel = new CalendarEventPreviewViewModel(
+		selectedEvent,
+		await locator.calendarModel(),
+		eventType,
+		hasBusinessFeature,
+		ownAttendee,
+		lazyIndexEntry,
+		async (mode: CalendarOperation) => locator.calendarEventModel(mode, selectedEvent, mailboxDetails, mailboxProperties, null),
+	)
+
+	// If we have a preview model we want to display the description
+	// so makes sense to already sanitize it after building the event
+	await popupModel.sanitizeDescription()
+
+	return popupModel
 }

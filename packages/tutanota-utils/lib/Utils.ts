@@ -394,7 +394,7 @@ export function getChangedProps(objA: any, objB: any): Array<string> {
  * @param myMap
  * @return {unknown}
  */
-export function freezeMap<K, V>(myMap: Map<K, V>): Map<K, V> {
+export function freezeMap<K, V>(myMap: ReadonlyMap<K, V>): ReadonlyMap<K, V> {
 	function mapSet(key: K, value: V): Map<K, V> {
 		throw new Error("Can't add property " + key + ", map is not extensible")
 	}

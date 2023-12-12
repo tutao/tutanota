@@ -1,5 +1,5 @@
 import m, { Children, Component, Vnode } from "mithril"
-import { arrayEquals, assertNotNull, neverNull } from "@tutao/tutanota-utils"
+import { neverNull } from "@tutao/tutanota-utils"
 import { lang } from "../../misc/LanguageViewModel"
 import { getEventColor, getTimeZone } from "../date/CalendarUtils"
 import type { CalendarEvent } from "../../api/entities/tutanota/TypeRefs.js"
@@ -15,13 +15,14 @@ import { px, size } from "../../gui/size.js"
 import { DaySelector } from "../date/DaySelector.js"
 import { CalendarEventPreviewViewModel } from "./eventpopup/CalendarEventPreviewViewModel.js"
 import { EventDetailsView } from "./EventDetailsView.js"
+import { getElementId, getListId } from "../../api/common/utils/EntityUtils.js"
 
 export type CalendarAgendaViewAttrs = {
 	selectedDate: Date
 	/**
 	 * maps start of day timestamp to events on that day
 	 */
-	eventsForDays: Map<number, Array<CalendarEvent>>
+	eventsForDays: ReadonlyMap<number, Array<CalendarEvent>>
 	amPmFormat: boolean
 	onEventClicked: CalendarEventBubbleClickHandler
 	groupColors: GroupColors
@@ -32,13 +33,10 @@ export type CalendarAgendaViewAttrs = {
 	onShowDate: (date: Date) => unknown
 	/**  when the selected date was changed  */
 	onDateSelected: (date: Date) => unknown
-	eventPreviewModel: (event: CalendarEvent) => Promise<CalendarEventPreviewViewModel>
+	eventPreviewModel: CalendarEventPreviewViewModel | null
 }
 
 export class CalendarAgendaView implements Component<CalendarAgendaViewAttrs> {
-	private selectedEvent: CalendarEvent | null = null
-	private eventModel: CalendarEventPreviewViewModel | null = null
-
 	view({ attrs }: Vnode<CalendarAgendaViewAttrs>): Children {
 		const selectedDate = attrs.selectedDate
 
@@ -111,8 +109,21 @@ export class CalendarAgendaView implements Component<CalendarAgendaViewAttrs> {
 			  )
 	}
 
-	private renderEventList(attrs: CalendarAgendaViewAttrs): Children {
-		const events = (attrs.eventsForDays.get(attrs.selectedDate.getTime()) ?? []).filter((e) => !attrs.hiddenCalendars.has(neverNull(e._ownerGroup)))
+	private renderDesktopEventList(attrs: CalendarAgendaViewAttrs): Children {
+		const events = this.getEventsToRender(attrs)
+		if (events.length === 0) {
+			return m(ColumnEmptyMessageBox, {
+				icon: BootIcons.Calendar,
+				message: "noEntries_msg",
+				color: theme.list_message_bg,
+			})
+		} else {
+			return m(".flex.mb-s.col", this.renderEventsForDay(events, getTimeZone(), attrs))
+		}
+	}
+
+	private renderMobileEventList(attrs: CalendarAgendaViewAttrs): Children {
+		const events = this.getEventsToRender(attrs)
 		if (events.length === 0) {
 			return m(ColumnEmptyMessageBox, {
 				icon: BootIcons.Calendar,
@@ -122,35 +133,41 @@ export class CalendarAgendaView implements Component<CalendarAgendaViewAttrs> {
 		} else {
 			return m(
 				".pt-s.flex.mlr.mb-s.col",
-				{ style: { ...(!styles.isDesktopLayout() ? { marginLeft: px(size.calendar_hour_width_mobile) } : {}) } },
+				{ style: { marginLeft: px(size.calendar_hour_width_mobile) } },
 				this.renderEventsForDay(events, getTimeZone(), attrs),
 			)
 		}
 	}
 
+	private getEventsToRender(attrs: CalendarAgendaViewAttrs): readonly CalendarEvent[] {
+		return (attrs.eventsForDays.get(attrs.selectedDate.getTime()) ?? []).filter((e) => !attrs.hiddenCalendars.has(neverNull(e._ownerGroup)))
+	}
+
 	private renderAgenda(attrs: CalendarAgendaViewAttrs): Children {
-		if (!styles.isDesktopLayout()) return this.renderEventList(attrs)
+		if (!styles.isDesktopLayout()) return this.renderMobileEventList(attrs)
+
 		return m(".flex.flex-grow", [
 			m(
-				".content-bg.border-radius-big.flex-grow.rel",
+				".flex-grow.rel",
 				{
 					style: {
 						"min-width": px(size.second_col_min_width),
 						"max-width": px(size.second_col_max_width),
 					},
 				},
-				[this.renderEventList(attrs)],
+				[this.renderDesktopEventList(attrs)],
 			),
 			m(
-				".border-radius-big.ml-l.flex-grow" + (this.selectedEvent == null ? "" : ".content-bg"),
+				".border-radius-big.ml-l.flex-grow",
 				{
+					class: attrs.eventPreviewModel?.calendarEvent == null ? "" : "content-bg",
 					style: {
 						"min-width": px(size.third_col_min_width),
 						"max-width": px(size.third_col_max_width),
-						height: this.selectedEvent != null && this.eventModel != null ? "max-content" : "100%",
+						height: attrs.eventPreviewModel != null ? "max-content" : "100%",
 					},
 				},
-				this.selectedEvent == null || !this.eventModel == null
+				attrs.eventPreviewModel == null
 					? m(
 							".rel.flex-grow.height-100p",
 							m(ColumnEmptyMessageBox, {
@@ -160,23 +177,13 @@ export class CalendarAgendaView implements Component<CalendarAgendaViewAttrs> {
 							}),
 					  )
 					: m(EventDetailsView, {
-							event: this.selectedEvent,
-							eventPreviewModel: assertNotNull(this.eventModel),
-							deleteCallback: () => (this.selectedEvent = null),
+							eventPreviewModel: attrs.eventPreviewModel,
 					  }),
 			),
 		])
 	}
 
-	private selectEventAction(event: CalendarEvent, modelPromise: (event: CalendarEvent) => Promise<CalendarEventPreviewViewModel>) {
-		modelPromise(event).then((model) => {
-			this.eventModel = model
-			this.selectedEvent = event
-			m.redraw()
-		})
-	}
-
-	private renderEventsForDay(events: CalendarEvent[], zone: string, attrs: CalendarAgendaViewAttrs) {
+	private renderEventsForDay(events: readonly CalendarEvent[], zone: string, attrs: CalendarAgendaViewAttrs) {
 		const { selectedDate: day, groupColors: colors, onEventClicked: click, eventPreviewModel: modelPromise } = attrs
 		return events.length === 0
 			? m(".mb-s", lang.get("noEntries_msg"))
@@ -188,32 +195,17 @@ export class CalendarAgendaView implements Component<CalendarAgendaViewAttrs> {
 						},
 					},
 					events.map((event) => {
-						// We need to reload the model after editing an event
-						if (
-							styles.isDesktopLayout() &&
-							this.selectedEvent != null &&
-							arrayEquals(this.selectedEvent._id as [string, string], event._id as [string, string])
-						) {
-							this.selectEventAction(event, modelPromise)
-						}
-
-						return m(
-							"",
-							m(CalendarAgendaItemView, {
-								event: event,
-								color: getEventColor(event, colors),
-								selected: event === this.selectedEvent,
-								click: (domEvent) => {
-									if (styles.isDesktopLayout()) {
-										this.selectEventAction(event, modelPromise)
-									} else {
-										click(event, domEvent)
-									}
-								},
-								zone,
-								day: day,
-							}),
-						)
+						return m(CalendarAgendaItemView, {
+							key: getListId(event) + getElementId(event) + event.startTime.toISOString(),
+							event: event,
+							color: getEventColor(event, colors),
+							selected: event === attrs.eventPreviewModel?.calendarEvent,
+							click: (domEvent) => {
+								attrs.onEventClicked(event, domEvent)
+							},
+							zone,
+							day: day,
+						})
 					}),
 			  )
 	}

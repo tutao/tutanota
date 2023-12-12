@@ -21,7 +21,7 @@ export interface DaySelectorPopupAttrs {
 	selectedDate: Date
 	onDateSelected: (date: Date, dayClick: boolean) => unknown
 	startOfTheWeekOffset: number
-	eventsForDays: Map<number, Array<CalendarEvent>>
+	eventsForDays: ReadonlyMap<number, Array<CalendarEvent>>
 	highlightToday: boolean
 	highlightSelectedWeek: boolean
 }

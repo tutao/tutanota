@@ -3,6 +3,9 @@ import { isAllDayEvent } from "../../api/common/utils/CommonCalendarUtils.js"
 import { formatEventTimes } from "../date/CalendarUtils.js"
 import { CalendarEvent } from "../../api/entities/tutanota/TypeRefs.js"
 import { stateBgHover } from "../../gui/builtinThemes.js"
+import { theme } from "../../gui/theme.js"
+import { styles } from "../../gui/styles.js"
+import { DefaultAnimationTime } from "../../gui/animation/Animations.js"
 
 interface CalendarAgendaItemViewAttrs {
 	day: Date
@@ -16,12 +19,13 @@ interface CalendarAgendaItemViewAttrs {
 export class CalendarAgendaItemView implements Component<CalendarAgendaItemViewAttrs> {
 	view({ attrs }: Vnode<CalendarAgendaItemViewAttrs>): Children {
 		return m(
-			".flex.items-center.gap-vpad.click.state-bg.plr.border-radius.pt-s.pb-s",
+			".flex.items-center.gap-vpad.click.plr.border-radius.pt-s.pb-s",
 			{
+				class: styles.isDesktopLayout() ? "" : "state-bg",
 				onclick: attrs.click,
-				transition: "background 200ms",
 				style: {
-					backgroundColor: attrs.selected ? stateBgHover : null,
+					transition: `background ${DefaultAnimationTime}ms`,
+					background: styles.isDesktopLayout() ? (attrs.selected ? stateBgHover : theme.list_bg) : undefined,
 				},
 			},
 			[

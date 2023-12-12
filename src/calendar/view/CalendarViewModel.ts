@@ -54,6 +54,7 @@ import { ProgressTracker } from "../../api/main/ProgressTracker"
 import { DeviceConfig } from "../../misc/DeviceConfig"
 import type { EventDragHandlerCallbacks } from "./EventDragHandler"
 import { ProgrammingError } from "../../api/common/error/ProgrammingError.js"
+import { buildEventPreviewModel, CalendarEventPreviewViewModel } from "./eventpopup/CalendarEventPreviewViewModel.js"
 
 export type EventsOnDays = {
 	days: Array<Date>
@@ -71,7 +72,7 @@ export type DraggedEvent = {
 
 export type MouseOrPointerEvent = MouseEvent | PointerEvent
 export type CalendarEventBubbleClickHandler = (arg0: CalendarEvent, arg1: MouseOrPointerEvent) => unknown
-type EventsForDays = Map<number, Array<CalendarEvent>>
+type EventsForDays = ReadonlyMap<number, Array<CalendarEvent>>
 export const LIMIT_PAST_EVENTS_YEARS = 100
 export type CalendarEventEditModelsFactory = (mode: CalendarOperation, event: CalendarEvent) => Promise<CalendarEventModel | null>
 
@@ -82,6 +83,9 @@ export class CalendarViewModel implements EventDragHandlerCallbacks {
 	/** Mmap from group/groupRoot ID to the calendar info */
 	_calendarInfos: LazyLoaded<ReadonlyMap<Id, CalendarInfo>>
 	_eventsForDays: EventsForDays
+
+	eventPreviewModel: CalendarEventPreviewViewModel | null = null
+
 	readonly _loadedMonths: Set<number> // first ms of the month
 
 	_hiddenCalendars: Set<Id>
@@ -377,6 +381,14 @@ export class CalendarViewModel implements EventDragHandlerCallbacks {
 		return await editModel.apply()
 	}
 
+	async previewEvent(event: CalendarEvent) {
+		const calendarInfos = await this.calendarInfos.getAsync()
+		const previewModel = await buildEventPreviewModel(event, calendarInfos)
+
+		this.eventPreviewModel = previewModel
+		this._redraw()
+	}
+
 	_addOrUpdateEvent(calendarInfo: CalendarInfo | null, event: CalendarEvent) {
 		if (calendarInfo == null) {
 			return
@@ -421,6 +433,10 @@ export class CalendarViewModel implements EventDragHandlerCallbacks {
 						addedOrUpdatedEventsUpdates.push(update)
 					} else if (update.operation === OperationType.DELETE) {
 						this._removeDaysForEvent([update.instanceListId, update.instanceId], eventOwnerGroupId)
+
+						if (isSameId([update.instanceListId, update.instanceId], this.eventPreviewModel?.calendarEvent._id ?? null)) {
+							this.eventPreviewModel = null
+						}
 
 						this._redraw()
 					}
@@ -480,6 +496,10 @@ export class CalendarViewModel implements EventDragHandlerCallbacks {
 					try {
 						const events = await this._entityClient.loadMultiple(CalendarEventTypeRef, instanceListId, ids)
 						for (const event of events) {
+							if (isSameId(event._id, this.eventPreviewModel?.calendarEvent._id ?? null)) {
+								this.eventPreviewModel = await buildEventPreviewModel(event, calendarInfos)
+							}
+
 							this._addOrUpdateEvent(calendarInfos.get(neverNull(event._ownerGroup)) ?? null, event)
 							this._removeTransientEvent(event)
 						}
@@ -592,7 +612,7 @@ export class CalendarViewModel implements EventDragHandlerCallbacks {
 		this._eventsForDays = freezeMap(newMap)
 	}
 
-	_cloneEvents(): EventsForDays {
+	_cloneEvents(): Map<number, Array<CalendarEvent>> {
 		return new Map(this._eventsForDays)
 	}
 
