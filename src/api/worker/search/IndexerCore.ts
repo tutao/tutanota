@@ -1,5 +1,5 @@
 import type { DbTransaction } from "./DbFacade"
-import { tokenize } from "./Tokenizer"
+import { tokenize } from "@tutao/tutanota-utils"
 import type { $Promisable, DeferredObject, PromiseMapFn } from "@tutao/tutanota-utils"
 import {
 	arrayHash,

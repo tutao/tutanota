@@ -1,5 +1,5 @@
 import type { CalendarEvent } from "../../api/entities/tutanota/TypeRefs.js"
-import { locator } from "../../api/main/MainLocator"
+import { locator } from "../../api/main/MainLocator.js"
 import m, { Children } from "mithril"
 
 import { SelectableRowContainer, SelectableRowContainerAttrs, SelectableRowSelectedSetter } from "../../gui/SelectableRowContainer.js"
