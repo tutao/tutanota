@@ -32,14 +32,15 @@ type CustomCacheHandlerMapping = CustomCacheHandledType extends infer A
  * it is mostly read-only
  */
 export class CustomCacheHandlerMap {
-	private readonly handlers: Map<string, CustomCacheHandler<ListElementEntity>> = new Map()
+	private readonly handlers: ReadonlyMap<string, CustomCacheHandler<ListElementEntity>>
 
 	constructor(...args: Array<CustomCacheHandlerMapping>) {
+		const handlers: Map<string, CustomCacheHandler<ListElementEntity>> = new Map()
 		for (const { ref, handler } of args) {
 			const key = getTypeId(ref)
-			this.handlers.set(key, handler)
+			handlers.set(key, handler)
 		}
-		this.handlers = freezeMap(this.handlers)
+		this.handlers = freezeMap(handlers)
 	}
 
 	get<T extends ListElementEntity>(typeRef: TypeRef<T>): CustomCacheHandler<T> | undefined {

@@ -6,12 +6,12 @@ import { ViewSlider } from "../../gui/nav/ViewSlider.js"
 import type { Shortcut } from "../../misc/KeyManager"
 import { keyManager } from "../../misc/KeyManager"
 import { Icons } from "../../gui/base/icons/Icons"
-import { downcast, getStartOfDay, memoized, ofClass } from "@tutao/tutanota-utils"
-import type { CalendarEvent, CalendarEventAttendee, GroupSettings, UserSettingsGroupRoot } from "../../api/entities/tutanota/TypeRefs.js"
+import { assertNotNull, downcast, getStartOfDay, memoized, ofClass } from "@tutao/tutanota-utils"
+import type { CalendarEvent, GroupSettings, UserSettingsGroupRoot } from "../../api/entities/tutanota/TypeRefs.js"
 import { createGroupSettings } from "../../api/entities/tutanota/TypeRefs.js"
-import { defaultCalendarColor, FeatureType, GroupType, Keys, reverse, ShareCapability, TimeFormat, WeekStart } from "../../api/common/TutanotaConstants"
+import { defaultCalendarColor, GroupType, Keys, reverse, ShareCapability, TimeFormat, WeekStart } from "../../api/common/TutanotaConstants"
 import { locator } from "../../api/main/MainLocator"
-import { getEventType, getStartOfTheWeekOffset, getStartOfTheWeekOffsetForUser, getTimeZone, shouldDefaultToAmPmTimeFormat } from "../date/CalendarUtils"
+import { getStartOfTheWeekOffset, getStartOfTheWeekOffsetForUser, getTimeZone, shouldDefaultToAmPmTimeFormat } from "../date/CalendarUtils"
 import { ButtonColor, ButtonType } from "../../gui/base/Button.js"
 import { NavButton, NavButtonColor } from "../../gui/base/NavButton.js"
 import { CalendarMonthView } from "./CalendarMonthView"
@@ -49,10 +49,7 @@ import { BottomNav } from "../../gui/nav/BottomNav.js"
 import { DrawerMenuAttrs } from "../../gui/nav/DrawerMenu.js"
 import { BaseTopLevelView } from "../../gui/BaseTopLevelView.js"
 import { TopLevelAttrs, TopLevelView } from "../../TopLevelView.js"
-import { getEnabledMailAddressesWithUser } from "../../mail/model/MailUtils.js"
-import { CalendarEventPreviewViewModel } from "./eventpopup/CalendarEventPreviewViewModel.js"
-import { isCustomizationEnabledForCustomer } from "../../api/common/utils/Utils.js"
-import { findAttendeeInAddresses, getEventWithDefaultTimes } from "../../api/common/utils/CommonCalendarUtils.js"
+import { getEventWithDefaultTimes } from "../../api/common/utils/CommonCalendarUtils.js"
 import { BackgroundColumnLayout } from "../../gui/BackgroundColumnLayout.js"
 import { theme } from "../../gui/theme.js"
 import { CalendarMobileHeader } from "./CalendarMobileHeader.js"
@@ -60,6 +57,7 @@ import { CalendarDesktopToolbar } from "./CalendarDesktopToolbar.js"
 import { CalendarOperation } from "../date/eventeditor/CalendarEventModel.js"
 import { DaySelectorPopup } from "../date/DaySelectorPopup.js"
 import { DaySelectorSidebar } from "../date/DaySelectorSidebar.js"
+import { buildEventPreviewModel } from "./eventpopup/CalendarEventPreviewViewModel.js"
 
 export type GroupColors = Map<Id, string>
 
@@ -108,6 +106,7 @@ export class CalendarView extends BaseTopLevelView implements TopLevelView<Calen
 										selectedDate: this.viewModel.selectedDate(),
 										onDateSelected: (date) => {
 											this._setUrl(this.currentViewType, date)
+
 											m.redraw()
 										},
 										startOfTheWeekOffset: getStartOfTheWeekOffset(
@@ -263,14 +262,20 @@ export class CalendarView extends BaseTopLevelView implements TopLevelView<Calen
 									selectedDate: this.viewModel.selectedDate(),
 									eventsForDays: this.viewModel.eventsForDays,
 									amPmFormat: shouldDefaultToAmPmTimeFormat(),
-									onEventClicked: (event, domEvent) => this._onEventSelected(event, domEvent, this.htmlSanitizer),
+									onEventClicked: (event, domEvent) => {
+										if (styles.isDesktopLayout()) {
+											this.viewModel.previewEvent(event)
+										} else {
+											this._onEventSelected(event, domEvent, this.htmlSanitizer)
+										}
+									},
 									groupColors,
 									hiddenCalendars: this.viewModel.hiddenCalendars,
 									startOfTheWeekOffset: getStartOfTheWeekOffsetForUser(locator.logins.getUserController().userSettingsGroupRoot),
 									isDaySelectorExpanded: this.isDaySelectorExpanded,
 									onDateSelected: (date) => this._setUrl(CalendarViewType.AGENDA, date),
 									onShowDate: (date: Date) => this._setUrl(CalendarViewType.DAY, date),
-									eventPreviewModel: (event: CalendarEvent) => this.buildEventPreviewModel(event),
+									eventPreviewModel: this.viewModel.eventPreviewModel,
 								} satisfies CalendarAgendaViewAttrs),
 							})
 
@@ -776,6 +781,10 @@ export class CalendarView extends BaseTopLevelView implements TopLevelView<Calen
 
 			deviceConfig.setDefaultCalendarView(locator.logins.getUserController().user._id, this.currentViewType)
 		}
+
+		if (this.viewModel.eventPreviewModel != null) {
+			this.viewModel.eventPreviewModel = null
+		}
 	}
 
 	getViewSlider(): ViewSlider {
@@ -816,34 +825,14 @@ export class CalendarView extends BaseTopLevelView implements TopLevelView<Calen
 			right: x,
 		}
 
-		const [popupModel, htmlSanitizer] = await Promise.all([this.buildEventPreviewModel(selectedEvent), htmlSanitizerPromise])
+		let calendarInfos
+
+		if (this.viewModel.calendarInfos.isLoaded()) calendarInfos = assertNotNull(this.viewModel.calendarInfos.getSync())
+		else calendarInfos = await this.viewModel.calendarInfos.getAsync()
+
+		const [popupModel, htmlSanitizer] = await Promise.all([buildEventPreviewModel(selectedEvent, calendarInfos), htmlSanitizerPromise])
 
 		new CalendarEventPopup(popupModel, rect, htmlSanitizer).show()
-	}
-
-	private async buildEventPreviewModel(selectedEvent: CalendarEvent) {
-		const [calendars, mailboxDetails] = await Promise.all([this.viewModel.calendarInfos.getAsync(), locator.mailModel.getUserMailboxDetails()])
-
-		const mailboxProperties = await locator.mailModel.getMailboxProperties(mailboxDetails.mailboxGroupRoot)
-
-		const userController = locator.logins.getUserController()
-		const customer = await userController.loadCustomer()
-		const ownMailAddresses = getEnabledMailAddressesWithUser(mailboxDetails, userController.userGroupInfo)
-		const ownAttendee: CalendarEventAttendee | null = findAttendeeInAddresses(selectedEvent.attendees, ownMailAddresses)
-		const eventType = getEventType(selectedEvent, calendars, ownMailAddresses, userController.user)
-		const hasBusinessFeature = isCustomizationEnabledForCustomer(customer, FeatureType.BusinessFeatureEnabled) || (await userController.isNewPaidPlan())
-		const lazyIndexEntry = async () => (selectedEvent.uid != null ? locator.calendarFacade.getEventsByUid(selectedEvent.uid) : null)
-		const popupModel = new CalendarEventPreviewViewModel(
-			selectedEvent,
-			await locator.calendarModel(),
-			eventType,
-			hasBusinessFeature,
-			ownAttendee,
-			lazyIndexEntry,
-			async (mode: CalendarOperation) => locator.calendarEventModel(mode, selectedEvent, mailboxDetails, mailboxProperties, null),
-		)
-
-		return popupModel
 	}
 
 	private showCalendarPopup(dom: HTMLElement) {
