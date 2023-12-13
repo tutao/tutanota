@@ -23,8 +23,6 @@ import { locator } from "../api/main/MainLocator"
 import { IndexingErrorReason } from "../api/worker/search/SearchTypes"
 import { companyTeamLabel } from "../misc/ClientConstants.js"
 import { isTutanotaTeamMail } from "../api/common/mail/CommonMailUtils.js"
-import { formatEventTime } from "../calendar/date/CalendarUtils.js"
-import { isAllDayEvent } from "../api/common/utils/CommonCalendarUtils.js"
 import { formatEventDuration, getTimeZone } from "../calendar/date/CalendarUtils.js"
 
 type SearchBarOverlayAttrs = {
@@ -267,7 +265,7 @@ export class SearchBarOverlay implements Component<SearchBarOverlayAttrs> {
 
 	private renderCalendarEventResult(event: CalendarEvent): Children {
 		return [
-			m(".top.flex-space-between", m(".name", event.summary)),
+			m(".top.flex-space-between", m(".name.text-ellipsis", { title: event.summary }, event.summary)),
 			m(".bottom.flex-space-between", m("small.mail-address", formatEventDuration(event, getTimeZone(), false))),
 		]
 	}

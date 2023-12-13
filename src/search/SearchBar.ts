@@ -24,7 +24,6 @@ import { hasMoreResults } from "./model/SearchModel"
 import { SearchBarOverlay } from "./SearchBarOverlay"
 import { IndexingNotSupportedError } from "../api/common/error/IndexingNotSupportedError"
 import type { SearchIndexStateInfo, SearchRestriction, SearchResult } from "../api/worker/search/SearchTypes"
-import type { ListElement } from "../api/common/utils/EntityUtils"
 import { elementIdPart, getElementId, listIdPart } from "../api/common/utils/EntityUtils"
 import { compareContacts } from "../contacts/view/ContactGuiUtils"
 import { LayerType } from "../RootView"
@@ -32,6 +31,7 @@ import { BaseSearchBar, BaseSearchBarAttrs } from "../gui/base/BaseSearchBar.js"
 import { SearchRouter } from "./view/SearchRouter.js"
 import { PageSize } from "../gui/base/ListUtils.js"
 import { generateCalendarInstancesInRange } from "../calendar/date/CalendarUtils.js"
+import { ListElementEntity } from "../api/common/EntityTypes.js"
 
 assertMainOrNode()
 export type ShowMoreAction = {
@@ -379,8 +379,15 @@ export class SearchBar implements Component<SearchBarAttrs> {
 		return getRestriction(m.route.get())
 	}
 
-	private updateSearchUrl(query: string, selected?: ListElement) {
-		searchRouter.routeTo(query, this.getRestriction(), selected && getElementId(selected))
+	private updateSearchUrl(query: string, selected?: ListElementEntity) {
+		let selectedEventTime
+
+		if (selected && isSameTypeRef(CalendarEventTypeRef, selected?._type)) {
+			const event = selected as CalendarEvent
+			selectedEventTime = [event.startTime.getTime(), event.endTime.getTime()]
+		}
+
+		searchRouter.routeTo(query, this.getRestriction(), selected && getElementId(selected), selectedEventTime)
 	}
 
 	private search(query?: string) {

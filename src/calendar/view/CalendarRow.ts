@@ -1,12 +1,13 @@
 import type { CalendarEvent } from "../../api/entities/tutanota/TypeRefs.js"
 import { locator } from "../../api/main/MainLocator.js"
-import m, { Children } from "mithril"
+import m, { Children, VnodeDOM } from "mithril"
 
 import { SelectableRowContainer, SelectableRowContainerAttrs, SelectableRowSelectedSetter } from "../../gui/SelectableRowContainer.js"
 import { VirtualRow } from "../../gui/base/ListUtils.js"
-import { CalendarAgendaItemView, CalendarAgendaItemViewAttrs } from "./CalendarAgendaItemView.js"
 import { formatEventDuration, getEventColor, getGroupColors, getTimeZone } from "../date/CalendarUtils.js"
 import { ViewHolder } from "../../gui/base/List.js"
+import { styles } from "../../gui/styles.js"
+import { DefaultAnimationTime } from "../../gui/animation/Animations.js"
 
 export class CalendarRow implements VirtualRow<CalendarEvent> {
 	top: number
@@ -15,23 +16,29 @@ export class CalendarRow implements VirtualRow<CalendarEvent> {
 	colors: Map<any, any>
 
 	private selectionSetter!: SelectableRowSelectedSetter
+	private calendarIndicatorDom!: HTMLElement
+	private summaryDom!: HTMLElement
+	private durationDom!: HTMLElement
 
-	constructor(readonly domElement: HTMLElement, private readonly onSelected: (event: CalendarEvent) => unknown) {
+	constructor(readonly domElement: HTMLElement) {
 		this.top = 0
 		this.entity = null
 		this.colors = getGroupColors(locator.logins.getUserController().userSettingsGroupRoot)
 	}
 
-	update(event: CalendarEvent): void {
+	update(event: CalendarEvent, selected: boolean, isInMultiSelect: boolean): void {
 		this.entity = event
-		m.render(this.domElement, this.render())
+		this.summaryDom.innerText = event.summary
+		this.calendarIndicatorDom.style.backgroundColor = `#${getEventColor(event, this.colors)}`
+		this.durationDom.innerText = formatEventDuration(this.entity, getTimeZone(), false)
+
+		this.selectionSetter(selected, isInMultiSelect)
 	}
 
 	/**
 	 * Only the structure is managed by mithril. We set all contents on our own (see update) in order to avoid the vdom overhead (not negligible on mobiles)
 	 */
 	render(): Children {
-		if (!this.entity) return null
 		return m(
 			SelectableRowContainer,
 			{
@@ -39,17 +46,40 @@ export class CalendarRow implements VirtualRow<CalendarEvent> {
 					this.selectionSetter = changer
 				},
 			} satisfies SelectableRowContainerAttrs,
-			[
-				m(CalendarAgendaItemView, {
-					event: this.entity,
-					color: getEventColor(this.entity, this.colors),
-					click: (domEvent) => this.entity && this.onSelected(this.entity),
-					zone: getTimeZone(),
-					day: this.entity.startTime,
-					timeText: formatEventDuration(this.entity, getTimeZone(), false), //renderCalendarEventTimesForDisplay(this.entity),
-					limitSummaryWidth: true,
-				} satisfies CalendarAgendaItemViewAttrs),
-			],
+			m(
+				".flex.items-center.gap-vpad.click.plr.border-radius.pt-s.pb-s",
+				{
+					class: (styles.isDesktopLayout() ? "" : "state-bg") + "limit-width full-width",
+					style: {
+						transition: `background ${DefaultAnimationTime}ms`,
+					},
+				},
+				[
+					m("", {
+						style: {
+							minWidth: "16px",
+							minHeight: "16px",
+							borderRadius: "50%",
+						},
+						oncreate: (vnode: VnodeDOM) => {
+							this.calendarIndicatorDom = vnode.dom as HTMLElement
+						},
+					}),
+					m(".flex.col", { class: "min-width-0" }, [
+						m("p.b.m-0", {
+							class: "text-ellipsis",
+							oncreate: (vnode: VnodeDOM) => {
+								this.summaryDom = vnode.dom as HTMLElement
+							},
+						}),
+						m("", {
+							oncreate: (vnode: VnodeDOM) => {
+								this.durationDom = vnode.dom as HTMLElement
+							},
+						}),
+					]),
+				],
+			),
 		)
 	}
 }
@@ -59,15 +89,15 @@ export class KindaCalendarRow implements ViewHolder<CalendarEvent> {
 	domElement: HTMLElement
 	entity: CalendarEvent | null = null
 
-	constructor(dom: HTMLElement, onToggleSelection: (item: CalendarEvent) => unknown) {
-		this.cr = new CalendarRow(dom, onToggleSelection)
+	constructor(dom: HTMLElement) {
+		this.cr = new CalendarRow(dom)
 		this.domElement = dom
 		m.render(dom, this.cr.render())
 	}
 
 	update(item: CalendarEvent, selected: boolean, isInMultiSelect: boolean) {
 		this.entity = item
-		this.cr.update(item)
+		this.cr.update(item, selected, isInMultiSelect)
 	}
 
 	render(): Children {

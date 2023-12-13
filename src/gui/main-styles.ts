@@ -2363,5 +2363,8 @@ styles.registerStyle("main", () => {
 		".svg-text-content-bg text": {
 			fill: theme.content_bg,
 		},
+		".overflow-auto": {
+			overflow: "auto",
+		},
 	}
 })
