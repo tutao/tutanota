@@ -533,6 +533,9 @@ export class MailFacade {
 				[elementIdPart(mailDetailsDraftId)],
 				ownerEncSessionKeyProvider,
 			)
+			if (mailDetails.length === 0) {
+				throw new NotFoundError(`MailDetailsDraft ${draft.mailDetailsDraft}`)
+			}
 			return mailDetails[0].details.replyTos
 		}
 	}
