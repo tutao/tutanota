@@ -11,7 +11,7 @@ export default {
 		"other"
 	],
 	"created_at": "2015-01-13T20:40:31Z",
-	"updated_at": "2023-12-01T09:51:42Z",
+	"updated_at": "2023-12-13T12:57:14Z",
 	"source_locale": {
 		"id": "fcd7471b347c8e517663e194dcddf237",
 		"name": "en",
@@ -906,6 +906,7 @@ export default {
 		"noContact_msg": "Kein Kontakt ausgewählt.",
 		"noEntries_msg": "<Keine Einträge>",
 		"noEntryFound_label": "Keine Einträge gefunden",
+		"noEventSelect_msg": "Kein Termin ausgewählt",
 		"noInputWasMade_msg": "Eingabefeld ist leer!",
 		"noKeysForThisDomain_msg": "Du hast keine Sicherheitsschlüssel für diese Domain konfiguriert. Bitte füge einen in den Einstellungen unter Anmeldung hinzu.",
 		"noMails_msg": "Keine Nachrichten.",
@@ -1290,6 +1291,7 @@ export default {
 		"scrollToBottom_action": "Zum Ende scrollen",
 		"scrollToTop_action": "Zum Anfang scrollen",
 		"scrollUp_action": "Nach oben scrollen",
+		"searchCalendar_placeholder": "Kalender durchsuchen",
 		"searchContacts_placeholder": "Suche nach Kontakten",
 		"searchDisabledApp_msg": "Die Suche ist aufgrund eines Systemfehlers deaktiviert. Durch einen Neustart der App kann die Suche wieder aktiviert werden.",
 		"searchDisabled_msg": "Dein Browser unterstützt das Speichern von Daten nicht. Darum ist die Suche deaktiviert.",
@@ -1612,8 +1614,6 @@ export default {
 		"yourCalendars_label": "Deine Kalender",
 		"yourFolders_action": "DEINE ORDNER",
 		"yourMessage_label": "Deine Nachricht",
-		"you_label": "Du",
-		"noEventSelect_msg": "Kein Termin ausgewählt"
+		"you_label": "Du"
 	}
 }
-

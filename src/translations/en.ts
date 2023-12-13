@@ -11,7 +11,7 @@ export default {
 		"other"
 	],
 	"created_at": "2015-01-13T20:10:13Z",
-	"updated_at": "2023-11-29T09:57:17Z",
+	"updated_at": "2023-12-13T12:57:13Z",
 	"source_locale": null,
 	"fallback_locale": null,
 	"keys": {
@@ -902,6 +902,7 @@ export default {
 		"noContact_msg": "No contacts selected",
 		"noEntries_msg": "<No entries>",
 		"noEntryFound_label": "No entries found",
+		"noEventSelect_msg": "No event selected",
 		"noInputWasMade_msg": "Input field is empty!",
 		"noKeysForThisDomain_msg": "You do not have any security keys configured for this domain. Please add one in login settings.",
 		"noMails_msg": "No messages.",
@@ -1286,6 +1287,7 @@ export default {
 		"scrollToBottom_action": "Scroll to bottom",
 		"scrollToTop_action": "Scroll to top",
 		"scrollUp_action": "Scroll up",
+		"searchCalendar_placeholder": "Search events",
 		"searchContacts_placeholder": "Search contacts",
 		"searchDisabledApp_msg": "Search has been disabled due to a system error, and will be re-enabled if you restart the app.",
 		"searchDisabled_msg": "Search has been disabled because your browser doesn't support data storage.",
@@ -1608,7 +1610,6 @@ export default {
 		"yourCalendars_label": "Your calendars",
 		"yourFolders_action": "YOUR FOLDERS",
 		"yourMessage_label": "Your message",
-		"you_label": "You",
-		"noEventSelect_msg": "No event selected"
+		"you_label": "You"
 	}
 }
