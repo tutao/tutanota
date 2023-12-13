@@ -793,7 +793,12 @@ export class ContactView extends BaseTopLevelView implements TopLevelView<Contac
 		if (this.viewSlider.focusedColumn === this.detailsColumn) {
 			this.viewSlider.focus(this.listColumn)
 			return true
-		} else if (this.showingListView()) {
+		} else if (
+			this.showingListView() &&
+			!this.contactViewModel.listModel.isSelectionEmpty() &&
+			!(this.contactListViewModel.listModel && this.contactListViewModel.listModel?.isSelectionEmpty())
+		) {
+			// Just empty the list if the selection isn't empty
 			this.contactViewModel.listModel.selectNone()
 			this.contactListViewModel.listModel?.selectNone()
 

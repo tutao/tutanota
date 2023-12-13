@@ -542,6 +542,10 @@ export class ListModel<ElementType extends ListElement> {
 		return this.state.items.length === 0 && this.state.loadingStatus === ListLoadingState.Done
 	}
 
+	isSelectionEmpty(): boolean {
+		return this.state.selectedItems.size === 0
+	}
+
 	stopLoading() {
 		if (this.state.loadingStatus === ListLoadingState.Loading) {
 			// We can't really cancel ongoing requests but we can prevent more requests from happening
