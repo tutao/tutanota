@@ -131,7 +131,7 @@ export type SearchRestriction = {
 	attributeIds: number[] | null
 	// if empty, match anything. otherwise it's an OR-match.
 	listIds: Array<Id>
-	// fixme if true, include repeating events in the search
+	// if true, include repeating events in the search
 	eventSeries: boolean | null
 }
 export type SearchResult = {

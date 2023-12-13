@@ -29,7 +29,7 @@ import {
 	ofClass,
 	TypeRef,
 } from "@tutao/tutanota-utils"
-import { formatDateWithMonth, formatDateWithTimeIfNotEven, formatMonthWithYear } from "../../misc/Formatter"
+import { formatDate, formatDateWithMonth, formatDateWithTimeIfNotEven } from "../../misc/Formatter"
 import { Icons } from "../../gui/base/icons/Icons"
 import { AppHeaderAttrs, Header } from "../../gui/Header.js"
 import { ButtonType } from "../../gui/base/Button.js"
@@ -95,6 +95,10 @@ import { buildEventPreviewModel, CalendarEventPreviewViewModel } from "../../cal
 import { EventDetailsView, EventDetailsViewAttrs } from "../../calendar/view/EventDetailsView.js"
 import { progressIcon } from "../../gui/base/Icon.js"
 import { getSharedGroupName } from "../../sharing/GroupUtils.js"
+import { showProgressDialog } from "../../gui/dialogs/ProgressDialog.js"
+import { CalendarOperation } from "../../calendar/date/eventeditor/CalendarEventModel.js"
+import { getEventWithDefaultTimes } from "../../api/common/utils/CommonCalendarUtils.js"
+import { showNewCalendarEventEditDialog } from "../../calendar/view/eventeditor/CalendarEventEditDialog.js"
 
 assertMainOrNode()
 
@@ -206,7 +210,6 @@ export class SearchView extends BaseTopLevelView implements TopLevelView<SearchV
 									currentType: this.searchViewModel.lastType,
 									onSingleSelection: (item) => {
 										this.viewSlider.focus(this.resultDetailsColumn)
-
 										if (isSameTypeRef(item.entry._type, MailTypeRef)) {
 											// Make sure that we mark mail as read if you select the mail again, even if it was selected before.
 											// Do it in the next even loop to not rely on what is called first, listModel or us. ListModel changes are
@@ -417,7 +420,6 @@ export class SearchView extends BaseTopLevelView implements TopLevelView<SearchV
 			}
 		} else if (getCurrentSearchMode() === "calendar") {
 			const selectedEvent = this.searchViewModel.getSelectedEvents()[0]
-
 			return m(BackgroundColumnLayout, {
 				backgroundColor: theme.navigation_bg,
 				desktopToolbar: () => m(DesktopViewerToolbar, []),
@@ -443,11 +445,12 @@ export class SearchView extends BaseTopLevelView implements TopLevelView<SearchV
 						: !this.getSanitizedPreviewData(selectedEvent).isLoaded()
 						? null
 						: m(
-								".border-radius-big.mlr-l.flex.flex-grow.content-bg",
+								".border-radius-big.flex.col.flex-grow.content-bg",
 								{
+									class: styles.isDesktopLayout() ? "mlr-l" : "mlr",
 									style: {
-										"min-width": px(size.third_col_min_width),
-										"max-width": px(size.third_col_max_width),
+										"min-width": styles.isDesktopLayout() ? px(size.third_col_min_width) : null,
+										"max-width": styles.isDesktopLayout() ? px(size.third_col_max_width) : null,
 										height: "max-content",
 									},
 								},
@@ -703,9 +706,9 @@ export class SearchView extends BaseTopLevelView implements TopLevelView<SearchV
 
 	private renderCalendarTimeRangeField(): Children {
 		const startDate = new Date()
-		const start = this.searchViewModel.startDate == null ? lang.get("today_label") : formatMonthWithYear(this.searchViewModel.startDate)
+		const start = this.searchViewModel.startDate == null ? lang.get("today_label") : formatDate(this.searchViewModel.startDate)
 		const endDate = incrementMonth(startDate, 2)
-		const end = this.searchViewModel.endDate == null ? formatMonthWithYear(endDate) : formatMonthWithYear(this.searchViewModel.endDate)
+		const end = this.searchViewModel.endDate == null ? formatDate(endDate) : formatDate(this.searchViewModel.endDate)
 		const timeDisplayValue = start + " - " + end
 		return m(TextField, {
 			label: "periodOfTime_label",
@@ -716,15 +719,19 @@ export class SearchView extends BaseTopLevelView implements TopLevelView<SearchV
 				m(IconButton, {
 					title: "selectPeriodOfTime_label",
 					click: async () => {
-						const period = await showDateRangeSelectionDialog(
-							this.searchViewModel.getStartOfTheWeekOffset(),
-							this.searchViewModel.startDate ?? startDate,
-							this.searchViewModel.endDate ?? endDate,
-						)
-						this.searchViewModel.startDate = period.start
-						this.searchViewModel.endDate = period.end
+						if (this.searchViewModel.canSelectTimePeriod()) {
+							const period = await showDateRangeSelectionDialog(
+								this.searchViewModel.getStartOfTheWeekOffset(),
+								this.searchViewModel.startDate ?? startDate,
+								this.searchViewModel.endDate ?? endDate,
+							)
+							this.searchViewModel.startDate = period.start
+							this.searchViewModel.endDate = period.end
 
-						this.searchViewModel.searchAgain(async () => true)
+							this.searchViewModel.searchAgain(async () => true)
+						} else {
+							await showNotAvailableForFreeDialog()
+						}
 					},
 					icon: Icons.Edit,
 					size: ButtonSize.Compact,
@@ -832,8 +839,36 @@ export class SearchView extends BaseTopLevelView implements TopLevelView<SearchV
 				},
 				label: "newContact_action",
 			}
+		} else if (isSameTypeRef(typeRef, CalendarEventTypeRef)) {
+			return {
+				type: ButtonType.FolderColumnHeader,
+				click: () => {
+					this.createNewEventDialog()
+				},
+				label: "newEvent_action",
+			}
 		} else {
 			return null
+		}
+	}
+
+	private async createNewEventDialog(): Promise<void> {
+		const dateToUse = this.searchViewModel.startDate ?? new Date()
+
+		// Disallow creation of events when there is no existing calendar
+		const lazyCalendarInfo = this.searchViewModel.getLazyCalendarInfos()
+		const calendarInfos = lazyCalendarInfo.isLoaded() ? lazyCalendarInfo.getSync() : lazyCalendarInfo.getAsync()
+
+		if (calendarInfos instanceof Promise) {
+			await showProgressDialog("pleaseWait_msg", calendarInfos)
+		}
+
+		const mailboxDetails = await locator.mailModel.getUserMailboxDetails()
+		const mailboxProperties = await locator.mailModel.getMailboxProperties(mailboxDetails.mailboxGroupRoot)
+		const model = await locator.calendarEventModel(CalendarOperation.Create, getEventWithDefaultTimes(dateToUse), mailboxDetails, mailboxProperties, null)
+
+		if (model) {
+			await showNewCalendarEventEditDialog(model)
 		}
 	}
 
@@ -925,7 +960,7 @@ export class SearchView extends BaseTopLevelView implements TopLevelView<SearchV
 
 	private renderCalendarFilter(): Children {
 		if (this.searchViewModel.getLazyCalendarInfos().isLoaded()) {
-			const calendarInfos: Map<Id, CalendarInfo> = this.searchViewModel.getLazyCalendarInfos().getSync() ?? []
+			const calendarInfos = this.searchViewModel.getLazyCalendarInfos().getSync() ?? []
 
 			return m(
 				".mlr-button",

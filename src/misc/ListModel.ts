@@ -138,8 +138,12 @@ export class ListModel<ElementType extends ListElement> {
 		await this.doLoad()
 	}
 
+	updateLoadingStatus(status: ListLoadingState) {
+		this.updateState({ loadingStatus: status })
+	}
+
 	private async doLoad() {
-		this.updateState({ loadingStatus: ListLoadingState.Loading })
+		this.updateLoadingStatus(ListLoadingState.Loading)
 		this.loading = Promise.resolve().then(async () => {
 			const lastItem = last(this.rawState.unfilteredItems)
 			try {
@@ -157,7 +161,7 @@ export class ListModel<ElementType extends ListElement> {
 				const loadingStatus = complete ? ListLoadingState.Done : ListLoadingState.Idle
 				this.updateState({ loadingStatus, unfilteredItems: newUnfilteredItems, filteredItems: newFilteredItems })
 			} catch (e) {
-				this.updateState({ loadingStatus: ListLoadingState.ConnectionLost })
+				this.updateLoadingStatus(ListLoadingState.ConnectionLost)
 				if (!isOfflineError(e)) {
 					throw e
 				}
@@ -354,20 +358,25 @@ export class ListModel<ElementType extends ListElement> {
 		}
 	}
 
-	async loadAndSelect(itemId: Id, shouldStop: () => boolean): Promise<ElementType | null> {
+	async loadAndSelect(
+		itemId: Id,
+		shouldStop: () => boolean,
+		finder: (a: ElementType) => boolean = (item) => getElementId(item) === itemId,
+	): Promise<ElementType | null> {
 		await this.waitUtilInit()
 		let foundItem: ElementType | undefined = undefined
 		while (
 			// if we did find the target mail, stop
 			// make sure to call this before shouldStop or we might stop before trying to find an item
 			// this can probably be optimized to be binary search in most (all?) cases
-			!(foundItem = this.rawState.unfilteredItems.find((item) => getElementId(item) === itemId)) &&
+			!(foundItem = this.rawState.unfilteredItems.find(finder)) &&
 			!shouldStop() &&
 			// if we are done loading, stop
 			this.rawState.loadingStatus !== ListLoadingState.Done &&
 			// if we are offline, stop
 			this.rawState.loadingStatus !== ListLoadingState.ConnectionLost
 		) {
+			console.log("loading more")
 			await this.loadMore()
 		}
 		if (foundItem) {
