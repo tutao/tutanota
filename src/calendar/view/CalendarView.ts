@@ -513,20 +513,6 @@ export class CalendarView extends BaseTopLevelView implements TopLevelView<Calen
 		)
 	}
 
-	handleBackButton(): boolean {
-		const route = m.route.get()
-
-		if (route.startsWith("/calendar/day")) {
-			m.route.set(route.replace("day", "month"))
-			return true
-		} else if (route.startsWith("/calendar/week")) {
-			m.route.set(route.replace("week", "month"))
-			return true
-		} else {
-			return false
-		}
-	}
-
 	_onPressedAddCalendar() {
 		if (locator.logins.getUserController().getCalendarMemberships().length === 0) {
 			this._showCreateCalendarDialog()
@@ -739,7 +725,6 @@ export class CalendarView extends BaseTopLevelView implements TopLevelView<Calen
 			".main-view",
 			m(this.viewSlider, {
 				header: m(Header, {
-					handleBackPress: () => this.handleBackButton(),
 					...attrs.header,
 				}),
 				bottomNav: m(BottomNav),
