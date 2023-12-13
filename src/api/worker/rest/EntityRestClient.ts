@@ -275,7 +275,7 @@ export class EntityRestClient implements EntityRestInterface {
 				sessionKey = await this._crypto.resolveSessionKey(model, instance)
 			} catch (e) {
 				if (e instanceof SessionKeyNotFoundError) {
-					console.log("could not resolve session key", e)
+					console.log("could not resolve session key", e, e.message, e.stack)
 					sessionKey = null // will result in _errors being set on the instance
 				} else {
 					throw e

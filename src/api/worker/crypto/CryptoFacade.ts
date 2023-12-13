@@ -235,7 +235,7 @@ export class CryptoFacade {
 			return bucketKeyInstanceOrLiteral as BucketKey
 		} else {
 			// decryptAndMapToInstance is misleading here, but we want to map the BucketKey aggregate and its session key from a literal to an instance
-			// to have the encrypted keys in binary format and not a base 64. There is actually no decryption ongoing, just mapToInstance.
+			// to have the encrypted keys in binary format and not as base 64. There is actually no decryption ongoing, just mapToInstance.
 			const bucketKeyTypeModel = await resolveTypeReference(BucketKeyTypeRef)
 			return (await this.instanceMapper.decryptAndMapToInstance(bucketKeyTypeModel, bucketKeyInstanceOrLiteral, null)) as BucketKey
 		}
