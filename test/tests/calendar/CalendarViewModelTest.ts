@@ -6,7 +6,7 @@ import { assertNotNull, downcast, getStartOfDay, neverNull, noOp } from "@tutao/
 import type { CalendarEvent } from "../../../src/api/entities/tutanota/TypeRefs.js"
 import { addDaysForEventInstance, getMonthRange } from "../../../src/calendar/date/CalendarUtils.js"
 import type { CalendarModel } from "../../../src/calendar/model/CalendarModel.js"
-import { CalendarEventEditModelsFactory, CalendarViewModel } from "../../../src/calendar/view/CalendarViewModel.js"
+import { CalendarEventEditModelsFactory, CalendarEventPreviewModelFactory, CalendarViewModel } from "../../../src/calendar/view/CalendarViewModel.js"
 import { CalendarEventModel, CalendarOperation, EventSaveResult } from "../../../src/calendar/date/eventeditor/CalendarEventModel.js"
 import { EntityClient } from "../../../src/api/common/EntityClient.js"
 import type { EntityUpdateData } from "../../../src/api/main/EventController.js"
@@ -52,9 +52,11 @@ o.spec("CalendarViewModel", async function () {
 			getUserController: () => userController,
 			isInternalUserLoggedIn: () => true,
 		})
+		const previewModelFactory: CalendarEventPreviewModelFactory = async () => object()
 		return new CalendarViewModel(
 			loginController,
 			makeViewModelCallback,
+			previewModelFactory,
 			calendarModel,
 			new EntityClient(entityClientMock),
 			eventController,
