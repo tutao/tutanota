@@ -11,7 +11,7 @@ export default {
 		"other"
 	],
 	"created_at": "2015-01-16T12:59:04Z",
-	"updated_at": "2023-11-28T10:08:49Z",
+	"updated_at": "2023-12-06T11:45:19Z",
 	"source_locale": {
 		"id": "fcd7471b347c8e517663e194dcddf237",
 		"name": "en",
@@ -43,6 +43,7 @@ export default {
 		"activeSessions_label": "Sessions actives",
 		"active_label": "Actif",
 		"actor_label": "Acteur",
+		"addAccount_action": "Ajouter un compte",
 		"addAliasUserDisabled_msg": "L'alias de messagerie n'a pas pu être ajouté à l'utilisateur ou au groupe car l'utilisateur est actuellement désactivé.",
 		"addCalendar_action": "Ajouter un calendrier",
 		"addContactList_action": "Ajouter une liste de contacts",
@@ -1240,6 +1241,7 @@ export default {
 		"reminderBeforeEvent_label": "Rappel avant évènement",
 		"remindersUsageDescription_msg": "Montrer les notifications quand de nouveaux mails arrivent.",
 		"reminder_label": "Rappel",
+		"removeAccount_action": "Supprimer le compte",
 		"removeCalendarParticipantConfirm_msg": "Êtes-vous sûr de vouloir supprimer {participant} du calendrier \"{calendarName}\" ?",
 		"removeDNSValue_label": "Supprimer la valeur",
 		"removeFormatting_action": "Supprimer la mise en forme de la sélection",
@@ -1425,6 +1427,7 @@ export default {
 		"supportMenu_label": "Support",
 		"suspiciousLink_msg": "Êtes-vous sûr de vouloir ouvrir \"{url}\" ? Le lien peut exécuter des programmes sur votre appareil. N'ouvrez que des liens provenant de sources fiables.",
 		"suspiciousLink_title": "Lien suspect",
+		"switchAccount_action": "Changer de compte",
 		"switchAgendaView_action": "Passer à la vue agenda",
 		"switchArchive_action": "Aller au dossier d'archives",
 		"switchColorTheme_action": "Changer la couleur de thème",
