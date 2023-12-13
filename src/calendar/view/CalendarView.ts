@@ -781,10 +781,6 @@ export class CalendarView extends BaseTopLevelView implements TopLevelView<Calen
 
 			deviceConfig.setDefaultCalendarView(locator.logins.getUserController().user._id, this.currentViewType)
 		}
-
-		if (this.viewModel.eventPreviewModel != null) {
-			this.viewModel.eventPreviewModel = null
-		}
 	}
 
 	getViewSlider(): ViewSlider {

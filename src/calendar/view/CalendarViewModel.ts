@@ -17,7 +17,7 @@ import {
 import { CalendarEvent, CalendarEventTypeRef, UserSettingsGroupRootTypeRef } from "../../api/entities/tutanota/TypeRefs.js"
 import { getWeekStart, GroupType, OperationType, WeekStart } from "../../api/common/TutanotaConstants"
 import { NotAuthorizedError, NotFoundError } from "../../api/common/error/RestError"
-import { getElementId, getListId, isSameId, listIdPart } from "../../api/common/utils/EntityUtils"
+import { getElementId, getListId, haveSameId, isSameId, listIdPart } from "../../api/common/utils/EntityUtils"
 import { LoginController } from "../../api/main/LoginController"
 import { IProgressMonitor, NoopProgressMonitor } from "../../api/common/utils/ProgressMonitor"
 import type { ReceivedGroupInvitation } from "../../api/entities/sys/TypeRefs.js"
@@ -48,7 +48,7 @@ import { askIfShouldSendCalendarUpdatesToAttendees } from "./CalendarGuiUtils"
 import { ReceivedGroupInvitationsModel } from "../../sharing/model/ReceivedGroupInvitationsModel"
 import type { CalendarInfo, CalendarModel } from "../model/CalendarModel"
 import type { EntityUpdateData } from "../../api/main/EventController"
-import { EventController, isUpdateForTypeRef } from "../../api/main/EventController"
+import { EventController, isUpdateFor, isUpdateForTypeRef } from "../../api/main/EventController"
 import { EntityClient } from "../../api/common/EntityClient"
 import { ProgressTracker } from "../../api/main/ProgressTracker"
 import { DeviceConfig } from "../../misc/DeviceConfig"
@@ -84,7 +84,13 @@ export class CalendarViewModel implements EventDragHandlerCallbacks {
 	_calendarInfos: LazyLoaded<ReadonlyMap<Id, CalendarInfo>>
 	_eventsForDays: EventsForDays
 
-	eventPreviewModel: CalendarEventPreviewViewModel | null = null
+	/**
+	 * An event currently being displayed (non-modally)
+	 * the {@code model} is {@code null} until it is loaded.
+	 *
+	 * We keep track of event separately to avoid races with selecting multiple events shortly one after another.
+	 */
+	private previewedEvent: { event: CalendarEvent; model: CalendarEventPreviewViewModel | null } | null = null
 
 	readonly _loadedMonths: Set<number> // first ms of the month
 
@@ -138,6 +144,9 @@ export class CalendarViewModel implements EventDragHandlerCallbacks {
 			}),
 		).load()
 		this.selectedDate.map((d) => {
+			this.previewedEvent = null
+			this._redraw()
+
 			const thisMonthStart = getMonthRange(d, this.timeZone).start
 			const previousMonthDate = new Date(thisMonthStart)
 			previousMonthDate.setMonth(new Date(thisMonthStart).getMonth() - 1)
@@ -381,12 +390,19 @@ export class CalendarViewModel implements EventDragHandlerCallbacks {
 		return await editModel.apply()
 	}
 
+	get eventPreviewModel(): CalendarEventPreviewViewModel | null {
+		return this.previewedEvent?.model ?? null
+	}
+
 	async previewEvent(event: CalendarEvent) {
+		const previewedEvent = (this.previewedEvent = { event, model: null })
 		const calendarInfos = await this.calendarInfos.getAsync()
 		const previewModel = await buildEventPreviewModel(event, calendarInfos)
-
-		this.eventPreviewModel = previewModel
-		this._redraw()
+		// check that we didn't start previewing another event or changed the date in the meantime
+		if (this.previewedEvent === previewedEvent) {
+			this.previewedEvent.model = previewModel
+			this._redraw()
+		}
 	}
 
 	_addOrUpdateEvent(calendarInfo: CalendarInfo | null, event: CalendarEvent) {
@@ -434,8 +450,8 @@ export class CalendarViewModel implements EventDragHandlerCallbacks {
 					} else if (update.operation === OperationType.DELETE) {
 						this._removeDaysForEvent([update.instanceListId, update.instanceId], eventOwnerGroupId)
 
-						if (isSameId([update.instanceListId, update.instanceId], this.eventPreviewModel?.calendarEvent._id ?? null)) {
-							this.eventPreviewModel = null
+						if (this.previewedEvent != null && isUpdateFor(this.previewedEvent.event, update)) {
+							this.previewedEvent = null
 						}
 
 						this._redraw()
@@ -496,8 +512,8 @@ export class CalendarViewModel implements EventDragHandlerCallbacks {
 					try {
 						const events = await this._entityClient.loadMultiple(CalendarEventTypeRef, instanceListId, ids)
 						for (const event of events) {
-							if (isSameId(event._id, this.eventPreviewModel?.calendarEvent._id ?? null)) {
-								this.eventPreviewModel = await buildEventPreviewModel(event, calendarInfos)
+							if (this.previewedEvent != null && haveSameId(this.previewedEvent.event, event)) {
+								await this.previewEvent(event)
 							}
 
 							this._addOrUpdateEvent(calendarInfos.get(neverNull(event._ownerGroup)) ?? null, event)
