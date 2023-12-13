@@ -11,7 +11,7 @@ export default {
 		"other"
 	],
 	"created_at": "2015-03-23T11:36:16Z",
-	"updated_at": "2023-11-29T15:56:27Z",
+	"updated_at": "2023-12-13T13:59:51Z",
 	"source_locale": null,
 	"fallback_locale": null,
 	"keys": {
@@ -902,6 +902,7 @@ export default {
 		"noContact_msg": "Ingen kontakt vald",
 		"noEntries_msg": "<Inga uppslag>",
 		"noEntryFound_label": "Inga poster hittades",
+		"noEventSelect_msg": "Ingen händelse vald",
 		"noInputWasMade_msg": "Fältet är tomt!",
 		"noKeysForThisDomain_msg": "Du har inte konfigurerat några säkerhetsnycklar för den här domänen. Lägg till en i inloggningsinställningarna.",
 		"noMails_msg": "Det finns inga meddelanden i den här listan.",
@@ -1286,6 +1287,7 @@ export default {
 		"scrollToBottom_action": "Bläddra till botten",
 		"scrollToTop_action": "Rulla till toppen",
 		"scrollUp_action": "Bläddra upp",
+		"searchCalendar_placeholder": "Sök händelser",
 		"searchContacts_placeholder": "Sök kontakter",
 		"searchDisabledApp_msg": "Sökningen är inaktiverad på grund av ett systemfel. Appen måste startas om för att aktivera sökning igen.",
 		"searchDisabled_msg": "Sökning har inaktiverats eftersom din webbläsare inte stöder datalagring.",
