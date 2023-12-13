@@ -92,6 +92,7 @@ export function getSearchUrl(
 	query: string | null,
 	restriction: SearchRestriction,
 	selectedId?: Id,
+	selectedEventTime?: ReadonlyArray<number>,
 ): {
 	path: string
 	params: Record<string, string | number | Array<string>>
@@ -117,6 +118,12 @@ export function getSearchUrl(
 	if (restriction.eventSeries != null) {
 		params.eventSeries = String(restriction.eventSeries)
 	}
+
+	if (isSameTypeRef(restriction.type, CalendarEventTypeRef) && selectedEventTime) {
+		params.startTime = selectedEventTime[0]
+		params.endTime = selectedEventTime[1]
+	}
+
 	return {
 		path: "/search/:category" + (selectedId ? "/" + selectedId : ""),
 		params: params,

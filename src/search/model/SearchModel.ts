@@ -187,6 +187,8 @@ export class SearchModel {
 		}
 
 		if (query !== result.query) {
+			// fixme: can we throw the result away here?
+			// this.result(null)
 			return true
 		}
 
@@ -195,6 +197,8 @@ export class SearchModel {
 			return false
 		}
 
+		// fixme: can we throw the result away here if true?
+		// this.result(null)
 		return !isSameSearchRestriction(restriction, result.restriction)
 	}
 
@@ -229,7 +233,7 @@ export function isSameSearchRestriction(a: SearchRestriction, b: SearchRestricti
 		a.end === b.end &&
 		a.field === b.field &&
 		isSameAttributeIds &&
-		a.eventSeries === b.eventSeries &&
+		(a.eventSeries === b.eventSeries || (a.eventSeries === null && b.eventSeries === true) || (a.eventSeries === true && b.eventSeries === null)) &&
 		arrayEquals(a.listIds, b.listIds)
 	)
 }

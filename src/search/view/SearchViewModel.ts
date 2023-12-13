@@ -11,14 +11,16 @@ import {
 	GENERATED_MAX_ID,
 	getElementId,
 	isSameId,
+	ListElement,
 	listIdPart,
 	sortCompareByReverseId,
 } from "../../api/common/utils/EntityUtils.js"
-import { ListState } from "../../gui/base/List.js"
+import { ListLoadingState, ListState } from "../../gui/base/List.js"
 import {
 	assertNotNull,
 	defer,
 	downcast,
+	filterInt,
 	getEndOfDay,
 	getStartOfDay,
 	groupBy,
@@ -163,45 +165,70 @@ export class SearchViewModel {
 		const maxResults = isSameTypeRef(MailTypeRef, restriction.type) ? SEARCH_PAGE_SIZE : null
 
 		// using hasOwnProperty to distinguish case when url is like '/search/mail/query='
-		if (args.hasOwnProperty("query")) {
-			if (this.search.isNewSearch(args.query, restriction)) {
-				this.search.search({
+		if (args.hasOwnProperty("query") && this.search.isNewSearch(args.query, restriction)) {
+			this._searchResult = null
+			this.listModel.selectNone()
+			this.listModel.updateLoadingStatus(ListLoadingState.Loading)
+			this.search
+				.search({
 					query: args.query,
 					restriction,
 					minSuggestionCount: 0,
 					maxResults,
 				})
-			}
+				.then(() => this.listModel.updateLoadingStatus(ListLoadingState.Done))
+				.catch(() => this.listModel.updateLoadingStatus(ListLoadingState.ConnectionLost))
 		} else if (lastQuery && this.search.isNewSearch(lastQuery, restriction)) {
+			this._searchResult = null
+			this.listModel.selectNone()
 			// If query is not set for some reason (e.g. switching search type), use the last query value
-			this.search.search({
-				query: lastQuery,
-				restriction,
-				minSuggestionCount: 0,
-				maxResults,
-			})
+			this.listModel.updateLoadingStatus(ListLoadingState.Loading)
+			this.search
+				.search({
+					query: lastQuery,
+					restriction,
+					minSuggestionCount: 0,
+					maxResults,
+				})
+				.then(() => this.listModel.updateLoadingStatus(ListLoadingState.Done))
+				.catch(() => this.listModel.updateLoadingStatus(ListLoadingState.ConnectionLost))
 		}
 
 		// update the filters
+		let finder
 		if (!isSameTypeRef(restriction.type, ContactTypeRef)) {
-			this.startDate = restriction.start ? new Date(restriction.start) : null
-			this.endDate = restriction.end ? new Date(restriction.end) : null
-			this.selectedMailFolder = restriction.listIds
-
 			if (isSameTypeRef(restriction.type, MailTypeRef)) {
 				this.selectedMailField = restriction.field
+				this.startDate = restriction.end ? new Date(restriction.end) : null
+				this.endDate = restriction.start ? new Date(restriction.start) : null
+				this.selectedMailFolder = restriction.listIds
 			} else if (isSameTypeRef(restriction.type, CalendarEventTypeRef)) {
+				this.startDate = restriction.start ? new Date(restriction.start) : null
+				this.endDate = restriction.end ? new Date(restriction.end) : null
+
 				this.includeRepeatingEvents = restriction.eventSeries ?? true
 				this.lazyCalendarInfos.load()
+
+				if (args["startTime"] && args["endTime"]) {
+					finder = ({ entry }: SearchResultListEntry) => {
+						entry = entry as CalendarEvent
+						return (
+							args.id === getElementId(entry) &&
+							filterInt(args["startTime"]) === entry.startTime.getTime() &&
+							filterInt(args["endTime"]) === entry.endTime.getTime()
+						)
+					}
+				}
 			}
 		}
+		this.loadAndSelectIfNeeded(args, finder)
+	}
 
+	private loadAndSelectIfNeeded(args: Record<string, any>, finder?: (a: ListElement) => boolean) {
 		if (args.id && !this.listModel.isItemSelected(args.id)) {
 			// the mail list is visible already, just the selected mail is changed
 			const listModel = this.listModel
-			this.listModel.loadAndSelect(args.id, () => {
-				return this.listModel !== listModel
-			})
+			this.listModel.loadAndSelect(args.id, () => this.listModel !== listModel, finder)
 		}
 	}
 
@@ -333,29 +360,51 @@ export class SearchViewModel {
 	}
 
 	private updateSearchUrl() {
-		let restriction
+		const selectedElement = this.listModel.state.selectedItems.size === 1 ? this.listModel.getSelectedAsArray().at(0) : null
+
 		if (isSameTypeRefNullable(this.lastType, MailTypeRef)) {
-			restriction = createRestriction(
-				this.getCategory(),
-				this.endDate ? getEndOfDay(this.endDate).getTime() : null,
-				this.startDate ? getStartOfDay(this.startDate).getTime() : null,
-				this.selectedMailField,
-				this.selectedMailFolder,
-				null,
+			this.routeMail(
+				(selectedElement?.entry as Mail) ?? null,
+				createRestriction(
+					this.getCategory(),
+					this.endDate ? getEndOfDay(this.endDate).getTime() : null,
+					this.startDate ? getStartOfDay(this.startDate).getTime() : null,
+					this.selectedMailField,
+					this.selectedMailFolder,
+					null,
+				),
 			)
 		} else if (isSameTypeRefNullable(this.lastType, CalendarEventTypeRef)) {
-			restriction = createRestriction(
-				this.getCategory(),
-				this.startDate ? getStartOfDay(this.startDate).getTime() : null,
-				this.endDate ? getEndOfDay(this.endDate).getTime() : null,
-				null,
-				this.selectedCalendar == null ? [] : [this.selectedCalendar.groupRoot.longEvents, this.selectedCalendar.groupRoot.shortEvents],
-				this.includeRepeatingEvents,
+			this.routeCalendar(
+				(selectedElement?.entry as CalendarEvent) ?? null,
+				createRestriction(
+					this.getCategory(),
+					this.startDate ? getStartOfDay(this.startDate).getTime() : null,
+					this.endDate ? getEndOfDay(this.endDate).getTime() : null,
+					null,
+					this.selectedCalendar == null ? [] : [this.selectedCalendar.groupRoot.longEvents, this.selectedCalendar.groupRoot.shortEvents],
+					this.includeRepeatingEvents,
+				),
 			)
-		} else {
-			restriction = createRestriction(this.getCategory(), null, null, null, [], null)
+		} else if (isSameTypeRefNullable(this.lastType, ContactTypeRef)) {
+			this.routeContact((selectedElement?.entry as Contact) ?? null, createRestriction(this.getCategory(), null, null, null, [], null))
 		}
-		this.router.routeTo(this.search.lastQuery() ?? "", restriction, this.getSingleSelectionId())
+	}
+
+	private routeCalendar(element: CalendarEvent | null, restriction: SearchRestriction) {
+		console.log("Routing to calendar")
+		const eventTimes = element ? [element.startTime.getTime(), element.endTime.getTime()] : []
+		this.router.routeTo(this.search.lastQuery() ?? "", restriction, element ? getElementId(element) : null, eventTimes)
+	}
+
+	private routeMail(element: Mail | null, restriction: SearchRestriction) {
+		console.log("Routing to mail")
+		this.router.routeTo(this.search.lastQuery() ?? "", restriction, element && isSameTypeRef(element._type, MailTypeRef) ? getElementId(element) : null)
+	}
+
+	private routeContact(element: Contact | null, restriction: SearchRestriction) {
+		console.log("Routing to Contact")
+		this.router.routeTo(this.search.lastQuery() ?? "", restriction, element ? getElementId(element) : null)
 	}
 
 	private getCategory(): string {
@@ -431,14 +480,6 @@ export class SearchViewModel {
 		}
 		this.updateSearchUrl()
 		this.updateUi()
-	}
-
-	private getSingleSelectionId(): Id | null {
-		if (this.listModel.state.selectedItems.size === 1) {
-			return getElementId(this.listModel.getSelectedAsArray()[0])
-		} else {
-			return null
-		}
 	}
 
 	private updateDisplayedConversation(mail: Mail): void {
@@ -611,7 +652,6 @@ export class SearchViewModel {
 		this.listStateSubscription?.end(true)
 		this.listStateSubscription = null
 		this.eventController.removeEntityListener(this.entityEventsListener)
-		this.listModel = this.createList()
 	}
 }
 

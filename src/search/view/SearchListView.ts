@@ -106,9 +106,7 @@ export class SearchListView implements Component<SearchListViewAttrs> {
 		multiselectionAllowed: MultiselectMode.Disabled,
 		swipe: null,
 		createElement: (dom) => {
-			const row: SearchResultListRow = new SearchResultListRow(
-				new KindaCalendarRow(dom, () => row.entity && this.listModel.onSingleExclusiveSelection(row.entity)),
-			)
+			const row: SearchResultListRow = new SearchResultListRow(new KindaCalendarRow(dom))
 			m.render(dom, row.render())
 			return row
 		},

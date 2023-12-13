@@ -9,8 +9,8 @@ export class SearchRouter {
 
 	readonly getRestriction: () => SearchRestriction = memoizedWithHiddenArgument(() => m.route.get(), getRestriction)
 
-	routeTo(query: string, restriction: SearchRestriction, selectedId?: Id | null): void {
-		const { path, params } = getSearchUrl(query, restriction, selectedId ?? undefined)
+	routeTo(query: string, restriction: SearchRestriction, selectedId?: Id | null, selectedEventTime?: ReadonlyArray<number>): void {
+		const { path, params } = getSearchUrl(query, restriction, selectedId ?? undefined, selectedEventTime)
 		this.router.routeTo(path, params)
 	}
 }
