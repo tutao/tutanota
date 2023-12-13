@@ -226,32 +226,3 @@ export class CalendarEventPreviewViewModel {
 		return this.sanitizedDescription
 	}
 }
-
-export async function buildEventPreviewModel(selectedEvent: CalendarEvent, calendars: ReadonlyMap<string, CalendarInfo>) {
-	const mailboxDetails = await locator.mailModel.getUserMailboxDetails()
-
-	const mailboxProperties = await locator.mailModel.getMailboxProperties(mailboxDetails.mailboxGroupRoot)
-
-	const userController = locator.logins.getUserController()
-	const customer = await userController.loadCustomer()
-	const ownMailAddresses = getEnabledMailAddressesWithUser(mailboxDetails, userController.userGroupInfo)
-	const ownAttendee: CalendarEventAttendee | null = findAttendeeInAddresses(selectedEvent.attendees, ownMailAddresses)
-	const eventType = getEventType(selectedEvent, calendars, ownMailAddresses, userController.user)
-	const hasBusinessFeature = isCustomizationEnabledForCustomer(customer, FeatureType.BusinessFeatureEnabled) || (await userController.isNewPaidPlan())
-	const lazyIndexEntry = async () => (selectedEvent.uid != null ? locator.calendarFacade.getEventsByUid(selectedEvent.uid) : null)
-	const popupModel = new CalendarEventPreviewViewModel(
-		selectedEvent,
-		await locator.calendarModel(),
-		eventType,
-		hasBusinessFeature,
-		ownAttendee,
-		lazyIndexEntry,
-		async (mode: CalendarOperation) => locator.calendarEventModel(mode, selectedEvent, mailboxDetails, mailboxProperties, null),
-	)
-
-	// If we have a preview model we want to display the description
-	// so makes sense to already sanitize it after building the event
-	await popupModel.sanitizeDescription()
-
-	return popupModel
-}

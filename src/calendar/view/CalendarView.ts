@@ -57,7 +57,6 @@ import { CalendarDesktopToolbar } from "./CalendarDesktopToolbar.js"
 import { CalendarOperation } from "../date/eventeditor/CalendarEventModel.js"
 import { DaySelectorPopup } from "../date/DaySelectorPopup.js"
 import { DaySelectorSidebar } from "../date/DaySelectorSidebar.js"
-import { buildEventPreviewModel } from "./eventpopup/CalendarEventPreviewViewModel.js"
 
 export type GroupColors = Map<Id, string>
 
@@ -826,7 +825,7 @@ export class CalendarView extends BaseTopLevelView implements TopLevelView<Calen
 		if (this.viewModel.calendarInfos.isLoaded()) calendarInfos = assertNotNull(this.viewModel.calendarInfos.getSync())
 		else calendarInfos = await this.viewModel.calendarInfos.getAsync()
 
-		const [popupModel, htmlSanitizer] = await Promise.all([buildEventPreviewModel(selectedEvent, calendarInfos), htmlSanitizerPromise])
+		const [popupModel, htmlSanitizer] = await Promise.all([locator.calendarEventPreviewModel(selectedEvent, calendarInfos), htmlSanitizerPromise])
 
 		new CalendarEventPopup(popupModel, rect, htmlSanitizer).show()
 	}

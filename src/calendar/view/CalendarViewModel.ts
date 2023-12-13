@@ -54,7 +54,7 @@ import { ProgressTracker } from "../../api/main/ProgressTracker"
 import { DeviceConfig } from "../../misc/DeviceConfig"
 import type { EventDragHandlerCallbacks } from "./EventDragHandler"
 import { ProgrammingError } from "../../api/common/error/ProgrammingError.js"
-import { buildEventPreviewModel, CalendarEventPreviewViewModel } from "./eventpopup/CalendarEventPreviewViewModel.js"
+import { CalendarEventPreviewViewModel } from "./eventpopup/CalendarEventPreviewViewModel.js"
 
 export type EventsOnDays = {
 	days: Array<Date>
@@ -75,6 +75,10 @@ export type CalendarEventBubbleClickHandler = (arg0: CalendarEvent, arg1: MouseO
 type EventsForDays = ReadonlyMap<number, Array<CalendarEvent>>
 export const LIMIT_PAST_EVENTS_YEARS = 100
 export type CalendarEventEditModelsFactory = (mode: CalendarOperation, event: CalendarEvent) => Promise<CalendarEventModel | null>
+export type CalendarEventPreviewModelFactory = (
+	selectedEvent: CalendarEvent,
+	calendars: ReadonlyMap<string, CalendarInfo>,
+) => Promise<CalendarEventPreviewViewModel>
 
 export class CalendarViewModel implements EventDragHandlerCallbacks {
 	// Should not be changed directly but only through the URL
@@ -107,6 +111,7 @@ export class CalendarViewModel implements EventDragHandlerCallbacks {
 	constructor(
 		private readonly logins: LoginController,
 		private readonly createCalendarEventEditModel: CalendarEventEditModelsFactory,
+		private readonly createCalendarEventPreviewModel: CalendarEventPreviewModelFactory,
 		calendarModel: CalendarModel,
 		entityClient: EntityClient,
 		eventController: EventController,
@@ -397,7 +402,7 @@ export class CalendarViewModel implements EventDragHandlerCallbacks {
 	async previewEvent(event: CalendarEvent) {
 		const previewedEvent = (this.previewedEvent = { event, model: null })
 		const calendarInfos = await this.calendarInfos.getAsync()
-		const previewModel = await buildEventPreviewModel(event, calendarInfos)
+		const previewModel = await this.createCalendarEventPreviewModel(event, calendarInfos)
 		// check that we didn't start previewing another event or changed the date in the meantime
 		if (this.previewedEvent === previewedEvent) {
 			this.previewedEvent.model = previewModel
