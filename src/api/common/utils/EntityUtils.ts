@@ -17,7 +17,6 @@ import {
 import { Cardinality, ValueType } from "../EntityConstants"
 import type { Entity, ModelValue, SomeEntity, TypeModel } from "../EntityTypes"
 import { ElementEntity } from "../EntityTypes"
-import { ProgrammingError } from "../error/ProgrammingError.js"
 
 /**
  * the maximum ID for elements stored on the server (number with the length of 10 bytes) => 2^80 - 1
@@ -368,7 +367,7 @@ export function assertIsEntity<T extends SomeEntity>(entity: SomeEntity, type: T
 	if (isSameTypeRef(entity._type, type)) {
 		return true
 	} else {
-		throw new ProgrammingError(`Entity is not of correct type ${type}`)
+		return false
 	}
 }
 
