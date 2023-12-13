@@ -46,8 +46,14 @@ export class Icon implements Component<IconAttrs> {
 				"aria-hidden": "true",
 				class: this.getClass(vnode.attrs),
 				style: this.getStyle(vnode.attrs.style ?? null),
-				onmouseenter: () => {
-					if (this.root && this.tooltip) this.moveElementIfOffscreen(this.root, this.tooltip)
+				// mithril lets us mute the normal redraw that occurs after
+				// event callbacks, but TS doesn't know
+				onmouseenter: (e: MouseEvent & { redraw: boolean }) => {
+					if (this.root && this.tooltip) {
+						this.moveElementIfOffscreen(this.root, this.tooltip)
+					} else {
+						e.redraw = false
+					}
 				},
 			},
 			m.trust(icon),
