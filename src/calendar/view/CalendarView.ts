@@ -404,13 +404,7 @@ export class CalendarView extends BaseTopLevelView implements TopLevelView<Calen
 	}
 
 	async _createNewEventDialog(date: Date | null = null): Promise<void> {
-		let dateToUse: Date
-		if (date != null) {
-			dateToUse = date
-		} else {
-			// in agenda view, we always show today as the current date, so new event should be created today instead of the (invisibly) selected date in the model.
-			dateToUse = this.currentViewType === CalendarViewType.AGENDA ? getStartOfDay(new Date()) : this.viewModel.selectedDate()
-		}
+		const dateToUse = date ?? this.viewModel.selectedDate()
 
 		// Disallow creation of events when there is no existing calendar
 		let calendarInfos = this.viewModel.getCalendarInfosCreateIfNeeded()
