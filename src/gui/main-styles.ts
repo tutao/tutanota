@@ -438,6 +438,9 @@ styles.registerStyle("main", () => {
 		".pl-xs": {
 			"padding-left": px(size.vpad_xs),
 		},
+		".pl-vpad": {
+			"padding-left": px(size.vpad),
+		},
 		".pr": {
 			"padding-right": px(size.hpad),
 		},
