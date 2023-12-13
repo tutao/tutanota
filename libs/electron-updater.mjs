@@ -31,6 +31,15 @@ Object.defineProperty(CancellationToken$1, "__esModule", { value: true });
 CancellationToken$1.CancellationError = CancellationToken$1.CancellationToken = void 0;
 const events_1 = require$$0;
 class CancellationToken extends events_1.EventEmitter {
+    get cancelled() {
+        return this._cancelled || (this._parent != null && this._parent.cancelled);
+    }
+    set parent(value) {
+        this.removeParentCancelHandler();
+        this._parent = value;
+        this.parentCancelHandler = () => this.cancel();
+        this._parent.onCancel(this.parentCancelHandler);
+    }
     // babel cannot compile ... correctly for super calls
     constructor(parent) {
         super();
@@ -40,15 +49,6 @@ class CancellationToken extends events_1.EventEmitter {
         if (parent != null) {
             this.parent = parent;
         }
-    }
-    get cancelled() {
-        return this._cancelled || (this._parent != null && this._parent.cancelled);
-    }
-    set parent(value) {
-        this.removeParentCancelHandler();
-        this._parent = value;
-        this.parentCancelHandler = () => this.cancel();
-        this._parent.onCancel(this.parentCancelHandler);
     }
     cancel() {
         this._cancelled = true;
@@ -1679,6 +1679,10 @@ Please double check that your authentication token is correct. Due to security r
 	}
 	httpExecutor.configureRequestUrl = configureRequestUrl;
 	class DigestTransform extends stream_1.Transform {
+	    // noinspection JSUnusedGlobalSymbols
+	    get actual() {
+	        return this._actual;
+	    }
 	    constructor(expected, algorithm = "sha512", encoding = "base64") {
 	        super();
 	        this.expected = expected;
@@ -1687,10 +1691,6 @@ Please double check that your authentication token is correct. Due to security r
 	        this._actual = null;
 	        this.isValidateOnEnd = true;
 	        this.digester = (0, crypto_1.createHash)(algorithm);
-	    }
-	    // noinspection JSUnusedGlobalSymbols
-	    get actual() {
-	        return this._actual;
 	    }
 	    // noinspection JSUnusedGlobalSymbols
 	    _transform(chunk, encoding, callback) {
@@ -2348,6 +2348,7 @@ var sax = {};
 	  } catch (ex) {
 	    Stream = function () {};
 	  }
+	  if (!Stream) Stream = function () {};
 
 	  var streamWraps = sax.EVENTS.filter(function (ev) {
 	    return ev !== 'error' && ev !== 'end'
@@ -3664,9 +3665,16 @@ var sax = {};
 	          }
 
 	          if (c === ';') {
-	            parser[buffer] += parseEntity(parser);
-	            parser.entity = '';
-	            parser.state = returnState;
+	            if (parser.opt.unparsedEntities) {
+	              var parsedEntity = parseEntity(parser);
+	              parser.entity = '';
+	              parser.state = returnState;
+	              parser.write(parsedEntity);
+	            } else {
+	              parser[buffer] += parseEntity(parser);
+	              parser.entity = '';
+	              parser.state = returnState;
+	            }
 	          } else if (isMatch(parser.entity.length ? entityBody : entityStart, c)) {
 	            parser.entity += c;
 	          } else {
@@ -3678,8 +3686,9 @@ var sax = {};
 
 	          continue
 
-	        default:
+	        default: /* istanbul ignore next */ {
 	          throw new Error(parser, 'Unknown state: ' + parser.state)
+	        }
 	      }
 	    } // while
 
@@ -3933,11 +3942,8 @@ universalify$1.fromCallback = function (fn) {
     if (typeof args[args.length - 1] === 'function') fn.apply(this, args);
     else {
       return new Promise((resolve, reject) => {
-        fn.call(
-          this,
-          ...args,
-          (err, res) => (err != null) ? reject(err) : resolve(res)
-        );
+        args.push((err, res) => (err != null) ? reject(err) : resolve(res));
+        fn.apply(this, args);
       })
     }
   }, 'name', { value: fn.name })
@@ -3947,7 +3953,10 @@ universalify$1.fromPromise = function (fn) {
   return Object.defineProperty(function (...args) {
     const cb = args[args.length - 1];
     if (typeof cb !== 'function') return fn.apply(this, args)
-    else fn.apply(this, args.slice(0, -1)).then(r => cb(null, r), cb);
+    else {
+      args.pop();
+      fn.apply(this, args).then(r => cb(null, r), cb);
+    }
   }, 'name', { value: fn.name })
 };
 
@@ -16094,6 +16103,9 @@ class ElectronAppAdapter {
     quit() {
         this.app.quit();
     }
+    relaunch() {
+        this.app.relaunch();
+    }
     onQuit(handler) {
         this.app.once("quit", (_, exitCode) => handler(exitCode));
     }
@@ -16688,7 +16700,7 @@ class GitHubProvider extends BaseGitHubProvider {
                         //Get Channel from this release's tag
                         const hrefChannel = ((_c = semver.prerelease(hrefTag)) === null || _c === void 0 ? void 0 : _c[0]) || null;
                         const shouldFetchVersion = !currentChannel || ["alpha", "beta"].includes(currentChannel);
-                        const isCustomChannel = !["alpha", "beta"].includes(String(hrefChannel));
+                        const isCustomChannel = hrefChannel !== null && !["alpha", "beta"].includes(String(hrefChannel));
                         // Allow moving from alpha to beta but not down
                         const channelMismatch = currentChannel === "beta" && hrefChannel === "alpha";
                         if (shouldFetchVersion && !isCustomChannel && !channelMismatch) {
@@ -17042,6 +17054,62 @@ function requireAppUpdater () {
 	const main_1 = requireMain();
 	const providerFactory_1 = providerFactory;
 	let AppUpdater$1 = class AppUpdater extends events_1.EventEmitter {
+	    /**
+	     * Get the update channel. Not applicable for GitHub. Doesn't return `channel` from the update configuration, only if was previously set.
+	     */
+	    get channel() {
+	        return this._channel;
+	    }
+	    /**
+	     * Set the update channel. Not applicable for GitHub. Overrides `channel` in the update configuration.
+	     *
+	     * `allowDowngrade` will be automatically set to `true`. If this behavior is not suitable for you, simple set `allowDowngrade` explicitly after.
+	     */
+	    set channel(value) {
+	        if (this._channel != null) {
+	            // noinspection SuspiciousTypeOfGuard
+	            if (typeof value !== "string") {
+	                throw (0, builder_util_runtime_1.newError)(`Channel must be a string, but got: ${value}`, "ERR_UPDATER_INVALID_CHANNEL");
+	            }
+	            else if (value.length === 0) {
+	                throw (0, builder_util_runtime_1.newError)(`Channel must be not an empty string`, "ERR_UPDATER_INVALID_CHANNEL");
+	            }
+	        }
+	        this._channel = value;
+	        this.allowDowngrade = true;
+	    }
+	    /**
+	     *  Shortcut for explicitly adding auth tokens to request headers
+	     */
+	    addAuthHeader(token) {
+	        this.requestHeaders = Object.assign({}, this.requestHeaders, {
+	            authorization: token,
+	        });
+	    }
+	    // noinspection JSMethodCanBeStatic,JSUnusedGlobalSymbols
+	    get netSession() {
+	        return (0, electronHttpExecutor_1.getNetSession)();
+	    }
+	    /**
+	     * The logger. You can pass [electron-log](https://github.com/megahertz/electron-log), [winston](https://github.com/winstonjs/winston) or another logger with the following interface: `{ info(), warn(), error() }`.
+	     * Set it to `null` if you would like to disable a logging feature.
+	     */
+	    get logger() {
+	        return this._logger;
+	    }
+	    set logger(value) {
+	        this._logger = value == null ? new NoOpLogger() : value;
+	    }
+	    // noinspection JSUnusedGlobalSymbols
+	    /**
+	     * test only
+	     * @private
+	     */
+	    set updateConfigPath(value) {
+	        this.clientPromise = null;
+	        this._appUpdateConfigPath = value;
+	        this.configOnDisk = new lazy_val_1.Lazy(() => this.loadUpdateConfig());
+	    }
 	    constructor(options, app) {
 	        super();
 	        /**
@@ -17142,62 +17210,6 @@ function requireAppUpdater () {
 	                this.requestHeaders = options.requestHeaders;
 	            }
 	        }
-	    }
-	    /**
-	     * Get the update channel. Not applicable for GitHub. Doesn't return `channel` from the update configuration, only if was previously set.
-	     */
-	    get channel() {
-	        return this._channel;
-	    }
-	    /**
-	     * Set the update channel. Not applicable for GitHub. Overrides `channel` in the update configuration.
-	     *
-	     * `allowDowngrade` will be automatically set to `true`. If this behavior is not suitable for you, simple set `allowDowngrade` explicitly after.
-	     */
-	    set channel(value) {
-	        if (this._channel != null) {
-	            // noinspection SuspiciousTypeOfGuard
-	            if (typeof value !== "string") {
-	                throw (0, builder_util_runtime_1.newError)(`Channel must be a string, but got: ${value}`, "ERR_UPDATER_INVALID_CHANNEL");
-	            }
-	            else if (value.length === 0) {
-	                throw (0, builder_util_runtime_1.newError)(`Channel must be not an empty string`, "ERR_UPDATER_INVALID_CHANNEL");
-	            }
-	        }
-	        this._channel = value;
-	        this.allowDowngrade = true;
-	    }
-	    /**
-	     *  Shortcut for explicitly adding auth tokens to request headers
-	     */
-	    addAuthHeader(token) {
-	        this.requestHeaders = Object.assign({}, this.requestHeaders, {
-	            authorization: token,
-	        });
-	    }
-	    // noinspection JSMethodCanBeStatic,JSUnusedGlobalSymbols
-	    get netSession() {
-	        return (0, electronHttpExecutor_1.getNetSession)();
-	    }
-	    /**
-	     * The logger. You can pass [electron-log](https://github.com/megahertz/electron-log), [winston](https://github.com/winstonjs/winston) or another logger with the following interface: `{ info(), warn(), error() }`.
-	     * Set it to `null` if you would like to disable a logging feature.
-	     */
-	    get logger() {
-	        return this._logger;
-	    }
-	    set logger(value) {
-	        this._logger = value == null ? new NoOpLogger() : value;
-	    }
-	    // noinspection JSUnusedGlobalSymbols
-	    /**
-	     * test only
-	     * @private
-	     */
-	    set updateConfigPath(value) {
-	        this.clientPromise = null;
-	        this._appUpdateConfigPath = value;
-	        this.configOnDisk = new lazy_val_1.Lazy(() => this.loadUpdateConfig());
 	    }
 	    //noinspection JSMethodCanBeStatic,JSUnusedGlobalSymbols
 	    getFeedURL() {
@@ -17716,7 +17728,6 @@ function requireBaseUpdater () {
 	    spawnSyncLog(cmd, args = [], env = {}) {
 	        this._logger.info(`Executing: ${cmd} with args: ${args}`);
 	        const response = (0, child_process_1.spawnSync)(cmd, args, {
-	            stdio: "inherit",
 	            env: { ...process.env, ...env },
 	            encoding: "utf-8",
 	            shell: true,
@@ -17763,121 +17774,118 @@ var DataSplitter$1 = {};
 
 var downloadPlanBuilder = {};
 
-(function (exports) {
-	Object.defineProperty(exports, "__esModule", { value: true });
-	exports.computeOperations = exports.OperationKind = void 0;
-	var OperationKind;
-	(function (OperationKind) {
-	    OperationKind[OperationKind["COPY"] = 0] = "COPY";
-	    OperationKind[OperationKind["DOWNLOAD"] = 1] = "DOWNLOAD";
-	})(OperationKind = exports.OperationKind || (exports.OperationKind = {}));
-	function computeOperations(oldBlockMap, newBlockMap, logger) {
-	    const nameToOldBlocks = buildBlockFileMap(oldBlockMap.files);
-	    const nameToNewBlocks = buildBlockFileMap(newBlockMap.files);
-	    let lastOperation = null;
-	    // for now only one file is supported in block map
-	    const blockMapFile = newBlockMap.files[0];
-	    const operations = [];
-	    const name = blockMapFile.name;
-	    const oldEntry = nameToOldBlocks.get(name);
-	    if (oldEntry == null) {
-	        // new file (unrealistic case for now, because in any case both blockmap contain the only file named as "file")
-	        throw new Error(`no file ${name} in old blockmap`);
-	    }
-	    const newFile = nameToNewBlocks.get(name);
-	    let changedBlockCount = 0;
-	    const { checksumToOffset: checksumToOldOffset, checksumToOldSize } = buildChecksumMap(nameToOldBlocks.get(name), oldEntry.offset, logger);
-	    let newOffset = blockMapFile.offset;
-	    for (let i = 0; i < newFile.checksums.length; newOffset += newFile.sizes[i], i++) {
-	        const blockSize = newFile.sizes[i];
-	        const checksum = newFile.checksums[i];
-	        let oldOffset = checksumToOldOffset.get(checksum);
-	        if (oldOffset != null && checksumToOldSize.get(checksum) !== blockSize) {
-	            logger.warn(`Checksum ("${checksum}") matches, but size differs (old: ${checksumToOldSize.get(checksum)}, new: ${blockSize})`);
-	            oldOffset = undefined;
-	        }
-	        if (oldOffset === undefined) {
-	            // download data from new file
-	            changedBlockCount++;
-	            if (lastOperation != null && lastOperation.kind === OperationKind.DOWNLOAD && lastOperation.end === newOffset) {
-	                lastOperation.end += blockSize;
-	            }
-	            else {
-	                lastOperation = {
-	                    kind: OperationKind.DOWNLOAD,
-	                    start: newOffset,
-	                    end: newOffset + blockSize,
-	                    // oldBlocks: null,
-	                };
-	                validateAndAdd(lastOperation, operations, checksum, i);
-	            }
-	        }
-	        else {
-	            // reuse data from old file
-	            if (lastOperation != null && lastOperation.kind === OperationKind.COPY && lastOperation.end === oldOffset) {
-	                lastOperation.end += blockSize;
-	                // lastOperation.oldBlocks!!.push(checksum)
-	            }
-	            else {
-	                lastOperation = {
-	                    kind: OperationKind.COPY,
-	                    start: oldOffset,
-	                    end: oldOffset + blockSize,
-	                    // oldBlocks: [checksum]
-	                };
-	                validateAndAdd(lastOperation, operations, checksum, i);
-	            }
-	        }
-	    }
-	    if (changedBlockCount > 0) {
-	        logger.info(`File${blockMapFile.name === "file" ? "" : " " + blockMapFile.name} has ${changedBlockCount} changed blocks`);
-	    }
-	    return operations;
-	}
-	exports.computeOperations = computeOperations;
-	const isValidateOperationRange = process.env["DIFFERENTIAL_DOWNLOAD_PLAN_BUILDER_VALIDATE_RANGES"] === "true";
-	function validateAndAdd(operation, operations, checksum, index) {
-	    if (isValidateOperationRange && operations.length !== 0) {
-	        const lastOperation = operations[operations.length - 1];
-	        if (lastOperation.kind === operation.kind && operation.start < lastOperation.end && operation.start > lastOperation.start) {
-	            const min = [lastOperation.start, lastOperation.end, operation.start, operation.end].reduce((p, v) => (p < v ? p : v));
-	            throw new Error(`operation (block index: ${index}, checksum: ${checksum}, kind: ${OperationKind[operation.kind]}) overlaps previous operation (checksum: ${checksum}):\n` +
-	                `abs: ${lastOperation.start} until ${lastOperation.end} and ${operation.start} until ${operation.end}\n` +
-	                `rel: ${lastOperation.start - min} until ${lastOperation.end - min} and ${operation.start - min} until ${operation.end - min}`);
-	        }
-	    }
-	    operations.push(operation);
-	}
-	// eslint-disable-next-line @typescript-eslint/explicit-function-return-type
-	function buildChecksumMap(file, fileOffset, logger) {
-	    const checksumToOffset = new Map();
-	    const checksumToSize = new Map();
-	    let offset = fileOffset;
-	    for (let i = 0; i < file.checksums.length; i++) {
-	        const checksum = file.checksums[i];
-	        const size = file.sizes[i];
-	        const existing = checksumToSize.get(checksum);
-	        if (existing === undefined) {
-	            checksumToOffset.set(checksum, offset);
-	            checksumToSize.set(checksum, size);
-	        }
-	        else if (logger.debug != null) {
-	            const sizeExplanation = existing === size ? "(same size)" : `(size: ${existing}, this size: ${size})`;
-	            logger.debug(`${checksum} duplicated in blockmap ${sizeExplanation}, it doesn't lead to broken differential downloader, just corresponding block will be skipped)`);
-	        }
-	        offset += size;
-	    }
-	    return { checksumToOffset, checksumToOldSize: checksumToSize };
-	}
-	function buildBlockFileMap(list) {
-	    const result = new Map();
-	    for (const item of list) {
-	        result.set(item.name, item);
-	    }
-	    return result;
-	}
-	
-} (downloadPlanBuilder));
+Object.defineProperty(downloadPlanBuilder, "__esModule", { value: true });
+downloadPlanBuilder.computeOperations = downloadPlanBuilder.OperationKind = void 0;
+var OperationKind$1;
+(function (OperationKind) {
+    OperationKind[OperationKind["COPY"] = 0] = "COPY";
+    OperationKind[OperationKind["DOWNLOAD"] = 1] = "DOWNLOAD";
+})(OperationKind$1 || (downloadPlanBuilder.OperationKind = OperationKind$1 = {}));
+function computeOperations(oldBlockMap, newBlockMap, logger) {
+    const nameToOldBlocks = buildBlockFileMap(oldBlockMap.files);
+    const nameToNewBlocks = buildBlockFileMap(newBlockMap.files);
+    let lastOperation = null;
+    // for now only one file is supported in block map
+    const blockMapFile = newBlockMap.files[0];
+    const operations = [];
+    const name = blockMapFile.name;
+    const oldEntry = nameToOldBlocks.get(name);
+    if (oldEntry == null) {
+        // new file (unrealistic case for now, because in any case both blockmap contain the only file named as "file")
+        throw new Error(`no file ${name} in old blockmap`);
+    }
+    const newFile = nameToNewBlocks.get(name);
+    let changedBlockCount = 0;
+    const { checksumToOffset: checksumToOldOffset, checksumToOldSize } = buildChecksumMap(nameToOldBlocks.get(name), oldEntry.offset, logger);
+    let newOffset = blockMapFile.offset;
+    for (let i = 0; i < newFile.checksums.length; newOffset += newFile.sizes[i], i++) {
+        const blockSize = newFile.sizes[i];
+        const checksum = newFile.checksums[i];
+        let oldOffset = checksumToOldOffset.get(checksum);
+        if (oldOffset != null && checksumToOldSize.get(checksum) !== blockSize) {
+            logger.warn(`Checksum ("${checksum}") matches, but size differs (old: ${checksumToOldSize.get(checksum)}, new: ${blockSize})`);
+            oldOffset = undefined;
+        }
+        if (oldOffset === undefined) {
+            // download data from new file
+            changedBlockCount++;
+            if (lastOperation != null && lastOperation.kind === OperationKind$1.DOWNLOAD && lastOperation.end === newOffset) {
+                lastOperation.end += blockSize;
+            }
+            else {
+                lastOperation = {
+                    kind: OperationKind$1.DOWNLOAD,
+                    start: newOffset,
+                    end: newOffset + blockSize,
+                    // oldBlocks: null,
+                };
+                validateAndAdd(lastOperation, operations, checksum, i);
+            }
+        }
+        else {
+            // reuse data from old file
+            if (lastOperation != null && lastOperation.kind === OperationKind$1.COPY && lastOperation.end === oldOffset) {
+                lastOperation.end += blockSize;
+                // lastOperation.oldBlocks!!.push(checksum)
+            }
+            else {
+                lastOperation = {
+                    kind: OperationKind$1.COPY,
+                    start: oldOffset,
+                    end: oldOffset + blockSize,
+                    // oldBlocks: [checksum]
+                };
+                validateAndAdd(lastOperation, operations, checksum, i);
+            }
+        }
+    }
+    if (changedBlockCount > 0) {
+        logger.info(`File${blockMapFile.name === "file" ? "" : " " + blockMapFile.name} has ${changedBlockCount} changed blocks`);
+    }
+    return operations;
+}
+downloadPlanBuilder.computeOperations = computeOperations;
+const isValidateOperationRange = process.env["DIFFERENTIAL_DOWNLOAD_PLAN_BUILDER_VALIDATE_RANGES"] === "true";
+function validateAndAdd(operation, operations, checksum, index) {
+    if (isValidateOperationRange && operations.length !== 0) {
+        const lastOperation = operations[operations.length - 1];
+        if (lastOperation.kind === operation.kind && operation.start < lastOperation.end && operation.start > lastOperation.start) {
+            const min = [lastOperation.start, lastOperation.end, operation.start, operation.end].reduce((p, v) => (p < v ? p : v));
+            throw new Error(`operation (block index: ${index}, checksum: ${checksum}, kind: ${OperationKind$1[operation.kind]}) overlaps previous operation (checksum: ${checksum}):\n` +
+                `abs: ${lastOperation.start} until ${lastOperation.end} and ${operation.start} until ${operation.end}\n` +
+                `rel: ${lastOperation.start - min} until ${lastOperation.end - min} and ${operation.start - min} until ${operation.end - min}`);
+        }
+    }
+    operations.push(operation);
+}
+// eslint-disable-next-line @typescript-eslint/explicit-function-return-type
+function buildChecksumMap(file, fileOffset, logger) {
+    const checksumToOffset = new Map();
+    const checksumToSize = new Map();
+    let offset = fileOffset;
+    for (let i = 0; i < file.checksums.length; i++) {
+        const checksum = file.checksums[i];
+        const size = file.sizes[i];
+        const existing = checksumToSize.get(checksum);
+        if (existing === undefined) {
+            checksumToOffset.set(checksum, offset);
+            checksumToSize.set(checksum, size);
+        }
+        else if (logger.debug != null) {
+            const sizeExplanation = existing === size ? "(same size)" : `(size: ${existing}, this size: ${size})`;
+            logger.debug(`${checksum} duplicated in blockmap ${sizeExplanation}, it doesn't lead to broken differential downloader, just corresponding block will be skipped)`);
+        }
+        offset += size;
+    }
+    return { checksumToOffset, checksumToOldSize: checksumToSize };
+}
+function buildBlockFileMap(list) {
+    const result = new Map();
+    for (const item of list) {
+        result.set(item.name, item);
+    }
+    return result;
+}
 
 Object.defineProperty(DataSplitter$1, "__esModule", { value: true });
 DataSplitter$1.DataSplitter = DataSplitter$1.copyData = void 0;
@@ -18736,6 +18744,9 @@ function requireDebUpdater () {
 	        const wrapper = /pkexec/i.test(sudo) ? "" : `"`;
 	        const cmd = ["dpkg", "-i", options.installerPath, "||", "apt-get", "install", "-f", "-y"];
 	        this.spawnSyncLog(sudo, [`${wrapper}/bin/bash`, "-c", `'${cmd.join(" ")}'${wrapper}`]);
+	        if (options.isForceRunAfter) {
+	            this.app.relaunch();
+	        }
 	        return true;
 	    }
 	};
@@ -18808,6 +18819,9 @@ function requireRpmUpdater () {
 	            ];
 	        }
 	        this.spawnSyncLog(sudo, [`${wrapper}/bin/bash`, "-c", `'${cmd.join(" ")}'${wrapper}`]);
+	        if (options.isForceRunAfter) {
+	            this.app.relaunch();
+	        }
 	        return true;
 	    }
 	};
@@ -19306,9 +19320,14 @@ function requireNsisUpdater () {
 	            // https://github.com/electron-userland/electron-builder/issues/1129
 	            // Node 8 sends errors: https://nodejs.org/dist/latest-v8.x/docs/api/errors.html#errors_common_system_errors
 	            const errorCode = e.code;
-	            this._logger.info(`Cannot run installer: error code: ${errorCode}, error message: "${e.message}", will be executed again using elevate if EACCES"`);
+	            this._logger.info(`Cannot run installer: error code: ${errorCode}, error message: "${e.message}", will be executed again using elevate if EACCES, and will try to use electron.shell.openItem if ENOENT`);
 	            if (errorCode === "UNKNOWN" || errorCode === "EACCES") {
 	                callUsingElevation();
+	            }
+	            else if (errorCode === "ENOENT") {
+	                require$$1$5
+	                    .shell.openPath(options.installerPath)
+	                    .catch((err) => this.dispatchError(err));
 	            }
 	            else {
 	                this.dispatchError(e);

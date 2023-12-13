@@ -7,6 +7,7 @@ import linkifyHtml from "linkifyjs/html"
  */
 export function urlify(html: string): string {
 	return linkifyHtml(html, {
+		defaultProtocol: "https",
 		attributes: {
 			rel: "noopener noreferrer",
 		},

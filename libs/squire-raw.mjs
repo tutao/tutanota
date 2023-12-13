@@ -2762,7 +2762,7 @@ var Squire = class {
       });
       this.fireEvent("input");
     }
-    return this;
+    return this.focus();
   }
   redo() {
     const undoIndex = this._undoIndex;
@@ -2780,7 +2780,7 @@ var Squire = class {
       });
       this.fireEvent("input");
     }
-    return this;
+    return this.focus();
   }
   // --- Get and set data
   getRoot() {
@@ -3263,19 +3263,21 @@ var Squire = class {
     formatTags.forEach((el) => {
       replaceWith(el, empty(el));
     });
+    if (cantFocusEmptyTextNodes && fixer) {
+      fixer = fixer.parentNode;
+      let block = fixer;
+      while (block && isInline(block)) {
+        block = block.parentNode;
+      }
+      if (block) {
+        removeZWS(block, fixer);
+      }
+    }
     this._getRangeAndRemoveBookmark(range);
     if (fixer) {
       range.collapse(false);
     }
     mergeInlines(root, range);
-    if (cantFocusEmptyTextNodes && fixer) {
-      fixer = fixer.parentNode;
-      let block = fixer;
-      while (isInline(block)) {
-        block = block.parentNode;
-      }
-      removeZWS(block, fixer);
-    }
     return range;
   }
   // ---
