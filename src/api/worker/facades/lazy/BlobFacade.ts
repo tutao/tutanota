@@ -1,6 +1,16 @@
 import { addParamsToUrl, isSuspensionResponse, RestClient } from "../../rest/RestClient.js"
 import { CryptoFacade, encryptBytes } from "../../crypto/CryptoFacade.js"
-import { clear, concat, neverNull, promiseMap, splitUint8ArrayInChunks, uint8ArrayToBase64, uint8ArrayToString } from "@tutao/tutanota-utils"
+import {
+	clear,
+	concat,
+	downcast,
+	isSameTypeRef,
+	neverNull,
+	promiseMap,
+	splitUint8ArrayInChunks,
+	uint8ArrayToBase64,
+	uint8ArrayToString,
+} from "@tutao/tutanota-utils"
 import { ArchiveDataType, MAX_BLOB_SIZE_BYTES } from "../../../common/TutanotaConstants.js"
 
 import { HttpMethod, MediaType, resolveTypeReference } from "../../../common/EntityFunctions.js"
@@ -20,6 +30,11 @@ import { BlobGetInTypeRef, BlobPostOut, BlobPostOutTypeRef, BlobServerAccessInfo
 import { AuthDataProvider } from "../UserFacade.js"
 import { doBlobRequestWithRetry, tryServers } from "../../rest/EntityRestClient.js"
 import { BlobAccessTokenFacade, BlobReferencingInstance } from "../BlobAccessTokenFacade.js"
+import { SessionKeyNotFoundError } from "../../../common/error/SessionKeyNotFoundError.js"
+import { DefaultEntityRestCache } from "../../rest/DefaultEntityRestCache.js"
+import { FileTypeRef } from "../../../entities/tutanota/TypeRefs.js"
+import { getElementId, getListId } from "../../../common/utils/EntityUtils.js"
+import { SomeEntity } from "../../../common/EntityTypes.js"
 
 assertWorkerOrNode()
 export const BLOB_SERVICE_REST_PATH = `/rest/${BlobService.app}/${BlobService.name.toLowerCase()}`
@@ -43,6 +58,7 @@ export class BlobFacade {
 		private readonly instanceMapper: InstanceMapper,
 		private readonly cryptoFacade: CryptoFacade,
 		private readonly blobAccessTokenFacade: BlobAccessTokenFacade,
+		private readonly entityRestCache: DefaultEntityRestCache,
 	) {}
 
 	/**
@@ -102,7 +118,7 @@ export class BlobFacade {
 	 * @returns Uint8Array unencrypted binary data
 	 */
 	async downloadAndDecrypt(archiveDataType: ArchiveDataType, referencingInstance: BlobReferencingInstance): Promise<Uint8Array> {
-		const sessionKey = neverNull(await this.cryptoFacade.resolveSessionKeyForInstance(referencingInstance.entity))
+		const sessionKey = await this.resolveSessionKey(referencingInstance.entity)
 		const doBlobRequest = async () => {
 			const blobServerAccessInfo = await this.blobAccessTokenFacade.requestReadTokenBlobs(archiveDataType, referencingInstance)
 			return promiseMap(referencingInstance.blobs, (blob) => this.downloadAndDecryptChunk(blob, blobServerAccessInfo, sessionKey))
@@ -132,7 +148,7 @@ export class BlobFacade {
 		if (!isApp() && !isDesktop()) {
 			throw new ProgrammingError("Environment is not app or Desktop!")
 		}
-		const sessionKey = neverNull(await this.cryptoFacade.resolveSessionKeyForInstance(referencingInstance.entity))
+		const sessionKey = await this.resolveSessionKey(referencingInstance.entity)
 		const decryptedChunkFileUris: FileUri[] = []
 		const doBlobRequest = async () => {
 			clear(decryptedChunkFileUris) // ensure that the decrypted file uris are emtpy in case we retry because of NotAuthorized error
@@ -166,6 +182,27 @@ export class BlobFacade {
 		} finally {
 			for (const tmpBlobFile of decryptedChunkFileUris) {
 				await this.fileApp.deleteFile(tmpBlobFile)
+			}
+		}
+	}
+
+	/**
+	 * Resolves the session key and retries downloading the file instance in case we are out of sync.
+	 *
+	 * We assume that we are out of sync in case we retrieve a SessionKeyNotFoundError.
+	 */
+	private async resolveSessionKey(entity: SomeEntity): Promise<Aes128Key | Aes256Key> {
+		try {
+			return neverNull(await this.cryptoFacade.resolveSessionKeyForInstance(entity))
+		} catch (e) {
+			if (e instanceof SessionKeyNotFoundError && isSameTypeRef(FileTypeRef, entity._type)) {
+				console.log("cache out of sync, trying to remove instance ", entity)
+				const file = downcast(entity)
+				await this.entityRestCache.deleteFromCacheIfExists(FileTypeRef, getListId(file), getElementId(file))
+				const updatedFile = await this.entityRestCache.load(FileTypeRef, file._id)
+				return neverNull(await this.cryptoFacade.resolveSessionKeyForInstance(updatedFile))
+			} else {
+				throw e
 			}
 		}
 	}
