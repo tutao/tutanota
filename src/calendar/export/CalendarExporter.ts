@@ -1,6 +1,6 @@
 import type { CalendarAttendeeStatus, CalendarMethod } from "../../api/common/TutanotaConstants"
 import { assertEnumValue, EndType, RepeatPeriod, SECOND_MS } from "../../api/common/TutanotaConstants"
-import { assertNotNull, downcast, incrementDate, mapAndFilterNull, neverNull, pad, stringToUtf8Uint8Array } from "@tutao/tutanota-utils"
+import { assertNotNull, downcast, incrementDate, mapAndFilterNull, neverNull, pad, replaceAll, stringToUtf8Uint8Array } from "@tutao/tutanota-utils"
 import { calendarAttendeeStatusToParstat, iCalReplacements, repeatPeriodToIcalFrequency } from "./CalendarParser"
 import { getAllDayDateLocal, isAllDayEvent } from "../../api/common/utils/CommonCalendarUtils"
 import { AlarmIntervalUnit, generateUid, getTimeZone, parseAlarmInterval } from "../date/CalendarUtils"
@@ -237,7 +237,7 @@ function quotedString(input: string): string {
 function serializeIcalText(value: string): string {
 	let text = value
 	for (const rawEscape in iCalReplacements) {
-		text = text?.replace(rawEscape, iCalReplacements[rawEscape as keyof typeof iCalReplacements])
+		text = replaceAll(text, rawEscape, iCalReplacements[rawEscape as keyof typeof iCalReplacements])
 	}
 	return text
 }

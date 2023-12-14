@@ -253,7 +253,6 @@ o.spec("CalendarImporterTest", function () {
 				"END:VEVENT",
 			])
 		})
-
 		o("with repeat rule (never ends)", function () {
 			o(
 				serializeEvent(
@@ -304,7 +303,6 @@ o.spec("CalendarImporterTest", function () {
 				"END:VEVENT",
 			])
 		})
-
 		o("with repeat rule (ends after occurrences)", function () {
 			o(
 				serializeEvent(
@@ -1091,6 +1089,39 @@ o.spec("CalendarImporterTest", function () {
 						},
 					],
 				},
+			)
+		})
+		o("import and re-export descriptions exported from outlook", async function () {
+			const text = `BEGIN:VCALENDAR
+VERSION:2.0
+CALSCALE:GREGORIAN
+METHOD:REPLY
+BEGIN:VEVENT
+DTSTART:20221026T210000Z
+DTEND:20221026T220000Z
+DTSTAMP:20221018T202558Z
+UID:040000008200E00074C5B7101A82E00800000000B073543805E3D801000000000000000010000000EA368AA63E095848BAEEE25C239F56C6
+SEQUENCE:0
+SUMMARY:App Feedback Session
+DESCRIPTION:\\n________________________________________________________________________________\\nMicrosoft Teams meeting\\nJoin on your computer\\, mobile app or room device\\nUnited States\\, Minneapolis\\nPhone Conference ID: 000 000 000
+LOCATION:Microsoft Teams Meeting
+ORGANIZER;EMAIL=Mary.Doe@example.com:mailto:Mary.Doe@example.com
+ATTENDEE;CUTYPE=INDIVIDUAL;ROLE=REQ-PARTICIPANT;PARTSTAT=ACCEPTED;RSVP=TRUE;CN="Dack";EMAIL=dack@example.com:mailto:dack@example.com
+END:VEVENT
+END:VCALENDAR`
+
+			const parsed = parseCalendarStringData(text, zone)
+			const serialized = [
+				"BEGIN:VCALENDAR",
+				`VERSION:2.0`,
+				`CALSCALE:GREGORIAN`,
+				`METHOD:REPLY`,
+				...serializeEvent(parsed.contents[0].event, [], new Date(), zone),
+				"END:VCALENDAR",
+			].join("\n")
+			const parsedAgain = parseCalendarStringData(serialized, zone)
+			o(parsedAgain.contents[0].event.description).equals(
+				"\n________________________________________________________________________________\nMicrosoft Teams meeting\nJoin on your computer, mobile app or room device\nUnited States, Minneapolis\nPhone Conference ID: 000 000 000",
 			)
 		})
 		o("roundtrip export -> import", async function () {

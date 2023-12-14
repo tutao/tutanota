@@ -42,9 +42,11 @@ export function capitalizeFirstLetter(str: string): string {
 export function endsWith(string: string, substring: string): boolean {
 	return string.endsWith(substring)
 }
+
 export function lazyStringValue(valueOrLazy: string | lazy<string>): string {
 	return typeof valueOrLazy === "function" ? valueOrLazy() : valueOrLazy
 }
+
 export function repeat(value: string, length: number): string {
 	let result = ""
 
@@ -54,6 +56,7 @@ export function repeat(value: string, length: number): string {
 
 	return result
 }
+
 export function cleanMatch(s1: string, s2: string): boolean {
 	return s1.toLowerCase().trim() === s2.toLowerCase().trim()
 }
@@ -89,6 +92,7 @@ export function toLowerCase(str: string): string {
 export function localeCompare(a: string, b: string): number {
 	return a.localeCompare(b)
 }
+
 export function byteLength(str: string | null | undefined): number {
 	if (str == null) return 0
 	// returns the byte length of an utf8 string
@@ -111,6 +115,10 @@ export function byteLength(str: string | null | undefined): number {
  * replace all instances of substr in str with replacement
  */
 export function replaceAll(str: string, substr: string, replacement: string): string {
+	if (typeof String.prototype.replaceAll === "function") {
+		// available from ES2021
+		return str.replaceAll(substr, replacement)
+	}
 	const regex = escapedStringRegExp(substr, "g")
 	return str.replace(regex, replacement)
 }

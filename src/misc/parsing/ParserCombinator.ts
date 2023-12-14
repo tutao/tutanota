@@ -32,7 +32,7 @@ export function makeCharacterParser(character: string): Parser<string> {
 
 		const sliceStart = Math.max(iterator.position - 10, 0)
 		const sliceEnd = Math.min(iterator.position + 10, iterator.iteratee.length - 1)
-		throw new ParserError(`expected character ${character} got ${value} near ${iterator.iteratee.slice(sliceStart, sliceEnd)}`)
+		throw new ParserError(`expected character "${character}" got "${value}" near ${iterator.iteratee.slice(sliceStart, sliceEnd)}`)
 	}
 }
 
@@ -47,7 +47,7 @@ export function makeNotCharacterParser(character: string): Parser<string> {
 
 		const sliceStart = Math.max(iterator.position - 10, 0)
 		const sliceEnd = Math.min(iterator.position + 10, iterator.iteratee.length - 1)
-		throw new ParserError(`expected character ${character} got ${value} near ${iterator.iteratee.slice(sliceStart, sliceEnd)}`)
+		throw new ParserError(`expected character "${character}" got "${value}" near ${iterator.iteratee.slice(sliceStart, sliceEnd)}`)
 	}
 }
 
