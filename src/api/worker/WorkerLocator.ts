@@ -302,6 +302,7 @@ export async function initLocator(worker: WorkerImpl, browserData: BrowserData) 
 			locator.instanceMapper,
 			locator.crypto,
 			locator.blobAccessToken,
+			assertNotNull(cache),
 		)
 	})
 	locator.mail = lazyMemoized(async () => {
