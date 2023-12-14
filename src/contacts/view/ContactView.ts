@@ -795,10 +795,11 @@ export class ContactView extends BaseTopLevelView implements TopLevelView<Contac
 			return true
 		} else if (
 			this.showingListView() &&
-			!this.contactViewModel.listModel.isSelectionEmpty() &&
-			!(this.contactListViewModel.listModel && this.contactListViewModel.listModel?.isSelectionEmpty())
+			(this.contactViewModel.listModel.state.inMultiselect ||
+				(this.contactListViewModel.listModel && this.contactListViewModel.listModel?.state.inMultiselect))
 		) {
-			// Just empty the list if the selection isn't empty
+			// Just try to empty the list of selected items the user is on
+			// multiselect mode
 			this.contactViewModel.listModel.selectNone()
 			this.contactListViewModel.listModel?.selectNone()
 
