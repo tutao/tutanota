@@ -111,11 +111,15 @@ const parsePropertyParameters = combineParsers(
 	makeSeparatedByParser(/*separator*/ makeCharacterParser(";"), /*value*/ propertyParametersKeyValueParser),
 )
 
+// make sure the slashes are _always_ replaced first
+// unless you're using an actual parser for this.
+// otherwise we get fun stuff like ";\" -> "\;\" -> "\\;\\"
+// instead of ";\" -> ";\\" -> "\;\\"
 export const iCalReplacements = {
-	";": "\\;",
 	"\\": "\\\\",
-	"\n": "\\n",
+	";": "\\;",
 	",": "\\,",
+	"\n": "\\n",
 }
 
 const revICalReplacements = reverse(iCalReplacements)
