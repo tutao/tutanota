@@ -31,6 +31,7 @@ import { BlobAccessTokenFacade, BlobReferencingInstance } from "../../../../../s
 import { DateProvider } from "../../../../../src/api/common/DateProvider.js"
 import { elementIdPart, listIdPart } from "../../../../../src/api/common/utils/EntityUtils.js"
 import { createTestEntity } from "../../../TestUtils.js"
+import { DefaultEntityRestCache } from "../../../../../src/api/worker/rest/DefaultEntityRestCache.js"
 
 const { anything, captor } = matchers
 
@@ -81,6 +82,7 @@ o.spec("BlobFacade test", function () {
 			instanceMapperMock,
 			cryptoFacadeMock,
 			blobAccessTokenFacade,
+			object<DefaultEntityRestCache>(),
 		)
 	})
 
