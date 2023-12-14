@@ -24,7 +24,7 @@ import { UserError } from "../api/main/UserError"
 import { showMoreStorageNeededOrderDialog } from "./SubscriptionDialogs"
 import { showSnackBar } from "../gui/base/SnackBar"
 import { Credentials } from "./credentials/Credentials"
-import { promptForFeedbackAndSend, showErrorDialogNotLoggedIn } from "./ErrorReporter"
+import { showErrorNotification, showErrorDialogNotLoggedIn } from "./ErrorReporter"
 import { CancelledError } from "../api/common/error/CancelledError"
 import { getLoginErrorMessage } from "./LoginUtils"
 import { isOfflineError } from "../api/common/utils/ErrorCheckUtils.js"
@@ -139,7 +139,7 @@ export async function handleUncaughtErrorImpl(e: Error) {
 
 			// only logged in users can report errors because we send mail for that.
 			if (logins.isUserLoggedIn()) {
-				const { ignored } = await promptForFeedbackAndSend(e)
+				const { ignored } = await showErrorNotification(e)
 				unknownErrorDialogActive = false
 				if (ignored) {
 					ignoredMessages.push(e.message)

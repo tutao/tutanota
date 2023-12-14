@@ -14,33 +14,54 @@ import { copyToClipboard } from "./ClipboardUtils"
 import { px } from "../gui/size"
 import { isApp, isDesktop, Mode } from "../api/common/Env"
 import { RecipientType } from "../api/common/recipients/Recipient.js"
-import { Attachment } from "../mail/editor/SendMailModel.js"
 import { createLogFile } from "../api/common/Logger.js"
 import { DataFile } from "../api/common/DataFile.js"
 import { convertTextToHtml } from "./Formatter.js"
+import { ReportErrorService } from "../api/entities/monitor/Services.js"
+import { createErrorReportData, createErrorReportFile, createReportErrorIn } from "../api/entities/monitor/TypeRefs.js"
+import { ErrorReportClientType } from "./ClientConstants.js"
+import { client } from "./ClientDetector.js"
 
 type FeedbackContent = {
 	message: string
 	subject: string
-	logs: Array<Attachment>
+	logs: Array<DataFile>
 }
 
-export async function promptForFeedbackAndSend(e: ErrorInfo): Promise<{ ignored: boolean }> {
+/**
+ * Displays a notification overlay that some error has occurred with an option to send an error report or dismiss the notification. In either case the
+ * error can be ignored.
+ *
+ * If report is pressed then it shows a report dialog with message field and an overview of the sent data.
+ */
+export async function showErrorNotification(e: ErrorInfo): Promise<{ ignored: boolean }> {
 	const loggedIn = locator.logins.isUserLoggedIn()
-	let ignoreChecked = false
-	let sendLogs = true
+
 	const logs = await getLogAttachments()
 
-	return new Promise((resolve) => {
-		const preparedContent = prepareFeedbackContent(e, loggedIn)
-		const detailsExpanded = stream(false)
-		let userMessage = ""
-		let errorOkAction = (dialog: Dialog) => {
-			preparedContent.message = userMessage + "\n" + preparedContent.message
-			resolve(preparedContent)
-			dialog.close()
-		}
+	const { decision, ignore } = await showErrorOverlay()
+	if (decision === "cancel") {
+		return { ignored: ignore }
+	}
 
+	const preparedContent = prepareFeedbackContent(e, loggedIn)
+
+	const reportDialogResult = await showReportDialog(preparedContent.subject, preparedContent.message, logs)
+	if (reportDialogResult.decision === "cancel") {
+		return { ignored: ignore }
+	}
+	preparedContent.logs = reportDialogResult.sendLogs ? logs : []
+	preparedContent.message = reportDialogResult.userMessage + "\n" + preparedContent.message
+
+	sendToServer(e, reportDialogResult.userMessage, reportDialogResult.sendLogs ? logs : [])
+	sendFeedbackMail(preparedContent)
+
+	return { ignored: ignore }
+}
+
+async function showErrorOverlay(): Promise<{ decision: "send" | "cancel"; ignore: boolean }> {
+	let ignore = false
+	const decision: "send" | "cancel" = await new Promise((resolve) => {
 		notificationOverlay.show(
 			{
 				view: () =>
@@ -48,90 +69,96 @@ export async function promptForFeedbackAndSend(e: ErrorInfo): Promise<{ ignored:
 						"An error occurred",
 						m(Checkbox, {
 							label: () => "Ignore the error for this session",
-							checked: ignoreChecked,
-							onChecked: (checked) => (ignoreChecked = checked),
+							checked: ignore,
+							onChecked: (checked) => (ignore = checked),
 						}),
 					]),
 			},
 			{
 				label: "close_alt",
-				click: () => resolve(null),
+				click: () => resolve("cancel"),
 			},
 			[
 				{
 					label: () => "Send report",
-					click: () => showReportDialog(),
+					click: () => resolve("send"),
 					type: ButtonType.Secondary,
 				},
 			],
 		)
+	})
+	return { decision, ignore }
+}
 
-		function showReportDialog() {
-			Dialog.showActionDialog({
-				okActionTextId: "send_action",
-				title: lang.get("sendErrorReport_action"),
-				type: DialogType.EditMedium,
-				child: {
-					view: () => {
-						return [
-							m(TextField, {
-								label: "yourMessage_label",
-								helpLabel: () => lang.get("feedbackOnErrorInfo_msg"),
-								value: userMessage,
-								type: TextFieldType.Area,
-								oninput: (value) => (userMessage = value),
-							}),
-							m(Checkbox, {
-								label: () => lang.get("sendLogs_action"),
-								helpLabel: () => lang.get("sendLogsInfo_msg"),
-								checked: sendLogs,
-								onChecked: (checked) => (sendLogs = checked),
-							}),
-							m(
-								".flex.flex-column.space-around.items-center",
-								logs.map((l) =>
-									m(Button, {
-										label: () => l.name,
-										type: ButtonType.Bubble,
-										click: () => showLogDialog(l.name, uint8ArrayToString("utf-8", (l as DataFile).data)),
-									}),
-								),
-							),
-							m(
-								".flex-end",
-								m(
-									".right",
-									m(ExpanderButton, {
-										label: "details_label",
-										expanded: detailsExpanded(),
-										onExpandedChange: detailsExpanded,
-									}),
-								),
-							),
-							m(
-								ExpanderPanel,
-								{
-									expanded: detailsExpanded(),
-								},
-								m(".selectable", [
-									m(".selectable", preparedContent.subject),
-									preparedContent.message.split("\n").map((l) => (l.trim() === "" ? m(".pb", "") : m("", l))),
-								]),
-							),
-						]
+function showReportDialog(
+	subject: string,
+	message: string,
+	logs: readonly DataFile[],
+): Promise<{ decision: "send"; sendLogs: boolean; userMessage: string } | { decision: "cancel" }> {
+	let sendLogs = true
+	let detailsExpanded = false
+	let userMessage = ""
+
+	const dialogContent = {
+		view: () => {
+			return [
+				m(TextField, {
+					label: "yourMessage_label",
+					helpLabel: () => lang.get("feedbackOnErrorInfo_msg"),
+					value: userMessage,
+					type: TextFieldType.Area,
+					oninput: (value) => (userMessage = value),
+				}),
+				m(Checkbox, {
+					label: () => lang.get("sendLogs_action"),
+					helpLabel: () => lang.get("sendLogsInfo_msg"),
+					checked: sendLogs,
+					onChecked: (checked) => (sendLogs = checked),
+				}),
+				m(
+					".flex.flex-column.space-around.items-center",
+					logs.map((l) =>
+						m(Button, {
+							label: () => l.name,
+							type: ButtonType.Bubble,
+							click: () => showLogDialog(l.name, uint8ArrayToString("utf-8", (l as DataFile).data)),
+						}),
+					),
+				),
+				m(
+					".flex-end",
+					m(
+						".right",
+						m(ExpanderButton, {
+							label: "details_label",
+							expanded: detailsExpanded,
+							onExpandedChange: (expanded) => (detailsExpanded = expanded),
+						}),
+					),
+				),
+				m(
+					ExpanderPanel,
+					{
+						expanded: detailsExpanded,
 					},
-				},
-				okAction: errorOkAction,
-				cancelAction: () => resolve(null),
-			})
-		}
-	}).then((content: FeedbackContent) => {
-		const ret = { ignored: ignoreChecked }
-		if (!content) return ret
-		if (sendLogs) content.logs = logs
-		else content.logs = []
-		sendFeedbackMail(content)
-		return ret
+					m(".selectable", [m(".selectable", subject), message.split("\n").map((l) => (l.trim() === "" ? m(".pb", "") : m("", l)))]),
+				),
+			]
+		},
+	}
+
+	return new Promise((resolve) => {
+		Dialog.showActionDialog({
+			okActionTextId: "send_action",
+			title: lang.get("sendErrorReport_action"),
+			type: DialogType.EditMedium,
+			child: dialogContent,
+			okAction: (dialog: Dialog) => {
+				resolve({ decision: "send", sendLogs, userMessage })
+				dialog.close()
+			},
+			cancelAction: () => resolve({ decision: "cancel" }),
+		})
 	})
 }
 
@@ -262,6 +289,53 @@ export async function sendFeedbackMail(content: FeedbackContent): Promise<void> 
 	)
 }
 
+async function sendToServer(error: ErrorInfo, userMessage: string | null, logs: DataFile[]) {
+	function getReportingClientType(): ErrorReportClientType {
+		if (env.mode === Mode.Browser) {
+			return ErrorReportClientType.Browser
+		} else {
+			switch (env.platformId) {
+				case "ios":
+					return ErrorReportClientType.Ios
+				case "android":
+					return ErrorReportClientType.Android
+				case "darwin":
+					return ErrorReportClientType.MacOS
+				case "linux":
+					return ErrorReportClientType.Linux
+				case "win32":
+					return ErrorReportClientType.Windows
+				default:
+					return ErrorReportClientType.Linux
+			}
+		}
+	}
+
+	const clientType = getReportingClientType()
+
+	const errorData = createReportErrorIn({
+		data: createErrorReportData({
+			clientType,
+			appVersion: env.versionNumber,
+			userId: locator.logins.getUserController().userId,
+			errorClass: error.name ?? "?",
+			errorMessage: error.message,
+			userMessage: userMessage,
+			stackTrace: error.stack ?? "",
+			additionalInfo: client.userAgent,
+			time: new Date(),
+		}),
+		files: logs.map((log) => {
+			const stringData = uint8ArrayToString("utf-8", log.data)
+			return createErrorReportFile({
+				name: log.name,
+				content: stringData,
+			})
+		}),
+	})
+	await locator.serviceExecutor.post(ReportErrorService, errorData)
+}
+
 function prepareFeedbackContent(error: ErrorInfo, loggedIn: boolean): FeedbackContent {
 	const timestamp = new Date()
 	let { message, client, type } = clientInfoString(timestamp, loggedIn)
@@ -312,8 +386,8 @@ export function clientInfoString(
 	}
 }
 
-export async function getLogAttachments(timestamp?: Date): Promise<Array<Attachment>> {
-	const logs: Array<Attachment> = []
+export async function getLogAttachments(timestamp?: Date): Promise<Array<DataFile>> {
+	const logs: Array<DataFile> = []
 	const global = downcast<Window>(window)
 
 	if (global.logger) {

@@ -30,10 +30,10 @@ export class WebDesktopFacade implements DesktopFacade {
 	}
 
 	async reportError(errorInfo: ErrorInfo): Promise<void> {
-		const { promptForFeedbackAndSend } = await import("../../misc/ErrorReporter.js")
+		const { showErrorNotification } = await import("../../misc/ErrorReporter.js")
 		const { logins } = await WebDesktopFacade.getInitializedLocator()
 		await logins.waitForPartialLogin()
-		await promptForFeedbackAndSend(errorInfo)
+		await showErrorNotification(errorInfo)
 	}
 
 	/**
