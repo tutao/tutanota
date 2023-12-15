@@ -1,7 +1,3 @@
-/// <reference no-default-lib="true"/>
-/// <reference lib="ES2020" />
-/// <reference lib="WebWorker" />
-
 // set by the build script
 import { getPathBases } from "../ApplicationPaths"
 

@@ -1,10 +1,10 @@
 {
 	"compilerOptions": {
-		"lib": ["ES2020", "webworker", "dom", "es2015.proxy", "esnext"],
+		"lib": ["es2021", "webworker", "dom"],
 		"allowJs": true,
 		"checkJs": false,
-		"target": "ES2018",
-		"module": "esnext",
+		"target": "es2021",
+		"module": "es2022",
 		"moduleResolution": "node",
 		"skipLibCheck": true,
 		"declaration": true,

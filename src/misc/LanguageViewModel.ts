@@ -1,5 +1,5 @@
 import type { lazy } from "@tutao/tutanota-utils"
-import { downcast, replaceAll, typedEntries } from "@tutao/tutanota-utils"
+import { downcast, typedEntries } from "@tutao/tutanota-utils"
 import type { TranslationKeyType } from "./TranslationKey"
 import { getWhitelabelCustomizations, WhitelabelCustomizations } from "./WhitelabelCustomizations"
 import { assertMainOrNodeBoot } from "../api/common/Env"
@@ -445,7 +445,7 @@ export class LanguageViewModel {
 		}
 
 		for (let param in replacements) {
-			text = replaceAll(text, param, String(replacements[param]))
+			text = text.replaceAll(param, String(replacements[param]))
 		}
 
 		return text
