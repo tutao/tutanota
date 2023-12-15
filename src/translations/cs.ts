@@ -13,7 +13,7 @@ export default {
 		"other"
 	],
 	"created_at": "2015-04-24T12:42:36Z",
-	"updated_at": "2023-11-30T06:50:22Z",
+	"updated_at": "2023-12-15T07:37:23Z",
 	"source_locale": null,
 	"fallback_locale": null,
 	"keys": {
@@ -902,6 +902,7 @@ export default {
 		"noContact_msg": "Nebyl vybrán žádný kontakt",
 		"noEntries_msg": "<Žádný obsah>",
 		"noEntryFound_label": "Nenalezeny žádné položky",
+		"noEventSelect_msg": "Nebyla vybrána žádná událost",
 		"noInputWasMade_msg": "Vstupní pole je prázdné!",
 		"noKeysForThisDomain_msg": "Pro tuto doménu nemáte nastavené žádné bezpečnostní klíče. Přidejte je prosím v nastavení přihlášení.",
 		"noMails_msg": "Žádné zprávy.",
@@ -1285,6 +1286,7 @@ export default {
 		"scrollToBottom_action": "Přejít na konec",
 		"scrollToTop_action": "Přejít na začátek",
 		"scrollUp_action": "Posunout nahoru",
+		"searchCalendar_placeholder": "Vyhledat událost",
 		"searchContacts_placeholder": "Hledání v kontaktech",
 		"searchDisabledApp_msg": "Hledání je zakázáno kvůli systémové chybě. Pro obnovení restartujte aplikaci.",
 		"searchDisabled_msg": "Váš prohlížeč nepodporuje ukládání dat, proto je hledání nefunkční.",
