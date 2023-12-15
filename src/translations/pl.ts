@@ -13,7 +13,7 @@ export default {
 		"other"
 	],
 	"created_at": "2015-01-27T13:13:41Z",
-	"updated_at": "2023-12-01T21:07:56Z",
+	"updated_at": "2023-12-13T19:40:48Z",
 	"source_locale": {
 		"id": "fcd7471b347c8e517663e194dcddf237",
 		"name": "en",
@@ -905,6 +905,7 @@ export default {
 		"noContact_msg": "Nie wybrano żadnego kontaktu",
 		"noEntries_msg": "<Brak wpisów>",
 		"noEntryFound_label": "Nie znaleziono wpisów",
+		"noEventSelect_msg": "Nie wybrano żadnego wydarzenia",
 		"noInputWasMade_msg": "Pole jest puste!",
 		"noKeysForThisDomain_msg": "Nie skonfigurowano żadnych kluczy zabezpieczeń dla tej domeny. Dodaj choćby jeden w ustawieniach logowania.",
 		"noMails_msg": "Brak wiadomości.",
@@ -1288,6 +1289,7 @@ export default {
 		"scrollToBottom_action": "Przewiń do dołu",
 		"scrollToTop_action": "Przewiń do góry",
 		"scrollUp_action": "Przewiń w górę",
+		"searchCalendar_placeholder": "Szukaj wydarzeń",
 		"searchContacts_placeholder": "Wyszukaj kontakty",
 		"searchDisabledApp_msg": "Wyszukiwanie jest wyłączone z powodu błędu systemu. Aplikację należy ponownie uruchomić, aby ponownie włączyć wyszukiwanie.",
 		"searchDisabled_msg": "Wyłączyliśmy funkcję wyszukiwania, ponieważ twoja przeglądarka nie obsługuje przechowywania danych.",
