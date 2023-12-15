@@ -198,11 +198,11 @@ export class MultiDayCalendarView implements Component<Attrs> {
 		}
 
 		return m(
-			".fill-absolute.flex.col.calendar-column-border.overflow-hidden",
+			".fill-absolute.flex.col.overflow-hidden",
 			{
 				class: styles.isDesktopLayout()
-					? ".mlr-l.border-radius-big"
-					: ".border-radius-top-left-big.border-radius-top-right-big.content-bg.mlr-safe-inset",
+					? "mlr-l border-radius-big"
+					: "border-radius-top-left-big border-radius-top-right-big content-bg mlr-safe-inset",
 				style: containerStyle,
 				oncreate: () => {
 					this._redrawIntervalId = setInterval(m.redraw, 1000 * 60)
@@ -297,8 +297,9 @@ export class MultiDayCalendarView implements Component<Attrs> {
 								}
 
 								return m(
-									".flex-grow.calendar-column-border",
+									".flex-grow",
 									{
+										class: attrs.daysInPeriod > 1 ? "calendar-column-border" : "",
 										style: {
 											height: px(calendarDayTimes.length * size.calendar_hour_height),
 										},

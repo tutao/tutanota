@@ -1,6 +1,6 @@
 import m, { Children, Component, Vnode } from "mithril"
 import { AllIcons, Icon } from "./Icon.js"
-import { TranslationText } from "../../misc/LanguageViewModel.js"
+import { lang, TranslationText } from "../../misc/LanguageViewModel.js"
 import { ButtonColor, getColors } from "./Button.js"
 import { px } from "../size.js"
 
@@ -33,7 +33,7 @@ export class IconSegmentControl<T> implements Component<IconSegmentControlAttrs<
 						"button.icon-segment-control-item.flex.center-horizontally.center-vertically.text-ellipsis.small.state-bg.pt-xs.pb-xs",
 						{
 							active: item.value === vnode.attrs.selectedValue ? "true" : undefined,
-							title: item.label,
+							title: lang.getMaybeLazy(item.label),
 							role: "tab",
 							"aria-selected": String(item.value === vnode.attrs.selectedValue),
 							onclick: () => this.onSelected(item, vnode.attrs),
