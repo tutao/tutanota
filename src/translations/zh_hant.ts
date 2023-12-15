@@ -10,7 +10,7 @@ export default {
 		"other"
 	],
 	"created_at": "2019-01-02T11:09:03Z",
-	"updated_at": "2023-12-09T04:26:38Z",
+	"updated_at": "2023-12-13T20:24:12Z",
 	"source_locale": null,
 	"fallback_locale": null,
 	"keys": {
@@ -899,6 +899,7 @@ export default {
 		"noContact_msg": "沒有選擇任何聯絡人",
 		"noEntries_msg": "<無條目>",
 		"noEntryFound_label": "找不到條目",
+		"noEventSelect_msg": "沒有選擇任何活動",
 		"noInputWasMade_msg": "輸入欄留空！",
 		"noKeysForThisDomain_msg": "您没有為此域名設定任何安全鑰匙。請在登入設定中新增。",
 		"noMails_msg": "沒有訊息。",
@@ -1282,6 +1283,7 @@ export default {
 		"scrollToBottom_action": "滾動至底",
 		"scrollToTop_action": "滾動至頂",
 		"scrollUp_action": "向上滾動",
+		"searchCalendar_placeholder": "搜尋活動",
 		"searchContacts_placeholder": "搜尋聯絡人",
 		"searchDisabledApp_msg": "搜尋功能已因系統錯誤而停用，此功能將會在您重新啟動應用程式後再度啟用。",
 		"searchDisabled_msg": "搜尋功能已停用，因為您的瀏覽器不支援數據儲存。",
@@ -1558,7 +1560,7 @@ export default {
 		"useSecurityKey_action": "點擊使用安全鑰匙",
 		"validInputFormat_msg": "格式正確。",
 		"value_label": "值",
-		"verifyDNSRecords_msg": "最後，您需要設定以下DNS記錄，以便透過Tuta郵件伺服器收發郵件。",
+		"verifyDNSRecords_msg": "最後，您需要設定以下DNS記錄，才能透過Tuta郵件伺服器收發郵件。",
 		"verifyDNSRecords_title": "設定DNS記錄",
 		"verifyDomainOwnershipExplanation_msg": "我們需要核對您是以下域名的擁有者：{domain}",
 		"verifyDomainOwnership_title": "授權檢查",
