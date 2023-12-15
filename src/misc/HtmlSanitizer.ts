@@ -15,7 +15,20 @@ export const PREVENT_EXTERNAL_IMAGE_LOADING_ICON: string =
 		.replace(/\s+/g, " ")
 
 // background attribute is deprecated but still used in common browsers
-const EXTERNAL_CONTENT_ATTRS = Object.freeze(["src", "poster", "srcset", "background", "draft-src", "draft-srcset"])
+const EXTERNAL_CONTENT_ATTRS = Object.freeze([
+	"src",
+	"poster",
+	"srcset",
+	"background",
+	"draft-src",
+	"draft-srcset",
+	"draft-xlink:href",
+	"draft-href",
+	"xlink:href",
+	"href",
+])
+
+const DRAFT_ATTRIBUTES = ["draft-src", "draft-srcset", "draft-xlink:href", "draft-href"]
 
 type SanitizeConfigExtra = {
 	blockExternalContent: boolean
@@ -301,6 +314,8 @@ export class HtmlSanitizer {
 	}
 
 	private replaceAttributeValue(htmlNode: HTMLElement, config: SanitizeConfig) {
+		const nodeName = htmlNode.tagName.toLowerCase()
+
 		for (const attrName of EXTERNAL_CONTENT_ATTRS) {
 			let attribute = htmlNode.attributes.getNamedItem(attrName)
 
@@ -325,17 +340,27 @@ export class HtmlSanitizer {
 					config.blockExternalContent &&
 					!attribute.value.startsWith("data:") &&
 					!attribute.value.startsWith("cid:") &&
-					!attribute.name.startsWith("draft-")
+					!attribute.name.startsWith("draft-") &&
+					!(nodeName === "a") &&
+					!(nodeName === "area") &&
+					!(nodeName === "base") &&
+					!(nodeName === "link")
 				) {
+					// Since we are blocking href now we need to check if the attr isn't
+					// being used by a valid tag (a, area, base, link)
 					this.externalContent++
 
 					htmlNode.setAttribute("draft-" + attribute.name, attribute.value)
 					attribute.value = PREVENT_EXTERNAL_IMAGE_LOADING_ICON
 					htmlNode.attributes.setNamedItem(attribute)
 					htmlNode.style.maxWidth = "100px"
-				} else if (!config.blockExternalContent && (attribute.name === "draft-src" || attribute.name === "draft-srcset")) {
+				} else if (!config.blockExternalContent && DRAFT_ATTRIBUTES.includes(attribute.name)) {
 					if (attribute.name === "draft-src") {
 						htmlNode.setAttribute("src", attribute.value)
+						htmlNode.removeAttribute(attribute.name)
+					} else if (attribute.name === "draft-href" || attribute.name === "draft-xlink:href") {
+						const hrefTag = attribute.name === "draft-href" ? "href" : "xlink:href"
+						htmlNode.setAttribute(hrefTag, attribute.value)
 						htmlNode.removeAttribute(attribute.name)
 					} else {
 						htmlNode.setAttribute("srcset", attribute.value)
