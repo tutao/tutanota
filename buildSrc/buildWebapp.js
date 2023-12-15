@@ -73,7 +73,7 @@ export async function buildWebapp({ version, stage, host, measure, minify, proje
 		preserveEntrySignatures: false,
 		perf: true,
 		plugins: [
-			typescript({}),
+			typescript(),
 			resolveLibs(),
 			commonjs({
 				exclude: "src/**",

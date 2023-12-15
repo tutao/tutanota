@@ -1,5 +1,4 @@
 import o from "@tutao/otest"
-import "./StringUtilsTest.js"
 import "./UtilsTest.js"
 import "./MapUtilsTest.js"
 import "./ArrayUtilsTest.js"

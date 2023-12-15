@@ -1,6 +1,3 @@
-/// <reference no-default-lib="true"/>
-/// <reference lib="ES2020" />
-/// <reference lib="webworker" />
 import { WorkerImpl } from "./WorkerImpl"
 import { Logger, replaceNativeLogger } from "../common/Logger"
 

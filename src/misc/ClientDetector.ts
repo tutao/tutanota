@@ -99,7 +99,8 @@ export class ClientDetector {
 			typeof Uint8Array !== "undefined" &&
 			typeof Proxy !== "undefined" &&
 			typeof Reflect !== "undefined" &&
-			typeof Promise.prototype.finally !== "undefined"
+			typeof Promise.prototype.finally !== "undefined" &&
+			typeof String.prototype.replaceAll === "function"
 		)
 	}
 

@@ -107,7 +107,6 @@ export {
 	toLowerCase,
 	localeCompare,
 	byteLength,
-	replaceAll,
 } from "./StringUtils.js"
 export { TypeRef, isSameTypeRefByAttr, isSameTypeRef, getTypeId, isSameTypeRefNullable } from "./TypeRef.js"
 export {
