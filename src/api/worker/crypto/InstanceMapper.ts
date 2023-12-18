@@ -29,9 +29,6 @@ export class InstanceMapper {
 	 * @returns The decrypted and mapped instance
 	 */
 	decryptAndMapToInstance<T>(model: TypeModel, instance: Record<string, any>, sk: Aes128Key | null): Promise<T> {
-		if (model.encrypted && sk == null) {
-			throw new ProgrammingError(`Did not pass session key when decrypting encrypted instance of type ${model.app}/${model.name}`)
-		}
 		let decrypted: any = {
 			_type: new TypeRef(model.app, model.name),
 		}

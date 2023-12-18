@@ -35,6 +35,7 @@ import { EphemeralCacheStorage } from "../rest/EphemeralCacheStorage"
 import { InfoMessageHandler } from "../../../gui/InfoMessageHandler.js"
 import { ElementDataOS, GroupDataOS, Metadata, MetaDataOS } from "./IndexTables.js"
 import { MailFacade } from "../facades/lazy/MailFacade.js"
+import { hasError } from "../../common/utils/ErrorCheckUtils.js"
 
 export const INITIAL_MAIL_INDEX_INTERVAL_DAYS = 28
 const ENTITY_INDEXER_CHUNK = 20
@@ -737,8 +738,9 @@ class IndexLoader {
 
 	async loadMailDetails(mails: Mail[]): Promise<MailWrapper[]> {
 		const result: Array<MailWrapper> = []
+		let mailsWithoutErros = mails.filter((m) => !hasError(m))
 		//legacy mails
-		const legacyMails = mails.filter((m) => isLegacyMail(m))
+		const legacyMails = mailsWithoutErros.filter((m) => isLegacyMail(m))
 		const bodyIds = legacyMails.map((m) => assertNotNull(m.body))
 		result.push(
 			...(await this.loadInChunks(MailBodyTypeRef, null, bodyIds)).map((body) => {
@@ -747,7 +749,7 @@ class IndexLoader {
 			}),
 		)
 		// mailDetails stored as blob
-		let mailDetailsBlobMails = mails.filter((m) => !isLegacyMail(m) && !isDetailsDraft(m))
+		let mailDetailsBlobMails = mailsWithoutErros.filter((m) => !isLegacyMail(m) && !isDetailsDraft(m))
 		const listIdToMailDetailsBlobIds: Map<Id, Array<Id>> = groupByAndMap(
 			mailDetailsBlobMails,
 			(m) => assertNotNull(m.mailDetails)[0],
@@ -767,7 +769,7 @@ class IndexLoader {
 			)
 		}
 		// mailDetails stored in db (draft)
-		let mailDetailsDraftMails = mails.filter((m) => isDetailsDraft(m))
+		let mailDetailsDraftMails = mailsWithoutErros.filter((m) => isDetailsDraft(m))
 		const listIdToMailDetailsDraftIds: Map<Id, Array<Id>> = groupByAndMap(
 			mailDetailsDraftMails,
 			(m) => assertNotNull(m.mailDetailsDraft)[0],

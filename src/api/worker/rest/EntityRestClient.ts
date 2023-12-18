@@ -146,9 +146,19 @@ export class EntityRestClient implements EntityRestInterface {
 		const entity = JSON.parse(json)
 		const migratedEntity = await this._crypto.applyMigrations(typeRef, entity)
 
-		const sessionKey = ownerKey
-			? this._crypto.resolveSessionKeyWithOwnerKey(migratedEntity, ownerKey)
-			: await this._crypto.resolveSessionKey(typeModel, migratedEntity)
+		let sessionKey: Aes128Key | Aes256Key | null = null
+		try {
+			sessionKey = ownerKey
+				? this._crypto.resolveSessionKeyWithOwnerKey(migratedEntity, ownerKey)
+				: await this._crypto.resolveSessionKey(typeModel, migratedEntity)
+		} catch (e) {
+			if (e instanceof SessionKeyNotFoundError) {
+				console.log("could not resolve session key for instance of type", typeRef)
+			} else {
+				throw e
+			}
+		}
+
 		const instance = await this.instanceMapper.decryptAndMapToInstance<T>(typeModel, migratedEntity, sessionKey)
 		return this._crypto.applyMigrationsForInstance(instance)
 	}
