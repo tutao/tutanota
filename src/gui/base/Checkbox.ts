@@ -5,7 +5,6 @@ import type { TranslationKey } from "../../misc/LanguageViewModel"
 import { lang } from "../../misc/LanguageViewModel"
 import type { lazy } from "@tutao/tutanota-utils"
 import { theme } from "../theme.js"
-import { px } from "../size.js"
 import { encodeSVG } from "./GuiUtils.js"
 
 export type CheckboxAttrs = {
@@ -54,22 +53,16 @@ export class Checkbox implements Component<CheckboxAttrs> {
 					},
 				},
 				[
-					m("input[type=checkbox].icon", {
+					m("input[type=checkbox].icon.checkbox-override", {
 						oncreate: (vnode) => (this._domInput = vnode.dom as HTMLElement),
 						onchange: (e: Event) => this.toggle(e, a),
 						checked: a.checked,
 						onfocus: () => (this.focused = true),
 						onblur: () => (this.focused = false),
 						style: {
-							appearance: "none",
 							cursor: a.disabled ? "default" : "pointer",
-							font: "inherit",
 							"background-color": theme.content_accent,
 							"mask-image": `url("${Checkbox.getIcon(a.checked)}")`,
-							margin: px(0),
-							"margin-right": px(5),
-							position: "relative",
-							bottom: px(-2),
 						},
 						disabled: a.disabled,
 					}),

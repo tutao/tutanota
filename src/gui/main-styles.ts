@@ -847,9 +847,6 @@ styles.registerStyle("main", () => {
 		".inline-block": {
 			display: "inline-block",
 		},
-		".inline-grid": {
-			display: "inline-grid",
-		},
 		".no-text-decoration": {
 			"text-decoration": "none",
 		},
@@ -1880,6 +1877,14 @@ styles.registerStyle("main", () => {
 			"border-width": "1.5px",
 			"border-style": "solid",
 			"border-radius": "2px",
+		},
+		".checkbox-override": {
+			appearance: "none",
+			font: "inherit",
+			margin: px(0),
+			"margin-right": px(5),
+			position: "relative",
+			bottom: px(-2),
 		},
 		".checkbox": {
 			appearance: "none",
