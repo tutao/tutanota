@@ -54,7 +54,7 @@ export class Checkbox implements Component<CheckboxAttrs> {
 			},
 			[
 				m(
-					"label",
+					"label.break-all",
 					{
 						class: this.focused ? "content-accent-fg" : "content-fg",
 						onclick: (e: MouseEvent) => {
@@ -90,7 +90,7 @@ export class Checkbox implements Component<CheckboxAttrs> {
 						},
 						disabled: a.disabled,
 					}),
-					a.label(),
+					m("span.inline-grid", a.label()),
 				),
 				helpLabel,
 			],

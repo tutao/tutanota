@@ -847,6 +847,9 @@ styles.registerStyle("main", () => {
 		".inline-block": {
 			display: "inline-block",
 		},
+		".inline-grid": {
+			display: "inline-grid",
+		},
 		".no-text-decoration": {
 			"text-decoration": "none",
 		},
