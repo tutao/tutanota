@@ -233,3 +233,17 @@ export function renderTwoColumnsIfFits(left: Children, right: Children): Childre
 		return m(".flex", [m(".flex.flex-half.pr-s", left), m(".flex.flex-half.pl-s", right)])
 	}
 }
+
+/** Encode a SVG element into a CSS readable string */
+export function encodeSVG(svg: string): string {
+	return (
+		"data:image/svg+xml;utf8," +
+		svg
+			// the svg data string must contain ' instead of " to avoid display errors in Edge (probably not relevant anymore but better be safe)
+			.replace(/"/g, "'")
+			// '#' character is reserved in URL and FF won't display SVG otherwise
+			.replace(/#/g, "%23")
+			/// fold consecutive whitespace into a single one (useful for tests)
+			.replace(/\s+/g, " ")
+	)
+}
