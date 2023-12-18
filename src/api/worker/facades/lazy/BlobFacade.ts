@@ -58,7 +58,7 @@ export class BlobFacade {
 		private readonly instanceMapper: InstanceMapper,
 		private readonly cryptoFacade: CryptoFacade,
 		private readonly blobAccessTokenFacade: BlobAccessTokenFacade,
-		private readonly entityRestCache: DefaultEntityRestCache,
+		private readonly entityRestCache: DefaultEntityRestCache | null,
 	) {}
 
 	/**
@@ -195,7 +195,7 @@ export class BlobFacade {
 		try {
 			return neverNull(await this.cryptoFacade.resolveSessionKeyForInstance(entity))
 		} catch (e) {
-			if (e instanceof SessionKeyNotFoundError && isSameTypeRef(FileTypeRef, entity._type)) {
+			if (e instanceof SessionKeyNotFoundError && isSameTypeRef(FileTypeRef, entity._type) && this.entityRestCache) {
 				console.log("cache out of sync, trying to remove instance ", entity)
 				const file = downcast(entity)
 				await this.entityRestCache.deleteFromCacheIfExists(FileTypeRef, getListId(file), getElementId(file))
