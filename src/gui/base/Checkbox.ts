@@ -22,7 +22,7 @@ export class Checkbox implements Component<CheckboxAttrs> {
 
 	view(vnode: Vnode<CheckboxAttrs>): Children {
 		const a = vnode.attrs
-		const helpLabel = a.helpLabel ? m("small.block.content-fg", lang.getMaybeLazy(a.helpLabel)) : []
+		const helpLabel = a.helpLabel ? m("small.block.content-fg.break-word", lang.getMaybeLazy(a.helpLabel)) : []
 		return m(
 			`${a.disabled ? ".disabled.click-disabled" : ".click"}.pt`,
 			{
@@ -41,19 +41,19 @@ export class Checkbox implements Component<CheckboxAttrs> {
 					}
 				},
 			},
-			[
-				m(
-					"label.break-all",
-					{
-						class: this.focused ? "content-accent-fg" : "content-fg",
-						onclick: (e: MouseEvent) => {
-							// if the label contains a link, then stop the event so that the checkbox doesn't get toggled upon clicking
-							// we still allow it to be checked if they click on the non-link part of the label
-							if (e.target instanceof HTMLElement && e.target.tagName.toUpperCase() === "A") {
-								e.stopPropagation()
-							}
-						},
+			m(
+				"label.break-all",
+				{
+					class: this.focused ? "content-accent-fg" : "content-fg",
+					onclick: (e: MouseEvent) => {
+						// if the label contains a link, then stop the event so that the checkbox doesn't get toggled upon clicking
+						// we still allow it to be checked if they click on the non-link part of the label
+						if (e.target instanceof HTMLElement && e.target.tagName.toUpperCase() === "A") {
+							e.stopPropagation()
+						}
 					},
+				},
+				[
 					m("input[type=checkbox].icon", {
 						oncreate: (vnode) => (this._domInput = vnode.dom as HTMLElement),
 						onchange: (e: Event) => this.toggle(e, a),
@@ -73,10 +73,10 @@ export class Checkbox implements Component<CheckboxAttrs> {
 						},
 						disabled: a.disabled,
 					}),
-					m("span.inline-grid", a.label()),
-				),
-				helpLabel,
-			],
+					a.label(),
+					helpLabel,
+				],
+			),
 		)
 	}
 

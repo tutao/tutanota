@@ -319,9 +319,6 @@ export function renderAcceptGiftCardTermsCheckbox(checked: boolean, onChecked: (
 	return m(Checkbox, {
 		checked,
 		onChecked,
-		label: () => [
-			m("", lang.get("termsAndConditions_label")),
-			m("div", renderTermsAndConditionsButton(TermsSection.GiftCards, CURRENT_GIFT_CARD_TERMS_VERSION)),
-		],
+		label: () => [lang.get("termsAndConditions_label"), m("div", renderTermsAndConditionsButton(TermsSection.GiftCards, CURRENT_GIFT_CARD_TERMS_VERSION))],
 	})
 }
