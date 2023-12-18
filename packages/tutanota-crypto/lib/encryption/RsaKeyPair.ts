@@ -1,7 +1,8 @@
 import type { Base64 } from "@tutao/tutanota-utils"
 import { EccPrivateKey, EccPublicKey } from "./Ecc.js"
+import { AbstractKeyPair, AbstractPublicKey } from "./AsymmetricKeyPair.js"
 
-export type RsaKeyPair = {
+export type RsaKeyPair = AbstractKeyPair & {
 	publicKey: RsaPublicKey
 	privateKey: RsaPrivateKey
 }
@@ -20,7 +21,7 @@ export type RsaPrivateKey = {
 	primeExponentQ: Base64
 	crtCoefficient: Base64
 }
-export type RsaPublicKey = {
+export type RsaPublicKey = AbstractPublicKey & {
 	version: number
 	keyLength: number
 	modulus: Base64

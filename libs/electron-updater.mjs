@@ -1815,7 +1815,7 @@ Please double check that your authentication token is correct. Due to security r
 	    }, 2);
 	}
 	httpExecutor.safeStringifyJson = safeStringifyJson;
-	
+
 	return httpExecutor;
 }
 
@@ -2173,7 +2173,7 @@ function requireUuid () {
 	// UUID.v3 = function(options, callback) {
 	//     return uuidNamed("md5", 0x30, options, callback)
 	// }
-	
+
 	return uuid;
 }
 
@@ -3868,7 +3868,7 @@ function requireXml () {
 	    return rootElement;
 	}
 	xml.parseXml = parseXml;
-	
+
 	return xml;
 }
 
@@ -3928,7 +3928,7 @@ function requireOut () {
 		    return error;
 		}
 		exports.newError = newError;
-		
+
 } (out));
 	return out;
 }
@@ -10653,7 +10653,7 @@ function requireMain$1 () {
 	    }
 	}
 	main$1.Lazy = Lazy;
-	
+
 	return main$1;
 }
 
@@ -16192,7 +16192,7 @@ var electronHttpExecutor = {};
 	    }
 	}
 	exports.ElectronHttpExecutor = ElectronHttpExecutor;
-	
+
 } (electronHttpExecutor));
 
 var GenericProvider$1 = {};
@@ -17609,7 +17609,7 @@ function requireAppUpdater () {
 	    }
 	}
 	AppUpdater.NoOpLogger = NoOpLogger;
-	
+
 	return AppUpdater;
 }
 
@@ -17762,7 +17762,7 @@ function requireBaseUpdater () {
 	    }
 	};
 	BaseUpdater.BaseUpdater = BaseUpdater$1;
-	
+
 	return BaseUpdater;
 }
 
@@ -18702,7 +18702,7 @@ function requireAppImageUpdater () {
 	    }
 	};
 	AppImageUpdater.AppImageUpdater = AppImageUpdater$1;
-	
+
 	return AppImageUpdater;
 }
 
@@ -18751,7 +18751,7 @@ function requireDebUpdater () {
 	    }
 	};
 	DebUpdater.DebUpdater = DebUpdater$1;
-	
+
 	return DebUpdater;
 }
 
@@ -18826,7 +18826,7 @@ function requireRpmUpdater () {
 	    }
 	};
 	RpmUpdater.RpmUpdater = RpmUpdater$1;
-	
+
 	return RpmUpdater;
 }
 
@@ -19048,7 +19048,7 @@ function requireMacUpdater () {
 	    }
 	};
 	MacUpdater.MacUpdater = MacUpdater$1;
-	
+
 	return MacUpdater;
 }
 
@@ -19410,7 +19410,7 @@ function requireNsisUpdater () {
 	    }
 	};
 	NsisUpdater.NsisUpdater = NsisUpdater$1;
-	
+
 	return NsisUpdater;
 }
 
@@ -19512,7 +19512,7 @@ function requireMain () {
 		        emitter.on(event, handler);
 		    }
 		}
-		
+
 } (main$2));
 	return main$2;
 }

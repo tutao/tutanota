@@ -60,6 +60,16 @@ export {
 	rsaEncrypt,
 } from "./encryption/Rsa.js"
 export { RsaKeyPair, RsaEccKeyPair, RsaPrivateKey, RsaPublicKey } from "./encryption/RsaKeyPair.js"
+export {
+	KeyPairType,
+	AsymmetricKeyPair,
+	AsymmetricPublicKey,
+	isRsaPublicKey,
+	isRsaOrRsaEccKeyPair,
+	isRsaEccKeyPair,
+	isPqPublicKey,
+	isPqKeyPairs,
+} from "./encryption/AsymmetricKeyPair.js"
 export { PQKeyPairs, PQPublicKeys } from "./encryption/PQKeyPairs.js"
 export { sha1Hash } from "./hashes/Sha1.js"
 export { sha256Hash } from "./hashes/Sha256.js"

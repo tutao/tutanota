@@ -38,7 +38,10 @@ export function generateEccKeyPair(): EccKeyPair {
 	// we do not want to store it un-clamped in case we use a different implementation later
 	const privateKey = clampPrivateKey(random.generateRandomData(X25519_N_BYTE_LENGTH))
 	const publicKey = derivePublicKey(privateKey)
-	return { privateKey, publicKey }
+	return {
+		privateKey,
+		publicKey,
+	}
 }
 
 /**

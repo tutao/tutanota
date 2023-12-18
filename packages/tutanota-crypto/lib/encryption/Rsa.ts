@@ -2,9 +2,10 @@
 import { BigInteger, parseBigInt, RSAKey } from "../internal/crypto-jsbn-2012-08-09_1.js"
 import type { Base64, Hex } from "@tutao/tutanota-utils"
 import { base64ToHex, base64ToUint8Array, concat, int8ArrayToBase64, uint8ArrayToBase64, uint8ArrayToHex } from "@tutao/tutanota-utils"
-import type { RsaPrivateKey, RsaPublicKey, RsaKeyPair } from "./RsaKeyPair.js"
+import type { RsaKeyPair, RsaPrivateKey, RsaPublicKey } from "./RsaKeyPair.js"
 import { CryptoError } from "../misc/CryptoError.js"
 import { sha256Hash } from "../hashes/Sha256.js"
+import { KeyPairType } from "./AsymmetricKeyPair.js"
 
 const RSA_KEY_LENGTH_BITS = 2048
 const RSA_PUBLIC_EXPONENT = 65537
@@ -16,7 +17,9 @@ export function generateRsaKey(): RsaKeyPair {
 		rsa.generate(RSA_KEY_LENGTH_BITS, RSA_PUBLIC_EXPONENT.toString(16)) // must be hex for JSBN
 
 		return {
+			keyPairType: KeyPairType.RSA,
 			publicKey: {
+				keyPairType: KeyPairType.RSA,
 				version: 0,
 				keyLength: RSA_KEY_LENGTH_BITS,
 				modulus: uint8ArrayToBase64(new Uint8Array(rsa.n.toByteArray())),
@@ -359,6 +362,7 @@ function _privateKeyToArray(privateKey: RsaPrivateKey): BigInteger[] {
 
 function _arrayToPublicKey(publicKey: BigInteger[]): RsaPublicKey {
 	return {
+		keyPairType: KeyPairType.RSA,
 		version: 0,
 		keyLength: RSA_KEY_LENGTH_BITS,
 		modulus: int8ArrayToBase64(new Int8Array(publicKey[0].toByteArray())),

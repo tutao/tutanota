@@ -58,9 +58,12 @@ import type { EntityClient } from "../../common/EntityClient"
 import { RestClient } from "../rest/RestClient"
 import {
 	Aes128Key,
-	aes256RandomKey,
 	Aes256Key,
+	aes256RandomKey,
 	aesEncrypt,
+	KeyPairType,
+	AsymmetricKeyPair,
+	AsymmetricPublicKey,
 	bitArrayToUint8Array,
 	bytesToKyberPublicKey,
 	CryptoError,
@@ -73,12 +76,13 @@ import {
 	encryptKey,
 	generateEccKeyPair,
 	hexToRsaPublicKey,
+	isPqKeyPairs,
+	isPqPublicKey,
+	isRsaEccKeyPair,
+	isRsaOrRsaEccKeyPair,
+	isRsaPublicKey,
 	IV_BYTE_LENGTH,
-	PQKeyPairs,
-	PQPublicKeys,
 	random,
-	RsaEccKeyPair,
-	RsaKeyPair,
 	RsaPrivateKey,
 	sha256Hash,
 	uint8ArrayToBitArray,
@@ -94,7 +98,6 @@ import { InstanceMapper } from "./InstanceMapper.js"
 import { OwnerEncSessionKeysUpdateQueue } from "./OwnerEncSessionKeysUpdateQueue.js"
 import { PQFacade } from "../facades/PQFacade.js"
 import { decodePQMessage, encodePQMessage } from "../facades/PQMessage.js"
-import { assertPqKeyPairs, assertRsaKeyPair, AsymmetricKeyPair, AsymmetricPublicKey } from "@tutao/tutanota-crypto/dist/encryption/AsymmetricKeyPair.js"
 
 assertWorkerOrNode()
 
@@ -523,15 +526,18 @@ export class CryptoFacade {
 		decryptedBucketKey: Aes128Key | Aes256Key
 		pqMessageSenderIdentityPubKey: EccPublicKey | null
 	}> {
-		const keyPair = await this.loadKeypair(keyPairGroupId)
-		if (keyPair instanceof PQKeyPairs) {
+		const keyPair: AsymmetricKeyPair = await this.loadKeypair(keyPairGroupId)
+		const algo = keyPair.keyPairType
+		if (isPqKeyPairs(keyPair)) {
 			const pqMessage = decodePQMessage(pubEncBucketKey)
 			const decryptedBucketKey = await this.pq.decapsulate(pqMessage, keyPair)
 			return { decryptedBucketKey: uint8ArrayToBitArray(decryptedBucketKey), pqMessageSenderIdentityPubKey: pqMessage.senderIdentityPubKey }
-		} else {
+		} else if (isRsaOrRsaEccKeyPair(keyPair)) {
 			const privateKey: RsaPrivateKey = keyPair.privateKey
 			const decryptedBucketKey = await this.rsa.decrypt(privateKey, pubEncBucketKey)
 			return { decryptedBucketKey: uint8ArrayToBitArray(decryptedBucketKey), pqMessageSenderIdentityPubKey: null }
+		} else {
+			throw new CryptoError("unknown key pair type: " + algo)
 		}
 	}
 
@@ -601,16 +607,19 @@ export class CryptoFacade {
 
 	async encryptPubSymKey(symKey: Aes128Key | Aes256Key, recipientPublicKeys: PublicKeys, senderGroupId: Id): Promise<PubEncSymKey> {
 		let pubEncSymKey, cryptoProtocolVersion
-		const recipientPublicKey = this.getPublicKey(recipientPublicKeys)
-		if (recipientPublicKey instanceof PQPublicKeys) {
+		const recipientPublicKey = this.getRecipientPublicKey(recipientPublicKeys)
+		const algo = recipientPublicKey.keyPairType
+		if (isPqPublicKey(recipientPublicKey)) {
 			const senderKeyPair = await this.loadKeypair(senderGroupId)
 			const senderEccKeyPair = await this.getOrMakeSenderIdentityKeyPair(senderKeyPair, senderGroupId)
 			const ephemeralKeyPair = generateEccKeyPair()
 			pubEncSymKey = encodePQMessage(await this.pq.encapsulate(senderEccKeyPair, ephemeralKeyPair, recipientPublicKey, bitArrayToUint8Array(symKey)))
 			cryptoProtocolVersion = CryptoProtocolVersion.TUTA_CRYPT
-		} else {
+		} else if (isRsaPublicKey(recipientPublicKey)) {
 			pubEncSymKey = await this.rsa.encrypt(recipientPublicKey, bitArrayToUint8Array(symKey))
 			cryptoProtocolVersion = CryptoProtocolVersion.RSA
+		} else {
+			throw new CryptoError("unknown public key type: " + algo)
 		}
 		return { pubEncSymKey, cryptoProtocolVersion }
 	}
@@ -623,13 +632,17 @@ export class CryptoFacade {
 		let decryptedBytes: Uint8Array
 		switch (cryptoProtocolVersion) {
 			case CryptoProtocolVersion.RSA: {
-				const rsaKeyPair = assertRsaKeyPair(keyPair)
-				decryptedBytes = await this.rsa.decrypt(rsaKeyPair.privateKey, pubEncSymKey)
+				if (!isRsaOrRsaEccKeyPair(keyPair)) {
+					throw new CryptoError("wrong key type. expecte rsa. got " + keyPair.keyPairType)
+				}
+				decryptedBytes = await this.rsa.decrypt(keyPair.privateKey, pubEncSymKey)
 				break
 			}
 			case CryptoProtocolVersion.TUTA_CRYPT: {
-				const pqKeyPairs = assertPqKeyPairs(keyPair)
-				decryptedBytes = await this.pq.decapsulate(decodePQMessage(pubEncSymKey), pqKeyPairs)
+				if (!isPqKeyPairs(keyPair)) {
+					throw new CryptoError("wrong key type. expected tuta-crypt. got " + keyPair.keyPairType)
+				}
+				decryptedBytes = await this.pq.decapsulate(decodePQMessage(pubEncSymKey), keyPair)
 				break
 			}
 			default:
@@ -736,20 +749,21 @@ export class CryptoFacade {
 	 * 						This is necessary as a User might send an E-Mail from a shared mailbox,
 	 * 						for which the KeyPair should be created.
 	 */
-	async getOrMakeSenderIdentityKeyPair(senderKeyPair: RsaEccKeyPair | RsaKeyPair | PQKeyPairs, keyGroupId: Id): Promise<EccKeyPair> {
-		if (senderKeyPair instanceof PQKeyPairs) {
+	async getOrMakeSenderIdentityKeyPair(senderKeyPair: AsymmetricKeyPair, keyGroupId: Id): Promise<EccKeyPair> {
+		const algo = senderKeyPair.keyPairType
+		if (isPqKeyPairs(senderKeyPair)) {
 			return senderKeyPair.eccKeyPair
-		} else {
-			const senderKeys = senderKeyPair as any
-			if (senderKeys.publicEccKey) {
-				return { publicKey: senderKeys.publicEccKey, privateKey: senderKeys.privateEccKey }
-			}
+		} else if (isRsaEccKeyPair(senderKeyPair)) {
+			return { publicKey: senderKeyPair.publicEccKey, privateKey: senderKeyPair.privateEccKey }
+		} else if (isRsaOrRsaEccKeyPair(senderKeyPair)) {
 			let userGroupKey = keyGroupId ? this.userFacade.getGroupKey(keyGroupId) : this.userFacade.getUserGroupKey()
 			const newIdentityKeyPair = generateEccKeyPair()
 			const symEncPrivEccKey = encryptEccKey(userGroupKey, newIdentityKeyPair.privateKey)
 			const data = createPublicKeyPutIn({ pubEccKey: newIdentityKeyPair.publicKey, symEncPrivEccKey, keyGroup: keyGroupId })
 			await this.serviceExecutor.put(PublicKeyService, data)
 			return newIdentityKeyPair
+		} else {
+			throw new CryptoError("unknow key pair type: " + algo)
 		}
 	}
 
@@ -835,13 +849,14 @@ export class CryptoFacade {
 		}
 	}
 
-	private getPublicKey(publicKeys: PublicKeys): AsymmetricPublicKey {
+	private getRecipientPublicKey(publicKeys: PublicKeys): AsymmetricPublicKey {
 		if (publicKeys.pubRsaKey) {
+			// we ignore ecc keys as this is only used for the recipient keys
 			return hexToRsaPublicKey(uint8ArrayToHex(publicKeys.pubRsaKey))
 		} else if (publicKeys.pubKyberKey && publicKeys.pubEccKey) {
 			var eccPublicKey = publicKeys.pubEccKey
 			var kyberPublicKey = bytesToKyberPublicKey(publicKeys.pubKyberKey)
-			return new PQPublicKeys(eccPublicKey, kyberPublicKey)
+			return { keyPairType: KeyPairType.TUTA_CRYPT, eccPublicKey, kyberPublicKey }
 		} else {
 			throw new Error("Inconsistent Keypair")
 		}

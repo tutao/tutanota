@@ -3,6 +3,7 @@ import { aes256RandomKey, bitArrayToUint8Array, generateEccKeyPair } from "@tuta
 import { PQFacade } from "../../../../../src/api/worker/facades/PQFacade.js"
 import { WASMKyberFacade } from "../../../../../src/api/worker/facades/KyberFacade.js"
 import { loadLibOQSWASM } from "../WASMTestUtils.js"
+import { pqKeyPairsToPublicKeys } from "@tutao/tutanota-crypto/dist/encryption/PQKeyPairs.js"
 
 o.spec("PQFacade test", function () {
 	o.spec("encapsulateDecapsulateRoundtrip", function () {
@@ -15,7 +16,7 @@ o.spec("PQFacade test", function () {
 
 			const recipientKeys = await pqFacade.generateKeyPairs()
 			const bucketKey = bitArrayToUint8Array(aes256RandomKey())
-			const pqMessage = await pqFacade.encapsulate(senderIdentityKeyPair, ephemeralKeyPair, recipientKeys.toPublicKeys(), bucketKey)
+			const pqMessage = await pqFacade.encapsulate(senderIdentityKeyPair, ephemeralKeyPair, pqKeyPairsToPublicKeys(recipientKeys), bucketKey)
 
 			const decryptedBucketKey = await pqFacade.decapsulate(pqMessage, recipientKeys)
 

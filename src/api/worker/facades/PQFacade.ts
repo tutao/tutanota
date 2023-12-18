@@ -3,6 +3,7 @@ import {
 	Aes256Key,
 	aesDecrypt,
 	aesEncrypt,
+	KeyPairType,
 	eccDecapsulate,
 	eccEncapsulate,
 	EccKeyPair,
@@ -19,6 +20,7 @@ import { KEY_LENGTH_BYTES_AES_256 } from "@tutao/tutanota-crypto/dist/encryption
 import { PQMessage } from "./PQMessage.js"
 import { hkdf } from "@tutao/tutanota-crypto/dist/hashes/HKDF.js"
 import { CryptoProtocolVersion } from "../../common/TutanotaConstants.js"
+import { pqKeyPairsToPublicKeys } from "@tutao/tutanota-crypto/dist/encryption/PQKeyPairs.js"
 
 export class PQFacade {
 	private kyberFacade: KyberFacade
@@ -28,7 +30,11 @@ export class PQFacade {
 	}
 
 	public async generateKeyPairs(): Promise<PQKeyPairs> {
-		return new PQKeyPairs(generateEccKeyPair(), await this.kyberFacade.generateKeypair())
+		return {
+			keyPairType: KeyPairType.TUTA_CRYPT,
+			eccKeyPair: generateEccKeyPair(),
+			kyberKeyPair: await this.kyberFacade.generateKeypair(),
+		}
 	}
 
 	public async encapsulate(
@@ -70,7 +76,7 @@ export class PQFacade {
 		const kek = this.derivePQKEK(
 			message.senderIdentityPubKey,
 			message.ephemeralPubKey,
-			recipientKeys.toPublicKeys(),
+			pqKeyPairsToPublicKeys(recipientKeys),
 			kyberCipherText,
 			kyberSharedSecret,
 			eccSharedSecret,

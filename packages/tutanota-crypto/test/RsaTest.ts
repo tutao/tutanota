@@ -1,6 +1,7 @@
 import o from "@tutao/otest"
 import { concat, hexToUint8Array, stringToUtf8Uint8Array, uint8ArrayToHex } from "@tutao/tutanota-utils"
-import type { RsaKeyPair } from "../lib/encryption/RsaKeyPair.js"
+import type { RsaKeyPair } from "../lib/index.js"
+import { KeyPairType, CryptoError, random } from "../lib/index.js"
 import {
 	_getPSBlock,
 	_keyArrayToHex,
@@ -20,8 +21,6 @@ import {
 } from "../lib/encryption/Rsa.js"
 import { parseBigInt } from "../lib/internal/crypto-jsbn-2012-08-09_1.js"
 import { SecureRandom } from "../lib/random/SecureRandom.js"
-import { random } from "../lib/random/Randomizer.js"
-import { CryptoError } from "../lib/misc/CryptoError.js"
 
 const originalRandom = random.generateRandomData
 
@@ -118,7 +117,9 @@ o.spec("rsa", function () {
 	o("rsa encrypt longer result", function () {
 		// This input makes JSBN produce leading zeroes in byte output and we need to take this into account
 		const keyPair = {
+			keyPairType: KeyPairType.RSA,
 			publicKey: {
+				keyPairType: KeyPairType.RSA,
 				version: 0,
 				keyLength: 2048,
 				modulus:
@@ -155,7 +156,9 @@ o.spec("rsa", function () {
 		// This combination produces encrypted data with length of 254 and we pad have to pad it to 256
 		// We use fixed keypair and salt to reproduce this error each time
 		const keyPair = {
+			keyPairType: KeyPairType.RSA,
 			publicKey: {
+				keyPairType: KeyPairType.RSA,
 				version: 0,
 				keyLength: 2048,
 				modulus:

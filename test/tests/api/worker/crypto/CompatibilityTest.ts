@@ -2,6 +2,7 @@ import o from "@tutao/otest"
 import {
 	aesDecrypt,
 	aesEncrypt,
+	KeyPairType,
 	bitArrayToUint8Array,
 	bytesToKyberPrivateKey,
 	bytesToKyberPublicKey,
@@ -272,8 +273,12 @@ o.spec("crypto compatibility", function () {
 				privateKey: bytesToKyberPrivateKey(hexToUint8Array(td.privateKyberKey)),
 			}
 
-			const pqPublicKeys = new PQPublicKeys(eccKeyPair.publicKey, kyberKeyPair.publicKey)
-			const pqKeyPairs = new PQKeyPairs(eccKeyPair, kyberKeyPair)
+			const pqPublicKeys: PQPublicKeys = {
+				keyPairType: KeyPairType.TUTA_CRYPT,
+				eccPublicKey: eccKeyPair.publicKey,
+				kyberPublicKey: kyberKeyPair.publicKey,
+			}
+			const pqKeyPairs: PQKeyPairs = { keyPairType: KeyPairType.TUTA_CRYPT, eccKeyPair, kyberKeyPair }
 			const pqFacade = new PQFacade(new WASMKyberFacade(liboqs))
 
 			const encapsulation = await pqFacade.encapsulate(eccKeyPair, ephemeralKeyPair, pqPublicKeys, bucketKey)
