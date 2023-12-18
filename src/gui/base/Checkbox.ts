@@ -58,7 +58,6 @@ export class Checkbox implements Component<CheckboxAttrs> {
 							}
 						},
 					},
-					// the real checkbox is transparent and only used to allow keyboard focusing and selection
 					m("input[type=checkbox].icon", {
 						oncreate: (vnode) => (this._domInput = vnode.dom as HTMLElement),
 						onchange: (e: Event) => this.toggle(e, a),
