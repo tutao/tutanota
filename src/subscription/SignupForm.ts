@@ -237,7 +237,7 @@ export class SignupForm implements Component<SignupFormAttrs> {
 
 function renderTermsLabel(): Children {
 	return [
-		m("div", lang.get("termsAndConditions_label")),
+		lang.get("termsAndConditions_label"),
 		m("div", renderTermsAndConditionsButton(TermsSection.Terms, CURRENT_TERMS_VERSION)),
 		m("div", renderTermsAndConditionsButton(TermsSection.Privacy, CURRENT_PRIVACY_VERSION)),
 	]
