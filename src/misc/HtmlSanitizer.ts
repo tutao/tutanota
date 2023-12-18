@@ -2,17 +2,10 @@ import DOMPurify, { Config, DOMPurifyI, HookEvent } from "dompurify"
 import { ReplacementImage } from "../gui/base/icons/Icons"
 import { downcast, stringToUtf8Uint8Array, utf8Uint8ArrayToString } from "@tutao/tutanota-utils"
 import { DataFile } from "../api/common/DataFile"
+import { encodeSVG } from "../gui/base/GuiUtils.js"
 
 /** Data url for an SVG image that will be shown in place of external content. */
-export const PREVENT_EXTERNAL_IMAGE_LOADING_ICON: string =
-	"data:image/svg+xml;utf8," +
-	ReplacementImage
-		// the svg data string must contain ' instead of " to avoid display errors in Edge (probably not relevant anymore but better be safe)
-		.replace(/"/g, "'")
-		// '#' character is reserved in URL and FF won't display SVG otherwise
-		.replace(/#/g, "%23")
-		/// fold consecutive whitespace into a single one (useful for tests)
-		.replace(/\s+/g, " ")
+export const PREVENT_EXTERNAL_IMAGE_LOADING_ICON: string = encodeSVG(ReplacementImage)
 
 // background attribute is deprecated but still used in common browsers
 const EXTERNAL_CONTENT_ATTRS = Object.freeze([

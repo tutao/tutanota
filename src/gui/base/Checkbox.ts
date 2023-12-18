@@ -6,6 +6,7 @@ import { lang } from "../../misc/LanguageViewModel"
 import type { lazy } from "@tutao/tutanota-utils"
 import { theme } from "../theme.js"
 import { px } from "../size.js"
+import { encodeSVG } from "./GuiUtils.js"
 
 export type CheckboxAttrs = {
 	label: lazy<string | Children>
@@ -26,14 +27,6 @@ export class Checkbox implements Component<CheckboxAttrs> {
 	view(vnode: Vnode<CheckboxAttrs>): Children {
 		const a = vnode.attrs
 		const helpLabel = a.helpLabel ? m("small.block.content-fg", lang.getMaybeLazy(a.helpLabel)) : []
-		const rawIcon: BootIcons = a.checked ? BootIcons.CheckboxSelected : BootIcons.Checkbox
-		const icon = BootIconsSvg[rawIcon]
-			// the svg data string must contain ' instead of " to avoid display errors in Edge (probably not relevant anymore but better be safe)
-			.replace(/"/g, "'")
-			// '#' character is reserved in URL and FF won't display SVG otherwise
-			.replace(/#/g, "%23")
-			/// fold consecutive whitespace into a single one (useful for tests)
-			.replace(/\s+/g, " ")
 		return m(
 			`${a.disabled ? ".disabled.click-disabled" : ".click"}.pt`,
 			{
@@ -82,7 +75,7 @@ export class Checkbox implements Component<CheckboxAttrs> {
 							cursor: a.disabled ? "default" : "pointer",
 							font: "inherit",
 							"background-color": theme.content_accent,
-							"mask-image": `url("data:image/svg+xml,${icon}")`,
+							"mask-image": `url("${Checkbox.getIcon(a.checked)}")`,
 							margin: px(0),
 							"margin-right": px(5),
 							position: "relative",
@@ -95,6 +88,11 @@ export class Checkbox implements Component<CheckboxAttrs> {
 				helpLabel,
 			],
 		)
+	}
+
+	private static getIcon(checked: boolean): string {
+		const rawIcon: BootIcons = checked ? BootIcons.CheckboxSelected : BootIcons.Checkbox
+		return encodeSVG(BootIconsSvg[rawIcon])
 	}
 
 	toggle(event: Event, attrs: CheckboxAttrs) {
