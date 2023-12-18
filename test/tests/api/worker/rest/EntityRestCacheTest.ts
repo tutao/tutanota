@@ -212,7 +212,7 @@ export function testEntityRestCache(name: string, getStorage: (userId: Id) => Pr
 				verify(putLastBatchIdForGroup(groupId, batchId))
 			})
 
-			o.spec("postMultiple", async function () {
+			o.spec("postMultiple", function () {
 				o.beforeEach(async function () {
 					await storage.setNewRangeForList(ContactTypeRef, contactListId1, id1, id7)
 					await storage.setNewRangeForList(ContactTypeRef, contactListId2, id1, id7)
@@ -780,7 +780,7 @@ export function testEntityRestCache(name: string, getStorage: (userId: Id) => Pr
 				o(mails).deepEquals([originalMails[0], originalMails[2]])
 			})
 
-			o.spec("membership changes", async function () {
+			o.spec("membership changes", function () {
 				o("no membership change does not delete an entity and lastUpdateBatchIdPerGroup", async function () {
 					const userId = "userId"
 					const calendarGroupId = "calendarGroupId"

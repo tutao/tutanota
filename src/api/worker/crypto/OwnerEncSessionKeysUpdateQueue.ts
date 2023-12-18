@@ -21,6 +21,7 @@ export const UPDATE_SESSION_KEYS_SERVICE_DEBOUNCE_MS = 50
 export class OwnerEncSessionKeysUpdateQueue {
 	private updateInstanceSessionKeyQueue: Array<InstanceSessionKey> = []
 	private readonly invokeUpdateSessionKeyService: () => Promise<void>
+	private senderAuthStatusForMailInstance: { authenticated: boolean; instanceElementId: Id } | null = null
 
 	constructor(
 		private readonly userFacade: UserFacade,
@@ -44,9 +45,7 @@ export class OwnerEncSessionKeysUpdateQueue {
 	}
 
 	private async sendUpdateRequest() {
-		const input = createUpdateSessionKeysPostIn({
-			ownerEncSessionKeys: this.updateInstanceSessionKeyQueue,
-		})
+		const input = createUpdateSessionKeysPostIn({ ownerEncSessionKeys: this.updateInstanceSessionKeyQueue })
 		this.updateInstanceSessionKeyQueue = []
 		if (input.ownerEncSessionKeys.length > 0) {
 			try {

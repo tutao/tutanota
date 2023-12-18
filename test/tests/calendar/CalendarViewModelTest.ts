@@ -22,7 +22,7 @@ import { object, when } from "testdouble"
 
 let saveAndSendMock
 let rescheduleEventMock
-o.spec("CalendarViewModel", async function () {
+o.spec("CalendarViewModel", function () {
 	let entityClientMock: EntityRestClientMock
 
 	function initCalendarViewModel(makeViewModelCallback: CalendarEventEditModelsFactory, eventController?): CalendarViewModel {

@@ -546,7 +546,7 @@ o.spec("DesktopIntegrator Test", () => {
 		})
 	})
 
-	o.spec("Windows", async function () {
+	o.spec("Windows", function () {
 		o.beforeEach(function () {
 			n.setPlatform("win32")
 		})

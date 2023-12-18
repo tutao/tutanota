@@ -36,6 +36,7 @@ export async function runTestBuild({ clean, fast = false }) {
 		await fs.mkdir(inBuildDir(), { recursive: true })
 		await fs.copyFile(pjPath, inBuildDir("package.json"))
 		await fs.copyFile(path.join("..", "packages/tutanota-crypto/lib/hashes/Argon2id/argon2.wasm"), inBuildDir("argon2.wasm"))
+		await fs.copyFile(path.join("..", "packages/tutanota-crypto/lib/encryption/Liboqs/liboqs.wasm"), inBuildDir("liboqs.wasm"))
 		await createUnitTestHtml(localEnv)
 	})
 	await runStep("Esbuild", async () => {
@@ -80,9 +81,28 @@ export async function runTestBuild({ clean, fast = false }) {
 				"server-destroy",
 				"body-parser",
 				"jsdom",
+				"node:*",
+				"http",
+				"stream",
+				"fs",
+				"assert",
+				"net",
+				"diagnostics_channel",
+				"zlib",
+				"console",
+				"async_hooks",
+				"util/types",
+				"perf_hooks",
+				"worker_threads",
+				"path",
+				"tls",
+				"buffer",
+				"events",
+				"string_decoder",
 			],
 			// even though tests might be running in browser we set it to node so that it ignores all builtins
-			platform: "node",
+			platform: "neutral",
+			mainFields: ["module", "main"],
 			plugins: [
 				preludeEnvPlugin(localEnv),
 				libDeps(".."),

@@ -9,7 +9,7 @@ import { ProgrammingError } from "../../../../../src/api/common/error/Programmin
 import { SqlCipherFacade } from "../../../../../src/native/common/generatedipc/SqlCipherFacade.js"
 import { OutOfSyncError } from "../../../../../src/api/common/error/OutOfSyncError.js"
 
-o.spec("OfflineStorageMigrator", async function () {
+o.spec("OfflineStorageMigrator", function () {
 	const modelInfos: ModelInfos = {
 		base: {
 			version: 1,

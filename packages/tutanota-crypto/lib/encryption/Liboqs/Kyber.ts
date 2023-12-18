@@ -54,6 +54,12 @@ export function generateKeyPair(kyberWasm: WebAssembly.Exports, randomizer: Rand
 	}
 }
 
+/**
+ * @param kyberWasm the WebAssembly module that implements our kyber primitives (liboqs)
+ * @param publicKey the public key to encapsulate with
+ * @param randomizer our randomizer that is used to the native library with entropy
+ * @return the plaintext secret key and the encapsulated key for use with AES or as input to a KDF
+ */
 export function encapsulate(kyberWasm: WebAssembly.Exports, publicKey: KyberPublicKey, randomizer: Randomizer): KyberEncapsulation {
 	if (publicKey.raw.length != OQS_KEM_kyber_1024_length_public_key) {
 		throw new CryptoError(`Invalid public key length; expected ${OQS_KEM_kyber_1024_length_public_key}, got ${publicKey.raw.length}`)
@@ -81,6 +87,12 @@ export function encapsulate(kyberWasm: WebAssembly.Exports, publicKey: KyberPubl
 	}
 }
 
+/**
+ * @param kyberWasm the WebAssembly module that implements our kyber primitives (liboqs)
+ * @param privateKey      the corresponding private key of the public key with which the encapsulatedKey was encapsulated with
+ * @param ciphertext the ciphertext output of encapsulate()
+ * @return the plaintext secret key
+ */
 export function decapsulate(kyberWasm: WebAssembly.Exports, privateKey: KyberPrivateKey, ciphertext: Uint8Array): Uint8Array {
 	if (privateKey.raw.length != OQS_KEM_kyber_1024_length_secret_key) {
 		throw new CryptoError(`Invalid private key length; expected ${OQS_KEM_kyber_1024_length_secret_key}, got ${privateKey.raw.length}`)

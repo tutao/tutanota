@@ -392,6 +392,7 @@ export type BrandingDomainData = {
 	sessionEncPemCertificateChain: null | Uint8Array;
 	sessionEncPemPrivateKey: null | Uint8Array;
 	systemAdminPubEncSessionKey: Uint8Array;
+	systemAdminPublicProtocolVersion: NumberString;
 }
 export const BrandingDomainDeleteDataTypeRef: TypeRef<BrandingDomainDeleteData> = new TypeRef("sys", "BrandingDomainDeleteData")
 
@@ -442,6 +443,7 @@ export type BucketKey = {
 
 	_id: Id;
 	groupEncBucketKey: null | Uint8Array;
+	protocolVersion: NumberString;
 	pubEncBucketKey: null | Uint8Array;
 
 	bucketEncSessionKeys: InstanceSessionKey[];
@@ -461,6 +463,7 @@ export type BucketPermission = {
 	_ownerGroup: null | Id;
 	_permissions: Id;
 	ownerEncBucketKey: null | Uint8Array;
+	protocolVersion: NumberString;
 	pubEncBucketKey: null | Uint8Array;
 	pubKeyVersion: null | NumberString;
 	symEncBucketKey: null | Uint8Array;
@@ -1440,6 +1443,7 @@ export type InstanceSessionKey = {
 	_type: TypeRef<InstanceSessionKey>;
 
 	_id: Id;
+	encryptionAuthStatus: null | Uint8Array;
 	instanceId: Id;
 	instanceList: Id;
 	symEncSessionKey: Uint8Array;
@@ -1536,8 +1540,12 @@ export type KeyPair = {
 	_type: TypeRef<KeyPair>;
 
 	_id: Id;
-	pubKey: Uint8Array;
-	symEncPrivKey: Uint8Array;
+	pubEccKey: null | Uint8Array;
+	pubKyberKey: null | Uint8Array;
+	pubRsaKey: null | Uint8Array;
+	symEncPrivEccKey: null | Uint8Array;
+	symEncPrivKyberKey: null | Uint8Array;
+	symEncPrivRsaKey: null | Uint8Array;
 	version: NumberString;
 }
 export const LocationServiceGetReturnTypeRef: TypeRef<LocationServiceGetReturn> = new TypeRef("sys", "LocationServiceGetReturn")
@@ -1935,6 +1943,7 @@ export type PdfInvoiceServiceReturn = {
 	_format: NumberString;
 	_ownerGroup: null | Id;
 	_ownerPublicEncSessionKey: null | Uint8Array;
+	_publicCryptoProtocolVersion: null | NumberString;
 	data: Uint8Array;
 }
 export const PermissionTypeRef: TypeRef<Permission> = new TypeRef("sys", "Permission")
@@ -2136,30 +2145,47 @@ export type PriceServiceReturn = {
 	currentPriceThisPeriod:  null | PriceData;
 	futurePriceNextPeriod:  null | PriceData;
 }
-export const PublicKeyDataTypeRef: TypeRef<PublicKeyData> = new TypeRef("sys", "PublicKeyData")
+export const PublicKeyGetInTypeRef: TypeRef<PublicKeyGetIn> = new TypeRef("sys", "PublicKeyGetIn")
 
-export function createPublicKeyData(values: StrippedEntity<PublicKeyData>): PublicKeyData {
-	return Object.assign(create(typeModels.PublicKeyData, PublicKeyDataTypeRef), values)
+export function createPublicKeyGetIn(values: StrippedEntity<PublicKeyGetIn>): PublicKeyGetIn {
+	return Object.assign(create(typeModels.PublicKeyGetIn, PublicKeyGetInTypeRef), values)
 }
 
-export type PublicKeyData = {
-	_type: TypeRef<PublicKeyData>;
+export type PublicKeyGetIn = {
+	_type: TypeRef<PublicKeyGetIn>;
 
 	_format: NumberString;
 	mailAddress: string;
 }
-export const PublicKeyReturnTypeRef: TypeRef<PublicKeyReturn> = new TypeRef("sys", "PublicKeyReturn")
+export const PublicKeyGetOutTypeRef: TypeRef<PublicKeyGetOut> = new TypeRef("sys", "PublicKeyGetOut")
 
-export function createPublicKeyReturn(values: StrippedEntity<PublicKeyReturn>): PublicKeyReturn {
-	return Object.assign(create(typeModels.PublicKeyReturn, PublicKeyReturnTypeRef), values)
+export function createPublicKeyGetOut(values: StrippedEntity<PublicKeyGetOut>): PublicKeyGetOut {
+	return Object.assign(create(typeModels.PublicKeyGetOut, PublicKeyGetOutTypeRef), values)
 }
 
-export type PublicKeyReturn = {
-	_type: TypeRef<PublicKeyReturn>;
+export type PublicKeyGetOut = {
+	_type: TypeRef<PublicKeyGetOut>;
 
 	_format: NumberString;
-	pubKey: Uint8Array;
+	pubEccKey: null | Uint8Array;
 	pubKeyVersion: NumberString;
+	pubKyberKey: null | Uint8Array;
+	pubRsaKey: null | Uint8Array;
+}
+export const PublicKeyPutInTypeRef: TypeRef<PublicKeyPutIn> = new TypeRef("sys", "PublicKeyPutIn")
+
+export function createPublicKeyPutIn(values: StrippedEntity<PublicKeyPutIn>): PublicKeyPutIn {
+	return Object.assign(create(typeModels.PublicKeyPutIn, PublicKeyPutInTypeRef), values)
+}
+
+export type PublicKeyPutIn = {
+	_type: TypeRef<PublicKeyPutIn>;
+
+	_format: NumberString;
+	pubEccKey: Uint8Array;
+	symEncPrivEccKey: Uint8Array;
+
+	keyGroup: Id;
 }
 export const PushIdentifierTypeRef: TypeRef<PushIdentifier> = new TypeRef("sys", "PushIdentifier")
 
@@ -2738,8 +2764,10 @@ export type SystemKeysReturn = {
 	freeGroupKey: Uint8Array;
 	premiumGroupKey: Uint8Array;
 	starterGroupKey: Uint8Array;
-	systemAdminPubKey: Uint8Array;
+	systemAdminPubEccKey: null | Uint8Array;
 	systemAdminPubKeyVersion: NumberString;
+	systemAdminPubKyberKey: null | Uint8Array;
+	systemAdminPubRsaKey: null | Uint8Array;
 
 	freeGroup:  null | Id;
 	premiumGroup:  null | Id;

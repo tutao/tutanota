@@ -103,6 +103,8 @@ import { getEnabledMailAddressesWithUser } from "../../mail/model/MailUtils.js"
 import { isCustomizationEnabledForCustomer } from "../common/utils/Utils.js"
 import type { CalendarEventPreviewViewModel } from "../../calendar/view/eventpopup/CalendarEventPreviewViewModel.js"
 
+import { getDisplayedSender } from "../common/mail/CommonMailUtils.js"
+
 assertMainOrNode()
 
 class MainLocator {
@@ -256,7 +258,7 @@ class MainLocator {
 	readonly mailOpenedListener: MailOpenedListener = {
 		onEmailOpened: isDesktop()
 			? (mail) => {
-					this.desktopSystemFacade.sendSocketMessage(mail.sender.address)
+					this.desktopSystemFacade.sendSocketMessage(getDisplayedSender(mail).address)
 			  }
 			: noOp,
 	}

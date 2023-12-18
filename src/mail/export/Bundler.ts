@@ -9,6 +9,7 @@ import { DataFile } from "../../api/common/DataFile"
 import { FileController } from "../../file/FileController"
 import { loadMailDetails, loadMailHeaders } from "../model/MailUtils.js"
 import { MailFacade } from "../../api/worker/facades/lazy/MailFacade.js"
+import { getDisplayedSender, MailAddressAndName } from "../../api/common/mail/CommonMailUtils.js"
 
 /**
  * Used to pass all downloaded mail stuff to the desktop side to be exported as a file
@@ -60,13 +61,13 @@ export async function makeMailBundle(
 	})
 
 	const headers = await loadMailHeaders(entityClient, mailWrapper)
-	const recipientMapper = ({ address, name }: MailAddress | EncryptedMailAddress) => ({ address, name })
+	const recipientMapper = ({ address, name }: MailAddressAndName) => ({ address, name })
 
 	return {
 		mailId: getLetId(mail),
 		subject: mail.subject,
 		body,
-		sender: recipientMapper(mail.sender),
+		sender: recipientMapper(getDisplayedSender(mail)),
 		to: mailWrapper.getToRecipients().map(recipientMapper),
 		cc: mailWrapper.getCcRecipients().map(recipientMapper),
 		bcc: mailWrapper.getBccRecipients().map(recipientMapper),

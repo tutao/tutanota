@@ -17,7 +17,7 @@ import {CustomDomainReturnTypeRef} from "./TypeRefs.js"
 import {CustomerAccountTerminationPostInTypeRef} from "./TypeRefs.js"
 import {CustomerAccountTerminationPostOutTypeRef} from "./TypeRefs.js"
 import {CustomerInfoReturnTypeRef} from "./TypeRefs.js"
-import {PublicKeyReturnTypeRef} from "./TypeRefs.js"
+import {PublicKeyGetOutTypeRef} from "./TypeRefs.js"
 import {CustomerDataTypeRef} from "./TypeRefs.js"
 import {CustomerReturnTypeRef} from "./TypeRefs.js"
 import {DeleteCustomerDataTypeRef} from "./TypeRefs.js"
@@ -52,7 +52,8 @@ import {PremiumFeatureDataTypeRef} from "./TypeRefs.js"
 import {PremiumFeatureReturnTypeRef} from "./TypeRefs.js"
 import {PriceServiceDataTypeRef} from "./TypeRefs.js"
 import {PriceServiceReturnTypeRef} from "./TypeRefs.js"
-import {PublicKeyDataTypeRef} from "./TypeRefs.js"
+import {PublicKeyGetInTypeRef} from "./TypeRefs.js"
+import {PublicKeyPutInTypeRef} from "./TypeRefs.js"
 import {ReferralCodeGetInTypeRef} from "./TypeRefs.js"
 import {ReferralCodePostInTypeRef} from "./TypeRefs.js"
 import {ReferralCodePostOutTypeRef} from "./TypeRefs.js"
@@ -182,7 +183,7 @@ export const CustomerInfoService = Object.freeze({
 export const CustomerPublicKeyService = Object.freeze({
 	app: "sys",
 	name: "CustomerPublicKeyService",
-	get: {data: null, return: PublicKeyReturnTypeRef},
+	get: {data: null, return: PublicKeyGetOutTypeRef},
 	post: null,
 	put: null,
 	delete: null,
@@ -326,9 +327,9 @@ export const PriceService = Object.freeze({
 export const PublicKeyService = Object.freeze({
 	app: "sys",
 	name: "PublicKeyService",
-	get: {data: PublicKeyDataTypeRef, return: PublicKeyReturnTypeRef},
+	get: {data: PublicKeyGetInTypeRef, return: PublicKeyGetOutTypeRef},
 	post: null,
-	put: null,
+	put: {data: PublicKeyPutInTypeRef, return: null},
 	delete: null,
 } as const)
 

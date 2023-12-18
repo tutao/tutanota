@@ -2,12 +2,13 @@ import type { ContactModel } from "../../contacts/model/ContactModel.js"
 import type { LoginController } from "./LoginController.js"
 import type { MailFacade } from "../worker/facades/lazy/MailFacade.js"
 import type { EntityClient } from "../common/EntityClient.js"
-import { createNewContact, isTutanotaMailAddress } from "../../mail/model/MailUtils.js"
+import { createNewContact } from "../../mail/model/MailUtils.js"
 import { getContactDisplayName } from "../../contacts/model/ContactUtils.js"
 import { PartialRecipient, Recipient, RecipientType } from "../common/recipients/Recipient.js"
 import { BoundedExecutor, LazyLoaded } from "@tutao/tutanota-utils"
 import { Contact, ContactTypeRef } from "../entities/tutanota/TypeRefs"
 import { cleanMailAddress } from "../common/utils/CommonCalendarUtils.js"
+import { isTutanotaMailAddress } from "../common/mail/CommonMailUtils.js"
 
 /**
  * A recipient that can be resolved to obtain contact and recipient type

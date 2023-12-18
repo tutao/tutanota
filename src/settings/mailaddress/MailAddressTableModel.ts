@@ -7,13 +7,13 @@ import { OperationType } from "../../api/common/TutanotaConstants.js"
 import { EmailDomainData, getAvailableDomains } from "./MailAddressesUtils.js"
 import { GroupInfo, GroupInfoTypeRef, MailAddressAliasServiceReturn } from "../../api/entities/sys/TypeRefs.js"
 import { assertNotNull, lazyMemoized } from "@tutao/tutanota-utils"
-import { isTutanotaMailAddress } from "../../mail/model/MailUtils.js"
 import { LimitReachedError } from "../../api/common/error/RestError.js"
 import { UserError } from "../../api/main/UserError.js"
 import { UpgradeRequiredError } from "../../api/main/UpgradeRequiredError.js"
 import { IServiceExecutor } from "../../api/common/ServiceRequest.js"
 
 import { getAvailableMatchingPlans } from "../../subscription/SubscriptionUtils.js"
+import { isTutanotaMailAddress } from "../../api/common/mail/CommonMailUtils.js"
 
 export enum AddressStatus {
 	Primary,

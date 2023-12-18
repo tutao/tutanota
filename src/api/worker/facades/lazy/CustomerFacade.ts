@@ -1,5 +1,5 @@
 import type { InvoiceData, PaymentData, SpamRuleFieldType, SpamRuleType } from "../../../common/TutanotaConstants.js"
-import { AccountType, BookingItemFeatureType, Const, CounterType, GroupType, KdfType } from "../../../common/TutanotaConstants.js"
+import { AccountType, BookingItemFeatureType, Const, CounterType, CryptoProtocolVersion, GroupType, KdfType } from "../../../common/TutanotaConstants.js"
 import type {
 	AccountingInfo,
 	CustomDomainReturn,
@@ -36,7 +36,6 @@ import {
 	PdfInvoiceService,
 	SystemKeysService,
 } from "../../../entities/sys/Services.js"
-import type { InternalGroupData } from "../../../entities/tutanota/TypeRefs.js"
 import { createCustomerAccountCreateData } from "../../../entities/tutanota/TypeRefs.js"
 import type { UserManagementFacade } from "./UserManagementFacade.js"
 import type { GroupManagementFacade } from "./GroupManagementFacade.js"
@@ -45,7 +44,7 @@ import type { Country } from "../../../common/CountryList.js"
 import { getByAbbreviation } from "../../../common/CountryList.js"
 import { LockedError } from "../../../common/error/RestError.js"
 import type { RsaKeyPair } from "@tutao/tutanota-crypto"
-import { aes128RandomKey, bitArrayToUint8Array, encryptKey, hexToPublicKey, sha256Hash, uint8ArrayToBitArray } from "@tutao/tutanota-crypto"
+import { aes128RandomKey, bitArrayToUint8Array, encryptKey, hexToRsaPublicKey, sha256Hash, uint8ArrayToBitArray } from "@tutao/tutanota-crypto"
 import type { RsaImplementation } from "../../crypto/RsaImplementation.js"
 import { EntityClient } from "../../../common/EntityClient.js"
 import { DataFile } from "../../../common/DataFile.js"
@@ -56,6 +55,8 @@ import { UserFacade } from "../UserFacade.js"
 import { PaymentInterval } from "../../../../subscription/PriceUtils.js"
 import { ExposedOperationProgressTracker, OperationId } from "../../../main/OperationProgressTracker.js"
 import { formatNameAndAddress } from "../../../common/utils/CommonFormatter.js"
+import { PQFacade } from "../PQFacade.js"
+import { ProgrammingError } from "../../../common/error/ProgrammingError.js"
 
 assertWorkerOrNode()
 
@@ -71,6 +72,7 @@ export class CustomerFacade {
 		private readonly bookingFacade: BookingFacade,
 		private readonly cryptoFacade: CryptoFacade,
 		private readonly operationProgressTracker: ExposedOperationProgressTracker,
+		private readonly pq: PQFacade,
 	) {}
 
 	async getDomainValidationRecord(domainName: string): Promise<string> {
@@ -109,14 +111,23 @@ export class CustomerFacade {
 		const customer = await this.entityClient.load(CustomerTypeRef, customerId)
 		const customerInfo = await this.entityClient.load(CustomerInfoTypeRef, customer.customerInfo)
 		let existingBrandingDomain = getWhitelabelDomain(customerInfo, domainName)
-		const keyData = await this.serviceExecutor.get(SystemKeysService, null)
-		let systemAdminPubKey = hexToPublicKey(uint8ArrayToHex(keyData.systemAdminPubKey))
 		let sessionKey = aes128RandomKey()
-		const systemAdminPubEncAccountingInfoSessionKey = await this.rsa.encrypt(systemAdminPubKey, bitArrayToUint8Array(sessionKey))
+
+		const keyData = await this.serviceExecutor.get(SystemKeysService, null)
+		const pubRsaKey = keyData.systemAdminPubRsaKey
+		const pubEccKey = keyData.systemAdminPubEccKey
+		const pubKyberKey = keyData.systemAdminPubKyberKey
+		const systemAdminPubKeys = { pubEccKey, pubKyberKey, pubRsaKey }
+		const { pubEncSymKey, cryptoProtocolVersion } = await this.cryptoFacade.encryptPubSymKey(
+			sessionKey,
+			systemAdminPubKeys,
+			this.userFacade.getUserGroupId(),
+		)
 
 		const data = createBrandingDomainData({
 			domain: domainName,
-			systemAdminPubEncSessionKey: systemAdminPubEncAccountingInfoSessionKey,
+			systemAdminPubEncSessionKey: pubEncSymKey,
+			systemAdminPublicProtocolVersion: cryptoProtocolVersion,
 			sessionEncPemPrivateKey: null,
 			sessionEncPemCertificateChain: null,
 		})
@@ -245,8 +256,6 @@ export class CustomerFacade {
 		currentLanguage: string,
 		kdfType: KdfType,
 	): Promise<Hex> {
-		const keyData = await this.serviceExecutor.get(SystemKeysService, null)
-		const systemAdminPubKey = hexToPublicKey(uint8ArrayToHex(keyData.systemAdminPubKey))
 		const userGroupKey = aes128RandomKey()
 		const adminGroupKey = aes128RandomKey()
 		const customerGroupKey = aes128RandomKey()
@@ -255,7 +264,23 @@ export class CustomerFacade {
 		const customerGroupInfoSessionKey = aes128RandomKey()
 		const accountingInfoSessionKey = aes128RandomKey()
 		const customerServerPropertiesSessionKey = aes128RandomKey()
-		const systemAdminPubEncAccountingInfoSessionKey = await this.rsa.encrypt(systemAdminPubKey, bitArrayToUint8Array(accountingInfoSessionKey))
+
+		const keyData = await this.serviceExecutor.get(SystemKeysService, null)
+		const pubRsaKey = keyData.systemAdminPubRsaKey
+		const pubEccKey = keyData.systemAdminPubEccKey
+		const pubKyberKey = keyData.systemAdminPubKyberKey
+		let systemAdminPubEncAccountingInfoSessionKey
+		let systemAdminPublicProtocolVersion
+
+		if (pubRsaKey) {
+			const rsaPublicKey = hexToRsaPublicKey(uint8ArrayToHex(pubRsaKey))
+			systemAdminPubEncAccountingInfoSessionKey = await this.rsa.encrypt(rsaPublicKey, bitArrayToUint8Array(accountingInfoSessionKey))
+			systemAdminPublicProtocolVersion = CryptoProtocolVersion.RSA
+		} else {
+			// we need to release tuta-crypt by default first before we can encrypt keys for the system admin with PQ public keys.
+			throw new ProgrammingError("system admin having pq key pair is not supported")
+		}
+
 		const userGroupData = this.groupManagement.generateInternalGroupData(
 			keyPairs[0],
 			userGroupKey,
@@ -306,6 +331,7 @@ export class CustomerFacade {
 			customerGroupData,
 			adminEncAccountingInfoSessionKey: encryptKey(adminGroupKey, accountingInfoSessionKey),
 			systemAdminPubEncAccountingInfoSessionKey,
+			systemAdminPublicProtocolVersion,
 			adminEncCustomerServerPropertiesSessionKey: encryptKey(adminGroupKey, customerServerPropertiesSessionKey),
 			userEncAccountGroupKey: new Uint8Array(0),
 		})

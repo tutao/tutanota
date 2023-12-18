@@ -69,7 +69,7 @@ o.spec("DesktopFileFacade", function () {
 		})
 	})
 
-	o.spec("download", async function () {
+	o.spec("download", function () {
 		o("no error", async function () {
 			const headers = { v: "foo", accessToken: "bar" }
 			const expectedFilePath = "/tutanota/tmp/path/encrypted/nativelyDownloadedFile"
@@ -206,7 +206,7 @@ o.spec("DesktopFileFacade", function () {
 		})
 	})
 
-	o.spec("upload", async function () {
+	o.spec("upload", function () {
 		const fileToUploadPath = "/tutnaota/tmp/path/encrypted/toUpload.txt"
 		const targetUrl = "https://test.tutanota.com/rest/for/a/bit"
 

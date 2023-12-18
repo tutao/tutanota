@@ -5,7 +5,7 @@ import { random } from "../lib/index.js"
 
 const liboqs = await loadWasmModuleFromFile("../lib/encryption/Liboqs/liboqs.wasm")
 
-o.spec("Kyber", async function () {
+o.spec("Kyber", function () {
 	o("encryption roundtrip", async function () {
 		const keyPair = generateKeyPair(liboqs, random)
 		o(keyPair.privateKey.raw.length).equals(3168)

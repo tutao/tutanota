@@ -16,7 +16,7 @@ import { EntityClient } from "../../../common/EntityClient.js"
 import { assertWorkerOrNode } from "../../../common/Env.js"
 import { encryptString } from "../../crypto/CryptoFacade.js"
 import type { RsaImplementation } from "../../crypto/RsaImplementation.js"
-import { aes128RandomKey, aes256RandomKey, decryptKey, encryptKey, encryptRsaKey, publicKeyToHex, RsaKeyPair } from "@tutao/tutanota-crypto"
+import { aes128RandomKey, aes256RandomKey, decryptKey, encryptKey, encryptRsaKey, RsaKeyPair, rsaPublicKeyToHex } from "@tutao/tutanota-crypto"
 import { IServiceExecutor } from "../../../common/ServiceRequest.js"
 import {
 	CalendarService,
@@ -167,8 +167,12 @@ export class GroupManagementFacade {
 		ownerGroupKey: Aes128Key,
 	): InternalGroupData {
 		return createInternalGroupData({
-			publicKey: hexToUint8Array(publicKeyToHex(keyPair.publicKey)),
-			groupEncPrivateKey: encryptRsaKey(groupKey, keyPair.privateKey),
+			pubRsaKey: hexToUint8Array(rsaPublicKeyToHex(keyPair.publicKey)),
+			groupEncPrivRsaKey: encryptRsaKey(groupKey, keyPair.privateKey),
+			pubEccKey: null,
+			groupEncPrivEccKey: null,
+			pubKyberKey: null,
+			groupEncPrivKyberKey: null,
 			adminGroup: adminGroupId,
 			adminEncGroupKey: encryptKey(adminGroupKey, groupKey),
 			ownerEncGroupInfoSessionKey: encryptKey(ownerGroupKey, groupInfoSessionKey),

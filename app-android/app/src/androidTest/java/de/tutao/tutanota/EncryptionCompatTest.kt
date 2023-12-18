@@ -17,9 +17,12 @@ import org.junit.Test
 import org.junit.runner.RunWith
 import org.mockito.Mockito.mock
 import java.io.ByteArrayInputStream
+import java.io.DataInputStream
 import java.io.IOException
 import java.math.BigInteger
 import java.security.SecureRandom
+import java.util.*
+
 
 const val ARGON2ID_TIME_COST = 4
 const val ARGON2ID_MEMORY_COST = 32 * 1024
@@ -163,12 +166,12 @@ class CompatibilityTest {
 	}
 
 	private fun hexToKyberPrivateKey(privateKey: String): KyberPrivateKey {
-		val keyComponents = parseEncodedBytes(privateKey, 5)
+		val keyComponents = bytesToByteArrays(hexToBytes(privateKey), 5)
 		return KyberPrivateKey(DataWrapper(keyComponents[0] + keyComponents[3] + keyComponents[4] + keyComponents[1] + keyComponents[2]))
 	}
 
 	private fun hexToKyberPublicKey(publicKey: String): KyberPublicKey {
-		val keyComponents = parseEncodedBytes(publicKey, 2)
+		val keyComponents = bytesToByteArrays(hexToBytes(publicKey), 2)
 		return KyberPublicKey(DataWrapper(keyComponents[0] + keyComponents[1]))
 	}
 
@@ -189,11 +192,11 @@ class CompatibilityTest {
 		}
 
 		private fun hexToPrivateKey(hex: String): RsaPrivateKey {
-			return arrayToPrivateKey(hexToKeyArray(hex))
+			return arrayToRsaPrivateKey(hexToKeyArray(hex))
 		}
 
 		private fun hexToPublicKey(hex: String): RsaPublicKey {
-			return arrayToPublicKey(hexToKeyArray(hex))
+			return arrayToRsaPublicKey(hexToKeyArray(hex))
 		}
 
 		private fun hexToKeyArray(hex: String): Array<BigInteger> {
@@ -208,7 +211,7 @@ class CompatibilityTest {
 			return key.toArray(arrayOf())
 		}
 
-		private fun arrayToPrivateKey(keyArray: Array<BigInteger>): RsaPrivateKey {
+		private fun arrayToRsaPrivateKey(keyArray: Array<BigInteger>): RsaPrivateKey {
 			val keyParts = keyArray.map { it.toByteArray().toBase64() }
 			return RsaPrivateKey(
 					version = 0,
@@ -223,7 +226,7 @@ class CompatibilityTest {
 			)
 		}
 
-		private fun arrayToPublicKey(keyArray: Array<BigInteger>): RsaPublicKey {
+		private fun arrayToRsaPublicKey(keyArray: Array<BigInteger>): RsaPublicKey {
 			return RsaPublicKey(
 					version = 0,
 					modulus = keyArray[0].toByteArray().toBase64(),
@@ -252,22 +255,35 @@ class CompatibilityTest {
 			return String(hexChars)
 		}
 
-		fun parseEncodedBytes(hexKey: String, expectedParameters: Int): ArrayList<ByteArray> {
-			val paramBuffer = ArrayList<ByteArray>()
-			var pos = 0
-			while (pos < hexKey.length) {
-				val len = hexKey.substring(pos, pos + 4).toInt(16)
-				pos += 4
-				paramBuffer.add(hexToBytes(hexKey.substring(pos, pos + len)))
-				pos += len
+		/**
+		 * Decodes a byte array encoded by #byteArraysToBytes.
+		 *
+		 * @return list of byte arrays
+		 */
+		private fun bytesToByteArrays(encodedByteArrays: ByteArray, expectedByteArrays: Int): ArrayList<ByteArray> {
+			val `in` = DataInputStream(ByteArrayInputStream(encodedByteArrays))
+			return try {
+				val byteArrays = ArrayList<ByteArray>()
+				var pos = 0
+				while (pos < encodedByteArrays.size) {
+					val byteArrayLength: Int = `in`.readUnsignedShort()
+					pos += 2
+					val byteArray = ByteArray(byteArrayLength)
+					val readBytes = `in`.read(byteArray)
+					if (readBytes != byteArrayLength) {
+						throw RuntimeException(
+								"cannot read encoded byte array at pos:" + pos + " expected bytes:" + byteArrayLength + " read bytes:" + readBytes + " read byte arrays:" + byteArrays.size)
+					}
+					byteArrays.add(byteArray.copyOf(byteArrayLength))
+					pos += byteArrayLength
+				}
+				if (byteArrays.size != expectedByteArrays) {
+					throw RuntimeException("invalid amount of key parameters. Expected: " + expectedByteArrays + " actual:" + byteArrays.size)
+				}
+				byteArrays
+			} catch (e: IOException) {
+				throw RuntimeException(e)
 			}
-			if (hexKey.length != pos) {
-				throw CryptoError("invalid private key hex length")
-			}
-			if (paramBuffer.size != expectedParameters) {
-				throw CryptoError("invalid amount of key parameters. Expected: " + expectedParameters + " actual:" + paramBuffer.size)
-			}
-			return paramBuffer
 		}
 
 		private fun stubRandom(seed: String): SecureRandom {

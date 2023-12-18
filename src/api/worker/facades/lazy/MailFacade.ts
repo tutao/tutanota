@@ -22,6 +22,7 @@ import {
 	OperationType,
 	PhishingMarkerStatus,
 	ReportedMailFieldType,
+	SYSTEM_GROUP_MAIL_ADDRESS,
 } from "../../../common/TutanotaConstants.js"
 import type {
 	Contact,
@@ -29,10 +30,12 @@ import type {
 	DraftRecipient,
 	EncryptedMailAddress,
 	File as TutanotaFile,
+	InternalRecipientKeyData,
 	Mail,
 	MailFolder,
 	ReportedMailFieldMarker,
 	SendDraftData,
+	SymEncInternalRecipientKeyData,
 } from "../../../entities/tutanota/TypeRefs.js"
 import {
 	createAttachmentKeyData,
@@ -55,18 +58,20 @@ import {
 	createSendDraftData,
 	createUpdateMailFolderData,
 	FileTypeRef,
+	InternalRecipientKeyDataTypeRef,
 	MailDetails,
 	MailDetailsBlobTypeRef,
 	MailDetailsDraftTypeRef,
 	MailTypeRef,
+	SymEncInternalRecipientKeyDataTypeRef,
 	TutanotaPropertiesTypeRef,
 } from "../../../entities/tutanota/TypeRefs.js"
 import { RecipientsNotFoundError } from "../../../common/error/RecipientsNotFoundError.js"
 import { NotFoundError } from "../../../common/error/RestError.js"
-import type { EntityUpdate, PublicKeyReturn, User } from "../../../entities/sys/TypeRefs.js"
+import type { EntityUpdate, PublicKeyGetOut, User } from "../../../entities/sys/TypeRefs.js"
 import {
 	BlobReferenceTokenWrapper,
-	createPublicKeyData,
+	createPublicKeyGetIn,
 	ExternalUserReferenceTypeRef,
 	GroupInfoTypeRef,
 	GroupRootTypeRef,
@@ -80,6 +85,7 @@ import {
 	contains,
 	defer,
 	isNotNull,
+	isSameTypeRef,
 	isSameTypeRefByAttr,
 	lazyMemoized,
 	noOp,
@@ -120,6 +126,7 @@ import { isDetailsDraft, isLegacyMail } from "../../../common/MailWrapper.js"
 import { LoginFacade } from "../LoginFacade.js"
 import { ProgrammingError } from "../../../common/error/ProgrammingError.js"
 import { OwnerEncSessionKeyProvider } from "../../rest/EntityRestClient.js"
+import { resolveTypeReference } from "../../../common/EntityFunctions.js"
 
 assertWorkerOrNode()
 type Attachments = ReadonlyArray<TutanotaFile | DataFile | FileReference>
@@ -471,6 +478,7 @@ export class MailFacade {
 			bucketEncMailSessionKey: null,
 			senderNameUnencrypted: null,
 			secureExternalRecipientKeyData: [],
+			symEncInternalRecipientKeyData: [],
 		})
 
 		const attachments = await this.getAttachmentIds(draft)
@@ -641,24 +649,25 @@ export class MailFacade {
 	async _addRecipientKeyData(
 		kdfVersion: KdfType,
 		bucketKey: Aes128Key,
-		service: SendDraftData,
+		sendDraftData: SendDraftData,
 		recipients: Array<Recipient>,
 		senderMailGroupId: Id,
 	): Promise<void> {
 		const notFoundRecipients: string[] = []
 
 		for (let recipient of recipients) {
-			if (recipient.address === "system@tutanota.de" || !recipient) {
+			if (recipient.address === SYSTEM_GROUP_MAIL_ADDRESS || !recipient) {
 				notFoundRecipients.push(recipient.address)
 				continue
 			}
 
 			// copy password information if this is an external contact
 			// otherwise load the key information from the server
+			const isSharedMailboxSender = !isSameId(this.userFacade.getGroupId(GroupType.Mail), senderMailGroupId)
+
 			if (recipient.type === RecipientType.EXTERNAL) {
 				const password = this.getContactPassword(recipient.contact)
-
-				if (password == null || !isSameId(this.userFacade.getGroupId(GroupType.Mail), senderMailGroupId)) {
+				if (password == null || isSharedMailboxSender) {
 					// no password given and prevent sending to secure externals from shared group
 					notFoundRecipients.push(recipient.address)
 					continue
@@ -680,12 +689,21 @@ export class MailFacade {
 					autoTransmitPassword: null,
 					passwordChannelPhoneNumbers: [],
 				})
-				service.secureExternalRecipientKeyData.push(data)
+				sendDraftData.secureExternalRecipientKeyData.push(data)
 			} else {
-				const keyData = await this.crypto.encryptBucketKeyForInternalRecipient(bucketKey, recipient.address, notFoundRecipients)
-
-				if (keyData) {
-					service.internalRecipientKeyData.push(keyData)
+				const keyData = await this.crypto.encryptBucketKeyForInternalRecipient(
+					isSharedMailboxSender ? senderMailGroupId : this.userFacade.getLoggedInUser().userGroup.group,
+					bucketKey,
+					recipient.address,
+					notFoundRecipients,
+				)
+				if (keyData == null) {
+					// cannot add recipient because of notFoundError
+					// we do not throw here because we want to collect all not found recipients first
+				} else if (isSameTypeRef(keyData._type, SymEncInternalRecipientKeyDataTypeRef)) {
+					sendDraftData.symEncInternalRecipientKeyData.push(keyData as SymEncInternalRecipientKeyData)
+				} else if (isSameTypeRef(keyData._type, InternalRecipientKeyDataTypeRef)) {
+					sendDraftData.internalRecipientKeyData.push(keyData as InternalRecipientKeyData)
 				}
 			}
 		}
@@ -815,11 +833,11 @@ export class MailFacade {
 		}
 	}
 
-	getRecipientKeyData(mailAddress: string): Promise<PublicKeyReturn | null> {
+	getRecipientKeyData(mailAddress: string): Promise<PublicKeyGetOut | null> {
 		return this.serviceExecutor
 			.get(
 				PublicKeyService,
-				createPublicKeyData({
+				createPublicKeyGetIn({
 					mailAddress,
 				}),
 			)
@@ -879,7 +897,8 @@ export class MailFacade {
 		let ownerEncSessionKeyProvider: OwnerEncSessionKeyProvider | undefined
 		if (bucketKey) {
 			const mailOwnerGroupId = assertNotNull(mail._ownerGroup)
-			const decBucketKey = lazyMemoized(() => this.crypto.decryptBucketKey(assertNotNull(mail.bucketKey), mailOwnerGroupId, FileTypeRef.type))
+			const typeModel = await resolveTypeReference(FileTypeRef)
+			const decBucketKey = lazyMemoized(() => this.crypto.resolveWithBucketKey(assertNotNull(mail.bucketKey), mail, typeModel))
 			ownerEncSessionKeyProvider = async (instanceElementId: Id) => {
 				const instanceSessionKey = assertNotNull(
 					bucketKey.bucketEncSessionKeys.find((instanceSessionKey) => instanceElementId === instanceSessionKey.instanceId),

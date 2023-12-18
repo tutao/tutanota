@@ -31,6 +31,7 @@ export type CustomerAccountReturn = {
 	_format: NumberString;
 	_ownerGroup: null | Id;
 	_ownerPublicEncSessionKey: null | Uint8Array;
+	_publicCryptoProtocolVersion: null | NumberString;
 	balance: NumberString;
 	outstandingBookingsPrice: NumberString;
 

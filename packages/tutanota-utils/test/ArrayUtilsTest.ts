@@ -798,7 +798,7 @@ o.spec("array utils", function () {
 		})
 	})
 
-	o.spec("partitionAsync", async function () {
+	o.spec("partitionAsync", function () {
 		const test = function (c: [string, any[], (any) => boolean, [any[], any[]]]) {
 			const [name, input, predicate, output] = c
 			o(name, async function () {

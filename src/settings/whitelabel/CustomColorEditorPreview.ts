@@ -7,6 +7,7 @@ import { noOp } from "@tutao/tutanota-utils"
 import { IconButton } from "../../gui/base/IconButton.js"
 import { Icons } from "../../gui/base/icons/Icons.js"
 import { ToggleButton } from "../../gui/base/buttons/ToggleButton.js"
+import { EncryptionAuthStatus } from "../../api/common/TutanotaConstants.js"
 
 export const BUTTON_WIDTH = 270
 
@@ -80,6 +81,7 @@ export class CustomColorEditorPreview implements Component {
 			mailDetails: null,
 			body: null,
 			authStatus: null,
+			encryptionAuthStatus: null,
 			method: "0",
 			bccRecipients: [],
 			bucketKey: null,

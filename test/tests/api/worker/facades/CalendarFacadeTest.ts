@@ -8,12 +8,6 @@ import type { AlarmInfo, User, UserAlarmInfo } from "../../../../../src/api/enti
 import {
 	AlarmInfoTypeRef,
 	CalendarEventRefTypeRef,
-	createAlarmInfo,
-	createCalendarEventRef,
-	createPushIdentifierList,
-	createUser,
-	createUserAlarmInfo,
-	createUserAlarmInfoListType,
 	PushIdentifierListTypeRef,
 	PushIdentifierTypeRef,
 	UserAlarmInfoListTypeTypeRef,
@@ -22,7 +16,7 @@ import {
 } from "../../../../../src/api/entities/sys/TypeRefs.js"
 import { getElementId, getLetId, getListId } from "../../../../../src/api/common/utils/EntityUtils.js"
 import type { CalendarEvent } from "../../../../../src/api/entities/tutanota/TypeRefs.js"
-import { CalendarEventTypeRef, createCalendarEvent } from "../../../../../src/api/entities/tutanota/TypeRefs.js"
+import { CalendarEventTypeRef } from "../../../../../src/api/entities/tutanota/TypeRefs.js"
 import { ProgressMonitor } from "../../../../../src/api/common/utils/ProgressMonitor.js"
 import { assertThrows, mockAttribute, spy, unmockAttribute } from "@tutao/tutanota-test-utils"
 import { ImportError } from "../../../../../src/api/common/error/ImportError.js"
@@ -38,7 +32,7 @@ import { ConnectionError } from "../../../../../src/api/common/error/RestError.j
 import { EntityClient } from "../../../../../src/api/common/EntityClient.js"
 import { createTestEntity } from "../../../TestUtils.js"
 
-o.spec("CalendarFacadeTest", async function () {
+o.spec("CalendarFacadeTest", function () {
 	let userAlarmInfoListId: Id
 	let user: User
 	let userFacade: UserFacade
@@ -142,7 +136,7 @@ o.spec("CalendarFacadeTest", async function () {
 		)
 	})
 
-	o.spec("saveCalendarEvents", async function () {
+	o.spec("saveCalendarEvents", function () {
 		o.beforeEach(async function () {
 			progressMonitor = downcast({
 				workDone: noOp,

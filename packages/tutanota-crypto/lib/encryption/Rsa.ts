@@ -445,18 +445,18 @@ function _validateKeyLength(key: BigInteger[]) {
 	}
 }
 
-export function privateKeyToHex(privateKey: RsaPrivateKey): Hex {
+export function rsaPrivateKeyToHex(privateKey: RsaPrivateKey): Hex {
 	return _keyArrayToHex(_privateKeyToArray(privateKey))
 }
 
-export function publicKeyToHex(publicKey: RsaPublicKey): Hex {
+export function rsaPublicKeyToHex(publicKey: RsaPublicKey): Hex {
 	return _keyArrayToHex(_publicKeyToArray(publicKey))
 }
 
-export function hexToPrivateKey(privateKeyHex: Hex): RsaPrivateKey {
+export function hexToRsaPrivateKey(privateKeyHex: Hex): RsaPrivateKey {
 	return _arrayToPrivateKey(_hexToKeyArray(privateKeyHex))
 }
 
-export function hexToPublicKey(publicKeyHex: Hex): RsaPublicKey {
+export function hexToRsaPublicKey(publicKeyHex: Hex): RsaPublicKey {
 	return _arrayToPublicKey(_hexToKeyArray(publicKeyHex))
 }

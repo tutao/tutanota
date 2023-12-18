@@ -34,8 +34,6 @@ import {
 	getFolderName,
 	getMailboxName,
 	getPathToFolderString,
-	isExcludedMailAddress,
-	isTutanotaTeamMail,
 	loadMailDetails,
 	loadMailHeaders,
 } from "../model/MailUtils"
@@ -63,7 +61,13 @@ import { isLegacyMail, MailWrapper } from "../../api/common/MailWrapper.js"
 import { EntityUpdateData, EventController, isUpdateForTypeRef } from "../../api/main/EventController.js"
 import { WorkerFacade } from "../../api/worker/facades/WorkerFacade.js"
 import { SearchModel } from "../../search/model/SearchModel.js"
-import { assertSystemFolderOfType } from "../../api/common/mail/CommonMailUtils.js"
+import {
+	assertSystemFolderOfType,
+	getDisplayedSender,
+	isExcludedMailAddress,
+	isTutanotaTeamMail,
+	MailAddressAndName,
+} from "../../api/common/mail/CommonMailUtils.js"
 import { ParsedIcalFileContent } from "../../calendar/date/CalendarInvites.js"
 import { MailFacade } from "../../api/worker/facades/lazy/MailFacade.js"
 
@@ -378,6 +382,10 @@ export class MailViewerViewModel {
 		return this.mail.sender
 	}
 
+	getDisplayedSender(): MailAddressAndName {
+		return getDisplayedSender(this.mail)
+	}
+
 	getPhishingStatus(): MailPhishingStatus {
 		return this.mail.phishingStatus as MailPhishingStatus
 	}
@@ -563,7 +571,7 @@ export class MailViewerViewModel {
 	}
 
 	isAnnouncement(): boolean {
-		return isExcludedMailAddress(this.getSender().address)
+		return isExcludedMailAddress(this.getDisplayedSender().address)
 	}
 
 	async unsubscribe(): Promise<boolean> {
@@ -733,7 +741,15 @@ export class MailViewerViewModel {
 			addressesInMail.push(...mailWrapper.getToRecipients())
 			addressesInMail.push(...mailWrapper.getCcRecipients())
 			addressesInMail.push(...mailWrapper.getBccRecipients())
-			addressesInMail.push(this.mail.sender)
+
+			const mailAddressAndName = this.getDisplayedSender()
+			addressesInMail.push(
+				createMailAddress({
+					name: mailAddressAndName.name,
+					address: mailAddressAndName.address,
+					contact: null,
+				}),
+			)
 			const foundAddress = addressesInMail.find((address) => contains(myMailAddresses, address.address.toLowerCase()))
 			if (foundAddress) {
 				return foundAddress.address.toLowerCase()
@@ -765,7 +781,7 @@ export class MailViewerViewModel {
 		addSignature: boolean,
 	): Promise<InitAsResponseArgs> {
 		let infoLine = lang.get("date_label") + ": " + formatDateTime(this.mail.receivedDate) + "<br>"
-		infoLine += lang.get("from_label") + ": " + this.getSender().address + "<br>"
+		infoLine += lang.get("from_label") + ": " + this.getDisplayedSender().address + "<br>"
 
 		if (this.getToRecipients().length > 0) {
 			infoLine +=
@@ -816,22 +832,29 @@ export class MailViewerViewModel {
 			if (mailboxDetails == null) {
 				return
 			}
+
+			const mailAddressAndName = this.getDisplayedSender()
+			const sender = createMailAddress({
+				name: mailAddressAndName.name,
+				address: mailAddressAndName.address,
+				contact: null,
+			})
 			let prefix = "Re: "
 			const mailSubject = this.getSubject()
 			let subject = mailSubject ? (startsWith(mailSubject.toUpperCase(), prefix.toUpperCase()) ? mailSubject : prefix + mailSubject) : ""
-			let infoLine = formatDateTime(this.getDate()) + " " + lang.get("by_label") + " " + this.getSender().address + ":"
+			let infoLine = formatDateTime(this.getDate()) + " " + lang.get("by_label") + " " + sender.address + ":"
 			let body = infoLine + '<br><blockquote class="tutanota_quote">' + this.getMailBody() + "</blockquote>"
 			let toRecipients: MailAddress[] = []
 			let ccRecipients: MailAddress[] = []
 			let bccRecipients: MailAddress[] = []
 
 			if (!this.logins.getUserController().isInternalUser() && this.isReceivedMail()) {
-				toRecipients.push(this.getSender())
+				toRecipients.push(sender)
 			} else if (this.isReceivedMail()) {
 				if (this.getReplyTos().some((address) => !downcast(address)._errors)) {
 					addAll(toRecipients, this.getReplyTos())
 				} else {
-					toRecipients.push(this.getSender())
+					toRecipients.push(sender)
 				}
 
 				if (replyAll) {
@@ -948,12 +971,7 @@ export class MailViewerViewModel {
 		if (this.getReplyTos().length > 0) {
 			newReplyTos = this.getReplyTos()
 		} else {
-			newReplyTos = [
-				createEncryptedMailAddress({
-					address: this.getSender().address,
-					name: this.getSender().name,
-				}),
-			]
+			newReplyTos = [createEncryptedMailAddress(this.getDisplayedSender())]
 		}
 
 		const args = await this.createResponseMailArgsForForwarding([recipient], newReplyTos, false)

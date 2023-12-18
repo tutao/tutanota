@@ -9,7 +9,6 @@ import { Icon } from "../gui/base/Icon"
 import { BootIcons } from "../gui/base/icons/BootIcons"
 import { locator } from "../api/main/MainLocator"
 import { assertMainOrNode } from "../api/common/Env"
-import { isTutanotaMailAddress } from "../mail/model/MailUtils.js"
 import { px, size } from "../gui/size.js"
 import { Autocomplete, inputLineHeight, TextField } from "../gui/base/TextField.js"
 import { attachDropdown, DropdownButtonAttrs } from "../gui/base/Dropdown.js"
@@ -17,6 +16,7 @@ import { IconButton, IconButtonAttrs } from "../gui/base/IconButton.js"
 import { ButtonSize } from "../gui/base/ButtonSize.js"
 import { MailAddressAvailability } from "../api/entities/sys/TypeRefs.js"
 import { SearchDropDown } from "../gui/SearchDropDown.js"
+import { isTutanotaMailAddress } from "../api/common/mail/CommonMailUtils.js"
 
 assertMainOrNode()
 

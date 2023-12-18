@@ -133,14 +133,9 @@ class CompatibilityTestSwift: XCTestCase {
       }
 
       // Get the nibble count - ensure it's even!
-      let sizeNibbles = Int(converted[offset]) << 8 | Int(converted[offset + 1]) // big endian
-      guard sizeNibbles % 2 == 0 else {
-        throw TutanotaError(message: "Badly formatted hex components string (bad nibble size)")
-      }
+      let sizeBytes = Int(converted[offset]) << 8 | Int(converted[offset + 1]) // big endian
 
-      // Convert nibbles to bytes and append it - ensure we have enough!
       offset += 2
-      let sizeBytes = sizeNibbles / 2
       guard offset + sizeBytes <= converted.count else {
         throw TutanotaError(message: "Badly formatted hex components string (size cutoff)")
       }

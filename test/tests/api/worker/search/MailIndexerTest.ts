@@ -5,41 +5,22 @@ import { _createNewIndexUpdate, encryptIndexKeyBase64, typeRefToTypeInfo } from 
 import { FULL_INDEXED_TIMESTAMP, GroupType, MailState, NOTHING_INDEXED_TIMESTAMP, OperationType } from "../../../../../src/api/common/TutanotaConstants.js"
 import { IndexerCore } from "../../../../../src/api/worker/search/IndexerCore.js"
 import type { EntityUpdate } from "../../../../../src/api/entities/sys/TypeRefs.js"
-import {
-	createEntityUpdate,
-	createGroupMembership,
-	createUser,
-	EntityUpdateTypeRef,
-	GroupMembershipTypeRef,
-	UserTypeRef,
-} from "../../../../../src/api/entities/sys/TypeRefs.js"
+import { EntityUpdateTypeRef, GroupMembershipTypeRef, UserTypeRef } from "../../../../../src/api/entities/sys/TypeRefs.js"
 import { _getCurrentIndexTimestamp, INITIAL_MAIL_INDEX_INTERVAL_DAYS, MailIndexer } from "../../../../../src/api/worker/search/MailIndexer.js"
 import type { File as TutanotaFile, Mail, MailBox, MailDetailsBlob, MailFolder } from "../../../../../src/api/entities/tutanota/TypeRefs.js"
 import {
 	BodyTypeRef,
-	createBody,
-	createEncryptedMailAddress,
-	createFile,
-	createMail,
-	createMailAddress,
-	createMailBox,
-	createMailboxGroupRoot,
-	createMailDetails,
-	createMailDetailsBlob,
-	createMailFolder,
-	createMailFolderRef,
-	createRecipients,
-	MailTypeRef,
-	RecipientsTypeRef,
+	EncryptedMailAddressTypeRef,
 	FileTypeRef,
 	MailAddressTypeRef,
-	EncryptedMailAddressTypeRef,
-	MailFolderTypeRef,
-	MailBoxTypeRef,
-	MailFolderRefTypeRef,
 	MailboxGroupRootTypeRef,
+	MailBoxTypeRef,
 	MailDetailsBlobTypeRef,
 	MailDetailsTypeRef,
+	MailFolderRefTypeRef,
+	MailFolderTypeRef,
+	MailTypeRef,
+	RecipientsTypeRef,
 } from "../../../../../src/api/entities/tutanota/TypeRefs.js"
 import { mock, spy } from "@tutao/tutanota-test-utils"
 import { browserDataStub, createTestEntity, makeCore } from "../../../TestUtils.js"
@@ -750,7 +731,7 @@ o.spec("MailIndexer test", () => {
 		o(now).equals(_getCurrentIndexTimestamp([now, NOTHING_INDEXED_TIMESTAMP, now, FULL_INDEXED_TIMESTAMP]))
 		o(now).equals(_getCurrentIndexTimestamp([now, FULL_INDEXED_TIMESTAMP, NOTHING_INDEXED_TIMESTAMP]))
 	})
-	o.spec("extendIndexIfNeeded", async function () {
+	o.spec("extendIndexIfNeeded", function () {
 		o("not extends if fully indexed", function () {
 			const core = makeCore()
 			const db = null as any

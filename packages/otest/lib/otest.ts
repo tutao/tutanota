@@ -36,7 +36,10 @@ class OTest {
 			afterEach: [],
 		})
 		Object.defineProperty(definition, "name", { value: name, writable: false })
-		definition()
+		const definitionResult = definition()
+		if (typeof definitionResult !== "undefined") {
+			throw new Error(`Invalid spec definition for "${previousCurrentSpec.name} > ${name}"! Is it async by any chance?`)
+		}
 		this.currentSpec = previousCurrentSpec
 		this.currentSpec.specs.push(newSpec)
 	}

@@ -63,7 +63,7 @@ export const typeModels = {
         },
         "associations": {},
         "app": "accounting",
-        "version": "6"
+        "version": "7"
     },
     "CustomerAccountReturn": {
         "name": "CustomerAccountReturn",
@@ -101,6 +101,15 @@ export const typeModels = {
                 "cardinality": "ZeroOrOne",
                 "encrypted": false
             },
+            "_publicCryptoProtocolVersion": {
+                "final": true,
+                "name": "_publicCryptoProtocolVersion",
+                "id": 96,
+                "since": 7,
+                "type": "Number",
+                "cardinality": "ZeroOrOne",
+                "encrypted": false
+            },
             "balance": {
                 "final": true,
                 "name": "balance",
@@ -133,6 +142,6 @@ export const typeModels = {
             }
         },
         "app": "accounting",
-        "version": "6"
+        "version": "7"
     }
 }

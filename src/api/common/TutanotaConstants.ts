@@ -20,6 +20,8 @@ export const REQUEST_SIZE_LIMIT_MAP: Map<string, number> = new Map([
 	["/rest/tutanota/draftservice", 1024 * 1024], // should be large enough
 ])
 
+export const SYSTEM_GROUP_MAIL_ADDRESS = "system@tutanota.de"
+
 export const getMailFolderType = (folder: MailFolder): MailFolderType => downcast(folder.folderType)
 
 type ObjectPropertyKey = string | number | symbol
@@ -917,6 +919,17 @@ export enum MailAuthenticationStatus {
 	MISSING_MAIL_FROM = "4",
 }
 
+/**
+ * The status of the authentication when decrypting an end-to-end encrypted message.
+ * Authentication was only introduced when switching to PQ.
+ */
+export enum EncryptionAuthStatus {
+	RSA_NO_AUTHENTICATION = "0",
+	PQ_AUTHENTICATION_SUCCEEDED = "1",
+	PQ_AUTHENTICATION_FAILED = "2",
+	AES_NO_AUTHENTICATION = "3",
+}
+
 export const enum MailReportType {
 	PHISHING = "0",
 	SPAM = "1",
@@ -1105,4 +1118,10 @@ export function asKdfType(maybe: string): KdfType {
 		return maybe as KdfType
 	}
 	throw new Error("bad kdf type")
+}
+
+export enum CryptoProtocolVersion {
+	RSA = "0",
+	SYMMETRIC_ENCRYPTION = "1", // secure external
+	TUTA_CRYPT = "2", // hybrid PQ protocol (Kyber + x25519)
 }

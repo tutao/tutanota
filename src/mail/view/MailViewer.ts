@@ -7,7 +7,7 @@ import type { Mail } from "../../api/entities/tutanota/TypeRefs.js"
 import { lang } from "../../misc/LanguageViewModel"
 import { assertMainOrNode } from "../../api/common/Env"
 import { assertNonNull, assertNotNull, defer, DeferredObject, noOp, ofClass, stringToUtf8Uint8Array, uint8ArrayToBase64 } from "@tutao/tutanota-utils"
-import { createNewContact, getExistingRuleForType, isTutanotaTeamMail } from "../model/MailUtils"
+import { createNewContact, getExistingRuleForType } from "../model/MailUtils"
 import { IconMessageBox } from "../../gui/base/ColumnEmptyMessageBox"
 import type { Shortcut } from "../../misc/KeyManager"
 import { keyManager } from "../../misc/KeyManager"
@@ -34,6 +34,7 @@ import { ToggleButton } from "../../gui/base/buttons/ToggleButton.js"
 import { locator } from "../../api/main/MainLocator.js"
 import { PinchZoom } from "../../gui/PinchZoom.js"
 import { responsiveCardHMargin, responsiveCardHPadding } from "../../gui/cards.js"
+import { isTutanotaTeamMail } from "../../api/common/mail/CommonMailUtils.js"
 
 assertMainOrNode()
 // map of inline image cid to InlineImageReference

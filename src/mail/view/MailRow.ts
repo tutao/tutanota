@@ -2,7 +2,7 @@ import { getMailFolderType, MailFolderType, MailState, ReplyType } from "../../a
 import { FontIcons } from "../../gui/base/icons/FontIcons"
 import type { Mail } from "../../api/entities/tutanota/TypeRefs.js"
 import { formatTimeOrDateOrYesterday } from "../../misc/Formatter"
-import { getSenderOrRecipientHeading, isTutanotaTeamMail } from "../model/MailUtils"
+import { getSenderOrRecipientHeading } from "../model/MailUtils"
 import { locator } from "../../api/main/MainLocator"
 import m, { Children } from "mithril"
 import Badge from "../../gui/base/Badge"
@@ -21,6 +21,7 @@ import { px, size } from "../../gui/size.js"
 import { NBSP, noOp } from "@tutao/tutanota-utils"
 import { VirtualRow } from "../../gui/base/ListUtils.js"
 import { companyTeamLabel } from "../../misc/ClientConstants.js"
+import { isTutanotaTeamMail } from "../../api/common/mail/CommonMailUtils.js"
 
 const iconMap: Record<MailFolderType, string> = {
 	[MailFolderType.CUSTOM]: FontIcons.Folder,

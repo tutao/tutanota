@@ -3,24 +3,29 @@ import {
 	aesDecrypt,
 	aesEncrypt,
 	bitArrayToUint8Array,
+	bytesToKyberPrivateKey,
+	bytesToKyberPublicKey,
 	decapsulateKyber,
 	decryptKey,
+	eccDecapsulate,
+	eccEncapsulate,
 	encapsulateKyber,
 	encryptKey,
 	generateKeyFromPassphraseArgon2id,
 	generateKeyFromPassphraseBcrypt,
-	hexToPrivateKey,
-	hexToPublicKey,
+	hexToRsaPrivateKey,
+	hexToRsaPublicKey,
+	hkdf,
 	KeyLength,
+	kyberPrivateKeyToBytes,
+	kyberPublicKeyToBytes,
+	PQKeyPairs,
+	PQPublicKeys,
 	random,
 	Randomizer,
 	rsaDecrypt,
 	rsaEncrypt,
 	uint8ArrayToBitArray,
-	x25519decapsulate,
-	x25519encapsulate,
-	x25519hexToPrivateKey,
-	x25519hexToPublicKey,
 } from "@tutao/tutanota-crypto"
 import {
 	base64ToUint8Array,
@@ -33,36 +38,40 @@ import {
 } from "@tutao/tutanota-utils"
 import testData from "./CompatibilityTestData.json"
 import { uncompress } from "../../../../../src/api/worker/Compression.js"
-import { hexToKyberPrivateKey, hexToKyberPublicKey, kyberPrivateKeyToHex, kyberPublicKeyToHex } from "../../../../../src/api/worker/facades/KyberFacade.js"
 import { matchers, object, when } from "testdouble"
-import { loadWasmModuleFromFile } from "../../../../../packages/tutanota-crypto/test/WebAssemblyTestUtils.js"
+import { byteArraysToBytes, bytesToByteArrays } from "@tutao/tutanota-utils/dist/Encoding.js"
+import { PQFacade } from "../../../../../src/api/worker/facades/PQFacade.js"
+import { WASMKyberFacade } from "../../../../../src/api/worker/facades/KyberFacade.js"
+import { decodePQMessage } from "../../../../../src/api/worker/facades/PQMessage.js"
+import { loadArgon2WASM, loadLibOQSWASM } from "../WASMTestUtils.js"
 
 const originalRandom = random.generateRandomData
+
+const liboqs = await loadLibOQSWASM()
 
 o.spec("crypto compatibility", function () {
 	o.afterEach(function () {
 		random.generateRandomData = originalRandom
 	})
+
 	o("rsa encryption", () => {
 		for (const td of testData.rsaEncryptionTests) {
 			random.generateRandomData = (number) => hexToUint8Array(td.seed)
 
-			let publicKey = hexToPublicKey(td.publicKey)
+			let publicKey = hexToRsaPublicKey(td.publicKey)
 			let encryptedData = rsaEncrypt(publicKey, hexToUint8Array(td.input), hexToUint8Array(td.seed))
 			o(uint8ArrayToHex(encryptedData)).equals(td.result)
-			let privateKey = hexToPrivateKey(td.privateKey)
+			let privateKey = hexToRsaPrivateKey(td.privateKey)
 			let data = rsaDecrypt(privateKey, encryptedData)
 			o(uint8ArrayToHex(data)).equals(td.input)
 		}
 	})
 	o("kyber", async () => {
-		const liboqs = await loadWasmModuleFromFile("../packages/tutanota-crypto/lib/encryption/Liboqs/liboqs.wasm")
-
 		for (const td of testData.kyberEncryptionTests) {
-			const publicKey = hexToKyberPublicKey(td.publicKey)
-			const privateKey = hexToKyberPrivateKey(td.privateKey)
-			o(kyberPublicKeyToHex(publicKey)).deepEquals(td.publicKey)
-			o(kyberPrivateKeyToHex(privateKey)).deepEquals(td.privateKey)
+			const publicKey = bytesToKyberPublicKey(hexToUint8Array(td.publicKey))
+			const privateKey = bytesToKyberPrivateKey(hexToUint8Array(td.privateKey))
+			o(uint8ArrayToHex(kyberPublicKeyToBytes(publicKey))).deepEquals(td.publicKey)
+			o(uint8ArrayToHex(kyberPrivateKeyToBytes(privateKey))).deepEquals(td.privateKey)
 
 			const seed = hexToUint8Array(td.seed)
 
@@ -179,8 +188,7 @@ o.spec("crypto compatibility", function () {
 		}
 	})
 	o("argon2id", async function () {
-		const argon2 = await loadWasmModuleFromFile("../packages/tutanota-crypto/lib/hashes/Argon2id/argon2.wasm")
-
+		const argon2 = await loadArgon2WASM()
 		for (let td of testData.argon2idTests) {
 			let key = generateKeyFromPassphraseArgon2id(argon2, td.password, hexToUint8Array(td.saltHex))
 			o(uint8ArrayToHex(bitArrayToUint8Array(key))).equals(td.keyHex)
@@ -194,23 +202,88 @@ o.spec("crypto compatibility", function () {
 	})
 	o("x25519", function () {
 		for (const td of testData.x25519Tests) {
-			const alicePrivateKeyBytes = x25519hexToPrivateKey(td.alicePrivateKeyHex)
-			const alicePublicKeyBytes = x25519hexToPublicKey(td.alicePublicKeyHex)
+			const alicePrivateKeyBytes = hexToUint8Array(td.alicePrivateKeyHex)
+			const alicePublicKeyBytes = hexToUint8Array(td.alicePublicKeyHex)
 			const aliceKeyPair = { priv: alicePrivateKeyBytes, pub: alicePublicKeyBytes }
-			const ephemeralPrivateKeyBytes = x25519hexToPrivateKey(td.ephemeralPrivateKeyHex)
-			const ephemeralPublicKeyBytes = x25519hexToPublicKey(td.ephemeralPublicKeyHex)
+			const ephemeralPrivateKeyBytes = hexToUint8Array(td.ephemeralPrivateKeyHex)
+			const ephemeralPublicKeyBytes = hexToUint8Array(td.ephemeralPublicKeyHex)
 			const ephemeralKeyPair = { priv: ephemeralPrivateKeyBytes, pub: ephemeralPublicKeyBytes }
-			const bobPrivateKeyBytes = x25519hexToPrivateKey(td.bobPrivateKeyHex)
-			const bobPublicKeyBytes = x25519hexToPublicKey(td.bobPublicKeyHex)
+			const bobPrivateKeyBytes = hexToUint8Array(td.bobPrivateKeyHex)
+			const bobPublicKeyBytes = hexToUint8Array(td.bobPublicKeyHex)
 			const bobKeyPair = { priv: bobPrivateKeyBytes, pub: bobPublicKeyBytes }
 
-			const aliceToBob = x25519encapsulate(aliceKeyPair.priv, ephemeralKeyPair.priv, bobKeyPair.pub)
-			const bobToAlice = x25519decapsulate(aliceKeyPair.pub, ephemeralKeyPair.pub, bobKeyPair.priv)
+			const aliceToBob = eccEncapsulate(aliceKeyPair.priv, ephemeralKeyPair.priv, bobKeyPair.pub)
+			const bobToAlice = eccDecapsulate(aliceKeyPair.pub, ephemeralKeyPair.pub, bobKeyPair.priv)
 			o(aliceToBob).deepEquals(bobToAlice)
 			o(td.ephemeralSharedSecretHex).equals(uint8ArrayToHex(aliceToBob.ephemeralSharedSecret))
 			o(td.authSharedSecretHex).equals(uint8ArrayToHex(aliceToBob.authSharedSecret))
 		}
 	})
+
+	o("byteArrayEncoding", function () {
+		for (const td of testData.byteArrayEncodingTests) {
+			const byteArrays = td.byteArraysAsHex.map((byteArrayAsHex) => hexToUint8Array(byteArrayAsHex))
+			if (td.encodedByteArrayAsHex) {
+				o(td.encodedByteArrayAsHex).equals(uint8ArrayToHex(byteArraysToBytes(byteArrays)))
+
+				const decodedByteArrays = bytesToByteArrays(hexToUint8Array(td.encodedByteArrayAsHex), td.byteArraysAsHex.length)
+				for (let i = 0; i < td.byteArraysAsHex.length; i++) {
+					o(td.byteArraysAsHex[i]).equals(uint8ArrayToHex(decodedByteArrays[i]))
+				}
+			} else {
+				try {
+					byteArraysToBytes(byteArrays)
+					throw new Error(" encoding error no thrown")
+				} catch (e) {
+					o(td.encodingError).equals(e.message)
+				}
+			}
+		}
+	})
+
+	o("hkdf", function () {
+		for (const td of testData.hkdfTests) {
+			const salt = hexToUint8Array(td.saltHex)
+			const inputKeyMaterialHex = hexToUint8Array(td.inputKeyMaterialHex)
+			const info = hexToUint8Array(td.infoHex)
+			const lengthInBytes = td.lengthInBytes
+			o(uint8ArrayToHex(hkdf(salt, inputKeyMaterialHex, info, lengthInBytes))).equals(td.hkdfHex)
+		}
+	})
+
+	o("pqcrypt", async function () {
+		for (const td of testData.pqcryptEncryptionTests) {
+			random.generateRandomData = (number) => hexToUint8Array(td.seed).slice(0, number)
+
+			const bucketKey = hexToUint8Array(td.bucketKey)
+
+			const eccKeyPair = {
+				publicKey: hexToUint8Array(td.publicX25519Key),
+				privateKey: hexToUint8Array(td.privateX25519Key),
+			}
+
+			const ephemeralKeyPair = {
+				publicKey: hexToUint8Array(td.epheremalPublicX25519Key),
+				privateKey: hexToUint8Array(td.epheremalPrivateX25519Key),
+			}
+
+			const kyberKeyPair = {
+				publicKey: bytesToKyberPublicKey(hexToUint8Array(td.publicKyberKey)),
+				privateKey: bytesToKyberPrivateKey(hexToUint8Array(td.privateKyberKey)),
+			}
+
+			const pqPublicKeys = new PQPublicKeys(eccKeyPair.publicKey, kyberKeyPair.publicKey)
+			const pqKeyPairs = new PQKeyPairs(eccKeyPair, kyberKeyPair)
+			const pqFacade = new PQFacade(new WASMKyberFacade(liboqs))
+
+			const encapsulation = await pqFacade.encapsulate(eccKeyPair, ephemeralKeyPair, pqPublicKeys, bucketKey)
+			o(encapsulation).deepEquals(decodePQMessage(hexToUint8Array(td.pqMessage)))
+
+			const decapsulation = await pqFacade.decapsulate(encapsulation, pqKeyPairs)
+			o(decapsulation).deepEquals(bucketKey)
+		}
+	})
+
 	/**
 	 * Creates the Javascript compatibility test data for compression. See CompatibilityTest.writeCompressionTestData() in Java for
 	 * instructions how to update the test data.

@@ -245,6 +245,66 @@
 					"info": "RemoveValue PlanPrices/contactFormPriceMonthly/1466."
 				}
 			]
+		},
+		{
+			"version": 92,
+			"changes": [
+				{
+					"name": "RenameAttribute",
+					"sourceType": "KeyPair",
+					"info": "RenameAttribute KeyPair: pubKey -> pubRsaKey."
+				},
+				{
+					"name": "ChangeValueCardinality",
+					"sourceType": "KeyPair",
+					"info": "ChangeValueCardinality KeyPair/pubRsaKey/ZeroOrOne."
+				},
+				{
+					"name": "RenameAttribute",
+					"sourceType": "KeyPair",
+					"info": "RenameAttribute KeyPair: symEncPrivKey -> symEncPrivRsaKey."
+				},
+				{
+					"name": "ChangeValueCardinality",
+					"sourceType": "KeyPair",
+					"info": "ChangeValueCardinality KeyPair/symEncPrivRsaKey/ZeroOrOne."
+				},
+				{
+					"name": "AddValue",
+					"sourceType": "KeyPair",
+					"info": "AddValue KeyPair/pubEccKey/2144."
+				},
+				{
+					"name": "AddValue",
+					"sourceType": "KeyPair",
+					"info": "AddValue KeyPair/symEncPrivEccKey/2145."
+				},
+				{
+					"name": "AddValue",
+					"sourceType": "KeyPair",
+					"info": "AddValue KeyPair/pubKyberKey/2146."
+				},
+				{
+					"name": "AddValue",
+					"sourceType": "KeyPair",
+					"info": "AddValue KeyPair/symEncPrivKyberKey/2147."
+				},
+				{
+					"name": "AddValue",
+					"sourceType": "BucketPermission",
+					"info": "AddValue BucketPermission/protocolVersion/2157."
+				},
+				{
+					"name": "AddValue",
+					"sourceType": "BucketKey",
+					"info": "AddValue BucketKey/protocolVersion/2158."
+				},
+				{
+					"name": "AddValue",
+					"sourceType": "InstanceSessionKey",
+					"info": "AddValue InstanceSessionKey/encryptionAuthStatus/2159."
+				}
+			]
 		}
 	]
 }

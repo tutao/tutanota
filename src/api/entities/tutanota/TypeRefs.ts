@@ -477,6 +477,7 @@ export type CustomerAccountCreateData = {
 	date: null | Date;
 	lang: string;
 	systemAdminPubEncAccountingInfoSessionKey: Uint8Array;
+	systemAdminPublicProtocolVersion: NumberString;
 	userEncAccountGroupKey: Uint8Array;
 	userEncAdminGroupKey: Uint8Array;
 
@@ -940,9 +941,13 @@ export type InternalGroupData = {
 
 	_id: Id;
 	adminEncGroupKey: Uint8Array;
-	groupEncPrivateKey: Uint8Array;
+	groupEncPrivEccKey: null | Uint8Array;
+	groupEncPrivKyberKey: null | Uint8Array;
+	groupEncPrivRsaKey: null | Uint8Array;
 	ownerEncGroupInfoSessionKey: Uint8Array;
-	publicKey: Uint8Array;
+	pubEccKey: null | Uint8Array;
+	pubKyberKey: null | Uint8Array;
+	pubRsaKey: null | Uint8Array;
 
 	adminGroup:  null | Id;
 }
@@ -957,6 +962,7 @@ export type InternalRecipientKeyData = {
 
 	_id: Id;
 	mailAddress: string;
+	protocolVersion: NumberString;
 	pubEncBucketKey: Uint8Array;
 	pubKeyVersion: NumberString;
 }
@@ -1025,6 +1031,7 @@ export type Mail = {
 	authStatus: null | NumberString;
 	confidential: boolean;
 	differentEnvelopeSender: null | string;
+	encryptionAuthStatus: null | NumberString;
 	listUnsubscribe: boolean;
 	method: NumberString;
 	movedTime: null | Date;
@@ -1658,6 +1665,7 @@ export type SendDraftData = {
 	internalRecipientKeyData: InternalRecipientKeyData[];
 	mail: IdTuple;
 	secureExternalRecipientKeyData: SecureExternalRecipientKeyData[];
+	symEncInternalRecipientKeyData: SymEncInternalRecipientKeyData[];
 }
 export const SendDraftReturnTypeRef: TypeRef<SendDraftReturn> = new TypeRef("tutanota", "SendDraftReturn")
 
@@ -1719,6 +1727,21 @@ export type Subfiles = {
 	_id: Id;
 
 	files: Id;
+}
+export const SymEncInternalRecipientKeyDataTypeRef: TypeRef<SymEncInternalRecipientKeyData> = new TypeRef("tutanota", "SymEncInternalRecipientKeyData")
+
+export function createSymEncInternalRecipientKeyData(values: StrippedEntity<SymEncInternalRecipientKeyData>): SymEncInternalRecipientKeyData {
+	return Object.assign(create(typeModels.SymEncInternalRecipientKeyData, SymEncInternalRecipientKeyDataTypeRef), values)
+}
+
+export type SymEncInternalRecipientKeyData = {
+	_type: TypeRef<SymEncInternalRecipientKeyData>;
+
+	_id: Id;
+	mailAddress: string;
+	symEncBucketKey: Uint8Array;
+
+	keyGroup: Id;
 }
 export const TemplateGroupRootTypeRef: TypeRef<TemplateGroupRoot> = new TypeRef("tutanota", "TemplateGroupRoot")
 

@@ -1,10 +1,5 @@
 import type { Contact, EncryptedMailAddress, InboxRule, Mail, MailFolder, TutanotaProperties } from "../../api/entities/tutanota/TypeRefs.js"
 import {
-	Birthday,
-	ContactAddress,
-	ContactMailAddress,
-	ContactPhoneNumber,
-	ContactSocialId,
 	createContact,
 	createContactMailAddress,
 	createEncryptedMailAddress,
@@ -20,9 +15,8 @@ import {
 	MailState,
 	MAX_ATTACHMENT_SIZE,
 	ReplyType,
-	TUTANOTA_MAIL_ADDRESS_DOMAINS,
 } from "../../api/common/TutanotaConstants"
-import { assertNotNull, contains, endsWith, first, neverNull } from "@tutao/tutanota-utils"
+import { assertNotNull, contains, first, neverNull } from "@tutao/tutanota-utils"
 import { assertMainOrNode, isDesktop } from "../../api/common/Env"
 import type { LoginController } from "../../api/main/LoginController"
 import type { Language, TranslationKey } from "../../misc/LanguageViewModel"
@@ -44,13 +38,10 @@ import { getLegacyMailHeaders, getMailHeaders } from "../../api/common/utils/Uti
 import { FolderSystem } from "../../api/common/mail/FolderSystem.js"
 import { ListFilter } from "../../misc/ListModel.js"
 import { MailFacade } from "../../api/worker/facades/lazy/MailFacade.js"
+import { getDisplayedSender, isExcludedMailAddress, MailAddressAndName } from "../../api/common/mail/CommonMailUtils.js"
 
 assertMainOrNode()
 export const LINE_BREAK = "<br>"
-
-export function isTutanotaMailAddress(mailAddress: string): boolean {
-	return TUTANOTA_MAIL_ADDRESS_DOMAINS.some((tutaDomain) => mailAddress.endsWith("@" + tutaDomain))
-}
 
 /**
  * Creates a contact with an email address and a name.
@@ -106,18 +97,19 @@ export function getMailAddressDisplayText(name: string | null, mailAddress: stri
 }
 
 export function getSenderHeading(mail: Mail, preferNameOnly: boolean) {
-	if (isExcludedMailAddress(mail.sender.address)) {
+	const sender = getDisplayedSender(mail)
+	if (isExcludedMailAddress(sender.address)) {
 		return ""
 	} else {
-		return getMailAddressDisplayText(mail.sender.name, mail.sender.address, preferNameOnly)
+		return getMailAddressDisplayText(sender.name, sender.address, preferNameOnly)
 	}
 }
 
-export function getSenderAddressDisplay(mail: Mail): string {
-	if (isExcludedMailAddress(mail.sender.address)) {
+export function getSenderAddressDisplay(sender: MailAddressAndName): string {
+	if (isExcludedMailAddress(sender.address)) {
 		return ""
 	} else {
-		return mail.sender.address
+		return sender.address
 	}
 }
 
@@ -147,22 +139,6 @@ export function getSenderOrRecipientHeading(mail: Mail, preferNameOnly: boolean)
 	} else {
 		return getRecipientHeading(mail, preferNameOnly)
 	}
-}
-
-export function getSenderOrRecipientHeadingTooltip(mail: Mail): string {
-	if (isTutanotaTeamMail(mail) && !isExcludedMailAddress(mail.sender.address)) {
-		return lang.get("tutaoInfo_msg")
-	} else {
-		return ""
-	}
-}
-
-export function isTutanotaTeamMail(mail: Mail): boolean {
-	return mail.confidential && mail.state === MailState.RECEIVED && endsWith(mail.sender.address, "@tutao.de")
-}
-
-export function isExcludedMailAddress(mailAddress: string): boolean {
-	return mailAddress === "no-reply@tutao.de"
 }
 
 /**

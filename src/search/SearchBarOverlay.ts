@@ -8,7 +8,7 @@ import { FULL_INDEXED_TIMESTAMP } from "../api/common/TutanotaConstants"
 import { formatDate, formatDateWithMonth, formatTimeOrDateOrYesterday } from "../misc/Formatter"
 import type { Contact, Mail } from "../api/entities/tutanota/TypeRefs.js"
 import { ContactTypeRef, MailTypeRef } from "../api/entities/tutanota/TypeRefs.js"
-import { getSenderOrRecipientHeading, isTutanotaTeamMail } from "../mail/model/MailUtils"
+import { getSenderOrRecipientHeading } from "../mail/model/MailUtils"
 import Badge from "../gui/base/Badge"
 import { Icon } from "../gui/base/Icon"
 import type { GroupInfo, WhitelabelChild } from "../api/entities/sys/TypeRefs.js"
@@ -22,6 +22,7 @@ import { getMailFolderIcon } from "../mail/view/MailGuiUtils"
 import { locator } from "../api/main/MainLocator"
 import { IndexingErrorReason } from "../api/worker/search/SearchTypes"
 import { companyTeamLabel } from "../misc/ClientConstants.js"
+import { isTutanotaTeamMail } from "../api/common/mail/CommonMailUtils.js"
 
 type SearchBarOverlayAttrs = {
 	state: SearchBarState
