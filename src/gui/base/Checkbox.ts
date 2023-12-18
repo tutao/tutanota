@@ -1,10 +1,11 @@
 import m, { Children, Component, Vnode } from "mithril"
-import { BootIcons } from "./icons/BootIcons"
-import { Icon } from "./Icon"
+import { BootIcons, BootIconsSvg } from "./icons/BootIcons"
 import { addFlash, removeFlash } from "./Flash"
 import type { TranslationKey } from "../../misc/LanguageViewModel"
 import { lang } from "../../misc/LanguageViewModel"
 import type { lazy } from "@tutao/tutanota-utils"
+import { theme } from "../theme.js"
+import { px } from "../size.js"
 
 export type CheckboxAttrs = {
 	label: lazy<string | Children>
@@ -25,9 +26,26 @@ export class Checkbox implements Component<CheckboxAttrs> {
 	view(vnode: Vnode<CheckboxAttrs>): Children {
 		const a = vnode.attrs
 		const helpLabel = a.helpLabel ? m("small.block.content-fg", lang.getMaybeLazy(a.helpLabel)) : []
+		const rawIcon: BootIcons = a.checked ? BootIcons.CheckboxSelected : BootIcons.Checkbox
+		const icon = BootIconsSvg[rawIcon]
+			// the svg data string must contain ' instead of " to avoid display errors in Edge (probably not relevant anymore but better be safe)
+			.replace(/"/g, "'")
+			// '#' character is reserved in URL and FF won't display SVG otherwise
+			.replace(/#/g, "%23")
+			/// fold consecutive whitespace into a single one (useful for tests)
+			.replace(/\s+/g, " ")
 		return m(
-			`${a.disabled ? ".click-disabled" : ".click"}.pt`,
+			`${a.disabled ? ".disabled.click-disabled" : ".click"}.pt`,
 			{
+				role: "checkbox",
+				"aria-checked": String(a.checked),
+				"aria-disabled": String(a.disabled),
+				oncreate: (vnode) => {
+					if (!a.disabled) addFlash(vnode.dom)
+				},
+				onremove: (vnode) => {
+					if (!a.disabled) removeFlash(vnode.dom)
+				},
 				onclick: (e: MouseEvent) => {
 					if (e.target !== this._domInput) {
 						this.toggle(e, a) // event is bubbling in IE besides we invoke e.stopPropagation()
@@ -36,57 +54,43 @@ export class Checkbox implements Component<CheckboxAttrs> {
 			},
 			[
 				m(
-					`.wrapper.flex.items-center${a.disabled ? ".disabled" : ""}`,
+					"label",
 					{
-						role: "checkbox",
-						"aria-checked": String(a.checked),
-						"aria-disabled": String(a.disabled),
-						oncreate: (vnode) => {
-							if (!a.disabled) addFlash(vnode.dom)
-						},
-						onremove: (vnode) => {
-							if (!a.disabled) removeFlash(vnode.dom)
+						class: this.focused ? "content-accent-fg" : "content-fg",
+						onclick: (e: MouseEvent) => {
+							// if the label contains a link, then stop the event so that the checkbox doesn't get toggled upon clicking
+							// we still allow it to be checked if they click on the non-link part of the label
+							if (e.target instanceof HTMLElement && e.target.tagName.toUpperCase() === "A") {
+								e.stopPropagation()
+							}
 						},
 					},
-					[
-						m(Icon, {
-							icon: a.checked ? BootIcons.CheckboxSelected : BootIcons.Checkbox,
-							class: "abs",
-						}),
-						m(
-							"label",
-							{
-								class: this.focused ? "content-accent-fg" : "content-fg",
-								onclick: (e: MouseEvent) => {
-									// if the label contains a link, then stop the event so that the checkbox doesn't get toggled upon clicking
-									// we still allow it to be checked if they click on the non-link part of the label
-									if (e.target instanceof HTMLElement && e.target.tagName.toUpperCase() === "A") {
-										e.stopPropagation()
-									}
-								},
-							},
-							// the real checkbox is transparent and only used to allow keyboard focusing and selection
-							m("input[type=checkbox]", {
-								oncreate: (vnode) => (this._domInput = vnode.dom as HTMLElement),
-								onchange: (e: Event) => this.toggle(e, a),
-								checked: a.checked,
-								onfocus: () => (this.focused = true),
-								onblur: () => (this.focused = false),
-								onremove: () => {
-									// workaround for chrome error on login with return shortcut "Error: Failed to execute 'removeChild' on 'Node': The node to be removed is no longer a child of this node. Perhaps it was moved in a 'blur' event handler?"
-									// TODO test if still needed with mithril 1.1.1
-									if (this._domInput) this._domInput.onblur = null
-								},
-								style: {
-									opacity: 0,
-									cursor: a.disabled ? "default" : "pointer",
-									z_index: -1,
-								},
-								disabled: a.disabled,
-							}),
-							a.label(),
-						),
-					],
+					// the real checkbox is transparent and only used to allow keyboard focusing and selection
+					m("input[type=checkbox].icon", {
+						oncreate: (vnode) => (this._domInput = vnode.dom as HTMLElement),
+						onchange: (e: Event) => this.toggle(e, a),
+						checked: a.checked,
+						onfocus: () => (this.focused = true),
+						onblur: () => (this.focused = false),
+						onremove: () => {
+							// workaround for chrome error on login with return shortcut "Error: Failed to execute 'removeChild' on 'Node': The node to be removed is no longer a child of this node. Perhaps it was moved in a 'blur' event handler?"
+							// TODO test if still needed with mithril 1.1.1
+							if (this._domInput) this._domInput.onblur = null
+						},
+						style: {
+							appearance: "none",
+							cursor: a.disabled ? "default" : "pointer",
+							font: "inherit",
+							"background-color": theme.content_accent,
+							"mask-image": `url("data:image/svg+xml,${icon}")`,
+							margin: px(0),
+							"margin-right": px(5),
+							position: "relative",
+							bottom: px(-2),
+						},
+						disabled: a.disabled,
+					}),
+					a.label(),
 				),
 				helpLabel,
 			],
