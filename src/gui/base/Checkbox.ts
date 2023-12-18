@@ -17,12 +17,8 @@ export type CheckboxAttrs = {
 }
 
 export class Checkbox implements Component<CheckboxAttrs> {
-	private focused: boolean
+	private focused: boolean = false
 	private _domInput: HTMLElement | null = null
-
-	constructor() {
-		this.focused = false
-	}
 
 	view(vnode: Vnode<CheckboxAttrs>): Children {
 		const a = vnode.attrs
@@ -64,11 +60,6 @@ export class Checkbox implements Component<CheckboxAttrs> {
 						checked: a.checked,
 						onfocus: () => (this.focused = true),
 						onblur: () => (this.focused = false),
-						onremove: () => {
-							// workaround for chrome error on login with return shortcut "Error: Failed to execute 'removeChild' on 'Node': The node to be removed is no longer a child of this node. Perhaps it was moved in a 'blur' event handler?"
-							// TODO test if still needed with mithril 1.1.1
-							if (this._domInput) this._domInput.onblur = null
-						},
 						style: {
 							appearance: "none",
 							cursor: a.disabled ? "default" : "pointer",
