@@ -35,7 +35,7 @@ import {
 import { typeRefToPath } from "../rest/EntityRestClient"
 import { LockedError, NotFoundError, PayloadTooLargeError, TooManyRequestsError } from "../../common/error/RestError"
 import { SessionKeyNotFoundError } from "../../common/error/SessionKeyNotFoundError" // importing with {} from CJS modules is not supported for dist-builds currently (must be a systemjs builder bug)
-import { CryptoError } from "../../common/error/CryptoError"
+import { CryptoError as TutanotaCryptoError } from "../../common/error/CryptoError"
 import { birthdayToIsoDate, oldBirthdayToBirthday } from "../../common/utils/BirthdayUtils"
 import type { Entity, SomeEntity, TypeModel } from "../../common/EntityTypes"
 import { assertWorkerOrNode } from "../../common/Env"
@@ -47,6 +47,7 @@ import {
 	Aes256Key,
 	aesEncrypt,
 	bitArrayToUint8Array,
+	CryptoError,
 	decryptKey,
 	decryptRsaKey,
 	ENABLE_MAC,
@@ -191,38 +192,36 @@ export class CryptoFacade {
 	 * @param typeModel: the type model of the instance
 	 * @param instance The unencrypted (client-side) instance or encrypted (server-side) object literal
 	 */
-	resolveSessionKey(typeModel: TypeModel, instance: Record<string, any>): Promise<Aes128Key | null> {
-		return Promise.resolve()
-			.then(async () => {
-				if (!typeModel.encrypted) {
-					return null
-				}
-				const elementId = this.getElementIdFromInstance(instance)
-				if (instance.bucketKey) {
-					// if we have a bucket key, then we need to cache the session keys stored in the bucket key for details, files, etc.
-					// we need to do this BEFORE we check the owner enc session key
-					const bucketKey = await this.convertBucketKeyToInstanceIfNecessary(instance.bucketKey)
-					return this.resolveWithBucketKey(bucketKey, instance, typeModel)
-				} else if (instance._ownerEncSessionKey && this.userFacade.isFullyLoggedIn() && this.userFacade.hasGroup(instance._ownerGroup)) {
-					const gk = this.userFacade.getGroupKey(instance._ownerGroup)
-					return this.resolveSessionKeyWithOwnerKey(instance, gk)
-				} else if (instance.ownerEncSessionKey) {
-					// TODO this is a service instance: Rename all ownerEncSessionKey attributes to _ownerEncSessionKey	 and add _ownerGroupId (set ownerEncSessionKey here automatically after resolving the group)
-					// add to payment data service
-					const gk = this.userFacade.getGroupKey(this.userFacade.getGroupId(GroupType.Mail))
-					return this.resolveSessionKeyWithOwnerKey(instance, gk)
-				} else {
-					// See PermissionType jsdoc for more info on permissions
-					const permissions = await this.entityClient.loadAll(PermissionTypeRef, instance._permissions)
-					return this.trySymmetricPermission(permissions) ?? (await this.resolveWithPublicOrExternalPermission(permissions, instance, typeModel))
-				}
-			})
-			.catch(
-				ofClass(CryptoError, (e) => {
-					console.log("failed to resolve session key", e)
-					throw new SessionKeyNotFoundError("Crypto error while resolving session key for instance " + instance._id)
-				}),
-			)
+	async resolveSessionKey(typeModel: TypeModel, instance: Record<string, any>): Promise<Aes128Key | null> {
+		try {
+			if (!typeModel.encrypted) {
+				return null
+			}
+			if (instance.bucketKey) {
+				// if we have a bucket key, then we need to cache the session keys stored in the bucket key for details, files, etc.
+				// we need to do this BEFORE we check the owner enc session key
+				const bucketKey = await this.convertBucketKeyToInstanceIfNecessary(instance.bucketKey)
+				return await this.resolveWithBucketKey(bucketKey, instance, typeModel)
+			} else if (instance._ownerEncSessionKey && this.userFacade.isFullyLoggedIn() && this.userFacade.hasGroup(instance._ownerGroup)) {
+				const gk = this.userFacade.getGroupKey(instance._ownerGroup)
+				return this.resolveSessionKeyWithOwnerKey(instance, gk)
+			} else if (instance.ownerEncSessionKey) {
+				// TODO this is a service instance: Rename all ownerEncSessionKey attributes to _ownerEncSessionKey	 and add _ownerGroupId (set ownerEncSessionKey here automatically after resolving the group)
+				// add to payment data service
+				const gk = this.userFacade.getGroupKey(this.userFacade.getGroupId(GroupType.Mail))
+				return this.resolveSessionKeyWithOwnerKey(instance, gk)
+			} else {
+				// See PermissionType jsdoc for more info on permissions
+				const permissions = await this.entityClient.loadAll(PermissionTypeRef, instance._permissions)
+				return this.trySymmetricPermission(permissions) ?? (await this.resolveWithPublicOrExternalPermission(permissions, instance, typeModel))
+			}
+		} catch (e) {
+			if (e instanceof TutanotaCryptoError || e instanceof CryptoError) {
+				console.log("failed to resolve session key due to crypto error", e)
+				throw new SessionKeyNotFoundError("Crypto error while resolving session key for instance " + instance._id)
+			}
+			throw e
+		}
 	}
 
 	/**
