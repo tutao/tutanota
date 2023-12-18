@@ -21,7 +21,8 @@ export class Checkbox implements Component<CheckboxAttrs> {
 
 	view(vnode: Vnode<CheckboxAttrs>): Children {
 		const a = vnode.attrs
-		const helpLabel = a.helpLabel ? m("small.block.content-fg.break-word", lang.getMaybeLazy(a.helpLabel)) : []
+		const helpLabelText = a.helpLabel ? lang.getMaybeLazy(a.helpLabel) : ""
+		const helpLabel = a.helpLabel ? m(`small.block.content-fg${Checkbox.getBreakClass(helpLabelText)}`, helpLabelText) : []
 		return m(
 			`${a.disabled ? ".disabled.click-disabled" : ".click"}.pt`,
 			{
@@ -41,7 +42,7 @@ export class Checkbox implements Component<CheckboxAttrs> {
 				},
 			},
 			m(
-				"label.break-all",
+				`label${Checkbox.getBreakClass(a.label())}`,
 				{
 					class: this.focused ? "content-accent-fg" : "content-fg",
 					onclick: (e: MouseEvent) => {
@@ -76,6 +77,14 @@ export class Checkbox implements Component<CheckboxAttrs> {
 	private static getIcon(checked: boolean): string {
 		const rawIcon: BootIcons = checked ? BootIcons.CheckboxSelected : BootIcons.Checkbox
 		return encodeSVG(BootIconsSvg[rawIcon])
+	}
+
+	private static getBreakClass(text: string | Children): string {
+		if (typeof text !== "string" || text.includes(" ")) {
+			return ".break-word"
+		} else {
+			return ".break-all"
+		}
 	}
 
 	toggle(event: Event, attrs: CheckboxAttrs) {
