@@ -105,24 +105,22 @@ export class MultiDayCalendarView implements Component<Attrs> {
 						this.renderHeaderMobile(isDayView ? currentPageEvents : weekEvents, attrs.groupColors, attrs.onEventClicked, attrs.temporaryEvents),
 				  ]
 				: null,
-			m(
-				".rel.flex-grow.overflow-hidden",
-				m(PageView, {
-					previousPage: {
-						key: startOfPreviousPeriod.getTime(),
-						nodes: this.renderDays(attrs, previousPageEvents, currentPageEvents, isDayView, isDesktopLayout),
-					},
-					currentPage: {
-						key: startOfThisPeriod.getTime(),
-						nodes: this.renderDays(attrs, currentPageEvents, currentPageEvents, isDayView, isDesktopLayout),
-					},
-					nextPage: {
-						key: startOfNextPeriod.getTime(),
-						nodes: this.renderDays(attrs, nextPageEvents, currentPageEvents, isDayView, isDesktopLayout),
-					},
-					onChangePage: (next) => attrs.onChangeViewPeriod(next),
-				}),
-			),
+
+			m(PageView, {
+				previousPage: {
+					key: startOfPreviousPeriod.getTime(),
+					nodes: this.renderDays(attrs, previousPageEvents, currentPageEvents, isDayView, isDesktopLayout),
+				},
+				currentPage: {
+					key: startOfThisPeriod.getTime(),
+					nodes: this.renderDays(attrs, currentPageEvents, currentPageEvents, isDayView, isDesktopLayout),
+				},
+				nextPage: {
+					key: startOfNextPeriod.getTime(),
+					nodes: this.renderDays(attrs, nextPageEvents, currentPageEvents, isDayView, isDesktopLayout),
+				},
+				onChangePage: (next) => attrs.onChangeViewPeriod(next),
+			}),
 		])
 	}
 

@@ -156,24 +156,21 @@ export class CalendarAgendaView implements Component<CalendarAgendaViewAttrs> {
 		const day = attrs.selectedDate
 		const previousDay = incrementDate(new Date(day), -1)
 		const nextDay = incrementDate(new Date(day), 1)
-		return m(
-			".rel.flex-grow.overflow-hidden",
-			m(PageView, {
-				previousPage: {
-					key: previousDay.getTime(),
-					nodes: this.renderMobileEventList(previousDay, attrs),
-				},
-				currentPage: {
-					key: day.getTime(),
-					nodes: this.renderMobileEventList(day, attrs),
-				},
-				nextPage: {
-					key: nextDay.getTime(),
-					nodes: this.renderMobileEventList(nextDay, attrs),
-				},
-				onChangePage: (next) => attrs.onDateSelected(next ? nextDay : previousDay),
-			}),
-		)
+		return m(PageView, {
+			previousPage: {
+				key: previousDay.getTime(),
+				nodes: this.renderMobileEventList(previousDay, attrs),
+			},
+			currentPage: {
+				key: day.getTime(),
+				nodes: this.renderMobileEventList(day, attrs),
+			},
+			nextPage: {
+				key: nextDay.getTime(),
+				nodes: this.renderMobileEventList(nextDay, attrs),
+			},
+			onChangePage: (next) => attrs.onDateSelected(next ? nextDay : previousDay),
+		})
 	}
 
 	private renderMobileEventList(day: Date, attrs: CalendarAgendaViewAttrs): Children {
