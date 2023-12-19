@@ -1,5 +1,5 @@
 import m, { Child, Children, Component, Vnode, VnodeDOM } from "mithril"
-import { isSameDay, neverNull } from "@tutao/tutanota-utils"
+import { incrementDate, isSameDay, neverNull } from "@tutao/tutanota-utils"
 import { lang } from "../../misc/LanguageViewModel"
 import { getTimeZone } from "../date/CalendarUtils"
 import type { CalendarEvent } from "../../api/entities/tutanota/TypeRefs.js"
@@ -22,6 +22,7 @@ import { Time } from "../date/Time.js"
 import { DaysToEvents } from "../date/CalendarEventsRepository.js"
 
 import { formatEventTimes, getEventColor } from "../gui/CalendarGuiUtils.js"
+import { PageView } from "../../gui/base/PageView.js"
 
 export type CalendarAgendaViewAttrs = {
 	selectedDate: Date
@@ -139,7 +140,7 @@ export class CalendarAgendaView implements Component<CalendarAgendaViewAttrs> {
 	}
 
 	private renderDesktopEventList(attrs: CalendarAgendaViewAttrs): Children {
-		const events = this.getEventsToRender(attrs)
+		const events = this.getEventsToRender(attrs.selectedDate, attrs)
 		if (events.length === 0) {
 			return m(ColumnEmptyMessageBox, {
 				icon: BootIcons.Calendar,
@@ -147,12 +148,36 @@ export class CalendarAgendaView implements Component<CalendarAgendaViewAttrs> {
 				color: theme.list_message_bg,
 			})
 		} else {
-			return m(".flex.mb-s.col", this.renderEventsForDay(events, getTimeZone(), attrs))
+			return m(".flex.mb-s.col", this.renderEventsForDay(events, getTimeZone(), attrs.selectedDate, attrs))
 		}
 	}
 
-	private renderMobileEventList(attrs: CalendarAgendaViewAttrs): Children {
-		const events = this.getEventsToRender(attrs)
+	private renderMobileAgendaView(attrs: CalendarAgendaViewAttrs) {
+		const day = attrs.selectedDate
+		const previousDay = incrementDate(new Date(day), -1)
+		const nextDay = incrementDate(new Date(day), 1)
+		return m(
+			".rel.flex-grow.overflow-hidden",
+			m(PageView, {
+				previousPage: {
+					key: previousDay.getTime(),
+					nodes: this.renderMobileEventList(previousDay, attrs),
+				},
+				currentPage: {
+					key: day.getTime(),
+					nodes: this.renderMobileEventList(day, attrs),
+				},
+				nextPage: {
+					key: nextDay.getTime(),
+					nodes: this.renderMobileEventList(nextDay, attrs),
+				},
+				onChangePage: (next) => attrs.onDateSelected(next ? nextDay : previousDay),
+			}),
+		)
+	}
+
+	private renderMobileEventList(day: Date, attrs: CalendarAgendaViewAttrs): Children {
+		const events = this.getEventsToRender(day, attrs)
 		if (events.length === 0) {
 			return m(ColumnEmptyMessageBox, {
 				icon: BootIcons.Calendar,
@@ -163,17 +188,17 @@ export class CalendarAgendaView implements Component<CalendarAgendaViewAttrs> {
 			return m(
 				".pt-s.flex.mlr.mb-s.col",
 				{ style: { marginLeft: px(size.calendar_hour_width_mobile) } },
-				this.renderEventsForDay(events, getTimeZone(), attrs),
+				this.renderEventsForDay(events, getTimeZone(), day, attrs),
 			)
 		}
 	}
 
-	private getEventsToRender(attrs: CalendarAgendaViewAttrs): readonly CalendarEvent[] {
-		return (attrs.eventsForDays.get(attrs.selectedDate.getTime()) ?? []).filter((e) => !attrs.hiddenCalendars.has(neverNull(e._ownerGroup)))
+	private getEventsToRender(day: Date, attrs: CalendarAgendaViewAttrs): readonly CalendarEvent[] {
+		return (attrs.eventsForDays.get(day.getTime()) ?? []).filter((e) => !attrs.hiddenCalendars.has(neverNull(e._ownerGroup)))
 	}
 
 	private renderAgenda(attrs: CalendarAgendaViewAttrs, isDesktopLayout: boolean): Children {
-		if (!isDesktopLayout) return this.renderMobileEventList(attrs)
+		if (!isDesktopLayout) return this.renderMobileAgendaView(attrs)
 
 		return m(".flex.flex-grow.height-100p", [
 			m(
@@ -211,8 +236,8 @@ export class CalendarAgendaView implements Component<CalendarAgendaViewAttrs> {
 		])
 	}
 
-	private renderEventsForDay(events: readonly CalendarEvent[], zone: string, attrs: CalendarAgendaViewAttrs) {
-		const { selectedDate: day, groupColors: colors, onEventClicked: click, eventPreviewModel: modelPromise } = attrs
+	private renderEventsForDay(events: readonly CalendarEvent[], zone: string, day: Date, attrs: CalendarAgendaViewAttrs) {
+		const { groupColors: colors, onEventClicked: click, eventPreviewModel: modelPromise } = attrs
 		const agendaItemHeight = 62
 		const agendaGap = 3
 		const currentTime = attrs.selectedTime?.toDate()
