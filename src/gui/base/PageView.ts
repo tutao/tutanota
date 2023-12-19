@@ -21,59 +21,62 @@ export class PageView implements Component<Attrs> {
 	view({ attrs }: Vnode<Attrs>): Children {
 		this.onChangePage = (next) => attrs.onChangePage(next)
 		return m(
-			".fill-absolute",
-			{
-				style: {
-					// this prevents "wobbly" calendar when the height is being changed, otherwise the scrollbar shows up until we actually do the resize
-					// for a short time and shifts all the events horizontally. without scrollbar there's no horizontal shift.
-					// overflow-y: hidden produces *horizontal* scrollbar for some reason? clip should do a similar thing
-					// *but* overflow-y clip does very weird things to offscreen pages in mobile Safari (tested with 16.3.1)
-					// as there are no scrollbar gutters on mobile anyway we don't have to set it
-					"overflow-y": client.isMobileDevice() ? "" : "clip",
+			".rel.flex-grow.overflow-hidden",
+			m(
+				".fill-absolute",
+				{
+					style: {
+						// this prevents "wobbly" calendar when the height is being changed, otherwise the scrollbar shows up until we actually do the resize
+						// for a short time and shifts all the events horizontally. without scrollbar there's no horizontal shift.
+						// overflow-y: hidden produces *horizontal* scrollbar for some reason? clip should do a similar thing
+						// *but* overflow-y clip does very weird things to offscreen pages in mobile Safari (tested with 16.3.1)
+						// as there are no scrollbar gutters on mobile anyway we don't have to set it
+						"overflow-y": client.isMobileDevice() ? "" : "clip",
+					},
+					oncreate: (vnode) => {
+						this.viewDom = vnode.dom as HTMLElement
+						const swipeHandler = new PageSwipeHandler(this.viewDom, (next) => this.onChangePage(next))
+						swipeHandler.attach()
+					},
 				},
-				oncreate: (vnode) => {
-					this.viewDom = vnode.dom as HTMLElement
-					const swipeHandler = new PageSwipeHandler(this.viewDom, (next) => this.onChangePage(next))
-					swipeHandler.attach()
-				},
-			},
-			[
-				m(
-					".abs",
-					{
-						"aria-hidden": "true",
-						key: attrs.previousPage.key,
-						style: this.viewDom &&
-							this.viewDom.offsetWidth > 0 && {
-								width: this.viewDom.offsetWidth + "px",
-								height: this.viewDom.offsetHeight + "px",
-								transform: `translateX(${-this.viewDom.offsetWidth}px)`,
-							},
-					},
-					attrs.previousPage.nodes,
-				),
-				m(
-					".fill-absolute",
-					{
-						key: attrs.currentPage.key,
-					},
-					attrs.currentPage.nodes,
-				),
-				m(
-					".abs",
-					{
-						"aria-hidden": "true",
-						key: attrs.nextPage.key,
-						style: this.viewDom &&
-							this.viewDom.offsetWidth > 0 && {
-								width: this.viewDom.offsetWidth + "px",
-								height: this.viewDom.offsetHeight + "px",
-								transform: `translateX(${this.viewDom.offsetWidth}px)`,
-							},
-					},
-					attrs.nextPage.nodes,
-				),
-			],
+				[
+					m(
+						".abs",
+						{
+							"aria-hidden": "true",
+							key: attrs.previousPage.key,
+							style: this.viewDom &&
+								this.viewDom.offsetWidth > 0 && {
+									width: this.viewDom.offsetWidth + "px",
+									height: this.viewDom.offsetHeight + "px",
+									transform: `translateX(${-this.viewDom.offsetWidth}px)`,
+								},
+						},
+						attrs.previousPage.nodes,
+					),
+					m(
+						".fill-absolute",
+						{
+							key: attrs.currentPage.key,
+						},
+						attrs.currentPage.nodes,
+					),
+					m(
+						".abs",
+						{
+							"aria-hidden": "true",
+							key: attrs.nextPage.key,
+							style: this.viewDom &&
+								this.viewDom.offsetWidth > 0 && {
+									width: this.viewDom.offsetWidth + "px",
+									height: this.viewDom.offsetHeight + "px",
+									transform: `translateX(${this.viewDom.offsetWidth}px)`,
+								},
+						},
+						attrs.nextPage.nodes,
+					),
+				],
+			),
 		)
 	}
 }
