@@ -130,24 +130,22 @@ export class CalendarMonthView implements Component<CalendarMonthAttrs>, ClassCo
 					".flex.mb-s.pt-s",
 					thisMonth.weekdays.map((wd) => m(".flex-grow", m(".calendar-day-indicator.b", wd))),
 				),
-				m(
-					".rel.flex-grow",
-					m(PageView, {
-						previousPage: {
-							key: getFirstDayOfMonth(lastMonthDate).getTime(),
-							nodes: this.monthDom ? this.renderCalendar(attrs, previousMonth, thisMonth, this.zone) : null,
-						},
-						currentPage: {
-							key: getFirstDayOfMonth(attrs.selectedDate).getTime(),
-							nodes: this.renderCalendar(attrs, thisMonth, thisMonth, this.zone),
-						},
-						nextPage: {
-							key: getFirstDayOfMonth(nextMonthDate).getTime(),
-							nodes: this.monthDom ? this.renderCalendar(attrs, nextMonth, thisMonth, this.zone) : null,
-						},
-						onChangePage: (next) => attrs.onChangeMonth(next),
-					}),
-				),
+
+				m(PageView, {
+					previousPage: {
+						key: getFirstDayOfMonth(lastMonthDate).getTime(),
+						nodes: this.monthDom ? this.renderCalendar(attrs, previousMonth, thisMonth, this.zone) : null,
+					},
+					currentPage: {
+						key: getFirstDayOfMonth(attrs.selectedDate).getTime(),
+						nodes: this.renderCalendar(attrs, thisMonth, thisMonth, this.zone),
+					},
+					nextPage: {
+						key: getFirstDayOfMonth(nextMonthDate).getTime(),
+						nodes: this.monthDom ? this.renderCalendar(attrs, nextMonth, thisMonth, this.zone) : null,
+					},
+					onChangePage: (next) => attrs.onChangeMonth(next),
+				}),
 			],
 		)
 	}
