@@ -1,9 +1,7 @@
 import m, { Children, Component, Vnode } from "mithril"
 import { neverNull } from "@tutao/tutanota-utils"
 import { lang } from "../../misc/LanguageViewModel"
-import { formatDate, formatDateWithWeekday } from "../../misc/Formatter"
-import { isAllDayEvent } from "../../api/common/utils/CommonCalendarUtils"
-import { getTimeZone, getStartOfDayWithZone } from "../date/CalendarUtils"
+import { getTimeZone } from "../date/CalendarUtils"
 import type { CalendarEvent } from "../../api/entities/tutanota/TypeRefs.js"
 import type { GroupColors } from "./CalendarView"
 import type { CalendarEventBubbleClickHandler } from "./CalendarViewModel"
@@ -18,12 +16,14 @@ import { DaySelector } from "../gui/day-selector/DaySelector.js"
 import { CalendarEventPreviewViewModel } from "../gui/eventpopup/CalendarEventPreviewViewModel.js"
 import { EventDetailsView } from "./EventDetailsView.js"
 import { getElementId, getListId } from "../../api/common/utils/EntityUtils.js"
+import { Time } from "../date/Time.js"
 import { DaysToEvents } from "../date/CalendarEventsRepository.js"
 
 import { formatEventTimes, getEventColor } from "../gui/CalendarGuiUtils.js"
 
 export type CalendarAgendaViewAttrs = {
 	selectedDate: Date
+	selectedTime?: Time
 	/**
 	 * maps start of day timestamp to events on that day
 	 */
@@ -42,6 +42,11 @@ export type CalendarAgendaViewAttrs = {
 }
 
 export class CalendarAgendaView implements Component<CalendarAgendaViewAttrs> {
+	private scrollPosition: number = 0
+
+	private lastScrolledDate: Date | null = null
+	private listDom: HTMLElement | null = null
+
 	view({ attrs }: Vnode<CalendarAgendaViewAttrs>): Children {
 		const isDesktopLayout = styles.isDesktopLayout()
 		const selectedDate = attrs.selectedDate
@@ -58,6 +63,17 @@ export class CalendarAgendaView implements Component<CalendarAgendaViewAttrs> {
 			containerStyle = {}
 		}
 
+		const agendaChildren = this.renderAgenda(attrs, isDesktopLayout)
+
+		if (attrs.selectedTime && attrs.eventsForDays.size > 0 && this.lastScrolledDate != attrs.selectedDate) {
+			this.lastScrolledDate = attrs.selectedDate
+			requestAnimationFrame(() => {
+				if (this.listDom) {
+					this.listDom.scrollTop = this.scrollPosition
+				}
+			})
+		}
+
 		return m(".fill-absolute.flex.col", { class: isDesktopLayout ? "mlr-l height-100p" : "mlr-safe-inset", style: containerStyle }, [
 			this.renderDateSelector(attrs, isDesktopLayout, selectedDate),
 			m(
@@ -65,7 +81,7 @@ export class CalendarAgendaView implements Component<CalendarAgendaViewAttrs> {
 				{
 					class: isDesktopLayout ? "overflow-y-hidden" : "content-bg scroll border-radius-top-left-big border-radius-top-right-big",
 				},
-				this.renderAgenda(attrs, isDesktopLayout),
+				agendaChildren,
 			),
 		])
 	}
@@ -192,27 +208,39 @@ export class CalendarAgendaView implements Component<CalendarAgendaViewAttrs> {
 
 	private renderEventsForDay(events: readonly CalendarEvent[], zone: string, attrs: CalendarAgendaViewAttrs) {
 		const { selectedDate: day, groupColors: colors, onEventClicked: click, eventPreviewModel: modelPromise } = attrs
-		return events.length === 0
-			? m(".mb-s", lang.get("noEntries_msg"))
-			: m(
-					".flex.col",
-					{
-						style: {
-							gap: "3px",
+		const agendaItemHeight = 62
+		const agendaGap = 3
+		const currentTime = attrs.selectedTime?.toDate()
+		let newScrollPosition = 0
+		const returnChildren =
+			events.length === 0
+				? m(".mb-s", lang.get("noEntries_msg"))
+				: m(
+						".flex.col",
+						{
+							style: {
+								gap: px(agendaGap),
+							},
 						},
-					},
-					events.map((event) => {
-						return m(CalendarAgendaItemView, {
-							key: getListId(event) + getElementId(event) + event.startTime.toISOString(),
-							event: event,
-							color: getEventColor(event, colors),
-							selected: event === modelPromise?.calendarEvent,
-							click: (domEvent) => click(event, domEvent),
-							zone,
-							day: day,
-							timeText: formatEventTimes(day, event, zone),
-						})
-					}),
-			  )
+						events.map((event) => {
+							if (currentTime && event.startTime < currentTime) {
+								newScrollPosition += agendaItemHeight + agendaGap
+							}
+							return m(CalendarAgendaItemView, {
+								key: getListId(event) + getElementId(event) + event.startTime.toISOString(),
+								event: event,
+								color: getEventColor(event, colors),
+								selected: event === modelPromise?.calendarEvent,
+								click: (domEvent) => click(event, domEvent),
+								zone,
+								day: day,
+								height: agendaItemHeight,
+								timeText: formatEventTimes(day, event, zone),
+							})
+						}),
+				  )
+		// one agenda item height needs to be removed to show the correct item
+		this.scrollPosition = newScrollPosition - (agendaItemHeight + agendaGap)
+		return returnChildren
 	}
 }

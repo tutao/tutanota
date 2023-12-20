@@ -6,12 +6,12 @@ import { ViewSlider } from "../../gui/nav/ViewSlider.js"
 import type { Shortcut } from "../../misc/KeyManager"
 import { keyManager } from "../../misc/KeyManager"
 import { Icons } from "../../gui/base/icons/Icons"
-import { downcast, getStartOfDay, ofClass } from "@tutao/tutanota-utils"
+import { downcast, getStartOfDay, isSameDayOfDate, ofClass } from "@tutao/tutanota-utils"
 import type { CalendarEvent, GroupSettings, UserSettingsGroupRoot } from "../../api/entities/tutanota/TypeRefs.js"
 import { createGroupSettings } from "../../api/entities/tutanota/TypeRefs.js"
 import { defaultCalendarColor, GroupType, Keys, reverse, ShareCapability, TimeFormat, WeekStart } from "../../api/common/TutanotaConstants"
 import { locator } from "../../api/main/MainLocator"
-import { getStartOfTheWeekOffset, getStartOfTheWeekOffsetForUser, getTimeZone } from "../date/CalendarUtils"
+import { getStartOfTheWeekOffset, getStartOfTheWeekOffsetForUser, getTimeZone, getWeekNumber } from "../date/CalendarUtils"
 import { ButtonColor, ButtonType } from "../../gui/base/Button.js"
 import { CalendarMonthView } from "./CalendarMonthView"
 import { DateTime } from "luxon"
@@ -53,10 +53,11 @@ import { BackgroundColumnLayout } from "../../gui/BackgroundColumnLayout.js"
 import { theme } from "../../gui/theme.js"
 import { CalendarMobileHeader } from "./CalendarMobileHeader.js"
 import { CalendarDesktopToolbar } from "./CalendarDesktopToolbar.js"
-import { CalendarOperation } from "../gui/eventeditor-model/CalendarEventModel.js"
-import { DaySelectorPopup } from "../gui/day-selector/DaySelectorPopup.js"
-import { LazySearchBar } from "../../misc/LazySearchBar.js"
+import { Time } from "../date/Time.js"
 import { DaySelectorSidebar } from "../gui/day-selector/DaySelectorSidebar.js"
+import { CalendarOperation } from "../gui/eventeditor-model/CalendarEventModel.js"
+import { LazySearchBar } from "../../misc/LazySearchBar.js"
+import { DaySelectorPopup } from "../gui/day-selector/DaySelectorPopup.js"
 
 export type GroupColors = Map<Id, string>
 
@@ -216,6 +217,7 @@ export class CalendarView extends BaseTopLevelView implements TopLevelView<Calen
 									dragHandlerCallbacks: this.viewModel,
 									isDaySelectorExpanded: this.isDaySelectorExpanded,
 									eventsForDays: this.viewModel.eventsForDays,
+									selectedTime: this.viewModel.selectedTime,
 								}),
 							})
 
@@ -243,7 +245,8 @@ export class CalendarView extends BaseTopLevelView implements TopLevelView<Calen
 									dragHandlerCallbacks: this.viewModel,
 									isDaySelectorExpanded: this.isDaySelectorExpanded,
 									eventsForDays: this.viewModel.eventsForDays,
-								} satisfies Attrs),
+									selectedTime: this.viewModel.selectedTime,
+								}),
 							})
 
 						case CalendarViewType.AGENDA:
@@ -253,6 +256,7 @@ export class CalendarView extends BaseTopLevelView implements TopLevelView<Calen
 								mobileHeader: () => this.renderMobileHeader(vnode.attrs.header),
 								columnLayout: m(CalendarAgendaView, {
 									selectedDate: this.viewModel.selectedDate(),
+									selectedTime: this.viewModel.selectedTime,
 									eventsForDays: this.viewModel.eventsForDays,
 									amPmFormat: shouldDefaultToAmPmTimeFormat(),
 									onEventClicked: (event, domEvent) => {
@@ -317,7 +321,11 @@ export class CalendarView extends BaseTopLevelView implements TopLevelView<Calen
 		return m(CalendarDesktopToolbar, {
 			navConfig,
 			viewType: this.currentViewType,
-			onToday: () => this._setUrl(m.route.param("view"), new Date()),
+			onToday: () => {
+				// in case it has been set, when onToday is called we definitely do not want the time to be ignored
+				this.viewModel.ignoreNextValidTimeSelection = false
+				this._setUrl(m.route.param("view"), new Date())
+			},
 			onViewTypeSelected: (viewType) => this._setUrl(viewType, this.viewModel.selectedDate()),
 		})
 	}
@@ -337,7 +345,11 @@ export class CalendarView extends BaseTopLevelView implements TopLevelView<Calen
 				(viewType, next) => this._viewPeriod(viewType, next),
 			),
 			onCreateEvent: () => this._createNewEventDialog(),
-			onToday: () => this._setUrl(m.route.param("view"), new Date()),
+			onToday: () => {
+				// in case it has been set, when onToday is called we definitely do not want the time to be ignored
+				this.viewModel.ignoreNextValidTimeSelection = false
+				this._setUrl(m.route.param("view"), new Date())
+			},
 			onViewTypeSelected: (viewType) => this._setUrl(viewType, this.viewModel.selectedDate()),
 			onTap: (_event, dom) => {
 				if (this.currentViewType !== CalendarViewType.MONTH && styles.isSingleColumnLayout()) {
@@ -458,7 +470,10 @@ export class CalendarView extends BaseTopLevelView implements TopLevelView<Calen
 		const newDate = next ? dateTime.plus(duration).startOf(unit).toJSDate() : dateTime.minus(duration).startOf(unit).toJSDate()
 
 		this.viewModel.selectedDate(newDate)
-		this._setUrl(viewType, newDate)
+		// ignoreNextTimeSelection is set to true here, as viewPeriod is only called when changing the view by swiping (or using previous/next buttons)
+		// and we don't want jarring time jumps when doing that
+		this.viewModel.ignoreNextValidTimeSelection = true
+		this._setUrl(viewType, newDate, false)
 
 		m.redraw()
 	}
@@ -693,6 +708,7 @@ export class CalendarView extends BaseTopLevelView implements TopLevelView<Calen
 		} else {
 			// @ts-ignore
 			this.currentViewType = CalendarViewTypeByValue[args.view] ? args.view : CalendarViewType.MONTH
+
 			const urlDateParam = args.date
 
 			if (urlDateParam) {
@@ -709,6 +725,14 @@ export class CalendarView extends BaseTopLevelView implements TopLevelView<Calen
 					this.viewModel.selectedDate(date)
 
 					m.redraw()
+				}
+
+				const today = new Date()
+				if (isSameDayOfDate(today, date) || (args.view === "week" && getWeekNumber(date) === getWeekNumber(today))) {
+					const time = Time.fromDate(today)
+					this.viewModel.setSelectedTime(time)
+				} else {
+					this.viewModel.setSelectedTime(undefined)
 				}
 			}
 
