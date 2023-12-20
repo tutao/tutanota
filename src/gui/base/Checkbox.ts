@@ -6,6 +6,7 @@ import { lang } from "../../misc/LanguageViewModel"
 import type { lazy } from "@tutao/tutanota-utils"
 import { theme } from "../theme.js"
 import { encodeSVG } from "./GuiUtils.js"
+import { Icon } from "./Icon.js"
 
 export type CheckboxAttrs = {
 	label: lazy<string | Children>
@@ -56,6 +57,10 @@ export class Checkbox implements Component<CheckboxAttrs> {
 					},
 				},
 				[
+					m(Icon, {
+						icon: a.checked ? BootIcons.CheckboxSelected : BootIcons.Checkbox,
+						class: "abs",
+					}),
 					m("input[type=checkbox].icon.checkbox-override", {
 						oncreate: (vnode) => (this._domInput = vnode.dom as HTMLElement),
 						onchange: (e: Event) => this.toggle(e, a),
@@ -63,9 +68,9 @@ export class Checkbox implements Component<CheckboxAttrs> {
 						onfocus: () => (this.focused = true),
 						onblur: () => (this.focused = false),
 						style: {
+							opacity: 0,
 							cursor: a.disabled ? "default" : "pointer",
-							"background-color": theme.content_accent,
-							"mask-image": `url("${a.checked ? Checkbox.checkedIcon : Checkbox.uncheckedIcon}")`,
+							z_index: -1,
 						},
 						disabled: a.disabled,
 					}),
