@@ -8,15 +8,14 @@ import {
 	createUserAreaGroupDeleteData,
 	createUserAreaGroupPostData,
 } from "../../../entities/tutanota/TypeRefs.js"
-import { assertNotNull, hexToUint8Array, neverNull } from "@tutao/tutanota-utils"
+import { assertNotNull, neverNull } from "@tutao/tutanota-utils"
 import type { Group, User } from "../../../entities/sys/TypeRefs.js"
 import { createMembershipAddData, createMembershipRemoveData, GroupTypeRef, UserTypeRef } from "../../../entities/sys/TypeRefs.js"
 import { CounterFacade } from "./CounterFacade.js"
 import { EntityClient } from "../../../common/EntityClient.js"
 import { assertWorkerOrNode } from "../../../common/Env.js"
 import { encryptString } from "../../crypto/CryptoFacade.js"
-import type { RsaImplementation } from "../../crypto/RsaImplementation.js"
-import { aes256RandomKey, decryptKey, encryptKey, encryptRsaKey, RsaKeyPair, rsaPublicKeyToHex } from "@tutao/tutanota-crypto"
+import { aes256RandomKey, aesEncrypt, decryptKey, encryptKey, kyberPrivateKeyToBytes, kyberPublicKeyToBytes, PQKeyPairs } from "@tutao/tutanota-crypto"
 import { IServiceExecutor } from "../../../common/ServiceRequest.js"
 import {
 	CalendarService,
@@ -29,6 +28,7 @@ import { MembershipService } from "../../../entities/sys/Services.js"
 import { UserFacade } from "../UserFacade.js"
 import { ProgrammingError } from "../../../common/error/ProgrammingError.js"
 import { DefaultEntityRestCache } from "../../rest/DefaultEntityRestCache.js"
+import { PQFacade } from "../PQFacade.js"
 
 assertWorkerOrNode()
 
@@ -37,9 +37,9 @@ export class GroupManagementFacade {
 		private readonly user: UserFacade,
 		private readonly counters: CounterFacade,
 		private readonly entityClient: EntityClient,
-		private readonly rsa: RsaImplementation,
 		private readonly serviceExecutor: IServiceExecutor,
 		private readonly entityRestCache: DefaultEntityRestCache,
+		private readonly pqFacade: PQFacade = pqFacade,
 	) {}
 
 	async readUsedSharedMailGroupStorage(group: Group): Promise<number> {
@@ -60,7 +60,7 @@ export class GroupManagementFacade {
 		let mailGroupKey = aes256RandomKey()
 		let mailGroupInfoSessionKey = aes256RandomKey()
 		let mailboxSessionKey = aes256RandomKey()
-		const keyPair = await this.rsa.generateKey()
+		const keyPair = await this.pqFacade.generateKeyPairs()
 		const mailGroupData = await this.generateInternalGroupData(
 			keyPair,
 			mailGroupKey,
@@ -161,7 +161,7 @@ export class GroupManagementFacade {
 	}
 
 	generateInternalGroupData(
-		keyPair: RsaKeyPair,
+		keyPair: PQKeyPairs,
 		groupKey: Aes128Key,
 		groupInfoSessionKey: Aes128Key,
 		adminGroupId: Id | null,
@@ -169,12 +169,12 @@ export class GroupManagementFacade {
 		ownerGroupKey: Aes128Key,
 	): InternalGroupData {
 		return createInternalGroupData({
-			pubRsaKey: hexToUint8Array(rsaPublicKeyToHex(keyPair.publicKey)),
-			groupEncPrivRsaKey: encryptRsaKey(groupKey, keyPair.privateKey),
-			pubEccKey: null,
-			groupEncPrivEccKey: null,
-			pubKyberKey: null,
-			groupEncPrivKyberKey: null,
+			pubRsaKey: null,
+			groupEncPrivRsaKey: null,
+			pubEccKey: keyPair.eccKeyPair.publicKey,
+			groupEncPrivEccKey: aesEncrypt(groupKey, keyPair.eccKeyPair.privateKey),
+			pubKyberKey: kyberPublicKeyToBytes(keyPair.kyberKeyPair.publicKey),
+			groupEncPrivKyberKey: aesEncrypt(groupKey, kyberPrivateKeyToBytes(keyPair.kyberKeyPair.privateKey)),
 			adminGroup: adminGroupId,
 			adminEncGroupKey: encryptKey(adminGroupKey, groupKey),
 			ownerEncGroupInfoSessionKey: encryptKey(ownerGroupKey, groupInfoSessionKey),

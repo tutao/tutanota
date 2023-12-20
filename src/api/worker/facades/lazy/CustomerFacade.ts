@@ -31,7 +31,7 @@ import { CounterFacade } from "./CounterFacade.js"
 import type { Country } from "../../../common/CountryList.js"
 import { getByAbbreviation } from "../../../common/CountryList.js"
 import { LockedError } from "../../../common/error/RestError.js"
-import type { RsaKeyPair } from "@tutao/tutanota-crypto"
+import type { PQKeyPairs } from "@tutao/tutanota-crypto"
 import { aes256RandomKey, bitArrayToUint8Array, encryptKey, hexToRsaPublicKey, sha256Hash, uint8ArrayToBitArray } from "@tutao/tutanota-crypto"
 import type { RsaImplementation } from "../../crypto/RsaImplementation.js"
 import { EntityClient } from "../../../common/EntityClient.js"
@@ -72,7 +72,7 @@ export class CustomerFacade {
 		private readonly cryptoFacade: CryptoFacade,
 		private readonly operationProgressTracker: ExposedOperationProgressTracker,
 		private readonly pdfWriter: lazyAsync<PdfWriter>,
-		private readonly pq: PQFacade,
+		private readonly pqFacade: PQFacade,
 	) {}
 
 	async getDomainValidationRecord(domainName: string): Promise<string> {
@@ -236,18 +236,18 @@ export class CustomerFacade {
 		})
 	}
 
-	async generateSignupKeys(operationId: OperationId): Promise<[RsaKeyPair, RsaKeyPair, RsaKeyPair]> {
-		const key1 = await this.rsa.generateKey()
+	async generateSignupKeys(operationId: OperationId): Promise<[PQKeyPairs, PQKeyPairs, PQKeyPairs]> {
+		const key1 = await this.pqFacade.generateKeyPairs()
 		await this.operationProgressTracker.onProgress(operationId, 33)
-		const key2 = await this.rsa.generateKey()
+		const key2 = await this.pqFacade.generateKeyPairs()
 		await this.operationProgressTracker.onProgress(operationId, 66)
-		const key3 = await this.rsa.generateKey()
+		const key3 = await this.pqFacade.generateKeyPairs()
 		await this.operationProgressTracker.onProgress(operationId, 100)
 		return [key1, key2, key3]
 	}
 
 	async signup(
-		keyPairs: [RsaKeyPair, RsaKeyPair, RsaKeyPair],
+		keyPairs: [PQKeyPairs, PQKeyPairs, PQKeyPairs],
 		accountType: AccountType,
 		authToken: string,
 		mailAddress: string,
