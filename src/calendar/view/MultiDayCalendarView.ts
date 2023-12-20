@@ -1,5 +1,5 @@
 import m, { Children, Component, Vnode, VnodeDOM } from "mithril"
-import { getStartOfDay, incrementDate, isToday, lastThrow, neverNull, ofClass } from "@tutao/tutanota-utils"
+import { getStartOfDay, incrementDate, isToday, lastThrow, neverNull, ofClass, remove } from "@tutao/tutanota-utils"
 import { formatShortTime, formatTime } from "../../misc/Formatter"
 import {
 	combineDateWithTime,
@@ -35,8 +35,9 @@ import { ContinuingCalendarEventBubble } from "./ContinuingCalendarEventBubble"
 import { isAllDayEvent } from "../../api/common/utils/CommonCalendarUtils"
 import { locator } from "../../api/main/MainLocator.js"
 import { DateTime } from "luxon"
-import { DaySelector } from "../gui/day-selector/DaySelector.js"
 import { DaysToEvents } from "../date/CalendarEventsRepository.js"
+import { Time } from "../date/Time.js"
+import { DaySelector } from "../gui/day-selector/DaySelector.js"
 
 export type Attrs = {
 	selectedDate: Date
@@ -53,6 +54,7 @@ export type Attrs = {
 	dragHandlerCallbacks: EventDragHandlerCallbacks
 	eventsForDays: DaysToEvents
 	isDaySelectorExpanded: boolean
+	selectedTime?: Time
 }
 
 export class MultiDayCalendarView implements Component<Attrs> {
@@ -221,7 +223,14 @@ export class MultiDayCalendarView implements Component<Attrs> {
 					".flex.scroll-no-overlay.content-bg",
 					{
 						oncreate: (vnode) => {
-							vnode.dom.scrollTop = this._scrollPosition
+							if (attrs.selectedTime) {
+								this.scrollPosition = size.calendar_hour_height * attrs.selectedTime.hour
+							}
+							vnode.dom.scrollTop = this.scrollPosition
+
+							for (const dom of this.domElements) {
+								dom.scrollTop = this.scrollPosition
+							}
 
 							this.domElements.push(vnode.dom as HTMLElement)
 						},
@@ -235,6 +244,9 @@ export class MultiDayCalendarView implements Component<Attrs> {
 
 								this.scrollPosition = (event.target as HTMLElement).scrollTop
 							}
+						},
+						onremove: (vnode) => {
+							remove(this.domElements, vnode.dom as HTMLElement)
 						},
 					},
 					[
