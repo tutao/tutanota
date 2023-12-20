@@ -21,8 +21,9 @@ import { ProgressTracker } from "../../api/main/ProgressTracker"
 import { DeviceConfig } from "../../misc/DeviceConfig"
 import type { EventDragHandlerCallbacks } from "./EventDragHandler"
 import { ProgrammingError } from "../../api/common/error/ProgrammingError.js"
-import { CalendarEventPreviewViewModel } from "../gui/eventpopup/CalendarEventPreviewViewModel.js"
+import { Time } from "../date/Time.js"
 import { CalendarEventsRepository, DaysToEvents } from "../date/CalendarEventsRepository.js"
+import { CalendarEventPreviewViewModel } from "../gui/eventpopup/CalendarEventPreviewViewModel.js"
 
 export type EventsOnDays = {
 	days: Array<Date>
@@ -63,6 +64,9 @@ export class CalendarViewModel implements EventDragHandlerCallbacks {
 	readonly _transientEvents: Array<CalendarEvent>
 	_draggedEvent: DraggedEvent | null = null
 	private readonly _redrawStream: Stream<void> = stream()
+	selectedTime: Time | undefined
+	// When set to true, ignores the next setting of selectedTime
+	ignoreNextValidTimeSelection: boolean
 	readonly _deviceConfig: DeviceConfig
 
 	constructor(
@@ -81,6 +85,7 @@ export class CalendarViewModel implements EventDragHandlerCallbacks {
 		this._transientEvents = []
 
 		const userId = logins.getUserController().user._id
+		const today = new Date()
 
 		this._deviceConfig = deviceConfig
 		this._hiddenCalendars = new Set(this._deviceConfig.getHiddenCalendars(userId))
@@ -89,6 +94,8 @@ export class CalendarViewModel implements EventDragHandlerCallbacks {
 			this.updatePreviewedEvent(null)
 			this.preloadMonthsAroundSelectedDate()
 		})
+		this.selectedTime = Time.fromDate(today)
+		this.ignoreNextValidTimeSelection = false
 		this.calendarModel.getCalendarInfosStream().map((newInfos) => {
 			const event = this.previewedEvent?.event ?? null
 			if (event != null) {
@@ -211,6 +218,15 @@ export class CalendarViewModel implements EventDragHandlerCallbacks {
 		this._hiddenCalendars = newHiddenCalendars
 
 		this._deviceConfig.setHiddenCalendars(this.logins.getUserController().user._id, [...newHiddenCalendars])
+	}
+
+	setSelectedTime(time: Time | undefined) {
+		// only ignore an actual time, setting to undefined is fine
+		if (time != undefined && this.ignoreNextValidTimeSelection) {
+			this.ignoreNextValidTimeSelection = false
+		} else {
+			this.selectedTime = time
+		}
 	}
 
 	/**
