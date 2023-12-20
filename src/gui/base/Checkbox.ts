@@ -18,6 +18,8 @@ export type CheckboxAttrs = {
 export class Checkbox implements Component<CheckboxAttrs> {
 	private focused: boolean = false
 	private _domInput: HTMLElement | null = null
+	private static readonly checkedIcon = encodeSVG(BootIconsSvg[BootIcons.CheckboxSelected])
+	private static readonly uncheckedIcon = encodeSVG(BootIconsSvg[BootIcons.Checkbox])
 
 	view(vnode: Vnode<CheckboxAttrs>): Children {
 		const a = vnode.attrs
@@ -63,7 +65,7 @@ export class Checkbox implements Component<CheckboxAttrs> {
 						style: {
 							cursor: a.disabled ? "default" : "pointer",
 							"background-color": theme.content_accent,
-							"mask-image": `url("${Checkbox.getIcon(a.checked)}")`,
+							"mask-image": `url("${a.checked ? Checkbox.checkedIcon : Checkbox.uncheckedIcon}")`,
 						},
 						disabled: a.disabled,
 					}),
@@ -72,11 +74,6 @@ export class Checkbox implements Component<CheckboxAttrs> {
 				],
 			),
 		)
-	}
-
-	private static getIcon(checked: boolean): string {
-		const rawIcon: BootIcons = checked ? BootIcons.CheckboxSelected : BootIcons.Checkbox
-		return encodeSVG(BootIconsSvg[rawIcon])
 	}
 
 	private static getBreakClass(text: string | Children): string {
