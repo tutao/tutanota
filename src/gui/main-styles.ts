@@ -2218,7 +2218,7 @@ styles.registerStyle("main", () => {
 				"-webkit-print-color-adjust": "exact",
 			},
 			".noprint": {
-				display: "none",
+				display: "none !important",
 			},
 			".noscreen": {
 				display: "initial",

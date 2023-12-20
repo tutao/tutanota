@@ -1,10 +1,10 @@
-import m, { Children, Component, Vnode } from "mithril"
+import m, { Children, Component } from "mithril"
 import type { DomMutation } from "../animation/Animations"
 import { animations } from "../animation/Animations"
 import { ease } from "../animation/Easing"
 import { LayerType } from "../../RootView"
-import { remove } from "@tutao/tutanota-utils"
 import type { lazy } from "@tutao/tutanota-utils"
+import { remove } from "@tutao/tutanota-utils"
 import { assertMainOrNodeBoot } from "../../api/common/Env"
 
 assertMainOrNodeBoot()
@@ -68,7 +68,7 @@ export const overlay: Component = {
 		m(
 			// we want the overlays to position relative to the overlay parent
 			// the overlay parent also should fill the root
-			"#overlay.fill-absolute",
+			"#overlay.fill-absolute.noprint",
 			{
 				style: {
 					display: overlays.length > 0 ? "" : "none",
