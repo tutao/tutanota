@@ -56,14 +56,6 @@
 			],
 			"ret": "string"
 		},
-		"generateRsaKey": {
-			"arg": [
-				{
-					"seed": "bytes"
-				}
-			],
-			"ret": "RsaKeyPair"
-		},
 		"argon2idHashRaw": {
 			"arg": [
 				{

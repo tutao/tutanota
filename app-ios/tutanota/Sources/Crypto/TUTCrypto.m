@@ -75,30 +75,6 @@ static const NSString *const PUBLIC_EXPONENT_STRING = @"65537";
 
 @implementation TUTCrypto
 
-- (TUTKeyPair *_Nullable)generateRsaKeyWithSeed:(NSData * _Nonnull)seed error:(NSError **)error {
-  // seeds the PRNG (pseudorandom number generator)
-  RAND_seed([seed bytes], (int) [seed length]);
-
-
-  RSA* rsaKey = RSA_new();
-  BIGNUM * e = BN_new();
-  BN_dec2bn(&e, [PUBLIC_EXPONENT_STRING UTF8String]); // public exponent <- 65537
-
-  // generate rsa key
-  int status = RSA_generate_key_ex(rsaKey, RSA_KEY_LENGTH_IN_BITS, e, NULL);
-  TUTKeyPair *keyPair;
-  if (status > 0){
-    keyPair = [TUTCrypto createRSAKeyPair:rsaKey
-                                keyLength:RSA_KEY_LENGTH_IN_BITS
-                                  version:0];
-  } else {
-    *error = [TUTCrypto logOpenSslError:@"Error while generating rsa key" statusCode:status];
-  }
-  BN_free(e);
-  RSA_free(rsaKey);
-  return keyPair;
-}
-
 - (NSData *_Nullable)rsaEncryptWithPublicKey:(TUTPublicKey * _Nonnull)publicKey
                                         data:(NSData * _Nonnull)data
                                         seed:(NSData * _Nonnull)seed

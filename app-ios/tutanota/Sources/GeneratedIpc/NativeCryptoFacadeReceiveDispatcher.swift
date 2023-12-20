@@ -46,12 +46,6 @@ public class NativeCryptoFacadeReceiveDispatcher {
 				fileUri
 			)
 			return toJson(result)
-		case "generateRsaKey":
-			let seed = try! JSONDecoder().decode(DataWrapper.self, from: arg[0].data(using: .utf8)!)
-			let result = try await self.facade.generateRsaKey(
-				seed
-			)
-			return toJson(result)
 		case "argon2idHashRaw":
 			let password = try! JSONDecoder().decode(DataWrapper.self, from: arg[0].data(using: .utf8)!)
 			let salt = try! JSONDecoder().decode(DataWrapper.self, from: arg[1].data(using: .utf8)!)

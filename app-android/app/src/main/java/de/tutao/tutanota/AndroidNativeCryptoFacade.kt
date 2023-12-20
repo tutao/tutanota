@@ -123,17 +123,6 @@ constructor(
 		}
 	}
 
-	override suspend fun generateRsaKey(seed: DataWrapper): RsaKeyPair {
-		randomizer.setSeed(seed.data)
-		val generator = KeyPairGenerator.getInstance("RSA")
-		generator.initialize(RSA_KEY_LENGTH_IN_BITS, randomizer)
-		val keyPair = generator.generateKeyPair()
-		return RsaKeyPair(
-				PublicKey(keyPair.public as RSAPublicKey),
-				PrivateKey(keyPair.private as RSAPrivateCrtKey)
-		)
-	}
-
 	@Throws(CryptoError::class)
 	override suspend fun generateKyberKeypair(seed: DataWrapper): KyberKeyPair {
 		return generateKyberKeypairImpl(seed.data)

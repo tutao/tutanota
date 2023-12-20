@@ -35,21 +35,29 @@ actor IosNativeCryptoFacade: NativeCryptoFacade {
 		return plaintextPath
 	}
 
-	func generateRsaKey(_ seed: DataWrapper) async throws -> RsaKeyPair {
-		let tutKeyPair = try self.crypto.generateRsaKey(withSeed: seed.data)
-		return RsaKeyPair(tutKeyPair)
-	}
-
-	func rsaEncrypt(_ publicKey: RsaPublicKey, _ data: DataWrapper, _ seed: DataWrapper) async throws -> DataWrapper {
-		try self.crypto.rsaEncrypt(with: publicKey.toObjcKey(), data: data.data, seed: seed.data).wrap()
+	func rsaEncrypt(
+    _ publicKey: RsaPublicKey,
+    _ data: DataWrapper,
+    _ seed: DataWrapper
+  ) async throws -> DataWrapper {
+      try self.crypto.rsaEncrypt(with: publicKey.toObjcKey(), data: data.data, seed: seed.data).wrap()
 	}
 
 	func rsaDecrypt(_ privateKey: RsaPrivateKey, _ data: DataWrapper) async throws -> DataWrapper {
-		try self.crypto.rsaDecrypt(with: privateKey.toObjcKey(), data: data.data).wrap()
-	}
+		 try self.crypto.rsaDecrypt(
+        with: privateKey.toObjcKey(),
+        data: data.data
+      ).wrap()
+    }
 
-	func argon2idHashRaw(_ password: DataWrapper, _ salt: DataWrapper, _ timeCost: Int, _ memoryCost: Int, _ parallelism: Int, _ hashLength: Int) async throws
-		-> DataWrapper
+  func argon2idHashRaw(
+    _ password: DataWrapper,
+    _ salt: DataWrapper,
+    _ timeCost: Int,
+    _ memoryCost: Int,
+    _ parallelism: Int,
+    _ hashLength: Int
+  ) async throws -> DataWrapper
 	{
 		try generateArgon2idHash(
 			ofPassword: password,
@@ -60,16 +68,18 @@ actor IosNativeCryptoFacade: NativeCryptoFacade {
 			withMemoryCost: UInt(memoryCost)
 		)
 		.wrap()
-	}
+  }
 
-	func generateKyberKeypair(_ seed: DataWrapper) async throws -> KyberKeyPair { tutanota.generateKyberKeypair(withSeed: seed.data) }
+  func generateKyberKeypair(_ seed: DataWrapper) async throws -> KyberKeyPair {
+     tutanota.generateKyberKeypair(withSeed: seed.data) }
 
-	func kyberEncapsulate(_ publicKey: KyberPublicKey, _ seed: DataWrapper) async throws -> KyberEncapsulation {
-		try tutanota.kyberEncapsulate(publicKey: publicKey, withSeed: seed.data)
-	}
 
-	func kyberDecapsulate(_ privateKey: KyberPrivateKey, _ ciphertext: DataWrapper) async throws -> DataWrapper {
-		try tutanota.kyberDecapsulate(ciphertext: ciphertext.data, withPrivateKey: privateKey)
+  func kyberEncapsulate(_ publicKey: KyberPublicKey, _ seed: DataWrapper) async throws -> KyberEncapsulation {
+     try tutanota.kyberEncapsulate(publicKey: publicKey, withSeed: seed.data)
+  }
+
+  func kyberDecapsulate(_ privateKey: KyberPrivateKey, _ ciphertext: DataWrapper) async throws -> DataWrapper {
+    try tutanota.kyberDecapsulate(ciphertext: ciphertext.data, withPrivateKey: privateKey)
 	}
 }
 

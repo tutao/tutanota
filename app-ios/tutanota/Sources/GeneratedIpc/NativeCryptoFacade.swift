@@ -28,9 +28,6 @@ public protocol NativeCryptoFacade {
 		_ key: DataWrapper,
 		_ fileUri: String
 	) async throws -> String
-	func generateRsaKey(
-		_ seed: DataWrapper
-	) async throws -> RsaKeyPair
 	func argon2idHashRaw(
 		_ password: DataWrapper,
 		_ salt: DataWrapper,

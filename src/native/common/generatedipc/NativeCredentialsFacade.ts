@@ -1,6 +1,7 @@
 /* generated file, don't edit. */
 
 import { CredentialEncryptionMode } from "./CredentialEncryptionMode.js"
+
 /**
  * Operations for credential encryption operations using OS keychain.
  */

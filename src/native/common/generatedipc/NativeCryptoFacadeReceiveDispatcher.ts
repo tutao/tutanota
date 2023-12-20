@@ -32,10 +32,6 @@ export class NativeCryptoFacadeReceiveDispatcher {
 				const fileUri: string = arg[1]
 				return this.facade.aesDecryptFile(key, fileUri)
 			}
-			case "generateRsaKey": {
-				const seed: Uint8Array = arg[0]
-				return this.facade.generateRsaKey(seed)
-			}
 			case "argon2idHashRaw": {
 				const password: Uint8Array = arg[0]
 				const salt: Uint8Array = arg[1]
