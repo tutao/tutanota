@@ -1,7 +1,7 @@
 import type { NativeInterface } from "../../../native/common/NativeInterface"
 import { isApp } from "../../common/Env"
+import type { RsaKeyPair, RsaPrivateKey, RsaPublicKey } from "@tutao/tutanota-crypto"
 import { generateRsaKey, random, rsaDecrypt, rsaEncrypt } from "@tutao/tutanota-crypto"
-import type { RsaPrivateKey, RsaPublicKey, RsaKeyPair } from "@tutao/tutanota-crypto"
 import { NativeCryptoFacadeSendDispatcher } from "../../../native/common/generatedipc/NativeCryptoFacadeSendDispatcher"
 
 export async function createRsaImplementation(native: NativeInterface): Promise<RsaImplementation> {
@@ -14,6 +14,9 @@ export async function createRsaImplementation(native: NativeInterface): Promise<
 }
 
 export interface RsaImplementation {
+	/**
+	 * @deprecated The method should not be used. Use PQFacade.generateKeyPairs instead
+	 */
 	generateKey(): Promise<RsaKeyPair>
 
 	encrypt(publicKey: RsaPublicKey, bytes: Uint8Array): Promise<Uint8Array>
