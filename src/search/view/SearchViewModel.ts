@@ -423,7 +423,8 @@ export class SearchViewModel {
 	}
 
 	private async entityEventReceived(update: EntityUpdateData): Promise<void> {
-		if (this.lastType && !isUpdateForTypeRef(this.lastType, update)) {
+		const lastType = this.lastType
+		if (lastType && !isUpdateForTypeRef(lastType, update)) {
 			return
 		}
 		const { instanceListId, instanceId, operation } = update
@@ -432,6 +433,26 @@ export class SearchViewModel {
 		if (!this.isInSearchResult(typeRef, id)) {
 			return
 		}
+
+		if (isUpdateForTypeRef(CalendarEventTypeRef, update) && isSameTypeRefNullable(CalendarEventTypeRef, lastType)) {
+			const selectedItem = this.listModel.getSelectedAsArray().at(0)
+			const listModel = this.createList()
+			this.setMailFilter(this._mailFilterType)
+			this.applyMailFilterIfNeeded()
+
+			await listModel.loadInitial()
+			if (selectedItem != null) {
+				await listModel.loadAndSelect(elementIdPart(selectedItem._id), () => false)
+			}
+			this.listModel = listModel
+			this.listStateSubscription?.end(true)
+			this.listStateSubscription = this.listModel.stateStream.map((state) => this.onListStateChange(state))
+			this.updateSearchUrl()
+			this.updateUi()
+			return
+		}
+
+		this.listModel.getUnfilteredAsArray()
 		await this.listModel.entityEventReceived(instanceId, operation)
 		// run the mail or contact update after the update on the list is finished to avoid parallel loading
 		if (operation === OperationType.UPDATE && this.listModel?.isItemSelected(elementIdPart(id))) {
