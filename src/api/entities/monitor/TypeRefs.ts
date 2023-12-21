@@ -35,6 +35,39 @@ export type CounterValue = {
 	counterId: Id;
 	value: NumberString;
 }
+export const ErrorReportDataTypeRef: TypeRef<ErrorReportData> = new TypeRef("monitor", "ErrorReportData")
+
+export function createErrorReportData(values: StrippedEntity<ErrorReportData>): ErrorReportData {
+	return Object.assign(create(typeModels.ErrorReportData, ErrorReportDataTypeRef), values)
+}
+
+export type ErrorReportData = {
+	_type: TypeRef<ErrorReportData>;
+
+	_id: Id;
+	additionalInfo: string;
+	appVersion: string;
+	clientType: NumberString;
+	errorClass: string;
+	errorMessage: null | string;
+	stackTrace: string;
+	time: Date;
+	userId: null | string;
+	userMessage: null | string;
+}
+export const ErrorReportFileTypeRef: TypeRef<ErrorReportFile> = new TypeRef("monitor", "ErrorReportFile")
+
+export function createErrorReportFile(values: StrippedEntity<ErrorReportFile>): ErrorReportFile {
+	return Object.assign(create(typeModels.ErrorReportFile, ErrorReportFileTypeRef), values)
+}
+
+export type ErrorReportFile = {
+	_type: TypeRef<ErrorReportFile>;
+
+	_id: Id;
+	content: string;
+	name: string;
+}
 export const ReadCounterDataTypeRef: TypeRef<ReadCounterData> = new TypeRef("monitor", "ReadCounterData")
 
 export function createReadCounterData(values: StrippedEntity<ReadCounterData>): ReadCounterData {
@@ -62,6 +95,20 @@ export type ReadCounterReturn = {
 	value: null | NumberString;
 
 	counterValues: CounterValue[];
+}
+export const ReportErrorInTypeRef: TypeRef<ReportErrorIn> = new TypeRef("monitor", "ReportErrorIn")
+
+export function createReportErrorIn(values: StrippedEntity<ReportErrorIn>): ReportErrorIn {
+	return Object.assign(create(typeModels.ReportErrorIn, ReportErrorInTypeRef), values)
+}
+
+export type ReportErrorIn = {
+	_type: TypeRef<ReportErrorIn>;
+
+	_format: NumberString;
+
+	data: ErrorReportData;
+	files: ErrorReportFile[];
 }
 export const WriteCounterDataTypeRef: TypeRef<WriteCounterData> = new TypeRef("monitor", "WriteCounterData")
 

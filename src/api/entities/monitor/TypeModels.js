@@ -92,7 +92,7 @@ export const typeModels = {
             }
         },
         "app": "monitor",
-        "version": "22"
+        "version": "23"
     },
     "CounterValue": {
         "name": "CounterValue",
@@ -133,7 +133,152 @@ export const typeModels = {
         },
         "associations": {},
         "app": "monitor",
-        "version": "22"
+        "version": "23"
+    },
+    "ErrorReportData": {
+        "name": "ErrorReportData",
+        "since": 23,
+        "type": "AGGREGATED_TYPE",
+        "id": 316,
+        "rootId": "B21vbml0b3IAATw",
+        "versioned": false,
+        "encrypted": false,
+        "values": {
+            "_id": {
+                "final": true,
+                "name": "_id",
+                "id": 317,
+                "since": 23,
+                "type": "CustomId",
+                "cardinality": "One",
+                "encrypted": false
+            },
+            "additionalInfo": {
+                "final": true,
+                "name": "additionalInfo",
+                "id": 326,
+                "since": 23,
+                "type": "String",
+                "cardinality": "One",
+                "encrypted": false
+            },
+            "appVersion": {
+                "final": true,
+                "name": "appVersion",
+                "id": 319,
+                "since": 23,
+                "type": "String",
+                "cardinality": "One",
+                "encrypted": false
+            },
+            "clientType": {
+                "final": true,
+                "name": "clientType",
+                "id": 320,
+                "since": 23,
+                "type": "Number",
+                "cardinality": "One",
+                "encrypted": false
+            },
+            "errorClass": {
+                "final": true,
+                "name": "errorClass",
+                "id": 322,
+                "since": 23,
+                "type": "String",
+                "cardinality": "One",
+                "encrypted": false
+            },
+            "errorMessage": {
+                "final": true,
+                "name": "errorMessage",
+                "id": 323,
+                "since": 23,
+                "type": "String",
+                "cardinality": "ZeroOrOne",
+                "encrypted": false
+            },
+            "stackTrace": {
+                "final": true,
+                "name": "stackTrace",
+                "id": 324,
+                "since": 23,
+                "type": "String",
+                "cardinality": "One",
+                "encrypted": false
+            },
+            "time": {
+                "final": true,
+                "name": "time",
+                "id": 318,
+                "since": 23,
+                "type": "Date",
+                "cardinality": "One",
+                "encrypted": false
+            },
+            "userId": {
+                "final": true,
+                "name": "userId",
+                "id": 321,
+                "since": 23,
+                "type": "String",
+                "cardinality": "ZeroOrOne",
+                "encrypted": false
+            },
+            "userMessage": {
+                "final": true,
+                "name": "userMessage",
+                "id": 325,
+                "since": 23,
+                "type": "String",
+                "cardinality": "ZeroOrOne",
+                "encrypted": false
+            }
+        },
+        "associations": {},
+        "app": "monitor",
+        "version": "23"
+    },
+    "ErrorReportFile": {
+        "name": "ErrorReportFile",
+        "since": 23,
+        "type": "AGGREGATED_TYPE",
+        "id": 305,
+        "rootId": "B21vbml0b3IAATE",
+        "versioned": false,
+        "encrypted": false,
+        "values": {
+            "_id": {
+                "final": true,
+                "name": "_id",
+                "id": 306,
+                "since": 23,
+                "type": "CustomId",
+                "cardinality": "One",
+                "encrypted": false
+            },
+            "content": {
+                "final": true,
+                "name": "content",
+                "id": 308,
+                "since": 23,
+                "type": "String",
+                "cardinality": "One",
+                "encrypted": false
+            },
+            "name": {
+                "final": true,
+                "name": "name",
+                "id": 307,
+                "since": 23,
+                "type": "String",
+                "cardinality": "One",
+                "encrypted": false
+            }
+        },
+        "associations": {},
+        "app": "monitor",
+        "version": "23"
     },
     "ReadCounterData": {
         "name": "ReadCounterData",
@@ -183,7 +328,7 @@ export const typeModels = {
         },
         "associations": {},
         "app": "monitor",
-        "version": "22"
+        "version": "23"
     },
     "ReadCounterReturn": {
         "name": "ReadCounterReturn",
@@ -226,7 +371,51 @@ export const typeModels = {
             }
         },
         "app": "monitor",
-        "version": "22"
+        "version": "23"
+    },
+    "ReportErrorIn": {
+        "name": "ReportErrorIn",
+        "since": 23,
+        "type": "DATA_TRANSFER_TYPE",
+        "id": 335,
+        "rootId": "B21vbml0b3IAAU8",
+        "versioned": false,
+        "encrypted": false,
+        "values": {
+            "_format": {
+                "final": false,
+                "name": "_format",
+                "id": 336,
+                "since": 23,
+                "type": "Number",
+                "cardinality": "One",
+                "encrypted": false
+            }
+        },
+        "associations": {
+            "data": {
+                "final": false,
+                "name": "data",
+                "id": 337,
+                "since": 23,
+                "type": "AGGREGATION",
+                "cardinality": "One",
+                "refType": "ErrorReportData",
+                "dependency": null
+            },
+            "files": {
+                "final": false,
+                "name": "files",
+                "id": 338,
+                "since": 23,
+                "type": "AGGREGATION",
+                "cardinality": "Any",
+                "refType": "ErrorReportFile",
+                "dependency": null
+            }
+        },
+        "app": "monitor",
+        "version": "23"
     },
     "WriteCounterData": {
         "name": "WriteCounterData",
@@ -285,6 +474,6 @@ export const typeModels = {
         },
         "associations": {},
         "app": "monitor",
-        "version": "22"
+        "version": "23"
     }
 }
