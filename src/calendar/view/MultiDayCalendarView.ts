@@ -87,41 +87,36 @@ export class MultiDayCalendarView implements Component<Attrs> {
 		const startOfPreviousPeriod = incrementDate(new Date(startOfThisPeriod), -attrs.daysInPeriod)
 		const startOfNextPeriod = incrementDate(new Date(startOfThisPeriod), attrs.daysInPeriod)
 
-		const previousPageEvents = this.getEventsForWeek(
-			attrs.startOfTheWeek,
-			attrs.selectedDate,
-			attrs.getEventsOnDays,
-			attrs.daysInPeriod,
-			startOfPreviousPeriod,
-		)
-		const currentPageEvents = this.getEventsForWeek(attrs.startOfTheWeek, attrs.selectedDate, attrs.getEventsOnDays, attrs.daysInPeriod, startOfThisPeriod)
-		const nextPageEvents = this.getEventsForWeek(attrs.startOfTheWeek, attrs.selectedDate, attrs.getEventsOnDays, attrs.daysInPeriod, startOfNextPeriod)
-		const weekEvents = this.getEventsForWeek(attrs.startOfTheWeek, attrs.selectedDate, attrs.getEventsOnDays, 7)
+		const previousPageEvents = this.getEventsInRange(attrs.getEventsOnDays, attrs.daysInPeriod, startOfPreviousPeriod)
+		const currentPageEvents = this.getEventsInRange(attrs.getEventsOnDays, attrs.daysInPeriod, startOfThisPeriod)
+		const nextPageEvents = this.getEventsInRange(attrs.getEventsOnDays, attrs.daysInPeriod, startOfNextPeriod)
+		const startOfWeek = getStartOfWeek(attrs.selectedDate, getStartOfTheWeekOffset(attrs.startOfTheWeek))
+		const weekEvents = this.getEventsInRange(attrs.getEventsOnDays, 7, startOfWeek)
+
+		const isDayView = attrs.daysInPeriod === 1
+		const isDesktopLayout = styles.isDesktopLayout()
 
 		return m(".flex.col.fill-absolute", [
-			this.renderDateSelector(attrs),
-			!styles.isDesktopLayout()
-				? this.renderHeaderMobile(
-						attrs.daysInPeriod === 1 ? currentPageEvents : weekEvents,
-						attrs.groupColors,
-						attrs.onEventClicked,
-						attrs.temporaryEvents,
-				  )
+			!isDesktopLayout
+				? [
+						this.renderDateSelector(attrs, isDayView),
+						this.renderHeaderMobile(isDayView ? currentPageEvents : weekEvents, attrs.groupColors, attrs.onEventClicked, attrs.temporaryEvents),
+				  ]
 				: null,
 			m(
 				".rel.flex-grow.overflow-hidden",
 				m(PageView, {
 					previousPage: {
 						key: startOfPreviousPeriod.getTime(),
-						nodes: this.renderWeek(attrs, previousPageEvents, currentPageEvents),
+						nodes: this.renderDays(attrs, previousPageEvents, currentPageEvents, isDayView, isDesktopLayout),
 					},
 					currentPage: {
 						key: startOfThisPeriod.getTime(),
-						nodes: this.renderWeek(attrs, currentPageEvents, currentPageEvents),
+						nodes: this.renderDays(attrs, currentPageEvents, currentPageEvents, isDayView, isDesktopLayout),
 					},
 					nextPage: {
 						key: startOfNextPeriod.getTime(),
-						nodes: this.renderWeek(attrs, nextPageEvents, currentPageEvents),
+						nodes: this.renderDays(attrs, nextPageEvents, currentPageEvents, isDayView, isDesktopLayout),
 					},
 					onChangePage: (next) => attrs.onChangeViewPeriod(next),
 				}),
@@ -129,61 +124,53 @@ export class MultiDayCalendarView implements Component<Attrs> {
 		])
 	}
 
-	private getEventsForWeek(
-		startOfTheWeek: WeekStart,
-		date: Date,
-		getEventsFunction: (range: Date[]) => EventsOnDays,
-		daysInPeriod: number,
-		startOfPeriod: Date = getStartOfWeek(date, getStartOfTheWeekOffset(startOfTheWeek)),
-	) {
+	private getEventsInRange(getEventsFunction: (range: Date[]) => EventsOnDays, daysInPeriod: number, startOfPeriod: Date) {
 		const weekRange = getRangeOfDays(startOfPeriod, daysInPeriod)
 		return getEventsFunction(weekRange)
 	}
 
-	private renderDateSelector(attrs: Attrs): Children {
-		return !styles.isDesktopLayout()
-			? m("", [
-					m(
-						".header-bg.pb-s.overflow-hidden",
-						{
-							style: {
-								"margin-left": px(size.calendar_hour_width_mobile),
-							},
-						},
-						m(DaySelector, {
-							eventsForDays: attrs.eventsForDays,
-							selectedDate: attrs.selectedDate,
-							onDateSelected: (date) => attrs.onDateSelected(date),
-							wide: true,
-							startOfTheWeekOffset: getStartOfTheWeekOffset(attrs.startOfTheWeek),
-							isDaySelectorExpanded: attrs.isDaySelectorExpanded,
-							handleDayPickerSwipe: (isNext: boolean) => {
-								const sign = isNext ? 1 : -1
-								const duration = {
-									month: sign * (attrs.isDaySelectorExpanded ? 1 : 0),
-									week: sign * (attrs.isDaySelectorExpanded ? 0 : 1),
-								}
+	private renderDateSelector(attrs: Attrs, isDayView: boolean): Children {
+		return m("", [
+			m(
+				".header-bg.pb-s.overflow-hidden",
+				{
+					style: {
+						"margin-left": px(size.calendar_hour_width_mobile),
+					},
+				},
+				m(DaySelector, {
+					eventsForDays: attrs.eventsForDays,
+					selectedDate: attrs.selectedDate,
+					onDateSelected: (date) => attrs.onDateSelected(date),
+					wide: true,
+					startOfTheWeekOffset: getStartOfTheWeekOffset(attrs.startOfTheWeek),
+					isDaySelectorExpanded: attrs.isDaySelectorExpanded,
+					handleDayPickerSwipe: (isNext: boolean) => {
+						const sign = isNext ? 1 : -1
+						const duration = {
+							month: sign * (attrs.isDaySelectorExpanded ? 1 : 0),
+							week: sign * (attrs.isDaySelectorExpanded ? 0 : 1),
+						}
 
-								attrs.onDateSelected(DateTime.fromJSDate(attrs.selectedDate).plus(duration).toJSDate())
-							},
-							showDaySelection: attrs.daysInPeriod === 1,
-							highlightToday: true,
-							highlightSelectedWeek: attrs.daysInPeriod > 1,
-							useNarrowWeekName: styles.isSingleColumnLayout(),
-						}),
-					),
-			  ])
-			: null
+						attrs.onDateSelected(DateTime.fromJSDate(attrs.selectedDate).plus(duration).toJSDate())
+					},
+					showDaySelection: isDayView,
+					highlightToday: true,
+					highlightSelectedWeek: !isDayView,
+					useNarrowWeekName: styles.isSingleColumnLayout(),
+				}),
+			),
+		])
 	}
 
-	private getTodayTimestamp(): number {
+	private static getTodayTimestamp(): number {
 		return getStartOfDay(new Date()).getTime()
 	}
 
-	private renderWeek(attrs: Attrs, thisWeek: EventsOnDays, mainWeek: EventsOnDays): Children {
+	private renderDays(attrs: Attrs, thisPeriod: EventsOnDays, mainPeriod: EventsOnDays, isDayView: boolean, isDesktopLayout: boolean): Children {
 		let containerStyle
 
-		if (styles.isDesktopLayout()) {
+		if (isDesktopLayout) {
 			containerStyle = {
 				marginLeft: "5px",
 				overflow: "hidden",
@@ -196,9 +183,7 @@ export class MultiDayCalendarView implements Component<Attrs> {
 		return m(
 			".fill-absolute.flex.col.overflow-hidden",
 			{
-				class: styles.isDesktopLayout()
-					? "mlr-l border-radius-big"
-					: "border-radius-top-left-big border-radius-top-right-big content-bg mlr-safe-inset",
+				class: isDesktopLayout ? "mlr-l border-radius-big" : "border-radius-top-left-big border-radius-top-right-big content-bg mlr-safe-inset",
 				style: containerStyle,
 				oncreate: () => {
 					this.redrawIntervalId = setInterval(m.redraw, 1000 * 60)
@@ -229,7 +214,7 @@ export class MultiDayCalendarView implements Component<Attrs> {
 				},
 			},
 			[
-				styles.isDesktopLayout() ? this.renderHeaderDesktop(attrs, thisWeek, mainWeek) : null,
+				isDesktopLayout ? this.renderHeaderDesktop(attrs, thisPeriod, mainPeriod) : null,
 				// using .scroll-no-overlay because of a browser bug in Chromium where scroll wouldn't work at all
 				// see https://github.com/tutao/tutanota/issues/4846
 				m(
@@ -241,7 +226,7 @@ export class MultiDayCalendarView implements Component<Attrs> {
 							this.domElements.push(vnode.dom as HTMLElement)
 						},
 						onscroll: (event: Event) => {
-							if (thisWeek === mainWeek) {
+							if (thisPeriod === mainPeriod) {
 								for (const dom of this.domElements) {
 									if (dom !== event.target) {
 										dom.scrollTop = (event.target as HTMLElement).scrollTop
@@ -256,7 +241,7 @@ export class MultiDayCalendarView implements Component<Attrs> {
 						m(
 							".flex.col",
 							calendarDayTimes.map((time) => {
-								const width = styles.isDesktopLayout() ? size.calendar_hour_width : size.calendar_hour_width_mobile
+								const width = isDesktopLayout ? size.calendar_hour_width : size.calendar_hour_width_mobile
 								return m(
 									".calendar-hour.flex.cursor-pointer",
 									{
@@ -269,21 +254,21 @@ export class MultiDayCalendarView implements Component<Attrs> {
 										".pl-s.pr-s.center.small.flex.flex-column.justify-center",
 										{
 											style: {
-												"line-height": styles.isDesktopLayout() ? px(size.calendar_hour_height) : "unset",
+												"line-height": isDesktopLayout ? px(size.calendar_hour_height) : "unset",
 												width: px(width),
 												height: px(size.calendar_hour_height),
 												"border-right": `1px solid ${theme.content_border}`,
 											},
 										},
-										styles.isDesktopLayout() ? formatTime(time.toDate()) : formatShortTime(time.toDate()),
+										isDesktopLayout ? formatTime(time.toDate()) : formatShortTime(time.toDate()),
 									),
 								)
 							}),
 						),
 						m(
 							".flex.flex-grow",
-							thisWeek.days.map((weekday, i) => {
-								const events = thisWeek.shortEvents[i]
+							thisPeriod.days.map((weekday, i) => {
+								const events = thisPeriod.shortEvents[i]
 
 								const newEventHandler = (hours: number, minutes: number) => {
 									const newDate = new Date(weekday)
@@ -295,7 +280,7 @@ export class MultiDayCalendarView implements Component<Attrs> {
 								return m(
 									".flex-grow",
 									{
-										class: attrs.daysInPeriod > 1 ? "calendar-column-border" : "",
+										class: !isDayView ? "calendar-column-border" : "",
 										style: {
 											height: px(calendarDayTimes.length * size.calendar_hour_height),
 										},
@@ -304,7 +289,7 @@ export class MultiDayCalendarView implements Component<Attrs> {
 										onEventClicked: attrs.onEventClicked,
 										groupColors: attrs.groupColors,
 										events: events,
-										displayTimeIndicator: weekday.getTime() === this.getTodayTimestamp(),
+										displayTimeIndicator: weekday.getTime() === MultiDayCalendarView.getTodayTimestamp(),
 										onTimePressed: newEventHandler,
 										onTimeContextPressed: newEventHandler,
 										day: weekday,
@@ -337,7 +322,7 @@ export class MultiDayCalendarView implements Component<Attrs> {
 		onEventClicked: CalendarEventBubbleClickHandler,
 		temporaryEvents: Array<CalendarEvent>,
 	): Children {
-		const longEventsResult = this.renderLongEvents(thisPageEvents.days, thisPageEvents.longEvents, groupColors, onEventClicked, temporaryEvents)
+		const longEventsResult = this.renderLongEvents(thisPageEvents.days, thisPageEvents.longEvents, groupColors, onEventClicked, temporaryEvents, false)
 		// We calculate the height manually because we want the header to transition between heights when swiping left and right
 		// Hardcoding some styles instead of classes so that we can avoid nasty magic numbers
 		const mainPageEventsCount = longEventsResult.rows
@@ -398,10 +383,10 @@ export class MultiDayCalendarView implements Component<Attrs> {
 		mainPageEvents: EventsOnDays,
 		groupColors: GroupColors,
 		onEventClicked: CalendarEventBubbleClickHandler,
-		temporayEvents: Array<CalendarEvent>,
+		temporaryEvents: Array<CalendarEvent>,
 	): Children {
-		const thisPageLongEvents = this.renderLongEvents(thisPageEvents.days, thisPageEvents.longEvents, groupColors, onEventClicked, temporayEvents)
-		const mainPageLongEvents = this.renderLongEvents(mainPageEvents.days, mainPageEvents.longEvents, groupColors, onEventClicked, temporayEvents)
+		const thisPageLongEvents = this.renderLongEvents(thisPageEvents.days, thisPageEvents.longEvents, groupColors, onEventClicked, temporaryEvents, true)
+		const mainPageLongEvents = this.renderLongEvents(mainPageEvents.days, mainPageEvents.longEvents, groupColors, onEventClicked, temporaryEvents, true)
 		return m(
 			".rel.mb-xs",
 			{
@@ -437,11 +422,12 @@ export class MultiDayCalendarView implements Component<Attrs> {
 		groupColors: GroupColors,
 		onEventClicked: CalendarEventBubbleClickHandler,
 		temporaryEvents: Array<CalendarEvent>,
+		isDesktopLayout: boolean,
 	): {
 		children: Children
 		rows: number
 	} {
-		if (styles.isDesktopLayout()) {
+		if (isDesktopLayout) {
 			return dayRange.length === 1
 				? {
 						children: this.renderLongEventsForSingleDay(dayRange[0], events, groupColors, onEventClicked, temporaryEvents),
