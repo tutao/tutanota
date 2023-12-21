@@ -16,7 +16,7 @@ import type { lazy } from "@tutao/tutanota-utils"
 import { isSameTypeRef, Mapper, ofClass, promiseMap, splitInChunks, TypeRef } from "@tutao/tutanota-utils"
 import { assertWorkerOrNode } from "../../common/Env"
 import type { ListElementEntity, SomeEntity, TypeModel } from "../../common/EntityTypes"
-import { getElementId, LOAD_MULTIPLE_LIMIT, POST_MULTIPLE_LIMIT } from "../../common/utils/EntityUtils"
+import { elementIdPart, LOAD_MULTIPLE_LIMIT, POST_MULTIPLE_LIMIT } from "../../common/utils/EntityUtils"
 import { Type } from "../../common/EntityConstants"
 import { SetupMultipleError } from "../../common/error/SetupMultipleError"
 import { expandId } from "./DefaultEntityRestCache.js"
@@ -276,11 +276,19 @@ export class EntityRestClient implements EntityRestInterface {
 		)
 	}
 
+	private getElementIdFromInstance(instance: Record<string, any>): Id {
+		if (typeof instance._id === "string") {
+			return instance._id
+		} else {
+			const idTuple = instance._id as IdTuple
+			return elementIdPart(idTuple)
+		}
+	}
+
 	async _decryptMapAndMigrate<T>(instance: any, model: TypeModel, ownerEncSessionKeyProvider?: OwnerEncSessionKeyProvider): Promise<T> {
 		let sessionKey: Aes128Key | Aes256Key | null = null
 		if (ownerEncSessionKeyProvider) {
-			// console.log("instance", instance, getElementId(instance))
-			const encSessionKey = await ownerEncSessionKeyProvider(getElementId(instance))
+			const encSessionKey = await ownerEncSessionKeyProvider(this.getElementIdFromInstance(instance))
 			if (encSessionKey) {
 				sessionKey = this._crypto.decryptSessionKeyWithGroupKey(encSessionKey.ownerGroup, encSessionKey.ownerEncSessionKey)
 			}
