@@ -1,7 +1,7 @@
 import { ENTITY_EVENT_BATCH_TTL_DAYS, getMembershipGroupType, GroupType, NOTHING_INDEXED_TIMESTAMP, OperationType } from "../../common/TutanotaConstants"
 import { ConnectionError, NotAuthorizedError, NotFoundError } from "../../common/error/RestError"
 import type { EntityUpdate, GroupMembership, User } from "../../entities/sys/TypeRefs.js"
-import { EntityEventBatch, EntityEventBatchTypeRef, GroupInfoTypeRef, UserTypeRef, WhitelabelChildTypeRef } from "../../entities/sys/TypeRefs.js"
+import { EntityEventBatch, EntityEventBatchTypeRef, GroupInfoTypeRef, UserTypeRef } from "../../entities/sys/TypeRefs.js"
 import type { DatabaseEntry, DbKey, DbTransaction } from "./DbFacade"
 import { b64UserIdHash, DbFacade } from "./DbFacade"
 import type { DeferredObject } from "@tutao/tutanota-utils"
@@ -36,7 +36,6 @@ import { SuggestionFacade } from "./SuggestionFacade"
 import { DbError } from "../../common/error/DbError"
 import type { QueuedBatch } from "../EventQueue.js"
 import { EventQueue } from "../EventQueue.js"
-import { WhitelabelChildIndexer } from "./WhitelabelChildIndexer"
 import { CancelledError } from "../../common/error/CancelledError"
 import { MembershipRemovedError } from "../../common/error/MembershipRemovedError"
 import type { BrowserData } from "../../../misc/ClientConstants"
@@ -104,7 +103,6 @@ export class Indexer {
 	readonly _contact: ContactIndexer
 	readonly _mail: MailIndexer
 	readonly _groupInfo: GroupInfoIndexer
-	readonly _whitelabelChildIndexer: WhitelabelChildIndexer
 
 	/**
 	 * Last batch id per group from initial loading.
@@ -142,7 +140,6 @@ export class Indexer {
 		this._entityRestClient = entityRestClient
 		this._entity = new EntityClient(defaultEntityRestCache)
 		this._contact = new ContactIndexer(this._core, this.db, this._entity, new SuggestionFacade(ContactTypeRef, this.db))
-		this._whitelabelChildIndexer = new WhitelabelChildIndexer(this._core, this.db, this._entity, new SuggestionFacade(WhitelabelChildTypeRef, this.db))
 		const dateProvider = new LocalTimeDateProvider()
 		this._mail = new MailIndexer(this._core, this.db, this.infoMessageHandler, entityRestClient, defaultEntityRestCache, dateProvider, mailFacade)
 		this._groupInfo = new GroupInfoIndexer(this._core, this.db, this._entity, new SuggestionFacade(GroupInfoTypeRef, this.db))
@@ -201,7 +198,6 @@ export class Indexer {
 			this._core.startProcessing()
 			await this.indexOrLoadContactListIfNeeded(user, cacheInfo)
 			await this._groupInfo.indexAllUserAndTeamGroupInfosForAdmin(user)
-			await this._whitelabelChildIndexer.indexAllWhitelabelChildrenForAdmin(user)
 			await this._mail.mailboxIndexingPromise
 			await this._mail.indexMailboxes(user, this._mail.currentIndexTimestamp)
 			const groupIdToEventBatches = await this._loadPersistentGroupData(user)
@@ -348,11 +344,7 @@ export class Indexer {
 
 		this._dbInitializedDeferredObject.resolve()
 
-		await Promise.all([
-			this._contact.suggestionFacade.load(),
-			this._groupInfo.suggestionFacade.load(),
-			this._whitelabelChildIndexer.suggestionFacade.load(),
-		])
+		await Promise.all([this._contact.suggestionFacade.load(), this._groupInfo.suggestionFacade.load()])
 	}
 
 	async _updateIndexedGroups(): Promise<void> {
@@ -676,12 +668,8 @@ export class Indexer {
 						getFromMap(all, MailTypeRef, () => []).push(update)
 					} else if (isSameTypeRefByAttr(ContactTypeRef, update.application, update.type)) {
 						getFromMap(all, ContactTypeRef, () => []).push(update)
-					} else if (isSameTypeRefByAttr(GroupInfoTypeRef, update.application, update.type)) {
-						getFromMap(all, GroupInfoTypeRef, () => []).push(update)
 					} else if (isSameTypeRefByAttr(UserTypeRef, update.application, update.type)) {
 						getFromMap(all, UserTypeRef, () => []).push(update)
-					} else if (isSameTypeRefByAttr(WhitelabelChildTypeRef, update.application, update.type)) {
-						getFromMap(all, WhitelabelChildTypeRef, () => []).push(update)
 					}
 
 					return all
@@ -700,12 +688,6 @@ export class Indexer {
 						promise = this._mail.processEntityEvents(value, groupId, batchId, indexUpdate)
 					} else if (isSameTypeRef(ContactTypeRef, key)) {
 						promise = this._contact.processEntityEvents(value, groupId, batchId, indexUpdate)
-					} else if (isSameTypeRef(GroupInfoTypeRef, key)) {
-						promise = this._groupInfo.processEntityEvents(value, groupId, batchId, indexUpdate, this._initParams.user)
-					} else if (isSameTypeRef(UserTypeRef, key)) {
-						promise = this._processUserEntityEvents(value)
-					} else if (isSameTypeRef(WhitelabelChildTypeRef, key)) {
-						promise = this._whitelabelChildIndexer.processEntityEvents(value, groupId, batchId, indexUpdate, this._initParams.user)
 					}
 
 					return promise
