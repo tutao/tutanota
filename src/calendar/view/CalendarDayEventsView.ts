@@ -39,14 +39,14 @@ export const calendarDayTimes: Array<Time> = numberRange(0, 23).map((number) => 
 const allHoursHeight = size.calendar_hour_height * calendarDayTimes.length
 
 export class CalendarDayEventsView implements Component<Attrs> {
-	private _dayDom: HTMLElement | null = null
+	private dayDom: HTMLElement | null = null
 
 	view({ attrs }: Vnode<Attrs>): Children {
 		return m(
 			".col.rel",
 			{
 				oncreate: (vnode) => {
-					this._dayDom = vnode.dom as HTMLElement
+					this.dayDom = vnode.dom as HTMLElement
 					m.redraw()
 				},
 				onmousemove: (mouseEvent: MouseEvent) => {
@@ -68,13 +68,13 @@ export class CalendarDayEventsView implements Component<Attrs> {
 						},
 					}),
 				),
-				this._dayDom ? this._renderEvents(attrs, attrs.events) : null,
-				this._renderTimeIndicator(attrs),
+				this.dayDom ? this.renderEvents(attrs, attrs.events) : null,
+				this.renderTimeIndicator(attrs),
 			],
 		)
 	}
 
-	_renderTimeIndicator(attrs: Attrs): Children {
+	private renderTimeIndicator(attrs: Attrs): Children {
 		const now = new Date()
 
 		if (!attrs.displayTimeIndicator) {
@@ -109,11 +109,11 @@ export class CalendarDayEventsView implements Component<Attrs> {
 		]
 	}
 
-	_renderEvents(attrs: Attrs, events: Array<CalendarEvent>): Children {
-		return layOutEvents(events, getTimeZone(), (columns) => this._renderColumns(attrs, columns), EventLayoutMode.TimeBasedColumn)
+	private renderEvents(attrs: Attrs, events: Array<CalendarEvent>): Children {
+		return layOutEvents(events, getTimeZone(), (columns) => this.renderColumns(attrs, columns), EventLayoutMode.TimeBasedColumn)
 	}
 
-	_renderEvent(attrs: Attrs, ev: CalendarEvent, columnIndex: number, columns: Array<Array<CalendarEvent>>, columnWidth: number): Children {
+	private renderEvent(attrs: Attrs, ev: CalendarEvent, columnIndex: number, columns: Array<Array<CalendarEvent>>, columnWidth: number): Children {
 		// If an event starts in the previous day or ends in the next, we want to clamp top/height to fit within just this day
 		const zone = getTimeZone()
 		const startOfEvent = eventStartsBefore(attrs.day, zone, ev) ? getStartOfDay(attrs.day) : ev.startTime
@@ -155,11 +155,11 @@ export class CalendarDayEventsView implements Component<Attrs> {
 		)
 	}
 
-	_renderColumns(attrs: Attrs, columns: Array<Array<CalendarEvent>>): ChildArray {
-		const columnWidth = neverNull(this._dayDom).clientWidth / columns.length
+	private renderColumns(attrs: Attrs, columns: Array<Array<CalendarEvent>>): ChildArray {
+		const columnWidth = neverNull(this.dayDom).clientWidth / columns.length
 		return columns.map((column, index) => {
 			return column.map((event) => {
-				return this._renderEvent(attrs, event, index, columns, Math.floor(columnWidth))
+				return this.renderEvent(attrs, event, index, columns, Math.floor(columnWidth))
 			})
 		})
 	}
