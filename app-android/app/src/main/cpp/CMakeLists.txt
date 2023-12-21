@@ -3,8 +3,8 @@ project("tutanota"
         LANGUAGES C CXX
         )
 
-set(ARGON2_DIR "../../../../../libs/phc-winner-argon2")
-set(LIBOQS_DIR "../../../../../libs/liboqs")
+set(ARGON2_DIR "../../../../../libs/webassembly/phc-winner-argon2")
+set(LIBOQS_DIR "../../../../../libs/webassembly/liboqs")
 
 file(MAKE_DIRECTORY "${CMAKE_CURRENT_BINARY_DIR}/include/oqs")
 file(COPY
