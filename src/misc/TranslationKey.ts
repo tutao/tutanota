@@ -752,6 +752,7 @@ export type TranslationKeyType =
 	| "largeSignature_msg"
 	| "lastAccessWithTime_label"
 	| "lastAccess_label"
+	| "lastAccessWithTime_label"
 	| "lastName_placeholder"
 	| "lastSync_label"
 	| "laterInvoicingInfo_msg"

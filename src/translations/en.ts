@@ -768,6 +768,7 @@ export default {
 		"largeSignature_msg": "The signature you defined is over {1}kB in size. It will be appended to every email by default. Do you want to use it anyway?",
 		"lastAccessWithTime_label": "Last access: {time}",
 		"lastAccess_label": "Last access",
+		"lastAccessWithTime_label": "Last access: {time}",
 		"lastName_placeholder": "Last name",
 		"lastSync_label": "Last synchronization: {date}",
 		"laterInvoicingInfo_msg": "Info: Additionally ordered features will not be invoiced directly, but at the beginning of your next subscription month.",

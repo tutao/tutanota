@@ -232,7 +232,9 @@ export class LoginSettingsViewer implements UpdatableSettingsViewer {
 							{
 								main: thisSession ? lang.get("thisClient_label") : session.clientIdentifier,
 								info: [
-									`${lang.get("lastAccess_label")}: ${formatDateTimeFromYesterdayOn(session.lastAccessTime)}`,
+									lang.get("lastAccessWithTime_label", {
+										"{time}": formatDateTimeFromYesterdayOn(session.lastAccessTime),
+									}),
 									session.loginIpAddress ? session.loginIpAddress : "",
 								],
 								click: () => this.showActiveSessionInfoDialog(session, thisSession),
