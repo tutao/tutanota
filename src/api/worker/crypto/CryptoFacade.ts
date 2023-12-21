@@ -230,6 +230,11 @@ export class CryptoFacade {
 		return decryptKey(gk, ownerEncSessionKey)
 	}
 
+	decryptSessionKeyWithGroupKey(ownerGroup: Id, ownerEncSessionKey: Uint8Array): Aes128Key | Aes256Key {
+		const gk = this.userFacade.getGroupKey(ownerGroup)
+		return decryptKey(gk, ownerEncSessionKey)
+	}
+
 	/**
 	 * Returns the session key for the provided type/instance:
 	 * * null, if the instance is unencrypted

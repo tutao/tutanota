@@ -532,7 +532,7 @@ export class MailFacade {
 		if (isLegacyMail(draft)) {
 			return draft.replyTos
 		} else {
-			const ownerEncSessionKeyProvider: OwnerEncSessionKeyProvider = async (instanceElementId: Id) => assertNotNull(draft._ownerEncSessionKey)
+			const ownerEncSessionKeyProvider: OwnerEncSessionKeyProvider = async (instanceElementId: Id) => ownerEncSessionKeyFromMail(draft)
 			const mailDetailsDraftId = assertNotNull(draft.mailDetailsDraft, "draft without mailDetailsDraft")
 			const mailDetails = await this.entityClient.loadMultiple(
 				MailDetailsDraftTypeRef,
@@ -896,7 +896,10 @@ export class MailFacade {
 				const instanceSessionKey = assertNotNull(
 					resolvedSessionKeys.instanceSessionKeys.find((instanceSessionKey) => instanceElementId === instanceSessionKey.instanceId),
 				)
-				return instanceSessionKey.symEncSessionKey
+				return {
+					ownerEncSessionKey: instanceSessionKey.symEncSessionKey,
+					ownerGroup: mailOwnerGroupId,
+				}
 			}
 		}
 		return await this.entityClient.loadMultiple(FileTypeRef, attachmentsListId, attachmentElementIds, ownerEncSessionKeyProvider)
@@ -915,7 +918,7 @@ export class MailFacade {
 				MailDetailsBlobTypeRef,
 				listIdPart(mailDetailsBlobId),
 				[elementIdPart(mailDetailsBlobId)],
-				async () => assertNotNull(mail._ownerEncSessionKey),
+				async () => ownerEncSessionKeyFromMail(mail),
 			)
 			if (mailDetailsBlobs.length === 0) {
 				throw new NotFoundError(`MailDetailsBlob ${mailDetailsBlobId}`)
@@ -937,7 +940,7 @@ export class MailFacade {
 				MailDetailsDraftTypeRef,
 				listIdPart(detailsDraftId),
 				[elementIdPart(detailsDraftId)],
-				async () => assertNotNull(mail._ownerEncSessionKey),
+				async () => ownerEncSessionKeyFromMail(mail),
 			)
 			if (mailDetailsDrafts.length === 0) {
 				throw new NotFoundError(`MailDetailsDraft ${detailsDraftId}`)
@@ -993,5 +996,16 @@ export function validateMimeTypesForAttachments(attachments: Attachments) {
 				throw new ProgrammingError(`${attachment.mimeType} is not a correctly formatted mimetype (${attachment.name})`)
 			}
 		}
+	}
+}
+
+export function ownerEncSessionKeyFromMail(mail: Mail | null | undefined): { ownerEncSessionKey: Uint8Array; ownerGroup: Id } | null {
+	if (mail && mail._ownerEncSessionKey && mail._ownerGroup) {
+		return {
+			ownerEncSessionKey: mail._ownerEncSessionKey,
+			ownerGroup: mail._ownerGroup,
+		}
+	} else {
+		return null
 	}
 }

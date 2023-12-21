@@ -42,7 +42,7 @@ export interface EntityRestClientSetupOptions {
 }
 
 export interface OwnerEncSessionKeyProvider {
-	(instanceElementId: Id): Promise<Uint8Array>
+	(instanceElementId: Id): Promise<{ ownerEncSessionKey: Uint8Array; ownerGroup: Id } | null>
 }
 
 /**
@@ -277,10 +277,15 @@ export class EntityRestClient implements EntityRestInterface {
 	}
 
 	async _decryptMapAndMigrate<T>(instance: any, model: TypeModel, ownerEncSessionKeyProvider?: OwnerEncSessionKeyProvider): Promise<T> {
-		let sessionKey: Aes128Key | Aes256Key | null
+		let sessionKey: Aes128Key | Aes256Key | null = null
 		if (ownerEncSessionKeyProvider) {
-			sessionKey = this._crypto.decryptSessionKey(instance, await ownerEncSessionKeyProvider(getElementId(instance)))
-		} else {
+			// console.log("instance", instance, getElementId(instance))
+			const encSessionKey = await ownerEncSessionKeyProvider(getElementId(instance))
+			if (encSessionKey) {
+				sessionKey = this._crypto.decryptSessionKeyWithGroupKey(encSessionKey.ownerGroup, encSessionKey.ownerEncSessionKey)
+			}
+		}
+		if (sessionKey === null) {
 			try {
 				sessionKey = await this._crypto.resolveSessionKey(model, instance)
 			} catch (e) {

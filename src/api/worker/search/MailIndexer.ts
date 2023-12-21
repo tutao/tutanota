@@ -32,7 +32,7 @@ import { isDetailsDraft, isLegacyMail, MailWrapper } from "../../common/MailWrap
 import { EphemeralCacheStorage } from "../rest/EphemeralCacheStorage"
 import { InfoMessageHandler } from "../../../gui/InfoMessageHandler.js"
 import { ElementDataOS, GroupDataOS, Metadata, MetaDataOS } from "./IndexTables.js"
-import { MailFacade } from "../facades/lazy/MailFacade.js"
+import { MailFacade, ownerEncSessionKeyFromMail } from "../facades/lazy/MailFacade.js"
 import { getDisplayedSender, MailAddressAndName } from "../../common/mail/CommonMailUtils.js"
 import { containsEventOfType, EntityUpdateData } from "../../common/utils/EntityUpdateUtils.js"
 import { b64UserIdHash } from "./DbFacade.js"
@@ -41,8 +41,7 @@ import { hasError } from "../../common/utils/ErrorUtils.js"
 export const INITIAL_MAIL_INDEX_INTERVAL_DAYS = 28
 const ENTITY_INDEXER_CHUNK = 20
 export const MAIL_INDEXER_CHUNK = 100
-const MAIL_INDEX_BATCH_INTERVAL = 1000 * 60 * 60 * 24 // one day
-
+const MAIL_INDEX_BATCH_INTERVAL = 1000 * 60 * 60 * 24 * 7 // 7 days
 export class MailIndexer {
 	currentIndexTimestamp: number // The oldest timestamp that has been indexed for all mail lists
 
@@ -749,6 +748,13 @@ class IndexLoader {
 		//legacy mails
 		const legacyMails = mailsWithoutErros.filter((m) => isLegacyMail(m))
 		const bodyIds = legacyMails.map((m) => assertNotNull(m.body))
+
+		const ownerEncSessionKeyProvider = async (instanceElementId: Id) => {
+			//console.log(instanceElementId, "bodyIds", bodyIdToOwnerEncSessionKey.keys())
+			const mail = legacyMails.find((mail) => isSameId(mail.body, instanceElementId))
+			return ownerEncSessionKeyFromMail(mail)
+		}
+
 		result.push(
 			...(await this.loadInChunks(MailBodyTypeRef, null, bodyIds)).map((body) => {
 				const mail = assertNotNull(legacyMails.find((m) => m.body === body._id))
@@ -764,8 +770,8 @@ class IndexLoader {
 		)
 		for (let [listId, ids] of listIdToMailDetailsBlobIds) {
 			const ownerEncSessionKeyProvider = async (instanceElementId: Id) => {
-				const mail = assertNotNull(mailDetailsBlobMails.find((m) => elementIdPart(assertNotNull(m.mailDetails)) === instanceElementId))
-				return assertNotNull(mail._ownerEncSessionKey)
+				const mail = mailDetailsBlobMails.find((m) => elementIdPart(assertNotNull(m.mailDetails)) === instanceElementId)
+				return ownerEncSessionKeyFromMail(mail)
 			}
 			const mailDetailsBlobs = await this.loadInChunks(MailDetailsBlobTypeRef, listId, ids, ownerEncSessionKeyProvider)
 			result.push(
@@ -784,8 +790,8 @@ class IndexLoader {
 		)
 		for (let [listId, ids] of listIdToMailDetailsDraftIds) {
 			const ownerEncSessionKeyProvider = async (instanceElementId: Id) => {
-				const mail = assertNotNull(mailDetailsDraftMails.find((m) => elementIdPart(assertNotNull(m.mailDetailsDraft)) === instanceElementId))
-				return assertNotNull(mail._ownerEncSessionKey)
+				const mail = mailDetailsDraftMails.find((m) => elementIdPart(assertNotNull(m.mailDetailsDraft)) === instanceElementId)
+				return ownerEncSessionKeyFromMail(mail)
 			}
 			const mailDetailsDrafts = await this.loadInChunks(MailDetailsDraftTypeRef, listId, ids, ownerEncSessionKeyProvider)
 			result.push(
