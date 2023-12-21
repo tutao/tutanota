@@ -56,27 +56,27 @@ export type Attrs = {
 }
 
 export class MultiDayCalendarView implements Component<Attrs> {
-	private _redrawIntervalId: NodeJS.Timeout | null = null
-	private _longEventsDom: HTMLElement | null = null
-	private _domElements: HTMLElement[] = []
-	private _scrollPosition: number
-	private _eventDragHandler: EventDragHandler
-	private _dateUnderMouse: Date | null = null
-	private _viewDom: HTMLElement | null = null
-	private _lastMousePos: MousePos | null = null
-	private _isHeaderEventBeingDragged: boolean = false
+	private redrawIntervalId: NodeJS.Timeout | null = null
+	private longEventsDom: HTMLElement | null = null
+	private domElements: HTMLElement[] = []
+	private scrollPosition: number
+	private eventDragHandler: EventDragHandler
+	private dateUnderMouse: Date | null = null
+	private viewDom: HTMLElement | null = null
+	private lastMousePos: MousePos | null = null
+	private isHeaderEventBeingDragged: boolean = false
 
 	constructor({ attrs }: Vnode<Attrs>) {
-		this._scrollPosition = size.calendar_hour_height * DEFAULT_HOUR_OF_DAY
-		this._eventDragHandler = new EventDragHandler(neverNull(document.body as HTMLBodyElement), attrs.dragHandlerCallbacks)
+		this.scrollPosition = size.calendar_hour_height * DEFAULT_HOUR_OF_DAY
+		this.eventDragHandler = new EventDragHandler(neverNull(document.body as HTMLBodyElement), attrs.dragHandlerCallbacks)
 	}
 
 	oncreate(vnode: VnodeDOM<Attrs>) {
-		this._viewDom = vnode.dom as HTMLElement
+		this.viewDom = vnode.dom as HTMLElement
 	}
 
 	onupdate(vnode: VnodeDOM<Attrs>) {
-		this._viewDom = vnode.dom as HTMLElement
+		this.viewDom = vnode.dom as HTMLElement
 	}
 
 	view({ attrs }: Vnode<Attrs>): Children {
@@ -113,15 +113,15 @@ export class MultiDayCalendarView implements Component<Attrs> {
 				m(PageView, {
 					previousPage: {
 						key: startOfPreviousPeriod.getTime(),
-						nodes: this._renderWeek(attrs, previousPageEvents, currentPageEvents),
+						nodes: this.renderWeek(attrs, previousPageEvents, currentPageEvents),
 					},
 					currentPage: {
 						key: startOfThisPeriod.getTime(),
-						nodes: this._renderWeek(attrs, currentPageEvents, currentPageEvents),
+						nodes: this.renderWeek(attrs, currentPageEvents, currentPageEvents),
 					},
 					nextPage: {
 						key: startOfNextPeriod.getTime(),
-						nodes: this._renderWeek(attrs, nextPageEvents, currentPageEvents),
+						nodes: this.renderWeek(attrs, nextPageEvents, currentPageEvents),
 					},
 					onChangePage: (next) => attrs.onChangeViewPeriod(next),
 				}),
@@ -176,11 +176,11 @@ export class MultiDayCalendarView implements Component<Attrs> {
 			: null
 	}
 
-	_getTodayTimestamp(): number {
+	private getTodayTimestamp(): number {
 		return getStartOfDay(new Date()).getTime()
 	}
 
-	_renderWeek(attrs: Attrs, thisWeek: EventsOnDays, mainWeek: EventsOnDays): Children {
+	private renderWeek(attrs: Attrs, thisWeek: EventsOnDays, mainWeek: EventsOnDays): Children {
 		let containerStyle
 
 		if (styles.isDesktopLayout()) {
@@ -201,31 +201,31 @@ export class MultiDayCalendarView implements Component<Attrs> {
 					: "border-radius-top-left-big border-radius-top-right-big content-bg mlr-safe-inset",
 				style: containerStyle,
 				oncreate: () => {
-					this._redrawIntervalId = setInterval(m.redraw, 1000 * 60)
+					this.redrawIntervalId = setInterval(m.redraw, 1000 * 60)
 				},
 				onremove: () => {
-					if (this._redrawIntervalId != null) {
-						clearInterval(this._redrawIntervalId)
-						this._redrawIntervalId = null
+					if (this.redrawIntervalId != null) {
+						clearInterval(this.redrawIntervalId)
+						this.redrawIntervalId = null
 					}
 				},
 				onmousemove: (mouseEvent: EventRedraw<MouseEvent>) => {
 					mouseEvent.redraw = false
-					this._lastMousePos = getPosAndBoundsFromMouseEvent(mouseEvent)
+					this.lastMousePos = getPosAndBoundsFromMouseEvent(mouseEvent)
 
-					if (this._dateUnderMouse) {
-						return this._eventDragHandler.handleDrag(this._dateUnderMouse, this._lastMousePos)
+					if (this.dateUnderMouse) {
+						return this.eventDragHandler.handleDrag(this.dateUnderMouse, this.lastMousePos)
 					}
 				},
 				onmouseup: (mouseEvent: EventRedraw<MouseEvent>) => {
 					mouseEvent.redraw = false
 
-					this._endDrag(mouseEvent)
+					this.endDrag(mouseEvent)
 				},
 				onmouseleave: (mouseEvent: EventRedraw<MouseEvent>) => {
 					mouseEvent.redraw = false
 
-					this._endDrag(mouseEvent)
+					this.endDrag(mouseEvent)
 				},
 			},
 			[
@@ -238,17 +238,17 @@ export class MultiDayCalendarView implements Component<Attrs> {
 						oncreate: (vnode) => {
 							vnode.dom.scrollTop = this._scrollPosition
 
-							this._domElements.push(vnode.dom as HTMLElement)
+							this.domElements.push(vnode.dom as HTMLElement)
 						},
 						onscroll: (event: Event) => {
 							if (thisWeek === mainWeek) {
-								for (const dom of this._domElements) {
+								for (const dom of this.domElements) {
 									if (dom !== event.target) {
 										dom.scrollTop = (event.target as HTMLElement).scrollTop
 									}
 								}
 
-								this._scrollPosition = (event.target as HTMLElement).scrollTop
+								this.scrollPosition = (event.target as HTMLElement).scrollTop
 							}
 						},
 					},
@@ -304,15 +304,15 @@ export class MultiDayCalendarView implements Component<Attrs> {
 										onEventClicked: attrs.onEventClicked,
 										groupColors: attrs.groupColors,
 										events: events,
-										displayTimeIndicator: weekday.getTime() === this._getTodayTimestamp(),
+										displayTimeIndicator: weekday.getTime() === this.getTodayTimestamp(),
 										onTimePressed: newEventHandler,
 										onTimeContextPressed: newEventHandler,
 										day: weekday,
 										setCurrentDraggedEvent: (event) => this.startEventDrag(event),
-										setTimeUnderMouse: (time) => (this._dateUnderMouse = combineDateWithTime(weekday, time)),
+										setTimeUnderMouse: (time) => (this.dateUnderMouse = combineDateWithTime(weekday, time)),
 										isTemporaryEvent: (event) => attrs.temporaryEvents.includes(event),
-										isDragging: this._eventDragHandler.isDragging,
-										fullViewWidth: this._viewDom?.getBoundingClientRect().width,
+										isDragging: this.eventDragHandler.isDragging,
+										fullViewWidth: this.viewDom?.getBoundingClientRect().width,
 									}),
 								)
 							}),
@@ -323,11 +323,11 @@ export class MultiDayCalendarView implements Component<Attrs> {
 		)
 	}
 
-	startEventDrag(event: CalendarEvent) {
-		const lastMousePos = this._lastMousePos
+	private startEventDrag(event: CalendarEvent) {
+		const lastMousePos = this.lastMousePos
 
-		if (this._dateUnderMouse && lastMousePos) {
-			this._eventDragHandler.prepareDrag(event, this._dateUnderMouse, lastMousePos, this._isHeaderEventBeingDragged)
+		if (this.dateUnderMouse && lastMousePos) {
+			this.eventDragHandler.prepareDrag(event, this.dateUnderMouse, lastMousePos, this.isHeaderEventBeingDragged)
 		}
 	}
 
@@ -360,34 +360,34 @@ export class MultiDayCalendarView implements Component<Attrs> {
 	}
 
 	private renderHeaderDesktop(attrs: Attrs, thisPageEvents: EventsOnDays, mainPageEvents: EventsOnDays): Children {
-		const { selectedDate, groupColors, onEventClicked } = attrs
+		const { daysInPeriod, onDateSelected, onEventClicked, groupColors, temporaryEvents } = attrs
 		return m(".calendar-long-events-header.flex-fixed.content-bg.pt-s", [
-			m(".calendar-hour-margin", [this.renderDayNamesRow(thisPageEvents.days, attrs.onDateSelected)]),
+			m(".calendar-hour-margin", [this.renderDayNamesRow(thisPageEvents.days, onDateSelected)]),
 			m(".content-bg", [
 				m(
 					".calendar-hour-margin.content-bg",
 					{
 						onmousemove: (mouseEvent: MouseEvent) => {
 							const { x, targetWidth } = getPosAndBoundsFromMouseEvent(mouseEvent)
-							const dayWidth = targetWidth / attrs.daysInPeriod
+							const dayWidth = targetWidth / daysInPeriod
 							const dayNumber = Math.floor(x / dayWidth)
 							const date = new Date(thisPageEvents.days[dayNumber])
-							const dateUnderMouse = this._dateUnderMouse
+							const dateUnderMouse = this.dateUnderMouse
 
-							// When dragging short events, dont cause the mouse position date to drop to 00:00 when dragging over the header
-							if (dateUnderMouse && this._eventDragHandler.isDragging && !this._isHeaderEventBeingDragged) {
+							// When dragging short events, don't cause the mouse position date to drop to 00:00 when dragging over the header
+							if (dateUnderMouse && this.eventDragHandler.isDragging && !this.isHeaderEventBeingDragged) {
 								date.setHours(dateUnderMouse.getHours())
 								date.setMinutes(dateUnderMouse.getMinutes())
 							}
 
-							this._dateUnderMouse = date
+							this.dateUnderMouse = date
 						},
 					},
 					// this section is tricky with margins. We use this view for both week and day view.
 					// in day view there's no days row and no selection indicator.
 					// it all must work with and without long events.
 					// thread carefully and test all the cases.
-					[this.renderLongEventsSection(thisPageEvents, mainPageEvents, groupColors, onEventClicked, attrs.temporaryEvents)],
+					[this.renderLongEventsSection(thisPageEvents, mainPageEvents, groupColors, onEventClicked, temporaryEvents)],
 				),
 			]),
 		])
@@ -407,14 +407,14 @@ export class MultiDayCalendarView implements Component<Attrs> {
 			{
 				oncreate: (vnode) => {
 					if (mainPageEvents === thisPageEvents) {
-						this._longEventsDom = vnode.dom as HTMLElement
+						this.longEventsDom = vnode.dom as HTMLElement
 					}
 
 					m.redraw()
 				},
 				onupdate: (vnode) => {
 					if (mainPageEvents === thisPageEvents) {
-						this._longEventsDom = vnode.dom as HTMLElement
+						this.longEventsDom = vnode.dom as HTMLElement
 					}
 				},
 				style: {
@@ -431,7 +431,7 @@ export class MultiDayCalendarView implements Component<Attrs> {
 	 *
 	 * @returns the rendered calendar bubble children, and the maximum number of events that occur on a day (out of all days)
 	 */
-	renderLongEvents(
+	private renderLongEvents(
 		dayRange: Array<Date>,
 		events: Array<CalendarEvent>,
 		groupColors: GroupColors,
@@ -456,7 +456,7 @@ export class MultiDayCalendarView implements Component<Attrs> {
 	/**
 	 *Only called from day view where header events are not draggable
 	 */
-	renderLongEventsForSingleDay(
+	private renderLongEventsForSingleDay(
 		day: Date,
 		events: Array<CalendarEvent>,
 		groupColors: GroupColors,
@@ -482,7 +482,7 @@ export class MultiDayCalendarView implements Component<Attrs> {
 		]
 	}
 
-	renderLongEventsForMultipleDays(
+	private renderLongEventsForMultipleDays(
 		dayRange: Array<Date>,
 		events: Array<CalendarEvent>,
 		groupColors: GroupColors,
@@ -492,14 +492,14 @@ export class MultiDayCalendarView implements Component<Attrs> {
 		children: Children
 		rows: number
 	} {
-		if (this._longEventsDom == null && this._viewDom == null) {
+		if (this.longEventsDom == null && this.viewDom == null) {
 			return {
 				children: null,
 				rows: 0,
 			}
 		}
 		const dayWidth =
-			(this._longEventsDom != null ? this._longEventsDom.offsetWidth : this._viewDom!.offsetWidth - size.calendar_hour_width_mobile) / dayRange.length
+			(this.longEventsDom != null ? this.longEventsDom.offsetWidth : this.viewDom!.offsetWidth - size.calendar_hour_width_mobile) / dayRange.length
 		let maxEventsInColumn = 0
 		const firstDay = dayRange[0]
 		const lastDay = lastThrow(dayRange)
@@ -529,7 +529,7 @@ export class MultiDayCalendarView implements Component<Attrs> {
 								},
 								key: event._id[0] + event._id[1] + event.startTime.getTime(),
 								onmousedown: () => {
-									this._isHeaderEventBeingDragged = true
+									this.isHeaderEventBeingDragged = true
 									this.startEventDrag(event)
 								},
 							},
@@ -554,7 +554,7 @@ export class MultiDayCalendarView implements Component<Attrs> {
 		}
 	}
 
-	renderLongEventBubble(
+	private renderLongEventBubble(
 		event: CalendarEvent,
 		showTime: EventTextTimeOption | null,
 		startsBefore: boolean,
@@ -565,7 +565,7 @@ export class MultiDayCalendarView implements Component<Attrs> {
 	): Children {
 		const fadeIn = !isTemporary
 		const opacity = isTemporary ? TEMPORARY_EVENT_OPACITY : 1
-		const enablePointerEvents = !this._eventDragHandler.isDragging && !isTemporary
+		const enablePointerEvents = !this.eventDragHandler.isDragging && !isTemporary
 		return m(ContinuingCalendarEventBubble, {
 			event,
 			startsBefore,
@@ -648,11 +648,11 @@ export class MultiDayCalendarView implements Component<Attrs> {
 		)
 	}
 
-	_endDrag(pos: MousePos) {
-		this._isHeaderEventBeingDragged = false
+	private endDrag(pos: MousePos) {
+		this.isHeaderEventBeingDragged = false
 
-		if (this._dateUnderMouse) {
-			this._eventDragHandler.endDrag(this._dateUnderMouse, pos).catch(ofClass(UserError, showUserError))
+		if (this.dateUnderMouse) {
+			this.eventDragHandler.endDrag(this.dateUnderMouse, pos).catch(ofClass(UserError, showUserError))
 		}
 	}
 }
