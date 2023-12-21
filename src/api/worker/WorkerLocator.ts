@@ -256,7 +256,7 @@ export async function initLocator(worker: WorkerImpl, browserData: BrowserData) 
 	locator.search = lazyMemoized(async () => {
 		const { SearchFacade } = await import("./search/SearchFacade.js")
 		const indexer = await locator.indexer()
-		const suggestionFacades = [indexer._contact.suggestionFacade, indexer._groupInfo.suggestionFacade, indexer._whitelabelChildIndexer.suggestionFacade]
+		const suggestionFacades = [indexer._contact.suggestionFacade]
 		return new SearchFacade(locator.user, indexer.db, indexer._mail, suggestionFacades, browserData, locator.cachingEntityClient)
 	})
 	locator.counters = lazyMemoized(async () => {
