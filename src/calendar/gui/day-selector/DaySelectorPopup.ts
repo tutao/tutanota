@@ -8,14 +8,10 @@ import { animations, opacity, transform, TransformEnum } from "../../../gui/anim
 import { ease } from "../../../gui/animation/Easing.js"
 import { px } from "../../../gui/size.js"
 import { formatMonthWithFullYear } from "../../../misc/Formatter.js"
-import { theme } from "../../../gui/theme.js"
-import { Icon } from "../../../gui/base/Icon.js"
-import { Icons } from "../../../gui/base/icons/Icons.js"
-import { BootIcons } from "../../../gui/base/icons/BootIcons.js"
-import { hexToRgb } from "../../../gui/base/Color.js"
 import { incrementMonth } from "@tutao/tutanota-utils"
 import { styles } from "../../../gui/styles.js"
 import { DaysToEvents } from "../../date/CalendarEventsRepository.js"
+import renderSwitchMonthArrowIcon from "../../../gui/base/buttons/ArrowButton.js"
 
 export interface DaySelectorPopupAttrs {
 	selectedDate: Date
@@ -100,31 +96,11 @@ export class DaySelectorPopup implements ModalComponent {
 				},
 				formatMonthWithFullYear(date),
 			),
-			m(".flex.items-center", [this.renderSwitchMonthArrowIcon(false), this.renderSwitchMonthArrowIcon(true)]),
+			m(".flex.items-center", [
+				renderSwitchMonthArrowIcon(false, 24, () => this.onMonthChange(false)),
+				renderSwitchMonthArrowIcon(true, 24, () => this.onMonthChange(false)),
+			]),
 		])
-	}
-
-	private renderSwitchMonthArrowIcon(forward: boolean): Children {
-		const bgColor = hexToRgb(theme.content_button)
-		return m(
-			"button.icon.flex.justify-center.items-center.click.ml-s.state-bg",
-			{
-				onclick: () => this.onMonthChange(forward),
-				style: {
-					borderRadius: "50%",
-					fill: theme.content_fg,
-					width: "24px",
-					height: "24px",
-					tabIndex: 0,
-				},
-			},
-			m(Icon, {
-				icon: forward ? Icons.ArrowForward : BootIcons.Back,
-				style: {
-					fill: theme.content_fg,
-				},
-			}),
-		)
 	}
 
 	private onMonthChange(forward: boolean) {

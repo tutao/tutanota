@@ -52,7 +52,7 @@ export class BaseSearchBar implements ClassComponent<BaseSearchBarAttrs> {
 							title: "search_label",
 							icon: BootIcons.Search,
 							size: ButtonSize.Compact,
-							hoverClass: "",
+							class: "",
 							mousedown: (e: MouseEvent) => {
 								e.preventDefault()
 							},
@@ -83,7 +83,7 @@ export class BaseSearchBar implements ClassComponent<BaseSearchBarAttrs> {
 							icon: attrs.busy ? BootIcons.Progress : Icons.Close,
 							iconClass: attrs.busy ? "icon-progress icon-progress-search" : undefined,
 							size: ButtonSize.Compact,
-							hoverClass: "",
+							class: "",
 							colors: ButtonColor.Header,
 							click: () => attrs.onClear?.(),
 					  })
