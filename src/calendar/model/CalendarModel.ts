@@ -121,6 +121,7 @@ export class CalendarModel {
 		const workPerCalendar = 3
 		const totalWork = logins.getUserController().getCalendarMemberships().length * workPerCalendar
 		const monitorHandle = progressTracker.registerMonitorSync(totalWork)
+		// the first time we want a real progress monitor but any time we would reload we don't need it
 		this.readProgressMonitor = oneShotProgressMonitorGenerator(assertNotNull(progressTracker.getMonitor(monitorHandle)))
 
 		if (isApp()) return
@@ -769,13 +770,6 @@ export class CalendarModel {
 				}
 			} else if (this.logins.getUserController().isUpdateForLoggedInUserInstance(entityEventData, eventOwnerGroupId)) {
 				const calendarMemberships = this.logins.getUserController().getCalendarMemberships()
-
-				// Remove calendars we no longer have membership in
-				for (const group of calendarInfos.keys()) {
-					if (calendarMemberships.every((mb) => group !== mb.group)) {
-						// this._hiddenCalendars.delete(group)
-					}
-				}
 				const oldGroupIds = new Set(calendarInfos.keys())
 				const newGroupIds = new Set(calendarMemberships.map((m) => m.group))
 				const diff = symmetricDifference(oldGroupIds, newGroupIds)
