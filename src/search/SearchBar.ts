@@ -403,11 +403,6 @@ export class SearchBar implements Component<SearchBarAttrs> {
 
 		let restriction = this.getRestriction()
 
-		if (isSameTypeRef(restriction.type, GroupInfoTypeRef)) {
-			const restrictionListId = locator.search.getGroupInfoRestrictionListId()
-			restriction.listIds = restrictionListId ? [restrictionListId] : []
-		}
-
 		if (!locator.search.indexState().mailIndexEnabled && restriction && isSameTypeRef(restriction.type, MailTypeRef) && !this.confirmDialogShown) {
 			this.focused = false
 			this.confirmDialogShown = true
