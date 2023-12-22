@@ -298,7 +298,7 @@ export class EventQueue {
 					this._processingBatch = null
 
 					if (!(e instanceof ServiceUnavailableError || e instanceof ConnectionError)) {
-						console.error("Uncaught EventQueue error!", e)
+						console.error("Uncaught EventQueue error!", e, next)
 					}
 				})
 		}

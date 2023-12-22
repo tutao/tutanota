@@ -587,7 +587,7 @@ class MainLocator {
 		this.logins.init()
 		this.eventController = new EventController(locator.logins)
 		this.progressTracker = new ProgressTracker()
-		this.search = new SearchModel(this.searchFacade, () => this.calendarViewModel())
+		this.search = new SearchModel(this.searchFacade, () => this.calendarModel())
 		this.entityClient = new EntityClient(restInterface)
 		this.cryptoFacade = cryptoFacade
 		this.cacheStorage = cacheStorage

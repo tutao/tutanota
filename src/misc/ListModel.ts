@@ -376,7 +376,6 @@ export class ListModel<ElementType extends ListElement> {
 			// if we are offline, stop
 			this.rawState.loadingStatus !== ListLoadingState.ConnectionLost
 		) {
-			console.log("loading more")
 			await this.loadMore()
 		}
 		if (foundItem) {
