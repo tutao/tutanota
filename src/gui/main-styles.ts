@@ -1095,12 +1095,12 @@ styles.registerStyle("main", () => {
 		// a bit cursed solution to make the visible icon not too huge relative to the tiny "close" icon that we have but also to keep the size consistent
 		// with icon-large so that the text field doesn't jump around
 		".icon-progress-search": {
-			height: px(size.icon_size_large),
-			width: px(size.icon_size_large),
+			height: `${px(20)} !important`,
+			width: `${px(20)} !important`,
 		},
 		".icon-progress-search > svg": {
-			height: px(20),
-			width: px(20),
+			height: `${px(20)} !important`,
+			width: `${px(20)} !important`,
 		},
 		".search-bar": {
 			transition: "all 200ms",
