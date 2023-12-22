@@ -4,12 +4,12 @@ import { CalendarEventTypeRef, MailTypeRef } from "../../api/entities/tutanota/T
 import { NOTHING_INDEXED_TIMESTAMP } from "../../api/common/TutanotaConstants"
 import { DbError } from "../../api/common/error/DbError"
 import type { SearchIndexStateInfo, SearchRestriction, SearchResult } from "../../api/worker/search/SearchTypes"
-import { arrayEquals, assertNonNull, assertNotNull, incrementMonth, isSameTypeRef, lazy, ofClass, tokenize } from "@tutao/tutanota-utils"
+import { arrayEquals, assertNonNull, assertNotNull, incrementMonth, isSameTypeRef, lazy, lazyAsync, ofClass, tokenize } from "@tutao/tutanota-utils"
 import type { SearchFacade } from "../../api/worker/search/SearchFacade"
 import { assertMainOrNode } from "../../api/common/Env"
 import { GroupInfo, WhitelabelChild } from "../../api/entities/sys/TypeRefs.js"
-import { CalendarViewModel } from "../../calendar/view/CalendarViewModel.js"
 import { listIdPart } from "../../api/common/utils/EntityUtils.js"
+import { CalendarModel } from "../../calendar/model/CalendarModel.js"
 
 assertMainOrNode()
 export type SearchQuery = {
@@ -31,7 +31,7 @@ export class SearchModel {
 	_lastSearchPromise: Promise<SearchResult | void>
 	_groupInfoRestrictionListId: Id | null
 
-	constructor(searchFacade: SearchFacade, private readonly calendarViewModelFactory: lazy<Promise<CalendarViewModel>>) {
+	constructor(searchFacade: SearchFacade, private readonly calendarModel: lazyAsync<CalendarModel>) {
 		this._searchFacade = searchFacade
 		this.result = stream()
 		this.lastQuery = stream<string | null>("")
@@ -86,19 +86,19 @@ export class SearchModel {
 			this.result(result)
 			this._lastSearchPromise = Promise.resolve(result)
 		} else if (isSameTypeRef(CalendarEventTypeRef, restriction.type)) {
-			const calendarViewModel = await this.calendarViewModelFactory()
-
 			// we interpret restriction.start as the start of the first day of the first month we want to search
 			// restriction.end is the end of the last day of the last month we want to search
 			let currentDate = new Date(assertNotNull(restriction.start))
 			const endDate = new Date(assertNotNull(restriction.end))
+			const calendarModel = await this.calendarModel()
 			while (currentDate.getTime() <= endDate.getTime()) {
-				await calendarViewModel.loadMonthIfNeeded(currentDate)
+				await calendarModel.loadMonthIfNeeded(currentDate)
 				currentDate = incrementMonth(currentDate, 1)
 			}
-			const eventsForDays = calendarViewModel.eventsForDays
 
-			const result: SearchResult = {
+			const eventsForDays = calendarModel.getEventsForMonths()()
+
+			const calendarResult: SearchResult = {
 				// index related, keep empty
 				currentIndexTimestamp: 0,
 				moreResults: [],
@@ -145,7 +145,7 @@ export class SearchModel {
 						for (const token of tokens) {
 							if (event.summary.toLowerCase().includes(token) || event.description.toLowerCase().includes(token)) {
 								alreadyAdded.add(key)
-								result.results.push(event._id)
+								calendarResult.results.push(event._id)
 								break
 							}
 						}
@@ -153,8 +153,8 @@ export class SearchModel {
 				}
 			}
 
-			this.result(result)
-			this._lastSearchPromise = Promise.resolve(result)
+			this.result(calendarResult)
+			this._lastSearchPromise = Promise.resolve(calendarResult)
 		} else {
 			this._lastSearchPromise = this._searchFacade
 				.search(query, restriction, minSuggestionCount, maxResults ?? undefined)
