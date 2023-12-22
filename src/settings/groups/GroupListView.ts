@@ -66,10 +66,6 @@ export class GroupListView implements UpdatableSettingsViewer {
 
 		this.listModel.loadInitial()
 
-		this.listId.getAsync().then((listId) => {
-			locator.search.setGroupInfoRestrictionListId(listId)
-		})
-
 		this.oncreate = this.oncreate.bind(this)
 		this.onremove = this.onremove.bind(this)
 		this.view = this.view.bind(this)
