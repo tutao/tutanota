@@ -18,6 +18,7 @@ export interface IconButtonAttrs {
 	click: ClickHandler
 	mousedown?: (event: MouseEvent) => void
 	hoverClass?: string
+	iconClass?: string
 	colors?: ButtonColor
 	size?: ButtonSize
 	onblur?: () => unknown
@@ -51,7 +52,7 @@ export class IconButton implements Component<IconButtonAttrs> {
 			m(Icon, {
 				icon: attrs.icon,
 				container: "div",
-				class: "center-h",
+				class: `center-h ${attrs.iconClass !== undefined ? attrs.iconClass : ""}`,
 				large: true,
 				style: {
 					fill: getColors(attrs.colors ?? ButtonColor.Content).button,
