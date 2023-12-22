@@ -496,8 +496,9 @@ export class CalendarView extends BaseTopLevelView implements TopLevelView<Calen
 	}
 
 	_renderCalendars(shared: boolean): Children {
-		return this.viewModel.calendarInfos.isLoaded()
-			? Array.from(this.viewModel.calendarInfos.getLoaded().values())
+		const calendarInfos = this.viewModel.calendarInfos
+		return calendarInfos.size > 0
+			? Array.from(calendarInfos.values())
 					.filter((calendarInfo) => calendarInfo.shared === shared)
 					.map((calendarInfo) => {
 						const { userSettingsGroupRoot } = locator.logins.getUserController()
@@ -754,7 +755,7 @@ export class CalendarView extends BaseTopLevelView implements TopLevelView<Calen
 			right: x,
 		}
 
-		const calendars = await this.viewModel.calendarInfos.getAsync()
+		const calendars = await this.viewModel.getCalendarInfosCreateIfNeeded()
 		const [popupModel, htmlSanitizer] = await Promise.all([buildEventPreviewModel(selectedEvent, calendars), htmlSanitizerPromise])
 
 		new CalendarEventPopup(popupModel, rect, htmlSanitizer).show()
