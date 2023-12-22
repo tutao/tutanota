@@ -13,7 +13,7 @@ import {
 } from "@tutao/tutanota-utils"
 import { CalendarMethod, FeatureType, GroupType, OperationType } from "../../api/common/TutanotaConstants"
 import type { EntityUpdateData } from "../../api/main/EventController"
-import { EventController, isUpdateForTypeRef } from "../../api/main/EventController"
+import { EventController, isUpdateFor, isUpdateForTypeRef } from "../../api/main/EventController"
 import type { Group, GroupInfo, User, UserAlarmInfo } from "../../api/entities/sys/TypeRefs.js"
 import {
 	createDateWrapper,
@@ -95,6 +95,9 @@ export class CalendarModel {
 
 	private readProgressMonitor: Generator<IProgressMonitor>
 
+	/**
+	 * Map from group id to CalendarInfo
+	 */
 	private readonly calendarInfos = new ObservableLazyLoaded<ReadonlyMap<Id, CalendarInfo>>(
 		() => this.loadOrCreateCalendarInfo(this.readProgressMonitor.next().value),
 		new Map(),
@@ -766,50 +769,48 @@ export class CalendarModel {
 				}
 			} else if (this.logins.getUserController().isUpdateForLoggedInUserInstance(entityEventData, eventOwnerGroupId)) {
 				const calendarMemberships = this.logins.getUserController().getCalendarMemberships()
-				return this.calendarInfos.getAsync().then((calendarInfos) => {
-					// Remove calendars we no longer have membership in
-					for (const group of calendarInfos.keys()) {
-						if (calendarMemberships.every((mb) => group !== mb.group)) {
-							// this._hiddenCalendars.delete(group)
-						}
+
+				// Remove calendars we no longer have membership in
+				for (const group of calendarInfos.keys()) {
+					if (calendarMemberships.every((mb) => group !== mb.group)) {
+						// this._hiddenCalendars.delete(group)
 					}
-					const oldGroupIds = new Set(calendarInfos.keys())
-					const newGroupIds = new Set(calendarMemberships.map((m) => m.group))
-					const diff = symmetricDifference(oldGroupIds, newGroupIds)
+				}
+				const oldGroupIds = new Set(calendarInfos.keys())
+				const newGroupIds = new Set(calendarMemberships.map((m) => m.group))
+				const diff = symmetricDifference(oldGroupIds, newGroupIds)
 
-					if (diff.size !== 0) {
-						this.loadedMonths.clear()
+				if (diff.size !== 0) {
+					this.loadedMonths.clear()
 
-						this._replaceEvents(new Map())
+					this._replaceEvents(new Map())
 
-						this.calendarInfos.reset()
-						this.calendarInfos.getAsync()
-						// FIXME do we have to manually do it or will it be triggered from the view layer?
-						// return this.calendarInfos
-						// 		   .getAsync()
-						// 		   .then(() => {
-						// 			   const selectedDate = this.selectedDate()
-						// 			   const previousMonthDate = new Date(selectedDate)
-						// 			   previousMonthDate.setMonth(selectedDate.getMonth() - 1)
-						// 			   const nextMonthDate = new Date(selectedDate)
-						// 			   nextMonthDate.setMonth(selectedDate.getMonth() + 1)
-						// 			   return this.loadMonthIfNeeded(selectedDate)
-						// 						  .then(() => this.loadMonthIfNeeded(nextMonthDate))
-						// 						  .then(() => this.loadMonthIfNeeded(previousMonthDate))
-						// 		   })
-						// 		   .then(() => this._redraw())
-					}
-				})
+					this.calendarInfos.reset()
+					this.calendarInfos.getAsync()
+					// FIXME do we have to manually do it or will it be triggered from the view layer?
+					// return this.calendarInfos
+					// 		   .getAsync()
+					// 		   .then(() => {
+					// 			   const selectedDate = this.selectedDate()
+					// 			   const previousMonthDate = new Date(selectedDate)
+					// 			   previousMonthDate.setMonth(selectedDate.getMonth() - 1)
+					// 			   const nextMonthDate = new Date(selectedDate)
+					// 			   nextMonthDate.setMonth(selectedDate.getMonth() + 1)
+					// 			   return this.loadMonthIfNeeded(selectedDate)
+					// 						  .then(() => this.loadMonthIfNeeded(nextMonthDate))
+					// 						  .then(() => this.loadMonthIfNeeded(previousMonthDate))
+					// 		   })
+					// 		   .then(() => this._redraw())
+				}
 			} else if (isUpdateForTypeRef(GroupInfoTypeRef, entityEventData)) {
-				this.calendarInfos.getAsync().then((calendarInfos) => {
-					const calendarInfo = calendarInfos.get(eventOwnerGroupId)
-
-					//only process the GroupInfo update if the id is the same as calendarInfo.groupInfo._id
-					if (calendarInfo && isSameId(calendarInfo.groupInfo._id, [entityEventData.instanceListId, entityEventData.instanceId])) {
+				// the batch does not belong to that group so we need to find if we actually care about the related GroupInfo
+				for (const { groupInfo } of calendarInfos.values()) {
+					if (isUpdateFor(groupInfo, entityEventData)) {
 						this.calendarInfos.reset()
 						this.calendarInfos.getAsync()
+						break
 					}
-				})
+				}
 			}
 		}
 
