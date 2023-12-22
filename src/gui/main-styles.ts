@@ -2157,7 +2157,7 @@ styles.registerStyle("main", () => {
 			transition: `margin-bottom 200ms ease-in-out`,
 		},
 		".circle": {
-			"border-radius": "50%",
+			"border-radius": "50% !important",
 		},
 		".clickable": {
 			cursor: "pointer",

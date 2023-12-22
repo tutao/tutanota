@@ -17,7 +17,8 @@ export interface IconButtonAttrs {
 	title: TranslationText
 	click: ClickHandler
 	mousedown?: (event: MouseEvent) => void
-	hoverClass?: string
+	class?: string
+	style?: Record<string, any>
 	iconClass?: string
 	colors?: ButtonColor
 	size?: ButtonSize
@@ -46,18 +47,30 @@ export class IconButton implements Component<IconButtonAttrs> {
 				onblur: attrs.onblur,
 				onkeydown: attrs.onkeydown,
 				title: lang.getMaybeLazy(attrs.title),
-				class: `${attrs.size === ButtonSize.Compact ? "compact" : ""} ${attrs.hoverClass !== undefined ? attrs.hoverClass : "state-bg"}`,
+				class: `${IconButton.getSizeClass(attrs.size)} ${attrs.class !== undefined ? attrs.class : "state-bg"}`,
+				style: attrs.style,
 				tabindex: attrs.tabIndex ?? TabIndex.Default,
 			},
 			m(Icon, {
 				icon: attrs.icon,
 				container: "div",
 				class: `center-h ${attrs.iconClass !== undefined ? attrs.iconClass : ""}`,
-				large: true,
+				large: attrs.size !== ButtonSize.Calendar,
 				style: {
 					fill: getColors(attrs.colors ?? ButtonColor.Content).button,
 				},
 			}),
 		)
+	}
+
+	private static getSizeClass(size: ButtonSize | undefined) {
+		switch (size) {
+			case ButtonSize.Compact:
+				return "compact"
+			case ButtonSize.Calendar:
+			case ButtonSize.Normal:
+			default:
+				return ""
+		}
 	}
 }

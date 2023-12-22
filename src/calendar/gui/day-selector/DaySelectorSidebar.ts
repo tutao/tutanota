@@ -1,13 +1,9 @@
 import m, { Children, Component, Vnode } from "mithril"
 import { formatMonthWithFullYear } from "../../../misc/Formatter.js"
-import { hexToRgb } from "../../../gui/base/Color.js"
-import { theme } from "../../../gui/theme.js"
-import { Icon } from "../../../gui/base/Icon.js"
-import { Icons } from "../../../gui/base/icons/Icons.js"
-import { BootIcons } from "../../../gui/base/icons/BootIcons.js"
 import { incrementMonth } from "@tutao/tutanota-utils"
 import { DaySelector } from "./DaySelector.js"
 import { DaysToEvents } from "../../date/CalendarEventsRepository.js"
+import renderSwitchMonthArrowIcon from "../../../gui/base/buttons/ArrowButton.js"
 
 export interface DaySelectorSidebarAttrs {
 	selectedDate: Date
@@ -62,7 +58,7 @@ export class DaySelectorSidebar implements Component<DaySelectorSidebarAttrs> {
 
 	private renderPickerHeader(date: Date): Children {
 		return m(".flex.flex-space-between.pb.items-center.mlr-xs", [
-			this.renderSwitchMonthArrowIcon(false),
+			renderSwitchMonthArrowIcon(false, 24, () => this.onMonthChange(false)),
 			m(
 				".b.mlr-s",
 				{
@@ -72,33 +68,8 @@ export class DaySelectorSidebar implements Component<DaySelectorSidebarAttrs> {
 				},
 				formatMonthWithFullYear(date),
 			),
-			this.renderSwitchMonthArrowIcon(true),
+			renderSwitchMonthArrowIcon(true, 24, () => this.onMonthChange(true)),
 		])
-	}
-
-	private renderSwitchMonthArrowIcon(forward: boolean): Children {
-		const bgColor = hexToRgb(theme.content_button)
-		return m(
-			"button.icon.flex.justify-center.items-center.click.state-bg",
-			{
-				onclick: () => this.onMonthChange(forward),
-				style: {
-					borderRadius: "50%",
-					fill: theme.content_fg,
-					width: "26px",
-					height: "26px",
-					tabIndex: 0,
-				},
-			},
-			m(Icon, {
-				icon: forward ? Icons.ArrowForward : BootIcons.Back,
-				style: {
-					fill: theme.content_fg,
-					width: "14px",
-					height: "14px",
-				},
-			}),
-		)
 	}
 
 	private onMonthChange(forward: boolean) {

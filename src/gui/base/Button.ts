@@ -29,6 +29,7 @@ export const enum ButtonColor {
 	Header = "header",
 	Nav = "nav",
 	Content = "content",
+	CalendarNav = "calendarnav",
 	Elevated = "elevated",
 	DrawerNav = "drawernav",
 }
@@ -52,6 +53,15 @@ export function getColors(buttonColors: ButtonColor | null | undefined): {
 				border: theme.navigation_bg,
 			}
 
+		case ButtonColor.CalendarNav:
+			return {
+				button: theme.content_fg,
+				button_selected: theme.navigation_button_selected,
+				button_icon_bg: theme.content_bg,
+				icon: theme.navigation_button_icon,
+				icon_selected: theme.navigation_button_icon_selected,
+				border: theme.navigation_bg,
+			}
 		case ButtonColor.DrawerNav:
 			return {
 				button: theme.content_button,
