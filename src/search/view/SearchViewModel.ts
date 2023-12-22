@@ -435,6 +435,9 @@ export class SearchViewModel {
 		}
 
 		if (isUpdateForTypeRef(CalendarEventTypeRef, update) && isSameTypeRefNullable(CalendarEventTypeRef, lastType)) {
+			// due to the way calendar event changes are sort of non-local, we throw away the whole list and re-render it if
+			// the contents are edited. we do the calculation on a new list and then swap the old list out once the new one is
+			// ready
 			const selectedItem = this.listModel.getSelectedAsArray().at(0)
 			const listModel = this.createList()
 			this.setMailFilter(this._mailFilterType)
@@ -607,6 +610,7 @@ export class SearchViewModel {
 				this.updateUi()
 			}
 		} else if (isSameTypeRef(currentResult.restriction.type, CalendarEventTypeRef)) {
+			// FIXME: this is where we do too much work
 			try {
 				const progenitors = await this.loadAndFilterInstances(currentResult.restriction.type, result.results, result, 0)
 				const { start, end } = currentResult.restriction
@@ -619,8 +623,6 @@ export class SearchViewModel {
 				this.updateUi()
 			}
 		} else {
-			// A - a - a | a a .. 100x a |
-			//     B     |             b |
 			// this type is not shown in the search view, e.g. group info
 			items = []
 		}

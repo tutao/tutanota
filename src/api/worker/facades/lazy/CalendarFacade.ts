@@ -15,6 +15,7 @@ import {
 } from "../../../entities/sys/TypeRefs.js"
 import {
 	assertNotNull,
+	DAY_IN_MILLIS,
 	downcast,
 	flatMap,
 	getFromMap,
@@ -55,6 +56,10 @@ import { ExposedOperationProgressTracker, OperationId } from "../../../main/Oper
 import { InfoMessageHandler } from "../../../../gui/InfoMessageHandler.js"
 import { ProgrammingError } from "../../../common/error/ProgrammingError.js"
 import { EventWrapper } from "../../../../calendar/export/CalendarImporterDialog.js"
+import { addDaysForEventInstance, addDaysForRecurringEvent, CalendarTimeRange } from "../../../../calendar/date/CalendarUtils.js"
+import { CalendarInfo } from "../../../../calendar/model/CalendarModel.js"
+import { geEventElementMaxId, getEventElementMinId } from "../../../common/utils/CommonCalendarUtils.js"
+import { DaysToEvents } from "../../../../calendar/view/CalendarViewModel.js"
 
 assertWorkerOrNode()
 
@@ -99,6 +104,44 @@ export class CalendarFacade {
 	async saveImportedCalendarEvents(eventWrappers: Array<EventWrapper>, operationId: OperationId): Promise<void> {
 		// it is safe to assume that all event uids are set at this time
 		return this.saveCalendarEvents(eventWrappers, (percent) => this.operationProgressTracker.onProgress(operationId, percent))
+	}
+
+	async updateEventMap(
+		month: CalendarTimeRange,
+		calendarInfos: ReadonlyMap<Id, CalendarInfo>,
+		daysToEvents: DaysToEvents,
+		zone: string,
+	): Promise<DaysToEvents> {
+		// Because of the timezones and all day events, we might not load an event which we need to display.
+		// So we add a margin on 24 hours to be sure we load everything we need. We will filter matching
+		// events anyway.
+		const startId = getEventElementMinId(month.start - DAY_IN_MILLIS)
+		const endId = geEventElementMaxId(month.end + DAY_IN_MILLIS)
+
+		// We collect events from all calendars together and then replace map synchronously.
+		// This is important to replace the map synchronously to not get race conditions because we load different months in parallel.
+		// We could replace map more often instead of aggregating events but this would mean creating even more (cals * months) maps.
+		//
+		// Note: there may be issues if we get entity update before other calendars finish loading but the chance is low and we do not
+		// take care of this now.
+		const aggregateEvents: CalendarEvent[] = []
+
+		for (const { groupRoot } of calendarInfos.values()) {
+			const [shortEventsResult, longEventsResult] = await Promise.all([
+				this.cachingEntityClient.loadReverseRangeBetween(CalendarEventTypeRef, groupRoot.shortEvents, endId, startId, 200),
+				this.cachingEntityClient.loadAll(CalendarEventTypeRef, groupRoot.longEvents),
+			])
+			aggregateEvents.push(...shortEventsResult.elements, ...longEventsResult)
+		}
+		const newEvents = new Map<number, Array<CalendarEvent>>(daysToEvents)
+		for (const e of aggregateEvents) {
+			if (e.repeatRule) {
+				addDaysForRecurringEvent(newEvents, e, month, zone)
+			} else {
+				addDaysForEventInstance(newEvents, e, month, zone)
+			}
+		}
+		return newEvents
 	}
 
 	/**
