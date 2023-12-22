@@ -10,6 +10,8 @@ import { theme } from "../theme.js"
 import { DefaultAnimationTime } from "../animation/Animations.js"
 import { Icons } from "./icons/Icons.js"
 import { TextFieldType } from "./TextField.js"
+import { IconButton } from "./IconButton.js"
+import { ButtonSize } from "./ButtonSize.js"
 
 export interface BaseSearchBarAttrs {
 	placeholder?: string | null
@@ -47,27 +49,20 @@ export class BaseSearchBar implements ClassComponent<BaseSearchBarAttrs> {
 			},
 			[
 				styles.isDesktopLayout()
-					? m(
-							"button.click",
-							{
-								tabindex: TabIndex.Default,
-								title: lang.get("search_label"),
-								onmousedown: (e: MouseEvent) => {
-									e.preventDefault()
-								},
-								onclick: (e: MouseEvent) => {
-									e.preventDefault()
-									attrs.onSearchClick?.()
-								},
+					? m(IconButton, {
+							tabIndex: TabIndex.Default,
+							title: "search_label",
+							icon: BootIcons.Search,
+							size: ButtonSize.Compact,
+							hoverClass: "",
+							mousedown: (e: MouseEvent) => {
+								e.preventDefault()
 							},
-							m(Icon, {
-								icon: BootIcons.Search,
-								class: "flex-center items-center icon-large",
-								style: {
-									fill: theme.header_button,
-								},
-							}),
-					  )
+							click: (e: MouseEvent) => {
+								e.preventDefault()
+								attrs.onSearchClick?.()
+							},
+					  })
 					: null,
 				m(
 					".flex.items-center",

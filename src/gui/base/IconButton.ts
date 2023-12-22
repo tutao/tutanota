@@ -8,6 +8,7 @@ import { assertMainOrNode } from "../../api/common/Env"
 import { ButtonColor, getColors } from "./Button.js"
 import { assertNotNull } from "@tutao/tutanota-utils"
 import { ButtonSize } from "./ButtonSize.js"
+import { TabIndex } from "../../api/common/TutanotaConstants.js"
 
 assertMainOrNode()
 
@@ -15,10 +16,13 @@ export interface IconButtonAttrs {
 	icon: AllIcons
 	title: TranslationText
 	click: ClickHandler
+	mousedown?: (event: MouseEvent) => void
+	hoverClass?: string
 	colors?: ButtonColor
 	size?: ButtonSize
 	onblur?: () => unknown
 	onkeydown?: (event: KeyboardEvent) => unknown
+	tabIndex?: TabIndex
 }
 
 export class IconButton implements Component<IconButtonAttrs> {
@@ -27,7 +31,7 @@ export class IconButton implements Component<IconButtonAttrs> {
 	view(vnode: Vnode<IconButtonAttrs>): Children {
 		const { attrs } = vnode
 		return m(
-			"button.icon-button.state-bg",
+			"button.icon-button",
 			{
 				oncreate: ({ dom }) => {
 					this.dom = dom as HTMLElement
@@ -37,10 +41,12 @@ export class IconButton implements Component<IconButtonAttrs> {
 					// It doesn't make sense to propagate click events if we are the button
 					e.stopPropagation()
 				},
+				onmousedown: attrs.mousedown,
 				onblur: attrs.onblur,
 				onkeydown: attrs.onkeydown,
 				title: lang.getMaybeLazy(attrs.title),
-				class: attrs.size === ButtonSize.Compact ? "compact" : "",
+				class: `${attrs.size === ButtonSize.Compact ? "compact" : ""} ${attrs.hoverClass !== undefined ? attrs.hoverClass : "state-bg"}`,
+				tabindex: attrs.tabIndex ?? TabIndex.Default,
 			},
 			m(Icon, {
 				icon: attrs.icon,
