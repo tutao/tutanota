@@ -19,24 +19,29 @@ export type SearchQuery = {
 	maxResults: number | null
 }
 
+// FIXME it's a mess and also doesn't work for calendar
+//  - For calendar the issue is that we have to regenerate the occurrences again because SearchResult only has IDs. We load those results in every case and
+//    in multiple places. There's no reason we can't load them in SearchModel. We could even avoid loading if the query has changed. We could handle
+//    getMoreSearchResults() inside.
+//  - There's no reason to use the same SearchModel for different types. It makes sense to have a singleton per type but generally it is doing different
+//    things in different ways for different types, with different parameters, state, restrictions and results. We don't have to expose all of that to all our
+//    clients. We can handle cancellation for loading instances differently and more generically.
+//  - isNewSearch() should compare against lastQuery?
+//  - We should also do getMoreSearchResults() here
+//  - minSuggestionCount is only used in settings now and we don't use search bar there anymore
 export class SearchModel {
 	result: Stream<SearchResult | null>
 	indexState: Stream<SearchIndexStateInfo>
 	lastQuery: Stream<string | null>
 	indexingSupported: boolean
-	lastSelectedGroupInfoResult: Stream<GroupInfo>
-	lastSelectedWhitelabelChildrenInfoResult: Stream<WhitelabelChild>
 	_searchFacade: SearchFacade
 	_lastQuery: SearchQuery | null
 	_lastSearchPromise: Promise<SearchResult | void>
-	_groupInfoRestrictionListId: Id | null
 
 	constructor(searchFacade: SearchFacade, private readonly calendarModel: lazyAsync<CalendarModel>) {
 		this._searchFacade = searchFacade
 		this.result = stream()
 		this.lastQuery = stream<string | null>("")
-		this.lastSelectedGroupInfoResult = stream()
-		this.lastSelectedWhitelabelChildrenInfoResult = stream()
 		this.indexingSupported = true
 		this.indexState = stream<SearchIndexStateInfo>({
 			initializing: true,
@@ -49,7 +54,6 @@ export class SearchModel {
 		})
 		this._lastQuery = null
 		this._lastSearchPromise = Promise.resolve(undefined)
-		this._groupInfoRestrictionListId = null
 	}
 
 	async search(searchQuery: SearchQuery): Promise<SearchResult | void> {
@@ -200,15 +204,6 @@ export class SearchModel {
 		// fixme: can we throw the result away here if true?
 		// this.result(null)
 		return !isSameSearchRestriction(restriction, result.restriction)
-	}
-
-	// TODO: remove this and take the list id from the url as soon as the list id is included in user and group settings
-	setGroupInfoRestrictionListId(listId: Id) {
-		this._groupInfoRestrictionListId = listId
-	}
-
-	getGroupInfoRestrictionListId(): Id | null {
-		return this._groupInfoRestrictionListId
 	}
 }
 
