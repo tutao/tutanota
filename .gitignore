@@ -17,3 +17,4 @@ test/testdatabase.sqlite
 test/undefined/*
 artifacts
 .vscode
+libs/webassembly/include/

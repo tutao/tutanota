@@ -1,8 +1,7 @@
 #ifndef TUTA_RAND_H
 #define TUTA_RAND_H
 
-#include <cstdint>
-#include <cstddef>
+#include <stddef.h>
 
 #ifdef __cplusplus
 extern "C" {

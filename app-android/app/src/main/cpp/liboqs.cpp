@@ -2,6 +2,7 @@
 #include <memory>
 #include <string>
 #include <cstdio>
+#include <cstdint>
 
 #include <oqs/kem.h>
 #include "helpers/rand.h"
