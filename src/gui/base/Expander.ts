@@ -10,6 +10,8 @@ import { px } from "../size"
 import { DefaultAnimationTime } from "../animation/Animations"
 import type { lazy } from "@tutao/tutanota-utils"
 import { assertNotNull } from "@tutao/tutanota-utils"
+import { isKeyPressed } from "../../misc/KeyManager.js"
+import { Keys } from "../../api/common/TutanotaConstants.js"
 
 export type ExpanderAttrs = {
 	label: TranslationKey | lazy<string>
@@ -30,14 +32,21 @@ export class ExpanderButton implements Component<ExpanderAttrs> {
 	view(vnode: Vnode<ExpanderAttrs>): Children {
 		const a = vnode.attrs
 		const label = lang.getMaybeLazy(a.label)
-		return m(".limit-width", [
+		return m(
+			".limit-width",
 			m(
-				"button.expander.bg-transparent.pt-s.hover-ul.limit-width.flex.items-center",
+				"button.expander.bg-transparent.pt-s.hover-ul.limit-width.flex.items-center.b.text-ellipsis",
 				{
 					style: a.style,
 					onclick: (event: MouseEvent) => {
 						a.onExpandedChange(!a.expanded)
 						if (!a.isPropagatingEvents) event.stopPropagation()
+					},
+					onkeydown: (e: KeyboardEvent) => {
+						if (isKeyPressed(e.key, Keys.SPACE, Keys.RETURN)) {
+							a.onExpandedChange(!a.expanded)
+							if (!a.isPropagatingEvents) e.preventDefault()
+						}
 					},
 					oncreate: (vnode) => addFlash(vnode.dom),
 					onremove: (vnode) => removeFlash(vnode.dom),
@@ -53,7 +62,7 @@ export class ExpanderButton implements Component<ExpanderAttrs> {
 						  })
 						: null,
 					m(
-						`${a.isBig ? "span" : "small"}.b.text-ellipsis`,
+						`${a.isBig ? "span" : "small"}`,
 						{
 							style: {
 								color: a.color || theme.content_button,
@@ -75,7 +84,7 @@ export class ExpanderButton implements Component<ExpanderAttrs> {
 					}),
 				],
 			),
-		])
+		)
 	}
 }
 
