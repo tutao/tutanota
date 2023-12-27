@@ -1,6 +1,7 @@
 import m, { Children, Component, Vnode, VnodeDOM } from "mithril"
 import { theme } from "../theme"
 import type { lazy } from "@tutao/tutanota-utils"
+import { memoized } from "@tutao/tutanota-utils"
 import { assertMainOrNode } from "../../api/common/Env"
 import { BootIcons, BootIconsSvg } from "./icons/BootIcons"
 import { Icons } from "./icons/Icons"
@@ -12,6 +13,7 @@ export type AllIcons = BootIcons | Icons
 
 export type IconAttrs = {
 	icon: AllIcons
+	svgParameters?: Record<string, string>
 	class?: string
 	large?: boolean
 	style?: Record<string, any>
@@ -37,7 +39,7 @@ export class Icon implements Component<IconAttrs> {
 
 	view(vnode: Vnode<IconAttrs>): Children {
 		// @ts-ignore
-		const icon = BootIconsSvg[vnode.attrs.icon] ?? IconsSvg[vnode.attrs.icon]
+		const icon = this.getIcon({ icon: vnode.attrs.icon, parameters: vnode.attrs.svgParameters })
 		const containerClasses = this.getContainerClasses(vnode.attrs)
 
 		return m(
@@ -56,7 +58,7 @@ export class Icon implements Component<IconAttrs> {
 					}
 				},
 			},
-			m.trust(icon),
+			icon ? m.trust(icon) : null,
 			vnode.attrs.hoverText &&
 				m(
 					"span.tooltiptext.no-wrap",
@@ -83,6 +85,16 @@ export class Icon implements Component<IconAttrs> {
 			tooltip.style.left = px(-distanceOver - parentRect.width - chromeShift)
 		}
 	}
+
+	private getIcon = memoized((args: { icon: AllIcons; parameters?: Record<string, string> }) => {
+		// @ts-ignore
+		let rawIcon = BootIconsSvg[args.icon] ?? IconsSvg[args.icon]
+		if (typeof rawIcon !== "string") return null
+		for (const parameter in args.parameters) {
+			rawIcon = rawIcon.replace(`{${parameter}}`, args.parameters[parameter])
+		}
+		return rawIcon as string
+	})
 
 	getStyle(style: Record<string, any> | null): {
 		fill: string
