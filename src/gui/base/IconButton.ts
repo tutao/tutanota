@@ -16,6 +16,7 @@ export interface IconButtonAttrs {
 	icon: AllIcons
 	title: TranslationText
 	click: ClickHandler
+	svgParameters?: Record<string, string>
 	mousedown?: (event: MouseEvent) => void
 	class?: string
 	style?: Record<string, any>
@@ -54,6 +55,7 @@ export class IconButton implements Component<IconButtonAttrs> {
 			m(Icon, {
 				icon: attrs.icon,
 				container: "div",
+				svgParameters: attrs.svgParameters,
 				class: `center-h ${attrs.iconClass !== undefined ? attrs.iconClass : ""}`,
 				large: attrs.size !== ButtonSize.Calendar,
 				style: {
