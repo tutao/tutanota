@@ -3,7 +3,7 @@ import { IconButton } from "../../gui/base/IconButton.js"
 import { BootIcons } from "../../gui/base/icons/BootIcons.js"
 import { ViewSlider } from "../../gui/nav/ViewSlider.js"
 import { BaseMobileHeader } from "../../gui/BaseMobileHeader.js"
-import { OfflineIndicatorMobile } from "../../gui/base/OfflineIndicator.js"
+import { OfflineIndicator } from "../../gui/base/OfflineIndicator.js"
 import { ProgressBar } from "../../gui/base/ProgressBar.js"
 import { Icons, IconsSvg } from "../../gui/base/icons/Icons.js"
 import { CalendarNavConfiguration, CalendarViewType, getIconForViewType } from "../gui/CalendarGuiUtils.js"
@@ -57,7 +57,7 @@ export class CalendarMobileHeader implements Component<CalendarMobileHeaderAttrs
 							],
 					  )
 					: attrs.navConfiguration.title,
-				bottom: m(OfflineIndicatorMobile, attrs.offlineIndicatorModel.getCurrentAttrs()),
+				bottom: m(OfflineIndicator, attrs.offlineIndicatorModel.getCurrentAttrs()),
 				onTap: attrs.onTap,
 			}),
 			right: [
