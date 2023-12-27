@@ -3,7 +3,7 @@ import { InfoLink, lang } from "../../misc/LanguageViewModel.js"
 import { getFolderIconByType, getMailAddressDisplayText, getSenderAddressDisplay } from "../model/MailUtils.js"
 import { theme } from "../../gui/theme.js"
 import { styles } from "../../gui/styles.js"
-import { ExpanderPanel } from "../../gui/base/Expander.js"
+import { ExpanderButton, ExpanderPanel } from "../../gui/base/Expander.js"
 import { File as TutanotaFile } from "../../api/entities/tutanota/TypeRefs.js"
 import { BannerType, InfoBanner } from "../../gui/base/InfoBanner.js"
 import { Icons } from "../../gui/base/icons/Icons.js"
@@ -485,37 +485,24 @@ export class MailViewerHeader implements Component<MailViewerHeaderAttrs> {
 						? // If we have exactly one attachment, just show the attachment
 						  this.renderAttachmentContainer(viewModel, attachments)
 						: // Otherwise, we show the number of attachments and its total size along with a show all button
-						  [
-								m(
-									".flex.center-vertically.click.flex-grow.ml-between-s.mt-xs",
-									{
-										role: "button",
-										"aria-pressed": String(this.detailsExpanded),
-										tabindex: TabIndex.Default,
-										onclick: () => (this.filesExpanded = !this.filesExpanded),
-										onkeydown: (e: KeyboardEvent) => {
-											if (isKeyPressed(e.key, Keys.SPACE, Keys.RETURN)) {
-												this.filesExpanded = !this.filesExpanded
-												e.preventDefault()
-											}
-										},
-									},
-									[
-										m(
-											"",
-											lang.get("attachmentAmount_label", { "{amount}": attachmentCount + "" }) +
-												` (${formatStorageSize(totalAttachmentSize)})`,
-										),
-										m(Icon, {
-											icon: BootIcons.Expand,
-											style: {
-												fill: theme.content_fg,
-												transform: this.filesExpanded ? "rotate(180deg)" : "",
-											},
-										}),
-									],
-								),
-						  ],
+						  m(ExpanderButton, {
+								label: () =>
+									lang.get("attachmentAmount_label", { "{amount}": attachmentCount + "" }) + ` (${formatStorageSize(totalAttachmentSize)})`,
+								style: {
+									"padding-top": "inherit",
+									height: "inherit",
+									"min-height": "inherit",
+									"text-decoration": "none",
+									"font-weight": "normal",
+								},
+								expanded: this.filesExpanded,
+								color: theme.content_fg,
+								isBig: true,
+								isUnformattedLabel: true,
+								onExpandedChange: (change) => {
+									this.filesExpanded = change
+								},
+						  }),
 				]),
 
 				// if we have more than one attachment, list them here in this expander panel
