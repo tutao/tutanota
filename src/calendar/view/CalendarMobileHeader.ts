@@ -1,6 +1,5 @@
 import m, { Children, Component, Vnode } from "mithril"
 import { IconButton } from "../../gui/base/IconButton.js"
-import { BootIcons } from "../../gui/base/icons/BootIcons.js"
 import { ViewSlider } from "../../gui/nav/ViewSlider.js"
 import { BaseMobileHeader } from "../../gui/BaseMobileHeader.js"
 import { OfflineIndicator } from "../../gui/base/OfflineIndicator.js"
@@ -12,10 +11,10 @@ import { AppHeaderAttrs } from "../../gui/Header.js"
 import { attachDropdown } from "../../gui/base/Dropdown.js"
 import { TranslationKey } from "../../misc/LanguageViewModel.js"
 import { styles } from "../../gui/styles.js"
-import { Icon } from "../../gui/base/Icon.js"
 import { theme } from "../../gui/theme.js"
 import { ClickHandler } from "../../gui/base/GuiUtils.js"
 import { TodayIconButton } from "./TodayIconButton.js"
+import { ExpanderButton } from "../../gui/base/Expander.js"
 
 export interface CalendarMobileHeaderAttrs extends AppHeaderAttrs {
 	viewType: CalendarViewType
@@ -38,24 +37,21 @@ export class CalendarMobileHeader implements Component<CalendarMobileHeaderAttrs
 			left: m(MobileHeaderMenuButton, { newsModel: attrs.newsModel, backAction: () => attrs.viewSlider.focusPreviousColumn() }),
 			center: m(MobileHeaderTitle, {
 				title: attrs.showExpandIcon
-					? m(
-							".flex.items-center",
-							{
-								"aria-expanded": `${attrs.isDaySelectorExpanded}`,
-								role: "button",
+					? m(ExpanderButton, {
+							label: () => attrs.navConfiguration.title,
+							isUnformattedLabel: true,
+							style: {
+								"padding-top": "inherit",
+								height: "inherit",
+								"min-height": "inherit",
+								"text-decoration": "none",
 							},
-							[
-								attrs.navConfiguration.title,
-								m(Icon, {
-									icon: BootIcons.Expand,
-									large: true,
-									style: {
-										fill: theme.content_fg,
-										transform: attrs.isDaySelectorExpanded ? "rotate(180deg)" : "",
-									},
-								}),
-							],
-					  )
+							expanded: attrs.isDaySelectorExpanded,
+							color: theme.content_fg,
+							isBig: true,
+							isPropagatingEvents: true,
+							onExpandedChange: () => {},
+					  })
 					: attrs.navConfiguration.title,
 				bottom: m(OfflineIndicator, attrs.offlineIndicatorModel.getCurrentAttrs()),
 				onTap: attrs.onTap,

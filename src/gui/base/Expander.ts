@@ -15,6 +15,9 @@ export type ExpanderAttrs = {
 	label: TranslationKey | lazy<string>
 	expanded: boolean
 	onExpandedChange: (value: boolean) => unknown
+	isPropagatingEvents?: boolean
+	isBig?: boolean
+	isUnformattedLabel?: boolean
 	showWarning?: boolean
 	color?: string
 	style?: Record<string, any>
@@ -26,6 +29,7 @@ export type ExpanderPanelAttrs = {
 export class ExpanderButton implements Component<ExpanderAttrs> {
 	view(vnode: Vnode<ExpanderAttrs>): Children {
 		const a = vnode.attrs
+		const label = lang.getMaybeLazy(a.label)
 		return m(".limit-width", [
 			m(
 				"button.expander.bg-transparent.pt-s.hover-ul.limit-width.flex.items-center",
@@ -33,7 +37,7 @@ export class ExpanderButton implements Component<ExpanderAttrs> {
 					style: a.style,
 					onclick: (event: MouseEvent) => {
 						a.onExpandedChange(!a.expanded)
-						event.stopPropagation()
+						if (!a.isPropagatingEvents) event.stopPropagation()
 					},
 					oncreate: (vnode) => addFlash(vnode.dom),
 					onremove: (vnode) => removeFlash(vnode.dom),
@@ -49,17 +53,18 @@ export class ExpanderButton implements Component<ExpanderAttrs> {
 						  })
 						: null,
 					m(
-						"small.b.text-ellipsis",
+						`${a.isBig ? "span" : "small"}.b.text-ellipsis`,
 						{
 							style: {
 								color: a.color || theme.content_button,
 							},
 						},
-						lang.getMaybeLazy(a.label).toUpperCase(),
+						a.isUnformattedLabel ? label : label.toUpperCase(),
 					),
 					m(Icon, {
 						icon: BootIcons.Expand,
 						class: "flex-center items-center",
+						large: a.isBig,
 						style: {
 							fill: a.color ? a.color : theme.content_button,
 							"margin-right": px(-4),
