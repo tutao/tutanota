@@ -7,6 +7,7 @@ import { LoginController } from "../../api/main/LoginController.js"
 import { OfflineIndicatorAttrs, OfflineIndicatorState } from "./OfflineIndicator.js"
 import { WebsocketConnectivityModel } from "../../misc/WebsocketConnectivityModel.js"
 import { ProgressTracker } from "../../api/main/ProgressTracker.js"
+import { styles } from "../styles.js"
 
 /**
  * the offline indicator must take into account information
@@ -85,13 +86,14 @@ export class OfflineIndicatorViewModel {
 	}
 
 	getCurrentAttrs(): OfflineIndicatorAttrs {
+		const isSingleColumn = styles.isUsingBottomNavigation()
 		if (this.logins.isFullyLoggedIn() && this.wsWasConnectedBefore) {
 			if (this.lastWsState === WsConnectionState.connected) {
 				// normal, full login with a connected websocket
 				if (this.lastProgress < PROGRESS_DONE) {
-					return { state: OfflineIndicatorState.Synchronizing, progress: this.lastProgress }
+					return { state: OfflineIndicatorState.Synchronizing, progress: this.lastProgress, isSingleColumn }
 				} else {
-					return { state: OfflineIndicatorState.Online }
+					return { state: OfflineIndicatorState.Online, isSingleColumn }
 				}
 			} else {
 				// normal, full login with a disconnected websocket
@@ -102,6 +104,7 @@ export class OfflineIndicatorViewModel {
 						console.log("try reconnect ws")
 						this.connectivityModel!.tryReconnect(true, true, 2000)
 					},
+					isSingleColumn,
 				}
 			}
 		} else {
@@ -115,10 +118,11 @@ export class OfflineIndicatorViewModel {
 						console.log("try full login")
 						this.logins!.retryAsyncLogin().finally(() => this.cb())
 					},
+					isSingleColumn,
 				}
 			} else {
 				// partially logged in, but the last login attempt didn't fail yet
-				return { state: OfflineIndicatorState.Connecting }
+				return { state: OfflineIndicatorState.Connecting, isSingleColumn }
 			}
 		}
 	}
