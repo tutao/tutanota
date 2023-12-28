@@ -1,5 +1,4 @@
 import m, { ChildArray, Children, Component, Vnode } from "mithril"
-import { theme } from "../../gui/theme"
 import { px, size } from "../../gui/size"
 import { DAY_IN_MILLIS, downcast, getEndOfDay, getStartOfDay, mapNullable, neverNull, numberRange } from "@tutao/tutanota-utils"
 import { eventEndsAfterDay, eventStartsBefore, getTimeTextFormatForLongEvent, getTimeZone, hasAlarmsForTheUser } from "../date/CalendarUtils"
@@ -20,6 +19,7 @@ import type { CalendarEventBubbleClickHandler } from "./CalendarViewModel"
 import type { GroupColors } from "./CalendarView"
 import { styles } from "../../gui/styles"
 import { locator } from "../../api/main/MainLocator.js"
+import { CalendarTimeIndicator } from "./CalendarTimeIndicator.js"
 
 export type Attrs = {
 	onEventClicked: CalendarEventBubbleClickHandler
@@ -82,31 +82,7 @@ export class CalendarDayEventsView implements Component<Attrs> {
 		}
 
 		const top = getTimeIndicatorPosition(now)
-		return [
-			m(".abs", {
-				"aria-hidden": "true",
-				style: {
-					top: px(top),
-					left: 0,
-					right: 0,
-					height: "2px",
-					background: theme.content_accent,
-				},
-			}),
-			m(".abs", {
-				"aria-hidden": "true",
-				style: {
-					top: px(top),
-					left: 0,
-					height: "12px",
-					width: "12px",
-					"border-radius": "50%",
-					background: theme.content_accent,
-					"margin-top": "-5px",
-					"margin-left": "-7px",
-				},
-			}),
-		]
+		return m(".abs", { style: { top: px(top), left: 0, right: 0 } }, m(CalendarTimeIndicator))
 	}
 
 	private renderEvents(attrs: Attrs, events: Array<CalendarEvent>): Children {
