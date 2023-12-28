@@ -28,13 +28,15 @@ export class IconSegmentControl<T> implements Component<IconSegmentControlAttrs<
 				{
 					role: "tablist",
 				},
-				vnode.attrs.items.map((item) =>
-					m(
+				vnode.attrs.items.map((item) => {
+					const title = lang.getMaybeLazy(item.label)
+					return m(
 						"button.icon-segment-control-item.flex.center-horizontally.center-vertically.text-ellipsis.small.state-bg.pt-xs.pb-xs",
 						{
 							active: item.value === vnode.attrs.selectedValue ? "true" : undefined,
-							title: lang.getMaybeLazy(item.label),
+							title,
 							role: "tab",
+							"aria-label": title,
 							"aria-selected": String(item.value === vnode.attrs.selectedValue),
 							onclick: () => this.onSelected(item, vnode.attrs),
 							style: {
@@ -53,8 +55,8 @@ export class IconSegmentControl<T> implements Component<IconSegmentControlAttrs<
 								fill: getColors(ButtonColor.Content).button,
 							},
 						}),
-					),
-				),
+					)
+				}),
 			),
 		]
 	}

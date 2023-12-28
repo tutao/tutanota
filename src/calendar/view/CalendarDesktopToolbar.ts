@@ -2,7 +2,7 @@ import { CalendarNavConfiguration, CalendarViewType, getIconForViewType } from "
 import m, { Children, Component, Vnode } from "mithril"
 import { theme } from "../../gui/theme.js"
 import { px, size } from "../../gui/size.js"
-import { TranslationText } from "../../misc/LanguageViewModel.js"
+import { lang, TranslationText } from "../../misc/LanguageViewModel.js"
 import { IconSegmentControl } from "../../gui/base/IconSegmentControl.js"
 import { AllIcons } from "../../gui/base/Icon.js"
 import { TodayIconButton } from "./TodayIconButton.js"
@@ -71,6 +71,8 @@ export class CalendarDesktopToolbar implements Component<CalendarDesktopToolbarA
 		return m(
 			".abs.center-h",
 			{
+				role: "tablist",
+				"aria-label": lang.get("periodOfTime_label"),
 				style: {
 					left: 0,
 					right: 0,

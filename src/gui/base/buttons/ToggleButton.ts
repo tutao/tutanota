@@ -17,6 +17,7 @@ export interface ToggleButtonAttrs {
 
 export class ToggleButton implements Component<ToggleButtonAttrs> {
 	view({ attrs }: Vnode<ToggleButtonAttrs>): Children {
+		const title = lang.getMaybeLazy(attrs.title)
 		return m(
 			"button.toggle-button.state-bg",
 			{
@@ -25,6 +26,7 @@ export class ToggleButton implements Component<ToggleButtonAttrs> {
 				toggled: String(attrs.toggled),
 				class: attrs.size === ButtonSize.Compact ? "compact" : "",
 				"aria-pressed": String(attrs.toggled),
+				"aria-label": title,
 				style: attrs.style,
 			},
 			m(Icon, {

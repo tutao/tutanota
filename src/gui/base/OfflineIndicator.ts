@@ -73,6 +73,7 @@ function formatDate(date: Date): string {
 export class OfflineIndicator implements Component<OfflineIndicatorAttrs> {
 	view(vnode: Vnode<OfflineIndicatorAttrs>): Children {
 		const a = vnode.attrs
+		const isOffline = a.state === OfflineIndicatorState.Offline
 		return m(
 			"button.small",
 			{
@@ -81,7 +82,8 @@ export class OfflineIndicator implements Component<OfflineIndicatorAttrs> {
 				href: "#",
 				tabindex: "0",
 				role: "button",
-				onclick: a.state === OfflineIndicatorState.Offline ? a.reconnectAction : noOp,
+				"aria-disabled": !isOffline,
+				onclick: isOffline ? a.reconnectAction : noOp,
 			},
 			a.isSingleColumn ? attrToFirstLine(a) : [attrToFirstLine(a), attrToSecondLine(a)],
 		)

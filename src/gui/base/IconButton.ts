@@ -33,6 +33,7 @@ export class IconButton implements Component<IconButtonAttrs> {
 
 	view(vnode: Vnode<IconButtonAttrs>): Children {
 		const { attrs } = vnode
+		const title = lang.getMaybeLazy(attrs.title)
 		return m(
 			"button.icon-button",
 			{
@@ -47,7 +48,8 @@ export class IconButton implements Component<IconButtonAttrs> {
 				onmousedown: attrs.mousedown,
 				onblur: attrs.onblur,
 				onkeydown: attrs.onkeydown,
-				title: lang.getMaybeLazy(attrs.title),
+				title,
+				"aria-label": title,
 				class: `${IconButton.getSizeClass(attrs.size)} ${attrs.class !== undefined ? attrs.class : "state-bg"}`,
 				style: attrs.style,
 				tabindex: attrs.tabIndex ?? TabIndex.Default,
