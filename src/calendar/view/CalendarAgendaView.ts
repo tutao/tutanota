@@ -1,5 +1,5 @@
-import m, { Children, Component, Vnode } from "mithril"
-import { neverNull } from "@tutao/tutanota-utils"
+import m, { Child, Children, Component, Vnode } from "mithril"
+import { isSameDay, neverNull } from "@tutao/tutanota-utils"
 import { lang } from "../../misc/LanguageViewModel"
 import { getTimeZone } from "../date/CalendarUtils"
 import type { CalendarEvent } from "../../api/entities/tutanota/TypeRefs.js"
@@ -16,6 +16,8 @@ import { DaySelector } from "../gui/day-selector/DaySelector.js"
 import { CalendarEventPreviewViewModel } from "../gui/eventpopup/CalendarEventPreviewViewModel.js"
 import { EventDetailsView } from "./EventDetailsView.js"
 import { getElementId, getListId } from "../../api/common/utils/EntityUtils.js"
+import { isAllDayEvent } from "../../api/common/utils/CommonCalendarUtils.js"
+import { CalendarTimeIndicator } from "./CalendarTimeIndicator.js"
 import { Time } from "../date/Time.js"
 import { DaysToEvents } from "../date/CalendarEventsRepository.js"
 
@@ -56,7 +58,6 @@ export class CalendarAgendaView implements Component<CalendarAgendaViewAttrs> {
 		if (isDesktopLayout) {
 			containerStyle = {
 				marginLeft: "5px",
-				overflow: "hidden",
 				marginBottom: px(size.hpad_large),
 			}
 		} else {
@@ -212,35 +213,67 @@ export class CalendarAgendaView implements Component<CalendarAgendaViewAttrs> {
 		const agendaGap = 3
 		const currentTime = attrs.selectedTime?.toDate()
 		let newScrollPosition = 0
-		const returnChildren =
-			events.length === 0
-				? m(".mb-s", lang.get("noEntries_msg"))
-				: m(
-						".flex.col",
-						{
-							style: {
-								gap: px(agendaGap),
-							},
-						},
-						events.map((event) => {
-							if (currentTime && event.startTime < currentTime) {
-								newScrollPosition += agendaItemHeight + agendaGap
-							}
-							return m(CalendarAgendaItemView, {
-								key: getListId(event) + getElementId(event) + event.startTime.toISOString(),
-								event: event,
-								color: getEventColor(event, colors),
-								selected: event === modelPromise?.calendarEvent,
-								click: (domEvent) => click(event, domEvent),
-								zone,
-								day: day,
-								height: agendaItemHeight,
-								timeText: formatEventTimes(day, event, zone),
-							})
-						}),
-				  )
+
+		// Find what event to display a time indicator for; do this even if it is not the same day, as we might want to refresh the view when the date rolls over to this day
+		const eventToShowTimeIndicator = earliestEventToShowTimeIndicator(events, new Date())
+		// Flat list structure so that we don't have problems with keys
+		let eventsNodes: Child[] = []
+		for (const [eventIndex, event] of events.entries()) {
+			if (eventToShowTimeIndicator === eventIndex && isSameDay(new Date(), event.startTime)) {
+				eventsNodes.push(m(".mt-xs.mb-xs", { key: "timeIndicator" }, m(CalendarTimeIndicator, {})))
+			}
+			if (currentTime && event.startTime < currentTime) {
+				newScrollPosition += agendaItemHeight + agendaGap
+			}
+			eventsNodes.push(
+				m(CalendarAgendaItemView, {
+					key: getListId(event) + getElementId(event) + event.startTime.toISOString(),
+					event: event,
+					color: getEventColor(event, colors),
+					selected: event === modelPromise?.calendarEvent,
+					click: (domEvent) => click(event, domEvent),
+					zone,
+					day: day,
+					height: agendaItemHeight,
+					timeText: formatEventTimes(day, event, zone),
+				}),
+			)
+		}
 		// one agenda item height needs to be removed to show the correct item
 		this.scrollPosition = newScrollPosition - (agendaItemHeight + agendaGap)
-		return returnChildren
+		return events.length === 0
+			? m(".mb-s", lang.get("noEntries_msg"))
+			: m(
+					".flex.col",
+					{
+						style: {
+							gap: px(agendaGap),
+						},
+					},
+					eventsNodes,
+			  )
 	}
+}
+
+/**
+ * Calculate the next event to occur with a given date; all-day events will be ignored
+ * @param events list of events to check
+ * @param date date to use
+ * @return the index, or null if there is no next event
+ */
+export function earliestEventToShowTimeIndicator(events: readonly CalendarEvent[], date: Date): number | null {
+	// We do not want to show the time indicator above any all day events
+	const firstNonAllDayEvent = events.findIndex((event) => !isAllDayEvent(event))
+	if (firstNonAllDayEvent < 0) {
+		return null
+	}
+
+	// Next, we want to locate the first event where the start time has yet to be reached
+	const nonAllDayEvents = events.slice(firstNonAllDayEvent)
+	const nextEvent = nonAllDayEvents.findIndex((event) => event.startTime > date)
+	if (nextEvent < 0) {
+		return null
+	}
+
+	return nextEvent + firstNonAllDayEvent
 }

@@ -328,7 +328,11 @@ import("./translations/en")
 							},
 						}
 					},
-					prepareAttrs: ({ header, calendarViewModel, drawerAttrsFactory }) => ({ drawerAttrs: drawerAttrsFactory(), header, calendarViewModel }),
+					prepareAttrs: ({ header, calendarViewModel, drawerAttrsFactory }) => ({
+						drawerAttrs: drawerAttrsFactory(),
+						header,
+						calendarViewModel,
+					}),
 				},
 				locator.logins,
 			),

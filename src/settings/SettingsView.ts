@@ -256,9 +256,11 @@ export class SettingsView extends BaseTopLevelView implements TopLevelView<Setti
 				},
 			},
 			ColumnType.Foreground,
-			size.first_col_min_width,
-			size.first_col_max_width,
-			() => lang.get("settings_label"),
+			{
+				minWidth: size.first_col_min_width,
+				maxWidth: size.first_col_max_width,
+				headerCenter: () => lang.get("settings_label"),
+			},
 		)
 		this._settingsColumn = new ViewColumn(
 			{
@@ -287,9 +289,11 @@ export class SettingsView extends BaseTopLevelView implements TopLevelView<Setti
 					}),
 			},
 			ColumnType.Background,
-			400,
-			600,
-			() => lang.getMaybeLazy(this._selectedFolder.name),
+			{
+				minWidth: 400,
+				maxWidth: 600,
+				headerCenter: () => lang.getMaybeLazy(this._selectedFolder.name),
+			},
 		)
 		this._settingsDetailsColumn = new ViewColumn(
 			{
@@ -310,9 +314,11 @@ export class SettingsView extends BaseTopLevelView implements TopLevelView<Setti
 					}),
 			},
 			ColumnType.Background,
-			500,
-			2400,
-			() => lang.get("settings_label"),
+			{
+				minWidth: 500,
+				maxWidth: 2400,
+				headerCenter: () => lang.get("settings_label"),
+			},
 		)
 		this.viewSlider = new ViewSlider([this._settingsFoldersColumn, this._settingsColumn, this._settingsDetailsColumn])
 

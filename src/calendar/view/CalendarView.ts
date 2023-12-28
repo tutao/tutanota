@@ -6,7 +6,7 @@ import { ViewSlider } from "../../gui/nav/ViewSlider.js"
 import type { Shortcut } from "../../misc/KeyManager"
 import { keyManager } from "../../misc/KeyManager"
 import { Icons } from "../../gui/base/icons/Icons"
-import { downcast, getStartOfDay, isSameDayOfDate, ofClass } from "@tutao/tutanota-utils"
+import { assertNotNull, downcast, getStartOfDay, isSameDayOfDate, LazyLoaded, memoized, ofClass } from "@tutao/tutanota-utils"
 import type { CalendarEvent, GroupSettings, UserSettingsGroupRoot } from "../../api/entities/tutanota/TypeRefs.js"
 import { createGroupSettings } from "../../api/entities/tutanota/TypeRefs.js"
 import { defaultCalendarColor, GroupType, Keys, reverse, ShareCapability, TimeFormat, WeekStart } from "../../api/common/TutanotaConstants"
@@ -53,10 +53,11 @@ import { BackgroundColumnLayout } from "../../gui/BackgroundColumnLayout.js"
 import { theme } from "../../gui/theme.js"
 import { CalendarMobileHeader } from "./CalendarMobileHeader.js"
 import { CalendarDesktopToolbar } from "./CalendarDesktopToolbar.js"
+import { SchedulerImpl } from "../../api/common/utils/Scheduler.js"
+import { LazySearchBar } from "../../misc/LazySearchBar.js"
 import { Time } from "../date/Time.js"
 import { DaySelectorSidebar } from "../gui/day-selector/DaySelectorSidebar.js"
 import { CalendarOperation } from "../gui/eventeditor-model/CalendarEventModel.js"
-import { LazySearchBar } from "../../misc/LazySearchBar.js"
 import { DaySelectorPopup } from "../gui/day-selector/DaySelectorPopup.js"
 
 export type GroupColors = Map<Id, string>
@@ -78,21 +79,25 @@ export class CalendarView extends BaseTopLevelView implements TopLevelView<Calen
 	// For sanitizing event descriptions, which get rendered as html in the CalendarEventPopup
 	private readonly htmlSanitizer: Promise<HtmlSanitizer>
 	private isDaySelectorExpanded: boolean = false
+	private redrawIntervalId: number | null = null
+	private redrawTimeoutId: number | null = null
 	oncreate: Component["oncreate"]
 	onremove: Component["onremove"]
 
-	constructor(vnode: Vnode<CalendarViewAttrs>) {
+	constructor({ attrs }: Vnode<CalendarViewAttrs>) {
 		super()
 		const userId = locator.logins.getUserController().user._id
 
-		this.viewModel = vnode.attrs.calendarViewModel
+		const scheduler = new LazyLoaded(async () => new SchedulerImpl(await locator.noZoneDateProvider(), window, window))
+
+		this.viewModel = attrs.calendarViewModel
 		this.currentViewType = deviceConfig.getDefaultCalendarView(userId) || CalendarViewType.MONTH
 		this.htmlSanitizer = import("../../misc/HtmlSanitizer").then((m) => m.htmlSanitizer)
 		this.sidebarColumn = new ViewColumn(
 			{
 				view: () =>
 					m(FolderColumnView, {
-						drawer: vnode.attrs.drawerAttrs,
+						drawer: attrs.drawerAttrs,
 						button: styles.isDesktopLayout()
 							? {
 									type: ButtonType.FolderColumnHeader,
@@ -156,9 +161,11 @@ export class CalendarView extends BaseTopLevelView implements TopLevelView<Calen
 					}),
 			},
 			ColumnType.Foreground,
-			size.first_col_min_width,
-			size.first_col_max_width,
-			() => (this.currentViewType === CalendarViewType.WEEK ? lang.get("month_label") : lang.get("calendar_label")),
+			{
+				minWidth: size.first_col_min_width,
+				maxWidth: size.first_col_max_width,
+				headerCenter: () => (this.currentViewType === CalendarViewType.WEEK ? lang.get("month_label") : lang.get("calendar_label")),
+			},
 		)
 
 		this.contentColumn = new ViewColumn(
@@ -171,7 +178,7 @@ export class CalendarView extends BaseTopLevelView implements TopLevelView<Calen
 							return m(BackgroundColumnLayout, {
 								backgroundColor: theme.navigation_bg,
 								desktopToolbar: () => this.renderDesktopToolbar(),
-								mobileHeader: () => this.renderMobileHeader(vnode.attrs.header),
+								mobileHeader: () => this.renderMobileHeader(attrs.header),
 								columnLayout: m(CalendarMonthView, {
 									temporaryEvents: this.viewModel.temporaryEvents,
 									eventsForDays: this.viewModel.eventsForDays,
@@ -196,7 +203,7 @@ export class CalendarView extends BaseTopLevelView implements TopLevelView<Calen
 							return m(BackgroundColumnLayout, {
 								backgroundColor: theme.navigation_bg,
 								desktopToolbar: () => this.renderDesktopToolbar(),
-								mobileHeader: () => this.renderMobileHeader(vnode.attrs.header),
+								mobileHeader: () => this.renderMobileHeader(attrs.header),
 								columnLayout: m(MultiDayCalendarView, {
 									temporaryEvents: this.viewModel.temporaryEvents,
 									getEventsOnDays: this.viewModel.getEventsOnDaysToRender.bind(this.viewModel),
@@ -225,7 +232,7 @@ export class CalendarView extends BaseTopLevelView implements TopLevelView<Calen
 							return m(BackgroundColumnLayout, {
 								backgroundColor: theme.navigation_bg,
 								desktopToolbar: () => this.renderDesktopToolbar(),
-								mobileHeader: () => this.renderMobileHeader(vnode.attrs.header),
+								mobileHeader: () => this.renderMobileHeader(attrs.header),
 								columnLayout: m(MultiDayCalendarView, {
 									temporaryEvents: this.viewModel.temporaryEvents,
 									getEventsOnDays: this.viewModel.getEventsOnDaysToRender.bind(this.viewModel),
@@ -253,7 +260,7 @@ export class CalendarView extends BaseTopLevelView implements TopLevelView<Calen
 							return m(BackgroundColumnLayout, {
 								backgroundColor: theme.navigation_bg,
 								desktopToolbar: () => this.renderDesktopToolbar(),
-								mobileHeader: () => this.renderMobileHeader(vnode.attrs.header),
+								mobileHeader: () => this.renderMobileHeader(attrs.header),
 								columnLayout: m(CalendarAgendaView, {
 									selectedDate: this.viewModel.selectedDate(),
 									selectedTime: this.viewModel.selectedTime,
@@ -282,8 +289,12 @@ export class CalendarView extends BaseTopLevelView implements TopLevelView<Calen
 				},
 			},
 			ColumnType.Background,
-			size.second_col_min_width + size.third_col_min_width,
-			size.third_col_max_width,
+			{
+				minWidth: size.second_col_min_width + size.third_col_min_width,
+				maxWidth: size.third_col_max_width,
+				// We need to allow time indicator in Agenda view to overflow
+				overflowXVisible: true,
+			},
 		)
 		this.viewSlider = new ViewSlider([this.sidebarColumn, this.contentColumn])
 
@@ -293,6 +304,15 @@ export class CalendarView extends BaseTopLevelView implements TopLevelView<Calen
 
 		this.oncreate = () => {
 			keyManager.registerShortcuts(shortcuts)
+			// do both a timeout and interval to ensure the time indicator is done on the minute rather than some delay afterwards
+			if (!this.redrawIntervalId && !this.redrawTimeoutId) {
+				const timeToNextMinute = (60 - new Date().getSeconds()) * 1000
+				this.redrawTimeoutId = window.setTimeout(() => {
+					this.redrawIntervalId = window.setInterval(m.redraw, 1000 * 60)
+					this.redrawTimeoutId = null
+					m.redraw()
+				}, timeToNextMinute)
+			}
 			streamListeners.push(
 				this.viewModel.calendarInvitations.map(() => {
 					m.redraw()
@@ -303,7 +323,14 @@ export class CalendarView extends BaseTopLevelView implements TopLevelView<Calen
 
 		this.onremove = () => {
 			keyManager.unregisterShortcuts(shortcuts)
-
+			if (this.redrawTimeoutId) {
+				window.clearTimeout(this.redrawTimeoutId)
+				this.redrawTimeoutId = null
+			}
+			if (this.redrawIntervalId) {
+				window.clearInterval(this.redrawIntervalId)
+				this.redrawIntervalId = null
+			}
 			for (let listener of streamListeners) {
 				listener.end(true)
 			}

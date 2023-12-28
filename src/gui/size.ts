@@ -5,6 +5,7 @@ export const size = {
 	icon_size_xl: 32,
 	icon_size_large: 24,
 	icon_size_medium: 16,
+	icon_size_small: 12,
 	icon_message_box: 80,
 	hpad_small: 5,
 	hpad: 10,

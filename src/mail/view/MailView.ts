@@ -182,11 +182,13 @@ export class MailView extends BaseTopLevelView implements TopLevelView<MailViewA
 				},
 			},
 			ColumnType.Background,
-			size.second_col_min_width,
-			size.second_col_max_width,
-			() => {
-				const selectedFolder = this.mailViewModel.getSelectedFolder()
-				return selectedFolder ? getFolderName(selectedFolder) : ""
+			{
+				minWidth: size.second_col_min_width,
+				maxWidth: size.second_col_max_width,
+				headerCenter: () => {
+					const selectedFolder = this.mailViewModel.getSelectedFolder()
+					return selectedFolder ? getFolderName(selectedFolder) : ""
+				},
 			},
 		)
 
@@ -202,10 +204,11 @@ export class MailView extends BaseTopLevelView implements TopLevelView<MailViewA
 				},
 			},
 			ColumnType.Background,
-			size.third_col_min_width,
-			size.third_col_max_width,
-			undefined,
-			() => lang.get("email_label"),
+			{
+				minWidth: size.third_col_min_width,
+				maxWidth: size.third_col_max_width,
+				ariaLabel: () => lang.get("email_label"),
+			},
 		)
 		this.viewSlider = new ViewSlider([this.folderColumn, this.listColumn, this.mailColumn])
 		this.viewSlider.focusedColumn = this.listColumn
@@ -556,9 +559,11 @@ export class MailView extends BaseTopLevelView implements TopLevelView<MailViewA
 				},
 			},
 			editingFolderForMailGroup ? ColumnType.Background : ColumnType.Foreground,
-			size.first_col_min_width,
-			size.first_col_max_width,
-			() => lang.get("folderTitle_label"),
+			{
+				minWidth: size.first_col_min_width,
+				maxWidth: size.first_col_max_width,
+				headerCenter: () => lang.get("folderTitle_label"),
+			},
 		)
 	}
 
