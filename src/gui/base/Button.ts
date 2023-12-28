@@ -134,6 +134,7 @@ export class Button implements ClassComponent<ButtonAttrs> {
 				style: this._getStyle(a),
 				onclick: (event: MouseEvent) => this.click(event, a, assertNotNull(this._domButton)),
 				title: type === ButtonType.Action || type === ButtonType.Login ? lang.getMaybeLazy(a.label) : title,
+				"aria-label": title,
 				oncreate: (vnode) => {
 					this._domButton = vnode.dom as HTMLButtonElement
 				},
@@ -246,7 +247,7 @@ export class Button implements ClassComponent<ButtonAttrs> {
 		}
 	}
 
-	getButtonClasses(a: ButtonAttrs): Array<string> {
+	private getButtonClasses(a: ButtonAttrs): Array<string> {
 		const type = this.getType(a.type)
 		let buttonClasses = ["bg-transparent"]
 

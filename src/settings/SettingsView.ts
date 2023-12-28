@@ -22,21 +22,16 @@ import { BootIcons } from "../gui/base/icons/BootIcons"
 import { locator } from "../api/main/MainLocator"
 import { SubscriptionViewer } from "../subscription/SubscriptionViewer"
 import { PaymentViewer } from "../subscription/PaymentViewer"
-
 import { showUserImportDialog, UserViewer } from "./UserViewer"
 import { LazyLoaded, partition, promiseMap } from "@tutao/tutanota-utils"
 import { AppearanceSettingsViewer } from "./AppearanceSettingsViewer"
 import type { NavButtonAttrs } from "../gui/base/NavButton.js"
 import { NavButtonColor } from "../gui/base/NavButton.js"
-import { Dialog } from "../gui/base/Dialog"
-import { AboutDialog } from "./AboutDialog"
 import { SETTINGS_PREFIX } from "../misc/RouteChange"
 import { size } from "../gui/size"
 import { FolderColumnView } from "../gui/FolderColumnView.js"
 import { getEtId } from "../api/common/utils/EntityUtils"
-import { TemplateListView } from "./TemplateListView"
 import { KnowledgeBaseListView, KnowledgeBaseSettingsDetailsViewer } from "./KnowledgeBaseListView"
-import { loadTemplateGroupInstances } from "../templates/model/TemplatePopupModel"
 import type { TemplateGroupInstance } from "../templates/model/TemplateGroupModel"
 import { showGroupSharingDialog } from "../sharing/view/GroupSharingDialog"
 import { createMoreActionButtonAttrs, getConfirmation } from "../gui/base/GuiUtils"
@@ -46,7 +41,6 @@ import { getDefaultGroupName, getSharedGroupName, isSharedGroupOwner } from "../
 import { DummyTemplateListView } from "./DummyTemplateListView"
 import { SettingsFolderRow } from "./SettingsFolderRow"
 import { showProgressDialog } from "../gui/dialogs/ProgressDialog"
-import { TextField } from "../gui/base/TextField.js"
 import { createGroupSettings, createUserAreaGroupDeleteData } from "../api/entities/tutanota/TypeRefs.js"
 import { GroupInvitationFolderRow } from "../sharing/view/GroupInvitationFolderRow"
 import { TemplateGroupService } from "../api/entities/tutanota/Services"
@@ -66,6 +60,11 @@ import { GroupDetailsView } from "./groups/GroupDetailsView.js"
 import { TemplateDetailsViewer } from "./TemplateDetailsViewer.js"
 import { isCustomizationEnabledForCustomer } from "../api/common/utils/CustomerUtils.js"
 import { EntityUpdateData, isUpdateForTypeRef } from "../api/common/utils/EntityUpdateUtils.js"
+import { Dialog } from "../gui/base/Dialog.js"
+import { AboutDialog } from "./AboutDialog.js"
+import { loadTemplateGroupInstances } from "../templates/model/TemplatePopupModel.js"
+import { TemplateListView } from "./TemplateListView.js"
+import { TextField } from "../gui/base/TextField.js"
 import { ContactsSettingsViewer } from "./ContactsSettingsViewer.js"
 
 assertMainOrNode()
@@ -697,6 +696,8 @@ export class SettingsView extends BaseTopLevelView implements TopLevelView<Setti
 	}
 
 	_aboutThisSoftwareLink(): Children {
+		const label = lang.get("about_label")
+		const versionLabel = `Tutanota v${env.versionNumber}`
 		return m(".pb.pt-l.flex-no-shrink.flex.col.justify-end", [
 			m(
 				"button.text-center.small.no-text-decoration",
@@ -705,6 +706,9 @@ export class SettingsView extends BaseTopLevelView implements TopLevelView<Setti
 						backgroundColor: "transparent",
 					},
 					href: "#",
+					"aria-label": label,
+					"aria-description": versionLabel,
+					"aria-haspopup": "dialog",
 					onclick: () => {
 						this.viewSlider.focusNextColumn()
 						setTimeout(() => {
@@ -719,7 +723,7 @@ export class SettingsView extends BaseTopLevelView implements TopLevelView<Setti
 					},
 				},
 				[
-					m("", `Tutanota v${env.versionNumber}`),
+					m("", versionLabel),
 					m(
 						".b",
 						{
@@ -727,7 +731,7 @@ export class SettingsView extends BaseTopLevelView implements TopLevelView<Setti
 								color: theme.navigation_button_selected,
 							},
 						},
-						lang.get("about_label"),
+						label,
 					),
 				],
 			),

@@ -575,6 +575,7 @@ class DropdownButton implements Component<InternalDropdownButtonAttrs> {
 			"button.flex.dropdown-button.items-center.state-bg",
 			{
 				role: "menuitem",
+				"aria-selected": String(attrs.selected ?? false),
 				oncreate: (vnode) => (this.dom = vnode.dom as HTMLElement),
 				onclick: (e: MouseEvent) => attrs.click?.(e, neverNull(this.dom)),
 			},

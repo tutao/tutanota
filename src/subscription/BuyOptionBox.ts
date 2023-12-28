@@ -295,6 +295,7 @@ export class InfoIcon implements Component<InfoIconAttrs> {
 				m(
 					"span.tooltiptext.break-word",
 					{
+						role: "tooltip",
 						style: {
 							width: px(120),
 							marginLeft: px(-120),

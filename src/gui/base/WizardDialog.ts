@@ -124,8 +124,9 @@ class WizardDialog<T> implements Component<WizardDialogAttrs<T>> {
 			a.currentPage && a.currentPage.attrs.hideAllPagingButtons
 				? null
 				: m(
-						"#wizard-paging.flex-space-around.border-top",
+						"nav#wizard-paging.flex-space-around.border-top",
 						{
+							"aria-label": "Breadcrumb",
 							style: {
 								height: "22px",
 								marginTop: "22px",
@@ -290,6 +291,10 @@ export class WizardPagingButton {
 		const pageIndex = vnode.attrs.pageIndex
 		const filledBg = getContentButtonIconBackground()
 		const isClickable = vnode.attrs.isClickable()
+		const nextIndex = (pageIndex + 1).toString()
+		const isSelectedPage = selectedPageIndex === pageIndex
+		const isPreviousPage = pageIndex < selectedPageIndex
+
 		return m(
 			".button-content.flex-center.items-center",
 			{
@@ -307,14 +312,18 @@ export class WizardPagingButton {
 				"button.button-icon.flex-center.items-center.no-hover",
 				{
 					tabIndex: isClickable ? TabIndex.Default : TabIndex.Programmatic,
+					"aria-disabled": isClickable.toString(),
+					"aria-label": isClickable ? lang.get("previous_action") : nextIndex,
+					"aria-current": isSelectedPage ? "step" : "false",
+					"aria-live": isSelectedPage ? "polite" : "off",
 					style: {
-						border: selectedPageIndex === pageIndex ? `2px solid ${theme.content_accent}` : `1px solid ${filledBg}`,
-						color: selectedPageIndex === pageIndex ? theme.content_accent : "inherit",
-						"background-color": pageIndex < selectedPageIndex ? filledBg : theme.content_bg,
+						border: isSelectedPage ? `2px solid ${theme.content_accent}` : `1px solid ${filledBg}`,
+						color: isSelectedPage ? theme.content_accent : "inherit",
+						"background-color": isPreviousPage ? filledBg : theme.content_bg,
 						cursor: isClickable ? "pointer" : "auto",
 					},
 				},
-				pageIndex < selectedPageIndex
+				isPreviousPage
 					? m(Icon, {
 							icon: Icons.Checkmark,
 							style: {
@@ -322,7 +331,7 @@ export class WizardPagingButton {
 								"background-color": filledBg,
 							},
 					  })
-					: "" + (pageIndex + 1),
+					: nextIndex,
 			),
 		)
 	}

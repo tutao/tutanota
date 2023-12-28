@@ -102,6 +102,7 @@ export class MailViewerHeader implements Component<MailViewerHeaderAttrs> {
 				class: responsiveCardHMargin(),
 				role: "button",
 				"aria-pressed": String(this.detailsExpanded),
+				"aria-expanded": String(this.detailsExpanded),
 				tabindex: TabIndex.Default,
 				onclick: () => {
 					this.detailsExpanded = !this.detailsExpanded
@@ -161,6 +162,7 @@ export class MailViewerHeader implements Component<MailViewerHeaderAttrs> {
 			{
 				role: "button",
 				"mail-expander": "true",
+				"aria-expanded": !viewModel.isCollapsed(),
 				tabindex: TabIndex.Default,
 				onclick: (e: MouseEvent) => {
 					viewModel.collapseMail()
