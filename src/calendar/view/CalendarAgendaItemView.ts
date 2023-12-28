@@ -20,31 +20,30 @@ export interface CalendarAgendaItemViewAttrs {
 
 export class CalendarAgendaItemView implements Component<CalendarAgendaItemViewAttrs> {
 	view({ attrs }: Vnode<CalendarAgendaItemViewAttrs>): Children {
-		return m(
-			".flex.items-center.gap-vpad.click.plr.border-radius.pt-s.pb-s",
-			{
-				class: (styles.isDesktopLayout() ? "" : "state-bg") + (attrs.limitSummaryWidth ? "limit-width full-width" : ""),
-				onclick: attrs.click,
-				style: {
-					transition: `background ${DefaultAnimationTime}ms`,
-					background: styles.isDesktopLayout() ? (attrs.selected ? stateBgHover : theme.list_bg) : undefined,
-					height: attrs.height ? px(attrs.height) : undefined,
-				},
-			},
-			[
-				m("", {
+		return [
+			m(
+				".flex.items-center.gap-vpad.click.plr.border-radius.pt-s.pb-s.rel",
+				{
+					class: (styles.isDesktopLayout() ? "" : "state-bg") + (attrs.limitSummaryWidth ? "limit-width full-width" : ""),
+					onclick: attrs.click,
 					style: {
-						minWidth: "16px",
-						minHeight: "16px",
-						borderRadius: "50%",
-						backgroundColor: `#${attrs.color}`,
+						transition: `background ${DefaultAnimationTime}ms`,
+						background: styles.isDesktopLayout() ? (attrs.selected ? stateBgHover : theme.list_bg) : undefined,
+						height: attrs.height ? px(attrs.height) : undefined,
 					},
-				}),
-				m(".flex.col", { class: attrs.limitSummaryWidth ? "min-width-0" : "" }, [
-					m("p.b.m-0", { class: attrs.limitSummaryWidth ? "text-ellipsis" : "" }, attrs.event.summary),
-					m("", attrs.timeText),
-				]),
-			],
-		)
+				},
+				[
+					m(".icon.circle", {
+						style: {
+							backgroundColor: `#${attrs.color}`,
+						},
+					}),
+					m(".flex.col", { class: attrs.limitSummaryWidth ? "min-width-0" : "" }, [
+						m("p.b.m-0", { class: attrs.limitSummaryWidth ? "text-ellipsis" : "" }, attrs.event.summary),
+						m("", attrs.timeText),
+					]),
+				],
+			),
+		]
 	}
 }

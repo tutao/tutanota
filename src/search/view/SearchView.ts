@@ -186,9 +186,11 @@ export class SearchView extends BaseTopLevelView implements TopLevelView<SearchV
 				},
 			},
 			ColumnType.Foreground,
-			size.first_col_min_width,
-			size.first_col_max_width,
-			() => lang.get("search_label"),
+			{
+				minWidth: size.first_col_min_width,
+				maxWidth: size.first_col_max_width,
+				headerCenter: () => lang.get("search_label"),
+			},
 		)
 
 		this.resultListColumn = new ViewColumn(
@@ -211,17 +213,21 @@ export class SearchView extends BaseTopLevelView implements TopLevelView<SearchV
 				},
 			},
 			ColumnType.Background,
-			size.second_col_min_width,
-			size.second_col_max_width,
-			() => lang.get("searchResult_label"),
+			{
+				minWidth: size.second_col_min_width,
+				maxWidth: size.second_col_max_width,
+				headerCenter: () => lang.get("searchResult_label"),
+			},
 		)
 		this.resultDetailsColumn = new ViewColumn(
 			{
 				view: () => this.renderDetailsView(vnode.attrs.header),
 			},
 			ColumnType.Background,
-			size.third_col_min_width,
-			size.third_col_max_width,
+			{
+				minWidth: size.third_col_min_width,
+				maxWidth: size.third_col_max_width,
+			},
 		)
 		this.viewSlider = new ViewSlider([this.folderColumn, this.resultListColumn, this.resultDetailsColumn])
 	}

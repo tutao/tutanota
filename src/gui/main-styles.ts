@@ -1111,12 +1111,12 @@ styles.registerStyle("main", () => {
 			width: px(15),
 		},
 		".icon-small": {
-			height: px(size.font_size_small),
-			width: px(size.font_size_small),
+			height: px(size.icon_size_small),
+			width: px(size.icon_size_small),
 		},
 		".icon-small > svg": {
-			height: px(size.font_size_small),
-			width: px(size.font_size_small),
+			height: px(size.icon_size_small),
+			width: px(size.icon_size_small),
 		},
 		".icon-large": {
 			height: px(size.icon_size_large),

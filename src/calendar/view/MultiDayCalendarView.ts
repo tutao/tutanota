@@ -187,15 +187,6 @@ export class MultiDayCalendarView implements Component<Attrs> {
 			{
 				class: isDesktopLayout ? "mlr-l border-radius-big" : "border-radius-top-left-big border-radius-top-right-big content-bg mlr-safe-inset",
 				style: containerStyle,
-				oncreate: () => {
-					this.redrawIntervalId = setInterval(m.redraw, 1000 * 60)
-				},
-				onremove: () => {
-					if (this.redrawIntervalId != null) {
-						clearInterval(this.redrawIntervalId)
-						this.redrawIntervalId = null
-					}
-				},
 				onmousemove: (mouseEvent: EventRedraw<MouseEvent>) => {
 					mouseEvent.redraw = false
 					this.lastMousePos = getPosAndBoundsFromMouseEvent(mouseEvent)

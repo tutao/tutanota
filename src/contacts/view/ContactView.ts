@@ -119,9 +119,11 @@ export class ContactView extends BaseTopLevelView implements TopLevelView<Contac
 					}),
 			},
 			ColumnType.Foreground,
-			size.first_col_min_width,
-			size.first_col_max_width,
-			() => lang.get("folderTitle_label"),
+			{
+				minWidth: size.first_col_max_width,
+				maxWidth: size.first_col_max_width,
+				headerCenter: () => lang.get("folderTitle_label"),
+			},
 		)
 
 		this.listColumn = new ViewColumn(
@@ -130,9 +132,11 @@ export class ContactView extends BaseTopLevelView implements TopLevelView<Contac
 					this.inContactListView() ? this.renderContactListRecipientColumn(vnode.attrs.header) : this.renderContactListColumn(vnode.attrs.header),
 			},
 			ColumnType.Background,
-			size.second_col_min_width,
-			size.second_col_max_width,
-			() => this.getHeaderLabel(),
+			{
+				minWidth: size.second_col_min_width,
+				maxWidth: size.second_col_max_width,
+				headerCenter: () => this.getHeaderLabel(),
+			},
 		)
 
 		this.detailsColumn = new ViewColumn(
@@ -159,10 +163,11 @@ export class ContactView extends BaseTopLevelView implements TopLevelView<Contac
 					}),
 			},
 			ColumnType.Background,
-			size.third_col_min_width,
-			size.third_col_max_width,
-			undefined,
-			() => this.getHeaderLabel(),
+			{
+				minWidth: size.third_col_min_width,
+				maxWidth: size.third_col_max_width,
+				ariaLabel: () => this.getHeaderLabel(),
+			},
 		)
 
 		this.viewSlider = new ViewSlider([this.folderColumn, this.listColumn, this.detailsColumn])
