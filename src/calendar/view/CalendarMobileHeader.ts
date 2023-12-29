@@ -61,17 +61,11 @@ export class CalendarMobileHeader implements Component<CalendarMobileHeaderAttrs
 				onTap: attrs.onTap,
 			}),
 			right: [
-				...(styles.isDesktopLayout() || (!styles.isDesktopLayout() && styles.isTwoColumnLayout())
-					? [attrs.navConfiguration.back, attrs.navConfiguration.forward]
-					: []),
-				...(!styles.isDesktopLayout()
-					? [
-							m(TodayIconButton, {
-								click: attrs.onToday,
-							}),
-							this.renderViewSelector(attrs),
-					  ]
-					: []),
+				...(styles.isDesktopLayout() || styles.isTwoColumnLayout() ? [attrs.navConfiguration.back, attrs.navConfiguration.forward] : []),
+				m(TodayIconButton, {
+					click: attrs.onToday,
+				}),
+				this.renderViewSelector(attrs),
 				m(IconButton, {
 					icon: Icons.Add,
 					title: "createEvent_label",
