@@ -73,7 +73,6 @@ import stream from "mithril/stream"
 const TAG = "[CalendarModel]"
 export type CalendarInfo = {
 	groupRoot: CalendarGroupRoot
-	// FIXME: Event identity is required by some functions (e.g. when determining week events)
 	groupInfo: GroupInfo
 	group: Group
 	shared: boolean
@@ -732,11 +731,17 @@ export class CalendarModel {
 				}
 			} else if (isUpdateForTypeRef(CalendarEventTypeRef, entityEventData)) {
 				if (entityEventData.operation === OperationType.CREATE || entityEventData.operation === OperationType.UPDATE) {
-					// FIXME: catch some stuff
-					const event = await this.entityClient.load(CalendarEventTypeRef, [entityEventData.instanceListId, entityEventData.instanceId])
-					await this._addOrUpdateEvent(calendarInfos.get(eventOwnerGroupId) ?? null, event)
-					const deferredEvent = this.getPendingAlarmRequest(entityEventData.instanceId)
-					deferredEvent.deferred.resolve(undefined)
+					try {
+						const event = await this.entityClient.load(CalendarEventTypeRef, [entityEventData.instanceListId, entityEventData.instanceId])
+						await this._addOrUpdateEvent(calendarInfos.get(eventOwnerGroupId) ?? null, event)
+						const deferredEvent = this.getPendingAlarmRequest(entityEventData.instanceId)
+						deferredEvent.deferred.resolve(undefined)
+					} catch (e) {
+						if (e instanceof NotFoundError || e instanceof NotAuthorizedError) {
+							console.log(TAG, e.name, "updated event is not accessible anymore")
+						}
+						throw e
+					}
 				} else if (entityEventData.operation === OperationType.DELETE) {
 					await this._removeDaysForEvent([entityEventData.instanceListId, entityEventData.instanceId])
 				}

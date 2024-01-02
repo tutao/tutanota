@@ -4,10 +4,9 @@ import { CalendarEventTypeRef, MailTypeRef } from "../../api/entities/tutanota/T
 import { NOTHING_INDEXED_TIMESTAMP } from "../../api/common/TutanotaConstants"
 import { DbError } from "../../api/common/error/DbError"
 import type { SearchIndexStateInfo, SearchRestriction, SearchResult } from "../../api/worker/search/SearchTypes"
-import { arrayEquals, assertNonNull, assertNotNull, incrementMonth, isSameTypeRef, lazy, lazyAsync, ofClass, tokenize } from "@tutao/tutanota-utils"
+import { arrayEquals, assertNonNull, assertNotNull, incrementMonth, isSameTypeRef, lazyAsync, ofClass, tokenize } from "@tutao/tutanota-utils"
 import type { SearchFacade } from "../../api/worker/search/SearchFacade"
 import { assertMainOrNode } from "../../api/common/Env"
-import { GroupInfo, WhitelabelChild } from "../../api/entities/sys/TypeRefs.js"
 import { listIdPart } from "../../api/common/utils/EntityUtils.js"
 import { CalendarModel } from "../../calendar/model/CalendarModel.js"
 
@@ -19,16 +18,6 @@ export type SearchQuery = {
 	maxResults: number | null
 }
 
-// FIXME it's a mess and also doesn't work for calendar
-//  - For calendar the issue is that we have to regenerate the occurrences again because SearchResult only has IDs. We load those results in every case and
-//    in multiple places. There's no reason we can't load them in SearchModel. We could even avoid loading if the query has changed. We could handle
-//    getMoreSearchResults() inside.
-//  - There's no reason to use the same SearchModel for different types. It makes sense to have a singleton per type but generally it is doing different
-//    things in different ways for different types, with different parameters, state, restrictions and results. We don't have to expose all of that to all our
-//    clients. We can handle cancellation for loading instances differently and more generically.
-//  - isNewSearch() should compare against lastQuery?
-//  - We should also do getMoreSearchResults() here
-//  - minSuggestionCount is only used in settings now and we don't use search bar there anymore
 export class SearchModel {
 	result: Stream<SearchResult | null>
 	indexState: Stream<SearchIndexStateInfo>
@@ -191,8 +180,6 @@ export class SearchModel {
 		}
 
 		if (query !== result.query) {
-			// fixme: can we throw the result away here?
-			// this.result(null)
 			return true
 		}
 
@@ -201,8 +188,6 @@ export class SearchModel {
 			return false
 		}
 
-		// fixme: can we throw the result away here if true?
-		// this.result(null)
 		return !isSameSearchRestriction(restriction, result.restriction)
 	}
 }

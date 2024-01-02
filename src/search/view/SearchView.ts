@@ -434,7 +434,6 @@ export class SearchView extends BaseTopLevelView implements TopLevelView<SearchV
 						primaryAction: () => this.renderHeaderRightView(),
 					}),
 				columnLayout:
-					//fixme make it better, if possible, no flickering
 					selectedEvent == null
 						? m(ColumnEmptyMessageBox, {
 								message: "noEventSelect_msg",
@@ -987,11 +986,10 @@ export class SearchView extends BaseTopLevelView implements TopLevelView<SearchV
 	}
 
 	private renderRepeatingFilter(): Children {
-		// fixme: phrase
 		return m(
 			".mlr-button",
 			m(Checkbox, {
-				label: () => "Repeating Events",
+				label: () => lang.get("includeRepeatingEvents_action"),
 				checked: this.searchViewModel.includeRepeatingEvents,
 				onChecked: (value: boolean) => {
 					this.searchViewModel.includeRepeatingEvents = value
