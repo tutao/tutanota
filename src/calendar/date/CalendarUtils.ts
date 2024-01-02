@@ -784,9 +784,11 @@ export function generateCalendarInstancesInRange(
 		.filter(isNotNull)
 
 	while (generators.length > 0) {
-		// put the smallest nextCandidate in front. we only change the first item in each iteration, so this should be quick to re-sort.
+		// performance: put the smallest nextCandidate in front. we only change the first item in each iteration, so this should be quick to re-sort.
 		// still O(n²) in the best case >:(
-		// FIXME: there's definitely potential for optimization here.
+		// we might improve runtime here by re-inserting the new nextCandidate into the list manually using a linear or binary search instead of invoking
+		// sort.
+		// we can then also maintain an index to the first still-open generator instead of splicing out the first generator when it stops yielding instances.
 		generators.sort((a, b) => (a.nextCandidate?.startTime.getTime() ?? 0) - (b.nextCandidate?.startTime.getTime() ?? 0))
 		const first = getFirstOrThrow(generators)
 		const newNext = getNextCandidate(first.nextCandidate, first.generator, first.excludedDates)
