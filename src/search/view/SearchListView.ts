@@ -101,8 +101,7 @@ export class SearchListView implements Component<SearchListViewAttrs> {
 	}
 
 	private readonly calendarRenderConfig: RenderConfig<SearchResultListEntry, SearchResultListRow> = {
-		//fixme Calculate the height using list_row_height
-		itemHeight: 92,
+		itemHeight: size.list_row_height,
 		multiselectionAllowed: MultiselectMode.Disabled,
 		swipe: null,
 		createElement: (dom) => {
