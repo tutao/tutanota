@@ -18,7 +18,7 @@ export class EventDetailsView implements Component<EventDetailsViewAttrs> {
 	view({ attrs }: Vnode<EventDetailsViewAttrs>) {
 		this.model = attrs.eventPreviewModel
 
-		return m(".pl-l.pb-s.flex.pr", [
+		return m(".content-bg.border-radius-big.pl-l.pb-s.flex.pr", [
 			m(
 				".flex-grow",
 				{
