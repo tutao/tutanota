@@ -143,6 +143,28 @@ export function getMonthRange(date: Date, zone: string): CalendarTimeRange {
 	}
 }
 
+export function getDayRange(date: Date, zone: string): CalendarTimeRange {
+	const startDateTime = DateTime.fromJSDate(date, {
+		zone,
+	}).set({
+		hour: 0,
+		minute: 0,
+		second: 0,
+		millisecond: 0,
+	})
+	const start = startDateTime.toJSDate().getTime()
+	const end = startDateTime
+		.plus({
+			day: 1,
+		})
+		.toJSDate()
+		.getTime()
+	return {
+		start,
+		end,
+	}
+}
+
 /**
  * @param date a date object representing a calendar date (like 1st of May 2023 15:15) in {@param zone}
  * @param zone the time zone to calculate which calendar date {@param date} represents.
@@ -1410,7 +1432,7 @@ export async function resolveCalendarEventProgenitor(calendarEvent: CalendarEven
 }
 
 /** clip the range start-end to the range given by min-max. if the result would have length 0, null is returned. */
-function clipRanges(start: number, end: number, min: number, max: number): CalendarTimeRange | null {
+export function clipRanges(start: number, end: number, min: number, max: number): CalendarTimeRange | null {
 	const res = {
 		start: Math.max(start, min),
 		end: Math.min(end, max),

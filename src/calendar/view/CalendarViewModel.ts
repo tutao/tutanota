@@ -1,14 +1,24 @@
-import { $Promisable, assertNotNull, clone, findAndRemove, getStartOfDay, groupByAndMapUniquely, neverNull } from "@tutao/tutanota-utils"
+import { $Promisable, assertNotNull, clone, debounce, findAndRemove, getStartOfDay, groupByAndMapUniquely } from "@tutao/tutanota-utils"
 import { CalendarEvent, CalendarEventTypeRef } from "../../api/entities/tutanota/TypeRefs.js"
-import { getWeekStart, GroupType, WeekStart } from "../../api/common/TutanotaConstants"
+import { getWeekStart, GroupType, OperationType, WeekStart } from "../../api/common/TutanotaConstants"
 import { NotAuthorizedError, NotFoundError } from "../../api/common/error/RestError"
 import { getElementId, getListId, isSameId } from "../../api/common/utils/EntityUtils"
 import { LoginController } from "../../api/main/LoginController"
-import { IProgressMonitor, NoopProgressMonitor } from "../../api/common/utils/ProgressMonitor"
+import { IProgressMonitor } from "../../api/common/utils/ProgressMonitor"
 import type { ReceivedGroupInvitation } from "../../api/entities/sys/TypeRefs.js"
 import stream from "mithril/stream"
 import Stream from "mithril/stream"
-import { getDiffIn60mIntervals, getMonthRange, isEventBetweenDays } from "../date/CalendarUtils"
+import {
+	clipRanges,
+	getDayRange,
+	getDiffIn60mIntervals,
+	getEventEnd,
+	getEventStart,
+	getMonthRange,
+	getStartOfDayWithZone,
+	isEventBetweenDays,
+	isSameEventInstance,
+} from "../date/CalendarUtils"
 import { isAllDayEvent } from "../../api/common/utils/CommonCalendarUtils"
 import { CalendarEventModel, CalendarOperation, EventSaveResult, getNonOrganizerAttendees } from "../date/eventeditor/CalendarEventModel.js"
 import { askIfShouldSendCalendarUpdatesToAttendees } from "./CalendarGuiUtils"
@@ -49,7 +59,7 @@ export type CalendarEventPreviewModelFactory = (
 
 export class CalendarViewModel implements EventDragHandlerCallbacks {
 	// Should not be changed directly but only through the URL
-	readonly selectedDate: Stream<Date>
+	readonly selectedDate: Stream<Date> = stream(getStartOfDay(new Date()))
 
 	/**
 	 * An event currently being displayed (non-modally)
@@ -60,94 +70,114 @@ export class CalendarViewModel implements EventDragHandlerCallbacks {
 	private previewedEvent: { event: CalendarEvent; model: CalendarEventPreviewViewModel | null } | null = null
 
 	_hiddenCalendars: Set<Id>
-	readonly _calendarInvitations: ReceivedGroupInvitationsModel<GroupType.Calendar>
-	readonly _calendarModel: CalendarModel
-	readonly _entityClient: EntityClient
 	// Events that have been dropped but still need to be rendered as temporary while waiting for entity updates.
 	readonly _transientEvents: Array<CalendarEvent>
-	_draggedEvent: DraggedEvent | null
-	readonly _redrawStream: Stream<void>
+	_draggedEvent: DraggedEvent | null = null
+	private readonly _redrawStream: Stream<void> = stream()
 	readonly _deviceConfig: DeviceConfig
 
 	constructor(
 		private readonly logins: LoginController,
 		private readonly createCalendarEventEditModel: CalendarEventEditModelsFactory,
 		private readonly createCalendarEventPreviewModel: CalendarEventPreviewModelFactory,
-		calendarModel: CalendarModel,
-		entityClient: EntityClient,
+		private readonly calendarModel: CalendarModel,
+		private readonly entityClient: EntityClient,
 		eventController: EventController,
-		progressTracker: ProgressTracker,
-		deviceConfig: DeviceConfig,
-		calendarInvitations: ReceivedGroupInvitationsModel<GroupType.Calendar>,
+		private readonly progressTracker: ProgressTracker,
+		private readonly deviceConfig: DeviceConfig,
+		private readonly calendarInvitationsModel: ReceivedGroupInvitationsModel<GroupType.Calendar>,
 		private readonly timeZone: string,
 	) {
-		this._calendarModel = calendarModel
-		this._entityClient = entityClient
 		this._transientEvents = []
 
 		const userId = logins.getUserController().user._id
 
 		this._deviceConfig = deviceConfig
 		this._hiddenCalendars = new Set(this._deviceConfig.getHiddenCalendars(userId))
-		this.selectedDate = stream(getStartOfDay(new Date()))
-		this._redrawStream = stream()
-		this._draggedEvent = null
-		this._calendarInvitations = calendarInvitations
+
+		this.selectedDate.map((newDate) =>
+			this.preloadMonthsAroundSelectedDate((event) => {
+				const { start, end } = getDayRange(newDate, this.timeZone)
+				return clipRanges(getEventStart(event, this.timeZone).getTime(), getEventEnd(event, this.timeZone).getTime(), start, end) == null
+			}),
+		)
+		this.calendarModel.getEventsForMonths().map((newEvents) =>
+			this.preloadMonthsAroundSelectedDate((event) => {
+				const startOfDay = getStartOfDayWithZone(event.startTime, this.timeZone)
+				return newEvents.get(startOfDay.getTime())?.find((v) => isSameEventInstance(v, event)) == null
+			}),
+		)
+		this.calendarModel.getCalendarInfosStream().map((newInfos) =>
+			this.preloadMonthsAroundSelectedDate((event) => {
+				// redraw if we lost access to the events' list
+				const groupRoots = Array.from(newInfos.values()).map((i) => i.groupRoot)
+				const lists = [...groupRoots.map((g) => g.longEvents), ...groupRoots.map((g) => g.shortEvents)]
+				const previewListId = getListId(event)
+				return !lists.some((id) => isSameId(previewListId, id))
+			}),
+		)
+
+		eventController.addEntityListener((updates, eventOwnerGroupId) => this._entityEventReceived(updates, eventOwnerGroupId))
+
+		calendarInvitationsModel.init()
+	}
+
+	/**
+	 * react to changes to the calendar data by making sure we have the current month + the two adjacent months
+	 * ready to be rendered and the previewed event updated
+	 *
+	 * there are several reasons why we might no longer want to preview an event and need to redraw without
+	 * a previewed event:
+	 * * it was deleted
+	 * * it was moved away from the day we're looking at (or the day was moved away)
+	 * * the calendar was unshared or deleted
+	 *
+	 * we would want to keep the selection if the event merely shifted its start time but still intersects the viewed day,
+	 * but that would require going through the UID index because moving events changes their ID.
+	 * because of this and because previewedEvent is the event _before_ we got the update that caused us to reconsider the
+	 * selection, with the old times, this function only works if the selected date changed, but not if the event times
+	 * changed.
+	 *
+	 * @param isPreviewedEventObsolete a function that takes the current previewed event and returns a boolean indicating
+	 * if it needs to be deselected
+	 */
+	private preloadMonthsAroundSelectedDate = debounce(200, async (isPreviewedEventObsolete: (event: CalendarEvent) => boolean) => {
+		const event = this.previewedEvent?.event ?? null
+		if (event != null && isPreviewedEventObsolete(event)) {
+			this.previewedEvent = null
+			this.doRedraw()
+		}
 		// load all calendars. if there is no calendar yet, create one
 		// for each calendar we load short events for three months +3
 		const workPerCalendar = 3
-		const totalWork = logins.getUserController().getCalendarMemberships().length * workPerCalendar
-		const monitorHandle = progressTracker.registerMonitorSync(totalWork)
-		let progressMonitor: IProgressMonitor = neverNull(progressTracker.getMonitor(monitorHandle))
+		const totalWork = this.logins.getUserController().getCalendarMemberships().length * workPerCalendar
+		const monitorHandle = this.progressTracker.registerMonitorSync(totalWork)
+		const progressMonitor: IProgressMonitor = assertNotNull(this.progressTracker.getMonitor(monitorHandle))
 
-		this._calendarModel.getEventsForMonths().map(() => this.doRedraw())
-		this._calendarModel.getCalendarInfosStream().map(() => {
-			const selectedDate = this.selectedDate()
-			const previousMonthDate = new Date(selectedDate)
-			previousMonthDate.setMonth(selectedDate.getMonth() - 1)
-			const nextMonthDate = new Date(selectedDate)
-			nextMonthDate.setMonth(selectedDate.getMonth() + 1)
-			this.loadMonthIfNeeded(selectedDate)
-				.then(() => this.loadMonthIfNeeded(nextMonthDate))
-				.then(() => this.loadMonthIfNeeded(previousMonthDate))
-				.then(() => this.doRedraw())
-		})
-
-		this.selectedDate.map((d) => {
-			this.previewedEvent = null
+		const newSelectedDate = this.selectedDate()
+		const thisMonthStart = getMonthRange(newSelectedDate, this.timeZone).start
+		const previousMonthDate = new Date(thisMonthStart)
+		previousMonthDate.setMonth(new Date(thisMonthStart).getMonth() - 1)
+		const nextMonthDate = new Date(thisMonthStart)
+		nextMonthDate.setMonth(new Date(thisMonthStart).getMonth() + 1)
+		try {
+			await this.loadMonthIfNeeded(new Date(thisMonthStart))
+			progressMonitor.workDone(1)
+			await this.loadMonthIfNeeded(nextMonthDate)
+			progressMonitor.workDone(1)
+			await this.loadMonthIfNeeded(previousMonthDate)
+		} finally {
+			progressMonitor.completed()
 			this.doRedraw()
-
-			const thisMonthStart = getMonthRange(d, this.timeZone).start
-			const previousMonthDate = new Date(thisMonthStart)
-			previousMonthDate.setMonth(new Date(thisMonthStart).getMonth() - 1)
-			const nextMonthDate = new Date(thisMonthStart)
-			nextMonthDate.setMonth(new Date(thisMonthStart).getMonth() + 1)
-
-			this.loadMonthIfNeeded(new Date(thisMonthStart))
-				.then(() => progressMonitor.workDone(1))
-				.then(() => this.loadMonthIfNeeded(nextMonthDate))
-				.then(() => progressMonitor.workDone(1))
-				.then(() => this.loadMonthIfNeeded(previousMonthDate))
-				.finally(() => {
-					progressMonitor.completed()
-					// We don't want to report progress after initial month, it shows completed progress bar for a second every time the
-					// month is switched. Doesn't make sense to report more than 100% completion anyway.
-					progressMonitor = new NoopProgressMonitor()
-				})
-		})
-		eventController.addEntityListener((updates, eventOwnerGroupId) => {
-			return this._entityEventReceived(updates, eventOwnerGroupId)
-		})
-
-		calendarInvitations.init()
-	}
+		}
+	})
 
 	get calendarInvitations(): Stream<Array<ReceivedGroupInvitation>> {
-		return this._calendarInvitations.invitations
+		return this.calendarInvitationsModel.invitations
 	}
 
 	get calendarInfos(): ReadonlyMap<Id, CalendarInfo> {
-		return this._calendarModel.getCalendarInfosStream()()
+		return this.calendarModel.getCalendarInfosStream()()
 	}
 
 	get hiddenCalendars(): ReadonlySet<Id> {
@@ -155,7 +185,7 @@ export class CalendarViewModel implements EventDragHandlerCallbacks {
 	}
 
 	get eventsForDays(): DaysToEvents {
-		return this._calendarModel.getEventsForMonths()()
+		return this.calendarModel.getEventsForMonths()()
 	}
 
 	get redraw(): Stream<void> {
@@ -255,7 +285,7 @@ export class CalendarViewModel implements EventDragHandlerCallbacks {
 
 		for (const day of days) {
 			const shortEventsForDay: CalendarEvent[] = []
-			const eventsForDay = this._calendarModel.getEventsForMonths()().get(day.getTime()) || []
+			const eventsForDay = this.calendarModel.getEventsForMonths()().get(day.getTime()) || []
 
 			for (const event of eventsForDay) {
 				if (transientEventUidsByCalendar.get(getListId(event))?.has(event.uid)) {
@@ -296,7 +326,7 @@ export class CalendarViewModel implements EventDragHandlerCallbacks {
 	}
 
 	async deleteCalendar(calendar: CalendarInfo): Promise<void> {
-		await this._calendarModel.deleteCalendar(calendar)
+		await this.calendarModel.deleteCalendar(calendar)
 	}
 
 	_addTransientEvent(event: CalendarEvent) {
@@ -343,7 +373,7 @@ export class CalendarViewModel implements EventDragHandlerCallbacks {
 
 	async previewEvent(event: CalendarEvent) {
 		const previewedEvent = (this.previewedEvent = { event, model: null })
-		const calendarInfos = await this._calendarModel.getCalendarInfosCreateIfNeeded()
+		const calendarInfos = await this.calendarModel.getCalendarInfosCreateIfNeeded()
 		const previewModel = await this.createCalendarEventPreviewModel(event, calendarInfos)
 		// check that we didn't start previewing another event or changed the date in the meantime
 		if (this.previewedEvent === previewedEvent) {
@@ -357,17 +387,22 @@ export class CalendarViewModel implements EventDragHandlerCallbacks {
 			if (isUpdateForTypeRef(CalendarEventTypeRef, update)) {
 				const eventId: IdTuple = [update.instanceListId, update.instanceId]
 				if (this.previewedEvent != null && isUpdateFor(this.previewedEvent.event, update)) {
-					try {
-						const event = await this._entityClient.load(CalendarEventTypeRef, eventId)
-						await this.previewEvent(event)
-					} catch (e) {
-						if (e instanceof NotAuthorizedError) {
-							// return updates that are not in cache Range if NotAuthorizedError (for those updates that are in cache range)
-							console.log("NotAuthorizedError for event in entityEventsReceived of view", e)
-						} else if (e instanceof NotFoundError) {
-							console.log("Not found event in entityEventsReceived of view", e)
-						} else {
-							throw e
+					if (update.operation === OperationType.DELETE) {
+						this.previewedEvent = null
+						this.doRedraw()
+					} else {
+						try {
+							const event = await this.entityClient.load(CalendarEventTypeRef, eventId)
+							await this.previewEvent(event)
+						} catch (e) {
+							if (e instanceof NotAuthorizedError) {
+								// return updates that are not in cache Range if NotAuthorizedError (for those updates that are in cache range)
+								console.log("NotAuthorizedError for event in entityEventsReceived of view", e)
+							} else if (e instanceof NotFoundError) {
+								console.log("Not found event in entityEventsReceived of view", e)
+							} else {
+								throw e
+							}
 						}
 					}
 				}
@@ -381,11 +416,11 @@ export class CalendarViewModel implements EventDragHandlerCallbacks {
 	}
 
 	getCalendarInfosCreateIfNeeded(): $Promisable<ReadonlyMap<Id, CalendarInfo>> {
-		return this._calendarModel.getCalendarInfosCreateIfNeeded()
+		return this.calendarModel.getCalendarInfosCreateIfNeeded()
 	}
 
 	loadMonthIfNeeded(dayInMonth: Date): Promise<void> {
-		return this._calendarModel.loadMonthIfNeeded(dayInMonth)
+		return this.calendarModel.loadMonthIfNeeded(dayInMonth)
 	}
 
 	private doRedraw() {
