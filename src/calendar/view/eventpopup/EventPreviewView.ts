@@ -76,7 +76,7 @@ export const ReplyButtons = pureComponent((participation: NonNullable<EventPrevi
 })
 
 export class EventPreviewView implements Component<EventPreviewViewAttrs> {
-	// Cache the parsed URL so we don't parse the URL on every single view call
+	// Cache the parsed URL, so we don't parse the URL on every single view call
 	private readonly getLocationUrl: typeof getLocationUrl
 
 	constructor() {
@@ -87,39 +87,39 @@ export class EventPreviewView implements Component<EventPreviewViewAttrs> {
 		const { event, sanitizedDescription, participation } = vnode.attrs
 		const attendees = prepareAttendees(event.attendees, event.organizer)
 
-		return m(".flex.col", [
-			m(".flex.col.smaller", [
-				m(".flex.pb-s.items-center", [this.renderSectionIndicator(BootIcons.Calendar), m(".h3.selectable.text-break", event.summary)]),
-				m(".flex.pb-s", [
-					this.renderSectionIndicator(Icons.Time),
-					m(".align-self-center.selectable.flex-column", [
-						m("", formatEventDuration(event, getTimeZone(), false)),
-						this.renderRepeatRule(event.repeatRule, isAllDayEvent(event)),
-					]),
-				]),
-				this.renderLocation(event.location),
-				this.renderAttendeesSection(attendees, participation),
-				this.renderAttendanceSection(event, attendees, participation),
-				this.renderDescription(sanitizedDescription),
-			]),
+		return m(".flex.col.smaller.scroll.visible-scrollbar", [
+			this.renderRow(BootIcons.Calendar, [m("span.h3", event.summary)]),
+			this.renderRow(Icons.Time, [formatEventDuration(event, getTimeZone(), false), this.renderRepeatRule(event.repeatRule, isAllDayEvent(event))]),
+			this.renderLocation(event.location),
+			this.renderAttendeesSection(attendees, participation),
+			this.renderAttendanceSection(event, attendees, participation),
+			this.renderDescription(sanitizedDescription),
 		])
 	}
 
-	private renderSectionIndicator(icon: AllIcons, style: Record<string, any> = {}): Children {
+	private renderRow(headerIcon: AllIcons, children: Children, isAlignedLeft?: boolean): Children {
 		return m(
-			".pr",
-			m(Icon, {
-				icon,
-				large: true,
-				style: Object.assign(
-					{
-						fill: theme.content_button,
-						display: "block",
-					},
-					style,
-				),
-			}),
+			".flex.pb-s",
+			{
+				class: isAlignedLeft ? "items-start" : "items-center",
+			},
+			[this.renderSectionIndicator(headerIcon, isAlignedLeft ? { marginTop: "2px" } : undefined), m(".selectable.text-break.full-width", children)],
 		)
+	}
+
+	private renderSectionIndicator(icon: AllIcons, style: Record<string, any> = {}): Children {
+		return m(Icon, {
+			icon,
+			class: "pr",
+			large: true,
+			style: Object.assign(
+				{
+					fill: theme.content_button,
+					display: "block",
+				},
+				style,
+			),
+		})
 	}
 
 	private renderRepeatRule(rule: CalendarRepeatRule | null, isAllDay: boolean): Children {
@@ -137,32 +137,31 @@ export class EventPreviewView implements Component<EventPreviewViewAttrs> {
 
 	private renderLocation(location: string | null): Children {
 		if (location == null || location.trim().length === 0) return null
-		return m(".flex.pb-s.items-center", [
-			this.renderSectionIndicator(Icons.Pin),
+		return this.renderRow(Icons.Pin, [
 			m(
-				".text-ellipsis.selectable",
-				m(
-					"a",
-					{
-						href: this.getLocationUrl(location.trim()).toString(),
-						target: "_blank",
-						rel: "noopener noreferrer",
-					},
-					location,
-				),
+				"a.text-ellipsis",
+				{
+					href: this.getLocationUrl(location.trim()).toString(),
+					target: "_blank",
+					rel: "noopener noreferrer",
+				},
+				location,
 			),
 		])
 	}
 
 	private renderAttendeesSection(attendees: Array<CalendarEventAttendee>, participation: EventPreviewViewAttrs["participation"]): Children {
 		if (attendees.length === 0) return null
-		return m(".flex.pb-s", [
-			this.renderSectionIndicator(Icons.People),
-			m(
-				".flex-wrap",
-				attendees.map((a) => this.renderAttendee(a, participation)),
-			),
-		])
+		return this.renderRow(
+			Icons.People,
+			[
+				m(
+					".flex-wrap",
+					attendees.map((a) => this.renderAttendee(a, participation)),
+				),
+			],
+			true,
+		)
 	}
 
 	/**
@@ -203,12 +202,7 @@ export class EventPreviewView implements Component<EventPreviewViewAttrs> {
 
 	private renderDescription(sanitizedDescription: string | null) {
 		if (sanitizedDescription == null || sanitizedDescription.length === 0) return null
-		return m(".flex.pb-s.items-start", [
-			this.renderSectionIndicator(Icons.AlignLeft, {
-				marginTop: "2px",
-			}),
-			m(".full-width.selectable.text-break", m.trust(sanitizedDescription)),
-		])
+		return this.renderRow(Icons.AlignLeft, [m.trust(sanitizedDescription)], true)
 	}
 }
 
