@@ -38,11 +38,12 @@ export type CalendarAgendaViewAttrs = {
 
 export class CalendarAgendaView implements Component<CalendarAgendaViewAttrs> {
 	view({ attrs }: Vnode<CalendarAgendaViewAttrs>): Children {
+		const isDesktopLayout = styles.isDesktopLayout()
 		const selectedDate = attrs.selectedDate
 
 		let containerStyle
 
-		if (styles.isDesktopLayout()) {
+		if (isDesktopLayout) {
 			containerStyle = {
 				marginLeft: "5px",
 				overflow: "hidden",
@@ -52,21 +53,23 @@ export class CalendarAgendaView implements Component<CalendarAgendaViewAttrs> {
 			containerStyle = {}
 		}
 
-		return m(".fill-absolute.flex.col" + (styles.isDesktopLayout() ? ".mlr-l" : ".mlr-safe-inset"), { style: containerStyle }, [
-			this.renderDateSelector(attrs, selectedDate),
+		return m(".fill-absolute.flex.col", { class: isDesktopLayout ? "mlr-l" : "mlr-safe-inset", style: containerStyle }, [
+			this.renderDateSelector(attrs, isDesktopLayout, selectedDate),
 			m(
-				`.rel.flex-grow.flex.col.scroll` +
-					(styles.isDesktopLayout() ? "" : ".content-bg.scroll.border-radius-top-left-big.border-radius-top-right-big"),
-				this.renderAgenda(attrs),
+				".rel.flex-grow.flex.col.scroll",
+				{
+					class: isDesktopLayout ? undefined : "content-bg scroll border-radius-top-left-big border-radius-top-right-big",
+				},
+				this.renderAgenda(attrs, isDesktopLayout),
 			),
 		])
 	}
 
-	private renderDateSelector(attrs: CalendarAgendaViewAttrs, selectedDate: Date): Children {
+	private renderDateSelector(attrs: CalendarAgendaViewAttrs, isDesktopLayout: boolean, selectedDate: Date): Children {
 		// This time width is used to create a container above the day slider
 		// So the hidden dates "seems" to be following the same margin of the view
-		const timeWidth = !styles.isDesktopLayout() ? size.calendar_hour_width_mobile : size.calendar_hour_width
-		return styles.isDesktopLayout()
+		const timeWidth = !isDesktopLayout ? size.calendar_hour_width_mobile : size.calendar_hour_width
+		return isDesktopLayout
 			? null
 			: m(
 					".flex.full-width.items-center",
@@ -144,8 +147,8 @@ export class CalendarAgendaView implements Component<CalendarAgendaViewAttrs> {
 		return (attrs.eventsForDays.get(attrs.selectedDate.getTime()) ?? []).filter((e) => !attrs.hiddenCalendars.has(neverNull(e._ownerGroup)))
 	}
 
-	private renderAgenda(attrs: CalendarAgendaViewAttrs): Children {
-		if (!styles.isDesktopLayout()) return this.renderMobileEventList(attrs)
+	private renderAgenda(attrs: CalendarAgendaViewAttrs, isDesktopLayout: boolean): Children {
+		if (!isDesktopLayout) return this.renderMobileEventList(attrs)
 
 		return m(".flex.flex-grow", [
 			m(
