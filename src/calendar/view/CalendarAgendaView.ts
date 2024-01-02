@@ -55,7 +55,8 @@ export class CalendarAgendaView implements Component<CalendarAgendaViewAttrs> {
 		return m(".fill-absolute.flex.col" + (styles.isDesktopLayout() ? ".mlr-l" : ".mlr-safe-inset"), { style: containerStyle }, [
 			this.renderDateSelector(attrs, selectedDate),
 			m(
-				`.rel.flex-grow.flex.col` + (styles.isDesktopLayout() ? "" : ".content-bg.scroll.border-radius-top-left-big.border-radius-top-right-big"),
+				`.rel.flex-grow.flex.col.scroll` +
+					(styles.isDesktopLayout() ? "" : ".content-bg.scroll.border-radius-top-left-big.border-radius-top-right-big"),
 				this.renderAgenda(attrs),
 			),
 		])
@@ -158,13 +159,11 @@ export class CalendarAgendaView implements Component<CalendarAgendaViewAttrs> {
 				[this.renderDesktopEventList(attrs)],
 			),
 			m(
-				".border-radius-big.ml-l.flex-grow",
+				".ml-l.flex-grow.scroll",
 				{
-					class: attrs.eventPreviewModel?.calendarEvent == null ? "" : "content-bg",
 					style: {
 						"min-width": px(size.third_col_min_width),
 						"max-width": px(size.third_col_max_width),
-						height: attrs.eventPreviewModel != null ? "max-content" : "100%",
 					},
 				},
 				attrs.eventPreviewModel == null
