@@ -236,10 +236,10 @@ export class CalendarModel {
 
 	async loadOrCreateCalendarInfo(progressMonitor: IProgressMonitor): Promise<ReadonlyMap<Id, CalendarInfo>> {
 		const { findPrivateCalendar } = await import("../date/CalendarUtils.js")
-		const calendarInfo = await this.loadCalendarInfos(progressMonitor)
+		const calendarInfos = await this.loadCalendarInfos(progressMonitor)
 
-		if (!this.logins.isInternalUserLoggedIn() || findPrivateCalendar(calendarInfo)) {
-			return calendarInfo
+		if (!this.logins.isInternalUserLoggedIn() || findPrivateCalendar(calendarInfos)) {
+			return calendarInfos
 		} else {
 			await this.createCalendar("", null)
 			return await this.loadCalendarInfos(progressMonitor)
@@ -331,8 +331,7 @@ export class CalendarModel {
 				return calendars
 			} else {
 				await this.createCalendar("", null)
-				this.calendarInfos.reset()
-				return this.calendarInfos.getAsync()
+				return this.calendarInfos.reload()
 			}
 		})
 	}
@@ -781,18 +780,15 @@ export class CalendarModel {
 
 				if (diff.size !== 0) {
 					this.loadedMonths.clear()
-
 					this._replaceEvents(new Map())
 
-					this.calendarInfos.reset()
-					this.calendarInfos.getAsync()
+					this.calendarInfos.reload()
 				}
 			} else if (isUpdateForTypeRef(GroupInfoTypeRef, entityEventData)) {
 				// the batch does not belong to that group so we need to find if we actually care about the related GroupInfo
 				for (const { groupInfo } of calendarInfos.values()) {
 					if (isUpdateFor(groupInfo, entityEventData)) {
-						this.calendarInfos.reset()
-						this.calendarInfos.getAsync()
+						this.calendarInfos.reload()
 						break
 					}
 				}
@@ -978,7 +974,7 @@ class NoOwnerEncSessionKeyForCalendarEventError extends TutanotaError {
 	}
 }
 
-class ObservableLazyLoaded<T> {
+export class ObservableLazyLoaded<T> {
 	private lazyLoaded: LazyLoaded<T>
 	readonly stream: Stream<T> = stream()
 
@@ -1002,6 +998,17 @@ class ObservableLazyLoaded<T> {
 
 	getLoaded(): T {
 		return this.lazyLoaded.getLoaded()
+	}
+
+	/** reset & reload the inner lazyLoaded without an observable default state unless loading fails */
+	async reload(): Promise<T> {
+		try {
+			return await this.lazyLoaded.reload()
+		} catch (e) {
+			this.lazyLoaded.reset()
+			this.stream(this.defaultValue)
+			return this.defaultValue
+		}
 	}
 
 	reset() {
