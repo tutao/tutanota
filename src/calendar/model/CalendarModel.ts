@@ -781,20 +781,6 @@ export class CalendarModel {
 
 					this.calendarInfos.reset()
 					this.calendarInfos.getAsync()
-					// FIXME do we have to manually do it or will it be triggered from the view layer?
-					// return this.calendarInfos
-					// 		   .getAsync()
-					// 		   .then(() => {
-					// 			   const selectedDate = this.selectedDate()
-					// 			   const previousMonthDate = new Date(selectedDate)
-					// 			   previousMonthDate.setMonth(selectedDate.getMonth() - 1)
-					// 			   const nextMonthDate = new Date(selectedDate)
-					// 			   nextMonthDate.setMonth(selectedDate.getMonth() + 1)
-					// 			   return this.loadMonthIfNeeded(selectedDate)
-					// 						  .then(() => this.loadMonthIfNeeded(nextMonthDate))
-					// 						  .then(() => this.loadMonthIfNeeded(previousMonthDate))
-					// 		   })
-					// 		   .then(() => this._redraw())
 				}
 			} else if (isUpdateForTypeRef(GroupInfoTypeRef, entityEventData)) {
 				// the batch does not belong to that group so we need to find if we actually care about the related GroupInfo
