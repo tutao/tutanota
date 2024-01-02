@@ -47,7 +47,7 @@ export class CalendarRow implements VirtualRow<CalendarEvent> {
 				},
 			} satisfies SelectableRowContainerAttrs,
 			m(
-				".flex.items-center.gap-vpad.click.plr.border-radius.pt-s.pb-s",
+				".flex.items-center.gap-vpad.click.border-radius",
 				{
 					class: (styles.isDesktopLayout() ? "" : "state-bg") + "limit-width full-width",
 					style: {
@@ -66,13 +66,13 @@ export class CalendarRow implements VirtualRow<CalendarEvent> {
 						},
 					}),
 					m(".flex.col", { class: "min-width-0" }, [
-						m("p.b.m-0", {
+						m("p.b.m-0.badge-line-height", {
 							class: "text-ellipsis",
 							oncreate: (vnode: VnodeDOM) => {
 								this.summaryDom = vnode.dom as HTMLElement
 							},
 						}),
-						m("", {
+						m(".smaller", {
 							oncreate: (vnode: VnodeDOM) => {
 								this.durationDom = vnode.dom as HTMLElement
 							},
