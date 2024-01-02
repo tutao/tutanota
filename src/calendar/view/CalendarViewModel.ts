@@ -1,4 +1,4 @@
-import { $Promisable, assertNotNull, clone, findAndRemove, getStartOfDay, groupByAndMapUniquely, LazyLoaded, neverNull } from "@tutao/tutanota-utils"
+import { $Promisable, assertNotNull, clone, findAndRemove, getStartOfDay, groupByAndMapUniquely, neverNull } from "@tutao/tutanota-utils"
 import { CalendarEvent, CalendarEventTypeRef } from "../../api/entities/tutanota/TypeRefs.js"
 import { getWeekStart, GroupType, WeekStart } from "../../api/common/TutanotaConstants"
 import { NotAuthorizedError, NotFoundError } from "../../api/common/error/RestError"
@@ -100,12 +100,22 @@ export class CalendarViewModel implements EventDragHandlerCallbacks {
 		const monitorHandle = progressTracker.registerMonitorSync(totalWork)
 		let progressMonitor: IProgressMonitor = neverNull(progressTracker.getMonitor(monitorHandle))
 
-		this._calendarModel.getEventsForMonths().map(() => this._redraw())
-		this._calendarModel.getCalendarInfosStream().map(() => this._redraw())
+		this._calendarModel.getEventsForMonths().map(() => this.doRedraw())
+		this._calendarModel.getCalendarInfosStream().map(() => {
+			const selectedDate = this.selectedDate()
+			const previousMonthDate = new Date(selectedDate)
+			previousMonthDate.setMonth(selectedDate.getMonth() - 1)
+			const nextMonthDate = new Date(selectedDate)
+			nextMonthDate.setMonth(selectedDate.getMonth() + 1)
+			this.loadMonthIfNeeded(selectedDate)
+				.then(() => this.loadMonthIfNeeded(nextMonthDate))
+				.then(() => this.loadMonthIfNeeded(previousMonthDate))
+				.then(() => this.doRedraw())
+		})
 
 		this.selectedDate.map((d) => {
 			this.previewedEvent = null
-			this._redraw()
+			this.doRedraw()
 
 			const thisMonthStart = getMonthRange(d, this.timeZone).start
 			const previousMonthDate = new Date(thisMonthStart)
@@ -338,7 +348,7 @@ export class CalendarViewModel implements EventDragHandlerCallbacks {
 		// check that we didn't start previewing another event or changed the date in the meantime
 		if (this.previewedEvent === previewedEvent) {
 			this.previewedEvent.model = previewModel
-			this._redraw()
+			this.doRedraw()
 		}
 	}
 
@@ -364,7 +374,7 @@ export class CalendarViewModel implements EventDragHandlerCallbacks {
 				const transientEvent = this._transientEvents.find((transientEvent) => isSameId(transientEvent._id, eventId))
 				if (transientEvent) {
 					this._removeTransientEvent(transientEvent)
-					this._redraw()
+					this.doRedraw()
 				}
 			}
 		}
@@ -378,7 +388,7 @@ export class CalendarViewModel implements EventDragHandlerCallbacks {
 		return this._calendarModel.loadMonthIfNeeded(dayInMonth)
 	}
 
-	_redraw() {
+	private doRedraw() {
 		// Need to pass some argument to make it a "set" operation
 		this._redrawStream(undefined)
 	}
