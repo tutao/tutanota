@@ -69,7 +69,7 @@ export class ViewColumn implements Component<Attrs> {
 			const zIndex = !this.visible && this.columnType === ColumnType.Foreground ? LayerType.ForegroundMenu + 1 : ""
 			const landmark = this._ariaRole ? landmarkAttrs(this._ariaRole, this.ariaLabel ? this.ariaLabel() : this.getTitle()) : {}
 			return m(
-				".view-column.overflow-x-hidden.fill-absolute",
+				".view-column.overflow-x-hidden.fill-absolute.overflow-x-hidden",
 				{
 					...landmark,
 					"aria-hidden": this.visible || this.isInForeground ? "false" : "true",
