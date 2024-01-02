@@ -3,24 +3,15 @@ project("tutanota"
         LANGUAGES C CXX
         )
 
-set(ARGON2_DIR "../../../../../libs/webassembly/phc-winner-argon2")
-set(LIBOQS_DIR "../../../../../libs/webassembly/liboqs")
+set(TUTAMAIL_PROJECT_DIR "${CMAKE_SOURCE_DIR}/../../../../../")
+set(WEBASSEMBLY_LIBS_DIR "${TUTAMAIL_PROJECT_DIR}/libs/webassembly")
+set(ARGON2_DIR "${WEBASSEMBLY_LIBS_DIR}/phc-winner-argon2")
+set(LIBOQS_DIR "${WEBASSEMBLY_LIBS_DIR}/liboqs")
+set(C_LIBS_INCLUDE_DIR "${WEBASSEMBLY_LIBS_DIR}/include")
 
-file(MAKE_DIRECTORY "${CMAKE_CURRENT_BINARY_DIR}/include/oqs")
-file(COPY
-	"${LIBOQS_DIR}/src/oqs.h"
-	"${LIBOQS_DIR}/src/common/common.h"
-	"${LIBOQS_DIR}/src/common/rand/rand.h"
-	"${LIBOQS_DIR}/src/common/aes/aes.h"
-	"${LIBOQS_DIR}/src/common/sha2/sha2.h"
-	"${LIBOQS_DIR}/src/common/sha3/sha3.h"
-	"${LIBOQS_DIR}/src/common/sha3/sha3x4.h"
-	"${LIBOQS_DIR}/src/kem/kyber/kem_kyber.h"
-	"${LIBOQS_DIR}/src/kem/kem.h"
-	"${LIBOQS_DIR}/src/sig/sig.h"
-	DESTINATION "${CMAKE_CURRENT_BINARY_DIR}/include/oqs"
-)
-file(TOUCH "${CMAKE_CURRENT_BINARY_DIR}/include/oqs/oqsconfig.h")
+add_custom_target(liboqs_include make -f Makefile_liboqs include
+        WORKING_DIRECTORY "${WEBASSEMBLY_LIBS_DIR}"
+        )
 
 add_library(tutanota SHARED
         argon2.cpp
@@ -47,8 +38,10 @@ add_library(tutanota SHARED
         "${LIBOQS_DIR}/src/common/sha3/xkcp_sha3.c"
         "${LIBOQS_DIR}/src/common/sha3/xkcp_low/KeccakP-1600/plain-64bits/KeccakP-1600-opt64.c"
         "${LIBOQS_DIR}/src/common/common.c"
-        "../../../../../packages/tutanota-crypto/lib/encryption/Liboqs/rand.c"
+        "${TUTAMAIL_PROJECT_DIR}/packages/tutanota-crypto/lib/encryption/Liboqs/rand.c"
         )
+
+add_dependencies(tutanota liboqs_include)
 
 target_compile_definitions(tutanota
         PRIVATE OQS_ENABLE_KEM_kyber_1024=1
@@ -59,11 +52,11 @@ target_compile_definitions(tutanota
         )
 
 target_include_directories(tutanota
-	PRIVATE "${ARGON2_DIR}/include"
-	PRIVATE "${LIBOQS_DIR}/src/kem/kyber/pqcrystals-kyber_kyber1024_ref"
-	PRIVATE "${LIBOQS_DIR}/src/common/pqclean_shims"
-	PRIVATE "${CMAKE_CURRENT_BINARY_DIR}/include"
-	)
+        PRIVATE "${ARGON2_DIR}/include"
+        PRIVATE "${LIBOQS_DIR}/src/kem/kyber/pqcrystals-kyber_kyber1024_ref"
+        PRIVATE "${LIBOQS_DIR}/src/common/pqclean_shims"
+        PRIVATE "${C_LIBS_INCLUDE_DIR}"
+        )
 
 target_compile_options(tutanota PRIVATE "-O3")
 
