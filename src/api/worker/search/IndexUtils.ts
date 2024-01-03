@@ -10,12 +10,11 @@ import type {
 } from "./SearchTypes"
 import { GroupType } from "../../common/TutanotaConstants"
 import { calculateNeededSpaceForNumber, calculateNeededSpaceForNumbers, decodeNumberBlock, decodeNumbers, encodeNumbers } from "./SearchIndexEncoding"
-import { typeModels as sysTypeModels } from "../../entities/sys/TypeModels"
 import { typeModels as tutanotaTypeModels } from "../../entities/tutanota/TypeModels"
 import type { GroupMembership, User } from "../../entities/sys/TypeRefs.js"
 import type { TypeModel } from "../../common/EntityTypes"
 import { isTest } from "../../common/Env"
-import { aesDecrypt, aes256EncryptSearchIndexEntry } from "@tutao/tutanota-crypto"
+import { aes256EncryptSearchIndexEntry, aesDecrypt } from "@tutao/tutanota-crypto"
 
 export function encryptIndexKeyBase64(key: Aes256Key, indexKey: string, dbIv: Uint8Array): Base64 {
 	return uint8ArrayToBase64(encryptIndexKeyUint8Array(key, indexKey, dbIv))
@@ -129,18 +128,6 @@ const typeInfos = {
 			appId: 1,
 			typeId: tutanotaTypeModels.Contact.id,
 			attributeIds: getAttributeIds(tutanotaTypeModels.Contact),
-		},
-	},
-	sys: {
-		GroupInfo: {
-			appId: 0,
-			typeId: sysTypeModels.GroupInfo.id,
-			attributeIds: getAttributeIds(sysTypeModels.GroupInfo),
-		},
-		WhitelabelChild: {
-			appId: 0,
-			typeId: sysTypeModels.WhitelabelChild.id,
-			attributeIds: getAttributeIds(sysTypeModels.WhitelabelChild),
 		},
 	},
 }

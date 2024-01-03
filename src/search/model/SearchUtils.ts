@@ -1,6 +1,4 @@
 import m from "mithril"
-import type { GroupInfo } from "../../api/entities/sys/TypeRefs.js"
-import { WhitelabelChildTypeRef } from "../../api/entities/sys/TypeRefs.js"
 import { assertNotNull, filterInt, getDayShifted, getEndOfDay, getStartOfDay, incrementMonth, isSameTypeRef } from "@tutao/tutanota-utils"
 import { RouteSetFn, throttleRoute } from "../../misc/RouteChange"
 import type { SearchRestriction } from "../../api/worker/search/SearchTypes"
@@ -26,10 +24,6 @@ export const SEARCH_CATEGORIES = [
 	{
 		name: "calendar",
 		typeRef: CalendarEventTypeRef,
-	},
-	{
-		name: "whitelabelchild",
-		typeRef: WhitelabelChildTypeRef,
 	},
 ]
 
@@ -269,21 +263,9 @@ export function getRestriction(route: string): SearchRestriction {
 			endDate.setDate(0)
 			end = getEndOfDay(endDate).getTime()
 		}
-	} else if (route.startsWith("/settings/whitelabelaccounts")) {
-		category = "whitelabelchild"
 	} else {
 		throw new Error("invalid type " + route)
 	}
 
 	return createRestriction(category, start, end, field, listIds, eventSeries)
-}
-
-export function isAdministratedGroup(localAdminGroupIds: Id[], gi: GroupInfo): boolean {
-	if (gi.localAdmin && localAdminGroupIds.indexOf(gi.localAdmin) !== -1) {
-		return true // group is administrated by local admin group of this user
-	} else if (localAdminGroupIds.indexOf(gi.group) !== -1) {
-		return true // group is one of the local admin groups of this user
-	} else {
-		return false
-	}
 }
