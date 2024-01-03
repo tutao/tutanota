@@ -1,11 +1,12 @@
 import o from "@tutao/otest"
-import { getDateInZone, makeCalendarModel, makeEvent, makeUserController, zone } from "./CalendarTestUtils.js"
+import { getDateInZone, makeEvent, makeUserController, zone } from "./CalendarTestUtils.js"
 import type { LoginController } from "../../../src/api/main/LoginController.js"
 import { assertThrows, spy } from "@tutao/tutanota-test-utils"
 import { assertNotNull, downcast, getStartOfDay, neverNull, noOp } from "@tutao/tutanota-utils"
 import type { CalendarEvent } from "../../../src/api/entities/tutanota/TypeRefs.js"
 import { addDaysForEventInstance, getMonthRange } from "../../../src/calendar/date/CalendarUtils.js"
 import type { CalendarModel } from "../../../src/calendar/model/CalendarModel.js"
+import { CalendarInfo } from "../../../src/calendar/model/CalendarModel.js"
 import { CalendarEventEditModelsFactory, CalendarEventPreviewModelFactory, CalendarViewModel } from "../../../src/calendar/view/CalendarViewModel.js"
 import { CalendarEventModel, CalendarOperation, EventSaveResult } from "../../../src/calendar/date/eventeditor/CalendarEventModel.js"
 import { EntityClient } from "../../../src/api/common/EntityClient.js"
@@ -19,13 +20,23 @@ import { EntityRestClientMock } from "../api/worker/rest/EntityRestClientMock.js
 import { ReceivedGroupInvitationsModel } from "../../../src/sharing/model/ReceivedGroupInvitationsModel.js"
 import { ProgressMonitor } from "../../../src/api/common/utils/ProgressMonitor.js"
 import { object, when } from "testdouble"
+import stream from "mithril/stream"
+import Stream from "mithril/stream"
+import { CalendarEventsRepository, DaysToEvents } from "../../../src/calendar/date/CalendarEventsRepository.js"
 
 let saveAndSendMock
 let rescheduleEventMock
 o.spec("CalendarViewModel", function () {
 	let entityClientMock: EntityRestClientMock
 
-	function initCalendarViewModel(makeViewModelCallback: CalendarEventEditModelsFactory, eventController?): CalendarViewModel {
+	function initCalendarViewModel(
+		makeViewModelCallback: CalendarEventEditModelsFactory,
+		eventController?,
+	): {
+		viewModel: CalendarViewModel
+		calendarModel: CalendarModel
+		eventsRepository: CalendarEventsRepository
+	} {
 		if (eventController == null) {
 			eventController = downcast({
 				addEntityListener: () => Promise.resolve(),
@@ -46,18 +57,24 @@ o.spec("CalendarViewModel", function () {
 				noOp()
 			},
 		})
-		let calendarModel: CalendarModel = makeCalendarModel()
+		const calendarModel: CalendarModel = object()
+		const eventMapStream: Stream<DaysToEvents> = stream(new Map())
+		const calendarInfosStream: Stream<ReadonlyMap<Id, CalendarInfo>> = stream(new Map())
+		const eventsRepository: CalendarEventsRepository = object()
+		when(eventsRepository.getEventsForMonths()).thenReturn(eventMapStream)
+		when(calendarModel.getCalendarInfosStream()).thenReturn(calendarInfosStream)
 		const userController = makeUserController()
 		const loginController: LoginController = downcast({
 			getUserController: () => userController,
 			isInternalUserLoggedIn: () => true,
 		})
 		const previewModelFactory: CalendarEventPreviewModelFactory = async () => object()
-		return new CalendarViewModel(
+		const viewModel = new CalendarViewModel(
 			loginController,
 			makeViewModelCallback,
 			previewModelFactory,
 			calendarModel,
+			eventsRepository,
 			new EntityClient(entityClientMock),
 			eventController,
 			progressTracker,
@@ -65,6 +82,8 @@ o.spec("CalendarViewModel", function () {
 			calendarInvitations,
 			zone,
 		)
+
+		return { viewModel, calendarModel, eventsRepository }
 	}
 
 	function init(events) {
@@ -96,13 +115,13 @@ o.spec("CalendarViewModel", function () {
 		rescheduleEventMock = spy(() => Promise.resolve())
 	})
 	o("Can init view model", function () {
-		const viewModel = initCalendarViewModel(makeCalendarEventModel)
+		const { viewModel } = initCalendarViewModel(makeCalendarEventModel)
 		o(viewModel).notEquals(undefined)
 		o(viewModel.selectedDate()).deepEquals(getStartOfDay(new Date()))
 	})
 	o.spec("Dragging Events", function () {
 		o("Start then drag then change mind is noop", async function () {
-			const viewModel = initCalendarViewModel(makeCalendarEventModel)
+			const { viewModel } = initCalendarViewModel(makeCalendarEventModel)
 			let originalEventStartTime = new Date(2021, 8, 22)
 			const event = makeEvent("event", originalEventStartTime, new Date(2021, 8, 23))
 			// Dragged a bit
@@ -113,7 +132,7 @@ o.spec("CalendarViewModel", function () {
 			o(viewModel._transientEvents).deepEquals([])
 		})
 		o("A good drag and drop run", async function () {
-			const viewModel = initCalendarViewModel(makeCalendarEventModel)
+			const { viewModel } = initCalendarViewModel(makeCalendarEventModel)
 			let originalDate = new Date(2021, 8, 22)
 			const event = makeEvent("event", originalDate, new Date(2021, 8, 23))
 			simulateDrag(event, new Date(2021, 8, 24), viewModel)
@@ -130,7 +149,7 @@ o.spec("CalendarViewModel", function () {
 			o(viewModel._transientEvents).deepEquals([temporaryEvent])
 		})
 		o("Complete drag and drop and saving fails", async function () {
-			const viewModel = initCalendarViewModel(makeCalendarEventEditModelThatFailsSaving)
+			const { viewModel } = initCalendarViewModel(makeCalendarEventEditModelThatFailsSaving)
 			let originalDate = new Date(2021, 8, 22)
 			const event = makeEvent("event", originalDate, new Date(2021, 8, 23))
 			simulateDrag(event, new Date(2021, 8, 24), viewModel)
@@ -140,7 +159,7 @@ o.spec("CalendarViewModel", function () {
 			o(viewModel._transientEvents).deepEquals([])
 		})
 		o("Complete drag and drop and saving does an error", async function () {
-			const viewModel = initCalendarViewModel(makeCalendarEventEditModelThatThrowsOnSaving)
+			const { viewModel } = initCalendarViewModel(makeCalendarEventEditModelThatThrowsOnSaving)
 			let originalDate = new Date(2021, 8, 22)
 			const event = makeEvent("event", originalDate, new Date(2021, 8, 23))
 			simulateDrag(event, new Date(2021, 8, 24), viewModel)
@@ -152,7 +171,7 @@ o.spec("CalendarViewModel", function () {
 			o(viewModel._transientEvents).deepEquals([])
 		})
 		o("Drag while having temporary events should still work", async function () {
-			const viewModel = initCalendarViewModel(makeCalendarEventModel)
+			const { viewModel } = initCalendarViewModel(makeCalendarEventModel)
 			let origStartDate1 = new Date(2021, 8, 22)
 			const event1 = makeEvent("event1", origStartDate1, new Date(2021, 8, 23))
 			let origStartDate2 = new Date(2021, 8, 22)
@@ -186,7 +205,7 @@ o.spec("CalendarViewModel", function () {
 		o("Drag while having temporary events but the second update failed", async function () {
 			// testdouble seems to have difficulty with multiple arguments on .thenResolve
 			let tryCount = 0
-			const viewModel = initCalendarViewModel(async () => {
+			const { viewModel } = initCalendarViewModel(async () => {
 				const eventModel: CalendarEventModel = object()
 				when(eventModel.apply()).thenDo(() => {
 					tryCount++
@@ -229,7 +248,7 @@ o.spec("CalendarViewModel", function () {
 		o("Drag while having temporary events and then the first update fails", async function () {
 			// testdouble seems to have difficulty with multiple arguments on .thenResolve
 			let tryCount = 0
-			const viewModel = initCalendarViewModel(async () => {
+			const { viewModel } = initCalendarViewModel(async () => {
 				const saveModel: CalendarEventModel = object()
 				when(saveModel.apply()).thenDo(() => {
 					tryCount++
@@ -274,7 +293,8 @@ o.spec("CalendarViewModel", function () {
 	})
 	o.spec("Filtering events", function () {
 		o("Before drag, input events are all used", async function () {
-			const viewModel = initCalendarViewModel(makeCalendarEventModel)
+			const { viewModel, eventsRepository } = initCalendarViewModel(makeCalendarEventModel)
+
 			const inputEvents = [
 				makeEvent("event1", getDateInZone("2021-01-01"), getDateInZone("2021-01-02"), "uid1"),
 				makeEvent("event2", getDateInZone("2021-01-01"), getDateInZone("2021-01-03"), "uid2"),
@@ -286,7 +306,7 @@ o.spec("CalendarViewModel", function () {
 				longEvents: [inputEvents[0], inputEvents[1]],
 			}
 
-			viewModel._replaceEvents(eventsForDays)
+			eventsRepository.getEventsForMonths()(eventsForDays)
 
 			const { shortEvents, longEvents } = viewModel.getEventsOnDaysToRender(days)
 			o({
@@ -296,7 +316,7 @@ o.spec("CalendarViewModel", function () {
 		})
 
 		o("During drag, temporary event overrides the original version", async function () {
-			const viewModel = initCalendarViewModel(makeCalendarEventModel)
+			const { viewModel, eventsRepository } = initCalendarViewModel(makeCalendarEventModel)
 			const inputEvents = [
 				makeEvent("event1", getDateInZone("2021-01-01"), getDateInZone("2021-01-02"), "uid1"),
 				makeEvent("event2", getDateInZone("2021-01-01"), getDateInZone("2021-01-03"), "uid2"),
@@ -304,7 +324,7 @@ o.spec("CalendarViewModel", function () {
 			]
 			const { days, eventsForDays } = init(inputEvents)
 
-			viewModel._replaceEvents(eventsForDays)
+			eventsRepository.getEventsForMonths()(eventsForDays)
 
 			simulateDrag(inputEvents[2], getDateInZone("2021-01-04T13:00"), viewModel)
 			const expected = {
@@ -316,7 +336,7 @@ o.spec("CalendarViewModel", function () {
 			o(Array.from(longEvents)).deepEquals(expected.longEvents)
 		})
 		o("After drop, before load", async function () {
-			const viewModel = initCalendarViewModel(makeCalendarEventModel)
+			const { viewModel, eventsRepository } = initCalendarViewModel(makeCalendarEventModel)
 			let originalDateForDraggedEvent = getDateInZone("2021-01-03T13:00")
 			const inputEvents = [
 				makeEvent("event1", getDateInZone("2021-01-01"), getDateInZone("2021-01-02"), "uid1"),
@@ -325,7 +345,7 @@ o.spec("CalendarViewModel", function () {
 			]
 			const { days, eventsForDays } = init(inputEvents)
 
-			viewModel._replaceEvents(eventsForDays)
+			eventsRepository.getEventsForMonths()(eventsForDays)
 
 			//drag 2nd event to the 4th
 			simulateDrag(inputEvents[2], getDateInZone("2021-01-04T13:00"), viewModel)
@@ -348,7 +368,7 @@ o.spec("CalendarViewModel", function () {
 					entityListeners.push(listener)
 				},
 			})
-			const viewModel = initCalendarViewModel(makeCalendarEventModel, eventController)
+			const { viewModel, eventsRepository } = initCalendarViewModel(makeCalendarEventModel, eventController)
 			const originalDateForDraggedEvent = new Date(2021, 0, 3, 13, 0)
 			let eventToDrag = makeEvent("event3", originalDateForDraggedEvent, new Date(2021, 0, 3, 14, 30), "uid3")
 			const inputEvents = [
@@ -358,7 +378,7 @@ o.spec("CalendarViewModel", function () {
 			]
 			const { days, eventsForDays, month } = init(inputEvents)
 
-			viewModel._replaceEvents(eventsForDays)
+			eventsRepository.getEventsForMonths()(eventsForDays)
 
 			//drag
 			simulateDrag(inputEvents[2], new Date(2021, 0, 4, 13, 0), viewModel)
