@@ -30,7 +30,7 @@ import { SearchRouter } from "./view/SearchRouter.js"
 import { PageSize } from "../gui/base/ListUtils.js"
 import { generateCalendarInstancesInRange } from "../calendar/date/CalendarUtils.js"
 import { ListElementEntity } from "../api/common/EntityTypes.js"
-import { loadMultipleFromLists } from "../settings/LoadingUtils.js"
+import { loadMultipleFromLists } from "../api/common/utils/Utils.js"
 
 assertMainOrNode()
 export type ShowMoreAction = {

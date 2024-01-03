@@ -20,7 +20,7 @@ import { CalendarAgendaView, CalendarAgendaViewAttrs } from "./CalendarAgendaVie
 import type { GroupInfo } from "../../api/entities/sys/TypeRefs.js"
 import { showEditCalendarDialog } from "./EditCalendarDialog"
 import { styles } from "../../gui/styles"
-import { MultiDayCalendarView } from "./MultiDayCalendarView"
+import { Attrs, MultiDayCalendarView } from "./MultiDayCalendarView"
 import { Dialog } from "../../gui/base/Dialog"
 import { isApp } from "../../api/common/Env"
 import { px, size } from "../../gui/size"
@@ -244,7 +244,7 @@ export class CalendarView extends BaseTopLevelView implements TopLevelView<Calen
 									dragHandlerCallbacks: this.viewModel,
 									isDaySelectorExpanded: this.isDaySelectorExpanded,
 									eventsForDays: this.viewModel.eventsForDays,
-								}),
+								} satisfies Attrs),
 							})
 
 						case CalendarViewType.AGENDA:

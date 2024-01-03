@@ -38,11 +38,12 @@ import { client } from "../../misc/ClientDetector"
 import { locator } from "../../api/main/MainLocator.js"
 import { theme } from "../../gui/theme.js"
 import { PageView } from "../../gui/base/PageView.js"
+import { DaysToEvents } from "../date/CalendarEventsRepository.js"
 
 type CalendarMonthAttrs = {
 	selectedDate: Date
 	onDateSelected: (date: Date, calendarViewTypeToShow: CalendarViewType) => unknown
-	eventsForDays: ReadonlyMap<number, Array<CalendarEvent>>
+	eventsForDays: DaysToEvents
 	getEventsOnDaysToRender: (range: Array<Date>) => EventsOnDays
 	onNewEvent: (date: Date | null) => unknown
 	onEventClicked: CalendarEventBubbleClickHandler

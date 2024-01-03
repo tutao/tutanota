@@ -13,15 +13,15 @@ import { Icon } from "../../gui/base/Icon.js"
 import { Icons } from "../../gui/base/icons/Icons.js"
 import { BootIcons } from "../../gui/base/icons/BootIcons.js"
 import { hexToRgb } from "../../gui/base/Color.js"
-import { CalendarEvent } from "../../api/entities/tutanota/TypeRefs.js"
 import { incrementMonth } from "@tutao/tutanota-utils"
 import { styles } from "../../gui/styles.js"
+import { DaysToEvents } from "./CalendarEventsRepository.js"
 
 export interface DaySelectorPopupAttrs {
 	selectedDate: Date
 	onDateSelected: (date: Date, dayClick: boolean) => unknown
 	startOfTheWeekOffset: number
-	eventsForDays: ReadonlyMap<number, Array<CalendarEvent>>
+	eventsForDays: DaysToEvents
 	highlightToday: boolean
 	highlightSelectedWeek: boolean
 }
