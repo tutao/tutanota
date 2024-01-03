@@ -61,7 +61,7 @@ export class EventDetailsView implements Component<EventDetailsViewAttrs> {
 		if (this.model == null || !this.model.canSendUpdates) return null
 		return m(Button, {
 			label: "sendUpdates_label",
-			click: (event, dom) => this.handleSendUpdatesClick(),
+			click: () => this.handleSendUpdatesClick(),
 			type: ButtonType.ActionLarge,
 			icon: () => BootIcons.Mail,
 			colors: ButtonColor.DrawerNav,
