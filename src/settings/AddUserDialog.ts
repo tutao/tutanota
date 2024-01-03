@@ -1,6 +1,6 @@
 import m from "mithril"
 import { lang, TranslationText } from "../misc/LanguageViewModel"
-import { BookingItemFeatureType, NewPaidPlans, PlanType } from "../api/common/TutanotaConstants"
+import { BookingItemFeatureType, NewPaidPlans } from "../api/common/TutanotaConstants"
 import { Dialog } from "../gui/base/Dialog"
 import { PasswordForm, PasswordModel } from "./PasswordForm"
 import { SelectMailAddressForm } from "./SelectMailAddressForm"
@@ -94,12 +94,10 @@ export async function show(): Promise<void> {
 		).then(async (accepted) => {
 			if (accepted) {
 				const operation = locator.operationProgressTracker.startNewOperation()
-				const kdfType = await locator.kdfPicker.pickKdfType()
 				const p = locator.userManagementFacade.createUser(
 					userName.trim(),
 					assertNotNull(emailAddress),
 					passwordModel.getNewPassword(),
-					kdfType,
 					0,
 					1,
 					operation.id,

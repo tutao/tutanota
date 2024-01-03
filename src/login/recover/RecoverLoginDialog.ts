@@ -19,7 +19,6 @@ import { createDropdown, DropdownButtonAttrs } from "../../gui/base/Dropdown.js"
 import { IconButton, IconButtonAttrs } from "../../gui/base/IconButton.js"
 import { ButtonSize } from "../../gui/base/ButtonSize.js"
 import { SaltService } from "../../api/entities/sys/Services.js"
-import { asKdfType } from "../../api/common/TutanotaConstants.js"
 import { createSaltData } from "../../api/entities/sys/TypeRefs.js"
 
 assertMainOrNode()
@@ -112,16 +111,9 @@ export function show(mailAddress?: string | null, resetAction?: ResetAction): Di
 				} else {
 					const saltRequest = createSaltData({ mailAddress: cleanMailAddress })
 					const saltReturn = await locator.serviceExecutor.get(SaltService, saltRequest)
-					const newKdfType = await locator.kdfPicker.pickKdfType(asKdfType(saltReturn.kdfVersion))
 					showProgressDialog(
 						"pleaseWait_msg",
-						locator.loginFacade.recoverLogin(
-							cleanMailAddress,
-							cleanRecoverCodeValue,
-							passwordModel.getNewPassword(),
-							newKdfType,
-							client.getIdentifier(),
-						),
+						locator.loginFacade.recoverLogin(cleanMailAddress, cleanRecoverCodeValue, passwordModel.getNewPassword(), client.getIdentifier()),
 					)
 						.then(async () => {
 							recoverDialog.close()

@@ -23,7 +23,7 @@ import {
 	SessionService,
 	TakeOverDeletedAddressService,
 } from "../../entities/sys/Services"
-import { AccountType, asKdfType, CloseEventBusOption, KdfType } from "../../common/TutanotaConstants"
+import { AccountType, asKdfType, CloseEventBusOption, DEFAULT_KDF_TYPE, KdfType } from "../../common/TutanotaConstants"
 import { CryptoError } from "../../common/error/CryptoError"
 import type { GroupInfo, SecondFactorAuthData, User } from "../../entities/sys/TypeRefs.js"
 import {
@@ -326,7 +326,7 @@ export class LoginFacade {
 
 	/**
 	 * Create external (temporary mailbox for password-protected emails) session and log in.
-	 * Changes internal state to refer to the logged in user.
+	 * Changes internal state to refer to the logged-in user.
 	 */
 	async createExternalSession(
 		userId: Id,
@@ -792,12 +792,13 @@ export class LoginFacade {
 		})
 	}
 
-	async changePassword(currentPassword: string, newPassword: string, currentKdfType: KdfType, newKdfType: KdfType): Promise<void> {
+	async changePassword(currentPassword: string, newPassword: string, currentKdfType: KdfType): Promise<void> {
 		const currentSalt = assertNotNull(this.userFacade.getLoggedInUser().salt)
 		const currentUserPassphraseKey = await this.deriveUserPassphraseKey(currentKdfType, currentPassword, currentSalt)
 		const currentAuthVerifier = createAuthVerifier(currentUserPassphraseKey)
 
 		const salt = generateRandomSalt()
+		const newKdfType = DEFAULT_KDF_TYPE
 		const newUserPassphraseKey = await this.deriveUserPassphraseKey(newKdfType, newPassword, salt)
 		const pwEncUserGroupKey = encryptKey(newUserPassphraseKey, this.userFacade.getUserGroupKey())
 		const authVerifier = createAuthVerifier(newUserPassphraseKey)
@@ -835,7 +836,7 @@ export class LoginFacade {
 	}
 
 	/** Changes user password to another one using recoverCode instead of the old password. */
-	async recoverLogin(mailAddress: string, recoverCode: string, newPassword: string, newKdfType: KdfType, clientIdentifier: string): Promise<void> {
+	async recoverLogin(mailAddress: string, recoverCode: string, newPassword: string, clientIdentifier: string): Promise<void> {
 		const recoverCodeKey = uint8ArrayToBitArray(hexToUint8Array(recoverCode))
 		const recoverCodeVerifier = createAuthVerifier(recoverCodeKey)
 		const recoverCodeVerifierBase64 = base64ToBase64Url(uint8ArrayToBase64(recoverCodeVerifier))
@@ -849,7 +850,7 @@ export class LoginFacade {
 			user: null,
 		})
 		// we need a separate entity rest client because to avoid caching of the user instance which is updated on password change. the web socket is not connected because we
-		// don't do a normal login and therefore we would not get any user update events. we can not use permanentLogin=false with initSession because caching would be enabled
+		// don't do a normal login, and therefore we would not get any user update events. we can not use permanentLogin=false with initSession because caching would be enabled,
 		// and therefore we would not be able to read the updated user
 		// additionally we do not want to use initSession() to keep the LoginFacade stateless (except second factor handling) because we do not want to have any race conditions
 		// when logging in normally after resetting the password
@@ -887,6 +888,7 @@ export class LoginFacade {
 		try {
 			const groupKey = aes256DecryptLegacyRecoveryKey(recoverCodeKey, recoverCodeData.recoverCodeEncUserGroupKey)
 			const salt = generateRandomSalt()
+			const newKdfType = DEFAULT_KDF_TYPE
 
 			const userPassphraseKey = await this.deriveUserPassphraseKey(newKdfType, newPassword, salt)
 			const pwEncUserGroupKey = encryptKey(userPassphraseKey, groupKey)
