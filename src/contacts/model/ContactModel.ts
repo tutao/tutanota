@@ -1,12 +1,12 @@
 import type { Contact, ContactList } from "../../api/entities/tutanota/TypeRefs.js"
 import { ContactListGroupRoot, ContactListGroupRootTypeRef, ContactListTypeRef, ContactTypeRef } from "../../api/entities/tutanota/TypeRefs.js"
 import { createRestriction } from "../../search/model/SearchUtils"
-import { groupBy, isNotNull, LazyLoaded, ofClass, promiseMap } from "@tutao/tutanota-utils"
+import { isNotNull, LazyLoaded, ofClass, promiseMap } from "@tutao/tutanota-utils"
 import { NotAuthorizedError, NotFoundError } from "../../api/common/error/RestError"
 import { DbError } from "../../api/common/error/DbError"
 import { EntityClient } from "../../api/common/EntityClient"
 import type { LoginController } from "../../api/main/LoginController"
-import { compareOldestFirst, elementIdPart, getEtId, listIdPart } from "../../api/common/utils/EntityUtils"
+import { compareOldestFirst, getEtId } from "../../api/common/utils/EntityUtils"
 import type { SearchFacade } from "../../api/worker/search/SearchFacade"
 import { assertMainOrNode } from "../../api/common/Env"
 import { LoginIncompleteError } from "../../api/common/error/LoginIncompleteError"
@@ -17,6 +17,7 @@ import Stream from "mithril/stream"
 import stream from "mithril/stream"
 import { ShareCapability } from "../../api/common/TutanotaConstants.js"
 import { isSharedGroupOwner } from "../../sharing/GroupUtils.js"
+import { loadMultipleFromLists } from "../../settings/LoadingUtils.js"
 
 assertMainOrNode()
 
@@ -122,23 +123,7 @@ export class ContactModel {
 			throw new LoginIncompleteError("cannot search for contacts as online login is not completed")
 		}
 		const result = await this.searchFacade.search(query, createRestriction("contact", null, null, field, [], null), minSuggestionCount)
-		const resultsByListId = groupBy(result.results, listIdPart)
-		const loadedContacts = await promiseMap(
-			resultsByListId,
-			([listId, idTuples]) => {
-				// we try to load all contacts from the same list in one request
-				return this.entityClient.loadMultiple(ContactTypeRef, listId, idTuples.map(elementIdPart)).catch(
-					ofClass(NotAuthorizedError, (e) => {
-						console.log("tried to access contact without authorization", e)
-						return []
-					}),
-				)
-			},
-			{
-				concurrency: 3,
-			},
-		)
-		return loadedContacts.flat()
+		return await loadMultipleFromLists(ContactTypeRef, this.entityClient, result.results)
 	}
 
 	async searchForContactLists(query: string): Promise<ContactListInfo[]> {

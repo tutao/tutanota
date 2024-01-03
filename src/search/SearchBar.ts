@@ -8,7 +8,6 @@ import type { CalendarEvent, Contact, Mail } from "../api/entities/tutanota/Type
 import { CalendarEventTypeRef, ContactTypeRef, MailTypeRef } from "../api/entities/tutanota/TypeRefs.js"
 import type { Shortcut } from "../misc/KeyManager"
 import { isKeyPressed, keyManager } from "../misc/KeyManager"
-import { NotAuthorizedError, NotFoundError } from "../api/common/error/RestError"
 import { getRestriction } from "./model/SearchUtils"
 import { locator } from "../api/main/MainLocator"
 import { Dialog } from "../gui/base/Dialog"
@@ -18,13 +17,13 @@ import { FULL_INDEXED_TIMESTAMP, Keys } from "../api/common/TutanotaConstants"
 import { assertMainOrNode, isApp } from "../api/common/Env"
 import { styles } from "../gui/styles"
 import { client } from "../misc/ClientDetector"
-import { debounce, downcast, groupBy, isSameTypeRef, memoized, mod, ofClass, promiseMap, TypeRef } from "@tutao/tutanota-utils"
+import { debounce, downcast, isSameTypeRef, memoized, mod, ofClass, TypeRef } from "@tutao/tutanota-utils"
 import { BrowserType } from "../misc/ClientConstants"
 import { hasMoreResults } from "./model/SearchModel"
 import { SearchBarOverlay } from "./SearchBarOverlay"
 import { IndexingNotSupportedError } from "../api/common/error/IndexingNotSupportedError"
 import type { SearchIndexStateInfo, SearchRestriction, SearchResult } from "../api/worker/search/SearchTypes"
-import { elementIdPart, getElementId, listIdPart } from "../api/common/utils/EntityUtils"
+import { getElementId } from "../api/common/utils/EntityUtils"
 import { compareContacts } from "../contacts/view/ContactGuiUtils"
 import { LayerType } from "../RootView"
 import { BaseSearchBar, BaseSearchBarAttrs } from "../gui/base/BaseSearchBar.js"
@@ -32,6 +31,7 @@ import { SearchRouter } from "./view/SearchRouter.js"
 import { PageSize } from "../gui/base/ListUtils.js"
 import { generateCalendarInstancesInRange } from "../calendar/date/CalendarUtils.js"
 import { ListElementEntity } from "../api/common/EntityTypes.js"
+import { loadMultipleFromLists } from "../settings/LoadingUtils.js"
 
 assertMainOrNode()
 export type ShowMoreAction = {
@@ -313,37 +313,6 @@ export class SearchBar implements Component<SearchBarAttrs> {
 		},
 	]
 
-	private downloadResults({ results, restriction }: SearchResult): Promise<Array<Entry>> {
-		if (results.length === 0) {
-			return Promise.resolve([])
-		}
-
-		const byList = groupBy(results, listIdPart)
-		return promiseMap(
-			byList,
-			([listId, idTuples]) => {
-				return locator.entityClient
-					.loadMultiple(restriction.type, listId, idTuples.map(elementIdPart))
-					.catch(
-						ofClass(NotFoundError, () => {
-							console.log("mail list from search index not found")
-							return []
-						}),
-					)
-					.catch(
-						ofClass(NotAuthorizedError, () => {
-							console.log("no permission on instance from search index")
-							return []
-						}),
-					)
-			},
-			{
-				concurrency: 3,
-			},
-		) // Higher concurrency to not wait too long for search results of multiple lists
-			.then((a) => a.flat())
-	}
-
 	private selectResult(result: (Mail | null) | Contact | WhitelabelChild | CalendarEvent | ShowMoreAction) {
 		const { query } = this.state()
 
@@ -450,12 +419,15 @@ export class SearchBar implements Component<SearchBarAttrs> {
 		// We don't limit contacts because we need to download all of them to sort them. They should be cached anyway.
 		const limit = isSameTypeRef(MailTypeRef, restriction.type) ? (this.isQuickSearch() ? MAX_SEARCH_PREVIEW_RESULTS : PageSize) : null
 		locator.search
-			.search({
-				query: query ?? "",
-				restriction,
-				minSuggestionCount: useSuggestions ? 10 : 0,
-				maxResults: limit,
-			})
+			.search(
+				{
+					query: query ?? "",
+					restriction,
+					minSuggestionCount: useSuggestions ? 10 : 0,
+					maxResults: limit,
+				},
+				locator.progressTracker,
+			)
 			.then((result) => this.loadAndDisplayResult(query, result ? result : null, limit))
 			.finally(() => cb())
 	})
@@ -508,32 +480,30 @@ export class SearchBar implements Component<SearchBarAttrs> {
 		}
 	}
 
-	private showResultsInOverlay(result: SearchResult): Promise<void> {
-		return this.downloadResults(result).then((entries) => {
-			// If there was no new search while we've been downloading the result
-			if (!locator.search.isNewSearch(result.query, result.restriction)) {
-				const { filteredEntries, couldShowMore } = this.filterResults(entries, result.restriction)
+	private async showResultsInOverlay(result: SearchResult): Promise<void> {
+		const entries = await loadMultipleFromLists(result.restriction.type, locator.entityClient, result.results)
+		// If there was no new search while we've been downloading the result
+		if (!locator.search.isNewSearch(result.query, result.restriction)) {
+			const { filteredEntries, couldShowMore } = this.filterResults(entries, result.restriction)
 
-				if (
-					result.query.trim() !== "" &&
-					(filteredEntries.length === 0 || hasMoreResults(result) || couldShowMore || result.currentIndexTimestamp !== FULL_INDEXED_TIMESTAMP)
-				) {
-					const moreEntry: ShowMoreAction = {
-						resultCount: result.results.length,
-						shownCount: filteredEntries.length,
-						indexTimestamp: result.currentIndexTimestamp,
-						allowShowMore:
-							!isSameTypeRef(result.restriction.type, GroupInfoTypeRef) && !isSameTypeRef(result.restriction.type, WhitelabelChildTypeRef),
-					}
-					filteredEntries.push(moreEntry)
+			if (
+				result.query.trim() !== "" &&
+				(filteredEntries.length === 0 || hasMoreResults(result) || couldShowMore || result.currentIndexTimestamp !== FULL_INDEXED_TIMESTAMP)
+			) {
+				const moreEntry: ShowMoreAction = {
+					resultCount: result.results.length,
+					shownCount: filteredEntries.length,
+					indexTimestamp: result.currentIndexTimestamp,
+					allowShowMore: !isSameTypeRef(result.restriction.type, GroupInfoTypeRef) && !isSameTypeRef(result.restriction.type, WhitelabelChildTypeRef),
 				}
-
-				this.updateState({
-					entities: filteredEntries,
-					selected: filteredEntries[0],
-				})
+				filteredEntries.push(moreEntry)
 			}
-		})
+
+			this.updateState({
+				entities: filteredEntries,
+				selected: filteredEntries[0],
+			})
+		}
 	}
 
 	private isQuickSearch(): boolean {

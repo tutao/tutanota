@@ -1,10 +1,13 @@
-import type { Customer, GroupInfo } from "../api/entities/sys/TypeRefs.js"
+import type { Customer } from "../api/entities/sys/TypeRefs.js"
 import { GroupInfoTypeRef, GroupTypeRef, UserTypeRef } from "../api/entities/sys/TypeRefs.js"
-import { groupByAndMap, neverNull, promiseMap } from "@tutao/tutanota-utils"
+import { groupByAndMap, neverNull, promiseMap, TypeRef } from "@tutao/tutanota-utils"
 import { GroupType } from "../api/common/TutanotaConstants"
 import { getGroupInfoDisplayName, getUserGroupMemberships } from "../api/common/utils/GroupUtils"
 import { locator } from "../api/main/MainLocator"
 import { elementIdPart, listIdPart } from "../api/common/utils/EntityUtils"
+import { ListElementEntity } from "../api/common/EntityTypes.js"
+import { NotAuthorizedError, NotFoundError } from "../api/common/error/RestError.js"
+import { EntityClient } from "../api/common/EntityClient.js"
 
 /**
  * As users personal mail group infos do not contain name and mail address we use this wrapper to store group ids together with name and mail address.
@@ -62,16 +65,40 @@ export async function loadEnabledUserMailGroups(customer: Customer): Promise<Gro
 	)
 }
 
-export function loadGroupInfos(groupInfoIds: IdTuple[]): Promise<GroupInfo[]> {
-	const groupedParticipantGroupInfos = groupByAndMap(groupInfoIds, listIdPart, elementIdPart)
+/**
+ * load multiple instances of the same type concurrently from multiple lists using
+ * one request per list if possible
+ *
+ * @returns an array of all the instances excluding the ones throwing NotFoundError or NotAuthorizedError, in arbitrary order.
+ */
+export async function loadMultipleFromLists<T extends ListElementEntity>(
+	type: TypeRef<T>,
+	entityClient: EntityClient,
+	toLoad: Array<IdTuple>,
+): Promise<Array<T>> {
+	if (toLoad.length === 0) {
+		return []
+	}
+	const indexedEventIds = groupByAndMap<IdTuple, Id, Id>(toLoad, listIdPart, elementIdPart)
 
-	return promiseMap(
-		groupedParticipantGroupInfos.entries(),
-		([listId, elementIds]) => {
-			return locator.entityClient.loadMultiple(GroupInfoTypeRef, listId, elementIds)
-		},
-		{
-			concurrency: 5,
-		},
-	).then((a) => a.flat())
+	return (
+		await promiseMap(
+			indexedEventIds,
+			async ([listId, elementIds]) => {
+				try {
+					return await entityClient.loadMultiple(type, listId, elementIds)
+				} catch (e) {
+					// these are thrown if the list itself is inaccessible. elements will just be missing
+					// in the loadMultiple result.
+					if (e instanceof NotFoundError || e instanceof NotAuthorizedError) {
+						console.log(`could not load entities of type ${type} from list ${listId}: ${e.name}`)
+						return []
+					} else {
+						throw e
+					}
+				}
+			},
+			{ concurrency: 3 },
+		)
+	).flat()
 }
