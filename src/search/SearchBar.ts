@@ -12,7 +12,6 @@ import { getRestriction } from "./model/SearchUtils"
 import { locator } from "../api/main/MainLocator"
 import { Dialog } from "../gui/base/Dialog"
 import type { WhitelabelChild } from "../api/entities/sys/TypeRefs.js"
-import { GroupInfoTypeRef, WhitelabelChildTypeRef } from "../api/entities/sys/TypeRefs.js"
 import { FULL_INDEXED_TIMESTAMP, Keys } from "../api/common/TutanotaConstants"
 import { assertMainOrNode, isApp } from "../api/common/Env"
 import { styles } from "../gui/styles"
@@ -330,8 +329,6 @@ export class SearchBar implements Component<SearchBarAttrs> {
 				this.updateSearchUrl(query, downcast(result))
 			} else if (isSameTypeRef(CalendarEventTypeRef, type)) {
 				this.updateSearchUrl(query, downcast(result))
-			} else if (isSameTypeRef(WhitelabelChildTypeRef, type)) {
-				this.lastSelectedWhitelabelChildrenInfoResult(downcast(result))
 			}
 		}
 	}
@@ -494,7 +491,7 @@ export class SearchBar implements Component<SearchBarAttrs> {
 					resultCount: result.results.length,
 					shownCount: filteredEntries.length,
 					indexTimestamp: result.currentIndexTimestamp,
-					allowShowMore: !isSameTypeRef(result.restriction.type, GroupInfoTypeRef) && !isSameTypeRef(result.restriction.type, WhitelabelChildTypeRef),
+					allowShowMore: true,
 				}
 				filteredEntries.push(moreEntry)
 			}
