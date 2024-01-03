@@ -11,7 +11,7 @@ export default {
 		"other"
 	],
 	"created_at": "2015-01-13T20:10:13Z",
-	"updated_at": "2023-12-13T12:57:13Z",
+	"updated_at": "2023-12-22T12:57:15Z",
 	"source_locale": null,
 	"fallback_locale": null,
 	"keys": {
@@ -766,6 +766,7 @@ export default {
 		"languageWelsh_label": "Welsh",
 		"language_label": "Language",
 		"largeSignature_msg": "The signature you defined is over {1}kB in size. It will be appended to every email by default. Do you want to use it anyway?",
+		"lastAccessWithTime_label": "Last access: {time}",
 		"lastAccess_label": "Last access",
 		"lastName_placeholder": "Last name",
 		"lastSync_label": "Last synchronization: {date}",

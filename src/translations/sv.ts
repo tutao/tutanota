@@ -11,7 +11,7 @@ export default {
 		"other"
 	],
 	"created_at": "2015-03-23T11:36:16Z",
-	"updated_at": "2023-12-13T13:59:51Z",
+	"updated_at": "2023-12-22T13:28:38Z",
 	"source_locale": null,
 	"fallback_locale": null,
 	"keys": {
@@ -766,6 +766,7 @@ export default {
 		"languageWelsh_label": "Walesiska",
 		"language_label": "Språk",
 		"largeSignature_msg": "Signaturen du definierade är över {1}kB  i storlek. Den kommer att läggas till i varje mejl som standard. Vill du använda den ändå?",
+		"lastAccessWithTime_label": "Senast besökt: {time}",
 		"lastAccess_label": "Senaste åtkomst",
 		"lastName_placeholder": "Efternamn",
 		"lastSync_label": "Senast synkroniserad: {date}",

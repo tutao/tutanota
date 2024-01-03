@@ -11,7 +11,7 @@ export default {
 		"other"
 	],
 	"created_at": "2015-01-16T12:59:04Z",
-	"updated_at": "2023-12-06T11:45:19Z",
+	"updated_at": "2023-12-28T02:16:39Z",
 	"source_locale": {
 		"id": "fcd7471b347c8e517663e194dcddf237",
 		"name": "en",
@@ -770,6 +770,7 @@ export default {
 		"languageWelsh_label": "Gallois",
 		"language_label": "Langue",
 		"largeSignature_msg": "Votre signature dépasse {1} Ko. Elle sera ajoutée par défaut à la fin de chaque message. Voulez-vous l'utiliser tout de même?",
+		"lastAccessWithTime_label": "Dernière fois d'accès ; (L'heure)",
 		"lastAccess_label": "Dernier accès",
 		"lastName_placeholder": "Nom de famille",
 		"lastSync_label": "Dernière synchronisation : {date}",
@@ -906,6 +907,7 @@ export default {
 		"noContact_msg": "Aucun contact sélectionné",
 		"noEntries_msg": "<Aucune entrée>",
 		"noEntryFound_label": "Aucune entrée trouvée",
+		"noEventSelect_msg": "Aucun rendez-vous sélectionné",
 		"noInputWasMade_msg": "Le champ à saisir est vide !",
 		"noKeysForThisDomain_msg": "Aucune clé de sécurité n'est configurée pour ce domaine. Veuillez en ajouter une dans les paramètres de connexion.",
 		"noMails_msg": "Aucun message",
@@ -1290,6 +1292,7 @@ export default {
 		"scrollToBottom_action": "Descendre en bas de page",
 		"scrollToTop_action": "Aller en haut de page",
 		"scrollUp_action": "Remonter sur la page",
+		"searchCalendar_placeholder": "Recherche d'activités",
 		"searchContacts_placeholder": "Recherche de contacts",
 		"searchDisabledApp_msg": "La fonction de recherche est désactivée à cause d'une erreur système. Redémarrez l'application pour y avoir de nouveau accès.",
 		"searchDisabled_msg": "La recherche a été désactivée car votre navigateur ne prend pas en charge le stockage de données.",
