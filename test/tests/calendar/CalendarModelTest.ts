@@ -29,11 +29,12 @@ import { CalendarEventProgenitor, CalendarFacade } from "../../../src/api/worker
 import { verify } from "@tutao/tutanota-test-utils"
 import type { WorkerClient } from "../../../src/api/main/WorkerClient.js"
 import { FileController } from "../../../src/file/FileController.js"
-import { func, matchers, when } from "testdouble"
+import { func, matchers, object, when } from "testdouble"
 import { elementIdPart, getElementId, listIdPart } from "../../../src/api/common/utils/EntityUtils.js"
 import { createDataFile } from "../../../src/api/common/DataFile.js"
 import { SessionKeyNotFoundError } from "../../../src/api/common/error/SessionKeyNotFoundError.js"
 import { createTestEntity } from "../TestUtils.js"
+import { NoopProgressMonitor } from "../../../src/api/common/utils/ProgressMonitor.js"
 
 o.spec("CalendarModel", function () {
 	o.spec("incrementByRepeatPeriod", function () {
@@ -684,9 +685,10 @@ function makeNotifications(): Notifications {
 }
 
 function makeProgressTracker(): ProgressTracker {
-	return downcast({
-		register: () => 0,
-	})
+	const progressTracker: ProgressTracker = object()
+	when(progressTracker.registerMonitorSync(matchers.anything())).thenReturn(0)
+	when(progressTracker.getMonitor(matchers.anything())).thenReturn(new NoopProgressMonitor())
+	return progressTracker
 }
 
 function makeEventController(): {
@@ -714,21 +716,19 @@ function makeWorkerClient(): WorkerClient {
 	return downcast({})
 }
 
-function makeLoginController(props: Partial<UserController> = {}): LoginController {
+function makeLoginController(): LoginController {
+	const loginController: LoginController = object()
 	const alarmInfoList = createTestEntity(UserAlarmInfoListTypeTypeRef, {
 		alarms: "alarms",
 	})
-	const userController = downcast(
-		Object.assign(props, {
-			user: createTestEntity(UserTypeRef, {
-				_id: "user-id",
-				alarmInfoList,
-			}),
-		}),
-	)
-	return downcast({
-		getUserController: () => userController,
+	const userController: UserController = object()
+	userController.user = createTestEntity(UserTypeRef, {
+		_id: "user-id",
+		alarmInfoList,
 	})
+	when(loginController.getUserController()).thenReturn(userController)
+	when(userController.getCalendarMemberships()).thenReturn([])
+	return loginController
 }
 
 function makeAlarmScheduler(): AlarmScheduler {
