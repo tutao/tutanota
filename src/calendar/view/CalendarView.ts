@@ -258,7 +258,7 @@ export class CalendarView extends BaseTopLevelView implements TopLevelView<Calen
 									amPmFormat: shouldDefaultToAmPmTimeFormat(),
 									onEventClicked: (event, domEvent) => {
 										if (styles.isDesktopLayout()) {
-											this.viewModel.previewEvent(event)
+											this.viewModel.updatePreviewedEvent(event)
 										} else {
 											this._onEventSelected(event, domEvent, this.htmlSanitizer)
 										}

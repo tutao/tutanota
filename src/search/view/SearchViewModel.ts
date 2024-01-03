@@ -12,7 +12,6 @@ import {
 	getElementId,
 	isSameId,
 	ListElement,
-	listIdPart,
 	sortCompareByReverseId,
 } from "../../api/common/utils/EntityUtils.js"
 import { ListLoadingState, ListState } from "../../gui/base/List.js"
@@ -23,7 +22,6 @@ import {
 	filterInt,
 	getEndOfDay,
 	getStartOfDay,
-	groupBy,
 	isSameDay,
 	isSameTypeRef,
 	isSameTypeRefNullable,
@@ -41,7 +39,7 @@ import { ConversationViewModel, ConversationViewModelFactory } from "../../mail/
 import { createRestriction, getRestriction, searchCategoryForRestriction } from "../model/SearchUtils.js"
 import Stream from "mithril/stream"
 import { MailboxDetail, MailModel } from "../../mail/model/MailModel.js"
-import { CalendarTimeRange, generateCalendarInstancesInRange, getStartOfTheWeekOffsetForUser } from "../../calendar/date/CalendarUtils.js"
+import { getStartOfTheWeekOffsetForUser } from "../../calendar/date/CalendarUtils.js"
 import { SearchFacade } from "../../api/worker/search/SearchFacade.js"
 import { LoginController } from "../../api/main/LoginController.js"
 import { Indexer } from "../../api/worker/search/Indexer.js"
@@ -50,10 +48,13 @@ import { getMailFilterForType, MailFilterType } from "../../mail/model/MailUtils
 import { SearchRouter } from "./SearchRouter.js"
 import { MailOpenedListener } from "../../mail/view/MailViewModel.js"
 import { CalendarInfo } from "../../calendar/model/CalendarModel.js"
-import { ProgrammingError } from "../../api/common/error/ProgrammingError.js"
 import { locator } from "../../api/main/MainLocator.js"
 import { NoopProgressMonitor } from "../../api/common/utils/ProgressMonitor.js"
 import m from "mithril"
+import { CalendarFacade } from "../../api/worker/facades/lazy/CalendarFacade.js"
+import { ProgrammingError } from "../../api/common/error/ProgrammingError.js"
+import { ProgressTracker } from "../../api/main/ProgressTracker.js"
+import { loadMultipleFromLists } from "../../settings/LoadingUtils.js"
 
 const SEARCH_PAGE_SIZE = 100
 
@@ -107,6 +108,8 @@ export class SearchViewModel {
 		private readonly entityClient: EntityClient,
 		private readonly eventController: EventController,
 		private readonly mailOpenedListener: MailOpenedListener,
+		private readonly calendarFacade: CalendarFacade,
+		private readonly progressTracker: ProgressTracker,
 		private readonly conversationViewModelFactory: ConversationViewModelFactory,
 		private readonly updateUi: () => unknown,
 	) {
@@ -165,33 +168,40 @@ export class SearchViewModel {
 		const maxResults = isSameTypeRef(MailTypeRef, restriction.type) ? SEARCH_PAGE_SIZE : null
 
 		// using hasOwnProperty to distinguish case when url is like '/search/mail/query='
+		const listModel = this.listModel
 		if (args.hasOwnProperty("query") && this.search.isNewSearch(args.query, restriction)) {
 			this._searchResult = null
-			this.listModel.selectNone()
-			this.listModel.updateLoadingStatus(ListLoadingState.Loading)
+			listModel.selectNone()
+			listModel.updateLoadingStatus(ListLoadingState.Loading)
 			this.search
-				.search({
-					query: args.query,
-					restriction,
-					minSuggestionCount: 0,
-					maxResults,
-				})
-				.then(() => this.listModel.updateLoadingStatus(ListLoadingState.Done))
-				.catch(() => this.listModel.updateLoadingStatus(ListLoadingState.ConnectionLost))
+				.search(
+					{
+						query: args.query,
+						restriction,
+						minSuggestionCount: 0,
+						maxResults,
+					},
+					this.progressTracker,
+				)
+				.then(() => listModel.updateLoadingStatus(ListLoadingState.Done))
+				.catch(() => listModel.updateLoadingStatus(ListLoadingState.ConnectionLost))
 		} else if (lastQuery && this.search.isNewSearch(lastQuery, restriction)) {
 			this._searchResult = null
-			this.listModel.selectNone()
+			listModel.selectNone()
 			// If query is not set for some reason (e.g. switching search type), use the last query value
-			this.listModel.updateLoadingStatus(ListLoadingState.Loading)
+			listModel.updateLoadingStatus(ListLoadingState.Loading)
 			this.search
-				.search({
-					query: lastQuery,
-					restriction,
-					minSuggestionCount: 0,
-					maxResults,
-				})
-				.then(() => this.listModel.updateLoadingStatus(ListLoadingState.Done))
-				.catch(() => this.listModel.updateLoadingStatus(ListLoadingState.ConnectionLost))
+				.search(
+					{
+						query: lastQuery,
+						restriction,
+						minSuggestionCount: 0,
+						maxResults,
+					},
+					this.progressTracker,
+				)
+				.then(() => listModel.updateLoadingStatus(ListLoadingState.Done))
+				.catch(() => listModel.updateLoadingStatus(ListLoadingState.ConnectionLost))
 		}
 
 		// update the filters
@@ -577,10 +587,10 @@ export class SearchViewModel {
 		startId: Id,
 		count: number,
 	): Promise<{ items: T[]; newSearchResult: SearchResult }> {
-		const result = hasMoreResults(currentResult) ? await this.searchFacade.getMoreSearchResults(currentResult, count) : currentResult
+		const updatedResult = hasMoreResults(currentResult) ? await this.searchFacade.getMoreSearchResults(currentResult, count) : currentResult
 
 		// we need to override global reference for other functions
-		this._searchResult = result
+		this._searchResult = updatedResult
 
 		let items
 		if (isSameTypeRef(currentResult.restriction.type, MailTypeRef)) {
@@ -588,37 +598,34 @@ export class SearchViewModel {
 
 			if (startId !== GENERATED_MAX_ID) {
 				// this relies on the results being sorted from newest to oldest ID
-				startIndex = result.results.findIndex((id) => id[1] <= startId)
-				if (elementIdPart(result.results[startIndex]) === startId) {
+				startIndex = updatedResult.results.findIndex((id) => id[1] <= startId)
+				if (elementIdPart(updatedResult.results[startIndex]) === startId) {
 					// the start element is already loaded, so we exclude it from the next load
 					startIndex++
 				} else if (startIndex === -1) {
 					// there is nothing in our result that's not loaded yet, so we
 					// have nothing to do
-					startIndex = Math.max(result.results.length - 1, 0)
+					startIndex = Math.max(updatedResult.results.length - 1, 0)
 				}
 			}
 
 			// Ignore count when slicing here because we would have to modify SearchResult too
-			const toLoad = result.results.slice(startIndex)
-			items = await this.loadAndFilterInstances(currentResult.restriction.type, toLoad, result, startIndex)
+			const toLoad = updatedResult.results.slice(startIndex)
+			items = await this.loadAndFilterInstances(currentResult.restriction.type, toLoad, updatedResult, startIndex)
 		} else if (isSameTypeRef(currentResult.restriction.type, ContactTypeRef)) {
 			try {
 				// load all contacts to sort them by name afterwards
-				items = await this.loadAndFilterInstances(currentResult.restriction.type, result.results, result, 0)
+				items = await this.loadAndFilterInstances(currentResult.restriction.type, updatedResult.results, updatedResult, 0)
 			} finally {
 				this.updateUi()
 			}
 		} else if (isSameTypeRef(currentResult.restriction.type, CalendarEventTypeRef)) {
-			// FIXME: this is where we do too much work
 			try {
-				const progenitors = await this.loadAndFilterInstances(currentResult.restriction.type, result.results, result, 0)
 				const { start, end } = currentResult.restriction
 				if (start == null || end == null) {
 					throw new ProgrammingError("invalid search time range for calendar")
 				}
-				const range: CalendarTimeRange = { start, end }
-				items = generateCalendarInstancesInRange(progenitors, range)
+				items = await this.calendarFacade.reifyCalendarSearchResult(start, end, updatedResult.results)
 			} finally {
 				this.updateUi()
 			}
@@ -627,21 +634,20 @@ export class SearchViewModel {
 			items = []
 		}
 
-		return { items: items, newSearchResult: result }
+		return { items: items, newSearchResult: updatedResult }
 	}
 
+	/**
+	 * take a list of IDs and load them by list, filtering out the ones that could not be loaded.
+	 * updates the passed currentResult.result list to not include the failed IDs anymore
+	 */
 	private async loadAndFilterInstances<T extends ListElementEntity>(
 		type: TypeRef<T>,
 		toLoad: IdTuple[],
 		currentResult: SearchResult,
 		startIndex: number,
 	): Promise<T[]> {
-		let instances: T[] = []
-		for (let [listId, ids] of groupBy(toLoad, listIdPart)) {
-			const loaded = await this.entityClient.loadMultiple(type, listId, ids.map(elementIdPart))
-			instances = instances.concat(loaded)
-		}
-
+		const instances = await loadMultipleFromLists(type, this.entityClient, toLoad)
 		// Filter not found instances from the current result as well so we don’t loop trying to load them
 		if (instances.length < toLoad.length) {
 			const resultLength = currentResult.results.length

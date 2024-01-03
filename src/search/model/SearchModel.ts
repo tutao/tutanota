@@ -9,6 +9,8 @@ import type { SearchFacade } from "../../api/worker/search/SearchFacade"
 import { assertMainOrNode } from "../../api/common/Env"
 import { listIdPart } from "../../api/common/utils/EntityUtils.js"
 import { CalendarModel } from "../../calendar/model/CalendarModel.js"
+import { IProgressMonitor } from "../../api/common/utils/ProgressMonitor.js"
+import { ProgressTracker } from "../../api/main/ProgressTracker.js"
 
 assertMainOrNode()
 export type SearchQuery = {
@@ -45,7 +47,7 @@ export class SearchModel {
 		this._lastSearchPromise = Promise.resolve(undefined)
 	}
 
-	async search(searchQuery: SearchQuery): Promise<SearchResult | void> {
+	async search(searchQuery: SearchQuery, progressTracker: ProgressTracker): Promise<SearchResult | void> {
 		if (this._lastQuery && searchQueryEquals(searchQuery, this._lastQuery)) {
 			return this._lastSearchPromise
 		}
@@ -84,10 +86,16 @@ export class SearchModel {
 			let currentDate = new Date(assertNotNull(restriction.start))
 			const endDate = new Date(assertNotNull(restriction.end))
 			const calendarModel = await this.calendarModel()
+			const daysInMonths = []
 			while (currentDate.getTime() <= endDate.getTime()) {
-				await calendarModel.loadMonthIfNeeded(currentDate)
+				daysInMonths.push(currentDate)
 				currentDate = incrementMonth(currentDate, 1)
 			}
+
+			const monitorHandle = progressTracker.registerMonitorSync(daysInMonths.length)
+			const monitor: IProgressMonitor = assertNotNull(progressTracker.getMonitor(monitorHandle))
+			await calendarModel.loadMonthsIfNeeded(daysInMonths, monitor)
+			monitor.completed()
 
 			const eventsForDays = calendarModel.getEventsForMonths()()
 
