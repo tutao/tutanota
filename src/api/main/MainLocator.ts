@@ -235,6 +235,8 @@ class MainLocator {
 				this.entityClient,
 				this.eventController,
 				this.mailOpenedListener,
+				this.calendarFacade,
+				this.progressTracker,
 				conversationViewModelFactory,
 				redraw,
 			)

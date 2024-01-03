@@ -291,19 +291,6 @@ export function groupByAndMap<T, R, E>(iterable: Iterable<T>, discriminator: (ar
 }
 
 /**
- * convert a map from one value type to another by applying a mapper function to each value.
- * keeps the keys as-is.
- * @param map the map to map the entries of
- * @param mapper the function that maps the entries to the new type
- */
-export async function mapMapAsync<K, I, O>(map: ReadonlyMap<K, I>, mapper: (key: K, val: I) => Promise<O>): Promise<Map<K, O>> {
-	const entries: Array<[K, I]> = Array.from(map.entries())
-	const newEntryPromises: Array<Promise<readonly [K, O]>> = entries.map(async ([k, v]) => [k, await mapper(k, v)] as const)
-	const newEntries = await Promise.all(newEntryPromises)
-	return new Map(newEntries)
-}
-
-/**
  * Group array elements based on keys produced by a discriminator
  * @param iterable the array to split into groups
  * @param discriminator a function that produces the keys to group the elements by
