@@ -1,16 +1,5 @@
-import type { $Promisable, DeferredObject, lazyAsync, Require } from "@tutao/tutanota-utils"
-import {
-	assertNotNull,
-	clone,
-	defer,
-	downcast,
-	filterInt,
-	findAllAndRemove,
-	freezeMap,
-	getFromMap,
-	LazyLoaded,
-	symmetricDifference,
-} from "@tutao/tutanota-utils"
+import type { $Promisable, DeferredObject, Require } from "@tutao/tutanota-utils"
+import { assertNotNull, clone, defer, downcast, filterInt, getFromMap, symmetricDifference } from "@tutao/tutanota-utils"
 import { CalendarMethod, FeatureType, GroupType, OperationType } from "../../api/common/TutanotaConstants"
 import type { EntityUpdateData } from "../../api/main/EventController"
 import { EventController, isUpdateFor, isUpdateForTypeRef } from "../../api/main/EventController"
@@ -43,7 +32,7 @@ import type { IProgressMonitor } from "../../api/common/utils/ProgressMonitor"
 import { NoopProgressMonitor } from "../../api/common/utils/ProgressMonitor"
 import { EntityClient } from "../../api/common/EntityClient"
 import type { MailModel } from "../../mail/model/MailModel"
-import { elementIdPart, getElementId, getListId, isSameId, listIdPart, removeTechnicalFields } from "../../api/common/utils/EntityUtils"
+import { elementIdPart, getElementId, isSameId, listIdPart, removeTechnicalFields } from "../../api/common/utils/EntityUtils"
 import type { AlarmScheduler } from "../date/AlarmScheduler"
 import type { Notifications } from "../../gui/Notifications"
 import m from "mithril"
@@ -55,20 +44,8 @@ import { FileController } from "../../file/FileController"
 import { findAttendeeInAddresses } from "../../api/common/utils/CommonCalendarUtils.js"
 import { TutanotaError } from "../../api/common/error/TutanotaError.js"
 import { SessionKeyNotFoundError } from "../../api/common/error/SessionKeyNotFoundError.js"
-import {
-	addDaysForEventInstance,
-	addDaysForRecurringEvent,
-	CalendarTimeRange,
-	getEventEnd,
-	getEventStart,
-	getMonthRange,
-	isSameEventInstance,
-} from "../date/CalendarUtils.js"
-import { DaysToEvents, LIMIT_PAST_EVENTS_YEARS } from "../view/CalendarViewModel.js"
-import { DateTime } from "luxon"
-import { areRepeatRulesEqual } from "../date/eventeditor/CalendarEventModel.js"
 import Stream from "mithril/stream"
-import stream from "mithril/stream"
+import { ObservableLazyLoaded } from "../../api/common/utils/ObservableLazyLoaded.js"
 
 const TAG = "[CalendarModel]"
 export type CalendarInfo = {
@@ -89,8 +66,6 @@ export class CalendarModel {
 	private pendingAlarmRequests: Map<string, { pendingAlarmCounter: number; deferred: DeferredObject<void> }> = new Map()
 	private readonly userAlarmToAlarmInfo: Map<string, string> = new Map()
 	private readonly fileIdToSkippedCalendarEventUpdates: Map<Id, CalendarEventUpdate> = new Map()
-	private readonly loadedMonths = new Set<number>()
-	private daysToEvents: Stream<DaysToEvents> = stream(new Map())
 
 	private readProgressMonitor: Generator<IProgressMonitor>
 
@@ -170,11 +145,8 @@ export class CalendarModel {
 		}
 	}
 
-	getEventsForMonths(): Stream<DaysToEvents> {
-		return this.daysToEvents
-	}
-
 	/** Load map from group/groupRoot ID to the calendar info */
+	// FIXME shouldn't we expose the cached version in LazyLoaded?
 	async loadCalendarInfos(progressMonitor: IProgressMonitor): Promise<ReadonlyMap<Id, CalendarInfo>> {
 		const user = this.logins.getUserController().user
 
@@ -215,27 +187,6 @@ export class CalendarModel {
 			this.serviceExecutor.delete(MembershipService, createMembershipRemoveData({ user: user._id, group: mship.group }))
 		}
 		return calendarInfos
-	}
-
-	async loadMonthsIfNeeded(daysInMonths: Array<Date>, progressMonitor: IProgressMonitor): Promise<void> {
-		for (const dayInMonth of daysInMonths) {
-			const month = getMonthRange(dayInMonth, this.zone)
-
-			if (!this.loadedMonths.has(month.start)) {
-				this.loadedMonths.add(month.start)
-
-				try {
-					const calendarInfos = await this.calendarInfos.getAsync()
-					this._replaceEvents(await this.calendarFacade.updateEventMap(month, calendarInfos, this.daysToEvents(), this.zone))
-				} catch (e) {
-					this.loadedMonths.delete(month.start)
-
-					throw e
-				}
-			}
-
-			progressMonitor.workDone(1)
-		}
 	}
 
 	async loadOrCreateCalendarInfo(progressMonitor: IProgressMonitor): Promise<ReadonlyMap<Id, CalendarInfo>> {
@@ -734,19 +685,8 @@ export class CalendarModel {
 				}
 			} else if (isUpdateForTypeRef(CalendarEventTypeRef, entityEventData)) {
 				if (entityEventData.operation === OperationType.CREATE || entityEventData.operation === OperationType.UPDATE) {
-					try {
-						const event = await this.entityClient.load(CalendarEventTypeRef, [entityEventData.instanceListId, entityEventData.instanceId])
-						await this._addOrUpdateEvent(calendarInfos.get(eventOwnerGroupId) ?? null, event)
-						const deferredEvent = this.getPendingAlarmRequest(entityEventData.instanceId)
-						deferredEvent.deferred.resolve(undefined)
-					} catch (e) {
-						if (e instanceof NotFoundError || e instanceof NotAuthorizedError) {
-							console.log(TAG, e.name, "updated event is not accessible anymore")
-						}
-						throw e
-					}
-				} else if (entityEventData.operation === OperationType.DELETE) {
-					await this._removeDaysForEvent([entityEventData.instanceListId, entityEventData.instanceId])
+					const deferredEvent = this.getPendingAlarmRequest(entityEventData.instanceId)
+					deferredEvent.deferred.resolve(undefined)
 				}
 			} else if (isUpdateForTypeRef(CalendarEventUpdateTypeRef, entityEventData) && entityEventData.operation === OperationType.CREATE) {
 				try {
@@ -783,9 +723,6 @@ export class CalendarModel {
 				const diff = symmetricDifference(oldGroupIds, newGroupIds)
 
 				if (diff.size !== 0) {
-					this.loadedMonths.clear()
-					this._replaceEvents(new Map())
-
 					this.calendarInfos.reload()
 				}
 			} else if (isUpdateForTypeRef(GroupInfoTypeRef, entityEventData)) {
@@ -860,103 +797,6 @@ export class CalendarModel {
 	getFileIdToSkippedCalendarEventUpdates(): Map<Id, CalendarEventUpdate> {
 		return this.fileIdToSkippedCalendarEventUpdates
 	}
-
-	async _addOrUpdateEvent(calendarInfo: CalendarInfo | null, event: CalendarEvent) {
-		if (calendarInfo == null) {
-			return
-		}
-		const eventListId = getListId(event)
-		if (isSameId(calendarInfo.groupRoot.shortEvents, eventListId)) {
-			// to prevent unnecessary churn, we only add the event if we have the months it covers loaded.
-			const eventStartMonth = getMonthRange(getEventStart(event, this.zone), this.zone)
-			const eventEndMonth = getMonthRange(getEventEnd(event, this.zone), this.zone)
-			if (this.loadedMonths.has(eventStartMonth.start)) this._addDaysForEvent(event, eventStartMonth)
-			// no short event covers more than two months, so this should cover everything.
-			if (eventEndMonth.start != eventStartMonth.start && this.loadedMonths.has(eventEndMonth.start)) this._addDaysForEvent(event, eventEndMonth)
-		} else if (isSameId(calendarInfo.groupRoot.longEvents, eventListId)) {
-			const loadedLongEvents = await this.entityClient.loadAll(CalendarEventTypeRef, calendarInfo.groupRoot.longEvents)
-			this._removeExistingEvent(loadedLongEvents, event)
-
-			loadedLongEvents.push(event)
-
-			for (const firstDayTimestamp of this.loadedMonths) {
-				const loadedMonth = getMonthRange(new Date(firstDayTimestamp), this.zone)
-
-				if (event.repeatRule != null) {
-					this._addDaysForRecurringEvent(event, loadedMonth)
-				} else {
-					this._addDaysForEvent(event, loadedMonth)
-				}
-			}
-		}
-	}
-
-	_addDaysForEvent(event: CalendarEvent, month: CalendarTimeRange) {
-		const newMap = this._cloneEvents()
-		addDaysForEventInstance(newMap, event, month, this.zone)
-		this._replaceEvents(newMap)
-	}
-
-	_replaceEvents(newMap: DaysToEvents) {
-		this.daysToEvents(freezeMap(newMap))
-	}
-
-	_cloneEvents(): Map<number, Array<CalendarEvent>> {
-		return new Map(this.daysToEvents())
-	}
-
-	_addDaysForRecurringEvent(event: CalendarEvent, month: CalendarTimeRange) {
-		if (-DateTime.fromJSDate(event.startTime).diffNow("year").years > LIMIT_PAST_EVENTS_YEARS) {
-			console.log("repeating event is too far into the past", event)
-			return
-		}
-
-		const newMap = this._cloneEvents()
-
-		addDaysForRecurringEvent(newMap, event, month, this.zone)
-
-		this._replaceEvents(newMap)
-	}
-
-	async _removeDaysForEvent(id: IdTuple) {
-		const newMap = this._cloneEvents()
-
-		for (const dayEvents of newMap.values()) {
-			findAllAndRemove(dayEvents, (e) => isSameId(e._id, id))
-		}
-
-		this._replaceEvents(newMap)
-	}
-
-	/**
-	 * Removes {@param eventToRemove} from {@param events} using isSameEvent()
-	 * also removes it from {@code this._eventsForDays} if end time does not match
-	 */
-	_removeExistingEvent(events: Array<CalendarEvent>, eventToRemove: CalendarEvent) {
-		const indexOfOldEvent = events.findIndex((el) => isSameEventInstance(el, eventToRemove))
-
-		if (indexOfOldEvent == -1) {
-			return
-		}
-		const oldEvent = events[indexOfOldEvent]
-		// in some cases, we need to remove all references to an event from the events map to make sure everything that needs to be removed is removed.
-		// specifically, this is the case when there are now less days than before that the event occurs on:
-		// * end time changed
-		// * repeat rule gained exclusions
-		// * repeat rule changed end condition or the interval
-		// when the start time changes, the ID of the event is also changed, so it is not a problem - we'll completely re-create it and all references.
-		if (oldEvent.endTime.getTime() !== eventToRemove.endTime.getTime() || !areRepeatRulesEqual(oldEvent.repeatRule, eventToRemove.repeatRule)) {
-			const newMap = this._cloneEvents()
-
-			for (const dayEvents of newMap.values()) {
-				findAllAndRemove(dayEvents, (e) => isSameId(e._id, oldEvent._id))
-			}
-
-			this._replaceEvents(newMap)
-		}
-
-		events.splice(indexOfOldEvent, 1)
-	}
 }
 
 /** return false when the given events (representing the new and old version of the same event) are both long events
@@ -975,49 +815,6 @@ async function didLongStateChange(newEvent: CalendarEvent, existingEvent: Calend
 class NoOwnerEncSessionKeyForCalendarEventError extends TutanotaError {
 	constructor(message: string) {
 		super("NoOwnerEncSessionKeyForCalendarEventError", message)
-	}
-}
-
-export class ObservableLazyLoaded<T> {
-	private lazyLoaded: LazyLoaded<T>
-	readonly stream: Stream<T> = stream()
-
-	constructor(loadFunction: lazyAsync<T>, private readonly defaultValue: T) {
-		this.lazyLoaded = new LazyLoaded<T>(async () => {
-			const value = await loadFunction()
-			this.stream(value)
-			return value
-		}, defaultValue)
-
-		this.stream(defaultValue)
-	}
-
-	getAsync(): Promise<T> {
-		return this.lazyLoaded.getAsync()
-	}
-
-	isLoaded(): boolean {
-		return this.lazyLoaded.isLoaded()
-	}
-
-	getLoaded(): T {
-		return this.lazyLoaded.getLoaded()
-	}
-
-	/** reset & reload the inner lazyLoaded without an observable default state unless loading fails */
-	async reload(): Promise<T> {
-		try {
-			return await this.lazyLoaded.reload()
-		} catch (e) {
-			this.lazyLoaded.reset()
-			this.stream(this.defaultValue)
-			return this.defaultValue
-		}
-	}
-
-	reset() {
-		this.lazyLoaded.reset()
-		this.stream(this.defaultValue)
 	}
 }
 

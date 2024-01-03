@@ -103,6 +103,7 @@ import { isCustomizationEnabledForCustomer } from "../common/utils/Utils.js"
 import type { CalendarEventPreviewViewModel } from "../../calendar/view/eventpopup/CalendarEventPreviewViewModel.js"
 
 import { getDisplayedSender } from "../common/mail/CommonMailUtils.js"
+import { CalendarEventsRepository } from "../../calendar/date/CalendarEventsRepository.js"
 
 assertMainOrNode()
 
@@ -289,7 +290,7 @@ class MainLocator {
 		return new ReceivedGroupInvitationsModel<TypeOfGroup>(groupType, this.eventController, this.entityClient, this.logins)
 	}
 
-	calendarViewModel = lazyMemoized<Promise<CalendarViewModel>>(async () => {
+	readonly calendarViewModel = lazyMemoized<Promise<CalendarViewModel>>(async () => {
 		const { CalendarViewModel } = await import("../../calendar/view/CalendarViewModel.js")
 		const { DefaultDateProvider } = await import("../../calendar/date/CalendarUtils")
 		const timeZone = new DefaultDateProvider().timeZone()
@@ -302,6 +303,7 @@ class MainLocator {
 			},
 			(...args) => this.calendarEventPreviewModel(...args),
 			await this.calendarModel(),
+			await this.calendarEventsRepository(),
 			this.entityClient,
 			this.eventController,
 			this.progressTracker,
@@ -309,6 +311,13 @@ class MainLocator {
 			await this.receivedGroupInvitationsModel(GroupType.Calendar),
 			timeZone,
 		)
+	})
+
+	readonly calendarEventsRepository: lazyAsync<CalendarEventsRepository> = lazyMemoized(async () => {
+		const { CalendarEventsRepository } = await import("../../calendar/date/CalendarEventsRepository.js")
+		const { DefaultDateProvider } = await import("../../calendar/date/CalendarUtils")
+		const timeZone = new DefaultDateProvider().timeZone()
+		return new CalendarEventsRepository(await this.calendarModel(), this.calendarFacade, timeZone, this.entityClient, this.eventController)
 	})
 
 	/** This ugly bit exists because CalendarEventWhoModel wants a sync factory. */
@@ -589,7 +598,7 @@ class MainLocator {
 		this.logins.init()
 		this.eventController = new EventController(locator.logins)
 		this.progressTracker = new ProgressTracker()
-		this.search = new SearchModel(this.searchFacade, () => this.calendarModel())
+		this.search = new SearchModel(this.searchFacade, () => this.calendarEventsRepository())
 		this.entityClient = new EntityClient(restInterface)
 		this.cryptoFacade = cryptoFacade
 		this.cacheStorage = cacheStorage

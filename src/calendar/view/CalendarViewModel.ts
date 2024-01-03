@@ -22,6 +22,7 @@ import { DeviceConfig } from "../../misc/DeviceConfig"
 import type { EventDragHandlerCallbacks } from "./EventDragHandler"
 import { ProgrammingError } from "../../api/common/error/ProgrammingError.js"
 import { CalendarEventPreviewViewModel } from "./eventpopup/CalendarEventPreviewViewModel.js"
+import { CalendarEventsRepository, DaysToEvents } from "../date/CalendarEventsRepository.js"
 
 export type EventsOnDays = {
 	days: Array<Date>
@@ -39,8 +40,6 @@ export type DraggedEvent = {
 
 export type MouseOrPointerEvent = MouseEvent | PointerEvent
 export type CalendarEventBubbleClickHandler = (arg0: CalendarEvent, arg1: MouseOrPointerEvent) => unknown
-export type DaysToEvents = ReadonlyMap<number, Array<CalendarEvent>>
-export const LIMIT_PAST_EVENTS_YEARS = 100
 export type CalendarEventEditModelsFactory = (mode: CalendarOperation, event: CalendarEvent) => Promise<CalendarEventModel | null>
 export type CalendarEventPreviewModelFactory = (
 	selectedEvent: CalendarEvent,
@@ -71,6 +70,7 @@ export class CalendarViewModel implements EventDragHandlerCallbacks {
 		private readonly createCalendarEventEditModel: CalendarEventEditModelsFactory,
 		private readonly createCalendarEventPreviewModel: CalendarEventPreviewModelFactory,
 		private readonly calendarModel: CalendarModel,
+		private readonly eventsRepository: CalendarEventsRepository,
 		private readonly entityClient: EntityClient,
 		eventController: EventController,
 		private readonly progressTracker: ProgressTracker,
@@ -89,7 +89,8 @@ export class CalendarViewModel implements EventDragHandlerCallbacks {
 			this.updatePreviewedEvent(null)
 			this.preloadMonthsAroundSelectedDate()
 		})
-		this.calendarModel.getEventsForMonths().map(() => this.preloadMonthsAroundSelectedDate())
+		// FIXME: why do we do this? shouldn't this depend on a selected date? is this for reset?
+		this.eventsRepository.getEventsForMonths().map(() => this.preloadMonthsAroundSelectedDate())
 		this.calendarModel.getCalendarInfosStream().map((newInfos) => {
 			const event = this.previewedEvent?.event ?? null
 			if (event != null) {
@@ -104,7 +105,7 @@ export class CalendarViewModel implements EventDragHandlerCallbacks {
 			this.preloadMonthsAroundSelectedDate()
 		})
 
-		eventController.addEntityListener((updates, eventOwnerGroupId) => this._entityEventReceived(updates, eventOwnerGroupId))
+		eventController.addEntityListener((updates) => this._entityEventReceived(updates))
 
 		calendarInvitationsModel.init()
 	}
@@ -161,7 +162,7 @@ export class CalendarViewModel implements EventDragHandlerCallbacks {
 	}
 
 	get eventsForDays(): DaysToEvents {
-		return this.calendarModel.getEventsForMonths()()
+		return this.eventsRepository.getEventsForMonths()()
 	}
 
 	get redraw(): Stream<void> {
@@ -261,7 +262,7 @@ export class CalendarViewModel implements EventDragHandlerCallbacks {
 
 		for (const day of days) {
 			const shortEventsForDay: CalendarEvent[] = []
-			const eventsForDay = this.calendarModel.getEventsForMonths()().get(day.getTime()) || []
+			const eventsForDay = this.eventsRepository.getEventsForMonths()().get(day.getTime()) || []
 
 			for (const event of eventsForDay) {
 				if (transientEventUidsByCalendar.get(getListId(event))?.has(event.uid)) {
@@ -363,7 +364,7 @@ export class CalendarViewModel implements EventDragHandlerCallbacks {
 		}
 	}
 
-	async _entityEventReceived<T>(updates: ReadonlyArray<EntityUpdateData>, eventOwnerGroupId: Id): Promise<void> {
+	async _entityEventReceived<T>(updates: ReadonlyArray<EntityUpdateData>): Promise<void> {
 		for (const update of updates) {
 			if (isUpdateForTypeRef(CalendarEventTypeRef, update)) {
 				const eventId: IdTuple = [update.instanceListId, update.instanceId]
@@ -401,7 +402,7 @@ export class CalendarViewModel implements EventDragHandlerCallbacks {
 	}
 
 	loadMonthsIfNeeded(daysInMonths: Array<Date>, progressMonitor: IProgressMonitor): Promise<void> {
-		return this.calendarModel.loadMonthsIfNeeded(daysInMonths, progressMonitor)
+		return this.eventsRepository.loadMonthsIfNeeded(daysInMonths, progressMonitor)
 	}
 
 	private doRedraw() {

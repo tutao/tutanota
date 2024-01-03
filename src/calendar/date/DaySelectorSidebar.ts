@@ -8,12 +8,13 @@ import { Icons } from "../../gui/base/icons/Icons.js"
 import { BootIcons } from "../../gui/base/icons/BootIcons.js"
 import { incrementMonth } from "@tutao/tutanota-utils"
 import { DaySelector } from "./DaySelector.js"
+import { DaysToEvents } from "./CalendarEventsRepository.js"
 
 export interface DaySelectorSidebarAttrs {
 	selectedDate: Date
 	onDateSelected: (date: Date, dayClick: boolean) => unknown
 	startOfTheWeekOffset: number
-	eventsForDays: ReadonlyMap<number, Array<CalendarEvent>>
+	eventsForDays: DaysToEvents
 	showDaySelection: boolean
 	highlightToday: boolean
 	highlightSelectedWeek: boolean
