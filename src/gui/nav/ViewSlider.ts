@@ -70,7 +70,7 @@ export class ViewSlider implements Component<ViewSliderAttrs> {
 		windowFacade.removeResizeListener(this.resizeListener)
 		windowFacade.removeHistoryEventListener(this.handleHistoryEvent)
 	}
-	private getSideColDom: () => HTMLElement | null = () => this.viewColumns[0]._domColumn
+	private getSideColDom: () => HTMLElement | null = () => this.viewColumns[0].domColumn
 
 	constructor(private readonly viewColumns: ViewColumn[]) {
 		// the first background column is the main column
@@ -87,7 +87,7 @@ export class ViewSlider implements Component<ViewSliderAttrs> {
 		this.busy = Promise.resolve()
 		this.isModalBackgroundVisible = false
 		for (const column of this.viewColumns) {
-			column.setRole(this.getColumnRole(column))
+			column.ariaRole = this.getColumnRole(column)
 		}
 
 		this.view = ({ attrs }): Children => {
@@ -150,11 +150,11 @@ export class ViewSlider implements Component<ViewSliderAttrs> {
 	}
 
 	private getColumnsForMainSlider(): Array<ViewColumn> {
-		return this.viewColumns.filter((c) => c.columnType === ColumnType.Background || c.visible)
+		return this.viewColumns.filter((c) => c.columnType === ColumnType.Background || c.isVisible)
 	}
 
 	private getColumnsForOverlay(): Array<ViewColumn> {
-		return this.viewColumns.filter((c) => c.columnType === ColumnType.Foreground && !c.visible)
+		return this.viewColumns.filter((c) => c.columnType === ColumnType.Foreground && !c.isVisible)
 	}
 
 	private createModalBackground(): Children {
@@ -200,7 +200,7 @@ export class ViewSlider implements Component<ViewSliderAttrs> {
 		this.setWidthForHiddenColumns(visibleColumns)
 
 		for (const column of this.viewColumns) {
-			column.visible = visibleColumns.includes(column)
+			column.isVisible = visibleColumns.includes(column)
 		}
 		this.updateOffsets()
 		this.visibleBackgroundColumns = visibleColumns
@@ -209,8 +209,8 @@ export class ViewSlider implements Component<ViewSliderAttrs> {
 			this.focusedColumn.isInForeground = false
 			this.isModalBackgroundVisible = false
 
-			if (this.viewColumns[0]._domColumn) {
-				this.viewColumns[0]._domColumn.style.transform = ""
+			if (this.viewColumns[0].domColumn) {
+				this.viewColumns[0].domColumn.style.transform = ""
 			}
 		}
 
@@ -222,7 +222,7 @@ export class ViewSlider implements Component<ViewSliderAttrs> {
 	}
 
 	isUsingOverlayColumns(): boolean {
-		return this.viewColumns.every((c) => c.columnType !== ColumnType.Foreground || c.visible)
+		return this.viewColumns.every((c) => c.columnType !== ColumnType.Foreground || c.isVisible)
 	}
 
 	/**
@@ -260,11 +260,11 @@ export class ViewSlider implements Component<ViewSliderAttrs> {
 		for (const [index, visibleColumn] of visibleColumns.entries()) {
 			if (visibleColumns.length - 1 === index) {
 				// ignore max width for the last visible column
-				visibleColumn.setWidth(visibleColumn.minWidth + remainingSpace)
+				visibleColumn.width = visibleColumn.minWidth + remainingSpace
 			} else {
 				let spaceForThisColumn = Math.min(spacePerColumn, visibleColumn.maxWidth - visibleColumn.minWidth)
 				remainingSpace -= spaceForThisColumn
-				visibleColumn.setWidth(visibleColumn.minWidth + spaceForThisColumn)
+				visibleColumn.width = visibleColumn.minWidth + spaceForThisColumn
 			}
 		}
 	}
@@ -278,7 +278,7 @@ export class ViewSlider implements Component<ViewSliderAttrs> {
 		// if only one column is visible set the same width for all columns ignoring max width
 		if (visibleColumns.length === 1) {
 			for (const column of this.viewColumns) {
-				column.setWidth(visibleColumns[0].width)
+				column.width = visibleColumns[0].width
 			}
 		}
 
@@ -288,7 +288,7 @@ export class ViewSlider implements Component<ViewSliderAttrs> {
 		if (foreGroundColumn) {
 			let remainingSpace = window.innerWidth - foreGroundColumn.minWidth - size.hpad_large
 			let additionalSpaceForColumn = Math.min(remainingSpace, foreGroundColumn.maxWidth - foreGroundColumn.minWidth)
-			foreGroundColumn.setWidth(foreGroundColumn.minWidth + additionalSpaceForColumn)
+			foreGroundColumn.width = foreGroundColumn.minWidth + additionalSpaceForColumn
 		}
 	}
 
@@ -338,8 +338,8 @@ export class ViewSlider implements Component<ViewSliderAttrs> {
 				// replace the visible column
 				const [removed] = this.visibleBackgroundColumns.splice(0, 1, nextVisibleViewColumn)
 
-				removed.visible = false
-				nextVisibleViewColumn.visible = true
+				removed.isVisible = false
+				nextVisibleViewColumn.isVisible = true
 			})
 	}
 
@@ -347,15 +347,15 @@ export class ViewSlider implements Component<ViewSliderAttrs> {
 	 * Executes a slide animation for the foreground button.
 	 */
 	private slideForegroundColumn(foregroundColumn: ViewColumn, toForeground: boolean): Promise<unknown> {
-		if (!foregroundColumn._domColumn) return Promise.resolve()
+		if (!foregroundColumn.domColumn) return Promise.resolve()
 
-		const colRect = foregroundColumn._domColumn.getBoundingClientRect()
+		const colRect = foregroundColumn.domColumn.getBoundingClientRect()
 
 		const oldOffset = colRect.left
 		let newOffset = foregroundColumn.getOffsetForeground(toForeground)
 		this.isModalBackgroundVisible = toForeground
 		return animations
-			.add(assertNotNull(foregroundColumn._domColumn, "foreground column has no domcolumn"), transform(TransformEnum.TranslateX, oldOffset, newOffset), {
+			.add(assertNotNull(foregroundColumn.domColumn, "foreground column has no domcolumn"), transform(TransformEnum.TranslateX, oldOffset, newOffset), {
 				easing: ease.in,
 			})
 			.finally(() => {
@@ -367,7 +367,7 @@ export class ViewSlider implements Component<ViewSliderAttrs> {
 		let offset = 0
 
 		for (let column of this.viewColumns) {
-			if (column.columnType === ColumnType.Background || column.visible) {
+			if (column.columnType === ColumnType.Background || column.isVisible) {
 				column.offset = offset
 				offset += column.width
 			}
@@ -439,7 +439,7 @@ export class ViewSlider implements Component<ViewSliderAttrs> {
 
 			if (safeLastGestureInfo && safeOldGestureInfo && !this.allColumnsVisible()) {
 				const touch = event.changedTouches[0]
-				const mainCol = this.mainColumn._domColumn
+				const mainCol = this.mainColumn.domColumn
 
 				const sideCol = this.getSideColDom()
 
@@ -463,7 +463,7 @@ export class ViewSlider implements Component<ViewSliderAttrs> {
 				}
 
 				// Gesture for the side column
-				if (this.getBackgroundColumns()[0].visible || this.focusedColumn.isInForeground) {
+				if (this.getBackgroundColumns()[0].isVisible || this.focusedColumn.isInForeground) {
 					// Gesture was with enough velocity to show the menu
 					if (velocity > 0.8) {
 						show() // Gesture was with enough velocity to hide the menu and we're not scrolling vertically
@@ -509,7 +509,7 @@ export class ViewSlider implements Component<ViewSliderAttrs> {
 					return
 				}
 
-				const mainCol = this.mainColumn._domColumn
+				const mainCol = this.mainColumn.domColumn
 
 				const sideCol = this.getSideColDom()
 
@@ -549,7 +549,7 @@ export class ViewSlider implements Component<ViewSliderAttrs> {
 						directionLock = HORIZONTAL
 
 						// Gesture for side column
-						if (this.getBackgroundColumns()[0].visible || this.focusedColumn.isInForeground) {
+						if (this.getBackgroundColumns()[0].isVisible || this.focusedColumn.isInForeground) {
 							const newTranslate = Math.min(sideColRect.left - (gestureInfo.x - newTouchPos), 0)
 							sideCol.style.transform = `translateX(${newTranslate}px)`
 						} else {
