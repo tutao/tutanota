@@ -87,7 +87,7 @@ export class EventDetailsView implements Component<EventDetailsViewAttrs> {
 				width: 300,
 			})(ev, receiver)
 		} else {
-			// noinspection JSIgnoredPromiseFromCall
+			// noinspection JSIgnoredPromiseFromCall, ES6MissingAwait
 			this.confirmDeleteClose()
 		}
 	}
