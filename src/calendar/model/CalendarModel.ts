@@ -217,20 +217,24 @@ export class CalendarModel {
 		return calendarInfos
 	}
 
-	async loadMonthIfNeeded(dayInMonth: Date): Promise<void> {
-		const month = getMonthRange(dayInMonth, this.zone)
+	async loadMonthsIfNeeded(daysInMonths: Array<Date>, progressMonitor: IProgressMonitor): Promise<void> {
+		for (const dayInMonth of daysInMonths) {
+			const month = getMonthRange(dayInMonth, this.zone)
 
-		if (!this.loadedMonths.has(month.start)) {
-			this.loadedMonths.add(month.start)
+			if (!this.loadedMonths.has(month.start)) {
+				this.loadedMonths.add(month.start)
 
-			try {
-				const calendarInfos = await this.calendarInfos.getAsync()
-				this._replaceEvents(await this.calendarFacade.updateEventMap(month, calendarInfos, this.daysToEvents(), this.zone))
-			} catch (e) {
-				this.loadedMonths.delete(month.start)
+				try {
+					const calendarInfos = await this.calendarInfos.getAsync()
+					this._replaceEvents(await this.calendarFacade.updateEventMap(month, calendarInfos, this.daysToEvents(), this.zone))
+				} catch (e) {
+					this.loadedMonths.delete(month.start)
 
-				throw e
+					throw e
+				}
 			}
+
+			progressMonitor.workDone(1)
 		}
 	}
 

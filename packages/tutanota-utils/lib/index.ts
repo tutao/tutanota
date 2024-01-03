@@ -40,7 +40,6 @@ export {
 	partitionAsync,
 	arrayOf,
 	count,
-	mapMapAsync,
 	zeroOut,
 } from "./ArrayUtils.js"
 export { AsyncResult } from "./AsyncResult.js"
