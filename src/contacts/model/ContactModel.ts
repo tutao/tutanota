@@ -17,7 +17,7 @@ import Stream from "mithril/stream"
 import stream from "mithril/stream"
 import { ShareCapability } from "../../api/common/TutanotaConstants.js"
 import { isSharedGroupOwner } from "../../sharing/GroupUtils.js"
-import { loadMultipleFromLists } from "../../settings/LoadingUtils.js"
+import { loadMultipleFromLists } from "../../api/common/utils/Utils.js"
 
 assertMainOrNode()
 

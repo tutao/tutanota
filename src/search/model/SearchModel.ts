@@ -8,9 +8,9 @@ import { arrayEquals, assertNonNull, assertNotNull, incrementMonth, isSameTypeRe
 import type { SearchFacade } from "../../api/worker/search/SearchFacade"
 import { assertMainOrNode } from "../../api/common/Env"
 import { listIdPart } from "../../api/common/utils/EntityUtils.js"
-import { CalendarModel } from "../../calendar/model/CalendarModel.js"
 import { IProgressMonitor } from "../../api/common/utils/ProgressMonitor.js"
 import { ProgressTracker } from "../../api/main/ProgressTracker.js"
+import { CalendarEventsRepository } from "../../calendar/date/CalendarEventsRepository.js"
 
 assertMainOrNode()
 export type SearchQuery = {
@@ -29,7 +29,7 @@ export class SearchModel {
 	_lastQuery: SearchQuery | null
 	_lastSearchPromise: Promise<SearchResult | void>
 
-	constructor(searchFacade: SearchFacade, private readonly calendarModel: lazyAsync<CalendarModel>) {
+	constructor(searchFacade: SearchFacade, private readonly calendarModel: lazyAsync<CalendarEventsRepository>) {
 		this._searchFacade = searchFacade
 		this.result = stream()
 		this.lastQuery = stream<string | null>("")

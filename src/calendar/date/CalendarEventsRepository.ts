@@ -1,0 +1,198 @@
+import Stream from "mithril/stream"
+import stream from "mithril/stream"
+import { CalendarInfo, CalendarModel } from "../model/CalendarModel.js"
+import { IProgressMonitor, NoopProgressMonitor } from "../../api/common/utils/ProgressMonitor.js"
+import { addDaysForRecurringEvent, CalendarTimeRange, getEventEnd, getEventStart, getMonthRange, isSameEventInstance } from "./CalendarUtils.js"
+import { CalendarEvent, CalendarEventTypeRef } from "../../api/entities/tutanota/TypeRefs.js"
+import { getListId, isSameId } from "../../api/common/utils/EntityUtils.js"
+import { DateTime } from "luxon"
+import { areRepeatRulesEqual } from "./eventeditor/CalendarEventModel.js"
+import { CalendarFacade } from "../../api/worker/facades/lazy/CalendarFacade.js"
+import { EntityClient } from "../../api/common/EntityClient.js"
+import { findAllAndRemove, freezeMap } from "@tutao/tutanota-utils"
+import { EntityUpdateData, EventController, isUpdateForTypeRef } from "../../api/main/EventController.js"
+import { OperationType } from "../../api/common/TutanotaConstants.js"
+import { NotAuthorizedError, NotFoundError } from "../../api/common/error/RestError.js"
+
+const LIMIT_PAST_EVENTS_YEARS = 100
+
+const TAG = "[CalendarEventRepository]"
+
+/** Map from timestamp of beginnings of days to events that occur on those days. */
+export type DaysToEvents = ReadonlyMap<number, ReadonlyArray<CalendarEvent>>
+
+/**
+ * Loads and keeps calendar events up to date.
+ *
+ * If you need to load calendar events there's a good chance you should just use this
+ */
+export class CalendarEventsRepository {
+	/** timestamps of the beginning of months that we already loaded */
+	private readonly loadedMonths = new Set<number>()
+	private daysToEvents: Stream<DaysToEvents> = stream(new Map())
+
+	constructor(
+		private readonly calendarModel: CalendarModel,
+		private readonly calendarFacade: CalendarFacade,
+		private readonly zone: string,
+		private readonly entityClient: EntityClient,
+		private readonly eventController: EventController,
+	) {
+		eventController.addEntityListener((updates, eventOwnerGroupId) => this.entityEventsReceived(updates, eventOwnerGroupId))
+
+		// Detect when group infos has been reset and reset our data in turn.
+		// There is probably another way, we could reduce and also compute symmetric difference.
+		// This might fire right away but it should be harmless then.
+		this.calendarModel.getCalendarInfosStream().map((infos) => {
+			if (infos.size === 0) {
+				this.loadedMonths.clear()
+				this.daysToEvents(new Map())
+			}
+		})
+	}
+
+	getEventsForMonths(): Stream<DaysToEvents> {
+		return this.daysToEvents
+	}
+
+	async loadMonthsIfNeeded(daysInMonths: Array<Date>, progressMonitor: IProgressMonitor): Promise<void> {
+		for (const dayInMonth of daysInMonths) {
+			const month = getMonthRange(dayInMonth, this.zone)
+
+			if (!this.loadedMonths.has(month.start)) {
+				this.loadedMonths.add(month.start)
+
+				try {
+					const calendarInfos = await this.calendarModel.loadOrCreateCalendarInfo(progressMonitor)
+					this.replaceEvents(await this.calendarFacade.updateEventMap(month, calendarInfos, this.daysToEvents(), this.zone))
+				} catch (e) {
+					this.loadedMonths.delete(month.start)
+
+					throw e
+				}
+			}
+
+			progressMonitor.workDone(1)
+		}
+	}
+
+	private async addOrUpdateEvent(calendarInfo: CalendarInfo | null, event: CalendarEvent) {
+		if (calendarInfo == null) {
+			return
+		}
+		const eventListId = getListId(event)
+		if (isSameId(calendarInfo.groupRoot.shortEvents, eventListId)) {
+			// to prevent unnecessary churn, we only add the event if we have the months it covers loaded.
+			const eventStartMonth = getMonthRange(getEventStart(event, this.zone), this.zone)
+			const eventEndMonth = getMonthRange(getEventEnd(event, this.zone), this.zone)
+			if (this.loadedMonths.has(eventStartMonth.start)) await this.addDaysForEvent(event, eventStartMonth)
+			// no short event covers more than two months, so this should cover everything.
+			if (eventEndMonth.start != eventStartMonth.start && this.loadedMonths.has(eventEndMonth.start)) await this.addDaysForEvent(event, eventEndMonth)
+		} else if (isSameId(calendarInfo.groupRoot.longEvents, eventListId)) {
+			const loadedLongEvents = await this.entityClient.loadAll(CalendarEventTypeRef, calendarInfo.groupRoot.longEvents)
+			this.removeExistingEvent(loadedLongEvents, event)
+
+			loadedLongEvents.push(event)
+
+			for (const firstDayTimestamp of this.loadedMonths) {
+				const loadedMonth = getMonthRange(new Date(firstDayTimestamp), this.zone)
+
+				if (event.repeatRule != null) {
+					await this.addDaysForRecurringEvent(event, loadedMonth)
+				} else {
+					await this.addDaysForEvent(event, loadedMonth)
+				}
+			}
+		}
+	}
+
+	private replaceEvents(newMap: DaysToEvents): void {
+		this.daysToEvents(freezeMap(newMap))
+	}
+
+	private cloneEvents(): Map<number, Array<CalendarEvent>> {
+		return new Map(Array.from(this.daysToEvents().entries()).map(([day, events]) => [day, events.slice()]))
+	}
+
+	private addDaysForRecurringEvent(event: CalendarEvent, month: CalendarTimeRange): void {
+		if (-DateTime.fromJSDate(event.startTime).diffNow("year").years > LIMIT_PAST_EVENTS_YEARS) {
+			console.log("repeating event is too far into the past", event)
+			return
+		}
+
+		const newMap = this.cloneEvents()
+
+		addDaysForRecurringEvent(newMap, event, month, this.zone)
+
+		this.replaceEvents(newMap)
+	}
+
+	private removeDaysForEvent(id: IdTuple): void {
+		const newMap = this.cloneEvents()
+
+		for (const dayEvents of newMap.values()) {
+			findAllAndRemove(dayEvents, (e) => isSameId(e._id, id))
+		}
+
+		this.replaceEvents(newMap)
+	}
+
+	/**
+	 * Removes {@param eventToRemove} from {@param events} using isSameEvent()
+	 * also removes it from {@code this._eventsForDays} if end time does not match
+	 */
+	private removeExistingEvent(events: Array<CalendarEvent>, eventToRemove: CalendarEvent) {
+		const indexOfOldEvent = events.findIndex((el) => isSameEventInstance(el, eventToRemove))
+
+		if (indexOfOldEvent == -1) {
+			return
+		}
+		const oldEvent = events[indexOfOldEvent]
+		// in some cases, we need to remove all references to an event from the events map to make sure everything that needs to be removed is removed.
+		// specifically, this is the case when there are now less days than before that the event occurs on:
+		// * end time changed
+		// * repeat rule gained exclusions
+		// * repeat rule changed end condition or the interval
+		// when the start time changes, the ID of the event is also changed, so it is not a problem - we'll completely re-create it and all references.
+		if (oldEvent.endTime.getTime() !== eventToRemove.endTime.getTime() || !areRepeatRulesEqual(oldEvent.repeatRule, eventToRemove.repeatRule)) {
+			const newMap = this.cloneEvents()
+
+			for (const dayEvents of newMap.values()) {
+				findAllAndRemove(dayEvents, (e) => isSameId(e._id, oldEvent._id))
+			}
+
+			this.replaceEvents(newMap)
+		}
+
+		events.splice(indexOfOldEvent, 1)
+	}
+
+	private async addDaysForEvent(event: CalendarEvent, month: CalendarTimeRange) {
+		const { addDaysForEventInstance } = await import("../date/CalendarUtils.js")
+		const newMap = this.cloneEvents()
+		addDaysForEventInstance(newMap, event, month, this.zone)
+		this.replaceEvents(newMap)
+	}
+
+	private async entityEventsReceived(updates: ReadonlyArray<EntityUpdateData>, eventOwnerGroupId: string) {
+		// FIXME progress monitor
+		const calendarInfos = await this.calendarModel.loadCalendarInfos(new NoopProgressMonitor())
+		for (const update of updates) {
+			if (isUpdateForTypeRef(CalendarEventTypeRef, update)) {
+				if (update.operation === OperationType.CREATE || update.operation === OperationType.UPDATE) {
+					try {
+						const event = await this.entityClient.load(CalendarEventTypeRef, [update.instanceListId, update.instanceId])
+						await this.addOrUpdateEvent(calendarInfos.get(eventOwnerGroupId) ?? null, event)
+					} catch (e) {
+						if (e instanceof NotFoundError || e instanceof NotAuthorizedError) {
+							console.log(TAG, e.name, "updated event is not accessible anymore")
+						}
+						throw e
+					}
+				} else if (update.operation === OperationType.DELETE) {
+					await this.removeDaysForEvent([update.instanceListId, update.instanceId])
+				}
+			}
+		}
+	}
+}

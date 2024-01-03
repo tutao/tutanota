@@ -54,7 +54,7 @@ import m from "mithril"
 import { CalendarFacade } from "../../api/worker/facades/lazy/CalendarFacade.js"
 import { ProgrammingError } from "../../api/common/error/ProgrammingError.js"
 import { ProgressTracker } from "../../api/main/ProgressTracker.js"
-import { loadMultipleFromLists } from "../../settings/LoadingUtils.js"
+import { loadMultipleFromLists } from "../../api/common/utils/Utils.js"
 
 const SEARCH_PAGE_SIZE = 100
 
