@@ -13,7 +13,6 @@ import { defaultCalendarColor, GroupType, Keys, reverse, ShareCapability, TimeFo
 import { locator } from "../../api/main/MainLocator"
 import { getStartOfTheWeekOffset, getStartOfTheWeekOffsetForUser, getTimeZone, shouldDefaultToAmPmTimeFormat } from "../date/CalendarUtils"
 import { ButtonColor, ButtonType } from "../../gui/base/Button.js"
-import { NavButton, NavButtonColor } from "../../gui/base/NavButton.js"
 import { CalendarMonthView } from "./CalendarMonthView"
 import { DateTime } from "luxon"
 import { NotFoundError } from "../../api/common/error/RestError"
@@ -35,7 +34,7 @@ import { GroupInvitationFolderRow } from "../../sharing/view/GroupInvitationFold
 import { SidebarSection } from "../../gui/SidebarSection"
 import type { HtmlSanitizer } from "../../misc/HtmlSanitizer"
 import { ProgrammingError } from "../../api/common/error/ProgrammingError"
-import { calendarNavConfiguration, CalendarViewType, getIconForViewType } from "./CalendarGuiUtils"
+import { calendarNavConfiguration, CalendarViewType } from "./CalendarGuiUtils"
 import { CalendarViewModel, MouseOrPointerEvent } from "./CalendarViewModel"
 import { showNewCalendarEventEditDialog } from "./eventeditor/CalendarEventEditDialog.js"
 import { CalendarEventPopup } from "./eventpopup/CalendarEventPopup.js"
@@ -469,50 +468,6 @@ export class CalendarView extends BaseTopLevelView implements TopLevelView<Calen
 		m.redraw()
 	}
 
-	_renderCalendarViewButtons(): Children {
-		const calendarViewValues: Array<{ name: string; viewType: CalendarViewType }> = [
-			{
-				name: lang.get("agenda_label"),
-				viewType: CalendarViewType.AGENDA,
-			},
-			{
-				name: lang.get("day_label"),
-				viewType: CalendarViewType.DAY,
-			},
-			{
-				name: lang.get("week_label"),
-				viewType: CalendarViewType.WEEK,
-			},
-			{
-				name: lang.get("month_label"),
-				viewType: CalendarViewType.MONTH,
-			},
-		]
-
-		return calendarViewValues.map((viewData) =>
-			m(
-				".folder-row.flex.flex-row", // undo the padding of NavButton and prevent .folder-row > a from selecting NavButton
-				m(
-					".flex-grow.mlr-button",
-					m(NavButton, {
-						label: () => viewData.name,
-						icon: () => getIconForViewType(viewData.viewType),
-						href: "#",
-						isSelectedPrefix: this.currentViewType == viewData.viewType,
-						colors: NavButtonColor.Nav,
-						// Close side menu
-						click: () => {
-							this._setUrl(viewData.viewType, this.viewModel.selectedDate())
-
-							this.viewSlider.focus(this.contentColumn)
-						},
-						persistentBackground: true,
-					}),
-				),
-			),
-		)
-	}
-
 	_onPressedAddCalendar() {
 		if (locator.logins.getUserController().getCalendarMemberships().length === 0) {
 			this._showCreateCalendarDialog()
@@ -813,6 +768,7 @@ export class CalendarView extends BaseTopLevelView implements TopLevelView<Calen
 		// When the user clicks the month name in the header, the target can be the month's name or the icon on the right
 		// side of month's name, so we hardcoded the left spacing to be the same used by the month name, so doesn't matter
 		// if the user clicks on month's name or on the icon
+		// noinspection JSSuspiciousNameCombination
 		const elementRect = { ...dom.getBoundingClientRect(), left: size.button_height }
 
 		const selector = new DaySelectorPopup(elementRect, {
