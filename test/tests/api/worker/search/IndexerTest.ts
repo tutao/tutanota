@@ -1,14 +1,8 @@
 import {
-	createEntityEventBatch,
-	createEntityUpdate,
-	createGroupMembership,
-	createUser,
 	EntityEventBatchTypeRef,
 	EntityUpdateTypeRef,
-	GroupInfoTypeRef,
 	GroupMembershipTypeRef,
 	UserTypeRef,
-	WhitelabelChildTypeRef,
 } from "../../../../../src/api/entities/sys/TypeRefs.js"
 import { DbFacade, DbTransaction } from "../../../../../src/api/worker/search/DbFacade.js"
 import {
@@ -105,9 +99,7 @@ o.spec("Indexer test", () => {
 			}
 			mock._contact.indexFullContactList = spy(() => Promise.resolve())
 			mock._contact.getIndexTimestamp = spy(() => Promise.resolve(NOTHING_INDEXED_TIMESTAMP))
-			mock._groupInfo.indexAllUserAndTeamGroupInfosForAdmin = spy(() => Promise.resolve())
 			mock._mail.indexMailboxes = spy(() => Promise.resolve())
-			mock._whitelabelChildIndexer.indexAllWhitelabelChildrenForAdmin = spy(() => Promise.resolve())
 			mock._loadPersistentGroupData = spy(() => Promise.resolve(persistentGroupData))
 			mock._loadNewEntities = spy(async () => {})
 			mock._entity.loadRoot = spy(() => Promise.resolve(contactList))
@@ -125,8 +117,6 @@ o.spec("Indexer test", () => {
 		o(indexer._entity.loadRoot.args).deepEquals([ContactListTypeRef, user.userGroup.group])
 		o(indexer._contact.indexFullContactList.callCount).equals(1)
 		o(indexer._contact.indexFullContactList.args).deepEquals([contactList])
-		o(indexer._groupInfo.indexAllUserAndTeamGroupInfosForAdmin.args).deepEquals([user])
-		o(indexer._whitelabelChildIndexer.indexAllWhitelabelChildrenForAdmin.callCount).equals(1)
 		o(indexer._mail.indexMailboxes.callCount).equals(1)
 		o(indexer._loadPersistentGroupData.args).deepEquals([user])
 		o(indexer._loadNewEntities.args).deepEquals([persistentGroupData])
@@ -178,10 +168,6 @@ o.spec("Indexer test", () => {
 			mock._contact.indexFullContactList = spy(() => Promise.resolve())
 			mock._contact.getIndexTimestamp = spy(() => Promise.resolve(FULL_INDEXED_TIMESTAMP))
 			mock._contact.suggestionFacade.load = spy(() => Promise.resolve())
-			mock._groupInfo.indexAllUserAndTeamGroupInfosForAdmin = spy(() => Promise.resolve())
-			mock._groupInfo.suggestionFacade.load = spy(() => Promise.resolve())
-			mock._whitelabelChildIndexer.suggestionFacade.load = spy(() => Promise.resolve())
-			mock.indexAllWhitelabelChildrenForAdmin = spy(() => Promise.resolve())
 			mock._loadPersistentGroupData = spy(() => Promise.resolve(persistentGroupData))
 			mock._loadNewEntities = spy(async () => {})
 			mock._entity.loadRoot = spy(() => Promise.resolve(contactList))
@@ -195,11 +181,9 @@ o.spec("Indexer test", () => {
 		o(indexer._updateGroups.args).deepEquals([user, groupDiff])
 		o(indexer._entity.loadRoot.args).deepEquals([ContactListTypeRef, user.userGroup.group])
 		o(indexer._contact.indexFullContactList.callCount).equals(0)
-		o(indexer._groupInfo.indexAllUserAndTeamGroupInfosForAdmin.args).deepEquals([user])
 		o(indexer._loadPersistentGroupData.args).deepEquals([user])
 		o(indexer._loadNewEntities.args).deepEquals([persistentGroupData])
 		o(indexer._contact.suggestionFacade.load.callCount).equals(1)
-		o(indexer._groupInfo.suggestionFacade.load.callCount).equals(1)
 	})
 
 	o("init existing db out of sync", async () => {
@@ -248,7 +232,6 @@ o.spec("Indexer test", () => {
 			mock._mail.updateCurrentIndexTimestamp = spy(() => Promise.resolve())
 			mock._contact.indexFullContactList = spy(() => Promise.resolve())
 			mock._contact.getIndexTimestamp = spy(() => Promise.resolve(FULL_INDEXED_TIMESTAMP))
-			mock._groupInfo.indexAllUserAndTeamGroupInfosForAdmin = spy(() => Promise.resolve())
 			mock._loadPersistentGroupData = spy(() => Promise.resolve(persistentGroupData))
 			mock._loadNewEntities = spy(() => Promise.reject(new OutOfSyncError("is out of sync ;-)")))
 			mock.disableMailIndexing = spy()
@@ -263,7 +246,6 @@ o.spec("Indexer test", () => {
 		o(indexer._updateGroups.args).deepEquals([user, groupDiff])
 		o(indexer._entity.loadRoot.args).deepEquals([ContactListTypeRef, user.userGroup.group])
 		o(indexer._contact.indexFullContactList.callCount).equals(0)
-		o(indexer._groupInfo.indexAllUserAndTeamGroupInfosForAdmin.args).deepEquals([user])
 		o(indexer._loadPersistentGroupData.args).deepEquals([user])
 		o(indexer._loadNewEntities.args).deepEquals([persistentGroupData])
 	})
@@ -1014,12 +996,6 @@ o.spec("Indexer test", () => {
 			indexerMock._contact = {
 				processEntityEvents: spy(() => Promise.resolve()),
 			}
-			indexerMock._groupInfo = {
-				processEntityEvents: spy(() => Promise.resolve()),
-			}
-			indexerMock._whitelabelChildIndexer = {
-				processEntityEvents: spy(() => Promise.resolve()),
-			}
 			indexerMock._processUserEntityEvents = spy(() => Promise.resolve())
 			indexerMock._initParams = {
 				user: createTestEntity(UserTypeRef),
@@ -1037,7 +1013,7 @@ o.spec("Indexer test", () => {
 			return u
 		}
 
-		let events = [newUpdate(MailTypeRef), newUpdate(ContactTypeRef), newUpdate(GroupInfoTypeRef), newUpdate(UserTypeRef), newUpdate(WhitelabelChildTypeRef)]
+		let events = [newUpdate(MailTypeRef), newUpdate(ContactTypeRef), newUpdate(UserTypeRef)]
 		indexer._indexedGroupIds = [groupId]
 		const batch = {
 			events,
@@ -1045,20 +1021,13 @@ o.spec("Indexer test", () => {
 			batchId,
 		}
 		await indexer._processEntityEvents(batch)
-		o(indexer._core.writeIndexUpdateWithBatchId.invocations.length).equals(4)
+		o(indexer._core.writeIndexUpdateWithBatchId.invocations.length).equals(2)
 		let indexUpdateMail = indexer._core.writeIndexUpdateWithBatchId.invocations[0][2]
 		o(indexer._mail.processEntityEvents.callCount).equals(1)
 		o(indexer._mail.processEntityEvents.args).deepEquals([[events[0]], groupId, batchId, indexUpdateMail])
 		let indexUpdateContact = indexer._core.writeIndexUpdateWithBatchId.invocations[1][2]
 		o(indexer._contact.processEntityEvents.callCount).equals(1)
 		o(indexer._contact.processEntityEvents.args).deepEquals([[events[1]], groupId, batchId, indexUpdateContact])
-		let indexUpdateGroupInfo = indexer._core.writeIndexUpdateWithBatchId.invocations[2][2]
-		o(indexer._groupInfo.processEntityEvents.callCount).equals(1)
-		o(indexer._groupInfo.processEntityEvents.args).deepEquals([[events[2]], groupId, batchId, indexUpdateGroupInfo, user])
-		// no index update for user type
-		let indexUpdateWhitelabel = indexer._core.writeIndexUpdateWithBatchId.invocations[3][2]
-		o(indexer._whitelabelChildIndexer.processEntityEvents.callCount).equals(1)
-		o(indexer._whitelabelChildIndexer.processEntityEvents.args).deepEquals([[events[4]], groupId, batchId, indexUpdateWhitelabel, user])
 	})
 	o("processEntityEvents non indexed group", async function () {
 		let user = createTestEntity(UserTypeRef)
@@ -1072,9 +1041,6 @@ o.spec("Indexer test", () => {
 				processEntityEvents: spy(() => Promise.resolve()),
 			}
 			mock._contact = {
-				processEntityEvents: spy(() => Promise.resolve()),
-			}
-			mock._groupInfo = {
 				processEntityEvents: spy(() => Promise.resolve()),
 			}
 			mock._processUserEntityEvents = spy(() => Promise.resolve())
@@ -1094,7 +1060,7 @@ o.spec("Indexer test", () => {
 			return u
 		}
 
-		let events = [update(MailTypeRef), update(ContactTypeRef), update(GroupInfoTypeRef), update(UserTypeRef)]
+		let events = [update(MailTypeRef), update(ContactTypeRef), update(UserTypeRef)]
 		const batch: QueuedBatch = {
 			events,
 			groupId: "group-id",
@@ -1106,7 +1072,6 @@ o.spec("Indexer test", () => {
 		o(indexer._core.writeIndexUpdate.callCount).equals(0)
 		o(indexer._mail.processEntityEvents.callCount).equals(0)
 		o(indexer._contact.processEntityEvents.callCount).equals(0)
-		o(indexer._groupInfo.processEntityEvents.callCount).equals(0)
 		o(indexer._processUserEntityEvents.callCount).equals(0)
 	})
 
@@ -1119,9 +1084,6 @@ o.spec("Indexer test", () => {
 				processEntityEvents: spy(() => Promise.resolve()),
 			}
 			mock._contact = {
-				processEntityEvents: spy(() => Promise.resolve()),
-			}
-			mock._groupInfo = {
 				processEntityEvents: spy(() => Promise.resolve()),
 			}
 			mock._processUserEntityEvents = spy(() => Promise.resolve())
@@ -1187,8 +1149,6 @@ o.spec("Indexer test", () => {
 		o(indexer._mail.processEntityEvents.callCount).equals(2)
 		// @ts-ignore
 		o(indexer._contact.processEntityEvents.callCount).equals(0)
-		// @ts-ignore
-		o(indexer._groupInfo.processEntityEvents.callCount).equals(0)
 	})
 
 	o("_getStartIdForLoadingMissedEventBatches", function () {

@@ -5,15 +5,12 @@ import { Button, ButtonType } from "../gui/base/Button.js"
 import { Icons } from "../gui/base/icons/Icons"
 import { downcast, isEmpty, isSameTypeRef, TypeRef } from "@tutao/tutanota-utils"
 import { FULL_INDEXED_TIMESTAMP } from "../api/common/TutanotaConstants"
-import { formatDate, formatDateWithMonth, formatTimeOrDateOrYesterday } from "../misc/Formatter"
+import { formatDate, formatTimeOrDateOrYesterday } from "../misc/Formatter"
 import type { CalendarEvent, Contact, Mail } from "../api/entities/tutanota/TypeRefs.js"
 import { CalendarEventTypeRef, ContactTypeRef, MailTypeRef } from "../api/entities/tutanota/TypeRefs.js"
 import { getSenderOrRecipientHeading } from "../mail/model/MailUtils"
 import Badge from "../gui/base/Badge"
 import { Icon } from "../gui/base/Icon"
-import type { GroupInfo, WhitelabelChild } from "../api/entities/sys/TypeRefs.js"
-import { GroupInfoTypeRef, WhitelabelChildTypeRef } from "../api/entities/sys/TypeRefs.js"
-import { BootIcons } from "../gui/base/icons/BootIcons"
 import { client } from "../misc/ClientDetector"
 import m, { Children, Component, Vnode } from "mithril"
 import { theme } from "../gui/theme"
@@ -169,10 +166,6 @@ export class SearchBarOverlay implements Component<SearchBarOverlayAttrs> {
 			return this.renderContactResult(downcast(result))
 		} else if (isSameTypeRef(CalendarEventTypeRef, type)) {
 			return this.renderCalendarEventResult(downcast(result))
-		} else if (isSameTypeRef(GroupInfoTypeRef, type)) {
-			return this.renderGroupInfoResult(downcast(result))
-		} else if (isSameTypeRef(WhitelabelChildTypeRef, type)) {
-			return this.renderWhitelabelChildResult(downcast(result))
 		} else {
 			return []
 		}
@@ -205,52 +198,6 @@ export class SearchBarOverlay implements Component<SearchBarOverlayAttrs> {
 		return indexInfo
 			? [m(".top.flex-center", infoText), m(".bottom.flex-center.small", indexInfo)]
 			: m("li.plr-l.pt-s.pb-s.items-center.flex-center", m(".flex-center", infoText))
-	}
-
-	private renderWhitelabelChildResult(whitelabelChild: WhitelabelChild): Children {
-		return [
-			m(".top.flex-space-between", m(".name", whitelabelChild.mailAddress)),
-			m(".bottom.flex-space-between", [
-				m("small.mail-address", formatDateWithMonth(whitelabelChild.createdDate)),
-				m(".icons.flex", [
-					whitelabelChild.deletedDate
-						? m(Icon, {
-								icon: Icons.Trash,
-								class: "svg-list-accent-fg",
-						  })
-						: null,
-				]),
-			]),
-		]
-	}
-
-	private renderGroupInfoResult(groupInfo: GroupInfo): Children {
-		return [
-			m(".top.flex-space-between", m(".name", groupInfo.name)),
-			m(".bottom.flex-space-between", [
-				m("small.mail-address", groupInfo.mailAddress),
-				m(".icons.flex", [
-					groupInfo.deleted
-						? m(Icon, {
-								icon: Icons.Trash,
-								class: "svg-list-accent-fg",
-						  })
-						: null,
-					!groupInfo.mailAddress && m.route.get().startsWith("/settings/groups")
-						? m(Icon, {
-								icon: BootIcons.Settings,
-								class: "svg-list-accent-fg",
-						  })
-						: null,
-					groupInfo.mailAddress && m.route.get().startsWith("/settings/groups")
-						? m(Icon, {
-								icon: BootIcons.Mail,
-								class: "svg-list-accent-fg",
-						  })
-						: null,
-				]),
-			]),
-		]
 	}
 
 	private renderContactResult(contact: Contact): Children {
