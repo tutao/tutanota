@@ -750,6 +750,7 @@ export type TranslationKeyType =
 	| "languageWelsh_label"
 	| "language_label"
 	| "largeSignature_msg"
+	| "lastAccessWithTime_label"
 	| "lastAccess_label"
 	| "lastName_placeholder"
 	| "lastSync_label"

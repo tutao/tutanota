@@ -13,7 +13,7 @@ export default {
 		"other"
 	],
 	"created_at": "2015-01-27T13:13:41Z",
-	"updated_at": "2023-12-13T19:40:48Z",
+	"updated_at": "2023-12-29T23:01:51Z",
 	"source_locale": {
 		"id": "fcd7471b347c8e517663e194dcddf237",
 		"name": "en",
@@ -769,6 +769,7 @@ export default {
 		"languageWelsh_label": "walijski",
 		"language_label": "Język",
 		"largeSignature_msg": "Zdefiniowany przez Ciebie podpis ma rozmiar ponad ‪{1}‬kB. Będzie on domyślnie dołączany do każdego e-maila. Czy mimo to chcesz go używać?",
+		"lastAccessWithTime_label": "Ostatni dostęp: {time}",
 		"lastAccess_label": "Ostatni dostęp",
 		"lastName_placeholder": "Nazwisko",
 		"lastSync_label": "Ostatnia synchronizacja: {date}",

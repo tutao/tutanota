@@ -11,7 +11,7 @@ export default {
 		"other"
 	],
 	"created_at": "2015-01-27T13:13:02Z",
-	"updated_at": "2023-11-29T11:35:59Z",
+	"updated_at": "2023-12-23T16:48:01Z",
 	"source_locale": {
 		"id": "fcd7471b347c8e517663e194dcddf237",
 		"name": "en",
@@ -770,6 +770,7 @@ export default {
 		"languageWelsh_label": "Galés",
 		"language_label": "Idioma",
 		"largeSignature_msg": "La firma que has definido tiene un tamaño superior a {1}kB. Se añadirá a cada correo de forma predeterminada. ¿Quieres usarla de todos modos?",
+		"lastAccessWithTime_label": "Último acceso: {time}",
 		"lastAccess_label": "Último acceso",
 		"lastName_placeholder": "Apellido",
 		"lastSync_label": "Última sincronización: {date}",
@@ -906,6 +907,7 @@ export default {
 		"noContact_msg": "Ningún contacto seleccionado",
 		"noEntries_msg": "<no hay entradas>",
 		"noEntryFound_label": "No se encontraron entradas",
+		"noEventSelect_msg": "Ningún evento seleccionado",
 		"noInputWasMade_msg": "¡El campo de entrada está vacío!",
 		"noKeysForThisDomain_msg": "No tienes ninguna clave de seguridad configurada para este dominio. Añade una en la configuración de inicio de sesión.",
 		"noMails_msg": "Sin mensajes.",
@@ -1290,6 +1292,7 @@ export default {
 		"scrollToBottom_action": "Desplazar hacia abajo",
 		"scrollToTop_action": "Desplazar hasta arriba",
 		"scrollUp_action": "Desplazar hacia arriba",
+		"searchCalendar_placeholder": "Buscar eventos",
 		"searchContacts_placeholder": "Buscar Contactos",
 		"searchDisabledApp_msg": "La búsqueda está deshabilitada debido a un error del sistema. La aplicación tiene que reiniciarse para habilitar de nuevo la búsqueda.",
 		"searchDisabled_msg": "Tu navegador no admite guardar datos. Por eso hemos deshabilitado la función de búsqueda.",

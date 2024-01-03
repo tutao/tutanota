@@ -11,7 +11,7 @@ export default {
 		"other"
 	],
 	"created_at": "2018-01-12T10:51:54Z",
-	"updated_at": "2023-12-13T12:57:14Z",
+	"updated_at": "2023-12-22T12:57:15Z",
 	"source_locale": {
 		"id": "2001c6fdcc9cd338c1d600cb2636918b",
 		"name": "de",
@@ -770,6 +770,7 @@ export default {
 		"languageWelsh_label": "Walisisch",
 		"language_label": "Sprache",
 		"largeSignature_msg": "Die eingestellte Signatur ist größer als {1}kB. Sie wird standardmäßig an jede E-Mail angehängt. Möchten Sie die Signatur trotzdem verwenden?",
+		"lastAccessWithTime_label": "Letzter Zugriff: {time}",
 		"lastAccess_label": "Letzter Zugriff",
 		"lastName_placeholder": "Nachname",
 		"lastSync_label": "Letzte Synchronisation: {date}",

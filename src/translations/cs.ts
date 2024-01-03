@@ -13,7 +13,7 @@ export default {
 		"other"
 	],
 	"created_at": "2015-04-24T12:42:36Z",
-	"updated_at": "2023-12-15T07:37:23Z",
+	"updated_at": "2024-01-02T07:03:53Z",
 	"source_locale": null,
 	"fallback_locale": null,
 	"keys": {
@@ -766,6 +766,7 @@ export default {
 		"languageWelsh_label": "Velština",
 		"language_label": "Jazyk",
 		"largeSignature_msg": "Vámi definovaný podpis má velikost více než {1} kB. Ve výchozím nastavení se připojí ke každému e-mailu. Chcete přesto tento podpis použít?",
+		"lastAccessWithTime_label": "Poslední přístup: {time}",
 		"lastAccess_label": "Poslední přístup",
 		"lastName_placeholder": "Příjmení",
 		"lastSync_label": "Poslední synchronizace: {date}",

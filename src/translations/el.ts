@@ -11,7 +11,7 @@ export default {
 		"other"
 	],
 	"created_at": "2015-02-04T09:55:56Z",
-	"updated_at": "2023-11-29T16:24:00Z",
+	"updated_at": "2023-12-17T10:38:14Z",
 	"source_locale": {
 		"id": "fcd7471b347c8e517663e194dcddf237",
 		"name": "en",
@@ -906,6 +906,7 @@ export default {
 		"noContact_msg": "Δεν επιλέχθηκαν επαφές",
 		"noEntries_msg": "<καμία εγγραφή>",
 		"noEntryFound_label": "Δεν βρέθηκαν καταχωρήσεις",
+		"noEventSelect_msg": "Δεν έχει επιλεγεί εκδήλωση",
 		"noInputWasMade_msg": "Το πεδίο εισαγωγής είναι άδειο!",
 		"noKeysForThisDomain_msg": "Δεν έχετε διαμορφωμένα κλειδιά ασφαλείας για αυτόν τον τομέα. Παρακαλούμε προσθέστε ένα στις ρυθμίσεις σύνδεσης.",
 		"noMails_msg": "Δεν υπάρχουν μηνύματα.",
@@ -1289,6 +1290,7 @@ export default {
 		"scrollToBottom_action": "Κύλιση τέρμα κάτω",
 		"scrollToTop_action": "Κύλιση προς τα πάνω",
 		"scrollUp_action": "Κύλιση προς τα πάνω",
+		"searchCalendar_placeholder": "Αναζήτηση εκδηλώσεων",
 		"searchContacts_placeholder": "Αναζήτηση επαφών",
 		"searchDisabledApp_msg": "Η αναζήτηση απενεργοποιείται λόγω σφάλματος συστήματος. Η εφαρμογή πρέπει να επανεκκινηθεί για να ενεργοποιηθεί ξανά η αναζήτηση.",
 		"searchDisabled_msg": "Η λειτουργία αναζήτησης έχει απενεργοποιηθεί επειδή το πρόγραμμα περιήγησης δεν υποστηρίζει  αποθήκευση δεδομένων.",

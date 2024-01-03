@@ -13,7 +13,7 @@ export default {
 		"other"
 	],
 	"created_at": "2015-01-27T13:15:23Z",
-	"updated_at": "2023-12-09T16:10:05Z",
+	"updated_at": "2023-12-22T23:25:56Z",
 	"source_locale": {
 		"id": "fcd7471b347c8e517663e194dcddf237",
 		"name": "en",
@@ -769,6 +769,7 @@ export default {
 		"languageWelsh_label": "Валлийский",
 		"language_label": "Язык",
 		"largeSignature_msg": "Размер подписи превышает {1} Кб. Она будет добавлена к каждому письму по умолчанию. Вы всё равно хотите использовать её?",
+		"lastAccessWithTime_label": "Последний доступ: {время}",
 		"lastAccess_label": "Время",
 		"lastName_placeholder": "Фамилия",
 		"lastSync_label": "Последняя синхронизация: {date}",
@@ -905,6 +906,7 @@ export default {
 		"noContact_msg": "Контактов не выбрано.",
 		"noEntries_msg": "<Нет записей>",
 		"noEntryFound_label": "Записи не найдены",
+		"noEventSelect_msg": "Не выбрано ни одно событие",
 		"noInputWasMade_msg": "Поле ввода не заполнено!",
 		"noKeysForThisDomain_msg": "Для этого домена не настроены ключи безопасности. Пожалуйста, добавьте его в настройках входа в систему.",
 		"noMails_msg": "Писем нет.",
@@ -1287,6 +1289,7 @@ export default {
 		"scrollToBottom_action": "Вниз",
 		"scrollToTop_action": "Прокрутить вверх",
 		"scrollUp_action": "Наверх",
+		"searchCalendar_placeholder": "Поиск событий",
 		"searchContacts_placeholder": "Поиск контактов",
 		"searchDisabledApp_msg": "Поиск отключен из-за системной ошибки. Приложение должно быть перезапущено, чтобы снова включить поиск.",
 		"searchDisabled_msg": "Поиск был отключён, т.к. ваш браузер не поддерживает хранение данных.",
