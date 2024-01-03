@@ -11,6 +11,7 @@ import { ExpanderPanel } from "../../gui/base/Expander.js"
 import { theme } from "../../gui/theme.js"
 import { hexToRGBAString } from "../../gui/base/Color.js"
 import { styles } from "../../gui/styles.js"
+import { DaysToEvents } from "./CalendarEventsRepository.js"
 
 export interface DaySelectorAttrs {
 	selectedDate: Date | null
@@ -18,7 +19,7 @@ export interface DaySelectorAttrs {
 	wide: boolean
 	startOfTheWeekOffset: number
 	isDaySelectorExpanded: boolean
-	eventsForDays: ReadonlyMap<number, Array<CalendarEvent>>
+	eventsForDays: DaysToEvents
 	handleDayPickerSwipe: (isNext: boolean) => void
 	showDaySelection: boolean
 	highlightToday: boolean

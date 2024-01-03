@@ -18,13 +18,14 @@ import { DaySelector } from "../date/DaySelector.js"
 import { CalendarEventPreviewViewModel } from "./eventpopup/CalendarEventPreviewViewModel.js"
 import { EventDetailsView } from "./EventDetailsView.js"
 import { getElementId, getListId } from "../../api/common/utils/EntityUtils.js"
+import { DaysToEvents } from "../date/CalendarEventsRepository.js"
 
 export type CalendarAgendaViewAttrs = {
 	selectedDate: Date
 	/**
 	 * maps start of day timestamp to events on that day
 	 */
-	eventsForDays: ReadonlyMap<number, Array<CalendarEvent>>
+	eventsForDays: DaysToEvents
 	amPmFormat: boolean
 	onEventClicked: CalendarEventBubbleClickHandler
 	groupColors: GroupColors

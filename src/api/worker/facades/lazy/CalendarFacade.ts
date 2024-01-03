@@ -63,8 +63,8 @@ import {
 } from "../../../../calendar/date/CalendarUtils.js"
 import { CalendarInfo } from "../../../../calendar/model/CalendarModel.js"
 import { geEventElementMaxId, getEventElementMinId } from "../../../common/utils/CommonCalendarUtils.js"
-import { DaysToEvents } from "../../../../calendar/view/CalendarViewModel.js"
-import { loadMultipleFromLists } from "../../../../settings/LoadingUtils.js"
+import { loadMultipleFromLists } from "../../../common/utils/Utils.js"
+import { DaysToEvents } from "../../../../calendar/date/CalendarEventsRepository.js"
 
 assertWorkerOrNode()
 
@@ -138,7 +138,7 @@ export class CalendarFacade {
 			])
 			aggregateEvents.push(...shortEventsResult.elements, ...longEventsResult)
 		}
-		const newEvents = new Map<number, Array<CalendarEvent>>(daysToEvents)
+		const newEvents = new Map<number, Array<CalendarEvent>>(Array.from(daysToEvents.entries()).map(([day, events]) => [day, events.slice()]))
 		for (const e of aggregateEvents) {
 			if (e.repeatRule) {
 				addDaysForRecurringEvent(newEvents, e, month, zone)

@@ -41,6 +41,7 @@ import { isAllDayEvent } from "../../api/common/utils/CommonCalendarUtils"
 import { locator } from "../../api/main/MainLocator.js"
 import { DateTime } from "luxon"
 import { DaySelector } from "../date/DaySelector.js"
+import { DaysToEvents } from "../date/CalendarEventsRepository.js"
 
 export type Attrs = {
 	selectedDate: Date
@@ -55,7 +56,7 @@ export type Attrs = {
 	onChangeViewPeriod: (next: boolean) => unknown
 	temporaryEvents: Array<CalendarEvent>
 	dragHandlerCallbacks: EventDragHandlerCallbacks
-	eventsForDays: ReadonlyMap<number, Array<CalendarEvent>>
+	eventsForDays: DaysToEvents
 	isDaySelectorExpanded: boolean
 }
 
