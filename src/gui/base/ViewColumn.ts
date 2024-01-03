@@ -1,4 +1,4 @@
-import m, { Child, Component, Vnode } from "mithril"
+import m, { Child, Component } from "mithril"
 import { AriaLandmarks, landmarkAttrs } from "../AriaUtils"
 import { LayerType } from "../../RootView"
 import type { lazy } from "@tutao/tutanota-utils"
@@ -43,6 +43,8 @@ export class ViewColumn implements Component<Attrs> {
 	 * @param columnType The type of the view column.
 	 * @param minWidth The minimum allowed width for the view column.
 	 * @param maxWidth The maximum allowed width for the view column.
+	 * @param headerCenter The title of the view column.
+	 * @param ariaLabel The label of the view column to be read by screen readers. Defaults to headerCenter if not specified.
 	 */
 	constructor(
 		component: Component,
@@ -65,7 +67,7 @@ export class ViewColumn implements Component<Attrs> {
 		this.isInForeground = false
 		this.visible = false
 
-		this.view = (vnode: Vnode<Attrs>) => {
+		this.view = () => {
 			const zIndex = !this.visible && this.columnType === ColumnType.Foreground ? LayerType.ForegroundMenu + 1 : ""
 			const landmark = this._ariaRole ? landmarkAttrs(this._ariaRole, this.ariaLabel ? this.ariaLabel() : this.getTitle()) : {}
 			return m(
@@ -99,10 +101,6 @@ export class ViewColumn implements Component<Attrs> {
 
 	setRole(landmark: AriaLandmarks | null) {
 		this._ariaRole = landmark
-	}
-
-	getWidth(): number {
-		return this.width
 	}
 
 	getTitle(): string {
