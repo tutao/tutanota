@@ -1,7 +1,7 @@
 import { ENTITY_EVENT_BATCH_TTL_DAYS, getMembershipGroupType, GroupType, NOTHING_INDEXED_TIMESTAMP, OperationType } from "../../common/TutanotaConstants"
 import { ConnectionError, NotAuthorizedError, NotFoundError } from "../../common/error/RestError"
 import type { EntityUpdate, GroupMembership, User } from "../../entities/sys/TypeRefs.js"
-import { EntityEventBatch, EntityEventBatchTypeRef, GroupInfoTypeRef, UserTypeRef } from "../../entities/sys/TypeRefs.js"
+import { EntityEventBatch, EntityEventBatchTypeRef, UserTypeRef } from "../../entities/sys/TypeRefs.js"
 import type { DatabaseEntry, DbKey, DbTransaction } from "./DbFacade"
 import { b64UserIdHash, DbFacade } from "./DbFacade"
 import type { DeferredObject } from "@tutao/tutanota-utils"
@@ -27,7 +27,6 @@ import type { Db, GroupData } from "./SearchTypes"
 import { IndexingErrorReason } from "./SearchTypes"
 import { ContactIndexer } from "./ContactIndexer"
 import { ContactList, ContactListTypeRef, ContactTypeRef, MailTypeRef } from "../../entities/tutanota/TypeRefs.js"
-import { GroupInfoIndexer } from "./GroupInfoIndexer"
 import { MailIndexer } from "./MailIndexer"
 import { IndexerCore } from "./IndexerCore"
 import type { EntityRestClient } from "../rest/EntityRestClient"
@@ -102,7 +101,6 @@ export class Indexer {
 	private _initParams!: InitParams
 	readonly _contact: ContactIndexer
 	readonly _mail: MailIndexer
-	readonly _groupInfo: GroupInfoIndexer
 
 	/**
 	 * Last batch id per group from initial loading.
@@ -142,7 +140,6 @@ export class Indexer {
 		this._contact = new ContactIndexer(this._core, this.db, this._entity, new SuggestionFacade(ContactTypeRef, this.db))
 		const dateProvider = new LocalTimeDateProvider()
 		this._mail = new MailIndexer(this._core, this.db, this.infoMessageHandler, entityRestClient, defaultEntityRestCache, dateProvider, mailFacade)
-		this._groupInfo = new GroupInfoIndexer(this._core, this.db, this._entity, new SuggestionFacade(GroupInfoTypeRef, this.db))
 		this._indexedGroupIds = []
 		this._initiallyLoadedBatchIdsPerGroup = new Map()
 		this._realtimeEventQueue = new EventQueue(false, (nextElement: QueuedBatch) => {
@@ -197,7 +194,6 @@ export class Indexer {
 
 			this._core.startProcessing()
 			await this.indexOrLoadContactListIfNeeded(user, cacheInfo)
-			await this._groupInfo.indexAllUserAndTeamGroupInfosForAdmin(user)
 			await this._mail.mailboxIndexingPromise
 			await this._mail.indexMailboxes(user, this._mail.currentIndexTimestamp)
 			const groupIdToEventBatches = await this._loadPersistentGroupData(user)
@@ -344,7 +340,7 @@ export class Indexer {
 
 		this._dbInitializedDeferredObject.resolve()
 
-		await Promise.all([this._contact.suggestionFacade.load(), this._groupInfo.suggestionFacade.load()])
+		await Promise.all([this._contact.suggestionFacade.load()])
 	}
 
 	async _updateIndexedGroups(): Promise<void> {
