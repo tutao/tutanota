@@ -1,9 +1,4 @@
-import {
-	EntityEventBatchTypeRef,
-	EntityUpdateTypeRef,
-	GroupMembershipTypeRef,
-	UserTypeRef,
-} from "../../../../../src/api/entities/sys/TypeRefs.js"
+import { EntityEventBatchTypeRef, EntityUpdateTypeRef, GroupMembershipTypeRef, UserTypeRef } from "../../../../../src/api/entities/sys/TypeRefs.js"
 import { DbFacade, DbTransaction } from "../../../../../src/api/worker/search/DbFacade.js"
 import {
 	ENTITY_EVENT_BATCH_TTL_DAYS,
@@ -14,7 +9,7 @@ import {
 } from "../../../../../src/api/common/TutanotaConstants.js"
 import { Indexer } from "../../../../../src/api/worker/search/Indexer.js"
 import { NotAuthorizedError } from "../../../../../src/api/common/error/RestError.js"
-import { ContactListTypeRef, ContactTypeRef, createContactList, MailTypeRef } from "../../../../../src/api/entities/tutanota/TypeRefs.js"
+import { ContactListTypeRef, ContactTypeRef, MailTypeRef } from "../../../../../src/api/entities/tutanota/TypeRefs.js"
 import { OutOfSyncError } from "../../../../../src/api/common/error/OutOfSyncError.js"
 import { assertThrows, mock, spy } from "@tutao/tutanota-test-utils"
 import { browserDataStub, createTestEntity } from "../../../TestUtils.js"

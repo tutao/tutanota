@@ -86,7 +86,7 @@ export class SearchModel {
 			let currentDate = new Date(assertNotNull(restriction.start))
 			const endDate = new Date(assertNotNull(restriction.end))
 			const calendarModel = await this.calendarModel()
-			const daysInMonths = []
+			const daysInMonths: Array<Date> = []
 			while (currentDate.getTime() <= endDate.getTime()) {
 				daysInMonths.push(currentDate)
 				currentDate = incrementMonth(currentDate, 1)

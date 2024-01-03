@@ -2,16 +2,6 @@ import { AccountType, ContactAddressType, FeatureType, GroupType, ShareCapabilit
 import type { UserController } from "../../../src/api/main/UserController.js"
 import {
 	BookingsRefTypeRef,
-	createBookingsRef,
-	createCustomer,
-	createCustomerInfo,
-	createFeature,
-	createGroup,
-	createGroupInfo,
-	createGroupMembership,
-	createMailAddressAlias,
-	createPlanConfiguration,
-	createUser,
 	CustomerInfoTypeRef,
 	CustomerTypeRef,
 	Feature,
@@ -32,14 +22,6 @@ import {
 	CalendarGroupRootTypeRef,
 	ContactAddressTypeRef,
 	ContactTypeRef,
-	createCalendarEvent,
-	createCalendarGroupRoot,
-	createContact,
-	createContactAddress,
-	createEncryptedMailAddress,
-	createMailBox,
-	createMailboxGroupRoot,
-	createTutanotaProperties,
 	EncryptedMailAddress,
 	EncryptedMailAddressTypeRef,
 	MailboxGroupRootTypeRef,
@@ -47,13 +29,10 @@ import {
 	TutanotaPropertiesTypeRef,
 } from "../../../src/api/entities/tutanota/TypeRefs.js"
 import type { MailboxDetail } from "../../../src/mail/model/MailModel.js"
-import o from "@tutao/otest"
 import type { CalendarInfo } from "../../../src/calendar/model/CalendarModel"
-import { CalendarModel } from "../../../src/calendar/model/CalendarModel"
 import { FolderSystem } from "../../../src/api/common/mail/FolderSystem.js"
 import { Recipient, RecipientType } from "../../../src/api/common/recipients/Recipient.js"
 import { DateTime } from "luxon"
-import { spy } from "@tutao/tutanota-test-utils"
 import { createTestEntity } from "../TestUtils.js"
 
 export const ownerMailAddress = "calendarowner@tutanota.de" as const
@@ -263,7 +242,6 @@ export function makeCalendarInfo(type: "own" | "shared", id: string): CalendarIn
 			longEvents: "longEventsList",
 			shortEvents: "shortEventsList",
 		}),
-		longEvents: new LazyLoaded(() => Promise.resolve([])),
 		groupInfo: downcast({}),
 		group: createTestEntity(GroupTypeRef, {
 			_id: id,
@@ -277,22 +255,6 @@ export function makeCalendarInfo(type: "own" | "shared", id: string): CalendarIn
 export function makeCalendars(type: "own" | "shared", id: string = calendarGroupId): Map<string, CalendarInfo> {
 	const calendarInfo = makeCalendarInfo(type, id)
 	return new Map([[id, calendarInfo]])
-}
-
-export function makeCalendarModel(): CalendarModel {
-	return downcast({
-		createEvent: spy(() => Promise.resolve()),
-		updateEvent: spy(() => Promise.resolve()),
-		deleteEvent: spy(() => Promise.resolve()),
-		loadAlarms: spy(() => Promise.resolve([])),
-		loadCalendarInfos: () => {
-			return Promise.resolve(makeCalendars("own", calendarGroupId))
-		},
-		loadOrCreateCalendarInfo: () => {
-			return Promise.resolve(makeCalendars("own", calendarGroupId))
-		},
-		createCalendar: () => Promise.resolve(),
-	})
 }
 
 function id(element: string): IdTuple {
