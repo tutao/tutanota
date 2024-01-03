@@ -201,10 +201,8 @@ export class CalendarAgendaView implements Component<CalendarAgendaViewAttrs> {
 							key: getListId(event) + getElementId(event) + event.startTime.toISOString(),
 							event: event,
 							color: getEventColor(event, colors),
-							selected: event === attrs.eventPreviewModel?.calendarEvent,
-							click: (domEvent) => {
-								attrs.onEventClicked(event, domEvent)
-							},
+							selected: event === modelPromise?.calendarEvent,
+							click: (domEvent) => click(event, domEvent),
 							zone,
 							day: day,
 						})
