@@ -31,11 +31,11 @@ export class ViewColumn implements Component<Attrs> {
 	offset: number // offset to the left
 
 	// not private because used by ViewSlider
-	_domColumn: HTMLElement | null = null
+	domColumn: HTMLElement | null = null
 	view: Component<Attrs>["view"]
 	isInForeground: boolean
-	visible: boolean
-	private _ariaRole: AriaLandmarks | null = null
+	isVisible: boolean
+	ariaRole: AriaLandmarks | null = null
 
 	/**
 	 * Create a view column.
@@ -65,22 +65,22 @@ export class ViewColumn implements Component<Attrs> {
 		this.width = minWidth
 		this.offset = 0
 		this.isInForeground = false
-		this.visible = false
+		this.isVisible = false
 
 		this.view = () => {
-			const zIndex = !this.visible && this.columnType === ColumnType.Foreground ? LayerType.ForegroundMenu + 1 : ""
-			const landmark = this._ariaRole ? landmarkAttrs(this._ariaRole, this.ariaLabel ? this.ariaLabel() : this.getTitle()) : {}
+			const zIndex = !this.isVisible && this.columnType === ColumnType.Foreground ? LayerType.ForegroundMenu + 1 : ""
+			const landmark = this.ariaRole ? landmarkAttrs(this.ariaRole, this.ariaLabel ? this.ariaLabel() : this.getTitle()) : {}
 			return m(
 				".view-column.overflow-x-hidden.fill-absolute.overflow-x-hidden",
 				{
 					...landmark,
-					"aria-hidden": this.visible || this.isInForeground ? "false" : "true",
+					"aria-hidden": this.isVisible || this.isInForeground ? "false" : "true",
 					oncreate: (vnode) => {
-						this._domColumn = vnode.dom as HTMLElement
-						this._domColumn.style.transform =
+						this.domColumn = vnode.dom as HTMLElement
+						this.domColumn.style.transform =
 							this.columnType === ColumnType.Foreground ? "translateX(" + this.getOffsetForeground(this.isInForeground) + "px)" : ""
 
-						if (this._ariaRole === AriaLandmarks.Main) {
+						if (this.ariaRole === AriaLandmarks.Main) {
 							this.focus()
 						}
 					},
@@ -95,21 +95,13 @@ export class ViewColumn implements Component<Attrs> {
 		}
 	}
 
-	setWidth(width: number) {
-		this.width = width
-	}
-
-	setRole(landmark: AriaLandmarks | null) {
-		this._ariaRole = landmark
-	}
-
 	getTitle(): string {
 		const center = this.headerCenter()
 		return typeof center === "string" ? center : center.middle
 	}
 
 	getOffsetForeground(foregroundState: boolean): number {
-		if (this.visible || foregroundState) {
+		if (this.isVisible || foregroundState) {
 			return 0
 		} else {
 			return -this.width
@@ -117,6 +109,6 @@ export class ViewColumn implements Component<Attrs> {
 	}
 
 	focus() {
-		this._domColumn && this._domColumn.focus()
+		this.domColumn && this.domColumn.focus()
 	}
 }
