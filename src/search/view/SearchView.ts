@@ -117,11 +117,9 @@ export class SearchView extends BaseTopLevelView implements TopLevelView<SearchV
 
 	private getSanitizedPreviewData: (event: CalendarEvent) => LazyLoaded<CalendarEventPreviewViewModel> = memoized((event: CalendarEvent) =>
 		new LazyLoaded(async () => {
-			const { htmlSanitizer } = await import("../../misc/HtmlSanitizer.js")
 			const calendars = await this.searchViewModel.getLazyCalendarInfos().getAsync()
 			const eventPreviewModel = await buildEventPreviewModel(event, calendars)
-			m.redraw()
-
+			eventPreviewModel.sanitizeDescription().then(() => m.redraw())
 			return eventPreviewModel
 		}).load(),
 	)
@@ -199,32 +197,12 @@ export class SearchView extends BaseTopLevelView implements TopLevelView<SearchV
 								this.searchViewModel.listModel && getCurrentSearchMode() !== "calendar"
 									? [
 											m(SelectAllCheckbox, selectionAttrsForList(this.searchViewModel.listModel)),
-											isSameTypeRefNullable(this.searchViewModel.lastType, MailTypeRef) ? this.renderFilterButton() : null,
+											isSameTypeRefNullable(this.searchViewModel.resultType, MailTypeRef) ? this.renderFilterButton() : null,
 									  ]
 									: m(".button-height"),
 							]),
 						mobileHeader: () => this.renderMobileListHeader(vnode.attrs.header),
-						columnLayout: this.searchViewModel.lastType
-							? m(SearchListView, {
-									listModel: this.searchViewModel.listModel,
-									currentType: this.searchViewModel.lastType,
-									onSingleSelection: (item) => {
-										this.viewSlider.focus(this.resultDetailsColumn)
-										if (isSameTypeRef(item.entry._type, MailTypeRef)) {
-											// Make sure that we mark mail as read if you select the mail again, even if it was selected before.
-											// Do it in the next even loop to not rely on what is called first, listModel or us. ListModel changes are
-											// sync so this should be enough.
-											Promise.resolve().then(() => {
-												const conversationViewModel = this.searchViewModel.conversationViewModel
-												if (conversationViewModel && isSameId(item._id, conversationViewModel.primaryMail._id)) {
-													conversationViewModel?.primaryViewModel().setUnread(false)
-												}
-											})
-										}
-									},
-									isFreeAccount: locator.logins.getUserController().isFreeAccount(),
-							  } satisfies SearchListViewAttrs)
-							: this.renderInitialLoadingIcon(),
+						columnLayout: this.getResultColumnLayout(),
 					})
 				},
 			},
@@ -244,9 +222,31 @@ export class SearchView extends BaseTopLevelView implements TopLevelView<SearchV
 		this.viewSlider = new ViewSlider([this.folderColumn, this.resultListColumn, this.resultDetailsColumn])
 	}
 
+	private getResultColumnLayout() {
+		return m(SearchListView, {
+			listModel: this.searchViewModel.listModel,
+			currentType: this.searchViewModel.resultType,
+			onSingleSelection: (item) => {
+				this.viewSlider.focus(this.resultDetailsColumn)
+				if (isSameTypeRef(item.entry._type, MailTypeRef)) {
+					// Make sure that we mark mail as read if you select the mail again, even if it was selected before.
+					// Do it in the next even loop to not rely on what is called first, listModel or us. ListModel changes are
+					// sync so this should be enough.
+					Promise.resolve().then(() => {
+						const conversationViewModel = this.searchViewModel.conversationViewModel
+						if (conversationViewModel && isSameId(item._id, conversationViewModel.primaryMail._id)) {
+							conversationViewModel?.primaryViewModel().setUnread(false)
+						}
+					})
+				}
+			},
+			isFreeAccount: locator.logins.getUserController().isFreeAccount(),
+		} satisfies SearchListViewAttrs)
+	}
+
 	private renderFilterSection() {
-		if (this.searchViewModel.lastType) {
-			if (isSameTypeRef(this.searchViewModel.lastType, MailTypeRef)) {
+		if (this.searchViewModel.resultType) {
+			if (isSameTypeRef(this.searchViewModel.resultType, MailTypeRef)) {
 				return m(
 					SidebarSection,
 					{
@@ -254,7 +254,7 @@ export class SearchView extends BaseTopLevelView implements TopLevelView<SearchV
 					},
 					this.renderMailFilterSection(),
 				)
-			} else if (isSameTypeRef(this.searchViewModel.lastType, CalendarEventTypeRef)) {
+			} else if (isSameTypeRef(this.searchViewModel.resultType, CalendarEventTypeRef)) {
 				return m(SidebarSection, { name: "filter_label" }, this.renderCalendarFilterSection())
 			}
 		}
@@ -286,7 +286,7 @@ export class SearchView extends BaseTopLevelView implements TopLevelView<SearchV
 			: m(BaseMobileHeader, {
 					left: m(MobileHeaderMenuButton, { ...header, backAction: () => this.viewSlider.focusPreviousColumn() }),
 					right: [
-						isSameTypeRefNullable(this.searchViewModel.lastType, MailTypeRef) ? this.renderFilterButton() : null,
+						isSameTypeRefNullable(this.searchViewModel.resultType, MailTypeRef) ? this.renderFilterButton() : null,
 						m(EnterMultiselectIconButton, {
 							clickAction: () => {
 								this.searchViewModel.listModel?.enterMultiselect()
@@ -315,7 +315,7 @@ export class SearchView extends BaseTopLevelView implements TopLevelView<SearchV
 	}
 
 	/** depending on the search and selection state we want to render a
-	 * (multi) mail viewer or a (multi) contact viewer
+	 * (multi) mail viewer or a (multi) contact viewer or an event preview
 	 */
 	private renderDetailsView(header: AppHeaderAttrs): Children {
 		if (getCurrentSearchMode() === "contact") {
@@ -529,8 +529,8 @@ export class SearchView extends BaseTopLevelView implements TopLevelView<SearchV
 		const route = m.route.get()
 		if (route.startsWith("/search/calendar")) {
 			return lang.get("searchCalendar_placeholder")
-		} else if (route.startsWith("/search/contacts")) {
-			lang.get("searchContacts_placeholder")
+		} else if (route.startsWith("/search/contact")) {
+			return lang.get("searchContacts_placeholder")
 		} else {
 			return lang.get("searchEmails_placeholder")
 		}
@@ -751,7 +751,7 @@ export class SearchView extends BaseTopLevelView implements TopLevelView<SearchV
 		{
 			key: Keys.N,
 			exec: () => {
-				const type = this.searchViewModel.lastType
+				const type = this.searchViewModel.resultType
 
 				if (type && isSameTypeRef(type, MailTypeRef)) {
 					newMailEditor()
@@ -919,7 +919,7 @@ export class SearchView extends BaseTopLevelView implements TopLevelView<SearchV
 
 	private deleteSelected(): void {
 		if (this.searchViewModel.listModel.state.selectedItems.size > 0) {
-			if (this.searchViewModel.lastType && isSameTypeRef(this.searchViewModel.lastType, MailTypeRef)) {
+			if (this.searchViewModel.resultType && isSameTypeRef(this.searchViewModel.resultType, MailTypeRef)) {
 				const selected = this.searchViewModel.getSelectedMails()
 				showDeleteConfirmationDialog(selected).then((confirmed) => {
 					if (confirmed) {
@@ -931,7 +931,7 @@ export class SearchView extends BaseTopLevelView implements TopLevelView<SearchV
 						locator.mailModel.deleteMails(selected)
 					}
 				})
-			} else if (this.searchViewModel.lastType && isSameTypeRef(this.searchViewModel.lastType, ContactTypeRef)) {
+			} else if (this.searchViewModel.resultType && isSameTypeRef(this.searchViewModel.resultType, ContactTypeRef)) {
 				Dialog.confirm("deleteContacts_msg").then((confirmed) => {
 					const selected = this.searchViewModel.getSelectedContacts()
 					if (confirmed) {

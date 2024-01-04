@@ -30,7 +30,7 @@ export class SearchResultListEntry {
 export interface SearchListViewAttrs {
 	listModel: ListModel<SearchResultListEntry>
 	onSingleSelection: (item: SearchResultListEntry) => unknown
-	currentType: TypeRef<Mail> | TypeRef<Contact> | TypeRef<CalendarEvent>
+	currentType: TypeRef<Mail> | TypeRef<Contact> | TypeRef<CalendarEvent> | null
 	isFreeAccount: boolean
 }
 
@@ -44,45 +44,49 @@ export class SearchListView implements Component<SearchListViewAttrs> {
 	view({ attrs }: Vnode<SearchListViewAttrs>): Children {
 		this.listModel = attrs.listModel
 		const { icon, renderConfig } = this.getRenderItems(attrs.currentType)
-		return attrs.listModel
-			? attrs.listModel.isEmptyAndDone()
-				? m(ColumnEmptyMessageBox, {
-						icon,
-						message: () =>
-							lang.get("searchNoResults_msg") + "\n" + (attrs.isFreeAccount ? lang.get("goPremium_msg") : lang.get("switchSearchInMenu_label")),
-						color: theme.list_message_bg,
-				  })
-				: m(List, {
-						state: attrs.listModel.state,
-						renderConfig,
-						onLoadMore: () => {
-							attrs.listModel?.loadMore()
-						},
-						onRetryLoading: () => {
-							attrs.listModel?.retryLoading()
-						},
-						onSingleSelection: (item: SearchResultListEntry) => {
-							attrs.listModel?.onSingleSelection(item)
-							attrs.onSingleSelection(item)
-						},
-						onSingleTogglingMultiselection: (item: SearchResultListEntry) => {
-							attrs.listModel.onSingleInclusiveSelection(item, styles.isSingleColumnLayout())
-						},
-						onRangeSelectionTowards: (item: SearchResultListEntry) => {
-							attrs.listModel.selectRangeTowards(item)
-						},
-						onStopLoading() {
-							attrs.listModel.stopLoading()
-						},
-				  } satisfies ListAttrs<SearchResultListEntry, SearchResultListRow>)
-			: null
+
+		return attrs.listModel.isEmptyAndDone()
+			? m(ColumnEmptyMessageBox, {
+					icon,
+					message: () =>
+						lang.get("searchNoResults_msg") + "\n" + (attrs.isFreeAccount ? lang.get("goPremium_msg") : lang.get("switchSearchInMenu_label")),
+					color: theme.list_message_bg,
+			  })
+			: m(List, {
+					state: attrs.listModel.state,
+					renderConfig,
+					onLoadMore: () => {
+						attrs.listModel?.loadMore()
+					},
+					onRetryLoading: () => {
+						attrs.listModel?.retryLoading()
+					},
+					onSingleSelection: (item: SearchResultListEntry) => {
+						attrs.listModel?.onSingleSelection(item)
+						attrs.onSingleSelection(item)
+					},
+					onSingleTogglingMultiselection: (item: SearchResultListEntry) => {
+						attrs.listModel.onSingleInclusiveSelection(item, styles.isSingleColumnLayout())
+					},
+					onRangeSelectionTowards: (item: SearchResultListEntry) => {
+						attrs.listModel.selectRangeTowards(item)
+					},
+					onStopLoading() {
+						attrs.listModel.stopLoading()
+					},
+			  } satisfies ListAttrs<SearchResultListEntry, SearchResultListRow>)
 	}
 
-	private getRenderItems(type: TypeRef<Mail> | TypeRef<Contact> | TypeRef<CalendarEvent>): {
+	private getRenderItems(type: TypeRef<Mail> | TypeRef<Contact> | TypeRef<CalendarEvent> | null): {
 		icon: AllIcons
 		renderConfig: RenderConfig<SearchResultListEntry, SearchResultListRow>
 	} {
-		if (isSameTypeRef(type, ContactTypeRef)) {
+		if (type == null) {
+			return {
+				icon: BootIcons.Search,
+				renderConfig: this.contactRenderConfig,
+			}
+		} else if (isSameTypeRef(type, ContactTypeRef)) {
 			return {
 				icon: BootIcons.Contacts,
 				renderConfig: this.contactRenderConfig,
