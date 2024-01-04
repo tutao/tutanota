@@ -588,12 +588,10 @@ export class MailViewerHeader implements Component<MailViewerHeaderAttrs> {
 	}
 
 	private renderHardAuthenticationFailWarning(viewModel: MailViewerViewModel): Children | null {
-		if (
-			!viewModel.isWarningDismissed() &&
-			viewModel.checkMailAuthenticationStatus(
-				MailAuthenticationStatus.HARD_FAIL || viewModel.mail.encryptionAuthStatus === EncryptionAuthStatus.PQ_AUTHENTICATION_FAILED,
-			)
-		) {
+		const authFailed =
+			viewModel.checkMailAuthenticationStatus(MailAuthenticationStatus.HARD_FAIL) ||
+			viewModel.mail.encryptionAuthStatus === EncryptionAuthStatus.PQ_AUTHENTICATION_FAILED
+		if (!viewModel.isWarningDismissed() && authFailed) {
 			return m(InfoBanner, {
 				message: "mailAuthFailed_msg",
 				icon: Icons.Warning,

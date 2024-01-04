@@ -394,7 +394,7 @@ export class MailViewerViewModel {
 		this.mail.phishingStatus = status
 	}
 
-	checkMailAuthenticationStatus(status: MailAuthenticationStatus) {
+	checkMailAuthenticationStatus(status: MailAuthenticationStatus): boolean {
 		// all legacy mail should have authStatus set, non-legacy mail can have it set to null. then the wrapper should have
 		// the value. if the wrapper is not loaded yet, this returns false.
 		if (this.mail.authStatus != null) {
