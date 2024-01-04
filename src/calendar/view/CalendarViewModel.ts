@@ -89,8 +89,6 @@ export class CalendarViewModel implements EventDragHandlerCallbacks {
 			this.updatePreviewedEvent(null)
 			this.preloadMonthsAroundSelectedDate()
 		})
-		// FIXME: why do we do this? shouldn't this depend on a selected date? is this for reset?
-		this.eventsRepository.getEventsForMonths().map(() => this.preloadMonthsAroundSelectedDate())
 		this.calendarModel.getCalendarInfosStream().map((newInfos) => {
 			const event = this.previewedEvent?.event ?? null
 			if (event != null) {
