@@ -413,6 +413,12 @@ export class SearchBar implements Component<SearchBarAttrs> {
 	}
 
 	private readonly doSearch = debounce(300, (query: string, restriction: SearchRestriction, cb: () => void) => {
+		if (!this.isQuickSearch()) {
+			// if we're already on the search view, we don't want to wait until there's a new result to update the
+			// UI. we can directly go to the URL and let the SearchViewModel do its thing from there.
+			searchRouter.routeTo(query, restriction)
+			return
+		}
 		let useSuggestions = m.route.get().startsWith("/settings")
 		// We don't limit contacts because we need to download all of them to sort them. They should be cached anyway.
 		const limit = isSameTypeRef(MailTypeRef, restriction.type) ? (this.isQuickSearch() ? MAX_SEARCH_PREVIEW_RESULTS : PageSize) : null
@@ -551,7 +557,6 @@ export class SearchBar implements Component<SearchBarAttrs> {
 
 		if (this.state().query === "") {
 			if (m.route.get().startsWith("/search")) {
-				locator.search.result(null)
 				const restriction = searchRouter.getRestriction()
 				searchRouter.routeTo("", restriction)
 			}
