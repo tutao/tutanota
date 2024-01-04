@@ -53,12 +53,12 @@ export class CalendarAgendaView implements Component<CalendarAgendaViewAttrs> {
 			containerStyle = {}
 		}
 
-		return m(".fill-absolute.flex.col", { class: isDesktopLayout ? "mlr-l" : "mlr-safe-inset", style: containerStyle }, [
+		return m(".fill-absolute.flex.col", { class: isDesktopLayout ? "mlr-l height-100p" : "mlr-safe-inset", style: containerStyle }, [
 			this.renderDateSelector(attrs, isDesktopLayout, selectedDate),
 			m(
-				".rel.flex-grow.flex.col.scroll",
+				".rel.flex-grow.flex.col",
 				{
-					class: isDesktopLayout ? undefined : "content-bg scroll border-radius-top-left-big border-radius-top-right-big",
+					class: isDesktopLayout ? "overflow-y-hidden" : "content-bg scroll border-radius-top-left-big border-radius-top-right-big",
 				},
 				this.renderAgenda(attrs, isDesktopLayout),
 			),
@@ -150,9 +150,9 @@ export class CalendarAgendaView implements Component<CalendarAgendaViewAttrs> {
 	private renderAgenda(attrs: CalendarAgendaViewAttrs, isDesktopLayout: boolean): Children {
 		if (!isDesktopLayout) return this.renderMobileEventList(attrs)
 
-		return m(".flex.flex-grow", [
+		return m(".flex.flex-grow.height-100p", [
 			m(
-				".flex-grow.rel",
+				".flex-grow.rel.overflow-y-scroll",
 				{
 					style: {
 						"min-width": px(size.second_col_min_width),
