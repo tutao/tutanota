@@ -52,10 +52,6 @@ import { WebauthnError } from "../error/WebauthnError"
 import { SuspensionError } from "../error/SuspensionError.js"
 import { LoginIncompleteError } from "../error/LoginIncompleteError.js"
 import { OfflineDbClosedError } from "../error/OfflineDbClosedError.js"
-import { ListElementEntity } from "../EntityTypes.js"
-import { groupByAndMap, promiseMap, TypeRef } from "@tutao/tutanota-utils"
-import { EntityClient } from "../EntityClient.js"
-import { elementIdPart, listIdPart } from "./EntityUtils.js"
 
 export function getWhitelabelDomain(customerInfo: CustomerInfo, domainName?: string): DomainInfo | null {
 	return customerInfo.domainInfos.find((info) => info.whitelabelConfig != null && (domainName == null || info.domain === domainName)) ?? null
@@ -172,42 +168,4 @@ export function objToError(o: Record<string, any>): Error {
 	e.stack = o.stack || e.stack
 	e.data = o.data
 	return e
-}
-
-/**
- * load multiple instances of the same type concurrently from multiple lists using
- * one request per list if possible
- *
- * @returns an array of all the instances excluding the ones throwing NotFoundError or NotAuthorizedError, in arbitrary order.
- */
-export async function loadMultipleFromLists<T extends ListElementEntity>(
-	type: TypeRef<T>,
-	entityClient: EntityClient,
-	toLoad: Array<IdTuple>,
-): Promise<Array<T>> {
-	if (toLoad.length === 0) {
-		return []
-	}
-	const indexedEventIds = groupByAndMap<IdTuple, Id, Id>(toLoad, listIdPart, elementIdPart)
-
-	return (
-		await promiseMap(
-			indexedEventIds,
-			async ([listId, elementIds]) => {
-				try {
-					return await entityClient.loadMultiple(type, listId, elementIds)
-				} catch (e) {
-					// these are thrown if the list itself is inaccessible. elements will just be missing
-					// in the loadMultiple result.
-					if (e instanceof NotFoundError || e instanceof NotAuthorizedError) {
-						console.log(`could not load entities of type ${type} from list ${listId}: ${e.name}`)
-						return []
-					} else {
-						throw e
-					}
-				}
-			},
-			{ concurrency: 3 },
-		)
-	).flat()
 }

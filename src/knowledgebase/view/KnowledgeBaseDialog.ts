@@ -14,7 +14,8 @@ import stream from "mithril/stream"
 import Stream from "mithril/stream"
 import type { DialogInjectionRightAttrs } from "../../gui/base/DialogInjectionRight"
 import { TemplatePopupModel } from "../../templates/model/TemplatePopupModel"
-import { getSharedGroupName } from "../../sharing/GroupUtils"
+
+import { getSharedGroupName } from "../../sharing/GroupUtils.js"
 
 export function createKnowledgeBaseDialogInjection(
 	knowledgeBase: KnowledgeBaseModel,
