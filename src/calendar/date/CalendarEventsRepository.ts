@@ -63,7 +63,7 @@ export class CalendarEventsRepository {
 				this.loadedMonths.add(month.start)
 
 				try {
-					const calendarInfos = await this.calendarModel.loadOrCreateCalendarInfo(progressMonitor)
+					const calendarInfos = await this.calendarModel.getCalendarInfos()
 					this.replaceEvents(await this.calendarFacade.updateEventMap(month, calendarInfos, this.daysToEvents(), this.zone))
 				} catch (e) {
 					this.loadedMonths.delete(month.start)
@@ -175,8 +175,7 @@ export class CalendarEventsRepository {
 	}
 
 	private async entityEventsReceived(updates: ReadonlyArray<EntityUpdateData>, eventOwnerGroupId: string) {
-		// FIXME progress monitor
-		const calendarInfos = await this.calendarModel.loadCalendarInfos(new NoopProgressMonitor())
+		const calendarInfos = await this.calendarModel.getCalendarInfos()
 		for (const update of updates) {
 			if (isUpdateForTypeRef(CalendarEventTypeRef, update)) {
 				if (update.operation === OperationType.CREATE || update.operation === OperationType.UPDATE) {

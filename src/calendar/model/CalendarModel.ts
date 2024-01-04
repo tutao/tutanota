@@ -46,6 +46,7 @@ import { TutanotaError } from "../../api/common/error/TutanotaError.js"
 import { SessionKeyNotFoundError } from "../../api/common/error/SessionKeyNotFoundError.js"
 import Stream from "mithril/stream"
 import { ObservableLazyLoaded } from "../../api/common/utils/ObservableLazyLoaded.js"
+import { UserController } from "../../api/main/UserController.js"
 
 const TAG = "[CalendarModel]"
 export type CalendarInfo = {
@@ -72,10 +73,12 @@ export class CalendarModel {
 	/**
 	 * Map from group id to CalendarInfo
 	 */
-	private readonly calendarInfos = new ObservableLazyLoaded<ReadonlyMap<Id, CalendarInfo>>(
-		() => this.loadOrCreateCalendarInfo(this.readProgressMonitor.next().value),
-		new Map(),
-	)
+	private readonly calendarInfos = new ObservableLazyLoaded<ReadonlyMap<Id, CalendarInfo>>(() => {
+		const monitor: IProgressMonitor = this.readProgressMonitor.next().value
+		const calendarInfoPromise = this.loadOrCreateCalendarInfo(monitor)
+		monitor.completed()
+		return calendarInfoPromise
+	}, new Map())
 
 	constructor(
 		private readonly notifications: Notifications,
@@ -90,16 +93,14 @@ export class CalendarModel {
 		private readonly fileController: FileController,
 		private readonly zone: string,
 	) {
-		// load all calendars. if there is no calendar yet, create one
-		// we load three instances per calendar / CalendarGroupRoot / GroupInfo / Group
-		const workPerCalendar = 3
-		const totalWork = logins.getUserController().getCalendarMemberships().length * workPerCalendar
-		const monitorHandle = progressTracker.registerMonitorSync(totalWork)
-		// the first time we want a real progress monitor but any time we would reload we don't need it
-		this.readProgressMonitor = oneShotProgressMonitorGenerator(assertNotNull(progressTracker.getMonitor(monitorHandle)))
+		this.readProgressMonitor = oneShotProgressMonitorGenerator(progressTracker, logins.getUserController())
 
 		if (isApp()) return
 		eventController.addEntityListener((updates, eventOwnerGroupId) => this.entityEventsReceived(updates, eventOwnerGroupId))
+	}
+
+	getCalendarInfos(): Promise<ReadonlyMap<Id, CalendarInfo>> {
+		return this.calendarInfos.getAsync()
 	}
 
 	getCalendarInfosStream(): Stream<ReadonlyMap<Id, CalendarInfo>> {
@@ -146,8 +147,7 @@ export class CalendarModel {
 	}
 
 	/** Load map from group/groupRoot ID to the calendar info */
-	// FIXME shouldn't we expose the cached version in LazyLoaded?
-	async loadCalendarInfos(progressMonitor: IProgressMonitor): Promise<ReadonlyMap<Id, CalendarInfo>> {
+	private async loadCalendarInfos(progressMonitor: IProgressMonitor): Promise<ReadonlyMap<Id, CalendarInfo>> {
 		const user = this.logins.getUserController().user
 
 		const calendarMemberships = user.memberships.filter((m) => m.groupType === GroupType.Calendar)
@@ -189,7 +189,7 @@ export class CalendarModel {
 		return calendarInfos
 	}
 
-	async loadOrCreateCalendarInfo(progressMonitor: IProgressMonitor): Promise<ReadonlyMap<Id, CalendarInfo>> {
+	private async loadOrCreateCalendarInfo(progressMonitor: IProgressMonitor): Promise<ReadonlyMap<Id, CalendarInfo>> {
 		const { findPrivateCalendar } = await import("../date/CalendarUtils.js")
 		const calendarInfos = await this.loadCalendarInfos(progressMonitor)
 
@@ -821,7 +821,14 @@ class NoOwnerEncSessionKeyForCalendarEventError extends TutanotaError {
 /**
  * yield the given monitor one time and then switch to noOp monitors forever
  */
-function* oneShotProgressMonitorGenerator(realMonitor: IProgressMonitor): Generator<IProgressMonitor> {
+function* oneShotProgressMonitorGenerator(progressTracker: ProgressTracker, userController: UserController): Generator<IProgressMonitor> {
+	// load all calendars. if there is no calendar yet, create one
+	// we load three instances per calendar / CalendarGroupRoot / GroupInfo / Group
+	const workPerCalendar = 3
+	const totalWork = userController.getCalendarMemberships().length * workPerCalendar
+	// the first time we want a real progress monitor but any time we would reload we don't need it
+	const realMonitorId = progressTracker.registerMonitorSync(totalWork)
+	const realMonitor = assertNotNull(progressTracker.getMonitor(realMonitorId))
 	yield realMonitor
 	while (true) {
 		yield new NoopProgressMonitor()

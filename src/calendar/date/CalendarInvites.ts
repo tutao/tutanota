@@ -66,7 +66,7 @@ export async function showEventDetails(event: CalendarEvent, eventBubbleRect: Cl
 		hasBusinessFeature = false
 	} else {
 		const [calendarInfos, mailboxDetails, customer] = await Promise.all([
-			(await locator.calendarModel()).loadOrCreateCalendarInfo(new NoopProgressMonitor()),
+			(await locator.calendarModel()).getCalendarInfos(),
 			locator.mailModel.getUserMailboxDetails(),
 			locator.logins.getUserController().loadCustomer(),
 		])
@@ -164,7 +164,7 @@ export async function replyToEventInvitation(
 		}
 	}
 	const calendarModel = await locator.calendarModel()
-	const calendar = await calendarModel.loadOrCreateCalendarInfo(new NoopProgressMonitor()).then(findPrivateCalendar)
+	const calendar = await calendarModel.getCalendarInfos().then(findPrivateCalendar)
 	if (calendar == null) return ReplyResult.ReplyNotSent
 	if (decision !== CalendarAttendeeStatus.DECLINED && eventClone.uid != null) {
 		const dbEvents = await calendarModel.getEventsByUid(eventClone.uid)
