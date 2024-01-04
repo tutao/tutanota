@@ -61,7 +61,7 @@ export const allowedImports = {
 	"native-main": ["polyfill-helpers", "common-min", "common", "boot", "gui-base", "main", "native-common", "login"],
 	"native-worker": ["polyfill-helpers", "common-min", "common"],
 	jszip: ["polyfill-helpers"],
-	"worker-lazy": ["common-min", "common", "worker", "worker-search"],
+	"worker-lazy": ["common-min", "common", "worker", "worker-search", "date"],
 	"worker-search": ["common-min", "common", "worker", "worker-lazy"],
 	linkify: [],
 }
