@@ -28,7 +28,7 @@ export class CachePostLoginAction implements PostLoginAction {
 		const totalWork = this.logins.getUserController().getCalendarMemberships().length * workPerCalendar
 		const monitorHandle = await this.progressTracker.registerMonitor(totalWork)
 		const progressMonitor = this.progressTracker.getMonitor(monitorHandle) ?? new NoopProgressMonitor()
-		const calendarInfos = await this.calendarModel.loadCalendarInfos(progressMonitor)
+		const calendarInfos = await this.calendarModel.getCalendarInfos()
 
 		await promiseMap(calendarInfos.values(), async ({ groupRoot }) => {
 			await Promise.all([

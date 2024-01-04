@@ -49,7 +49,6 @@ import { SearchRouter } from "./SearchRouter.js"
 import { MailOpenedListener } from "../../mail/view/MailViewModel.js"
 import { CalendarInfo } from "../../calendar/model/CalendarModel.js"
 import { locator } from "../../api/main/MainLocator.js"
-import { NoopProgressMonitor } from "../../api/common/utils/ProgressMonitor.js"
 import m from "mithril"
 import { CalendarFacade } from "../../api/worker/facades/lazy/CalendarFacade.js"
 import { ProgrammingError } from "../../api/common/error/ProgrammingError.js"
@@ -93,7 +92,7 @@ export class SearchViewModel {
 	loadingAllForSearchResult: SearchResult | null = null
 	private readonly lazyCalendarInfos: LazyLoaded<ReadonlyMap<string, CalendarInfo>> = new LazyLoaded(async () => {
 		const calendarModel = await locator.calendarModel()
-		const calendarInfos = await calendarModel.loadCalendarInfos(new NoopProgressMonitor())
+		const calendarInfos = await calendarModel.getCalendarInfos()
 		m.redraw()
 		return calendarInfos
 	})
@@ -402,18 +401,15 @@ export class SearchViewModel {
 	}
 
 	private routeCalendar(element: CalendarEvent | null, restriction: SearchRestriction) {
-		console.log("Routing to calendar")
 		const eventTimes = element ? [element.startTime.getTime(), element.endTime.getTime()] : []
 		this.router.routeTo(this.search.lastQuery() ?? "", restriction, element ? getElementId(element) : null, eventTimes)
 	}
 
 	private routeMail(element: Mail | null, restriction: SearchRestriction) {
-		console.log("Routing to mail")
 		this.router.routeTo(this.search.lastQuery() ?? "", restriction, element && isSameTypeRef(element._type, MailTypeRef) ? getElementId(element) : null)
 	}
 
 	private routeContact(element: Contact | null, restriction: SearchRestriction) {
-		console.log("Routing to Contact")
 		this.router.routeTo(this.search.lastQuery() ?? "", restriction, element ? getElementId(element) : null)
 	}
 
