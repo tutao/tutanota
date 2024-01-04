@@ -94,11 +94,11 @@ import { Checkbox, CheckboxAttrs } from "../../gui/base/Checkbox.js"
 import { buildEventPreviewModel, CalendarEventPreviewViewModel } from "../../calendar/view/eventpopup/CalendarEventPreviewViewModel.js"
 import { EventDetailsView, EventDetailsViewAttrs } from "../../calendar/view/EventDetailsView.js"
 import { progressIcon } from "../../gui/base/Icon.js"
-import { getSharedGroupName } from "../../sharing/GroupUtils.js"
 import { showProgressDialog } from "../../gui/dialogs/ProgressDialog.js"
 import { CalendarOperation } from "../../calendar/date/eventeditor/CalendarEventModel.js"
 import { getEventWithDefaultTimes } from "../../api/common/utils/CommonCalendarUtils.js"
 import { showNewCalendarEventEditDialog } from "../../calendar/view/eventeditor/CalendarEventEditDialog.js"
+import { getSharedGroupName } from "../../sharing/GroupUtils.js"
 
 assertMainOrNode()
 
