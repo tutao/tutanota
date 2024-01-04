@@ -94,7 +94,7 @@ export class AttendeeListEditor implements Component<AttendeeListEditorAttrs> {
 		const guests = whoModel.guests
 		if (!guests.some((a) => a.type === RecipientType.EXTERNAL)) return null
 		return m(ToggleButton, {
-			title: whoModel.isConfidential ? "confidential_action" : "nonConfidential_action",
+			title: "confidential_action",
 			onToggled: (_, e) => {
 				whoModel.isConfidential = !whoModel.isConfidential
 				e.stopPropagation()

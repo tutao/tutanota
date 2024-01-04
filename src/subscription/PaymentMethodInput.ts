@@ -20,6 +20,7 @@ import { CCViewModel, SimplifiedCreditCardInput } from "./SimplifiedCreditCardIn
 import { SimplifiedCreditCardViewModel } from "./SimplifiedCreditCardInputModel.js"
 import { isUpdateForTypeRef } from "../api/common/utils/EntityUpdateUtils.js"
 import { EntityEventsListener } from "../api/main/EventController.js"
+import { BaseButton } from "../gui/base/buttons/BaseButton.js"
 
 /**
  * Component to display the input fields for a payment method. The selector to switch between payment methods is not included.
@@ -234,24 +235,19 @@ class PaypalInput {
 						"margin-top": "50px",
 					},
 				},
-				m(
-					"button.button-height.flex.items-center.plr.border.border-radius.bg-white",
-					{
-						title: "PayPal",
-						style: {
-							cursor: "pointer",
-						},
-						onclick: () => {
-							this.__paymentPaypalTest?.getStage(1).complete()
-							if (attrs.payPalRequestUrl.isLoaded()) {
-								window.open(attrs.payPalRequestUrl.getLoaded())
-							} else {
-								showProgressDialog("payPalRedirect_msg", attrs.payPalRequestUrl.getAsync()).then((url) => window.open(url))
-							}
-						},
+				m(BaseButton, {
+					label: "PayPal",
+					icon: m(".payment-logo", m.trust(PayPalLogo)),
+					class: "border border-radius bg-white button-height plr",
+					onclick: () => {
+						this.__paymentPaypalTest?.getStage(1).complete()
+						if (attrs.payPalRequestUrl.isLoaded()) {
+							window.open(attrs.payPalRequestUrl.getLoaded())
+						} else {
+							showProgressDialog("payPalRedirect_msg", attrs.payPalRequestUrl.getAsync()).then((url) => window.open(url))
+						}
 					},
-					m("img[src=" + PayPalLogo + "]"),
-				),
+				}),
 			),
 			m(
 				".small.pt.center",

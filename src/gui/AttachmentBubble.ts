@@ -16,6 +16,7 @@ import { ease } from "./animation/Easing.js"
 import { getFileBaseName, getFileExtension, isTutanotaFile } from "../api/common/utils/FileUtils.js"
 import { getSafeAreaInsetBottom } from "./HtmlUtils.js"
 import { hasError } from "../api/common/utils/ErrorUtils.js"
+import { BubbleButton, bubbleButtonHeight, bubbleButtonPadding } from "./base/buttons/BubbleButton.js"
 
 export type AttachmentBubbleAttrs = {
 	attachment: Attachment
@@ -30,27 +31,27 @@ export class AttachmentBubble implements Component<AttachmentBubbleAttrs> {
 	view(vnode: Vnode<AttachmentBubbleAttrs>): Children {
 		const { attachment } = vnode.attrs
 		if (isTutanotaFile(attachment) && hasError(attachment)) {
-			return m(Button, {
+			return m(BubbleButton, {
 				label: "emptyString_msg",
-				title: "corrupted_msg",
-				icon: () => Icons.Warning,
-				type: ButtonType.Bubble,
-				click: noOp,
+				text: "corrupted_msg",
+				icon: Icons.Warning,
+				onclick: noOp,
 			})
 		} else {
 			const extension = getFileExtension(attachment.name)
 			const rest = getFileBaseName(attachment.name)
-			return m(Button, {
-				label: () => rest,
-				title: () => attachment.name,
-				icon: () => Icons.Attachment,
-				type: ButtonType.Bubble,
-				staticRightText: `${extension}, ${formatStorageSize(Number(attachment.size))}`,
-				click: async () => {
-					await showAttachmentDetailsPopup(this.dom!, vnode.attrs)
-					this.dom?.focus()
+			return m(
+				BubbleButton,
+				{
+					label: () => attachment.name,
+					text: () => rest,
+					icon: Icons.Attachment,
+					onclick: () => {
+						showAttachmentDetailsPopup(this.dom!, vnode.attrs).then(() => this.dom?.focus())
+					},
 				},
-			})
+				`${extension}, ${formatStorageSize(Number(attachment.size))}`,
+			)
 		}
 	}
 
@@ -120,8 +121,9 @@ export class AttachmentDetailsPopup implements ModalComponent {
 
 	view(): Children {
 		return m(
-			".abs.bubble-color.plr-button.border-radius.overflow-hidden.flex.flex-column",
+			".abs.bubble-color.border-radius.overflow-hidden.flex.flex-column",
 			{
+				class: bubbleButtonPadding(),
 				style: {
 					width: px(this.targetWidth),
 					// see hack description below. if #5587 persists, we might try visibility: hidden instead?
@@ -140,41 +142,45 @@ export class AttachmentDetailsPopup implements ModalComponent {
 	}
 
 	private renderContent(): Children {
+		// We are trying to make some contents look like the attachment button to make the transition look smooth.
+		// It is somewhat harder as it looks different with mobile layout.
 		const { remove, open, download, attachment } = this.attrs
 		return m(
-			".flex.row.mb-s.pr",
+			".flex.mb-s.pr",
 			{
 				oncreate: (vnode) => (this.domContent = vnode.dom as HTMLElement),
 			},
 			[
 				m(Icon, {
 					icon: Icons.Attachment,
-					class: "pr-s",
+					class: "pr-s flex items-center",
 					style: {
 						fill: theme.button_bubble_fg,
 						"background-color": "initial",
-						marginTop: "6px",
+						minHeight: px(bubbleButtonHeight()),
 					},
 				}),
-				m(".flex.col.flex-grow", [
-					m(
-						".mb.break-all.smaller",
-						{
-							style: {
-								marginTop: "5px",
-							},
+				//  flex-grow to cover the bubble in case it's bigger than our content
+				m(
+					".flex.col.flex-grow",
+					{
+						style: {
+							minHeight: px(bubbleButtonHeight()),
+							// set line-height to position the text like in the button
+							lineHeight: px(bubbleButtonHeight()),
 						},
-						attachment.name,
-					),
-					m(".flex.row.justify-between.items-center.flex-grow", [
+					},
+					m(".span.break-all.smaller", attachment.name),
+					// bottom info is inside the same column as file text to align them
+					m(".flex.row.justify-between.items-center", [
 						m("span.smaller", `${formatStorageSize(Number(attachment.size))}`),
-						m(".no-wrap", [
+						m(".flex.no-wrap", [
 							remove ? m(Button, { type: ButtonType.Secondary, label: "remove_action", click: () => this.thenClose(remove) }) : null,
 							open ? m(Button, { type: ButtonType.Secondary, label: "open_action", click: () => this.thenClose(open) }) : null,
 							download ? m(Button, { type: ButtonType.Secondary, label: "download_action", click: () => this.thenClose(download) }) : null,
 						]),
 					]),
-				]),
+				),
 			],
 		)
 	}
@@ -187,8 +193,7 @@ export class AttachmentDetailsPopup implements ModalComponent {
 	private async animatePanel(): Promise<void> {
 		const { targetRect, domPanel, domContent } = this
 		if (domPanel == null || domContent == null) return
-		// from .bubble class
-		const initialHeight = 30
+		const initialHeight = bubbleButtonHeight()
 		// there is a possibility that we get 0 here in some circumstances, but it's unclear when.
 		// might have something to do with the opacity: 0 hack above or because the original 24ms
 		// delay was not enough. https://github.com/tutao/tutanota/issues/5587
@@ -211,7 +216,7 @@ export class AttachmentDetailsPopup implements ModalComponent {
 		domPanel.style.width = px(targetRect.width)
 		domPanel.style.height = px(initialHeight)
 		// add half the difference between .button height of 44px and 30px for pixel-perfect positioning
-		domPanel.style.top = px(targetRect.top + 7)
+		domPanel.style.top = px(targetRect.top)
 
 		//Verify if the attachment bubble is going to overflow the screen
 		//if yes, invert the side of the margin and discount the bubble width

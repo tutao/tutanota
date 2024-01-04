@@ -1,5 +1,4 @@
 import m, { Children, Component, Vnode } from "mithril"
-import { px, size } from "../size"
 import type { ClickHandler } from "./GuiUtils"
 
 export type Attrs = {
@@ -11,7 +10,7 @@ export type Attrs = {
 export class RecipientButton implements Component<Attrs> {
 	view({ attrs }: Vnode<Attrs>): Children {
 		return m(
-			"button.mr-button.secondary.print.small",
+			"button.mr-button.content-accent-fg.print.small",
 			{
 				style: Object.assign(
 					{

@@ -27,6 +27,7 @@ import { UsageTest } from "@tutao/tutanota-usagetests"
 import { PaymentInterval } from "./PriceUtils.js"
 import { EntityUpdateData, isUpdateForTypeRef } from "../api/common/utils/EntityUpdateUtils.js"
 import { EntityEventsListener } from "../api/main/EventController.js"
+import { LoginButton } from "../gui/base/buttons/LoginButton.js"
 
 /**
  * Wizard page for editing invoice and payment data.
@@ -206,10 +207,9 @@ export class InvoiceAndPaymentDataPage implements WizardPageN<UpgradeSubscriptio
 										width: "260px",
 									},
 								},
-								m(Button, {
+								m(LoginButton, {
 									label: "next_action",
-									click: onNextClick,
-									type: ButtonType.Login,
+									onclick: onNextClick,
 								}),
 							),
 						),

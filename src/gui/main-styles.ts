@@ -350,6 +350,9 @@ styles.registerStyle("main", () => {
 		".ml-hpad_small": {
 			"margin-left": px(size.hpad_small),
 		},
+		".mr-hpad-small": {
+			"margin-right": px(size.hpad_small),
+		},
 		".mtb-0": {
 			"margin-top": px(0),
 			"margin-bottom": px(0),
@@ -573,6 +576,9 @@ styles.registerStyle("main", () => {
 		},
 		".text-pre": {
 			"white-space": "pre",
+		},
+		".uppercase": {
+			"text-transform": "uppercase",
 		},
 		".line-break-anywhere": {
 			"line-break": "anywhere",
@@ -919,6 +925,9 @@ styles.registerStyle("main", () => {
 		".gap-vpad": {
 			gap: px(size.vpad),
 		},
+		".gap-hpad": {
+			gap: px(size.hpad),
+		},
 		".flex": {
 			display: "flex",
 		},
@@ -1204,7 +1213,7 @@ styles.registerStyle("main", () => {
 			// disable default focus indicator because we have our own for this element
 			outline: "none",
 		},
-		".state-bg:active, .state-bg[toggled=true]": {
+		".state-bg:active, .state-bg[pressed=true]": {
 			background: stateBgActive,
 			"transition-duration": ".3s",
 		},
@@ -1582,13 +1591,11 @@ styles.registerStyle("main", () => {
 		".secondary": {
 			color: theme.content_accent,
 		},
-		".textBubble": {
-			color: theme.content_accent,
+		".text-bubble": {
 			"padding-top": px(size.text_bubble_tpad),
 		},
 		".bubble": {
 			"border-radius": px(size.border_radius),
-			height: px(size.button_height_bubble),
 			"background-color": theme.button_bubble_bg,
 			color: theme.button_bubble_fg,
 		},

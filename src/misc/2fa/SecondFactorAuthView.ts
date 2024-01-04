@@ -1,12 +1,12 @@
 import m, { Children, Component, Vnode } from "mithril"
 import type { TranslationKey } from "../LanguageViewModel"
 import { lang } from "../LanguageViewModel"
-import { Button, ButtonAttrs, ButtonType } from "../../gui/base/Button.js"
 import { Icon, progressIcon } from "../../gui/base/Icon"
 import { Icons, SecondFactorImage } from "../../gui/base/icons/Icons"
 import { theme } from "../../gui/theme"
 import type { Thunk } from "@tutao/tutanota-utils"
 import { Autocomplete, TextField } from "../../gui/base/TextField.js"
+import { LoginButton } from "../../gui/base/buttons/LoginButton.js"
 
 type WebauthnState = { state: "init" } | { state: "progress" } | { state: "error"; error: TranslationKey }
 
@@ -80,15 +80,14 @@ export class SecondFactorAuthView implements Component<SecondFactorViewAttrs> {
 		let items
 		const { state } = webauthn
 
-		const doWebauthnButtonAttrs: ButtonAttrs = {
+		const doWebAuthnButton = m(LoginButton, {
 			label: "useSecurityKey_action",
-			click: () => webauthn.doWebauthn(),
-			type: ButtonType.Login,
-		}
+			onclick: () => webauthn.doWebauthn(),
+		})
 
 		switch (state.state) {
 			case "init":
-				items = [m(".align-self-center", m(Button, doWebauthnButtonAttrs))]
+				items = [m(".align-self-center", doWebAuthnButton)]
 				break
 
 			case "progress":
@@ -111,7 +110,7 @@ export class SecondFactorAuthView implements Component<SecondFactorViewAttrs> {
 							),
 							m("", lang.get(state.error)),
 						]),
-						m(Button, doWebauthnButtonAttrs),
+						doWebAuthnButton,
 					]),
 				]
 				break

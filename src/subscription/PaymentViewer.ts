@@ -9,7 +9,7 @@ import { formatPrice, getPaymentMethodInfoText, getPaymentMethodName } from "./P
 import * as InvoiceDataDialog from "./InvoiceDataDialog"
 import { Icons } from "../gui/base/icons/Icons"
 import { ColumnWidth, Table, TableLineAttrs } from "../gui/base/Table.js"
-import { Button, ButtonType } from "../gui/base/Button.js"
+import { ButtonType } from "../gui/base/Button.js"
 import { formatDate } from "../misc/Formatter"
 import { getPaymentMethodType, NewPaidPlans, PaymentMethodType, PostingType } from "../api/common/TutanotaConstants"
 import { BadGatewayError, LockedError, PreconditionFailedError, TooManyRequestsError } from "../api/common/error/RestError"
@@ -38,6 +38,7 @@ import { formatNameAndAddress } from "../api/common/utils/CommonFormatter.js"
 import { client } from "../misc/ClientDetector.js"
 import { DeviceType } from "../misc/ClientConstants.js"
 import { EntityUpdateData, isUpdateForTypeRef } from "../api/common/utils/EntityUpdateUtils.js"
+import { LoginButton } from "../gui/base/buttons/LoginButton.js"
 
 assertMainOrNode()
 
@@ -198,10 +199,9 @@ export class PaymentViewer implements UpdatableSettingsViewer {
 										width: "200px",
 									},
 								},
-								m(Button, {
+								m(LoginButton, {
 									label: "invoicePay_action",
-									type: ButtonType.Login,
-									click: () => this._showPayDialog(this._amountOwed()),
+									onclick: () => this._showPayDialog(this._amountOwed()),
 								}),
 						  )
 						: null,

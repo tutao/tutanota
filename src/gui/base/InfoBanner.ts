@@ -18,11 +18,13 @@ export const enum BannerType {
 	Warning = "warning",
 }
 
+export type BannerButtonAttrs = Omit<ButtonAttrs, "type">
+
 export interface InfoBannerAttrs {
 	message: TranslationKey | lazy<Children>
 	icon: AllIcons
 	helpLink?: InfoLink | null
-	buttons: ReadonlyArray<ButtonAttrs | null>
+	buttons: ReadonlyArray<BannerButtonAttrs | null>
 	type?: BannerType
 }
 
@@ -75,7 +77,7 @@ export class InfoBanner implements Component<InfoBannerAttrs> {
 		})
 	}
 
-	renderButtons(buttons: ReadonlyArray<ButtonAttrs | null>): Children {
+	renderButtons(buttons: ReadonlyArray<BannerButtonAttrs | null>): Children {
 		if (buttons.length === 0) return null
 		return m(
 			"small",

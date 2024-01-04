@@ -548,7 +548,6 @@ export class MailView extends BaseTopLevelView implements TopLevelView<MailViewA
 							? null
 							: !styles.isUsingBottomNavigation() && isNewMailActionAvailable()
 							? {
-									type: ButtonType.FolderColumnHeader,
 									label: "newMail_action",
 									click: () => this.showNewMailDialog().catch(ofClass(PermissionError, noOp)),
 							  }

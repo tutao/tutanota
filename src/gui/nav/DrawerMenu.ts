@@ -1,5 +1,5 @@
 import m, { Children, Component, Vnode } from "mithril"
-import { Button, ButtonColor, ButtonType } from "../base/Button.js"
+import { ButtonColor } from "../base/Button.js"
 import { BootIcons } from "../base/icons/BootIcons"
 import { showSupportDialog, showUpgradeDialog } from "./NavFunctions"
 import { isIOSApp } from "../../api/common/Env"
@@ -17,6 +17,7 @@ import { LoginController } from "../../api/main/LoginController.js"
 import { NewsModel } from "../../misc/news/NewsModel.js"
 import { DesktopSystemFacade } from "../../native/common/generatedipc/DesktopSystemFacade.js"
 import { styles } from "../styles.js"
+import { IconButton } from "../base/IconButton.js"
 
 export interface DrawerMenuAttrs {
 	logins: LoginController
@@ -42,11 +43,10 @@ export class DrawerMenu implements Component<DrawerMenuAttrs> {
 				m(".flex-grow"),
 				logins.isUserLoggedIn()
 					? m(".news-button", [
-							m(Button, {
-								icon: () => Icons.Bulb,
-								label: "news_label",
+							m(IconButton, {
+								icon: Icons.Bulb,
+								title: "news_label",
 								click: () => showNewsDialog(newsModel),
-								type: ButtonType.ActionLarge,
 								colors: ButtonColor.DrawerNav,
 							}),
 							liveNewsCount > 0
@@ -63,43 +63,39 @@ export class DrawerMenu implements Component<DrawerMenuAttrs> {
 					  ])
 					: null,
 				logins.isGlobalAdminUserLoggedIn() && logins.getUserController().isPremiumAccount()
-					? m(Button, {
-							icon: () => Icons.Gift,
-							label: "buyGiftCard_label",
+					? m(IconButton, {
+							icon: Icons.Gift,
+							title: "buyGiftCard_label",
 							click: () => {
 								m.route.set("/settings/subscription")
 								import("../../subscription/giftcards/PurchaseGiftCardDialog").then(({ showPurchaseGiftCardDialog }) => {
 									return showPurchaseGiftCardDialog()
 								})
 							},
-							type: ButtonType.ActionLarge,
 							colors: ButtonColor.DrawerNav,
 					  })
 					: null,
 				desktopSystemFacade
-					? m(Button, {
-							icon: () => Icons.NewWindow,
-							label: "openNewWindow_action",
+					? m(IconButton, {
+							icon: Icons.NewWindow,
+							title: "openNewWindow_action",
 							click: () => {
 								desktopSystemFacade.openNewWindow()
 							},
-							type: ButtonType.ActionLarge,
 							colors: ButtonColor.DrawerNav,
 					  })
 					: null,
 				!isIOSApp() && logins.isUserLoggedIn() && logins.getUserController().isFreeAccount()
-					? m(Button, {
-							icon: () => BootIcons.Premium,
-							label: "upgradePremium_label",
+					? m(IconButton, {
+							icon: BootIcons.Premium,
+							title: "upgradePremium_label",
 							click: () => showUpgradeDialog(),
-							type: ButtonType.ActionLarge,
 							colors: ButtonColor.DrawerNav,
 					  })
 					: null,
-				m(Button, {
-					label: "showHelp_action",
-					icon: () => BootIcons.Help,
-					type: ButtonType.ActionLarge,
+				m(IconButton, {
+					title: "showHelp_action",
+					icon: BootIcons.Help,
 					click: (e, dom) =>
 						createDropdown({
 							width: 300,
@@ -114,23 +110,20 @@ export class DrawerMenu implements Component<DrawerMenuAttrs> {
 								},
 							],
 						})(e, dom),
-					noBubble: true,
 					colors: ButtonColor.DrawerNav,
 				}),
 				logins.isInternalUserLoggedIn()
-					? m(Button, {
-							icon: () => BootIcons.Settings,
-							label: "settings_label",
+					? m(IconButton, {
+							icon: BootIcons.Settings,
+							title: "settings_label",
 							click: () => m.route.set(SETTINGS_PREFIX),
-							type: ButtonType.ActionLarge,
 							colors: ButtonColor.DrawerNav,
 					  })
 					: null,
-				m(Button, {
-					icon: () => BootIcons.Logout,
-					label: "switchAccount_action",
+				m(IconButton, {
+					icon: BootIcons.Logout,
+					title: "switchAccount_action",
 					click: () => m.route.set(LogoutUrl),
-					type: ButtonType.ActionLarge,
 					colors: ButtonColor.DrawerNav,
 				}),
 			]),

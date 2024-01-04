@@ -6,6 +6,7 @@ import { locator } from "../../api/main/MainLocator"
 import { px } from "../../gui/size"
 import { copyToClipboard } from "../ClipboardUtils"
 import { lang } from "../LanguageViewModel.js"
+import { LoginButton } from "../../gui/base/buttons/LoginButton.js"
 
 let dictionary: string[] | null = null
 
@@ -97,10 +98,9 @@ class PasswordGeneratorDialog implements Component<PasswordGeneratorDialogAttrs>
 			]),
 			m(
 				".flex",
-				m(Button, {
+				m(LoginButton, {
 					label: "apply_action",
-					click: () => okAction(),
-					type: ButtonType.Login,
+					onclick: () => okAction(),
 				}),
 			),
 		])

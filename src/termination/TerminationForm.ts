@@ -3,11 +3,11 @@ import { lang } from "../misc/LanguageViewModel.js"
 import { client } from "../misc/ClientDetector.js"
 import { assertNotNull } from "@tutao/tutanota-utils"
 import { Autocomplete, TextField, TextFieldType } from "../gui/base/TextField.js"
-import { Button, ButtonType } from "../gui/base/Button.js"
 import { DropDownSelector } from "../gui/base/DropDownSelector.js"
 import { TerminationPeriodOptions } from "../api/common/TutanotaConstants.js"
 import { DatePicker } from "../calendar/gui/pickers/DatePicker.js"
 import { liveDataAttrs } from "../gui/AriaUtils.js"
+import { LoginButton } from "../gui/base/buttons/LoginButton.js"
 
 export interface TerminationFormAttrs {
 	onSubmit: () => unknown
@@ -121,10 +121,9 @@ export class TerminationForm implements Component<TerminationFormAttrs> {
 
 				m(
 					".mt-l",
-					m(Button, {
+					m(LoginButton, {
 						label: "termination_action",
-						click: () => a.onSubmit(),
-						type: ButtonType.Login,
+						onclick: () => a.onSubmit(),
 					}),
 				),
 				m(".small.center.statusTextColor.mt", liveDataAttrs(), [a.helpText]),

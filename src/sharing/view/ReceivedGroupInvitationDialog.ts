@@ -7,7 +7,6 @@ import stream from "mithril/stream"
 import Stream from "mithril/stream"
 import { downcast } from "@tutao/tutanota-utils"
 import { Dialog } from "../../gui/base/Dialog"
-import { Button, ButtonType } from "../../gui/base/Button.js"
 import type { ReceivedGroupInvitation } from "../../api/entities/sys/TypeRefs.js"
 import { isSameId } from "../../api/common/utils/EntityUtils"
 import { sendAcceptNotificationEmail, sendRejectNotificationEmail } from "../GroupSharingUtils"
@@ -18,6 +17,7 @@ import { getTextsForGroupType } from "../GroupGuiUtils"
 import { GroupType } from "../../api/common/TutanotaConstants"
 import { ColorPicker } from "../../gui/base/ColorPicker"
 import { locator } from "../../api/main/MainLocator"
+import { LoginButton } from "../../gui/base/buttons/LoginButton.js"
 
 export function showGroupInvitationDialog(invitation: ReceivedGroupInvitation) {
 	const groupType = getInvitationGroupType(invitation)
@@ -92,10 +92,9 @@ export function showGroupInvitationDialog(invitation: ReceivedGroupInvitation) {
 					]),
 					isMember
 						? null
-						: m(Button, {
+						: m(LoginButton, {
 								label: "acceptInvitation_action",
-								type: ButtonType.Login,
-								click: onAcceptClicked,
+								onclick: onAcceptClicked,
 						  }),
 				]),
 		},

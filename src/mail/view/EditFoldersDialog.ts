@@ -5,11 +5,11 @@ import { Keys } from "../../api/common/TutanotaConstants.js"
 import m, { Children } from "mithril"
 import { alpha, AlphaEnum, AnimationPromise, animations, DefaultAnimationTime, opacity } from "../../gui/animation/Animations.js"
 import { getElevatedBackground, theme } from "../../gui/theme.js"
-import { Button, ButtonType } from "../../gui/base/Button.js"
 import { INPUT } from "../../gui/base/Dialog.js"
 import { ease } from "../../gui/animation/Easing.js"
 import { px, size } from "../../gui/size.js"
 import { styles } from "../../gui/styles.js"
+import { LoginButton } from "../../gui/base/buttons/LoginButton.js"
 
 export class EditFoldersDialog implements ModalComponent {
 	private visible: boolean
@@ -105,10 +105,9 @@ export class EditFoldersDialog implements ModalComponent {
 			[
 				m(
 					".plr-button.mt.mb",
-					m(Button, {
-						type: ButtonType.Login,
+					m(LoginButton, {
 						label: "done_action",
-						click: () => this.close(),
+						onclick: () => this.close(),
 					}),
 				),
 				m(

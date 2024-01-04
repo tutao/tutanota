@@ -6,7 +6,6 @@ import { lang, TranslationKey } from "../../misc/LanguageViewModel"
 import { Dialog } from "../../gui/base/Dialog"
 import type { WizardPageAttrs, WizardPageN } from "../../gui/base/WizardDialog.js"
 import { emitWizardEvent, WizardEventType } from "../../gui/base/WizardDialog.js"
-import { Button, ButtonType } from "../../gui/base/Button.js"
 import { PreconditionFailedError } from "../../api/common/error/RestError.js"
 import { showPlanUpgradeRequiredDialog } from "../../misc/SubscriptionDialogs.js"
 import { isEmpty, ofClass } from "@tutao/tutanota-utils"
@@ -15,6 +14,7 @@ import { assertMainOrNode } from "../../api/common/Env"
 import { createDnsRecordTable } from "./DnsRecordTable.js"
 import { getAvailableMatchingPlans } from "../../subscription/SubscriptionUtils.js"
 import { getCustomMailDomains } from "../../api/common/utils/CustomerUtils.js"
+import { LoginButton } from "../../gui/base/buttons/LoginButton.js"
 
 assertMainOrNode()
 
@@ -57,10 +57,9 @@ export class VerifyOwnershipPage implements WizardPageN<AddDomainData> {
 							width: "260px",
 						},
 					},
-					m(Button, {
-						type: ButtonType.Login,
+					m(LoginButton, {
 						label: "next_action",
-						click: () => emitWizardEvent(this.dom, WizardEventType.SHOW_NEXT_PAGE),
+						onclick: () => emitWizardEvent(this.dom, WizardEventType.SHOW_NEXT_PAGE),
 					}),
 				),
 			),

@@ -6,7 +6,7 @@ import { FeatureType, InboxRuleType, Keys, MailFolderType, SpamRuleFieldType, Sp
 import type { Mail } from "../../api/entities/tutanota/TypeRefs.js"
 import { lang } from "../../misc/LanguageViewModel"
 import { assertMainOrNode } from "../../api/common/Env"
-import { assertNonNull, assertNotNull, defer, DeferredObject, noOp, ofClass, stringToUtf8Uint8Array, uint8ArrayToBase64 } from "@tutao/tutanota-utils"
+import { assertNonNull, assertNotNull, defer, DeferredObject, noOp, ofClass } from "@tutao/tutanota-utils"
 import { createNewContact, getExistingRuleForType } from "../model/MailUtils"
 import { IconMessageBox } from "../../gui/base/ColumnEmptyMessageBox"
 import type { Shortcut } from "../../misc/KeyManager"
@@ -215,7 +215,6 @@ export class MailViewer implements Component<MailViewerAttrs> {
 				m(ToggleButton, {
 					icon: Icons.More,
 					title: "showText_action",
-					toggledTitle: "hideText_action",
 					toggled: this.shouldDisplayCollapsedQuotes(),
 					onToggled: () => {
 						this.quoteState = this.shouldDisplayCollapsedQuotes() ? "collapsed" : "expanded"

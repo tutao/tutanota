@@ -12,7 +12,6 @@ import type { TableAttrs } from "../../gui/base/Table.js"
 import { ColumnWidth, Table } from "../../gui/base/Table.js"
 import type { WizardPageAttrs } from "../../gui/base/WizardDialog.js"
 import { emitWizardEvent, WizardEventType } from "../../gui/base/WizardDialog.js"
-import { Button, ButtonType } from "../../gui/base/Button.js"
 import { showProgressDialog } from "../../gui/dialogs/ProgressDialog"
 import { InvalidDataError, LimitReachedError } from "../../api/common/error/RestError"
 import { assertMainOrNode } from "../../api/common/Env"
@@ -20,6 +19,7 @@ import { Icons } from "../../gui/base/icons/Icons"
 import { ButtonSize } from "../../gui/base/ButtonSize.js"
 import { UpgradeRequiredError } from "../../api/main/UpgradeRequiredError.js"
 import { showPlanUpgradeRequiredDialog } from "../../misc/SubscriptionDialogs.js"
+import { LoginButton } from "../../gui/base/buttons/LoginButton.js"
 
 assertMainOrNode()
 
@@ -87,10 +87,9 @@ export class AddEmailAddressesPage implements Component<AddEmailAddressesPageAtt
 							width: "260px",
 						},
 					},
-					m(Button, {
-						type: ButtonType.Login,
+					m(LoginButton, {
 						label: "next_action",
-						click: () => emitWizardEvent((vnode as VnodeDOM<AddEmailAddressesPageAttrs>).dom as HTMLElement, WizardEventType.SHOW_NEXT_PAGE),
+						onclick: () => emitWizardEvent((vnode as VnodeDOM<AddEmailAddressesPageAttrs>).dom as HTMLElement, WizardEventType.SHOW_NEXT_PAGE),
 					}),
 				),
 			),

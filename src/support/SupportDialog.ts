@@ -1,7 +1,7 @@
 import { Dialog } from "../gui/base/Dialog"
 import type { DialogHeaderBarAttrs } from "../gui/base/DialogHeaderBar"
 import type { ButtonAttrs } from "../gui/base/Button.js"
-import { Button, ButtonType } from "../gui/base/Button.js"
+import { ButtonType } from "../gui/base/Button.js"
 import { lang } from "../misc/LanguageViewModel"
 import { TextField } from "../gui/base/TextField.js"
 import m, { Component } from "mithril"
@@ -13,6 +13,7 @@ import { writeSupportMail } from "../mail/editor/MailEditor"
 import { assertMainOrNode } from "../api/common/Env"
 import { LoginController } from "../api/main/LoginController.js"
 import { locator } from "../api/main/MainLocator.js"
+import { LoginButton } from "../gui/base/buttons/LoginButton.js"
 
 assertMainOrNode()
 
@@ -52,15 +53,6 @@ export async function showSupportDialog(logins: LoginController) {
 
 	searchValue.map(debouncedSearch)
 
-	const contactSupport: ButtonAttrs = {
-		label: "contactSupport_action",
-		type: ButtonType.Login,
-		click: async () => {
-			if (await writeSupportMail(searchValue().trim())) {
-				closeAction()
-			}
-		},
-	}
 	const header: DialogHeaderBarAttrs = {
 		left: [closeButton],
 		middle: () => lang.get("supportMenu_label"),
@@ -93,7 +85,20 @@ export async function showSupportDialog(logins: LoginController) {
 				searchExecuted && canHaveEmailSupport
 					? m(".pb", [
 							m(".h1 .text-center", lang.get("noSolution_msg")),
-							m(".flex.center-horizontally.pt", m(".flex-grow-shrink-auto.max-width-200", m(Button, contactSupport))),
+							m(
+								".flex.center-horizontally.pt",
+								m(
+									".flex-grow-shrink-auto.max-width-200",
+									m(LoginButton, {
+										label: "contactSupport_action",
+										onclick: () => {
+											writeSupportMail(searchValue().trim()).then((isSuccessful) => {
+												if (isSuccessful) closeAction()
+											})
+										},
+									}),
+								),
+							),
 					  ])
 					: null,
 			]

@@ -1,10 +1,10 @@
 import m, { Children, ClassComponent, Vnode } from "mithril"
 import { TextField } from "./TextField.js"
 import { TranslationText } from "../../misc/LanguageViewModel"
-import { Button, ButtonType } from "./Button.js"
 import { Keys } from "../../api/common/TutanotaConstants"
 import { createAsyncDropdown, DropdownChildAttrs } from "./Dropdown.js"
 import { lazy } from "@tutao/tutanota-utils"
+import { BaseButton } from "./buttons/BaseButton.js"
 
 export interface BubbleTextFieldAttrs {
 	label: TranslationText
@@ -40,14 +40,18 @@ export class BubbleTextField implements ClassComponent<BubbleTextFieldAttrs> {
 					return attrs.items.map((item, idx, items) => {
 						// We need overflow: hidden on both so that ellipsis on button works.
 						// flex is for reserving space for the comma. align-items: end so that comma is pushed to the bottom.
+						const bubbleText = attrs.renderBubbleText(item)
 						return m(".flex.overflow-hidden.items-end", [
 							m(
 								".flex-no-grow-shrink-auto.overflow-hidden",
-								m(Button, {
-									label: () => attrs.renderBubbleText(item),
-									type: ButtonType.TextBubble,
-									isSelected: () => false,
-									click: (e) => {
+								m(BaseButton, {
+									label: bubbleText,
+									text: bubbleText,
+									class: "text-bubble button-content content-fg text-ellipsis",
+									style: {
+										"max-width": "100%",
+									},
+									onclick: (e: MouseEvent) => {
 										e.stopPropagation() // do not focus the text field
 										createAsyncDropdown({
 											lazyButtons: () => attrs.getBubbleDropdownAttrs(item),
@@ -62,7 +66,7 @@ export class BubbleTextField implements ClassComponent<BubbleTextFieldAttrs> {
 					})
 				},
 				injectionsRight: () => attrs.injectionsRight ?? null,
-				oncreate: (vnode) => {
+				oncreate: () => {
 					// If the field is initialized with bubbles but the user did not edit it yet then field will not have correct size
 					// and last bubble will not be on the same line with right injections (like "show" button). It is fixed after user
 					// edits the field and autocompletion changes the field but before that it's broken. To avoid it we set the size
