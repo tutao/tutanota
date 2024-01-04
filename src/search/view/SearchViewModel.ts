@@ -43,7 +43,7 @@ import { getStartOfTheWeekOffsetForUser } from "../../calendar/date/CalendarUtil
 import { SearchFacade } from "../../api/worker/search/SearchFacade.js"
 import { LoginController } from "../../api/main/LoginController.js"
 import { Indexer } from "../../api/worker/search/Indexer.js"
-import { EntityClient } from "../../api/common/EntityClient.js"
+import { EntityClient, loadMultipleFromLists } from "../../api/common/EntityClient.js"
 import { getMailFilterForType, MailFilterType } from "../../mail/model/MailUtils.js"
 import { SearchRouter } from "./SearchRouter.js"
 import { MailOpenedListener } from "../../mail/view/MailViewModel.js"
@@ -53,7 +53,6 @@ import m from "mithril"
 import { CalendarFacade } from "../../api/worker/facades/lazy/CalendarFacade.js"
 import { ProgrammingError } from "../../api/common/error/ProgrammingError.js"
 import { ProgressTracker } from "../../api/main/ProgressTracker.js"
-import { loadMultipleFromLists } from "../../api/common/utils/Utils.js"
 
 const SEARCH_PAGE_SIZE = 100
 

@@ -1,12 +1,22 @@
-import type { Group, GroupInfo, GroupMember, GroupMembership, ReceivedGroupInvitation, User } from "../api/entities/sys/TypeRefs.js"
-import { GroupInfoTypeRef, GroupMemberTypeRef, ReceivedGroupInvitationTypeRef, UserGroupRootTypeRef } from "../api/entities/sys/TypeRefs.js"
+import {
+	Group,
+	GroupInfo,
+	GroupInfoTypeRef,
+	GroupMember,
+	GroupMembership,
+	GroupMemberTypeRef,
+	ReceivedGroupInvitation,
+	ReceivedGroupInvitationTypeRef,
+	User,
+	UserGroupRootTypeRef,
+} from "../api/entities/sys/TypeRefs.js"
 import { GroupType, GroupTypeNameByCode, ShareCapability } from "../api/common/TutanotaConstants"
 import { getEtId, isSameId } from "../api/common/utils/EntityUtils"
 import { lang } from "../misc/LanguageViewModel"
 import { downcast, ofClass, promiseMap } from "@tutao/tutanota-utils"
 import type { EntityClient } from "../api/common/EntityClient"
 import { NotFoundError } from "../api/common/error/RestError"
-import type { UserController } from "../api/main/UserController"
+import { UserController } from "../api/main/UserController"
 
 /**
  * Whether or not a user has a given capability for a shared group. If the group type is not shareable, this will always return false
@@ -51,11 +61,6 @@ export function getCapabilityText(capability: ShareCapability): string {
 		default:
 			return lang.get("comboBoxSelectionNone_msg")
 	}
-}
-
-export function getSharedGroupName(groupInfo: GroupInfo, { userSettingsGroupRoot }: UserController, allowGroupNameOverride: boolean): string {
-	const groupSettings = userSettingsGroupRoot.groupSettings.find((gc) => gc.group === groupInfo.group)
-	return (allowGroupNameOverride && groupSettings && groupSettings.name) || groupInfo.name || getDefaultGroupName(downcast(groupInfo.groupType))
 }
 
 export type GroupMemberInfo = {
@@ -131,3 +136,8 @@ export const TemplateGroupPreconditionFailedReason = Object.freeze({
 	BUSINESS_FEATURE_REQUIRED: "templategroup.business_feature_required",
 	UNLIMITED_REQUIRED: "templategroup.unlimited_required",
 })
+
+export function getSharedGroupName(groupInfo: GroupInfo, { userSettingsGroupRoot }: UserController, allowGroupNameOverride: boolean): string {
+	const groupSettings = userSettingsGroupRoot.groupSettings.find((gc) => gc.group === groupInfo.group)
+	return (allowGroupNameOverride && groupSettings && groupSettings.name) || groupInfo.name || getDefaultGroupName(downcast(groupInfo.groupType))
+}

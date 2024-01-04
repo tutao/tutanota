@@ -35,7 +35,7 @@ import type { CalendarEvent, CalendarEventUidIndex, CalendarRepeatRule } from ".
 import { CalendarEventTypeRef, CalendarEventUidIndexTypeRef, CalendarGroupRootTypeRef, createCalendarDeleteData } from "../../../entities/tutanota/TypeRefs.js"
 import { DefaultEntityRestCache } from "../../rest/DefaultEntityRestCache.js"
 import { ConnectionError, NotAuthorizedError, NotFoundError, PayloadTooLargeError } from "../../../common/error/RestError.js"
-import { EntityClient } from "../../../common/EntityClient.js"
+import { EntityClient, loadMultipleFromLists } from "../../../common/EntityClient.js"
 import { elementIdPart, getLetId, getListId, isSameId, listIdPart, uint8arrayToCustomId } from "../../../common/utils/EntityUtils.js"
 import { GroupManagementFacade } from "./GroupManagementFacade.js"
 import { SetupMultipleError } from "../../../common/error/SetupMultipleError.js"
@@ -63,7 +63,6 @@ import {
 } from "../../../../calendar/date/CalendarUtils.js"
 import { CalendarInfo } from "../../../../calendar/model/CalendarModel.js"
 import { geEventElementMaxId, getEventElementMinId } from "../../../common/utils/CommonCalendarUtils.js"
-import { loadMultipleFromLists } from "../../../common/utils/Utils.js"
 import { DaysToEvents } from "../../../../calendar/date/CalendarEventsRepository.js"
 
 assertWorkerOrNode()
