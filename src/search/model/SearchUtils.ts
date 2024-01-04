@@ -1,10 +1,10 @@
 import m from "mithril"
-import { assertNotNull, filterInt, getDayShifted, getEndOfDay, getStartOfDay, incrementMonth, isSameTypeRef } from "@tutao/tutanota-utils"
+import { assertNotNull, filterInt, getDayShifted, getEndOfDay, getStartOfDay, incrementMonth, isSameTypeRef, TypeRef } from "@tutao/tutanota-utils"
 import { RouteSetFn, throttleRoute } from "../../misc/RouteChange"
 import type { SearchRestriction } from "../../api/worker/search/SearchTypes"
 import { assertMainOrNode } from "../../api/common/Env"
 import { TranslationKey } from "../../misc/LanguageViewModel"
-import { CalendarEventTypeRef, ContactTypeRef, MailTypeRef } from "../../api/entities/tutanota/TypeRefs"
+import { CalendarEvent, CalendarEventTypeRef, Contact, ContactTypeRef, Mail, MailTypeRef } from "../../api/entities/tutanota/TypeRefs"
 import { typeModels } from "../../api/entities/tutanota/TypeModels.js"
 import { locator } from "../../api/main/MainLocator.js"
 
@@ -26,6 +26,10 @@ export const SEARCH_CATEGORIES = [
 		typeRef: CalendarEventTypeRef,
 	},
 ]
+
+export function getSearchType(category: string): TypeRef<CalendarEvent> | TypeRef<Mail> | TypeRef<Contact> {
+	return assertNotNull(SEARCH_CATEGORIES.find((c) => c.name === category)).typeRef
+}
 
 interface SearchMailField {
 	readonly textId: TranslationKey
@@ -148,7 +152,7 @@ export function createRestriction(
 	}
 
 	let r: SearchRestriction = {
-		type: assertNotNull(SEARCH_CATEGORIES.find((c) => c.name === searchCategory)).typeRef,
+		type: getSearchType(searchCategory),
 		start: start,
 		end: end,
 		field: null,
