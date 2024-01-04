@@ -121,7 +121,10 @@ export class SearchModel {
 			const alreadyAdded: Set<string> = new Set()
 
 			if (tokens.length > 0) {
-				for (const [startOfDay, eventsOnDay] of eventsForDays) {
+				// we're iterating by event first to only have to sanitize the description once.
+				// that's a smaller savings than one might think because for the vast majority of
+				// events we're probably not matching and looking into the description anyway.
+				eventLoop: for (const [startOfDay, eventsOnDay] of eventsForDays) {
 					for (const event of eventsOnDay) {
 						if (!(startOfDay >= restriction.start && startOfDay <= restriction.end)) {
 							continue
@@ -144,10 +147,20 @@ export class SearchModel {
 						}
 
 						for (const token of tokens) {
-							if (event.summary.toLowerCase().includes(token) || event.description.toLowerCase().includes(token)) {
+							if (event.summary.toLowerCase().includes(token)) {
 								alreadyAdded.add(key)
 								calendarResult.results.push(event._id)
-								break
+								continue eventLoop
+							}
+						}
+						// checking the summary was cheap, now we store the sanitized description to check it against
+						// all tokens.
+						const descriptionToSearch = event.description.replaceAll(/(<[^>]+>)/gi, " ").toLowerCase()
+						for (const token of tokens) {
+							if (descriptionToSearch.includes(token)) {
+								alreadyAdded.add(key)
+								calendarResult.results.push(event._id)
+								continue eventLoop
 							}
 						}
 					}
