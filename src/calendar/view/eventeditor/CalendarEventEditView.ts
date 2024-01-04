@@ -9,7 +9,6 @@ import { defaultCalendarColor, TimeFormat } from "../../../api/common/TutanotaCo
 import { lang, TranslationKey } from "../../../misc/LanguageViewModel.js"
 import { RecipientsSearchModel } from "../../../misc/RecipientsSearchModel.js"
 import { DropDownSelector, DropDownSelectorAttrs } from "../../../gui/base/DropDownSelector.js"
-import { getSharedGroupName } from "../../../sharing/GroupUtils.js"
 import { BootIcons } from "../../../gui/base/icons/BootIcons.js"
 import { CalendarInfo } from "../../model/CalendarModel.js"
 import { AlarmIntervalUnit, createAlarmIntervalItems, createCustomRepeatRuleUnitValues, humanDescriptionForAlarmInterval } from "../../date/CalendarUtils.js"
@@ -21,6 +20,8 @@ import { attachDropdown } from "../../../gui/base/Dropdown.js"
 import { BannerType, InfoBanner, InfoBannerAttrs } from "../../../gui/base/InfoBanner.js"
 import { CalendarEventModel, ReadonlyReason } from "../../date/eventeditor/CalendarEventModel.js"
 import { Dialog } from "../../../gui/base/Dialog.js"
+
+import { getSharedGroupName } from "../../../sharing/GroupUtils.js"
 
 export type CalendarEventEditViewAttrs = {
 	model: CalendarEventModel

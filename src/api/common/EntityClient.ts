@@ -2,11 +2,21 @@ import type { EntityRestInterface, OwnerEncSessionKeyProvider } from "../worker/
 import { EntityRestClientSetupOptions } from "../worker/rest/EntityRestClient"
 import type { RootInstance } from "../entities/sys/TypeRefs.js"
 import { RootInstanceTypeRef } from "../entities/sys/TypeRefs.js"
-import { CUSTOM_MIN_ID, firstBiggerThanSecond, GENERATED_MIN_ID, getElementId, getLetId, RANGE_ITEM_LIMIT } from "./utils/EntityUtils"
+import {
+	CUSTOM_MIN_ID,
+	elementIdPart,
+	firstBiggerThanSecond,
+	GENERATED_MIN_ID,
+	getElementId,
+	getLetId,
+	listIdPart,
+	RANGE_ITEM_LIMIT,
+} from "./utils/EntityUtils"
 import { Type, ValueType } from "./EntityConstants"
-import { downcast, last, TypeRef } from "@tutao/tutanota-utils"
+import { downcast, groupByAndMap, last, promiseMap, TypeRef } from "@tutao/tutanota-utils"
 import { resolveTypeReference } from "./EntityFunctions"
-import type { ElementEntity, ListElementEntity, SomeEntity } from "./EntityTypes"
+import { ElementEntity, ListElementEntity, SomeEntity } from "./EntityTypes"
+import { NotAuthorizedError, NotFoundError } from "./error/RestError.js"
 
 export class EntityClient {
 	_target: EntityRestInterface
@@ -119,4 +129,42 @@ function wasReverseRangeCompletelyLoaded<T extends ListElementEntity>(rangeItemL
 	}
 
 	return false
+}
+
+/**
+ * load multiple instances of the same type concurrently from multiple lists using
+ * one request per list if possible
+ *
+ * @returns an array of all the instances excluding the ones throwing NotFoundError or NotAuthorizedError, in arbitrary order.
+ */
+export async function loadMultipleFromLists<T extends ListElementEntity>(
+	type: TypeRef<T>,
+	entityClient: EntityClient,
+	toLoad: Array<IdTuple>,
+): Promise<Array<T>> {
+	if (toLoad.length === 0) {
+		return []
+	}
+	const indexedEventIds = groupByAndMap<IdTuple, Id, Id>(toLoad, listIdPart, elementIdPart)
+
+	return (
+		await promiseMap(
+			indexedEventIds,
+			async ([listId, elementIds]) => {
+				try {
+					return await entityClient.loadMultiple(type, listId, elementIds)
+				} catch (e) {
+					// these are thrown if the list itself is inaccessible. elements will just be missing
+					// in the loadMultiple result.
+					if (e instanceof NotFoundError || e instanceof NotAuthorizedError) {
+						console.log(`could not load entities of type ${type} from list ${listId}: ${e.name}`)
+						return []
+					} else {
+						throw e
+					}
+				}
+			},
+			{ concurrency: 3 },
+		)
+	).flat()
 }

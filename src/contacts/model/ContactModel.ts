@@ -4,7 +4,7 @@ import { createRestriction } from "../../search/model/SearchUtils"
 import { isNotNull, LazyLoaded, ofClass, promiseMap } from "@tutao/tutanota-utils"
 import { NotAuthorizedError, NotFoundError } from "../../api/common/error/RestError"
 import { DbError } from "../../api/common/error/DbError"
-import { EntityClient } from "../../api/common/EntityClient"
+import { EntityClient, loadMultipleFromLists } from "../../api/common/EntityClient"
 import type { LoginController } from "../../api/main/LoginController"
 import { compareOldestFirst, getEtId } from "../../api/common/utils/EntityUtils"
 import type { SearchFacade } from "../../api/worker/search/SearchFacade"
@@ -17,7 +17,6 @@ import Stream from "mithril/stream"
 import stream from "mithril/stream"
 import { ShareCapability } from "../../api/common/TutanotaConstants.js"
 import { isSharedGroupOwner } from "../../sharing/GroupUtils.js"
-import { loadMultipleFromLists } from "../../api/common/utils/Utils.js"
 
 assertMainOrNode()
 
