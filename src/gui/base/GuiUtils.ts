@@ -2,15 +2,13 @@ import type { Country } from "../../api/common/CountryList"
 import { Countries } from "../../api/common/CountryList"
 import type { InfoLink, TranslationKey } from "../../misc/LanguageViewModel"
 import { lang } from "../../misc/LanguageViewModel"
-import type { ButtonAttrs } from "./Button.js"
-import { ButtonColor, ButtonType } from "./Button.js"
+import { ButtonColor } from "./Button.js"
 import { Icons } from "./icons/Icons"
 import type { DropdownChildAttrs } from "./Dropdown.js"
 import { createAsyncDropdown } from "./Dropdown.js"
 import type { $Promisable, lazy, MaybeLazy } from "@tutao/tutanota-utils"
 import { assertNotNull, lazyMemoized, resolveMaybeLazy } from "@tutao/tutanota-utils"
 import { Dialog } from "./Dialog"
-import type { AllIcons } from "./Icon"
 import { ProgrammingError } from "../../api/common/error/ProgrammingError"
 import m, { Children } from "mithril"
 import { DropDownSelector } from "./DropDownSelector.js"
@@ -46,13 +44,6 @@ export function renderCountryDropdown(params: {
 	})
 }
 
-export function createMoreSecondaryButtonAttrs(
-	lazyChildren: MaybeLazy<$Promisable<ReadonlyArray<DropdownChildAttrs | null>>>,
-	dropdownWidth?: number,
-): ButtonAttrs {
-	return moreButtonAttrsImpl(null, ButtonType.Secondary, lazyChildren, dropdownWidth)
-}
-
 export function createMoreActionButtonAttrs(
 	lazyChildren: MaybeLazy<$Promisable<ReadonlyArray<DropdownChildAttrs | null>>>,
 	dropdownWidth?: number,
@@ -61,24 +52,6 @@ export function createMoreActionButtonAttrs(
 		title: "more_label",
 		colors: ButtonColor.Nav,
 		icon: Icons.More,
-		click: createAsyncDropdown({
-			width: dropdownWidth,
-			lazyButtons: async () => resolveMaybeLazy(lazyChildren),
-		}),
-	}
-}
-
-function moreButtonAttrsImpl(
-	icon: lazy<AllIcons> | null,
-	type: ButtonType,
-	lazyChildren: MaybeLazy<$Promisable<ReadonlyArray<DropdownChildAttrs | null>>>,
-	dropdownWidth?: number,
-): ButtonAttrs {
-	return {
-		label: "more_label",
-		colors: ButtonColor.Nav,
-		icon,
-		type,
 		click: createAsyncDropdown({
 			width: dropdownWidth,
 			lazyButtons: async () => resolveMaybeLazy(lazyChildren),

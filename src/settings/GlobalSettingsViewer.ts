@@ -43,10 +43,10 @@ import { assertMainOrNode } from "../api/common/Env"
 import { DropDownSelector } from "../gui/base/DropDownSelector.js"
 import { ButtonSize } from "../gui/base/ButtonSize.js"
 import { SettingsExpander } from "./SettingsExpander.js"
-import { Button, ButtonType } from "../gui/base/Button.js"
 import { showDeleteAccountDialog } from "../subscription/DeleteAccountDialog.js"
 import { getCustomMailDomains } from "../api/common/utils/CustomerUtils.js"
 import { EntityUpdateData, isUpdateForTypeRef } from "../api/common/utils/EntityUpdateUtils.js"
+import { LoginButton } from "../gui/base/buttons/LoginButton.js"
 
 assertMainOrNode()
 // Number of days for that we load rejected senders
@@ -295,10 +295,9 @@ export class GlobalSettingsViewer implements UpdatableSettingsViewer {
 										width: "200px",
 									},
 								},
-								m(Button, {
+								m(LoginButton, {
 									label: "adminDeleteAccount_action",
-									click: showDeleteAccountDialog,
-									type: ButtonType.Login,
+									onclick: showDeleteAccountDialog,
 								}),
 							),
 						),

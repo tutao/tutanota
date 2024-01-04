@@ -9,7 +9,6 @@ import { Dialog } from "../../gui/base/Dialog"
 import { LoginForm } from "../../login/LoginForm"
 import { CredentialsSelector } from "../../login/CredentialsSelector"
 import { showProgressDialog } from "../../gui/dialogs/ProgressDialog"
-import { Button, ButtonType } from "../../gui/base/Button.js"
 import { SignupForm } from "../SignupForm"
 import { UserError } from "../../api/main/UserError"
 import { showUserError } from "../../misc/ErrorHandlerImpl"
@@ -36,6 +35,7 @@ import { Country, getByAbbreviation } from "../../api/common/CountryList.js"
 import { renderCountryDropdown } from "../../gui/base/GuiUtils.js"
 import { UpgradePriceType } from "../FeatureListProvider"
 import { SecondFactorHandler } from "../../misc/2fa/SecondFactorHandler.js"
+import { LoginButton } from "../../gui/base/buttons/LoginButton.js"
 
 const enum GetCredentialsMethod {
 	Login,
@@ -213,10 +213,9 @@ class GiftCardWelcomePage implements WizardPageN<RedeemGiftCardModel> {
 							width: "260px",
 						},
 					},
-					m(Button, {
+					m(LoginButton, {
 						label: "existingAccount_label",
-						click: () => nextPage(GetCredentialsMethod.Login),
-						type: ButtonType.Login,
+						onclick: () => nextPage(GetCredentialsMethod.Login),
 					}),
 				),
 			),
@@ -229,10 +228,9 @@ class GiftCardWelcomePage implements WizardPageN<RedeemGiftCardModel> {
 							width: "260px",
 						},
 					},
-					m(Button, {
+					m(LoginButton, {
 						label: "register_label",
-						click: () => nextPage(GetCredentialsMethod.Signup),
-						type: ButtonType.Login,
+						onclick: () => nextPage(GetCredentialsMethod.Signup),
 					}),
 				),
 			),
@@ -425,9 +423,9 @@ class RedeemGiftCardPage implements WizardPageN<RedeemGiftCardModel> {
 							width: "260px",
 						},
 					},
-					m(Button, {
+					m(LoginButton, {
 						label: "redeem_label",
-						click: () => {
+						onclick: () => {
 							if (!this.confirmed) {
 								Dialog.message("termsAcceptedNeutral_msg")
 								return
@@ -439,7 +437,6 @@ class RedeemGiftCardPage implements WizardPageN<RedeemGiftCardModel> {
 								.catch(ofClass(UserError, showUserError))
 								.catch(ofClass(CancelledError, noOp))
 						},
-						type: ButtonType.Login,
 					}),
 				),
 			),

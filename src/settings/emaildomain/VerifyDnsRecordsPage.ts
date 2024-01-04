@@ -15,6 +15,7 @@ import { ButtonSize } from "../../gui/base/ButtonSize.js"
 import { IconButtonAttrs } from "../../gui/base/IconButton.js"
 import { ColumnWidth, Table } from "../../gui/base/Table.js"
 import { DnsRecordTable } from "./DnsRecordTable.js"
+import { LoginButton } from "../../gui/base/buttons/LoginButton.js"
 
 assertMainOrNode()
 
@@ -44,11 +45,10 @@ export class VerifyDnsRecordsPage implements WizardPageN<AddDomainData> {
 										width: "260px",
 									},
 								},
-								m(Button, {
-									type: ButtonType.Login,
+								m(LoginButton, {
 									label: "finish_action",
 									// We check if all DNS records are set correctly and let the user confirm before leaving if not
-									click: () => this._finishDialog(a.data, (downcast<VnodeDOM>(vnode)?.dom as HTMLElement | null) ?? null),
+									onclick: () => this._finishDialog(a.data, (downcast<VnodeDOM>(vnode)?.dom as HTMLElement | null) ?? null),
 								}),
 							),
 						),

@@ -8,7 +8,6 @@ import { showProgressDialog } from "../gui/dialogs/ProgressDialog"
 import type { UpgradeSubscriptionData } from "./UpgradeSubscriptionWizard"
 import { BadGatewayError, PreconditionFailedError } from "../api/common/error/RestError"
 import { getPreconditionFailedPaymentMsg, UpgradeType } from "./SubscriptionUtils"
-import { Button, ButtonType } from "../gui/base/Button.js"
 import type { WizardPageAttrs, WizardPageN } from "../gui/base/WizardDialog.js"
 import { emitWizardEvent, WizardEventType } from "../gui/base/WizardDialog.js"
 import { TextField } from "../gui/base/TextField.js"
@@ -17,6 +16,7 @@ import { locator } from "../api/main/MainLocator"
 import { SwitchAccountTypeService } from "../api/entities/sys/Services"
 import { UsageTest } from "@tutao/tutanota-usagetests"
 import { getDisplayNameOfPlanType, SelectedSubscriptionOptions } from "./FeatureListProvider"
+import { LoginButton } from "../gui/base/buttons/LoginButton.js"
 
 export class UpgradeConfirmSubscriptionPage implements WizardPageN<UpgradeSubscriptionData> {
 	private dom!: HTMLElement
@@ -128,10 +128,9 @@ export class UpgradeConfirmSubscriptionPage implements WizardPageN<UpgradeSubscr
 							width: "260px",
 						},
 					},
-					m(Button, {
+					m(LoginButton, {
 						label: "buy_action",
-						click: () => this.upgrade(attrs.data),
-						type: ButtonType.Login,
+						onclick: () => this.upgrade(attrs.data),
 					}),
 				),
 			),

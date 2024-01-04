@@ -3,7 +3,6 @@ import { Dialog, DialogType } from "../base/Dialog"
 import type { CredentialsProvider } from "../../misc/credentials/CredentialsProvider.js"
 import m, { Children, Component, Vnode } from "mithril"
 import { lang } from "../../misc/LanguageViewModel"
-import { theme } from "../theme"
 import { DialogHeaderBar } from "../base/DialogHeaderBar"
 import type { RadioSelectorOption } from "../base/RadioSelector"
 import { RadioSelector } from "../base/RadioSelector"
@@ -16,6 +15,7 @@ import { defer } from "@tutao/tutanota-utils"
 import { windowFacade } from "../../misc/WindowFacade"
 import { CancelledError } from "../../api/common/error/CancelledError.js"
 import { Keys } from "../../api/common/TutanotaConstants.js"
+import { BaseButton } from "../base/buttons/BaseButton.js"
 
 const DEFAULT_MODE = CredentialEncryptionMode.DEVICE_LOCK
 
@@ -165,7 +165,7 @@ class SelectCredentialsEncryptionModeView implements Component<SelectCredentialE
 					),
 				],
 			),
-			this._renderSelectButton(() => attrs.onModeSelected(this._currentMode)),
+			this.renderSelectButton(() => attrs.onModeSelected(this._currentMode)),
 		]
 	}
 
@@ -195,23 +195,16 @@ class SelectCredentialsEncryptionModeView implements Component<SelectCredentialE
 		return options.filter((option) => attrs.supportedModes.includes(option.value))
 	}
 
-	_renderSelectButton(onclick: () => unknown) {
-		return m(
-			"button.full-width.center.pb-s.pt-s.b.flex.items-center.justify-center",
-			{
-				style: {
-					backgroundColor: theme.content_accent,
-					color: "white",
-					position: "absolute",
-					bottom: "0",
-					left: "0",
-					right: "0",
-					height: "60px",
-					textTransform: "uppercase",
-				},
-				onclick,
+	private renderSelectButton(onclick: () => unknown) {
+		const label = lang.get("ok_action")
+		return m(BaseButton, {
+			label,
+			text: label,
+			class: "uppercase accent-bg full-width center b content-fg",
+			style: {
+				height: "60px",
 			},
-			lang.get("ok_action"),
-		)
+			onclick,
+		})
 	}
 }

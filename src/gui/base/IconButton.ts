@@ -6,9 +6,8 @@ import { Icon } from "./Icon"
 import type { ClickHandler } from "./GuiUtils"
 import { assertMainOrNode } from "../../api/common/Env"
 import { ButtonColor, getColors } from "./Button.js"
-import { assertNotNull } from "@tutao/tutanota-utils"
 import { ButtonSize } from "./ButtonSize.js"
-import { TabIndex } from "../../api/common/TutanotaConstants.js"
+import { BaseButton, BaseButtonAttrs } from "./buttons/BaseButton.js"
 
 assertMainOrNode()
 
@@ -16,62 +15,34 @@ export interface IconButtonAttrs {
 	icon: AllIcons
 	title: TranslationText
 	click: ClickHandler
-	svgParameters?: Record<string, string>
-	mousedown?: (event: MouseEvent) => void
-	class?: string
-	style?: Record<string, any>
-	iconClass?: string
 	colors?: ButtonColor
 	size?: ButtonSize
-	onblur?: () => unknown
 	onkeydown?: (event: KeyboardEvent) => unknown
-	tabIndex?: TabIndex
 }
 
 export class IconButton implements Component<IconButtonAttrs> {
-	private dom: HTMLElement | null = null
-
-	view(vnode: Vnode<IconButtonAttrs>): Children {
-		const { attrs } = vnode
-		const title = lang.getMaybeLazy(attrs.title)
-		return m(
-			"button.icon-button",
-			{
-				oncreate: ({ dom }) => {
-					this.dom = dom as HTMLElement
-				},
-				onclick: (e: MouseEvent) => {
-					attrs.click(e, assertNotNull(this.dom))
-					// It doesn't make sense to propagate click events if we are the button
-					e.stopPropagation()
-				},
-				onmousedown: attrs.mousedown,
-				onblur: attrs.onblur,
-				onkeydown: attrs.onkeydown,
-				title,
-				"aria-label": title,
-				class: `${IconButton.getSizeClass(attrs.size)} ${attrs.class !== undefined ? attrs.class : "state-bg"}`,
-				style: attrs.style,
-				tabindex: attrs.tabIndex ?? TabIndex.Default,
-			},
-			m(Icon, {
+	view({ attrs }: Vnode<IconButtonAttrs>): Children {
+		return m(BaseButton, {
+			label: lang.getMaybeLazy(attrs.title),
+			icon: m(Icon, {
 				icon: attrs.icon,
 				container: "div",
-				svgParameters: attrs.svgParameters,
-				class: `center-h ${attrs.iconClass !== undefined ? attrs.iconClass : ""}`,
-				large: attrs.size !== ButtonSize.Calendar,
+				class: "center-h",
+				large: true,
 				style: {
 					fill: getColors(attrs.colors ?? ButtonColor.Content).button,
 				},
 			}),
-		)
+			onclick: attrs.click,
+			onkeydown: attrs.onkeydown,
+			class: `icon-button state-bg ${IconButton.getSizeClass(attrs.size)}`,
+		} satisfies BaseButtonAttrs)
 	}
 
 	private static getSizeClass(size: ButtonSize | undefined) {
 		switch (size) {
 			case ButtonSize.Compact:
 				return "compact"
-			case ButtonSize.Calendar:
 			case ButtonSize.Normal:
 			default:
 				return ""

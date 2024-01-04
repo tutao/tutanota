@@ -97,7 +97,6 @@ export class CalendarView extends BaseTopLevelView implements TopLevelView<Calen
 						drawer: attrs.drawerAttrs,
 						button: styles.isDesktopLayout()
 							? {
-									type: ButtonType.FolderColumnHeader,
 									label: "newEvent_action",
 									click: () => this.createNewEventDialog(),
 							  }

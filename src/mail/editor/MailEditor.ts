@@ -28,7 +28,7 @@ import {
 } from "../../api/common/TutanotaConstants"
 import { TooManyRequestsError } from "../../api/common/error/RestError"
 import type { DialogHeaderBarAttrs } from "../../gui/base/DialogHeaderBar"
-import { ButtonAttrs, ButtonType } from "../../gui/base/Button.js"
+import { ButtonType } from "../../gui/base/Button.js"
 import { attachDropdown, createDropdown, DropdownChildAttrs } from "../../gui/base/Dropdown.js"
 import { isApp, isBrowser, isDesktop } from "../../api/common/Env"
 import { Icons } from "../../gui/base/icons/Icons"
@@ -86,7 +86,7 @@ import { isSecurePassword, scaleToVisualPasswordStrength } from "../../misc/pass
 import { Status, StatusField } from "../../gui/base/StatusField.js"
 import { ContentBlockingStatus } from "../view/MailViewerViewModel.js"
 import { canSeeTutaLinks } from "../../gui/base/GuiUtils.js"
-import { InfoBanner } from "../../gui/base/InfoBanner.js"
+import { BannerButtonAttrs, InfoBanner } from "../../gui/base/InfoBanner.js"
 import { isCustomizationEnabledForCustomer } from "../../api/common/utils/CustomerUtils.js"
 import { isOfflineError } from "../../api/common/utils/ErrorUtils.js"
 
@@ -302,7 +302,7 @@ export class MailEditor implements Component<MailEditorAttrs> {
 		const showConfidentialButton = model.containsExternalRecipients()
 		const isConfidential = model.isConfidential() && showConfidentialButton
 		const confidentialButtonAttrs: ToggleButtonAttrs = {
-			title: model.isConfidential() ? "confidential_action" : "nonConfidential_action",
+			title: "confidential_action",
 			onToggled: (_, e) => {
 				e.stopPropagation()
 				model.setConfidential(!model.isConfidential())
@@ -492,7 +492,7 @@ export class MailEditor implements Component<MailEditorAttrs> {
 				isConfidential ? this.renderPasswordFields() : null,
 				m(".row", m(TextField, subjectFieldAttrs)),
 				m(
-					".flex-start.flex-wrap.column-gap",
+					".flex-start.flex-wrap.mt-s.mb-s.gap-hpad",
 					attachmentBubbleAttrs.map((a) => m(AttachmentBubble, a)),
 				),
 				model.getAttachments().length > 0 ? m("hr.hr") : null,
@@ -515,7 +515,7 @@ export class MailEditor implements Component<MailEditorAttrs> {
 			return null
 		}
 
-		const showButton: ButtonAttrs = {
+		const showButton: BannerButtonAttrs = {
 			label: "showBlockedContent_action",
 			click: () => {
 				this.updateExternalContentStatus(ContentBlockingStatus.Show)
@@ -735,7 +735,7 @@ export class MailEditor implements Component<MailEditorAttrs> {
 
 	private renderRevealIcon(address: string): Children {
 		return m(ToggleButton, {
-			title: this.isConfidentialPasswordRevealed(address) ? "concealPassword_action" : "revealPassword_action",
+			title: "revealPassword_action",
 			toggled: this.isConfidentialPasswordRevealed(address),
 			onToggled: (_, e) => {
 				this.toggleRevealConfidentialPassword(address)

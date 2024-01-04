@@ -1,15 +1,16 @@
 import m, { Children, ClassComponent, Vnode } from "mithril"
 import { AriaLandmarks, landmarkAttrs } from "../AriaUtils.js"
-import { inputLineHeight, px } from "../size.js"
+import { inputLineHeight, px, size } from "../size.js"
 import { styles } from "../styles.js"
 import { TabIndex } from "../../api/common/TutanotaConstants.js"
 import { BootIcons } from "./icons/BootIcons.js"
 import { DefaultAnimationTime } from "../animation/Animations.js"
 import { Icons } from "./icons/Icons.js"
 import { TextFieldType } from "./TextField.js"
-import { IconButton } from "./IconButton.js"
-import { ButtonSize } from "./ButtonSize.js"
-import { ButtonColor } from "./Button.js"
+import { Icon, IconAttrs } from "./Icon.js"
+import { theme } from "../theme.js"
+import { lang } from "../../misc/LanguageViewModel.js"
+import { BaseButton, BaseButtonAttrs } from "./buttons/BaseButton.js"
 
 export interface BaseSearchBarAttrs {
 	placeholder?: string | null
@@ -31,7 +32,7 @@ export class BaseSearchBar implements ClassComponent<BaseSearchBarAttrs> {
 
 	view({ attrs }: Vnode<BaseSearchBarAttrs>) {
 		return m(
-			".flex-end.items-center.border-radius.plr-s.pt-xs.pb-xs.search-bar.flex-grow",
+			".flex-end.items-center.border-radius.plr-s.pt-xs.pb-xs.search-bar.flex-grow.click",
 			{
 				focused: String(this.isFocused),
 				...landmarkAttrs(AriaLandmarks.Search),
@@ -44,23 +45,20 @@ export class BaseSearchBar implements ClassComponent<BaseSearchBarAttrs> {
 				oncreate: ({ dom }) => {
 					attrs.onWrapperCreated?.(dom as HTMLElement)
 				},
+				onclick: () => {
+					this.domInput?.focus()
+					attrs.onSearchClick?.()
+				},
 			},
 			[
 				styles.isDesktopLayout()
-					? m(IconButton, {
-							tabIndex: TabIndex.Default,
-							title: "search_label",
+					? m(Icon, {
 							icon: BootIcons.Search,
-							size: ButtonSize.Compact,
-							class: "",
-							mousedown: (e: MouseEvent) => {
-								e.preventDefault()
+							large: true,
+							style: {
+								fill: theme.content_button,
 							},
-							click: (e: MouseEvent) => {
-								e.preventDefault()
-								attrs.onSearchClick?.()
-							},
-					  })
+					  } satisfies IconAttrs)
 					: null,
 				m(
 					".flex.items-center",
@@ -77,16 +75,23 @@ export class BaseSearchBar implements ClassComponent<BaseSearchBarAttrs> {
 					[this.renderInputField(attrs)],
 				),
 				attrs.busy || attrs.text
-					? m(IconButton, {
-							tabIndex: TabIndex.Default,
-							title: "close_alt",
-							icon: attrs.busy ? BootIcons.Progress : Icons.Close,
-							iconClass: attrs.busy ? "icon-progress icon-progress-search" : undefined,
-							size: ButtonSize.Compact,
-							class: "",
-							colors: ButtonColor.Header,
-							click: () => attrs.onClear?.(),
-					  })
+					? m(BaseButton, {
+							label: lang.get(attrs.busy ? "loading_msg" : "close_alt"),
+							icon: m(Icon, {
+								container: "div",
+								large: true,
+								icon: attrs.busy ? BootIcons.Progress : Icons.Close,
+								class: "center-h  " + (attrs.busy ? "icon-progress-search icon-progress" : ""),
+								style: {
+									fill: theme.header_button,
+								},
+							}),
+							onclick: () => attrs.onClear?.(),
+							disabled: attrs.busy,
+							style: {
+								width: size.icon_size_large,
+							},
+					  } satisfies BaseButtonAttrs)
 					: null,
 			],
 		)

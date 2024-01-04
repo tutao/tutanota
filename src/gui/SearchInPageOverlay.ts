@@ -6,11 +6,12 @@ import { Icons } from "./base/icons/Icons"
 import { assertMainOrNode } from "../api/common/Env"
 import { lang } from "../misc/LanguageViewModel"
 import { transform, TransformEnum } from "./animation/Animations"
-import { Button, ButtonType } from "./base/Button.js"
 import { Keys } from "../api/common/TutanotaConstants"
 import { locator } from "../api/main/MainLocator"
 import { ElectronResult } from "../native/common/generatedipc/ElectronResult.js"
 import { isKeyPressed } from "../misc/KeyManager.js"
+import { IconButton } from "./base/IconButton.js"
+import { ToggleButton } from "./base/buttons/ToggleButton.js"
 
 assertMainOrNode()
 
@@ -132,39 +133,6 @@ export class SearchInPageOverlay {
 	}
 
 	_getComponent(): Component {
-		const caseButtonAttrs = {
-			label: "matchCase_alt",
-			icon: () => Icons.MatchCase,
-			type: ButtonType.Action,
-			noBubble: true,
-			isSelected: () => this._matchCase,
-			click: () => {
-				this._matchCase = !this._matchCase
-
-				this._find(true, false)
-			},
-		} as const
-		const forwardButtonAttrs = {
-			label: "next_action",
-			icon: () => Icons.ArrowForward,
-			type: ButtonType.Action,
-			noBubble: true,
-			click: () => this._find(true, true),
-		} as const
-		const backwardButtonAttrs = {
-			label: "previous_action",
-			icon: () => Icons.ArrowBackward,
-			type: ButtonType.Action,
-			noBubble: true,
-			click: () => this._find(false, true),
-		} as const
-		const closeButtonAttrs = {
-			label: "close_alt",
-			icon: () => Icons.Cancel,
-			type: ButtonType.Action,
-			click: () => this.close(),
-		} as const
-
 		const handleMouseUp = (event: MouseEvent) => this.handleMouseUp(event)
 
 		return {
@@ -191,13 +159,34 @@ export class SearchInPageOverlay {
 							},
 							[
 								this._inputField(),
-								m(Button, backwardButtonAttrs),
-								m(Button, forwardButtonAttrs),
-								m(Button, caseButtonAttrs),
+								m(IconButton, {
+									title: "previous_action",
+									icon: Icons.ArrowBackward,
+									click: () => this._find(false, true),
+								}),
+								m(IconButton, {
+									title: "next_action",
+									icon: Icons.ArrowForward,
+									click: () => this._find(true, true),
+								}),
+								m(ToggleButton, {
+									title: "matchCase_alt",
+									icon: Icons.MatchCase,
+									toggled: this._matchCase,
+									onToggled: () => {
+										this._matchCase = !this._matchCase
+
+										this._find(true, false)
+									},
+								}),
 								m("div.pl-m", this._numberOfMatches > 0 ? `${this._currentMatch}/${this._numberOfMatches}` : lang.get("searchNoResults_msg")),
 							],
 						),
-						m(Button, closeButtonAttrs),
+						m(IconButton, {
+							title: "close_alt",
+							icon: Icons.Cancel,
+							click: () => this.close(),
+						}),
 					],
 				)
 			},

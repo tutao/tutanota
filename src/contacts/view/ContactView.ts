@@ -102,7 +102,6 @@ export class ContactView extends BaseTopLevelView implements TopLevelView<Contac
 						button: styles.isUsingBottomNavigation()
 							? null
 							: {
-									type: ButtonType.FolderColumnHeader,
 									label: "newContact_action",
 									click: () => this.createNewContact(),
 							  },
@@ -611,9 +610,6 @@ export class ContactView extends BaseTopLevelView implements TopLevelView<Contac
 				m(NavButton, contactListButton),
 				m(IconButton, {
 					...moreButton,
-					onblur: () => {
-						m.redraw()
-					},
 				}),
 			]),
 		])

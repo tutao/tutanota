@@ -5,7 +5,7 @@ import { theme } from "../../gui/theme.js"
 import { styles } from "../../gui/styles.js"
 import { ExpanderButton, ExpanderPanel } from "../../gui/base/Expander.js"
 import { File as TutanotaFile } from "../../api/entities/tutanota/TypeRefs.js"
-import { BannerType, InfoBanner } from "../../gui/base/InfoBanner.js"
+import { BannerButtonAttrs, BannerType, InfoBanner } from "../../gui/base/InfoBanner.js"
 import { Icons } from "../../gui/base/icons/Icons.js"
 import { EventBanner, EventBannerAttrs } from "./EventBanner.js"
 import { RecipientButton } from "../../gui/base/RecipientButton.js"
@@ -14,11 +14,11 @@ import { EncryptionAuthStatus, InboxRuleType, Keys, MailAuthenticationStatus, Ta
 import { Icon, progressIcon } from "../../gui/base/Icon.js"
 import { formatDateWithWeekday, formatDateWithWeekdayAndYear, formatStorageSize, formatTime } from "../../misc/Formatter.js"
 import { isAndroidApp, isDesktop, isIOSApp } from "../../api/common/Env.js"
-import { Button, ButtonAttrs, ButtonType } from "../../gui/base/Button.js"
+import { Button, ButtonType } from "../../gui/base/Button.js"
 import Badge from "../../gui/base/Badge.js"
 import { ContentBlockingStatus, MailViewerViewModel } from "./MailViewerViewModel.js"
-import { canSeeTutaLinks, createMoreSecondaryButtonAttrs } from "../../gui/base/GuiUtils.js"
-import { isNotNull, noOp } from "@tutao/tutanota-utils"
+import { canSeeTutaLinks } from "../../gui/base/GuiUtils.js"
+import { isNotNull, noOp, resolveMaybeLazy } from "@tutao/tutanota-utils"
 import { IconButton } from "../../gui/base/IconButton.js"
 import { promptAndDeleteMails, showMoveMailsDropdown } from "./MailGuiUtils.js"
 import { BootIcons } from "../../gui/base/icons/BootIcons.js"
@@ -482,7 +482,7 @@ export class MailViewerHeader implements Component<MailViewerHeaderAttrs> {
 			}
 
 			return [
-				m(".flex" + "." + responsiveCardHMargin(), liveDataAttrs(), [
+				m(".flex.mt-s.mb-s" + "." + responsiveCardHMargin(), liveDataAttrs(), [
 					attachmentCount === 1
 						? // If we have exactly one attachment, just show the attachment
 						  this.renderAttachmentContainer(viewModel, attachments)
@@ -515,7 +515,7 @@ export class MailViewerHeader implements Component<MailViewerHeaderAttrs> {
 								expanded: this.filesExpanded,
 							},
 							m(".flex.col." + responsiveCardHMargin(), [
-								m(".flex.flex-wrap.column-gap", this.renderAttachmentContainer(viewModel, attachments)),
+								m(".flex.flex-wrap.gap-hpad", this.renderAttachmentContainer(viewModel, attachments)),
 								isIOSApp()
 									? null
 									: m(
@@ -625,7 +625,7 @@ export class MailViewerHeader implements Component<MailViewerHeaderAttrs> {
 			return null
 		}
 
-		const showButton: ButtonAttrs = {
+		const showButton: BannerButtonAttrs = {
 			label: "showBlockedContent_action",
 			click: () => attrs.viewModel.setContentBlockingStatus(ContentBlockingStatus.Show),
 		}
@@ -644,9 +644,17 @@ export class MailViewerHeader implements Component<MailViewerHeaderAttrs> {
 			  ].filter(isNotNull)
 			: []
 		// on narrow screens the buttons will end up on 2 lines if there are too many, this looks bad.
-		const maybeDropdownButtons =
+		const maybeDropdownButtons: ReadonlyArray<BannerButtonAttrs> =
 			styles.isSingleColumnLayout() && alwaysOrNeverAllowButtons.length > 1
-				? [createMoreSecondaryButtonAttrs(alwaysOrNeverAllowButtons, 216)]
+				? [
+						{
+							label: "more_label",
+							click: createAsyncDropdown({
+								width: 216,
+								lazyButtons: async () => resolveMaybeLazy(alwaysOrNeverAllowButtons),
+							}),
+						},
+				  ]
 				: alwaysOrNeverAllowButtons
 		return m(InfoBanner, {
 			message: "contentBlocked_msg",

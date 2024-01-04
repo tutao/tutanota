@@ -16,10 +16,11 @@ import {
 	UpgradePriceType,
 } from "./FeatureListProvider"
 import { ProgrammingError } from "../api/common/error/ProgrammingError"
-import { ButtonAttrs } from "../gui/base/Button.js"
+import { Button, ButtonType } from "../gui/base/Button.js"
 import { downcast, lazy } from "@tutao/tutanota-utils"
 import { AvailablePlanType, HighlightedPlans, LegacyPlans, NewBusinessPlans, NewPersonalPlans, PlanType } from "../api/common/TutanotaConstants.js"
 import { px } from "../gui/size.js"
+import { LoginButton, LoginButtonAttrs } from "../gui/base/buttons/LoginButton.js"
 
 const BusinessUseItems: SegmentControlItem<boolean>[] = [
 	{
@@ -32,7 +33,7 @@ const BusinessUseItems: SegmentControlItem<boolean>[] = [
 	},
 ]
 
-export type SubscriptionActionButtons = Record<AvailablePlanType, lazy<ButtonAttrs>>
+export type SubscriptionActionButtons = Record<AvailablePlanType, lazy<LoginButtonAttrs>>
 
 export type SubscriptionSelectorAttr = {
 	options: SelectedSubscriptionOptions
@@ -49,12 +50,12 @@ export type SubscriptionSelectorAttr = {
 	msg: TranslationText | null
 }
 
-export function getActionButtonBySubscription(actionButtons: SubscriptionActionButtons, subscription: AvailablePlanType): lazy<ButtonAttrs> {
+export function getActionButtonBySubscription(actionButtons: SubscriptionActionButtons, subscription: AvailablePlanType): lazy<Children> {
 	const ret = actionButtons[subscription]
 	if (ret == null) {
 		throw new ProgrammingError("Plan is not valid")
 	}
-	return ret
+	return () => m(LoginButton, ret())
 }
 
 type ExpanderTargets = AvailablePlanType | "All"
@@ -289,17 +290,14 @@ export class SubscriptionSelector implements Component<SubscriptionSelectorAttr>
 	private renderExpander(subType: ExpanderTargets): Children {
 		return this.featuresExpanded[subType]
 			? null
-			: m(
-					".mb-l.content-hover.button.cursor-pointer.text-fade.center",
-					{
-						role: "button",
-						onclick: (e: Event) => {
-							this.featuresExpanded[subType] = !this.featuresExpanded[subType]
-							e.preventDefault()
-						},
+			: m(Button, {
+					label: "pricing.showAllFeatures",
+					type: ButtonType.Secondary,
+					click: (event) => {
+						this.featuresExpanded[subType] = !this.featuresExpanded[subType]
+						event.stopPropagation()
 					},
-					lang.get("pricing.showAllFeatures"),
-			  )
+			  })
 	}
 }
 

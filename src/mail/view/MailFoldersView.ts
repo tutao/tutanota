@@ -17,10 +17,11 @@ import { ButtonColor } from "../../gui/base/Button.js"
 import { ButtonSize } from "../../gui/base/ButtonSize.js"
 import { MailFolderType } from "../../api/common/TutanotaConstants.js"
 import { isSpamOrTrashFolder } from "../../api/common/mail/CommonMailUtils.js"
-import { Icon } from "../../gui/base/Icon.js"
-import { theme } from "../../gui/theme.js"
+import { BaseButton } from "../../gui/base/buttons/BaseButton.js"
 import { lang } from "../../misc/LanguageViewModel.js"
+import { Icon } from "../../gui/base/Icon.js"
 import { px, size } from "../../gui/size.js"
+import { theme } from "../../gui/theme.js"
 
 export interface MailFolderViewAttrs {
 	mailboxDetail: MailboxDetail
@@ -155,29 +156,22 @@ export class MailFoldersView implements Component<MailFolderViewAttrs> {
 	}
 
 	private renderAddFolderButtonRow(attrs: MailFolderViewAttrs): Child {
-		// This button needs to fill the whole role, but is not a navigation button (so IconButton or NavButton weren't appropriate)
-		return m(
-			"button.folder-row.flex.flex-row.mlr-button.border-radius-small.state-bg.button-height",
-			{
-				key: "addFolder",
-				style: {
-					color: theme.navigation_button,
-					width: `calc(100% - ${px(size.hpad_button * 2)})`,
-				},
-				onclick: () => {
-					attrs.onShowFolderAddEditDialog(attrs.mailboxDetail.mailGroup._id, null, null)
-				},
+		const label = lang.get("addFolder_action")
+		// This button needs to fill the whole row, but is not a navigation button (so IconButton or NavButton weren't appropriate)
+		return m(BaseButton, {
+			label,
+			text: m(".plr-button", label),
+			key: "addFolder",
+			icon: m(Icon, { icon: Icons.Add, container: "div", class: "mr-button", style: { fill: theme.content_button }, large: true }),
+			class: "folder-row mlr-button border-radius-small state-bg plr-button button-content flex",
+			style: {
+				width: `calc(100% - ${px(size.hpad_button * 2)})`,
+				color: theme.content_button,
 			},
-			m(Icon, {
-				icon: Icons.Add,
-				large: true,
-				style: {
-					fill: theme.navigation_button,
-				},
-				class: "plr-button",
-			}),
-			m("span.label.plr-button", lang.get("addFolder_action")),
-		)
+			onclick: () => {
+				attrs.onShowFolderAddEditDialog(attrs.mailboxDetail.mailGroup._id, null, null)
+			},
+		})
 	}
 
 	private getTotalFolderCounter(counters: Counters, system: FolderSubtree): number {

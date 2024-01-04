@@ -1,5 +1,5 @@
 import { TopLevelAttrs, TopLevelView } from "../TopLevelView.js"
-import m, { Children, Vnode, VnodeDOM } from "mithril"
+import m, { Children, Vnode } from "mithril"
 import { CredentialsMigrationViewModel, MigrationState } from "./CredentialsMigrationViewModel.js"
 import { LoginScreenHeader } from "../gui/LoginScreenHeader.js"
 import { styles } from "../gui/styles.js"
@@ -7,8 +7,8 @@ import { AriaLandmarks, landmarkAttrs } from "../gui/AriaUtils.js"
 import { lang } from "../misc/LanguageViewModel.js"
 import { renderInfoLinks } from "./LoginView.js"
 import { BaseTopLevelView } from "../gui/BaseTopLevelView.js"
-import { Button, ButtonAttrs, ButtonType } from "../gui/base/Button.js"
 import { ColumnWidth, Table, TableAttrs } from "../gui/base/Table.js"
+import { LoginButton } from "../gui/base/buttons/LoginButton.js"
 
 export const TAG = "[CredentialsMigrationView]"
 
@@ -106,11 +106,10 @@ export class CredentialsMigrationView extends BaseTopLevelView implements TopLev
 						lines: savedCredentials.map((c) => ({ cells: [c.login] })),
 					} satisfies TableAttrs),
 				),
-				m(Button, {
+				m(LoginButton, {
 					label: "apply_action",
-					type: ButtonType.Login,
-					click: () => this.viewModel.executeMigration(),
-				} satisfies ButtonAttrs),
+					onclick: () => this.viewModel.executeMigration(),
+				}),
 			]
 		}
 	}
@@ -118,11 +117,10 @@ export class CredentialsMigrationView extends BaseTopLevelView implements TopLev
 	private renderCompleteMessage(): Children {
 		return m(".text-center", [
 			m(".mb", lang.get("credentialMigrationDone_msg")),
-			m(Button, {
+			m(LoginButton, {
 				label: "close_alt",
-				click: () => window.close(),
-				type: ButtonType.Login,
-			} satisfies ButtonAttrs),
+				onclick: () => window.close(),
+			}),
 		])
 	}
 }

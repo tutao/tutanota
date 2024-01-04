@@ -1,7 +1,6 @@
 import m, { Children, Component, Vnode } from "mithril"
 import stream from "mithril/stream"
 import Stream from "mithril/stream"
-import { Button, ButtonType } from "../gui/base/Button.js"
 import { liveDataAttrs } from "../gui/AriaUtils"
 import { lang, TranslationKey } from "../misc/LanguageViewModel"
 import { Autocomplete, TextField, TextFieldType } from "../gui/base/TextField.js"
@@ -11,6 +10,7 @@ import { isApp, isDesktop, isOfflineStorageAvailable } from "../api/common/Env"
 import { getWhitelabelCustomizations } from "../misc/WhitelabelCustomizations.js"
 import { BootstrapFeatureType } from "../api/common/TutanotaConstants.js"
 import { ACTIVATED_MIGRATION, isLegacyDomain } from "./LoginViewModel.js"
+import { LoginButton } from "../gui/base/buttons/LoginButton.js"
 
 export type LoginFormAttrs = {
 	onSubmit: (username: string, password: string) => unknown
@@ -117,10 +117,9 @@ export class LoginForm implements Component<LoginFormAttrs> {
 					: null,
 				m(
 					".pt",
-					m(Button, {
+					m(LoginButton, {
 						label: isApp() || isDesktop() ? "addAccount_action" : "login_action",
-						click: () => a.onSubmit(a.mailAddress(), a.password()),
-						type: ButtonType.Login,
+						onclick: () => a.onSubmit(a.mailAddress(), a.password()),
 					}),
 				),
 				m(
