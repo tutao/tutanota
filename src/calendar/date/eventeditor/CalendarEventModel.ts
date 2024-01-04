@@ -191,7 +191,7 @@ export async function makeCalendarEventModel(
 	const user = logins.getUserController().user
 	const [alarms, calendars] = await Promise.all([
 		resolveAlarmsForEvent(initialValues.alarmInfos ?? [], calendarModel, user),
-		calendarModel.loadCalendarInfos(new NoopProgressMonitor()),
+		calendarModel.getCalendarInfos(),
 	])
 	const selectedCalendar = getPreselectedCalendar(calendars, initialValues)
 	const getPasswordStrength = (password: string, recipientInfo: PartialRecipient) =>
