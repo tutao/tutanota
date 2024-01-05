@@ -101,6 +101,7 @@ export class SearchViewModel {
 		m.redraw()
 		return calendarInfos
 	})
+	private cancelSignal: Stream<boolean> = Stream<boolean>(false)
 
 	constructor(
 		private readonly router: SearchRouter,
@@ -172,6 +173,9 @@ export class SearchViewModel {
 		const lastQuery = this.search.lastQuery()
 		const maxResults = isSameTypeRef(MailTypeRef, restriction.type) ? SEARCH_PAGE_SIZE : null
 
+		//Reset the cancel signal if the search was cancelled
+		this.cancelSignal(false)
+
 		// using hasOwnProperty to distinguish case when url is like '/search/mail/query='
 		const listModel = this.listModel
 		if (args.hasOwnProperty("query") && this.search.isNewSearch(args.query, restriction)) {
@@ -187,6 +191,7 @@ export class SearchViewModel {
 						maxResults,
 					},
 					this.progressTracker,
+					this.cancelSignal,
 				)
 				.then(() => listModel.updateLoadingStatus(ListLoadingState.Done))
 				.catch(() => listModel.updateLoadingStatus(ListLoadingState.ConnectionLost))
@@ -204,6 +209,7 @@ export class SearchViewModel {
 						maxResults,
 					},
 					this.progressTracker,
+					this.cancelSignal,
 				)
 				.then(() => listModel.updateLoadingStatus(ListLoadingState.Done))
 				.catch(() => listModel.updateLoadingStatus(ListLoadingState.ConnectionLost))
@@ -675,6 +681,10 @@ export class SearchViewModel {
 		}
 
 		return instances
+	}
+
+	sendStopLoadingSignal() {
+		this.cancelSignal(true)
 	}
 
 	dispose() {

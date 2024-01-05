@@ -32,6 +32,7 @@ export interface SearchListViewAttrs {
 	onSingleSelection: (item: SearchResultListEntry) => unknown
 	currentType: TypeRef<Mail> | TypeRef<Contact> | TypeRef<CalendarEvent> | null
 	isFreeAccount: boolean
+	cancelCallback: () => unknown | null
 }
 
 export class SearchListView implements Component<SearchListViewAttrs> {
@@ -72,6 +73,10 @@ export class SearchListView implements Component<SearchListViewAttrs> {
 						attrs.listModel.selectRangeTowards(item)
 					},
 					onStopLoading() {
+						if (attrs.cancelCallback != null) {
+							attrs.cancelCallback()
+						}
+
 						attrs.listModel.stopLoading()
 					},
 			  } satisfies ListAttrs<SearchResultListEntry, SearchResultListRow>)
