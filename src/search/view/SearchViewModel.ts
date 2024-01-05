@@ -24,7 +24,6 @@ import {
 	getStartOfDay,
 	isSameDay,
 	isSameTypeRef,
-	isSameTypeRefNullable,
 	isToday,
 	LazyLoaded,
 	lazyMemoized,
@@ -75,13 +74,16 @@ export class SearchViewModel {
 	includeRepeatingEvents: boolean = true
 
 	/**
-	 * the type ref that's on the current results restriction
-	 * this can be null if there is no result because we're working on it
-	 * and also because the query is just nonexistent. these should be displayed
-	 * in different ways.
+	 * the type ref that determines which search filters and details
+	 * viewers this view should show.
+	 * taken from the current results' restriction or, if result is nonexistent,
+	 * the URL.
+	 *
+	 * result might be nonexistent if there is no query or we're not done searching
+	 * yet.
 	 */
-	get resultType(): TypeRef<Mail> | TypeRef<Contact> | TypeRef<CalendarEvent> | null {
-		return this._searchResult?.restriction.type ?? null
+	get searchedType(): TypeRef<Mail> | TypeRef<Contact> | TypeRef<CalendarEvent> {
+		return (this._searchResult?.restriction ?? this.router.getRestriction()).type
 	}
 
 	conversationViewModel: ConversationViewModel | null = null
@@ -127,7 +129,6 @@ export class SearchViewModel {
 
 	readonly init = lazyMemoized(() => {
 		this.resultSubscription = this.search.result.map((result) => {
-			console.log("new result", result)
 			if (!result || !isSameTypeRef(result.restriction.type, MailTypeRef)) {
 				this._mailFilterType = null
 			}
@@ -376,7 +377,7 @@ export class SearchViewModel {
 	}
 
 	private applyMailFilterIfNeeded() {
-		if (isSameTypeRefNullable(this.resultType, MailTypeRef)) {
+		if (isSameTypeRef(this.searchedType, MailTypeRef)) {
 			const filterFunction = getMailFilterForType(this._mailFilterType)
 			const liftedFilter: ListFilter<SearchResultListEntry> | null = filterFunction ? (entry) => filterFunction(entry.entry as Mail) : null
 			this.listModel?.setFilter(liftedFilter)
@@ -386,7 +387,7 @@ export class SearchViewModel {
 	private updateSearchUrl() {
 		const selectedElement = this.listModel.state.selectedItems.size === 1 ? this.listModel.getSelectedAsArray().at(0) : null
 
-		if (isSameTypeRefNullable(this.resultType, MailTypeRef)) {
+		if (isSameTypeRef(this.searchedType, MailTypeRef)) {
 			this.routeMail(
 				(selectedElement?.entry as Mail) ?? null,
 				createRestriction(
@@ -398,7 +399,7 @@ export class SearchViewModel {
 					null,
 				),
 			)
-		} else if (isSameTypeRefNullable(this.resultType, CalendarEventTypeRef)) {
+		} else if (isSameTypeRef(this.searchedType, CalendarEventTypeRef)) {
 			this.routeCalendar(
 				(selectedElement?.entry as CalendarEvent) ?? null,
 				createRestriction(
@@ -410,7 +411,7 @@ export class SearchViewModel {
 					this.includeRepeatingEvents,
 				),
 			)
-		} else if (isSameTypeRefNullable(this.resultType, ContactTypeRef)) {
+		} else if (isSameTypeRef(this.searchedType, ContactTypeRef)) {
 			this.routeContact((selectedElement?.entry as Contact) ?? null, createRestriction(this.getCategory(), null, null, null, [], null))
 		}
 	}
@@ -444,8 +445,8 @@ export class SearchViewModel {
 	}
 
 	private async entityEventReceived(update: EntityUpdateData): Promise<void> {
-		const lastType = this.resultType
-		if (lastType && !isUpdateForTypeRef(lastType, update)) {
+		const lastType = this.searchedType
+		if (isUpdateForTypeRef(lastType, update)) {
 			return
 		}
 		const { instanceListId, instanceId, operation } = update
@@ -455,7 +456,7 @@ export class SearchViewModel {
 			return
 		}
 
-		if (isUpdateForTypeRef(CalendarEventTypeRef, update) && isSameTypeRefNullable(CalendarEventTypeRef, lastType)) {
+		if (isUpdateForTypeRef(CalendarEventTypeRef, update) && isSameTypeRef(lastType, CalendarEventTypeRef)) {
 			// due to the way calendar event changes are sort of non-local, we throw away the whole list and re-render it if
 			// the contents are edited. we do the calculation on a new list and then swap the old list out once the new one is
 			// ready
@@ -511,7 +512,7 @@ export class SearchViewModel {
 	}
 
 	private onListStateChange(newState: ListState<SearchResultListEntry>) {
-		if (isSameTypeRefNullable(this.resultType, MailTypeRef)) {
+		if (isSameTypeRef(this.searchedType, MailTypeRef)) {
 			if (!newState.inMultiselect && newState.selectedItems.size === 1) {
 				const mail = this.getSelectedMails()[0]
 				if (!this.conversationViewModel || !isSameId(this.conversationViewModel?.primaryMail._id, mail._id)) {
