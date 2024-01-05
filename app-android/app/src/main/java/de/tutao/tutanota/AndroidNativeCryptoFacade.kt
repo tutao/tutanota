@@ -2,6 +2,7 @@ package de.tutao.tutanota
 
 import android.content.Context
 import android.net.Uri
+import androidx.annotation.Keep
 import androidx.annotation.VisibleForTesting
 import de.tutao.tutanota.ipc.*
 import org.apache.commons.io.IOUtils
@@ -433,6 +434,7 @@ private class SubKeys(
 )
 
 
+@Keep
 class CryptoError : Exception {
 	constructor(message: String) : super(message)
 	constructor(cause: Throwable) : super(cause)
