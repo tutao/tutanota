@@ -240,6 +240,9 @@ export class SearchView extends BaseTopLevelView implements TopLevelView<SearchV
 					})
 				}
 			},
+			cancelCallback: () => {
+				this.searchViewModel.sendStopLoadingSignal()
+			},
 			isFreeAccount: locator.logins.getUserController().isFreeAccount(),
 		} satisfies SearchListViewAttrs)
 	}
