@@ -417,8 +417,9 @@ export class SearchBar implements Component<SearchBarAttrs> {
 			// if we're already on the search view, we don't want to wait until there's a new result to update the
 			// UI. we can directly go to the URL and let the SearchViewModel do its thing from there.
 			searchRouter.routeTo(query, restriction)
-			return
+			return cb()
 		}
+
 		let useSuggestions = m.route.get().startsWith("/settings")
 		// We don't limit contacts because we need to download all of them to sort them. They should be cached anyway.
 		const limit = isSameTypeRef(MailTypeRef, restriction.type) ? (this.isQuickSearch() ? MAX_SEARCH_PREVIEW_RESULTS : PageSize) : null
@@ -431,6 +432,7 @@ export class SearchBar implements Component<SearchBarAttrs> {
 					maxResults: limit,
 				},
 				locator.progressTracker,
+				null,
 			)
 			.then((result) => this.loadAndDisplayResult(query, result ? result : null, limit))
 			.finally(() => cb())

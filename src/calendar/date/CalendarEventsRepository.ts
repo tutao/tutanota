@@ -1,7 +1,7 @@
 import Stream from "mithril/stream"
 import stream from "mithril/stream"
 import { CalendarInfo, CalendarModel } from "../model/CalendarModel.js"
-import { IProgressMonitor, NoopProgressMonitor } from "../../api/common/utils/ProgressMonitor.js"
+import { IProgressMonitor } from "../../api/common/utils/ProgressMonitor.js"
 import { addDaysForRecurringEvent, CalendarTimeRange, getEventEnd, getEventStart, getMonthRange, isSameEventInstance } from "./CalendarUtils.js"
 import { CalendarEvent, CalendarEventTypeRef } from "../../api/entities/tutanota/TypeRefs.js"
 import { getListId, isSameId } from "../../api/common/utils/EntityUtils.js"
@@ -55,8 +55,10 @@ export class CalendarEventsRepository {
 		return this.daysToEvents
 	}
 
-	async loadMonthsIfNeeded(daysInMonths: Array<Date>, progressMonitor: IProgressMonitor): Promise<void> {
+	async loadMonthsIfNeeded(daysInMonths: Array<Date>, progressMonitor: IProgressMonitor, cancel?: Stream<boolean>): Promise<void> {
 		for (const dayInMonth of daysInMonths) {
+			if (cancel && cancel()) return
+
 			const month = getMonthRange(dayInMonth, this.zone)
 
 			if (!this.loadedMonths.has(month.start)) {
