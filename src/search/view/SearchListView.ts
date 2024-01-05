@@ -30,7 +30,7 @@ export class SearchResultListEntry {
 export interface SearchListViewAttrs {
 	listModel: ListModel<SearchResultListEntry>
 	onSingleSelection: (item: SearchResultListEntry) => unknown
-	currentType: TypeRef<Mail> | TypeRef<Contact> | TypeRef<CalendarEvent> | null
+	currentType: TypeRef<Mail> | TypeRef<Contact> | TypeRef<CalendarEvent>
 	isFreeAccount: boolean
 	cancelCallback: () => unknown | null
 }
@@ -82,16 +82,11 @@ export class SearchListView implements Component<SearchListViewAttrs> {
 			  } satisfies ListAttrs<SearchResultListEntry, SearchResultListRow>)
 	}
 
-	private getRenderItems(type: TypeRef<Mail> | TypeRef<Contact> | TypeRef<CalendarEvent> | null): {
+	private getRenderItems(type: TypeRef<Mail> | TypeRef<Contact> | TypeRef<CalendarEvent>): {
 		icon: AllIcons
 		renderConfig: RenderConfig<SearchResultListEntry, SearchResultListRow>
 	} {
-		if (type == null) {
-			return {
-				icon: BootIcons.Search,
-				renderConfig: this.contactRenderConfig,
-			}
-		} else if (isSameTypeRef(type, ContactTypeRef)) {
+		if (isSameTypeRef(type, ContactTypeRef)) {
 			return {
 				icon: BootIcons.Contacts,
 				renderConfig: this.contactRenderConfig,

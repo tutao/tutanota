@@ -12,7 +12,7 @@ assertMainOrNode()
 
 const FIXED_FREE_SEARCH_DAYS = 28
 
-export const SEARCH_CATEGORIES = [
+const SEARCH_CATEGORIES = [
 	{
 		name: "mail",
 		typeRef: MailTypeRef,
@@ -25,8 +25,9 @@ export const SEARCH_CATEGORIES = [
 		name: "calendar",
 		typeRef: CalendarEventTypeRef,
 	},
-]
+] as const
 
+/** get the TypeRef that corresponds to the selected category (as taken from the URL: <host>/search/<category>?<query> */
 export function getSearchType(category: string): TypeRef<CalendarEvent> | TypeRef<Mail> | TypeRef<Contact> {
 	return assertNotNull(SEARCH_CATEGORIES.find((c) => c.name === category)).typeRef
 }

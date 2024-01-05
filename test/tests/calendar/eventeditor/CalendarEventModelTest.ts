@@ -16,10 +16,6 @@ import { CalendarModel } from "../../../../src/calendar/model/CalendarModel.js"
 import {
 	CalendarEventAttendeeTypeRef,
 	CalendarEventTypeRef,
-	createCalendarEvent,
-	createCalendarEventAttendee,
-	createEncryptedMailAddress,
-	createMailboxProperties,
 	EncryptedMailAddressTypeRef,
 	MailboxGroupRootTypeRef,
 	MailboxProperties,
@@ -31,12 +27,6 @@ import { calendars, getDateInZone, makeUserController, otherAddress, ownerAddres
 import {
 	AlarmInfoTypeRef,
 	CalendarEventRefTypeRef,
-	createAlarmInfo,
-	createCalendarEventRef,
-	createDateWrapper,
-	createGroup,
-	createRepeatRule,
-	createUserAlarmInfo,
 	DateWrapper,
 	DateWrapperTypeRef,
 	GroupInfoTypeRef,
@@ -129,7 +119,7 @@ o.spec("CalendarEventModelTest", function () {
 					}),
 				}),
 			])
-			when(calendarModel.loadCalendarInfos(matchers.anything())).thenResolve(calendars)
+			when(calendarModel.getCalendarInfos()).thenResolve(calendars)
 			when(calendarModel.resolveCalendarEventProgenitor(matchers.anything())).thenResolve(event)
 			const resolvableOwner: ResolvableRecipient = object()
 			when(resolvableOwner.resolved()).thenResolve(ownerAddress)
