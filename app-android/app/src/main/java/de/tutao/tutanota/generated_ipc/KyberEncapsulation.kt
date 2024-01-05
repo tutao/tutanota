@@ -3,12 +3,14 @@
 
 package de.tutao.tutanota.ipc
 
-import kotlinx.serialization.*
-import kotlinx.serialization.json.*
+import androidx.annotation.Keep
+import kotlinx.serialization.Serializable
 
 
 @Serializable
+@Keep
 data class KyberEncapsulation(
-	val ciphertext: DataWrapper,
-	val sharedSecret: DataWrapper,
+		val ciphertext: DataWrapper,
+		val sharedSecret: DataWrapper,
 )
+
