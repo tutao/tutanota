@@ -47,7 +47,7 @@ export class SearchModel {
 		this._lastSearchPromise = Promise.resolve(undefined)
 	}
 
-	async search(searchQuery: SearchQuery, progressTracker: ProgressTracker): Promise<SearchResult | void> {
+	async search(searchQuery: SearchQuery, progressTracker: ProgressTracker, cancel: Stream<boolean> | null): Promise<SearchResult | void> {
 		if (this._lastQuery && searchQueryEquals(searchQuery, this._lastQuery)) {
 			return this._lastSearchPromise
 		}
@@ -81,6 +81,7 @@ export class SearchModel {
 			this.result(result)
 			this._lastSearchPromise = Promise.resolve(result)
 		} else if (isSameTypeRef(CalendarEventTypeRef, restriction.type)) {
+			const cancelStream = cancel != null ? cancel : Stream<boolean>(false)
 			// we interpret restriction.start as the start of the first day of the first month we want to search
 			// restriction.end is the end of the last day of the last month we want to search
 			let currentDate = new Date(assertNotNull(restriction.start))
@@ -94,7 +95,12 @@ export class SearchModel {
 
 			const monitorHandle = progressTracker.registerMonitorSync(daysInMonths.length)
 			const monitor: IProgressMonitor = assertNotNull(progressTracker.getMonitor(monitorHandle))
-			await calendarModel.loadMonthsIfNeeded(daysInMonths, monitor)
+
+			if (cancelStream()) {
+				return
+			}
+
+			await calendarModel.loadMonthsIfNeeded(daysInMonths, monitor, cancelStream)
 			monitor.completed()
 
 			const eventsForDays = calendarModel.getEventsForMonths()()
@@ -119,6 +125,10 @@ export class SearchModel {
 			// we want event instances that occur on multiple days to only appear once, but want
 			// separate instances of event series to occur on their own.
 			const alreadyAdded: Set<string> = new Set()
+
+			if (cancelStream()) {
+				return calendarResult
+			}
 
 			if (tokens.length > 0) {
 				// we're iterating by event first to only have to sanitize the description once.
@@ -162,6 +172,10 @@ export class SearchModel {
 								calendarResult.results.push(event._id)
 								continue eventLoop
 							}
+						}
+
+						if (cancelStream()) {
+							return calendarResult
 						}
 					}
 				}
