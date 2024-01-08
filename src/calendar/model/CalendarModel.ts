@@ -47,7 +47,6 @@ import { SessionKeyNotFoundError } from "../../api/common/error/SessionKeyNotFou
 import Stream from "mithril/stream"
 import { ObservableLazyLoaded } from "../../api/common/utils/ObservableLazyLoaded.js"
 import { UserController } from "../../api/main/UserController.js"
-import { DateProvider } from "../../api/common/DateProvider.js"
 import { formatDateWithWeekdayAndTime, formatTime } from "../../misc/Formatter.js"
 
 const TAG = "[CalendarModel]"
@@ -96,8 +95,6 @@ export class CalendarModel {
 		private readonly zone: string,
 	) {
 		this.readProgressMonitor = oneShotProgressMonitorGenerator(progressTracker, logins.getUserController())
-
-		if (isApp()) return
 		eventController.addEntityListener((updates, eventOwnerGroupId) => this.entityEventsReceived(updates, eventOwnerGroupId))
 	}
 
@@ -661,7 +658,9 @@ export class CalendarModel {
 		// We iterate over the alarms twice: once to collect them and to set the counter correctly and the second time to actually process them.
 		const alarmEventsToProcess: UserAlarmInfo[] = []
 		for (const entityEventData of updates) {
-			if (isUpdateForTypeRef(UserAlarmInfoTypeRef, entityEventData)) {
+			// apps handle alarms natively. this code is a candidate to move into
+			// a generic web/native alarm handler
+			if (isUpdateForTypeRef(UserAlarmInfoTypeRef, entityEventData) && !isApp()) {
 				if (entityEventData.operation === OperationType.CREATE) {
 					// Updates for UserAlarmInfo and CalendarEvent come in a
 					// separate batches and there's a race between loading of the
@@ -682,7 +681,7 @@ export class CalendarModel {
 							throw e
 						}
 					}
-				} else if (entityEventData.operation === OperationType.DELETE) {
+				} else if (entityEventData.operation === OperationType.DELETE && !isApp()) {
 					await this.cancelUserAlarmInfo(entityEventData.instanceId)
 				}
 			} else if (isUpdateForTypeRef(CalendarEventTypeRef, entityEventData)) {
@@ -738,6 +737,7 @@ export class CalendarModel {
 			}
 		}
 
+		// in the apps, this array is guaranteed to be empty.
 		for (const userAlarmInfo of alarmEventsToProcess) {
 			const { listId, elementId } = userAlarmInfo.alarmInfo.calendarRef
 			const deferredEvent = this.getPendingAlarmRequest(elementId)
