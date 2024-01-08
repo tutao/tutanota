@@ -92,7 +92,6 @@ import { CalendarInfo } from "../../calendar/model/CalendarModel.js"
 import { Checkbox, CheckboxAttrs } from "../../gui/base/Checkbox.js"
 import { buildEventPreviewModel, CalendarEventPreviewViewModel } from "../../calendar/gui/eventpopup/CalendarEventPreviewViewModel.js"
 import { EventDetailsView, EventDetailsViewAttrs } from "../../calendar/view/EventDetailsView.js"
-import { progressIcon } from "../../gui/base/Icon.js"
 import { showProgressDialog } from "../../gui/dialogs/ProgressDialog.js"
 import { CalendarOperation } from "../../calendar/gui/eventeditor-model/CalendarEventModel.js"
 import { getEventWithDefaultTimes } from "../../api/common/utils/CommonCalendarUtils.js"
@@ -301,15 +300,6 @@ export class SearchView extends BaseTopLevelView implements TopLevelView<SearchV
 					),
 					injections: m(ProgressBar, { progress: header.offlineIndicatorModel.getProgress() }),
 			  })
-	}
-
-	/**
-	 * shown while lastType is not set (before we can create our first list model). happens if there is no result yet, eg when directly accessing a
-	 * search URL.
-	 * @private
-	 */
-	private renderInitialLoadingIcon(): Children {
-		return m(".center", progressIcon())
 	}
 
 	/** depending on the search and selection state we want to render a
