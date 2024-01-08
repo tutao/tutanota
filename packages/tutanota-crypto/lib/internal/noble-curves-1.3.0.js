@@ -1,10 +1,12 @@
 // x25519 from noble-curves-1.3.0
-// how to build
-// git clone
-// cd ~/dev/repositories/noble-curves/build
-// > replace input.js with `export {x25519} from '@noble/curves/ed25519';`
-// npm run build
-// > copy contents of noble-curves.js
+//
+// How to rebuild this file
+// 1. Clone noble-curves https://github.com/paulmillr/noble-curves and CD into it
+// 2. Run `npm i` and then `npm run build`
+// 3. CD into `build`
+// 4. Rewrite input.js into just this one line: export {x25519} from '@noble/curves/ed25519'
+// 5. Run `npm i` and `npm run build`
+// 6. Copy contents of noble-curves.js to below
 
 "use strict";
 var nobleCurves = (() => {
