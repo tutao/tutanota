@@ -1,7 +1,9 @@
 import { CalendarEventTimes, getAllDayDateUTC, getEventWithDefaultTimes, isAllDayEvent } from "../../../api/common/utils/CommonCalendarUtils.js"
-import { Time } from "../Time.js"
+import { Time } from "../../date/Time.js"
 import { DateTime, DurationLikeObject } from "luxon"
 import {
+	areExcludedDatesEqual,
+	areRepeatRulesEqual,
 	getAllDayDateUTCFromZone,
 	getEventEnd,
 	getEventStart,
@@ -9,14 +11,13 @@ import {
 	getStartOfDayWithZone,
 	getStartOfNextDayWithZone,
 	incrementByRepeatPeriod,
-} from "../CalendarUtils.js"
+} from "../../date/CalendarUtils.js"
 import { assertNotNull, clone, filterInt, incrementDate, noOp, TIMESTAMP_ZERO_YEAR } from "@tutao/tutanota-utils"
 import { CalendarEvent, CalendarRepeatRule } from "../../../api/entities/tutanota/TypeRefs.js"
 import { Stripped } from "../../../api/common/utils/EntityUtils.js"
 import { EndType, RepeatPeriod } from "../../../api/common/TutanotaConstants.js"
 import { createDateWrapper, createRepeatRule, RepeatRule } from "../../../api/entities/sys/TypeRefs.js"
 import { UserError } from "../../../api/main/UserError.js"
-import { areExcludedDatesEqual, areRepeatRulesEqual } from "./CalendarEventModel.js"
 
 export type CalendarEventWhenModelResult = CalendarEventTimes & {
 	repeatRule: CalendarRepeatRule | null

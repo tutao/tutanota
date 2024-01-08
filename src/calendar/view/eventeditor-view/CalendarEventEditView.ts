@@ -18,7 +18,7 @@ import { ButtonSize } from "../../../gui/base/ButtonSize.js"
 import { HtmlEditor } from "../../../gui/editor/HtmlEditor.js"
 import { attachDropdown } from "../../../gui/base/Dropdown.js"
 import { BannerType, InfoBanner, InfoBannerAttrs } from "../../../gui/base/InfoBanner.js"
-import { CalendarEventModel, ReadonlyReason } from "../../date/eventeditor/CalendarEventModel.js"
+import { CalendarEventModel, ReadonlyReason } from "../../view/eventeditor-model/CalendarEventModel.js"
 import { Dialog } from "../../../gui/base/Dialog.js"
 
 import { getSharedGroupName } from "../../../sharing/GroupUtils.js"

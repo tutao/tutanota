@@ -3,14 +3,12 @@ import { AccountType, CalendarAttendeeStatus, EndType, RepeatPeriod } from "../.
 import { func, matchers, object, verify, when } from "testdouble"
 import { UserController } from "../../../../src/api/main/UserController.js"
 import {
-	areExcludedDatesEqual,
-	areRepeatRulesEqual,
 	CalendarEventEditModels,
 	CalendarOperation,
 	eventHasChanged,
 	EventSaveResult,
 	makeCalendarEventModel,
-} from "../../../../src/calendar/date/eventeditor/CalendarEventModel.js"
+} from "../../../../src/calendar/view/eventeditor-model/CalendarEventModel.js"
 import { CalendarNotificationSender } from "../../../../src/calendar/date/CalendarNotificationSender.js"
 import { CalendarModel } from "../../../../src/calendar/model/CalendarModel.js"
 import {
@@ -41,6 +39,7 @@ import { MailboxDetail } from "../../../../src/mail/model/MailModel.js"
 import { FolderSystem } from "../../../../src/api/common/mail/FolderSystem.js"
 import { SendMailModel } from "../../../../src/mail/editor/SendMailModel.js"
 import { createTestEntity } from "../../TestUtils.js"
+import { areExcludedDatesEqual, areRepeatRulesEqual } from "../../../../src/calendar/date/CalendarUtils.js"
 
 o.spec("CalendarEventModelTest", function () {
 	let userController: UserController

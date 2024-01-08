@@ -487,7 +487,7 @@ export class CalendarModel {
 	 * @param updateEvent the event that contains the new version of dbEvent. */
 	private async processCalendarUpdate(dbTarget: CalendarEventUidIndexEntry, dbEvent: CalendarEventInstance, updateEvent: CalendarEvent): Promise<void> {
 		console.log(TAG, "processing request for existing event instance")
-		const { repeatRuleWithExcludedAlteredInstances } = await import("../date/eventeditor/CalendarEventWhenModel.js")
+		const { repeatRuleWithExcludedAlteredInstances } = await import("../view/eventeditor-model/CalendarEventWhenModel.js")
 		// some providers do not increment the sequence for all edit operations (like google when changing the summary)
 		// we'd rather apply the same update too often than miss some, and this enables us to update our own status easily
 		// without having to increment the sequence.
@@ -522,7 +522,7 @@ export class CalendarModel {
 		alarms: Array<AlarmInfoTemplate>,
 	): Promise<void> {
 		console.log(TAG, "processing new instance request")
-		const { repeatRuleWithExcludedAlteredInstances } = await import("../date/eventeditor/CalendarEventWhenModel.js")
+		const { repeatRuleWithExcludedAlteredInstances } = await import("../view/eventeditor-model/CalendarEventWhenModel.js")
 		if (updateEvent.recurrenceId != null && dbTarget.progenitor != null && dbTarget.progenitor.repeatRule != null) {
 			// request for a new altered instance. we'll try adding the exclusion for this instance to the progenitor if possible
 			// since not all calendar apps add altered instances to the list of exclusions.

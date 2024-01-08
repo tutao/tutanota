@@ -42,6 +42,7 @@ import { ToggleButton } from "../gui/base/buttons/ToggleButton.js"
 import { Icons } from "../gui/base/icons/Icons.js"
 import { ButtonSize } from "../gui/base/ButtonSize.js"
 import { locator } from "../api/main/MainLocator.js"
+import { formatDate } from "../misc/Formatter.js"
 
 assertMainOrNode()
 
@@ -406,7 +407,7 @@ export class ContactEditor {
 					this.contact.birthdayIso = null
 					this.hasInvalidBirthday = false
 				} else {
-					let birthday = parseBirthday(value)
+					let birthday = parseBirthday(value, (referenceDate) => formatDate(referenceDate))
 
 					if (birthday) {
 						try {
