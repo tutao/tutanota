@@ -8,6 +8,7 @@ export {
 	Aes128Key,
 	Aes256Key,
 	aes256EncryptSearchIndexEntry,
+	KEY_LENGTH_BYTES_AES_256,
 } from "./encryption/Aes.js"
 export { EccPrivateKey, EccPublicKey, EccKeyPair, EccSharedSecrets, generateEccKeyPair, eccEncapsulate, eccDecapsulate } from "./encryption/Ecc.js"
 export { generateRandomSalt, generateKeyFromPassphrase as generateKeyFromPassphraseBcrypt } from "./hashes/Bcrypt.js"
@@ -36,7 +37,6 @@ export {
 	ARGON2ID_MEMORY_IN_KiB,
 	ARGON2ID_PARALLELISM,
 } from "./hashes/Argon2id/Argon2id.js"
-export { CryptoError } from "./misc/CryptoError.js"
 export { KeyLength, EntropySource } from "./misc/Constants.js"
 export {
 	EncryptedKeyPairs,
@@ -70,7 +70,7 @@ export {
 	isPqPublicKey,
 	isPqKeyPairs,
 } from "./encryption/AsymmetricKeyPair.js"
-export { PQKeyPairs, PQPublicKeys } from "./encryption/PQKeyPairs.js"
+export { PQKeyPairs, PQPublicKeys, pqKeyPairsToPublicKeys } from "./encryption/PQKeyPairs.js"
 export { sha1Hash } from "./hashes/Sha1.js"
 export { sha256Hash } from "./hashes/Sha256.js"
 export { sha512Hash } from "./hashes/Sha512.js"

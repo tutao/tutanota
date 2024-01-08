@@ -1,6 +1,5 @@
 import type { Commands } from "../common/threading/MessageDispatcher.js"
 import { errorToObj, MessageDispatcher, Request } from "../common/threading/MessageDispatcher.js"
-import { CryptoError } from "../common/error/CryptoError"
 import { BookingFacade } from "./facades/lazy/BookingFacade.js"
 import { NotAuthenticatedError } from "../common/error/RestError"
 import { ProgrammingError } from "../common/error/ProgrammingError"
@@ -41,6 +40,7 @@ import { WorkerFacade } from "./facades/WorkerFacade.js"
 import { InfoMessageHandler } from "../../gui/InfoMessageHandler.js"
 import { SqlCipherFacade } from "../../native/common/generatedipc/SqlCipherFacade.js"
 import { WebWorkerTransport } from "../common/threading/Transport.js"
+import { CryptoError } from "@tutao/tutanota-crypto/error.js"
 
 assertWorkerOrNode()
 

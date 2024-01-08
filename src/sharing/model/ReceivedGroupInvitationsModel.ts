@@ -3,13 +3,13 @@ import Stream from "mithril/stream"
 import type { ReceivedGroupInvitation } from "../../api/entities/sys/TypeRefs.js"
 import { ReceivedGroupInvitationTypeRef } from "../../api/entities/sys/TypeRefs.js"
 import { EntityClient } from "../../api/common/EntityClient"
-import type { EntityUpdateData } from "../../api/main/EventController"
 import { EventController } from "../../api/main/EventController"
 import { getInvitationGroupType, loadReceivedGroupInvitations, ShareableGroupType } from "../GroupUtils"
 import { OperationType } from "../../api/common/TutanotaConstants"
 import type { LoginController } from "../../api/main/LoginController"
-import { getLetId, isSameId, isUpdateForTypeRef } from "../../api/common/utils/EntityUtils"
+import { getLetId, isSameId } from "../../api/common/utils/EntityUtils"
 import { promiseMap } from "@tutao/tutanota-utils"
+import { EntityUpdateData, isUpdateForTypeRef } from "../../api/common/utils/EntityUpdateUtils.js"
 
 export class ReceivedGroupInvitationsModel<TypeOfGroup extends ShareableGroupType> {
 	readonly invitations: Stream<Array<ReceivedGroupInvitation>>

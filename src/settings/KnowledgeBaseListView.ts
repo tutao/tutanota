@@ -3,10 +3,10 @@ import type { UpdatableSettingsDetailsViewer, UpdatableSettingsViewer } from "./
 import type { KnowledgeBaseEntry, TemplateGroupRoot } from "../api/entities/tutanota/TypeRefs.js"
 import { KnowledgeBaseEntryTypeRef } from "../api/entities/tutanota/TypeRefs.js"
 import { lang } from "../misc/LanguageViewModel"
-import type { EntityUpdateData } from "../api/main/EventController"
+
 import { size } from "../gui/size"
 import { EntityClient } from "../api/common/EntityClient"
-import { GENERATED_MAX_ID, isSameId, isUpdateForTypeRef, listIdPart } from "../api/common/utils/EntityUtils"
+import { GENERATED_MAX_ID, isSameId, listIdPart } from "../api/common/utils/EntityUtils"
 import { hasCapabilityOnGroup } from "../sharing/GroupUtils"
 import { ShareCapability } from "../api/common/TutanotaConstants"
 import type { LoginController } from "../api/main/LoginController"
@@ -28,6 +28,7 @@ import { theme } from "../gui/theme.js"
 import { knowledgeBaseSearch } from "../knowledgebase/model/KnowledgeBaseSearchFilter.js"
 import { showKnowledgeBaseEditor } from "./KnowledgeBaseEditor.js"
 import { keyManager } from "../misc/KeyManager.js"
+import { EntityUpdateData, isUpdateForTypeRef } from "../api/common/utils/EntityUpdateUtils.js"
 
 assertMainOrNode()
 

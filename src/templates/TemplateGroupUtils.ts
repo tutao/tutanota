@@ -3,9 +3,9 @@ import { TemplateGroupRootTypeRef } from "../api/entities/tutanota/TypeRefs.js"
 import { showPlanUpgradeRequiredDialog } from "../misc/SubscriptionDialogs"
 import { locator } from "../api/main/MainLocator"
 import { FeatureType } from "../api/common/TutanotaConstants"
-import { isCustomizationEnabledForCustomer } from "../api/common/utils/Utils"
 import { Dialog } from "../gui/base/Dialog.js"
 import { lang } from "../misc/LanguageViewModel.js"
+import { isCustomizationEnabledForCustomer } from "../api/common/utils/CustomerUtils.js"
 
 /**
  * @return True if the group has been created.

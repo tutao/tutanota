@@ -1,5 +1,4 @@
-import { aes256RandomKey, aesDecrypt, aesEncrypt, bitArrayToUint8Array, CryptoError, uint8ArrayToBitArray } from "@tutao/tutanota-crypto"
-import { CryptoError as TutanotaCryptoError } from "../../common/error/CryptoError.js"
+import { aes256RandomKey, aesDecrypt, aesEncrypt, bitArrayToUint8Array, uint8ArrayToBitArray } from "@tutao/tutanota-crypto"
 
 export class DeviceEncryptionFacade {
 	/**
@@ -24,16 +23,6 @@ export class DeviceEncryptionFacade {
 	 * @param encryptedData Data to be decrypted.
 	 */
 	async decrypt(deviceKey: Uint8Array, encryptedData: Uint8Array): Promise<Uint8Array> {
-		try {
-			return aesDecrypt(uint8ArrayToBitArray(deviceKey), encryptedData)
-		} catch (e) {
-			// CryptoError from tutanota-crypto is not mapped correctly across the worker bridge
-			// so we map it to the CryptoError we can actually catch on the other side
-			if (e instanceof CryptoError) {
-				throw new TutanotaCryptoError("Decrypting credentials failed", e)
-			} else {
-				throw e
-			}
-		}
+		return aesDecrypt(uint8ArrayToBitArray(deviceKey), encryptedData)
 	}
 }

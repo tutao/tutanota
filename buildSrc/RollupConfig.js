@@ -99,7 +99,7 @@ export function getChunkName(moduleId, { getModuleInfo }) {
 		return moduleId.includes(path.normalize(subpath))
 	}
 
-	if (code.includes("@bundleInto:common-min") || isIn("libs/stream") || isIn("packages/tutanota-utils")) {
+	if (code.includes("@bundleInto:common-min") || isIn("libs/stream") || isIn("packages/tutanota-utils") || isIn("packages/tutanota-error")) {
 		// if detecting this does not work even though the comment is there, add a blank line after the annotation.
 		return "common-min"
 	} else if (code.includes("@bundleInto:common")) {
@@ -146,6 +146,7 @@ export function getChunkName(moduleId, { getModuleInfo }) {
 		isIn("src/misc") ||
 		isIn("src/file") ||
 		isIn("src/gui") ||
+		isIn("src/serviceworker") ||
 		moduleId.includes(path.normalize("packages/tutanota-usagetests"))
 	) {
 		// Things which we always need for main thread anyway, at least currently
@@ -174,7 +175,11 @@ export function getChunkName(moduleId, { getModuleInfo }) {
 		isIn("src/api/entities") ||
 		isIn("src/desktop/config/ConfigKeys") ||
 		moduleId.includes("cborg") ||
-		isIn("src/offline")
+		isIn("src/offline") ||
+		// CryptoError is needed on the main thread in order to check errors
+		// We have to define both the entry point and the files referenced from it which is annoying
+		isIn("packages/tutanota-crypto/dist/error") ||
+		isIn("packages/tutanota-crypto/dist/misc/CryptoError.js")
 	) {
 		// things that are used in both worker and client
 		// entities could be separate in theory but in practice they are anyway
@@ -200,7 +205,7 @@ export function getChunkName(moduleId, { getModuleInfo }) {
 		return "worker-search"
 	} else if (isIn("src/api/worker/Urlifier") || isIn("libs/linkify") || isIn("libs/linkify-html")) {
 		return "linkify"
-	} else if (isIn("src/api/worker") || moduleId.includes(path.normalize("packages/tutanota-crypto")) || moduleId.includes("argon2")) {
+	} else if (isIn("src/api/worker") || isIn("packages/tutanota-crypto") || moduleId.includes("argon2")) {
 		return "worker" // avoid that crypto stuff is only put into native
 	} else if (isIn("libs/jszip")) {
 		return "jszip"

@@ -15,7 +15,7 @@ import type { MailboxDetail } from "../mail/model/MailModel"
 import { locator } from "../api/main/MainLocator"
 import stream from "mithril/stream"
 import Stream from "mithril/stream"
-import type { EntityUpdateData } from "../api/main/EventController"
+
 import type { DropDownSelectorAttrs } from "../gui/base/DropDownSelector.js"
 import { DropDownSelector } from "../gui/base/DropDownSelector.js"
 import type { TextFieldAttrs } from "../gui/base/TextField.js"
@@ -42,7 +42,7 @@ import { MailAddressTableModel } from "./mailaddress/MailAddressTableModel.js"
 import { getEnabledMailAddressesForGroupInfo } from "../api/common/utils/GroupUtils.js"
 import { formatStorageSize } from "../misc/Formatter.js"
 import { CustomerInfo } from "../api/entities/sys/TypeRefs.js"
-import { isUpdateForTypeRef } from "../api/common/utils/EntityUtils.js"
+import { EntityUpdateData, isUpdateForTypeRef } from "../api/common/utils/EntityUpdateUtils.js"
 
 assertMainOrNode()
 

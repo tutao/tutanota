@@ -8,7 +8,6 @@ import {
 	clone,
 	hexToBase64,
 	isSameTypeRef,
-	isSameTypeRefByAttr,
 	pad,
 	stringToUtf8Uint8Array,
 	TypeRef,
@@ -17,7 +16,6 @@ import {
 } from "@tutao/tutanota-utils"
 import { Cardinality, ValueType } from "../EntityConstants"
 import type { ElementEntity, Entity, ModelValue, SomeEntity, TypeModel } from "../EntityTypes"
-import { EntityUpdateData } from "../../main/EventController.js"
 
 /**
  * the maximum ID for elements stored on the server (number with the length of 10 bytes) => 2^80 - 1
@@ -429,16 +427,4 @@ function removeIdentityFields<E extends Partial<SomeEntity>>(entity: E) {
 	}
 
 	_removeIdentityFields(entity)
-}
-
-export function isUpdateForTypeRef(typeRef: TypeRef<unknown>, update: EntityUpdateData): boolean {
-	return isSameTypeRefByAttr(typeRef, update.application, update.type)
-}
-
-export function isUpdateFor<T extends SomeEntity>(entity: T, update: EntityUpdateData): boolean {
-	const typeRef = entity._type as TypeRef<T>
-	return (
-		isUpdateForTypeRef(typeRef, update) &&
-		(update.instanceListId === "" ? isSameId(update.instanceId, entity._id) : isSameId([update.instanceListId, update.instanceId], entity._id))
-	)
 }

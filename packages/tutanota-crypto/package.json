@@ -3,6 +3,10 @@
 	"version": "3.120.6",
 	"license": "GPL-3.0",
 	"main": "./dist/index.js",
+	"exports": {
+		".": "./dist/index.js",
+		"./error.js": "./dist/error.js"
+	},
 	"repository": {
 		"type": "git",
 		"url": "https://github.com/tutao/tutanota.git",
@@ -20,6 +24,9 @@
 		"LICENSE.txt",
 		"tsconfig.json"
 	],
+	"dependencies": {
+		"@tutao/tutanota-error": "3.120.6"
+	},
 	"devDependencies": {
 		"typescript": "5.0.3",
 		"@tutao/tutanota-utils": "3.120.6",

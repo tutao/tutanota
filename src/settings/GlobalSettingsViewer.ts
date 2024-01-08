@@ -3,7 +3,6 @@ import { DAY_IN_MILLIS, LazyLoaded, neverNull, noOp, ofClass, promiseMap } from 
 import { InfoLink, lang } from "../misc/LanguageViewModel"
 import { getSpamRuleFieldToName, getSpamRuleTypeNameMapping, showAddSpamRuleDialog } from "./AddSpamRuleDialog"
 import { getSpamRuleField, GroupType, OperationType, SpamRuleFieldType, SpamRuleType } from "../api/common/TutanotaConstants"
-import { getCustomMailDomains } from "../api/common/utils/Utils"
 import type { AuditLogEntry, Customer, CustomerInfo, CustomerServerProperties, DomainInfo, GroupInfo } from "../api/entities/sys/TypeRefs.js"
 import {
 	AuditLogEntryTypeRef,
@@ -25,21 +24,13 @@ import { LockedError, NotAuthorizedError, PreconditionFailedError } from "../api
 import { GroupData, loadEnabledTeamMailGroups, loadEnabledUserMailGroups, loadGroupDisplayName } from "./LoadingUtils"
 import { Icons } from "../gui/base/icons/Icons"
 import { showProgressDialog } from "../gui/dialogs/ProgressDialog"
-import type { EntityUpdateData } from "../api/main/EventController"
 import type { TableAttrs, TableLineAttrs } from "../gui/base/Table.js"
 import { ColumnWidth, createRowActions } from "../gui/base/Table.js"
 import { attachDropdown, createDropdown, DropdownChildAttrs } from "../gui/base/Dropdown.js"
 import { DomainDnsStatus } from "./DomainDnsStatus"
 import { showDnsCheckDialog } from "./CheckDomainDnsStatusDialog"
 import { BootIcons } from "../gui/base/icons/BootIcons"
-import {
-	GENERATED_MAX_ID,
-	generatedIdToTimestamp,
-	getElementId,
-	isUpdateForTypeRef,
-	sortCompareByReverseId,
-	timestampToGeneratedId,
-} from "../api/common/utils/EntityUtils"
+import { GENERATED_MAX_ID, generatedIdToTimestamp, getElementId, sortCompareByReverseId, timestampToGeneratedId } from "../api/common/utils/EntityUtils"
 import { ExpandableTable } from "./ExpandableTable"
 import { showRejectedSendersInfoDialog } from "./RejectedSendersInfoDialog"
 import { showAddDomainWizard } from "./emaildomain/AddDomainWizard"
@@ -54,6 +45,8 @@ import { ButtonSize } from "../gui/base/ButtonSize.js"
 import { SettingsExpander } from "./SettingsExpander.js"
 import { Button, ButtonType } from "../gui/base/Button.js"
 import { showDeleteAccountDialog } from "../subscription/DeleteAccountDialog.js"
+import { getCustomMailDomains } from "../api/common/utils/CustomerUtils.js"
+import { EntityUpdateData, isUpdateForTypeRef } from "../api/common/utils/EntityUpdateUtils.js"
 
 assertMainOrNode()
 // Number of days for that we load rejected senders

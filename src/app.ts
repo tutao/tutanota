@@ -10,7 +10,6 @@ import { windowFacade } from "./misc/WindowFacade"
 import { styles } from "./gui/styles"
 import { deviceConfig } from "./misc/DeviceConfig"
 import { Logger, replaceNativeLogger } from "./api/common/Logger"
-import { init as initSW } from "./serviceworker/ServiceWorkerClient"
 import { applicationPaths } from "./ApplicationPaths"
 import { ProgrammingError } from "./api/common/error/ProgrammingError"
 import { NativeWebauthnView } from "./login/NativeWebauthnView"
@@ -498,7 +497,8 @@ import("./translations/en")
 		}
 		// after we set up prefixWithoutFile
 		const domainConfig = locator.domainConfigProvider().getCurrentDomainConfig()
-		initSW(domainConfig)
+		const serviceworker = await import("./serviceworker/ServiceWorkerClient.js")
+		serviceworker.init(domainConfig)
 
 		printJobsMessage(domainConfig)
 	})

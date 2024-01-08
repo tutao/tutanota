@@ -1,7 +1,7 @@
 import { ListFilter, ListModel } from "../../misc/ListModel.js"
 import { SearchResultListEntry } from "./SearchListView.js"
 import { SearchRestriction, SearchResult } from "../../api/worker/search/SearchTypes.js"
-import { EntityEventsListener, EntityUpdateData, EventController } from "../../api/main/EventController.js"
+import { EntityEventsListener, EventController } from "../../api/main/EventController.js"
 import { CalendarEvent, CalendarEventTypeRef, Contact, ContactTypeRef, Mail, MailTypeRef } from "../../api/entities/tutanota/TypeRefs.js"
 import { ListElementEntity, SomeEntity } from "../../api/common/EntityTypes.js"
 import { FULL_INDEXED_TIMESTAMP, MailFolderType, NOTHING_INDEXED_TIMESTAMP, OperationType } from "../../api/common/TutanotaConstants.js"
@@ -12,7 +12,6 @@ import {
 	GENERATED_MAX_ID,
 	getElementId,
 	isSameId,
-	isUpdateForTypeRef,
 	ListElement,
 	sortCompareByReverseId,
 } from "../../api/common/utils/EntityUtils.js"
@@ -47,6 +46,7 @@ import { EntityClient, loadMultipleFromLists } from "../../api/common/EntityClie
 import { getMailFilterForType, MailFilterType } from "../../mail/model/MailUtils.js"
 import { SearchRouter } from "./SearchRouter.js"
 import { MailOpenedListener } from "../../mail/view/MailViewModel.js"
+import { EntityUpdateData, isUpdateForTypeRef } from "../../api/common/utils/EntityUpdateUtils.js"
 import { CalendarInfo } from "../../calendar/model/CalendarModel.js"
 import { locator } from "../../api/main/MainLocator.js"
 import m from "mithril"

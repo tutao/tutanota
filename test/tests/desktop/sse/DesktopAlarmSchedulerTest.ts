@@ -2,7 +2,7 @@ import o from "@tutao/otest"
 import n from "../../nodemocker.js"
 import { EndType, RepeatPeriod } from "../../../../src/api/common/TutanotaConstants.js"
 import { DesktopAlarmScheduler } from "../../../../src/desktop/sse/DesktopAlarmScheduler.js"
-import { CryptoError } from "../../../../src/api/common/error/CryptoError.js"
+import type { AlarmScheduler } from "../../../../src/calendar/date/AlarmScheduler.js"
 import { downcast, lastThrow } from "@tutao/tutanota-utils"
 import { WindowManager } from "../../../../src/desktop/DesktopWindowManager.js"
 import { DesktopNotifier, NotificationResult } from "../../../../src/desktop/DesktopNotifier.js"
@@ -10,10 +10,10 @@ import { DesktopAlarmStorage } from "../../../../src/desktop/sse/DesktopAlarmSto
 import { DesktopNativeCryptoFacade } from "../../../../src/desktop/DesktopNativeCryptoFacade.js"
 import { assertThrows, spy } from "@tutao/tutanota-test-utils"
 import { EncryptedAlarmNotification } from "../../../../src/native/common/EncryptedAlarmNotification.js"
+import { CryptoError } from "@tutao/tutanota-crypto/error.js"
 import { makeAlarmScheduler } from "../../calendar/CalendarTestUtils.js"
 import { matchers, object, verify, when } from "testdouble"
 import { AlarmInfoTypeRef, AlarmNotificationTypeRef, CalendarEventRefTypeRef, RepeatRuleTypeRef } from "../../../../src/api/entities/sys/TypeRefs.js"
-import { AlarmScheduler } from "../../../../src/calendar/date/AlarmScheduler.js"
 import { formatNotificationForDisplay } from "../../../../src/calendar/model/CalendarModel.js"
 
 const oldTimezone = process.env.TZ
@@ -254,8 +254,7 @@ o.spec("DesktopAlarmSchedulerTest", function () {
 				pushIdentifier: [`pushIdentifierFooPart1`, `pushIdentifierFooPart2`],
 			})
 
-			// @ts-ignore
-			await assertThrows(CryptoError, () => scheduler.handleAlarmNotification(an1))
+			await assertThrows(CryptoError, () => scheduler.handleAlarmNotification(an1 as unknown as EncryptedAlarmNotification))
 			o(alarmStorageMock.getPushIdentifierSessionKey.callCount).equals(2)
 		})
 

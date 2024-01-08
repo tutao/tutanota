@@ -5,14 +5,14 @@ import m from "mithril"
 import { TextField } from "../../gui/base/TextField.js"
 import { Dialog } from "../../gui/base/Dialog.js"
 import { locator } from "../../api/main/MainLocator.js"
-import { isOfflineError } from "../../api/common/utils/ErrorCheckUtils.js"
 import { LockedError } from "../../api/common/error/RestError.js"
 import { lang, TranslationKey } from "../../misc/LanguageViewModel.js"
 import { MailboxDetail } from "../model/MailModel.js"
 import { MailFolderType, MailReportType } from "../../api/common/TutanotaConstants.js"
 import { isSameId } from "../../api/common/utils/EntityUtils.js"
-import { reportMailsAutomatically } from "../view/MailReportDialog.js"
+import { reportMailsAutomatically } from "./MailReportDialog.js"
 import { isSpamOrTrashFolder } from "../../api/common/mail/CommonMailUtils.js"
+import { isOfflineError } from "../../api/common/utils/ErrorCheckUtils.js"
 
 /**
  * Dialog for Edit and Add folder are the same.

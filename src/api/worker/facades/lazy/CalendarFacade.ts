@@ -48,7 +48,6 @@ import { AlarmService } from "../../../entities/sys/Services.js"
 import { CalendarService } from "../../../entities/tutanota/Services.js"
 import { resolveTypeReference } from "../../../common/EntityFunctions.js"
 import { UserFacade } from "../UserFacade.js"
-import { isOfflineError } from "../../../common/utils/ErrorCheckUtils.js"
 import { EncryptedAlarmNotification } from "../../../../native/common/EncryptedAlarmNotification.js"
 import { NativePushFacade } from "../../../../native/common/generatedipc/NativePushFacade.js"
 import { ExposedOperationProgressTracker, OperationId } from "../../../main/OperationProgressTracker.js"
@@ -64,6 +63,7 @@ import {
 import { CalendarInfo } from "../../../../calendar/model/CalendarModel.js"
 import { geEventElementMaxId, getEventElementMinId } from "../../../common/utils/CommonCalendarUtils.js"
 import { DaysToEvents } from "../../../../calendar/date/CalendarEventsRepository.js"
+import { isOfflineError } from "../../../common/utils/ErrorCheckUtils.js"
 
 assertWorkerOrNode()
 

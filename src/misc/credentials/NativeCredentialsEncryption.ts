@@ -3,10 +3,10 @@ import { CredentialsAndDatabaseKey } from "./CredentialsProvider.js"
 import type { DeviceEncryptionFacade } from "../../api/worker/facades/DeviceEncryptionFacade"
 import { base64ToUint8Array, stringToUtf8Uint8Array, uint8ArrayToBase64, utf8Uint8ArrayToString } from "@tutao/tutanota-utils"
 import type { CredentialEncryptionMode } from "./CredentialEncryptionMode"
-import { CryptoError } from "../../api/common/error/CryptoError.js"
 import { KeyPermanentlyInvalidatedError } from "../../api/common/error/KeyPermanentlyInvalidatedError.js"
 import { CredentialsKeyProvider } from "./CredentialsKeyProvider.js"
 import { NativeCredentialsFacade } from "../../native/common/generatedipc/NativeCredentialsFacade.js"
+import { CryptoError } from "@tutao/tutanota-crypto/error.js"
 
 /**
  * Credentials encryption implementation that uses the native (platform-specific) keychain implementation. It uses an intermediate key to

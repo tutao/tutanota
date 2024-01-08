@@ -1,7 +1,6 @@
 //@bundleInto:common-min
 
-import type { EntityUpdateData } from "../../main/EventController"
-import type { Customer, CustomerInfo, DomainInfo, EntityUpdate } from "../../entities/sys/TypeRefs.js"
+import type { Customer, CustomerInfo, DomainInfo } from "../../entities/sys/TypeRefs.js"
 import type { Header, MailHeaders } from "../../entities/tutanota/TypeRefs.js"
 import {
 	AccessBlockedError,
@@ -28,7 +27,6 @@ import {
 	SessionExpiredError,
 	TooManyRequestsError,
 } from "../error/RestError"
-import { CryptoError } from "../error/CryptoError"
 import { SessionKeyNotFoundError } from "../error/SessionKeyNotFoundError"
 import { SseError } from "../error/SseError"
 import { ProgrammingError } from "../error/ProgrammingError"
@@ -46,13 +44,14 @@ import { DeviceStorageUnavailableError } from "../error/DeviceStorageUnavailable
 import { MailBodyTooLargeError } from "../error/MailBodyTooLargeError"
 import { CredentialAuthenticationError } from "../error/CredentialAuthenticationError"
 import { KeyPermanentlyInvalidatedError } from "../error/KeyPermanentlyInvalidatedError"
-import type { FeatureType, OperationType } from "../TutanotaConstants"
+import type { FeatureType } from "../TutanotaConstants"
 import { ImportError } from "../error/ImportError"
 import { WebauthnError } from "../error/WebauthnError"
 import { SuspensionError } from "../error/SuspensionError.js"
 import { LoginIncompleteError } from "../error/LoginIncompleteError.js"
 import { OfflineDbClosedError } from "../error/OfflineDbClosedError.js"
 import { ParserError } from "../../../misc/parsing/ParserCombinator.js"
+import { CryptoError } from "@tutao/tutanota-crypto/error.js"
 
 export function getWhitelabelDomain(customerInfo: CustomerInfo, domainName?: string): DomainInfo | null {
 	return customerInfo.domainInfos.find((info) => info.whitelabelConfig != null && (domainName == null || info.domain === domainName)) ?? null
@@ -60,14 +59,6 @@ export function getWhitelabelDomain(customerInfo: CustomerInfo, domainName?: str
 
 export function getCustomMailDomains(customerInfo: CustomerInfo): Array<DomainInfo> {
 	return customerInfo.domainInfos.filter((di) => di.whitelabelConfig == null)
-}
-
-export function containsEventOfType(events: ReadonlyArray<EntityUpdateData>, type: OperationType, elementId: Id): boolean {
-	return events.some((event) => event.operation === type && event.instanceId === elementId)
-}
-
-export function getEventOfType(events: ReadonlyArray<EntityUpdate>, type: OperationType, elementId: Id): EntityUpdate | null {
-	return events.find((event) => event.operation === type && event.instanceId === elementId) ?? null
 }
 
 export function getLegacyMailHeaders(headers: MailHeaders): string {

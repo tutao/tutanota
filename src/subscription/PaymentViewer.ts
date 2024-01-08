@@ -17,7 +17,7 @@ import { Dialog, DialogType } from "../gui/base/Dialog"
 import { getByAbbreviation } from "../api/common/CountryList"
 import * as PaymentDataDialog from "./PaymentDataDialog"
 import { showProgressDialog } from "../gui/dialogs/ProgressDialog"
-import type { EntityUpdateData } from "../api/main/EventController"
+
 import stream from "mithril/stream"
 import Stream from "mithril/stream"
 import { getPreconditionFailedPaymentMsg } from "./SubscriptionUtils"
@@ -35,7 +35,7 @@ import { DebitService } from "../api/entities/sys/Services"
 import { IconButton } from "../gui/base/IconButton.js"
 import { ButtonSize } from "../gui/base/ButtonSize.js"
 import { formatNameAndAddress } from "../api/common/utils/CommonFormatter.js"
-import { isUpdateForTypeRef } from "../api/common/utils/EntityUtils.js"
+import { EntityUpdateData, isUpdateForTypeRef } from "../api/common/utils/EntityUpdateUtils.js"
 
 assertMainOrNode()
 

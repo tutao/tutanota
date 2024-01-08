@@ -20,13 +20,13 @@ import type { WizardPageAttrs, WizardPageN } from "../gui/base/WizardDialog.js"
 import { emitWizardEvent, WizardEventType } from "../gui/base/WizardDialog.js"
 import type { Country } from "../api/common/CountryList"
 import { DefaultAnimationTime } from "../gui/animation/Animations"
-import { EntityEventsListener, EntityUpdateData } from "../api/main/EventController"
 import { locator } from "../api/main/MainLocator"
 import { Credentials } from "../misc/credentials/Credentials"
 import { SessionType } from "../api/common/SessionType.js"
 import { UsageTest } from "@tutao/tutanota-usagetests"
 import { PaymentInterval } from "./PriceUtils.js"
-import { isUpdateForTypeRef } from "../api/common/utils/EntityUtils.js"
+import { EntityUpdateData, isUpdateForTypeRef } from "../api/common/utils/EntityUpdateUtils.js"
+import { EntityEventsListener } from "../api/main/EventController.js"
 
 /**
  * Wizard page for editing invoice and payment data.

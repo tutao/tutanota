@@ -16,11 +16,11 @@ import {
 	uint8ArrayToKey,
 } from "@tutao/tutanota-crypto"
 import { concat, stringToUtf8Uint8Array } from "@tutao/tutanota-utils"
-import { KEY_LENGTH_BYTES_AES_256 } from "@tutao/tutanota-crypto/dist/encryption/Aes.js"
+import { KEY_LENGTH_BYTES_AES_256 } from "@tutao/tutanota-crypto"
 import { PQMessage } from "./PQMessage.js"
-import { hkdf } from "@tutao/tutanota-crypto/dist/hashes/HKDF.js"
+import { hkdf } from "@tutao/tutanota-crypto"
 import { CryptoProtocolVersion } from "../../common/TutanotaConstants.js"
-import { pqKeyPairsToPublicKeys } from "@tutao/tutanota-crypto/dist/encryption/PQKeyPairs.js"
+import { pqKeyPairsToPublicKeys } from "@tutao/tutanota-crypto"
 
 export class PQFacade {
 	private kyberFacade: KyberFacade

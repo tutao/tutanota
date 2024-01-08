@@ -1,4 +1,3 @@
-import { CryptoError } from "../common/error/CryptoError"
 import type { Commands } from "../common/threading/MessageDispatcher.js"
 import { MessageDispatcher, Request } from "../common/threading/MessageDispatcher.js"
 import { Transport, WebWorkerTransport } from "../common/threading/Transport.js"
@@ -7,12 +6,12 @@ import type { IMainLocator } from "./MainLocator"
 import { client } from "../../misc/ClientDetector"
 import type { DeferredObject } from "@tutao/tutanota-utils"
 import { defer, downcast } from "@tutao/tutanota-utils"
-import { objToError } from "../common/utils/Utils"
 import { handleUncaughtError } from "../../misc/ErrorHandler"
 import type { MainInterface, WorkerInterface } from "../worker/WorkerImpl"
 import { DelayedImpls, exposeLocalDelayed, exposeRemote } from "../common/WorkerProxy"
 import type { RestClient } from "../worker/rest/RestClient"
 import { EntropyDataChunk } from "../worker/facades/EntropyFacade.js"
+import { objToError } from "../common/utils/Utils.js"
 
 assertMainOrNode()
 
@@ -54,7 +53,7 @@ export class WorkerClient {
 			await this._dispatcher.postRequest(new Request("setup", [window.env, this.getInitialEntropy(), client.browserData()]))
 
 			worker.onerror = (e: any) => {
-				throw new CryptoError("could not setup worker", e)
+				throw new Error(`could not setup worker: ${e.name} ${e.stack} ${e.message} ${e}`)
 			}
 		} else {
 			// node: we do not use workers but connect the client and the worker queues directly with each other

@@ -1,12 +1,12 @@
 import o from "@tutao/otest"
 import type { WorkerClient } from "../../../../src/api/main/WorkerClient.js"
-import { CryptoError } from "../../../../src/api/common/error/CryptoError.js"
 import { NotAuthenticatedError } from "../../../../src/api/common/error/RestError.js"
 import { Request } from "../../../../src/api/common/threading/MessageDispatcher.js"
 import { ProgrammingError } from "../../../../src/api/common/error/ProgrammingError.js"
 import { locator } from "../../../../src/api/main/MainLocator.js"
 import { assertThrows } from "@tutao/tutanota-test-utils"
 import { SessionType } from "../../../../src/api/common/SessionType.js"
+import { CryptoError } from "@tutao/tutanota-crypto/error.js"
 
 o.spec(
 	"WorkerTest request / response",

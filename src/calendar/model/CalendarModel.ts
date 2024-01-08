@@ -1,7 +1,7 @@
 import type { $Promisable, DeferredObject, Require } from "@tutao/tutanota-utils"
 import { assertNotNull, clone, defer, downcast, filterInt, getFromMap, isSameDay, symmetricDifference } from "@tutao/tutanota-utils"
 import { CalendarMethod, FeatureType, GroupType, OperationType } from "../../api/common/TutanotaConstants"
-import type { EntityUpdateData } from "../../api/main/EventController"
+
 import { EventController } from "../../api/main/EventController"
 import type { Group, GroupInfo, User, UserAlarmInfo } from "../../api/entities/sys/TypeRefs.js"
 import {
@@ -32,7 +32,7 @@ import type { IProgressMonitor } from "../../api/common/utils/ProgressMonitor"
 import { NoopProgressMonitor } from "../../api/common/utils/ProgressMonitor"
 import { EntityClient } from "../../api/common/EntityClient"
 import type { MailModel } from "../../mail/model/MailModel"
-import { elementIdPart, getElementId, isSameId, isUpdateFor, isUpdateForTypeRef, listIdPart, removeTechnicalFields } from "../../api/common/utils/EntityUtils"
+import { elementIdPart, getElementId, isSameId, listIdPart, removeTechnicalFields } from "../../api/common/utils/EntityUtils"
 import type { AlarmScheduler } from "../date/AlarmScheduler.js"
 import type { Notifications } from "../../gui/Notifications"
 import m from "mithril"
@@ -48,6 +48,7 @@ import Stream from "mithril/stream"
 import { ObservableLazyLoaded } from "../../api/common/utils/ObservableLazyLoaded.js"
 import { UserController } from "../../api/main/UserController.js"
 import { formatDateWithWeekdayAndTime, formatTime } from "../../misc/Formatter.js"
+import { EntityUpdateData, isUpdateFor, isUpdateForTypeRef } from "../../api/common/utils/EntityUpdateUtils.js"
 
 const TAG = "[CalendarModel]"
 export type CalendarInfo = {

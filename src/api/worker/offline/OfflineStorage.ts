@@ -26,7 +26,7 @@ import { isDesktop, isOfflineStorageAvailable, isTest } from "../../common/Env.j
 import { modelInfos, resolveTypeReference } from "../../common/EntityFunctions.js"
 import { AccountType, OFFLINE_STORAGE_DEFAULT_TIME_RANGE_DAYS } from "../../common/TutanotaConstants.js"
 import { DateProvider } from "../../common/DateProvider.js"
-import { TokenOrNestedTokens } from "cborg/types/interface"
+import { TokenOrNestedTokens } from "cborg/interface"
 import {
 	CalendarEventTypeRef,
 	FileTypeRef,

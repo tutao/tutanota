@@ -16,13 +16,13 @@ import { ExpanderButton, ExpanderPanel } from "../gui/base/Expander"
 import stream from "mithril/stream"
 import Stream from "mithril/stream"
 import { TextField } from "../gui/base/TextField.js"
-import type { EntityUpdateData } from "../api/main/EventController"
+
 import { showNotAvailableForFreeDialog } from "../misc/SubscriptionDialogs"
 import { getCleanedMailAddress } from "../misc/parsing/MailAddressParser"
 import { locator } from "../api/main/MainLocator"
 import { IconButton, IconButtonAttrs } from "../gui/base/IconButton.js"
 import { ButtonSize } from "../gui/base/ButtonSize.js"
-import { isUpdateForTypeRef } from "../api/common/utils/EntityUtils.js"
+import { EntityUpdateData, isUpdateForTypeRef } from "../api/common/utils/EntityUpdateUtils.js"
 
 type IdentifierRowAttrs = {
 	name: string
