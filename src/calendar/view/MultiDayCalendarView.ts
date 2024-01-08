@@ -40,7 +40,7 @@ import { ContinuingCalendarEventBubble } from "./ContinuingCalendarEventBubble"
 import { isAllDayEvent } from "../../api/common/utils/CommonCalendarUtils"
 import { locator } from "../../api/main/MainLocator.js"
 import { DateTime } from "luxon"
-import { DaySelector } from "../date/DaySelector.js"
+import { DaySelector } from "./day-selector/DaySelector.js"
 import { DaysToEvents } from "../date/CalendarEventsRepository.js"
 
 export type Attrs = {

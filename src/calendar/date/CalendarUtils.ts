@@ -52,8 +52,8 @@ import {
 import { lang } from "../../misc/LanguageViewModel"
 import { formatDateTime, formatDateWithMonth, formatTime, timeStringFromParts } from "../../misc/Formatter"
 import { size } from "../../gui/size"
-import type { DateWrapper, RepeatRule } from "../../api/entities/sys/TypeRefs.js"
-import { createDateWrapper, User } from "../../api/entities/sys/TypeRefs.js"
+import type { RepeatRule } from "../../api/entities/sys/TypeRefs.js"
+import { createDateWrapper, DateWrapper, User } from "../../api/entities/sys/TypeRefs.js"
 import { isColorLight } from "../../gui/base/Color"
 import type { GroupColors } from "../view/CalendarView"
 import { isSameId } from "../../api/common/utils/EntityUtils"
@@ -65,7 +65,7 @@ import { ChildArray, Children } from "mithril"
 import { DateProvider } from "../../api/common/DateProvider"
 import { AllIcons } from "../../gui/base/Icon.js"
 import { Icons } from "../../gui/base/icons/Icons.js"
-import { EventType } from "./eventeditor/CalendarEventModel.js"
+import { EventType } from "../view/eventeditor-model/CalendarEventModel.js"
 import { hasCapabilityOnGroup } from "../../sharing/GroupUtils.js"
 import { EntityClient } from "../../api/common/EntityClient.js"
 import { CalendarEventUidIndexEntry } from "../../api/worker/facades/lazy/CalendarFacade.js"
@@ -1563,3 +1563,23 @@ export const getGroupColors = memoized((userSettingsGroupRoot: UserSettingsGroup
 		return acc
 	}, new Map())
 })
+
+/**
+ * compare two lists of dates that are sorted from earliest to latest. return true if they are equivalent.
+ */
+export function areExcludedDatesEqual(e1: ReadonlyArray<DateWrapper>, e2: ReadonlyArray<DateWrapper>): boolean {
+	if (e1.length !== e2.length) return false
+	return e1.every(({ date }, i) => e2[i].date.getTime() === date.getTime())
+}
+
+export function areRepeatRulesEqual(r1: CalendarRepeatRule | null, r2: CalendarRepeatRule | null): boolean {
+	return (
+		r1 === r2 ||
+		(r1?.endType === r2?.endType &&
+			r1?.endValue === r2?.endValue &&
+			r1?.frequency === r2?.frequency &&
+			r1?.interval === r2?.interval &&
+			/** r1?.timeZone === r2?.timeZone && we're ignoring time zone because it's not an observable change. */
+			areExcludedDatesEqual(r1?.excludedDates ?? [], r2?.excludedDates ?? []))
+	)
+}

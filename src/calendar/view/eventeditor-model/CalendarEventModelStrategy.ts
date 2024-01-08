@@ -7,7 +7,7 @@ import { CalendarEvent } from "../../../api/entities/tutanota/TypeRefs.js"
 import { CalendarModel } from "../../model/CalendarModel.js"
 import { CalendarNotificationModel } from "./CalendarNotificationModel.js"
 import { assertNotNull, identity } from "@tutao/tutanota-utils"
-import { generateUid } from "../CalendarUtils.js"
+import { generateUid } from "../../date/CalendarUtils.js"
 import {
 	assembleCalendarEventEditResult,
 	assembleEditResultAndAssignFromExisting,

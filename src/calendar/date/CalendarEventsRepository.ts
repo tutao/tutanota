@@ -2,11 +2,18 @@ import Stream from "mithril/stream"
 import stream from "mithril/stream"
 import { CalendarInfo, CalendarModel } from "../model/CalendarModel.js"
 import { IProgressMonitor } from "../../api/common/utils/ProgressMonitor.js"
-import { addDaysForRecurringEvent, CalendarTimeRange, getEventEnd, getEventStart, getMonthRange, isSameEventInstance } from "./CalendarUtils.js"
+import {
+	addDaysForRecurringEvent,
+	areRepeatRulesEqual,
+	CalendarTimeRange,
+	getEventEnd,
+	getEventStart,
+	getMonthRange,
+	isSameEventInstance,
+} from "./CalendarUtils.js"
 import { CalendarEvent, CalendarEventTypeRef } from "../../api/entities/tutanota/TypeRefs.js"
 import { getListId, isSameId } from "../../api/common/utils/EntityUtils.js"
 import { DateTime } from "luxon"
-import { areRepeatRulesEqual } from "./eventeditor/CalendarEventModel.js"
 import { CalendarFacade } from "../../api/worker/facades/lazy/CalendarFacade.js"
 import { EntityClient } from "../../api/common/EntityClient.js"
 import { findAllAndRemove, freezeMap } from "@tutao/tutanota-utils"

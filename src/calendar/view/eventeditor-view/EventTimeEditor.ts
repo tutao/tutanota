@@ -4,7 +4,7 @@ import { TimePicker } from "../../../gui/date/TimePicker.js"
 import { TimeFormat } from "../../../api/common/TutanotaConstants.js"
 import { Checkbox } from "../../../gui/base/Checkbox.js"
 import { lang } from "../../../misc/LanguageViewModel.js"
-import { CalendarEventWhenModel } from "../../date/eventeditor/CalendarEventWhenModel.js"
+import { CalendarEventWhenModel } from "../../view/eventeditor-model/CalendarEventWhenModel.js"
 
 import { renderTwoColumnsIfFits } from "../../../gui/base/GuiUtils.js"
 

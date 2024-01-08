@@ -1,8 +1,7 @@
-import { lang } from "./LanguageViewModel"
 import { DateTime } from "luxon"
 import type { Birthday } from "../api/entities/tutanota/TypeRefs.js"
 import { createBirthday } from "../api/entities/tutanota/TypeRefs.js"
-import { formatDate } from "./Formatter"
+import { ProgrammingError } from "../api/common/error/ProgrammingError.js"
 
 /**
  * parses the following formats:
@@ -43,10 +42,8 @@ import { formatDate } from "./Formatter"
  */
 const referenceDate = new Date(2017, 5, 23)
 
-export function parseDate(dateString: string): Date {
-	let languageTag = lang.languageTag.toLowerCase()
-
-	let referenceParts = _cleanupAndSplit(formatDate(referenceDate))
+export function parseDate(dateString: string, referenceDateRenderer: (refdate: Date) => string): Date {
+	const referenceParts = _cleanupAndSplit(referenceDateRenderer(referenceDate))
 
 	// for finding day month and year position of locale date format  in cleanAndSplit array
 	const dayPos = referenceParts.findIndex((e) => e === 23)
@@ -77,7 +74,7 @@ export function parseDate(dateString: string): Date {
 		year = new Date().getFullYear()
 	} else {
 		// invalid parts length
-		throw new Error(`could not parse dateString '${dateString}' for locale ${languageTag}`)
+		throw new ProgrammingError(`could not parse dateString '${dateString}' with reference date ${referenceParts}`)
 	}
 
 	// if 1 or 2 digit year, then make it be in the 2000
@@ -121,11 +118,9 @@ export function _getNumDaysInMonth(month: number, year: number): number {
  * Parses a birthday string containing either day and month or day and month and year. The year may be 4 or 2 digits. If it is 2 digits and after the current year, 1900 + x is used, 2000 + x otherwise.
  * @return A birthday object containing the data form the given text or null if the text could not be parsed.
  */
-export function parseBirthday(text: string): Birthday | null {
+export function parseBirthday(text: string, referenceDateRenderer: (refdate: Date) => string): Birthday | null {
 	try {
-		const referenceDate = new Date(2017, 5, 23)
-
-		let referenceParts = _cleanupAndSplit(formatDate(referenceDate))
+		const referenceParts = _cleanupAndSplit(referenceDateRenderer(referenceDate))
 
 		//for finding day month and year position of locale date format  in cleanAndSplit array
 		let dayPos = referenceParts.findIndex((e) => e === 23)
