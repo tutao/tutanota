@@ -1,4 +1,4 @@
-import m, { Child } from "mithril"
+import m, { Child, ChildArray, Children } from "mithril"
 import type { TranslationKey } from "../../misc/LanguageViewModel.js"
 import { lang } from "../../misc/LanguageViewModel.js"
 import { ButtonType } from "../../gui/base/Button.js"
@@ -6,7 +6,19 @@ import { Icons } from "../../gui/base/icons/Icons.js"
 import { Dialog } from "../../gui/base/Dialog.js"
 import type { MousePosAndBounds } from "../../gui/base/GuiUtils.js"
 import { Time } from "../date/Time.js"
-import { assert, clamp, getStartOfDay, incrementDate, isSameDay, isSameDayOfDate, numberRange, typedValues } from "@tutao/tutanota-utils"
+import {
+	assert,
+	clamp,
+	clone,
+	getFromMap,
+	getStartOfDay,
+	incrementDate,
+	isSameDay,
+	isSameDayOfDate,
+	memoized,
+	numberRange,
+	typedValues,
+} from "@tutao/tutanota-utils"
 import { IconButton } from "../../gui/base/IconButton.js"
 import { formatDateTime, formatDateWithMonth, formatDateWithWeekday, formatMonthWithFullYear, formatTime, timeStringFromParts } from "../../misc/Formatter.js"
 import {
@@ -17,9 +29,12 @@ import {
 	CalendarMonth,
 	eventEndsAfterDay,
 	eventStartsBefore,
+	getAllDayDateForTimezone,
 	getEndOfDayWithZone,
 	getEventEnd,
 	getEventStart,
+	getStartOfDayWithZone,
+	getStartOfNextDayWithZone,
 	getStartOfTheWeekOffset,
 	getStartOfWeek,
 	getTimeZone,
@@ -27,13 +42,29 @@ import {
 	incrementByRepeatPeriod,
 	StandardAlarmInterval,
 } from "../date/CalendarUtils.js"
-import { CalendarAttendeeStatus, EndType, EventTextTimeOption, RepeatPeriod, WeekStart } from "../../api/common/TutanotaConstants.js"
+import {
+	AccountType,
+	CalendarAttendeeStatus,
+	defaultCalendarColor,
+	EndType,
+	EventTextTimeOption,
+	RepeatPeriod,
+	ShareCapability,
+	WeekStart,
+} from "../../api/common/TutanotaConstants.js"
 import { AllIcons } from "../../gui/base/Icon.js"
 import { SelectorItemList } from "../../gui/base/DropDownSelector.js"
 import { DateTime, Duration } from "luxon"
-import { CalendarEventTimes, isAllDayEvent } from "../../api/common/utils/CommonCalendarUtils.js"
-import { CalendarEvent } from "../../api/entities/tutanota/TypeRefs.js"
+import { CalendarEventTimes, cleanMailAddress, isAllDayEvent } from "../../api/common/utils/CommonCalendarUtils.js"
+import { CalendarEvent, UserSettingsGroupRoot } from "../../api/entities/tutanota/TypeRefs.js"
 import { ProgrammingError } from "../../api/common/error/ProgrammingError.js"
+import { size } from "../../gui/size.js"
+import { isColorLight } from "../../gui/base/Color.js"
+import { GroupColors } from "../view/CalendarView.js"
+import { CalendarInfo } from "../model/CalendarModel.js"
+import { User } from "../../api/entities/sys/TypeRefs.js"
+import { EventType } from "./eventeditor-model/CalendarEventModel.js"
+import { hasCapabilityOnGroup } from "../../sharing/GroupUtils.js"
 
 export function renderCalendarSwitchLeftButton(label: TranslationKey, click: () => unknown): Child {
 	return m(IconButton, {
@@ -483,4 +514,283 @@ export const createCustomRepeatRuleUnitValues = (): SelectorItemList<AlarmInterv
 			value: AlarmIntervalUnit.WEEK,
 		},
 	]
+}
+export const CALENDAR_EVENT_HEIGHT: number = size.calendar_line_height + 2
+export const TEMPORARY_EVENT_OPACITY = 0.7
+
+export function colorForBg(color: string): string {
+	return isColorLight(color) ? "black" : "white"
+}
+
+export const enum EventLayoutMode {
+	/** Take event start and end times into account when laying out. */
+	TimeBasedColumn,
+	/** Each event is treated as if it would take the whole day when laying out. */
+	DayBasedColumn,
+}
+
+/**
+ * Function which sorts events into the "columns" and "rows" and renders them using {@param renderer}.
+ * Columns are abstract and can be actually the rows. A single column progresses in time while multiple columns can happen in parallel.
+ * in one column on a single day (it will "stretch" events from the day start until the next day).
+ */
+export function layOutEvents(
+	events: Array<CalendarEvent>,
+	zone: string,
+	renderer: (columns: Array<Array<CalendarEvent>>) => ChildArray,
+	layoutMode: EventLayoutMode,
+): ChildArray {
+	events.sort((e1, e2) => {
+		const e1Start = getEventStart(e1, zone)
+		const e2Start = getEventStart(e2, zone)
+		if (e1Start < e2Start) return -1
+		if (e1Start > e2Start) return 1
+		const e1End = getEventEnd(e1, zone)
+		const e2End = getEventEnd(e2, zone)
+		if (e1End < e2End) return -1
+		if (e1End > e2End) return 1
+		return 0
+	})
+	let lastEventEnding: Date | null = null
+	let lastEventStart: Date | null = null
+	let columns: Array<Array<CalendarEvent>> = []
+	const children: Array<Children> = []
+	// Cache for calculation events
+	const calcEvents = new Map()
+	for (const e of events) {
+		const calcEvent = getFromMap(calcEvents, e, () => getCalculationEvent(e, zone, layoutMode))
+		// Check if a new event group needs to be started
+		if (
+			lastEventEnding != null &&
+			lastEventStart != null &&
+			lastEventEnding <= calcEvent.startTime.getTime() &&
+			(layoutMode === EventLayoutMode.DayBasedColumn || !visuallyOverlaps(lastEventStart, lastEventEnding, calcEvent.startTime))
+		) {
+			// The latest event is later than any of the event in the
+			// current group. There is no overlap. Output the current
+			// event group and start a new event group.
+			children.push(...renderer(columns))
+			columns = [] // This starts new event group.
+
+			lastEventEnding = null
+			lastEventStart = null
+		}
+
+		// Try to place the event inside the existing columns
+		let placed = false
+
+		for (let i = 0; i < columns.length; i++) {
+			const col = columns[i]
+			const lastEvent = col[col.length - 1]
+			const lastCalcEvent = getFromMap(calcEvents, lastEvent, () => getCalculationEvent(lastEvent, zone, layoutMode))
+
+			if (
+				!collidesWith(lastCalcEvent, calcEvent) &&
+				(layoutMode === EventLayoutMode.DayBasedColumn || !visuallyOverlaps(lastCalcEvent.startTime, lastCalcEvent.endTime, calcEvent.startTime))
+			) {
+				col.push(e) // push real event here not calc event
+
+				placed = true
+				break
+			}
+		}
+
+		// It was not possible to place the event. Add a new column
+		// for the current event group.
+		if (!placed) {
+			columns.push([e])
+		}
+
+		// Remember the latest event end time and start time of the current group.
+		// This is later used to determine if a new groups starts.
+		if (lastEventEnding == null || lastEventEnding.getTime() < calcEvent.endTime.getTime()) {
+			lastEventEnding = calcEvent.endTime
+		}
+		if (lastEventStart == null || lastEventStart.getTime() < calcEvent.startTime.getTime()) {
+			lastEventStart = calcEvent.startTime
+		}
+	}
+	children.push(...renderer(columns))
+	return children
+}
+
+/** get an event that can be rendered to the screen. in day view, the event is returned as-is, otherwise it's stretched to cover each day
+ * it occurs on completely. */
+function getCalculationEvent(event: CalendarEvent, zone: string, eventLayoutMode: EventLayoutMode): CalendarEvent {
+	if (eventLayoutMode === EventLayoutMode.DayBasedColumn) {
+		const calcEvent = clone(event)
+
+		if (isAllDayEvent(event)) {
+			calcEvent.startTime = getAllDayDateForTimezone(event.startTime, zone)
+			calcEvent.endTime = getAllDayDateForTimezone(event.endTime, zone)
+		} else {
+			calcEvent.startTime = getStartOfDayWithZone(event.startTime, zone)
+			calcEvent.endTime = getStartOfNextDayWithZone(event.endTime, zone)
+		}
+
+		return calcEvent
+	} else {
+		return event
+	}
+}
+
+/**
+ * This function checks whether two events collide based on their start and end time
+ * Assuming vertical columns with time going top-to-bottom, this would be true in these cases:
+ *
+ * case 1:
+ * +-----------+
+ * |           |
+ * |           |   +----------+
+ * +-----------+   |          |
+ *                 |          |
+ *                 +----------+
+ * case 2:
+ * +-----------+
+ * |           |   +----------+
+ * |           |   |          |
+ * |           |   +----------+
+ * +-----------+
+ *
+ * There could be a case where they are flipped vertically, but we don't have them because earlier events will be always first. so the "left" top edge will
+ * always be "above" the "right" top edge.
+ */
+function collidesWith(a: CalendarEvent, b: CalendarEvent): boolean {
+	return a.endTime.getTime() > b.startTime.getTime() && a.startTime.getTime() < b.endTime.getTime()
+}
+
+/**
+ * Due to the minimum height for events they overlap if a short event is directly followed by another event,
+ * therefore, we check whether the event height is less than the minimum height.
+ *
+ * This does not cover all the cases but handles the case when the second event starts right after the first one.
+ */
+function visuallyOverlaps(firstEventStart: Date, firstEventEnd: Date, secondEventStart: Date): boolean {
+	// We are only interested in the height on the last day of the event because an event ending later will take up the whole column until the next day anyway.
+	const firstEventStartOnSameDay = isSameDay(firstEventStart, firstEventEnd) ? firstEventStart.getTime() : getStartOfDay(firstEventEnd).getTime()
+	const eventDurationMs = firstEventEnd.getTime() - firstEventStartOnSameDay
+	const eventDurationHours = eventDurationMs / (1000 * 60 * 60)
+	const height = eventDurationHours * size.calendar_hour_height - size.calendar_event_border
+	return firstEventEnd.getTime() === secondEventStart.getTime() && height < size.calendar_line_height
+}
+
+export function expandEvent(ev: CalendarEvent, columnIndex: number, columns: Array<Array<CalendarEvent>>): number {
+	let colSpan = 1
+
+	for (let i = columnIndex + 1; i < columns.length; i++) {
+		let col = columns[i]
+
+		for (let j = 0; j < col.length; j++) {
+			let ev1 = col[j]
+
+			if (collidesWith(ev, ev1) || visuallyOverlaps(ev.startTime, ev.endTime, ev1.startTime)) {
+				return colSpan
+			}
+		}
+
+		colSpan++
+	}
+
+	return colSpan
+}
+
+export function getEventColor(event: CalendarEvent, groupColors: GroupColors): string {
+	return (event._ownerGroup && groupColors.get(event._ownerGroup)) ?? defaultCalendarColor
+}
+
+export function calendarAttendeeStatusSymbol(status: CalendarAttendeeStatus): string {
+	switch (status) {
+		case CalendarAttendeeStatus.ADDED:
+		case CalendarAttendeeStatus.NEEDS_ACTION:
+			return ""
+
+		case CalendarAttendeeStatus.TENTATIVE:
+			return "?"
+
+		case CalendarAttendeeStatus.ACCEPTED:
+			return "✓"
+
+		case CalendarAttendeeStatus.DECLINED:
+			return "❌"
+
+		default:
+			throw new Error("Unknown calendar attendee status: " + status)
+	}
+}
+
+export const iconForAttendeeStatus: Record<CalendarAttendeeStatus, AllIcons> = Object.freeze({
+	[CalendarAttendeeStatus.ACCEPTED]: Icons.CircleCheckmark,
+	[CalendarAttendeeStatus.TENTATIVE]: Icons.CircleHelp,
+	[CalendarAttendeeStatus.DECLINED]: Icons.CircleReject,
+	[CalendarAttendeeStatus.NEEDS_ACTION]: Icons.CircleEmpty,
+	[CalendarAttendeeStatus.ADDED]: Icons.CircleEmpty,
+})
+export const getGroupColors = memoized((userSettingsGroupRoot: UserSettingsGroupRoot) => {
+	return userSettingsGroupRoot.groupSettings.reduce((acc, gc) => {
+		acc.set(gc.group, gc.color)
+		return acc
+	}, new Map())
+})
+
+/**
+ *  find out how we ended up with this event, which determines the capabilities we have with it.
+ *  for shared events in calendar where we have read-write access, we can still only view events that have
+ *  attendees, because we could not send updates after we edit something
+ * @param existingEvent the event in question.
+ * @param calendars a list of calendars that this user has access to.
+ * @param ownMailAddresses the list of mail addresses this user might be using.
+ * @param user the user accessing the event.
+ */
+export function getEventType(
+	existingEvent: Partial<CalendarEvent>,
+	calendars: ReadonlyMap<Id, CalendarInfo>,
+	ownMailAddresses: ReadonlyArray<string>,
+	user: User,
+): EventType {
+	if (user.accountType === AccountType.EXTERNAL) {
+		return EventType.EXTERNAL
+	}
+
+	const existingOrganizer = existingEvent.organizer
+	const isOrganizer = existingOrganizer != null && ownMailAddresses.some((a) => cleanMailAddress(a) === existingOrganizer.address)
+
+	if (existingEvent._ownerGroup == null) {
+		if (existingOrganizer != null && !isOrganizer) {
+			// OwnerGroup is not set for events from file, but we also require an organizer to treat it as an invite.
+			return EventType.INVITE
+		} else {
+			// either the organizer exists and it's us, or the organizer does not exist and we can treat this as our event,
+			// like for newly created events.
+			return EventType.OWN
+		}
+	}
+
+	const calendarInfoForEvent = calendars.get(existingEvent._ownerGroup) ?? null
+
+	if (calendarInfoForEvent == null) {
+		// event has an ownergroup, but it's not in one of our calendars. this might actually be an error.
+		return EventType.SHARED_RO
+	}
+
+	if (calendarInfoForEvent.shared) {
+		const canWrite = hasCapabilityOnGroup(user, calendarInfoForEvent.group, ShareCapability.Write)
+		if (canWrite) {
+			const organizerAddress = cleanMailAddress(existingOrganizer?.address ?? "")
+			const wouldRequireUpdates: boolean =
+				existingEvent.attendees != null && existingEvent.attendees.some((a) => cleanMailAddress(a.address.address) !== organizerAddress)
+			return wouldRequireUpdates ? EventType.LOCKED : EventType.SHARED_RW
+		} else {
+			return EventType.SHARED_RO
+		}
+	}
+
+	//For an event in a personal calendar there are 3 options
+	if (existingOrganizer == null || existingEvent.attendees?.length === 0 || isOrganizer) {
+		// 1. we are the organizer of the event or the event does not have an organizer yet
+		// 2. we are not the organizer and the event does not have guests. it was created by someone we shared our calendar with (also considered our own event)
+		return EventType.OWN
+	} else {
+		// 3. the event is an invitation that has another organizer and/or attendees.
+		return EventType.INVITE
+	}
 }
