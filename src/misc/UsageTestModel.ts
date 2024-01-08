@@ -25,10 +25,9 @@ import { isOfflineError } from "../api/common/utils/ErrorCheckUtils.js"
 import { LoginController } from "../api/main/LoginController.js"
 import { CustomerProperties, CustomerPropertiesTypeRef, CustomerTypeRef } from "../api/entities/sys/TypeRefs.js"
 import { EntityClient } from "../api/common/EntityClient.js"
-import { EntityUpdateData, EventController } from "../api/main/EventController.js"
+import { EventController } from "../api/main/EventController.js"
 import { createUserSettingsGroupRoot, UserSettingsGroupRootTypeRef } from "../api/entities/tutanota/TypeRefs.js"
-import { isUpdateForTypeRef } from "../api/common/utils/EntityUtils.js"
-
+import { EntityUpdateData, isUpdateForTypeRef } from "../api/common/utils/EntityUpdateUtils.js"
 const PRESELECTED_LIKERT_VALUE = null
 
 type ExperienceSamplingOptions = {

@@ -10,12 +10,12 @@ import { UserError } from "../../api/main/UserError.js"
 import { DataFile } from "../../api/common/DataFile.js"
 import { findAttendeeInAddresses } from "../../api/common/utils/CommonCalendarUtils.js"
 import { Recipient } from "../../api/common/recipients/Recipient.js"
-import { isCustomizationEnabledForCustomer } from "../../api/common/utils/Utils.js"
 import { SendMailModel } from "../../mail/editor/SendMailModel.js"
 import { CalendarEventModel, CalendarOperation, EventType } from "../gui/eventeditor-model/CalendarEventModel.js"
 import { CalendarNotificationModel } from "../gui/eventeditor-model/CalendarNotificationModel.js"
 import { RecipientField } from "../../mail/model/MailUtils.js"
 import { ResolveMode } from "../../api/main/RecipientsModel.js"
+import { isCustomizationEnabledForCustomer } from "../../api/common/utils/CustomerUtils.js"
 import { getEventType } from "../gui/CalendarGuiUtils.js"
 
 // not picking the status directly from CalendarEventAttendee because it's a NumberString

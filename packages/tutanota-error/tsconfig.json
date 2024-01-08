@@ -1,0 +1,12 @@
+{
+	"extends": "../../tsconfig_common.json",
+	"include": ["lib", "../../types/"],
+	"compilerOptions": {
+		"outDir": "dist",
+		"composite": true,
+		"rootDir": "lib",
+		"tsBuildInfoFile": "dist/tsbuildinfo",
+		"incremental": true
+	},
+	"references": []
+}

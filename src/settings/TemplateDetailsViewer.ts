@@ -2,7 +2,6 @@ import m, { Children } from "mithril"
 import type { lazy } from "@tutao/tutanota-utils"
 import { assertNotNull } from "@tutao/tutanota-utils"
 import { TextField } from "../gui/base/TextField.js"
-import type { EntityUpdateData } from "../api/main/EventController"
 import { Icons } from "../gui/base/icons/Icons"
 import { getLanguageCode } from "./TemplateEditorModel"
 import { showTemplateEditor } from "./TemplateEditor"
@@ -16,6 +15,7 @@ import { TEMPLATE_SHORTCUT_PREFIX } from "../templates/model/TemplatePopupModel"
 import type { UpdatableSettingsDetailsViewer } from "./SettingsView"
 import { ActionBar } from "../gui/base/ActionBar.js"
 import { htmlSanitizer } from "../misc/HtmlSanitizer.js"
+import { EntityUpdateData } from "../api/common/utils/EntityUpdateUtils.js"
 
 export class TemplateDetailsViewer implements UpdatableSettingsDetailsViewer {
 	// we're not memoizing the translated language name since this is not a proper mithril component and may stick around after a language

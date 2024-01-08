@@ -3,7 +3,7 @@ import { aes256RandomKey, bitArrayToUint8Array, generateEccKeyPair } from "@tuta
 import { PQFacade } from "../../../../../src/api/worker/facades/PQFacade.js"
 import { WASMKyberFacade } from "../../../../../src/api/worker/facades/KyberFacade.js"
 import { loadLibOQSWASM } from "../WASMTestUtils.js"
-import { pqKeyPairsToPublicKeys } from "@tutao/tutanota-crypto/dist/encryption/PQKeyPairs.js"
+import { pqKeyPairsToPublicKeys } from "@tutao/tutanota-crypto"
 
 o.spec("PQFacade test", function () {
 	o.spec("encapsulateDecapsulateRoundtrip", function () {

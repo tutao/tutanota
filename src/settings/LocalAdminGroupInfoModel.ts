@@ -3,9 +3,9 @@ import type { GroupInfo } from "../api/entities/sys/TypeRefs.js"
 import { GroupInfoTypeRef } from "../api/entities/sys/TypeRefs.js"
 import { GroupType } from "../api/common/TutanotaConstants"
 import { locator } from "../api/main/MainLocator"
-import type { EntityUpdateData } from "../api/main/EventController"
+
 import { noOp, promiseMap } from "@tutao/tutanota-utils"
-import { isUpdateForTypeRef } from "../api/common/utils/EntityUtils.js"
+import { EntityUpdateData, isUpdateForTypeRef } from "../api/common/utils/EntityUpdateUtils.js"
 
 class LocalAdminGroupInfoModel {
 	_initialization: Promise<GroupInfo[]> | null

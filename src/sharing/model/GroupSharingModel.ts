@@ -1,9 +1,8 @@
 import stream from "mithril/stream"
 import Stream from "mithril/stream"
-import type { EntityEventsListener, EntityUpdateData } from "../../api/main/EventController"
-import { EventController } from "../../api/main/EventController"
+import { EntityEventsListener, EventController } from "../../api/main/EventController"
 import { EntityClient } from "../../api/common/EntityClient"
-import { getElementId, getEtId, isSameId, isUpdateForTypeRef } from "../../api/common/utils/EntityUtils"
+import { getElementId, getEtId, isSameId } from "../../api/common/utils/EntityUtils"
 import type { Group, GroupInfo, GroupMember, SentGroupInvitation } from "../../api/entities/sys/TypeRefs.js"
 import { GroupMemberTypeRef, GroupTypeRef, SentGroupInvitationTypeRef } from "../../api/entities/sys/TypeRefs.js"
 import { OperationType, ShareCapability } from "../../api/common/TutanotaConstants"
@@ -22,6 +21,7 @@ import type { ShareFacade } from "../../api/worker/facades/lazy/ShareFacade.js"
 import type { GroupManagementFacade } from "../../api/worker/facades/lazy/GroupManagementFacade.js"
 import { Recipient, RecipientType } from "../../api/common/recipients/Recipient"
 import { RecipientsModel, ResolveMode } from "../../api/main/RecipientsModel"
+import { EntityUpdateData, isUpdateForTypeRef } from "../../api/common/utils/EntityUpdateUtils.js"
 
 export class GroupSharingModel {
 	readonly info: GroupInfo

@@ -48,7 +48,6 @@ import type { InlineImages } from "../view/MailViewer"
 import { FileOpenError } from "../../api/common/error/FileOpenError"
 import type { lazy } from "@tutao/tutanota-utils"
 import { assertNotNull, cleanMatch, downcast, isNotNull, noOp, ofClass, typedValues } from "@tutao/tutanota-utils"
-import { isCustomizationEnabledForCustomer } from "../../api/common/utils/Utils"
 import { createInlineImage, replaceCidsWithInlineImages, replaceInlineImagesWithCids } from "../view/MailGuiUtils"
 import { client } from "../../misc/ClientDetector"
 import { appendEmailSignature } from "../signature/Signature"
@@ -88,6 +87,7 @@ import { Status, StatusField } from "../../gui/base/StatusField.js"
 import { ContentBlockingStatus } from "../view/MailViewerViewModel.js"
 import { canSeeTutaLinks } from "../../gui/base/GuiUtils.js"
 import { InfoBanner } from "../../gui/base/InfoBanner.js"
+import { isCustomizationEnabledForCustomer } from "../../api/common/utils/CustomerUtils.js"
 
 export type MailEditorAttrs = {
 	model: SendMailModel

@@ -5,10 +5,11 @@ import { ListModel } from "../../misc/ListModel.js"
 import { Contact, ContactTypeRef } from "../../api/entities/tutanota/TypeRefs.js"
 import { compareContacts } from "./ContactGuiUtils.js"
 import { ListState } from "../../gui/base/List.js"
-import { assertNotNull, lazyMemoized, memoized } from "@tutao/tutanota-utils"
-import { GENERATED_MAX_ID, getElementId, isUpdateForTypeRef } from "../../api/common/utils/EntityUtils.js"
+import { assertNotNull, lazyMemoized } from "@tutao/tutanota-utils"
+import { GENERATED_MAX_ID, getElementId } from "../../api/common/utils/EntityUtils.js"
 import Stream from "mithril/stream"
 import { Router } from "../../gui/ScopedRouter.js"
+import { isUpdateForTypeRef } from "../../api/common/utils/EntityUpdateUtils.js"
 
 /** ViewModel for the overall contact view. */
 export class ContactViewModel {

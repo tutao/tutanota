@@ -12,7 +12,6 @@ import { lang, TranslationKey } from "../../../misc/LanguageViewModel.js"
 import type { RepeatRule } from "../../../api/entities/sys/TypeRefs.js"
 import { cleanMailAddress, findAttendeeInAddresses, isAllDayEvent } from "../../../api/common/utils/CommonCalendarUtils.js"
 import { formatDateWithMonth } from "../../../misc/Formatter.js"
-import { hasError } from "../../../api/common/utils/ErrorCheckUtils.js"
 import { BannerButton, BannerButtonAttrs } from "../../../gui/base/buttons/BannerButton.js"
 import { pureComponent } from "../../../gui/base/PureComponent.js"
 import { CalendarEventPreviewViewModel } from "./CalendarEventPreviewViewModel.js"
@@ -20,6 +19,7 @@ import { UpgradeRequiredError } from "../../../api/main/UpgradeRequiredError.js"
 import { showPlanUpgradeRequiredDialog } from "../../../misc/SubscriptionDialogs.js"
 
 import { createRepeatRuleFrequencyValues, formatEventDuration, iconForAttendeeStatus } from "../CalendarGuiUtils.js"
+import { hasError } from "../../../api/common/utils/ErrorCheckUtils.js"
 
 export type EventPreviewViewAttrs = {
 	event: Omit<CalendarEvent, "description">

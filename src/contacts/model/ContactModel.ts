@@ -12,11 +12,12 @@ import { assertMainOrNode } from "../../api/common/Env"
 import { LoginIncompleteError } from "../../api/common/error/LoginIncompleteError"
 import { cleanMailAddress } from "../../api/common/utils/CommonCalendarUtils.js"
 import { Group, GroupInfo, GroupInfoTypeRef, GroupMembership, GroupTypeRef } from "../../api/entities/sys/TypeRefs.js"
-import { EntityEventsListener, EntityUpdateData, EventController } from "../../api/main/EventController.js"
+import { EntityEventsListener, EventController } from "../../api/main/EventController.js"
 import Stream from "mithril/stream"
 import stream from "mithril/stream"
 import { ShareCapability } from "../../api/common/TutanotaConstants.js"
 import { isSharedGroupOwner } from "../../sharing/GroupUtils.js"
+import { EntityUpdateData } from "../../api/common/utils/EntityUpdateUtils.js"
 
 assertMainOrNode()
 

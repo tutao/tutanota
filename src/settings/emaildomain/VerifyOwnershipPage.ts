@@ -4,7 +4,6 @@ import type { AddDomainData } from "./AddDomainWizard"
 import { showProgressDialog } from "../../gui/dialogs/ProgressDialog"
 import { lang, TranslationKey } from "../../misc/LanguageViewModel"
 import { Dialog } from "../../gui/base/Dialog"
-import { getCustomMailDomains } from "../../api/common/utils/Utils"
 import type { WizardPageAttrs, WizardPageN } from "../../gui/base/WizardDialog.js"
 import { emitWizardEvent, WizardEventType } from "../../gui/base/WizardDialog.js"
 import { Button, ButtonType } from "../../gui/base/Button.js"
@@ -15,6 +14,7 @@ import { locator } from "../../api/main/MainLocator"
 import { assertMainOrNode } from "../../api/common/Env"
 import { createDnsRecordTable } from "./DnsRecordTable.js"
 import { getAvailableMatchingPlans } from "../../subscription/SubscriptionUtils.js"
+import { getCustomMailDomains } from "../../api/common/utils/CustomerUtils.js"
 
 assertMainOrNode()
 

@@ -12,7 +12,6 @@ import { TextField } from "../gui/base/TextField.js"
 import { showProgressDialog } from "../gui/dialogs/ProgressDialog"
 import { assertNotNull, LazyLoaded, memoized, neverNull, ofClass } from "@tutao/tutanota-utils"
 import { htmlSanitizer } from "../misc/HtmlSanitizer"
-import { getWhitelabelDomain } from "../api/common/utils/Utils"
 import { PayloadTooLargeError } from "../api/common/error/RestError"
 import { SegmentControl } from "../gui/base/SegmentControl"
 import { insertInlineImageB64ClickHandler } from "../mail/view/MailViewerUtils"
@@ -23,6 +22,7 @@ import type { UserController } from "../api/main/UserController"
 import { GENERATED_MAX_ID } from "../api/common/utils/EntityUtils"
 import { locator } from "../api/main/MainLocator"
 import { PlanType } from "../api/common/TutanotaConstants.js"
+import { getWhitelabelDomainInfo } from "../api/common/utils/CustomerUtils.js"
 
 export function showAddOrEditNotificationEmailDialog(userController: UserController, selectedNotificationLanguage?: string) {
 	let existingTemplate: NotificationMailTemplate | undefined = undefined
@@ -157,7 +157,7 @@ export function show(existingTemplate: NotificationMailTemplate | null, customer
 	const senderName = locator.logins.getUserController().userGroupInfo.name
 	let senderDomain = "https://app.tuta.com"
 	loadCustomerInfo().then((customerInfo) => {
-		const whitelabelDomainInfo = customerInfo && getWhitelabelDomain(customerInfo)
+		const whitelabelDomainInfo = customerInfo && getWhitelabelDomainInfo(customerInfo)
 		senderDomain = "https://" + ((whitelabelDomainInfo && whitelabelDomainInfo.domain) || "app.tuta.com")
 		m.redraw()
 	})

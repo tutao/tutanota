@@ -100,10 +100,10 @@ import { DomainConfigProvider } from "../common/DomainConfigProvider.js"
 import type { AppsCredentialRemovalHandler, CredentialRemovalHandler, NoopCredentialRemovalHandler } from "../../login/CredentialRemovalHandler.js"
 import { LoginViewModel } from "../../login/LoginViewModel.js"
 import { getEnabledMailAddressesWithUser } from "../../mail/model/MailUtils.js"
-import { isCustomizationEnabledForCustomer } from "../common/utils/Utils.js"
 import type { CalendarEventPreviewViewModel } from "../../calendar/gui/eventpopup/CalendarEventPreviewViewModel.js"
 
 import { getDisplayedSender } from "../common/mail/CommonMailUtils.js"
+import { isCustomizationEnabledForCustomer } from "../common/utils/CustomerUtils.js"
 import { CalendarEventsRepository } from "../../calendar/date/CalendarEventsRepository.js"
 
 assertMainOrNode()

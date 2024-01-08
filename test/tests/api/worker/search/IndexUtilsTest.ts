@@ -22,13 +22,12 @@ import { ContactTypeRef } from "../../../../../src/api/entities/tutanota/TypeRef
 import { createGroupMembership } from "../../../../../src/api/entities/sys/TypeRefs.js"
 import { GroupType, OperationType } from "../../../../../src/api/common/TutanotaConstants.js"
 import { createEntityUpdate } from "../../../../../src/api/entities/sys/TypeRefs.js"
-import { containsEventOfType } from "../../../../../src/api/common/utils/Utils.js"
 import { MailTypeRef } from "../../../../../src/api/entities/tutanota/TypeRefs.js"
 import { byteLength } from "@tutao/tutanota-utils"
 import { aesDecrypt, aes256RandomKey, fixedIv } from "@tutao/tutanota-crypto"
-import { EntityUpdateData } from "../../../../../src/api/main/EventController.js"
 import { resolveTypeReference } from "../../../../../src/api/common/EntityFunctions.js"
 import { createTestEntity } from "../../../TestUtils.js"
+import { containsEventOfType, EntityUpdateData } from "../../../../../src/api/common/utils/EntityUpdateUtils.js"
 o.spec("Index Utils", () => {
 	o("encryptIndexKey", function () {
 		let key = aes256RandomKey()

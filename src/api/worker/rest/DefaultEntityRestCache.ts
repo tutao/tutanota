@@ -3,7 +3,6 @@ import { EntityRestClient, EntityRestClientSetupOptions } from "./EntityRestClie
 import { resolveTypeReference } from "../../common/EntityFunctions"
 import { OperationType } from "../../common/TutanotaConstants"
 import { assertNotNull, difference, getFirstOrThrow, groupBy, isSameTypeRef, lastThrow, TypeRef } from "@tutao/tutanota-utils"
-import { containsEventOfType, getEventOfType } from "../../common/utils/Utils"
 import type { EntityUpdate, User } from "../../entities/sys/TypeRefs.js"
 import {
 	BucketPermissionTypeRef,
@@ -23,10 +22,10 @@ import { ProgrammingError } from "../../common/error/ProgrammingError"
 import { assertWorkerOrNode } from "../../common/Env"
 import type { ListElementEntity, SomeEntity, TypeModel } from "../../common/EntityTypes"
 import { ElementEntity } from "../../common/EntityTypes"
-import { EntityUpdateData } from "../../main/EventController"
 import { QueuedBatch } from "../EventQueue.js"
 import { ENTITY_EVENT_BATCH_EXPIRE_MS } from "../EventBusClient"
 import { CustomCacheHandlerMap } from "./CustomCacheHandler.js"
+import { containsEventOfType, EntityUpdateData, getEventOfType } from "../../common/utils/EntityUpdateUtils.js"
 
 assertWorkerOrNode()
 

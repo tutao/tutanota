@@ -50,7 +50,6 @@ import {
 import { typeRefToPath } from "../rest/EntityRestClient"
 import { LockedError, NotFoundError, PayloadTooLargeError, TooManyRequestsError } from "../../common/error/RestError"
 import { SessionKeyNotFoundError } from "../../common/error/SessionKeyNotFoundError" // importing with {} from CJS modules is not supported for dist-builds currently (must be a systemjs builder bug) // importing with {} from CJS modules is not supported for dist-builds currently (must be a systemjs builder bug)
-import { CryptoError as TutanotaCryptoError } from "../../common/error/CryptoError"
 import { birthdayToIsoDate, oldBirthdayToBirthday } from "../../common/utils/BirthdayUtils"
 import type { Entity, SomeEntity, TypeModel } from "../../common/EntityTypes"
 import { assertWorkerOrNode } from "../../common/Env"
@@ -65,7 +64,6 @@ import {
 	AsymmetricPublicKey,
 	bitArrayToUint8Array,
 	bytesToKyberPublicKey,
-	CryptoError,
 	decryptKey,
 	decryptKeyPair,
 	EccKeyPair,
@@ -87,6 +85,7 @@ import {
 	sha256Hash,
 	uint8ArrayToBitArray,
 } from "@tutao/tutanota-crypto"
+import { CryptoError } from "@tutao/tutanota-crypto/error.js"
 import { RecipientNotResolvedError } from "../../common/error/RecipientNotResolvedError"
 import type { RsaImplementation } from "./RsaImplementation"
 import { IServiceExecutor } from "../../common/ServiceRequest"
@@ -264,7 +263,7 @@ export class CryptoFacade {
 				return this.trySymmetricPermission(permissions) ?? (await this.resolveWithPublicOrExternalPermission(permissions, instance, typeModel))
 			}
 		} catch (e) {
-			if (e instanceof TutanotaCryptoError || e instanceof CryptoError) {
+			if (e instanceof CryptoError) {
 				console.log("failed to resolve session key due to crypto error", e)
 				throw new SessionKeyNotFoundError("Crypto error while resolving session key for instance " + instance._id)
 			}

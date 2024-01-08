@@ -93,7 +93,7 @@ import { PQFacade } from "../../../../../src/api/worker/facades/PQFacade.js"
 import { encodePQMessage, PQBucketKeyEncapsulation, PQMessage } from "../../../../../src/api/worker/facades/PQMessage.js"
 import { loadLibOQSWASM } from "../WASMTestUtils.js"
 import { createTestEntity } from "../../../TestUtils.js"
-import { pqKeyPairsToPublicKeys } from "@tutao/tutanota-crypto/dist/encryption/PQKeyPairs.js"
+import { pqKeyPairsToPublicKeys } from "@tutao/tutanota-crypto"
 import { RSA_TEST_KEYPAIR } from "../facades/RsaPqPerformanceTest.js"
 
 const { captor, anything, argThat } = matchers

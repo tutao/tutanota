@@ -1,11 +1,9 @@
-import { assertMainOrNodeBoot, isApp, isDesktop } from "../api/common/Env"
+import { isApp, isDesktop } from "../api/common/Env"
 import { lang } from "../misc/LanguageViewModel"
 import { windowFacade } from "../misc/WindowFacade"
 import m, { Component } from "mithril"
 import { handleUncaughtError } from "../misc/ErrorHandler"
-import { isNotSupportedError, isSecurityError, objToError } from "../api/common/utils/Utils"
-
-assertMainOrNodeBoot()
+import { isNotSupportedError, isSecurityError, objToError } from "../api/common/utils/Utils.js"
 
 function showUpdateOverlay({ showChangelogLink, onUpdate }: { showChangelogLink: boolean; onUpdate: () => void }) {
 	const notificationMessage: Component = {

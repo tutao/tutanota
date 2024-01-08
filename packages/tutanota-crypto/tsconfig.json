@@ -3,6 +3,7 @@
 	"include": ["../../types/*.d.ts", "lib/encryption", "lib/hashes", "lib/misc", "lib/random"],
 	"files": [
 		"lib/index.ts",
+		"lib/error.ts",
 		"lib/internal/bCrypt.js",
 		"lib/internal/crypto-jsbn-2012-08-09_1.js",
 		"lib/internal/sjcl.js",
@@ -21,6 +22,9 @@
 		},
 		{
 			"path": "../otest"
+		},
+		{
+			"path": "../tutanota-error"
 		}
 	]
 }

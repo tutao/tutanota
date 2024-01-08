@@ -7,8 +7,9 @@ import { CommonNativeFacade } from "../../native/common/generatedipc/CommonNativ
 import { LanguageViewModel } from "../../misc/LanguageViewModel.js"
 import { DesktopConfig } from "../config/DesktopConfig.js"
 import { DesktopConfigKey } from "../config/ConfigKeys.js"
-import { KEY_LENGTH_BYTES_AES_256 } from "@tutao/tutanota-crypto/dist/encryption/Aes.js"
-import { CryptoError, generateKeyFromPassphraseArgon2id } from "@tutao/tutanota-crypto"
+import { KEY_LENGTH_BYTES_AES_256 } from "@tutao/tutanota-crypto"
+import { generateKeyFromPassphraseArgon2id } from "@tutao/tutanota-crypto"
+import { CryptoError } from "@tutao/tutanota-crypto/error.js"
 import { CancelledError } from "../../api/common/error/CancelledError.js"
 import { KeyPermanentlyInvalidatedError } from "../../api/common/error/KeyPermanentlyInvalidatedError.js"
 

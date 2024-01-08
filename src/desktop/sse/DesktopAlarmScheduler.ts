@@ -8,13 +8,13 @@ import type { DesktopAlarmStorage } from "./DesktopAlarmStorage"
 import type { DesktopNativeCryptoFacade } from "../DesktopNativeCryptoFacade"
 import { log } from "../DesktopLog"
 import type { AlarmScheduler } from "../../calendar/date/AlarmScheduler.js"
-import { CryptoError } from "../../api/common/error/CryptoError"
 import { elementIdPart } from "../../api/common/utils/EntityUtils"
-import { hasError } from "../../api/common/utils/ErrorCheckUtils"
 import { resolveTypeReference } from "../../api/common/EntityFunctions"
 import { EncryptedAlarmNotification } from "../../native/common/EncryptedAlarmNotification.js"
 import { base64ToUint8Array } from "@tutao/tutanota-utils"
+import { CryptoError } from "@tutao/tutanota-crypto/error.js"
 import { formatNotificationForDisplay } from "../../calendar/model/CalendarModel.js"
+import { hasError } from "../../api/common/utils/ErrorCheckUtils.js"
 
 export interface NativeAlarmScheduler {
 	handleAlarmNotification(an: EncryptedAlarmNotification): Promise<void>

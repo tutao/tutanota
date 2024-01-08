@@ -1,6 +1,6 @@
-import { getCustomMailDomains } from "../../api/common/utils/Utils.js"
 import { AccountType, TUTANOTA_MAIL_ADDRESS_SIGNUP_DOMAINS } from "../../api/common/TutanotaConstants.js"
 import { LoginController } from "../../api/main/LoginController.js"
+import { getCustomMailDomains } from "../../api/common/utils/CustomerUtils.js"
 
 export interface EmailDomainData {
 	domain: string

@@ -3,10 +3,10 @@ import type { Base64Url } from "@tutao/tutanota-utils"
 import { assertNotNull, downcast, first, mapAndFilterNull, neverNull, ofClass } from "@tutao/tutanota-utils"
 import { MediaType } from "../common/EntityFunctions"
 import { assertMainOrNode, getApiBaseUrl, isDesktop } from "../common/Env"
-import type { EntityUpdateData } from "./EventController"
+
 import { NotFoundError } from "../common/error/RestError"
 import { locator } from "./MainLocator"
-import { elementIdPart, isSameId, isUpdateForTypeRef, listIdPart } from "../common/utils/EntityUtils"
+import { elementIdPart, isSameId, listIdPart } from "../common/utils/EntityUtils"
 import { getWhitelabelCustomizations } from "../../misc/WhitelabelCustomizations"
 import { EntityClient } from "../common/EntityClient"
 import { CloseSessionService, PlanService } from "../entities/sys/Services"
@@ -39,8 +39,9 @@ import {
 } from "../entities/tutanota/TypeRefs"
 import { typeModels as sysTypeModels } from "../entities/sys/TypeModels"
 import { SessionType } from "../common/SessionType"
-import { isCustomizationEnabledForCustomer } from "../common/utils/Utils.js"
 import { IServiceExecutor } from "../common/ServiceRequest.js"
+import { isCustomizationEnabledForCustomer } from "../common/utils/CustomerUtils.js"
+import { EntityUpdateData, isUpdateForTypeRef } from "../common/utils/EntityUpdateUtils.js"
 
 assertMainOrNode()
 

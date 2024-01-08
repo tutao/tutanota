@@ -2,23 +2,14 @@ import { ListModel } from "../../misc/ListModel.js"
 import { MailboxDetail, MailModel } from "../model/MailModel.js"
 import { EntityClient } from "../../api/common/EntityClient.js"
 import { Mail, MailFolder, MailTypeRef } from "../../api/entities/tutanota/TypeRefs.js"
-import {
-	firstBiggerThanSecond,
-	GENERATED_MAX_ID,
-	getElementId,
-	isSameId,
-	isUpdateForTypeRef,
-	sortCompareByReverseId,
-} from "../../api/common/utils/EntityUtils.js"
-import { assertNotNull, count, debounce, lastThrow, lazyMemoized, memoized, ofClass, promiseFilter } from "@tutao/tutanota-utils"
+import { firstBiggerThanSecond, GENERATED_MAX_ID, getElementId, isSameId, sortCompareByReverseId } from "../../api/common/utils/EntityUtils.js"
+import { assertNotNull, count, debounce, lastThrow, lazyMemoized, mapWith, mapWithout, memoized, ofClass, promiseFilter } from "@tutao/tutanota-utils"
 import { ListState } from "../../gui/base/List.js"
 import { ConversationPrefProvider, ConversationViewModel, ConversationViewModelFactory } from "./ConversationViewModel.js"
 import { CreateMailViewerOptions } from "./MailViewer.js"
-import { EntityUpdateData, EventController } from "../../api/main/EventController.js"
 import { isOfflineError } from "../../api/common/utils/ErrorCheckUtils.js"
 import { MailFolderType } from "../../api/common/TutanotaConstants.js"
 import { assertSystemFolderOfType, isOfTypeOrSubfolderOf, isSpamOrTrashFolder, isSubfolderOfType } from "../../api/common/mail/CommonMailUtils.js"
-import { mapWith, mapWithout } from "@tutao/tutanota-utils"
 import { WsConnectionState } from "../../api/main/WorkerClient.js"
 import { WebsocketConnectivityModel } from "../../misc/WebsocketConnectivityModel.js"
 import { ExposedCacheStorage } from "../../api/worker/rest/DefaultEntityRestCache.js"
@@ -30,6 +21,8 @@ import Stream from "mithril/stream"
 import { InboxRuleHandler } from "../model/InboxRuleHandler.js"
 import { Router } from "../../gui/ScopedRouter.js"
 import { ListFetchResult } from "../../gui/base/ListUtils.js"
+import { EntityUpdateData, isUpdateForTypeRef } from "../../api/common/utils/EntityUpdateUtils.js"
+import { EventController } from "../../api/main/EventController.js"
 
 export interface MailOpenedListener {
 	onEmailOpened(mail: Mail): unknown

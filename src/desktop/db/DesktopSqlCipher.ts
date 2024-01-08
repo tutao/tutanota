@@ -1,6 +1,6 @@
 import { Database, default as Sqlite } from "better-sqlite3"
-import { CryptoError } from "@tutao/tutanota-crypto"
 import { mapNullable, uint8ArrayToBase64 } from "@tutao/tutanota-utils"
+import { CryptoError } from "@tutao/tutanota-crypto/error.js"
 import { SqlCipherFacade } from "../../native/common/generatedipc/SqlCipherFacade.js"
 import { OfflineDbClosedError } from "../../api/common/error/OfflineDbClosedError.js"
 import { ProgrammingError } from "../../api/common/error/ProgrammingError.js"

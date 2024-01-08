@@ -1,13 +1,8 @@
 import o from "@tutao/otest"
 import td, { instance, matchers, object, when } from "testdouble"
 import {
-	createCreateSessionReturn,
-	createGroupInfo,
-	createGroupMembership,
 	createSaltReturn,
 	CreateSessionReturnTypeRef,
-	createUser,
-	createUserExternalAuthInfo,
 	GroupInfoTypeRef,
 	GroupMembershipTypeRef,
 	SaltReturnTypeRef,
@@ -33,12 +28,12 @@ import { AccessExpiredError, ConnectionError, NotAuthenticatedError } from "../.
 import { SessionType } from "../../../../../src/api/common/SessionType"
 import { HttpMethod } from "../../../../../src/api/common/EntityFunctions"
 import { ConnectMode, EventBusClient } from "../../../../../src/api/worker/EventBusClient"
-import { createTutanotaProperties, TutanotaPropertiesTypeRef } from "../../../../../src/api/entities/tutanota/TypeRefs"
+import { TutanotaPropertiesTypeRef } from "../../../../../src/api/entities/tutanota/TypeRefs"
 import { BlobAccessTokenFacade } from "../../../../../src/api/worker/facades/BlobAccessTokenFacade.js"
 import { EntropyFacade } from "../../../../../src/api/worker/facades/EntropyFacade.js"
 import { DatabaseKeyFactory } from "../../../../../src/misc/credentials/DatabaseKeyFactory.js"
 import { Argon2idFacade } from "../../../../../src/api/worker/facades/Argon2idFacade.js"
-import { KEY_LENGTH_BYTES_AES_256 } from "@tutao/tutanota-crypto/dist/encryption/Aes.js"
+import { KEY_LENGTH_BYTES_AES_256 } from "@tutao/tutanota-crypto"
 import { createTestEntity } from "../../../TestUtils.js"
 
 const { anything } = matchers

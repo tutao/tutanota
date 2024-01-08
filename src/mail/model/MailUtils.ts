@@ -3,7 +3,9 @@ import {
 	createContact,
 	createContactMailAddress,
 	createEncryptedMailAddress,
+	Header,
 	MailBodyTypeRef,
+	MailHeaders,
 	MailHeadersTypeRef,
 } from "../../api/entities/tutanota/TypeRefs.js"
 import {
@@ -34,7 +36,6 @@ import { fullNameToFirstAndLastName, mailAddressToFirstAndLastName } from "../..
 import type { Attachment } from "../editor/SendMailModel"
 import { getListId } from "../../api/common/utils/EntityUtils"
 import { isDetailsDraft, isLegacyMail, MailWrapper } from "../../api/common/MailWrapper.js"
-import { getLegacyMailHeaders, getMailHeaders } from "../../api/common/utils/Utils.js"
 import { FolderSystem } from "../../api/common/mail/FolderSystem.js"
 import { ListFilter } from "../../misc/ListModel.js"
 import { MailFacade } from "../../api/worker/facades/lazy/MailFacade.js"
@@ -406,6 +407,14 @@ export async function loadMailDetails(mailFacade: MailFacade, entityClient: Enti
 		const mailDetailsId = neverNull(mail.mailDetails)
 		return mailFacade.loadMailDetailsBlob(mail).then((d) => MailWrapper.details(mail, d))
 	}
+}
+
+export function getLegacyMailHeaders(headers: MailHeaders): string {
+	return headers.compressedHeaders ?? headers.headers ?? ""
+}
+
+export function getMailHeaders(headers: Header): string {
+	return headers.compressedHeaders ?? headers.headers ?? ""
 }
 
 export async function loadMailHeaders(entityClient: EntityClient, mailWrapper: MailWrapper): Promise<string | null> {
