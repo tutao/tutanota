@@ -693,7 +693,7 @@ function makeProgressTracker(): ProgressTracker {
 
 function makeEventController(): {
 	eventController: EventController
-	sendEvent: (arg0: EntityUpdateData) => void
+	sendEvent: (arg0: EntityUpdateData) => Promise<void>
 } {
 	const listeners = new Array<EntityEventsListener>()
 	return {
