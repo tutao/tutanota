@@ -3,11 +3,8 @@ import { px, size } from "../../gui/size"
 import { EventTextTimeOption, WeekStart } from "../../api/common/TutanotaConstants"
 import type { CalendarDay, CalendarMonth } from "../date/CalendarUtils"
 import {
-	CALENDAR_EVENT_HEIGHT,
-	EventLayoutMode,
 	getAllDayDateForTimezone,
 	getDiffIn24hIntervals,
-	getEventColor,
 	getEventEnd,
 	getFirstDayOfMonth,
 	getStartOfDayWithZone,
@@ -15,8 +12,6 @@ import {
 	getStartOfTheWeekOffset,
 	getTimeZone,
 	getWeekNumber,
-	layOutEvents,
-	TEMPORARY_EVENT_OPACITY,
 } from "../date/CalendarUtils"
 import { incrementDate, incrementMonth, isToday, lastThrow, neverNull, ofClass } from "@tutao/tutanota-utils"
 import { ContinuingCalendarEventBubble } from "./ContinuingCalendarEventBubble"
@@ -30,7 +25,17 @@ import { EventDragHandler } from "./EventDragHandler"
 import { getPosAndBoundsFromMouseEvent } from "../../gui/base/GuiUtils"
 import { UserError } from "../../api/main/UserError"
 import { showUserError } from "../../misc/ErrorHandlerImpl"
-import { CalendarViewType, getCalendarMonth, getDateFromMousePos, SELECTED_DATE_INDICATOR_THICKNESS } from "../gui/CalendarGuiUtils.js"
+import {
+	CALENDAR_EVENT_HEIGHT,
+	CalendarViewType,
+	EventLayoutMode,
+	getCalendarMonth,
+	getDateFromMousePos,
+	getEventColor,
+	layOutEvents,
+	SELECTED_DATE_INDICATOR_THICKNESS,
+	TEMPORARY_EVENT_OPACITY,
+} from "../gui/CalendarGuiUtils.js"
 import type { CalendarEventBubbleClickHandler, EventsOnDays } from "./CalendarViewModel"
 import { Time } from "../date/Time.js"
 import { client } from "../../misc/ClientDetector"

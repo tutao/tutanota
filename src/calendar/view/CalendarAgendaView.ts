@@ -3,7 +3,7 @@ import { neverNull } from "@tutao/tutanota-utils"
 import { lang } from "../../misc/LanguageViewModel"
 import { formatDate, formatDateWithWeekday } from "../../misc/Formatter"
 import { isAllDayEvent } from "../../api/common/utils/CommonCalendarUtils"
-import { getEventColor, getTimeZone, getStartOfDayWithZone } from "../date/CalendarUtils"
+import { getTimeZone, getStartOfDayWithZone } from "../date/CalendarUtils"
 import type { CalendarEvent } from "../../api/entities/tutanota/TypeRefs.js"
 import type { GroupColors } from "./CalendarView"
 import type { CalendarEventBubbleClickHandler } from "./CalendarViewModel"
@@ -20,7 +20,7 @@ import { EventDetailsView } from "./EventDetailsView.js"
 import { getElementId, getListId } from "../../api/common/utils/EntityUtils.js"
 import { DaysToEvents } from "../date/CalendarEventsRepository.js"
 
-import { formatEventTimes } from "../gui/CalendarGuiUtils.js"
+import { formatEventTimes, getEventColor } from "../gui/CalendarGuiUtils.js"
 
 export type CalendarAgendaViewAttrs = {
 	selectedDate: Date

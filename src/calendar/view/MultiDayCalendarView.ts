@@ -2,14 +2,11 @@ import m, { Children, Component, Vnode, VnodeDOM } from "mithril"
 import { getStartOfDay, incrementDate, isToday, lastThrow, neverNull, ofClass } from "@tutao/tutanota-utils"
 import { formatShortTime, formatTime } from "../../misc/Formatter"
 import {
-	CALENDAR_EVENT_HEIGHT,
 	combineDateWithTime,
 	DEFAULT_HOUR_OF_DAY,
 	eventEndsAfterDay,
-	EventLayoutMode,
 	eventStartsBefore,
 	getDiffIn24hIntervals,
-	getEventColor,
 	getEventEnd,
 	getEventStart,
 	getRangeOfDays,
@@ -17,8 +14,6 @@ import {
 	getStartOfWeek,
 	getTimeTextFormatForLongEvent,
 	getTimeZone,
-	layOutEvents,
-	TEMPORARY_EVENT_OPACITY,
 } from "../date/CalendarUtils"
 import { CalendarDayEventsView, calendarDayTimes } from "./CalendarDayEventsView"
 import { theme } from "../../gui/theme"
@@ -34,7 +29,7 @@ import { getPosAndBoundsFromMouseEvent } from "../../gui/base/GuiUtils"
 import { UserError } from "../../api/main/UserError"
 import { showUserError } from "../../misc/ErrorHandlerImpl"
 import { styles } from "../../gui/styles"
-import { CalendarViewType } from "../gui/CalendarGuiUtils.js"
+import { CALENDAR_EVENT_HEIGHT, CalendarViewType, EventLayoutMode, getEventColor, layOutEvents, TEMPORARY_EVENT_OPACITY } from "../gui/CalendarGuiUtils.js"
 import type { CalendarEventBubbleClickHandler, EventsOnDays } from "./CalendarViewModel"
 import { ContinuingCalendarEventBubble } from "./ContinuingCalendarEventBubble"
 import { isAllDayEvent } from "../../api/common/utils/CommonCalendarUtils"

@@ -763,7 +763,7 @@ class MainLocator {
 
 	async calendarEventPreviewModel(selectedEvent: CalendarEvent, calendars: ReadonlyMap<string, CalendarInfo>): Promise<CalendarEventPreviewViewModel> {
 		const { findAttendeeInAddresses } = await import("../common/utils/CommonCalendarUtils.js")
-		const { getEventType } = await import("../../calendar/date/CalendarUtils.js")
+		const { getEventType } = await import("../../calendar/gui/CalendarGuiUtils.js")
 		const { CalendarEventPreviewViewModel } = await import("../../calendar/gui/eventpopup/CalendarEventPreviewViewModel.js")
 
 		const mailboxDetails = await this.mailModel.getUserMailboxDetails()

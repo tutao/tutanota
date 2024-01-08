@@ -15,7 +15,6 @@ import {
 	getAllDayDateUTCFromZone,
 	getDiffIn24hIntervals,
 	getDiffIn60mIntervals,
-	getEventType,
 	getMonthRange,
 	getStartOfDayWithZone,
 	getStartOfWeek,
@@ -52,7 +51,7 @@ import { getDateInUTC, getDateInZone } from "./CalendarTestUtils.js"
 import { ParserError } from "../../../src/misc/parsing/ParserCombinator.js"
 import { createTestEntity } from "../TestUtils.js"
 
-import { getCalendarMonth } from "../../../src/calendar/gui/CalendarGuiUtils.js"
+import { getCalendarMonth, getEventType } from "../../../src/calendar/gui/CalendarGuiUtils.js"
 
 const zone = "Europe/Berlin"
 
