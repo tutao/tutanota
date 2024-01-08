@@ -31,13 +31,14 @@ export const allowedImports = {
 	"gui-base": ["polyfill-helpers", "common-min", "common", "boot"],
 	main: ["polyfill-helpers", "common-min", "common", "boot", "gui-base"],
 	sanitizer: ["polyfill-helpers", "common-min", "common", "boot", "gui-base"],
-	date: ["polyfill-helpers", "common-min", "common", "boot", "gui-base", "main", "sharing"],
+	date: ["polyfill-helpers", "common-min", "common", "boot", "sharing"],
+	"date-gui": ["polyfill-helpers", "common-min", "common", "boot", "gui-base", "main", "sharing", "date"],
 	"mail-view": ["polyfill-helpers", "common-min", "common", "boot", "gui-base", "main"],
 	"mail-editor": ["polyfill-helpers", "common-min", "common", "boot", "gui-base", "main", "mail-view", "sanitizer", "sharing"],
-	search: ["polyfill-helpers", "common-min", "common", "boot", "gui-base", "main", "mail-view", "calendar-view", "contacts", "date", "sharing"],
+	search: ["polyfill-helpers", "common-min", "common", "boot", "gui-base", "main", "mail-view", "calendar-view", "contacts", "date", "date-gui", "sharing"],
 	// ContactMergeView needs HtmlEditor even though ContactEditor doesn't?
-	contacts: ["polyfill-helpers", "common-min", "common", "boot", "gui-base", "main", "mail-view", "date", "mail-editor"],
-	"calendar-view": ["polyfill-helpers", "common-min", "common", "boot", "gui-base", "main", "date", "sharing"],
+	contacts: ["polyfill-helpers", "common-min", "common", "boot", "gui-base", "main", "mail-view", "date", "date-gui", "mail-editor"],
+	"calendar-view": ["polyfill-helpers", "common-min", "common", "boot", "gui-base", "main", "date", "date-gui", "sharing"],
 	login: ["polyfill-helpers", "common-min", "common", "boot", "gui-base", "main"],
 	worker: ["polyfill-helpers", "common-min", "common", "native-common", "native-worker"],
 	settings: [
@@ -52,6 +53,7 @@ export const allowedImports = {
 		"mail-editor",
 		"mail-view",
 		"date",
+		"date-gui",
 		"login",
 		"sharing",
 	],
@@ -108,7 +110,9 @@ export function getChunkName(moduleId, { getModuleInfo }) {
 		// everything marked as assertMainOrNodeBoot goes into boot bundle right now
 		// (which is getting merged into app.js)
 		return "boot"
-	} else if (isIn("src/gui/date") || isIn("src/misc/DateParser") || moduleId.includes("luxon") || isIn("src/calendar/date") || isIn("src/calendar/export")) {
+	} else if (isIn("src/gui/date") || isIn("src/calendar/export") || isIn("src/misc/DateParser") || isIn("src/calendar/model")) {
+		return "date-gui"
+	} else if (moduleId.includes("luxon") || isIn("src/calendar/date")) {
 		// luxon and everything that depends on it goes into date bundle
 		return "date"
 	} else if (isIn("src/misc/HtmlSanitizer") || isIn("libs/purify")) {
@@ -133,7 +137,6 @@ export function getChunkName(moduleId, { getModuleInfo }) {
 		isIn("src/api/main") ||
 		isIn("src/mail/model") ||
 		isIn("src/contacts/model") ||
-		isIn("src/calendar/model") ||
 		isIn("src/search/model") ||
 		isIn("src/misc/ErrorHandlerImpl") ||
 		isIn("src/misc") ||

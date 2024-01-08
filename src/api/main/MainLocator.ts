@@ -89,7 +89,7 @@ import { Const, FeatureType, GroupType } from "../common/TutanotaConstants.js"
 import type { ExternalLoginViewModel } from "../../login/ExternalLoginView.js"
 import type { ConversationViewModel, ConversationViewModelFactory } from "../../mail/view/ConversationViewModel.js"
 import { AlarmScheduler } from "../../calendar/date/AlarmScheduler.js"
-import { CalendarEventModel, CalendarOperation } from "../../calendar/date/eventeditor/CalendarEventModel.js"
+import { CalendarEventModel, CalendarOperation } from "../../calendar/view/eventeditor-model/CalendarEventModel.js"
 import { showProgressDialog } from "../../gui/dialogs/ProgressDialog.js"
 import { SearchViewModel } from "../../search/view/SearchViewModel.js"
 import { SearchRouter } from "../../search/view/SearchRouter.js"
@@ -348,7 +348,7 @@ class MainLocator {
 		responseTo: Mail | null,
 	): Promise<CalendarEventModel | null> {
 		const [{ makeCalendarEventModel }, { getTimeZone }, { calendarNotificationSender }] = await Promise.all([
-			import("../../calendar/date/eventeditor/CalendarEventModel.js"),
+			import("../../calendar/view/eventeditor-model/CalendarEventModel.js"),
 			import("../../calendar/date/CalendarUtils.js"),
 			import("../../calendar/date/CalendarNotificationSender.js"),
 		])

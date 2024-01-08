@@ -94,9 +94,9 @@ import { buildEventPreviewModel, CalendarEventPreviewViewModel } from "../../cal
 import { EventDetailsView, EventDetailsViewAttrs } from "../../calendar/view/EventDetailsView.js"
 import { progressIcon } from "../../gui/base/Icon.js"
 import { showProgressDialog } from "../../gui/dialogs/ProgressDialog.js"
-import { CalendarOperation } from "../../calendar/date/eventeditor/CalendarEventModel.js"
+import { CalendarOperation } from "../../calendar/view/eventeditor-model/CalendarEventModel.js"
 import { getEventWithDefaultTimes } from "../../api/common/utils/CommonCalendarUtils.js"
-import { showNewCalendarEventEditDialog } from "../../calendar/view/eventeditor/CalendarEventEditDialog.js"
+import { showNewCalendarEventEditDialog } from "../../calendar/view/eventeditor-view/CalendarEventEditDialog.js"
 import { getSharedGroupName } from "../../sharing/GroupUtils.js"
 
 assertMainOrNode()

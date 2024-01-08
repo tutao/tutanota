@@ -1,5 +1,5 @@
 import { SendMailModel } from "../../../mail/editor/SendMailModel.js"
-import { CalendarNotificationSender } from "../CalendarNotificationSender.js"
+import { CalendarNotificationSender } from "../../date/CalendarNotificationSender.js"
 import { LoginController } from "../../../api/main/LoginController.js"
 import { CalendarEvent } from "../../../api/entities/tutanota/TypeRefs.js"
 import { ProgrammingError } from "../../../api/common/error/ProgrammingError.js"
