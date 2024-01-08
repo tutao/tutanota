@@ -48,6 +48,7 @@ target_compile_definitions(tutanota
         PRIVATE OQS_VERSION_TEXT=\"tutakyber\"
         PRIVATE OQS_ENABLE_KEM_kyber_1024=1
         PRIVATE OQS_ENABLE_KEM_KYBER=1
+        PRIVATE OQS_DIST_BUILD=1
         PRIVATE KYBER_K=4
         )
 

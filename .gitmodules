@@ -3,4 +3,4 @@
 	url = https://github.com/tutao/phc-winner-argon2
 [submodule "libs/webassembly/liboqs"]
 	path = libs/webassembly/liboqs
-	url = https://github.com/tutao/liboqs.git
+	url = https://github.com/open-quantum-safe/liboqs
