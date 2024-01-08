@@ -4,12 +4,12 @@ import m, { Children, VnodeDOM } from "mithril"
 
 import { SelectableRowContainer, SelectableRowContainerAttrs, SelectableRowSelectedSetter } from "../../gui/SelectableRowContainer.js"
 import { VirtualRow } from "../../gui/base/ListUtils.js"
-import { getEventColor, getGroupColors, getTimeZone } from "../date/CalendarUtils.js"
+import { getTimeZone } from "../date/CalendarUtils.js"
 import { ViewHolder } from "../../gui/base/List.js"
 import { styles } from "../../gui/styles.js"
 import { DefaultAnimationTime } from "../../gui/animation/Animations.js"
 
-import { formatEventDuration } from "../gui/CalendarGuiUtils.js"
+import { formatEventDuration, getEventColor, getGroupColors } from "../gui/CalendarGuiUtils.js"
 
 export class CalendarRow implements VirtualRow<CalendarEvent> {
 	top: number

@@ -1,5 +1,5 @@
 import { CalendarEvent, CalendarEventAttendee } from "../../../api/entities/tutanota/TypeRefs.js"
-import { calendarEventHasMoreThanOneOccurrencesLeft, getEventType } from "../../date/CalendarUtils.js"
+import { calendarEventHasMoreThanOneOccurrencesLeft } from "../../date/CalendarUtils.js"
 import { CalendarEventModel, CalendarOperation, EventSaveResult, EventType, getNonOrganizerAttendees } from "../eventeditor-model/CalendarEventModel.js"
 import { NotFoundError } from "../../../api/common/error/RestError.js"
 import { CalendarInfo, CalendarModel } from "../../model/CalendarModel.js"
@@ -13,6 +13,7 @@ import { locator } from "../../../api/main/MainLocator.js"
 import { getEnabledMailAddressesWithUser } from "../../../mail/model/MailUtils.js"
 import { findAttendeeInAddresses } from "../../../api/common/utils/CommonCalendarUtils.js"
 import { isCustomizationEnabledForCustomer } from "../../../api/common/utils/Utils.js"
+import { getEventType } from "../CalendarGuiUtils.js"
 
 /**
  * makes decisions about which operations are available from the popup and knows how to implement them depending on the event's type.

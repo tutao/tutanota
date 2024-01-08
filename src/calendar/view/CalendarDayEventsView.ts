@@ -2,23 +2,20 @@ import m, { ChildArray, Children, Component, Vnode } from "mithril"
 import { theme } from "../../gui/theme"
 import { px, size } from "../../gui/size"
 import { DAY_IN_MILLIS, downcast, getEndOfDay, getStartOfDay, mapNullable, neverNull, numberRange } from "@tutao/tutanota-utils"
-import {
-	eventEndsAfterDay,
-	EventLayoutMode,
-	eventStartsBefore,
-	expandEvent,
-	getEventColor,
-	getTimeTextFormatForLongEvent,
-	getTimeZone,
-	hasAlarmsForTheUser,
-	layOutEvents,
-	TEMPORARY_EVENT_OPACITY,
-} from "../date/CalendarUtils"
+import { eventEndsAfterDay, eventStartsBefore, getTimeTextFormatForLongEvent, getTimeZone, hasAlarmsForTheUser } from "../date/CalendarUtils"
 import { CalendarEventBubble } from "./CalendarEventBubble"
 import type { CalendarEvent } from "../../api/entities/tutanota/TypeRefs.js"
 import { Time } from "../date/Time.js"
 import { getPosAndBoundsFromMouseEvent } from "../../gui/base/GuiUtils"
-import { formatEventTime, getTimeFromMousePos } from "../gui/CalendarGuiUtils.js"
+import {
+	EventLayoutMode,
+	expandEvent,
+	formatEventTime,
+	getEventColor,
+	getTimeFromMousePos,
+	layOutEvents,
+	TEMPORARY_EVENT_OPACITY,
+} from "../gui/CalendarGuiUtils.js"
 import type { CalendarEventBubbleClickHandler } from "./CalendarViewModel"
 import type { GroupColors } from "./CalendarView"
 import { styles } from "../../gui/styles"
