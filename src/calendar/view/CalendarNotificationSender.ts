@@ -1,16 +1,18 @@
-import { lang } from "../../misc/LanguageViewModel"
+import { lang } from "../../misc/LanguageViewModel.js"
 import { makeInvitationCalendarFile } from "../export/CalendarExporter.js"
-import { getAttendeeStatus, MailMethod, mailMethodToCalendarMethod } from "../../api/common/TutanotaConstants"
-import { calendarAttendeeStatusSymbol, formatEventDuration, getTimeZone } from "./CalendarUtils"
+import { getAttendeeStatus, MailMethod, mailMethodToCalendarMethod } from "../../api/common/TutanotaConstants.js"
+import { calendarAttendeeStatusSymbol, getTimeZone } from "../date/CalendarUtils.js"
 import type { CalendarEvent, CalendarEventAttendee, EncryptedMailAddress } from "../../api/entities/tutanota/TypeRefs.js"
 import { createCalendarEventAttendee } from "../../api/entities/tutanota/TypeRefs.js"
 import { assertNotNull, noOp, ofClass } from "@tutao/tutanota-utils"
-import type { SendMailModel } from "../../mail/editor/SendMailModel"
-import { windowFacade } from "../../misc/WindowFacade"
-import { RecipientsNotFoundError } from "../../api/common/error/RecipientsNotFoundError"
-import { RecipientField } from "../../mail/model/MailUtils"
+import type { SendMailModel } from "../../mail/editor/SendMailModel.js"
+import { windowFacade } from "../../misc/WindowFacade.js"
+import { RecipientsNotFoundError } from "../../api/common/error/RecipientsNotFoundError.js"
+import { RecipientField } from "../../mail/model/MailUtils.js"
 import { cleanMailAddress, findAttendeeInAddresses, findRecipientWithAddress } from "../../api/common/utils/CommonCalendarUtils.js"
 import { ProgrammingError } from "../../api/common/error/ProgrammingError.js"
+
+import { formatEventDuration } from "../gui/CalendarGuiUtils.js"
 
 export class CalendarNotificationSender {
 	/** Used for knowing how many emails are in the process of being sent. */

@@ -1,7 +1,7 @@
 import { ListFilter, ListModel } from "../../misc/ListModel.js"
 import { SearchResultListEntry } from "./SearchListView.js"
 import { SearchRestriction, SearchResult } from "../../api/worker/search/SearchTypes.js"
-import { EntityEventsListener, EntityUpdateData, EventController, isUpdateForTypeRef } from "../../api/main/EventController.js"
+import { EntityEventsListener, EntityUpdateData, EventController } from "../../api/main/EventController.js"
 import { CalendarEvent, CalendarEventTypeRef, Contact, ContactTypeRef, Mail, MailTypeRef } from "../../api/entities/tutanota/TypeRefs.js"
 import { ListElementEntity, SomeEntity } from "../../api/common/EntityTypes.js"
 import { FULL_INDEXED_TIMESTAMP, MailFolderType, NOTHING_INDEXED_TIMESTAMP, OperationType } from "../../api/common/TutanotaConstants.js"
@@ -11,6 +11,7 @@ import {
 	GENERATED_MAX_ID,
 	getElementId,
 	isSameId,
+	isUpdateForTypeRef,
 	ListElement,
 	sortCompareByReverseId,
 } from "../../api/common/utils/EntityUtils.js"

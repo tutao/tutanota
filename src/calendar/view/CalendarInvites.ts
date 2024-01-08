@@ -1,19 +1,19 @@
-import { parseCalendarFile } from "../export/CalendarImporter"
+import { parseCalendarFile } from "../export/CalendarImporter.js"
 import type { CalendarEvent, CalendarEventAttendee, File as TutanotaFile, Mail } from "../../api/entities/tutanota/TypeRefs.js"
-import { locator } from "../../api/main/MainLocator"
-import { CalendarAttendeeStatus, CalendarMethod, ConversationType, FeatureType, getAsEnumValue } from "../../api/common/TutanotaConstants"
+import { locator } from "../../api/main/MainLocator.js"
+import { CalendarAttendeeStatus, CalendarMethod, ConversationType, FeatureType, getAsEnumValue } from "../../api/common/TutanotaConstants.js"
 import { assert, assertNotNull, clone, filterInt, noOp, Require } from "@tutao/tutanota-utils"
-import { findPrivateCalendar, getEventType } from "./CalendarUtils"
+import { findPrivateCalendar, getEventType } from "../date/CalendarUtils.js"
 import { calendarNotificationSender } from "./CalendarNotificationSender.js"
-import { Dialog } from "../../gui/base/Dialog"
-import { UserError } from "../../api/main/UserError"
-import { DataFile } from "../../api/common/DataFile"
+import { Dialog } from "../../gui/base/Dialog.js"
+import { UserError } from "../../api/main/UserError.js"
+import { DataFile } from "../../api/common/DataFile.js"
 import { findAttendeeInAddresses } from "../../api/common/utils/CommonCalendarUtils.js"
 import { Recipient } from "../../api/common/recipients/Recipient.js"
 import { isCustomizationEnabledForCustomer } from "../../api/common/utils/Utils.js"
 import { SendMailModel } from "../../mail/editor/SendMailModel.js"
-import { CalendarEventModel, CalendarOperation, EventType } from "../view/eventeditor-model/CalendarEventModel.js"
-import { CalendarNotificationModel } from "../view/eventeditor-model/CalendarNotificationModel.js"
+import { CalendarEventModel, CalendarOperation, EventType } from "../gui/eventeditor-model/CalendarEventModel.js"
+import { CalendarNotificationModel } from "../gui/eventeditor-model/CalendarNotificationModel.js"
 import { RecipientField } from "../../mail/model/MailUtils.js"
 import { ResolveMode } from "../../api/main/RecipientsModel.js"
 
@@ -48,9 +48,9 @@ async function getParsedEvent(fileData: DataFile): Promise<ParsedIcalFileContent
 export async function showEventDetails(event: CalendarEvent, eventBubbleRect: ClientRect, mail: Mail | null): Promise<void> {
 	const [latestEvent, { CalendarEventPopup }, { CalendarEventPreviewViewModel }, { htmlSanitizer }] = await Promise.all([
 		getLatestEvent(event),
-		import("../view/eventpopup/CalendarEventPopup.js"),
-		import("../view/eventpopup/CalendarEventPreviewViewModel.js"),
-		import("../../misc/HtmlSanitizer"),
+		import("../gui/eventpopup/CalendarEventPopup.js"),
+		import("../gui/eventpopup/CalendarEventPreviewViewModel.js"),
+		import("../../misc/HtmlSanitizer.js"),
 	])
 
 	let eventType: EventType

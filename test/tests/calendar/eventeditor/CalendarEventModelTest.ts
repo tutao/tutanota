@@ -8,8 +8,8 @@ import {
 	eventHasChanged,
 	EventSaveResult,
 	makeCalendarEventModel,
-} from "../../../../src/calendar/view/eventeditor-model/CalendarEventModel.js"
-import { CalendarNotificationSender } from "../../../../src/calendar/date/CalendarNotificationSender.js"
+} from "../../../../src/calendar/gui/eventeditor-model/CalendarEventModel.js"
+import { CalendarNotificationSender } from "../../../../src/calendar/view/CalendarNotificationSender.js"
 import { CalendarModel } from "../../../../src/calendar/model/CalendarModel.js"
 import {
 	CalendarEventAttendeeTypeRef,

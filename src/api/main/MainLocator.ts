@@ -9,7 +9,7 @@ import { notifications } from "../../gui/Notifications"
 import { LoginController } from "./LoginController"
 import type { ContactModel } from "../../contacts/model/ContactModel"
 import { EntityClient } from "../common/EntityClient"
-import { CalendarInfo, CalendarModel } from "../../calendar/model/CalendarModel"
+import type { CalendarInfo, CalendarModel } from "../../calendar/model/CalendarModel"
 import type { DeferredObject, lazy, lazyAsync } from "@tutao/tutanota-utils"
 import { defer, lazyMemoized, noOp } from "@tutao/tutanota-utils"
 import { ProgressTracker } from "./ProgressTracker"
@@ -88,8 +88,8 @@ import { ReceivedGroupInvitationsModel } from "../../sharing/model/ReceivedGroup
 import { Const, FeatureType, GroupType } from "../common/TutanotaConstants.js"
 import type { ExternalLoginViewModel } from "../../login/ExternalLoginView.js"
 import type { ConversationViewModel, ConversationViewModelFactory } from "../../mail/view/ConversationViewModel.js"
-import { AlarmScheduler } from "../../calendar/date/AlarmScheduler.js"
-import { CalendarEventModel, CalendarOperation } from "../../calendar/view/eventeditor-model/CalendarEventModel.js"
+import type { AlarmScheduler } from "../../calendar/date/AlarmScheduler.js"
+import { CalendarEventModel, CalendarOperation } from "../../calendar/gui/eventeditor-model/CalendarEventModel.js"
 import { showProgressDialog } from "../../gui/dialogs/ProgressDialog.js"
 import { SearchViewModel } from "../../search/view/SearchViewModel.js"
 import { SearchRouter } from "../../search/view/SearchRouter.js"
@@ -100,7 +100,7 @@ import { ShareableGroupType } from "../../sharing/GroupUtils.js"
 import { DomainConfigProvider } from "../common/DomainConfigProvider.js"
 import { getEnabledMailAddressesWithUser } from "../../mail/model/MailUtils.js"
 import { isCustomizationEnabledForCustomer } from "../common/utils/Utils.js"
-import type { CalendarEventPreviewViewModel } from "../../calendar/view/eventpopup/CalendarEventPreviewViewModel.js"
+import type { CalendarEventPreviewViewModel } from "../../calendar/gui/eventpopup/CalendarEventPreviewViewModel.js"
 
 import { getDisplayedSender } from "../common/mail/CommonMailUtils.js"
 import { CalendarEventsRepository } from "../../calendar/date/CalendarEventsRepository.js"
@@ -348,9 +348,9 @@ class MainLocator {
 		responseTo: Mail | null,
 	): Promise<CalendarEventModel | null> {
 		const [{ makeCalendarEventModel }, { getTimeZone }, { calendarNotificationSender }] = await Promise.all([
-			import("../../calendar/view/eventeditor-model/CalendarEventModel.js"),
+			import("../../calendar/gui/eventeditor-model/CalendarEventModel.js"),
 			import("../../calendar/date/CalendarUtils.js"),
-			import("../../calendar/date/CalendarNotificationSender.js"),
+			import("../../calendar/view/CalendarNotificationSender.js"),
 		])
 		const sendMailModelFactory = await this.sendMailModelSyncFactory(mailboxDetail, mailboxProperties)
 		const showProgress = <T>(p: Promise<T>) => showProgressDialog("pleaseWait_msg", p)
@@ -732,6 +732,7 @@ class MainLocator {
 
 	readonly calendarModel: () => Promise<CalendarModel> = lazyMemoized(async () => {
 		const { DefaultDateProvider } = await import("../../calendar/date/CalendarUtils")
+		const { CalendarModel } = await import("../../calendar/model/CalendarModel")
 		const timeZone = new DefaultDateProvider().timeZone()
 		return new CalendarModel(
 			notifications,
@@ -749,10 +750,10 @@ class MainLocator {
 	})
 
 	private alarmScheduler: () => Promise<AlarmScheduler> = lazyMemoized(async () => {
-		const { AlarmSchedulerImpl } = await import("../../calendar/date/AlarmScheduler")
+		const { AlarmScheduler } = await import("../../calendar/date/AlarmScheduler")
 		const { DefaultDateProvider } = await import("../../calendar/date/CalendarUtils")
 		const dateProvider = new DefaultDateProvider()
-		return new AlarmSchedulerImpl(dateProvider, await this.scheduler())
+		return new AlarmScheduler(dateProvider, await this.scheduler())
 	})
 
 	private async scheduler(): Promise<SchedulerImpl> {
@@ -763,7 +764,7 @@ class MainLocator {
 	async calendarEventPreviewModel(selectedEvent: CalendarEvent, calendars: ReadonlyMap<string, CalendarInfo>): Promise<CalendarEventPreviewViewModel> {
 		const { findAttendeeInAddresses } = await import("../common/utils/CommonCalendarUtils.js")
 		const { getEventType } = await import("../../calendar/date/CalendarUtils.js")
-		const { CalendarEventPreviewViewModel } = await import("../../calendar/view/eventpopup/CalendarEventPreviewViewModel.js")
+		const { CalendarEventPreviewViewModel } = await import("../../calendar/gui/eventpopup/CalendarEventPreviewViewModel.js")
 
 		const mailboxDetails = await this.mailModel.getUserMailboxDetails()
 

@@ -12,7 +12,6 @@ import type { AccountingInfo } from "../api/entities/sys/TypeRefs.js"
 import { AccountingInfoTypeRef } from "../api/entities/sys/TypeRefs.js"
 import { locator } from "../api/main/MainLocator"
 import type { EntityEventsListener } from "../api/main/EventController"
-import { isUpdateForTypeRef } from "../api/main/EventController"
 import { MessageBox } from "../gui/base/MessageBox.js"
 import { px } from "../gui/size"
 import Stream from "mithril/stream"
@@ -20,6 +19,7 @@ import { UsageTest } from "@tutao/tutanota-usagetests"
 import { SelectedSubscriptionOptions } from "./FeatureListProvider"
 import { CCViewModel, SimplifiedCreditCardInput } from "./SimplifiedCreditCardInput.js"
 import { SimplifiedCreditCardViewModel } from "./SimplifiedCreditCardInputModel.js"
+import { isUpdateForTypeRef } from "../api/common/utils/EntityUtils.js"
 
 /**
  * Component to display the input fields for a payment method. The selector to switch between payment methods is not included.

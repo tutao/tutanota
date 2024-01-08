@@ -27,7 +27,7 @@ import { LocalShortcutManager } from "./electron-localshortcut/LocalShortcut"
 import { cryptoFns } from "./CryptoFns"
 import { DesktopConfigMigrator } from "./config/migrations/DesktopConfigMigrator"
 import { DesktopKeyStoreFacade } from "./DesktopKeyStoreFacade.js"
-import { AlarmSchedulerImpl } from "../calendar/date/AlarmScheduler"
+import { AlarmScheduler } from "../calendar/date/AlarmScheduler.js"
 import { SchedulerImpl } from "../api/common/utils/Scheduler.js"
 import { DesktopThemeFacade } from "./DesktopThemeFacade"
 import { BuildConfigKey, DesktopConfigKey } from "./config/ConfigKeys"
@@ -191,7 +191,7 @@ async function createComponents(): Promise<Components> {
 
 	const wm = new WindowManager(conf, tray, notifier, electron, shortcutManager, appIcon)
 	const themeFacade = new DesktopThemeFacade(conf, wm, electron.nativeTheme)
-	const alarmScheduler = new AlarmSchedulerImpl(dateProvider, new SchedulerImpl(dateProvider, global, global))
+	const alarmScheduler = new AlarmScheduler(dateProvider, new SchedulerImpl(dateProvider, global, global))
 	const desktopAlarmScheduler = new DesktopAlarmScheduler(wm, notifier, alarmStorage, desktopCrypto, alarmScheduler)
 	desktopAlarmScheduler.rescheduleAll().catch((e) => {
 		log.error("Could not reschedule alarms", e)

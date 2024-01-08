@@ -7,13 +7,14 @@ import type { WindowManager } from "../DesktopWindowManager"
 import type { DesktopAlarmStorage } from "./DesktopAlarmStorage"
 import type { DesktopNativeCryptoFacade } from "../DesktopNativeCryptoFacade"
 import { log } from "../DesktopLog"
-import type { AlarmScheduler } from "../../calendar/date/AlarmScheduler"
+import type { AlarmScheduler } from "../../calendar/date/AlarmScheduler.js"
 import { CryptoError } from "../../api/common/error/CryptoError"
 import { elementIdPart } from "../../api/common/utils/EntityUtils"
 import { hasError } from "../../api/common/utils/ErrorCheckUtils"
 import { resolveTypeReference } from "../../api/common/EntityFunctions"
 import { EncryptedAlarmNotification } from "../../native/common/EncryptedAlarmNotification.js"
 import { base64ToUint8Array } from "@tutao/tutanota-utils"
+import { formatNotificationForDisplay } from "../../calendar/model/CalendarModel.js"
 
 export interface NativeAlarmScheduler {
 	handleAlarmNotification(an: EncryptedAlarmNotification): Promise<void>
@@ -131,8 +132,9 @@ export class DesktopAlarmScheduler implements NativeAlarmScheduler {
 			summary: decAn.summary,
 		}
 
-		this.alarmScheduler.scheduleAlarm(eventInfo, decAn.alarmInfo, decAn.repeatRule, (title, message) => {
-			this.notifier.submitGroupedNotification(title, message, decAn.alarmInfo.alarmIdentifier, (res) => {
+		this.alarmScheduler.scheduleAlarm(eventInfo, decAn.alarmInfo, decAn.repeatRule, (eventTime, summary) => {
+			const { title, body } = formatNotificationForDisplay(eventTime, summary)
+			this.notifier.submitGroupedNotification(title, body, decAn.alarmInfo.alarmIdentifier, (res) => {
 				if (res === NotificationResult.Click) {
 					this.wm.openCalendar({
 						userId: decAn.user,

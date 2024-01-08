@@ -4,7 +4,7 @@
  * and the scope of the operation (only the clicked instance or all instances)
  * */
 import { CalendarEvent } from "../../../api/entities/tutanota/TypeRefs.js"
-import { CalendarModel } from "../../model/CalendarModel.js"
+import type { CalendarModel } from "../../model/CalendarModel.js"
 import { CalendarNotificationModel } from "./CalendarNotificationModel.js"
 import { assertNotNull, identity } from "@tutao/tutanota-utils"
 import { generateUid } from "../../date/CalendarUtils.js"

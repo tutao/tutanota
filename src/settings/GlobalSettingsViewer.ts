@@ -26,14 +26,20 @@ import { GroupData, loadEnabledTeamMailGroups, loadEnabledUserMailGroups, loadGr
 import { Icons } from "../gui/base/icons/Icons"
 import { showProgressDialog } from "../gui/dialogs/ProgressDialog"
 import type { EntityUpdateData } from "../api/main/EventController"
-import { isUpdateForTypeRef } from "../api/main/EventController"
 import type { TableAttrs, TableLineAttrs } from "../gui/base/Table.js"
 import { ColumnWidth, createRowActions } from "../gui/base/Table.js"
 import { attachDropdown, createDropdown, DropdownChildAttrs } from "../gui/base/Dropdown.js"
 import { DomainDnsStatus } from "./DomainDnsStatus"
 import { showDnsCheckDialog } from "./CheckDomainDnsStatusDialog"
 import { BootIcons } from "../gui/base/icons/BootIcons"
-import { GENERATED_MAX_ID, generatedIdToTimestamp, getElementId, sortCompareByReverseId, timestampToGeneratedId } from "../api/common/utils/EntityUtils"
+import {
+	GENERATED_MAX_ID,
+	generatedIdToTimestamp,
+	getElementId,
+	isUpdateForTypeRef,
+	sortCompareByReverseId,
+	timestampToGeneratedId,
+} from "../api/common/utils/EntityUtils"
 import { ExpandableTable } from "./ExpandableTable"
 import { showRejectedSendersInfoDialog } from "./RejectedSendersInfoDialog"
 import { showAddDomainWizard } from "./emaildomain/AddDomainWizard"

@@ -34,6 +34,8 @@ import { FolderSystem } from "../../../src/api/common/mail/FolderSystem.js"
 import { Recipient, RecipientType } from "../../../src/api/common/recipients/Recipient.js"
 import { DateTime } from "luxon"
 import { createTestEntity } from "../TestUtils.js"
+import { AlarmScheduler } from "../../../src/calendar/date/AlarmScheduler.js"
+import { matchers, object, when } from "testdouble"
 
 export const ownerMailAddress = "calendarowner@tutanota.de" as const
 export const ownerId = "ownerId" as const
@@ -304,4 +306,11 @@ export function getDateInUTC(iso: string): Date {
 		throw new Error(`Invalid date! ${iso} ${dt.invalidExplanation}`)
 	}
 	return dt.toJSDate()
+}
+
+export function makeAlarmScheduler(): AlarmScheduler {
+	const scheduler: AlarmScheduler = object()
+	when(scheduler.scheduleAlarm(matchers.anything(), matchers.anything(), matchers.anything(), matchers.anything)).thenReturn(undefined)
+	when(scheduler.cancelAlarm(matchers.anything())).thenReturn(undefined)
+	return scheduler
 }

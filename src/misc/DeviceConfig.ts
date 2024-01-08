@@ -9,7 +9,7 @@ import { assertMainOrNodeBoot } from "../api/common/Env"
 import { PersistedAssignmentData, UsageTestStorage } from "./UsageTestModel"
 import { client } from "./ClientDetector"
 import { NewsItemStorage } from "./news/NewsModel.js"
-import { CalendarViewType } from "../calendar/view/CalendarGuiUtils.js"
+import { CalendarViewType } from "../calendar/gui/CalendarGuiUtils.js"
 
 assertMainOrNodeBoot()
 export const defaultThemePreference: ThemePreference = "auto:light|dark"
