@@ -5,7 +5,7 @@ import { AllIcons, Icon } from "../../../gui/base/Icon.js"
 import { theme } from "../../../gui/theme.js"
 import { BootIcons } from "../../../gui/base/icons/BootIcons.js"
 import { Icons } from "../../../gui/base/icons/Icons.js"
-import { getRepeatEndTimeForDisplay, getTimeZone, iconForAttendeeStatus } from "../../date/CalendarUtils.js"
+import { getRepeatEndTimeForDisplay, getTimeZone } from "../../date/CalendarUtils.js"
 import { CalendarAttendeeStatus, EndType, getAttendeeStatus, RepeatPeriod } from "../../../api/common/TutanotaConstants.js"
 import { downcast, memoized } from "@tutao/tutanota-utils"
 import { lang, TranslationKey } from "../../../misc/LanguageViewModel.js"
@@ -19,7 +19,7 @@ import { CalendarEventPreviewViewModel } from "./CalendarEventPreviewViewModel.j
 import { UpgradeRequiredError } from "../../../api/main/UpgradeRequiredError.js"
 import { showPlanUpgradeRequiredDialog } from "../../../misc/SubscriptionDialogs.js"
 
-import { createRepeatRuleFrequencyValues, formatEventDuration } from "../CalendarGuiUtils.js"
+import { createRepeatRuleFrequencyValues, formatEventDuration, iconForAttendeeStatus } from "../CalendarGuiUtils.js"
 
 export type EventPreviewViewAttrs = {
 	event: Omit<CalendarEvent, "description">

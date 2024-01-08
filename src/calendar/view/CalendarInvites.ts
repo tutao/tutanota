@@ -3,7 +3,7 @@ import type { CalendarEvent, CalendarEventAttendee, File as TutanotaFile, Mail }
 import { locator } from "../../api/main/MainLocator.js"
 import { CalendarAttendeeStatus, CalendarMethod, ConversationType, FeatureType, getAsEnumValue } from "../../api/common/TutanotaConstants.js"
 import { assert, assertNotNull, clone, filterInt, noOp, Require } from "@tutao/tutanota-utils"
-import { findPrivateCalendar, getEventType } from "../date/CalendarUtils.js"
+import { findPrivateCalendar } from "../date/CalendarUtils.js"
 import { calendarNotificationSender } from "./CalendarNotificationSender.js"
 import { Dialog } from "../../gui/base/Dialog.js"
 import { UserError } from "../../api/main/UserError.js"
@@ -16,6 +16,7 @@ import { CalendarEventModel, CalendarOperation, EventType } from "../gui/evented
 import { CalendarNotificationModel } from "../gui/eventeditor-model/CalendarNotificationModel.js"
 import { RecipientField } from "../../mail/model/MailUtils.js"
 import { ResolveMode } from "../../api/main/RecipientsModel.js"
+import { getEventType } from "../gui/CalendarGuiUtils.js"
 
 // not picking the status directly from CalendarEventAttendee because it's a NumberString
 export type Guest = Recipient & { status: CalendarAttendeeStatus }

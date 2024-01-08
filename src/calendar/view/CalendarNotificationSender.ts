@@ -1,7 +1,7 @@
 import { lang } from "../../misc/LanguageViewModel.js"
 import { makeInvitationCalendarFile } from "../export/CalendarExporter.js"
 import { getAttendeeStatus, MailMethod, mailMethodToCalendarMethod } from "../../api/common/TutanotaConstants.js"
-import { calendarAttendeeStatusSymbol, getTimeZone } from "../date/CalendarUtils.js"
+import { getTimeZone } from "../date/CalendarUtils.js"
 import type { CalendarEvent, CalendarEventAttendee, EncryptedMailAddress } from "../../api/entities/tutanota/TypeRefs.js"
 import { createCalendarEventAttendee } from "../../api/entities/tutanota/TypeRefs.js"
 import { assertNotNull, noOp, ofClass } from "@tutao/tutanota-utils"
@@ -12,7 +12,7 @@ import { RecipientField } from "../../mail/model/MailUtils.js"
 import { cleanMailAddress, findAttendeeInAddresses, findRecipientWithAddress } from "../../api/common/utils/CommonCalendarUtils.js"
 import { ProgrammingError } from "../../api/common/error/ProgrammingError.js"
 
-import { formatEventDuration } from "../gui/CalendarGuiUtils.js"
+import { calendarAttendeeStatusSymbol, formatEventDuration } from "../gui/CalendarGuiUtils.js"
 
 export class CalendarNotificationSender {
 	/** Used for knowing how many emails are in the process of being sent. */

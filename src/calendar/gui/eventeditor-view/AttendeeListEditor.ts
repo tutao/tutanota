@@ -12,7 +12,6 @@ import { CompletenessIndicator } from "../../../gui/CompletenessIndicator.js"
 import { RecipientsSearchModel } from "../../../misc/RecipientsSearchModel.js"
 import { noOp } from "@tutao/tutanota-utils"
 import { Guest } from "../../view/CalendarInvites.js"
-import { iconForAttendeeStatus } from "../../date/CalendarUtils.js"
 import { Icon } from "../../../gui/base/Icon.js"
 import { theme } from "../../../gui/theme.js"
 import { IconButton } from "../../../gui/base/IconButton.js"
@@ -28,7 +27,7 @@ import { hasPlanWithInvites } from "../eventeditor-model/CalendarNotificationMod
 import { scaleToVisualPasswordStrength } from "../../../misc/passwords/PasswordUtils.js"
 import { Dialog } from "../../../gui/base/Dialog.js"
 
-import { createAttendingItems } from "../CalendarGuiUtils.js"
+import { createAttendingItems, iconForAttendeeStatus } from "../CalendarGuiUtils.js"
 
 export type AttendeeListEditorAttrs = {
 	/** the event that is currently being edited */

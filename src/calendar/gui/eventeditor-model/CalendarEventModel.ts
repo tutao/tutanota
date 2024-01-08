@@ -72,7 +72,6 @@ import {
 	CalendarEventValidity,
 	checkEventValidity,
 	DefaultDateProvider,
-	getEventType,
 	getTimeZone,
 	incrementSequence,
 	parseAlarmInterval,
@@ -102,6 +101,7 @@ import { ProgrammingError } from "../../../api/common/error/ProgrammingError.js"
 import { getDefaultSender } from "../../../mail/model/MailUtils.js"
 import { SimpleTextViewModel } from "../../../misc/SimpleTextViewModel.js"
 import { AlarmInfoTemplate } from "../../../api/worker/facades/lazy/CalendarFacade.js"
+import { getEventType } from "../CalendarGuiUtils.js"
 
 /** the type of the event determines which edit operations are available to us. */
 export const enum EventType {
