@@ -24,7 +24,6 @@ import {
 	TakeOverDeletedAddressService,
 } from "../../entities/sys/Services"
 import { AccountType, asKdfType, CloseEventBusOption, DEFAULT_KDF_TYPE, KdfType } from "../../common/TutanotaConstants"
-import { CryptoError } from "../../common/error/CryptoError"
 import type { GroupInfo, SecondFactorAuthData, User } from "../../entities/sys/TypeRefs.js"
 import {
 	Challenge,
@@ -74,6 +73,7 @@ import {
 	TotpVerifier,
 	uint8ArrayToBitArray,
 } from "@tutao/tutanota-crypto"
+import { CryptoError } from "@tutao/tutanota-crypto/error.js"
 import { CryptoFacade, encryptString } from "../crypto/CryptoFacade"
 import { InstanceMapper } from "../crypto/InstanceMapper"
 import { IServiceExecutor } from "../../common/ServiceRequest"

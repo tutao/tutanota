@@ -17,7 +17,6 @@ export class CalendarEventPreviewViewModel {
 	readonly canEdit: boolean
 	readonly canDelete: boolean
 	readonly canSendUpdates: boolean
-
 	/** for editing, an event that has only one non-deleted instance is still considered repeating
 	 * because we might reschedule that instance and then unexclude some deleted instances.
 	 *

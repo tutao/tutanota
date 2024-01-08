@@ -17,6 +17,9 @@
 		},
 		{
 			"path": "./packages/tutanota-test-utils"
+		},
+		{
+			"path": "./packages/tutanota-error"
 		}
 	]
 }

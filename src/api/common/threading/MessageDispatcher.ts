@@ -4,9 +4,9 @@
  *   <li>The worker sends {ClientCommands}s to the client. The commands are executed by the client (without any response to the worker).
  * </ul>
  */
-import { objToError } from "../utils/Utils.js"
 import { isWorker } from "../Env.js"
 import { Transport } from "./Transport.js"
+import { objToError } from "../utils/Utils.js"
 
 export type Command<T> = (msg: Request<T>) => Promise<any>
 export type Commands<T extends string> = Record<T, Command<T>>

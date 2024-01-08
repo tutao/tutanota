@@ -1,0 +1,26 @@
+{
+	"name": "@tutao/tutanota-error",
+	"version": "3.120.6",
+	"license": "GPL-3.0",
+	"main": "./dist/index.js",
+	"types": "./dist/index.d.ts",
+	"repository": {
+		"type": "git",
+		"url": "https://github.com/tutao/tutanota.git",
+		"directory": "packages/tutanota-error"
+	},
+	"scripts": {
+		"prepublishOnly": "npm run build",
+		"build": "tsc -b"
+	},
+	"type": "module",
+	"files": [
+		"dist/*",
+		"README.md",
+		"LICENSE.txt",
+		"tsconfig.json"
+	],
+	"devDependencies": {
+		"typescript": "5.0.3"
+	}
+}

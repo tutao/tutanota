@@ -1,8 +1,8 @@
 import m, { Children } from "mithril"
-import type { EntityUpdateData } from "../api/main/EventController"
 import type { UpdatableSettingsViewer } from "./SettingsView"
 import { getReferralLink, ReferralLinkViewer } from "../misc/news/items/ReferralLinkViewer.js"
 import { locator } from "../api/main/MainLocator.js"
+import { EntityUpdateData } from "../api/common/utils/EntityUpdateUtils.js"
 
 /**
  * Section in user settings to display the referral link and let users share it.

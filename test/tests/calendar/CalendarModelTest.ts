@@ -13,7 +13,6 @@ import { downcast, hexToUint8Array, neverNull, stringToUtf8Uint8Array } from "@t
 import { CalendarModel } from "../../../src/calendar/model/CalendarModel.js"
 import { CalendarAttendeeStatus, CalendarMethod, OperationType, RepeatPeriod } from "../../../src/api/common/TutanotaConstants.js"
 import { DateTime } from "luxon"
-import type { EntityUpdateData } from "../../../src/api/main/EventController.js"
 import { EntityEventsListener, EventController } from "../../../src/api/main/EventController.js"
 import { Notifications } from "../../../src/gui/Notifications.js"
 import { AlarmInfo, AlarmInfoTypeRef, UserAlarmInfoListTypeTypeRef, UserAlarmInfoTypeRef, UserTypeRef } from "../../../src/api/entities/sys/TypeRefs.js"
@@ -35,6 +34,7 @@ import { SessionKeyNotFoundError } from "../../../src/api/common/error/SessionKe
 import { createTestEntity } from "../TestUtils.js"
 import { NoopProgressMonitor } from "../../../src/api/common/utils/ProgressMonitor.js"
 import { makeAlarmScheduler } from "./CalendarTestUtils.js"
+import { EntityUpdateData } from "../../../src/api/common/utils/EntityUpdateUtils.js"
 
 o.spec("CalendarModel", function () {
 	o.spec("incrementByRepeatPeriod", function () {

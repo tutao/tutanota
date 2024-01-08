@@ -25,7 +25,6 @@ import {
 import { assertWorkerOrNode } from "../../../common/Env.js"
 import type { Hex } from "@tutao/tutanota-utils"
 import { assertNotNull, neverNull, noOp, ofClass, stringToUtf8Uint8Array, uint8ArrayToBase64, uint8ArrayToHex } from "@tutao/tutanota-utils"
-import { getWhitelabelDomain } from "../../../common/utils/Utils.js"
 import { CryptoFacade } from "../../crypto/CryptoFacade.js"
 import {
 	BrandingDomainService,
@@ -57,6 +56,7 @@ import { ExposedOperationProgressTracker, OperationId } from "../../../main/Oper
 import { formatNameAndAddress } from "../../../common/utils/CommonFormatter.js"
 import { PQFacade } from "../PQFacade.js"
 import { ProgrammingError } from "../../../common/error/ProgrammingError.js"
+import { getWhitelabelDomainInfo } from "../../../common/utils/CustomerUtils.js"
 
 assertWorkerOrNode()
 
@@ -110,7 +110,7 @@ export class CustomerFacade {
 		const customerId = this.getCustomerId()
 		const customer = await this.entityClient.load(CustomerTypeRef, customerId)
 		const customerInfo = await this.entityClient.load(CustomerInfoTypeRef, customer.customerInfo)
-		let existingBrandingDomain = getWhitelabelDomain(customerInfo, domainName)
+		let existingBrandingDomain = getWhitelabelDomainInfo(customerInfo, domainName)
 		let sessionKey = aes256RandomKey()
 
 		const keyData = await this.serviceExecutor.get(SystemKeysService, null)

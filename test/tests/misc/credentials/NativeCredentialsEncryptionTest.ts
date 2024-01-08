@@ -6,9 +6,9 @@ import { stringToUtf8Uint8Array, uint8ArrayToBase64 } from "@tutao/tutanota-util
 import type { CredentialsAndDatabaseKey, PersistentCredentials } from "../../../../src/misc/credentials/CredentialsProvider.js"
 import { assertThrows } from "@tutao/tutanota-test-utils"
 import { KeyPermanentlyInvalidatedError } from "../../../../src/api/common/error/KeyPermanentlyInvalidatedError.js"
-import { CryptoError } from "../../../../src/api/common/error/CryptoError.js"
 import { CredentialsKeyProvider } from "../../../../src/misc/credentials/CredentialsKeyProvider.js"
 import { object } from "testdouble"
+import { CryptoError } from "@tutao/tutanota-crypto/error.js"
 
 //TODO test databasekey encryption
 o.spec("NativeCredentialsEncryptionTest", function () {

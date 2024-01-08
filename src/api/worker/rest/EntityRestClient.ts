@@ -26,8 +26,8 @@ import { AuthDataProvider } from "../facades/UserFacade"
 import { LoginIncompleteError } from "../../common/error/LoginIncompleteError.js"
 import { BlobServerUrl } from "../../entities/storage/TypeRefs.js"
 import { BlobAccessTokenFacade } from "../facades/BlobAccessTokenFacade.js"
-import { isOfflineError } from "../../common/utils/ErrorCheckUtils.js"
 import { Aes256Key } from "@tutao/tutanota-crypto"
+import { isOfflineError } from "../../common/utils/ErrorCheckUtils.js"
 
 assertWorkerOrNode()
 

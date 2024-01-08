@@ -1,24 +1,18 @@
 import { downcast, identity, noOp } from "@tutao/tutanota-utils"
 import type { LoginController } from "./LoginController"
-import type { OperationType } from "../common/TutanotaConstants"
 import stream from "mithril/stream"
 import Stream from "mithril/stream"
 import { assertMainOrNode } from "../common/Env"
 import { EntityUpdate, WebsocketCounterData } from "../entities/sys/TypeRefs"
+import { EntityUpdateData } from "../common/utils/EntityUpdateUtils.js"
 
 assertMainOrNode()
-export type EntityUpdateData = {
-	application: string
-	type: string
-	instanceListId: string
-	instanceId: string
-	operation: OperationType
-}
-export type EntityEventsListener = (updates: ReadonlyArray<EntityUpdateData>, eventOwnerGroupId: Id) => Promise<any>
 
 export type ExposedEventController = Pick<EventController, "onEntityUpdateReceived" | "onCountersUpdateReceived">
 
 const TAG = "[EventController]"
+
+export type EntityEventsListener = (updates: ReadonlyArray<EntityUpdateData>, eventOwnerGroupId: Id) => Promise<any>
 
 export class EventController {
 	private countersStream: Stream<WebsocketCounterData> = stream()

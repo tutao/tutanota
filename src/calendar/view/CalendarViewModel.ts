@@ -2,7 +2,7 @@ import { $Promisable, assertNotNull, clone, debounce, findAndRemove, getStartOfD
 import { CalendarEvent, CalendarEventTypeRef } from "../../api/entities/tutanota/TypeRefs.js"
 import { getWeekStart, GroupType, OperationType, WeekStart } from "../../api/common/TutanotaConstants"
 import { NotAuthorizedError, NotFoundError } from "../../api/common/error/RestError"
-import { getElementId, getListId, isSameId, isUpdateFor, isUpdateForTypeRef } from "../../api/common/utils/EntityUtils"
+import { getElementId, getListId, isSameId } from "../../api/common/utils/EntityUtils"
 import { LoginController } from "../../api/main/LoginController"
 import { IProgressMonitor } from "../../api/common/utils/ProgressMonitor"
 import type { ReceivedGroupInvitation } from "../../api/entities/sys/TypeRefs.js"
@@ -14,7 +14,6 @@ import { CalendarEventModel, CalendarOperation, EventSaveResult, getNonOrganizer
 import { askIfShouldSendCalendarUpdatesToAttendees } from "../gui/CalendarGuiUtils.js"
 import { ReceivedGroupInvitationsModel } from "../../sharing/model/ReceivedGroupInvitationsModel"
 import type { CalendarInfo, CalendarModel } from "../model/CalendarModel"
-import type { EntityUpdateData } from "../../api/main/EventController"
 import { EventController } from "../../api/main/EventController"
 import { EntityClient } from "../../api/common/EntityClient"
 import { ProgressTracker } from "../../api/main/ProgressTracker"
@@ -24,6 +23,7 @@ import { ProgrammingError } from "../../api/common/error/ProgrammingError.js"
 import { Time } from "../date/Time.js"
 import { CalendarEventsRepository, DaysToEvents } from "../date/CalendarEventsRepository.js"
 import { CalendarEventPreviewViewModel } from "../gui/eventpopup/CalendarEventPreviewViewModel.js"
+import { EntityUpdateData, isUpdateFor, isUpdateForTypeRef } from "../../api/common/utils/EntityUpdateUtils.js"
 
 export type EventsOnDays = {
 	days: Array<Date>

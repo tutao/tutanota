@@ -6,11 +6,11 @@ import type { Config } from "./ConfigCommon"
 import { BuildConfigKey, DesktopConfigEncKey, DesktopConfigKey } from "./ConfigKeys"
 import type { DesktopKeyStoreFacade } from "../DesktopKeyStoreFacade.js"
 import { DesktopNativeCryptoFacade } from "../DesktopNativeCryptoFacade"
-import { CryptoError } from "../../api/common/error/CryptoError"
 import { log } from "../DesktopLog"
 import { ProgrammingError } from "../../api/common/error/ProgrammingError"
 import type { ConfigFileType } from "./ConfigFile"
 import { ConfigFile } from "./ConfigFile"
+import { CryptoError } from "@tutao/tutanota-crypto/error.js"
 
 export type AllConfigKeys = DesktopConfigKey | DesktopConfigEncKey
 

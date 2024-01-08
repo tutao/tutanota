@@ -8,7 +8,6 @@ import type { TableAttrs } from "../../gui/base/Table.js"
 import { ColumnWidth, Table, TableLineAttrs } from "../../gui/base/Table.js"
 import { Icons } from "../../gui/base/icons/Icons.js"
 import { showProgressDialog } from "../../gui/dialogs/ProgressDialog.js"
-import type { EntityUpdateData } from "../../api/main/EventController.js"
 import { TextField } from "../../gui/base/TextField.js"
 import type { DropDownSelectorAttrs } from "../../gui/base/DropDownSelector.js"
 import { DropDownSelector } from "../../gui/base/DropDownSelector.js"
@@ -18,6 +17,7 @@ import { IconButton, IconButtonAttrs } from "../../gui/base/IconButton.js"
 import { ButtonSize } from "../../gui/base/ButtonSize.js"
 import { GroupDetailsModel } from "./GroupDetailsModel.js"
 import { showBuyDialog } from "../../subscription/BuyDialog.js"
+import { EntityUpdateData } from "../../api/common/utils/EntityUpdateUtils.js"
 
 assertMainOrNode()
 

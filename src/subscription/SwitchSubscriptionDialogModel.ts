@@ -1,7 +1,7 @@
 import { BookingItemFeatureType, FeatureType, LegacyPlans, PlanType } from "../api/common/TutanotaConstants"
 import type { AccountingInfo, Booking, Customer } from "../api/entities/sys/TypeRefs.js"
 import { asPaymentInterval, PaymentInterval } from "./PriceUtils"
-import { isCustomizationEnabledForCustomer } from "../api/common/utils/Utils.js"
+import { isCustomizationEnabledForCustomer } from "../api/common/utils/CustomerUtils.js"
 
 export type CurrentPlanInfo = {
 	businessUse: boolean

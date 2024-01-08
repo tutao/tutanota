@@ -10,9 +10,9 @@ import { FeatureType, GroupType } from "../api/common/TutanotaConstants.js"
 import { Icon } from "../gui/base/Icon.js"
 import { Icons } from "../gui/base/icons/Icons.js"
 import { BootIcons } from "../gui/base/icons/BootIcons.js"
-import type { EntityUpdateData } from "../api/main/EventController.js"
+
 import { compareGroupInfos } from "../api/common/utils/GroupUtils.js"
-import { elementIdPart, GENERATED_MAX_ID, isUpdateFor, isUpdateForTypeRef } from "../api/common/utils/EntityUtils.js"
+import { elementIdPart, GENERATED_MAX_ID } from "../api/common/utils/EntityUtils.js"
 import { ListColumnWrapper } from "../gui/ListColumnWrapper.js"
 import { assertMainOrNode } from "../api/common/Env.js"
 import { locator } from "../api/main/MainLocator.js"
@@ -29,6 +29,7 @@ import { IconButton } from "../gui/base/IconButton.js"
 import { attachDropdown } from "../gui/base/Dropdown.js"
 import { lang } from "../misc/LanguageViewModel.js"
 import { keyManager } from "../misc/KeyManager.js"
+import { EntityUpdateData, isUpdateFor, isUpdateForTypeRef } from "../api/common/utils/EntityUpdateUtils.js"
 
 assertMainOrNode()
 

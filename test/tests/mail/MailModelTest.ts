@@ -6,7 +6,6 @@ import type { MailboxDetail } from "../../../src/mail/model/MailModel.js"
 import { MailModel } from "../../../src/mail/model/MailModel.js"
 import { MailFolderType, OperationType } from "../../../src/api/common/TutanotaConstants.js"
 import { MailFolderTypeRef, MailTypeRef } from "../../../src/api/entities/tutanota/TypeRefs.js"
-import type { EntityUpdateData } from "../../../src/api/main/EventController.js"
 import { EntityClient } from "../../../src/api/common/EntityClient.js"
 import { EntityRestClientMock } from "../api/worker/rest/EntityRestClientMock.js"
 import nodemocker from "../nodemocker.js"
@@ -19,6 +18,7 @@ import { WebsocketConnectivityModel } from "../../../src/misc/WebsocketConnectiv
 import { InboxRuleHandler } from "../../../src/mail/model/InboxRuleHandler.js"
 import { UserController } from "../../../src/api/main/UserController.js"
 import { createTestEntity } from "../TestUtils.js"
+import { EntityUpdateData } from "../../../src/api/common/utils/EntityUpdateUtils.js"
 
 o.spec("MailModelTest", function () {
 	let notifications: Partial<Notifications>

@@ -5,12 +5,12 @@ import { InvalidDataError, LockedError, PreconditionFailedError } from "../api/c
 import { showProgressDialog } from "../gui/dialogs/ProgressDialog"
 import { isDomainName } from "../misc/FormatValidator"
 import stream from "mithril/stream"
-import { getWhitelabelDomain } from "../api/common/utils/Utils"
 import type { CustomerInfo } from "../api/entities/sys/TypeRefs.js"
 import { TextField } from "../gui/base/TextField.js"
 import { ofClass } from "@tutao/tutanota-utils"
 import { locator } from "../api/main/MainLocator"
 import { assertMainOrNode } from "../api/common/Env"
+import { getWhitelabelDomainInfo } from "../api/common/utils/CustomerUtils.js"
 
 assertMainOrNode()
 
@@ -58,7 +58,7 @@ function orderWhitelabelCertificate(domain: string, dialog: Dialog) {
 
 export function show(customerInfo: CustomerInfo): void {
 	// only show a dropdown if a domain is already selected for tutanota login or if there is exactly one domain available
-	const whitelabelDomainInfo = getWhitelabelDomain(customerInfo)
+	const whitelabelDomainInfo = getWhitelabelDomainInfo(customerInfo)
 	const domain = whitelabelDomainInfo ? stream(whitelabelDomainInfo.domain) : stream("")
 	let form = {
 		view: () => {

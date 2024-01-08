@@ -9,7 +9,7 @@ import { assertNotNull, LazyLoaded, neverNull, ofClass } from "@tutao/tutanota-u
 import { formatDateTimeFromYesterdayOn } from "../../misc/Formatter.js"
 import { SessionState } from "../../api/common/TutanotaConstants.js"
 import { SecondFactorsEditForm } from "./secondfactor/SecondFactorsEditForm.js"
-import type { EntityUpdateData } from "../../api/main/EventController.js"
+
 import { NotFoundError } from "../../api/common/error/RestError.js"
 import * as RecoverCodeDialog from "./RecoverCodeDialog.js"
 import { attachDropdown } from "../../gui/base/Dropdown.js"
@@ -23,13 +23,14 @@ import { usingKeychainAuthenticationWithOptions } from "../../misc/credentials/C
 import { showCredentialsEncryptionModeDialog } from "../../gui/dialogs/SelectCredentialsEncryptionModeDialog.js"
 import { assertMainOrNode } from "../../api/common/Env.js"
 import { locator } from "../../api/main/MainLocator.js"
-import { elementIdPart, getElementId, isUpdateForTypeRef } from "../../api/common/utils/EntityUtils.js"
+import { elementIdPart, getElementId } from "../../api/common/utils/EntityUtils.js"
 import { showChangeOwnPasswordDialog } from "./ChangePasswordDialogs.js"
 import { IconButton, IconButtonAttrs } from "../../gui/base/IconButton.js"
 import { ButtonSize } from "../../gui/base/ButtonSize.js"
 import { DropDownSelector, DropDownSelectorAttrs } from "../../gui/base/DropDownSelector.js"
 import { UsageTestModel } from "../../misc/UsageTestModel.js"
 import { UserSettingsGroupRootTypeRef } from "../../api/entities/tutanota/TypeRefs.js"
+import { EntityUpdateData, isUpdateForTypeRef } from "../../api/common/utils/EntityUpdateUtils.js"
 import { Dialog } from "../../gui/base/Dialog.js"
 
 assertMainOrNode()

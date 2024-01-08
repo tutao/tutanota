@@ -5,7 +5,7 @@
 import { $ } from "zx"
 
 // packages that we actually need to build the app
-const RUNTIME_PACKAGES = ["tutanota-utils", "tutanota-crypto", "tutanota-usagetests"]
+const RUNTIME_PACKAGES = ["tutanota-utils", "tutanota-crypto", "tutanota-usagetests", "tutanota-error"]
 
 export async function buildRuntimePackages(pathPrefix = ".") {
 	const packagesArg = RUNTIME_PACKAGES.map((p) => `${pathPrefix}/packages/${p}`)

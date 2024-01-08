@@ -1,11 +1,11 @@
 import m, { Children } from "mithril"
-import type { EntityUpdateData } from "../api/main/EventController"
+
 import type { UpdatableSettingsViewer } from "./SettingsView"
 import { showTemplateEditor } from "./TemplateEditor"
 import type { EmailTemplate } from "../api/entities/tutanota/TypeRefs.js"
 import { EmailTemplateTypeRef } from "../api/entities/tutanota/TypeRefs.js"
 import { EntityClient } from "../api/common/EntityClient"
-import { GENERATED_MAX_ID, isSameId, isUpdateForTypeRef } from "../api/common/utils/EntityUtils"
+import { GENERATED_MAX_ID, isSameId } from "../api/common/utils/EntityUtils"
 import { searchInTemplates, TEMPLATE_SHORTCUT_PREFIX } from "../templates/model/TemplatePopupModel"
 import { hasCapabilityOnGroup } from "../sharing/GroupUtils"
 import { ShareCapability } from "../api/common/TutanotaConstants"
@@ -28,6 +28,7 @@ import { IconButton } from "../gui/base/IconButton.js"
 import { BaseSearchBar, BaseSearchBarAttrs } from "../gui/base/BaseSearchBar.js"
 import { lang } from "../misc/LanguageViewModel.js"
 import { keyManager } from "../misc/KeyManager.js"
+import { EntityUpdateData, isUpdateForTypeRef } from "../api/common/utils/EntityUpdateUtils.js"
 
 assertMainOrNode()
 

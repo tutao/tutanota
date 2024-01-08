@@ -17,8 +17,8 @@ import { showNotAvailableForFreeDialog } from "../misc/SubscriptionDialogs"
 import { isSameId } from "../api/common/utils/EntityUtils"
 import { assertMainOrNode } from "../api/common/Env"
 import { locator } from "../api/main/MainLocator"
-import { isOfflineError } from "../api/common/utils/ErrorCheckUtils.js"
 import { assertSystemFolderOfType } from "../api/common/mail/CommonMailUtils.js"
+import { isOfflineError } from "../api/common/utils/ErrorCheckUtils.js"
 
 assertMainOrNode()
 
