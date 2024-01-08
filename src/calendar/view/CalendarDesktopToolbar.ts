@@ -1,4 +1,4 @@
-import { CalendarNavConfiguration, CalendarViewType, getIconForViewType } from "./CalendarGuiUtils.js"
+import { CalendarNavConfiguration, CalendarViewType, getIconForViewType } from "../gui/CalendarGuiUtils.js"
 import m, { Children, Component, Vnode } from "mithril"
 import { theme } from "../../gui/theme.js"
 import { px, size } from "../../gui/size.js"

@@ -1,12 +1,12 @@
 import m, { Component } from "mithril"
-import { Dialog, DialogType } from "../base/Dialog"
-import { lang } from "../../misc/LanguageViewModel"
-import { DatePicker } from "./DatePicker"
-import { px, size } from "../size"
-import { client } from "../../misc/ClientDetector"
-import { formatDateWithWeekdayAndYear } from "../../misc/Formatter"
-import { assertMainOrNode } from "../../api/common/Env"
-import { debounce, debounceStart, NBSP, noOp } from "@tutao/tutanota-utils"
+import { Dialog, DialogType } from "../../../gui/base/Dialog.js"
+import { lang } from "../../../misc/LanguageViewModel.js"
+import { DatePicker } from "./DatePicker.js"
+import { px, size } from "../../../gui/size.js"
+import { client } from "../../../misc/ClientDetector.js"
+import { formatDateWithWeekdayAndYear } from "../../../misc/Formatter.js"
+import { assertMainOrNode } from "../../../api/common/Env.js"
+import { debounceStart, NBSP, noOp } from "@tutao/tutanota-utils"
 
 assertMainOrNode()
 

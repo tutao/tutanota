@@ -1,3 +1,5 @@
+// @bundleInto:common-min
+
 import { downcast } from "@tutao/tutanota-utils"
 import { TutanotaError } from "../../api/common/error/TutanotaError"
 

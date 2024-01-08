@@ -1,16 +1,17 @@
 import m, { Children, Component, Vnode } from "mithril"
-import { CalendarEventWhenModel } from "../../view/eventeditor-model/CalendarEventWhenModel.js"
-import { createIntervalValues, createRepeatRuleEndTypeValues, createRepeatRuleFrequencyValues } from "../../date/CalendarUtils.js"
+import { CalendarEventWhenModel } from "../eventeditor-model/CalendarEventWhenModel.js"
 import { TextField } from "../../../gui/base/TextField.js"
 import { lang } from "../../../misc/LanguageViewModel.js"
 import { DropDownSelector, DropDownSelectorAttrs, SelectorItemList } from "../../../gui/base/DropDownSelector.js"
 import { EndType, RepeatPeriod } from "../../../api/common/TutanotaConstants.js"
 import { BootIcons } from "../../../gui/base/icons/BootIcons.js"
-import { DatePicker } from "../../../gui/date/DatePicker.js"
+import { DatePicker } from "../pickers/DatePicker.js"
 import { IconButton } from "../../../gui/base/IconButton.js"
 import { Icons } from "../../../gui/base/icons/Icons.js"
 
 import { renderTwoColumnsIfFits } from "../../../gui/base/GuiUtils.js"
+
+import { createIntervalValues, createRepeatRuleEndTypeValues, createRepeatRuleFrequencyValues } from "../CalendarGuiUtils.js"
 
 export type RepeatRuleEditorAttrs = {
 	model: CalendarEventWhenModel
