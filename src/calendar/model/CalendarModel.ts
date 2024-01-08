@@ -1,8 +1,8 @@
 import type { $Promisable, DeferredObject, Require } from "@tutao/tutanota-utils"
-import { assertNotNull, clone, defer, downcast, filterInt, getFromMap, symmetricDifference } from "@tutao/tutanota-utils"
+import { assertNotNull, clone, defer, downcast, filterInt, getFromMap, isSameDay, symmetricDifference } from "@tutao/tutanota-utils"
 import { CalendarMethod, FeatureType, GroupType, OperationType } from "../../api/common/TutanotaConstants"
 import type { EntityUpdateData } from "../../api/main/EventController"
-import { EventController, isUpdateFor, isUpdateForTypeRef } from "../../api/main/EventController"
+import { EventController } from "../../api/main/EventController"
 import type { Group, GroupInfo, User, UserAlarmInfo } from "../../api/entities/sys/TypeRefs.js"
 import {
 	createDateWrapper,
@@ -32,8 +32,8 @@ import type { IProgressMonitor } from "../../api/common/utils/ProgressMonitor"
 import { NoopProgressMonitor } from "../../api/common/utils/ProgressMonitor"
 import { EntityClient } from "../../api/common/EntityClient"
 import type { MailModel } from "../../mail/model/MailModel"
-import { elementIdPart, getElementId, isSameId, listIdPart, removeTechnicalFields } from "../../api/common/utils/EntityUtils"
-import type { AlarmScheduler } from "../date/AlarmScheduler"
+import { elementIdPart, getElementId, isSameId, isUpdateFor, isUpdateForTypeRef, listIdPart, removeTechnicalFields } from "../../api/common/utils/EntityUtils"
+import type { AlarmScheduler } from "../date/AlarmScheduler.js"
 import type { Notifications } from "../../gui/Notifications"
 import m from "mithril"
 import type { CalendarEventInstance, CalendarEventProgenitor, CalendarFacade } from "../../api/worker/facades/lazy/CalendarFacade.js"
@@ -47,6 +47,8 @@ import { SessionKeyNotFoundError } from "../../api/common/error/SessionKeyNotFou
 import Stream from "mithril/stream"
 import { ObservableLazyLoaded } from "../../api/common/utils/ObservableLazyLoaded.js"
 import { UserController } from "../../api/main/UserController.js"
+import { DateProvider } from "../../api/common/DateProvider.js"
+import { formatDateWithWeekdayAndTime, formatTime } from "../../misc/Formatter.js"
 
 const TAG = "[CalendarModel]"
 export type CalendarInfo = {
@@ -487,7 +489,7 @@ export class CalendarModel {
 	 * @param updateEvent the event that contains the new version of dbEvent. */
 	private async processCalendarUpdate(dbTarget: CalendarEventUidIndexEntry, dbEvent: CalendarEventInstance, updateEvent: CalendarEvent): Promise<void> {
 		console.log(TAG, "processing request for existing event instance")
-		const { repeatRuleWithExcludedAlteredInstances } = await import("../view/eventeditor-model/CalendarEventWhenModel.js")
+		const { repeatRuleWithExcludedAlteredInstances } = await import("../gui/eventeditor-model/CalendarEventWhenModel.js")
 		// some providers do not increment the sequence for all edit operations (like google when changing the summary)
 		// we'd rather apply the same update too often than miss some, and this enables us to update our own status easily
 		// without having to increment the sequence.
@@ -522,7 +524,7 @@ export class CalendarModel {
 		alarms: Array<AlarmInfoTemplate>,
 	): Promise<void> {
 		console.log(TAG, "processing new instance request")
-		const { repeatRuleWithExcludedAlteredInstances } = await import("../view/eventeditor-model/CalendarEventWhenModel.js")
+		const { repeatRuleWithExcludedAlteredInstances } = await import("../gui/eventeditor-model/CalendarEventWhenModel.js")
 		if (updateEvent.recurrenceId != null && dbTarget.progenitor != null && dbTarget.progenitor.repeatRule != null) {
 			// request for a new altered instance. we'll try adding the exclusion for this instance to the progenitor if possible
 			// since not all calendar apps add altered instances to the list of exclusions.
@@ -773,7 +775,8 @@ export class CalendarModel {
 	private scheduleUserAlarmInfo(event: CalendarEvent, userAlarmInfo: UserAlarmInfo, scheduler: AlarmScheduler): void {
 		this.userAlarmToAlarmInfo.set(getElementId(userAlarmInfo), userAlarmInfo.alarmInfo.alarmIdentifier)
 
-		scheduler.scheduleAlarm(event, userAlarmInfo.alarmInfo, event.repeatRule, (title, body) => {
+		scheduler.scheduleAlarm(event, userAlarmInfo.alarmInfo, event.repeatRule, (eventTime, summary) => {
+			const { title, body } = formatNotificationForDisplay(eventTime, summary)
 			this.notifications.showNotification(
 				title,
 				{
@@ -833,4 +836,18 @@ function* oneShotProgressMonitorGenerator(progressTracker: ProgressTracker, user
 	while (true) {
 		yield new NoopProgressMonitor()
 	}
+}
+
+export function formatNotificationForDisplay(eventTime: Date, summary: string): { title: string; body: string } {
+	let dateString: string
+
+	if (isSameDay(eventTime, new Date())) {
+		dateString = formatTime(eventTime)
+	} else {
+		dateString = formatDateWithWeekdayAndTime(eventTime)
+	}
+
+	const body = `${dateString} ${summary}`
+
+	return { body, title: body }
 }

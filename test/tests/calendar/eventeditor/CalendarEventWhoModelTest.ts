@@ -8,7 +8,7 @@ import {
 	createCalendarEventAttendee,
 	createContact,
 } from "../../../../src/api/entities/tutanota/TypeRefs.js"
-import { CalendarEventWhoModel } from "../../../../src/calendar/view/eventeditor-model/CalendarEventWhoModel.js"
+import { CalendarEventWhoModel } from "../../../../src/calendar/gui/eventeditor-model/CalendarEventWhoModel.js"
 import { matchers, object, verify, when } from "testdouble"
 import { RecipientsModel } from "../../../../src/api/main/RecipientsModel.js"
 import { Recipient, RecipientType } from "../../../../src/api/common/recipients/Recipient.js"
@@ -16,7 +16,7 @@ import { AccountType, CalendarAttendeeStatus, ShareCapability } from "../../../.
 import { createUser, UserTypeRef } from "../../../../src/api/entities/sys/TypeRefs.js"
 import { SendMailModel } from "../../../../src/mail/editor/SendMailModel.js"
 import { UserController } from "../../../../src/api/main/UserController.js"
-import { CalendarOperation, EventType } from "../../../../src/calendar/view/eventeditor-model/CalendarEventModel.js"
+import { CalendarOperation, EventType } from "../../../../src/calendar/gui/eventeditor-model/CalendarEventModel.js"
 import {
 	addCapability,
 	calendars,

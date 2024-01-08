@@ -34,7 +34,6 @@ import Stream from "mithril/stream"
 import * as SignOrderAgreementDialog from "./SignOrderProcessingAgreementDialog"
 import { NotFoundError } from "../api/common/error/RestError"
 import type { EntityUpdateData } from "../api/main/EventController"
-import { isUpdateForTypeRef } from "../api/main/EventController"
 import {
 	getCurrentCount,
 	getTotalStorageCapacityPerCustomer,
@@ -53,7 +52,7 @@ import { GiftCardMessageEditorField } from "./giftcards/GiftCardMessageEditorFie
 import { attachDropdown } from "../gui/base/Dropdown.js"
 import { createNotAvailableForFreeClickHandler } from "../misc/SubscriptionDialogs"
 import { SettingsExpander } from "../settings/SettingsExpander"
-import { elementIdPart, GENERATED_MAX_ID, getEtId } from "../api/common/utils/EntityUtils"
+import { elementIdPart, GENERATED_MAX_ID, getEtId, isUpdateForTypeRef } from "../api/common/utils/EntityUtils"
 import type { UpdatableSettingsViewer } from "../settings/SettingsView"
 import {
 	CURRENT_GIFT_CARD_TERMS_VERSION,

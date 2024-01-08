@@ -1,4 +1,3 @@
-import { CalendarEvent } from "../../../api/entities/tutanota/TypeRefs.js"
 import m, { Children, Component, Vnode } from "mithril"
 import { formatMonthWithFullYear } from "../../../misc/Formatter.js"
 import { hexToRgb } from "../../../gui/base/Color.js"

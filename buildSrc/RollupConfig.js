@@ -110,10 +110,14 @@ export function getChunkName(moduleId, { getModuleInfo }) {
 		// everything marked as assertMainOrNodeBoot goes into boot bundle right now
 		// (which is getting merged into app.js)
 		return "boot"
-	} else if (isIn("src/gui/date") || isIn("src/calendar/export") || isIn("src/misc/DateParser") || isIn("src/calendar/model")) {
+	} else if (isIn("src/calendar/export") || isIn("src/misc/DateParser") || isIn("src/calendar/model") || isIn("src/calendar/gui")) {
+		// this contains code that is important to the calendar view but might be used by other parts of the app on the main thread
+		// like time-based input components and formatting code.
 		return "date-gui"
 	} else if (moduleId.includes("luxon") || isIn("src/calendar/date")) {
-		// luxon and everything that depends on it goes into date bundle
+		// common calendar/time code that might be used in main or worker threads
+		// primarily luxon and utility functions based on it, but no display code
+		// (formatting, UI components)
 		return "date"
 	} else if (isIn("src/misc/HtmlSanitizer") || isIn("libs/purify")) {
 		return "sanitizer"

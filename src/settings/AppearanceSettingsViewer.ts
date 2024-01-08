@@ -8,7 +8,6 @@ import { deviceConfig } from "../misc/DeviceConfig"
 import { TimeFormat, WeekStart } from "../api/common/TutanotaConstants"
 import { downcast, incrementDate, noOp, promiseMap } from "@tutao/tutanota-utils"
 import type { EntityUpdateData } from "../api/main/EventController"
-import { isUpdateForTypeRef } from "../api/main/EventController"
 import { UserSettingsGroupRootTypeRef } from "../api/entities/tutanota/TypeRefs.js"
 import { getHourCycle } from "../misc/Formatter"
 import type { ThemeId, ThemePreference } from "../gui/theme"
@@ -16,6 +15,7 @@ import { themeController } from "../gui/theme"
 import type { UpdatableSettingsViewer } from "./SettingsView"
 import { isDesktop } from "../api/common/Env"
 import { locator } from "../api/main/MainLocator"
+import { isUpdateForTypeRef } from "../api/common/utils/EntityUtils.js"
 
 export class AppearanceSettingsViewer implements UpdatableSettingsViewer {
 	private _customThemes: Array<ThemeId> | null = null

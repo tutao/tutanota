@@ -1,11 +1,11 @@
 import m, { Children, Component, Vnode, VnodeDOM } from "mithril"
-import { TextField, TextFieldType as TextFieldType } from "../base/TextField.js"
-import { theme } from "../theme.js"
-import { client } from "../../misc/ClientDetector.js"
-import { Keys, TimeFormat } from "../../api/common/TutanotaConstants.js"
-import { timeStringFromParts } from "../../misc/Formatter.js"
-import { Time } from "../../calendar/date/Time.js"
-import { isKeyPressed } from "../../misc/KeyManager.js"
+import { TextField, TextFieldType as TextFieldType } from "../../../gui/base/TextField.js"
+import { theme } from "../../../gui/theme.js"
+import { client } from "../../../misc/ClientDetector.js"
+import { Keys, TimeFormat } from "../../../api/common/TutanotaConstants.js"
+import { timeStringFromParts } from "../../../misc/Formatter.js"
+import { Time } from "../../date/Time.js"
+import { isKeyPressed } from "../../../misc/KeyManager.js"
 
 export type TimePickerAttrs = {
 	time: Time | null

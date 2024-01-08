@@ -6,7 +6,6 @@ import {
 	CALENDAR_EVENT_HEIGHT,
 	EventLayoutMode,
 	getAllDayDateForTimezone,
-	getCalendarMonth,
 	getDiffIn24hIntervals,
 	getEventColor,
 	getEventEnd,
@@ -31,7 +30,7 @@ import { EventDragHandler } from "./EventDragHandler"
 import { getPosAndBoundsFromMouseEvent } from "../../gui/base/GuiUtils"
 import { UserError } from "../../api/main/UserError"
 import { showUserError } from "../../misc/ErrorHandlerImpl"
-import { CalendarViewType, getDateFromMousePos, SELECTED_DATE_INDICATOR_THICKNESS } from "./CalendarGuiUtils"
+import { CalendarViewType, getCalendarMonth, getDateFromMousePos, SELECTED_DATE_INDICATOR_THICKNESS } from "../gui/CalendarGuiUtils.js"
 import type { CalendarEventBubbleClickHandler, EventsOnDays } from "./CalendarViewModel"
 import { Time } from "../date/Time.js"
 import { client } from "../../misc/ClientDetector"

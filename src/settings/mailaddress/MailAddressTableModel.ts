@@ -2,7 +2,7 @@ import { EntityClient } from "../../api/common/EntityClient.js"
 import { MailboxPropertiesTypeRef } from "../../api/entities/tutanota/TypeRefs.js"
 import { MailAddressFacade } from "../../api/worker/facades/lazy/MailAddressFacade.js"
 import { LoginController } from "../../api/main/LoginController.js"
-import { EntityUpdateData, EventController, isUpdateFor, isUpdateForTypeRef } from "../../api/main/EventController.js"
+import { EntityUpdateData, EventController } from "../../api/main/EventController.js"
 import { OperationType } from "../../api/common/TutanotaConstants.js"
 import { EmailDomainData, getAvailableDomains } from "./MailAddressesUtils.js"
 import { GroupInfo, GroupInfoTypeRef, MailAddressAliasServiceReturn } from "../../api/entities/sys/TypeRefs.js"
@@ -14,6 +14,7 @@ import { IServiceExecutor } from "../../api/common/ServiceRequest.js"
 
 import { getAvailableMatchingPlans } from "../../subscription/SubscriptionUtils.js"
 import { isTutanotaMailAddress } from "../../api/common/mail/CommonMailUtils.js"
+import { isUpdateFor, isUpdateForTypeRef } from "../../api/common/utils/EntityUtils.js"
 
 export enum AddressStatus {
 	Primary,

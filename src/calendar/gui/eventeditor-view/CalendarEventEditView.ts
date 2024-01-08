@@ -11,17 +11,19 @@ import { RecipientsSearchModel } from "../../../misc/RecipientsSearchModel.js"
 import { DropDownSelector, DropDownSelectorAttrs } from "../../../gui/base/DropDownSelector.js"
 import { BootIcons } from "../../../gui/base/icons/BootIcons.js"
 import { CalendarInfo } from "../../model/CalendarModel.js"
-import { AlarmIntervalUnit, createAlarmIntervalItems, createCustomRepeatRuleUnitValues, humanDescriptionForAlarmInterval } from "../../date/CalendarUtils.js"
+import { AlarmIntervalUnit } from "../../date/CalendarUtils.js"
 import { Icons } from "../../../gui/base/icons/Icons.js"
 import { IconButton } from "../../../gui/base/IconButton.js"
 import { ButtonSize } from "../../../gui/base/ButtonSize.js"
 import { HtmlEditor } from "../../../gui/editor/HtmlEditor.js"
 import { attachDropdown } from "../../../gui/base/Dropdown.js"
 import { BannerType, InfoBanner, InfoBannerAttrs } from "../../../gui/base/InfoBanner.js"
-import { CalendarEventModel, ReadonlyReason } from "../../view/eventeditor-model/CalendarEventModel.js"
+import { CalendarEventModel, ReadonlyReason } from "../eventeditor-model/CalendarEventModel.js"
 import { Dialog } from "../../../gui/base/Dialog.js"
 
 import { getSharedGroupName } from "../../../sharing/GroupUtils.js"
+
+import { createAlarmIntervalItems, createCustomRepeatRuleUnitValues, humanDescriptionForAlarmInterval } from "../CalendarGuiUtils.js"
 
 export type CalendarEventEditViewAttrs = {
 	model: CalendarEventModel

@@ -12,12 +12,12 @@ import {
 	isSameEventInstance,
 } from "./CalendarUtils.js"
 import { CalendarEvent, CalendarEventTypeRef } from "../../api/entities/tutanota/TypeRefs.js"
-import { getListId, isSameId } from "../../api/common/utils/EntityUtils.js"
+import { getListId, isSameId, isUpdateForTypeRef } from "../../api/common/utils/EntityUtils.js"
 import { DateTime } from "luxon"
 import { CalendarFacade } from "../../api/worker/facades/lazy/CalendarFacade.js"
 import { EntityClient } from "../../api/common/EntityClient.js"
 import { findAllAndRemove, freezeMap } from "@tutao/tutanota-utils"
-import { EntityUpdateData, EventController, isUpdateForTypeRef } from "../../api/main/EventController.js"
+import type { EventController, EntityUpdateData } from "../../api/main/EventController.js"
 import { OperationType } from "../../api/common/TutanotaConstants.js"
 import { NotAuthorizedError, NotFoundError } from "../../api/common/error/RestError.js"
 
