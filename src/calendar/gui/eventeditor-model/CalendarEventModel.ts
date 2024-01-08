@@ -124,6 +124,10 @@ export const enum ReadonlyReason {
 	SHARED,
 	/** this edit operation applies to only part of a series, so attendees and calendar are read-only */
 	SINGLE_INSTANCE,
+	/** the organizer is not the current user */
+	NOT_ORGANIZER,
+	/** the event cannot be edited for an unspecified reason. This is the default value */
+	UNKNOWN,
 	/** we can edit anything here */
 	NONE,
 }
@@ -399,10 +403,21 @@ export class CalendarEventModel {
 	}
 
 	getReadonlyReason(): ReadonlyReason {
-		if (this.isFullyWritable() && this.canEditSeries() && this.editModels.whoModel.canModifyGuests) return ReadonlyReason.NONE
+		const isFullyWritable = this.isFullyWritable()
+		const canEditSeries = this.canEditSeries()
+		const canModifyGuests = this.editModels.whoModel.canModifyGuests
+
+		if (isFullyWritable && canEditSeries && canModifyGuests) return ReadonlyReason.NONE
+		if (!isFullyWritable && !canEditSeries && !canModifyGuests) return ReadonlyReason.NOT_ORGANIZER
 		// fully writable and !canModifyGuests happens on shared calendars
-		if (!this.editModels.whoModel.canModifyGuests && this.canEditSeries()) return ReadonlyReason.SHARED
-		return ReadonlyReason.SINGLE_INSTANCE
+		if (!canModifyGuests) {
+			if (canEditSeries) {
+				return ReadonlyReason.SHARED
+			} else {
+				return ReadonlyReason.SINGLE_INSTANCE
+			}
+		}
+		return ReadonlyReason.UNKNOWN
 	}
 }
 
