@@ -110,6 +110,15 @@ export class CalendarFacade {
 		return this.saveCalendarEvents(eventWrappers, (percent) => this.operationProgressTracker.onProgress(operationId, percent))
 	}
 
+	/**
+	 * extend or one month of the given daysToEvents map
+	 *
+	 * @param month only update events that intersect days in this month
+	 * @param calendarInfos update events contained in these calendars
+	 * @param daysToEvents the old version of the map
+	 * @param zone the time zone to consider the event times under
+	 * @returns a new daysToEventsMap where the given month is updated.
+	 */
 	async updateEventMap(
 		month: CalendarTimeRange,
 		calendarInfos: ReadonlyMap<Id, CalendarInfo>,
