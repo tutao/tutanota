@@ -2,11 +2,11 @@ import m, { Component } from "mithril"
 import { Dialog, DialogType } from "../base/Dialog"
 import { lang } from "../../misc/LanguageViewModel"
 import { DatePicker } from "./DatePicker"
-import { px } from "../size"
+import { px, size } from "../size"
 import { client } from "../../misc/ClientDetector"
 import { formatDateWithWeekdayAndYear } from "../../misc/Formatter"
 import { assertMainOrNode } from "../../api/common/Env"
-import { noOp } from "@tutao/tutanota-utils"
+import { debounce, debounceStart, NBSP, noOp } from "@tutao/tutanota-utils"
 
 assertMainOrNode()
 
@@ -17,31 +17,35 @@ export function showDateRangeSelectionDialog<T>(
 	startOfTheWeekOffset: number,
 	start: Date,
 	end: Date,
+	dateValidator: (startDate: Date | null, endDate: Date | null) => string | null = () => null,
 ): Promise<{
 	start: Date
 	end: Date
 }> {
 	const helpLabel = (date: Date | null) => (date != null ? () => formatDateWithWeekdayAndYear(date) : "unlimited_label")
 
+	const validateDates = debounceStart(750, (startDate, endDate) => {
+		warning = dateValidator(startDate, endDate)
+		m.redraw()
+	})
+
 	let startDate = start
 	let endDate = end
+	let warning: string | null = null
 	const form: Component = {
 		view: () =>
 			m(
-				".flex-space-between",
-				client.isDesktopDevice()
-					? {
-							style: {
-								height: px(305),
-							},
-					  }
-					: {},
-				[
+				".flex.col",
+				m(".flex-space-between", [
 					m(
 						".pr-s.flex-grow.max-width-200.flex-space-between.flex-column",
 						m(DatePicker, {
 							date: startDate,
-							onDateSelected: (date) => (startDate = date),
+							onDateSelected: (date) => {
+								warning = null
+								startDate = date
+								validateDates(startDate, endDate)
+							},
 							startOfTheWeekOffset,
 							label: "dateFrom_label",
 							nullSelectionText: helpLabel(start),
@@ -51,13 +55,18 @@ export function showDateRangeSelectionDialog<T>(
 						".pl-s.flex-grow.max-width-200.flex-space-between.flex-column",
 						m(DatePicker, {
 							date: endDate,
-							onDateSelected: (date) => (endDate = date),
+							onDateSelected: (date) => {
+								warning = null
+								endDate = date
+								validateDates(startDate, endDate)
+							},
 							startOfTheWeekOffset,
 							label: "dateTo_label",
 							nullSelectionText: helpLabel(end),
 						}),
 					),
-				],
+				]),
+				m(".mt", { style: { minHeight: px(2 * size.font_size_base * size.line_height) } }, warning ?? NBSP),
 			),
 	}
 	return new Promise((resolve) => {
