@@ -3,7 +3,7 @@ import m from "mithril"
 import { getAllDayDateUTC, isAllDayEvent } from "../../api/common/utils/CommonCalendarUtils"
 import { Time } from "../date/Time.js"
 import { showDropdownAtPosition } from "../../gui/base/Dropdown.js"
-import { CalendarOperation } from "../view/eventeditor-model/CalendarEventModel.js"
+import { CalendarOperation } from "../gui/eventeditor-model/CalendarEventModel.js"
 
 const DRAG_THRESHOLD = 10
 export type MousePos = {

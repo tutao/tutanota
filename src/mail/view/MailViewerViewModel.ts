@@ -40,7 +40,7 @@ import {
 import { LoginController } from "../../api/main/LoginController"
 import m from "mithril"
 import { LockedError, NotAuthorizedError, NotFoundError } from "../../api/common/error/RestError"
-import { getListId, haveSameId, isSameId } from "../../api/common/utils/EntityUtils"
+import { getListId, haveSameId, isSameId, isUpdateForTypeRef } from "../../api/common/utils/EntityUtils"
 import { getReferencedAttachments, loadInlineImages, moveMails, revokeInlineImages } from "./MailGuiUtils"
 import { SanitizedFragment } from "../../misc/HtmlSanitizer"
 import { CALENDAR_MIME_TYPE, FileController } from "../../file/FileController"
@@ -58,7 +58,7 @@ import { ProgrammingError } from "../../api/common/error/ProgrammingError"
 import { InitAsResponseArgs, SendMailModel } from "../editor/SendMailModel"
 import { isOfflineError } from "../../api/common/utils/ErrorCheckUtils.js"
 import { isLegacyMail, MailWrapper } from "../../api/common/MailWrapper.js"
-import { EntityUpdateData, EventController, isUpdateForTypeRef } from "../../api/main/EventController.js"
+import { EntityUpdateData, EventController } from "../../api/main/EventController.js"
 import { WorkerFacade } from "../../api/worker/facades/WorkerFacade.js"
 import { SearchModel } from "../../search/model/SearchModel.js"
 import {
@@ -68,7 +68,7 @@ import {
 	isTutanotaTeamMail,
 	MailAddressAndName,
 } from "../../api/common/mail/CommonMailUtils.js"
-import { ParsedIcalFileContent } from "../../calendar/date/CalendarInvites.js"
+import { ParsedIcalFileContent } from "../../calendar/view/CalendarInvites.js"
 import { MailFacade } from "../../api/worker/facades/lazy/MailFacade.js"
 
 export const enum ContentBlockingStatus {
@@ -717,7 +717,7 @@ export class MailViewerViewModel {
 
 		if (calendarFile && (mail.method === MailMethod.ICAL_REQUEST || mail.method === MailMethod.ICAL_REPLY) && mail.state === MailState.RECEIVED) {
 			Promise.all([
-				import("../../calendar/date/CalendarInvites").then(({ getEventsFromFile }) => getEventsFromFile(calendarFile, mail.confidential)),
+				import("../../calendar/view/CalendarInvites.js").then(({ getEventsFromFile }) => getEventsFromFile(calendarFile, mail.confidential)),
 				this.getSenderOfResponseMail(),
 			]).then(([contents, recipient]) => {
 				this.calendarEventAttachment =

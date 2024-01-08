@@ -1,9 +1,9 @@
-import { Dialog } from "../../gui/base/Dialog"
+import { Dialog } from "../../gui/base/Dialog.js"
 import m, { Children } from "mithril"
 import stream from "mithril/stream"
 import { TextField } from "../../gui/base/TextField.js"
-import { lang } from "../../misc/LanguageViewModel"
-import type { TranslationKeyType } from "../../misc/TranslationKey"
+import { lang } from "../../misc/LanguageViewModel.js"
+import type { TranslationKeyType } from "../../misc/TranslationKey.js"
 import { downcast } from "@tutao/tutanota-utils"
 
 type CalendarProperties = {

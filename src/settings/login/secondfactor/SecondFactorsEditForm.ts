@@ -12,7 +12,6 @@ import type { TableAttrs, TableLineAttrs } from "../../../gui/base/Table.js"
 import { ColumnWidth, Table } from "../../../gui/base/Table.js"
 import { NotFoundError } from "../../../api/common/error/RestError.js"
 import type { EntityUpdateData } from "../../../api/main/EventController.js"
-import { isUpdateForTypeRef } from "../../../api/main/EventController.js"
 import { ifAllowedTutaLinks } from "../../../gui/base/GuiUtils.js"
 import { locator } from "../../../api/main/MainLocator.js"
 import { SecondFactorEditDialog } from "./SecondFactorEditDialog.js"
@@ -21,6 +20,7 @@ import { IconButtonAttrs } from "../../../gui/base/IconButton.js"
 import { ButtonSize } from "../../../gui/base/ButtonSize.js"
 import { appIdToLoginUrl } from "../../../misc/2fa/SecondFactorUtils.js"
 import { DomainConfigProvider } from "../../../api/common/DomainConfigProvider.js"
+import { isUpdateForTypeRef } from "../../../api/common/utils/EntityUtils.js"
 
 assertMainOrNode()
 

@@ -16,9 +16,7 @@ import {
 	isValidDate,
 	memoized,
 	neverNull,
-	numberRange,
 	TIMESTAMP_ZERO_YEAR,
-	typedValues,
 } from "@tutao/tutanota-utils"
 import {
 	AccountType,
@@ -32,7 +30,7 @@ import {
 	TimeFormat,
 	WeekStart,
 } from "../../api/common/TutanotaConstants"
-import { DateTime, Duration, DurationLikeObject, FixedOffsetZone, IANAZone } from "luxon"
+import { DateTime, DurationLikeObject, FixedOffsetZone, IANAZone } from "luxon"
 import {
 	CalendarEvent,
 	CalendarEventTypeRef,
@@ -49,8 +47,6 @@ import {
 	isAllDayEvent,
 	isAllDayEventByTimes,
 } from "../../api/common/utils/CommonCalendarUtils"
-import { lang } from "../../misc/LanguageViewModel"
-import { formatDateTime, formatDateWithMonth, formatTime, timeStringFromParts } from "../../misc/Formatter"
 import { size } from "../../gui/size"
 import type { RepeatRule } from "../../api/entities/sys/TypeRefs.js"
 import { createDateWrapper, DateWrapper, User } from "../../api/entities/sys/TypeRefs.js"
@@ -58,19 +54,17 @@ import { isColorLight } from "../../gui/base/Color"
 import type { GroupColors } from "../view/CalendarView"
 import { isSameId } from "../../api/common/utils/EntityUtils"
 import type { Time } from "./Time.js"
-import type { SelectorItemList } from "../../gui/base/DropDownSelector.js"
 import type { CalendarInfo } from "../model/CalendarModel"
 import { assertMainOrNode } from "../../api/common/Env"
 import { ChildArray, Children } from "mithril"
 import { DateProvider } from "../../api/common/DateProvider"
 import { AllIcons } from "../../gui/base/Icon.js"
 import { Icons } from "../../gui/base/icons/Icons.js"
-import { EventType } from "../view/eventeditor-model/CalendarEventModel.js"
+import { EventType } from "../gui/eventeditor-model/CalendarEventModel.js"
 import { hasCapabilityOnGroup } from "../../sharing/GroupUtils.js"
 import { EntityClient } from "../../api/common/EntityClient.js"
 import { CalendarEventUidIndexEntry } from "../../api/worker/facades/lazy/CalendarFacade.js"
 import { ParserError } from "../../misc/parsing/ParserCombinator.js"
-import { ProgrammingError } from "../../api/common/error/ProgrammingError.js"
 
 assertMainOrNode()
 export const CALENDAR_EVENT_HEIGHT: number = size.calendar_line_height + 2
@@ -102,21 +96,6 @@ export function eventEndsAfterOrOn(currentDate: Date, zone: string, event: Calen
 
 export function generateUid(groupId: Id, timestamp: number): string {
 	return `${groupId}${timestamp}@tuta.com`
-}
-
-export function timeString(date: Date, amPm: boolean): string {
-	return timeStringFromParts(date.getHours(), date.getMinutes(), amPm)
-}
-
-export function timeStringInZone(date: Date, amPm: boolean, zone: string): string {
-	const { hour, minute } = DateTime.fromJSDate(date, {
-		zone,
-	})
-	return timeStringFromParts(hour, minute, amPm)
-}
-
-export function shouldDefaultToAmPmTimeFormat(): boolean {
-	return lang.code === "en"
 }
 
 /** get the timestamps of the start date and end date of the month the given date is in. */
@@ -440,22 +419,6 @@ function visuallyOverlaps(firstEventStart: Date, firstEventEnd: Date, secondEven
 	const eventDurationHours = eventDurationMs / (1000 * 60 * 60)
 	const height = eventDurationHours * size.calendar_hour_height - size.calendar_event_border
 	return firstEventEnd.getTime() === secondEventStart.getTime() && height < size.calendar_line_height
-}
-
-export function formatEventTime({ endTime, startTime }: CalendarEventTimes, showTime: EventTextTimeOption): string {
-	switch (showTime) {
-		case EventTextTimeOption.START_TIME:
-			return formatTime(startTime)
-
-		case EventTextTimeOption.END_TIME:
-			return ` - ${formatTime(endTime)}`
-
-		case EventTextTimeOption.START_END_TIME:
-			return `${formatTime(startTime)} - ${formatTime(endTime)}`
-
-		default:
-			throw new ProgrammingError(`Unknown time option: ${showTime}`)
-	}
 }
 
 export function expandEvent(ev: CalendarEvent, columnIndex: number, columns: Array<Array<CalendarEvent>>): number {
@@ -1033,117 +996,6 @@ export type CalendarMonth = {
 	beginningOfMonth: Date
 }
 
-/**
- * get an object representing the calendar month the given date is in.
- */
-export function getCalendarMonth(date: Date, firstDayOfWeekFromOffset: number, weekdayNarrowFormat: boolean): CalendarMonth {
-	const weeks: Array<Array<CalendarDay>> = [[]]
-	const calculationDate = getStartOfDay(date)
-	calculationDate.setDate(1)
-	const beginningOfMonth = new Date(calculationDate)
-	let currentYear = calculationDate.getFullYear()
-	let month = calculationDate.getMonth()
-	// add "padding" days
-	// getDay returns the day of the week (from 0 to 6) for the specified date (with first one being Sunday)
-	let firstDay
-
-	if (firstDayOfWeekFromOffset > calculationDate.getDay()) {
-		firstDay = calculationDate.getDay() + 7 - firstDayOfWeekFromOffset
-	} else {
-		firstDay = calculationDate.getDay() - firstDayOfWeekFromOffset
-	}
-
-	let dayCount
-	incrementDate(calculationDate, -firstDay)
-
-	for (dayCount = 0; dayCount < firstDay; dayCount++) {
-		weeks[0].push({
-			date: new Date(calculationDate),
-			day: calculationDate.getDate(),
-			month: calculationDate.getMonth(),
-			year: calculationDate.getFullYear(),
-			isPaddingDay: true,
-		})
-		incrementDate(calculationDate, 1)
-	}
-
-	// add actual days
-	while (calculationDate.getMonth() === month) {
-		if (weeks[0].length && dayCount % 7 === 0) {
-			// start new week
-			weeks.push([])
-		}
-
-		const dayInfo = {
-			date: new Date(currentYear, month, calculationDate.getDate()),
-			year: currentYear,
-			month: month,
-			day: calculationDate.getDate(),
-			isPaddingDay: false,
-		}
-		weeks[weeks.length - 1].push(dayInfo)
-		incrementDate(calculationDate, 1)
-		dayCount++
-	}
-
-	// add remaining "padding" days
-	while (dayCount < 42) {
-		if (dayCount % 7 === 0) {
-			weeks.push([])
-		}
-
-		weeks[weeks.length - 1].push({
-			day: calculationDate.getDate(),
-			year: calculationDate.getFullYear(),
-			month: calculationDate.getMonth(),
-			date: new Date(calculationDate),
-			isPaddingDay: true,
-		})
-		incrementDate(calculationDate, 1)
-		dayCount++
-	}
-
-	const weekdays: string[] = []
-	const weekdaysDate = new Date()
-	incrementDate(weekdaysDate, -weekdaysDate.getDay() + firstDayOfWeekFromOffset) // get first day of week
-
-	for (let i = 0; i < 7; i++) {
-		weekdays.push(weekdayNarrowFormat ? lang.formats.weekdayNarrow.format(weekdaysDate) : lang.formats.weekdayShort.format(weekdaysDate))
-		incrementDate(weekdaysDate, 1)
-	}
-
-	return {
-		beginningOfMonth,
-		weekdays,
-		weeks,
-	}
-}
-
-export function formatEventDuration(event: CalendarEventTimes, zone: string, includeTimezone: boolean): string {
-	if (isAllDayEvent(event)) {
-		const startTime = getEventStart(event, zone)
-		const startString = formatDateWithMonth(startTime)
-		const endTime = incrementByRepeatPeriod(getEventEnd(event, zone), RepeatPeriod.DAILY, -1, zone)
-
-		if (isSameDayOfDate(startTime, endTime)) {
-			return `${lang.get("allDay_label")}, ${startString}`
-		} else {
-			return `${lang.get("allDay_label")}, ${startString} - ${formatDateWithMonth(endTime)}`
-		}
-	} else {
-		const startString = formatDateTime(event.startTime)
-		let endString
-
-		if (isSameDay(event.startTime, event.endTime)) {
-			endString = formatTime(event.endTime)
-		} else {
-			endString = formatDateTime(event.endTime)
-		}
-
-		return `${startString} - ${endString} ${includeTimezone ? getTimeZone() : ""}`
-	}
-}
-
 export function calendarAttendeeStatusSymbol(status: CalendarAttendeeStatus): string {
 	switch (status) {
 		case CalendarAttendeeStatus.ADDED:
@@ -1275,84 +1127,6 @@ export function isEventBetweenDays(event: CalendarEvent, firstDay: Date, lastDay
 	return !(eventEndsBefore(firstDay, zone, event) || eventStartsAfter(endOfDay, zone, event))
 }
 
-export const createRepeatRuleFrequencyValues = (): SelectorItemList<RepeatPeriod | null> => {
-	return [
-		{
-			name: lang.get("calendarRepeatIntervalNoRepeat_label"),
-			value: null,
-		},
-		{
-			name: lang.get("calendarRepeatIntervalDaily_label"),
-			value: RepeatPeriod.DAILY,
-		},
-		{
-			name: lang.get("calendarRepeatIntervalWeekly_label"),
-			value: RepeatPeriod.WEEKLY,
-		},
-		{
-			name: lang.get("calendarRepeatIntervalMonthly_label"),
-			value: RepeatPeriod.MONTHLY,
-		},
-		{
-			name: lang.get("calendarRepeatIntervalAnnually_label"),
-			value: RepeatPeriod.ANNUALLY,
-		},
-	]
-}
-
-export const createRepeatRuleEndTypeValues = (): SelectorItemList<EndType> => {
-	return [
-		{
-			name: lang.get("calendarRepeatStopConditionNever_label"),
-			value: EndType.Never,
-		},
-		{
-			name: lang.get("calendarRepeatStopConditionOccurrences_label"),
-			value: EndType.Count,
-		},
-		{
-			name: lang.get("calendarRepeatStopConditionDate_label"),
-			value: EndType.UntilDate,
-		},
-	]
-}
-
-export const createIntervalValues = (): SelectorItemList<number> => numberRange(1, 256).map((n) => ({ name: String(n), value: n }))
-
-export function humanDescriptionForAlarmInterval<P>(value: AlarmInterval, locale: string): string {
-	if (value.value === 0) return lang.get("calendarReminderIntervalAtEventStart_label")
-
-	return Duration.fromObject(alarmIntervalToLuxonDurationLikeObject(value)).reconfigure({ locale: locale }).toHuman()
-}
-
-export const createAlarmIntervalItems = (locale: string): SelectorItemList<AlarmInterval> =>
-	typedValues(StandardAlarmInterval).map((value) => {
-		return {
-			value,
-			name: humanDescriptionForAlarmInterval(value, locale),
-		}
-	})
-
-export const createAttendingItems = (): SelectorItemList<CalendarAttendeeStatus> => [
-	{
-		name: lang.get("yes_label"),
-		value: CalendarAttendeeStatus.ACCEPTED,
-	},
-	{
-		name: lang.get("maybe_label"),
-		value: CalendarAttendeeStatus.TENTATIVE,
-	},
-	{
-		name: lang.get("no_label"),
-		value: CalendarAttendeeStatus.DECLINED,
-	},
-	{
-		name: lang.get("pending_label"),
-		value: CalendarAttendeeStatus.NEEDS_ACTION,
-		selectable: false,
-	},
-]
-
 export function getFirstDayOfMonth(d: Date): Date {
 	const date = new Date(d)
 	date.setDate(1)
@@ -1470,24 +1244,6 @@ export type AlarmInterval = Readonly<{
 }>
 
 /**
- * Converts db representation of alarm to a runtime one.
- */
-export function parseAlarmInterval(serialized: string): AlarmInterval {
-	const matched = serialized.match(/^(\d+)([MHDW])$/)
-	if (matched) {
-		const [_, digits, unit] = matched
-		const value = filterInt(digits)
-		if (isNaN(value)) {
-			throw new ParserError(`Invalid value: ${value}`)
-		} else {
-			return { value, unit: unit as AlarmIntervalUnit }
-		}
-	} else {
-		throw new ParserError(`Invalid alarm interval: ${serialized}`)
-	}
-}
-
-/**
  * Converts runtime representation of an alarm into a db one.
  */
 export function serializeAlarmInterval(interval: AlarmInterval): string {
@@ -1504,56 +1260,6 @@ export function alarmIntervalToLuxonDurationLikeObject(alarmInterval: AlarmInter
 			return { days: alarmInterval.value }
 		case AlarmIntervalUnit.WEEK:
 			return { weeks: alarmInterval.value }
-	}
-}
-
-export const createCustomRepeatRuleUnitValues = (): SelectorItemList<AlarmIntervalUnit | null> => {
-	return [
-		{
-			name: humanDescriptionForAlarmIntervalUnit(AlarmIntervalUnit.MINUTE),
-			value: AlarmIntervalUnit.MINUTE,
-		},
-		{
-			name: humanDescriptionForAlarmIntervalUnit(AlarmIntervalUnit.HOUR),
-			value: AlarmIntervalUnit.HOUR,
-		},
-		{
-			name: humanDescriptionForAlarmIntervalUnit(AlarmIntervalUnit.DAY),
-			value: AlarmIntervalUnit.DAY,
-		},
-		{
-			name: humanDescriptionForAlarmIntervalUnit(AlarmIntervalUnit.WEEK),
-			value: AlarmIntervalUnit.WEEK,
-		},
-	]
-}
-
-export function humanDescriptionForAlarmIntervalUnit(unit: AlarmIntervalUnit): string {
-	switch (unit) {
-		case AlarmIntervalUnit.MINUTE:
-			return lang.get("calendarReminderIntervalUnitMinutes_label")
-		case AlarmIntervalUnit.HOUR:
-			return lang.get("calendarReminderIntervalUnitHours_label")
-		case AlarmIntervalUnit.DAY:
-			return lang.get("calendarReminderIntervalUnitDays_label")
-		case AlarmIntervalUnit.WEEK:
-			return lang.get("calendarReminderIntervalUnitWeeks_label")
-	}
-}
-
-export function formatEventTimes(day: Date, event: CalendarEvent, zone: string): string {
-	if (isAllDayEvent(event)) {
-		return lang.get("allDay_label")
-	} else {
-		const startsBefore = eventStartsBefore(day, zone, event)
-		const endsAfter = eventEndsAfterDay(day, zone, event)
-		if (startsBefore && endsAfter) {
-			return lang.get("allDay_label")
-		} else {
-			const startTime: Date = startsBefore ? day : event.startTime
-			const endTime: Date = endsAfter ? getEndOfDayWithZone(day, zone) : event.endTime
-			return formatEventTime({ startTime, endTime }, EventTextTimeOption.START_END_TIME)
-		}
 	}
 }
 
@@ -1582,4 +1288,22 @@ export function areRepeatRulesEqual(r1: CalendarRepeatRule | null, r2: CalendarR
 			/** r1?.timeZone === r2?.timeZone && we're ignoring time zone because it's not an observable change. */
 			areExcludedDatesEqual(r1?.excludedDates ?? [], r2?.excludedDates ?? []))
 	)
+}
+
+/**
+ * Converts db representation of alarm to a runtime one.
+ */
+export function parseAlarmInterval(serialized: string): AlarmInterval {
+	const matched = serialized.match(/^(\d+)([MHDW])$/)
+	if (matched) {
+		const [_, digits, unit] = matched
+		const value = filterInt(digits)
+		if (isNaN(value)) {
+			throw new ParserError(`Invalid value: ${value}`)
+		} else {
+			return { value, unit: unit as AlarmIntervalUnit }
+		}
+	} else {
+		throw new ParserError(`Invalid alarm interval: ${serialized}`)
+	}
 }

@@ -2,12 +2,19 @@ import { ListModel } from "../../misc/ListModel.js"
 import { MailboxDetail, MailModel } from "../model/MailModel.js"
 import { EntityClient } from "../../api/common/EntityClient.js"
 import { Mail, MailFolder, MailTypeRef } from "../../api/entities/tutanota/TypeRefs.js"
-import { firstBiggerThanSecond, GENERATED_MAX_ID, getElementId, isSameId, sortCompareByReverseId } from "../../api/common/utils/EntityUtils.js"
+import {
+	firstBiggerThanSecond,
+	GENERATED_MAX_ID,
+	getElementId,
+	isSameId,
+	isUpdateForTypeRef,
+	sortCompareByReverseId,
+} from "../../api/common/utils/EntityUtils.js"
 import { assertNotNull, count, debounce, lastThrow, lazyMemoized, memoized, ofClass, promiseFilter } from "@tutao/tutanota-utils"
 import { ListState } from "../../gui/base/List.js"
 import { ConversationPrefProvider, ConversationViewModel, ConversationViewModelFactory } from "./ConversationViewModel.js"
 import { CreateMailViewerOptions } from "./MailViewer.js"
-import { EntityUpdateData, EventController, isUpdateForTypeRef } from "../../api/main/EventController.js"
+import { EntityUpdateData, EventController } from "../../api/main/EventController.js"
 import { isOfflineError } from "../../api/common/utils/ErrorCheckUtils.js"
 import { MailFolderType } from "../../api/common/TutanotaConstants.js"
 import { assertSystemFolderOfType, isOfTypeOrSubfolderOf, isSpamOrTrashFolder, isSubfolderOfType } from "../../api/common/mail/CommonMailUtils.js"

@@ -3,10 +3,10 @@ import { IconButton } from "../../gui/base/IconButton.js"
 import { Icons } from "../../gui/base/icons/Icons.js"
 import { Button, ButtonColor, ButtonType } from "../../gui/base/Button.js"
 import { BootIcons } from "../../gui/base/icons/BootIcons.js"
-import { EventPreviewView } from "./eventpopup/EventPreviewView.js"
+import { EventPreviewView } from "../gui/eventpopup/EventPreviewView.js"
 import { createAsyncDropdown } from "../../gui/base/Dropdown.js"
 import { Dialog } from "../../gui/base/Dialog.js"
-import { CalendarEventPreviewViewModel } from "./eventpopup/CalendarEventPreviewViewModel.js"
+import { CalendarEventPreviewViewModel } from "../gui/eventpopup/CalendarEventPreviewViewModel.js"
 
 export interface EventDetailsViewAttrs {
 	eventPreviewModel: CalendarEventPreviewViewModel

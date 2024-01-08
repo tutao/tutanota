@@ -10,7 +10,7 @@ import { findAttendeeInAddresses } from "../../api/common/utils/CommonCalendarUt
 import { BannerType, InfoBanner, InfoBannerAttrs } from "../../gui/base/InfoBanner.js"
 import { Icons } from "../../gui/base/icons/Icons.js"
 import { isNotNull, LazyLoaded } from "@tutao/tutanota-utils"
-import { ParsedIcalFileContent, ReplyResult } from "../../calendar/date/CalendarInvites.js"
+import { ParsedIcalFileContent, ReplyResult } from "../../calendar/view/CalendarInvites.js"
 
 export type EventBannerAttrs = {
 	contents: ParsedIcalFileContent
@@ -27,7 +27,7 @@ export class EventBanner implements Component<EventBannerAttrs> {
 	/** ReplyButtons are used from mail-view and calendar-view.
 	 * they can't import each other and only have gui-base as a
 	 * common ancestor, where these don't belong. */
-	private readonly ReplyButtons = new LazyLoaded(async () => (await import("../../calendar/view/eventpopup/EventPreviewView.js")).ReplyButtons)
+	private readonly ReplyButtons = new LazyLoaded(async () => (await import("../../calendar/gui/eventpopup/EventPreviewView.js")).ReplyButtons)
 
 	view({ attrs }: Vnode<EventBannerAttrs>): Children {
 		const { contents, mail } = attrs
@@ -53,7 +53,7 @@ export class EventBanner implements Component<EventBannerAttrs> {
 						label: "viewEvent_action",
 						type: ButtonType.Secondary,
 						click: (e, dom) =>
-							import("../../calendar/date/CalendarInvites").then(({ showEventDetails }) =>
+							import("../../calendar/view/CalendarInvites.js").then(({ showEventDetails }) =>
 								showEventDetails(event, dom.getBoundingClientRect(), mail),
 							),
 					},
@@ -90,7 +90,7 @@ export class EventBanner implements Component<EventBannerAttrs> {
 export function sendResponse(event: CalendarEvent, recipient: string, status: CalendarAttendeeStatus, previousMail: Mail) {
 	showProgressDialog(
 		"pleaseWait_msg",
-		import("../../calendar/date/CalendarInvites").then(async ({ getLatestEvent, replyToEventInvitation }) => {
+		import("../../calendar/view/CalendarInvites.js").then(async ({ getLatestEvent, replyToEventInvitation }) => {
 			const latestEvent = await getLatestEvent(event)
 			const ownAttendee = findAttendeeInAddresses(latestEvent.attendees, [recipient])
 

@@ -11,8 +11,8 @@ import { Autocomplete, TextField, TextFieldType } from "../../../gui/base/TextFi
 import { CompletenessIndicator } from "../../../gui/CompletenessIndicator.js"
 import { RecipientsSearchModel } from "../../../misc/RecipientsSearchModel.js"
 import { noOp } from "@tutao/tutanota-utils"
-import { Guest } from "../../date/CalendarInvites.js"
-import { createAttendingItems, iconForAttendeeStatus } from "../../date/CalendarUtils.js"
+import { Guest } from "../../view/CalendarInvites.js"
+import { iconForAttendeeStatus } from "../../date/CalendarUtils.js"
 import { Icon } from "../../../gui/base/Icon.js"
 import { theme } from "../../../gui/theme.js"
 import { IconButton } from "../../../gui/base/IconButton.js"
@@ -27,6 +27,8 @@ import { showPlanUpgradeRequiredDialog } from "../../../misc/SubscriptionDialogs
 import { hasPlanWithInvites } from "../eventeditor-model/CalendarNotificationModel.js"
 import { scaleToVisualPasswordStrength } from "../../../misc/passwords/PasswordUtils.js"
 import { Dialog } from "../../../gui/base/Dialog.js"
+
+import { createAttendingItems } from "../CalendarGuiUtils.js"
 
 export type AttendeeListEditorAttrs = {
 	/** the event that is currently being edited */

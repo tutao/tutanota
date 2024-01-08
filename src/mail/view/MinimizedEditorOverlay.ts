@@ -9,11 +9,10 @@ import { px } from "../../gui/size"
 import { Icons } from "../../gui/base/icons/Icons"
 import { styles } from "../../gui/styles"
 import type { EntityEventsListener, EntityUpdateData, EventController } from "../../api/main/EventController"
-import { isUpdateForTypeRef } from "../../api/main/EventController"
 import { promptAndDeleteMails } from "./MailGuiUtils"
 import { MailTypeRef } from "../../api/entities/tutanota/TypeRefs.js"
 import { OperationType } from "../../api/common/TutanotaConstants"
-import { isSameId } from "../../api/common/utils/EntityUtils"
+import { isSameId, isUpdateForTypeRef } from "../../api/common/utils/EntityUtils"
 import { noOp, promiseMap } from "@tutao/tutanota-utils"
 
 const COUNTER_POS_OFFSET = px(-8)

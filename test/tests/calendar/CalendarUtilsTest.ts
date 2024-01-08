@@ -13,7 +13,6 @@ import {
 	findNextAlarmOccurrence,
 	getAllDayDateForTimezone,
 	getAllDayDateUTCFromZone,
-	getCalendarMonth,
 	getDiffIn24hIntervals,
 	getDiffIn60mIntervals,
 	getEventType,
@@ -45,13 +44,15 @@ import {
 } from "../../../src/api/entities/tutanota/TypeRefs.js"
 import { clone, getStartOfDay, identity, lastThrow, neverNull } from "@tutao/tutanota-utils"
 import { Time } from "../../../src/calendar/date/Time.js"
-import { EventType } from "../../../src/calendar/view/eventeditor-model/CalendarEventModel.js"
+import { EventType } from "../../../src/calendar/gui/eventeditor-model/CalendarEventModel.js"
 import { CalendarInfo } from "../../../src/calendar/model/CalendarModel.js"
 import { object, replace } from "testdouble"
 import { CalendarEventAlteredInstance, CalendarEventProgenitor } from "../../../src/api/worker/facades/lazy/CalendarFacade.js"
 import { getDateInUTC, getDateInZone } from "./CalendarTestUtils.js"
 import { ParserError } from "../../../src/misc/parsing/ParserCombinator.js"
 import { createTestEntity } from "../TestUtils.js"
+
+import { getCalendarMonth } from "../../../src/calendar/gui/CalendarGuiUtils.js"
 
 const zone = "Europe/Berlin"
 

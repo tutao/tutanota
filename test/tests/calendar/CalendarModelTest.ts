@@ -24,7 +24,6 @@ import type { LoginController } from "../../../src/api/main/LoginController.js"
 import { ProgressTracker } from "../../../src/api/main/ProgressTracker.js"
 import { EntityClient } from "../../../src/api/common/EntityClient.js"
 import { MailModel } from "../../../src/mail/model/MailModel.js"
-import { AlarmScheduler } from "../../../src/calendar/date/AlarmScheduler.js"
 import { CalendarEventProgenitor, CalendarFacade } from "../../../src/api/worker/facades/lazy/CalendarFacade.js"
 import { verify } from "@tutao/tutanota-test-utils"
 import type { WorkerClient } from "../../../src/api/main/WorkerClient.js"
@@ -35,6 +34,7 @@ import { createDataFile } from "../../../src/api/common/DataFile.js"
 import { SessionKeyNotFoundError } from "../../../src/api/common/error/SessionKeyNotFoundError.js"
 import { createTestEntity } from "../TestUtils.js"
 import { NoopProgressMonitor } from "../../../src/api/common/utils/ProgressMonitor.js"
+import { makeAlarmScheduler } from "./CalendarTestUtils.js"
 
 o.spec("CalendarModel", function () {
 	o.spec("incrementByRepeatPeriod", function () {
@@ -729,13 +729,6 @@ function makeLoginController(): LoginController {
 	when(loginController.getUserController()).thenReturn(userController)
 	when(userController.getCalendarMemberships()).thenReturn([])
 	return loginController
-}
-
-function makeAlarmScheduler(): AlarmScheduler {
-	return {
-		scheduleAlarm: func<AlarmScheduler["scheduleAlarm"]>(),
-		cancelAlarm: func<AlarmScheduler["cancelAlarm"]>(),
-	}
 }
 
 function makeMailModel(): MailModel {

@@ -7,7 +7,6 @@ import {
 	EventLayoutMode,
 	eventStartsBefore,
 	expandEvent,
-	formatEventTime,
 	getEventColor,
 	getTimeTextFormatForLongEvent,
 	getTimeZone,
@@ -19,7 +18,7 @@ import { CalendarEventBubble } from "./CalendarEventBubble"
 import type { CalendarEvent } from "../../api/entities/tutanota/TypeRefs.js"
 import { Time } from "../date/Time.js"
 import { getPosAndBoundsFromMouseEvent } from "../../gui/base/GuiUtils"
-import { getTimeFromMousePos } from "./CalendarGuiUtils"
+import { formatEventTime, getTimeFromMousePos } from "../gui/CalendarGuiUtils.js"
 import type { CalendarEventBubbleClickHandler } from "./CalendarViewModel"
 import type { GroupColors } from "./CalendarView"
 import { styles } from "../../gui/styles"

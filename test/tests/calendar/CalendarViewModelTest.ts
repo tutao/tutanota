@@ -8,7 +8,7 @@ import { addDaysForEventInstance, getMonthRange } from "../../../src/calendar/da
 import type { CalendarModel } from "../../../src/calendar/model/CalendarModel.js"
 import { CalendarInfo } from "../../../src/calendar/model/CalendarModel.js"
 import { CalendarEventEditModelsFactory, CalendarEventPreviewModelFactory, CalendarViewModel } from "../../../src/calendar/view/CalendarViewModel.js"
-import { CalendarEventModel, CalendarOperation, EventSaveResult } from "../../../src/calendar/view/eventeditor-model/CalendarEventModel.js"
+import { CalendarEventModel, CalendarOperation, EventSaveResult } from "../../../src/calendar/gui/eventeditor-model/CalendarEventModel.js"
 import { EntityClient } from "../../../src/api/common/EntityClient.js"
 import type { EntityUpdateData } from "../../../src/api/main/EventController.js"
 import { EventController } from "../../../src/api/main/EventController.js"

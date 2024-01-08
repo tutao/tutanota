@@ -8,6 +8,7 @@ import {
 	clone,
 	hexToBase64,
 	isSameTypeRef,
+	isSameTypeRefByAttr,
 	pad,
 	stringToUtf8Uint8Array,
 	TypeRef,
@@ -15,8 +16,8 @@ import {
 	utf8Uint8ArrayToString,
 } from "@tutao/tutanota-utils"
 import { Cardinality, ValueType } from "../EntityConstants"
-import type { Entity, ModelValue, SomeEntity, TypeModel } from "../EntityTypes"
-import { ElementEntity } from "../EntityTypes"
+import type { ElementEntity, Entity, ModelValue, SomeEntity, TypeModel } from "../EntityTypes"
+import { EntityUpdateData } from "../../main/EventController.js"
 
 /**
  * the maximum ID for elements stored on the server (number with the length of 10 bytes) => 2^80 - 1
@@ -349,8 +350,7 @@ export function generatedIdToTimestamp(base64Ext: Id): number {
 	return numberResult
 }
 
-// We can't import EntityUtils here, otherwise we should say GENERATED_MAX_ID.length or something like it
-const base64extEncodedIdLength = 12
+const base64extEncodedIdLength = GENERATED_MAX_ID.length
 const base64extAlphabet = "-0123456789ABCDEFGHIJKLMNOPQRSTUVWXYZ_abcdefghijklmnopqrstuvwxyz"
 
 export function isValidGeneratedId(id: Id | IdTuple): boolean {
@@ -429,4 +429,16 @@ function removeIdentityFields<E extends Partial<SomeEntity>>(entity: E) {
 	}
 
 	_removeIdentityFields(entity)
+}
+
+export function isUpdateForTypeRef(typeRef: TypeRef<unknown>, update: EntityUpdateData): boolean {
+	return isSameTypeRefByAttr(typeRef, update.application, update.type)
+}
+
+export function isUpdateFor<T extends SomeEntity>(entity: T, update: EntityUpdateData): boolean {
+	const typeRef = entity._type as TypeRef<T>
+	return (
+		isUpdateForTypeRef(typeRef, update) &&
+		(update.instanceListId === "" ? isSameId(update.instanceId, entity._id) : isSameId([update.instanceListId, update.instanceId], entity._id))
+	)
 }

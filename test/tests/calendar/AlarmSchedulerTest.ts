@@ -1,4 +1,4 @@
-import { AlarmScheduler, AlarmSchedulerImpl } from "../../../src/calendar/date/AlarmScheduler.js"
+import { AlarmScheduler } from "../../../src/calendar/date/AlarmScheduler.js"
 import o from "@tutao/otest"
 import { DateTime } from "luxon"
 import { AlarmInfoTypeRef, DateWrapperTypeRef, RepeatRuleTypeRef } from "../../../src/api/entities/sys/TypeRefs.js"
@@ -8,7 +8,7 @@ import { createTestEntity, SchedulerMock } from "../TestUtils.js"
 import { spy } from "@tutao/tutanota-test-utils"
 
 o.spec("AlarmScheduler", function () {
-	let alarmScheduler: AlarmSchedulerImpl
+	let alarmScheduler: AlarmScheduler
 	let scheduler: SchedulerMock
 	let now: DateTime
 	const dateProvider: DateProvider = {
@@ -18,7 +18,7 @@ o.spec("AlarmScheduler", function () {
 	o.beforeEach(function () {
 		now = DateTime.fromISO("2021-04-20T20:00Z")
 		scheduler = new SchedulerMock()
-		alarmScheduler = new AlarmSchedulerImpl(dateProvider, scheduler)
+		alarmScheduler = new AlarmScheduler(dateProvider, scheduler)
 	})
 	o.spec("scheduleAlarm", function () {
 		o("non-repeating", function () {

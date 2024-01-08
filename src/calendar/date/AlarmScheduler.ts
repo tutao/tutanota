@@ -1,26 +1,25 @@
 import type { Thunk } from "@tutao/tutanota-utils"
-import { downcast, isSameDay } from "@tutao/tutanota-utils"
-import { formatDateWithWeekdayAndTime, formatTime } from "../../misc/Formatter"
-import { EndType } from "../../api/common/TutanotaConstants"
+import { downcast } from "@tutao/tutanota-utils"
+import { EndType } from "../../api/common/TutanotaConstants.js"
 import type { AlarmInfo, RepeatRule } from "../../api/entities/sys/TypeRefs.js"
 import type { ScheduledTimeoutId, Scheduler } from "../../api/common/utils/Scheduler.js"
-import { calculateAlarmTime, findNextAlarmOccurrence, getEventStartByTimes, getValidTimeZone, parseAlarmInterval } from "./CalendarUtils"
-import { DateProvider } from "../../api/common/DateProvider"
+import { calculateAlarmTime, findNextAlarmOccurrence, getEventStartByTimes, getValidTimeZone, parseAlarmInterval } from "./CalendarUtils.js"
+import { DateProvider } from "../../api/common/DateProvider.js"
 
-type NotificationSender = (title: string, message: string) => void
+type NotificationSender = (eventTime: Date, summary: string) => void
 type EventInfo = {
 	startTime: Date
 	endTime: Date
 	summary: string
 }
 
-export interface AlarmScheduler {
-	scheduleAlarm(event: EventInfo, alarmInfo: AlarmInfo, repeatRule: RepeatRule | null, notificationSender: NotificationSender): void
-
-	cancelAlarm(alarmIdentifier: string): void
-}
-
-export class AlarmSchedulerImpl implements AlarmScheduler {
+/**
+ * knows how to translate a given calendar event with alarms into an
+ * actual function call that is executed some time later (and maybe displays a notification).
+ *
+ * should stay independent of the way the actual notification is sent + rendered
+ */
+export class AlarmScheduler {
 	readonly _scheduledNotifications: Map<string, ScheduledTimeoutId>
 	readonly _scheduler: Scheduler
 	readonly _dateProvider: DateProvider
@@ -53,7 +52,7 @@ export class AlarmSchedulerImpl implements AlarmScheduler {
 
 			if (nextOccurrence) {
 				this._scheduleAction(alarmInfo.alarmIdentifier, nextOccurrence.alarmTime, () => {
-					this._sendNotification(nextOccurrence.eventTime, event.summary, notificationSender)
+					notificationSender(nextOccurrence.eventTime, event.summary)
 
 					// Schedule next occurrence
 					this.scheduleAlarm(event, alarmInfo, repeatRule, notificationSender)
@@ -64,7 +63,7 @@ export class AlarmSchedulerImpl implements AlarmScheduler {
 
 			if (eventStart.getTime() > this._dateProvider.now()) {
 				this._scheduleAction(alarmInfo.alarmIdentifier, calculateAlarmTime(eventStart, parseAlarmInterval(alarmInfo.trigger)), () =>
-					this._sendNotification(eventStart, event.summary, notificationSender),
+					notificationSender(eventStart, event.summary),
 				)
 			}
 		}
@@ -87,18 +86,5 @@ export class AlarmSchedulerImpl implements AlarmScheduler {
 		const scheduledId = this._scheduler.scheduleAt(action, atTime)
 
 		this._scheduledNotifications.set(identifier, scheduledId)
-	}
-
-	_sendNotification(eventTime: Date, summary: string, notificationSender: NotificationSender): void {
-		let dateString: string
-
-		if (isSameDay(eventTime, new Date(this._dateProvider.now()))) {
-			dateString = formatTime(eventTime)
-		} else {
-			dateString = formatDateWithWeekdayAndTime(eventTime)
-		}
-
-		const body = `${dateString} ${summary}`
-		notificationSender(body, body)
 	}
 }

@@ -1,10 +1,10 @@
 import m, { Component, Vnode } from "mithril"
-import { DatePicker } from "../../../gui/date/DatePicker.js"
-import { TimePicker } from "../../../gui/date/TimePicker.js"
+import { DatePicker } from "../pickers/DatePicker.js"
+import { TimePicker } from "../pickers/TimePicker.js"
 import { TimeFormat } from "../../../api/common/TutanotaConstants.js"
 import { Checkbox } from "../../../gui/base/Checkbox.js"
 import { lang } from "../../../misc/LanguageViewModel.js"
-import { CalendarEventWhenModel } from "../../view/eventeditor-model/CalendarEventWhenModel.js"
+import { CalendarEventWhenModel } from "../eventeditor-model/CalendarEventWhenModel.js"
 
 import { renderTwoColumnsIfFits } from "../../../gui/base/GuiUtils.js"
 

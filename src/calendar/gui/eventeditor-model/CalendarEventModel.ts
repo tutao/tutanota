@@ -81,7 +81,7 @@ import { arrayEqualsWithPredicate, assertNonNull, assertNotNull, getFirstOrThrow
 import { cleanMailAddress } from "../../../api/common/utils/CommonCalendarUtils.js"
 import { CalendarInfo, CalendarModel } from "../../model/CalendarModel.js"
 import { NotFoundError, PayloadTooLargeError } from "../../../api/common/error/RestError.js"
-import { CalendarNotificationSender } from "../../date/CalendarNotificationSender.js"
+import { CalendarNotificationSender } from "../../view/CalendarNotificationSender.js"
 import { SendMailModel } from "../../../mail/editor/SendMailModel.js"
 import { UserError } from "../../../api/main/UserError.js"
 import { EntityClient } from "../../../api/common/EntityClient.js"

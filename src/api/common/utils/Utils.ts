@@ -52,6 +52,7 @@ import { WebauthnError } from "../error/WebauthnError"
 import { SuspensionError } from "../error/SuspensionError.js"
 import { LoginIncompleteError } from "../error/LoginIncompleteError.js"
 import { OfflineDbClosedError } from "../error/OfflineDbClosedError.js"
+import { ParserError } from "../../../misc/parsing/ParserCombinator.js"
 
 export function getWhitelabelDomain(customerInfo: CustomerInfo, domainName?: string): DomainInfo | null {
 	return customerInfo.domainInfos.find((info) => info.whitelabelConfig != null && (domainName == null || info.domain === domainName)) ?? null
@@ -121,6 +122,7 @@ const ErrorNameToType = {
 	WebauthnError,
 	SuspensionError,
 	LoginIncompleteError,
+	ParserError,
 	Error,
 	"java.net.SocketTimeoutException": ConnectionError,
 	"java.net.SocketException": ConnectionError,

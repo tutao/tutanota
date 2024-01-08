@@ -20,7 +20,9 @@ import { locator } from "../api/main/MainLocator"
 import { IndexingErrorReason } from "../api/worker/search/SearchTypes"
 import { companyTeamLabel } from "../misc/ClientConstants.js"
 import { isTutanotaTeamMail } from "../api/common/mail/CommonMailUtils.js"
-import { formatEventDuration, getTimeZone } from "../calendar/date/CalendarUtils.js"
+import { getTimeZone } from "../calendar/date/CalendarUtils.js"
+
+import { formatEventDuration } from "../calendar/gui/CalendarGuiUtils.js"
 
 type SearchBarOverlayAttrs = {
 	state: SearchBarState
