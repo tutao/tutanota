@@ -51,6 +51,7 @@ ${WASM}: include
     	-DOQS_VERSION_TEXT=\"tutakyber\" \
     	-DOQS_ENABLE_KEM_kyber_1024=1 \
     	-DOQS_ENABLE_KEM_KYBER=1 \
+    	-DOQS_DIST_BUILD=1 \
     	-DKYBER_K=4 \
     	-flto \
     	-O3 \

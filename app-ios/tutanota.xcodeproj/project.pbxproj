@@ -2915,6 +2915,7 @@
 					"-DKYBER_K=4",
 					"-DOQS_VERSION_TEXT=\\\"whatever\\\"",
 					"-DOQS_ENABLE_KEM_kyber_1024=1",
+					"-DOQS_DIST_BUILD=1",
 					"-DOQS_ENABLE_KEM_KYBER=1",
 				);
 				OTHER_LDFLAGS = "";
@@ -2970,6 +2971,7 @@
 					"-DSQLCIPHER_CRYPTO_CC",
 					"-DNDEBUG",
 					"-DOQS_ENABLE_KEM_kyber_1024=1",
+					"-DOQS_DIST_BUILD=1",
 					"-DOQS_VERSION_TEXT=\\\"whatever\\\"",
 					"-DKYBER_K=4",
 					"-DOQS_ENABLE_KEM_KYBER=1",
