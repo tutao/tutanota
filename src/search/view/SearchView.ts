@@ -684,6 +684,15 @@ export class SearchView extends BaseTopLevelView implements TopLevelView<SearchV
 								this.searchViewModel.getStartOfTheWeekOffset(),
 								this.searchViewModel.startDate ?? this.searchViewModel.getCurrentMailIndexDate() ?? new Date(),
 								this.searchViewModel.endDate ?? new Date(),
+								(startDate, endDate) => {
+									if (endDate != null && endDate.getTime() > Date.now()) {
+										// fixme: phrase
+										return "Searching for mail in the future is not possible"
+									} else if ((startDate?.getTime() ?? -Infinity) > (endDate?.getTime() ?? Infinity)) {
+										return lang.get("startAfterEnd_label")
+									}
+									return null
+								},
 							)
 							const result = await this.searchViewModel.selectTimePeriod(period)
 							if (result === PaidFunctionResult.PaidSubscriptionNeeded) {
@@ -721,6 +730,16 @@ export class SearchView extends BaseTopLevelView implements TopLevelView<SearchV
 								this.searchViewModel.getStartOfTheWeekOffset(),
 								this.searchViewModel.startDate ?? startDate,
 								this.searchViewModel.endDate ?? endDate,
+								(startDate, endDate) => {
+									if (startDate == null || endDate == null) return "unlimited limit in calendar search?"
+									if (endDate.getTime() - startDate.getTime() > 12 * 30 * 24 * 60 * 60 * 1000) {
+										// Fixme: phrase
+										return "This time range is very long, the search might take a while to generate a result."
+									} else if (startDate.getTime() > endDate.getTime()) {
+										return lang.get("startAfterEnd_label")
+									}
+									return null
+								},
 							)
 							this.searchViewModel.startDate = period.start
 							this.searchViewModel.endDate = period.end
