@@ -11,7 +11,7 @@ export default {
 		"other"
 	],
 	"created_at": "2015-01-13T20:10:13Z",
-	"updated_at": "2024-01-10T09:57:16Z",
+	"updated_at": "2024-01-16T06:57:14Z",
 	"source_locale": null,
 	"fallback_locale": null,
 	"keys": {
@@ -644,6 +644,7 @@ export default {
 		"inboxRuleToRecipientEquals_action": "To recipient",
 		"inboxRuleValue_label": "Value",
 		"includeRepeatingEvents_action": "Show event series",
+		"includesFuture_msg": "This search range includes dates that are in the future.",
 		"indexedMails_label": "Searchable emails: {count}",
 		"indexingFailedConnection_error": "Creating the search index failed because the connection was lost.",
 		"indexing_error": "Creating the search index was aborted due to an error",
@@ -1615,9 +1616,6 @@ export default {
 		"yourCalendars_label": "Your calendars",
 		"yourFolders_action": "YOUR FOLDERS",
 		"yourMessage_label": "Your message",
-		"you_label": "You",
-		"includeRepeatingEvents_action": "Show event series",
-		"includesFuture_msg": "This search range includes dates that are in the future",
-		"longSearchRange_msg": "This time range is very long, the search might take a while to generate a result."
+		"you_label": "You"
 	}
 }

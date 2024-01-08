@@ -127,6 +127,10 @@ export class CalendarEventEditView implements Component<CalendarEventEditViewAtt
 				return makeMessage("cannotEditFullEvent_msg")
 			case ReadonlyReason.SINGLE_INSTANCE:
 				return makeMessage("cannotEditSingleInstance_msg")
+			case ReadonlyReason.NOT_ORGANIZER:
+				return makeMessage("cannotEditNotOrganizer_msg")
+			case ReadonlyReason.UNKNOWN:
+				return makeMessage("cannotEditEvent_msg")
 			case ReadonlyReason.NONE:
 				return null
 		}

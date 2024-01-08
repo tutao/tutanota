@@ -11,7 +11,7 @@ export default {
 		"other"
 	],
 	"created_at": "2015-01-13T20:40:31Z",
-	"updated_at": "2024-01-10T09:57:18Z",
+	"updated_at": "2024-01-16T06:57:15Z",
 	"source_locale": {
 		"id": "fcd7471b347c8e517663e194dcddf237",
 		"name": "en",
@@ -648,6 +648,7 @@ export default {
 		"inboxRuleToRecipientEquals_action": "An-Empfangsadresse",
 		"inboxRuleValue_label": "Wert",
 		"includeRepeatingEvents_action": "Terminserie anzeigen",
+		"includesFuture_msg": "Dieser Zeitraum erstreckt sich in die Zukunft.",
 		"indexedMails_label": "Durchsuchbare E-Mails: {count}",
 		"indexingFailedConnection_error": " Der Aufbau des Such-Index wurde abgebrochen, da die Verbindung abgebrochen ist.",
 		"indexing_error": "Der Aufbau des Such-Index wurde aufgrund eines Fehlers abgebrochen.",
@@ -1619,9 +1620,6 @@ export default {
 		"yourCalendars_label": "Deine Kalender",
 		"yourFolders_action": "DEINE ORDNER",
 		"yourMessage_label": "Deine Nachricht",
-		"you_label": "Du",
-		"includeRepeatingEvents_action": "Zeige Terminserien",
-		"includesFuture_msg": "Dieser Zeitraum erstreckt sich in die Zukunft",
-		"longSearchRange_msg": "Dieser Zeitraum ist sehr lang, es könnte länger dauern bis ein Ergebnis verfügbar ist"
+		"you_label": "Du"
 	}
 }
