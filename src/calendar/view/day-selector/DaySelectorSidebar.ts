@@ -1,14 +1,14 @@
-import { CalendarEvent } from "../../api/entities/tutanota/TypeRefs.js"
+import { CalendarEvent } from "../../../api/entities/tutanota/TypeRefs.js"
 import m, { Children, Component, Vnode } from "mithril"
-import { formatMonthWithFullYear } from "../../misc/Formatter.js"
-import { hexToRgb } from "../../gui/base/Color.js"
-import { theme } from "../../gui/theme.js"
-import { Icon } from "../../gui/base/Icon.js"
-import { Icons } from "../../gui/base/icons/Icons.js"
-import { BootIcons } from "../../gui/base/icons/BootIcons.js"
+import { formatMonthWithFullYear } from "../../../misc/Formatter.js"
+import { hexToRgb } from "../../../gui/base/Color.js"
+import { theme } from "../../../gui/theme.js"
+import { Icon } from "../../../gui/base/Icon.js"
+import { Icons } from "../../../gui/base/icons/Icons.js"
+import { BootIcons } from "../../../gui/base/icons/BootIcons.js"
 import { incrementMonth } from "@tutao/tutanota-utils"
 import { DaySelector } from "./DaySelector.js"
-import { DaysToEvents } from "./CalendarEventsRepository.js"
+import { DaysToEvents } from "../../date/CalendarEventsRepository.js"
 
 export interface DaySelectorSidebarAttrs {
 	selectedDate: Date

@@ -45,7 +45,7 @@ import {
 } from "../../../src/api/entities/tutanota/TypeRefs.js"
 import { clone, getStartOfDay, identity, lastThrow, neverNull } from "@tutao/tutanota-utils"
 import { Time } from "../../../src/calendar/date/Time.js"
-import { EventType } from "../../../src/calendar/date/eventeditor/CalendarEventModel.js"
+import { EventType } from "../../../src/calendar/view/eventeditor-model/CalendarEventModel.js"
 import { CalendarInfo } from "../../../src/calendar/model/CalendarModel.js"
 import { object, replace } from "testdouble"
 import { CalendarEventAlteredInstance, CalendarEventProgenitor } from "../../../src/api/worker/facades/lazy/CalendarFacade.js"

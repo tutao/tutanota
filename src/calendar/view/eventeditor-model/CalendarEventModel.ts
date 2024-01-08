@@ -58,17 +58,17 @@ import { AccountType } from "../../../api/common/TutanotaConstants.js"
 import {
 	CalendarEvent,
 	CalendarEventAttendee,
-	CalendarRepeatRule,
 	createCalendarEvent,
 	createEncryptedMailAddress,
 	EncryptedMailAddress,
 	Mail,
 	MailboxProperties,
 } from "../../../api/entities/tutanota/TypeRefs.js"
-import { DateWrapper, User } from "../../../api/entities/sys/TypeRefs.js"
+import { User } from "../../../api/entities/sys/TypeRefs.js"
 import { MailboxDetail } from "../../../mail/model/MailModel.js"
 import {
 	AlarmInterval,
+	areRepeatRulesEqual,
 	CalendarEventValidity,
 	checkEventValidity,
 	DefaultDateProvider,
@@ -76,19 +76,18 @@ import {
 	getTimeZone,
 	incrementSequence,
 	parseAlarmInterval,
-} from "../CalendarUtils.js"
+} from "../../date/CalendarUtils.js"
 import { arrayEqualsWithPredicate, assertNonNull, assertNotNull, getFirstOrThrow, identity, lazy, Require } from "@tutao/tutanota-utils"
 import { cleanMailAddress } from "../../../api/common/utils/CommonCalendarUtils.js"
 import { CalendarInfo, CalendarModel } from "../../model/CalendarModel.js"
 import { NotFoundError, PayloadTooLargeError } from "../../../api/common/error/RestError.js"
-import { CalendarNotificationSender } from "../CalendarNotificationSender.js"
+import { CalendarNotificationSender } from "../../date/CalendarNotificationSender.js"
 import { SendMailModel } from "../../../mail/editor/SendMailModel.js"
 import { UserError } from "../../../api/main/UserError.js"
 import { EntityClient } from "../../../api/common/EntityClient.js"
 import { RecipientsModel } from "../../../api/main/RecipientsModel.js"
 import { LoginController } from "../../../api/main/LoginController.js"
 import m from "mithril"
-import { NoopProgressMonitor } from "../../../api/common/utils/ProgressMonitor.js"
 import { PartialRecipient } from "../../../api/common/recipients/Recipient.js"
 import { getPasswordStrengthForUser } from "../../../misc/passwords/PasswordUtils.js"
 import { CalendarEventWhenModel } from "./CalendarEventWhenModel.js"
@@ -434,26 +433,6 @@ export function eventHasChanged(now: CalendarEvent, previous: Partial<CalendarEv
 		) || // we ignore the names
 		(now.organizer !== previous.organizer && now.organizer?.address !== previous.organizer?.address)
 	) // we ignore the names
-}
-
-export function areRepeatRulesEqual(r1: CalendarRepeatRule | null, r2: CalendarRepeatRule | null): boolean {
-	return (
-		r1 === r2 ||
-		(r1?.endType === r2?.endType &&
-			r1?.endValue === r2?.endValue &&
-			r1?.frequency === r2?.frequency &&
-			r1?.interval === r2?.interval &&
-			/** r1?.timeZone === r2?.timeZone && we're ignoring time zone because it's not an observable change. */
-			areExcludedDatesEqual(r1?.excludedDates ?? [], r2?.excludedDates ?? []))
-	)
-}
-
-/**
- * compare two lists of dates that are sorted from earliest to latest. return true if they are equivalent.
- */
-export function areExcludedDatesEqual(e1: ReadonlyArray<DateWrapper>, e2: ReadonlyArray<DateWrapper>): boolean {
-	if (e1.length !== e2.length) return false
-	return e1.every(({ date }, i) => e2[i].date.getTime() === date.getTime())
 }
 
 export function assertEventValidity(event: CalendarEvent) {

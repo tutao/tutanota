@@ -1,5 +1,5 @@
 import m, { Children, Component, Vnode } from "mithril"
-import { CalendarEventWhenModel } from "../../date/eventeditor/CalendarEventWhenModel.js"
+import { CalendarEventWhenModel } from "../../view/eventeditor-model/CalendarEventWhenModel.js"
 import { createIntervalValues, createRepeatRuleEndTypeValues, createRepeatRuleFrequencyValues } from "../../date/CalendarUtils.js"
 import { TextField } from "../../../gui/base/TextField.js"
 import { lang } from "../../../misc/LanguageViewModel.js"

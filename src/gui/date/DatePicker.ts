@@ -192,7 +192,7 @@ export class DatePicker implements Component<DatePickerAttrs> {
 
 		if (trimmedValue !== "") {
 			try {
-				const parsedDate = parseDate(trimmedValue)
+				const parsedDate = parseDate(trimmedValue, (referenceDate) => formatDate(referenceDate))
 				onDateSelected(parsedDate)
 			} catch (e) {
 				// Parsing failed so the user is probably typing
