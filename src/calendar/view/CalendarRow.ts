@@ -10,12 +10,13 @@ import { styles } from "../../gui/styles.js"
 import { DefaultAnimationTime } from "../../gui/animation/Animations.js"
 
 import { formatEventDuration, getEventColor, getGroupColors } from "../gui/CalendarGuiUtils.js"
+import { GroupColors } from "./CalendarView.js"
 
 export class CalendarRow implements VirtualRow<CalendarEvent> {
 	top: number
 
 	entity: CalendarEvent | null
-	colors: Map<any, any>
+	colors: GroupColors
 
 	private selectionSetter!: SelectableRowSelectedSetter
 	private calendarIndicatorDom!: HTMLElement
