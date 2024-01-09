@@ -17,7 +17,7 @@ import { DateTime } from "luxon"
 import { CalendarFacade } from "../../api/worker/facades/lazy/CalendarFacade.js"
 import { EntityClient } from "../../api/common/EntityClient.js"
 import { findAllAndRemove, freezeMap } from "@tutao/tutanota-utils"
-import type { EventController, EntityUpdateData } from "../../api/main/EventController.js"
+import type { EntityUpdateData, EventController } from "../../api/main/EventController.js"
 import { OperationType } from "../../api/common/TutanotaConstants.js"
 import { NotAuthorizedError, NotFoundError } from "../../api/common/error/RestError.js"
 
@@ -37,6 +37,7 @@ export class CalendarEventsRepository {
 	/** timestamps of the beginning of months that we already loaded */
 	private readonly loadedMonths = new Set<number>()
 	private daysToEvents: Stream<DaysToEvents> = stream(new Map())
+	private pendingLoadRequest: Promise<void> = Promise.resolve()
 
 	constructor(
 		private readonly calendarModel: CalendarModel,
@@ -63,26 +64,28 @@ export class CalendarEventsRepository {
 	}
 
 	async loadMonthsIfNeeded(daysInMonths: Array<Date>, progressMonitor: IProgressMonitor, cancel?: Stream<boolean>): Promise<void> {
-		for (const dayInMonth of daysInMonths) {
-			if (cancel && cancel()) return
+		const promiseForThisLoadRequest = this.pendingLoadRequest.then(async () => {
+			for (const dayInMonth of daysInMonths) {
+				if (cancel && cancel()) return
 
-			const month = getMonthRange(dayInMonth, this.zone)
+				const month = getMonthRange(dayInMonth, this.zone)
 
-			if (!this.loadedMonths.has(month.start)) {
-				this.loadedMonths.add(month.start)
+				if (!this.loadedMonths.has(month.start)) {
+					this.loadedMonths.add(month.start)
 
-				try {
-					const calendarInfos = await this.calendarModel.getCalendarInfos()
-					this.replaceEvents(await this.calendarFacade.updateEventMap(month, calendarInfos, this.daysToEvents(), this.zone))
-				} catch (e) {
-					this.loadedMonths.delete(month.start)
-
-					throw e
+					try {
+						const calendarInfos = await this.calendarModel.getCalendarInfos()
+						this.replaceEvents(await this.calendarFacade.updateEventMap(month, calendarInfos, this.daysToEvents(), this.zone))
+					} catch (e) {
+						this.loadedMonths.delete(month.start)
+						throw e
+					}
 				}
+				progressMonitor.workDone(1)
 			}
-
-			progressMonitor.workDone(1)
-		}
+		})
+		this.pendingLoadRequest = promiseForThisLoadRequest
+		await promiseForThisLoadRequest
 	}
 
 	private async addOrUpdateEvent(calendarInfo: CalendarInfo | null, event: CalendarEvent) {
