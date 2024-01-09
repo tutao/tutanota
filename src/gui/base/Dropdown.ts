@@ -13,7 +13,7 @@ import type { $Promisable, lazy, lazyAsync } from "@tutao/tutanota-utils"
 import { assertNotNull, delay, downcast, filterNull, makeSingleUse, neverNull, noOp, Thunk } from "@tutao/tutanota-utils"
 import { client } from "../../misc/ClientDetector"
 import { pureComponent } from "./PureComponent"
-import type { clickHandler } from "./GuiUtils"
+import type { ClickHandler } from "./GuiUtils"
 import { assertMainOrNode } from "../../api/common/Env"
 import { IconButtonAttrs } from "./IconButton.js"
 import { AllIcons, Icon } from "./Icon.js"
@@ -352,7 +352,7 @@ export function createDropdown({
 	overrideOrigin?: (original: PosRect) => PosRect
 	width?: number
 	withBackground?: boolean
-}): clickHandler {
+}): ClickHandler {
 	return createAsyncDropdown({ lazyButtons: async () => lazyButtons(), overrideOrigin, width, withBackground })
 }
 
@@ -368,7 +368,7 @@ export function createAsyncDropdown({
 	width?: number
 	withBackground?: boolean
 	onClose?: Thunk
-}): clickHandler {
+}): ClickHandler {
 	// not all browsers have the actual button as e.currentTarget, but all of them send it as a second argument (see https://github.com/tutao/tutanota/issues/1110)
 	return (_, dom) => {
 		const originalButtons = lazyButtons()
@@ -558,7 +558,7 @@ export function showDropdown(origin: PosRect, domDropdown: HTMLElement, contentH
 export interface DropdownButtonAttrs {
 	label: TranslationText
 	icon?: AllIcons
-	click?: clickHandler
+	click?: ClickHandler
 	selected?: boolean
 }
 

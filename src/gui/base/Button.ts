@@ -7,7 +7,7 @@ import { Icon } from "./Icon"
 import { getContentButtonIconBackground, getElevatedBackground, getNavButtonIconBackground, getNavigationMenuIcon, theme } from "../theme"
 import type { lazy } from "@tutao/tutanota-utils"
 import { assertNotNull } from "@tutao/tutanota-utils"
-import type { clickHandler } from "./GuiUtils"
+import type { ClickHandler } from "./GuiUtils"
 import { assertMainOrNode } from "../../api/common/Env"
 import { px, size } from "../size.js"
 
@@ -98,7 +98,7 @@ export function getColors(buttonColors: ButtonColor | null | undefined): {
 export interface ButtonAttrs {
 	label: TranslationKey | lazy<string>
 	title?: TranslationKey | lazy<string>
-	click?: clickHandler
+	click?: ClickHandler
 	icon?: lazyIcon | null
 	type?: ButtonType
 	colors?: ButtonColor

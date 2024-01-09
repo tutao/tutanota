@@ -16,7 +16,7 @@ import { CredentialsSelector } from "./CredentialsSelector"
 import { getWhitelabelCustomizations } from "../misc/WhitelabelCustomizations"
 import { themeController } from "../gui/theme"
 import { createAsyncDropdown, createDropdown, DropdownButtonAttrs } from "../gui/base/Dropdown.js"
-import type { clickHandler } from "../gui/base/GuiUtils"
+import type { ClickHandler } from "../gui/base/GuiUtils"
 import { IconButton } from "../gui/base/IconButton.js"
 import { showLogsDialog } from "./LoginLogDialog.js"
 import { BaseTopLevelView } from "../gui/BaseTopLevelView.js"
@@ -169,7 +169,7 @@ export class LoginView extends BaseTopLevelView implements TopLevelView<LoginVie
 		])
 	}
 
-	themeSwitchListener(): clickHandler {
+	themeSwitchListener(): ClickHandler {
 		return createAsyncDropdown({
 			lazyButtons: async () => {
 				const defaultButtons: ReadonlyArray<DropdownButtonAttrs> = [

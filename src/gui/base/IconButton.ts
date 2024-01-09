@@ -3,7 +3,7 @@ import type { TranslationText } from "../../misc/LanguageViewModel"
 import { lang } from "../../misc/LanguageViewModel"
 import type { AllIcons } from "./Icon"
 import { Icon } from "./Icon"
-import type { clickHandler } from "./GuiUtils"
+import type { ClickHandler } from "./GuiUtils"
 import { assertMainOrNode } from "../../api/common/Env"
 import { ButtonColor, getColors } from "./Button.js"
 import { assertNotNull } from "@tutao/tutanota-utils"
@@ -14,7 +14,7 @@ assertMainOrNode()
 export interface IconButtonAttrs {
 	icon: AllIcons
 	title: TranslationText
-	click: clickHandler
+	click: ClickHandler
 	colors?: ButtonColor
 	size?: ButtonSize
 	onblur?: () => unknown

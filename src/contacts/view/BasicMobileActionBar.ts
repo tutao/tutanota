@@ -1,11 +1,11 @@
 import m, { Children, Component, Vnode } from "mithril"
 import { IconButton } from "../../gui/base/IconButton.js"
 import { Icons } from "../../gui/base/icons/Icons.js"
-import { clickHandler } from "../../gui/base/GuiUtils.js"
+import { ClickHandler } from "../../gui/base/GuiUtils.js"
 
 export interface BasicMobileActionBarAttrs {
-	editAction?: clickHandler
-	deleteAction?: clickHandler
+	editAction?: ClickHandler
+	deleteAction?: ClickHandler
 }
 
 /** Toolbar with delete & edit actions at the bottom of single-column layout. */

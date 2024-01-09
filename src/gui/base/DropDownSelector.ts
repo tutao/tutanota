@@ -6,7 +6,7 @@ import type { lazy } from "@tutao/tutanota-utils"
 import { lazyStringValue, noOp } from "@tutao/tutanota-utils"
 import type { TranslationKey } from "../../misc/LanguageViewModel"
 import { BootIcons } from "./icons/BootIcons"
-import type { clickHandler } from "./GuiUtils"
+import type { ClickHandler } from "./GuiUtils"
 import { assertMainOrNode } from "../../api/common/Env"
 import { IconButton } from "./IconButton.js"
 import { ButtonSize } from "./ButtonSize.js"
@@ -77,7 +77,7 @@ export class DropDownSelector<T> implements ClassComponent<DropDownSelectorAttrs
 		})
 	}
 
-	createDropdown(a: DropDownSelectorAttrs<T>): clickHandler {
+	createDropdown(a: DropDownSelectorAttrs<T>): ClickHandler {
 		return createDropdown({
 			lazyButtons: () => {
 				return a.items
