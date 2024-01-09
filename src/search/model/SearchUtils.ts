@@ -1,5 +1,18 @@
 import m from "mithril"
-import { assertNotNull, filterInt, getDayShifted, getEndOfDay, getStartOfDay, incrementMonth, isSameTypeRef, TypeRef } from "@tutao/tutanota-utils"
+import {
+	assertNotNull,
+	base64ToBase64Url,
+	base64UrlToBase64,
+	decodeBase64,
+	filterInt,
+	getDayShifted,
+	getEndOfDay,
+	getStartOfDay,
+	incrementMonth,
+	isSameTypeRef,
+	stringToBase64,
+	TypeRef,
+} from "@tutao/tutanota-utils"
 import { RouteSetFn, throttleRoute } from "../../misc/RouteChange"
 import type { SearchRestriction } from "../../api/worker/search/SearchTypes"
 import { assertMainOrNode } from "../../api/common/Env"
@@ -7,6 +20,7 @@ import { TranslationKey } from "../../misc/LanguageViewModel"
 import { CalendarEvent, CalendarEventTypeRef, Contact, ContactTypeRef, Mail, MailTypeRef } from "../../api/entities/tutanota/TypeRefs"
 import { typeModels } from "../../api/entities/tutanota/TypeModels.js"
 import { locator } from "../../api/main/MainLocator.js"
+import { getElementId } from "../../api/common/utils/EntityUtils.js"
 
 assertMainOrNode()
 
@@ -90,8 +104,7 @@ export function searchCategoryForRestriction(restriction: SearchRestriction): st
 export function getSearchUrl(
 	query: string | null,
 	restriction: SearchRestriction,
-	selectedId?: Id,
-	selectedEventTime?: ReadonlyArray<number>,
+	selectionKey: string | null,
 ): {
 	path: string
 	params: Record<string, string | number | Array<string>>
@@ -118,13 +131,8 @@ export function getSearchUrl(
 		params.eventSeries = String(restriction.eventSeries)
 	}
 
-	if (isSameTypeRef(restriction.type, CalendarEventTypeRef) && selectedEventTime) {
-		params.startTime = selectedEventTime[0]
-		params.endTime = selectedEventTime[1]
-	}
-
 	return {
-		path: "/search/:category" + (selectedId ? "/" + selectedId : ""),
+		path: "/search/:category" + (selectionKey ? "/" + selectionKey : ""),
 		params: params,
 	}
 }
@@ -273,4 +281,13 @@ export function getRestriction(route: string): SearchRestriction {
 	}
 
 	return createRestriction(category, start, end, field, listIds, eventSeries)
+}
+
+export function decodeCalendarSearchKey(searchKey: string): { id: Id; start: number } {
+	return JSON.parse(decodeBase64("utf-8", base64UrlToBase64(searchKey))) as { id: Id; start: number }
+}
+
+export function encodeCalendarSearchKey(event: CalendarEvent): string {
+	const eventStartTime = event.startTime.getTime()
+	return base64ToBase64Url(stringToBase64(JSON.stringify({ start: eventStartTime, id: getElementId(event) })))
 }
