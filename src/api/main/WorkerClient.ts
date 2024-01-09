@@ -11,7 +11,7 @@ import type { MainInterface, WorkerInterface } from "../worker/WorkerImpl"
 import { DelayedImpls, exposeLocalDelayed, exposeRemote } from "../common/WorkerProxy"
 import type { RestClient } from "../worker/rest/RestClient"
 import { EntropyDataChunk } from "../worker/facades/EntropyFacade.js"
-import { objToError } from "../common/utils/Utils.js"
+import { objToError } from "../common/utils/ErrorUtils.js"
 
 assertMainOrNode()
 

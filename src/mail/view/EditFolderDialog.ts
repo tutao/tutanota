@@ -12,7 +12,7 @@ import { MailFolderType, MailReportType } from "../../api/common/TutanotaConstan
 import { isSameId } from "../../api/common/utils/EntityUtils.js"
 import { reportMailsAutomatically } from "./MailReportDialog.js"
 import { isSpamOrTrashFolder } from "../../api/common/mail/CommonMailUtils.js"
-import { isOfflineError } from "../../api/common/utils/ErrorCheckUtils.js"
+import { isOfflineError } from "../../api/common/utils/ErrorUtils.js"
 
 /**
  * Dialog for Edit and Add folder are the same.

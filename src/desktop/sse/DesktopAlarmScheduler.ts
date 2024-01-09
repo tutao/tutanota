@@ -14,7 +14,7 @@ import { EncryptedAlarmNotification } from "../../native/common/EncryptedAlarmNo
 import { base64ToUint8Array } from "@tutao/tutanota-utils"
 import { CryptoError } from "@tutao/tutanota-crypto/error.js"
 import { formatNotificationForDisplay } from "../../calendar/model/CalendarModel.js"
-import { hasError } from "../../api/common/utils/ErrorCheckUtils.js"
+import { hasError } from "../../api/common/utils/ErrorUtils.js"
 
 export interface NativeAlarmScheduler {
 	handleAlarmNotification(an: EncryptedAlarmNotification): Promise<void>

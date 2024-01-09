@@ -63,7 +63,7 @@ import {
 import { CalendarInfo } from "../../../../calendar/model/CalendarModel.js"
 import { geEventElementMaxId, getEventElementMinId } from "../../../common/utils/CommonCalendarUtils.js"
 import { DaysToEvents } from "../../../../calendar/date/CalendarEventsRepository.js"
-import { isOfflineError } from "../../../common/utils/ErrorCheckUtils.js"
+import { isOfflineError } from "../../../common/utils/ErrorUtils.js"
 
 assertWorkerOrNode()
 

@@ -69,7 +69,7 @@ import { showUserError } from "../../misc/ErrorHandlerImpl"
 import { MailRecipientsTextField } from "../../gui/MailRecipientsTextField.js"
 import { getContactDisplayName } from "../../contacts/model/ContactUtils"
 import { ResolvableRecipient } from "../../api/main/RecipientsModel"
-import { isOfflineError } from "../../api/common/utils/ErrorCheckUtils.js"
+
 import { animateToolbar, RichTextToolbar } from "../../gui/base/RichTextToolbar.js"
 import { readLocalFiles } from "../../file/FileController"
 import { IconButton, IconButtonAttrs } from "../../gui/base/IconButton.js"
@@ -88,6 +88,7 @@ import { ContentBlockingStatus } from "../view/MailViewerViewModel.js"
 import { canSeeTutaLinks } from "../../gui/base/GuiUtils.js"
 import { InfoBanner } from "../../gui/base/InfoBanner.js"
 import { isCustomizationEnabledForCustomer } from "../../api/common/utils/CustomerUtils.js"
+import { isOfflineError } from "../../api/common/utils/ErrorUtils.js"
 
 export type MailEditorAttrs = {
 	model: SendMailModel

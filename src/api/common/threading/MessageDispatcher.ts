@@ -6,7 +6,7 @@
  */
 import { isWorker } from "../Env.js"
 import { Transport } from "./Transport.js"
-import { objToError } from "../utils/Utils.js"
+import { objToError } from "../utils/ErrorUtils.js"
 
 export type Command<T> = (msg: Request<T>) => Promise<any>
 export type Commands<T extends string> = Record<T, Command<T>>

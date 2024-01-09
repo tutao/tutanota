@@ -70,7 +70,7 @@ import {
 import { ParsedIcalFileContent } from "../../calendar/view/CalendarInvites.js"
 import { MailFacade } from "../../api/worker/facades/lazy/MailFacade.js"
 import { EntityUpdateData, isUpdateForTypeRef } from "../../api/common/utils/EntityUpdateUtils.js"
-import { isOfflineError } from "../../api/common/utils/ErrorCheckUtils.js"
+import { isOfflineError } from "../../api/common/utils/ErrorUtils.js"
 
 export const enum ContentBlockingStatus {
 	Block = "0",

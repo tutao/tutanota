@@ -15,7 +15,7 @@ import { animations, height, opacity, transform, TransformEnum, width } from "./
 import { ease } from "./animation/Easing.js"
 import { getFileBaseName, getFileExtension, isTutanotaFile } from "../api/common/utils/FileUtils.js"
 import { getSafeAreaInsetBottom } from "./HtmlUtils.js"
-import { hasError } from "../api/common/utils/ErrorCheckUtils.js"
+import { hasError } from "../api/common/utils/ErrorUtils.js"
 
 export type AttachmentBubbleAttrs = {
 	attachment: Attachment
