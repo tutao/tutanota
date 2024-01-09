@@ -9,6 +9,19 @@ import { locator } from "../../api/main/MainLocator.js"
 type Attrs = void
 const fontSize = size.font_size_small
 
+function getHrefForSearch(): string {
+	const route = m.route.get()
+	if (route.startsWith(SEARCH_PREFIX)) {
+		return route
+	} else if (route.startsWith(CONTACTS_PREFIX)) {
+		return "/search/contact"
+	} else if (route.startsWith(CALENDAR_PREFIX)) {
+		return "/search/calendar"
+	} else {
+		return "/search/mail"
+	}
+}
+
 export class BottomNav implements Component<Attrs> {
 	view(vnode: Vnode<Attrs>): Children {
 		// Using bottom-nav class too to match it inside media queries like @print, otherwise it's not matched
@@ -24,11 +37,7 @@ export class BottomNav implements Component<Attrs> {
 				? m(NavButton, {
 						label: "search_label",
 						icon: () => BootIcons.Search,
-						href: m.route.get().startsWith(SEARCH_PREFIX)
-							? m.route.get()
-							: m.route.get().startsWith(CONTACTS_PREFIX)
-							? "/search/contact"
-							: "/search/mail",
+						href: () => getHrefForSearch(),
 						isSelectedPrefix: SEARCH_PREFIX,
 						vertical: true,
 						fontSize,
