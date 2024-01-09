@@ -110,20 +110,7 @@ export class CalendarViewModel implements EventDragHandlerCallbacks {
 
 	/**
 	 * react to changes to the calendar data by making sure we have the current month + the two adjacent months
-	 * ready to be rendered and the previewed event updated
-	 *
-	 * there are several reasons why we might no longer want to preview an event and need to redraw without
-	 * a previewed event:
-	 * * it was deleted
-	 * * it was moved away from the day we're looking at (or the day was moved away)
-	 * * the calendar was unshared or deleted
-	 *
-	 * we would want to keep the selection if the event merely shifted its start time but still intersects the viewed day,
-	 * but that would require going through the UID index because moving events changes their ID.
-	 * because of this and because previewedEvent is the event _before_ we got the update that caused us to reconsider the
-	 * selection, with the old times, this function only works if the selected date changed, but not if the event times
-	 * changed.
-	 *
+	 * ready to be rendered
 	 */
 	private preloadMonthsAroundSelectedDate = debounce(200, async () => {
 		// load all calendars. if there is no calendar yet, create one
@@ -346,6 +333,19 @@ export class CalendarViewModel implements EventDragHandlerCallbacks {
 		return this.previewedEvent?.model ?? null
 	}
 
+	/**
+	 * there are several reasons why we might no longer want to preview an event and need to redraw without
+	 * a previewed event:
+	 * * it was deleted
+	 * * it was moved away from the day we're looking at (or the day was moved away)
+	 * * the calendar was unshared or deleted
+	 *
+	 * we would want to keep the selection if the event merely shifted its start time but still intersects the viewed day,
+	 * but that would require going through the UID index because moving events changes their ID.
+	 * because of this and because previewedEvent is the event _before_ we got the update that caused us to reconsider the
+	 * selection, with the old times, this function only works if the selected date changed, but not if the event times
+	 * changed.
+	 */
 	async updatePreviewedEvent(event: CalendarEvent | null) {
 		if (event == null) {
 			this.previewedEvent = null

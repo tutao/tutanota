@@ -761,6 +761,7 @@ class MainLocator {
 		return new SchedulerImpl(dateProvider, window, window)
 	}
 
+	// fixme
 	async calendarEventPreviewModel(selectedEvent: CalendarEvent, calendars: ReadonlyMap<string, CalendarInfo>): Promise<CalendarEventPreviewViewModel> {
 		const { findAttendeeInAddresses } = await import("../common/utils/CommonCalendarUtils.js")
 		const { getEventType } = await import("../../calendar/gui/CalendarGuiUtils.js")
