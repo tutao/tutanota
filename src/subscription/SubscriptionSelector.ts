@@ -128,8 +128,6 @@ export class SubscriptionSelector implements Component<SubscriptionSelectorAttr>
 				]
 			})
 
-		const isYearly = vnode.attrs.options.paymentInterval() === 12
-
 		const showCurrentPlanDiscontinuedHint = vnode.attrs.currentPlanType != null && LegacyPlans.includes(vnode.attrs.currentPlanType)
 		return m("", { lang: lang.code }, [
 			showBusinessSelector
@@ -228,7 +226,7 @@ export class SubscriptionSelector implements Component<SubscriptionSelectorAttr>
 		targetSubscription: AvailablePlanType,
 		renderCategoryTitle: boolean,
 	): BuyOptionDetailsAttr {
-		const { featureListProvider, priceAndConfigProvider } = selectorAttrs
+		const { featureListProvider } = selectorAttrs
 		const subscriptionFeatures = featureListProvider.getFeatureList(targetSubscription)
 		const categoriesToShow = subscriptionFeatures.categories
 			.map((fc) => {
@@ -315,14 +313,14 @@ function localizeFeatureListItem(
 		return null
 	}
 	if (!item.toolTip) {
-		return { text, key: item.text, antiFeature: item.antiFeature, omit: item.omit, heart: item.heart ? true : false }
+		return { text, key: item.text, antiFeature: item.antiFeature, omit: item.omit, heart: !!item.heart }
 	} else {
 		const toolTipText = tryGetTranslation(item.toolTip)
 		if (toolTipText === null) {
 			return null
 		}
 		const toolTip = item.toolTip.endsWith("_markdown") ? m.trust(toolTipText) : toolTipText
-		return { text, toolTip, key: item.text, antiFeature: item.antiFeature, omit: item.omit, heart: item.heart ? true : false }
+		return { text, toolTip, key: item.text, antiFeature: item.antiFeature, omit: item.omit, heart: !!item.heart }
 	}
 }
 
@@ -356,7 +354,7 @@ export function getReplacement(
 	subscription: PlanType,
 	attrs: SubscriptionSelectorAttr,
 ): Record<string, string | number> | undefined {
-	const { priceAndConfigProvider, options } = attrs
+	const { priceAndConfigProvider } = attrs
 	switch (key) {
 		case "customDomains":
 			return { "{amount}": priceAndConfigProvider.getPlanPricesForPlan(subscription).customDomains }

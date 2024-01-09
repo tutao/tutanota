@@ -39,6 +39,7 @@ import { LoginState } from "../login/LoginViewModel.js"
 
 /**
  * Shows warnings if the invoices are not paid or the registration is not approved yet.
+ * @param logins The `LoginController` used to retrieve the current users customer information from.
  * @param includeInvoiceNotPaidForAdmin If true, also shows a warning for an admin if the invoice is not paid (use at login), if false does not show this warning (use when sending an email).
  * @param defaultStatus This status is used if the actual status on the customer is "0"
  * @returns True if the user may still send emails, false otherwise.
