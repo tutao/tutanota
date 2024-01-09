@@ -504,6 +504,11 @@ export class ListModel<ElementType extends ListElement> {
 		(state: ListState<ElementType>) => [...state.selectedItems],
 	)
 
+	readonly isSelectionEmpty: () => boolean = memoizedWithHiddenArgument(
+		() => this.state,
+		(state: ListState<ElementType>) => state.selectedItems.size === 0,
+	)
+
 	readonly getUnfilteredAsArray: () => Array<ElementType> = memoizedWithHiddenArgument(
 		() => this.rawState,
 		(state: PrivateListState<ElementType>) => [...state.unfilteredItems],
