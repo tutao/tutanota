@@ -1,5 +1,5 @@
 import stream from "mithril/stream"
-import { isOfflineError } from "../api/common/utils/ErrorCheckUtils.js"
+import { isOfflineError } from "../api/common/utils/ErrorUtils.js"
 
 export enum LoadingState {
 	/** We have not tried to load anything, or the loading is complete */

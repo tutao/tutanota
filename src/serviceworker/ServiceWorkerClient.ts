@@ -3,7 +3,7 @@ import { lang } from "../misc/LanguageViewModel"
 import { windowFacade } from "../misc/WindowFacade"
 import m, { Component } from "mithril"
 import { handleUncaughtError } from "../misc/ErrorHandler"
-import { isNotSupportedError, isSecurityError, objToError } from "../api/common/utils/Utils.js"
+import { isNotSupportedError, isSecurityError, objToError } from "../api/common/utils/ErrorUtils.js"
 
 function showUpdateOverlay({ showChangelogLink, onUpdate }: { showChangelogLink: boolean; onUpdate: () => void }) {
 	const notificationMessage: Component = {

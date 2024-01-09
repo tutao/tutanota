@@ -1,6 +1,6 @@
 import { getElementId, isSameId, ListElement } from "../api/common/utils/EntityUtils.js"
 import { ListLoadingState, ListState } from "../gui/base/List.js"
-import { isOfflineError } from "../api/common/utils/ErrorCheckUtils.js"
+
 import { OperationType } from "../api/common/TutanotaConstants.js"
 import {
 	assertNonNull,
@@ -22,6 +22,7 @@ import {
 import Stream from "mithril/stream"
 import stream from "mithril/stream"
 import { ListFetchResult, PageSize } from "../gui/base/ListUtils.js"
+import { isOfflineError } from "../api/common/utils/ErrorUtils.js"
 
 export interface ListModelConfig<ElementType> {
 	topId: Id

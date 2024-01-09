@@ -1,7 +1,7 @@
 import o from "@tutao/otest"
 import { concat, hexToUint8Array, stringToUtf8Uint8Array, uint8ArrayToHex } from "@tutao/tutanota-utils"
 import type { RsaKeyPair } from "../lib/index.js"
-import { KeyPairType, CryptoError, random } from "../lib/index.js"
+import { KeyPairType, random } from "../lib/index.js"
 import {
 	_getPSBlock,
 	_keyArrayToHex,
@@ -21,6 +21,7 @@ import {
 } from "../lib/encryption/Rsa.js"
 import { parseBigInt } from "../lib/internal/crypto-jsbn-2012-08-09_1.js"
 import { SecureRandom } from "../lib/random/SecureRandom.js"
+import { CryptoError } from "../lib/error.js"
 
 const originalRandom = random.generateRandomData
 

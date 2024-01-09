@@ -1,7 +1,5 @@
-//@bundleInto:common-min
-
-import type { Customer, CustomerInfo, DomainInfo } from "../../entities/sys/TypeRefs.js"
-import type { Header, MailHeaders } from "../../entities/tutanota/TypeRefs.js"
+import { downcast } from "@tutao/tutanota-utils"
+import { Entity } from "../EntityTypes"
 import {
 	AccessBlockedError,
 	AccessDeactivatedError,
@@ -26,50 +24,61 @@ import {
 	ServiceUnavailableError,
 	SessionExpiredError,
 	TooManyRequestsError,
-} from "../error/RestError"
-import { SessionKeyNotFoundError } from "../error/SessionKeyNotFoundError"
-import { SseError } from "../error/SseError"
-import { ProgrammingError } from "../error/ProgrammingError"
-import { RecipientsNotFoundError } from "../error/RecipientsNotFoundError"
-import { RecipientNotResolvedError } from "../error/RecipientNotResolvedError"
-import { OutOfSyncError } from "../error/OutOfSyncError"
-import { DbError } from "../error/DbError"
-import { IndexingNotSupportedError } from "../error/IndexingNotSupportedError"
-import { QuotaExceededError } from "../error/QuotaExceededError"
-import { CancelledError } from "../error/CancelledError"
-import { FileOpenError } from "../error/FileOpenError"
-import { PermissionError } from "../error/PermissionError"
-import { FileNotFoundError } from "../error/FileNotFoundError"
-import { DeviceStorageUnavailableError } from "../error/DeviceStorageUnavailableError"
-import { MailBodyTooLargeError } from "../error/MailBodyTooLargeError"
-import { CredentialAuthenticationError } from "../error/CredentialAuthenticationError"
-import { KeyPermanentlyInvalidatedError } from "../error/KeyPermanentlyInvalidatedError"
-import type { FeatureType } from "../TutanotaConstants"
-import { ImportError } from "../error/ImportError"
-import { WebauthnError } from "../error/WebauthnError"
+} from "../error/RestError.js"
 import { SuspensionError } from "../error/SuspensionError.js"
 import { LoginIncompleteError } from "../error/LoginIncompleteError.js"
-import { OfflineDbClosedError } from "../error/OfflineDbClosedError.js"
-import { ParserError } from "../../../misc/parsing/ParserCombinator.js"
 import { CryptoError } from "@tutao/tutanota-crypto/error.js"
+import { SessionKeyNotFoundError } from "../error/SessionKeyNotFoundError.js"
+import { SseError } from "../error/SseError.js"
+import { ProgrammingError } from "../error/ProgrammingError.js"
+import { RecipientsNotFoundError } from "../error/RecipientsNotFoundError.js"
+import { RecipientNotResolvedError } from "../error/RecipientNotResolvedError.js"
+import { OfflineDbClosedError } from "../error/OfflineDbClosedError.js"
+import { OutOfSyncError } from "../error/OutOfSyncError.js"
+import { DbError } from "../error/DbError.js"
+import { IndexingNotSupportedError } from "../error/IndexingNotSupportedError.js"
+import { QuotaExceededError } from "../error/QuotaExceededError.js"
+import { CancelledError } from "../error/CancelledError.js"
+import { FileOpenError } from "../error/FileOpenError.js"
+import { DeviceStorageUnavailableError } from "../error/DeviceStorageUnavailableError.js"
+import { MailBodyTooLargeError } from "../error/MailBodyTooLargeError.js"
+import { ImportError } from "../error/ImportError.js"
+import { WebauthnError } from "../error/WebauthnError.js"
+import { PermissionError } from "../error/PermissionError.js"
+import { FileNotFoundError } from "../error/FileNotFoundError.js"
+import { CredentialAuthenticationError } from "../error/CredentialAuthenticationError.js"
+import { KeyPermanentlyInvalidatedError } from "../error/KeyPermanentlyInvalidatedError.js"
+import { ParserError } from "../../../misc/parsing/ParserCombinator.js"
 
-export function getWhitelabelDomain(customerInfo: CustomerInfo, domainName?: string): DomainInfo | null {
-	return customerInfo.domainInfos.find((info) => info.whitelabelConfig != null && (domainName == null || info.domain === domainName)) ?? null
-}
-
-export function getCustomMailDomains(customerInfo: CustomerInfo): Array<DomainInfo> {
-	return customerInfo.domainInfos.filter((di) => di.whitelabelConfig == null)
-}
-
-export function getLegacyMailHeaders(headers: MailHeaders): string {
-	return headers.compressedHeaders ?? headers.headers ?? ""
-}
-
-export function getMailHeaders(headers: Header): string {
-	return headers.compressedHeaders ?? headers.headers ?? ""
+/**
+ * Checks if the given instance has an error in the _errors property which is usually written
+ * if decryption fails for some reason in InstanceMapper.
+ * @param instance the instance to check for errors.
+ * @param key only returns true if there is an error for this key. Other errors will be ignored if the key is defined.
+ * @returns {boolean} true if error was found (for the given key).
+ */
+export function hasError<K>(instance: Entity, key?: K): boolean {
+	const downCastedInstance = downcast(instance)
+	return !instance || (!!downCastedInstance._errors && (!key || !!downCastedInstance._errors.key))
 }
 
 //If importing fails it is a good idea to bundle the error into common-min which can be achieved by annotating the module with "@bundleInto:common-min"
+/**
+ * Checks whether {@param e} is an error that can error before we are fully logged in and connected.
+ */
+export function isOfflineError(e: Error) {
+	return e instanceof ConnectionError || e instanceof LoginIncompleteError
+}
+
+// If importing fails it is a good idea to adjust the chunking to bundle the error into common
+
+/**
+ * This maps the errors from their names to their constructors.
+ * This is needed generally when errros cross IPC boundaries and more specifically when we want to map native errors to
+ * our error classes.
+ *
+ * All errors that cross IPC boundaries should be added here.
+ */
 const ErrorNameToType = {
 	ConnectionError,
 	BadRequestError,
@@ -141,10 +150,6 @@ const ErrorNameToType = {
 	"de.tutao.tutanota.Webauthn": WebauthnError,
 }
 
-export function isCustomizationEnabledForCustomer(customer: Customer, feature: FeatureType): boolean {
-	return customer.customizations.some((customization) => customization.feature === feature)
-}
-
 export function isSecurityError(e: any): boolean {
 	return e instanceof DOMException && (e.name === "SecurityError" || e.code === e.SECURITY_ERR)
 }
@@ -153,6 +158,9 @@ export function isNotSupportedError(e: any): boolean {
 	return e instanceof DOMException && (e.name === "NotSupportedError" || e.code === e.NOT_SUPPORTED_ERR)
 }
 
+/**
+ * Convert a plain object to a class matching it's {@code name} field.
+ */
 export function objToError(o: Record<string, any>): Error {
 	// @ts-ignore
 	let errorType = ErrorNameToType[o.name]

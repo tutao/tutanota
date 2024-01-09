@@ -13,7 +13,7 @@ import { DropDownSelector } from "../gui/base/DropDownSelector.js"
 import { TextField } from "../gui/base/TextField.js"
 import { locator } from "../api/main/MainLocator"
 import { assertMainOrNode } from "../api/common/Env"
-import { isOfflineError } from "../api/common/utils/ErrorCheckUtils.js"
+import { isOfflineError } from "../api/common/utils/ErrorUtils.js"
 
 assertMainOrNode()
 

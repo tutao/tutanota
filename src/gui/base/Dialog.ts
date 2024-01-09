@@ -28,7 +28,7 @@ import { DialogInjectionRight } from "./DialogInjectionRight"
 import { assertMainOrNode } from "../../api/common/Env"
 import { Icon } from "./Icon"
 import { BootIcons } from "./icons/BootIcons"
-import { isOfflineError } from "../../api/common/utils/ErrorCheckUtils.js"
+import { isOfflineError } from "../../api/common/utils/ErrorUtils.js"
 
 assertMainOrNode()
 export const INPUT = "input, textarea, div[contenteditable='true']"

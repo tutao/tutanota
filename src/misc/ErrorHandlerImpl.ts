@@ -27,10 +27,11 @@ import { Credentials } from "./credentials/Credentials"
 import { showErrorNotification, showErrorDialogNotLoggedIn } from "./ErrorReporter"
 import { CancelledError } from "../api/common/error/CancelledError"
 import { getLoginErrorMessage } from "./LoginUtils"
-import { isOfflineError } from "../api/common/utils/ErrorCheckUtils.js"
+
 import { SessionType } from "../api/common/SessionType.js"
 import { OfflineDbClosedError } from "../api/common/error/OfflineDbClosedError.js"
 import { UserTypeRef } from "../api/entities/sys/TypeRefs.js"
+import { isOfflineError } from "../api/common/utils/ErrorUtils.js"
 
 assertMainOrNode()
 

@@ -7,7 +7,7 @@ import { BrowserType } from "../misc/ClientConstants"
 import { client } from "../misc/ClientDetector"
 import { File as TutanotaFile } from "../api/entities/tutanota/TypeRefs.js"
 import { deduplicateFilenames, FileReference, sanitizeFilename } from "../api/common/utils/FileUtils"
-import { isOfflineError } from "../api/common/utils/ErrorCheckUtils.js"
+
 import { BlobFacade } from "../api/worker/facades/lazy/BlobFacade.js"
 import { ArchiveDataType } from "../api/common/TutanotaConstants.js"
 import stream from "mithril/stream"
@@ -18,6 +18,7 @@ import { ConnectionError } from "../api/common/error/RestError.js"
 import { elementIdPart, listIdPart } from "../api/common/utils/EntityUtils.js"
 import { BlobReferencingInstance } from "../api/worker/facades/BlobAccessTokenFacade.js"
 import { CryptoError } from "@tutao/tutanota-crypto/error.js"
+import { isOfflineError } from "../api/common/utils/ErrorUtils.js"
 
 assertMainOrNode()
 export const CALENDAR_MIME_TYPE = "text/calendar"
