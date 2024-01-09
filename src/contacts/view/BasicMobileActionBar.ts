@@ -1,15 +1,16 @@
 import m, { Children, Component, Vnode } from "mithril"
 import { IconButton } from "../../gui/base/IconButton.js"
 import { Icons } from "../../gui/base/icons/Icons.js"
+import { clickHandler } from "../../gui/base/GuiUtils.js"
 
-export interface MobileContactActionBarAttrs {
-	editAction?: () => unknown
-	deleteAction?: () => unknown
+export interface BasicMobileActionBarAttrs {
+	editAction?: clickHandler
+	deleteAction?: clickHandler
 }
 
-/** Toolbar with contact actions at the bottom of single-column layout. */
-export class MobileContactActionBar implements Component<MobileContactActionBarAttrs> {
-	view(vnode: Vnode<MobileContactActionBarAttrs>): Children {
+/** Toolbar with delete & edit actions at the bottom of single-column layout. */
+export class BasicMobileActionBar implements Component<BasicMobileActionBarAttrs> {
+	view(vnode: Vnode<BasicMobileActionBarAttrs>): Children {
 		const { attrs } = vnode
 
 		return m(
