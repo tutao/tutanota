@@ -38,7 +38,7 @@ import { BaseTopLevelView } from "../../gui/BaseTopLevelView.js"
 import { TopLevelAttrs, TopLevelView } from "../../TopLevelView.js"
 import { stateBgHover } from "../../gui/builtinThemes.js"
 import { ContactCardViewer } from "./ContactCardViewer.js"
-import { BasicMobileActionBar } from "./BasicMobileActionBar.js"
+import { MobileActionBar } from "./MobileActionBar.js"
 import { appendEmailSignature } from "../../mail/signature/Signature.js"
 import { PartialRecipient } from "../../api/common/recipients/Recipient.js"
 import { newMailEditorFromTemplate } from "../../mail/editor/MailEditor.js"
@@ -311,12 +311,30 @@ export class ContactView extends BaseTopLevelView implements TopLevelView<Contac
 				bottomNav:
 					styles.isSingleColumnLayout() && this.viewSlider.focusedColumn === this.detailsColumn && !this.showingListView()
 						? this.inContactListView()
-							? m(BasicMobileActionBar, {
-									deleteAction: this.canEditSelectedContactList() ? () => this.contactListViewModel.deleteSelectedEntries() : undefined,
+							? m(MobileActionBar, {
+									actions: this.canEditSelectedContactList()
+										? [
+												{
+													icon: Icons.Trash,
+													title: "delete_action",
+													action: () => this.contactListViewModel.deleteSelectedEntries(),
+												},
+										  ]
+										: [],
 							  })
-							: m(BasicMobileActionBar, {
-									editAction: () => this.editSelectedContact(),
-									deleteAction: () => this.deleteSelectedContacts(),
+							: m(MobileActionBar, {
+									actions: [
+										{
+											icon: Icons.Edit,
+											title: "edit_action",
+											action: () => this.editSelectedContact(),
+										},
+										{
+											icon: Icons.Trash,
+											title: "delete_action",
+											action: () => this.deleteSelectedContacts(),
+										},
+									],
 							  })
 						: (styles.isSingleColumnLayout() &&
 								this.viewSlider.focusedColumn === this.listColumn &&

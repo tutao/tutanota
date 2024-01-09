@@ -67,7 +67,7 @@ import { BaseMobileHeader } from "../../gui/BaseMobileHeader.js"
 import { ProgressBar } from "../../gui/base/ProgressBar.js"
 import { EnterMultiselectIconButton } from "../../gui/EnterMultiselectIconButton.js"
 import { MobileHeader, MobileHeaderMenuButton } from "../../gui/MobileHeader.js"
-import { BasicMobileActionBar } from "../../contacts/view/BasicMobileActionBar.js"
+import { MobileActionAttrs, MobileActionBar } from "../../contacts/view/MobileActionBar.js"
 import { MobileBottomActionBar } from "../../gui/MobileBottomActionBar.js"
 import {
 	archiveMails,
@@ -91,7 +91,13 @@ import { getElementId, isSameId } from "../../api/common/utils/EntityUtils.js"
 import { CalendarInfo } from "../../calendar/model/CalendarModel.js"
 import { Checkbox, CheckboxAttrs } from "../../gui/base/Checkbox.js"
 import { buildEventPreviewModel, CalendarEventPreviewViewModel } from "../../calendar/gui/eventpopup/CalendarEventPreviewViewModel.js"
-import { EventDetailsView, EventDetailsViewAttrs, handleEventDeleteButtonClick, handleEventEditButtonClick } from "../../calendar/view/EventDetailsView.js"
+import {
+	EventDetailsView,
+	EventDetailsViewAttrs,
+	handleEventDeleteButtonClick,
+	handleEventEditButtonClick,
+	handleSendUpdatesClick,
+} from "../../calendar/view/EventDetailsView.js"
 import { showProgressDialog } from "../../gui/dialogs/ProgressDialog.js"
 import { CalendarOperation } from "../../calendar/gui/eventeditor-model/CalendarEventModel.js"
 import { getEventWithDefaultTimes } from "../../api/common/utils/CommonCalendarUtils.js"
@@ -276,39 +282,66 @@ export class SearchView extends BaseTopLevelView implements TopLevelView<SearchV
 
 	private renderMobileListHeader(header: AppHeaderAttrs) {
 		return this.searchViewModel.listModel && this.searchViewModel.listModel?.state.inMultiselect
-			? m(MultiselectMobileHeader, {
-					...selectionAttrsForList(this.searchViewModel.listModel),
-					message:
-						getCurrentSearchMode() === "mail"
-							? getMailSelectionMessage(this.searchViewModel.getSelectedMails())
-							: getContactSelectionMessage(this.searchViewModel.getSelectedContacts().length),
-			  })
-			: m(BaseMobileHeader, {
-					left: m(MobileHeaderMenuButton, { ...header, backAction: () => this.viewSlider.focusPreviousColumn() }),
-					right: [
-						isSameTypeRef(this.searchViewModel.searchedType, MailTypeRef) ? this.renderFilterButton() : null,
-						m(EnterMultiselectIconButton, {
-							clickAction: () => {
-								this.searchViewModel.listModel?.enterMultiselect()
-							},
-						}),
-						styles.isSingleColumnLayout() ? this.renderHeaderRightView() : null,
-					],
-					center: m(
-						".flex-grow.flex.justify-center",
-						m(searchBar, {
-							placeholder: this.searchBarPlaceholder(),
-							returnListener: () => this.resultListColumn.focus(),
-						}),
-					),
-					injections: m(ProgressBar, { progress: header.offlineIndicatorModel.getProgress() }),
-			  })
+			? this.renderMultiSelectMobileHeader()
+			: this.renderMobileListActionsHeader(header)
+	}
+
+	private renderMobileListActionsHeader(header: AppHeaderAttrs) {
+		const rightActions = []
+
+		if (isSameTypeRef(this.searchViewModel.searchedType, MailTypeRef)) {
+			rightActions.push(this.renderFilterButton())
+		}
+
+		if (!isSameTypeRef(this.searchViewModel.searchedType, CalendarEventTypeRef)) {
+			rightActions.push(
+				m(EnterMultiselectIconButton, {
+					clickAction: () => {
+						this.searchViewModel.listModel?.enterMultiselect()
+					},
+				}),
+			)
+		}
+		if (styles.isSingleColumnLayout()) {
+			rightActions.push(this.renderHeaderRightView())
+		}
+
+		return m(BaseMobileHeader, {
+			left: m(MobileHeaderMenuButton, { ...header, backAction: () => this.viewSlider.focusPreviousColumn() }),
+			right: rightActions,
+			center: m(
+				".flex-grow.flex.justify-center",
+				{
+					class: rightActions.length === 0 ? "mr" : "",
+				},
+				m(searchBar, {
+					placeholder: this.searchBarPlaceholder(),
+					returnListener: () => this.resultListColumn.focus(),
+				}),
+			),
+			injections: m(ProgressBar, { progress: header.offlineIndicatorModel.getProgress() }),
+		})
+	}
+
+	private renderMultiSelectMobileHeader() {
+		return m(MultiselectMobileHeader, {
+			...selectionAttrsForList(this.searchViewModel.listModel),
+			message:
+				getCurrentSearchMode() === "mail"
+					? getMailSelectionMessage(this.searchViewModel.getSelectedMails())
+					: getContactSelectionMessage(this.searchViewModel.getSelectedContacts().length),
+		})
 	}
 
 	/** depending on the search and selection state we want to render a
 	 * (multi) mail viewer or a (multi) contact viewer or an event preview
 	 */
 	private renderDetailsView(header: AppHeaderAttrs): Children {
+		if (this.searchViewModel.listModel.isSelectionEmpty() && this.viewSlider.focusedColumn === this.resultDetailsColumn) {
+			this.viewSlider.focus(this.resultListColumn)
+			return null
+		}
+
 		if (getCurrentSearchMode() === "contact") {
 			const selectedContacts = this.searchViewModel.getSelectedContacts()
 
@@ -498,22 +531,54 @@ export class SearchView extends BaseTopLevelView implements TopLevelView<SearchV
 			return m(MobileMailActionBar, { viewModel: this.searchViewModel.conversationViewModel?.primaryViewModel() })
 		} else if (!isInMultiselect && this.viewSlider.focusedColumn === this.resultDetailsColumn) {
 			if (getCurrentSearchMode() === "contact") {
-				return m(BasicMobileActionBar, {
-					editAction: () => new ContactEditor(locator.entityClient, this.searchViewModel.getSelectedContacts()[0]).show(),
-					deleteAction: () => deleteContacts(this.searchViewModel.getSelectedContacts()),
+				return m(MobileActionBar, {
+					actions: [
+						{
+							icon: Icons.Edit,
+							title: "edit_action",
+							action: () => new ContactEditor(locator.entityClient, this.searchViewModel.getSelectedContacts()[0]).show(),
+						},
+						{
+							icon: Icons.Trash,
+							title: "delete_action",
+							action: () => deleteContacts(this.searchViewModel.getSelectedContacts()),
+						},
+					],
 				})
 			} else if (getCurrentSearchMode() === "calendar") {
 				const selectedEvent = this.searchViewModel.getSelectedEvents()[0]
-				return m(BasicMobileActionBar, {
-					editAction: (ev: MouseEvent, receiver: HTMLElement) =>
-						this.getSanitizedPreviewData(selectedEvent)
-							.getAsync()
-							.then((previewModel) => handleEventEditButtonClick(previewModel, ev, receiver)),
-					deleteAction: (ev: MouseEvent, receiver: HTMLElement) =>
-						this.getSanitizedPreviewData(selectedEvent)
-							.getAsync()
-							.then((previewModel) => handleEventDeleteButtonClick(previewModel, ev, receiver)),
-				})
+				if (!selectedEvent) {
+					this.viewSlider.focus(this.resultListColumn)
+					return m(MobileActionBar, { actions: [] })
+				}
+				const previewModel = this.getSanitizedPreviewData(selectedEvent).getSync()
+				const actions: Array<MobileActionAttrs> = []
+				if (previewModel) {
+					if (previewModel.canSendUpdates) {
+						actions.push({
+							icon: BootIcons.Mail,
+							title: "sendUpdates_label",
+							action: () => handleSendUpdatesClick(previewModel),
+						})
+					}
+					if (previewModel.canEdit) {
+						actions.push({
+							icon: Icons.Edit,
+							title: "edit_action",
+							action: (ev: MouseEvent, receiver: HTMLElement) => handleEventEditButtonClick(previewModel, ev, receiver),
+						})
+					}
+					if (previewModel.canDelete) {
+						actions.push({
+							icon: Icons.Trash,
+							title: "delete_action",
+							action: (ev: MouseEvent, receiver: HTMLElement) => handleEventDeleteButtonClick(previewModel, ev, receiver),
+						})
+					}
+				} else {
+					this.getSanitizedPreviewData(selectedEvent).load()
+				}
+				return m(MobileActionBar, { actions })
 			}
 		} else if (isInMultiselect) {
 			if (getCurrentSearchMode() === "mail") {
@@ -535,6 +600,8 @@ export class SearchView extends BaseTopLevelView implements TopLevelView<SearchV
 				)
 			}
 		}
+
+		return m(BottomNav)
 	}
 
 	private searchBarPlaceholder() {
@@ -627,29 +694,36 @@ export class SearchView extends BaseTopLevelView implements TopLevelView<SearchV
 
 	private renderHeaderRightView(): Children {
 		const restriction = this.searchViewModel.getRestriction()
-		return styles.isUsingBottomNavigation()
-			? isSameTypeRef(restriction.type, MailTypeRef) && isNewMailActionAvailable()
-				? m(IconButton, {
-						click: () => {
-							newMailEditor()
-								.then((editor) => editor.show())
-								.catch(ofClass(PermissionError, noOp))
-						},
-						title: "newMail_action",
-						icon: Icons.PencilSquare,
-				  })
-				: isSameTypeRef(restriction.type, ContactTypeRef)
-				? m(IconButton, {
-						click: () => {
-							locator.contactModel.getContactListId().then((contactListId) => {
-								new ContactEditor(locator.entityClient, null, assertNotNull(contactListId)).show()
-							})
-						},
-						title: "newContact_action",
-						icon: Icons.Add,
-				  })
-				: null
-			: null
+
+		if (styles.isUsingBottomNavigation()) {
+			if (isSameTypeRef(restriction.type, MailTypeRef) && isNewMailActionAvailable()) {
+				return m(IconButton, {
+					click: () => {
+						newMailEditor()
+							.then((editor) => editor.show())
+							.catch(ofClass(PermissionError, noOp))
+					},
+					title: "newMail_action",
+					icon: Icons.PencilSquare,
+				})
+			} else if (isSameTypeRef(restriction.type, ContactTypeRef)) {
+				return m(IconButton, {
+					click: () => {
+						locator.contactModel.getContactListId().then((contactListId) => {
+							new ContactEditor(locator.entityClient, null, assertNotNull(contactListId)).show()
+						})
+					},
+					title: "newContact_action",
+					icon: Icons.Add,
+				})
+			} else if (isSameTypeRef(restriction.type, CalendarEventTypeRef)) {
+				return m(IconButton, {
+					click: () => this.createNewEventDialog(),
+					title: "newEvent_action",
+					icon: Icons.Add,
+				})
+			}
+		}
 	}
 
 	private renderMailTimeRangeField(): Children {
