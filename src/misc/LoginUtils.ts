@@ -24,7 +24,7 @@ import {
 	NewBusinessPlans,
 	NewPaidPlans,
 	NewPersonalPlans,
-	PlanType,
+	SubscriptionType,
 } from "../api/common/TutanotaConstants"
 import type { ResetAction } from "../login/recover/RecoverLoginDialog"
 import { showProgressDialog } from "../gui/dialogs/ProgressDialog"
@@ -202,69 +202,34 @@ export async function showSignupDialog(urlParams: Params) {
 
 function getAvailablePlansFromSubscriptionParameters(params: SubscriptionParameters | null): AvailablePlanType[] {
 	// Default to all available plans if the params do not have the needed information
-	if (params == null || (params.subscription == null && params.type == null)) return AvailablePlans
+	if (params == null || params.type == null) return AvailablePlans
 
-	const isTypePersonal = params.type === "private"
-	const isTypeBusiness = params.type === "business"
-
-	// If no specific plan is selected via the route parameters, return all the plans within the type
-	if (params.subscription == null) {
-		if (isTypePersonal) return NewPersonalPlans
-		if (isTypeBusiness) return NewBusinessPlans
-		return AvailablePlans
-	}
-
-	const paidPersonalPlans = [PlanType.Revolutionary, PlanType.Legend] as AvailablePlanType[]
 	try {
-		const subscription = stringToPlanName(params.subscription) as AvailablePlanType
-		const isPersonalPlan = isTypePersonal || NewPersonalPlans.includes(subscription)
-		const isBusinessPlan = isTypeBusiness || NewBusinessPlans.includes(subscription)
-
-		// Return the paid plans of the same plan type as subscription
-		if (isPersonalPlan) {
-			const isPaidPlan = NewPaidPlans.includes(subscription)
-			if (isPaidPlan) return paidPersonalPlans
-			return [PlanType.Free]
-		} else if (isBusinessPlan) {
-			// All business plans are paid, so no need to check whether subscription is
-			return NewBusinessPlans
-		} else {
-			return AvailablePlans
+		const type = stringToSubscriptionType(params.type)
+		switch (type) {
+			case SubscriptionType.Business:
+				return NewBusinessPlans
+			case SubscriptionType.Personal:
+				return NewPersonalPlans
+			case SubscriptionType.PaidPersonal:
+				return NewPaidPlans.filter((paidPlan) => NewPersonalPlans.includes(paidPlan))
 		}
 	} catch (e) {
-		// Catch if params.subscriptions is not the name of a plan
-		if (isTypePersonal) return paidPersonalPlans
-		if (isTypeBusiness) return NewBusinessPlans
+		// If params.type is not a valid subscription type, return the default value
 		return AvailablePlans
 	}
 }
 
-function stringToPlanName(string: string): PlanType {
+export function stringToSubscriptionType(string: string): SubscriptionType {
 	switch (string.toLowerCase()) {
-		case "premium":
-			return PlanType.Premium
-		case "pro":
-			return PlanType.Pro
-		case "teams":
-			return PlanType.Teams
-		case "premiumbusiness":
-			return PlanType.PremiumBusiness
-		case "teamsbusiness":
-			return PlanType.TeamsBusiness
-		case "revolutionary":
-			return PlanType.Revolutionary
-		case "legend":
-			return PlanType.Legend
-		case "essential":
-			return PlanType.Essential
-		case "advanced":
-			return PlanType.Advanced
-		case "unlimited":
-			return PlanType.Unlimited
-		case "free":
-			return PlanType.Free
+		case "business":
+			return SubscriptionType.Business
+		case "private":
+			return SubscriptionType.Personal
+		case "privatepaid":
+			return SubscriptionType.PaidPersonal
 		default:
-			throw new Error(`Failed to find PlanType for ${string}`)
+			throw new Error(`Failed to get subscription type: ${string}`)
 	}
 }
 
@@ -274,7 +239,7 @@ function getSubscriptionParameters(hashParams: Params): SubscriptionParameters |
 	const isTypeString = typeof type === "string"
 	const isIntervalString = typeof interval === "string"
 
-	if (isSubscriptionString && isTypeString && isIntervalString) return null
+	if (!isSubscriptionString && !isTypeString && !isIntervalString) return null
 
 	return {
 		subscription: isSubscriptionString ? subscription : null,
