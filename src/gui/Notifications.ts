@@ -1,7 +1,7 @@
 import { noOp } from "@tutao/tutanota-utils"
 import { isApp, isDesktop } from "../api/common/Env"
 import { NotificationIcon } from "./base/icons/Icons"
-import type { clickHandler } from "./base/GuiUtils"
+import type { ClickHandler } from "./base/GuiUtils"
 
 export class Notifications {
 	showNotification(title: string, options?: NotificationOptions, onclick: Notification["onclick"] = noOp): Notification | null {

@@ -3,13 +3,13 @@ import type { TranslationText } from "../../../misc/LanguageViewModel"
 import { lang } from "../../../misc/LanguageViewModel"
 import { addFlash, removeFlash } from "../Flash"
 import { assertNotNull } from "@tutao/tutanota-utils"
-import type { clickHandler } from "../GuiUtils"
+import type { ClickHandler } from "../GuiUtils"
 import { theme } from "../../theme.js"
 import { px, size } from "../../size.js"
 
 export interface FolderColumnHeaderButtonAttrs {
 	label: TranslationText
-	click: clickHandler
+	click: ClickHandler
 }
 
 export class FolderColumnHeaderButton implements Component<FolderColumnHeaderButtonAttrs> {

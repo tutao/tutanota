@@ -7,7 +7,7 @@ import { lang } from "../../misc/LanguageViewModel"
 import type { lazy } from "@tutao/tutanota-utils"
 import type { keyHandler } from "../../misc/KeyManager"
 import { TabIndex } from "../../api/common/TutanotaConstants"
-import type { clickHandler } from "./GuiUtils"
+import type { ClickHandler } from "./GuiUtils"
 
 export type TextFieldAttrs = {
 	id?: string
@@ -29,7 +29,7 @@ export type TextFieldAttrs = {
 	class?: string
 	disabled?: boolean
 	oninput?: (value: string, input: HTMLInputElement) => unknown
-	onclick?: clickHandler
+	onclick?: ClickHandler
 	doShowBorder?: boolean | null
 	fontSize?: string
 	min?: number

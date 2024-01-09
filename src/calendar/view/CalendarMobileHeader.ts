@@ -14,7 +14,7 @@ import { lang, TranslationKey } from "../../misc/LanguageViewModel.js"
 import { styles } from "../../gui/styles.js"
 import { Icon } from "../../gui/base/Icon.js"
 import { theme } from "../../gui/theme.js"
-import { clickHandler } from "../../gui/base/GuiUtils.js"
+import { ClickHandler } from "../../gui/base/GuiUtils.js"
 import { assertNotNull, memoized } from "@tutao/tutanota-utils"
 
 export interface CalendarMobileHeaderAttrs extends AppHeaderAttrs {
@@ -24,7 +24,7 @@ export interface CalendarMobileHeaderAttrs extends AppHeaderAttrs {
 	onCreateEvent: () => unknown
 	onToday: () => unknown
 	onViewTypeSelected: (viewType: CalendarViewType) => unknown
-	onTap?: clickHandler
+	onTap?: ClickHandler
 	showExpandIcon: boolean
 	isDaySelectorExpanded: boolean
 }
@@ -123,7 +123,7 @@ export class CalendarMobileHeader implements Component<CalendarMobileHeaderAttrs
 }
 
 export interface TodayIconButtonAttrs {
-	click: clickHandler
+	click: ClickHandler
 }
 
 /**

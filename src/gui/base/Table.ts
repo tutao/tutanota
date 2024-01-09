@@ -6,7 +6,7 @@ import type { lazy } from "@tutao/tutanota-utils"
 import { downcast, neverNull } from "@tutao/tutanota-utils"
 import { createDropdown, DropdownButtonAttrs } from "./Dropdown.js"
 import { Icons } from "./icons/Icons"
-import type { clickHandler } from "./GuiUtils"
+import type { ClickHandler } from "./GuiUtils"
 import { assertMainOrNode } from "../../api/common/Env"
 import { IconButton, IconButtonAttrs } from "./IconButton.js"
 import { ButtonSize } from "./ButtonSize.js"
@@ -41,7 +41,7 @@ export type TableAttrs = {
 export type CellTextData = {
 	main: string
 	info?: string[]
-	click?: clickHandler
+	click?: ClickHandler
 	mainStyle?: string
 }
 export type TableLineAttrs = {
