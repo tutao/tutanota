@@ -38,7 +38,7 @@ import { BaseTopLevelView } from "../../gui/BaseTopLevelView.js"
 import { TopLevelAttrs, TopLevelView } from "../../TopLevelView.js"
 import { stateBgHover } from "../../gui/builtinThemes.js"
 import { ContactCardViewer } from "./ContactCardViewer.js"
-import { MobileContactActionBar } from "./MobileContactActionBar.js"
+import { BasicMobileActionBar } from "./BasicMobileActionBar.js"
 import { appendEmailSignature } from "../../mail/signature/Signature.js"
 import { PartialRecipient } from "../../api/common/recipients/Recipient.js"
 import { newMailEditorFromTemplate } from "../../mail/editor/MailEditor.js"
@@ -311,10 +311,10 @@ export class ContactView extends BaseTopLevelView implements TopLevelView<Contac
 				bottomNav:
 					styles.isSingleColumnLayout() && this.viewSlider.focusedColumn === this.detailsColumn && !this.showingListView()
 						? this.inContactListView()
-							? m(MobileContactActionBar, {
+							? m(BasicMobileActionBar, {
 									deleteAction: this.canEditSelectedContactList() ? () => this.contactListViewModel.deleteSelectedEntries() : undefined,
 							  })
-							: m(MobileContactActionBar, {
+							: m(BasicMobileActionBar, {
 									editAction: () => this.editSelectedContact(),
 									deleteAction: () => this.deleteSelectedContacts(),
 							  })
