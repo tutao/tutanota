@@ -1612,6 +1612,8 @@ export default {
 		"yourFolders_action": "YOUR FOLDERS",
 		"yourMessage_label": "Your message",
 		"you_label": "You",
-		"includeRepeatingEvents_action": "Show event series"
+		"includeRepeatingEvents_action": "Show event series",
+		"includesFuture_msg": "This search range includes dates that are in the future",
+		"longSearchRange_msg": "This time range is very long, the search might take a while to generate a result."
 	}
 }

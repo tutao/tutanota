@@ -1598,3 +1598,5 @@ export type TranslationKeyType =
 	| "you_label"
 	| "emptyString_msg"
 	| "includeRepeatingEvents_action"
+	| "includesFuture_msg"
+	| "longSearchRange_msg"
