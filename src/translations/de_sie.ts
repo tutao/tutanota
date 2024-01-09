@@ -1620,6 +1620,8 @@ export default {
 		"yourFolders_action": "Ihre ORDNER",
 		"yourMessage_label": "Ihre Nachricht",
 		"you_label": "Sie",
-		"includeRepeatingEvents_action": "Zeige Terminserien"
+		"includeRepeatingEvents_action": "Zeige Terminserien",
+		"includesFuture_msg": "Dieser Zeitraum erstreckt sich in die Zukunft",
+		"longSearchRange_msg": "Dieser Zeitraum ist sehr lang, es könnte länger dauern bis ein Ergebnis verfügbar ist"
 	}
 }
