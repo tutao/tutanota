@@ -40,7 +40,7 @@ import { getGroupInfoDisplayName } from "../../api/common/utils/GroupUtils"
 import { isNewMailActionAvailable } from "../../gui/nav/NavFunctions"
 import { TextField } from "../../gui/base/TextField.js"
 import { SidebarSection } from "../../gui/SidebarSection"
-import type { clickHandler } from "../../gui/base/GuiUtils"
+import type { ClickHandler } from "../../gui/base/GuiUtils"
 import { DropDownSelector, DropDownSelectorAttrs, SelectorItem } from "../../gui/base/DropDownSelector.js"
 import { IconButton } from "../../gui/base/IconButton.js"
 import { ButtonSize } from "../../gui/base/ButtonSize.js"
@@ -846,7 +846,7 @@ export class SearchView extends BaseTopLevelView implements TopLevelView<SearchV
 	private getMainButton(typeRef: TypeRef<unknown>): {
 		type: ButtonType
 		label: TranslationKey
-		click: clickHandler
+		click: ClickHandler
 	} | null {
 		if (styles.isUsingBottomNavigation()) {
 			return null

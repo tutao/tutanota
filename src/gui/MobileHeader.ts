@@ -12,7 +12,7 @@ import { CounterBadge } from "./base/CounterBadge.js"
 import { px } from "./size.js"
 import { theme } from "./theme.js"
 import { NewsModel } from "../misc/news/NewsModel.js"
-import { clickHandler } from "./base/GuiUtils.js"
+import { ClickHandler } from "./base/GuiUtils.js"
 
 export interface MobileHeaderAttrs extends AppHeaderAttrs {
 	columnType: "first" | "other"
@@ -68,7 +68,7 @@ export class MobileHeader implements Component<MobileHeaderAttrs> {
 	}
 }
 
-export const MobileHeaderTitle = pureComponent(({ title, bottom, onTap }: { title?: string | Children; bottom: Children; onTap?: clickHandler }) => {
+export const MobileHeaderTitle = pureComponent(({ title, bottom, onTap }: { title?: string | Children; bottom: Children; onTap?: ClickHandler }) => {
 	// normally min-width: is 0 but inside flex it's auto and we need to teach it how to shrink
 	// align-self: stretch restrict the child to the parent width
 	// text-ellipsis already sets min-width to 0
