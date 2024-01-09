@@ -100,7 +100,7 @@
 		"prettier": "2.8.1",
 		"rollup": "4.9.4",
 		"testdouble": "3.18.0",
-		"typescript": "5.0.4",
+		"typescript": "5.3.3",
 		"xhr2": "0.2.1",
 		"zx": "7.0.7"
 	},

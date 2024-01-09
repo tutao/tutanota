@@ -461,10 +461,10 @@ export function union<T>(...iterables: Array<Iterable<T>>): Set<T> {
  * @template T
  * @param array1
  * @param array2
- * @param compare: compare items in the array for equality
+ * @param compare {(l: T, r: T) => boolean} compare items in the array for equality
  * @returns {Array<T>}
  */
-export function difference<T>(array1: ReadonlyArray<T>, array2: ReadonlyArray<T>, compare: (arg0: T, arg1: T) => boolean = (a, b) => a === b): Array<T> {
+export function difference<T>(array1: ReadonlyArray<T>, array2: ReadonlyArray<T>, compare: (l: T, r: T) => boolean = (a, b) => a === b): Array<T> {
 	return array1.filter((element1) => !array2.some((element2) => compare(element1, element2)))
 }
 
@@ -492,24 +492,24 @@ export function symmetricDifference<T>(set1: ReadonlySet<T>, set2: ReadonlySet<T
 }
 
 /**
- * type that is Then when T and U are mutually assignable and Else otherwise.
- * in some cases, this still fails (for example if T and/or U are intersections of function types)
- * https://github.com/Microsoft/TypeScript/issues/27024#issuecomment-421529650
- */
-type IfEquals<T, U, Then, Else> = (<G>() => G extends T ? 1 : 2) extends <G>() => G extends U ? 1 : 2 ? Then : Else
-
-/**
  * Splits an array into two based on a predicate, where elements that match the predicate go into the left side.
- * also acts as a type guard if TL and TR are not equal in the sense of IfEquals
- * @param array
- * @param predicate
+ *
+ * This exists in two overloads:
+ *  - one that requires a type guard. Specifically, if an item is A | B and type guard is "item is A" it returns [Array<A>, Array<B>]
+ *  - one that takes a plain predicate and returns two arrays of the same type, without type narrowing
+ *
+ * Please note that tsc cannot infer that a function is a type predicate/type guard. Declaring function as a type predicate is also unsafe.
+ * see: https://github.com/microsoft/TypeScript/issues/16069
  */
-export function partition<TL, TR = TL>(
-	array: ReadonlyArray<TL | TR>,
-	predicate: IfEquals<TL, TR, (arg0: TL | TR) => boolean, (arg0: TL | TR) => arg0 is TL>,
-): [Array<TL>, Array<TR>] {
-	const left: Array<TL> = []
-	const right: Array<TR> = []
+export function partition<Generic, Specific extends Generic>(
+	array: ReadonlyArray<Generic>,
+	predicate: (item: Generic) => item is Specific,
+): [Array<Specific>, Array<Exclude<Generic, Specific>>]
+export function partition<TL>(array: ReadonlyArray<TL>, predicate: (item: TL) => boolean): [Array<TL>, Array<TL>]
+// this is an implementation signature and is not visible from the outside
+export function partition<T>(array: ReadonlyArray<T>, predicate: any): [Array<T>, Array<T>] {
+	const left: Array<T> = []
+	const right: Array<T> = []
 
 	for (let item of array) {
 		if (predicate(item)) {
@@ -523,15 +523,22 @@ export function partition<TL, TR = TL>(
 }
 
 /**
- * like partition(), but async and only for TL = TR
- * rejects if any of the predicates reject.
- * @param array
- * @param predicate
+ * Like {@link partition}, but async and only for TL = TR.
+ * Rejects if any of the predicates reject.
  */
-export async function partitionAsync<T>(array: Array<T>, predicate: (arg0: T) => Promise<boolean>): Promise<[Array<T>, Array<T>]> {
-	const mask: Array<boolean> = await Promise.all(array.map(predicate))
-	const [left, right] = partition(zip(mask, array), (item) => item[0])
-	return [left.map((i) => i[1]), right.map((i) => i[1])]
+export async function partitionAsync<T>(array: Array<T>, predicate: (item: T) => Promise<boolean>): Promise<[Array<T>, Array<T>]> {
+	const left: Array<T> = []
+	const right: Array<T> = []
+
+	for (let item of array) {
+		if (await predicate(item)) {
+			left.push(item)
+		} else {
+			right.push(item)
+		}
+	}
+
+	return [left, right]
 }
 
 /**
