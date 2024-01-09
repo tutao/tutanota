@@ -1,7 +1,20 @@
 import Foundation
 
-public struct DataWrapper {
-  let data: Data
+public class DataWrapper {
+  var data: Data
+
+  enum CodingKeys: String, CodingKey {
+    case data
+    case marker
+  }
+
+  public required init(from decoder: Decoder) throws {
+    self.data = try decoder.container(keyedBy: Self.CodingKeys).decode(Data.self, forKey: .data)
+  }
+
+  public init(data: Data) {
+    self.data = data
+  }
 }
 
 extension DataWrapper: Codable {
@@ -9,15 +22,6 @@ extension DataWrapper: Codable {
     var container = encoder.container(keyedBy: Self.CodingKeys)
     try container.encode(self.data, forKey: .data)
     try container.encode("__bytes", forKey: .marker)
-  }
-  
-  public init(from decoder: Decoder) throws {
-    self.data = try decoder.container(keyedBy: Self.CodingKeys).decode(Data.self, forKey: .data)
-  }
-  
-  enum CodingKeys: String, CodingKey {
-      case data
-      case marker
   }
 }
 
