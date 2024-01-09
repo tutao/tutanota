@@ -49,7 +49,6 @@ import { DrawerMenuAttrs } from "../../gui/nav/DrawerMenu.js"
 import { BaseTopLevelView } from "../../gui/BaseTopLevelView.js"
 import { TopLevelAttrs, TopLevelView } from "../../TopLevelView.js"
 import { getEventWithDefaultTimes } from "../../api/common/utils/CommonCalendarUtils.js"
-import { buildEventPreviewModel } from "../gui/eventpopup/CalendarEventPreviewViewModel.js"
 import { BackgroundColumnLayout } from "../../gui/BackgroundColumnLayout.js"
 import { theme } from "../../gui/theme.js"
 import { CalendarMobileHeader } from "./CalendarMobileHeader.js"
@@ -756,7 +755,7 @@ export class CalendarView extends BaseTopLevelView implements TopLevelView<Calen
 		}
 
 		const calendars = await this.viewModel.getCalendarInfosCreateIfNeeded()
-		const [popupModel, htmlSanitizer] = await Promise.all([buildEventPreviewModel(selectedEvent, calendars), htmlSanitizerPromise])
+		const [popupModel, htmlSanitizer] = await Promise.all([locator.calendarEventPreviewModel(selectedEvent, calendars), htmlSanitizerPromise])
 
 		new CalendarEventPopup(popupModel, rect, htmlSanitizer).show()
 	}
