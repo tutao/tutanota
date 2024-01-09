@@ -434,20 +434,7 @@ export class SearchView extends BaseTopLevelView implements TopLevelView<SearchV
 						  })
 						: !this.getSanitizedPreviewData(selectedEvent).isLoaded()
 						? null
-						: m(
-								".border-radius-big.flex.col.flex-grow.content-bg",
-								{
-									class: styles.isDesktopLayout() ? "mlr-l" : "mlr",
-									style: {
-										"min-width": styles.isDesktopLayout() ? px(size.third_col_min_width) : null,
-										"max-width": styles.isDesktopLayout() ? px(size.third_col_max_width) : null,
-										height: "max-content",
-									},
-								},
-								m(EventDetailsView, {
-									eventPreviewModel: assertNotNull(this.getSanitizedPreviewData(selectedEvent).getSync()),
-								} satisfies EventDetailsViewAttrs),
-						  ),
+						: this.renderEventDetails(selectedEvent),
 			})
 		} else {
 			return m(
@@ -464,6 +451,25 @@ export class SearchView extends BaseTopLevelView implements TopLevelView<SearchV
 				),
 			)
 		}
+	}
+
+	private renderEventDetails(selectedEvent: CalendarEvent) {
+		return m(
+			".height-100p.overflow-y-scroll.mb-l.fill-absolute.pb-l",
+			m(
+				".border-radius-big.flex.col.flex-grow.content-bg",
+				{
+					class: styles.isDesktopLayout() ? "mlr-l" : "mlr",
+					style: {
+						"min-width": styles.isDesktopLayout() ? px(size.third_col_min_width) : null,
+						"max-width": styles.isDesktopLayout() ? px(size.third_col_max_width) : null,
+					},
+				},
+				m(EventDetailsView, {
+					eventPreviewModel: assertNotNull(this.getSanitizedPreviewData(selectedEvent).getSync()),
+				} satisfies EventDetailsViewAttrs),
+			),
+		)
 	}
 
 	view({ attrs }: Vnode<SearchViewAttrs>): Children {
