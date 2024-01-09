@@ -214,6 +214,12 @@ export const HighlightedPlans: AvailablePlanType[] = [PlanType.Revolutionary, Pl
 
 export const PlanTypeToName = reverse(PlanType)
 
+export enum SubscriptionType {
+	Personal,
+	Business,
+	PaidPersonal,
+}
+
 export enum BookingItemFeatureType {
 	LegacyUsers = "0",
 	Storage = "1",

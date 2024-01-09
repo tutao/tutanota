@@ -11,13 +11,14 @@ import { Dialog, DialogType } from "../gui/base/Dialog"
 import type { WizardPageAttrs, WizardPageN } from "../gui/base/WizardDialog.js"
 import { emitWizardEvent, WizardEventType } from "../gui/base/WizardDialog.js"
 import { DefaultAnimationTime } from "../gui/animation/Animations"
-import { Keys, PlanType } from "../api/common/TutanotaConstants"
+import { Keys, PlanType, SubscriptionType } from "../api/common/TutanotaConstants"
 import { Checkbox } from "../gui/base/Checkbox.js"
 import { locator } from "../api/main/MainLocator"
 import { UsageTest } from "@tutao/tutanota-usagetests"
 import { UpgradePriceType } from "./FeatureListProvider"
 import { asPaymentInterval, PaymentInterval } from "./PriceUtils.js"
 import { lazy } from "@tutao/tutanota-utils"
+import { stringToSubscriptionType } from "../misc/LoginUtils.js"
 
 /** Subscription type passed from the website */
 export const PlanTypeParameter = Object.freeze({
@@ -126,7 +127,14 @@ export class UpgradeSubscriptionPage implements WizardPageN<UpgradeSubscriptionD
 	}
 
 	goToNextPageWithPreselectedSubscription(subscriptionParameters: SubscriptionParameters, data: UpgradeSubscriptionData): void {
-		if (subscriptionParameters.type === "private") {
+		let subscriptionType: SubscriptionType | null
+		try {
+			subscriptionType = subscriptionParameters.type == null ? null : stringToSubscriptionType(subscriptionParameters.type)
+		} catch (e) {
+			subscriptionType = null
+		}
+
+		if (subscriptionType === SubscriptionType.Personal || subscriptionType === SubscriptionType.PaidPersonal) {
 			// we have to individually change the data so that when returning we show the chose subscription type (private/business) | false = private, true = business
 			data.options.businessUse(false)
 
@@ -147,7 +155,7 @@ export class UpgradeSubscriptionPage implements WizardPageN<UpgradeSubscriptionD
 					console.log("Unknown subscription passed: ", subscriptionParameters)
 					break
 			}
-		} else if (subscriptionParameters.type === "business") {
+		} else if (subscriptionType === SubscriptionType.Business) {
 			data.options.businessUse(true)
 
 			switch (subscriptionParameters.subscription) {
