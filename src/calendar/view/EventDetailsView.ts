@@ -43,7 +43,7 @@ export class EventDetailsView implements Component<EventDetailsViewAttrs> {
 			title: "edit_action",
 			icon: Icons.Edit,
 			colors: ButtonColor.DrawerNav,
-			click: (event, dom) => this.handleEditButtonClick(event, dom),
+			click: (event, dom) => handleEventEditButtonClick(this.model, event, dom),
 		})
 	}
 
@@ -53,7 +53,7 @@ export class EventDetailsView implements Component<EventDetailsViewAttrs> {
 			title: "delete_action",
 			icon: Icons.Trash,
 			colors: ButtonColor.DrawerNav,
-			click: (event, dom) => this.handleDeleteButtonClick(event, dom),
+			click: (event, dom) => handleEventDeleteButtonClick(this.model, event, dom),
 		})
 	}
 
@@ -129,4 +129,61 @@ export class EventDetailsView implements Component<EventDetailsViewAttrs> {
 		if (!(await Dialog.confirm("deleteEventConfirmation_msg"))) return
 		await this.model?.deleteAll()
 	}
+}
+
+export function handleEventEditButtonClick(previewModel: CalendarEventPreviewViewModel | null, ev: MouseEvent, receiver: HTMLElement) {
+	if (previewModel?.isRepeatingForEditing) {
+		createAsyncDropdown({
+			lazyButtons: () =>
+				Promise.resolve([
+					{
+						label: "updateOneCalendarEvent_action",
+						click: () => {
+							// noinspection JSIgnoredPromiseFromCall
+							previewModel?.editSingle()
+						},
+					},
+					{
+						label: "updateAllCalendarEvents_action",
+						click: () => {
+							// noinspection JSIgnoredPromiseFromCall
+							previewModel?.editAll()
+						},
+					},
+				]),
+			width: 300,
+		})(ev, receiver)
+	} else {
+		// noinspection JSIgnoredPromiseFromCall
+		previewModel?.editAll()
+	}
+}
+
+export async function handleEventDeleteButtonClick(previewModel: CalendarEventPreviewViewModel | null, ev: MouseEvent, receiver: HTMLElement) {
+	if (await previewModel?.isRepeatingForDeleting()) {
+		createAsyncDropdown({
+			lazyButtons: () =>
+				Promise.resolve([
+					{
+						label: "deleteSingleEventRecurrence_action",
+						click: async () => {
+							await previewModel?.deleteSingle()
+						},
+					},
+					{
+						label: "deleteAllEventRecurrence_action",
+						click: () => confirmDeleteClose(previewModel),
+					},
+				]),
+			width: 300,
+		})(ev, receiver)
+	} else {
+		// noinspection JSIgnoredPromiseFromCall, ES6MissingAwait
+		confirmDeleteClose(previewModel)
+	}
+}
+
+async function confirmDeleteClose(previewModel: CalendarEventPreviewViewModel | null): Promise<void> {
+	if (!(await Dialog.confirm("deleteEventConfirmation_msg"))) return
+	await previewModel?.deleteAll()
 }
