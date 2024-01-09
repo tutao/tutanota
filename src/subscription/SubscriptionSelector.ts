@@ -94,8 +94,9 @@ export class SubscriptionSelector implements Component<SubscriptionSelectorAttr>
 		const signup = currentPlan == null
 
 		const onlyBusinessPlansAccepted = acceptedPlans.every((plan) => NewBusinessPlans.includes(plan))
-		// show the business segmentControl for signup, if on a personal plan or if also personal plans are accepted
-		let showBusinessSelector = signup || NewPersonalPlans.includes(downcast(currentPlan)) || !onlyBusinessPlansAccepted
+		const onlyPersonalPlansAccepted = acceptedPlans.every((plan) => NewPersonalPlans.includes(plan))
+		// Show the business segmentControl for signup, if both personal & business plans are allowed
+		const showBusinessSelector = !onlyBusinessPlansAccepted && !onlyPersonalPlansAccepted
 
 		let subscriptionPeriodInfoMsg = !signup && currentPlan !== PlanType.Free ? lang.get("switchSubscriptionInfo_msg") + " " : ""
 		if (vnode.attrs.options.businessUse()) {
@@ -116,7 +117,6 @@ export class SubscriptionSelector implements Component<SubscriptionSelectorAttr>
 				featureExpander.All, // global feature expander
 				m(".smaller.mb.center", subscriptionPeriodInfoMsg),
 			])
-			showBusinessSelector = true
 		}
 		const buyBoxesViewPlacement = plans
 			.filter((plan) => acceptedPlans.includes(plan) || vnode.attrs.currentPlanType === plan)

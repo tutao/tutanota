@@ -31,9 +31,9 @@ import { LoginController } from "../api/main/LoginController.js"
 
 assertMainOrNode()
 export type SubscriptionParameters = {
-	subscription: string
-	type: string
-	interval: string // typed as string because m.parseQueryString returns an object with strings
+	subscription: string | null
+	type: string | null
+	interval: string | null // typed as string because m.parseQueryString returns an object with strings
 }
 
 export type NewAccountData = {
@@ -124,6 +124,7 @@ export async function loadSignupWizard(
 	subscriptionParameters: SubscriptionParameters | null,
 	registrationDataId: string | null,
 	referralCode: string | null,
+	acceptedPlans: AvailablePlanType[] = AvailablePlans,
 ): Promise<void> {
 	const usageTestModel = locator.usageTestModel
 
@@ -164,7 +165,7 @@ export async function loadSignupWizard(
 		featureListProvider: featureListProvider,
 		referralCode,
 		multipleUsersAllowed: false,
-		acceptedPlans: AvailablePlans,
+		acceptedPlans,
 		msg: null,
 	}
 

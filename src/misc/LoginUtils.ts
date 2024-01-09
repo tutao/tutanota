@@ -15,7 +15,17 @@ import {
 	TooManyRequestsError,
 } from "../api/common/error/RestError"
 import { CancelledError } from "../api/common/error/CancelledError"
-import { ApprovalStatus, getCustomerApprovalStatus, KdfType } from "../api/common/TutanotaConstants"
+import {
+	ApprovalStatus,
+	AvailablePlans,
+	AvailablePlanType,
+	getCustomerApprovalStatus,
+	KdfType,
+	NewBusinessPlans,
+	NewPaidPlans,
+	NewPersonalPlans,
+	PlanType,
+} from "../api/common/TutanotaConstants"
 import type { ResetAction } from "../login/recover/RecoverLoginDialog"
 import { showProgressDialog } from "../gui/dialogs/ProgressDialog"
 import { UserError } from "../api/main/UserError"
@@ -172,11 +182,12 @@ export async function showSignupDialog(urlParams: Params) {
 	const subscriptionParams = getSubscriptionParameters(urlParams)
 	const registrationDataId = getRegistrationDataIdFromParams(urlParams)
 	const referralCode = getReferralCodeFromParams(urlParams)
+	const availablePlans = getAvailablePlansFromSubscriptionParameters(subscriptionParams)
 	await showProgressDialog(
 		"loading_msg",
 		locator.worker.initialized.then(async () => {
 			const { loadSignupWizard } = await import("../subscription/UpgradeSubscriptionWizard")
-			await loadSignupWizard(subscriptionParams, registrationDataId, referralCode)
+			await loadSignupWizard(subscriptionParams, registrationDataId, referralCode, availablePlans)
 		}),
 	).catch(
 		ofClass(UserError, async (e) => {
@@ -188,16 +199,86 @@ export async function showSignupDialog(urlParams: Params) {
 	)
 }
 
-function getSubscriptionParameters(hashParams: Params): SubscriptionParameters | null {
-	if (typeof hashParams.subscription === "string" && typeof hashParams.type === "string" && typeof hashParams.interval === "string") {
-		const { subscription, type, interval } = hashParams
-		return {
-			subscription,
-			type,
-			interval,
+function getAvailablePlansFromSubscriptionParameters(params: SubscriptionParameters | null): AvailablePlanType[] {
+	// Default to all available plans if the params do not have the needed information
+	if (params == null || (params.subscription == null && params.type == null)) return AvailablePlans
+
+	const isTypePersonal = params.type === "private"
+	const isTypeBusiness = params.type === "business"
+
+	// If no specific plan is selected via the route parameters, return all the plans within the type
+	if (params.subscription == null) {
+		if (isTypePersonal) return NewPersonalPlans
+		if (isTypeBusiness) return NewBusinessPlans
+		return AvailablePlans
+	}
+
+	const paidPersonalPlans = [PlanType.Revolutionary, PlanType.Legend] as AvailablePlanType[]
+	try {
+		const subscription = stringToPlanName(params.subscription) as AvailablePlanType
+		const isPersonalPlan = isTypePersonal || NewPersonalPlans.includes(subscription)
+		const isBusinessPlan = isTypeBusiness || NewBusinessPlans.includes(subscription)
+
+		// Return the paid plans of the same plan type as subscription
+		if (isPersonalPlan) {
+			const isPaidPlan = NewPaidPlans.includes(subscription)
+			if (isPaidPlan) return paidPersonalPlans
+			return [PlanType.Free]
+		} else if (isBusinessPlan) {
+			// All business plans are paid, so no need to check whether subscription is
+			return NewBusinessPlans
+		} else {
+			return AvailablePlans
 		}
-	} else {
-		return null
+	} catch (e) {
+		// Catch if params.subscriptions is not the name of a plan
+		if (isTypePersonal) return paidPersonalPlans
+		if (isTypeBusiness) return NewBusinessPlans
+		return AvailablePlans
+	}
+}
+
+function stringToPlanName(string: string): PlanType {
+	switch (string.toLowerCase()) {
+		case "premium":
+			return PlanType.Premium
+		case "pro":
+			return PlanType.Pro
+		case "teams":
+			return PlanType.Teams
+		case "premiumbusiness":
+			return PlanType.PremiumBusiness
+		case "teamsbusiness":
+			return PlanType.TeamsBusiness
+		case "revolutionary":
+			return PlanType.Revolutionary
+		case "legend":
+			return PlanType.Legend
+		case "essential":
+			return PlanType.Essential
+		case "advanced":
+			return PlanType.Advanced
+		case "unlimited":
+			return PlanType.Unlimited
+		case "free":
+			return PlanType.Free
+		default:
+			throw new Error(`Failed to find PlanType for ${string}`)
+	}
+}
+
+function getSubscriptionParameters(hashParams: Params): SubscriptionParameters | null {
+	const { subscription, type, interval } = hashParams
+	const isSubscriptionString = typeof subscription === "string"
+	const isTypeString = typeof type === "string"
+	const isIntervalString = typeof interval === "string"
+
+	if (isSubscriptionString && isTypeString && isIntervalString) return null
+
+	return {
+		subscription: isSubscriptionString ? subscription : null,
+		type: isTypeString ? type : null,
+		interval: isIntervalString ? interval : null,
 	}
 }
 
