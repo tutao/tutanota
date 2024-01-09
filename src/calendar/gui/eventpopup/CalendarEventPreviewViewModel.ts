@@ -2,18 +2,13 @@ import { CalendarEvent, CalendarEventAttendee } from "../../../api/entities/tuta
 import { calendarEventHasMoreThanOneOccurrencesLeft } from "../../date/CalendarUtils.js"
 import { CalendarEventModel, CalendarOperation, EventSaveResult, EventType, getNonOrganizerAttendees } from "../eventeditor-model/CalendarEventModel.js"
 import { NotFoundError } from "../../../api/common/error/RestError.js"
-import { CalendarInfo, CalendarModel } from "../../model/CalendarModel.js"
+import { CalendarModel } from "../../model/CalendarModel.js"
 import { showExistingCalendarEventEditDialog } from "../eventeditor-view/CalendarEventEditDialog.js"
 import { ProgrammingError } from "../../../api/common/error/ProgrammingError.js"
-import { CalendarAttendeeStatus, FeatureType } from "../../../api/common/TutanotaConstants.js"
+import { CalendarAttendeeStatus } from "../../../api/common/TutanotaConstants.js"
 import m from "mithril"
 import { clone, Thunk } from "@tutao/tutanota-utils"
 import { CalendarEventUidIndexEntry } from "../../../api/worker/facades/lazy/CalendarFacade.js"
-import { locator } from "../../../api/main/MainLocator.js"
-import { getEnabledMailAddressesWithUser } from "../../../mail/model/MailUtils.js"
-import { findAttendeeInAddresses } from "../../../api/common/utils/CommonCalendarUtils.js"
-import { isCustomizationEnabledForCustomer } from "../../../api/common/utils/Utils.js"
-import { getEventType } from "../CalendarGuiUtils.js"
 
 /**
  * makes decisions about which operations are available from the popup and knows how to implement them depending on the event's type.
@@ -227,29 +222,4 @@ export class CalendarEventPreviewViewModel {
 	getSanitizedDescription() {
 		return this.sanitizedDescription
 	}
-}
-
-export async function buildEventPreviewModel(selectedEvent: CalendarEvent, calendars: ReadonlyMap<string, CalendarInfo>) {
-	const mailboxDetails = await locator.mailModel.getUserMailboxDetails()
-
-	const mailboxProperties = await locator.mailModel.getMailboxProperties(mailboxDetails.mailboxGroupRoot)
-
-	const userController = locator.logins.getUserController()
-	const customer = await userController.loadCustomer()
-	const ownMailAddresses = getEnabledMailAddressesWithUser(mailboxDetails, userController.userGroupInfo)
-	const ownAttendee: CalendarEventAttendee | null = findAttendeeInAddresses(selectedEvent.attendees, ownMailAddresses)
-	const eventType = getEventType(selectedEvent, calendars, ownMailAddresses, userController.user)
-	const hasBusinessFeature = isCustomizationEnabledForCustomer(customer, FeatureType.BusinessFeatureEnabled) || (await userController.isNewPaidPlan())
-	const lazyIndexEntry = async () => (selectedEvent.uid != null ? locator.calendarFacade.getEventsByUid(selectedEvent.uid) : null)
-	const popupModel = new CalendarEventPreviewViewModel(
-		selectedEvent,
-		await locator.calendarModel(),
-		eventType,
-		hasBusinessFeature,
-		ownAttendee,
-		lazyIndexEntry,
-		async (mode: CalendarOperation) => locator.calendarEventModel(mode, selectedEvent, mailboxDetails, mailboxProperties, null),
-	)
-
-	return popupModel
 }
