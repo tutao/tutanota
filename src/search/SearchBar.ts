@@ -8,7 +8,7 @@ import type { CalendarEvent, Contact, Mail } from "../api/entities/tutanota/Type
 import { CalendarEventTypeRef, ContactTypeRef, MailTypeRef } from "../api/entities/tutanota/TypeRefs.js"
 import type { Shortcut } from "../misc/KeyManager"
 import { isKeyPressed, keyManager } from "../misc/KeyManager"
-import { getRestriction } from "./model/SearchUtils"
+import { encodeCalendarSearchKey, getRestriction } from "./model/SearchUtils"
 import { locator } from "../api/main/MainLocator"
 import { Dialog } from "../gui/base/Dialog"
 import type { WhitelabelChild } from "../api/entities/sys/TypeRefs.js"
@@ -22,7 +22,7 @@ import { hasMoreResults } from "./model/SearchModel"
 import { SearchBarOverlay } from "./SearchBarOverlay"
 import { IndexingNotSupportedError } from "../api/common/error/IndexingNotSupportedError"
 import type { SearchIndexStateInfo, SearchRestriction, SearchResult } from "../api/worker/search/SearchTypes"
-import { getElementId } from "../api/common/utils/EntityUtils"
+import { assertIsEntity, getElementId } from "../api/common/utils/EntityUtils"
 import { compareContacts } from "../contacts/view/ContactGuiUtils"
 import { LayerType } from "../RootView"
 import { BaseSearchBar, BaseSearchBarAttrs } from "../gui/base/BaseSearchBar.js"
@@ -347,14 +347,11 @@ export class SearchBar implements Component<SearchBarAttrs> {
 	}
 
 	private updateSearchUrl(query: string, selected?: ListElementEntity) {
-		let selectedEventTime
-
-		if (selected && isSameTypeRef(CalendarEventTypeRef, selected?._type)) {
-			const event = selected as CalendarEvent
-			selectedEventTime = [event.startTime.getTime(), event.endTime.getTime()]
+		if (selected && assertIsEntity(selected, CalendarEventTypeRef)) {
+			searchRouter.routeTo(query, this.getRestriction(), selected && encodeCalendarSearchKey(selected))
+		} else {
+			searchRouter.routeTo(query, this.getRestriction(), selected && getElementId(selected))
 		}
-
-		searchRouter.routeTo(query, this.getRestriction(), selected && getElementId(selected), selectedEventTime)
 	}
 
 	private search(query?: string) {
