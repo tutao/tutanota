@@ -36,7 +36,7 @@ import { MailFacade } from "../facades/lazy/MailFacade.js"
 import { getDisplayedSender, MailAddressAndName } from "../../common/mail/CommonMailUtils.js"
 import { containsEventOfType, EntityUpdateData } from "../../common/utils/EntityUpdateUtils.js"
 import { b64UserIdHash } from "./DbFacade.js"
-import { hasError } from "../../common/utils/ErrorCheckUtils.js"
+import { hasError } from "../../common/utils/ErrorUtils.js"
 
 export const INITIAL_MAIL_INDEX_INTERVAL_DAYS = 28
 const ENTITY_INDEXER_CHUNK = 20

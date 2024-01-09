@@ -18,7 +18,7 @@ import { isSameId } from "../api/common/utils/EntityUtils"
 import { assertMainOrNode } from "../api/common/Env"
 import { locator } from "../api/main/MainLocator"
 import { assertSystemFolderOfType } from "../api/common/mail/CommonMailUtils.js"
-import { isOfflineError } from "../api/common/utils/ErrorCheckUtils.js"
+import { isOfflineError } from "../api/common/utils/ErrorUtils.js"
 
 assertMainOrNode()
 

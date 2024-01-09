@@ -7,7 +7,7 @@ import { assertNotNull, count, debounce, lastThrow, lazyMemoized, mapWith, mapWi
 import { ListState } from "../../gui/base/List.js"
 import { ConversationPrefProvider, ConversationViewModel, ConversationViewModelFactory } from "./ConversationViewModel.js"
 import { CreateMailViewerOptions } from "./MailViewer.js"
-import { isOfflineError } from "../../api/common/utils/ErrorCheckUtils.js"
+import { isOfflineError } from "../../api/common/utils/ErrorUtils.js"
 import { MailFolderType } from "../../api/common/TutanotaConstants.js"
 import { assertSystemFolderOfType, isOfTypeOrSubfolderOf, isSpamOrTrashFolder, isSubfolderOfType } from "../../api/common/mail/CommonMailUtils.js"
 import { WsConnectionState } from "../../api/main/WorkerClient.js"

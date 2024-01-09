@@ -1,5 +1,6 @@
 import o from "@tutao/otest"
-import { CryptoError, hexToRsaPublicKey, random, eccDecapsulate, eccEncapsulate, generateEccKeyPair, EccKeyPair } from "../lib/index.js"
+import { hexToRsaPublicKey, random, eccDecapsulate, eccEncapsulate, generateEccKeyPair, EccKeyPair } from "../lib/index.js"
+import { CryptoError } from "../lib/error.js"
 
 const originalRandom = random.generateRandomData
 o.spec("EccTest", function () {
