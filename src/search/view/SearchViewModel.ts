@@ -6,6 +6,7 @@ import { CalendarEvent, CalendarEventTypeRef, Contact, ContactTypeRef, Mail, Mai
 import { ListElementEntity, SomeEntity } from "../../api/common/EntityTypes.js"
 import { FULL_INDEXED_TIMESTAMP, MailFolderType, NOTHING_INDEXED_TIMESTAMP, OperationType } from "../../api/common/TutanotaConstants.js"
 import {
+	assertIsEntity,
 	assertIsEntity2,
 	elementIdPart,
 	GENERATED_MAX_ID,
@@ -20,7 +21,6 @@ import {
 	assertNotNull,
 	defer,
 	downcast,
-	filterInt,
 	getEndOfDay,
 	getStartOfDay,
 	isSameDay,
@@ -36,7 +36,7 @@ import { areResultsForTheSameQuery, hasMoreResults, isSameSearchRestriction, Sea
 import { NotFoundError } from "../../api/common/error/RestError.js"
 import { compareContacts } from "../../contacts/view/ContactGuiUtils.js"
 import { ConversationViewModel, ConversationViewModelFactory } from "../../mail/view/ConversationViewModel.js"
-import { createRestriction, getRestriction, searchCategoryForRestriction } from "../model/SearchUtils.js"
+import { createRestriction, decodeCalendarSearchKey, encodeCalendarSearchKey, getRestriction, searchCategoryForRestriction } from "../model/SearchUtils.js"
 import Stream from "mithril/stream"
 import { MailboxDetail, MailModel } from "../../mail/model/MailModel.js"
 import { getStartOfTheWeekOffsetForUser } from "../../calendar/date/CalendarUtils.js"
@@ -221,40 +221,39 @@ export class SearchViewModel {
 		}
 
 		// update the filters
-		let finder
-		if (!isSameTypeRef(restriction.type, ContactTypeRef)) {
+		if (args.id == null) {
+			// nothing to select
+			return
+		}
+		if (isSameTypeRef(restriction.type, ContactTypeRef)) {
+			this.loadAndSelectIfNeeded(args.id)
+		} else {
 			if (isSameTypeRef(restriction.type, MailTypeRef)) {
 				this.selectedMailField = restriction.field
 				this.startDate = restriction.end ? new Date(restriction.end) : null
 				this.endDate = restriction.start ? new Date(restriction.start) : null
 				this.selectedMailFolder = restriction.listIds
+				this.loadAndSelectIfNeeded(args.id)
 			} else if (isSameTypeRef(restriction.type, CalendarEventTypeRef)) {
 				this.startDate = restriction.start ? new Date(restriction.start) : null
 				this.endDate = restriction.end ? new Date(restriction.end) : null
 
 				this.includeRepeatingEvents = restriction.eventSeries ?? true
 				this.lazyCalendarInfos.load()
-
-				if (args["startTime"] && args["endTime"]) {
-					finder = ({ entry }: SearchResultListEntry) => {
-						entry = entry as CalendarEvent
-						return (
-							args.id === getElementId(entry) &&
-							filterInt(args["startTime"]) === entry.startTime.getTime() &&
-							filterInt(args["endTime"]) === entry.endTime.getTime()
-						)
-					}
-				}
+				const { start, id } = decodeCalendarSearchKey(args.id)
+				this.loadAndSelectIfNeeded(id, ({ entry }: SearchResultListEntry) => {
+					entry = entry as CalendarEvent
+					return id === getElementId(entry) && start === entry.startTime.getTime()
+				})
 			}
 		}
-		this.loadAndSelectIfNeeded(args, finder)
 	}
 
-	private loadAndSelectIfNeeded(args: Record<string, any>, finder?: (a: ListElement) => boolean) {
-		if (args.id && !this.listModel.isItemSelected(args.id)) {
+	private loadAndSelectIfNeeded(id: string, finder?: (a: ListElement) => boolean) {
+		if (!this.listModel.isItemSelected(id)) {
 			// the mail list is visible already, just the selected mail is changed
 			const listModel = this.listModel
-			this.listModel.loadAndSelect(args.id, () => this.listModel !== listModel, finder)
+			this.listModel.loadAndSelect(id, () => this.listModel !== listModel, finder)
 		}
 	}
 
@@ -418,16 +417,25 @@ export class SearchViewModel {
 	}
 
 	private routeCalendar(element: CalendarEvent | null, restriction: SearchRestriction) {
-		const eventTimes = element ? [element.startTime.getTime(), element.endTime.getTime()] : []
-		this.router.routeTo(this.search.lastQuery() ?? "", restriction, element ? getElementId(element) : null, eventTimes)
+		const selectionKey = this.generateSelectionKey(element)
+		this.router.routeTo(this.search.lastQuery() ?? "", restriction, selectionKey)
 	}
 
 	private routeMail(element: Mail | null, restriction: SearchRestriction) {
-		this.router.routeTo(this.search.lastQuery() ?? "", restriction, element && isSameTypeRef(element._type, MailTypeRef) ? getElementId(element) : null)
+		this.router.routeTo(this.search.lastQuery() ?? "", restriction, this.generateSelectionKey(element))
 	}
 
 	private routeContact(element: Contact | null, restriction: SearchRestriction) {
-		this.router.routeTo(this.search.lastQuery() ?? "", restriction, element ? getElementId(element) : null)
+		this.router.routeTo(this.search.lastQuery() ?? "", restriction, this.generateSelectionKey(element))
+	}
+
+	private generateSelectionKey(element: SearchableTypes | null): string | null {
+		if (element == null) return null
+		if (assertIsEntity(element, CalendarEventTypeRef)) {
+			return encodeCalendarSearchKey(element)
+		} else {
+			return getElementId(element)
+		}
 	}
 
 	private getCategory(): string {
