@@ -23,11 +23,11 @@ class CompatibilityTestSwift: XCTestCase {
 
     let tests = (testData!["argon2idTests"] as? [[String: String]])!
     for test in tests {
-      let password = TUTEncodingConverter.string(toBytes: test["password"]!)
+      let password = DataWrapper(data: TUTEncodingConverter.string(toBytes: test["password"]!))
       let expectedHash = TUTEncodingConverter.hex(toBytes: test["keyHex"]!)
       let salt = TUTEncodingConverter.hex(toBytes: test["saltHex"]!)
       let result = try! generateArgon2idHash(ofPassword: password, ofHashLength: ARGON2ID_HASH_LENGTH, withSalt: salt, withIterations: ARGON2ID_ITERATIONS, withParallelism: ARGON2ID_PARALLELISM, withMemoryCost: ARGON2ID_MEMORY_COST)
-
+      XCTAssert(password.data.allSatisfy{$0 == 0})
       XCTAssertEqual(expectedHash, result)
     }
   }
