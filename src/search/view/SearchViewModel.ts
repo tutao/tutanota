@@ -447,7 +447,7 @@ export class SearchViewModel {
 
 	private async entityEventReceived(update: EntityUpdateData): Promise<void> {
 		const lastType = this.searchedType
-		if (isUpdateForTypeRef(lastType, update)) {
+		if (!isUpdateForTypeRef(lastType, update)) {
 			return
 		}
 		const { instanceListId, instanceId, operation } = update
