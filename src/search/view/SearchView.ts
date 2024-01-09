@@ -766,37 +766,37 @@ export class SearchView extends BaseTopLevelView implements TopLevelView<SearchV
 			injectionsRight: () =>
 				m(IconButton, {
 					title: "selectPeriodOfTime_label",
-					// fixme: method
-					click: async () => {
-						if (this.searchViewModel.canSelectTimePeriod()) {
-							const period = await showDateRangeSelectionDialog(
-								this.searchViewModel.getStartOfTheWeekOffset(),
-								this.searchViewModel.startDate ?? this.searchViewModel.getCurrentMailIndexDate() ?? new Date(),
-								this.searchViewModel.endDate ?? new Date(),
-								(startDate, endDate) => {
-									if (endDate != null && endDate.getTime() > Date.now()) {
-										// fixme: phrase
-										return "This search range includes dates that are in the future"
-									} else if ((startDate?.getTime() ?? -Infinity) > (endDate?.getTime() ?? Infinity)) {
-										return lang.get("startAfterEnd_label")
-									}
-									return null
-								},
-							)
-							const result = await this.searchViewModel.selectTimePeriod(period)
-							if (result === PaidFunctionResult.PaidSubscriptionNeeded) {
-								await showNotAvailableForFreeDialog()
-							} else {
-								this.searchAgain()
-							}
-						} else {
-							await showNotAvailableForFreeDialog()
-						}
-					},
+					click: () => this.handleTimeSelectionClick(),
 					icon: Icons.Edit,
 					size: ButtonSize.Compact,
 				}),
 		})
+	}
+
+	private async handleTimeSelectionClick(): Promise<void> {
+		if (this.searchViewModel.canSelectTimePeriod()) {
+			const period = await showDateRangeSelectionDialog(
+				this.searchViewModel.getStartOfTheWeekOffset(),
+				this.searchViewModel.startDate ?? this.searchViewModel.getCurrentMailIndexDate() ?? new Date(),
+				this.searchViewModel.endDate ?? new Date(),
+				(startDate, endDate) => {
+					if (endDate != null && endDate.getTime() > Date.now()) {
+						return lang.get("includesFuture_msg")
+					} else if ((startDate?.getTime() ?? -Infinity) > (endDate?.getTime() ?? Infinity)) {
+						return lang.get("startAfterEnd_label")
+					}
+					return null
+				},
+			)
+			const result = await this.searchViewModel.selectTimePeriod(period)
+			if (result === PaidFunctionResult.PaidSubscriptionNeeded) {
+				await showNotAvailableForFreeDialog()
+			} else {
+				this.searchAgain()
+			}
+		} else {
+			await showNotAvailableForFreeDialog()
+		}
 	}
 
 	private renderCalendarTimeRangeField(): Children {
@@ -822,8 +822,7 @@ export class SearchView extends BaseTopLevelView implements TopLevelView<SearchV
 								(startDate, endDate) => {
 									if (startDate == null || endDate == null) return "unlimited limit in calendar search?"
 									if (endDate.getTime() - startDate.getTime() > 12 * 30 * 24 * 60 * 60 * 1000) {
-										// Fixme: phrase
-										return "This time range is very long, the search might take a while to generate a result."
+										return lang.get("longSearchRange_msg")
 									} else if (startDate.getTime() > endDate.getTime()) {
 										return lang.get("startAfterEnd_label")
 									}
