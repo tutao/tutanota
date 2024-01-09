@@ -7,6 +7,7 @@ import { EventPreviewView } from "../gui/eventpopup/EventPreviewView.js"
 import { createAsyncDropdown } from "../../gui/base/Dropdown.js"
 import { Dialog } from "../../gui/base/Dialog.js"
 import { CalendarEventPreviewViewModel } from "../gui/eventpopup/CalendarEventPreviewViewModel.js"
+import { styles } from "../../gui/styles.js"
 
 export interface EventDetailsViewAttrs {
 	eventPreviewModel: CalendarEventPreviewViewModel
@@ -38,7 +39,7 @@ export class EventDetailsView implements Component<EventDetailsViewAttrs> {
 	}
 
 	private renderEditButton(): Children {
-		if (this.model == null || !this.model.canEdit) return null
+		if (this.model == null || !this.model.canEdit || styles.isSingleColumnLayout()) return null
 		return m(IconButton, {
 			title: "edit_action",
 			icon: Icons.Edit,
@@ -48,7 +49,7 @@ export class EventDetailsView implements Component<EventDetailsViewAttrs> {
 	}
 
 	private renderDeleteButton(): Children {
-		if (this.model == null || !this.model.canDelete) return null
+		if (this.model == null || !this.model.canDelete || styles.isSingleColumnLayout()) return null
 		return m(IconButton, {
 			title: "delete_action",
 			icon: Icons.Trash,
@@ -58,77 +59,25 @@ export class EventDetailsView implements Component<EventDetailsViewAttrs> {
 	}
 
 	private renderSendUpdateButton(): Children {
-		if (this.model == null || !this.model.canSendUpdates) return null
+		if (this.model == null || !this.model.canSendUpdates || styles.isSingleColumnLayout()) return null
 		return m(Button, {
 			label: "sendUpdates_label",
-			click: () => this.handleSendUpdatesClick(),
+			click: () => handleSendUpdatesClick(this.model),
 			type: ButtonType.ActionLarge,
 			icon: () => BootIcons.Mail,
 			colors: ButtonColor.DrawerNav,
 		})
 	}
 
-	private async handleDeleteButtonClick(ev: MouseEvent, receiver: HTMLElement) {
-		if (await this.model?.isRepeatingForDeleting()) {
-			createAsyncDropdown({
-				lazyButtons: () =>
-					Promise.resolve([
-						{
-							label: "deleteSingleEventRecurrence_action",
-							click: async () => {
-								await this.model?.deleteSingle()
-							},
-						},
-						{
-							label: "deleteAllEventRecurrence_action",
-							click: () => this.confirmDeleteClose(),
-						},
-					]),
-				width: 300,
-			})(ev, receiver)
-		} else {
-			// noinspection JSIgnoredPromiseFromCall, ES6MissingAwait
-			this.confirmDeleteClose()
-		}
-	}
-
-	private handleEditButtonClick(ev: MouseEvent, receiver: HTMLElement) {
-		if (this.model?.isRepeatingForEditing) {
-			createAsyncDropdown({
-				lazyButtons: () =>
-					Promise.resolve([
-						{
-							label: "updateOneCalendarEvent_action",
-							click: () => {
-								// noinspection JSIgnoredPromiseFromCall
-								this.model?.editSingle()
-							},
-						},
-						{
-							label: "updateAllCalendarEvents_action",
-							click: () => {
-								// noinspection JSIgnoredPromiseFromCall
-								this.model?.editAll()
-							},
-						},
-					]),
-				width: 300,
-			})(ev, receiver)
-		} else {
-			// noinspection JSIgnoredPromiseFromCall
-			this.model?.editAll()
-		}
-	}
-
-	private async handleSendUpdatesClick() {
-		const confirmed = await Dialog.confirm("sendUpdates_msg")
-		if (confirmed) await this.model?.sendUpdates()
-	}
-
 	private async confirmDeleteClose(): Promise<void> {
 		if (!(await Dialog.confirm("deleteEventConfirmation_msg"))) return
 		await this.model?.deleteAll()
 	}
+}
+
+export async function handleSendUpdatesClick(previewModel: CalendarEventPreviewViewModel | null) {
+	const confirmed = await Dialog.confirm("sendUpdates_msg")
+	if (confirmed) await previewModel?.sendUpdates()
 }
 
 export function handleEventEditButtonClick(previewModel: CalendarEventPreviewViewModel | null, ev: MouseEvent, receiver: HTMLElement) {
