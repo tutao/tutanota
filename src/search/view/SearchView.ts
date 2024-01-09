@@ -245,7 +245,7 @@ export class SearchView extends BaseTopLevelView implements TopLevelView<SearchV
 		} satisfies SearchListViewAttrs)
 	}
 
-	private renderFilterSection() {
+	private renderFilterSection(): Children {
 		if (isSameTypeRef(this.searchViewModel.searchedType, MailTypeRef)) {
 			return m(
 				SidebarSection,
@@ -256,6 +256,9 @@ export class SearchView extends BaseTopLevelView implements TopLevelView<SearchV
 			)
 		} else if (isSameTypeRef(this.searchViewModel.searchedType, CalendarEventTypeRef)) {
 			return m(SidebarSection, { name: "filter_label" }, this.renderCalendarFilterSection())
+		} else {
+			// contacts don't have filters
+			return null
 		}
 	}
 
@@ -668,6 +671,7 @@ export class SearchView extends BaseTopLevelView implements TopLevelView<SearchV
 			injectionsRight: () =>
 				m(IconButton, {
 					title: "selectPeriodOfTime_label",
+					// fixme: method
 					click: async () => {
 						if (this.searchViewModel.canSelectTimePeriod()) {
 							const period = await showDateRangeSelectionDialog(
@@ -677,7 +681,7 @@ export class SearchView extends BaseTopLevelView implements TopLevelView<SearchV
 								(startDate, endDate) => {
 									if (endDate != null && endDate.getTime() > Date.now()) {
 										// fixme: phrase
-										return "Searching for mail in the future is not possible"
+										return "This search range includes dates that are in the future"
 									} else if ((startDate?.getTime() ?? -Infinity) > (endDate?.getTime() ?? Infinity)) {
 										return lang.get("startAfterEnd_label")
 									}
