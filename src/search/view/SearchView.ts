@@ -90,7 +90,7 @@ import { listSelectionKeyboardShortcuts } from "../../gui/base/ListUtils.js"
 import { getElementId, isSameId } from "../../api/common/utils/EntityUtils.js"
 import { CalendarInfo } from "../../calendar/model/CalendarModel.js"
 import { Checkbox, CheckboxAttrs } from "../../gui/base/Checkbox.js"
-import { buildEventPreviewModel, CalendarEventPreviewViewModel } from "../../calendar/gui/eventpopup/CalendarEventPreviewViewModel.js"
+import { CalendarEventPreviewViewModel } from "../../calendar/gui/eventpopup/CalendarEventPreviewViewModel.js"
 import {
 	EventDetailsView,
 	EventDetailsViewAttrs,
@@ -122,7 +122,7 @@ export class SearchView extends BaseTopLevelView implements TopLevelView<SearchV
 	private getSanitizedPreviewData: (event: CalendarEvent) => LazyLoaded<CalendarEventPreviewViewModel> = memoized((event: CalendarEvent) =>
 		new LazyLoaded(async () => {
 			const calendars = await this.searchViewModel.getLazyCalendarInfos().getAsync()
-			const eventPreviewModel = await buildEventPreviewModel(event, calendars)
+			const eventPreviewModel = await locator.calendarEventPreviewModel(event, calendars)
 			eventPreviewModel.sanitizeDescription().then(() => m.redraw())
 			return eventPreviewModel
 		}).load(),
