@@ -7,7 +7,7 @@ import { Button, ButtonType } from "./Button.js"
 import { lang, TranslationText } from "../../misc/LanguageViewModel"
 import { styles } from "../styles"
 import { LayerType } from "../../RootView"
-import type { clickHandler } from "./GuiUtils"
+import type { ClickHandler } from "./GuiUtils"
 import { assertMainOrNode } from "../../api/common/Env"
 import { getSafeAreaInsetBottom } from "../HtmlUtils"
 
@@ -16,7 +16,7 @@ export const SNACKBAR_SHOW_TIME = 6000
 const MAX_SNACKBAR_WIDTH = 400
 export type SnackBarButtonAttrs = {
 	label: TranslationText
-	click: clickHandler
+	click: ClickHandler
 }
 type SnackBarAttrs = {
 	message: TranslationText
@@ -122,7 +122,7 @@ function showNextNotification() {
 
 	// close the notification by default when pressing the button
 	if (button) {
-		const originClickHandler: clickHandler | undefined = button.click
+		const originClickHandler: ClickHandler | undefined = button.click
 
 		button.click = (e, dom) => {
 			clearTimeout(autoRemoveTimer)

@@ -3,7 +3,7 @@ import { Dialog } from "../gui/base/Dialog"
 import type { TranslationKey, TranslationText } from "./LanguageViewModel"
 import { lang } from "./LanguageViewModel"
 import { isIOSApp } from "../api/common/Env"
-import type { clickHandler } from "../gui/base/GuiUtils"
+import type { ClickHandler } from "../gui/base/GuiUtils"
 import { locator } from "../api/main/MainLocator"
 import type { UserController } from "../api/main/UserController.js"
 import { BookingTypeRef } from "../api/entities/sys/TypeRefs.js"
@@ -32,7 +32,7 @@ export async function showNotAvailableForFreeDialog(acceptedPlans: AvailablePlan
 	}
 }
 
-export function createNotAvailableForFreeClickHandler(acceptedPlans: AvailablePlanType[], click: clickHandler, available: () => boolean): clickHandler {
+export function createNotAvailableForFreeClickHandler(acceptedPlans: AvailablePlanType[], click: ClickHandler, available: () => boolean): ClickHandler {
 	return (e, dom) => {
 		if (!available()) {
 			showNotAvailableForFreeDialog(acceptedPlans)

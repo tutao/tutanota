@@ -5,7 +5,7 @@ import { displayOverlay } from "./Overlay"
 import type { ButtonAttrs } from "./Button.js"
 import { Button, ButtonType } from "./Button.js"
 import { assertMainOrNode } from "../../api/common/Env"
-import { clickHandler } from "./GuiUtils"
+import { ClickHandler } from "./GuiUtils"
 
 assertMainOrNode()
 
@@ -93,7 +93,7 @@ function showNextNotification() {
 
 	// close the notification by default when pressing any button
 	for (const b of allButtons) {
-		const originClickHandler: clickHandler | undefined = b.click
+		const originClickHandler: ClickHandler | undefined = b.click
 
 		b.click = (e, dom) => {
 			originClickHandler?.(e, dom)

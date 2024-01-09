@@ -4,14 +4,14 @@ import m, { Children, Component, Vnode } from "mithril"
 import type { TranslationKey } from "../misc/LanguageViewModel.js"
 import { lang } from "../misc/LanguageViewModel.js"
 import { AriaLandmarks, landmarkAttrs } from "./AriaUtils.js"
-import type { clickHandler } from "./base/GuiUtils.js"
+import type { ClickHandler } from "./base/GuiUtils.js"
 import type { lazy } from "@tutao/tutanota-utils"
 import { FolderColumnHeaderButton } from "./base/buttons/FolderColumnHeaderButton.js"
 import { Button, ButtonType } from "./base/Button.js"
 
 export type Attrs = {
 	/** Button to be displayed on top of the column*/
-	button: { label: TranslationKey; click: clickHandler; type: ButtonType } | null | undefined
+	button: { label: TranslationKey; click: ClickHandler; type: ButtonType } | null | undefined
 	content: Children
 	ariaLabel: TranslationKey | lazy<string>
 	drawer: DrawerMenuAttrs

@@ -1,10 +1,10 @@
 import m, { Children, Component, Vnode } from "mithril"
 import { px, size } from "../size"
-import type { clickHandler } from "./GuiUtils"
+import type { ClickHandler } from "./GuiUtils"
 
 export type Attrs = {
 	label: string
-	click: clickHandler
+	click: ClickHandler
 	style?: {}
 }
 
