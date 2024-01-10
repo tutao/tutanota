@@ -1,4 +1,4 @@
-import { TutanotaError } from "../common/error/TutanotaError"
+import { TutanotaError } from "@tutao/tutanota-error"
 import type { TranslationKeyType } from "../../misc/TranslationKey"
 import { assertMainOrNode } from "../common/Env"
 import { AvailablePlanType } from "../common/TutanotaConstants.js"

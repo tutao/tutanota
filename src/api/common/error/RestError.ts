@@ -1,6 +1,6 @@
 //@bundleInto:common-min
 
-import { TutanotaError } from "./TutanotaError"
+import { TutanotaError } from "@tutao/tutanota-error"
 
 export class ConnectionError extends TutanotaError {
 	static CODE: number = 0
