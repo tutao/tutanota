@@ -51,7 +51,7 @@ export async function buildDesktop({ dirname, version, platform, architecture, u
 
 	// We need to get the right build of native dependencies. There's a tool called node-gyp which can build for different architectures
 	// and downloads everything it needs. Usually dependencies build themselves in post-install script.
-	// Currently we have keytar which avoids building itself if possible and only build
+	// Currently we have sqlite which avoids building itself if possible and only build
 	console.log("Updating electron-builder config...")
 	const content = await generatePackageJson({
 		nameSuffix,
@@ -130,13 +130,6 @@ async function rollupDesktop(dirname, outDir, version, platform, architecture, d
 				architecture,
 				nodeModule: "better-sqlite3",
 			}),
-			copyNativeModulePlugin({
-				rootDir: projectRoot,
-				dstPath: "./build/desktop/",
-				platform,
-				architecture,
-				nodeModule: "keytar",
-			}),
 			typescript({
 				tsconfig: "tsconfig.json",
 				outDir,
@@ -153,7 +146,6 @@ async function rollupDesktop(dirname, outDir, version, platform, architecture, d
 				// In our case it will be desktop/DesktopMain.js, which is located in the same directory.
 				// This depends on the changes we made in our own fork of better_sqlite3.
 				// It's okay to use forward slash here, it is passed to require which can deal with it.
-				keytar: "./keytar.node",
 				"better-sqlite3": "./better-sqlite3.node",
 			}),
 		],

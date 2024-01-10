@@ -4,7 +4,7 @@ import { build as esbuild } from "esbuild"
 import { getTutanotaAppVersion, runStep, writeFile } from "./buildUtils.js"
 import "zx/globals"
 import * as env from "./env.js"
-import { externalTranslationsPlugin, keytarNativePlugin, libDeps, preludeEnvPlugin, sqliteNativePlugin } from "./esbuildUtils.js"
+import { externalTranslationsPlugin, libDeps, preludeEnvPlugin, sqliteNativePlugin } from "./esbuildUtils.js"
 import { fileURLToPath } from "node:url"
 import * as LaunchHtml from "./LaunchHtml.js"
 import os from "node:os"
@@ -100,13 +100,6 @@ async function buildDesktopPart({ version }) {
 					platform: process.platform,
 					architecture: process.arch,
 					nativeBindingPath: "./better_sqlite3.node",
-				}),
-				keytarNativePlugin({
-					environment: "electron",
-					dstPath: "./build/desktop/keytar.node",
-					nativeBindingPath: "./keytar.node",
-					platform: process.platform,
-					architecture: process.arch,
 				}),
 				preludeEnvPlugin(env.create({ staticUrl: null, version, mode: "Desktop", dist: false, domainConfigs })),
 				externalTranslationsPlugin(),

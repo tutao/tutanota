@@ -5,7 +5,7 @@ import { renderHtml } from "../buildSrc/LaunchHtml.js"
 import { build as esbuild } from "esbuild"
 import { getTutanotaAppVersion, runStep, writeFile } from "../buildSrc/buildUtils.js"
 import { aliasPath as esbuildPluginAliasPath } from "esbuild-plugin-alias-path"
-import { keytarNativePlugin, libDeps, preludeEnvPlugin, sqliteNativePlugin } from "../buildSrc/esbuildUtils.js"
+import { libDeps, preludeEnvPlugin, sqliteNativePlugin } from "../buildSrc/esbuildUtils.js"
 import { buildPackages } from "../buildSrc/packageBuilderFunctions.js"
 import watPlugin from "esbuild-plugin-wat"
 import { domainConfigs } from "../buildSrc/DomainConfigs.js"
@@ -119,12 +119,6 @@ export async function runTestBuild({ clean, fast = false }) {
 					platform: process.platform,
 					architecture: process.arch,
 					nativeBindingPath: path.resolve("../node_modules/better-sqlite3/build/Release/better_sqlite3.node"),
-				}),
-				keytarNativePlugin({
-					environment: "node",
-					dstPath: "./build/keytar.node",
-					platform: process.platform,
-					architecture: process.arch,
 				}),
 				watPlugin({
 					loader: "file",
