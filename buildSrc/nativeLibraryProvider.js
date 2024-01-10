@@ -95,41 +95,19 @@ export async function buildNativeModule({ nodeModule, copyTarget, environment, r
 		})
 
 	if (architecture === "universal") {
-		if (copyTarget === "keytar") {
-			// this is a hack to get us out of a pickle with incompatible macos SDKs
-			// we reuse the keytar of tutanota-desktop 3.118.13 for the
-			// mac build because any newer build crashes the process when loaded.
-			// we will replace keytar very soon.
-			const artifactPath = path.join(moduleDir, "build/Release", `${copyTarget}.node`)
-			const armArtifactPath = path.join(moduleDir, `${copyTarget}-arm64.node`)
-			const intelArtifactPath = path.join(moduleDir, `${copyTarget}-3.118.13.node`)
-			await doBuild("arm64")
-			await fs.promises.copyFile(artifactPath, armArtifactPath)
-			await callProgram({
-				command: "lipo",
-				args: ["-create", "-output", artifactPath, intelArtifactPath, armArtifactPath],
-				cwd: path.join(rootDir, "native-cache"),
-				log,
-			})
-		} else {
-			const artifactPath = path.join(moduleDir, "build/Release", `${copyTarget}.node`)
-			const armArtifactPath = path.join(moduleDir, `${copyTarget}-arm64.node`)
-			const intelArtifactPath = path.join(moduleDir, `${copyTarget}-x64.node`)
-			// this is a hack to get us out of a pickle with incompatible macos SDKs
-			// we reuse the keytar of tutanota-desktop 3.118.13 for the
-			// mac build because any newer build crashes the process when loaded.
-			// we will replace keytar very soon.
-			await doBuild("x64")
-			await fs.promises.copyFile(artifactPath, intelArtifactPath)
-			await doBuild("arm64")
-			await fs.promises.copyFile(artifactPath, armArtifactPath)
-			await callProgram({
-				command: "lipo",
-				args: ["-create", "-output", artifactPath, intelArtifactPath, armArtifactPath],
-				cwd: path.join(rootDir, "native-cache"),
-				log,
-			})
-		}
+		const artifactPath = path.join(moduleDir, "build/Release", `${copyTarget}.node`)
+		const armArtifactPath = path.join(moduleDir, `${copyTarget}-arm64.node`)
+		const intelArtifactPath = path.join(moduleDir, `${copyTarget}-x64.node`)
+		await doBuild("x64")
+		await fs.promises.copyFile(artifactPath, intelArtifactPath)
+		await doBuild("arm64")
+		await fs.promises.copyFile(artifactPath, armArtifactPath)
+		await callProgram({
+			command: "lipo",
+			args: ["-create", "-output", artifactPath, intelArtifactPath, armArtifactPath],
+			cwd: path.join(rootDir, "native-cache"),
+			log,
+		})
 	} else {
 		await doBuild(architecture)
 	}
@@ -139,10 +117,6 @@ export async function buildNativeModule({ nodeModule, copyTarget, environment, r
  * Get a prebuilt version of a node native module
  *
  * we can't cross-compile with node-gyp, so we need to use the prebuilt version when building a desktop client for windows on linux
- *
- * For getting keytar we would want {target: { runtime: "napi", version: 3 }}
- * the current release artifacts on github are named accordingly,
- * e.g. keytar-v7.7.0-napi-v3-linux-x64.tar.gz for N-API v3
  *
  * @param nodeModule {string}
  * @param rootDir
@@ -180,24 +154,15 @@ export async function getPrebuiltNativeModuleForWindows({ nodeModule, rootDir, l
  * @return {{ runtime: string, version: number} | null}
  */
 async function getPrebuildConfiguration(nodeModule, environment, log) {
-	switch (nodeModule) {
-		// Keytar uses NAPI v3, so we just specify that as our desired prebuild
-		case "keytar":
-			return {
-				runtime: "napi",
-				version: "3",
-			}
-		// better-sqlite3 doesn't use NAPI, so if we are building for electron, we have to specify which electron version
-		// otherwise it will just use whichever version of node we are currently running
-		case "better-sqlite3":
-			return environment === "electron"
-				? {
-						runtime: "electron",
-						version: await getElectronVersion(log),
-				  }
-				: null
-		default:
-			throw new Error(`Unknown prebuild-configuration for node module ${nodeModule}, requires a definition`)
+	if (nodeModule === "better-sqlite3") {
+		return environment === "electron"
+			? {
+					runtime: "electron",
+					version: await getElectronVersion(log),
+			  }
+			: null
+	} else {
+		throw new Error(`Unknown prebuild-configuration for node module ${nodeModule}, requires a definition`)
 	}
 }
 

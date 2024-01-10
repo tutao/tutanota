@@ -5,38 +5,6 @@ import { dependencyMap } from "./RollupConfig.js"
 import { aliasPath as esbuildPluginAliasPath } from "esbuild-plugin-alias-path"
 
 /**
- * Little plugin that obtains compiled keytar, copies it to dstPath and sets the path to nativeBindingPath.
- * We do not use default file loader from esbuild, it is much simpler and reliable to do it manually.
- */
-export function keytarNativePlugin({ environment, dstPath, nativeBindingPath, platform, architecture }) {
-	return {
-		name: "keytar-native-plugin",
-		setup(build) {
-			build.onStart(async () => {
-				const modulePath = await getNativeLibModulePath({
-					nodeModule: "keytar",
-					environment,
-					rootDir: process.cwd(),
-					log: console.log.bind(console),
-					platform,
-					architecture,
-					copyTarget: "keytar",
-				})
-				await fs.promises.mkdir(path.dirname(dstPath), { recursive: true })
-				await fs.promises.copyFile(modulePath, dstPath)
-			})
-
-			build.onResolve({ filter: /.*keytar.*\.node/, namespace: "file" }, (args) => {
-				return {
-					path: nativeBindingPath,
-					external: true,
-				}
-			})
-		},
-	}
-}
-
-/**
  * Little plugin that obtains compiled better-sqlite3, copies it to dstPath and sets the path to nativeBindingPath.
  * We do not use default file loader from esbuild, it is much simpler and reliable to do it manually and it doesn't work for dynamic import (like in this case)
  * anyway.

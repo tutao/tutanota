@@ -15,7 +15,6 @@ export const dependencyMap = {
 	// belaw this, the modules are only running in the desktop main thread.
 	"electron-updater": path.normalize("./libs/electron-updater.mjs"),
 	"better-sqlite3": path.normalize("./libs/better-sqlite3.mjs"),
-	keytar: path.normalize("./libs/keytar.mjs"),
 	winreg: path.normalize("./libs/winreg.mjs"),
 	undici: path.normalize("./libs/undici.mjs"),
 }

@@ -28,24 +28,17 @@ export function copyNativeModulePlugin({ rootDir, dstPath, platform, architectur
 /**
  * Rollup plugin which injects paths to the native code libraries.
  *
- * we're using some self-built native node modules, namely keytar and better-sqlite3.
+ * we're using some self-built native node modules, namely better-sqlite3.
  * these need to be bundled into the client.
- * keytar and better-sqlite3 have different ways of getting their native module loaded:
- * - keytar requires it directly
- * - better-sqlite3 exports a class whose constructor takes a path to the native module which is then required dynamically.
- *
- * this requires us to use different strategies for injecting the right path into the build process.
+ * better-sqlite3 has a way of getting its native module loaded:
+ * it exports a class whose constructor takes a path to the native module which is then required dynamically.
  *
  * See DesktopMain.
  */
 export function nativeBannerPlugin(nativeBindingPaths, log = console.log.bind(console)) {
 	const sqlPath = nativeBindingPaths["better-sqlite3"]
-	const keytarPath = nativeBindingPaths["keytar"]
 	return {
 		name: "native-banner-plugin",
-		async resolveId(source) {
-			if (source.includes("keytar.node")) return { id: keytarPath, external: true }
-		},
 		banner() {
 			return `
 			globalThis.buildOptions = globalThis.buildOptions ?? {}

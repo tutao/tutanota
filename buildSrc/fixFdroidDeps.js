@@ -24,11 +24,6 @@ for (const dep of devDependencies) {
 	delete packageJson.devDependencies[dep]
 }
 
-const dependencies = ["keytar"]
-for (const dep of dependencies) {
-	delete packageJson.dependencies[dep]
-}
-
 delete packageJson.scripts["postinstall"]
 
 fs.writeFileSync("package.json", JSON.stringify(packageJson, null, "\t"))

@@ -54,7 +54,7 @@ export class DesktopKeyStoreFacade {
 	}
 
 	private resolveKey(spec: NativeKeySpec): Promise<Aes256Key> {
-		// Asking for the same key in parallel easily breaks keytar/gnome-keyring so we cache the promise.
+		// Asking for the same key in parallel easily breaks gnome-keyring so we cache the promise.
 		const entry = getFromMap(this.resolvedKeys, spec, () => this.fetchOrGenerateKey(spec))
 
 		if (spec.cached) {

@@ -18,7 +18,7 @@ import { DesktopTray } from "./tray/DesktopTray"
 import { log } from "./DesktopLog"
 import { UpdaterWrapper } from "./UpdaterWrapper"
 import { ElectronNotificationFactory } from "./NotificatonFactory"
-import { buildSecretStorage, preselectGnomeLibsecret } from "./sse/SecretStorage"
+import { preselectGnomeLibsecret, SafeStorageSecretStorage } from "./sse/SecretStorage"
 import fs from "node:fs"
 import { DesktopIntegrator, getDesktopIntegratorForPlatform } from "./integration/DesktopIntegrator"
 import net from "node:net"
@@ -136,7 +136,7 @@ async function createComponents(): Promise<Components> {
 	const en = (await import("../translations/en.js")).default
 	lang.init(en)
 	preselectGnomeLibsecret(electron)
-	const secretStorage = await buildSecretStorage(electron, fs, path)
+	const secretStorage = new SafeStorageSecretStorage(electron, fs, path)
 	const keyStoreFacade = new DesktopKeyStoreFacade(secretStorage, desktopCrypto)
 	const configMigrator = new DesktopConfigMigrator(desktopCrypto, keyStoreFacade, electron)
 	const conf = new DesktopConfig(configMigrator, keyStoreFacade, desktopCrypto)
