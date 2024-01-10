@@ -5,8 +5,7 @@ import type { ValidationResult } from "../SelectMailAddressForm.js"
 import { SelectMailAddressForm } from "../SelectMailAddressForm.js"
 import { getGroupTypeDisplayName } from "./GroupDetailsView.js"
 import { showProgressDialog } from "../../gui/dialogs/ProgressDialog.js"
-import type { TranslationKey } from "../../misc/LanguageViewModel.js"
-import { lang } from "../../misc/LanguageViewModel.js"
+import { InfoLink, lang, TranslationKey } from "../../misc/LanguageViewModel.js"
 import { showBuyDialog } from "../../subscription/BuyDialog.js"
 import { PreconditionFailedError } from "../../api/common/error/RestError.js"
 import { showPlanUpgradeRequiredDialog } from "../../misc/SubscriptionDialogs.js"
@@ -19,6 +18,7 @@ import { locator } from "../../api/main/MainLocator.js"
 import { assertMainOrNode } from "../../api/common/Env.js"
 import { EmailDomainData, getAvailableDomains } from "../mailaddress/MailAddressesUtils.js"
 import { getAvailablePlansWithTemplates, toFeatureType } from "../../subscription/SubscriptionUtils.js"
+import { MoreInfoLink } from "../../misc/news/MoreInfoLink.js"
 
 assertMainOrNode()
 
@@ -67,10 +67,7 @@ export class AddGroupDialog implements Component<AddGroupDialogAttrs> {
 							onDomainChanged,
 						}),
 						m(".mt-m", ""),
-						m("span.small", lang.get("moreInfo_msg") + " "),
-						m("span.small.text-break", [
-							m(`a[href=https://tuta.com/support/#shared-mailboxes][target=_blank]`, "https://tuta.com/support/#shared-mailboxes"),
-						]),
+						m(MoreInfoLink, { link: InfoLink.SharedMailboxes, isSmall: true }),
 				  ])
 				: m(""),
 		]

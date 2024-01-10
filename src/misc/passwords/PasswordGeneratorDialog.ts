@@ -7,6 +7,7 @@ import { px } from "../../gui/size"
 import { copyToClipboard } from "../ClipboardUtils"
 import { lang } from "../LanguageViewModel.js"
 import { LoginButton } from "../../gui/base/buttons/LoginButton.js"
+import { ExternalLink } from "../../gui/base/ExternalLink.js"
 
 let dictionary: string[] | null = null
 
@@ -74,15 +75,11 @@ class PasswordGeneratorDialog implements Component<PasswordGeneratorDialogAttrs>
 			m(".small.mt-xs", [
 				lang.get("passphraseGeneratorHelp_msg"),
 				" ",
-				m(
-					"a",
-					{
-						href: "https://tuta.com/faq#passphrase-generator",
-						target: "_blank",
-						rel: "nooopener noreferer",
-					},
-					lang.get("faqEntry_label"),
-				),
+				m(ExternalLink, {
+					href: "https://tuta.com/faq#passphrase-generator",
+					text: lang.get("faqEntry_label"),
+					isCompanySite: true,
+				}),
 			]),
 			m(".flex-end", [
 				m(Button, {

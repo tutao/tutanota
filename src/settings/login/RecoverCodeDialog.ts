@@ -12,6 +12,7 @@ import { User } from "../../api/entities/sys/TypeRefs.js"
 import { getEtId, isSameId } from "../../api/common/utils/EntityUtils.js"
 import { GroupType } from "../../api/common/TutanotaConstants.js"
 import { IconButton } from "../../gui/base/IconButton.js"
+import { MoreInfoLink } from "../../misc/news/MoreInfoLink.js"
 
 type Action = "get" | "create"
 assertMainOrNode()
@@ -133,9 +134,6 @@ export class RecoverCodeField {
 
 	private renderRecoveryText(): Child {
 		const link = InfoLink.RecoverCode
-		return m(".pt.pb", [
-			lang.get("recoveryCode_msg"),
-			m("", [m("small", lang.get("moreInfo_msg") + " "), m("small.text-break", [m(`a[href=${link}][target=_blank]`, link)])]),
-		])
+		return m(".pt.pb", [lang.get("recoveryCode_msg"), m("", [m(MoreInfoLink, { link, isSmall: true })])])
 	}
 }

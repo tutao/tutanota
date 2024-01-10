@@ -20,6 +20,7 @@ import { client } from "../../misc/ClientDetector.js"
 import { showProgressDialog } from "../../gui/dialogs/ProgressDialog.js"
 import { LockedError } from "../../api/common/error/RestError.js"
 import { ifAllowedTutaLinks } from "../../gui/base/GuiUtils.js"
+import { ExternalLink } from "../../gui/base/ExternalLink.js"
 
 export function insertInlineImageB64ClickHandler(ev: Event, handler: ImageHandler) {
 	showFileChooser(true, ALLOWED_IMAGE_FORMATS).then((files) => {
@@ -242,14 +243,12 @@ function reportMail(viewModel: MailViewerViewModel) {
 				[
 					m("div", lang.get("phishingReport_msg")),
 					ifAllowedTutaLinks(locator.logins, InfoLink.Phishing, (link) =>
-						m(
-							"a.mt-s",
-							{
-								href: link,
-								target: "_blank",
-							},
-							lang.get("whatIsPhishing_msg"),
-						),
+						m(ExternalLink, {
+							href: link,
+							text: lang.get("whatIsPhishing_msg"),
+							isCompanySite: true,
+							class: "mt-s",
+						}),
 					),
 					m(".flex-wrap.flex-end", [
 						m(Button, {

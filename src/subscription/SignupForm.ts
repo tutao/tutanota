@@ -23,6 +23,7 @@ import { runCaptchaFlow } from "./Captcha.js"
 import { EmailDomainData, isPaidPlanDomain } from "../settings/mailaddress/MailAddressesUtils.js"
 import { isIOSApp } from "../api/common/Env.js"
 import { LoginButton } from "../gui/base/buttons/LoginButton.js"
+import { ExternalLink } from "../gui/base/ExternalLink.js"
 
 const faqCustomDomainLink = "https://tuta.com/faq#custom-domain"
 
@@ -184,7 +185,7 @@ export class SignupForm implements Component<SignupFormAttrs> {
 							m(SelectMailAddressForm, mailAddressFormAttrs), // Leave as is
 							a.isPaidSubscription()
 								? m(".small.mt-s", lang.get("configureCustomDomainAfterSignup_msg"), [
-										m("a", { href: faqCustomDomainLink, target: "_blank" }, faqCustomDomainLink),
+										m(ExternalLink, { href: faqCustomDomainLink, isCompanySite: true }),
 								  ])
 								: null,
 							m(PasswordForm, {
