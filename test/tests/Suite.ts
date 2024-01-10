@@ -172,6 +172,7 @@ async function setupSuite({ integration }: { integration?: boolean }) {
 		await import("./api/worker/offline/OfflineStorageMigrationsTest.js")
 		await import("./api/worker/offline/OfflineStorageTest.js")
 		await import("./mail/view/ConversationViewModelTest.js")
+		await import("./mail/view/MailViewerViewModelTest.js")
 		await import("./desktop/config/DesktopConfigTest.js")
 		await import("./api/worker/rest/RestClientTest.js")
 		await import("./desktop/files/TempFsTest.js")
