@@ -583,7 +583,11 @@ export class MailViewerViewModel {
 		if (!mailHeaders) {
 			return false
 		}
-		const unsubHeaders = mailHeaders.split("\n").filter((headerLine) => headerLine.toLowerCase().startsWith("list-unsubscribe"))
+		const unsubHeaders = mailHeaders
+			.replaceAll(/\r\n/g, "\n") // replace all CR LF with LF
+			.replaceAll(/\n[ \t]/g, "") // join multiline headers to a single line
+			.split("\n") // split headers
+			.filter((headerLine) => headerLine.toLowerCase().startsWith("list-unsubscribe"))
 		if (unsubHeaders.length > 0) {
 			const recipient = await this.getSenderOfResponseMail()
 			await this.mailModel.unsubscribe(this.mail, recipient, unsubHeaders)
