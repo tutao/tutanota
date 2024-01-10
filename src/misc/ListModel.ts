@@ -1,4 +1,4 @@
-import { getElementId, isSameId, ListElement } from "../api/common/utils/EntityUtils.js"
+import { elementIdPart, getElementId, isSameId, ListElement } from "../api/common/utils/EntityUtils.js"
 import { ListLoadingState, ListState } from "../gui/base/List.js"
 
 import { OperationType } from "../api/common/TutanotaConstants.js"
@@ -238,8 +238,11 @@ export class ListModel<ElementType extends ListElement> {
 		// We cannot use binary search here because the sort order of items can change based on the entity update and we need to find the position of the
 		// old entity by id in order to remove it.
 
+		// Since every element id is unique and there's no scenario where the same item appears twice but in different lists, we can safely sort just
+		// by the element id, ignoring the list id
+
 		// update unfiltered list: find the position, take out the old item and put the updated one
-		const positionToUpdateUnfiltered = this.rawState.unfilteredItems.findIndex((item) => isSameId(item._id, entity._id))
+		const positionToUpdateUnfiltered = this.rawState.unfilteredItems.findIndex((item) => isSameId(elementIdPart(item._id), elementIdPart(entity._id)))
 		const unfilteredItems = this.rawState.unfilteredItems.slice()
 		if (positionToUpdateUnfiltered >= 0) {
 			unfilteredItems.splice(positionToUpdateUnfiltered, 1, entity)
@@ -247,7 +250,7 @@ export class ListModel<ElementType extends ListElement> {
 		}
 
 		// update filtered list & selected items
-		const positionToUpdateFiltered = this.rawState.filteredItems.findIndex((item) => isSameId(item._id, entity._id))
+		const positionToUpdateFiltered = this.rawState.filteredItems.findIndex((item) => isSameId(elementIdPart(item._id), elementIdPart(entity._id)))
 		const filteredItems = this.rawState.filteredItems.slice()
 		const selectedItems = new Set(this.rawState.selectedItems)
 		if (positionToUpdateFiltered >= 0) {
@@ -259,8 +262,8 @@ export class ListModel<ElementType extends ListElement> {
 		}
 
 		// keep active element up-to-date
-		const activeElementUpdated = this.rawState.activeElement != null && isSameId(this.rawState.activeElement._id, entity._id)
-		const newActiveElement = activeElementUpdated ? this.rawState.activeElement : this.rawState.activeElement
+		const activeElementUpdated = this.rawState.activeElement != null && isSameId(elementIdPart(this.rawState.activeElement._id), elementIdPart(entity._id))
+		const newActiveElement = this.rawState.activeElement
 
 		if (positionToUpdateUnfiltered !== -1 || positionToUpdateFiltered !== -1 || activeElementUpdated) {
 			this.updateState({ unfilteredItems, filteredItems, selectedItems, activeElement: newActiveElement })
