@@ -207,6 +207,7 @@ export class MailViewerHeader implements Component<MailViewerHeaderAttrs> {
 							// align "more" button with the datetime text
 							marginRight: styles.isSingleColumnLayout() ? "-3px" : "6px",
 						},
+						onclick: (e: MouseEvent) => e.stopPropagation(),
 					},
 					this.moreButton(attrs),
 				),
