@@ -16,6 +16,7 @@ import { IconButtonAttrs } from "../../gui/base/IconButton.js"
 import { ColumnWidth, Table } from "../../gui/base/Table.js"
 import { DnsRecordTable } from "./DnsRecordTable.js"
 import { LoginButton } from "../../gui/base/buttons/LoginButton.js"
+import { MoreInfoLink } from "../../misc/news/MoreInfoLink.js"
 
 assertMainOrNode()
 
@@ -186,8 +187,7 @@ export function renderCheckResult(domainStatus: DomainDnsStatus, hideRefreshButt
 							click: () => _updateDnsStatus(domainStatus),
 					  },
 			),
-			m("span.small.mt-m", lang.get("moreInfo_msg") + " "),
-			m("span.small", m(`a[href=${InfoLink.DomainInfo}][target=_blank]`, InfoLink.DomainInfo)),
+			m(MoreInfoLink, { link: InfoLink.DomainInfo, class: "mt-m", isSmall: true }),
 		]
 	} else {
 		const errorMessageMap: Record<CustomDomainCheckResult, TranslationKey> = {

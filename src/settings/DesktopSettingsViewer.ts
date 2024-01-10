@@ -21,6 +21,7 @@ import { assertMainOrNode } from "../api/common/Env"
 import { locator } from "../api/main/MainLocator"
 import { IconButton, IconButtonAttrs } from "../gui/base/IconButton.js"
 import { ButtonSize } from "../gui/base/ButtonSize.js"
+import { MoreInfoLink } from "../misc/news/MoreInfoLink.js"
 
 assertMainOrNode()
 
@@ -88,8 +89,7 @@ export class DesktopSettingsViewer implements UpdatableSettingsViewer {
 			helpLabel: () => {
 				return ifAllowedTutaLinks(locator.logins, InfoLink.RunInBackground, (link) => [
 					m("span", lang.get("runInBackground_msg") + " "),
-					m("span", lang.get("moreInfo_msg") + " "),
-					m("span.text-break", [m(`a[href=${link}][target=_blank]`, link)]),
+					m(MoreInfoLink, { link: link as InfoLink }),
 				])
 			},
 			items: [

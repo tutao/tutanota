@@ -3,12 +3,13 @@ import stream from "mithril/stream"
 import { AccessBlockedError, AccessDeactivatedError, InvalidDataError, NotAuthenticatedError, TooManyRequestsError } from "../../api/common/error/RestError"
 import { showProgressDialog } from "../../gui/dialogs/ProgressDialog"
 import { isMailAddress } from "../../misc/FormatValidator"
-import { lang } from "../../misc/LanguageViewModel"
+import { InfoLink, lang } from "../../misc/LanguageViewModel"
 import { Autocomplete, TextField } from "../../gui/base/TextField.js"
 import { Dialog, DialogType } from "../../gui/base/Dialog"
 import { HtmlEditor, HtmlEditorMode } from "../../gui/editor/HtmlEditor"
 import { locator } from "../../api/main/MainLocator"
 import { assertMainOrNode } from "../../api/common/Env"
+import { MoreInfoLink } from "../../misc/news/MoreInfoLink.js"
 
 assertMainOrNode()
 
@@ -26,17 +27,7 @@ export function showTakeOverDialog(mailAddress: string, password: string): Dialo
 			view: () => {
 				return [
 					m(".mt", lang.get("takeOverUnusedAddress_msg")),
-					m("span", [
-						lang.get("moreInfo_msg") + " ",
-						m(
-							"a",
-							{
-								href: "https://tuta.com/faq/#inactive-accounts",
-								target: "_blank",
-							},
-							"https://tuta.com/faq/#inactive-accounts",
-						),
-					]),
+					m(MoreInfoLink, { link: InfoLink.InactiveAccounts }),
 					m(TextField, {
 						label: "targetAddress_label",
 						value: targetAccountAddress(),

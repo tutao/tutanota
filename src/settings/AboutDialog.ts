@@ -7,6 +7,7 @@ import { InfoLink, lang } from "../misc/LanguageViewModel"
 import { newMailEditorFromTemplate } from "../mail/editor/MailEditor"
 import { UserError } from "../api/main/UserError"
 import { clientInfoString, getLogAttachments } from "../misc/ErrorReporter"
+import { ExternalLink } from "../gui/base/ExternalLink.js"
 
 export class AboutDialog implements Component {
 	view(vnode: Vnode): Children {
@@ -14,8 +15,13 @@ export class AboutDialog implements Component {
 			m(".center.mt", "Powered by"),
 			m(".center.mt", m.trust(getColouredTutanotaLogo())),
 			m(".flex.justify-center.mt-l.flex-wrap", [
-				this._aboutLink(InfoLink.HomePage, "Website"),
-				this._aboutLink("https://github.com/tutao/tutanota/releases", "Releases"),
+				m(ExternalLink, { href: InfoLink.HomePage, text: "Website", isCompanySite: true, specialType: "me", class: "mlr mt" }),
+				m(ExternalLink, {
+					href: "https://github.com/tutao/tutanota/releases",
+					text: "Releases",
+					isCompanySite: false,
+					class: "mlr mt",
+				}),
 			]),
 			m(".flex.justify-center.flex-wrap", [m("p.center.mt.mlr", `v${env.versionNumber}`), m("p.text-center.mlr", "GPL-v3"), m("p", "© 2023 Tutao GmbH")]),
 			this._sendLogsLink(),
@@ -30,17 +36,6 @@ export class AboutDialog implements Component {
 				click: () => this._sendDeviceLogs(),
 				type: ButtonType.Primary,
 			}),
-		)
-	}
-
-	_aboutLink(href: string, text: string): Children {
-		return m(
-			"a.no-text-decoration.mlr.mt",
-			{
-				href: href,
-				target: "_blank",
-			},
-			[m(".underline", text)],
 		)
 	}
 

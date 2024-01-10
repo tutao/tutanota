@@ -25,6 +25,7 @@ import { px } from "../gui/size.js"
 import { LoginScreenHeader } from "../gui/LoginScreenHeader.js"
 import { styles } from "../gui/styles.js"
 import { MigratingCredentialsBanner } from "./MigratingCredentialsBanner.js"
+import { ExternalLink } from "../gui/base/ExternalLink.js"
 
 assertMainOrNode()
 
@@ -404,29 +405,29 @@ export function getPrivacyStatementLink(): string | null {
 }
 
 export function renderInfoLinks(): Children {
+	const privacyPolicyLink = getPrivacyStatementLink()
+	const imprintLink = getImprintLink()
 	return m(
 		".flex.col.mt-l",
 		m(
 			".flex.wrap.justify-center",
-			!isApp() && getPrivacyStatementLink()
-				? m(
-						"a.plr",
-						{
-							href: getPrivacyStatementLink(),
-							target: "_blank",
-						},
-						lang.get("privacyLink_label"),
-				  )
+			!isApp() && privacyPolicyLink
+				? m(ExternalLink, {
+						href: privacyPolicyLink,
+						text: lang.get("privacyLink_label"),
+						class: "plr",
+						isCompanySite: true,
+						specialType: "privacy-policy",
+				  })
 				: null,
-			!isApp() && getImprintLink()
-				? m(
-						"a.plr",
-						{
-							href: getImprintLink(),
-							target: "_blank",
-						},
-						lang.get("imprint_label"),
-				  )
+			!isApp() && imprintLink
+				? m(ExternalLink, {
+						href: imprintLink,
+						text: lang.get("imprint_label"),
+						class: "plr",
+						isCompanySite: true,
+						specialType: "license",
+				  })
 				: null,
 		),
 		m(

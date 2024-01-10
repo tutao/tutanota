@@ -7,6 +7,7 @@ import { theme } from "../../gui/theme"
 import type { Thunk } from "@tutao/tutanota-utils"
 import { Autocomplete, TextField } from "../../gui/base/TextField.js"
 import { LoginButton } from "../../gui/base/buttons/LoginButton.js"
+import { ExternalLink } from "../../gui/base/ExternalLink.js"
 
 type WebauthnState = { state: "init" } | { state: "progress" } | { state: "error"; error: TranslationKey }
 
@@ -129,14 +130,12 @@ export class SecondFactorAuthView implements Component<SecondFactorViewAttrs> {
 				"{domain}": hostname,
 			}),
 			m("br"),
-			m(
-				"a.text-center",
-				{
-					href: otherDomainLoginUrl,
-					target: "_blank",
-				},
-				hostname,
-			),
+			m(ExternalLink, {
+				href: otherDomainLoginUrl,
+				text: hostname,
+				class: "text-center",
+				isCompanySite: false,
+			}),
 		]
 	}
 

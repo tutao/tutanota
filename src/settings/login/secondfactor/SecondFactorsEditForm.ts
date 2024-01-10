@@ -11,7 +11,6 @@ import { showProgressDialog } from "../../../gui/dialogs/ProgressDialog.js"
 import type { TableAttrs, TableLineAttrs } from "../../../gui/base/Table.js"
 import { ColumnWidth, Table } from "../../../gui/base/Table.js"
 import { NotFoundError } from "../../../api/common/error/RestError.js"
-
 import { ifAllowedTutaLinks } from "../../../gui/base/GuiUtils.js"
 import { locator } from "../../../api/main/MainLocator.js"
 import { SecondFactorEditDialog } from "./SecondFactorEditDialog.js"
@@ -21,6 +20,7 @@ import { ButtonSize } from "../../../gui/base/ButtonSize.js"
 import { appIdToLoginUrl } from "../../../misc/2fa/SecondFactorUtils.js"
 import { DomainConfigProvider } from "../../../api/common/DomainConfigProvider.js"
 import { EntityUpdateData, isUpdateForTypeRef } from "../../../api/common/utils/EntityUpdateUtils.js"
+import { MoreInfoLink } from "../../../misc/news/MoreInfoLink.js"
 
 assertMainOrNode()
 
@@ -50,12 +50,7 @@ export class SecondFactorsEditForm {
 			m(".h4.mt-l", lang.get("secondFactorAuthentication_label")),
 			m(Table, secondFactorTableAttrs),
 			this.domainConfigProvider.getCurrentDomainConfig().firstPartyDomain
-				? [
-						m("span.small", lang.get("moreInfo_msg") + " "),
-						ifAllowedTutaLinks(locator.logins, InfoLink.SecondFactor, (link) =>
-							m("span.small.text-break", [m(`a[href=${link}][target=_blank]`, link)]),
-						),
-				  ]
+				? [ifAllowedTutaLinks(locator.logins, InfoLink.SecondFactor, (link) => m(MoreInfoLink, { link: link as InfoLink, isSmall: true }))]
 				: null,
 		]
 	}
