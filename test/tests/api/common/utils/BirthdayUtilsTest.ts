@@ -2,7 +2,7 @@ import o from "@tutao/otest"
 import { BirthdayTypeRef, createBirthday } from "../../../../../src/api/entities/tutanota/TypeRefs.js"
 import { birthdayToIsoDate, isoDateToBirthday } from "../../../../../src/api/common/utils/BirthdayUtils.js"
 import { ParsingError } from "../../../../../src/api/common/error/ParsingError.js"
-import { TutanotaError } from "../../../../../src/api/common/error/TutanotaError.js"
+import { TutanotaError } from "@tutao/tutanota-error"
 import { createTestEntity } from "../../../TestUtils.js"
 
 o.spec("BirthdayUtilsTest", function () {

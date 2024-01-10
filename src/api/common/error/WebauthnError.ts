@@ -1,6 +1,6 @@
 //@bundleInto:common-min
 
-import { TutanotaError } from "./TutanotaError.js"
+import { TutanotaError } from "@tutao/tutanota-error"
 
 export class WebauthnError extends TutanotaError {
 	constructor(error: Error) {
