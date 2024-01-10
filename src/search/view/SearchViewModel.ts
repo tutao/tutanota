@@ -13,6 +13,7 @@ import {
 	getElementId,
 	isSameId,
 	ListElement,
+	listIdPart,
 	sortCompareByReverseId,
 } from "../../api/common/utils/EntityUtils.js"
 import { ListLoadingState, ListState } from "../../gui/base/List.js"
@@ -46,7 +47,7 @@ import { EntityClient, loadMultipleFromLists } from "../../api/common/EntityClie
 import { getMailFilterForType, MailFilterType } from "../../mail/model/MailUtils.js"
 import { SearchRouter } from "./SearchRouter.js"
 import { MailOpenedListener } from "../../mail/view/MailViewModel.js"
-import { EntityUpdateData, isUpdateForTypeRef } from "../../api/common/utils/EntityUpdateUtils.js"
+import { containsEventOfType, EntityUpdateData, isUpdateForTypeRef } from "../../api/common/utils/EntityUpdateUtils.js"
 import { CalendarInfo } from "../../calendar/model/CalendarModel.js"
 import { locator } from "../../api/main/MainLocator.js"
 import m from "mithril"
@@ -160,8 +161,25 @@ export class SearchViewModel {
 
 	private readonly entityEventsListener: EntityEventsListener = async (updates) => {
 		for (const update of updates) {
-			await this.entityEventReceived(update)
+			const mergedUpdate = this.mergeOperationsIfNeeded(update, updates)
+
+			if (mergedUpdate == null) continue
+
+			await this.entityEventReceived(mergedUpdate)
 		}
+	}
+
+	private mergeOperationsIfNeeded(update: EntityUpdateData, updates: readonly EntityUpdateData[]) {
+		if (update.operation === OperationType.CREATE && containsEventOfType(updates as readonly EntityUpdateData[], OperationType.DELETE, update.instanceId)) {
+			update.operation = OperationType.UPDATE
+		} else if (
+			update.operation === OperationType.DELETE &&
+			containsEventOfType(updates as readonly EntityUpdateData[], OperationType.CREATE, update.instanceId)
+		) {
+			return null
+		}
+
+		return update
 	}
 
 	onNewUrl(args: Record<string, any>, requestedPath: string) {
@@ -470,7 +488,18 @@ export class SearchViewModel {
 			return
 		}
 
-		if (isUpdateForTypeRef(CalendarEventTypeRef, update) && isSameTypeRef(lastType, CalendarEventTypeRef)) {
+		if (isUpdateForTypeRef(MailTypeRef, update) && operation === OperationType.UPDATE) {
+			if (this._searchResult && this._searchResult.results) {
+				const index = this._searchResult?.results.findIndex(
+					(email) => update.instanceId === elementIdPart(email) && update.instanceListId !== listIdPart(email),
+				)
+				if (index >= 0) {
+					// We need to update the listId of the updated item, since it was moved to another folder.
+					const newIdTuple: IdTuple = [update.instanceListId, update.instanceId]
+					this._searchResult.results[index] = newIdTuple
+				}
+			}
+		} else if (isUpdateForTypeRef(CalendarEventTypeRef, update) && isSameTypeRef(lastType, CalendarEventTypeRef)) {
 			// due to the way calendar event changes are sort of non-local, we throw away the whole list and re-render it if
 			// the contents are edited. we do the calculation on a new list and then swap the old list out once the new one is
 			// ready
@@ -529,7 +558,7 @@ export class SearchViewModel {
 		if (isSameTypeRef(this.searchedType, MailTypeRef)) {
 			if (!newState.inMultiselect && newState.selectedItems.size === 1) {
 				const mail = this.getSelectedMails()[0]
-				if (!this.conversationViewModel || !isSameId(this.conversationViewModel?.primaryMail._id, mail._id)) {
+				if (!this.conversationViewModel || !isSameId(elementIdPart(this.conversationViewModel?.primaryMail._id), elementIdPart(mail._id))) {
 					this.updateDisplayedConversation(mail)
 				}
 			} else {
@@ -554,10 +583,10 @@ export class SearchViewModel {
 		// at this point
 		// note in case of refactor: the fact that the list updates the URL every time it changes
 		// its state is a major source of complexity and makes everything very order-dependent
-		const lastResult = this._searchResult
 		return new ListModel<SearchResultListEntry>({
 			topId: GENERATED_MAX_ID,
 			fetch: async (startId: Id, count: number) => {
+				const lastResult = this._searchResult
 				if (lastResult !== this._searchResult) {
 					console.warn("got a fetch request for outdated results object, ignoring")
 					// this._searchResults was reassigned, we'll create a new ListModel soon
@@ -576,6 +605,7 @@ export class SearchViewModel {
 				return { items: entries, complete }
 			},
 			loadSingle: async (elementId: Id) => {
+				const lastResult = this._searchResult
 				if (!lastResult) {
 					return null
 				}
@@ -607,7 +637,20 @@ export class SearchViewModel {
 
 	isInSearchResult(typeRef: TypeRef<unknown>, id: IdTuple): boolean {
 		const result = this._searchResult
-		return !!(result && isSameTypeRef(typeRef, result.restriction.type) && result.results.some((r) => isSameId(r, id)))
+
+		if (result && isSameTypeRef(typeRef, result.restriction.type)) {
+			// The list id must be null/empty, otherwise the user is filtering by list, and it shouldn't be ignored
+
+			const ignoreList = isSameTypeRef(typeRef, MailTypeRef) && result.restriction.listIds.length === 0
+
+			return result.results.some((r) => this.compareItemId(r, id, ignoreList))
+		}
+
+		return false
+	}
+
+	private compareItemId(id1: IdTuple, id2: IdTuple, ignoreList: boolean) {
+		return ignoreList ? isSameId(elementIdPart(id1), elementIdPart(id2)) : isSameId(id1, id2)
 	}
 
 	private async loadSearchResults<T extends SearchableTypes>(
