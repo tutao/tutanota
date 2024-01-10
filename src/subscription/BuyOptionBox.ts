@@ -264,15 +264,14 @@ export class InfoIcon implements Component<InfoIconAttrs> {
 					"margin-top": px(1),
 				},
 				// we can't really do the state with pure CSS on mobile
-				onclick: () => {
-					this.expanded = true
-					document.addEventListener("click", this.listener, { capture: true })
-				},
+				onclick: () => this.expand(),
 				onkeydown: (e: KeyboardEvent) => {
 					if (isKeyPressed(e.key, Keys.ESC)) {
 						this.listener(e)
 					}
 				},
+				onfocusin: () => this.expand(),
+				onfocusout: (e: Event) => this.listener(e),
 			},
 			m(
 				".info-badge.tooltip",
@@ -294,6 +293,11 @@ export class InfoIcon implements Component<InfoIconAttrs> {
 				),
 			),
 		)
+	}
+
+	private expand(): void {
+		this.expanded = true
+		document.addEventListener("click", this.listener, { capture: true })
 	}
 
 	private readonly listener = (e: Event) => {
