@@ -58,7 +58,7 @@ class FileFacadeReceiveDispatcher(
 				)
 				return json.encodeToString(result)
 			}
-			"getLength" -> {
+			"getSize" -> {
 				val file: String = json.decodeFromString(arg[0])
 				val result: Int = this.facade.getSize(
 					file,
