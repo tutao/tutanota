@@ -1,11 +1,6 @@
-import { CancelledError } from "../../api/common/error/CancelledError"
-import { noOp } from "@tutao/tutanota-utils"
 import * as PathModule from "node:path"
 import * as FsModule from "node:fs"
 import { DeviceStorageUnavailableError } from "../../api/common/error/DeviceStorageUnavailableError.js"
-import type { default as Keytar } from "keytar"
-import os from "node:os"
-import { ProgrammingError } from "../../api/common/error/ProgrammingError.js"
 
 export function preselectGnomeLibsecret(electron: typeof Electron.CrossProcessExports) {
 	// this is how chromium selects a backend:
@@ -16,87 +11,15 @@ export function preselectGnomeLibsecret(electron: typeof Electron.CrossProcessEx
 	// and back out that makes it suddenly work with i3 since chromium falls back to that if none of the more modern vars
 	// contain something it recognizes.
 	// if no explicit backend is given, we default to trying gnome-libsecret since that was what we required before.
-	// the code that keytar used to do its thing is virtually identical to what chromium is doing when using gnome-libsecret.
 	if (process.platform === "linux" && !process.argv.some((a) => a.startsWith("--password-store="))) {
 		electron.app.commandLine.appendSwitch("password-store", "gnome-libsecret")
 	}
-}
-
-export async function buildSecretStorage(electron: typeof Electron.CrossProcessExports, fs: typeof FsModule, path: typeof PathModule): Promise<SecretStorage> {
-	const mode = determineNativeBackendMode()
-	switch (mode) {
-		case "dummy":
-			return new SafeStorageSecretStorage(electron, fs, path, new DummySecretStorage())
-		case "keytar": {
-			const { default: keytar } = await import("keytar")
-			const secretStorage = new KeytarSecretStorage(keytar)
-			return new SafeStorageSecretStorage(electron, fs, path, secretStorage)
-		}
-	}
-}
-
-/**
- * on macos big sur, the last working keytar build was for 3.118.13, which
- * only supported x64. we cannot get a working keytar for old macos
- * on arm64 devices, but all of them can upgrade and use the new arm64 binary.
- *
- * should be removed once keytar is no more
- * */
-function determineNativeBackendMode(): "dummy" | "keytar" {
-	const release = Number(os.release().split(".")[0])
-	const isBroken =
-		process.platform === "darwin" &&
-		// only arm64 must use a keytar.node post-breakage
-		process.arch === "arm64" &&
-		// basically big sur (do M1s even come with catalina?)
-		release < 21
-	return isBroken ? "dummy" : "keytar"
 }
 
 export interface SecretStorage {
 	getPassword(service: string, account: string): Promise<string | null>
 
 	setPassword(service: string, account: string, password: string): Promise<void>
-}
-
-export class KeytarSecretStorage implements SecretStorage {
-	private readonly CANCELLED: string
-	private readonly _getPassword: (service: string, account: string) => Promise<string | null>
-	private readonly _setPassword: (service: string, account: string, password: string) => Promise<void>
-
-	/**
-	 * keytar can't handle concurrent accesses to the keychain, so we need to sequence
-	 * calls to getPassword and setPassword.
-	 * this promise chain stores pending operations.
-	 */
-
-	constructor(keytar: typeof Keytar) {
-		this.CANCELLED = keytar.CANCELLED
-		this._getPassword = keytar.getPassword
-		this._setPassword = keytar.setPassword
-	}
-
-	private lastOp: Promise<unknown> = Promise.resolve()
-
-	getPassword(service: string, account: string): Promise<string | null> {
-		const newOp = this.lastOp.catch(noOp).then(() =>
-			this._getPassword(service, account).catch((e) => {
-				if (e.message === this.CANCELLED) {
-					throw new CancelledError("user cancelled keychain unlock")
-				}
-				throw e
-			}),
-		)
-		this.lastOp = newOp
-
-		return newOp
-	}
-
-	setPassword(service: string, account: string, password: string): Promise<void> {
-		const newOp = this.lastOp.catch(noOp).then(() => this._setPassword(service, account, password))
-		this.lastOp = newOp
-		return newOp
-	}
 }
 
 /**
@@ -114,7 +37,6 @@ export class SafeStorageSecretStorage implements SecretStorage {
 		private readonly electron: typeof Electron.CrossProcessExports,
 		private readonly fs: typeof FsModule,
 		private readonly path: typeof PathModule,
-		private readonly keytarSecretStorage: SecretStorage,
 	) {}
 
 	async getPassword(service: string, account: string): Promise<string | null> {
@@ -125,8 +47,8 @@ export class SafeStorageSecretStorage implements SecretStorage {
 			return this.electron.safeStorage.decryptString(encPwBuffer)
 		} catch (e) {
 			if (e.code === "ENOENT") {
-				// we might not have the key in safeStorage yet, but we might have it in the keytar storage.
-				return await this.migrateKeytarPassword(service, account)
+				// the key wasn't created yet
+				return null
 			}
 			throw e
 		}
@@ -170,42 +92,5 @@ export class SafeStorageSecretStorage implements SecretStorage {
 			return
 		}
 		throw new DeviceStorageUnavailableError("safeStorage API is not available", null)
-	}
-
-	/**
-	 * most devices will have stored a deviceKey with keytar, which we can move
-	 * to the safeStorage impl.
-	 *
-	 * @private
-	 */
-	private async migrateKeytarPassword(service: string, account: string): Promise<string | null> {
-		let keytarPw: string | null = null
-		try {
-			keytarPw = await this.keytarSecretStorage.getPassword(service, account)
-		} catch (e) {
-			console.log("keytar failed, assuming there's no pw stored")
-		}
-		if (keytarPw != null) {
-			await this.setPassword(service, account, keytarPw)
-		}
-
-		return keytarPw
-	}
-}
-
-/**
- * used as an ephemeral storage that prevets outdated arm64 macs
- * from crashing when they attempt to load keytar.
- *
- * It's used in a read-only mode because new and migrated passwords
- * are written to safeStorage.
- * */
-class DummySecretStorage implements SecretStorage {
-	async getPassword(service: string, account: string): Promise<string | null> {
-		return null
-	}
-
-	async setPassword(service: string, account: string, password: string): Promise<void> {
-		throw new ProgrammingError("code that uses this should not be writing through to keytar anymore")
 	}
 }
