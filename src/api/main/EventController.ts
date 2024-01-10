@@ -12,7 +12,7 @@ export type ExposedEventController = Pick<EventController, "onEntityUpdateReceiv
 
 const TAG = "[EventController]"
 
-export type EntityEventsListener = (updates: ReadonlyArray<EntityUpdateData>, eventOwnerGroupId: Id) => Promise<any>
+export type EntityEventsListener = (updates: ReadonlyArray<EntityUpdateData>, eventOwnerGroupId: Id) => Promise<unknown>
 
 export class EventController {
 	private countersStream: Stream<WebsocketCounterData> = stream()

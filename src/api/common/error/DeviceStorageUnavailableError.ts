@@ -1,6 +1,6 @@
 //@bundleInto:common-min
 
-import { TutanotaError } from "./TutanotaError.js"
+import { TutanotaError } from "@tutao/tutanota-error"
 
 /**
  * this error is thrown when the client fails to get access to a safe storage for

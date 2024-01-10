@@ -1,4 +1,4 @@
-import { TutanotaError } from "../common/error/TutanotaError"
+import { TutanotaError } from "@tutao/tutanota-error"
 import type { TranslationKeyType } from "../../misc/TranslationKey"
 import { lang } from "../../misc/LanguageViewModel"
 import type { lazy } from "@tutao/tutanota-utils"
