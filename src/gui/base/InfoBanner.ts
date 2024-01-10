@@ -80,7 +80,7 @@ export class InfoBanner implements Component<InfoBannerAttrs> {
 	renderButtons(buttons: ReadonlyArray<BannerButtonAttrs | null>): Children {
 		if (buttons.length === 0) return null
 		return m(
-			"small",
+			".small.flex.row",
 			buttons.filter(isNotNull).map((attrs) => m(Button, { ...attrs, type: ButtonType.Secondary })),
 		)
 	}
