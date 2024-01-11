@@ -141,7 +141,7 @@ export class DesktopSettingsViewer implements UpdatableSettingsViewer {
 			label: "checkSpelling_action",
 			value: this.spellCheckLang(),
 			oninput: this.spellCheckLang,
-			disabled: true,
+			isReadOnly: true,
 			injectionsRight: () => m(IconButton, editSpellcheckLanguageButtonAttrs),
 			helpLabel: () => lang.get("requiresNewWindow_msg"),
 		}
@@ -236,7 +236,7 @@ export class DesktopSettingsViewer implements UpdatableSettingsViewer {
 			value: this.defaultDownloadPath(),
 			oninput: this.defaultDownloadPath,
 			injectionsRight: () => m(IconButton, changeDefaultDownloadPathAttrs),
-			disabled: true,
+			isReadOnly: true,
 		}
 
 		return [

@@ -76,17 +76,17 @@ export function showGroupInvitationDialog(invitation: ReceivedGroupInvitation) {
 						m(TextField, {
 							value: getMailAddressDisplayText(invitation.inviterName, invitation.inviterMailAddress, false),
 							label: "sender_label",
-							disabled: true,
+							isReadOnly: true,
 						}),
 						m(TextField, {
 							value: invitation.inviteeMailAddress,
 							label: "to_label",
-							disabled: true,
+							isReadOnly: true,
 						}),
 						m(TextField, {
 							value: getCapabilityText(downcast(invitation.capability)),
 							label: "permissions_label",
-							disabled: true,
+							isReadOnly: true,
 						}),
 						groupType === GroupType.Calendar ? renderCalendarGroupInvitationFields(invitation, colorStream) : null,
 					]),

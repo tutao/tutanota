@@ -60,7 +60,7 @@ export class TemplateDetailsViewer implements UpdatableSettingsDetailsViewer {
 			m(TextField, {
 				label: "shortcut_label",
 				value: TEMPLATE_SHORTCUT_PREFIX + assertNotNull(this.template.tag, "template without tag!"),
-				disabled: true,
+				isReadOnly: true,
 			}),
 			this.sanitizedContents.map(({ text, languageCodeTextId }) => {
 				return m(".flex.flex-column", [m(".h4.mt-l", lang.get(languageCodeTextId)), m(".editor-border.text-break", m.trust(text))])

@@ -26,7 +26,7 @@ export class WhitelabelImprintAndPrivacySettings implements Component<Whitelabel
 		return m(TextField, {
 			label: "privacyPolicyUrl_label",
 			value: privacyStatementUrl,
-			disabled: true,
+			isReadOnly: true,
 			injectionsRight: () =>
 				onPrivacyStatementUrlChanged
 					? m(IconButton, {
@@ -65,7 +65,7 @@ export class WhitelabelImprintAndPrivacySettings implements Component<Whitelabel
 		return m(TextField, {
 			label: "imprintUrl_label",
 			value: imprintUrl,
-			disabled: true,
+			isReadOnly: true,
 			injectionsRight: () =>
 				onImprintUrlChanged
 					? m(IconButton, {

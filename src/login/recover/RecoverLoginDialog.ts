@@ -79,7 +79,7 @@ export function show(mailAddress?: string | null, resetAction?: ResetAction): Di
 						value: selectedValueLabelStream(),
 						oninput: selectedValueLabelStream,
 						injectionsRight: () => m(IconButton, resetActionButtonAttrs),
-						disabled: true,
+						isReadOnly: true,
 					}),
 					selectedAction() == null
 						? null

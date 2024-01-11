@@ -104,21 +104,21 @@ class ConfirmSubscriptionView implements Component<ConfirmAttrs> {
 					"{1}": Math.abs(count),
 				}),
 				type: TextFieldType.Area,
-				disabled: true,
+				isReadOnly: true,
 			}),
 			priceChangeModel.isBuy()
 				? m(TextField, {
 						label: "subscription_label",
 						helpLabel: () => lang.get("nextChargeOn_label", { "{chargeDate}": formatDate(chargeDate) }),
 						value: this.getSubscriptionText(priceChangeModel),
-						disabled: true,
+						isReadOnly: true,
 				  })
 				: null,
 			m(TextField, {
 				label: "price_label",
 				helpLabel: () => this.getPriceInfoText(priceChangeModel),
 				value: this.getPriceText(priceChangeModel),
-				disabled: true,
+				isReadOnly: true,
 			}),
 		])
 	}

@@ -60,7 +60,7 @@ export class LoginSettingsViewer implements UpdatableSettingsViewer {
 			label: "mailAddress_label",
 			value: this._mailAddress(),
 			oninput: this._mailAddress,
-			disabled: true,
+			isReadOnly: true,
 		}
 		const changePasswordButtonAttrs: IconButtonAttrs = {
 			title: "changePassword_label",
@@ -72,7 +72,7 @@ export class LoginSettingsViewer implements UpdatableSettingsViewer {
 			label: "password_label",
 			value: this._stars(),
 			oninput: this._stars,
-			disabled: true,
+			isReadOnly: true,
 			injectionsRight: () => m(IconButton, changePasswordButtonAttrs),
 		}
 		const recoveryCodeDropdownButtonAttrs: IconButtonAttrs = attachDropdown({
@@ -105,7 +105,7 @@ export class LoginSettingsViewer implements UpdatableSettingsViewer {
 			},
 			value: this._stars(),
 			oninput: this._stars,
-			disabled: true,
+			isReadOnly: true,
 			injectionsRight: () => m(IconButton, recoveryCodeDropdownButtonAttrs),
 		}
 		const usageDataOptInAttrs: DropDownSelectorAttrs<boolean | null> = {
@@ -200,7 +200,7 @@ export class LoginSettingsViewer implements UpdatableSettingsViewer {
 			label: "credentialsEncryptionMode_label",
 			helpLabel: this.credentialsEncryptionModeHelpLabel,
 			value: this._credentialsEncryptionModeName(usedMode),
-			disabled: true,
+			isReadOnly: true,
 			injectionsRight: () =>
 				m(IconButton, {
 					title: "edit_action",
