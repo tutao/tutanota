@@ -115,7 +115,7 @@ export class SubscriptionViewer implements UpdatableSettingsViewer {
 					label: "subscription_label",
 					value: this._subscriptionFieldValue(),
 					oninput: this._subscriptionFieldValue,
-					disabled: true,
+					isReadOnly: true,
 					injectionsRight: () =>
 						locator.logins.getUserController().isFreeAccount()
 							? m(IconButton, {
@@ -148,7 +148,7 @@ export class SubscriptionViewer implements UpdatableSettingsViewer {
 							helpLabel: () => lang.get("nextSubscriptionPrice_msg"),
 							value: this._nextPriceFieldValue(),
 							oninput: this._nextPriceFieldValue,
-							disabled: true,
+							isReadOnly: true,
 					  })
 					: null,
 				m(".small.mt-s", renderTermsAndConditionsButton(TermsSection.Terms, CURRENT_TERMS_VERSION)),
@@ -169,43 +169,43 @@ export class SubscriptionViewer implements UpdatableSettingsViewer {
 								label: "storageCapacity_label",
 								value: this._storageFieldValue(),
 								oninput: this._storageFieldValue,
-								disabled: true,
+								isReadOnly: true,
 							}),
 							m(TextField, {
 								label: "mailAddressAliases_label",
 								value: this._emailAliasFieldValue(),
 								oninput: this._emailAliasFieldValue,
-								disabled: true,
+								isReadOnly: true,
 							}),
 							m(TextField, {
 								label: "pricing.comparisonSharingCalendar_msg",
 								value: this._sharingFieldValue(),
 								oninput: this._sharingFieldValue,
-								disabled: true,
+								isReadOnly: true,
 							}),
 							m(TextField, {
 								label: "pricing.comparisonEventInvites_msg",
 								value: this._eventInvitesFieldValue(),
 								oninput: this._eventInvitesFieldValue,
-								disabled: true,
+								isReadOnly: true,
 							}),
 							m(TextField, {
 								label: "pricing.comparisonOutOfOffice_msg",
 								value: this._autoResponderFieldValue(),
 								oninput: this._autoResponderFieldValue,
-								disabled: true,
+								isReadOnly: true,
 							}),
 							m(TextField, {
 								label: "whitelabel.login_title",
 								value: this._whitelabelFieldValue(),
 								oninput: this._whitelabelFieldValue,
-								disabled: true,
+								isReadOnly: true,
 							}),
 							m(TextField, {
 								label: "whitelabel.custom_title",
 								value: this._whitelabelFieldValue(),
 								oninput: this._whitelabelFieldValue,
-								disabled: true,
+								isReadOnly: true,
 							}),
 					  ]
 					: [],
@@ -515,7 +515,7 @@ export class SubscriptionViewer implements UpdatableSettingsViewer {
 				: m(TextField, {
 						label: "bonus_label",
 						value: lang.get("bonusMonth_msg", { "{months}": bonusMonths }),
-						disabled: true,
+						isReadOnly: true,
 				  }),
 			m(TextField, {
 				label: () =>
@@ -526,7 +526,7 @@ export class SubscriptionViewer implements UpdatableSettingsViewer {
 						: lang.get("price_label"),
 				value: this._currentPriceFieldValue(),
 				oninput: this._currentPriceFieldValue,
-				disabled: true,
+				isReadOnly: true,
 				helpLabel: () => (this._customer && this._customer.businessUse === true ? lang.get("pricing.subscriptionPeriodInfoBusiness_msg") : null),
 			}),
 		]
@@ -538,7 +538,7 @@ export class SubscriptionViewer implements UpdatableSettingsViewer {
 			helpLabel: () => lang.get("orderProcessingAgreementInfo_msg"),
 			value: this._orderAgreementFieldValue(),
 			oninput: this._orderAgreementFieldValue,
-			disabled: true,
+			isReadOnly: true,
 			injectionsRight: () => {
 				if (this._orderAgreement && this._customer && this._customer.orderProcessingAgreementNeeded) {
 					return [this.renderSignProcessingAgreementAction(), this.renderShowProcessingAgreementAction()]

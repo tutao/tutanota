@@ -55,7 +55,7 @@ export class GroupDetailsView implements UpdatableSettingsDetailsViewer {
 	}
 
 	private renderCreatedTextField(): Children {
-		return m(TextField, { label: "created_label", value: formatDateWithMonth(this.model.getCreationDate()), disabled: true })
+		return m(TextField, { label: "created_label", value: formatDateWithMonth(this.model.getCreationDate()), isReadOnly: true })
 	}
 
 	private renderAdministratedByDropdown(): Children {
@@ -81,12 +81,12 @@ export class GroupDetailsView implements UpdatableSettingsDetailsViewer {
 			m(TextField, {
 				label: "mailAddress_label",
 				value: this.model.getGroupMailAddress(),
-				disabled: true,
+				isReadOnly: true,
 			}),
 			m(TextField, {
 				label: "mailName_label",
 				value: this.model.getGroupSenderName(),
-				disabled: true,
+				isReadOnly: true,
 				injectionsRight: () =>
 					m(IconButton, {
 						icon: Icons.Edit,
@@ -138,7 +138,7 @@ export class GroupDetailsView implements UpdatableSettingsDetailsViewer {
 		return m(TextField, {
 			label: "name_label",
 			value: this.model.getGroupName(),
-			disabled: true,
+			isReadOnly: true,
 			injectionsRight: () =>
 				m(IconButton, {
 					title: "edit_action",
@@ -173,7 +173,7 @@ export class GroupDetailsView implements UpdatableSettingsDetailsViewer {
 		return m(TextField, {
 			label: "storageCapacityUsed_label",
 			value: formattedStorage,
-			disabled: true,
+			isReadOnly: true,
 		})
 	}
 

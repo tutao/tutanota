@@ -70,7 +70,7 @@ class ShortcutDialog implements Component<ShortcutDialogAttrs> {
 			.map((shortcut) => ({
 				label: () => makeShortcutName(shortcut),
 				value: lang.get(shortcut.help),
-				disabled: true,
+				isReadOnly: true,
 			}))
 		return m(
 			"div.pb",

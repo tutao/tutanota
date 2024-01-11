@@ -178,7 +178,7 @@ export class SignupForm implements Component<SignupFormAttrs> {
 							label: "mailAddress_label",
 							value: a.prefilledMailAddress ?? "",
 							autocompleteAs: Autocomplete.newPassword,
-							disabled: true,
+							isReadOnly: true,
 					  })
 					: [
 							m(SelectMailAddressForm, mailAddressFormAttrs), // Leave as is

@@ -28,6 +28,8 @@ export type TextFieldAttrs = {
 	maxWidth?: number
 	class?: string
 	disabled?: boolean
+	// Creates a dummy TextField without interactively & disabled styling
+	isReadOnly?: boolean
 	oninput?: (value: string, input: HTMLInputElement) => unknown
 	onclick?: ClickHandler
 	doShowBorder?: boolean | null
@@ -85,7 +87,7 @@ export class TextField implements ClassComponent<TextFieldAttrs> {
 	view(vnode: CVnode<TextFieldAttrs>): Children {
 		const a = vnode.attrs
 		const maxWidth = a.maxWidth
-		const labelBase = !this.active && a.value === "" && !a.disabled && !this._didAutofill && !a.injectionsLeft
+		const labelBase = !this.active && a.value === "" && !a.isReadOnly && !this._didAutofill && !a.injectionsLeft
 		const labelTransitionSpeed = DefaultAnimationTime / 2
 		const doShowBorder = a.doShowBorder !== false
 		const borderWidth = this.active ? "2px" : "1px"
@@ -107,7 +109,7 @@ export class TextField implements ClassComponent<TextFieldAttrs> {
 				m(
 					"label.abs.text-ellipsis.noselect.z1.i.pr-s.text",
 					{
-						class: this.active ? "content-accent-fg" : "",
+						class: this.active ? "content-accent-fg" : "" + (a.disabled ? " disabled click-disabled" : ""),
 						oncreate: (vnode) => {
 							this._domLabel = vnode.dom as HTMLElement
 						},
@@ -162,6 +164,7 @@ export class TextField implements ClassComponent<TextFieldAttrs> {
 					? m(
 							"small.noselect",
 							{
+								class: a.disabled ? " disabled click-disabled" : "",
 								onclick: (e: MouseEvent) => {
 									e.stopPropagation()
 								},
@@ -174,7 +177,7 @@ export class TextField implements ClassComponent<TextFieldAttrs> {
 	}
 
 	_getInputField(a: TextFieldAttrs): Children {
-		if (a.disabled) {
+		if (a.isReadOnly) {
 			return m(
 				".text-break.selectable",
 				{
@@ -229,6 +232,8 @@ export class TextField implements ClassComponent<TextFieldAttrs> {
 						min: a.min,
 						max: a.max,
 						"aria-label": lang.getMaybeLazy(a.label),
+						disabled: a.disabled,
+						class: a.disabled ? "disabled click-disabled" : undefined,
 						oncreate: (vnode) => {
 							this.domInput = vnode.dom as HTMLInputElement
 							a.onDomInputCreated?.(this.domInput)
@@ -286,7 +291,7 @@ export class TextField implements ClassComponent<TextFieldAttrs> {
 	}
 
 	_getTextArea(a: TextFieldAttrs): Children {
-		if (a.disabled) {
+		if (a.isReadOnly) {
 			return m(
 				".text-prewrap.text-break.selectable",
 				{
@@ -300,6 +305,8 @@ export class TextField implements ClassComponent<TextFieldAttrs> {
 		} else {
 			return m("textarea.input-area.text-pre", {
 				"aria-label": lang.getMaybeLazy(a.label),
+				disabled: a.disabled,
+				class: a.disabled ? "disabled click-disabled" : undefined,
 				oncreate: (vnode) => {
 					this.domInput = vnode.dom as HTMLInputElement
 					this.domInput.value = a.value
@@ -337,7 +344,7 @@ export class TextField implements ClassComponent<TextFieldAttrs> {
 	}
 
 	focus(e: Event, a: TextFieldAttrs) {
-		if (!this.active && !a.disabled) {
+		if (!this.active && !a.disabled && !a.isReadOnly) {
 			this.active = true
 			this.domInput.focus()
 

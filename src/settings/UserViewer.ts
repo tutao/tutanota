@@ -100,7 +100,7 @@ export class UserViewer implements UpdatableSettingsDetailsViewer {
 			label: "password_label",
 			value: "***",
 			injectionsRight: () => [m(IconButton, changePasswordButtonAttrs)],
-			disabled: true,
+			isReadOnly: true,
 		} as const
 		return m("#user-viewer.fill-absolute.scroll.plr-l.pb-floating", [
 			m(".h4.mt-l", lang.get("userSettings_label")),
@@ -108,17 +108,17 @@ export class UserViewer implements UpdatableSettingsDetailsViewer {
 				m(TextField, {
 					label: "mailAddress_label",
 					value: this.userGroupInfo.mailAddress ?? "",
-					disabled: true,
+					isReadOnly: true,
 				}),
 				m(TextField, {
 					label: "created_label",
 					value: formatDateWithMonth(this.userGroupInfo.created),
-					disabled: true,
+					isReadOnly: true,
 				}),
 				m(TextField, {
 					label: "storageCapacityUsed_label",
 					value: this.usedStorage ? formatStorageSize(this.usedStorage) : lang.get("loading_msg"),
-					disabled: true,
+					isReadOnly: true,
 				} as const),
 			]),
 			m("", [
@@ -145,7 +145,7 @@ export class UserViewer implements UpdatableSettingsDetailsViewer {
 		return m(TextField, {
 			label: "name_label",
 			value: name,
-			disabled: true,
+			isReadOnly: true,
 			injectionsRight: () =>
 				m(IconButton, {
 					title: "edit_action",

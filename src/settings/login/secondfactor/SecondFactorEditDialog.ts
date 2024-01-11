@@ -124,7 +124,7 @@ export class SecondFactorEditDialog {
 				helpLabel: () => lang.get(isApp() ? "totpTransferSecretApp_msg" : "totpTransferSecret_msg"),
 				value: this.model.totpKeys.readableKey,
 				injectionsRight: () => m(IconButton, copyButtonAttrs),
-				disabled: true,
+				isReadOnly: true,
 			}),
 			isApp()
 				? m(

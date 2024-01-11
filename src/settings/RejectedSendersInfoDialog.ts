@@ -29,22 +29,22 @@ export function showRejectedSendersInfoDialog(rejectedSender: RejectedSender) {
 					m(TextField, {
 						label: "emailSender_label",
 						value: rejectedSender.senderMailAddress,
-						disabled: true,
+						isReadOnly: true,
 					}),
 					m(TextField, {
 						label: "mailServer_label",
 						value: `${rejectedSender.senderHostname} (${rejectedSender.senderIp})`,
-						disabled: true,
+						isReadOnly: true,
 					}),
 					m(TextField, {
 						label: "emailRecipient_label",
 						value: rejectedSender.recipientMailAddress,
-						disabled: true,
+						isReadOnly: true,
 					}),
 					m(TextField, {
 						label: "rejectReason_label",
 						value: rejectedSender.reason,
-						disabled: true,
+						isReadOnly: true,
 					}),
 				]
 			},

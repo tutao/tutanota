@@ -53,7 +53,7 @@ export class CustomColorEditor implements Component<SimpleCustomColorEditorAttrs
 					({ dom }) => (this._colorPickerDom = dom as HTMLInputElement),
 				),
 			maxWidth: COLOR_PICKER_WIDTH,
-			disabled: true,
+			isReadOnly: true,
 		}
 
 		/*
