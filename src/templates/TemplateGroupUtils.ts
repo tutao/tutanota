@@ -15,11 +15,14 @@ export async function createInitialTemplateListIfAllowed(): Promise<TemplateGrou
 	const customer = await userController.loadCustomer()
 	const { getAvailablePlansWithTemplates } = await import("../subscription/SubscriptionUtils.js")
 	let allowed = (await userController.getPlanConfig()).templates || isCustomizationEnabledForCustomer(customer, FeatureType.BusinessFeatureEnabled)
-	if (!allowed && userController.isGlobalAdmin()) {
-		allowed = await showPlanUpgradeRequiredDialog(await getAvailablePlansWithTemplates())
-	} else {
-		Dialog.message(() => lang.get("contactAdmin_msg"))
+	if (!allowed) {
+		if (userController.isGlobalAdmin()) {
+			allowed = await showPlanUpgradeRequiredDialog(await getAvailablePlansWithTemplates())
+		} else {
+			Dialog.message(() => lang.get("contactAdmin_msg"))
+		}
 	}
+
 	if (allowed) {
 		const groupId = await locator.groupManagementFacade.createTemplateGroup("")
 		return locator.entityClient.load<TemplateGroupRoot>(TemplateGroupRootTypeRef, groupId)
