@@ -136,7 +136,7 @@ export function show(existingTemplate: NotificationMailTemplate | null, customer
 		existingTemplate
 			? m(TextField, {
 					label: "notificationMailLanguage_label",
-					disabled: true,
+					isReadOnly: true,
 					value: selectedLanguage.name,
 			  })
 			: m(DropDownSelector, {
@@ -170,7 +170,7 @@ export function show(existingTemplate: NotificationMailTemplate | null, customer
 		m(TextField, {
 			label: "subject_label",
 			value: subject().replace(/{sender}/g, senderName),
-			disabled: true,
+			isReadOnly: true,
 		}),
 		m(".small.mt.mb", lang.get("mailBody_label")),
 		m.trust(sanitizePreview(savedHtml.replace(/{sender}/g, senderName).replace(/{link}/g, senderDomain))),

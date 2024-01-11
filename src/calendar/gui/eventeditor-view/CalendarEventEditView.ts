@@ -208,7 +208,7 @@ export class CalendarEventEditView implements Component<CalendarEventEditViewAtt
 		const textFieldAttrs: Array<TextFieldAttrs> = alarmModel.alarms.map((a) => ({
 			value: humanDescriptionForAlarmInterval(a, lang.languageTag),
 			label: "emptyString_msg",
-			disabled: true,
+			isReadOnly: true,
 			injectionsRight: () =>
 				m(IconButton, {
 					title: "delete_action",
@@ -220,7 +220,7 @@ export class CalendarEventEditView implements Component<CalendarEventEditViewAtt
 		textFieldAttrs.push({
 			value: lang.get("add_action"),
 			label: "emptyString_msg",
-			disabled: true,
+			isReadOnly: true,
 			injectionsRight: () =>
 				m(
 					IconButton,

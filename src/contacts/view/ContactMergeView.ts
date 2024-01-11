@@ -70,7 +70,7 @@ export class ContactMergeView {
 		let emptyFieldPlaceholder = m(TextField, {
 			label: "emptyString_msg",
 			value: "",
-			disabled: true,
+			isReadOnly: true,
 		})
 		let emptyHTMLFieldPlaceholder = m(
 			new HtmlEditor("emptyString_msg").showBorders().setValue("").setEnabled(false).setMode(HtmlEditorMode.HTML).setHtmlMonospace(false),
@@ -222,14 +222,14 @@ export class ContactMergeView {
 			return m(TextField, {
 				label: () => getContactAddressTypeLabel(element.type as any, element.customTypeName),
 				value: element.address,
-				disabled: true,
+				isReadOnly: true,
 			})
 		})
 		const phones = contact.phoneNumbers.map((element) => {
 			return m(TextField, {
 				label: () => getContactPhoneNumberTypeLabel(element.type as any, element.customTypeName),
 				value: element.number,
-				disabled: true,
+				isReadOnly: true,
 			})
 		})
 		const addresses = contact.addresses.map((element) => {
@@ -243,7 +243,7 @@ export class ContactMergeView {
 			return m(TextField, {
 				label: () => getContactSocialTypeLabel(getContactSocialType(element), element.customTypeName),
 				value: element.socialId,
-				disabled: true,
+				isReadOnly: true,
 			})
 		})
 		return {
@@ -260,12 +260,12 @@ export class ContactMergeView {
 				m(TextField, {
 					label: labelTextId,
 					value: value1 || "",
-					disabled: true,
+					isReadOnly: true,
 				}),
 				m(TextField, {
 					label: labelTextId,
 					value: value2 || "",
-					disabled: true,
+					isReadOnly: true,
 				}),
 			]
 		} else {

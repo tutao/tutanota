@@ -153,7 +153,7 @@ export class ContactViewer implements ClassComponent<ContactViewerAttrs> {
 		return m(TextField, {
 			label: () => getContactSocialTypeLabel(getContactSocialType(contactSocialId), contactSocialId.customTypeName),
 			value: contactSocialId.socialId,
-			disabled: true,
+			isReadOnly: true,
 			injectionsRight: () => m(`a[href=${getSocialUrl(contactSocialId)}][target=_blank]`, showButton),
 		})
 	}
@@ -168,7 +168,7 @@ export class ContactViewer implements ClassComponent<ContactViewerAttrs> {
 		return m(TextField, {
 			label: () => getContactAddressTypeLabel(address.type as any, address.customTypeName),
 			value: address.address,
-			disabled: true,
+			isReadOnly: true,
 			injectionsRight: () => [newMailButton],
 		})
 	}
@@ -183,7 +183,7 @@ export class ContactViewer implements ClassComponent<ContactViewerAttrs> {
 		return m(TextField, {
 			label: () => getContactPhoneNumberTypeLabel(phone.type as ContactPhoneNumberType, phone.customTypeName),
 			value: phone.number,
-			disabled: true,
+			isReadOnly: true,
 			injectionsRight: () => m(`a[href="tel:${phone.number}"][target=_blank]`, callButton),
 		})
 	}
@@ -206,7 +206,7 @@ export class ContactViewer implements ClassComponent<ContactViewerAttrs> {
 		return m(TextField, {
 			label: () => getContactAddressTypeLabel(downcast<ContactAddressType>(address.type), address.customTypeName),
 			value: address.address,
-			disabled: true,
+			isReadOnly: true,
 			type: TextFieldType.Area,
 			injectionsRight: () => m(`a[href="https://www.openstreetmap.org/search?query=${prepAddress}"][target=_blank]`, showButton),
 		})

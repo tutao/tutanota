@@ -33,7 +33,7 @@ export class TextDisplayArea implements Component<TextDisplayAreaAttrs> {
 						lineHeight: px(inputLineHeight),
 						minHeight: px(inputLineHeight),
 					},
-					disabled: true,
+					isReadOnly: true,
 				},
 				vnode.attrs.value,
 			),

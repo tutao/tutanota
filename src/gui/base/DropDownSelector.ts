@@ -47,9 +47,9 @@ export class DropDownSelector<T> implements ClassComponent<DropDownSelectorAttrs
 			label: a.label,
 			value: this.valueToText(a, a.selectedValue) || "",
 			helpLabel: a.helpLabel,
-			disabled: true,
+			isReadOnly: true,
 			onclick: a.disabled ? noOp : this.createDropdown(a),
-			class: "click " + (a.class == null ? "mt" : a.class),
+			class: "click " + (a.class == null ? "mt" : a.class) + (a.disabled ? " disabled click-disabled" : ""),
 			injectionsRight: () =>
 				a.disabled
 					? null

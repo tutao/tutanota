@@ -18,7 +18,7 @@ export class WhitelabelCustomMetaTagsSettings implements Component<WhitelabelCus
 		return m(TextField, {
 			label: "customMetaTags_label",
 			value: customMetaTagsDefined ? lang.get("activated_label") : lang.get("deactivated_label"),
-			disabled: true,
+			isReadOnly: true,
 			injectionsRight: () =>
 				onMetaTagsChanged
 					? m(IconButton, {

@@ -106,7 +106,7 @@ class TemplateEditor implements Component<TemplateEditorAttrs> {
 						this.model.getAddedLanguages().length > 1 ? [this.renderRemoveLangButton(), this.renderSelectLangButton()] : null,
 						this.renderAddLangButton(),
 					]),
-				disabled: true,
+				isReadOnly: true,
 			}),
 			m(this.templateContentEditor),
 		])

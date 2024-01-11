@@ -112,7 +112,7 @@ export class PaymentViewer implements UpdatableSettingsViewer {
 			label: "paymentMethod_label",
 			value: paymentMethod,
 			helpLabel: paymentMethodHelpLabel,
-			disabled: true,
+			isReadOnly: true,
 			injectionsRight: () =>
 				m(IconButton, {
 					title: "paymentMethod_label",
@@ -397,7 +397,7 @@ export class PaymentViewer implements UpdatableSettingsViewer {
 				? m(TextField, {
 						label: "invoiceVatIdNo_label",
 						value: this._accountingInfo ? this._accountingInfo.invoiceVatIdNo : lang.get("loading_msg"),
-						disabled: true,
+						isReadOnly: true,
 				  })
 				: null,
 		]
@@ -440,7 +440,7 @@ function _showPayConfirmDialog(price: number): Promise<boolean> {
 						m(TextField, {
 							label: "price_label",
 							value: formatPrice(-price, true),
-							disabled: true,
+							isReadOnly: true,
 						}),
 					]),
 				),

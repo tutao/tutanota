@@ -18,7 +18,7 @@ export class WhitelabelStatusSettings implements Component<WhitelabelStatusSetti
 		return m(TextField, {
 			label: "state_label",
 			value: isWhitelabelActive ? lang.get("active_label") : lang.get("deactivated_label"),
-			disabled: true,
+			isReadOnly: true,
 			injectionsRight: () => (isWhitelabelActive ? null : this.renderEnable()),
 		})
 	}
