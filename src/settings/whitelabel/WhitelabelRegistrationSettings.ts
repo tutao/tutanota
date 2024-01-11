@@ -48,7 +48,7 @@ export class WhitelabelRegistrationSettings implements Component<WhitelabelRegis
 		return m(TextField, {
 			label: "whitelabelRegistrationCode_label",
 			value: whitelabelCode,
-			disabled: true,
+			isReadOnly: true,
 			injectionsRight: () =>
 				onWhitelabelCodeChanged
 					? m(IconButton, {

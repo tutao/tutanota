@@ -166,7 +166,7 @@ export class MailSettingsViewer implements UpdatableSettingsViewer {
 			label: "userEmailSignature_label",
 			value: this._signature(),
 			oninput: this._signature,
-			disabled: true,
+			isReadOnly: true,
 			injectionsRight: () => [m(IconButton, changeSignatureButtonAttrs)],
 		}
 
@@ -183,7 +183,7 @@ export class MailSettingsViewer implements UpdatableSettingsViewer {
 			label: "outOfOfficeNotification_title",
 			value: this._outOfOfficeStatus(),
 			oninput: this._outOfOfficeStatus,
-			disabled: true,
+			isReadOnly: true,
 			injectionsRight: () => [m(IconButton, editOutOfOfficeNotificationButtonAttrs)],
 		}
 
@@ -309,7 +309,7 @@ export class MailSettingsViewer implements UpdatableSettingsViewer {
 									label: "storageCapacity_label",
 									value: this._storageFieldValue(),
 									oninput: this._storageFieldValue,
-									disabled: true,
+									isReadOnly: true,
 								}),
 						  ]
 						: null,
@@ -373,7 +373,7 @@ export class MailSettingsViewer implements UpdatableSettingsViewer {
 				// Negative upper margin to make up for no label
 				class: "mt-negative-s",
 				value: lang.get("storedDataTimeRange_label", { "{numDays}": this.offlineStorageSettings.getTimeRange() }),
-				disabled: true,
+				isReadOnly: true,
 				injectionsRight: () => [
 					m(IconButton, {
 						title: "edit_action",

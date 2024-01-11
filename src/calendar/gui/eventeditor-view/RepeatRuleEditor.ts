@@ -53,7 +53,7 @@ export class RepeatRuleEditor implements Component<RepeatRuleEditorAttrs> {
 					label: "emptyString_msg",
 					value: lang.get("someRepetitionsDeleted_msg"),
 					injectionsRight: () => (disabled ? null : this.renderDeleteExclusionButton(model)),
-					disabled: true,
+					isReadOnly: true,
 				}),
 			),
 		]

@@ -94,23 +94,23 @@ export class UpgradeConfirmSubscriptionPage implements WizardPageN<UpgradeSubscr
 				m(TextField, {
 					label: "subscription_label",
 					value: getDisplayNameOfPlanType(attrs.data.type),
-					disabled: true,
+					isReadOnly: true,
 				}),
 				m(TextField, {
 					label: "paymentInterval_label",
 					value: subscription,
-					disabled: true,
+					isReadOnly: true,
 				}),
 				m(TextField, {
 					label: isYearly ? "priceFirstYear_label" : "price_label",
 					value: buildPriceString(attrs.data.price, attrs.data.options),
-					disabled: true,
+					isReadOnly: true,
 				}),
 				this.renderPriceNextYear(attrs),
 				m(TextField, {
 					label: "paymentMethod_label",
 					value: getPaymentMethodName(attrs.data.paymentData.paymentMethod),
-					disabled: true,
+					isReadOnly: true,
 				}),
 			]),
 			m(
@@ -143,7 +143,7 @@ export class UpgradeConfirmSubscriptionPage implements WizardPageN<UpgradeSubscr
 			? m(TextField, {
 					label: "priceForNextYear_label",
 					value: buildPriceString(attrs.data.priceNextYear, attrs.data.options),
-					disabled: true,
+					isReadOnly: true,
 			  })
 			: null
 	}

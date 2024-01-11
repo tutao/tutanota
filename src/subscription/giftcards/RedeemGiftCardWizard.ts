@@ -472,22 +472,22 @@ class RedeemGiftCardPage implements WizardPageN<RedeemGiftCardModel> {
 					m(TextField, {
 						label: "subscription_label",
 						value: "Revolutionary",
-						disabled: true,
+						isReadOnly: true,
 					}),
 					m(TextField, {
 						label: "paymentInterval_label",
 						value: lang.get("pricing.yearly_label"),
-						disabled: true,
+						isReadOnly: true,
 					}),
 					m(TextField, {
 						label: "price_label",
 						value: formatPrice(Number(model.premiumPrice), true) + " " + lang.get("pricing.perYear_label"),
-						disabled: true,
+						isReadOnly: true,
 					}),
 					m(TextField, {
 						label: "paymentMethod_label",
 						value: getPaymentMethodName(model.paymentMethod),
-						disabled: true,
+						isReadOnly: true,
 					}),
 				]),
 				m(

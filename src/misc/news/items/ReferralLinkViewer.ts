@@ -32,7 +32,7 @@ export class ReferralLinkViewer implements Component<ReferralLinkAttrs> {
 
 	getReferralLinkTextFieldAttrs(referralLink: string): TextFieldAttrs {
 		return {
-			disabled: true,
+			isReadOnly: true,
 			label: "referralLink_label",
 			value: referralLink,
 			injectionsRight: () => this.renderButtons(referralLink),

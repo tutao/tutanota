@@ -221,7 +221,7 @@ async function showAddParticipantDialog(model: GroupSharingModel, texts: GroupSh
 			m(TextField, {
 				value: realGroupName,
 				label: texts.groupNameLabel,
-				disabled: true,
+				isReadOnly: true,
 				helpLabel: () => {
 					return m("", customGroupName === realGroupName ? null : texts.yourCustomNameLabel(customGroupName))
 				},

@@ -34,7 +34,7 @@ export class WhitelabelThemeSettings implements Component<WhitelabelThemeSetting
 		return m(TextField, {
 			label: "customColors_label",
 			value: this.areCustomColorsDefined(data?.customTheme ?? null) ? lang.get("activated_label") : lang.get("deactivated_label"),
-			disabled: true,
+			isReadOnly: true,
 			injectionsRight: () => (data ? this.renderCustomColorsFieldButtons(data) : null),
 		})
 	}
@@ -80,7 +80,7 @@ export class WhitelabelThemeSettings implements Component<WhitelabelThemeSetting
 			label: "customLogo_label",
 			helpLabel: () => lang.get("customLogoInfo_msg"),
 			value: lang.get(data?.customTheme.logo != null ? "activated_label" : "deactivated_label"),
-			disabled: true,
+			isReadOnly: true,
 			injectionsRight: () => (data ? this.renderCustomLogoFieldButtons(data) : null),
 		}
 		return m(TextField, customLogoTextfieldAttrs)
