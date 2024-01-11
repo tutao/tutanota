@@ -128,15 +128,17 @@ export class GroupManagementFacade {
 		return { user, group }
 	}
 
-	createTemplateGroup(name: string): Promise<Id> {
-		return this.generateUserAreaGroupData(name).then((groupData) => {
-			const serviceData = createUserAreaGroupPostData({
-				groupData: groupData,
-			})
-			return this.serviceExecutor
-				.post(TemplateGroupService, serviceData, { sessionKey: aes256RandomKey() }) // we expect a session key to be defined as the entity is marked encrypted
-				.then((returnValue) => returnValue.group)
+	async createTemplateGroup(name: string): Promise<Id> {
+		const groupData = await this.generateUserAreaGroupData(name)
+		const serviceData = createUserAreaGroupPostData({
+			groupData,
 		})
+
+		const postGroupData = await this.serviceExecutor.post(TemplateGroupService, serviceData, { sessionKey: aes256RandomKey() }) // we expect a session key to be defined as the entity is marked encrypted
+
+		await this.reloadUser()
+
+		return postGroupData.group
 	}
 
 	async createContactListGroup(name: string): Promise<Group> {
