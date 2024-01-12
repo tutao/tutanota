@@ -10,6 +10,7 @@ import type { ClickHandler } from "./GuiUtils"
 import { assertMainOrNode } from "../../api/common/Env"
 import { IconButton } from "./IconButton.js"
 import { ButtonSize } from "./ButtonSize.js"
+import { getOperatingClasses } from "../theme.js"
 
 assertMainOrNode()
 export type SelectorItem<T> = {
@@ -49,7 +50,7 @@ export class DropDownSelector<T> implements ClassComponent<DropDownSelectorAttrs
 			helpLabel: a.helpLabel,
 			isReadOnly: true,
 			onclick: a.disabled ? noOp : this.createDropdown(a),
-			class: "click " + (a.class == null ? "mt" : a.class) + (a.disabled ? " disabled click-disabled" : ""),
+			class: "click " + (a.class == null ? "mt" : a.class) + " " + getOperatingClasses(a.disabled),
 			injectionsRight: () =>
 				a.disabled
 					? null

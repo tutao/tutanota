@@ -86,6 +86,7 @@ styles.registerStyle("main", () => {
 			outline: "none",
 		},
 		".selectable": {
+			cursor: "text",
 			"user-select": "text !important",
 			"-ms-user-select": "text !important",
 			"-webkit-user-select": "text !important",
