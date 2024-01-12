@@ -1,6 +1,5 @@
 import { lang } from "../../misc/LanguageViewModel"
 import m, { Component, Vnode } from "mithril"
-import stream from "mithril/stream"
 import { Dialog } from "../base/Dialog"
 import { Keys } from "../../api/common/TutanotaConstants"
 import { TextField } from "../base/TextField.js"
