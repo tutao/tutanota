@@ -601,7 +601,8 @@ export class MailViewerViewModel {
 	private async loadAndProcessAdditionalMailInfo(mail: Mail, delayBodyRenderingUntil: Promise<unknown>): Promise<string[]> {
 		// If the mail is a non-draft and we have loaded it before, we don't need to reload it because it cannot have been edited, so we return early
 		// drafts however can be edited, and we want to receive the changes, so for drafts we will always reload
-		if (this.renderedMail != null && haveSameId(mail, this.renderedMail) && mail.state !== MailState.DRAFT && this.sanitizeResult != null) {
+		let isDraft = mail.state === MailState.DRAFT
+		if (this.renderedMail != null && haveSameId(mail, this.renderedMail) && !isDraft && this.sanitizeResult != null) {
 			return this.sanitizeResult.inlineImageCids
 		}
 
@@ -635,7 +636,9 @@ export class MailViewerViewModel {
 
 		this.sanitizeResult = await this.sanitizeMailBody(mail, !isAllowedAndAuthenticatedExternalSender)
 
-		this.checkMailForPhishing(mail, this.sanitizeResult.links)
+		if (!isDraft) {
+			this.checkMailForPhishing(mail, this.sanitizeResult.links)
+		}
 
 		this.contentBlockingStatus =
 			externalImageRule === ExternalImageRule.Block
