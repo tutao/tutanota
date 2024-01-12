@@ -18,7 +18,7 @@ import { DialogHeaderBar } from "./DialogHeaderBar"
 import { Autocomplete, TextField, TextFieldAttrs, TextFieldType } from "./TextField.js"
 import type { DropDownSelectorAttrs, SelectorItemList } from "./DropDownSelector.js"
 import { DropDownSelector } from "./DropDownSelector.js"
-import { Keys } from "../../api/common/TutanotaConstants"
+import { Keys, TabIndex } from "../../api/common/TutanotaConstants"
 import { AriaWindow } from "../AriaUtils"
 import { styles } from "../styles"
 import type { lazy, MaybeLazy, Thunk } from "@tutao/tutanota-utils"
@@ -178,16 +178,20 @@ export class Dialog implements ModalComponent {
 	}
 
 	_defaultFocusOnLoad(dom: HTMLElement) {
-		let inputs = Array.from(dom.querySelectorAll(INPUT)) as Array<HTMLElement>
+		const inputs = Array.from(dom.querySelectorAll(INPUT)) as Array<HTMLElement>
+		const scrollableWrapper = dom.querySelector(".dialog-container.scroll") as HTMLElement | null
 
 		if (inputs.length > 0) {
 			inputs[0].focus()
-		} else {
+		} else if (!scrollableWrapper) {
 			let button = dom.querySelector("button")
 
 			if (button) {
 				button.focus()
 			}
+		} else {
+			scrollableWrapper.tabIndex = Number(TabIndex.Default)
+			scrollableWrapper.focus()
 		}
 	}
 
@@ -921,7 +925,7 @@ export class Dialog implements ModalComponent {
 					/** fixed-height header with a title, left and right buttons that's fixed to the top of the dialog's area */
 					headerBarAttrs.noHeader ? null : m(".dialog-header.plr-l", m(DialogHeaderBar, headerBarAttrs)),
 					/** variable-size child container that may be scrollable. */
-					m(".dialog-container.scroll", m(".fill-absolute.plr-l", m(child, childAttrs))),
+					m(".dialog-container.scroll.hide-outline", m(".fill-absolute.plr-l", m(child, childAttrs))),
 				]),
 		})
 	}
