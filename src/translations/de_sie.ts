@@ -776,7 +776,6 @@ export default {
 		"largeSignature_msg": "Die eingestellte Signatur ist größer als {1}kB. Sie wird standardmäßig an jede E-Mail angehängt. Möchten Sie die Signatur trotzdem verwenden?",
 		"lastAccessWithTime_label": "Letzter Zugriff: {time}",
 		"lastAccess_label": "Letzter Zugriff",
-		"lastAccessWithTime_label": "Letzter Zugriff: {time}",
 		"lastName_placeholder": "Nachname",
 		"lastSync_label": "Letzte Synchronisation: {date}",
 		"laterInvoicingInfo_msg": "Hinweis: Separat hinzugebuchte Erweiterungen werden nicht direkt in Rechnung gestellt, sondern erst zu Beginn des nächsten Abrechnungsmonats.",
