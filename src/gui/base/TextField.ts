@@ -1,7 +1,7 @@
 import m, { Children, ClassComponent, CVnode } from "mithril"
 import { px, size } from "../size"
 import { DefaultAnimationTime } from "../animation/Animations"
-import { theme } from "../theme"
+import { getOperatingClasses, theme } from "../theme"
 import type { TranslationKey } from "../../misc/LanguageViewModel"
 import { lang } from "../../misc/LanguageViewModel"
 import type { lazy } from "@tutao/tutanota-utils"
@@ -98,7 +98,7 @@ export class TextField implements ClassComponent<TextFieldAttrs> {
 				id: vnode.attrs.id,
 				oncreate: (vnode) => (this._domWrapper = vnode.dom as HTMLElement),
 				onclick: (e: MouseEvent) => (a.onclick ? a.onclick(e, this._domInputWrapper) : this.focus(e, a)),
-				class: a.class != null ? a.class : "text pt",
+				class: a.class != null ? a.class : "pt" + " " + getOperatingClasses(a.disabled),
 				style: maxWidth
 					? {
 							maxWidth: px(maxWidth),
@@ -107,9 +107,9 @@ export class TextField implements ClassComponent<TextFieldAttrs> {
 			},
 			[
 				m(
-					"label.abs.text-ellipsis.noselect.z1.i.pr-s.text",
+					"label.abs.text-ellipsis.noselect.z1.i.pr-s",
 					{
-						class: this.active ? "content-accent-fg" : "" + (a.disabled ? " disabled click-disabled" : ""),
+						class: this.active ? "content-accent-fg" : "" + " " + getOperatingClasses(a.disabled),
 						oncreate: (vnode) => {
 							this._domLabel = vnode.dom as HTMLElement
 						},
@@ -164,7 +164,6 @@ export class TextField implements ClassComponent<TextFieldAttrs> {
 					? m(
 							"small.noselect",
 							{
-								class: a.disabled ? " disabled click-disabled" : "",
 								onclick: (e: MouseEvent) => {
 									e.stopPropagation()
 								},
@@ -233,7 +232,7 @@ export class TextField implements ClassComponent<TextFieldAttrs> {
 						max: a.max,
 						"aria-label": lang.getMaybeLazy(a.label),
 						disabled: a.disabled,
-						class: a.disabled ? "disabled click-disabled" : undefined,
+						class: getOperatingClasses(a.disabled) + " text",
 						oncreate: (vnode) => {
 							this.domInput = vnode.dom as HTMLInputElement
 							a.onDomInputCreated?.(this.domInput)
@@ -306,7 +305,7 @@ export class TextField implements ClassComponent<TextFieldAttrs> {
 			return m("textarea.input-area.text-pre", {
 				"aria-label": lang.getMaybeLazy(a.label),
 				disabled: a.disabled,
-				class: a.disabled ? "disabled click-disabled" : undefined,
+				class: getOperatingClasses(a.disabled) + " text",
 				oncreate: (vnode) => {
 					this.domInput = vnode.dom as HTMLInputElement
 					this.domInput.value = a.value

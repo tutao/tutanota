@@ -265,7 +265,7 @@ export class CalendarEventEditView implements Component<CalendarEventEditViewAtt
 			value: model.editModels.location.content,
 			oninput: (v) => (model.editModels.location.content = v),
 			disabled: !model.isFullyWritable(),
-			class: "text pt-s", // override default pt with pt-s because calendar color indicator takes up some space
+			class: "pt-s", // override default pt with pt-s because calendar color indicator takes up some space
 			injectionsRight: () => {
 				let address = encodeURIComponent(model.editModels.location.content)
 
@@ -312,7 +312,7 @@ export class CalendarEventEditView implements Component<CalendarEventEditViewAtt
 								const isEmpty = v === ""
 								if (!Number.isNaN(time) || isEmpty) timeReminderValue = isEmpty ? 0 : time
 							},
-							class: "text flex-half no-appearance", //Removes the up/down arrow from input number. Pressing arrow up/down key still working
+							class: "flex-half no-appearance", //Removes the up/down arrow from input number. Pressing arrow up/down key still working
 						}),
 						m(DropDownSelector, {
 							label: "emptyString_msg",
