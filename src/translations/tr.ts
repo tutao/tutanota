@@ -11,7 +11,7 @@ export default {
 		"other"
 	],
 	"created_at": "2015-01-27T13:15:41Z",
-	"updated_at": "2023-12-04T11:39:24Z",
+	"updated_at": "2024-01-10T18:01:18Z",
 	"source_locale": {
 		"id": "fcd7471b347c8e517663e194dcddf237",
 		"name": "en",
@@ -770,6 +770,7 @@ export default {
 		"languageWelsh_label": "Galce",
 		"language_label": "Dil",
 		"largeSignature_msg": "Belirlediğiniz imza {1}kB'tan büyük. Gönderdiğiniz tüm e-postalara varsayılan olarak eklenecektir. Yine de kullanmak istiyor musunuz?",
+		"lastAccessWithTime_label": "Son erişim: {time}",
 		"lastAccess_label": "Son giriş",
 		"lastName_placeholder": "Soyad",
 		"lastSync_label": "Son senkronizasyon: {date}",
@@ -906,6 +907,7 @@ export default {
 		"noContact_msg": "Hiçbir kişi seçilmedi",
 		"noEntries_msg": "<Kayıt yok>",
 		"noEntryFound_label": "Kayıt bulunamadı",
+		"noEventSelect_msg": "Seçili etkinlik yok",
 		"noInputWasMade_msg": "Giriş dosyası boş!",
 		"noKeysForThisDomain_msg": "Bu alan adı için yapılandırılmış herhangi bir güvenlik anahtarınız yok. Lütfen giriş ayarlarından bir tane ekleyin.",
 		"noMails_msg": "Mesaj yok.",
@@ -1290,6 +1292,7 @@ export default {
 		"scrollToBottom_action": "Aşağı kaydır",
 		"scrollToTop_action": "En üste kaydır",
 		"scrollUp_action": "Yukarı kaydır",
+		"searchCalendar_placeholder": "Etkinlik ara",
 		"searchContacts_placeholder": "Kişileri ara",
 		"searchDisabledApp_msg": "sistem hatası yüzünden aranamıyor. uygulama yeniden başlatılmalı.",
 		"searchDisabled_msg": "Tarayıcınız veri depolamayı desteklemediğinden arama devre dışı bırakıldı.",

@@ -13,7 +13,7 @@ export default {
 		"other"
 	],
 	"created_at": "2015-11-02T11:29:23Z",
-	"updated_at": "2023-12-09T09:26:02Z",
+	"updated_at": "2024-01-04T16:44:45Z",
 	"source_locale": null,
 	"fallback_locale": null,
 	"keys": {
@@ -766,6 +766,7 @@ export default {
 		"languageWelsh_label": "Валлійська",
 		"language_label": "Мова",
 		"largeSignature_msg": "Зазначений вами підпис має розмір більше {1} кБ. Його буде типово додано до кожного електронного листа. У будь-якому випадку використовувати його?",
+		"lastAccessWithTime_label": "Останній доступ: {time}",
 		"lastAccess_label": "Останній доступ",
 		"lastName_placeholder": "Прізвище",
 		"lastSync_label": "Остання синхронізація: {date}",
@@ -902,6 +903,7 @@ export default {
 		"noContact_msg": "Контакту не обрано",
 		"noEntries_msg": "<Записів немає>",
 		"noEntryFound_label": "Записів не знайдено",
+		"noEventSelect_msg": "Не обрано жодної події",
 		"noInputWasMade_msg": "Поле вводу порожнє!",
 		"noKeysForThisDomain_msg": "Для цього домену не налаштовано жодного ключа безпеки. Будь ласка, додайте його в налаштуваннях входу.",
 		"noMails_msg": "Нема повідомлень.",
@@ -1285,6 +1287,7 @@ export default {
 		"scrollToBottom_action": "Прокрутити донизу",
 		"scrollToTop_action": "Прокрутити догори",
 		"scrollUp_action": "Прокрутити вгору",
+		"searchCalendar_placeholder": "Пошук подій",
 		"searchContacts_placeholder": "Пошук контактів",
 		"searchDisabledApp_msg": "Пошук вимкнено через помилку системи. Для повторного увімкнення пошуку застосунок необхідно перезапустити. ",
 		"searchDisabled_msg": "Пошук вимкнуто, оскільки ваш браузер не підтримує зберігання даних.",
