@@ -21,7 +21,8 @@ import { ProgrammingError } from "../../../common/error/ProgrammingError.js"
 import { CustomerFacade } from "./CustomerFacade.js"
 
 const ID_LENGTH = GENERATED_MAX_ID.length
-const KEY_LENGTH_B64 = 24
+const KEY_LENGTH_128_BIT_B64 = 24
+const KEY_LENGTH_256_BIT_B64 = 44
 
 export class GiftCardFacade {
 	constructor(
@@ -98,7 +99,7 @@ export class GiftCardFacade {
 		const id = base64ToBase64Ext(base64UrlToBase64(token.slice(0, ID_LENGTH)))
 		const key = base64UrlToBase64(token.slice(ID_LENGTH, token.length))
 
-		if (id.length !== ID_LENGTH || key.length !== KEY_LENGTH_B64) {
+		if (id.length !== ID_LENGTH || (key.length !== KEY_LENGTH_128_BIT_B64 && key.length !== KEY_LENGTH_256_BIT_B64)) {
 			throw new Error("invalid token")
 		}
 
@@ -110,7 +111,7 @@ export class GiftCardFacade {
 			throw new Error("Invalid gift card params")
 		}
 		const keyBase64 = uint8ArrayToBase64(key)
-		if (keyBase64.length != KEY_LENGTH_B64) {
+		if (keyBase64.length !== KEY_LENGTH_128_BIT_B64 && keyBase64.length !== KEY_LENGTH_256_BIT_B64) {
 			throw new Error("Invalid gift card key")
 		}
 
