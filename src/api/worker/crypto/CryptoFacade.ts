@@ -61,7 +61,6 @@ import {
 	Aes256Key,
 	aes256RandomKey,
 	aesEncrypt,
-	KeyPairType,
 	AsymmetricKeyPair,
 	AsymmetricPublicKey,
 	bitArrayToUint8Array,
@@ -82,6 +81,7 @@ import {
 	isRsaOrRsaEccKeyPair,
 	isRsaPublicKey,
 	IV_BYTE_LENGTH,
+	KeyPairType,
 	random,
 	RsaPrivateKey,
 	sha256Hash,
@@ -118,6 +118,11 @@ export type PublicKeys = {
 	pubRsaKey: null | Uint8Array
 	pubEccKey: null | Uint8Array
 	pubKyberKey: null | Uint8Array
+}
+
+type ResolvedSessionKeys = {
+	resolvedSessionKeyForInstance: Aes128Key | Aes256Key
+	instanceSessionKeys: Array<InstanceSessionKey>
 }
 
 export class CryptoFacade {
@@ -232,7 +237,7 @@ export class CryptoFacade {
 	 * * the decrypted _ownerEncSessionKey, if it is available
 	 * * the public decrypted session key, otherwise
 	 *
-	 * @param typeModel: the type model of the instance
+	 * @param typeModel the type model of the instance
 	 * @param instance The unencrypted (client-side) instance or encrypted (server-side) object literal
 	 */
 	async resolveSessionKey(typeModel: TypeModel, instance: Record<string, any>): Promise<Aes128Key | null> {
@@ -244,7 +249,8 @@ export class CryptoFacade {
 				// if we have a bucket key, then we need to cache the session keys stored in the bucket key for details, files, etc.
 				// we need to do this BEFORE we check the owner enc session key
 				const bucketKey = await this.convertBucketKeyToInstanceIfNecessary(instance.bucketKey)
-				return await this.resolveWithBucketKey(bucketKey, instance, typeModel)
+				const resolvedSessionKeys = await this.resolveWithBucketKey(bucketKey, instance, typeModel)
+				return resolvedSessionKeys.resolvedSessionKeyForInstance
 			} else if (instance._ownerEncSessionKey && this.userFacade.isFullyLoggedIn() && this.userFacade.hasGroup(instance._ownerGroup)) {
 				const gk = this.userFacade.getGroupKey(instance._ownerGroup)
 				return this.resolveSessionKeyWithOwnerKey(instance, gk)
@@ -301,7 +307,7 @@ export class CryptoFacade {
 		}
 	}
 
-	public async resolveWithBucketKey(bucketKey: BucketKey, instance: Record<string, any>, typeModel: TypeModel): Promise<Aes128Key | Aes256Key> {
+	public async resolveWithBucketKey(bucketKey: BucketKey, instance: Record<string, any>, typeModel: TypeModel): Promise<ResolvedSessionKeys> {
 		const instanceElementId = this.getElementIdFromInstance(instance)
 		let decBucketKey: Aes128Key
 		let unencryptedSenderAuthStatus: EncryptionAuthStatus | null = null
@@ -331,7 +337,7 @@ export class CryptoFacade {
 		} else {
 			throw new SessionKeyNotFoundError(`encrypted bucket key not set on instance ${typeModel.name}`)
 		}
-		const { resolvedSessionKeyForInstance, instanceSessionKeys } = await this.collectAllInstanceSessionKeysAndAuthenticate(
+		const resolvedSessionKeys = await this.collectAllInstanceSessionKeysAndAuthenticate(
 			bucketKey,
 			decBucketKey,
 			instanceElementId,
@@ -341,16 +347,14 @@ export class CryptoFacade {
 			pqMessageSenderKey,
 		)
 
-		this.ownerEncSessionKeysUpdateQueue.updateInstanceSessionKeys(instanceSessionKeys)
+		this.ownerEncSessionKeysUpdateQueue.updateInstanceSessionKeys(resolvedSessionKeys.instanceSessionKeys)
 
-		if (resolvedSessionKeyForInstance) {
-			// for symmetrically encrypted instances _ownerEncSessionKey is sent from the server.
-			// in this case it is not yet and we need to set it because the rest of the app expects it.
-			instance._ownerEncSessionKey = uint8ArrayToBase64(encryptKey(this.userFacade.getGroupKey(instance._ownerGroup), resolvedSessionKeyForInstance))
-			return resolvedSessionKeyForInstance
-		} else {
-			throw new SessionKeyNotFoundError("no session key for instance " + instance._id)
-		}
+		// for symmetrically encrypted instances _ownerEncSessionKey is sent from the server.
+		// in this case it is not yet and we need to set it because the rest of the app expects it.
+		instance._ownerEncSessionKey = uint8ArrayToBase64(
+			encryptKey(this.userFacade.getGroupKey(instance._ownerGroup), resolvedSessionKeys.resolvedSessionKeyForInstance),
+		)
+		return resolvedSessionKeys
 	}
 
 	/**
@@ -402,7 +406,7 @@ export class CryptoFacade {
 		typeModel: TypeModel,
 		encryptionAuthStatus: EncryptionAuthStatus | null,
 		pqMessageSenderKey: EccPublicKey | null,
-	): Promise<{ resolvedSessionKeyForInstance: Aes128Key | Aes256Key | undefined; instanceSessionKeys: InstanceSessionKey[] }> {
+	): Promise<ResolvedSessionKeys> {
 		let resolvedSessionKeyForInstance: Aes128Key | Aes256Key | undefined = undefined
 		const instanceSessionKeys = await promiseMap(bucketKey.bucketEncSessionKeys, async (instanceSessionKey) => {
 			const decryptedSessionKey = decryptKey(decBucketKey, instanceSessionKey.symEncSessionKey)
@@ -426,7 +430,12 @@ export class CryptoFacade {
 			instanceSessionKeyWithOwnerEncSessionKey.symEncSessionKey = ownerEncSessionKey
 			return instanceSessionKeyWithOwnerEncSessionKey
 		})
-		return { resolvedSessionKeyForInstance, instanceSessionKeys }
+
+		if (resolvedSessionKeyForInstance) {
+			return { resolvedSessionKeyForInstance, instanceSessionKeys }
+		} else {
+			throw new SessionKeyNotFoundError("no session key for instance " + instance._id)
+		}
 	}
 
 	private async authenticateMainInstance(
