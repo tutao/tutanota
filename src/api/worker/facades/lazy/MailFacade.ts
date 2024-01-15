@@ -87,7 +87,6 @@ import {
 	isNotNull,
 	isSameTypeRef,
 	isSameTypeRefByAttr,
-	lazyMemoized,
 	noOp,
 	ofClass,
 	promiseFilter,
@@ -891,15 +890,13 @@ export class MailFacade {
 		const bucketKey = mail.bucketKey
 		let ownerEncSessionKeyProvider: OwnerEncSessionKeyProvider | undefined
 		if (bucketKey) {
-			const mailOwnerGroupId = assertNotNull(mail._ownerGroup)
 			const typeModel = await resolveTypeReference(FileTypeRef)
-			const decBucketKey = lazyMemoized(() => this.crypto.resolveWithBucketKey(assertNotNull(mail.bucketKey), mail, typeModel))
+			const resolvedSessionKeys = await this.crypto.resolveWithBucketKey(assertNotNull(mail.bucketKey), mail, typeModel)
 			ownerEncSessionKeyProvider = async (instanceElementId: Id) => {
 				const instanceSessionKey = assertNotNull(
-					bucketKey.bucketEncSessionKeys.find((instanceSessionKey) => instanceElementId === instanceSessionKey.instanceId),
+					resolvedSessionKeys.instanceSessionKeys.find((instanceSessionKey) => instanceElementId === instanceSessionKey.instanceId),
 				)
-				const decryptedSessionKey = decryptKey(await decBucketKey(), instanceSessionKey.symEncSessionKey)
-				return encryptKey(this.userFacade.getGroupKey(mailOwnerGroupId), decryptedSessionKey)
+				return instanceSessionKey.symEncSessionKey
 			}
 		}
 		return await this.entityClient.loadMultiple(FileTypeRef, attachmentsListId, attachmentElementIds, ownerEncSessionKeyProvider)
