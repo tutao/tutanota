@@ -63,9 +63,9 @@ import { ConnectionError, ServiceUnavailableError } from "../common/error/RestEr
 import { SessionType } from "../common/SessionType.js"
 import { Argon2idFacade, NativeArgon2idFacade, WASMArgon2idFacade } from "./facades/Argon2idFacade.js"
 import { DomainConfigProvider } from "../common/DomainConfigProvider.js"
-import { PdfWriter } from "./pdf/PdfWriter.js"
 import { KyberFacade, NativeKyberFacade, WASMKyberFacade } from "./facades/KyberFacade.js"
 import { PQFacade } from "./facades/PQFacade.js"
+import { PdfWriter } from "./pdf/PdfWriter.js"
 
 assertWorkerOrNode()
 
@@ -115,7 +115,7 @@ export type WorkerLocatorType = {
 	native: NativeInterface
 	workerFacade: WorkerFacade
 	sqlCipherFacade: SqlCipherFacade
-	pdfWriter: PdfWriter
+	pdfWriter: lazyAsync<PdfWriter>
 
 	// used to cache between resets
 	_browserData: BrowserData
@@ -162,7 +162,10 @@ export async function initLocator(worker: WorkerImpl, browserData: BrowserData) 
 	} else {
 		offlineStorageProvider = async () => null
 	}
-	locator.pdfWriter = new PdfWriter(new TextEncoder(), undefined)
+	locator.pdfWriter = lazyMemoized(async () => {
+		const { PdfWriter } = await import("./pdf/PdfWriter.js")
+		return new PdfWriter(new TextEncoder(), undefined)
+	})
 
 	const maybeUninitializedStorage = new LateInitializedCacheStorageImpl(worker, offlineStorageProvider)
 

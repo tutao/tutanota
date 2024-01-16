@@ -21,7 +21,7 @@ import {
 	PaymentDataServicePutReturn,
 } from "../../../entities/sys/TypeRefs.js"
 import { assertWorkerOrNode } from "../../../common/Env.js"
-import type { Hex } from "@tutao/tutanota-utils"
+import type { Hex, lazyAsync } from "@tutao/tutanota-utils"
 import { assertNotNull, neverNull, noOp, ofClass, stringToUtf8Uint8Array, uint8ArrayToBase64, uint8ArrayToHex } from "@tutao/tutanota-utils"
 import { CryptoFacade } from "../../crypto/CryptoFacade.js"
 import { createCustomerAccountCreateData } from "../../../entities/tutanota/TypeRefs.js"
@@ -55,8 +55,7 @@ import {
 	PaymentDataService,
 	SystemKeysService,
 } from "../../../entities/sys/Services.js"
-import { PdfInvoiceGenerator } from "../../invoicegen/PdfInvoiceGenerator.js"
-import { PdfWriter } from "../../pdf/PdfWriter.js"
+import type { PdfWriter } from "../../pdf/PdfWriter.js"
 
 assertWorkerOrNode()
 
@@ -72,7 +71,7 @@ export class CustomerFacade {
 		private readonly bookingFacade: BookingFacade,
 		private readonly cryptoFacade: CryptoFacade,
 		private readonly operationProgressTracker: ExposedOperationProgressTracker,
-		private readonly pdfWriter: PdfWriter,
+		private readonly pdfWriter: lazyAsync<PdfWriter>,
 		private readonly pq: PQFacade,
 	) {}
 
@@ -427,7 +426,9 @@ export class CustomerFacade {
 
 	async generatePdfInvoice(invoiceNumber: string): Promise<DataFile> {
 		const invoiceData = await this.serviceExecutor.get(InvoiceDataService, createInvoiceDataGetIn({ invoiceNumber }))
-		const pdfGenerator = new PdfInvoiceGenerator(this.pdfWriter, invoiceData, invoiceNumber, this.getCustomerId())
+		const writer = await this.pdfWriter()
+		const { PdfInvoiceGenerator } = await import("../../invoicegen/PdfInvoiceGenerator.js")
+		const pdfGenerator = new PdfInvoiceGenerator(writer, invoiceData, invoiceNumber, this.getCustomerId())
 		const pdfFile = await pdfGenerator.generate()
 		return {
 			_type: "DataFile",
