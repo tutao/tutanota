@@ -948,6 +948,10 @@ styles.registerStyle("main", () => {
 		".flex-grow-shrink-auto": {
 			flex: "1 1 auto",
 		},
+		// Useful for keeping rows of numbers aligned vertically
+		".flex-grow-shrink-0": {
+			flex: "1 1 0px",
+		},
 		// allow element to grow and shrink using the elements width as default size.
 		".flex-grow-shrink-150": {
 			flex: "1 1 150px",
