@@ -910,6 +910,9 @@ styles.registerStyle("main", () => {
 		".column-gap": {
 			"column-gap": px(size.hpad),
 		},
+		".column-gap-s": {
+			"column-gap": px(size.hpad_small),
+		},
 		".gap-vpad": {
 			gap: px(size.vpad),
 		},
