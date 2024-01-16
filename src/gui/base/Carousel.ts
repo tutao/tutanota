@@ -36,7 +36,7 @@ export class Carousel implements Component<CarouselAttrs> {
 
 function renderSlide(slide: Slide): Children {
 	return m(
-		".full-width",
+		".full-width.min-width-full",
 		{
 			role: "group",
 			"aria-role": "slide",
