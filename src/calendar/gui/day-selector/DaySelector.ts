@@ -2,16 +2,17 @@ import m, { Children, Component, Vnode } from "mithril"
 import { assertNotNull, getStartOfDay, incrementDate, isSameDayOfDate, isToday } from "@tutao/tutanota-utils"
 import { DateTime } from "luxon"
 import type { CalendarDay, CalendarMonth } from "../../date/CalendarUtils.js"
-import { CalendarSwipeHandler } from "../../../gui/base/CalendarSwipeHandler.js"
-import { px } from "../../../gui/size.js"
-import { DefaultAnimationTime } from "../../../gui/animation/Animations.js"
-import { ExpanderPanel } from "../../../gui/base/Expander.js"
-import { theme } from "../../../gui/theme.js"
-import { hexToRGBAString } from "../../../gui/base/Color.js"
-import { styles } from "../../../gui/styles.js"
 import { DaysToEvents } from "../../date/CalendarEventsRepository.js"
-
-import { getCalendarMonth } from "../CalendarGuiUtils.js"
+import type { CalendarDay, CalendarMonth } from "./CalendarUtils.js"
+import { getCalendarMonth } from "./CalendarUtils.js"
+import { px } from "../../gui/size.js"
+import { DefaultAnimationTime } from "../../gui/animation/Animations.js"
+import { ExpanderPanel } from "../../gui/base/Expander.js"
+import { theme } from "../../gui/theme.js"
+import { hexToRGBAString } from "../../gui/base/Color.js"
+import { styles } from "../../gui/styles.js"
+import { Carousel } from "../../gui/base/Carousel.js"
+import { lang } from "../../misc/LanguageViewModel.js"
 
 export interface DaySelectorAttrs {
 	selectedDate: Date | null
@@ -34,8 +35,6 @@ export interface DaySelectorAttrs {
 export class DaySelector implements Component<DaySelectorAttrs> {
 	private displayingDate: Date
 	private lastSelectedDate: Date | null = null
-	private containerDom: HTMLElement | null = null
-	private swipeHandler!: CalendarSwipeHandler
 	private handleDayPickerSwipe: DaySelectorAttrs["handleDayPickerSwipe"]
 
 	constructor(vnode: Vnode<DaySelectorAttrs>) {
@@ -55,27 +54,7 @@ export class DaySelector implements Component<DaySelectorAttrs> {
 		}
 
 		let { weeks, weekdays } = getCalendarMonth(this.displayingDate, vnode.attrs.startOfTheWeekOffset, vnode.attrs.useNarrowWeekName)
-		return m(".flex.flex-column", [
-			m(".flex.flex-space-around", this.renderWeekDays(vnode.attrs.wide, weekdays)),
-			m(
-				".flex.flex-column.flex-space-around",
-				{
-					style: {
-						fontSize: px(14),
-						lineHeight: px(this.getElementSize(vnode.attrs)),
-					},
-				},
-				this.renderDayPickerCarousel(vnode),
-			),
-		])
-	}
-
-	private getDatePickerSliderMargin = (attrs: DaySelectorAttrs) => {
-		// We get the size of the slider minus the days container size multiplied by seven (Days of week) then we divide
-		// by the number of empty spaces (6), so we get the size of our spacing
-		// F: [sliderSize - (dayContainerSize * numberOfDays)] / (numberOfDays - 1)
-		const daysSize = this.getElementSize(attrs)
-		return this.containerDom ? (this.containerDom.offsetWidth - daysSize * 7) / 6 : daysSize / 2
+		return m(".flex.flex-column", [m(".flex.flex-space-around", this.renderWeekDays(vnode.attrs.wide, weekdays)), this.renderDayPickerCarousel(vnode)])
 	}
 
 	private renderDayPickerCarousel(vnode: Vnode<DaySelectorAttrs>) {
@@ -96,66 +75,32 @@ export class DaySelector implements Component<DaySelectorAttrs> {
 		const nextWeek =
 			beginningOfNextWeek < nextMonth.beginningOfMonth ? findWeek(currentMonth, beginningOfNextWeek) : findWeek(nextMonth, beginningOfNextWeek)
 
-		return m(
-			".rel",
-			{
-				oncreate: (swiperNode) => {
-					this.containerDom = swiperNode.dom as HTMLElement
-					this.swipeHandler = new CalendarSwipeHandler(this.containerDom!, (isNext: boolean) => this.handleDayPickerSwipe?.(isNext))
-					this.swipeHandler?.attach()
-				},
+		return m(Carousel, {
+			label: lang.get("date_label"),
+			style: {
+				fontSize: px(14),
+				lineHeight: px(this.getElementSize(vnode.attrs)),
 			},
-			// visible view and two off-screen pages for scrolling
-			[
-				m(
-					".abs",
-					{
-						"aria-hidden": "true",
-						style: {
-							// Set the display none until the containerDom is initialized
-							// this prevents that this shows up to the user and been hidden until needed
-							display: "none",
-							...(this.containerDom &&
-								this.containerDom.offsetWidth > 0 && {
-									width: px(this.containerDom.offsetWidth),
-									display: "block",
-									// put it to the top of the view and not below
-									top: 0,
-									right: px(this.getDatePickerSliderMargin(vnode.attrs)),
-									transform: `translateX(${-this.containerDom.offsetWidth}px)`,
-								}),
-						},
-					},
-					this.renderCarouselPage(isExpanded, vnode.attrs, lastWeek, lastMonth, true),
-				),
-				this.renderCarouselPage(isExpanded, vnode.attrs, currentWeek, currentMonth, false),
-				m(
-					".abs",
-					{
-						"aria-hidden": "true",
-						style: {
-							// Set the display none until the containerDom is initialized
-							// this prevents that this shows up to the user and been hidden until needed
-							display: "none",
-							...(this.containerDom &&
-								this.containerDom.offsetWidth > 0 && {
-									width: px(this.containerDom.offsetWidth),
-									display: "block",
-									// put it to the top of the view and not below
-									top: 0,
-									left: px(this.getDatePickerSliderMargin(vnode.attrs)),
-									transform: `translateX(${this.containerDom.offsetWidth}px)`,
-								}),
-						},
-					},
-					this.renderCarouselPage(isExpanded, vnode.attrs, nextWeek, nextMonth, true),
-				),
+			slides: [
+				{
+					label: lang.get(isExpanded ? "prevMonth_label" : "prevWeek_label"),
+					element: this.renderCarouselPage(isExpanded, vnode.attrs, lastWeek, lastMonth, true),
+				},
+				{
+					label: lang.get(isExpanded ? "month_label" : "week_label"),
+					element: this.renderCarouselPage(isExpanded, vnode.attrs, currentWeek, currentMonth, false),
+				},
+				{
+					label: lang.get(isExpanded ? "nextMonth_label" : "nextWeek_label"),
+					element: this.renderCarouselPage(isExpanded, vnode.attrs, nextWeek, nextMonth, true),
+				},
 			],
-		)
+			onSwipe: (isNext: boolean) => this.handleDayPickerSwipe?.(isNext),
+		})
 	}
 
 	private renderCarouselPage(isExpanded: boolean, attrs: DaySelectorAttrs, week: readonly CalendarDay[], month: CalendarMonth, hidden: boolean) {
-		return m("", [
+		return [
 			m(
 				"",
 				{
@@ -176,7 +121,7 @@ export class DaySelector implements Component<DaySelectorAttrs> {
 				},
 				this.renderExpandedMonth(month, attrs, hidden),
 			),
-		])
+		]
 	}
 
 	private renderExpandedMonth(calendarMonth: CalendarMonth, attrs: DaySelectorAttrs, hidden: boolean) {
