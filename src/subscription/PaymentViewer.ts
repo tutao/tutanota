@@ -1,7 +1,7 @@
 import m, { Children } from "mithril"
 import { assertMainOrNode, isIOSApp } from "../api/common/Env"
 import { assertNotNull, neverNull, noOp, ofClass, promiseMap } from "@tutao/tutanota-utils"
-import { lang, TranslationKey } from "../misc/LanguageViewModel"
+import { InfoLink, lang, TranslationKey } from "../misc/LanguageViewModel"
 import type { AccountingInfo, Booking, Customer, InvoiceInfo } from "../api/entities/sys/TypeRefs.js"
 import { AccountingInfoTypeRef, BookingTypeRef, createDebitServicePutData, CustomerTypeRef, InvoiceInfoTypeRef } from "../api/entities/sys/TypeRefs.js"
 import { HtmlEditor, HtmlEditorMode } from "../gui/editor/HtmlEditor"
@@ -256,30 +256,25 @@ export class PaymentViewer implements UpdatableSettingsViewer {
 							title: "download_action",
 							icon: Icons.Download,
 							size: ButtonSize.Compact,
-							click: () => {
-								if (client.compressionStreamSupported()) {
-									showProgressDialog("pleaseWait_msg", locator.customerFacade.generatePdfInvoice(neverNull(posting.invoiceNumber))).then(
-										(pdfInvoice) => locator.fileController.saveDataFile(pdfInvoice),
-									)
-								} else {
-									if (client.device == DeviceType.ANDROID) {
-										// fixme: clickable link, phrase
-										Dialog.confirm(
-											() =>
-												"Can not generate invoice PDF due to outdated system WebView. Please see FAQ entry for more information: https://tuta.com/faq/#webview",
-										)
-									} else if (client.isIos()) {
-										Dialog.confirm(
-											() =>
-												"Can not generate invoice PDF due to outdated iOS version. Exporting invoices is supported from iOS 16.4 on. Please update your iOS or export the invoice from another device.",
-										)
-									} else {
-										Dialog.confirm(() => "Seems like your browser is not supported or outdated.")
-									}
-								}
-							},
+							click: () => this.doInvoiceDownload(posting),
 					  }
 					: null,
+		}
+	}
+
+	private async doInvoiceDownload(posting: CustomerAccountPosting): Promise<unknown> {
+		if (client.compressionStreamSupported()) {
+			return showProgressDialog("pleaseWait_msg", locator.customerFacade.generatePdfInvoice(neverNull(posting.invoiceNumber))).then((pdfInvoice) =>
+				locator.fileController.saveDataFile(pdfInvoice),
+			)
+		} else {
+			if (client.device == DeviceType.ANDROID) {
+				return Dialog.message("invoiceFailedWebview_msg", () => m("div", m("a", { href: InfoLink.Webview, target: "_blank" }, InfoLink.Webview)))
+			} else if (client.isIos()) {
+				return Dialog.message("invoiceFailedIOS_msg")
+			} else {
+				return Dialog.message("invoiceFailedBrowser_msg")
+			}
 		}
 	}
 
