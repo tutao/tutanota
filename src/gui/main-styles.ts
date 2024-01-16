@@ -545,6 +545,9 @@ styles.registerStyle("main", () => {
 		".min-width-0": {
 			"min-width": 0,
 		},
+		".min-width-full": {
+			"min-width": "100%",
+		},
 		// used to enable text ellipsis in flex child elements see https://css-tricks.com/flexbox-truncated-text/
 		".text-break": {
 			overflow: "hidden",
@@ -837,7 +840,6 @@ styles.registerStyle("main", () => {
 			"min-height": client.isIos() ? "101%" : "100%",
 		},
 		".full-width": {
-			"min-width": "100%",
 			width: "100%",
 		},
 		".half-width": {
