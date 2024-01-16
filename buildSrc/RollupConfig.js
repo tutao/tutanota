@@ -65,6 +65,7 @@ export const allowedImports = {
 	"worker-lazy": ["common-min", "common", "worker", "worker-search", "date"],
 	"worker-search": ["common-min", "common", "worker", "worker-lazy"],
 	linkify: [],
+	invoice: ["common-min"],
 }
 
 /** resolves certain imports to vendored libraries for the dist build */
@@ -204,6 +205,8 @@ export function getChunkName(moduleId, { getModuleInfo }) {
 		return "worker-search"
 	} else if (isIn("src/api/worker/Urlifier") || isIn("libs/linkify") || isIn("libs/linkify-html")) {
 		return "linkify"
+	} else if (isIn("src/api/worker/pdf") || isIn("src/api/worker/invoicegen")) {
+		return "invoice"
 	} else if (isIn("src/api/worker") || isIn("packages/tutanota-crypto") || moduleId.includes("argon2")) {
 		return "worker" // avoid that crypto stuff is only put into native
 	} else if (isIn("libs/jszip")) {
