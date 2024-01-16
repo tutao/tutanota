@@ -185,7 +185,7 @@ export default {
 		"cancel_action": "Abbrechen",
 		"cannotEditEvent_msg": "Du kannst nur Teile dieses Ereignisses bearbeiten.",
 		"cannotEditFullEvent_msg": "Du kannst nur Teile dieses Termins bearbeiten, weil es nicht in deinem Kalender erstellt wurde.",
-		"cannotEditNotOrganizer_msg": "Du kannst nur Teile dieses Termins bearbeiten, da du nicht der Organisator bist.",
+		"cannotEditNotOrganizer_msg": "Du kannst diesen Termin nicht bearbeiten, da du nicht der Organisator bist.",
 		"cannotEditSingleInstance_msg": "Du kannst nur Teile dieses Termins bearbeiten, weil er Teil einer Serie ist.",
 		"canNotOpenFileOnDevice_msg": "Diese Datei kann auf diesem Gerät nicht geöffnet werden.",
 		"captchaDisplay_label": "Captcha",

@@ -181,7 +181,7 @@ export default {
 		"cancel_action": "Cancel",
 		"cannotEditEvent_msg": "You can only edit parts of this event.",
 		"cannotEditFullEvent_msg": "You can only edit parts of this event because it was not created in your calendar.",
-		"cannotEditNotOrganizer_msg": "You can only edit parts of this event because you are not its organizer.",
+		"cannotEditNotOrganizer_msg": "You cannot edit this event because you are not its organizer.",
 		"cannotEditSingleInstance_msg": "You can only edit parts of this event because it is part of an event series.",
 		"canNotOpenFileOnDevice_msg": "This file can not be opened on this device.",
 		"captchaDisplay_label": "Captcha",
