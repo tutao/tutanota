@@ -837,6 +837,7 @@ styles.registerStyle("main", () => {
 			"min-height": client.isIos() ? "101%" : "100%",
 		},
 		".full-width": {
+			"min-width": "100%",
 			width: "100%",
 		},
 		".half-width": {
