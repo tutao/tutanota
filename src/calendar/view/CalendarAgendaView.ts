@@ -98,43 +98,35 @@ export class CalendarAgendaView implements Component<CalendarAgendaViewAttrs> {
 		return isDesktopLayout
 			? null
 			: m(
-					".flex.full-width.items-center",
+					"",
 					m(
-						".full-width.overflow-hidden",
+						".header-bg.pb-s.overflow-hidden",
 						{
 							style: {
-								"margin-left": px(timeWidth),
+								"margin-left": px(size.calendar_hour_width_mobile),
 							},
 						},
-						[
-							m(
-								".pb-s.full-width",
+						m(DaySelector, {
+							eventsForDays: attrs.eventsForDays,
+							selectedDate: selectedDate,
+							onDateSelected: (selectedDate: Date) => attrs.onDateSelected(selectedDate),
+							wide: true,
+							startOfTheWeekOffset: attrs.startOfTheWeekOffset,
+							isDaySelectorExpanded: attrs.isDaySelectorExpanded,
+							handleDayPickerSwipe: (isNext: boolean) => {
+								const sign = isNext ? 1 : -1
+								const duration = {
+									month: sign * (attrs.isDaySelectorExpanded ? 1 : 0),
+									week: sign * (attrs.isDaySelectorExpanded ? 0 : 1),
+								}
 
-								m(DaySelector, {
-									eventsForDays: attrs.eventsForDays,
-									selectedDate: selectedDate,
-									onDateSelected: (selectedDate: Date) => {
-										attrs.onDateSelected(selectedDate)
-									},
-									wide: true,
-									startOfTheWeekOffset: attrs.startOfTheWeekOffset,
-									isDaySelectorExpanded: attrs.isDaySelectorExpanded,
-									handleDayPickerSwipe: (isNext: boolean) => {
-										const sign = isNext ? 1 : -1
-										const duration = {
-											month: sign * (attrs.isDaySelectorExpanded ? 1 : 0),
-											week: sign * (attrs.isDaySelectorExpanded ? 0 : 1),
-										}
-
-										attrs.onDateSelected(DateTime.fromJSDate(attrs.selectedDate).plus(duration).toJSDate())
-									},
-									showDaySelection: true,
-									highlightToday: true,
-									highlightSelectedWeek: false,
-									useNarrowWeekName: styles.isSingleColumnLayout(),
-								}),
-							),
-						],
+								attrs.onDateSelected(DateTime.fromJSDate(attrs.selectedDate).plus(duration).toJSDate())
+							},
+							showDaySelection: true,
+							highlightToday: true,
+							highlightSelectedWeek: false,
+							useNarrowWeekName: styles.isSingleColumnLayout(),
+						}),
 					),
 			  )
 	}
