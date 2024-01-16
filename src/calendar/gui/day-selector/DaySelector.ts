@@ -54,7 +54,7 @@ export class DaySelector implements Component<DaySelectorAttrs> {
 		}
 
 		let { weeks, weekdays } = getCalendarMonth(this.displayingDate, vnode.attrs.startOfTheWeekOffset, vnode.attrs.useNarrowWeekName)
-		return m(".flex.flex-column", [m(".flex.flex-space-around", this.renderWeekDays(vnode.attrs.wide, weekdays)), this.renderDayPickerCarousel(vnode)])
+		return m(".flex.flex-column", [m(".flex-space-around", this.renderWeekDays(vnode.attrs.wide, weekdays)), this.renderDayPickerCarousel(vnode)])
 	}
 
 	private renderDayPickerCarousel(vnode: Vnode<DaySelectorAttrs>) {
@@ -106,6 +106,7 @@ export class DaySelector implements Component<DaySelectorAttrs> {
 				{
 					"aria-hidden": `${isExpanded}`,
 					style: {
+						display: isExpanded ? "none" : "block",
 						height: isExpanded ? 0 : undefined,
 						opacity: isExpanded ? 0 : 1,
 						overflow: "clip",
@@ -132,15 +133,15 @@ export class DaySelector implements Component<DaySelectorAttrs> {
 			weekToHighlight = weeks.findIndex((week) => week.find((day) => day.date.getTime() === attrs.selectedDate?.getTime()))
 		}
 
-		return m("", [weeks.map((w, index) => this.renderExpandableWeek(w, attrs, weekToHighlight === index, attrs.isDaySelectorExpanded && hidden))])
+		return weeks.map((w, index) => this.renderExpandableWeek(w, attrs, weekToHighlight === index, attrs.isDaySelectorExpanded && hidden))
 	}
 
 	private renderDay({ date, day, isPaddingDay }: CalendarDay, attrs: DaySelectorAttrs, hidden: boolean): Children {
 		const eventForDay = attrs.eventsForDays?.get(date.getTime())
 		const isSelectedDay = isSameDayOfDate(date, attrs.selectedDate)
 		const hasEvent = eventForDay && eventForDay.length > 0
-		let circleStyle
-		let textStyle
+		let circleStyle = {}
+		let textStyle = {}
 		if (isSelectedDay && attrs.showDaySelection) {
 			circleStyle = {
 				backgroundColor: theme.content_accent,
@@ -158,9 +159,6 @@ export class DaySelector implements Component<DaySelectorAttrs> {
 			textStyle = {
 				fontWeight: "bold",
 			}
-		} else {
-			circleStyle = {}
-			textStyle = {}
 		}
 
 		const size = this.getElementSize(attrs)
@@ -168,10 +166,7 @@ export class DaySelector implements Component<DaySelectorAttrs> {
 		return m(
 			"button.rel.click.flex.items-center.justify-center.rel" + (isPaddingDay && attrs.isDaySelectorExpanded ? ".faded-day" : ""),
 			{
-				style: {
-					height: px(size),
-					width: px(size),
-				},
+				class: "flex-grow-shrink-0",
 				"aria-hidden": `${isPaddingDay && attrs.isDaySelectorExpanded}`,
 				"aria-label": date.toLocaleDateString(),
 				"aria-selected": `${isSelectedDay}`,
@@ -220,7 +215,7 @@ export class DaySelector implements Component<DaySelectorAttrs> {
 			style = {}
 		}
 
-		return m(".flex.flex-space-around.rel.items-center", [
+		return m(".flex-space-around.rel.items-center", [
 			m(".abs", {
 				style,
 			}),
