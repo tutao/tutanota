@@ -80,7 +80,7 @@ export class CalendarAgendaView implements Component<CalendarAgendaViewAttrs> {
 			m(
 				".rel.flex-grow.flex.col",
 				{
-					class: isDesktopLayout ? "overflow-y-hidden" : "content-bg scroll border-radius-top-left-big border-radius-top-right-big",
+					class: isDesktopLayout ? "overflow-hidden" : "content-bg scroll border-radius-top-left-big border-radius-top-right-big",
 					oncreate: (vnode: VnodeDOM) => {
 						if (!isDesktopLayout) this.listDom = vnode.dom as HTMLElement
 					},
