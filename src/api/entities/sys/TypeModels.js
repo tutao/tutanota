@@ -6174,6 +6174,15 @@ export const typeModels = {
                 "cardinality": "One",
                 "encrypted": false
             },
+            "invoiceType": {
+                "final": true,
+                "name": "invoiceType",
+                "id": 2173,
+                "since": 93,
+                "type": "Number",
+                "cardinality": "One",
+                "encrypted": false
+            },
             "paymentMethod": {
                 "final": false,
                 "name": "paymentMethod",
@@ -6187,15 +6196,6 @@ export const typeModels = {
                 "final": true,
                 "name": "subTotal",
                 "id": 2181,
-                "since": 93,
-                "type": "Number",
-                "cardinality": "One",
-                "encrypted": false
-            },
-            "type": {
-                "final": true,
-                "name": "type",
-                "id": 2173,
                 "since": 93,
                 "type": "Number",
                 "cardinality": "One",
@@ -6289,6 +6289,15 @@ export const typeModels = {
                 "cardinality": "ZeroOrOne",
                 "encrypted": false
             },
+            "itemType": {
+                "final": true,
+                "name": "itemType",
+                "id": 2165,
+                "since": 93,
+                "type": "Number",
+                "cardinality": "One",
+                "encrypted": false
+            },
             "singlePrice": {
                 "final": true,
                 "name": "singlePrice",
@@ -6311,15 +6320,6 @@ export const typeModels = {
                 "final": true,
                 "name": "totalPrice",
                 "id": 2167,
-                "since": 93,
-                "type": "Number",
-                "cardinality": "One",
-                "encrypted": false
-            },
-            "type": {
-                "final": true,
-                "name": "type",
-                "id": 2165,
                 "since": 93,
                 "type": "Number",
                 "cardinality": "One",
