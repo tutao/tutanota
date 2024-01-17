@@ -12,7 +12,6 @@ import { theme } from "../../gui/theme.js"
 import { hexToRGBAString } from "../../gui/base/Color.js"
 import { styles } from "../../gui/styles.js"
 import { Carousel } from "../../gui/base/Carousel.js"
-import { lang } from "../../misc/LanguageViewModel.js"
 
 export interface DaySelectorAttrs {
 	selectedDate: Date | null
@@ -76,22 +75,22 @@ export class DaySelector implements Component<DaySelectorAttrs> {
 			beginningOfNextWeek < nextMonth.beginningOfMonth ? findWeek(currentMonth, beginningOfNextWeek) : findWeek(nextMonth, beginningOfNextWeek)
 
 		return m(Carousel, {
-			label: lang.get("date_label"),
+			label: "date_label",
 			style: {
 				fontSize: px(14),
 				lineHeight: px(this.getElementSize(vnode.attrs)),
 			},
 			slides: [
 				{
-					label: lang.get(isExpanded ? "prevMonth_label" : "prevWeek_label"),
+					label: isExpanded ? "prevMonth_label" : "prevWeek_label",
 					element: this.renderCarouselPage(isExpanded, vnode.attrs, lastWeek, lastMonth, true),
 				},
 				{
-					label: lang.get(isExpanded ? "month_label" : "week_label"),
+					label: isExpanded ? "month_label" : "week_label",
 					element: this.renderCarouselPage(isExpanded, vnode.attrs, currentWeek, currentMonth, false),
 				},
 				{
-					label: lang.get(isExpanded ? "nextMonth_label" : "nextWeek_label"),
+					label: isExpanded ? "nextMonth_label" : "nextWeek_label",
 					element: this.renderCarouselPage(isExpanded, vnode.attrs, nextWeek, nextMonth, true),
 				},
 			],
