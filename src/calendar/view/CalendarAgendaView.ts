@@ -1,4 +1,4 @@
-import m, { Child, Children, Component, Vnode } from "mithril"
+import m, { Child, Children, Component, Vnode, VnodeDOM } from "mithril"
 import { isSameDay, neverNull } from "@tutao/tutanota-utils"
 import { lang } from "../../misc/LanguageViewModel"
 import { getTimeZone } from "../date/CalendarUtils"
@@ -81,6 +81,9 @@ export class CalendarAgendaView implements Component<CalendarAgendaViewAttrs> {
 				".rel.flex-grow.flex.col",
 				{
 					class: isDesktopLayout ? "overflow-y-hidden" : "content-bg scroll border-radius-top-left-big border-radius-top-right-big",
+					oncreate: (vnode: VnodeDOM) => {
+						if (!isDesktopLayout) this.listDom = vnode.dom as HTMLElement
+					},
 				},
 				agendaChildren,
 			),
@@ -180,6 +183,7 @@ export class CalendarAgendaView implements Component<CalendarAgendaViewAttrs> {
 						"min-width": px(size.second_col_min_width),
 						"max-width": px(size.second_col_max_width),
 					},
+					oncreate: (vnode: VnodeDOM) => (this.listDom = vnode.dom as HTMLElement),
 				},
 				[this.renderDesktopEventList(attrs)],
 			),
