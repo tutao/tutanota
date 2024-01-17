@@ -28,6 +28,7 @@ export class SearchModel {
 	_searchFacade: SearchFacade
 	_lastQuery: SearchQuery | null
 	_lastSearchPromise: Promise<SearchResult | void>
+	cancelSignal: Stream<boolean>
 
 	constructor(searchFacade: SearchFacade, private readonly calendarModel: lazyAsync<CalendarEventsRepository>) {
 		this._searchFacade = searchFacade
@@ -45,9 +46,10 @@ export class SearchModel {
 		})
 		this._lastQuery = null
 		this._lastSearchPromise = Promise.resolve(undefined)
+		this.cancelSignal = stream(false)
 	}
 
-	async search(searchQuery: SearchQuery, progressTracker: ProgressTracker, cancel: Stream<boolean> | null): Promise<SearchResult | void> {
+	async search(searchQuery: SearchQuery, progressTracker: ProgressTracker): Promise<SearchResult | void> {
 		if (this._lastQuery && searchQueryEquals(searchQuery, this._lastQuery)) {
 			return this._lastSearchPromise
 		}
@@ -81,7 +83,7 @@ export class SearchModel {
 			this.result(result)
 			this._lastSearchPromise = Promise.resolve(result)
 		} else if (isSameTypeRef(CalendarEventTypeRef, restriction.type)) {
-			const cancelStream = cancel != null ? cancel : Stream<boolean>(false)
+			this.resetCancelState()
 			// we interpret restriction.start as the start of the first day of the first month we want to search
 			// restriction.end is the end of the last day of the last month we want to search
 			let currentDate = new Date(assertNotNull(restriction.start))
@@ -96,11 +98,11 @@ export class SearchModel {
 			const monitorHandle = progressTracker.registerMonitorSync(daysInMonths.length)
 			const monitor: IProgressMonitor = assertNotNull(progressTracker.getMonitor(monitorHandle))
 
-			if (cancelStream()) {
+			if (this.cancelSignal()) {
 				return
 			}
 
-			await calendarModel.loadMonthsIfNeeded(daysInMonths, monitor, cancelStream)
+			await calendarModel.loadMonthsIfNeeded(daysInMonths, monitor, this.cancelSignal)
 			monitor.completed()
 
 			const eventsForDays = calendarModel.getEventsForMonths()()
@@ -126,7 +128,7 @@ export class SearchModel {
 			// separate instances of event series to occur on their own.
 			const alreadyAdded: Set<string> = new Set()
 
-			if (cancelStream()) {
+			if (this.cancelSignal()) {
 				return calendarResult
 			}
 
@@ -174,7 +176,7 @@ export class SearchModel {
 							}
 						}
 
-						if (cancelStream()) {
+						if (this.cancelSignal()) {
 							return calendarResult
 						}
 					}
@@ -224,6 +226,14 @@ export class SearchModel {
 		}
 
 		return !isSameSearchRestriction(restriction, result.restriction)
+	}
+
+	sendCancelSignal() {
+		this.cancelSignal(true)
+	}
+
+	resetCancelState() {
+		this.cancelSignal(false)
 	}
 }
 

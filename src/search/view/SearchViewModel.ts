@@ -91,7 +91,8 @@ export class SearchViewModel {
 	startDate: Date | null = null // null = current mail index date. this allows us to start the search (and the url) without end date set
 	endDate: Date | null = null // null = today
 	selectedMailFolder: Array<Id> = []
-	selectedCalendar: CalendarInfo | null = null
+	// Isn't an IdTuple because it is two list ids
+	selectedCalendar: readonly [Id, Id] | null = null
 	mailboxes: MailboxDetail[] = []
 	selectedMailField: string | null = null
 	private mailboxSubscription: Stream<void> | null = null
@@ -104,7 +105,6 @@ export class SearchViewModel {
 		m.redraw()
 		return calendarInfos
 	})
-	private cancelSignal: Stream<boolean> = Stream<boolean>(false)
 
 	constructor(
 		private readonly router: SearchRouter,
@@ -175,9 +175,6 @@ export class SearchViewModel {
 		const lastQuery = this.search.lastQuery()
 		const maxResults = isSameTypeRef(MailTypeRef, restriction.type) ? SEARCH_PAGE_SIZE : null
 
-		//Reset the cancel signal if the search was cancelled
-		this.cancelSignal(false)
-
 		// using hasOwnProperty to distinguish case when url is like '/search/mail/query='
 		const listModel = this.listModel
 		if (args.hasOwnProperty("query") && this.search.isNewSearch(args.query, restriction)) {
@@ -193,7 +190,6 @@ export class SearchViewModel {
 						maxResults,
 					},
 					this.progressTracker,
-					this.cancelSignal,
 				)
 				.then(() => listModel.updateLoadingStatus(ListLoadingState.Done))
 				.catch(() => listModel.updateLoadingStatus(ListLoadingState.ConnectionLost))
@@ -211,7 +207,6 @@ export class SearchViewModel {
 						maxResults,
 					},
 					this.progressTracker,
-					this.cancelSignal,
 				)
 				.then(() => listModel.updateLoadingStatus(ListLoadingState.Done))
 				.catch(() => listModel.updateLoadingStatus(ListLoadingState.ConnectionLost))
@@ -220,11 +215,6 @@ export class SearchViewModel {
 			listModel.updateLoadingStatus(ListLoadingState.Done)
 		}
 
-		// update the filters
-		if (args.id == null) {
-			// nothing to select
-			return
-		}
 		if (isSameTypeRef(restriction.type, ContactTypeRef)) {
 			this.loadAndSelectIfNeeded(args.id)
 		} else {
@@ -237,19 +227,33 @@ export class SearchViewModel {
 			} else if (isSameTypeRef(restriction.type, CalendarEventTypeRef)) {
 				this.startDate = restriction.start ? new Date(restriction.start) : null
 				this.endDate = restriction.end ? new Date(restriction.end) : null
-
+				this.selectedCalendar = this.extractCalendarListIds(restriction.listIds)
 				this.includeRepeatingEvents = restriction.eventSeries ?? true
 				this.lazyCalendarInfos.load()
-				const { start, id } = decodeCalendarSearchKey(args.id)
-				this.loadAndSelectIfNeeded(id, ({ entry }: SearchResultListEntry) => {
-					entry = entry as CalendarEvent
-					return id === getElementId(entry) && start === entry.startTime.getTime()
-				})
+
+				if (args.id != null) {
+					const { start, id } = decodeCalendarSearchKey(args.id)
+					this.loadAndSelectIfNeeded(id, ({ entry }: SearchResultListEntry) => {
+						entry = entry as CalendarEvent
+						return id === getElementId(entry) && start === entry.startTime.getTime()
+					})
+				}
 			}
 		}
 	}
 
-	private loadAndSelectIfNeeded(id: string, finder?: (a: ListElement) => boolean) {
+	private extractCalendarListIds(listIds: string[]): readonly [string, string] | null {
+		if (listIds.length < 2) return null
+
+		return [listIds[0], listIds[1]]
+	}
+
+	private loadAndSelectIfNeeded(id: string | null, finder?: (a: ListElement) => boolean) {
+		// nothing to select
+		if (id == null) {
+			return
+		}
+
 		if (!this.listModel.isItemSelected(id)) {
 			// the mail list is visible already, just the selected mail is changed
 			const listModel = this.listModel
@@ -407,7 +411,7 @@ export class SearchViewModel {
 					this.startDate ? getStartOfDay(this.startDate).getTime() : null,
 					this.endDate ? getEndOfDay(this.endDate).getTime() : null,
 					null,
-					this.selectedCalendar == null ? [] : [this.selectedCalendar.groupRoot.longEvents, this.selectedCalendar.groupRoot.shortEvents],
+					this.selectedCalendar == null ? [] : [...this.selectedCalendar],
 					this.includeRepeatingEvents,
 				),
 			)
@@ -694,7 +698,7 @@ export class SearchViewModel {
 	}
 
 	sendStopLoadingSignal() {
-		this.cancelSignal(true)
+		this.search.sendCancelSignal()
 	}
 
 	dispose() {
