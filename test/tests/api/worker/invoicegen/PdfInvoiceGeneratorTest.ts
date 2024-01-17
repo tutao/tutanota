@@ -1,7 +1,7 @@
 import o from "@tutao/otest"
 import { PdfWriter } from "../../../../../src/api/worker/pdf/PdfWriter.js"
 import { createTestEntity } from "../../../TestUtils.js"
-import { InvoiceDataGetOutTypeRef } from "../../../../../src/api/entities/sys/TypeRefs.js"
+import { InvoiceDataGetOutTypeRef, InvoiceDataItemTypeRef } from "../../../../../src/api/entities/sys/TypeRefs.js"
 import { PdfInvoiceGenerator } from "../../../../../src/api/worker/invoicegen/PdfInvoiceGenerator.js"
 import { object, when } from "testdouble"
 
@@ -45,20 +45,16 @@ o.spec("PdfInvoiceGenerator", function () {
 function dataMock(amount: number) {
 	const data: any = []
 	for (let i = 0; i < amount; i++) {
-		data.push({
-			_type: {
-				phantom: null,
-				app: "sys",
-				type: "RenderInvoiceItem",
-			},
-			_id: "NwAD_g",
-			amount: "1",
-			endDate: new Date("09.09.1984"),
-			singlePrice: "14.40",
-			startDate: new Date("09.09.1984"),
-			totalPrice: "14.40",
-			type: "25",
-		})
+		data.push(
+			createTestEntity(InvoiceDataItemTypeRef, {
+				amount: "1",
+				endDate: new Date("09.09.1984"),
+				singlePrice: "14.40",
+				startDate: new Date("09.09.1984"),
+				totalPrice: "14.40",
+				itemType: "25",
+			}),
+		)
 	}
 	return data
 }

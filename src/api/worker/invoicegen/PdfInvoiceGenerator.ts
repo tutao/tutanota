@@ -145,11 +145,11 @@ export class PdfInvoiceGenerator {
 	renderInvoiceInfo() {
 		this.doc
 			.changeFontSize(18)
-			.addText(this.getInvoiceTypeName(this.invoice.type, this.invoice.grandTotal), [MARGIN_LEFT, MARGIN_TOP + 90])
+			.addText(this.getInvoiceTypeName(this.invoice.invoiceType, this.invoice.grandTotal), [MARGIN_LEFT, MARGIN_TOP + 90])
 			.changeFont(PDF_FONTS.BOLD, 12)
 			.addText(`${InvoiceTexts[this.languageCode].invoiceNumber} ${this.invoiceNumber}`, [MARGIN_LEFT, MARGIN_TOP + 100])
 			.changeFont(PDF_FONTS.REGULAR, 11)
-		if (this.invoice.type === InvoiceType.INVOICE) {
+		if (this.invoice.invoiceType === InvoiceType.INVOICE) {
 			this.doc.addText(InvoiceTexts[this.languageCode].asAgreedBlock, [MARGIN_LEFT, MARGIN_TOP + 110])
 		}
 	}
@@ -171,8 +171,8 @@ export class PdfInvoiceGenerator {
 		for (const invoiceItem of this.invoice.items) {
 			// Entry with all invoice info
 			tableData.push([
-				this.formatAmount(invoiceItem.type, invoiceItem.amount),
-				this.getInvoiceItemTypeName(invoiceItem.type),
+				this.formatAmount(invoiceItem.itemType, invoiceItem.amount),
+				this.getInvoiceItemTypeName(invoiceItem.itemType),
 				invoiceItem.singlePrice == null ? "" : this.formatInvoiceCurrency(invoiceItem.singlePrice),
 				this.formatInvoiceCurrency(invoiceItem.totalPrice),
 			])
@@ -259,7 +259,7 @@ export class PdfInvoiceGenerator {
 		this.doc.addLineBreak()
 
 		// Payment info
-		if (this.invoice.type === InvoiceType.INVOICE) {
+		if (this.invoice.invoiceType === InvoiceType.INVOICE) {
 			switch (this.invoice.paymentMethod) {
 				case PaymentMethod.INVOICE:
 					this.doc
