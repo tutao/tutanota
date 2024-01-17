@@ -292,8 +292,6 @@ export class CalendarView extends BaseTopLevelView implements TopLevelView<Calen
 			{
 				minWidth: size.second_col_min_width + size.third_col_min_width,
 				maxWidth: size.third_col_max_width,
-				// We need to allow time indicator in Agenda view to overflow
-				overflowXVisible: true,
 			},
 		)
 		this.viewSlider = new ViewSlider([this.sidebarColumn, this.contentColumn])
