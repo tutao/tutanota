@@ -220,7 +220,7 @@ export class CalendarAgendaView implements Component<CalendarAgendaViewAttrs> {
 		let eventsNodes: Child[] = []
 		for (const [eventIndex, event] of events.entries()) {
 			if (eventToShowTimeIndicator === eventIndex && isSameDay(new Date(), event.startTime)) {
-				eventsNodes.push(m(".mt-xs.mb-xs", { key: "timeIndicator" }, m(CalendarTimeIndicator, {})))
+				eventsNodes.push(m(".mt-xs.mb-xs", { key: "timeIndicator" }, m(CalendarTimeIndicator, { circleLeftTangent: true })))
 			}
 			if (currentTime && event.startTime < currentTime) {
 				newScrollPosition += agendaItemHeight + agendaGap
