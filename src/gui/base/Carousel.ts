@@ -1,10 +1,11 @@
 import m, { Children, Component, Vnode } from "mithril"
 import { CalendarSwipeHandler } from "./CalendarSwipeHandler.js"
+import { lang, TranslationKey } from "../../misc/LanguageViewModel.js"
 
-type Slide = { label: string; element: Children }
+type Slide = { label: TranslationKey; element: Children }
 
 interface CarouselAttrs {
-	label: string
+	label: TranslationKey
 	slides: Slide[]
 	style?: Record<string, any>
 	onSwipe: (isNext: boolean) => void
@@ -21,7 +22,7 @@ export class Carousel implements Component<CarouselAttrs> {
 			{
 				role: "group",
 				"aria-roledescription": "carousel",
-				"aria-label": attrs.label,
+				"aria-label": lang.get(attrs.label),
 				style: attrs.style,
 				oncreate: (swiperNode) => {
 					this.containerDom = swiperNode.dom as HTMLElement
@@ -40,7 +41,7 @@ function renderSlide(slide: Slide): Children {
 		{
 			role: "group",
 			"aria-role": "slide",
-			"aria-label": slide.label,
+			"aria-label": lang.get(slide.label),
 		},
 		slide.element,
 	)
