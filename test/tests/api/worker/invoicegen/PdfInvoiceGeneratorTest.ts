@@ -47,12 +47,6 @@ function dataMock(amount: number) {
 	for (let i = 0; i < amount; i++) {
 		data.push(
 			createTestEntity(InvoiceDataItemTypeRef, {
-				_type: {
-					phantom: null,
-					app: "sys",
-					type: "InvoiceDataItem",
-				},
-				_id: "NwAD_g",
 				amount: "1",
 				endDate: new Date("09.09.1984"),
 				singlePrice: "14.40",
