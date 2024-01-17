@@ -139,6 +139,8 @@ export class ListModel<ElementType extends ListElement> {
 	}
 
 	updateLoadingStatus(status: ListLoadingState) {
+		if (this.rawState.loadingStatus === status) return
+
 		this.updateState({ loadingStatus: status })
 	}
 
