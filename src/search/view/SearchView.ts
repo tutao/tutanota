@@ -103,6 +103,7 @@ import { CalendarOperation } from "../../calendar/gui/eventeditor-model/Calendar
 import { getEventWithDefaultTimes } from "../../api/common/utils/CommonCalendarUtils.js"
 import { showNewCalendarEventEditDialog } from "../../calendar/gui/eventeditor-view/CalendarEventEditDialog.js"
 import { getSharedGroupName } from "../../sharing/GroupUtils.js"
+import { YEAR_IN_MILLIS } from "@tutao/tutanota-utils/dist/DateUtils.js"
 
 assertMainOrNode()
 
@@ -826,8 +827,8 @@ export class SearchView extends BaseTopLevelView implements TopLevelView<SearchV
 								this.searchViewModel.startDate ?? startDate,
 								this.searchViewModel.endDate ?? endDate,
 								(startDate, endDate) => {
-									if (startDate == null || endDate == null) return "unlimited limit in calendar search?"
-									if (endDate.getTime() - startDate.getTime() > 12 * 30 * 24 * 60 * 60 * 1000) {
+									if (startDate == null || endDate == null) return null
+									if (endDate.getTime() - startDate.getTime() > YEAR_IN_MILLIS) {
 										return lang.get("longSearchRange_msg")
 									} else if (startDate.getTime() > endDate.getTime()) {
 										return lang.get("startAfterEnd_label")
@@ -1072,21 +1073,27 @@ export class SearchView extends BaseTopLevelView implements TopLevelView<SearchV
 		if (this.searchViewModel.getLazyCalendarInfos().isLoaded()) {
 			const calendarInfos = this.searchViewModel.getLazyCalendarInfos().getSync() ?? []
 
+			// Load user's calendar list
+			const items = Array.from(calendarInfos.values()).map((ci) => ({
+				name: getSharedGroupName(ci.groupInfo, locator.logins.getUserController(), true),
+				value: ci,
+			}))
+
+			// Find the selected value after loading the available calendars
+			const selectedValue =
+				items.find((calendar) =>
+					isSameId([calendar.value.groupRoot.longEvents, calendar.value.groupRoot.shortEvents], this.searchViewModel.selectedCalendar),
+				)?.value ?? null
+
 			return m(
 				".mlr-button",
 				m(DropDownSelector, {
 					label: "calendar_label",
-					items: [
-						{ name: lang.get("all_label"), value: null },
-						...Array.from(calendarInfos.values()).map((ci) => ({
-							name: getSharedGroupName(ci.groupInfo, locator.logins.getUserController(), true),
-							value: ci,
-						})),
-					],
-					selectedValue: this.searchViewModel.selectedCalendar,
+					items: [{ name: lang.get("all_label"), value: null }, ...items],
+					selectedValue,
 					selectionChangedHandler: (value: CalendarInfo) => {
 						// re-search with new list ids
-						this.searchViewModel.selectedCalendar = value
+						this.searchViewModel.selectedCalendar = [value.groupRoot.longEvents, value.groupRoot.shortEvents]
 						this.searchViewModel.searchAgain(async () => true)
 					},
 				} satisfies DropDownSelectorAttrs<CalendarInfo | null>),
