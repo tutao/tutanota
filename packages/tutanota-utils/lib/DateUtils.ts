@@ -5,6 +5,8 @@
  */
 export const DAY_IN_MILLIS = 1000 * 60 * 60 * 24
 
+export const YEAR_IN_MILLIS = DAY_IN_MILLIS * 365
+
 /**
  * dates from before 1970 have negative timestamps and are currently considered edge cases
  */

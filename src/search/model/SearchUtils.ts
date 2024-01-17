@@ -288,6 +288,7 @@ export function decodeCalendarSearchKey(searchKey: string): { id: Id; start: num
 }
 
 export function encodeCalendarSearchKey(event: CalendarEvent): string {
+	console.trace("Who is trying to encode?")
 	const eventStartTime = event.startTime.getTime()
 	return base64ToBase64Url(stringToBase64(JSON.stringify({ start: eventStartTime, id: getElementId(event) })))
 }
