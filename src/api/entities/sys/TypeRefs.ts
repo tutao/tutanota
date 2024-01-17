@@ -1510,9 +1510,9 @@ export type InvoiceDataGetOut = {
 	date: Date;
 	grandTotal: NumberString;
 	invoiceId: Id;
+	invoiceType: NumberString;
 	paymentMethod: NumberString;
 	subTotal: NumberString;
-	type: NumberString;
 	vat: NumberString;
 	vatIdNumber: null | string;
 	vatRate: NumberString;
@@ -1532,10 +1532,10 @@ export type InvoiceDataItem = {
 	_id: Id;
 	amount: NumberString;
 	endDate: null | Date;
+	itemType: NumberString;
 	singlePrice: null | NumberString;
 	startDate: null | Date;
 	totalPrice: NumberString;
-	type: NumberString;
 }
 export const InvoiceInfoTypeRef: TypeRef<InvoiceInfo> = new TypeRef("sys", "InvoiceInfo")
 
