@@ -22,7 +22,6 @@ export class ViewColumn implements Component<Attrs> {
 	readonly maxWidth: number
 	private readonly headerCenter: lazy<string>
 	private readonly ariaLabel: lazy<string>
-	private readonly overflowXVisible: boolean
 	width: number
 	offset: number // offset to the left
 
@@ -42,7 +41,6 @@ export class ViewColumn implements Component<Attrs> {
 	 * @param maxWidth The maximum allowed width for the view column.
 	 * @param headerCenter The title of the view column.
 	 * @param ariaLabel The label of the view column to be read by screen readers. Defaults to headerCenter if not specified.
-	 * @param overflowXVisible Enable contents to spill over horizontally from the column.
 	 */
 	constructor(
 		component: Component,
@@ -54,20 +52,17 @@ export class ViewColumn implements Component<Attrs> {
 			// provide separately. We should always require aria description instead.
 			headerCenter,
 			ariaLabel = () => this.getTitle(),
-			overflowXVisible = false,
 		}: {
 			minWidth: number
 			maxWidth: number
 			headerCenter?: lazy<string>
 			ariaLabel?: lazy<string>
-			overflowXVisible?: boolean
 		},
 	) {
 		this.component = component
 		this.columnType = columnType
 		this.minWidth = minWidth
 		this.maxWidth = maxWidth
-		this.overflowXVisible = overflowXVisible
 
 		this.headerCenter = headerCenter || (() => "")
 
@@ -87,7 +82,6 @@ export class ViewColumn implements Component<Attrs> {
 			".view-column.fill-absolute",
 			{
 				...landmark,
-				class: this.overflowXVisible ? "" : ".overflow-x-hidden",
 				"aria-hidden": this.isVisible || this.isInForeground ? "false" : "true",
 				oncreate: (vnode) => {
 					this.domColumn = vnode.dom as HTMLElement
