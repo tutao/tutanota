@@ -14,6 +14,7 @@ import { copyNativeModulePlugin, nativeBannerPlugin } from "./nativeLibraryRollu
 import { fileURLToPath } from "node:url"
 import { getCanonicalPlatformName } from "./buildUtils.js"
 import { domainConfigs } from "./DomainConfigs.js"
+import commonjs from "@rollup/plugin-commonjs"
 
 const exec = util.promisify(cp.exec)
 const buildSrc = dirname(fileURLToPath(import.meta.url))
@@ -139,6 +140,7 @@ async function rollupDesktop(dirname, outDir, version, platform, architecture, d
 				preferBuiltins: true,
 				resolveOnly: [/^@tutao\/.*$/],
 			}),
+			commonjs(),
 			disableMinify ? undefined : terser(),
 			preludeEnvPlugin(createEnv({ staticUrl: null, version, mode: "Desktop", dist: true, domainConfigs })),
 			nativeBannerPlugin({
