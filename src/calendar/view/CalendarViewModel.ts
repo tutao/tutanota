@@ -416,7 +416,7 @@ export class CalendarViewModel implements EventDragHandlerCallbacks {
 	}
 
 	loadMonthsIfNeeded(daysInMonths: Array<Date>, progressMonitor: IProgressMonitor): Promise<void> {
-		return this.eventsRepository.loadMonthsIfNeeded(daysInMonths, progressMonitor)
+		return this.eventsRepository.loadMonthsIfNeeded(daysInMonths, progressMonitor, stream(false))
 	}
 
 	private doRedraw() {

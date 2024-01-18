@@ -99,6 +99,10 @@ export class SearchBar implements Component<SearchBarAttrs> {
 		this.onremove = this.onremove.bind(this)
 	}
 
+	/**
+	 * this reacts to URL changes by clearing the suggestions - the selected item may have changed (in the mail view maybe)
+	 * that shouldn't clear our current state, but if the URL changed in a way that makes the previous state outdated, we clear it.
+	 */
 	private readonly onPathChange = memoized((newPath: string) => {
 		if (locator.search.isNewSearch(this.state().query, getRestriction(newPath))) {
 			this.updateState({
@@ -214,8 +218,8 @@ export class SearchBar implements Component<SearchBarAttrs> {
 			})
 		})
 
-		this.stateStream = this.state.map(() => m.redraw())
-		this.lastQueryStream = locator.search.lastQuery.map((value) => {
+		this.stateStream = this.state.map((state) => m.redraw())
+		this.lastQueryStream = locator.search.lastQueryString.map((value) => {
 			// Set value from the model when it's set from the URL e.g. reloading the page on the search screen
 			if (value) {
 				this.updateState({
@@ -401,9 +405,6 @@ export class SearchBar implements Component<SearchBarAttrs> {
 					this.busy = true
 				}
 
-				// We want to cancel the current search, so we can start a new one
-				locator.search.sendCancelSignal()
-
 				this.doSearch(query, restriction, () => {
 					this.busy = false
 					m.redraw()
@@ -470,23 +471,19 @@ export class SearchBar implements Component<SearchBarAttrs> {
 	}
 
 	private clear() {
+		if (m.route.get().startsWith("/search")) {
+			// this needs to happen in this order, otherwise the list's result subscription will override our
+			// routing.
+			this.updateSearchUrl("")
+			locator.search.result(null)
+		}
+
 		this.updateState({
 			query: "",
 			entities: [],
 			selected: null,
 			searchResult: null,
 		})
-
-		locator.search.lastQuery("")
-
-		if (m.route.get().startsWith("/search")) {
-			locator.search.result(null)
-
-			// Cancel any running search
-			locator.search.sendCancelSignal()
-
-			this.updateSearchUrl("")
-		}
 	}
 
 	private async showResultsInOverlay(result: SearchResult): Promise<void> {

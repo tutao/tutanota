@@ -63,10 +63,10 @@ export class CalendarEventsRepository {
 		return this.daysToEvents
 	}
 
-	async loadMonthsIfNeeded(daysInMonths: Array<Date>, progressMonitor: IProgressMonitor, cancel?: Stream<boolean>): Promise<void> {
+	async loadMonthsIfNeeded(daysInMonths: Array<Date>, progressMonitor: IProgressMonitor, canceled: Stream<boolean>): Promise<void> {
 		const promiseForThisLoadRequest = this.pendingLoadRequest.then(async () => {
 			for (const dayInMonth of daysInMonths) {
-				if (cancel && cancel()) return
+				if (canceled()) return
 
 				const month = getMonthRange(dayInMonth, this.zone)
 

@@ -23,17 +23,19 @@ export type SearchQuery = {
 export class SearchModel {
 	result: Stream<SearchResult | null>
 	indexState: Stream<SearchIndexStateInfo>
-	lastQuery: Stream<string | null>
+	// we store this as a reference to the currently running search. if we don't, we only have the last result's query info
+	// to compare against incoming new queries
+	lastQueryString: Stream<string | null>
 	indexingSupported: boolean
 	_searchFacade: SearchFacade
-	_lastQuery: SearchQuery | null
+	private _lastQuery: SearchQuery | null
 	_lastSearchPromise: Promise<SearchResult | void>
 	cancelSignal: Stream<boolean>
 
 	constructor(searchFacade: SearchFacade, private readonly calendarModel: lazyAsync<CalendarEventsRepository>) {
 		this._searchFacade = searchFacade
 		this.result = stream()
-		this.lastQuery = stream<string | null>("")
+		this.lastQueryString = stream<string | null>("")
 		this.indexingSupported = true
 		this.indexState = stream<SearchIndexStateInfo>({
 			initializing: true,
@@ -45,7 +47,7 @@ export class SearchModel {
 			failedIndexingUpTo: null,
 		})
 		this._lastQuery = null
-		this._lastSearchPromise = Promise.resolve(undefined)
+		this._lastSearchPromise = Promise.resolve()
 		this.cancelSignal = stream(false)
 	}
 
@@ -56,7 +58,7 @@ export class SearchModel {
 
 		this._lastQuery = searchQuery
 		const { query, restriction, minSuggestionCount, maxResults } = searchQuery
-		this.lastQuery(query)
+		this.lastQueryString(query)
 		let result = this.result()
 
 		if (result && !isSameTypeRef(restriction.type, result.restriction.type)) {
@@ -83,7 +85,6 @@ export class SearchModel {
 			this.result(result)
 			this._lastSearchPromise = Promise.resolve(result)
 		} else if (isSameTypeRef(CalendarEventTypeRef, restriction.type)) {
-			this.resetCancelState()
 			// we interpret restriction.start as the start of the first day of the first month we want to search
 			// restriction.end is the end of the last day of the last month we want to search
 			let currentDate = new Date(assertNotNull(restriction.start))
@@ -94,18 +95,6 @@ export class SearchModel {
 				daysInMonths.push(currentDate)
 				currentDate = incrementMonth(currentDate, 1)
 			}
-
-			const monitorHandle = progressTracker.registerMonitorSync(daysInMonths.length)
-			const monitor: IProgressMonitor = assertNotNull(progressTracker.getMonitor(monitorHandle))
-
-			if (this.cancelSignal()) {
-				return
-			}
-
-			await calendarModel.loadMonthsIfNeeded(daysInMonths, monitor, this.cancelSignal)
-			monitor.completed()
-
-			const eventsForDays = calendarModel.getEventsForMonths()()
 
 			const calendarResult: SearchResult = {
 				// index related, keep empty
@@ -120,6 +109,20 @@ export class SearchModel {
 				query,
 			}
 
+			const monitorHandle = progressTracker.registerMonitorSync(daysInMonths.length)
+			const monitor: IProgressMonitor = assertNotNull(progressTracker.getMonitor(monitorHandle))
+
+			if (this.cancelSignal()) {
+				this.result(calendarResult)
+				this._lastSearchPromise = Promise.resolve(calendarResult)
+				return this._lastSearchPromise
+			}
+
+			await calendarModel.loadMonthsIfNeeded(daysInMonths, monitor, this.cancelSignal)
+			monitor.completed()
+
+			const eventsForDays = calendarModel.getEventsForMonths()()
+
 			assertNonNull(restriction.start)
 			assertNonNull(restriction.end)
 
@@ -129,7 +132,9 @@ export class SearchModel {
 			const alreadyAdded: Set<string> = new Set()
 
 			if (this.cancelSignal()) {
-				return calendarResult
+				this.result(calendarResult)
+				this._lastSearchPromise = Promise.resolve(calendarResult)
+				return this._lastSearchPromise
 			}
 
 			if (tokens.length > 0) {
@@ -177,7 +182,9 @@ export class SearchModel {
 						}
 
 						if (this.cancelSignal()) {
-							return calendarResult
+							this.result(calendarResult)
+							this._lastSearchPromise = Promise.resolve(calendarResult)
+							return this._lastSearchPromise
 						}
 					}
 				}
@@ -210,30 +217,25 @@ export class SearchModel {
 	}
 
 	isNewSearch(query: string, restriction: SearchRestriction): boolean {
-		let result = this.result()
-
-		if (result == null) {
-			return true
-		}
-
-		if (query !== result.query) {
-			return true
-		}
-
-		if (result.restriction === restriction) {
+		let isNew = false
+		let lastQuery = this._lastQuery
+		if (lastQuery == null) {
+			isNew = true
+		} else if (lastQuery.query !== query) {
+			isNew = true
+		} else if (lastQuery.restriction !== restriction) {
 			// both are the same instance
-			return false
+			isNew = !isSameSearchRestriction(restriction, lastQuery.restriction)
 		}
 
-		return !isSameSearchRestriction(restriction, result.restriction)
+		if (isNew) this.sendCancelSignal()
+		return isNew
 	}
 
 	sendCancelSignal() {
 		this.cancelSignal(true)
-	}
-
-	resetCancelState() {
-		this.cancelSignal(false)
+		this.cancelSignal.end(true)
+		this.cancelSignal = stream(false)
 	}
 }
 
