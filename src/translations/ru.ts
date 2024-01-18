@@ -13,7 +13,7 @@ export default {
 		"other"
 	],
 	"created_at": "2015-01-27T13:15:23Z",
-	"updated_at": "2024-01-10T21:00:31Z",
+	"updated_at": "2024-01-18T10:50:07Z",
 	"source_locale": {
 		"id": "fcd7471b347c8e517663e194dcddf237",
 		"name": "en",
@@ -647,6 +647,7 @@ export default {
 		"inboxRuleToRecipientEquals_action": "получателю",
 		"inboxRuleValue_label": "Значение",
 		"includeRepeatingEvents_action": "Показать серию событий",
+		"includesFuture_msg": "Этот диапазон поиска включает в себя даты, которые относятся к будущему.",
 		"indexedMails_label": "Индексированные письма: {count}",
 		"indexingFailedConnection_error": "Индексирование не удалось из-за потери соединения.",
 		"indexing_error": "Индексация была прервана из-за ошибки",

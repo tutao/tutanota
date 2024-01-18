@@ -11,7 +11,7 @@ export default {
 		"other"
 	],
 	"created_at": "2015-03-10T10:52:15Z",
-	"updated_at": "2024-01-11T20:25:20Z",
+	"updated_at": "2024-01-18T10:50:07Z",
 	"source_locale": null,
 	"fallback_locale": null,
 	"keys": {
@@ -644,6 +644,7 @@ export default {
 		"inboxRuleToRecipientEquals_action": "Vastaanottaja",
 		"inboxRuleValue_label": "Arvo",
 		"includeRepeatingEvents_action": "Näytä tapahtumasarja",
+		"includesFuture_msg": "Haun aikavälissä on tulevaisuuteen sijoittuvia päivämääriä.",
 		"indexedMails_label": "Indeksoidut sähköpostit: {count}",
 		"indexingFailedConnection_error": "Hakemiston luominen epäonnistui yhteyden katkeamisen vuoksi. ",
 		"indexing_error": "Hakemiston luominen keskeytettiin virheen vuoksi",
@@ -687,6 +688,9 @@ export default {
 		"invoiceCountryInfoConsumer_msg": "Tämä tarvitaan arvonlisäveron laskemiseksi.",
 		"invoiceCountry_label": "Maa",
 		"invoiceData_msg": "Laskutustiedot",
+		"invoiceFailedBrowser_msg": "PDF-laskuasiakirjaa ei voitu luoda, koska selaimesi on vanhentunut. Päivitä selaimesi tai kokeile toista laitetta.",
+		"invoiceFailedIOS_msg": "PDF-laskuasiakirjaa ei voitu luoda, koska iOS-versiosi on vanhentunut. Laskujen vieminen vaatii vähintään iOS-version 16.4. Päivitä iOS tai kokeile toista laitetta.",
+		"invoiceFailedWebview_msg": "PDF-laskuasiakirjaa ei voitu luoda, koska järjestelmäsi WebView on vanhentunut. Lisätietoja:",
 		"invoiceMailBodyAutomatic_msg": "Sinulle on uusi lasku, jonka viitenumero on {1}. Voit tallentaa sen kohdasta {2}. Loppusumma veloitetaan automaattisesti.",
 		"invoiceMailBodyOnAccount_msg": "Sinulle on uusi lasku, jonka viitenumero on {1}. Voit tallentaa sen kohdasta {2}. Eräpäivä on seitsemän päivää laskun päiväyksestä.",
 		"invoiceMailSubject_msg": "Uusi Tuta-lasku",

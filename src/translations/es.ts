@@ -11,7 +11,7 @@ export default {
 		"other"
 	],
 	"created_at": "2015-01-27T13:13:02Z",
-	"updated_at": "2024-01-10T10:48:25Z",
+	"updated_at": "2024-01-18T10:50:07Z",
 	"source_locale": {
 		"id": "fcd7471b347c8e517663e194dcddf237",
 		"name": "en",
@@ -648,6 +648,7 @@ export default {
 		"inboxRuleToRecipientEquals_action": "Para destinatario",
 		"inboxRuleValue_label": "Contiene",
 		"includeRepeatingEvents_action": "Mostrar serie de eventos",
+		"includesFuture_msg": "Este rango de búsqueda incluye fechas del futuro.",
 		"indexedMails_label": "Correos indexados: {count}",
 		"indexingFailedConnection_error": "La indización ha fallado porque se perdió la conexión.",
 		"indexing_error": "La indexación se canceló debido a un error",
@@ -691,6 +692,9 @@ export default {
 		"invoiceCountryInfoConsumer_msg": "Esto es necesario para calcular el impuesto al valor añadido (IVA).",
 		"invoiceCountry_label": "País",
 		"invoiceData_msg": "Datos de factura",
+		"invoiceFailedBrowser_msg": "No se puede generar el PDF de la factura debido a un navegador desactualizado. Actualiza tu navegador o exporta la factura desde otro dispositivo.",
+		"invoiceFailedIOS_msg": "No se puede generar el PDF de la factura debido a que la versión de iOS está desactualizada. La exportación de facturas es compatible a partir de iOS 16.4. Actualiza tu iOS o exporta la factura desde otro dispositivo.",
+		"invoiceFailedWebview_msg": "No se puede generar el PDF de la factura debido a que el sistema WebView está desactualizado. Más información:",
 		"invoiceMailBodyAutomatic_msg": "Hay una nueva factura con el número {1} disponible para ti. Puedes descargarla en {2}. El importe total se adeudará automáticamente.",
 		"invoiceMailBodyOnAccount_msg": "hay disponible una nueva factura con el número {1}. Puedes descargarla en el siguiente enlace, {2}. El pago vence a los 7 días de la fecha de la factura.\n",
 		"invoiceMailSubject_msg": "Nueva factura para Tuta",

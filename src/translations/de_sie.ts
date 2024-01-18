@@ -11,7 +11,7 @@ export default {
 		"other"
 	],
 	"created_at": "2018-01-12T10:51:54Z",
-	"updated_at": "2024-01-16T06:57:15Z",
+	"updated_at": "2024-01-18T10:50:25Z",
 	"source_locale": {
 		"id": "2001c6fdcc9cd338c1d600cb2636918b",
 		"name": "de",
@@ -185,7 +185,7 @@ export default {
 		"cancel_action": "Abbrechen",
 		"cannotEditEvent_msg": "Sie können nur Teile dieses Termins bearbeiten.",
 		"cannotEditFullEvent_msg": "Sie können nur Teile dieses Termins bearbeiten, weil es nicht in Ihrem Kalender erstellt wurde.",
-		"cannotEditNotOrganizer_msg": "Sie können nur Teile dieses Termins bearbeiten, da Sie nicht der Organisator sind.",
+		"cannotEditNotOrganizer_msg": "Sie können diesen Termin nicht bearbeiten, da Sie nicht der Organisator sind.",
 		"cannotEditSingleInstance_msg": "Sie können nur Teile dieses Termins bearbeiten, weil er Teil einer Serie ist.",
 		"canNotOpenFileOnDevice_msg": "Diese Datei kann auf diesem Gerät nicht geöffnet werden.",
 		"captchaDisplay_label": "Captcha",
@@ -692,6 +692,9 @@ export default {
 		"invoiceCountryInfoConsumer_msg": "Dies wird benötigt, um die Mehrwertsteuer zu berechnen.",
 		"invoiceCountry_label": "Land",
 		"invoiceData_msg": "Rechnungsdaten",
+		"invoiceFailedBrowser_msg": "Kann wegen eines veralteten Browsers keine Rechnung generieren. Bitte aktualisieren Sie Ihren Browser oder generieren Sie die Rechnung von einem anderen Gerät aus.",
+		"invoiceFailedIOS_msg": "Kann wegen einer inkompatiblen iOS-Version keine Rechnung generieren. Bitte aktualisieren Sie Ihr iOS auf Version 16.4 oder später oder generieren Sie die Rechnung von einem anderen Gerät aus.",
+		"invoiceFailedWebview_msg": "Kann wegen eines veralteten System-WebViews keine Rechnung als PDF generieren. Mehr Informationen:",
 		"invoiceMailBodyAutomatic_msg": "es ist eine neue Rechnung mit der Nummer {1} verfügbar. Die Rechnung kann in {2} abgerufen werden. Der Rechnungsbetrag wird automatisch abgebucht.",
 		"invoiceMailBodyOnAccount_msg": "es ist eine neue Rechnung mit der Nummer {1} verfügbar. Die Rechnung kann in {2} abgerufen werden. Der Rechnungsbetrag ist 7 Tage nach Rechnungsdatum fällig.",
 		"invoiceMailSubject_msg": "Neue Rechnung für Tuta",
@@ -1620,6 +1623,6 @@ export default {
 		"yourCalendars_label": "Deine Kalender",
 		"yourFolders_action": "Ihre ORDNER",
 		"yourMessage_label": "Ihre Nachricht",
-		"you_label": "Sie",
+		"you_label": "Sie"
 	}
 }
