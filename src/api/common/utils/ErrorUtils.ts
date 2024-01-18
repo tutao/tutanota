@@ -1,3 +1,5 @@
+// @bundleInto:common
+
 import { downcast } from "@tutao/tutanota-utils"
 import { Entity } from "../EntityTypes"
 import {
@@ -62,7 +64,7 @@ export function hasError<K>(instance: Entity, key?: K): boolean {
 	return !instance || (!!downCastedInstance._errors && (!key || !!downCastedInstance._errors.key))
 }
 
-//If importing fails it is a good idea to bundle the error into common-min which can be achieved by annotating the module with "@bundleInto:common-min"
+//If importing fails it is a good idea to bundle the error into common-min which can be achieved by annotating the module with "<at>bundleInto:common-min"
 /**
  * Checks whether {@param e} is an error that can error before we are fully logged in and connected.
  */
