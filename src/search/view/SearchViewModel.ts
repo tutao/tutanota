@@ -105,6 +105,7 @@ export class SearchViewModel {
 		m.redraw()
 		return calendarInfos
 	})
+	private currentQuery: string = ""
 
 	constructor(
 		private readonly router: SearchRouter,
@@ -121,6 +122,7 @@ export class SearchViewModel {
 		private readonly conversationViewModelFactory: ConversationViewModelFactory,
 		private readonly updateUi: () => unknown,
 	) {
+		this.currentQuery = this.search.result()?.query ?? ""
 		this.listModel = this.createList()
 	}
 
@@ -172,14 +174,13 @@ export class SearchViewModel {
 			return
 		}
 
-		const lastQuery = this.search.lastQuery()
+		this.currentQuery = args.query
+		const lastQuery = this.search.lastQueryString()
 		const maxResults = isSameTypeRef(MailTypeRef, restriction.type) ? SEARCH_PAGE_SIZE : null
-
-		// using hasOwnProperty to distinguish case when url is like '/search/mail/query='
 		const listModel = this.listModel
+		// using hasOwnProperty to distinguish case when url is like '/search/mail/query='
 		if (args.hasOwnProperty("query") && this.search.isNewSearch(args.query, restriction)) {
 			this._searchResult = null
-			listModel.selectNone()
 			listModel.updateLoadingStatus(ListLoadingState.Loading)
 			this.search
 				.search(
@@ -195,7 +196,7 @@ export class SearchViewModel {
 				.catch(() => listModel.updateLoadingStatus(ListLoadingState.ConnectionLost))
 		} else if (lastQuery && this.search.isNewSearch(lastQuery, restriction)) {
 			this._searchResult = null
-			listModel.selectNone()
+
 			// If query is not set for some reason (e.g. switching search type), use the last query value
 			listModel.updateLoadingStatus(ListLoadingState.Loading)
 			this.search
@@ -422,15 +423,15 @@ export class SearchViewModel {
 
 	private routeCalendar(element: CalendarEvent | null, restriction: SearchRestriction) {
 		const selectionKey = this.generateSelectionKey(element)
-		this.router.routeTo(this.search.lastQuery() ?? "", restriction, selectionKey)
+		this.router.routeTo(this.currentQuery, restriction, selectionKey)
 	}
 
 	private routeMail(element: Mail | null, restriction: SearchRestriction) {
-		this.router.routeTo(this.search.lastQuery() ?? "", restriction, this.generateSelectionKey(element))
+		this.router.routeTo(this.currentQuery, restriction, this.generateSelectionKey(element))
 	}
 
 	private routeContact(element: Contact | null, restriction: SearchRestriction) {
-		this.router.routeTo(this.search.lastQuery() ?? "", restriction, this.generateSelectionKey(element))
+		this.router.routeTo(this.currentQuery, restriction, this.generateSelectionKey(element))
 	}
 
 	private generateSelectionKey(element: SearchableTypes | null): string | null {
@@ -551,6 +552,8 @@ export class SearchViewModel {
 		// since we recreate the list every time we set a new result object,
 		// we bind the value of result for the lifetime of this list model
 		// at this point
+		// note in case of refactor: the fact that the list updates the URL every time it changes
+		// its state is a major source of complexity and makes everything very order-dependent
 		const lastResult = this._searchResult
 		return new ListModel<SearchResultListEntry>({
 			topId: GENERATED_MAX_ID,
@@ -709,6 +712,7 @@ export class SearchViewModel {
 		this.mailboxSubscription = null
 		this.listStateSubscription?.end(true)
 		this.listStateSubscription = null
+		this.search.sendCancelSignal()
 		this.eventController.removeEntityListener(this.entityEventsListener)
 	}
 }
