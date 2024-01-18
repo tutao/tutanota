@@ -13,7 +13,7 @@ export default {
 		"other"
 	],
 	"created_at": "2015-04-24T12:42:36Z",
-	"updated_at": "2024-01-12T09:10:10Z",
+	"updated_at": "2024-01-18T10:50:07Z",
 	"source_locale": null,
 	"fallback_locale": null,
 	"keys": {
@@ -644,6 +644,7 @@ export default {
 		"inboxRuleToRecipientEquals_action": "Příjemci",
 		"inboxRuleValue_label": "Hodnota",
 		"includeRepeatingEvents_action": "Ukázat i opakující se události",
+		"includesFuture_msg": "Časový interval pro vyhledávání zasahuje do budoucnosti.",
 		"indexedMails_label": "Indexování e-mailů: {count}",
 		"indexingFailedConnection_error": "Indexování se nezdařilo kvůli ztrátě spojení.",
 		"indexing_error": "Indexování bylo přerušeno z důvodu chyby",
@@ -687,6 +688,9 @@ export default {
 		"invoiceCountryInfoConsumer_msg": "Tento údaj je potřeba pro výpočet DPH.",
 		"invoiceCountry_label": "Země",
 		"invoiceData_msg": "Fakturační údaje",
+		"invoiceFailedBrowser_msg": "Kvůli zastaralému prohlížeči není možné vygenerovat fakturu ve formě PDF. Aktualizujte prosím váš prohlížeč nebo použijte jiné zařízení.",
+		"invoiceFailedIOS_msg": "Kvůli neaktuální verzi iOS není možné vygenerovat fakturu ve formátu PDF. Tato funkce je podporována od verze iOS 16.4. Aktualizujte prosím váš systém iOS nebo použijte jiné zařízení.",
+		"invoiceFailedWebview_msg": "Kvůli neaktuální verzi WebView nelze vygenerovat fakturu ve formátu PDF. Více informací: ",
 		"invoiceMailBodyAutomatic_msg": "Je pro vás k dispozici nové vyúčtování s číslem {1}. Můžete si ho stáhnout zde: {2}. Částka vám bude automaticky stržena.",
 		"invoiceMailBodyOnAccount_msg": "K dispozici je nová faktura s číslem {1}. Můžete si ji stáhnout v {2}. Platba je splatná 7 dní po datu faktury.",
 		"invoiceMailSubject_msg": "Nová faktura pro Tuta",

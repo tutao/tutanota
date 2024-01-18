@@ -13,7 +13,7 @@ export default {
 		"other"
 	],
 	"created_at": "2015-01-27T13:13:41Z",
-	"updated_at": "2024-01-10T18:20:44Z",
+	"updated_at": "2024-01-18T10:50:07Z",
 	"source_locale": {
 		"id": "fcd7471b347c8e517663e194dcddf237",
 		"name": "en",
@@ -648,6 +648,7 @@ export default {
 		"inboxRuleToRecipientEquals_action": "Do odbiorcy",
 		"inboxRuleValue_label": "Wartość",
 		"includeRepeatingEvents_action": "Pokaż powtarzające się wydarzenia",
+		"includesFuture_msg": "Ten zakres wyszukiwania obejmuje daty w przyszłości.",
 		"indexedMails_label": "Zindeksowane e-maile: {count}",
 		"indexingFailedConnection_error": "Indeksowanie nie powiodło się, ponieważ połączenie zostało utracone.",
 		"indexing_error": "Indeksowanie zostało przerwane z powodu błędu",

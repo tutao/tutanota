@@ -11,7 +11,7 @@ export default {
 		"other"
 	],
 	"created_at": "2015-01-13T20:10:13Z",
-	"updated_at": "2024-01-16T06:57:14Z",
+	"updated_at": "2024-01-18T10:50:07Z",
 	"source_locale": null,
 	"fallback_locale": null,
 	"keys": {
@@ -181,7 +181,7 @@ export default {
 		"cancel_action": "Cancel",
 		"cannotEditEvent_msg": "You can only edit parts of this event.",
 		"cannotEditFullEvent_msg": "You can only edit parts of this event because it was not created in your calendar.",
-		"cannotEditNotOrganizer_msg": "You can only edit parts of this event because you are not its organizer.",
+		"cannotEditNotOrganizer_msg": "You cannot edit this event because you are not its organizer.",
 		"cannotEditSingleInstance_msg": "You can only edit parts of this event because it is part of an event series.",
 		"canNotOpenFileOnDevice_msg": "This file can not be opened on this device.",
 		"captchaDisplay_label": "Captcha",
@@ -688,6 +688,9 @@ export default {
 		"invoiceCountryInfoConsumer_msg": "This is needed to calculate value-added tax (VAT).",
 		"invoiceCountry_label": "Country",
 		"invoiceData_msg": "Invoice data",
+		"invoiceFailedBrowser_msg": "Can not generate invoice PDF due to outdated browser. Please update your browser or export the invoice from another device.",
+		"invoiceFailedIOS_msg": "Can not generate invoice PDF due to outdated iOS version. Exporting invoices is supported from iOS 16.4 on. Please update your iOS or export the invoice from another device.",
+		"invoiceFailedWebview_msg": "Can not generate invoice PDF due to outdated system WebView. More information:",
 		"invoiceMailBodyAutomatic_msg": "There is a new invoice with the number {1} available for you. You can download it in {2}. The grand total will be debited automatically.",
 		"invoiceMailBodyOnAccount_msg": "There is a new invoice with the number {1} for you available. You can download it in {2}. The payment is due 7 days after the invoice date.",
 		"invoiceMailSubject_msg": "New invoice for Tuta",
@@ -1616,6 +1619,6 @@ export default {
 		"yourCalendars_label": "Your calendars",
 		"yourFolders_action": "YOUR FOLDERS",
 		"yourMessage_label": "Your message",
-		"you_label": "You",
+		"you_label": "You"
 	}
 }

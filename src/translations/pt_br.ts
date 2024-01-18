@@ -11,7 +11,7 @@ export default {
 		"other"
 	],
 	"created_at": "2015-02-02T10:54:47Z",
-	"updated_at": "2023-11-21T16:25:24Z",
+	"updated_at": "2024-01-18T10:52:03Z",
 	"source_locale": {
 		"id": "1c50f9a9b6bd977b100d4e27f07e8319",
 		"name": "pt",
@@ -164,6 +164,7 @@ export default {
 		"cancelSharedMailbox_label": "Cancelar caixa de email compartilhada",
 		"cancelUserAccounts_label": "Cancelar {1} conta(s) de usuário(s). ",
 		"cancel_action": "Cancelar",
+		"cannotEditNotOrganizer_msg": "Você não pode editar este evento porque você não é o organizador",
 		"canNotOpenFileOnDevice_msg": "Não é possível abrir esse arquivo neste dispositivo. ",
 		"captchaDisplay_label": "Captcha",
 		"captchaEnter_msg": "Digite o horário em horas e minutos.",

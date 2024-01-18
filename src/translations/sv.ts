@@ -11,7 +11,7 @@ export default {
 		"other"
 	],
 	"created_at": "2015-03-23T11:36:16Z",
-	"updated_at": "2024-01-13T18:25:14Z",
+	"updated_at": "2024-01-18T10:50:07Z",
 	"source_locale": null,
 	"fallback_locale": null,
 	"keys": {
@@ -644,6 +644,7 @@ export default {
 		"inboxRuleToRecipientEquals_action": "Till mottagare",
 		"inboxRuleValue_label": "Värde",
 		"includeRepeatingEvents_action": "Visa händelseserier",
+		"includesFuture_msg": "Detta sökintervall innehåller framtida datum.",
 		"indexedMails_label": "Indexerad e-post: {count}",
 		"indexingFailedConnection_error": "Indexeringen misslyckades eftersom anslutningen förlorades.",
 		"indexing_error": "Indexeringen avbröts på grund av ett fel",
@@ -687,6 +688,9 @@ export default {
 		"invoiceCountryInfoConsumer_msg": "Detta behövs för att beräkna mervärdesskatt.",
 		"invoiceCountry_label": "Land",
 		"invoiceData_msg": "Faktureringsinformation",
+		"invoiceFailedBrowser_msg": "Kan inte generera PDF faktura på grund av föråldrad webbläsare. Vänligen uppdatera din webbläsare eller exportera fakturan från en annan enhet.",
+		"invoiceFailedIOS_msg": "Kan inte generera PDF faktura på grund av föråldrad iOS version. Export av \nfakturor stöds från iOS 16.4 och framåt. Uppdatera din iOS eller exportera fakturan från en annan enhet.",
+		"invoiceFailedWebview_msg": "Kan inte generera PDF faktura på grund av föråldrat system WebView. Mer information om detta:",
 		"invoiceMailBodyAutomatic_msg": "Det finns en ny faktura till dig med nummer {1}. Du kan ladda ner den under {2}. Totalsumman kommer att debiteras automatiskt.",
 		"invoiceMailBodyOnAccount_msg": "Det finns en ny faktura för dig med nummer {1}. Du kan hämta den under {2}. Fakturan förfaller inom 7 dagar efter fakturadatum.",
 		"invoiceMailSubject_msg": "Ny faktura för Tuta",
