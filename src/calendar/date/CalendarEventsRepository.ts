@@ -16,7 +16,7 @@ import { getListId, isSameId } from "../../api/common/utils/EntityUtils.js"
 import { DateTime } from "luxon"
 import { CalendarFacade } from "../../api/worker/facades/lazy/CalendarFacade.js"
 import { EntityClient } from "../../api/common/EntityClient.js"
-import { findAllAndRemove, freezeMap } from "@tutao/tutanota-utils"
+import { findAllAndRemove } from "@tutao/tutanota-utils"
 import { OperationType } from "../../api/common/TutanotaConstants.js"
 import { NotAuthorizedError, NotFoundError } from "../../api/common/error/RestError.js"
 import { EventController } from "../../api/main/EventController.js"
@@ -120,7 +120,10 @@ export class CalendarEventsRepository {
 	}
 
 	private replaceEvents(newMap: DaysToEvents): void {
-		this.daysToEvents(freezeMap(newMap))
+		// We rely on typescript ReadonlyMap type because freezing
+		// this map throws "The object can not be cloned" on iOS
+		// when the source of newMap is updateEventMap
+		this.daysToEvents(newMap)
 	}
 
 	private cloneEvents(): Map<number, Array<CalendarEvent>> {
