@@ -22,28 +22,28 @@ assertMainOrNode()
  * gets loaded asynchronously, shouldn't be in the web bundle
  */
 export class SearchInPageOverlay {
-	private _closeFunction: (() => Promise<void>) | null
-	private _domInput!: HTMLInputElement
-	private _matchCase: boolean = false
-	private _numberOfMatches: number = 0
-	private _currentMatch: number = 0
-	private _skipNextBlur: boolean = false
+	private closeFunction: (() => Promise<void>) | null
+	private domInput!: HTMLInputElement
+	private matchCase: boolean = false
+	private numberOfMatches: number = 0
+	private currentMatch: number = 0
+	private skipNextBlur: boolean = false
 
 	constructor() {
-		this._closeFunction = null
+		this.closeFunction = null
 	}
 
 	open() {
 		if (locator.logins.isUserLoggedIn()) {
-			if (!this._closeFunction) {
-				this._closeFunction = displayOverlay(() => this._getRect(), this._getComponent(), "slide-bottom")
+			if (!this.closeFunction) {
+				this.closeFunction = displayOverlay(() => this.getRect(), this.getComponent(), "slide-bottom")
 			} else {
 				//already open, refocus
 				console.log("refocusing")
 
-				this._domInput.focus()
+				this.domInput.focus()
 
-				this._domInput.select()
+				this.domInput.select()
 			}
 
 			m.redraw()
@@ -51,16 +51,16 @@ export class SearchInPageOverlay {
 	}
 
 	close() {
-		if (this._closeFunction) {
-			this._closeFunction()
+		if (this.closeFunction) {
+			this.closeFunction()
 			locator.searchTextFacade.stopFindInPage()
-			this._closeFunction = null
+			this.closeFunction = null
 		}
 
 		m.redraw()
 	}
 
-	_getRect(): PositionRect {
+	private getRect(): PositionRect {
 		const bottomNavHeight = size.bottom_nav_bar + getSafeAreaInsetBottom()
 		return {
 			height: px(size.navbar_height_mobile),
@@ -71,27 +71,27 @@ export class SearchInPageOverlay {
 		}
 	}
 
-	_inputField: () => Children = () => {
+	private inputField: () => Children = () => {
 		return m(
 			"input#search-overlay-input.dropdown-bar.elevated-bg.pl-l.button-height.inputWrapper",
 			{
 				placeholder: lang.get("searchPage_action"),
 				oncreate: (vnode) => {
-					this._domInput = vnode.dom as HTMLInputElement
+					this.domInput = vnode.dom as HTMLInputElement
 
-					this._domInput.focus()
+					this.domInput.focus()
 				},
 				onblur: () => {
-					if (this._skipNextBlur) {
-						this._skipNextBlur = false
+					if (this.skipNextBlur) {
+						this.skipNextBlur = false
 
-						this._domInput.focus()
+						this.domInput.focus()
 					} else {
 						locator.searchTextFacade.setSearchOverlayState(false, false)
 					}
 				},
 				onfocus: () => locator.searchTextFacade.setSearchOverlayState(true, false),
-				oninput: () => this._find(true, true),
+				oninput: () => this.find(true, true),
 				style: {
 					width: px(250),
 					top: 0,
@@ -102,16 +102,16 @@ export class SearchInPageOverlay {
 			"",
 		)
 	}
-	_find: (forward: boolean, findNext: boolean) => Promise<void> = async (forward, findNext) => {
-		this._skipNextBlur = true
-		const r = await locator.searchTextFacade.findInPage(this._domInput.value, forward, this._matchCase, findNext)
+	private find: (forward: boolean, findNext: boolean) => Promise<void> = async (forward, findNext) => {
+		this.skipNextBlur = true
+		const r = await locator.searchTextFacade.findInPage(this.domInput.value, forward, this.matchCase, findNext)
 		this.applyNextResult(r)
 	}
 
 	applyNextResult(result: ElectronResult | null): void {
 		if (result == null) {
-			this._numberOfMatches = 0
-			this._currentMatch = 0
+			this.numberOfMatches = 0
+			this.currentMatch = 0
 		} else {
 			const { activeMatchOrdinal, matches } = result
 
@@ -119,19 +119,19 @@ export class SearchInPageOverlay {
 				/* the search bar loses focus without any events when there
 				 *  are no results except for the search bar itself. this enables
 				 *  us to retain focus. */
-				this._domInput.blur()
+				this.domInput.blur()
 
-				this._domInput.focus()
+				this.domInput.focus()
 			}
 
-			this._numberOfMatches = matches - 1
-			this._currentMatch = activeMatchOrdinal - 1
+			this.numberOfMatches = matches - 1
+			this.currentMatch = activeMatchOrdinal - 1
 		}
 
 		m.redraw()
 	}
 
-	_getComponent(): Component {
+	getComponent(): Component {
 		const handleMouseUp = (event: MouseEvent) => this.handleMouseUp(event)
 
 		return {
@@ -157,28 +157,28 @@ export class SearchInPageOverlay {
 								},
 							},
 							[
-								this._inputField(),
+								this.inputField(),
 								m(IconButton, {
 									title: "previous_action",
 									icon: Icons.ArrowBackward,
-									click: () => this._find(false, true),
+									click: () => this.find(false, true),
 								}),
 								m(IconButton, {
 									title: "next_action",
 									icon: Icons.ArrowForward,
-									click: () => this._find(true, true),
+									click: () => this.find(true, true),
 								}),
 								m(ToggleButton, {
 									title: "matchCase_alt",
 									icon: Icons.MatchCase,
-									toggled: this._matchCase,
+									toggled: this.matchCase,
 									onToggled: () => {
-										this._matchCase = !this._matchCase
+										this.matchCase = !this.matchCase
 
-										this._find(true, false)
+										this.find(true, false)
 									},
 								}),
-								m("div.pl-m", this._numberOfMatches > 0 ? `${this._currentMatch}/${this._numberOfMatches}` : lang.get("searchNoResults_msg")),
+								m("div.pl-m", this.numberOfMatches > 0 ? `${this.currentMatch}/${this.numberOfMatches}` : lang.get("searchNoResults_msg")),
 							],
 						),
 						m(IconButton, {
