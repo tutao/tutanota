@@ -117,9 +117,3 @@ export function getNavigationMenuIcon(): string {
 export function getColouredTutanotaLogo(): string {
 	return getLogoSvg(theme.content_accent, isColorLight(theme.content_bg) ? logo_text_dark_grey : logo_text_bright_grey)
 }
-
-// Returns the disabled style CSS classes seperated by spaces if `isDisabled` is true. A value of `null` or `undefined` is treated as `false`.
-export function getOperatingClasses(isDisabled: boolean | null | undefined, cursorClass?: string): string {
-	const cursorClassOrDefault = cursorClass ? cursorClass : ""
-	return isDisabled ? "disabled click-disabled" : cursorClassOrDefault
-}
