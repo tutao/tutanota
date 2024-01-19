@@ -6,25 +6,21 @@ import { assertMainOrNodeBoot } from "../../api/common/Env"
 
 assertMainOrNodeBoot()
 
-/** @deprecated prefer native CSS animations */
 export interface DomMutation {
 	updateDom(target: HTMLElement, percent: number, easing: EasingFunction): void
 
 	willChange(): string
 }
 
-/** @deprecated prefer native CSS animations */
 interface DomTransform extends DomMutation {
 	chain(type: TransformEnum, begin: number, end: number): DomTransform
 }
 
-/** @deprecated prefer native CSS animations */
 export const enum AlphaEnum {
 	BackgroundColor = "backgroundColor",
 	Color = "color",
 }
 
-/** @deprecated prefer native CSS animations */
 export const enum TransformEnum {
 	/** shift the element in left-right direction. begin and end denote the target offset from the "natural" position */
 	TranslateX = "translateX",
@@ -36,7 +32,6 @@ export const enum TransformEnum {
 	Scale = "scale",
 }
 
-/** @deprecated prefer native CSS animations */
 type TransformValues = Record<
 	TransformEnum,
 	{
@@ -44,23 +39,18 @@ type TransformValues = Record<
 		end: number
 	}
 >
-
-/** @deprecated prefer native CSS animations */
 export const DefaultAnimationTime = 200 // ms
 
-/** @deprecated prefer native CSS animations */
 const InitializedOptions = {
 	stagger: 0,
 	delay: 0,
 	easing: ease.linear,
 	duration: DefaultAnimationTime,
 }
-/** @deprecated prefer native CSS animations */
 export type AnimationPromise = {
 	animations?: Array<Animation>
 } & Promise<unknown>
 
-/** @deprecated prefer native CSS animations */
 class Animations {
 	activeAnimations: Animation[]
 	_animate: (...args: Array<any>) => any
@@ -96,7 +86,6 @@ class Animations {
 
 	/**
 	 * Adds an animation that should be executed immediately. Returns a promise that resolves after the animation is complete.
-	 * @deprecated prefer native CSS animations
 	 */
 	add(
 		targets: HTMLElement | HTMLElement[] | HTMLCollection,
@@ -158,7 +147,6 @@ class Animations {
 		return animationPromise
 	}
 
-	/** @deprecated prefer native CSS animations */
 	cancel(animation: Animation) {
 		this.activeAnimations.splice(this.activeAnimations.indexOf(animation), 1)
 
@@ -167,7 +155,6 @@ class Animations {
 		}
 	}
 
-	/** @deprecated prefer native CSS animations */
 	static verifiyOptions(
 		options:
 			| {
@@ -187,7 +174,6 @@ class Animations {
 	}
 }
 
-/** @deprecated prefer native CSS animations */
 export class Animation {
 	target: HTMLElement
 	mutations: DomMutation[]
@@ -216,7 +202,6 @@ export class Animation {
 		this.easing = easing
 	}
 
-	/** @deprecated prefer native CSS animations */
 	animateFrame(now: number) {
 		if (this.animationStart == null) this.animationStart = now
 		this.runTime = Math.min(now - this.animationStart - this.delay, this.duration)
@@ -228,13 +213,11 @@ export class Animation {
 		}
 	}
 
-	/** @deprecated prefer native CSS animations */
 	isFinished(): boolean {
 		return this.runTime != null && this.runTime >= this.duration
 	}
 }
 
-/** @deprecated prefer native CSS animations */
 export function transform(type: TransformEnum, begin: number, end: number): DomTransform {
 	const values = {} as TransformValues
 
@@ -268,7 +251,6 @@ export function transform(type: TransformEnum, begin: number, end: number): DomT
 	}
 }
 
-/** @deprecated prefer native CSS animations */
 export function scroll(begin: number, end: number): DomMutation {
 	return {
 		updateDom: function (target: HTMLElement, percent: number, easing: EasingFunction): void {
@@ -278,7 +260,6 @@ export function scroll(begin: number, end: number): DomMutation {
 	}
 }
 
-/** @deprecated prefer native CSS animations */
 const TransformUnits = {
 	[TransformEnum.TranslateX]: "px",
 	[TransformEnum.TranslateY]: "px",
@@ -287,7 +268,6 @@ const TransformUnits = {
 	[TransformEnum.Scale]: "",
 }
 
-/** @deprecated prefer native CSS animations */
 function buildTransformString(values: TransformValues, percent: number, easing: EasingFunction) {
 	let transform: string[] = []
 	let types: TransformEnum[] = Object.keys(TransformUnits) as any[] // the order is important (e.g. 'rotateY(45deg) translateX(10px)' leads to other results than 'translateX(10px) rotateY(45deg)'
@@ -307,7 +287,6 @@ function buildTransformString(values: TransformValues, percent: number, easing: 
  * effect the whole tree of the dom element with changing opacity.
  *
  * See http://stackoverflow.com/a/14677373 for a more detailed explanation.
- * @deprecated prefer native CSS animations
  */
 export function alpha(type: AlphaEnum, colorHex: string, begin: number, end: number): DomMutation {
 	let color = hexToRgb(colorHex)
@@ -327,7 +306,6 @@ export function alpha(type: AlphaEnum, colorHex: string, begin: number, end: num
 
 /**
  * Only use on small elements. You should use Alpha for fading large backgrounds which is way faster on mobiles.
- * @deprecated prefer native CSS animations
  */
 export function opacity(begin: number, end: number, keepValue: boolean): DomMutation {
 	let initialOpacity: string | null = null
@@ -350,7 +328,6 @@ export function opacity(begin: number, end: number, keepValue: boolean): DomMuta
 	}
 }
 
-/** @deprecated prefer native CSS animations */
 export function height(begin: number, end: number): DomMutation {
 	return {
 		updateDom: function (target: HTMLElement, percent: number, easing: EasingFunction): void {
@@ -360,7 +337,6 @@ export function height(begin: number, end: number): DomMutation {
 	}
 }
 
-/** @deprecated prefer native CSS animations */
 export function width(begin: number, end: number): DomMutation {
 	return {
 		updateDom: function (target: HTMLElement, percent: number, easing: EasingFunction): void {
@@ -370,7 +346,6 @@ export function width(begin: number, end: number): DomMutation {
 	}
 }
 
-/** @deprecated prefer native CSS animations */
 export function fontSize(begin: number, end: number): DomMutation {
 	return {
 		updateDom: function (target: HTMLElement, percent: number, easing: EasingFunction): void {
@@ -380,12 +355,10 @@ export function fontSize(begin: number, end: number): DomMutation {
 	}
 }
 
-/** @deprecated prefer native CSS animations */
 function calculateValue(percent: number, begin: number, end: number, easing: (...args: Array<any>) => any): number {
 	return (end - begin) * easing(percent) + begin
 }
 
-/** @deprecated prefer native CSS animations */
 export const animations: Animations = new Animations()
 
 export function get(element: HTMLElement | null): HTMLElement {

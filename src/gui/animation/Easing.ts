@@ -1,9 +1,7 @@
 import { assertMainOrNodeBoot } from "../../api/common/Env"
 
 assertMainOrNodeBoot()
-/** @deprecated prefer native CSS animations */
 export type EasingFunction = (percent: number) => number
-/** @deprecated prefer native CSS animations */
 const EasingType = {
 	linear: 1,
 	quad: 2,
@@ -18,7 +16,6 @@ const EasingType = {
  *
  * @see: http://easings.net/
  * @see: http://robertpenner.com/easing/
- * @deprecated prefer native CSS animations
  */
 export const ease: Record<string, EasingFunction> = {
 	in: function (percent: number): number {
