@@ -183,7 +183,7 @@ export class CalendarAgendaView implements Component<CalendarAgendaViewAttrs> {
 			})
 		} else {
 			return m(
-				".pt-s.flex.mlr.mb-s.col",
+				".pt-s.flex.mb-s.col.overflow-y-scroll.height-100p",
 				{ style: { marginLeft: px(size.calendar_hour_width_mobile) } },
 				this.renderEventsForDay(events, getTimeZone(), day, attrs),
 			)
