@@ -82,7 +82,7 @@ export const overlay: Component = {
 				},
 				"aria-hidden": overlays.size === 0,
 			},
-			mapToArray(overlays).map((overlay) => {
+			Array.from(overlays.entries()).map((overlay) => {
 				const [key, attrs] = overlay
 				const position = attrs.position()
 
@@ -124,12 +124,4 @@ export const overlay: Component = {
 				)
 			}),
 		),
-}
-
-function mapToArray<T, K>(map: Map<T, K>): Array<[T, K]> {
-	const mapAsArray: Array<[T, K]> = []
-	for (const value of map.entries()) {
-		mapAsArray.push(value)
-	}
-	return mapAsArray
 }
