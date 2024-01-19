@@ -1217,6 +1217,12 @@ styles.registerStyle("main", () => {
 			background: stateBgActive,
 			"transition-duration": ".3s",
 		},
+		".flash": {
+			transition: `opacity ${DefaultAnimationTime}ms`,
+		},
+		".flash:active": {
+			opacity: "0.4",
+		},
 		".disabled": {
 			opacity: "0.3",
 		},

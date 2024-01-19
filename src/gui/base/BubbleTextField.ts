@@ -47,7 +47,7 @@ export class BubbleTextField implements ClassComponent<BubbleTextFieldAttrs> {
 								m(BaseButton, {
 									label: bubbleText,
 									text: bubbleText,
-									class: "text-bubble button-content content-fg text-ellipsis",
+									class: "text-bubble button-content content-fg text-ellipsis flash",
 									style: {
 										"max-width": "100%",
 									},

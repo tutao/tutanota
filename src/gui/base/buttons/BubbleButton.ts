@@ -48,7 +48,7 @@ export class BubbleButton implements Component<BubbleButtonAttrs> {
 					}),
 				iconWrapperSelector: ".icon.mr-hpad-small",
 				style: { height: px(bubbleButtonHeight()), maxHeight: px(bubbleButtonHeight()) },
-				class: `smaller bubble flex center-vertically limit-width ${bubbleButtonPadding()}`,
+				class: `smaller bubble flex center-vertically limit-width ${bubbleButtonPadding()} flash`,
 				onclick: attrs.onclick,
 			},
 			children,
