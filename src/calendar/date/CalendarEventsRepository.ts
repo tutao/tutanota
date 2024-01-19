@@ -202,7 +202,7 @@ export class CalendarEventsRepository {
 						throw e
 					}
 				} else if (update.operation === OperationType.DELETE) {
-					await this.removeDaysForEvent([update.instanceListId, update.instanceId])
+					this.removeDaysForEvent([update.instanceListId, update.instanceId])
 				}
 			}
 		}
