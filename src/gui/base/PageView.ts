@@ -25,14 +25,6 @@ export class PageView implements Component<Attrs> {
 			m(
 				".fill-absolute",
 				{
-					style: {
-						// this prevents "wobbly" calendar when the height is being changed, otherwise the scrollbar shows up until we actually do the resize
-						// for a short time and shifts all the events horizontally. without scrollbar there's no horizontal shift.
-						// overflow-y: hidden produces *horizontal* scrollbar for some reason? clip should do a similar thing
-						// *but* overflow-y clip does very weird things to offscreen pages in mobile Safari (tested with 16.3.1)
-						// as there are no scrollbar gutters on mobile anyway we don't have to set it
-						"overflow-y": client.isMobileDevice() ? "" : "clip",
-					},
 					oncreate: (vnode) => {
 						this.viewDom = vnode.dom as HTMLElement
 						const swipeHandler = new PageSwipeHandler(this.viewDom, (next) => this.onChangePage(next))
