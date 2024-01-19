@@ -6,11 +6,10 @@ import type { lazy } from "@tutao/tutanota-utils"
 import { lazyStringValue, noOp } from "@tutao/tutanota-utils"
 import type { TranslationKey } from "../../misc/LanguageViewModel"
 import { BootIcons } from "./icons/BootIcons"
-import type { ClickHandler } from "./GuiUtils"
+import { ClickHandler, getOperatingClasses } from "./GuiUtils"
 import { assertMainOrNode } from "../../api/common/Env"
 import { IconButton } from "./IconButton.js"
 import { ButtonSize } from "./ButtonSize.js"
-import { getOperatingClasses } from "../theme.js"
 
 assertMainOrNode()
 export type SelectorItem<T> = {
