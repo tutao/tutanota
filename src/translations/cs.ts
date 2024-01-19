@@ -13,7 +13,7 @@ export default {
 		"other"
 	],
 	"created_at": "2015-04-24T12:42:36Z",
-	"updated_at": "2024-01-18T10:50:07Z",
+	"updated_at": "2024-01-19T07:25:27Z",
 	"source_locale": null,
 	"fallback_locale": null,
 	"keys": {
@@ -183,7 +183,7 @@ export default {
 		"cancel_action": "Zrušit",
 		"cannotEditEvent_msg": "U této události můžete upravovat pouze některé části.",
 		"cannotEditFullEvent_msg": "Tuto událost můžete upravovat pouze částečně, protože nebyla vytvořena ve vašem kalendáři.",
-		"cannotEditNotOrganizer_msg": "U této události můžete upravovat pouze některé části, protože nejste jejím správcem.",
+		"cannotEditNotOrganizer_msg": "Tuto událost nemůžete upravovat, protože nejste jejím správcem.",
 		"cannotEditSingleInstance_msg": "Můžete upravovat pouze některé položky této události, protože je součástí série událostí.",
 		"canNotOpenFileOnDevice_msg": "Tento soubor nelze otevřít na tomto zařízení.",
 		"captchaDisplay_label": "Captcha",

@@ -11,7 +11,7 @@ export default {
 		"other"
 	],
 	"created_at": "2015-03-10T10:52:15Z",
-	"updated_at": "2024-01-18T10:50:07Z",
+	"updated_at": "2024-01-18T20:49:50Z",
 	"source_locale": null,
 	"fallback_locale": null,
 	"keys": {
@@ -181,7 +181,7 @@ export default {
 		"cancel_action": "Peruuta",
 		"cannotEditEvent_msg": "Voit muokata vain joitain tämän tapahtuman tiedoista.",
 		"cannotEditFullEvent_msg": "Voit muokata tästä tapahtumasta vain joitain tietoja, koska sitä ei luotu kalenterissasi.",
-		"cannotEditNotOrganizer_msg": "Voit muokata vain joitain tämän tapahtuman tiedoista, koska et ole sen järjestäjä.",
+		"cannotEditNotOrganizer_msg": "Et voi muokata tätä tapahtumaa, koska et ole sen järjestäjä.",
 		"cannotEditSingleInstance_msg": "Voit muokata tästä tapahtumasta vain joitain tietoja, koska se on osa tapahtumasarjaa.",
 		"canNotOpenFileOnDevice_msg": "Tiedostoa ei voi avata tällä laitteella.",
 		"captchaDisplay_label": "Captcha",
