@@ -5,6 +5,7 @@ import { SettingsFacade } from "./SettingsFacade.js"
 
 export class SettingsFacadeReceiveDispatcher {
 	constructor(private readonly facade: SettingsFacade) {}
+
 	async dispatch(method: string, arg: Array<any>): Promise<any> {
 		switch (method) {
 			case "getStringConfigValue": {

@@ -8,6 +8,7 @@ import { NativeCryptoFacade } from "./NativeCryptoFacade.js"
 
 export class NativeCryptoFacadeReceiveDispatcher {
 	constructor(private readonly facade: NativeCryptoFacade) {}
+
 	async dispatch(method: string, arg: Array<any>): Promise<any> {
 		switch (method) {
 			case "rsaEncrypt": {

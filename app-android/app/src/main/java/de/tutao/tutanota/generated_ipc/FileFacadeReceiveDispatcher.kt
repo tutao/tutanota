@@ -11,7 +11,7 @@ class FileFacadeReceiveDispatcher(
 	private val json: Json,
 	private val facade: FileFacade,
 ) {
-
+	
 	suspend fun dispatch(method: String, arg: List<String>): String {
 		when (method) {
 			"open" -> {

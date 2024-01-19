@@ -7,6 +7,7 @@ import { DesktopFacade } from "./DesktopFacade.js"
 
 export class DesktopFacadeReceiveDispatcher {
 	constructor(private readonly facade: DesktopFacade) {}
+
 	async dispatch(method: string, arg: Array<any>): Promise<any> {
 		switch (method) {
 			case "print": {

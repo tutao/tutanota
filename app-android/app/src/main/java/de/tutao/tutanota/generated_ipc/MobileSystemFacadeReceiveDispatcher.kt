@@ -21,6 +21,15 @@ class MobileSystemFacadeReceiveDispatcher(
 				)
 				return json.encodeToString(result)
 			}
+			"saveContacts" -> {
+				val userId: String = json.decodeFromString(arg[0])
+				val contacts: List<StructuredContact> = json.decodeFromString(arg[1])
+				val result: Unit = this.facade.saveContacts(
+					userId,
+					contacts,
+				)
+				return json.encodeToString(result)
+			}
 			"openLink" -> {
 				val uri: String = json.decodeFromString(arg[0])
 				val result: Boolean = this.facade.openLink(

@@ -17,6 +17,13 @@ interface MobileSystemFacade {
 		query: String,
 	): List<NativeContact>
 	/**
+	 * Store contacts in system contact book
+	 */
+	 suspend fun saveContacts(
+		userId: String,
+		contacts: List<StructuredContact>,
+	): Unit
+	/**
 	 * Open URI in the OS.
 	 */
 	 suspend fun openLink(

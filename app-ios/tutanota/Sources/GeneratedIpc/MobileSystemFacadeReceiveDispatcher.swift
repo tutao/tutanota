@@ -16,6 +16,14 @@ public class MobileSystemFacadeReceiveDispatcher {
 				query
 			)
 			return toJson(result)
+		case "saveContacts":
+			let userId = try! JSONDecoder().decode(String.self, from: arg[0].data(using: .utf8)!)
+			let contacts = try! JSONDecoder().decode([StructuredContact].self, from: arg[1].data(using: .utf8)!)
+			try await self.facade.saveContacts(
+				userId,
+				contacts
+			)
+			return "null"
 		case "openLink":
 			let uri = try! JSONDecoder().decode(String.self, from: arg[0].data(using: .utf8)!)
 			let result = try await self.facade.openLink(
