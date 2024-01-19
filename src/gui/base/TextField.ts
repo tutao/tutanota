@@ -1,13 +1,13 @@
 import m, { Children, ClassComponent, CVnode } from "mithril"
 import { px, size } from "../size"
 import { DefaultAnimationTime } from "../animation/Animations"
-import { getOperatingClasses, theme } from "../theme"
+import { theme } from "../theme"
 import type { TranslationKey } from "../../misc/LanguageViewModel"
 import { lang } from "../../misc/LanguageViewModel"
 import type { lazy } from "@tutao/tutanota-utils"
 import type { keyHandler } from "../../misc/KeyManager"
 import { TabIndex } from "../../api/common/TutanotaConstants"
-import type { ClickHandler } from "./GuiUtils"
+import { ClickHandler, getOperatingClasses } from "./GuiUtils"
 
 export type TextFieldAttrs = {
 	id?: string

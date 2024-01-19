@@ -4,8 +4,8 @@ import { addFlash, removeFlash } from "./Flash"
 import type { TranslationKey } from "../../misc/LanguageViewModel"
 import { lang } from "../../misc/LanguageViewModel"
 import type { lazy } from "@tutao/tutanota-utils"
-import { getOperatingClasses, theme } from "../theme.js"
-import { encodeSVG } from "./GuiUtils.js"
+import { theme } from "../theme.js"
+import { encodeSVG, getOperatingClasses } from "./GuiUtils.js"
 
 export type CheckboxAttrs = {
 	label: lazy<string | Children>
