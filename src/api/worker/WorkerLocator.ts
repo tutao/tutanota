@@ -39,12 +39,17 @@ import { ServiceExecutor } from "./rest/ServiceExecutor"
 import type { BookingFacade } from "./facades/lazy/BookingFacade.js"
 import type { BlobFacade } from "./facades/lazy/BlobFacade.js"
 import { UserFacade } from "./facades/UserFacade"
+import { OfflineStorage } from "./offline/OfflineStorage.js"
+import { OFFLINE_STORAGE_MIGRATIONS, OfflineStorageMigrator } from "./offline/OfflineStorageMigrator.js"
+import { modelInfos } from "../common/EntityFunctions.js"
 import { FileFacadeSendDispatcher } from "../../native/common/generatedipc/FileFacadeSendDispatcher.js"
 import { NativePushFacadeSendDispatcher } from "../../native/common/generatedipc/NativePushFacadeSendDispatcher.js"
 import { NativeCryptoFacadeSendDispatcher } from "../../native/common/generatedipc/NativeCryptoFacadeSendDispatcher"
 import { random } from "@tutao/tutanota-crypto"
 import { ExportFacadeSendDispatcher } from "../../native/common/generatedipc/ExportFacadeSendDispatcher.js"
 import { assertNotNull, delay, lazyAsync, lazyMemoized, ofClass } from "@tutao/tutanota-utils"
+import { InterWindowEventFacadeSendDispatcher } from "../../native/common/generatedipc/InterWindowEventFacadeSendDispatcher.js"
+import { SqlCipherFacadeSendDispatcher } from "../../native/common/generatedipc/SqlCipherFacadeSendDispatcher.js"
 import { EntropyFacade } from "./facades/EntropyFacade.js"
 import { BlobAccessTokenFacade } from "./facades/BlobAccessTokenFacade.js"
 import { OwnerEncSessionKeysUpdateQueue } from "./crypto/OwnerEncSessionKeysUpdateQueue.js"
@@ -143,7 +148,15 @@ export async function initLocator(worker: WorkerImpl, browserData: BrowserData) 
 
 	let offlineStorageProvider
 	if (isOfflineStorageAvailable() && !isAdminClient()) {
-		offlineStorageProvider = async () => null
+		locator.sqlCipherFacade = new SqlCipherFacadeSendDispatcher(locator.native)
+		offlineStorageProvider = async () => {
+			return new OfflineStorage(
+				locator.sqlCipherFacade,
+				new InterWindowEventFacadeSendDispatcher(worker),
+				dateProvider,
+				new OfflineStorageMigrator(OFFLINE_STORAGE_MIGRATIONS, modelInfos),
+			)
+		}
 	} else {
 		offlineStorageProvider = async () => null
 	}

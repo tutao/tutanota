@@ -163,11 +163,8 @@ export class MailIndexer {
 					const mailOwnerEncSessionKey = assertNotNull(mail._ownerEncSessionKey)
 					const mailDetailsDraftId = assertNotNull(mail.mailDetailsDraft)
 					mailWrapper = await this._defaultCachingEntity
-						.loadMultiple(
-							MailDetailsDraftTypeRef,
-							listIdPart(mailDetailsDraftId),
-							[elementIdPart(mailDetailsDraftId)],
-							async () => mailOwnerEncSessionKey,
+						.loadMultiple(MailDetailsDraftTypeRef, listIdPart(mailDetailsDraftId), [elementIdPart(mailDetailsDraftId)], async () =>
+							ownerEncSessionKeyFromMail(mail),
 						)
 						.then((d) => {
 							const draft = first(d)
@@ -180,12 +177,10 @@ export class MailIndexer {
 					// Will be always there, if it was not updated yet it will still be set by CryptoFacade
 					const mailOwnerEncSessionKey = assertNotNull(mail._ownerEncSessionKey)
 					const mailDetailsBlobId = neverNull(mail.mailDetails)
+
 					mailWrapper = await this._defaultCachingEntity
-						.loadMultiple(
-							MailDetailsBlobTypeRef,
-							listIdPart(mailDetailsBlobId),
-							[elementIdPart(mailDetailsBlobId)],
-							async () => mailOwnerEncSessionKey,
+						.loadMultiple(MailDetailsBlobTypeRef, listIdPart(mailDetailsBlobId), [elementIdPart(mailDetailsBlobId)], async () =>
+							ownerEncSessionKeyFromMail(mail),
 						)
 						.then((d) => {
 							const blob = first(d)
@@ -748,12 +743,6 @@ class IndexLoader {
 		//legacy mails
 		const legacyMails = mailsWithoutErros.filter((m) => isLegacyMail(m))
 		const bodyIds = legacyMails.map((m) => assertNotNull(m.body))
-
-		const ownerEncSessionKeyProvider = async (instanceElementId: Id) => {
-			//console.log(instanceElementId, "bodyIds", bodyIdToOwnerEncSessionKey.keys())
-			const mail = legacyMails.find((mail) => isSameId(mail.body, instanceElementId))
-			return ownerEncSessionKeyFromMail(mail)
-		}
 
 		result.push(
 			...(await this.loadInChunks(MailBodyTypeRef, null, bodyIds)).map((body) => {

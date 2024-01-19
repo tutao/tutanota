@@ -87,6 +87,7 @@ import {
 	isNotNull,
 	isSameTypeRef,
 	isSameTypeRefByAttr,
+	neverNull,
 	noOp,
 	ofClass,
 	promiseFilter,
@@ -898,7 +899,7 @@ export class MailFacade {
 				)
 				return {
 					ownerEncSessionKey: instanceSessionKey.symEncSessionKey,
-					ownerGroup: mailOwnerGroupId,
+					ownerGroup: neverNull(mail._ownerGroup),
 				}
 			}
 		}
@@ -999,6 +1000,11 @@ export function validateMimeTypesForAttachments(attachments: Attachments) {
 	}
 }
 
+/**
+ * Helper function to get the ownerEncSessionKey and the corresponding owner group from a null instance. In case the instance itself or the ownerEncSession key
+ * is not available, the function returns null.
+ * @param mail
+ */
 export function ownerEncSessionKeyFromMail(mail: Mail | null | undefined): { ownerEncSessionKey: Uint8Array; ownerGroup: Id } | null {
 	if (mail && mail._ownerEncSessionKey && mail._ownerGroup) {
 		return {

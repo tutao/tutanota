@@ -428,3 +428,16 @@ function removeIdentityFields<E extends Partial<SomeEntity>>(entity: E) {
 
 	_removeIdentityFields(entity)
 }
+
+/**
+ * Helper function to extract the element id from a given literal type (before calling decryptAndMapToInstance).
+ * @param intanceLiteral
+ */
+export function getElementIdFromLiteral(literal: Record<string, any>): Id {
+	if (typeof literal._id === "string") {
+		return literal._id
+	} else {
+		const idTuple = literal._id as IdTuple
+		return elementIdPart(idTuple)
+	}
+}

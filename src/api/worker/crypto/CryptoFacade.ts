@@ -92,11 +92,11 @@ import { IServiceExecutor } from "../../common/ServiceRequest"
 import { EncryptTutanotaPropertiesService } from "../../entities/tutanota/Services"
 import { PublicKeyService, UpdatePermissionKeyService } from "../../entities/sys/Services"
 import { UserFacade } from "../facades/UserFacade"
-import { elementIdPart } from "../../common/utils/EntityUtils.js"
 import { InstanceMapper } from "./InstanceMapper.js"
 import { OwnerEncSessionKeysUpdateQueue } from "./OwnerEncSessionKeysUpdateQueue.js"
 import { PQFacade } from "../facades/PQFacade.js"
 import { decodePQMessage, encodePQMessage } from "../facades/PQMessage.js"
+import { getElementIdFromLiteral } from "../../common/utils/EntityUtils.js"
 
 assertWorkerOrNode()
 
@@ -312,7 +312,7 @@ export class CryptoFacade {
 	}
 
 	public async resolveWithBucketKey(bucketKey: BucketKey, instance: Record<string, any>, typeModel: TypeModel): Promise<ResolvedSessionKeys> {
-		const instanceElementId = this.getElementIdFromInstance(instance)
+		const instanceElementId = getElementIdFromLiteral(instance)
 		let decBucketKey: Aes128Key
 		let unencryptedSenderAuthStatus: EncryptionAuthStatus | null = null
 		let pqMessageSenderKey: EccPublicKey | null = null
@@ -482,7 +482,7 @@ export class CryptoFacade {
 
 		if (pubOrExtPermission == null) {
 			const typeName = `${typeModel.app}/${typeModel.name}`
-			throw new SessionKeyNotFoundError(`could not find permission for instance of type ${typeName} with id ${this.getElementIdFromInstance(instance)}`)
+			throw new SessionKeyNotFoundError(`could not find permission for instance of type ${typeName} with id ${getElementIdFromLiteral(instance)}`)
 		}
 
 		const bucketPermissions = await this.entityClient.loadAll(BucketPermissionTypeRef, assertNotNull(pubOrExtPermission.bucket).bucketPermissions)
@@ -851,15 +851,6 @@ export class CryptoFacade {
 					console.log("Could not update owner enc session key - PayloadTooLargeError", e)
 				}),
 			)
-	}
-
-	private getElementIdFromInstance(instance: Record<string, any>): Id {
-		if (typeof instance._id === "string") {
-			return instance._id
-		} else {
-			const idTuple = instance._id as IdTuple
-			return elementIdPart(idTuple)
-		}
 	}
 
 	private getRecipientPublicKey(publicKeys: PublicKeys): AsymmetricPublicKey {
