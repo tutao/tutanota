@@ -113,6 +113,8 @@ export class CalendarViewModel implements EventDragHandlerCallbacks {
 		eventController.addEntityListener((updates) => this._entityEventReceived(updates))
 
 		calendarInvitationsModel.init()
+
+		this.eventsRepository.getEventsForMonths().map(() => this.doRedraw())
 	}
 
 	/**
