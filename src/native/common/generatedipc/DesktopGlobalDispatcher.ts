@@ -41,6 +41,7 @@ export class DesktopGlobalDispatcher {
 	private readonly sqlCipherFacade: SqlCipherFacadeReceiveDispatcher
 	private readonly themeFacade: ThemeFacadeReceiveDispatcher
 	private readonly webAuthnFacade: WebAuthnFacadeReceiveDispatcher
+
 	constructor(
 		commonSystemFacade: CommonSystemFacade,
 		desktopSystemFacade: DesktopSystemFacade,

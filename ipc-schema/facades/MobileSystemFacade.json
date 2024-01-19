@@ -7,17 +7,44 @@
 	"methods": {
 		"findSuggestions": {
 			"doc": "Find suggestions in the OS contact provider.",
-			"arg": [{ "query": "string" }],
+			"arg": [
+				{
+					"query": "string"
+				}
+			],
 			"ret": "List<NativeContact>"
+		},
+		"saveContacts": {
+			"doc": "Store contacts in system contact book",
+			"arg": [
+				{
+					"userId": "string"
+				},
+				{
+					"contacts": "List<StructuredContact>"
+				}
+			],
+			"ret": "void"
 		},
 		"openLink": {
 			"doc": "Open URI in the OS.",
-			"arg": [{ "uri": "string" }],
+			"arg": [
+				{
+					"uri": "string"
+				}
+			],
 			"ret": "boolean"
 		},
 		"shareText": {
 			"doc": "Share the text via OS sharing mechanism.",
-			"arg": [{ "text": "string" }, { "title": "string" }],
+			"arg": [
+				{
+					"text": "string"
+				},
+				{
+					"title": "string"
+				}
+			],
 			"ret": "boolean"
 		}
 	}

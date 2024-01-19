@@ -8,7 +8,8 @@ import kotlinx.serialization.json.*
 
 
 @Serializable
-data class KyberKeyPair(
-	val publicKey: KyberPublicKey,
-	val privateKey: KyberPrivateKey,
+data class StructuredContact(
+	val id: String,
+	val name: String,
+	val mailAddresses: List<StructuredMailAddress>,
 )

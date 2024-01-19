@@ -1,0 +1,9 @@
+{
+	"name": "StructuredContact",
+	"type": "struct",
+	"fields": {
+		"id": "string",
+		"name": "string",
+		"mailAddresses": "List<StructuredMailAddress>"
+	}
+}

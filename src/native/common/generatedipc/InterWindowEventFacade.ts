@@ -10,7 +10,7 @@ export interface InterWindowEventFacade {
 	localUserDataInvalidated(userId: string): Promise<void>
 
 	/**
-	 * the encryption mode on the credentials was changed, so we need to replace them.
+	 * reload the deviceConfig for all windows, for example when the encryption mode on the credentials was changed, so we need to replace them.
 	 */
 	reloadDeviceConfig(): Promise<void>
 }

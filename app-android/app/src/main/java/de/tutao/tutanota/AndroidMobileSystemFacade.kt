@@ -9,6 +9,7 @@ import android.util.Log
 import androidx.core.content.FileProvider
 import de.tutao.tutanota.ipc.NativeContact
 import de.tutao.tutanota.ipc.MobileSystemFacade
+import de.tutao.tutanota.ipc.StructuredContact
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.withContext
 import java.io.File
@@ -34,6 +35,10 @@ class AndroidMobileSystemFacade(
 				false
 			}
 		}
+	}
+
+	override suspend fun saveContacts(userId: String, contacts: List<StructuredContact>) {
+		return contact.saveContacts(userId, contacts)
 	}
 
 	override suspend fun shareText(text: String, title: String): Boolean {
