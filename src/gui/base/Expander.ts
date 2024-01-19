@@ -1,7 +1,6 @@
 import m, { Children, Component, Vnode } from "mithril"
 import type { TranslationKey } from "../../misc/LanguageViewModel"
 import { lang } from "../../misc/LanguageViewModel"
-import { addFlash, removeFlash } from "./Flash"
 import { Icon } from "./Icon"
 import { Icons } from "./icons/Icons"
 import { BootIcons } from "./icons/BootIcons"
@@ -35,7 +34,7 @@ export class ExpanderButton implements Component<ExpanderAttrs> {
 		return m(
 			".limit-width",
 			m(
-				"button.expander.bg-transparent.pt-s.hover-ul.limit-width.flex.items-center.b.text-ellipsis",
+				"button.expander.bg-transparent.pt-s.hover-ul.limit-width.flex.items-center.b.text-ellipsis.flash",
 				{
 					style: a.style,
 					onclick: (event: MouseEvent) => {
@@ -48,8 +47,6 @@ export class ExpanderButton implements Component<ExpanderAttrs> {
 							if (!a.isPropagatingEvents) e.preventDefault()
 						}
 					},
-					oncreate: (vnode) => addFlash(vnode.dom),
-					onremove: (vnode) => removeFlash(vnode.dom),
 					"aria-expanded": String(a.expanded),
 				},
 				[

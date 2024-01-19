@@ -10,7 +10,7 @@ export class LoginButton implements Component<LoginButtonAttrs> {
 		return m(BaseButton, {
 			label,
 			text: label,
-			class: `button-content border-radius accent-bg full-width center plr-button ${attrs.class} `,
+			class: `button-content border-radius accent-bg full-width center plr-button flash ${attrs.class} `,
 			onclick: attrs.onclick,
 		})
 	}

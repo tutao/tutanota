@@ -1,10 +1,9 @@
-import m, { Children, ClassComponent, CVnode, VnodeDOM } from "mithril"
+import m, { Children, ClassComponent, CVnode } from "mithril"
 import type { TranslationKey } from "../../misc/LanguageViewModel"
 import { lang } from "../../misc/LanguageViewModel"
-import { addFlash, removeFlash } from "./Flash"
 import { getContentButtonIconBackground, getElevatedBackground, getNavButtonIconBackground, getNavigationMenuIcon, theme } from "../theme"
 import type { lazy } from "@tutao/tutanota-utils"
-import { assertNotNull } from "@tutao/tutanota-utils"
+import { noOp } from "@tutao/tutanota-utils"
 import type { ClickHandler } from "./GuiUtils"
 import { assertMainOrNode } from "../../api/common/Env"
 import { BaseButton } from "./buttons/BaseButton.js"
@@ -87,22 +86,11 @@ export interface ButtonAttrs {
  * A button.
  */
 export class Button implements ClassComponent<ButtonAttrs> {
-	private _domButton: HTMLElement | null = null
-
-	oncreate(vnode: VnodeDOM<ButtonAttrs, this>) {
-		this._domButton = vnode.dom as HTMLButtonElement
-		addFlash(vnode.dom)
-	}
-
-	onremove(vnode: VnodeDOM<ButtonAttrs, this>) {
-		removeFlash(vnode.dom)
-	}
-
 	view({ attrs }: CVnode<ButtonAttrs>): Children {
 		const getKey = lang.getMaybeLazy
 		const title = attrs.title == null ? getKey(attrs.label) : getKey(attrs.title)
 		let classes =
-			"limit-width noselect bg-transparent button-height text-ellipsis content-accent-fg flex items-center plr-button button-content justify-center"
+			"limit-width noselect bg-transparent button-height text-ellipsis content-accent-fg flex items-center plr-button button-content justify-center flash"
 		if (attrs.type === ButtonType.Primary) {
 			classes += " b"
 		}
@@ -113,7 +101,7 @@ export class Button implements ClassComponent<ButtonAttrs> {
 			style: {
 				borderColor: getColors(attrs.colors).border,
 			},
-			onclick: (event: MouseEvent) => attrs.click?.(event, assertNotNull(this._domButton)),
+			onclick: attrs.click ?? noOp,
 		})
 	}
 }

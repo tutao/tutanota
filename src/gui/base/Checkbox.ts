@@ -1,6 +1,5 @@
 import m, { Children, Component, Vnode } from "mithril"
 import { BootIcons, BootIconsSvg } from "./icons/BootIcons"
-import { addFlash, removeFlash } from "./Flash"
 import type { TranslationKey } from "../../misc/LanguageViewModel"
 import { lang } from "../../misc/LanguageViewModel"
 import type { lazy } from "@tutao/tutanota-utils"
@@ -25,20 +24,13 @@ export class Checkbox implements Component<CheckboxAttrs> {
 		const a = vnode.attrs
 		const helpLabelText = a.helpLabel ? lang.getMaybeLazy(a.helpLabel) : ""
 		const helpLabel = a.helpLabel ? m(`small.block.content-fg${Checkbox.getBreakClass(helpLabelText)}`, helpLabelText) : []
-		const operatingClasses = getOperatingClasses(a.disabled, "click")
 		return m(
 			`.pt`,
 			{
 				role: "checkbox",
 				"aria-checked": String(a.checked),
 				"aria-disabled": String(a.disabled),
-				class: operatingClasses,
-				oncreate: (vnode) => {
-					if (!a.disabled) addFlash(vnode.dom)
-				},
-				onremove: (vnode) => {
-					if (!a.disabled) removeFlash(vnode.dom)
-				},
+				class: getOperatingClasses(a.disabled, "click flash"),
 				onclick: (e: MouseEvent) => {
 					if (e.target !== this._domInput) {
 						this.toggle(e, a) // event is bubbling in IE besides we invoke e.stopPropagation()
@@ -48,7 +40,7 @@ export class Checkbox implements Component<CheckboxAttrs> {
 			m(
 				`label${Checkbox.getBreakClass(a.label())}`,
 				{
-					class: (this.focused ? "content-accent-fg" : "content-fg") + (" " + operatingClasses),
+					class: `${this.focused ? "content-accent-fg" : "content-fg"} ${getOperatingClasses(a.disabled, "click")}`,
 					onclick: (e: MouseEvent) => {
 						// if the label contains a link, then stop the event so that the checkbox doesn't get toggled upon clicking
 						// we still allow it to be checked if they click on the non-link part of the label
@@ -64,7 +56,7 @@ export class Checkbox implements Component<CheckboxAttrs> {
 						checked: a.checked,
 						onfocus: () => (this.focused = true),
 						onblur: () => (this.focused = false),
-						class: operatingClasses,
+						class: getOperatingClasses(a.disabled, "click"),
 						style: {
 							cursor: a.disabled ? "default" : "pointer",
 							"background-color": theme.content_accent,

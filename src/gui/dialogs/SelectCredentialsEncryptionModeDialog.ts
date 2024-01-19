@@ -200,7 +200,7 @@ class SelectCredentialsEncryptionModeView implements Component<SelectCredentialE
 		return m(BaseButton, {
 			label,
 			text: label,
-			class: "uppercase accent-bg full-width center b content-fg",
+			class: "uppercase accent-bg full-width center b content-fg flash",
 			style: {
 				height: "60px",
 			},

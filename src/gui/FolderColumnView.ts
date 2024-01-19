@@ -50,7 +50,7 @@ export class FolderColumnView implements Component<Attrs> {
 					label,
 					text: label,
 					onclick: attrs.button.click,
-					class: "full-width border-radius-big center b",
+					class: "full-width border-radius-big center b flash",
 					style: {
 						border: `2px solid ${theme.content_accent}`,
 						// matching toolbar
