@@ -12,6 +12,8 @@ import { ElectronResult } from "../native/common/generatedipc/ElectronResult.js"
 import { isKeyPressed } from "../misc/KeyManager.js"
 import { IconButton } from "./base/IconButton.js"
 import { ToggleButton } from "./base/buttons/ToggleButton.js"
+import { styles } from "./styles.js"
+import { getSafeAreaInsetBottom } from "./HtmlUtils.js"
 
 assertMainOrNode()
 
@@ -34,12 +36,7 @@ export class SearchInPageOverlay {
 	open() {
 		if (locator.logins.isUserLoggedIn()) {
 			if (!this._closeFunction) {
-				this._closeFunction = displayOverlay(
-					() => this._getRect(),
-					this._getComponent(),
-					(dom) => transform(TransformEnum.TranslateY, dom.offsetHeight, 0),
-					(dom) => transform(TransformEnum.TranslateY, 0, dom.offsetHeight),
-				)
+				this._closeFunction = displayOverlay(() => this._getRect(), this._getComponent(), "slide-bottom")
 			} else {
 				//already open, refocus
 				console.log("refocusing")
@@ -64,9 +61,11 @@ export class SearchInPageOverlay {
 	}
 
 	_getRect(): PositionRect {
+		const bottomNavHeight = size.bottom_nav_bar + getSafeAreaInsetBottom()
 		return {
 			height: px(size.navbar_height_mobile),
-			bottom: px(0),
+			// Place the search overlay on top of the bottom nav bar
+			bottom: px(styles.isUsingBottomNavigation() ? -bottomNavHeight : 0),
 			right: px(0),
 			left: px(0),
 		}

@@ -2028,6 +2028,37 @@ styles.registerStyle("main", () => {
 			"font-weight": "600",
 			"box-sizing": "content-box",
 		},
+		".animation-reverse": {
+			"animation-direction": "reverse",
+		},
+		".slide-bottom": {
+			"animation-name": "slideFromBottom",
+			"animation-iteration-count": 1,
+			"animation-timing-function": "ease-in",
+			"animation-duration": "100ms",
+		},
+		"@keyframes slideFromBottom": {
+			"0%": {
+				translate: "0 100%",
+			},
+			"100%": {
+				translate: "0 0",
+			},
+		},
+		".slide-top": {
+			"animation-name": "slideFromTop",
+			"animation-iteration-count": 1,
+			"animation-timing-function": "ease-in",
+			"animation-duration": "100ms",
+		},
+		"@keyframes slideFromTop": {
+			"0%": {
+				translate: "0 -100%",
+			},
+			"100%": {
+				translate: "0 0",
+			},
+		},
 		".fade-in": {
 			opacity: 1,
 			"animation-name": "fadeInOpacity",
