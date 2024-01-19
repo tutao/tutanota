@@ -1267,7 +1267,7 @@ styles.registerStyle("main", () => {
 			"background-color": theme.navigation_bg,
 			"z-index": 2,
 		},
-		"bottom-nav, .bottom-nav": {
+		".bottom-nav": {
 			"border-top": `1px solid ${theme.navigation_border}`,
 			height: positionValue(size.bottom_nav_bar),
 			background: theme.header_bg,

@@ -25,7 +25,7 @@ function getHrefForSearch(): string {
 export class BottomNav implements Component<Attrs> {
 	view(vnode: Vnode<Attrs>): Children {
 		// Using bottom-nav class too to match it inside media queries like @print, otherwise it's not matched
-		return m("bottom-nav.bottom-nav.flex.items-center.z1", [
+		return m("nav.bottom-nav.flex.items-center.z1", [
 			m(NavButton, {
 				label: "emails_label",
 				icon: () => BootIcons.Mail,
