@@ -59,15 +59,16 @@ export class CalendarViewModel implements EventDragHandlerCallbacks {
 	 */
 	private previewedEvent: { event: CalendarEvent; model: CalendarEventPreviewViewModel | null } | null = null
 
-	_hiddenCalendars: Set<Id>
-	// Events that have been dropped but still need to be rendered as temporary while waiting for entity updates.
+	private _hiddenCalendars: Set<Id>
+	/** Events that have been dropped but still need to be rendered as temporary while waiting for entity updates. */
+	// visible for tests
 	readonly _transientEvents: Array<CalendarEvent>
+	// visible for tests
 	_draggedEvent: DraggedEvent | null = null
 	private readonly _redrawStream: Stream<void> = stream()
 	selectedTime: Time | undefined
 	// When set to true, ignores the next setting of selectedTime
 	ignoreNextValidTimeSelection: boolean
-	readonly _deviceConfig: DeviceConfig
 
 	constructor(
 		private readonly logins: LoginController,
@@ -87,8 +88,7 @@ export class CalendarViewModel implements EventDragHandlerCallbacks {
 		const userId = logins.getUserController().user._id
 		const today = new Date()
 
-		this._deviceConfig = deviceConfig
-		this._hiddenCalendars = new Set(this._deviceConfig.getHiddenCalendars(userId))
+		this._hiddenCalendars = new Set(this.deviceConfig.getHiddenCalendars(userId))
 
 		this.selectedDate.map(() => {
 			this.updatePreviewedEvent(null)
@@ -110,7 +110,7 @@ export class CalendarViewModel implements EventDragHandlerCallbacks {
 			this.preloadMonthsAroundSelectedDate()
 		})
 
-		eventController.addEntityListener((updates) => this._entityEventReceived(updates))
+		eventController.addEntityListener((updates) => this.entityEventReceived(updates))
 
 		calendarInvitationsModel.init()
 
@@ -219,7 +219,7 @@ export class CalendarViewModel implements EventDragHandlerCallbacks {
 	setHiddenCalendars(newHiddenCalendars: Set<Id>) {
 		this._hiddenCalendars = newHiddenCalendars
 
-		this._deviceConfig.setHiddenCalendars(this.logins.getUserController().user._id, [...newHiddenCalendars])
+		this.deviceConfig.setHiddenCalendars(this.logins.getUserController().user._id, [...newHiddenCalendars])
 	}
 
 	setSelectedTime(time: Time | undefined) {
@@ -235,7 +235,7 @@ export class CalendarViewModel implements EventDragHandlerCallbacks {
 	 * Given an event and days, return the long and short events of that range of days
 	 * we detect events that should be removed based on their UID + start and end time
 	 *
-	 * @param days: The range of days from which events should be returned
+	 * @param days The range of days from which events should be returned
 	 * @returns    shortEvents: Array<Array<CalendarEvent>>, short events per day
 	 *             longEvents: Array<CalendarEvent>: long events over the whole range,
 	 *             days: Array<Date>: the original days that were passed in
@@ -380,7 +380,7 @@ export class CalendarViewModel implements EventDragHandlerCallbacks {
 		}
 	}
 
-	async _entityEventReceived<T>(updates: ReadonlyArray<EntityUpdateData>): Promise<void> {
+	private async entityEventReceived<T>(updates: ReadonlyArray<EntityUpdateData>): Promise<void> {
 		for (const update of updates) {
 			if (isUpdateForTypeRef(CalendarEventTypeRef, update)) {
 				const eventId: IdTuple = [update.instanceListId, update.instanceId]
