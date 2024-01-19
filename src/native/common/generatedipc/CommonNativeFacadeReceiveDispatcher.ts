@@ -4,6 +4,7 @@ import { CommonNativeFacade } from "./CommonNativeFacade.js"
 
 export class CommonNativeFacadeReceiveDispatcher {
 	constructor(private readonly facade: CommonNativeFacade) {}
+
 	async dispatch(method: string, arg: Array<any>): Promise<any> {
 		switch (method) {
 			case "createMailEditor": {

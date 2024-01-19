@@ -14,6 +14,13 @@ public protocol MobileSystemFacade {
 		_ query: String
 	) async throws -> [NativeContact]
 	/**
+	 * Store contacts in system contact book
+	 */
+	func saveContacts(
+		_ userId: String,
+		_ contacts: [StructuredContact]
+	) async throws -> Void
+	/**
 	 * Open URI in the OS.
 	 */
 	func openLink(

@@ -5,6 +5,7 @@ import { NativeCredentialsFacade } from "./NativeCredentialsFacade.js"
 
 export class NativeCredentialsFacadeReceiveDispatcher {
 	constructor(private readonly facade: NativeCredentialsFacade) {}
+
 	async dispatch(method: string, arg: Array<any>): Promise<any> {
 		switch (method) {
 			case "encryptUsingKeychain": {
