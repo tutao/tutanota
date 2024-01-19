@@ -16,7 +16,7 @@ import { FULL_INDEXED_TIMESTAMP, Keys } from "../api/common/TutanotaConstants"
 import { assertMainOrNode, isApp } from "../api/common/Env"
 import { styles } from "../gui/styles"
 import { client } from "../misc/ClientDetector"
-import { debounce, debounceStart, downcast, isSameTypeRef, memoized, mod, ofClass, TypeRef } from "@tutao/tutanota-utils"
+import { debounce, downcast, isSameTypeRef, memoized, mod, ofClass, TypeRef } from "@tutao/tutanota-utils"
 import { BrowserType } from "../misc/ClientConstants"
 import { hasMoreResults } from "./model/SearchModel"
 import { SearchBarOverlay } from "./SearchBarOverlay"
@@ -119,7 +119,7 @@ export class SearchBar implements Component<SearchBarAttrs> {
 			placeholder: vnode.attrs.placeholder,
 			text: this.state().query,
 			busy: this.busy,
-			onInput: debounceStart(300, (text) => this.search(text)),
+			onInput: (text) => this.search(text),
 			onSearchClick: () => this.handleSearchClick(),
 			onClear: () => {
 				this.clear()
