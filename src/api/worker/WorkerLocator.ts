@@ -162,10 +162,10 @@ export async function initLocator(worker: WorkerImpl, browserData: BrowserData) 
 	} else {
 		offlineStorageProvider = async () => null
 	}
-	locator.pdfWriter = lazyMemoized(async () => {
+	locator.pdfWriter = async () => {
 		const { PdfWriter } = await import("./pdf/PdfWriter.js")
 		return new PdfWriter(new TextEncoder(), undefined)
-	})
+	}
 
 	const maybeUninitializedStorage = new LateInitializedCacheStorageImpl(worker, offlineStorageProvider)
 
