@@ -50,7 +50,7 @@ export class SecondFactorsEditForm {
 			m(".h4.mt-l", lang.get("secondFactorAuthentication_label")),
 			m(Table, secondFactorTableAttrs),
 			this.domainConfigProvider.getCurrentDomainConfig().firstPartyDomain
-				? [ifAllowedTutaLinks(locator.logins, InfoLink.SecondFactor, (link) => m(MoreInfoLink, { link: link as InfoLink, isSmall: true }))]
+				? [ifAllowedTutaLinks(locator.logins, InfoLink.SecondFactor, (link) => m(MoreInfoLink, { link: link, isSmall: true }))]
 				: null,
 		]
 	}
