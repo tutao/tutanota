@@ -18,7 +18,10 @@ async function fetchStub(input: RequestInfo | URL, init?: RequestInit): Promise<
 }
 
 o.spec("PdfInvoiceGenerator", function () {
-	const pdfWriter = new PdfWriter(new TextEncoder(), fetchStub)
+	let pdfWriter: PdfWriter
+	o.beforeEach(function () {
+		pdfWriter = new PdfWriter(new TextEncoder(), fetchStub)
+	})
 
 	o("Gen", async function () {
 		const invoiceData = createTestEntity(InvoiceDataGetOutTypeRef, {

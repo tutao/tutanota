@@ -40,7 +40,6 @@ const ROWS_N_PAGE = 50
  * Private "render...()" methods are only used internally to interact with the low-level PdfWriter
  */
 export class PdfDocument {
-	private readonly textEncoder: TextEncoder
 	private readonly pdfWriter: PdfWriter
 	private pageCount: number = 0
 	private textStream: string = ""
@@ -51,7 +50,6 @@ export class PdfDocument {
 	private deflater: Deflater
 
 	constructor(pdfWriter: PdfWriter) {
-		this.textEncoder = new TextEncoder()
 		this.pdfWriter = pdfWriter
 		this.pdfWriter.setupDefaultObjects()
 		this.deflater = new Deflater()
@@ -260,9 +258,10 @@ export class PdfDocument {
 			entryCounter += ROWS_N_PAGE
 		}
 
-		// If the remaining entries on the last page (entries - entriesOfFirstPage % entriesPerPage) cannot fit on one page OR if the first page perfectly fitted all entries, add another page!
-		if (!((entryCounter - entriesOnFirstPage) % ROWS_N_PAGE <= ROWS_FIRST_PAGE_MULTIPLE) || entryCounter == ROWS_FIRST_PAGE_MULTIPLE) {
-			this.addPage()
+		const lastPageCannotFitRemainingRows = (entryCounter - entriesOnFirstPage) % ROWS_N_PAGE <= ROWS_FIRST_PAGE_MULTIPLE
+		const insufficientSpaceBelowTable = entryCounter == ROWS_FIRST_PAGE_MULTIPLE
+		if (!lastPageCannotFitRemainingRows || insufficientSpaceBelowTable) {
+			await this.addPage()
 			tableHeight = MARGIN_TOP
 		}
 
