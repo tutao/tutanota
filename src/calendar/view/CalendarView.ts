@@ -87,9 +87,6 @@ export class CalendarView extends BaseTopLevelView implements TopLevelView<Calen
 	constructor({ attrs }: Vnode<CalendarViewAttrs>) {
 		super()
 		const userId = locator.logins.getUserController().user._id
-
-		const scheduler = new LazyLoaded(async () => new SchedulerImpl(await locator.noZoneDateProvider(), window, window))
-
 		this.viewModel = attrs.calendarViewModel
 		this.currentViewType = deviceConfig.getDefaultCalendarView(userId) || CalendarViewType.MONTH
 		this.htmlSanitizer = import("../../misc/HtmlSanitizer").then((m) => m.htmlSanitizer)
@@ -102,7 +99,7 @@ export class CalendarView extends BaseTopLevelView implements TopLevelView<Calen
 							? {
 									type: ButtonType.FolderColumnHeader,
 									label: "newEvent_action",
-									click: () => this._createNewEventDialog(),
+									click: () => this.createNewEventDialog(),
 							  }
 							: null,
 						content: [
@@ -110,7 +107,7 @@ export class CalendarView extends BaseTopLevelView implements TopLevelView<Calen
 								? m(DaySelectorSidebar, {
 										selectedDate: this.viewModel.selectedDate(),
 										onDateSelected: (date) => {
-											this._setUrl(this.currentViewType, date)
+											this.setUrl(this.currentViewType, date)
 											m.redraw()
 										},
 										startOfTheWeekOffset: getStartOfTheWeekOffset(
@@ -129,19 +126,19 @@ export class CalendarView extends BaseTopLevelView implements TopLevelView<Calen
 									button: m(IconButton, {
 										title: "addCalendar_action",
 										colors: ButtonColor.Nav,
-										click: () => this._onPressedAddCalendar(),
+										click: () => this.onPressedAddCalendar(),
 										icon: Icons.Add,
 										size: ButtonSize.Compact,
 									}),
 								},
-								this._renderCalendars(false),
+								this.renderCalendars(false),
 							),
 							m(
 								SidebarSection,
 								{
 									name: "otherCalendars_label",
 								},
-								this._renderCalendars(true),
+								this.renderCalendars(true),
 							),
 							this.viewModel.calendarInvitations().length > 0
 								? m(
@@ -183,15 +180,15 @@ export class CalendarView extends BaseTopLevelView implements TopLevelView<Calen
 									temporaryEvents: this.viewModel.temporaryEvents,
 									eventsForDays: this.viewModel.eventsForDays,
 									getEventsOnDaysToRender: this.viewModel.getEventsOnDaysToRender.bind(this.viewModel),
-									onEventClicked: (calendarEvent, domEvent) => this._onEventSelected(calendarEvent, domEvent, this.htmlSanitizer),
+									onEventClicked: (calendarEvent, domEvent) => this.onEventSelected(calendarEvent, domEvent, this.htmlSanitizer),
 									onNewEvent: (date) => {
-										this._createNewEventDialog(date)
+										this.createNewEventDialog(date)
 									},
 									selectedDate: this.viewModel.selectedDate(),
 									onDateSelected: (date, calendarViewType) => {
-										this._setUrl(calendarViewType, date)
+										this.setUrl(calendarViewType, date)
 									},
-									onChangeMonth: (next) => this._viewPeriod(CalendarViewType.MONTH, next),
+									onChangeMonth: (next) => this.viewPeriod(CalendarViewType.MONTH, next),
 									amPmFormat: locator.logins.getUserController().userSettingsGroupRoot.timeFormat === TimeFormat.TWELVE_HOURS,
 									startOfTheWeek: downcast(locator.logins.getUserController().userSettingsGroupRoot.startOfTheWeek),
 									groupColors,
@@ -208,18 +205,18 @@ export class CalendarView extends BaseTopLevelView implements TopLevelView<Calen
 									temporaryEvents: this.viewModel.temporaryEvents,
 									getEventsOnDays: this.viewModel.getEventsOnDaysToRender.bind(this.viewModel),
 									daysInPeriod: 1,
-									onEventClicked: (event, domEvent) => this._onEventSelected(event, domEvent, this.htmlSanitizer),
+									onEventClicked: (event, domEvent) => this.onEventSelected(event, domEvent, this.htmlSanitizer),
 									onNewEvent: (date) => {
-										this._createNewEventDialog(date)
+										this.createNewEventDialog(date)
 									},
 									selectedDate: this.viewModel.selectedDate(),
 									onDateSelected: (date) => {
 										this.viewModel.selectedDate(date)
-										this._setUrl(CalendarViewType.DAY, date)
+										this.setUrl(CalendarViewType.DAY, date)
 									},
 									groupColors,
 									hiddenCalendars: this.viewModel.hiddenCalendars,
-									onChangeViewPeriod: (next) => this._viewPeriod(CalendarViewType.DAY, next),
+									onChangeViewPeriod: (next) => this.viewPeriod(CalendarViewType.DAY, next),
 									startOfTheWeek: downcast(locator.logins.getUserController().userSettingsGroupRoot.startOfTheWeek),
 									dragHandlerCallbacks: this.viewModel,
 									isDaySelectorExpanded: this.isDaySelectorExpanded,
@@ -237,18 +234,18 @@ export class CalendarView extends BaseTopLevelView implements TopLevelView<Calen
 									temporaryEvents: this.viewModel.temporaryEvents,
 									getEventsOnDays: this.viewModel.getEventsOnDaysToRender.bind(this.viewModel),
 									daysInPeriod: 7,
-									onEventClicked: (event, domEvent) => this._onEventSelected(event, domEvent, this.htmlSanitizer),
+									onEventClicked: (event, domEvent) => this.onEventSelected(event, domEvent, this.htmlSanitizer),
 									onNewEvent: (date) => {
-										this._createNewEventDialog(date)
+										this.createNewEventDialog(date)
 									},
 									selectedDate: this.viewModel.selectedDate(),
 									onDateSelected: (date, viewType) => {
-										this._setUrl(viewType ?? CalendarViewType.WEEK, date)
+										this.setUrl(viewType ?? CalendarViewType.WEEK, date)
 									},
 									startOfTheWeek: downcast(locator.logins.getUserController().userSettingsGroupRoot.startOfTheWeek),
 									groupColors,
 									hiddenCalendars: this.viewModel.hiddenCalendars,
-									onChangeViewPeriod: (next) => this._viewPeriod(CalendarViewType.WEEK, next),
+									onChangeViewPeriod: (next) => this.viewPeriod(CalendarViewType.WEEK, next),
 									dragHandlerCallbacks: this.viewModel,
 									isDaySelectorExpanded: this.isDaySelectorExpanded,
 									eventsForDays: this.viewModel.eventsForDays,
@@ -270,15 +267,15 @@ export class CalendarView extends BaseTopLevelView implements TopLevelView<Calen
 										if (styles.isDesktopLayout()) {
 											this.viewModel.updatePreviewedEvent(event)
 										} else {
-											this._onEventSelected(event, domEvent, this.htmlSanitizer)
+											this.onEventSelected(event, domEvent, this.htmlSanitizer)
 										}
 									},
 									groupColors,
 									hiddenCalendars: this.viewModel.hiddenCalendars,
 									startOfTheWeekOffset: getStartOfTheWeekOffsetForUser(locator.logins.getUserController().userSettingsGroupRoot),
 									isDaySelectorExpanded: this.isDaySelectorExpanded,
-									onDateSelected: (date) => this._setUrl(CalendarViewType.AGENDA, date),
-									onShowDate: (date: Date) => this._setUrl(CalendarViewType.DAY, date),
+									onDateSelected: (date) => this.setUrl(CalendarViewType.AGENDA, date),
+									onShowDate: (date: Date) => this.setUrl(CalendarViewType.DAY, date),
 									eventPreviewModel: this.viewModel.eventPreviewModel,
 								} satisfies CalendarAgendaViewAttrs),
 							})
@@ -296,7 +293,7 @@ export class CalendarView extends BaseTopLevelView implements TopLevelView<Calen
 		)
 		this.viewSlider = new ViewSlider([this.sidebarColumn, this.contentColumn])
 
-		const shortcuts = this._setupShortcuts()
+		const shortcuts = this.setupShortcuts()
 
 		const streamListeners: Stream<void>[] = []
 
@@ -341,7 +338,7 @@ export class CalendarView extends BaseTopLevelView implements TopLevelView<Calen
 			this.viewModel.selectedDate(),
 			this.viewModel.weekStart,
 			"detailed",
-			(viewType, next) => this._viewPeriod(viewType, next),
+			(viewType, next) => this.viewPeriod(viewType, next),
 		)
 		return m(CalendarDesktopToolbar, {
 			navConfig,
@@ -349,9 +346,9 @@ export class CalendarView extends BaseTopLevelView implements TopLevelView<Calen
 			onToday: () => {
 				// in case it has been set, when onToday is called we definitely do not want the time to be ignored
 				this.viewModel.ignoreNextValidTimeSelection = false
-				this._setUrl(m.route.param("view"), new Date())
+				this.setUrl(m.route.param("view"), new Date())
 			},
-			onViewTypeSelected: (viewType) => this._setUrl(viewType, this.viewModel.selectedDate()),
+			onViewTypeSelected: (viewType) => this.setUrl(viewType, this.viewModel.selectedDate()),
 		})
 	}
 
@@ -367,15 +364,15 @@ export class CalendarView extends BaseTopLevelView implements TopLevelView<Calen
 				this.viewModel.selectedDate(),
 				this.viewModel.weekStart,
 				"short",
-				(viewType, next) => this._viewPeriod(viewType, next),
+				(viewType, next) => this.viewPeriod(viewType, next),
 			),
-			onCreateEvent: () => this._createNewEventDialog(),
+			onCreateEvent: () => this.createNewEventDialog(),
 			onToday: () => {
 				// in case it has been set, when onToday is called we definitely do not want the time to be ignored
 				this.viewModel.ignoreNextValidTimeSelection = false
-				this._setUrl(m.route.param("view"), new Date())
+				this.setUrl(m.route.param("view"), new Date())
 			},
-			onViewTypeSelected: (viewType) => this._setUrl(viewType, this.viewModel.selectedDate()),
+			onViewTypeSelected: (viewType) => this.setUrl(viewType, this.viewModel.selectedDate()),
 			onTap: (_event, dom) => {
 				if (this.currentViewType !== CalendarViewType.MONTH && styles.isSingleColumnLayout()) {
 					return (this.isDaySelectorExpanded = !this.isDaySelectorExpanded)
@@ -390,51 +387,51 @@ export class CalendarView extends BaseTopLevelView implements TopLevelView<Calen
 		})
 	}
 
-	_setupShortcuts(): Shortcut[] {
+	private setupShortcuts(): Shortcut[] {
 		return [
 			{
 				key: Keys.ONE,
-				exec: () => this._setUrl(CalendarViewType.WEEK, this.viewModel.selectedDate()),
+				exec: () => this.setUrl(CalendarViewType.WEEK, this.viewModel.selectedDate()),
 				help: "switchWeekView_action",
 			},
 			{
 				key: Keys.TWO,
-				exec: () => this._setUrl(CalendarViewType.MONTH, this.viewModel.selectedDate()),
+				exec: () => this.setUrl(CalendarViewType.MONTH, this.viewModel.selectedDate()),
 				help: "switchMonthView_action",
 			},
 			{
 				key: Keys.THREE,
-				exec: () => this._setUrl(CalendarViewType.AGENDA, this.viewModel.selectedDate()),
+				exec: () => this.setUrl(CalendarViewType.AGENDA, this.viewModel.selectedDate()),
 				help: "switchAgendaView_action",
 			},
 			{
 				key: Keys.T,
-				exec: () => this._setUrl(m.route.param("view"), new Date()),
+				exec: () => this.setUrl(m.route.param("view"), new Date()),
 				help: "viewToday_action",
 			},
 			{
 				key: Keys.J,
 				enabled: () => this.currentViewType !== CalendarViewType.AGENDA,
-				exec: () => this._viewPeriod(this.currentViewType, true),
+				exec: () => this.viewPeriod(this.currentViewType, true),
 				help: "viewNextPeriod_action",
 			},
 			{
 				key: Keys.K,
 				enabled: () => this.currentViewType !== CalendarViewType.AGENDA,
-				exec: () => this._viewPeriod(this.currentViewType, false),
+				exec: () => this.viewPeriod(this.currentViewType, false),
 				help: "viewPrevPeriod_action",
 			},
 			{
 				key: Keys.N,
 				exec: () => {
-					this._createNewEventDialog()
+					this.createNewEventDialog()
 				},
 				help: "newEvent_action",
 			},
 		]
 	}
 
-	async _createNewEventDialog(date: Date | null = null): Promise<void> {
+	private async createNewEventDialog(date: Date | null = null): Promise<void> {
 		const dateToUse = date ?? this.viewModel.selectedDate()
 
 		// Disallow creation of events when there is no existing calendar
@@ -452,7 +449,7 @@ export class CalendarView extends BaseTopLevelView implements TopLevelView<Calen
 		}
 	}
 
-	_viewPeriod(viewType: CalendarViewType, next: boolean) {
+	private viewPeriod(viewType: CalendarViewType, next: boolean) {
 		let duration
 		let unit: "day" | "week" | "month"
 
@@ -498,26 +495,26 @@ export class CalendarView extends BaseTopLevelView implements TopLevelView<Calen
 		// ignoreNextTimeSelection is set to true here, as viewPeriod is only called when changing the view by swiping (or using previous/next buttons)
 		// and we don't want jarring time jumps when doing that
 		this.viewModel.ignoreNextValidTimeSelection = true
-		this._setUrl(viewType, newDate, false)
+		this.setUrl(viewType, newDate, false)
 
 		m.redraw()
 	}
 
-	_onPressedAddCalendar() {
+	private onPressedAddCalendar() {
 		if (locator.logins.getUserController().getCalendarMemberships().length === 0) {
-			this._showCreateCalendarDialog()
+			this.showCreateCalendarDialog()
 		} else {
 			import("../../misc/SubscriptionDialogs")
 				.then((SubscriptionDialogUtils) => SubscriptionDialogUtils.checkPaidSubscription())
 				.then((ok) => {
 					if (ok) {
-						this._showCreateCalendarDialog()
+						this.showCreateCalendarDialog()
 					}
 				})
 		}
 	}
 
-	_showCreateCalendarDialog() {
+	private showCreateCalendarDialog() {
 		showEditCalendarDialog(
 			{
 				name: "",
@@ -534,7 +531,7 @@ export class CalendarView extends BaseTopLevelView implements TopLevelView<Calen
 		)
 	}
 
-	_renderCalendars(shared: boolean): Children {
+	private renderCalendars(shared: boolean): Children {
 		const calendarInfos = this.viewModel.calendarInfos
 		return calendarInfos.size > 0
 			? Array.from(calendarInfos.values())
@@ -573,13 +570,13 @@ export class CalendarView extends BaseTopLevelView implements TopLevelView<Calen
 									getSharedGroupName(calendarInfo.groupInfo, locator.logins.getUserController(), shared),
 								),
 							]),
-							this._createCalendarActionDropdown(calendarInfo, colorValue, existingGroupSettings, userSettingsGroupRoot, shared),
+							this.createCalendarActionDropdown(calendarInfo, colorValue, existingGroupSettings, userSettingsGroupRoot, shared),
 						])
 					})
 			: null
 	}
 
-	_createCalendarActionDropdown(
+	private createCalendarActionDropdown(
 		calendarInfo: CalendarInfo,
 		colorValue: string,
 		existingGroupSettings: GroupSettings | null,
@@ -599,7 +596,7 @@ export class CalendarView extends BaseTopLevelView implements TopLevelView<Calen
 						label: "edit_action",
 						icon: Icons.Edit,
 						size: ButtonSize.Compact,
-						click: () => this._onPressedEditCalendar(groupInfo, colorValue, existingGroupSettings, userSettingsGroupRoot, sharedCalendar),
+						click: () => this.onPressedEditCalendar(groupInfo, colorValue, existingGroupSettings, userSettingsGroupRoot, sharedCalendar),
 					},
 					{
 						label: "sharing_label",
@@ -640,7 +637,7 @@ export class CalendarView extends BaseTopLevelView implements TopLevelView<Calen
 						? {
 								label: "delete_action",
 								icon: Icons.Trash,
-								click: () => this._confirmDeleteCalendar(calendarInfo),
+								click: () => this.confirmDeleteCalendar(calendarInfo),
 						  }
 						: null,
 				],
@@ -648,7 +645,7 @@ export class CalendarView extends BaseTopLevelView implements TopLevelView<Calen
 		})
 	}
 
-	_confirmDeleteCalendar(calendarInfo: CalendarInfo) {
+	private confirmDeleteCalendar(calendarInfo: CalendarInfo) {
 		const calendarName = getSharedGroupName(calendarInfo.groupInfo, locator.logins.getUserController(), false)
 		loadGroupMembers(calendarInfo.group, locator.entityClient).then((members) => {
 			const ownerMail = locator.logins.getUserController().userGroupInfo.mailAddress
@@ -671,7 +668,7 @@ export class CalendarView extends BaseTopLevelView implements TopLevelView<Calen
 		})
 	}
 
-	_onPressedEditCalendar(
+	private onPressedEditCalendar(
 		groupInfo: GroupInfo,
 		colorValue: string,
 		existingGroupSettings: GroupSettings | null,
@@ -729,10 +726,9 @@ export class CalendarView extends BaseTopLevelView implements TopLevelView<Calen
 
 	onNewUrl(args: Record<string, any>) {
 		if (!args.view) {
-			this._setUrl(this.currentViewType, this.viewModel.selectedDate(), true)
+			this.setUrl(this.currentViewType, this.viewModel.selectedDate(), true)
 		} else {
-			// @ts-ignore
-			this.currentViewType = CalendarViewTypeByValue[args.view] ? args.view : CalendarViewType.MONTH
+			this.currentViewType = CalendarViewTypeByValue[args.view as CalendarViewType] ? args.view : CalendarViewType.MONTH
 
 			const urlDateParam = args.date
 
@@ -769,7 +765,7 @@ export class CalendarView extends BaseTopLevelView implements TopLevelView<Calen
 		return this.viewSlider
 	}
 
-	_setUrl(view: string, date: Date, replace: boolean = false) {
+	private setUrl(view: string, date: Date, replace: boolean = false) {
 		const dateString = DateTime.fromJSDate(date).toISODate()
 		m.route.set(
 			"/calendar/:view/:date",
@@ -783,7 +779,7 @@ export class CalendarView extends BaseTopLevelView implements TopLevelView<Calen
 		)
 	}
 
-	async _onEventSelected(selectedEvent: CalendarEvent, domEvent: MouseOrPointerEvent, htmlSanitizerPromise: Promise<HtmlSanitizer>) {
+	private async onEventSelected(selectedEvent: CalendarEvent, domEvent: MouseOrPointerEvent, htmlSanitizerPromise: Promise<HtmlSanitizer>) {
 		const domTarget = domEvent.currentTarget
 
 		if (domTarget == null || !(domTarget instanceof HTMLElement)) {
@@ -820,7 +816,7 @@ export class CalendarView extends BaseTopLevelView implements TopLevelView<Calen
 			selectedDate: getStartOfDay(this.viewModel.selectedDate()),
 			onDateSelected: (date: Date) => {
 				this.viewModel.selectedDate(date)
-				this._setUrl(this.currentViewType, date)
+				this.setUrl(this.currentViewType, date)
 				selector.close()
 			},
 			startOfTheWeekOffset: getStartOfTheWeekOffset(locator.logins.getUserController().userSettingsGroupRoot.startOfTheWeek as WeekStart),
