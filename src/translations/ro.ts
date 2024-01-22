@@ -12,7 +12,7 @@ export default {
 		"other"
 	],
 	"created_at": "2015-02-18T09:07:31Z",
-	"updated_at": "2024-01-18T10:50:07Z",
+	"updated_at": "2024-01-21T13:23:43Z",
 	"source_locale": {
 		"id": "fcd7471b347c8e517663e194dcddf237",
 		"name": "en",
@@ -186,7 +186,7 @@ export default {
 		"cancel_action": "Renunță",
 		"cannotEditEvent_msg": "Poți modifica numai părți ale acestui eveniment.",
 		"cannotEditFullEvent_msg": "Poți modifica doar anumite părți din acest eveniment, deoarece nu a fost creat în calendarul tău.",
-		"cannotEditNotOrganizer_msg": "Poți modifica doar părți din acest eveniment, deoarece nu ești organizatorul acestuia.",
+		"cannotEditNotOrganizer_msg": "Nu poți modifica acest eveniment, deoarece nu ești organizatorul acestuia.",
 		"cannotEditSingleInstance_msg": "Poți modifica doar părți din acest eveniment, deoarece face parte dintr-o serie de evenimente.",
 		"canNotOpenFileOnDevice_msg": "Acest fișier nu poate fi deschis în acest aparat.",
 		"captchaDisplay_label": "Captcha",
@@ -693,6 +693,9 @@ export default {
 		"invoiceCountryInfoConsumer_msg": "Acest lucru este necesar pentru a calcula taxa pe valoare adăugată (TVA).",
 		"invoiceCountry_label": "Țară",
 		"invoiceData_msg": "Informațiile din factură",
+		"invoiceFailedBrowser_msg": "Nu se poate genera factura în format PDF din cauza unui navigator neactualizat. Actualizează-ți navigatorul sau exportă factura din alt aparat.",
+		"invoiceFailedIOS_msg": "Nu se poate genera factura în format PDF din cauza unei versiuni neactualizate de iOS. Exportarea facturilor este posibilă începând cu iOS 16.4. Actualizează iOS sau exportă factura din alt aparat.",
+		"invoiceFailedWebview_msg": "Nu se poate genera factura în format PDF din cauza sistemului WebView neactualizat. Mai multe informații:",
 		"invoiceMailBodyAutomatic_msg": "O nouă factură cu numarul {1} este disponibilă. Poate fi descărcată aici {2}. Suma totală va fi debitată automat.",
 		"invoiceMailBodyOnAccount_msg": "Este disponibilă o nouă factură cu numarul {1}. O poți descărca în {2}. Plata trebuie făcută în 7 zile de la data facturii.",
 		"invoiceMailSubject_msg": "Factură nouă pentru Tuta",

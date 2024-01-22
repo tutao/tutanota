@@ -13,7 +13,7 @@ export default {
 		"other"
 	],
 	"created_at": "2015-01-27T13:13:41Z",
-	"updated_at": "2024-01-18T10:50:07Z",
+	"updated_at": "2024-01-19T17:02:53Z",
 	"source_locale": {
 		"id": "fcd7471b347c8e517663e194dcddf237",
 		"name": "en",
@@ -187,7 +187,7 @@ export default {
 		"cancel_action": "Anuluj",
 		"cannotEditEvent_msg": "Możesz edytować tylko część tego wydarzenia.",
 		"cannotEditFullEvent_msg": "Możesz edytować tylko częściowo to wydarzenie, ponieważ nie zostało ono utworzone w kalendarzu.",
-		"cannotEditNotOrganizer_msg": "Możesz edytować tylko część tego wydarzenia, ponieważ nie jesteś jego organizatorem.",
+		"cannotEditNotOrganizer_msg": "Nie możesz edytować tego wydarzenia, ponieważ nie jesteś jego organizatorem.",
 		"cannotEditSingleInstance_msg": "Można edytować tylko część tego wydarzenia, ponieważ jest ono częścią serii wydarzeń.",
 		"canNotOpenFileOnDevice_msg": "Ten plik nie może zostać otwarty na tym urządzeniu.",
 		"captchaDisplay_label": "Captcha",
@@ -692,6 +692,9 @@ export default {
 		"invoiceCountryInfoConsumer_msg": "Niezbędny do obliczenia podatku od wartości dodanej (VAT).",
 		"invoiceCountry_label": "Kraj",
 		"invoiceData_msg": "Dane do faktury",
+		"invoiceFailedBrowser_msg": "Nie można utworzyć faktury w postaci pliku PDF z powodu nieaktualnej przeglądarki. Zaktualizuj przeglądarkę lub wyeksportuj fakturę z innego urządzenia.",
+		"invoiceFailedIOS_msg": "Nie można utworzyć faktury w postaci pliku PDF z powodu nieaktualnej wersji systemu iOS. Eksportowanie faktur jest obsługiwane od wersji iOS 16.4. Zaktualizuj system iOS lub wyeksportuj fakturę z innego urządzenia.",
+		"invoiceFailedWebview_msg": "Nie można utworzyć faktury PDF z powodu przestarzałego systemu WebView. Więcej informacji:",
 		"invoiceMailBodyAutomatic_msg": "Dostępna jest nowa faktura o numerze {1}. Możesz ją pobrać stąd: {2}. Łączna kwota zostanie pobrana z karty automatycznie.",
 		"invoiceMailBodyOnAccount_msg": "dostępna jest nowa faktura o numerze {1}. Możesz ją pobrać w {2}. Termin płatności to 7 dni od daty wystawienia.",
 		"invoiceMailSubject_msg": "Nowa faktura za Tuta",
