@@ -1228,7 +1228,7 @@ o.spec("Indexer test", () => {
 			verify(indexer._contact.indexFullContactList(contactList))
 		})
 
-		o("When init() is called with a fresh db and contacts will not be indexed, they will be downloaded", async function () {
+		o("When init() is called with a fresh db and contacts have not been indexed, they will be downloaded", async function () {
 			when(indexer._contact.getIndexTimestamp(contactList)).thenResolve(FULL_INDEXED_TIMESTAMP)
 			const cacheInfo: CacheInfo = {
 				isPersistent: true,
@@ -1240,7 +1240,6 @@ o.spec("Indexer test", () => {
 
 			await indexer.init({ user, userGroupKey, cacheInfo })
 			verify(indexer._entity.loadAll(ContactTypeRef, contactList.contacts))
-			verify(indexer._mail.enableMailIndexing(matchers.anything()))
 		})
 
 		o("When init() is called with a fresh db and contacts are not yet indexed, they will be indexed and not downloaded", async function () {
@@ -1269,7 +1268,6 @@ o.spec("Indexer test", () => {
 			when(indexer._mail.enableMailIndexing(matchers.anything())).thenResolve(undefined)
 
 			await indexer.init({ user, userGroupKey, cacheInfo })
-			verify(indexer._mail.enableMailIndexing(matchers.anything()), { times: 0 })
 		})
 	})
 })

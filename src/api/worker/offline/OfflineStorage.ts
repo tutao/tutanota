@@ -160,7 +160,7 @@ export class OfflineStorage implements CacheStorage, ExposedCacheStorage {
 			}
 		}
 		// if nothing is written here, it means it's a new database
-		return (await this.getLastUpdateTime()) == null
+		return (await this.getLastUpdateTime()).type === "never"
 	}
 
 	private async recreateDbFile(userId: string, databaseKey: Uint8Array): Promise<void> {

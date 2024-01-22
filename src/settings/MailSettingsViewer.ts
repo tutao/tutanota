@@ -269,7 +269,7 @@ export class MailSettingsViewer implements UpdatableSettingsViewer {
 						}),
 					)
 				} else {
-					showProgressDialog("pleaseWait_msg", locator.indexerFacade.disableMailIndexing("Disabled by user"))
+					showProgressDialog("pleaseWait_msg", locator.indexerFacade.disableMailIndexing())
 				}
 			},
 			dropdownWidth: 250,

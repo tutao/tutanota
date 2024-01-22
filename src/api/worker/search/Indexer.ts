@@ -178,9 +178,6 @@ export class Indexer {
 			if (!userEncDbKey) {
 				// database was opened for the first time - create new tables
 				await this._createIndexTables(user, userGroupKey)
-				if (cacheInfo?.isPersistent) {
-					await this._mail.enableMailIndexing(user)
-				}
 			} else {
 				await this._loadIndexTables(transaction, user, userGroupKey, userEncDbKey)
 			}
@@ -201,7 +198,7 @@ export class Indexer {
 			await this._mail.mailboxIndexingPromise
 			await this._mail.indexMailboxes(user, this._mail.currentIndexTimestamp)
 			const groupIdToEventBatches = await this._loadPersistentGroupData(user)
-			await this._loadNewEntities(groupIdToEventBatches).catch(ofClass(OutOfSyncError, (e) => this.disableMailIndexing(user._id)))
+			await this._loadNewEntities(groupIdToEventBatches).catch(ofClass(OutOfSyncError, (e) => this.disableMailIndexing()))
 		} catch (e) {
 			if (retryOnError !== false && (e instanceof MembershipRemovedError || e instanceof InvalidDatabaseStateError)) {
 				// in case of MembershipRemovedError mail or contact group has been removed from user.
@@ -258,11 +255,11 @@ export class Indexer {
 		})
 	}
 
-	async disableMailIndexing(userId: string): Promise<void> {
+	async disableMailIndexing(): Promise<void> {
 		await this.db.initialized
 
 		if (!this._core.isStoppedProcessing()) {
-			await this.deleteIndex(userId)
+			await this.deleteIndex(this._initParams.user._id)
 			await this.init({ user: this._initParams.user, userGroupKey: this._initParams.groupKey })
 		}
 	}
@@ -319,7 +316,7 @@ export class Indexer {
 		await transaction.put(MetaDataOS, Metadata.encDbIv, aes256EncryptSearchIndexEntry(this.db.key, this.db.iv))
 		await transaction.put(MetaDataOS, Metadata.lastEventIndexTimeMs, this._entityRestClient.getRestClient().getServerTimestampMs())
 		await this._initGroupData(groupBatches, transaction)
-		await this._updateIndexedGroups(user._id)
+		await this._updateIndexedGroups()
 		await this._dbInitializedDeferredObject.resolve()
 	}
 
@@ -338,21 +335,21 @@ export class Indexer {
 				.then((groupDiff) => this._updateGroups(user, groupDiff))
 				.then(() => this._mail.updateCurrentIndexTimestamp(user)),
 		])
-		await this._updateIndexedGroups(user._id)
+		await this._updateIndexedGroups()
 
 		this._dbInitializedDeferredObject.resolve()
 
 		await Promise.all([this._contact.suggestionFacade.load()])
 	}
 
-	async _updateIndexedGroups(userId: Id): Promise<void> {
+	async _updateIndexedGroups(): Promise<void> {
 		const t: DbTransaction = await this.db.dbFacade.createTransaction(true, [GroupDataOS])
 		const indexedGroupIds = await promiseMap(await t.getAll(GroupDataOS), (groupDataEntry: DatabaseEntry) => downcast<Id>(groupDataEntry.key))
 
 		if (indexedGroupIds.length === 0) {
 			// tried to index twice, this is probably not our fault
 			console.log("no group ids in database, disabling indexer")
-			this.disableMailIndexing(userId)
+			this.disableMailIndexing()
 		}
 
 		this._indexedGroupIds = indexedGroupIds
