@@ -121,23 +121,6 @@ pipeline {
 									assetFilePath: "${WORKSPACE}/build/app-android/tutanota-tutao-releaseTest-${VERSION}.apk",
 									fileExtension: 'apk'
 							)
-
-							// This doesn't publish to the main app on play store,
-							// instead it gets published to the hidden "tutanota-test" app
-							// this happens because the AppId is set to de.tutao.tutanota.test by the android build
-							// and play store knows which app to publish just based on the id
-							androidApkUpload(
-									googleCredentialsId: 'android-app-publisher-credentials',
-									apkFilesPattern: "build/app-android/tutanota-tutao-releaseTest-${VERSION}.apk",
-									trackName: 'internal',
-									rolloutPercentage: '100%',
-									recentChangeList: [
-											[
-													language: "en-US",
-													text    : "see: ${GITHUB_RELEASE_PAGE}"
-											]
-									]
-							)
 						}
 					}
 				} // stage testing
