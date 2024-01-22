@@ -37,7 +37,7 @@ export class ReferralLinkViewer implements Component<ReferralLinkAttrs> {
 			label: "referralLink_label",
 			value: referralLink,
 			injectionsRight: () => this.renderButtons(referralLink),
-			helpLabel: () => ifAllowedTutaLinks(locator.logins, InfoLink.ReferralLink, (link) => [m(MoreInfoLink, { link: link as InfoLink })]),
+			helpLabel: () => ifAllowedTutaLinks(locator.logins, InfoLink.ReferralLink, (link) => [m(MoreInfoLink, { link: link })]),
 		}
 	}
 

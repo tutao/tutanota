@@ -152,7 +152,7 @@ export function scrollListDom(scrollDom: HTMLElement, entryHeight: number, selec
  * @param render receives the resolved link
  * @returns {Children|null}
  */
-export function ifAllowedTutaLinks(logins: LoginController, linkId: InfoLink, render: (arg0: string) => Children): Children | null {
+export function ifAllowedTutaLinks(logins: LoginController, linkId: InfoLink, render: (linkId: InfoLink) => Children): Children | null {
 	// this is currently in gui-base, preventing us from accessing logins ourselves.
 	// may be subject to change
 	if (canSeeTutaLinks(logins)) {

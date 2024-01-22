@@ -99,7 +99,7 @@ export class LoginSettingsViewer implements UpdatableSettingsViewer {
 		const recoveryCodeFieldAttrs: TextFieldAttrs = {
 			label: "recoveryCode_label",
 			helpLabel: () => {
-				return ifAllowedTutaLinks(locator.logins, InfoLink.RecoverCode, (link) => [m(MoreInfoLink, { link: link as InfoLink })])
+				return ifAllowedTutaLinks(locator.logins, InfoLink.RecoverCode, (link) => [m(MoreInfoLink, { link: link })])
 			},
 			value: this._stars(),
 			oninput: this._stars,
@@ -130,7 +130,7 @@ export class LoginSettingsViewer implements UpdatableSettingsViewer {
 			helpLabel: () => {
 				return ifAllowedTutaLinks(locator.logins, InfoLink.Usage, (link) => [
 					m("span", lang.get("userUsageDataOptInInfo_msg") + " "),
-					m(MoreInfoLink, { link: link as InfoLink }),
+					m(MoreInfoLink, { link: link }),
 				])
 			},
 			dropdownWidth: 250,

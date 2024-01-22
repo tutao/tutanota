@@ -89,7 +89,7 @@ export class DesktopSettingsViewer implements UpdatableSettingsViewer {
 			helpLabel: () => {
 				return ifAllowedTutaLinks(locator.logins, InfoLink.RunInBackground, (link) => [
 					m("span", lang.get("runInBackground_msg") + " "),
-					m(MoreInfoLink, { link: link as InfoLink }),
+					m(MoreInfoLink, { link: link }),
 				])
 			},
 			items: [
