@@ -11,7 +11,7 @@ export default {
 		"other"
 	],
 	"created_at": "2015-01-27T13:13:02Z",
-	"updated_at": "2024-01-18T10:50:07Z",
+	"updated_at": "2024-01-22T12:37:48Z",
 	"source_locale": {
 		"id": "fcd7471b347c8e517663e194dcddf237",
 		"name": "en",
@@ -185,7 +185,7 @@ export default {
 		"cancel_action": "Cancelar",
 		"cannotEditEvent_msg": "Solo puedes editar partes de este evento.",
 		"cannotEditFullEvent_msg": "Solo puedes editar partes de este evento, porque no fue creado en tu calendario.",
-		"cannotEditNotOrganizer_msg": "Solo puedes editar partes de este evento, por que no eres su organizador.",
+		"cannotEditNotOrganizer_msg": "No puedes editar este evento, porque no eres su organizador.",
 		"cannotEditSingleInstance_msg": "Solo puedes editar partes de este evento, porque es parte de una serie de eventos.",
 		"canNotOpenFileOnDevice_msg": "Este archivo no se puede abrir en este dispositivo.",
 		"captchaDisplay_label": "Captcha",
