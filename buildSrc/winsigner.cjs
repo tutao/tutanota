@@ -33,7 +33,7 @@ function getSelfSignedArgs(unsignedFileName, hash, signedFileOutPath) {
 		"-out", signedFileOutPath,
 		"-pkcs12", certificateFile,
 		"-h", hash ? hash : "sha256",
-		"-t", "http://timestamp.comodoca.com",
+		"-t", "http://timestamp.comodoca.com/authenticode",
 		"-n", "tutanota-desktop"
 	]
 }
@@ -50,7 +50,7 @@ function getHsmArgs(unsignedFileName, hash, signedFileOutPath) {
 	// 	3. The timestamp token is received by the client application and recorded within the document or code signature.
 	//  other timestamping services:
 	//  http://timestamp.globalsign.com/scripts/timstamp.dll
-	//  http://timestamp.comodoca.com/authenticode
+	//  http://timestamp.comodoca.com/authenticode/authenticode
 	//  http://www.startssl.com/timestamp
 	//  http://timestamp.sectigo.com
 
@@ -76,7 +76,7 @@ function getHsmArgs(unsignedFileName, hash, signedFileOutPath) {
 		"-key", "11", // this is the key corresponding to the Windows authenticode codesigning certificate
 		"-pass", hsmPin,
 		"-h", hash ? hash : "sha256",
-		"-t", "http://timestamp.comodoca.com",
+		"-t", "http://timestamp.comodoca.com/authenticode",
 		"-n", "tutanota-desktop"
 	]
 }
