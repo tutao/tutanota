@@ -14,6 +14,7 @@ import {
 	PQKeyPairs,
 	PQPublicKeys,
 	uint8ArrayToKey,
+	authenticatedAesDecrypt,
 } from "@tutao/tutanota-crypto"
 import { concat, stringToUtf8Uint8Array } from "@tutao/tutanota-utils"
 import { KEY_LENGTH_BYTES_AES_256 } from "@tutao/tutanota-crypto"
@@ -83,7 +84,7 @@ export class PQFacade {
 			CryptoProtocolVersion.TUTA_CRYPT,
 		)
 
-		return aesDecrypt(kek, message.encapsulation.kekEncBucketKey)
+		return authenticatedAesDecrypt(kek, message.encapsulation.kekEncBucketKey)
 	}
 
 	private derivePQKEK(

@@ -75,7 +75,7 @@ export class DesktopAlarmStorage {
 			}
 
 			try {
-				const decryptedKey = this.cryptoFacade.aes256DecryptKey(pw, base64ToUint8Array(sessionKeyFromConf))
+				const decryptedKey = this.cryptoFacade.unauthenticatedAes256DecryptKey(pw, base64ToUint8Array(sessionKeyFromConf))
 				this.sessionKeys[pushIdentifierId] = uint8ArrayToBase64(decryptedKey)
 				return decryptedKey
 			} catch (e) {

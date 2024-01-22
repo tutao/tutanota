@@ -42,7 +42,7 @@ o.spec("DesktopConfigTest", function () {
 
 		keyStoreFacade = object()
 		when(keyStoreFacade.getDeviceKey()).thenResolve([1, 2, 3])
-		when(keyStoreFacade.getCredentialsKey()).thenResolve([4, 5, 6])
+		when(keyStoreFacade.getKeyChainKey()).thenResolve([4, 5, 6])
 
 		desktopCrypto = object()
 		when(desktopCrypto.aesDecryptObject(matchers.anything(), matchers.anything())).thenReturn("decrypted")

@@ -108,7 +108,7 @@ export function encryptBytes(sk: Aes128Key, value: Uint8Array): Uint8Array {
 	return aesEncrypt(sk, value, random.generateRandomData(IV_BYTE_LENGTH), true, ENABLE_MAC)
 }
 
-export function encryptString(sk: Aes128Key, value: string): Uint8Array {
+export function encryptString(sk: Aes128Key | Aes256Key, value: string): Uint8Array {
 	return aesEncrypt(sk, stringToUtf8Uint8Array(value), random.generateRandomData(IV_BYTE_LENGTH), true, ENABLE_MAC)
 }
 

@@ -1,5 +1,4 @@
 import type { DbTransaction } from "./DbFacade"
-import { tokenize } from "@tutao/tutanota-utils"
 import type { $Promisable, DeferredObject, PromiseMapFn } from "@tutao/tutanota-utils"
 import {
 	arrayHash,
@@ -14,6 +13,7 @@ import {
 	noOp,
 	PromisableWrapper,
 	promiseMapCompat,
+	tokenize,
 	TypeRef,
 	uint8ArrayToBase64,
 } from "@tutao/tutanota-utils"
@@ -61,7 +61,7 @@ import {
 	removeBinaryBlockRanges,
 } from "./SearchIndexEncoding"
 import type { EntityUpdate } from "../../entities/sys/TypeRefs.js"
-import { aesDecrypt, aes256EncryptSearchIndexEntry } from "@tutao/tutanota-crypto"
+import { aes256EncryptSearchIndexEntry, aesDecrypt, unauthenticatedAesDecrypt } from "@tutao/tutanota-crypto"
 import { ElementDataOS, GroupDataOS, MetaDataOS, SearchIndexMetaDataOS, SearchIndexOS, SearchIndexWordsIndex } from "./IndexTables.js"
 
 const SEARCH_INDEX_ROW_LENGTH = 1000
@@ -188,34 +188,32 @@ export class IndexerCore {
 	/**
 	 * Process delete event before applying to the index.
 	 */
-	_processDeleted(event: EntityUpdate, indexUpdate: IndexUpdate): Promise<void> {
+	async _processDeleted(event: EntityUpdate, indexUpdate: IndexUpdate): Promise<void> {
 		const encInstanceIdPlain = encryptIndexKeyUint8Array(this.db.key, event.instanceId, this.db.iv)
 		const encInstanceIdB64 = uint8ArrayToBase64(encInstanceIdPlain)
 		const { appId, typeId } = typeRefToTypeInfo(new TypeRef(event.application, event.type))
-		return this.db.dbFacade.createTransaction(true, [ElementDataOS]).then((transaction) => {
-			return transaction.get(ElementDataOS, encInstanceIdB64).then((elementData) => {
-				if (!elementData) {
-					return
-				}
+		const transaction = await this.db.dbFacade.createTransaction(true, [ElementDataOS])
+		const elementData = await transaction.get(ElementDataOS, encInstanceIdB64)
+		if (!elementData) {
+			return
+		}
 
-				// We need to find SearchIndex rows which we want to update. In the ElementData we have references to the metadata and we can find
-				// corresponding SearchIndex row in it.
-				const metaDataRowKeysBinary = aesDecrypt(this.db.key, elementData[1], true)
-				// For every word we have a metadata reference and we want to update them all.
-				const metaDataRowKeys = decodeNumbers(metaDataRowKeysBinary)
-				for (const metaDataRowKey of metaDataRowKeys) {
-					// We add current instance into list of instances to delete for each word
-					const ids = getFromMap(indexUpdate.delete.searchMetaRowToEncInstanceIds, metaDataRowKey, () => [])
-					ids.push({
-						encInstanceId: encInstanceIdPlain,
-						appId,
-						typeId,
-						timestamp: generatedIdToTimestamp(event.instanceId),
-					})
-				}
-				indexUpdate.delete.encInstanceIds.push(encInstanceIdB64)
+		// We need to find SearchIndex rows which we want to update. In the ElementData we have references to the metadata and we can find
+		// corresponding SearchIndex row in it.
+		const metaDataRowKeysBinary = unauthenticatedAesDecrypt(this.db.key, elementData[1], true)
+		// For every word we have a metadata reference and we want to update them all.
+		const metaDataRowKeys = decodeNumbers(metaDataRowKeysBinary)
+		for (const metaDataRowKey of metaDataRowKeys) {
+			// We add current instance into list of instances to delete for each word
+			const ids = getFromMap(indexUpdate.delete.searchMetaRowToEncInstanceIds, metaDataRowKey, () => [])
+			ids.push({
+				encInstanceId: encInstanceIdPlain,
+				appId,
+				typeId,
+				timestamp: generatedIdToTimestamp(event.instanceId),
 			})
-		})
+		}
+		indexUpdate.delete.encInstanceIds.push(encInstanceIdB64)
 	}
 
 	/********************************************* Manipulating the state ***********************************************/

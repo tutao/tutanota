@@ -12,6 +12,7 @@ import {
 	IV_BYTE_LENGTH,
 	KEY_LENGTH_BITS_AES_256,
 	MAC_ENABLED_PREFIX,
+	unauthenticatedAesDecrypt,
 	verifyKeySize,
 } from "../lib/encryption/Aes.js"
 import { base64ToKey, bitArrayToUint8Array, keyToBase64, uint8ArrayToBitArray } from "../lib/misc/Utils.js"
@@ -27,7 +28,7 @@ o.spec("aes", function () {
 		await assertThrows(CryptoError, async () => await arrayRoundtrip(aesEncrypt, aesDecrypt, aes256RandomKey(), false))
 	})
 	o("encrypted roundtrip 256 with mac", () => arrayRoundtrip(aesEncrypt, aesDecrypt, aes256RandomKey(), true))
-	o("encrypted roundtrip 256 with legacy encrypted data", () => arrayRoundtrip(aes256EncryptLegacy, aesDecrypt, aes256RandomKey(), false))
+	o("encrypted roundtrip 256 with legacy encrypted data", () => arrayRoundtrip(aes256EncryptLegacy, unauthenticatedAesDecrypt, aes256RandomKey(), false))
 
 	// o("encryption roundtrip 256 webcrypto", browser(function (done, timeout) {
 	// 	timeout(1000)
@@ -109,7 +110,7 @@ o.spec("aes", function () {
 		decryptInvalidData(aes128RandomKey(), aesDecrypt, "Invalid IV length in aesDecrypt: 10 bytes, must be 16 bytes (128 bits)"),
 	)
 	o("decryptInvalidData 256 without hmac", () =>
-		decryptInvalidData(aes256RandomKey(), aesDecrypt, "Invalid IV length in aesDecrypt: 10 bytes, must be 16 bytes (128 bits)"),
+		decryptInvalidData(aes256RandomKey(), unauthenticatedAesDecrypt, "Invalid IV length in aesDecrypt: 10 bytes, must be 16 bytes (128 bits)"),
 	)
 
 	function decryptInvalidData(key, decrypt, errorMessage) {

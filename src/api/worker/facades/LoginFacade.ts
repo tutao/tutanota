@@ -59,10 +59,11 @@ import { GENERATED_ID_BYTES_LENGTH, isSameId } from "../../common/utils/EntityUt
 import type { Credentials } from "../../../misc/credentials/Credentials"
 import {
 	Aes128Key,
-	aes256DecryptLegacyRecoveryKey,
+	aes256DecryptWithRecoveryKey,
 	Aes256Key,
 	aes256RandomKey,
 	aesDecrypt,
+	authenticatedAesDecrypt,
 	base64ToKey,
 	createAuthVerifier,
 	createAuthVerifierAsBase64Url,
@@ -77,7 +78,6 @@ import {
 	TotpVerifier,
 	uint8ArrayToBitArray,
 } from "@tutao/tutanota-crypto"
-import { CryptoError } from "@tutao/tutanota-crypto/error.js"
 import { CryptoFacade, encryptString } from "../crypto/CryptoFacade"
 import { InstanceMapper } from "../crypto/InstanceMapper"
 import { IServiceExecutor } from "../../common/ServiceRequest"
@@ -424,7 +424,7 @@ export class LoginFacade {
 			recoverCodeVerifier: null,
 			user: userId,
 		})
-		let accessKey: Aes128Key | null = null
+		let accessKey: Aes256Key | null = null
 
 		if (persistentSession) {
 			accessKey = aes256RandomKey()
@@ -877,19 +877,16 @@ export class LoginFacade {
 	/**
 	 * Loads entropy from the last logout.
 	 */
-	private loadEntropy(): Promise<void> {
-		return this.entityClient.loadRoot(TutanotaPropertiesTypeRef, this.userFacade.getUserGroupId()).then((tutanotaProperties) => {
-			if (tutanotaProperties.groupEncEntropy) {
-				try {
-					let entropy = aesDecrypt(this.userFacade.getUserGroupKey(), neverNull(tutanotaProperties.groupEncEntropy))
-					random.addStaticEntropy(entropy)
-				} catch (error) {
-					if (error instanceof CryptoError) {
-						console.log("could not decrypt entropy", error)
-					}
-				}
+	private async loadEntropy(): Promise<void> {
+		const tutanotaProperties = await this.entityClient.loadRoot(TutanotaPropertiesTypeRef, this.userFacade.getUserGroupId())
+		if (tutanotaProperties.groupEncEntropy) {
+			try {
+				const entropy = authenticatedAesDecrypt(this.userFacade.getUserGroupKey(), tutanotaProperties.groupEncEntropy)
+				random.addStaticEntropy(entropy)
+			} catch (error) {
+				console.log("could not decrypt entropy", error)
 			}
-		})
+		}
 	}
 
 	/**
@@ -1002,7 +999,7 @@ export class LoginFacade {
 
 		const recoverCodeData = await entityClient.load(RecoverCodeTypeRef, user.auth.recoverCode, undefined, recoverCodeExtraHeaders)
 		try {
-			const groupKey = aes256DecryptLegacyRecoveryKey(recoverCodeKey, recoverCodeData.recoverCodeEncUserGroupKey)
+			const groupKey = aes256DecryptWithRecoveryKey(recoverCodeKey, recoverCodeData.recoverCodeEncUserGroupKey)
 			const salt = generateRandomSalt()
 			const newKdfType = DEFAULT_KDF_TYPE
 

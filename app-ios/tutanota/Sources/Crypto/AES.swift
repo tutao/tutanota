@@ -14,8 +14,11 @@ private let MAC_TOTAL_OVERHEAD_LENGTH = MAC_DIGEST_LENGTH + MAC_IDENTIFIER.count
 ///   - data: Encrypted data contents
 ///   - withKey: Encryption key
 ///
-/// - Returns: Encrypted cyphertext
-func aesDecryptData(_ data: Data, withKey key: Data) throws -> Data { try aesDecrypt(data: data, withKey: key, withPadding: true) }
+/// - Returns: plaintext
+func aesDecryptData(_ data: Data, withKey key: Data) throws -> Data {
+	let enforceMac = key.count == kCCKeySizeAES256
+	return try aesDecrypt(data: data, withKey: key, withPadding: true, enforceMac: enforceMac)
+}
 
 /// Decrypt an encryption key.
 ///
@@ -23,13 +26,13 @@ func aesDecryptData(_ data: Data, withKey key: Data) throws -> Data { try aesDec
 ///   - encryptedKey: Key that is encrypted
 ///   - withKey: Encryption key
 ///
-/// - Returns: Encrypted cyphertext
+/// - Returns: the decrypted key
 func aesDecryptKey(_ encryptedKey: Data, withKey key: Data) throws -> Data {
 	switch key.count {
 	case kCCKeySizeAES128:
 		// We prepend with a fixed IV when doing AES-128 decryption on an encrypted key
-		return try aesDecrypt(data: TUTAO_FIXED_IV + encryptedKey, withKey: key, withPadding: false)
-	case kCCKeySizeAES256: return try aesDecrypt(data: encryptedKey, withKey: key, withPadding: false)
+		return try aesDecrypt(data: TUTAO_FIXED_IV + encryptedKey, withKey: key, withPadding: false, enforceMac: false)
+	case kCCKeySizeAES256: return try aesDecrypt(data: encryptedKey, withKey: key, withPadding: false, enforceMac: true)
 	default: throw TUTErrorFactory.createError(withDomain: TUT_CRYPTO_ERROR, message: "invalid key size \(key.count)")
 	}
 }
@@ -93,14 +96,16 @@ func aesEncrypt(data: Data, withKey key: Data, withIV iv: Data, withPadding: Boo
 	return Data(output)
 }
 
-private func aesDecrypt(data: Data, withKey key: Data, withPadding: Bool) throws -> Data {
+private func aesDecrypt(data: Data, withKey key: Data, withPadding: Bool, enforceMac: Bool) throws -> Data {
 	let data = [UInt8](data)  // to allow for slicing
 
-	let useMAC = hasMAC(data)
-	let subKeys = try getSubKeys(withAESKey: key, withMAC: useMAC)
+	let hasMac = hasMAC(data)
+	let subKeys = try getSubKeys(withAESKey: key, withMAC: hasMac)
 	let ivOffset: Int
 
-	if useMAC {
+	if enforceMac && !hasMac { throw TUTErrorFactory.createError(withDomain: TUT_CRYPTO_ERROR, message: "mac expected but not found") }
+
+	if hasMac {
 		try verifyMAC(forData: data, withMKey: subKeys.mKey!)
 		ivOffset = MAC_IDENTIFIER.count
 	} else {
@@ -108,7 +113,7 @@ private func aesDecrypt(data: Data, withKey key: Data, withPadding: Bool) throws
 	}
 
 	let dataOffset = ivOffset + TUTAO_CRYPT_BLOCK_SIZE
-	let macOffset = data.count - (useMAC ? MAC_DIGEST_LENGTH : 0)
+	let macOffset = data.count - (hasMac ? MAC_DIGEST_LENGTH : 0)
 
 	guard dataOffset < data.count && macOffset <= data.count else {
 		throw TUTErrorFactory.createError(withDomain: TUT_CRYPTO_ERROR, message: "Invalid data length: \(data.count), macOffset: \(macOffset)")

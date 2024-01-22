@@ -49,7 +49,7 @@ export class DesktopKeyStoreFacade {
 	/**
 	 * get the key used to encrypt saved credentials
 	 */
-	async getCredentialsKey(): Promise<Aes256Key> {
+	async getKeyChainKey(): Promise<Aes256Key> {
 		return this.resolveKey(CredentialsKeySpec)
 	}
 
