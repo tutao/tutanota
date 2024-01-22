@@ -3,6 +3,7 @@ import { GENERATION_NUMBER, NEW_LINE, PDF_DEFAULT_OBJECTS, PdfDictValue, PdfObje
 import { PdfStreamObject } from "./PdfStreamObject.js"
 import { concat, hexToUint8Array } from "@tutao/tutanota-utils"
 import { Deflater } from "./Deflater.js"
+import { ProgrammingError } from "../../common/error/ProgrammingError.js"
 
 // Binary header specifying the PDF version (2.0 = "322e30") and the fact that binary data is present in the file
 const PDF_HEADER = hexToUint8Array("255044462d322e300a25e2e3cfd30a")
@@ -46,6 +47,9 @@ export class PdfWriter {
 	 * @param refId ID by which other objects can reference this object
 	 */
 	createObject(objectDictionary: Map<string, PdfDictValue>, refId: string = ""): void {
+		if (this.referenceTable.has(refId)) {
+			throw new ProgrammingError(`already defined object refId ${refId}`)
+		}
 		const obj = new PdfObject(this.pdfObjectList.length + 1, objectDictionary)
 		if (refId.length > 0) {
 			this.referenceTable.set(refId, obj)
@@ -61,6 +65,9 @@ export class PdfWriter {
 	 * @param refId ID by which other objects can reference this object
 	 */
 	createStreamObject(objectDictionary: Map<string, PdfDictValue>, stream: Uint8Array, streamEncoding: PdfStreamEncoding, refId: string = ""): void {
+		if (this.referenceTable.has(refId)) {
+			throw new ProgrammingError(`already defined stream refId ${refId}`)
+		}
 		const obj = new PdfStreamObject(this.pdfObjectList.length + 1, objectDictionary, stream, streamEncoding)
 		if (refId.length > 0) {
 			this.referenceTable.set(refId, obj)
