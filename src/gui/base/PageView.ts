@@ -1,7 +1,6 @@
 import m, { Children, Component, Vnode } from "mithril"
 import { SwipeHandler } from "./SwipeHandler"
 import { animations, transform, TransformEnum } from "../animation/Animations"
-import { client } from "../../misc/ClientDetector.js"
 
 type Page = {
 	key: string | number
@@ -29,6 +28,10 @@ export class PageView implements Component<Attrs> {
 						this.viewDom = vnode.dom as HTMLElement
 						const swipeHandler = new PageSwipeHandler(this.viewDom, (next) => this.onChangePage(next))
 						swipeHandler.attach()
+
+						// This redraw is needed after setting the viewDom to immediately apply the transforms
+						// preventing the overlap of events from other dates with the current listed date
+						m.redraw()
 					},
 				},
 				[
