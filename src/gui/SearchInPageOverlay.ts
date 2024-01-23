@@ -22,7 +22,7 @@ assertMainOrNode()
  * gets loaded asynchronously, shouldn't be in the web bundle
  */
 export class SearchInPageOverlay {
-	private closeFunction: (() => Promise<void>) | null
+	private closeFunction: (() => void) | null
 	private domInput!: HTMLInputElement
 	private matchCase: boolean = false
 	private numberOfMatches: number = 0
