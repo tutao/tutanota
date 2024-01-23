@@ -111,14 +111,14 @@ class Contact(private val activity: MainActivity) {
 				.appendQueryParameter(RawContacts.ACCOUNT_NAME, userId)
 				.appendQueryParameter(RawContacts.ACCOUNT_TYPE, "tuta")
 				.build()
-		val rawContactsCursor = resolver.query(
+
+		return resolver.query(
 				rawContactUri,
 				arrayOf(
 						RawContacts._ID,
 						RawContacts.SOURCE_ID
 				), null, null, null
 		)
-		return rawContactsCursor
 	}
 
 	private fun checkDeletedContact(storedContact: StoredContact, ops: ArrayList<ContentProviderOperation>) {
@@ -134,7 +134,15 @@ class Contact(private val activity: MainActivity) {
 		}
 	}
 
-	private fun checkContactName(storedContact: StoredContact, serverContact: StructuredContact, ops: ArrayList<ContentProviderOperation>) {
+	private fun checkContactDetails(storedContact: StoredContact, serverContact: StructuredContact, ops: ArrayList<ContentProviderOperation>) {
+		if (storedContact.birthday != serverContact.birthday) {
+			checkContactBirthday(storedContact, ops, serverContact)
+		}
+
+		if (storedContact.company != serverContact.company) {
+			checkContactCompany(storedContact, ops, serverContact)
+		}
+
 		if (storedContact.displayName != serverContact.name) {
 			val updateNameOp = ContentProviderOperation.newUpdate(ContactsContract.Data.CONTENT_URI)
 					.withSelection(
@@ -146,6 +154,78 @@ class Contact(private val activity: MainActivity) {
 			ops += updateNameOp
 			Log.d(TAG, "Updated name for ${serverContact.id}")
 		}
+
+		if (storedContact.nickname != serverContact.nickname) {
+			val updateNicknameOp = ContentProviderOperation.newUpdate(ContactsContract.Data.CONTENT_URI)
+					.withSelection(
+							"${ContactsContract.Data.MIMETYPE} = \"${ContactsContract.CommonDataKinds.Nickname.CONTENT_ITEM_TYPE}\" AND ${ContactsContract.Data.RAW_CONTACT_ID} = ?",
+							arrayOf(storedContact.rawId.toString())
+					)
+					.withValue(ContactsContract.CommonDataKinds.Nickname.NAME, serverContact.nickname)
+					.build()
+			ops += updateNicknameOp
+			Log.d(TAG, "Updated nickname for ${serverContact.id} Stored: ${storedContact.nickname} Server: ${serverContact.nickname}")
+		}
+	}
+
+	private fun checkContactBirthday(storedContact: StoredContact, ops: ArrayList<ContentProviderOperation>, serverContact: StructuredContact) {
+		// If the birthday wasn't added during contact creation, it's
+		// necessary to add and not just update it
+		if (storedContact.birthday == null) {
+			ops.add(
+					ContentProviderOperation.newInsert(ContactsContract.Data.CONTENT_URI)
+							.withValue(ContactsContract.Data.RAW_CONTACT_ID, storedContact.rawId)
+							.withValue(
+									RawContacts.Data.MIMETYPE,
+									ContactsContract.CommonDataKinds.Event.CONTENT_ITEM_TYPE
+							)
+							.withValue(RawContacts.Data.MIMETYPE, ContactsContract.CommonDataKinds.Event.CONTENT_ITEM_TYPE)
+							.withValue(ContactsContract.CommonDataKinds.Event.START_DATE, serverContact.birthday)
+							.withValue(RawContacts.Data.MIMETYPE, ContactsContract.CommonDataKinds.Event.CONTENT_ITEM_TYPE)
+							.withValue(ContactsContract.CommonDataKinds.Event.TYPE, ContactsContract.CommonDataKinds.Event.TYPE_BIRTHDAY)
+							.build()
+			)
+		} else {
+			ops.add(ContentProviderOperation.newUpdate(ContactsContract.Data.CONTENT_URI)
+					.withSelection(
+							"${ContactsContract.Data.MIMETYPE} = \"${ContactsContract.CommonDataKinds.Event.CONTENT_ITEM_TYPE}\" AND ${ContactsContract.Data.RAW_CONTACT_ID} = ?",
+							arrayOf(storedContact.rawId.toString())
+					)
+					.withValue(ContactsContract.CommonDataKinds.Event.TYPE, ContactsContract.CommonDataKinds.Event.TYPE_BIRTHDAY)
+					.withValue(ContactsContract.CommonDataKinds.Event.START_DATE, serverContact.birthday)
+					.build())
+		}
+		Log.d(TAG, "Updated birthday for ${serverContact.id} Stored: ${storedContact.birthday} Server: ${serverContact.birthday}")
+	}
+
+	private fun checkContactCompany(storedContact: StoredContact, ops: ArrayList<ContentProviderOperation>, serverContact: StructuredContact) {
+		// If the company wasn't added during contact creation, it's
+		// necessary to add and not just update it
+
+		if (storedContact.company == "") {
+			ops.add(
+					ContentProviderOperation.newInsert(ContactsContract.Data.CONTENT_URI)
+							.withValue(ContactsContract.Data.RAW_CONTACT_ID, storedContact.rawId)
+							.withValue(
+									RawContacts.Data.MIMETYPE,
+									ContactsContract.CommonDataKinds.Organization.CONTENT_ITEM_TYPE
+							)
+							.withValue(ContactsContract.CommonDataKinds.Organization.COMPANY, serverContact.company)
+							.withValue(RawContacts.Data.MIMETYPE, ContactsContract.CommonDataKinds.Organization.CONTENT_ITEM_TYPE)
+							.withValue(ContactsContract.CommonDataKinds.Organization.TYPE, ContactsContract.CommonDataKinds.Organization.TYPE_WORK)
+							.build()
+			)
+		} else {
+			ops.add(ContentProviderOperation.newUpdate(ContactsContract.Data.CONTENT_URI)
+					.withSelection(
+							"${ContactsContract.Data.MIMETYPE} = \"${ContactsContract.CommonDataKinds.Organization.CONTENT_ITEM_TYPE}\" AND ${ContactsContract.Data.RAW_CONTACT_ID} = ?",
+							arrayOf(storedContact.rawId.toString())
+					)
+					.withValue(ContactsContract.CommonDataKinds.Organization.COMPANY, serverContact.company)
+					.withValue(ContactsContract.CommonDataKinds.Organization.TYPE, ContactsContract.CommonDataKinds.Organization.TYPE_WORK)
+					.build())
+		}
+		Log.d(TAG, "Updated organization/company for ${serverContact.id} Stored: ${storedContact.company} Server: ${serverContact.company} Branch: ${storedContact.company == ""}")
 	}
 
 	private fun checkContactMailAddresses(storedContact: StoredContact, serverContact: StructuredContact, ops: ArrayList<ContentProviderOperation>) {
@@ -223,6 +303,86 @@ class Contact(private val activity: MainActivity) {
 						.build()
 				ops += deleteOp
 				Log.d(TAG, "Deleted address ${serverContact.id} ${storedMailAddress.address}")
+			}
+		}
+	}
+
+	private fun checkContactAddresses(storedContact: StoredContact, serverContact: StructuredContact, ops: ArrayList<ContentProviderOperation>) {
+		for (serverAddress in serverContact.addresses) {
+			val storedAddress = storedContact.addresses.find { it.address == serverAddress.address }
+			if (storedAddress != null) {
+				if (storedAddress.type != serverAddress.type.toAndroidType()) {
+					Log.d(
+							TAG,
+							"Different address types for $storedAddress. Stored: ${storedAddress.type}, server: ${serverAddress.type.toAndroidType()} (as entity type: ${serverAddress.type})"
+					)
+					val updateTypeOp = ContentProviderOperation.newUpdate(ContactsContract.Data.CONTENT_URI)
+							.withSelection(
+									"${ContactsContract.Data.MIMETYPE} = \"${ContactsContract.CommonDataKinds.StructuredPostal.CONTENT_ITEM_TYPE}\" AND ${ContactsContract.Data.RAW_CONTACT_ID} = ? AND ${ContactsContract.CommonDataKinds.StructuredPostal.DATA} = ?",
+									arrayOf(storedContact.rawId.toString(), storedAddress.address)
+							)
+							.withValue(
+									ContactsContract.CommonDataKinds.StructuredPostal.TYPE,
+									serverAddress.type.toAndroidType()
+							)
+							.build()
+					ops += updateTypeOp
+					Log.d(
+							TAG,
+							"Updated type for ${serverContact.id} $serverAddress ${serverAddress.type.toAndroidType()}"
+					)
+				} else {
+					Log.d(
+							TAG,
+							"No type changes for ${serverContact.id} $serverAddress ${serverAddress.type.toAndroidType()}"
+					)
+				}
+				if (storedAddress.customTypeName != serverAddress.customTypeName) {
+					Log.d(
+							TAG,
+							"Different address custom type name for $storedAddress. Stored: ${storedAddress.customTypeName}, server: ${serverAddress.customTypeName}"
+					)
+					val updateCustomTypeNameOp = ContentProviderOperation.newUpdate(ContactsContract.Data.CONTENT_URI)
+							.withSelection(
+									"${ContactsContract.Data.MIMETYPE} = \"${ContactsContract.CommonDataKinds.StructuredPostal.CONTENT_ITEM_TYPE}\" AND ${ContactsContract.Data.RAW_CONTACT_ID} = ? AND ${ContactsContract.CommonDataKinds.StructuredPostal.DATA} = ?",
+									arrayOf(storedContact.rawId.toString(), storedAddress.address)
+							)
+							.withValue(
+									ContactsContract.CommonDataKinds.StructuredPostal.LABEL,
+									serverAddress.customTypeName
+							)
+							.build()
+					ops += updateCustomTypeNameOp
+					Log.d(
+							TAG,
+							"Updated custom type name for ${serverContact.id} $serverAddress ${serverAddress.customTypeName}"
+					)
+				} else {
+					Log.d(
+							TAG,
+							"No custom type name changes for ${serverContact.id} $serverAddress ${serverAddress.customTypeName}"
+					)
+				}
+			} else {
+				// it's a new address
+				val createAddressOp = insertAddressOperation(serverAddress)
+						.withValue(ContactsContract.Data.RAW_CONTACT_ID, storedContact.rawId)
+						.build()
+				ops += createAddressOp
+				Log.d(TAG, "Created address ${serverContact.id} ${serverAddress.address}")
+			}
+		}
+
+		for (storedAddress in storedContact.addresses) {
+			if (serverContact.addresses.none { it.address == storedAddress.address }) {
+				val deleteOp = ContentProviderOperation.newDelete(ContactsContract.Data.CONTENT_URI)
+						.withSelection(
+								"${ContactsContract.Data.MIMETYPE} = \"${ContactsContract.CommonDataKinds.StructuredPostal.CONTENT_ITEM_TYPE}\" AND ${ContactsContract.Data.RAW_CONTACT_ID} = ? AND ${ContactsContract.CommonDataKinds.StructuredPostal.DATA} = ?",
+								arrayOf(storedContact.rawId.toString(), storedAddress.address)
+						)
+						.build()
+				ops += deleteOp
+				Log.d(TAG, "Deleted address ${serverContact.id} ${storedAddress.address}")
 			}
 		}
 	}
@@ -314,7 +474,8 @@ class Contact(private val activity: MainActivity) {
 	) {
 		val ops = arrayListOf<ContentProviderOperation>()
 		checkDeletedContact(storedContact, ops)
-		checkContactName(storedContact, serverContact, ops)
+		checkContactDetails(storedContact, serverContact, ops)
+		checkContactAddresses(storedContact, serverContact, ops)
 		checkContactMailAddresses(storedContact, serverContact, ops)
 		checkContactPhonesNumbers(storedContact, serverContact, ops)
 		if (ops.isNotEmpty()) {
@@ -344,6 +505,41 @@ class Contact(private val activity: MainActivity) {
 								ContactsContract.CommonDataKinds.StructuredName.CONTENT_ITEM_TYPE
 						)
 						.withValue(ContactsContract.CommonDataKinds.StructuredName.DISPLAY_NAME, contact.name)
+						.build()
+		)
+
+		ops.add(
+				ContentProviderOperation.newInsert(ContactsContract.Data.CONTENT_URI)
+						.withValueBackReference(RawContacts.Data.RAW_CONTACT_ID, index)
+						.withValue(
+								RawContacts.Data.MIMETYPE,
+								ContactsContract.CommonDataKinds.Event.CONTENT_ITEM_TYPE
+						)
+						.withValue(ContactsContract.CommonDataKinds.Event.START_DATE, contact.birthday)
+						.withValue(RawContacts.Data.MIMETYPE, ContactsContract.CommonDataKinds.Event.CONTENT_ITEM_TYPE)
+						.withValue(ContactsContract.CommonDataKinds.Event.TYPE, ContactsContract.CommonDataKinds.Event.TYPE_BIRTHDAY)
+						.build()
+		)
+
+		ops.add(
+				ContentProviderOperation.newInsert(ContactsContract.Data.CONTENT_URI)
+						.withValueBackReference(RawContacts.Data.RAW_CONTACT_ID, index)
+						.withValue(
+								RawContacts.Data.MIMETYPE,
+								ContactsContract.CommonDataKinds.Organization.CONTENT_ITEM_TYPE
+						)
+						.withValue(ContactsContract.CommonDataKinds.Organization.COMPANY, contact.company)
+						.build()
+		)
+
+		ops.add(
+				ContentProviderOperation.newInsert(ContactsContract.Data.CONTENT_URI)
+						.withValueBackReference(RawContacts.Data.RAW_CONTACT_ID, index)
+						.withValue(
+								RawContacts.Data.MIMETYPE,
+								ContactsContract.CommonDataKinds.Nickname.CONTENT_ITEM_TYPE
+						)
+						.withValue(ContactsContract.CommonDataKinds.Nickname.NAME, contact.nickname)
 						.build()
 		)
 
@@ -408,11 +604,44 @@ class Contact(private val activity: MainActivity) {
 								StoredEmailAddress(data, entityCursor.getInt(5), if (!entityCursor.isNull(6)) entityCursor.getString(6) else "")
 						)
 						ContactsContract.CommonDataKinds.Phone.CONTENT_ITEM_TYPE -> storedContact.phoneNumbers.add(StoredPhoneNumber(data, entityCursor.getInt(5), if (!entityCursor.isNull(6)) entityCursor.getString(6) else ""))
+						ContactsContract.CommonDataKinds.StructuredPostal.CONTENT_ITEM_TYPE -> storedContact.addresses.add(StoredAddress(data, entityCursor.getInt(5), if (!entityCursor.isNull(6)) entityCursor.getString(6) else ""))
+						ContactsContract.CommonDataKinds.Nickname.CONTENT_ITEM_TYPE -> storedContact.nickname = data
+						ContactsContract.CommonDataKinds.Organization.CONTENT_ITEM_TYPE -> storedContact.company = data
+						ContactsContract.CommonDataKinds.Event.CONTENT_ITEM_TYPE -> storedContact.birthday = data
 					}
 				}
 			}
 		}
 		return storedContact
+	}
+
+	private fun insertAddressOperation(address: StructuredAddress): ContentProviderOperation.Builder {
+		val contactInsert = ContentProviderOperation
+				.newInsert(ContactsContract.Data.CONTENT_URI)
+				.withValue(
+						RawContacts.Data.MIMETYPE,
+						ContactsContract.CommonDataKinds.StructuredPostal.CONTENT_ITEM_TYPE
+				)
+				.withValue(ContactsContract.CommonDataKinds.StructuredPostal.DATA, address.address)
+				.withValue(
+						RawContacts.Data.MIMETYPE,
+						ContactsContract.CommonDataKinds.StructuredPostal.CONTENT_ITEM_TYPE
+				)
+				.withValue(
+						ContactsContract.CommonDataKinds.StructuredPostal.TYPE,
+						address.type.toAndroidType(),
+				)
+		if (address.type == ContactAddressType.CUSTOM) {
+			contactInsert.withValue(
+					RawContacts.Data.MIMETYPE,
+					ContactsContract.CommonDataKinds.StructuredPostal.CONTENT_ITEM_TYPE
+			)
+					.withValue(
+							ContactsContract.CommonDataKinds.StructuredPostal.LABEL,
+							address.customTypeName
+					)
+		}
+		return contactInsert
 	}
 
 	private fun insertMailAddressOperation(mailAddress: StructuredMailAddress): ContentProviderOperation.Builder {
@@ -428,7 +657,6 @@ class Contact(private val activity: MainActivity) {
 						RawContacts.Data.MIMETYPE,
 						ContactsContract.CommonDataKinds.Email.CONTENT_ITEM_TYPE
 				)
-				// FIXME: grab the right type
 				.withValue(
 						ContactsContract.CommonDataKinds.Email.TYPE,
 						mailAddress.type.toAndroidType(),
@@ -458,7 +686,6 @@ class Contact(private val activity: MainActivity) {
 						RawContacts.Data.MIMETYPE,
 						ContactsContract.CommonDataKinds.Phone.CONTENT_ITEM_TYPE
 				)
-				// FIXME: grab the right type
 				.withValue(
 						ContactsContract.CommonDataKinds.Phone.TYPE,
 						phoneNumber.type.toAndroidType(),
@@ -492,6 +719,12 @@ data class StoredEmailAddress(
 		val customTypeName: String
 )
 
+data class StoredAddress(
+		val address: String,
+		val type: Int,
+		val customTypeName: String
+)
+
 data class StoredPhoneNumber(
 		val number: String,
 		val type: Int,
@@ -502,9 +735,13 @@ data class StoredContact(
 		val rawId: Long,
 		val sourceId: String,
 		var displayName: String? = null,
+		var company: String = "",
+		var nickname: String? = null,
+		var birthday: String? = null,
 		val emailAddresses: MutableList<StoredEmailAddress> = mutableListOf(),
 		val phoneNumbers: MutableList<StoredPhoneNumber> = mutableListOf(),
-		var isDeleted: Boolean = false
+		val addresses: MutableList<StoredAddress> = mutableListOf(),
+		var isDeleted: Boolean = false,
 )
 
 @kotlinx.serialization.Serializable
