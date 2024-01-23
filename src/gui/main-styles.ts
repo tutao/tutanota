@@ -1584,13 +1584,6 @@ styles.registerStyle("main", () => {
 			height: px(size.button_height),
 			"min-width": px(size.button_height),
 		},
-		".primary": {
-			color: theme.content_accent,
-			"font-weight": "bold",
-		},
-		".secondary": {
-			color: theme.content_accent,
-		},
 		".text-bubble": {
 			"padding-top": px(size.text_bubble_tpad),
 		},
@@ -2164,7 +2157,7 @@ styles.registerStyle("main", () => {
 			transition: `margin-bottom 200ms ease-in-out`,
 		},
 		".circle": {
-			"border-radius": "50% !important",
+			"border-radius": "50%",
 		},
 		".clickable": {
 			cursor: "pointer",
