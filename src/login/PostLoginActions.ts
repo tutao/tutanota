@@ -117,12 +117,14 @@ export class PostLoginActions implements PostLoginAction {
 					return {
 						address: address.address,
 						type: address.type,
+						customTypeName: address.customTypeName,
 					}
 				}),
 				phoneNumbers: contact.phoneNumbers.map((phone) => {
 					return {
 						number: phone.number,
 						type: phone.type,
+						customTypeName: phone.customTypeName,
 					}
 				}),
 			}

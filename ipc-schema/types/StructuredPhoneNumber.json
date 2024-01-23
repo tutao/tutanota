@@ -3,6 +3,7 @@
 	"type": "struct",
 	"fields": {
 		"number": "string",
-		"type": "ContactPhoneNumberType"
+		"type": "ContactPhoneNumberType",
+		"customTypeName": "string"
 	}
 }

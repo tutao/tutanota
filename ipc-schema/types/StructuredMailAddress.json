@@ -3,6 +3,7 @@
 	"type": "struct",
 	"fields": {
 		"address": "string",
-		"type": "ContactAddressType"
+		"type": "ContactAddressType",
+		"customTypeName": "string"
 	}
 }
