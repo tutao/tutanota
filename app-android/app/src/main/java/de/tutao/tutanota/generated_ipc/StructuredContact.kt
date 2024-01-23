@@ -12,4 +12,5 @@ data class StructuredContact(
 	val id: String,
 	val name: String,
 	val mailAddresses: List<StructuredMailAddress>,
+	val phoneNumbers: List<StructuredPhoneNumber>,
 )

@@ -1,0 +1,8 @@
+{
+	"name": "ContactPhoneNumberType",
+	"type": "typeref",
+	"location": {
+		"typescript": "../src/api/common/TutanotaConstants.js",
+		"kotlin": "de.tutao.tutanota.ContactPhoneNumberType"
+	}
+}
