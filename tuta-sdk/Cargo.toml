@@ -1,0 +1,19 @@
+[package]
+name = "tuta-sdk"
+version = "0.1.0"
+edition = "2021"
+
+[dependencies]
+# should not depend on cli but because bin is not in its own crate (yet) we have to use it
+uniffi = { version = "0.25.3", features = ["cli"] }
+
+[build-dependencies]
+uniffi = { version = "0.25.3", features = [ "build" ] }
+
+[lib]
+crate-type = ["cdylib", "staticlib"]
+name = "tutasdk"
+
+[[bin]]
+name = "uniffi-bindgen"
+path = "uniffi-bindgen.rs"
