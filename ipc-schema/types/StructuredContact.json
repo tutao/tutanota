@@ -4,7 +4,11 @@
 	"fields": {
 		"id": "string",
 		"name": "string",
+		"nickname": "string?",
+		"company": "string",
+		"birthday": "string?",
 		"mailAddresses": "List<StructuredMailAddress>",
-		"phoneNumbers": "List<StructuredPhoneNumber>"
+		"phoneNumbers": "List<StructuredPhoneNumber>",
+		"addresses": "List<StructuredAddress>"
 	}
 }
