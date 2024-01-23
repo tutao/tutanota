@@ -82,30 +82,32 @@ const val SYSTEM_GESTURES_EXCLUSION_WIDTH_DP = 40
 const val SYSTEM_GESTURES_EXCLUSION_HEIGHT_DP = 200 // max exclusion height allowed by the system is 200 dp
 
 interface WebauthnHandler {
-  fun onResult(result: String)
-  fun onNoResult()
+	fun onResult(result: String)
+	fun onNoResult()
 }
 
+
+
 class MainActivity : FragmentActivity() {
-  lateinit var webView: WebView
-	private set
-  private lateinit var sseStorage: SseStorage
-  private lateinit var themeFacade: AndroidThemeFacade
-  private lateinit var remoteBridge: RemoteBridge
-  private lateinit var mobileFacade: MobileFacade
-  private lateinit var commonNativeFacade: CommonNativeFacade
-  private lateinit var commonSystemFacade: AndroidCommonSystemFacade
-  private lateinit var sqlCipherFacade: SqlCipherFacade
+	lateinit var webView: WebView
+		private set
+	private lateinit var sseStorage: SseStorage
+	private lateinit var themeFacade: AndroidThemeFacade
+	private lateinit var remoteBridge: RemoteBridge
+	private lateinit var mobileFacade: MobileFacade
+	private lateinit var commonNativeFacade: CommonNativeFacade
+	private lateinit var commonSystemFacade: AndroidCommonSystemFacade
+	private lateinit var sqlCipherFacade: SqlCipherFacade
 
-  private val permissionsRequests: MutableMap<Int, Continuation<Unit>> = ConcurrentHashMap()
-  private val activityRequests: MutableMap<Int, Continuation<ActivityResult>> = ConcurrentHashMap()
+	private val permissionsRequests: MutableMap<Int, Continuation<Unit>> = ConcurrentHashMap()
+	private val activityRequests: MutableMap<Int, Continuation<ActivityResult>> = ConcurrentHashMap()
 
-  private var firstLoaded = false
-  private var webauthnResultHandler: WebauthnHandler? = null
+	private var firstLoaded = false
+	private var webauthnResultHandler: WebauthnHandler? = null
 
-  @SuppressLint("SetJavaScriptEnabled", "StaticFieldLeak")
-  override fun onCreate(savedInstanceState: Bundle?) {
-	Log.d(TAG, "App started")
+	@SuppressLint("SetJavaScriptEnabled", "StaticFieldLeak")
+	override fun onCreate(savedInstanceState: Bundle?) {
+		Log.d(TAG, "App started")
 
 		// App is handling a redelivered intent, ignoring as we probably already handled it
 		if (savedInstanceState != null && (intent.action == OPEN_USER_MAILBOX_ACTION || intent.action == OPEN_CALENDAR_ACTION)) {
@@ -114,239 +116,240 @@ class MainActivity : FragmentActivity() {
 
 		val db = AppDatabase.getDatabase(this, false)
 		sseStorage = SseStorage(
-			db,
-			createAndroidKeyStoreFacade()
+				db,
+				createAndroidKeyStoreFacade()
 		)
 		val localNotificationsFacade = LocalNotificationsFacade(this, sseStorage)
-	val fileFacade =
-			AndroidFileFacade(this, localNotificationsFacade, SecureRandom(), NetworkUtils.defaultClient)
-	val cryptoFacade = AndroidNativeCryptoFacade(this, fileFacade.tempDir)
+		val fileFacade =
+				AndroidFileFacade(this, localNotificationsFacade, SecureRandom(), NetworkUtils.defaultClient)
+		val cryptoFacade = AndroidNativeCryptoFacade(this, fileFacade.tempDir)
 
 
-	val alarmNotificationsManager = AlarmNotificationsManager(
-			sseStorage,
-			cryptoFacade,
-			SystemAlarmFacade(this),
-			localNotificationsFacade
-	)
-	val nativePushFacade = AndroidNativePushFacade(
-			this,
-			sseStorage,
-			alarmNotificationsManager,
-			localNotificationsFacade,
-	)
+		val alarmNotificationsManager = AlarmNotificationsManager(
+				sseStorage,
+				cryptoFacade,
+				SystemAlarmFacade(this),
+				localNotificationsFacade
+		)
+		val nativePushFacade = AndroidNativePushFacade(
+				this,
+				sseStorage,
+				alarmNotificationsManager,
+				localNotificationsFacade,
+		)
 
-	val ipcJson = Json { ignoreUnknownKeys = true }
+		val ipcJson = Json { ignoreUnknownKeys = true }
 
-	themeFacade = AndroidThemeFacade(this, this)
+		themeFacade = AndroidThemeFacade(this, this)
 
-	sqlCipherFacade = AndroidSqlCipherFacade(this)
-	commonSystemFacade = AndroidCommonSystemFacade(this, sqlCipherFacade, fileFacade.tempDir)
+		sqlCipherFacade = AndroidSqlCipherFacade(this)
+		commonSystemFacade = AndroidCommonSystemFacade(this, sqlCipherFacade, fileFacade.tempDir)
 
-	val webauthnFacade = AndroidWebauthnFacade(this, ipcJson)
+		val webauthnFacade = AndroidWebauthnFacade(this, ipcJson)
 
-	val globalDispatcher = AndroidGlobalDispatcher(
-			ipcJson,
-			commonSystemFacade,
-			fileFacade,
-			AndroidMobileContactsFacade(this),
-			AndroidMobileSystemFacade(fileFacade, this, db),
-			CredentialsEncryptionFactory.create(this, cryptoFacade, db),
-			cryptoFacade,
-			nativePushFacade,
-			sqlCipherFacade,
-			themeFacade,
-			webauthnFacade,
-	)
-	remoteBridge = RemoteBridge(
-			ipcJson,
-			this,
-			globalDispatcher,
-			commonSystemFacade,
-	)
+		val globalDispatcher = AndroidGlobalDispatcher(
+				ipcJson,
+				commonSystemFacade,
+				fileFacade,
+				AndroidMobileContactsFacade(this),
+				AndroidMobileSystemFacade(fileFacade, this, db),
+				CredentialsEncryptionFactory.create(this, cryptoFacade, db),
+				cryptoFacade,
+				nativePushFacade,
+				sqlCipherFacade,
+				themeFacade,
+				webauthnFacade,
+		)
+		remoteBridge = RemoteBridge(
+				ipcJson,
+				this,
+				globalDispatcher,
+				commonSystemFacade,
+		)
 
-	themeFacade.applyCurrentTheme()
+		themeFacade.applyCurrentTheme()
 
-	installSplashScreen()
+		installSplashScreen()
 
-	super.onCreate(savedInstanceState)
-	actionBar?.hide()
+		super.onCreate(savedInstanceState)
+		actionBar?.hide()
 
-	mobileFacade = MobileFacadeSendDispatcher(ipcJson, remoteBridge)
-	commonNativeFacade = CommonNativeFacadeSendDispatcher(ipcJson, remoteBridge)
+		mobileFacade = MobileFacadeSendDispatcher(ipcJson, remoteBridge)
+		commonNativeFacade = CommonNativeFacadeSendDispatcher(ipcJson, remoteBridge)
 
-	setupPushNotifications()
+		setupPushNotifications()
 
-	webView = WebView(this)
-	webView.setBackgroundColor(Color.TRANSPARENT)
+		webView = WebView(this)
+		webView.setBackgroundColor(Color.TRANSPARENT)
 
-	if (BuildConfig.DEBUG) {
-	  WebView.setWebContentsDebuggingEnabled(true)
-	}
-
-	webView.settings.apply {
-	  javaScriptEnabled = true
-	  domStorageEnabled = true
-	  javaScriptCanOpenWindowsAutomatically = false
-	  allowFileAccess = false
-	  allowContentAccess = false
-	  cacheMode = WebSettings.LOAD_NO_CACHE
-	  // needed for external content in mail
-	  mixedContentMode = WebSettings.MIXED_CONTENT_ALWAYS_ALLOW
-	  if (atLeastOreo()) {
-		// Safe browsing is not needed because we are loading our own resources only.
-		// Also we don't want to report every URL that we load to Google.
-		// Also it causes random lag in loading resources, see https://github.com/tutao/tutanota/issues/5830
-		safeBrowsingEnabled = false
-	  }
-	}
-
-	webView.clearCache(true)
-
-	// Reject cookies by external content
-	CookieManager.getInstance().setAcceptCookie(false)
-	CookieManager.getInstance().removeAllCookies(null)
-
-	webView.webViewClient = object : WebViewClient() {
-	  @Deprecated("shouldOverrideUrlLoading is deprecated")
-	  override fun shouldOverrideUrlLoading(view: WebView, url: String): Boolean {
-		Log.d(TAG, "see if should override $url")
-		if (url.startsWith(BASE_WEB_VIEW_URL)) {
-		  return false
+		if (BuildConfig.DEBUG) {
+			WebView.setWebContentsDebuggingEnabled(true)
 		}
-		val intent = Intent(Intent.ACTION_VIEW, Uri.parse(url))
-		try {
-		  startActivity(intent)
-		} catch (e: ActivityNotFoundException) {
-		  Toast.makeText(this@MainActivity, "Could not open link: $url", Toast.LENGTH_SHORT)
-				  .show()
-		}
-		return true
-	  }
 
-	  override fun shouldInterceptRequest(view: WebView, request: WebResourceRequest): WebResourceResponse? {
-		val url = request.url
-		return if (request.method == "OPTIONS") {
-		  Log.v(TAG, "replacing OPTIONS response to $url")
-		  WebResourceResponse(
-				  "text/html",
-				  "UTF-8",
-				  200,
-				  "OK",
-				  mutableMapOf(
-						  "Access-Control-Allow-Origin" to "*",
-						  "Access-Control-Allow-Methods" to "POST, GET, PUT, DELETE",
-						  "Access-Control-Allow-Headers" to "*"
-				  ),
-				  null
-		  )
-		} else if (request.method == "GET" && url.toString().startsWith(BASE_WEB_VIEW_URL)) {
-		  Log.v(TAG, "replacing asset GET response to ${url.path}")
-		  val assetPath = File(BuildConfig.RES_ADDRESS + url.path!!).canonicalPath.run {
-			slice(1..lastIndex)
-		  }
-		  try {
-			if (!assetPath.startsWith(BuildConfig.RES_ADDRESS)) throw IOException("can't find this")
-			val mimeType = getMimeTypeForUrl(url.toString())
-			WebResourceResponse(
-					mimeType,
-					null,
-					200,
-					"OK",
-					null,
-					assets.open(assetPath)
-			)
-		  } catch (e: IOException) {
-			Log.w(TAG, "Resource not found ${url.path}")
-			WebResourceResponse(
-					null,
-					null,
-					404,
-					"Not Found",
-					null,
-					null
-			)
-		  }
-		} else {
-		  Log.v(TAG, "forwarding ${request.method} request to $url")
-		  null
-		}
-	  }
-
-	  override fun onReceivedError(view: WebView?, request: WebResourceRequest?, error: WebResourceError?) {
-		Log.e(TAG, "Error loading WebView ${error?.errorCode} | ${error?.description} @ ${request?.url?.path}")
-	  }
-	}
-
-	// Handle long click on links in the WebView
-	registerForContextMenu(webView)
-
-	setContentView(webView)
-
-	lifecycleScope.launch {
-	  val queryParameters = mutableMapOf<String, String>()
-	  // If opened from notifications, tell Web app to not login automatically, we will pass
-	  // mailbox later when loaded (in handleIntent())
-	  if (intent != null && (OPEN_USER_MAILBOX_ACTION == intent.action || OPEN_CALENDAR_ACTION == intent.action)) {
-		queryParameters["noAutoLogin"] = "true"
-	  }
-
-	  webView.post { // use webView.post to switch to main thread again to be able to observe sseStorage
-		sseStorage.observeUsers().observe(this@MainActivity) { userInfos ->
-		  if (userInfos!!.isEmpty()) {
-			Log.d(TAG, "invalidateAlarms")
-			lifecycleScope.launchWhenCreated {
-			  commonNativeFacade.invalidateAlarms()
+		webView.settings.apply {
+			javaScriptEnabled = true
+			domStorageEnabled = true
+			javaScriptCanOpenWindowsAutomatically = false
+			allowFileAccess = false
+			allowContentAccess = false
+			cacheMode = WebSettings.LOAD_NO_CACHE
+			// needed for external content in mail
+			mixedContentMode = WebSettings.MIXED_CONTENT_ALWAYS_ALLOW
+			if (atLeastOreo()) {
+				// Safe browsing is not needed because we are loading our own resources only.
+				// Also we don't want to report every URL that we load to Google.
+				// Also it causes random lag in loading resources, see https://github.com/tutao/tutanota/issues/5830
+				safeBrowsingEnabled = false
 			}
-		  }
-		}
-	  }
-
-	  startWebApp(queryParameters)
-	}
-
-	// Exclude bottom left screen area from system (back) gestures to open the drawer menu with a swipe from the
-	// left on android devices that have system (back) gesture navigation enabled.
-	webView.doOnLayout {
-	  val exclusionWidth = SYSTEM_GESTURES_EXCLUSION_WIDTH_DP.toPx()
-	  val exclusionHeight = SYSTEM_GESTURES_EXCLUSION_HEIGHT_DP.toPx()
-	  val exclusions = listOf(Rect(0, (it.height - exclusionHeight), exclusionWidth, it.height))
-	  setSystemGestureExclusionRects(it, exclusions)
-	}
-
-	if (!firstLoaded) {
-	  handleIntent(intent)
-	}
-	firstLoaded = true
-  }
-
-  /** @return "result" extra value */
-  suspend fun startWebauthn(uri: Uri): String {
-	val customIntent = CustomTabsIntent.Builder()
-			.build()
-	val intent = customIntent.intent.apply {
-	  data = uri
-	  // close custom tabs activity as soon as user navigates away from it, otherwise it will linger as a separate
-	  // task
-	  addFlags(Intent.FLAG_ACTIVITY_NO_HISTORY)
-	}
-
-	return suspendCoroutine { cont ->
-	  // if there was already a handler, finish it
-	  webauthnResultHandler?.onNoResult()
-
-	  webauthnResultHandler = object : WebauthnHandler {
-		override fun onResult(result: String) {
-		  cont.resume(result)
 		}
 
-		override fun onNoResult() {
-		  cont.resumeWithException(CancelledError())
+		webView.clearCache(true)
+
+		// Reject cookies by external content
+		CookieManager.getInstance().setAcceptCookie(false)
+		CookieManager.getInstance().removeAllCookies(null)
+
+		webView.webViewClient = object : WebViewClient() {
+			@Deprecated("shouldOverrideUrlLoading is deprecated")
+			override fun shouldOverrideUrlLoading(view: WebView, url: String): Boolean {
+				Log.d(TAG, "see if should override $url")
+				if (url.startsWith(BASE_WEB_VIEW_URL)) {
+					return false
+				}
+				val intent = Intent(Intent.ACTION_VIEW, Uri.parse(url))
+				try {
+					startActivity(intent)
+				} catch (e: ActivityNotFoundException) {
+					Toast.makeText(this@MainActivity, "Could not open link: $url", Toast.LENGTH_SHORT)
+							.show()
+				}
+				return true
+			}
+
+			override fun shouldInterceptRequest(view: WebView, request: WebResourceRequest): WebResourceResponse? {
+				val url = request.url
+				return if (request.method == "OPTIONS") {
+					Log.v(TAG, "replacing OPTIONS response to $url")
+					WebResourceResponse(
+							"text/html",
+							"UTF-8",
+							200,
+							"OK",
+							mutableMapOf(
+									"Access-Control-Allow-Origin" to "*",
+									"Access-Control-Allow-Methods" to "POST, GET, PUT, DELETE",
+									"Access-Control-Allow-Headers" to "*"
+							),
+							null
+					)
+				} else if (request.method == "GET" && url.toString().startsWith(BASE_WEB_VIEW_URL)) {
+					Log.v(TAG, "replacing asset GET response to ${url.path}")
+					val assetPath = File(BuildConfig.RES_ADDRESS + url.path!!).canonicalPath.run {
+						slice(1..lastIndex)
+					}
+					try {
+						if (!assetPath.startsWith(BuildConfig.RES_ADDRESS)) throw IOException("can't find this")
+						val mimeType = getMimeTypeForUrl(url.toString())
+						WebResourceResponse(
+								mimeType,
+								null,
+								200,
+								"OK",
+								null,
+								assets.open(assetPath)
+						)
+					} catch (e: IOException) {
+						Log.w(TAG, "Resource not found ${url.path}")
+						WebResourceResponse(
+								null,
+								null,
+								404,
+								"Not Found",
+								null,
+								null
+						)
+					}
+				} else {
+					Log.v(TAG, "forwarding ${request.method} request to $url")
+					null
+				}
+			}
+
+			override fun onReceivedError(view: WebView?, request: WebResourceRequest?, error: WebResourceError?) {
+				Log.e(TAG, "Error loading WebView ${error?.errorCode} | ${error?.description} @ ${request?.url?.path}")
+			}
 		}
-	  }
-	  startActivity(intent)
+
+		// Handle long click on links in the WebView
+		registerForContextMenu(webView)
+
+		setContentView(webView)
+
+		lifecycleScope.launch {
+			val queryParameters = mutableMapOf<String, String>()
+			// If opened from notifications, tell Web app to not login automatically, we will pass
+			// mailbox later when loaded (in handleIntent())
+			if (intent != null && (OPEN_USER_MAILBOX_ACTION == intent.action || OPEN_CALENDAR_ACTION == intent.action)) {
+				queryParameters["noAutoLogin"] = "true"
+			}
+
+			webView.post { // use webView.post to switch to main thread again to be able to observe sseStorage
+				sseStorage.observeUsers().observe(this@MainActivity) { userInfos ->
+					if (userInfos!!.isEmpty()) {
+						Log.d(TAG, "invalidateAlarms")
+						lifecycleScope.launchWhenCreated {
+							commonNativeFacade.invalidateAlarms()
+						}
+					}
+				}
+			}
+
+			startWebApp(queryParameters)
+		}
+
+		// Exclude bottom left screen area from system (back) gestures to open the drawer menu with a swipe from the
+		// left on android devices that have system (back) gesture navigation enabled.
+		webView.doOnLayout {
+			val exclusionWidth = SYSTEM_GESTURES_EXCLUSION_WIDTH_DP.toPx()
+			val exclusionHeight = SYSTEM_GESTURES_EXCLUSION_HEIGHT_DP.toPx()
+			val exclusions = listOf(Rect(0, (it.height - exclusionHeight), exclusionWidth, it.height))
+			setSystemGestureExclusionRects(it, exclusions)
+		}
+
+		if (!firstLoaded) {
+			handleIntent(intent)
+		}
+		firstLoaded = true
 	}
-  }
+
+
+	/** @return "result" extra value */
+	suspend fun startWebauthn(uri: Uri): String {
+		val customIntent = CustomTabsIntent.Builder()
+				.build()
+		val intent = customIntent.intent.apply {
+			data = uri
+			// close custom tabs activity as soon as user navigates away from it, otherwise it will linger as a separate
+			// task
+			addFlags(Intent.FLAG_ACTIVITY_NO_HISTORY)
+		}
+
+		return suspendCoroutine { cont ->
+			// if there was already a handler, finish it
+			webauthnResultHandler?.onNoResult()
+
+			webauthnResultHandler = object : WebauthnHandler {
+				override fun onResult(result: String) {
+					cont.resume(result)
+				}
+
+				override fun onNoResult() {
+					cont.resumeWithException(CancelledError())
+				}
+			}
+			startActivity(intent)
+		}
+	}
 
 	private fun getMimeTypeForUrl(url: String): String {
 		// Opening devTools requests some URL that looks like https://assets.tutanota.com/index-app.html/login?theme=blah
@@ -371,43 +374,43 @@ class MainActivity : FragmentActivity() {
 		}
 	}
 
-  override fun onStart() {
-	super.onStart()
-	Log.d(TAG, "onStart")
-	lifecycleScope.launchWhenCreated {
-	  mobileFacade.visibilityChange(true)
-	}
-  }
-
-  override fun onResume() {
-	super.onResume()
-	this.webauthnResultHandler?.onNoResult()
-	this.webauthnResultHandler = null
-  }
-
-  override fun onStop() {
-	Log.d(TAG, "onStop")
-	lifecycleScope.launch { mobileFacade.visibilityChange(false) }
-	super.onStop()
-  }
-
-  override fun onDestroy() {
-	Log.d(TAG, "onDestroy")
-	runBlocking {
-	  sqlCipherFacade.closeDb()
+	override fun onStart() {
+		super.onStart()
+		Log.d(TAG, "onStart")
+		lifecycleScope.launchWhenCreated {
+			mobileFacade.visibilityChange(true)
+		}
 	}
 
-	super.onDestroy()
-  }
-
-  override fun onConfigurationChanged(newConfig: Configuration) {
-	super.onConfigurationChanged(newConfig)
-	// Since the activity is not being re-created we need to re-apply our theming manually.
-	themeFacade.applyCurrentTheme()
-	lifecycleScope.launch {
-	  commonNativeFacade.updateTheme()
+	override fun onResume() {
+		super.onResume()
+		this.webauthnResultHandler?.onNoResult()
+		this.webauthnResultHandler = null
 	}
-  }
+
+	override fun onStop() {
+		Log.d(TAG, "onStop")
+		lifecycleScope.launch { mobileFacade.visibilityChange(false) }
+		super.onStop()
+	}
+
+	override fun onDestroy() {
+		Log.d(TAG, "onDestroy")
+		runBlocking {
+			sqlCipherFacade.closeDb()
+		}
+
+		super.onDestroy()
+	}
+
+	override fun onConfigurationChanged(newConfig: Configuration) {
+		super.onConfigurationChanged(newConfig)
+		// Since the activity is not being re-created we need to re-apply our theming manually.
+		themeFacade.applyCurrentTheme()
+		lifecycleScope.launch {
+			commonNativeFacade.updateTheme()
+		}
+	}
 
 	@MainThread
 	private fun startWebApp(parameters: MutableMap<String, String>) {
@@ -436,18 +439,18 @@ class MainActivity : FragmentActivity() {
 		if (intent.action != null && !intent.getBooleanExtra(ALREADY_HANDLED_INTENT, false)) {
 			when (intent.action) {
 				Intent.ACTION_SEND, Intent.ACTION_SEND_MULTIPLE, Intent.ACTION_SENDTO -> share(
-					intent
+						intent
 				)
 
 				OPEN_USER_MAILBOX_ACTION -> openMailbox(intent)
 				OPEN_CALENDAR_ACTION -> openCalendar(intent)
-		Intent.ACTION_VIEW -> {
-			when (intent.scheme) {
-				"mailto" -> share(intent)
-				"file" -> view(intent)
-				"content" -> view(intent)
-			}
-		}
+				Intent.ACTION_VIEW -> {
+					when (intent.scheme) {
+						"mailto" -> share(intent)
+						"file" -> view(intent)
+						"content" -> view(intent)
+					}
+				}
 			}
 		}
 	}
@@ -476,8 +479,8 @@ class MainActivity : FragmentActivity() {
 		withContext(Dispatchers.Main) {
 			@SuppressLint("BatteryLife")
 			val intent = Intent(
-				Settings.ACTION_REQUEST_IGNORE_BATTERY_OPTIMIZATIONS,
-				Uri.parse("package:$packageName")
+					Settings.ACTION_REQUEST_IGNORE_BATTERY_OPTIMIZATIONS,
+					Uri.parse("package:$packageName")
 			)
 			startActivityForResult(intent)
 		}
@@ -542,13 +545,13 @@ class MainActivity : FragmentActivity() {
 	}
 
 	suspend fun startActivityForResult(@RequiresPermission intent: Intent?): ActivityResult =
-		suspendCoroutine { continuation ->
-			val requestCode = getNextRequestCode()
-			activityRequests[requestCode] = continuation
-			// we need requestCode to identify the request which is not possible with new API
-			@Suppress("DEPRECATION")
-			super.startActivityForResult(intent, requestCode)
-		}
+			suspendCoroutine { continuation ->
+				val requestCode = getNextRequestCode()
+				activityRequests[requestCode] = continuation
+				// we need requestCode to identify the request which is not possible with new API
+				@Suppress("DEPRECATION")
+				super.startActivityForResult(intent, requestCode)
+			}
 
 	@Deprecated("Deprecated in Java")
 	override fun onActivityResult(requestCode: Int, resultCode: Int, data: Intent?) {
@@ -565,9 +568,9 @@ class MainActivity : FragmentActivity() {
 	fun setupPushNotifications() {
 		try {
 			val serviceIntent = PushNotificationService.startIntent(
-				this,
-				"MainActivity#setupPushNotifications",
-				attemptForeground = true,
+					this,
+					"MainActivity#setupPushNotifications",
+					attemptForeground = true,
 			)
 			startService(serviceIntent)
 		} catch (e: IllegalStateException) {
@@ -576,10 +579,10 @@ class MainActivity : FragmentActivity() {
 		}
 		val jobScheduler = getSystemService(JOB_SCHEDULER_SERVICE) as JobScheduler
 		jobScheduler.schedule(
-			JobInfo.Builder(1, ComponentName(this, PushNotificationService::class.java))
-				.setPeriodic(TimeUnit.MINUTES.toMillis(15))
-				.setRequiredNetworkType(JobInfo.NETWORK_TYPE_ANY)
-				.setPersisted(true).build()
+				JobInfo.Builder(1, ComponentName(this, PushNotificationService::class.java))
+						.setPeriodic(TimeUnit.MINUTES.toMillis(15))
+						.setRequiredNetworkType(JobInfo.NETWORK_TYPE_ANY)
+						.setPersisted(true).build()
 		)
 	}
 
@@ -634,11 +637,11 @@ class MainActivity : FragmentActivity() {
 		}
 		try {
 			commonNativeFacade.createMailEditor(
-				files,
-				text ?: "",
-				addresses,
-				subject ?: "",
-				mailToUrlString
+					files,
+					text ?: "",
+					addresses,
+					subject ?: "",
+					mailToUrlString
 			)
 		} catch (e: RemoteExecutionException) {
 			val name = if (e.message != null) {
@@ -700,10 +703,10 @@ class MainActivity : FragmentActivity() {
 		val addresses = ArrayList<String>(1)
 		addresses.add(address)
 		startService(
-			notificationDismissedIntent(
-				this, addresses,
-				"MainActivity#openMailbox", isSummary
-			)
+				notificationDismissedIntent(
+						this, addresses,
+						"MainActivity#openMailbox", isSummary
+				)
 		)
 
 		commonNativeFacade.openMailBox(userId, address, null)
@@ -754,7 +757,7 @@ class MainActivity : FragmentActivity() {
 			menu.setHeaderTitle(link)
 			menu.add(0, 0, 0, "Copy link").setOnMenuItemClickListener {
 				(getSystemService(CLIPBOARD_SERVICE) as ClipboardManager)
-					.setPrimaryClip(ClipData.newPlainText(link, link))
+						.setPrimaryClip(ClipData.newPlainText(link, link))
 				true
 			}
 			menu.add(0, 2, 0, "Share").setOnMenuItemClickListener {

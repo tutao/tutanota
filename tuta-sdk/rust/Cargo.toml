@@ -1,0 +1,29 @@
+[package]
+name = "tuta-sdk"
+version = "0.1.0"
+edition = "2021"
+
+[dependencies]
+# should not depend on cli but because bin is not in its own crate (yet) we have to use it
+uniffi = { git = "https://github.com/mozilla/uniffi-rs.git", rev = "13a1c559cb3708eeca40dcf95dc8b3ccccf3b88c", features = ["cli"] }
+wasm-bindgen = "0.2.74"
+wasm-bindgen-futures = "0.4.40"
+async-trait = "0.1.77"
+serde = "1.0.201"
+serde_json = "1.0.117"
+thiserror = "1.0.60"
+base64 = "0.22.1"
+
+[build-dependencies]
+uniffi = { git = "https://github.com/mozilla/uniffi-rs.git", rev = "13a1c559cb3708eeca40dcf95dc8b3ccccf3b88c", features = ["build"] }
+
+[dev-dependencies]
+mockall = "0.12.1"
+
+[lib]
+crate-type = ["cdylib", "staticlib", "lib"]
+name = "tutasdk"
+
+[[bin]]
+name = "uniffi-bindgen"
+path = "uniffi-bindgen.rs"
