@@ -100,6 +100,9 @@
 		3D84F58527268EDE00858A58 /* AlarmModelTest.swift in Sources */ = {isa = PBXBuildFile; fileRef = 3D84F58427268EDE00858A58 /* AlarmModelTest.swift */; };
 		3D87ECDF212D921700FD7315 /* ionicons.ttf in Resources */ = {isa = PBXBuildFile; fileRef = 3D87ECDE212D921600FD7315 /* ionicons.ttf */; };
 		3D87ECE6212D9EB000FD7315 /* TUTIcons.m in Sources */ = {isa = PBXBuildFile; fileRef = 3D87ECE5212D9EB000FD7315 /* TUTIcons.m */; };
+		3D881A9D2C04631300E629BE /* sdktest.swift in Sources */ = {isa = PBXBuildFile; fileRef = 3DF257DB2C00D14F00B5D993 /* sdktest.swift */; };
+		3D881B0D2C04B48800E629BE /* tutasdk.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 3D881B0C2C04B48800E629BE /* tutasdk.framework */; settings = {ATTRIBUTES = (Required, ); }; };
+		3D881B0E2C04B48800E629BE /* tutasdk.framework in Embed Frameworks */ = {isa = PBXBuildFile; fileRef = 3D881B0C2C04B48800E629BE /* tutasdk.framework */; settings = {ATTRIBUTES = (CodeSignOnCopy, RemoveHeadersOnCopy, ); }; };
 		3D9A1F0922031B99002C2455 /* InfoPlist.strings in Resources */ = {isa = PBXBuildFile; fileRef = 3D9A1E4222031B82002C2455 /* InfoPlist.strings */; };
 		3D9A1F0A22031B99002C2455 /* InfoPlist.strings in Resources */ = {isa = PBXBuildFile; fileRef = 3D9A1E4522031B82002C2455 /* InfoPlist.strings */; };
 		3D9A1F0B22031B99002C2455 /* InfoPlist.strings in Resources */ = {isa = PBXBuildFile; fileRef = 3D9A1E4822031B82002C2455 /* InfoPlist.strings */; };
@@ -393,6 +396,7 @@
 			dstSubfolderSpec = 10;
 			files = (
 				3DF973A52BB18ABB00AF3FDE /* TutanotaSharedFramework.framework in Embed Frameworks */,
+				3D881B0E2C04B48800E629BE /* tutasdk.framework in Embed Frameworks */,
 			);
 			name = "Embed Frameworks";
 			runOnlyForDeploymentPostprocessing = 0;
@@ -507,6 +511,9 @@
 		3D87ECDE212D921600FD7315 /* ionicons.ttf */ = {isa = PBXFileReference; lastKnownFileType = file; path = ionicons.ttf; sourceTree = "<group>"; };
 		3D87ECE4212D9EAF00FD7315 /* TUTIcons.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = TUTIcons.h; sourceTree = "<group>"; };
 		3D87ECE5212D9EB000FD7315 /* TUTIcons.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = TUTIcons.m; sourceTree = "<group>"; };
+		3D881B062C04920700E629BE /* tutasdk.framework */ = {isa = PBXFileReference; explicitFileType = wrapper.framework; path = tutasdk.framework; sourceTree = BUILT_PRODUCTS_DIR; };
+		3D881B092C04925400E629BE /* tutasdk.framework */ = {isa = PBXFileReference; explicitFileType = wrapper.framework; path = tutasdk.framework; sourceTree = BUILT_PRODUCTS_DIR; };
+		3D881B0C2C04B48800E629BE /* tutasdk.framework */ = {isa = PBXFileReference; explicitFileType = wrapper.framework; path = tutasdk.framework; sourceTree = BUILT_PRODUCTS_DIR; };
 		3D891F2A2106132B0031E528 /* tutanota.entitlements */ = {isa = PBXFileReference; lastKnownFileType = text.plist.entitlements; path = tutanota.entitlements; sourceTree = "<group>"; };
 		3D9A1E4322031B82002C2455 /* hi */ = {isa = PBXFileReference; lastKnownFileType = text.plist.strings; name = hi; path = InfoPlist.strings; sourceTree = "<group>"; };
 		3D9A1E4622031B82002C2455 /* id */ = {isa = PBXFileReference; lastKnownFileType = text.plist.strings; name = id; path = InfoPlist.strings; sourceTree = "<group>"; };
@@ -619,6 +626,7 @@
 		3DEF18F72924E1F1009C4B55 /* Info.plist */ = {isa = PBXFileReference; lastKnownFileType = text.plist.xml; path = Info.plist; sourceTree = "<group>"; };
 		3DEFA1C82BE8D99A009460AE /* AppLockMethod.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = AppLockMethod.swift; sourceTree = "<group>"; };
 		3DEFA1CA2BE8F1C8009460AE /* KeychainEncryption.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = KeychainEncryption.swift; sourceTree = "<group>"; };
+		3DF257DB2C00D14F00B5D993 /* sdktest.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = sdktest.swift; sourceTree = "<group>"; };
 		3DF7FA592AB2EE3B00DB08D1 /* Argon2.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Argon2.swift; sourceTree = "<group>"; };
 		3DF7FA5D2AB2FBE700DB08D1 /* CompatibilityTestSwift.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CompatibilityTestSwift.swift; sourceTree = "<group>"; };
 		3DF9739E2BB18ABA00AF3FDE /* TutanotaSharedFramework.framework */ = {isa = PBXFileReference; explicitFileType = wrapper.framework; includeInIndex = 0; path = TutanotaSharedFramework.framework; sourceTree = BUILT_PRODUCTS_DIR; };
@@ -763,6 +771,7 @@
 				3D4E3C9E28EC5B31001FA9D1 /* Security.framework in Frameworks */,
 				3DF973A42BB18ABB00AF3FDE /* TutanotaSharedFramework.framework in Frameworks */,
 				3D3B5169293797DC00C1B7DA /* Atomics in Frameworks */,
+				3D881B0D2C04B48800E629BE /* tutasdk.framework in Frameworks */,
 				3DDB5E6F28FDA59100E1E4BE /* libcrypto.xcframework in Frameworks */,
 				3D4E3CA028EC5B43001FA9D1 /* Foundation.framework in Frameworks */,
 			);
@@ -1024,6 +1033,7 @@
 		3D74536121089D2200B16F2E /* Sources */ = {
 			isa = PBXGroup;
 			children = (
+				3DF257DB2C00D14F00B5D993 /* sdktest.swift */,
 				3D51A0902BE913AB0036B966 /* AppLockHandler.swift */,
 				3DAED2AD29A6266800806DEA /* Push */,
 				3D220203293F75B000366FD2 /* Webauthn */,
@@ -1104,6 +1114,9 @@
 		3D891EEC2105A5590031E528 /* Frameworks */ = {
 			isa = PBXGroup;
 			children = (
+				3D881B0C2C04B48800E629BE /* tutasdk.framework */,
+				3D881B092C04925400E629BE /* tutasdk.framework */,
+				3D881B062C04920700E629BE /* tutasdk.framework */,
 				3DDB5E6E28FDA59100E1E4BE /* libcrypto.xcframework */,
 				3D4E3C9F28EC5B43001FA9D1 /* Foundation.framework */,
 				3D4E3C9D28EC5B31001FA9D1 /* Security.framework */,
@@ -2325,6 +2338,7 @@
 				3DD4EA392726F41200D58207 /* XCRemoteSwiftPackageReference "DictionaryCoding" */,
 				3D3B5167293797DC00C1B7DA /* XCRemoteSwiftPackageReference "swift-atomics" */,
 				3D0881F92BEA648200E37D7D /* XCRemoteSwiftPackageReference "mockingbird" */,
+				3DF2582B2C00DD6200B5D993 /* XCRemoteSwiftPackageReference "Alamofire" */,
 			);
 			productRefGroup = 3DD4A08420F8C6240086EB36 /* Products */;
 			projectDirPath = "";
@@ -2652,6 +2666,7 @@
 				3D4A426729B6453700B10451 /* AlarmScheduler.swift in Sources */,
 				3D0E44A72B3C3CE500F933A1 /* poly.c in Sources */,
 				3D4A426329B63C0E00B10451 /* AlarmCryptor.swift in Sources */,
+				3D881A9D2C04631300E629BE /* sdktest.swift in Sources */,
 				3D4D78272B62610200829803 /* IosMobileContactsFacade.swift in Sources */,
 				3DDE413B28F4665700837BE6 /* SqlCipherDb.swift in Sources */,
 				3DF7FA5A2AB2EE3B00DB08D1 /* Argon2.swift in Sources */,
@@ -6373,6 +6388,14 @@
 			requirement = {
 				kind = upToNextMajorVersion;
 				minimumVersion = 1.0.0;
+			};
+		};
+		3DF2582B2C00DD6200B5D993 /* XCRemoteSwiftPackageReference "Alamofire" */ = {
+			isa = XCRemoteSwiftPackageReference;
+			repositoryURL = "https://github.com/Alamofire/Alamofire.git";
+			requirement = {
+				kind = upToNextMajorVersion;
+				minimumVersion = 5.9.1;
 			};
 		};
 /* End XCRemoteSwiftPackageReference section */

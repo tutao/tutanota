@@ -29,6 +29,7 @@ class ViewController: UIViewController, WKNavigationDelegate, UIScrollViewDelega
 		contactsSynchronization: IosMobileContactsFacade,
 		userPreferencesProvider: UserPreferencesProvider
 	) {
+
 		self.themeManager = themeManager
 		self.alarmManager = alarmManager
 		self.notificationsHandler = notificaionsHandler
@@ -74,6 +75,7 @@ class ViewController: UIViewController, WKNavigationDelegate, UIScrollViewDelega
 			contactsSynchronization: contactsSynchronization,
 			userPreferencesProvider: userPreferencesProvider
 		)
+
 	}
 
 	required init?(coder: NSCoder) { fatalError("Not NSCodable") }

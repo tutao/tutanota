@@ -10,7 +10,7 @@ let SYS_MODEL_VERSION = 99
 // api/entities/tutanota/ModelInfo.ts
 // FIXME there are at least 5 places needs manual sync for these version numbers.
 // Definitely need a script to automate.
-let TUTANOTA_MODEL_VERSION = 71
+public let TUTANOTA_MODEL_VERSION: UInt32 = 71
 
 public func addSystemModelHeaders(to headers: inout [String: String]) { headers["v"] = String(SYS_MODEL_VERSION) }
 public func addTutanotaModelHeaders(to headers: inout [String: String]) { headers["v"] = String(TUTANOTA_MODEL_VERSION) }
