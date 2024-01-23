@@ -4,4 +4,5 @@
 public struct StructuredMailAddress : Codable {
 	let address: String
 	let type: ContactAddressType
+	let customTypeName: String
 }
