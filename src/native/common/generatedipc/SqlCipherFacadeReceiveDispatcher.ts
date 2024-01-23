@@ -5,7 +5,6 @@ import { SqlCipherFacade } from "./SqlCipherFacade.js"
 
 export class SqlCipherFacadeReceiveDispatcher {
 	constructor(private readonly facade: SqlCipherFacade) {}
-
 	async dispatch(method: string, arg: Array<any>): Promise<any> {
 		switch (method) {
 			case "openDb": {

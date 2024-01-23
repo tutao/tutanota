@@ -6,7 +6,6 @@ import { ExportFacade } from "./ExportFacade.js"
 
 export class ExportFacadeReceiveDispatcher {
 	constructor(private readonly facade: ExportFacade) {}
-
 	async dispatch(method: string, arg: Array<any>): Promise<any> {
 		switch (method) {
 			case "mailToMsg": {
