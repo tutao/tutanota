@@ -9,9 +9,7 @@ import android.net.Uri
 import android.provider.ContactsContract
 import android.provider.ContactsContract.RawContacts
 import android.util.Log
-import de.tutao.tutanota.ipc.NativeContact
-import de.tutao.tutanota.ipc.StructuredContact
-import de.tutao.tutanota.ipc.StructuredMailAddress
+import de.tutao.tutanota.ipc.*
 import kotlinx.serialization.SerialName
 
 
@@ -29,13 +27,13 @@ class Contact(private val activity: MainActivity) {
 
 		val query = "%$queryString%"
 		val selection =
-			ContactsContract.CommonDataKinds.Email.ADDRESS + " LIKE ? OR " + ContactsContract.Contacts.DISPLAY_NAME_PRIMARY + " LIKE ?"
+				ContactsContract.CommonDataKinds.Email.ADDRESS + " LIKE ? OR " + ContactsContract.Contacts.DISPLAY_NAME_PRIMARY + " LIKE ?"
 		val cursor = resolver.query(
-			ContactsContract.CommonDataKinds.Email.CONTENT_URI,
-			PROJECTION,
-			selection,
-			arrayOf(query, query),
-			ContactsContract.Contacts.DISPLAY_NAME_PRIMARY + " ASC "
+				ContactsContract.CommonDataKinds.Email.CONTENT_URI,
+				PROJECTION,
+				selection,
+				arrayOf(query, query),
+				ContactsContract.Contacts.DISPLAY_NAME_PRIMARY + " ASC "
 		)
 		val result = mutableListOf<NativeContact>()
 
@@ -45,8 +43,8 @@ class Contact(private val activity: MainActivity) {
 			try {
 				while (cursor.moveToNext()) {
 					val c = NativeContact(
-						name = cursor.getString(1),
-						mailAddress = cursor.getString(2)
+							name = cursor.getString(1),
+							mailAddress = cursor.getString(2)
 					)
 					result.add(c)
 				}
@@ -103,38 +101,38 @@ class Contact(private val activity: MainActivity) {
 
 	private fun deleteRawContact(storedContact: StoredContact): Int {
 		val uri = ContentUris.withAppendedId(RawContacts.CONTENT_URI, storedContact.rawId).buildUpon()
-			.appendQueryParameter(ContactsContract.CALLER_IS_SYNCADAPTER, "true").build()
+				.appendQueryParameter(ContactsContract.CALLER_IS_SYNCADAPTER, "true").build()
 		return resolver.delete(uri, null, null)
 	}
 
 	private fun readRawContacts(userId: String): Cursor? {
 		val rawContactUri = RawContacts.CONTENT_URI.buildUpon()
-			.appendQueryParameter(RawContacts.ACCOUNT_NAME, userId)
-			.appendQueryParameter(RawContacts.ACCOUNT_TYPE, "tuta")
-			.build()
+				.appendQueryParameter(RawContacts.ACCOUNT_NAME, userId)
+				.appendQueryParameter(RawContacts.ACCOUNT_TYPE, "tuta")
+				.build()
 		val rawContactsCursor = resolver.query(
-			rawContactUri,
-			arrayOf(
-				RawContacts._ID,
-				RawContacts.SOURCE_ID,
-			), null, null, null
+				rawContactUri,
+				arrayOf(
+						RawContacts._ID,
+						RawContacts.SOURCE_ID,
+				), null, null, null
 		)
 		return rawContactsCursor
 	}
 
 	private fun updateContact(
-		storedContact: StoredContact,
-		serverContact: StructuredContact
+			storedContact: StoredContact,
+			serverContact: StructuredContact
 	) {
 		val ops = arrayListOf<ContentProviderOperation>()
 		if (storedContact.displayName != serverContact.name) {
 			val updateNameOp = ContentProviderOperation.newUpdate(ContactsContract.Data.CONTENT_URI)
-				.withSelection(
-					"${ContactsContract.Data.MIMETYPE} = \"${ContactsContract.CommonDataKinds.StructuredName.CONTENT_ITEM_TYPE}\" AND ${ContactsContract.Data.RAW_CONTACT_ID} = ?",
-					arrayOf(storedContact.rawId.toString())
-				)
-				.withValue(ContactsContract.CommonDataKinds.StructuredName.DISPLAY_NAME, serverContact.name)
-				.build()
+					.withSelection(
+							"${ContactsContract.Data.MIMETYPE} = \"${ContactsContract.CommonDataKinds.StructuredName.CONTENT_ITEM_TYPE}\" AND ${ContactsContract.Data.RAW_CONTACT_ID} = ?",
+							arrayOf(storedContact.rawId.toString())
+					)
+					.withValue(ContactsContract.CommonDataKinds.StructuredName.DISPLAY_NAME, serverContact.name)
+					.build()
 			ops += updateNameOp
 			Log.d(TAG, "Updated name for ${serverContact.id}")
 		}
@@ -143,44 +141,89 @@ class Contact(private val activity: MainActivity) {
 			if (storedAddress != null) {
 				if (storedAddress.type != serverMailAddress.type.toAndroidType()) {
 					Log.d(
-						TAG,
-						"Different mail address types for $storedAddress. Stored: ${storedAddress.type}, server: ${serverMailAddress.type.toAndroidType()} (as entity type: ${serverMailAddress.type})"
+							TAG,
+							"Different mail address types for $storedAddress. Stored: ${storedAddress.type}, server: ${serverMailAddress.type.toAndroidType()} (as entity type: ${serverMailAddress.type})"
 					)
 					val updateTypeOp = ContentProviderOperation.newUpdate(ContactsContract.Data.CONTENT_URI)
-						.withSelection(
-							"${ContactsContract.Data.MIMETYPE} = \"${ContactsContract.CommonDataKinds.Email.CONTENT_ITEM_TYPE}\" AND ${ContactsContract.Data.RAW_CONTACT_ID} = ? AND ${ContactsContract.CommonDataKinds.Email.DATA} = ?",
-							arrayOf(storedContact.rawId.toString(), storedAddress.address)
-						)
-						.withValue(
-							ContactsContract.CommonDataKinds.Email.TYPE,
-							serverMailAddress.type.toAndroidType()
-						)
-						.build()
+							.withSelection(
+									"${ContactsContract.Data.MIMETYPE} = \"${ContactsContract.CommonDataKinds.Email.CONTENT_ITEM_TYPE}\" AND ${ContactsContract.Data.RAW_CONTACT_ID} = ? AND ${ContactsContract.CommonDataKinds.Email.DATA} = ?",
+									arrayOf(storedContact.rawId.toString(), storedAddress.address)
+							)
+							.withValue(
+									ContactsContract.CommonDataKinds.Email.TYPE,
+									serverMailAddress.type.toAndroidType()
+							)
+							.build()
 					ops += updateTypeOp
 					Log.d(
-						TAG,
-						"Updated type for ${serverContact.id} $serverMailAddress ${serverMailAddress.type.toAndroidType()}"
+							TAG,
+							"Updated type for ${serverContact.id} $serverMailAddress ${serverMailAddress.type.toAndroidType()}"
 					)
 				}
 			} else {
 				// it's a new mail address
 				val createEmailAddressOp = insertMailAddressOperation(serverMailAddress)
-					.withValue(ContactsContract.Data.RAW_CONTACT_ID, storedContact.rawId)
-					.build()
+						.withValue(ContactsContract.Data.RAW_CONTACT_ID, storedContact.rawId)
+						.build()
 				ops += createEmailAddressOp
 				Log.d(TAG, "Created address ${serverContact.id} ${serverMailAddress.address}")
+			}
+		}
+		for (serverPhoneNumber in serverContact.phoneNumbers) {
+			val storedNumber = storedContact.phoneNumbers.find { it.number == serverPhoneNumber.number }
+			if (storedNumber != null) {
+				if (storedNumber.type != serverPhoneNumber.type.toAndroidType()) {
+					Log.d(
+							TAG,
+							"Different phone number types for $storedNumber. Stored: ${storedNumber.type}, server: ${serverPhoneNumber.type.toAndroidType()} (as entity type: ${serverPhoneNumber.type})"
+					)
+					val updateTypeOp = ContentProviderOperation.newUpdate(ContactsContract.Data.CONTENT_URI)
+							.withSelection(
+									"${ContactsContract.Data.MIMETYPE} = \"${ContactsContract.CommonDataKinds.Phone.CONTENT_ITEM_TYPE}\" AND ${ContactsContract.Data.RAW_CONTACT_ID} = ? AND ${ContactsContract.CommonDataKinds.Phone.DATA} = ?",
+									arrayOf(storedContact.rawId.toString(), storedNumber.number)
+							)
+							.withValue(
+									ContactsContract.CommonDataKinds.Phone.TYPE,
+									serverPhoneNumber.type.toAndroidType()
+							)
+							.build()
+					ops += updateTypeOp
+					Log.d(
+							TAG,
+							"Updated type for ${serverContact.id} $serverPhoneNumber ${serverPhoneNumber.type.toAndroidType()}"
+					)
+				}
+			} else {
+				// it's a new phone number
+				val createEmailAddressOp = insertPhoneNumberOperations(serverPhoneNumber)
+						.withValue(ContactsContract.Data.RAW_CONTACT_ID, storedContact.rawId)
+						.build()
+				ops += createEmailAddressOp
+				Log.d(TAG, "Created phone number ${serverContact.id} ${serverPhoneNumber.number}")
 			}
 		}
 		for (storedMailAddress in storedContact.emailAddresses) {
 			if (serverContact.mailAddresses.none { it.address == storedMailAddress.address }) {
 				val deleteOp = ContentProviderOperation.newDelete(ContactsContract.Data.CONTENT_URI)
-					.withSelection(
-						"${ContactsContract.Data.MIMETYPE} = \"${ContactsContract.CommonDataKinds.Email.CONTENT_ITEM_TYPE}\" AND ${ContactsContract.Data.RAW_CONTACT_ID} = ? AND ${ContactsContract.CommonDataKinds.Email.DATA} = ?",
-						arrayOf(storedContact.rawId.toString(), storedMailAddress.address)
-					)
-					.build()
+						.withSelection(
+								"${ContactsContract.Data.MIMETYPE} = \"${ContactsContract.CommonDataKinds.Email.CONTENT_ITEM_TYPE}\" AND ${ContactsContract.Data.RAW_CONTACT_ID} = ? AND ${ContactsContract.CommonDataKinds.Email.DATA} = ?",
+								arrayOf(storedContact.rawId.toString(), storedMailAddress.address)
+						)
+						.build()
 				ops += deleteOp
 				Log.d(TAG, "Deleted address ${serverContact.id} ${storedMailAddress.address}")
+			}
+		}
+		for (storedPhoneNumber in storedContact.phoneNumbers) {
+			if (serverContact.phoneNumbers.none { it.number == storedPhoneNumber.number }) {
+				val deleteOp = ContentProviderOperation.newDelete(ContactsContract.Data.CONTENT_URI)
+						.withSelection(
+								"${ContactsContract.Data.MIMETYPE} = \"${ContactsContract.CommonDataKinds.Phone.CONTENT_ITEM_TYPE}\" AND ${ContactsContract.Data.RAW_CONTACT_ID} = ? AND ${ContactsContract.CommonDataKinds.Phone.DATA} = ?",
+								arrayOf(storedContact.rawId.toString(), storedPhoneNumber.number)
+						)
+						.build()
+				ops += deleteOp
+				Log.d(TAG, "Deleted phone number ${serverContact.id} ${storedPhoneNumber.number}")
 			}
 		}
 		if (ops.isNotEmpty()) {
@@ -189,59 +232,67 @@ class Contact(private val activity: MainActivity) {
 	}
 
 	private fun createContact(
-		ops: ArrayList<ContentProviderOperation>,
-		userId: String,
-		contact: StructuredContact
+			ops: ArrayList<ContentProviderOperation>,
+			userId: String,
+			contact: StructuredContact
 	) {
 		val index = ops.size
 		ops.add(
-			ContentProviderOperation.newInsert(RawContacts.CONTENT_URI)
-				.withValue(RawContacts.ACCOUNT_TYPE, "tuta")
-				.withValue(RawContacts.ACCOUNT_NAME, userId)
-				.withValue(RawContacts.SOURCE_ID, contact.id)
-				.build()
+				ContentProviderOperation.newInsert(RawContacts.CONTENT_URI)
+						.withValue(RawContacts.ACCOUNT_TYPE, "tuta")
+						.withValue(RawContacts.ACCOUNT_NAME, userId)
+						.withValue(RawContacts.SOURCE_ID, contact.id)
+						.build()
 		)
 
 		ops.add(
-			ContentProviderOperation.newInsert(ContactsContract.Data.CONTENT_URI)
-				.withValueBackReference(RawContacts.Data.RAW_CONTACT_ID, index)
-				.withValue(
-					RawContacts.Data.MIMETYPE,
-					ContactsContract.CommonDataKinds.StructuredName.CONTENT_ITEM_TYPE
-				)
-				.withValue(ContactsContract.CommonDataKinds.StructuredName.DISPLAY_NAME, contact.name)
-				.build()
+				ContentProviderOperation.newInsert(ContactsContract.Data.CONTENT_URI)
+						.withValueBackReference(RawContacts.Data.RAW_CONTACT_ID, index)
+						.withValue(
+								RawContacts.Data.MIMETYPE,
+								ContactsContract.CommonDataKinds.StructuredName.CONTENT_ITEM_TYPE
+						)
+						.withValue(ContactsContract.CommonDataKinds.StructuredName.DISPLAY_NAME, contact.name)
+						.build()
 		)
 
 		for (mailAddress in contact.mailAddresses) {
 			ops.add(
-				insertMailAddressOperation(mailAddress)
-					.withValueBackReference(ContactsContract.Data.RAW_CONTACT_ID, index)
-					.build()
+					insertMailAddressOperation(mailAddress)
+							.withValueBackReference(ContactsContract.Data.RAW_CONTACT_ID, index)
+							.build()
+			)
+		}
+
+		for (phoneNumber in contact.phoneNumbers) {
+			ops.add(
+					insertPhoneNumberOperations(phoneNumber)
+							.withValueBackReference(ContactsContract.Data.RAW_CONTACT_ID, index)
+							.build()
 			)
 		}
 	}
 
 	private fun readContact(
-		rawContactId: Long,
-		sourceId: String
+			rawContactId: Long,
+			sourceId: String
 	): StoredContact {
 		Log.d(TAG, "raw contact id $rawContactId  $sourceId")
 		val storedContact = StoredContact(rawContactId, sourceId)
 
 		val entityUri = Uri.withAppendedPath(
-			ContentUris.withAppendedId(RawContacts.CONTENT_URI, rawContactId),
-			RawContacts.Entity.CONTENT_DIRECTORY
+				ContentUris.withAppendedId(RawContacts.CONTENT_URI, rawContactId),
+				RawContacts.Entity.CONTENT_DIRECTORY
 		)
 		resolver.query(
-			entityUri,
-			arrayOf(
-				RawContacts.SOURCE_ID,
-				RawContacts.Entity.DATA_ID,
-				RawContacts.Entity.MIMETYPE,
-				RawContacts.Entity.DATA1,
-				RawContacts.Entity.DATA2,
-			), null, null, null
+				entityUri,
+				arrayOf(
+						RawContacts.SOURCE_ID,
+						RawContacts.Entity.DATA_ID,
+						RawContacts.Entity.MIMETYPE,
+						RawContacts.Entity.DATA1,
+						RawContacts.Entity.DATA2,
+				), null, null, null
 		).use { entityCursor ->
 			while (entityCursor!!.moveToNext()) {
 				val sourceId = entityCursor.getString(0)
@@ -253,10 +304,11 @@ class Contact(private val activity: MainActivity) {
 //					Log.d(TAG, "Raw contact data $sourceId $mimeType $data")
 					when (mimeType) {
 						ContactsContract.CommonDataKinds.StructuredName.CONTENT_ITEM_TYPE -> storedContact.displayName =
-							data
+								data
 						ContactsContract.CommonDataKinds.Email.CONTENT_ITEM_TYPE -> storedContact.emailAddresses.add(
-							StoredEmailAddress(data, entityCursor.getInt(4))
+								StoredEmailAddress(data, entityCursor.getInt(4))
 						)
+						ContactsContract.CommonDataKinds.Phone.CONTENT_ITEM_TYPE -> storedContact.phoneNumbers.add(StoredPhoneNumber(data, entityCursor.getInt(4)))
 					}
 				}
 			}
@@ -265,43 +317,67 @@ class Contact(private val activity: MainActivity) {
 	}
 
 	private fun insertMailAddressOperation(mailAddress: StructuredMailAddress) =
-		ContentProviderOperation
-			.newInsert(ContactsContract.Data.CONTENT_URI)
-			.withValue(
-				RawContacts.Data.MIMETYPE,
-				ContactsContract.CommonDataKinds.Email.CONTENT_ITEM_TYPE
-			)
-			.withValue(ContactsContract.CommonDataKinds.Email.DATA, mailAddress.address)
-			.withValue(
-				RawContacts.Data.MIMETYPE,
-				ContactsContract.CommonDataKinds.Email.CONTENT_ITEM_TYPE
-			)
-			// FIXME: grab the right type
-			.withValue(
-				ContactsContract.CommonDataKinds.Email.TYPE,
-				mailAddress.type.toAndroidType(),
-			)
+			ContentProviderOperation
+					.newInsert(ContactsContract.Data.CONTENT_URI)
+					.withValue(
+							RawContacts.Data.MIMETYPE,
+							ContactsContract.CommonDataKinds.Email.CONTENT_ITEM_TYPE
+					)
+					.withValue(ContactsContract.CommonDataKinds.Email.DATA, mailAddress.address)
+					.withValue(
+							RawContacts.Data.MIMETYPE,
+							ContactsContract.CommonDataKinds.Email.CONTENT_ITEM_TYPE
+					)
+					// FIXME: grab the right type
+					.withValue(
+							ContactsContract.CommonDataKinds.Email.TYPE,
+							mailAddress.type.toAndroidType(),
+					)
+
+	private fun insertPhoneNumberOperations(phoneNumber: StructuredPhoneNumber) =
+			ContentProviderOperation
+					.newInsert(ContactsContract.Data.CONTENT_URI)
+					.withValue(
+							RawContacts.Data.MIMETYPE,
+							ContactsContract.CommonDataKinds.Phone.MIMETYPE
+					)
+					.withValue(ContactsContract.CommonDataKinds.Phone.DATA, phoneNumber.number)
+					.withValue(
+							RawContacts.Data.MIMETYPE,
+							ContactsContract.CommonDataKinds.Phone.CONTENT_ITEM_TYPE
+					)
+					// FIXME: grab the right type
+					.withValue(
+							ContactsContract.CommonDataKinds.Phone.TYPE,
+							phoneNumber.type.toAndroidType(),
+					)
 
 	companion object {
 		private val PROJECTION = arrayOf(
-			ContactsContract.Contacts._ID,
-			ContactsContract.Contacts.DISPLAY_NAME_PRIMARY,
-			ContactsContract.CommonDataKinds.Email.ADDRESS
+				ContactsContract.Contacts._ID,
+				ContactsContract.Contacts.DISPLAY_NAME_PRIMARY,
+				ContactsContract.CommonDataKinds.Email.ADDRESS
 		)
 		const val TAG = "Contact"
 	}
 }
 
 data class StoredEmailAddress(
-	val address: String,
-	val type: Int,
+		val address: String,
+		val type: Int,
+)
+
+data class StoredPhoneNumber(
+		val number: String,
+		val type: Int
 )
 
 data class StoredContact(
-	val rawId: Long,
-	val sourceId: String,
-	var displayName: String? = null,
-	val emailAddresses: MutableList<StoredEmailAddress> = mutableListOf()
+		val rawId: Long,
+		val sourceId: String,
+		var displayName: String? = null,
+		val emailAddresses: MutableList<StoredEmailAddress> = mutableListOf(),
+		val phoneNumbers: MutableList<StoredPhoneNumber> = mutableListOf()
 )
 
 @kotlinx.serialization.Serializable
@@ -319,9 +395,39 @@ enum class ContactAddressType {
 	CUSTOM,
 }
 
+enum class ContactPhoneNumberType {
+	@SerialName("0")
+	PRIVATE,
+
+	@SerialName("1")
+	WORK,
+
+	@SerialName("2")
+	MOBILE,
+
+	@SerialName("3")
+	FAX,
+
+	@SerialName("4")
+	OTHER,
+
+	@SerialName("5")
+	CUSTOM,
+}
+
+
 fun ContactAddressType.toAndroidType() = when (this) {
 	ContactAddressType.PRIVATE -> ContactsContract.CommonDataKinds.Email.TYPE_HOME
 	ContactAddressType.WORK -> ContactsContract.CommonDataKinds.Email.TYPE_WORK
 	ContactAddressType.OTHER -> ContactsContract.CommonDataKinds.Email.TYPE_OTHER
 	ContactAddressType.CUSTOM -> ContactsContract.CommonDataKinds.Email.TYPE_CUSTOM
+}
+
+fun ContactPhoneNumberType.toAndroidType() = when (this) {
+	ContactPhoneNumberType.PRIVATE -> ContactsContract.CommonDataKinds.Phone.TYPE_HOME
+	ContactPhoneNumberType.WORK -> ContactsContract.CommonDataKinds.Phone.TYPE_WORK
+	ContactPhoneNumberType.MOBILE -> ContactsContract.CommonDataKinds.Phone.TYPE_MOBILE
+	ContactPhoneNumberType.FAX -> ContactsContract.CommonDataKinds.Phone.TYPE_OTHER_FAX //fixme Is there any better FAX option?
+	ContactPhoneNumberType.OTHER -> ContactsContract.CommonDataKinds.Phone.TYPE_OTHER
+	ContactPhoneNumberType.CUSTOM -> ContactsContract.CommonDataKinds.Phone.TYPE_CUSTOM
 }

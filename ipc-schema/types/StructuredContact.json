@@ -4,6 +4,7 @@
 	"fields": {
 		"id": "string",
 		"name": "string",
-		"mailAddresses": "List<StructuredMailAddress>"
+		"mailAddresses": "List<StructuredMailAddress>",
+		"phoneNumbers": "List<StructuredPhoneNumber>"
 	}
 }
