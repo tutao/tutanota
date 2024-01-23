@@ -119,8 +119,14 @@ export class PostLoginActions implements PostLoginAction {
 						type: address.type,
 					}
 				}),
+				phoneNumbers: contact.phoneNumbers.map((phone) => {
+					return {
+						number: phone.number,
+						type: phone.type,
+					}
+				}),
 			}
-		})
+		}) as StructuredContact[]
 		await locator.systemFacade.saveContacts(this.logins.getUserController().userId, structuredContacts)
 	}
 
