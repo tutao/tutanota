@@ -6,7 +6,6 @@ import { WebAuthnFacade } from "./WebAuthnFacade.js"
 
 export class WebAuthnFacadeReceiveDispatcher {
 	constructor(private readonly facade: WebAuthnFacade) {}
-
 	async dispatch(method: string, arg: Array<any>): Promise<any> {
 		switch (method) {
 			case "register": {
