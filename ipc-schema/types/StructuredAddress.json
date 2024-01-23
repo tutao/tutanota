@@ -1,0 +1,9 @@
+{
+	"name": "StructuredAddress",
+	"type": "struct",
+	"fields": {
+		"address": "string",
+		"type": "ContactAddressType",
+		"customTypeName": "string"
+	}
+}

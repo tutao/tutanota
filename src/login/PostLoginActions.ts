@@ -15,7 +15,7 @@ import * as notificationOverlay from "../gui/base/NotificationOverlay"
 import { ButtonType } from "../gui/base/Button.js"
 import { themeController } from "../gui/theme"
 import { Dialog } from "../gui/base/Dialog"
-import { CloseEventBusOption, Const, SecondFactorType } from "../api/common/TutanotaConstants"
+import { CloseEventBusOption, Const, ContactAddressType, ContactPhoneNumberType, SecondFactorType } from "../api/common/TutanotaConstants"
 import { showMoreStorageNeededOrderDialog } from "../misc/SubscriptionDialogs"
 import { notifications } from "../gui/Notifications"
 import { LockedError } from "../api/common/error/RestError"
@@ -116,19 +116,29 @@ export class PostLoginActions implements PostLoginAction {
 				mailAddresses: contact.mailAddresses.map((address) => {
 					return {
 						address: address.address,
-						type: address.type,
+						type: address.type as ContactAddressType,
 						customTypeName: address.customTypeName,
 					}
 				}),
 				phoneNumbers: contact.phoneNumbers.map((phone) => {
 					return {
 						number: phone.number,
-						type: phone.type,
+						type: phone.type as ContactPhoneNumberType,
 						customTypeName: phone.customTypeName,
 					}
 				}),
+				nickname: contact.nickname,
+				company: contact.company,
+				birthday: contact.birthdayIso,
+				addresses: contact.addresses.map((address) => {
+					return {
+						address: address.address,
+						type: address.type as ContactAddressType,
+						customTypeName: address.customTypeName,
+					}
+				}),
 			}
-		}) as StructuredContact[]
+		})
 		await locator.systemFacade.saveContacts(this.logins.getUserController().userId, structuredContacts)
 	}
 
