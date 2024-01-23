@@ -8,8 +8,8 @@ import kotlinx.serialization.json.*
 
 
 @Serializable
-data class StructuredMailAddress(
-	val address: String,
-	val type: ContactAddressType,
+data class StructuredPhoneNumber(
+	val number: String,
+	val type: ContactPhoneNumberType,
 	val customTypeName: String,
 )
