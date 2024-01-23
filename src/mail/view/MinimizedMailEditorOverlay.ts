@@ -12,6 +12,7 @@ import { MinimizedMailEditorViewModel } from "../model/MinimizedMailEditorViewMo
 import { MinimizedEditorOverlay } from "./MinimizedEditorOverlay"
 import { assertMainOrNode } from "../../api/common/Env"
 import Stream from "mithril/stream"
+import { noOp } from "@tutao/tutanota-utils"
 
 assertMainOrNode()
 const MINIMIZED_OVERLAY_WIDTH_WIDE = 350
@@ -26,7 +27,7 @@ export function showMinimizedMailEditor(
 	dispose: () => void,
 	saveStatus: Stream<SaveStatus>,
 ): void {
-	let closeOverlayFunction = () => Promise.resolve() // will be assigned with the actual close function when overlay is visible.
+	let closeOverlayFunction: () => void = noOp // will be assigned with the actual close function when overlay is visible.
 
 	const minimizedEditor = viewModel.minimizeMailEditor(dialog, sendMailModel, dispose, saveStatus, () => closeOverlayFunction())
 	// only show overlay once editor is gone
@@ -35,11 +36,7 @@ export function showMinimizedMailEditor(
 	}, DefaultAnimationTime)
 }
 
-function showMinimizedEditorOverlay(
-	viewModel: MinimizedMailEditorViewModel,
-	minimizedEditor: MinimizedEditor,
-	eventController: EventController,
-): () => Promise<void> {
+function showMinimizedEditorOverlay(viewModel: MinimizedMailEditorViewModel, minimizedEditor: MinimizedEditor, eventController: EventController): () => void {
 	return displayOverlay(
 		() => getOverlayPosition(),
 		{

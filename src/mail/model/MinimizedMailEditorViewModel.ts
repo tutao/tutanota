@@ -35,7 +35,7 @@ export type MinimizedEditor = {
 	dispose: () => void
 	// disposes dialog and templatePopup eventListeners when minimized mail is removed
 	saveStatus: Stream<SaveStatus>
-	closeOverlayFunction: () => Promise<void>
+	closeOverlayFunction: () => void
 }
 
 /**
@@ -53,7 +53,7 @@ export class MinimizedMailEditorViewModel {
 		sendMailModel: SendMailModel,
 		dispose: () => void,
 		saveStatus: Stream<SaveStatus>,
-		closeOverlayFunction: () => Promise<void>,
+		closeOverlayFunction: () => void,
 	): MinimizedEditor {
 		dialog.close()
 

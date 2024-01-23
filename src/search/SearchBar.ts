@@ -66,7 +66,7 @@ export class SearchBar implements Component<SearchBarAttrs> {
 	private readonly state: Stream<SearchBarState>
 	busy: boolean = false
 	private lastSelectedWhitelabelChildrenInfoResult: Stream<WhitelabelChild> = stream()
-	private closeOverlayFunction: (() => Promise<void>) | null = null
+	private closeOverlayFunction: (() => void) | null = null
 	private readonly overlayContentComponent: Component
 	private confirmDialogShown: boolean = false
 	private domWrapper!: HTMLElement
