@@ -2,7 +2,6 @@
 
 import { NativeContact } from "./NativeContact.js"
 import { StructuredContact } from "./StructuredContact.js"
-
 /**
  * Common operations implemented by each mobile platform.
  */
