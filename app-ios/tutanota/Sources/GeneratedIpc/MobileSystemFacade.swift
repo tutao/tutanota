@@ -21,6 +21,20 @@ public protocol MobileSystemFacade {
 		_ contacts: [StructuredContact]
 	) async throws -> Void
 	/**
+	 * Sync contacts with system contact book
+	 */
+	func syncContacts(
+		_ userId: String,
+		_ contacts: [StructuredContact]
+	) async throws -> Void
+	/**
+	 * Delete a contact from system contact book
+	 */
+	func deleteContact(
+		_ userId: String,
+		_ contactId: String
+	) async throws -> Void
+	/**
 	 * Open URI in the OS.
 	 */
 	func openLink(

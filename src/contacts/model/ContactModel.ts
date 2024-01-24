@@ -6,18 +6,21 @@ import { NotAuthorizedError, NotFoundError } from "../../api/common/error/RestEr
 import { DbError } from "../../api/common/error/DbError"
 import { EntityClient, loadMultipleFromLists } from "../../api/common/EntityClient"
 import type { LoginController } from "../../api/main/LoginController"
-import { compareOldestFirst, getEtId } from "../../api/common/utils/EntityUtils"
+import { compareOldestFirst, elementIdPart, getEtId } from "../../api/common/utils/EntityUtils"
 import type { SearchFacade } from "../../api/worker/search/SearchFacade"
-import { assertMainOrNode } from "../../api/common/Env"
+import { assertMainOrNode, isApp } from "../../api/common/Env"
 import { LoginIncompleteError } from "../../api/common/error/LoginIncompleteError"
 import { cleanMailAddress } from "../../api/common/utils/CommonCalendarUtils.js"
 import { Group, GroupInfo, GroupInfoTypeRef, GroupMembership, GroupTypeRef } from "../../api/entities/sys/TypeRefs.js"
 import { EntityEventsListener, EventController } from "../../api/main/EventController.js"
 import Stream from "mithril/stream"
 import stream from "mithril/stream"
-import { ShareCapability } from "../../api/common/TutanotaConstants.js"
+import { OperationType, ShareCapability } from "../../api/common/TutanotaConstants.js"
 import { isSharedGroupOwner } from "../../sharing/GroupUtils.js"
-import { EntityUpdateData } from "../../api/common/utils/EntityUpdateUtils.js"
+import { EntityUpdateData, isUpdateForTypeRef } from "../../api/common/utils/EntityUpdateUtils.js"
+import { MobileSystemFacade } from "../../native/common/generatedipc/MobileSystemFacade.js"
+import { StructuredContact } from "../../native/common/generatedipc/StructuredContact.js"
+import { extractStructuredAddresses, extractStructuredMailAddresses, extractStructuredPhoneNumbers } from "./ContactUtils.js"
 
 assertMainOrNode()
 
@@ -39,6 +42,7 @@ export class ContactModel {
 		private readonly entityClient: EntityClient,
 		private readonly loginController: LoginController,
 		private readonly eventController: EventController,
+		private readonly mobileSystemFacade: MobileSystemFacade | null,
 	) {
 		this.contactListId = lazyContactListId(loginController, this.entityClient)
 		this.eventController.addEntityListener(this.entityEventsReceived)
@@ -178,6 +182,59 @@ export class ContactModel {
 				await this.loadContactLists()
 			}
 		}
+
+		if (isApp()) {
+			this.processNativeContactEntityEvents(updates)
+		}
+	}
+
+	private async processNativeContactEntityEvents(events: ReadonlyArray<EntityUpdateData>) {
+		const userId = this.loginController.getUserController().userId
+		const contactsIdToCreateOrUpdate: Map<Id, Array<Id>> = new Map()
+
+		for (const event of events) {
+			if (!isUpdateForTypeRef(ContactTypeRef, event)) continue
+			if (event.operation === OperationType.CREATE) {
+				if (contactsIdToCreateOrUpdate.has(event.instanceListId)) {
+					contactsIdToCreateOrUpdate.get(event.instanceListId)?.push(event.instanceId)
+				} else {
+					contactsIdToCreateOrUpdate.set(event.instanceListId, [event.instanceId])
+				}
+			} else if (event.operation === OperationType.UPDATE) {
+				if (contactsIdToCreateOrUpdate.has(event.instanceListId)) {
+					contactsIdToCreateOrUpdate.get(event.instanceListId)?.push(event.instanceId)
+				} else {
+					contactsIdToCreateOrUpdate.set(event.instanceListId, [event.instanceId])
+				}
+			} else if (event.operation === OperationType.DELETE) {
+				this.mobileSystemFacade?.deleteContact(userId, event.instanceId)
+			}
+		}
+
+		const contactsToInsertOrUpdate: StructuredContact[] = []
+
+		Promise.all(
+			Array.from(contactsIdToCreateOrUpdate.entries()).map(async (entries) => {
+				const contactList = await this.entityClient.loadMultiple(ContactTypeRef, entries[0], entries[1])
+				contactList.map((contact) => {
+					contactsToInsertOrUpdate.push({
+						id: elementIdPart(contact._id),
+						firstName: contact.firstName,
+						lastName: contact.lastName,
+						nickname: contact.nickname,
+						birthday: contact.birthdayIso,
+						company: contact.company,
+						mailAddresses: extractStructuredMailAddresses(contact.mailAddresses),
+						phoneNumbers: extractStructuredPhoneNumbers(contact.phoneNumbers),
+						addresses: extractStructuredAddresses(contact.addresses),
+					})
+				})
+			}),
+		).then(() => {
+			if (contactsToInsertOrUpdate.length > 0) {
+				this.mobileSystemFacade?.saveContacts(userId, contactsToInsertOrUpdate)
+			}
+		})
 	}
 }
 

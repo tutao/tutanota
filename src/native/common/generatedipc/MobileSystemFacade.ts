@@ -17,6 +17,16 @@ export interface MobileSystemFacade {
 	saveContacts(userId: string, contacts: ReadonlyArray<StructuredContact>): Promise<void>
 
 	/**
+	 * Sync contacts with system contact book
+	 */
+	syncContacts(userId: string, contacts: ReadonlyArray<StructuredContact>): Promise<void>
+
+	/**
+	 * Delete a contact from system contact book
+	 */
+	deleteContact(userId: string, contactId: string): Promise<void>
+
+	/**
 	 * Open URI in the OS.
 	 */
 	openLink(uri: string): Promise<boolean>

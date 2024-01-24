@@ -7,8 +7,8 @@ import android.content.Intent
 import android.net.Uri
 import android.util.Log
 import androidx.core.content.FileProvider
-import de.tutao.tutanota.ipc.NativeContact
 import de.tutao.tutanota.ipc.MobileSystemFacade
+import de.tutao.tutanota.ipc.NativeContact
 import de.tutao.tutanota.ipc.StructuredContact
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.withContext
@@ -35,6 +35,14 @@ class AndroidMobileSystemFacade(
 				false
 			}
 		}
+	}
+
+	override suspend fun deleteContact(userId: String, contactId: String) {
+		return contact.deleteContact(userId, contactId)
+	}
+
+	override suspend fun syncContacts(userId: String, contacts: List<StructuredContact>) {
+		return contact.syncContacts(userId, contacts)
 	}
 
 	override suspend fun saveContacts(userId: String, contacts: List<StructuredContact>) {

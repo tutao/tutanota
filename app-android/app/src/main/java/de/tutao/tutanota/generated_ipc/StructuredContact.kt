@@ -10,7 +10,8 @@ import kotlinx.serialization.json.*
 @Serializable
 data class StructuredContact(
 	val id: String,
-	val name: String,
+	val firstName: String,
+	val lastName: String,
 	val nickname: String?,
 	val company: String,
 	val birthday: String?,

@@ -55,6 +55,21 @@ class Contact(private val activity: MainActivity) {
 		}
 	}
 
+	suspend fun deleteContact(userId: String, contactId: String) {
+		activity.getPermission(Manifest.permission.READ_CONTACTS)
+		activity.getPermission(Manifest.permission.WRITE_CONTACTS)
+
+		retrieveRawContacts(userId, contactId).use { cursor ->
+			if (cursor != null) {
+				while (cursor.moveToNext()) {
+					val rawContactId = cursor.getLong(0)
+					val sourceId = cursor.getString(1)
+					deleteRawContact(StoredContact(rawContactId, sourceId))
+				}
+			}
+		}
+	}
+
 	suspend fun saveContacts(userId: String, contacts: List<StructuredContact>) {
 		activity.getPermission(Manifest.permission.READ_CONTACTS)
 		activity.getPermission(Manifest.permission.WRITE_CONTACTS)
@@ -62,10 +77,15 @@ class Contact(private val activity: MainActivity) {
 		/** map from sourceId to id */
 		val alreadyStoredContacts = mutableMapOf<String, StoredContact>()
 
-		readRawContacts(userId).use { cursor ->
+		retrieveRawContacts(userId).use { cursor ->
 			while (cursor!!.moveToNext()) {
 				val rawContactId = cursor.getLong(0)
 				val sourceId = cursor.getString(1)
+
+				if (sourceId == null) {
+					Log.d(TAG, "invalid contact $rawContactId - no source Id")
+					continue
+				}
 
 				val storedContact = readContact(rawContactId, sourceId)
 				alreadyStoredContacts[storedContact.sourceId] = storedContact
@@ -88,9 +108,55 @@ class Contact(private val activity: MainActivity) {
 		val serverContactsById = contacts.groupBy { it.id }.mapValues { it.value[0] }
 		for ((storedContactId, storedContact) in alreadyStoredContacts) {
 			val serverContact = serverContactsById[storedContactId]
+			if (serverContact != null) {
+				updateContact(storedContact, serverContact)
+			}
+		}
+
+		val result = resolver.applyBatch(ContactsContract.AUTHORITY, ops)
+		Log.d(TAG, "save contact result: $result")
+	}
+
+	suspend fun syncContacts(userId: String, contacts: List<StructuredContact>) {
+		activity.getPermission(Manifest.permission.READ_CONTACTS)
+		activity.getPermission(Manifest.permission.WRITE_CONTACTS)
+
+		/** map from sourceId to id */
+		val alreadyStoredContacts = mutableMapOf<String, StoredContact>()
+
+		retrieveRawContacts(userId).use { cursor ->
+			while (cursor!!.moveToNext()) {
+				val rawContactId = cursor.getLong(0)
+				val sourceId = cursor.getString(1)
+
+				if (sourceId == null) {
+					Log.d(TAG, "invalid contact $rawContactId - no source Id")
+					continue
+				}
+				val storedContact = readContact(rawContactId, sourceId)
+				alreadyStoredContacts[storedContact.sourceId] = storedContact
+			}
+		}
+
+		Log.d(TAG, "already stored contacts: ${alreadyStoredContacts.size}")
+
+		val ops = arrayListOf<ContentProviderOperation>()
+		for (contact in contacts) {
+			if (alreadyStoredContacts.contains(contact.id)) {
+				Log.d(TAG, "Already has contact ${contact.id}")
+				continue
+			}
+			Log.d(TAG, "Inserting contact ${contact.id}")
+
+			createContact(ops, userId, contact)
+		}
+
+		val serverContactsById = contacts.groupBy { it.id }.mapValues { it.value[0] }
+		for ((storedContactId, storedContact) in alreadyStoredContacts) {
+			val serverContact = serverContactsById[storedContactId]
 			if (serverContact == null) {
-				val deletedRows = deleteRawContact(storedContact)
-				Log.d(TAG, "Deleted contact $storedContactId with raw id $storedContact $deletedRows")
+				deleteRawContact(storedContact)
+				Log.d(TAG, "Deleted contact with raw id ${storedContact.rawId}")
 			} else {
 				updateContact(storedContact, serverContact)
 			}
@@ -106,11 +172,21 @@ class Contact(private val activity: MainActivity) {
 		return resolver.delete(uri, null, null)
 	}
 
-	private fun readRawContacts(userId: String): Cursor? {
-		val rawContactUri = RawContacts.CONTENT_URI.buildUpon()
+	private fun retrieveRawContacts(userId: String, sourceId: String? = null): Cursor? {
+		var rawContactUri = RawContacts.CONTENT_URI.buildUpon()
 				.appendQueryParameter(RawContacts.ACCOUNT_NAME, userId)
 				.appendQueryParameter(RawContacts.ACCOUNT_TYPE, "tuta")
 				.build()
+
+		if (sourceId != null) {
+			return resolver.query(
+					rawContactUri,
+					arrayOf(
+							RawContacts._ID,
+							RawContacts.SOURCE_ID
+					), "${RawContacts.SOURCE_ID} = ?", arrayOf(sourceId), null
+			)
+		}
 
 		return resolver.query(
 				rawContactUri,
@@ -128,7 +204,6 @@ class Contact(private val activity: MainActivity) {
 					.withValue(RawContacts.DELETED, 0)
 					.build()
 			ops += updateDeletedStatusOp
-			Log.d(TAG, "Undeleted contact for ${storedContact.sourceId}")
 		} else {
 			Log.d(TAG, "Contact isn't deleted, continuing...")
 		}
@@ -143,16 +218,26 @@ class Contact(private val activity: MainActivity) {
 			checkContactCompany(storedContact, ops, serverContact)
 		}
 
-		if (storedContact.displayName != serverContact.name) {
+		if (storedContact.givenName != serverContact.firstName) {
 			val updateNameOp = ContentProviderOperation.newUpdate(ContactsContract.Data.CONTENT_URI)
 					.withSelection(
 							"${ContactsContract.Data.MIMETYPE} = \"${ContactsContract.CommonDataKinds.StructuredName.CONTENT_ITEM_TYPE}\" AND ${ContactsContract.Data.RAW_CONTACT_ID} = ?",
 							arrayOf(storedContact.rawId.toString())
 					)
-					.withValue(ContactsContract.CommonDataKinds.StructuredName.DISPLAY_NAME, serverContact.name)
+					.withValue(ContactsContract.CommonDataKinds.StructuredName.GIVEN_NAME, serverContact.firstName)
 					.build()
 			ops += updateNameOp
-			Log.d(TAG, "Updated name for ${serverContact.id}")
+		}
+
+		if (storedContact.lastName != serverContact.lastName) {
+			val updateNameOp = ContentProviderOperation.newUpdate(ContactsContract.Data.CONTENT_URI)
+					.withSelection(
+							"${ContactsContract.Data.MIMETYPE} = \"${ContactsContract.CommonDataKinds.StructuredName.CONTENT_ITEM_TYPE}\" AND ${ContactsContract.Data.RAW_CONTACT_ID} = ?",
+							arrayOf(storedContact.rawId.toString())
+					)
+					.withValue(ContactsContract.CommonDataKinds.StructuredName.FAMILY_NAME, serverContact.lastName)
+					.build()
+			ops += updateNameOp
 		}
 
 		if (storedContact.nickname != serverContact.nickname) {
@@ -164,7 +249,6 @@ class Contact(private val activity: MainActivity) {
 					.withValue(ContactsContract.CommonDataKinds.Nickname.NAME, serverContact.nickname)
 					.build()
 			ops += updateNicknameOp
-			Log.d(TAG, "Updated nickname for ${serverContact.id} Stored: ${storedContact.nickname} Server: ${serverContact.nickname}")
 		}
 	}
 
@@ -195,7 +279,6 @@ class Contact(private val activity: MainActivity) {
 					.withValue(ContactsContract.CommonDataKinds.Event.START_DATE, serverContact.birthday)
 					.build())
 		}
-		Log.d(TAG, "Updated birthday for ${serverContact.id} Stored: ${storedContact.birthday} Server: ${serverContact.birthday}")
 	}
 
 	private fun checkContactCompany(storedContact: StoredContact, ops: ArrayList<ContentProviderOperation>, serverContact: StructuredContact) {
@@ -222,10 +305,8 @@ class Contact(private val activity: MainActivity) {
 							arrayOf(storedContact.rawId.toString())
 					)
 					.withValue(ContactsContract.CommonDataKinds.Organization.COMPANY, serverContact.company)
-					.withValue(ContactsContract.CommonDataKinds.Organization.TYPE, ContactsContract.CommonDataKinds.Organization.TYPE_WORK)
 					.build())
 		}
-		Log.d(TAG, "Updated organization/company for ${serverContact.id} Stored: ${storedContact.company} Server: ${serverContact.company} Branch: ${storedContact.company == ""}")
 	}
 
 	private fun checkContactMailAddresses(storedContact: StoredContact, serverContact: StructuredContact, ops: ArrayList<ContentProviderOperation>) {
@@ -233,10 +314,6 @@ class Contact(private val activity: MainActivity) {
 			val storedAddress = storedContact.emailAddresses.find { it.address == serverMailAddress.address }
 			if (storedAddress != null) {
 				if (storedAddress.type != serverMailAddress.type.toAndroidType()) {
-					Log.d(
-							TAG,
-							"Different mail address types for $storedAddress. Stored: ${storedAddress.type}, server: ${serverMailAddress.type.toAndroidType()} (as entity type: ${serverMailAddress.type})"
-					)
 					val updateTypeOp = ContentProviderOperation.newUpdate(ContactsContract.Data.CONTENT_URI)
 							.withSelection(
 									"${ContactsContract.Data.MIMETYPE} = \"${ContactsContract.CommonDataKinds.Email.CONTENT_ITEM_TYPE}\" AND ${ContactsContract.Data.RAW_CONTACT_ID} = ? AND ${ContactsContract.CommonDataKinds.Email.DATA} = ?",
@@ -248,21 +325,9 @@ class Contact(private val activity: MainActivity) {
 							)
 							.build()
 					ops += updateTypeOp
-					Log.d(
-							TAG,
-							"Updated type for ${serverContact.id} $serverMailAddress ${serverMailAddress.type.toAndroidType()}"
-					)
-				} else {
-					Log.d(
-							TAG,
-							"No type changes for ${serverContact.id} $serverMailAddress ${serverMailAddress.type.toAndroidType()}"
-					)
 				}
+
 				if (storedAddress.customTypeName != serverMailAddress.customTypeName) {
-					Log.d(
-							TAG,
-							"Different mail address custom type name for $storedAddress. Stored: ${storedAddress.customTypeName}, server: ${serverMailAddress.customTypeName}"
-					)
 					val updateCustomTypeNameOp = ContentProviderOperation.newUpdate(ContactsContract.Data.CONTENT_URI)
 							.withSelection(
 									"${ContactsContract.Data.MIMETYPE} = \"${ContactsContract.CommonDataKinds.Email.CONTENT_ITEM_TYPE}\" AND ${ContactsContract.Data.RAW_CONTACT_ID} = ? AND ${ContactsContract.CommonDataKinds.Email.DATA} = ?",
@@ -274,23 +339,14 @@ class Contact(private val activity: MainActivity) {
 							)
 							.build()
 					ops += updateCustomTypeNameOp
-					Log.d(
-							TAG,
-							"Updated custom type name for ${serverContact.id} $serverMailAddress ${serverMailAddress.customTypeName}"
-					)
-				} else {
-					Log.d(
-							TAG,
-							"No custom type name changes for ${serverContact.id} $serverMailAddress ${serverMailAddress.customTypeName}"
-					)
 				}
+
 			} else {
 				// it's a new mail address
 				val createEmailAddressOp = insertMailAddressOperation(serverMailAddress)
 						.withValue(ContactsContract.Data.RAW_CONTACT_ID, storedContact.rawId)
 						.build()
 				ops += createEmailAddressOp
-				Log.d(TAG, "Created address ${serverContact.id} ${serverMailAddress.address}")
 			}
 		}
 		for (storedMailAddress in storedContact.emailAddresses) {
@@ -302,7 +358,6 @@ class Contact(private val activity: MainActivity) {
 						)
 						.build()
 				ops += deleteOp
-				Log.d(TAG, "Deleted address ${serverContact.id} ${storedMailAddress.address}")
 			}
 		}
 	}
@@ -312,10 +367,6 @@ class Contact(private val activity: MainActivity) {
 			val storedAddress = storedContact.addresses.find { it.address == serverAddress.address }
 			if (storedAddress != null) {
 				if (storedAddress.type != serverAddress.type.toAndroidType()) {
-					Log.d(
-							TAG,
-							"Different address types for $storedAddress. Stored: ${storedAddress.type}, server: ${serverAddress.type.toAndroidType()} (as entity type: ${serverAddress.type})"
-					)
 					val updateTypeOp = ContentProviderOperation.newUpdate(ContactsContract.Data.CONTENT_URI)
 							.withSelection(
 									"${ContactsContract.Data.MIMETYPE} = \"${ContactsContract.CommonDataKinds.StructuredPostal.CONTENT_ITEM_TYPE}\" AND ${ContactsContract.Data.RAW_CONTACT_ID} = ? AND ${ContactsContract.CommonDataKinds.StructuredPostal.DATA} = ?",
@@ -327,21 +378,9 @@ class Contact(private val activity: MainActivity) {
 							)
 							.build()
 					ops += updateTypeOp
-					Log.d(
-							TAG,
-							"Updated type for ${serverContact.id} $serverAddress ${serverAddress.type.toAndroidType()}"
-					)
-				} else {
-					Log.d(
-							TAG,
-							"No type changes for ${serverContact.id} $serverAddress ${serverAddress.type.toAndroidType()}"
-					)
 				}
+
 				if (storedAddress.customTypeName != serverAddress.customTypeName) {
-					Log.d(
-							TAG,
-							"Different address custom type name for $storedAddress. Stored: ${storedAddress.customTypeName}, server: ${serverAddress.customTypeName}"
-					)
 					val updateCustomTypeNameOp = ContentProviderOperation.newUpdate(ContactsContract.Data.CONTENT_URI)
 							.withSelection(
 									"${ContactsContract.Data.MIMETYPE} = \"${ContactsContract.CommonDataKinds.StructuredPostal.CONTENT_ITEM_TYPE}\" AND ${ContactsContract.Data.RAW_CONTACT_ID} = ? AND ${ContactsContract.CommonDataKinds.StructuredPostal.DATA} = ?",
@@ -353,15 +392,6 @@ class Contact(private val activity: MainActivity) {
 							)
 							.build()
 					ops += updateCustomTypeNameOp
-					Log.d(
-							TAG,
-							"Updated custom type name for ${serverContact.id} $serverAddress ${serverAddress.customTypeName}"
-					)
-				} else {
-					Log.d(
-							TAG,
-							"No custom type name changes for ${serverContact.id} $serverAddress ${serverAddress.customTypeName}"
-					)
 				}
 			} else {
 				// it's a new address
@@ -369,7 +399,6 @@ class Contact(private val activity: MainActivity) {
 						.withValue(ContactsContract.Data.RAW_CONTACT_ID, storedContact.rawId)
 						.build()
 				ops += createAddressOp
-				Log.d(TAG, "Created address ${serverContact.id} ${serverAddress.address}")
 			}
 		}
 
@@ -382,7 +411,6 @@ class Contact(private val activity: MainActivity) {
 						)
 						.build()
 				ops += deleteOp
-				Log.d(TAG, "Deleted address ${serverContact.id} ${storedAddress.address}")
 			}
 		}
 	}
@@ -393,10 +421,6 @@ class Contact(private val activity: MainActivity) {
 			val storedNumber = storedContact.phoneNumbers.find { it.number == serverPhoneNumber.number }
 			if (storedNumber != null) {
 				if (storedNumber.type != serverPhoneNumber.type.toAndroidType()) {
-					Log.d(
-							TAG,
-							"Different phone number types for $storedNumber. Stored: ${storedNumber.type}, server: ${serverPhoneNumber.type.toAndroidType()} (as entity type: ${serverPhoneNumber.type})"
-					)
 					val updateTypeOp = ContentProviderOperation.newUpdate(ContactsContract.Data.CONTENT_URI)
 							.withSelection(
 									"${ContactsContract.Data.MIMETYPE} = \"${ContactsContract.CommonDataKinds.Phone.CONTENT_ITEM_TYPE}\" AND ${ContactsContract.Data.RAW_CONTACT_ID} = ? AND ${ContactsContract.CommonDataKinds.Phone.DATA} = ?",
@@ -408,21 +432,8 @@ class Contact(private val activity: MainActivity) {
 							)
 							.build()
 					ops += updateTypeOp
-					Log.d(
-							TAG,
-							"Updated type for ${serverContact.id} $serverPhoneNumber ${serverPhoneNumber.type.toAndroidType()}"
-					)
-				} else {
-					Log.d(
-							TAG,
-							"No type changes for ${serverContact.id} $serverPhoneNumber ${serverPhoneNumber.type.toAndroidType()}"
-					)
 				}
 				if (storedNumber.customTypeName != serverPhoneNumber.customTypeName) {
-					Log.d(
-							TAG,
-							"Different phone number custom type name for $storedNumber. Stored: ${storedNumber.customTypeName}, server: ${serverPhoneNumber.customTypeName}"
-					)
 					val updateCustomTypeNameOp = ContentProviderOperation.newUpdate(ContactsContract.Data.CONTENT_URI)
 							.withSelection(
 									"${ContactsContract.Data.MIMETYPE} = \"${ContactsContract.CommonDataKinds.Phone.CONTENT_ITEM_TYPE}\" AND ${ContactsContract.Data.RAW_CONTACT_ID} = ? AND ${ContactsContract.CommonDataKinds.Phone.DATA} = ?",
@@ -434,15 +445,6 @@ class Contact(private val activity: MainActivity) {
 							)
 							.build()
 					ops += updateCustomTypeNameOp
-					Log.d(
-							TAG,
-							"Updated custom type name for ${serverContact.id} $serverPhoneNumber ${serverPhoneNumber.customTypeName}"
-					)
-				} else {
-					Log.d(
-							TAG,
-							"No custom label changes for ${serverContact.id} $serverPhoneNumber ${serverPhoneNumber.type.toAndroidType()}"
-					)
 				}
 			} else {
 				// it's a new phone number
@@ -450,7 +452,6 @@ class Contact(private val activity: MainActivity) {
 						.withValue(ContactsContract.Data.RAW_CONTACT_ID, storedContact.rawId)
 						.build()
 				ops += createEmailAddressOp
-				Log.d(TAG, "Created phone number ${serverContact.id} ${serverPhoneNumber.number}")
 			}
 		}
 
@@ -463,7 +464,6 @@ class Contact(private val activity: MainActivity) {
 						)
 						.build()
 				ops += deleteOp
-				Log.d(TAG, "Deleted phone number ${serverContact.id} ${storedPhoneNumber.number}")
 			}
 		}
 	}
@@ -504,17 +504,19 @@ class Contact(private val activity: MainActivity) {
 								RawContacts.Data.MIMETYPE,
 								ContactsContract.CommonDataKinds.StructuredName.CONTENT_ITEM_TYPE
 						)
-						.withValue(ContactsContract.CommonDataKinds.StructuredName.DISPLAY_NAME, contact.name)
+						.withValue(ContactsContract.CommonDataKinds.StructuredName.GIVEN_NAME, contact.firstName)
+						.withValue(
+								RawContacts.Data.MIMETYPE,
+								ContactsContract.CommonDataKinds.StructuredName.CONTENT_ITEM_TYPE
+						)
+						.withValue(ContactsContract.CommonDataKinds.StructuredName.FAMILY_NAME, contact.lastName)
 						.build()
 		)
 
 		ops.add(
 				ContentProviderOperation.newInsert(ContactsContract.Data.CONTENT_URI)
 						.withValueBackReference(RawContacts.Data.RAW_CONTACT_ID, index)
-						.withValue(
-								RawContacts.Data.MIMETYPE,
-								ContactsContract.CommonDataKinds.Event.CONTENT_ITEM_TYPE
-						)
+						.withValue(RawContacts.Data.MIMETYPE, ContactsContract.CommonDataKinds.Event.CONTENT_ITEM_TYPE)
 						.withValue(ContactsContract.CommonDataKinds.Event.START_DATE, contact.birthday)
 						.withValue(RawContacts.Data.MIMETYPE, ContactsContract.CommonDataKinds.Event.CONTENT_ITEM_TYPE)
 						.withValue(ContactsContract.CommonDataKinds.Event.TYPE, ContactsContract.CommonDataKinds.Event.TYPE_BIRTHDAY)
@@ -564,7 +566,6 @@ class Contact(private val activity: MainActivity) {
 			rawContactId: Long,
 			sourceId: String
 	): StoredContact {
-		Log.d(TAG, "raw contact id $rawContactId  $sourceId")
 		val storedContact = StoredContact(rawContactId, sourceId)
 
 		val entityUri = Uri.withAppendedPath(
@@ -584,35 +585,36 @@ class Contact(private val activity: MainActivity) {
 				), null, null, null
 		).use { entityCursor ->
 			while (entityCursor!!.moveToNext()) {
-				val sourceId = entityCursor.getString(0)
-
 				if (entityCursor.getInt(1) == 1) {
-					Log.d(TAG, "Deleted raw contact $sourceId")
 					storedContact.isDeleted = true
 				}
 
-				if (entityCursor.isNull(2)) {
-					Log.d(TAG, "Empty raw contact $sourceId")
-				} else {
-					val mimeType = entityCursor.getString(3)
-					val data = entityCursor.getString(4)
-
-					when (mimeType) {
-						ContactsContract.CommonDataKinds.StructuredName.CONTENT_ITEM_TYPE -> storedContact.displayName =
-								data
-						ContactsContract.CommonDataKinds.Email.CONTENT_ITEM_TYPE -> storedContact.emailAddresses.add(
-								StoredEmailAddress(data, entityCursor.getInt(5), if (!entityCursor.isNull(6)) entityCursor.getString(6) else "")
-						)
-						ContactsContract.CommonDataKinds.Phone.CONTENT_ITEM_TYPE -> storedContact.phoneNumbers.add(StoredPhoneNumber(data, entityCursor.getInt(5), if (!entityCursor.isNull(6)) entityCursor.getString(6) else ""))
-						ContactsContract.CommonDataKinds.StructuredPostal.CONTENT_ITEM_TYPE -> storedContact.addresses.add(StoredAddress(data, entityCursor.getInt(5), if (!entityCursor.isNull(6)) entityCursor.getString(6) else ""))
-						ContactsContract.CommonDataKinds.Nickname.CONTENT_ITEM_TYPE -> storedContact.nickname = data
-						ContactsContract.CommonDataKinds.Organization.CONTENT_ITEM_TYPE -> storedContact.company = data
-						ContactsContract.CommonDataKinds.Event.CONTENT_ITEM_TYPE -> storedContact.birthday = data
-					}
+				if (!entityCursor.isNull(2)) {
+					parseStoredContactData(entityCursor, storedContact)
 				}
 			}
 		}
 		return storedContact
+	}
+
+	private fun parseStoredContactData(entityCursor: Cursor, storedContact: StoredContact) {
+		val mimeType = entityCursor.getString(3)
+		val data1 = entityCursor.getString(4)
+
+		when (mimeType) {
+			ContactsContract.CommonDataKinds.StructuredName.CONTENT_ITEM_TYPE -> {
+				storedContact.givenName = entityCursor.getString(5)
+				storedContact.lastName = entityCursor.getString(6)
+			}
+			ContactsContract.CommonDataKinds.Email.CONTENT_ITEM_TYPE -> storedContact.emailAddresses.add(
+					StoredEmailAddress(data1, entityCursor.getInt(5), if (!entityCursor.isNull(6)) entityCursor.getString(6) else "")
+			)
+			ContactsContract.CommonDataKinds.Phone.CONTENT_ITEM_TYPE -> storedContact.phoneNumbers.add(StoredPhoneNumber(data1, entityCursor.getInt(5), if (!entityCursor.isNull(6)) entityCursor.getString(6) else ""))
+			ContactsContract.CommonDataKinds.StructuredPostal.CONTENT_ITEM_TYPE -> storedContact.addresses.add(StoredAddress(data1, entityCursor.getInt(5), if (!entityCursor.isNull(6)) entityCursor.getString(6) else ""))
+			ContactsContract.CommonDataKinds.Nickname.CONTENT_ITEM_TYPE -> storedContact.nickname = data1
+			ContactsContract.CommonDataKinds.Organization.CONTENT_ITEM_TYPE -> storedContact.company = data1
+			ContactsContract.CommonDataKinds.Event.CONTENT_ITEM_TYPE -> storedContact.birthday = data1
+		}
 	}
 
 	private fun insertAddressOperation(address: StructuredAddress): ContentProviderOperation.Builder {
@@ -734,7 +736,8 @@ data class StoredPhoneNumber(
 data class StoredContact(
 		val rawId: Long,
 		val sourceId: String,
-		var displayName: String? = null,
+		var givenName: String? = null,
+		var lastName: String? = null,
 		var company: String = "",
 		var nickname: String? = null,
 		var birthday: String? = null,
