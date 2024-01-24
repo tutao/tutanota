@@ -305,6 +305,16 @@
 					"info": "AddValue InstanceSessionKey/encryptionAuthStatus/2159."
 				}
 			]
+		},
+		{
+			"version": 94,
+			"changes": [
+				{
+					"name": "AddAssociation",
+					"sourceType": "CustomerInfo",
+					"info": "AddAssociation CustomerInfo/supportInfo/ELEMENT_ASSOCIATION/2197."
+				}
+			]
 		}
 	]
 }

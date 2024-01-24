@@ -875,6 +875,7 @@ export type CustomerInfo = {
 	domainInfos: DomainInfo[];
 	giftCards:  null | GiftCardsRef;
 	referredBy:  null | Id;
+	supportInfo:  null | Id;
 	takeoverCustomer:  null | Id;
 	terminationRequest:  null | IdTuple;
 }
