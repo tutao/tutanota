@@ -3,7 +3,8 @@
 	"type": "struct",
 	"fields": {
 		"id": "string",
-		"name": "string",
+		"firstName": "string",
+		"lastName": "string",
 		"nickname": "string?",
 		"company": "string",
 		"birthday": "string?",

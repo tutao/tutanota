@@ -112,7 +112,8 @@ export class PostLoginActions implements PostLoginAction {
 		const structuredContacts: ReadonlyArray<StructuredContact> = contacts.map((contact) => {
 			return {
 				id: getElementId(contact),
-				name: `${contact.firstName} ${contact.lastName}`,
+				firstName: contact.firstName,
+				lastName: contact.lastName,
 				mailAddresses: contact.mailAddresses.map((address) => {
 					return {
 						address: address.address,
@@ -139,7 +140,7 @@ export class PostLoginActions implements PostLoginAction {
 				}),
 			}
 		})
-		await locator.systemFacade.saveContacts(this.logins.getUserController().userId, structuredContacts)
+		await locator.systemFacade.syncContacts(this.logins.getUserController().userId, structuredContacts)
 	}
 
 	async onFullLoginSuccess(loggedInEvent: LoggedInEvent): Promise<void> {

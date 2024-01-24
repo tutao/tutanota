@@ -26,6 +26,30 @@
 			],
 			"ret": "void"
 		},
+		"syncContacts": {
+			"doc": "Sync contacts with system contact book",
+			"arg": [
+				{
+					"userId": "string"
+				},
+				{
+					"contacts": "List<StructuredContact>"
+				}
+			],
+			"ret": "void"
+		},
+		"deleteContact": {
+			"doc": "Delete a contact from system contact book",
+			"arg": [
+				{
+					"userId": "string"
+				},
+				{
+					"contactId": "string"
+				}
+			],
+			"ret": "void"
+		},
 		"openLink": {
 			"doc": "Open URI in the OS.",
 			"arg": [

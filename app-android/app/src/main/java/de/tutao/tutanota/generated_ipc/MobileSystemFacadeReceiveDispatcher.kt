@@ -30,6 +30,24 @@ class MobileSystemFacadeReceiveDispatcher(
 				)
 				return json.encodeToString(result)
 			}
+			"syncContacts" -> {
+				val userId: String = json.decodeFromString(arg[0])
+				val contacts: List<StructuredContact> = json.decodeFromString(arg[1])
+				val result: Unit = this.facade.syncContacts(
+					userId,
+					contacts,
+				)
+				return json.encodeToString(result)
+			}
+			"deleteContact" -> {
+				val userId: String = json.decodeFromString(arg[0])
+				val contactId: String = json.decodeFromString(arg[1])
+				val result: Unit = this.facade.deleteContact(
+					userId,
+					contactId,
+				)
+				return json.encodeToString(result)
+			}
 			"openLink" -> {
 				val uri: String = json.decodeFromString(arg[0])
 				val result: Boolean = this.facade.openLink(
