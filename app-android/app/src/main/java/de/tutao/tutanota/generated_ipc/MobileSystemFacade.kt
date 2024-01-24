@@ -24,6 +24,20 @@ interface MobileSystemFacade {
 		contacts: List<StructuredContact>,
 	): Unit
 	/**
+	 * Sync contacts with system contact book
+	 */
+	 suspend fun syncContacts(
+		userId: String,
+		contacts: List<StructuredContact>,
+	): Unit
+	/**
+	 * Delete a contact from system contact book
+	 */
+	 suspend fun deleteContact(
+		userId: String,
+		contactId: String,
+	): Unit
+	/**
 	 * Open URI in the OS.
 	 */
 	 suspend fun openLink(

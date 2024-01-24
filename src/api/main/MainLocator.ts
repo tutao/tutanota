@@ -739,7 +739,7 @@ class MainLocator {
 				: new FileControllerNative(blobFacade, guiDownload, this.nativeInterfaces.fileApp)
 
 		const { ContactModel } = await import("../../contacts/model/ContactModel")
-		this.contactModel = new ContactModel(this.searchFacade, this.entityClient, this.logins, this.eventController)
+		this.contactModel = new ContactModel(this.searchFacade, this.entityClient, this.logins, this.eventController, isApp() ? this.systemFacade : null)
 		this.minimizedMailModel = new MinimizedMailEditorViewModel()
 		this.usageTestController = new UsageTestController(this.usageTestModel)
 	}

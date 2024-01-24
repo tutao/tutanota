@@ -1,9 +1,13 @@
 import { lang } from "../../misc/LanguageViewModel"
-import type { Birthday, Contact, ContactSocialId } from "../../api/entities/tutanota/TypeRefs.js"
+import type { Birthday, Contact, ContactAddress, ContactMailAddress, ContactPhoneNumber, ContactSocialId } from "../../api/entities/tutanota/TypeRefs.js"
 import { formatDate } from "../../misc/Formatter"
 import { isoDateToBirthday } from "../../api/common/utils/BirthdayUtils"
 import { assertMainOrNode } from "../../api/common/Env"
 import { ContactSocialType } from "../../api/common/TutanotaConstants"
+import { StructuredMailAddress } from "../../native/common/generatedipc/StructuredMailAddress.js"
+import { StructuredPhoneNumber } from "../../native/common/generatedipc/StructuredPhoneNumber.js"
+import { StructuredAddress } from "../../native/common/generatedipc/StructuredAddress.js"
+import { downcast } from "@tutao/tutanota-utils"
 
 assertMainOrNode()
 
@@ -91,4 +95,28 @@ export function getSocialUrl(contactId: ContactSocialId): string {
 	}
 
 	return `${http}${worldwidew}${socialUrlType}${contactId.socialId.trim()}`
+}
+
+export function extractStructuredMailAddresses(addresses: ContactMailAddress[]): StructuredMailAddress[] {
+	return addresses.map((address) => ({
+		address: address.address,
+		type: downcast(address.type),
+		customTypeName: address.customTypeName,
+	}))
+}
+
+export function extractStructuredAddresses(addresses: ContactAddress[]): StructuredAddress[] {
+	return addresses.map((address) => ({
+		address: address.address,
+		type: downcast(address.type),
+		customTypeName: address.customTypeName,
+	}))
+}
+
+export function extractStructuredPhoneNumbers(numbers: ContactPhoneNumber[]): StructuredPhoneNumber[] {
+	return numbers.map((number) => ({
+		number: number.number,
+		type: downcast(number.type),
+		customTypeName: number.customTypeName,
+	}))
 }

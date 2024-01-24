@@ -5,7 +5,8 @@ import { StructuredPhoneNumber } from "./StructuredPhoneNumber.js"
 import { StructuredAddress } from "./StructuredAddress.js"
 export interface StructuredContact {
 	readonly id: string
-	readonly name: string
+	readonly firstName: string
+	readonly lastName: string
 	readonly nickname: string | null
 	readonly company: string
 	readonly birthday: string | null

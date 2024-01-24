@@ -3,7 +3,8 @@
 
 public struct StructuredContact : Codable {
 	let id: String
-	let name: String
+	let firstName: String
+	let lastName: String
 	let nickname: String?
 	let company: String
 	let birthday: String?

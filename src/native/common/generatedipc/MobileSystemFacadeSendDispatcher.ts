@@ -13,6 +13,12 @@ export class MobileSystemFacadeSendDispatcher implements MobileSystemFacade {
 	async saveContacts(...args: Parameters<MobileSystemFacade["saveContacts"]>) {
 		return this.transport.invokeNative("ipc", ["MobileSystemFacade", "saveContacts", ...args])
 	}
+	async syncContacts(...args: Parameters<MobileSystemFacade["syncContacts"]>) {
+		return this.transport.invokeNative("ipc", ["MobileSystemFacade", "syncContacts", ...args])
+	}
+	async deleteContact(...args: Parameters<MobileSystemFacade["deleteContact"]>) {
+		return this.transport.invokeNative("ipc", ["MobileSystemFacade", "deleteContact", ...args])
+	}
 	async openLink(...args: Parameters<MobileSystemFacade["openLink"]>) {
 		return this.transport.invokeNative("ipc", ["MobileSystemFacade", "openLink", ...args])
 	}
