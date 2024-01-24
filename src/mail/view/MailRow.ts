@@ -49,7 +49,6 @@ export class MailRow implements VirtualRow<Mail> {
 	private dateDom!: HTMLElement
 	private iconsDom!: HTMLElement
 	private unreadDom!: HTMLElement
-	private folderIconsDom: Record<MailFolderType, HTMLElement>
 	private teamLabelDom!: HTMLElement
 	private checkboxDom!: HTMLInputElement
 	private checkboxWasVisible = shouldAlwaysShowMultiselectCheckbox()
@@ -58,7 +57,6 @@ export class MailRow implements VirtualRow<Mail> {
 	constructor(private readonly showFolderIcon: boolean, private readonly onSelected: (mail: Mail, selected: boolean) => unknown) {
 		this.top = 0
 		this.entity = null
-		this.folderIconsDom = {} as Record<MailFolderType, HTMLElement>
 	}
 
 	update(mail: Mail, selected: boolean, isInMultiSelect: boolean): void {
@@ -92,10 +90,10 @@ export class MailRow implements VirtualRow<Mail> {
 
 	private showCheckboxAnimated(show: boolean) {
 		// this causes a slide animation where checkbox pops up and the text is shifted to make space for it.
-		// we can't animate the width of the checkbox as it causes the layout shifts and is very slow so instead we change the padding of the text elements in
+		// we can't animate the width of the checkbox as it causes the layout shifts and is very slow, so instead we change the padding of the text elements in
 		// a single step and then shift them in an animation. The effect is almost the same as if we would expand/shrink the checkbox.
 		// using requestAnimationFrame() because when we toggle it some elements might not be there yet. Could also for the end of the event loop too.
-		// using web animations to be able to cancel them easily. Could probably use transition and listen for the end instead but it would be harder to
+		// using web animations to be able to cancel them easily. Could probably use transition and listen for the end instead, but it would be harder to
 		// do the bookkeeping.
 		// using noOp to catch rejection when the animation is cancelled
 		const shouldShowCheckbox = show

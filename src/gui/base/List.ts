@@ -191,14 +191,14 @@ export class List<T, VH extends ViewHolder<T>> implements ClassComponent<ListAtt
 		})
 	}
 
-	private getRowForPosition(clientCoordiante: Coordinate2D) {
+	private getRowForPosition(clientCoordinate: Coordinate2D) {
 		const touchAreaOffset = this.containerDom!.getBoundingClientRect().top
-		const relativeYPosition = this.currentPosition + clientCoordiante.y - touchAreaOffset
+		const relativeYPosition = this.currentPosition + clientCoordinate.y - touchAreaOffset
 
 		const itemIndex = Math.floor(relativeYPosition / this.lastAttrs.renderConfig.itemHeight)
 		const targetElementPosition = itemIndex * this.lastAttrs.renderConfig.itemHeight
 
-		// We could find the entity just by indexing into it but we would need to scan the rows to find the right one anyway
+		// We could find the entity just by indexing into it, but we would need to scan the rows to find the right one anyway
 		// Assuming that the rows are used in the order of their position we could use binary search
 		return this.rows.find((ve) => ve.top === targetElementPosition) ?? null
 	}
@@ -328,7 +328,7 @@ export class List<T, VH extends ViewHolder<T>> implements ClassComponent<ListAtt
 		// normal click changes the selection to a single
 		// ctrl click toggles the selection for an item and enables multiselect
 		// shift click selects a lot of things and enabled multiselect
-		// (there are also key press handlers but they are invoked from another place)
+		// (there are also key press handlers, but they are invoked from another place)
 		let changeType: Parameters<typeof this.changeSelection>[1]
 		if ((client.isMobileDevice() && this.lastAttrs.state.inMultiselect) || event.ctrlKey || (client.isMacOS && event.metaKey)) {
 			changeType = "togglingIncludingSingle"
@@ -483,14 +483,14 @@ export class List<T, VH extends ViewHolder<T>> implements ClassComponent<ListAtt
 		this.lastAttrs.onRetryLoading()
 	}
 
-	private async loadMoreIfNecessary(attrs: ListAttrs<T, VH>, visibleElementsHeight: number) {
+	private loadMoreIfNecessary(attrs: ListAttrs<T, VH>, visibleElementsHeight: number) {
 		// WARNING this is hacky:
 		// lastBunchVisible depends on visibleElementsHeight which is set inside _createVirtualRows which might not have completed by the time we
 		// reach here, so waiting for domDeferred guarantees that oncreate has finished running, and in turn that _createVirtualRows has completed
 		const lastBunchVisible = this.currentPosition > attrs.state.items.length * attrs.renderConfig.itemHeight - visibleElementsHeight * 2
 
 		if (lastBunchVisible && attrs.state.loadingStatus == ListLoadingState.Idle) {
-			await attrs.onLoadMore()
+			attrs.onLoadMore()
 		}
 	}
 
@@ -561,7 +561,7 @@ export class List<T, VH extends ViewHolder<T>> implements ClassComponent<ListAtt
 		this.height = containerDom.clientHeight
 
 		if (this.swipeHandler) {
-			// with different zoom levels Blink does weird things and shows parts of elements that it shouldn't so we shift them around by a pixel
+			// with different zoom levels Blink does weird things and shows parts of elements that it shouldn't, so we shift them around by a pixel
 			const translateX = this.width + 1
 			this.domSwipeSpacerLeft.style.width = px(this.width)
 			this.domSwipeSpacerRight.style.width = px(this.width)

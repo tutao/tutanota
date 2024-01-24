@@ -13,7 +13,7 @@ import { Button, ButtonColor, ButtonType } from "../../gui/base/Button.js"
 import { Dialog } from "../../gui/base/Dialog"
 import { assertNotNull, AsyncResult, downcast, neverNull, promiseMap } from "@tutao/tutanota-utils"
 import { locator } from "../../api/main/MainLocator"
-import { getLetId, haveSameId } from "../../api/common/utils/EntityUtils"
+import { getLetId } from "../../api/common/utils/EntityUtils"
 import { moveMails, promptAndDeleteMails } from "./MailGuiUtils"
 import { MailRow } from "./MailRow"
 import { makeTrackedProgressMonitor } from "../../api/common/utils/ProgressMonitor"
@@ -29,7 +29,6 @@ import { List, ListAttrs, ListSwipeDecision, MultiselectMode, RenderConfig, Swip
 import ColumnEmptyMessageBox from "../../gui/base/ColumnEmptyMessageBox.js"
 import { BootIcons } from "../../gui/base/icons/BootIcons.js"
 import { theme } from "../../gui/theme.js"
-import { VirtualRow } from "../../gui/base/ListUtils.js"
 import { isKeyPressed } from "../../misc/KeyManager.js"
 
 assertMainOrNode()
@@ -49,7 +48,7 @@ export class MailListView implements Component<MailListViewAttrs> {
 	// Map of (Mail._id ++ MailExportMode) -> Promise<Filepath>
 	// TODO this currently grows bigger and bigger and bigger if the user goes on an exporting spree.
 	//  maybe we should deal with this, or maybe this never becomes an issue?
-	exportedMails: Map<
+	private exportedMails: Map<
 		string,
 		{
 			fileName: string
@@ -57,10 +56,10 @@ export class MailListView implements Component<MailListViewAttrs> {
 		}
 	>
 	// Used for modifying the cursor during drag and drop
-	_listDom: HTMLElement | null
-	showingSpamOrTrash: boolean = false
-	showingDraft: boolean = false
-	showingArchive: boolean = false
+	private listDom: HTMLElement | null
+	private showingSpamOrTrash: boolean = false
+	private showingDraft: boolean = false
+	private showingArchive: boolean = false
 	private mailViewModel: MailViewModel
 
 	private readonly renderConfig: RenderConfig<Mail, MailRow> = {
@@ -79,14 +78,14 @@ export class MailListView implements Component<MailListViewAttrs> {
 					swipeRight: (listElement: Mail) => this.onSwipeRight(listElement),
 			  } satisfies SwipeConfiguration<Mail>)
 			: null,
-		dragStart: (event, row, selected) => this._newDragStart(event, row, selected),
+		dragStart: (event, row, selected) => this.newDragStart(event, row, selected),
 	}
 
 	constructor({ attrs }: Vnode<MailListViewAttrs>) {
 		this.mailViewModel = attrs.mailViewModel
 		this.listId = attrs.listId
 		this.exportedMails = new Map()
-		this._listDom = null
+		this.listDom = null
 		this.mailViewModel.showingTrashOrSpamFolder().then((result) => {
 			this.showingSpamOrTrash = result
 			m.redraw()
@@ -112,25 +111,24 @@ export class MailListView implements Component<MailListViewAttrs> {
 		}
 	}
 
-	// NOTE we do all of the electron drag handling directly inside MailListView, because we currently have no need to generalise
+	// NOTE we do all the electron drag handling directly inside MailListView, because we currently have no need to generalise
 	// would strongly suggest with starting generalising this first if we ever need to support dragging more than just mails
-	_newDragStart(event: DragEvent, row: Mail, selected: ReadonlySet<Mail>) {
+	private newDragStart(event: DragEvent, row: Mail, selected: ReadonlySet<Mail>) {
 		if (!row) return
 		const mailUnderCursor = row
 
 		if (isExportDragEvent(event)) {
 			// We have to remove the drag mod key class here because once the dragstart has begun
 			// we won't receive the keyup event that would normally remove it
-			this._listDom && this._listDom.classList.remove("drag-mod-key")
-			// We have to preventDefault or we get mysterious and inconsistent electron crashes at the call to startDrag in IPC
+			this.listDom && this.listDom.classList.remove("drag-mod-key")
+			// We have to preventDefault, or we get mysterious and inconsistent electron crashes at the call to startDrag in IPC
 			event.preventDefault()
 			// if the mail being dragged is not included in the mails that are selected, then we only drag
 			// the mail that is currently being dragged, to match the behaviour of regular in-app dragging and dropping
 			// which seemingly behaves how it does just by default
-			//const draggedMails = selected.find((mail) => haveSameId(mail, mailUnderCursor)) ? selected.slice() : [mailUnderCursor]
 			const draggedMails = selected.has(mailUnderCursor) ? [...selected] : [mailUnderCursor]
 
-			this._doExportDrag(draggedMails)
+			this.doExportDrag(draggedMails)
 		} else if (styles.isDesktopLayout()) {
 			// Desktop layout only because it doesn't make sense to drag mails to folders when the folder list and mail list aren't visible at the same time
 			neverNull(event.dataTransfer).setData("text", getLetId(neverNull(mailUnderCursor))[1])
@@ -139,33 +137,7 @@ export class MailListView implements Component<MailListViewAttrs> {
 		}
 	}
 
-	// NOTE we do all of the electron drag handling directly inside MailListView, because we currently have no need to generalise
-	// would strongly suggest with starting generalising this first if we ever need to support dragging more than just mails
-	_dragStart(event: DragEvent, row: VirtualRow<Mail>, selected: ReadonlyArray<Mail>) {
-		if (!row.entity) return
-		const mailUnderCursor = row.entity
-
-		if (isExportDragEvent(event)) {
-			// We have to remove the drag mod key class here because once the dragstart has begun
-			// we won't receive the keyup event that would normally remove it
-			this._listDom && this._listDom.classList.remove("drag-mod-key")
-			// We have to preventDefault or we get mysterious and inconsistent electron crashes at the call to startDrag in IPC
-			event.preventDefault()
-			// if the mail being dragged is not included in the mails that are selected, then we only drag
-			// the mail that is currently being dragged, to match the behaviour of regular in-app dragging and dropping
-			// which seemingly behaves how it does just by default
-			const draggedMails = selected.some((mail) => haveSameId(mail, mailUnderCursor)) ? selected.slice() : [mailUnderCursor]
-
-			this._doExportDrag(draggedMails)
-		} else if (styles.isDesktopLayout()) {
-			// Desktop layout only because it doesn't make sense to drag mails to folders when the folder list and mail list aren't visible at the same time
-			neverNull(event.dataTransfer).setData("text", getLetId(neverNull(mailUnderCursor))[1])
-		} else {
-			event.preventDefault()
-		}
-	}
-
-	async _doExportDrag(draggedMails: Array<Mail>): Promise<void> {
+	private async doExportDrag(draggedMails: Array<Mail>): Promise<void> {
 		assertNotNull(document.body).style.cursor = "progress"
 		// We listen to mouseup to detect if the user released the mouse before the download was complete
 		// we can't use dragend because we broke the DragEvent chain by calling prevent default
@@ -175,7 +147,7 @@ export class MailListView implements Component<MailListViewAttrs> {
 			})
 		})
 
-		const filePathsPromise = this._prepareMailsForDrag(draggedMails)
+		const filePathsPromise = this.prepareMailsForDrag(draggedMails)
 
 		// If the download completes before the user releases their mouse, then we can call electron start drag and do the operation
 		// otherwise we have to give some kind of feedback to the user that the drop was unsuccessful
@@ -197,7 +169,7 @@ export class MailListView implements Component<MailListViewAttrs> {
 	 * @private
 	 * @param mails
 	 */
-	async _prepareMailsForDrag(mails: Array<Mail>): Promise<Array<string>> {
+	private async prepareMailsForDrag(mails: Array<Mail>): Promise<Array<string>> {
 		const exportMode = await getMailExportMode()
 		// 3 actions per mail + 1 to indicate that something is happening (if the downloads take a while)
 		const progressMonitor = makeTrackedProgressMonitor(locator.progressTracker, 3 * mails.length + 1)
@@ -225,7 +197,7 @@ export class MailListView implements Component<MailListViewAttrs> {
 			})
 		}
 
-		// Gather up files that have been downloaded
+		// Gather files that have been downloaded
 		// and all files that need to be downloaded, or were already downloaded but have disappeared
 		for (let mail of mails) {
 			const key = mapKey(mail)
@@ -293,8 +265,6 @@ export class MailListView implements Component<MailListViewAttrs> {
 	view(vnode: Vnode<MailListViewAttrs>): Children {
 		this.mailViewModel = vnode.attrs.mailViewModel
 
-		// Save the folder before showing the dialog so that there's no chance that it will change
-		const folder = this.mailViewModel.getSelectedFolder()
 		const purgeButtonAttrs: ButtonAttrs = {
 			label: "clearFolder_action",
 			type: ButtonType.Primary,
@@ -304,16 +274,16 @@ export class MailListView implements Component<MailListViewAttrs> {
 			},
 		}
 
-		// listeners to indicate the when mod key is held, dragging will do something
+		// listeners to indicate when mod key is held, dragging will do something
 		const onKeyDown = (event: KeyboardEvent) => {
 			if (isDragAndDropModifierHeld(event)) {
-				this._listDom && this._listDom.classList.add("drag-mod-key")
+				this.listDom && this.listDom.classList.add("drag-mod-key")
 			}
 		}
 
 		const onKeyUp = (event: KeyboardEvent) => {
 			// The event doesn't have a
-			this._listDom && this._listDom.classList.remove("drag-mod-key")
+			this.listDom && this.listDom.classList.remove("drag-mod-key")
 		}
 
 		const listModel = vnode.attrs.mailViewModel.listModel!
@@ -321,7 +291,7 @@ export class MailListView implements Component<MailListViewAttrs> {
 			".mail-list-wrapper",
 			{
 				oncreate: (vnode) => {
-					this._listDom = downcast(vnode.dom.firstChild)
+					this.listDom = downcast(vnode.dom.firstChild)
 
 					if (canDoDragAndDropExport()) {
 						assertNotNull(document.body).addEventListener("keydown", onKeyDown)
