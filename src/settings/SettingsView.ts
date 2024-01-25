@@ -66,6 +66,7 @@ import { GroupDetailsView } from "./groups/GroupDetailsView.js"
 import { TemplateDetailsViewer } from "./TemplateDetailsViewer.js"
 import { isCustomizationEnabledForCustomer } from "../api/common/utils/CustomerUtils.js"
 import { EntityUpdateData, isUpdateForTypeRef } from "../api/common/utils/EntityUpdateUtils.js"
+import { ContactsSettingsViewer } from "./ContactsSettingsViewer.js"
 
 assertMainOrNode()
 
@@ -124,6 +125,13 @@ export class SettingsView extends BaseTopLevelView implements TopLevelView<Setti
 				() => BootIcons.Mail,
 				"mail",
 				() => new MailSettingsViewer(),
+				undefined,
+			),
+			new SettingsFolder(
+				"contacts_label",
+				() => BootIcons.Contacts,
+				"contacts",
+				() => new ContactsSettingsViewer(),
 				undefined,
 			),
 			new SettingsFolder(
