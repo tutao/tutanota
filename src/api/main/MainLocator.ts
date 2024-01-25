@@ -526,6 +526,7 @@ class MainLocator {
 				domainConfig,
 				credentialsRemovalHandler,
 				isBrowser() ? null : this.pushService,
+				isApp() ? this.systemFacade : null,
 			)
 		}
 	}
