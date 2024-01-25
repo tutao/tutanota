@@ -1,11 +1,21 @@
 import o from "@tutao/otest"
-import { BirthdayTypeRef, ContactMailAddressTypeRef, ContactTypeRef, createContact } from "../../../src/api/entities/tutanota/TypeRefs.js"
-import { formatBirthdayNumeric } from "../../../src/contacts/model/ContactUtils.js"
-import { createContactMailAddress } from "../../../src/api/entities/tutanota/TypeRefs.js"
-import { createBirthday } from "../../../src/api/entities/tutanota/TypeRefs.js"
+import {
+	BirthdayTypeRef,
+	ContactAddressTypeRef,
+	ContactMailAddressTypeRef,
+	ContactPhoneNumberTypeRef,
+	ContactTypeRef,
+} from "../../../src/api/entities/tutanota/TypeRefs.js"
+import {
+	extractStructuredAddresses,
+	extractStructuredMailAddresses,
+	extractStructuredPhoneNumbers,
+	formatBirthdayNumeric,
+} from "../../../src/contacts/model/ContactUtils.js"
 import { lang } from "../../../src/misc/LanguageViewModel.js"
 import { compareContacts } from "../../../src/contacts/view/ContactGuiUtils.js"
 import { createTestEntity } from "../TestUtils.js"
+import { ContactAddressType, ContactPhoneNumberType } from "../../../src/api/common/TutanotaConstants.js"
 
 o.spec("ContactUtilsTest", function () {
 	let compare = function (c1Firstname, c1Lastname, c1MailAddress, c2Firstname, c2Lastname, c2MailAddress, byFirstName, expectedResult) {
@@ -176,5 +186,56 @@ o.spec("ContactUtilsTest", function () {
 		lang._setLanguageTag("pt")
 		o(formatBirthdayNumeric(leapYearBirthday)).equals("29/02/2016")
 		o(formatBirthdayNumeric(chromeBugBirthday)).equals("15/08/1911")
+	})
+
+	o("extractStructuredEmailAddress", function () {
+		let contact = createTestEntity(ContactTypeRef)
+
+		contact.mailAddresses.push(createTestEntity(ContactMailAddressTypeRef))
+		contact.mailAddresses.push(createTestEntity(ContactMailAddressTypeRef))
+
+		o(contact.mailAddresses.length).equals(2)
+
+		o(extractStructuredMailAddresses(contact.mailAddresses)).deepEquals(
+			contact.mailAddresses.map((address) => ({
+				address: address.address,
+				type: address.type as ContactAddressType,
+				customTypeName: address.customTypeName,
+			})),
+		)
+	})
+
+	o("extractStructuredAddress", function () {
+		let contact = createTestEntity(ContactTypeRef)
+
+		contact.addresses.push(createTestEntity(ContactAddressTypeRef))
+		contact.addresses.push(createTestEntity(ContactAddressTypeRef))
+
+		o(contact.addresses.length).equals(2)
+
+		o(extractStructuredAddresses(contact.addresses)).deepEquals(
+			contact.addresses.map((address) => ({
+				address: address.address,
+				type: address.type as ContactAddressType,
+				customTypeName: address.customTypeName,
+			})),
+		)
+	})
+
+	o("extractStructuredPhoneNumber", function () {
+		let contact = createTestEntity(ContactTypeRef)
+
+		contact.phoneNumbers.push(createTestEntity(ContactPhoneNumberTypeRef))
+		contact.phoneNumbers.push(createTestEntity(ContactPhoneNumberTypeRef))
+
+		o(contact.phoneNumbers.length).equals(2)
+
+		o(extractStructuredPhoneNumbers(contact.phoneNumbers)).deepEquals(
+			contact.phoneNumbers.map((phone) => ({
+				number: phone.number,
+				type: phone.type as ContactPhoneNumberType,
+				customTypeName: phone.customTypeName,
+			})),
+		)
 	})
 })
