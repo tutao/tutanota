@@ -227,26 +227,6 @@ export class MailSettingsViewer implements UpdatableSettingsViewer {
 			},
 			dropdownWidth: 250,
 		}
-		const noAutomaticContactsAttrs: DropDownSelectorAttrs<boolean> = {
-			label: "createContacts_label",
-			helpLabel: () => lang.get("createContactsForRecipients_action"),
-			items: [
-				{
-					name: lang.get("activated_label"),
-					value: false,
-				},
-				{
-					name: lang.get("deactivated_label"),
-					value: true,
-				},
-			],
-			selectedValue: this._noAutomaticContacts,
-			selectionChangedHandler: (v) => {
-				locator.logins.getUserController().props.noAutomaticContacts = v
-				locator.entityClient.update(locator.logins.getUserController().props)
-			},
-			dropdownWidth: 250,
-		}
 		const enableMailIndexingAttrs: DropDownSelectorAttrs<boolean> = {
 			label: "searchMailbox_label",
 			helpLabel: () => lang.get("enableSearchMailbox_msg"),
@@ -338,7 +318,6 @@ export class MailSettingsViewer implements UpdatableSettingsViewer {
 					m(TextField, signatureAttrs),
 					locator.logins.isEnabled(FeatureType.InternalCommunication) ? null : m(DropDownSelector, defaultUnconfidentialAttrs),
 					locator.logins.isEnabled(FeatureType.InternalCommunication) ? null : m(DropDownSelector, sendPlaintextAttrs),
-					locator.logins.isEnabled(FeatureType.DisableContacts) ? null : m(DropDownSelector, noAutomaticContactsAttrs),
 					m(DropDownSelector, enableMailIndexingAttrs),
 					m(DropDownSelector, reportMovedMailsAttrs),
 					m(TextField, outOfOfficeAttrs),

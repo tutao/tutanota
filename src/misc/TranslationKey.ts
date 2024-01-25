@@ -1605,3 +1605,6 @@ export type TranslationKeyType =
 	| "yourMessage_label"
 	| "you_label"
 	| "emptyString_msg"
+	| "contactsManagement_label"
+	| "contactsSynchronization_label"
+	| "contactsSynchronizationWarning_msg"

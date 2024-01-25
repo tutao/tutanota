@@ -1623,6 +1623,9 @@ export default {
 		"yourCalendars_label": "Deine Kalender",
 		"yourFolders_action": "DEINE ORDNER",
 		"yourMessage_label": "Deine Nachricht",
-		"you_label": "Du"
+		"you_label": "Du",
+		"contactsSynchronizationWarning_msg": "Durch die Aktivierung der Kontaktsynchronisierung werden Ihre Tuta-Kontakte anderen Anwendungen zugänglich gemacht, die Zugriff auf das Kontaktbuch Ihres Telefons haben. Tuta synchronisiert nur Änderungen, die innerhalb der Tuta-App vorgenommen werden. Änderungen, die im Kontaktbuch des Telefons vorgenommen werden, werden überschrieben",
+		"contactsSynchronization_label": "Synchronisierung von Kontakten",
+		"contactsManagement_label": "Kontaktverwaltung"
 	}
 }
