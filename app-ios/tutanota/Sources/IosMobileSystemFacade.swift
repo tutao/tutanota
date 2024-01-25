@@ -1,6 +1,18 @@
 import Foundation
 
 class IosMobileSystemFacade : MobileSystemFacade {
+  func syncContacts(_ userId: String, _ contacts: [StructuredContact]) async throws {
+    return try await syncLocalContacts(contacts, forUserId: userId)
+  }
+  
+  func deleteContact(_ userId: String, _ contactId: String) async throws {
+    return try await deleteLocalContact(contactId, forUserId: userId)
+  }
+  
+  func saveContacts(_ userId: String, _ contacts: [StructuredContact]) async throws {
+    return try await saveLocalContacts(contacts, forUserId: userId)
+  }
+  
   private let contactsSource: ContactsSource
   private let viewController: ViewController
 
