@@ -10,7 +10,7 @@ import type { CredentialsAndDatabaseKey, CredentialsInfo, CredentialsProvider, P
 import { CredentialAuthenticationError } from "../api/common/error/CredentialAuthenticationError"
 import { first, noOp } from "@tutao/tutanota-utils"
 import { KeyPermanentlyInvalidatedError } from "../api/common/error/KeyPermanentlyInvalidatedError"
-import { assertMainOrNode, isBrowser } from "../api/common/Env"
+import { assertMainOrNode, isApp, isBrowser } from "../api/common/Env"
 import { SessionType } from "../api/common/SessionType"
 import { DeviceStorageUnavailableError } from "../api/common/error/DeviceStorageUnavailableError"
 import { DeviceConfig } from "../misc/DeviceConfig"
@@ -19,6 +19,7 @@ import { getWhitelabelRegistrationDomains } from "./LoginView.js"
 import { CancelledError } from "../api/common/error/CancelledError.js"
 import { CredentialRemovalHandler } from "./CredentialRemovalHandler.js"
 import { NativePushServiceApp } from "../native/main/NativePushServiceApp.js"
+import { MobileSystemFacade } from "../native/common/generatedipc/MobileSystemFacade.js"
 
 assertMainOrNode()
 
@@ -141,6 +142,7 @@ export class LoginViewModel implements ILoginViewModel {
 		private readonly domainConfig: DomainConfig,
 		private readonly credentialRemovalHandler: CredentialRemovalHandler,
 		private readonly pushServiceApp: NativePushServiceApp | null,
+		private readonly mobileSystemFacade: MobileSystemFacade | null,
 	) {
 		this.state = LoginState.NotAuthenticated
 		this.displayMode = DisplayMode.Form
@@ -216,7 +218,12 @@ export class LoginViewModel implements ILoginViewModel {
 			 * 2. It is used as a session ID
 			 * Since we want to also delete the session from the server, we need the (decrypted) accessToken in its function as a session id.
 			 */
+			const userId = encryptedCredentials.userId
 			credentials = await this.credentialsProvider.getCredentialsByUserId(encryptedCredentials.userId)
+
+			if (isApp()) {
+				this.mobileSystemFacade?.deleteContacts(userId, null)
+			}
 		} catch (e) {
 			if (e instanceof KeyPermanentlyInvalidatedError) {
 				await this.credentialsProvider.clearCredentials(e)

@@ -39,6 +39,8 @@ interface ConfigObject {
 	conversationViewShowOnlySelectedMail: boolean
 	// true on old domain if it sent the credentials, true on new if it tried to receive them
 	hasParticipatedInCredentialsMigration: boolean
+	// Stores each users' definition about contact synchronization
+	syncContactsWithPhonePreference: Record<Id, boolean>
 }
 
 /**
@@ -92,6 +94,7 @@ export class DeviceConfig implements CredentialsStorage, UsageTestStorage, NewsI
 			offlineTimeRangeDaysByUser: loadedConfig.offlineTimeRangeDaysByUser ?? {},
 			conversationViewShowOnlySelectedMail: loadedConfig.conversationViewShowOnlySelectedMail ?? false,
 			hasParticipatedInCredentialsMigration: loadedConfig.hasParticipatedInCredentialsMigration ?? false,
+			syncContactsWithPhonePreference: loadedConfig.syncContactsWithPhonePreference ?? new Map(),
 		}
 
 		// We need to write the config if there was a migration and if we generate the signup token and if.
@@ -318,6 +321,15 @@ export class DeviceConfig implements CredentialsStorage, UsageTestStorage, NewsI
 
 	setHasAttemptedCredentialsMigration(v: boolean): void {
 		this.config.hasParticipatedInCredentialsMigration = v
+		this.writeToStorage()
+	}
+
+	getUserSyncContactsWithPhonePreference(id: Id): boolean | null {
+		return this.config.syncContactsWithPhonePreference[id]
+	}
+
+	setUserSyncContactsWithPhonePreference(user: Id, value: boolean) {
+		this.config.syncContactsWithPhonePreference[user] = value
 		this.writeToStorage()
 	}
 }
