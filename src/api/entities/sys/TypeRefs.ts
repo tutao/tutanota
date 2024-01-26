@@ -879,18 +879,6 @@ export type CustomerInfo = {
 	takeoverCustomer:  null | Id;
 	terminationRequest:  null | IdTuple;
 }
-export const CustomerInfoReturnTypeRef: TypeRef<CustomerInfoReturn> = new TypeRef("sys", "CustomerInfoReturn")
-
-export function createCustomerInfoReturn(values: StrippedEntity<CustomerInfoReturn>): CustomerInfoReturn {
-	return Object.assign(create(typeModels.CustomerInfoReturn, CustomerInfoReturnTypeRef), values)
-}
-
-export type CustomerInfoReturn = {
-	_type: TypeRef<CustomerInfoReturn>;
-
-	_format: NumberString;
-	sendMailDisabled: boolean;
-}
 export const CustomerPropertiesTypeRef: TypeRef<CustomerProperties> = new TypeRef("sys", "CustomerProperties")
 
 export function createCustomerProperties(values: StrippedEntity<CustomerProperties>): CustomerProperties {
@@ -3159,31 +3147,6 @@ export type UserGroupRoot = {
 	_permissions: Id;
 
 	invitations: Id;
-}
-export const UserIdDataTypeRef: TypeRef<UserIdData> = new TypeRef("sys", "UserIdData")
-
-export function createUserIdData(values: StrippedEntity<UserIdData>): UserIdData {
-	return Object.assign(create(typeModels.UserIdData, UserIdDataTypeRef), values)
-}
-
-export type UserIdData = {
-	_type: TypeRef<UserIdData>;
-
-	_format: NumberString;
-	mailAddress: string;
-}
-export const UserIdReturnTypeRef: TypeRef<UserIdReturn> = new TypeRef("sys", "UserIdReturn")
-
-export function createUserIdReturn(values: StrippedEntity<UserIdReturn>): UserIdReturn {
-	return Object.assign(create(typeModels.UserIdReturn, UserIdReturnTypeRef), values)
-}
-
-export type UserIdReturn = {
-	_type: TypeRef<UserIdReturn>;
-
-	_format: NumberString;
-
-	userId: Id;
 }
 export const UserReturnTypeRef: TypeRef<UserReturn> = new TypeRef("sys", "UserReturn")
 

@@ -16,7 +16,6 @@ import {CustomDomainDataTypeRef} from "./TypeRefs.js"
 import {CustomDomainReturnTypeRef} from "./TypeRefs.js"
 import {CustomerAccountTerminationPostInTypeRef} from "./TypeRefs.js"
 import {CustomerAccountTerminationPostOutTypeRef} from "./TypeRefs.js"
-import {CustomerInfoReturnTypeRef} from "./TypeRefs.js"
 import {PublicKeyGetOutTypeRef} from "./TypeRefs.js"
 import {CustomerDataTypeRef} from "./TypeRefs.js"
 import {CustomerReturnTypeRef} from "./TypeRefs.js"
@@ -84,8 +83,6 @@ import {UpdatePermissionKeyDataTypeRef} from "./TypeRefs.js"
 import {UpdateSessionKeysPostInTypeRef} from "./TypeRefs.js"
 import {UpgradePriceServiceDataTypeRef} from "./TypeRefs.js"
 import {UpgradePriceServiceReturnTypeRef} from "./TypeRefs.js"
-import {UserIdDataTypeRef} from "./TypeRefs.js"
-import {UserIdReturnTypeRef} from "./TypeRefs.js"
 import {UserDataTypeRef} from "./TypeRefs.js"
 import {UserReturnTypeRef} from "./TypeRefs.js"
 import {UserDataDeleteTypeRef} from "./TypeRefs.js"
@@ -169,15 +166,6 @@ export const CustomerAccountTerminationService = Object.freeze({
 	name: "CustomerAccountTerminationService",
 	get: null,
 	post: {data: CustomerAccountTerminationPostInTypeRef, return: CustomerAccountTerminationPostOutTypeRef},
-	put: null,
-	delete: null,
-} as const)
-
-export const CustomerInfoService = Object.freeze({
-	app: "sys",
-	name: "CustomerInfoService",
-	get: {data: null, return: CustomerInfoReturnTypeRef},
-	post: null,
 	put: null,
 	delete: null,
 } as const)
@@ -492,15 +480,6 @@ export const UpgradePriceService = Object.freeze({
 	app: "sys",
 	name: "UpgradePriceService",
 	get: {data: UpgradePriceServiceDataTypeRef, return: UpgradePriceServiceReturnTypeRef},
-	post: null,
-	put: null,
-	delete: null,
-} as const)
-
-export const UserIdService = Object.freeze({
-	app: "sys",
-	name: "UserIdService",
-	get: {data: UserIdDataTypeRef, return: UserIdReturnTypeRef},
 	post: null,
 	put: null,
 	delete: null,
