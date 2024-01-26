@@ -3644,38 +3644,6 @@ export const typeModels = {
         "app": "sys",
         "version": "94"
     },
-    "CustomerInfoReturn": {
-        "name": "CustomerInfoReturn",
-        "since": 1,
-        "type": "DATA_TRANSFER_TYPE",
-        "id": 550,
-        "rootId": "A3N5cwACJg",
-        "versioned": false,
-        "encrypted": false,
-        "values": {
-            "_format": {
-                "final": false,
-                "name": "_format",
-                "id": 551,
-                "since": 1,
-                "type": "Number",
-                "cardinality": "One",
-                "encrypted": false
-            },
-            "sendMailDisabled": {
-                "final": false,
-                "name": "sendMailDisabled",
-                "id": 552,
-                "since": 1,
-                "type": "Boolean",
-                "cardinality": "One",
-                "encrypted": false
-            }
-        },
-        "associations": {},
-        "app": "sys",
-        "version": "94"
-    },
     "CustomerProperties": {
         "name": "CustomerProperties",
         "since": 6,
@@ -12687,72 +12655,6 @@ export const typeModels = {
                 "type": "LIST_ASSOCIATION",
                 "cardinality": "One",
                 "refType": "ReceivedGroupInvitation",
-                "dependency": null
-            }
-        },
-        "app": "sys",
-        "version": "94"
-    },
-    "UserIdData": {
-        "name": "UserIdData",
-        "since": 1,
-        "type": "DATA_TRANSFER_TYPE",
-        "id": 424,
-        "rootId": "A3N5cwABqA",
-        "versioned": false,
-        "encrypted": false,
-        "values": {
-            "_format": {
-                "final": false,
-                "name": "_format",
-                "id": 425,
-                "since": 1,
-                "type": "Number",
-                "cardinality": "One",
-                "encrypted": false
-            },
-            "mailAddress": {
-                "final": false,
-                "name": "mailAddress",
-                "id": 426,
-                "since": 1,
-                "type": "String",
-                "cardinality": "One",
-                "encrypted": false
-            }
-        },
-        "associations": {},
-        "app": "sys",
-        "version": "94"
-    },
-    "UserIdReturn": {
-        "name": "UserIdReturn",
-        "since": 1,
-        "type": "DATA_TRANSFER_TYPE",
-        "id": 427,
-        "rootId": "A3N5cwABqw",
-        "versioned": false,
-        "encrypted": false,
-        "values": {
-            "_format": {
-                "final": false,
-                "name": "_format",
-                "id": 428,
-                "since": 1,
-                "type": "Number",
-                "cardinality": "One",
-                "encrypted": false
-            }
-        },
-        "associations": {
-            "userId": {
-                "final": false,
-                "name": "userId",
-                "id": 429,
-                "since": 1,
-                "type": "ELEMENT_ASSOCIATION",
-                "cardinality": "One",
-                "refType": "User",
                 "dependency": null
             }
         },
