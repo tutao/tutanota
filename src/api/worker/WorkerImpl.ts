@@ -105,6 +105,13 @@ export class WorkerImpl implements NativeInterface {
 	}
 
 	async init(browserData: BrowserData): Promise<void> {
+		import("tuta-sdk").then(async (module) => {
+			await module.default("wasm/tutasdk.wasm")
+			const entityClient = new module.EntityClient()
+			const typeRef = new module.TypeRef("tutanota", "Mail")
+			console.log("result from rust: ", entityClient.load_element(typeRef, "myId"))
+		})
+
 		await initLocator(this, browserData)
 		const workerScope = this._scope
 

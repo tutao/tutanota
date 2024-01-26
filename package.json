@@ -103,7 +103,8 @@
 		"testdouble": "3.18.0",
 		"typescript": "5.3.3",
 		"xhr2": "0.2.1",
-		"zx": "7.0.7"
+		"zx": "7.0.7",
+		"tuta-sdk": "*"
 	},
 	"workspaces": [
 		"./packages/*"
