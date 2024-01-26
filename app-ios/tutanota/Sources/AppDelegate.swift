@@ -5,9 +5,8 @@ class AppDelegate : UIResponder,
                     UIApplicationDelegate,
                     UNUserNotificationCenterDelegate {
   var window: UIWindow?
-
+  
   private var pushTokenCallback: ResponseCallback<String>?
-  private let notificationStorage = NotificationStorage()
   private var alarmManager: AlarmManager!
   private var notificationsHandler: NotificationsHandler!
   private var viewController: ViewController!
@@ -34,31 +33,34 @@ class AppDelegate : UIResponder,
   }
 
   fileprivate func start() {
-
+    let userPreferencesProvider = UserPreferencesProviderImpl()
+    let notificationStorage = NotificationStorage(userPreferencesProvider: userPreferencesProvider)
     let keychainManager = KeychainManager(keyGenerator: KeyGenerator())
 
     let alarmModel = AlarmModel(dateProvider: SystemDateProvider())
     self.alarmManager = AlarmManager(
       alarmPersistor: AlarmPreferencePersistor(
-        notificationsStorage: self.notificationStorage,
+        notificationsStorage: notificationStorage,
         keychainManager: keychainManager
       ),
       alarmCryptor: KeychainAlarmCryptor(keychainManager: keychainManager),
       alarmScheduler: SystemAlarmScheduler(),
       alarmCalculator: alarmModel
     )
-    self.notificationsHandler = NotificationsHandler(alarmManager: self.alarmManager, notificationStorage: self.notificationStorage)
+    self.notificationsHandler = NotificationsHandler(alarmManager: self.alarmManager, notificationStorage: notificationStorage)
     self.window = UIWindow(frame: UIScreen.main.bounds)
     let credentialsEncryption = IosNativeCredentialsFacade(keychainManager: keychainManager)
+    
     self.viewController = ViewController(
       crypto: IosNativeCryptoFacade(),
-      themeManager: ThemeManager(),
+      themeManager: ThemeManager(userProferencesProvider: userPreferencesProvider),
       keychainManager: keychainManager,
       notificationStorage: notificationStorage,
       alarmManager: alarmManager,
       notificaionsHandler: notificationsHandler,
       credentialsEncryption: credentialsEncryption,
-      blobUtils: BlobUtil()
+      blobUtils: BlobUtil(),
+      contactsSynchronization: ContactsSynchronization(userPreferencesProvider: userPreferencesProvider)
     )
     self.window!.rootViewController = viewController
 

@@ -1,24 +1,26 @@
 import Foundation
 
 class IosMobileSystemFacade : MobileSystemFacade {
-  func syncContacts(_ userId: String, _ contacts: [StructuredContact]) async throws {
-    return try await syncLocalContacts(contacts, forUserId: userId)
-  }
-  
-  func deleteContact(_ userId: String, _ contactId: String) async throws {
-    return try await deleteLocalContact(contactId, forUserId: userId)
-  }
-  
-  func saveContacts(_ userId: String, _ contacts: [StructuredContact]) async throws {
-    return try await saveLocalContacts(contacts, forUserId: userId)
-  }
-  
+  private let contactsSynchronization: ContactsSynchronization
   private let contactsSource: ContactsSource
   private let viewController: ViewController
 
-  init(contactsSource: ContactsSource, viewController: ViewController) {
+  init(contactsSource: ContactsSource, viewController: ViewController, contactsSynchronization: ContactsSynchronization) {
     self.contactsSource = contactsSource
     self.viewController = viewController
+    self.contactsSynchronization = contactsSynchronization
+  }
+  
+  func syncContacts(_ userId: String, _ contacts: [StructuredContact]) async throws {
+    return try await self.contactsSynchronization.syncLocalContacts(contacts, forUserId: userId)
+  }
+  
+  func deleteContact(_ userId: String, _ contactId: String) async throws {
+    return try await self.contactsSynchronization.deleteLocalContact(contactId, forUserId: userId)
+  }
+  
+  func saveContacts(_ userId: String, _ contacts: [StructuredContact]) async throws {
+    return try await self.contactsSynchronization.saveLocalContacts(contacts, forUserId: userId)
   }
 
   func findSuggestions(_ query: String) async throws -> [NativeContact] {

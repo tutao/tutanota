@@ -7,9 +7,15 @@ fileprivate let LAST_PROCESSED_NOTIFICAION_ID_KEY = "lastProcessedNotificationId
 fileprivate let LAST_MISSED_NOTIFICATION_CHECK_TIME = "lastMissedNotificationCheckTime"
 
 class NotificationStorage {
+  private let userPreferencesProvider: UserPreferencesProvider
+  
+  init(userPreferencesProvider: UserPreferencesProvider) {
+    self.userPreferencesProvider = userPreferencesProvider
+  }
+  
   var sseInfo: SSEInfo? {
     get {
-      let dict = UserDefaults.standard.object(forKey: SSE_INFO_KEY)
+      let dict = self.userPreferencesProvider.getObject(forKey: SSE_INFO_KEY)
       return dict.map { try! DictionaryDecoder().decode(SSEInfo.self, from: $0 as! NSDictionary) }
     }
   }
@@ -36,13 +42,12 @@ class NotificationStorage {
   
   func store(alarms: [EncryptedAlarmNotification]) {
     let jsonData = try! JSONEncoder().encode(alarms)
-    UserDefaults.standard.setValue(jsonData, forKey: ALARMS_KEY)
+    self.userPreferencesProvider.setValue(jsonData, forKey: ALARMS_KEY)
   }
   
   var alarms: [EncryptedAlarmNotification] {
     get {
-      let defaults = UserDefaults.standard
-      let notificationsJsonData = defaults.object(forKey: ALARMS_KEY)
+      let notificationsJsonData = self.userPreferencesProvider.getObject(forKey: ALARMS_KEY)
       if let notificationsJsonData = notificationsJsonData {
         return try! JSONDecoder().decode(Array<EncryptedAlarmNotification>.self, from: notificationsJsonData as! Data)
       } else {
@@ -66,19 +71,19 @@ class NotificationStorage {
   
   var lastProcessedNotificationId: String? {
     get {
-      return UserDefaults.standard.object(forKey: LAST_PROCESSED_NOTIFICAION_ID_KEY) as! String?
+      return self.userPreferencesProvider.getObject(forKey: LAST_PROCESSED_NOTIFICAION_ID_KEY) as! String?
     }
     set {
-      return UserDefaults.standard.setValue(newValue, forKey: LAST_PROCESSED_NOTIFICAION_ID_KEY)
+      return self.userPreferencesProvider.setValue(newValue, forKey: LAST_PROCESSED_NOTIFICAION_ID_KEY)
     }
   }
   
   var lastMissedNotificationCheckTime: Date? {
     get {
-      return UserDefaults.standard.object(forKey: LAST_MISSED_NOTIFICATION_CHECK_TIME) as! Date?
+      return self.userPreferencesProvider.getObject(forKey: LAST_MISSED_NOTIFICATION_CHECK_TIME) as! Date?
     }
     set {
-      return UserDefaults.standard.setValue(newValue, forKey: LAST_MISSED_NOTIFICATION_CHECK_TIME)
+      return self.userPreferencesProvider.setValue(newValue, forKey: LAST_MISSED_NOTIFICATION_CHECK_TIME)
     }
   }
   
@@ -96,9 +101,9 @@ class NotificationStorage {
   private func put(sseInfo: SSEInfo?) {
     if let sseInfo = sseInfo {
       let dict: NSDictionary = try! DictionaryEncoder().encode(sseInfo)
-      UserDefaults.standard.setValue(dict, forKey: SSE_INFO_KEY)
+      self.userPreferencesProvider.setValue(dict, forKey: SSE_INFO_KEY)
     } else {
-      UserDefaults.standard.setValue(nil, forKey: SSE_INFO_KEY)
+      self.userPreferencesProvider.setValue(nil, forKey: SSE_INFO_KEY)
     }
   }
 }
