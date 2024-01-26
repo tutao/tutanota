@@ -30,7 +30,8 @@ class RemoteBridge : NSObject, NativeInterface {
     notificationStorage: NotificationStorage,
     keychainManager: KeychainManager,
     webAuthnFacade: WebAuthnFacade,
-    sqlCipherFacade: IosSqlCipherFacade
+    sqlCipherFacade: IosSqlCipherFacade,
+    contactsSynchronization: ContactsSynchronization
   ) {
     self.webView = webView
     self.viewController = viewController
@@ -53,7 +54,7 @@ class RemoteBridge : NSObject, NativeInterface {
     self.globalDispatcher = IosGlobalDispatcher(
       commonSystemFacade: commonSystemFacade,
       fileFacade: fileFacade,
-      mobileSystemFacade: IosMobileSystemFacade(contactsSource: ContactsSource(), viewController: self.viewController),
+      mobileSystemFacade: IosMobileSystemFacade(contactsSource: ContactsSource(), viewController: self.viewController, contactsSynchronization: contactsSynchronization),
       nativeCredentialsFacade: nativeCredentialsFacade,
       nativeCryptoFacade: nativeCryptoFacade,
       nativePushFacade: nativePushFacade,

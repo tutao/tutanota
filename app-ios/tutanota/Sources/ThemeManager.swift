@@ -14,21 +14,27 @@ fileprivate let LIGHT_FALLBACK_THEME = [
 ]
 
 class ThemeManager : NSObject {
+  private let userPreferencesProvider: UserPreferencesProvider
+  
+  init(userProferencesProvider: UserPreferencesProvider) {
+    self.userPreferencesProvider = userProferencesProvider
+  }
+  
   public var themePreference: ThemePreference? {
     get {
-      return UserDefaults.standard.object(forKey: SELECTED_THEME) as! ThemePreference?
+      return userPreferencesProvider.getObject(forKey: SELECTED_THEME) as! ThemePreference?
     }
     set(newVal) {
-      UserDefaults.standard.setValue(newVal, forKey: SELECTED_THEME)
+      userPreferencesProvider.setValue(newVal, forKey: SELECTED_THEME)
     }
   }
 
   public var themes: Array<Theme> {
     get {
-      UserDefaults.standard.object(forKey: THEMES) as! Array<Theme>? ?? []
+      userPreferencesProvider.getObject(forKey: THEMES) as! Array<Theme>? ?? []
     }
     set(newVal) {
-      return UserDefaults.standard.setValue(newVal, forKey: THEMES)
+      return userPreferencesProvider.setValue(newVal, forKey: THEMES)
     }
   }
 
