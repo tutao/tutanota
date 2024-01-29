@@ -142,7 +142,6 @@ export class LoginViewModel implements ILoginViewModel {
 		private readonly domainConfig: DomainConfig,
 		private readonly credentialRemovalHandler: CredentialRemovalHandler,
 		private readonly pushServiceApp: NativePushServiceApp | null,
-		private readonly mobileSystemFacade: MobileSystemFacade | null,
 	) {
 		this.state = LoginState.NotAuthenticated
 		this.displayMode = DisplayMode.Form
@@ -218,12 +217,7 @@ export class LoginViewModel implements ILoginViewModel {
 			 * 2. It is used as a session ID
 			 * Since we want to also delete the session from the server, we need the (decrypted) accessToken in its function as a session id.
 			 */
-			const userId = encryptedCredentials.userId
 			credentials = await this.credentialsProvider.getCredentialsByUserId(encryptedCredentials.userId)
-
-			if (isApp()) {
-				this.mobileSystemFacade?.deleteContacts(userId, null)
-			}
 		} catch (e) {
 			if (e instanceof KeyPermanentlyInvalidatedError) {
 				await this.credentialsProvider.clearCredentials(e)
