@@ -507,7 +507,9 @@ class MainLocator {
 
 	async credentialsRemovalHandler(): Promise<CredentialRemovalHandler> {
 		const { NoopCredentialRemovalHandler, AppsCredentialRemovalHandler } = await import("../../login/CredentialRemovalHandler.js")
-		return isBrowser() ? new NoopCredentialRemovalHandler() : new AppsCredentialRemovalHandler(this.indexerFacade, this.pushService, this.configFacade)
+		return isBrowser()
+			? new NoopCredentialRemovalHandler()
+			: new AppsCredentialRemovalHandler(this.indexerFacade, this.pushService, this.configFacade, isApp() ? this.systemFacade : null)
 	}
 
 	async loginViewModelFactory(): Promise<lazy<LoginViewModel>> {
@@ -526,7 +528,6 @@ class MainLocator {
 				domainConfig,
 				credentialsRemovalHandler,
 				isBrowser() ? null : this.pushService,
-				isApp() ? this.systemFacade : null,
 			)
 		}
 	}
@@ -742,7 +743,7 @@ class MainLocator {
 				: new FileControllerNative(blobFacade, guiDownload, this.nativeInterfaces.fileApp)
 
 		const { ContactModel } = await import("../../contacts/model/ContactModel")
-		this.contactModel = new ContactModel(this.searchFacade, this.entityClient, this.logins, this.eventController, isApp() ? this.systemFacade : null)
+		this.contactModel = new ContactModel(this.searchFacade, this.entityClient, this.logins, this.eventController)
 		this.minimizedMailModel = new MinimizedMailEditorViewModel()
 		this.usageTestController = new UsageTestController(this.usageTestModel)
 	}
