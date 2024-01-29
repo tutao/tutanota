@@ -189,12 +189,10 @@ o.spec("ContactUtilsTest", function () {
 	})
 
 	o("extractStructuredEmailAddress", function () {
-		let contact = createTestEntity(ContactTypeRef)
+		const contact = createTestEntity(ContactTypeRef)
 
 		contact.mailAddresses.push(createTestEntity(ContactMailAddressTypeRef))
 		contact.mailAddresses.push(createTestEntity(ContactMailAddressTypeRef))
-
-		o(contact.mailAddresses.length).equals(2)
 
 		o(extractStructuredMailAddresses(contact.mailAddresses)).deepEquals(
 			contact.mailAddresses.map((address) => ({
@@ -206,12 +204,10 @@ o.spec("ContactUtilsTest", function () {
 	})
 
 	o("extractStructuredAddress", function () {
-		let contact = createTestEntity(ContactTypeRef)
+		const contact = createTestEntity(ContactTypeRef)
 
 		contact.addresses.push(createTestEntity(ContactAddressTypeRef))
 		contact.addresses.push(createTestEntity(ContactAddressTypeRef))
-
-		o(contact.addresses.length).equals(2)
 
 		o(extractStructuredAddresses(contact.addresses)).deepEquals(
 			contact.addresses.map((address) => ({
@@ -223,12 +219,10 @@ o.spec("ContactUtilsTest", function () {
 	})
 
 	o("extractStructuredPhoneNumber", function () {
-		let contact = createTestEntity(ContactTypeRef)
+		const contact = createTestEntity(ContactTypeRef)
 
 		contact.phoneNumbers.push(createTestEntity(ContactPhoneNumberTypeRef))
 		contact.phoneNumbers.push(createTestEntity(ContactPhoneNumberTypeRef))
-
-		o(contact.phoneNumbers.length).equals(2)
 
 		o(extractStructuredPhoneNumbers(contact.phoneNumbers)).deepEquals(
 			contact.phoneNumbers.map((phone) => ({

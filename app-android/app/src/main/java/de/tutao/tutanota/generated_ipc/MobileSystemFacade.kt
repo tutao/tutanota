@@ -17,7 +17,7 @@ interface MobileSystemFacade {
 		query: String,
 	): List<NativeContact>
 	/**
-	 * Store a single contact in system's contact book
+	 * Store one or more contacts in system's contact book
 	 */
 	 suspend fun saveContacts(
 		userId: String,

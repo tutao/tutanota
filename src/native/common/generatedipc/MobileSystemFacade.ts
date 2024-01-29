@@ -12,7 +12,7 @@ export interface MobileSystemFacade {
 	findSuggestions(query: string): Promise<ReadonlyArray<NativeContact>>
 
 	/**
-	 * Store a single contact in system's contact book
+	 * Store one or more contacts in system's contact book
 	 */
 	saveContacts(userId: string, contacts: ReadonlyArray<StructuredContact>): Promise<void>
 

@@ -3,11 +3,10 @@ import type { Birthday, Contact, ContactAddress, ContactMailAddress, ContactPhon
 import { formatDate } from "../../misc/Formatter"
 import { isoDateToBirthday } from "../../api/common/utils/BirthdayUtils"
 import { assertMainOrNode } from "../../api/common/Env"
-import { ContactSocialType } from "../../api/common/TutanotaConstants"
+import { ContactAddressType, ContactPhoneNumberType, ContactSocialType } from "../../api/common/TutanotaConstants"
 import { StructuredMailAddress } from "../../native/common/generatedipc/StructuredMailAddress.js"
 import { StructuredPhoneNumber } from "../../native/common/generatedipc/StructuredPhoneNumber.js"
 import { StructuredAddress } from "../../native/common/generatedipc/StructuredAddress.js"
-import { downcast } from "@tutao/tutanota-utils"
 
 assertMainOrNode()
 
@@ -97,26 +96,26 @@ export function getSocialUrl(contactId: ContactSocialId): string {
 	return `${http}${worldwidew}${socialUrlType}${contactId.socialId.trim()}`
 }
 
-export function extractStructuredMailAddresses(addresses: ContactMailAddress[]): StructuredMailAddress[] {
+export function extractStructuredMailAddresses(addresses: ContactMailAddress[]): ReadonlyArray<StructuredMailAddress> {
 	return addresses.map((address) => ({
 		address: address.address,
-		type: downcast(address.type),
+		type: address.type as ContactAddressType,
 		customTypeName: address.customTypeName,
 	}))
 }
 
-export function extractStructuredAddresses(addresses: ContactAddress[]): StructuredAddress[] {
+export function extractStructuredAddresses(addresses: ContactAddress[]): ReadonlyArray<StructuredAddress> {
 	return addresses.map((address) => ({
 		address: address.address,
-		type: downcast(address.type),
+		type: address.type as ContactAddressType,
 		customTypeName: address.customTypeName,
 	}))
 }
 
-export function extractStructuredPhoneNumbers(numbers: ContactPhoneNumber[]): StructuredPhoneNumber[] {
+export function extractStructuredPhoneNumbers(numbers: ContactPhoneNumber[]): ReadonlyArray<StructuredPhoneNumber> {
 	return numbers.map((number) => ({
 		number: number.number,
-		type: downcast(number.type),
+		type: number.type as ContactPhoneNumberType,
 		customTypeName: number.customTypeName,
 	}))
 }
