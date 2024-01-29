@@ -164,7 +164,15 @@ export async function replyToEventInvitation(
 		}
 	}
 	const calendarModel = await locator.calendarModel()
-	const calendar = await calendarModel.getCalendarInfos().then(findPrivateCalendar)
+	const calendars = await calendarModel.getCalendarInfos()
+	const user = locator.logins.getUserController().user
+	const type = getEventType(event, calendars, [attendee.address.address], user)
+	if (type === EventType.SHARED_RO || type === EventType.LOCKED) {
+		// if the Event type is shared read only, the event will be updated by the response, trying to update the calendar here will result in error
+		// since there is no write permission. (Same issue can happen with locked, no write permission)
+		return ReplyResult.ReplySent
+	}
+	const calendar = findPrivateCalendar(calendars)
 	if (calendar == null) return ReplyResult.ReplyNotSent
 	if (decision !== CalendarAttendeeStatus.DECLINED && eventClone.uid != null) {
 		const dbEvents = await calendarModel.getEventsByUid(eventClone.uid)
