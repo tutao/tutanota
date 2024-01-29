@@ -19,6 +19,7 @@ import { Mode } from "../../../src/api/common/Env.js"
 import { createTestEntity, domainConfigStub } from "../TestUtils.js"
 import { CredentialRemovalHandler } from "../../../src/login/CredentialRemovalHandler.js"
 import { NativePushServiceApp } from "../../../src/native/main/NativePushServiceApp.js"
+import { MobileSystemFacade } from "../../../src/native/common/generatedipc/MobileSystemFacade.js"
 
 const { anything } = matchers
 
@@ -113,6 +114,7 @@ o.spec("LoginViewModelTest", () => {
 	let deviceConfigMock: DeviceConfig
 	let credentialRemovalHandler: CredentialRemovalHandler
 	let pushServiceApp: NativePushServiceApp
+	let mobileSystemFacade: MobileSystemFacade
 
 	o.beforeEach(async () => {
 		loginControllerMock = object<LoginController>()
@@ -139,6 +141,8 @@ o.spec("LoginViewModelTest", () => {
 		credentialRemovalHandler = object()
 
 		pushServiceApp = object()
+
+		mobileSystemFacade = object()
 	})
 
 	/**
@@ -154,6 +158,7 @@ o.spec("LoginViewModelTest", () => {
 			domainConfigStub,
 			credentialRemovalHandler,
 			pushServiceApp,
+			mobileSystemFacade,
 		)
 		await viewModel.init()
 		return viewModel
