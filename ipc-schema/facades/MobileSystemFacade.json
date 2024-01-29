@@ -15,7 +15,7 @@
 			"ret": "List<NativeContact>"
 		},
 		"saveContacts": {
-			"doc": "Store a single contact in system's contact book",
+			"doc": "Store one or more contacts in system's contact book",
 			"arg": [
 				{
 					"userId": "string"

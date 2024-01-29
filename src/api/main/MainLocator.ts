@@ -10,8 +10,7 @@ import { LoginController } from "./LoginController"
 import type { ContactModel } from "../../contacts/model/ContactModel"
 import { EntityClient } from "../common/EntityClient"
 import type { CalendarInfo, CalendarModel } from "../../calendar/model/CalendarModel"
-import type { DeferredObject, lazy, lazyAsync } from "@tutao/tutanota-utils"
-import { defer, lazyMemoized, noOp } from "@tutao/tutanota-utils"
+import { defer, DeferredObject, lazy, lazyAsync, lazyMemoized, noOp } from "@tutao/tutanota-utils"
 import { ProgressTracker } from "./ProgressTracker"
 import { MinimizedMailEditorViewModel } from "../../mail/model/MinimizedMailEditorViewModel"
 import { SchedulerImpl } from "../common/utils/Scheduler.js"
@@ -105,6 +104,7 @@ import type { CalendarEventPreviewViewModel } from "../../calendar/gui/eventpopu
 import { getDisplayedSender } from "../common/mail/CommonMailUtils.js"
 import { isCustomizationEnabledForCustomer } from "../common/utils/CustomerUtils.js"
 import { CalendarEventsRepository } from "../../calendar/date/CalendarEventsRepository.js"
+import { NativeContactsSyncManager } from "../../contacts/model/NativeContactsSyncManager.js"
 
 assertMainOrNode()
 
@@ -157,6 +157,7 @@ class MainLocator {
 	infoMessageHandler!: InfoMessageHandler
 	Const!: Record<string, any>
 
+	private nativeContactSyncManager!: NativeContactsSyncManager | null
 	private nativeInterfaces: NativeInterfaces | null = null
 	private exposedNativeInterfaces: ExposedNativeInterface | null = null
 	private entropyFacade!: EntropyFacade
@@ -630,6 +631,7 @@ class MainLocator {
 		)
 		this.operationProgressTracker = new OperationProgressTracker()
 		this.infoMessageHandler = new InfoMessageHandler(this.search)
+
 		this.Const = Const
 		if (!isBrowser()) {
 			const { WebDesktopFacade } = await import("../../native/main/WebDesktopFacade")
@@ -807,6 +809,22 @@ class MainLocator {
 
 		return popupModel
 	}
+
+	nativeContactsSyncManager = lazyMemoized(() => {
+		if (!isApp()) return null
+
+		if (this.nativeContactSyncManager == null) {
+			this.nativeContactSyncManager = new NativeContactsSyncManager(
+				this.logins,
+				this.systemFacade,
+				this.entityClient,
+				this.eventController,
+				this.contactModel,
+			)
+		}
+
+		return this.nativeContactSyncManager
+	})
 }
 
 export type IMainLocator = Readonly<MainLocator>

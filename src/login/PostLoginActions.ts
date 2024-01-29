@@ -9,7 +9,7 @@ import { locator } from "../api/main/MainLocator"
 import { ReceiveInfoService } from "../api/entities/tutanota/Services"
 import { lang } from "../misc/LanguageViewModel"
 import { getHourCycle } from "../misc/Formatter"
-import { ContactTypeRef, createReceiveInfoServiceData, OutOfOfficeNotification } from "../api/entities/tutanota/TypeRefs.js"
+import { createReceiveInfoServiceData, OutOfOfficeNotification } from "../api/entities/tutanota/TypeRefs.js"
 import { isNotificationCurrentlyActive, loadOutOfOfficeNotification } from "../misc/OutOfOfficeNotificationUtils"
 import * as notificationOverlay from "../gui/base/NotificationOverlay"
 import { ButtonType } from "../gui/base/Button.js"
@@ -34,9 +34,6 @@ import { EntityClient } from "../api/common/EntityClient.js"
 import { shouldShowStorageWarning, shouldShowUpgradeReminder } from "./PostLoginUtils.js"
 import { UserManagementFacade } from "../api/worker/facades/lazy/UserManagementFacade.js"
 import { CustomerFacade } from "../api/worker/facades/lazy/CustomerFacade.js"
-import { StructuredContact } from "../native/common/generatedipc/StructuredContact.js"
-import { getElementId } from "../api/common/utils/EntityUtils.js"
-import { extractStructuredAddresses, extractStructuredMailAddresses, extractStructuredPhoneNumbers } from "../contacts/model/ContactUtils.js"
 
 /**
  * This is a collection of all things that need to be initialized/global state to be set after a user has logged in successfully.
@@ -102,28 +99,8 @@ export class PostLoginActions implements PostLoginAction {
 		if (isApp()) {
 			// don't wait for it, just invoke
 			locator.fileApp.clearFileData().catch((e) => console.log("Failed to clean file data", e))
-			this.syncContacts()
+			locator.nativeContactsSyncManager()?.syncContacts()
 		}
-	}
-
-	private async syncContacts() {
-		const contactListId = await locator.contactModel.getContactListId()
-		if (contactListId == null) return
-		const contacts = await this.entityClient.loadAll(ContactTypeRef, contactListId)
-		const structuredContacts: ReadonlyArray<StructuredContact> = contacts.map((contact) => {
-			return {
-				id: getElementId(contact),
-				firstName: contact.firstName,
-				lastName: contact.lastName,
-				mailAddresses: extractStructuredMailAddresses(contact.mailAddresses),
-				phoneNumbers: extractStructuredPhoneNumbers(contact.phoneNumbers),
-				nickname: contact.nickname,
-				company: contact.company,
-				birthday: contact.birthdayIso,
-				addresses: extractStructuredAddresses(contact.addresses),
-			}
-		})
-		await locator.systemFacade.syncContacts(this.logins.getUserController().userId, structuredContacts)
 	}
 
 	async onFullLoginSuccess(loggedInEvent: LoggedInEvent): Promise<void> {
