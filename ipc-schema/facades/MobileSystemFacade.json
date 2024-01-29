@@ -15,7 +15,7 @@
 			"ret": "List<NativeContact>"
 		},
 		"saveContacts": {
-			"doc": "Store contacts in system contact book",
+			"doc": "Store a single contact in system's contact book",
 			"arg": [
 				{
 					"userId": "string"
@@ -27,7 +27,7 @@
 			"ret": "void"
 		},
 		"syncContacts": {
-			"doc": "Sync contacts with system contact book",
+			"doc": "Sync all Tuta contacts with system's contact book, this operation includes Inserts, Updates and Deletions",
 			"arg": [
 				{
 					"userId": "string"
@@ -38,14 +38,14 @@
 			],
 			"ret": "void"
 		},
-		"deleteContact": {
-			"doc": "Delete a contact from system contact book",
+		"deleteContacts": {
+			"doc": "Delete all or a specific Tuta contact from system's contact book",
 			"arg": [
 				{
 					"userId": "string"
 				},
 				{
-					"contactId": "string"
+					"contactId": "string?"
 				}
 			],
 			"ret": "void"

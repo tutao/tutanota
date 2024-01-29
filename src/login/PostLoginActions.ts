@@ -15,7 +15,7 @@ import * as notificationOverlay from "../gui/base/NotificationOverlay"
 import { ButtonType } from "../gui/base/Button.js"
 import { themeController } from "../gui/theme"
 import { Dialog } from "../gui/base/Dialog"
-import { CloseEventBusOption, Const, ContactAddressType, ContactPhoneNumberType, SecondFactorType } from "../api/common/TutanotaConstants"
+import { CloseEventBusOption, Const, SecondFactorType } from "../api/common/TutanotaConstants"
 import { showMoreStorageNeededOrderDialog } from "../misc/SubscriptionDialogs"
 import { notifications } from "../gui/Notifications"
 import { LockedError } from "../api/common/error/RestError"
@@ -36,6 +36,7 @@ import { UserManagementFacade } from "../api/worker/facades/lazy/UserManagementF
 import { CustomerFacade } from "../api/worker/facades/lazy/CustomerFacade.js"
 import { StructuredContact } from "../native/common/generatedipc/StructuredContact.js"
 import { getElementId } from "../api/common/utils/EntityUtils.js"
+import { extractStructuredAddresses, extractStructuredMailAddresses, extractStructuredPhoneNumbers } from "../contacts/model/ContactUtils.js"
 
 /**
  * This is a collection of all things that need to be initialized/global state to be set after a user has logged in successfully.
@@ -114,30 +115,12 @@ export class PostLoginActions implements PostLoginAction {
 				id: getElementId(contact),
 				firstName: contact.firstName,
 				lastName: contact.lastName,
-				mailAddresses: contact.mailAddresses.map((address) => {
-					return {
-						address: address.address,
-						type: address.type as ContactAddressType,
-						customTypeName: address.customTypeName,
-					}
-				}),
-				phoneNumbers: contact.phoneNumbers.map((phone) => {
-					return {
-						number: phone.number,
-						type: phone.type as ContactPhoneNumberType,
-						customTypeName: phone.customTypeName,
-					}
-				}),
+				mailAddresses: extractStructuredMailAddresses(contact.mailAddresses),
+				phoneNumbers: extractStructuredPhoneNumbers(contact.phoneNumbers),
 				nickname: contact.nickname,
 				company: contact.company,
 				birthday: contact.birthdayIso,
-				addresses: contact.addresses.map((address) => {
-					return {
-						address: address.address,
-						type: address.type as ContactAddressType,
-						customTypeName: address.customTypeName,
-					}
-				}),
+				addresses: extractStructuredAddresses(contact.addresses),
 			}
 		})
 		await locator.systemFacade.syncContacts(this.logins.getUserController().userId, structuredContacts)

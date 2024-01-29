@@ -32,10 +32,10 @@ public class MobileSystemFacadeReceiveDispatcher {
 				contacts
 			)
 			return "null"
-		case "deleteContact":
+		case "deleteContacts":
 			let userId = try! JSONDecoder().decode(String.self, from: arg[0].data(using: .utf8)!)
-			let contactId = try! JSONDecoder().decode(String.self, from: arg[1].data(using: .utf8)!)
-			try await self.facade.deleteContact(
+			let contactId = try! JSONDecoder().decode(String?.self, from: arg[1].data(using: .utf8)!)
+			try await self.facade.deleteContacts(
 				userId,
 				contactId
 			)

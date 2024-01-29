@@ -207,7 +207,7 @@ export class ContactModel {
 					contactsIdToCreateOrUpdate.set(event.instanceListId, [event.instanceId])
 				}
 			} else if (event.operation === OperationType.DELETE) {
-				this.mobileSystemFacade?.deleteContact(userId, event.instanceId)
+				this.mobileSystemFacade?.deleteContacts(userId, event.instanceId)
 			}
 		}
 

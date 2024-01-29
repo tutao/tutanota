@@ -12,19 +12,19 @@ export interface MobileSystemFacade {
 	findSuggestions(query: string): Promise<ReadonlyArray<NativeContact>>
 
 	/**
-	 * Store contacts in system contact book
+	 * Store a single contact in system's contact book
 	 */
 	saveContacts(userId: string, contacts: ReadonlyArray<StructuredContact>): Promise<void>
 
 	/**
-	 * Sync contacts with system contact book
+	 * Sync all Tuta contacts with system's contact book, this operation includes Inserts, Updates and Deletions
 	 */
 	syncContacts(userId: string, contacts: ReadonlyArray<StructuredContact>): Promise<void>
 
 	/**
-	 * Delete a contact from system contact book
+	 * Delete all or a specific Tuta contact from system's contact book
 	 */
-	deleteContact(userId: string, contactId: string): Promise<void>
+	deleteContacts(userId: string, contactId: string | null): Promise<void>
 
 	/**
 	 * Open URI in the OS.

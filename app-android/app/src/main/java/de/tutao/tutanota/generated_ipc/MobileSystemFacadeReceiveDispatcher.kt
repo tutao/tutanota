@@ -39,10 +39,10 @@ class MobileSystemFacadeReceiveDispatcher(
 				)
 				return json.encodeToString(result)
 			}
-			"deleteContact" -> {
+			"deleteContacts" -> {
 				val userId: String = json.decodeFromString(arg[0])
-				val contactId: String = json.decodeFromString(arg[1])
-				val result: Unit = this.facade.deleteContact(
+				val contactId: String? = json.decodeFromString(arg[1])
+				val result: Unit = this.facade.deleteContacts(
 					userId,
 					contactId,
 				)

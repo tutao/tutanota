@@ -17,25 +17,25 @@ interface MobileSystemFacade {
 		query: String,
 	): List<NativeContact>
 	/**
-	 * Store contacts in system contact book
+	 * Store a single contact in system's contact book
 	 */
 	 suspend fun saveContacts(
 		userId: String,
 		contacts: List<StructuredContact>,
 	): Unit
 	/**
-	 * Sync contacts with system contact book
+	 * Sync all Tuta contacts with system's contact book, this operation includes Inserts, Updates and Deletions
 	 */
 	 suspend fun syncContacts(
 		userId: String,
 		contacts: List<StructuredContact>,
 	): Unit
 	/**
-	 * Delete a contact from system contact book
+	 * Delete all or a specific Tuta contact from system's contact book
 	 */
-	 suspend fun deleteContact(
+	 suspend fun deleteContacts(
 		userId: String,
-		contactId: String,
+		contactId: String?,
 	): Unit
 	/**
 	 * Open URI in the OS.
