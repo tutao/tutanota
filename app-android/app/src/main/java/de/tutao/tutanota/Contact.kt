@@ -56,8 +56,7 @@ class Contact(private val activity: MainActivity) {
 	}
 
 	suspend fun deleteContacts(userId: String, contactId: String?) {
-		activity.getPermission(Manifest.permission.READ_CONTACTS)
-		activity.getPermission(Manifest.permission.WRITE_CONTACTS)
+		checkContactPermissions()
 
 		retrieveRawContacts(userId, contactId).use { cursor ->
 			if (cursor != null) {
@@ -71,8 +70,7 @@ class Contact(private val activity: MainActivity) {
 	}
 
 	suspend fun saveContacts(userId: String, contacts: List<StructuredContact>): Map<String, StoredContact> {
-		activity.getPermission(Manifest.permission.READ_CONTACTS)
-		activity.getPermission(Manifest.permission.WRITE_CONTACTS)
+		checkContactPermissions()
 
 		/** map from sourceId to id */
 		val alreadyStoredContacts = mutableMapOf<String, StoredContact>()
@@ -120,8 +118,7 @@ class Contact(private val activity: MainActivity) {
 	}
 
 	suspend fun syncContacts(userId: String, contacts: List<StructuredContact>) {
-		activity.getPermission(Manifest.permission.READ_CONTACTS)
-		activity.getPermission(Manifest.permission.WRITE_CONTACTS)
+		checkContactPermissions()
 
 		/** map from sourceId to id */
 		val alreadyStoredContacts = saveContacts(userId, contacts)
@@ -136,6 +133,11 @@ class Contact(private val activity: MainActivity) {
 		}
 
 		Log.d(TAG, "Contact synchronization ended")
+	}
+
+	private suspend fun checkContactPermissions() {
+		activity.getPermission(Manifest.permission.READ_CONTACTS)
+		activity.getPermission(Manifest.permission.WRITE_CONTACTS)
 	}
 
 	private fun deleteRawContact(storedContact: StoredContact): Int {

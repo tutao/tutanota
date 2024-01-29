@@ -14,7 +14,7 @@ public protocol MobileSystemFacade {
 		_ query: String
 	) async throws -> [NativeContact]
 	/**
-	 * Store a single contact in system's contact book
+	 * Store one or more contacts in system's contact book
 	 */
 	func saveContacts(
 		_ userId: String,
