@@ -14,25 +14,25 @@ public protocol MobileSystemFacade {
 		_ query: String
 	) async throws -> [NativeContact]
 	/**
-	 * Store contacts in system contact book
+	 * Store a single contact in system's contact book
 	 */
 	func saveContacts(
 		_ userId: String,
 		_ contacts: [StructuredContact]
 	) async throws -> Void
 	/**
-	 * Sync contacts with system contact book
+	 * Sync all Tuta contacts with system's contact book, this operation includes Inserts, Updates and Deletions
 	 */
 	func syncContacts(
 		_ userId: String,
 		_ contacts: [StructuredContact]
 	) async throws -> Void
 	/**
-	 * Delete a contact from system contact book
+	 * Delete all or a specific Tuta contact from system's contact book
 	 */
-	func deleteContact(
+	func deleteContacts(
 		_ userId: String,
-		_ contactId: String
+		_ contactId: String?
 	) async throws -> Void
 	/**
 	 * Open URI in the OS.

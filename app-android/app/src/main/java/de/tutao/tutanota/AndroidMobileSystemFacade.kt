@@ -36,9 +36,8 @@ class AndroidMobileSystemFacade(
 			}
 		}
 	}
-
-	override suspend fun deleteContact(userId: String, contactId: String) {
-		return contact.deleteContact(userId, contactId)
+	override suspend fun deleteContacts(userId: String, contactId: String?) {
+		return contact.deleteContacts(userId, contactId)
 	}
 
 	override suspend fun syncContacts(userId: String, contacts: List<StructuredContact>) {
@@ -46,7 +45,8 @@ class AndroidMobileSystemFacade(
 	}
 
 	override suspend fun saveContacts(userId: String, contacts: List<StructuredContact>) {
-		return contact.saveContacts(userId, contacts)
+		contact.saveContacts(userId, contacts)
+		return
 	}
 
 	override suspend fun shareText(text: String, title: String): Boolean {
