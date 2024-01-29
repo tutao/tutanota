@@ -88,9 +88,9 @@ export class CalendarEventPreviewViewModel {
 		return this._ownAttendee
 	}
 
-	/** return an object enabling us to set and display the participation correctly if this is an invite we're invited to, null otherwise.
+	/** return an object enabling us to set and display the participation correctly if this is an event we're invited to, null otherwise.
 	 * note that the Promise<unknown> type on setParticipation prevents us from leaking errors when consumers call it and try to catch errors without
-	 * awaiting it (they get a async call without await warning) */
+	 * awaiting it (they get an async call without await warning) */
 	getParticipationSetterAndThen(action: Thunk): null | {
 		ownAttendee: CalendarEventAttendee
 		setParticipation: (status: CalendarAttendeeStatus) => Promise<unknown>
