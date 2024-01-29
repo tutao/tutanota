@@ -99,7 +99,7 @@ o.spec("DeviceConfig", function () {
 				offlineTimeRangeDaysByUser: { userId1: 42 },
 				conversationViewShowOnlySelectedMail: false,
 				hasParticipatedInCredentialsMigration: false,
-				syncContactsWithPhonePreference: new Map(),
+				syncContactsWithPhonePreference: {},
 			}
 
 			when(localStorageMock.getItem(DeviceConfig.LocalStorageKey)).thenReturn(JSON.stringify(storedInLocalStorage))

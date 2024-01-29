@@ -18,7 +18,6 @@ import stream from "mithril/stream"
 import { ShareCapability } from "../../api/common/TutanotaConstants.js"
 import { isSharedGroupOwner } from "../../sharing/GroupUtils.js"
 import { EntityUpdateData } from "../../api/common/utils/EntityUpdateUtils.js"
-import { MobileSystemFacade } from "../../native/common/generatedipc/MobileSystemFacade.js"
 
 assertMainOrNode()
 
@@ -40,7 +39,6 @@ export class ContactModel {
 		private readonly entityClient: EntityClient,
 		private readonly loginController: LoginController,
 		private readonly eventController: EventController,
-		private readonly mobileSystemFacade: MobileSystemFacade | null,
 	) {
 		this.contactListId = lazyContactListId(loginController, this.entityClient)
 		this.eventController.addEntityListener(this.entityEventsReceived)

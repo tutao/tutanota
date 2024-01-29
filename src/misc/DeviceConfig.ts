@@ -94,7 +94,7 @@ export class DeviceConfig implements CredentialsStorage, UsageTestStorage, NewsI
 			offlineTimeRangeDaysByUser: loadedConfig.offlineTimeRangeDaysByUser ?? {},
 			conversationViewShowOnlySelectedMail: loadedConfig.conversationViewShowOnlySelectedMail ?? false,
 			hasParticipatedInCredentialsMigration: loadedConfig.hasParticipatedInCredentialsMigration ?? false,
-			syncContactsWithPhonePreference: loadedConfig.syncContactsWithPhonePreference ?? new Map(),
+			syncContactsWithPhonePreference: loadedConfig.syncContactsWithPhonePreference ?? {},
 		}
 
 		// We need to write the config if there was a migration and if we generate the signup token and if.
@@ -325,7 +325,7 @@ export class DeviceConfig implements CredentialsStorage, UsageTestStorage, NewsI
 	}
 
 	getUserSyncContactsWithPhonePreference(id: Id): boolean | null {
-		return this.config.syncContactsWithPhonePreference[id]
+		return this.config.syncContactsWithPhonePreference[id] ?? null
 	}
 
 	setUserSyncContactsWithPhonePreference(user: Id, value: boolean) {
