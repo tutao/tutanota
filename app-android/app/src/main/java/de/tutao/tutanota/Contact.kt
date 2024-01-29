@@ -55,7 +55,7 @@ class Contact(private val activity: MainActivity) {
 		}
 	}
 
-	suspend fun deleteContact(userId: String, contactId: String) {
+	suspend fun deleteContacts(userId: String, contactId: String?) {
 		activity.getPermission(Manifest.permission.READ_CONTACTS)
 		activity.getPermission(Manifest.permission.WRITE_CONTACTS)
 
@@ -70,7 +70,7 @@ class Contact(private val activity: MainActivity) {
 		}
 	}
 
-	suspend fun saveContacts(userId: String, contacts: List<StructuredContact>) {
+	suspend fun saveContacts(userId: String, contacts: List<StructuredContact>): Map<String, StoredContact> {
 		activity.getPermission(Manifest.permission.READ_CONTACTS)
 		activity.getPermission(Manifest.permission.WRITE_CONTACTS)
 
@@ -115,6 +115,8 @@ class Contact(private val activity: MainActivity) {
 
 		val result = resolver.applyBatch(ContactsContract.AUTHORITY, ops)
 		Log.d(TAG, "save contact result: $result")
+
+		return alreadyStoredContacts
 	}
 
 	suspend fun syncContacts(userId: String, contacts: List<StructuredContact>) {
@@ -122,34 +124,7 @@ class Contact(private val activity: MainActivity) {
 		activity.getPermission(Manifest.permission.WRITE_CONTACTS)
 
 		/** map from sourceId to id */
-		val alreadyStoredContacts = mutableMapOf<String, StoredContact>()
-
-		retrieveRawContacts(userId).use { cursor ->
-			while (cursor!!.moveToNext()) {
-				val rawContactId = cursor.getLong(0)
-				val sourceId = cursor.getString(1)
-
-				if (sourceId == null) {
-					Log.d(TAG, "invalid contact $rawContactId - no source Id")
-					continue
-				}
-				val storedContact = readContact(rawContactId, sourceId)
-				alreadyStoredContacts[storedContact.sourceId] = storedContact
-			}
-		}
-
-		Log.d(TAG, "already stored contacts: ${alreadyStoredContacts.size}")
-
-		val ops = arrayListOf<ContentProviderOperation>()
-		for (contact in contacts) {
-			if (alreadyStoredContacts.contains(contact.id)) {
-				Log.d(TAG, "Already has contact ${contact.id}")
-				continue
-			}
-			Log.d(TAG, "Inserting contact ${contact.id}")
-
-			createContact(ops, userId, contact)
-		}
+		val alreadyStoredContacts = saveContacts(userId, contacts)
 
 		val serverContactsById = contacts.groupBy { it.id }.mapValues { it.value[0] }
 		for ((storedContactId, storedContact) in alreadyStoredContacts) {
@@ -157,13 +132,10 @@ class Contact(private val activity: MainActivity) {
 			if (serverContact == null) {
 				deleteRawContact(storedContact)
 				Log.d(TAG, "Deleted contact with raw id ${storedContact.rawId}")
-			} else {
-				updateContact(storedContact, serverContact)
 			}
 		}
 
-		val result = resolver.applyBatch(ContactsContract.AUTHORITY, ops)
-		Log.d(TAG, "save contact result: $result")
+		Log.d(TAG, "Contact synchronization ended")
 	}
 
 	private fun deleteRawContact(storedContact: StoredContact): Int {
@@ -175,7 +147,7 @@ class Contact(private val activity: MainActivity) {
 	private fun retrieveRawContacts(userId: String, sourceId: String? = null): Cursor? {
 		var rawContactUri = RawContacts.CONTENT_URI.buildUpon()
 				.appendQueryParameter(RawContacts.ACCOUNT_NAME, userId)
-				.appendQueryParameter(RawContacts.ACCOUNT_TYPE, "tuta")
+				.appendQueryParameter(RawContacts.ACCOUNT_TYPE, "de.tutao.tutanota")
 				.build()
 
 		if (sourceId != null) {
@@ -491,7 +463,7 @@ class Contact(private val activity: MainActivity) {
 		val index = ops.size
 		ops.add(
 				ContentProviderOperation.newInsert(RawContacts.CONTENT_URI)
-						.withValue(RawContacts.ACCOUNT_TYPE, "tuta")
+						.withValue(RawContacts.ACCOUNT_TYPE, "de.tutao.tutanota")
 						.withValue(RawContacts.ACCOUNT_NAME, userId)
 						.withValue(RawContacts.SOURCE_ID, contact.id)
 						.build()
@@ -794,7 +766,7 @@ fun ContactPhoneNumberType.toAndroidType() = when (this) {
 	ContactPhoneNumberType.PRIVATE -> ContactsContract.CommonDataKinds.Phone.TYPE_HOME
 	ContactPhoneNumberType.WORK -> ContactsContract.CommonDataKinds.Phone.TYPE_WORK
 	ContactPhoneNumberType.MOBILE -> ContactsContract.CommonDataKinds.Phone.TYPE_MOBILE
-	ContactPhoneNumberType.FAX -> ContactsContract.CommonDataKinds.Phone.TYPE_OTHER_FAX //fixme Is there any better FAX option?
+	ContactPhoneNumberType.FAX -> ContactsContract.CommonDataKinds.Phone.TYPE_OTHER_FAX
 	ContactPhoneNumberType.OTHER -> ContactsContract.CommonDataKinds.Phone.TYPE_OTHER
 	ContactPhoneNumberType.CUSTOM -> ContactsContract.CommonDataKinds.Phone.TYPE_CUSTOM
 }
