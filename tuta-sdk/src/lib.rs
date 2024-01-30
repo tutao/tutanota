@@ -47,7 +47,7 @@ impl EntityClient {
 #[uniffi::export]
 impl EntityClient {
     #[wasm_bindgen]
-    pub fn load_element(&self, type_ref: &TypeRef, id: String) -> String {
+    pub async fn load_element(&self, type_ref: &TypeRef, id: String) -> String {
         return String::from(format!("hi from rust! {:?} {:?}", type_ref, id));
     }
 }

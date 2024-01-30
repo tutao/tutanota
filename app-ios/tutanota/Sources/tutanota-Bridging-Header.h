@@ -13,3 +13,4 @@
 #include "rand_entropy.h"
 #include <oqs/kem.h>
 #include <oqs/kem_kyber.h>
+#include "tutasdkFFI.h"

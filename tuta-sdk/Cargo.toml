@@ -7,6 +7,7 @@ edition = "2021"
 # should not depend on cli but because bin is not in its own crate (yet) we have to use it
 uniffi = { version = "0.25.3", features = ["cli"] }
 wasm-bindgen = "0.2.74"
+wasm-bindgen-futures = "0.4.40"
 
 [build-dependencies]
 uniffi = { version = "0.25.3", features = [ "build" ] }
