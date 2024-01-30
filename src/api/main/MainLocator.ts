@@ -822,6 +822,7 @@ class MainLocator {
 				this.entityClient,
 				this.eventController,
 				this.contactModel,
+				deviceConfig,
 			)
 		}
 
