@@ -24,7 +24,6 @@ import {
 	MailDetailsBlobTypeRef,
 	MailTypeRef,
 } from "../../../../../src/api/entities/tutanota/TypeRefs.js"
-import * as UserIdReturn from "../../../../../src/api/entities/sys/TypeRefs.js"
 import {
 	BucketKey,
 	BucketKeyTypeRef,
@@ -51,7 +50,8 @@ import {
 	TypeInfoTypeRef,
 	UpdatePermissionKeyData,
 	User,
-	UserIdReturnTypeRef,
+	UserReturn,
+	UserReturnTypeRef,
 	UserTypeRef,
 } from "../../../../../src/api/entities/sys/TypeRefs.js"
 import { assertThrows, spy } from "@tutao/tutanota-test-utils"
@@ -73,6 +73,7 @@ import {
 	IV_BYTE_LENGTH,
 	kyberPrivateKeyToBytes,
 	kyberPublicKeyToBytes,
+	pqKeyPairsToPublicKeys,
 	random,
 	rsaPrivateKeyToHex,
 	rsaPublicKeyToHex,
@@ -93,7 +94,6 @@ import { PQFacade } from "../../../../../src/api/worker/facades/PQFacade.js"
 import { encodePQMessage, PQBucketKeyEncapsulation, PQMessage } from "../../../../../src/api/worker/facades/PQMessage.js"
 import { loadLibOQSWASM } from "../WASMTestUtils.js"
 import { createTestEntity } from "../../../TestUtils.js"
-import { pqKeyPairsToPublicKeys } from "@tutao/tutanota-crypto"
 import { RSA_TEST_KEYPAIR } from "../facades/RsaPqPerformanceTest.js"
 
 const { captor, anything, argThat } = matchers
@@ -560,37 +560,40 @@ o.spec("CryptoFacadeTest", function () {
 	})
 
 	o("map unencrypted to instance", async function () {
-		let userIdLiteral = {
+		let userReturnLiteral = {
 			_format: "0",
-			userId: "KOBqO7a----0",
+			user: "KOBqO7a----0",
 		}
-		const UserIdReturnTypeModel = await resolveTypeReference(UserIdReturnTypeRef)
-		const userIdReturn: UserIdReturn.UserIdReturn = await instanceMapper.decryptAndMapToInstance(UserIdReturnTypeModel, userIdLiteral, null)
-		o(userIdReturn._format).equals("0")
-		o(userIdReturn.userId).equals("KOBqO7a----0")
+		const UserReturnTypeModel = await resolveTypeReference(UserReturnTypeRef)
+		const userReturn: UserReturn = await instanceMapper.decryptAndMapToInstance(UserReturnTypeModel, userReturnLiteral, null)
+		o(userReturn._format).equals("0")
+		o(userReturn.user).equals("KOBqO7a----0")
 	})
 
 	o("map unencrypted to DB literal", async function () {
-		let userIdReturn = createTestEntity(UserIdReturnTypeRef)
-		userIdReturn._format = "0"
-		userIdReturn.userId = "KOBqO7a----0"
-		let userIdLiteral = {
+		let userReturn = createTestEntity(UserReturnTypeRef, {
 			_format: "0",
-			userId: "KOBqO7a----0",
+			user: "KOBqO7a----0",
+			userGroup: "KOBq18a----2",
+		})
+		let userReturnLiteral = {
+			_format: "0",
+			user: "KOBqO7a----0",
+			userGroup: "KOBq18a----2",
 		}
-		const UserIdReturnTypeModel = await resolveTypeReference(UserIdReturnTypeRef)
-		return instanceMapper.encryptAndMapToLiteral(UserIdReturnTypeModel, userIdReturn, null).then((result) => {
-			o(result).deepEquals(userIdLiteral)
+		const UserReturnTypeModel = await resolveTypeReference(UserReturnTypeRef)
+		return instanceMapper.encryptAndMapToLiteral(UserReturnTypeModel, userReturn, null).then((result) => {
+			o(result).deepEquals(userReturnLiteral)
 		})
 	})
 
 	o("resolve session key: unencrypted instance", async function () {
-		const userIdLiteral = {
+		const userReturnLiteral = {
 			_format: "0",
-			userId: "KOBqO7a----0",
+			user: "KOBqO7a----0",
 		}
-		const UserIdReturnTypeModel = await resolveTypeReference(UserIdReturnTypeRef)
-		o(await crypto.resolveSessionKey(UserIdReturnTypeModel, userIdLiteral)).equals(null)
+		const UserReturnTypeModel = await resolveTypeReference(UserReturnTypeRef)
+		o(await crypto.resolveSessionKey(UserReturnTypeModel, userReturnLiteral)).equals(null)
 	})
 
 	o("resolve session key: _ownerEncSessionKey instance", async function () {
