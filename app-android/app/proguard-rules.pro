@@ -75,3 +75,8 @@ de.tutao.tutanota.IdTuple # <-- List serializable classes with named companions.
 # we dynamically load sqlcipher, so we should keep the classes around
 -keep,includedescriptorclasses class net.sqlcipher.** { *; }
 -keep,includedescriptorclasses interface net.sqlcipher.** { *; }
+
+-keep public class de.tutao.tutanota.ipc.KyberEncapsulation
+-keep public class de.tutao.tutanota.ipc.KyberKeyPair
+-keep public class de.tutao.tutanota.ipc.KyberPrivateKey
+-keep public class de.tutao.tutanota.ipc.KyberPublicKey

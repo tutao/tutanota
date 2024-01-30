@@ -2,7 +2,7 @@ plugins {
 	id 'com.android.application'
 	id 'kotlin-android'
 	id "org.jetbrains.kotlin.kapt"
-	id 'org.jetbrains.kotlin.plugin.serialization' version '1.6.21'
+	id 'org.jetbrains.kotlin.plugin.serialization' version '1.9.21'
 }
 
 android {
@@ -150,7 +150,7 @@ dependencies {
 	implementation 'androidx.lifecycle:lifecycle-runtime-ktx:2.4.1'
 	implementation "androidx.lifecycle:lifecycle-livedata-ktx:$lifecycle_version"
 
-	implementation "org.jetbrains.kotlinx:kotlinx-serialization-json:1.4.1"
+	implementation "org.jetbrains.kotlinx:kotlinx-serialization-json:1.6.2"
 	implementation "org.jetbrains.kotlin:kotlin-stdlib:$kotlin_version"
 	implementation 'org.jetbrains.kotlinx:kotlinx-coroutines-android:1.5.0'
 
