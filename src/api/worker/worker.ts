@@ -1,6 +1,3 @@
-import { WorkerImpl } from "./WorkerImpl"
-import { Logger, replaceNativeLogger } from "../common/Logger"
-
 /**
  * Receives the first message from the client and initializes the WorkerImpl to receive all future messages. Sends a response to the client on this first message.
  */
@@ -9,9 +6,12 @@ self.onmessage = function (msg) {
 
 	if (data.requestType === "setup") {
 		self.env = data.args[0]
-		replaceNativeLogger(self, new Logger())
+		// FIXME
+		// replaceNativeLogger(self, new Logger())
 		Promise.resolve()
 			.then(async () => {
+				const { WorkerImpl } = await import("./WorkerImpl.js")
+				// import { Logger, replaceNativeLogger } from "../common/Logger"
 				const initialRandomizerEntropy = data.args[1]
 				const browserData = data.args[2]
 

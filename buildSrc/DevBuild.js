@@ -12,6 +12,7 @@ import { checkOfflineDatabaseMigrations } from "./checkOfflineDbMigratons.js"
 import { buildRuntimePackages } from "./packageBuilderFunctions.js"
 import { domainConfigs } from "./DomainConfigs.js"
 import { sh } from "./sh.js"
+import watPlugin from "esbuild-plugin-wat"
 
 export async function runDevBuild({ stage, host, desktop, clean, ignoreMigrations }) {
 	if (clean) {
@@ -75,7 +76,13 @@ importScripts("./worker.js")
 				// See Env.ts for explanation
 				NO_THREAD_ASSERTIONS: "true",
 			},
-			plugins: [libDeps(), externalTranslationsPlugin()],
+			plugins: [
+				libDeps(),
+				externalTranslationsPlugin(),
+				watPlugin({
+					loader: "binary",
+				}),
+			],
 		})
 	})
 }
@@ -199,7 +206,7 @@ export async function prepareAssets(stage, host, version) {
 		await fs.emptyDir(wasmDir),
 		fs.copy(path.join(root, "/packages/tutanota-crypto/lib/hashes/Argon2id/argon2.wasm"), path.join(wasmDir, "argon2.wasm")),
 		fs.copy(path.join(root, "/packages/tutanota-crypto/lib/encryption/Liboqs/liboqs.wasm"), path.join(wasmDir, "liboqs.wasm")),
-		fs.copy(path.join(root, "/packages/tuta-sdk/tutasdk_bg.wasm"), path.join(wasmDir, "tutasdk.wasm")),
+		// fs.copy(path.join(root, "/packages/tuta-sdk/tutasdk_bg.wasm"), path.join(wasmDir, "tutasdk.wasm")),
 	])
 
 	// write empty file
