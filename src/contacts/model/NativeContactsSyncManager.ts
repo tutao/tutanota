@@ -10,6 +10,7 @@ import { MobileSystemFacade } from "../../native/common/generatedipc/MobileSyste
 import { EntityClient } from "../../api/common/EntityClient.js"
 import { EventController } from "../../api/main/EventController.js"
 import { ContactModel } from "./ContactModel.js"
+import { DeviceConfig } from "../../misc/DeviceConfig.js"
 
 export class NativeContactsSyncManager {
 	constructor(
@@ -18,12 +19,18 @@ export class NativeContactsSyncManager {
 		private readonly entityClient: EntityClient,
 		private readonly eventController: EventController,
 		private readonly contactModel: ContactModel,
+		private readonly deviceConfig: DeviceConfig,
 	) {
 		this.eventController.addEntityListener((updates) => this.processNativeContactEntityEvents(updates))
 	}
 
 	private async processNativeContactEntityEvents(events: ReadonlyArray<EntityUpdateData>) {
-		const userId = this.loginController.getUserController().user._id
+		const userId = this.loginController.getUserController().userId
+		const allowSync = this.deviceConfig.getUserSyncContactsWithPhonePreference(userId) ?? false
+		if (!allowSync) {
+			return
+		}
+
 		const contactsIdToCreateOrUpdate: Map<Id, Array<Id>> = new Map()
 
 		for (const event of events) {
@@ -63,7 +70,10 @@ export class NativeContactsSyncManager {
 
 	async syncContacts() {
 		const contactListId = await this.contactModel.getContactListId()
-		if (contactListId == null) return
+		const userId = this.loginController.getUserController().userId
+		const allowSync = this.deviceConfig.getUserSyncContactsWithPhonePreference(userId) ?? false
+
+		if (contactListId == null || !allowSync) return
 		const contacts = await this.entityClient.loadAll(ContactTypeRef, contactListId)
 		const structuredContacts: ReadonlyArray<StructuredContact> = contacts.map((contact) => {
 			return {
@@ -78,6 +88,6 @@ export class NativeContactsSyncManager {
 				addresses: extractStructuredAddresses(contact.addresses),
 			}
 		})
-		await this.mobileSystemFacade.syncContacts(this.loginController.getUserController().userId, structuredContacts)
+		await this.mobileSystemFacade.syncContacts(userId, structuredContacts)
 	}
 }
