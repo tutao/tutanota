@@ -6,7 +6,12 @@ import { Autocomplete, TextField } from "../gui/base/TextField.js"
 import { getWhitelabelRegistrationDomains } from "../login/LoginView"
 import type { NewAccountData } from "./UpgradeSubscriptionWizard"
 import { SelectMailAddressForm, SelectMailAddressFormAttrs } from "../settings/SelectMailAddressForm"
-import { AccountType, DEFAULT_PAID_MAIL_ADDRESS_SIGNUP_DOMAIN, TUTANOTA_MAIL_ADDRESS_SIGNUP_DOMAINS } from "../api/common/TutanotaConstants"
+import {
+	AccountType,
+	DEFAULT_FREE_MAIL_ADDRESS_SIGNUP_DOMAIN,
+	DEFAULT_PAID_MAIL_ADDRESS_SIGNUP_DOMAIN,
+	TUTANOTA_MAIL_ADDRESS_SIGNUP_DOMAINS,
+} from "../api/common/TutanotaConstants"
 import { PasswordForm, PasswordModel } from "../settings/PasswordForm"
 import type { CheckboxAttrs } from "../gui/base/Checkbox.js"
 import { Checkbox } from "../gui/base/Checkbox.js"
@@ -66,6 +71,8 @@ export class SignupForm implements Component<SignupFormAttrs> {
 		// tuta.com gets preference user is signing up for a paid account and it is available
 		if (vnode.attrs.isPaidSubscription()) {
 			this.selectedDomain = this.availableDomains.find((domain) => domain.domain === DEFAULT_PAID_MAIL_ADDRESS_SIGNUP_DOMAIN) ?? this.selectedDomain
+		} else {
+			this.selectedDomain = this.availableDomains.find((domain) => domain.domain === DEFAULT_FREE_MAIL_ADDRESS_SIGNUP_DOMAIN) ?? this.selectedDomain
 		}
 
 		this.__mailValid = stream(false)
