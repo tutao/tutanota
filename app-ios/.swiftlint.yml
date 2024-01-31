@@ -1,0 +1,57 @@
+opt_in_rules:
+- array_init
+- contains_over_filter_count
+- contains_over_filter_is_empty
+- contains_over_first_not_nil
+- contains_over_range_nil_comparison
+- convenience_type
+- discarded_notification_center_observer
+- discouraged_assert
+- discouraged_none_name
+- discouraged_object_literal
+- empty_collection_literal
+- empty_count
+- empty_string
+- fallthrough
+- fatal_error_message
+- first_where
+- flatmap_over_map_reduce
+- force_unwrapping
+- ibinspectable_in_extension
+- joined_default_parameter
+- last_where
+- legacy_objc_type
+- missing_docs
+- no_magic_numbers
+- nslocalizedstring_key
+- override_in_extension
+- redundant_nil_coalescing
+- redundant_self_in_closure
+- reduce_into
+- required_enum_case
+- return_value_from_void_function
+- shorthand_optional_binding
+- sorted_first_last
+- static_operator
+- test_case_accessibility
+- toggle_bool
+- unavailable_function
+- unowned_variable_capture
+- untyped_error_in_catch
+- yoda_condition
+- balanced_xctest_lifecycle
+- empty_xctest_method
+- xct_specific_matcher
+
+excluded:
+- .idea
+- fastlane
+- libcrypto.xcframework
+- releases
+- tutanota.xcodeproj
+- tutanota/build
+- tutanota/tutanota-web
+- tutanota/Sources/GeneratedIpc
+
+identifier_name:
+ allowed_symbols: ["_"]
