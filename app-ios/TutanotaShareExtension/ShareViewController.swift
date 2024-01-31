@@ -77,7 +77,7 @@ class ShareViewController: UIViewController {
     var components = URLComponents()
     components.scheme = TUTANOTA_SHARE_SCHEME
     components.host = infoLocation
-    self.extensionContext?.completeRequest(returningItems: nil) { (_expired: Bool) in
+    self.extensionContext?.completeRequest(returningItems: nil) { (_: Bool) in
       guard let url = components.url else {
         TUTSLog("failed to build URL for sharing with \(infoLocation)")
         return

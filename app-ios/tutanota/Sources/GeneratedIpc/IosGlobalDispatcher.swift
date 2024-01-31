@@ -1,6 +1,5 @@
 /* generated file, don't edit. */
 
-
 public class IosGlobalDispatcher {
 	private let commonSystemFacade: CommonSystemFacadeReceiveDispatcher
 	private let fileFacade: FileFacadeReceiveDispatcher
@@ -11,17 +10,17 @@ public class IosGlobalDispatcher {
 	private let sqlCipherFacade: SqlCipherFacadeReceiveDispatcher
 	private let themeFacade: ThemeFacadeReceiveDispatcher
 	private let webAuthnFacade: WebAuthnFacadeReceiveDispatcher
-	
+
 	init(
-		commonSystemFacade : CommonSystemFacade,
-		fileFacade : FileFacade,
-		mobileSystemFacade : MobileSystemFacade,
-		nativeCredentialsFacade : NativeCredentialsFacade,
-		nativeCryptoFacade : NativeCryptoFacade,
-		nativePushFacade : NativePushFacade,
-		sqlCipherFacade : SqlCipherFacade,
-		themeFacade : ThemeFacade,
-		webAuthnFacade : WebAuthnFacade
+		commonSystemFacade: CommonSystemFacade,
+		fileFacade: FileFacade,
+		mobileSystemFacade: MobileSystemFacade,
+		nativeCredentialsFacade: NativeCredentialsFacade,
+		nativeCryptoFacade: NativeCryptoFacade,
+		nativePushFacade: NativePushFacade,
+		sqlCipherFacade: SqlCipherFacade,
+		themeFacade: ThemeFacade,
+		webAuthnFacade: WebAuthnFacade
 	) {
 		self.commonSystemFacade = CommonSystemFacadeReceiveDispatcher(facade: commonSystemFacade)
 		self.fileFacade = FileFacadeReceiveDispatcher(facade: fileFacade)
@@ -33,8 +32,8 @@ public class IosGlobalDispatcher {
 		self.themeFacade = ThemeFacadeReceiveDispatcher(facade: themeFacade)
 		self.webAuthnFacade = WebAuthnFacadeReceiveDispatcher(facade: webAuthnFacade)
 	}
-	
-	func dispatch(facadeName: String, methodName: String, args: Array<String>) async throws -> String {
+
+	func dispatch(facadeName: String, methodName: String, args: [String]) async throws -> String {
 		switch facadeName {
 			case "CommonSystemFacade":
 				return try await self.commonSystemFacade.dispatch(method: methodName, arg: args)

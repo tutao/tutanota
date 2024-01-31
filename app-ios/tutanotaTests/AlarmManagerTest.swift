@@ -2,7 +2,7 @@ import Foundation
 import XCTest
 @testable import tutanota
 
-class AlarmManagerTest : XCTestCase {
+class AlarmManagerTest: XCTestCase {
   var persistor: AlarmPersistorStub!
   var cryptor: AlarmCryptorStub!
   var scheduler: AlarmSchedulerStub!
@@ -103,7 +103,6 @@ class AlarmManagerTest : XCTestCase {
     let alarm = makeAlarm(at: start, trigger: "5M")
     add(alarm: alarm)
 
-
     alarmManager.unscheduleAllAlarms(userId: userID)
 
     XCTAssertEqual(scheduler.unscheduled, [ocurrenceIdentifier(alarmIdentifier: alarm.identifier, occurrence: 0)])
@@ -158,7 +157,7 @@ class AlarmManagerTest : XCTestCase {
 
 // MARK: stubs
 
-class AlarmPersistorStub : AlarmPersistor {
+class AlarmPersistorStub: AlarmPersistor {
   var alarms: [EncryptedAlarmNotification] = []
 
   func add(alarm: EncryptedAlarmNotification) {
@@ -174,8 +173,8 @@ class AlarmPersistorStub : AlarmPersistor {
   }
 }
 
-class AlarmCryptorStub : AlarmCryptor {
-  var alarms: [String : AlarmNotification] = [:]
+class AlarmCryptorStub: AlarmCryptor {
+  var alarms: [String: AlarmNotification] = [:]
 
   func decrypt(alarm: EncryptedAlarmNotification) throws -> AlarmNotification {
     if let alarm = self.alarms[alarm.alarmInfo.alarmIdentifier] {
@@ -186,7 +185,7 @@ class AlarmCryptorStub : AlarmCryptor {
   }
 }
 
-class AlarmSchedulerStub : AlarmScheduler {
+class AlarmSchedulerStub: AlarmScheduler {
   var scheduled: [ScheduledAlarmInfo] = []
   var unscheduled: [String] = []
 
@@ -199,7 +198,7 @@ class AlarmSchedulerStub : AlarmScheduler {
   }
 }
 
-class DateProviderStub : DateProvider {
+class DateProviderStub: DateProvider {
   // Mon Mar 06 2023 16:52:24 GMT+0100 (Central European Standard Time)
   var now: Date = Date(timeIntervalSince1970: 1678117944)
 

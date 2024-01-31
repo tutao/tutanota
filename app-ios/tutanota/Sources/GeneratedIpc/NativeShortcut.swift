@@ -1,7 +1,6 @@
 /* generated file, don't edit. */
 
-
-public struct NativeShortcut : Codable {
+public struct NativeShortcut: Codable {
 	let key: NativeKey
 	let ctrl: Bool?
 	let alt: Bool?

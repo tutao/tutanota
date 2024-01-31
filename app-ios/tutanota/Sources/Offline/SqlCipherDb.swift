@@ -1,7 +1,7 @@
 import Foundation
 
 class SqlCipherDb {
-  private var db: OpaquePointer? = nil
+  private var db: OpaquePointer?
   let userId: String
 
   init(_ userId: String) {
@@ -45,13 +45,13 @@ class SqlCipherDb {
   }
 
   func prepare(query: String) throws -> SqlCipherStatement {
-    var stmt: OpaquePointer? = nil
+    var stmt: OpaquePointer?
     let sqlCStr = UnsafeMutablePointer<CChar>(mutating: (query as NSString).utf8String)
-    //db pointer, query, max query length, OUT statement handle, OUT pointer to unused portion of query (?)
+    // db pointer, query, max query length, OUT statement handle, OUT pointer to unused portion of query (?)
     let rc_prep = sqlite3_prepare_v2(self.db, sqlCStr, -1, &stmt, nil)
     if rc_prep != SQLITE_OK || stmt == nil {
       let errmsg = self.getLastErrorMessage()
-      
+
       throw TUTErrorFactory.createError("Could not prepare statement: \(errmsg). Query: \(query)")
     }
     return SqlCipherStatement(db: self, query: query, stmt: stmt.unsafelyUnwrapped)

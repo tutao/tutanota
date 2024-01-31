@@ -1,6 +1,5 @@
 /* generated file, don't edit. */
 
-
 import Foundation
 
 /**
@@ -16,28 +15,28 @@ public protocol CommonNativeFacade {
 		_ addresses: [String],
 		_ subject: String,
 		_ mailToUrlString: String
-	) async throws -> Void
+	) async throws
 	func openMailBox(
 		_ userId: String,
 		_ address: String,
 		_ requestedPath: String?
-	) async throws -> Void
+	) async throws
 	func openCalendar(
 		_ userId: String
-	) async throws -> Void
+	) async throws
 	func showAlertDialog(
 		_ translationKey: String
-	) async throws -> Void
+	) async throws
 	/**
 	 * All local alarms have been deleted, reschedule alarms for the current user.
 	 */
 	func invalidateAlarms(
-	) async throws -> Void
+	) async throws
 	/**
 	 * Called when the system theme preference has changed
 	 */
 	func updateTheme(
-	) async throws -> Void
+	) async throws
 	/**
 	 * prompt the user to enter a new password and a confirmation, taking an optional old password into account
 	 */

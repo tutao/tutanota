@@ -1,10 +1,9 @@
 /* generated file, don't edit. */
 
-
 /**
  * Result of Webauthn authentication with hardware key.
  */
-public struct WebAuthnSignResult : Codable {
+public struct WebAuthnSignResult: Codable {
 	let rawId: DataWrapper
 	let clientDataJSON: DataWrapper
 	let signature: DataWrapper

@@ -30,7 +30,7 @@ enum SharedItem {
   case image(ident: String, content: UIImage)
   case text(ident: String, content: String)
   case contact(ident: String, content: String)
-  
+
   func ident() -> String {
     switch self {
     case .fileUrl(ident: let ident, content: _), .text(ident: let ident, content: _), .contact(ident: let ident, content: _), .image(ident: let ident, content: _):
@@ -46,7 +46,7 @@ enum SharedItem {
 func loadSharedItemWith(ident: String, fromAttachment: NSItemProvider) async -> SharedItem? {
   switch ident {
   case
-    "public.png", "public.jpeg", "public.tiff", //shared from photos
+    "public.png", "public.jpeg", "public.tiff", // shared from photos
     "public.file-url" // shared from files
     :
     return await load(item: fromAttachment, ident: ident, andConvertWith: codingToUrl)
@@ -69,7 +69,7 @@ func loadSharedItemWith(ident: String, fromAttachment: NSItemProvider) async -> 
 }
 
 @MainActor
-fileprivate func load(item attachment: NSItemProvider, ident: String, andConvertWith converter: (String, NSSecureCoding) -> SharedItem?) async -> SharedItem? {
+private func load(item attachment: NSItemProvider, ident: String, andConvertWith converter: (String, NSSecureCoding) -> SharedItem?) async -> SharedItem? {
   guard let coding = try? await attachment.loadItem(forTypeIdentifier: ident, options: nil) else {
     TUTSLog("failed to load secure coding for \(ident)")
     return nil
@@ -83,7 +83,7 @@ func writeToSharedStorage(subdir: String, name: String, content: Data) throws ->
     TUTSLog("failed to ensure sharing directory for this request")
     throw SharingError.failedToWrite
   }
-  
+
   let fileURL: URL = sharedURL.appendingPathComponent(name)
   do {
     try content.write(to: fileURL)
@@ -102,7 +102,7 @@ func copyToSharedStorage(subdir: String, fileUrls: [URL]) async throws -> [URL] 
   var newLocations: [URL] = []
   for fileUrl in fileUrls {
     let isDirectory: Bool = (try? fileUrl.resourceValues(forKeys: [.isDirectoryKey]))?.isDirectory == true
-    if (isDirectory) {
+    if isDirectory {
       guard let newLocation = zipSharedStorageFile(fileUrl: fileUrl, subdir: subdir) else {
         continue
       }
@@ -120,13 +120,13 @@ func copyToSharedStorage(subdir: String, fileUrls: [URL]) async throws -> [URL] 
       newLocations.append(newLocation)
     }
   }
-  
+
   return newLocations
 }
 
 func zipSharedStorageFile(fileUrl: URL, subdir: String) -> URL? {
   var returnURL: URL?
-  var error: NSError? = nil
+  var error: NSError?
   NSFileCoordinator().coordinate(readingItemAt: fileUrl, options: [.forUploading], error: &error) { (zipUrl) in
     guard let contentData = try? Data(contentsOf: zipUrl) else {
       TUTSLog("could not read directory at \(zipUrl) to share")
@@ -139,14 +139,14 @@ func zipSharedStorageFile(fileUrl: URL, subdir: String) -> URL? {
     }
     returnURL = writeURL
   }
-  if (error != nil) {
+  if error != nil {
     TUTSLog("could not read directory at \(fileUrl) to share due to \(error!)")
   }
   return returnURL
 }
 
 /// write the text and file paths for this share request to shared UserDefaults
-func writeSharingInfo(info: SharingInfo, infoLocation: String) throws -> Void {
+func writeSharingInfo(info: SharingInfo, infoLocation: String) throws {
   let encoder = JSONEncoder()
   encoder.outputFormatting = .prettyPrinted
   let jsonData = try encoder.encode(info)
@@ -163,7 +163,7 @@ func readSharingInfo(infoLocation: String) -> SharingInfo? {
   defer {
     defaults.removeObject(forKey: infoLocation)
   }
-  
+
   guard let data: Data = defaults.value(forKey: infoLocation) as! Data? else {
     TUTSLog("there are no sharingInfos to be found at \(infoLocation)")
     return nil
@@ -176,26 +176,25 @@ func readSharingInfo(infoLocation: String) -> SharingInfo? {
   }
 }
 
-fileprivate func getSharedDefaults() throws -> UserDefaults {
+private func getSharedDefaults() throws -> UserDefaults {
   guard let defaults = UserDefaults(suiteName: TUTANOTA_APP_GROUP) else {
     let msg = "failed to get shared user defaults with suite \(TUTANOTA_APP_GROUP)"
     TUTSLog(msg)
     throw TUTErrorFactory.createError(msg)
   }
-  
+
   return defaults
 }
 
-
 /// get a reasonably unique identifier for a sharing reuest to pass to the main app
 func getUniqueInfoLocation() -> String {
-  
+
   // returns a timestamp derived from the kernel's monotonic clock in microseconds.
   // start time is arbitrary, does not increment while system is asleep.
   // may return duplicate values if the kernel time is reset (reboot?)
   let divisor: UInt64 = 1000
   let timestamp = clock_gettime_nsec_np(CLOCK_UPTIME_RAW) / divisor
-  
+
   return String(timestamp)
 }
 
@@ -215,33 +214,33 @@ func codingToImage(_ ident: String, _ coding: NSSecureCoding) -> SharedItem? {
     TUTSLog("could not convert coding to UIImage: \(String(describing: coding))")
     return nil
   }
-  
+
   return .image(
     ident: ident,
     content: uiImage
   )
 }
 
-fileprivate  func codingToText(_ ident: String, _ coding: NSSecureCoding) -> SharedItem? {
+private  func codingToText(_ ident: String, _ coding: NSSecureCoding) -> SharedItem? {
   guard let decodedText = coding as? String ?? (coding as? URL)?.absoluteString else {
     TUTSLog("could not convert coding \(String(describing: coding)) to String")
     return nil
   }
-  
+
   return .text(
     ident: ident,
     content: decodedText
   )
 }
 
-fileprivate func codingToVCard(_ ident: String, _ coding: NSSecureCoding) -> SharedItem? {
+private func codingToVCard(_ ident: String, _ coding: NSSecureCoding) -> SharedItem? {
   guard let vcardText = coding as? Data else {
     TUTSLog("could not convert vcard to data: \(String(describing: coding))")
     return nil
   }
-  
+
   return .contact(
     ident: ident,
-    content: String(data:vcardText, encoding: .utf8)!
+    content: String(data: vcardText, encoding: .utf8)!
   )
 }

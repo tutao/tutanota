@@ -15,10 +15,10 @@ public enum TaggedSqlValue: Codable {
   case number(value: Int)
   case string(value: String)
   case bytes(value: DataWrapper) // Uint8Array
-  
+
   public func encode(to encoder: Encoder) throws {
     var container = encoder.container(keyedBy: Self.CodingKeys)
-    
+
     switch self {
     case .null:
       try container.encode(SqlType.null.rawValue, forKey: .type)
@@ -34,7 +34,7 @@ public enum TaggedSqlValue: Codable {
       try container.encode(value, forKey: .value)
     }
   }
-  
+
   public init(from decoder: Decoder) throws {
     let typeString = try decoder.container(keyedBy: Self.CodingKeys)
       .decode(String.self, forKey: .type)
@@ -58,7 +58,7 @@ public enum TaggedSqlValue: Codable {
       self = .bytes(value: value)
     }
   }
-  
+
   private enum CodingKeys: String, CodingKey {
     case type
     case value

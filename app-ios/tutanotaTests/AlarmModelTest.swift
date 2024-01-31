@@ -2,7 +2,7 @@ import Foundation
 import XCTest
 @testable import tutanota
 
-class AlarmModelTest : XCTestCase {
+class AlarmModelTest: XCTestCase {
   let perAlarmLimit = 5
   let overallAlarmLimit = 10
 
@@ -202,7 +202,7 @@ class AlarmModelTest : XCTestCase {
       date(2019, 6, 2, 12, timeZone),
       date(2019, 6, 16, 12, timeZone),
       date(2019, 6, 23, 12, timeZone),
-      date(2019, 6, 30, 12, timeZone),
+      date(2019, 6, 30, 12, timeZone)
     ]
     XCTAssertEqual(occurrences, expected)
   }
@@ -256,7 +256,6 @@ private func date(_ year: Int, _ month: Int, _ dayOfMonth: Int, _ hour: Int, _ t
 
   return calendar.date(from: components)!
 }
-
 
 // MARK: duration helpers
 

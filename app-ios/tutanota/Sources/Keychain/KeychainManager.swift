@@ -8,7 +8,7 @@ private let TAG = "de.tutao.tutanota.notificationkey."
 private let KEY_PERMANENTLY_INVALIDATED_ERROR_DOMAIN = "de.tutao.tutanota.KeyPermanentlyInvalidatedError"
 private let CREDENTIAL_AUTHENTICATION_ERROR_DOMAIN = "de.tutao.tutanota.CredentialAuthenticationError"
 
-class KeyPermanentlyInvalidatedError : TutanotaError {
+class KeyPermanentlyInvalidatedError: TutanotaError {
   init(underlyingError: Error) {
     super.init(message: underlyingError.localizedDescription, underlyingError: underlyingError)
   }
@@ -20,7 +20,7 @@ class KeyPermanentlyInvalidatedError : TutanotaError {
   }
 }
 
-class CredentialAuthenticationError : TutanotaError {
+class CredentialAuthenticationError: TutanotaError {
   init(underlyingError: Error) {
     super.init(message: underlyingError.localizedDescription, underlyingError: underlyingError)
   }
@@ -32,7 +32,7 @@ class CredentialAuthenticationError : TutanotaError {
   }
 }
 
-class KeychainManager : NSObject {
+class KeychainManager: NSObject {
   private static let DEVICE_LOCK_DATA_KEY_ALIAS = "DeviceLockDataKey"
   private static let SYSTEM_PASSWORD_DATA_KEY_ALIAS = "SystemPasswordDataKey"
   private static let BIOMETRICS_DATA_KEY_ALIAS = "BiometricsDataKey"
@@ -77,7 +77,7 @@ class KeychainManager : NSObject {
 
   func getKey(keyId: String) throws -> Data? {
     let keyTag = self.keyTagFromKeyId(keyId: keyId)
-    let getQuery: [String : Any] = [
+    let getQuery: [String: Any] = [
       kSecClass as String: kSecClassKey,
       kSecAttrApplicationTag as String: keyTag,
       kSecReturnData as String: true
@@ -105,7 +105,7 @@ class KeychainManager : NSObject {
   }
 
   private func deleteKey(tag: String) throws {
-    let deleteQuery: [String : Any] = [
+    let deleteQuery: [String: Any] = [
       kSecClass as String: kSecClassKey,
       kSecAttrApplicationTag as String: tag
     ]
@@ -171,7 +171,7 @@ class KeychainManager : NSObject {
   }
 
   private func fetchDataKey(tag: String) throws -> SecKey? {
-    let getQuery: [String : Any] = [
+    let getQuery: [String: Any] = [
       kSecClass as String: kSecClassKey,
       kSecAttrApplicationTag as String: tag,
       kSecReturnRef as String: true,
@@ -290,7 +290,7 @@ class KeychainManager : NSObject {
   }
 }
 
-fileprivate enum HandledKeychainError {
+private enum HandledKeychainError {
   case recoverable(error: Error)
   case unrecoverable(error: Error)
 }

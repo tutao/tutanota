@@ -4,8 +4,7 @@ import UIKit
 
 /// Utility class which shows pickers for files.
 class TUTFileChooser: NSObject, UIImagePickerControllerDelegate, UINavigationControllerDelegate,
-  UIDocumentMenuDelegate, UIPopoverPresentationControllerDelegate, UIDocumentPickerDelegate
-{
+  UIDocumentMenuDelegate, UIPopoverPresentationControllerDelegate, UIDocumentPickerDelegate {
   private var sourceController: UIViewController
   private var cameraImage: UIImage
   private var photoLibImage: UIImage
@@ -235,7 +234,7 @@ class TUTFileChooser: NSObject, UIImagePickerControllerDelegate, UINavigationCon
           let fileName = assetResource.originalFilename
           var filePath = URL(fileURLWithPath: targetFolder).appendingPathComponent(fileName)
 
-          //extracting image from the picker and saving it
+          // extracting image from the picker and saving it
           let mediaUrl = info[UIImagePickerController.InfoKey.mediaURL] as? URL
           let mediaType = info[UIImagePickerController.InfoKey.mediaType] as? String
           if mediaType == "public.image" {
@@ -338,7 +337,7 @@ class TUTFileChooser: NSObject, UIImagePickerControllerDelegate, UINavigationCon
   }
 
   func showPermissionDeniedDialog() {
-    //User don't give us permission. Showing alert with redirection to settings
+    // User don't give us permission. Showing alert with redirection to settings
     let permissionTitle = "No permission"
     let permissionInfo =
       "To grant access you have to modify the permissions for this device"
@@ -378,7 +377,6 @@ extension TUTFileChooser: PHPickerViewControllerDelegate {
      */
   func picker(_ picker: PHPickerViewController, didFinishPicking results: [PHPickerResult]) {
     picker.dismiss(animated: true, completion: nil)
-
 
     // Each item can be of different type. We must ask the result what type we can
     // get, ask to load it and then copy the result to the local folder because URL
@@ -433,4 +431,3 @@ extension TUTFileChooser: PHPickerViewControllerDelegate {
     }
   }
 }
-

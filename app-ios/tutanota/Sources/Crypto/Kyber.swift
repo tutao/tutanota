@@ -43,7 +43,7 @@ func kyberEncapsulate(publicKey: KyberPublicKey, withSeed seed: Data) throws -> 
   var cipherTextBytes = [UInt8](repeating: 0, count: KYBER_CIPHER_TEXT_LENGTH)
   var sharedSecretBytes = [UInt8](repeating: 0, count: KYBER_SHARED_SECRET_LENGTH)
 
-  let result = publicKey.raw.data.withUnsafeBytes{publicKey in OQS_KEM_encaps(kem.kem, &cipherTextBytes, &sharedSecretBytes, publicKey.baseAddress)}
+  let result = publicKey.raw.data.withUnsafeBytes {publicKey in OQS_KEM_encaps(kem.kem, &cipherTextBytes, &sharedSecretBytes, publicKey.baseAddress)}
   guard result == OQS_SUCCESS else {
     throw TUTErrorFactory.createError(withDomain: TUT_CRYPTO_ERROR, message: "OQS_KEM_encaps failed to derive a shared secret and ciphertext: \(result)")
   }
@@ -64,8 +64,8 @@ func kyberDecapsulate(ciphertext: Data, withPrivateKey privateKey: KyberPrivateK
 
   var sharedSecretBytes = [UInt8](repeating: 0, count: KYBER_SHARED_SECRET_LENGTH)
 
-  let result = privateKey.raw.data.withUnsafeBytes{privateKey in
-    ciphertext.withUnsafeBytes{ciphertext in
+  let result = privateKey.raw.data.withUnsafeBytes {privateKey in
+    ciphertext.withUnsafeBytes {ciphertext in
         OQS_KEM_decaps(kem.kem, &sharedSecretBytes, ciphertext.baseAddress, privateKey.baseAddress)}}
 
   guard result == OQS_SUCCESS else {
@@ -89,7 +89,7 @@ private class KEM {
 }
 
 private func injectEntropy(seed: Data) {
-  let result = seed.withUnsafeBytes{seed in TUTA_inject_entropy(seed.baseAddress, seed.count)}
+  let result = seed.withUnsafeBytes {seed in TUTA_inject_entropy(seed.baseAddress, seed.count)}
   if result < 0 {
     NSLog("TUTA_inject_entropy injected too much entropy (%d returned)", result)
   }
