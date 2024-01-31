@@ -7,8 +7,8 @@ import Foundation
 let EVENTS_SCHEDULED_AHEAD = 14
 let SYSTEM_ALARM_LIMIT = 64
 
-fileprivate let TAG = "AlarmManager"
-fileprivate func log(_ message: String) {
+private let TAG = "AlarmManager"
+private func log(_ message: String) {
   TUTSLog("\(TAG) \(message)")
 }
 
@@ -20,7 +20,7 @@ class AlarmManager {
   private let alarmCryptor: any AlarmCryptor
   private let alarmScheduler: any AlarmScheduler
   private let alarmCalculator: any AlarmCalculator
-  
+
   init(
     alarmPersistor: any AlarmPersistor,
     alarmCryptor: any AlarmCryptor,
@@ -34,7 +34,7 @@ class AlarmManager {
   }
 
   /// Process new alarms into the app. Will persist the changes and reschedule as appropriate
-  func processNewAlarms(_ alarms: Array<EncryptedAlarmNotification>) throws {
+  func processNewAlarms(_ alarms: [EncryptedAlarmNotification]) throws {
     log("processNewAlarms")
     // We will modify this list and the overwrite persisted alarms with what is inside this list
     var savedNotifications = self.alarmPersistor.alarms
@@ -47,10 +47,10 @@ class AlarmManager {
         resultError = error
       }
     }
-    
+
     log("Finished processing \(alarms.count) alarms")
     self.alarmPersistor.store(alarms: savedNotifications)
-    
+
     self.rescheduleAlarms()
     log("Finished processNewAlarms")
     if let error = resultError {
@@ -64,7 +64,7 @@ class AlarmManager {
     self.unscheduleAllAlarms(userId: nil)
     self.alarmPersistor.clear()
   }
-  
+
   /// Take the alarms from the persistor and schedule the soonest occurrences
   func rescheduleAlarms() {
     log("rescheduleAlarms")
@@ -78,7 +78,7 @@ class AlarmManager {
         }
       }
     let occurences = alarmCalculator.futureOccurrences(acrossAlarms: decryptedAlarms, upToForEach: EVENTS_SCHEDULED_AHEAD, upToOverall: SYSTEM_ALARM_LIMIT)
-    
+
     // Reverse in order to schedule the soonest one the last. This add reliability if we still schedule more alarms than iOS can handle because it seeems
     // like it evicts the oldest ones from storage.
     for occurrence in occurences.reversed() {
@@ -107,7 +107,7 @@ class AlarmManager {
 
   private func handleAlarmNotification(
     _ alarm: EncryptedAlarmNotification,
-    existingAlarms: inout Array<EncryptedAlarmNotification>
+    existingAlarms: inout [EncryptedAlarmNotification]
   ) throws {
     switch alarm.operation {
     case .Create:
@@ -134,7 +134,7 @@ class AlarmManager {
       fatalError("Unexpected operation for alarm: \(alarm.operation)")
     }
   }
-  
+
   /// Unschedule all alarms associated with userId or all of them if userId is nil
   /// clears every unscheduled alarm from the persistent storage
   func unscheduleAllAlarms(userId: String?) {
@@ -153,10 +153,10 @@ class AlarmManager {
     }
     self.alarmPersistor.store(alarms: alarmsToKeep)
   }
-  
+
   private func unschedule(alarm encAlarmNotification: EncryptedAlarmNotification) throws {
     let alarmNotification = try alarmCryptor.decrypt(alarm: encAlarmNotification)
-    
+
     let occurrenceIds = prefix(alarmCalculator.futureOccurrences(ofAlarm: alarmNotification), EVENTS_SCHEDULED_AHEAD)
       .map {
         ocurrenceIdentifier(alarmIdentifier: $0.alarm.identifier, occurrence: $0.occurrenceNumber)
@@ -164,7 +164,7 @@ class AlarmManager {
     log("Cancelling alarm \(alarmNotification.identifier)")
     self.alarmScheduler.unscheduleAll(occurrenceIds: occurrenceIds)
   }
-  
+
   private func schedule(
     alarmOccurrence: AlarmOccurence,
     trigger: AlarmInterval,
@@ -172,14 +172,14 @@ class AlarmManager {
     alarmIdentifier: String
   ) {
     let alarmTime = AlarmModel.alarmTime(trigger: trigger, eventTime: alarmOccurrence.eventOccurrenceTime)
-    
+
     let identifier = ocurrenceIdentifier(
       alarmIdentifier: alarmIdentifier,
       occurrence: alarmOccurrence.occurrenceNumber
     )
-    
+
     let info = ScheduledAlarmInfo(alarmTime: alarmTime, occurrence: alarmOccurrence.occurrenceNumber, identifier: identifier, summary: summary, eventDate: alarmOccurrence.eventOccurrenceTime)
-    
+
     self.alarmScheduler.schedule(info: info)
   }
 }

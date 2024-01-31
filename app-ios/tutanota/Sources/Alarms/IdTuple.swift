@@ -7,7 +7,7 @@ struct IdTuple {
   let elementId: String
 }
 
-extension IdTuple : Encodable {
+extension IdTuple: Encodable {
   func encode(to encoder: Encoder) throws {
     var container = encoder.unkeyedContainer()
     try container.encode(self.listId)
@@ -15,12 +15,12 @@ extension IdTuple : Encodable {
   }
 }
 
-extension IdTuple : Decodable {
+extension IdTuple: Decodable {
   init(from decoder: Decoder) throws {
     var values = try decoder.unkeyedContainer()
     let listId = try values.decode(String.self)
     let elementId = try values.decode(String.self)
-    
+
     self.init(listId: listId, elementId: elementId)
   }
 }

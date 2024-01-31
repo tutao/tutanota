@@ -9,13 +9,13 @@ protocol UserPreferencesProvider {
   /// Parameters:
   /// - `forkey` key to get settings
   func getObject(forKey: String) -> Any?
-  
+
   /// Get the settings dictionary for the given key.
   ///
   /// Parameters:
   /// - `forkey` key to get settings
-  func getDictionary(forKey: String) -> [String:Any]?
-  
+  func getDictionary(forKey: String) -> [String: Any]?
+
   /// Write the settings object for the given key.
   ///
   /// Parameters:
@@ -31,7 +31,7 @@ class UserPreferencesProviderImpl: UserPreferencesProvider {
   func getObject(forKey: String) -> Any? {
     return UserDefaults.standard.object(forKey: forKey)
   }
-  func getDictionary(forKey: String) -> [String:Any]? {
+  func getDictionary(forKey: String) -> [String: Any]? {
     return UserDefaults.standard.dictionary(forKey: forKey)
   }
   func setValue(_ object: Any?, forKey: String) {

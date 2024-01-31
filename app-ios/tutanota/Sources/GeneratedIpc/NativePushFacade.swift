@@ -1,6 +1,5 @@
 /* generated file, don't edit. */
 
-
 import Foundation
 
 /**
@@ -15,25 +14,25 @@ public protocol NativePushFacade {
 		_ sseOrigin: String,
 		_ pushIdentifierId: String,
 		_ pushIdentifierSessionKey: DataWrapper
-	) async throws -> Void
+	) async throws
 	func removeUser(
 		_ userId: String
-	) async throws -> Void
+	) async throws
 	/**
 	 * Called at some point after login to initialize push notifications.
 	 */
 	func initPushNotifications(
-	) async throws -> Void
+	) async throws
 	func closePushNotifications(
 		_ addressesArray: [String]
-	) async throws -> Void
+	) async throws
 	func scheduleAlarms(
 		_ alarms: [EncryptedAlarmNotification]
-	) async throws -> Void
+	) async throws
 	/**
 	 * Unschedule and remove alarms belonging to a specific user from the persistent storage
 	 */
 	func invalidateAlarmsForUser(
 		_ userId: String
-	) async throws -> Void
+	) async throws
 }

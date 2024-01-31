@@ -7,6 +7,6 @@ func translate(_ key: String, default defaultValue: String) -> String {
 // // keep in sync with src/native/main/NativePushServiceApp.ts
 let SYS_MODEL_VERSION = 85
 
-func addSystemModelHeaders(to headers: inout [String : String]) {
+func addSystemModelHeaders(to headers: inout [String: String]) {
   headers["v"] = String(SYS_MODEL_VERSION)
 }

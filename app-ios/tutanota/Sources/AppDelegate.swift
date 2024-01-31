@@ -1,11 +1,11 @@
 import UIKit
 
 @UIApplicationMain
-class AppDelegate : UIResponder,
+class AppDelegate: UIResponder,
                     UIApplicationDelegate,
                     UNUserNotificationCenterDelegate {
   var window: UIWindow?
-  
+
   private var pushTokenCallback: ResponseCallback<String>?
   private var alarmManager: AlarmManager!
   private var notificationsHandler: NotificationsHandler!
@@ -18,7 +18,7 @@ class AppDelegate : UIResponder,
     return try await withCheckedThrowingContinuation { continuation in
       UNUserNotificationCenter.current()
         .requestAuthorization(
-          options: [.alert, .badge, .sound]) { granted, error in
+          options: [.alert, .badge, .sound]) { _, error in
             if error == nil {
               DispatchQueue.main.async {
                 self.pushTokenCallback = continuation.resume(with:)
@@ -50,7 +50,7 @@ class AppDelegate : UIResponder,
     self.notificationsHandler = NotificationsHandler(alarmManager: self.alarmManager, notificationStorage: notificationStorage)
     self.window = UIWindow(frame: UIScreen.main.bounds)
     let credentialsEncryption = IosNativeCredentialsFacade(keychainManager: keychainManager)
-    
+
     self.viewController = ViewController(
       crypto: IosNativeCryptoFacade(),
       themeManager: ThemeManager(userProferencesProvider: userPreferencesProvider),
@@ -71,7 +71,7 @@ class AppDelegate : UIResponder,
 
   func application(
     _ application: UIApplication,
-    didFinishLaunchingWithOptions launchOptions: [UIApplication.LaunchOptionsKey : Any]?
+    didFinishLaunchingWithOptions launchOptions: [UIApplication.LaunchOptionsKey: Any]?
   ) -> Bool {
     TUTSLog("Start Tutanota with launch options: \(String(describing: launchOptions))")
     self.start()
@@ -98,7 +98,7 @@ class AppDelegate : UIResponder,
   /// handles tutanota deep links:
   /// tutanota:// -> ?
   /// tutashare:// -> share requests from the sharing extension
-  func application(_ application: UIApplication, open url: URL, options: [UIApplication.OpenURLOptionsKey : Any] = [:] ) -> Bool {
+  func application(_ application: UIApplication, open url: URL, options: [UIApplication.OpenURLOptionsKey: Any] = [:] ) -> Bool {
     switch url.scheme {
     case TUTANOTA_SHARE_SCHEME:
       Task { try! await self.viewController.handleShare(url) }
@@ -112,9 +112,9 @@ class AppDelegate : UIResponder,
 
   func application(
     _ application: UIApplication,
-    didReceiveRemoteNotification userInfo: [AnyHashable : Any],
+    didReceiveRemoteNotification userInfo: [AnyHashable: Any],
     fetchCompletionHandler completionHandler: @escaping (UIBackgroundFetchResult) -> Void) {
-      let apsDict = userInfo["aps"] as! Dictionary<String, Any>
+      let apsDict = userInfo["aps"] as! [String: Any]
       TUTSLog("Received notification \(userInfo)")
 
       let contentAvailable = apsDict["content-available"]
@@ -122,9 +122,9 @@ class AppDelegate : UIResponder,
         self.notificationsHandler.fetchMissedNotifications { result in
           TUTSLog("Fetched missed notification after notification \(String(describing: result))")
           switch result {
-          case .success():
+          case .success:
             completionHandler(.newData)
-          case .failure(_):
+          case .failure:
             completionHandler(.failed)
           }
         }
@@ -146,7 +146,7 @@ class AppDelegate : UIResponder,
   }
 }
 
-fileprivate func deviceTokenAsString(deviceToken: Data) -> String? {
+private func deviceTokenAsString(deviceToken: Data) -> String? {
   if deviceToken.isEmpty {
     return nil
   }

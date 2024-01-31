@@ -4,7 +4,7 @@ import CryptoTokenKit
 import Atomics
 
 /// Gateway for communicating with Javascript code in WebView. Can send messages and handle requests.
-class RemoteBridge : NSObject, NativeInterface {
+class RemoteBridge: NSObject, NativeInterface {
   private let webView: WKWebView
   private let viewController: ViewController
   private let commonSystemFacade: IosCommonSystemFacade
@@ -15,7 +15,7 @@ class RemoteBridge : NSObject, NativeInterface {
 
   private let requestId = ManagedAtomic<Int64>(0)
   private let requestsLock = NSLock()
-  private var requests = [String : CheckedContinuation<String, Error>]()
+  private var requests = [String: CheckedContinuation<String, Error>]()
 
   init(
     webView: WKWebView,
@@ -40,7 +40,6 @@ class RemoteBridge : NSObject, NativeInterface {
     self.commonNativeFacade = nil
     self.globalDispatcher = nil
     self.sqlCipherFacade = sqlCipherFacade
-
 
     super.init()
     self.commonNativeFacade = CommonNativeFacadeSendDispatcher(transport: self)
@@ -80,7 +79,6 @@ class RemoteBridge : NSObject, NativeInterface {
     }
   }
 
-
   private func sendResponse(requestId: String, value: String) {
     let parts: [String] = ["response", requestId, value]
 
@@ -91,7 +89,7 @@ class RemoteBridge : NSObject, NativeInterface {
     TUTSLog("Error: \(err)")
 
     let responseError: ResponseError
-    var parts : [String] = ["requestError", requestId]
+    var parts: [String] = ["requestError", requestId]
     if let err = err as? TutanotaError {
       responseError = ResponseError(name: err.name, message: err.message, stack: err.underlyingError.debugDescription)
     } else {
@@ -103,7 +101,7 @@ class RemoteBridge : NSObject, NativeInterface {
       responseError = ResponseError(
         name: nsError.domain,
         message: message,
-        stack:  underlyingError?.debugDescription ?? ""
+        stack: underlyingError?.debugDescription ?? ""
       )
     }
     parts.append(toJson(responseError))
@@ -147,7 +145,7 @@ class RemoteBridge : NSObject, NativeInterface {
     return try await self.globalDispatcher.dispatch(facadeName: facade, methodName: method, args: Array(ipcArgs[2..<ipcArgs.endIndex]))
   }
 
-  private func handleRequestError(id: String, error: String) -> Void {
+  private func handleRequestError(id: String, error: String) {
     TUTSLog("got error for req \(id): \(error)")
 
     if let request: CheckedContinuation = getAndRemoveRequest(id: id) {
@@ -155,7 +153,7 @@ class RemoteBridge : NSObject, NativeInterface {
     }
   }
 
-  private func handleErrorResponse(id: String, type: String, value: String) -> Void {
+  private func handleErrorResponse(id: String, type: String, value: String) {
     TUTSLog("Request failed: \(type) \(id)")
     if let request: CheckedContinuation = getAndRemoveRequest(id: id) {
       request.resume(throwing: TUTErrorFactory.createError(value))
@@ -176,8 +174,7 @@ class RemoteBridge : NSObject, NativeInterface {
   }
 }
 
-
-extension RemoteBridge : WKScriptMessageHandler {
+extension RemoteBridge: WKScriptMessageHandler {
   func userContentController(_ userContentController: WKUserContentController, didReceive message: WKScriptMessage) {
     let body = message.body as! String
     let parts = body.split(separator: "\n", maxSplits: 2, omittingEmptySubsequences: false)

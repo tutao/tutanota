@@ -18,10 +18,10 @@ func generateArgon2idHash(
   withMemoryCost memoryCostInKibibytes: UInt
 ) throws -> Data {
   var hashOutput = [UInt8](repeating: 0, count: length)
-  
+
   // We need to pass pointers directly to C, of which they have a limited lifetime (hence why we have two closures here!)
-  let errorCode = password.data.withUnsafeMutableBytes{(passwordBytePtr: UnsafeMutableRawBufferPointer) in
-    salt.withUnsafeBytes{(saltBytePtr: UnsafeRawBufferPointer) in
+  let errorCode = password.data.withUnsafeMutableBytes {(passwordBytePtr: UnsafeMutableRawBufferPointer) in
+    salt.withUnsafeBytes {(saltBytePtr: UnsafeRawBufferPointer) in
       let result = argon2id_hash_raw(UInt32(iterations),
                                      UInt32(memoryCostInKibibytes),
                                      UInt32(parallelism),
@@ -36,7 +36,7 @@ func generateArgon2idHash(
       return result
     }
   }
-  
+
   // handle error case
   switch Argon2_ErrorCodes(errorCode) {
   case ARGON2_OK:

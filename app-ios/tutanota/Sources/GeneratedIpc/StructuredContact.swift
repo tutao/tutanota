@@ -1,7 +1,6 @@
 /* generated file, don't edit. */
 
-
-public struct StructuredContact : Codable {
+public struct StructuredContact: Codable {
 	let id: String
 	let firstName: String
 	let lastName: String

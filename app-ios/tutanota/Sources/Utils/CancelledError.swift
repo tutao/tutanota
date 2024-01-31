@@ -1,4 +1,4 @@
-class CancelledError : TutanotaError {
+class CancelledError: TutanotaError {
   init(message: String, underlyingError: Error) {
     super.init(message: message, underlyingError: underlyingError)
   }

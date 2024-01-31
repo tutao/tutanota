@@ -6,23 +6,23 @@ let ENCRYPTED_DIRNAME = "encrypted"
 let DECRYPTED_DIRNAME = "decrypted"
 
 class FileUtils {
-  
+
   /// temporary storage for encrypted files after download or before upload
   /// - Returns path to folder with encrypted content
   static func getEncryptedFolder() throws -> String {
     return try Self.makeTempDir(name: ENCRYPTED_DIRNAME)
   }
-  
+
   /// temporary storage for decrypted files before displaying them or encrypting them
   /// - Returns path to folder with decrypted content
   static func getDecryptedFolder() throws -> String {
     return try Self.makeTempDir(name: DECRYPTED_DIRNAME)
   }
-  
+
   static func deleteFile(path: URL) throws {
     try FileManager.default.removeItem(at: path)
   }
-  
+
   /// deletes the shared-content folder in the shared app group container recursively,
   /// removing any files that were copied there after bering shared by another app
   static func deleteSharedStorage() throws {
@@ -30,7 +30,7 @@ class FileUtils {
     try FileManager.default.removeItem(at: sharedDir.appendingPathComponent(SHARED_CONTENT_DIRNAME))
     TUTSLog("deleted shared storage")
   }
-  
+
   /// deletes a specific folder in the shared-content folder in the shared app group container recursively,
   /// removing any files that were copied there after bering shared by another app
   static func deleteSharedStorage(subDir: String) throws {
@@ -39,7 +39,7 @@ class FileUtils {
     try FileManager.default.removeItem(atPath: dirToDelete.path)
     TUTSLog("deleted shared storage at \(sharedDir)")
   }
-  
+
   /// returns a path to a newly created (if nonexsistent) subdirectory in
   /// the shared storage for the app group, shared with the share extension
   static func ensureSharedStorage(inSubdir subdir: String) throws -> URL {
@@ -52,7 +52,7 @@ class FileUtils {
     )
     return sharedSubdir
   }
-  
+
   static func getAppGroupFolder() throws -> URL {
     guard let sharedDir = FileManager.default.containerURL(forSecurityApplicationGroupIdentifier: TUTANOTA_APP_GROUP) else {
       throw TUTErrorFactory.createError(
@@ -62,13 +62,13 @@ class FileUtils {
     }
     return sharedDir
   }
-  
+
   /// check if the given path points to a file on the file system.
   /// the path must be an absolute path, not a file URL with file:// protocol.
   static func fileExists(atPath path: String) -> Bool {
     return FileManager.default.fileExists(atPath: path)
   }
-  
+
   private static func makeTempDir(name: String) throws -> String {
     let encryptedFolderPath =
     (NSTemporaryDirectory() as NSString).appendingPathComponent(name)

@@ -9,7 +9,7 @@ extension RsaPublicKey {
       publicExponent: objcKey.publicExponent
     )
   }
-  
+
   func toObjcKey() -> TUTPublicKey {
     return TUTPublicKey(
       version: version,
@@ -33,7 +33,7 @@ extension RsaPrivateKey {
               crtCoefficient: objcKey.crtCoefficient
     )
   }
-  
+
   func toObjcKey() -> TUTPrivateKey {
     return TUTPrivateKey(version: version,
                          keyLength: keyLength,

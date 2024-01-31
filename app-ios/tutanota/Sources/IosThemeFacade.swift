@@ -1,6 +1,6 @@
 import Foundation
 
-class IosThemeFacade : ThemeFacade {
+class IosThemeFacade: ThemeFacade {
 
   let themeManager: ThemeManager
   let viewController: ViewController
@@ -13,11 +13,11 @@ class IosThemeFacade : ThemeFacade {
     self.viewController = viewController
   }
 
-  func getThemes() async throws -> [[String : String]]{
+  func getThemes() async throws -> [[String: String]] {
     return self.themeManager.themes
   }
 
-  func setThemes(_ themes: [[String : String]]) async throws {
+  func setThemes(_ themes: [[String: String]]) async throws {
     self.themeManager.themes = themes
     await self.viewController.applyTheme(self.themeManager.currentThemeWithFallback)
   }
@@ -26,12 +26,11 @@ class IosThemeFacade : ThemeFacade {
     return self.themeManager.themePreference
   }
 
-  
   func setThemePreference(_ themePrefernece: ThemePreference) async throws {
     self.themeManager.themePreference = themePrefernece
     await self.viewController.applyTheme(self.themeManager.currentThemeWithFallback)
   }
-  
+
   func prefersDark() async throws -> Bool {
     return UITraitCollection.current.userInterfaceStyle == .dark
   }

@@ -10,26 +10,26 @@ class SqlCipherStatement {
   // this evilness is required because SQLITE_TRANSIENT and SQLITE_STATIC are defined in slqite3.h but it's not accepted by swift.
   private static let LIFETIME_TRANSIENT: SqliteDestructor = unsafeBitCast(-1, to: sqlite3_destructor_type.self)
   private static let LIFETIME_STATIC: SqliteDestructor = unsafeBitCast(0, to: sqlite3_destructor_type.self)
-  
+
   init( db: SqlCipherDb, query: String, stmt: OpaquePointer) {
     self.stmt = stmt
     self.db = db
     self.originalQuery = query
   }
-  
+
   func bindParams(_ params: [TaggedSqlValue]) throws -> Self {
-    
+
     for (i, param) in params.enumerated() {
       // apparently, param indices start at 1
       try! self.bindSingleParam(param, Int32(i + 1))
     }
-    
+
     return self
   }
-  
+
   private func bindSingleParam(_ param: TaggedSqlValue, _ i: Int32) throws {
     var rc_bind = SQLITE_ERROR
-    
+
     switch param {
     case .null:
       rc_bind = sqlite3_bind_null(self.stmt, i)
@@ -55,12 +55,12 @@ class SqlCipherStatement {
         SqlCipherStatement.LIFETIME_TRANSIENT
       )
     }
-    
+
     if rc_bind != SQLITE_OK {
       fatalError("couldn't bind param \(i)")
     }
   }
-  
+
   /// execute a query, don't return anything
   func run() {
     let rc_step = sqlite3_step(self.stmt)
@@ -69,9 +69,9 @@ class SqlCipherStatement {
       fatalError("error in run \(errmsg)")
     }
   }
-  
+
   /// return the first row from a query
-  func get() -> [String : TaggedSqlValue]? {
+  func get() -> [String: TaggedSqlValue]? {
     let res = self.all()
     if res.count > 1 {
       // if this is ever triggered, we either need to rewrite the query to contain
@@ -80,11 +80,11 @@ class SqlCipherStatement {
     }
     return res.first
   }
-  
+
   /// return all rows from a query
-  func all() -> [[String : TaggedSqlValue]] {
+  func all() -> [[String: TaggedSqlValue]] {
     var rc = sqlite3_step(self.stmt)
-    var res: [[String : TaggedSqlValue]] = []
+    var res: [[String: TaggedSqlValue]] = []
     while rc != SQLITE_DONE {
       if rc != SQLITE_ROW {
         fatalError("expected row, got \(rc)")
@@ -99,7 +99,7 @@ class SqlCipherStatement {
     }
     return res
   }
-  
+
   /// get the name of the current rows column i as a string
   private func getColumnName(_ i: Int32) -> String {
     let col_name = sqlite3_column_name(self.stmt, i)
@@ -108,7 +108,7 @@ class SqlCipherStatement {
     }
     return String(cString: col_name!)
   }
-  
+
   /// gets the contents of the current rows column with index i
   /// will check the type and then delegate to the appropriate access method
   private func getColumnContent(_ i: Int32) -> TaggedSqlValue {
@@ -126,7 +126,7 @@ class SqlCipherStatement {
       fatalError("unexpected type id in column \(i): \(type_id)")
     }
   }
-  
+
   /// return a string from the current rows column i
   /// use after checking that the column contains a string.
   private func getColumnText(_ i: Int32) -> TaggedSqlValue {
@@ -136,7 +136,7 @@ class SqlCipherStatement {
     }
     return .string(value: String(cString: text!))
   }
-  
+
   /// return a blob from the current rows column i
   /// use after checking that the column contains a blob.
   private func getColumnBlob(_ i: Int32) -> TaggedSqlValue {
@@ -152,14 +152,14 @@ class SqlCipherStatement {
       return .bytes(value: data.wrap())
     }
   }
-  
+
   /// return an integer from the current rows column i
   /// use after checking that the column contains an integer.
   private func getColumnInteger(_ i: Int32) -> TaggedSqlValue {
     let integer = sqlite3_column_int(self.stmt, i)
     return .number(value: Int(integer))
   }
-  
+
   deinit {
     sqlite3_finalize(self.stmt)
   }
