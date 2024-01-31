@@ -53,7 +53,20 @@ async function buildWebPart({ stage, host, version, mode }) {
 		await fs.promises.writeFile(
 			"build/worker-bootstrap.js",
 			`importScripts("./polyfill.js")
-importScripts("./worker.js")
+// We want to run worker as en ES module but Safari still (as of 17.2) does not support type parameter for the worker constructor.
+// We want es modules at least because of import.meta.url for loading WASM.
+// Gladly we can have es modules via dynamic imports.
+// Sadly current worker protocol relies on the MessagePort queueing so we need to set onmessge handler right away (even if we wait for the worker to send a
+// message before calling setup() the rest of the app does not wait, we need to queue somewhere).
+// This helps to bridge the gap between module support and queueing. There is still a little chance that then() won't run in the same order and we will get
+// a message before setup() but it is unlikely. If that happens we need to build a proper queue.
+// onmessage handler will be overriden once more in worker.ts and then once again in WorkerImpl (by making a WebWorkerTransport).
+// Why don't we do this piece of code in worker.ts then and make a "ESM world" split there? glad you asked! esbuild (as it's used here) rolls up all the dynamic
+// imports into the same bundle so even if we import WorkerImpl dynamically it will executed in the same context as worker.ts which we would need to import
+// synchronously to set the handler right away.
+let workerImport
+self.onmessage = (msg) => workerImport.then(() => self.onmessage(msg))
+workerImport = import("./worker.js")
 `,
 		)
 	})

@@ -50,7 +50,7 @@ export class WorkerClient {
 			const workerUrl = prefixWithoutFile + "/worker-bootstrap.js"
 			const worker = new Worker(workerUrl)
 			this._dispatcher = new MessageDispatcher(new WebWorkerTransport(worker), this.queueCommands(locator), "main-worker")
-			// await this._dispatcher.postRequest(new Request("setup", [window.env, this.getInitialEntropy(), client.browserData()]))
+			await this._dispatcher.postRequest(new Request("setup", [window.env, this.getInitialEntropy(), client.browserData()]))
 
 			worker.onerror = (e: any) => {
 				throw new Error(`could not setup worker: ${e.name} ${e.stack} ${e.message} ${e}`)
@@ -81,10 +81,6 @@ export class WorkerClient {
 
 	queueCommands(locator: IMainLocator): Commands<MainRequestType> {
 		return {
-			ready: (message: MainRequest) => {
-				this._dispatcher.postRequest(new Request("setup", [window.env, this.getInitialEntropy(), client.browserData()]))
-				return Promise.resolve()
-			},
 			execNative: (message: MainRequest) => locator.native.invokeNative(downcast(message.args[0]), downcast(message.args[1])),
 			error: (message: MainRequest) => {
 				handleUncaughtError(objToError(message.args[0]))
