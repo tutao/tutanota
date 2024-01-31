@@ -117,6 +117,9 @@
 		3D69DDFE2AD441F000C6C900 /* KyberEncapsulation.swift in Sources */ = {isa = PBXBuildFile; fileRef = 3D69DDFD2AD441F000C6C900 /* KyberEncapsulation.swift */; };
 		3D69DE002AD4427E00C6C900 /* Kyber.swift in Sources */ = {isa = PBXBuildFile; fileRef = 3D69DDFF2AD4427E00C6C900 /* Kyber.swift */; };
 		3D6A0AEA212C1701001CD791 /* CompatibilityTest.m in Sources */ = {isa = PBXBuildFile; fileRef = 3D6A0AE9212C1701001CD791 /* CompatibilityTest.m */; settings = {COMPILER_FLAGS = "-Itutanota/include"; }; };
+		3D71A5CD2B69035700AAF871 /* tutasdk.xcframework in Frameworks */ = {isa = PBXBuildFile; fileRef = 3D71A5CB2B69035000AAF871 /* tutasdk.xcframework */; };
+		3D71A5CE2B69035700AAF871 /* tutasdk.xcframework in Embed Frameworks */ = {isa = PBXBuildFile; fileRef = 3D71A5CB2B69035000AAF871 /* tutasdk.xcframework */; settings = {ATTRIBUTES = (CodeSignOnCopy, RemoveHeadersOnCopy, ); }; };
+		3D71A5D12B69085300AAF871 /* tutasdk.swift in Sources */ = {isa = PBXBuildFile; fileRef = 3D71A5D02B69085300AAF871 /* tutasdk.swift */; };
 		3D73DA312731953E008E7A8A /* RemoteProtocol.swift in Sources */ = {isa = PBXBuildFile; fileRef = 3D73DA302731953E008E7A8A /* RemoteProtocol.swift */; };
 		3D73DA3427319A91008E7A8A /* Operation.swift in Sources */ = {isa = PBXBuildFile; fileRef = 3D73DA3327319A91008E7A8A /* Operation.swift */; };
 		3D7A108029472A6000311B6B /* CancelledError.swift in Sources */ = {isa = PBXBuildFile; fileRef = 3D7A107F29472A6000311B6B /* CancelledError.swift */; };
@@ -270,6 +273,13 @@
 /* End PBXBuildFile section */
 
 /* Begin PBXContainerItemProxy section */
+		3D28C2E22B690FAA009AD597 /* PBXContainerItemProxy */ = {
+			isa = PBXContainerItemProxy;
+			containerPortal = 3DD4A07B20F8C6240086EB36 /* Project object */;
+			proxyType = 1;
+			remoteGlobalIDString = 3D28C2DE2B690F80009AD597;
+			remoteInfo = tutaSDK;
+		};
 		3D6715312B4412D600E26D7D /* PBXContainerItemProxy */ = {
 			isa = PBXContainerItemProxy;
 			containerPortal = 3DD4A07B20F8C6240086EB36 /* Project object */;
@@ -294,12 +304,13 @@
 /* End PBXContainerItemProxy section */
 
 /* Begin PBXCopyFilesBuildPhase section */
-		3DE114102AAF1A3E000D75B2 /* Embed Frameworks */ = {
+		3D71A5CF2B69035700AAF871 /* Embed Frameworks */ = {
 			isa = PBXCopyFilesBuildPhase;
 			buildActionMask = 2147483647;
 			dstPath = "";
 			dstSubfolderSpec = 10;
 			files = (
+				3D71A5CE2B69035700AAF871 /* tutasdk.xcframework in Embed Frameworks */,
 			);
 			name = "Embed Frameworks";
 			runOnlyForDeploymentPostprocessing = 0;
@@ -364,6 +375,7 @@
 		3D2201FD293F752D00366FD2 /* WebauthnKeyDescriptor.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = WebauthnKeyDescriptor.swift; sourceTree = "<group>"; };
 		3D220204293F75C100366FD2 /* IosWebauthnFacade.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = IosWebauthnFacade.swift; sourceTree = "<group>"; };
 		3D239301287EC96200DD7396 /* CustomSchemeHandlers.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CustomSchemeHandlers.swift; sourceTree = "<group>"; };
+		3D28C2EB2B691066009AD597 /* tutasdk2.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = tutasdk2.h; sourceTree = "<group>"; };
 		3D2DB91A2733F43B00BCEF4C /* IosNativeCredentialsFacade.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = IosNativeCredentialsFacade.swift; sourceTree = "<group>"; };
 		3D36BCC1274E4A6100428878 /* CryptoTokenKit.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = CryptoTokenKit.framework; path = System/Library/Frameworks/CryptoTokenKit.framework; sourceTree = SDKROOT; };
 		3D378ED22536F3A80001F1F3 /* tutanota-Bridging-Header.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = "tutanota-Bridging-Header.h"; sourceTree = "<group>"; };
@@ -425,6 +437,8 @@
 		3D69DDFD2AD441F000C6C900 /* KyberEncapsulation.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = KyberEncapsulation.swift; sourceTree = "<group>"; };
 		3D69DDFF2AD4427E00C6C900 /* Kyber.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Kyber.swift; sourceTree = "<group>"; };
 		3D6A0AE9212C1701001CD791 /* CompatibilityTest.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = CompatibilityTest.m; sourceTree = "<group>"; };
+		3D71A5CB2B69035000AAF871 /* tutasdk.xcframework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.xcframework; name = tutasdk.xcframework; path = "../tuta-sdk/project/tutasdk.xcframework"; sourceTree = "<group>"; };
+		3D71A5D02B69085300AAF871 /* tutasdk.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; name = tutasdk.swift; path = "../tuta-sdk/project/Sources/tutasdk.swift"; sourceTree = "<group>"; };
 		3D73DA302731953E008E7A8A /* RemoteProtocol.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = RemoteProtocol.swift; sourceTree = "<group>"; };
 		3D73DA3327319A91008E7A8A /* Operation.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Operation.swift; sourceTree = "<group>"; };
 		3D7A107F29472A6000311B6B /* CancelledError.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CancelledError.swift; sourceTree = "<group>"; };
@@ -597,6 +611,7 @@
 				3D4E3C9E28EC5B31001FA9D1 /* Security.framework in Frameworks */,
 				3D3B5169293797DC00C1B7DA /* Atomics in Frameworks */,
 				3DDB5E6F28FDA59100E1E4BE /* libcrypto.xcframework in Frameworks */,
+				3D71A5CD2B69035700AAF871 /* tutasdk.xcframework in Frameworks */,
 				3D4E3CA028EC5B43001FA9D1 /* Foundation.framework in Frameworks */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
@@ -742,6 +757,14 @@
 				3D220204293F75C100366FD2 /* IosWebauthnFacade.swift */,
 			);
 			path = Webauthn;
+			sourceTree = "<group>";
+		};
+		3D28C2EA2B691066009AD597 /* tutasdk2 */ = {
+			isa = PBXGroup;
+			children = (
+				3D28C2EB2B691066009AD597 /* tutasdk2.h */,
+			);
+			path = tutasdk2;
 			sourceTree = "<group>";
 		};
 		3D448A89292BB17B0030DB2F /* Sharing */ = {
@@ -945,6 +968,7 @@
 		3D891EEC2105A5590031E528 /* Frameworks */ = {
 			isa = PBXGroup;
 			children = (
+				3D71A5CB2B69035000AAF871 /* tutasdk.xcframework */,
 				3DDB5E6E28FDA59100E1E4BE /* libcrypto.xcframework */,
 				3D4E3C9F28EC5B43001FA9D1 /* Foundation.framework */,
 				3D4E3C9D28EC5B31001FA9D1 /* Security.framework */,
@@ -1515,9 +1539,11 @@
 		3DD4A07A20F8C6240086EB36 = {
 			isa = PBXGroup;
 			children = (
+				3D71A5D02B69085300AAF871 /* tutasdk.swift */,
 				3DD4A08520F8C6240086EB36 /* tutanota */,
 				3DD4A09E20F8C6260086EB36 /* tutanotaTests */,
 				3DEF18F12924E1F1009C4B55 /* TutanotaShareExtension */,
+				3D28C2EA2B691066009AD597 /* tutasdk2 */,
 				3DD4A08420F8C6240086EB36 /* Products */,
 				3D891EEC2105A5590031E528 /* Frameworks */,
 			);
@@ -1692,6 +1718,20 @@
 /* End PBXHeadersBuildPhase section */
 
 /* Begin PBXLegacyTarget section */
+		3D28C2DE2B690F80009AD597 /* tutaSDK */ = {
+			isa = PBXLegacyTarget;
+			buildArgumentsString = "make-tutasdk.sh";
+			buildConfigurationList = 3D28C2DF2B690F80009AD597 /* Build configuration list for PBXLegacyTarget "tutaSDK" */;
+			buildPhases = (
+			);
+			buildToolPath = /bin/sh;
+			buildWorkingDirectory = "";
+			dependencies = (
+			);
+			name = tutaSDK;
+			passBuildSettingsInEnvironment = 1;
+			productName = tutaSDK;
+		};
 		3D67152D2B4410B200E26D7D /* liboqs header setup */ = {
 			isa = PBXLegacyTarget;
 			buildArgumentsString = "-f Makefile_liboqs include";
@@ -1718,11 +1758,12 @@
 				3DD4A08020F8C6240086EB36 /* Frameworks */,
 				3DD4A08120F8C6240086EB36 /* Resources */,
 				3DEF18E82924E14B009C4B55 /* Embed App Extensions */,
-				3DE114102AAF1A3E000D75B2 /* Embed Frameworks */,
+				3D71A5CF2B69035700AAF871 /* Embed Frameworks */,
 			);
 			buildRules = (
 			);
 			dependencies = (
+				3D28C2E32B690FAA009AD597 /* PBXTargetDependency */,
 				3D6715322B4412D600E26D7D /* PBXTargetDependency */,
 				3DEF18F92924E1F1009C4B55 /* PBXTargetDependency */,
 			);
@@ -1780,6 +1821,9 @@
 				LastUpgradeCheck = 1300;
 				ORGANIZATIONNAME = "Tutao GmbH";
 				TargetAttributes = {
+					3D28C2DE2B690F80009AD597 = {
+						CreatedOnToolsVersion = 15.0.1;
+					};
 					3D67152D2B4410B200E26D7D = {
 						CreatedOnToolsVersion = 15.0.1;
 					};
@@ -1909,6 +1953,7 @@
 				3DD4A09A20F8C6260086EB36 /* tutanotaTests */,
 				3DEF18EF2924E1F1009C4B55 /* TutanotaShareExtension */,
 				3D67152D2B4410B200E26D7D /* liboqs header setup */,
+				3D28C2DE2B690F80009AD597 /* tutaSDK */,
 			);
 		};
 /* End PBXProject section */
@@ -2010,6 +2055,7 @@
 			isa = PBXSourcesBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
+				3D71A5D12B69085300AAF871 /* tutasdk.swift in Sources */,
 				3DCA05602AAF0F1A0038B944 /* NativeCredentialsFacadeReceiveDispatcher.swift in Sources */,
 				3D9B1294272167D4002B46A1 /* IconFactory.swift in Sources */,
 				3D378EE72536F51F0001F1F3 /* FileChooser.swift in Sources */,
@@ -2187,6 +2233,11 @@
 /* End PBXSourcesBuildPhase section */
 
 /* Begin PBXTargetDependency section */
+		3D28C2E32B690FAA009AD597 /* PBXTargetDependency */ = {
+			isa = PBXTargetDependency;
+			target = 3D28C2DE2B690F80009AD597 /* tutaSDK */;
+			targetProxy = 3D28C2E22B690FAA009AD597 /* PBXContainerItemProxy */;
+		};
 		3D6715322B4412D600E26D7D /* PBXTargetDependency */ = {
 			isa = PBXTargetDependency;
 			target = 3D67152D2B4410B200E26D7D /* liboqs header setup */;
@@ -2720,6 +2771,44 @@
 /* End PBXVariantGroup section */
 
 /* Begin XCBuildConfiguration section */
+		3D28C2E02B690F80009AD597 /* Debug */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				ASSETCATALOG_COMPILER_GENERATE_SWIFT_ASSET_SYMBOL_EXTENSIONS = YES;
+				CLANG_CXX_LANGUAGE_STANDARD = "gnu++20";
+				CODE_SIGN_STYLE = Automatic;
+				DEBUGGING_SYMBOLS = YES;
+				DEBUG_INFORMATION_FORMAT = dwarf;
+				ENABLE_USER_SCRIPT_SANDBOXING = YES;
+				GCC_C_LANGUAGE_STANDARD = gnu17;
+				GCC_GENERATE_DEBUGGING_SYMBOLS = YES;
+				GCC_OPTIMIZATION_LEVEL = 0;
+				LOCALIZATION_PREFERS_STRING_CATALOGS = YES;
+				MTL_ENABLE_DEBUG_INFO = INCLUDE_SOURCE;
+				MTL_FAST_MATH = YES;
+				OTHER_CFLAGS = "";
+				OTHER_LDFLAGS = "";
+				PRODUCT_NAME = "$(TARGET_NAME)";
+			};
+			name = Debug;
+		};
+		3D28C2E12B690F80009AD597 /* Release */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				ASSETCATALOG_COMPILER_GENERATE_SWIFT_ASSET_SYMBOL_EXTENSIONS = YES;
+				CLANG_CXX_LANGUAGE_STANDARD = "gnu++20";
+				CODE_SIGN_STYLE = Automatic;
+				DEBUG_INFORMATION_FORMAT = "dwarf-with-dsym";
+				ENABLE_USER_SCRIPT_SANDBOXING = YES;
+				GCC_C_LANGUAGE_STANDARD = gnu17;
+				LOCALIZATION_PREFERS_STRING_CATALOGS = YES;
+				MTL_FAST_MATH = YES;
+				OTHER_CFLAGS = "";
+				OTHER_LDFLAGS = "";
+				PRODUCT_NAME = "$(TARGET_NAME)";
+			};
+			name = Release;
+		};
 		3D67152E2B4410B300E26D7D /* Debug */ = {
 			isa = XCBuildConfiguration;
 			buildSettings = {
@@ -2893,7 +2982,8 @@
 				HEADER_SEARCH_PATHS = (
 					"\"$(TARGET_BUILD_DIR)/usr/local/lib/include\"",
 					"\"$(BUILT_PRODUCTS_DIR)\"",
-					"\"${PROJECT_DIR}/tutanota/include\"/**",
+					"\"${PROJECT_DIR}/tutanota/include\"",
+					"\"${PROJECT_DIR}/tutanota/bindings\"",
 				);
 				INFOPLIST_FILE = tutanota/Info.plist;
 				IPHONEOS_DEPLOYMENT_TARGET = 15.0;
@@ -2907,6 +2997,9 @@
 					"\"$(TARGET_BUILD_DIR)/usr/local/lib/include\"",
 					"$(PROJECT_DIR)/tutanota/Frameworks",
 				);
+				"LIBRARY_SEARCH_PATHS[sdk=iphoneos*][arch=arm64]" = "../tuta-sdk/target/aarch64-apple-ios/debug";
+				"LIBRARY_SEARCH_PATHS[sdk=iphonesimulator*][arch=arm64]" = "../tuta-sdk/target/aarch64-apple-ios-sim/debug";
+				"LIBRARY_SEARCH_PATHS[sdk=iphonesimulator*][arch=x86_64]" = "../tuta-sdk/target/x86_64-apple-ios/debug";
 				"OTHER_CFLAGS[arch=*]" = (
 					"-DSQLITE_HAS_CODEC",
 					"-DSQLITE_TEMP_STORE=3",
@@ -2952,6 +3045,7 @@
 					"\"$(TARGET_BUILD_DIR)/usr/local/lib/include\"",
 					"\"$(BUILT_PRODUCTS_DIR)\"",
 					"\"${PROJECT_DIR}/tutanota/include\"/**",
+					"\"${PROJECT_DIR}/tutanota/bindings\"",
 				);
 				INFOPLIST_FILE = tutanota/Info.plist;
 				IPHONEOS_DEPLOYMENT_TARGET = 15.0;
@@ -3113,6 +3207,15 @@
 /* End XCBuildConfiguration section */
 
 /* Begin XCConfigurationList section */
+		3D28C2DF2B690F80009AD597 /* Build configuration list for PBXLegacyTarget "tutaSDK" */ = {
+			isa = XCConfigurationList;
+			buildConfigurations = (
+				3D28C2E02B690F80009AD597 /* Debug */,
+				3D28C2E12B690F80009AD597 /* Release */,
+			);
+			defaultConfigurationIsVisible = 0;
+			defaultConfigurationName = Release;
+		};
 		3D6715302B4410B300E26D7D /* Build configuration list for PBXLegacyTarget "liboqs header setup" */ = {
 			isa = XCConfigurationList;
 			buildConfigurations = (
