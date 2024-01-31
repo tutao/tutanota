@@ -1739,6 +1739,7 @@
 			buildPhases = (
 				3DCE7AA5271D58230085E40D /* Headers */,
 				3DD4A07F20F8C6240086EB36 /* Sources */,
+				3D7BF8CA2B67ECB8009BB782 /* Lint with SwiftLint */,
 				3DD4A08020F8C6240086EB36 /* Frameworks */,
 				3DD4A08120F8C6240086EB36 /* Resources */,
 				3DEF18E82924E14B009C4B55 /* Embed App Extensions */,
@@ -1764,6 +1765,7 @@
 			buildConfigurationList = 3DD4A0A720F8C6260086EB36 /* Build configuration list for PBXNativeTarget "tutanotaTests" */;
 			buildPhases = (
 				3DD4A09720F8C6260086EB36 /* Sources */,
+				3D7BF8CD2B67FBF7009BB782 /* Lint with SwiftLint */,
 				3DD4A09820F8C6260086EB36 /* Frameworks */,
 				3DD4A09920F8C6260086EB36 /* Resources */,
 			);
@@ -1782,6 +1784,7 @@
 			buildConfigurationList = 3DEF18FB2924E1F1009C4B55 /* Build configuration list for PBXNativeTarget "TutanotaShareExtension" */;
 			buildPhases = (
 				3DEF18EC2924E1F1009C4B55 /* Sources */,
+				3D7BF8DC2B68DC58009BB782 /* Lint with SwiftLint */,
 				3DEF18ED2924E1F1009C4B55 /* Frameworks */,
 				3DEF18EE2924E1F1009C4B55 /* Resources */,
 			);
@@ -2028,6 +2031,66 @@
 			runOnlyForDeploymentPostprocessing = 0;
 		};
 /* End PBXResourcesBuildPhase section */
+
+/* Begin PBXShellScriptBuildPhase section */
+		3D7BF8CA2B67ECB8009BB782 /* Lint with SwiftLint */ = {
+			isa = PBXShellScriptBuildPhase;
+			alwaysOutOfDate = 1;
+			buildActionMask = 2147483647;
+			files = (
+			);
+			inputFileListPaths = (
+			);
+			inputPaths = (
+			);
+			name = "Lint with SwiftLint";
+			outputFileListPaths = (
+			);
+			outputPaths = (
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+			shellPath = /bin/sh;
+			shellScript = "# Copied from the SwiftLint readme: https://github.com/realm/SwiftLint\nif [[ \"$(uname -m)\" == arm64 ]]; then\n    export PATH=\"/opt/homebrew/bin:$PATH\"\nfi\n\nif which swiftlint > /dev/null; then\n  swiftlint lint tutanota\nelse\n  echo \"warning: SwiftLint not installed, download from https://github.com/realm/SwiftLint\"\nfi\n";
+		};
+		3D7BF8CD2B67FBF7009BB782 /* Lint with SwiftLint */ = {
+			isa = PBXShellScriptBuildPhase;
+			alwaysOutOfDate = 1;
+			buildActionMask = 2147483647;
+			files = (
+			);
+			inputFileListPaths = (
+			);
+			inputPaths = (
+			);
+			name = "Lint with SwiftLint";
+			outputFileListPaths = (
+			);
+			outputPaths = (
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+			shellPath = /bin/sh;
+			shellScript = "# Copied from the SwiftLint readme: https://github.com/realm/SwiftLint\nif [[ \"$(uname -m)\" == arm64 ]]; then\n    export PATH=\"/opt/homebrew/bin:$PATH\"\nfi\n\nif which swiftlint > /dev/null; then\n  swiftlint lint tutanotaTests\nelse\n  echo \"warning: SwiftLint not installed, download from https://github.com/realm/SwiftLint\"\nfi\n";
+		};
+		3D7BF8DC2B68DC58009BB782 /* Lint with SwiftLint */ = {
+			isa = PBXShellScriptBuildPhase;
+			alwaysOutOfDate = 1;
+			buildActionMask = 2147483647;
+			files = (
+			);
+			inputFileListPaths = (
+			);
+			inputPaths = (
+			);
+			name = "Lint with SwiftLint";
+			outputFileListPaths = (
+			);
+			outputPaths = (
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+			shellPath = /bin/sh;
+			shellScript = "# Copied from the SwiftLint readme: https://github.com/realm/SwiftLint\nif [[ \"$(uname -m)\" == arm64 ]]; then\n    export PATH=\"/opt/homebrew/bin:$PATH\"\nfi\n\nif which swiftlint > /dev/null; then\n  swiftlint lint TutanotaShareExtension\nelse\n  echo \"warning: SwiftLint not installed, download from https://github.com/realm/SwiftLint\"\nfi\n";
+		};
+/* End PBXShellScriptBuildPhase section */
 
 /* Begin PBXSourcesBuildPhase section */
 		3DD4A07F20F8C6240086EB36 /* Sources */ = {
