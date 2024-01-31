@@ -1,12 +1,12 @@
 import Foundation
 import MobileCoreServices
 
-class IosFileFacade : FileFacade {
-  
+class IosFileFacade: FileFacade {
+
   let chooser: TUTFileChooser
   let viewer: FileViewer
   let schemeHandler: ApiSchemeHandler
-  
+
   init(
     chooser: TUTFileChooser,
     viewer: FileViewer,
@@ -16,25 +16,25 @@ class IosFileFacade : FileFacade {
     self.viewer = viewer
     self.schemeHandler = schemeHandler
   }
-  
+
   func openFolderChooser() async throws -> String? {
     fatalError("not implemented for this platform")
   }
-  
+
   private func writeFile(_ file: String, _ content: DataWrapper) async throws {
     let fileURL = URL(fileURLWithPath: file)
     try content.data.write(to: fileURL, options: .atomic)
   }
-  
+
   private func readFile(_ file: String) async throws -> DataWrapper? {
     let data = try? Data(contentsOf: URL(string: file)!)
     return data?.wrap()
   }
-  
+
   func open(_ location: String, _ mimeType: String) async throws {
     await self.viewer.openFile(path: location)
   }
-  
+
   func openFileChooser(_ boundingRect: IpcClientRect, _ filter: [String]?) async throws -> [String] {
     let anchor = CGRect(x: boundingRect.x, y: boundingRect.y, width: boundingRect.width, height: boundingRect.height)
     let files = try await self.chooser.open(withAnchorRect: anchor)
@@ -53,11 +53,11 @@ class IosFileFacade : FileFacade {
     }
     return returnfiles
   }
-  
+
   func deleteFile(_ file: String) async throws {
     try FileManager.default.removeItem(atPath: file)
   }
-  
+
   func getName(_ file: String) async throws -> String {
     let fileName = (file as NSString).lastPathComponent
     if FileUtils.fileExists(atPath: file) {
@@ -69,11 +69,11 @@ class IosFileFacade : FileFacade {
       )
     }
   }
-  
+
   func getMimeType(_ file: String) async throws -> String {
     return getFileMIMETypeWithDefault(path: file)
   }
-  
+
   func getSize(_ file: String) async throws -> Int {
     let attrs = try FileManager.default.attributesOfItem(atPath: file)
     let size = attrs[.size] as! UInt64
@@ -82,23 +82,23 @@ class IosFileFacade : FileFacade {
     // If we somehow overflow we will actually crash.
     return Int(size)
   }
-  
+
   func putFileIntoDownloadsFolder(_ localFileUri: String, _ fileNameToSave: String) async throws -> String {
     fatalError("not implemented on this platform")
   }
-  
-  func upload(_ sourceFileUrl: String, _ remoteUrl: String, _ method: String, _ headers: [String : String]) async throws -> UploadTaskResponse {
+
+  func upload(_ sourceFileUrl: String, _ remoteUrl: String, _ method: String, _ headers: [String: String]) async throws -> UploadTaskResponse {
     // async upload is iOS 15+
     return try await withCheckedThrowingContinuation { continuation in
       var request = URLRequest(url: URL(string: remoteUrl)!)
       request.httpMethod = method
       request.setValue("application/octet-stream", forHTTPHeaderField: "Content-Type")
       request.allHTTPHeaderFields = headers
-      
+
       // session has a default request timeout of 60 seconds for new data (configuration.timeoutIntervalForRequest)
       // the overall timeout for the task (w retries) is 7 days (configuration.timeoutIntervalForResource)
       let session = URLSession(configuration: .ephemeral)
-      
+
       let task = session.uploadTask(with: self.schemeHandler.rewriteRequest(request), fromFile: URL(fileURLWithPath: sourceFileUrl)) { data, response, error in
         if let error = error {
           continuation.resume(with: .failure(error))
@@ -106,21 +106,21 @@ class IosFileFacade : FileFacade {
         }
         let httpResponse = response as! HTTPURLResponse
         let apiResponse = UploadTaskResponse(httpResponse: httpResponse, responseBody: data!)
-        
+
         continuation.resume(with: .success(apiResponse))
       }
       task.resume()
     }
   }
-  
-  func download(_ sourceUrl: String, _ filename: String, _ headers: [String : String]) async throws -> DownloadTaskResponse {
+
+  func download(_ sourceUrl: String, _ filename: String, _ headers: [String: String]) async throws -> DownloadTaskResponse {
     return try await withCheckedThrowingContinuation { continuation in
       DispatchQueue.global(qos: .default).async {
         let urlStruct = URL(string: sourceUrl)!
         var request = URLRequest(url: urlStruct)
         request.httpMethod = "GET"
         request.allHTTPHeaderFields = headers
-        
+
         let configuration = URLSessionConfiguration.ephemeral
         configuration.timeoutIntervalForRequest = 20
         let session = URLSession(configuration: configuration)
@@ -148,22 +148,22 @@ class IosFileFacade : FileFacade {
       }
     }
   }
-  
+
   private func writeEncryptedFile(fileName: String, data: Data) throws -> String {
     let encryptedPath = try FileUtils.getEncryptedFolder()
     let filePath = (encryptedPath as NSString).appendingPathComponent(fileName)
     try data.write(to: URL(fileURLWithPath: filePath), options: .atomicWrite)
     return filePath
   }
-  
+
   func hashFile(_ fileUri: String) async throws -> String {
     return try await BlobUtil().hashFile(fileUri: fileUri)
   }
-  
+
   func zipDirectory(fileUrl: URL) throws -> String {
     var returnPath: String = ""
-    var err: NSError? = nil
-    var ourError: Error? = nil
+    var err: NSError?
+    var ourError: Error?
     NSFileCoordinator().coordinate(readingItemAt: fileUrl, options: [.forUploading], error: &err) { (zipUrl) in
       do {
         let decryptedFolder = try FileUtils.getDecryptedFolder()
@@ -180,30 +180,30 @@ class IosFileFacade : FileFacade {
     }
     return returnPath
   }
-  
+
   func clearFileData() async throws {
-    let _ = await (
+    _ = await (
       try self.clearDirectory(folderPath: FileUtils.getEncryptedFolder()),
       try self.clearDirectory(folderPath: FileUtils.getDecryptedFolder()),
       try self.clearDirectory(folderPath: NSTemporaryDirectory())
     )
   }
-  
+
   func joinFiles(_ filename: String, _ files: [String]) async throws -> String {
     return try await BlobUtil().joinFiles(fileName: filename, filePathsToJoin: files)
   }
-  
+
   func splitFile(_ fileUri: String, _ maxChunkSizeBytes: Int) async throws -> [String] {
     return try await BlobUtil().splitFile(fileUri: fileUri, maxBlobSize: maxChunkSizeBytes)
   }
-  
+
   func writeDataFile(_ file: DataFile) async throws -> String {
     let decryptedFolder = try FileUtils.getDecryptedFolder()
     let filePath = (decryptedFolder as NSString).appendingPathComponent(file.name)
     try await self.writeFile(filePath, file.data)
     return filePath
   }
-  
+
   func readDataFile(_ filePath: String) async throws -> DataFile? {
     if let data = try await readFile(filePath) {
       return DataFile(
@@ -216,7 +216,7 @@ class IosFileFacade : FileFacade {
       return nil
     }
   }
-  
+
   private func clearDirectory(folderPath: String) async throws {
     let fileManager = FileManager.default
     let folderUrl = URL(fileURLWithPath: folderPath)

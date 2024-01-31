@@ -2,20 +2,19 @@ import Foundation
 
 /// Do you want to encode erased Encodable but Swift doesn't let you?
 /// Use this one weird hack!
-struct ExistentialEncodable : Encodable {
+struct ExistentialEncodable: Encodable {
   let value: Encodable
-  
+
   func encode(to encoder: Encoder) throws {
     try self.value.openEncode(into: encoder)
   }
 }
 
-struct ResponseError : Codable {
+struct ResponseError: Codable {
   let name: String
   let message: String
   let stack: String
 }
-
 
 /// Swift magic
 /// Swift does not allow protocol to conform to itself, even when it's fine so we can't pass erased Encodable variable into
@@ -29,7 +28,7 @@ fileprivate extension Encodable {
   func openEncode(into encoder: Encoder) throws {
     try self.encode(to: encoder)
   }
-  
+
   func openEncode(into unkeyedContainer: inout UnkeyedEncodingContainer) throws {
     try unkeyedContainer.encode(self)
   }

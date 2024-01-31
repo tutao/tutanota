@@ -5,13 +5,13 @@ protocol DateProvider {
   var timeZone: TimeZone { get }
 }
 
-class SystemDateProvider : DateProvider {
+class SystemDateProvider: DateProvider {
   var now: Date {
     get {
       return Date()
     }
   }
-  
+
   var timeZone: TimeZone {
     get {
       return TimeZone.current

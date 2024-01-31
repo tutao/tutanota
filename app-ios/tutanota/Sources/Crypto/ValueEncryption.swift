@@ -29,19 +29,19 @@ extension SimpleStringDecodable {
   }
 }
 
-extension Int : SimpleStringDecodable {
+extension Int: SimpleStringDecodable {
   init?(string: String) {
     self.init(string)
   }
 }
 
-extension Int64 : SimpleStringDecodable {
+extension Int64: SimpleStringDecodable {
   init?(string: String) {
     self.init(string)
   }
 }
 
-extension Date : SimpleStringDecodable {
+extension Date: SimpleStringDecodable {
   init?(string: String) {
     guard let milliseconds = Int64(string: string) else {
       return nil
@@ -51,7 +51,7 @@ extension Date : SimpleStringDecodable {
   }
 }
 
-extension String : SimpleStringDecodable {
+extension String: SimpleStringDecodable {
   init?(string: String) {
     self.init(string)
   }

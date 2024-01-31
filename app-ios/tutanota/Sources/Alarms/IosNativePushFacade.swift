@@ -1,7 +1,6 @@
 import Foundation
 
-class IosNativePushFacade : NativePushFacade {
-
+class IosNativePushFacade: NativePushFacade {
 
   private let appDelegate: AppDelegate
   private let alarmManager: AlarmManager

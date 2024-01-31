@@ -21,7 +21,7 @@ class IosCommonSystemFacade: CommonSystemFacade {
     self.initialized.send(.initReceived)
   }
 
-  func reload(_ query: [String : String]) async throws {
+  func reload(_ query: [String: String]) async throws {
     self.initialized = CurrentValueSubject(.waitingForInit)
     await self.viewController.loadMainPage(params: query)
   }
@@ -42,7 +42,7 @@ class IosCommonSystemFacade: CommonSystemFacade {
       // (it is anyway hard to do as .sink() is called sync right away before we get subscription)
       let cancellable = self.initialized
         .first { $0 == .initReceived }
-        .sink { v in continuation.resume() }
+        .sink { _ in continuation.resume() }
 
       self.cancellables.append(cancellable)
     }

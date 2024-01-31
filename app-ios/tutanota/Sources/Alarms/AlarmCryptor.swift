@@ -4,13 +4,13 @@ protocol AlarmCryptor {
   func decrypt(alarm: EncryptedAlarmNotification) throws -> AlarmNotification
 }
 
-class KeychainAlarmCryptor : AlarmCryptor {
+class KeychainAlarmCryptor: AlarmCryptor {
   private let keychainManager: KeychainManager
-  
+
   init(keychainManager: KeychainManager) {
     self.keychainManager = keychainManager
   }
-  
+
   func decrypt(alarm encAlarmNotification: EncryptedAlarmNotification) throws -> AlarmNotification {
     let sessionKey = self.resolveSessionkey(alarmNotification: encAlarmNotification)
     guard let sessionKey = sessionKey else {
@@ -18,7 +18,7 @@ class KeychainAlarmCryptor : AlarmCryptor {
     }
     return try AlarmNotification(encrypted: encAlarmNotification, sessionKey: sessionKey)
   }
-  
+
   private func resolveSessionkey(alarmNotification: EncryptedAlarmNotification) -> Key? {
     var lastError: Error?
     for notificationSessionKey in alarmNotification.notificationSessionKeys {

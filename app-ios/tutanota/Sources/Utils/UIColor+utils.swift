@@ -18,20 +18,19 @@ public extension UIColor {
       self.init(red: r, green: g, blue: b, alpha: a)
       return
     }
-    
+
     return nil
   }
-  
+
   func isLight() -> Bool {
     var r: CGFloat = 0
     var g: CGFloat = 0
     var b: CGFloat = 0
-    
+
     let success: Bool = self.getRed(&r, green: &g, blue: &b, alpha: nil)
 
     // lines with assertions are removed in release builds
     assert(success, "Invalid UI Color")
-    
 
     // Counting the perceptive luminance
     // human eye favors green color...
@@ -39,7 +38,6 @@ public extension UIColor {
     return lightness >= 0.5
   }
 }
-
 
 /** Parse a #RGB or #RRGGBB #RRGGBBAA color code into an 0xRRGGBBAA int */
 private func parseColorCode(_ code: String, _ rrggbbaa: UnsafeMutablePointer<UInt32>?) -> Bool {
@@ -49,12 +47,12 @@ private func parseColorCode(_ code: String, _ rrggbbaa: UnsafeMutablePointer<UIn
 
   let start = code.index(code.startIndex, offsetBy: 1)
   var hexString = String(code[start...]).uppercased()
-  
+
   // input was #RGB
   if hexString.count == 3 {
     hexString = expandShortHex(hex: hexString)
   }
-  
+
   // input was #RGB or #RRGGBB, set alpha channel to max
   if hexString.count != 8 {
     hexString += "FF"

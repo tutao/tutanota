@@ -2,24 +2,24 @@ import Foundation
 
 typealias ThemeId = String
 typealias ThemePreference = String
-typealias Theme = Dictionary<String, String>
+typealias Theme = [String: String]
 
-fileprivate let SELECTED_THEME = "theme"
-fileprivate let THEMES = "themes"
-fileprivate let LIGHT_FALLBACK_THEME = [
+private let SELECTED_THEME = "theme"
+private let THEMES = "themes"
+private let LIGHT_FALLBACK_THEME = [
   "themeId": "light-fallback",
   "content_bg": "#ffffff",
   "header_bg": "#ffffff",
   "navigation_bg": "f6f6f6"
 ]
 
-class ThemeManager : NSObject {
+class ThemeManager: NSObject {
   private let userPreferencesProvider: UserPreferencesProvider
-  
+
   init(userProferencesProvider: UserPreferencesProvider) {
     self.userPreferencesProvider = userProferencesProvider
   }
-  
+
   public var themePreference: ThemePreference? {
     get {
       return userPreferencesProvider.getObject(forKey: SELECTED_THEME) as! ThemePreference?
@@ -29,9 +29,9 @@ class ThemeManager : NSObject {
     }
   }
 
-  public var themes: Array<Theme> {
+  public var themes: [Theme] {
     get {
-      userPreferencesProvider.getObject(forKey: THEMES) as! Array<Theme>? ?? []
+      userPreferencesProvider.getObject(forKey: THEMES) as! [Theme]? ?? []
     }
     set(newVal) {
       return userPreferencesProvider.setValue(newVal, forKey: THEMES)

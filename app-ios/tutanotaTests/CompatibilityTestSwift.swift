@@ -27,7 +27,7 @@ class CompatibilityTestSwift: XCTestCase {
       let expectedHash = TUTEncodingConverter.hex(toBytes: test["keyHex"]!)
       let salt = TUTEncodingConverter.hex(toBytes: test["saltHex"]!)
       let result = try! generateArgon2idHash(ofPassword: password, ofHashLength: ARGON2ID_HASH_LENGTH, withSalt: salt, withIterations: ARGON2ID_ITERATIONS, withParallelism: ARGON2ID_PARALLELISM, withMemoryCost: ARGON2ID_MEMORY_COST)
-      XCTAssert(password.data.allSatisfy{$0 == 0})
+      XCTAssert(password.data.allSatisfy {$0 == 0})
       XCTAssertEqual(expectedHash, result)
     }
   }
@@ -150,14 +150,14 @@ class CompatibilityTestSwift: XCTestCase {
     // key is expected by oqs in the same order t, rho
 
     let components = try hexComponents(fromHex: hex)
-    return KyberPublicKey(raw: DataWrapper(data:components[0] + components[1]))
+    return KyberPublicKey(raw: DataWrapper(data: components[0] + components[1]))
   }
 
   private func kyberParsePrivateKey(hex: String) throws -> KyberPrivateKey {
     // key is expected by oqs in this order (vs how we encode it on the server): s, t, rho, hpk, nonce
 
     let components = try hexComponents(fromHex: hex)
-    return KyberPrivateKey(raw: DataWrapper(data:components[0] + components[3] + components[4] + components[1] + components[2]))
+    return KyberPrivateKey(raw: DataWrapper(data: components[0] + components[3] + components[4] + components[1] + components[2]))
   }
 
 }

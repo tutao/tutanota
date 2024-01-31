@@ -9,7 +9,7 @@ enum ListIdLockState {
 let OFFLINE_DB_CLOSED_DOMAIN = "de.tutao.tutanota.offline.OfflineDbClosedError"
 
 actor IosSqlCipherFacade: SqlCipherFacade {
-  private var db: SqlCipherDb? = nil
+  private var db: SqlCipherDb?
 
   private var concurrentListIdLocks = ConcurrentListIdLocks()
   // according to the docs the return value of sink should be held
@@ -29,12 +29,12 @@ actor IosSqlCipherFacade: SqlCipherFacade {
     return
   }
 
-  func get(_ query: String, _ params: [TaggedSqlValue]) async throws -> [String : TaggedSqlValue]? {
+  func get(_ query: String, _ params: [TaggedSqlValue]) async throws -> [String: TaggedSqlValue]? {
     let prepped = try self.getDb().prepare(query: query)
     return try! prepped.bindParams(params).get()
   }
 
-  func all(_ query: String, _ params: [TaggedSqlValue]) async throws -> [[String : TaggedSqlValue]] {
+  func all(_ query: String, _ params: [TaggedSqlValue]) async throws -> [[String: TaggedSqlValue]] {
     let prepped = try self.getDb().prepare(query: query)
     return try! prepped.bindParams(params).all()
   }
@@ -88,12 +88,12 @@ actor IosSqlCipherFacade: SqlCipherFacade {
       await withCheckedContinuation { (continuation: CheckedContinuation<Void, Never>) in
         let cancellable = listIdLock
           .first(where: { $0 == .listIdUnlocked })
-          .sink { v in
+          .sink { _ in
             continuation.resume()
           }
         self.cancellables.append(cancellable)
       }
-      await self.concurrentListIdLocks.set(listId,CurrentValueSubject<ListIdLockState, Never>(.waitingForListIdUnlock))
+      await self.concurrentListIdLocks.set(listId, CurrentValueSubject<ListIdLockState, Never>(.waitingForListIdUnlock))
     } else {
       await self.concurrentListIdLocks.set(listId, CurrentValueSubject<ListIdLockState, Never>(.waitingForListIdUnlock))
     }
@@ -113,11 +113,11 @@ actor IosSqlCipherFacade: SqlCipherFacade {
 actor ConcurrentListIdLocks {
   private var listIdLocks: [String: CurrentValueSubject<ListIdLockState, Never>] = [:]
 
-  func get(_ listId: String) ->  CurrentValueSubject<ListIdLockState, Never>? {
+  func get(_ listId: String) -> CurrentValueSubject<ListIdLockState, Never>? {
     listIdLocks[listId]
   }
 
-  func set(_ listId: String,_ value: CurrentValueSubject<ListIdLockState, Never>) {
+  func set(_ listId: String, _ value: CurrentValueSubject<ListIdLockState, Never>) {
     return listIdLocks[listId] = value
   }
 
