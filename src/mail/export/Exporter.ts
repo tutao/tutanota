@@ -21,6 +21,7 @@ import { FileController, zipDataFiles } from "../../file/FileController"
 import { MailFacade } from "../../api/worker/facades/lazy/MailFacade.js"
 import { OperationId } from "../../api/main/OperationProgressTracker.js"
 import { CancelledError } from "../../api/common/error/CancelledError.js"
+import { CryptoFacade } from "../../api/worker/crypto/CryptoFacade.js"
 // .msg export is handled in DesktopFileExport because it uses APIs that can't be loaded web side
 export type MailExportMode = "msg" | "eml"
 
@@ -65,6 +66,7 @@ export async function exportMails(
 	mailFacade: MailFacade,
 	entityClient: EntityClient,
 	fileController: FileController,
+	cryptoFacade: CryptoFacade,
 	operationId?: OperationId,
 	signal?: AbortSignal,
 ): Promise<{ failed: Mail[] }> {
@@ -99,7 +101,7 @@ export async function exportMails(
 			checkAbortSignal()
 			try {
 				const { htmlSanitizer } = await import("../../misc/HtmlSanitizer")
-				return await makeMailBundle(mail, mailFacade, entityClient, fileController, htmlSanitizer)
+				return await makeMailBundle(mail, mailFacade, entityClient, fileController, htmlSanitizer, cryptoFacade)
 			} catch (e) {
 				errorMails.push(mail)
 			} finally {

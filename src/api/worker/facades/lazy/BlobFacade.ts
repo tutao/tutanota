@@ -1,16 +1,6 @@
 import { addParamsToUrl, isSuspensionResponse, RestClient } from "../../rest/RestClient.js"
 import { CryptoFacade, encryptBytes } from "../../crypto/CryptoFacade.js"
-import {
-	clear,
-	concat,
-	downcast,
-	isSameTypeRef,
-	neverNull,
-	promiseMap,
-	splitUint8ArrayInChunks,
-	uint8ArrayToBase64,
-	uint8ArrayToString,
-} from "@tutao/tutanota-utils"
+import { clear, concat, neverNull, promiseMap, splitUint8ArrayInChunks, uint8ArrayToBase64, uint8ArrayToString } from "@tutao/tutanota-utils"
 import { ArchiveDataType, MAX_BLOB_SIZE_BYTES } from "../../../common/TutanotaConstants.js"
 
 import { HttpMethod, MediaType, resolveTypeReference } from "../../../common/EntityFunctions.js"
@@ -30,10 +20,7 @@ import { BlobGetInTypeRef, BlobPostOut, BlobPostOutTypeRef, BlobServerAccessInfo
 import { AuthDataProvider } from "../UserFacade.js"
 import { doBlobRequestWithRetry, tryServers } from "../../rest/EntityRestClient.js"
 import { BlobAccessTokenFacade, BlobReferencingInstance } from "../BlobAccessTokenFacade.js"
-import { SessionKeyNotFoundError } from "../../../common/error/SessionKeyNotFoundError.js"
 import { DefaultEntityRestCache } from "../../rest/DefaultEntityRestCache.js"
-import { FileTypeRef } from "../../../entities/tutanota/TypeRefs.js"
-import { getElementId, getListId } from "../../../common/utils/EntityUtils.js"
 import { SomeEntity } from "../../../common/EntityTypes.js"
 
 assertWorkerOrNode()
@@ -186,25 +173,8 @@ export class BlobFacade {
 		}
 	}
 
-	/**
-	 * Resolves the session key and retries downloading the file instance in case we are out of sync.
-	 *
-	 * We assume that we are out of sync in case we retrieve a SessionKeyNotFoundError.
-	 */
 	private async resolveSessionKey(entity: SomeEntity): Promise<Aes128Key | Aes256Key> {
-		try {
-			return neverNull(await this.cryptoFacade.resolveSessionKeyForInstance(entity))
-		} catch (e) {
-			if (e instanceof SessionKeyNotFoundError && isSameTypeRef(FileTypeRef, entity._type) && this.entityRestCache) {
-				console.log("cache out of sync, trying to remove instance ", entity)
-				const file = downcast(entity)
-				await this.entityRestCache.deleteFromCacheIfExists(FileTypeRef, getListId(file), getElementId(file))
-				const updatedFile = await this.entityRestCache.load(FileTypeRef, file._id)
-				return neverNull(await this.cryptoFacade.resolveSessionKeyForInstance(updatedFile))
-			} else {
-				throw e
-			}
-		}
+		return neverNull(await this.cryptoFacade.resolveSessionKeyForInstance(entity))
 	}
 
 	private async encryptAndUploadChunk(

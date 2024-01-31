@@ -285,7 +285,8 @@ export class MailEditor implements Component<MailEditorAttrs> {
 	}
 
 	private downloadInlineImage(model: SendMailModel, cid: string) {
-		const inlineAttachment = model.getAttachments().find((attachment) => attachment.cid === cid)
+		const tutanotaFiles = model.getAttachments().filter((attachment) => isTutanotaFile(attachment))
+		const inlineAttachment = tutanotaFiles.find((attachment) => attachment.cid === cid)
 
 		if (inlineAttachment && isTutanotaFile(inlineAttachment)) {
 			locator.fileController.open(inlineAttachment).catch(ofClass(FileOpenError, () => Dialog.message("canNotOpenFileOnDevice_msg")))

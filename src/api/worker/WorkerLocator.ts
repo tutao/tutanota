@@ -204,6 +204,7 @@ export async function initLocator(worker: WorkerImpl, browserData: BrowserData) 
 		locator.instanceMapper,
 		new OwnerEncSessionKeysUpdateQueue(locator.user, locator.serviceExecutor),
 		locator.pqFacade,
+		cache,
 	)
 
 	const loginListener: LoginListener = {

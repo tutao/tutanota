@@ -3,7 +3,7 @@ import { MailModel } from "../model/MailModel.js"
 import { Mail } from "../../api/entities/tutanota/TypeRefs.js"
 import { IconButton } from "../../gui/base/IconButton.js"
 import { promptAndDeleteMails, showMoveMailsDropdown } from "./MailGuiUtils.js"
-import { assertNotNull, noOp, ofClass } from "@tutao/tutanota-utils"
+import { noOp, ofClass } from "@tutao/tutanota-utils"
 import { Icons } from "../../gui/base/icons/Icons.js"
 import { MailViewerViewModel } from "./MailViewerViewModel.js"
 import { UserError } from "../../api/main/UserError.js"
@@ -11,7 +11,7 @@ import { showUserError } from "../../misc/ErrorHandlerImpl.js"
 import { createDropdown, DropdownButtonAttrs } from "../../gui/base/Dropdown.js"
 import { editDraft, mailViewerMoreActions } from "./MailViewerUtils.js"
 import { ButtonType } from "../../gui/base/Button.js"
-import { isApp, Mode } from "../../api/common/Env.js"
+import { isApp } from "../../api/common/Env.js"
 import { locator } from "../../api/main/MainLocator.js"
 import { showProgressDialog } from "../../gui/dialogs/ProgressDialog.js"
 import { lang } from "../../misc/LanguageViewModel.js"
@@ -20,10 +20,6 @@ import { Dialog, DialogType } from "../../gui/base/Dialog.js"
 import { ColumnWidth, Table } from "../../gui/base/Table.js"
 import { ExpanderButton, ExpanderPanel } from "../../gui/base/Expander.js"
 import stream from "mithril/stream"
-import { loadMailDetails } from "../model/MailUtils.js"
-import { createErrorReportData, createReportErrorIn } from "../../api/entities/monitor/TypeRefs.js"
-import { ReportErrorService } from "../../api/entities/monitor/Services.js"
-import { ErrorReportClientType } from "../../misc/ClientConstants.js"
 import { exportMails } from "../export/Exporter.js"
 
 /*
@@ -158,7 +154,15 @@ export class MailViewerActions implements Component<MailViewerToolbarAttrs> {
 								"{current}": Math.round((operation.progress() / 100) * attrs.mails.length).toFixed(0),
 								"{total}": attrs.mails.length,
 							}),
-						exportMails(attrs.mails, locator.mailFacade, locator.entityClient, locator.fileController, operation.id, ac.signal)
+						exportMails(
+							attrs.mails,
+							locator.mailFacade,
+							locator.entityClient,
+							locator.fileController,
+							locator.cryptoFacade,
+							operation.id,
+							ac.signal,
+						)
 							.then((result) => this.handleExportEmailsResult(result.failed))
 							.finally(operation.done),
 						operation.progress,

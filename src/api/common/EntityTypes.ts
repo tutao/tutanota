@@ -48,7 +48,6 @@ export interface Instance extends Entity {
 
 export interface Entity {
 	_type: TypeRef<this>
-	// _ownerEncSessionKey?: ?Uint8Array,
 }
 
 export interface ElementEntity extends Entity, Element {
