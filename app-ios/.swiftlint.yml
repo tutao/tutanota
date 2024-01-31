@@ -1,3 +1,19 @@
+disabled_rules:
+  - blanket_disable_command
+  - colon
+  - comma
+  - comment_spacing
+  - cyclomatic_complexity
+  - empty_parentheses_with_trailing_closure
+  - line_length
+  - trailing_comma
+  - trailing_whitespace
+  - leading_whitespace
+  - operator_whitespace
+  - return_arrow_whitespace
+  - vertical_whitespace
+  - opening_brace
+
 opt_in_rules:
 - array_init
 - contains_over_filter_count
@@ -12,6 +28,7 @@ opt_in_rules:
 - empty_collection_literal
 - empty_count
 - empty_string
+- extension_access_modifier
 - fallthrough
 - fatal_error_message
 - first_where
@@ -22,7 +39,6 @@ opt_in_rules:
 - last_where
 - legacy_objc_type
 - missing_docs
-- no_magic_numbers
 - nslocalizedstring_key
 - override_in_extension
 - redundant_nil_coalescing
@@ -39,7 +55,6 @@ opt_in_rules:
 - unowned_variable_capture
 - untyped_error_in_catch
 - yoda_condition
-- balanced_xctest_lifecycle
 - empty_xctest_method
 - xct_specific_matcher
 
@@ -54,4 +69,5 @@ excluded:
 - tutanota/Sources/GeneratedIpc
 
 identifier_name:
+ min_length: 2
  allowed_symbols: ["_"]

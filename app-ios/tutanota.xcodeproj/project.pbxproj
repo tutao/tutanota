@@ -1737,6 +1737,7 @@
 			isa = PBXNativeTarget;
 			buildConfigurationList = 3DD4A0A420F8C6260086EB36 /* Build configuration list for PBXNativeTarget "tutanota" */;
 			buildPhases = (
+				3DEA432B2B6934BE0037F318 /* Check formating with swift-format */,
 				3DCE7AA5271D58230085E40D /* Headers */,
 				3DD4A07F20F8C6240086EB36 /* Sources */,
 				3D7BF8CA2B67ECB8009BB782 /* Lint with SwiftLint */,
@@ -1764,6 +1765,7 @@
 			isa = PBXNativeTarget;
 			buildConfigurationList = 3DD4A0A720F8C6260086EB36 /* Build configuration list for PBXNativeTarget "tutanotaTests" */;
 			buildPhases = (
+				3DEA432C2B6936AF0037F318 /* Check formating with swift-format */,
 				3DD4A09720F8C6260086EB36 /* Sources */,
 				3D7BF8CD2B67FBF7009BB782 /* Lint with SwiftLint */,
 				3DD4A09820F8C6260086EB36 /* Frameworks */,
@@ -1783,6 +1785,7 @@
 			isa = PBXNativeTarget;
 			buildConfigurationList = 3DEF18FB2924E1F1009C4B55 /* Build configuration list for PBXNativeTarget "TutanotaShareExtension" */;
 			buildPhases = (
+				3DEA432D2B6936E40037F318 /* Check formating with swift-format */,
 				3DEF18EC2924E1F1009C4B55 /* Sources */,
 				3D7BF8DC2B68DC58009BB782 /* Lint with SwiftLint */,
 				3DEF18ED2924E1F1009C4B55 /* Frameworks */,
@@ -2089,6 +2092,63 @@
 			runOnlyForDeploymentPostprocessing = 0;
 			shellPath = /bin/sh;
 			shellScript = "# Copied from the SwiftLint readme: https://github.com/realm/SwiftLint\nif [[ \"$(uname -m)\" == arm64 ]]; then\n    export PATH=\"/opt/homebrew/bin:$PATH\"\nfi\n\nif which swiftlint > /dev/null; then\n  swiftlint lint TutanotaShareExtension\nelse\n  echo \"warning: SwiftLint not installed, download from https://github.com/realm/SwiftLint\"\nfi\n";
+		};
+		3DEA432B2B6934BE0037F318 /* Check formating with swift-format */ = {
+			isa = PBXShellScriptBuildPhase;
+			alwaysOutOfDate = 1;
+			buildActionMask = 2147483647;
+			files = (
+			);
+			inputFileListPaths = (
+			);
+			inputPaths = (
+			);
+			name = "Check formating with swift-format";
+			outputFileListPaths = (
+			);
+			outputPaths = (
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+			shellPath = /bin/sh;
+			shellScript = "# Modified from the SwiftLint readme: https://github.com/realm/SwiftLint\nif [[ \"$(uname -m)\" == arm64 ]]; then\n    export PATH=\"/opt/homebrew/bin:$PATH\"\nfi\n\nif which swift-format > /dev/null; then\n  FILES=$(find tutanota | grep -v \"GeneratedIpc\" | grep -E \"\\.swift\")\n  swift-format lint --configuration .swift-format.json --recursive --parallel $FILES\nelse\n  echo \"warning: swift-format not installed, download from https://github.com/apple/swift-format\"\nfi\n";
+		};
+		3DEA432C2B6936AF0037F318 /* Check formating with swift-format */ = {
+			isa = PBXShellScriptBuildPhase;
+			alwaysOutOfDate = 1;
+			buildActionMask = 2147483647;
+			files = (
+			);
+			inputFileListPaths = (
+			);
+			inputPaths = (
+			);
+			name = "Check formating with swift-format";
+			outputFileListPaths = (
+			);
+			outputPaths = (
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+			shellPath = /bin/sh;
+			shellScript = "# Modified from the SwiftLint readme: https://github.com/realm/SwiftLint\nif [[ \"$(uname -m)\" == arm64 ]]; then\n    export PATH=\"/opt/homebrew/bin:$PATH\"\nfi\n\nif which swift-format > /dev/null; then\n  swift-format lint --configuration .swift-format.json --recursive --parallel tutanotaTests\nelse\n  echo \"warning: swift-format not installed, download from https://github.com/apple/swift-format\"\nfi\n";
+		};
+		3DEA432D2B6936E40037F318 /* Check formating with swift-format */ = {
+			isa = PBXShellScriptBuildPhase;
+			alwaysOutOfDate = 1;
+			buildActionMask = 2147483647;
+			files = (
+			);
+			inputFileListPaths = (
+			);
+			inputPaths = (
+			);
+			name = "Check formating with swift-format";
+			outputFileListPaths = (
+			);
+			outputPaths = (
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+			shellPath = /bin/sh;
+			shellScript = "# Modified from the SwiftLint readme: https://github.com/realm/SwiftLint\nif [[ \"$(uname -m)\" == arm64 ]]; then\n    export PATH=\"/opt/homebrew/bin:$PATH\"\nfi\n\nif which swift-format > /dev/null; then\n  swift-format lint --configuration .swift-format.json --recursive --parallel tutanotaShareExtension\nelse\n  echo \"warning: swift-format not installed, download from https://github.com/apple/swift-format\"\nfi\n";
 		};
 /* End PBXShellScriptBuildPhase section */
 
