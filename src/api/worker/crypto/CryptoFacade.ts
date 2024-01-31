@@ -44,6 +44,8 @@ import {
 	createEncryptTutanotaPropertiesData,
 	createInternalRecipientKeyData,
 	createSymEncInternalRecipientKeyData,
+	File,
+	FileTypeRef,
 	MailTypeRef,
 	TutanotaPropertiesTypeRef,
 } from "../../entities/tutanota/TypeRefs.js"
@@ -92,11 +94,13 @@ import { IServiceExecutor } from "../../common/ServiceRequest"
 import { EncryptTutanotaPropertiesService } from "../../entities/tutanota/Services"
 import { PublicKeyService, UpdatePermissionKeyService } from "../../entities/sys/Services"
 import { UserFacade } from "../facades/UserFacade"
-import { elementIdPart } from "../../common/utils/EntityUtils.js"
+import { elementIdPart, getElementId, getListId } from "../../common/utils/EntityUtils.js"
 import { InstanceMapper } from "./InstanceMapper.js"
 import { OwnerEncSessionKeysUpdateQueue } from "./OwnerEncSessionKeysUpdateQueue.js"
 import { PQFacade } from "../facades/PQFacade.js"
 import { decodePQMessage, encodePQMessage } from "../facades/PQMessage.js"
+import { ProgrammingError } from "../../common/error/ProgrammingError.js"
+import { DefaultEntityRestCache } from "../rest/DefaultEntityRestCache.js"
 
 assertWorkerOrNode()
 
@@ -168,6 +172,7 @@ export class CryptoFacade {
 		private readonly instanceMapper: InstanceMapper,
 		private readonly ownerEncSessionKeysUpdateQueue: OwnerEncSessionKeysUpdateQueue,
 		private readonly pq: PQFacade,
+		private readonly cache: DefaultEntityRestCache | null,
 	) {}
 
 	applyMigrationsForInstance<T>(decryptedInstance: T): Promise<T> {
@@ -827,6 +832,37 @@ export class CryptoFacade {
 			})
 			return this.serviceExecutor.post(UpdatePermissionKeyService, updateService).then(noOp)
 		}
+	}
+
+	/**
+	 * Resolves the ownerEncSessionKey of a mail. This might be needed if it wasn't updated yet
+	 * by the OwnerEncSessionKeysUpdateQueue but the file is already downloaded.
+	 * @param mainInstance the instance that has the bucketKey
+	 * @param childInstances the files that belong to the mainInstance
+	 */
+	async enforceSessionKeyUpdateIfNeeded(mainInstance: Record<string, any>, childInstances: File[]): Promise<File[]> {
+		if (!childInstances.some((f) => f._ownerEncSessionKey == null)) {
+			return childInstances
+		}
+		const typeModel = await resolveTypeReference(mainInstance._type)
+		if (!mainInstance.bucketKey) {
+			throw new ProgrammingError("passed invalid type to enforceSessionKeyUpdate " + typeModel)
+		}
+		// if we have a bucket key, then we need to cache the session keys stored in the bucket key for details, files, etc.
+		// we need to do this BEFORE we check the owner enc session key
+		const bucketKey = await this.convertBucketKeyToInstanceIfNecessary(mainInstance.bucketKey)
+		const resolvedSessionKeys = await this.resolveWithBucketKey(bucketKey, mainInstance, typeModel)
+		await this.ownerEncSessionKeysUpdateQueue.postUpdateSessionKeysService(resolvedSessionKeys.instanceSessionKeys)
+
+		for (const childInstance of childInstances) {
+			await this.cache?.deleteFromCacheIfExists(FileTypeRef, getListId(childInstance), getElementId(childInstance))
+		}
+		// we have a caching entity client, so this re-inserts the deleted instances
+		return await this.entityClient.loadMultiple(
+			FileTypeRef,
+			getListId(childInstances[0]),
+			childInstances.map((childInstance) => getElementId(childInstance)),
+		)
 	}
 
 	private updateOwnerEncSessionKey(typeModel: TypeModel, instance: Record<string, any>, ownerGroupKey: Aes128Key, sessionKey: Aes128Key): Promise<void> {

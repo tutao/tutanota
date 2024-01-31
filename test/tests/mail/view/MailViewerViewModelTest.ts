@@ -24,6 +24,7 @@ import { FileController } from "../../../../src/file/FileController.js"
 import { createTestEntity } from "../../TestUtils.js"
 import { MailState } from "../../../../src/api/common/TutanotaConstants.js"
 import { GroupInfoTypeRef } from "../../../../src/api/entities/sys/TypeRefs.js"
+import { CryptoFacade } from "../../../../src/api/worker/crypto/CryptoFacade.js"
 
 o.spec("MailViewerViewModel", function () {
 	let mail: Mail
@@ -41,6 +42,7 @@ o.spec("MailViewerViewModel", function () {
 	let mailFacade: MailFacade
 	let sendMailModel: SendMailModel
 	let sendMailModelFactory: (mailboxDetails: MailboxDetail) => Promise<SendMailModel> = () => Promise.resolve(sendMailModel)
+	let cryptoFacade: CryptoFacade
 
 	function makeViewModelWithHeaders(headers: string) {
 		entityClient = object()
@@ -54,6 +56,7 @@ o.spec("MailViewerViewModel", function () {
 		workerFacade = object()
 		searchModel = object()
 		mailFacade = object()
+		cryptoFacade = object()
 		mail = prepareMailWithHeaders(mailFacade, headers)
 
 		return new MailViewerViewModel(
@@ -70,6 +73,7 @@ o.spec("MailViewerViewModel", function () {
 			workerFacade,
 			searchModel,
 			mailFacade,
+			cryptoFacade,
 		)
 	}
 

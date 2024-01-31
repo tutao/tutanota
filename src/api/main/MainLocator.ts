@@ -422,6 +422,7 @@ class MainLocator {
 				this.workerFacade,
 				this.search,
 				this.mailFacade,
+				this.cryptoFacade,
 			)
 	}
 

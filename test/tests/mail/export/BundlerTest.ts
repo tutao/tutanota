@@ -5,6 +5,7 @@ import {
 	createMail,
 	createMailAddress,
 	FileTypeRef,
+	Mail,
 	MailAddressTypeRef,
 	MailBodyTypeRef,
 	MailHeadersTypeRef,
@@ -15,21 +16,24 @@ import { DataFile } from "../../../../src/api/common/DataFile.js"
 import { HtmlSanitizer } from "../../../../src/misc/HtmlSanitizer.js"
 import { EntityClient } from "../../../../src/api/common/EntityClient.js"
 import { FileController } from "../../../../src/file/FileController.js"
-import { object, when } from "testdouble"
+import { matchers, object, verify, when } from "testdouble"
 import { MailFacade } from "../../../../src/api/worker/facades/lazy/MailFacade.js"
 import { createTestEntity } from "../../TestUtils.js"
+import { CryptoFacade } from "../../../../src/api/worker/crypto/CryptoFacade.js"
 
 o.spec("Bundler", function () {
 	let entityClientMock: EntityClient
 	let fileControllerMock: FileController
 	let sanitizerMock: HtmlSanitizer
 	let mailFacadeMock: MailFacade
+	let cryptoMock: CryptoFacade
 
 	o.beforeEach(function () {
 		entityClientMock = object()
 		fileControllerMock = object()
 		sanitizerMock = object()
 		mailFacadeMock = object()
+		cryptoMock = object()
 	})
 	o("make mail bundle non compressed headers", async function () {
 		const mailId: IdTuple = ["maillistid", "maillid"]
@@ -93,7 +97,13 @@ o.spec("Bundler", function () {
 			}),
 		).thenReturn({ html: sanitizedBodyText })
 
-		const bundle = await makeMailBundle(mail, mailFacadeMock, entityClientMock, fileControllerMock, sanitizerMock)
+		const attachmentsCaptor = matchers.captor()
+		when(cryptoMock.enforceSessionKeyUpdateIfNeeded(mail, attachmentsCaptor.capture())).thenDo((mail: Mail, attachments: File) =>
+			Promise.resolve(attachments),
+		)
+
+		const bundle = await makeMailBundle(mail, mailFacadeMock, entityClientMock, fileControllerMock, sanitizerMock, cryptoMock)
+		verify(cryptoMock.enforceSessionKeyUpdateIfNeeded(mail, attachments.map((a) => `file ${a.name}`) as any))
 
 		o(bundle).deepEquals({
 			mailId: mailId,
