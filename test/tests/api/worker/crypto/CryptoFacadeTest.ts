@@ -95,6 +95,8 @@ import { encodePQMessage, PQBucketKeyEncapsulation, PQMessage } from "../../../.
 import { loadLibOQSWASM } from "../WASMTestUtils.js"
 import { createTestEntity } from "../../../TestUtils.js"
 import { RSA_TEST_KEYPAIR } from "../facades/RsaPqPerformanceTest.js"
+import { DefaultEntityRestCache } from "../../../../../src/api/worker/rest/DefaultEntityRestCache.js"
+import { createFile } from "fs-extra"
 
 const { captor, anything, argThat } = matchers
 
@@ -125,18 +127,20 @@ o.spec("CryptoFacadeTest", function () {
 	let ownerEncSessionKeysUpdateQueue: OwnerEncSessionKeysUpdateQueue
 	let crypto: CryptoFacade
 	let userFacade: UserFacade
+	let cache: DefaultEntityRestCache
 
 	o.before(function () {
 		restClient = object()
 		when(restClient.request(anything(), anything(), anything())).thenResolve(undefined)
 		userFacade = object()
+		cache = object()
 	})
 
 	o.beforeEach(function () {
 		serviceExecutor = object()
 		entityClient = object()
 		ownerEncSessionKeysUpdateQueue = object()
-		crypto = new CryptoFacade(userFacade, entityClient, restClient, rsa, serviceExecutor, instanceMapper, ownerEncSessionKeysUpdateQueue, pqFacade)
+		crypto = new CryptoFacade(userFacade, entityClient, restClient, rsa, serviceExecutor, instanceMapper, ownerEncSessionKeysUpdateQueue, pqFacade, cache)
 	})
 
 	function createValueType(type, encrypted, cardinality): ModelValue & { name: string; since: number } {
@@ -746,6 +750,40 @@ o.spec("CryptoFacadeTest", function () {
 		o(sessionKey).deepEquals(sk)
 	})
 
+	o("enforceSessionKeyUpdateIfNeeded: _ownerEncSessionKey already defined", async function () {
+		const files = [createTestEntity(FileTypeRef, { _ownerEncSessionKey: new Uint8Array() })]
+		await crypto.enforceSessionKeyUpdateIfNeeded({}, files)
+		verify(ownerEncSessionKeysUpdateQueue.postUpdateSessionKeysService(anything()), { times: 0 })
+		verify(cache.deleteFromCacheIfExists(anything(), anything(), anything()), { times: 0 })
+	})
+
+	o("enforceSessionKeyUpdateIfNeeded: _ownerEncSessionKey missing", async function () {
+		o.timeout(500) // in CI or with debugging it can take a while
+		const files = [
+			createTestEntity(FileTypeRef, { _id: ["listId", "1"], _ownerEncSessionKey: new Uint8Array() }),
+			createTestEntity(FileTypeRef, { _id: ["listId", "2"], _ownerEncSessionKey: null }),
+		]
+
+		const testData = await preparePqPubEncBucketKeyResolveSessionKeyTest()
+		Object.assign(testData.mailLiteral, { body: "bodyId" })
+		const mail = createTestEntity(MailTypeRef, testData.mailLiteral)
+
+		when(serviceExecutor.get(PublicKeyService, anything())).thenResolve(
+			createPublicKeyGetOut({
+				pubEccKey: testData.senderIdentityKeyPair.publicKey,
+				pubKeyVersion: "0",
+				pubKyberKey: null,
+				pubRsaKey: null,
+			}),
+		)
+
+		const sessionKey = neverNull(await crypto.resolveSessionKey(testData.MailTypeModel, testData.mailLiteral))
+		const updatedFiles = await crypto.enforceSessionKeyUpdateIfNeeded(mail, files)
+		verify(ownerEncSessionKeysUpdateQueue.postUpdateSessionKeysService(anything()), { times: 1 })
+		verify(cache.deleteFromCacheIfExists(FileTypeRef, "listId", "1"))
+		verify(cache.deleteFromCacheIfExists(FileTypeRef, "listId", "2"))
+	})
+
 	o("encryptBucketKeyForInternalRecipient with existing PQKeys for sender and recipient", async () => {
 		const pqFacadeMock = instance(PQFacade)
 		const cryptoFacadeTmp = new CryptoFacade(
@@ -757,6 +795,7 @@ o.spec("CryptoFacadeTest", function () {
 			instanceMapper,
 			ownerEncSessionKeysUpdateQueue,
 			pqFacadeMock,
+			cache,
 		)
 		let senderMailAddress = "alice@tutanota.com"
 		let recipientMailAddress = "bob@tutanota.com"
@@ -867,6 +906,7 @@ o.spec("CryptoFacadeTest", function () {
 			instanceMapper,
 			ownerEncSessionKeysUpdateQueue,
 			pqFacadeMock,
+			cache,
 		)
 		let senderMailAddress = "alice@tutanota.com"
 		let recipientMailAddress = "bob@tutanota.com"
@@ -984,6 +1024,7 @@ o.spec("CryptoFacadeTest", function () {
 			instanceMapper,
 			ownerEncSessionKeysUpdateQueue,
 			pqFacadeMock,
+			cache,
 		)
 		let senderMailAddress = "alice@tutanota.com"
 		let recipientMailAddress = "bob@tutanota.com"

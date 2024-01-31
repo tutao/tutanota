@@ -44,20 +44,26 @@ export class OwnerEncSessionKeysUpdateQueue {
 		}
 	}
 
-	private async sendUpdateRequest() {
-		const input = createUpdateSessionKeysPostIn({ ownerEncSessionKeys: this.updateInstanceSessionKeyQueue })
+	private async sendUpdateRequest(): Promise<void> {
+		const instanceSessionKeys = this.updateInstanceSessionKeyQueue
 		this.updateInstanceSessionKeyQueue = []
-		if (input.ownerEncSessionKeys.length > 0) {
-			try {
-				await this.serviceExecutor.post(UpdateSessionKeysService, input)
-			} catch (e) {
-				if (e instanceof LockedError) {
-					this.updateInstanceSessionKeyQueue.push(...input.ownerEncSessionKeys)
-					this.invokeUpdateSessionKeyService()
-				} else {
-					throw e
-				}
+		try {
+			if (instanceSessionKeys.length > 0) {
+				await this.postUpdateSessionKeysService(instanceSessionKeys)
+			}
+		} catch (e) {
+			if (e instanceof LockedError) {
+				this.updateInstanceSessionKeyQueue.push(...instanceSessionKeys)
+				this.invokeUpdateSessionKeyService()
+			} else {
+				console.log("error during session key update:", e.name, instanceSessionKeys.length)
+				throw e
 			}
 		}
+	}
+
+	async postUpdateSessionKeysService(instanceSessionKeys: Array<InstanceSessionKey>) {
+		const input = createUpdateSessionKeysPostIn({ ownerEncSessionKeys: instanceSessionKeys })
+		await this.serviceExecutor.post(UpdateSessionKeysService, input)
 	}
 }

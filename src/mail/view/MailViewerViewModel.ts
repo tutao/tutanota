@@ -71,6 +71,8 @@ import { ParsedIcalFileContent } from "../../calendar/view/CalendarInvites.js"
 import { MailFacade } from "../../api/worker/facades/lazy/MailFacade.js"
 import { EntityUpdateData, isUpdateForTypeRef } from "../../api/common/utils/EntityUpdateUtils.js"
 import { isOfflineError } from "../../api/common/utils/ErrorUtils.js"
+import { CryptoFacade } from "../../api/worker/crypto/CryptoFacade.js"
+import { ExposedCacheStorage } from "../../api/worker/rest/DefaultEntityRestCache.js"
 
 export const enum ContentBlockingStatus {
 	Block = "0",
@@ -135,6 +137,7 @@ export class MailViewerViewModel {
 		private readonly workerFacade: WorkerFacade,
 		private readonly searchModel: SearchModel,
 		private readonly mailFacade: MailFacade,
+		private readonly cryptoFacade: CryptoFacade,
 	) {
 		this.folderMailboxText = null
 		if (showFolder) {
@@ -539,7 +542,7 @@ export class MailViewerViewModel {
 	}
 
 	async exportMail(): Promise<void> {
-		await exportMails([this.mail], this.mailFacade, this.entityClient, this.fileController)
+		await exportMails([this.mail], this.mailFacade, this.entityClient, this.fileController, this.cryptoFacade)
 	}
 
 	async getHeaders(): Promise<string | null> {
@@ -666,7 +669,7 @@ export class MailViewerViewModel {
 			this.loadingAttachments = true
 
 			try {
-				const files = await this.mailFacade.loadAttachments(mail)
+				const files = await this.cryptoFacade.enforceSessionKeyUpdateIfNeeded(this._mail, await this.mailFacade.loadAttachments(mail))
 
 				this.handleCalendarFile(files, mail)
 
@@ -1007,8 +1010,9 @@ export class MailViewerViewModel {
 	}
 
 	async downloadAll(): Promise<void> {
+		const nonInlineAttachments = await this.cryptoFacade.enforceSessionKeyUpdateIfNeeded(this._mail, this.getNonInlineAttachments())
 		try {
-			await this.fileController.downloadAll(this.getNonInlineAttachments())
+			await this.fileController.downloadAll(nonInlineAttachments)
 		} catch (e) {
 			if (e instanceof FileOpenError) {
 				console.warn("FileOpenError", e)
@@ -1021,6 +1025,7 @@ export class MailViewerViewModel {
 	}
 
 	async downloadAndOpenAttachment(file: TutanotaFile, open: boolean) {
+		file = (await this.cryptoFacade.enforceSessionKeyUpdateIfNeeded(this._mail, [file]))[0]
 		try {
 			if (open) {
 				await this.fileController.open(file)

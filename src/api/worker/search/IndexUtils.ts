@@ -132,7 +132,7 @@ const typeInfos = {
 	},
 }
 
-function getAttributeIds(model: TypeModel) {
+export function getAttributeIds(model: TypeModel) {
 	return Object.keys(model.values)
 		.map((name) => model.values[name].id)
 		.concat(Object.keys(model.associations).map((name) => model.associations[name].id))

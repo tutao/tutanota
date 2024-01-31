@@ -10,6 +10,7 @@ import { FileController } from "../../file/FileController"
 import { loadMailDetails, loadMailHeaders } from "../model/MailUtils.js"
 import { MailFacade } from "../../api/worker/facades/lazy/MailFacade.js"
 import { getDisplayedSender, MailAddressAndName } from "../../api/common/mail/CommonMailUtils.js"
+import { CryptoFacade } from "../../api/worker/crypto/CryptoFacade.js"
 
 /**
  * Used to pass all downloaded mail stuff to the desktop side to be exported as a file
@@ -47,6 +48,7 @@ export async function makeMailBundle(
 	entityClient: EntityClient,
 	fileController: FileController,
 	sanitizer: HtmlSanitizer,
+	cryptoFacade: CryptoFacade,
 ): Promise<MailBundle> {
 	const mailWrapper = await loadMailDetails(mailFacade, entityClient, mail)
 	const body = sanitizer.sanitizeHTML(mailWrapper.getMailBodyText(), {
@@ -55,10 +57,11 @@ export async function makeMailBundle(
 		usePlaceholderForInlineImages: false,
 	}).html
 
-	const attachments = await promiseMap(mail.attachments, async (fileId) => {
-		const file = await entityClient.load(FileTypeRef, fileId)
-		return await fileController.getAsDataFile(file)
-	})
+	const files = await promiseMap(mail.attachments, async (fileId) => await entityClient.load(FileTypeRef, fileId))
+	const attachments = await promiseMap(
+		await cryptoFacade.enforceSessionKeyUpdateIfNeeded(mail, files),
+		async (file) => await fileController.getAsDataFile(file),
+	)
 
 	const headers = await loadMailHeaders(entityClient, mailWrapper)
 	const recipientMapper = ({ address, name }: MailAddressAndName) => ({ address, name })
