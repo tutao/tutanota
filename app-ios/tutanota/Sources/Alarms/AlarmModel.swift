@@ -6,7 +6,7 @@ struct EventOccurrence {
   let occurenceDate: Date
 }
 
-struct AlarmOccurence : Equatable {
+struct AlarmOccurence: Equatable {
   let occurrenceNumber: Int
   let eventOccurrenceTime: Date
   let alarm: AlarmNotification
@@ -37,7 +37,7 @@ func prefix(_ s: some Sequence<AlarmOccurence>, _ maxLength: Int) -> any Sequenc
   return s.prefix(maxLength)
 }
 
-class AlarmModel : AlarmCalculator {
+class AlarmModel: AlarmCalculator {
   private let dateProvider: DateProvider
 
   init(dateProvider: DateProvider) {
@@ -145,7 +145,7 @@ class AlarmModel : AlarmCalculator {
   }
 }
 
-private struct LazyEventSequence : Sequence, IteratorProtocol {
+private struct LazyEventSequence: Sequence, IteratorProtocol {
   let calcEventStart: Date
   let endDate: Date?
   let repeatRule: RepeatRule
@@ -164,7 +164,7 @@ private struct LazyEventSequence : Sequence, IteratorProtocol {
       value: repeatRule.interval * ocurrenceNumber,
       to: calcEventStart
     )!
-    if let endDate = endDate, occurrenceDate >= endDate  {
+    if let endDate = endDate, occurrenceDate >= endDate {
       return nil
     } else {
       let occurrence = EventOccurrence(
@@ -176,14 +176,13 @@ private struct LazyEventSequence : Sequence, IteratorProtocol {
       while exclusionNumber < repeatRule.excludedDates.count && repeatRule.excludedDates[exclusionNumber] < occurrenceDate {
         exclusionNumber += 1
       }
-      if (exclusionNumber < repeatRule.excludedDates.count && repeatRule.excludedDates[exclusionNumber] == occurrenceDate) {
+      if exclusionNumber < repeatRule.excludedDates.count && repeatRule.excludedDates[exclusionNumber] == occurrenceDate {
         return self.next()
       }
       return occurrence
     }
   }
 }
-
 
 /// Takes local date and makes a UTC date with year, month, day from it.
 /// This is how we indicate days without attachment to a time zone or time.
@@ -215,7 +214,7 @@ private func isAllDayEvent(startTime: Date, endTime: Date) -> Bool {
   && startComponents.minute == 0
   && startComponents.second == 0
 
-  let endComponents = calendar.dateComponents([.hour, .minute,.second], from: endTime)
+  let endComponents = calendar.dateComponents([.hour, .minute, .second], from: endTime)
   let endsOnZero = endComponents.hour == 0
   && endComponents.minute == 0
   && endComponents.second == 0
@@ -224,7 +223,7 @@ private func isAllDayEvent(startTime: Date, endTime: Date) -> Bool {
 }
 
 private func calendarUnit(for repeatPeriod: RepeatPeriod) -> Calendar.Component {
-  switch (repeatPeriod) {
+  switch repeatPeriod {
   case .daily:
     return .day
   case .weekly:

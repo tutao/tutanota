@@ -4,11 +4,11 @@ import CryptoKit
 /// given a vcard, extract the value of the mandatory formatted name (FN) field or return a default of "contact"
 func extractFNfrom(vcard: String) -> String {
   let fnRegex = try! NSRegularExpression(pattern: "^\\s*FN:(.*)$", options: .anchorsMatchLines.union(.caseInsensitive))
-  let match = fnRegex.firstMatch(in: vcard, range: NSMakeRange(0, (vcard as NSString).length))
+  let match = fnRegex.firstMatch(in: vcard, range: NSRange(location: 0, length: (vcard as NSString).length))
   if match != nil {
     let swiftRange = Range(match!.range(at: 1), in: vcard)!
     let vcardName = String(vcard[swiftRange])
-    return vcardName.replacingOccurrences(of:"[^0-9a-zA-Z]", with: "_", options: .regularExpression)
+    return vcardName.replacingOccurrences(of: "[^0-9a-zA-Z]", with: "_", options: .regularExpression)
   }
   return "contact"
 }

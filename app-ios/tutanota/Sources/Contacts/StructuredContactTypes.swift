@@ -5,7 +5,7 @@ enum ContactAddressType: String {
   case work = "1"
   case other = "2"
   case custom = "3"
-  
+
   func toCNLabel() -> String {
     switch self {
     case ._private: return CNLabelHome
@@ -21,7 +21,7 @@ enum ContactPhoneNumberType: String {
   case mobile = "2"
   case fax = "3"
   case other = "4"
-  
+
   func toCNLabel() -> String {
     switch self {
     case ._private: return CNLabelHome

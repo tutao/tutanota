@@ -1,6 +1,6 @@
 import Foundation
 
-private let MISSED_NOTIFICATION_TTL_SEC: Int64 = 30 * 24 * 60 * 60; // 30 days
+private let MISSED_NOTIFICATION_TTL_SEC: Int64 = 30 * 24 * 60 * 60 // 30 days
 
 /// Downlaods notifications and dispatches them to AlarmManager
 class NotificationsHandler {
@@ -27,7 +27,7 @@ class NotificationsHandler {
 
       self.fetchMissedNotifications { result in
         switch result {
-        case .success():
+        case .success:
           TUTSLog("Successfully processed missed notification")
         case .failure(let err):
           TUTSLog("Failed to fetch/process missed notification \(err)")
@@ -93,7 +93,7 @@ class NotificationsHandler {
     let httpResponse = response as! HTTPURLResponse
     TUTSLog("Fetched missed notifications with status code \(httpResponse.statusCode)")
 
-    switch (HttpStatusCode(rawValue: httpResponse.statusCode)) {
+    switch HttpStatusCode(rawValue: httpResponse.statusCode) {
     case .notAuthenticated:
       TUTSLog("Not authenticated to download missed notification w/ user \(userId)")
       self.alarmManager.unscheduleAllAlarms(userId: userId)
@@ -134,14 +134,14 @@ class NotificationsHandler {
 /**
  Gets suspension time from the request in seconds
  */
-fileprivate func extractSuspensionTime(from httpResponse: HTTPURLResponse) -> UInt32 {
+private func extractSuspensionTime(from httpResponse: HTTPURLResponse) -> UInt32 {
   let retryAfterHeader =
   (httpResponse.allHeaderFields["Retry-After"] ?? httpResponse.allHeaderFields["Suspension-Time"])
   as! String?
   return retryAfterHeader.flatMap { UInt32($0) } ?? 0
 }
 
-fileprivate func stringToCustomId(customId: String) -> String {
+private func stringToCustomId(customId: String) -> String {
   return customId.data(using: .utf8)!
     .base64EncodedString()
     .replacingOccurrences(of: "+", with: "-")

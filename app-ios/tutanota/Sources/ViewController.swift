@@ -5,7 +5,7 @@ import DictionaryCoding
 import AuthenticationServices
 
 /// Main screen of the app.
-class ViewController : UIViewController, WKNavigationDelegate, UIScrollViewDelegate {
+class ViewController: UIViewController, WKNavigationDelegate, UIScrollViewDelegate {
   private let themeManager: ThemeManager
   private let alarmManager: AlarmManager
   private let notificationsHandler: NotificationsHandler
@@ -49,7 +49,7 @@ class ViewController : UIViewController, WKNavigationDelegate, UIScrollViewDeleg
     webView.scrollView.delegate = self
     webView.isOpaque = false
     webView.scrollView.contentInsetAdjustmentBehavior = .never
-    
+
     #if DEBUG
     if #available(iOS 16.4, *) {
       webView.isInspectable = true
@@ -108,10 +108,10 @@ class ViewController : UIViewController, WKNavigationDelegate, UIScrollViewDeleg
       // If the app is removed from memory, the URL won't point to the file but will have additional path.
       // We ignore additional path for now.
       decisionHandler(.cancel)
-      self.loadMainPage(params:[:])
+      self.loadMainPage(params: [:])
     } else {
       decisionHandler(.cancel)
-      UIApplication.shared.open(requestUrl, options:[:])
+      UIApplication.shared.open(requestUrl, options: [:])
     }
 
   }
@@ -122,7 +122,7 @@ class ViewController : UIViewController, WKNavigationDelegate, UIScrollViewDeleg
     }
   }
 
-  func loadMainPage(params: [String : String]) {
+  func loadMainPage(params: [String: String]) {
     DispatchQueue.main.async {
       self._loadMainPage(params: params)
     }
@@ -169,7 +169,7 @@ class ViewController : UIViewController, WKNavigationDelegate, UIScrollViewDeleg
 	  try await self.sqlCipherFacade.closeDb()
     }
   }
-  
+
   override func traitCollectionDidChange(_ previousTraitCollection: UITraitCollection?) {
     super.traitCollectionDidChange(previousTraitCollection)
     Task.detached { @MainActor in
@@ -190,13 +190,12 @@ class ViewController : UIViewController, WKNavigationDelegate, UIScrollViewDeleg
     self.applyTheme(theme)
     self.notificationsHandler.initialize()
 
-
     Task { @MainActor in
       self._loadMainPage(params: [:])
     }
   }
 
-  private func _loadMainPage(params: [String : String]) {
+  private func _loadMainPage(params: [String: String]) {
     let fileUrl = self.getAssetUrl()
 
     var mutableParams = params
@@ -213,7 +212,7 @@ class ViewController : UIViewController, WKNavigationDelegate, UIScrollViewDeleg
     webView.load(URLRequest(url: url))
   }
 
-  private func dictToJson(dictionary: [String : String]) -> String {
+  private func dictToJson(dictionary: [String: String]) -> String {
     return try! String(data: JSONEncoder().encode(dictionary), encoding: .utf8)!
   }
 
@@ -235,7 +234,7 @@ class ViewController : UIViewController, WKNavigationDelegate, UIScrollViewDeleg
     return URL(string: "asset://app/index-app.html")!
   }
 
-  func applyTheme(_ theme: [String : String]) {
+  func applyTheme(_ theme: [String: String]) {
     let contentBgString = theme["content_bg"]!
     let contentBg = UIColor(hex: contentBgString)!
     self.isDarkTheme = !contentBg.isLight()
@@ -257,7 +256,7 @@ class ViewController : UIViewController, WKNavigationDelegate, UIScrollViewDeleg
     return readSharingInfo(infoLocation: infoLocation)
   }
 
-  func handleShare(_ url: URL) async throws -> Void {
+  func handleShare(_ url: URL) async throws {
     guard let info = await getSharingInfo(url: url) else {
       TUTSLog("unable to get sharingInfo from url: \(url)")
       return
@@ -265,7 +264,7 @@ class ViewController : UIViewController, WKNavigationDelegate, UIScrollViewDeleg
 
     do {
       try await self.bridge.commonNativeFacade.createMailEditor(
-        info.fileUrls.map{$0.path},
+        info.fileUrls.map {$0.path},
         info.text,
         [],
         "",
@@ -286,10 +285,9 @@ class ViewController : UIViewController, WKNavigationDelegate, UIScrollViewDeleg
   }
 }
 
-
 // Remove when webView config migration is removed
-fileprivate class LittleNavigationDelegate : NSObject, WKNavigationDelegate {
-  var action: (() -> Void)? = nil
+private class LittleNavigationDelegate: NSObject, WKNavigationDelegate {
+  var action: (() -> Void)?
 
   func webView(_ webView: WKWebView, didFinish navigation: WKNavigation!) {
     if let action = self.action {

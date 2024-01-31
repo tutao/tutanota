@@ -11,6 +11,6 @@ extension Decodable {
   }
 }
 
-fileprivate struct DecodableValueWrapper<T : Decodable> : Decodable {
+private struct DecodableValueWrapper<T: Decodable>: Decodable {
   let value: T
 }

@@ -10,4 +10,4 @@ struct SSEInfo {
   var userIds: [String]
 }
 
-extension SSEInfo : Codable {}
+extension SSEInfo: Codable {}

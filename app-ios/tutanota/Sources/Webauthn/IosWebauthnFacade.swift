@@ -3,7 +3,7 @@ import AuthenticationServices
 
 let WEBAUTHN_ERROR_DOMAIN = "de.tutao.tutanota.Webauthn"
 
-class IosWebauthnFacade:WebAuthnFacade {
+class IosWebauthnFacade: WebAuthnFacade {
 
   private let viewController: ViewController
   private weak var currentSession: ASWebAuthenticationSession?
@@ -17,7 +17,7 @@ class IosWebauthnFacade:WebAuthnFacade {
     let url = try await sendRequest(challengeDomain: challenge.domain, challengeJson: toJson(challenge), actionType: "register")
 
     let result: TaggedWebauthnResult<WebAuthnRegistrationResult> = try self.parseResult(url: url)
-    switch (result) {
+    switch result {
     case let .success(value):
       return value
     case let .error(_, stack):
@@ -30,14 +30,14 @@ class IosWebauthnFacade:WebAuthnFacade {
     let url = try await sendRequest(challengeDomain: challenge.domain, challengeJson: toJson(challenge), actionType: "sign")
 
     let result: TaggedWebauthnResult<WebAuthnSignResult> = try self.parseResult(url: url)
-    switch (result) {
+    switch result {
     case let .success(value):
       return value
     case let .error(_, stack):
       throw TUTErrorFactory.createError(withDomain: WEBAUTHN_ERROR_DOMAIN, message: stack)
     }
   }
-  
+
   @MainActor
   private func sendRequest(challengeDomain: String, challengeJson: String, actionType: String) async throws -> URL {
     return try await withCheckedThrowingContinuation { continuation in
@@ -64,7 +64,7 @@ class IosWebauthnFacade:WebAuthnFacade {
       session.start()
     }
   }
-  
+
   private func parseResult<T: Decodable>(url: URL) throws -> T {
     guard let base64String = url.host,
           let base64Data = base64String.data(using: .utf8),
@@ -93,8 +93,7 @@ class IosWebauthnFacade:WebAuthnFacade {
   }
 }
 
-
-enum TaggedWebauthnResult<T: Decodable> : Decodable {
+enum TaggedWebauthnResult<T: Decodable>: Decodable {
   case success(value: T)
   case error(name: String, stack: String)
 

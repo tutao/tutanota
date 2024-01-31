@@ -8,20 +8,20 @@ class IconFactory {
     }
     let paragraphStyle = NSMutableParagraphStyle()
     paragraphStyle.alignment = .center
-    let attributes: [NSAttributedString.Key : Any] = [
+    let attributes: [NSAttributedString.Key: Any] = [
       .font: font,
       .foregroundColor: UIColor.blue,
       .backgroundColor: UIColor.clear,
       .paragraphStyle: paragraphStyle
     ]
     let attributedString = NSAttributedString(string: iconId, attributes: attributes)
-    
+
     UIGraphicsBeginImageContextWithOptions(size, false, 0)
     attributedString.draw(in: CGRect(x: 0, y: 0, width: size.width, height: size.height))
     let fontImage = UIGraphicsGetImageFromCurrentImageContext()!
     UIGraphicsEndImageContext()
-    
+
     return fontImage
   }
 }
- 
+

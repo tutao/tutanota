@@ -1,25 +1,25 @@
 import Foundation
 import DictionaryCoding
 
-fileprivate let SSE_INFO_KEY = "sseInfo"
-fileprivate let ALARMS_KEY = "repeatingAlarmNotification"
-fileprivate let LAST_PROCESSED_NOTIFICAION_ID_KEY = "lastProcessedNotificationId"
-fileprivate let LAST_MISSED_NOTIFICATION_CHECK_TIME = "lastMissedNotificationCheckTime"
+private let SSE_INFO_KEY = "sseInfo"
+private let ALARMS_KEY = "repeatingAlarmNotification"
+private let LAST_PROCESSED_NOTIFICAION_ID_KEY = "lastProcessedNotificationId"
+private let LAST_MISSED_NOTIFICATION_CHECK_TIME = "lastMissedNotificationCheckTime"
 
 class NotificationStorage {
   private let userPreferencesProvider: UserPreferencesProvider
-  
+
   init(userPreferencesProvider: UserPreferencesProvider) {
     self.userPreferencesProvider = userPreferencesProvider
   }
-  
+
   var sseInfo: SSEInfo? {
     get {
       let dict = self.userPreferencesProvider.getObject(forKey: SSE_INFO_KEY)
       return dict.map { try! DictionaryDecoder().decode(SSEInfo.self, from: $0 as! NSDictionary) }
     }
   }
-  
+
   func store(pushIdentifier: String, userId: String, sseOrigin: String) {
     if var sseInfo = self.sseInfo {
       sseInfo.pushIdentifier = pushIdentifier
@@ -39,12 +39,12 @@ class NotificationStorage {
       self.put(sseInfo: sseInfo)
     }
   }
-  
+
   func store(alarms: [EncryptedAlarmNotification]) {
     let jsonData = try! JSONEncoder().encode(alarms)
     self.userPreferencesProvider.setValue(jsonData, forKey: ALARMS_KEY)
   }
-  
+
   var alarms: [EncryptedAlarmNotification] {
     get {
       let notificationsJsonData = self.userPreferencesProvider.getObject(forKey: ALARMS_KEY)
@@ -55,7 +55,7 @@ class NotificationStorage {
       }
     }
   }
-    
+
   func removeUser(_ userId: String) {
     guard var sseInfo = self.sseInfo else {
       TUTSLog("Removing userId but there's no SSEInfo stored")
@@ -68,7 +68,7 @@ class NotificationStorage {
     sseInfo.userIds = userIds
     self.put(sseInfo: sseInfo)
   }
-  
+
   var lastProcessedNotificationId: String? {
     get {
       return self.userPreferencesProvider.getObject(forKey: LAST_PROCESSED_NOTIFICAION_ID_KEY) as! String?
@@ -77,7 +77,7 @@ class NotificationStorage {
       return self.userPreferencesProvider.setValue(newValue, forKey: LAST_PROCESSED_NOTIFICAION_ID_KEY)
     }
   }
-  
+
   var lastMissedNotificationCheckTime: Date? {
     get {
       return self.userPreferencesProvider.getObject(forKey: LAST_MISSED_NOTIFICATION_CHECK_TIME) as! Date?
@@ -86,7 +86,7 @@ class NotificationStorage {
       return self.userPreferencesProvider.setValue(newValue, forKey: LAST_MISSED_NOTIFICATION_CHECK_TIME)
     }
   }
-  
+
   func clear() {
     TUTSLog("UserPreference clear")
     let sseInfo = self.sseInfo
@@ -97,7 +97,7 @@ class NotificationStorage {
       self.store(alarms: [])
     }
   }
-  
+
   private func put(sseInfo: SSEInfo?) {
     if let sseInfo = sseInfo {
       let dict: NSDictionary = try! DictionaryEncoder().encode(sseInfo)

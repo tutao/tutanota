@@ -1,6 +1,5 @@
 /* generated file, don't edit. */
 
-
 import Foundation
 
 /**
@@ -11,13 +10,13 @@ public protocol CommonSystemFacade {
 	 * Must be called before any other methods are called.
 	 */
 	func initializeRemoteBridge(
-	) async throws -> Void
+	) async throws
 	/**
 	 * Reload the webpage with the specified query arguments.
 	 */
 	func reload(
-		_ query: [String : String]
-	) async throws -> Void
+		_ query: [String: String]
+	) async throws
 	/**
 	 * Returns the log contents of the native process.
 	 */
