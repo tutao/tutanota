@@ -12,7 +12,7 @@ import { checkOfflineDatabaseMigrations } from "./checkOfflineDbMigratons.js"
 import { buildRuntimePackages } from "./packageBuilderFunctions.js"
 import { domainConfigs } from "./DomainConfigs.js"
 import { sh } from "./sh.js"
-import watPlugin from "esbuild-plugin-wat"
+import { wasmLoader } from "esbuild-plugin-wasm"
 
 export async function runDevBuild({ stage, host, desktop, clean, ignoreMigrations }) {
 	if (clean) {
@@ -61,13 +61,14 @@ importScripts("./worker.js")
 	await runStep("Web: Esbuild", async () => {
 		await esbuild({
 			// Using named entry points so that it outputs build/worker.js and not build/api/worker/worker.js
-			entryPoints: { app: "src/app.ts", worker: "src/api/worker/worker.ts" },
+			entryPoints: [
+				{ in: "src/app.ts", out: "app" },
+				{ in: "src/api/worker/worker.ts", out: "worker" },
+			],
 			outdir: "./build/",
+			outbase: ".",
 			// Why bundle at the moment:
 			// - We need to include all the imports: everything in src + libs. We could use wildcard in the future.
-			// - We can't have imports or dynamic imports in the worker because we can't start it as a module because of Firefox.
-			//     (see https://bugzilla.mozilla.org/show_bug.cgi?id=1247687)
-			//     We can theoretically compile it separately but it will be slower and more confusing.
 			bundle: true,
 			format: "esm",
 			// "both" is the most reliable as in Worker or on Android linked source maps don't work
@@ -76,13 +77,7 @@ importScripts("./worker.js")
 				// See Env.ts for explanation
 				NO_THREAD_ASSERTIONS: "true",
 			},
-			plugins: [
-				libDeps(),
-				externalTranslationsPlugin(),
-				watPlugin({
-					loader: "binary",
-				}),
-			],
+			plugins: [libDeps(), externalTranslationsPlugin(), wasmLoader({ mode: "deferred" })],
 		})
 	})
 }

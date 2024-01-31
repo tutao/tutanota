@@ -20,7 +20,7 @@ export class WebWorkerTransport<OutgoingCommandType, IncomingCommandType> implem
 	constructor(private readonly worker: Worker | DedicatedWorkerGlobalScope) {}
 
 	postMessage(message: Message<OutgoingCommandType>): void {
-		return downcast(this.worker).postMessage(message)
+		return this.worker.postMessage(message)
 	}
 
 	setMessageHandler(handler: (message: Message<IncomingCommandType>) => unknown) {

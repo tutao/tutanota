@@ -145,6 +145,7 @@ export class WorkerImpl implements NativeInterface {
 				return true
 			}
 		}
+		this._dispatcher.postRequest(new Request("ready", []))
 	}
 
 	get exposedInterface(): DelayedImpls<WorkerInterface> {
