@@ -1,5 +1,5 @@
 import { Database, default as Sqlite } from "better-sqlite3"
-import { mapNullable, uint8ArrayToBase64 } from "@tutao/tutanota-utils"
+import { mapNullable, uint8ArrayToHex } from "@tutao/tutanota-utils"
 import { CryptoError } from "@tutao/tutanota-crypto/error.js"
 import { SqlCipherFacade } from "../../native/common/generatedipc/SqlCipherFacade.js"
 import { OfflineDbClosedError } from "../../api/common/error/OfflineDbClosedError.js"
@@ -73,7 +73,8 @@ export class DesktopSqlCipher implements SqlCipherFacade {
 		if (enableMemorySecurity) {
 			this.db.pragma("cipher_memory_security = ON")
 		}
-		const key = `x'${uint8ArrayToBase64(databaseKey)};`
+
+		const key = `x'${uint8ArrayToHex(databaseKey)}'`
 		this.db.pragma(`KEY = "${key}"`)
 
 		// We are using the auto_vacuum=incremental mode to allow for a faster vacuum execution

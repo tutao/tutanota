@@ -7,6 +7,6 @@ export const tutanota66: OfflineMigration = {
 	app: "tutanota",
 	version: 66,
 	async migrate(storage: OfflineStorage) {
-		migrateAllListElements(MailTypeRef, storage, [createMail]) // initializes encryptionAuthStatus
+		await migrateAllListElements(MailTypeRef, storage, [createMail]) // initializes encryptionAuthStatus
 	},
 }
