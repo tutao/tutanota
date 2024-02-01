@@ -1,5 +1,6 @@
 /* generated file, don't edit. */
 
+
 import Foundation
 
 public class CommonSystemFacadeReceiveDispatcher {
@@ -14,7 +15,7 @@ public class CommonSystemFacadeReceiveDispatcher {
 			)
 			return "null"
 		case "reload":
-			let query = try! JSONDecoder().decode([String: String].self, from: arg[0].data(using: .utf8)!)
+			let query = try! JSONDecoder().decode([String : String].self, from: arg[0].data(using: .utf8)!)
 			try await self.facade.reload(
 				query
 			)

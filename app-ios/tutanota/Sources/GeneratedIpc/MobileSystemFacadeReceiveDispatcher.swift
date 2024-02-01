@@ -1,5 +1,6 @@
 /* generated file, don't edit. */
 
+
 import Foundation
 
 public class MobileSystemFacadeReceiveDispatcher {
@@ -16,26 +17,26 @@ public class MobileSystemFacadeReceiveDispatcher {
 			)
 			return toJson(result)
 		case "saveContacts":
-			let userId = try! JSONDecoder().decode(String.self, from: arg[0].data(using: .utf8)!)
+			let username = try! JSONDecoder().decode(String.self, from: arg[0].data(using: .utf8)!)
 			let contacts = try! JSONDecoder().decode([StructuredContact].self, from: arg[1].data(using: .utf8)!)
 			try await self.facade.saveContacts(
-				userId,
+				username,
 				contacts
 			)
 			return "null"
 		case "syncContacts":
-			let userId = try! JSONDecoder().decode(String.self, from: arg[0].data(using: .utf8)!)
+			let username = try! JSONDecoder().decode(String.self, from: arg[0].data(using: .utf8)!)
 			let contacts = try! JSONDecoder().decode([StructuredContact].self, from: arg[1].data(using: .utf8)!)
 			try await self.facade.syncContacts(
-				userId,
+				username,
 				contacts
 			)
 			return "null"
 		case "deleteContacts":
-			let userId = try! JSONDecoder().decode(String.self, from: arg[0].data(using: .utf8)!)
+			let username = try! JSONDecoder().decode(String.self, from: arg[0].data(using: .utf8)!)
 			let contactId = try! JSONDecoder().decode(String?.self, from: arg[1].data(using: .utf8)!)
 			try await self.facade.deleteContacts(
-				userId,
+				username,
 				contactId
 			)
 			return "null"

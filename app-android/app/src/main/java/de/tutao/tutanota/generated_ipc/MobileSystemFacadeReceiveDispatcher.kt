@@ -22,28 +22,28 @@ class MobileSystemFacadeReceiveDispatcher(
 				return json.encodeToString(result)
 			}
 			"saveContacts" -> {
-				val userId: String = json.decodeFromString(arg[0])
+				val username: String = json.decodeFromString(arg[0])
 				val contacts: List<StructuredContact> = json.decodeFromString(arg[1])
 				val result: Unit = this.facade.saveContacts(
-					userId,
+					username,
 					contacts,
 				)
 				return json.encodeToString(result)
 			}
 			"syncContacts" -> {
-				val userId: String = json.decodeFromString(arg[0])
+				val username: String = json.decodeFromString(arg[0])
 				val contacts: List<StructuredContact> = json.decodeFromString(arg[1])
 				val result: Unit = this.facade.syncContacts(
-					userId,
+					username,
 					contacts,
 				)
 				return json.encodeToString(result)
 			}
 			"deleteContacts" -> {
-				val userId: String = json.decodeFromString(arg[0])
+				val username: String = json.decodeFromString(arg[0])
 				val contactId: String? = json.decodeFromString(arg[1])
 				val result: Unit = this.facade.deleteContacts(
-					userId,
+					username,
 					contactId,
 				)
 				return json.encodeToString(result)

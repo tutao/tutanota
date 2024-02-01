@@ -57,6 +57,8 @@ export class UserController {
 		public readonly accessToken: Base64Url,
 		private _userSettingsGroupRoot: UserSettingsGroupRoot,
 		public readonly sessionType: SessionType,
+		/** Which identifier (e.g. email address) was used to create the session. */
+		public readonly loginUsername: string,
 		private readonly entityClient: EntityClient,
 		private readonly serviceExecutor: IServiceExecutor,
 	) {
@@ -375,10 +377,18 @@ export type UserControllerInitData = {
 	sessionId: IdTuple
 	accessToken: Base64Url
 	sessionType: SessionType
+	loginUsername: string
 }
 // noinspection JSUnusedGlobalSymbols
 // dynamically imported
-export async function initUserController({ user, userGroupInfo, sessionId, accessToken, sessionType }: UserControllerInitData): Promise<UserController> {
+export async function initUserController({
+	user,
+	userGroupInfo,
+	sessionId,
+	accessToken,
+	sessionType,
+	loginUsername,
+}: UserControllerInitData): Promise<UserController> {
 	const entityClient = locator.entityClient
 	const [props, userSettingsGroupRoot] = await Promise.all([
 		entityClient.loadRoot(TutanotaPropertiesTypeRef, user.userGroup.group),
@@ -399,5 +409,16 @@ export async function initUserController({ user, userGroupInfo, sessionId, acces
 			),
 		),
 	])
-	return new UserController(user, userGroupInfo, sessionId, props, accessToken, userSettingsGroupRoot, sessionType, entityClient, locator.serviceExecutor)
+	return new UserController(
+		user,
+		userGroupInfo,
+		sessionId,
+		props,
+		accessToken,
+		userSettingsGroupRoot,
+		sessionType,
+		loginUsername,
+		entityClient,
+		locator.serviceExecutor,
+	)
 }
