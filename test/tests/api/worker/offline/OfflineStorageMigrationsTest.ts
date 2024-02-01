@@ -4,9 +4,6 @@ import { matchers, object, when } from "testdouble"
 import { GiftCard, GiftCardTypeRef } from "../../../../../src/api/entities/sys/TypeRefs.js"
 import { booleanToNumberValue, migrateAllListElements, renameAttribute } from "../../../../../src/api/worker/offline/StandardMigrations.js"
 import { verify } from "@tutao/tutanota-test-utils"
-import { CalendarEvent, CalendarEventTypeRef, createCalendarEvent } from "../../../../../src/api/entities/tutanota/TypeRefs"
-import { SqlCipherFacade } from "../../../../../src/native/common/generatedipc/SqlCipherFacade.js"
-import { offline1 } from "../../../../../src/api/worker/offline/migrations/offline-v1.js"
 
 const { anything } = matchers
 

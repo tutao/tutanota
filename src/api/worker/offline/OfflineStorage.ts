@@ -148,6 +148,7 @@ export class OfflineStorage implements CacheStorage, ExposedCacheStorage {
 		// We open database here, and it is closed in the native side when the window is closed or the page is reloaded
 		await this.sqlCipherFacade.openDb(userId, databaseKey)
 		await this.createTables()
+
 		try {
 			await this.migrator.migrate(this, this.sqlCipherFacade)
 		} catch (e) {
