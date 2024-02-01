@@ -26,6 +26,7 @@ export class NativeContactsSyncManager {
 	}
 
 	private async processNativeContactEntityEvents(events: ReadonlyArray<EntityUpdateData>) {
+		const loginUsername = this.loginController.getUserController().loginUsername
 		const userId = this.loginController.getUserController().userId
 		const allowSync = this.deviceConfig.getUserSyncContactsWithPhonePreference(userId) ?? false
 		if (!allowSync) {
@@ -42,7 +43,7 @@ export class NativeContactsSyncManager {
 				getFromMap(contactsIdToCreateOrUpdate, event.instanceListId, () => []).push(event.instanceId)
 			} else if (event.operation === OperationType.DELETE) {
 				await this.mobileSystemFacade
-					.deleteContacts(userId, event.instanceId)
+					.deleteContacts(loginUsername, event.instanceId)
 					.catch(ofClass(PermissionError, (e) => this.handleNoPermissionError(userId, e)))
 			}
 		}
@@ -68,7 +69,7 @@ export class NativeContactsSyncManager {
 
 		if (contactsToInsertOrUpdate.length > 0) {
 			await this.mobileSystemFacade
-				.saveContacts(userId, contactsToInsertOrUpdate)
+				.saveContacts(loginUsername, contactsToInsertOrUpdate)
 				.catch(ofClass(PermissionError, (e) => this.handleNoPermissionError(userId, e)))
 		}
 	}
@@ -76,6 +77,7 @@ export class NativeContactsSyncManager {
 	async syncContacts() {
 		const contactListId = await this.contactModel.getContactListId()
 		const userId = this.loginController.getUserController().userId
+		const loginUsername = this.loginController.getUserController().loginUsername
 		const allowSync = this.deviceConfig.getUserSyncContactsWithPhonePreference(userId) ?? false
 
 		if (contactListId == null || !allowSync) return
@@ -94,12 +96,16 @@ export class NativeContactsSyncManager {
 			}
 		})
 
-		await this.mobileSystemFacade.syncContacts(userId, structuredContacts).catch(ofClass(PermissionError, (e) => this.handleNoPermissionError(userId, e)))
+		await this.mobileSystemFacade
+			.syncContacts(loginUsername, structuredContacts)
+			.catch(ofClass(PermissionError, (e) => this.handleNoPermissionError(userId, e)))
 	}
 
 	async clearContacts() {
-		const userId = this.loginController.getUserController().userId
-		await this.mobileSystemFacade.deleteContacts(userId, null).catch(ofClass(PermissionError, (e) => console.log("No permission to clear contacts", e)))
+		const loginUsername = this.loginController.getUserController().loginUsername
+		await this.mobileSystemFacade
+			.deleteContacts(loginUsername, null)
+			.catch(ofClass(PermissionError, (e) => console.log("No permission to clear contacts", e)))
 	}
 
 	private handleNoPermissionError(userId: string, error: PermissionError) {

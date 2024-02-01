@@ -55,10 +55,10 @@ class Contact(private val activity: MainActivity) {
 		}
 	}
 
-	suspend fun deleteContacts(userId: String, contactId: String?) {
+	suspend fun deleteContacts(username: String, contactId: String?) {
 		checkContactPermissions()
 
-		retrieveRawContacts(userId, contactId).use { cursor ->
+		retrieveRawContacts(username, contactId).use { cursor ->
 			if (cursor != null) {
 				while (cursor.moveToNext()) {
 					val rawContactId = cursor.getLong(0)
@@ -69,13 +69,13 @@ class Contact(private val activity: MainActivity) {
 		}
 	}
 
-	suspend fun saveContacts(userId: String, contacts: List<StructuredContact>): Map<String, StoredContact> {
+	suspend fun saveContacts(username: String, contacts: List<StructuredContact>): Map<String, StoredContact> {
 		checkContactPermissions()
 
 		/** map from sourceId to id */
 		val alreadyStoredContacts = mutableMapOf<String, StoredContact>()
 
-		retrieveRawContacts(userId).use { cursor ->
+		retrieveRawContacts(username).use { cursor ->
 			while (cursor!!.moveToNext()) {
 				val rawContactId = cursor.getLong(0)
 				val sourceId = cursor.getString(1)
@@ -100,7 +100,7 @@ class Contact(private val activity: MainActivity) {
 			}
 			Log.d(TAG, "Inserting contact ${contact.id}")
 
-			createContact(ops, userId, contact)
+			createContact(ops, username, contact)
 		}
 
 		val serverContactsById = contacts.groupBy { it.id }.mapValues { it.value[0] }
@@ -117,11 +117,11 @@ class Contact(private val activity: MainActivity) {
 		return alreadyStoredContacts
 	}
 
-	suspend fun syncContacts(userId: String, contacts: List<StructuredContact>) {
+	suspend fun syncContacts(username: String, contacts: List<StructuredContact>) {
 		checkContactPermissions()
 
 		/** map from sourceId to id */
-		val alreadyStoredContacts = saveContacts(userId, contacts)
+		val alreadyStoredContacts = saveContacts(username, contacts)
 
 		val serverContactsById = contacts.groupBy { it.id }.mapValues { it.value[0] }
 		for ((storedContactId, storedContact) in alreadyStoredContacts) {
@@ -146,9 +146,9 @@ class Contact(private val activity: MainActivity) {
 		return resolver.delete(uri, null, null)
 	}
 
-	private fun retrieveRawContacts(userId: String, sourceId: String? = null): Cursor? {
-		var rawContactUri = RawContacts.CONTENT_URI.buildUpon()
-				.appendQueryParameter(RawContacts.ACCOUNT_NAME, userId)
+	private fun retrieveRawContacts(username: String, sourceId: String? = null): Cursor? {
+		val rawContactUri = RawContacts.CONTENT_URI.buildUpon()
+				.appendQueryParameter(RawContacts.ACCOUNT_NAME, username)
 				.appendQueryParameter(RawContacts.ACCOUNT_TYPE, "de.tutao.tutanota")
 				.build()
 

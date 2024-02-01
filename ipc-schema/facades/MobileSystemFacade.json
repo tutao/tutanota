@@ -18,7 +18,7 @@
 			"doc": "Store one or more contacts in system's contact book",
 			"arg": [
 				{
-					"userId": "string"
+					"username": "string"
 				},
 				{
 					"contacts": "List<StructuredContact>"
@@ -30,7 +30,7 @@
 			"doc": "Sync all Tuta contacts with system's contact book, this operation includes Inserts, Updates and Deletions",
 			"arg": [
 				{
-					"userId": "string"
+					"username": "string"
 				},
 				{
 					"contacts": "List<StructuredContact>"
@@ -42,7 +42,7 @@
 			"doc": "Delete all or a specific Tuta contact from system's contact book",
 			"arg": [
 				{
-					"userId": "string"
+					"username": "string"
 				},
 				{
 					"contactId": "string?"
