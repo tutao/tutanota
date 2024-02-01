@@ -60,7 +60,7 @@ class AppDelegate: UIResponder,
       notificaionsHandler: notificationsHandler,
       credentialsEncryption: credentialsEncryption,
       blobUtils: BlobUtil(),
-      contactsSynchronization: ContactsSynchronization(userPreferencesProvider: userPreferencesProvider)
+      contactsSynchronization: ContactsSynchronization(userDefault: UserDefaults.standard)
     )
     self.window!.rootViewController = viewController
 
