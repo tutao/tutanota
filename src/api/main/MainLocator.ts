@@ -104,6 +104,7 @@ import type { CalendarEventPreviewViewModel } from "../../calendar/gui/eventpopu
 import { getDisplayedSender } from "../common/mail/CommonMailUtils.js"
 import { isCustomizationEnabledForCustomer } from "../common/utils/CustomerUtils.js"
 import { CalendarEventsRepository } from "../../calendar/date/CalendarEventsRepository.js"
+import { CalendarInviteHandler } from "../../calendar/view/CalendarInvites.js"
 import { NativeContactsSyncManager } from "../../contacts/model/NativeContactsSyncManager.js"
 
 assertMainOrNode()
@@ -764,6 +765,14 @@ class MainLocator {
 			this.calendarFacade,
 			this.fileController,
 			timeZone,
+		)
+	})
+
+	readonly calendarInviteHandler: () => Promise<CalendarInviteHandler> = lazyMemoized(async () => {
+		const { CalendarInviteHandler } = await import("../../calendar/view/CalendarInvites.js")
+		const { calendarNotificationSender } = await import("../../calendar/view/CalendarNotificationSender.js")
+		return new CalendarInviteHandler(this.mailModel, await this.calendarModel(), this.logins, calendarNotificationSender, (...arg) =>
+			this.sendMailModel(...arg),
 		)
 	})
 
