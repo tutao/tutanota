@@ -11,6 +11,7 @@ import { BannerType, InfoBanner, InfoBannerAttrs } from "../../gui/base/InfoBann
 import { Icons } from "../../gui/base/icons/Icons.js"
 import { isNotNull, LazyLoaded } from "@tutao/tutanota-utils"
 import { ParsedIcalFileContent, ReplyResult } from "../../calendar/view/CalendarInvites.js"
+import { locator } from "../../api/main/MainLocator.js"
 
 export type EventBannerAttrs = {
 	contents: ParsedIcalFileContent
@@ -90,16 +91,17 @@ export class EventBanner implements Component<EventBannerAttrs> {
 export function sendResponse(event: CalendarEvent, recipient: string, status: CalendarAttendeeStatus, previousMail: Mail) {
 	showProgressDialog(
 		"pleaseWait_msg",
-		import("../../calendar/view/CalendarInvites.js").then(async ({ getLatestEvent, replyToEventInvitation }) => {
+		import("../../calendar/view/CalendarInvites.js").then(async ({ getLatestEvent }) => {
 			const latestEvent = await getLatestEvent(event)
 			const ownAttendee = findAttendeeInAddresses(latestEvent.attendees, [recipient])
+			const calendarInviteHandler = await locator.calendarInviteHandler()
 
 			if (ownAttendee == null) {
 				Dialog.message("attendeeNotFound_msg")
 				return
 			}
 
-			const replyResult = await replyToEventInvitation(latestEvent, ownAttendee, status, previousMail)
+			const replyResult = await calendarInviteHandler.replyToEventInvitation(latestEvent, ownAttendee, status, previousMail)
 			if (replyResult === ReplyResult.ReplySent) {
 				ownAttendee.status = status
 			}
