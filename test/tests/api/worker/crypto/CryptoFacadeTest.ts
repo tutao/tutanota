@@ -563,26 +563,26 @@ o.spec("CryptoFacadeTest", function () {
 		let userReturnLiteral = {
 			_format: "0",
 			user: "KOBqO7a----0",
+			userGroup: "someUserGroup",
 		}
 		const UserReturnTypeModel = await resolveTypeReference(UserReturnTypeRef)
+
 		const userReturn: UserReturn = await instanceMapper.decryptAndMapToInstance(UserReturnTypeModel, userReturnLiteral, null)
 		o(userReturn._format).equals("0")
 		o(userReturn.user).equals("KOBqO7a----0")
 	})
 
 	o("map unencrypted to DB literal", async function () {
-		let userReturn = createTestEntity(UserReturnTypeRef, {
-			_format: "0",
-			user: "KOBqO7a----0",
-			userGroup: "KOBq18a----2",
-		})
+		let userReturn = createTestEntity(UserReturnTypeRef)
+		userReturn._format = "0"
+		userReturn.user = "KOBqO7a----0"
 		let userReturnLiteral = {
 			_format: "0",
 			user: "KOBqO7a----0",
-			userGroup: "KOBq18a----2",
+			userGroup: "someUserGroup",
 		}
 		const UserReturnTypeModel = await resolveTypeReference(UserReturnTypeRef)
-		return instanceMapper.encryptAndMapToLiteral(UserReturnTypeModel, userReturn, null).then((result) => {
+		return instanceMapper.encryptAndMapToLiteral(UserReturnTypeModel, userReturnLiteral, null).then((result) => {
 			o(result).deepEquals(userReturnLiteral)
 		})
 	})
@@ -591,6 +591,7 @@ o.spec("CryptoFacadeTest", function () {
 		const userReturnLiteral = {
 			_format: "0",
 			user: "KOBqO7a----0",
+			userGroup: "someUserGroup",
 		}
 		const UserReturnTypeModel = await resolveTypeReference(UserReturnTypeRef)
 		o(await crypto.resolveSessionKey(UserReturnTypeModel, userReturnLiteral)).equals(null)
