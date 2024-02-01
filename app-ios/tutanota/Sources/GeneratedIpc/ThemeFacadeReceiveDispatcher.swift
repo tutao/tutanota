@@ -1,5 +1,6 @@
 /* generated file, don't edit. */
 
+
 import Foundation
 
 public class ThemeFacadeReceiveDispatcher {
@@ -14,7 +15,7 @@ public class ThemeFacadeReceiveDispatcher {
 			)
 			return toJson(result)
 		case "setThemes":
-			let themes = try! JSONDecoder().decode([[String: String]].self, from: arg[0].data(using: .utf8)!)
+			let themes = try! JSONDecoder().decode([[String : String]].self, from: arg[0].data(using: .utf8)!)
 			try await self.facade.setThemes(
 				themes
 			)

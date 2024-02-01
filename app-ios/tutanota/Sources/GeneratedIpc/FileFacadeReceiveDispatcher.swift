@@ -1,5 +1,6 @@
 /* generated file, don't edit. */
 
+
 import Foundation
 
 public class FileFacadeReceiveDispatcher {
@@ -65,7 +66,7 @@ public class FileFacadeReceiveDispatcher {
 			let fileUrl = try! JSONDecoder().decode(String.self, from: arg[0].data(using: .utf8)!)
 			let targetUrl = try! JSONDecoder().decode(String.self, from: arg[1].data(using: .utf8)!)
 			let method = try! JSONDecoder().decode(String.self, from: arg[2].data(using: .utf8)!)
-			let headers = try! JSONDecoder().decode([String: String].self, from: arg[3].data(using: .utf8)!)
+			let headers = try! JSONDecoder().decode([String : String].self, from: arg[3].data(using: .utf8)!)
 			let result = try await self.facade.upload(
 				fileUrl,
 				targetUrl,
@@ -76,7 +77,7 @@ public class FileFacadeReceiveDispatcher {
 		case "download":
 			let sourceUrl = try! JSONDecoder().decode(String.self, from: arg[0].data(using: .utf8)!)
 			let filename = try! JSONDecoder().decode(String.self, from: arg[1].data(using: .utf8)!)
-			let headers = try! JSONDecoder().decode([String: String].self, from: arg[2].data(using: .utf8)!)
+			let headers = try! JSONDecoder().decode([String : String].self, from: arg[2].data(using: .utf8)!)
 			let result = try await self.facade.download(
 				sourceUrl,
 				filename,

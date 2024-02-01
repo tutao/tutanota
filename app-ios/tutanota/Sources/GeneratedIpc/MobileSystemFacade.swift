@@ -1,5 +1,6 @@
 /* generated file, don't edit. */
 
+
 import Foundation
 
 /**
@@ -16,23 +17,23 @@ public protocol MobileSystemFacade {
 	 * Store one or more contacts in system's contact book
 	 */
 	func saveContacts(
-		_ userId: String,
+		_ username: String,
 		_ contacts: [StructuredContact]
-	) async throws
+	) async throws -> Void
 	/**
 	 * Sync all Tuta contacts with system's contact book, this operation includes Inserts, Updates and Deletions
 	 */
 	func syncContacts(
-		_ userId: String,
+		_ username: String,
 		_ contacts: [StructuredContact]
-	) async throws
+	) async throws -> Void
 	/**
 	 * Delete all or a specific Tuta contact from system's contact book
 	 */
 	func deleteContacts(
-		_ userId: String,
+		_ username: String,
 		_ contactId: String?
-	) async throws
+	) async throws -> Void
 	/**
 	 * Open URI in the OS.
 	 */

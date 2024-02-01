@@ -20,21 +20,21 @@ interface MobileSystemFacade {
 	 * Store one or more contacts in system's contact book
 	 */
 	 suspend fun saveContacts(
-		userId: String,
+		username: String,
 		contacts: List<StructuredContact>,
 	): Unit
 	/**
 	 * Sync all Tuta contacts with system's contact book, this operation includes Inserts, Updates and Deletions
 	 */
 	 suspend fun syncContacts(
-		userId: String,
+		username: String,
 		contacts: List<StructuredContact>,
 	): Unit
 	/**
 	 * Delete all or a specific Tuta contact from system's contact book
 	 */
 	 suspend fun deleteContacts(
-		userId: String,
+		username: String,
 		contactId: String?,
 	): Unit
 	/**
