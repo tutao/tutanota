@@ -18,8 +18,6 @@ import { assertMainOrNode } from "../../api/common/Env"
 import { createDropdown, DropdownButtonAttrs } from "../../gui/base/Dropdown.js"
 import { IconButton, IconButtonAttrs } from "../../gui/base/IconButton.js"
 import { ButtonSize } from "../../gui/base/ButtonSize.js"
-import { SaltService } from "../../api/entities/sys/Services.js"
-import { createSaltData } from "../../api/entities/sys/TypeRefs.js"
 
 assertMainOrNode()
 export type ResetAction = "password" | "secondFactor"
@@ -109,8 +107,6 @@ export function show(mailAddress?: string | null, resetAction?: ResetAction): Di
 				if (errorMessageId) {
 					Dialog.message(errorMessageId)
 				} else {
-					const saltRequest = createSaltData({ mailAddress: cleanMailAddress })
-					const saltReturn = await locator.serviceExecutor.get(SaltService, saltRequest)
 					showProgressDialog(
 						"pleaseWait_msg",
 						locator.loginFacade.recoverLogin(cleanMailAddress, cleanRecoverCodeValue, passwordModel.getNewPassword(), client.getIdentifier()),
