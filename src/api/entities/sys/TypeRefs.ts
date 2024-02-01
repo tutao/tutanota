@@ -515,6 +515,22 @@ export type Challenge = {
 	otp:  null | OtpChallenge;
 	u2f:  null | U2fChallenge;
 }
+export const ChangeKdfPostInTypeRef: TypeRef<ChangeKdfPostIn> = new TypeRef("sys", "ChangeKdfPostIn")
+
+export function createChangeKdfPostIn(values: StrippedEntity<ChangeKdfPostIn>): ChangeKdfPostIn {
+	return Object.assign(create(typeModels.ChangeKdfPostIn, ChangeKdfPostInTypeRef), values)
+}
+
+export type ChangeKdfPostIn = {
+	_type: TypeRef<ChangeKdfPostIn>;
+
+	_format: NumberString;
+	kdfVersion: NumberString;
+	oldVerifier: Uint8Array;
+	pwEncUserGroupKey: Uint8Array;
+	salt: Uint8Array;
+	verifier: Uint8Array;
+}
 export const ChangePasswordDataTypeRef: TypeRef<ChangePasswordData> = new TypeRef("sys", "ChangePasswordData")
 
 export function createChangePasswordData(values: StrippedEntity<ChangePasswordData>): ChangePasswordData {

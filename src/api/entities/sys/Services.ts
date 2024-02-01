@@ -6,6 +6,7 @@ import {AutoLoginDataDeleteTypeRef} from "./TypeRefs.js"
 import {BrandingDomainGetReturnTypeRef} from "./TypeRefs.js"
 import {BrandingDomainDataTypeRef} from "./TypeRefs.js"
 import {BrandingDomainDeleteDataTypeRef} from "./TypeRefs.js"
+import {ChangeKdfPostInTypeRef} from "./TypeRefs.js"
 import {ChangePasswordDataTypeRef} from "./TypeRefs.js"
 import {CloseSessionServicePostTypeRef} from "./TypeRefs.js"
 import {CreateCustomerServerPropertiesDataTypeRef} from "./TypeRefs.js"
@@ -114,6 +115,15 @@ export const BrandingDomainService = Object.freeze({
 	post: {data: BrandingDomainDataTypeRef, return: null},
 	put: {data: BrandingDomainDataTypeRef, return: null},
 	delete: {data: BrandingDomainDeleteDataTypeRef, return: null},
+} as const)
+
+export const ChangeKdfService = Object.freeze({
+	app: "sys",
+	name: "ChangeKdfService",
+	get: null,
+	post: {data: ChangeKdfPostInTypeRef, return: null},
+	put: null,
+	delete: null,
 } as const)
 
 export const ChangePasswordService = Object.freeze({

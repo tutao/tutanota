@@ -258,6 +258,7 @@ export async function initLocator(worker: WorkerImpl, browserData: BrowserData) 
 		locator.entropyFacade,
 		new DatabaseKeyFactory(locator.deviceEncryptionFacade),
 		argon2idFacade,
+		cache,
 	)
 
 	locator.search = lazyMemoized(async () => {

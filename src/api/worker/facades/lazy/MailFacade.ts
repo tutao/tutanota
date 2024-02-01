@@ -10,9 +10,9 @@ import {
 	ReportMailService,
 	SendDraftService,
 } from "../../../entities/tutanota/Services.js"
-import type { ConversationType } from "../../../common/TutanotaConstants.js"
 import {
 	ArchiveDataType,
+	ConversationType,
 	CounterType,
 	DEFAULT_KDF_TYPE,
 	GroupType,

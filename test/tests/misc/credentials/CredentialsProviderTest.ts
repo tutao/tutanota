@@ -1,11 +1,12 @@
 import o from "@tutao/otest"
-import type {
+import {
 	CredentialsAndDatabaseKey,
 	CredentialsEncryption,
+	CredentialsInfo,
+	CredentialsProvider,
 	CredentialsStorage,
 	PersistentCredentials,
 } from "../../../../src/misc/credentials/CredentialsProvider.js"
-import { CredentialsProvider } from "../../../../src/misc/credentials/CredentialsProvider.js"
 import { assertNotNull, base64ToUint8Array, uint8ArrayToBase64 } from "@tutao/tutanota-utils"
 import { CredentialEncryptionMode } from "../../../../src/misc/credentials/CredentialEncryptionMode.js"
 import type { Credentials } from "../../../../src/misc/credentials/Credentials.js"
@@ -243,6 +244,38 @@ o.spec("CredentialsProvider", function () {
 			await credentialsProvider.clearCredentials("testing")
 			verify(interWindowEventSenderMock.localUserDataInvalidated(internalCredentials.userId))
 			verify(interWindowEventSenderMock.localUserDataInvalidated(externalCredentials.userId))
+		})
+	})
+
+	o.spec("replace the stored password", function () {
+		const userId = "userId"
+		const credentials: CredentialsInfo = {
+			login: "login",
+			userId: userId,
+			type: "internal",
+		}
+		const persistentCredentials: PersistentCredentials = {
+			credentialInfo: credentials,
+			accessToken: "accessToken",
+			databaseKey: "databaseKey",
+			encryptedPassword: "old encrypted password",
+		}
+		const newEncryptedPassword = "uhagre2"
+		o.beforeEach(function () {
+			when(storageMock.loadByUserId(userId)).thenReturn(persistentCredentials)
+		})
+
+		o("replace only", async function () {
+			await credentialsProvider.replacePassword(credentials, newEncryptedPassword)
+
+			verify(
+				storageMock.store({
+					credentialInfo: credentials,
+					accessToken: "accessToken",
+					databaseKey: "databaseKey",
+					encryptedPassword: newEncryptedPassword,
+				}),
+			)
 		})
 	})
 })
