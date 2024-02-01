@@ -12,15 +12,15 @@ class IosMobileSystemFacade: MobileSystemFacade {
   }
 
   func syncContacts(_ userId: String, _ contacts: [StructuredContact]) async throws {
-    return try await self.contactsSynchronization.syncLocalContacts(contacts, forUserId: userId)
+    return try await self.contactsSynchronization.syncLocalContacts(contacts, forUsername: userId)
   }
 
   func deleteContacts(_ userId: String, _ contactId: String?) async throws {
-    return try await self.contactsSynchronization.deleteLocalContact(contactId, forUserId: userId)
+    return try await self.contactsSynchronization.deleteLocalContact(contactId, forUsername: userId)
   }
 
   func saveContacts(_ userId: String, _ contacts: [StructuredContact]) async throws {
-    return try await self.contactsSynchronization.saveLocalContacts(contacts, forUserId: userId)
+    return try await self.contactsSynchronization.saveLocalContacts(contacts, forUsername: userId)
   }
 
   func findSuggestions(_ query: String) async throws -> [NativeContact] {
