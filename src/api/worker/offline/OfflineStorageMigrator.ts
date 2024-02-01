@@ -2,36 +2,15 @@ import { OfflineDbMeta, OfflineStorage, VersionMetadataBaseKey } from "./Offline
 import { ModelInfos } from "../../common/EntityFunctions.js"
 import { assertNotNull, typedEntries, typedKeys } from "@tutao/tutanota-utils"
 import { ProgrammingError } from "../../common/error/ProgrammingError.js"
-import { sys75 } from "./migrations/sys-v75.js"
-import { sys76 } from "./migrations/sys-v76.js"
-import { tutanota54 } from "./migrations/tutanota-v54.js"
-import { sys79 } from "./migrations/sys-v79.js"
-import { sys80 } from "./migrations/sys-v80.js"
 import { SqlCipherFacade } from "../../../native/common/generatedipc/SqlCipherFacade.js"
-import { offline1 } from "./migrations/offline-v1.js"
-import { tutanota56 } from "./migrations/tutanota-v56.js"
-import { tutanota58 } from "./migrations/tutanota-v58.js"
-import { storage6 } from "./migrations/storage-v6.js"
-import { tutanota57 } from "./migrations/tutanota-v57.js"
 import { OutOfSyncError } from "../../common/error/OutOfSyncError.js"
-import { sys83 } from "./migrations/sys-v83.js"
-import { tutanota60 } from "./migrations/tutanota-v60.js"
-import { sys84 } from "./migrations/sys-v84.js"
-import { tutanota61 } from "./migrations/tutanota-v61.js"
-import { sys85 } from "./migrations/sys-v85.js"
-import { accounting5 } from "./migrations/accounting-v5.js"
-import { sys86 } from "./migrations/sys-v86.js"
-import { sys87 } from "./migrations/sys-v87.js"
-import { sys88 } from "./migrations/sys-v88.js"
-import { sys89 } from "./migrations/sys-v89.js"
-import { tutanota62 } from "./migrations/tutanota-v62.js"
-import { tutanota63 } from "./migrations/tutanota-v63.js"
+import { sys94 } from "./migrations/sys-v94.js"
+import { tutanota66 } from "./migrations/tutanota-v66.js"
+import { sys92 } from "./migrations/sys-v92.js"
+import { tutanota65 } from "./migrations/tutanota-v65.js"
+import { sys91 } from "./migrations/sys-v91.js"
 import { sys90 } from "./migrations/sys-v90.js"
 import { tutanota64 } from "./migrations/tutanota-v64.js"
-import { sys91 } from "./migrations/sys-v91.js"
-import { tutanota65 } from "./migrations/tutanota-v65.js"
-import { sys92 } from "./migrations/sys-v92.js"
-import { tutanota66 } from "./migrations/tutanota-v66.js"
 
 export interface OfflineMigration {
 	readonly app: VersionMetadataBaseKey
@@ -46,36 +25,7 @@ export interface OfflineMigration {
  * Normally you should only add them to the end of the list but with offline ones it can be a bit tricky since they change the db structure itself so sometimes
  * they should rather be in the beginning.
  */
-export const OFFLINE_STORAGE_MIGRATIONS: ReadonlyArray<OfflineMigration> = [
-	offline1,
-	sys75, // DB dropped in offline1
-	sys76, // DB dropped in offline1
-	sys79, // DB dropped in offline1
-	sys80, // DB dropped in offline1
-	tutanota54, // DB dropped in offline1
-	tutanota56,
-	tutanota57,
-	tutanota58,
-	tutanota60,
-	storage6,
-	sys83,
-	accounting5,
-	sys84,
-	tutanota61,
-	sys85,
-	sys86,
-	sys87,
-	sys88,
-	tutanota62,
-	sys89,
-	tutanota63,
-	sys90,
-	tutanota64,
-	sys91,
-	tutanota65,
-	sys92,
-	tutanota66,
-]
+export const OFFLINE_STORAGE_MIGRATIONS: ReadonlyArray<OfflineMigration> = [sys90, tutanota64, sys91, tutanota65, sys92, tutanota66, sys94]
 
 const CURRENT_OFFLINE_VERSION = 1
 
@@ -147,25 +97,14 @@ export class OfflineStorageMigrator {
 	}
 
 	private async populateModelVersions(meta: Readonly<Partial<OfflineDbMeta>>, storage: OfflineStorage): Promise<Partial<OfflineDbMeta>> {
-		// We did not write down the "offline" version from the beginning, so we need to figure out if we need to run the migration for the db structure or
-		// not. New DB will have up-to-date table definition but no metadata keys.
-		const isNewDb = Object.keys(meta).length === 0
-
 		// copy metadata because it's going to be mutated
 		const newMeta = { ...meta }
 		// Populate model versions if they haven't been written already
 		for (const app of typedKeys(this.modelInfos)) {
-			await this.prepopulateVersionIfNecessary(app, this.modelInfos[app].version, newMeta, storage)
+			await this.prepopulateVersionIfAbsent(app, this.modelInfos[app].version, newMeta, storage)
 		}
 
-		if (isNewDb) {
-			console.log(`new db, setting "offline" version to ${CURRENT_OFFLINE_VERSION}`)
-			// this migration is not necessary for new databases and we want our canonical table definitions to represent the current state
-			await this.prepopulateVersionIfNecessary("offline", CURRENT_OFFLINE_VERSION, newMeta, storage)
-		} else {
-			// we need to put 0 in because we expect all versions to be populated
-			await this.prepopulateVersionIfNecessary("offline", 0, newMeta, storage)
-		}
+		await this.prepopulateVersionIfAbsent("offline", CURRENT_OFFLINE_VERSION, newMeta, storage)
 		return newMeta
 	}
 
@@ -174,7 +113,7 @@ export class OfflineStorageMigrator {
 	 *
 	 * NB: mutates meta
 	 */
-	private async prepopulateVersionIfNecessary(app: VersionMetadataBaseKey, version: number, meta: Partial<OfflineDbMeta>, storage: OfflineStorage) {
+	private async prepopulateVersionIfAbsent(app: VersionMetadataBaseKey, version: number, meta: Partial<OfflineDbMeta>, storage: OfflineStorage) {
 		const key = `${app}-version` as const
 		const storedVersion = meta[key]
 		if (storedVersion == null) {
