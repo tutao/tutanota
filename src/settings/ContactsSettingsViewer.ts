@@ -8,10 +8,7 @@ import type { UpdatableSettingsViewer } from "./SettingsView"
 import { EntityUpdateData, isUpdateForTypeRef } from "../api/common/utils/EntityUpdateUtils.js"
 import { locator } from "../api/main/MainLocator.js"
 import { FeatureType, OperationType } from "../api/common/TutanotaConstants.js"
-import { ContactTypeRef, TutanotaProperties, TutanotaPropertiesTypeRef } from "../api/entities/tutanota/TypeRefs.js"
-import { StructuredContact } from "../native/common/generatedipc/StructuredContact.js"
-import { getElementId } from "../api/common/utils/EntityUtils.js"
-import { extractStructuredAddresses, extractStructuredMailAddresses, extractStructuredPhoneNumbers } from "../contacts/model/ContactUtils.js"
+import { TutanotaProperties, TutanotaPropertiesTypeRef } from "../api/entities/tutanota/TypeRefs.js"
 import { deviceConfig } from "../misc/DeviceConfig.js"
 
 assertMainOrNode()
@@ -85,9 +82,9 @@ export class ContactsSettingsViewer implements UpdatableSettingsViewer {
 
 				if (isApp()) {
 					if (!contactSyncEnabled) {
-						locator.systemFacade.deleteContacts(userId, null)
+						locator.nativeContactsSyncManager()?.clearContacts()
 					} else {
-						this.syncContacts()
+						locator.nativeContactsSyncManager()?.syncContacts()
 					}
 				}
 
@@ -95,27 +92,6 @@ export class ContactsSettingsViewer implements UpdatableSettingsViewer {
 			},
 			dropdownWidth: 250,
 		})
-	}
-
-	private async syncContacts() {
-		const contactListId = await locator.contactModel.getContactListId()
-		if (contactListId == null) return
-
-		const contacts = await locator.entityClient.loadAll(ContactTypeRef, contactListId)
-		const structuredContacts: ReadonlyArray<StructuredContact> = contacts.map((contact) => {
-			return {
-				id: getElementId(contact),
-				firstName: contact.firstName,
-				lastName: contact.lastName,
-				mailAddresses: extractStructuredMailAddresses(contact.mailAddresses),
-				phoneNumbers: extractStructuredPhoneNumbers(contact.phoneNumbers),
-				nickname: contact.nickname,
-				company: contact.company,
-				birthday: contact.birthdayIso,
-				addresses: extractStructuredAddresses(contact.addresses),
-			}
-		})
-		await locator.systemFacade.syncContacts(locator.logins.getUserController().userId, structuredContacts)
 	}
 
 	updateTutaPropertiesSettings(props: TutanotaProperties) {

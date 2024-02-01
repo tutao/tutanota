@@ -1,7 +1,7 @@
 import { EntityUpdateData, isUpdateForTypeRef } from "../../api/common/utils/EntityUpdateUtils.js"
 import { ContactTypeRef } from "../../api/entities/tutanota/TypeRefs.js"
 import { OperationType } from "../../api/common/TutanotaConstants.js"
-import { getFromMap } from "@tutao/tutanota-utils"
+import { getFromMap, ofClass } from "@tutao/tutanota-utils"
 import { StructuredContact } from "../../native/common/generatedipc/StructuredContact.js"
 import { getElementId } from "../../api/common/utils/EntityUtils.js"
 import { extractStructuredAddresses, extractStructuredMailAddresses, extractStructuredPhoneNumbers } from "./ContactUtils.js"
@@ -11,6 +11,7 @@ import { EntityClient } from "../../api/common/EntityClient.js"
 import { EventController } from "../../api/main/EventController.js"
 import { ContactModel } from "./ContactModel.js"
 import { DeviceConfig } from "../../misc/DeviceConfig.js"
+import { PermissionError } from "../../api/common/error/PermissionError.js"
 
 export class NativeContactsSyncManager {
 	constructor(
@@ -40,7 +41,9 @@ export class NativeContactsSyncManager {
 			} else if (event.operation === OperationType.UPDATE) {
 				getFromMap(contactsIdToCreateOrUpdate, event.instanceListId, () => []).push(event.instanceId)
 			} else if (event.operation === OperationType.DELETE) {
-				await this.mobileSystemFacade.deleteContacts(userId, event.instanceId)
+				await this.mobileSystemFacade
+					.deleteContacts(userId, event.instanceId)
+					.catch(ofClass(PermissionError, (e) => this.handleNoPermissionError(userId, e)))
 			}
 		}
 
@@ -64,7 +67,9 @@ export class NativeContactsSyncManager {
 		}
 
 		if (contactsToInsertOrUpdate.length > 0) {
-			await this.mobileSystemFacade.saveContacts(userId, contactsToInsertOrUpdate)
+			await this.mobileSystemFacade
+				.saveContacts(userId, contactsToInsertOrUpdate)
+				.catch(ofClass(PermissionError, (e) => this.handleNoPermissionError(userId, e)))
 		}
 	}
 
@@ -88,6 +93,17 @@ export class NativeContactsSyncManager {
 				addresses: extractStructuredAddresses(contact.addresses),
 			}
 		})
-		await this.mobileSystemFacade.syncContacts(userId, structuredContacts)
+
+		await this.mobileSystemFacade.syncContacts(userId, structuredContacts).catch(ofClass(PermissionError, (e) => this.handleNoPermissionError(userId, e)))
+	}
+
+	async clearContacts() {
+		const userId = this.loginController.getUserController().userId
+		await this.mobileSystemFacade.deleteContacts(userId, null).catch(ofClass(PermissionError, (e) => console.log("No permission to clear contacts", e)))
+	}
+
+	private handleNoPermissionError(userId: string, error: PermissionError) {
+		console.log("No permission to sync contacts, disabling sync", error)
+		this.deviceConfig.setUserSyncContactsWithPhonePreference(userId, false)
 	}
 }
