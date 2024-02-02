@@ -1,5 +1,6 @@
 <?xml version="1.0" encoding="utf-8"?>
-<manifest xmlns:android="http://schemas.android.com/apk/res/android">
+<manifest
+		xmlns:android="http://schemas.android.com/apk/res/android">
 
 	<uses-permission android:name="android.permission.ACCESS_NETWORK_STATE"/>
 	<uses-permission android:name="android.permission.POST_NOTIFICATIONS"/>
@@ -12,6 +13,10 @@
 	<uses-permission android:name="android.permission.RECEIVE_BOOT_COMPLETED"/>
 	<uses-permission android:name="android.permission.FOREGROUND_SERVICE"/>
 	<uses-permission android:name="android.permission.USE_EXACT_ALARM"/>
+	<uses-permission android:name="android.permission.GET_ACCOUNTS"/>
+	<uses-permission android:name="android.permission.MANAGE_ACCOUNTS"/>
+	<uses-permission android:name="android.permission.AUTHENTICATE_ACCOUNTS"/>
+	<uses-permission android:name="android.permission.USE_CREDENTIALS"/>
 	<uses-permission
 			android:name="android.permission.SCHEDULE_EXACT_ALARM"
 			android:maxSdkVersion="32"/>
@@ -118,6 +123,18 @@
 				android:exported="false"
 				android:permission="android.permission.BIND_JOB_SERVICE"
 				android:process=":pushprocess"/>
+
+
+		<service android:name=".credentials.AccountManagerAuthenticatorService"
+				 android:exported="false">
+			<intent-filter>
+				<action android:name="android.accounts.AccountAuthenticator"/>
+			</intent-filter>
+			<meta-data
+					android:name="android.accounts.AccountAuthenticator"
+					android:resource="@xml/authenticator"/>
+		</service>
+
 
 		<receiver
 				android:name=".push.BootBroadcastReceiver"

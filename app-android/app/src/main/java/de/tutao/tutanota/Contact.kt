@@ -1,6 +1,8 @@
 package de.tutao.tutanota
 
 import android.Manifest
+import android.accounts.Account
+import android.accounts.AccountManager
 import android.content.ContentProviderOperation
 import android.content.ContentResolver
 import android.content.ContentUris
@@ -17,6 +19,8 @@ import kotlinx.serialization.SerialName
  * Created by mpfau on 4/12/17.
  */
 class Contact(private val activity: MainActivity) {
+
+	private val TUTA_ACCOUNT_TYPE = "de.tutao.tutanota"
 
 	private val resolver: ContentResolver
 		get() = activity.applicationContext.contentResolver
@@ -66,6 +70,13 @@ class Contact(private val activity: MainActivity) {
 					deleteRawContact(StoredContact(rawContactId, sourceId))
 				}
 			}
+		}
+
+		// No contactId means that we triggered the clear function
+		if (contactId == null) {
+			val account = Account(username, TUTA_ACCOUNT_TYPE)
+			val accountManager = AccountManager.get(activity)
+			accountManager.removeAccountExplicitly(account)
 		}
 	}
 
@@ -147,9 +158,17 @@ class Contact(private val activity: MainActivity) {
 	}
 
 	private fun retrieveRawContacts(username: String, sourceId: String? = null): Cursor? {
+		//Check if the account exists
+		val accounts = AccountManager.get(activity).getAccountsByType(TUTA_ACCOUNT_TYPE)
+
+		// If there's no account or no account for the referred username, we create a new one
+		if (accounts.isEmpty() || !accounts.any { account -> account.name == username }) {
+			createSystemAccount(username)
+		}
+
 		val rawContactUri = RawContacts.CONTENT_URI.buildUpon()
 				.appendQueryParameter(RawContacts.ACCOUNT_NAME, username)
-				.appendQueryParameter(RawContacts.ACCOUNT_TYPE, "de.tutao.tutanota")
+				.appendQueryParameter(RawContacts.ACCOUNT_TYPE, TUTA_ACCOUNT_TYPE)
 				.build()
 
 		if (sourceId != null) {
@@ -169,6 +188,14 @@ class Contact(private val activity: MainActivity) {
 						RawContacts.SOURCE_ID
 				), null, null, null
 		)
+	}
+
+	private fun createSystemAccount(username: String) {
+		val userAccount = Account(username, TUTA_ACCOUNT_TYPE)
+		val isAccountAdded = AccountManager.get(activity).addAccountExplicitly(userAccount, null, null)
+		if (!isAccountAdded) {
+			Log.w(TAG, "Failed to create new account?")
+		}
 	}
 
 	private fun checkDeletedContact(storedContact: StoredContact, ops: ArrayList<ContentProviderOperation>) {
@@ -465,7 +492,7 @@ class Contact(private val activity: MainActivity) {
 		val index = ops.size
 		ops.add(
 				ContentProviderOperation.newInsert(RawContacts.CONTENT_URI)
-						.withValue(RawContacts.ACCOUNT_TYPE, "de.tutao.tutanota")
+						.withValue(RawContacts.ACCOUNT_TYPE, TUTA_ACCOUNT_TYPE)
 						.withValue(RawContacts.ACCOUNT_NAME, userId)
 						.withValue(RawContacts.SOURCE_ID, contact.id)
 						.build()
