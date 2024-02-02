@@ -271,6 +271,7 @@
 		3DE1E44526666F0A0018C9DE /* UIColor+utils.swift in Sources */ = {isa = PBXBuildFile; fileRef = 3DE1E44426666F0A0018C9DE /* UIColor+utils.swift */; };
 		3DE46D2B2848EBDA00DC9D43 /* IosFileFacade.swift in Sources */ = {isa = PBXBuildFile; fileRef = 3DE46D2A2848EBDA00DC9D43 /* IosFileFacade.swift */; };
 		3DE46D2E2849E33000DC9D43 /* IosThemeFacade.swift in Sources */ = {isa = PBXBuildFile; fileRef = 3DE46D2D2849E33000DC9D43 /* IosThemeFacade.swift */; };
+		3DEA43312B6D1E2E0037F318 /* lint.sh in Resources */ = {isa = PBXBuildFile; fileRef = 3DEA43302B6D1E2E0037F318 /* lint.sh */; };
 		3DEF18F32924E1F1009C4B55 /* ShareViewController.swift in Sources */ = {isa = PBXBuildFile; fileRef = 3DEF18F22924E1F1009C4B55 /* ShareViewController.swift */; };
 		3DEF18FA2924E1F1009C4B55 /* TutanotaShareExtension.appex in Embed App Extensions */ = {isa = PBXBuildFile; fileRef = 3DEF18F02924E1F1009C4B55 /* TutanotaShareExtension.appex */; settings = {ATTRIBUTES = (RemoveHeadersOnCopy, ); }; };
 		3DF7FA5A2AB2EE3B00DB08D1 /* Argon2.swift in Sources */ = {isa = PBXBuildFile; fileRef = 3DF7FA592AB2EE3B00DB08D1 /* Argon2.swift */; };
@@ -594,6 +595,7 @@
 		3DE1E44426666F0A0018C9DE /* UIColor+utils.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = "UIColor+utils.swift"; sourceTree = "<group>"; };
 		3DE46D2A2848EBDA00DC9D43 /* IosFileFacade.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = IosFileFacade.swift; sourceTree = "<group>"; };
 		3DE46D2D2849E33000DC9D43 /* IosThemeFacade.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = IosThemeFacade.swift; sourceTree = "<group>"; };
+		3DEA43302B6D1E2E0037F318 /* lint.sh */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text.script.sh; path = lint.sh; sourceTree = "<group>"; };
 		3DEF18DA2924E14A009C4B55 /* UniformTypeIdentifiers.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = UniformTypeIdentifiers.framework; path = System/Library/Frameworks/UniformTypeIdentifiers.framework; sourceTree = SDKROOT; };
 		3DEF18F02924E1F1009C4B55 /* TutanotaShareExtension.appex */ = {isa = PBXFileReference; explicitFileType = "wrapper.app-extension"; includeInIndex = 0; path = TutanotaShareExtension.appex; sourceTree = BUILT_PRODUCTS_DIR; };
 		3DEF18F22924E1F1009C4B55 /* ShareViewController.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ShareViewController.swift; sourceTree = "<group>"; };
@@ -1539,6 +1541,7 @@
 		3DD4A07A20F8C6240086EB36 = {
 			isa = PBXGroup;
 			children = (
+				3DEA43302B6D1E2E0037F318 /* lint.sh */,
 				3DD4A08520F8C6240086EB36 /* tutanota */,
 				3DD4A09E20F8C6260086EB36 /* tutanotaTests */,
 				3DEF18F12924E1F1009C4B55 /* TutanotaShareExtension */,
@@ -1971,6 +1974,7 @@
 				3D9A1F1E22031B99002C2455 /* InfoPlist.strings in Resources */,
 				3D9A1F3322031B99002C2455 /* InfoPlist.strings in Resources */,
 				3D9A1F2C22031B99002C2455 /* InfoPlist.strings in Resources */,
+				3DEA43312B6D1E2E0037F318 /* lint.sh in Resources */,
 				3D9A1F1422031B99002C2455 /* InfoPlist.strings in Resources */,
 				3D9A1F4122031B99002C2455 /* InfoPlist.strings in Resources */,
 				3D9A1F1222031B99002C2455 /* InfoPlist.strings in Resources */,
