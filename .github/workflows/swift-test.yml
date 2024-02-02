@@ -3,6 +3,7 @@ name: Swift CI
 on:
   push:
     paths: [ "app-ios/**" ]
+  workflow_dispatch:
 
 env:
   swift-version: "5.9.2"
