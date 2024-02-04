@@ -1429,6 +1429,7 @@ export type TranslationKeyType =
 	| "storedDataTimeRange_label"
 	| "storePassword_action"
 	| "subject_label"
+	| "subscribeCalendarPerUrl_action"
 	| "subscriptionCancelledMessage_msg"
 	| "subscriptionChangePeriod_msg"
 	| "subscriptionChange_msg"

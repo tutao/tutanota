@@ -125,9 +125,25 @@ export class CalendarView extends BaseTopLevelView implements TopLevelView<Calen
 									button: m(IconButton, {
 										title: "addCalendar_action",
 										colors: ButtonColor.Nav,
-										click: () => this.onPressedAddCalendar(),
-										icon: Icons.Add,
 										size: ButtonSize.Compact,
+										icon: Icons.Add,
+										click: () =>
+											createDropdown({
+												lazyButtons: () => [
+													{
+														label: "addCalendar_action",
+														icon: Icons.Add,
+														size: ButtonSize.Compact,
+														click: () => this.onPressedAddCalendar(),
+													},
+													{
+														label: "subscribeCalendarPerUrl_action",
+														icon: Icons.Add,
+														size: ButtonSize.Compact,
+														click: () => this.onPressedSubscribeCalendarPerUrl(),
+													},
+												],
+											}),
 									}),
 								},
 								this.renderCalendars(false),
@@ -513,6 +529,20 @@ export class CalendarView extends BaseTopLevelView implements TopLevelView<Calen
 		}
 	}
 
+	private onPressedSubscribeCalendarPerUrl() {
+		if (locator.logins.getUserController().getCalendarMemberships().length === 0) {
+			this.showSubscribeCalendarPerUrlDialog()
+		} else {
+			import("../../misc/SubscriptionDialogs")
+				.then((SubscriptionDialogUtils) => SubscriptionDialogUtils.checkPaidSubscription())
+				.then((ok) => {
+					if (ok) {
+						this.showSubscribeCalendarPerUrlDialog()
+					}
+				})
+		}
+	}
+
 	private showCreateCalendarDialog() {
 		showEditCalendarDialog(
 			{
@@ -523,7 +553,25 @@ export class CalendarView extends BaseTopLevelView implements TopLevelView<Calen
 			false,
 			async (dialog, properties) => {
 				const calendarModel = await locator.calendarModel()
-				await calendarModel.createCalendar(properties.name, properties.color)
+				await calendarModel.createCalendar(properties.name, properties.color, null)
+				dialog.close()
+			},
+			"save_action",
+		)
+	}
+
+	private showSubscribeCalendarPerUrlDialog() {
+		showEditCalendarDialog(
+			{
+				name: "",
+				color: Math.random().toString(16).slice(-6),
+				iCalSubscriptionUrl: "",
+			},
+			"add_action",
+			false,
+			async (dialog, properties) => {
+				const calendarModel = await locator.calendarModel()
+				await calendarModel.createCalendar(properties.name, properties.color, properties.iCalSubscriptionUrl ?? null)
 				dialog.close()
 			},
 			"save_action",
@@ -592,7 +640,7 @@ export class CalendarView extends BaseTopLevelView implements TopLevelView<Calen
 		colorValue: string,
 		existingGroupSettings: GroupSettings | null,
 		userSettingsGroupRoot: UserSettingsGroupRoot,
-		sharedCalendar: boolean,
+		shared: boolean,
 	): Children {
 		const { group, groupInfo, groupRoot } = calendarInfo
 		const user = locator.logins.getUserController().user
@@ -607,7 +655,7 @@ export class CalendarView extends BaseTopLevelView implements TopLevelView<Calen
 						label: "edit_action",
 						icon: Icons.Edit,
 						size: ButtonSize.Compact,
-						click: () => this.onPressedEditCalendar(groupInfo, colorValue, existingGroupSettings, userSettingsGroupRoot, sharedCalendar),
+						click: () => this.onPressedEditCalendar(groupInfo, colorValue, existingGroupSettings, userSettingsGroupRoot, shared),
 					},
 					{
 						label: "sharing_label",
@@ -616,7 +664,7 @@ export class CalendarView extends BaseTopLevelView implements TopLevelView<Calen
 							if (locator.logins.getUserController().isFreeAccount()) {
 								showNotAvailableForFreeDialog()
 							} else {
-								showGroupSharingDialog(groupInfo, sharedCalendar)
+								showGroupSharingDialog(groupInfo, shared)
 							}
 						},
 					},
@@ -635,7 +683,7 @@ export class CalendarView extends BaseTopLevelView implements TopLevelView<Calen
 									const alarmInfoList = user.alarmInfoList
 									alarmInfoList &&
 										exportCalendar(
-											getSharedGroupName(groupInfo, locator.logins.getUserController(), sharedCalendar),
+											getSharedGroupName(groupInfo, locator.logins.getUserController(), shared),
 											groupRoot,
 											alarmInfoList.alarms,
 											new Date(),
@@ -644,7 +692,7 @@ export class CalendarView extends BaseTopLevelView implements TopLevelView<Calen
 								},
 						  }
 						: null,
-					!sharedCalendar
+					!shared
 						? {
 								label: "delete_action",
 								icon: Icons.Trash,

@@ -4,15 +4,11 @@ import stream from "mithril/stream"
 import { TextField } from "../../gui/base/TextField.js"
 import { lang } from "../../misc/LanguageViewModel.js"
 import type { TranslationKeyType } from "../../misc/TranslationKey.js"
+
 import { downcast } from "@tutao/tutanota-utils"
 
-type CalendarProperties = {
-	name: string
-	color: string
-}
-
 export function showEditCalendarDialog(
-	{ name, color }: CalendarProperties,
+	{ name, color, iCalSubscriptionUrl }: CalendarProperties,
 	titleTextId: TranslationKeyType,
 	shared: boolean,
 	okAction: (arg0: Dialog, arg1: CalendarProperties) => unknown,
@@ -44,6 +40,7 @@ export function showEditCalendarDialog(
 							colorStream(target.value)
 						},
 					}),
+					iCalSubscriptionUrl ? renderICalSubscriptionUrlField(iCalSubscriptionUrl) : null,
 				]),
 		},
 		okActionTextId: okTextId,
@@ -54,4 +51,19 @@ export function showEditCalendarDialog(
 			})
 		},
 	})
+}
+
+function renderICalSubscriptionUrlField(iCalSubscriptionUrl: string) {
+	const iCalSubscriptionUrlStream = stream(iCalSubscriptionUrl)
+	return m(TextField, {
+		value: iCalSubscriptionUrlStream(),
+		oninput: iCalSubscriptionUrlStream,
+		label: "calendarName_label",
+	})
+}
+
+type CalendarProperties = {
+	name: string
+	color: string
+	iCalSubscriptionUrl?: string
 }

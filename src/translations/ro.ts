@@ -1434,6 +1434,7 @@ export default {
 		"storedDataTimeRange_label": "Păstrează e-mailurile din ultimele {numDays} zile",
 		"storePassword_action": "Memorează parola",
 		"subject_label": "Subiect",
+		"subscribeCalendarPerUrl_action": "Subscribe per Url",
 		"subscriptionCancelledMessage_msg": "Abonamentul tău a fost anulat. Contactează Asistența pentru a reactiva abonamentul.",
 		"subscriptionChangePeriod_msg": "Abonamentul tău va fi modificat la sfîrșitul actualei perioade de abonament ({1}).",
 		"subscriptionChange_msg": "Abonamentul tău va fi modificat la sfîrșitul actualei perioade de abonament.",

@@ -56,6 +56,7 @@ export type CalendarInfo = {
 	groupInfo: GroupInfo
 	group: Group
 	shared: boolean
+	subscribedPerUrl: boolean
 }
 
 export class CalendarModel {
@@ -196,12 +197,12 @@ export class CalendarModel {
 		if (!this.logins.isInternalUserLoggedIn() || findPrivateCalendar(calendarInfos)) {
 			return calendarInfos
 		} else {
-			await this.createCalendar("", null)
+			await this.createCalendar("", null, null)
 			return await this.loadCalendarInfos(progressMonitor)
 		}
 	}
 
-	async createCalendar(name: string, color: string | null): Promise<void> {
+	async createCalendar(name: string, color: string | null, iCalSubscriptionUrl: string | null): Promise<void> {
 		// when a calendar group is added, a group membership is added to the user. we might miss this websocket event
 		// during startup if the websocket is not connected fast enough. Therefore, we explicitly update the user
 		// this should be removed once we handle missed events during startup
@@ -215,6 +216,7 @@ export class CalendarModel {
 				group: group._id,
 				color: color,
 				name: null,
+				iCalSubscriptionUrl: iCalSubscriptionUrl,
 			})
 			userSettingsGroupRoot.groupSettings.push(newGroupSettings)
 			await this.entityClient.update(userSettingsGroupRoot)
@@ -285,7 +287,7 @@ export class CalendarModel {
 			if (calendars.size > 0) {
 				return calendars
 			} else {
-				await this.createCalendar("", null)
+				await this.createCalendar("", null, null)
 				return this.calendarInfos.reload()
 			}
 		})
