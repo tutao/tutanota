@@ -11,7 +11,7 @@ export default {
 		"other"
 	],
 	"created_at": "2015-01-27T13:13:02Z",
-	"updated_at": "2024-01-22T12:37:48Z",
+	"updated_at": "2024-01-30T11:54:49Z",
 	"source_locale": {
 		"id": "fcd7471b347c8e517663e194dcddf237",
 		"name": "en",
@@ -269,6 +269,9 @@ export default {
 		"contactListInvitations_label": "Invitaciones a la lista de contactos",
 		"contactListName_label": "Nombre de la lista de contactos",
 		"contactLists_label": "Listas de contactos",
+		"contactsManagement_label": "Gestión de Contactos",
+		"contactsSynchronizationWarning_msg": "Al activar la sincronización de contactos, compartirás tus contactos de Tuta con otras aplicaciones a las que permitas acceder a la agenda de contactos de tu teléfono. Tuta solo sincroniza los cambios realizados dentro de la aplicación Tuta, los cambios realizados en la libreta de contactos de tu teléfono se sobrescribirán.",
+		"contactsSynchronization_label": "Sincronización de contactos",
 		"contactSupport_action": "Ponte en contacto con el soporte técnico",
 		"contactsUsageDescription_msg": "Encuentra la dirección del destinatario entre tus contactos.",
 		"contacts_label": "Contactos",

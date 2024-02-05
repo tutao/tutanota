@@ -11,7 +11,7 @@ export default {
 		"other"
 	],
 	"created_at": "2015-03-10T10:52:15Z",
-	"updated_at": "2024-01-18T20:49:50Z",
+	"updated_at": "2024-02-01T18:16:40Z",
 	"source_locale": null,
 	"fallback_locale": null,
 	"keys": {
@@ -265,6 +265,9 @@ export default {
 		"contactListInvitations_label": "Kutsut yhteystietolistoihin",
 		"contactListName_label": "Yhteystietolistan nimi",
 		"contactLists_label": "Yhteystietolistat",
+		"contactsManagement_label": "Yhteystietojen hallinta",
+		"contactsSynchronizationWarning_msg": "Jos otat yhteystietojen synkronoinnin käyttöön, puhelimesi yhteystietoihin pääsevät sovellukset pääsevät näkemään myös Tuta-yhteystietosi. Tuta synkronoi ainoastaan Tutan sovelluksen sisällä tehdyt muutokset. Puhelimesi yhteystietoihin tehdyt muutokset voidaan korvata.",
+		"contactsSynchronization_label": "Yhteystietojen synkronointi",
 		"contactSupport_action": "Ota yhteyttä tukeen",
 		"contactsUsageDescription_msg": "Etsi vastaanottajan sähköpostiosoite yhteystiedoista.",
 		"contacts_label": "Yhteystiedot",
