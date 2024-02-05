@@ -13,7 +13,7 @@ export default {
 		"other"
 	],
 	"created_at": "2015-01-27T13:13:41Z",
-	"updated_at": "2024-01-19T17:02:53Z",
+	"updated_at": "2024-01-30T21:10:44Z",
 	"source_locale": {
 		"id": "fcd7471b347c8e517663e194dcddf237",
 		"name": "en",
@@ -269,6 +269,9 @@ export default {
 		"contactListInvitations_label": "Zaproszenia do listy kontaktów",
 		"contactListName_label": "Nazwa listy kontaktów",
 		"contactLists_label": "Lista kontaktów",
+		"contactsManagement_label": "Zarządzanie kontaktami",
+		"contactsSynchronizationWarning_msg": "Włączenie synchronizacji kontaktów spowoduje udostępnienie kontaktów Tuta innym aplikacjom, którym zezwolisz na dostęp do kontaktów telefonu. Tuta synchronizuje tylko zmiany wprowadzone w aplikacji Tuta, zmiany wprowadzone w kontaktach telefonu zostaną nadpisane.",
+		"contactsSynchronization_label": "Synchronizacja kontaktów",
 		"contactSupport_action": "Skontaktuj się z działem wsparcia",
 		"contactsUsageDescription_msg": "Znajdź adres e-mail adresata w kontaktach",
 		"contacts_label": "Kontakty",

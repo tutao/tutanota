@@ -11,7 +11,7 @@ export default {
 		"other"
 	],
 	"created_at": "2015-03-23T11:36:16Z",
-	"updated_at": "2024-01-18T10:50:07Z",
+	"updated_at": "2024-01-31T15:31:10Z",
 	"source_locale": null,
 	"fallback_locale": null,
 	"keys": {
@@ -181,7 +181,7 @@ export default {
 		"cancel_action": "Avbryt",
 		"cannotEditEvent_msg": "Du kan bara redigera delar av den här händelsen.",
 		"cannotEditFullEvent_msg": "Du kan bara redigera delar av den här händelsen eftersom den inte är skapad i din kalender.",
-		"cannotEditNotOrganizer_msg": "Du kan bara redigera delar av den här händelsen eftersom du inte är dess organisatör.",
+		"cannotEditNotOrganizer_msg": "Du kan inte redigera den här händelsen eftersom du inte är dess organisatör.",
 		"cannotEditSingleInstance_msg": "Du kan bara redigera delar av den här händelsen eftersom det är en del av en serie händelser.\n",
 		"canNotOpenFileOnDevice_msg": "Filen kan inte öppnas på den här enheten.",
 		"captchaDisplay_label": "Captcha",
@@ -265,6 +265,9 @@ export default {
 		"contactListInvitations_label": "Inbjudan till kontaktlista",
 		"contactListName_label": "Kontaktlistans namn",
 		"contactLists_label": "Kontaktlistor",
+		"contactsManagement_label": "Hantering av kontakter",
+		"contactsSynchronizationWarning_msg": "Om du aktiverar synkronisering av kontakter kommer dina Tuta kontakter att delas med andra program som du ger åtkomst till telefonens kontaktbok. Tuta synkroniserar endast ändringar som gjorts i Tuta appen, ändringar som gjorts i telefonens kontaktbok kommer att skrivas över.",
+		"contactsSynchronization_label": "Synkronisering av kontakter",
 		"contactSupport_action": "Kontakta support",
 		"contactsUsageDescription_msg": "Hitta mottagares e-postadress i kontakter.",
 		"contacts_label": "Kontakter",

@@ -11,7 +11,7 @@ export default {
 		"other"
 	],
 	"created_at": "2015-01-13T20:10:13Z",
-	"updated_at": "2024-01-18T10:50:07Z",
+	"updated_at": "2024-01-30T06:57:18Z",
 	"source_locale": null,
 	"fallback_locale": null,
 	"keys": {
@@ -265,6 +265,9 @@ export default {
 		"contactListInvitations_label": "Contact list invitations",
 		"contactListName_label": "Contact list name",
 		"contactLists_label": "Contact lists",
+		"contactsManagement_label": "Contacts Management",
+		"contactsSynchronizationWarning_msg": "Enabling contact synchronization will share your Tuta contacts to other applications that you allow access to your phone's contact book. Tuta only synchronizes changes made inside of the Tuta app, changes made on your phone's contact book will be overwritten.",
+		"contactsSynchronization_label": "Contacts Synchronization",
 		"contactSupport_action": "Contact support",
 		"contactsUsageDescription_msg": "Find recipient email address in contacts.",
 		"contacts_label": "Contacts",
@@ -1619,9 +1622,6 @@ export default {
 		"yourCalendars_label": "Your calendars",
 		"yourFolders_action": "YOUR FOLDERS",
 		"yourMessage_label": "Your message",
-		"you_label": "You",
-		"contactsSynchronizationWarning_msg": "Enabling contact synchronization will expose your Tuta contacts to other applications that have access to your phone's contact book. Tuta only synchronizes changes made inside of Tuta app, changes made from phone's contact book will be overwritten",
-		"contactsSynchronization_label": "Contacts Synchronization",
-		"contactsManagement_label": "Contacts Management"
+		"you_label": "You"
 	}
 }

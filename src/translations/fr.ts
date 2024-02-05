@@ -11,7 +11,7 @@ export default {
 		"other"
 	],
 	"created_at": "2015-01-16T12:59:04Z",
-	"updated_at": "2024-01-21T10:39:32Z",
+	"updated_at": "2024-02-02T10:08:16Z",
 	"source_locale": {
 		"id": "fcd7471b347c8e517663e194dcddf237",
 		"name": "en",
@@ -269,6 +269,7 @@ export default {
 		"contactListInvitations_label": "Invitations à la liste de contacts",
 		"contactListName_label": "Liste des contacts",
 		"contactLists_label": "Listes de contacts",
+		"contactsManagement_label": "Gestion des contacts",
 		"contactSupport_action": "Contacter le support",
 		"contactsUsageDescription_msg": "Trouver l'adresse e-mail du destinataire dans les contacts",
 		"contacts_label": "Contacts",
