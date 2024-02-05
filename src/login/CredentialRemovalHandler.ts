@@ -31,7 +31,7 @@ export class AppsCredentialRemovalHandler implements CredentialRemovalHandler {
 		}
 
 		if (isApp() && this.mobileSystemFacade != null) {
-			await this.mobileSystemFacade.deleteContacts(credentialsAndDbKey.credentials.userId, null)
+			await this.mobileSystemFacade.deleteContacts(credentialsAndDbKey.credentials.login, null)
 		}
 	}
 }
