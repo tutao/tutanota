@@ -103,7 +103,6 @@ class Contact(private val activity: MainActivity) {
 
 		Log.d(TAG, "already stored contacts: ${alreadyStoredContacts.size}")
 
-		val ops = arrayListOf<ContentProviderOperation>()
 		for (contact in contacts) {
 			if (alreadyStoredContacts.contains(contact.id)) {
 				Log.d(TAG, "Already has contact ${contact.id}")
@@ -111,7 +110,7 @@ class Contact(private val activity: MainActivity) {
 			}
 			Log.d(TAG, "Inserting contact ${contact.id}")
 
-			createContact(ops, username, contact)
+			createContact(username, contact)
 		}
 
 		val serverContactsById = contacts.groupBy { it.id }.mapValues { it.value[0] }
@@ -121,9 +120,6 @@ class Contact(private val activity: MainActivity) {
 				updateContact(storedContact, serverContact)
 			}
 		}
-
-		val result = resolver.applyBatch(ContactsContract.AUTHORITY, ops)
-		Log.d(TAG, "save contact result: $result")
 
 		return alreadyStoredContacts
 	}
@@ -485,11 +481,11 @@ class Contact(private val activity: MainActivity) {
 	}
 
 	private fun createContact(
-			ops: ArrayList<ContentProviderOperation>,
 			userId: String,
 			contact: StructuredContact
 	) {
-		val index = ops.size
+		val ops = ArrayList<ContentProviderOperation>()
+		val index = 0
 		ops.add(
 				ContentProviderOperation.newInsert(RawContacts.CONTENT_URI)
 						.withValue(RawContacts.ACCOUNT_TYPE, TUTA_ACCOUNT_TYPE)
@@ -561,6 +557,9 @@ class Contact(private val activity: MainActivity) {
 							.build()
 			)
 		}
+
+		val result = resolver.applyBatch(ContactsContract.AUTHORITY, ops)
+		Log.d(TAG, "Save result: $result")
 	}
 
 	private fun readContact(
