@@ -41,7 +41,6 @@ interface MobileSystemFacade {
 	 * Redirect the user to Phone's Settings
 	 */
 	 suspend fun goToSettings(
-		translationKey: String,
 	): Unit
 	/**
 	 * Open URI in the OS.

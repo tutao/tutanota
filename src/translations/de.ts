@@ -1627,6 +1627,6 @@ export default {
 		"yourFolders_action": "DEINE ORDNER",
 		"yourMessage_label": "Deine Nachricht",
 		"you_label": "Du",
-		"allowContactReadWrite_msg": "Um die Kontaktsynchronisierung zu aktivieren, benötigt Tuta Lese- und Schreibzugriff auf Ihre Kontakte. Du kannst dies jederzeit in den Systemeinstellungen ändern."
+		"allowContactReadWrite_msg": "Um Ihre Kontakte zu synchronisieren, benötigen wir die Berechtigung zum Lesen und Schreiben in Ihrem Kontaktbuch. Du kannst dies jederzeit in den Systemeinstellungen ändern."
 	}
 }

@@ -1,10 +1,13 @@
 package de.tutao.tutanota
 
+import android.app.Activity
 import android.content.ActivityNotFoundException
 import android.content.ClipData
 import android.content.Intent
 import android.net.Uri
+import android.provider.Settings
 import android.util.Log
+import androidx.core.content.ContextCompat.startActivity
 import androidx.core.content.FileProvider
 import de.tutao.tutanota.ipc.MobileSystemFacade
 import de.tutao.tutanota.ipc.NativeContact
@@ -17,7 +20,7 @@ import java.io.IOException
 class AndroidMobileSystemFacade(
 		private val contact: Contact,
 		private val fileFacade: AndroidFileFacade,
-		private val activity: MainActivity,
+		private val activity: Activity,
 ) : MobileSystemFacade {
 	override suspend fun findSuggestions(query: String): List<NativeContact> {
 		return contact.findSuggestions(query)
@@ -40,8 +43,14 @@ class AndroidMobileSystemFacade(
 		return contact.deleteContacts(userId, contactId)
 	}
 
-	override suspend fun goToSettings(translationKey: String) {
-		return activity.goToSettings(translationKey)
+	override suspend fun goToSettings() {
+		withContext(Dispatchers.Main) {
+			val intent = Intent(
+					Settings.ACTION_APPLICATION_DETAILS_SETTINGS,
+					Uri.parse("package:${activity.packageName}")
+			)
+			startActivity(activity, intent, null)
+		}
 	}
 
 	override suspend fun syncContacts(userId: String, contacts: List<StructuredContact>) {

@@ -29,7 +29,7 @@ export interface MobileSystemFacade {
 	/**
 	 * Redirect the user to Phone's Settings
 	 */
-	goToSettings(translationKey: string): Promise<void>
+	goToSettings(): Promise<void>
 
 	/**
 	 * Open URI in the OS.

@@ -21,6 +21,7 @@ enum ContactPhoneNumberType: String {
   case mobile = "2"
   case fax = "3"
   case other = "4"
+  case custom = "5"
 
   func toCNLabel() -> String {
     switch self {

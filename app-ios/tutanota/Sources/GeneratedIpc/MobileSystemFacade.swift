@@ -38,7 +38,6 @@ public protocol MobileSystemFacade {
 	 * Redirect the user to Phone's Settings
 	 */
 	func goToSettings(
-		_ translationKey: String
 	) async throws -> Void
 	/**
 	 * Open URI in the OS.

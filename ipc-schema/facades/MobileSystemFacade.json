@@ -52,11 +52,7 @@
 		},
 		"goToSettings": {
 			"doc": "Redirect the user to Phone's Settings",
-			"arg": [
-				{
-					"translationKey": "string"
-				}
-			],
+			"arg": [],
 			"ret": "void"
 		},
 		"openLink": {
