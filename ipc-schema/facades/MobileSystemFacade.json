@@ -50,6 +50,15 @@
 			],
 			"ret": "void"
 		},
+		"goToSettings": {
+			"doc": "Redirect the user to Phone's Settings",
+			"arg": [
+				{
+					"translationKey": "string"
+				}
+			],
+			"ret": "void"
+		},
 		"openLink": {
 			"doc": "Open URI in the OS.",
 			"arg": [

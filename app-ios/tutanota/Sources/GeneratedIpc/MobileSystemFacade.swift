@@ -35,6 +35,12 @@ public protocol MobileSystemFacade {
 		_ contactId: String?
 	) async throws -> Void
 	/**
+	 * Redirect the user to Phone's Settings
+	 */
+	func goToSettings(
+		_ translationKey: String
+	) async throws -> Void
+	/**
 	 * Open URI in the OS.
 	 */
 	func openLink(

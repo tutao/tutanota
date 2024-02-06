@@ -48,6 +48,13 @@ class MobileSystemFacadeReceiveDispatcher(
 				)
 				return json.encodeToString(result)
 			}
+			"goToSettings" -> {
+				val translationKey: String = json.decodeFromString(arg[0])
+				val result: Unit = this.facade.goToSettings(
+					translationKey,
+				)
+				return json.encodeToString(result)
+			}
 			"openLink" -> {
 				val uri: String = json.decodeFromString(arg[0])
 				val result: Boolean = this.facade.openLink(

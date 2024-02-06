@@ -12,6 +12,7 @@ import { EventController } from "../../api/main/EventController.js"
 import { ContactModel } from "./ContactModel.js"
 import { DeviceConfig } from "../../misc/DeviceConfig.js"
 import { PermissionError } from "../../api/common/error/PermissionError.js"
+import { isApp } from "../../api/common/Env.js"
 
 export class NativeContactsSyncManager {
 	constructor(
@@ -80,7 +81,8 @@ export class NativeContactsSyncManager {
 		const loginUsername = this.loginController.getUserController().loginUsername
 		const allowSync = this.deviceConfig.getUserSyncContactsWithPhonePreference(userId) ?? false
 
-		if (contactListId == null || !allowSync) return
+		if (contactListId == null || !allowSync) return false
+
 		const contacts = await this.entityClient.loadAll(ContactTypeRef, contactListId)
 		const structuredContacts: ReadonlyArray<StructuredContact> = contacts.map((contact) => {
 			return {
@@ -96,9 +98,23 @@ export class NativeContactsSyncManager {
 			}
 		})
 
-		await this.mobileSystemFacade
-			.syncContacts(loginUsername, structuredContacts)
-			.catch(ofClass(PermissionError, (e) => this.handleNoPermissionError(userId, e)))
+		try {
+			await this.mobileSystemFacade.syncContacts(loginUsername, structuredContacts)
+		} catch (e) {
+			if (e instanceof PermissionError) {
+				this.handleNoPermissionError(userId, e)
+				return false
+			}
+
+			throw e
+		}
+
+		return true
+	}
+
+	showContactsPermissionDialog() {
+		if (!isApp()) return
+		this.mobileSystemFacade.goToSettings("allowContactReadWrite_msg")
 	}
 
 	async clearContacts() {

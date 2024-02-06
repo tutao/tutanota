@@ -1608,3 +1608,4 @@ export type TranslationKeyType =
 	| "yourMessage_label"
 	| "you_label"
 	| "emptyString_msg"
+	| "allowContactReadWrite_msg"

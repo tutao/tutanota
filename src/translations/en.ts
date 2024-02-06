@@ -1622,6 +1622,7 @@ export default {
 		"yourCalendars_label": "Your calendars",
 		"yourFolders_action": "YOUR FOLDERS",
 		"yourMessage_label": "Your message",
-		"you_label": "You"
+		"you_label": "You",
+		"allowContactReadWrite_msg": "To enable Contacts Synchronization, Tuta needs access to read and write in your contacts. You can change this anytime in the system settings."
 	}
 }
