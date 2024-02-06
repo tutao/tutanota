@@ -558,6 +558,14 @@ class Contact(private val activity: MainActivity) {
 			)
 		}
 
+		for (address in contact.addresses) {
+			ops.add(
+					insertAddressOperation(address)
+							.withValueBackReference(ContactsContract.Data.RAW_CONTACT_ID, index)
+							.build()
+			)
+		}
+
 		val result = resolver.applyBatch(ContactsContract.AUTHORITY, ops)
 		Log.d(TAG, "Save result: $result")
 	}

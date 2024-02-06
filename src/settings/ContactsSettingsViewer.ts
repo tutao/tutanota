@@ -78,17 +78,25 @@ export class ContactsSettingsViewer implements UpdatableSettingsViewer {
 			selectedValue: this.enableContactSync,
 			selectionChangedHandler: (contactSyncEnabled: boolean) => {
 				const userId = locator.logins.getUserController().userId
+
 				this.enableContactSync = contactSyncEnabled
+				deviceConfig.setUserSyncContactsWithPhonePreference(userId, contactSyncEnabled)
 
 				if (isApp()) {
 					if (!contactSyncEnabled) {
 						locator.nativeContactsSyncManager()?.clearContacts()
 					} else {
-						locator.nativeContactsSyncManager()?.syncContacts()
+						// We just enable if the synchronization started successfully
+						locator
+							.nativeContactsSyncManager()
+							?.syncContacts()
+							.then((allowed) => {
+								if (!allowed) {
+									this.handleContactsSynchronizationFail(userId)
+								}
+							})
 					}
 				}
-
-				deviceConfig.setUserSyncContactsWithPhonePreference(userId, contactSyncEnabled)
 			},
 			dropdownWidth: 250,
 		})
@@ -107,5 +115,11 @@ export class ContactsSettingsViewer implements UpdatableSettingsViewer {
 			}
 		}
 		m.redraw()
+	}
+
+	private handleContactsSynchronizationFail(userId: string) {
+		locator.nativeContactsSyncManager()?.showContactsPermissionDialog()
+		deviceConfig.setUserSyncContactsWithPhonePreference(userId, false)
+		this.enableContactSync = false
 	}
 }

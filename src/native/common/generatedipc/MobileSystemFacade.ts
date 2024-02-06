@@ -27,6 +27,11 @@ export interface MobileSystemFacade {
 	deleteContacts(username: string, contactId: string | null): Promise<void>
 
 	/**
+	 * Redirect the user to Phone's Settings
+	 */
+	goToSettings(translationKey: string): Promise<void>
+
+	/**
 	 * Open URI in the OS.
 	 */
 	openLink(uri: string): Promise<boolean>

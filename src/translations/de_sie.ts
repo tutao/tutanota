@@ -1626,6 +1626,7 @@ export default {
 		"yourCalendars_label": "Deine Kalender",
 		"yourFolders_action": "Ihre ORDNER",
 		"yourMessage_label": "Ihre Nachricht",
-		"you_label": "Sie"
+		"you_label": "Sie",
+		"allowContactReadWrite_msg": "Um die Kontaktsynchronisierung zu aktivieren, benötigt Tuta Lese- und Schreibzugriff auf Ihre Kontakte. Sie können dies jederzeit in den Systemeinstellungen ändern."
 	}
 }
