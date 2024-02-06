@@ -28,6 +28,6 @@ export function containsEventOfType(events: ReadonlyArray<EntityUpdateData>, typ
 	return events.some((event) => event.operation === type && event.instanceId === elementId)
 }
 
-export function getEventOfType(events: ReadonlyArray<EntityUpdate>, type: OperationType, elementId: Id): EntityUpdate | null {
+export function getEventOfType<T extends EntityUpdateData | EntityUpdate>(events: ReadonlyArray<T>, type: OperationType, elementId: Id): T | null {
 	return events.find((event) => event.operation === type && event.instanceId === elementId) ?? null
 }
