@@ -1,10 +1,13 @@
 import Foundation
+import Contacts
 
 class IosMobileSystemFacade: MobileSystemFacade {
   private let contactsSynchronization: ContactsSynchronization
   private let contactsSource: ContactsSource
   private let viewController: ViewController
 
+  let PERMISSION_ERROR_DOMAIN = "de.tutao.tutanota.PermissionError"
+  
   init(contactsSource: ContactsSource, viewController: ViewController, contactsSynchronization: ContactsSynchronization) {
     self.contactsSource = contactsSource
     self.viewController = viewController
@@ -12,7 +15,17 @@ class IosMobileSystemFacade: MobileSystemFacade {
   }
 
   func syncContacts(_ userId: String, _ contacts: [StructuredContact]) async throws {
-    return try await self.contactsSynchronization.syncLocalContacts(contacts, forUsername: userId)
+    do {
+      try await self.contactsSynchronization.syncLocalContacts(contacts, forUsername: userId)
+    } catch {
+      let err = error as NSError
+      if err.domain == CNErrorDomain && err.code == CNError.authorizationDenied.rawValue  {
+        throw TUTErrorFactory.createError(withDomain: PERMISSION_ERROR_DOMAIN, message: "Missing permission to handle contacts")
+      } else {
+        throw error
+      }
+    }
+    
   }
 
   func deleteContacts(_ userId: String, _ contactId: String?) async throws {
@@ -25,6 +38,13 @@ class IosMobileSystemFacade: MobileSystemFacade {
 
   func findSuggestions(_ query: String) async throws -> [NativeContact] {
     return try await contactsSource.search(query: query)
+  }
+  
+  func goToSettings() async throws {
+    DispatchQueue.main.async {
+      let url = URL(string: UIApplication.openSettingsURLString)!
+      UIApplication.shared.open(url)
+    }
   }
 
   @MainActor

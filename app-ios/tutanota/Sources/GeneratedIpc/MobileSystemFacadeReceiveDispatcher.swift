@@ -41,9 +41,7 @@ public class MobileSystemFacadeReceiveDispatcher {
 			)
 			return "null"
 		case "goToSettings":
-			let translationKey = try! JSONDecoder().decode(String.self, from: arg[0].data(using: .utf8)!)
 			try await self.facade.goToSettings(
-				translationKey
 			)
 			return "null"
 		case "openLink":

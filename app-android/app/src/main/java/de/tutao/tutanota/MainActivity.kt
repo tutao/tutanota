@@ -453,17 +453,6 @@ class MainActivity : FragmentActivity() {
 		}
 	}
 
-	suspend fun goToSettings(translationKey: String) {
-		commonNativeFacade.showAlertDialog(translationKey)
-		withContext(Dispatchers.Main) {
-			val intent = Intent(
-					Settings.ACTION_APPLICATION_DETAILS_SETTINGS,
-					Uri.parse("package:$packageName")
-			)
-			startActivity(intent)
-		}
-	}
-
 	suspend fun askNotificationPermissionIfNeeded() {
 		// if API < 33 we should have the permission automatically
 		// check also enables us to use the POST_NOTIFICATIONS const

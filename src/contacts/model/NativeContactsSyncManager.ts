@@ -13,6 +13,7 @@ import { ContactModel } from "./ContactModel.js"
 import { DeviceConfig } from "../../misc/DeviceConfig.js"
 import { PermissionError } from "../../api/common/error/PermissionError.js"
 import { isApp } from "../../api/common/Env.js"
+import { Dialog } from "../../gui/base/Dialog.js"
 
 export class NativeContactsSyncManager {
 	constructor(
@@ -114,7 +115,7 @@ export class NativeContactsSyncManager {
 
 	showContactsPermissionDialog() {
 		if (!isApp()) return
-		this.mobileSystemFacade.goToSettings("allowContactReadWrite_msg")
+		Dialog.message("allowContactReadWrite_msg").then(() => this.mobileSystemFacade.goToSettings())
 	}
 
 	async clearContacts() {

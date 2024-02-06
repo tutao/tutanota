@@ -1623,6 +1623,6 @@ export default {
 		"yourFolders_action": "YOUR FOLDERS",
 		"yourMessage_label": "Your message",
 		"you_label": "You",
-		"allowContactReadWrite_msg": "To enable Contacts Synchronization, Tuta needs access to read and write in your contacts. You can change this anytime in the system settings."
+		"allowContactReadWrite_msg": "In order to synchronize your contacts, we need the permission to read and write to your contacts book. You can change this anytime in the system settings."
 	}
 }

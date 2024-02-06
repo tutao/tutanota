@@ -150,6 +150,7 @@ const ErrorNameToType = {
 	"de.tutao.tutanota.CancelledError": CancelledError,
 	"de.tutao.tutanota.webauthn.WebauthnError": WebauthnError,
 	"de.tutao.tutanota.Webauthn": WebauthnError,
+	"de.tutao.tutanota.PermissionError": PermissionError,
 }
 
 export function isSecurityError(e: any): boolean {
