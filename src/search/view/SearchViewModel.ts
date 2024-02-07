@@ -518,9 +518,12 @@ export class SearchViewModel {
 					(email) => update.instanceId === elementIdPart(email) && update.instanceListId !== listIdPart(email),
 				)
 				if (index >= 0) {
-					// We need to update the listId of the updated item, since it was moved to another folder.
-					const newIdTuple: IdTuple = [update.instanceListId, update.instanceId]
-					this._searchResult.results[index] = newIdTuple
+					const restrictionLength = this._searchResult.restriction.listIds.length
+					if ((restrictionLength > 0 && this._searchResult.restriction.listIds.includes(update.instanceListId)) || restrictionLength === 0) {
+						// We need to update the listId of the updated item, since it was moved to another folder.
+						const newIdTuple: IdTuple = [update.instanceListId, update.instanceId]
+						this._searchResult.results[index] = newIdTuple
+					}
 				}
 			}
 		} else if (isUpdateForTypeRef(CalendarEventTypeRef, update) && isSameTypeRef(lastType, CalendarEventTypeRef)) {
@@ -582,8 +585,15 @@ export class SearchViewModel {
 		if (isSameTypeRef(this.searchedType, MailTypeRef)) {
 			if (!newState.inMultiselect && newState.selectedItems.size === 1) {
 				const mail = this.getSelectedMails()[0]
-				if (!this.conversationViewModel || !isSameId(elementIdPart(this.conversationViewModel?.primaryMail._id), elementIdPart(mail._id))) {
+
+				if (!this.conversationViewModel) {
 					this.updateDisplayedConversation(mail)
+				} else if (this.conversationViewModel) {
+					const isSameElementId = isSameId(elementIdPart(this.conversationViewModel?.primaryMail._id), elementIdPart(mail._id))
+					const isSameListId = isSameId(listIdPart(this.conversationViewModel?.primaryMail._id), listIdPart(mail._id))
+					if (!isSameElementId || !isSameListId) {
+						this.updateDisplayedConversation(mail)
+					}
 				}
 			} else {
 				this.conversationViewModel = null
