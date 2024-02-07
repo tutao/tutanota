@@ -1,7 +1,7 @@
 NSCameraUsageDescription = "Take a picture or video for adding it as attachment.";
 NSPhotoLibraryUsageDescription = "Add a picture from your library as attachment.";
 NSMicrophoneUsageDescription = "Used when recording a video as attachment.";
-NSContactsUsageDescription = "Find recipient email address in contacts.";
+NSContactsUsageDescription = "1. Find recipient email address in contacts.\n2. Optionally synchronize Tuta contacts to your device.";
 NSRemindersUsageDescription = "Shows notification when new email arrives.";
 TutaoShowCameraAction = "Camera";
 TutaoChoosePhotosAction = "Photos";

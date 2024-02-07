@@ -71,6 +71,7 @@ export type TranslationKeyType =
 	| "ageConfirmation_msg"
 	| "agenda_label"
 	| "allDay_label"
+	| "allowContactReadWrite_msg"
 	| "allowExternalContentSender_action"
 	| "allowOperation_msg"
 	| "allowPushNotification_msg"
@@ -1608,4 +1609,3 @@ export type TranslationKeyType =
 	| "yourMessage_label"
 	| "you_label"
 	| "emptyString_msg"
-	| "allowContactReadWrite_msg"
