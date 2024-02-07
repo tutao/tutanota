@@ -164,8 +164,9 @@ export class DatePicker implements Component<DatePickerAttrs> {
 		)
 	}
 
-	private renderMobileDateInput({ date, onDateSelected }: DatePickerAttrs): Children {
+	private renderMobileDateInput({ date, onDateSelected, disabled }: DatePickerAttrs): Children {
 		return m("input.fill-absolute", {
+			disabled: disabled,
 			type: "date",
 			style: {
 				opacity: 0,
