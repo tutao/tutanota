@@ -115,7 +115,7 @@ export class CalendarEventEditView implements Component<CalendarEventEditViewAtt
 			m(
 				".pt-s",
 				m(InfoBanner, {
-					message: () => m(".small", lang.get(message)),
+					message: () => m(".small.selectable", lang.get(message)),
 					icon: Icons.People,
 					type: BannerType.Info,
 					buttons: [],
