@@ -1,12 +1,17 @@
 import { CommonNativeFacade } from "../common/generatedipc/CommonNativeFacade.js"
 import { IMainLocator } from "../../api/main/MainLocator.js"
-import { TranslationKey } from "../../misc/LanguageViewModel.js"
-import { noOp, ofClass } from "@tutao/tutanota-utils"
+import { lang, TranslationKey } from "../../misc/LanguageViewModel.js"
+import { assertNotNull, noOp, ofClass } from "@tutao/tutanota-utils"
 import { CancelledError } from "../../api/common/error/CancelledError.js"
 import { UserError } from "../../api/main/UserError.js"
 import { themeController } from "../../gui/theme.js"
 import m from "mithril"
 import { Dialog } from "../../gui/base/Dialog.js"
+import { FileReference } from "../../api/common/utils/FileUtils.js"
+import { VCARD_MIME_TYPES } from "../../file/FileController.js"
+import { Contact } from "../../api/entities/tutanota/TypeRefs.js"
+import { GroupType } from "../../api/common/TutanotaConstants.js"
+import { showProgressDialog } from "../../gui/dialogs/ProgressDialog.js"
 
 export class WebCommonNativeFacade implements CommonNativeFacade {
 	/**
@@ -37,32 +42,74 @@ export class WebCommonNativeFacade implements CommonNativeFacade {
 			if (mailToUrlString) {
 				editor = await newMailtoUrlMailEditor(mailToUrlString, false, mailboxDetails).catch(ofClass(CancelledError, noOp))
 				if (!editor) return
+
+				editor.show()
 			} else {
 				const files = await fileApp.getFilesMetaData(filesUris)
-				const address = (addresses && addresses[0]) || ""
-				const recipients = address
-					? {
-							to: [
-								{
-									name: "",
-									address: address,
-								},
-							],
-					  }
-					: {}
-				editor = await newMailEditorFromTemplate(
-					mailboxDetails,
-					recipients,
-					subject || (files.length > 0 ? files[0].name : ""),
-					signatureModule.appendEmailSignature(text || "", logins.getUserController().props),
-					files,
-					undefined,
-					undefined,
-					true, // we want emails created in this method to always default to saving changes
-				)
-			}
+				const hasContactToImport = files.some((file) => Object.values<string>(VCARD_MIME_TYPES).includes(file.mimeType))
 
-			editor.show()
+				let willImport = false
+				if (hasContactToImport) {
+					willImport = await Dialog.choice(
+						() => "We detected some contact files, do you want to import or attach them?",
+						[
+							{
+								text: "import_action",
+								value: true,
+							},
+							{ text: "attachFiles_action", value: false },
+						],
+					)
+				}
+
+				if (willImport) {
+					const { entityClient, contactModel } = await WebCommonNativeFacade.getInitializedLocator()
+					console.log("We are about to import contacts")
+					const contacts = await this.parseContacts(files)
+					console.log("Contacts => ", contacts)
+					const dialog = Dialog.importVCardDialog(contacts, async (dialog) => {
+						const numberOfContacts = contacts.length
+						const contactListId = await contactModel.getContactListId()
+						const entityPromise = entityClient.setupMultipleEntities(contactListId, contacts)
+
+						await showProgressDialog("pleaseWait_msg", entityPromise)
+
+						await Dialog.message(() =>
+							lang.get("importVCardSuccess_msg", {
+								"{1}": numberOfContacts,
+							}),
+						)
+
+						dialog.close()
+					})
+
+					dialog.show()
+				} else {
+					const address = (addresses && addresses[0]) || ""
+					const recipients = address
+						? {
+								to: [
+									{
+										name: "",
+										address: address,
+									},
+								],
+						  }
+						: {}
+					editor = await newMailEditorFromTemplate(
+						mailboxDetails,
+						recipients,
+						subject || (files.length > 0 ? files[0].name : ""),
+						signatureModule.appendEmailSignature(text || "", logins.getUserController().props),
+						files,
+						undefined,
+						undefined,
+						true, // we want emails created in this method to always default to saving changes
+					)
+
+					editor.show()
+				}
+			}
 		} catch (e) {
 			if (e instanceof UserError) {
 				// noinspection ES6MissingAwait
@@ -151,5 +198,31 @@ export class WebCommonNativeFacade implements CommonNativeFacade {
 		const { locator } = await import("../../api/main/MainLocator")
 		await locator.initialized
 		return locator
+	}
+
+	private async parseContacts(fileList: FileReference[]) {
+		const { fileApp, logins, fileController } = await WebCommonNativeFacade.getInitializedLocator()
+		const { vCardFileToVCards, vCardListToContacts } = await import("../../contacts/VCardImporter.js")
+
+		const parsedContacts: Contact[] = []
+		for (const file of fileList) {
+			if (Object.values<string>(VCARD_MIME_TYPES).includes(file.mimeType)) {
+				const dataFile = await fileApp.readDataFile(file.location)
+				if (dataFile == null) continue
+
+				const blob = new Blob([dataFile.data], { type: file.mimeType })
+				const buffer = await blob.arrayBuffer()
+				const decoder = new TextDecoder("utf-8")
+				const parsedVCards = vCardFileToVCards(decoder.decode(buffer))
+				if (parsedVCards == null) continue
+
+				const contactMembership = assertNotNull(logins.getUserController().user.memberships.find((m) => m.groupType === GroupType.Contact))
+				const contacts = vCardListToContacts(parsedVCards, contactMembership.group)
+
+				parsedContacts.push(...contacts)
+			}
+		}
+
+		return parsedContacts
 	}
 }
