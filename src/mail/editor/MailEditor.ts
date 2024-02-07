@@ -250,25 +250,25 @@ export class MailEditor implements Component<MailEditorAttrs> {
 		const shortcuts: Shortcut[] = [
 			{
 				key: Keys.SPACE,
-				ctrl: true,
+				ctrlOrCmd: true,
 				exec: () => this.openTemplates(),
 				help: "openTemplatePopup_msg",
 			}, // B (bold), I (italic), and U (underline) are handled by squire
 			{
 				key: Keys.B,
-				ctrl: true,
+				ctrlOrCmd: true,
 				exec: noOp,
 				help: "formatTextBold_msg",
 			},
 			{
 				key: Keys.I,
-				ctrl: true,
+				ctrlOrCmd: true,
 				exec: noOp,
 				help: "formatTextItalic_msg",
 			},
 			{
 				key: Keys.U,
-				ctrl: true,
+				ctrlOrCmd: true,
 				exec: noOp,
 				help: "formatTextUnderline_msg",
 			},
@@ -1004,7 +1004,7 @@ async function createMailEditorDialog(model: SendMailModel, blockExternalContent
 		},
 		{
 			key: Keys.S,
-			ctrl: true,
+			ctrlOrCmd: true,
 			exec: () => {
 				save().catch(ofClass(UserError, showUserError))
 			},
@@ -1012,7 +1012,7 @@ async function createMailEditorDialog(model: SendMailModel, blockExternalContent
 		},
 		{
 			key: Keys.S,
-			ctrl: true,
+			ctrlOrCmd: true,
 			shift: true,
 			exec: () => {
 				send()
@@ -1021,7 +1021,7 @@ async function createMailEditorDialog(model: SendMailModel, blockExternalContent
 		},
 		{
 			key: Keys.RETURN,
-			ctrl: true,
+			ctrlOrCmd: true,
 			exec: () => {
 				send()
 			},

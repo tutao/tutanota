@@ -104,7 +104,7 @@ async function showCalendarEventEditDialog(model: CalendarEventModel, responseMa
 		})
 		.addShortcut({
 			key: Keys.S,
-			ctrl: true,
+			ctrlOrCmd: true,
 			exec: () => okAction(assertNotNull(headerDom, "headerDom was null")),
 			help: "save_action",
 		})

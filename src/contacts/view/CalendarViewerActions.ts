@@ -72,7 +72,7 @@ export class CalendarViewerActions implements Component<CalendarViewToolbarAttrs
 		if (this.canExport(event)) {
 			this.shortcuts.push({
 				key: Keys.E,
-				ctrl: true,
+				ctrlOrCmd: true,
 				exec: () => {
 					onExport(event)
 				},

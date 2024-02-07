@@ -1,20 +1,52 @@
 import type { TranslationKey } from "./LanguageViewModel"
 import { Keys } from "../api/common/TutanotaConstants"
-import type { lazy } from "@tutao/tutanota-utils"
-import { mod } from "@tutao/tutanota-utils"
-import { assertMainOrNodeBoot } from "../api/common/Env"
+import { lazy, mod } from "@tutao/tutanota-utils"
+import { assertMainOrNodeBoot, isAppleDevice } from "../api/common/Env"
 import m from "mithril"
 
 assertMainOrNodeBoot()
 export const TABBABLE = "button, input, textarea, div[contenteditable='true'], [tabindex='0']"
 export type KeyPress = {
 	key: string
+
+	/** On Apple devices, this is command; on all other platforms, this is control */
+	ctrlOrCmd: boolean
+
+	/** Control on all platforms; should not be combined with ctrlOrCmd */
 	ctrl: boolean
+
+	/** Shift on all platforms */
 	shift: boolean
+
+	/** Alt on all platforms */
+	alt: boolean
+
+	/** Meta is the Windows, Command, or a dedicated meta key depending on platform; should not be combined with ctrlOrCmd */
+	meta: boolean
 }
 export type Key = {
 	code: string
 	name: string
+}
+
+/**
+ * Convert the keyboard event into a key press
+ * @param event event to convert
+ */
+export function keyboardEventToKeyPress(event: KeyboardEvent): KeyPress {
+	const ctrlOrCmd = isAppleDevice() ? event.metaKey : event.ctrlKey
+
+	return {
+		key: event.key,
+		ctrlOrCmd,
+		shift: event.shiftKey,
+		alt: event.altKey,
+
+		// Ignore these modifiers if ctrlOrCmd is set, as it will otherwise cause either both ctrl/ctrlOrCmd to be set or meta/ctrlOrCmd to be set, which will
+		// make the shortcut not fire
+		ctrl: !ctrlOrCmd && event.ctrlKey,
+		meta: !ctrlOrCmd && event.metaKey,
+	}
 }
 
 /**
@@ -23,29 +55,30 @@ export type Key = {
 export type keyHandler = (key: KeyPress) => boolean
 
 export interface Shortcut {
+	// key to use (the code/name is important here)
 	key: Key
+
+	// set to true to include a modifier, false or undefined to not
+	ctrlOrCmd?: boolean
 	ctrl?: boolean
-	// undefined == false
 	alt?: boolean
-	// undefined == false
 	shift?: boolean
-	// undefined == false
 	meta?: boolean
-	// undefined == false
 	enabled?: lazy<boolean>
 
+	// must return true, if preventDefault should not be invoked
 	exec(key: KeyPress, e?: Event): boolean | void
 
-	// must return true, if preventDefault should not be invoked
+	// displayed to the user in the help screen
 	help: TranslationKey
 }
 
 export function focusPrevious(dom: HTMLElement): boolean {
-	let tabbable = Array.from(dom.querySelectorAll(TABBABLE)).filter(
+	const tabbable = Array.from(dom.querySelectorAll(TABBABLE)).filter(
 		(e) => (e as HTMLElement).style.display !== "none" && (e as HTMLElement).tabIndex !== -1,
 	) as HTMLElement[] // also filter for tabIndex here to restrict tabbing to invisible inputs
 
-	let selected = tabbable.find((e) => document.activeElement === e)
+	const selected = tabbable.find((e) => document.activeElement === e)
 
 	if (selected) {
 		//work around for squire so tabulator actions are executed properly
@@ -71,11 +104,11 @@ export function focusPrevious(dom: HTMLElement): boolean {
 }
 
 export function focusNext(dom: HTMLElement): boolean {
-	let tabbable = Array.from(dom.querySelectorAll(TABBABLE)).filter(
+	const tabbable = Array.from(dom.querySelectorAll(TABBABLE)).filter(
 		(e) => (e as HTMLElement).style.display !== "none" && (e as HTMLElement).tabIndex !== -1,
 	) as HTMLElement[] // also filter for tabIndex here to restrict tabbing to invisible inputs
 
-	let selected = tabbable.find((e) => document.activeElement === e)
+	const selected = tabbable.find((e) => document.activeElement === e)
 
 	if (selected) {
 		//work around for squire so tabulator actions are executed properly
@@ -100,8 +133,15 @@ export function focusNext(dom: HTMLElement): boolean {
 	return true
 }
 
-function createKeyIdentifier(key: string, ctrl?: boolean, alt?: boolean, shift?: boolean, meta?: boolean): string {
-	return key + (ctrl ? "C" : "") + (alt ? "A" : "") + (shift ? "S" : "") + (meta ? "M" : "")
+function createKeyIdentifier(key: string, modifiers?: { ctrlOrCmd?: boolean; ctrl?: boolean; alt?: boolean; shift?: boolean; meta?: boolean }): string {
+	return (
+		key +
+		(modifiers?.ctrlOrCmd ? "X" : "") +
+		(modifiers?.ctrl ? "C" : "") +
+		(modifiers?.alt ? "A" : "") +
+		(modifiers?.shift ? "S" : "") +
+		(modifiers?.meta ? "M" : "")
+	)
 }
 
 /**
@@ -112,11 +152,11 @@ function createKeyIdentifier(key: string, ctrl?: boolean, alt?: boolean, shift?:
  */
 
 class KeyManager {
-	_keyToShortcut: Map<string, Shortcut>
-	// override for _shortcuts: If a modal is visible, only modal-shortcuts should be active
-	_keyToModalShortcut: Map<string, Shortcut>
-	_desktopShortcuts: Shortcut[]
-	_isHelpOpen: boolean = false
+	private keyToShortcut: Map<string, Shortcut>
+	// override for shortcuts: If a modal is visible, only modal-shortcuts should be active
+	private keyToModalShortcut: Map<string, Shortcut>
+	private desktopShortcuts: Shortcut[]
+	private isHelpOpen: boolean = false
 
 	constructor() {
 		const helpShortcut: Shortcut = {
@@ -125,32 +165,24 @@ class KeyManager {
 			help: "showHelp_action",
 		}
 		const helpId = createKeyIdentifier(helpShortcut.key.code)
-		this._keyToShortcut = new Map([[helpId, helpShortcut]])
+		this.keyToShortcut = new Map([[helpId, helpShortcut]])
 		// override for _shortcuts: If a modal is visible, only modal-shortcuts should be active
-		this._keyToModalShortcut = new Map([[helpId, helpShortcut]])
-		this._desktopShortcuts = []
+		this.keyToModalShortcut = new Map([[helpId, helpShortcut]])
+		this.desktopShortcuts = []
 		if (!window.document.addEventListener) return
-		window.document.addEventListener("keydown", (e) => this._handleKeydown(e), false)
+		window.document.addEventListener("keydown", (e) => this.handleKeydown(e), false)
 	}
 
-	_handleKeydown(e: KeyboardEvent): void {
+	private handleKeydown(e: KeyboardEvent): void {
 		// If we get a keyboard event while in a composition system (such as an input method editor),
 		// it should be ignored (since the system should be handling key commands for that).
 		if (!e.isComposing) {
-			let keysToShortcuts = this._keyToModalShortcut.size > 1 ? this._keyToModalShortcut : this._keyToShortcut
-			let shortcut = e.key ? keysToShortcuts.get(createKeyIdentifier(e.key.toLowerCase(), e.ctrlKey, e.altKey, e.shiftKey, e.metaKey)) : null
+			const keysToShortcuts = this.keyToModalShortcut.size > 1 ? this.keyToModalShortcut : this.keyToShortcut
+			const keyPress = keyboardEventToKeyPress(e)
+			const shortcut = keyPress.key ? keysToShortcuts.get(createKeyIdentifier(e.key.toLowerCase(), keyPress)) : null
 
 			if (shortcut != null && (shortcut.enabled == null || shortcut.enabled())) {
-				if (
-					shortcut.exec({
-						key: e.key,
-						ctrl: e.ctrlKey,
-						// @ts-ignore
-						alt: e.altKey,
-						shift: e.shiftKey,
-						meta: e.metaKey,
-					}) !== true
-				) {
+				if (shortcut.exec(keyPress) !== true) {
 					e.preventDefault()
 				}
 			}
@@ -164,8 +196,8 @@ class KeyManager {
 	 * from the support dropdown (which registers its own shortcuts as modal shortcuts)
 	 */
 	openF1Help(forceBaseShortcuts: boolean = false): void {
-		if (this._isHelpOpen) return
-		this._isHelpOpen = true
+		if (this.isHelpOpen) return
+		this.isHelpOpen = true
 		// we decide which shortcuts to show right now.
 		//
 		// the help dialog will register its own shortcuts which would override the
@@ -176,34 +208,30 @@ class KeyManager {
 		// when the top dialog changes, leading to a situation where
 		// modalshortcuts is empty.
 		const shortcutsToShow =
-			this._keyToModalShortcut.size > 1 && !forceBaseShortcuts
-				? Array.from(this._keyToModalShortcut.values()) // copy values, they will change
-				: [...this._keyToShortcut.values(), ...this._desktopShortcuts]
-		import("../gui/dialogs/ShortcutDialog.js").then(({ showShortcutDialog }) => showShortcutDialog(shortcutsToShow)).then(() => (this._isHelpOpen = false))
+			this.keyToModalShortcut.size > 1 && !forceBaseShortcuts
+				? Array.from(this.keyToModalShortcut.values()) // copy values, they will change
+				: [...this.keyToShortcut.values(), ...this.desktopShortcuts]
+		import("../gui/dialogs/ShortcutDialog.js").then(({ showShortcutDialog }) => showShortcutDialog(shortcutsToShow)).then(() => (this.isHelpOpen = false))
 	}
 
 	registerShortcuts(shortcuts: ReadonlyArray<Shortcut>) {
-		this._applyOperation(shortcuts, (id, s) => this._keyToShortcut.set(id, s))
+		this.applyOperation(shortcuts, (id, s) => this.keyToShortcut.set(id, s))
 	}
 
 	unregisterShortcuts(shortcuts: ReadonlyArray<Shortcut>) {
-		this._applyOperation(shortcuts, (id, s) => this._keyToShortcut.delete(id))
+		this.applyOperation(shortcuts, (id, _) => this.keyToShortcut.delete(id))
 	}
 
 	registerDesktopShortcuts(shortcuts: ReadonlyArray<Shortcut>) {
-		this._applyOperation(shortcuts, (id, s) => this._desktopShortcuts.push(s))
+		this.applyOperation(shortcuts, (_, s) => this.desktopShortcuts.push(s))
 	}
 
 	registerModalShortcuts(shortcuts: Array<Shortcut>) {
-		this._applyOperation(shortcuts, (id, s) => {
-			this._keyToModalShortcut.set(id, s)
-		})
+		this.applyOperation(shortcuts, (id, s) => this.keyToModalShortcut.set(id, s))
 	}
 
 	unregisterModalShortcuts(shortcuts: Array<Shortcut>) {
-		this._applyOperation(shortcuts, (id, s) => {
-			this._keyToModalShortcut.delete(id)
-		})
+		this.applyOperation(shortcuts, (id, _) => this.keyToModalShortcut.delete(id))
 	}
 
 	/**
@@ -212,9 +240,9 @@ class KeyManager {
 	 * @param operation operation to execute for every shortcut and its ID
 	 * @private
 	 */
-	_applyOperation(shortcuts: ReadonlyArray<Shortcut>, operation: (id: string, s: Shortcut) => unknown) {
+	private applyOperation(shortcuts: ReadonlyArray<Shortcut>, operation: (id: string, s: Shortcut) => unknown) {
 		for (const s of shortcuts) {
-			operation(createKeyIdentifier(s.key.code, s.ctrl, s.alt, s.shift, s.meta), s)
+			operation(createKeyIdentifier(s.key.code, s), s)
 		}
 	}
 }
