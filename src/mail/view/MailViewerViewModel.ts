@@ -43,7 +43,7 @@ import { LockedError, NotAuthorizedError, NotFoundError } from "../../api/common
 import { getListId, haveSameId, isSameId } from "../../api/common/utils/EntityUtils"
 import { getReferencedAttachments, loadInlineImages, moveMails, revokeInlineImages } from "./MailGuiUtils"
 import { SanitizedFragment } from "../../misc/HtmlSanitizer"
-import { CALENDAR_MIME_TYPE, FileController } from "../../file/FileController"
+import { CALENDAR_MIME_TYPE, FileController, VCARD_MIME_TYPES } from "../../file/FileController"
 import { exportMails } from "../export/Exporter.js"
 import { IndexingNotSupportedError } from "../../api/common/error/IndexingNotSupportedError"
 import { FileOpenError } from "../../api/common/error/FileOpenError"
@@ -72,7 +72,6 @@ import { MailFacade } from "../../api/worker/facades/lazy/MailFacade.js"
 import { EntityUpdateData, isUpdateForTypeRef } from "../../api/common/utils/EntityUpdateUtils.js"
 import { isOfflineError } from "../../api/common/utils/ErrorUtils.js"
 import { CryptoFacade } from "../../api/worker/crypto/CryptoFacade.js"
-import { ExposedCacheStorage } from "../../api/worker/rest/DefaultEntityRestCache.js"
 
 export const enum ContentBlockingStatus {
 	Block = "0",
@@ -1040,6 +1039,19 @@ export class MailViewerViewModel {
 				console.error("could not open file:", e.message ?? "unknown error")
 				await Dialog.message("errorDuringFileOpen_msg")
 			}
+		}
+	}
+
+	async downloadAndParseVCard(file: TutanotaFile) {
+		const { vCardFileToVCards } = await import("../../contacts/VCardImporter.js")
+		file = (await this.cryptoFacade.enforceSessionKeyUpdateIfNeeded(this._mail, [file]))[0]
+		try {
+			const fileData = await this.fileController.getFileData(file, file.mimeType ?? VCARD_MIME_TYPES.X_VCARD)
+			const decoder = new TextDecoder("utf-8")
+
+			return vCardFileToVCards(decoder.decode(fileData))
+		} catch (e) {
+			await Dialog.message("errorDuringFileOpen_msg")
 		}
 	}
 

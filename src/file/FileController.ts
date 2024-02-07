@@ -23,6 +23,12 @@ import { isOfflineError } from "../api/common/utils/ErrorUtils.js"
 assertMainOrNode()
 export const CALENDAR_MIME_TYPE = "text/calendar"
 
+// We want to handle both types of vCards
+export enum VCARD_MIME_TYPES {
+	X_VCARD = "text/x-vcard",
+	VCARD = "text/vcard",
+}
+
 const enum DownloadPostProcessing {
 	Open,
 	Write,
@@ -111,6 +117,13 @@ export abstract class FileController {
 	 */
 	async open(file: TutanotaFile) {
 		await this.observeProgress(this.doDownload([file], DownloadPostProcessing.Open))
+	}
+
+	async getFileData(file: TutanotaFile, mime: string): Promise<ArrayBuffer> {
+		const dataFile = await this.getAsDataFile(file)
+		const blob = new Blob([dataFile.data], { type: mime })
+
+		return await blob.arrayBuffer()
 	}
 
 	protected abstract writeDownloadedFiles(downloadedFiles: Array<FileReference | DataFile>): Promise<void>
