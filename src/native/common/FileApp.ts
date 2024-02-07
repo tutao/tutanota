@@ -7,8 +7,6 @@ import { FileFacade } from "./generatedipc/FileFacade.js"
 import { ExportFacade } from "./generatedipc/ExportFacade.js"
 import { DownloadTaskResponse } from "./generatedipc/DownloadTaskResponse"
 import { UploadTaskResponse } from "./generatedipc/UploadTaskResponse"
-import { isDesktop } from "../../api/common/Env.js"
-import { ProgrammingError } from "../../api/common/error/ProgrammingError.js"
 
 export type FileUri = string
 
@@ -139,7 +137,6 @@ export class NativeFileApp {
 	 *   - if path is not absolute
 	 */
 	async readDataFile(uriOrPath: string): Promise<DataFile | null> {
-		if (!isDesktop()) throw new ProgrammingError("Don't call readDataFile when not in Desktop")
 		return this.fileFacade.readDataFile(uriOrPath)
 	}
 

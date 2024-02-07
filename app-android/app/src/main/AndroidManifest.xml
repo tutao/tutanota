@@ -65,6 +65,28 @@
 				<category android:name="android.intent.category.DEFAULT"/>
 				<data android:mimeType="*/*"/>
 			</intent-filter>
+			<!--Handler for "share" event or when another app wants to import a vCard file-->
+			<intent-filter android:label="Import with Tuta">
+				<action android:name="android.intent.action.SEND"/>
+				<action android:name="android.intent.action.SEND_MULTIPLE"/>
+				<action android:name="android.intent.action.SENDTO"/>
+
+				<category android:name="android.intent.category.DEFAULT"/>
+
+				<data android:mimeType="text/x-vcard"/>
+				<data android:pathPattern=".*\\.vcf"/>
+			</intent-filter>
+			<!--Handler for "open" or "edit" event for a vCard file-->
+			<intent-filter android:label="Import with Tuta">
+				<action android:name="android.intent.action.EDIT"/>
+				<action android:name="android.intent.action.VIEW"/>
+
+				<category android:name="android.intent.category.DEFAULT"/>
+
+				<data android:scheme="file"/>
+				<data android:mimeType="text/x-vcard"/>
+				<data android:pathPattern=".*\\.vcf"/>
+			</intent-filter>
 			<!--Handler for "mailto:" links-->
 			<intent-filter>
 				<action android:name="android.intent.action.SEND"/>
@@ -125,8 +147,9 @@
 				android:process=":pushprocess"/>
 
 
-		<service android:name=".credentials.AccountManagerAuthenticatorService"
-				 android:exported="false">
+		<service
+				android:name=".credentials.AccountManagerAuthenticatorService"
+				android:exported="false">
 			<intent-filter>
 				<action android:name="android.accounts.AccountAuthenticator"/>
 			</intent-filter>
