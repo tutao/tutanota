@@ -1,12 +1,12 @@
 import Foundation
 import Contacts
 
+private let PERMISSION_ERROR_DOMAIN = "de.tutao.tutanota.PermissionError"
+
 class IosMobileSystemFacade: MobileSystemFacade {
   private let contactsSynchronization: ContactsSynchronization
   private let contactsSource: ContactsSource
   private let viewController: ViewController
-
-  let PERMISSION_ERROR_DOMAIN = "de.tutao.tutanota.PermissionError"
   
   init(contactsSource: ContactsSource, viewController: ViewController, contactsSynchronization: ContactsSynchronization) {
     self.contactsSource = contactsSource
