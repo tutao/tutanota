@@ -11,7 +11,7 @@ export default {
 		"other"
 	],
 	"created_at": "2015-01-13T20:10:13Z",
-	"updated_at": "2024-01-30T06:57:18Z",
+	"updated_at": "2024-02-07T15:34:45Z",
 	"source_locale": null,
 	"fallback_locale": null,
 	"keys": {
@@ -87,6 +87,7 @@ export default {
 		"ageConfirmation_msg": "I am at least 16 years old.",
 		"agenda_label": "Agenda",
 		"allDay_label": "All Day",
+		"allowContactReadWrite_msg": "In order to synchronize your contacts, we need the permission to read and write to your contacts book. You can change this anytime in the system settings.",
 		"allowExternalContentSender_action": "Always trust sender",
 		"allowOperation_msg": "Do you want to allow this?",
 		"allowPushNotification_msg": "To receive push notifications for new emails reliably, please agree to disable battery optimizations for Tuta and grant the permission to post notifications. You can change this later in the system settings.",
@@ -269,7 +270,7 @@ export default {
 		"contactsSynchronizationWarning_msg": "Enabling contact synchronization will share your Tuta contacts to other applications that you allow access to your phone's contact book. Tuta only synchronizes changes made inside of the Tuta app, changes made on your phone's contact book will be overwritten.",
 		"contactsSynchronization_label": "Contacts Synchronization",
 		"contactSupport_action": "Contact support",
-		"contactsUsageDescription_msg": "Find recipient email address in contacts.",
+		"contactsUsageDescription_msg": "1. Find recipient email address in contacts.\\n2. Optionally synchronize Tuta contacts to your device.",
 		"contacts_label": "Contacts",
 		"contactView_action": "Switch to the contact view",
 		"contentBlocked_msg": "Automatic image loading has been blocked to protect your privacy.",
@@ -1622,7 +1623,6 @@ export default {
 		"yourCalendars_label": "Your calendars",
 		"yourFolders_action": "YOUR FOLDERS",
 		"yourMessage_label": "Your message",
-		"you_label": "You",
-		"allowContactReadWrite_msg": "In order to synchronize your contacts, we need the permission to read and write to your contacts book. You can change this anytime in the system settings."
+		"you_label": "You"
 	}
 }

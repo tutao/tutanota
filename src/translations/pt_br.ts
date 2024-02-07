@@ -11,7 +11,7 @@ export default {
 		"other"
 	],
 	"created_at": "2015-02-02T10:54:47Z",
-	"updated_at": "2024-01-18T10:52:03Z",
+	"updated_at": "2024-02-07T15:10:35Z",
 	"source_locale": {
 		"id": "1c50f9a9b6bd977b100d4e27f07e8319",
 		"name": "pt",
@@ -239,7 +239,7 @@ export default {
 		"contactForm_label": "Formulário de contato",
 		"contactListExisting_msg": "Uma lista de contato ainda existe. Por favor, remova a lista de contato.",
 		"contactSupport_action": "Entrar em contato com o suporte",
-		"contactsUsageDescription_msg": "Encontrar email do destinatário nos contatos.",
+		"contactsUsageDescription_msg": "1. Encontrar email do destinatário nos contatos.\\n2. Opcionalmente sincronizar contatos Tuta com o seu dispositivo.",
 		"contacts_label": "Contatos",
 		"contactView_action": "Ir para os contatos",
 		"contentBlocked_msg": "Para proteger sua privacidade, o carregamento automático de imagens foi bloqueado.",

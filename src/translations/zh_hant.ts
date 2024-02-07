@@ -10,7 +10,7 @@ export default {
 		"other"
 	],
 	"created_at": "2019-01-02T11:09:03Z",
-	"updated_at": "2024-01-30T19:25:55Z",
+	"updated_at": "2024-02-07T15:05:17Z",
 	"source_locale": null,
 	"fallback_locale": null,
 	"keys": {
@@ -1055,7 +1055,7 @@ export default {
 		"pleaseWait_msg": "請稍候…",
 		"postings_label": "帳單與付款",
 		"postpone_action": "稍後再說",
-		"pre1970Start_msg": "早於1970年的日期不在正確範圍內。",
+		"pre1970Start_msg": "早於1970年的日期在正確範圍以外。",
 		"premiumOffer_msg": "您的支持令我們能為每個人提供私隱保護。現在就升級，享受使用Revolutionary及Legend計劃而得到的諸多好處吧！",
 		"presharedPasswordNotStrongEnough_msg": "輸入的密碼中至少有一個保安強度不足。還是要發送電郵嗎？",
 		"presharedPasswordsUnequal_msg": "所選聯絡人擁有不同的約定密碼。他們無法合併！",

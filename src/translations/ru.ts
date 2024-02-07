@@ -13,7 +13,7 @@ export default {
 		"other"
 	],
 	"created_at": "2015-01-27T13:15:23Z",
-	"updated_at": "2024-01-20T10:22:44Z",
+	"updated_at": "2024-02-07T15:05:17Z",
 	"source_locale": {
 		"id": "fcd7471b347c8e517663e194dcddf237",
 		"name": "en",
@@ -269,6 +269,9 @@ export default {
 		"contactListInvitations_label": "Приглашения в список контактов",
 		"contactListName_label": "Имя списка контактов",
 		"contactLists_label": "Списки контактов",
+		"contactsManagement_label": "Управление контактами",
+		"contactsSynchronizationWarning_msg": "Включение синхронизации контактов позволит передавать контакты Tuta другим приложениям, которым вы разрешите доступ к книге контактов вашего телефона. Tuta синхронизирует только изменения, сделанные в приложении Tuta, изменения, сделанные в книге контактов вашего телефона, будут перезаписаны.",
+		"contactsSynchronization_label": "Contacts Synchronization",
 		"contactSupport_action": "Связаться со службой поддержки",
 		"contactsUsageDescription_msg": "Найти адрес электронной почты получателя в контактах.",
 		"contacts_label": "Контакты",

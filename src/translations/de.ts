@@ -11,7 +11,7 @@ export default {
 		"other"
 	],
 	"created_at": "2015-01-13T20:40:31Z",
-	"updated_at": "2024-01-30T06:57:18Z",
+	"updated_at": "2024-02-07T15:34:45Z",
 	"source_locale": {
 		"id": "fcd7471b347c8e517663e194dcddf237",
 		"name": "en",
@@ -91,6 +91,7 @@ export default {
 		"ageConfirmation_msg": "Ich bin mindestens 16 Jahre alt.",
 		"agenda_label": "Agenda",
 		"allDay_label": "Ganztags",
+		"allowContactReadWrite_msg": "Um deine Kontakte zu synchronisieren, benötigt Tuta die Berechtigung zum Lesen und Schreiben in deinem Adressbuch. Du kannst dies jederzeit in den Systemeinstellungen ändern.",
 		"allowExternalContentSender_action": "Dieser Adresse immer vertrauen",
 		"allowOperation_msg": "Möchtest du das erlauben?",
 		"allowPushNotification_msg": "Bitte deaktiviere die Akkuoptimierung für Tuta und erlaube Benachrichtigungen, damit Benachrichtigungen für neue E-Mails zuverlässig angezeigt werden können. Du kannst dies auch später in den Einstellungen ändern.",
@@ -273,7 +274,7 @@ export default {
 		"contactsSynchronizationWarning_msg": "Durch die Aktivierung der Kontaktsynchronisierung werden deine Tuta-Kontakte an andere Anwendungen weitergegeben, denen du Zugriff auf dein Telefonbuch erlaubst. Tuta synchronisiert nur Änderungen, die innerhalb der Tuta-App vorgenommen wurden; Änderungen in den Kontakten deines Telefons werden überschrieben.",
 		"contactsSynchronization_label": "Kontaktsynchronisierung",
 		"contactSupport_action": "Support kontaktieren",
-		"contactsUsageDescription_msg": "Suche Empfänger-E-Mail-Adressen in Kontakten.",
+		"contactsUsageDescription_msg": "1. Suche Empfänger-E-Mail-Adressen in Kontakten.\\n2. Synchronisieren von Tuta-Kontakten mit deinem Gerät, falls aktiviert.",
 		"contacts_label": "Kontakte",
 		"contactView_action": "Zur Kontakt-Ansicht wechseln",
 		"contentBlocked_msg": "Das automatische Nachladen von Bildern wurde zum Schutz deiner Privatsphäre verhindert.",
@@ -1626,7 +1627,6 @@ export default {
 		"yourCalendars_label": "Deine Kalender",
 		"yourFolders_action": "DEINE ORDNER",
 		"yourMessage_label": "Deine Nachricht",
-		"you_label": "Du",
-		"allowContactReadWrite_msg": "Um Ihre Kontakte zu synchronisieren, benötigen wir die Berechtigung zum Lesen und Schreiben in Ihrem Kontaktbuch. Du kannst dies jederzeit in den Systemeinstellungen ändern."
+		"you_label": "Du"
 	}
 }
