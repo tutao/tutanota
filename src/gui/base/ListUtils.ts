@@ -82,7 +82,7 @@ export function listSelectionKeyboardShortcuts(multiselectMode: MultiselectMode,
 		},
 		{
 			key: Keys.A,
-			ctrl: true,
+			ctrlOrCmd: true,
 			shift: true,
 			exec: mapLazily(list, (list) => (list?.areAllSelected() ? list.selectNone() : list?.selectAll())),
 			help: "selectAllLoaded_action",

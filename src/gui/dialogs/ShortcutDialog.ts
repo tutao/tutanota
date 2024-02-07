@@ -6,10 +6,14 @@ import { TextField } from "../base/TextField.js"
 import type { Shortcut } from "../../misc/KeyManager"
 import { ButtonType } from "../base/Button.js"
 import { DialogHeaderBarAttrs } from "../base/DialogHeaderBar"
+import { isAppleDevice } from "../../api/common/Env.js"
 
 function makeShortcutName(shortcut: Shortcut): string {
+	const mainModifier = isAppleDevice() ? Keys.META.name : Keys.CTRL.name
+
 	return (
 		(shortcut.meta ? Keys.META.name + " + " : "") +
+		(shortcut.ctrlOrCmd ? mainModifier + " + " : "") +
 		(shortcut.ctrl ? Keys.CTRL.name + " + " : "") +
 		(shortcut.shift ? Keys.SHIFT.name + " + " : "") +
 		(shortcut.alt ? Keys.ALT.name + " + " : "") +

@@ -79,7 +79,7 @@ export class ContactViewerActions implements Component<ContactViewToolbarAttrs> 
 		if (this.canMerge(contacts)) {
 			this.shortcuts.push({
 				key: Keys.M,
-				ctrl: true,
+				ctrlOrCmd: true,
 				exec: () => {
 					onMerge(contacts[0], contacts[1])
 				},
@@ -90,7 +90,7 @@ export class ContactViewerActions implements Component<ContactViewToolbarAttrs> 
 		if (this.canExport(contacts)) {
 			this.shortcuts.push({
 				key: Keys.E,
-				ctrl: true,
+				ctrlOrCmd: true,
 				exec: () => {
 					onExport(contacts)
 				},

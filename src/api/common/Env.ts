@@ -41,6 +41,13 @@ export function isIOSApp(): boolean {
 	return env.mode === Mode.App && env.platformId === "ios"
 }
 
+/**
+ * Return true if an Apple device; used for checking if CTRL or CMD/Meta should be used as the primary modifier
+ */
+export function isAppleDevice(): boolean {
+	return env.platformId === "darwin" || isIOSApp()
+}
+
 export function isAndroidApp(): boolean {
 	if (isApp() && env.platformId == null) {
 		throw new ProgrammingError("PlatformId is not set!")

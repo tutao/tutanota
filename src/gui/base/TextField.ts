@@ -5,7 +5,7 @@ import { theme } from "../theme"
 import type { TranslationKey } from "../../misc/LanguageViewModel"
 import { lang } from "../../misc/LanguageViewModel"
 import type { lazy } from "@tutao/tutanota-utils"
-import type { keyHandler } from "../../misc/KeyManager"
+import { keyboardEventToKeyPress, keyHandler } from "../../misc/KeyManager"
 import { TabIndex } from "../../api/common/TutanotaConstants"
 import { ClickHandler, getOperatingClasses } from "./GuiUtils"
 
@@ -256,11 +256,7 @@ export class TextField implements ClassComponent<TextFieldAttrs> {
 						onblur: (e: FocusEvent) => this.blur(e, a),
 						onkeydown: (e: KeyboardEvent) => {
 							// keydown is used to cancel certain keypresses of the user (mainly needed for the BubbleTextField)
-							let key = {
-								key: e.key,
-								ctrl: e.ctrlKey,
-								shift: e.shiftKey,
-							}
+							const key = keyboardEventToKeyPress(e)
 							return a.keyHandler != null ? a.keyHandler(key) : true
 						},
 						onupdate: () => {
@@ -314,11 +310,7 @@ export class TextField implements ClassComponent<TextFieldAttrs> {
 				onfocus: (e: FocusEvent) => this.focus(e, a),
 				onblur: (e: FocusEvent) => this.blur(e, a),
 				onkeydown: (e: KeyboardEvent) => {
-					let key = {
-						key: e.key,
-						ctrl: e.ctrlKey,
-						shift: e.shiftKey,
-					}
+					const key = keyboardEventToKeyPress(e)
 					return a.keyHandler != null ? a.keyHandler(key) : true
 				},
 				oninput: () => {

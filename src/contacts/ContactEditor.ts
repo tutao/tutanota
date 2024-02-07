@@ -563,7 +563,7 @@ export class ContactEditor {
 			})
 			.addShortcut({
 				key: Keys.S,
-				ctrl: true,
+				ctrlOrCmd: true,
 				exec: () => {
 					// noinspection JSIgnoredPromiseFromCall
 					this.validateAndSave()

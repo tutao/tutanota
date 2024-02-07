@@ -84,7 +84,7 @@ export function showEditOutOfOfficeNotificationDialog(outOfOfficeNotification: O
 		})
 		.addShortcut({
 			key: Keys.S,
-			ctrl: true,
+			ctrlOrCmd: true,
 			exec: saveOutOfOfficeNotification,
 			help: "save_action",
 		})
