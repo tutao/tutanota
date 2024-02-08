@@ -11,7 +11,7 @@ export default {
 		"other"
 	],
 	"created_at": "2015-01-13T20:40:31Z",
-	"updated_at": "2024-02-07T15:34:45Z",
+	"updated_at": "2024-02-08T10:43:28Z",
 	"source_locale": {
 		"id": "fcd7471b347c8e517663e194dcddf237",
 		"name": "en",
@@ -91,7 +91,7 @@ export default {
 		"ageConfirmation_msg": "Ich bin mindestens 16 Jahre alt.",
 		"agenda_label": "Agenda",
 		"allDay_label": "Ganztags",
-		"allowContactReadWrite_msg": "Um deine Kontakte zu synchronisieren, benötigt Tuta die Berechtigung zum Lesen und Schreiben in deinem Adressbuch. Du kannst dies jederzeit in den Systemeinstellungen ändern.",
+		"allowContactReadWrite_msg": "Die Tuta App benötigt die Berechtigung zum Lesen und Schreiben in deinem Adressbuch, um deine Kontakte zu synchronisieren. Du kannst dies jederzeit in den Systemeinstellungen ändern.",
 		"allowExternalContentSender_action": "Dieser Adresse immer vertrauen",
 		"allowOperation_msg": "Möchtest du das erlauben?",
 		"allowPushNotification_msg": "Bitte deaktiviere die Akkuoptimierung für Tuta und erlaube Benachrichtigungen, damit Benachrichtigungen für neue E-Mails zuverlässig angezeigt werden können. Du kannst dies auch später in den Einstellungen ändern.",

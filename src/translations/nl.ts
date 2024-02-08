@@ -11,7 +11,7 @@ export default {
 		"other"
 	],
 	"created_at": "2015-01-27T13:13:55Z",
-	"updated_at": "2024-02-07T15:05:17Z",
+	"updated_at": "2024-02-08T12:41:51Z",
 	"source_locale": {
 		"id": "fcd7471b347c8e517663e194dcddf237",
 		"name": "en",
@@ -91,6 +91,7 @@ export default {
 		"ageConfirmation_msg": "Ik ben tenminste 16 jaar oud.",
 		"agenda_label": "Agenda",
 		"allDay_label": "Gehele dag",
+		"allowContactReadWrite_msg": "Om uw contacten te kunnen synchroniseren, heeft de Tuta-app toestemming nodig om uw adresboek te lezen en ernaar te schrijven. U kunt dit op elk moment wijzigen in de systeeminstellingen.",
 		"allowExternalContentSender_action": "Vertrouw afzender altijd",
 		"allowOperation_msg": "Wil je dat toestaan?",
 		"allowPushNotification_msg": "Om verzekerd te zijn van pushnotificaties voor nieuwe e-mails, graag instemmen met het deactiveren van de batterij-optimalisatie voor Tuta. U kunt dit later veranderen in de systeeminstellingen.",
@@ -272,7 +273,7 @@ export default {
 		"contactsSynchronizationWarning_msg": "Als u de synchronisatie van contacten inschakelt, worden uw Tuta-contacten gedeeld met andere applicaties die u toegang geeft tot het contactenboek van uw telefoon. Tuta synchroniseert alleen wijzigingen die in de Tuta-app zijn gemaakt, wijzigingen in het contactenboek van uw telefoon worden overschreven.",
 		"contactsSynchronization_label": "Synchronisatie van contacten",
 		"contactSupport_action": "Contact opnemen met ondersteuning",
-		"contactsUsageDescription_msg": "Zoek e-mailadressen van ontvangers in contacten.",
+		"contactsUsageDescription_msg": "1. Zoek het e-mailadres van de ontvanger in contacten. \\n2. Synchroniseer eventueel Tuta-contacten met je apparaat.",
 		"contacts_label": "Contacten",
 		"contactView_action": "Naar contactweergave wisselen",
 		"contentBlocked_msg": "Automatisch laden van afbeeldingen geblokkeerd om uw privacy te beschermen.",

@@ -13,7 +13,7 @@ export default {
 		"other"
 	],
 	"created_at": "2015-01-27T13:13:41Z",
-	"updated_at": "2024-02-07T15:05:17Z",
+	"updated_at": "2024-02-08T10:42:12Z",
 	"source_locale": {
 		"id": "fcd7471b347c8e517663e194dcddf237",
 		"name": "en",
@@ -93,6 +93,7 @@ export default {
 		"ageConfirmation_msg": "Mam co najmniej 16 lat.",
 		"agenda_label": "Agenda",
 		"allDay_label": "Cały dzień",
+		"allowContactReadWrite_msg": "Aby zsynchronizować kontakty, potrzebujemy uprawnień do odczytu \ni zapisu kontaktów w urządzeniu. Można to zmienić w dowolnym momencie w \nustawieniach systemu.",
 		"allowExternalContentSender_action": "Zawsze ufaj nadawcy",
 		"allowOperation_msg": "Czy chcesz na to pozwolić?",
 		"allowPushNotification_msg": "Aby na pewno otrzymywać powiadomienia push dla nowych wiadomości e-mail, wyłącz optymalizację baterii dla Tuta oraz udziel zgody na otrzymywanie powiadomień. Możesz to później zmienić w ustawieniach systemu.",
@@ -273,7 +274,7 @@ export default {
 		"contactsSynchronizationWarning_msg": "Włączenie synchronizacji kontaktów spowoduje udostępnienie kontaktów Tuta innym aplikacjom, którym zezwolisz na dostęp do kontaktów telefonu. Tuta synchronizuje tylko zmiany wprowadzone w aplikacji Tuta, zmiany wprowadzone w kontaktach telefonu zostaną nadpisane.",
 		"contactsSynchronization_label": "Synchronizacja kontaktów",
 		"contactSupport_action": "Skontaktuj się z działem wsparcia",
-		"contactsUsageDescription_msg": "Znajdź adres e-mail adresata w kontaktach",
+		"contactsUsageDescription_msg": "1. Znajdź adres e-mail odbiorcy w kontaktach.\\n2. Opcjonalnie zsynchronizuj kontakty Tuta z urządzeniem.",
 		"contacts_label": "Kontakty",
 		"contactView_action": "Przełącz na widok kontaktów",
 		"contentBlocked_msg": "Automatyczne ładowanie obrazków zostało zablokowane ze względu na ochronę prywatności.",

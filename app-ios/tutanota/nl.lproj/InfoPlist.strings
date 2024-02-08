@@ -1,7 +1,7 @@
 NSCameraUsageDescription = "Maak een foto of video om toe te voegen als bijlage.";
 NSPhotoLibraryUsageDescription = "Afbeeldingen uit uw bibliotheek kunnen als bijlagen worden verzonden.";
 NSMicrophoneUsageDescription = "Gebruikt bij het opnemen van een video als bijlage.";
-NSContactsUsageDescription = "Zoek e-mailadressen van ontvangers in contacten.";
+NSContactsUsageDescription = "1. Zoek het e-mailadres van de ontvanger in contacten. \n2. Synchroniseer eventueel Tuta-contacten met je apparaat.";
 NSRemindersUsageDescription = "Laat notificatie zien als er nieuwe e-mail binnenkomt.";
 TutaoShowCameraAction = "Camera";
 TutaoChoosePhotosAction = "Foto's";

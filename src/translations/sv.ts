@@ -11,7 +11,7 @@ export default {
 		"other"
 	],
 	"created_at": "2015-03-23T11:36:16Z",
-	"updated_at": "2024-02-07T15:05:17Z",
+	"updated_at": "2024-02-08T10:42:12Z",
 	"source_locale": null,
 	"fallback_locale": null,
 	"keys": {
@@ -87,6 +87,7 @@ export default {
 		"ageConfirmation_msg": "Jag är 16 år eller äldre.",
 		"agenda_label": "Agenda",
 		"allDay_label": "Hela Dagen",
+		"allowContactReadWrite_msg": "För att kunna synkronisera dina kontakter behöver vi läs- och skrivtillstånd i din kontaktbok. Du kan ändra detta när som helst i systeminställningarna.",
 		"allowExternalContentSender_action": "Lita alltid på avsändaren",
 		"allowOperation_msg": "Vill du tillåta det här?",
 		"allowPushNotification_msg": "För att kunna ta emot push notiser till Tuta för nya mejl på ett tillförlitligt sätt, samtyck då att inaktivera batterioptimeringar och ge tillstånd till notiser. Du kan ändra detta senare i systeminställningarna.\n",
@@ -269,7 +270,7 @@ export default {
 		"contactsSynchronizationWarning_msg": "Om du aktiverar synkronisering av kontakter kommer dina Tuta kontakter att delas med andra program som du ger åtkomst till telefonens kontaktbok. Tuta synkroniserar endast ändringar som gjorts i Tuta appen, ändringar som gjorts i telefonens kontaktbok kommer att skrivas över.",
 		"contactsSynchronization_label": "Synkronisering av kontakter",
 		"contactSupport_action": "Kontakta support",
-		"contactsUsageDescription_msg": "Hitta mottagares e-postadress i kontakter.",
+		"contactsUsageDescription_msg": "1. Hitta mottagarens e-postadress i kontakter.\\n2. Alternativt kan du synkronisera Tuta kontakter till din enhet.",
 		"contacts_label": "Kontakter",
 		"contactView_action": "Växla till kontaktvyn",
 		"contentBlocked_msg": "Automatisk bildinläsning har blockerats för att skydda din integritet.",

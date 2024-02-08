@@ -11,7 +11,7 @@ export default {
 		"other"
 	],
 	"created_at": "2015-01-27T13:13:02Z",
-	"updated_at": "2024-02-07T15:05:17Z",
+	"updated_at": "2024-02-08T10:42:12Z",
 	"source_locale": {
 		"id": "fcd7471b347c8e517663e194dcddf237",
 		"name": "en",
@@ -91,6 +91,7 @@ export default {
 		"ageConfirmation_msg": "Soy mayor de 16 años.",
 		"agenda_label": "Agenda",
 		"allDay_label": "Todo el día",
+		"allowContactReadWrite_msg": "Para sincronizar tus contactos, necesitamos el permiso para leer y escribir en tu libreta de contactos. Puedes cambiar esto en cualquier momento en la configuración del sistema.",
 		"allowExternalContentSender_action": "Confiar siempre en el remitente",
 		"allowOperation_msg": "¿Quieres permitir esto?",
 		"allowPushNotification_msg": "Para recibir notificaciones push para nuevos correos de forma fiable, por favor acepta deshabilitar las optimizaciones de la batería para Tuta. Puedes cambiarlo más adelante en los ajustes del sistema.",
@@ -273,7 +274,7 @@ export default {
 		"contactsSynchronizationWarning_msg": "Al activar la sincronización de contactos, compartirás tus contactos de Tuta con otras aplicaciones a las que permitas acceder a la agenda de contactos de tu teléfono. Tuta solo sincroniza los cambios realizados dentro de la aplicación Tuta, los cambios realizados en la libreta de contactos de tu teléfono se sobrescribirán.",
 		"contactsSynchronization_label": "Sincronización de contactos",
 		"contactSupport_action": "Ponte en contacto con el soporte técnico",
-		"contactsUsageDescription_msg": "Encuentra la dirección del destinatario entre tus contactos.",
+		"contactsUsageDescription_msg": "1. Busca la dirección de correo electrónico del destinatario en contactos.\\n2. Opcionalmente, sincroniza los contactos de Tuta con tu dispositivo.",
 		"contacts_label": "Contactos",
 		"contactView_action": "Cambiar a la vista de contactos",
 		"contentBlocked_msg": "La carga automática de imágenes ha sido bloqueado para proteger tu privacidad.",
