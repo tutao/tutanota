@@ -11,7 +11,7 @@ export default {
 		"other"
 	],
 	"created_at": "2015-01-13T20:10:13Z",
-	"updated_at": "2024-02-07T15:34:45Z",
+	"updated_at": "2024-02-08T10:42:50Z",
 	"source_locale": null,
 	"fallback_locale": null,
 	"keys": {
@@ -87,7 +87,7 @@ export default {
 		"ageConfirmation_msg": "I am at least 16 years old.",
 		"agenda_label": "Agenda",
 		"allDay_label": "All Day",
-		"allowContactReadWrite_msg": "In order to synchronize your contacts, we need the permission to read and write to your contacts book. You can change this anytime in the system settings.",
+		"allowContactReadWrite_msg": "In order to synchronize your contacts, the Tuta app needs the permission to read and write to your address book. You can change this anytime in the system settings.",
 		"allowExternalContentSender_action": "Always trust sender",
 		"allowOperation_msg": "Do you want to allow this?",
 		"allowPushNotification_msg": "To receive push notifications for new emails reliably, please agree to disable battery optimizations for Tuta and grant the permission to post notifications. You can change this later in the system settings.",

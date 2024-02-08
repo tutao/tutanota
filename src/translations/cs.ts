@@ -13,7 +13,7 @@ export default {
 		"other"
 	],
 	"created_at": "2015-04-24T12:42:36Z",
-	"updated_at": "2024-02-07T15:05:17Z",
+	"updated_at": "2024-02-08T10:42:12Z",
 	"source_locale": null,
 	"fallback_locale": null,
 	"keys": {
@@ -89,6 +89,7 @@ export default {
 		"ageConfirmation_msg": "Je mi alespoň 16 let.",
 		"agenda_label": "Agenda",
 		"allDay_label": "Celý den",
+		"allowContactReadWrite_msg": "Abychom mohli synchronizovat vaše kontakty, potřebuje povolit zápis a čtení vašeho adresáře v telefonu. Změnit to můžete kdykoliv v systémovém nastavení.",
 		"allowExternalContentSender_action": "Vždy důvěřovat odesílateli",
 		"allowOperation_msg": "Chcete to povolit?",
 		"allowPushNotification_msg": "Pro spolehlivé zasílání oznámení o nových e-mailech zrušte prosím optimalizaci baterie pro aplikaci Tuta a povolte zasílání oznámení. Můžete to později změnit v nastavení systému.",
@@ -269,7 +270,7 @@ export default {
 		"contactsSynchronizationWarning_msg": "Povolíte-li synchronizaci kontaktů, budou mít ke kontaktům Tuta přístup i další aplikace, kterým povolíte přístup k telefonnímu seznamu vašeho zařízení. Tuta bude synchronizovat pouze změny provedené v aplikaci Tuta, změny provedené v telefonním seznamu vašeho zařízení budou přepsány.",
 		"contactsSynchronization_label": "Synchronizace kontaktů",
 		"contactSupport_action": "Kontaktujte podporu",
-		"contactsUsageDescription_msg": "Najít adresu příjemce v kontaktech",
+		"contactsUsageDescription_msg": "1. Vyhledejte adresu příjemců v kontaktech.\\n2. Volitelně můžete synchronizovat kontakty Tuta s vaším zařízením.",
 		"contacts_label": "Kontakty",
 		"contactView_action": "Přejít do zobrazení kontaktů",
 		"contentBlocked_msg": "Automatické nahrávání obrázků bylo zablokováno kvůli ochraně Vašeho soukromí.",
