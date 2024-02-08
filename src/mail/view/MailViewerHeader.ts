@@ -1,6 +1,6 @@
 import m, { Children, Component, Vnode } from "mithril"
 import { InfoLink, lang } from "../../misc/LanguageViewModel.js"
-import { getFolderIconByType, getMailAddressDisplayText, getSenderAddressDisplay } from "../model/MailUtils.js"
+import { getConfidentialIcon, getFolderIconByType, getMailAddressDisplayText, getSenderAddressDisplay } from "../model/MailUtils.js"
 import { theme } from "../../gui/theme.js"
 import { styles } from "../../gui/styles.js"
 import { ExpanderButton, ExpanderPanel } from "../../gui/base/Expander.js"
@@ -127,7 +127,7 @@ export class MailViewerHeader implements Component<MailViewerHeaderAttrs> {
 					m(".flex.ml-between-s.items-center", [
 						viewModel.isConfidential()
 							? m(Icon, {
-									icon: Icons.Lock,
+									icon: getConfidentialIcon(viewModel.mail),
 									container: "div",
 									style: {
 										fill: theme.content_button,
