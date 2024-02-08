@@ -332,16 +332,52 @@ private class NativeMutableContact {
       }
     }
 
-    self.contact.emailAddresses = data.mailAddresses.map { address in CNLabeledValue(label: address.type.toCNLabel(), value: address.address as NSString) }
-    self.contact.phoneNumbers = data.phoneNumbers.map { number in CNLabeledValue( label: number.type.toCNLabel(), value: CNPhoneNumber(stringValue: number.number)) }
+    self.contact.emailAddresses = data.mailAddresses.map { address in address.toLabeledValue() }
+    self.contact.phoneNumbers = data.phoneNumbers.map { number in number.toLabeledValue() }
+    self.contact.postalAddresses = data.addresses.map{ address in address.toLabeledValue() }
+  }
+}
 
-    // We put the entirely address into the street because we don't handle address by separate parts into our app.
-    self.contact.postalAddresses = data.addresses.map{ address in {
-        let postalAddress = CNMutablePostalAddress()
-        postalAddress.street = address.address
-        return CNLabeledValue(label: address.type.toCNLabel(), value: postalAddress)
-      }()
+private extension StructuredMailAddress {
+  func toLabeledValue() -> CNLabeledValue<NSString> {
+    let label = switch self.type {
+    case ._private: CNLabelHome
+    case .work: CNLabelWork
+    case .custom: self.customTypeName
+    default: CNLabelOther
     }
+    return CNLabeledValue(label: label, value: self.address as NSString)
+  }
+}
+
+private extension StructuredPhoneNumber {
+  func toLabeledValue() -> CNLabeledValue<CNPhoneNumber> {
+    let label = switch self.type {
+    case ._private: CNLabelHome
+    case .work: CNLabelWork
+    case .mobile: CNLabelPhoneNumberMobile
+    case .fax: CNLabelPhoneNumberOtherFax
+    case .custom: self.customTypeName
+    default: CNLabelOther
+    }
+    let number = CNPhoneNumber(stringValue: self.number)
+    return CNLabeledValue(label: label, value: number)
+  }
+}
+
+private extension StructuredAddress {
+  func toLabeledValue() -> CNLabeledValue<CNPostalAddress> {
+    let label = switch self.type {
+    case ._private: CNLabelHome
+    case .work: CNLabelWork
+    case .custom: self.customTypeName
+    default: CNLabelOther
+    }
+    let address = CNMutablePostalAddress()
+    // Contacts framework operates on structured addresses but that's not how we store them on the server
+    // and that's not how it works in many parts of the world either.
+    address.street = self.address
+    return CNLabeledValue(label: label, value: address)
   }
 }
 
