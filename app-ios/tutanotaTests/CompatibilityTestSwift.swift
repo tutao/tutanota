@@ -4,7 +4,7 @@ import XCTest
 
 // used for testing Swift code
 class CompatibilityTestSwift: XCTestCase {
-  var testData: [String: Any]?
+  private var testData: [String: Any]?
 
   override func setUp() async throws {
     try await super.setUp()

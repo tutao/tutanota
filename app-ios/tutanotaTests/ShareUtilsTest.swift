@@ -4,7 +4,7 @@ import XCTest
 
 class SharingUtilsTest: XCTestCase {
 
-  func generateVcardTemplate(fn: String) -> String {
+  private func generateVcardTemplate(fn: String) -> String {
     return
       """
         BEGIN:VCARD

@@ -3,11 +3,11 @@ import XCTest
 @testable import tutanota
 
 class AlarmModelTest: XCTestCase {
-  let perAlarmLimit = 5
-  let overallAlarmLimit = 10
+  private let perAlarmLimit = 5
+  private let overallAlarmLimit = 10
 
-  var dateProvider: DateProviderStub!
-  var alarmModel: AlarmModel!
+  private var dateProvider: DateProviderStub!
+  private var alarmModel: AlarmModel!
 
   override func setUp() {
     dateProvider = DateProviderStub()
