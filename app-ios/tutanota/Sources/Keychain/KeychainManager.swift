@@ -86,7 +86,7 @@ class KeychainManager: NSObject {
     let status = SecItemCopyMatching(getQuery as CFDictionary, &item)
     if status != errSecSuccess {
       throw TUTErrorFactory.createError("Failed to get key \(keyId). status: \(status)") as NSError
-    } else if let item = item {
+    } else if let item {
       return (item as! Data)
     } else {
       return nil
@@ -124,7 +124,7 @@ class KeychainManager: NSObject {
     var error: Unmanaged<CFError>?
     let encryptedData = SecKeyCreateEncryptedData(publicKey, Self.DATA_ALGORITHM, data as CFData, &error) as Data?
 
-    guard let encryptedData = encryptedData else {
+    guard let encryptedData else {
       switch try self.handleKeychainError(error!, mode: encryptionMode) {
       case .unrecoverable(let error):
         throw error
@@ -142,7 +142,7 @@ class KeychainManager: NSObject {
     var error: Unmanaged<CFError>?
     let decryptedData = SecKeyCreateDecryptedData(key, Self.DATA_ALGORITHM, encryptedData as CFData, &error) as Data?
 
-    guard let decryptedData = decryptedData else {
+    guard let decryptedData else {
       switch try self.handleKeychainError(error!, mode: encryptionMode) {
       case .unrecoverable(let error):
         throw error
@@ -210,7 +210,7 @@ class KeychainManager: NSObject {
       &error
     )
 
-    if let accessControl = accessControl {
+    if let accessControl {
       return accessControl
     } else {
       let error = error!.takeRetainedValue() as Error as NSError

@@ -13,7 +13,7 @@ class KeychainAlarmCryptor: AlarmCryptor {
 
   func decrypt(alarm encAlarmNotification: EncryptedAlarmNotification) throws -> AlarmNotification {
     let sessionKey = self.resolveSessionkey(alarmNotification: encAlarmNotification)
-    guard let sessionKey = sessionKey else {
+    guard let sessionKey else {
       throw TUTErrorFactory.createError("Cannot resolve session key")
     }
     return try AlarmNotification(encrypted: encAlarmNotification, sessionKey: sessionKey)
@@ -25,7 +25,7 @@ class KeychainAlarmCryptor: AlarmCryptor {
       do {
         let pushIdentifierSessionKey = try self.keychainManager
           .getKey(keyId: notificationSessionKey.pushIdentifier.elementId)
-        guard let pushIdentifierSessionKey = pushIdentifierSessionKey else {
+        guard let pushIdentifierSessionKey else {
           continue
         }
         let encSessionKey = Data(base64Encoded: notificationSessionKey.pushIdentifierSessionEncSessionKey)!

@@ -48,7 +48,7 @@ class NotificationStorage {
   var alarms: [EncryptedAlarmNotification] {
     get {
       let notificationsJsonData = self.userPreferencesProvider.getObject(forKey: ALARMS_KEY)
-      if let notificationsJsonData = notificationsJsonData {
+      if let notificationsJsonData {
         return try! JSONDecoder().decode(Array<EncryptedAlarmNotification>.self, from: notificationsJsonData as! Data)
       } else {
         return []
@@ -90,7 +90,7 @@ class NotificationStorage {
   func clear() {
     TUTSLog("UserPreference clear")
     let sseInfo = self.sseInfo
-    if var sseInfo = sseInfo {
+    if var sseInfo {
       sseInfo.userIds = []
       self.put(sseInfo: nil)
       self.lastMissedNotificationCheckTime = nil
@@ -99,7 +99,7 @@ class NotificationStorage {
   }
 
   private func put(sseInfo: SSEInfo?) {
-    if let sseInfo = sseInfo {
+    if let sseInfo {
       let dict: NSDictionary = try! DictionaryEncoder().encode(sseInfo)
       self.userPreferencesProvider.setValue(dict, forKey: SSE_INFO_KEY)
     } else {

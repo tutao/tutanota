@@ -100,7 +100,7 @@ class IosFileFacade: FileFacade {
       let session = URLSession(configuration: .ephemeral)
 
       let task = session.uploadTask(with: self.schemeHandler.rewriteRequest(request), fromFile: URL(fileURLWithPath: sourceFileUrl)) { data, response, error in
-        if let error = error {
+        if let error {
           continuation.resume(with: .failure(error))
           return
         }
@@ -125,7 +125,7 @@ class IosFileFacade: FileFacade {
         configuration.timeoutIntervalForRequest = 20
         let session = URLSession(configuration: configuration)
         let task = session.dataTask(with: self.schemeHandler.rewriteRequest(request)) { data, response, error in
-          if let error = error {
+          if let error {
             continuation.resume(with: .failure(error))
             return
           }

@@ -252,7 +252,7 @@ class TUTFileChooser: NSObject, UIImagePickerControllerDelegate, UINavigationCon
                 if (info?[PHImageResultIsDegradedKey as AnyHashable] as? Bool) == .some(true) {
                   return
                 }
-                guard let result = result else {
+                guard let result else {
                   sendError(error: TUTErrorFactory.createError("No asset resource for image"))
                   return
                 }
@@ -270,7 +270,7 @@ class TUTFileChooser: NSObject, UIImagePickerControllerDelegate, UINavigationCon
                 }
                 sendResult(filePath: filePath.path)
               })
-          } else if let mediaUrl = mediaUrl {  // for videos
+          } else if let mediaUrl {  // for videos
             copyFileToLocalFolderAndSendResult(srcUrl: mediaUrl, filename: fileName)
           } else {
             sendError(
@@ -390,7 +390,7 @@ extension TUTFileChooser: PHPickerViewControllerDelegate {
           waitGroup.enter()
           result.itemProvider.loadFileRepresentation(forTypeIdentifier: type) {
             (url, error) in
-            if let url = url {
+            if let url {
               do {
                 let resultUrl = try self.copyToLocalFolder(
                   srcUrl: url, filename: url.lastPathComponent)

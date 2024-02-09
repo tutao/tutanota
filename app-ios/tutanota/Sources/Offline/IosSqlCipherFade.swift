@@ -84,7 +84,7 @@ actor IosSqlCipherFacade: SqlCipherFacade {
    */
   func lockRangesDbAccess(_ listId: String) async throws {
     let listIdLock = await concurrentListIdLocks.get(listId)
-    if let listIdLock = listIdLock {
+    if let listIdLock {
       await withCheckedContinuation { (continuation: CheckedContinuation<Void, Never>) in
         let cancellable = listIdLock
           .first(where: { $0 == .listIdUnlocked })

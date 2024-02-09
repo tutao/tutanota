@@ -50,7 +50,7 @@ class NotificationsHandler {
     TUTSLog("Adding fetch notification operation to queue")
     self.fetchQueue.addOperation { [weak self] in
       let void: Void = ()
-      guard let self = self else {
+      guard let self else {
         completionHandler(.success(void))
         return
       }

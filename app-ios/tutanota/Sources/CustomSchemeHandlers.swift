@@ -51,7 +51,7 @@ class ApiSchemeHandler: NSObject, WKURLSchemeHandler {
         return
       }
 
-      if let err = err {
+      if let err {
         if (err as NSError).domain == NSURLErrorDomain && (err as NSError).code == NSURLErrorCancelled {
           return
         }

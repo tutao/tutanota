@@ -48,7 +48,7 @@ class IosWebauthnFacade: WebAuthnFacade {
         URLQueryItem(name: "cbUrl", value: "tutanota://{result}")
       ]
       let session = ASWebAuthenticationSession(url: urlComponents.url!, callbackURLScheme: "tutanota") { url, error in
-        if let url = url {
+        if let url {
           continuation.resume(returning: url)
         } else {
           if error! is ASWebAuthenticationSessionError {
