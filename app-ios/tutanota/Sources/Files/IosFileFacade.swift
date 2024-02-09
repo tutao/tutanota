@@ -20,10 +20,10 @@ class IosFileFacade: FileFacade {
 		try content.data.write(to: fileURL, options: .atomic)
 	}
 
-	private func readFile(_ file: String) async throws -> DataWrapper? {
-		let data = try? Data(contentsOf: URL(string: file)!)
-		return data?.wrap()
-	}
+  private func readFile(_ path: String) throws -> DataWrapper {
+	  let data = try Data(contentsOf: URL(fileURLWithPath: path))
+	  return data.wrap()
+  }
 
 	func open(_ location: String, _ mimeType: String) async throws { await self.viewer.openFile(path: location) }
 
@@ -183,13 +183,15 @@ class IosFileFacade: FileFacade {
 		return filePath
 	}
 
-	func readDataFile(_ filePath: String) async throws -> DataFile? {
-		if let data = try await readFile(filePath) {
-			return DataFile(name: try await getName(filePath), mimeType: try await getMimeType(filePath), size: try await getSize(filePath), data: data)
-		} else {
-			return nil
-		}
-	}
+  func readDataFile(_ filePath: String) async throws -> DataFile? {
+	  let data = try readFile(filePath)
+	  return DataFile(
+		name: try await getName(filePath),
+		mimeType: try await getMimeType(filePath),
+		size: try await getSize(filePath),
+		data: data
+	  )
+  }
 
 	private func clearDirectory(folderPath: String) async throws {
 		let fileManager = FileManager.default
