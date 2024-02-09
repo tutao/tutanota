@@ -211,7 +211,7 @@ export class MultiDayCalendarView implements Component<MultiDayCalendarViewAttrs
 				onmouseleave: (mouseEvent: EventRedraw<MouseEvent>) => {
 					mouseEvent.redraw = false
 
-					this.endDrag(mouseEvent)
+					this.cancelDrag()
 				},
 			},
 			[
@@ -526,8 +526,11 @@ export class MultiDayCalendarView implements Component<MultiDayCalendarViewAttrs
 								},
 								key: event._id[0] + event._id[1] + event.startTime.getTime(),
 								onmousedown: () => {
-									this.isHeaderEventBeingDragged = true
-									this.startEventDrag(event)
+									// Only allow dragging all-day events on the desktop layout, since the header supports it
+									if (styles.isDesktopLayout()) {
+										this.isHeaderEventBeingDragged = true
+										this.startEventDrag(event)
+									}
 								},
 							},
 							this.renderLongEventBubble(
@@ -651,5 +654,9 @@ export class MultiDayCalendarView implements Component<MultiDayCalendarViewAttrs
 		if (this.dateUnderMouse) {
 			this.eventDragHandler.endDrag(this.dateUnderMouse, pos).catch(ofClass(UserError, showUserError))
 		}
+	}
+
+	private cancelDrag() {
+		this.eventDragHandler.cancelDrag()
 	}
 }
