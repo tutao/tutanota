@@ -44,7 +44,7 @@ fileprivate extension LAContext {
   func canEvaluatePolicy(_ policy: LAPolicy) -> Bool {
     var error: NSError?
     let supported = self.canEvaluatePolicy(policy, error: &error)
-    if let error = error {
+    if let error {
       TUTSLog("Cannot evaluate policy \(policy): \(error.debugDescription)")
     }
     return supported

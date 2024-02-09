@@ -164,7 +164,7 @@ private struct LazyEventSequence: Sequence, IteratorProtocol {
       value: repeatRule.interval * ocurrenceNumber,
       to: calcEventStart
     )!
-    if let endDate = endDate, occurrenceDate >= endDate {
+    if let endDate, occurrenceDate >= endDate {
       return nil
     } else {
       let occurrence = EventOccurrence(

@@ -46,7 +46,7 @@ class SystemAlarmScheduler: AlarmScheduler {
     TUTSLog("Scheduling a notification \(info.identifier) at \(cal.date(from: dateComponents)!)")
 
     UNUserNotificationCenter.current().add(request) { error in
-      if let error = error {
+      if let error {
         // We should make the whole funciton async and wait for it
         TUTSLog("Failed to schedule a notification \(error)")
       }
