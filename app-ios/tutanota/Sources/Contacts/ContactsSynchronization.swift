@@ -80,7 +80,7 @@ class ContactsSynchronization {
     var mapping = try self.getOrCreateMapping(username: username)
 
     if let contactId {
-      if let localIdentifier = mapping.localContactIdentifierToServerId.first(where: { localIdentifier, serverId in serverId == contactId })?.key {
+      if let localIdentifier = mapping.localContactIdentifierToServerId.first(where: { _, serverId in serverId == contactId })?.key {
         try self.delete(contactsWithLocalIdentifiers: [localIdentifier], forUser: &mapping)
         self.saveMapping(mapping, forUsername: username)
       }
@@ -162,7 +162,7 @@ class ContactsSynchronization {
     fetch.predicate = CNContact.predicateForContacts(withIdentifiers: nativeIdentifiersToRemove)
     let save = CNSaveRequest()
 
-    try store.enumerateContacts(with: fetch) { contact, stopPointer in
+    try store.enumerateContacts(with: fetch) { contact, _ in
       save.delete(contact.mutableCopy() as! CNMutableContact)
       user.localContactIdentifierToServerId.removeValue(forKey: contact.identifier)
     }
@@ -180,7 +180,7 @@ class ContactsSynchronization {
     fetch.predicate = CNContact.predicateForContactsInGroup(withIdentifier: group.identifier)
     let save = CNSaveRequest()
 
-    try store.enumerateContacts(with: fetch) { contact, stopPointer in
+    try store.enumerateContacts(with: fetch) { contact, _ in
       save.delete(contact.mutableCopy() as! CNMutableContact)
     }
 
@@ -201,7 +201,7 @@ class ContactsSynchronization {
     var contactsById = Dictionary(uniqueKeysWithValues: contacts.map { ($0.id, $0) })
 
     // Enumerate all contacts in our group
-    try store.enumerateContacts(with: fetch) { nativeContact, stopPointer in
+    try store.enumerateContacts(with: fetch) { nativeContact, _ in
       if let tutaContactId = user.localContactIdentifierToServerId[nativeContact.identifier], let tutaContact = contactsById.removeValue(forKey: tutaContactId) {
         let nativeMutableContact = NativeMutableContact(existingContact: nativeContact.mutableCopy() as! CNMutableContact, withId: tutaContactId, container: self.localContainer)
         queryResult.matchedStoredContacts.append((tutaContact, nativeMutableContact))
