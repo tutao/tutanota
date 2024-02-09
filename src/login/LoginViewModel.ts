@@ -133,6 +133,9 @@ export class LoginViewModel implements ILoginViewModel {
 	readonly savePassword: Stream<boolean>
 	private savedInternalCredentials: ReadonlyArray<CredentialsInfo>
 
+	// visibleForTesting
+	autoLoginCredentials: CredentialsInfo | null
+
 	constructor(
 		private readonly loginController: LoginController,
 		private readonly credentialsProvider: CredentialsProvider,
@@ -147,12 +150,10 @@ export class LoginViewModel implements ILoginViewModel {
 		this.helpText = "emptyString_msg"
 		this.mailAddress = stream("")
 		this.password = stream("")
-		this._autoLoginCredentials = null
+		this.autoLoginCredentials = null
 		this.savePassword = stream(false)
 		this.savedInternalCredentials = []
 	}
-
-	_autoLoginCredentials: CredentialsInfo | null
 
 	/**
 	 * This method should be called right after creation of the view model by whoever created the viewmodel. The view model will not be
@@ -160,13 +161,13 @@ export class LoginViewModel implements ILoginViewModel {
 	 * @returns {Promise<void>}
 	 */
 	async init(): Promise<void> {
-		await this._updateCachedCredentials()
+		await this.updateCachedCredentials()
 	}
 
 	async useUserId(userId: string): Promise<void> {
-		this._autoLoginCredentials = await this.credentialsProvider.getCredentialsInfoByUserId(userId)
+		this.autoLoginCredentials = await this.credentialsProvider.getCredentialsInfoByUserId(userId)
 
-		if (this._autoLoginCredentials) {
+		if (this.autoLoginCredentials) {
 			this.displayMode = DisplayMode.Credentials
 		} else {
 			this.displayMode = DisplayMode.Form
@@ -175,7 +176,7 @@ export class LoginViewModel implements ILoginViewModel {
 
 	canLogin(): boolean {
 		if (this.displayMode === DisplayMode.Credentials) {
-			return this._autoLoginCredentials != null || this.savedInternalCredentials.length === 1
+			return this.autoLoginCredentials != null || this.savedInternalCredentials.length === 1
 		} else if (this.displayMode === DisplayMode.Form) {
 			return Boolean(this.mailAddress() && this.password())
 		} else {
@@ -187,7 +188,7 @@ export class LoginViewModel implements ILoginViewModel {
 		const credentialsInfo = await this.credentialsProvider.getCredentialsInfoByUserId(encryptedCredentials.userId)
 
 		if (credentialsInfo) {
-			this._autoLoginCredentials = credentialsInfo
+			this.autoLoginCredentials = credentialsInfo
 			this.displayMode = DisplayMode.Credentials
 		}
 	}
@@ -197,9 +198,9 @@ export class LoginViewModel implements ILoginViewModel {
 		this.state = LoginState.LoggingIn
 
 		if (this.displayMode === DisplayMode.Credentials || this.displayMode === DisplayMode.DeleteCredentials) {
-			await this._autologin()
+			await this.autologin()
 		} else if (this.displayMode === DisplayMode.Form) {
-			await this._formLogin()
+			await this.formLogin()
 		} else {
 			throw new ProgrammingError(`Cannot login with current display mode: ${this.displayMode}`)
 		}
@@ -220,7 +221,7 @@ export class LoginViewModel implements ILoginViewModel {
 		} catch (e) {
 			if (e instanceof KeyPermanentlyInvalidatedError) {
 				await this.credentialsProvider.clearCredentials(e)
-				await this._updateCachedCredentials()
+				await this.updateCachedCredentials()
 				this.state = LoginState.NotAuthenticated
 				return
 			} else if (e instanceof CancelledError) {
@@ -239,7 +240,7 @@ export class LoginViewModel implements ILoginViewModel {
 			await this.loginController.deleteOldSession(credentials.credentials, (await this.pushServiceApp?.loadPushIdentifierFromNative()) ?? null)
 			await this.credentialsProvider.deleteByUserId(credentials.credentials.userId)
 			await this.credentialRemovalHandler.onCredentialsRemoved(credentials)
-			await this._updateCachedCredentials()
+			await this.updateCachedCredentials()
 		}
 	}
 
@@ -252,7 +253,7 @@ export class LoginViewModel implements ILoginViewModel {
 	async addAllCredentials(credentials: Array<PersistentCredentials>) {
 		for (const cred of credentials) this.credentialsProvider.storeRaw(cred)
 		this.setHasAttemptedCredentialsFlag()
-		await this._updateCachedCredentials()
+		await this.updateCachedCredentials()
 	}
 
 	getAllCredentials(): Array<PersistentCredentials> {
@@ -316,9 +317,9 @@ export class LoginViewModel implements ILoginViewModel {
 		return isBrowser() && this.domainConfig.firstPartyDomain
 	}
 
-	async _updateCachedCredentials() {
+	private async updateCachedCredentials() {
 		this.savedInternalCredentials = await this.credentialsProvider.getInternalCredentialsInfos()
-		this._autoLoginCredentials = null
+		this.autoLoginCredentials = null
 
 		if (this.savedInternalCredentials.length > 0) {
 			if (this.displayMode !== DisplayMode.DeleteCredentials) {
@@ -329,24 +330,24 @@ export class LoginViewModel implements ILoginViewModel {
 		}
 	}
 
-	async _autologin(): Promise<void> {
+	private async autologin(): Promise<void> {
 		let credentials: CredentialsAndDatabaseKey | null = null
 		try {
-			if (this._autoLoginCredentials == null) {
+			if (this.autoLoginCredentials == null) {
 				const allCredentials = await this.credentialsProvider.getInternalCredentialsInfos()
-				this._autoLoginCredentials = first(allCredentials)
+				this.autoLoginCredentials = first(allCredentials)
 			}
 
 			// we don't want to auto-login on the legacy domain, there's a banner
 			// there to move people to the new domain.
-			if (this._autoLoginCredentials) {
-				credentials = await this.credentialsProvider.getCredentialsByUserId(this._autoLoginCredentials.userId)
+			if (this.autoLoginCredentials) {
+				credentials = await this.credentialsProvider.getCredentialsByUserId(this.autoLoginCredentials.userId)
 
 				if (credentials) {
-					const offlineTimeRange = this.deviceConfig.getOfflineTimeRangeDays(this._autoLoginCredentials.userId)
+					const offlineTimeRange = this.deviceConfig.getOfflineTimeRangeDays(this.autoLoginCredentials.userId)
 					const result = await this.loginController.resumeSession(credentials, null, offlineTimeRange)
 					if (result.type == "success") {
-						await this._onLogin()
+						await this.onLogin()
 					} else {
 						this.state = LoginState.NotAuthenticated
 						this.helpText = "offlineLoginPremiumOnly_msg"
@@ -356,31 +357,31 @@ export class LoginViewModel implements ILoginViewModel {
 				this.state = LoginState.NotAuthenticated
 			}
 		} catch (e) {
-			if (e instanceof NotAuthenticatedError && this._autoLoginCredentials) {
-				const autoLoginCredentials = this._autoLoginCredentials
+			if (e instanceof NotAuthenticatedError && this.autoLoginCredentials) {
+				const autoLoginCredentials = this.autoLoginCredentials
 				await this.credentialsProvider.deleteByUserId(autoLoginCredentials.userId)
 				if (credentials) {
 					await this.credentialRemovalHandler.onCredentialsRemoved(credentials)
 				}
-				await this._updateCachedCredentials()
-				await this._onLoginFailed(e)
+				await this.updateCachedCredentials()
+				await this.onLoginFailed(e)
 			} else if (e instanceof KeyPermanentlyInvalidatedError) {
 				await this.credentialsProvider.clearCredentials(e)
-				await this._updateCachedCredentials()
+				await this.updateCachedCredentials()
 				this.state = LoginState.NotAuthenticated
 				this.helpText = "credentialsKeyInvalidated_msg"
 			} else {
-				await this._onLoginFailed(e)
+				await this.onLoginFailed(e)
 			}
 		}
 
 		if (this.state === LoginState.AccessExpired || this.state === LoginState.InvalidCredentials) {
 			this.displayMode = DisplayMode.Form
-			this.mailAddress(this._autoLoginCredentials?.login ?? "")
+			this.mailAddress(this.autoLoginCredentials?.login ?? "")
 		}
 	}
 
-	async _formLogin(): Promise<void> {
+	private async formLogin(): Promise<void> {
 		const mailAddress = this.mailAddress()
 		const password = this.password()
 		const savePassword = this.savePassword()
@@ -397,7 +398,7 @@ export class LoginViewModel implements ILoginViewModel {
 			const sessionType = savePassword ? SessionType.Persistent : SessionType.Login
 
 			const { credentials, databaseKey } = await this.loginController.createSession(mailAddress, password, sessionType)
-			await this._onLogin()
+			await this.onLogin()
 
 			// we don't want to have multiple credentials that
 			// * share the same userId with different mail addresses (may happen if a user chooses a different alias to log in than the one they saved)
@@ -423,7 +424,7 @@ export class LoginViewModel implements ILoginViewModel {
 				} catch (e) {
 					if (e instanceof KeyPermanentlyInvalidatedError) {
 						await this.credentialsProvider.clearCredentials(e)
-						await this._updateCachedCredentials()
+						await this.updateCachedCredentials()
 					} else if (e instanceof DeviceStorageUnavailableError || e instanceof CancelledError) {
 						console.warn("will proceed with ephemeral credentials because device storage is unavailable:", e)
 					} else {
@@ -435,18 +436,18 @@ export class LoginViewModel implements ILoginViewModel {
 			if (e instanceof DeviceStorageUnavailableError) {
 				console.warn("cannot log in: failed to get credentials from device storage", e)
 			}
-			await this._onLoginFailed(e)
+			await this.onLoginFailed(e)
 		} finally {
 			await this.secondFactorHandler.closeWaitingForSecondFactorDialog()
 		}
 	}
 
-	async _onLogin(): Promise<void> {
+	private async onLogin(): Promise<void> {
 		this.helpText = "emptyString_msg"
 		this.state = LoginState.LoggedIn
 	}
 
-	async _onLoginFailed(error: Error): Promise<void> {
+	private async onLoginFailed(error: Error): Promise<void> {
 		this.helpText = getLoginErrorMessage(error, false)
 
 		if (error instanceof BadRequestError || error instanceof NotAuthenticatedError) {
