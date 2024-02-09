@@ -13,6 +13,11 @@ import { decodeBase64, decodeQuotedPrintable } from "@tutao/tutanota-utils"
 import { birthdayToIsoDate, isValidBirthday } from "../api/common/utils/BirthdayUtils"
 import { ParsingError } from "../api/common/error/ParsingError"
 import { assertMainOrNode } from "../api/common/Env"
+import { showProgressDialog } from "../gui/dialogs/ProgressDialog.js"
+import { Dialog } from "../gui/base/Dialog.js"
+import { lang } from "../misc/LanguageViewModel.js"
+import { ImportError } from "../api/common/error/ImportError.js"
+import type { ContactFacade } from "../api/worker/facades/lazy/ContactFacade.js"
 
 assertMainOrNode()
 
@@ -347,4 +352,28 @@ export function vCardListToContacts(vCardList: string[], ownerGroupId: Id): Cont
 	}
 
 	return contacts
+}
+
+export async function importContactList(contacts: ReadonlyArray<Contact>, contactListId: Id, contactFacade: ContactFacade) {
+	try {
+		const importPromise = contactFacade.importContactList(contacts, contactListId)
+		await showProgressDialog("pleaseWait_msg", importPromise)
+		await Dialog.message(() =>
+			lang.get("importVCardSuccess_msg", {
+				"{1}": contacts.length,
+			}),
+		)
+	} catch (e) {
+		console.log(e)
+		if (e instanceof ImportError) {
+			Dialog.message(() =>
+				lang.get("importContactsError_msg", {
+					"{amount}": e.numFailed + "",
+					"{total}": contacts.length + "",
+				}),
+			)
+		} else {
+			Dialog.message("unknownError_msg")
+		}
+	}
 }

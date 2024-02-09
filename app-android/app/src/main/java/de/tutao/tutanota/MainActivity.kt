@@ -580,14 +580,8 @@ class MainActivity : FragmentActivity() {
 
 		try {
 			commonNativeFacade.handleFileImport(files)
-		} catch (e: RemoteExecutionException) {
-			val name = if (e.message != null) {
-				val element = Json.parseToJsonElement(e.message)
-				element.jsonObject["name"]?.jsonPrimitive?.content
-			} else {
-				null
-			}
-			Log.d(TAG, "failed to create file handler of ${name ?: "unknown error"}")
+		} catch (e: Exception) {
+			Log.e(TAG, "Falied to read files $files -> $e")
 		}
 	}
 

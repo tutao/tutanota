@@ -41,6 +41,7 @@ import { InfoMessageHandler } from "../../gui/InfoMessageHandler.js"
 import { SqlCipherFacade } from "../../native/common/generatedipc/SqlCipherFacade.js"
 import { WebWorkerTransport } from "../common/threading/Transport.js"
 import { CryptoError } from "@tutao/tutanota-crypto/error.js"
+import { ContactFacade } from "./facades/lazy/ContactFacade.js"
 
 assertWorkerOrNode()
 
@@ -81,6 +82,7 @@ export interface WorkerInterface {
 	readonly eventBus: ExposedEventBus
 	readonly entropyFacade: EntropyFacade
 	readonly workerFacade: WorkerFacade
+	readonly contactFacade: ContactFacade
 }
 
 /** Interface for the "main"/webpage context of the app, interface for the worker client. */
@@ -246,6 +248,10 @@ export class WorkerImpl implements NativeInterface {
 
 			async workerFacade() {
 				return locator.workerFacade
+			},
+
+			async contactFacade() {
+				return locator.contactFacade()
 			},
 		}
 	}

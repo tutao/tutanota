@@ -2,8 +2,8 @@ import { px, size } from "../../gui/size"
 import m, { Children, Component, Vnode } from "mithril"
 import stream from "mithril/stream"
 import { windowFacade, windowSizeListener } from "../../misc/WindowFacade"
-import { FeatureType, InboxRuleType, Keys, MailFolderType, SpamRuleFieldType, SpamRuleType } from "../../api/common/TutanotaConstants"
-import type { Mail } from "../../api/entities/tutanota/TypeRefs.js"
+import { FeatureType, GroupType, InboxRuleType, Keys, MailFolderType, SpamRuleFieldType, SpamRuleType } from "../../api/common/TutanotaConstants"
+import { File as TutanotaFile, Mail } from "../../api/entities/tutanota/TypeRefs.js"
 import { lang } from "../../misc/LanguageViewModel"
 import { assertMainOrNode } from "../../api/common/Env"
 import { assertNonNull, assertNotNull, defer, DeferredObject, noOp, ofClass } from "@tutao/tutanota-utils"
@@ -35,6 +35,7 @@ import { locator } from "../../api/main/MainLocator.js"
 import { PinchZoom } from "../../gui/PinchZoom.js"
 import { responsiveCardHMargin, responsiveCardHPadding } from "../../gui/cards.js"
 import { isTutanotaTeamMail } from "../../api/common/mail/CommonMailUtils.js"
+import { Dialog } from "../../gui/base/Dialog.js"
 
 assertMainOrNode()
 // map of inline image cid to InlineImageReference
@@ -246,6 +247,7 @@ export class MailViewer implements Component<MailViewerAttrs> {
 			viewModel: this.viewModel,
 			createMailAddressContextButtons: this.createMailAddressContextButtons.bind(this),
 			isPrimary: attrs.isPrimary,
+			importFile: (file: TutanotaFile) => this.handleAttachmentImport(file),
 		})
 	}
 
@@ -725,6 +727,25 @@ export class MailViewer implements Component<MailViewerAttrs> {
 			)
 		}
 		return false
+	}
+
+	private async handleAttachmentImport(file: TutanotaFile) {
+		const { vCardListToContacts, importContactList } = await import("../../contacts/VCardImporter.js")
+
+		const vCardData = await this.viewModel.downloadAndParseVCard(file)
+		const contactListId = await this.viewModel.contactModel.getContactListId()
+
+		if (vCardData == null || contactListId == null) {
+			return Dialog.message("importVCardError_msg")
+		}
+
+		const contactMembership = assertNotNull(locator.logins.getUserController().user.memberships.find((m) => m.groupType === GroupType.Contact))
+		const contacts = vCardListToContacts(vCardData, contactMembership.group)
+
+		return Dialog.importVCardDialog(contacts, async (dialog) => {
+			dialog.close()
+			importContactList(contacts, contactListId, locator.contactFacade)
+		}).show()
 	}
 }
 
