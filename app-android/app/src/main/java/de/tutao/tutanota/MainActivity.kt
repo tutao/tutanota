@@ -406,11 +406,12 @@ class MainActivity : FragmentActivity() {
 
 		if (intent.action != null) {
 			when (intent.action) {
-				Intent.ACTION_SEND, Intent.ACTION_SEND_MULTIPLE, Intent.ACTION_SENDTO, Intent.ACTION_VIEW -> share(
+				Intent.ACTION_SEND, Intent.ACTION_SEND_MULTIPLE, Intent.ACTION_SENDTO -> share(
 						intent
 				)
 				OPEN_USER_MAILBOX_ACTION -> openMailbox(intent)
 				OPEN_CALENDAR_ACTION -> openCalendar(intent)
+				Intent.ACTION_VIEW -> view(intent)
 			}
 		}
 	}
@@ -568,6 +569,26 @@ class MainActivity : FragmentActivity() {
 						.setRequiredNetworkType(JobInfo.NETWORK_TYPE_ANY)
 						.setPersisted(true).build()
 		)
+	}
+
+	/**
+	 * The viewing file activity. Either invoked from MainActivity (if the app was not active when the
+	 * view action occurred) or from onCreate.
+	 */
+	private suspend fun view(intent: Intent) {
+		val files: List<String> = getFilesFromIntent(intent)
+
+		try {
+			commonNativeFacade.handleFileImport(files)
+		} catch (e: RemoteExecutionException) {
+			val name = if (e.message != null) {
+				val element = Json.parseToJsonElement(e.message)
+				element.jsonObject["name"]?.jsonPrimitive?.content
+			} else {
+				null
+			}
+			Log.d(TAG, "failed to create file handler of ${name ?: "unknown error"}")
+		}
 	}
 
 	/**

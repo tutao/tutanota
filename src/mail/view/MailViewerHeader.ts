@@ -31,7 +31,6 @@ import { companyTeamLabel } from "../../misc/ClientConstants.js"
 import { isTutanotaTeamMail, MailAddressAndName } from "../../api/common/mail/CommonMailUtils.js"
 import { locator } from "../../api/main/MainLocator.js"
 import { Dialog } from "../../gui/base/Dialog.js"
-import { showProgressDialog } from "../../gui/dialogs/ProgressDialog.js"
 
 export type MailAddressDropdownCreator = (args: {
 	mailAddress: MailAddressAndName
@@ -777,28 +776,15 @@ export class MailViewerHeader implements Component<MailViewerHeaderAttrs> {
 
 	private async handleVCardImport(viewModel: MailViewerViewModel, file: TutanotaFile) {
 		const vCardData = await viewModel.downloadAndParseVCard(file)
-
 		if (vCardData == null) {
 			return Dialog.message("importVCardError_msg")
 		}
-
 		const contacts = await this.parseVCardRawContacts(vCardData)
 
-		Dialog.importVCardDialog(contacts, async (dialog) => {
-			const numberOfContacts = contacts.length
-			const contactListId = await locator.contactModel.getContactListId()
-			const entityPromise = locator.entityClient.setupMultipleEntities(contactListId, contacts)
-
-			await showProgressDialog("pleaseWait_msg", entityPromise)
-
-			await Dialog.message(() =>
-				lang.get("importVCardSuccess_msg", {
-					"{1}": numberOfContacts,
-				}),
-			)
-
+		return Dialog.importVCardDialog(contacts, async (dialog) => {
+			await viewModel.contactModel.importContactList(contacts)
 			dialog.close()
-		})
+		}).show()
 	}
 
 	private async parseVCardRawContacts(contacts: string[]): Promise<Contact[]> {

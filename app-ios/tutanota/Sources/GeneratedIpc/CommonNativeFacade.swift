@@ -51,4 +51,10 @@ public protocol CommonNativeFacade {
 	func promptForPassword(
 		_ title: String
 	) async throws -> String
+	/**
+	 * Pass a list of files (.vcf) to be handled by the app and if compatible, import them
+	 */
+	func handleFileImport(
+		_ filesUris: [String]
+	) async throws -> Void
 }

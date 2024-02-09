@@ -1,6 +1,6 @@
 import { CommonNativeFacade } from "../common/generatedipc/CommonNativeFacade.js"
 import { IMainLocator } from "../../api/main/MainLocator.js"
-import { lang, TranslationKey } from "../../misc/LanguageViewModel.js"
+import { TranslationKey } from "../../misc/LanguageViewModel.js"
 import { assertNotNull, noOp, ofClass } from "@tutao/tutanota-utils"
 import { CancelledError } from "../../api/common/error/CancelledError.js"
 import { UserError } from "../../api/main/UserError.js"
@@ -11,7 +11,6 @@ import { FileReference } from "../../api/common/utils/FileUtils.js"
 import { VCARD_MIME_TYPES } from "../../file/FileController.js"
 import { Contact } from "../../api/entities/tutanota/TypeRefs.js"
 import { GroupType } from "../../api/common/TutanotaConstants.js"
-import { showProgressDialog } from "../../gui/dialogs/ProgressDialog.js"
 
 export class WebCommonNativeFacade implements CommonNativeFacade {
 	/**
@@ -63,27 +62,7 @@ export class WebCommonNativeFacade implements CommonNativeFacade {
 				}
 
 				if (willImport) {
-					const { entityClient, contactModel } = await WebCommonNativeFacade.getInitializedLocator()
-					console.log("We are about to import contacts")
-					const contacts = await this.parseContacts(files)
-					console.log("Contacts => ", contacts)
-					const dialog = Dialog.importVCardDialog(contacts, async (dialog) => {
-						const numberOfContacts = contacts.length
-						const contactListId = await contactModel.getContactListId()
-						const entityPromise = entityClient.setupMultipleEntities(contactListId, contacts)
-
-						await showProgressDialog("pleaseWait_msg", entityPromise)
-
-						await Dialog.message(() =>
-							lang.get("importVCardSuccess_msg", {
-								"{1}": numberOfContacts,
-							}),
-						)
-
-						dialog.close()
-					})
-
-					dialog.show()
+					await this.handleFileImport(filesUris)
 				} else {
 					const address = (addresses && addresses[0]) || ""
 					const recipients = address
@@ -224,5 +203,22 @@ export class WebCommonNativeFacade implements CommonNativeFacade {
 		}
 
 		return parsedContacts
+	}
+
+	/**
+	 * Parse and handle files given a list of files URI. For now, it just supports .vcf files
+	 * @param filesUris List of files URI to be parsed
+	 */
+	async handleFileImport(filesUris: ReadonlyArray<string>): Promise<void> {
+		const { fileApp, contactModel } = await WebCommonNativeFacade.getInitializedLocator()
+
+		// For now, we just handle .vcf files, so we don't need to care about the file type
+		const files = await fileApp.getFilesMetaData(filesUris)
+		const contacts = await this.parseContacts(files)
+
+		Dialog.importVCardDialog(contacts, async (dialog) => {
+			await contactModel.importContactList(contacts)
+			dialog.close()
+		}).show()
 	}
 }

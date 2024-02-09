@@ -31,4 +31,7 @@ export class CommonNativeFacadeSendDispatcher implements CommonNativeFacade {
 	async promptForPassword(...args: Parameters<CommonNativeFacade["promptForPassword"]>) {
 		return this.transport.invokeNative("ipc", ["CommonNativeFacade", "promptForPassword", ...args])
 	}
+	async handleFileImport(...args: Parameters<CommonNativeFacade["handleFileImport"]>) {
+		return this.transport.invokeNative("ipc", ["CommonNativeFacade", "handleFileImport", ...args])
+	}
 }
