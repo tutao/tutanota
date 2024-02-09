@@ -1,20 +1,12 @@
 import Foundation
 
 protocol DateProvider {
-  var now: Date { get }
-  var timeZone: TimeZone { get }
+	var now: Date { get }
+	var timeZone: TimeZone { get }
 }
 
 class SystemDateProvider: DateProvider {
-  var now: Date {
-    get {
-      return Date()
-    }
-  }
+	var now: Date { get { Date() } }
 
-  var timeZone: TimeZone {
-    get {
-      return TimeZone.current
-    }
-  }
+	var timeZone: TimeZone { get { TimeZone.current } }
 }
