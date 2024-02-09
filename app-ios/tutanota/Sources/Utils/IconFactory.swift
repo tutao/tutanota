@@ -24,4 +24,3 @@ class IconFactory {
     return fontImage
   }
 }
-
