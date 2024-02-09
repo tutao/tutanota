@@ -14,12 +14,12 @@ format() {
   # Write changes to the files if $2 is true
   local fix_command="lint"
   if [ "$2" == true ]; then
-    fix_command="format"
+    fix_command="format --in-place"
   fi
   
   if which swift-format > /dev/null; then
-    FILES=$(find "$1" | grep -v "GeneratedIpc" | grep -E "\.swift")
-    swift-format $fix_command --configuration .swift-format.json --recursive --parallel "$FILES"
+    FILES=$(find "${1}" -name "*.swift" -type f -not -path "*/GeneratedIpc/*")
+    swift-format $fix_command --configuration .swift-format.json --recursive --parallel $FILES
   else
     echo "warning: swift-format not installed, download from https://github.com/apple/swift-format"
   fi
