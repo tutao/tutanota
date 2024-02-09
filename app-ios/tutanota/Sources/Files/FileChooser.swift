@@ -100,21 +100,25 @@ class TUTFileChooser: NSObject, UIImagePickerControllerDelegate, UINavigationCon
   }
 
   private func showLegacyImagePicker(anchor: CGRect) {
-    DispatchQueue.main.async { [unowned self] in
-      imagePickerController.sourceType = .savedPhotosAlbum
-      imagePickerController.mediaTypes =
+    DispatchQueue.main.async { [weak self] in
+      guard let self else {
+        return
+      }
+      
+      self.imagePickerController.sourceType = .savedPhotosAlbum
+      self.imagePickerController.mediaTypes =
         UIImagePickerController.availableMediaTypes(for: .savedPhotosAlbum) ?? []
-      imagePickerController.modalPresentationStyle = .fullScreen
-      imagePickerController.allowsEditing = false
+      self.imagePickerController.modalPresentationStyle = .fullScreen
+      self.imagePickerController.allowsEditing = false
       if UIDevice.current.userInterfaceIdiom == .pad {
-        imagePickerController.modalPresentationStyle = .popover
-        let popOverController = imagePickerController.popoverPresentationController
-        popOverController?.sourceView = sourceController.view
+        self.imagePickerController.modalPresentationStyle = .popover
+        let popOverController = self.imagePickerController.popoverPresentationController
+        popOverController?.sourceView = self.sourceController.view
         popOverController?.permittedArrowDirections = [.up, .down]
         popOverController?.sourceRect = anchor
         popOverController?.delegate = self
       }
-      sourceController.present(imagePickerController, animated: true, completion: nil)
+      self.sourceController.present(self.imagePickerController, animated: true, completion: nil)
     }
   }
 
@@ -186,35 +190,38 @@ class TUTFileChooser: NSObject, UIImagePickerControllerDelegate, UINavigationCon
 
     sourceController.dismiss(
       animated: true,
-      completion: { [unowned self] in
-        if imagePickerController.sourceType == .camera {
+      completion: { [weak self] in
+        guard let self else {
+          return
+        }
+        if self.imagePickerController.sourceType == .camera {
           let mediaType = info[UIImagePickerController.InfoKey.mediaType] as! String
           if mediaType == "public.image" {  // Handle a still image capture
             let editedImage = info[UIImagePickerController.InfoKey.editedImage] as? UIImage
             let originalImage = info[UIImagePickerController.InfoKey.originalImage] as? UIImage
             let imageToSave: UIImage = editedImage ?? originalImage!
-            let fileName = generateFileName(prefixString: "img", withExtension: "jpg")
+            let fileName = self.generateFileName(prefixString: "img", withExtension: "jpg")
             let filePath = URL(fileURLWithPath: targetFolder).appendingPathComponent(fileName)
             guard let imageData = imageToSave.jpegData(compressionQuality: 0.9) else {
-              sendError(
+              self.sendError(
                 error: TUTErrorFactory.createError("Could not get image data from camera image"))
               return
             }
             do {
               try imageData.write(to: filePath, options: .atomic)
             } catch {
-              sendError(
+              self.sendError(
                 error: TUTErrorFactory.createError(
                   "failed to save captured image to path \(filePath)"))
               return
             }
-            sendResult(filePath: filePath.path)
+            self.sendResult(filePath: filePath.path)
           } else if mediaType == "public.movie" {  // Handle a movie capture
             let videoURL = info[UIImagePickerController.InfoKey.mediaURL] as! URL
-            let fileName = generateFileName(prefixString: "movie", withExtension: "mp4")
-            copyFileToLocalFolderAndSendResult(srcUrl: videoURL, filename: fileName)
+            let fileName = self.generateFileName(prefixString: "movie", withExtension: "mp4")
+            self.copyFileToLocalFolderAndSendResult(srcUrl: videoURL, filename: fileName)
           } else {
-            sendError(
+            self.sendError(
               error: TUTErrorFactory.createError(String(format: "Invalid media type %@", mediaType))
             )
           }
@@ -227,7 +234,7 @@ class TUTFileChooser: NSObject, UIImagePickerControllerDelegate, UINavigationCon
           guard let assetObject = result.firstObject,
             let assetResource = PHAssetResource.assetResources(for: assetObject).first
           else {
-            sendError(error: TUTErrorFactory.createError("No asset resource for image"))
+            self.sendError(error: TUTErrorFactory.createError("No asset resource for image"))
             return
           }
 
@@ -238,7 +245,7 @@ class TUTFileChooser: NSObject, UIImagePickerControllerDelegate, UINavigationCon
           let mediaUrl = info[UIImagePickerController.InfoKey.mediaURL] as? URL
           let mediaType = info[UIImagePickerController.InfoKey.mediaType] as? String
           if mediaType == "public.image" {
-            filePath = changeExtensionToJpeg(filename: filePath)
+            filePath = self.changeExtensionToJpeg(filename: filePath)
             PHImageManager.default().requestImage(
               for: assetObject,
               targetSize: CGSize(
@@ -253,12 +260,12 @@ class TUTFileChooser: NSObject, UIImagePickerControllerDelegate, UINavigationCon
                   return
                 }
                 guard let result else {
-                  sendError(error: TUTErrorFactory.createError("No asset resource for image"))
+                  self.sendError(error: TUTErrorFactory.createError("No asset resource for image"))
                   return
                 }
 
                 guard let imageData = result.jpegData(compressionQuality: 1.0) else {
-                  sendError(
+                  self.sendError(
                     error: TUTErrorFactory.createError(
                       "Could not get compressed image from gallery"))
                   return
@@ -266,14 +273,14 @@ class TUTFileChooser: NSObject, UIImagePickerControllerDelegate, UINavigationCon
                 do {
                   try imageData.write(to: filePath, options: .atomic)
                 } catch {
-                  sendError(error: error)
+                  self.sendError(error: error)
                 }
-                sendResult(filePath: filePath.path)
+                self.sendResult(filePath: filePath.path)
               })
           } else if let mediaUrl {  // for videos
-            copyFileToLocalFolderAndSendResult(srcUrl: mediaUrl, filename: fileName)
+            self.copyFileToLocalFolderAndSendResult(srcUrl: mediaUrl, filename: fileName)
           } else {
-            sendError(
+            self.sendError(
               error: TUTErrorFactory.createError(
                 "Invalid media type \(String(describing: mediaType))"))
           }
