@@ -107,4 +107,15 @@ class CommonNativeFacadeSendDispatcher : CommonNativeFacade {
 		return try! JSONDecoder().decode(String.self, from: returnValue.data(using: .utf8)!)
 		}
 	
+	func handleFileImport(
+		_ filesUris: [String]
+	) async throws -> Void
+		{
+		var args = [String]()
+		args.append(toJson(filesUris))
+		let encodedFacadeName = toJson("CommonNativeFacade")
+		let encodedMethodName = toJson("handleFileImport")
+		let _ = try await self.transport.sendRequest(requestType: "ipc",  args: [encodedFacadeName, encodedMethodName] + args)
+		}
+	
 }

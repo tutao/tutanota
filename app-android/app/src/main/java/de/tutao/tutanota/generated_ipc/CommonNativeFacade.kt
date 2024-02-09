@@ -54,4 +54,10 @@ interface CommonNativeFacade {
 	 suspend fun promptForPassword(
 		title: String,
 	): String
+	/**
+	 * Pass a list of files (.vcf) to be handled by the app and if compatible, import them
+	 */
+	 suspend fun handleFileImport(
+		filesUris: List<String>,
+	): Unit
 }
