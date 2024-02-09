@@ -2232,11 +2232,6 @@ var Squire = class {
 
 	_beforeInput(event) {
 		switch (event.inputType) {
-			case "insertText":
-				if (isAndroid && event.data && event.data.includes("\n")) {
-					event.preventDefault();
-				}
-				break;
 			case "insertLineBreak":
 				event.preventDefault();
 				this.splitBlock(true);
