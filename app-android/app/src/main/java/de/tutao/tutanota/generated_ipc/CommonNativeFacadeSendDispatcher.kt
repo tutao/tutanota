@@ -103,4 +103,14 @@ class CommonNativeFacadeSendDispatcher (
 		return json.decodeFromString(result)
 	}
 	
+	override suspend fun handleFileImport(
+		filesUris: List<String>,
+	): Unit
+	{
+		val encodedMethod = json.encodeToString("handleFileImport")
+		val args : MutableList<String> = mutableListOf()
+		args.add(json.encodeToString(filesUris))
+		this.transport.sendRequest("ipc", listOf(encodedFacade, encodedMethod) + args)
+	}
+	
 }

@@ -18,6 +18,9 @@ import stream from "mithril/stream"
 import { ShareCapability } from "../../api/common/TutanotaConstants.js"
 import { isSharedGroupOwner } from "../../sharing/GroupUtils.js"
 import { EntityUpdateData } from "../../api/common/utils/EntityUpdateUtils.js"
+import { showProgressDialog } from "../../gui/dialogs/ProgressDialog.js"
+import { Dialog } from "../../gui/base/Dialog.js"
+import { lang } from "../../misc/LanguageViewModel.js"
 
 assertMainOrNode()
 
@@ -178,6 +181,20 @@ export class ContactModel {
 				await this.loadContactLists()
 			}
 		}
+	}
+
+	async importContactList(contacts: Contact[]) {
+		const numberOfContacts = contacts.length
+		const contactListId = await this.getContactListId()
+		const entityPromise = this.entityClient.setupMultipleEntities(contactListId, contacts)
+
+		await showProgressDialog("pleaseWait_msg", entityPromise)
+
+		await Dialog.message(() =>
+			lang.get("importVCardSuccess_msg", {
+				"{1}": numberOfContacts,
+			}),
+		)
 	}
 }
 

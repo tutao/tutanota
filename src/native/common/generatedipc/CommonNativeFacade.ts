@@ -34,4 +34,9 @@ export interface CommonNativeFacade {
 	 * prompt the user to enter a password
 	 */
 	promptForPassword(title: string): Promise<string>
+
+	/**
+	 * Pass a list of files (.vcf) to be handled by the app and if compatible, import them
+	 */
+	handleFileImport(filesUris: ReadonlyArray<string>): Promise<void>
 }
