@@ -393,7 +393,7 @@ extension NativeMutableContact: Hashable {
   }
 }
 
-fileprivate struct ContactMatchResult {
+private struct ContactMatchResult {
   var newContacts: [StructuredContact]
   var matchedStoredContacts: [(StructuredContact, NativeMutableContact)]
   var unmatchedStoredContacts: [String]
