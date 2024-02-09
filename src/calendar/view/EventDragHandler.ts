@@ -22,6 +22,7 @@ export interface EventDragHandlerCallbacks {
 	readonly onDragStart: (calendarEvent: CalendarEvent, timeToMoveBy: number) => void
 	readonly onDragUpdate: (timeToMoveBy: number) => void
 	readonly onDragEnd: (timeToMoveBy: number, mode: CalendarOperation | null) => Promise<void>
+	readonly onDragCancel: () => void
 }
 
 /**
@@ -178,10 +179,15 @@ export class EventDragHandler {
 	}
 
 	cancelDrag() {
+		this._draggingArea.classList.remove("cursor-grabbing")
+		this._eventDragCallbacks.onDragCancel()
+
 		this._data = null
 		this._isDragging = false
 		this._hasChanged = true
 		this._lastDiffBetweenDates = null
+
+		m.redraw()
 	}
 }
 
