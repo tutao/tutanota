@@ -421,11 +421,9 @@ extension TUTFileChooser: PHPickerViewControllerDelegate {
         // Try out multiple formats until we get one which is supported.
         // We request jpeg and png instead of public.image to not get .heic
         // if Apple changes their default public.image format
-        for type in ["public.jpeg", "public.png", "public.movie"] {
-            if requestFileOfType(result: result, type: type) {
-                succeeded = true
-                break
-            }
+        for type in ["public.jpeg", "public.png", "public.movie"] where requestFileOfType(result: result, type: type) {
+            succeeded = true
+            break
         }
         if !succeeded {
             TUTSLog("Could not copy result of unknown type: \(result)")

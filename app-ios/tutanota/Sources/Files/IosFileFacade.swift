@@ -221,10 +221,8 @@ class IosFileFacade: FileFacade {
     let fileManager = FileManager.default
     let folderUrl = URL(fileURLWithPath: folderPath)
     let files = try fileManager.contentsOfDirectory(at: folderUrl, includingPropertiesForKeys: nil, options: [])
-    for file in files {
-      if !file.hasDirectoryPath {
-        try fileManager.removeItem(at: file)
-      }
+    for file in files where !file.hasDirectoryPath {
+      try fileManager.removeItem(at: file)
     }
   }
 }
