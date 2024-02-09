@@ -11,6 +11,7 @@ disabled_rules:
   - force_unwrapping
   - function_parameter_count
   - function_body_length
+  - identifier_name
   - implicit_getter
   - legacy_objc_type
   - line_length
@@ -71,8 +72,3 @@ excluded:
 - tutanota/build
 - tutanota/tutanota-web
 - tutanota/Sources/GeneratedIpc
-
-identifier_name:
- min_length: 2
- excluded: ["i", "n"]
- allowed_symbols: ["_"]
