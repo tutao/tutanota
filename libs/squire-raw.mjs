@@ -606,7 +606,7 @@ var mergeWithBlock = (block, next, range, root) => {
 	range.collapse(true);
 	mergeInlines(block, range);
 };
-var mergeContainers = (node, root) => {
+var mergeContainers = (node, root, config) => {
 	const prev = node.previousSibling;
 	const first = node.firstChild;
 	const isListItem = node.nodeName === "LI";
@@ -627,10 +627,10 @@ var mergeContainers = (node, root) => {
 		const needsFix = !isContainer(node);
 		prev.appendChild(empty(node));
 		if (needsFix) {
-			fixContainer(prev, root);
+			fixContainer(prev, root, config);
 		}
 		if (first) {
-			mergeContainers(first, root);
+			mergeContainers(first, root, config);
 		}
 	} else if (isListItem) {
 		const block = createElement("DIV");
@@ -1225,10 +1225,10 @@ var deleteContentsOfRange = (range, root) => {
 	range.collapse(true);
 	return frag;
 };
-var insertTreeFragmentIntoRange = (range, frag, root) => {
+var insertTreeFragmentIntoRange = (range, frag, root, config) => {
 	const firstInFragIsInline = frag.firstChild && isInline(frag.firstChild);
 	let node;
-	fixContainer(frag, root);
+	fixContainer(frag, root, config);
 	node = frag;
 	while (node = getNextBlock(node, root)) {
 		fixCursor(node);
@@ -1249,7 +1249,7 @@ var insertTreeFragmentIntoRange = (range, frag, root) => {
 		range.collapse(true);
 		let container = range.endContainer;
 		let offset = range.endOffset;
-		cleanupBRs(block, root, false);
+		cleanupBRs(block, root, false, config);
 		if (isInline(container)) {
 			const nodeAfterSplit = split(
 					container,
@@ -1303,11 +1303,11 @@ var insertTreeFragmentIntoRange = (range, frag, root) => {
 		const container = range.endContainer;
 		const offset = range.endOffset;
 		if (nodeAfterSplit && isContainer(nodeAfterSplit)) {
-			mergeContainers(nodeAfterSplit, root);
+			mergeContainers(nodeAfterSplit, root, config);
 		}
 		nodeAfterSplit = nodeBeforeSplit && nodeBeforeSplit.nextSibling;
 		if (nodeAfterSplit && isContainer(nodeAfterSplit)) {
-			mergeContainers(nodeAfterSplit, root);
+			mergeContainers(nodeAfterSplit, root, config);
 		}
 		range.setEnd(container, offset);
 	}
@@ -1711,7 +1711,7 @@ var Backspace = (self, event, range) => {
 			return;
 		}
 		let current = startBlock;
-		fixContainer(current.parentNode, root);
+		fixContainer(current.parentNode, root, self._config);
 		const previous = getPreviousBlock(current, root);
 		if (previous) {
 			if (!previous.isContentEditable) {
@@ -1724,7 +1724,7 @@ var Backspace = (self, event, range) => {
 				current = current.parentNode;
 			}
 			if (current !== root && (current = current.nextSibling)) {
-				mergeContainers(current, root);
+				mergeContainers(current, root, self._config);
 			}
 			self.setSelection(range);
 		} else if (current) {
@@ -1778,7 +1778,7 @@ var Delete = (self, event, range) => {
 		if (!current) {
 			return;
 		}
-		fixContainer(current.parentNode, root);
+		fixContainer(current.parentNode, root, self._config);
 		next = getNextBlock(current, root);
 		if (next) {
 			if (!next.isContentEditable) {
@@ -1791,7 +1791,7 @@ var Delete = (self, event, range) => {
 				next = next.parentNode;
 			}
 			if (next !== root && (next = next.nextSibling)) {
-				mergeContainers(next, root);
+				mergeContainers(next, root, self._config);
 			}
 			self.setSelection(range);
 			self._updatePath(range, true);
@@ -2868,7 +2868,7 @@ var Squire = class {
 		const root = this._root;
 		cleanTree(frag, this._config);
 		cleanupBRs(frag, root, false, this._config);
-		fixContainer(frag, root);
+		fixContainer(frag, root, this._config);
 		let node = frag;
 		let child = node.firstChild;
 		if (!child || child.nodeName === "BR") {
@@ -2915,7 +2915,7 @@ var Squire = class {
 				this.addDetectedLinks(frag, frag);
 			}
 			cleanTree(frag, this._config);
-			cleanupBRs(frag, root, false);
+			cleanupBRs(frag, root, false, this._config);
 			removeEmptyInlines(frag);
 			frag.normalize();
 			let node = frag;
@@ -2934,7 +2934,7 @@ var Squire = class {
 				doInsert = !event.defaultPrevented;
 			}
 			if (doInsert) {
-				insertTreeFragmentIntoRange(range, frag, root);
+				insertTreeFragmentIntoRange(range, frag, root, config);
 				range.collapse(false);
 				moveRangeBoundaryOutOf(range, "A", root);
 				this._ensureBottomLine();
@@ -3740,12 +3740,14 @@ var Squire = class {
 		if (range.endOffset < range.endContainer.childNodes.length) {
 			mergeContainers(
 					range.endContainer.childNodes[range.endOffset],
-					root
+					root,
+					this._config
 			);
 		}
 		mergeContainers(
 				range.startContainer.childNodes[range.startOffset],
-				root
+				root,
+				this._config
 		);
 		this._getRangeAndRemoveBookmark(range);
 		this.setSelection(range);
@@ -3836,7 +3838,7 @@ var Squire = class {
 		} while (startLi = next);
 		next = newParent.nextSibling;
 		if (next) {
-			mergeContainers(next, root);
+			mergeContainers(next, root, this._config);
 		}
 		this._getRangeAndRemoveBookmark(range);
 		this.setSelection(range);
@@ -3889,7 +3891,7 @@ var Squire = class {
 			detach(list);
 		}
 		if (insertBefore) {
-			mergeContainers(insertBefore, root);
+			mergeContainers(insertBefore, root, this._config);
 		}
 		this._getRangeAndRemoveBookmark(range);
 		this.setSelection(range);
@@ -3954,7 +3956,7 @@ var Squire = class {
 			for (let i = 0, l = lists.length; i < l; i += 1) {
 				const list = lists[i];
 				const listFrag = empty(list);
-				fixContainer(listFrag, root);
+				fixContainer(listFrag, root, this._config);
 				replaceWith(list, listFrag);
 			}
 			for (let i = 0, l = items.length; i < l; i += 1) {
@@ -3962,7 +3964,7 @@ var Squire = class {
 				if (isBlock(item)) {
 					replaceWith(item, this.createDefaultBlock([empty(item)]));
 				} else {
-					fixContainer(item, root);
+					fixContainer(item, root, this._config);
 					replaceWith(item, empty(item));
 				}
 			}
@@ -4100,7 +4102,7 @@ var Squire = class {
 						node.parentNode.insertBefore(contents, node);
 						node.data = value;
 					}
-					fixContainer(pre, root);
+					fixContainer(pre, root, this._config);
 					replaceWith(pre, empty(pre));
 				}
 				return frag;
