@@ -210,10 +210,8 @@ private func getSubKeys(withAESKey key: Data, withMAC: Bool) throws -> SubKeys {
   switch key.count {
   case Int(kCCKeySizeAES128):
     digest = Data(SHA256.hash(data: key))
-    break
   case Int(kCCKeySizeAES256):
     digest = Data(SHA512.hash(data: key))
-    break
   default:
     throw TUTErrorFactory.createError(withDomain: TUT_CRYPTO_ERROR, message: "can't generate subkeys for encryption key of length \(key.count)")
   }
