@@ -220,6 +220,10 @@ export class CalendarViewModel implements EventDragHandlerCallbacks {
 		}
 	}
 
+	onDragCancel() {
+		this._draggedEvent = null
+	}
+
 	get temporaryEvents(): Array<CalendarEvent> {
 		return this._transientEvents.concat(this._draggedEvent ? [this._draggedEvent.eventClone] : [])
 	}

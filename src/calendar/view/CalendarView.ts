@@ -209,7 +209,6 @@ export class CalendarView extends BaseTopLevelView implements TopLevelView<Calen
 									},
 									selectedDate: this.viewModel.selectedDate(),
 									onDateSelected: (date) => {
-										this.viewModel.selectedDate(date)
 										this.setUrl(CalendarViewType.DAY, date)
 									},
 									groupColors,
