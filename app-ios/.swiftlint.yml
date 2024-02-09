@@ -24,6 +24,7 @@ disabled_rules:
   - redundant_self_in_closure
   - return_arrow_whitespace
   - return_value_from_void_function
+  - todo
   - type_body_length
   - vertical_whitespace
   - opening_brace
