@@ -96,7 +96,7 @@ export class EntityClient {
 		return this._target.setup(listId, instance, extraHeaders, options)
 	}
 
-	setupMultipleEntities<T extends SomeEntity>(listId: Id | null, instances: Array<T>): Promise<Array<Id>> {
+	setupMultipleEntities<T extends SomeEntity>(listId: Id | null, instances: ReadonlyArray<T>): Promise<Array<Id>> {
 		return this._target.setupMultiple(listId, instances)
 	}
 
