@@ -10,7 +10,7 @@ import type { CredentialsAndDatabaseKey, CredentialsInfo, CredentialsProvider, P
 import { CredentialAuthenticationError } from "../api/common/error/CredentialAuthenticationError"
 import { first, noOp } from "@tutao/tutanota-utils"
 import { KeyPermanentlyInvalidatedError } from "../api/common/error/KeyPermanentlyInvalidatedError"
-import { assertMainOrNode, isApp, isBrowser } from "../api/common/Env"
+import { assertMainOrNode, isBrowser } from "../api/common/Env"
 import { SessionType } from "../api/common/SessionType"
 import { DeviceStorageUnavailableError } from "../api/common/error/DeviceStorageUnavailableError"
 import { DeviceConfig } from "../misc/DeviceConfig"
@@ -19,7 +19,6 @@ import { getWhitelabelRegistrationDomains } from "./LoginView.js"
 import { CancelledError } from "../api/common/error/CancelledError.js"
 import { CredentialRemovalHandler } from "./CredentialRemovalHandler.js"
 import { NativePushServiceApp } from "../native/main/NativePushServiceApp.js"
-import { MobileSystemFacade } from "../native/common/generatedipc/MobileSystemFacade.js"
 
 assertMainOrNode()
 
@@ -311,6 +310,10 @@ export class LoginViewModel implements ILoginViewModel {
 
 	shouldShowAppButtons(): boolean {
 		return this.domainConfig.firstPartyDomain
+	}
+
+	shouldShowMigrationBanner(): boolean {
+		return isBrowser() && this.domainConfig.firstPartyDomain
 	}
 
 	async _updateCachedCredentials() {
