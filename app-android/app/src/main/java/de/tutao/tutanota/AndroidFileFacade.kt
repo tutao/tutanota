@@ -331,7 +331,19 @@ class AndroidFileFacade(
 
 	@Throws(IOException::class)
 	override suspend fun readDataFile(filePath: String): DataFile? {
-		throw Error("FileFacade.readDataFile should not be used in Android")
+		val uri = Uri.parse(filePath)
+		val inputStream = activity.contentResolver.openInputStream(uri) ?: return null
+
+		val dataWrapper = DataWrapper(inputStream.readBytes())
+
+		withContext(Dispatchers.IO) {
+			inputStream.close()
+		}
+
+		val fileInfo = getFileInfo(activity, uri)
+		val mimeType = getMimeType(uri, activity)
+
+		return DataFile(fileInfo.name, mimeType, dataWrapper, fileInfo.size.toInt())
 	}
 
 	@Throws(IOException::class)
