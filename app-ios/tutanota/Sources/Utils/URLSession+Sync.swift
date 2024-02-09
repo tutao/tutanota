@@ -19,7 +19,7 @@ extension URLSession {
 
     _ = semaphore.wait(timeout: .distantFuture)
 
-    if let error = error {
+    if let error {
       throw error
     }
 
