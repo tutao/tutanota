@@ -22,6 +22,7 @@ disabled_rules:
   - operator_whitespace
   - redundant_self_in_closure
   - return_arrow_whitespace
+  - return_value_from_void_function
   - vertical_whitespace
   - opening_brace
 
@@ -53,7 +54,6 @@ opt_in_rules:
 - redundant_self_in_closure
 - reduce_into
 - required_enum_case
-- return_value_from_void_function
 - shorthand_optional_binding
 - sorted_first_last
 - static_operator
