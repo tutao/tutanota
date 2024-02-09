@@ -9,12 +9,12 @@ import type { keyHandler } from "../../misc/KeyManager"
 import { TabIndex } from "../../api/common/TutanotaConstants"
 import { ClickHandler, getOperatingClasses } from "./GuiUtils"
 
-export type TextFieldAttrs = {
+export type BorderTextFieldAttrs = {
 	id?: string
 	label: TranslationKey | lazy<string>
 	value: string
 	autocompleteAs?: Autocomplete
-	type?: TextFieldType
+	type?: BorderTextFieldType
 	helpLabel?: lazy<Children> | null
 	alignRight?: boolean
 	injectionsLeft?: lazy<Children>
@@ -38,7 +38,7 @@ export type TextFieldAttrs = {
 	max?: number
 }
 
-export const enum TextFieldType {
+export const enum BorderTextFieldType {
 	Text = "text",
 	Email = "email",
 	Password = "password",
@@ -71,7 +71,7 @@ const baseLabelPosition = 56
 // 24px line-height + 12px label + some space between them = 36 + ?
 const minInputHeight = 30
 
-export class TextField implements ClassComponent<TextFieldAttrs> {
+export class BorderTextField implements ClassComponent<BorderTextFieldAttrs> {
 	active: boolean
 	onblur: EventListener | null = null
 	domInput!: HTMLInputElement
@@ -84,7 +84,7 @@ export class TextField implements ClassComponent<TextFieldAttrs> {
 		this.active = false
 	}
 
-	view(vnode: CVnode<TextFieldAttrs>): Children {
+	view(vnode: CVnode<BorderTextFieldAttrs>): Children {
 		const a = vnode.attrs
 		const maxWidth = a.maxWidth
 		const labelBase = !this.active && a.value === "" && !a.isReadOnly && !this._didAutofill && !a.injectionsLeft
@@ -155,7 +155,7 @@ export class TextField implements ClassComponent<TextFieldAttrs> {
 										oncreate: (vnode) => (this._domInputWrapper = vnode.dom as HTMLElement),
 									},
 									[
-										a.type !== TextFieldType.Area ? this._getInputField(a) : this._getTextArea(a),
+										a.type !== BorderTextFieldType.Area ? this._getInputField(a) : this._getTextArea(a),
 										a.injectionsRight
 											? m(
 													".flex-end.items-center",
@@ -186,7 +186,7 @@ export class TextField implements ClassComponent<TextFieldAttrs> {
 		)
 	}
 
-	_getInputField(a: TextFieldAttrs): Children {
+	_getInputField(a: BorderTextFieldAttrs): Children {
 		if (a.isReadOnly) {
 			return m(
 				".text-break.selectable",
@@ -213,7 +213,7 @@ export class TextField implements ClassComponent<TextFieldAttrs> {
 									height: "0",
 								},
 								tabIndex: TabIndex.Programmatic,
-								type: TextFieldType.Text,
+								type: BorderTextFieldType.Text,
 							}),
 							m("input.abs", {
 								style: {
@@ -221,7 +221,7 @@ export class TextField implements ClassComponent<TextFieldAttrs> {
 									height: "0",
 								},
 								tabIndex: TabIndex.Programmatic,
-								type: TextFieldType.Password,
+								type: BorderTextFieldType.Password,
 							}),
 							m("input.abs", {
 								style: {
@@ -229,7 +229,7 @@ export class TextField implements ClassComponent<TextFieldAttrs> {
 									height: "0",
 								},
 								tabIndex: TabIndex.Programmatic,
-								type: TextFieldType.Text,
+								type: BorderTextFieldType.Text,
 							}),
 					  ]
 					: []
@@ -249,7 +249,7 @@ export class TextField implements ClassComponent<TextFieldAttrs> {
 							this.domInput = vnode.dom as HTMLInputElement
 							a.onDomInputCreated?.(this.domInput)
 							this.domInput.value = a.value
-							if (a.type !== TextFieldType.Area) {
+							if (a.type !== BorderTextFieldType.Area) {
 								;(vnode.dom as HTMLElement).addEventListener("animationstart", (e: AnimationEvent) => {
 									if (e.animationName === "onAutoFillStart") {
 										this._didAutofill = true
@@ -303,7 +303,7 @@ export class TextField implements ClassComponent<TextFieldAttrs> {
 		}
 	}
 
-	_getTextArea(a: TextFieldAttrs): Children {
+	_getTextArea(a: BorderTextFieldAttrs): Children {
 		if (a.isReadOnly) {
 			return m(
 				".text-prewrap.text-break.selectable",
@@ -356,7 +356,7 @@ export class TextField implements ClassComponent<TextFieldAttrs> {
 		}
 	}
 
-	focus(e: Event, a: TextFieldAttrs) {
+	focus(e: Event, a: BorderTextFieldAttrs) {
 		if (!this.active && !a.disabled && !a.isReadOnly) {
 			this.active = true
 			this.domInput.focus()
@@ -365,7 +365,7 @@ export class TextField implements ClassComponent<TextFieldAttrs> {
 		}
 	}
 
-	blur(e: Event, a: TextFieldAttrs) {
+	blur(e: Event, a: BorderTextFieldAttrs) {
 		this._domWrapper.classList.remove("active")
 		this.active = false
 		if (a.onblur instanceof Function) a.onblur(e)

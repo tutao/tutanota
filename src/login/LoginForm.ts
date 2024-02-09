@@ -4,7 +4,7 @@ import Stream from "mithril/stream"
 import { Button, ButtonType } from "../gui/base/Button.js"
 import { liveDataAttrs } from "../gui/AriaUtils"
 import { lang, TranslationKey } from "../misc/LanguageViewModel"
-import { Autocomplete, TextField, TextFieldType } from "../gui/base/BorderTextField"
+import { Autocomplete, BorderTextField, BorderTextFieldType } from "../gui/base/BorderTextField"
 import { Checkbox } from "../gui/base/Checkbox.js"
 import { client } from "../misc/ClientDetector"
 import { isApp, isDesktop, isOfflineStorageAvailable } from "../api/common/Env"
@@ -77,11 +77,11 @@ export class LoginForm implements Component<LoginFormAttrs> {
 			[
 				m(
 					"",
-					m(TextField, {
+					m(BorderTextField, {
 						label: "mailAddress_label" as TranslationKey,
 						value: a.mailAddress(),
 						oninput: a.mailAddress,
-						type: TextFieldType.Email,
+						type: BorderTextFieldType.Email,
 						autocompleteAs: Autocomplete.email,
 						onDomInputCreated: (dom) => {
 							this.mailAddressTextField = dom
@@ -93,11 +93,11 @@ export class LoginForm implements Component<LoginFormAttrs> {
 				),
 				m(
 					"",
-					m(TextField, {
+					m(BorderTextField, {
 						label: "password_label",
 						value: a.password(),
 						oninput: a.password,
-						type: TextFieldType.Password,
+						type: BorderTextFieldType.Password,
 						autocompleteAs: Autocomplete.currentPassword,
 						onDomInputCreated: (dom) => (this.passwordTextField = dom),
 					}),
