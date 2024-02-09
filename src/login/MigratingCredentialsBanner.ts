@@ -10,7 +10,6 @@ import { ButtonSize } from "../gui/base/ButtonSize.js"
 import { defer, DeferredObject } from "@tutao/tutanota-utils"
 import { showProgressDialog } from "../gui/dialogs/ProgressDialog.js"
 import { Dialog } from "../gui/base/Dialog.js"
-import { isBrowser } from "../api/common/Env.js"
 
 export type CredentialsBannerAttrs = {
 	viewModel: LoginViewModel
@@ -32,12 +31,17 @@ export class MigratingCredentialsBanner implements Component<CredentialsBannerAt
 	}
 
 	view(vnode: Vnode<CredentialsBannerAttrs>) {
+		// Don't show anything if we're not on the main webapp page
+		if (!vnode.attrs.viewModel.shouldShowMigrationBanner()) {
+			return null
+		}
+
 		const isLegacy = isLegacyDomain()
 		const hasAttempted = vnode.attrs.viewModel.hasAttemptedCredentials()
 		// do not show anything on the new domain if we already attempted migration,
 		// but always show it on the old domain
 		// also, we have a time delay on the migration for a two-stage rollout.
-		if ((hasAttempted && !isLegacy) || !isBrowser() || !ACTIVATED_MIGRATION()) return null
+		if ((hasAttempted && !isLegacy) || !ACTIVATED_MIGRATION()) return null
 		return m(
 			".flex-center",
 			m(
