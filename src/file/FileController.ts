@@ -66,7 +66,7 @@ export abstract class FileController {
 			}
 			if (downloadedFiles.length > 0) {
 				if (action === DownloadPostProcessing.Open) {
-					await this.openDownloadedFiles(downloadedFiles)
+					this.openDownloadedFiles(downloadedFiles)
 				} else {
 					await this.writeDownloadedFiles(downloadedFiles)
 				}

@@ -66,6 +66,7 @@ import { DomainConfigProvider } from "../common/DomainConfigProvider.js"
 import { KyberFacade, NativeKyberFacade, WASMKyberFacade } from "./facades/KyberFacade.js"
 import { PQFacade } from "./facades/PQFacade.js"
 import { PdfWriter } from "./pdf/PdfWriter.js"
+import { ContactFacade } from "./facades/lazy/ContactFacade.js"
 
 assertWorkerOrNode()
 
@@ -119,6 +120,9 @@ export type WorkerLocatorType = {
 
 	// used to cache between resets
 	_browserData: BrowserData
+
+	//contact
+	contactFacade: lazyAsync<ContactFacade>
 }
 export const locator: WorkerLocatorType = {} as any
 
@@ -396,6 +400,10 @@ export async function initLocator(worker: WorkerImpl, browserData: BrowserData) 
 	locator.configFacade = lazyMemoized(async () => {
 		const { ConfigurationDatabase } = await import("./facades/lazy/ConfigurationDatabase.js")
 		return new ConfigurationDatabase(locator.user)
+	})
+	locator.contactFacade = lazyMemoized(async () => {
+		const { ContactFacade } = await import("./facades/lazy/ContactFacade.js")
+		return new ContactFacade(new EntityClient(entityRestClient))
 	})
 }
 
