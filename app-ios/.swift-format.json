@@ -1,13 +1,13 @@
 {
   "indentation" : {
-    "tabs" : 2
+    "tabs" : 1
   },
   "tabWidth": 4,
   "indentConditionalCompilationBlocks" : true,
   "indentSwitchCaseLabels" : false,
-  "lineBreakAroundMultilineExpressionChainComponents" : false,
+  "lineBreakAroundMultilineExpressionChainComponents" : true,
   "lineBreakBeforeControlFlowKeywords" : false,
-  "lineBreakBeforeEachArgument" : false,
+  "lineBreakBeforeEachArgument" : true,
   "lineBreakBeforeEachGenericRequirement" : false,
   "lineLength" : 160,
   "maximumBlankLines" : 1,
