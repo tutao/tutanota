@@ -3,15 +3,15 @@ import XCTest
 @testable import tutanota
 
 class AlarmManagerTest: XCTestCase {
-  var persistor: AlarmPersistorStub!
-  var cryptor: AlarmCryptorStub!
-  var scheduler: AlarmSchedulerStub!
-  var alarmManager: AlarmManager!
-  var alarmModel: AlarmModel!
+  private var persistor: AlarmPersistorStub!
+  private var cryptor: AlarmCryptorStub!
+  private var scheduler: AlarmSchedulerStub!
+  private var alarmManager: AlarmManager!
+  private var alarmModel: AlarmModel!
 
-  var dateProvider: DateProviderStub!
+  private var dateProvider: DateProviderStub!
 
-  let userID = "user"
+  private let userID = "user"
 
   override func setUp() {
     dateProvider = DateProviderStub()
