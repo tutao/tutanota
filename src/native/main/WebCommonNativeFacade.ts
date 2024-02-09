@@ -1,5 +1,5 @@
 import { CommonNativeFacade } from "../common/generatedipc/CommonNativeFacade.js"
-import { IMainLocator } from "../../api/main/MainLocator.js"
+import { IMainLocator, locator } from "../../api/main/MainLocator.js"
 import { TranslationKey } from "../../misc/LanguageViewModel.js"
 import { assertNotNull, noOp, ofClass } from "@tutao/tutanota-utils"
 import { CancelledError } from "../../api/common/error/CancelledError.js"
@@ -45,10 +45,10 @@ export class WebCommonNativeFacade implements CommonNativeFacade {
 				editor.show()
 			} else {
 				const files = await fileApp.getFilesMetaData(filesUris)
-				const hasContactToImport = files.some((file) => Object.values<string>(VCARD_MIME_TYPES).includes(file.mimeType))
+				const allFilesAreVCards = files.filter((file) => Object.values<string>(VCARD_MIME_TYPES).includes(file.mimeType)).length === files.length
 
 				let willImport = false
-				if (hasContactToImport) {
+				if (allFilesAreVCards) {
 					willImport = await Dialog.choice(
 						() => "We detected some contact files, do you want to import or attach them?",
 						[
@@ -183,6 +183,8 @@ export class WebCommonNativeFacade implements CommonNativeFacade {
 		const { fileApp, logins, fileController } = await WebCommonNativeFacade.getInitializedLocator()
 		const { vCardFileToVCards, vCardListToContacts } = await import("../../contacts/VCardImporter.js")
 
+		await logins.waitForPartialLogin()
+
 		const parsedContacts: Contact[] = []
 		for (const file of fileList) {
 			if (Object.values<string>(VCARD_MIME_TYPES).includes(file.mimeType)) {
@@ -210,15 +212,17 @@ export class WebCommonNativeFacade implements CommonNativeFacade {
 	 * @param filesUris List of files URI to be parsed
 	 */
 	async handleFileImport(filesUris: ReadonlyArray<string>): Promise<void> {
-		const { fileApp, contactModel } = await WebCommonNativeFacade.getInitializedLocator()
+		const { fileApp, contactModel, contactFacade } = await WebCommonNativeFacade.getInitializedLocator()
+		const { importContactList } = await import("../../contacts/VCardImporter.js")
 
 		// For now, we just handle .vcf files, so we don't need to care about the file type
 		const files = await fileApp.getFilesMetaData(filesUris)
 		const contacts = await this.parseContacts(files)
+		const contactListId = assertNotNull(await contactModel.getContactListId())
 
 		Dialog.importVCardDialog(contacts, async (dialog) => {
-			await contactModel.importContactList(contacts)
 			dialog.close()
+			importContactList(contacts, contactListId, contactFacade)
 		}).show()
 	}
 }

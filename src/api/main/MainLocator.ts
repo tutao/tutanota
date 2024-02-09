@@ -106,6 +106,7 @@ import { isCustomizationEnabledForCustomer } from "../common/utils/CustomerUtils
 import { CalendarEventsRepository } from "../../calendar/date/CalendarEventsRepository.js"
 import { CalendarInviteHandler } from "../../calendar/view/CalendarInvites.js"
 import { NativeContactsSyncManager } from "../../contacts/model/NativeContactsSyncManager.js"
+import { ContactFacade } from "../worker/facades/lazy/ContactFacade.js"
 
 assertMainOrNode()
 
@@ -140,6 +141,7 @@ class MainLocator {
 	blobFacade!: BlobFacade
 	userManagementFacade!: UserManagementFacade
 	deviceEncryptionFacade!: DeviceEncryptionFacade
+	contactFacade!: ContactFacade
 	usageTestController!: UsageTestController
 	usageTestModel!: UsageTestModel
 	newsModel!: NewsModel
@@ -594,6 +596,7 @@ class MainLocator {
 			entropyFacade,
 			workerFacade,
 			sqlCipherFacade,
+			contactFacade,
 		} = this.worker.getWorkerInterface()
 		this.loginFacade = loginFacade
 		this.customerFacade = customerFacade
@@ -611,6 +614,7 @@ class MainLocator {
 		this.blobFacade = blobFacade
 		this.userManagementFacade = userManagementFacade
 		this.deviceEncryptionFacade = deviceEncryptionFacade
+		this.contactFacade = contactFacade
 		this.serviceExecutor = serviceExecutor
 		this.logins = new LoginController()
 		// Should be called elsewhere later e.g. in mainLocator

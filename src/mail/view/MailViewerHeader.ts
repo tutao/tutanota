@@ -4,13 +4,13 @@ import { getFolderIconByType, getMailAddressDisplayText, getSenderAddressDisplay
 import { theme } from "../../gui/theme.js"
 import { styles } from "../../gui/styles.js"
 import { ExpanderButton, ExpanderPanel } from "../../gui/base/Expander.js"
-import { Contact, File as TutanotaFile } from "../../api/entities/tutanota/TypeRefs.js"
+import { File as TutanotaFile } from "../../api/entities/tutanota/TypeRefs.js"
 import { BannerButtonAttrs, BannerType, InfoBanner } from "../../gui/base/InfoBanner.js"
 import { Icons } from "../../gui/base/icons/Icons.js"
 import { EventBanner, EventBannerAttrs } from "./EventBanner.js"
 import { RecipientButton } from "../../gui/base/RecipientButton.js"
 import { createAsyncDropdown, createDropdown, DropdownButtonAttrs } from "../../gui/base/Dropdown.js"
-import { EncryptionAuthStatus, GroupType, InboxRuleType, Keys, MailAuthenticationStatus, TabIndex } from "../../api/common/TutanotaConstants.js"
+import { EncryptionAuthStatus, InboxRuleType, Keys, MailAuthenticationStatus, TabIndex } from "../../api/common/TutanotaConstants.js"
 import { Icon, progressIcon } from "../../gui/base/Icon.js"
 import { formatDateWithWeekday, formatDateWithWeekdayAndYear, formatStorageSize, formatTime } from "../../misc/Formatter.js"
 import { isAndroidApp, isDesktop, isIOSApp } from "../../api/common/Env.js"
@@ -18,7 +18,7 @@ import { Button, ButtonType } from "../../gui/base/Button.js"
 import Badge from "../../gui/base/Badge.js"
 import { ContentBlockingStatus, MailViewerViewModel } from "./MailViewerViewModel.js"
 import { canSeeTutaLinks } from "../../gui/base/GuiUtils.js"
-import { assertNotNull, isNotNull, noOp, resolveMaybeLazy } from "@tutao/tutanota-utils"
+import { isNotNull, noOp, resolveMaybeLazy } from "@tutao/tutanota-utils"
 import { IconButton } from "../../gui/base/IconButton.js"
 import { promptAndDeleteMails, showMoveMailsDropdown } from "./MailGuiUtils.js"
 import { BootIcons } from "../../gui/base/icons/BootIcons.js"
@@ -29,8 +29,6 @@ import { AttachmentBubble } from "../../gui/AttachmentBubble.js"
 import { responsiveCardHMargin, responsiveCardHPadding } from "../../gui/cards.js"
 import { companyTeamLabel } from "../../misc/ClientConstants.js"
 import { isTutanotaTeamMail, MailAddressAndName } from "../../api/common/mail/CommonMailUtils.js"
-import { locator } from "../../api/main/MainLocator.js"
-import { Dialog } from "../../gui/base/Dialog.js"
 
 export type MailAddressDropdownCreator = (args: {
 	mailAddress: MailAddressAndName
@@ -44,6 +42,7 @@ export interface MailViewerHeaderAttrs {
 	viewModel: MailViewerViewModel
 	createMailAddressContextButtons: MailAddressDropdownCreator
 	isPrimary: boolean
+	importFile: (file: TutanotaFile) => void
 }
 
 /** The upper part of the mail viewer, everything but the mail body itself. */
@@ -67,7 +66,7 @@ export class MailViewerHeader implements Component<MailViewerHeaderAttrs> {
 				},
 				this.renderDetails(attrs, { bubbleMenuWidth: 300 }),
 			),
-			this.renderAttachments(viewModel),
+			this.renderAttachments(viewModel, attrs.importFile),
 			this.renderConnectionLostBanner(viewModel),
 			this.renderEventBanner(viewModel),
 			this.renderBanners(attrs),
@@ -462,7 +461,7 @@ export class MailViewerHeader implements Component<MailViewerHeaderAttrs> {
 		])
 	}
 
-	private renderAttachments(viewModel: MailViewerViewModel): Children {
+	private renderAttachments(viewModel: MailViewerViewModel, importFile: (file: TutanotaFile) => void): Children {
 		// Show a loading symbol if we are loading attachments
 		if (viewModel.isLoadingAttachments() && !viewModel.isConnectionLost()) {
 			return m(".flex." + responsiveCardHMargin(), [
@@ -488,7 +487,7 @@ export class MailViewerHeader implements Component<MailViewerHeaderAttrs> {
 				m(".flex.mt-s.mb-s" + "." + responsiveCardHMargin(), liveDataAttrs(), [
 					attachmentCount === 1
 						? // If we have exactly one attachment, just show the attachment
-						  this.renderAttachmentContainer(viewModel, attachments)
+						  this.renderAttachmentContainer(viewModel, attachments, importFile)
 						: // Otherwise, we show the number of attachments and its total size along with a show all button
 						  m(ExpanderButton, {
 								label: () =>
@@ -518,7 +517,7 @@ export class MailViewerHeader implements Component<MailViewerHeaderAttrs> {
 								expanded: this.filesExpanded,
 							},
 							m(".flex.col." + responsiveCardHMargin(), [
-								m(".flex.flex-wrap.gap-hpad", this.renderAttachmentContainer(viewModel, attachments)),
+								m(".flex.flex-wrap.gap-hpad", this.renderAttachmentContainer(viewModel, attachments, importFile)),
 								isIOSApp()
 									? null
 									: m(
@@ -536,7 +535,7 @@ export class MailViewerHeader implements Component<MailViewerHeaderAttrs> {
 		}
 	}
 
-	private renderAttachmentContainer(viewModel: MailViewerViewModel, attachments: TutanotaFile[]): Children {
+	private renderAttachmentContainer(viewModel: MailViewerViewModel, attachments: TutanotaFile[], importFile: (file: TutanotaFile) => void): Children {
 		return attachments.map((attachment) =>
 			m(AttachmentBubble, {
 				attachment,
@@ -546,7 +545,7 @@ export class MailViewerHeader implements Component<MailViewerHeaderAttrs> {
 						? () => viewModel.downloadAndOpenAttachment(attachment, false)
 						: () => viewModel.downloadAndOpenAttachment(attachment, true),
 				open: isAndroidApp() || isDesktop() ? () => viewModel.downloadAndOpenAttachment(attachment, true) : null,
-				file_import: () => this.handleVCardImport(viewModel, attachment),
+				file_import: () => importFile(attachment),
 			}),
 		)
 	}
@@ -772,25 +771,5 @@ export class MailViewerHeader implements Component<MailViewerHeaderAttrs> {
 		} else {
 			return ""
 		}
-	}
-
-	private async handleVCardImport(viewModel: MailViewerViewModel, file: TutanotaFile) {
-		const vCardData = await viewModel.downloadAndParseVCard(file)
-		if (vCardData == null) {
-			return Dialog.message("importVCardError_msg")
-		}
-		const contacts = await this.parseVCardRawContacts(vCardData)
-
-		return Dialog.importVCardDialog(contacts, async (dialog) => {
-			await viewModel.contactModel.importContactList(contacts)
-			dialog.close()
-		}).show()
-	}
-
-	private async parseVCardRawContacts(contacts: string[]): Promise<Contact[]> {
-		const { vCardListToContacts } = await import("../../contacts/VCardImporter.js")
-		const contactMembership = assertNotNull(locator.logins.getUserController().user.memberships.find((m) => m.groupType === GroupType.Contact))
-
-		return vCardListToContacts(contacts, contactMembership.group)
 	}
 }
