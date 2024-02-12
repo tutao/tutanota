@@ -8,7 +8,10 @@ import type { UpdatableSettingsViewer } from "./SettingsView"
 import { EntityUpdateData, isUpdateForTypeRef } from "../api/common/utils/EntityUpdateUtils.js"
 import { locator } from "../api/main/MainLocator.js"
 import { FeatureType, OperationType } from "../api/common/TutanotaConstants.js"
-import { TutanotaProperties, TutanotaPropertiesTypeRef } from "../api/entities/tutanota/TypeRefs.js"
+import {
+	TutanotaProperties,
+	TutanotaPropertiesTypeRef,
+} from "../api/entities/tutanota/TypeRefs.js"
 import { deviceConfig } from "../misc/DeviceConfig.js"
 import { Button, ButtonType } from "../gui/base/Button.js"
 import { Dialog } from "../gui/base/Dialog.js"

@@ -1670,8 +1670,8 @@ export default {
 		"yourMessage_label": "Deine Nachricht",
 		"you_label": "Du",
 		"vcardInSharingFiles_msg": "Wir haben eine oder mehrere Kontaktdateien entdeckt. Möchtest Du diese importieren oder anhängen?",
-		"mailAddressInfoLegacy_msg": "Deaktivierte E-Mail-Adressen können einer anderen Mailbox innerhalb deines Kontos zugewiesen werden.",
 		"importFromContactBook_label": "Kontakte von deinem Gerät importieren",
-		"importContacts_label": "Kontakte importieren"
+		"importContacts_label": "Kontakte importieren",
+		"mailAddressInfoLegacy_msg": "Deaktivierte E-Mail-Adressen können einer anderen Mailbox innerhalb deines Kontos zugewiesen werden."
 	}
 }
