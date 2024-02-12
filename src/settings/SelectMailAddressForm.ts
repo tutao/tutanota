@@ -8,7 +8,7 @@ import { Icon } from "../gui/base/Icon"
 import { locator } from "../api/main/MainLocator"
 import { assertMainOrNode } from "../api/common/Env"
 import { px, size } from "../gui/size.js"
-import { Autocomplete, inputLineHeight, TextField } from "../gui/base/TextField.js"
+import { Autocomplete, inputLineHeight, BorderTextField } from "../gui/base/BorderTextField.js"
 import { attachDropdown, DropdownButtonAttrs } from "../gui/base/Dropdown.js"
 import { IconButton, IconButtonAttrs } from "../gui/base/IconButton.js"
 import { ButtonSize } from "../gui/base/ButtonSize.js"
@@ -71,7 +71,7 @@ export class SelectMailAddressForm implements Component<SelectMailAddressFormAtt
 			}
 		}
 
-		return m(TextField, {
+		return m(BorderTextField, {
 			label: "mailAddress_label",
 			value: this.username,
 			alignRight: true,
@@ -87,7 +87,7 @@ export class SelectMailAddressForm implements Component<SelectMailAddressFormAtt
 					".flex.items-end.align-self-end",
 					{
 						style: {
-							"padding-bottom": "1px",
+							"padding-bottom": "9px",
 							flex: "1 1 auto",
 							fontSize: px(size.font_size_smaller),
 							lineHeight: px(inputLineHeight),

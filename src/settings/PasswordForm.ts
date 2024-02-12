@@ -1,5 +1,5 @@
 import m, { Children, Component, Vnode } from "mithril"
-import { Autocomplete, TextField, TextFieldType } from "../gui/base/TextField.js"
+import { Autocomplete, BorderTextField, BorderTextFieldType } from "../gui/base/BorderTextField.js"
 import { CompletenessIndicator } from "../gui/CompletenessIndicator.js"
 import { getPasswordStrength, isSecurePassword, scaleToVisualPasswordStrength } from "../misc/passwords/PasswordUtils"
 import type { TranslationKey } from "../misc/LanguageViewModel"
@@ -270,18 +270,18 @@ export class PasswordForm implements Component<PasswordFormAttrs> {
 			},
 			[
 				attrs.model.config.checkOldPassword
-					? m(TextField, {
+					? m(BorderTextField, {
 							label: "oldPassword_label",
 							value: attrs.model.getOldPassword(),
 							helpLabel: () => m(StatusField, { status: attrs.model.getOldPasswordStatus() }),
 							oninput: (input) => attrs.model.setOldPassword(input),
 							autocompleteAs: Autocomplete.currentPassword,
 							fontSize: px(size.font_size_smaller),
-							type: attrs.model.isPasswordRevealed(PasswordFieldType.Old) ? TextFieldType.Text : TextFieldType.Password,
+							type: attrs.model.isPasswordRevealed(PasswordFieldType.Old) ? BorderTextFieldType.Text : BorderTextFieldType.Password,
 							injectionsRight: () => this.renderRevealIcon(attrs, PasswordFieldType.Old),
 					  })
 					: null,
-				m(TextField, {
+				m(BorderTextField, {
 					label: "newPassword_label",
 					value: attrs.model.getNewPassword(),
 					helpLabel: () =>
@@ -300,12 +300,12 @@ export class PasswordForm implements Component<PasswordFormAttrs> {
 					oninput: (input) => attrs.model.setNewPassword(input),
 					autocompleteAs: Autocomplete.newPassword,
 					fontSize: px(size.font_size_smaller),
-					type: attrs.model.isPasswordRevealed(PasswordFieldType.New) ? TextFieldType.Text : TextFieldType.Password,
+					type: attrs.model.isPasswordRevealed(PasswordFieldType.New) ? BorderTextFieldType.Text : BorderTextFieldType.Password,
 					injectionsRight: () => this.renderRevealIcon(attrs, PasswordFieldType.New),
 				}),
 				attrs.model.config.hideConfirmation
 					? null
-					: m(TextField, {
+					: m(BorderTextField, {
 							label: "repeatedPassword_label",
 							value: attrs.model.getRepeatedPassword(),
 							autocompleteAs: Autocomplete.newPassword,
@@ -315,7 +315,7 @@ export class PasswordForm implements Component<PasswordFormAttrs> {
 								}),
 							oninput: (input) => attrs.model.setRepeatedPassword(input),
 							fontSize: px(size.font_size_smaller),
-							type: attrs.model.isPasswordRevealed(PasswordFieldType.Confirm) ? TextFieldType.Text : TextFieldType.Password,
+							type: attrs.model.isPasswordRevealed(PasswordFieldType.Confirm) ? BorderTextFieldType.Text : BorderTextFieldType.Password,
 							injectionsRight: () => this.renderRevealIcon(attrs, PasswordFieldType.Confirm),
 					  }),
 				attrs.passwordInfoKey ? m(".small.mt-s", lang.get(attrs.passwordInfoKey)) : null,
