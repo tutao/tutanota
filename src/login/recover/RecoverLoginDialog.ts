@@ -4,7 +4,7 @@ import Stream from "mithril/stream"
 import { AccessBlockedError, AccessDeactivatedError, NotAuthenticatedError, TooManyRequestsError } from "../../api/common/error/RestError"
 import { showProgressDialog } from "../../gui/dialogs/ProgressDialog"
 import { isMailAddress } from "../../misc/FormatValidator"
-import { Autocomplete, TextField, TextFieldType } from "../../gui/base/TextField.js"
+import { Autocomplete, BorderTextField, BorderTextFieldType } from "../../gui/base/BorderTextField.js"
 import { lang } from "../../misc/LanguageViewModel"
 import { PasswordForm, PasswordModel } from "../../settings/PasswordForm"
 import { Icons } from "../../gui/base/icons/Icons"
@@ -67,14 +67,14 @@ export function show(mailAddress?: string | null, resetAction?: ResetAction): Di
 		child: {
 			view: () => {
 				return [
-					m(TextField, {
+					m(BorderTextField, {
 						label: "mailAddress_label",
 						value: emailAddressStream(),
 						autocompleteAs: Autocomplete.email,
 						oninput: emailAddressStream,
 					}),
 					m(editor),
-					m(TextField, {
+					m(BorderTextField, {
 						label: "action_label",
 						value: selectedValueLabelStream(),
 						oninput: selectedValueLabelStream,
@@ -85,9 +85,9 @@ export function show(mailAddress?: string | null, resetAction?: ResetAction): Di
 						? null
 						: selectedAction() === "password"
 						? m(PasswordForm, { model: passwordModel })
-						: m(TextField, {
+						: m(BorderTextField, {
 								label: "password_label",
-								type: TextFieldType.Password,
+								type: BorderTextFieldType.Password,
 								value: passwordValueStream(),
 								autocompleteAs: Autocomplete.currentPassword,
 								oninput: passwordValueStream,

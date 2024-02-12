@@ -120,8 +120,9 @@ export class BorderTextField implements ClassComponent<BorderTextFieldAttrs> {
 							transform: `translateY(-${this.active || vnode.attrs.value ? 30 : 0}px)`,
 							transition: `transform ${labelTransitionSpeed}ms`,
 							lineHeight: px(size.font_size_base + 8),
-							margin: "17px 6px",
-							padding: "0px 10px",
+							margin: "17px 6px 0px 8px",
+							padding: "0px 10px 0px 6px",
+							"font-style": "normal",
 							background: vnode.attrs.labelBgColorOverwrite || getElevatedBackground(),
 						},
 					},
@@ -199,8 +200,10 @@ export class BorderTextField implements ClassComponent<BorderTextFieldAttrs> {
 				".text-break.selectable",
 				{
 					style: {
-						marginTop: px(inputMarginTop),
-						lineHeight: px(inputLineHeight),
+						padding: "8px 16px",
+						lineHeight: px(56 - 16),
+						//marginTop: px(inputMarginTop),
+						//lineHeight: px(inputLineHeight),
 					},
 				},
 				a.value,
@@ -296,7 +299,6 @@ export class BorderTextField implements ClassComponent<BorderTextFieldAttrs> {
 							if (this.domInput) this.domInput.value = ""
 						},
 						style: {
-							// fixme: add left padding
 							padding: "8px 16px",
 							maxWidth: a.maxWidth,
 							minWidth: px(20),
@@ -316,8 +318,10 @@ export class BorderTextField implements ClassComponent<BorderTextFieldAttrs> {
 				".text-prewrap.text-break.selectable",
 				{
 					style: {
-						marginTop: px(inputMarginTop),
-						lineHeight: px(inputLineHeight),
+						padding: "8px 16px",
+						lineHeight: px(56 - 16),
+						//marginTop: px(inputMarginTop),
+						//lineHeight: px(inputLineHeight),
 					},
 				},
 				a.value,
