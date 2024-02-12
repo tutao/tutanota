@@ -95,6 +95,7 @@ export function createAttachmentBubbleAttrs(model: SendMailModel, inlineImageEle
 			m.redraw()
 		},
 		file_import: null,
+		isVCard: false,
 	}))
 }
 
