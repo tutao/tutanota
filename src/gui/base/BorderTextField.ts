@@ -36,6 +36,8 @@ export type BorderTextFieldAttrs = {
 	fontSize?: string
 	min?: number
 	max?: number
+	labelBgColorOverwrite?: string
+	// overwrites the default color `getElevatedBackground()` in order to display the correct color when not on a elevated background (-> dark mode LoginForm.ts)
 }
 
 export const enum BorderTextFieldType {
@@ -116,11 +118,11 @@ export class BorderTextField implements ClassComponent<BorderTextFieldAttrs> {
 						style: {
 							fontSize: `${size.font_size_base}px`,
 							transform: `translateY(-${this.active || vnode.attrs.value ? 30 : 0}px)`,
-							transition: `transform 100ms`,
-							background: getElevatedBackground(), // fixme: this gives back the wrong color :/ lightMode -> getElevatedBackground() | darkMode (only login) -> getNavigationMenuBg()
-							lineHeight: "24px",
+							transition: `transform ${labelTransitionSpeed}ms`,
+							lineHeight: px(size.font_size_base + 8),
 							margin: "17px 6px",
 							padding: "0px 10px",
+							background: vnode.attrs.labelBgColorOverwrite || getElevatedBackground(),
 						},
 					},
 					lang.getMaybeLazy(a.label),
@@ -138,10 +140,10 @@ export class BorderTextField implements ClassComponent<BorderTextFieldAttrs> {
 								// .flex-wrap
 								style: {
 									"min-height": px(minInputHeight),
-									// 2 px border
+									// border: 2px when active; 1px whe inactive
 									border: doShowBorder ? `${borderWidth} solid ${borderColor}` : "",
 									"border-radius": "8px",
-									margin: this.active ? "0px" : "1px",
+									margin: this.active ? "0px" : "1px", // reserve space for border to not move other elements on focus change
 								},
 							},
 							[
@@ -161,10 +163,11 @@ export class BorderTextField implements ClassComponent<BorderTextFieldAttrs> {
 													".flex-end.items-center",
 													{
 														style: {
+															// use minHeight to allow svgs to be rendered correctly
 															minHeight: "40px", //px(minInputHeight - 2),
-															margin: "7.5px 16px",
 															lineHeight: "40px",
-														}, // Fixme: The dropdown needs to be modified so it doesn't crop of the label
+															margin: "7.5px 16px",
+														},
 													},
 													a.injectionsRight(),
 											  )

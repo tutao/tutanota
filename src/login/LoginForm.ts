@@ -11,6 +11,7 @@ import { isApp, isDesktop, isOfflineStorageAvailable } from "../api/common/Env"
 import { getWhitelabelCustomizations } from "../misc/WhitelabelCustomizations.js"
 import { BootstrapFeatureType } from "../api/common/TutanotaConstants.js"
 import { ACTIVATED_MIGRATION, isLegacyDomain } from "./LoginViewModel.js"
+import { getNavigationMenuBg, theme } from "../gui/theme.js"
 
 export type LoginFormAttrs = {
 	onSubmit: (username: string, password: string) => unknown
@@ -83,6 +84,7 @@ export class LoginForm implements Component<LoginFormAttrs> {
 						oninput: a.mailAddress,
 						type: BorderTextFieldType.Email,
 						autocompleteAs: Autocomplete.email,
+						labelBgColorOverwrite: theme.themeId == "dark" ? getNavigationMenuBg() : undefined,
 						onDomInputCreated: (dom) => {
 							this.mailAddressBorderTextField = dom
 							if (!client.isMobileDevice()) {
@@ -99,6 +101,7 @@ export class LoginForm implements Component<LoginFormAttrs> {
 						oninput: a.password,
 						type: BorderTextFieldType.Password,
 						autocompleteAs: Autocomplete.currentPassword,
+						labelBgColorOverwrite: theme.themeId == "dark" ? getNavigationMenuBg() : undefined,
 						onDomInputCreated: (dom) => (this.passwordBorderTextField = dom),
 					}),
 				),
