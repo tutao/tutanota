@@ -29,47 +29,43 @@ export interface EventDragHandlerCallbacks {
  * Handles logic for dragging events in the calendar child views.
  */
 export class EventDragHandler {
-	_data: DragData | null = null
-	_isDragging: boolean = false
-	_lastDiffBetweenDates: number | null = null
-	_hasChanged: boolean = false
-	_draggingArea: HTMLBodyElement
-	_eventDragCallbacks: EventDragHandlerCallbacks
+	private data: DragData | null = null
+	private dragging: boolean = false
+	private lastDiffBetweenDates: number | null = null
+	private hasChanged: boolean = false
 
-	constructor(draggingArea: HTMLBodyElement, callbacks: EventDragHandlerCallbacks) {
-		this._draggingArea = draggingArea
-		this._eventDragCallbacks = callbacks
-	}
+	constructor(private readonly draggingArea: HTMLBodyElement, private readonly eventDragCallbacks: EventDragHandlerCallbacks) {}
 
 	get isDragging(): boolean {
-		return this._isDragging
+		return this.dragging
 	}
 
 	get originalEvent(): CalendarEvent | null {
-		return this._data?.originalEvent ?? null
+		return this.data?.originalEvent ?? null
 	}
 
 	/**
 	 * Check if the handler has changed since the last time you called this function
 	 */
 	queryHasChanged(): boolean {
-		const isChanged = this._hasChanged
-		this._hasChanged = false
+		const isChanged = this.hasChanged
+		this.hasChanged = false
 		return isChanged
 	}
 
 	/**
 	 * Call on mouse down, to initialize an upcoming drag event.
 	 * Doesn't start the drag yet, because we want to wait until the mouse has moved beyond some threshhold
-	 * @param calendarEvent The calendar event for which a drag operation is prepared
+	 * @param calendarEvent The calendar event for which a drag operation is prepared.
 	 * @param dateUnderMouse The original date under mouse when preparing the drag.
+	 * @param mousePos The current position of the mouse.
 	 * @param keepTime Indicates whether the time on the original event should be kept or modified. In case this is set to true the drag
 	 * operation just shifts event start by whole days otherwise the time from dateUnderMouse should be used as new time for the event.
 	 */
 	prepareDrag(calendarEvent: CalendarEvent, dateUnderMouse: Date, mousePos: MousePos, keepTime: boolean) {
-		this._draggingArea.classList.add("cursor-grabbing")
+		this.draggingArea.classList.add("cursor-grabbing")
 
-		this._data = {
+		this.data = {
 			originalEvent: calendarEvent,
 			// We always differentiate between eventStart and originalDateUnderMouse to be able to shift it relative to the mouse position
 			// and not the start date. This is important for larger events in day/week view
@@ -77,20 +73,20 @@ export class EventDragHandler {
 			originalMousePos: mousePos,
 			keepTime: keepTime,
 		}
-		this._hasChanged = false
-		this._isDragging = false
+		this.hasChanged = false
+		this.dragging = false
 	}
 
 	/**
 	 * Call on mouse move.
 	 * Will be a no-op if the prepareDrag hasn't been called or if cancelDrag has been called since the last prepareDrag call
-	 * The dragging doesn't actually begin until the distance between the mouse and it's original location is greater than some threshold
+	 * The dragging doesn't actually begin until the distance between the mouse and its original location is greater than some threshold
 	 * @param dateUnderMouse The current date under the mouse courser, may include a time.
 	 * @param mousePos the position of the mouse when the drag ended.
 	 */
 	handleDrag(dateUnderMouse: Date, mousePos: MousePos) {
-		if (this._data) {
-			const dragData = this._data
+		if (this.data) {
+			const dragData = this.data
 			const adjustedDateUnderMouse = this.adjustDateUnderMouse(dragData.originalEvent.startTime, dateUnderMouse, dragData.keepTime)
 			// Calculate the distance from the original mouse location to the current mouse location
 			// We don't want to actually start the drag until the mouse has moved by some distance
@@ -99,25 +95,25 @@ export class EventDragHandler {
 			const distanceY = dragData.originalMousePos.y - mousePos.y
 			const distance = Math.sqrt(distanceX ** 2 + distanceY ** 2)
 
-			if (this._isDragging) {
+			if (this.dragging) {
 				const diffBetweenDates = this.getDayUnderMouseDiff(dragData, adjustedDateUnderMouse)
 
 				// We don't want to trigger a redraw everytime the drag call is triggered, only when necessary
-				if (diffBetweenDates !== this._lastDiffBetweenDates) {
-					this._lastDiffBetweenDates = diffBetweenDates
+				if (diffBetweenDates !== this.lastDiffBetweenDates) {
+					this.lastDiffBetweenDates = diffBetweenDates
 
-					this._eventDragCallbacks.onDragUpdate(diffBetweenDates)
+					this.eventDragCallbacks.onDragUpdate(diffBetweenDates)
 
-					this._hasChanged = true
+					this.hasChanged = true
 					m.redraw()
 				}
 			} else if (distance > DRAG_THRESHOLD) {
-				this._isDragging = true
-				this._lastDiffBetweenDates = this.getDayUnderMouseDiff(dragData, adjustedDateUnderMouse)
+				this.dragging = true
+				this.lastDiffBetweenDates = this.getDayUnderMouseDiff(dragData, adjustedDateUnderMouse)
 
-				this._eventDragCallbacks.onDragStart(dragData.originalEvent, this._lastDiffBetweenDates)
+				this.eventDragCallbacks.onDragStart(dragData.originalEvent, this.lastDiffBetweenDates)
 
-				this._hasChanged = true
+				this.hasChanged = true
 				m.redraw()
 			}
 		}
@@ -129,15 +125,15 @@ export class EventDragHandler {
 	 * This function will only trigger when prepareDrag has been called
 	 */
 	async endDrag(dateUnderMouse: Date, pos: MousePos): Promise<void> {
-		this._draggingArea.classList.remove("cursor-grabbing")
+		this.draggingArea.classList.remove("cursor-grabbing")
 
-		if (this._isDragging && this._data) {
-			const dragData = this._data
+		if (this.dragging && this.data) {
+			const dragData = this.data
 			const adjustedDateUnderMouse = this.adjustDateUnderMouse(dragData.originalEvent.startTime, dateUnderMouse, dragData.keepTime)
 			// We update our state first because the updateCallback might take some time, and
 			// we want the UI to be able to react to the drop having happened before we get the result
-			this._isDragging = false
-			this._data = null
+			this.dragging = false
+			this.data = null
 			const diffBetweenDates = this.getDayUnderMouseDiff(dragData, adjustedDateUnderMouse)
 
 			// technically, we should check that this event is EventType OWN or SHARED_RW, but we'll assume that we're
@@ -153,9 +149,9 @@ export class EventDragHandler {
 
 			// If the date hasn't changed we still have to do the callback so the view model can cancel the drag
 			try {
-				await this._eventDragCallbacks.onDragEnd(diffBetweenDates, mode)
+				await this.eventDragCallbacks.onDragEnd(diffBetweenDates, mode)
 			} finally {
-				this._hasChanged = true
+				this.hasChanged = true
 				m.redraw()
 			}
 		} else {
@@ -179,13 +175,13 @@ export class EventDragHandler {
 	}
 
 	cancelDrag() {
-		this._draggingArea.classList.remove("cursor-grabbing")
-		this._eventDragCallbacks.onDragCancel()
+		this.draggingArea.classList.remove("cursor-grabbing")
+		this.eventDragCallbacks.onDragCancel()
 
-		this._data = null
-		this._isDragging = false
-		this._hasChanged = true
-		this._lastDiffBetweenDates = null
+		this.data = null
+		this.dragging = false
+		this.hasChanged = true
+		this.lastDiffBetweenDates = null
 
 		m.redraw()
 	}
