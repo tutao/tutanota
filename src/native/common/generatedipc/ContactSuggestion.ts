@@ -1,6 +1,6 @@
 /* generated file, don't edit. */
 
-export interface NativeContact {
+export interface ContactSuggestion {
 	readonly name: string
 	readonly mailAddress: string
 }

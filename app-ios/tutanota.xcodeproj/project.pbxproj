@@ -11,28 +11,28 @@
 		3D0E44A42B3C3CE500F933A1 /* symmetric-shake.c in Sources */ = {isa = PBXBuildFile; fileRef = 3D0E44842B3C3CE500F933A1 /* symmetric-shake.c */; };
 		3D0E44A52B3C3CE500F933A1 /* cbd.c in Sources */ = {isa = PBXBuildFile; fileRef = 3D0E44852B3C3CE500F933A1 /* cbd.c */; };
 		3D0E44A62B3C3CE500F933A1 /* ntt.c in Sources */ = {isa = PBXBuildFile; fileRef = 3D0E44862B3C3CE500F933A1 /* ntt.c */; };
-		3D0E44A72B3C3CE500F933A1 /* poly.c in Sources */ = {isa = PBXBuildFile; fileRef = 3D0E44872B3C3CE500F933A1 /* poly.c */; };
+		3D0E44A72B3C3CE500F933A1 /* poly.c in Sources */ = {isa = PBXBuildFile; fileRef = 3D0E44872B3C3CE500F933A1 /* poly.c */; settings = {COMPILER_FLAGS = "-Wno-everything"; }; };
 		3D0E44A82B3C3CE500F933A1 /* params.h in Headers */ = {isa = PBXBuildFile; fileRef = 3D0E44882B3C3CE500F933A1 /* params.h */; };
 		3D0E44A92B3C3CE500F933A1 /* polyvec.h in Headers */ = {isa = PBXBuildFile; fileRef = 3D0E44892B3C3CE500F933A1 /* polyvec.h */; };
 		3D0E44AA2B3C3CE500F933A1 /* reduce.c in Sources */ = {isa = PBXBuildFile; fileRef = 3D0E448A2B3C3CE500F933A1 /* reduce.c */; };
 		3D0E44AB2B3C3CE500F933A1 /* verify.c in Sources */ = {isa = PBXBuildFile; fileRef = 3D0E448B2B3C3CE500F933A1 /* verify.c */; };
-		3D0E44AC2B3C3CE500F933A1 /* kem.c in Sources */ = {isa = PBXBuildFile; fileRef = 3D0E448C2B3C3CE500F933A1 /* kem.c */; };
-		3D0E44AD2B3C3CE500F933A1 /* indcpa.c in Sources */ = {isa = PBXBuildFile; fileRef = 3D0E448D2B3C3CE500F933A1 /* indcpa.c */; };
+		3D0E44AC2B3C3CE500F933A1 /* kem.c in Sources */ = {isa = PBXBuildFile; fileRef = 3D0E448C2B3C3CE500F933A1 /* kem.c */; settings = {COMPILER_FLAGS = "-Wno-everything"; }; };
+		3D0E44AD2B3C3CE500F933A1 /* indcpa.c in Sources */ = {isa = PBXBuildFile; fileRef = 3D0E448D2B3C3CE500F933A1 /* indcpa.c */; settings = {COMPILER_FLAGS = "-Wno-everything"; }; };
 		3D0E44AE2B3C3CE500F933A1 /* symmetric.h in Headers */ = {isa = PBXBuildFile; fileRef = 3D0E448E2B3C3CE500F933A1 /* symmetric.h */; };
 		3D0E44AF2B3C3CE500F933A1 /* ntt.h in Headers */ = {isa = PBXBuildFile; fileRef = 3D0E448F2B3C3CE500F933A1 /* ntt.h */; };
 		3D0E44B02B3C3CE500F933A1 /* cbd.h in Headers */ = {isa = PBXBuildFile; fileRef = 3D0E44902B3C3CE500F933A1 /* cbd.h */; };
 		3D0E44B12B3C3CE500F933A1 /* reduce.h in Headers */ = {isa = PBXBuildFile; fileRef = 3D0E44912B3C3CE500F933A1 /* reduce.h */; };
-		3D0E44B22B3C3CE500F933A1 /* polyvec.c in Sources */ = {isa = PBXBuildFile; fileRef = 3D0E44922B3C3CE500F933A1 /* polyvec.c */; };
+		3D0E44B22B3C3CE500F933A1 /* polyvec.c in Sources */ = {isa = PBXBuildFile; fileRef = 3D0E44922B3C3CE500F933A1 /* polyvec.c */; settings = {COMPILER_FLAGS = "-Wno-everything"; }; };
 		3D0E44B32B3C3CE500F933A1 /* poly.h in Headers */ = {isa = PBXBuildFile; fileRef = 3D0E44932B3C3CE500F933A1 /* poly.h */; };
 		3D0E44B42B3C3CE500F933A1 /* indcpa.h in Headers */ = {isa = PBXBuildFile; fileRef = 3D0E44942B3C3CE500F933A1 /* indcpa.h */; };
 		3D0E44B52B3C3CE500F933A1 /* verify.h in Headers */ = {isa = PBXBuildFile; fileRef = 3D0E44952B3C3CE500F933A1 /* verify.h */; };
 		3D0E44B62B3C3CE500F933A1 /* kem_kyber_1024.c in Sources */ = {isa = PBXBuildFile; fileRef = 3D0E44962B3C3CE500F933A1 /* kem_kyber_1024.c */; };
-		3D0E44B72B3C3CE500F933A1 /* common.c in Sources */ = {isa = PBXBuildFile; fileRef = 3D0E44982B3C3CE500F933A1 /* common.c */; };
+		3D0E44B72B3C3CE500F933A1 /* common.c in Sources */ = {isa = PBXBuildFile; fileRef = 3D0E44982B3C3CE500F933A1 /* common.c */; settings = {COMPILER_FLAGS = "-Wno-everything"; }; };
 		3D0E44B82B3C3CE500F933A1 /* xkcp_dispatch.h in Headers */ = {isa = PBXBuildFile; fileRef = 3D0E449A2B3C3CE500F933A1 /* xkcp_dispatch.h */; };
 		3D0E44B92B3C3CE500F933A1 /* KeccakP-1600-opt64.c in Sources */ = {isa = PBXBuildFile; fileRef = 3D0E449E2B3C3CE500F933A1 /* KeccakP-1600-opt64.c */; };
 		3D0E44BA2B3C3CE500F933A1 /* xkcp_sha3.c in Sources */ = {isa = PBXBuildFile; fileRef = 3D0E449F2B3C3CE500F933A1 /* xkcp_sha3.c */; };
 		3D0E44BB2B3C3CE500F933A1 /* fips202.h in Headers */ = {isa = PBXBuildFile; fileRef = 3D0E44A12B3C3CE500F933A1 /* fips202.h */; };
-		3D0E44BC2B3C3CE500F933A1 /* fips202.c in Sources */ = {isa = PBXBuildFile; fileRef = 3D0E44A22B3C3CE500F933A1 /* fips202.c */; };
+		3D0E44BC2B3C3CE500F933A1 /* fips202.c in Sources */ = {isa = PBXBuildFile; fileRef = 3D0E44A22B3C3CE500F933A1 /* fips202.c */; settings = {COMPILER_FLAGS = "-Wno-everything"; }; };
 		3D0E44BE2B3C3D4900F933A1 /* randombytes.h in Headers */ = {isa = PBXBuildFile; fileRef = 3D0E44BD2B3C3D4900F933A1 /* randombytes.h */; };
 		3D0E44C02B3C3DAC00F933A1 /* brg_endian.h in Headers */ = {isa = PBXBuildFile; fileRef = 3D0E44BF2B3C3DAC00F933A1 /* brg_endian.h */; };
 		3D0E44C22B3C3DC400F933A1 /* KeccakP-1600-SnP.h in Headers */ = {isa = PBXBuildFile; fileRef = 3D0E44C12B3C3DC400F933A1 /* KeccakP-1600-SnP.h */; };
@@ -70,16 +70,18 @@
 		3D4A426529B63E1E00B10451 /* AlarmPersistor.swift in Sources */ = {isa = PBXBuildFile; fileRef = 3D4A426429B63E1E00B10451 /* AlarmPersistor.swift */; };
 		3D4A426729B6453700B10451 /* AlarmScheduler.swift in Sources */ = {isa = PBXBuildFile; fileRef = 3D4A426629B6453700B10451 /* AlarmScheduler.swift */; };
 		3D4A426929B6513900B10451 /* DateProvider.swift in Sources */ = {isa = PBXBuildFile; fileRef = 3D4A426829B6513900B10451 /* DateProvider.swift */; };
-		3D4D78252B62606D00829803 /* ContactsAuthorization.swift in Sources */ = {isa = PBXBuildFile; fileRef = 3D4D78242B62606D00829803 /* ContactsAuthorization.swift */; };
-		3D4D78272B62610200829803 /* ContactsSynchronization.swift in Sources */ = {isa = PBXBuildFile; fileRef = 3D4D78262B62610200829803 /* ContactsSynchronization.swift */; };
+		3D4D78252B62606D00829803 /* ContactsPermission.swift in Sources */ = {isa = PBXBuildFile; fileRef = 3D4D78242B62606D00829803 /* ContactsPermission.swift */; };
+		3D4D78272B62610200829803 /* IosMobileContactsFacade.swift in Sources */ = {isa = PBXBuildFile; fileRef = 3D4D78262B62610200829803 /* IosMobileContactsFacade.swift */; };
 		3D4E16F4273D2F8A00256630 /* SyncCompletion.swift in Sources */ = {isa = PBXBuildFile; fileRef = 3D4E16F3273D2F8A00256630 /* SyncCompletion.swift */; };
 		3D4E3C9E28EC5B31001FA9D1 /* Security.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 3D4E3C9D28EC5B31001FA9D1 /* Security.framework */; };
 		3D4E3CA028EC5B43001FA9D1 /* Foundation.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 3D4E3C9F28EC5B43001FA9D1 /* Foundation.framework */; };
 		3D4E3CA228EC5C4F001FA9D1 /* IosSqlCipherFade.swift in Sources */ = {isa = PBXBuildFile; fileRef = 3D4E3CA128EC5C4F001FA9D1 /* IosSqlCipherFade.swift */; };
-		3D4E3CA828EC63A6001FA9D1 /* sqlite3.c in Sources */ = {isa = PBXBuildFile; fileRef = 3D4E3C9C28EC5A3D001FA9D1 /* sqlite3.c */; };
+		3D4E3CA828EC63A6001FA9D1 /* sqlite3.c in Sources */ = {isa = PBXBuildFile; fileRef = 3D4E3C9C28EC5A3D001FA9D1 /* sqlite3.c */; settings = {COMPILER_FLAGS = "-Wno-everything"; }; };
 		3D4E3CAA28EC6787001FA9D1 /* sqlite3.h in Headers */ = {isa = PBXBuildFile; fileRef = 3D4E3C9B28EC5A3D001FA9D1 /* sqlite3.h */; };
 		3D4F1BFA26EBADE500E87BF5 /* TUTBigNum.m in Sources */ = {isa = PBXBuildFile; fileRef = 3D4F1BF926EBADE500E87BF5 /* TUTBigNum.m */; };
 		3D4F1BFB26EBADE500E87BF5 /* TUTBigNum.m in Sources */ = {isa = PBXBuildFile; fileRef = 3D4F1BF926EBADE500E87BF5 /* TUTBigNum.m */; };
+		3D5C6F9F2B7BBEEA00342E8C /* ContactBook.swift in Sources */ = {isa = PBXBuildFile; fileRef = 3D5C6F9E2B7BBEEA00342E8C /* ContactBook.swift */; };
+		3D5C6FA12B7BC15D00342E8C /* PermissionError.swift in Sources */ = {isa = PBXBuildFile; fileRef = 3D5C6FA02B7BC15D00342E8C /* PermissionError.swift */; };
 		3D63A0E3233D009E00D05259 /* TUTLog.m in Sources */ = {isa = PBXBuildFile; fileRef = 3D63A0E2233D009E00D05259 /* TUTLog.m */; };
 		3D63A0E5233D0C1400D05259 /* TUTLogTest.m in Sources */ = {isa = PBXBuildFile; fileRef = 3D63A0E4233D0C1400D05259 /* TUTLogTest.m */; };
 		3D648B202AB98BEA00893C8D /* argon2.h in Headers */ = {isa = PBXBuildFile; fileRef = 3D648B0F2AB98BEA00893C8D /* argon2.h */; };
@@ -90,9 +92,9 @@
 		3D648B252AB98BEA00893C8D /* blake2.h in Headers */ = {isa = PBXBuildFile; fileRef = 3D648B162AB98BEA00893C8D /* blake2.h */; };
 		3D648B262AB98BEA00893C8D /* blake2b.c in Sources */ = {isa = PBXBuildFile; fileRef = 3D648B172AB98BEA00893C8D /* blake2b.c */; };
 		3D648B272AB98BEA00893C8D /* blake2-impl.h in Headers */ = {isa = PBXBuildFile; fileRef = 3D648B182AB98BEA00893C8D /* blake2-impl.h */; };
-		3D648B282AB98BEA00893C8D /* ref.c in Sources */ = {isa = PBXBuildFile; fileRef = 3D648B192AB98BEA00893C8D /* ref.c */; };
+		3D648B282AB98BEA00893C8D /* ref.c in Sources */ = {isa = PBXBuildFile; fileRef = 3D648B192AB98BEA00893C8D /* ref.c */; settings = {COMPILER_FLAGS = "-Wno-everything"; }; };
 		3D648B292AB98BEA00893C8D /* encoding.h in Headers */ = {isa = PBXBuildFile; fileRef = 3D648B1A2AB98BEA00893C8D /* encoding.h */; };
-		3D648B2A2AB98BEA00893C8D /* core.c in Sources */ = {isa = PBXBuildFile; fileRef = 3D648B1B2AB98BEA00893C8D /* core.c */; };
+		3D648B2A2AB98BEA00893C8D /* core.c in Sources */ = {isa = PBXBuildFile; fileRef = 3D648B1B2AB98BEA00893C8D /* core.c */; settings = {COMPILER_FLAGS = "-Wno-everything"; }; };
 		3D648B2B2AB98BEA00893C8D /* thread.h in Headers */ = {isa = PBXBuildFile; fileRef = 3D648B1C2AB98BEA00893C8D /* thread.h */; };
 		3D648B2C2AB98BEA00893C8D /* argon2.c in Sources */ = {isa = PBXBuildFile; fileRef = 3D648B1D2AB98BEA00893C8D /* argon2.c */; };
 		3D648B2D2AB98BEA00893C8D /* encoding.c in Sources */ = {isa = PBXBuildFile; fileRef = 3D648B1E2AB98BEA00893C8D /* encoding.c */; };
@@ -125,7 +127,6 @@
 		3D78AC992B600F1C009C9EED /* NativePushFacadeReceiveDispatcher.swift in Sources */ = {isa = PBXBuildFile; fileRef = 3D78AC692B600F1B009C9EED /* NativePushFacadeReceiveDispatcher.swift */; };
 		3D78AC9A2B600F1C009C9EED /* WebAuthnFacadeReceiveDispatcher.swift in Sources */ = {isa = PBXBuildFile; fileRef = 3D78AC6A2B600F1B009C9EED /* WebAuthnFacadeReceiveDispatcher.swift */; };
 		3D78AC9B2B600F1C009C9EED /* IosGlobalDispatcher.swift in Sources */ = {isa = PBXBuildFile; fileRef = 3D78AC6B2B600F1B009C9EED /* IosGlobalDispatcher.swift */; };
-		3D78AC9C2B600F1C009C9EED /* NativeContact.swift in Sources */ = {isa = PBXBuildFile; fileRef = 3D78AC6C2B600F1B009C9EED /* NativeContact.swift */; };
 		3D78AC9D2B600F1C009C9EED /* NativePushFacade.swift in Sources */ = {isa = PBXBuildFile; fileRef = 3D78AC6D2B600F1B009C9EED /* NativePushFacade.swift */; };
 		3D78AC9E2B600F1C009C9EED /* KyberEncapsulation.swift in Sources */ = {isa = PBXBuildFile; fileRef = 3D78AC6E2B600F1B009C9EED /* KyberEncapsulation.swift */; };
 		3D78AC9F2B600F1C009C9EED /* NativeShortcut.swift in Sources */ = {isa = PBXBuildFile; fileRef = 3D78AC6F2B600F1B009C9EED /* NativeShortcut.swift */; };
@@ -233,7 +234,6 @@
 		3D9A1F4A22031B99002C2455 /* LaunchScreen.storyboard in Resources */ = {isa = PBXBuildFile; fileRef = 3D9A1F0522031B99002C2455 /* LaunchScreen.storyboard */; };
 		3D9A1F4B22031B99002C2455 /* Main.storyboard in Resources */ = {isa = PBXBuildFile; fileRef = 3D9A1F0722031B99002C2455 /* Main.storyboard */; };
 		3D9B1294272167D4002B46A1 /* IconFactory.swift in Sources */ = {isa = PBXBuildFile; fileRef = 3D9B1293272167D4002B46A1 /* IconFactory.swift */; };
-		3D9B129727216D60002B46A1 /* ContactsSource.swift in Sources */ = {isa = PBXBuildFile; fileRef = 3D9B129627216D60002B46A1 /* ContactsSource.swift */; };
 		3D9B129A27216DE0002B46A1 /* Response.swift in Sources */ = {isa = PBXBuildFile; fileRef = 3D9B129927216DE0002B46A1 /* Response.swift */; };
 		3D9B129D272189BB002B46A1 /* AlarmModel.swift in Sources */ = {isa = PBXBuildFile; fileRef = 3D9B129C272189BB002B46A1 /* AlarmModel.swift */; };
 		3D9B12A027218AF9002B46A1 /* RepeatRule.swift in Sources */ = {isa = PBXBuildFile; fileRef = 3D9B129F27218AF9002B46A1 /* RepeatRule.swift */; };
@@ -257,6 +257,9 @@
 		3DCB9B8528F710CC0042A6BB /* TaggedSqlValue.swift in Sources */ = {isa = PBXBuildFile; fileRef = 3DCB9B8428F710CC0042A6BB /* TaggedSqlValue.swift */; };
 		3DCB9B8728F711220042A6BB /* SqlCipherStatement.swift in Sources */ = {isa = PBXBuildFile; fileRef = 3DCB9B8628F711220042A6BB /* SqlCipherStatement.swift */; };
 		3DCC3F472ACED5DB00C9C27E /* UnfairLock.swift in Sources */ = {isa = PBXBuildFile; fileRef = 3DCC3F462ACED5DB00C9C27E /* UnfairLock.swift */; };
+		3DCE3AEA2B7E334A0056F85C /* ContactSuggestion.swift in Sources */ = {isa = PBXBuildFile; fileRef = 3DCE3AE92B7E334A0056F85C /* ContactSuggestion.swift */; };
+		3DCE3AED2B7E336B0056F85C /* MobileContactsFacadeReceiveDispatcher.swift in Sources */ = {isa = PBXBuildFile; fileRef = 3DCE3AEB2B7E336B0056F85C /* MobileContactsFacadeReceiveDispatcher.swift */; };
+		3DCE3AEE2B7E336B0056F85C /* MobileContactsFacade.swift in Sources */ = {isa = PBXBuildFile; fileRef = 3DCE3AEC2B7E336B0056F85C /* MobileContactsFacade.swift */; };
 		3DCE7AA22719D04B0085E40D /* NotificationStorage.swift in Sources */ = {isa = PBXBuildFile; fileRef = 3DCE7AA12719D04B0085E40D /* NotificationStorage.swift */; };
 		3DCE7AA7271D63BF0085E40D /* ViewController.swift in Sources */ = {isa = PBXBuildFile; fileRef = 3DCE7AA6271D63BF0085E40D /* ViewController.swift */; };
 		3DCE7AAB27200E0A0085E40D /* WebviewHacks.h in Headers */ = {isa = PBXBuildFile; fileRef = 3DCE7AA927200E0A0085E40D /* WebviewHacks.h */; };
@@ -385,8 +388,8 @@
 		3D4A426829B6513900B10451 /* DateProvider.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = DateProvider.swift; sourceTree = "<group>"; };
 		3D4D3204210747000081813A /* PSPDFFastEnumeration.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = PSPDFFastEnumeration.h; sourceTree = "<group>"; };
 		3D4D3205210747240081813A /* Swiftier.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = Swiftier.h; sourceTree = "<group>"; };
-		3D4D78242B62606D00829803 /* ContactsAuthorization.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ContactsAuthorization.swift; sourceTree = "<group>"; };
-		3D4D78262B62610200829803 /* ContactsSynchronization.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ContactsSynchronization.swift; sourceTree = "<group>"; };
+		3D4D78242B62606D00829803 /* ContactsPermission.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ContactsPermission.swift; sourceTree = "<group>"; };
+		3D4D78262B62610200829803 /* IosMobileContactsFacade.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = IosMobileContactsFacade.swift; sourceTree = "<group>"; };
 		3D4E16F3273D2F8A00256630 /* SyncCompletion.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SyncCompletion.swift; sourceTree = "<group>"; };
 		3D4E3C9B28EC5A3D001FA9D1 /* sqlite3.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = sqlite3.h; sourceTree = "<group>"; };
 		3D4E3C9C28EC5A3D001FA9D1 /* sqlite3.c */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.c; path = sqlite3.c; sourceTree = "<group>"; };
@@ -395,6 +398,8 @@
 		3D4E3CA128EC5C4F001FA9D1 /* IosSqlCipherFade.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = IosSqlCipherFade.swift; sourceTree = "<group>"; };
 		3D4F1BF826EBADE500E87BF5 /* TUTBigNum.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = TUTBigNum.h; sourceTree = "<group>"; };
 		3D4F1BF926EBADE500E87BF5 /* TUTBigNum.m */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.objc; path = TUTBigNum.m; sourceTree = "<group>"; };
+		3D5C6F9E2B7BBEEA00342E8C /* ContactBook.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = ContactBook.swift; sourceTree = "<group>"; };
+		3D5C6FA02B7BC15D00342E8C /* PermissionError.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PermissionError.swift; sourceTree = "<group>"; };
 		3D63A0DD233CF7C900D05259 /* TUTLog.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = TUTLog.h; sourceTree = "<group>"; };
 		3D63A0E2233D009E00D05259 /* TUTLog.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = TUTLog.m; sourceTree = "<group>"; };
 		3D63A0E4233D0C1400D05259 /* TUTLogTest.m */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.objc; path = TUTLogTest.m; sourceTree = "<group>"; };
@@ -441,7 +446,6 @@
 		3D78AC692B600F1B009C9EED /* NativePushFacadeReceiveDispatcher.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = NativePushFacadeReceiveDispatcher.swift; sourceTree = "<group>"; };
 		3D78AC6A2B600F1B009C9EED /* WebAuthnFacadeReceiveDispatcher.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = WebAuthnFacadeReceiveDispatcher.swift; sourceTree = "<group>"; };
 		3D78AC6B2B600F1B009C9EED /* IosGlobalDispatcher.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = IosGlobalDispatcher.swift; sourceTree = "<group>"; };
-		3D78AC6C2B600F1B009C9EED /* NativeContact.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = NativeContact.swift; sourceTree = "<group>"; };
 		3D78AC6D2B600F1B009C9EED /* NativePushFacade.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = NativePushFacade.swift; sourceTree = "<group>"; };
 		3D78AC6E2B600F1B009C9EED /* KyberEncapsulation.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = KyberEncapsulation.swift; sourceTree = "<group>"; };
 		3D78AC6F2B600F1B009C9EED /* NativeShortcut.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = NativeShortcut.swift; sourceTree = "<group>"; };
@@ -553,7 +557,6 @@
 		3D9A1F0622031B99002C2455 /* Base */ = {isa = PBXFileReference; lastKnownFileType = file.storyboard; name = Base; path = LaunchScreen.storyboard; sourceTree = "<group>"; };
 		3D9A1F0822031B99002C2455 /* Base */ = {isa = PBXFileReference; lastKnownFileType = file.storyboard; name = Base; path = Main.storyboard; sourceTree = "<group>"; };
 		3D9B1293272167D4002B46A1 /* IconFactory.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = IconFactory.swift; sourceTree = "<group>"; };
-		3D9B129627216D60002B46A1 /* ContactsSource.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ContactsSource.swift; sourceTree = "<group>"; };
 		3D9B129927216DE0002B46A1 /* Response.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Response.swift; sourceTree = "<group>"; };
 		3D9B129C272189BB002B46A1 /* AlarmModel.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AlarmModel.swift; sourceTree = "<group>"; };
 		3D9B129F27218AF9002B46A1 /* RepeatRule.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = RepeatRule.swift; sourceTree = "<group>"; };
@@ -578,6 +581,9 @@
 		3DCB9B8428F710CC0042A6BB /* TaggedSqlValue.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = TaggedSqlValue.swift; sourceTree = "<group>"; };
 		3DCB9B8628F711220042A6BB /* SqlCipherStatement.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SqlCipherStatement.swift; sourceTree = "<group>"; };
 		3DCC3F462ACED5DB00C9C27E /* UnfairLock.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = UnfairLock.swift; sourceTree = "<group>"; };
+		3DCE3AE92B7E334A0056F85C /* ContactSuggestion.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = ContactSuggestion.swift; sourceTree = "<group>"; };
+		3DCE3AEB2B7E336B0056F85C /* MobileContactsFacadeReceiveDispatcher.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = MobileContactsFacadeReceiveDispatcher.swift; sourceTree = "<group>"; };
+		3DCE3AEC2B7E336B0056F85C /* MobileContactsFacade.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = MobileContactsFacade.swift; sourceTree = "<group>"; };
 		3DCE7AA12719D04B0085E40D /* NotificationStorage.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = NotificationStorage.swift; sourceTree = "<group>"; };
 		3DCE7AA6271D63BF0085E40D /* ViewController.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ViewController.swift; sourceTree = "<group>"; };
 		3DCE7AA927200E0A0085E40D /* WebviewHacks.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = WebviewHacks.h; sourceTree = "<group>"; };
@@ -949,6 +955,7 @@
 				3D4A426829B6513900B10451 /* DateProvider.swift */,
 				3DCC3F462ACED5DB00C9C27E /* UnfairLock.swift */,
 				3DCA74F52B63BE900007A1B0 /* UserPreferences.swift */,
+				3D5C6FA02B7BC15D00342E8C /* PermissionError.swift */,
 			);
 			path = Utils;
 			sourceTree = "<group>";
@@ -956,9 +963,8 @@
 		3D7453682108A0CE00B16F2E /* Contacts */ = {
 			isa = PBXGroup;
 			children = (
-				3D4D78242B62606D00829803 /* ContactsAuthorization.swift */,
-				3D9B129627216D60002B46A1 /* ContactsSource.swift */,
-				3D4D78262B62610200829803 /* ContactsSynchronization.swift */,
+				3D4D78242B62606D00829803 /* ContactsPermission.swift */,
+				3D4D78262B62610200829803 /* IosMobileContactsFacade.swift */,
 				3D78ACB42B600FB6009C9EED /* StructuredContactTypes.swift */,
 			);
 			path = Contacts;
@@ -1484,6 +1490,10 @@
 		3DBA56B62850AAA6004416BE /* GeneratedIpc */ = {
 			isa = PBXGroup;
 			children = (
+				3DCE3AEC2B7E336B0056F85C /* MobileContactsFacade.swift */,
+				3DCE3AEB2B7E336B0056F85C /* MobileContactsFacadeReceiveDispatcher.swift */,
+				3DCE3AE92B7E334A0056F85C /* ContactSuggestion.swift */,
+				3D5C6F9E2B7BBEEA00342E8C /* ContactBook.swift */,
 				3D78ACB62B601F5C009C9EED /* StructuredAddress.swift */,
 				3D78ACB72B601F5C009C9EED /* StructuredPhoneNumber.swift */,
 				3D78AC762B600F1B009C9EED /* CommonNativeFacade.swift */,
@@ -1507,7 +1517,6 @@
 				3D78AC672B600F1B009C9EED /* MobileFacadeSendDispatcher.swift */,
 				3D78AC622B600F1B009C9EED /* MobileSystemFacade.swift */,
 				3D78AC5D2B600F1B009C9EED /* MobileSystemFacadeReceiveDispatcher.swift */,
-				3D78AC6C2B600F1B009C9EED /* NativeContact.swift */,
 				3D78AC822B600F1C009C9EED /* NativeCredentialsFacade.swift */,
 				3D78AC5E2B600F1B009C9EED /* NativeCredentialsFacadeReceiveDispatcher.swift */,
 				3D78AC612B600F1B009C9EED /* NativeCryptoFacade.swift */,
@@ -2167,6 +2176,7 @@
 				3D378EE72536F51F0001F1F3 /* FileChooser.swift in Sources */,
 				3D9B12A027218AF9002B46A1 /* RepeatRule.swift in Sources */,
 				3D78AC842B600F1C009C9EED /* IpcClientRect.swift in Sources */,
+				3DCE3AED2B7E336B0056F85C /* MobileContactsFacadeReceiveDispatcher.swift in Sources */,
 				3D7A108029472A6000311B6B /* CancelledError.swift in Sources */,
 				3D4F1BFA26EBADE500E87BF5 /* TUTBigNum.m in Sources */,
 				3D73DA312731953E008E7A8A /* RemoteProtocol.swift in Sources */,
@@ -2179,6 +2189,7 @@
 				3D78AC922B600F1C009C9EED /* MobileSystemFacade.swift in Sources */,
 				3D220205293F75C100366FD2 /* IosWebauthnFacade.swift in Sources */,
 				3DCC3F472ACED5DB00C9C27E /* UnfairLock.swift in Sources */,
+				3DCE3AEA2B7E334A0056F85C /* ContactSuggestion.swift in Sources */,
 				3D78ACB32B600F1C009C9EED /* ErrorInfo.swift in Sources */,
 				3D78AC952B600F1C009C9EED /* ThemeFacade.swift in Sources */,
 				3DC5DECD2858C1F5007364FF /* IosNativePushFacade.swift in Sources */,
@@ -2188,6 +2199,7 @@
 				3D448A8B292BB1D00030DB2F /* SharingStorage.swift in Sources */,
 				3D9B12B42721A1E2002B46A1 /* TUTErrorFactory.m in Sources */,
 				3D4E16F4273D2F8A00256630 /* SyncCompletion.swift in Sources */,
+				3D5C6FA12B7BC15D00342E8C /* PermissionError.swift in Sources */,
 				3D84F56B2721B92C00858A58 /* MissedNotification.swift in Sources */,
 				3DAED2AF29A6267D00806DEA /* NotificationsHandler.swift in Sources */,
 				3DCE7AAC27200E0A0085E40D /* WebviewHacks.m in Sources */,
@@ -2231,13 +2243,12 @@
 				3D0E44B72B3C3CE500F933A1 /* common.c in Sources */,
 				3D78AC902B600F1C009C9EED /* ElectronResult.swift in Sources */,
 				3DC299FA267358AF00E1E79F /* ThemeManager.swift in Sources */,
-				3D4D78252B62606D00829803 /* ContactsAuthorization.swift in Sources */,
+				3D4D78252B62606D00829803 /* ContactsPermission.swift in Sources */,
 				3D78ACA82B600F1C009C9EED /* DownloadTaskResponse.swift in Sources */,
 				3D0E44B22B3C3CE500F933A1 /* polyvec.c in Sources */,
 				3D78AC892B600F1C009C9EED /* StructuredMailAddress.swift in Sources */,
 				3D3AFAE8285B0DB60077F302 /* IosMobileSystemFacade.swift in Sources */,
 				3DDE55242AB88D8300A77D14 /* AES.swift in Sources */,
-				3D9B129727216D60002B46A1 /* ContactsSource.swift in Sources */,
 				3D9B12A927219538002B46A1 /* AlarmInfo.swift in Sources */,
 				3D3AFAEA285B292C0077F302 /* DataWrapper.swift in Sources */,
 				3DCA74F62B63BE900007A1B0 /* UserPreferences.swift in Sources */,
@@ -2250,6 +2261,7 @@
 				3D84F57C27231F1F00858A58 /* Serialization.swift in Sources */,
 				3D0E44B92B3C3CE500F933A1 /* KeccakP-1600-opt64.c in Sources */,
 				3D2DB91B2733F43B00BCEF4C /* IosNativeCredentialsFacade.swift in Sources */,
+				3DCE3AEE2B7E336B0056F85C /* MobileContactsFacade.swift in Sources */,
 				3D78AC942B600F1C009C9EED /* SqlCipherFacadeReceiveDispatcher.swift in Sources */,
 				3D78AC8F2B600F1C009C9EED /* RsaPrivateKey.swift in Sources */,
 				3D4A426529B63E1E00B10451 /* AlarmPersistor.swift in Sources */,
@@ -2264,7 +2276,7 @@
 				3D0E44A72B3C3CE500F933A1 /* poly.c in Sources */,
 				3D78AC9F2B600F1C009C9EED /* NativeShortcut.swift in Sources */,
 				3D4A426329B63C0E00B10451 /* AlarmCryptor.swift in Sources */,
-				3D4D78272B62610200829803 /* ContactsSynchronization.swift in Sources */,
+				3D4D78272B62610200829803 /* IosMobileContactsFacade.swift in Sources */,
 				3DDE413B28F4665700837BE6 /* SqlCipherDb.swift in Sources */,
 				3D78AC8B2B600F1C009C9EED /* CommonSystemFacadeReceiveDispatcher.swift in Sources */,
 				3DCB9B8528F710CC0042A6BB /* TaggedSqlValue.swift in Sources */,
@@ -2293,7 +2305,6 @@
 				3D0EB1F926F49E36002E5102 /* AppDelegate.swift in Sources */,
 				3D9B129A27216DE0002B46A1 /* Response.swift in Sources */,
 				3D9B12AC27219623002B46A1 /* NotificationSessionKey.swift in Sources */,
-				3D78AC9C2B600F1C009C9EED /* NativeContact.swift in Sources */,
 				3D0E44BC2B3C3CE500F933A1 /* fips202.c in Sources */,
 				3D78AC8C2B600F1C009C9EED /* KyberPublicKey.swift in Sources */,
 				3D78ACA22B600F1C009C9EED /* WebAuthnSignResult.swift in Sources */,
@@ -2307,6 +2318,7 @@
 				3D648B2C2AB98BEA00893C8D /* argon2.c in Sources */,
 				3D648B2D2AB98BEA00893C8D /* encoding.c in Sources */,
 				3D78AC932B600F1C009C9EED /* RsaPublicKey.swift in Sources */,
+				3D5C6F9F2B7BBEEA00342E8C /* ContactBook.swift in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};

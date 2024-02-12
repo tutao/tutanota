@@ -10,7 +10,7 @@ import { LoginController } from "./LoginController"
 import type { ContactModel } from "../../contacts/model/ContactModel"
 import { EntityClient } from "../common/EntityClient"
 import type { CalendarInfo, CalendarModel } from "../../calendar/model/CalendarModel"
-import { assertNotNull, defer, DeferredObject, lazy, lazyAsync, lazyMemoized, noOp } from "@tutao/tutanota-utils"
+import { defer, DeferredObject, lazy, lazyAsync, lazyMemoized, noOp, ofClass } from "@tutao/tutanota-utils"
 import { ProgressTracker } from "./ProgressTracker"
 import { MinimizedMailEditorViewModel } from "../../mail/model/MinimizedMailEditorViewModel"
 import { SchedulerImpl } from "../common/utils/Scheduler.js"
@@ -83,7 +83,7 @@ import { OfflineIndicatorViewModel } from "../../gui/base/OfflineIndicatorViewMo
 import { AppHeaderAttrs, Header } from "../../gui/Header.js"
 import { CalendarViewModel } from "../../calendar/view/CalendarViewModel.js"
 import { ReceivedGroupInvitationsModel } from "../../sharing/model/ReceivedGroupInvitationsModel.js"
-import { asKdfType, Const, FeatureType, GroupType, KdfType } from "../common/TutanotaConstants.js"
+import { Const, FeatureType, GroupType, KdfType } from "../common/TutanotaConstants.js"
 import type { ExternalLoginViewModel } from "../../login/ExternalLoginView.js"
 import type { ConversationViewModel, ConversationViewModelFactory } from "../../mail/view/ConversationViewModel.js"
 import type { AlarmScheduler } from "../../calendar/date/AlarmScheduler.js"
@@ -108,6 +108,8 @@ import { CalendarInviteHandler } from "../../calendar/view/CalendarInvites.js"
 import { NativeContactsSyncManager } from "../../contacts/model/NativeContactsSyncManager.js"
 import { ContactFacade } from "../worker/facades/lazy/ContactFacade.js"
 import { ContactImporter } from "../../contacts/ContactImporter.js"
+import { MobileContactsFacade } from "../../native/common/generatedipc/MobileContactsFacade.js"
+import { PermissionError } from "../common/error/PermissionError.js"
 
 assertMainOrNode()
 
@@ -380,7 +382,10 @@ class MainLocator {
 
 	async recipientsSearchModel(): Promise<RecipientsSearchModel> {
 		const { RecipientsSearchModel } = await import("../../misc/RecipientsSearchModel.js")
-		return new RecipientsSearchModel(await this.recipientsModel(), this.contactModel, isApp() ? this.systemFacade : null, this.entityClient)
+		const suggestionsProvider = isApp()
+			? (query: string) => this.mobileContactsFacade.findSuggestions(query).catch(ofClass(PermissionError, () => []))
+			: null
+		return new RecipientsSearchModel(await this.recipientsModel(), this.contactModel, suggestionsProvider, this.entityClient)
 	}
 
 	readonly conversationViewModelFactory: lazyAsync<ConversationViewModelFactory> = async () => {
@@ -407,7 +412,7 @@ class MainLocator {
 
 	async contactImporter(): Promise<ContactImporter> {
 		const { ContactImporter } = await import("../../contacts/ContactImporter.js")
-		return new ContactImporter()
+		return new ContactImporter(this.contactFacade)
 	}
 
 	async mailViewerViewModelFactory(): Promise<(options: CreateMailViewerOptions) => MailViewerViewModel> {
@@ -462,6 +467,10 @@ class MainLocator {
 
 	get systemFacade(): MobileSystemFacade {
 		return this.getNativeInterface("mobileSystemFacade")
+	}
+
+	get mobileContactsFacade(): MobileContactsFacade {
+		return this.getNativeInterface("mobileContactsFacade")
 	}
 
 	async mailAddressTableModelForOwnMailbox(): Promise<MailAddressTableModel> {
@@ -520,7 +529,7 @@ class MainLocator {
 		const { NoopCredentialRemovalHandler, AppsCredentialRemovalHandler } = await import("../../login/CredentialRemovalHandler.js")
 		return isBrowser()
 			? new NoopCredentialRemovalHandler()
-			: new AppsCredentialRemovalHandler(this.indexerFacade, this.pushService, this.configFacade, isApp() ? this.systemFacade : null)
+			: new AppsCredentialRemovalHandler(this.indexerFacade, this.pushService, this.configFacade, isApp() ? this.mobileContactsFacade : null)
 	}
 
 	async loginViewModelFactory(): Promise<lazy<LoginViewModel>> {
@@ -839,7 +848,7 @@ class MainLocator {
 		if (this.nativeContactSyncManager == null) {
 			this.nativeContactSyncManager = new NativeContactsSyncManager(
 				this.logins,
-				this.systemFacade,
+				this.mobileContactsFacade,
 				this.entityClient,
 				this.eventController,
 				this.contactModel,

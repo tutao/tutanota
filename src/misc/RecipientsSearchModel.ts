@@ -12,6 +12,7 @@ import { LoginIncompleteError } from "../api/common/error/LoginIncompleteError.j
 import { MobileSystemFacade } from "../native/common/generatedipc/MobileSystemFacade.js"
 import { findRecipientWithAddress } from "../api/common/utils/CommonCalendarUtils.js"
 import { EntityClient } from "../api/common/EntityClient.js"
+import { ContactSuggestion } from "../native/common/generatedipc/ContactSuggestion.js"
 
 const MaxNativeSuggestions = 10
 
@@ -20,7 +21,6 @@ export type RecipientSearchResultFilter = (item: RecipientSearchResultItem) => b
 
 export class RecipientsSearchModel {
 	private searchResults: Array<RecipientSearchResultItem> = []
-	private _selectedIdx: number = 0
 	private loading: Promise<void> | null = null
 
 	private currentQuery = ""
@@ -30,7 +30,7 @@ export class RecipientsSearchModel {
 	constructor(
 		private readonly recipientsModel: RecipientsModel,
 		private readonly contactModel: ContactModel,
-		private readonly systemFacade: MobileSystemFacade | null,
+		private readonly suggestionsProvider: ((query: String) => Promise<readonly ContactSuggestion[]>) | null,
 		private readonly entityClient: EntityClient,
 	) {}
 
@@ -44,7 +44,6 @@ export class RecipientsSearchModel {
 
 	clear() {
 		this.searchResults = []
-		this._selectedIdx = 0
 		this.loading = null
 		this.currentQuery = ""
 		this.previousQuery = ""
@@ -110,7 +109,7 @@ export class RecipientsSearchModel {
 			)
 			.catch(ofClass(LoginIncompleteError, () => []))
 
-		let suggestions = [] as Array<Recipient>
+		let suggestedRecipients: Array<Recipient> = []
 		for (const contact of contacts) {
 			const name = `${contact.firstName} ${contact.lastName}`.trim()
 
@@ -124,28 +123,26 @@ export class RecipientsSearchModel {
 				.filter(filter)
 				.map((address) => this.recipientsModel.resolve({ name, address, contact }, ResolveMode.Lazy))
 
-			suggestions = suggestions.concat(recipientsOfContact)
+			suggestedRecipients = suggestedRecipients.concat(recipientsOfContact)
 		}
 
-		if (env.mode === Mode.App) {
-			const nativeContacts = await this.findNativeContacts(query)
+		const additionalSuggestions = await this.findAdditionalSuggestions(query)
 
-			const contactSuggestions = nativeContacts
-				.filter((contact) => isMailAddress(contact.address, false) && !findRecipientWithAddress(suggestions, contact.address))
-				.slice(0, MaxNativeSuggestions)
-				.map((recipient) => this.recipientsModel.resolve(recipient, ResolveMode.Lazy))
+		const contactSuggestions = additionalSuggestions
+			.filter((contact) => isMailAddress(contact.address, false) && !findRecipientWithAddress(suggestedRecipients, contact.address))
+			.slice(0, MaxNativeSuggestions)
+			.map((recipient) => this.recipientsModel.resolve(recipient, ResolveMode.Lazy))
 
-			suggestions.push(...contactSuggestions)
-		}
+		suggestedRecipients.push(...contactSuggestions)
 
-		return suggestions.sort((suggestion1, suggestion2) => suggestion1.name.localeCompare(suggestion2.name))
+		return suggestedRecipients.sort((suggestion1, suggestion2) => suggestion1.name.localeCompare(suggestion2.name))
 	}
 
-	private async findNativeContacts(text: string): Promise<Array<PartialRecipient>> {
-		if (!this.systemFacade) {
+	private async findAdditionalSuggestions(text: string): Promise<Array<PartialRecipient>> {
+		if (!this.suggestionsProvider) {
 			return []
 		}
-		const recipients = await this.systemFacade.findSuggestions(text).catch(ofClass(PermissionError, () => []))
+		const recipients = await this.suggestionsProvider(text)
 		return recipients.map(({ name, mailAddress }) => ({ name, address: mailAddress }))
 	}
 
