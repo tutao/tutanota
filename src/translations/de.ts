@@ -1644,6 +1644,8 @@ export default {
 		"yourFolders_action": "DEINE ORDNER",
 		"yourMessage_label": "Deine Nachricht",
 		"you_label": "Du",
-		"vcardInSharingFiles_msg": "Wir haben eine oder mehrere Kontaktdateien entdeckt. Möchtest Du diese importieren oder anhängen?"
+		"vcardInSharingFiles_msg": "Wir haben eine oder mehrere Kontaktdateien entdeckt. Möchtest Du diese importieren oder anhängen?",
+		"importFromContactBook_label": "Kontakte von deinem Gerät importieren",
+		"importContacts_label": "Kontakte importieren"
 	}
 }

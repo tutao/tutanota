@@ -6,19 +6,17 @@ import { StructuredContact } from "../../native/common/generatedipc/StructuredCo
 import { getElementId } from "../../api/common/utils/EntityUtils.js"
 import { extractStructuredAddresses, extractStructuredMailAddresses, extractStructuredPhoneNumbers } from "./ContactUtils.js"
 import { LoginController } from "../../api/main/LoginController.js"
-import { MobileSystemFacade } from "../../native/common/generatedipc/MobileSystemFacade.js"
 import { EntityClient } from "../../api/common/EntityClient.js"
 import { EventController } from "../../api/main/EventController.js"
 import { ContactModel } from "./ContactModel.js"
 import { DeviceConfig } from "../../misc/DeviceConfig.js"
 import { PermissionError } from "../../api/common/error/PermissionError.js"
-import { isApp } from "../../api/common/Env.js"
-import { Dialog } from "../../gui/base/Dialog.js"
+import { MobileContactsFacade } from "../../native/common/generatedipc/MobileContactsFacade.js"
 
 export class NativeContactsSyncManager {
 	constructor(
 		private readonly loginController: LoginController,
-		private readonly mobileSystemFacade: MobileSystemFacade,
+		private readonly mobilContactsFacade: MobileContactsFacade,
 		private readonly entityClient: EntityClient,
 		private readonly eventController: EventController,
 		private readonly contactModel: ContactModel,
@@ -44,7 +42,7 @@ export class NativeContactsSyncManager {
 			} else if (event.operation === OperationType.UPDATE) {
 				getFromMap(contactsIdToCreateOrUpdate, event.instanceListId, () => []).push(event.instanceId)
 			} else if (event.operation === OperationType.DELETE) {
-				await this.mobileSystemFacade
+				await this.mobilContactsFacade
 					.deleteContacts(loginUsername, event.instanceId)
 					.catch(ofClass(PermissionError, (e) => this.handleNoPermissionError(userId, e)))
 			}
@@ -70,7 +68,7 @@ export class NativeContactsSyncManager {
 		}
 
 		if (contactsToInsertOrUpdate.length > 0) {
-			await this.mobileSystemFacade
+			await this.mobilContactsFacade
 				.saveContacts(loginUsername, contactsToInsertOrUpdate)
 				.catch(ofClass(PermissionError, (e) => this.handleNoPermissionError(userId, e)))
 		}
@@ -100,7 +98,7 @@ export class NativeContactsSyncManager {
 		})
 
 		try {
-			await this.mobileSystemFacade.syncContacts(loginUsername, structuredContacts)
+			await this.mobilContactsFacade.syncContacts(loginUsername, structuredContacts)
 		} catch (e) {
 			if (e instanceof PermissionError) {
 				this.handleNoPermissionError(userId, e)
@@ -113,14 +111,9 @@ export class NativeContactsSyncManager {
 		return true
 	}
 
-	showContactsPermissionDialog() {
-		if (!isApp()) return
-		Dialog.message("allowContactReadWrite_msg").then(() => this.mobileSystemFacade.goToSettings())
-	}
-
 	async clearContacts() {
 		const loginUsername = this.loginController.getUserController().loginUsername
-		await this.mobileSystemFacade
+		await this.mobilContactsFacade
 			.deleteContacts(loginUsername, null)
 			.catch(ofClass(PermissionError, (e) => console.log("No permission to clear contacts", e)))
 	}

@@ -21,17 +21,28 @@ private let ALL_SUPPORTED_CONTACT_KEYS: [CNKeyDescriptor] =
 	] as [CNKeyDescriptor]
 
 /// Handles synchronization between contacts in Tuta and contacts on the device.
-class ContactsSynchronization {
+class IosMobileContactsFacade: MobileContactsFacade {
 	private let userDefaults: UserDefaults
 
 	init(userDefault: UserDefaults) { self.userDefaults = userDefault }
 
-	/// Resync all locally stored contacts for the user with the new list.
-	///
-	/// Parameters:
-	/// - `contacts` defines the contacts to sync. All contacts not in this list will be erased.
-	/// - `forUsername` denotes the user to modify.
-	func syncLocalContacts(_ contacts: [StructuredContact], forUsername username: String) async throws {
+	func findSuggestions(_ query: String) async throws -> [ContactSuggestion] {
+		try await acquireContactsPermission()
+		return try self.queryContactSuggestions(query: query, upTo: 10)
+	}
+
+	func saveContacts(_ username: String, _ contacts: [StructuredContact]) async throws {
+		try await acquireContactsPermission()
+		var mapping = try self.getOrCreateMapping(username: username)
+		let queryResult = try self.matchStoredContacts(against: contacts, forUser: &mapping)
+		try self.insert(contacts: queryResult.newContacts, forUser: &mapping)
+		try self.update(contacts: queryResult.matchedStoredContacts, forUser: &mapping)
+
+		self.saveMapping(mapping, forUsername: mapping.username)
+	}
+
+	func syncContacts(_ username: String, _ contacts: [StructuredContact]) async throws {
+		try await acquireContactsPermission()
 		// get local contacts
 		// save new ones
 		// update existing ones
@@ -47,27 +58,54 @@ class ContactsSynchronization {
 		self.saveMapping(mapping, forUsername: mapping.username)
 	}
 
-	/// Update locally stored contacts for the user with the list.
-	///
-	/// Parameters:
-	/// - `contacts` defines the contacts to modify. Contacts not in this list will not be altered.
-	/// - `forUsername` denotes the user to modify.
-	func saveLocalContacts(_ contacts: [StructuredContact], forUsername username: String) async throws {
-		var mapping = try self.getOrCreateMapping(username: username)
-		let queryResult = try self.matchStoredContacts(against: contacts, forUser: &mapping)
-		try self.insert(contacts: queryResult.newContacts, forUser: &mapping)
-		try self.update(contacts: queryResult.matchedStoredContacts, forUser: &mapping)
+	func getContactBooks() async throws -> [ContactBook] {
+		try await acquireContactsPermission()
 
-		self.saveMapping(mapping, forUsername: mapping.username)
+		let store = CNContactStore()
+		let result = try store.groups(matching: nil)
+
+		return result.map { group in ContactBook(id: group.identifier, name: group.name) }
 	}
 
-	/// Remove one or all contacts from an user.
-	///
-	/// Parameters:
-	/// - `contactId` defines the contact to remove.
-	/// - `forUsername` denotes the user to modify.
-	func deleteLocalContact(_ contactId: String?, forUsername username: String) async throws {
-		guard await requestAuthorizationForContacts() else { return }
+	func getContactsInContactBook(_ bookId: String) async throws -> [StructuredContact] {
+		try await acquireContactsPermission()
+
+		let fetch = CNContactFetchRequest(keysToFetch: ALL_SUPPORTED_CONTACT_KEYS)
+		fetch.predicate = CNContact.predicateForContactsInGroup(withIdentifier: bookId)
+
+		let store = CNContactStore()
+		var addresses = [StructuredContact]()
+		try store.enumerateContacts(with: fetch) { (contact, _) in
+			let birthday = contact.birthday.flatMap { birthday in
+				if let year = birthday.year, let month = birthday.month, let day = birthday.day {
+					String(format: "%04d-%02d-%02d", year, month, day)
+				} else if let month = birthday.month, let day = birthday.day {
+					String(format: "--%02d-%02d", month, day)
+				} else {
+					nil
+				}
+			}
+			addresses.append(
+				StructuredContact(
+					id: contact.identifier,
+					firstName: contact.givenName,
+					lastName: contact.familyName,
+					nickname: contact.nickname,
+					company: contact.organizationName,
+					birthday: birthday,
+					mailAddresses: contact.emailAddresses.map { $0.toStructuredMailAddress() },
+					phoneNumbers: contact.phoneNumbers.map { $0.toStructuredPhoneNumber() },
+					addresses: contact.postalAddresses.map { $0.toStructuredAddress() }
+				)
+			)
+		}
+
+		return addresses
+	}
+
+	func deleteContacts(_ username: String, _ contactId: String?) async throws {
+		try await acquireContactsPermission()
+
 		var mapping = try self.getOrCreateMapping(username: username)
 
 		if let contactId {
@@ -274,6 +312,31 @@ class ContactsSynchronization {
 		dict.removeValue(forKey: username)
 		self.userDefaults.setValue(dict, forKey: CONTACTS_MAPPINGS)
 	}
+
+	private func queryContactSuggestions(query: String, upTo: Int) throws -> [ContactSuggestion] {
+		let contactsStore = CNContactStore()
+		let keysToFetch: [CNKeyDescriptor] = [
+			CNContactEmailAddressesKey as NSString,  // only NSString is CNKeyDescriptor
+			CNContactFormatter.descriptorForRequiredKeys(for: .fullName),
+		]
+		let request = CNContactFetchRequest(keysToFetch: keysToFetch)
+		var result = [ContactSuggestion]()
+		// This method is synchronous. Enumeration prevents having all accounts in memory at once.
+		// We are doing the search manually because we can cannot combine predicates.
+		// Alternatively we could query for email and query for name separately and then combine the results
+		try contactsStore.enumerateContacts(with: request) { contact, stopPointer in
+			let name: String = CNContactFormatter.string(from: contact, style: .fullName) ?? ""
+			let matchesName = name.range(of: query, options: .caseInsensitive) != nil
+			for address in contact.emailAddresses {
+				let addressString = address.value as String
+				if matchesName || addressString.range(of: query, options: .caseInsensitive) != nil {
+					result.append(ContactSuggestion(name: name, mailAddress: addressString))
+				}
+				if result.count > upTo { stopPointer.initialize(to: true) }
+			}
+		}
+		return result
+	}
 }
 
 /// Defines a mutable contact and functionality for commiting the contact into a contact store
@@ -349,10 +412,38 @@ private extension StructuredPhoneNumber {
 			case .mobile: CNLabelPhoneNumberMobile
 			case .fax: CNLabelPhoneNumberOtherFax
 			case .custom: self.customTypeName
-			default: CNLabelOther
+			case .other: CNLabelOther
 			}
 		let number = CNPhoneNumber(stringValue: self.number)
 		return CNLabeledValue(label: label, value: number)
+	}
+}
+
+private extension CNLabeledValue<CNPhoneNumber> {
+	func toStructuredPhoneNumber() -> StructuredPhoneNumber {
+		let (type, label): (ContactPhoneNumberType, String?) =
+			switch self.label {
+			case CNLabelHome: (._private, nil)
+			case CNLabelWork: (.work, nil)
+			case CNLabelPhoneNumberMobile: (.mobile, nil)
+			case CNLabelPhoneNumberOtherFax: (.fax, nil)
+			case CNLabelOther: (.other, nil)
+			default: (.custom, self.label)
+			}
+		return StructuredPhoneNumber(number: self.value.stringValue, type: type, customTypeName: label ?? "")
+	}
+}
+
+private extension CNLabeledValue<NSString> {
+	func toStructuredMailAddress() -> StructuredMailAddress {
+		let (type, label): (ContactAddressType, String?) =
+			switch self.label {
+			case CNLabelHome: (._private, nil)
+			case CNLabelWork: (.work, nil)
+			case CNLabelOther: (.other, nil)
+			default: (.custom, self.label)
+			}
+		return StructuredMailAddress(address: self.value as String, type: type, customTypeName: label ?? "")
 	}
 }
 
@@ -363,13 +454,27 @@ private extension StructuredAddress {
 			case ._private: CNLabelHome
 			case .work: CNLabelWork
 			case .custom: self.customTypeName
-			default: CNLabelOther
+			case .other: CNLabelOther
 			}
 		let address = CNMutablePostalAddress()
 		// Contacts framework operates on structured addresses but that's not how we store them on the server
 		// and that's not how it works in many parts of the world either.
 		address.street = self.address
 		return CNLabeledValue(label: label, value: address)
+	}
+}
+
+private extension CNLabeledValue<CNPostalAddress> {
+	func toStructuredAddress() -> StructuredAddress {
+		let (type, label): (ContactAddressType, String?) =
+			switch self.label {
+			case CNLabelHome: (._private, nil)
+			case CNLabelWork: (.work, nil)
+			case CNLabelOther: (.other, nil)
+			default: (.custom, self.label)
+			}
+		let address = CNPostalAddressFormatter().string(from: self.value)
+		return StructuredAddress(address: address, type: type, customTypeName: label ?? "")
 	}
 }
 

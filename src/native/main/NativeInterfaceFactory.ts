@@ -28,6 +28,8 @@ import { DesktopSystemFacade } from "../common/generatedipc/DesktopSystemFacade.
 import { InterWindowEventFacade } from "../common/generatedipc/InterWindowEventFacade.js"
 import { InterWindowEventFacadeSendDispatcher } from "../common/generatedipc/InterWindowEventFacadeSendDispatcher.js"
 import { LoginController } from "../../api/main/LoginController.js"
+import { MobileContactsFacade } from "../common/generatedipc/MobileContactsFacade.js"
+import { MobileContactsFacadeSendDispatcher } from "../common/generatedipc/MobileContactsFacadeSendDispatcher.js"
 
 export type NativeInterfaces = {
 	native: NativeInterfaceMain
@@ -36,6 +38,7 @@ export type NativeInterfaces = {
 	mobileSystemFacade: MobileSystemFacade
 	commonSystemFacade: CommonSystemFacade
 	themeFacade: ThemeFacade
+	mobileContactsFacade: MobileContactsFacade
 }
 
 export type DesktopInterfaces = {
@@ -71,13 +74,15 @@ export function createNativeInterfaces(
 	const commonSystemFacade = new CommonSystemFacadeSendDispatcher(native)
 	const mobileSystemFacade = new MobileSystemFacadeSendDispatcher(native)
 	const themeFacade = new ThemeFacadeSendDispatcher(native)
+	const mobileContactsFacade = new MobileContactsFacadeSendDispatcher(native)
 	return {
 		native,
 		fileApp,
 		pushService,
-		mobileSystemFacade: mobileSystemFacade,
+		mobileSystemFacade,
 		commonSystemFacade,
 		themeFacade,
+		mobileContactsFacade,
 	}
 }
 

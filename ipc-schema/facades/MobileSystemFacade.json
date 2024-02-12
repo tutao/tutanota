@@ -5,51 +5,6 @@
 	"receivers": ["ios", "android"],
 	"doc": "Common operations implemented by each mobile platform.",
 	"methods": {
-		"findSuggestions": {
-			"doc": "Find suggestions in the OS contact provider.",
-			"arg": [
-				{
-					"query": "string"
-				}
-			],
-			"ret": "List<NativeContact>"
-		},
-		"saveContacts": {
-			"doc": "Store one or more contacts in system's contact book",
-			"arg": [
-				{
-					"username": "string"
-				},
-				{
-					"contacts": "List<StructuredContact>"
-				}
-			],
-			"ret": "void"
-		},
-		"syncContacts": {
-			"doc": "Sync all Tuta contacts with system's contact book, this operation includes Inserts, Updates and Deletions",
-			"arg": [
-				{
-					"username": "string"
-				},
-				{
-					"contacts": "List<StructuredContact>"
-				}
-			],
-			"ret": "void"
-		},
-		"deleteContacts": {
-			"doc": "Delete all or a specific Tuta contact from system's contact book",
-			"arg": [
-				{
-					"username": "string"
-				},
-				{
-					"contactId": "string?"
-				}
-			],
-			"ret": "void"
-		},
 		"goToSettings": {
 			"doc": "Redirect the user to Phone's Settings",
 			"arg": [],

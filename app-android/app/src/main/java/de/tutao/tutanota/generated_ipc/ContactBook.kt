@@ -7,8 +7,11 @@ import kotlinx.serialization.*
 import kotlinx.serialization.json.*
 
 
+/**
+ * Represents an account/list from the device's phonebook.
+ */
 @Serializable
-data class NativeContact(
+data class ContactBook(
+	val id: String,
 	val name: String,
-	val mailAddress: String,
 )

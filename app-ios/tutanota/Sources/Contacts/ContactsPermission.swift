@@ -1,6 +1,11 @@
 import Contacts
 
-func requestAuthorizationForContacts() async -> Bool {
+func acquireContactsPermission() async throws {
+	let hasPermission = await requestContactsPermission()
+	if !hasPermission { throw PermissionError(message: "Missing permission to handle contacts") }
+}
+
+private func requestContactsPermission() async -> Bool {
 	let status = CNContactStore.authorizationStatus(for: .contacts)
 	switch status {
 	case .authorized: return true

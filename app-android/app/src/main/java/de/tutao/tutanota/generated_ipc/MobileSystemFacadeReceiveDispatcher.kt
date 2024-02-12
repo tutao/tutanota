@@ -14,40 +14,6 @@ class MobileSystemFacadeReceiveDispatcher(
 	
 	suspend fun dispatch(method: String, arg: List<String>): String {
 		when (method) {
-			"findSuggestions" -> {
-				val query: String = json.decodeFromString(arg[0])
-				val result: List<NativeContact> = this.facade.findSuggestions(
-					query,
-				)
-				return json.encodeToString(result)
-			}
-			"saveContacts" -> {
-				val username: String = json.decodeFromString(arg[0])
-				val contacts: List<StructuredContact> = json.decodeFromString(arg[1])
-				val result: Unit = this.facade.saveContacts(
-					username,
-					contacts,
-				)
-				return json.encodeToString(result)
-			}
-			"syncContacts" -> {
-				val username: String = json.decodeFromString(arg[0])
-				val contacts: List<StructuredContact> = json.decodeFromString(arg[1])
-				val result: Unit = this.facade.syncContacts(
-					username,
-					contacts,
-				)
-				return json.encodeToString(result)
-			}
-			"deleteContacts" -> {
-				val username: String = json.decodeFromString(arg[0])
-				val contactId: String? = json.decodeFromString(arg[1])
-				val result: Unit = this.facade.deleteContacts(
-					username,
-					contactId,
-				)
-				return json.encodeToString(result)
-			}
 			"goToSettings" -> {
 				val result: Unit = this.facade.goToSettings(
 				)

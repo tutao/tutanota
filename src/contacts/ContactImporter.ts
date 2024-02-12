@@ -16,6 +16,8 @@ import { DialogHeaderBar, DialogHeaderBarAttrs } from "../gui/base/DialogHeaderB
 import { ButtonType } from "../gui/base/Button.js"
 
 export class ContactImporter {
+	constructor(private readonly contactFacade: ContactFacade) {}
+
 	async importContactsFromFile(vCardData: string, contactListId: string) {
 		const vCardList = vCardFileToVCards(vCardData)
 
@@ -26,31 +28,31 @@ export class ContactImporter {
 
 		return showContactImportDialog(contacts, (dialog) => {
 			dialog.close()
-			importContacts(contacts, contactListId, locator.contactFacade)
+			this.importContacts(contacts, contactListId)
 		})
 	}
-}
 
-async function importContacts(contacts: ReadonlyArray<Contact>, contactListId: string, contactFacade: ContactFacade) {
-	const importPromise = contactFacade
-		.importContactList(contacts, contactListId)
-		.catch(
-			ofClass(ImportError, (e) =>
-				Dialog.message(() =>
-					lang.get("importContactsError_msg", {
-						"{amount}": e.numFailed + "",
-						"{total}": contacts.length + "",
-					}),
+	async importContacts(contacts: ReadonlyArray<Contact>, contactListId: string) {
+		const importPromise = this.contactFacade
+			.importContactList(contacts, contactListId)
+			.catch(
+				ofClass(ImportError, (e) =>
+					Dialog.message(() =>
+						lang.get("importContactsError_msg", {
+							"{amount}": e.numFailed + "",
+							"{total}": contacts.length + "",
+						}),
+					),
 				),
-			),
+			)
+			.catch(() => Dialog.message("unknownError_msg"))
+		await showProgressDialog("pleaseWait_msg", importPromise)
+		await Dialog.message(() =>
+			lang.get("importVCardSuccess_msg", {
+				"{1}": contacts.length,
+			}),
 		)
-		.catch(() => Dialog.message("unknownError_msg"))
-	await showProgressDialog("pleaseWait_msg", importPromise)
-	await Dialog.message(() =>
-		lang.get("importVCardSuccess_msg", {
-			"{1}": contacts.length,
-		}),
-	)
+	}
 }
 
 /**
@@ -58,7 +60,7 @@ async function importContacts(contacts: ReadonlyArray<Contact>, contactListId: s
  * @param contacts The contact list to be previewed
  * @param okAction The action to be executed when the user press the import button
  */
-function showContactImportDialog(contacts: Contact[], okAction: (dialog: Dialog) => unknown) {
+export function showContactImportDialog(contacts: Contact[], okAction: (dialog: Dialog) => unknown) {
 	const renderConfig: RenderConfig<Contact, ImportContactRowHolder> = {
 		itemHeight: size.list_row_height,
 		multiselectionAllowed: MultiselectMode.Disabled,

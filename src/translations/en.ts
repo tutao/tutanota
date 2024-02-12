@@ -1640,6 +1640,8 @@ export default {
 		"yourFolders_action": "YOUR FOLDERS",
 		"yourMessage_label": "Your message",
 		"you_label": "You",
-		"vcardInSharingFiles_msg": "We detected one or more contact files, do you want to import or attach them?"
+		"vcardInSharingFiles_msg": "We detected one or more contact files, do you want to import or attach them?",
+		"importFromContactBook_label": "Import contacts from your device",
+		"importContacts_label": "Import contacts"
 	}
 }

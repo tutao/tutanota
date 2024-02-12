@@ -1626,3 +1626,5 @@ export type TranslationKeyType =
 	| "you_label"
 	| "emptyString_msg"
 	| "vcardInSharingFiles_msg"
+	| "importFromContactBook_label"
+	| "importContacts_label"
