@@ -1,7 +1,7 @@
 import m, { Children, ClassComponent, CVnode } from "mithril"
 import { px, size } from "../size"
 import { DefaultAnimationTime } from "../animation/Animations"
-import { getElevatedBackground, theme } from "../theme"
+import { getElevatedBackground, getNavButtonIconBackground, getNavigationMenuBg, theme } from "../theme"
 import type { TranslationKey } from "../../misc/LanguageViewModel"
 import { lang } from "../../misc/LanguageViewModel"
 import type { lazy } from "@tutao/tutanota-utils"
@@ -117,7 +117,7 @@ export class BorderTextField implements ClassComponent<BorderTextFieldAttrs> {
 							fontSize: `${size.font_size_base}px`,
 							transform: `translateY(-${this.active || vnode.attrs.value ? 30 : 0}px)`,
 							transition: `transform 100ms`,
-							background: getElevatedBackground(),
+							background: getElevatedBackground(), //theme.themeId == "dark" ? getNavigationMenuBg() : getElevatedBackground(), // lightMode -> getElevatedBackground() | darkMode -> getNavigationMenuBg()
 							lineHeight: "24px",
 							margin: "17px 6px",
 							padding: "0px 10px",
@@ -160,7 +160,11 @@ export class BorderTextField implements ClassComponent<BorderTextFieldAttrs> {
 											? m(
 													".flex-end.items-center",
 													{
-														style: { minHeight: px(minInputHeight - 2) }, // Fixme: The dropdown needs to be modified so it doesnt crop of the label
+														style: {
+															minHeight: "40px", //px(minInputHeight - 2),
+															margin: "7.5px 16px",
+															lineHeight: "40px",
+														}, // Fixme: The dropdown needs to be modified so it doesn't crop of the label
 													},
 													a.injectionsRight(),
 											  )
