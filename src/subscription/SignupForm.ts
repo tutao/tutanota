@@ -2,7 +2,7 @@ import m, { Children, Component, Vnode } from "mithril"
 import stream from "mithril/stream"
 import Stream from "mithril/stream"
 import { Dialog } from "../gui/base/Dialog"
-import { Autocomplete, TextField } from "../gui/base/TextField.js"
+import { Autocomplete, BorderTextField } from "../gui/base/BorderTextField.js"
 import { Button, ButtonType } from "../gui/base/Button.js"
 import { getWhitelabelRegistrationDomains } from "../login/LoginView"
 import type { NewAccountData } from "./UpgradeSubscriptionWizard"
@@ -174,7 +174,7 @@ export class SignupForm implements Component<SignupFormAttrs> {
 			"#signup-account-dialog.flex-center",
 			m(".flex-grow-shrink-auto.max-width-m.pt.pb.plr-l", [
 				a.readonly
-					? m(TextField, {
+					? m(BorderTextField, {
 							label: "mailAddress_label",
 							value: a.prefilledMailAddress ?? "",
 							autocompleteAs: Autocomplete.newPassword,
@@ -192,7 +192,7 @@ export class SignupForm implements Component<SignupFormAttrs> {
 								passwordInfoKey: "passwordImportance_msg",
 							}),
 							getWhitelabelRegistrationDomains().length > 0
-								? m(TextField, {
+								? m(BorderTextField, {
 										value: this._code(),
 										oninput: this._code,
 										label: "whitelabelRegistrationCode_label",

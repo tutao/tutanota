@@ -13,10 +13,13 @@ export interface ToggleButtonAttrs {
 	size?: ButtonSize
 	toggledTitle?: TranslationText
 	style?: Record<string, any>
+	iconStyle?: Record<string, any>
 }
 
 export class ToggleButton implements Component<ToggleButtonAttrs> {
 	view({ attrs }: Vnode<ToggleButtonAttrs>): Children {
+		var iconStyle = attrs.iconStyle ? attrs.iconStyle : {}
+		iconStyle["fill"] = getColors(attrs.colors ?? ButtonColor.Content).button
 		return m(
 			"button.toggle-button.state-bg",
 			{
@@ -32,9 +35,7 @@ export class ToggleButton implements Component<ToggleButtonAttrs> {
 				container: "div",
 				class: "center-h",
 				large: true,
-				style: {
-					fill: getColors(attrs.colors ?? ButtonColor.Content).button,
-				},
+				style: iconStyle,
 			}),
 		)
 	}

@@ -349,6 +349,9 @@ export class PasswordForm implements Component<PasswordFormAttrs> {
 			},
 			icon: attrs.model.isPasswordRevealed(passwordType) ? Icons.NoEye : Icons.Eye,
 			size: ButtonSize.Compact,
+			iconStyle: {
+				"margin-bottom": "4px",
+			},
 		})
 	}
 }
