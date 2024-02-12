@@ -121,6 +121,7 @@ import "./api/worker/pdf/DeflaterTest.js"
 import "./api/worker/pdf/PdfWriterTest.js"
 import "./api/worker/pdf/PdfObjectTest.js"
 import "./api/worker/invoicegen/PdfInvoiceGeneratorTest.js"
+import "./api/worker/facades/ContactFacadeTest.js"
 
 import * as td from "testdouble"
 import { random } from "@tutao/tutanota-crypto"
