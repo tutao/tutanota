@@ -24,6 +24,7 @@ export type AttachmentBubbleAttrs = {
 	open: Thunk | null
 	remove: Thunk | null
 	file_import: Thunk | null
+	isVCard: boolean
 }
 
 export class AttachmentBubble implements Component<AttachmentBubbleAttrs> {
@@ -46,7 +47,7 @@ export class AttachmentBubble implements Component<AttachmentBubbleAttrs> {
 				{
 					label: () => attachment.name,
 					text: () => rest,
-					icon: Icons.Attachment,
+					icon: vnode.attrs.isVCard ? Icons.People : Icons.Attachment,
 					onclick: () => {
 						showAttachmentDetailsPopup(this.dom!, vnode.attrs).then(() => this.dom?.focus())
 					},
@@ -152,7 +153,7 @@ export class AttachmentDetailsPopup implements ModalComponent {
 	private renderContent(): Children {
 		// We are trying to make some contents look like the attachment button to make the transition look smooth.
 		// It is somewhat harder as it looks different with mobile layout.
-		const { remove, open, download, attachment, file_import } = this.attrs
+		const { remove, open, download, attachment, file_import, isVCard } = this.attrs
 		return m(
 			".flex.mb-s.pr",
 			{
@@ -160,7 +161,7 @@ export class AttachmentDetailsPopup implements ModalComponent {
 			},
 			[
 				m(Icon, {
-					icon: Icons.Attachment,
+					icon: isVCard ? Icons.People : Icons.Attachment,
 					class: "pr-s flex items-center",
 					style: {
 						fill: theme.button_bubble_fg,
@@ -184,7 +185,13 @@ export class AttachmentDetailsPopup implements ModalComponent {
 						m("span.smaller", `${formatStorageSize(Number(attachment.size))}`),
 						m(".flex.no-wrap", [
 							remove ? m(Button, { type: ButtonType.Secondary, label: "remove_action", click: () => this.thenClose(remove) }) : null,
-							file_import ? m(Button, { type: ButtonType.Secondary, label: "import_action", click: () => this.thenClose(file_import) }) : null,
+							file_import
+								? m(Button, {
+										type: ButtonType.Secondary,
+										label: "import_action",
+										click: () => this.thenClose(file_import),
+								  })
+								: null,
 							open ? m(Button, { type: ButtonType.Secondary, label: "open_action", click: () => this.thenClose(open) }) : null,
 							download ? m(Button, { type: ButtonType.Secondary, label: "download_action", click: () => this.thenClose(download) }) : null,
 						]),

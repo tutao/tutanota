@@ -29,6 +29,7 @@ import { AttachmentBubble } from "../../gui/AttachmentBubble.js"
 import { responsiveCardHMargin, responsiveCardHPadding } from "../../gui/cards.js"
 import { companyTeamLabel } from "../../misc/ClientConstants.js"
 import { isTutanotaTeamMail, MailAddressAndName } from "../../api/common/mail/CommonMailUtils.js"
+import { VCARD_MIME_TYPES } from "../../file/FileController.js"
 
 export type MailAddressDropdownCreator = (args: {
 	mailAddress: MailAddressAndName
@@ -536,8 +537,10 @@ export class MailViewerHeader implements Component<MailViewerHeaderAttrs> {
 	}
 
 	private renderAttachmentContainer(viewModel: MailViewerViewModel, attachments: TutanotaFile[], importFile: (file: TutanotaFile) => void): Children {
-		return attachments.map((attachment) =>
-			m(AttachmentBubble, {
+		const mimeTypesToList = Object.values<string>(VCARD_MIME_TYPES)
+		return attachments.map((attachment) => {
+			const isVCard = mimeTypesToList.includes(attachment.mimeType ?? "")
+			return m(AttachmentBubble, {
 				attachment,
 				remove: null,
 				download:
@@ -545,9 +548,10 @@ export class MailViewerHeader implements Component<MailViewerHeaderAttrs> {
 						? () => viewModel.downloadAndOpenAttachment(attachment, false)
 						: () => viewModel.downloadAndOpenAttachment(attachment, true),
 				open: isAndroidApp() || isDesktop() ? () => viewModel.downloadAndOpenAttachment(attachment, true) : null,
-				file_import: () => importFile(attachment),
-			}),
-		)
+				file_import: isVCard ? () => importFile(attachment) : null,
+				isVCard,
+			})
+		})
 	}
 
 	private tutaoBadge(viewModel: MailViewerViewModel): Children {
