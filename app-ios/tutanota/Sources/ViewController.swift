@@ -25,7 +25,7 @@ class ViewController: UIViewController, WKNavigationDelegate, UIScrollViewDelega
 		notificaionsHandler: NotificationsHandler,
 		credentialsEncryption: IosNativeCredentialsFacade,
 		blobUtils: BlobUtil,
-		contactsSynchronization: ContactsSynchronization
+		contactsSynchronization: IosMobileContactsFacade
 	) {
 		self.themeManager = themeManager
 		self.alarmManager = alarmManager

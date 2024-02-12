@@ -2,4 +2,4 @@
 
 
 package de.tutao.tutanota.ipc
-typealias ContactPhoneNumberType = de.tutao.tutanota.ContactPhoneNumberType
+typealias ContactPhoneNumberType = de.tutao.tutanota.contacts.ContactPhoneNumberType

@@ -2,4 +2,4 @@
 
 
 package de.tutao.tutanota.ipc
-typealias ContactAddressType = de.tutao.tutanota.ContactAddressType
+typealias ContactAddressType = de.tutao.tutanota.contacts.ContactAddressType

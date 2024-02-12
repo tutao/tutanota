@@ -12,6 +12,7 @@ class AndroidGlobalDispatcher (
 	json: Json,
 	commonSystemFacade : CommonSystemFacade,
 	fileFacade : FileFacade,
+	mobileContactsFacade : MobileContactsFacade,
 	mobileSystemFacade : MobileSystemFacade,
 	nativeCredentialsFacade : NativeCredentialsFacade,
 	nativeCryptoFacade : NativeCryptoFacade,
@@ -22,6 +23,7 @@ class AndroidGlobalDispatcher (
 ) {
 	private val commonSystemFacade: CommonSystemFacadeReceiveDispatcher = CommonSystemFacadeReceiveDispatcher(json, commonSystemFacade)
 	private val fileFacade: FileFacadeReceiveDispatcher = FileFacadeReceiveDispatcher(json, fileFacade)
+	private val mobileContactsFacade: MobileContactsFacadeReceiveDispatcher = MobileContactsFacadeReceiveDispatcher(json, mobileContactsFacade)
 	private val mobileSystemFacade: MobileSystemFacadeReceiveDispatcher = MobileSystemFacadeReceiveDispatcher(json, mobileSystemFacade)
 	private val nativeCredentialsFacade: NativeCredentialsFacadeReceiveDispatcher = NativeCredentialsFacadeReceiveDispatcher(json, nativeCredentialsFacade)
 	private val nativeCryptoFacade: NativeCryptoFacadeReceiveDispatcher = NativeCryptoFacadeReceiveDispatcher(json, nativeCryptoFacade)
@@ -34,6 +36,7 @@ class AndroidGlobalDispatcher (
 		return when (facadeName) {
 			"CommonSystemFacade" -> this.commonSystemFacade.dispatch(methodName, args)
 			"FileFacade" -> this.fileFacade.dispatch(methodName, args)
+			"MobileContactsFacade" -> this.mobileContactsFacade.dispatch(methodName, args)
 			"MobileSystemFacade" -> this.mobileSystemFacade.dispatch(methodName, args)
 			"NativeCredentialsFacade" -> this.nativeCredentialsFacade.dispatch(methodName, args)
 			"NativeCryptoFacade" -> this.nativeCryptoFacade.dispatch(methodName, args)

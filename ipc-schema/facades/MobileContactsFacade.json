@@ -1,0 +1,68 @@
+{
+	"name": "MobileContactsFacade",
+	"type": "facade",
+	"senders": ["web"],
+	"receivers": ["ios", "android"],
+	"doc": "Contact-related funcionality on mobile.",
+	"methods": {
+		"findSuggestions": {
+			"doc": "Find suggestions in the OS contact provider.",
+			"arg": [
+				{
+					"query": "string"
+				}
+			],
+			"ret": "List<ContactSuggestion>"
+		},
+		"saveContacts": {
+			"doc": "Store one or more contacts in system's contact book",
+			"arg": [
+				{
+					"username": "string"
+				},
+				{
+					"contacts": "List<StructuredContact>"
+				}
+			],
+			"ret": "void"
+		},
+		"syncContacts": {
+			"doc": "Sync all Tuta contacts with system's contact book, this operation includes Inserts, Updates and Deletions",
+			"arg": [
+				{
+					"username": "string"
+				},
+				{
+					"contacts": "List<StructuredContact>"
+				}
+			],
+			"ret": "void"
+		},
+		"getContactBooks": {
+			"doc": "Get all contact books on the device.",
+			"arg": [],
+			"ret": "List<ContactBook>"
+		},
+		"getContactsInContactBook": {
+			"doc": "Get all contacts in the specified contact book.",
+			"arg": [
+				{
+					"bookId": "string"
+				}
+			],
+			"ret": "List<StructuredContact>"
+		},
+		"deleteContacts": {
+			"doc": "Delete all or a specific Tuta contact from system's contact book",
+			"arg": [
+				{
+					"username": "string"
+				},
+				{
+					"contactId": "string?"
+				}
+			],
+			"ret": "void"
+		}
+	}
+}

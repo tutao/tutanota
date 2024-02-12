@@ -1,7 +1,7 @@
 import type { Contact, ContactList } from "../../api/entities/tutanota/TypeRefs.js"
 import { ContactListGroupRoot, ContactListGroupRootTypeRef, ContactListTypeRef, ContactTypeRef } from "../../api/entities/tutanota/TypeRefs.js"
 import { createRestriction } from "../../search/model/SearchUtils"
-import { isNotNull, LazyLoaded, ofClass, promiseMap } from "@tutao/tutanota-utils"
+import { getFirstOrThrow, isNotNull, LazyLoaded, ofClass, promiseMap } from "@tutao/tutanota-utils"
 import { NotAuthorizedError, NotFoundError } from "../../api/common/error/RestError"
 import { DbError } from "../../api/common/error/DbError"
 import { EntityClient, loadMultipleFromLists } from "../../api/common/EntityClient"
@@ -16,7 +16,6 @@ import { EntityEventsListener, EventController } from "../../api/main/EventContr
 import Stream from "mithril/stream"
 import stream from "mithril/stream"
 import { ShareCapability } from "../../api/common/TutanotaConstants.js"
-import { isSharedGroupOwner } from "../../sharing/GroupUtils.js"
 import { EntityUpdateData } from "../../api/common/utils/EntityUpdateUtils.js"
 
 assertMainOrNode()
@@ -134,6 +133,10 @@ export class ContactModel {
 		const contactLists = await this.getLoadedContactListInfos()
 
 		return contactLists.filter((contactList) => contactList.name.toLowerCase().includes(query))
+	}
+
+	async getContactGroupId(): Promise<Id> {
+		return getFirstOrThrow(this.loginController.getUserController().getContactGroupMemberships()).group
 	}
 
 	private async loadContactLists() {

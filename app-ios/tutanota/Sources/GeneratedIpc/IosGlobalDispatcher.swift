@@ -4,6 +4,7 @@
 public class IosGlobalDispatcher {
 	private let commonSystemFacade: CommonSystemFacadeReceiveDispatcher
 	private let fileFacade: FileFacadeReceiveDispatcher
+	private let mobileContactsFacade: MobileContactsFacadeReceiveDispatcher
 	private let mobileSystemFacade: MobileSystemFacadeReceiveDispatcher
 	private let nativeCredentialsFacade: NativeCredentialsFacadeReceiveDispatcher
 	private let nativeCryptoFacade: NativeCryptoFacadeReceiveDispatcher
@@ -15,6 +16,7 @@ public class IosGlobalDispatcher {
 	init(
 		commonSystemFacade : CommonSystemFacade,
 		fileFacade : FileFacade,
+		mobileContactsFacade : MobileContactsFacade,
 		mobileSystemFacade : MobileSystemFacade,
 		nativeCredentialsFacade : NativeCredentialsFacade,
 		nativeCryptoFacade : NativeCryptoFacade,
@@ -25,6 +27,7 @@ public class IosGlobalDispatcher {
 	) {
 		self.commonSystemFacade = CommonSystemFacadeReceiveDispatcher(facade: commonSystemFacade)
 		self.fileFacade = FileFacadeReceiveDispatcher(facade: fileFacade)
+		self.mobileContactsFacade = MobileContactsFacadeReceiveDispatcher(facade: mobileContactsFacade)
 		self.mobileSystemFacade = MobileSystemFacadeReceiveDispatcher(facade: mobileSystemFacade)
 		self.nativeCredentialsFacade = NativeCredentialsFacadeReceiveDispatcher(facade: nativeCredentialsFacade)
 		self.nativeCryptoFacade = NativeCryptoFacadeReceiveDispatcher(facade: nativeCryptoFacade)
@@ -40,6 +43,8 @@ public class IosGlobalDispatcher {
 				return try await self.commonSystemFacade.dispatch(method: methodName, arg: args)
 			case "FileFacade":
 				return try await self.fileFacade.dispatch(method: methodName, arg: args)
+			case "MobileContactsFacade":
+				return try await self.mobileContactsFacade.dispatch(method: methodName, arg: args)
 			case "MobileSystemFacade":
 				return try await self.mobileSystemFacade.dispatch(method: methodName, arg: args)
 			case "NativeCredentialsFacade":

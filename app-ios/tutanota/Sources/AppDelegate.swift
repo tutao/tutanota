@@ -53,7 +53,7 @@ import UIKit
 			notificaionsHandler: notificationsHandler,
 			credentialsEncryption: credentialsEncryption,
 			blobUtils: BlobUtil(),
-			contactsSynchronization: ContactsSynchronization(userDefault: UserDefaults.standard)
+			contactsSynchronization: IosMobileContactsFacade(userDefault: UserDefaults.standard)
 		)
 		self.window!.rootViewController = viewController
 
