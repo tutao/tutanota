@@ -74,7 +74,7 @@ export class ContactMergeView {
 			isReadOnly: true,
 		})
 		let emptyHTMLFieldPlaceholder = m(
-			new HtmlEditor("emptyString_msg").showBorders().setValue("").setEnabled(false).setMode(HtmlEditorMode.HTML).setHtmlMonospace(false),
+			new HtmlEditor("emptyString_msg").showBorders().setValue("").setReadOnly(false).setMode(HtmlEditorMode.HTML).setHtmlMonospace(false),
 		)
 
 		let titleFields = this._createTextFields(this.contact1.title, this.contact2.title, "title_placeholder")
