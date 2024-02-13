@@ -117,8 +117,8 @@ export class SelectMailAddressFormWithSuggestions implements Component<SelectMai
 								}),
 						  )
 						: attrs.injectionsRightButtonAttrs
-						? m(IconButton, attrs.injectionsRightButtonAttrs)
-						: null,
+						  ? m(IconButton, attrs.injectionsRightButtonAttrs)
+						  : null,
 				],
 			}),
 			this.displaySuggestions() ? this.renderSuggestions(attrs) : null,

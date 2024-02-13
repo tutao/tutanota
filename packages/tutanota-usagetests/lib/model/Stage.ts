@@ -16,7 +16,12 @@ export class Stage {
 	readonly collectedMetrics = new Map<MetricName, Metric>()
 	readonly metricConfigs = new Map<MetricName, MetricConfig>()
 
-	constructor(readonly number: number, private readonly test: UsageTest, readonly minPings: number, readonly maxPings: number) {}
+	constructor(
+		readonly number: number,
+		private readonly test: UsageTest,
+		readonly minPings: number,
+		readonly maxPings: number,
+	) {}
 
 	/**
 	 * Attempts to complete the stage and returns true if a ping has been sent successfully.

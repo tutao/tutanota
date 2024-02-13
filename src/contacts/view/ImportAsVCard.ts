@@ -31,9 +31,7 @@ export function importAsVCard() {
 					"pleaseWait_msg",
 					Promise.resolve().then(() => {
 						const flatvCards = vCardsList.flat()
-						const contactMembership = assertNotNull(
-							locator.logins.getUserController().user.memberships.find((m) => m.groupType === GroupType.Contact),
-						)
+						const contactMembership = assertNotNull(locator.logins.getUserController().user.memberships.find((m) => m.groupType === GroupType.Contact))
 						const contactList = vCardListToContacts(flatvCards, contactMembership.group)
 						numberOfContacts = contactList.length
 						return locator.contactModel.getContactListId().then((contactListId) =>

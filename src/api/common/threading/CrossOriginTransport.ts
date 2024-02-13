@@ -8,7 +8,10 @@ export class CrossOriginTransport<OutgoingCommandType, IncomingCommandType> {
 	 * @param targetWindow the window object to post / receive messages to, obtained from iframe.contentWindow or window.opener
 	 * @param targetOrigin the exact origin of targetWindow
 	 * */
-	constructor(private readonly targetWindow: Window, private readonly targetOrigin: string) {}
+	constructor(
+		private readonly targetWindow: Window,
+		private readonly targetOrigin: string,
+	) {}
 
 	private readonly handleMessage = (event: MessageEvent<Message<IncomingCommandType>>) => {
 		if (event.source !== this.targetWindow) {

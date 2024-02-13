@@ -469,8 +469,8 @@ export class Dialog implements ModalComponent {
 				typeof infoToAppend === "string"
 					? m(".dialog-contentButtonsBottom.text-break.selectable", infoToAppend)
 					: typeof infoToAppend === "function"
-					? infoToAppend()
-					: null
+					  ? infoToAppend()
+					  : null
 
 			return [lang.getMaybeLazy(messageIdOrMessageFunction), additionalChild]
 		}
@@ -910,10 +910,7 @@ export class Dialog implements ModalComponent {
 	static largeDialog(headerBarAttrs: DialogHeaderBarAttrs, child: Component): Dialog {
 		return new Dialog(DialogType.EditLarge, {
 			view: () => {
-				return m("", [
-					m(".dialog-header.plr-l", m(DialogHeaderBar, headerBarAttrs)),
-					m(".dialog-container.scroll", m(".fill-absolute.plr-l", m(child))),
-				])
+				return m("", [m(".dialog-header.plr-l", m(DialogHeaderBar, headerBarAttrs)), m(".dialog-container.scroll", m(".fill-absolute.plr-l", m(child)))])
 			},
 		})
 	}

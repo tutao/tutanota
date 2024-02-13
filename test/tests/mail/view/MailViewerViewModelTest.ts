@@ -131,10 +131,7 @@ o.spec("MailViewerViewModel", function () {
 				await testHeaderUnsubscribe(headers, [headers])
 			})
 			o("with POST", async function () {
-				const headers = [
-					"List-Unsubscribe: <http://unsub.me?id=2134>, <mailto:unsubscribe@newsletter.de>",
-					"List-Unsubscribe-Post: List-Unsubscribe=One-Click",
-				]
+				const headers = ["List-Unsubscribe: <http://unsub.me?id=2134>, <mailto:unsubscribe@newsletter.de>", "List-Unsubscribe-Post: List-Unsubscribe=One-Click"]
 				await testHeaderUnsubscribe(headers.join("\r\n"), headers)
 			})
 			o("with whitespace", async function () {

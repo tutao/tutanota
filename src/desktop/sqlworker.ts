@@ -46,7 +46,6 @@ if (parentPort != null) {
 			commands,
 			"nodeworker-node",
 		)
-
 		;(console as any).info = (...args: any[]) => workerTransport.postRequest(new Request("info", args))
 		;(console as any).log = (...args: any[]) => workerTransport.postRequest(new Request("log", args))
 		;(console as any).error = (...args: any[]) => workerTransport.postRequest(new Request("error", args))

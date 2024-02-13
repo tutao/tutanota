@@ -105,9 +105,7 @@ o.spec("aes", function () {
 		o(() => decrypt(key, stringToUtf8Uint8Array("hello"), true, false)).satisfies(throwsErrorWithMessage(CryptoError, "Illegal key length"))
 	}
 
-	o("decryptInvalidData 128", () =>
-		decryptInvalidData(aes128RandomKey(), aesDecrypt, "Invalid IV length in aesDecrypt: 10 bytes, must be 16 bytes (128 bits)"),
-	)
+	o("decryptInvalidData 128", () => decryptInvalidData(aes128RandomKey(), aesDecrypt, "Invalid IV length in aesDecrypt: 10 bytes, must be 16 bytes (128 bits)"))
 	o("decryptInvalidData 256 without hmac", () =>
 		decryptInvalidData(aes256RandomKey(), aesDecrypt, "Invalid IV length in aesDecrypt: 10 bytes, must be 16 bytes (128 bits)"),
 	)
@@ -221,9 +219,7 @@ o.spec("aes", function () {
 		// check that 15 bytes fit into one block
 		o(encrypt(key, stringToUtf8Uint8Array("1234567890abcde"), random.generateRandomData(IV_BYTE_LENGTH), true, useMac).length).equals(length15BytePlainText)
 		// check that 16 bytes need two blocks (because of one byte padding length info)
-		o(encrypt(key, stringToUtf8Uint8Array("1234567890abcdef"), random.generateRandomData(IV_BYTE_LENGTH), true, useMac).length).equals(
-			length16BytePlainText,
-		)
+		o(encrypt(key, stringToUtf8Uint8Array("1234567890abcdef"), random.generateRandomData(IV_BYTE_LENGTH), true, useMac).length).equals(length16BytePlainText)
 	} // o("ciphertextLengths 256 webcrypto", browser(done => {
 	// 	Promise.all([
 	// 		aes256EncryptFile(aes256RandomKey(), stringToUtf8Uint8Array("1234567890abcde"), random.generateRandomData(IV_BYTE_LENGTH)).then(encrypted => o(encrypted.length).equals(48)), // check that 15 bytes fit into one block

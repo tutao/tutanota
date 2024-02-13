@@ -97,9 +97,7 @@ o.spec("OfflineStorage", function () {
 			let preparedQuery
 			switch (typeModel.type) {
 				case TypeId.Element.valueOf():
-					preparedQuery = sql`insert into element_entities values (${type}, ${(entity as ElementEntity)._id}, ${entity._ownerGroup}, ${encode(
-						entity,
-					)})`
+					preparedQuery = sql`insert into element_entities values (${type}, ${(entity as ElementEntity)._id}, ${entity._ownerGroup}, ${encode(entity)})`
 					break
 				case TypeId.ListElement.valueOf():
 					const [listId, elementId] = (entity as ListElementEntity)._id
@@ -107,9 +105,7 @@ o.spec("OfflineStorage", function () {
 					break
 				case TypeId.BlobElement.valueOf():
 					const [archiveId, blobElementId] = (entity as BlobElementEntity)._id
-					preparedQuery = sql`INSERT INTO blob_element_entities VALUES (${type}, ${archiveId}, ${blobElementId}, ${entity._ownerGroup}, ${encode(
-						entity,
-					)})`
+					preparedQuery = sql`INSERT INTO blob_element_entities VALUES (${type}, ${archiveId}, ${blobElementId}, ${entity._ownerGroup}, ${encode(entity)})`
 					break
 				default:
 					throw new Error("must be a persistent type")
@@ -257,9 +253,7 @@ o.spec("OfflineStorage", function () {
 			o.beforeEach(async function () {
 				await storage.init({ userId, databaseKey, timeRangeDays, forceNewDatabase: false })
 
-				await insertEntity(
-					createTestEntity(MailFolderTypeRef, { _id: ["mailFolderList", spamFolderId], mails: spamListId, folderType: MailFolderType.SPAM }),
-				)
+				await insertEntity(createTestEntity(MailFolderTypeRef, { _id: ["mailFolderList", spamFolderId], mails: spamListId, folderType: MailFolderType.SPAM }))
 				await insertEntity(
 					createTestEntity(MailFolderTypeRef, { _id: ["mailFolderList", trashFolderId], mails: trashListId, folderType: MailFolderType.TRASH }),
 				)
@@ -433,9 +427,7 @@ o.spec("OfflineStorage", function () {
 				const mailBefore = createTestEntity(MailTypeRef, { _id: [inboxMailList, offsetId(-2)], body: beforeMailBodyId })
 				const mailAfter = createTestEntity(MailTypeRef, { _id: [inboxMailList, offsetId(2)], body: afterMailBodyId })
 
-				await insertEntity(
-					createTestEntity(MailFolderTypeRef, { _id: ["mailFolderList", "folderId"], mails: inboxMailList, folderType: MailFolderType.INBOX }),
-				)
+				await insertEntity(createTestEntity(MailFolderTypeRef, { _id: ["mailFolderList", "folderId"], mails: inboxMailList, folderType: MailFolderType.INBOX }))
 				await insertEntity(mailBefore)
 				await insertEntity(mailAfter)
 				await insertEntity(createTestEntity(MailBodyTypeRef, { _id: beforeMailBodyId }))
@@ -458,9 +450,7 @@ o.spec("OfflineStorage", function () {
 				const mail1 = createTestEntity(MailTypeRef, { _id: [inboxMailList, offsetId(-2)], body: mailBodyId1 })
 				const mail2 = createTestEntity(MailTypeRef, { _id: [inboxMailList, offsetId(-3)], body: mailBodyId2 })
 
-				await insertEntity(
-					createTestEntity(MailFolderTypeRef, { _id: ["mailFolderList", "folderId"], mails: inboxMailList, folderType: MailFolderType.INBOX }),
-				)
+				await insertEntity(createTestEntity(MailFolderTypeRef, { _id: ["mailFolderList", "folderId"], mails: inboxMailList, folderType: MailFolderType.INBOX }))
 				await insertEntity(mail1)
 				await insertEntity(mail2)
 				await insertEntity(createTestEntity(MailBodyTypeRef, { _id: mailBodyId1 }))
@@ -484,9 +474,7 @@ o.spec("OfflineStorage", function () {
 				const mailBefore = createTestEntity(MailTypeRef, { _id: [inboxMailList, offsetId(-2)], body: beforeMailBodyId, attachments: [fileBefore._id] })
 				const mailAfter = createTestEntity(MailTypeRef, { _id: [inboxMailList, offsetId(2)], body: afterMailBodyId, attachments: [fileAfter._id] })
 
-				await insertEntity(
-					createTestEntity(MailFolderTypeRef, { _id: ["mailFolderList", "folderId"], mails: inboxMailList, folderType: MailFolderType.INBOX }),
-				)
+				await insertEntity(createTestEntity(MailFolderTypeRef, { _id: ["mailFolderList", "folderId"], mails: inboxMailList, folderType: MailFolderType.INBOX }))
 				await insertEntity(mailBefore)
 				await insertEntity(mailAfter)
 				await insertEntity(fileBefore)

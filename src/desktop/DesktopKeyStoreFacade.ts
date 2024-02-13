@@ -36,7 +36,10 @@ export const CredentialsKeySpec: NativeKeySpec = Object.freeze({
 export class DesktopKeyStoreFacade {
 	private readonly resolvedKeys: Map<NativeKeySpec, Promise<Aes256Key>> = new Map()
 
-	constructor(private readonly secretStorage: SecretStorage, private readonly crypto: DesktopNativeCryptoFacade) {}
+	constructor(
+		private readonly secretStorage: SecretStorage,
+		private readonly crypto: DesktopNativeCryptoFacade,
+	) {}
 
 	/**
 	 * get the key used to encrypt alarms and settings

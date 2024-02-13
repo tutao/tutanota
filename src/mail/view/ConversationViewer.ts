@@ -92,8 +92,7 @@ export class ConversationViewer implements Component<ConversationViewerAttrs> {
 	private renderFooter() {
 		// Having more room at the bottom allows the last email so it is (almost) always in the same place on the screen.
 		// We reduce space by 100 for the header of the viewer and a bit more
-		const height =
-			document.body.offsetHeight - (styles.isUsingBottomNavigation() ? size.navbar_height_mobile + size.bottom_nav_bar : size.navbar_height) - 300
+		const height = document.body.offsetHeight - (styles.isUsingBottomNavigation() ? size.navbar_height_mobile + size.bottom_nav_bar : size.navbar_height) - 300
 		return m(".mt-l.noprint", {
 			style: {
 				height: px(height),
@@ -125,16 +124,16 @@ export class ConversationViewer implements Component<ConversationViewerAttrs> {
 					}),
 			  )
 			: !viewModel.isFinished()
-			? m(
-					".font-weight-600.center.mt-l" + "." + responsiveCardHMargin(),
-					{
-						style: {
-							color: theme.content_button,
+			  ? m(
+						".font-weight-600.center.mt-l" + "." + responsiveCardHMargin(),
+						{
+							style: {
+								color: theme.content_button,
+							},
 						},
-					},
-					lang.get("loading_msg"),
-			  )
-			: null
+						lang.get("loading_msg"),
+				  )
+			  : null
 	}
 
 	private renderViewer(mailViewModel: MailViewerViewModel, isPrimary: boolean, position: number | null): Children {

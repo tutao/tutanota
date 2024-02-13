@@ -58,9 +58,7 @@ export async function chooseAndAttachFile(
 }
 
 export function showFileChooserForAttachments(boundingRect: ClientRect, fileTypes?: Array<string>): Promise<ReadonlyArray<FileReference | DataFile> | void> {
-	const fileSelector = [Mode.App, Mode.Desktop].includes(env.mode)
-		? locator.fileApp.openFileChooser(boundingRect, fileTypes)
-		: showFileChooser(true, fileTypes)
+	const fileSelector = [Mode.App, Mode.Desktop].includes(env.mode) ? locator.fileApp.openFileChooser(boundingRect, fileTypes) : showFileChooser(true, fileTypes)
 	return fileSelector
 		.catch(
 			ofClass(PermissionError, () => {

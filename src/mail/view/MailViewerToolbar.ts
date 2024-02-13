@@ -154,15 +154,7 @@ export class MailViewerActions implements Component<MailViewerToolbarAttrs> {
 								"{current}": Math.round((operation.progress() / 100) * attrs.mails.length).toFixed(0),
 								"{total}": attrs.mails.length,
 							}),
-						exportMails(
-							attrs.mails,
-							locator.mailFacade,
-							locator.entityClient,
-							locator.fileController,
-							locator.cryptoFacade,
-							operation.id,
-							ac.signal,
-						)
+						exportMails(attrs.mails, locator.mailFacade, locator.entityClient, locator.fileController, locator.cryptoFacade, operation.id, ac.signal)
 							.then((result) => this.handleExportEmailsResult(result.failed))
 							.finally(operation.done),
 						operation.progress,
@@ -189,8 +181,7 @@ export class MailViewerActions implements Component<MailViewerToolbarAttrs> {
 						m(".pt-m", lang.get("failedToExport_msg")),
 						m(".flex-start.items-center", [
 							m(ExpanderButton, {
-								label: () =>
-									`${lang.get(expanded() ? "hide_action" : "show_action")} ${lang.get("failedToExport_label", { "{0}": mailList.length })}`,
+								label: () => `${lang.get(expanded() ? "hide_action" : "show_action")} ${lang.get("failedToExport_label", { "{0}": mailList.length })}`,
 								expanded: expanded(),
 								onExpandedChange: expanded,
 							}),

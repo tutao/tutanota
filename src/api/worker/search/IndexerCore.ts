@@ -483,14 +483,7 @@ export class IndexerCore {
 			keys,
 			(encWordB64) => {
 				const encryptedEntries = neverNull(indexUpdate.create.indexMap.get(encWordB64))
-				return this._putEncryptedEntity(
-					indexUpdate.typeInfo.appId,
-					indexUpdate.typeInfo.typeId,
-					transaction,
-					encWordB64,
-					encWordToMetaRow,
-					encryptedEntries,
-				)
+				return this._putEncryptedEntity(indexUpdate.typeInfo.appId, indexUpdate.typeInfo.typeId, transaction, encWordB64, encWordToMetaRow, encryptedEntries)
 			},
 			{
 				concurrency: 2,

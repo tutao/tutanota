@@ -591,12 +591,12 @@ class DropdownButton implements Component<InternalDropdownButtonAttrs> {
 							},
 					  })
 					: attrs.showingIcons
-					? m(".icon-large", {
-							style: {
-								marginRight: px(12),
-							},
-					  })
-					: null,
+					  ? m(".icon-large", {
+								style: {
+									marginRight: px(12),
+								},
+						  })
+					  : null,
 				m(
 					".text-ellipsis",
 					{

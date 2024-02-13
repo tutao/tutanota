@@ -781,5 +781,8 @@ export function sql(queryParts: TemplateStringsArray, ...paramInstances: (SqlVal
 }
 
 class SqlFragment {
-	constructor(readonly text: string, readonly params: SqlValue[]) {}
+	constructor(
+		readonly text: string,
+		readonly params: SqlValue[],
+	) {}
 }

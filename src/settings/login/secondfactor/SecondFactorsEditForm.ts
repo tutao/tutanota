@@ -27,7 +27,10 @@ assertMainOrNode()
 export class SecondFactorsEditForm {
 	_2FALineAttrs: TableLineAttrs[]
 
-	constructor(private readonly user: LazyLoaded<User>, private readonly domainConfigProvider: DomainConfigProvider) {
+	constructor(
+		private readonly user: LazyLoaded<User>,
+		private readonly domainConfigProvider: DomainConfigProvider,
+	) {
 		this._2FALineAttrs = []
 
 		this._updateSecondFactors()

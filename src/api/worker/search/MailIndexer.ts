@@ -164,12 +164,7 @@ export class MailIndexer {
 					const mailOwnerEncSessionKey = assertNotNull(mail._ownerEncSessionKey)
 					const mailDetailsDraftId = assertNotNull(mail.mailDetailsDraft)
 					mailWrapper = await this._defaultCachingEntity
-						.loadMultiple(
-							MailDetailsDraftTypeRef,
-							listIdPart(mailDetailsDraftId),
-							[elementIdPart(mailDetailsDraftId)],
-							async () => mailOwnerEncSessionKey,
-						)
+						.loadMultiple(MailDetailsDraftTypeRef, listIdPart(mailDetailsDraftId), [elementIdPart(mailDetailsDraftId)], async () => mailOwnerEncSessionKey)
 						.then((d) => {
 							const draft = first(d)
 							if (draft == null) {
@@ -182,12 +177,7 @@ export class MailIndexer {
 					const mailOwnerEncSessionKey = assertNotNull(mail._ownerEncSessionKey)
 					const mailDetailsBlobId = neverNull(mail.mailDetails)
 					mailWrapper = await this._defaultCachingEntity
-						.loadMultiple(
-							MailDetailsBlobTypeRef,
-							listIdPart(mailDetailsBlobId),
-							[elementIdPart(mailDetailsBlobId)],
-							async () => mailOwnerEncSessionKey,
-						)
+						.loadMultiple(MailDetailsBlobTypeRef, listIdPart(mailDetailsBlobId), [elementIdPart(mailDetailsBlobId)], async () => mailOwnerEncSessionKey)
 						.then((d) => {
 							const blob = first(d)
 							if (blob == null) {
@@ -344,9 +334,7 @@ export class MailIndexer {
 				// group data is not available if group has been added. group will be indexed after login.
 				if (groupData) {
 					const newestTimestamp =
-						groupData.indexTimestamp === NOTHING_INDEXED_TIMESTAMP
-							? this._dateProvider.getStartOfDayShiftedBy(1).getTime()
-							: groupData.indexTimestamp
+						groupData.indexTimestamp === NOTHING_INDEXED_TIMESTAMP ? this._dateProvider.getStartOfDayShiftedBy(1).getTime() : groupData.indexTimestamp
 
 					if (newestTimestamp > oldestTimestamp) {
 						mailBoxes.push({
@@ -652,12 +640,7 @@ export class MailIndexer {
 								this._core._processDeleted(event, indexUpdate),
 								this.processNewMail(event).then((result) => {
 									if (result) {
-										this._core.encryptSearchIndexEntries(
-											result.mail._id,
-											neverNull(result.mail._ownerGroup),
-											result.keyToIndexEntries,
-											indexUpdate,
-										)
+										this._core.encryptSearchIndexEntries(result.mail._id, neverNull(result.mail._ownerGroup), result.keyToIndexEntries, indexUpdate)
 									}
 								}),
 							])
@@ -709,7 +692,11 @@ class IndexLoader {
 	_entity: EntityClient
 	private readonly cachingEntity: EntityClient
 
-	constructor(restClient: EntityRestClient, cachingEntityClient: DefaultEntityRestCache, private isUsingOfflineCache: boolean) {
+	constructor(
+		restClient: EntityRestClient,
+		cachingEntityClient: DefaultEntityRestCache,
+		private isUsingOfflineCache: boolean,
+	) {
 		if (isUsingOfflineCache) {
 			this.entityCache = cachingEntityClient
 			this._entity = new EntityClient(cachingEntityClient)

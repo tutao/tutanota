@@ -185,14 +185,8 @@ export class ContactMergeView {
 					: null,
 				socials1.length > 0 || socials2.length > 0
 					? m(".non-wrapping-row", [
-							m(".social.mt-l", [
-								m("", lang.get("social_label")),
-								m(".aggregateEditors", socials1.length > 0 ? socials1 : emptyFieldPlaceholder),
-							]),
-							m(".social.mt-l", [
-								m("", lang.get("social_label")),
-								m(".aggregateEditors", socials2.length > 0 ? socials2 : emptyFieldPlaceholder),
-							]),
+							m(".social.mt-l", [m("", lang.get("social_label")), m(".aggregateEditors", socials1.length > 0 ? socials1 : emptyFieldPlaceholder)]),
+							m(".social.mt-l", [m("", lang.get("social_label")), m(".aggregateEditors", socials2.length > 0 ? socials2 : emptyFieldPlaceholder)]),
 					  ])
 					: null,
 				commentField1 && commentField2

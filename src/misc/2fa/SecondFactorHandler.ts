@@ -91,11 +91,7 @@ export class SecondFactorHandler {
 						continue
 					}
 
-					if (
-						session.state !== SessionState.SESSION_STATE_PENDING &&
-						this.otherLoginDialog &&
-						isSameId(neverNull(this.otherLoginSessionId), sessionId)
-					) {
+					if (session.state !== SessionState.SESSION_STATE_PENDING && this.otherLoginDialog && isSameId(neverNull(this.otherLoginSessionId), sessionId)) {
 						this.otherLoginDialog.close()
 
 						this.otherLoginSessionId = null

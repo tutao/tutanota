@@ -641,10 +641,7 @@ export class SearchFacade {
 								// mark result index id as processed to not query result in next load more operation
 								entriesCopy[index] = null
 
-								if (
-									elementData &&
-									(!(searchResult.restriction.listIds.length > 0) || searchResult.restriction.listIds.includes(elementData[0]))
-								) {
+								if (elementData && (!(searchResult.restriction.listIds.length > 0) || searchResult.restriction.listIds.includes(elementData[0]))) {
 									return [elementData[0], entry.id] as IdTuple
 								}
 

@@ -84,14 +84,14 @@ export function show(mailAddress?: string | null, resetAction?: ResetAction): Di
 					selectedAction() == null
 						? null
 						: selectedAction() === "password"
-						? m(PasswordForm, { model: passwordModel })
-						: m(TextField, {
-								label: "password_label",
-								type: TextFieldType.Password,
-								value: passwordValueStream(),
-								autocompleteAs: Autocomplete.currentPassword,
-								oninput: passwordValueStream,
-						  }),
+						  ? m(PasswordForm, { model: passwordModel })
+						  : m(TextField, {
+									label: "password_label",
+									type: TextFieldType.Password,
+									value: passwordValueStream(),
+									autocompleteAs: Autocomplete.currentPassword,
+									oninput: passwordValueStream,
+							  }),
 				]
 			},
 		},

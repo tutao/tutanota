@@ -1,5 +1,5 @@
 {
-	"extends": "../../tsconfig_common.json",
+	"extends": "../../tsconfig_common.json5",
 	"include": ["../../types/*.d.ts", "lib/encryption", "lib/hashes", "lib/misc", "lib/random"],
 	"files": [
 		"lib/index.ts",

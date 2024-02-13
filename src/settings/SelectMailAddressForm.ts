@@ -110,8 +110,8 @@ export class SelectMailAddressForm implements Component<SelectMailAddressFormAtt
 							}),
 					  )
 					: attrs.injectionsRightButtonAttrs
-					? m(IconButton, attrs.injectionsRightButtonAttrs)
-					: null,
+					  ? m(IconButton, attrs.injectionsRightButtonAttrs)
+					  : null,
 			],
 		})
 	}
@@ -149,11 +149,7 @@ export class SelectMailAddressForm implements Component<SelectMailAddressFormAtt
 		m.redraw()
 	}
 
-	private onValidationFinished(
-		email: string,
-		validationResult: ValidationResult,
-		onValidationResult: SelectMailAddressFormAttrs["onValidationResult"],
-	): void {
+	private onValidationFinished(email: string, validationResult: ValidationResult, onValidationResult: SelectMailAddressFormAttrs["onValidationResult"]): void {
 		this.messageId = validationResult.errorId
 		onValidationResult(email, validationResult)
 	}

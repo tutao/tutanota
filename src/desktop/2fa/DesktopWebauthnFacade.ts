@@ -10,7 +10,10 @@ import { WebAuthnSignResult } from "../../native/common/generatedipc/WebAuthnSig
 export class DesktopWebauthnFacade implements WebAuthnFacade {
 	private currentDialog: Promise<WebDialog<{ WebAuthnFacade: WebAuthnFacade }>> | null = null
 
-	constructor(private readonly parentWindow: ApplicationWindow, private readonly webDialogController: WebDialogController) {}
+	constructor(
+		private readonly parentWindow: ApplicationWindow,
+		private readonly webDialogController: WebDialogController,
+	) {}
 
 	async register(challenge: WebAuthnRegistrationChallenge): Promise<WebAuthnRegistrationResult> {
 		const { domain } = challenge

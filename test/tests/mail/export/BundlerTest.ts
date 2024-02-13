@@ -98,9 +98,7 @@ o.spec("Bundler", function () {
 		).thenReturn({ html: sanitizedBodyText })
 
 		const attachmentsCaptor = matchers.captor()
-		when(cryptoMock.enforceSessionKeyUpdateIfNeeded(mail, attachmentsCaptor.capture())).thenDo((mail: Mail, attachments: File) =>
-			Promise.resolve(attachments),
-		)
+		when(cryptoMock.enforceSessionKeyUpdateIfNeeded(mail, attachmentsCaptor.capture())).thenDo((mail: Mail, attachments: File) => Promise.resolve(attachments))
 
 		const bundle = await makeMailBundle(mail, mailFacadeMock, entityClientMock, fileControllerMock, sanitizerMock, cryptoMock)
 		verify(cryptoMock.enforceSessionKeyUpdateIfNeeded(mail, attachments.map((a) => `file ${a.name}`) as any))

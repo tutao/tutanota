@@ -52,9 +52,7 @@ export class EventBanner implements Component<EventBannerAttrs> {
 					{
 						label: "viewEvent_action",
 						click: (e, dom) =>
-							import("../../calendar/view/CalendarInvites.js").then(({ showEventDetails }) =>
-								showEventDetails(event, dom.getBoundingClientRect(), mail),
-							),
+							import("../../calendar/view/CalendarInvites.js").then(({ showEventDetails }) => showEventDetails(event, dom.getBoundingClientRect(), mail)),
 					},
 				],
 			} satisfies InfoBannerAttrs),

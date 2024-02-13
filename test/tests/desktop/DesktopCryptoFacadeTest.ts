@@ -39,9 +39,7 @@ o.spec("DesktopCryptoFacadeTest", () => {
 	const setupSubject = () => {
 		const cryptoFnsMock: CryptoFunctions = object()
 		when(cryptoFnsMock.aesEncrypt(aes128Key, matchers.anything(), matchers.anything(), matchers.anything(), matchers.anything())).thenReturn(decryptedUint8)
-		when(cryptoFnsMock.aesEncrypt(aes256Key, aes256DecryptedKey, matchers.anything(), matchers.anything(), matchers.anything())).thenReturn(
-			aes256EncryptedKey,
-		)
+		when(cryptoFnsMock.aesEncrypt(aes256Key, aes256DecryptedKey, matchers.anything(), matchers.anything(), matchers.anything())).thenReturn(aes256EncryptedKey)
 
 		when(cryptoFnsMock.aesDecrypt(aes128Key, matchers.anything(), matchers.anything())).thenReturn(decryptedUint8)
 		when(cryptoFnsMock.aesDecrypt(aes256Key, aes256EncryptedKey, matchers.anything())).thenReturn(aes256DecryptedKey)

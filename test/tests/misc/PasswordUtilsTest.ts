@@ -10,9 +10,7 @@ import {
 o.spec("PasswordUtilsTest", function () {
 	function checkStrength(pw, min, max) {
 		//		console.log(pw, min, max, getPasswordStrength(pw));
-		o(min <= getPasswordStrength(pw, [])).equals(true)(
-			"Passphrase " + pw + " strength: " + getPasswordStrength(pw, []) + " is smaller than expected " + min,
-		)
+		o(min <= getPasswordStrength(pw, [])).equals(true)("Passphrase " + pw + " strength: " + getPasswordStrength(pw, []) + " is smaller than expected " + min)
 		o(getPasswordStrength(pw, []) <= max).equals(true)("Passphrase " + pw + " strength: " + getPasswordStrength(pw, []) + " is bigger than expected " + max)
 	}
 

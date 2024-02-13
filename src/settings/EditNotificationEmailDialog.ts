@@ -33,9 +33,7 @@ export function showAddOrEditNotificationEmailDialog(userController: UserControl
 				.getAsync()
 				.then((loadedCustomerProperties) => {
 					if (selectedNotificationLanguage != null) {
-						existingTemplate = loadedCustomerProperties.notificationMailTemplates.find(
-							(template) => template.language === selectedNotificationLanguage,
-						)
+						existingTemplate = loadedCustomerProperties.notificationMailTemplates.find((template) => template.language === selectedNotificationLanguage)
 					}
 				})
 				.then(() => {
@@ -91,15 +89,9 @@ export function show(existingTemplate: NotificationMailTemplate | null, customer
 		template = existingTemplate
 	}
 
-	const editor = new HtmlEditor()
-		.setMinHeight(400)
-		.showBorders()
-		.setModeSwitcher("mailBody_label")
-		.setValue(template.body)
-		.enableToolbar()
-		.setToolbarOptions({
-			imageButtonClickHandler: insertInlineImageB64ClickHandler,
-		})
+	const editor = new HtmlEditor().setMinHeight(400).showBorders().setModeSwitcher("mailBody_label").setValue(template.body).enableToolbar().setToolbarOptions({
+		imageButtonClickHandler: insertInlineImageB64ClickHandler,
+	})
 	const editSegment = {
 		name: lang.get("edit_action"),
 		value: "edit",

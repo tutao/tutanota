@@ -18,10 +18,7 @@ if (process.argv[1] === fileURLToPath(import.meta.url)) {
 		.option("-r, --root-dir <rootDir>", "path to the root of the project", ".")
 		.option("-f, --force-rebuild", "force a rebuild (don't use the cache)")
 		.option("-e, --use-existing", "Use the existing built version (e.g. when using prebuild)")
-		.option(
-			"-c, --copy-target <copyTarget>",
-			"Which node-gyp target (specified in binding.gyp) to copy the output of. Defaults to the same name as the module",
-		)
+		.option("-c, --copy-target <copyTarget>", "Which node-gyp target (specified in binding.gyp) to copy the output of. Defaults to the same name as the module")
 		.action(async (module, opts) => {
 			validateOpts(opts)
 			await cli(module, opts)

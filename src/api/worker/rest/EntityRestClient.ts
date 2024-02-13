@@ -169,14 +169,7 @@ export class EntityRestClient implements EntityRestInterface {
 			count: String(count),
 			reverse: String(reverse),
 		}
-		const { path, headers, typeModel, queryParams } = await this._validateAndPrepareRestRequest(
-			typeRef,
-			listId,
-			null,
-			rangeRequestParams,
-			undefined,
-			undefined,
-		)
+		const { path, headers, typeModel, queryParams } = await this._validateAndPrepareRestRequest(typeRef, listId, null, rangeRequestParams, undefined, undefined)
 		// This should never happen if type checking is not bypassed with any
 		if (typeModel.type !== Type.ListElement) throw new Error("only ListElement types are permitted")
 		const json = await this.restClient.request(path, HttpMethod.GET, {

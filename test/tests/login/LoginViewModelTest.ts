@@ -457,9 +457,7 @@ o.spec("LoginViewModelTest", () => {
 		})
 		o("should handle KeyPermanentlyInvalidatedError and clear credentials", async function () {
 			await credentialsProviderMock.store({ credentials: testCredentials, databaseKey: null })
-			when(credentialsProviderMock.store({ credentials: testCredentials, databaseKey: anything() })).thenReject(
-				new KeyPermanentlyInvalidatedError("oops"),
-			)
+			when(credentialsProviderMock.store({ credentials: testCredentials, databaseKey: anything() })).thenReject(new KeyPermanentlyInvalidatedError("oops"))
 			when(loginControllerMock.createSession(anything(), anything(), anything())).thenResolve({ credentials: testCredentials })
 
 			const viewModel = await getViewModel()

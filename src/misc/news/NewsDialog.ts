@@ -41,10 +41,7 @@ export function showNewsDialog(newsModel: NewsModel) {
 								liveNewsIds: newsModel.liveNewsIds,
 								liveNewsListItems: newsModel.liveNewsListItems,
 						  })
-						: m(
-								".flex-center.mt-l",
-								m(".flex-v-center", [m(".full-width.flex-center", progressIcon()), m("p", lang.getMaybeLazy("pleaseWait_msg"))]),
-						  ),
+						: m(".flex-center.mt-l", m(".flex-v-center", [m(".full-width.flex-center", progressIcon()), m("p", lang.getMaybeLazy("pleaseWait_msg"))])),
 				]),
 			]
 		},

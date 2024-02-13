@@ -232,9 +232,7 @@ export class SecondFactorEditModel {
 	 */
 	private updateNameValidation(): void {
 		this.nameValidationStatus =
-			this.selectedType !== SecondFactorType.webauthn || validateWebauthnDisplayName(this.name)
-				? NameValidationStatus.Valid
-				: NameValidationStatus.Invalid
+			this.selectedType !== SecondFactorType.webauthn || validateWebauthnDisplayName(this.name) ? NameValidationStatus.Valid : NameValidationStatus.Invalid
 	}
 
 	/**

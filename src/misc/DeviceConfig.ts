@@ -52,7 +52,10 @@ export class DeviceConfig implements CredentialsStorage, UsageTestStorage, NewsI
 
 	private config!: ConfigObject
 
-	constructor(private readonly _version: number, private readonly localStorage: Storage | null) {
+	constructor(
+		private readonly _version: number,
+		private readonly localStorage: Storage | null,
+	) {
 		this.init()
 	}
 

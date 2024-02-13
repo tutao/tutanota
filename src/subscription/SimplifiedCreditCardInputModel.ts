@@ -230,7 +230,6 @@ function inferNormalizedExpirationDate(value: string, oldDate: string): string {
 		// we need a slash
 		ret += separator
 	}
-
 	// we have a month + slash + potentially first year digit
 	// rest contains only the part of the input that is relevant to the year
 	;({ rest, ret } = nomDigitsUntilLength(rest, ret, "xx/xx".length))
@@ -240,7 +239,6 @@ function inferNormalizedExpirationDate(value: string, oldDate: string): string {
 		// means we can assume two-digit year and return.
 		return ret.replace(separator, niceSeparator)
 	}
-
 	;({ ret } = nomDigitsUntilLength(rest, ret, "xx/xxxx".length))
 
 	return ret.replace(separator, niceSeparator)
@@ -331,8 +329,7 @@ export class SimplifiedCreditCardViewModel implements CCViewModel {
 	set creditCardNumber(value: string) {
 		let cleanedNumber = stripNonDigits(stripWhitespace(value))
 		this.creditCardType = getCardTypeRange(cleanedNumber)
-		this._creditCardNumber =
-			this.creditCardType === CardType.Amex ? groupCreditCardNumber(cleanedNumber, [4, 6, 5, 5]) : groupCreditCardNumber(cleanedNumber)
+		this._creditCardNumber = this.creditCardType === CardType.Amex ? groupCreditCardNumber(cleanedNumber, [4, 6, 5, 5]) : groupCreditCardNumber(cleanedNumber)
 	}
 
 	get cardHolderName(): string {

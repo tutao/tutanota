@@ -99,10 +99,7 @@ o.spec("WebauthnClient", function () {
 						...domainConfigStub,
 						legacyWebauthnUrl: tutanotaWebauthnUrl,
 					})
-					const result = await testSelectedKey(
-						["https://tutanota.com/u2f-appid.json", "https://legacy.another.domain/u2f-appid.json"],
-						tutanotaWebauthnUrl,
-					)
+					const result = await testSelectedKey(["https://tutanota.com/u2f-appid.json", "https://legacy.another.domain/u2f-appid.json"], tutanotaWebauthnUrl)
 					o(result.apiBaseUrl).equals(tutanotaApiBaseUrl)
 				})
 

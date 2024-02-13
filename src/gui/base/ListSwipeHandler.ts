@@ -70,11 +70,7 @@ export class ListSwipeHandler<ElementType, VH extends ViewHolder<ElementType>> e
 				virtualElement.domElement &&
 					animations.add(
 						virtualElement.domElement,
-						transform(TransformEnum.TranslateX, this.xoffset, listTargetPosition).chain(
-							TransformEnum.TranslateY,
-							virtualElement.top,
-							virtualElement.top,
-						),
+						transform(TransformEnum.TranslateX, this.xoffset, listTargetPosition).chain(TransformEnum.TranslateY, virtualElement.top, virtualElement.top),
 						{
 							easing: ease.inOut,
 							duration: DefaultAnimationTime * 2,

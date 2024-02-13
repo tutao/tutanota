@@ -214,7 +214,10 @@ export interface CacheStorage extends ExposedCacheStorage {
  * lowerRangeId may be anything from MIN_ID to c, upperRangeId may be anything from k to MAX_ID
  */
 export class DefaultEntityRestCache implements EntityRestCache {
-	constructor(private readonly entityRestClient: EntityRestClient, private readonly storage: CacheStorage) {}
+	constructor(
+		private readonly entityRestClient: EntityRestClient,
+		private readonly storage: CacheStorage,
+	) {}
 
 	async load<T extends SomeEntity>(
 		typeRef: TypeRef<T>,
@@ -623,8 +626,7 @@ export class DefaultEntityRestCache implements EntityRestCache {
 			if (idsInCacheRange.length === 0) {
 				postMultipleEventUpdates.push(updates)
 			} else {
-				const updatesNotInCacheRange =
-					idsInCacheRange.length === updates.length ? [] : updates.filter((update) => !idsInCacheRange.includes(update.instanceId))
+				const updatesNotInCacheRange = idsInCacheRange.length === updates.length ? [] : updates.filter((update) => !idsInCacheRange.includes(update.instanceId))
 
 				try {
 					// loadMultiple is only called to cache the elements and check which ones return errors
@@ -662,10 +664,7 @@ export class DefaultEntityRestCache implements EntityRestCache {
 					continue
 				}
 				case OperationType.DELETE: {
-					if (
-						isSameTypeRef(MailTypeRef, typeRef) &&
-						containsEventOfType(updatesArray as Readonly<EntityUpdateData[]>, OperationType.CREATE, instanceId)
-					) {
+					if (isSameTypeRef(MailTypeRef, typeRef) && containsEventOfType(updatesArray as Readonly<EntityUpdateData[]>, OperationType.CREATE, instanceId)) {
 						// move for mail is handled in create event.
 					} else if (isSameTypeRef(MailTypeRef, typeRef)) {
 						// delete mailDetails if they are available (as we don't send an event for this type)

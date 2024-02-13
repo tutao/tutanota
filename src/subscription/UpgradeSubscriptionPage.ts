@@ -49,9 +49,7 @@ export class UpgradeSubscriptionPage implements WizardPageN<UpgradeSubscriptionD
 		this.__signupPaidTest.active = false
 
 		if (subscriptionParameters) {
-			const paymentInterval: PaymentInterval = subscriptionParameters.interval
-				? asPaymentInterval(subscriptionParameters.interval)
-				: PaymentInterval.Yearly
+			const paymentInterval: PaymentInterval = subscriptionParameters.interval ? asPaymentInterval(subscriptionParameters.interval) : PaymentInterval.Yearly
 			// We automatically route to the next page; when we want to go back from the second page, we do not want to keep calling nextPage
 			vnode.attrs.data.subscriptionParameters = null
 			vnode.attrs.data.options.paymentInterval = stream(paymentInterval)

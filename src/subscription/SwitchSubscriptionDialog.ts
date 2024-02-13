@@ -109,7 +109,7 @@ export async function showSwitchDialog(
 			({
 				label: "pricing.select_action",
 				onclick: () => cancelSubscription(dialog, currentPlanInfo, deferred, customer),
-			} as LoginButtonAttrs),
+			}) as LoginButtonAttrs,
 
 		[PlanType.Revolutionary]: createPlanButton(dialog, PlanType.Revolutionary, currentPlanInfo, deferred, paymentInterval, accountingInfo),
 		[PlanType.Legend]: createPlanButton(dialog, PlanType.Legend, currentPlanInfo, deferred, paymentInterval, accountingInfo),
@@ -153,10 +153,7 @@ function createPlanButton(
 			) {
 				return
 			}
-			await showProgressDialog(
-				"pleaseWait_msg",
-				doSwitchPlan(accountingInfo, newPaymentInterval(), targetSubscription, dialog, currentPlanInfo, deferredPlan),
-			)
+			await showProgressDialog("pleaseWait_msg", doSwitchPlan(accountingInfo, newPaymentInterval(), targetSubscription, dialog, currentPlanInfo, deferredPlan))
 		},
 	})
 }

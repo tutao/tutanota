@@ -56,19 +56,17 @@ export function showAddAliasDialog(model: MailAddressTableModel, isNewPaidPlan: 
 								if (!domain.isPaid || isNewPaidPlan) {
 									formDomain = domain
 								} else {
-									Dialog.confirm(() => `${lang.get("paidEmailDomainLegacy_msg")}\n${lang.get("changePaidPlan_msg")}`).then(
-										async (confirmed) => {
-											if (confirmed) {
-												isNewPaidPlan = await showPlanUpgradeRequiredDialog([
-													PlanType.Revolutionary,
-													PlanType.Legend,
-													PlanType.Essential,
-													PlanType.Advanced,
-													PlanType.Unlimited,
-												])
-											}
-										},
-									)
+									Dialog.confirm(() => `${lang.get("paidEmailDomainLegacy_msg")}\n${lang.get("changePaidPlan_msg")}`).then(async (confirmed) => {
+										if (confirmed) {
+											isNewPaidPlan = await showPlanUpgradeRequiredDialog([
+												PlanType.Revolutionary,
+												PlanType.Legend,
+												PlanType.Essential,
+												PlanType.Advanced,
+												PlanType.Unlimited,
+											])
+										}
+									})
 								}
 							},
 						}),

@@ -24,8 +24,7 @@ export async function showNotAvailableForFreeDialog(acceptedPlans: AvailablePlan
 		const customerInfo = await locator.logins.getUserController().loadCustomerInfo()
 
 		const businessPlanRequired =
-			acceptedPlans.filter((plan) => NewBusinessPlans.includes(plan)).length === acceptedPlans.length &&
-			NewPersonalPlans.includes(downcast(customerInfo.plan))
+			acceptedPlans.filter((plan) => NewBusinessPlans.includes(plan)).length === acceptedPlans.length && NewPersonalPlans.includes(downcast(customerInfo.plan))
 		const msg = businessPlanRequired ? "pricing.notSupportedByPersonalPlan_msg" : "newPaidPlanRequired_msg"
 
 		await wizard.showUpgradeWizard(locator.logins, acceptedPlans, msg)

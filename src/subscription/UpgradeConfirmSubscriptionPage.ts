@@ -68,8 +68,7 @@ export class UpgradeConfirmSubscriptionPage implements WizardPageN<UpgradeSubscr
 				ofClass(PreconditionFailedError, (e) => {
 					Dialog.message(
 						() =>
-							lang.get(getPreconditionFailedPaymentMsg(e.data)) +
-							(data.upgradeType === UpgradeType.Signup ? " " + lang.get("accountWasStillCreated_msg") : ""),
+							lang.get(getPreconditionFailedPaymentMsg(e.data)) + (data.upgradeType === UpgradeType.Signup ? " " + lang.get("accountWasStillCreated_msg") : ""),
 					)
 				}),
 			)
@@ -77,8 +76,7 @@ export class UpgradeConfirmSubscriptionPage implements WizardPageN<UpgradeSubscr
 				ofClass(BadGatewayError, (e) => {
 					Dialog.message(
 						() =>
-							lang.get("paymentProviderNotAvailableError_msg") +
-							(data.upgradeType === UpgradeType.Signup ? " " + lang.get("accountWasStillCreated_msg") : ""),
+							lang.get("paymentProviderNotAvailableError_msg") + (data.upgradeType === UpgradeType.Signup ? " " + lang.get("accountWasStillCreated_msg") : ""),
 					)
 				}),
 			)
@@ -115,9 +113,7 @@ export class UpgradeConfirmSubscriptionPage implements WizardPageN<UpgradeSubscr
 			]),
 			m(
 				".smaller.center.pt-l",
-				attrs.data.options.businessUse()
-					? lang.get("pricing.subscriptionPeriodInfoBusiness_msg")
-					: lang.get("pricing.subscriptionPeriodInfoPrivate_msg"),
+				attrs.data.options.businessUse() ? lang.get("pricing.subscriptionPeriodInfoBusiness_msg") : lang.get("pricing.subscriptionPeriodInfoPrivate_msg"),
 			),
 			m(
 				".flex-center.full-width.pt-l",

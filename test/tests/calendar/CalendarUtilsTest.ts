@@ -1328,9 +1328,7 @@ o.spec("calendar utils tests", function () {
 
 			addDaysForEventInstance(eventsForDays, alteredEvent, getMonthRange(getDateInZone("2023-07-01"), zone), zone)
 			addDaysForRecurringEvent(eventsForDays, event, getMonthRange(getDateInZone("2023-07-01"), zone), zone)
-			o(eventsForDays.get(getDateInZone("2023-07-13").getTime())).deepEquals([alteredEvent])(
-				"altered instance is on the day it occurs, but event is excluded",
-			)
+			o(eventsForDays.get(getDateInZone("2023-07-13").getTime())).deepEquals([alteredEvent])("altered instance is on the day it occurs, but event is excluded")
 			const eventsOn14th = eventsForDays.get(getDateInZone("2023-07-14").getTime()) ?? []
 			o(eventsOn14th.length).equals(1)("one event on 14th")
 			o(eventsOn14th[0].summary).equals("summary")("occurrence of original series on 14th")

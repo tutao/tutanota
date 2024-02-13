@@ -272,17 +272,15 @@ export class DesktopSettingsViewer implements UpdatableSettingsViewer {
 
 	private async requestDesktopConfig() {
 		this.defaultDownloadPath = stream(lang.get("alwaysAsk_action"))
-		const [integrationInfo, defaultDownloadPath, runAsTrayApp, showAutoUpdateOption, enableAutoUpdate, mailExportMode, spellcheckLabel] = await Promise.all(
-			[
-				locator.desktopSettingsFacade.getIntegrationInfo(),
-				locator.desktopSettingsFacade.getStringConfigValue(DesktopConfigKey.defaultDownloadPath),
-				locator.desktopSettingsFacade.getBooleanConfigValue(DesktopConfigKey.runAsTrayApp),
-				locator.desktopSettingsFacade.getBooleanConfigValue(DesktopConfigKey.showAutoUpdateOption),
-				locator.desktopSettingsFacade.getBooleanConfigValue(DesktopConfigKey.enableAutoUpdate),
-				locator.desktopSettingsFacade.getStringConfigValue(DesktopConfigKey.mailExportMode),
-				getCurrentSpellcheckLanguageLabel(),
-			],
-		)
+		const [integrationInfo, defaultDownloadPath, runAsTrayApp, showAutoUpdateOption, enableAutoUpdate, mailExportMode, spellcheckLabel] = await Promise.all([
+			locator.desktopSettingsFacade.getIntegrationInfo(),
+			locator.desktopSettingsFacade.getStringConfigValue(DesktopConfigKey.defaultDownloadPath),
+			locator.desktopSettingsFacade.getBooleanConfigValue(DesktopConfigKey.runAsTrayApp),
+			locator.desktopSettingsFacade.getBooleanConfigValue(DesktopConfigKey.showAutoUpdateOption),
+			locator.desktopSettingsFacade.getBooleanConfigValue(DesktopConfigKey.enableAutoUpdate),
+			locator.desktopSettingsFacade.getStringConfigValue(DesktopConfigKey.mailExportMode),
+			getCurrentSpellcheckLanguageLabel(),
+		])
 		const { isMailtoHandler, isAutoLaunchEnabled, isIntegrated, isUpdateAvailable } = integrationInfo
 
 		this.isDefaultMailtoHandler(isMailtoHandler)

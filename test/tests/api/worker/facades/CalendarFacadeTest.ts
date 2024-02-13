@@ -287,9 +287,7 @@ o.spec("CalendarFacadeTest", function () {
 				const typeRef = instances[0]?._type
 				if (isSameTypeRef(typeRef, CalendarEventTypeRef)) {
 					if (listId === listId1) {
-						return Promise.reject(
-							new SetupMultipleError("could not save event", [new Error("failed"), new ConnectionError("no connection")], instances),
-						)
+						return Promise.reject(new SetupMultipleError("could not save event", [new Error("failed"), new ConnectionError("no connection")], instances))
 					} else if (listId === listId2) {
 						return Promise.resolve(["eventId2"])
 					} else {

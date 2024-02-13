@@ -25,7 +25,11 @@ export class InvoiceDataInput implements Component {
 	private vatNumber: string = ""
 	private __paymentPaypalTest?: UsageTest
 
-	constructor(private businessUse: boolean, invoiceData: InvoiceData, private readonly location = InvoiceDataInputLocation.Other) {
+	constructor(
+		private businessUse: boolean,
+		invoiceData: InvoiceData,
+		private readonly location = InvoiceDataInputLocation.Other,
+	) {
 		this.__paymentPaypalTest = locator.usageTestController.getTest("payment.paypal")
 
 		this.invoiceAddressComponent = new HtmlEditor()

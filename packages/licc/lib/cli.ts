@@ -27,14 +27,8 @@ await program
 			.choices(PLATFORMS),
 	)
 	.action(async (from_dir, to_dir, { platform }) => {
-		assert(
-			!(platform == null && to_dir != null),
-			"can't omit platform and use an explicit output dir. specify both -p <platform> and to_dir or none of them.",
-		)
-		assert(
-			!(platform != null && to_dir == null),
-			"can't use an explicit platform but no output dir. specify both -p <platform> and to_dir or none of them.",
-		)
+		assert(!(platform == null && to_dir != null), "can't omit platform and use an explicit output dir. specify both -p <platform> and to_dir or none of them.")
+		assert(!(platform != null && to_dir == null), "can't use an explicit platform but no output dir. specify both -p <platform> and to_dir or none of them.")
 
 		let conf: Record<string, string> = {}
 		if (platform != null) {

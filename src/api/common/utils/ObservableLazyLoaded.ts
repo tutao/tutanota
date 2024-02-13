@@ -6,7 +6,10 @@ export class ObservableLazyLoaded<T> {
 	private lazyLoaded: LazyLoaded<T>
 	readonly stream: Stream<T> = stream()
 
-	constructor(loadFunction: lazyAsync<T>, private readonly defaultValue: T) {
+	constructor(
+		loadFunction: lazyAsync<T>,
+		private readonly defaultValue: T,
+	) {
 		this.lazyLoaded = new LazyLoaded<T>(async () => {
 			const value = await loadFunction()
 			this.stream(value)

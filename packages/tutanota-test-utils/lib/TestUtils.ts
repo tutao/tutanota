@@ -93,10 +93,10 @@ export function replaceAllMaps(toReplace: any): any {
 	return toReplace instanceof Map
 		? replaceAllMaps(mapToObject(toReplace))
 		: toReplace instanceof Array
-		? toReplace.map(replaceAllMaps)
-		: toReplace != null && Object.getPrototypeOf(toReplace) === (Object as any).prototype // plain object
-		? mapObject(replaceAllMaps, toReplace)
-		: toReplace
+		  ? toReplace.map(replaceAllMaps)
+		  : toReplace != null && Object.getPrototypeOf(toReplace) === (Object as any).prototype // plain object
+			  ? mapObject(replaceAllMaps, toReplace)
+			  : toReplace
 }
 
 export async function assertThrows<T extends Error>(expected: Class<T>, fn: () => Promise<unknown>): Promise<T> {

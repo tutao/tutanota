@@ -51,7 +51,10 @@ export class GroupListView implements UpdatableSettingsViewer {
 	private localAdminGroupMemberships: GroupMembership[]
 	private listStateSubscription: Stream<unknown> | null = null
 
-	constructor(private readonly updateDetailsViewer: (viewer: GroupDetailsView | null) => unknown, private readonly focusDetailsViewer: () => unknown) {
+	constructor(
+		private readonly updateDetailsViewer: (viewer: GroupDetailsView | null) => unknown,
+		private readonly focusDetailsViewer: () => unknown,
+	) {
 		this.listModel = this.makeListModel()
 		this.listId = new LazyLoaded(() => {
 			return locator.logins

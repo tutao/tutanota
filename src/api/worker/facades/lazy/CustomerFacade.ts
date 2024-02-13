@@ -118,11 +118,7 @@ export class CustomerFacade {
 		const pubEccKey = keyData.systemAdminPubEccKey
 		const pubKyberKey = keyData.systemAdminPubKyberKey
 		const systemAdminPubKeys = { pubEccKey, pubKyberKey, pubRsaKey }
-		const { pubEncSymKey, cryptoProtocolVersion } = await this.cryptoFacade.encryptPubSymKey(
-			sessionKey,
-			systemAdminPubKeys,
-			this.userFacade.getUserGroupId(),
-		)
+		const { pubEncSymKey, cryptoProtocolVersion } = await this.cryptoFacade.encryptPubSymKey(sessionKey, systemAdminPubKeys, this.userFacade.getUserGroupId())
 
 		const data = createBrandingDomainData({
 			domain: domainName,

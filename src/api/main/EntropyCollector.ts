@@ -19,7 +19,11 @@ export class EntropyCollector {
 	// the entropy is cached and transmitted to the worker in defined intervals
 	private entropyCache: EntropyDataChunk[] = []
 
-	constructor(private readonly entropyFacade: EntropyFacade, private readonly scheduler: Scheduler, private readonly window: Window) {}
+	constructor(
+		private readonly entropyFacade: EntropyFacade,
+		private readonly scheduler: Scheduler,
+		private readonly window: Window,
+	) {}
 
 	private mouse = (e: MouseEvent) => {
 		const value = e.clientX ^ e.clientY

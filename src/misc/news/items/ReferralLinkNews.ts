@@ -19,7 +19,11 @@ const REFERRAL_NEWS_DISPLAY_THRESHOLD_DAYS = 7
 export class ReferralLinkNews implements NewsListItem {
 	private referralLink: string = ""
 
-	constructor(private readonly newsModel: NewsModel, private readonly dateProvider: DateProvider, private readonly userController: UserController) {}
+	constructor(
+		private readonly newsModel: NewsModel,
+		private readonly dateProvider: DateProvider,
+		private readonly userController: UserController,
+	) {}
 
 	async isShown(): Promise<boolean> {
 		// Do not show this for business customers yet (not allowed to create referral links)

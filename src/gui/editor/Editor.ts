@@ -60,7 +60,10 @@ export class Editor implements ImageHandler, Component {
 	 */
 	private pasteListener: (e: ClipboardEvent) => void = (_: ClipboardEvent) => (this.userHasPasted = true)
 
-	constructor(private minHeight: number | null, private sanitizer: SanitizerFn) {
+	constructor(
+		private minHeight: number | null,
+		private sanitizer: SanitizerFn,
+	) {
 		this.onremove = this.onremove.bind(this)
 		this.onbeforeupdate = this.onbeforeupdate.bind(this)
 		this.view = this.view.bind(this)

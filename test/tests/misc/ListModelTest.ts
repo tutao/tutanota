@@ -670,16 +670,13 @@ o.spec("ListModel", function () {
 				o(listModel.state.activeIndex).equals(2)
 			})
 
-			o(
-				"when not in multiselect it will not select both previous single selection and the newly selected item if in one column layout",
-				async function () {
-					await setItems(items)
-					listModel.onSingleSelection(itemA)
-					listModel.onSingleInclusiveSelection(itemC, true)
-					o(getSortedSelection()).deepEquals([itemC])
-					o(listModel.state.inMultiselect).equals(true)
-				},
-			)
+			o("when not in multiselect it will not select both previous single selection and the newly selected item if in one column layout", async function () {
+				await setItems(items)
+				listModel.onSingleSelection(itemA)
+				listModel.onSingleInclusiveSelection(itemC, true)
+				o(getSortedSelection()).deepEquals([itemC])
+				o(listModel.state.inMultiselect).equals(true)
+			})
 
 			o("when in multiselect it will add newly selected item to the selection", async function () {
 				await setItems(items)

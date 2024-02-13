@@ -191,8 +191,7 @@ async function showAddParticipantDialog(model: GroupSharingModel, texts: GroupSh
 					],
 					onRecipientAdded: (address, name, contact) =>
 						recipients.push(recipientsModel.resolve({ address, name, contact }, ResolveMode.Eager).whenResolved(() => m.redraw())),
-					onRecipientRemoved: (address) =>
-						findAndRemove(recipients, (recipient) => cleanMailAddress(recipient.address) === cleanMailAddress(address)),
+					onRecipientRemoved: (address) => findAndRemove(recipients, (recipient) => cleanMailAddress(recipient.address) === cleanMailAddress(address)),
 					onTextChanged: recipientsText,
 					search,
 					maxSuggestionsToShow: 3,

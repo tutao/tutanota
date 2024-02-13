@@ -141,10 +141,7 @@ class ContactListEditor implements Component<ContactListEditorAttrs> {
 
 		if (this.newAddress.trim().length > 0 && !isMailAddress(this.newAddress.trim(), false)) {
 			helpLabel = () => lang.get("invalidInputFormat_msg")
-		} else if (
-			this.model.currentAddresses.includes(cleanMailAddress(this.newAddress)) ||
-			this.model.newAddresses.includes(cleanMailAddress(this.newAddress))
-		) {
+		} else if (this.model.currentAddresses.includes(cleanMailAddress(this.newAddress)) || this.model.newAddresses.includes(cleanMailAddress(this.newAddress))) {
 			helpLabel = () => lang.get("addressAlreadyExistsOnList_msg")
 		}
 

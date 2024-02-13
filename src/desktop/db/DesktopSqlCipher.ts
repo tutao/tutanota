@@ -20,7 +20,11 @@ export class DesktopSqlCipher implements SqlCipherFacade {
 	 * @param dbPath the path to the database file to use
 	 * @param integrityCheck whether to check the integrity of the db file during initialization
 	 */
-	constructor(private readonly nativeBindingPath: string, private readonly dbPath: string, private readonly integrityCheck: boolean) {
+	constructor(
+		private readonly nativeBindingPath: string,
+		private readonly dbPath: string,
+		private readonly integrityCheck: boolean,
+	) {
 		process.on("exit", () => this._db?.close())
 	}
 

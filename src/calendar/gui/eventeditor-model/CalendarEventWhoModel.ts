@@ -285,11 +285,7 @@ export class CalendarEventWhoModel {
 				})
 		}
 
-		if (
-			this._organizer &&
-			ownAddresses.includes(this._organizer.address.address) &&
-			this._organizer.address.address !== this._ownAttendee?.address.address
-		) {
+		if (this._organizer && ownAddresses.includes(this._organizer.address.address) && this._organizer.address.address !== this._ownAttendee?.address.address) {
 			// if we're the organizer, ownAttendee should be the same. we don't modify organizer here because someone might already have sent invites.
 			this._ownAttendee = this._organizer
 		}

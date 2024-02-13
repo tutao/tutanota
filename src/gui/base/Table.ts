@@ -58,9 +58,7 @@ export class Table implements Component<TableAttrs> {
 		const a = vnode.attrs
 		const loading = !a.lines
 		const alignments = a.columnAlignments || []
-		const lineAttrs = a.lines
-			? a.lines.map((lineAttrs) => this._createLine(lineAttrs, a.showActionButtonColumn, a.columnWidths, false, alignments, false))
-			: []
+		const lineAttrs = a.lines ? a.lines.map((lineAttrs) => this._createLine(lineAttrs, a.showActionButtonColumn, a.columnWidths, false, alignments, false)) : []
 		return m("", [
 			m(`table.table${a.columnHeading ? ".table-header-border" : ""}`, [
 				(a.columnHeading

@@ -92,22 +92,14 @@ export class KnowledgeBaseDialogContent implements Component<KnowledgebaseDialog
 			{
 				oncreate: (vnode) => {
 					this._selectionChangedListener = model.selectedEntry.map(
-						makeListSelectionChangedScrollHandler(
-							vnode.dom as HTMLElement,
-							KNOWLEDGEBASE_LIST_ENTRY_HEIGHT,
-							model.getSelectedEntryIndex.bind(model),
-						),
+						makeListSelectionChangedScrollHandler(vnode.dom as HTMLElement, KNOWLEDGEBASE_LIST_ENTRY_HEIGHT, model.getSelectedEntryIndex.bind(model)),
 					)
 				},
 				onbeforeremove: () => {
 					this._selectionChangedListener.end()
 				},
 			},
-			[
-				model.containsResult()
-					? model.filteredEntries().map((entry) => this._renderListEntry(model, entry))
-					: m(".center", lang.get("noEntryFound_label")),
-			],
+			[model.containsResult() ? model.filteredEntries().map((entry) => this._renderListEntry(model, entry)) : m(".center", lang.get("noEntryFound_label"))],
 		)
 	}
 

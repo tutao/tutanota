@@ -10,7 +10,10 @@ export const NUMBER_OF_BYTES: number = 2
 export const BYTE_RANGE: number = Math.pow(2, 8 * NUMBER_OF_BYTES)
 
 export class PasswordGenerator {
-	constructor(private randomizer: WorkerRandomizer, private dictionary: Array<string>) {}
+	constructor(
+		private randomizer: WorkerRandomizer,
+		private dictionary: Array<string>,
+	) {}
 
 	async generateRandomPassphrase(): Promise<string> {
 		const usedWords = new Set()

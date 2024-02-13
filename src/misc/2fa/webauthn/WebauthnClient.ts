@@ -10,7 +10,11 @@ import { DomainConfigProvider } from "../../../api/common/DomainConfigProvider.j
 
 /** Web authentication entry point for the rest of the app. */
 export class WebauthnClient {
-	constructor(private readonly webauthn: WebAuthnFacade, private readonly domainConfigProvider: DomainConfigProvider, private readonly isApp: boolean) {}
+	constructor(
+		private readonly webauthn: WebAuthnFacade,
+		private readonly domainConfigProvider: DomainConfigProvider,
+		private readonly isApp: boolean,
+	) {}
 
 	isSupported(): Promise<boolean> {
 		return this.webauthn.isSupported()

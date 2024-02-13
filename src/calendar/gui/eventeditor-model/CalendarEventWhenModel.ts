@@ -39,7 +39,11 @@ export class CalendarEventWhenModel {
 	private _startTime: Time | null
 	private _endTime: Time | null
 
-	constructor(private readonly initialValues: Partial<Stripped<CalendarEvent>>, readonly zone: string, private readonly uiUpdateCallback: () => void = noOp) {
+	constructor(
+		private readonly initialValues: Partial<Stripped<CalendarEvent>>,
+		readonly zone: string,
+		private readonly uiUpdateCallback: () => void = noOp,
+	) {
 		let initialTimes: CalendarEventTimes
 		if (initialValues.startTime == null || initialValues.endTime == null) {
 			const defaultTimes = getEventWithDefaultTimes(initialValues.startTime)

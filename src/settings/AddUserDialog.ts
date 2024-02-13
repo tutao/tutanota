@@ -94,14 +94,7 @@ export async function show(): Promise<void> {
 		).then(async (accepted) => {
 			if (accepted) {
 				const operation = locator.operationProgressTracker.startNewOperation()
-				const p = locator.userManagementFacade.createUser(
-					userName.trim(),
-					assertNotNull(emailAddress),
-					passwordModel.getNewPassword(),
-					0,
-					1,
-					operation.id,
-				)
+				const p = locator.userManagementFacade.createUser(userName.trim(), assertNotNull(emailAddress), passwordModel.getNewPassword(), 0, 1, operation.id)
 				showProgressDialog(
 					() =>
 						lang.get("createActionStatus_msg", {

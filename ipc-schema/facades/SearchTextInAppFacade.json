@@ -7,12 +7,7 @@
 	"methods": {
 		"findInPage": {
 			"doc": "send a search request to the native search api on the current window",
-			"arg": [
-				{ "searchTerm": "string" },
-				{ "forward": "boolean" },
-				{ "matchCase": "boolean" },
-				{ "findNext": "boolean" }
-			],
+			"arg": [{ "searchTerm": "string" }, { "forward": "boolean" }, { "matchCase": "boolean" }, { "findNext": "boolean" }],
 			"ret": "Result?"
 		},
 		"stopFindInPage": {

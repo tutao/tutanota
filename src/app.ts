@@ -131,13 +131,7 @@ import("./translations/en")
 			const { CachePostLoginAction } = await import("./offline/CachePostLoginAction")
 			locator.logins.addPostLoginAction(
 				async () =>
-					new CachePostLoginAction(
-						await locator.calendarModel(),
-						locator.entityClient,
-						locator.progressTracker,
-						locator.cacheStorage,
-						locator.logins,
-					),
+					new CachePostLoginAction(await locator.calendarModel(), locator.entityClient, locator.progressTracker, locator.cacheStorage, locator.logins),
 			)
 		}
 
@@ -203,8 +197,7 @@ import("./translations/en")
 						return {
 							component: TerminationView,
 							cache: {
-								makeViewModel: () =>
-									new TerminationViewModel(locator.logins, locator.secondFactorHandler, locator.serviceExecutor, locator.entityClient),
+								makeViewModel: () => new TerminationViewModel(locator.logins, locator.secondFactorHandler, locator.serviceExecutor, locator.entityClient),
 								header: await locator.appHeaderAttrs(),
 							},
 						}

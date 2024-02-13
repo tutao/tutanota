@@ -247,9 +247,7 @@ o.spec("LoginFacadeTest", function () {
 			o("when resuming a session and the offline initialization has created a new database, we do synchronous login", async function () {
 				usingOfflineStorage = true
 				user.accountType = AccountType.PAID
-				when(
-					cacheStorageInitializerMock.initialize({ type: "offline", databaseKey: dbKey, userId, timeRangeDays, forceNewDatabase: false }),
-				).thenResolve({
+				when(cacheStorageInitializerMock.initialize({ type: "offline", databaseKey: dbKey, userId, timeRangeDays, forceNewDatabase: false })).thenResolve({
 					isPersistent: true,
 					isNewOfflineDb: true,
 				})
@@ -262,9 +260,7 @@ o.spec("LoginFacadeTest", function () {
 				usingOfflineStorage = true
 				user.accountType = AccountType.PAID
 
-				when(
-					cacheStorageInitializerMock.initialize({ type: "offline", databaseKey: dbKey, userId, timeRangeDays, forceNewDatabase: false }),
-				).thenResolve({
+				when(cacheStorageInitializerMock.initialize({ type: "offline", databaseKey: dbKey, userId, timeRangeDays, forceNewDatabase: false })).thenResolve({
 					isPersistent: true,
 					isNewOfflineDb: false,
 				})
@@ -442,11 +438,9 @@ o.spec("LoginFacadeTest", function () {
 					return JSON.stringify({ user: userId, accessKey: keyToBase64(accessKey) })
 				})
 
-				await facade
-					.resumeSession(credentials, user.salt == null ? null : { salt: user.salt, kdfType: DEFAULT_KDF_TYPE }, dbKey, timeRangeDays)
-					.finally(() => {
-						calls.push("return")
-					})
+				await facade.resumeSession(credentials, user.salt == null ? null : { salt: user.salt, kdfType: DEFAULT_KDF_TYPE }, dbKey, timeRangeDays).finally(() => {
+					calls.push("return")
+				})
 				o(calls).deepEquals(["sessionService", "setUser", "return"])
 			}
 
@@ -456,9 +450,7 @@ o.spec("LoginFacadeTest", function () {
 					throw new ConnectionError("Oopsie 3")
 				})
 
-				await o(() => facade.resumeSession(credentials, { salt: user.salt!, kdfType: DEFAULT_KDF_TYPE }, dbKey, timeRangeDays)).asyncThrows(
-					ConnectionError,
-				)
+				await o(() => facade.resumeSession(credentials, { salt: user.salt!, kdfType: DEFAULT_KDF_TYPE }, dbKey, timeRangeDays)).asyncThrows(ConnectionError)
 				o(calls).deepEquals(["sessionService"])
 			}
 		})
@@ -595,9 +587,7 @@ o.spec("LoginFacadeTest", function () {
 
 				when(entityClientMock.load(UserTypeRef, userId)).thenResolve(user)
 
-				when(serviceExecutor.get(SaltService, anything()), { ignoreExtraArgs: true }).thenResolve(
-					createSaltReturn({ salt: SALT, kdfVersion: KdfType.Bcrypt }),
-				)
+				when(serviceExecutor.get(SaltService, anything()), { ignoreExtraArgs: true }).thenResolve(createSaltReturn({ salt: SALT, kdfVersion: KdfType.Bcrypt }))
 
 				// // The call to /sys/session/...
 				// when(restClientMock.request(anything(), HttpMethod.GET, anything()))

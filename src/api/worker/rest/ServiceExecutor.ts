@@ -32,11 +32,7 @@ export class ServiceExecutor implements IServiceExecutor {
 		private readonly cryptoFacade: lazy<CryptoFacade>,
 	) {}
 
-	get<S extends GetService>(
-		service: S,
-		data: ParamTypeFromRef<S["get"]["data"]>,
-		params?: ExtraServiceParams,
-	): Promise<ReturnTypeFromRef<S["get"]["return"]>> {
+	get<S extends GetService>(service: S, data: ParamTypeFromRef<S["get"]["data"]>, params?: ExtraServiceParams): Promise<ReturnTypeFromRef<S["get"]["return"]>> {
 		return this.executeServiceRequest(service, HttpMethod.GET, data, params)
 	}
 
@@ -48,11 +44,7 @@ export class ServiceExecutor implements IServiceExecutor {
 		return this.executeServiceRequest(service, HttpMethod.POST, data, params)
 	}
 
-	put<S extends PutService>(
-		service: S,
-		data: ParamTypeFromRef<S["put"]["data"]>,
-		params?: ExtraServiceParams,
-	): Promise<ReturnTypeFromRef<S["put"]["return"]>> {
+	put<S extends PutService>(service: S, data: ParamTypeFromRef<S["put"]["data"]>, params?: ExtraServiceParams): Promise<ReturnTypeFromRef<S["put"]["return"]>> {
 		return this.executeServiceRequest(service, HttpMethod.PUT, data, params)
 	}
 

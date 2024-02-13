@@ -320,13 +320,7 @@ o.spec("CryptoFacadeTest", function () {
 			let value = "this is a string value"
 			let encryptedValue = neverNull(encryptValue("test", valueType, value, sk))
 			let expected = uint8ArrayToBase64(
-				aesEncrypt(
-					sk,
-					stringToUtf8Uint8Array(value),
-					base64ToUint8Array(encryptedValue).slice(ENABLE_MAC ? 1 : 0, ENABLE_MAC ? 17 : 16),
-					true,
-					ENABLE_MAC,
-				),
+				aesEncrypt(sk, stringToUtf8Uint8Array(value), base64ToUint8Array(encryptedValue).slice(ENABLE_MAC ? 1 : 0, ENABLE_MAC ? 17 : 16), true, ENABLE_MAC),
 			)
 			o(encryptedValue).equals(expected)
 			o(decryptValue("test", valueType, encryptedValue, sk)).equals(value)
@@ -478,9 +472,7 @@ o.spec("CryptoFacadeTest", function () {
 			sender: {
 				_id: "senderId",
 				address: "hello@tutao.de",
-				name: uint8ArrayToBase64(
-					aesEncrypt(sessionKey, stringToUtf8Uint8Array(senderName), random.generateRandomData(IV_BYTE_LENGTH), true, ENABLE_MAC),
-				),
+				name: uint8ArrayToBase64(aesEncrypt(sessionKey, stringToUtf8Uint8Array(senderName), random.generateRandomData(IV_BYTE_LENGTH), true, ENABLE_MAC)),
 			},
 			bccRecipients: [],
 			ccRecipients: [],
@@ -488,18 +480,14 @@ o.spec("CryptoFacadeTest", function () {
 				{
 					_id: "recipientId",
 					address: "support@yahoo.com",
-					name: uint8ArrayToBase64(
-						aesEncrypt(sessionKey, stringToUtf8Uint8Array(recipientName), random.generateRandomData(IV_BYTE_LENGTH), true, ENABLE_MAC),
-					),
+					name: uint8ArrayToBase64(aesEncrypt(sessionKey, stringToUtf8Uint8Array(recipientName), random.generateRandomData(IV_BYTE_LENGTH), true, ENABLE_MAC)),
 				},
 			],
 			replyTos: [],
 			bucketKey: null,
 			attachmentCount: "0",
 			authStatus: "0",
-			listUnsubscribe: uint8ArrayToBase64(
-				aesEncrypt(sessionKey, stringToUtf8Uint8Array(""), random.generateRandomData(IV_BYTE_LENGTH), true, ENABLE_MAC),
-			),
+			listUnsubscribe: uint8ArrayToBase64(aesEncrypt(sessionKey, stringToUtf8Uint8Array(""), random.generateRandomData(IV_BYTE_LENGTH), true, ENABLE_MAC)),
 			method: uint8ArrayToBase64(aesEncrypt(sessionKey, stringToUtf8Uint8Array(""), random.generateRandomData(IV_BYTE_LENGTH), true, ENABLE_MAC)),
 			phishingStatus: "0",
 			recipientCount: "0",
@@ -1848,15 +1836,7 @@ o.spec("CryptoFacadeTest", function () {
 		let sk = aes256RandomKey()
 		let bk = aes256RandomKey()
 
-		const mailLiteral = createMailLiteral(
-			recipientUser.mailGroupKey,
-			sk,
-			subject,
-			confidential,
-			senderName,
-			recipientUser.name,
-			recipientUser.mailGroup._id,
-		)
+		const mailLiteral = createMailLiteral(recipientUser.mailGroupKey, sk, subject, confidential, senderName, recipientUser.name, recipientUser.mailGroup._id)
 		// @ts-ignore
 		mailLiteral._ownerEncSessionKey = null
 

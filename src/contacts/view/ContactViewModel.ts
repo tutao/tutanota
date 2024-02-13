@@ -73,8 +73,8 @@ export class ContactViewModel {
 			this.targetContactId != null
 				? this.targetContactId
 				: !this.listModel.state.inMultiselect && this.listModel.getSelectedAsArray().length === 1
-				? getElementId(this.listModel.getSelectedAsArray()[0])
-				: null
+				  ? getElementId(this.listModel.getSelectedAsArray()[0])
+				  : null
 		if (contactId) {
 			this.router.routeTo(`/contact/:listId/:contactId`, { listId: this.contactListId, contactId: contactId })
 		} else {

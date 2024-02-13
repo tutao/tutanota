@@ -143,9 +143,7 @@ o.spec("ConversationViewModel", function () {
 			await loadingDefer.promise
 
 			const numMailsDisplayed = viewModel.conversationItems().filter((i) => i.type === "mail").length
-			o(numMailsDisplayed).equals(conversation.length)(
-				`Wrong number of mails in conversationItems, got ${numMailsDisplayed} should be ${conversation.length}`,
-			)
+			o(numMailsDisplayed).equals(conversation.length)(`Wrong number of mails in conversationItems, got ${numMailsDisplayed} should be ${conversation.length}`)
 		})
 
 		o("when the option is off it only shows selected mail", async function () {
@@ -168,9 +166,7 @@ o.spec("ConversationViewModel", function () {
 			await loadingDefer.promise
 
 			const numMailsDisplayed = viewModel.conversationItems().filter((i) => i.type === "mail").length
-			o(numMailsDisplayed).equals(conversation.length)(
-				`Wrong number of mails in conversationItems, got ${numMailsDisplayed} should be ${conversation.length}`,
-			)
+			o(numMailsDisplayed).equals(conversation.length)(`Wrong number of mails in conversationItems, got ${numMailsDisplayed} should be ${conversation.length}`)
 		})
 
 		o("when draft is in trash folder, it should not be included in the conversation", async function () {

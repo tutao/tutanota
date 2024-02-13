@@ -182,9 +182,7 @@ export class WindowManager {
 			await this.get(windowId)?.commonNativeFacade.invalidateAlarms()
 		} else {
 			log.debug(TAG, "invalidating alarms for all windows")
-			await Promise.all(
-				this.getAll().map((w) => this.invalidateAlarms(w.id).catch((e) => log.debug(TAG, "couldn't invalidate alarms for window", w.id, e))),
-			)
+			await Promise.all(this.getAll().map((w) => this.invalidateAlarms(w.id).catch((e) => log.debug(TAG, "couldn't invalidate alarms for window", w.id, e))))
 		}
 	}
 

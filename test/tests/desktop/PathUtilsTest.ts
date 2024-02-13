@@ -49,9 +49,7 @@ o.spec("PathUtils", function () {
 			o(nonClobberingFilename(["hello-1.ext"], "hello-1.ext")).equals("hello-1-1.ext")
 		})
 		o("intermediate value", function () {
-			o(nonClobberingFilename(["hello.ext", "hello-3.ext", "hello-1.ext", "hello-undefined.ext", "hello-Infinity.ext"], "hello.ext")).equals(
-				"hello-2.ext",
-			)
+			o(nonClobberingFilename(["hello.ext", "hello-3.ext", "hello-1.ext", "hello-undefined.ext", "hello-Infinity.ext"], "hello.ext")).equals("hello-2.ext")
 			o(nonClobberingFilename(["hello-0.ext", "hello.ext", "hello-3.ext", "hello-1.ext"], "hello.ext")).equals("hello-2.ext")
 			o(nonClobberingFilename(["hello--2.ext", "hello-0.ext", "hello-3.ext", "hello-1.ext"], "hello.ext")).equals("hello.ext")
 		})

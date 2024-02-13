@@ -130,9 +130,7 @@ export class SwiftGenerator implements LangGenerator {
 						),
 					)
 					.line(`) {`)
-					.indented((acc) =>
-						acc.lines(facadeNames.map((name) => `self.${minusculize(name)} = ${name}ReceiveDispatcher(facade: ${minusculize(name)})`)),
-					)
+					.indented((acc) => acc.lines(facadeNames.map((name) => `self.${minusculize(name)} = ${name}ReceiveDispatcher(facade: ${minusculize(name)})`)))
 					.line(`}`)
 					.line()
 					.line(`func dispatch(facadeName: String, methodName: String, args: Array<String>) async throws -> String {`)
@@ -141,7 +139,8 @@ export class SwiftGenerator implements LangGenerator {
 							.line(`switch facadeName {`)
 							.indented((acc) => {
 								for (let facadeName of facadeNames) {
-									acc.line(`case "${facadeName}":`)
+									acc
+										.line(`case "${facadeName}":`)
 										.indent()
 										.line(`return try await self.${minusculize(facadeName)}.dispatch(method: methodName, arg: args)`)
 								}
@@ -181,9 +180,7 @@ export class SwiftGenerator implements LangGenerator {
 			methodBodyAcc.line(`let encodedFacadeName = toJson("${definition.name}")`)
 			methodBodyAcc.line(`let encodedMethodName = toJson("${methodName}")`)
 			if (methodDefinition.ret !== "void") {
-				methodBodyAcc.line(
-					`let returnValue = try await self.transport.sendRequest(requestType: "ipc",  args: [encodedFacadeName, encodedMethodName] + args)`,
-				)
+				methodBodyAcc.line(`let returnValue = try await self.transport.sendRequest(requestType: "ipc",  args: [encodedFacadeName, encodedMethodName] + args)`)
 				methodBodyAcc.line(`return try! JSONDecoder().decode(${typeNameSwift(methodDefinition.ret).name}.self, from: returnValue.data(using: .utf8)!)`)
 			} else {
 				methodBodyAcc.line(`let _ = try await self.transport.sendRequest(requestType: "ipc",  args: [encodedFacadeName, encodedMethodName] + args)`)

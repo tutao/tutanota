@@ -10,9 +10,7 @@ if (wasRunFromCli) {
 	program
 		.requiredOption("--milestone <milestone>", "Milestone to reference")
 		.addOption(
-			new Option("--platform <platform>", "label filter for the issues to include in the notes")
-				.choices(["android", "ios", "desktop", "web"])
-				.default("web"),
+			new Option("--platform <platform>", "label filter for the issues to include in the notes").choices(["android", "ios", "desktop", "web"]).default("web"),
 		)
 		.action(async (options) => {
 			await renderReleaseNotes(options)

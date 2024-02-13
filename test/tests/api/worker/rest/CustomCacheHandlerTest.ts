@@ -52,26 +52,17 @@ o.spec("Custom calendar events handler", function () {
 			verify(offlineStorageMock.setNewRangeForList(CalendarEventTypeRef, listId, CUSTOM_MIN_ID, CUSTOM_MAX_ID))
 		})
 
-		o(
-			"result of server request is inserted into cache and the range is set. Loads more than 100, but only count elements are returned.",
-			async function () {
-				when(entityRestClientMock.loadRange(CalendarEventTypeRef, bigListId, CUSTOM_MIN_ID, LOAD_MULTIPLE_LIMIT, false)).thenResolve(
-					bigList.slice(0, 100),
-				)
-				when(entityRestClientMock.loadRange(CalendarEventTypeRef, bigListId, bigListIds[99], LOAD_MULTIPLE_LIMIT, false)).thenResolve(
-					bigList.slice(100, 200),
-				)
-				when(entityRestClientMock.loadRange(CalendarEventTypeRef, bigListId, bigListIds[199], LOAD_MULTIPLE_LIMIT, false)).thenResolve(
-					bigList.slice(200, 300),
-				)
-				when(entityRestClientMock.loadRange(CalendarEventTypeRef, bigListId, bigListIds[299], LOAD_MULTIPLE_LIMIT, false)).thenResolve([])
-				const res = await cacheHandler.loadRange(offlineStorageMock, bigListId, bigListIds[0], 3, false)
-				o(res.map(toElementId)).deepEquals(allList.map(toElementId).slice(1, 4))("count elements are returned")
-				verify(offlineStorageMock.put(matchers.anything()), { times: bigList.length })
-				verify(offlineStorageMock.setNewRangeForList(CalendarEventTypeRef, bigListId, CUSTOM_MIN_ID, CUSTOM_MAX_ID))
-				verify(entityRestClientMock.loadRange(CalendarEventTypeRef, bigListId, matchers.anything(), LOAD_MULTIPLE_LIMIT, false), { times: 4 })
-			},
-		)
+		o("result of server request is inserted into cache and the range is set. Loads more than 100, but only count elements are returned.", async function () {
+			when(entityRestClientMock.loadRange(CalendarEventTypeRef, bigListId, CUSTOM_MIN_ID, LOAD_MULTIPLE_LIMIT, false)).thenResolve(bigList.slice(0, 100))
+			when(entityRestClientMock.loadRange(CalendarEventTypeRef, bigListId, bigListIds[99], LOAD_MULTIPLE_LIMIT, false)).thenResolve(bigList.slice(100, 200))
+			when(entityRestClientMock.loadRange(CalendarEventTypeRef, bigListId, bigListIds[199], LOAD_MULTIPLE_LIMIT, false)).thenResolve(bigList.slice(200, 300))
+			when(entityRestClientMock.loadRange(CalendarEventTypeRef, bigListId, bigListIds[299], LOAD_MULTIPLE_LIMIT, false)).thenResolve([])
+			const res = await cacheHandler.loadRange(offlineStorageMock, bigListId, bigListIds[0], 3, false)
+			o(res.map(toElementId)).deepEquals(allList.map(toElementId).slice(1, 4))("count elements are returned")
+			verify(offlineStorageMock.put(matchers.anything()), { times: bigList.length })
+			verify(offlineStorageMock.setNewRangeForList(CalendarEventTypeRef, bigListId, CUSTOM_MIN_ID, CUSTOM_MAX_ID))
+			verify(entityRestClientMock.loadRange(CalendarEventTypeRef, bigListId, matchers.anything(), LOAD_MULTIPLE_LIMIT, false), { times: 4 })
+		})
 
 		o("result of server request is inserted into cache and the range is set. No elements on the server. No elements are returned.", async function () {
 			when(entityRestClientMock.loadRange(CalendarEventTypeRef, bigListId, CUSTOM_MIN_ID, LOAD_MULTIPLE_LIMIT, false)).thenResolve([])

@@ -27,7 +27,11 @@ export class ConfigFile {
 	/**
 	 * @param filePath path to the file the json objects should be stored in
 	 **/
-	constructor(private readonly filePath: string, private readonly fullpath: string, private readonly fs: FsExports) {
+	constructor(
+		private readonly filePath: string,
+		private readonly fullpath: string,
+		private readonly fs: FsExports,
+	) {
 		this.accessPromise = Promise.resolve()
 	}
 

@@ -120,9 +120,7 @@ export class NativeContactsSyncManager {
 
 	async clearContacts() {
 		const loginUsername = this.loginController.getUserController().loginUsername
-		await this.mobileSystemFacade
-			.deleteContacts(loginUsername, null)
-			.catch(ofClass(PermissionError, (e) => console.log("No permission to clear contacts", e)))
+		await this.mobileSystemFacade.deleteContacts(loginUsername, null).catch(ofClass(PermissionError, (e) => console.log("No permission to clear contacts", e)))
 	}
 
 	private handleNoPermissionError(userId: string, error: PermissionError) {

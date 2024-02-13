@@ -245,13 +245,7 @@ export class LoginFacade {
 			timeRangeDays: null,
 			forceNewDatabase,
 		})
-		const { user, userGroupInfo, accessToken } = await this.initSession(
-			sessionData.userId,
-			sessionData.accessToken,
-			userPassphraseKey,
-			sessionType,
-			cacheInfo,
-		)
+		const { user, userGroupInfo, accessToken } = await this.initSession(sessionData.userId, sessionData.accessToken, userPassphraseKey, sessionType, cacheInfo)
 
 		return {
 			user,
@@ -453,9 +447,7 @@ export class LoginFacade {
 		timeRangeDays: number | null,
 	): Promise<ResumeSessionResult> {
 		if (this.userFacade.getUser() != null) {
-			throw new ProgrammingError(
-				`Trying to resume the session for user ${credentials.userId} while already logged in for ${this.userFacade.getUser()?._id}`,
-			)
+			throw new ProgrammingError(`Trying to resume the session for user ${credentials.userId} while already logged in for ${this.userFacade.getUser()?._id}`)
 		}
 		if (this.asyncLoginState.state !== "idle") {
 			throw new ProgrammingError(`Trying to resume the session for user ${credentials.userId} while the asyncLoginState is ${this.asyncLoginState.state}`)
@@ -580,13 +572,7 @@ export class LoginFacade {
 			userPassphraseKey = await this.loadUserPassphraseKey(credentials.login, passphrase)
 		}
 
-		const { user, userGroupInfo } = await this.initSession(
-			sessionData.userId,
-			credentials.accessToken,
-			userPassphraseKey,
-			SessionType.Persistent,
-			cacheInfo,
-		)
+		const { user, userGroupInfo } = await this.initSession(sessionData.userId, credentials.accessToken, userPassphraseKey, SessionType.Persistent, cacheInfo)
 
 		this.asyncLoginState = { state: "idle" }
 
