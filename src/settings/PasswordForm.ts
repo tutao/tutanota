@@ -292,6 +292,7 @@ export class PasswordForm implements Component<PasswordFormAttrs> {
 									{ style: { width: "100%" } },
 									m(CompletenessIndicator, {
 										width: "100%",
+										passwordColorScale: true,
 										percentageCompleted: scaleToVisualPasswordStrength(attrs.model.getPasswordStrength()),
 									}),
 								),

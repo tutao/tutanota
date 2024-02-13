@@ -5,6 +5,7 @@ import { DefaultAnimationTime } from "./animation/Animations.js"
 export interface CompletenessIndicatorAttrs {
 	percentageCompleted: number
 	width?: string
+	passwordColorScale?: boolean
 }
 
 export class CompletenessIndicator implements Component<CompletenessIndicatorAttrs> {
@@ -21,19 +22,29 @@ export class CompletenessIndicator implements Component<CompletenessIndicatorAtt
 				},
 			},
 			m("", {
-				style: {
-					"background-color":
-						attrs.percentageCompleted < mediumStrengthPercentage ? "red" : attrs.percentageCompleted < goodStrengthPercentage ? "yellow" : "green",
-					"background-image":
-						attrs.percentageCompleted < mediumStrengthPercentage
-							? "linear-gradient(90deg, rgba(255,0,0,1) 0%, rgba(255,0,0,1) 100%)"
-							: attrs.percentageCompleted < goodStrengthPercentage
-							? "linear-gradient(90deg, rgba(255,0,0,1) 0%, rgba(255,255,0,1) 100%)"
-							: "linear-gradient(90deg, rgba(255,0,0,1) 0%, rgba(255,245,0,1) 75%, rgba(0,255,0,1) 100%)",
-					transition: `width ${DefaultAnimationTime * 3}ms ease 0s`,
-					width: attrs.percentageCompleted + "%",
-					height: "100%",
-				},
+				style: attrs.passwordColorScale
+					? {
+							"background-color":
+								attrs.percentageCompleted < mediumStrengthPercentage
+									? "red"
+									: attrs.percentageCompleted < goodStrengthPercentage
+									? "yellow"
+									: "green",
+							"background-image":
+								attrs.percentageCompleted < mediumStrengthPercentage
+									? "linear-gradient(90deg, rgba(255,0,0,1) 0%, rgba(255,0,0,1) 100%)"
+									: attrs.percentageCompleted < goodStrengthPercentage
+									? "linear-gradient(90deg, rgba(255,0,0,1) 0%, rgba(255,255,0,1) 100%)"
+									: "linear-gradient(90deg, rgba(255,0,0,1) 0%, rgba(255,245,0,1) 75%, rgba(0,255,0,1) 100%)",
+							transition: `width ${DefaultAnimationTime * 3}ms ease 0s`,
+							width: attrs.percentageCompleted + "%",
+							height: "100%",
+					  }
+					: {
+							"background-color": theme.content_button,
+							width: attrs.percentageCompleted + "%",
+							height: "100%",
+					  },
 			}),
 		)
 	}
