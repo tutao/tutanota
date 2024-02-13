@@ -60,7 +60,7 @@ export class PaymentViewer implements UpdatableSettingsViewer {
 			.showBorders()
 			.setMode(HtmlEditorMode.HTML)
 			.setHtmlMonospace(false)
-			.setEnabled(false)
+			.setReadOnly(true)
 			.setPlaceholderId("invoiceAddress_label")
 		this._postings = []
 		this._outstandingBookingsPrice = null

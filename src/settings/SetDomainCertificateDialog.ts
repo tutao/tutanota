@@ -66,7 +66,7 @@ export function show(customerInfo: CustomerInfo): void {
 				label: "whitelabelDomain_label",
 				value: domain(),
 				oninput: domain,
-				disabled: whitelabelDomainInfo ? true : false,
+				isReadOnly: whitelabelDomainInfo ? true : false,
 			})
 		},
 	}
