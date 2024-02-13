@@ -97,7 +97,6 @@ o.spec("LoginFacadeTest", function () {
 	let blobAccessTokenFacade: BlobAccessTokenFacade
 	let databaseKeyFactoryMock: DatabaseKeyFactory
 	let argon2idFacade: Argon2idFacade
-	let entityRestCache: DefaultEntityRestCache
 
 	const timeRangeDays = 42
 
@@ -140,7 +139,6 @@ o.spec("LoginFacadeTest", function () {
 		databaseKeyFactoryMock = object()
 		argon2idFacade = object()
 		when(argon2idFacade.generateKeyFromPassphrase(anything(), anything())).thenResolve(PASSWORD_KEY)
-		entityRestCache = object<DefaultEntityRestCache>()
 
 		facade = new LoginFacade(
 			workerMock,
@@ -156,7 +154,7 @@ o.spec("LoginFacadeTest", function () {
 			entropyFacade,
 			databaseKeyFactoryMock,
 			argon2idFacade,
-			entityRestCache,
+			entityClientMock,
 		)
 
 		eventBusClientMock = instance(EventBusClient)

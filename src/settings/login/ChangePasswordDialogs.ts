@@ -36,6 +36,15 @@ export async function showChangeUserPasswordAsAdminDialog(user: User) {
 	})
 }
 
+async function storeNewPassword(currentUser: User, encryptedPassword: string | null) {
+	const credentialsProvider = locator.credentialsProvider
+	const storedCredentials = await credentialsProvider.getCredentialsInfoByUserId(currentUser._id)
+	if (storedCredentials != null) {
+		const password = assertNotNull(encryptedPassword, "encrypted password not provided")
+		await credentialsProvider.replacePassword(storedCredentials, password)
+	}
+}
+
 /**
  * The user must enter the old password in addition to the new password (twice). The password strength is enforced.
  */
@@ -48,7 +57,7 @@ export async function showChangeOwnPasswordDialog(allowCancel: boolean = true) {
 		if (error) {
 			Dialog.message(error)
 		} else {
-			var currentUser = locator.logins.getUserController().user
+			const currentUser = locator.logins.getUserController().user
 			const currentKdfType = asKdfType(currentUser.kdfVersion)
 			const currentPasswordKeyData = {
 				kdfType: currentKdfType,
@@ -58,7 +67,6 @@ export async function showChangeOwnPasswordDialog(allowCancel: boolean = true) {
 
 			const newPasswordKeyData = {
 				kdfType: DEFAULT_KDF_TYPE,
-				salt: await locator.loginFacade.generateRandomSalt(),
 				passphrase: model.getNewPassword(),
 			}
 
@@ -67,13 +75,7 @@ export async function showChangeOwnPasswordDialog(allowCancel: boolean = true) {
 					Dialog.message("pwChangeValid_msg")
 					dialog.close()
 					// do not wait for it or catch the errors, we do not want to confuse the user with the password change if anything goes wrong
-
-					const credentialsProvider = locator.credentialsProvider
-					const storedCredentials = await credentialsProvider.getCredentialsInfoByUserId(currentUser._id)
-					if (storedCredentials != null) {
-						const password = assertNotNull(encryptedPassword, "encrypted password not provided")
-						await credentialsProvider.replacePassword(storedCredentials, password)
-					}
+					storeNewPassword(currentUser, encryptedPassword)
 				})
 				.catch(
 					ofClass(NotAuthenticatedError, (e) => {

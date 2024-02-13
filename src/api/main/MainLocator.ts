@@ -842,7 +842,7 @@ class MainLocator {
 	// For testing argon2 migration after login. The production server will reject this request.
 	// This can be removed when we enable the migration.
 	async changeToBycrypt(passphrase: string): Promise<unknown> {
-		var currentUser = this.logins.getUserController().user
+		const currentUser = this.logins.getUserController().user
 		return this.loginFacade.migrateKdfType(KdfType.Bcrypt, passphrase, currentUser)
 	}
 }
