@@ -120,7 +120,7 @@ export class BorderTextField implements ClassComponent<BorderTextFieldAttrs> {
 							transform: `translateY(-${this.active || vnode.attrs.value ? 30 : 0}px)`,
 							transition: `transform ${labelTransitionSpeed}ms`,
 							lineHeight: px(size.font_size_base + 8),
-							margin: "17px 6px 0px 8px",
+							margin: "17px 6px 0px 10px",
 							padding: "0px 10px 0px 6px",
 							"font-style": "normal",
 							background: vnode.attrs.labelBgColorOverwrite || getElevatedBackground(),
