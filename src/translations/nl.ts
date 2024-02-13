@@ -11,7 +11,7 @@ export default {
 		"other"
 	],
 	"created_at": "2015-01-27T13:13:55Z",
-	"updated_at": "2024-02-08T12:41:51Z",
+	"updated_at": "2024-02-12T13:26:42Z",
 	"source_locale": {
 		"id": "fcd7471b347c8e517663e194dcddf237",
 		"name": "en",
@@ -1431,7 +1431,7 @@ export default {
 		"storageDeletion_msg": "Berichten in deze map worden na 30 dagen automatisch verwijderd.",
 		"storageQuotaExceeded_msg": "Er is niet genoeg plaats op het toestel om de zoekindex aan te maken. Daardoor kan het zoekresultaat niet volledig getoond worden.",
 		"storedDataTimeRangeHelpText_msg": "Opgeslagen e-mails die ouder zijn dan wat u hier opgeeft zullen automatisch verwijderd worden van uw apparaat.",
-		"storedDataTimeRange_label": "E-mails van de laaste {aantalDagen} dagen bewaren",
+		"storedDataTimeRange_label": "E-mails van de laaste {numDays} dagen bewaren",
 		"storePassword_action": "Wachtwoord opslaan",
 		"subject_label": "Onderwerp",
 		"subscriptionCancelledMessage_msg": "Uw abonnement is geannuleerd. Graag contact opnemen met onze ondersteuning als u het abonnement opnieuw wilt activeren.",

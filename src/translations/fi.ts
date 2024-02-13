@@ -11,7 +11,7 @@ export default {
 		"other"
 	],
 	"created_at": "2015-03-10T10:52:15Z",
-	"updated_at": "2024-02-07T15:05:17Z",
+	"updated_at": "2024-02-10T21:18:05Z",
 	"source_locale": null,
 	"fallback_locale": null,
 	"keys": {
@@ -87,6 +87,7 @@ export default {
 		"ageConfirmation_msg": "Olen vähintään 16-vuotias.",
 		"agenda_label": "Aikataulu",
 		"allDay_label": "Koko päivä",
+		"allowContactReadWrite_msg": "Tuta-sovellus tarvitsee luku- ja kirjoituspääsyn yhteystietoihisi synkronoidakseen yhteystietosi. Voit vaihtaa asetusta koska vain järjestelmän asetuksista.",
 		"allowExternalContentSender_action": "Luota aina lähettäjään",
 		"allowOperation_msg": "Haluatko sallia tämän?",
 		"allowPushNotification_msg": "Poista akun käytön optimointi Tutalta ja anna Tutan lähettää ilmoituksia saadaksesi luotettavasti ilmoituksia uusista viesteistä. Voit halutessasi muuttaa tätä laitteesi asetuksissa.",
@@ -269,7 +270,7 @@ export default {
 		"contactsSynchronizationWarning_msg": "Jos otat yhteystietojen synkronoinnin käyttöön, puhelimesi yhteystietoihin pääsevät sovellukset pääsevät näkemään myös Tuta-yhteystietosi. Tuta synkronoi ainoastaan Tutan sovelluksen sisällä tehdyt muutokset. Puhelimesi yhteystietoihin tehdyt muutokset voidaan korvata.",
 		"contactsSynchronization_label": "Yhteystietojen synkronointi",
 		"contactSupport_action": "Ota yhteyttä tukeen",
-		"contactsUsageDescription_msg": "Etsi vastaanottajan sähköpostiosoite yhteystiedoista.",
+		"contactsUsageDescription_msg": "1. Etsi vastaanottajan sähköpostiosoite yhteystiedoista.\\n2. Voit valinnaisesti synkronoida Tuta-yhteystietosi laitteellesi.",
 		"contacts_label": "Yhteystiedot",
 		"contactView_action": "Siirry yhteystietoihin",
 		"contentBlocked_msg": "Kuvia ei ladata automaattisesti yksityisyytesi suojaamiseksi.",
