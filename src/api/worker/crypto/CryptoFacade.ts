@@ -846,7 +846,9 @@ export class CryptoFacade {
 		}
 		const typeModel = await resolveTypeReference(mainInstance._type)
 		if (!mainInstance.bucketKey) {
-			throw new ProgrammingError("passed invalid type to enforceSessionKeyUpdate " + typeModel)
+			throw new ProgrammingError(
+				"passed invalid type to enforceSessionKeyUpdate " + JSON.stringify(mainInstance._type) + " for instance " + JSON.stringify(mainInstance._id),
+			)
 		}
 		// if we have a bucket key, then we need to cache the session keys stored in the bucket key for details, files, etc.
 		// we need to do this BEFORE we check the owner enc session key
