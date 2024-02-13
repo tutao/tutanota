@@ -814,7 +814,7 @@ export class SearchView extends BaseTopLevelView implements TopLevelView<SearchV
 		return m(TextField, {
 			label: "periodOfTime_label",
 			value: timeDisplayValue,
-			disabled: true,
+			isReadOnly: true,
 			class: "plr-button",
 			injectionsRight: () =>
 				m(IconButton, {

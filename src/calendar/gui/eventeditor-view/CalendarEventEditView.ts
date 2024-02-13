@@ -287,7 +287,7 @@ export class CalendarEventEditView implements Component<CalendarEventEditViewAtt
 
 	private renderDescriptionEditor(vnode: Vnode<CalendarEventEditViewAttrs>): Children {
 		const { model } = vnode.attrs
-		vnode.attrs.descriptionEditor.setEnabled(model.isFullyWritable())
+		vnode.attrs.descriptionEditor.setReadOnly(!model.isFullyWritable())
 		return m(vnode.attrs.descriptionEditor)
 	}
 
