@@ -285,15 +285,17 @@ export class PasswordForm implements Component<PasswordFormAttrs> {
 					label: "newPassword_label",
 					value: attrs.model.getNewPassword(),
 					helpLabel: () =>
-						m(".flex.col.mt-xs", [
+						m(".flex.col.mt-xs", { style: { margin: "4px 16px" } }, [
 							m(".flex.items-center", [
 								m(
 									".mr-s",
+									{ style: { width: "100%" } },
 									m(CompletenessIndicator, {
+										width: "100%",
 										percentageCompleted: scaleToVisualPasswordStrength(attrs.model.getPasswordStrength()),
 									}),
 								),
-								m(StatusField, { status: attrs.model.getNewPasswordStatus() }),
+								//m(StatusField, { status: attrs.model.getNewPasswordStatus() }),
 							]),
 							this.renderPasswordGeneratorHelp(attrs),
 						]),
@@ -312,6 +314,7 @@ export class PasswordForm implements Component<PasswordFormAttrs> {
 							helpLabel: () =>
 								m(StatusField, {
 									status: attrs.model.getRepeatedPasswordStatus(),
+									style: { "margin-left": "16px" },
 								}),
 							oninput: (input) => attrs.model.setRepeatedPassword(input),
 							fontSize: px(size.font_size_smaller),
