@@ -31,14 +31,25 @@ export class DesktopSqlCipher implements SqlCipherFacade {
 			nativeBinding: this.nativeBindingPath,
 			// verbose: (message, args) => console.log("DB", message, args),
 		})
-		this.initSqlcipher({ databaseKey: dbKey, enableMemorySecurity: true, integrityCheck: this.integrityCheck })
+		try {
+			this.initSqlcipher({ databaseKey: dbKey, enableMemorySecurity: true, integrityCheck: this.integrityCheck })
+		} catch (e) {
+			// If we can't initialize the database we don't want to be stuck in a state where we hold the file lock, we need to retry the whole process again
+			this.db.close()
+			this._db = null
+			throw e
+		}
 	}
 
 	async closeDb(): Promise<void> {
-		// We are performing defragmentation (incremental_vacuum) the database before closing
-		this.db.pragma("incremental_vacuum")
-		this.db.close()
-		this._db = null
+		try {
+			// We are performing defragmentation (incremental_vacuum) the database before closing.
+			// But if it fails for some reason we don't want ot get stuck with non-closed database that we cannot delete so we close it and rethrow.
+			this.db.pragma("incremental_vacuum")
+		} finally {
+			this.db.close()
+			this._db = null
+		}
 	}
 
 	/**
