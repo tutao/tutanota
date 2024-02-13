@@ -10,7 +10,7 @@ export default {
 		"other"
 	],
 	"created_at": "2019-01-02T11:09:03Z",
-	"updated_at": "2024-02-08T10:42:12Z",
+	"updated_at": "2024-02-08T17:48:26Z",
 	"source_locale": null,
 	"fallback_locale": null,
 	"keys": {
@@ -86,7 +86,7 @@ export default {
 		"ageConfirmation_msg": "本人年滿16歲。",
 		"agenda_label": "日程",
 		"allDay_label": "全日",
-		"allowContactReadWrite_msg": "我們需要讀取及寫入您的通訊錄的權限，才可以同步您的聯絡人。您可以隨時在系統設定中更改權限。",
+		"allowContactReadWrite_msg": "Tuta應用程式需要讀取及寫入您的地址簿的權限，才可以同步您的聯絡人。您可以隨時在系統設定中更改權限。",
 		"allowExternalContentSender_action": "每次都信任寄件人",
 		"allowOperation_msg": "您想允許此操作嗎？",
 		"allowPushNotification_msg": "如要可靠接收新電郵的推送通知，請同意停用針對Tuta的電池最佳化功能，並授予發布通知的權限。您可以稍後在系統設定中更改。",
@@ -1044,7 +1044,7 @@ export default {
 		"permanentAliasWarning_msg": "這是Tuta域名的電郵地址，它與自訂域名的電郵地址不同，只能停用而不能被刪除。它會永久計入您的電郵地址限額內。",
 		"permissions_label": "權限",
 		"phishingMessageBody_msg": "此電郵與其他被舉報為網絡釣魚的電郵相似。",
-		"phishingReport_msg": "此訊息的內容將以未加密形式傳送到伺服器，以便我們改善釣魚和垃圾郵件防護功能。您是否確定要舉報此訊息？",
+		"phishingReport_msg": "此訊息的內容將以未加密形式傳送到伺服器，以便我們改善網絡釣魚和垃圾郵件防護功能。您是否確定要舉報此訊息？",
 		"phone_label": "電話",
 		"photoLibraryUsageDescription_msg": "新增您的資料庫中的圖片為附件。",
 		"pinBiometrics1_msg": "Tuta注重保安和私隱。因此，這裡有個小小提醒，您可以使用個人識別號碼或者指紋或Face ID等生物認證資料以確保登入安全。只需將密碼儲存在應用程式中，然後在登入設定或下面的「{secureNowAction}」中設定您的解鎖方式即可。",

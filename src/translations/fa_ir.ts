@@ -11,7 +11,7 @@ export default {
 		"other"
 	],
 	"created_at": "2015-03-13T10:00:49Z",
-	"updated_at": "2024-02-07T15:05:17Z",
+	"updated_at": "2024-02-09T16:45:43Z",
 	"source_locale": null,
 	"fallback_locale": null,
 	"keys": {
@@ -41,6 +41,7 @@ export default {
 		"addAccount_action": "افزودن account",
 		"addAliasUserDisabled_msg": "به علت غیرفعال بودن کاربر، افزودن ایمیل مستعار به کاربر یا گروه ممکن نیست.",
 		"addCalendar_action": "تقویم اضافه کنید",
+		"addContactList_action": "افزودن لیست مخاطبین",
 		"addCustomDomainAddresses_title": "افزودن نشانی ایمیل به دامنه شخصی شما",
 		"addCustomDomain_action": "افزودن دامنه سفارشی",
 		"addDNSValue_label": "یک مقدار اضافه کنید",
@@ -170,6 +171,7 @@ export default {
 		"cancelSharedMailbox_label": "لغو صندوق‌پستی اشتراکی",
 		"cancelUserAccounts_label": "لغو {1} کاربر",
 		"cancel_action": "لغو",
+		"cannotEditFullEvent_msg": "شما تنها می‌توانید بخش‌هایی از این رویداد را تغییر دهید زیرا این رویداد روی تقویم شما به وجود نیامده است.",
 		"canNotOpenFileOnDevice_msg": "این فایل نمی تواند روی این دستگاه اجرا شود.",
 		"captchaDisplay_label": "کد امنیتی",
 		"captchaEnter_msg": "لطفاً زمان را به ساعت و دقیقه وارد کنید. ",
@@ -832,6 +834,7 @@ export default {
 		"newEvent_action": "رویداد جدید",
 		"newMails_msg": "ایمیل جدید در توتانوتا",
 		"newMail_action": "ایمیل جدید",
+		"newPaidPlanRequired_msg": "برای استفاده از این قابلیت، لطفا حسابتان را به یکی از انواع زیر تبدیل کنید.",
 		"newPassword_label": "تنظیم گذرواژه",
 		"newPlansNews_title": "آماده برای بیش از این؟",
 		"newPlansOfferEndingNews_title": "آخرین شانس! 🥳",
@@ -1004,6 +1007,7 @@ export default {
 		"price_label": "قیمت",
 		"pricing.2fa_label": "تایید دو مرحله‌ای",
 		"pricing.addUsers_label": "مدیریت و اضافه کردن کاربران",
+		"pricing.admin_label": "کنسول مدیریت",
 		"pricing.attachmentSize_label": "سایز فایل ضمیمه ۲۵ مگابایت",
 		"pricing.billing_label": "صورتحساب متمرکز",
 		"pricing.businessShareTemplates_msg": "به اشتراک گذاشتن قالب‌های email",
@@ -1344,6 +1348,7 @@ export default {
 		"terminationForm_title": "فرم فسخ",
 		"terminationInvalidDate_msg": "روز لغو اشتراک نباید امروز یا روزی در گذشته باشد.",
 		"terminationNoActiveSubscription_msg": "برای این account هیچ اشتراک فعالی وجود ندارد.",
+		"terminationSubject_msg": "بستن حساب شما",
 		"terminationUseAccountUntilTermination_msg": "می‌توانید از حساب تا زمان انقضا استفاده کنید.",
 		"termination_action": "کنسل کردن اشتراک",
 		"termsAcceptedNeutral_msg": "لطفا قوانین و مقررات را قبول کنید.",
@@ -1387,6 +1392,7 @@ export default {
 		"type_label": "تایپ",
 		"u2fSecurityKey_label": "کد امنیتی(U2F)",
 		"unavailable_label": "ناموجود",
+		"undecided_label": "بلاتکلیف",
 		"undoMailReport_msg": "گزارش این ایمیل(ها) به صورت رمزگذاری نشده انجام خواهد شد.",
 		"undo_action": "واگردانی",
 		"unencryptedTransmission_msg": "به منظور بهبود عملکرد دفاعی در برابر هرزنامه‌ها، ایمیل(های) فرستاده شده به پوشه هرزنامه به شکل رمزگذاری نشده به سرور منتقل خواهند شد.",
