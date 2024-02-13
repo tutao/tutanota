@@ -240,6 +240,7 @@ export class SearchViewModel {
 			this._searchResult = null
 
 			// If query is not set for some reason (e.g. switching search type), use the last query value
+			listModel.selectNone()
 			listModel.updateLoadingStatus(ListLoadingState.Loading)
 			this.search
 				.search(
@@ -586,14 +587,19 @@ export class SearchViewModel {
 			if (!newState.inMultiselect && newState.selectedItems.size === 1) {
 				const mail = this.getSelectedMails()[0]
 
-				if (!this.conversationViewModel) {
-					this.updateDisplayedConversation(mail)
-				} else if (this.conversationViewModel) {
-					const isSameElementId = isSameId(elementIdPart(this.conversationViewModel?.primaryMail._id), elementIdPart(mail._id))
-					const isSameListId = isSameId(listIdPart(this.conversationViewModel?.primaryMail._id), listIdPart(mail._id))
-					if (!isSameElementId || !isSameListId) {
+				// Sometimes a stale state is passed through, resulting in no mail
+				if (mail) {
+					if (!this.conversationViewModel) {
 						this.updateDisplayedConversation(mail)
+					} else if (this.conversationViewModel) {
+						const isSameElementId = isSameId(elementIdPart(this.conversationViewModel?.primaryMail._id), elementIdPart(mail._id))
+						const isSameListId = isSameId(listIdPart(this.conversationViewModel?.primaryMail._id), listIdPart(mail._id))
+						if (!isSameElementId || !isSameListId) {
+							this.updateDisplayedConversation(mail)
+						}
 					}
+				} else {
+					this.conversationViewModel = null
 				}
 			} else {
 				this.conversationViewModel = null
