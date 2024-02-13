@@ -61,6 +61,7 @@ export function show(mailAddress?: string | null, resetAction?: ResetAction): Di
 	editor.setHtmlMonospace(true)
 	editor.setMinHeight(80)
 	editor.showBorders()
+	editor.setBorderRadius(8)
 	const recoverDialog = Dialog.showActionDialog({
 		title: lang.get("recover_label"),
 		type: DialogType.EditSmall,
