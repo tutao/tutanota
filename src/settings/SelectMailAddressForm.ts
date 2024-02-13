@@ -103,6 +103,7 @@ export class SelectMailAddressForm implements Component<SelectMailAddressFormAtt
 									title: "domain_label",
 									icon: BootIcons.Expand,
 									size: ButtonSize.Compact,
+									iconStyle: { "margin-bottom": "4px" },
 								},
 								childAttrs: () => attrs.availableDomains.map((domain) => this.createDropdownItemAttrs(domain, attrs)),
 								showDropdown: () => true,

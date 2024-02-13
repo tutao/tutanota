@@ -167,7 +167,7 @@ export class BorderTextField implements ClassComponent<BorderTextFieldAttrs> {
 															// use minHeight to allow svgs to be rendered correctly
 															minHeight: "40px", //px(minInputHeight - 2),
 															lineHeight: "40px",
-															margin: "7.5px 16px",
+															margin: "8px 16px",
 														},
 													},
 													a.injectionsRight(),
