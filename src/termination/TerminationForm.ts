@@ -8,9 +8,10 @@ import { TerminationPeriodOptions } from "../api/common/TutanotaConstants.js"
 import { DatePicker } from "../calendar/gui/pickers/DatePicker.js"
 import { liveDataAttrs } from "../gui/AriaUtils.js"
 import { LoginButton } from "../gui/base/buttons/LoginButton.js"
+import { CancellationReasonInput } from "../subscription/CancellationReasonInput.js"
 
 export interface TerminationFormAttrs {
-	onSubmit: () => unknown
+	onSubmit: (reason: { text: string; reasonCategory: string | null }) => unknown
 	mailAddress: string
 	onMailAddressChanged: (mailAddress: string) => unknown
 	password: string
@@ -25,6 +26,8 @@ export interface TerminationFormAttrs {
 export class TerminationForm implements Component<TerminationFormAttrs> {
 	mailAddressTextField!: TextField
 	passwordTextField!: TextField
+	reasonCategory: string | null = null
+	reason: string = ""
 
 	onremove(vnode: Vnode<TerminationFormAttrs>) {
 		this.passwordTextField.domInput.value = ""
@@ -32,6 +35,7 @@ export class TerminationForm implements Component<TerminationFormAttrs> {
 
 	view(vnode: Vnode<TerminationFormAttrs>): Children {
 		const a = vnode.attrs
+
 		return m(
 			"form",
 			{
@@ -88,42 +92,50 @@ export class TerminationForm implements Component<TerminationFormAttrs> {
 						type: TextFieldType.Password,
 					}),
 				),
-				m(".h3.mt-l", lang.get("terminationDateRequest_title")),
-				m(".mt-s", lang.get("terminationDateRequest_msg")),
-				m(DropDownSelector, {
-					label: "emptyString_msg",
-					class: "", // by specifying an empty class attribute we remove the padding top for the DropDownSelector
-					items: [
-						{
-							name: lang.get("endOfCurrentSubscriptionPeriod"),
-							value: TerminationPeriodOptions.EndOfCurrentPeriod,
-						},
-						{
-							name: lang.get("futureDate"),
-							value: TerminationPeriodOptions.FutureDate,
-						},
-					],
-					selectedValue: a.terminationPeriodOption,
-					selectionChangedHandler: a.onTerminationPeriodOptionChanged,
-					dropdownWidth: 350,
-					helpLabel: () => this.renderTerminationDateInfo(a.terminationPeriodOption),
-				}),
+				m(".list-border-bottom.pb-l.mb-l", [
+					m(".h3.mt-l", lang.get("terminationDateRequest_title")),
+					m(".mt-s", lang.get("terminationDateRequest_msg")),
+					m(DropDownSelector, {
+						label: "emptyString_msg",
+						class: "", // by specifying an empty class attribute we remove the padding top for the DropDownSelector
+						items: [
+							{
+								name: lang.get("endOfCurrentSubscriptionPeriod"),
+								value: TerminationPeriodOptions.EndOfCurrentPeriod,
+							},
+							{
+								name: lang.get("futureDate"),
+								value: TerminationPeriodOptions.FutureDate,
+							},
+						],
+						selectedValue: a.terminationPeriodOption,
+						selectionChangedHandler: a.onTerminationPeriodOptionChanged,
+						dropdownWidth: 350,
+						helpLabel: () => this.renderTerminationDateInfo(a.terminationPeriodOption),
+					}),
+					a.terminationPeriodOption === TerminationPeriodOptions.FutureDate
+						? m(DatePicker, {
+								date: a.date,
+								onDateSelected: a.onDateChanged,
+								startOfTheWeekOffset: 0,
+								label: "date_label",
+								disabled: false,
+						  })
+						: null,
+				]),
 
-				a.terminationPeriodOption === TerminationPeriodOptions.FutureDate
-					? m(DatePicker, {
-							date: a.date,
-							onDateSelected: a.onDateChanged,
-							startOfTheWeekOffset: 0,
-							label: "date_label",
-							disabled: false,
-					  })
-					: null,
+				m(CancellationReasonInput, {
+					reason: this.reason,
+					reasonHandler: (enteredReason: string) => (this.reason = enteredReason),
+					category: this.reasonCategory,
+					categoryHandler: (category: NumberString) => (this.reasonCategory = category),
+				}),
 
 				m(
 					".mt-l",
 					m(LoginButton, {
 						label: "termination_action",
-						onclick: () => a.onSubmit(),
+						onclick: () => a.onSubmit({ text: this.reason, reasonCategory: this.reasonCategory }),
 					}),
 				),
 				m(".small.center.statusTextColor.mt", liveDataAttrs(), [a.helpText]),

@@ -33,6 +33,7 @@ import { showSwitchToBusinessInvoiceDataDialog } from "./SwitchToBusinessInvoice
 import { getByAbbreviation } from "../api/common/CountryList.js"
 import { formatNameAndAddress } from "../api/common/utils/CommonFormatter.js"
 import { LoginButtonAttrs } from "../gui/base/buttons/LoginButton.js"
+import { CancellationReasonInput } from "./CancellationReasonInput.js"
 
 /**
  * Only shown if the user is already a Premium user. Allows cancelling the subscription (only private use) and switching the subscription to a different paid subscription.
@@ -252,6 +253,34 @@ async function cancelSubscription(dialog: Dialog, currentPlanInfo: CurrentPlanIn
 	if (!(await Dialog.confirm("unsubscribeConfirm_msg"))) {
 		return
 	}
+
+	let reasonCategory: string | null = null
+	let reason = ""
+
+	let result = await new Promise((resolve) => {
+		let dialog = Dialog.showActionDialog({
+			title: lang.get("survey_label"),
+			child: {
+				view: () =>
+					m(CancellationReasonInput, {
+						reason: reason,
+						reasonHandler: (enteredReason: string) => (reason = enteredReason),
+						category: reasonCategory,
+						categoryHandler: (category: NumberString) => (reasonCategory = category),
+					}),
+			},
+			okAction: () => {
+				dialog.close()
+				resolve(true)
+			},
+			cancelAction: () => {
+				dialog.close()
+				resolve(false)
+			},
+			cancelActionTextId: "skip_action",
+		})
+	})
+
 	const switchAccountTypeData = createSwitchAccountTypePostIn({
 		accountType: AccountType.FREE,
 		date: Const.CURRENT_DATE,
@@ -259,6 +288,8 @@ async function cancelSubscription(dialog: Dialog, currentPlanInfo: CurrentPlanIn
 		specialPriceUserSingle: null,
 		referralCode: null,
 		plan: PlanType.Free,
+		reasonCategory: result ? reasonCategory : null,
+		reason: result ? reason : null,
 	})
 	try {
 		await showProgressDialog(
@@ -298,6 +329,8 @@ async function switchSubscription(targetSubscription: PlanType, dialog: Dialog, 
 			referralCode: null,
 			customer: customer._id,
 			specialPriceUserSingle: null,
+			reasonCategory: null,
+			reason: null,
 		})
 
 		try {

@@ -40,20 +40,22 @@ export class TerminationViewModel {
 		this.loginState = LoginState.NotAuthenticated
 	}
 
-	async createAccountTerminationRequest(): Promise<void> {
+	async createAccountTerminationRequest(reason: { text: string; reasonCategory: string | null }): Promise<void> {
 		await this.authenticate()
 		if (this.loginState == LoginState.LoggedIn) {
-			await this.createTerminationRequest()
+			await this.createTerminationRequest(reason)
 		}
 	}
 
 	/**
 	 * Creates the termination request based on the date option selected by the user and assument that the authentication was successfull.
 	 */
-	private async createTerminationRequest() {
+	private async createTerminationRequest(reason: { text: string; reasonCategory: string | null }) {
 		try {
 			const inputData = createCustomerAccountTerminationPostIn({
 				terminationDate: this.getTerminationDate(),
+				reason: reason.text,
+				reasonCategory: reason.reasonCategory,
 			})
 			let serviceResponse = await this.serviceExecutor.post(CustomerAccountTerminationService, inputData)
 			this.acceptedTerminationRequest = await this.entityClient.load(CustomerAccountTerminationRequestTypeRef, serviceResponse.terminationRequest)

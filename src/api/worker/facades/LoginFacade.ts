@@ -923,7 +923,7 @@ export class LoginFacade {
 		}
 	}
 
-	async deleteAccount(password: string, reason: string, takeover: string): Promise<void> {
+	async deleteAccount(password: string, reasonCategory: NumberString | null, reasonText: string, takeover: string): Promise<void> {
 		const userSalt = assertNotNull(this.userFacade.getLoggedInUser().salt)
 
 		const passphraseKeyData = {
@@ -934,7 +934,8 @@ export class LoginFacade {
 		const passwordKey = await this.deriveUserPassphraseKey(passphraseKeyData)
 		const deleteCustomerData = createDeleteCustomerData({
 			authVerifier: createAuthVerifier(passwordKey),
-			reason: reason,
+			reason: reasonText,
+			reasonCategory: reasonCategory,
 			takeoverMailAddress: null,
 			undelete: false,
 			customer: neverNull(neverNull(this.userFacade.getLoggedInUser()).customer),

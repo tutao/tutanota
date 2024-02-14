@@ -1627,6 +1627,22 @@ export default {
 		"yourCalendars_label": "Deine Kalender",
 		"yourFolders_action": "Ihre ORDNER",
 		"yourMessage_label": "Ihre Nachricht",
-		"you_label": "Sie"
+		"you_label": "Sie",
+		"cancellationReasonUsability_label": "Tuta ist zu schwer zu benutzen",
+		"cancellationReasonUI_label": "Ich mag das Aussehen nicht",
+		"cancellationReasonPrice_label": "Der Service ist zu teuer",
+		"cancellationReasonSearch_label": "Die E-Mail-Suche dauert zu lange",
+		"cancellationReasonSpam_label": "Ich bekomme zu viel Spam",
+		"cancellationReasonImap_label": "Keine anderen Mail-Clients möglich (IMAP)",
+		"cancellationReasonImport_label": "E-Mail-Import fehlt",
+		"cancellationReasonLabels_label": "Labels für E-Mails fehlen",
+		"cancellationReasonOtherFeature_label": "Mir fehlt ein anderes Feature",
+		"cancellationReasonNoNeed_label": "Ich brauche den Service nicht mehr",
+		"cancellationReasonOther_label": "Anderer Grund",
+		"enterDetails_msg": "Geben Sie weitere Details hier ein",
+		"cancellationConfirmation_msg": "Ihre Antwort wird anonymisiert mit dem Alter Ihres Accounts und Ihrem Abo gespeichert. Danke fürs Teilnehmen!",
+		"cancellationInfo_msg": "Wir bemühen uns immer unseren Service zu verbessern und würden uns freuen, wenn Sie uns sagen würden, wie wir ihn verbessern können!",
+		"whyLeave_msg": "Warum sind Sie unzufrieden mit Tuta?",
+		"survey_label": "Umfrage",
 	}
 }

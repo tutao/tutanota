@@ -3,28 +3,32 @@ import { Dialog } from "../gui/base/Dialog"
 import { lang } from "../misc/LanguageViewModel"
 import { InvalidDataError, LockedError, PreconditionFailedError } from "../api/common/error/RestError"
 import { Autocomplete, TextField, TextFieldType } from "../gui/base/TextField.js"
-import { neverNull, ofClass } from "@tutao/tutanota-utils"
+import { neverNull } from "@tutao/tutanota-utils"
 import { getCleanedMailAddress } from "../misc/parsing/MailAddressParser"
 import { locator } from "../api/main/MainLocator"
 import { getEtId } from "../api/common/utils/EntityUtils"
 import { CloseEventBusOption } from "../api/common/TutanotaConstants.js"
+import { CancellationReasonInput } from "./CancellationReasonInput.js"
 
 export function showDeleteAccountDialog() {
-	let why = ""
+	let reasonCategory: NumberString | null = null
+	let reason = ""
 	let takeover = ""
 	let password = ""
 	const userId = getEtId(locator.logins.getUserController().user)
+
 	Dialog.showActionDialog({
 		title: lang.get("adminDeleteAccount_action"),
 		child: {
 			view: () =>
 				m("#delete-account-dialog", [
-					m(TextField, {
-						label: "deleteAccountReason_label",
-						value: why,
-						oninput: (value) => (why = value),
-						helpLabel: () => lang.get("deleteAccountReasonInfo_msg"),
+					m(CancellationReasonInput, {
+						reason: reason,
+						reasonHandler: (enteredReason: string) => (reason = enteredReason),
+						category: reasonCategory,
+						categoryHandler: (category: NumberString) => (reasonCategory = category),
 					}),
+					m(".list-border-bottom.pb-l"),
 					m(TextField, {
 						label: "targetAddress_label",
 						value: takeover,
@@ -42,7 +46,7 @@ export function showDeleteAccountDialog() {
 				]),
 		},
 		okAction: async () => {
-			const isDeleted = await deleteAccount(why, takeover, password)
+			const isDeleted = await deleteAccount(reasonCategory, reason, takeover, password)
 			if (isDeleted) {
 				await locator.credentialsProvider.deleteByUserId(userId)
 				m.route.set("/login", { noAutoLogin: true })
@@ -53,7 +57,7 @@ export function showDeleteAccountDialog() {
 	})
 }
 
-async function deleteAccount(reason: string, takeover: string, password: string): Promise<boolean> {
+async function deleteAccount(reasonCategory: string | null, reasonText: string, takeover: string, password: string): Promise<boolean> {
 	const cleanedTakeover = takeover === "" ? "" : getCleanedMailAddress(takeover)
 
 	if (cleanedTakeover === null) {
@@ -73,7 +77,7 @@ async function deleteAccount(reason: string, takeover: string, password: string)
 		// which is an immediate crash on ios
 		await locator.connectivityModel.close(CloseEventBusOption.Terminate)
 		try {
-			await locator.loginFacade.deleteAccount(password, reason, neverNull(cleanedTakeover))
+			await locator.loginFacade.deleteAccount(password, reasonCategory, reasonText, neverNull(cleanedTakeover))
 			return true
 		} catch (e) {
 			if (e instanceof PreconditionFailedError) await Dialog.message("passwordWrongInvalid_msg")
