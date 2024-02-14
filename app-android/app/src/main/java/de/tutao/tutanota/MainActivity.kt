@@ -338,6 +338,7 @@ class MainActivity : FragmentActivity() {
 			"html" -> "text/html"
 			"ttf" -> "font/ttf"
 			"wasm" -> "application/wasm"
+		    "icc" -> "application/vnd.iccprofile"
 			else -> error("Unknown extension $ext for url $url")
 		}
 	}
