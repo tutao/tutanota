@@ -1,6 +1,6 @@
 // This is an automatically generated file, please do not edit by hand!
 
-// You should not use it directly, please use `resolveTypReference()` instead.
+// You should not use it directly, please use `resolveTypReference()` instead.	
 // We do not want tsc to spend time either checking or inferring type of these huge expressions. Even when it does try to infer them they are still wrong.
 // The actual type is an object with keys as entities names and values as TypeModel.
 
@@ -3103,7 +3103,7 @@ export const typeModels = {
             "reason": {
                 "final": true,
                 "name": "reason",
-                "id": 2213,
+                "id": 2221,
                 "since": 95,
                 "type": "String",
                 "cardinality": "ZeroOrOne",
@@ -3112,7 +3112,7 @@ export const typeModels = {
             "reasonCategory": {
                 "final": true,
                 "name": "reasonCategory",
-                "id": 2214,
+                "id": 2222,
                 "since": 95,
                 "type": "Number",
                 "cardinality": "ZeroOrOne",
@@ -4104,7 +4104,7 @@ export const typeModels = {
             "reasonCategory": {
                 "final": true,
                 "name": "reasonCategory",
-                "id": 2210,
+                "id": 2218,
                 "since": 95,
                 "type": "Number",
                 "cardinality": "ZeroOrOne",
@@ -11245,7 +11245,7 @@ export const typeModels = {
             "reason": {
                 "final": true,
                 "name": "reason",
-                "id": 2211,
+                "id": 2219,
                 "since": 95,
                 "type": "String",
                 "cardinality": "ZeroOrOne",
@@ -11254,7 +11254,7 @@ export const typeModels = {
             "reasonCategory": {
                 "final": true,
                 "name": "reasonCategory",
-                "id": 2212,
+                "id": 2220,
                 "since": 95,
                 "type": "Number",
                 "cardinality": "ZeroOrOne",
