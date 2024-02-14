@@ -296,7 +296,7 @@ export class PasswordForm implements Component<PasswordFormAttrs> {
 										percentageCompleted: scaleToVisualPasswordStrength(attrs.model.getPasswordStrength()),
 									}),
 								),
-								//m(StatusField, { status: attrs.model.getNewPasswordStatus() }),
+								m(StatusField, { status: attrs.model.getNewPasswordStatus(), style: { "min-width": "max-content" } }),
 							]),
 							this.renderPasswordGeneratorHelp(attrs),
 						]),
