@@ -1,15 +1,13 @@
 import o from "@tutao/otest"
 import { ContactFacade } from "../../../../../src/api/worker/facades/lazy/ContactFacade.js"
-import td, { object, verify } from "testdouble"
+import { object, verify } from "testdouble"
 import { EntityClient } from "../../../../../src/api/common/EntityClient.js"
-import { downcast } from "@tutao/tutanota-utils"
 import { createFilledContact } from "../../../contacts/VCardExporterTest.js"
 
 o.spec("ContactFacadeTest", function () {
-	const entityClient: EntityClient = object()
-
+	let entityClient: EntityClient
 	o.before(() => {
-		entityClient.setupMultipleEntities = downcast(td.function())
+		entityClient = object()
 	})
 
 	o("the facade can import a list of clients", async function () {

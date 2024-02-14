@@ -43,7 +43,7 @@ import { LockedError, NotAuthorizedError, NotFoundError } from "../../api/common
 import { getListId, haveSameId, isSameId } from "../../api/common/utils/EntityUtils"
 import { getReferencedAttachments, loadInlineImages, moveMails, revokeInlineImages } from "./MailGuiUtils"
 import { SanitizedFragment } from "../../misc/HtmlSanitizer"
-import { CALENDAR_MIME_TYPE, FileController, VCARD_MIME_TYPES } from "../../file/FileController"
+import { CALENDAR_MIME_TYPE, FileController } from "../../file/FileController"
 import { exportMails } from "../export/Exporter.js"
 import { IndexingNotSupportedError } from "../../api/common/error/IndexingNotSupportedError"
 import { FileOpenError } from "../../api/common/error/FileOpenError"
@@ -1046,12 +1046,13 @@ export class MailViewerViewModel {
 		const { vCardFileToVCards } = await import("../../contacts/VCardImporter.js")
 		file = (await this.cryptoFacade.enforceSessionKeyUpdateIfNeeded(this._mail, [file]))[0]
 		try {
-			const fileData = await this.fileController.getFileData(file, file.mimeType ?? VCARD_MIME_TYPES.X_VCARD)
+			const dataFile = await this.fileController.getAsDataFile(file)
 			const decoder = new TextDecoder("utf-8")
 
-			return vCardFileToVCards(decoder.decode(fileData))
+			return vCardFileToVCards(decoder.decode(dataFile.data))
 		} catch (e) {
-			await Dialog.message("errorDuringFileOpen_msg")
+			console.log(e)
+			throw new UserError("errorDuringFileOpen_msg")
 		}
 	}
 

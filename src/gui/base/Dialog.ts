@@ -29,7 +29,6 @@ import { assertMainOrNode } from "../../api/common/Env"
 import { Icon } from "./Icon"
 import { BootIcons } from "./icons/BootIcons"
 import { isOfflineError } from "../../api/common/utils/ErrorUtils.js"
-import { Contact } from "../../api/entities/tutanota/TypeRefs.js"
 
 assertMainOrNode()
 export const INPUT = "input, textarea, div[contenteditable='true']"
@@ -1005,30 +1004,6 @@ export class Dialog implements ModalComponent {
 			inputs[inputs.length - 1].focus()
 		})
 		return dialog
-	}
-
-	/**
-	 * Show a dialog with a preview of a given list of contacts
-	 * @param contacts The contact list to be previewed
-	 * @param okAction The action to be executed when the user press the import button
-	 */
-	static importVCardDialog(contacts: Contact[], okAction: (dialog: Dialog) => unknown): Dialog {
-		return Dialog.showActionDialog({
-			title: () => lang.get("importVCard_action"),
-			child: () =>
-				m(
-					".mt-s",
-					contacts.map((contact) => {
-						return m(".flex.col.mt-s", { class: "min-width-0" }, [
-							m("p.b.m-0.badge-line-height.text-ellipsis", `${contact.firstName} ${contact.lastName}`),
-							m(".smaller.text-ellipsis", contact.mailAddresses.at(0)?.address ?? contact.phoneNumbers.at(0)?.number ?? ""),
-						])
-					}),
-				),
-			okAction,
-			allowCancel: true,
-			okActionTextId: "import_action",
-		})
 	}
 
 	static _onKeyboardSizeChanged(newSize: number): void {

@@ -1643,6 +1643,7 @@ export default {
 		"yourCalendars_label": "Deine Kalender",
 		"yourFolders_action": "DEINE ORDNER",
 		"yourMessage_label": "Deine Nachricht",
-		"you_label": "Du"
+		"you_label": "Du",
+		"vcardInSharingFiles_msg": "Wir haben eine oder mehrere Kontaktdateien entdeckt. Möchtest Du diese importieren oder anhängen?"
 	}
 }

@@ -17,14 +17,21 @@ import { getFileBaseName, getFileExtension, isTutanotaFile } from "../api/common
 import { getSafeAreaInsetBottom } from "./HtmlUtils.js"
 import { hasError } from "../api/common/utils/ErrorUtils.js"
 import { BubbleButton, bubbleButtonHeight, bubbleButtonPadding } from "./base/buttons/BubbleButton.js"
+import { CALENDAR_MIME_TYPE, VCARD_MIME_TYPES } from "../file/FileController.js"
+
+export enum AttachmentType {
+	GENERIC,
+	CONTACT,
+	CALENDAR,
+}
 
 export type AttachmentBubbleAttrs = {
 	attachment: Attachment
 	download: Thunk | null
 	open: Thunk | null
 	remove: Thunk | null
-	file_import: Thunk | null
-	isVCard: boolean
+	fileImport: Thunk | null
+	type: AttachmentType
 }
 
 export class AttachmentBubble implements Component<AttachmentBubbleAttrs> {
@@ -47,7 +54,7 @@ export class AttachmentBubble implements Component<AttachmentBubbleAttrs> {
 				{
 					label: () => attachment.name,
 					text: () => rest,
-					icon: vnode.attrs.isVCard ? Icons.People : Icons.Attachment,
+					icon: getAttachmentIcon(vnode.attrs.type),
 					onclick: () => {
 						showAttachmentDetailsPopup(this.dom!, vnode.attrs).then(() => this.dom?.focus())
 					},
@@ -67,6 +74,25 @@ async function showAttachmentDetailsPopup(dom: HTMLElement, attrs: AttachmentBub
 	const panel = new AttachmentDetailsPopup(parentRect, parentRect.width, attrs)
 	panel.show()
 	return panel.deferAfterClose
+}
+
+function getAttachmentIcon(type: AttachmentType): Icons {
+	switch (type) {
+		case AttachmentType.CONTACT:
+			return Icons.People
+		default:
+			return Icons.Attachment
+	}
+}
+
+export function getAttachmentType(mimeType: string) {
+	if (Object.values<string>(VCARD_MIME_TYPES).includes(mimeType)) {
+		return AttachmentType.CONTACT
+	} else if (mimeType === CALENDAR_MIME_TYPE) {
+		return AttachmentType.CALENDAR
+	}
+
+	return AttachmentType.GENERIC
 }
 
 export class AttachmentDetailsPopup implements ModalComponent {
@@ -118,10 +144,10 @@ export class AttachmentDetailsPopup implements ModalComponent {
 				help: "remove_action",
 			})
 		}
-		if (attrs.file_import) {
+		if (attrs.fileImport) {
 			this._shortcuts.push({
 				key: Keys.I,
-				exec: () => this.thenClose(attrs.file_import),
+				exec: () => this.thenClose(attrs.fileImport),
 				help: "import_action",
 			})
 		}
@@ -153,7 +179,7 @@ export class AttachmentDetailsPopup implements ModalComponent {
 	private renderContent(): Children {
 		// We are trying to make some contents look like the attachment button to make the transition look smooth.
 		// It is somewhat harder as it looks different with mobile layout.
-		const { remove, open, download, attachment, file_import, isVCard } = this.attrs
+		const { remove, open, download, attachment, fileImport, type } = this.attrs
 		return m(
 			".flex.mb-s.pr",
 			{
@@ -161,7 +187,7 @@ export class AttachmentDetailsPopup implements ModalComponent {
 			},
 			[
 				m(Icon, {
-					icon: isVCard ? Icons.People : Icons.Attachment,
+					icon: getAttachmentIcon(type),
 					class: "pr-s flex items-center",
 					style: {
 						fill: theme.button_bubble_fg,
@@ -185,11 +211,11 @@ export class AttachmentDetailsPopup implements ModalComponent {
 						m("span.smaller", `${formatStorageSize(Number(attachment.size))}`),
 						m(".flex.no-wrap", [
 							remove ? m(Button, { type: ButtonType.Secondary, label: "remove_action", click: () => this.thenClose(remove) }) : null,
-							file_import
+							fileImport
 								? m(Button, {
 										type: ButtonType.Secondary,
 										label: "import_action",
-										click: () => this.thenClose(file_import),
+										click: () => this.thenClose(fileImport),
 								  })
 								: null,
 							open ? m(Button, { type: ButtonType.Secondary, label: "open_action", click: () => this.thenClose(open) }) : null,

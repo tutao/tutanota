@@ -1639,6 +1639,7 @@ export default {
 		"yourCalendars_label": "Your calendars",
 		"yourFolders_action": "YOUR FOLDERS",
 		"yourMessage_label": "Your message",
-		"you_label": "You"
+		"you_label": "You",
+		"vcardInSharingFiles_msg": "We detected one or more contact files, do you want to import or attach them?"
 	}
 }
