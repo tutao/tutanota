@@ -66,7 +66,6 @@ export const enum Autocomplete {
 export const inputLineHeight: number = size.font_size_base + 8
 
 // this is not always correct because font size can be biggger/smaller and we ideally should take that into account
-const baseLabelPosition = 56
 // it should fit
 // compact button + 1 px border + 1 px padding to keep things centered = 32
 // 24px line-height + 12px label + some space between them = 36 + ?
@@ -164,7 +163,7 @@ export class BorderTextField implements ClassComponent<BorderTextFieldAttrs> {
 													{
 														style: {
 															// use minHeight to allow svgs to be rendered correctly
-															minHeight: px(size.md_default_line_height), //px(minInputHeight - 2),
+															minHeight: px(size.md_default_line_height),
 															lineHeight: px(size.md_default_line_height),
 															// 13px because 56 (md field height) - 30 (svg size) = 26 -> 26/2 = 13
 															margin: `13px ${size.md_default_margin}px`,
@@ -357,6 +356,7 @@ export class BorderTextField implements ClassComponent<BorderTextFieldAttrs> {
 				style: {
 					margin: px(size.md_default_margin),
 					lineHeight: px(size.md_default_line_height),
+					minHeight: px(size.md_default_line_height * 2),
 					minWidth: px(20), // fix for edge browser. buttons are cut off in small windows otherwise
 					fontSize: a.fontSize,
 					"white-space": "normal",
