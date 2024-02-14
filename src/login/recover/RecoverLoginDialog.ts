@@ -29,6 +29,7 @@ export function show(mailAddress?: string | null, resetAction?: ResetAction): Di
 	const passwordModel = new PasswordModel(locator.usageTestController, locator.logins, { checkOldPassword: false, enforceStrength: true })
 	const passwordValueStream = stream("")
 	const emailAddressStream = stream(mailAddress || "")
+	const recoveryCodeStream = stream("")
 	const resetPasswordAction: DropdownButtonAttrs = {
 		label: "recoverSetNewPassword_action",
 		click: () => selectedAction("password"),
@@ -56,12 +57,6 @@ export function show(mailAddress?: string | null, resetAction?: ResetAction): Di
 			return lang.get("choose_label")
 		}
 	})
-	const editor = new HtmlEditor("recoveryCode_label")
-	editor.setMode(HtmlEditorMode.HTML)
-	editor.setHtmlMonospace(true)
-	editor.setMinHeight(80)
-	editor.showBorders()
-	editor.setBorderRadius(8)
 	const recoverDialog = Dialog.showActionDialog({
 		title: lang.get("recover_label"),
 		type: DialogType.EditSmall,
@@ -74,7 +69,12 @@ export function show(mailAddress?: string | null, resetAction?: ResetAction): Di
 						autocompleteAs: Autocomplete.email,
 						oninput: emailAddressStream,
 					}),
-					m(editor),
+					m(BorderTextField, {
+						label: "recoveryCode_label",
+						value: recoveryCodeStream(),
+						oninput: recoveryCodeStream,
+						type: BorderTextFieldType.Area,
+					}),
 					m(BorderTextField, {
 						label: "action_label",
 						value: selectedValueLabelStream(),
@@ -98,7 +98,7 @@ export function show(mailAddress?: string | null, resetAction?: ResetAction): Di
 		},
 		okAction: async () => {
 			const cleanMailAddress = emailAddressStream().trim().toLowerCase()
-			const cleanRecoverCodeValue = editor.getValue().replace(/\s/g, "").toLowerCase()
+			const cleanRecoverCodeValue = recoveryCodeStream().trim().replace(/\s/g, "").toLowerCase()
 
 			if (!isMailAddress(cleanMailAddress, true)) {
 				Dialog.message("mailAddressInvalid_msg")
