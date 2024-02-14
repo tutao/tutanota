@@ -13,7 +13,7 @@ export default {
 		"other"
 	],
 	"created_at": "2015-04-24T12:42:36Z",
-	"updated_at": "2024-02-08T10:42:12Z",
+	"updated_at": "2024-02-14T07:30:41Z",
 	"source_locale": null,
 	"fallback_locale": null,
 	"keys": {
@@ -89,7 +89,7 @@ export default {
 		"ageConfirmation_msg": "Je mi alespoň 16 let.",
 		"agenda_label": "Agenda",
 		"allDay_label": "Celý den",
-		"allowContactReadWrite_msg": "Abychom mohli synchronizovat vaše kontakty, potřebuje povolit zápis a čtení vašeho adresáře v telefonu. Změnit to můžete kdykoliv v systémovém nastavení.",
+		"allowContactReadWrite_msg": "Abychom mohli synchronizovat vaše kontakty, Tuta potřebuje povolit zápis a čtení vašeho adresáře v telefonu. Změnit to můžete kdykoliv v systémovém nastavení.",
 		"allowExternalContentSender_action": "Vždy důvěřovat odesílateli",
 		"allowOperation_msg": "Chcete to povolit?",
 		"allowPushNotification_msg": "Pro spolehlivé zasílání oznámení o nových e-mailech zrušte prosím optimalizaci baterie pro aplikaci Tuta a povolte zasílání oznámení. Můžete to později změnit v nastavení systému.",

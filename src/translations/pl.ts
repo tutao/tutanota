@@ -13,7 +13,7 @@ export default {
 		"other"
 	],
 	"created_at": "2015-01-27T13:13:41Z",
-	"updated_at": "2024-02-08T10:42:12Z",
+	"updated_at": "2024-02-13T21:15:50Z",
 	"source_locale": {
 		"id": "fcd7471b347c8e517663e194dcddf237",
 		"name": "en",
@@ -93,7 +93,7 @@ export default {
 		"ageConfirmation_msg": "Mam co najmniej 16 lat.",
 		"agenda_label": "Agenda",
 		"allDay_label": "Cały dzień",
-		"allowContactReadWrite_msg": "Aby zsynchronizować kontakty, potrzebujemy uprawnień do odczytu \ni zapisu kontaktów w urządzeniu. Można to zmienić w dowolnym momencie w \nustawieniach systemu.",
+		"allowContactReadWrite_msg": "Aby zsynchronizować kontakty, aplikacja Tuta potrzebuje uprawnień do odczytu i zapisu Kontaktów. Można to zmienić w dowolnym momencie w ustawieniach systemu.",
 		"allowExternalContentSender_action": "Zawsze ufaj nadawcy",
 		"allowOperation_msg": "Czy chcesz na to pozwolić?",
 		"allowPushNotification_msg": "Aby na pewno otrzymywać powiadomienia push dla nowych wiadomości e-mail, wyłącz optymalizację baterii dla Tuta oraz udziel zgody na otrzymywanie powiadomień. Możesz to później zmienić w ustawieniach systemu.",
