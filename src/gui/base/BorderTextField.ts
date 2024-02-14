@@ -64,7 +64,6 @@ export const enum Autocomplete {
 }
 
 export const inputLineHeight: number = size.font_size_base + 8
-const inputMarginTop = size.font_size_small + size.hpad_small + 3
 
 // this is not always correct because font size can be biggger/smaller and we ideally should take that into account
 const baseLabelPosition = 56
@@ -119,9 +118,9 @@ export class BorderTextField implements ClassComponent<BorderTextFieldAttrs> {
 							fontSize: `${size.font_size_base}px`,
 							transform: `translateY(-${this.active || vnode.attrs.value ? 30 : 0}px)`,
 							transition: `transform ${labelTransitionSpeed}ms`,
-							lineHeight: px(size.font_size_base + 8),
-							margin: "17px 6px 0px 10px",
-							padding: "0px 10px 0px 6px",
+							margin: "11px 10px",
+							padding: "6px",
+							lineHeight: px(size.md_default_line_height),
 							"font-style": "normal",
 							background: vnode.attrs.labelBgColorOverwrite || getElevatedBackground(),
 						},
@@ -165,9 +164,10 @@ export class BorderTextField implements ClassComponent<BorderTextFieldAttrs> {
 													{
 														style: {
 															// use minHeight to allow svgs to be rendered correctly
-															minHeight: "40px", //px(minInputHeight - 2),
-															lineHeight: "40px",
-															margin: "8px 16px",
+															minHeight: px(size.md_default_line_height), //px(minInputHeight - 2),
+															lineHeight: px(size.md_default_line_height),
+															// 13px because 56 (md field height) - 30 (svg size) = 26 -> 26/2 = 13
+															margin: `13px ${size.md_default_margin}px`,
 														},
 													},
 													a.injectionsRight(),
@@ -200,10 +200,8 @@ export class BorderTextField implements ClassComponent<BorderTextFieldAttrs> {
 				".text-break.selectable",
 				{
 					style: {
-						padding: "8px 16px",
-						lineHeight: px(56 - 16),
-						//marginTop: px(inputMarginTop),
-						//lineHeight: px(inputLineHeight),
+						padding: px(size.md_default_margin),
+						lineHeight: px(size.md_default_line_height),
 					},
 				},
 				a.value,
@@ -299,11 +297,12 @@ export class BorderTextField implements ClassComponent<BorderTextFieldAttrs> {
 							if (this.domInput) this.domInput.value = ""
 						},
 						style: {
-							padding: "8px 16px",
+							// needs to be padding instead of margin to stay within parent element
+							padding: px(size.md_default_margin),
 							maxWidth: a.maxWidth,
 							minWidth: px(20),
 							// fix for edge browser. buttons are cut off in small windows otherwise
-							lineHeight: px(56 - 16),
+							lineHeight: px(size.md_default_line_height),
 							fontSize: a.fontSize,
 						},
 					}),
@@ -318,10 +317,8 @@ export class BorderTextField implements ClassComponent<BorderTextFieldAttrs> {
 				".text-prewrap.text-break.selectable",
 				{
 					style: {
-						padding: "8px 16px",
-						lineHeight: px(56 - 16),
-						//marginTop: px(inputMarginTop),
-						//lineHeight: px(inputLineHeight),
+						margin: px(size.md_default_margin),
+						lineHeight: px(size.md_default_line_height),
 					},
 				},
 				a.value,
@@ -358,10 +355,11 @@ export class BorderTextField implements ClassComponent<BorderTextFieldAttrs> {
 					}
 				},
 				style: {
-					marginTop: px(inputMarginTop),
-					lineHeight: px(inputLineHeight),
+					margin: px(size.md_default_margin),
+					lineHeight: px(size.md_default_line_height),
 					minWidth: px(20), // fix for edge browser. buttons are cut off in small windows otherwise
 					fontSize: a.fontSize,
+					"white-space": "normal",
 				},
 			})
 		}
