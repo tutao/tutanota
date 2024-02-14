@@ -34,7 +34,6 @@ import { EntropyFacade } from "../../../../../src/api/worker/facades/EntropyFaca
 import { DatabaseKeyFactory } from "../../../../../src/misc/credentials/DatabaseKeyFactory.js"
 import { Argon2idFacade } from "../../../../../src/api/worker/facades/Argon2idFacade.js"
 import { createTestEntity } from "../../../TestUtils.js"
-import { DefaultEntityRestCache } from "../../../../../src/api/worker/rest/DefaultEntityRestCache.js"
 
 const { anything, argThat } = matchers
 
@@ -574,7 +573,8 @@ o.spec("LoginFacadeTest", function () {
 			let user: User
 
 			o.beforeEach(async function () {
-				const userPassphraseKey = await facade.deriveUserPassphraseKey(KdfType.Bcrypt, passphrase, SALT)
+				const passphraseKeyData = { kdfType: KdfType.Bcrypt, passphrase, salt: SALT }
+				const userPassphraseKey = await facade.deriveUserPassphraseKey(passphraseKeyData)
 				user = await makeUser(userId, KdfType.Bcrypt, userPassphraseKey)
 				user.salt = SALT
 				usingOfflineStorage = true
@@ -724,7 +724,8 @@ o.spec("LoginFacadeTest", function () {
 					type: "internal",
 				} as Credentials
 
-				const userPassphraseKey = await facade.deriveUserPassphraseKey(KdfType.Bcrypt, passphrase, SALT)
+				const passphraseKeyData = { kdfType: KdfType.Bcrypt, passphrase, salt: SALT }
+				const userPassphraseKey = await facade.deriveUserPassphraseKey(passphraseKeyData)
 				user = await makeUser(userId, KdfType.Bcrypt, userPassphraseKey)
 				user.externalAuthInfo = createTestEntity(UserExternalAuthInfoTypeRef, {
 					latestSaltHash: sha256Hash(SALT),
