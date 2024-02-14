@@ -8,9 +8,10 @@ import { Keys } from "../../api/common/TutanotaConstants.js"
 export interface ContactViewToolbarAttrs {
 	contacts: Contact[]
 	onEdit: (contact: Contact) => unknown
-	onDelete: (contacts: Contact[]) => unknown
+	onDelete: (contacts: Contact[], onConfirm: () => void) => unknown
 	onMerge: (left: Contact, right: Contact) => unknown
 	onExport: (contacts: Contact[]) => unknown
+	selectNone: () => unknown
 }
 
 /**
@@ -54,7 +55,7 @@ export class ContactViewerActions implements Component<ContactViewToolbarAttrs> 
 			actionButtons.push(
 				m(IconButton, {
 					title: "delete_action",
-					click: () => onDelete(contacts),
+					click: () => onDelete(contacts, attrs.selectNone),
 					icon: Icons.Trash,
 				}),
 			)
