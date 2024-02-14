@@ -182,14 +182,8 @@ export class SignupForm implements Component<SignupFormAttrs> {
 					  })
 					: [
 							m(SelectMailAddressForm, mailAddressFormAttrs), // Leave as is
-							//a.isPaidSubscription()
-							//	? m(".small.mt-s", lang.get("configureCustomDomainAfterSignup_msg"), [
-							//			m("a", { href: faqCustomDomainLink, target: "_blank" }, faqCustomDomainLink),
-							//	  ])
-							//	: null,
 							m(PasswordForm, {
 								model: this.passwordModel,
-								//passwordInfoKey: "passwordImportance_msg",
 							}),
 							getWhitelabelRegistrationDomains().length > 0
 								? m(BorderTextField, {
