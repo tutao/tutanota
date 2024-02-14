@@ -1623,6 +1623,22 @@ export default {
 		"yourCalendars_label": "Your calendars",
 		"yourFolders_action": "YOUR FOLDERS",
 		"yourMessage_label": "Your message",
-		"you_label": "You"
+		"you_label": "You",
+		"cancellationReasonUsability_label": "Tuta is too hard to use",
+		"cancellationReasonUI_label": "I don't like how it looks",
+		"cancellationReasonPrice_label": "The service is too expensive",
+		"cancellationReasonSearch_label": "The email search takes too long",
+		"cancellationReasonSpam_label": "I receive too many spam emails",
+		"cancellationReasonImap_label": "I can't use other mail clients (IMAP)",
+		"cancellationReasonImport_label": "Email import is missing",
+		"cancellationReasonLabels_label": "Email labels are missing",
+		"cancellationReasonOtherFeature_label": "Other missing feature",
+		"cancellationReasonNoNeed_label": "I do not need this service",
+		"cancellationReasonOther_label": "Other reason",
+		"enterDetails_msg": "Enter details here if you like",
+		"cancellationConfirmation_msg": "Your answer is stored anonymized together with your Tuta account age and your plan. Thanks for participating!",
+		"cancellationInfo_msg": "We always strive to improve our service and we would greatly appreciate if you can let us know what we can improve on!",
+		"whyLeave_msg": "Why are you unhappy with Tuta?",
+		"survey_label": "Survey",
 	}
 }

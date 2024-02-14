@@ -1,6 +1,6 @@
 // This is an automatically generated file, please do not edit by hand!
 
-// You should not use it directly, please use `resolveTypReference()` instead.	
+// You should not use it directly, please use `resolveTypReference()` instead.
 // We do not want tsc to spend time either checking or inferring type of these huge expressions. Even when it does try to infer them they are still wrong.
 // The actual type is an object with keys as entities names and values as TypeModel.
 
@@ -3100,6 +3100,24 @@ export const typeModels = {
                 "cardinality": "One",
                 "encrypted": false
             },
+            "reason": {
+                "final": true,
+                "name": "reason",
+                "id": 2213,
+                "since": 95,
+                "type": "String",
+                "cardinality": "ZeroOrOne",
+                "encrypted": false
+            },
+            "reasonCategory": {
+                "final": true,
+                "name": "reasonCategory",
+                "id": 2214,
+                "since": 95,
+                "type": "Number",
+                "cardinality": "ZeroOrOne",
+                "encrypted": false
+            },
             "terminationDate": {
                 "final": true,
                 "name": "terminationDate",
@@ -4081,6 +4099,15 @@ export const typeModels = {
                 "since": 5,
                 "type": "String",
                 "cardinality": "One",
+                "encrypted": false
+            },
+            "reasonCategory": {
+                "final": true,
+                "name": "reasonCategory",
+                "id": 2210,
+                "since": 95,
+                "type": "Number",
+                "cardinality": "ZeroOrOne",
                 "encrypted": false
             },
             "takeoverMailAddress": {
@@ -11213,6 +11240,24 @@ export const typeModels = {
                 "since": 30,
                 "type": "Number",
                 "cardinality": "One",
+                "encrypted": false
+            },
+            "reason": {
+                "final": true,
+                "name": "reason",
+                "id": 2211,
+                "since": 95,
+                "type": "String",
+                "cardinality": "ZeroOrOne",
+                "encrypted": false
+            },
+            "reasonCategory": {
+                "final": true,
+                "name": "reasonCategory",
+                "id": 2212,
+                "since": 95,
+                "type": "Number",
+                "cardinality": "ZeroOrOne",
                 "encrypted": false
             },
             "specialPriceUserSingle": {
