@@ -1,6 +1,6 @@
 {
 	"name": "@tutao/tutanota-error",
-	"version": "3.122.5",
+	"version": "218.240214.0",
 	"license": "GPL-3.0",
 	"main": "./dist/index.js",
 	"types": "./dist/index.d.ts",
