@@ -15,7 +15,7 @@ import { FileReference, isDataFile, isFileReference, isTutanotaFile } from "../.
 import { DataFile } from "../../api/common/DataFile"
 import { showFileChooser } from "../../file/FileController.js"
 import { ProgrammingError } from "../../api/common/error/ProgrammingError.js"
-import { AttachmentBubbleAttrs } from "../../gui/AttachmentBubble.js"
+import { AttachmentBubbleAttrs, AttachmentType } from "../../gui/AttachmentBubble.js"
 
 export async function chooseAndAttachFile(
 	model: SendMailModel,
@@ -94,8 +94,8 @@ export function createAttachmentBubbleAttrs(model: SendMailModel, inlineImageEle
 
 			m.redraw()
 		},
-		file_import: null,
-		isVCard: false,
+		fileImport: null,
+		type: AttachmentType.GENERIC,
 	}))
 }
 

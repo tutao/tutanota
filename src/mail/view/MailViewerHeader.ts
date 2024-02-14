@@ -25,7 +25,7 @@ import { BootIcons } from "../../gui/base/icons/BootIcons.js"
 import { editDraft, mailViewerMoreActions } from "./MailViewerUtils.js"
 import { liveDataAttrs } from "../../gui/AriaUtils.js"
 import { isKeyPressed } from "../../misc/KeyManager.js"
-import { AttachmentBubble } from "../../gui/AttachmentBubble.js"
+import { AttachmentBubble, AttachmentType, getAttachmentType } from "../../gui/AttachmentBubble.js"
 import { responsiveCardHMargin, responsiveCardHPadding } from "../../gui/cards.js"
 import { companyTeamLabel } from "../../misc/ClientConstants.js"
 import { isTutanotaTeamMail, MailAddressAndName } from "../../api/common/mail/CommonMailUtils.js"
@@ -537,9 +537,8 @@ export class MailViewerHeader implements Component<MailViewerHeaderAttrs> {
 	}
 
 	private renderAttachmentContainer(viewModel: MailViewerViewModel, attachments: TutanotaFile[], importFile: (file: TutanotaFile) => void): Children {
-		const mimeTypesToList = Object.values<string>(VCARD_MIME_TYPES)
 		return attachments.map((attachment) => {
-			const isVCard = mimeTypesToList.includes(attachment.mimeType ?? "")
+			const attachmentType = getAttachmentType(attachment.mimeType ?? "")
 			return m(AttachmentBubble, {
 				attachment,
 				remove: null,
@@ -548,8 +547,8 @@ export class MailViewerHeader implements Component<MailViewerHeaderAttrs> {
 						? () => viewModel.downloadAndOpenAttachment(attachment, false)
 						: () => viewModel.downloadAndOpenAttachment(attachment, true),
 				open: isAndroidApp() || isDesktop() ? () => viewModel.downloadAndOpenAttachment(attachment, true) : null,
-				file_import: isVCard ? () => importFile(attachment) : null,
-				isVCard,
+				fileImport: attachmentType === AttachmentType.CONTACT ? () => importFile(attachment) : null,
+				type: attachmentType,
 			})
 		})
 	}

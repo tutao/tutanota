@@ -8,9 +8,7 @@ import { themeController } from "../../gui/theme.js"
 import m from "mithril"
 import { Dialog } from "../../gui/base/Dialog.js"
 import { FileReference } from "../../api/common/utils/FileUtils.js"
-import { VCARD_MIME_TYPES } from "../../file/FileController.js"
-import { Contact } from "../../api/entities/tutanota/TypeRefs.js"
-import { GroupType } from "../../api/common/TutanotaConstants.js"
+import { AttachmentType, getAttachmentType } from "../../gui/AttachmentBubble.js"
 
 export class WebCommonNativeFacade implements CommonNativeFacade {
 	/**
@@ -45,20 +43,17 @@ export class WebCommonNativeFacade implements CommonNativeFacade {
 				editor.show()
 			} else {
 				const files = await fileApp.getFilesMetaData(filesUris)
-				const allFilesAreVCards = files.filter((file) => Object.values<string>(VCARD_MIME_TYPES).includes(file.mimeType)).length === files.length
+				const allFilesAreVCards = files.filter((file) => getAttachmentType(file.mimeType) === AttachmentType.CONTACT).length === files.length
 
 				let willImport = false
 				if (allFilesAreVCards) {
-					willImport = await Dialog.choice(
-						() => "We detected some contact files, do you want to import or attach them?",
-						[
-							{
-								text: "import_action",
-								value: true,
-							},
-							{ text: "attachFiles_action", value: false },
-						],
-					)
+					willImport = await Dialog.choice("vcardInSharingFiles_msg", [
+						{
+							text: "import_action",
+							value: true,
+						},
+						{ text: "attachFiles_action", value: false },
+					])
 				}
 
 				if (willImport) {
@@ -185,26 +180,21 @@ export class WebCommonNativeFacade implements CommonNativeFacade {
 
 		await logins.waitForPartialLogin()
 
-		const parsedContacts: Contact[] = []
+		const rawContacts: string[] = []
 		for (const file of fileList) {
-			if (Object.values<string>(VCARD_MIME_TYPES).includes(file.mimeType)) {
+			if (getAttachmentType(file.mimeType) === AttachmentType.CONTACT) {
 				const dataFile = await fileApp.readDataFile(file.location)
 				if (dataFile == null) continue
 
-				const blob = new Blob([dataFile.data], { type: file.mimeType })
-				const buffer = await blob.arrayBuffer()
 				const decoder = new TextDecoder("utf-8")
-				const parsedVCards = vCardFileToVCards(decoder.decode(buffer))
+				const parsedVCards = vCardFileToVCards(decoder.decode(dataFile.data))
 				if (parsedVCards == null) continue
 
-				const contactMembership = assertNotNull(logins.getUserController().user.memberships.find((m) => m.groupType === GroupType.Contact))
-				const contacts = vCardListToContacts(parsedVCards, contactMembership.group)
-
-				parsedContacts.push(...contacts)
+				rawContacts.push(...parsedVCards)
 			}
 		}
 
-		return parsedContacts
+		return rawContacts
 	}
 
 	/**
@@ -213,16 +203,13 @@ export class WebCommonNativeFacade implements CommonNativeFacade {
 	 */
 	async handleFileImport(filesUris: ReadonlyArray<string>): Promise<void> {
 		const { fileApp, contactModel, contactFacade } = await WebCommonNativeFacade.getInitializedLocator()
-		const { importContactList } = await import("../../contacts/VCardImporter.js")
+		const { importContactsFromFile } = await import("../../contacts/ContactImporter.js")
 
 		// For now, we just handle .vcf files, so we don't need to care about the file type
 		const files = await fileApp.getFilesMetaData(filesUris)
 		const contacts = await this.parseContacts(files)
 		const contactListId = assertNotNull(await contactModel.getContactListId())
 
-		Dialog.importVCardDialog(contacts, async (dialog) => {
-			dialog.close()
-			importContactList(contacts, contactListId, contactFacade)
-		}).show()
+		await importContactsFromFile(contacts, contactListId)
 	}
 }

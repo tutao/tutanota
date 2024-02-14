@@ -183,6 +183,10 @@ export class UserController {
 		return this.user.memberships.filter((membership) => membership.groupType === GroupType.Mail)
 	}
 
+	getContactGroupMemberships(): GroupMembership[] {
+		return this.user.memberships.filter((membership) => membership.groupType === GroupType.Contact)
+	}
+
 	getCalendarMemberships(): GroupMembership[] {
 		return this.user.memberships.filter((membership) => membership.groupType === GroupType.Calendar)
 	}
