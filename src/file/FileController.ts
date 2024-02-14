@@ -119,13 +119,6 @@ export abstract class FileController {
 		await this.observeProgress(this.doDownload([file], DownloadPostProcessing.Open))
 	}
 
-	async getFileData(file: TutanotaFile, mime: string): Promise<ArrayBuffer> {
-		const dataFile = await this.getAsDataFile(file)
-		const blob = new Blob([dataFile.data], { type: mime })
-
-		return await blob.arrayBuffer()
-	}
-
 	protected abstract writeDownloadedFiles(downloadedFiles: Array<FileReference | DataFile>): Promise<void>
 
 	protected abstract openDownloadedFiles(downloadedFiles: Array<FileReference | DataFile>): Promise<void>
