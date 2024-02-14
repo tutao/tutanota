@@ -162,15 +162,12 @@ export class EditOutOfOfficeNotificationDialogModel {
 	}
 
 	isOrganizationMessageEnabled(): boolean {
-		return (
-			this.recipientMessageTypes() === RecipientMessageType.INTERNAL_ONLY || this.recipientMessageTypes() === RecipientMessageType.INTERNAL_AND_EXTERNAL
-		)
+		return this.recipientMessageTypes() === RecipientMessageType.INTERNAL_ONLY || this.recipientMessageTypes() === RecipientMessageType.INTERNAL_AND_EXTERNAL
 	}
 
 	isDefaultMessageEnabled(): boolean {
 		return (
-			this.recipientMessageTypes() === RecipientMessageType.EXTERNAL_TO_EVERYONE ||
-			this.recipientMessageTypes() === RecipientMessageType.INTERNAL_AND_EXTERNAL
+			this.recipientMessageTypes() === RecipientMessageType.EXTERNAL_TO_EVERYONE || this.recipientMessageTypes() === RecipientMessageType.INTERNAL_AND_EXTERNAL
 		)
 	}
 

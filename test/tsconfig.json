@@ -1,5 +1,5 @@
 {
-	"extends": "../tsconfig_common.json",
+	"extends": "../tsconfig_common.json5",
 	"compilerOptions": {
 		"declaration": false,
 		"noEmit": true,

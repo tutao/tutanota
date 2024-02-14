@@ -149,21 +149,19 @@ export class LoginForm implements Component<LoginFormAttrs> {
 									lang.get("recoverAccountAccess_action"),
 							  )
 							: a.accessExpired && a.accessExpired
-							? m(
-									"a",
-									{
-										// We import the dialog directly rather than redirecting to /recover here in order to not pass the password in plaintext via the URL
-										href: "#",
-										onclick: (e: MouseEvent) => {
-											import("./recover/TakeOverDeletedAddressDialog").then(({ showTakeOverDialog }) =>
-												showTakeOverDialog(a.mailAddress(), a.password()),
-											)
-											e.preventDefault()
+							  ? m(
+										"a",
+										{
+											// We import the dialog directly rather than redirecting to /recover here in order to not pass the password in plaintext via the URL
+											href: "#",
+											onclick: (e: MouseEvent) => {
+												import("./recover/TakeOverDeletedAddressDialog").then(({ showTakeOverDialog }) => showTakeOverDialog(a.mailAddress(), a.password()))
+												e.preventDefault()
+											},
 										},
-									},
-									lang.get("help_label"),
-							  )
-							: null,
+										lang.get("help_label"),
+								  )
+							  : null,
 					]),
 				),
 			],

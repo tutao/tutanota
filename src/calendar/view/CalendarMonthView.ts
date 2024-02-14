@@ -360,15 +360,7 @@ export class CalendarMonthView implements Component<CalendarMonthAttrs>, ClassCo
 								const eventStart = eventIsAllDay ? getAllDayDateForTimezone(event.startTime, zone) : event.startTime
 								const eventEnd = eventIsAllDay ? incrementDate(getEventEnd(event, zone), -1) : event.endTime
 
-								const position = this.getEventPosition(
-									eventStart,
-									eventEnd,
-									firstDayOfWeek,
-									firstDayOfNextWeek,
-									dayWidth,
-									dayHeight(),
-									columnIndex,
-								)
+								const position = this.getEventPosition(eventStart, eventEnd, firstDayOfWeek, firstDayOfNextWeek, dayWidth, dayHeight(), columnIndex)
 								return this.renderEvent(event, position, eventStart, firstDayOfWeek, firstDayOfNextWeek, eventEnd, attrs)
 							} else {
 								for (const [dayIndex, dayInWeek] of week.entries()) {

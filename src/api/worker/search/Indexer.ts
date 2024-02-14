@@ -634,9 +634,7 @@ export class Indexer {
 								eventBatchIds: groupData.lastBatchIds,
 							}
 						} else {
-							throw new InvalidDatabaseStateError(
-								"no group data for group " + membership.group + " indexedGroupIds: " + this._indexedGroupIds.join(","),
-							)
+							throw new InvalidDatabaseStateError("no group data for group " + membership.group + " indexedGroupIds: " + this._indexedGroupIds.join(","))
 						}
 					})
 				}),
@@ -756,9 +754,7 @@ export class Indexer {
 
 			if (timeSinceLastIndex >= daysToMillis(ENTITY_EVENT_BATCH_TTL_DAYS)) {
 				throw new OutOfSyncError(
-					`we haven't updated the index in ${millisToDays(timeSinceLastIndex)} days. last update was ${new Date(
-						neverNull(lastIndexTimeMs),
-					).toString()}`,
+					`we haven't updated the index in ${millisToDays(timeSinceLastIndex)} days. last update was ${new Date(neverNull(lastIndexTimeMs)).toString()}`,
 				)
 			}
 		}

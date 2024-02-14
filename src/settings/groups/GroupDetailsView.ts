@@ -45,13 +45,7 @@ export class GroupDetailsView implements UpdatableSettingsDetailsViewer {
 	 * @private
 	 */
 	private renderCommonInfo(): ChildArray {
-		return [
-			this.renderCreatedTextField(),
-			this.renderNameField(),
-			this.renderAdministratedByDropdown(),
-			this.renderStatusSelector(),
-			this.renderMembersTable(),
-		]
+		return [this.renderCreatedTextField(), this.renderNameField(), this.renderAdministratedByDropdown(), this.renderStatusSelector(), this.renderMembersTable()]
 	}
 
 	private renderCreatedTextField(): Children {

@@ -84,8 +84,7 @@ export class MultiDayCalendarView implements Component<Attrs> {
 	view({ attrs }: Vnode<Attrs>): Children {
 		// Special case for week view
 
-		const startOfThisPeriod =
-			attrs.daysInPeriod === 7 ? getStartOfWeek(attrs.selectedDate, getStartOfTheWeekOffset(attrs.startOfTheWeek)) : attrs.selectedDate
+		const startOfThisPeriod = attrs.daysInPeriod === 7 ? getStartOfWeek(attrs.selectedDate, getStartOfTheWeekOffset(attrs.startOfTheWeek)) : attrs.selectedDate
 		const startOfPreviousPeriod = incrementDate(new Date(startOfThisPeriod), -attrs.daysInPeriod)
 		const startOfNextPeriod = incrementDate(new Date(startOfThisPeriod), attrs.daysInPeriod)
 

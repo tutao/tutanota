@@ -326,10 +326,7 @@ o.spec("SendMailModel", function () {
 				replyTos: [],
 				conversationEntry: testIdGenerator.newIdTuple(),
 			})
-			const mailWrapper = MailWrapper.details(
-				draftMail,
-				createTestEntity(MailDetailsTypeRef, { body: createTestEntity(BodyTypeRef, { text: BODY_TEXT_1 }) }),
-			)
+			const mailWrapper = MailWrapper.details(draftMail, createTestEntity(MailDetailsTypeRef, { body: createTestEntity(BodyTypeRef, { text: BODY_TEXT_1 }) }))
 
 			when(entity.load(ConversationEntryTypeRef, draftMail.conversationEntry)).thenResolve(
 				createTestEntity(ConversationEntryTypeRef, { conversationType: ConversationType.FORWARD }),

@@ -70,8 +70,7 @@ export class DaySelector implements Component<DaySelectorAttrs> {
 		const lastWeek =
 			beginningOfLastWeek < currentMonth.beginningOfMonth ? findWeek(lastMonth, beginningOfLastWeek) : findWeek(currentMonth, beginningOfLastWeek)
 		const beginningOfNextWeek = incrementDate(new Date(date), 7)
-		const nextWeek =
-			beginningOfNextWeek < nextMonth.beginningOfMonth ? findWeek(currentMonth, beginningOfNextWeek) : findWeek(nextMonth, beginningOfNextWeek)
+		const nextWeek = beginningOfNextWeek < nextMonth.beginningOfMonth ? findWeek(currentMonth, beginningOfNextWeek) : findWeek(nextMonth, beginningOfNextWeek)
 
 		return m(Carousel, {
 			label: "date_label",

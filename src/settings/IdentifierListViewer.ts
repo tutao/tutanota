@@ -129,10 +129,7 @@ export class IdentifierListViewer {
 			},
 		}
 		return [
-			m(".flex-space-between.items-center.mt-l.mb-s", [
-				m(".h4", lang.get("notificationSettings_action")),
-				m(ExpanderButton, pushIdentifiersExpanderAttrs),
-			]),
+			m(".flex-space-between.items-center.mt-l.mb-s", [m(".h4", lang.get("notificationSettings_action")), m(ExpanderButton, pushIdentifiersExpanderAttrs)]),
 			m(
 				ExpanderPanel,
 				{

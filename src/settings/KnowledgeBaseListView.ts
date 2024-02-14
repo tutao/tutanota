@@ -236,7 +236,10 @@ export class KnowledgeBaseRow implements VirtualRow<KnowledgeBaseEntry> {
 }
 
 export class KnowledgeBaseSettingsDetailsViewer implements UpdatableSettingsDetailsViewer {
-	constructor(private readonly entry: KnowledgeBaseEntry, private readonly readonly: boolean) {}
+	constructor(
+		private readonly entry: KnowledgeBaseEntry,
+		private readonly readonly: boolean,
+	) {}
 
 	renderView(): Children {
 		return m(

@@ -40,7 +40,6 @@ const oldLog = console.log
 const oldError = console.error
 const oldWarn = console.warn
 const oldTrace = console.trace
-
 ;(console as any).info = (...args: any[]) => oldInfo(`[${new Date().toISOString()}]`, ...args)
 ;(console as any).log = (...args: any[]) => oldLog(`[${new Date().toISOString()}]`, ...args)
 ;(console as any).error = (...args: any[]) => oldError(`[${new Date().toISOString()}]`, ...args)

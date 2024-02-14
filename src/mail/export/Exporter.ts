@@ -32,9 +32,7 @@ export async function generateMailFile(bundle: MailBundle, fileName: string, mod
 export async function getMailExportMode(): Promise<MailExportMode> {
 	if (isDesktop()) {
 		const ConfigKeys = await import("../../desktop/config/ConfigKeys")
-		const mailExportMode = (await locator.desktopSettingsFacade
-			.getStringConfigValue(ConfigKeys.DesktopConfigKey.mailExportMode)
-			.catch(noOp)) as MailExportMode
+		const mailExportMode = (await locator.desktopSettingsFacade.getStringConfigValue(ConfigKeys.DesktopConfigKey.mailExportMode).catch(noOp)) as MailExportMode
 		return mailExportMode ?? "eml"
 	} else {
 		return "eml"
@@ -85,8 +83,7 @@ export async function exportMails(
 		const errorMails: Mail[] = []
 
 		signal?.addEventListener("abort", onAbort)
-		const updateProgress =
-			operationId !== undefined ? () => locator.operationProgressTracker.onProgress(operationId, (++doneMails / totalMails) * 100) : noOp
+		const updateProgress = operationId !== undefined ? () => locator.operationProgressTracker.onProgress(operationId, (++doneMails / totalMails) * 100) : noOp
 
 		//The only way to skip a Promise is throwing an error.
 		//this throws just a CancelledError to be handled by the try/catch statement.
@@ -158,9 +155,7 @@ export function mailToEml(mail: MailBundle): string {
 		lines.push("From: " + mail.sender.address, "MIME-Version: 1.0")
 
 		const formatRecipients = (key: string, recipients: MailBundleRecipient[]) =>
-			`${key}: ${recipients
-				.map((recipient) => (recipient.name ? `${escapeSpecialCharacters(recipient.name)} ` : "") + `<${recipient.address}>`)
-				.join(",")}`
+			`${key}: ${recipients.map((recipient) => (recipient.name ? `${escapeSpecialCharacters(recipient.name)} ` : "") + `<${recipient.address}>`).join(",")}`
 
 		if (mail.to.length > 0) {
 			lines.push(formatRecipients("To", mail.to))

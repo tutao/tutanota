@@ -133,9 +133,7 @@ export class PdfDocument {
 		if (text === "") return this
 		// If no position was specified, don't update the text cursor position
 		if (position !== ORIGIN_POSITION) {
-			this.textStream += `1 0 0 -1 ${mmToPSPoint(position[0])} ${mmToPSPoint(position[1]) + this.currentFontSize} Tm <${toUnicodePoint(text).join(
-				"",
-			)}> Tj `
+			this.textStream += `1 0 0 -1 ${mmToPSPoint(position[0])} ${mmToPSPoint(position[1]) + this.currentFontSize} Tm <${toUnicodePoint(text).join("")}> Tj `
 		} else {
 			this.textStream += `<${toUnicodePoint(text).join("")}> Tj `
 		}

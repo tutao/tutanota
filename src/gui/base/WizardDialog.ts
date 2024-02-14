@@ -225,9 +225,7 @@ class WizardDialogAttrs<T> {
 		Object.assign(this._headerBarAttrs, {
 			left: currentPageIndex >= 0 && this.allowedToVisitPage(currentPageIndex - 1, currentPageIndex) ? [backButtonAttrs] : [],
 			right: () =>
-				this.currentPage &&
-				this.currentPage.attrs.isSkipAvailable() &&
-				this._getEnabledPages().indexOf(this.currentPage) !== this._getEnabledPages().length - 1
+				this.currentPage && this.currentPage.attrs.isSkipAvailable() && this._getEnabledPages().indexOf(this.currentPage) !== this._getEnabledPages().length - 1
 					? [skipButtonAttrs]
 					: [],
 			middle: () => (this.currentPage ? this.currentPage.attrs.headerTitle() : ""),

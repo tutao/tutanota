@@ -144,11 +144,7 @@ export class EventDragHandler {
 			// note that we're not allowing changing the whole series from dragging an altered instance.
 			const { repeatRule, recurrenceId } = dragData.originalEvent
 			// prettier-ignore
-			const mode = repeatRule != null
-				? await showModeSelectionDropdown(pos)
-				: recurrenceId != null
-					? CalendarOperation.EditThis
-					: CalendarOperation.EditAll
+			const mode = repeatRule != null ? await showModeSelectionDropdown(pos) : recurrenceId != null ? CalendarOperation.EditThis : CalendarOperation.EditAll
 
 			// If the date hasn't changed we still have to do the callback so the view model can cancel the drag
 			try {

@@ -6,7 +6,10 @@ import { findAndRemove } from "@tutao/tutanota-utils"
 
 /** Name changer for personal mailbox of the currently logged-in user. */
 export class OwnMailAddressNameChanger implements MailAddressNameChanger {
-	constructor(private readonly mailModel: MailModel, private readonly entityClient: EntityClient) {}
+	constructor(
+		private readonly mailModel: MailModel,
+		private readonly entityClient: EntityClient,
+	) {}
 
 	async getSenderNames(): Promise<AddressToName> {
 		const mailboxProperties = await this.getMailboxProperties()

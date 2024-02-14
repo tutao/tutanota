@@ -23,7 +23,10 @@ export class BrowserWebauthn implements WebAuthnFacade {
 	private readonly appId: string
 	private currentOperationSignal: AbortController | null = null
 
-	constructor(private readonly api: CredentialsContainer, domainConfig: DomainConfig) {
+	constructor(
+		private readonly api: CredentialsContainer,
+		domainConfig: DomainConfig,
+	) {
 		this.rpId = domainConfig.webauthnRpId
 		this.appId = domainConfig.u2fAppId
 	}

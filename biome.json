@@ -1,0 +1,52 @@
+{
+	"$schema": "https://biomejs.dev/schemas/1.5.3/schema.json",
+	"organizeImports": {
+		"enabled": true
+	},
+	"files": {
+		"ignoreUnknown": true,
+		"ignore": [
+			"./src/api/entities/",
+			"./src/translations/",
+			"node_modules/",
+			"build/",
+			"dist/",
+			"libs/",
+			"app-android/",
+			"app-ios/",
+			"fdroid-metadata-workaround/",
+			"packages/tutanota-crypto/lib/internal/"
+		]
+	},
+	"linter": {
+		"enabled": true,
+		"rules": {
+			"recommended": true
+		}
+	},
+	"formatter": {
+		"enabled": true,
+		"indentStyle": "tab",
+		"lineWidth": 160
+	},
+	"javascript": {
+		"formatter": {
+			"enabled": true,
+			"quoteStyle": "double",
+			"trailingComma": "all",
+			"semicolons": "asNeeded",
+			"arrowParentheses": "always"
+		}
+	},
+	"json": {
+		"parser": {
+			"allowTrailingCommas": false,
+			"allowComments": false
+		},
+		"formatter": {
+			"enabled": true,
+			"indentStyle": "tab",
+			"lineWidth": 160
+		}
+	}
+}

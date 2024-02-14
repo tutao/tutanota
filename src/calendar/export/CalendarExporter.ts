@@ -215,9 +215,7 @@ function serializeParticipants(event: CalendarEvent): Array<string> {
 	const attendeesProperties = attendees.map(({ address, status }) => {
 		const namePart = address.name ? `;CN=${quotedString(address.name)}` : ""
 		const partstat = calendarAttendeeStatusToParstat[downcast<CalendarAttendeeStatus>(status)]
-		return (
-			`ATTENDEE;CUTYPE=INDIVIDUAL;ROLE=REQ-PARTICIPANT;PARTSTAT=${partstat}` + `;RSVP=TRUE${namePart};EMAIL=${address.address}:mailto:${address.address}`
-		)
+		return `ATTENDEE;CUTYPE=INDIVIDUAL;ROLE=REQ-PARTICIPANT;PARTSTAT=${partstat}` + `;RSVP=TRUE${namePart};EMAIL=${address.address}:mailto:${address.address}`
 	})
 	return lines.concat(attendeesProperties)
 }
@@ -255,11 +253,5 @@ function wrapIntoCalendar(versionNumber: string, method: string, contents: Array
 
 function serializeAlarm(event: CalendarEvent, alarm: UserAlarmInfo): Array<string> {
 	// prettier-ignore
-	return [
-		"BEGIN:VALARM",
-		"ACTION:DISPLAY",
-		"DESCRIPTION:This is an event reminder",
-		`TRIGGER:${serializeTrigger(alarm.alarmInfo.trigger)}`,
-		"END:VALARM",
-	]
+	return ["BEGIN:VALARM", "ACTION:DISPLAY", "DESCRIPTION:This is an event reminder", `TRIGGER:${serializeTrigger(alarm.alarmInfo.trigger)}`, "END:VALARM"]
 }

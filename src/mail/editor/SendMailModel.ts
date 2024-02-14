@@ -795,9 +795,7 @@ export class SendMailModel {
 						throw e
 					} else {
 						let invalidRecipients = e.message
-						throw new UserError(
-							() => lang.get("tutanotaAddressDoesNotExist_msg") + " " + lang.get("invalidRecipients_msg") + "\n" + invalidRecipients,
-						)
+						throw new UserError(() => lang.get("tutanotaAddressDoesNotExist_msg") + " " + lang.get("invalidRecipients_msg") + "\n" + invalidRecipients)
 					}
 				}),
 			)
@@ -1036,9 +1034,7 @@ export class SendMailModel {
 			if (operation === OperationType.UPDATE) {
 				this.entity.load(ContactTypeRef, contactId).then((contact) => {
 					for (const fieldType of typedValues(RecipientField)) {
-						const matching = this.getRecipientList(fieldType).filter(
-							(recipient) => recipient.contact && isSameId(recipient.contact._id, contact._id),
-						)
+						const matching = this.getRecipientList(fieldType).filter((recipient) => recipient.contact && isSameId(recipient.contact._id, contact._id))
 						for (const recipient of matching) {
 							// if the mail address no longer exists on the contact then delete the recipient
 							if (!contact.mailAddresses.some((ma) => cleanMatch(ma.address, recipient.address))) {

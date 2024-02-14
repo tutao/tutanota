@@ -36,7 +36,8 @@ export class DesktopTray {
 	constructor(config: DesktopConfig) {
 		this._conf = config
 		this.getAppIcon()
-		app.on("will-quit", this.destroy)
+		app
+			.on("will-quit", this.destroy)
 			.whenReady()
 			.then(async () => {
 				// Need this wrapper so that `create()` will be called

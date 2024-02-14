@@ -1,7 +1,0 @@
-{
-	semi: false,
-	useTabs: true,
-	arrowParens: "always",
-	embeddedLanguageFormatting: "auto",
-	trailingComma: "all",
-}

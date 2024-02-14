@@ -127,8 +127,7 @@ export class ContactView extends BaseTopLevelView implements TopLevelView<Contac
 
 		this.listColumn = new ViewColumn(
 			{
-				view: () =>
-					this.inContactListView() ? this.renderContactListRecipientColumn(vnode.attrs.header) : this.renderContactListColumn(vnode.attrs.header),
+				view: () => (this.inContactListView() ? this.renderContactListRecipientColumn(vnode.attrs.header) : this.renderContactListColumn(vnode.attrs.header)),
 			},
 			ColumnType.Background,
 			{
@@ -340,12 +339,10 @@ export class ContactView extends BaseTopLevelView implements TopLevelView<Contac
 										},
 									],
 							  })
-						: (styles.isSingleColumnLayout() &&
-								this.viewSlider.focusedColumn === this.listColumn &&
-								this.contactViewModel.listModel.state.inMultiselect) ||
-						  this.contactListViewModel.listModel?.state.inMultiselect
-						? m(MobileBottomActionBar, this.detailsViewerActions())
-						: m(BottomNav),
+						: (styles.isSingleColumnLayout() && this.viewSlider.focusedColumn === this.listColumn && this.contactViewModel.listModel.state.inMultiselect) ||
+							  this.contactListViewModel.listModel?.state.inMultiselect
+						  ? m(MobileBottomActionBar, this.detailsViewerActions())
+						  : m(BottomNav),
 			}),
 		)
 	}
@@ -814,8 +811,7 @@ export class ContactView extends BaseTopLevelView implements TopLevelView<Contac
 			return true
 		} else if (
 			this.showingListView() &&
-			(this.contactViewModel.listModel.state.inMultiselect ||
-				(this.contactListViewModel.listModel && this.contactListViewModel.listModel?.state.inMultiselect))
+			(this.contactViewModel.listModel.state.inMultiselect || (this.contactListViewModel.listModel && this.contactListViewModel.listModel?.state.inMultiselect))
 		) {
 			// Just try to empty the list of selected items the user is on
 			// multiselect mode

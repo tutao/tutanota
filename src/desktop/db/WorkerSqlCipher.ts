@@ -14,7 +14,11 @@ export class WorkerSqlCipher implements SqlCipherFacade {
 	private readonly dispatcher: MessageDispatcher<SqlCipherCommandNames, WorkerLogCommandNames>
 	private readonly worker: Worker
 
-	constructor(private readonly nativeBindingPath: string, private readonly dbPath: string, private readonly integrityCheck: boolean) {
+	constructor(
+		private readonly nativeBindingPath: string,
+		private readonly dbPath: string,
+		private readonly integrityCheck: boolean,
+	) {
 		// this is not ../sqlworker.js because this file is bundled into DesktopMain.js in the dev build
 		// and the prod build dumps everything into the same dir anyway.
 		const worker = new Worker(path.join(__dirname, "./sqlworker.js"), {

@@ -413,11 +413,7 @@ export class SearchView extends BaseTopLevelView implements TopLevelView<SearchV
 						loadAll: () => this.searchViewModel.loadAll(),
 						stopLoadAll: () => this.searchViewModel.stopLoadAll(),
 						loadingAll:
-							this.searchViewModel.loadingAllForSearchResult != null
-								? "loading"
-								: this.searchViewModel.listModel?.isLoadedCompletely()
-								? "loaded"
-								: "can_load",
+							this.searchViewModel.loadingAllForSearchResult != null ? "loading" : this.searchViewModel.listModel?.isLoadedCompletely() ? "loaded" : "can_load",
 						getSelectionMessage: (selected: ReadonlyArray<Mail>) => getMailSelectionMessage(selected),
 					}),
 				})
@@ -472,8 +468,8 @@ export class SearchView extends BaseTopLevelView implements TopLevelView<SearchV
 								backgroundColor: theme.navigation_bg,
 						  })
 						: !this.getSanitizedPreviewData(selectedEvent).isLoaded()
-						? null
-						: this.renderEventDetails(selectedEvent),
+						  ? null
+						  : this.renderEventDetails(selectedEvent),
 			})
 		} else {
 			return m(
@@ -1076,9 +1072,8 @@ export class SearchView extends BaseTopLevelView implements TopLevelView<SearchV
 
 			// Find the selected value after loading the available calendars
 			const selectedValue =
-				items.find((calendar) =>
-					isSameId([calendar.value.groupRoot.longEvents, calendar.value.groupRoot.shortEvents], this.searchViewModel.selectedCalendar),
-				)?.value ?? null
+				items.find((calendar) => isSameId([calendar.value.groupRoot.longEvents, calendar.value.groupRoot.shortEvents], this.searchViewModel.selectedCalendar))
+					?.value ?? null
 
 			return m(
 				".mlr-button",

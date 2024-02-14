@@ -88,10 +88,7 @@ o.spec("RecipientsModel", function () {
 
 	o("prioritises name that was passed in", async function () {
 		const recipient = await model
-			.resolve(
-				{ address: tutanotaAddress, name: "Pizza Tonno", contact: makeContactStub(contactId, tutanotaAddress, "Pizza", "Hawaii") },
-				ResolveMode.Eager,
-			)
+			.resolve({ address: tutanotaAddress, name: "Pizza Tonno", contact: makeContactStub(contactId, tutanotaAddress, "Pizza", "Hawaii") }, ResolveMode.Eager)
 			.resolved()
 		o(recipient.name).equals("Pizza Tonno")
 	})

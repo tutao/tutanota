@@ -35,9 +35,7 @@ export class TemplatePopupResultRow implements Component<TemplateResultRowAttrs>
 					title,
 				),
 				m(".flex.badge-line-height.text-ellipsis", [
-					tag
-						? m(".small.keyword-bubble-no-padding.pl-s.pr-s.border-radius.no-wrap.small.min-content", TEMPLATE_SHORTCUT_PREFIX + tag.toLowerCase())
-						: null,
+					tag ? m(".small.keyword-bubble-no-padding.pl-s.pr-s.border-radius.no-wrap.small.min-content", TEMPLATE_SHORTCUT_PREFIX + tag.toLowerCase()) : null,
 				]),
 			],
 		)

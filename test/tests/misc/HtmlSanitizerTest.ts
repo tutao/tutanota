@@ -377,9 +377,7 @@ o.spec(
 					),
 			).equals(false)
 			o(
-				cleanHtml.html.includes(
-					'draft-srcset="https://tutanota.com/image1.jpg 1x, https://tutanota.com/image2.jpg 2x, https://tutanota.com/image3.jpg 3x',
-				),
+				cleanHtml.html.includes('draft-srcset="https://tutanota.com/image1.jpg 1x, https://tutanota.com/image2.jpg 2x, https://tutanota.com/image3.jpg 3x'),
 			).equals(true)
 			o(cleanHtml.html.includes('src="data:image/svg+xml;utf8,')).equals(true)
 		})
@@ -401,12 +399,9 @@ o.spec(
 			o(result.html.includes('draft-src="https://tutanota.com')).equals(true)
 		})
 		o("detect video posters", function () {
-			let result = htmlSanitizer.sanitizeHTML(
-				'<video poster="https://emailprivacytester.com/cb/04e69deda1be1c37/video_poster" height="1" width="1"></video>',
-				{
-					blockExternalContent: true,
-				},
-			)
+			let result = htmlSanitizer.sanitizeHTML('<video poster="https://emailprivacytester.com/cb/04e69deda1be1c37/video_poster" height="1" width="1"></video>', {
+				blockExternalContent: true,
+			})
 			o(result.blockedExternalContent).equals(1)
 			o(result.html.includes('poster="data:image/svg+xml;utf8,')).equals(true)
 		})

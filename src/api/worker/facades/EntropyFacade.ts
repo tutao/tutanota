@@ -18,7 +18,11 @@ export class EntropyFacade {
 	private newEntropy: number = -1
 	private lastEntropyUpdate: number = Date.now()
 
-	constructor(private readonly userFacade: UserFacade, private readonly serviceExecutor: IServiceExecutor, private readonly random: Randomizer) {}
+	constructor(
+		private readonly userFacade: UserFacade,
+		private readonly serviceExecutor: IServiceExecutor,
+		private readonly random: Randomizer,
+	) {}
 
 	/**
 	 * Adds entropy to the randomizer. Updated the stored entropy for a user when enough entropy has been collected.

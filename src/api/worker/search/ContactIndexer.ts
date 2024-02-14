@@ -169,12 +169,7 @@ export class ContactIndexer {
 					this._core._processDeleted(event, indexUpdate),
 					this.processNewContact(event).then((result) => {
 						if (result) {
-							this._core.encryptSearchIndexEntries(
-								result.contact._id,
-								neverNull(result.contact._ownerGroup),
-								result.keyToIndexEntries,
-								indexUpdate,
-							)
+							this._core.encryptSearchIndexEntries(result.contact._id, neverNull(result.contact._ownerGroup), result.keyToIndexEntries, indexUpdate)
 						}
 					}),
 				])

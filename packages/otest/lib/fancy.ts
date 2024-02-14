@@ -8,7 +8,7 @@ export const ansiSequences = Object.freeze({
 	faint: "\x1b[0;2m",
 })
 
-type CodeValues = typeof ansiSequences[keyof typeof ansiSequences]
+type CodeValues = (typeof ansiSequences)[keyof typeof ansiSequences]
 
 export function fancy(text: string, code: CodeValues) {
 	if (typeof process !== "undefined" && process.stdout.isTTY) {

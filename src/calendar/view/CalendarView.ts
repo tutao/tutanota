@@ -109,9 +109,7 @@ export class CalendarView extends BaseTopLevelView implements TopLevelView<Calen
 											this.setUrl(this.currentViewType, date)
 											m.redraw()
 										},
-										startOfTheWeekOffset: getStartOfTheWeekOffset(
-											downcast(locator.logins.getUserController().userSettingsGroupRoot.startOfTheWeek),
-										),
+										startOfTheWeekOffset: getStartOfTheWeekOffset(downcast(locator.logins.getUserController().userSettingsGroupRoot.startOfTheWeek)),
 										eventsForDays: this.viewModel.eventsForDays,
 										showDaySelection: this.currentViewType !== CalendarViewType.MONTH && this.currentViewType !== CalendarViewType.WEEK,
 										highlightToday: true,
@@ -332,12 +330,8 @@ export class CalendarView extends BaseTopLevelView implements TopLevelView<Calen
 	}
 
 	private renderDesktopToolbar(): Children {
-		const navConfig = calendarNavConfiguration(
-			this.currentViewType,
-			this.viewModel.selectedDate(),
-			this.viewModel.weekStart,
-			"detailed",
-			(viewType, next) => this.viewPeriod(viewType, next),
+		const navConfig = calendarNavConfiguration(this.currentViewType, this.viewModel.selectedDate(), this.viewModel.weekStart, "detailed", (viewType, next) =>
+			this.viewPeriod(viewType, next),
 		)
 		return m(CalendarDesktopToolbar, {
 			navConfig,
@@ -358,12 +352,8 @@ export class CalendarView extends BaseTopLevelView implements TopLevelView<Calen
 			viewSlider: this.viewSlider,
 			showExpandIcon: !styles.isDesktopLayout() && this.currentViewType !== CalendarViewType.MONTH,
 			isDaySelectorExpanded: this.isDaySelectorExpanded,
-			navConfiguration: calendarNavConfiguration(
-				this.currentViewType,
-				this.viewModel.selectedDate(),
-				this.viewModel.weekStart,
-				"short",
-				(viewType, next) => this.viewPeriod(viewType, next),
+			navConfiguration: calendarNavConfiguration(this.currentViewType, this.viewModel.selectedDate(), this.viewModel.weekStart, "short", (viewType, next) =>
+				this.viewPeriod(viewType, next),
 			),
 			onCreateEvent: () => this.createNewEventDialog(),
 			onToday: () => {

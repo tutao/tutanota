@@ -21,7 +21,10 @@ export interface IProgressMonitor {
 export class ProgressMonitor implements IProgressMonitor {
 	workCompleted: number
 
-	constructor(readonly totalWork: number, private readonly updater: ProgressListener) {
+	constructor(
+		readonly totalWork: number,
+		private readonly updater: ProgressListener,
+	) {
 		this.workCompleted = 0
 	}
 

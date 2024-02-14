@@ -362,8 +362,7 @@ export class IndexedDbTransaction implements DbTransaction {
 		if (
 			customTarget &&
 			customTarget.error &&
-			(customTarget.error.name === "UnknownError" ||
-				(typeof customTarget.error.message === "string" && customTarget.error.message.includes("UnknownError")))
+			(customTarget.error.name === "UnknownError" || (typeof customTarget.error.message === "string" && customTarget.error.message.includes("UnknownError")))
 		) {
 			this._onUnknownError(customTarget.error)
 

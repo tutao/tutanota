@@ -58,9 +58,8 @@ export class SignupForm implements Component<SignupFormAttrs> {
 	private __signupFreeTest?: UsageTest
 	private __signupPaidTest?: UsageTest
 
-	private readonly availableDomains: readonly EmailDomainData[] = (locator.domainConfigProvider().getCurrentDomainConfig().firstPartyDomain
-		? TUTANOTA_MAIL_ADDRESS_SIGNUP_DOMAINS
-		: getWhitelabelRegistrationDomains()
+	private readonly availableDomains: readonly EmailDomainData[] = (
+		locator.domainConfigProvider().getCurrentDomainConfig().firstPartyDomain ? TUTANOTA_MAIL_ADDRESS_SIGNUP_DOMAINS : getWhitelabelRegistrationDomains()
 	)
 		.map((domain) => ({ domain, isPaid: isPaidPlanDomain(domain) }))
 		// hide paid domains for iOS
@@ -151,8 +150,7 @@ export class SignupForm implements Component<SignupFormAttrs> {
 				return a.onComplete(null)
 			}
 
-			const errorMessage =
-				this._mailAddressFormErrorId || this.passwordModel.getErrorMessageId() || (!this._confirmTerms() ? "termsAcceptedNeutral_msg" : null)
+			const errorMessage = this._mailAddressFormErrorId || this.passwordModel.getErrorMessageId() || (!this._confirmTerms() ? "termsAcceptedNeutral_msg" : null)
 
 			if (errorMessage) {
 				Dialog.message(errorMessage)
@@ -164,16 +162,11 @@ export class SignupForm implements Component<SignupFormAttrs> {
 				if (confirmed) {
 					this.__completePreviousStages()
 
-					return signup(
-						this._mailAddress,
-						this.passwordModel.getNewPassword(),
-						this._code(),
-						a.isBusinessUse(),
-						a.isPaidSubscription(),
-						a.campaign(),
-					).then((newAccountData) => {
-						a.onComplete(newAccountData ? newAccountData : null)
-					})
+					return signup(this._mailAddress, this.passwordModel.getNewPassword(), this._code(), a.isBusinessUse(), a.isPaidSubscription(), a.campaign()).then(
+						(newAccountData) => {
+							a.onComplete(newAccountData ? newAccountData : null)
+						},
+					)
 				}
 			})
 		}
@@ -191,9 +184,7 @@ export class SignupForm implements Component<SignupFormAttrs> {
 					: [
 							m(SelectMailAddressForm, mailAddressFormAttrs), // Leave as is
 							a.isPaidSubscription()
-								? m(".small.mt-s", lang.get("configureCustomDomainAfterSignup_msg"), [
-										m(ExternalLink, { href: faqCustomDomainLink, isCompanySite: true }),
-								  ])
+								? m(".small.mt-s", lang.get("configureCustomDomainAfterSignup_msg"), [m(ExternalLink, { href: faqCustomDomainLink, isCompanySite: true })])
 								: null,
 							m(PasswordForm, {
 								model: this.passwordModel,

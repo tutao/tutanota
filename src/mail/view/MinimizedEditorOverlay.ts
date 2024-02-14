@@ -70,10 +70,7 @@ export class MinimizedEditorOverlay implements Component<MinimizedEditorOverlayA
 					{
 						onclick: () => viewModel.reopenMinimizedEditor(minimizedEditor),
 					},
-					[
-						m(".b.text-ellipsis", subject ? subject : lang.get("newMail_action")),
-						m(".small.text-ellipsis", getStatusMessage(minimizedEditor.saveStatus())),
-					],
+					[m(".b.text-ellipsis", subject ? subject : lang.get("newMail_action")), m(".small.text-ellipsis", getStatusMessage(minimizedEditor.saveStatus()))],
 				),
 				m(".flex.items-center.justify-right", [
 					!styles.isSingleColumnLayout()

@@ -6,7 +6,10 @@ import { WindowManager } from "../DesktopWindowManager.js"
  * this receives inter window events and dispatches them to all other windows
  */
 export class DesktopInterWindowEventFacade implements InterWindowEventFacade {
-	constructor(private readonly window: ApplicationWindow, private readonly wm: WindowManager) {}
+	constructor(
+		private readonly window: ApplicationWindow,
+		private readonly wm: WindowManager,
+	) {}
 
 	async localUserDataInvalidated(userId: string): Promise<void> {
 		await this.executeOnOthers((other) => other.interWindowEventSender.localUserDataInvalidated(userId))

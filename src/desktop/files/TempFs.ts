@@ -19,7 +19,11 @@ export class TempFs {
 	/** we store all temporary files in a directory with a random name, so that the download location is not predictable */
 	private readonly randomDirectoryName: string
 
-	constructor(private readonly fs: FsExports, private readonly electron: ElectronExports, private readonly cryptoFunctions: CryptoFunctions) {
+	constructor(
+		private readonly fs: FsExports,
+		private readonly electron: ElectronExports,
+		private readonly cryptoFunctions: CryptoFunctions,
+	) {
 		this.randomDirectoryName = base64ToBase64Url(uint8ArrayToBase64(cryptoFunctions.randomBytes(16)))
 	}
 

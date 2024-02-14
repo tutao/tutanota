@@ -26,7 +26,10 @@ interface ScheduledState {
 export class SleepDetector {
 	private scheduledState: ScheduledState | null = null
 
-	constructor(private readonly scheduler: Scheduler, private readonly dateProvider: DateProvider) {}
+	constructor(
+		private readonly scheduler: Scheduler,
+		private readonly dateProvider: DateProvider,
+	) {}
 
 	start(onSleep: Thunk): void {
 		this.stop()

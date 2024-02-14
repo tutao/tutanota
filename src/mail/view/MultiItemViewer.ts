@@ -52,25 +52,25 @@ export class MultiItemViewer<T> implements Component<MultiItemViewerAttrs<T>> {
 					m(".flex.items-center.plr-button", progressIcon()),
 			  ])
 			: selectedEntities.length === 0
-			? null
-			: m(".flex", [
-					m(Button, {
-						label: "cancel_action",
-						type: ButtonType.Secondary,
-						click: () => {
-							selectNone()
-						},
-					}),
-					loadingAll === "can_load"
-						? m(Button, {
-								label: "loadAll_action",
-								type: ButtonType.Secondary,
-								click: () => {
-									loadAll()
-								},
-						  })
-						: null,
-			  ])
+			  ? null
+			  : m(".flex", [
+						m(Button, {
+							label: "cancel_action",
+							type: ButtonType.Secondary,
+							click: () => {
+								selectNone()
+							},
+						}),
+						loadingAll === "can_load"
+							? m(Button, {
+									label: "loadAll_action",
+									type: ButtonType.Secondary,
+									click: () => {
+										loadAll()
+									},
+							  })
+							: null,
+				  ])
 	}
 }
 

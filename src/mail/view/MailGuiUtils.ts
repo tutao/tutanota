@@ -212,10 +212,7 @@ export function replaceCidsWithInlineImages(
 						const touch = e.touches[0]
 						if (!touch || !startCoords || !timeoutId) return
 
-						if (
-							Math.abs(touch.clientX - startCoords.x) > PinchZoom.DRAG_THRESHOLD ||
-							Math.abs(touch.clientY - startCoords.y) > PinchZoom.DRAG_THRESHOLD
-						) {
+						if (Math.abs(touch.clientX - startCoords.x) > PinchZoom.DRAG_THRESHOLD || Math.abs(touch.clientY - startCoords.y) > PinchZoom.DRAG_THRESHOLD) {
 							clearTimeout(timeoutId)
 							timeoutId = null
 						}

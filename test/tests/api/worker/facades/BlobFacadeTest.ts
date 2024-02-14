@@ -152,14 +152,7 @@ o.spec("BlobFacade test", function () {
 			const referenceTokens = await blobFacade.encryptAndUploadNative(archiveDataType, uploadedFileUri, ownerGroup, sessionKey)
 
 			o(referenceTokens).deepEquals(expectedReferenceTokens)
-			verify(
-				fileAppMock.upload(
-					encryptedFileInfo.uri,
-					`http://w1.api.tuta.com${BLOB_SERVICE_REST_PATH}?test=theseAreTheParamsIPromise`,
-					HttpMethod.POST,
-					{},
-				),
-			)
+			verify(fileAppMock.upload(encryptedFileInfo.uri, `http://w1.api.tuta.com${BLOB_SERVICE_REST_PATH}?test=theseAreTheParamsIPromise`, HttpMethod.POST, {}))
 		})
 	})
 
@@ -220,12 +213,7 @@ o.spec("BlobFacade test", function () {
 			when(fileAppMock.getSize(decryptedUri)).thenResolve(size)
 			env.mode = Mode.Desktop
 
-			const decryptedFileReference = await blobFacade.downloadAndDecryptNative(
-				archiveDataType,
-				wrapTutanotaFile(file),
-				file.name,
-				neverNull(file.mimeType),
-			)
+			const decryptedFileReference = await blobFacade.downloadAndDecryptNative(archiveDataType, wrapTutanotaFile(file), file.name, neverNull(file.mimeType))
 
 			const expectedFileReference: FileReference = {
 				_type: "FileReference",

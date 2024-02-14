@@ -145,11 +145,7 @@ export class DesktopIntegratorLinux implements DesktopIntegrator {
 				if (process.env["XDG_CURRENT_DESKTOP"] !== "GNOME") return
 
 				try {
-					this._childProcess.execFile(
-						"update-desktop-database",
-						[path.join(this._electron.app.getPath("home"), ".local/share/applications")],
-						logExecFile,
-					)
+					this._childProcess.execFile("update-desktop-database", [path.join(this._electron.app.getPath("home"), ".local/share/applications")], logExecFile)
 				} catch (e) {}
 			})
 	}

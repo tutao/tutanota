@@ -24,7 +24,10 @@ export type CalendarNotificationSendModels = {
  *  and checks the preconditions
  * */
 export class CalendarNotificationModel {
-	constructor(private readonly notificationSender: CalendarNotificationSender, private readonly loginController: LoginController) {}
+	constructor(
+		private readonly notificationSender: CalendarNotificationSender,
+		private readonly loginController: LoginController,
+	) {}
 
 	/**
 	 * send all notifications required for the new event, determined by the contents of the sendModels parameter.

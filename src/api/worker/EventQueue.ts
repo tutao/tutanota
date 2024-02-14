@@ -200,8 +200,7 @@ export class EventQueue {
 					// find first move or delete (at different list) operation
 					const firstMoveIndex = this._eventQueue.findIndex(
 						(queuedBatch) =>
-							this._processingBatch !== queuedBatch &&
-							containsEventOfType(queuedBatch.events as readonly EntityUpdateData[], OperationType.DELETE, elementId),
+							this._processingBatch !== queuedBatch && containsEventOfType(queuedBatch.events as readonly EntityUpdateData[], OperationType.DELETE, elementId),
 					)
 
 					if (firstMoveIndex !== -1) {
@@ -225,14 +224,10 @@ export class EventQueue {
 						// It is likely custom id instance which got re-created
 						newBatch.events.push(newEvent)
 					} else {
-						throw new ProgrammingError(
-							`Impossible modification combination ${lastEntityModification} ${newEntityModification} ${JSON.stringify(newEvent)}`,
-						)
+						throw new ProgrammingError(`Impossible modification combination ${lastEntityModification} ${newEntityModification} ${JSON.stringify(newEvent)}`)
 					}
 				} else {
-					throw new ProgrammingError(
-						`Impossible modification combination ${lastEntityModification} ${newEntityModification} ${JSON.stringify(newEvent)}`,
-					)
+					throw new ProgrammingError(`Impossible modification combination ${lastEntityModification} ${newEntityModification} ${JSON.stringify(newEvent)}`)
 				}
 			}
 		}

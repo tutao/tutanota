@@ -46,7 +46,10 @@ export class RestClient {
 	// accurate to within a few seconds, depending on network speed
 	private serverTimeOffsetMs: number | null = null
 
-	constructor(private readonly suspensionHandler: SuspensionHandler, private readonly domainConfig: DomainConfig) {
+	constructor(
+		private readonly suspensionHandler: SuspensionHandler,
+		private readonly domainConfig: DomainConfig,
+	) {
 		this.id = 0
 	}
 

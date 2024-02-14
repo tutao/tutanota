@@ -74,9 +74,7 @@ export async function showExperienceSamplingDialog(stage: Stage, experienceSampl
 			if (experienceSamplingOptions.explanationText) {
 				const explanationTextLines = lang.getMaybeLazy(experienceSamplingOptions.explanationText).split("\n")
 
-				children.push(
-					m("#dialog-message.text-break.text-prewrap.selectable.scroll", [explanationTextLines.map((line) => m(".text-break.selectable", line))]),
-				)
+				children.push(m("#dialog-message.text-break.text-prewrap.selectable.scroll", [explanationTextLines.map((line) => m(".text-break.selectable", line))]))
 			}
 
 			for (let likertMetricConfig of likertMetrics) {

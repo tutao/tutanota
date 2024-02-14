@@ -56,14 +56,10 @@ async function publishDebPackage() {
 
 	console.log("create", deb)
 	exitOnFail(
-		spawnSync(
-			"/usr/local/bin/fpm",
-			`${commonArgs} -n tutanota-desktop-dicts -v ${electronVersion} dictionaries/=${target}-desktop/dictionaries`.split(" "),
-			{
-				cwd: "build",
-				stdio: [process.stdin, process.stdout, process.stderr],
-			},
-		),
+		spawnSync("/usr/local/bin/fpm", `${commonArgs} -n tutanota-desktop-dicts -v ${electronVersion} dictionaries/=${target}-desktop/dictionaries`.split(" "), {
+			cwd: "build",
+			stdio: [process.stdin, process.stdout, process.stderr],
+		}),
 	)
 
 	// copy spell checker dictionaries.

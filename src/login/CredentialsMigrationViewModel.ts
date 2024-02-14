@@ -20,7 +20,10 @@ export class CredentialsMigrationViewModel {
 	private transport: CrossOriginTransport<any, any> | null = null
 	private dispatcher: MessageDispatcher<any, any> | null = null
 
-	constructor(readonly logins: LoginViewModel, private readonly parentOrigin: string) {
+	constructor(
+		readonly logins: LoginViewModel,
+		private readonly parentOrigin: string,
+	) {
 		this.initPromise = this.logins.init().then(() => {
 			this.migrationState = MigrationState.WaitingForInput
 			m.redraw()

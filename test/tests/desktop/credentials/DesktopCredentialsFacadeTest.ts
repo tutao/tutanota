@@ -106,9 +106,7 @@ o.spec("DesktopNativeCredentialsFacade", () => {
 		const pwPromise = defer<string>()
 		when(mocks.commonNativeFacade.promptForPassword(matchers.anything())).thenReturn(pwPromise.promise)
 
-		await assertThrows(KeyPermanentlyInvalidatedError, () =>
-			subject.decryptUsingKeychain(Uint8Array.from([1, 2, 3, 4]), CredentialEncryptionMode.APP_PASSWORD),
-		)
+		await assertThrows(KeyPermanentlyInvalidatedError, () => subject.decryptUsingKeychain(Uint8Array.from([1, 2, 3, 4]), CredentialEncryptionMode.APP_PASSWORD))
 	})
 
 	o("does not throw when using right encryption mode, device lock", async function () {

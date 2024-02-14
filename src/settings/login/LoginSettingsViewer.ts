@@ -168,9 +168,7 @@ export class LoginSettingsViewer implements UpdatableSettingsViewer {
 					),
 					m(".small", lang.get("sessionsWillBeDeleted_msg")),
 					m(".small", lang.get("sessionsInfo_msg")),
-					this._usageTestModel.isCustomerOptedOut()
-						? null
-						: m("", [m(".h4.mt-l", lang.get("usageData_label")), m(DropDownSelector, usageDataOptInAttrs)]),
+					this._usageTestModel.isCustomerOptedOut() ? null : m("", [m(".h4.mt-l", lang.get("usageData_label")), m(DropDownSelector, usageDataOptInAttrs)]),
 				]),
 			])
 		} else {
@@ -311,11 +309,7 @@ export class LoginSettingsViewer implements UpdatableSettingsViewer {
 			.filter((session) => session.state !== SessionState.SESSION_STATE_ACTIVE)
 			.map((session) => {
 				return {
-					cells: [
-						session.clientIdentifier,
-						formatDateTimeFromYesterdayOn(session.lastAccessTime),
-						session.loginIpAddress ? session.loginIpAddress : "",
-					],
+					cells: [session.clientIdentifier, formatDateTimeFromYesterdayOn(session.lastAccessTime), session.loginIpAddress ? session.loginIpAddress : ""],
 				}
 			})
 		return m(Table, {

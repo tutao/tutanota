@@ -63,10 +63,7 @@ export class CalendarEventPreviewViewModel {
 		} else {
 			// partially editable (adding alarms) counts as editable.
 			this.canEdit =
-				this.eventType === EventType.OWN ||
-				this.eventType === EventType.SHARED_RW ||
-				this.eventType === EventType.LOCKED ||
-				this.eventType === EventType.INVITE
+				this.eventType === EventType.OWN || this.eventType === EventType.SHARED_RW || this.eventType === EventType.LOCKED || this.eventType === EventType.INVITE
 			this.canDelete = this.canEdit || this.eventType === EventType.INVITE
 			this.canSendUpdates = hasBusinessFeature && this.eventType === EventType.OWN && getNonOrganizerAttendees(calendarEvent).length > 0
 		}

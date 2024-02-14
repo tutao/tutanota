@@ -63,8 +63,8 @@ export class RecipientsSearchModel {
 			])
 			if (query === this.currentQuery) {
 				this.searchResults = [
-					...newContactListSuggestions.map((value) => ({ type: "contactlist", value } satisfies RecipientSearchResultItem)),
-					...newContactSuggestions.map((value) => ({ type: "recipient", value } satisfies RecipientSearchResultItem)),
+					...newContactListSuggestions.map((value) => ({ type: "contactlist", value }) satisfies RecipientSearchResultItem),
+					...newContactSuggestions.map((value) => ({ type: "recipient", value }) satisfies RecipientSearchResultItem),
 				].filter(this.filter ?? ((_) => true))
 				this.previousQuery = query
 			}

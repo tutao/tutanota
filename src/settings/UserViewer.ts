@@ -46,7 +46,10 @@ export class UserViewer implements UpdatableSettingsDetailsViewer {
 	private mailAddressTableModel: MailAddressTableModel | null = null
 	private mailAddressTableExpanded: boolean
 
-	constructor(public userGroupInfo: GroupInfo, private isAdmin: boolean) {
+	constructor(
+		public userGroupInfo: GroupInfo,
+		private isAdmin: boolean,
+	) {
 		this.userGroupInfo = userGroupInfo
 
 		this.mailAddressTableExpanded = false

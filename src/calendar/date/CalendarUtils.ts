@@ -144,10 +144,7 @@ export function calculateAlarmTime(date: Date, interval: AlarmInterval, ianaTime
 
 /** takes a date which encodes the day in UTC and produces a date that encodes the same date but in local time zone. All times must be 0. */
 export function getAllDayDateForTimezone(utcDate: Date, zone: string): Date {
-	return DateTime.fromJSDate(utcDate, { zone: "utc" })
-		.setZone(zone, { keepLocalTime: true })
-		.set({ hour: 0, minute: 0, second: 0, millisecond: 0 })
-		.toJSDate()
+	return DateTime.fromJSDate(utcDate, { zone: "utc" }).setZone(zone, { keepLocalTime: true }).set({ hour: 0, minute: 0, second: 0, millisecond: 0 }).toJSDate()
 }
 
 export function incrementByRepeatPeriod(date: Date, repeatPeriod: RepeatPeriod, interval: number, ianaTimeZone: string): Date {

@@ -708,10 +708,7 @@ export function testEntityRestCache(name: string, getStorage: (userId: Id) => Pr
 
 				// Move mail event: we don't try to load the mail again, we just update our cached mail
 				await cache.entityEventsReceived(
-					makeBatch([
-						createUpdate(MailTypeRef, "listId1", "id3", OperationType.DELETE),
-						createUpdate(MailTypeRef, "listId2", "id3", OperationType.CREATE),
-					]),
+					makeBatch([createUpdate(MailTypeRef, "listId1", "id3", OperationType.DELETE), createUpdate(MailTypeRef, "listId2", "id3", OperationType.CREATE)]),
 				)
 
 				// id3 was moved to another list, which means it is no longer cached, which means we should try to load it again when requested (causing NotFoundError)
@@ -1398,17 +1395,11 @@ export function testEntityRestCache(name: string, getStorage: (userId: Id) => Pr
 				await storage.put(mails[98])
 				await storage.put(mails[99])
 
-				when(clientMock.loadRange(anything(), listId, getElementId(mails[98]), EXTEND_RANGE_MIN_CHUNK_SIZE, true)).thenResolve(
-					mails.slice(58, 98).reverse(),
-				)
+				when(clientMock.loadRange(anything(), listId, getElementId(mails[98]), EXTEND_RANGE_MIN_CHUNK_SIZE, true)).thenResolve(mails.slice(58, 98).reverse())
 
-				when(clientMock.loadRange(anything(), listId, getElementId(mails[58]), EXTEND_RANGE_MIN_CHUNK_SIZE, true)).thenResolve(
-					mails.slice(18, 58).reverse(),
-				)
+				when(clientMock.loadRange(anything(), listId, getElementId(mails[58]), EXTEND_RANGE_MIN_CHUNK_SIZE, true)).thenResolve(mails.slice(18, 58).reverse())
 
-				when(clientMock.loadRange(anything(), listId, getElementId(mails[18]), EXTEND_RANGE_MIN_CHUNK_SIZE, true)).thenResolve(
-					mails.slice(0, 18).reverse(),
-				)
+				when(clientMock.loadRange(anything(), listId, getElementId(mails[18]), EXTEND_RANGE_MIN_CHUNK_SIZE, true)).thenResolve(mails.slice(0, 18).reverse())
 
 				const result = await cache.loadRange(MailTypeRef, listId, GENERATED_MIN_ID, 2, false)
 
@@ -1422,36 +1413,33 @@ export function testEntityRestCache(name: string, getStorage: (userId: Id) => Pr
 			},
 		)
 
-		o(
-			"When there is a reverse range request that loads in the direction of the existing range, the range will grow to include the startId",
-			async function () {
-				const clientMock = object<EntityRestClient>()
-				const cache = new DefaultEntityRestCache(clientMock, storage)
+		o("When there is a reverse range request that loads in the direction of the existing range, the range will grow to include the startId", async function () {
+			const clientMock = object<EntityRestClient>()
+			const cache = new DefaultEntityRestCache(clientMock, storage)
 
-				const listId = "listId1"
-				const mails = arrayOf(100, (idx) => createMailInstance(listId, createId(`${idx}`), `hola ${idx}`))
+			const listId = "listId1"
+			const mails = arrayOf(100, (idx) => createMailInstance(listId, createId(`${idx}`), `hola ${idx}`))
 
-				await storage.setNewRangeForList(MailTypeRef, listId, getElementId(mails[0]), getElementId(mails[1]))
-				await storage.put(mails[0])
-				await storage.put(mails[1])
+			await storage.setNewRangeForList(MailTypeRef, listId, getElementId(mails[0]), getElementId(mails[1]))
+			await storage.put(mails[0])
+			await storage.put(mails[1])
 
-				when(clientMock.loadRange(anything(), listId, getElementId(mails[1]), EXTEND_RANGE_MIN_CHUNK_SIZE, false)).thenResolve(mails.slice(2, 42))
+			when(clientMock.loadRange(anything(), listId, getElementId(mails[1]), EXTEND_RANGE_MIN_CHUNK_SIZE, false)).thenResolve(mails.slice(2, 42))
 
-				when(clientMock.loadRange(anything(), listId, getElementId(mails[41]), EXTEND_RANGE_MIN_CHUNK_SIZE, false)).thenResolve(mails.slice(42, 82))
+			when(clientMock.loadRange(anything(), listId, getElementId(mails[41]), EXTEND_RANGE_MIN_CHUNK_SIZE, false)).thenResolve(mails.slice(42, 82))
 
-				when(clientMock.loadRange(anything(), listId, getElementId(mails[81]), EXTEND_RANGE_MIN_CHUNK_SIZE, false)).thenResolve(mails.slice(82))
+			when(clientMock.loadRange(anything(), listId, getElementId(mails[81]), EXTEND_RANGE_MIN_CHUNK_SIZE, false)).thenResolve(mails.slice(82))
 
-				const result = await cache.loadRange(MailTypeRef, listId, GENERATED_MAX_ID, 2, true)
+			const result = await cache.loadRange(MailTypeRef, listId, GENERATED_MAX_ID, 2, true)
 
-				o(result).deepEquals([mails[mails.length - 1], mails[mails.length - 2]])
+			o(result).deepEquals([mails[mails.length - 1], mails[mails.length - 2]])
 
-				o((await storage.getRangeForList(MailTypeRef, listId))!).deepEquals({
-					lower: getElementId(mails[0]),
-					upper: GENERATED_MAX_ID,
-				})
-				o(await storage.getIdsInRange(MailTypeRef, listId)).deepEquals(mails.map(getElementId))
-			},
-		)
+			o((await storage.getRangeForList(MailTypeRef, listId))!).deepEquals({
+				lower: getElementId(mails[0]),
+				upper: GENERATED_MAX_ID,
+			})
+			o(await storage.getIdsInRange(MailTypeRef, listId)).deepEquals(mails.map(getElementId))
+		})
 
 		o(
 			"The range request starts on one end of the existing range, and would finish on the other end, so it loads from either direction of the range",

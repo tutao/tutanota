@@ -172,12 +172,7 @@ o.spec("array utils", function () {
 
 		const same = (l, r) => l.id === r.id
 
-		function test(
-			arr: Array<ObjectWithId>,
-			insert: ObjectWithId,
-			expect: Array<ObjectWithId>,
-			equalsFn?: (arg0: ObjectWithId, arg1: ObjectWithId) => boolean,
-		) {
+		function test(arr: Array<ObjectWithId>, insert: ObjectWithId, expect: Array<ObjectWithId>, equalsFn?: (arg0: ObjectWithId, arg1: ObjectWithId) => boolean) {
 			insertIntoSortedArray(insert, arr, comparator, equalsFn)
 			o(arr).deepEquals(expect)
 		}

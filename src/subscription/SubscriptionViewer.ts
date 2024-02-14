@@ -125,17 +125,17 @@ export class SubscriptionViewer implements UpdatableSettingsViewer {
 									size: ButtonSize.Compact,
 							  })
 							: !this._isCancelled
-							? m(IconButton, {
-									title: "subscription_label",
-									click: () => {
-										if (this._accountingInfo && this._customer && this._customerInfo && this._lastBooking) {
-											showSwitchDialog(this._customer, this._customerInfo, this._accountingInfo, this._lastBooking, AvailablePlans, null)
-										}
-									},
-									icon: Icons.Edit,
-									size: ButtonSize.Compact,
-							  })
-							: null,
+							  ? m(IconButton, {
+										title: "subscription_label",
+										click: () => {
+											if (this._accountingInfo && this._customer && this._customerInfo && this._lastBooking) {
+												showSwitchDialog(this._customer, this._customerInfo, this._accountingInfo, this._lastBooking, AvailablePlans, null)
+											}
+										},
+										icon: Icons.Edit,
+										size: ButtonSize.Compact,
+								  })
+							  : null,
 				}),
 				this.showOrderAgreement() ? this.renderAgreement() : null,
 				this.showPriceData() ? this.renderIntervals() : null,

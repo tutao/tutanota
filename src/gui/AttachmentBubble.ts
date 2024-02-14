@@ -77,7 +77,11 @@ export class AttachmentDetailsPopup implements ModalComponent {
 		return this.closeDefer.promise
 	}
 
-	constructor(private readonly targetRect: PosRect, private readonly targetWidth: number, private readonly attrs: AttachmentBubbleAttrs) {
+	constructor(
+		private readonly targetRect: PosRect,
+		private readonly targetWidth: number,
+		private readonly attrs: AttachmentBubbleAttrs,
+	) {
 		this._shortcuts.push({
 			key: Keys.ESC,
 			exec: () => this.onClose(),

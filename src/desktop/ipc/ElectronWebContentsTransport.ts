@@ -17,7 +17,10 @@ export class ElectronWebContentsTransport<
 	IncomingRequestType extends string,
 > implements Transport<OutgoingRequestType, IncomingRequestType>
 {
-	constructor(private readonly webContents: WebContents, private readonly config: IpcConfigType) {}
+	constructor(
+		private readonly webContents: WebContents,
+		private readonly config: IpcConfigType,
+	) {}
 
 	postMessage(message: Message<OutgoingRequestType>): void {
 		if (this.webContents.isDestroyed()) return

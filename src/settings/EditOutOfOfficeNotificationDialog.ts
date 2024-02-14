@@ -30,11 +30,7 @@ export function showEditOutOfOfficeNotificationDialog(outOfOfficeNotification: O
 		lang,
 		locator.serviceExecutor,
 	)
-	const organizationMessageEditor = new HtmlEditor("message_label")
-		.setMinHeight(100)
-		.showBorders()
-		.setValue(dialogModel.organizationMessage())
-		.enableToolbar()
+	const organizationMessageEditor = new HtmlEditor("message_label").setMinHeight(100).showBorders().setValue(dialogModel.organizationMessage()).enableToolbar()
 	const defaultMessageEditor = new HtmlEditor("message_label").setMinHeight(100).showBorders().setValue(dialogModel.defaultMessage()).enableToolbar()
 
 	const saveOutOfOfficeNotification = () => {

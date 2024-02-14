@@ -51,14 +51,7 @@ export class AboutDialog implements Component {
 			.join("")
 
 		try {
-			const editor = await newMailEditorFromTemplate(
-				mailboxDetails,
-				{},
-				`Device logs v${env.versionNumber} - ${type} - ${client}`,
-				message,
-				attachments,
-				true,
-			)
+			const editor = await newMailEditorFromTemplate(mailboxDetails, {}, `Device logs v${env.versionNumber} - ${type} - ${client}`, message, attachments, true)
 			editor.show()
 		} catch (e) {
 			if (e instanceof UserError) {

@@ -27,7 +27,12 @@ export class UsageTest {
 	public recordTime = false
 	private lastPingDate?: Date
 
-	constructor(readonly testId: string, readonly testName: string, public variant: number, public active: boolean) {}
+	constructor(
+		readonly testId: string,
+		readonly testName: string,
+		public variant: number,
+		public active: boolean,
+	) {}
 
 	/**
 	Tries to restart the test (by sending stage 0) regardless of the allowEarlyRestarts setting
@@ -100,9 +105,7 @@ export class UsageTest {
 			let currentStage = this.stages.get(i)
 
 			if (!!currentStage && currentStage.minPings != 0) {
-				console.log(
-					`Not sending ping for stage (${stage.number}) in wrong order of test '${this.testId}' because stage ${currentStage.number} is not finished`,
-				)
+				console.log(`Not sending ping for stage (${stage.number}) in wrong order of test '${this.testId}' because stage ${currentStage.number} is not finished`)
 				return false
 			}
 		}

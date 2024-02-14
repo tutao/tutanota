@@ -21,15 +21,13 @@ export class CalendarSwipeHandler extends SwipeHandler {
 	onHorizontalGestureCompleted(delta: { x: number; y: number }): Promise<void> {
 		if (Math.abs(delta.x) > 100) {
 			this._xoffset = 0
-			return animations
-				.add(this.touchArea, transform(TransformEnum.TranslateX, delta.x, this.touchArea.offsetWidth * (delta.x > 0 ? 1 : -1)))
-				.then(() => {
-					this._onGestureCompleted(delta.x < 0)
+			return animations.add(this.touchArea, transform(TransformEnum.TranslateX, delta.x, this.touchArea.offsetWidth * (delta.x > 0 ? 1 : -1))).then(() => {
+				this._onGestureCompleted(delta.x < 0)
 
-					requestAnimationFrame(() => {
-						this.touchArea.style.transform = ""
-					})
+				requestAnimationFrame(() => {
+					this.touchArea.style.transform = ""
 				})
+			})
 		} else {
 			return this.reset(delta)
 		}

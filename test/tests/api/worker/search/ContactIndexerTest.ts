@@ -221,10 +221,7 @@ o.spec("ContactIndexer test", () => {
 			const [[{ groupId, indexTimestamp }], indexUpdate] = core.writeIndexUpdate.args
 			o(indexTimestamp).equals(FULL_INDEXED_TIMESTAMP)
 			o(groupId).equals(contactList._ownerGroup)
-			let expectedKeys = [
-				encryptIndexKeyBase64(core.db.key, contacts[0]._id[1], fixedIv),
-				encryptIndexKeyBase64(core.db.key, contacts[1]._id[1], fixedIv),
-			]
+			let expectedKeys = [encryptIndexKeyBase64(core.db.key, contacts[0]._id[1], fixedIv), encryptIndexKeyBase64(core.db.key, contacts[1]._id[1], fixedIv)]
 			o(Array.from(indexUpdate.create.encInstanceIdToElementData.keys())).deepEquals(expectedKeys)
 			o(suggestionFacadeMock.addSuggestions.callCount).equals(contacts.length)
 			o(suggestionFacadeMock.store.callCount).equals(1)

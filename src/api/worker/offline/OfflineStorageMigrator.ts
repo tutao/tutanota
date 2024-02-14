@@ -43,7 +43,10 @@ const CURRENT_OFFLINE_VERSION = 1
  *  Migrations might read and write to the database and they should use StandardMigrations when needed.
  */
 export class OfflineStorageMigrator {
-	constructor(private readonly migrations: ReadonlyArray<OfflineMigration>, private readonly modelInfos: ModelInfos) {}
+	constructor(
+		private readonly migrations: ReadonlyArray<OfflineMigration>,
+		private readonly modelInfos: ModelInfos,
+	) {}
 
 	async migrate(storage: OfflineStorage, sqlCipherFacade: SqlCipherFacade) {
 		const meta = await storage.dumpMetadata()

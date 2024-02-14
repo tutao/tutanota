@@ -270,14 +270,7 @@ export class MailListView implements Component<MailListViewAttrs> {
 				const key = mapKey(mail)
 				const downloadPromise = Promise.resolve().then(async () => {
 					const { htmlSanitizer } = await import("../../misc/HtmlSanitizer")
-					const bundle = await makeMailBundle(
-						mail,
-						locator.mailFacade,
-						locator.entityClient,
-						locator.fileController,
-						htmlSanitizer,
-						locator.cryptoFacade,
-					)
+					const bundle = await makeMailBundle(mail, locator.mailFacade, locator.entityClient, locator.fileController, htmlSanitizer, locator.cryptoFacade)
 					progressMonitor.workDone(1)
 					const file = await generateMailFile(bundle, name, exportMode)
 					progressMonitor.workDone(1)
@@ -452,8 +445,8 @@ export class MailListView implements Component<MailListViewAttrs> {
 						this.showingSpamOrTrash
 							? lang.get("recover_label") // show "recover" if this is the trash/spam folder
 							: this.showingArchive // otherwise show "inbox" or "archive" depending on the folder
-							? lang.get("received_action")
-							: lang.get("archive_label"),
+							  ? lang.get("received_action")
+							  : lang.get("archive_label"),
 					),
 			  ]
 	}

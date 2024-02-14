@@ -24,7 +24,11 @@ export class ThemeController {
 	readonly observableThemeId: Stream<ThemeId>
 	readonly initialized: Promise<any>
 
-	constructor(themeSingleton: {}, private readonly themeFacade: ThemeFacade, private readonly htmlSanitizer: () => Promise<HtmlSanitizer>) {
+	constructor(
+		themeSingleton: {},
+		private readonly themeFacade: ThemeFacade,
+		private readonly htmlSanitizer: () => Promise<HtmlSanitizer>,
+	) {
 		// this will be overwritten quickly
 		this._themeId = defaultThemeId
 		this._themePreference = "auto:light|dark"
@@ -224,10 +228,7 @@ export class ThemeController {
 			return Object.assign({}, this.getBaseTheme(customizations.base), customizations)
 		} else {
 			const themeWithoutLogo = Object.assign({}, this.getBaseTheme(customizations.base), customizations)
-			const coloredTutanotaLogo = getLogoSvg(
-				themeWithoutLogo.content_accent,
-				customizations.base === "light" ? logo_text_dark_grey : logo_text_bright_grey,
-			)
+			const coloredTutanotaLogo = getLogoSvg(themeWithoutLogo.content_accent, customizations.base === "light" ? logo_text_dark_grey : logo_text_bright_grey)
 			return { ...themeWithoutLogo, ...{ logo: coloredTutanotaLogo } }
 		}
 	}

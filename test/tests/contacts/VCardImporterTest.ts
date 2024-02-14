@@ -347,12 +347,7 @@ END:VCARD`
 	})
 	o("base64 implicit utf-8", function () {
 		let vcards =
-			"BEGIN:VCARD\n" +
-			"VERSION:2.1\n" +
-			"N:Mustermann;Max;;;\n" +
-			"FN:Max Mustermann\n" +
-			"ADR;HOME;ENCODING=BASE64:;;w4TDpMOkaGhtbQ==;;;;\n" +
-			"END:VCARD"
+			"BEGIN:VCARD\n" + "VERSION:2.1\n" + "N:Mustermann;Max;;;\n" + "FN:Max Mustermann\n" + "ADR;HOME;ENCODING=BASE64:;;w4TDpMOkaGhtbQ==;;;;\n" + "END:VCARD"
 		let contacts = vCardListToContacts(neverNull(vCardFileToVCards(vcards)), "")
 		o(neverNull(contacts[0].addresses[0].address)).equals("Ääähhmm")
 	})

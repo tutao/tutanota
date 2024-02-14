@@ -15,7 +15,7 @@ import { KeyPermanentlyInvalidatedError } from "../../api/common/error/KeyPerman
 
 /** the single source of truth for this configuration */
 const SUPPORTED_MODES = Object.freeze([CredentialEncryptionMode.DEVICE_LOCK, CredentialEncryptionMode.APP_PASSWORD] as const)
-export type DesktopCredentialsMode = typeof SUPPORTED_MODES[number]
+export type DesktopCredentialsMode = (typeof SUPPORTED_MODES)[number]
 
 /**
  *
@@ -102,9 +102,7 @@ export class DesktopNativeCredentialsFacade implements NativeCredentialsFacade {
 	private async enrollForAppPass(): Promise<Aes256Key> {
 		const newSalt = this.crypto.randomBytes(KEY_LENGTH_BYTES_AES_256)
 		const commonNativeFacade = await this.getCurrentCommonNativeFacade()
-		const newPw = await this.tryWhileSaltNotChanged(
-			commonNativeFacade.promptForNewPassword(this.lang.get("credentialsEncryptionModeAppPassword_label"), null),
-		)
+		const newPw = await this.tryWhileSaltNotChanged(commonNativeFacade.promptForNewPassword(this.lang.get("credentialsEncryptionModeAppPassword_label"), null))
 		const newAppPassSaltB64 = uint8ArrayToBase64(newSalt)
 		await this.conf.setVar(DesktopConfigKey.appPassSalt, newAppPassSaltB64)
 		return generateKeyFromPassphraseArgon2id(await this.argon2idFacade, newPw, newSalt)

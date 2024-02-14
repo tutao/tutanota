@@ -20,7 +20,10 @@ assertMainOrNode()
 export class WebMobileFacade implements MobileFacade {
 	private disconnectTimeoutId: TimeoutID | null
 
-	constructor(private readonly connectivityModel: WebsocketConnectivityModel, private readonly mailModel: MailModel) {}
+	constructor(
+		private readonly connectivityModel: WebsocketConnectivityModel,
+		private readonly mailModel: MailModel,
+	) {}
 
 	async handleBackPress(): Promise<boolean> {
 		await Promise.resolve()

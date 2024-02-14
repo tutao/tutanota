@@ -105,11 +105,7 @@ export class RichTextToolbar implements Component<RichTextToolbarAttrs> {
 			title,
 			icon,
 			() =>
-				editor.styles.listing === listing
-					? editor.squire.removeList()
-					: listing === "ul"
-					? editor.squire.makeUnorderedList()
-					: editor.squire.makeOrderedList(),
+				editor.styles.listing === listing ? editor.squire.removeList() : listing === "ul" ? editor.squire.makeUnorderedList() : editor.squire.makeOrderedList(),
 			() => editor.styles.listing === listing,
 		)
 	}

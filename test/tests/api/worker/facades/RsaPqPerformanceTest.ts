@@ -45,9 +45,7 @@ o.spec("RsaPqPerformanceTest", function () {
 			let pubEncBucketKey
 			for (let i = 0; i < iterations; i++) {
 				const ephemeralKeyPair = generateEccKeyPair()
-				pubEncBucketKey = encodePQMessage(
-					await pqFacade.encapsulate(senderIdentityKeyPair, ephemeralKeyPair, pqKeyPairsToPublicKeys(recipientKeys), bucketKey),
-				)
+				pubEncBucketKey = encodePQMessage(await pqFacade.encapsulate(senderIdentityKeyPair, ephemeralKeyPair, pqKeyPairsToPublicKeys(recipientKeys), bucketKey))
 			}
 			let end = window.performance.now()
 			console.log(formatNumber((end - start) / iterations) + "ms per pq encryption")

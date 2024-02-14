@@ -36,11 +36,7 @@ class TemplateShortcutListener {
 			const templateShortcutStartIndex = text.lastIndexOf(TEMPLATE_SHORTCUT_PREFIX)
 			const lastWhiteSpaceIndex = text.search(/\s\S*$/)
 
-			if (
-				templateShortcutStartIndex !== -1 &&
-				templateShortcutStartIndex < cursorEndPos.startOffset &&
-				templateShortcutStartIndex > lastWhiteSpaceIndex
-			) {
+			if (templateShortcutStartIndex !== -1 && templateShortcutStartIndex < cursorEndPos.startOffset && templateShortcutStartIndex > lastWhiteSpaceIndex) {
 				// stopPropagation & preventDefault to prevent tabbing to "close" button or tabbing into background
 				event.stopPropagation()
 				event.preventDefault()

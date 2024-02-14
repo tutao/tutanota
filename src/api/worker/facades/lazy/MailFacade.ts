@@ -371,9 +371,7 @@ export class MailFacade {
 			// check which attachments have been removed
 			for (const fileId of existingFileIds) {
 				if (
-					!attachments.some(
-						(attachment) => attachment._type !== "DataFile" && attachment._type !== "FileReference" && isSameId(getLetId(attachment), fileId),
-					)
+					!attachments.some((attachment) => attachment._type !== "DataFile" && attachment._type !== "FileReference" && isSameId(getLetId(attachment), fileId))
 				) {
 					removedAttachmentIds.push(fileId)
 				}
@@ -738,19 +736,18 @@ export class MailFacade {
 							externalUser.memberships.find((m) => m.groupType === GroupType.Mail),
 							"no mail group membership on external user",
 						).group
-						return Promise.all([
-							this.entityClient.load(GroupTypeRef, mailGroupId),
-							this.entityClient.load(GroupTypeRef, externalUserReference.userGroup),
-						]).then(([externalMailGroup, externalUserGroup]) => {
-							const userAdminKey = assertNotNull(externalUserGroup.adminGroupEncGKey, "no adminGroupEncGKey on external user group")
-							const mailAdminKey = assertNotNull(externalMailGroup.adminGroupEncGKey, "no adminGroupEncGKey on external mail group")
-							let externalUserGroupKey = decryptKey(this.userFacade.getUserGroupKey(), userAdminKey)
-							let externalMailGroupKey = decryptKey(externalUserGroupKey, mailAdminKey)
-							return {
-								externalUserGroupKey,
-								externalMailGroupKey,
-							}
-						})
+						return Promise.all([this.entityClient.load(GroupTypeRef, mailGroupId), this.entityClient.load(GroupTypeRef, externalUserReference.userGroup)]).then(
+							([externalMailGroup, externalUserGroup]) => {
+								const userAdminKey = assertNotNull(externalUserGroup.adminGroupEncGKey, "no adminGroupEncGKey on external user group")
+								const mailAdminKey = assertNotNull(externalMailGroup.adminGroupEncGKey, "no adminGroupEncGKey on external mail group")
+								let externalUserGroupKey = decryptKey(this.userFacade.getUserGroupKey(), userAdminKey)
+								let externalMailGroupKey = decryptKey(externalUserGroupKey, mailAdminKey)
+								return {
+									externalUserGroupKey,
+									externalMailGroupKey,
+								}
+							},
+						)
 					})
 				})
 				.catch(

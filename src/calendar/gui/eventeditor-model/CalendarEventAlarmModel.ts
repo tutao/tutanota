@@ -24,8 +24,7 @@ export class CalendarEventAlarmModel {
 		private readonly dateProvider: DateProvider,
 		private readonly uiUpdateCallback: () => void = noOp,
 	) {
-		this.canEditReminders =
-			eventType === EventType.OWN || eventType === EventType.SHARED_RW || eventType === EventType.LOCKED || eventType === EventType.INVITE
+		this.canEditReminders = eventType === EventType.OWN || eventType === EventType.SHARED_RW || eventType === EventType.LOCKED || eventType === EventType.INVITE
 		this._alarms = [...alarms]
 	}
 

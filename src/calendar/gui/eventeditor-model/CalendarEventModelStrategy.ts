@@ -107,11 +107,7 @@ export class CalendarEventApplyStrategies {
 						await this.notificationModel.send(occurrence, [], sendModels)
 						await this.calendarModel.deleteEvent(occurrence)
 					} else {
-						const { newEvent, newAlarms, sendModels } = assembleEditResultAndAssignFromExisting(
-							occurrence,
-							editModelsForProgenitor,
-							CalendarOperation.EditThis,
-						)
+						const { newEvent, newAlarms, sendModels } = assembleEditResultAndAssignFromExisting(occurrence, editModelsForProgenitor, CalendarOperation.EditThis)
 						// we need to use the time we had before, not the time of the progenitor (which did not change since we still have altered occurrences)
 						newEvent.startTime = occurrence.startTime
 						newEvent.endTime = DateTime.fromJSDate(newEvent.startTime, { zone: this.zone }).plus(newDuration).toJSDate()
@@ -139,11 +135,7 @@ export class CalendarEventApplyStrategies {
 		await this.showProgress(
 			(async () => {
 				// NEW: edit models that we used so far are for the new event (rescheduled one). this should be an invite.
-				const { newEvent, calendar, newAlarms, sendModels } = assembleEditResultAndAssignFromExisting(
-					existingInstance,
-					editModels,
-					CalendarOperation.EditThis,
-				)
+				const { newEvent, calendar, newAlarms, sendModels } = assembleEditResultAndAssignFromExisting(existingInstance, editModels, CalendarOperation.EditThis)
 				await this.notificationModel.send(newEvent, [], sendModels)
 
 				// OLD: but we need to update the existing one as well, to add an exclusion for the original instance that we edited.

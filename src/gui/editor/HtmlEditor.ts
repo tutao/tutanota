@@ -29,7 +29,10 @@ export class HtmlEditor implements Component {
 	private toolbarEnabled = false
 	private toolbarAttrs: Omit<RichTextToolbarAttrs, "editor"> = {}
 
-	constructor(private label?: TranslationText, private readonly injections?: () => Children) {
+	constructor(
+		private label?: TranslationText,
+		private readonly injections?: () => Children,
+	) {
 		this.editor = new Editor(null, (html) => htmlSanitizer.sanitizeFragment(html, { blockExternalContent: false }).fragment)
 		this.view = this.view.bind(this)
 		this.initializeEditorListeners()
@@ -51,8 +54,7 @@ export class HtmlEditor implements Component {
 						".abs.text-ellipsis.noselect.z1.i.pr-s",
 						{
 							oncreate: (vnode) => (this.placeholderDomElement = vnode.dom as HTMLElement),
-							onclick: () =>
-								this.mode === HtmlEditorMode.WYSIWYG ? assertNotNull(this.editor.domElement).focus() : assertNotNull(this.domTextArea).focus(),
+							onclick: () => (this.mode === HtmlEditorMode.WYSIWYG ? assertNotNull(this.editor.domElement).focus() : assertNotNull(this.domTextArea).focus()),
 						},
 						this.placeholderId ? lang.get(this.placeholderId) : "",
 				  )

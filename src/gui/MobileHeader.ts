@@ -44,14 +44,14 @@ export class MobileHeader implements Component<MobileHeaderAttrs> {
 				attrs.columnType === "first"
 					? m(MobileHeaderMenuButton, { newsModel: attrs.newsModel, backAction: attrs.backAction })
 					: styles.isSingleColumnLayout()
-					? m(IconButton, {
-							title: "back_action",
-							icon: BootIcons.Back,
-							click: () => {
-								attrs.backAction()
-							},
-					  })
-					: null,
+					  ? m(IconButton, {
+								title: "back_action",
+								icon: BootIcons.Back,
+								click: () => {
+									attrs.backAction()
+								},
+						  })
+					  : null,
 			center: firstVisibleColumn
 				? m(MobileHeaderTitle, {
 						title: attrs.title,

@@ -13,7 +13,10 @@ import { ProgrammingError } from "../../api/common/error/ProgrammingError.js"
 export type FileUri = string
 
 export class NativeFileApp {
-	constructor(private readonly fileFacade: FileFacade, private readonly exportFacade: ExportFacade) {}
+	constructor(
+		private readonly fileFacade: FileFacade,
+		private readonly exportFacade: ExportFacade,
+	) {}
 
 	/**
 	 * Open the file

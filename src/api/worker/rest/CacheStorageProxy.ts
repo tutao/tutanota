@@ -46,7 +46,10 @@ type SomeStorage = OfflineStorage | EphemeralCacheStorage
 export class LateInitializedCacheStorageImpl implements CacheStorageLateInitializer, CacheStorage {
 	private _inner: SomeStorage | null = null
 
-	constructor(private readonly worker: WorkerImpl, private readonly offlineStorageProvider: () => Promise<null | OfflineStorage>) {}
+	constructor(
+		private readonly worker: WorkerImpl,
+		private readonly offlineStorageProvider: () => Promise<null | OfflineStorage>,
+	) {}
 
 	private get inner(): CacheStorage {
 		if (this._inner == null) {
@@ -71,9 +74,7 @@ export class LateInitializedCacheStorageImpl implements CacheStorageLateInitiali
 		this._inner?.deinit()
 	}
 
-	private async getStorage(
-		args: OfflineStorageArgs | EphemeralStorageArgs,
-	): Promise<{ storage: SomeStorage; isPersistent: boolean; isNewOfflineDb: boolean }> {
+	private async getStorage(args: OfflineStorageArgs | EphemeralStorageArgs): Promise<{ storage: SomeStorage; isPersistent: boolean; isNewOfflineDb: boolean }> {
 		if (args.type === "offline") {
 			try {
 				const storage = await this.offlineStorageProvider()

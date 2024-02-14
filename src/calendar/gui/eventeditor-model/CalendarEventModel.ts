@@ -192,13 +192,9 @@ export async function makeCalendarEventModel(
 	}
 
 	const user = logins.getUserController().user
-	const [alarms, calendars] = await Promise.all([
-		resolveAlarmsForEvent(initialValues.alarmInfos ?? [], calendarModel, user),
-		calendarModel.getCalendarInfos(),
-	])
+	const [alarms, calendars] = await Promise.all([resolveAlarmsForEvent(initialValues.alarmInfos ?? [], calendarModel, user), calendarModel.getCalendarInfos()])
 	const selectedCalendar = getPreselectedCalendar(calendars, initialValues)
-	const getPasswordStrength = (password: string, recipientInfo: PartialRecipient) =>
-		getPasswordStrengthForUser(password, recipientInfo, mailboxDetail, logins)
+	const getPasswordStrength = (password: string, recipientInfo: PartialRecipient) => getPasswordStrengthForUser(password, recipientInfo, mailboxDetail, logins)
 
 	const eventType = getEventType(
 		initialValues,
@@ -237,14 +233,7 @@ export async function makeCalendarEventModel(
 	const initialOrDefaultValues = Object.assign(makeEmptyCalendarEvent(), initialValues)
 	const cleanInitialValues = cleanupInitialValuesForEditing(initialOrDefaultValues)
 	const progenitor = () => calendarModel.resolveCalendarEventProgenitor(cleanInitialValues)
-	const strategy = await selectStrategy(
-		makeEditModels,
-		applyStrategies,
-		operation,
-		progenitor,
-		createCalendarEvent(initialOrDefaultValues),
-		cleanInitialValues,
-	)
+	const strategy = await selectStrategy(makeEditModels, applyStrategies, operation, progenitor, createCalendarEvent(initialOrDefaultValues), cleanInitialValues)
 	return strategy && new CalendarEventModel(strategy, eventType, operation, logins.getUserController(), notificationSender, entityClient, calendars)
 }
 

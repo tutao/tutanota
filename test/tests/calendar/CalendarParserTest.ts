@@ -26,12 +26,7 @@ o.spec("CalendarParser", function () {
 		})
 
 		o("simple value, property parameter", function () {
-			o(propertySequenceParser(new StringIterator("DTSTART;VALUE=DATE:20190607"))).deepEquals([
-				"DTSTART",
-				[";", [["VALUE", "=", "DATE"]]],
-				":",
-				"20190607",
-			])
+			o(propertySequenceParser(new StringIterator("DTSTART;VALUE=DATE:20190607"))).deepEquals(["DTSTART", [";", [["VALUE", "=", "DATE"]]], ":", "20190607"])
 		})
 
 		o("simple value, multiple property parameters", function () {

@@ -213,13 +213,7 @@ o.spec("CalendarEventModelTest", function () {
 				false,
 				"different address, same name",
 			],
-			[
-				"organizer",
-				fixedOrganizer,
-				createTestEntity(EncryptedMailAddressTypeRef, { address: "moo@d.io", name: "bla" }),
-				true,
-				"same name, different address",
-			],
+			["organizer", fixedOrganizer, createTestEntity(EncryptedMailAddressTypeRef, { address: "moo@d.io", name: "bla" }), true, "same name, different address"],
 			["attendees", [], [], false, "no attendees in either event"],
 			[
 				"attendees",
@@ -236,13 +230,7 @@ o.spec("CalendarEventModelTest", function () {
 				"only address case changed",
 			],
 			["attendees", [att("b@c.d", "b", CalendarAttendeeStatus.NEEDS_ACTION)], [], true, "attendee changed"],
-			[
-				"attendees",
-				[att("b@c.d", "b", CalendarAttendeeStatus.NEEDS_ACTION)],
-				[att("b@c.d", "b", CalendarAttendeeStatus.ACCEPTED)],
-				true,
-				"status changed",
-			],
+			["attendees", [att("b@c.d", "b", CalendarAttendeeStatus.NEEDS_ACTION)], [att("b@c.d", "b", CalendarAttendeeStatus.ACCEPTED)], true, "status changed"],
 			// repeat rule is tested with areRepeatRulesEqual
 		] as const
 

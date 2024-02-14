@@ -80,9 +80,7 @@ export class SecondFactorAuthDialog {
 	}
 
 	private async show() {
-		const u2fChallenge = this.authData.challenges.find(
-			(challenge) => challenge.type === SecondFactorType.u2f || challenge.type === SecondFactorType.webauthn,
-		)
+		const u2fChallenge = this.authData.challenges.find((challenge) => challenge.type === SecondFactorType.u2f || challenge.type === SecondFactorType.webauthn)
 
 		const otpChallenge = this.authData.challenges.find((challenge) => challenge.type === SecondFactorType.totp)
 		const u2fSupported = await this.webauthnClient.isSupported()
@@ -123,11 +121,11 @@ export class SecondFactorAuthDialog {
 									doWebauthn: () => this.doWebauthn(assertNotNull(u2fChallenge)),
 							  }
 							: otherDomainLoginUrl
-							? {
-									canLogin: false,
-									otherDomainLoginUrl: otherDomainLoginUrl,
-							  }
-							: null,
+							  ? {
+										canLogin: false,
+										otherDomainLoginUrl: otherDomainLoginUrl,
+								  }
+							  : null,
 						otp: otpChallenge
 							? {
 									codeFieldValue: this.otpState.code,

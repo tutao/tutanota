@@ -55,7 +55,10 @@ export class MailRow implements VirtualRow<Mail> {
 	private checkboxWasVisible = shouldAlwaysShowMultiselectCheckbox()
 	private selectionSetter!: SelectableRowSelectedSetter
 
-	constructor(private readonly showFolderIcon: boolean, private readonly onSelected: (mail: Mail, selected: boolean) => unknown) {
+	constructor(
+		private readonly showFolderIcon: boolean,
+		private readonly onSelected: (mail: Mail, selected: boolean) => unknown,
+	) {
 		this.top = 0
 		this.entity = null
 		this.folderIconsDom = {} as Record<MailFolderType, HTMLElement>
