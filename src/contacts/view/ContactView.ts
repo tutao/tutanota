@@ -281,6 +281,7 @@ export class ContactView extends BaseTopLevelView implements TopLevelView<Contac
 				onExport: exportContacts,
 				onDelete: deleteContacts,
 				onMerge: confirmMerge,
+				selectNone: () => this.contactViewModel.listModel.selectNone(),
 			})
 		}
 	}
@@ -918,9 +919,10 @@ export function writeMail(to: PartialRecipient, subject: string = ""): Promise<u
 	})
 }
 
-export function deleteContacts(contactList: Contact[]): Promise<void> {
+export function deleteContacts(contactList: Contact[], onConfirm: () => void = noOp): Promise<void> {
 	return Dialog.confirm("deleteContacts_msg").then((confirmed) => {
 		if (confirmed) {
+			onConfirm()
 			for (const contact of contactList) {
 				locator.entityClient.erase(contact).catch(ofClass(NotFoundError, noOp)).catch(ofClass(LockedError, noOp))
 			}
