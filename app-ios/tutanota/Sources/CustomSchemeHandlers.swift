@@ -109,6 +109,8 @@ class AssetSchemeHandler: NSObject, WKURLSchemeHandler {
 	private func getAssetMimeType(path: String) -> String {
 		if path.hasSuffix(".wasm") {
 			return "application/wasm"
+		} else if path.hasSuffix(".icc") {
+			return "application/application/vnd.iccprofile"
 		} else if let mimeType = getFileMIMEType(path: path) {
 			return mimeType
 		} else {
