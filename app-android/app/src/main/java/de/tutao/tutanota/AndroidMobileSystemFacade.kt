@@ -19,6 +19,8 @@ class AndroidMobileSystemFacade(
   private val fileFacade: AndroidFileFacade,
   private val activity: Activity,
 ) : MobileSystemFacade {
+
+
   override suspend fun openLink(uri: String): Boolean {
 	val intent = Intent(Intent.ACTION_VIEW, Uri.parse(uri))
 	return withContext(Dispatchers.Main) {
@@ -61,9 +63,9 @@ class AndroidMobileSystemFacade(
 		fileFacade.writeFileStream(logoFile, logoInputStream)
 		val logoUri = FileProvider.getUriForFile(activity, BuildConfig.FILE_PROVIDER_AUTHORITY, logoFile)
 		val thumbnail = ClipData.newUri(
-		  activity.contentResolver,
-		  "tutanota_logo",
-		  logoUri
+				activity.contentResolver,
+				"tutanota_logo",
+				logoUri
 		)
 		sendIntent.clipData = thumbnail
 	  } catch (e: IOException) {
