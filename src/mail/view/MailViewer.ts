@@ -37,6 +37,7 @@ import { responsiveCardHMargin, responsiveCardHPadding } from "../../gui/cards.j
 import { isTutanotaTeamMail } from "../../api/common/mail/CommonMailUtils.js"
 import { AttachmentType, getAttachmentType } from "../../gui/AttachmentBubble.js"
 import { Dialog } from "../../gui/base/Dialog.js"
+import { importContactsFromFile } from "../../contacts/ContactImporter.js"
 
 assertMainOrNode()
 // map of inline image cid to InlineImageReference
