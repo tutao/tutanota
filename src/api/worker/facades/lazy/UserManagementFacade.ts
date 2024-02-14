@@ -53,8 +53,8 @@ export class UserManagementFacade {
 	async changeUserPassword(user: User, newPassword: string): Promise<void> {
 		const userGroupKey = await this.groupManagement.getGroupKeyViaAdminEncGKey(user.userGroup.group)
 		const salt = generateRandomSalt()
-		const kdfVersion = DEFAULT_KDF_TYPE
-		const passwordKey = await this.loginFacade.deriveUserPassphraseKey(kdfVersion, newPassword, salt)
+		const kdfType = DEFAULT_KDF_TYPE
+		const passwordKey = await this.loginFacade.deriveUserPassphraseKey({ kdfType, passphrase: newPassword, salt })
 		const pwEncUserGroupKey = encryptKey(passwordKey, userGroupKey)
 		const passwordVerifier = createAuthVerifier(passwordKey)
 		const data = createResetPasswordData({
@@ -62,7 +62,7 @@ export class UserManagementFacade {
 			salt,
 			verifier: passwordVerifier,
 			pwEncUserGroupKey,
-			kdfVersion,
+			kdfVersion: kdfType,
 		})
 		await this.serviceExecutor.post(ResetPasswordService, data)
 	}
@@ -239,13 +239,13 @@ export class UserManagementFacade {
 		userGroupInfoSessionKey: Aes128Key,
 		customerGroupKey: Aes128Key,
 		mailAddress: string,
-		password: string,
+		passphrase: string,
 		userName: string,
 		recoverData: RecoverData,
 	): Promise<UserAccountUserData> {
 		const salt = generateRandomSalt()
 		const kdfType = DEFAULT_KDF_TYPE
-		const userPassphraseKey = await this.loginFacade.deriveUserPassphraseKey(kdfType, password, salt)
+		const userPassphraseKey = await this.loginFacade.deriveUserPassphraseKey({ kdfType, passphrase, salt })
 		const mailGroupKey = aes256RandomKey()
 		const contactGroupKey = aes256RandomKey()
 		const fileGroupKey = aes256RandomKey()
@@ -298,23 +298,28 @@ export class UserManagementFacade {
 		}
 	}
 
-	async getRecoverCode(password: string): Promise<string> {
+	async getRecoverCode(passphrase: string): Promise<string> {
 		const user = this.userFacade.getLoggedInUser()
 		const recoverCodeId = user.auth?.recoverCode
 		if (recoverCodeId == null) {
 			throw new Error("Auth is missing")
 		}
 
-		const passwordKey = await this.loginFacade.deriveUserPassphraseKey(asKdfType(user.kdfVersion), password, assertNotNull(user.salt))
+		const passphraseKeyData = {
+			kdfType: asKdfType(user.kdfVersion),
+			passphrase,
+			salt: assertNotNull(user.salt),
+		}
+		const passphraseKey = await this.loginFacade.deriveUserPassphraseKey(passphraseKeyData)
 		const extraHeaders = {
-			authVerifier: createAuthVerifierAsBase64Url(passwordKey),
+			authVerifier: createAuthVerifierAsBase64Url(passphraseKey),
 		}
 
 		const recoveryCodeEntity = await this.entityClient.load(RecoverCodeTypeRef, recoverCodeId, undefined, extraHeaders)
 		return uint8ArrayToHex(bitArrayToUint8Array(decryptKey(this.userFacade.getUserGroupKey(), recoveryCodeEntity.userEncRecoverCode)))
 	}
 
-	async createRecoveryCode(password: string): Promise<string> {
+	async createRecoveryCode(passphrase: string): Promise<string> {
 		const user = this.userFacade.getUser()
 
 		if (user == null || user.auth == null) {
@@ -328,7 +333,12 @@ export class UserManagementFacade {
 			_ownerGroup: this.userFacade.getUserGroupId(),
 			verifier: recoveryCodeVerifier,
 		})
-		const pwKey = await this.loginFacade.deriveUserPassphraseKey(asKdfType(user.kdfVersion), password, assertNotNull(user.salt))
+		const passphraseKeyData = {
+			kdfType: asKdfType(user.kdfVersion),
+			passphrase,
+			salt: assertNotNull(user.salt),
+		}
+		const pwKey = await this.loginFacade.deriveUserPassphraseKey(passphraseKeyData)
 		const authVerifier = createAuthVerifierAsBase64Url(pwKey)
 		await this.entityClient.setup(null, recoverPasswordEntity, {
 			authVerifier,

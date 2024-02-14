@@ -92,7 +92,6 @@ import { ProgrammingError } from "../../common/error/ProgrammingError.js"
 import { DatabaseKeyFactory } from "../../../misc/credentials/DatabaseKeyFactory.js"
 import { ExternalUserKeyDeriver } from "../../../misc/LoginUtils.js"
 import { Argon2idFacade } from "./Argon2idFacade.js"
-import { DefaultEntityRestCache } from "../rest/DefaultEntityRestCache.js"
 
 assertWorkerOrNode()
 
@@ -133,9 +132,9 @@ type ResumeSessionResult = ResumeSessionSuccess | ResumeSessionFailure
 type AsyncLoginState = { state: "idle" } | { state: "running" } | { state: "failed"; credentials: Credentials; cacheInfo: CacheInfo }
 
 /**
- * All attributes that are required to derive the password key.
+ * All attributes that are required to derive the passphrase key.
  */
-export type PasswordKeyData = {
+export type PassphraseKeyData = {
 	kdfType: KdfType
 	salt: Uint8Array
 	passphrase: string
@@ -292,7 +291,7 @@ export class LoginFacade {
 	/**
 	 * Ensure that the user is using a modern KDF type, migrating if not.
 	 * @param targetKdfType the current KDF type
-	 * @param passphrase either the plaintext password or the encrypted password with the access token necessary to decrypt it
+	 * @param passphrase either the plaintext passphrase or the encrypted passphrase with the access token necessary to decrypt it
 	 * @param user the user we are updating
 	 */
 	public async migrateKdfType(targetKdfType: KdfType, passphrase: string, user: User): Promise<void> {
@@ -301,32 +300,28 @@ export class LoginFacade {
 			return
 		}
 
-		const currentPasswordKeyData = {
+		const currentPassphraseKeyData = {
 			passphrase,
 			kdfType: asKdfType(user.kdfVersion),
 			salt: assertNotNull(user.salt, `current salt for user ${user._id} not found`),
 		}
 
-		const currentUserPassphraseKey = await this.deriveUserPassphraseKey(
-			currentPasswordKeyData.kdfType,
-			currentPasswordKeyData.passphrase,
-			currentPasswordKeyData.salt,
-		)
+		const currentUserPassphraseKey = await this.deriveUserPassphraseKey(currentPassphraseKeyData)
 		const currentAuthVerifier = createAuthVerifier(currentUserPassphraseKey)
 
-		const newPasswordKeyData = {
+		const newPassphraseKeyData = {
 			passphrase,
 			kdfType: targetKdfType,
 			salt: generateRandomSalt(),
 		}
-		const newUserPassphraseKey = await this.deriveUserPassphraseKey(newPasswordKeyData.kdfType, newPasswordKeyData.passphrase, newPasswordKeyData.salt)
+		const newUserPassphraseKey = await this.deriveUserPassphraseKey(newPassphraseKeyData)
 
 		const pwEncUserGroupKey = encryptKey(newUserPassphraseKey, this.userFacade.getUserGroupKey())
 		const newAuthVerifier = createAuthVerifier(newUserPassphraseKey)
 
 		const changeKdfPostIn = createChangeKdfPostIn({
-			kdfVersion: newPasswordKeyData.kdfType,
-			salt: newPasswordKeyData.salt,
+			kdfVersion: newPassphraseKeyData.kdfType,
+			salt: newPassphraseKeyData.salt,
 			pwEncUserGroupKey,
 			verifier: newAuthVerifier,
 			oldVerifier: currentAuthVerifier,
@@ -400,7 +395,7 @@ export class LoginFacade {
 	}
 
 	/**
-	 * Create external (temporary mailbox for password-protected emails) session and log in.
+	 * Create external (temporary mailbox for passphrase-protected emails) session and log in.
 	 * Changes internal state to refer to the logged-in user.
 	 */
 	async createExternalSession(
@@ -416,7 +411,7 @@ export class LoginFacade {
 		}
 
 		console.log("login external worker")
-		const userPassphraseKey = await this.deriveUserPassphraseKey(kdfType, passphrase, salt)
+		const userPassphraseKey = await this.deriveUserPassphraseKey({ kdfType, passphrase, salt })
 		// the verifier is always sent as url parameter, so it must be url encoded
 		const authVerifier = createAuthVerifierAsBase64Url(userPassphraseKey)
 		const authToken = base64ToBase64Url(uint8ArrayToBase64(sha256Hash(salt)))
@@ -470,7 +465,7 @@ export class LoginFacade {
 	/**
 	 * Derive a key given a KDF type, passphrase, and salt
 	 */
-	async deriveUserPassphraseKey(kdfType: KdfType, passphrase: string, salt: Uint8Array): Promise<Aes128Key | Aes256Key> {
+	async deriveUserPassphraseKey({ kdfType, passphrase, salt }: PassphraseKeyData): Promise<Aes128Key | Aes256Key> {
 		switch (kdfType) {
 			case KdfType.Bcrypt: {
 				return generateKeyFromPassphraseBcrypt(passphrase, salt, KeyLength.b128)
@@ -653,7 +648,7 @@ export class LoginFacade {
 
 		if (isExternalUser) {
 			await this.checkOutdatedExternalSalt(credentials, sessionData, externalUserKeyDeriver.salt)
-			userPassphraseKey = await this.deriveUserPassphraseKey(externalUserKeyDeriver.kdfType, passphrase, externalUserKeyDeriver.salt)
+			userPassphraseKey = await this.deriveUserPassphraseKey({ ...externalUserKeyDeriver, passphrase })
 			kdfType = null
 		} else {
 			const passphraseData = await this.loadUserPassphraseKey(credentials.login, passphrase)
@@ -806,7 +801,7 @@ export class LoginFacade {
 		const saltReturn = await this.serviceExecutor.get(SaltService, saltRequest)
 		const kdfType = asKdfType(saltReturn.kdfVersion)
 		return {
-			userPassphraseKey: await this.deriveUserPassphraseKey(kdfType, passphrase, saltReturn.salt),
+			userPassphraseKey: await this.deriveUserPassphraseKey({ kdfType, passphrase, salt: saltReturn.salt }),
 			kdfType,
 		}
 	}
@@ -901,20 +896,12 @@ export class LoginFacade {
 	 * Change password and/or KDF type for the current user. This will cause all other sessions to be closed.
 	 * @return New password encrypted with accessKey if this is a persistent session or {@code null}  if it's an ephemeral one.
 	 */
-	async changePassword(currentPasswordKeyData: PasswordKeyData, newPasswordKeyDataTemplate: Omit<PasswordKeyData, "salt">): Promise<Base64 | null> {
-		const currentUserPassphraseKey = await this.deriveUserPassphraseKey(
-			currentPasswordKeyData.kdfType,
-			currentPasswordKeyData.passphrase,
-			currentPasswordKeyData.salt,
-		)
+	async changePassword(currentPasswordKeyData: PassphraseKeyData, newPasswordKeyDataTemplate: Omit<PassphraseKeyData, "salt">): Promise<Base64 | null> {
+		const currentUserPassphraseKey = await this.deriveUserPassphraseKey(currentPasswordKeyData)
 		const currentAuthVerifier = createAuthVerifier(currentUserPassphraseKey)
 		const newPasswordKeyData = { ...newPasswordKeyDataTemplate, salt: generateRandomSalt() }
 
-		const newUserPassphraseKey = await this.deriveUserPassphraseKey(
-			newPasswordKeyDataTemplate.kdfType,
-			newPasswordKeyDataTemplate.passphrase,
-			newPasswordKeyData.salt,
-		)
+		const newUserPassphraseKey = await this.deriveUserPassphraseKey(newPasswordKeyData)
 		const pwEncUserGroupKey = encryptKey(newUserPassphraseKey, this.userFacade.getUserGroupKey())
 		const authVerifier = createAuthVerifier(newUserPassphraseKey)
 		const service = createChangePasswordData({
@@ -942,7 +929,12 @@ export class LoginFacade {
 	async deleteAccount(password: string, reason: string, takeover: string): Promise<void> {
 		const userSalt = assertNotNull(this.userFacade.getLoggedInUser().salt)
 
-		const passwordKey = await this.deriveUserPassphraseKey(asKdfType(this.userFacade.getLoggedInUser().kdfVersion), password, userSalt)
+		const passphraseKeyData = {
+			kdfType: asKdfType(this.userFacade.getLoggedInUser().kdfVersion),
+			passphrase: password,
+			salt: userSalt,
+		}
+		const passwordKey = await this.deriveUserPassphraseKey(passphraseKeyData)
 		const deleteCustomerData = createDeleteCustomerData({
 			authVerifier: createAuthVerifier(passwordKey),
 			reason: reason,
@@ -1014,7 +1006,8 @@ export class LoginFacade {
 			const salt = generateRandomSalt()
 			const newKdfType = DEFAULT_KDF_TYPE
 
-			const userPassphraseKey = await this.deriveUserPassphraseKey(newKdfType, newPassword, salt)
+			const newPassphraseKeyData = { kdfType: newKdfType, passphrase: newPassword, salt }
+			const userPassphraseKey = await this.deriveUserPassphraseKey(newPassphraseKeyData)
 			const pwEncUserGroupKey = encryptKey(userPassphraseKey, groupKey)
 			const newPasswordVerifier = createAuthVerifier(userPassphraseKey)
 			const postData = createChangePasswordData({
