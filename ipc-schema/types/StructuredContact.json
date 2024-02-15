@@ -2,7 +2,7 @@
 	"name": "StructuredContact",
 	"type": "struct",
 	"fields": {
-		"id": "string",
+		"id": "string?",
 		"firstName": "string",
 		"lastName": "string",
 		"nickname": "string?",
@@ -10,6 +10,7 @@
 		"birthday": "string?",
 		"mailAddresses": "List<StructuredMailAddress>",
 		"phoneNumbers": "List<StructuredPhoneNumber>",
-		"addresses": "List<StructuredAddress>"
+		"addresses": "List<StructuredAddress>",
+		"rawId": "string?"
 	}
 }

@@ -21,7 +21,7 @@ public protocol MobileSystemFacade {
 		_ contacts: [StructuredContact]
 	) async throws -> Void
 	/**
-	 * Sync all Tuta contacts with system's contact book, this operation includes Inserts, Updates and Deletions
+	 * Sync all Tuta contacts with system's contact book, this operation includes Inserts, Updates and Deletions. Returns a list of contacts that need to be created or updated into Tuta server
 	 */
 	func syncContacts(
 		_ username: String,

@@ -80,6 +80,14 @@ class Contact(private val activity: MainActivity) {
 	}
   }
 
+  private fun updateSourceId(rawId: Long, sourceId: String) {
+	val updateSourceIdOp = ContentProviderOperation.newUpdate(RawContacts.CONTENT_URI)
+			.withSelection("${RawContacts._ID} = ?", arrayOf(rawId.toString()))
+			.withValue(RawContacts.SOURCE_ID, sourceId)
+			.build()
+	resolver.applyBatch(ContactsContract.AUTHORITY, arrayListOf(updateSourceIdOp))
+  }
+
   suspend fun saveContacts(username: String, contacts: List<StructuredContact>): SaveContactsResult {
 	checkContactPermissions()
 
@@ -90,17 +98,25 @@ class Contact(private val activity: MainActivity) {
 	  while (cursor!!.moveToNext()) {
 		val rawContactId = cursor.getLong(0)
 		val sourceId = cursor.getString(1)
-		val isDirty = cursor.getString(2)
-
-		Log.d(TAG, "Is dirty? $isDirty")
 
 		if (sourceId == null) {
-		  Log.d(TAG, "invalid contact $rawContactId - no source Id")
-		  continue
+		  Log.d(TAG, "Missing sourceId, try to get from contact list")
+		  val contact = contacts.find { contact -> contact.rawId == rawContactId.toString() }
+
+		  if (contact?.id != null) {
+			// This will be called when we process the entity event
+			// after creating the contact
+			updateSourceId(rawContactId, contact.id)
+			Log.d(TAG, "Updated sourceId ${contact.id}")
+		  }
 		}
 
 		val storedContact = readContact(rawContactId, sourceId)
-		alreadyStoredContacts[storedContact.sourceId] = storedContact
+		// If present, we use the sourceId, otherwise we use the rawId.
+		// We need this because if there's no sourceId, we need to return this contact
+		// as a new Dirty one, so app can create it and later add a sourceId to it
+		val storedIdToUse = storedContact.sourceId ?: storedContact.rawId.toString()
+		alreadyStoredContacts[storedIdToUse] = storedContact
 	  }
 	}
 
@@ -111,6 +127,7 @@ class Contact(private val activity: MainActivity) {
 		Log.d(TAG, "Already has contact ${contact.id}")
 		continue
 	  }
+
 	  Log.d(TAG, "Inserting contact ${contact.id}")
 
 	  createContact(username, contact)
@@ -128,7 +145,7 @@ class Contact(private val activity: MainActivity) {
 	  }
 	}
 
-	Log.d(TAG, "Dirty contacts: $dirtyContacts")
+	Log.d(TAG, "Dirty contacts ${dirtyContacts.size}")
 
 	return SaveContactsResult(
 			alreadyStoredContacts,
@@ -151,7 +168,9 @@ class Contact(private val activity: MainActivity) {
 	  }
 	}
 
-	Log.d(TAG, "Contact synchronization ended. Dirty Contacts: ${alreadyStoredContacts.dirtyContacts}")
+	Log.d(TAG, "Contact synchronization ended.")
+
+	//Dirty contacts that should be synchronized with the server
 	return alreadyStoredContacts.dirtyContacts
   }
 
@@ -161,8 +180,7 @@ class Contact(private val activity: MainActivity) {
   }
 
   private fun deleteRawContact(storedContact: StoredContact): Int {
-	val uri = ContentUris.withAppendedId(RawContacts.CONTENT_URI, storedContact.rawId).buildUpon()
-			.appendQueryParameter(ContactsContract.CALLER_IS_SYNCADAPTER, "true").build()
+	val uri = appendCallerSyncAdapter(ContentUris.withAppendedId(RawContacts.CONTENT_URI, storedContact.rawId))
 	return resolver.delete(uri, null, null)
   }
 
@@ -208,6 +226,10 @@ class Contact(private val activity: MainActivity) {
 	}
   }
 
+  private fun appendCallerSyncAdapter(uri: Uri): Uri {
+	return uri.buildUpon().appendQueryParameter(ContactsContract.CALLER_IS_SYNCADAPTER, "true").build()
+  }
+
   private fun checkDeletedContact(storedContact: StoredContact, ops: ArrayList<ContentProviderOperation>) {
 	if (storedContact.isDeleted) {
 	  val updateDeletedStatusOp = ContentProviderOperation.newUpdate(RawContacts.CONTENT_URI)
@@ -220,7 +242,7 @@ class Contact(private val activity: MainActivity) {
 	}
   }
 
-  private fun checkDirtyState(storedContact: StoredContact, ops: ArrayList<ContentProviderOperation>) {
+  private fun resetDirtyState(storedContact: StoredContact, ops: ArrayList<ContentProviderOperation>) {
 	if (storedContact.isDirty) {
 	  val updateDirtyStateOp = ContentProviderOperation.newUpdate(RawContacts.CONTENT_URI)
 			  .withSelection("${RawContacts._ID} = ?", arrayOf(storedContact.rawId.toString()))
@@ -242,7 +264,7 @@ class Contact(private val activity: MainActivity) {
 	}
 
 	if (storedContact.givenName != serverContact.firstName) {
-	  val updateNameOp = ContentProviderOperation.newUpdate(ContactsContract.Data.CONTENT_URI.buildUpon().appendQueryParameter(ContactsContract.CALLER_IS_SYNCADAPTER, "true").build())
+	  val updateNameOp = ContentProviderOperation.newUpdate(appendCallerSyncAdapter(ContactsContract.Data.CONTENT_URI))
 			  .withSelection(
 					  "${ContactsContract.Data.MIMETYPE} = \"${ContactsContract.CommonDataKinds.StructuredName.CONTENT_ITEM_TYPE}\" AND ${ContactsContract.Data.RAW_CONTACT_ID} = ?",
 					  arrayOf(storedContact.rawId.toString())
@@ -253,7 +275,7 @@ class Contact(private val activity: MainActivity) {
 	}
 
 	if (storedContact.lastName != serverContact.lastName) {
-	  val updateNameOp = ContentProviderOperation.newUpdate(ContactsContract.Data.CONTENT_URI.buildUpon().appendQueryParameter(ContactsContract.CALLER_IS_SYNCADAPTER, "true").build())
+	  val updateNameOp = ContentProviderOperation.newUpdate(appendCallerSyncAdapter(ContactsContract.Data.CONTENT_URI))
 			  .withSelection(
 					  "${ContactsContract.Data.MIMETYPE} = \"${ContactsContract.CommonDataKinds.StructuredName.CONTENT_ITEM_TYPE}\" AND ${ContactsContract.Data.RAW_CONTACT_ID} = ?",
 					  arrayOf(storedContact.rawId.toString())
@@ -264,7 +286,7 @@ class Contact(private val activity: MainActivity) {
 	}
 
 	if (storedContact.nickname != serverContact.nickname) {
-	  val updateNicknameOp = ContentProviderOperation.newUpdate(ContactsContract.Data.CONTENT_URI.buildUpon().appendQueryParameter(ContactsContract.CALLER_IS_SYNCADAPTER, "true").build())
+	  val updateNicknameOp = ContentProviderOperation.newUpdate(appendCallerSyncAdapter(ContactsContract.Data.CONTENT_URI))
 			  .withSelection(
 					  "${ContactsContract.Data.MIMETYPE} = \"${ContactsContract.CommonDataKinds.Nickname.CONTENT_ITEM_TYPE}\" AND ${ContactsContract.Data.RAW_CONTACT_ID} = ?",
 					  arrayOf(storedContact.rawId.toString())
@@ -280,7 +302,7 @@ class Contact(private val activity: MainActivity) {
 	// necessary to add and not just update it
 	if (storedContact.birthday == null) {
 	  ops.add(
-			  ContentProviderOperation.newInsert(ContactsContract.Data.CONTENT_URI.buildUpon().appendQueryParameter(ContactsContract.CALLER_IS_SYNCADAPTER, "true").build())
+			  ContentProviderOperation.newInsert(appendCallerSyncAdapter(ContactsContract.Data.CONTENT_URI))
 					  .withValue(ContactsContract.Data.RAW_CONTACT_ID, storedContact.rawId)
 					  .withValue(
 							  RawContacts.Data.MIMETYPE,
@@ -293,7 +315,7 @@ class Contact(private val activity: MainActivity) {
 					  .build()
 	  )
 	} else {
-	  ops.add(ContentProviderOperation.newUpdate(ContactsContract.Data.CONTENT_URI.buildUpon().appendQueryParameter(ContactsContract.CALLER_IS_SYNCADAPTER, "true").build())
+	  ops.add(ContentProviderOperation.newUpdate(appendCallerSyncAdapter(ContactsContract.Data.CONTENT_URI))
 			  .withSelection(
 					  "${ContactsContract.Data.MIMETYPE} = \"${ContactsContract.CommonDataKinds.Event.CONTENT_ITEM_TYPE}\" AND ${ContactsContract.Data.RAW_CONTACT_ID} = ?",
 					  arrayOf(storedContact.rawId.toString())
@@ -310,7 +332,7 @@ class Contact(private val activity: MainActivity) {
 
 	if (storedContact.company == "") {
 	  ops.add(
-			  ContentProviderOperation.newInsert(ContactsContract.Data.CONTENT_URI.buildUpon().appendQueryParameter(ContactsContract.CALLER_IS_SYNCADAPTER, "true").build())
+			  ContentProviderOperation.newInsert(appendCallerSyncAdapter(ContactsContract.Data.CONTENT_URI))
 					  .withValue(ContactsContract.Data.RAW_CONTACT_ID, storedContact.rawId)
 					  .withValue(
 							  RawContacts.Data.MIMETYPE,
@@ -322,7 +344,7 @@ class Contact(private val activity: MainActivity) {
 					  .build()
 	  )
 	} else {
-	  ops.add(ContentProviderOperation.newUpdate(ContactsContract.Data.CONTENT_URI.buildUpon().appendQueryParameter(ContactsContract.CALLER_IS_SYNCADAPTER, "true").build())
+	  ops.add(ContentProviderOperation.newUpdate(appendCallerSyncAdapter(ContactsContract.Data.CONTENT_URI))
 			  .withSelection(
 					  "${ContactsContract.Data.MIMETYPE} = \"${ContactsContract.CommonDataKinds.Organization.CONTENT_ITEM_TYPE}\" AND ${ContactsContract.Data.RAW_CONTACT_ID} = ?",
 					  arrayOf(storedContact.rawId.toString())
@@ -337,7 +359,7 @@ class Contact(private val activity: MainActivity) {
 	  val storedAddress = storedContact.emailAddresses.find { it.address == serverMailAddress.address }
 	  if (storedAddress != null) {
 		if (storedAddress.type != serverMailAddress.type.toAndroidType()) {
-		  val updateTypeOp = ContentProviderOperation.newUpdate(ContactsContract.Data.CONTENT_URI.buildUpon().appendQueryParameter(ContactsContract.CALLER_IS_SYNCADAPTER, "true").build())
+		  val updateTypeOp = ContentProviderOperation.newUpdate(appendCallerSyncAdapter(ContactsContract.Data.CONTENT_URI))
 				  .withSelection(
 						  "${ContactsContract.Data.MIMETYPE} = \"${ContactsContract.CommonDataKinds.Email.CONTENT_ITEM_TYPE}\" AND ${ContactsContract.Data.RAW_CONTACT_ID} = ? AND ${ContactsContract.CommonDataKinds.Email.DATA} = ?",
 						  arrayOf(storedContact.rawId.toString(), storedAddress.address)
@@ -351,7 +373,7 @@ class Contact(private val activity: MainActivity) {
 		}
 
 		if (storedAddress.customTypeName != serverMailAddress.customTypeName) {
-		  val updateCustomTypeNameOp = ContentProviderOperation.newUpdate(ContactsContract.Data.CONTENT_URI.buildUpon().appendQueryParameter(ContactsContract.CALLER_IS_SYNCADAPTER, "true").build())
+		  val updateCustomTypeNameOp = ContentProviderOperation.newUpdate(appendCallerSyncAdapter(ContactsContract.Data.CONTENT_URI))
 				  .withSelection(
 						  "${ContactsContract.Data.MIMETYPE} = \"${ContactsContract.CommonDataKinds.Email.CONTENT_ITEM_TYPE}\" AND ${ContactsContract.Data.RAW_CONTACT_ID} = ? AND ${ContactsContract.CommonDataKinds.Email.DATA} = ?",
 						  arrayOf(storedContact.rawId.toString(), storedAddress.address)
@@ -374,7 +396,7 @@ class Contact(private val activity: MainActivity) {
 	}
 	for (storedMailAddress in storedContact.emailAddresses) {
 	  if (serverContact.mailAddresses.none { it.address == storedMailAddress.address }) {
-		val deleteOp = ContentProviderOperation.newDelete(ContactsContract.Data.CONTENT_URI.buildUpon().appendQueryParameter(ContactsContract.CALLER_IS_SYNCADAPTER, "true").build())
+		val deleteOp = ContentProviderOperation.newDelete(appendCallerSyncAdapter(ContactsContract.Data.CONTENT_URI))
 				.withSelection(
 						"${ContactsContract.Data.MIMETYPE} = \"${ContactsContract.CommonDataKinds.Email.CONTENT_ITEM_TYPE}\" AND ${ContactsContract.Data.RAW_CONTACT_ID} = ? AND ${ContactsContract.CommonDataKinds.Email.DATA} = ?",
 						arrayOf(storedContact.rawId.toString(), storedMailAddress.address)
@@ -390,7 +412,7 @@ class Contact(private val activity: MainActivity) {
 	  val storedAddress = storedContact.addresses.find { it.address == serverAddress.address }
 	  if (storedAddress != null) {
 		if (storedAddress.type != serverAddress.type.toAndroidType()) {
-		  val updateTypeOp = ContentProviderOperation.newUpdate(ContactsContract.Data.CONTENT_URI.buildUpon().appendQueryParameter(ContactsContract.CALLER_IS_SYNCADAPTER, "true").build())
+		  val updateTypeOp = ContentProviderOperation.newUpdate(appendCallerSyncAdapter(ContactsContract.Data.CONTENT_URI))
 				  .withSelection(
 						  "${ContactsContract.Data.MIMETYPE} = \"${ContactsContract.CommonDataKinds.StructuredPostal.CONTENT_ITEM_TYPE}\" AND ${ContactsContract.Data.RAW_CONTACT_ID} = ? AND ${ContactsContract.CommonDataKinds.StructuredPostal.DATA} = ?",
 						  arrayOf(storedContact.rawId.toString(), storedAddress.address)
@@ -404,7 +426,7 @@ class Contact(private val activity: MainActivity) {
 		}
 
 		if (storedAddress.customTypeName != serverAddress.customTypeName) {
-		  val updateCustomTypeNameOp = ContentProviderOperation.newUpdate(ContactsContract.Data.CONTENT_URI.buildUpon().appendQueryParameter(ContactsContract.CALLER_IS_SYNCADAPTER, "true").build())
+		  val updateCustomTypeNameOp = ContentProviderOperation.newUpdate(appendCallerSyncAdapter(ContactsContract.Data.CONTENT_URI))
 				  .withSelection(
 						  "${ContactsContract.Data.MIMETYPE} = \"${ContactsContract.CommonDataKinds.StructuredPostal.CONTENT_ITEM_TYPE}\" AND ${ContactsContract.Data.RAW_CONTACT_ID} = ? AND ${ContactsContract.CommonDataKinds.StructuredPostal.DATA} = ?",
 						  arrayOf(storedContact.rawId.toString(), storedAddress.address)
@@ -427,7 +449,7 @@ class Contact(private val activity: MainActivity) {
 
 	for (storedAddress in storedContact.addresses) {
 	  if (serverContact.addresses.none { it.address == storedAddress.address }) {
-		val deleteOp = ContentProviderOperation.newDelete(ContactsContract.Data.CONTENT_URI.buildUpon().appendQueryParameter(ContactsContract.CALLER_IS_SYNCADAPTER, "true").build())
+		val deleteOp = ContentProviderOperation.newDelete(appendCallerSyncAdapter(ContactsContract.Data.CONTENT_URI))
 				.withSelection(
 						"${ContactsContract.Data.MIMETYPE} = \"${ContactsContract.CommonDataKinds.StructuredPostal.CONTENT_ITEM_TYPE}\" AND ${ContactsContract.Data.RAW_CONTACT_ID} = ? AND ${ContactsContract.CommonDataKinds.StructuredPostal.DATA} = ?",
 						arrayOf(storedContact.rawId.toString(), storedAddress.address)
@@ -444,7 +466,7 @@ class Contact(private val activity: MainActivity) {
 	  val storedNumber = storedContact.phoneNumbers.find { it.number == serverPhoneNumber.number }
 	  if (storedNumber != null) {
 		if (storedNumber.type != serverPhoneNumber.type.toAndroidType()) {
-		  val updateTypeOp = ContentProviderOperation.newUpdate(ContactsContract.Data.CONTENT_URI.buildUpon().appendQueryParameter(ContactsContract.CALLER_IS_SYNCADAPTER, "true").build())
+		  val updateTypeOp = ContentProviderOperation.newUpdate(appendCallerSyncAdapter(ContactsContract.Data.CONTENT_URI))
 				  .withSelection(
 						  "${ContactsContract.Data.MIMETYPE} = \"${ContactsContract.CommonDataKinds.Phone.CONTENT_ITEM_TYPE}\" AND ${ContactsContract.Data.RAW_CONTACT_ID} = ? AND ${ContactsContract.CommonDataKinds.Phone.DATA} = ?",
 						  arrayOf(storedContact.rawId.toString(), storedNumber.number)
@@ -457,7 +479,7 @@ class Contact(private val activity: MainActivity) {
 		  ops += updateTypeOp
 		}
 		if (storedNumber.customTypeName != serverPhoneNumber.customTypeName) {
-		  val updateCustomTypeNameOp = ContentProviderOperation.newUpdate(ContactsContract.Data.CONTENT_URI.buildUpon().appendQueryParameter(ContactsContract.CALLER_IS_SYNCADAPTER, "true").build())
+		  val updateCustomTypeNameOp = ContentProviderOperation.newUpdate(appendCallerSyncAdapter(ContactsContract.Data.CONTENT_URI))
 				  .withSelection(
 						  "${ContactsContract.Data.MIMETYPE} = \"${ContactsContract.CommonDataKinds.Phone.CONTENT_ITEM_TYPE}\" AND ${ContactsContract.Data.RAW_CONTACT_ID} = ? AND ${ContactsContract.CommonDataKinds.Phone.DATA} = ?",
 						  arrayOf(storedContact.rawId.toString(), storedNumber.number)
@@ -480,7 +502,7 @@ class Contact(private val activity: MainActivity) {
 
 	for (storedPhoneNumber in storedContact.phoneNumbers) {
 	  if (serverContact.phoneNumbers.none { it.number == storedPhoneNumber.number }) {
-		val deleteOp = ContentProviderOperation.newDelete(ContactsContract.Data.CONTENT_URI.buildUpon().appendQueryParameter(ContactsContract.CALLER_IS_SYNCADAPTER, "true").build())
+		val deleteOp = ContentProviderOperation.newDelete(appendCallerSyncAdapter(ContactsContract.Data.CONTENT_URI))
 				.withSelection(
 						"${ContactsContract.Data.MIMETYPE} = \"${ContactsContract.CommonDataKinds.Phone.CONTENT_ITEM_TYPE}\" AND ${ContactsContract.Data.RAW_CONTACT_ID} = ? AND ${ContactsContract.CommonDataKinds.Phone.DATA} = ?",
 						arrayOf(storedContact.rawId.toString(), storedPhoneNumber.number)
@@ -497,7 +519,7 @@ class Contact(private val activity: MainActivity) {
   ) {
 	val ops = arrayListOf<ContentProviderOperation>()
 	checkDeletedContact(storedContact, ops)
-	checkDirtyState(storedContact, ops)
+	resetDirtyState(storedContact, ops)
 	checkContactDetails(storedContact, serverContact, ops)
 	checkContactAddresses(storedContact, serverContact, ops)
 	checkContactMailAddresses(storedContact, serverContact, ops)
@@ -514,7 +536,7 @@ class Contact(private val activity: MainActivity) {
 	val ops = ArrayList<ContentProviderOperation>()
 	val index = 0
 	ops.add(
-			ContentProviderOperation.newInsert(RawContacts.CONTENT_URI.buildUpon().appendQueryParameter(ContactsContract.CALLER_IS_SYNCADAPTER, "true").build())
+			ContentProviderOperation.newInsert(appendCallerSyncAdapter(RawContacts.CONTENT_URI))
 					.withValue(RawContacts.ACCOUNT_TYPE, TUTA_ACCOUNT_TYPE)
 					.withValue(RawContacts.ACCOUNT_NAME, userId)
 					.withValue(RawContacts.SOURCE_ID, contact.id)
@@ -522,7 +544,7 @@ class Contact(private val activity: MainActivity) {
 	)
 
 	ops.add(
-			ContentProviderOperation.newInsert(ContactsContract.Data.CONTENT_URI.buildUpon().appendQueryParameter(ContactsContract.CALLER_IS_SYNCADAPTER, "true").build())
+			ContentProviderOperation.newInsert(appendCallerSyncAdapter(ContactsContract.Data.CONTENT_URI))
 					.withValueBackReference(RawContacts.Data.RAW_CONTACT_ID, index)
 					.withValue(
 							RawContacts.Data.MIMETYPE,
@@ -538,7 +560,7 @@ class Contact(private val activity: MainActivity) {
 	)
 
 	ops.add(
-			ContentProviderOperation.newInsert(ContactsContract.Data.CONTENT_URI.buildUpon().appendQueryParameter(ContactsContract.CALLER_IS_SYNCADAPTER, "true").build())
+			ContentProviderOperation.newInsert(appendCallerSyncAdapter(ContactsContract.Data.CONTENT_URI))
 					.withValueBackReference(RawContacts.Data.RAW_CONTACT_ID, index)
 					.withValue(RawContacts.Data.MIMETYPE, ContactsContract.CommonDataKinds.Event.CONTENT_ITEM_TYPE)
 					.withValue(ContactsContract.CommonDataKinds.Event.START_DATE, contact.birthday)
@@ -548,7 +570,7 @@ class Contact(private val activity: MainActivity) {
 	)
 
 	ops.add(
-			ContentProviderOperation.newInsert(ContactsContract.Data.CONTENT_URI.buildUpon().appendQueryParameter(ContactsContract.CALLER_IS_SYNCADAPTER, "true").build())
+			ContentProviderOperation.newInsert(appendCallerSyncAdapter(ContactsContract.Data.CONTENT_URI))
 					.withValueBackReference(RawContacts.Data.RAW_CONTACT_ID, index)
 					.withValue(
 							RawContacts.Data.MIMETYPE,
@@ -559,7 +581,7 @@ class Contact(private val activity: MainActivity) {
 	)
 
 	ops.add(
-			ContentProviderOperation.newInsert(ContactsContract.Data.CONTENT_URI.buildUpon().appendQueryParameter(ContactsContract.CALLER_IS_SYNCADAPTER, "true").build())
+			ContentProviderOperation.newInsert(appendCallerSyncAdapter(ContactsContract.Data.CONTENT_URI))
 					.withValueBackReference(RawContacts.Data.RAW_CONTACT_ID, index)
 					.withValue(
 							RawContacts.Data.MIMETYPE,
@@ -599,7 +621,7 @@ class Contact(private val activity: MainActivity) {
 
   private fun readContact(
 		  rawContactId: Long,
-		  sourceId: String
+		  sourceId: String?
   ): StoredContact {
 	val storedContact = StoredContact(rawContactId, sourceId)
 
@@ -659,7 +681,7 @@ class Contact(private val activity: MainActivity) {
 
   private fun insertAddressOperation(address: StructuredAddress): ContentProviderOperation.Builder {
 	val contactInsert = ContentProviderOperation
-			.newInsert(ContactsContract.Data.CONTENT_URI.buildUpon().appendQueryParameter(ContactsContract.CALLER_IS_SYNCADAPTER, "true").build())
+			.newInsert(appendCallerSyncAdapter(ContactsContract.Data.CONTENT_URI))
 			.withValue(
 					RawContacts.Data.MIMETYPE,
 					ContactsContract.CommonDataKinds.StructuredPostal.CONTENT_ITEM_TYPE
@@ -689,7 +711,7 @@ class Contact(private val activity: MainActivity) {
   private fun insertMailAddressOperation(mailAddress: StructuredMailAddress): ContentProviderOperation.Builder {
 
 	val contactInsert = ContentProviderOperation
-			.newInsert(ContactsContract.Data.CONTENT_URI.buildUpon().appendQueryParameter(ContactsContract.CALLER_IS_SYNCADAPTER, "true").build())
+			.newInsert(appendCallerSyncAdapter(ContactsContract.Data.CONTENT_URI))
 			.withValue(
 					RawContacts.Data.MIMETYPE,
 					ContactsContract.CommonDataKinds.Email.CONTENT_ITEM_TYPE
@@ -718,7 +740,7 @@ class Contact(private val activity: MainActivity) {
 
   private fun insertPhoneNumberOperations(phoneNumber: StructuredPhoneNumber): ContentProviderOperation.Builder {
 	val contactInsert = ContentProviderOperation
-			.newInsert(ContactsContract.Data.CONTENT_URI.buildUpon().appendQueryParameter(ContactsContract.CALLER_IS_SYNCADAPTER, "true").build())
+			.newInsert(appendCallerSyncAdapter(ContactsContract.Data.CONTENT_URI))
 			.withValue(
 					RawContacts.Data.MIMETYPE,
 					ContactsContract.CommonDataKinds.Phone.MIMETYPE
@@ -777,7 +799,7 @@ data class StoredPhoneNumber(
 
 data class StoredContact(
 		val rawId: Long,
-		val sourceId: String,
+		var sourceId: String?,
 		var givenName: String? = null,
 		var lastName: String? = null,
 		var company: String = "",
@@ -800,31 +822,9 @@ fun StoredContact.toStructuredContact(): StructuredContact {
 		  birthday,
 		  emailAddresses.map { mail -> StructuredMailAddress(mail.address, mail.toServerType(), mail.customTypeName) },
 		  phoneNumbers.map { phone -> StructuredPhoneNumber(phone.number, phone.toServerType(), phone.customTypeName) },
-		  addresses.map { address -> StructuredAddress(address.address, address.toServerType(), address.customTypeName) }
+		  addresses.map { address -> StructuredAddress(address.address, address.toServerType(), address.customTypeName) },
+		  rawId.toString()
   )
-}
-
-fun StoredEmailAddress.toServerType() = when (type) {
-  ContactsContract.CommonDataKinds.Email.TYPE_HOME -> ContactAddressType.PRIVATE
-  ContactsContract.CommonDataKinds.Email.TYPE_WORK -> ContactAddressType.WORK
-  ContactsContract.CommonDataKinds.Email.TYPE_CUSTOM -> ContactAddressType.CUSTOM
-  else -> ContactAddressType.OTHER
-}
-
-fun StoredAddress.toServerType() = when (type) {
-  ContactsContract.CommonDataKinds.Email.TYPE_HOME -> ContactAddressType.PRIVATE
-  ContactsContract.CommonDataKinds.Email.TYPE_WORK -> ContactAddressType.WORK
-  ContactsContract.CommonDataKinds.Email.TYPE_CUSTOM -> ContactAddressType.CUSTOM
-  else -> ContactAddressType.OTHER
-}
-
-fun StoredPhoneNumber.toServerType() = when (type) {
-  ContactsContract.CommonDataKinds.Phone.TYPE_HOME -> ContactPhoneNumberType.PRIVATE
-  ContactsContract.CommonDataKinds.Phone.TYPE_WORK -> ContactPhoneNumberType.WORK
-  ContactsContract.CommonDataKinds.Phone.TYPE_MOBILE -> ContactPhoneNumberType.MOBILE
-  ContactsContract.CommonDataKinds.Phone.TYPE_OTHER_FAX -> ContactPhoneNumberType.FAX
-  ContactsContract.CommonDataKinds.Phone.TYPE_CUSTOM -> ContactPhoneNumberType.CUSTOM
-  else -> ContactPhoneNumberType.OTHER
 }
 
 
@@ -878,4 +878,27 @@ fun ContactPhoneNumberType.toAndroidType() = when (this) {
   ContactPhoneNumberType.FAX -> ContactsContract.CommonDataKinds.Phone.TYPE_OTHER_FAX
   ContactPhoneNumberType.OTHER -> ContactsContract.CommonDataKinds.Phone.TYPE_OTHER
   ContactPhoneNumberType.CUSTOM -> ContactsContract.CommonDataKinds.Phone.TYPE_CUSTOM
+}
+
+fun StoredEmailAddress.toServerType() = when (type) {
+  ContactsContract.CommonDataKinds.Email.TYPE_HOME -> ContactAddressType.PRIVATE
+  ContactsContract.CommonDataKinds.Email.TYPE_WORK -> ContactAddressType.WORK
+  ContactsContract.CommonDataKinds.Email.TYPE_CUSTOM -> ContactAddressType.CUSTOM
+  else -> ContactAddressType.OTHER
+}
+
+fun StoredAddress.toServerType() = when (type) {
+  ContactsContract.CommonDataKinds.Email.TYPE_HOME -> ContactAddressType.PRIVATE
+  ContactsContract.CommonDataKinds.Email.TYPE_WORK -> ContactAddressType.WORK
+  ContactsContract.CommonDataKinds.Email.TYPE_CUSTOM -> ContactAddressType.CUSTOM
+  else -> ContactAddressType.OTHER
+}
+
+fun StoredPhoneNumber.toServerType() = when (type) {
+  ContactsContract.CommonDataKinds.Phone.TYPE_HOME -> ContactPhoneNumberType.PRIVATE
+  ContactsContract.CommonDataKinds.Phone.TYPE_WORK -> ContactPhoneNumberType.WORK
+  ContactsContract.CommonDataKinds.Phone.TYPE_MOBILE -> ContactPhoneNumberType.MOBILE
+  ContactsContract.CommonDataKinds.Phone.TYPE_OTHER_FAX -> ContactPhoneNumberType.FAX
+  ContactsContract.CommonDataKinds.Phone.TYPE_CUSTOM -> ContactPhoneNumberType.CUSTOM
+  else -> ContactPhoneNumberType.OTHER
 }
