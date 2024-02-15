@@ -734,13 +734,7 @@ export class MailViewer implements Component<MailViewerAttrs> {
 	private async handleAttachmentImport(file: TutanotaFile) {
 		if (getAttachmentType(file.mimeType ?? "") === AttachmentType.CONTACT) {
 			try {
-				const { importContactsFromFile } = await import("../../contacts/ContactImporter.js")
-				const vCardData = await this.viewModel.downloadAndParseVCard(file)
-				const contactListId = await this.viewModel.contactModel.getContactListId()
-
-				if (vCardData == null || contactListId == null) return Dialog.message("importVCardError_msg")
-
-				await importContactsFromFile(vCardData, contactListId)
+				await this.viewModel.handleContactAttachment(file)
 			} catch (e) {
 				console.log(e)
 				if (e instanceof UserError) {

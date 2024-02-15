@@ -1,27 +1,32 @@
-import { Dialog } from "../gui/base/Dialog.js"
-import { assertNotNull, NBSP, ofClass } from "@tutao/tutanota-utils"
+import { Dialog, DialogType } from "../gui/base/Dialog.js"
+import { getFirstOrThrow, NBSP, ofClass } from "@tutao/tutanota-utils"
 import { locator } from "../api/main/MainLocator.js"
-import { GroupType } from "../api/common/TutanotaConstants.js"
-import { vCardListToContacts } from "./VCardImporter.js"
+import { vCardFileToVCards, vCardListToContacts } from "./VCardImporter.js"
 import { ImportError } from "../api/common/error/ImportError.js"
 import { lang } from "../misc/LanguageViewModel.js"
 import { showProgressDialog } from "../gui/dialogs/ProgressDialog.js"
 import { ContactFacade } from "../api/worker/facades/lazy/ContactFacade.js"
 import { Contact } from "../api/entities/tutanota/TypeRefs.js"
 import m, { Children } from "mithril"
-import { List, ListAttrs, ListLoadingState, MultiselectMode, ViewHolder } from "../gui/base/List.js"
+import { List, ListAttrs, ListLoadingState, MultiselectMode, RenderConfig, ViewHolder } from "../gui/base/List.js"
 import { px, size } from "../gui/size.js"
-import { VirtualRow } from "../gui/base/ListUtils.js"
 import { getContactListName } from "./model/ContactUtils.js"
+import { UserError } from "../api/main/UserError.js"
+import { DialogHeaderBar, DialogHeaderBarAttrs } from "../gui/base/DialogHeaderBar.js"
+import { ButtonType } from "../gui/base/Button.js"
 
-export async function importContactsFromFile(vCardData: string[], contactListId: string) {
-	const contactMembership = assertNotNull(locator.logins.getUserController().user.memberships.find((m) => m.groupType === GroupType.Contact))
-	const contacts = vCardListToContacts(vCardData, contactMembership.group)
+export async function importContactsFromFile(vCardData: string, contactListId: string) {
+	const vCardList = vCardFileToVCards(vCardData)
 
-	return contactImportDialog(contacts, (dialog) => {
+	if (vCardList == null) throw new UserError("importVCardError_msg")
+
+	const contactMembership = getFirstOrThrow(locator.logins.getUserController().getContactGroupMemberships())
+	const contacts = vCardListToContacts(vCardList, contactMembership.group)
+
+	return showContactImportDialog(contacts, (dialog) => {
 		dialog.close()
 		importContacts(contacts, contactListId, locator.contactFacade)
-	}).show()
+	})
 }
 
 async function importContacts(contacts: ReadonlyArray<Contact>, contactListId: string, contactFacade: ContactFacade) {
@@ -51,115 +56,122 @@ async function importContacts(contacts: ReadonlyArray<Contact>, contactListId: s
  * @param contacts The contact list to be previewed
  * @param okAction The action to be executed when the user press the import button
  */
-function contactImportDialog(contacts: Contact[], okAction: (dialog: Dialog) => unknown): Dialog {
-	return Dialog.showActionDialog({
-		title: () => lang.get("importVCard_action"),
-		child: () =>
+function showContactImportDialog(contacts: Contact[], okAction: (dialog: Dialog) => unknown) {
+	const renderConfig: RenderConfig<Contact, ImportContactRowHolder> = {
+		itemHeight: size.list_row_height,
+		multiselectionAllowed: MultiselectMode.Disabled,
+		swipe: null,
+		createElement: (dom) => {
+			const row: ImportContactRowHolder = new ImportContactRowHolder(dom)
+
+			m.render(dom, row.render())
+
+			return row
+		},
+	}
+
+	const dialog = new Dialog(DialogType.EditSmall, {
+		view: () => [
+			/** fixed-height header with a title, left and right buttons that's fixed to the top of the dialog's area */
 			m(
-				".mt-s",
-				m(
-					".flex.col.rel",
-					{
-						style: {
-							height: px(size.list_row_height * contacts.length),
-						},
-					},
-					m(List, {
-						renderConfig: {
-							itemHeight: size.list_row_height,
-							multiselectionAllowed: MultiselectMode.Disabled,
-							swipe: null,
-							createElement: (dom) => {
-								const row: ImportContactRowHolder = new ImportContactRowHolder(dom)
-
-								m.render(dom, row.render())
-
-								return row
+				".dialog-header.plr-l",
+				m(DialogHeaderBar, {
+					left: [
+						{
+							type: ButtonType.Secondary,
+							label: "cancel_action",
+							click: () => {
+								dialog.close()
 							},
 						},
-						state: {
-							items: contacts,
-							loadingStatus: ListLoadingState.Done,
-							loadingAll: false,
-							selectedItems: new Set(),
-							inMultiselect: false,
-							activeIndex: null,
+					],
+					middle: () => lang.get("importVCard_action"),
+					right: [
+						{
+							type: ButtonType.Primary,
+							label: "import_action",
+							click: () => {
+								okAction(dialog)
+							},
 						},
-						onLoadMore() {},
-						onRangeSelectionTowards(item: Contact) {},
-						onRetryLoading() {},
-						onSingleSelection(item: any) {},
-						onSingleTogglingMultiselection(item: Contact) {},
-						onStopLoading() {},
-					} satisfies ListAttrs<Contact, ImportContactRowHolder>),
+					],
+				} satisfies DialogHeaderBarAttrs),
+			),
+			/** variable-size child container that may be scrollable. */
+			m(
+				".dialog-max-height.plr-l.pb.text-break.scroll.nav-bg",
+				m(
+					".plr-l",
+					m(
+						".mt-s",
+						m(
+							".flex.col.rel",
+							{
+								style: {
+									height: px(size.list_row_height * contacts.length),
+								},
+							},
+							m(List, {
+								renderConfig,
+								state: {
+									items: contacts,
+									loadingStatus: ListLoadingState.Done,
+									loadingAll: false,
+									selectedItems: new Set(),
+									inMultiselect: false,
+									activeIndex: null,
+								},
+								onLoadMore() {},
+								onRangeSelectionTowards(item: Contact) {},
+								onRetryLoading() {},
+								onSingleSelection(item: any) {},
+								onSingleTogglingMultiselection(item: Contact) {},
+								onStopLoading() {},
+							} satisfies ListAttrs<Contact, ImportContactRowHolder>),
+						),
+					),
 				),
 			),
-		okAction,
-		allowCancel: true,
-		okActionTextId: "import_action",
-	})
-}
-
-class ImportContactVirtualRow implements VirtualRow<Contact> {
-	top: number
-	domElement: HTMLElement | null = null // set from List
-
-	entity: Contact | null
-	private domName!: HTMLElement
-	private domAddress!: HTMLElement
-
-	constructor() {
-		this.top = 0
-		this.entity = null
-	}
-
-	update(contact: Contact): void {
-		this.entity = contact
-
-		this.domName.textContent = getContactListName(contact)
-		this.domAddress.textContent = contact.mailAddresses && contact.mailAddresses.length > 0 ? contact.mailAddresses[0].address : NBSP
-	}
-
-	/**
-	 * Only the structure is managed by mithril. We set all contents on our own (see update) in order to avoid the vdom overhead (not negligible on mobiles)
-	 */
-	render(): Children {
-		return m(
-			".flex.height-100p.pt-xs.items-center.click-disabled",
-			{
-				style: {
-					"max-height": px(size.list_row_height),
-				},
-			},
-			m(".height-100p.list-bg.justify-center.border-radius.pl.pr.flex.col.overflow-hidden.flex-grow", [
-				m("p.b.m-0.text-ellipsis.badge-line-height", {
-					oncreate: (vnode) => (this.domName = vnode.dom as HTMLElement),
-				}),
-				m(".text-ellipsis.smaller", {
-					oncreate: (vnode) => (this.domAddress = vnode.dom as HTMLElement),
-				}),
-			]),
-		)
-	}
+		],
+	}).show()
 }
 
 class ImportContactRowHolder implements ViewHolder<Contact> {
-	readonly cr: ImportContactVirtualRow
-	domElement: HTMLElement
+	private domElement: HTMLElement
+	private domName!: HTMLElement
+	private domAddress!: HTMLElement
+
 	entity: Contact | null = null
 
 	constructor(dom: HTMLElement) {
-		this.cr = new ImportContactVirtualRow()
 		this.domElement = dom
-		m.render(dom, this.cr.render())
+		m.render(dom, this.render())
 	}
 
 	update(item: Contact) {
 		this.entity = item
-		this.cr.update(item)
+
+		this.domName.textContent = getContactListName(item)
+		this.domAddress.textContent = item.mailAddresses && item.mailAddresses.length > 0 ? item.mailAddresses[0].address : NBSP
 	}
 
 	render(): Children {
-		return this.cr.render()
+		return m(
+			".flex.height-100p.pt-xs.items-center",
+			{
+				style: {
+					"max-height": px(size.list_row_height),
+					cursor: "auto",
+				},
+			},
+			m(".height-100p.list-bg.justify-center.border-radius.pl.pr.flex.col.overflow-hidden.flex-grow", [
+				m("p.b.m-0.text-ellipsis.badge-line-height.selectable", {
+					oncreate: (vnode) => (this.domName = vnode.dom as HTMLElement),
+				}),
+				m(".text-ellipsis.smaller.selectable", {
+					oncreate: (vnode) => (this.domAddress = vnode.dom as HTMLElement),
+				}),
+			]),
+		)
 	}
 }
