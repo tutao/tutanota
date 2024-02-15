@@ -11,7 +11,7 @@ export default {
 		"other"
 	],
 	"created_at": "2015-03-13T10:00:49Z",
-	"updated_at": "2024-02-09T16:45:43Z",
+	"updated_at": "2024-02-14T16:37:48Z",
 	"source_locale": null,
 	"fallback_locale": null,
 	"keys": {
@@ -1344,6 +1344,7 @@ export default {
 		"templateMustContain_msg": "الگو باید دارای جانشین باشد {value}",
 		"templateNotExists_msg": "این قالب دیگر موجود نیست!",
 		"templateShortcutExists_msg": "قالبی با این میان‌بر همین الان هم وجود دارد!",
+		"terminationAlreadyCancelled_msg": "تقاضای بسته شدن این حساب پیشتر داده شده است.",
 		"terminationDateRequest_title": "تاریخ انقضا",
 		"terminationForm_title": "فرم فسخ",
 		"terminationInvalidDate_msg": "روز لغو اشتراک نباید امروز یا روزی در گذشته باشد.",
@@ -1351,6 +1352,7 @@ export default {
 		"terminationSubject_msg": "بستن حساب شما",
 		"terminationUseAccountUntilTermination_msg": "می‌توانید از حساب تا زمان انقضا استفاده کنید.",
 		"termination_action": "کنسل کردن اشتراک",
+		"termination_text": "لطفا اطلاعات حسابی را که می‌خواهید بسته شود ارائه کنید.",
 		"termsAcceptedNeutral_msg": "لطفا قوانین و مقررات را قبول کنید.",
 		"termsAndConditionsLink_label": "شرایط و ضوابط",
 		"termsAndConditions_label": "من اسناد زیر را خوانده و قبول دارم:",
