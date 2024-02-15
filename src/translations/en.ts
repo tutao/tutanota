@@ -11,7 +11,7 @@ export default {
 		"other"
 	],
 	"created_at": "2015-01-13T20:10:13Z",
-	"updated_at": "2024-02-14T11:18:31Z",
+	"updated_at": "2024-02-15T11:02:04Z",
 	"source_locale": null,
 	"fallback_locale": null,
 	"keys": {
@@ -176,11 +176,11 @@ export default {
 		"cancelContactForm_label": "Cancel contact form",
 		"cancellationConfirmation_msg": "Your answer is stored anonymized together with your Tuta account age and your plan. Thanks for participating!",
 		"cancellationInfo_msg": "We always strive to improve our service and we would greatly appreciate if you can let us know what we can improve on!",
-		"cancellationReasonImap_label": "Keine anderen Mail-Clients möglich (IMAP)",
-		"cancellationReasonImport_label": "E-Mail-Import fehlt",
+		"cancellationReasonImap_label": "I can't use other mail clients (IMAP)",
+		"cancellationReasonImport_label": "Email import is missing",
 		"cancellationReasonLabels_label": "Email labels are missing",
 		"cancellationReasonNoNeed_label": "I do not need this service",
-		"cancellationReasonOtherFeature_label": "Mir fehlt ein anderes Feature",
+		"cancellationReasonOtherFeature_label": "Other missing feature",
 		"cancellationReasonOther_label": "Other reason",
 		"cancellationReasonPrice_label": "The service is too expensive",
 		"cancellationReasonSearch_label": "The email search takes too long",
