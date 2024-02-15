@@ -1042,14 +1042,20 @@ export class MailViewerViewModel {
 		}
 	}
 
-	async downloadAndParseVCard(file: TutanotaFile) {
-		const { vCardFileToVCards } = await import("../../contacts/VCardImporter.js")
+	async handleContactAttachment(file: TutanotaFile) {
 		file = (await this.cryptoFacade.enforceSessionKeyUpdateIfNeeded(this._mail, [file]))[0]
 		try {
+			const { importContactsFromFile } = await import("../../contacts/ContactImporter.js")
+
 			const dataFile = await this.fileController.getAsDataFile(file)
 			const decoder = new TextDecoder("utf-8")
 
-			return vCardFileToVCards(decoder.decode(dataFile.data))
+			const vCardData = decoder.decode(dataFile.data)
+			const contactListId = await this.contactModel.getContactListId()
+
+			if (contactListId == null) return Dialog.message("importVCardError_msg")
+
+			return await importContactsFromFile(vCardData, contactListId)
 		} catch (e) {
 			console.log(e)
 			throw new UserError("errorDuringFileOpen_msg")
