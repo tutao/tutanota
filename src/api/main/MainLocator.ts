@@ -107,6 +107,7 @@ import { CalendarEventsRepository } from "../../calendar/date/CalendarEventsRepo
 import { CalendarInviteHandler } from "../../calendar/view/CalendarInvites.js"
 import { NativeContactsSyncManager } from "../../contacts/model/NativeContactsSyncManager.js"
 import { ContactFacade } from "../worker/facades/lazy/ContactFacade.js"
+import { ContactImporter } from "../../contacts/ContactImporter.js"
 
 assertMainOrNode()
 
@@ -404,6 +405,11 @@ class MainLocator {
 		return factory(options)
 	}
 
+	async contactImporter(): Promise<ContactImporter> {
+		const { ContactImporter } = await import("../../contacts/ContactImporter.js")
+		return new ContactImporter()
+	}
+
 	async mailViewerViewModelFactory(): Promise<(options: CreateMailViewerOptions) => MailViewerViewModel> {
 		const { MailViewerViewModel } = await import("../../mail/view/MailViewerViewModel.js")
 		return ({ mail, showFolder }) =>
@@ -425,6 +431,7 @@ class MainLocator {
 				this.search,
 				this.mailFacade,
 				this.cryptoFacade,
+				() => this.contactImporter(),
 			)
 	}
 

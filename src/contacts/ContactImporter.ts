@@ -15,18 +15,20 @@ import { UserError } from "../api/main/UserError.js"
 import { DialogHeaderBar, DialogHeaderBarAttrs } from "../gui/base/DialogHeaderBar.js"
 import { ButtonType } from "../gui/base/Button.js"
 
-export async function importContactsFromFile(vCardData: string, contactListId: string) {
-	const vCardList = vCardFileToVCards(vCardData)
+export class ContactImporter {
+	async importContactsFromFile(vCardData: string, contactListId: string) {
+		const vCardList = vCardFileToVCards(vCardData)
 
-	if (vCardList == null) throw new UserError("importVCardError_msg")
+		if (vCardList == null) throw new UserError("importVCardError_msg")
 
-	const contactMembership = getFirstOrThrow(locator.logins.getUserController().getContactGroupMemberships())
-	const contacts = vCardListToContacts(vCardList, contactMembership.group)
+		const contactMembership = getFirstOrThrow(locator.logins.getUserController().getContactGroupMemberships())
+		const contacts = vCardListToContacts(vCardList, contactMembership.group)
 
-	return showContactImportDialog(contacts, (dialog) => {
-		dialog.close()
-		importContacts(contacts, contactListId, locator.contactFacade)
-	})
+		return showContactImportDialog(contacts, (dialog) => {
+			dialog.close()
+			importContacts(contacts, contactListId, locator.contactFacade)
+		})
+	}
 }
 
 async function importContacts(contacts: ReadonlyArray<Contact>, contactListId: string, contactFacade: ContactFacade) {
@@ -137,14 +139,12 @@ function showContactImportDialog(contacts: Contact[], okAction: (dialog: Dialog)
 }
 
 class ImportContactRowHolder implements ViewHolder<Contact> {
-	private domElement: HTMLElement
 	private domName!: HTMLElement
 	private domAddress!: HTMLElement
 
 	entity: Contact | null = null
 
 	constructor(dom: HTMLElement) {
-		this.domElement = dom
 		m.render(dom, this.render())
 	}
 
