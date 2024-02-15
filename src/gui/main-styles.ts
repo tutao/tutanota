@@ -1682,6 +1682,10 @@ styles.registerStyle("main", () => {
 			"border-top-right-radius": px(size.border_radius),
 			"border-right": `1px solid ${stateBgHover}`,
 		},
+		".payment-logo": {
+			// that's the size of the SVG and it seems to be a good size
+			width: "124px",
+		},
 		// contact
 		".wrapping-row": {
 			display: "flex",
