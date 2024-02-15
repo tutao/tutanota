@@ -403,7 +403,7 @@ export async function initLocator(worker: WorkerImpl, browserData: BrowserData) 
 	})
 	locator.contactFacade = lazyMemoized(async () => {
 		const { ContactFacade } = await import("./facades/lazy/ContactFacade.js")
-		return new ContactFacade(new EntityClient(entityRestClient))
+		return new ContactFacade(new EntityClient(locator.cache))
 	})
 }
 

@@ -43,7 +43,7 @@ export class WebCommonNativeFacade implements CommonNativeFacade {
 				editor.show()
 			} else {
 				const files = await fileApp.getFilesMetaData(filesUris)
-				const allFilesAreVCards = files.filter((file) => getAttachmentType(file.mimeType) === AttachmentType.CONTACT).length === files.length
+				const allFilesAreVCards = files.every((file) => getAttachmentType(file.mimeType) === AttachmentType.CONTACT)
 
 				let willImport = false
 				if (allFilesAreVCards) {
@@ -176,7 +176,6 @@ export class WebCommonNativeFacade implements CommonNativeFacade {
 
 	private async parseContacts(fileList: FileReference[]) {
 		const { fileApp, logins, fileController } = await WebCommonNativeFacade.getInitializedLocator()
-		const { vCardFileToVCards, vCardListToContacts } = await import("../../contacts/VCardImporter.js")
 
 		await logins.waitForPartialLogin()
 
@@ -187,10 +186,9 @@ export class WebCommonNativeFacade implements CommonNativeFacade {
 				if (dataFile == null) continue
 
 				const decoder = new TextDecoder("utf-8")
-				const parsedVCards = vCardFileToVCards(decoder.decode(dataFile.data))
-				if (parsedVCards == null) continue
+				const vCardData = decoder.decode(dataFile.data)
 
-				rawContacts.push(...parsedVCards)
+				rawContacts.push(vCardData)
 			}
 		}
 
@@ -208,8 +206,9 @@ export class WebCommonNativeFacade implements CommonNativeFacade {
 		// For now, we just handle .vcf files, so we don't need to care about the file type
 		const files = await fileApp.getFilesMetaData(filesUris)
 		const contacts = await this.parseContacts(files)
+		const vCardData = contacts.join("\n")
 		const contactListId = assertNotNull(await contactModel.getContactListId())
 
-		await importContactsFromFile(contacts, contactListId)
+		await importContactsFromFile(vCardData, contactListId)
 	}
 }
