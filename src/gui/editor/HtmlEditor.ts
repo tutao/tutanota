@@ -20,7 +20,6 @@ export class HtmlEditor implements Component {
 	private active = false
 	private domTextArea: HTMLTextAreaElement | null = null
 	private _showBorders = false
-	private borderRadius: number | null = null
 	private minHeight: number | null = null
 	private placeholderId: TranslationKey | null = null
 	private placeholderDomElement: HTMLElement | null = null
@@ -75,8 +74,8 @@ export class HtmlEditor implements Component {
 						},
 				  })
 				: null,
-			this.label ? m(".small.mt-form", this.borderRadius ? { style: { "margin-left": px(16) } } : {}, lang.getMaybeLazy(this.label)) : null,
-			m(borderClasses, this.borderRadius ? { style: { "border-radius": px(this.borderRadius) } } : {}, [
+			this.label ? m(".small.mt-form", lang.getMaybeLazy(this.label)) : null,
+			m(borderClasses, [
 				getPlaceholder(),
 				this.mode === HtmlEditorMode.WYSIWYG
 					? m(".wysiwyg.rel.overflow-hidden.selectable", [
@@ -155,11 +154,6 @@ export class HtmlEditor implements Component {
 
 	showBorders(): HtmlEditor {
 		this._showBorders = true
-		return this
-	}
-
-	setBorderRadius(px: number): HtmlEditor {
-		this.borderRadius = px
 		return this
 	}
 

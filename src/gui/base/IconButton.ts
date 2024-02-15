@@ -19,7 +19,6 @@ export interface IconButtonAttrs {
 	size?: ButtonSize
 	onblur?: () => unknown
 	onkeydown?: (event: KeyboardEvent) => unknown
-	iconStyle?: Record<string, any>
 }
 
 export class IconButton implements Component<IconButtonAttrs> {
@@ -27,8 +26,6 @@ export class IconButton implements Component<IconButtonAttrs> {
 
 	view(vnode: Vnode<IconButtonAttrs>): Children {
 		const { attrs } = vnode
-		var iconStyle = attrs.iconStyle ? attrs.iconStyle : {}
-		iconStyle["fill"] = getColors(attrs.colors ?? ButtonColor.Content).button
 		return m(
 			"button.icon-button.state-bg",
 			{
@@ -50,7 +47,9 @@ export class IconButton implements Component<IconButtonAttrs> {
 				container: "div",
 				class: "center-h",
 				large: true,
-				style: iconStyle,
+				style: {
+					fill: getColors(attrs.colors ?? ButtonColor.Content).button,
+				},
 			}),
 		)
 	}
