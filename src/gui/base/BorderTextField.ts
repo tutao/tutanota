@@ -1,7 +1,7 @@
 import m, { Children, ClassComponent, CVnode } from "mithril"
 import { px, size } from "../size"
 import { DefaultAnimationTime } from "../animation/Animations"
-import { getElevatedBackground, getNavButtonIconBackground, getNavigationMenuBg, theme } from "../theme"
+import { theme } from "../theme"
 import type { TranslationKey } from "../../misc/LanguageViewModel"
 import { lang } from "../../misc/LanguageViewModel"
 import type { lazy } from "@tutao/tutanota-utils"
@@ -37,7 +37,7 @@ export type BorderTextFieldAttrs = {
 	min?: number
 	max?: number
 	labelBgColorOverwrite?: string
-	// overwrites the default color `getElevatedBackground()` in order to display the correct color when not on a elevated background (-> dark mode LoginForm.ts)
+	// overwrites the bg color of label, only in use to fix recovery dialog -> not working because the animation uses 'will-change: opacity' Animations.ts:327
 	areaTextFieldLines?: number
 }
 
@@ -105,7 +105,9 @@ export class BorderTextField implements ClassComponent<BorderTextFieldAttrs> {
 					? {
 							maxWidth: px(maxWidth),
 					  }
-					: {},
+					: {
+							"margin-bottom": "16px",
+					  },
 			},
 			[
 				m(
@@ -116,14 +118,15 @@ export class BorderTextField implements ClassComponent<BorderTextFieldAttrs> {
 							this._domLabel = vnode.dom as HTMLElement
 						},
 						style: {
-							fontSize: `${size.font_size_base}px`,
+							fontSize: px(size.font_size_base), //`${this.active || vnode.attrs.value ? size.font_size_small : size.font_size_base}px`,
 							transform: `translateY(-${this.active || vnode.attrs.value ? 30 : 0}px)`,
-							transition: `transform ${labelTransitionSpeed}ms`,
+							transition: `transform ${labelTransitionSpeed}ms`, // , font-size ${labelTransitionSpeed / 2}ms
 							margin: "11px 10px",
 							padding: "6px",
 							lineHeight: px(size.md_default_line_height),
 							"font-style": "normal",
-							background: vnode.attrs.labelBgColorOverwrite || getElevatedBackground(),
+							"background-color": a.labelBgColorOverwrite,
+							"backdrop-filter": "blur(100px)",
 						},
 					},
 					lang.getMaybeLazy(a.label),
@@ -186,9 +189,6 @@ export class BorderTextField implements ClassComponent<BorderTextFieldAttrs> {
 							{
 								onclick: (e: MouseEvent) => {
 									e.stopPropagation()
-								},
-								style: {
-									margin: `${size.md_supporting_text_margin}px ${size.md_default_margin}px 0px `,
 								},
 							},
 							a.helpLabel(),

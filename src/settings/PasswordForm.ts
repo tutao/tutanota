@@ -23,6 +23,8 @@ assertMainOrNode()
 export interface PasswordFormAttrs {
 	model: PasswordModel
 	passwordInfoKey?: TranslationKey
+	labelBgColorOverwrite?: string
+	// overwrites the bg color of label, only in use to fix recovery dialog -> not working because the animation uses 'will-change: opacity' Animations.ts:327
 }
 
 export interface PasswordModelConfig {
@@ -279,6 +281,7 @@ export class PasswordForm implements Component<PasswordFormAttrs> {
 							fontSize: px(size.font_size_smaller),
 							type: attrs.model.isPasswordRevealed(PasswordFieldType.Old) ? BorderTextFieldType.Text : BorderTextFieldType.Password,
 							injectionsRight: () => this.renderRevealIcon(attrs, PasswordFieldType.Old),
+							labelBgColorOverwrite: attrs.labelBgColorOverwrite,
 					  })
 					: null,
 				m(BorderTextField, {
@@ -305,6 +308,7 @@ export class PasswordForm implements Component<PasswordFormAttrs> {
 					fontSize: px(size.font_size_smaller),
 					type: attrs.model.isPasswordRevealed(PasswordFieldType.New) ? BorderTextFieldType.Text : BorderTextFieldType.Password,
 					injectionsRight: () => this.renderRevealIcon(attrs, PasswordFieldType.New),
+					labelBgColorOverwrite: attrs.labelBgColorOverwrite,
 				}),
 				attrs.model.config.hideConfirmation
 					? null
@@ -321,6 +325,7 @@ export class PasswordForm implements Component<PasswordFormAttrs> {
 							fontSize: px(size.font_size_smaller),
 							type: attrs.model.isPasswordRevealed(PasswordFieldType.Confirm) ? BorderTextFieldType.Text : BorderTextFieldType.Password,
 							injectionsRight: () => this.renderRevealIcon(attrs, PasswordFieldType.Confirm),
+							labelBgColorOverwrite: attrs.labelBgColorOverwrite,
 					  }),
 				attrs.passwordInfoKey ? m(".small.mt-s", lang.get(attrs.passwordInfoKey)) : null,
 			],

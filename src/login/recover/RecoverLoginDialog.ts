@@ -9,7 +9,6 @@ import { lang } from "../../misc/LanguageViewModel"
 import { PasswordForm, PasswordModel } from "../../settings/PasswordForm"
 import { Icons } from "../../gui/base/icons/Icons"
 import { Dialog, DialogType } from "../../gui/base/Dialog"
-import { HtmlEditor, HtmlEditorMode } from "../../gui/editor/HtmlEditor"
 import { client } from "../../misc/ClientDetector"
 import { CancelledError } from "../../api/common/error/CancelledError"
 import { locator } from "../../api/main/MainLocator"
@@ -18,6 +17,7 @@ import { assertMainOrNode } from "../../api/common/Env"
 import { createDropdown, DropdownButtonAttrs } from "../../gui/base/Dropdown.js"
 import { IconButton, IconButtonAttrs } from "../../gui/base/IconButton.js"
 import { ButtonSize } from "../../gui/base/ButtonSize.js"
+import { theme } from "../../gui/theme"
 
 assertMainOrNode()
 export type ResetAction = "password" | "secondFactor"
@@ -66,12 +66,14 @@ export function show(mailAddress?: string | null, resetAction?: ResetAction): Di
 						value: emailAddressStream(),
 						autocompleteAs: Autocomplete.email,
 						oninput: emailAddressStream,
+						labelBgColorOverwrite: theme.elevated_bg,
 					}),
 					m(BorderTextField, {
 						label: "recoveryCode_label",
 						value: recoveryCodeStream(),
 						oninput: recoveryCodeStream,
 						type: BorderTextFieldType.Area,
+						labelBgColorOverwrite: theme.elevated_bg,
 					}),
 					m(BorderTextField, {
 						label: "action_label",
@@ -79,17 +81,19 @@ export function show(mailAddress?: string | null, resetAction?: ResetAction): Di
 						oninput: selectedValueLabelStream,
 						injectionsRight: () => m(IconButton, resetActionButtonAttrs),
 						isReadOnly: true,
+						labelBgColorOverwrite: theme.elevated_bg,
 					}),
 					selectedAction() == null
 						? null
 						: selectedAction() === "password"
-						? m(PasswordForm, { model: passwordModel })
+						? m(PasswordForm, { model: passwordModel, labelBgColorOverwrite: theme.elevated_bg })
 						: m(BorderTextField, {
 								label: "password_label",
 								type: BorderTextFieldType.Password,
 								value: passwordValueStream(),
 								autocompleteAs: Autocomplete.currentPassword,
 								oninput: passwordValueStream,
+								labelBgColorOverwrite: theme.elevated_bg,
 						  }),
 				]
 			},
