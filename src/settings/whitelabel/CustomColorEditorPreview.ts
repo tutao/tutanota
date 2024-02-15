@@ -8,6 +8,7 @@ import { IconButton } from "../../gui/base/IconButton.js"
 import { Icons } from "../../gui/base/icons/Icons.js"
 import { ToggleButton } from "../../gui/base/buttons/ToggleButton.js"
 import { isApp, isDesktop } from "../../api/common/Env.js"
+import { LoginButton } from "../../gui/base/buttons/LoginButton.js"
 
 export const BUTTON_WIDTH = 270
 
@@ -37,10 +38,9 @@ export class CustomColorEditorPreview implements Component {
 							width: px(BUTTON_WIDTH),
 						},
 					},
-					m(Button, {
+					m(LoginButton, {
 						label: isApp() || isDesktop() ? "addAccount_action" : "login_action",
-						click: noOp,
-						type: ButtonType.Login,
+						onclick: noOp,
 					}),
 				),
 				m(".pt", [

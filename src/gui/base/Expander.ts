@@ -1,7 +1,6 @@
 import m, { Children, Component, Vnode } from "mithril"
 import type { TranslationKey } from "../../misc/LanguageViewModel"
 import { lang } from "../../misc/LanguageViewModel"
-import { addFlash, removeFlash } from "./Flash"
 import { Icon } from "./Icon"
 import { Icons } from "./icons/Icons"
 import { BootIcons } from "./icons/BootIcons"
@@ -10,11 +9,16 @@ import { px } from "../size"
 import { DefaultAnimationTime } from "../animation/Animations"
 import type { lazy } from "@tutao/tutanota-utils"
 import { assertNotNull } from "@tutao/tutanota-utils"
+import { isKeyPressed } from "../../misc/KeyManager.js"
+import { Keys } from "../../api/common/TutanotaConstants.js"
 
 export type ExpanderAttrs = {
 	label: TranslationKey | lazy<string>
 	expanded: boolean
 	onExpandedChange: (value: boolean) => unknown
+	isPropagatingEvents?: boolean
+	isBig?: boolean
+	isUnformattedLabel?: boolean
 	showWarning?: boolean
 	color?: string
 	style?: Record<string, any>
@@ -26,17 +30,23 @@ export type ExpanderPanelAttrs = {
 export class ExpanderButton implements Component<ExpanderAttrs> {
 	view(vnode: Vnode<ExpanderAttrs>): Children {
 		const a = vnode.attrs
-		return m(".limit-width", [
+		const label = lang.getMaybeLazy(a.label)
+		return m(
+			".limit-width",
 			m(
-				"button.expander.bg-transparent.pt-s.hover-ul.limit-width.flex.items-center",
+				"button.expander.bg-transparent.pt-s.hover-ul.limit-width.flex.items-center.b.text-ellipsis.flash",
 				{
 					style: a.style,
 					onclick: (event: MouseEvent) => {
 						a.onExpandedChange(!a.expanded)
-						event.stopPropagation()
+						if (!a.isPropagatingEvents) event.stopPropagation()
 					},
-					oncreate: (vnode) => addFlash(vnode.dom),
-					onremove: (vnode) => removeFlash(vnode.dom),
+					onkeydown: (e: KeyboardEvent) => {
+						if (isKeyPressed(e.key, Keys.SPACE, Keys.RETURN)) {
+							a.onExpandedChange(!a.expanded)
+							if (!a.isPropagatingEvents) e.preventDefault()
+						}
+					},
 					"aria-expanded": String(a.expanded),
 				},
 				[
@@ -49,17 +59,18 @@ export class ExpanderButton implements Component<ExpanderAttrs> {
 						  })
 						: null,
 					m(
-						"small.b.text-ellipsis",
+						`${a.isBig ? "span" : "small"}`,
 						{
 							style: {
 								color: a.color || theme.content_button,
 							},
 						},
-						lang.getMaybeLazy(a.label).toUpperCase(),
+						a.isUnformattedLabel ? label : label.toUpperCase(),
 					),
 					m(Icon, {
 						icon: BootIcons.Expand,
 						class: "flex-center items-center",
+						large: a.isBig,
 						style: {
 							fill: a.color ? a.color : theme.content_button,
 							"margin-right": px(-4),
@@ -70,7 +81,7 @@ export class ExpanderButton implements Component<ExpanderAttrs> {
 					}),
 				],
 			),
-		])
+		)
 	}
 }
 

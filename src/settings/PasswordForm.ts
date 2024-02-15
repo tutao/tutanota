@@ -345,7 +345,7 @@ export class PasswordForm implements Component<PasswordFormAttrs> {
 
 	private renderRevealIcon(attrs: PasswordFormAttrs, passwordType: PasswordFieldType): Children {
 		return m(ToggleButton, {
-			title: attrs.model.isPasswordRevealed(passwordType) ? "concealPassword_action" : "revealPassword_action",
+			title: "revealPassword_action",
 			toggled: attrs.model.isPasswordRevealed(passwordType),
 			onToggled: (_, e) => {
 				attrs.model.toggleRevealPassword(passwordType)

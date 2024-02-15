@@ -1,9 +1,8 @@
 import { GroupType } from "../../common/TutanotaConstants"
-import { decryptKey } from "@tutao/tutanota-crypto"
+import { Aes128Key, decryptKey } from "@tutao/tutanota-crypto"
 import { assertNotNull, getFromMap } from "@tutao/tutanota-utils"
 import { ProgrammingError } from "../../common/error/ProgrammingError"
 import { createWebsocketLeaderStatus, GroupMembership, User, WebsocketLeaderStatus } from "../../entities/sys/TypeRefs"
-import { Aes128Key } from "@tutao/tutanota-crypto"
 import { LoginIncompleteError } from "../../common/error/LoginIncompleteError"
 
 export interface AuthDataProvider {

@@ -350,6 +350,9 @@ styles.registerStyle("main", () => {
 		".ml-hpad_small": {
 			"margin-left": px(size.hpad_small),
 		},
+		".mr-hpad-small": {
+			"margin-right": px(size.hpad_small),
+		},
 		".mtb-0": {
 			"margin-top": px(0),
 			"margin-bottom": px(0),
@@ -573,6 +576,9 @@ styles.registerStyle("main", () => {
 		},
 		".text-pre": {
 			"white-space": "pre",
+		},
+		".uppercase": {
+			"text-transform": "uppercase",
 		},
 		".line-break-anywhere": {
 			"line-break": "anywhere",
@@ -919,6 +925,9 @@ styles.registerStyle("main", () => {
 		".gap-vpad": {
 			gap: px(size.vpad),
 		},
+		".gap-hpad": {
+			gap: px(size.hpad),
+		},
 		".flex": {
 			display: "flex",
 		},
@@ -1095,12 +1104,12 @@ styles.registerStyle("main", () => {
 		// a bit cursed solution to make the visible icon not too huge relative to the tiny "close" icon that we have but also to keep the size consistent
 		// with icon-large so that the text field doesn't jump around
 		".icon-progress-search": {
-			height: px(size.icon_size_large),
-			width: px(size.icon_size_large),
+			height: `${px(20)} !important`,
+			width: `${px(20)} !important`,
 		},
 		".icon-progress-search > svg": {
-			height: px(20),
-			width: px(20),
+			height: `${px(20)} !important`,
+			width: `${px(20)} !important`,
 		},
 		".search-bar": {
 			transition: "all 200ms",
@@ -1204,9 +1213,15 @@ styles.registerStyle("main", () => {
 			// disable default focus indicator because we have our own for this element
 			outline: "none",
 		},
-		".state-bg:active, .state-bg[toggled=true]": {
+		".state-bg:active, .state-bg[pressed=true]": {
 			background: stateBgActive,
 			"transition-duration": ".3s",
+		},
+		".flash": {
+			transition: `opacity ${DefaultAnimationTime}ms`,
+		},
+		".flash:active": {
+			opacity: "0.4",
 		},
 		".disabled": {
 			opacity: "0.3",
@@ -1252,7 +1267,7 @@ styles.registerStyle("main", () => {
 			"background-color": theme.navigation_bg,
 			"z-index": 2,
 		},
-		"bottom-nav, .bottom-nav": {
+		".bottom-nav": {
 			"border-top": `1px solid ${theme.navigation_border}`,
 			height: positionValue(size.bottom_nav_bar),
 			background: theme.header_bg,
@@ -1575,20 +1590,11 @@ styles.registerStyle("main", () => {
 			height: px(size.button_height),
 			"min-width": px(size.button_height),
 		},
-		".primary": {
-			color: theme.content_accent,
-			"font-weight": "bold",
-		},
-		".secondary": {
-			color: theme.content_accent,
-		},
-		".textBubble": {
-			color: theme.content_accent,
+		".text-bubble": {
 			"padding-top": px(size.text_bubble_tpad),
 		},
 		".bubble": {
 			"border-radius": px(size.border_radius),
-			height: px(size.button_height_bubble),
 			"background-color": theme.button_bubble_bg,
 			color: theme.button_bubble_fg,
 		},
@@ -2021,6 +2027,37 @@ styles.registerStyle("main", () => {
 			"padding-left": "4px",
 			"font-weight": "600",
 			"box-sizing": "content-box",
+		},
+		".animation-reverse": {
+			"animation-direction": "reverse",
+		},
+		".slide-bottom": {
+			"animation-name": "slideFromBottom",
+			"animation-iteration-count": 1,
+			"animation-timing-function": "ease-in",
+			"animation-duration": "100ms",
+		},
+		"@keyframes slideFromBottom": {
+			"0%": {
+				translate: "0 100%",
+			},
+			"100%": {
+				translate: "0 0",
+			},
+		},
+		".slide-top": {
+			"animation-name": "slideFromTop",
+			"animation-iteration-count": 1,
+			"animation-timing-function": "ease-in",
+			"animation-duration": "100ms",
+		},
+		"@keyframes slideFromTop": {
+			"0%": {
+				translate: "0 -100%",
+			},
+			"100%": {
+				translate: "0 0",
+			},
 		},
 		".fade-in": {
 			opacity: 1,

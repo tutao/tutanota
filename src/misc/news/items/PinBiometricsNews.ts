@@ -9,6 +9,7 @@ import { NewsModel } from "../NewsModel.js"
 import { showCredentialsEncryptionModeDialog } from "../../../gui/dialogs/SelectCredentialsEncryptionModeDialog.js"
 import { CredentialsProvider } from "../../credentials/CredentialsProvider.js"
 import { Dialog } from "../../../gui/base/Dialog.js"
+import { ExternalLink } from "../../../gui/base/ExternalLink.js"
 
 const playstoreLink = "https://play.google.com/store/apps/details?id=de.tutao.tutanota"
 const appstoreLink = "https://apps.apple.com/app/tutanota/id922429609"
@@ -29,7 +30,7 @@ export class PinBiometricsNews implements NewsListItem {
 			m(".h4", { style: { "text-transform": "capitalize" } }, lang.get("pinBiometrics_action")),
 			m("p", lang.get("pinBiometrics1_msg", { "{secureNowAction}": lang.get("secureNow_action") })),
 			m("p", lang.get("pinBiometrics2_msg")),
-			m("p", [m(".text-break", [m("a", { href: displayedLink, target: "_blank" }, displayedLink)])]),
+			m("p", [m(".text-break", [m(ExternalLink, { href: displayedLink, isCompanySite: false })])]),
 			m("p", lang.get("pinBiometrics3_msg")),
 			m(".flex-end.flex-no-grow-no-shrink-auto.flex-wrap", [
 				this.renderLaterButton(newsId),

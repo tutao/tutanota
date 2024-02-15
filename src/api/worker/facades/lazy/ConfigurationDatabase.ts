@@ -2,7 +2,7 @@ import { b64UserIdHash, DbFacade } from "../../search/DbFacade.js"
 import { assertNotNull, concat, downcast, LazyLoaded, stringToUtf8Uint8Array, utf8Uint8ArrayToString } from "@tutao/tutanota-utils"
 import type { User } from "../../../entities/sys/TypeRefs.js"
 import { ExternalImageRule } from "../../../common/TutanotaConstants.js"
-import { aes256RandomKey, aesDecrypt, aesEncrypt, decryptKey, encryptKey, IV_BYTE_LENGTH, random } from "@tutao/tutanota-crypto"
+import { aes256RandomKey, aesDecrypt, aesEncrypt, decryptKey, encryptKey, IV_BYTE_LENGTH, random, unauthenticatedAesDecrypt } from "@tutao/tutanota-crypto"
 import { UserFacade } from "../UserFacade.js"
 import { Metadata, ObjectStoreName } from "../../search/IndexTables.js"
 import { DbError } from "../../../common/error/DbError.js"
@@ -26,7 +26,7 @@ export async function encryptItem(item: string, key: Aes256Key, iv: Uint8Array):
 }
 
 export async function decryptLegacyItem(encryptedAddress: Uint8Array, key: Aes256Key, iv: Uint8Array): Promise<string> {
-	return utf8Uint8ArrayToString(aesDecrypt(key, concat(iv, encryptedAddress)))
+	return utf8Uint8ArrayToString(unauthenticatedAesDecrypt(key, concat(iv, encryptedAddress)))
 }
 
 /**
@@ -139,7 +139,7 @@ async function loadEncryptionMetadata(db: DbFacade, id: string, userGroupKey: Ae
 	}
 
 	const key = decryptKey(userGroupKey, encDbKey)
-	const iv = aesDecrypt(key, encDbIv)
+	const iv = unauthenticatedAesDecrypt(key, encDbIv)
 	return {
 		key,
 		iv,

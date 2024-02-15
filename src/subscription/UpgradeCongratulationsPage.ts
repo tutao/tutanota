@@ -1,7 +1,6 @@
 import m, { Children, Vnode, VnodeDOM } from "mithril"
 import { lang } from "../misc/LanguageViewModel"
 import type { UpgradeSubscriptionData } from "./UpgradeSubscriptionWizard"
-import { Button, ButtonType } from "../gui/base/Button.js"
 import type { WizardPageAttrs, WizardPageN } from "../gui/base/WizardDialog.js"
 import { emitWizardEvent, WizardEventType } from "../gui/base/WizardDialog.js"
 import { locator } from "../api/main/MainLocator"
@@ -9,6 +8,7 @@ import { UsageTest } from "@tutao/tutanota-usagetests"
 import { RecoverCodeField } from "../settings/login/RecoverCodeDialog.js"
 import { VisSignupImage } from "../gui/base/icons/Icons.js"
 import { PlanType } from "../api/common/TutanotaConstants.js"
+import { LoginButton } from "../gui/base/buttons/LoginButton.js"
 
 export class UpgradeCongratulationsPage implements WizardPageN<UpgradeSubscriptionData> {
 	private dom!: HTMLElement
@@ -45,9 +45,9 @@ export class UpgradeCongratulationsPage implements WizardPageN<UpgradeSubscripti
 							width: "260px",
 						},
 					},
-					m(Button, {
+					m(LoginButton, {
 						label: "ok_action",
-						click: () => {
+						onclick: () => {
 							if (attrs.data.type === PlanType.Free) {
 								const recoveryConfirmationStageFree = this.__signupFreeTest?.getStage(5)
 
@@ -60,7 +60,6 @@ export class UpgradeCongratulationsPage implements WizardPageN<UpgradeSubscripti
 
 							this.close(attrs.data, this.dom)
 						},
-						type: ButtonType.Login,
 					}),
 				),
 			),

@@ -11,7 +11,7 @@ export default {
 		"other"
 	],
 	"created_at": "2015-03-23T11:36:16Z",
-	"updated_at": "2024-02-08T10:42:12Z",
+	"updated_at": "2024-02-10T15:26:12Z",
 	"source_locale": null,
 	"fallback_locale": null,
 	"keys": {
@@ -87,7 +87,7 @@ export default {
 		"ageConfirmation_msg": "Jag är 16 år eller äldre.",
 		"agenda_label": "Agenda",
 		"allDay_label": "Hela Dagen",
-		"allowContactReadWrite_msg": "För att kunna synkronisera dina kontakter behöver vi läs- och skrivtillstånd i din kontaktbok. Du kan ändra detta när som helst i systeminställningarna.",
+		"allowContactReadWrite_msg": "För att kunna synkronisera dina kontakter behöver Tuta appen läs- och skrivtillstånd i din kontaktbok. Du kan ändra detta när som helst i systeminställningarna.",
 		"allowExternalContentSender_action": "Lita alltid på avsändaren",
 		"allowOperation_msg": "Vill du tillåta det här?",
 		"allowPushNotification_msg": "För att kunna ta emot push notiser till Tuta för nya mejl på ett tillförlitligt sätt, samtyck då att inaktivera batterioptimeringar och ge tillstånd till notiser. Du kan ändra detta senare i systeminställningarna.\n",

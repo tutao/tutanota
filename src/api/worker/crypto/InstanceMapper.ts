@@ -17,6 +17,7 @@ import { compress, uncompress } from "../Compression"
 import type { ModelValue, TypeModel } from "../../common/EntityTypes"
 import { assertWorkerOrNode } from "../../common/Env"
 import { aesDecrypt, aesEncrypt, ENABLE_MAC, IV_BYTE_LENGTH, random } from "@tutao/tutanota-crypto"
+import { CryptoError } from "@tutao/tutanota-crypto/error.js"
 
 assertWorkerOrNode()
 
@@ -174,7 +175,7 @@ export function encryptValue(valueName: string, valueType: ModelValue, value: an
 }
 
 // Exported for testing
-export function decryptValue(valueName: string, valueType: ModelValue, value: (Base64 | null) | string, sk: Aes128Key | null): any {
+export function decryptValue(valueName: string, valueType: ModelValue, value: (Base64 | null) | string, sk: Aes128Key | Aes256Key | null): any {
 	if (value == null) {
 		if (valueType.cardinality === Cardinality.ZeroOrOne) {
 			return null
@@ -184,7 +185,10 @@ export function decryptValue(valueName: string, valueType: ModelValue, value: (B
 	} else if (valueType.cardinality === Cardinality.One && value === "") {
 		return valueToDefault(valueType.type) // Migration for values added after the Type has been defined initially
 	} else if (valueType.encrypted) {
-		let decryptedBytes = aesDecrypt(sk as any, base64ToUint8Array(value as any))
+		if (sk == null) {
+			throw new CryptoError("session key is null, but value is encrypted. valueName: " + valueName + " valueType: " + valueType)
+		}
+		let decryptedBytes = aesDecrypt(sk, base64ToUint8Array(value))
 
 		if (valueType.type === ValueType.Bytes) {
 			return decryptedBytes

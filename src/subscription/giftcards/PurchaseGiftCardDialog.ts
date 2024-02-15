@@ -5,7 +5,7 @@ import { GiftCardTypeRef } from "../../api/entities/sys/TypeRefs.js"
 import { showProgressDialog } from "../../gui/dialogs/ProgressDialog"
 import { locator } from "../../api/main/MainLocator"
 import { BOX_MARGIN, BuyOptionBox } from "../BuyOptionBox"
-import { Button, ButtonType } from "../../gui/base/Button.js"
+import { ButtonType } from "../../gui/base/Button.js"
 import { getPreconditionFailedPaymentMsg } from "../SubscriptionUtils"
 import { renderAcceptGiftCardTermsCheckbox, showGiftCardToShare } from "./GiftCardUtils"
 import type { DialogHeaderBarAttrs } from "../../gui/base/DialogHeaderBar"
@@ -25,6 +25,7 @@ import { TranslationKeyType } from "../../misc/TranslationKey.js"
 import { px } from "../../gui/size"
 import { Icon } from "../../gui/base/Icon"
 import { Icons } from "../../gui/base/icons/Icons"
+import { LoginButton } from "../../gui/base/buttons/LoginButton.js"
 
 class PurchaseGiftCardModel {
 	message = lang.get("defaultGiftCardMessage_msg")
@@ -134,15 +135,13 @@ class GiftCardPurchaseView implements Component<GiftCardPurchaseViewAttrs> {
 								}),
 							),
 						),
-						actionButton: () => {
-							return {
+						actionButton: () =>
+							m(LoginButton, {
 								label: "pricing.select_action",
-								click: () => {
+								onclick: () => {
 									model.selectedPackage = index
 								},
-								type: ButtonType.Login,
-							} as const
-						},
+							}),
 						price: formatPrice(value, true),
 						helpLabel: () => this.getGiftCardHelpText(model.revolutionaryPrice, value),
 						width: 230,
@@ -171,10 +170,9 @@ class GiftCardPurchaseView implements Component<GiftCardPurchaseViewAttrs> {
 					),
 					m(
 						".mt-l.mb-l",
-						m(Button, {
+						m(LoginButton, {
 							label: "buy_action",
-							click: () => this.onBuyButtonPressed(model, onGiftCardPurchased).catch(ofClass(UserError, showUserError)),
-							type: ButtonType.Login,
+							onclick: () => this.onBuyButtonPressed(model, onGiftCardPurchased).catch(ofClass(UserError, showUserError)),
 						}),
 					),
 				]),

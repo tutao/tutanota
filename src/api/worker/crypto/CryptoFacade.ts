@@ -108,7 +108,7 @@ export function encryptBytes(sk: Aes128Key, value: Uint8Array): Uint8Array {
 	return aesEncrypt(sk, value, random.generateRandomData(IV_BYTE_LENGTH), true, ENABLE_MAC)
 }
 
-export function encryptString(sk: Aes128Key, value: string): Uint8Array {
+export function encryptString(sk: Aes128Key | Aes256Key, value: string): Uint8Array {
 	return aesEncrypt(sk, stringToUtf8Uint8Array(value), random.generateRandomData(IV_BYTE_LENGTH), true, ENABLE_MAC)
 }
 
@@ -846,7 +846,9 @@ export class CryptoFacade {
 		}
 		const typeModel = await resolveTypeReference(mainInstance._type)
 		if (!mainInstance.bucketKey) {
-			throw new ProgrammingError("passed invalid type to enforceSessionKeyUpdate " + typeModel)
+			throw new ProgrammingError(
+				"passed invalid type to enforceSessionKeyUpdate " + JSON.stringify(mainInstance._type) + " for instance " + JSON.stringify(mainInstance._id),
+			)
 		}
 		// if we have a bucket key, then we need to cache the session keys stored in the bucket key for details, files, etc.
 		// we need to do this BEFORE we check the owner enc session key

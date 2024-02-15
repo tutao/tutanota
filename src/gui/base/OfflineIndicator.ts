@@ -1,5 +1,4 @@
 import m, { Children, Component, Vnode } from "mithril"
-import { theme } from "../theme"
 import { isSameDayOfDate, noOp } from "@tutao/tutanota-utils"
 import { lang } from "../../misc/LanguageViewModel"
 
@@ -11,10 +10,10 @@ export const enum OfflineIndicatorState {
 }
 
 export type OfflineIndicatorAttrs =
-	| { state: OfflineIndicatorState.Online }
-	| { state: OfflineIndicatorState.Connecting }
-	| { state: OfflineIndicatorState.Synchronizing; progress: number }
-	| { state: OfflineIndicatorState.Offline; lastUpdate: Date | null; reconnectAction: () => void }
+	| { state: OfflineIndicatorState.Online; isSingleColumn: boolean }
+	| { state: OfflineIndicatorState.Connecting; isSingleColumn: boolean }
+	| { state: OfflineIndicatorState.Synchronizing; progress: number; isSingleColumn: boolean }
+	| { state: OfflineIndicatorState.Offline; lastUpdate: Date | null; reconnectAction: () => void; isSingleColumn: boolean }
 
 /**
  * the first line of the offline indicator shows if we're offline or online and
@@ -27,9 +26,8 @@ function attrToFirstLine(attr: OfflineIndicatorAttrs): Children {
 		case OfflineIndicatorState.Online:
 		case OfflineIndicatorState.Synchronizing:
 			return m("span", lang.get("online_label"))
-
 		case OfflineIndicatorState.Offline:
-			return [m("span", lang.get("offline_label")), m("span.b.content-accent-fg.mlr-s", lang.get("reconnect_action"))]
+			return m("span", [lang.get("offline_label"), m("span.b.content-accent-fg.mlr-s", lang.get("reconnect_action"))])
 		case OfflineIndicatorState.Connecting:
 			return m("span", lang.get("offline_label"))
 	}
@@ -72,35 +70,22 @@ function formatDate(date: Date): string {
 	return isSameDayOfDate(new Date(), date) ? lang.formats.time.format(date) : lang.formats.simpleDate.format(date)
 }
 
-export class OfflineIndicatorDesktop implements Component<OfflineIndicatorAttrs> {
+export class OfflineIndicator implements Component<OfflineIndicatorAttrs> {
 	view(vnode: Vnode<OfflineIndicatorAttrs>): Children {
 		const a = vnode.attrs
+		const isOffline = a.state === OfflineIndicatorState.Offline
 		return m(
-			"button.small.mlr-l.flex.col",
+			"button.small",
 			{
+				class: a.isSingleColumn ? "center mb-xs" : "mlr-l flex col",
 				type: "button",
 				href: "#",
 				tabindex: "0",
 				role: "button",
-				onclick: a.state === OfflineIndicatorState.Offline ? a.reconnectAction : noOp,
+				"aria-disabled": !isOffline,
+				onclick: isOffline ? a.reconnectAction : noOp,
 			},
-			[m("", { color: theme.content_accent }, attrToFirstLine(a)), m("", { color: theme.content_accent }, attrToSecondLine(a))],
-		)
-	}
-}
-
-export class OfflineIndicatorMobile implements Component<OfflineIndicatorAttrs> {
-	view({ attrs }: Vnode<OfflineIndicatorAttrs>): Children {
-		return m(
-			"button.small.center.mb-xs",
-			{
-				type: "button",
-				href: "#",
-				tabindex: "0",
-				role: "button",
-				onclick: attrs.state === OfflineIndicatorState.Offline ? attrs.reconnectAction : noOp,
-			},
-			attrToFirstLine(attrs),
+			a.isSingleColumn ? attrToFirstLine(a) : [attrToFirstLine(a), attrToSecondLine(a)],
 		)
 	}
 }

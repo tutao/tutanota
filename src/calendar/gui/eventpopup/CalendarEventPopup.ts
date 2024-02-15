@@ -150,32 +150,28 @@ export class CalendarEventPopup implements ModalComponent {
 
 	private renderEditButton(): Children {
 		if (!this.model.canEdit) return null
-		return m(IconButton, { title: "edit_action", icon: Icons.Edit, colors: ButtonColor.DrawerNav, click: this.handleEditButtonClick })
+		return m(IconButton, { title: "edit_action", icon: Icons.Edit, click: this.handleEditButtonClick })
 	}
 
 	private renderDeleteButton(): Children {
 		if (!this.model.canDelete) return null
-		return m(IconButton, { title: "delete_action", icon: Icons.Trash, colors: ButtonColor.DrawerNav, click: this.handleDeleteButtonClick })
+		return m(IconButton, { title: "delete_action", icon: Icons.Trash, click: this.handleDeleteButtonClick })
 	}
 
 	private renderSendUpdateButton(): Children {
 		if (!this.model.canSendUpdates) return null
-		return m(Button, {
-			label: "sendUpdates_label",
+		return m(IconButton, {
+			title: "sendUpdates_label",
 			click: () => this.handleSendUpdatesClick(),
-			type: ButtonType.ActionLarge,
-			icon: () => BootIcons.Mail,
-			colors: ButtonColor.DrawerNav,
+			icon: BootIcons.Mail,
 		})
 	}
 
 	private renderCloseButton(): Children {
-		return m(Button, {
-			label: "close_alt",
+		return m(IconButton, {
+			title: "close_alt",
 			click: () => this.close(),
-			type: ButtonType.ActionLarge,
-			icon: () => Icons.Cancel,
-			colors: ButtonColor.DrawerNav,
+			icon: Icons.Cancel,
 		})
 	}
 

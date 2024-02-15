@@ -75,13 +75,11 @@ constructor(
 
 		@Throws(NoSuchAlgorithmException::class)
 		private fun getSubKeys(key: SecretKeySpec, mac: Boolean): SubKeys {
+			val keyLength = getAesKeyLength(key)
 			return if (mac) {
-				val digest = when (key.encoded.size) {
-					AES128_KEY_LENGTH_BYTES -> MessageDigest.getInstance("SHA-256")
-					AES256_KEY_LENGTH_BYTES -> MessageDigest.getInstance("SHA-512")
-					else -> {
-						throw java.lang.IllegalArgumentException("bad key size")
-					}
+				val digest = when (keyLength) {
+					AesKeyLength.Aes128 -> MessageDigest.getInstance("SHA-256")
+					AesKeyLength.Aes256 -> MessageDigest.getInstance("SHA-512")
 				}
 				val hash = digest.digest(key.encoded)
 				val hashLen = hash.size
@@ -90,7 +88,7 @@ constructor(
 						mKey = hash.copyOfRange(hashLen / 2, hashLen)
 				)
 			} else {
-				if (key.encoded.size == AES256_KEY_LENGTH_BYTES) {
+				if (keyLength == AesKeyLength.Aes256) {
 					throw java.lang.IllegalArgumentException("must use mac with AES-256")
 				}
 				SubKeys(
@@ -98,6 +96,23 @@ constructor(
 						mKey = null
 				)
 			}
+		}
+
+		private fun getAesKeyLength(key: Key): AesKeyLength {
+			return getAesKeyLength(key.encoded.size)
+		}
+
+		private fun getAesKeyLength(key: SecretKeySpec): AesKeyLength {
+			return getAesKeyLength(key.encoded.size)
+		}
+
+		private fun getAesKeyLength(sizeInBytes: Int): AesKeyLength {
+			return when (sizeInBytes) {
+				AES128_KEY_LENGTH_BYTES -> AesKeyLength.Aes128
+				AES256_KEY_LENGTH_BYTES -> AesKeyLength.Aes256
+				else -> throw CryptoError("invalid key length (in bytes): " + sizeInBytes)
+			}
+
 		}
 
 		private fun hmac256(key: ByteArray, data: ByteArray): ByteArray {
@@ -279,11 +294,10 @@ constructor(
 	}
 
 	@Throws(CryptoError::class)
-	fun encryptKey(encryptionKey: Key?, keyToEncryptWithoutIv: ByteArray?): ByteArray {
-		return when (encryptionKey!!.encoded.size) {
-			AES128_KEY_LENGTH_BYTES -> aes128EncryptKey(encryptionKey, keyToEncryptWithoutIv!!)
-			AES256_KEY_LENGTH_BYTES -> aes256EncryptKey(encryptionKey, keyToEncryptWithoutIv!!)
-			else -> throw java.lang.IllegalArgumentException("bad key length")
+	fun encryptKey(encryptionKey: Key, keyToEncryptWithoutIv: ByteArray?): ByteArray {
+		return when (getAesKeyLength(encryptionKey)) {
+			AesKeyLength.Aes128 -> aes128EncryptKey(encryptionKey, keyToEncryptWithoutIv!!)
+			AesKeyLength.Aes256 -> aes256EncryptKey(encryptionKey, keyToEncryptWithoutIv!!)
 		}
 	}
 
@@ -314,14 +328,14 @@ constructor(
 	@Throws(CryptoError::class)
 	fun decryptKey(encryptionKey: Key, encryptedKey: ByteArray): ByteArray {
 		val outputStream = ByteArrayOutputStream()
-		if (hasMac(encryptedKey.size.toLong())) {
-			// newer keys (encrypted with AES-256): MAC + random IV
-			aesDecrypt(encryptionKey.encoded, ByteArrayInputStream(encryptedKey), outputStream, encryptedKey.size.toLong(), false)
-		} else {
-			// legacy case: no MAC + fixed IV
-			println("EncryptionKey: $encryptionKey.")
-			val fullInput = FIXED_IV + encryptedKey // concatenate with fixed IVs since it isn't in the key in the legacy case
-			aesDecrypt(encryptionKey.encoded, ByteArrayInputStream(fullInput), outputStream, fullInput.size.toLong(), false)
+		when (getAesKeyLength(encryptionKey)) {
+			AesKeyLength.Aes128 -> {
+				val fullInput = FIXED_IV + encryptedKey // concatenate with fixed IVs since it isn't in the key in the legacy case
+				aesDecrypt(encryptionKey.encoded, ByteArrayInputStream(fullInput), outputStream, fullInput.size.toLong(), false)
+			}
+			AesKeyLength.Aes256 -> {
+				aesDecrypt(encryptionKey.encoded, ByteArrayInputStream(encryptedKey), outputStream, encryptedKey.size.toLong(), false)
+			}
 		}
 		return outputStream.toByteArray()
 	}
@@ -346,12 +360,25 @@ constructor(
 	@VisibleForTesting(otherwise = VisibleForTesting.PRIVATE)
 	@Throws(IOException::class, CryptoError::class)
 	fun aesDecrypt(key: ByteArray, input: InputStream, out: OutputStream, inputSize: Long, padding: Boolean) {
+		return when (getAesKeyLength(key.size)) {
+			AesKeyLength.Aes128 -> aesDecryptImpl(key, input, out, inputSize, padding, false)
+			AesKeyLength.Aes256 -> aesDecryptImpl(key, input, out, inputSize, padding, true)
+		}
+	}
+
+	@Throws(IOException::class, CryptoError::class)
+	private fun aesDecryptImpl(key: ByteArray, input: InputStream, out: OutputStream, inputSize: Long, padding: Boolean, enforceMac: Boolean) {
 		var inputWithoutMac = input
 		var decrypted: InputStream? = null
 		try {
 			var cKey = key
-			if (hasMac(inputSize)) {
-				val subKeys = getSubKeys(bytesToKey(key), true)
+			val hasMac = hasMac(inputSize)
+			if (enforceMac && !hasMac) {
+				throw CryptoError("mac expected but not found")
+			}
+
+			if (hasMac) {
+				val subKeys = getSubKeys(bytesToKey(key), hasMac)
 				cKey = subKeys.cKey!!.encoded
 				val tempOut = ByteArrayOutputStream()
 				IOUtils.copyLarge(inputWithoutMac, tempOut)

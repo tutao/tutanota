@@ -131,7 +131,7 @@ export class CredentialsProvider {
 	 * Change the encrypted password for the stored credentials.
 	 */
 	async replacePassword(credentials: CredentialsInfo, encryptedPassword: string): Promise<void> {
-		const encryptedCredentials = await this.storage.loadByUserId(credentials.userId)
+		const encryptedCredentials = this.storage.loadByUserId(credentials.userId)
 		if (encryptedCredentials == null) {
 			throw new Error(`Trying to replace password for credentials but credentials are not persisted: ${credentials.userId}`)
 		}

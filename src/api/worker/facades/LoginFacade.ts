@@ -15,6 +15,7 @@ import {
 	utf8Uint8ArrayToString,
 } from "@tutao/tutanota-utils"
 import {
+	ChangeKdfService,
 	ChangePasswordService,
 	CustomerService,
 	ResetFactorsService,
@@ -23,10 +24,10 @@ import {
 	SessionService,
 	TakeOverDeletedAddressService,
 } from "../../entities/sys/Services"
-import { AccountType, asKdfType, CloseEventBusOption, DEFAULT_KDF_TYPE, KdfType } from "../../common/TutanotaConstants"
-import type { GroupInfo, SecondFactorAuthData, User } from "../../entities/sys/TypeRefs.js"
+import { AccountType, asKdfType, CloseEventBusOption, Const, DEFAULT_KDF_TYPE, KdfType } from "../../common/TutanotaConstants"
 import {
 	Challenge,
+	createChangeKdfPostIn,
 	createChangePasswordData,
 	createCreateSessionData,
 	createDeleteCustomerData,
@@ -36,9 +37,12 @@ import {
 	createSecondFactorAuthGetData,
 	CreateSessionReturn,
 	createTakeOverDeletedAddressData,
+	GroupInfo,
 	GroupInfoTypeRef,
 	RecoverCodeTypeRef,
+	SecondFactorAuthData,
 	SessionTypeRef,
+	User,
 	UserTypeRef,
 } from "../../entities/sys/TypeRefs.js"
 import { TutanotaPropertiesTypeRef } from "../../entities/tutanota/TypeRefs.js"
@@ -55,10 +59,11 @@ import { GENERATED_ID_BYTES_LENGTH, isSameId } from "../../common/utils/EntityUt
 import type { Credentials } from "../../../misc/credentials/Credentials"
 import {
 	Aes128Key,
-	aes256DecryptLegacyRecoveryKey,
+	aes256DecryptWithRecoveryKey,
 	Aes256Key,
 	aes256RandomKey,
 	aesDecrypt,
+	authenticatedAesDecrypt,
 	base64ToKey,
 	createAuthVerifier,
 	createAuthVerifierAsBase64Url,
@@ -73,7 +78,6 @@ import {
 	TotpVerifier,
 	uint8ArrayToBitArray,
 } from "@tutao/tutanota-crypto"
-import { CryptoError } from "@tutao/tutanota-crypto/error.js"
 import { CryptoFacade, encryptString } from "../crypto/CryptoFacade"
 import { InstanceMapper } from "../crypto/InstanceMapper"
 import { IServiceExecutor } from "../../common/ServiceRequest"
@@ -126,6 +130,15 @@ type ResumeSessionFailure = { type: "error"; reason: ResumeSessionErrorReason }
 type ResumeSessionResult = ResumeSessionSuccess | ResumeSessionFailure
 
 type AsyncLoginState = { state: "idle" } | { state: "running" } | { state: "failed"; credentials: Credentials; cacheInfo: CacheInfo }
+
+/**
+ * All attributes that are required to derive the passphrase key.
+ */
+export type PassphraseKeyData = {
+	kdfType: KdfType
+	salt: Uint8Array
+	passphrase: string
+}
 
 export interface LoginListener {
 	/**
@@ -183,6 +196,7 @@ export class LoginFacade {
 		private readonly entropyFacade: EntropyFacade,
 		private readonly databaseKeyFactory: DatabaseKeyFactory,
 		private readonly argon2idFacade: Argon2idFacade,
+		private readonly noncachingEntityClient: EntityClient,
 	) {}
 
 	init(eventBusClient: EventBusClient) {
@@ -211,7 +225,7 @@ export class LoginFacade {
 			// check if it is the same user in _initSession()
 		}
 
-		const userPassphraseKey = await this.loadUserPassphraseKey(mailAddress, passphrase)
+		const { userPassphraseKey, kdfType } = await this.loadUserPassphraseKey(mailAddress, passphrase)
 		// the verifier is always sent as url parameter, so it must be url encoded
 		const authVerifier = createAuthVerifierAsBase64Url(userPassphraseKey)
 		const createSessionData = createCreateSessionData({
@@ -253,6 +267,10 @@ export class LoginFacade {
 			cacheInfo,
 		)
 
+		if (!this.isModernKdfType(kdfType)) {
+			await this.migrateKdfType(KdfType.Argon2id, passphrase, user)
+		}
+
 		return {
 			user,
 			userGroupInfo,
@@ -268,6 +286,58 @@ export class LoginFacade {
 			// falls back to ephemeral cache in browsers. no point storing the key then.
 			databaseKey: cacheInfo.isPersistent ? databaseKey : null,
 		}
+	}
+
+	/**
+	 * Ensure that the user is using a modern KDF type, migrating if not.
+	 * @param targetKdfType the current KDF type
+	 * @param passphrase either the plaintext passphrase or the encrypted passphrase with the access token necessary to decrypt it
+	 * @param user the user we are updating
+	 */
+	public async migrateKdfType(targetKdfType: KdfType, passphrase: string, user: User): Promise<void> {
+		if (!Const.EXECUTE_KDF_MIGRATION) {
+			// Migration is not yet enabled on this version.
+			return
+		}
+
+		const currentPassphraseKeyData = {
+			passphrase,
+			kdfType: asKdfType(user.kdfVersion),
+			salt: assertNotNull(user.salt, `current salt for user ${user._id} not found`),
+		}
+
+		const currentUserPassphraseKey = await this.deriveUserPassphraseKey(currentPassphraseKeyData)
+		const currentAuthVerifier = createAuthVerifier(currentUserPassphraseKey)
+
+		const newPassphraseKeyData = {
+			passphrase,
+			kdfType: targetKdfType,
+			salt: generateRandomSalt(),
+		}
+		const newUserPassphraseKey = await this.deriveUserPassphraseKey(newPassphraseKeyData)
+
+		const pwEncUserGroupKey = encryptKey(newUserPassphraseKey, this.userFacade.getUserGroupKey())
+		const newAuthVerifier = createAuthVerifier(newUserPassphraseKey)
+
+		const changeKdfPostIn = createChangeKdfPostIn({
+			kdfVersion: newPassphraseKeyData.kdfType,
+			salt: newPassphraseKeyData.salt,
+			pwEncUserGroupKey,
+			verifier: newAuthVerifier,
+			oldVerifier: currentAuthVerifier,
+		})
+		console.log("Migrate KDF from:", user.kdfVersion, "to", targetKdfType)
+		return this.serviceExecutor.post(ChangeKdfService, changeKdfPostIn)
+	}
+
+	/**
+	 * Checks if the given KDF type is phased out.
+	 * @param kdfType
+	 * @private
+	 */
+	private isModernKdfType(kdfType: KdfType): boolean {
+		// resist the temptation to just check if it is equal to the default, because that will yield false for KDF types we don't know about yet
+		return kdfType !== KdfType.Bcrypt
 	}
 
 	/**
@@ -325,7 +395,7 @@ export class LoginFacade {
 	}
 
 	/**
-	 * Create external (temporary mailbox for password-protected emails) session and log in.
+	 * Create external (temporary mailbox for passphrase-protected emails) session and log in.
 	 * Changes internal state to refer to the logged-in user.
 	 */
 	async createExternalSession(
@@ -341,7 +411,7 @@ export class LoginFacade {
 		}
 
 		console.log("login external worker")
-		const userPassphraseKey = await this.deriveUserPassphraseKey(kdfType, passphrase, salt)
+		const userPassphraseKey = await this.deriveUserPassphraseKey({ kdfType, passphrase, salt })
 		// the verifier is always sent as url parameter, so it must be url encoded
 		const authVerifier = createAuthVerifierAsBase64Url(userPassphraseKey)
 		const authToken = base64ToBase64Url(uint8ArrayToBase64(sha256Hash(salt)))
@@ -354,7 +424,7 @@ export class LoginFacade {
 			recoverCodeVerifier: null,
 			user: userId,
 		})
-		let accessKey: Aes128Key | null = null
+		let accessKey: Aes256Key | null = null
 
 		if (persistentSession) {
 			accessKey = aes256RandomKey()
@@ -395,7 +465,7 @@ export class LoginFacade {
 	/**
 	 * Derive a key given a KDF type, passphrase, and salt
 	 */
-	async deriveUserPassphraseKey(kdfType: KdfType, passphrase: string, salt: Uint8Array): Promise<Aes128Key | Aes256Key> {
+	async deriveUserPassphraseKey({ kdfType, passphrase, salt }: PassphraseKeyData): Promise<Aes128Key | Aes256Key> {
 		switch (kdfType) {
 			case KdfType.Bcrypt: {
 				return generateKeyFromPassphraseBcrypt(passphrase, salt, KeyLength.b128)
@@ -570,14 +640,20 @@ export class LoginFacade {
 		const sessionId = this.getSessionId(credentials)
 		const sessionData = await this.loadSessionData(credentials.accessToken)
 		const encryptedPassword = base64ToUint8Array(assertNotNull(credentials.encryptedPassword, "encryptedPassword was null!"))
-		const passphrase = utf8Uint8ArrayToString(aesDecrypt(sessionData.accessKey, encryptedPassword))
+		const passphrase = utf8Uint8ArrayToString(aesDecrypt(assertNotNull(sessionData.accessKey, "no access key on session data!"), encryptedPassword))
 		let userPassphraseKey: Aes128Key | Aes256Key
+		let kdfType: KdfType | null
 
-		if (externalUserKeyDeriver) {
+		const isExternalUser = externalUserKeyDeriver != null
+
+		if (isExternalUser) {
 			await this.checkOutdatedExternalSalt(credentials, sessionData, externalUserKeyDeriver.salt)
-			userPassphraseKey = await this.deriveUserPassphraseKey(externalUserKeyDeriver.kdfType, passphrase, externalUserKeyDeriver.salt)
+			userPassphraseKey = await this.deriveUserPassphraseKey({ ...externalUserKeyDeriver, passphrase })
+			kdfType = null
 		} else {
-			userPassphraseKey = await this.loadUserPassphraseKey(credentials.login, passphrase)
+			const passphraseData = await this.loadUserPassphraseKey(credentials.login, passphrase)
+			userPassphraseKey = passphraseData.userPassphraseKey
+			kdfType = passphraseData.kdfType
 		}
 
 		const { user, userGroupInfo } = await this.initSession(
@@ -594,6 +670,11 @@ export class LoginFacade {
 			user,
 			userGroupInfo,
 			sessionId,
+		}
+
+		// We only need to migrate the kdf in case an internal user resumes the session.
+		if (kdfType && !this.isModernKdfType(kdfType)) {
+			await this.migrateKdfType(KdfType.Argon2id, passphrase, user)
 		}
 
 		return { type: "success", data }
@@ -618,8 +699,9 @@ export class LoginFacade {
 		this.userFacade.setAccessToken(accessToken)
 
 		try {
-			const user = await this.entityClient.load(UserTypeRef, userId)
-			await this.checkOutdatedPassword(user, accessToken, userPassphraseKey)
+			// We need to use up-to-date user to make sure that we are not checking for outdated verified against cached user.
+			const user = await this.noncachingEntityClient.load(UserTypeRef, userId)
+			await this.checkOutdatedVerifier(user, accessToken, userPassphraseKey)
 
 			const wasPartiallyLoggedIn = this.userFacade.isPartiallyLoggedIn()
 			if (!wasPartiallyLoggedIn) {
@@ -676,7 +758,14 @@ export class LoginFacade {
 	/**
 	 * Check whether the passed salt for external user is up-to-date (whether an outdated link was used).
 	 */
-	private async checkOutdatedExternalSalt(credentials: Credentials, sessionData: { userId: Id; accessKey: Aes128Key }, externalUserSalt: Uint8Array) {
+	private async checkOutdatedExternalSalt(
+		credentials: Credentials,
+		sessionData: {
+			userId: Id
+			accessKey: Aes128Key | Aes256Key | null
+		},
+		externalUserSalt: Uint8Array,
+	) {
 		this.userFacade.setAccessToken(credentials.accessToken)
 		const user = await this.entityClient.load(UserTypeRef, sessionData.userId)
 		const latestSaltHash = assertNotNull(user.externalAuthInfo!.latestSaltHash, "latestSaltHash is not set!")
@@ -689,26 +778,32 @@ export class LoginFacade {
 	}
 
 	/**
-	 * Check that the password is not changed.
+	 * Check that the auth verifier is not changed e.g. due to the password change.
 	 * Normally this won't happen for internal users as all sessions are closed on password change. This may happen for external users when the sender has
 	 * changed the password.
 	 * We do not delete all sessions on the server when changing the external password to avoid that an external user is immediately logged out.
+	 *
+	 * @param user Should be up-to-date, i.e., not loaded from cache, but fresh from the server, otherwise an outdated verifier will cause a logout.
 	 */
-	private async checkOutdatedPassword(user: User, accessToken: string, userPassphraseKey: Aes128Key) {
+	private async checkOutdatedVerifier(user: User, accessToken: string, userPassphraseKey: Aes128Key) {
 		if (uint8ArrayToBase64(user.verifier) !== uint8ArrayToBase64(sha256Hash(createAuthVerifier(userPassphraseKey)))) {
-			console.log("External password has changed")
+			console.log("Auth verifier has changed")
 			// delete the obsolete session to make sure it can not be used any more
 			await this.deleteSession(accessToken).catch((e) => console.error("Could not delete session", e))
 			await this.resetSession()
-			throw new NotAuthenticatedError("External password has changed")
+			throw new NotAuthenticatedError("Auth verifier has changed")
 		}
 	}
 
-	private async loadUserPassphraseKey(mailAddress: string, passphrase: string): Promise<Aes128Key | Aes256Key> {
+	private async loadUserPassphraseKey(mailAddress: string, passphrase: string): Promise<{ kdfType: KdfType; userPassphraseKey: Aes128Key | Aes256Key }> {
 		mailAddress = mailAddress.toLowerCase().trim()
 		const saltRequest = createSaltData({ mailAddress })
 		const saltReturn = await this.serviceExecutor.get(SaltService, saltRequest)
-		return this.deriveUserPassphraseKey(asKdfType(saltReturn.kdfVersion), passphrase, saltReturn.salt)
+		const kdfType = asKdfType(saltReturn.kdfVersion)
+		return {
+			userPassphraseKey: await this.deriveUserPassphraseKey({ kdfType, passphrase, salt: saltReturn.salt }),
+			kdfType,
+		}
 	}
 
 	/**
@@ -755,7 +850,7 @@ export class LoginFacade {
 
 	private async loadSessionData(accessToken: Base64Url): Promise<{
 		userId: Id
-		accessKey: Aes128Key
+		accessKey: Aes128Key | Aes256Key | null
 	}> {
 		const path = typeRefToPath(SessionTypeRef) + "/" + this.getSessionListId(accessToken) + "/" + this.getSessionElementId(accessToken)
 		const SessionTypeModel = await resolveTypeReference(SessionTypeRef)
@@ -764,6 +859,7 @@ export class LoginFacade {
 			accessToken: accessToken,
 			v: SessionTypeModel.version,
 		}
+		// we cannot use the entity client yet because this type is encrypted and we don't have an owner key yet
 		return this.restClient
 			.request(path, HttpMethod.GET, {
 				headers,
@@ -773,7 +869,7 @@ export class LoginFacade {
 				let session = JSON.parse(instance)
 				return {
 					userId: session.user,
-					accessKey: base64ToKey(session.accessKey),
+					accessKey: session.accessKey ? base64ToKey(session.accessKey) : null,
 				}
 			})
 	}
@@ -781,54 +877,65 @@ export class LoginFacade {
 	/**
 	 * Loads entropy from the last logout.
 	 */
-	private loadEntropy(): Promise<void> {
-		return this.entityClient.loadRoot(TutanotaPropertiesTypeRef, this.userFacade.getUserGroupId()).then((tutanotaProperties) => {
-			if (tutanotaProperties.groupEncEntropy) {
-				try {
-					let entropy = aesDecrypt(this.userFacade.getUserGroupKey(), neverNull(tutanotaProperties.groupEncEntropy))
-					random.addStaticEntropy(entropy)
-				} catch (error) {
-					if (error instanceof CryptoError) {
-						console.log("could not decrypt entropy", error)
-					}
-				}
+	private async loadEntropy(): Promise<void> {
+		const tutanotaProperties = await this.entityClient.loadRoot(TutanotaPropertiesTypeRef, this.userFacade.getUserGroupId())
+		if (tutanotaProperties.groupEncEntropy) {
+			try {
+				const entropy = authenticatedAesDecrypt(this.userFacade.getUserGroupKey(), tutanotaProperties.groupEncEntropy)
+				random.addStaticEntropy(entropy)
+			} catch (error) {
+				console.log("could not decrypt entropy", error)
 			}
-		})
+		}
 	}
 
-	async changePassword(currentPassword: string, newPassword: string, currentKdfType: KdfType): Promise<{ encryptedPassword: string }> {
-		const currentSalt = assertNotNull(this.userFacade.getLoggedInUser().salt)
-		const currentUserPassphraseKey = await this.deriveUserPassphraseKey(currentKdfType, currentPassword, currentSalt)
+	/**
+	 * Change password and/or KDF type for the current user. This will cause all other sessions to be closed.
+	 * @return New password encrypted with accessKey if this is a persistent session or {@code null}  if it's an ephemeral one.
+	 */
+	async changePassword(currentPasswordKeyData: PassphraseKeyData, newPasswordKeyDataTemplate: Omit<PassphraseKeyData, "salt">): Promise<Base64 | null> {
+		const currentUserPassphraseKey = await this.deriveUserPassphraseKey(currentPasswordKeyData)
 		const currentAuthVerifier = createAuthVerifier(currentUserPassphraseKey)
+		const newPasswordKeyData = { ...newPasswordKeyDataTemplate, salt: generateRandomSalt() }
 
-		const salt = generateRandomSalt()
-		const newKdfType = DEFAULT_KDF_TYPE
-		const newUserPassphraseKey = await this.deriveUserPassphraseKey(newKdfType, newPassword, salt)
+		const newUserPassphraseKey = await this.deriveUserPassphraseKey(newPasswordKeyData)
 		const pwEncUserGroupKey = encryptKey(newUserPassphraseKey, this.userFacade.getUserGroupKey())
 		const authVerifier = createAuthVerifier(newUserPassphraseKey)
 		const service = createChangePasswordData({
 			code: null,
-			kdfVersion: newKdfType,
+			kdfVersion: newPasswordKeyDataTemplate.kdfType,
 			oldVerifier: currentAuthVerifier,
 			pwEncUserGroupKey: pwEncUserGroupKey,
 			recoverCodeVerifier: null,
-			salt: salt,
+			salt: newPasswordKeyData.salt,
 			verifier: authVerifier,
 		})
 
 		await this.serviceExecutor.post(ChangePasswordService, service)
+
 		const accessToken = assertNotNull(this.userFacade.getAccessToken())
 		const sessionData = await this.loadSessionData(accessToken)
-		return { encryptedPassword: uint8ArrayToBase64(encryptString(sessionData.accessKey, newPassword)) }
+		if (sessionData.accessKey != null) {
+			// if we have an accessKey, this means we are storing the encrypted password locally, in which case we need to store the new one
+			return uint8ArrayToBase64(encryptString(sessionData.accessKey, newPasswordKeyDataTemplate.passphrase))
+		} else {
+			return null
+		}
 	}
 
-	async deleteAccount(password: string, reason: string, takeover: string): Promise<void> {
+	async deleteAccount(password: string, reasonCategory: NumberString | null, reasonText: string, takeover: string): Promise<void> {
 		const userSalt = assertNotNull(this.userFacade.getLoggedInUser().salt)
 
-		const passwordKey = await this.deriveUserPassphraseKey(asKdfType(this.userFacade.getLoggedInUser().kdfVersion), password, userSalt)
+		const passphraseKeyData = {
+			kdfType: asKdfType(this.userFacade.getLoggedInUser().kdfVersion),
+			passphrase: password,
+			salt: userSalt,
+		}
+		const passwordKey = await this.deriveUserPassphraseKey(passphraseKeyData)
 		const deleteCustomerData = createDeleteCustomerData({
 			authVerifier: createAuthVerifier(passwordKey),
-			reason: reason,
+			reason: reasonText,
+			reasonCategory: reasonCategory,
 			takeoverMailAddress: null,
 			undelete: false,
 			customer: neverNull(neverNull(this.userFacade.getLoggedInUser()).customer),
@@ -893,11 +1000,12 @@ export class LoginFacade {
 
 		const recoverCodeData = await entityClient.load(RecoverCodeTypeRef, user.auth.recoverCode, undefined, recoverCodeExtraHeaders)
 		try {
-			const groupKey = aes256DecryptLegacyRecoveryKey(recoverCodeKey, recoverCodeData.recoverCodeEncUserGroupKey)
+			const groupKey = aes256DecryptWithRecoveryKey(recoverCodeKey, recoverCodeData.recoverCodeEncUserGroupKey)
 			const salt = generateRandomSalt()
 			const newKdfType = DEFAULT_KDF_TYPE
 
-			const userPassphraseKey = await this.deriveUserPassphraseKey(newKdfType, newPassword, salt)
+			const newPassphraseKeyData = { kdfType: newKdfType, passphrase: newPassword, salt }
+			const userPassphraseKey = await this.deriveUserPassphraseKey(newPassphraseKeyData)
 			const pwEncUserGroupKey = encryptKey(userPassphraseKey, groupKey)
 			const newPasswordVerifier = createAuthVerifier(userPassphraseKey)
 			const postData = createChangePasswordData({
@@ -922,7 +1030,7 @@ export class LoginFacade {
 	/** Deletes second factors using recoverCode as second factor. */
 	resetSecondFactors(mailAddress: string, password: string, recoverCode: Hex): Promise<void> {
 		return this.loadUserPassphraseKey(mailAddress, password).then((passphraseReturn) => {
-			const authVerifier = createAuthVerifierAsBase64Url(passphraseReturn)
+			const authVerifier = createAuthVerifierAsBase64Url(passphraseReturn.userPassphraseKey)
 			const recoverCodeKey = uint8ArrayToBitArray(hexToUint8Array(recoverCode))
 			const recoverCodeVerifier = createAuthVerifierAsBase64Url(recoverCodeKey)
 			const deleteData = createResetFactorsDeleteData({
@@ -936,7 +1044,7 @@ export class LoginFacade {
 
 	takeOverDeletedAddress(mailAddress: string, password: string, recoverCode: Hex | null, targetAccountMailAddress: string): Promise<void> {
 		return this.loadUserPassphraseKey(mailAddress, password).then((passphraseReturn) => {
-			const authVerifier = createAuthVerifierAsBase64Url(passphraseReturn)
+			const authVerifier = createAuthVerifierAsBase64Url(passphraseReturn.userPassphraseKey)
 			let recoverCodeVerifier: Base64 | null = null
 
 			if (recoverCode) {

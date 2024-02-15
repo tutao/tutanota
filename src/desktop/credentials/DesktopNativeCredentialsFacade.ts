@@ -42,15 +42,15 @@ export class DesktopNativeCredentialsFacade implements NativeCredentialsFacade {
 		// making extra sure that the mode is the right one since this comes over IPC
 		this.assertSupportedEncryptionMode(encryptionMode)
 		const encryptedData = await this.removeAppPassWrapper(encryptedDataWithAppPassWrapper, encryptionMode)
-		const credentialsKey = await this.desktopKeyStoreFacade.getCredentialsKey()
-		return this.crypto.aes256DecryptKey(credentialsKey, encryptedData)
+		const keyChainKey = await this.desktopKeyStoreFacade.getKeyChainKey()
+		return this.crypto.unauthenticatedAes256DecryptKey(keyChainKey, encryptedData)
 	}
 
 	async encryptUsingKeychain(data: Uint8Array, encryptionMode: DesktopCredentialsMode): Promise<Uint8Array> {
 		// making extra sure that the mode is the right one since this comes over IPC
 		this.assertSupportedEncryptionMode(encryptionMode)
-		const credentialsKey = await this.desktopKeyStoreFacade.getCredentialsKey()
-		const encryptedData = this.crypto.aes256EncryptKey(credentialsKey, data)
+		const keyChainKey = await this.desktopKeyStoreFacade.getKeyChainKey()
+		const encryptedData = this.crypto.aes256EncryptKey(keyChainKey, data)
 		return this.addAppPassWrapper(encryptedData, encryptionMode)
 	}
 

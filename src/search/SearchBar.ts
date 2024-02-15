@@ -63,11 +63,11 @@ const searchRouter = new SearchRouter(locator.throttledRouter())
 
 export class SearchBar implements Component<SearchBarAttrs> {
 	focused: boolean = false
-	private state: Stream<SearchBarState>
+	private readonly state: Stream<SearchBarState>
 	busy: boolean = false
 	private lastSelectedWhitelabelChildrenInfoResult: Stream<WhitelabelChild> = stream()
-	private closeOverlayFunction: (() => Promise<void>) | null = null
-	private overlayContentComponent: Component
+	private closeOverlayFunction: (() => void) | null = null
+	private readonly overlayContentComponent: Component
 	private confirmDialogShown: boolean = false
 	private domWrapper!: HTMLElement
 	private domInput!: HTMLElement
@@ -257,7 +257,7 @@ export class SearchBar implements Component<SearchBarAttrs> {
 				this.overlayContentComponent,
 				undefined,
 				undefined,
-				"dropdown-shadow.border-radius",
+				"dropdown-shadow border-radius",
 			)
 		} else {
 			m.redraw()
@@ -575,6 +575,6 @@ export class SearchBar implements Component<SearchBarAttrs> {
 	}
 }
 
-// Should be changeb to not be a singleton and be proper component (instantiated by mithril).
+// Should be changed to not be a singleton and be proper component (instantiated by mithril).
 // We need to extract some state of it into some kind of viewModel, pluggable depending on the current view but this requires complete rewrite of SearchBar.
 export const searchBar = new SearchBar()

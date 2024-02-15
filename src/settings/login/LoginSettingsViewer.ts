@@ -32,6 +32,7 @@ import { UsageTestModel } from "../../misc/UsageTestModel.js"
 import { UserSettingsGroupRootTypeRef } from "../../api/entities/tutanota/TypeRefs.js"
 import { EntityUpdateData, isUpdateForTypeRef } from "../../api/common/utils/EntityUpdateUtils.js"
 import { Dialog } from "../../gui/base/Dialog.js"
+import { MoreInfoLink } from "../../misc/news/MoreInfoLink.js"
 
 assertMainOrNode()
 
@@ -98,10 +99,7 @@ export class LoginSettingsViewer implements UpdatableSettingsViewer {
 		const recoveryCodeFieldAttrs: TextFieldAttrs = {
 			label: "recoveryCode_label",
 			helpLabel: () => {
-				return ifAllowedTutaLinks(locator.logins, InfoLink.RecoverCode, (link) => [
-					m("span", lang.get("moreInfo_msg") + " "),
-					m("span.text-break", [m(`a[href=${link}][target=_blank]`, link)]),
-				])
+				return ifAllowedTutaLinks(locator.logins, InfoLink.RecoverCode, (link) => [m(MoreInfoLink, { link: link })])
 			},
 			value: this._stars(),
 			oninput: this._stars,
@@ -131,17 +129,8 @@ export class LoginSettingsViewer implements UpdatableSettingsViewer {
 			},
 			helpLabel: () => {
 				return ifAllowedTutaLinks(locator.logins, InfoLink.Usage, (link) => [
-					m("span", lang.get("userUsageDataOptInInfo_msg") + " " + lang.get("moreInfo_msg") + " "),
-					m("span.text-break", [
-						m(
-							"a",
-							{
-								href: link,
-								target: "_blank",
-							},
-							link,
-						),
-					]),
+					m("span", lang.get("userUsageDataOptInInfo_msg") + " "),
+					m(MoreInfoLink, { link: link }),
 				])
 			},
 			dropdownWidth: 250,

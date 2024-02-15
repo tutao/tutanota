@@ -10,7 +10,7 @@ import {
 	UserExternalAuthInfoTypeRef,
 	UserTypeRef,
 } from "../../../../../src/api/entities/sys/TypeRefs"
-import { createAuthVerifier, encryptKey, keyToBase64, sha256Hash, uint8ArrayToBitArray } from "@tutao/tutanota-crypto"
+import { createAuthVerifier, encryptKey, KEY_LENGTH_BYTES_AES_256, keyToBase64, sha256Hash, uint8ArrayToBitArray } from "@tutao/tutanota-crypto"
 import { LoginFacade, LoginListener, ResumeSessionErrorReason } from "../../../../../src/api/worker/facades/LoginFacade"
 import { IServiceExecutor } from "../../../../../src/api/common/ServiceRequest"
 import { EntityClient } from "../../../../../src/api/common/EntityClient"
@@ -20,10 +20,10 @@ import { InstanceMapper } from "../../../../../src/api/worker/crypto/InstanceMap
 import { CryptoFacade, encryptString } from "../../../../../src/api/worker/crypto/CryptoFacade"
 import { CacheStorageLateInitializer } from "../../../../../src/api/worker/rest/CacheStorageProxy"
 import { UserFacade } from "../../../../../src/api/worker/facades/UserFacade"
-import { SaltService, SessionService } from "../../../../../src/api/entities/sys/Services"
+import { ChangeKdfService, SaltService, SessionService } from "../../../../../src/api/entities/sys/Services"
 import { Credentials } from "../../../../../src/misc/credentials/Credentials"
 import { defer, DeferredObject, uint8ArrayToBase64 } from "@tutao/tutanota-utils"
-import { AccountType, DEFAULT_KDF_TYPE, KdfType } from "../../../../../src/api/common/TutanotaConstants"
+import { AccountType, Const, DEFAULT_KDF_TYPE, KdfType } from "../../../../../src/api/common/TutanotaConstants"
 import { AccessExpiredError, ConnectionError, NotAuthenticatedError } from "../../../../../src/api/common/error/RestError"
 import { SessionType } from "../../../../../src/api/common/SessionType"
 import { HttpMethod } from "../../../../../src/api/common/EntityFunctions"
@@ -33,10 +33,9 @@ import { BlobAccessTokenFacade } from "../../../../../src/api/worker/facades/Blo
 import { EntropyFacade } from "../../../../../src/api/worker/facades/EntropyFacade.js"
 import { DatabaseKeyFactory } from "../../../../../src/misc/credentials/DatabaseKeyFactory.js"
 import { Argon2idFacade } from "../../../../../src/api/worker/facades/Argon2idFacade.js"
-import { KEY_LENGTH_BYTES_AES_256 } from "@tutao/tutanota-crypto"
 import { createTestEntity } from "../../../TestUtils.js"
 
-const { anything } = matchers
+const { anything, argThat } = matchers
 
 const PASSWORD_KEY = uint8ArrayToBitArray(new Uint8Array(Array(KEY_LENGTH_BYTES_AES_256).keys()))
 
@@ -154,6 +153,7 @@ o.spec("LoginFacadeTest", function () {
 			entropyFacade,
 			databaseKeyFactoryMock,
 			argon2idFacade,
+			entityClientMock,
 		)
 
 		eventBusClientMock = instance(EventBusClient)
@@ -573,7 +573,8 @@ o.spec("LoginFacadeTest", function () {
 			let user: User
 
 			o.beforeEach(async function () {
-				const userPassphraseKey = await facade.deriveUserPassphraseKey(KdfType.Bcrypt, passphrase, SALT)
+				const passphraseKeyData = { kdfType: KdfType.Bcrypt, passphrase, salt: SALT }
+				const userPassphraseKey = await facade.deriveUserPassphraseKey(passphraseKeyData)
 				user = await makeUser(userId, KdfType.Bcrypt, userPassphraseKey)
 				user.salt = SALT
 				usingOfflineStorage = true
@@ -723,7 +724,8 @@ o.spec("LoginFacadeTest", function () {
 					type: "internal",
 				} as Credentials
 
-				const userPassphraseKey = await facade.deriveUserPassphraseKey(KdfType.Bcrypt, passphrase, SALT)
+				const passphraseKeyData = { kdfType: KdfType.Bcrypt, passphrase, salt: SALT }
+				const userPassphraseKey = await facade.deriveUserPassphraseKey(passphraseKeyData)
 				user = await makeUser(userId, KdfType.Bcrypt, userPassphraseKey)
 				user.externalAuthInfo = createTestEntity(UserExternalAuthInfoTypeRef, {
 					latestSaltHash: sha256Hash(SALT),
@@ -741,6 +743,44 @@ o.spec("LoginFacadeTest", function () {
 
 				o(result.type).equals("success")
 			})
+		})
+	})
+
+	o.spec("Migrating the KDF", function () {
+		o("When the migration is enabled, a new key is derived from the same password with Argon2", async function () {
+			Const.EXECUTE_KDF_MIGRATION = true
+
+			const user = await makeUser("userId", KdfType.Bcrypt)
+			user.salt = SALT
+
+			when(userFacade.getUserGroupKey()).thenReturn([1, 2, 3, 4])
+			await facade.migrateKdfType(KdfType.Argon2id, "hunter2", user)
+
+			verify(
+				argon2idFacade.generateKeyFromPassphrase(
+					"hunter2",
+					argThat((arg) => {
+						return arg !== SALT
+					}),
+				),
+			)
+			verify(
+				serviceExecutor.post(
+					ChangeKdfService,
+					argThat(({ kdfVersion, oldVerifier, pwEncUserGroupKey, salt, verifier }) => {
+						return kdfVersion === KdfType.Argon2id
+					}),
+				),
+			)
+		})
+
+		o("When the migration is disabled, the service is not called.", async function () {
+			Const.EXECUTE_KDF_MIGRATION = false
+
+			const user = await makeUser("userId", KdfType.Bcrypt)
+			await facade.migrateKdfType(KdfType.Argon2id, "hunter2", user)
+
+			verify(serviceExecutor.post(ChangeKdfService, anything()), { times: 0 })
 		})
 	})
 })

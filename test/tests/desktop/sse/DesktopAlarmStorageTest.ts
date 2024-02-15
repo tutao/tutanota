@@ -21,7 +21,7 @@ o.spec("DesktopAlarmStorageTest", function () {
 
 	o.beforeEach(function () {
 		cryptoMock = instance(DesktopNativeCryptoFacade)
-		when(cryptoMock.aes256DecryptKey(matchers.anything(), key3)).thenReturn(decryptedKey)
+		when(cryptoMock.unauthenticatedAes256DecryptKey(matchers.anything(), key3)).thenReturn(decryptedKey)
 		when(cryptoMock.aes256EncryptKey(matchers.anything(), matchers.anything())).thenReturn(encryptedKey)
 
 		confMock = object()

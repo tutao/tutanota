@@ -6,12 +6,12 @@ import { lang } from "../misc/LanguageViewModel.js"
 import { AriaLandmarks, landmarkAttrs } from "./AriaUtils.js"
 import type { ClickHandler } from "./base/GuiUtils.js"
 import type { lazy } from "@tutao/tutanota-utils"
-import { FolderColumnHeaderButton } from "./base/buttons/FolderColumnHeaderButton.js"
-import { Button, ButtonType } from "./base/Button.js"
+import { BaseButton, BaseButtonAttrs } from "./base/buttons/BaseButton.js"
+import { px, size } from "./size.js"
 
 export type Attrs = {
 	/** Button to be displayed on top of the column*/
-	button: { label: TranslationKey; click: ClickHandler; type: ButtonType } | null | undefined
+	button: { label: TranslationKey; click: ClickHandler } | null | undefined
 	content: Children
 	ariaLabel: TranslationKey | lazy<string>
 	drawer: DrawerMenuAttrs
@@ -42,23 +42,25 @@ export class FolderColumnView implements Component<Attrs> {
 	}
 
 	private renderMainButton(attrs: Attrs): Children {
-		return attrs.button
-			? attrs.button.type === ButtonType.FolderColumnHeader
-				? m(
-						".plr-button-double",
-						m(FolderColumnHeaderButton, {
-							label: attrs.button.label,
-							click: attrs.button.click,
-						}),
-				  )
-				: m(
-						".plr-button-double.mt.mb",
-						m(Button, {
-							type: attrs.button.type,
-							label: attrs.button.label,
-							click: attrs.button.click,
-						}),
-				  )
-			: null
+		if (attrs.button) {
+			const label = lang.get(attrs.button.label)
+			return m(
+				".plr-button-double",
+				m(BaseButton, {
+					label,
+					text: label,
+					onclick: attrs.button.click,
+					class: "full-width border-radius-big center b flash",
+					style: {
+						border: `2px solid ${theme.content_accent}`,
+						// matching toolbar
+						height: px(size.button_height + size.vpad_xs * 2),
+						color: theme.content_accent,
+					},
+				} satisfies BaseButtonAttrs),
+			)
+		} else {
+			return null
+		}
 	}
 }

@@ -6,8 +6,8 @@ import { Icon } from "./Icon"
 import type { ClickHandler } from "./GuiUtils"
 import { assertMainOrNode } from "../../api/common/Env"
 import { ButtonColor, getColors } from "./Button.js"
-import { assertNotNull } from "@tutao/tutanota-utils"
 import { ButtonSize } from "./ButtonSize.js"
+import { BaseButton, BaseButtonAttrs } from "./buttons/BaseButton.js"
 
 assertMainOrNode()
 
@@ -17,32 +17,14 @@ export interface IconButtonAttrs {
 	click: ClickHandler
 	colors?: ButtonColor
 	size?: ButtonSize
-	onblur?: () => unknown
 	onkeydown?: (event: KeyboardEvent) => unknown
 }
 
 export class IconButton implements Component<IconButtonAttrs> {
-	private dom: HTMLElement | null = null
-
-	view(vnode: Vnode<IconButtonAttrs>): Children {
-		const { attrs } = vnode
-		return m(
-			"button.icon-button.state-bg",
-			{
-				oncreate: ({ dom }) => {
-					this.dom = dom as HTMLElement
-				},
-				onclick: (e: MouseEvent) => {
-					attrs.click(e, assertNotNull(this.dom))
-					// It doesn't make sense to propagate click events if we are the button
-					e.stopPropagation()
-				},
-				onblur: attrs.onblur,
-				onkeydown: attrs.onkeydown,
-				title: lang.getMaybeLazy(attrs.title),
-				class: attrs.size === ButtonSize.Compact ? "compact" : "",
-			},
-			m(Icon, {
+	view({ attrs }: Vnode<IconButtonAttrs>): Children {
+		return m(BaseButton, {
+			label: lang.getMaybeLazy(attrs.title),
+			icon: m(Icon, {
 				icon: attrs.icon,
 				container: "div",
 				class: "center-h",
@@ -51,6 +33,19 @@ export class IconButton implements Component<IconButtonAttrs> {
 					fill: getColors(attrs.colors ?? ButtonColor.Content).button,
 				},
 			}),
-		)
+			onclick: attrs.click,
+			onkeydown: attrs.onkeydown,
+			class: `icon-button state-bg ${IconButton.getSizeClass(attrs.size)}`,
+		} satisfies BaseButtonAttrs)
+	}
+
+	private static getSizeClass(size: ButtonSize | undefined) {
+		switch (size) {
+			case ButtonSize.Compact:
+				return "compact"
+			case ButtonSize.Normal:
+			default:
+				return ""
+		}
 	}
 }

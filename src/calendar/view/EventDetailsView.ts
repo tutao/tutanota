@@ -1,5 +1,5 @@
 import m, { Children, Component, Vnode } from "mithril"
-import { IconButton } from "../../gui/base/IconButton.js"
+import { IconButton, IconButtonAttrs } from "../../gui/base/IconButton.js"
 import { Icons } from "../../gui/base/icons/Icons.js"
 import { Button, ButtonColor, ButtonType } from "../../gui/base/Button.js"
 import { BootIcons } from "../../gui/base/icons/BootIcons.js"
@@ -43,7 +43,6 @@ export class EventDetailsView implements Component<EventDetailsViewAttrs> {
 		return m(IconButton, {
 			title: "edit_action",
 			icon: Icons.Edit,
-			colors: ButtonColor.DrawerNav,
 			click: (event, dom) => handleEventEditButtonClick(this.model, event, dom),
 		})
 	}
@@ -53,19 +52,16 @@ export class EventDetailsView implements Component<EventDetailsViewAttrs> {
 		return m(IconButton, {
 			title: "delete_action",
 			icon: Icons.Trash,
-			colors: ButtonColor.DrawerNav,
 			click: (event, dom) => handleEventDeleteButtonClick(this.model, event, dom),
 		})
 	}
 
 	private renderSendUpdateButton(): Children {
 		if (this.model == null || !this.model.canSendUpdates || styles.isSingleColumnLayout()) return null
-		return m(Button, {
-			label: "sendUpdates_label",
+		return m(IconButton, {
+			title: "sendUpdates_label",
 			click: () => handleSendUpdatesClick(this.model),
-			type: ButtonType.ActionLarge,
-			icon: () => BootIcons.Mail,
-			colors: ButtonColor.DrawerNav,
+			icon: BootIcons.Mail,
 		})
 	}
 

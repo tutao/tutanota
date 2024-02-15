@@ -4,12 +4,12 @@ import { ColumnType, ViewColumn } from "../../gui/base/ViewColumn"
 import { lang } from "../../misc/LanguageViewModel"
 import { ViewSlider } from "../../gui/nav/ViewSlider.js"
 import type { Shortcut } from "../../misc/KeyManager"
-import { keyManager } from "../../misc/KeyManager"
+import { isKeyPressed, keyManager } from "../../misc/KeyManager"
 import { Icons } from "../../gui/base/icons/Icons"
-import { assertNotNull, downcast, getStartOfDay, isSameDayOfDate, LazyLoaded, memoized, ofClass } from "@tutao/tutanota-utils"
+import { downcast, getStartOfDay, isSameDayOfDate, ofClass } from "@tutao/tutanota-utils"
 import type { CalendarEvent, GroupSettings, UserSettingsGroupRoot } from "../../api/entities/tutanota/TypeRefs.js"
 import { createGroupSettings } from "../../api/entities/tutanota/TypeRefs.js"
-import { defaultCalendarColor, GroupType, Keys, reverse, ShareCapability, TimeFormat, WeekStart } from "../../api/common/TutanotaConstants"
+import { defaultCalendarColor, GroupType, Keys, reverse, ShareCapability, TabIndex, TimeFormat, WeekStart } from "../../api/common/TutanotaConstants"
 import { locator } from "../../api/main/MainLocator"
 import { getStartOfTheWeekOffset, getStartOfTheWeekOffsetForUser, getTimeZone, getWeekNumber } from "../date/CalendarUtils"
 import { ButtonColor, ButtonType } from "../../gui/base/Button.js"
@@ -20,7 +20,7 @@ import { CalendarAgendaView, CalendarAgendaViewAttrs } from "./CalendarAgendaVie
 import type { GroupInfo } from "../../api/entities/sys/TypeRefs.js"
 import { showEditCalendarDialog } from "../gui/EditCalendarDialog.js"
 import { styles } from "../../gui/styles"
-import { Attrs, MultiDayCalendarView } from "./MultiDayCalendarView"
+import { MultiDayCalendarView } from "./MultiDayCalendarView"
 import { Dialog } from "../../gui/base/Dialog"
 import { isApp } from "../../api/common/Env"
 import { px, size } from "../../gui/size"
@@ -53,7 +53,6 @@ import { BackgroundColumnLayout } from "../../gui/BackgroundColumnLayout.js"
 import { theme } from "../../gui/theme.js"
 import { CalendarMobileHeader } from "./CalendarMobileHeader.js"
 import { CalendarDesktopToolbar } from "./CalendarDesktopToolbar.js"
-import { SchedulerImpl } from "../../api/common/utils/Scheduler.js"
 import { LazySearchBar } from "../../misc/LazySearchBar.js"
 import { Time } from "../date/Time.js"
 import { DaySelectorSidebar } from "../gui/day-selector/DaySelectorSidebar.js"
@@ -87,6 +86,7 @@ export class CalendarView extends BaseTopLevelView implements TopLevelView<Calen
 	constructor({ attrs }: Vnode<CalendarViewAttrs>) {
 		super()
 		const userId = locator.logins.getUserController().user._id
+
 		this.viewModel = attrs.calendarViewModel
 		this.currentViewType = deviceConfig.getDefaultCalendarView(userId) || CalendarViewType.MONTH
 		this.htmlSanitizer = import("../../misc/HtmlSanitizer").then((m) => m.htmlSanitizer)
@@ -97,7 +97,6 @@ export class CalendarView extends BaseTopLevelView implements TopLevelView<Calen
 						drawer: attrs.drawerAttrs,
 						button: styles.isDesktopLayout()
 							? {
-									type: ButtonType.FolderColumnHeader,
 									label: "newEvent_action",
 									click: () => this.createNewEventDialog(),
 							  }
@@ -532,6 +531,12 @@ export class CalendarView extends BaseTopLevelView implements TopLevelView<Calen
 	}
 
 	private renderCalendars(shared: boolean): Children {
+		const setHidden = (viewModel: CalendarViewModel, groupRootId: string) => {
+			const newHiddenCalendars = new Set(viewModel.hiddenCalendars)
+			viewModel.hiddenCalendars.has(groupRootId) ? newHiddenCalendars.delete(groupRootId) : newHiddenCalendars.add(groupRootId)
+
+			viewModel.setHiddenCalendars(newHiddenCalendars)
+		}
 		const calendarInfos = this.viewModel.calendarInfos
 		return calendarInfos.size > 0
 			? Array.from(calendarInfos.values())
@@ -541,20 +546,26 @@ export class CalendarView extends BaseTopLevelView implements TopLevelView<Calen
 						const existingGroupSettings = userSettingsGroupRoot.groupSettings.find((gc) => gc.group === calendarInfo.groupInfo.group) ?? null
 						const colorValue = "#" + (existingGroupSettings ? existingGroupSettings.color : defaultCalendarColor)
 						const groupRootId = calendarInfo.groupRoot._id
+						const groupName = getSharedGroupName(calendarInfo.groupInfo, locator.logins.getUserController(), shared)
+						const isHidden = this.viewModel.hiddenCalendars.has(groupRootId)
 						return m(".folder-row.flex-start.plr-button", [
 							m(".flex.flex-grow.center-vertically.button-height", [
 								m(".calendar-checkbox", {
-									onclick: () => {
-										const newHiddenCalendars = new Set(this.viewModel.hiddenCalendars)
-										this.viewModel.hiddenCalendars.has(groupRootId)
-											? newHiddenCalendars.delete(groupRootId)
-											: newHiddenCalendars.add(groupRootId)
-
-										this.viewModel.setHiddenCalendars(newHiddenCalendars)
+									role: "checkbox",
+									title: groupName,
+									tabindex: TabIndex.Default,
+									"aria-checked": (!isHidden).toString(),
+									"aria-label": groupName,
+									onclick: () => setHidden(this.viewModel, groupRootId),
+									onkeydown: (e: KeyboardEvent) => {
+										if (isKeyPressed(e.key, Keys.SPACE, Keys.RETURN)) {
+											setHidden(this.viewModel, groupRootId)
+											e.preventDefault()
+										}
 									},
 									style: {
 										"border-color": colorValue,
-										background: this.viewModel.hiddenCalendars.has(groupRootId) ? "" : colorValue,
+										background: isHidden ? "" : colorValue,
 										transition: "all 0.3s",
 										cursor: "pointer",
 										marginLeft: px(size.hpad_button),
@@ -567,7 +578,7 @@ export class CalendarView extends BaseTopLevelView implements TopLevelView<Calen
 											width: 0,
 										},
 									},
-									getSharedGroupName(calendarInfo.groupInfo, locator.logins.getUserController(), shared),
+									groupName,
 								),
 							]),
 							this.createCalendarActionDropdown(calendarInfo, colorValue, existingGroupSettings, userSettingsGroupRoot, shared),

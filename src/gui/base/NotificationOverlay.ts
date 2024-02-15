@@ -1,6 +1,6 @@
 import m, { Children, Component, Vnode } from "mithril"
 import { px } from "../size"
-import { DefaultAnimationTime, transform, TransformEnum } from "../animation/Animations"
+import { DefaultAnimationTime } from "../animation/Animations"
 import { displayOverlay } from "./Overlay"
 import type { ButtonAttrs } from "./Button.js"
 import { Button, ButtonType } from "./Button.js"
@@ -74,8 +74,7 @@ function showNextNotification() {
 					buttons: allButtons,
 				}),
 		},
-		(dom) => transform(TransformEnum.TranslateY, -dom.offsetHeight, 0),
-		(dom) => transform(TransformEnum.TranslateY, 0, -dom.offsetHeight),
+		"slide-top",
 	)
 
 	const closeAndOpenNext = () => {

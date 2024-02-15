@@ -1,6 +1,6 @@
 import o from "@tutao/otest"
-import { base64ToUint8Array, uint8ArrayToBase64 } from "@tutao/tutanota-utils"
-import { aes256DecryptLegacyRecoveryKey, decryptKey, decryptRsaKey, encryptKey, encryptRsaKey } from "../lib/encryption/KeyEncryption.js"
+import { base64ToUint8Array } from "@tutao/tutanota-utils"
+import { aes256DecryptWithRecoveryKey, decryptKey, decryptRsaKey, encryptKey, encryptRsaKey } from "../lib/encryption/KeyEncryption.js"
 import { hexToRsaPrivateKey } from "../lib/encryption/Rsa.js"
 import { bitArrayToUint8Array, fixedIv, uint8ArrayToBitArray } from "../lib/misc/Utils.js"
 import { aes128RandomKey, aes256RandomKey } from "../lib/encryption/Aes.js"
@@ -24,9 +24,7 @@ o.spec("key encryption", function () {
 		let privateKey = hexToRsaPrivateKey(rsaPrivateHexKey)
 		let iv = base64ToUint8Array("OhpFcbl6oPjsn3WwhYFnOg==")
 		var encryptedPrivateKey = encryptRsaKey(gk, privateKey, iv)
-		o(uint8ArrayToBase64(encryptedPrivateKey)).equals(
-			"OhpFcbl6oPjsn3WwhYFnOiJRZKG9ZSsOzL4ZSzPikn2pc3eSH8rY1aex0iyN2qTl2lsPco8DEmlS7+KXN2gmJz6Lpnw4IFvmVUMF/O7xZFRYIe89qoyuKm2B6noORAXUSKxVYM0B0alT8fxcEbzAW9pv75hmNURkBd1GfYpN35i6bCxgp7l9HKSWpJAFyIYQSiO4aJw+tD87ifu4KBDL6vntBr0uG6yVgXVw+SKcPsaA+RZPXCFSs2QS/l3wZw0w6MIYD0ED+1Sf3/wWr+GZTw1wNowq0c9o5vWQdSG5gc0SYQLJl1G2JpBEIwYg2qu2jc4vJlt6vVOBpQ2D9b5w74EM8lbBfAbCPJmpCaIa1eKRNU+JVEzrAeg/X0/jdUfdxaBbujrhaY/tYJ4Y1l66+lyNgKpznNhFSMUrsLCSJTzXTMoFDPYKztnRYNZ2xxRs2EBbZpK8TSjgfHbfCKn14q81j84lz88yrMo6TkFgWTHV9ndQfg7sDNteYsNx6pa1SyOQQ6TD250oqRltDrCOGbMUVvNBTFWM9w6/ztFaFtMEQf0dptz5PCYFf2DnN7tiWgj4xEYjGnaRd0Y0nT0bfB7gQS2nenppx+nvUGcjND/BCWrVmQhdUQCFygV8QEb9mnEJ4ZoLXzsdlFtWixIhBQfM+RsTRLqn4Crx5kjfRW4pc7Wleo4FtfGkQmWfV4WjetoeWQlPudhL3JpFbSFRu5IKldRHwxqqZKsOaRiI+jh8lfHOfMDo1DwHLxMkI2SF81H6N4DYau0xO6TSa2yz6U0HCslM48kTkFuYTWhES5Hp9YzCohzapL1ekshna+ITNE/vDsEeB/E8AZGSihcbZffnzElrdpIR8adj+f4ZbPsEAb2DqfbYoEXnOExcXVbySDLK8jhaqy7EpkurGhc+tfYBLZ2wpXPUP3JKXfWQ/UcieJ7BPOescTXC4ll2tzdLF1qGXuqOsR7kDUyY7t3SOIojSThn2W9AAb8o/mOLGD1pCa1hIfwP9ee9EGdt56r26LV3s1dCbzHHBUswadbvik5eSvrbjTqLaYW0N7pRRzNaK4KyrLXJEuykuCShvsNefGo+RE93DTeblX+MbOktvONeYQonmOYrUvQQL8o6MGhuFiPu5+QQ8yAybxSMt0zja5KsgdMOn/qFHMwCTdNtwpFc7uULzsRcYgx/qWe4zK7wx+8xBjpLer1Hcylnf1K8pkloPRiADhzOfokN0rOhbD5nyRbklpnKNPO2t3mUBCKAIIETYAFhM9PxAajiBdM1gol9JKH0nCPhNx/uF42+yLGE+iSVodpqlg+jV9uXXYgFfcCGVmA3pVE5zkn2Qoso0Fc16MpQHIAxVenHFSKY7wsCuTUyiYZ9ZdFrp1Bltz23mCUwbRURMuntBHHQ2n9c28X1v1aMTnWSz6zH6IfxI8WVwff8YQQ2v0Wn/T/Xqc5lttQdTEfNZIH4RFZcHWqtHbeFRJXxRlrZpf9PU7SjJ86nbY58dBs2GD62hb/MV/hxw77iYAFuzvfTQoIUd9w8jY8L5UpZlhtDS2ERc0j+asEAVXKV+aSC+UbCApetaUA=",
-		)
+		o(encryptedPrivateKey.length % 2).equals(1) // make sure a mac is present
 		o(decryptRsaKey(gk, encryptedPrivateKey)).deepEquals(privateKey)
 	})
 
@@ -54,7 +52,7 @@ o.spec("key encryption", function () {
 		const encryptionKey = aes256RandomKey()
 
 		const encryptedKey = aes256EncryptLegacy(encryptionKey, bitArrayToUint8Array(key), fixedIv, false, false).slice(fixedIv.length)
-		const decryptedKey = aes256DecryptLegacyRecoveryKey(encryptionKey, encryptedKey)
+		const decryptedKey = aes256DecryptWithRecoveryKey(encryptionKey, encryptedKey)
 
 		o(key).deepEquals(decryptedKey)("decrypting sliced, fixed iv aes256 key")
 	})
@@ -64,7 +62,7 @@ o.spec("key encryption", function () {
 		const encryptionKey = aes256RandomKey()
 
 		const encryptedKey = encryptKey(encryptionKey, key)
-		const decryptedKey = aes256DecryptLegacyRecoveryKey(encryptionKey, encryptedKey)
+		const decryptedKey = aes256DecryptWithRecoveryKey(encryptionKey, encryptedKey)
 
 		o(key).deepEquals(decryptedKey)("decrypting sliced, fixed iv aes256 key")
 	})

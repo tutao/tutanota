@@ -15,6 +15,8 @@ import { ButtonSize } from "../../gui/base/ButtonSize.js"
 import { IconButtonAttrs } from "../../gui/base/IconButton.js"
 import { ColumnWidth, Table } from "../../gui/base/Table.js"
 import { DnsRecordTable } from "./DnsRecordTable.js"
+import { LoginButton } from "../../gui/base/buttons/LoginButton.js"
+import { MoreInfoLink } from "../../misc/news/MoreInfoLink.js"
 
 assertMainOrNode()
 
@@ -44,11 +46,10 @@ export class VerifyDnsRecordsPage implements WizardPageN<AddDomainData> {
 										width: "260px",
 									},
 								},
-								m(Button, {
-									type: ButtonType.Login,
+								m(LoginButton, {
 									label: "finish_action",
 									// We check if all DNS records are set correctly and let the user confirm before leaving if not
-									click: () => this._finishDialog(a.data, (downcast<VnodeDOM>(vnode)?.dom as HTMLElement | null) ?? null),
+									onclick: () => this._finishDialog(a.data, (downcast<VnodeDOM>(vnode)?.dom as HTMLElement | null) ?? null),
 								}),
 							),
 						),
@@ -186,8 +187,7 @@ export function renderCheckResult(domainStatus: DomainDnsStatus, hideRefreshButt
 							click: () => _updateDnsStatus(domainStatus),
 					  },
 			),
-			m("span.small.mt-m", lang.get("moreInfo_msg") + " "),
-			m("span.small", m(`a[href=${InfoLink.DomainInfo}][target=_blank]`, InfoLink.DomainInfo)),
+			m(MoreInfoLink, { link: InfoLink.DomainInfo, class: "mt-m", isSmall: true }),
 		]
 	} else {
 		const errorMessageMap: Record<CustomDomainCheckResult, TranslationKey> = {

@@ -1,7 +1,7 @@
 import m from "mithril"
 import { Dialog } from "../gui/base/Dialog"
 import { lang, TranslationText } from "../misc/LanguageViewModel"
-import { ButtonAttrs, ButtonType } from "../gui/base/Button.js"
+import { ButtonType } from "../gui/base/Button.js"
 import type { AccountingInfo, Booking, Customer, CustomerInfo, SwitchAccountTypePostIn } from "../api/entities/sys/TypeRefs.js"
 import { createSwitchAccountTypePostIn } from "../api/entities/sys/TypeRefs.js"
 import {
@@ -32,6 +32,8 @@ import { defer, DeferredObject, downcast, lazy } from "@tutao/tutanota-utils"
 import { showSwitchToBusinessInvoiceDataDialog } from "./SwitchToBusinessInvoiceDataDialog.js"
 import { getByAbbreviation } from "../api/common/CountryList.js"
 import { formatNameAndAddress } from "../api/common/utils/CommonFormatter.js"
+import { LoginButtonAttrs } from "../gui/base/buttons/LoginButton.js"
+import { CancellationReasonInput } from "./CancellationReasonInput.js"
 
 /**
  * Only shown if the user is already a Premium user. Allows cancelling the subscription (only private use) and switching the subscription to a different paid subscription.
@@ -107,9 +109,8 @@ export async function showSwitchDialog(
 		[PlanType.Free]: () =>
 			({
 				label: "pricing.select_action",
-				click: () => cancelSubscription(dialog, currentPlanInfo, deferred, customer),
-				type: ButtonType.Login,
-			} as ButtonAttrs),
+				onclick: () => cancelSubscription(dialog, currentPlanInfo, deferred, customer),
+			} as LoginButtonAttrs),
 
 		[PlanType.Revolutionary]: createPlanButton(dialog, PlanType.Revolutionary, currentPlanInfo, deferred, paymentInterval, accountingInfo),
 		[PlanType.Legend]: createPlanButton(dialog, PlanType.Legend, currentPlanInfo, deferred, paymentInterval, accountingInfo),
@@ -142,10 +143,10 @@ function createPlanButton(
 	deferredPlan: DeferredObject<PlanType>,
 	newPaymentInterval: stream<PaymentInterval>,
 	accountingInfo: AccountingInfo,
-): lazy<ButtonAttrs> {
+): lazy<LoginButtonAttrs> {
 	return () => ({
 		label: "buy_action",
-		click: async () => {
+		onclick: async () => {
 			// Show an extra dialog in the case that someone is upgrading from a legacy plan to a new plan because they can't revert.
 			if (
 				LegacyPlans.includes(currentPlanInfo.planType) &&
@@ -158,7 +159,6 @@ function createPlanButton(
 				doSwitchPlan(accountingInfo, newPaymentInterval(), targetSubscription, dialog, currentPlanInfo, deferredPlan),
 			)
 		},
-		type: ButtonType.Login,
 	})
 }
 
@@ -253,6 +253,34 @@ async function cancelSubscription(dialog: Dialog, currentPlanInfo: CurrentPlanIn
 	if (!(await Dialog.confirm("unsubscribeConfirm_msg"))) {
 		return
 	}
+
+	let reasonCategory: string | null = null
+	let reason = ""
+
+	let result = await new Promise((resolve) => {
+		let dialog = Dialog.showActionDialog({
+			title: lang.get("survey_label"),
+			child: {
+				view: () =>
+					m(CancellationReasonInput, {
+						reason: reason,
+						reasonHandler: (enteredReason: string) => (reason = enteredReason),
+						category: reasonCategory,
+						categoryHandler: (category: NumberString) => (reasonCategory = category),
+					}),
+			},
+			okAction: () => {
+				dialog.close()
+				resolve(true)
+			},
+			cancelAction: () => {
+				dialog.close()
+				resolve(false)
+			},
+			cancelActionTextId: "skip_action",
+		})
+	})
+
 	const switchAccountTypeData = createSwitchAccountTypePostIn({
 		accountType: AccountType.FREE,
 		date: Const.CURRENT_DATE,
@@ -260,6 +288,8 @@ async function cancelSubscription(dialog: Dialog, currentPlanInfo: CurrentPlanIn
 		specialPriceUserSingle: null,
 		referralCode: null,
 		plan: PlanType.Free,
+		reasonCategory: result ? reasonCategory : null,
+		reason: result ? reason : null,
 	})
 	try {
 		await showProgressDialog(
@@ -299,6 +329,8 @@ async function switchSubscription(targetSubscription: PlanType, dialog: Dialog, 
 			referralCode: null,
 			customer: customer._id,
 			specialPriceUserSingle: null,
+			reasonCategory: null,
+			reason: null,
 		})
 
 		try {

@@ -83,14 +83,14 @@ export class TerminationView extends BaseTopLevelView implements TopLevelView<Te
 		])
 	}
 
-	private async cancelWithProgressDialog() {
-		await showProgressDialog("pleaseWait_msg", this.model.createAccountTerminationRequest())
+	private async cancelWithProgressDialog(reason: { text: string; reasonCategory: string | null }) {
+		await showProgressDialog("pleaseWait_msg", this.model.createAccountTerminationRequest(reason))
 		m.redraw()
 	}
 
 	private renderTerminationForm(): Children {
 		return m(TerminationForm, {
-			onSubmit: () => this.cancelWithProgressDialog(),
+			onSubmit: (reason: { text: string; reasonCategory: string | null }) => this.cancelWithProgressDialog(reason),
 			mailAddress: this.model.mailAddress,
 			onMailAddressChanged: (mailAddress) => (this.model.mailAddress = mailAddress),
 			password: this.model.password,

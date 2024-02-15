@@ -7,7 +7,7 @@ import { locator } from "../../api/main/MainLocator"
 import { lang, TranslationText } from "../../misc/LanguageViewModel"
 import { UserError } from "../../api/main/UserError"
 import { Dialog } from "../../gui/base/Dialog"
-import { Button, ButtonType } from "../../gui/base/Button.js"
+import { ButtonType } from "../../gui/base/Button.js"
 import { htmlSanitizer } from "../../misc/HtmlSanitizer"
 import { px } from "../../gui/size"
 import { theme } from "../../gui/theme"
@@ -19,6 +19,7 @@ import { Checkbox } from "../../gui/base/Checkbox.js"
 import { Keys } from "../../api/common/TutanotaConstants"
 import { formatPrice } from "../PriceUtils"
 import { CURRENT_GIFT_CARD_TERMS_VERSION, renderTermsAndConditionsButton, TermsSection } from "../TermsAndConditions"
+import { IconButton } from "../../gui/base/IconButton.js"
 
 export const enum GiftCardStatus {
 	Deactivated = "0",
@@ -106,7 +107,7 @@ export function showGiftCardToShare(giftCard: GiftCard) {
 							),
 						]),
 						m(".flex-center", [
-							m(Button, {
+							m(IconButton, {
 								click: () => {
 									dialog.close()
 									setTimeout(
@@ -114,11 +115,11 @@ export function showGiftCardToShare(giftCard: GiftCard) {
 										DefaultAnimationTime,
 									)
 								},
-								label: "shareViaEmail_action",
-								icon: () => BootIcons.Mail,
+								title: "shareViaEmail_action",
+								icon: BootIcons.Mail,
 							}),
 							isAndroidApp()
-								? m(Button, {
+								? m(IconButton, {
 										click: () => {
 											locator.systemFacade.shareText(
 												lang.get("nativeShareGiftCard_msg", {
@@ -127,10 +128,10 @@ export function showGiftCardToShare(giftCard: GiftCard) {
 												lang.get("nativeShareGiftCard_label"),
 											)
 										},
-										label: "share_action",
-										icon: () => BootIcons.Share,
+										title: "share_action",
+										icon: BootIcons.Share,
 								  })
-								: m(Button, {
+								: m(IconButton, {
 										click: () => {
 											copyToClipboard(link)
 												.then(() => {
@@ -140,17 +141,17 @@ export function showGiftCardToShare(giftCard: GiftCard) {
 													infoMessage = "copyLinkError_msg"
 												})
 										},
-										label: "copyToClipboard_action",
-										icon: () => Icons.Clipboard,
+										title: "copyToClipboard_action",
+										icon: Icons.Clipboard,
 								  }),
 							!isApp()
-								? m(Button, {
+								? m(IconButton, {
 										click: () => {
 											infoMessage = "emptyString_msg"
 											window.print()
 										},
-										label: "print_action",
-										icon: () => Icons.Print,
+										title: "print_action",
+										icon: Icons.Print,
 								  })
 								: null,
 						]),

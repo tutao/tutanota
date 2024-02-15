@@ -532,7 +532,7 @@ export class ContactEditor {
 
 	private renderRevealIcon(): Children {
 		return m(ToggleButton, {
-			title: this.isPasswordRevealed ? "concealPassword_action" : "revealPassword_action",
+			title: "revealPassword_action",
 			toggled: this.isPasswordRevealed,
 			onToggled: (_, e) => {
 				this.isPasswordRevealed = !this.isPasswordRevealed

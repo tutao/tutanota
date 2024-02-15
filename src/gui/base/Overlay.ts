@@ -1,11 +1,11 @@
-import m, { Children, Component } from "mithril"
-import type { DomMutation } from "../animation/Animations"
-import { animations } from "../animation/Animations"
-import { ease } from "../animation/Easing"
+import m, { Children, Component, VnodeDOM } from "mithril"
 import { LayerType } from "../../RootView"
 import type { lazy } from "@tutao/tutanota-utils"
-import { remove } from "@tutao/tutanota-utils"
 import { assertMainOrNodeBoot } from "../../api/common/Env"
+import { px, size } from "../size.js"
+import { styles } from "../styles.js"
+import { getSafeAreaInsetBottom } from "../HtmlUtils.js"
+import { ProgrammingError } from "../../api/common/error/ProgrammingError.js"
 
 assertMainOrNodeBoot()
 export type PositionRect = {
@@ -17,48 +17,42 @@ export type PositionRect = {
 	height?: string | null
 	zIndex?: LayerType
 }
-type AnimationProvider = (dom: HTMLElement) => DomMutation
 type OverlayAttrs = {
 	component: Component
 	position: lazy<PositionRect>
-	createAnimation?: AnimationProvider
-	closeAnimation?: AnimationProvider
+	createAnimation?: string
+	closeAnimation?: string
 	shadowClass: string
 }
 
-type Overlay = [OverlayAttrs, HTMLElement | null, number]
-const overlays: Array<Overlay> = []
+const overlays: Map<number, OverlayAttrs> = new Map()
 let key = 0
 
 export function displayOverlay(
 	position: lazy<PositionRect>,
 	component: Component,
-	createAnimation?: AnimationProvider,
-	closeAnimation?: AnimationProvider,
+	createAnimation?: string,
+	closeAnimation?: string,
 	shadowClass: string = "dropdown-shadow",
-): () => Promise<void> {
-	const newAttrs = {
+): () => void {
+	// Use the inverse of the show animation as the close animation if it is not given
+	if (createAnimation != null && closeAnimation == null) closeAnimation = `${createAnimation} animation-reverse`
+
+	const overlayKey = key++
+	const pair = {
 		position,
 		component,
 		createAnimation,
 		closeAnimation,
 		shadowClass,
-	}
-	const pair = [newAttrs, null, key++] as Overlay
-	overlays.push(pair)
-	return async () => {
-		const dom = pair[1]
-		const animation =
-			newAttrs.closeAnimation && dom
-				? animations.add(dom, newAttrs.closeAnimation(dom), {
-						duration: 100,
-						easing: ease.in,
-				  })
-				: Promise.resolve()
-		await animation
+	} as OverlayAttrs
+	// Add the new overlay into the overlay container
+	overlays.set(overlayKey, pair)
 
-		if (remove(overlays, pair)) {
-			m.redraw()
+	return () => {
+		// Remove the overlay & error if unsuccessful
+		if (!overlays.delete(overlayKey)) {
+			throw new ProgrammingError(`Failed to remove overlay with key:${overlayKey}!`)
 		}
 	}
 }
@@ -71,21 +65,28 @@ export const overlay: Component = {
 			"#overlay.fill-absolute.noprint",
 			{
 				style: {
-					display: overlays.length > 0 ? "" : "none",
+					display: overlays.size > 0 ? "" : "none",
 					"margin-top": "env(safe-area-inset-top)", // insets for iPhone X
+					// keep the bottom nav bar clear & inset for iOS
+					"margin-bottom": styles.isUsingBottomNavigation() ? px(size.bottom_nav_bar + getSafeAreaInsetBottom()) : "unset",
 					// we would need to change this if we wanted something to appear from the side
 					"margin-left": "env(safe-area-inset-left)",
 					"margin-right": "env(safe-area-inset-right)",
 				},
-				"aria-hidden": overlays.length === 0,
+				"aria-hidden": overlays.size === 0,
 			},
-			overlays.map((overlayAttrs) => {
-				const [attrs, dom, key] = overlayAttrs
+			Array.from(overlays.entries()).map((overlay) => {
+				const [key, attrs] = overlay
 				const position = attrs.position()
+
+				const baseClasses = "abs elevated-bg " + attrs.shadowClass
+				const classes = attrs.createAnimation == null ? baseClasses : baseClasses + " " + attrs.createAnimation
+
 				return m(
-					".abs.elevated-bg." + attrs.shadowClass,
+					"",
 					{
 						key,
+						class: classes,
 						style: {
 							width: position.width,
 							top: position.top,
@@ -95,16 +96,22 @@ export const overlay: Component = {
 							height: position.height,
 							"z-index": position.zIndex != null ? position.zIndex : LayerType.Overlay,
 						},
-						oncreate: (vnode) => {
-							const dom = vnode.dom as HTMLElement
-							overlayAttrs[1] = dom
+						onbeforeremove: (vnode: VnodeDOM) => {
+							if (attrs.closeAnimation != null) {
+								const dom = vnode.dom as HTMLElement
 
-							if (attrs.createAnimation) {
-								animations.add(dom, attrs.createAnimation(dom))
+								// Force the environment to restart the animations via a reflow
+								dom.className = baseClasses
+								void dom.offsetWidth
+
+								// Play the closing animation
+								dom.className = baseClasses + " " + attrs.closeAnimation
+
+								// Wait for the close animation to complete
+								return new Promise(function (resolve) {
+									dom.addEventListener("animationend", resolve)
+								})
 							}
-						},
-						onremove: () => {
-							overlayAttrs[1] = null
 						},
 					},
 					m(attrs.component),

@@ -33,7 +33,7 @@ import { createSearchIndexDbStub, DbStub, DbStubTransaction } from "./DbStub.js"
 import { IndexerCore } from "../../../../../src/api/worker/search/IndexerCore.js"
 import { elementIdPart, generatedIdToTimestamp, listIdPart, timestampToGeneratedId } from "../../../../../src/api/common/utils/EntityUtils.js"
 import { createTestEntity, makeCore } from "../../../TestUtils.js"
-import { aes256RandomKey, aesDecrypt, aesEncrypt, fixedIv, IV_BYTE_LENGTH, random } from "@tutao/tutanota-crypto"
+import { aes256RandomKey, aesEncrypt, fixedIv, IV_BYTE_LENGTH, random, unauthenticatedAesDecrypt } from "@tutao/tutanota-crypto"
 import { resolveTypeReference } from "../../../../../src/api/common/EntityFunctions.js"
 import { ElementDataOS, GroupDataOS, SearchIndexMetaDataOS, SearchIndexOS } from "../../../../../src/api/worker/search/IndexTables.js"
 
@@ -472,7 +472,7 @@ o.spec("IndexerCore test", () => {
 		o(key).equals(encInstanceId)
 		const [listIdValue, encRowsValue, ownerGroupValue] = value
 		o(listIdValue).equals(listId)
-		o(Array.from(aesDecrypt(core.db.key, encRowsValue, true))).deepEquals(Array.from(new Uint8Array([searchIndexRowKey])))
+		o(Array.from(unauthenticatedAesDecrypt(core.db.key, encRowsValue, true))).deepEquals(Array.from(new Uint8Array([searchIndexRowKey])))
 		o(ownerGroupValue).equals(groupId)
 	})
 	o.spec("writeIndexUpdate _insertNewIndexEntries ", function () {

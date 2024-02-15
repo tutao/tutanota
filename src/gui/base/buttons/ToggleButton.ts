@@ -3,31 +3,24 @@ import { AllIcons, Icon } from "../Icon.js"
 import { lang, TranslationText } from "../../../misc/LanguageViewModel.js"
 import { ButtonColor, getColors } from "../Button.js"
 import { ButtonSize } from "../ButtonSize.js"
+import { BaseButton } from "./BaseButton.js"
 
 export interface ToggleButtonAttrs {
 	icon: AllIcons
+	// The title should not change on toggle. See: https://www.w3.org/WAI/ARIA/apg/patterns/button/
 	title: TranslationText
 	toggled: boolean
 	onToggled: (selected: boolean, event: MouseEvent) => unknown
 	colors?: ButtonColor
 	size?: ButtonSize
-	toggledTitle?: TranslationText
 	style?: Record<string, any>
 }
 
 export class ToggleButton implements Component<ToggleButtonAttrs> {
 	view({ attrs }: Vnode<ToggleButtonAttrs>): Children {
-		return m(
-			"button.toggle-button.state-bg",
-			{
-				title: attrs.toggledTitle && attrs.toggled ? lang.getMaybeLazy(attrs.toggledTitle) : lang.getMaybeLazy(attrs.title),
-				onclick: (e: MouseEvent) => attrs.onToggled(!attrs.toggled, e),
-				toggled: String(attrs.toggled),
-				class: attrs.size === ButtonSize.Compact ? "compact" : "",
-				"aria-pressed": String(attrs.toggled),
-				style: attrs.style,
-			},
-			m(Icon, {
+		return m(BaseButton, {
+			label: lang.getMaybeLazy(attrs.title),
+			icon: m(Icon, {
 				icon: attrs.icon,
 				container: "div",
 				class: "center-h",
@@ -36,6 +29,10 @@ export class ToggleButton implements Component<ToggleButtonAttrs> {
 					fill: getColors(attrs.colors ?? ButtonColor.Content).button,
 				},
 			}),
-		)
+			class: `toggle-button state-bg ${attrs.size === ButtonSize.Compact ? "compact" : ""}`,
+			style: attrs.style,
+			pressed: attrs.toggled,
+			onclick: (e: MouseEvent) => attrs.onToggled(!attrs.toggled, e),
+		})
 	}
 }

@@ -7,7 +7,6 @@ import type { TextFieldAttrs } from "../../../gui/base/TextField.js"
 import { Autocomplete, TextField } from "../../../gui/base/TextField.js"
 import { isApp } from "../../../api/common/Env.js"
 import m, { Children } from "mithril"
-import { Button, ButtonType } from "../../../gui/base/Button.js"
 import { copyToClipboard } from "../../../misc/ClipboardUtils.js"
 import { Icons } from "../../../gui/base/icons/Icons.js"
 import { Dialog } from "../../../gui/base/Dialog.js"
@@ -23,6 +22,7 @@ import { IconButton, IconButtonAttrs } from "../../../gui/base/IconButton.js"
 import { ButtonSize } from "../../../gui/base/ButtonSize.js"
 import { NameValidationStatus, SecondFactorEditModel, SecondFactorTypeToNameTextId, VerificationStatus } from "./SecondFactorEditModel.js"
 import { UserError } from "../../../api/main/UserError.js"
+import { LoginButton } from "../../../gui/base/buttons/LoginButton.js"
 
 export class SecondFactorEditDialog {
 	private readonly dialog: Dialog
@@ -89,7 +89,7 @@ export class SecondFactorEditDialog {
 	private renderHelpLabel(): Children {
 		return this.model.nameValidationStatus === NameValidationStatus.Valid
 			? m("", lang.get("secondFactorNameInfo_msg"))
-			: m(".primary", lang.get("textTooLong_msg"))
+			: m(".b.content-accent-fg", lang.get("textTooLong_msg"))
 	}
 
 	private renderTypeSpecificFields(): Children {
@@ -129,10 +129,9 @@ export class SecondFactorEditDialog {
 			isApp()
 				? m(
 						".pt",
-						m(Button, {
+						m(LoginButton, {
 							label: "addOpenOTPApp_action",
-							click: () => this.openOtpLink(),
-							type: ButtonType.Login,
+							onclick: () => this.openOtpLink(),
 						}),
 				  )
 				: this.renderOtpQrCode(),

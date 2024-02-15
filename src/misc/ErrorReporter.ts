@@ -21,6 +21,7 @@ import { ReportErrorService } from "../api/entities/monitor/Services.js"
 import { createErrorReportData, createErrorReportFile, createReportErrorIn } from "../api/entities/monitor/TypeRefs.js"
 import { ErrorReportClientType } from "./ClientConstants.js"
 import { client } from "./ClientDetector.js"
+import { BubbleButton } from "../gui/base/buttons/BubbleButton.js"
 
 type FeedbackContent = {
 	message: string
@@ -118,10 +119,9 @@ function showReportDialog(
 				m(
 					".flex.flex-column.space-around.items-center",
 					logs.map((l) =>
-						m(Button, {
+						m(BubbleButton, {
 							label: () => l.name,
-							type: ButtonType.Bubble,
-							click: () => showLogDialog(l.name, uint8ArrayToString("utf-8", (l as DataFile).data)),
+							onclick: () => showLogDialog(l.name, uint8ArrayToString("utf-8", (l as DataFile).data)),
 						}),
 					),
 				),

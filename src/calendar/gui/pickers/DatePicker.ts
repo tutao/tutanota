@@ -6,8 +6,7 @@ import type { TranslationText } from "../../../misc/LanguageViewModel.js"
 import { lang } from "../../../misc/LanguageViewModel.js"
 import { px } from "../../../gui/size.js"
 import { theme } from "../../../gui/theme.js"
-import { BootIcons } from "../../../gui/base/icons/BootIcons.js"
-import { Icon } from "../../../gui/base/Icon.js"
+
 import { getStartOfDay, isSameDayOfDate } from "@tutao/tutanota-utils"
 import { DateTime } from "luxon"
 import { getAllDayDateLocal } from "../../../api/common/utils/CommonCalendarUtils.js"
@@ -16,7 +15,7 @@ import { Keys } from "../../../api/common/TutanotaConstants.js"
 import type { CalendarDay } from "../../date/CalendarUtils.js"
 import { parseDate } from "../../../misc/DateParser.js"
 import { isKeyPressed } from "../../../misc/KeyManager.js"
-
+import renderSwitchMonthArrowIcon from "../../../gui/base/buttons/ArrowButton.js"
 import { getCalendarMonth } from "../CalendarGuiUtils.js"
 
 export interface DatePickerAttrs {
@@ -252,8 +251,9 @@ export class VisualDatePicker implements Component<VisualDatePickerAttrs> {
 	}
 
 	private renderPickerHeader(vnode: Vnode<VisualDatePickerAttrs>, date: Date): Children {
+		const size = this.getElementWidth(vnode.attrs)
 		return m(".flex.flex-space-between.pt-s.pb-s.items-center", [
-			this.renderSwitchMonthArrowIcon(false, vnode.attrs),
+			renderSwitchMonthArrowIcon(false, size, () => this.onPrevMonthSelected()),
 			m(
 				".b",
 				{
@@ -263,29 +263,8 @@ export class VisualDatePicker implements Component<VisualDatePickerAttrs> {
 				},
 				formatMonthWithFullYear(date),
 			),
-			this.renderSwitchMonthArrowIcon(true, vnode.attrs),
+			renderSwitchMonthArrowIcon(true, size, () => this.onNextMonthSelected()),
 		])
-	}
-
-	private renderSwitchMonthArrowIcon(forward: boolean, attrs: VisualDatePickerAttrs): Children {
-		const size = px(this.getElementWidth(attrs))
-		return m(
-			".icon.flex.justify-center.items-center.click",
-			{
-				onclick: forward ? () => this.onNextMonthSelected() : () => this.onPrevMonthSelected(),
-				style: {
-					fill: theme.content_fg,
-					width: size,
-					height: size,
-				},
-			},
-			m(Icon, {
-				icon: forward ? Icons.ArrowForward : BootIcons.Back,
-				style: {
-					fill: theme.content_fg,
-				},
-			}),
-		)
 	}
 
 	private onPrevMonthSelected() {

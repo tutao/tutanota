@@ -8,6 +8,8 @@ export {
 	Aes128Key,
 	Aes256Key,
 	aes256EncryptSearchIndexEntry,
+	authenticatedAesDecrypt,
+	unauthenticatedAesDecrypt,
 	KEY_LENGTH_BYTES_AES_256,
 } from "./encryption/Aes.js"
 export { EccPrivateKey, EccPublicKey, EccKeyPair, EccSharedSecrets, generateEccKeyPair, eccEncapsulate, eccDecapsulate } from "./encryption/Ecc.js"
@@ -46,7 +48,7 @@ export {
 	decryptRsaKey,
 	decryptKeyPair,
 	encryptEccKey,
-	aes256DecryptLegacyRecoveryKey,
+	aes256DecryptWithRecoveryKey,
 } from "./encryption/KeyEncryption.js"
 export { Randomizer, random } from "./random/Randomizer.js"
 export {

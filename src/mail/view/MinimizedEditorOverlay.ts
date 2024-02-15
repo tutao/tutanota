@@ -15,6 +15,7 @@ import { isSameId } from "../../api/common/utils/EntityUtils"
 import { noOp, promiseMap } from "@tutao/tutanota-utils"
 import { EntityUpdateData, isUpdateForTypeRef } from "../../api/common/utils/EntityUpdateUtils.js"
 import { EntityEventsListener, EventController } from "../../api/main/EventController.js"
+import { IconButton } from "../../gui/base/IconButton.js"
 
 const COUNTER_POS_OFFSET = px(-8)
 export type MinimizedEditorOverlayAttrs = {
@@ -76,27 +77,21 @@ export class MinimizedEditorOverlay implements Component<MinimizedEditorOverlayA
 				),
 				m(".flex.items-center.justify-right", [
 					!styles.isSingleColumnLayout()
-						? m(Button, {
-								label: "edit_action",
+						? m(IconButton, {
+								title: "edit_action",
 								click: () => viewModel.reopenMinimizedEditor(minimizedEditor),
-								type: ButtonType.ActionLarge,
-								icon: () => Icons.Edit,
-								colors: ButtonColor.DrawerNav,
+								icon: Icons.Edit,
 						  })
 						: null,
-					m(Button, {
-						label: "delete_action",
+					m(IconButton, {
+						title: "delete_action",
 						click: () => this._onDeleteClicked(minimizedEditor, viewModel),
-						type: ButtonType.ActionLarge,
-						icon: () => Icons.Trash,
-						colors: ButtonColor.DrawerNav,
+						icon: Icons.Trash,
 					}),
-					m(Button, {
-						label: "close_alt",
+					m(IconButton, {
+						title: "close_alt",
 						click: () => viewModel.removeMinimizedEditor(minimizedEditor),
-						type: ButtonType.ActionLarge,
-						icon: () => Icons.Cancel,
-						colors: ButtonColor.DrawerNav,
+						icon: Icons.Cancel,
 					}),
 				]),
 			]),

@@ -5,13 +5,14 @@ import { neverNull, noOp, ofClass } from "@tutao/tutanota-utils"
 import m, { Child, Children, Vnode } from "mithril"
 import { assertMainOrNode, isApp } from "../../api/common/Env.js"
 import { copyToClipboard } from "../../misc/ClipboardUtils.js"
-import { Button } from "../../gui/base/Button.js"
 import { AccessBlockedError, NotAuthenticatedError } from "../../api/common/error/RestError.js"
 import { locator } from "../../api/main/MainLocator.js"
 import { Icons } from "../../gui/base/icons/Icons.js"
 import { User } from "../../api/entities/sys/TypeRefs.js"
 import { getEtId, isSameId } from "../../api/common/utils/EntityUtils.js"
 import { GroupType } from "../../api/common/TutanotaConstants.js"
+import { IconButton } from "../../gui/base/IconButton.js"
+import { MoreInfoLink } from "../../misc/news/MoreInfoLink.js"
 
 type Action = "get" | "create"
 assertMainOrNode()
@@ -114,16 +115,16 @@ export class RecoverCodeField {
 			),
 			showButtons
 				? m(".flex.flex-end.mt-m", [
-						m(Button, {
-							label: "copy_action",
-							icon: () => Icons.Clipboard,
+						m(IconButton, {
+							title: "copy_action",
+							icon: Icons.Clipboard,
 							click: () => copyToClipboard(recoverCode),
 						}),
 						isApp() || typeof window.print !== "function"
 							? null
-							: m(Button, {
-									label: "print_action",
-									icon: () => Icons.Print,
+							: m(IconButton, {
+									title: "print_action",
+									icon: Icons.Print,
 									click: () => window.print(),
 							  }),
 				  ])
@@ -133,9 +134,6 @@ export class RecoverCodeField {
 
 	private renderRecoveryText(): Child {
 		const link = InfoLink.RecoverCode
-		return m(".pt.pb", [
-			lang.get("recoveryCode_msg"),
-			m("", [m("small", lang.get("moreInfo_msg") + " "), m("small.text-break", [m(`a[href=${link}][target=_blank]`, link)])]),
-		])
+		return m(".pt.pb", [lang.get("recoveryCode_msg"), m("", [m(MoreInfoLink, { link, isSmall: true })])])
 	}
 }

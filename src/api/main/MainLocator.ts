@@ -10,7 +10,7 @@ import { LoginController } from "./LoginController"
 import type { ContactModel } from "../../contacts/model/ContactModel"
 import { EntityClient } from "../common/EntityClient"
 import type { CalendarInfo, CalendarModel } from "../../calendar/model/CalendarModel"
-import { defer, DeferredObject, lazy, lazyAsync, lazyMemoized, noOp } from "@tutao/tutanota-utils"
+import { assertNotNull, defer, DeferredObject, lazy, lazyAsync, lazyMemoized, noOp } from "@tutao/tutanota-utils"
 import { ProgressTracker } from "./ProgressTracker"
 import { MinimizedMailEditorViewModel } from "../../mail/model/MinimizedMailEditorViewModel"
 import { SchedulerImpl } from "../common/utils/Scheduler.js"
@@ -65,7 +65,7 @@ import { NewsModel } from "../../misc/news/NewsModel.js"
 import type { OwnMailAddressNameChanger } from "../../settings/mailaddress/OwnMailAddressNameChanger.js"
 import type { MailAddressNameChanger, MailAddressTableModel } from "../../settings/mailaddress/MailAddressTableModel.js"
 import type { AnotherUserMailAddressNameChanger } from "../../settings/mailaddress/AnotherUserMailAddressNameChanger.js"
-import type { GroupInfo } from "../entities/sys/TypeRefs.js"
+import { GroupInfo } from "../entities/sys/TypeRefs.js"
 import type { SendMailModel } from "../../mail/editor/SendMailModel.js"
 import type { CalendarEvent, Mail, MailboxProperties } from "../entities/tutanota/TypeRefs.js"
 import { CalendarEventAttendee } from "../entities/tutanota/TypeRefs.js"
@@ -83,7 +83,7 @@ import { OfflineIndicatorViewModel } from "../../gui/base/OfflineIndicatorViewMo
 import { AppHeaderAttrs, Header } from "../../gui/Header.js"
 import { CalendarViewModel } from "../../calendar/view/CalendarViewModel.js"
 import { ReceivedGroupInvitationsModel } from "../../sharing/model/ReceivedGroupInvitationsModel.js"
-import { Const, FeatureType, GroupType } from "../common/TutanotaConstants.js"
+import { asKdfType, Const, FeatureType, GroupType, KdfType } from "../common/TutanotaConstants.js"
 import type { ExternalLoginViewModel } from "../../login/ExternalLoginView.js"
 import type { ConversationViewModel, ConversationViewModelFactory } from "../../mail/view/ConversationViewModel.js"
 import type { AlarmScheduler } from "../../calendar/date/AlarmScheduler.js"
@@ -838,6 +838,13 @@ class MainLocator {
 
 		return this.nativeContactSyncManager
 	})
+
+	// For testing argon2 migration after login. The production server will reject this request.
+	// This can be removed when we enable the migration.
+	async changeToBycrypt(passphrase: string): Promise<unknown> {
+		const currentUser = this.logins.getUserController().user
+		return this.loginFacade.migrateKdfType(KdfType.Bcrypt, passphrase, currentUser)
+	}
 }
 
 export type IMainLocator = Readonly<MainLocator>

@@ -8,7 +8,6 @@ import { client } from "../misc/ClientDetector"
 import { showProgressDialog } from "../gui/dialogs/ProgressDialog"
 import { asKdfType, KdfType, Keys } from "../api/common/TutanotaConstants"
 import { progressIcon } from "../gui/base/Icon"
-import { Button, ButtonType } from "../gui/base/Button.js"
 import { Autocomplete, TextField, TextFieldType as TextFieldType } from "../gui/base/TextField.js"
 import { Checkbox } from "../gui/base/Checkbox.js"
 import { MessageBox } from "../gui/base/MessageBox.js"
@@ -24,6 +23,7 @@ import { TopLevelAttrs, TopLevelView } from "../TopLevelView.js"
 import { BaseTopLevelView } from "../gui/BaseTopLevelView.js"
 import { locator } from "../api/main/MainLocator.js"
 import { LoginScreenHeader } from "../gui/LoginScreenHeader.js"
+import { LoginButton } from "../gui/base/buttons/LoginButton.js"
 
 assertMainOrNode()
 
@@ -235,10 +235,9 @@ export class ExternalLoginView extends BaseTopLevelView implements TopLevelView<
 	renderAutoLoginButton(): Children {
 		return m(
 			".pt-l",
-			m(Button, {
+			m(LoginButton, {
 				label: "showMail_action",
-				click: () => this.viewModel.loginWithStoredCredentials(),
-				type: ButtonType.Login,
+				onclick: () => this.viewModel.loginWithStoredCredentials(),
 			}),
 		)
 	}
@@ -261,10 +260,9 @@ export class ExternalLoginView extends BaseTopLevelView implements TopLevelView<
 			}),
 			m(
 				".pt",
-				m(Button, {
+				m(LoginButton, {
 					label: "showMail_action",
-					click: () => this.viewModel.formLogin(),
-					type: ButtonType.Login,
+					onclick: () => this.viewModel.formLogin(),
 				}),
 			),
 		]

@@ -5,7 +5,7 @@ import type { SubscriptionParameters, UpgradeSubscriptionData } from "./UpgradeS
 import { SubscriptionActionButtons, SubscriptionSelector } from "./SubscriptionSelector"
 import { isApp } from "../api/common/Env"
 import { client } from "../misc/ClientDetector"
-import { Button, ButtonAttrs, ButtonType } from "../gui/base/Button.js"
+import { Button, ButtonType } from "../gui/base/Button.js"
 import { UpgradeType } from "./SubscriptionUtils"
 import { Dialog, DialogType } from "../gui/base/Dialog"
 import type { WizardPageAttrs, WizardPageN } from "../gui/base/WizardDialog.js"
@@ -18,6 +18,7 @@ import { UsageTest } from "@tutao/tutanota-usagetests"
 import { UpgradePriceType } from "./FeatureListProvider"
 import { asPaymentInterval, PaymentInterval } from "./PriceUtils.js"
 import { lazy } from "@tutao/tutanota-utils"
+import { LoginButtonAttrs } from "../gui/base/buttons/LoginButton.js"
 import { stringToSubscriptionType } from "../misc/LoginUtils.js"
 
 /** Subscription type passed from the website */
@@ -70,9 +71,8 @@ export class UpgradeSubscriptionPage implements WizardPageN<UpgradeSubscriptionD
 			[PlanType.Free]: () => {
 				return {
 					label: "pricing.select_action",
-					click: () => this.selectFree(data),
-					type: ButtonType.Login,
-				} as ButtonAttrs
+					onclick: () => this.selectFree(data),
+				} as LoginButtonAttrs
 			},
 			[PlanType.Revolutionary]: this.createUpgradeButton(data, PlanType.Revolutionary),
 			[PlanType.Legend]: this.createUpgradeButton(data, PlanType.Legend),
@@ -198,11 +198,10 @@ export class UpgradeSubscriptionPage implements WizardPageN<UpgradeSubscriptionD
 		this.showNextPage()
 	}
 
-	createUpgradeButton(data: UpgradeSubscriptionData, planType: PlanType): lazy<ButtonAttrs> {
+	createUpgradeButton(data: UpgradeSubscriptionData, planType: PlanType): lazy<LoginButtonAttrs> {
 		return () => ({
 			label: "pricing.select_action",
-			click: () => this.setNonFreeDataAndGoToNextPage(data, planType),
-			type: ButtonType.Login,
+			onclick: () => this.setNonFreeDataAndGoToNextPage(data, planType),
 		})
 	}
 }

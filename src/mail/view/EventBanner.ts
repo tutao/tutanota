@@ -1,5 +1,4 @@
 import m, { Children, Component, Vnode } from "mithril"
-import { ButtonType } from "../../gui/base/Button.js"
 import { CalendarAttendeeStatus, CalendarMethod } from "../../api/common/TutanotaConstants"
 import { lang } from "../../misc/LanguageViewModel"
 import type { CalendarEvent, Mail } from "../../api/entities/tutanota/TypeRefs.js"
@@ -52,7 +51,6 @@ export class EventBanner implements Component<EventBannerAttrs> {
 				buttons: [
 					{
 						label: "viewEvent_action",
-						type: ButtonType.Secondary,
 						click: (e, dom) =>
 							import("../../calendar/view/CalendarInvites.js").then(({ showEventDetails }) =>
 								showEventDetails(event, dom.getBoundingClientRect(), mail),

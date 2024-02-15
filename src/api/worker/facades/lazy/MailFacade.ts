@@ -10,9 +10,9 @@ import {
 	ReportMailService,
 	SendDraftService,
 } from "../../../entities/tutanota/Services.js"
-import type { ConversationType } from "../../../common/TutanotaConstants.js"
 import {
 	ArchiveDataType,
+	ConversationType,
 	CounterType,
 	DEFAULT_KDF_TYPE,
 	GroupType,
@@ -659,22 +659,22 @@ export class MailFacade {
 			const isSharedMailboxSender = !isSameId(this.userFacade.getGroupId(GroupType.Mail), senderMailGroupId)
 
 			if (recipient.type === RecipientType.EXTERNAL) {
-				const password = this.getContactPassword(recipient.contact)
-				if (password == null || isSharedMailboxSender) {
+				const passphrase = this.getContactPassword(recipient.contact)
+				if (passphrase == null || isSharedMailboxSender) {
 					// no password given and prevent sending to secure externals from shared group
 					notFoundRecipients.push(recipient.address)
 					continue
 				}
 
 				const salt = generateRandomSalt()
-				const kdfVersion = DEFAULT_KDF_TYPE
-				const passwordKey = await this.loginFacade.deriveUserPassphraseKey(kdfVersion, password, salt)
+				const kdfType = DEFAULT_KDF_TYPE
+				const passwordKey = await this.loginFacade.deriveUserPassphraseKey({ kdfType, passphrase, salt })
 				const passwordVerifier = createAuthVerifier(passwordKey)
 				const externalGroupKeys = await this._getExternalGroupKey(recipient.address, passwordKey, passwordVerifier)
 				const data = createSecureExternalRecipientKeyData({
 					mailAddress: recipient.address,
 					symEncBucketKey: null, // legacy for old permission system, not used anymore
-					kdfVersion: kdfVersion,
+					kdfVersion: kdfType,
 					ownerEncBucketKey: encryptKey(externalGroupKeys.externalMailGroupKey, bucketKey),
 					passwordVerifier: passwordVerifier,
 					salt: salt,

@@ -49,7 +49,7 @@ export function makeCore(
 export function makeKeyStoreFacade(uint8ArrayKey: Uint8Array): DesktopKeyStoreFacade {
 	const o: DesktopKeyStoreFacade = object()
 	when(o.getDeviceKey()).thenResolve(uint8ArrayToKey(uint8ArrayKey))
-	when(o.getCredentialsKey()).thenResolve(uint8ArrayToKey(uint8ArrayKey))
+	when(o.getKeyChainKey()).thenResolve(uint8ArrayToKey(uint8ArrayKey))
 	return o
 }
 

@@ -1,8 +1,11 @@
 import { InfoLink, lang } from "../LanguageViewModel.js"
 import m, { Children, Component, Vnode } from "mithril"
+import { ExternalLink, relDocument } from "../../gui/base/ExternalLink.js"
 
 export type MoreInfoLinkAttrs = {
 	link: InfoLink
+	isSmall?: boolean
+	class?: string
 }
 
 /**
@@ -10,19 +13,44 @@ export type MoreInfoLinkAttrs = {
  */
 export class MoreInfoLink implements Component<MoreInfoLinkAttrs> {
 	view(vnode: Vnode<MoreInfoLinkAttrs>): Children {
+		let specialType: relDocument | undefined
+		switch (vnode.attrs.link) {
+			case InfoLink.HomePage:
+				specialType = "me"
+				break
+			case InfoLink.About:
+				specialType = "license"
+				break
+			case InfoLink.Privacy:
+				specialType = "privacy-policy"
+				break
+			case InfoLink.Terms:
+			case InfoLink.GiftCardsTerms:
+				specialType = "terms-of-service"
+				break
+			default:
+				specialType = undefined
+				break
+		}
 		return m(
 			"p",
+			{
+				class: `${vnode.attrs.class} ${vnode.attrs.isSmall ? "small" : ""}`,
+			},
 			lang.get("moreInfo_msg") + " ",
-			m("small.text-break", [
-				m(
-					"a",
-					{
+			m(
+				"span.text-break",
+				{
+					class: vnode.attrs.isSmall ? "small" : "",
+				},
+				[
+					m(ExternalLink, {
 						href: vnode.attrs.link,
-						target: "_blank",
-					},
-					vnode.attrs.link,
-				),
-			]),
+						isCompanySite: true,
+						specialType,
+					}),
+				],
+			),
 		)
 	}
 }

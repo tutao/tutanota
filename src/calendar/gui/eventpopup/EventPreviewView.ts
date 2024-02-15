@@ -17,6 +17,7 @@ import { pureComponent } from "../../../gui/base/PureComponent.js"
 import { CalendarEventPreviewViewModel } from "./CalendarEventPreviewViewModel.js"
 import { UpgradeRequiredError } from "../../../api/main/UpgradeRequiredError.js"
 import { showPlanUpgradeRequiredDialog } from "../../../misc/SubscriptionDialogs.js"
+import { ExternalLink } from "../../../gui/base/ExternalLink.js"
 
 import { createRepeatRuleFrequencyValues, formatEventDuration, iconForAttendeeStatus } from "../CalendarGuiUtils.js"
 import { hasError } from "../../../api/common/utils/ErrorUtils.js"
@@ -135,13 +136,12 @@ export class EventPreviewView implements Component<EventPreviewViewAttrs> {
 		if (location == null || location.trim().length === 0) return null
 		return this.renderRow(Icons.Pin, [
 			m(
-				"a.text-ellipsis",
-				{
+				".text-ellipsis.selectable",
+				m(ExternalLink, {
 					href: this.getLocationUrl(location.trim()).toString(),
-					target: "_blank",
-					rel: "noopener noreferrer",
-				},
-				location,
+					text: location,
+					isCompanySite: false,
+				}),
 			),
 		])
 	}

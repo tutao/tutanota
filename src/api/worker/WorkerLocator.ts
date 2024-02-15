@@ -182,6 +182,8 @@ export async function initLocator(worker: WorkerImpl, browserData: BrowserData) 
 	locator.cache = cache ?? entityRestClient
 
 	locator.cachingEntityClient = new EntityClient(locator.cache)
+	const noncachingEntityClient = new EntityClient(entityRestClient)
+
 	locator.indexer = lazyMemoized(async () => {
 		const { Indexer } = await import("./search/Indexer.js")
 		return new Indexer(entityRestClient, mainInterface.infoMessageHandler, browserData, locator.cache as DefaultEntityRestCache, await locator.mail())
@@ -241,6 +243,7 @@ export async function initLocator(worker: WorkerImpl, browserData: BrowserData) 
 
 	locator.deviceEncryptionFacade = new DeviceEncryptionFacade()
 	const { DatabaseKeyFactory } = await import("../../misc/credentials/DatabaseKeyFactory.js")
+
 	locator.login = new LoginFacade(
 		worker,
 		locator.restClient,
@@ -258,6 +261,7 @@ export async function initLocator(worker: WorkerImpl, browserData: BrowserData) 
 		locator.entropyFacade,
 		new DatabaseKeyFactory(locator.deviceEncryptionFacade),
 		argon2idFacade,
+		noncachingEntityClient,
 	)
 
 	locator.search = lazyMemoized(async () => {
@@ -338,7 +342,7 @@ export async function initLocator(worker: WorkerImpl, browserData: BrowserData) 
 			locator.user,
 			await locator.groupManagement(),
 			assertNotNull(cache),
-			new EntityClient(entityRestClient), // without cache
+			noncachingEntityClient, // without cache
 			nativePushFacade,
 			mainInterface.operationProgressTracker,
 			locator.instanceMapper,
@@ -354,7 +358,7 @@ export async function initLocator(worker: WorkerImpl, browserData: BrowserData) 
 			locator.user,
 			await locator.groupManagement(),
 			locator.serviceExecutor,
-			new EntityClient(entityRestClient), // without cache
+			noncachingEntityClient, // without cache
 		)
 	})
 	const scheduler = new SchedulerImpl(dateProvider, self, self)

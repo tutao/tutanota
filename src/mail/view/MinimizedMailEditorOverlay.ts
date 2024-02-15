@@ -1,7 +1,7 @@
 import m from "mithril"
 import { px, size } from "../../gui/size"
 import { displayOverlay } from "../../gui/base/Overlay"
-import { DefaultAnimationTime, transform, TransformEnum } from "../../gui/animation/Animations"
+import { DefaultAnimationTime } from "../../gui/animation/Animations"
 import { EventController } from "../../api/main/EventController"
 import { styles } from "../../gui/styles"
 import { LayerType } from "../../RootView"
@@ -10,15 +10,14 @@ import type { SendMailModel } from "../editor/SendMailModel"
 import type { MinimizedEditor, SaveStatus } from "../model/MinimizedMailEditorViewModel"
 import { MinimizedMailEditorViewModel } from "../model/MinimizedMailEditorViewModel"
 import { MinimizedEditorOverlay } from "./MinimizedEditorOverlay"
-import { windowFacade } from "../../misc/WindowFacade"
 import { assertMainOrNode } from "../../api/common/Env"
 import Stream from "mithril/stream"
-import { getSafeAreaInsetBottom } from "../../gui/HtmlUtils.js"
+import { noOp } from "@tutao/tutanota-utils"
 
 assertMainOrNode()
 const MINIMIZED_OVERLAY_WIDTH_WIDE = 350
 const MINIMIZED_OVERLAY_WIDTH_SMALL = 220
-const MINIMIZED_EDITOR_HEIGHT = size.button_height + 2 * size.vpad_xs
+const MINIMIZED_EDITOR_HEIGHT = size.button_height
 
 export function showMinimizedMailEditor(
 	dialog: Dialog,
@@ -28,7 +27,7 @@ export function showMinimizedMailEditor(
 	dispose: () => void,
 	saveStatus: Stream<SaveStatus>,
 ): void {
-	let closeOverlayFunction = () => Promise.resolve() // will be assigned with the actual close function when overlay is visible.
+	let closeOverlayFunction: () => void = noOp // will be assigned with the actual close function when overlay is visible.
 
 	const minimizedEditor = viewModel.minimizeMailEditor(dialog, sendMailModel, dispose, saveStatus, () => closeOverlayFunction())
 	// only show overlay once editor is gone
@@ -37,20 +36,7 @@ export function showMinimizedMailEditor(
 	}, DefaultAnimationTime)
 }
 
-function showMinimizedEditorOverlay(
-	viewModel: MinimizedMailEditorViewModel,
-	minimizedEditor: MinimizedEditor,
-	eventController: EventController,
-): () => Promise<void> {
-	let overlayDom: HTMLElement | null = null
-
-	const resizeListener = () => {
-		if (overlayDom) {
-			overlayDom.style.transform = `translateY(${px(-getVerticalOverlayPosition())})`
-		}
-	}
-
-	windowFacade.addResizeListener(resizeListener)
+function showMinimizedEditorOverlay(viewModel: MinimizedMailEditorViewModel, minimizedEditor: MinimizedEditor, eventController: EventController): () => void {
 	return displayOverlay(
 		() => getOverlayPosition(),
 		{
@@ -61,32 +47,15 @@ function showMinimizedEditorOverlay(
 					eventController,
 				}),
 		},
-		(dom) => {
-			overlayDom = dom
-			return transform(TransformEnum.TranslateY, 0, -getVerticalOverlayPosition())
-		},
-		(dom) => {
-			windowFacade.removeResizeListener(resizeListener)
-			return transform(TransformEnum.TranslateY, -getVerticalOverlayPosition(), 0)
-		},
+		"slide-bottom",
+		undefined,
 		"minimized-shadow",
-	)
-}
-
-/** Position of the top edge of the overlay from the bottom of the containing element. */
-function getVerticalOverlayPosition(): number {
-	const bottomInset = getSafeAreaInsetBottom()
-	return (
-		MINIMIZED_EDITOR_HEIGHT +
-		(styles.isUsingBottomNavigation() // use size.hpad values to keep bottom and right space even
-			? size.bottom_nav_bar + size.hpad + bottomInset
-			: size.hpad_medium)
 	)
 }
 
 function getOverlayPosition() {
 	return {
-		bottom: px(-MINIMIZED_EDITOR_HEIGHT),
+		bottom: px(MINIMIZED_EDITOR_HEIGHT),
 		// position will change with translateY
 		right: styles.isUsingBottomNavigation() ? px(size.hpad) : px(size.hpad_medium),
 		width: px(styles.isSingleColumnLayout() ? MINIMIZED_OVERLAY_WIDTH_SMALL : MINIMIZED_OVERLAY_WIDTH_WIDE),

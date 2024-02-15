@@ -31,7 +31,6 @@ import {
 import { formatDate, formatDateWithMonth, formatDateWithTimeIfNotEven } from "../../misc/Formatter"
 import { Icons } from "../../gui/base/icons/Icons"
 import { AppHeaderAttrs, Header } from "../../gui/Header.js"
-import { ButtonType } from "../../gui/base/Button.js"
 import { PermissionError } from "../../api/common/error/PermissionError"
 import { ContactEditor } from "../../contacts/ContactEditor"
 import { styles } from "../../gui/styles"
@@ -924,7 +923,6 @@ export class SearchView extends BaseTopLevelView implements TopLevelView<SearchV
 	}
 
 	private getMainButton(typeRef: TypeRef<unknown>): {
-		type: ButtonType
 		label: TranslationKey
 		click: ClickHandler
 	} | null {
@@ -932,7 +930,6 @@ export class SearchView extends BaseTopLevelView implements TopLevelView<SearchV
 			return null
 		} else if (isSameTypeRef(typeRef, MailTypeRef) && isNewMailActionAvailable()) {
 			return {
-				type: ButtonType.FolderColumnHeader,
 				click: () => {
 					newMailEditor()
 						.then((editor) => editor.show())
@@ -942,7 +939,6 @@ export class SearchView extends BaseTopLevelView implements TopLevelView<SearchV
 			}
 		} else if (isSameTypeRef(typeRef, ContactTypeRef)) {
 			return {
-				type: ButtonType.FolderColumnHeader,
 				click: () => {
 					locator.contactModel.getContactListId().then((contactListId) => {
 						new ContactEditor(locator.entityClient, null, assertNotNull(contactListId)).show()
@@ -952,7 +948,6 @@ export class SearchView extends BaseTopLevelView implements TopLevelView<SearchV
 			}
 		} else if (isSameTypeRef(typeRef, CalendarEventTypeRef)) {
 			return {
-				type: ButtonType.FolderColumnHeader,
 				click: () => {
 					this.createNewEventDialog()
 				},

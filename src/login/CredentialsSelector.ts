@@ -1,6 +1,7 @@
 import m, { Children, Component, Vnode } from "mithril"
 import { Button, ButtonType } from "../gui/base/Button.js"
 import type { CredentialsInfo } from "../misc/credentials/CredentialsProvider.js"
+import { LoginButton } from "../gui/base/buttons/LoginButton.js"
 
 export type CredentialsSelectorAttrs = {
 	credentials: ReadonlyArray<CredentialsInfo>
@@ -16,10 +17,9 @@ export class CredentialsSelector implements Component<CredentialsSelectorAttrs> 
 			const buttons: Children = []
 			const onCredentialsDeleted = a.onCredentialsDeleted
 			buttons.push(
-				m(Button, {
+				m(LoginButton, {
 					label: () => c.login,
-					click: () => a.onCredentialsSelected(c),
-					type: ButtonType.Login,
+					onclick: () => a.onCredentialsSelected(c),
 				}),
 			)
 

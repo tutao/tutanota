@@ -7,7 +7,12 @@ import { Button, ButtonType } from "../gui/base/Button.js"
 import { getWhitelabelRegistrationDomains } from "../login/LoginView"
 import type { NewAccountData } from "./UpgradeSubscriptionWizard"
 import { SelectMailAddressForm, SelectMailAddressFormAttrs } from "../settings/SelectMailAddressForm"
-import { AccountType, DEFAULT_PAID_MAIL_ADDRESS_SIGNUP_DOMAIN, TUTANOTA_MAIL_ADDRESS_SIGNUP_DOMAINS } from "../api/common/TutanotaConstants"
+import {
+	AccountType,
+	DEFAULT_FREE_MAIL_ADDRESS_SIGNUP_DOMAIN,
+	DEFAULT_PAID_MAIL_ADDRESS_SIGNUP_DOMAIN,
+	TUTANOTA_MAIL_ADDRESS_SIGNUP_DOMAINS,
+} from "../api/common/TutanotaConstants"
 import { PasswordForm, PasswordModel } from "../settings/PasswordForm"
 import type { CheckboxAttrs } from "../gui/base/Checkbox.js"
 import { Checkbox } from "../gui/base/Checkbox.js"
@@ -23,6 +28,8 @@ import { UsageTest } from "@tutao/tutanota-usagetests"
 import { runCaptchaFlow } from "./Captcha.js"
 import { EmailDomainData, isPaidPlanDomain } from "../settings/mailaddress/MailAddressesUtils.js"
 import { isIOSApp } from "../api/common/Env.js"
+import { LoginButton } from "../gui/base/buttons/LoginButton.js"
+import { ExternalLink } from "../gui/base/ExternalLink.js"
 
 const faqCustomDomainLink = "https://tuta.com/faq#custom-domain"
 
@@ -65,6 +72,8 @@ export class SignupForm implements Component<SignupFormAttrs> {
 		// tuta.com gets preference user is signing up for a paid account and it is available
 		if (vnode.attrs.isPaidSubscription()) {
 			this.selectedDomain = this.availableDomains.find((domain) => domain.domain === DEFAULT_PAID_MAIL_ADDRESS_SIGNUP_DOMAIN) ?? this.selectedDomain
+		} else {
+			this.selectedDomain = this.availableDomains.find((domain) => domain.domain === DEFAULT_FREE_MAIL_ADDRESS_SIGNUP_DOMAIN) ?? this.selectedDomain
 		}
 
 		this.__mailValid = stream(false)
@@ -197,10 +206,9 @@ export class SignupForm implements Component<SignupFormAttrs> {
 					  ],
 				m(
 					".mt-l.mb-l",
-					m(Button, {
+					m(LoginButton, {
 						label: "next_action",
-						click: submit,
-						type: ButtonType.Login,
+						onclick: submit,
 					}),
 				),
 			]),

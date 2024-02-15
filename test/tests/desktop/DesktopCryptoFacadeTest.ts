@@ -46,6 +46,8 @@ o.spec("DesktopCryptoFacadeTest", () => {
 		when(cryptoFnsMock.aesDecrypt(aes128Key, matchers.anything(), matchers.anything())).thenReturn(decryptedUint8)
 		when(cryptoFnsMock.aesDecrypt(aes256Key, aes256EncryptedKey, matchers.anything())).thenReturn(aes256DecryptedKey)
 
+		when(cryptoFnsMock.unauthenticatedAesDecrypt(aes256Key, aes256EncryptedKey, false)).thenReturn(aes256DecryptedKey)
+
 		when(cryptoFnsMock.decryptKey(aes128Key, aes256EncryptedKey)).thenReturn(uint8ArrayToBitArray(aes256DecryptedKey))
 		when(cryptoFnsMock.bytesToKey(someKey)).thenReturn(aes128Key)
 		when(cryptoFnsMock.randomBytes(matchers.anything())).thenReturn(Buffer.alloc(10, 4))
@@ -87,9 +89,9 @@ o.spec("DesktopCryptoFacadeTest", () => {
 		o(file).equals("/some/other/path/to/decrypted/file.pdf")
 		verify(fsMock.promises.writeFile(matchers.anything(), matchers.anything(), matchers.anything()), { times: 1 })
 	})
-	o("aes256DecryptKey", function () {
+	o("unauthenticatedAes256DecryptKey", function () {
 		const { desktopCrypto } = setupSubject()
-		const key = desktopCrypto.aes256DecryptKey(aes256Key, aes256EncryptedKey)
+		const key = desktopCrypto.unauthenticatedAes256DecryptKey(aes256Key, aes256EncryptedKey)
 		o(Array.from(key)).deepEquals(Array.from(aes256DecryptedKey))
 	})
 	o("aes256EncryptKey", function () {

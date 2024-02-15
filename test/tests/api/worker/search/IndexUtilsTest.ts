@@ -14,25 +14,21 @@ import {
 	userIsGlobalAdmin,
 	userIsLocalOrGlobalAdmin,
 } from "../../../../../src/api/worker/search/IndexUtils.js"
-import { base64ToUint8Array, utf8Uint8ArrayToString } from "@tutao/tutanota-utils"
-import { concat } from "@tutao/tutanota-utils"
+import { base64ToUint8Array, byteLength, concat, utf8Uint8ArrayToString } from "@tutao/tutanota-utils"
 import type { SearchIndexEntry, SearchIndexMetaDataRow } from "../../../../../src/api/worker/search/SearchTypes.js"
-import { createUser, EntityUpdateTypeRef, GroupMembershipTypeRef, UserTypeRef } from "../../../../../src/api/entities/sys/TypeRefs.js"
-import { ContactTypeRef } from "../../../../../src/api/entities/tutanota/TypeRefs.js"
-import { createGroupMembership } from "../../../../../src/api/entities/sys/TypeRefs.js"
+import { EntityUpdateTypeRef, GroupMembershipTypeRef, UserTypeRef } from "../../../../../src/api/entities/sys/TypeRefs.js"
+import { ContactTypeRef, MailTypeRef } from "../../../../../src/api/entities/tutanota/TypeRefs.js"
 import { GroupType, OperationType } from "../../../../../src/api/common/TutanotaConstants.js"
-import { createEntityUpdate } from "../../../../../src/api/entities/sys/TypeRefs.js"
-import { MailTypeRef } from "../../../../../src/api/entities/tutanota/TypeRefs.js"
-import { byteLength } from "@tutao/tutanota-utils"
-import { aesDecrypt, aes256RandomKey, fixedIv } from "@tutao/tutanota-crypto"
+import { aes256RandomKey, fixedIv, unauthenticatedAesDecrypt } from "@tutao/tutanota-crypto"
 import { resolveTypeReference } from "../../../../../src/api/common/EntityFunctions.js"
 import { createTestEntity } from "../../../TestUtils.js"
 import { containsEventOfType, EntityUpdateData } from "../../../../../src/api/common/utils/EntityUpdateUtils.js"
+
 o.spec("Index Utils", () => {
 	o("encryptIndexKey", function () {
 		let key = aes256RandomKey()
 		let encryptedKey = encryptIndexKeyBase64(key, "blubb", fixedIv)
-		let decrypted = aesDecrypt(key, concat(fixedIv, base64ToUint8Array(encryptedKey)), true)
+		let decrypted = unauthenticatedAesDecrypt(key, concat(fixedIv, base64ToUint8Array(encryptedKey)), true)
 		o(utf8Uint8ArrayToString(decrypted)).equals("blubb")
 	})
 	o("encryptSearchIndexEntry + decryptSearchIndexEntry", function () {
@@ -49,7 +45,7 @@ o.spec("Index Utils", () => {
 		// position[1] 536 = 0x218 => length of number = 2 | 0x80 = 0x82 numbers: 0x02, 0x18
 		// position[2] 3 => 0x03
 		const encodedIndexEntry = [0x54, 0xc, 0x82, 0x02, 0x18, 0x03]
-		const result = aesDecrypt(key, encryptedEntry.slice(16), true)
+		const result = unauthenticatedAesDecrypt(key, encryptedEntry.slice(16), true)
 		o(Array.from(result)).deepEquals(Array.from(encodedIndexEntry))
 		let decrypted = decryptSearchIndexEntry(key, encryptedEntry, fixedIv)
 		o(JSON.stringify(decrypted.encId)).equals(JSON.stringify(encId))
@@ -82,7 +78,7 @@ o.spec("Index Utils", () => {
 		const encryptedMeta = encryptMetaData(key, meta)
 		o(encryptedMeta.id).equals(meta.id)
 		o(encryptedMeta.word).equals(meta.word)
-		o(Array.from(aesDecrypt(key, encryptedMeta.rows, true))).deepEquals([
+		o(Array.from(unauthenticatedAesDecrypt(key, encryptedMeta.rows, true))).deepEquals([
 			// First row
 			1,
 			64,

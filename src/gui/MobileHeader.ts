@@ -6,7 +6,7 @@ import { BaseMobileHeader } from "./BaseMobileHeader.js"
 import { IconButton } from "./base/IconButton.js"
 import { BootIcons } from "./base/icons/BootIcons.js"
 import { styles } from "./styles.js"
-import { OfflineIndicatorMobile } from "./base/OfflineIndicator.js"
+import { OfflineIndicator } from "./base/OfflineIndicator.js"
 import { ProgressBar } from "./base/ProgressBar.js"
 import { CounterBadge } from "./base/CounterBadge.js"
 import { px } from "./size.js"
@@ -55,7 +55,7 @@ export class MobileHeader implements Component<MobileHeaderAttrs> {
 			center: firstVisibleColumn
 				? m(MobileHeaderTitle, {
 						title: attrs.title,
-						bottom: m(OfflineIndicatorMobile, attrs.offlineIndicatorModel.getCurrentAttrs()),
+						bottom: m(OfflineIndicator, attrs.offlineIndicatorModel.getCurrentAttrs()),
 				  })
 				: null,
 			right: [

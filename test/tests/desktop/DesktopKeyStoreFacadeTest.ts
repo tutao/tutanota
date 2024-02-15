@@ -1,5 +1,5 @@
 import o from "@tutao/otest"
-import { CredentialsKeySpec, DeviceKeySpec, DesktopKeyStoreFacade } from "../../../src/desktop/DesktopKeyStoreFacade.js"
+import { CredentialsKeySpec, DesktopKeyStoreFacade, DeviceKeySpec } from "../../../src/desktop/DesktopKeyStoreFacade.js"
 import { DesktopNativeCryptoFacade } from "../../../src/desktop/DesktopNativeCryptoFacade.js"
 import type { SecretStorage } from "../../../src/desktop/sse/SecretStorage.js"
 import { spyify } from "../nodemocker.js"
@@ -23,7 +23,7 @@ o.spec("DesktopKeyStoreFacade", function () {
 
 	const toSpec = {
 		getDeviceKey: DeviceKeySpec,
-		getCredentialsKey: CredentialsKeySpec,
+		getKeyChainKey: CredentialsKeySpec,
 	}
 
 	for (const [opName, spec] of Object.entries(toSpec)) {

@@ -515,6 +515,22 @@ export type Challenge = {
 	otp:  null | OtpChallenge;
 	u2f:  null | U2fChallenge;
 }
+export const ChangeKdfPostInTypeRef: TypeRef<ChangeKdfPostIn> = new TypeRef("sys", "ChangeKdfPostIn")
+
+export function createChangeKdfPostIn(values: StrippedEntity<ChangeKdfPostIn>): ChangeKdfPostIn {
+	return Object.assign(create(typeModels.ChangeKdfPostIn, ChangeKdfPostInTypeRef), values)
+}
+
+export type ChangeKdfPostIn = {
+	_type: TypeRef<ChangeKdfPostIn>;
+
+	_format: NumberString;
+	kdfVersion: NumberString;
+	oldVerifier: Uint8Array;
+	pwEncUserGroupKey: Uint8Array;
+	salt: Uint8Array;
+	verifier: Uint8Array;
+}
 export const ChangePasswordDataTypeRef: TypeRef<ChangePasswordData> = new TypeRef("sys", "ChangePasswordData")
 
 export function createChangePasswordData(values: StrippedEntity<ChangePasswordData>): ChangePasswordData {
@@ -775,6 +791,8 @@ export type CustomerAccountTerminationPostIn = {
 	_type: TypeRef<CustomerAccountTerminationPostIn>;
 
 	_format: NumberString;
+	reason: null | string;
+	reasonCategory: null | NumberString;
 	terminationDate: null | Date;
 }
 export const CustomerAccountTerminationPostOutTypeRef: TypeRef<CustomerAccountTerminationPostOut> = new TypeRef("sys", "CustomerAccountTerminationPostOut")
@@ -974,6 +992,7 @@ export type DeleteCustomerData = {
 	_format: NumberString;
 	authVerifier: null | Uint8Array;
 	reason: string;
+	reasonCategory: null | NumberString;
 	takeoverMailAddress: null | string;
 	undelete: boolean;
 
@@ -2790,6 +2809,8 @@ export type SwitchAccountTypePostIn = {
 	customer: null | Id;
 	date: null | Date;
 	plan: NumberString;
+	reason: null | string;
+	reasonCategory: null | NumberString;
 	specialPriceUserSingle: null | NumberString;
 
 	referralCode:  null | Id;

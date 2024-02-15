@@ -1,13 +1,12 @@
 #!/usr/bin/env node
 // @ts-check
 
-import { Argument, Option, program } from "commander"
+import { Option, program } from "commander"
 import fs from "node:fs"
 import path from "node:path"
 import { $ } from "zx"
 
 await program
-	.addArgument(new Argument("which", "which version segment to bump").choices(["major", "minor", "patch"]).default("patch").argOptional())
 	.addOption(new Option("-p, --platform <platform>", "version for which platform to bump").choices(["all", "webdesktop", "android", "ios"]).default("all"))
 	.action(run)
 	.parseAsync(process.argv)
@@ -22,11 +21,11 @@ await program
  * @param platform {undefined | "webdesktop" | "android" | "ios"}
  * @return {Promise<void>}
  */
-async function run(which, { platform }) {
-	console.log(`bumping ${which} version for ${platform ?? "all"}`)
+async function run({ platform }) {
+	console.log(`bumping version for ${platform ?? "all"}`)
 	const currentVersionString = await readCurrentVersion()
 	const currentVersion = parseCurrentVersion(currentVersionString)
-	const newVersion = makeNewVersion(currentVersion, which)
+	const newVersion = makeNewVersion(currentVersion)
 	const newVersionString = newVersion.join(".")
 
 	if (platform === "all" || platform === "webdesktop") {
@@ -55,6 +54,22 @@ async function run(which, { platform }) {
 
 async function readCurrentVersion() {
 	return JSON.parse(await fs.promises.readFile("./package.json", { encoding: "utf8" })).version
+}
+
+/**
+ * Read versions of all models from generated ModelInfos.
+ * @returns {number[]}
+ */
+function readModelVersions() {
+	const appNames = fs.readdirSync("./src/api/entities/")
+	return appNames.map((appName) => {
+		const modelInfoString = fs.readFileSync(`./src/api/entities/${appName}/ModelInfo.ts`, { encoding: "utf8" })
+		const versionPrefix = "version:"
+		const versionNumberStart = modelInfoString.indexOf(versionPrefix) + versionPrefix.length
+		const version = modelInfoString.substring(versionNumberStart, modelInfoString.indexOf(",", versionNumberStart))
+		console.log(` > ${appName} version ${version}`)
+		return parseInt(version, 10)
+	})
 }
 
 /**
@@ -102,7 +117,7 @@ async function bumpAndroidVersion(currentVersion, newVersionString) {
 		throw new Error(`Android: Could not find versionCode in ${buildGradlePath}! Is it corrupted?`)
 	}
 	const oldVersionCodeString = oldVersionCodeMatch[1]
-	const oldVersionCode = Number(oldVersionCodeString)
+	const oldVersionCode = parseInt(oldVersionCodeString, 10)
 	if (Number.isNaN(oldVersionCode)) {
 		throw new Error(`Android: Detected version code as ${oldVersionCodeMatch[1]} but it is not a number! Is it corrupted`)
 	}
@@ -116,23 +131,30 @@ async function bumpAndroidVersion(currentVersion, newVersionString) {
 }
 
 /**
+ * Creates a new client version number.
+ * * Major is the sum of all current model versions.
+ * * Minor is the current date
+ * * Patch is always increased by one in case Major or Minor have not been changed
  * @param currentVersion {number[]}
- * @param which {Which}
  * @return {number[]}
  */
-function makeNewVersion(currentVersion, which) {
-	const newVersion = currentVersion.slice()
-	if (which === "patch") {
-		newVersion[2]++
-	} else if (which === "minor") {
-		newVersion[1]++
-		newVersion[2] = 0
-	} else {
-		newVersion[0]++
-		newVersion[1] = 0
-		newVersion[2] = 0
+function makeNewVersion(currentVersion) {
+	const modelVersions = readModelVersions()
+	const majorVersion = modelVersions.reduce((sum, current) => sum + current, 0)
+
+	const now = new Date()
+	const year = now.getFullYear().toString().substring(2, 4)
+	const month = now.getMonth() + 1
+	const formattedMonth = month >= 10 ? month : `0${month}`
+	const formattedDay = now.getDate() >= 10 ? now.getDate() : `0${now.getDate()}`
+	const minorVersion = parseInt(`${year}${formattedMonth}${formattedDay}`, 10)
+
+	const current = currentVersion.slice()
+	let patchVersion = 0
+	if (current[0] === majorVersion && current[1] === minorVersion) {
+		patchVersion = current[2] + 1
 	}
-	return newVersion
+	return [majorVersion, minorVersion, patchVersion]
 }
 
 /**
