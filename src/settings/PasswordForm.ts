@@ -287,21 +287,31 @@ export class PasswordForm implements Component<PasswordFormAttrs> {
 					label: "newPassword_label",
 					value: attrs.model.getNewPassword(),
 					helpLabel: () =>
-						m(".flex.col.mt-xs", { style: { margin: "4px 16px 8px 16px" } }, [
-							m(".flex.items-center", [
-								m(
-									".mr-s",
-									{ style: { width: "100%" } },
-									m(CompletenessIndicator, {
-										width: "100%",
-										passwordColorScale: true,
-										percentageCompleted: scaleToVisualPasswordStrength(attrs.model.getPasswordStrength()),
-									}),
-								),
-								m(StatusField, { status: attrs.model.getNewPasswordStatus(), style: { "min-width": "max-content" } }),
-							]),
-							this.renderPasswordGeneratorHelp(attrs),
-						]),
+						m(
+							".flex.col.mt-xs",
+							{
+								style: {
+									margin: `${size.md_default_margin / 4}px ${size.md_default_margin}px ${size.md_default_margin / 2}px ${
+										size.md_default_margin
+									}px`,
+								},
+							},
+							[
+								m(".flex.items-center", [
+									m(
+										".mr-s",
+										{ style: { width: "100%" } },
+										m(CompletenessIndicator, {
+											width: "100%",
+											passwordColorScale: true,
+											percentageCompleted: scaleToVisualPasswordStrength(attrs.model.getPasswordStrength()),
+										}),
+									),
+									m(StatusField, { status: attrs.model.getNewPasswordStatus(), style: { "min-width": "max-content" } }),
+								]),
+								this.renderPasswordGeneratorHelp(attrs),
+							],
+						),
 					oninput: (input) => attrs.model.setNewPassword(input),
 					autocompleteAs: Autocomplete.newPassword,
 					fontSize: px(size.font_size_smaller),
@@ -318,7 +328,11 @@ export class PasswordForm implements Component<PasswordFormAttrs> {
 							helpLabel: () =>
 								m(StatusField, {
 									status: attrs.model.getRepeatedPasswordStatus(),
-									style: { margin: "4px 16px 8px 16px" },
+									style: {
+										margin: `${size.md_default_margin / 4}px ${size.md_default_margin}px ${size.md_default_margin / 2}px ${
+											size.md_default_margin
+										}px`,
+									},
 								}),
 							oninput: (input) => attrs.model.setRepeatedPassword(input),
 							fontSize: px(size.font_size_smaller),
