@@ -200,8 +200,8 @@ export class WebCommonNativeFacade implements CommonNativeFacade {
 	 * @param filesUris List of files URI to be parsed
 	 */
 	async handleFileImport(filesUris: ReadonlyArray<string>): Promise<void> {
-		const { fileApp, contactModel, contactFacade } = await WebCommonNativeFacade.getInitializedLocator()
-		const { importContactsFromFile } = await import("../../contacts/ContactImporter.js")
+		const { fileApp, contactModel, contactImporter } = await WebCommonNativeFacade.getInitializedLocator()
+		const importer = await contactImporter()
 
 		// For now, we just handle .vcf files, so we don't need to care about the file type
 		const files = await fileApp.getFilesMetaData(filesUris)
@@ -209,6 +209,6 @@ export class WebCommonNativeFacade implements CommonNativeFacade {
 		const vCardData = contacts.join("\n")
 		const contactListId = assertNotNull(await contactModel.getContactListId())
 
-		await importContactsFromFile(vCardData, contactListId)
+		await importer.importContactsFromFile(vCardData, contactListId)
 	}
 }

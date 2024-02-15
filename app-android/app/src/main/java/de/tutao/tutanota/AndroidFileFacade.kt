@@ -333,11 +333,11 @@ class AndroidFileFacade(
   override suspend fun readDataFile(filePath: String): DataFile? {
 	// We just allow files that came from other intents using content:// or
 	// that belongs to our folder scope
-	if (!filePath.startsWith("content://") && !filePath.startsWith(tempDir.root.path)) {
-	  return null
-	}
-
 	val uri = Uri.parse(filePath)
+	val allowedLocation = uri.scheme == "content"
+			|| uri.scheme == "file" && uri.path != null && uri.path!!.startsWith(tempDir.root.path)
+	require(allowedLocation) { "Not allowed to read file at $filePath" }
+
 	val inputStream = activity.contentResolver.openInputStream(uri) ?: return null
 
 	val dataWrapper = DataWrapper(inputStream.readBytes())

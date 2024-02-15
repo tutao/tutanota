@@ -25,6 +25,8 @@ import { createTestEntity } from "../../TestUtils.js"
 import { MailState } from "../../../../src/api/common/TutanotaConstants.js"
 import { GroupInfoTypeRef } from "../../../../src/api/entities/sys/TypeRefs.js"
 import { CryptoFacade } from "../../../../src/api/worker/crypto/CryptoFacade.js"
+import { lazyAsync } from "@tutao/tutanota-utils"
+import { ContactImporter } from "../../../../src/contacts/ContactImporter.js"
 
 o.spec("MailViewerViewModel", function () {
 	let mail: Mail
@@ -43,6 +45,7 @@ o.spec("MailViewerViewModel", function () {
 	let sendMailModel: SendMailModel
 	let sendMailModelFactory: (mailboxDetails: MailboxDetail) => Promise<SendMailModel> = () => Promise.resolve(sendMailModel)
 	let cryptoFacade: CryptoFacade
+	let contactImporter: ContactImporter
 
 	function makeViewModelWithHeaders(headers: string) {
 		entityClient = object()
@@ -57,6 +60,7 @@ o.spec("MailViewerViewModel", function () {
 		searchModel = object()
 		mailFacade = object()
 		cryptoFacade = object()
+		contactImporter = object()
 		mail = prepareMailWithHeaders(mailFacade, headers)
 
 		return new MailViewerViewModel(
@@ -74,6 +78,7 @@ o.spec("MailViewerViewModel", function () {
 			searchModel,
 			mailFacade,
 			cryptoFacade,
+			async () => contactImporter,
 		)
 	}
 
