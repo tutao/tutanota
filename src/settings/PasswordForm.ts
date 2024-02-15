@@ -22,7 +22,6 @@ assertMainOrNode()
 
 export interface PasswordFormAttrs {
 	model: PasswordModel
-	passwordInfoKey?: TranslationKey
 	labelBgColorOverwrite?: string
 	// overwrites the bg color of label, only in use to fix recovery dialog -> not working because the animation uses 'will-change: opacity' Animations.ts:327
 }
@@ -327,7 +326,6 @@ export class PasswordForm implements Component<PasswordFormAttrs> {
 							injectionsRight: () => this.renderRevealIcon(attrs, PasswordFieldType.Confirm),
 							labelBgColorOverwrite: attrs.labelBgColorOverwrite,
 					  }),
-				attrs.passwordInfoKey ? m(".small.mt-s", lang.get(attrs.passwordInfoKey)) : null,
 			],
 		)
 	}

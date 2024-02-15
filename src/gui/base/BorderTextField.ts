@@ -77,7 +77,6 @@ export class BorderTextField implements ClassComponent<BorderTextFieldAttrs> {
 	onblur: EventListener | null = null
 	domInput!: HTMLInputElement
 	_domWrapper!: HTMLElement
-	setValue!: (value: string) => void
 	private _domLabel!: HTMLElement
 	private _domInputWrapper!: HTMLElement
 	private _didAutofill!: boolean
@@ -355,10 +354,6 @@ export class BorderTextField implements ClassComponent<BorderTextFieldAttrs> {
 					this.domInput.style.height = "0px"
 					this.domInput.style.height = px(this.domInput.scrollHeight)
 					a.oninput && a.oninput(this.domInput.value, this.domInput)
-				},
-				setValue: (value: string) => {
-					a.value = value
-					this.domInput.value = value
 				},
 				onupdate: () => {
 					// only change the value if the value has changed otherwise the cursor in Safari and in the iOS App cannot be positioned.
