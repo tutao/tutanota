@@ -38,8 +38,8 @@ import java.util.concurrent.TimeUnit
 
 
 class TempDir(
-		private val context: Context,
-		random: SecureRandom = SecureRandom()
+  private val context: Context,
+  random: SecureRandom = SecureRandom()
 ) {
   private val randomTempDirectory = random.bytes(16).toBase64().base64ToBase64Url()
 
@@ -50,10 +50,10 @@ class TempDir(
 }
 
 class AndroidFileFacade(
-		private val activity: MainActivity,
-		private val localNotificationsFacade: LocalNotificationsFacade,
-		private val random: SecureRandom,
-		private val defaultClient: OkHttpClient
+  private val activity: MainActivity,
+  private val localNotificationsFacade: LocalNotificationsFacade,
+  private val random: SecureRandom,
+  private val defaultClient: OkHttpClient
 ) : FileFacade {
 
   val tempDir = TempDir(activity, random)
@@ -137,14 +137,15 @@ class AndroidFileFacade(
 
   override suspend fun getMimeType(fileUri: String): String = getMimeType(fileUri.toUri(), activity)
 
-  override suspend fun putFileIntoDownloadsFolder(localFileUri: String, fileNameToUse: String): String = withContext(Dispatchers.IO) {
-	if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.Q) {
-	  addFileToDownloadsMediaStore(localFileUri, fileNameToUse)
-	} else {
-	  activity.getPermission(Manifest.permission.WRITE_EXTERNAL_STORAGE)
-	  addFileToDownloadsOld(localFileUri, fileNameToUse)
+  override suspend fun putFileIntoDownloadsFolder(localFileUri: String, fileNameToUse: String): String =
+	withContext(Dispatchers.IO) {
+	  if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.Q) {
+		addFileToDownloadsMediaStore(localFileUri, fileNameToUse)
+	  } else {
+		activity.getPermission(Manifest.permission.WRITE_EXTERNAL_STORAGE)
+		addFileToDownloadsOld(localFileUri, fileNameToUse)
+	  }
 	}
-  }
 
   @RequiresApi(Build.VERSION_CODES.Q)
   private suspend fun addFileToDownloadsMediaStore(fileUriString: String, fileNameToUse: String): String {
@@ -152,13 +153,13 @@ class AndroidFileFacade(
 	val fileUri = fileUriString.toUri()
 	val fileInfo = getFileInfo(activity, fileUri)
 	val outputUri = contentResolver.insert(
-			MediaStore.Downloads.EXTERNAL_CONTENT_URI,
-			ContentValues().apply {
-			  put(MediaStore.MediaColumns.IS_PENDING, 1)
-			  put(MediaStore.MediaColumns.MIME_TYPE, getMimeType(fileUri.toString()))
-			  put(MediaStore.MediaColumns.DISPLAY_NAME, fileNameToUse)
-			  put(MediaStore.MediaColumns.SIZE, fileInfo.size)
-			},
+	  MediaStore.Downloads.EXTERNAL_CONTENT_URI,
+	  ContentValues().apply {
+		put(MediaStore.MediaColumns.IS_PENDING, 1)
+		put(MediaStore.MediaColumns.MIME_TYPE, getMimeType(fileUri.toString()))
+		put(MediaStore.MediaColumns.DISPLAY_NAME, fileNameToUse)
+		put(MediaStore.MediaColumns.SIZE, fileInfo.size)
+	  },
 	) ?: throw FileOpenException("Could not insert into downloads, no output URI")
 
 	val inputStream = contentResolver.openInputStream(fileUri)!!
@@ -166,12 +167,12 @@ class AndroidFileFacade(
 	val copiedBytes = IOUtils.copyLarge(inputStream, outputStream)
 	Log.d(TAG, "Copied $copiedBytes")
 	val updated = contentResolver.update(
-			outputUri,
-			ContentValues().apply {
-			  put(MediaStore.MediaColumns.IS_PENDING, 0)
-			},
-			null,
-			null
+	  outputUri,
+	  ContentValues().apply {
+		put(MediaStore.MediaColumns.IS_PENDING, 0)
+	  },
+	  null,
+	  null
 	)
 	Log.d(TAG, "Updated with not pending: $updated")
 	localNotificationsFacade.sendDownloadFinishedNotification(fileNameToUse)
@@ -202,7 +203,7 @@ class AndroidFileFacade(
 	  file.isDirectory && file.name.startsWith("tutanota-") && file.name.length == 22
 	}
 	val privateDownloadsDir = matchingDirectories?.firstOrNull()
-			?: File(publicDownloadsDir, "tutanota-dl-${random.bytes(5).toHexString()}")
+	  ?: File(publicDownloadsDir, "tutanota-dl-${random.bytes(5).toHexString()}")
 	if (!privateDownloadsDir.exists()) {
 	  val created = privateDownloadsDir.mkdirs()
 	  if (!created) {
@@ -224,103 +225,112 @@ class AndroidFileFacade(
   }
 
   @Throws(IOException::class, JSONException::class)
-  override suspend fun upload(fileUrl: String, targetUrl: String, method: String, headers: Map<String, String>): UploadTaskResponse =
-		  withContext(Dispatchers.IO) {
-			val parsedUri = Uri.parse(fileUrl)
-			val contentResolver = activity.contentResolver
-			val contentType = contentResolver.getType(parsedUri)
-			val response = contentResolver.openAssetFileDescriptor(parsedUri, "r")!!.use { fd ->
+  override suspend fun upload(
+	fileUrl: String,
+	targetUrl: String,
+	method: String,
+	headers: Map<String, String>
+  ): UploadTaskResponse =
+	withContext(Dispatchers.IO) {
+	  val parsedUri = Uri.parse(fileUrl)
+	  val contentResolver = activity.contentResolver
+	  val contentType = contentResolver.getType(parsedUri)
+	  val response = contentResolver.openAssetFileDescriptor(parsedUri, "r")!!.use { fd ->
 
-			  val requestBody: RequestBody = object : RequestBody() {
-				override fun contentLength(): Long {
-				  return fd.declaredLength
-				}
-
-				override fun contentType(): MediaType? {
-				  return contentType?.toMediaTypeOrNull()
-				}
-
-				@Throws(IOException::class)
-				override fun writeTo(sink: BufferedSink) {
-				  fd.createInputStream().use { inputStream -> sink.writeAll(inputStream.source().buffer()) }
-				}
-			  }
-
-			  val requestBuilder = Request.Builder()
-					  .url(targetUrl)
-					  .method(method, requestBody)
-					  .header("Content-Type", "application/octet-stream")
-					  .header("Cache-Control", "no-cache")
-			  addHeadersToRequest(requestBuilder, JSONObject(headers))
-
-			  // infinite timeout
-			  // - the server stops listening after 10 minutes -> SocketException
-			  // - if the internet connection dies -> SocketException
-			  // we don't want to time out in case of a slow connection because we may already be
-			  // waiting for the response code while the TCP stack is still busy sending our data
-			  defaultClient.newBuilder()
-					  .connectTimeout(HTTP_TIMEOUT, TimeUnit.SECONDS)
-					  .writeTimeout(0, TimeUnit.SECONDS)
-					  .readTimeout(0, TimeUnit.SECONDS)
-					  .build()
-					  .newCall(requestBuilder.build())
-					  .execute()
-			}
-
-			response.use { response ->
-			  // this would run into the read timeout if the upload is still running
-			  val responseCode = response.code
-			  val suspensionTime = response.header("Retry-After") ?: response.header("Suspension-Time")
-			  val responseBody = if (responseCode in 200..299) {
-				response.body?.bytes()?.wrap() ?: byteArrayOf().wrap()
-			  } else {
-				byteArrayOf().wrap()
-			  }
-			  UploadTaskResponse(
-					  statusCode = responseCode,
-					  errorId = response.header("Error-Id"),
-					  precondition = response.header("Precondition"),
-					  suspensionTime = suspensionTime,
-					  responseBody = responseBody
-			  )
-			}
+		val requestBody: RequestBody = object : RequestBody() {
+		  override fun contentLength(): Long {
+			return fd.declaredLength
 		  }
+
+		  override fun contentType(): MediaType? {
+			return contentType?.toMediaTypeOrNull()
+		  }
+
+		  @Throws(IOException::class)
+		  override fun writeTo(sink: BufferedSink) {
+			fd.createInputStream().use { inputStream -> sink.writeAll(inputStream.source().buffer()) }
+		  }
+		}
+
+		val requestBuilder = Request.Builder()
+		  .url(targetUrl)
+		  .method(method, requestBody)
+		  .header("Content-Type", "application/octet-stream")
+		  .header("Cache-Control", "no-cache")
+		addHeadersToRequest(requestBuilder, JSONObject(headers))
+
+		// infinite timeout
+		// - the server stops listening after 10 minutes -> SocketException
+		// - if the internet connection dies -> SocketException
+		// we don't want to time out in case of a slow connection because we may already be
+		// waiting for the response code while the TCP stack is still busy sending our data
+		defaultClient.newBuilder()
+		  .connectTimeout(HTTP_TIMEOUT, TimeUnit.SECONDS)
+		  .writeTimeout(0, TimeUnit.SECONDS)
+		  .readTimeout(0, TimeUnit.SECONDS)
+		  .build()
+		  .newCall(requestBuilder.build())
+		  .execute()
+	  }
+
+	  response.use { response ->
+		// this would run into the read timeout if the upload is still running
+		val responseCode = response.code
+		val suspensionTime = response.header("Retry-After") ?: response.header("Suspension-Time")
+		val responseBody = if (responseCode in 200..299) {
+		  response.body?.bytes()?.wrap() ?: byteArrayOf().wrap()
+		} else {
+		  byteArrayOf().wrap()
+		}
+		UploadTaskResponse(
+		  statusCode = responseCode,
+		  errorId = response.header("Error-Id"),
+		  precondition = response.header("Precondition"),
+		  suspensionTime = suspensionTime,
+		  responseBody = responseBody
+		)
+	  }
+	}
 
   @Throws(IOException::class, JSONException::class)
-  override suspend fun download(sourceUrl: String, filename: String, headers: Map<String, String>): DownloadTaskResponse =
-		  withContext(Dispatchers.IO) {
-			val requestBuilder = Request.Builder()
-					.url(sourceUrl)
-					.method("GET", null)
-					.header("Content-Type", "application/json")
-					.header("Cache-Control", "no-cache")
-			addHeadersToRequest(requestBuilder, JSONObject(headers))
+  override suspend fun download(
+	sourceUrl: String,
+	filename: String,
+	headers: Map<String, String>
+  ): DownloadTaskResponse =
+	withContext(Dispatchers.IO) {
+	  val requestBuilder = Request.Builder()
+		.url(sourceUrl)
+		.method("GET", null)
+		.header("Content-Type", "application/json")
+		.header("Cache-Control", "no-cache")
+	  addHeadersToRequest(requestBuilder, JSONObject(headers))
 
-			val response = defaultClient.newBuilder()
-					.connectTimeout(HTTP_TIMEOUT, TimeUnit.SECONDS)
-					.writeTimeout(HTTP_TIMEOUT, TimeUnit.SECONDS)
-					.readTimeout(HTTP_TIMEOUT, TimeUnit.SECONDS)
-					.build()
-					.newCall(requestBuilder.build())
-					.execute()
+	  val response = defaultClient.newBuilder()
+		.connectTimeout(HTTP_TIMEOUT, TimeUnit.SECONDS)
+		.writeTimeout(HTTP_TIMEOUT, TimeUnit.SECONDS)
+		.readTimeout(HTTP_TIMEOUT, TimeUnit.SECONDS)
+		.build()
+		.newCall(requestBuilder.build())
+		.execute()
 
-			response.use { response ->
-			  var encryptedFile: File? = null
-			  if (response.code == 200) {
-				val inputStream = response.body!!.byteStream()
-				encryptedFile = File(tempDir.encrypt, filename)
-				writeFileStream(encryptedFile, inputStream)
-			  }
+	  response.use { response ->
+		var encryptedFile: File? = null
+		if (response.code == 200) {
+		  val inputStream = response.body!!.byteStream()
+		  encryptedFile = File(tempDir.encrypt, filename)
+		  writeFileStream(encryptedFile, inputStream)
+		}
 
-			  DownloadTaskResponse(
-					  statusCode = response.code,
-					  errorId = response.header("Error-Id"),
-					  precondition = response.header("Precondition"),
-					  suspensionTime = response.header("Retry-After") ?: response.header("Suspension-Time"),
-					  encryptedFileUri = encryptedFile?.toUri().toString(),
-			  )
-			}
-		  }
+		DownloadTaskResponse(
+		  statusCode = response.code,
+		  errorId = response.header("Error-Id"),
+		  precondition = response.header("Precondition"),
+		  suspensionTime = response.header("Retry-After") ?: response.header("Suspension-Time"),
+		  encryptedFileUri = encryptedFile?.toUri().toString(),
+		)
+	  }
+	}
 
   @Throws(IOException::class)
   override suspend fun writeDataFile(file: DataFile): String = withContext(Dispatchers.IO) {
@@ -338,18 +348,16 @@ class AndroidFileFacade(
 			|| uri.scheme == "file" && uri.path != null && uri.path!!.startsWith(tempDir.root.path)
 	require(allowedLocation) { "Not allowed to read file at $filePath" }
 
-	val inputStream = activity.contentResolver.openInputStream(uri) ?: return null
-
-	val dataWrapper = DataWrapper(inputStream.readBytes())
-
-	withContext(Dispatchers.IO) {
-	  inputStream.close()
-	}
+	val bytes = withContext(Dispatchers.IO) {
+	  activity.contentResolver.openInputStream(uri)?.use { inputStream ->
+		inputStream.readBytes()
+	  }
+	} ?: return null
 
 	val fileInfo = getFileInfo(activity, uri)
 	val mimeType = getMimeType(uri, activity)
 
-	return DataFile(fileInfo.name, mimeType, dataWrapper, fileInfo.size.toInt())
+	return DataFile(fileInfo.name, mimeType, bytes.wrap(), fileInfo.size.toInt())
   }
 
   @Throws(IOException::class)
@@ -461,9 +469,9 @@ fun getNonClobberingFileName(parentFile: File, child: String): String {
   val ext = file.extension
 
   fun doGetNonClobberingFileName(
-		  siblings: Array<File>,
-		  base: String,
-		  ext: String, suffix: Int = 0
+	siblings: Array<File>,
+	base: String,
+	ext: String, suffix: Int = 0
   ): String {
 	val nameToTry = if (suffix == 0) {
 	  "$base.$ext"
