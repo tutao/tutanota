@@ -37,7 +37,6 @@ import { responsiveCardHMargin, responsiveCardHPadding } from "../../gui/cards.j
 import { isTutanotaTeamMail } from "../../api/common/mail/CommonMailUtils.js"
 import { AttachmentType, getAttachmentType } from "../../gui/AttachmentBubble.js"
 import { Dialog } from "../../gui/base/Dialog.js"
-import { importContactsFromFile } from "../../contacts/ContactImporter.js"
 
 assertMainOrNode()
 // map of inline image cid to InlineImageReference
@@ -732,17 +731,15 @@ export class MailViewer implements Component<MailViewerAttrs> {
 	}
 
 	private async handleAttachmentImport(file: TutanotaFile) {
-		if (getAttachmentType(file.mimeType ?? "") === AttachmentType.CONTACT) {
-			try {
-				await this.viewModel.handleContactAttachment(file)
-			} catch (e) {
-				console.log(e)
-				if (e instanceof UserError) {
-					return await Dialog.message(() => e.message)
-				}
-
-				await Dialog.message("unknownError_msg")
+		try {
+			await this.viewModel.importAttachment(file)
+		} catch (e) {
+			console.log(e)
+			if (e instanceof UserError) {
+				return await Dialog.message(() => e.message)
 			}
+
+			await Dialog.message("unknownError_msg")
 		}
 	}
 }
