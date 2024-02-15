@@ -38,6 +38,7 @@ export type BorderTextFieldAttrs = {
 	max?: number
 	labelBgColorOverwrite?: string
 	// overwrites the default color `getElevatedBackground()` in order to display the correct color when not on a elevated background (-> dark mode LoginForm.ts)
+	areaTextFieldLines?: number
 }
 
 export const enum BorderTextFieldType {
@@ -76,6 +77,7 @@ export class BorderTextField implements ClassComponent<BorderTextFieldAttrs> {
 	onblur: EventListener | null = null
 	domInput!: HTMLInputElement
 	_domWrapper!: HTMLElement
+	setValue!: (value: string) => void
 	private _domLabel!: HTMLElement
 	private _domInputWrapper!: HTMLElement
 	private _didAutofill!: boolean
@@ -185,6 +187,9 @@ export class BorderTextField implements ClassComponent<BorderTextFieldAttrs> {
 								onclick: (e: MouseEvent) => {
 									e.stopPropagation()
 								},
+								style: {
+									margin: `${size.md_supporting_text_margin}px ${size.md_default_margin}px 0px `,
+								},
 							},
 							a.helpLabel(),
 					  )
@@ -268,6 +273,10 @@ export class BorderTextField implements ClassComponent<BorderTextFieldAttrs> {
 								})
 							}
 						},
+						setValue: (value: string) => {
+							a.value = value
+							this.domInput.value = value
+						},
 						onfocus: (e: FocusEvent) => {
 							this.focus(e, a)
 							a.onfocus && a.onfocus(this._domWrapper, this.domInput)
@@ -347,6 +356,10 @@ export class BorderTextField implements ClassComponent<BorderTextFieldAttrs> {
 					this.domInput.style.height = px(this.domInput.scrollHeight)
 					a.oninput && a.oninput(this.domInput.value, this.domInput)
 				},
+				setValue: (value: string) => {
+					a.value = value
+					this.domInput.value = value
+				},
 				onupdate: () => {
 					// only change the value if the value has changed otherwise the cursor in Safari and in the iOS App cannot be positioned.
 					if (this.domInput.value !== a.value) {
@@ -356,7 +369,7 @@ export class BorderTextField implements ClassComponent<BorderTextFieldAttrs> {
 				style: {
 					margin: px(size.md_default_margin),
 					lineHeight: px(size.md_default_line_height),
-					minHeight: px(size.md_default_line_height * 2),
+					minHeight: a.areaTextFieldLines ? px(size.md_default_line_height * a.areaTextFieldLines) : px(size.md_default_line_height * 2),
 					minWidth: px(20), // fix for edge browser. buttons are cut off in small windows otherwise
 					fontSize: a.fontSize,
 					"white-space": "normal",
