@@ -155,11 +155,13 @@ class IosMobileContactsFacade: MobileContactsFacade {
 		var tutaContactToNativeContact = TutaToNativeContacts()
 
 		for newContact in contacts {
-			let nativeContact = NativeMutableContact(newContactWithId: newContact.id, container: self.localContainer)
-			nativeContact.updateContactWithData(newContact)
-			saveRequest.add(nativeContact.contact, toContainerWithIdentifier: self.localContainer)
-			saveRequest.addMember(nativeContact.contact, to: contactGroup)
-			tutaContactToNativeContact[newContact.id] = nativeContact
+			if let contactId = newContact.id {
+				let nativeContact = NativeMutableContact(newContactWithId: contactId, container: self.localContainer)
+				nativeContact.updateContactWithData(newContact)
+				saveRequest.add(nativeContact.contact, toContainerWithIdentifier: self.localContainer)
+				saveRequest.addMember(nativeContact.contact, to: contactGroup)
+				tutaContactToNativeContact[contactId] = nativeContact
+			}
 		}
 
 		try store.execute(saveRequest)
