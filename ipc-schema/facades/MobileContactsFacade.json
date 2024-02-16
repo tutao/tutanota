@@ -36,7 +36,7 @@
 					"contacts": "List<StructuredContact>"
 				}
 			],
-			"ret": "List<StructuredContact>"
+			"ret": "ContactSyncResult"
 		},
 		"getContactBooks": {
 			"doc": "Get all contact books on the device.",

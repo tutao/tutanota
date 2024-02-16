@@ -2,6 +2,7 @@
 
 import { ContactSuggestion } from "./ContactSuggestion.js"
 import { StructuredContact } from "./StructuredContact.js"
+import { ContactSyncResult } from "./ContactSyncResult.js"
 import { ContactBook } from "./ContactBook.js"
 /**
  * Contact-related funcionality on mobile.
@@ -20,7 +21,7 @@ export interface MobileContactsFacade {
 	/**
 	 * Sync all Tuta contacts with system's contact book, this operation includes Inserts, Updates and Deletions
 	 */
-	syncContacts(username: string, contacts: ReadonlyArray<StructuredContact>): Promise<ReadonlyArray<StructuredContact>>
+	syncContacts(username: string, contacts: ReadonlyArray<StructuredContact>): Promise<ContactSyncResult>
 
 	/**
 	 * Get all contact books on the device.

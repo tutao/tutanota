@@ -12,5 +12,4 @@ public struct StructuredContact : Codable {
 	let phoneNumbers: [StructuredPhoneNumber]
 	let addresses: [StructuredAddress]
 	let rawId: String?
-	let deleted: Bool
 }

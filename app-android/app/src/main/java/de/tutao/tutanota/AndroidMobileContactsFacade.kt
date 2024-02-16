@@ -56,8 +56,7 @@ class AndroidMobileContactsFacade(private val activity: MainActivity) : MobileCo
 	retrieveRawContacts(username, contactId).use { cursor ->
 	  cursor?.forEachRow {
 		val rawContactId = cursor.getLong(0)
-		val sourceId = cursor.getString(1)
-		deleteRawContact(AndroidContact(rawContactId, sourceId))
+		deleteRawContact(rawContactId)
 	  }
 	}
 
@@ -134,16 +133,26 @@ class AndroidMobileContactsFacade(private val activity: MainActivity) : MobileCo
 
   override suspend fun saveContacts(username: String, contacts: List<StructuredContact>) {
 	checkContactPermissions()
-	readAndStoreContacts(username, contacts, isSync = false)
+	val matchResult = matchStoredContacts(username, contacts)
+	for (contact in matchResult.newServerContacts) {
+	  createContact(username, contact)
+	}
+	for ((androidContact, serverContact) in matchResult.existingServerContacts) {
+	  updateContact(androidContact, serverContact)
+	}
+	for (androidContact in matchResult.nativeContactWithoutSourceId) {
+	  updateSourceId(androidContact.rawId, androidContact.sourceId!!)
+	  resetDirtyState(androidContact)
+	}
   }
 
-  private fun resetDirtyState(storedContact: AndroidContact, ops: ArrayList<ContentProviderOperation>) {
+  private fun resetDirtyState(storedContact: AndroidContact) {
 	if (storedContact.isDirty) {
 	  val updateDirtyStateOp = ContentProviderOperation.newUpdate(RAW_CONTACT_URI)
 			  .withSelection("${RawContacts._ID} = ?", arrayOf(storedContact.rawId.toString()))
 			  .withValue(RawContacts.DIRTY, 0)
 			  .build()
-	  ops += updateDirtyStateOp
+	  resolver.applyBatch(ContactsContract.AUTHORITY, arrayListOf(updateDirtyStateOp))
 	} else {
 	  Log.d(TAG, "Contact isn't dirty, continuing...")
 	}
@@ -157,89 +166,80 @@ class AndroidMobileContactsFacade(private val activity: MainActivity) : MobileCo
 	resolver.applyBatch(ContactsContract.AUTHORITY, arrayListOf(updateSourceIdOp))
   }
 
-  private fun readAndStoreContacts(username: String, contacts: List<StructuredContact>, isSync: Boolean): SaveContactsResult {
-	/** map from sourceId to id */
-	val alreadyStoredContacts = mutableMapOf<String, AndroidContact>()
+  private data class MatchContactResult(
+		  /** do not exist on the device yet but exists on the server */
+		  val newServerContacts: MutableList<StructuredContact> = mutableListOf(),
+		  /** exist on the device and the server and are not marked as dirty */
+		  val existingServerContacts: MutableList<Pair<AndroidContact, StructuredContact>> = mutableListOf(),
+		  /** contacts that exist on the device and on the server but we did not map them via sourceId yet */
+		  val nativeContactWithoutSourceId: MutableList<AndroidContact> = mutableListOf(),
+		  /** exists on native (and is not marked deleted or dirty) but doesn't exist on the server anymore */
+		  val deletedOnServer: MutableList<StructuredContact> = mutableListOf(),
+		  /** exist in both but are marked as dirty */
+		  val editedOnDevice: MutableList<StructuredContact> = mutableListOf(),
+		  /** exists on the device but not on the server (and marked as dirty) */
+		  val createdOnDevice: MutableList<StructuredContact> = mutableListOf(),
+		  /** exists on the server but marked as deleted (and dirty) on the device */
+		  val deletedOnDevice: MutableList<StructuredContact> = mutableListOf(),
+  )
 
+  private fun matchStoredContacts(username: String, serverContacts: List<StructuredContact>): MatchContactResult {
+	// Map from server contact id to the contact.
+	// We remove from it as we match to find only those that are new
+	val serverContactsById = serverContacts.groupBy { it.id }.mapValuesTo(mutableMapOf()) { it.value[0] }
+	val result = MatchContactResult()
 	retrieveRawContacts(username).use { cursor ->
 	  cursor!!.forEachRow {
 		val rawContactId = cursor.getLong(0)
 		val sourceId = cursor.getString(1)
 
 		if (sourceId == null) {
-		  Log.d(TAG, "Missing sourceId, try to get from contact list")
-		  val contact = contacts.find { contact -> contact.rawId == rawContactId.toString() }
+		  val serverContactWithMatchingRawId = serverContacts.find { contact -> contact.rawId == rawContactId.toString() }
 
-		  if (contact?.id != null) {
+		  if (serverContactWithMatchingRawId?.id != null) {
+			serverContactsById.remove(serverContactWithMatchingRawId.id)
 			// This will be called when we process the entity event
 			// after creating the contact
-			updateSourceId(rawContactId, contact.id)
-			Log.d(TAG, "Updated sourceId ${contact.id}")
+			result.nativeContactWithoutSourceId.add(readContact(rawContactId, serverContactWithMatchingRawId.id))
+		  } else {
+			val newContact = readContact(rawContactId, null).toStructured()
+			result.createdOnDevice.add(newContact)
 		  }
+		} else if (serverContactsById.containsKey(sourceId)) {
+		  val serverContact = serverContactsById.remove(sourceId)!!
+		  val matchedContact = readContact(rawContactId, sourceId)
+		  if (matchedContact.isDirty && matchedContact.isDeleted) {
+			result.deletedOnDevice.add(matchedContact.toStructured())
+		  } else if (matchedContact.isDirty) {
+			result.editedOnDevice.add(matchedContact.toStructured())
+		  } else {
+			result.existingServerContacts.add(matchedContact to serverContact)
+		  }
+		} else {
+		  val unmatchedContact = readContact(rawContactId, sourceId)
+		  result.deletedOnServer.add(unmatchedContact.toStructured())
 		}
-
-		val storedContact = readContact(rawContactId, sourceId)
-		// If present, we use the sourceId, otherwise we use the rawId.
-		// We need this because if there's no sourceId, we need to return this contact
-		// as a new Dirty one, so app can create it and later add a sourceId to it
-		val storedIdToUse = storedContact.sourceId ?: storedContact.rawId.toString()
-		alreadyStoredContacts[storedIdToUse] = storedContact
 	  }
 	}
 
-	Log.d(TAG, "already stored contacts: ${alreadyStoredContacts.size}")
-
-	for (contact in contacts) {
-	  if (alreadyStoredContacts.contains(contact.id)) {
-		Log.d(TAG, "Already has contact ${contact.id}")
-		continue
-	  }
-	  Log.d(TAG, "Inserting contact ${contact.id}")
-
-	  createContact(username, contact)
-	}
-
-	val serverContactsById = contacts.groupBy { it.id }.mapValues { it.value[0] }
-	val dirtyContacts = mutableListOf<StructuredContact>()
-	for ((storedContactId, storedContact) in alreadyStoredContacts) {
-	  val serverContact = serverContactsById[storedContactId]
-	  // We want to reset the dirty state if the user is performing
-	  // an update but not during sync as we want to replace the
-	  // server data with the native one.
-	  val keepDirtyForSync = storedContact.isDirty && isSync
-
-	  if (serverContact != null && !keepDirtyForSync && !storedContact.isDeleted) {
-		updateContact(storedContact, serverContact)
-	  } else if (keepDirtyForSync || storedContact.isDeleted) {
-		dirtyContacts.add(storedContact.toStructured())
-	  }
-	}
-
-	Log.d(TAG, "Dirty contacts ${dirtyContacts.size}")
-	return SaveContactsResult(
-			alreadyStoredContacts,
-			dirtyContacts
-	)
+	result.newServerContacts.addAll(serverContactsById.values)
+	return result
   }
 
-  override suspend fun syncContacts(username: String, contacts: List<StructuredContact>): List<StructuredContact> {
+  override suspend fun syncContacts(username: String, contacts: List<StructuredContact>): ContactSyncResult {
 	checkContactPermissions()
 
-	/** map from sourceId to id */
-	val alreadyStoredContacts = readAndStoreContacts(username, contacts, isSync = true)
-
-	val serverContactsById = contacts.groupBy { it.id }.mapValues { it.value[0] }
-	for ((storedContactId, storedContact) in alreadyStoredContacts.cleanContacts) {
-	  val serverContact = serverContactsById[storedContactId]
-	  if (serverContact == null) {
-		deleteRawContact(storedContact)
-		Log.d(TAG, "Deleted contact with raw id ${storedContact.rawId}")
-	  }
+	val matchResult = matchStoredContacts(username, contacts)
+	for (contact in matchResult.newServerContacts) {
+	  createContact(username, contact)
 	}
-
-	Log.d(TAG, "Contact synchronization ended")
-
-	return alreadyStoredContacts.dirtyContacts
+	for (contact in matchResult.deletedOnServer) {
+	  deleteRawContact(contact.rawId!!.toLong())
+	}
+	for ((androidContact, serverContact) in matchResult.existingServerContacts) {
+	  updateContact(androidContact, serverContact)
+	}
+	return ContactSyncResult(matchResult.createdOnDevice, matchResult.editedOnDevice, matchResult.deletedOnDevice)
   }
 
   private suspend fun checkContactPermissions() {
@@ -247,8 +247,8 @@ class AndroidMobileContactsFacade(private val activity: MainActivity) : MobileCo
 	activity.getPermission(Manifest.permission.WRITE_CONTACTS)
   }
 
-  private fun deleteRawContact(storedContact: AndroidContact): Int {
-	val uri = ContentUris.withAppendedId(RawContacts.CONTENT_URI, storedContact.rawId).buildUpon()
+  private fun deleteRawContact(rawId: Long): Int {
+	val uri = ContentUris.withAppendedId(RawContacts.CONTENT_URI, rawId).buildUpon()
 			.appendQueryParameter(ContactsContract.CALLER_IS_SYNCADAPTER, "true").build()
 	return resolver.delete(uri, null, null)
   }
@@ -599,7 +599,7 @@ class AndroidMobileContactsFacade(private val activity: MainActivity) : MobileCo
 		  serverContact: StructuredContact
   ) {
 	val ops = arrayListOf<ContentProviderOperation>()
-	resetDirtyState(storedContact, ops)
+	resetDirtyState(storedContact)
 	checkContactDetails(storedContact, serverContact, ops)
 	checkContactAddresses(storedContact, serverContact, ops)
 	checkContactMailAddresses(storedContact, serverContact, ops)
@@ -873,8 +873,6 @@ class AndroidMobileContactsFacade(private val activity: MainActivity) : MobileCo
 	private val RAW_CONTACT_URI = RawContacts.CONTENT_URI.buildUpon().appendQueryParameter(ContactsContract.CALLER_IS_SYNCADAPTER, "true").build()
 	private val CONTACT_DATA_URI = ContactsContract.Data.CONTENT_URI.buildUpon().appendQueryParameter(ContactsContract.CALLER_IS_SYNCADAPTER, "true").build()
   }
-
-  private data class SaveContactsResult(val cleanContacts: Map<String, AndroidContact>, val dirtyContacts: List<StructuredContact>)
 }
 
 

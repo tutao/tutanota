@@ -53,7 +53,6 @@ data class AndroidContact(
 			phoneNumbers = phoneNumbers.map { it.toStructured() },
 			addresses = addresses.map { it.toStructured() },
 			rawId = rawId.toString(),
-			deleted = isDeleted
 	)
   }
 }
