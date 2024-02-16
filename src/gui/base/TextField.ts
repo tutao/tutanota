@@ -45,6 +45,7 @@ export const enum TextFieldType {
 	Area = "area",
 	Number = "number",
 	Time = "time",
+	Url = "url",
 }
 
 // relevant subset of possible values for the autocomplete html field
@@ -64,7 +65,7 @@ export const enum Autocomplete {
 export const inputLineHeight: number = size.font_size_base + 8
 const inputMarginTop = size.font_size_small + size.hpad_small + 3
 
-// this is not always correct because font size can be biggger/smaller and we ideally should take that into account
+// this is not always correct because font size can be bigger/smaller, and we ideally should take that into account
 const baseLabelPosition = 21
 // it should fit
 // compact button + 1 px border + 1 px padding to keep things centered = 32

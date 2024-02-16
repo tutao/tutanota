@@ -4,7 +4,7 @@ import { AccessBlockedError, AccessDeactivatedError, InvalidDataError, NotAuthen
 import { showProgressDialog } from "../../gui/dialogs/ProgressDialog"
 import { isMailAddress } from "../../misc/FormatValidator"
 import { InfoLink, lang } from "../../misc/LanguageViewModel"
-import { Autocomplete, TextField } from "../../gui/base/TextField.js"
+import { Autocomplete, TextField, TextFieldType } from "../../gui/base/TextField.js"
 import { Dialog, DialogType } from "../../gui/base/Dialog"
 import { HtmlEditor, HtmlEditorMode } from "../../gui/editor/HtmlEditor"
 import { locator } from "../../api/main/MainLocator"
@@ -32,6 +32,7 @@ export function showTakeOverDialog(mailAddress: string, password: string): Dialo
 						label: "targetAddress_label",
 						value: targetAccountAddress(),
 						autocompleteAs: Autocomplete.email,
+						type: TextFieldType.Email,
 						oninput: targetAccountAddress,
 					}),
 					m(editor),

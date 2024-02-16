@@ -266,7 +266,7 @@ export class ContactEditor {
 		const typeLabels: Array<[ContactAddressType, TranslationKey]> = typedEntries(ContactMailAddressTypeToLabel)
 		return m(ContactAggregateEditor, {
 			value: mailAddress.address,
-			fieldType: TextFieldType.Text,
+			fieldType: TextFieldType.Email,
 			label: getContactAddressTypeLabel(downcast(mailAddress.type), mailAddress.customTypeName),
 			helpLabel,
 			cancelAction: () => {
