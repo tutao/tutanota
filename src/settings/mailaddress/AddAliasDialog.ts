@@ -1,6 +1,6 @@
 import { lang, TranslationKey } from "../../misc/LanguageViewModel.js"
 import { Dialog } from "../../gui/base/Dialog.js"
-import { PlanType, TUTANOTA_MAIL_ADDRESS_DOMAINS } from "../../api/common/TutanotaConstants.js"
+import { NewPaidPlans, TUTANOTA_MAIL_ADDRESS_DOMAINS } from "../../api/common/TutanotaConstants.js"
 import m from "mithril"
 import { SelectMailAddressForm } from "../SelectMailAddressForm.js"
 import { ExpanderPanel } from "../../gui/base/Expander.js"
@@ -59,13 +59,7 @@ export function showAddAliasDialog(model: MailAddressTableModel, isNewPaidPlan: 
 									Dialog.confirm(() => `${lang.get("paidEmailDomainLegacy_msg")}\n${lang.get("changePaidPlan_msg")}`).then(
 										async (confirmed) => {
 											if (confirmed) {
-												isNewPaidPlan = await showPlanUpgradeRequiredDialog([
-													PlanType.Revolutionary,
-													PlanType.Legend,
-													PlanType.Essential,
-													PlanType.Advanced,
-													PlanType.Unlimited,
-												])
+												isNewPaidPlan = await showPlanUpgradeRequiredDialog(NewPaidPlans)
 											}
 										},
 									)
