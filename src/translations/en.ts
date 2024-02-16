@@ -1665,6 +1665,7 @@ export default {
 		"yourFolders_action": "YOUR FOLDERS",
 		"yourMessage_label": "Your message",
 		"you_label": "You",
+		"mailAddressInfoLegacy_msg": "Disabled email addresses can be reassigned to another user or mailbox within your account.",
 		"vcardInSharingFiles_msg": "We detected one or more contact files, do you want to import or attach them?",
 		"importFromContactBook_label": "Import contacts from your device",
 		"importContacts_label": "Import contacts",
