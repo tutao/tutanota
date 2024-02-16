@@ -14,4 +14,5 @@ export interface StructuredContact {
 	readonly phoneNumbers: ReadonlyArray<StructuredPhoneNumber>
 	readonly addresses: ReadonlyArray<StructuredAddress>
 	readonly rawId: string | null
+	readonly deleted: boolean
 }

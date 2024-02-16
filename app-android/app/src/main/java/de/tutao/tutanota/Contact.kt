@@ -88,7 +88,7 @@ class Contact(private val activity: MainActivity) {
 	resolver.applyBatch(ContactsContract.AUTHORITY, arrayListOf(updateSourceIdOp))
   }
 
-  suspend fun saveContacts(username: String, contacts: List<StructuredContact>): SaveContactsResult {
+  suspend fun saveContacts(username: String, contacts: List<StructuredContact>, isSync: Boolean = false): SaveContactsResult {
 	checkContactPermissions()
 
 	/** map from sourceId to id */
@@ -135,12 +135,17 @@ class Contact(private val activity: MainActivity) {
 
 	val serverContactsById = contacts.groupBy { it.id }.mapValues { it.value[0] }
 	val dirtyContacts = mutableListOf<StructuredContact>()
-
 	for ((storedContactId, storedContact) in alreadyStoredContacts) {
 	  val serverContact = serverContactsById[storedContactId]
-	  if (serverContact != null && !storedContact.isDirty) {
+
+	  // We want to reset the dirty state if the user is performing
+	  // an update but not during sync as we want to replace the
+	  // server data with the native one.
+	  val resetDirtyState = (!storedContact.isDirty || !isSync)
+
+	  if (serverContact != null && resetDirtyState && !storedContact.isDeleted) {
 		updateContact(storedContact, serverContact)
-	  } else if (storedContact.isDirty) {
+	  } else if (!resetDirtyState || storedContact.isDeleted) {
 		dirtyContacts.add(storedContact.toStructuredContact())
 	  }
 	}
@@ -157,7 +162,7 @@ class Contact(private val activity: MainActivity) {
 	checkContactPermissions()
 
 	/** map from sourceId to id */
-	val alreadyStoredContacts = saveContacts(username, contacts)
+	val alreadyStoredContacts = saveContacts(username, contacts, true)
 	val serverContactsById = contacts.groupBy { it.id }.mapValues { it.value[0] }
 
 	for ((storedContactId, storedContact) in alreadyStoredContacts.cleanContacts) {
@@ -230,18 +235,6 @@ class Contact(private val activity: MainActivity) {
 	return uri.buildUpon().appendQueryParameter(ContactsContract.CALLER_IS_SYNCADAPTER, "true").build()
   }
 
-  private fun checkDeletedContact(storedContact: StoredContact, ops: ArrayList<ContentProviderOperation>) {
-	if (storedContact.isDeleted) {
-	  val updateDeletedStatusOp = ContentProviderOperation.newUpdate(RawContacts.CONTENT_URI)
-			  .withSelection("${RawContacts._ID} = ?", arrayOf(storedContact.rawId.toString()))
-			  .withValue(RawContacts.DELETED, 0)
-			  .build()
-	  ops += updateDeletedStatusOp
-	} else {
-	  Log.d(TAG, "Contact isn't deleted, continuing...")
-	}
-  }
-
   private fun resetDirtyState(storedContact: StoredContact, ops: ArrayList<ContentProviderOperation>) {
 	if (storedContact.isDirty) {
 	  val updateDirtyStateOp = ContentProviderOperation.newUpdate(RawContacts.CONTENT_URI)
@@ -250,7 +243,7 @@ class Contact(private val activity: MainActivity) {
 			  .build()
 	  ops += updateDirtyStateOp
 	} else {
-	  Log.d(TAG, "Contact isn't deleted, continuing...")
+	  Log.d(TAG, "Contact isn't dirty, continuing...")
 	}
   }
 
@@ -518,7 +511,6 @@ class Contact(private val activity: MainActivity) {
 		  serverContact: StructuredContact
   ) {
 	val ops = arrayListOf<ContentProviderOperation>()
-	checkDeletedContact(storedContact, ops)
 	resetDirtyState(storedContact, ops)
 	checkContactDetails(storedContact, serverContact, ops)
 	checkContactAddresses(storedContact, serverContact, ops)
@@ -823,7 +815,8 @@ fun StoredContact.toStructuredContact(): StructuredContact {
 		  emailAddresses.map { mail -> StructuredMailAddress(mail.address, mail.toServerType(), mail.customTypeName) },
 		  phoneNumbers.map { phone -> StructuredPhoneNumber(phone.number, phone.toServerType(), phone.customTypeName) },
 		  addresses.map { address -> StructuredAddress(address.address, address.toServerType(), address.customTypeName) },
-		  rawId.toString()
+		  rawId.toString(),
+		  isDeleted
   )
 }
 
