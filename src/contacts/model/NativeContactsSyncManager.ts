@@ -8,7 +8,7 @@ import {
 	createContactPhoneNumber,
 } from "../../api/entities/tutanota/TypeRefs.js"
 import { GroupType, OperationType } from "../../api/common/TutanotaConstants.js"
-import { getFirstOrThrow, getFromMap, ofClass } from "@tutao/tutanota-utils"
+import { defer, getFirstOrThrow, getFromMap, ofClass } from "@tutao/tutanota-utils"
 import { StructuredContact } from "../../native/common/generatedipc/StructuredContact.js"
 import { elementIdPart, getElementId, StrippedEntity } from "../../api/common/utils/EntityUtils.js"
 import { extractStructuredAddresses, extractStructuredMailAddresses, extractStructuredPhoneNumbers } from "./ContactUtils.js"
@@ -19,16 +19,10 @@ import { ContactModel } from "./ContactModel.js"
 import { DeviceConfig } from "../../misc/DeviceConfig.js"
 import { PermissionError } from "../../api/common/error/PermissionError.js"
 import { MobileContactsFacade } from "../../native/common/generatedipc/MobileContactsFacade.js"
-
-interface LocalAndServerIdMapping {
-	localId: string
-	serverId: string
-}
+import { ContactSyncResult } from "../../native/common/generatedipc/ContactSyncResult.js"
 
 export class NativeContactsSyncManager {
-	private isLocked: boolean = false
-	private eventsToApply: EntityUpdateData[] = []
-	private idMapping: LocalAndServerIdMapping[] = []
+	private entityUpdateLock: Promise<void> = Promise.resolve()
 
 	constructor(
 		private readonly loginController: LoginController,
@@ -42,9 +36,7 @@ export class NativeContactsSyncManager {
 	}
 
 	private async nativeContactEntityEventsListener(events: ReadonlyArray<EntityUpdateData>) {
-		if (this.isLocked) {
-			return this.eventsToApply.push(...events)
-		}
+		await this.entityUpdateLock
 
 		await this.processContactEventUpdate(events)
 	}
@@ -77,7 +69,6 @@ export class NativeContactsSyncManager {
 		for (const [listId, elementIds] of contactsIdToCreateOrUpdate.entries()) {
 			const contactList = await this.entityClient.loadMultiple(ContactTypeRef, listId, elementIds)
 			contactList.map((contact) => {
-				const idMap = this.idMapping.find((map) => map.serverId === getElementId(contact))
 				contactsToInsertOrUpdate.push({
 					id: getElementId(contact),
 					firstName: contact.firstName,
@@ -88,8 +79,7 @@ export class NativeContactsSyncManager {
 					mailAddresses: extractStructuredMailAddresses(contact.mailAddresses),
 					phoneNumbers: extractStructuredPhoneNumbers(contact.phoneNumbers),
 					addresses: extractStructuredAddresses(contact.addresses),
-					rawId: idMap ? idMap.localId : null,
-					deleted: false,
+					rawId: null,
 				})
 			})
 		}
@@ -127,12 +117,8 @@ export class NativeContactsSyncManager {
 		})
 
 		try {
-			const dirtyContacts = await this.mobilContactsFacade.syncContacts(loginUsername, structuredContacts)
-
-			if (dirtyContacts.length > 0) {
-				const tutaContacts = contacts.filter((contact) => dirtyContacts.some((dirty) => elementIdPart(contact._id) === dirty.id))
-				await this.intersectAndUpdateOrCreate(tutaContacts, dirtyContacts, contactListId)
-			}
+			const syncResult = await this.mobilContactsFacade.syncContacts(loginUsername, structuredContacts)
+			await this.applyDeviceChangesToServerContacts(contacts, syncResult, contactListId)
 		} catch (e) {
 			if (e instanceof PermissionError) {
 				this.handleNoPermissionError(userId, e)
@@ -157,37 +143,47 @@ export class NativeContactsSyncManager {
 		this.deviceConfig.setUserSyncContactsWithPhonePreference(userId, false)
 	}
 
-	private async intersectAndUpdateOrCreate(contacts: ReadonlyArray<Contact>, dirtyContacts: ReadonlyArray<StructuredContact>, listId: string) {
+	private async applyDeviceChangesToServerContacts(contacts: ReadonlyArray<Contact>, syncResult: ContactSyncResult, listId: string) {
 		// Update lock state so the entity listener doesn't process any
 		// new event. They'll be handled by the end of this function
-		this.isLocked = true
+		const entityUpdateDefer = defer<void>()
+		this.entityUpdateLock = entityUpdateDefer.promise
 
 		// We need to wait until the user is fully logged in to handle encrypted entities
 		await this.loginController.waitForFullLogin()
-		for (const contact of dirtyContacts) {
+		for (const contact of syncResult.createdOnDevice) {
+			const newContact = createContact(this.createContactFromNative(contact))
+			const entityId = await this.entityClient.setup(listId, newContact)
+			const loginUsername = this.loginController.getUserController().loginUsername
+			// save the contact right away so that we don't lose the server id to native contact mapping if we don't process entity update quickly enough
+			await this.mobilContactsFacade.saveContacts(loginUsername, [
+				{
+					...contact,
+					id: entityId,
+				},
+			])
+		}
+		for (const contact of syncResult.editedOnDevice) {
 			const cleanContact = contacts.find((c) => elementIdPart(c._id) === contact.id)
-			if (cleanContact) {
-				if (contact.deleted) {
-					await this.entityClient.erase(cleanContact)
-				} else {
-					const updatedContact = this.mergeNativeContactWithTutaContact(contact, cleanContact)
-					await this.entityClient.update(updatedContact)
-				}
+			if (cleanContact == null) {
+				console.warn("Could not find a server contact for the contact edited on device: ", contact.id)
 			} else {
-				const newContact = createContact(this.createContactFromNative(contact))
-				const entityId = await this.entityClient.setup(listId, newContact)
-
-				this.idMapping.push({
-					serverId: entityId,
-					localId: contact.rawId ?? "", //Maybe throw an error, here the contact MUST have a rawId
-				})
+				const updatedContact = this.mergeNativeContactWithTutaContact(contact, cleanContact)
+				await this.entityClient.update(updatedContact)
+			}
+		}
+		for (const contact of syncResult.deletedOnDevice) {
+			const cleanContact = contacts.find((c) => elementIdPart(c._id) === contact.id)
+			if (cleanContact == null) {
+				console.warn("Could not find a server contact for the contact deleted on device: ", contact.id)
+			} else {
+				await this.entityClient.erase(cleanContact)
 			}
 		}
 
 		// Release the lock state and process the entities. We don't
 		// have anything more to include inside events to apply
-		this.isLocked = false
-		await this.processContactEventUpdate(this.eventsToApply)
+		entityUpdateDefer.resolve()
 	}
 
 	private createContactFromNative(contact: StructuredContact): StrippedEntity<Contact> {
