@@ -108,7 +108,11 @@ export class SignupForm implements Component<SignupFormAttrs> {
 			selectedDomain: this.selectedDomain,
 			onDomainChanged: (domain) => {
 				if (!domain.isPaid || a.isPaidSubscription()) {
-					this.selectedDomain = domain
+					if (domain.domain == "your-domain.com") {
+						Dialog.message(() => `${lang.get("configureCustomDomainAfterSignup_msg") + faqCustomDomainLink}`) // fixme: faq link is not clickable!
+					} else {
+						this.selectedDomain = domain
+					}
 				} else {
 					Dialog.confirm(() => `${lang.get("paidEmailDomainSignup_msg")}\n${lang.get("changePaidPlan_msg")}`).then((confirmed) => {
 						if (confirmed) {
