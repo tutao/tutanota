@@ -16,7 +16,7 @@ export class CompletenessIndicator implements Component<CompletenessIndicatorAtt
 			"",
 			{
 				style: {
-					border: `1px solid ${theme.content_button}`,
+					border: attrs.passwordColorScale ? "" : `1px solid ${theme.content_button}`,
 					width: attrs.width ?? "100px",
 					height: "8px",
 				},
@@ -26,19 +26,20 @@ export class CompletenessIndicator implements Component<CompletenessIndicatorAtt
 					? {
 							"background-color":
 								attrs.percentageCompleted < mediumStrengthPercentage
-									? "red"
+									? "hsl(0deg 50% 50%)"
 									: attrs.percentageCompleted < goodStrengthPercentage
-									? "yellow"
-									: "green",
+									? "hsl(60deg 50% 50%)"
+									: "hsl(120deg 50% 50%)",
 							"background-image":
 								attrs.percentageCompleted < mediumStrengthPercentage
-									? "linear-gradient(90deg, rgba(255,0,0,1) 0%, rgba(255,0,0,1) 100%)"
+									? "linear-gradient(90deg, hsl(0deg 50% 50%) 0%, hsl(0deg 50% 50%) 100%)"
 									: attrs.percentageCompleted < goodStrengthPercentage
-									? "linear-gradient(90deg, rgba(255,0,0,1) 0%, rgba(255,255,0,1) 100%)"
-									: "linear-gradient(90deg, rgba(255,0,0,1) 0%, rgba(255,245,0,1) 75%, rgba(0,255,0,1) 100%)",
+									? "linear-gradient(90deg, hsl(0deg 50% 50%) 0%, hsl(60deg 50% 50%) 100%)"
+									: "linear-gradient(90deg, hsl(0deg 50% 50%) 0%, hsl(60deg 50% 50%) 75%, hsl(120deg 50% 50%) 100%)",
 							transition: `width ${DefaultAnimationTime * 3}ms ease 0s`,
 							width: attrs.percentageCompleted + "%",
 							height: "100%",
+							"border-radius": "8px",
 					  }
 					: {
 							"background-color": theme.content_button,

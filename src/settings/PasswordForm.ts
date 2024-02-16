@@ -17,6 +17,8 @@ import { UsageTest, UsageTestController } from "@tutao/tutanota-usagetests"
 import Stream from "mithril/stream"
 import { ButtonSize } from "../gui/base/ButtonSize.js"
 import { ToggleButton } from "../gui/base/buttons/ToggleButton.js"
+import { IconButton } from "../gui/base/IconButton.js"
+import { ButtonColor } from "../gui/base/Button.js"
 
 assertMainOrNode()
 
@@ -307,7 +309,6 @@ export class PasswordForm implements Component<PasswordFormAttrs> {
 											percentageCompleted: scaleToVisualPasswordStrength(attrs.model.getPasswordStrength()),
 										}),
 									),
-									m(StatusField, { status: attrs.model.getNewPasswordStatus(), style: { "min-width": "max-content" } }),
 								]),
 							],
 						),
@@ -315,7 +316,18 @@ export class PasswordForm implements Component<PasswordFormAttrs> {
 					autocompleteAs: Autocomplete.newPassword,
 					fontSize: px(size.font_size_smaller),
 					type: attrs.model.isPasswordRevealed(PasswordFieldType.New) ? BorderTextFieldType.Text : BorderTextFieldType.Password,
-					injectionsRight: () => this.renderRevealIcon(attrs, PasswordFieldType.New),
+					injectionsRight: () => [
+						m(IconButton, {
+							icon: Icons.More,
+							title: "generatePassphrase_action",
+							click: async () => {
+								attrs.model.setNewPassword(await showPasswordGeneratorDialog())
+								m.redraw()
+							},
+							size: ButtonSize.Compact,
+						}),
+						this.renderRevealIcon(attrs, PasswordFieldType.New),
+					],
 					labelBgColorOverwrite: attrs.labelBgColorOverwrite,
 				}),
 				attrs.model.config.hideConfirmation
@@ -324,19 +336,19 @@ export class PasswordForm implements Component<PasswordFormAttrs> {
 							label: "repeatedPassword_label",
 							value: attrs.model.getRepeatedPassword(),
 							autocompleteAs: Autocomplete.newPassword,
-							helpLabel: () =>
-								m(StatusField, {
-									status: attrs.model.getRepeatedPasswordStatus(),
-									style: {
-										margin: `${size.md_default_margin / 4}px ${size.md_default_margin}px ${size.md_default_margin / 2}px ${
-											size.md_default_margin
-										}px`,
-									},
-								}),
 							oninput: (input) => attrs.model.setRepeatedPassword(input),
 							fontSize: px(size.font_size_smaller),
 							type: attrs.model.isPasswordRevealed(PasswordFieldType.Confirm) ? BorderTextFieldType.Text : BorderTextFieldType.Password,
-							injectionsRight: () => this.renderRevealIcon(attrs, PasswordFieldType.Confirm),
+							injectionsRight: () => [
+								m(IconButton, {
+									icon: attrs.model.getRepeatedPasswordStatus().type == "valid" ? Icons.Checkmark : Icons.CircleReject,
+									title: attrs.model.getRepeatedPasswordStatus().text,
+									click: () => {},
+									colors: attrs.model.getRepeatedPasswordStatus().type == "valid" ? ButtonColor.Success : ButtonColor.Error,
+									size: ButtonSize.Compact,
+								}),
+								this.renderRevealIcon(attrs, PasswordFieldType.Confirm),
+							],
 							labelBgColorOverwrite: attrs.labelBgColorOverwrite,
 					  }),
 			],
