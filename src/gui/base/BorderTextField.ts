@@ -170,7 +170,7 @@ export class BorderTextField implements ClassComponent<BorderTextFieldAttrs> {
 															minHeight: px(size.md_default_line_height),
 															lineHeight: px(size.md_default_line_height),
 															// 13px because 56 (md field height) - 30 (svg size) = 26 -> 26/2 = 13
-															margin: `13px ${size.md_default_margin}px`,
+															margin: `13px ${size.md_default_margin - 6}px 13px ${size.md_default_margin}px`,
 														},
 													},
 													a.injectionsRight(),
@@ -184,10 +184,13 @@ export class BorderTextField implements ClassComponent<BorderTextFieldAttrs> {
 				),
 				a.helpLabel
 					? m(
-							"small.noselect",
+							"div.noselect",
 							{
 								onclick: (e: MouseEvent) => {
 									e.stopPropagation()
+								},
+								style: {
+									padding: `${size.md_default_margin / 4}px ${size.md_default_margin}px 0px`,
 								},
 							},
 							a.helpLabel(),

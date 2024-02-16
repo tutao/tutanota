@@ -289,29 +289,13 @@ export class PasswordForm implements Component<PasswordFormAttrs> {
 					label: "newPassword_label",
 					value: attrs.model.getNewPassword(),
 					helpLabel: () =>
-						m(
-							".flex.col.mt-xs",
-							{
-								style: {
-									margin: `${size.md_default_margin / 4}px ${size.md_default_margin}px ${size.md_default_margin / 2}px ${
-										size.md_default_margin
-									}px`,
-								},
-							},
-							[
-								m(".flex.items-center", [
-									m(
-										".mr-s",
-										{ style: { width: "100%" } },
-										m(CompletenessIndicator, {
-											width: "100%",
-											passwordColorScale: true,
-											percentageCompleted: scaleToVisualPasswordStrength(attrs.model.getPasswordStrength()),
-										}),
-									),
-								]),
-							],
-						),
+						m(".flex.col.mt-xs", [
+							m(CompletenessIndicator, {
+								width: "100%",
+								passwordColorScale: true,
+								percentageCompleted: scaleToVisualPasswordStrength(attrs.model.getPasswordStrength()),
+							}),
+						]),
 					oninput: (input) => attrs.model.setNewPassword(input),
 					autocompleteAs: Autocomplete.newPassword,
 					fontSize: px(size.font_size_smaller),
