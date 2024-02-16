@@ -105,7 +105,7 @@ export class BorderTextField implements ClassComponent<BorderTextFieldAttrs> {
 							maxWidth: px(maxWidth),
 					  }
 					: {
-							"margin-bottom": "16px",
+							"margin-bottom": vnode.attrs.helpLabel ? "" : "21px",
 					  },
 			},
 			[

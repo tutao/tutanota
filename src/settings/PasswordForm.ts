@@ -309,7 +309,6 @@ export class PasswordForm implements Component<PasswordFormAttrs> {
 									),
 									m(StatusField, { status: attrs.model.getNewPasswordStatus(), style: { "min-width": "max-content" } }),
 								]),
-								this.renderPasswordGeneratorHelp(attrs),
 							],
 						),
 					oninput: (input) => attrs.model.setNewPassword(input),
@@ -342,22 +341,6 @@ export class PasswordForm implements Component<PasswordFormAttrs> {
 					  }),
 			],
 		)
-	}
-
-	private renderPasswordGeneratorHelp(attrs: PasswordFormAttrs): Children {
-		return m("", [
-			m(
-				".b.mr-xs.hover.click.darkest-hover.mt-xs",
-				{
-					style: { display: "inline-block", color: theme.navigation_button_selected },
-					onclick: async () => {
-						attrs.model.setNewPassword(await showPasswordGeneratorDialog())
-						m.redraw()
-					},
-				},
-				lang.get("generatePassphrase_action"),
-			),
-		])
 	}
 
 	private renderRevealIcon(attrs: PasswordFormAttrs, passwordType: PasswordFieldType): Children {
