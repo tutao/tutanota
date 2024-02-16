@@ -17,7 +17,6 @@ import { AddressInfo, AddressStatus, MailAddressTableModel } from "./MailAddress
 import { showAddAliasDialog } from "./AddAliasDialog.js"
 import { locator } from "../../api/main/MainLocator.js"
 import { UpgradeRequiredError } from "../../api/main/UpgradeRequiredError.js"
-import { PlanType } from "../../api/common/TutanotaConstants.js"
 
 assertMainOrNode()
 
@@ -78,7 +77,7 @@ export class MailAddressTable implements Component<MailAddressTableAttrs> {
 								"{totalAmount}": model.aliasCount.totalAliases,
 							}),
 						),
-						m(".small.mt-s", lang.get("mailAddressInfo_msg")),
+						m(".small.mt-s", lang.get(model.aliasLimitIncludesCustomDomains() ? "mailAddressInfoLegacy_msg" : "mailAddressInfo_msg")),
 				  ]
 				: null,
 		]

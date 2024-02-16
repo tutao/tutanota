@@ -1643,6 +1643,7 @@ export default {
 		"yourCalendars_label": "Deine Kalender",
 		"yourFolders_action": "DEINE ORDNER",
 		"yourMessage_label": "Deine Nachricht",
-		"you_label": "Du"
+		"you_label": "Du",
+		"mailAddressInfoLegacy_msg": "Deaktivierte E-Mail-Adressen können einer anderen Mailbox innerhalb deines Kontos zugewiesen werden."
 	}
 }

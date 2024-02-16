@@ -1639,6 +1639,7 @@ export default {
 		"yourCalendars_label": "Your calendars",
 		"yourFolders_action": "YOUR FOLDERS",
 		"yourMessage_label": "Your message",
-		"you_label": "You"
+		"you_label": "You",
+		"mailAddressInfoLegacy_msg": "Disabled email addresses can be reassigned to another user or mailbox within your account."
 	}
 }
