@@ -48,6 +48,7 @@ export type SignupFormAttrs = {
 export class SignupForm implements Component<SignupFormAttrs> {
 	private readonly passwordModel: PasswordModel
 	private readonly _confirmTerms: Stream<boolean>
+	private readonly _confirmPrivacy: Stream<boolean>
 	private readonly _confirmAge: Stream<boolean>
 	private readonly _code: Stream<string>
 	private selectedDomain: EmailDomainData
@@ -93,6 +94,7 @@ export class SignupForm implements Component<SignupFormAttrs> {
 		this.__signupPaidTest = locator.usageTestController.getTest("signup.paid")
 
 		this._confirmTerms = stream<boolean>(false)
+		this._confirmPrivacy = stream<boolean>(false)
 		this._confirmAge = stream<boolean>(false)
 		this._code = stream("")
 		this._isMailVerificationBusy = false
@@ -132,9 +134,14 @@ export class SignupForm implements Component<SignupFormAttrs> {
 			},
 		}
 		const confirmTermsCheckBoxAttrs: CheckboxAttrs = {
-			label: renderTermsLabel,
+			label: () => renderTermsAndConditionsButton(TermsSection.Terms, CURRENT_TERMS_VERSION),
 			checked: this._confirmTerms(),
 			onChecked: this._confirmTerms,
+		}
+		const confirmPrivacyPolicyCheckBoxAttrs: CheckboxAttrs = {
+			label: () => renderTermsAndConditionsButton(TermsSection.Privacy, CURRENT_PRIVACY_VERSION),
+			checked: this._confirmPrivacy(),
+			onChecked: this._confirmPrivacy,
 		}
 		const confirmAgeCheckBoxAttrs: CheckboxAttrs = {
 			label: () => lang.get("ageConfirmation_msg"),
@@ -153,7 +160,9 @@ export class SignupForm implements Component<SignupFormAttrs> {
 			}
 
 			const errorMessage =
-				this._mailAddressFormErrorId || this.passwordModel.getErrorMessageId() || (!this._confirmTerms() ? "termsAcceptedNeutral_msg" : null)
+				this._mailAddressFormErrorId ||
+				this.passwordModel.getErrorMessageId() ||
+				(!this._confirmTerms() || !this._confirmPrivacy() ? "termsAcceptedNeutral_msg" : null)
 
 			if (errorMessage) {
 				Dialog.message(errorMessage)
@@ -201,7 +210,9 @@ export class SignupForm implements Component<SignupFormAttrs> {
 										label: "whitelabelRegistrationCode_label",
 								  })
 								: null,
+							m("", [lang.get("termsAndConditions_label")]),
 							m(Checkbox, confirmTermsCheckBoxAttrs),
+							m(Checkbox, confirmPrivacyPolicyCheckBoxAttrs),
 							m(Checkbox, confirmAgeCheckBoxAttrs),
 					  ],
 				m(
@@ -235,14 +246,6 @@ export class SignupForm implements Component<SignupFormAttrs> {
 			await this.__signupPaidTest.getStage(3).complete()
 		}
 	}
-}
-
-function renderTermsLabel(): Children {
-	return [
-		lang.get("termsAndConditions_label"),
-		m("div", renderTermsAndConditionsButton(TermsSection.Terms, CURRENT_TERMS_VERSION)),
-		m("div", renderTermsAndConditionsButton(TermsSection.Privacy, CURRENT_PRIVACY_VERSION)),
-	]
 }
 
 /**
