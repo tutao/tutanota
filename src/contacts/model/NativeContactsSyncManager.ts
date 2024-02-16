@@ -89,6 +89,7 @@ export class NativeContactsSyncManager {
 					phoneNumbers: extractStructuredPhoneNumbers(contact.phoneNumbers),
 					addresses: extractStructuredAddresses(contact.addresses),
 					rawId: idMap ? idMap.localId : null,
+					deleted: false,
 				})
 			})
 		}
@@ -121,6 +122,7 @@ export class NativeContactsSyncManager {
 				birthday: contact.birthdayIso,
 				addresses: extractStructuredAddresses(contact.addresses),
 				rawId: null,
+				deleted: false,
 			}
 		})
 
@@ -160,12 +162,17 @@ export class NativeContactsSyncManager {
 		// new event. They'll be handled by the end of this function
 		this.isLocked = true
 
+		// We need to wait until the user is fully logged in to handle encrypted entities
+		await this.loginController.waitForFullLogin()
 		for (const contact of dirtyContacts) {
 			const cleanContact = contacts.find((c) => elementIdPart(c._id) === contact.id)
-
 			if (cleanContact) {
-				const updatedContact = this.mergeNativeContactWithTutaContact(contact, cleanContact)
-				await this.entityClient.update(updatedContact)
+				if (contact.deleted) {
+					await this.entityClient.erase(cleanContact)
+				} else {
+					const updatedContact = this.mergeNativeContactWithTutaContact(contact, cleanContact)
+					await this.entityClient.update(updatedContact)
+				}
 			} else {
 				const newContact = createContact(this.createContactFromNative(contact))
 				const entityId = await this.entityClient.setup(listId, newContact)

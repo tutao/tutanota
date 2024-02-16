@@ -11,6 +11,7 @@
 		"mailAddresses": "List<StructuredMailAddress>",
 		"phoneNumbers": "List<StructuredPhoneNumber>",
 		"addresses": "List<StructuredAddress>",
-		"rawId": "string?"
+		"rawId": "string?",
+		"deleted": "boolean"
 	}
 }
