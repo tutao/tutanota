@@ -20,7 +20,7 @@ export interface MobileContactsFacade {
 	/**
 	 * Sync all Tuta contacts with system's contact book, this operation includes Inserts, Updates and Deletions
 	 */
-	syncContacts(username: string, contacts: ReadonlyArray<StructuredContact>): Promise<void>
+	syncContacts(username: string, contacts: ReadonlyArray<StructuredContact>): Promise<ReadonlyArray<StructuredContact>>
 
 	/**
 	 * Get all contact books on the device.

@@ -33,7 +33,7 @@ class MobileContactsFacadeReceiveDispatcher(
 			"syncContacts" -> {
 				val username: String = json.decodeFromString(arg[0])
 				val contacts: List<StructuredContact> = json.decodeFromString(arg[1])
-				val result: Unit = this.facade.syncContacts(
+				val result: List<StructuredContact> = this.facade.syncContacts(
 					username,
 					contacts,
 				)

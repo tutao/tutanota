@@ -2,6 +2,7 @@ package de.tutao.tutanota.contacts
 
 import android.provider.ContactsContract
 import de.tutao.tutanota.ipc.StructuredAddress
+import de.tutao.tutanota.ipc.StructuredContact
 import de.tutao.tutanota.ipc.StructuredMailAddress
 import de.tutao.tutanota.ipc.StructuredPhoneNumber
 
@@ -28,7 +29,7 @@ data class AndroidPhoneNumber(
  */
 data class AndroidContact(
   val rawId: Long,
-  val sourceId: String,
+  val sourceId: String?,
   var givenName: String? = null,
   var lastName: String? = null,
   var company: String = "",
@@ -38,7 +39,24 @@ data class AndroidContact(
   val phoneNumbers: MutableList<AndroidPhoneNumber> = mutableListOf(),
   val addresses: MutableList<AndroidAddress> = mutableListOf(),
   var isDeleted: Boolean = false,
-)
+  var isDirty: Boolean = false
+) {
+  fun toStructured(): StructuredContact {
+	return StructuredContact(
+			id = sourceId,
+			firstName = givenName ?: "",
+			lastName = lastName ?: "",
+			nickname = nickname,
+			company = company,
+			birthday = birthday,
+			mailAddresses = emailAddresses.map { it.toStructured() },
+			phoneNumbers = phoneNumbers.map { it.toStructured() },
+			addresses = addresses.map { it.toStructured() },
+			rawId = rawId.toString(),
+			deleted = isDeleted
+	)
+  }
+}
 
 fun ContactAddressType.toAndroidType(): Int = when (this) {
   ContactAddressType.PRIVATE -> ContactsContract.CommonDataKinds.Email.TYPE_HOME

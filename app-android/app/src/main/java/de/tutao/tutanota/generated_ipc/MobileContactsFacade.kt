@@ -29,7 +29,7 @@ interface MobileContactsFacade {
 	 suspend fun syncContacts(
 		username: String,
 		contacts: List<StructuredContact>,
-	): Unit
+	): List<StructuredContact>
 	/**
 	 * Get all contact books on the device.
 	 */

@@ -26,7 +26,7 @@ public protocol MobileContactsFacade {
 	func syncContacts(
 		_ username: String,
 		_ contacts: [StructuredContact]
-	) async throws -> Void
+	) async throws -> [StructuredContact]
 	/**
 	 * Get all contact books on the device.
 	 */
