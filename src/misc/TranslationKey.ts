@@ -1626,6 +1626,7 @@ export type TranslationKeyType =
 	| "yourMessage_label"
 	| "you_label"
 	| "emptyString_msg"
+	| "mailAddressInfoLegacy_msg"
 	| "vcardInSharingFiles_msg"
 	| "importFromContactBook_label"
 	| "importContacts_label"

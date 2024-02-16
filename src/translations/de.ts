@@ -1645,6 +1645,7 @@ export default {
 		"yourFolders_action": "DEINE ORDNER",
 		"yourMessage_label": "Deine Nachricht",
 		"you_label": "Du",
+		"mailAddressInfoLegacy_msg": "Deaktivierte E-Mail-Adressen können einer anderen Mailbox innerhalb deines Kontos zugewiesen werden.",
 		"vcardInSharingFiles_msg": "Wir haben eine oder mehrere Kontaktdateien entdeckt. Möchtest Du diese importieren oder anhängen?",
 		"importFromContactBook_label": "Kontakte von deinem Gerät importieren",
 		"importContacts_label": "Kontakte importieren"
