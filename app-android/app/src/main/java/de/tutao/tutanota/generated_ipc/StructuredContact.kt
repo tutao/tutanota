@@ -19,4 +19,5 @@ data class StructuredContact(
 	val phoneNumbers: List<StructuredPhoneNumber>,
 	val addresses: List<StructuredAddress>,
 	val rawId: String?,
+	val deleted: Boolean,
 )
