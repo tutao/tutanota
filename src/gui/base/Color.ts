@@ -5,6 +5,16 @@ assertMainOrNodeBoot()
 // 3 or 6 digit hex color codes
 export const VALID_HEX_CODE_FORMAT: RegExp = new RegExp("^#([A-Fa-f0-9]{6}|[A-Fa-f0-9]{3})$")
 
+/**
+ * Returns true if the color code is a valid hex color code.
+ *
+ * The format can be #RGB or #RRGGBB, and it is not case-sensitive, but the digits must be hexadecimal,
+ * with 1 or 2 digits per color channel, and the code must be prefixed with an octothorpe character (`#`).
+ */
+export function isValidColorCode(colorCode: string): boolean {
+	return VALID_HEX_CODE_FORMAT.test(colorCode)
+}
+
 export function isColorLight(c: string): boolean {
 	const { r, g, b } = hexToRgb(c)
 	// Counting the perceptive luminance
@@ -18,7 +28,7 @@ export function hexToRgb(colorCode: string): {
 	g: number
 	b: number
 } {
-	assert(VALID_HEX_CODE_FORMAT.test(colorCode), "Invalid color code: " + colorCode)
+	assert(isValidColorCode(colorCode), "Invalid color code: " + colorCode)
 	let hexWithoutHash = colorCode.slice(1)
 
 	if (hexWithoutHash.length === 3) {
