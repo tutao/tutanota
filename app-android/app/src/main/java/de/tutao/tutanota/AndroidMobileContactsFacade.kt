@@ -65,9 +65,10 @@ class AndroidMobileContactsFacade(private val activity: MainActivity) : MobileCo
   override suspend fun getContactBooks(): List<ContactBook> {
 	checkContactPermissions()
 
-	return resolver.query(RawContacts.CONTENT_URI, arrayOf(
-			RawContacts.ACCOUNT_TYPE,
-			RawContacts.ACCOUNT_NAME,
+	return resolver.query(RawContacts.CONTENT_URI,
+			arrayOf(
+					RawContacts.ACCOUNT_TYPE,
+					RawContacts.ACCOUNT_NAME,
 	), null, null, null).use { cursor ->
 	  val accounts = mutableMapOf<ContactBookId, ContactBook>()
 	  cursor!!.forEachRow {
@@ -583,12 +584,12 @@ class AndroidMobileContactsFacade(private val activity: MainActivity) : MobileCo
 
 	val entityUri = Uri.withAppendedPath(ContentUris.withAppendedId(RawContacts.CONTENT_URI, rawContactId), RawContacts.Entity.CONTENT_DIRECTORY)
 	resolver.query(entityUri, arrayOf(
-			RawContacts.SOURCE_ID,
-			RawContacts.DELETED,
-			RawContacts.Entity.DATA_ID,
-			RawContacts.Entity.MIMETYPE,
-			RawContacts.Entity.DATA1,
-			RawContacts.Entity.DATA2,
+					RawContacts.SOURCE_ID,
+					RawContacts.DELETED,
+					RawContacts.Entity.DATA_ID,
+					RawContacts.Entity.MIMETYPE,
+					RawContacts.Entity.DATA1,
+					RawContacts.Entity.DATA2,
 			RawContacts.Entity.DATA3,
 			RawContacts.DIRTY,
 			RawContacts.Entity.DATA4,
@@ -655,9 +656,9 @@ class AndroidMobileContactsFacade(private val activity: MainActivity) : MobileCo
 
   private fun insertAddressOperation(address: StructuredAddress): ContentProviderOperation.Builder {
 	val contactInsert = ContentProviderOperation.newInsert(CONTACT_DATA_URI).withValue(RawContacts.Data.MIMETYPE, ContactsContract.CommonDataKinds.StructuredPostal.CONTENT_ITEM_TYPE).withValue(ContactsContract.CommonDataKinds.StructuredPostal.DATA, address.address).withValue(RawContacts.Data.MIMETYPE, ContactsContract.CommonDataKinds.StructuredPostal.CONTENT_ITEM_TYPE).withValue(
-			ContactsContract.CommonDataKinds.StructuredPostal.TYPE,
-			address.type.toAndroidType(),
-	)
+					ContactsContract.CommonDataKinds.StructuredPostal.TYPE,
+					address.type.toAndroidType(),
+			)
 	if (address.type == ContactAddressType.CUSTOM) {
 	  contactInsert.withValue(RawContacts.Data.MIMETYPE, ContactsContract.CommonDataKinds.StructuredPostal.CONTENT_ITEM_TYPE).withValue(ContactsContract.CommonDataKinds.StructuredPostal.LABEL, address.customTypeName)
 	}
@@ -667,9 +668,9 @@ class AndroidMobileContactsFacade(private val activity: MainActivity) : MobileCo
   private fun insertMailAddressOperation(mailAddress: StructuredMailAddress): ContentProviderOperation.Builder {
 
 	val contactInsert = ContentProviderOperation.newInsert(CONTACT_DATA_URI).withValue(RawContacts.Data.MIMETYPE, ContactsContract.CommonDataKinds.Email.CONTENT_ITEM_TYPE).withValue(ContactsContract.CommonDataKinds.Email.DATA, mailAddress.address).withValue(RawContacts.Data.MIMETYPE, ContactsContract.CommonDataKinds.Email.CONTENT_ITEM_TYPE).withValue(
-			ContactsContract.CommonDataKinds.Email.TYPE,
-			mailAddress.type.toAndroidType(),
-	)
+					ContactsContract.CommonDataKinds.Email.TYPE,
+					mailAddress.type.toAndroidType(),
+			)
 	if (mailAddress.type == ContactAddressType.CUSTOM) {
 	  contactInsert.withValue(RawContacts.Data.MIMETYPE, ContactsContract.CommonDataKinds.Email.CONTENT_ITEM_TYPE).withValue(ContactsContract.CommonDataKinds.Email.LABEL, mailAddress.customTypeName)
 	}
@@ -678,9 +679,9 @@ class AndroidMobileContactsFacade(private val activity: MainActivity) : MobileCo
 
   private fun insertPhoneNumberOperations(phoneNumber: StructuredPhoneNumber): ContentProviderOperation.Builder {
 	val contactInsert = ContentProviderOperation.newInsert(CONTACT_DATA_URI).withValue(RawContacts.Data.MIMETYPE, ContactsContract.CommonDataKinds.Phone.MIMETYPE).withValue(ContactsContract.CommonDataKinds.Phone.DATA, phoneNumber.number).withValue(RawContacts.Data.MIMETYPE, ContactsContract.CommonDataKinds.Phone.CONTENT_ITEM_TYPE).withValue(
-			ContactsContract.CommonDataKinds.Phone.TYPE,
-			phoneNumber.type.toAndroidType(),
-	)
+					ContactsContract.CommonDataKinds.Phone.TYPE,
+					phoneNumber.type.toAndroidType(),
+			)
 	if (phoneNumber.type == ContactPhoneNumberType.CUSTOM) {
 	  contactInsert.withValue(RawContacts.Data.MIMETYPE, ContactsContract.CommonDataKinds.Phone.CONTENT_ITEM_TYPE).withValue(ContactsContract.CommonDataKinds.Phone.LABEL, phoneNumber.customTypeName)
 	}
@@ -702,7 +703,7 @@ class AndroidMobileContactsFacade(private val activity: MainActivity) : MobileCo
 	val contactInsert = ContentProviderOperation.newInsert(CONTACT_DATA_URI).withValue(RawContacts.Data.MIMETYPE, ContactsContract.CommonDataKinds.Website.MIMETYPE).withValue(ContactsContract.CommonDataKinds.Website.DATA, customWebsite.url).withValue(RawContacts.Data.MIMETYPE, ContactsContract.CommonDataKinds.Website.CONTENT_ITEM_TYPE).withValue(
 			ContactsContract.CommonDataKinds.Website.TYPE,
 			customWebsite.type.toAndroidType(),
-	)
+			  )
 
 	if (customWebsite.type == ContactWebsiteType.CUSTOM) {
 	  contactInsert.withValue(RawContacts.Data.MIMETYPE, ContactsContract.CommonDataKinds.Website.CONTENT_ITEM_TYPE).withValue(ContactsContract.CommonDataKinds.Website.LABEL, customWebsite.customTypeName)

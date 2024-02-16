@@ -44,7 +44,7 @@ data class AndroidCustomDate(
  */
 data class AndroidContact(
 		val rawId: Long,
-		val sourceId: String?,
+  val sourceId: String?,
 		var givenName: String? = null,
 		var lastName: String? = null,
 		var company: String = "",
@@ -94,8 +94,8 @@ data class AndroidContact(
 				notes = notes,
 				title = title,
 				role = role
-		)
-	}
+	)
+  }
 }
 
 fun ContactAddressType.toAndroidType(): Int = when (this) {
