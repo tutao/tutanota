@@ -27,11 +27,11 @@ public class MobileContactsFacadeReceiveDispatcher {
 		case "syncContacts":
 			let username = try! JSONDecoder().decode(String.self, from: arg[0].data(using: .utf8)!)
 			let contacts = try! JSONDecoder().decode([StructuredContact].self, from: arg[1].data(using: .utf8)!)
-			try await self.facade.syncContacts(
+			let result = try await self.facade.syncContacts(
 				username,
 				contacts
 			)
-			return "null"
+			return toJson(result)
 		case "getContactBooks":
 			let result = try await self.facade.getContactBooks(
 			)
