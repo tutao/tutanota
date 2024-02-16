@@ -6,6 +6,7 @@ import { Dialog } from "../base/Dialog"
 import { isMailAddress } from "../../misc/FormatValidator"
 import type { ImageHandler } from "../../mail/model/MailUtils"
 import { TabIndex } from "../../api/common/TutanotaConstants"
+import { TextFieldType } from "../base/TextField.js"
 
 type SanitizerFn = (html: string, isPaste: boolean) => DocumentFragment
 export type ImagePasteEvent = CustomEvent<{ clipboardData: DataTransfer }>
@@ -235,7 +236,7 @@ export class Editor implements ImageHandler, Component {
 	}
 
 	makeLink() {
-		Dialog.showTextInputDialog("makeLink_action", "url_label", null, "").then((url) => {
+		Dialog.showTextInputDialog("makeLink_action", "url_label", null, "", undefined, TextFieldType.Url).then((url) => {
 			if (isMailAddress(url, false)) {
 				url = "mailto:" + url
 			} else if (!url.startsWith("http://") && !url.startsWith("https://") && !url.startsWith("mailto:") && !url.startsWith("{")) {

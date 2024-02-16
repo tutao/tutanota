@@ -1,7 +1,7 @@
 import { Dialog } from "../../gui/base/Dialog"
 import { lang } from "../../misc/LanguageViewModel"
 import m, { Children, Component, Vnode } from "mithril"
-import { TextField } from "../../gui/base/TextField.js"
+import { TextField, TextFieldType } from "../../gui/base/TextField.js"
 import { Icons } from "../../gui/base/icons/Icons"
 import { IconButton } from "../../gui/base/IconButton.js"
 import { ButtonSize } from "../../gui/base/ButtonSize.js"
@@ -47,6 +47,7 @@ export class WhitelabelImprintAndPrivacySettings implements Component<Whitelabel
 					m(TextField, {
 						label: "privacyPolicyUrl_label",
 						value: privacyStatementUrl,
+						type: TextFieldType.Url,
 						oninput: (value) => (privacyStatementUrl = value.trim()),
 					}),
 			},
@@ -86,6 +87,7 @@ export class WhitelabelImprintAndPrivacySettings implements Component<Whitelabel
 					m(TextField, {
 						label: "imprintUrl_label",
 						value: imprintUrl,
+						type: TextFieldType.Url,
 						oninput: (value) => (imprintUrl = value.trim()),
 					}),
 			},

@@ -753,6 +753,7 @@ export class Dialog implements ModalComponent {
 	 * @param infoMsgId help label of the text field
 	 * @param value initial value
 	 * @param inputValidator Called when "Ok" is clicked receiving the entered text. Must return null if the text is valid or an error messageId if the text is invalid, so an error message is shown.
+	 * @param textFieldType Text field type to display (determines what keyboard to display on mobile devices)
 	 * @returns A promise resolving to the entered text. The returned promise is only resolved if "ok" is clicked.
 	 */
 	static showTextInputDialog(
@@ -761,6 +762,7 @@ export class Dialog implements ModalComponent {
 		infoMsgId: (TranslationKey | null) | (lazy<string> | null),
 		value: string,
 		inputValidator?: stringValidator,
+		textFieldType: TextFieldType = TextFieldType.Text,
 	): Promise<string> {
 		return new Promise((resolve) => {
 			let result = value
@@ -770,6 +772,7 @@ export class Dialog implements ModalComponent {
 					m(TextField, {
 						label: labelIdOrLabelFunction,
 						value: result,
+						type: textFieldType,
 						oninput: (newValue) => (result = newValue),
 						helpLabel: () => (infoMsgId ? lang.getMaybeLazy(infoMsgId) : ""),
 					}),

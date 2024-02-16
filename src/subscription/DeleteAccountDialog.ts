@@ -32,6 +32,7 @@ export function showDeleteAccountDialog() {
 					m(TextField, {
 						label: "targetAddress_label",
 						value: takeover,
+						type: TextFieldType.Email,
 						oninput: (value) => (takeover = value),
 						helpLabel: () => lang.get("takeoverMailAddressInfo_msg"),
 					}),

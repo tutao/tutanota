@@ -69,6 +69,7 @@ export function show(mailAddress?: string | null, resetAction?: ResetAction): Di
 						label: "mailAddress_label",
 						value: emailAddressStream(),
 						autocompleteAs: Autocomplete.email,
+						type: TextFieldType.Email,
 						oninput: emailAddressStream,
 					}),
 					m(editor),
