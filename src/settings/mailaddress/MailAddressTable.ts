@@ -77,7 +77,7 @@ export class MailAddressTable implements Component<MailAddressTableAttrs> {
 								"{totalAmount}": model.aliasCount.totalAliases,
 							}),
 						),
-						m(".small.mt-s", lang.get("mailAddressInfo_msg")),
+						m(".small.mt-s", lang.get(model.aliasLimitIncludesCustomDomains() ? "mailAddressInfoLegacy_msg" : "mailAddressInfo_msg")),
 				  ]
 				: null,
 		]
