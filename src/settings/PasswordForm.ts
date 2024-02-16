@@ -23,7 +23,7 @@ assertMainOrNode()
 export interface PasswordFormAttrs {
 	model: PasswordModel
 	labelBgColorOverwrite?: string
-	// overwrites the bg color of label, only in use to fix recovery dialog -> not working because the animation uses 'will-change: opacity' Animations.ts:327
+	// overwrites the bg color of label, only in use to fix login in dark mode
 }
 
 export interface PasswordModelConfig {

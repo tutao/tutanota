@@ -66,14 +66,12 @@ export function show(mailAddress?: string | null, resetAction?: ResetAction): Di
 						value: emailAddressStream(),
 						autocompleteAs: Autocomplete.email,
 						oninput: emailAddressStream,
-						labelBgColorOverwrite: theme.elevated_bg,
 					}),
 					m(BorderTextField, {
 						label: "recoveryCode_label",
 						value: recoveryCodeStream(),
 						oninput: recoveryCodeStream,
 						type: BorderTextFieldType.Area,
-						labelBgColorOverwrite: theme.elevated_bg,
 					}),
 					m(BorderTextField, {
 						label: "action_label",
@@ -81,19 +79,17 @@ export function show(mailAddress?: string | null, resetAction?: ResetAction): Di
 						oninput: selectedValueLabelStream,
 						injectionsRight: () => m(IconButton, resetActionButtonAttrs),
 						isReadOnly: true,
-						labelBgColorOverwrite: theme.elevated_bg,
 					}),
 					selectedAction() == null
 						? null
 						: selectedAction() === "password"
-						? m(PasswordForm, { model: passwordModel, labelBgColorOverwrite: theme.elevated_bg })
+						? m(PasswordForm, { model: passwordModel })
 						: m(BorderTextField, {
 								label: "password_label",
 								type: BorderTextFieldType.Password,
 								value: passwordValueStream(),
 								autocompleteAs: Autocomplete.currentPassword,
 								oninput: passwordValueStream,
-								labelBgColorOverwrite: theme.elevated_bg,
 						  }),
 				]
 			},

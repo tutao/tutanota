@@ -11,6 +11,7 @@ import { getWhitelabelCustomizations } from "../misc/WhitelabelCustomizations.js
 import { BootstrapFeatureType } from "../api/common/TutanotaConstants.js"
 import { ACTIVATED_MIGRATION, isLegacyDomain } from "./LoginViewModel.js"
 import { LoginButton } from "../gui/base/buttons/LoginButton.js"
+import { getNavigationMenuBg, theme } from "../gui/theme"
 
 export type LoginFormAttrs = {
 	onSubmit: (username: string, password: string) => unknown
@@ -89,6 +90,7 @@ export class LoginForm implements Component<LoginFormAttrs> {
 								dom.focus() // have email address auto-focus so the user can immediately type their username (unless on mobile)
 							}
 						},
+						labelBgColorOverwrite: theme.themeId == "dark" ? getNavigationMenuBg() : undefined,
 					}),
 				),
 				m(
@@ -100,6 +102,7 @@ export class LoginForm implements Component<LoginFormAttrs> {
 						type: BorderTextFieldType.Password,
 						autocompleteAs: Autocomplete.currentPassword,
 						onDomInputCreated: (dom) => (this.passwordBorderTextField = dom),
+						labelBgColorOverwrite: theme.themeId == "dark" ? getNavigationMenuBg() : undefined,
 					}),
 				),
 				a.savePassword && !this._passwordDisabled()

@@ -37,7 +37,7 @@ export type BorderTextFieldAttrs = {
 	min?: number
 	max?: number
 	labelBgColorOverwrite?: string
-	// overwrites the bg color of label, only in use to fix recovery dialog -> not working because the animation uses 'will-change: opacity' Animations.ts:327
+	// overwrites the bg color of label, only in use to fix login in dark mode
 	areaTextFieldLines?: number
 }
 
@@ -124,8 +124,8 @@ export class BorderTextField implements ClassComponent<BorderTextFieldAttrs> {
 							padding: "6px",
 							lineHeight: px(size.md_default_line_height),
 							"font-style": "normal",
-							"background-color": a.labelBgColorOverwrite,
-							"backdrop-filter": "blur(100px)",
+							"background-color": a.labelBgColorOverwrite || theme.elevated_bg,
+							//"backdrop-filter": "blur(100px)",
 						},
 					},
 					lang.getMaybeLazy(a.label),
