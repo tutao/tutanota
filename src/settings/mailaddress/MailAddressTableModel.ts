@@ -43,10 +43,16 @@ export interface MailAddressNameChanger {
 /** Model for showing the list of mail addresses and optionally adding more, enabling/disabling/setting names for them. */
 export class MailAddressTableModel {
 	private nameMappings: AddressToName | null = null
+	private onLegacyPlan: boolean = false
 	aliasCount: MailAddressAliasServiceReturn | null = null
 
 	init: () => Promise<void> = lazyMemoized(async () => {
 		this.eventController.addEntityListener(this.entityEventsReceived)
+
+		// important: "not on legacy plan" is true for free plans
+		const userController = this.logins.getUserController()
+		this.onLegacyPlan = userController.isLegacyPlan(await userController.getPlanType())
+
 		await this.loadNames()
 		this.redraw()
 		await this.loadAliasCount()
@@ -70,6 +76,10 @@ export class MailAddressTableModel {
 
 	userCanModifyAliases(): boolean {
 		return this.logins.getUserController().isGlobalAdmin()
+	}
+
+	aliasLimitIncludesCustomDomains(): boolean {
+		return this.onLegacyPlan
 	}
 
 	addresses(): AddressInfo[] {
