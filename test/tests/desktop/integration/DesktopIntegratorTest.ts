@@ -11,8 +11,8 @@ import { DesktopIntegratorWin32 } from "../../../../src/desktop/integration/Desk
 import { spy } from "@tutao/tutanota-test-utils"
 
 const desktopEntry = `[Desktop Entry]
-Name=Tutanota Desktop
-Comment=The desktop client for Tutanota, the secure e-mail service.
+Name=Tuta Mail
+Comment=The desktop client for Tuta Mail, the secure e-mail service.
 GenericName=Mail Client
 Keywords=Email;E-mail
 Exec="/appimage/path/file.appImage" %U
