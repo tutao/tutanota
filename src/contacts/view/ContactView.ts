@@ -288,9 +288,8 @@ export class ContactView extends BaseTopLevelView implements TopLevelView<Contac
 				contacts,
 				onEdit: (c) => this.editContact(c),
 				onExport: exportContacts,
-				onDelete: deleteContacts,
+				onDelete: (contacts: Contact[]) => deleteContacts(contacts, () => this.contactViewModel.listModel.selectNone()),
 				onMerge: confirmMerge,
-				selectNone: () => this.contactViewModel.listModel.selectNone(),
 			})
 		}
 	}

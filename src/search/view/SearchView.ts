@@ -357,7 +357,6 @@ export class SearchView extends BaseTopLevelView implements TopLevelView<SearchV
 				onDelete: deleteContacts,
 				onMerge: confirmMerge,
 				onExport: exportContacts,
-				selectNone: noOp,
 			})
 			const isMultiselect = this.searchViewModel.listModel?.state.inMultiselect || selectedContacts.length === 0
 			return m(BackgroundColumnLayout, {
@@ -480,7 +479,7 @@ export class SearchView extends BaseTopLevelView implements TopLevelView<SearchV
 			return m(
 				".flex.col.fill-absolute",
 				// Using contactViewToolbar because it will display empty
-				m(ContactViewerActions, { contacts: [], onExport: noOp, onMerge: noOp, onDelete: noOp, onEdit: noOp, selectNone: noOp }),
+				m(ContactViewerActions, { contacts: [], onExport: noOp, onMerge: noOp, onDelete: noOp, onEdit: noOp }),
 				m(
 					".flex-grow.rel.overflow-hidden",
 					m(ColumnEmptyMessageBox, {
@@ -600,10 +599,9 @@ export class SearchView extends BaseTopLevelView implements TopLevelView<SearchV
 					m(ContactViewerActions, {
 						contacts: this.searchViewModel.getSelectedContacts(),
 						onEdit: () => new ContactEditor(locator.entityClient, getFirstOrThrow(this.searchViewModel.getSelectedContacts())).show(),
-						onDelete: deleteContacts,
+						onDelete: (contacts: Contact[]) => deleteContacts(contacts, () => this.searchViewModel.listModel.selectNone()),
 						onMerge: confirmMerge,
 						onExport: exportContacts,
-						selectNone: () => this.searchViewModel.listModel.selectNone(),
 					}),
 				)
 			}
