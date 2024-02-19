@@ -33,7 +33,7 @@ data class AndroidContact(
   var givenName: String? = null,
   var lastName: String? = null,
   var company: String = "",
-  var nickname: String? = null,
+  var nickname: String = "",
   var birthday: String? = null,
   val emailAddresses: MutableList<AndroidEmailAddress> = mutableListOf(),
   val phoneNumbers: MutableList<AndroidPhoneNumber> = mutableListOf(),

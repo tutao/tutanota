@@ -35,9 +35,7 @@ import { locator } from "../../api/main/MainLocator.js"
 import { PinchZoom } from "../../gui/PinchZoom.js"
 import { responsiveCardHMargin, responsiveCardHPadding } from "../../gui/cards.js"
 import { isTutanotaTeamMail } from "../../api/common/mail/CommonMailUtils.js"
-import { AttachmentType, getAttachmentType } from "../../gui/AttachmentBubble.js"
 import { Dialog } from "../../gui/base/Dialog.js"
-import { importContactsFromFile } from "../../contacts/ContactImporter.js"
 
 assertMainOrNode()
 // map of inline image cid to InlineImageReference
