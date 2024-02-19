@@ -11,7 +11,7 @@ export default {
 		"other"
 	],
 	"created_at": "2015-02-02T10:54:47Z",
-	"updated_at": "2024-02-07T15:10:35Z",
+	"updated_at": "2024-02-17T00:54:02Z",
 	"source_locale": {
 		"id": "1c50f9a9b6bd977b100d4e27f07e8319",
 		"name": "pt",
@@ -210,7 +210,7 @@ export default {
 		"concealPassword_action": "Ocultar a senha",
 		"confidentialStatus_msg": "Esta mensagem será enviada criptografada de ponta-a-ponta.",
 		"confidential_action": "Confidencial",
-		"configureCustomDomainAfterSignup_msg": "Domínios personalizados podem ser configurados após a criação da conta:",
+		"configureCustomDomainAfterSignup_msg": "Domínios personalizados com endereços de email ilimitados podem ser configurados após a criação da conta:",
 		"confirmCountry_msg": "Para que possamos calcular o valor do imposto, você precisa confirmar o seu país: {1}",
 		"confirmCustomDomainDeletion_msg": "Tem certeza que deseja remover o domínio \"{domain}\"?",
 		"confirmDeactivateCustomColors_msg": "Deseja mesmo desativar suas cores personalizadas?",

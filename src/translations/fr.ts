@@ -11,7 +11,7 @@ export default {
 		"other"
 	],
 	"created_at": "2015-01-16T12:59:04Z",
-	"updated_at": "2024-02-07T15:05:17Z",
+	"updated_at": "2024-02-19T02:30:32Z",
 	"source_locale": {
 		"id": "fcd7471b347c8e517663e194dcddf237",
 		"name": "en",
@@ -271,7 +271,7 @@ export default {
 		"contactLists_label": "Listes de contacts",
 		"contactsManagement_label": "Gestion des contacts",
 		"contactSupport_action": "Contacter le support",
-		"contactsUsageDescription_msg": "Trouver l'adresse e-mail du destinataire dans les contacts",
+		"contactsUsageDescription_msg": "Trouver le courriel du destinataire dans votre liste d'emails L'autre variation est de mettre à jour votre carnet d'e-mails.",
 		"contacts_label": "Contacts",
 		"contactView_action": "Consulter la page des contacts",
 		"contentBlocked_msg": "Le chargement automatique de l'image a été bloqué afin de protéger votre vie privée.",

@@ -11,7 +11,7 @@ export default {
 		"other"
 	],
 	"created_at": "2018-01-12T10:51:54Z",
-	"updated_at": "2024-02-14T11:18:38Z",
+	"updated_at": "2024-02-16T14:40:04Z",
 	"source_locale": {
 		"id": "2001c6fdcc9cd338c1d600cb2636918b",
 		"name": "de",
@@ -508,7 +508,7 @@ export default {
 		"enforcePasswordUpdate_title": "Passwortänderung erzwingen",
 		"enterAsCSV_msg": "Bitte geben Sie die Benutzerdaten als CSV ein.",
 		"enterCustomDomain_title": "Eigene Domain eingeben",
-		"enterDetails_msg": "Gib weitere Details hier ein",
+		"enterDetails_msg": "Optional: Hier Details eingeben",
 		"enterDomainFieldHelp_label": "Mit dieser eigenen E-Mail-Domain können Sie E-Mail-Adressen wie hello@{domain} erstellen.",
 		"enterDomainGetReady_msg": "Sie werden Änderungen an Ihren DNS Einstellungen vornehmen müssen. Bitte öffnen Sie ein neues Browserfenster und melden Sie sich in der Verwaltungsplattform Ihres Domainanbieters an. Der Einrichtungsassistent wird Ihnen bei jedem Schritt anzeigen, welche Änderungen nötig sind.",
 		"enterDomainIntroduction_msg": "Mit Tuta können Sie Ihre eigene Domain in nur wenigen Schritten einrichten.",
@@ -1633,7 +1633,7 @@ export default {
 		"whitelabelThemeDetected_msg": "Ein benutzerdefiniertes Design wurde für diesen Account erkannt. Möchten Sie es jetzt anwenden?",
 		"whitelabel_label": "Whitelabel",
 		"who_label": "Wer",
-		"whyLeave_msg": "Warum sind Sie unzufrieden mit Tuta?",
+		"whyLeave_msg": "Schade, dass Sie kündigen möchten. Wie können wir uns verbessern?",
 		"work_label": "Arbeit",
 		"wrongUserCsvFormat_msg": "Das CSV-Format der eingegebenen Daten ist ungültig. Folgendes Format ist gültig:\n{format}",
 		"xing_label": "XING",
