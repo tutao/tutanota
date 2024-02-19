@@ -180,8 +180,8 @@ class AndroidMobileContactsFacade(private val activity: MainActivity) : MobileCo
 		  val editedOnDevice: MutableList<StructuredContact> = mutableListOf(),
 		  /** exists on the device but not on the server (and marked as dirty) */
 		  val createdOnDevice: MutableList<StructuredContact> = mutableListOf(),
-		  /** exists on the server but marked as deleted (and dirty) on the device */
-		  val deletedOnDevice: MutableList<StructuredContact> = mutableListOf(),
+		  /** exists on the server but marked as deleted (and dirty) on the device; server IDs */
+		  val deletedOnDevice: MutableList<String> = mutableListOf(),
   )
 
   private fun matchStoredContacts(username: String, serverContacts: List<StructuredContact>, isSync: Boolean): MatchContactResult {
@@ -210,7 +210,7 @@ class AndroidMobileContactsFacade(private val activity: MainActivity) : MobileCo
 		  val serverContact = serverContactsById.remove(sourceId)!!
 		  val matchedContact = readContact(rawContactId, sourceId)
 		  if (matchedContact.isDirty && matchedContact.isDeleted) {
-			result.deletedOnDevice.add(matchedContact.toStructured())
+			result.deletedOnDevice.add(sourceId)
 		  } else if (matchedContact.isDirty) {
 			result.editedOnDevice.add(matchedContact.toStructured())
 		  } else {
@@ -777,7 +777,7 @@ class AndroidMobileContactsFacade(private val activity: MainActivity) : MobileCo
 					  if (!entityCursor.isNull(6)) entityCursor.getString(6) else ""
 			  )
 	  )
-	  ContactsContract.CommonDataKinds.Nickname.CONTENT_ITEM_TYPE -> storedContact.nickname = data1
+	  ContactsContract.CommonDataKinds.Nickname.CONTENT_ITEM_TYPE -> storedContact.nickname = data1 ?: ""
 	  ContactsContract.CommonDataKinds.Organization.CONTENT_ITEM_TYPE -> storedContact.company = data1
 	  ContactsContract.CommonDataKinds.Event.CONTENT_ITEM_TYPE -> storedContact.birthday = data1
 	}
