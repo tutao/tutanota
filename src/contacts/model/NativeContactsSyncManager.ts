@@ -73,7 +73,7 @@ export class NativeContactsSyncManager {
 					id: getElementId(contact),
 					firstName: contact.firstName,
 					lastName: contact.lastName,
-					nickname: contact.nickname,
+					nickname: contact.nickname ?? "",
 					birthday: contact.birthdayIso,
 					company: contact.company,
 					mailAddresses: extractStructuredMailAddresses(contact.mailAddresses),
@@ -107,7 +107,7 @@ export class NativeContactsSyncManager {
 				lastName: contact.lastName,
 				mailAddresses: extractStructuredMailAddresses(contact.mailAddresses),
 				phoneNumbers: extractStructuredPhoneNumbers(contact.phoneNumbers),
-				nickname: contact.nickname,
+				nickname: contact.nickname ?? "",
 				company: contact.company,
 				birthday: contact.birthdayIso,
 				addresses: extractStructuredAddresses(contact.addresses),
@@ -172,10 +172,10 @@ export class NativeContactsSyncManager {
 				await this.entityClient.update(updatedContact)
 			}
 		}
-		for (const contact of syncResult.deletedOnDevice) {
-			const cleanContact = contacts.find((c) => elementIdPart(c._id) === contact.id)
+		for (const deletedContactId of syncResult.deletedOnDevice) {
+			const cleanContact = contacts.find((c) => elementIdPart(c._id) === deletedContactId)
 			if (cleanContact == null) {
-				console.warn("Could not find a server contact for the contact deleted on device: ", contact.id)
+				console.warn("Could not find a server contact for the contact deleted on device: ", deletedContactId)
 			} else {
 				await this.entityClient.erase(cleanContact)
 			}

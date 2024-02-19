@@ -7,7 +7,7 @@ export interface StructuredContact {
 	readonly id: string | null
 	readonly firstName: string
 	readonly lastName: string
-	readonly nickname: string | null
+	readonly nickname: string
 	readonly company: string
 	readonly birthday: string | null
 	readonly mailAddresses: ReadonlyArray<StructuredMailAddress>

@@ -82,6 +82,7 @@
 		3D4F1BFB26EBADE500E87BF5 /* TUTBigNum.m in Sources */ = {isa = PBXBuildFile; fileRef = 3D4F1BF926EBADE500E87BF5 /* TUTBigNum.m */; };
 		3D5C6F9F2B7BBEEA00342E8C /* ContactBook.swift in Sources */ = {isa = PBXBuildFile; fileRef = 3D5C6F9E2B7BBEEA00342E8C /* ContactBook.swift */; };
 		3D5C6FA12B7BC15D00342E8C /* PermissionError.swift in Sources */ = {isa = PBXBuildFile; fileRef = 3D5C6FA02B7BC15D00342E8C /* PermissionError.swift */; };
+		3D5F04C42B8363A400BC8774 /* ContactSyncResult.swift in Sources */ = {isa = PBXBuildFile; fileRef = 3D5F04C32B8363A400BC8774 /* ContactSyncResult.swift */; };
 		3D63A0E3233D009E00D05259 /* TUTLog.m in Sources */ = {isa = PBXBuildFile; fileRef = 3D63A0E2233D009E00D05259 /* TUTLog.m */; };
 		3D63A0E5233D0C1400D05259 /* TUTLogTest.m in Sources */ = {isa = PBXBuildFile; fileRef = 3D63A0E4233D0C1400D05259 /* TUTLogTest.m */; };
 		3D648B202AB98BEA00893C8D /* argon2.h in Headers */ = {isa = PBXBuildFile; fileRef = 3D648B0F2AB98BEA00893C8D /* argon2.h */; };
@@ -400,6 +401,7 @@
 		3D4F1BF926EBADE500E87BF5 /* TUTBigNum.m */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.objc; path = TUTBigNum.m; sourceTree = "<group>"; };
 		3D5C6F9E2B7BBEEA00342E8C /* ContactBook.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = ContactBook.swift; sourceTree = "<group>"; };
 		3D5C6FA02B7BC15D00342E8C /* PermissionError.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PermissionError.swift; sourceTree = "<group>"; };
+		3D5F04C32B8363A400BC8774 /* ContactSyncResult.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = ContactSyncResult.swift; sourceTree = "<group>"; };
 		3D63A0DD233CF7C900D05259 /* TUTLog.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = TUTLog.h; sourceTree = "<group>"; };
 		3D63A0E2233D009E00D05259 /* TUTLog.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = TUTLog.m; sourceTree = "<group>"; };
 		3D63A0E4233D0C1400D05259 /* TUTLogTest.m */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.objc; path = TUTLogTest.m; sourceTree = "<group>"; };
@@ -1490,6 +1492,7 @@
 		3DBA56B62850AAA6004416BE /* GeneratedIpc */ = {
 			isa = PBXGroup;
 			children = (
+				3D5F04C32B8363A400BC8774 /* ContactSyncResult.swift */,
 				3DCE3AEC2B7E336B0056F85C /* MobileContactsFacade.swift */,
 				3DCE3AEB2B7E336B0056F85C /* MobileContactsFacadeReceiveDispatcher.swift */,
 				3DCE3AE92B7E334A0056F85C /* ContactSuggestion.swift */,
@@ -2204,6 +2207,7 @@
 				3DAED2AF29A6267D00806DEA /* NotificationsHandler.swift in Sources */,
 				3DCE7AAC27200E0A0085E40D /* WebviewHacks.m in Sources */,
 				3DCE7AA22719D04B0085E40D /* NotificationStorage.swift in Sources */,
+				3D5F04C42B8363A400BC8774 /* ContactSyncResult.swift in Sources */,
 				3D78ACA42B600F1C009C9EED /* WebAuthnRegistrationResult.swift in Sources */,
 				3D78ACB22B600F1C009C9EED /* NativeCredentialsFacade.swift in Sources */,
 				3D0EB1F626F489AD002E5102 /* KeychainManager.swift in Sources */,

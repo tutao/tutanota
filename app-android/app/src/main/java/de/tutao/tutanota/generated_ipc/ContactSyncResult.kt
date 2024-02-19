@@ -11,5 +11,5 @@ import kotlinx.serialization.json.*
 data class ContactSyncResult(
 	val createdOnDevice: List<StructuredContact>,
 	val editedOnDevice: List<StructuredContact>,
-	val deletedOnDevice: List<StructuredContact>,
+	val deletedOnDevice: List<String>,
 )
