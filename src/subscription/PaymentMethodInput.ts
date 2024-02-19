@@ -237,7 +237,7 @@ class PaypalInput {
 				},
 				m(BaseButton, {
 					label: "PayPal",
-					icon: m(".payment-logo", m.trust(PayPalLogo)),
+					icon: m(".payment-logo.flex", m.trust(PayPalLogo)),
 					class: "border border-radius bg-white button-height plr",
 					onclick: () => {
 						this.__paymentPaypalTest?.getStage(1).complete()
