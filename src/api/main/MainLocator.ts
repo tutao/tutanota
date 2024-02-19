@@ -410,7 +410,7 @@ class MainLocator {
 		return factory(options)
 	}
 
-	async contactImporter(): Promise<ContactImporter> {
+	contactImporter = async (): Promise<ContactImporter> => {
 		const { ContactImporter } = await import("../../contacts/ContactImporter.js")
 		return new ContactImporter(this.contactFacade)
 	}
