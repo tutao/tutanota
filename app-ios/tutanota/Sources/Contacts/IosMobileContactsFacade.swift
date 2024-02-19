@@ -12,6 +12,7 @@ struct UserContactMapping: Codable {
 	let username: String
 	var systemGroupIdentifier: String
 	var localContactIdentifierToServerId: [String: String]
+	var localContactIdentifierToHash: [String: Int]
 }
 
 private let ALL_SUPPORTED_CONTACT_KEYS: [CNKeyDescriptor] =
@@ -35,27 +36,45 @@ class IosMobileContactsFacade: MobileContactsFacade {
 		try await acquireContactsPermission()
 		var mapping = try self.getOrCreateMapping(username: username)
 		let queryResult = try self.matchStoredContacts(against: contacts, forUser: &mapping)
-		try self.insert(contacts: queryResult.newContacts, forUser: &mapping)
-		try self.update(contacts: queryResult.matchedStoredContacts, forUser: &mapping)
+		try self.insert(contacts: queryResult.newServerContacts, forUser: &mapping)
+		try self.update(contacts: queryResult.existingServerContacts, forUser: &mapping)
+		for unmappedDeviceContact in queryResult.nativeContactWithoutSourceId {
+			mapping.localContactIdentifierToServerId[unmappedDeviceContact.contact.identifier] = unmappedDeviceContact.serverId
+			mapping.localContactIdentifierToHash[unmappedDeviceContact.localIdentifier] = unmappedDeviceContact.contact
+				.toStructuredContact(serverId: unmappedDeviceContact.serverId).computeHash()
+		}
+
+		// The hash will not match and that's expected as we already returned it as edited on device in sync,
+		// but we need to update those contacts, too, if they are passed to us.
+		try self.update(contacts: queryResult.editedOnDevice, forUser: &mapping)
 
 		self.saveMapping(mapping, forUsername: mapping.username)
 	}
 
-	func syncContacts(_ username: String, _ contacts: [StructuredContact]) async throws {
+	func syncContacts(_ username: String, _ contacts: [StructuredContact]) async throws -> ContactSyncResult {
 		try await acquireContactsPermission()
-		// get local contacts
-		// save new ones
-		// update existing ones
-		// delete old ones
 		var mapping = try self.getOrCreateMapping(username: username)
 		let matchResult = try self.matchStoredContacts(against: contacts, forUser: &mapping)
-		try self.insert(contacts: matchResult.newContacts, forUser: &mapping)
-		try self.update(contacts: matchResult.matchedStoredContacts, forUser: &mapping)
-		if !matchResult.unmatchedStoredContacts.isEmpty {
-			try self.delete(contactsWithLocalIdentifiers: matchResult.unmatchedStoredContacts, forUser: &mapping)
+		try self.insert(contacts: matchResult.newServerContacts, forUser: &mapping)
+		if !matchResult.deletedOnServer.isEmpty { try self.delete(contactsWithServerIDs: matchResult.deletedOnServer, forUser: &mapping) }
+		try self.update(contacts: matchResult.existingServerContacts, forUser: &mapping)
+
+		// For sync it normally wouldn't happen that we have a contact without source/server id but for existing contacts without
+		// hashes we want to write the hashes on the first run so we reuse this field.
+		for unmappedDeviceContact in matchResult.nativeContactWithoutSourceId {
+			mapping.localContactIdentifierToServerId[unmappedDeviceContact.contact.identifier] = unmappedDeviceContact.serverId
+			mapping.localContactIdentifierToHash[unmappedDeviceContact.localIdentifier] = unmappedDeviceContact.contact
+				.toStructuredContact(serverId: unmappedDeviceContact.serverId).computeHash()
 		}
 
 		self.saveMapping(mapping, forUsername: mapping.username)
+
+		return ContactSyncResult(
+			createdOnDevice: matchResult.createdOnDevice,
+			editedOnDevice: matchResult.editedOnDevice.map { (nativeContact, _) in nativeContact.contact.toStructuredContact(serverId: nativeContact.serverId)
+			},
+			deletedOnDevice: matchResult.deletedOnDevice
+		)
 	}
 
 	func getContactBooks() async throws -> [ContactBook] {
@@ -76,28 +95,8 @@ class IosMobileContactsFacade: MobileContactsFacade {
 		let store = CNContactStore()
 		var addresses = [StructuredContact]()
 		try store.enumerateContacts(with: fetch) { (contact, _) in
-			let birthday = contact.birthday.flatMap { birthday in
-				if let year = birthday.year, let month = birthday.month, let day = birthday.day {
-					String(format: "%04d-%02d-%02d", year, month, day)
-				} else if let month = birthday.month, let day = birthday.day {
-					String(format: "--%02d-%02d", month, day)
-				} else {
-					nil
-				}
-			}
-			addresses.append(
-				StructuredContact(
-					id: contact.identifier,
-					firstName: contact.givenName,
-					lastName: contact.familyName,
-					nickname: contact.nickname,
-					company: contact.organizationName,
-					birthday: birthday,
-					mailAddresses: contact.emailAddresses.map { $0.toStructuredMailAddress() },
-					phoneNumbers: contact.phoneNumbers.map { $0.toStructuredPhoneNumber() },
-					addresses: contact.postalAddresses.map { $0.toStructuredAddress() }
-				)
-			)
+			// we don't need (and probably don't have?) a server id in this case
+			addresses.append(contact.toStructuredContact(serverId: nil))
 		}
 
 		return addresses
@@ -109,10 +108,8 @@ class IosMobileContactsFacade: MobileContactsFacade {
 		var mapping = try self.getOrCreateMapping(username: username)
 
 		if let contactId {
-			if let localIdentifier = mapping.localContactIdentifierToServerId.first(where: { _, serverId in serverId == contactId })?.key {
-				try self.delete(contactsWithLocalIdentifiers: [localIdentifier], forUser: &mapping)
-				self.saveMapping(mapping, forUsername: username)
-			}
+			try self.delete(contactsWithServerIDs: [contactId], forUser: &mapping)
+			self.saveMapping(mapping, forUsername: username)
 		} else {
 			let group = try self.getTutaContactGroup(forUser: &mapping)
 			try self.deleteAllContacts(forGroup: group)
@@ -152,50 +149,60 @@ class IosMobileContactsFacade: MobileContactsFacade {
 
 		// We need store mapping from our contact id to native contact id but we get it only after actually saving the contacts,
 		// so until we execute the save request we keep track of the mapping
-		var tutaContactToNativeContact = TutaToNativeContacts()
+		var insertedContacts = [(NativeMutableContact, StructuredContact)]()
 
 		for newContact in contacts {
 			if let contactId = newContact.id {
-				let nativeContact = NativeMutableContact(newContactWithId: contactId, container: self.localContainer)
+				let nativeContact = NativeMutableContact(newContactWithServerId: contactId, container: localContainer)
 				nativeContact.updateContactWithData(newContact)
-				saveRequest.add(nativeContact.contact, toContainerWithIdentifier: self.localContainer)
+				saveRequest.add(nativeContact.contact, toContainerWithIdentifier: localContainer)
 				saveRequest.addMember(nativeContact.contact, to: contactGroup)
-				tutaContactToNativeContact[contactId] = nativeContact
+				insertedContacts.append((nativeContact, newContact))
 			}
 		}
 
 		try store.execute(saveRequest)
 
-		for (tutaContactId, nativeContact) in tutaContactToNativeContact {
-			user.localContactIdentifierToServerId[nativeContact.contact.identifier] = tutaContactId
+		for (nativeContact, structuredContact) in insertedContacts {
+			user.localContactIdentifierToServerId[nativeContact.contact.identifier] = structuredContact.id
+			user.localContactIdentifierToHash[nativeContact.contact.identifier] = structuredContact.computeHash()
 		}
 	}
 
-	private func update(contacts: [(StructuredContact, NativeMutableContact)], forUser user: inout UserContactMapping) throws {
+	private func update(contacts: [(NativeMutableContact, StructuredContact)], forUser user: inout UserContactMapping) throws {
 		let store = CNContactStore()
 		let saveRequest = CNSaveRequest()
 
-		for (serverContact, nativeMutableContact) in contacts {
+		for (nativeMutableContact, serverContact) in contacts {
 			nativeMutableContact.updateContactWithData(serverContact)
 			saveRequest.update(nativeMutableContact.contact)
+			user.localContactIdentifierToHash[nativeMutableContact.contact.identifier] = serverContact.computeHash()
 		}
 
 		try store.execute(saveRequest)
 	}
 
-	private func delete(contactsWithLocalIdentifiers localIdentifiersToDelete: [String], forUser user: inout UserContactMapping) throws {
+	private func delete(contactsWithServerIDs serverIdsToDelete: [String], forUser user: inout UserContactMapping) throws {
 		// we now need to create a request to remove all contacts from the user that match an id in idsToRemove
 		// it is OK if we are missing some contacts, as they are likely already deleted
 		let store = CNContactStore()
 		let fetch = CNContactFetchRequest(keysToFetch: [CNContactIdentifierKey] as [CNKeyDescriptor])
 
-		let nativeIdentifiersToRemove = localIdentifiersToDelete
+		var serverIdToLocalIdentifier = [String: String]()
+		// doing it manually in case we have duplicates (which isn't good but migth happen)
+		for (localIdentifier, serverId) in user.localContactIdentifierToServerId { serverIdToLocalIdentifier[serverId] = localIdentifier }
+
+		let localAndServerIds = serverIdsToDelete.map { (serverId: $0, localIdentifier: serverIdToLocalIdentifier[$0]) }
+
+		let nativeIdentifiersToRemove = localAndServerIds.compactMap { $0.localIdentifier }
 		fetch.predicate = CNContact.predicateForContacts(withIdentifiers: nativeIdentifiersToRemove)
 		let save = CNSaveRequest()
 
-		try store.enumerateContacts(with: fetch) { contact, _ in
-			save.delete(contact.mutableCopy() as! CNMutableContact)
-			user.localContactIdentifierToServerId.removeValue(forKey: contact.identifier)
+		try store.enumerateContacts(with: fetch) { contact, _ in save.delete(contact.mutableCopy() as! CNMutableContact) }
+
+		for (localIdentifier, serverId) in localAndServerIds {
+			user.localContactIdentifierToServerId.removeValue(forKey: localIdentifier)
+			user.localContactIdentifierToHash.removeValue(forKey: localIdentifier)
 		}
 
 		try store.execute(save)
@@ -216,9 +223,9 @@ class IosMobileContactsFacade: MobileContactsFacade {
 		try store.execute(save)
 	}
 
-	private func matchStoredContacts(against contacts: [StructuredContact], forUser user: inout UserContactMapping) throws -> ContactMatchResult {
+	private func matchStoredContacts(against contacts: [StructuredContact], forUser user: inout UserContactMapping) throws -> MatchContactResult {
 		// prepare the result
-		var queryResult = ContactMatchResult(newContacts: [], matchedStoredContacts: [], unmatchedStoredContacts: [])
+		var queryResult = MatchContactResult()
 
 		let store = CNContactStore()
 		let fetch = CNContactFetchRequest(keysToFetch: ALL_SUPPORTED_CONTACT_KEYS)
@@ -228,24 +235,45 @@ class IosMobileContactsFacade: MobileContactsFacade {
 
 		// Group contacts by id. As we iterate over contacts we will remove the matched one from this dictionary
 		var contactsById = Dictionary(uniqueKeysWithValues: contacts.map { ($0.id, $0) })
+		// Make a copy, we will remove matched contacts from it. All unmatched ones are assumed to be deleted by user
+		var nativeContactIdentifierToHash = user.localContactIdentifierToHash
 
 		// Enumerate all contacts in our group
 		try store.enumerateContacts(with: fetch) { nativeContact, _ in
-			if let tutaContactId = user.localContactIdentifierToServerId[nativeContact.identifier],
-				let tutaContact = contactsById.removeValue(forKey: tutaContactId)
-			{
-				let nativeMutableContact = NativeMutableContact(
-					existingContact: nativeContact.mutableCopy() as! CNMutableContact,
-					withId: tutaContactId,
-					container: self.localContainer
-				)
-				queryResult.matchedStoredContacts.append((tutaContact, nativeMutableContact))
+			if let serverContactId = user.localContactIdentifierToServerId[nativeContact.identifier] {
+				if let serverContact = contactsById.removeValue(forKey: serverContactId) {
+					let structuredNative = nativeContact.toStructuredContact(serverId: serverContactId)
+					let nativeMutableContact = NativeMutableContact(existingContact: nativeContact, serverId: serverContactId, container: localContainer)
+					let expectedHash = nativeContactIdentifierToHash.removeValue(forKey: nativeContact.identifier)
+					// We check for nil so that existing contacts without hashes (from the first version without two-way sync)
+					// won't get all updated on the server. We just want to write the mapping on the first run.
+					if expectedHash == nil {
+						queryResult.nativeContactWithoutSourceId.append(nativeMutableContact)
+					} else if structuredNative.computeHash() != expectedHash {
+						queryResult.editedOnDevice.append((nativeMutableContact, serverContact))
+					} else {
+						queryResult.existingServerContacts.append((nativeMutableContact, serverContact))
+					}
+				} else {
+					queryResult.deletedOnServer.append(serverContactId)
+				}
 			} else {
-				queryResult.unmatchedStoredContacts.append(nativeContact.identifier)
+				let serverContactWithMatchingRawId = contacts.first { $0.rawId == nativeContact.identifier }
+				if let serverId = serverContactWithMatchingRawId?.id {
+					contactsById.removeValue(forKey: serverId)
+					queryResult.nativeContactWithoutSourceId.append(
+						NativeMutableContact(existingContact: nativeContact, serverId: serverId, container: localContainer)
+					)
+				} else {
+					queryResult.createdOnDevice.append(nativeContact.toStructuredContact(serverId: nil))
+				}
 			}
 		}
 
-		queryResult.newContacts = Array(contactsById.values)
+		// These ones are deleted from device because we still have hashes for them.
+		queryResult.deletedOnDevice = nativeContactIdentifierToHash.keys.compactMap { identifier in user.localContactIdentifierToServerId[identifier] }
+
+		queryResult.newServerContacts = Array(contactsById.values)
 		return queryResult
 	}
 
@@ -263,6 +291,9 @@ class IosMobileContactsFacade: MobileContactsFacade {
 
 			// update mapping right away so that everyone down the road will be using an updated version
 			mapping.systemGroupIdentifier = newGroup.identifier
+			// if the group is not there none of the mapping values make sense anymore
+			mapping.localContactIdentifierToServerId = [:]
+			mapping.localContactIdentifierToHash = [:]
 
 			// save the mapping right away so that if something later fails we won;t have a dangling group
 			self.saveMapping(mapping, forUsername: mapping.username)
@@ -275,7 +306,12 @@ class IosMobileContactsFacade: MobileContactsFacade {
 			return mapping
 		} else {
 			let newGroup = try self.createCNGroup(username: username)
-			let mapping = UserContactMapping(username: username, systemGroupIdentifier: newGroup.identifier, localContactIdentifierToServerId: [:])
+			let mapping = UserContactMapping(
+				username: username,
+				systemGroupIdentifier: newGroup.identifier,
+				localContactIdentifierToServerId: [:],
+				localContactIdentifierToHash: [:]
+			)
 
 			self.saveMapping(mapping, forUsername: username)
 			return mapping
@@ -288,7 +324,13 @@ class IosMobileContactsFacade: MobileContactsFacade {
 	}
 
 	private func getMapping(username: String) -> UserContactMapping? {
-		if let dict = getMappingsDictionary()[username] { return try! DictionaryDecoder().decode(UserContactMapping.self, from: dict) } else { return nil }
+		if var dict = getMappingsDictionary()[username] {
+			// migration from the version that didn't have hashes
+			if dict["localContactIdentifierToHash"] == nil { dict["localContactIdentifierToHash"] = [String: Int]() }
+			return try! DictionaryDecoder().decode(UserContactMapping.self, from: dict)
+		} else {
+			return nil
+		}
 	}
 
 	private func createCNGroup(username: String) throws -> CNMutableGroup {
@@ -344,22 +386,24 @@ class IosMobileContactsFacade: MobileContactsFacade {
 /// Defines a mutable contact and functionality for commiting the contact into a contact store
 private class NativeMutableContact {
 	var contact: CNMutableContact
-	let id: String
+	let serverId: String
 	let isNewContact: Bool
 	let originalHashValue: Int?
 	let localContainer: String
 
-	init(existingContact: CNMutableContact, withId: String, container: String) {
-		self.contact = existingContact
-		self.id = withId
+	var localIdentifier: String { get { contact.identifier } }
+
+	init(existingContact: CNContact, serverId: String, container: String) {
+		self.contact = existingContact.mutableCopy() as! CNMutableContact
+		self.serverId = serverId
 		self.isNewContact = false
 		self.originalHashValue = existingContact.hash
 		self.localContainer = container
 	}
 
-	init(newContactWithId contactId: String, container: String) {
+	init(newContactWithServerId serverId: String, container: String) {
 		self.contact = CNMutableContact()
-		self.id = contactId
+		self.serverId = serverId
 		self.isNewContact = true
 		self.originalHashValue = nil
 		self.localContainer = container
@@ -368,7 +412,7 @@ private class NativeMutableContact {
 	func updateContactWithData(_ data: StructuredContact) {
 		self.contact.givenName = data.firstName
 		self.contact.familyName = data.lastName
-		self.contact.nickname = data.nickname ?? ""
+		self.contact.nickname = data.nickname
 		self.contact.organizationName = data.company
 
 		if data.birthday == nil {
@@ -480,16 +524,54 @@ private extension CNLabeledValue<CNPostalAddress> {
 	}
 }
 
-extension NativeMutableContact: Equatable {
-	static func == (lhs: NativeMutableContact, rhs: NativeMutableContact) -> Bool {
-		lhs.id == rhs.id && lhs.contact == rhs.contact && lhs.isNewContact == rhs.isNewContact
+private extension Hashable {
+	func computeHash() -> Int {
+		var hasher = Hasher()
+		hasher.combine(self)
+		return hasher.finalize()
 	}
 }
 
-extension NativeMutableContact: Hashable { func hash(into hasher: inout Hasher) { hasher.combine(self.id) } }
+private struct MatchContactResult {
+	/** do not exist on the device yet but exists on the server */
+	var newServerContacts: [StructuredContact] = []
+	/** exist on the device and the server and are not marked as dirty */
+	var existingServerContacts: [(NativeMutableContact, StructuredContact)] = []
+	/** contacts that exist on the device and on the server but we did not map them via sourceId yet */
+	var nativeContactWithoutSourceId: [NativeMutableContact] = []
+	/** exists on native (and is not marked deleted or dirty) but doesn't exist on the server anymore */
+	var deletedOnServer: [String] = []
+	/** exist in both but are marked as dirty */
+	var editedOnDevice: [(NativeMutableContact, StructuredContact)] = []
+	/** exists on the device but not on the server (and marked as dirty) */
+	var createdOnDevice: [StructuredContact] = []
+	/** exists on the server but marked as deleted (and dirty) on the device */
+	var deletedOnDevice: [String] = []
+}
 
-private struct ContactMatchResult {
-	var newContacts: [StructuredContact]
-	var matchedStoredContacts: [(StructuredContact, NativeMutableContact)]
-	var unmatchedStoredContacts: [String]
+private extension CNContact {
+	func toStructuredContact(serverId: String?) -> StructuredContact {
+		let birthday = birthday.flatMap { birthday in
+			if let year = birthday.year, let month = birthday.month, let day = birthday.day {
+				String(format: "%04d-%02d-%02d", year, month, day)
+			} else if let month = birthday.month, let day = birthday.day {
+				String(format: "--%02d-%02d", month, day)
+			} else {
+				nil
+			}
+		}
+
+		return StructuredContact(
+			id: serverId,
+			firstName: givenName,
+			lastName: familyName,
+			nickname: nickname,
+			company: organizationName,
+			birthday: birthday,
+			mailAddresses: emailAddresses.map { $0.toStructuredMailAddress() },
+			phoneNumbers: phoneNumbers.map { $0.toStructuredPhoneNumber() },
+			addresses: postalAddresses.map { $0.toStructuredAddress() },
+			rawId: identifier
+		)
+	}
 }

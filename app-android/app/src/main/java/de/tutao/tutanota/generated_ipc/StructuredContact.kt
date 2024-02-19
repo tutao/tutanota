@@ -12,7 +12,7 @@ data class StructuredContact(
 	val id: String?,
 	val firstName: String,
 	val lastName: String,
-	val nickname: String?,
+	val nickname: String,
 	val company: String,
 	val birthday: String?,
 	val mailAddresses: List<StructuredMailAddress>,

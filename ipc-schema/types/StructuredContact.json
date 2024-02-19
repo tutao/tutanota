@@ -5,7 +5,7 @@
 		"id": "string?",
 		"firstName": "string",
 		"lastName": "string",
-		"nickname": "string?",
+		"nickname": "string",
 		"company": "string",
 		"birthday": "string?",
 		"mailAddresses": "List<StructuredMailAddress>",

@@ -5,7 +5,7 @@ public struct StructuredContact : Codable {
 	let id: String?
 	let firstName: String
 	let lastName: String
-	let nickname: String?
+	let nickname: String
 	let company: String
 	let birthday: String?
 	let mailAddresses: [StructuredMailAddress]

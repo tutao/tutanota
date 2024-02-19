@@ -4,6 +4,6 @@
 	"fields": {
 		"createdOnDevice": "List<StructuredContact>",
 		"editedOnDevice": "List<StructuredContact>",
-		"deletedOnDevice": "List<StructuredContact>"
+		"deletedOnDevice": "List<string>"
 	}
 }
