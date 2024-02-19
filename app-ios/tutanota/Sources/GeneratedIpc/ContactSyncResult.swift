@@ -4,5 +4,5 @@
 public struct ContactSyncResult : Codable {
 	let createdOnDevice: [StructuredContact]
 	let editedOnDevice: [StructuredContact]
-	let deletedOnDevice: [StructuredContact]
+	let deletedOnDevice: [String]
 }
