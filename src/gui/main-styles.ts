@@ -1190,6 +1190,12 @@ styles.registerStyle("main", () => {
 			"max-width": px(size.button_height),
 			"max-height": px(size.button_height),
 		},
+		".wizard-next-button": {
+			position: "absolute",
+			bottom: px(size.vpad),
+			left: px(size.hpad_medium),
+			width: "90%",
+		},
 		".compact": {
 			width: `${size.button_height_compact}px !important`,
 			height: `${size.button_height_compact}px !important`,
