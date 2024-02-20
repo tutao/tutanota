@@ -4,11 +4,7 @@ import { SetupCongratulationsPage, SetupCongratulationsPageAttrs } from "./setup
 import m from "mithril"
 import { LoginButton } from "../base/buttons/LoginButton.js"
 import { isApp } from "../../api/common/Env.js"
-
-// TODO: Finish this function
-function isSetupNeeded(): boolean {
-	return isApp()
-}
+import { deviceConfig } from "../../misc/DeviceConfig.js"
 
 export function renderNextButton(dom: HTMLElement) {
 	return m(LoginButton, {
@@ -22,7 +18,8 @@ export function renderNextButton(dom: HTMLElement) {
 
 // Show the onboarding wizard if this is the first time the app has been opened since install
 export async function showSetupWizardIfNeeded(): Promise<void> {
-	if (isSetupNeeded()) {
+	const isSetupComplete = deviceConfig.getIsSetupComplete()
+	if (isApp() && !isSetupComplete) {
 		await showSetupWizard()
 	}
 }
@@ -32,6 +29,7 @@ export async function showSetupWizard(): Promise<void> {
 	const deferred = defer<void>()
 
 	const wizardBuilder = createWizardDialog(null, wizardPages, async () => {
+		deviceConfig.setIsSetupComplete(true)
 		deferred.resolve()
 	})
 	wizardBuilder.dialog.show()

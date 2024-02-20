@@ -43,6 +43,8 @@ interface ConfigObject {
 	syncContactsWithPhonePreference: Record<Id, boolean>
 	/** Whether mobile calendar navigation is in the "per week" or "per month" mode */
 	isCalendarDaySelectorExpanded: boolean
+	// True if the app has already been run after install
+	isSetupComplete: boolean
 }
 
 /**
@@ -98,6 +100,7 @@ export class DeviceConfig implements CredentialsStorage, UsageTestStorage, NewsI
 			hasParticipatedInCredentialsMigration: loadedConfig.hasParticipatedInCredentialsMigration ?? false,
 			syncContactsWithPhonePreference: loadedConfig.syncContactsWithPhonePreference ?? {},
 			isCalendarDaySelectorExpanded: loadedConfig.isCalendarDaySelectorExpanded ?? false,
+			isSetupComplete: loadedConfig.isSetupComplete ?? false,
 		}
 
 		// We need to write the config if there was a migration and if we generate the signup token and if.
@@ -166,6 +169,15 @@ export class DeviceConfig implements CredentialsStorage, UsageTestStorage, NewsI
 
 	setNoAlarmsScheduled() {
 		this.config.scheduledAlarmModelVersionPerUser = {}
+		this.writeToStorage()
+	}
+
+	getIsSetupComplete(): boolean {
+		return this.config.isSetupComplete ?? false
+	}
+
+	setIsSetupComplete(value: boolean): void {
+		this.config.isSetupComplete = value
 		this.writeToStorage()
 	}
 
