@@ -1,5 +1,9 @@
+use std::collections::HashMap;
+use std::fmt::Debug;
+
+use std::sync::Arc;
+
 use wasm_bindgen::prelude::wasm_bindgen;
-use std::sync::{Arc, TryLockError};
 
 uniffi::setup_scaffolding!();
 
@@ -22,15 +26,17 @@ impl TypeRef {
 
 #[derive(uniffi::Object)]
 #[wasm_bindgen]
-pub struct EntityClient {}
+pub struct EntityClient {
+    rest_client: Arc<dyn RestClient>
+}
 
 #[cfg(not(any(target_family = "wasm")))]
 #[uniffi::export]
 impl EntityClient {
     #[cfg(not(any(target_family = "wasm")))]
     #[uniffi::constructor]
-    pub fn new() -> Arc<EntityClient> {
-        Arc::new(EntityClient {})
+    pub fn new(rest_client: Arc<dyn RestClient>) -> Arc<Self> {
+        Arc::new(EntityClient {rest_client})
     }
 }
 
@@ -38,8 +44,8 @@ impl EntityClient {
 #[wasm_bindgen]
 impl EntityClient {
     #[wasm_bindgen(constructor)]
-    pub fn wasm_new() -> EntityClient {
-        EntityClient {}
+    pub fn wasm_new(rest_client: &dyn RestClient) -> EntityClient {
+        EntityClient {rest_client: Arc::new(rest_client)}
     }
 }
 
@@ -48,18 +54,36 @@ impl EntityClient {
 impl EntityClient {
     #[wasm_bindgen]
     pub async fn load_element(&self, type_ref: &TypeRef, id: String) -> String {
-        return String::from(format!("hi from rust! {:?} {:?}", type_ref, id));
+        let options = RestClientOptions {
+            body: None,
+            headers: HashMap::from([("Header".to_owned(), "Value".to_owned())]),
+            query: None,
+        };
+        let url = format!("http://test.com/{}/{}/{}", type_ref.app, type_ref.app, id);
+        let response = self.rest_client.request_string(url, HttpMethod::GET, options).await;
+        return String::from(format!("hi from rust! {}", response));
     }
 }
 
+#[derive(uniffi::Enum)]
+pub enum HttpMethod {
+    GET,
+    POST,
+    PUT,
+    DELETE,
+}
 
-#[wasm_bindgen]
-struct TestStruct {}
+#[derive(uniffi::Record)]
+pub struct RestClientOptions {
+    pub headers: HashMap<String, String>,
+    pub query: Option<HashMap<String, String>>,
+    pub body: Option<Vec<u8>>,
+}
 
-#[wasm_bindgen]
-impl TestStruct {
-    #[wasm_bindgen(constructor)]
-    pub fn wasm_new() -> TestStruct {
-        return TestStruct {};
-    }
+
+#[uniffi::export]
+#[async_trait::async_trait]
+pub trait RestClient : Send + Sync {
+     async fn request_binary(&self, url: String, method: HttpMethod, options: RestClientOptions) -> Vec<u8>;
+     async fn request_string(&self, url: String, method: HttpMethod, options: RestClientOptions) -> String;
 }
