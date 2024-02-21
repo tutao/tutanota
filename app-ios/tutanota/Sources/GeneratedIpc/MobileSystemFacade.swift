@@ -25,4 +25,16 @@ public protocol MobileSystemFacade {
 		_ text: String,
 		_ title: String
 	) async throws -> Bool
+	/**
+	 * Returns whether the specified system permission has already been granted by the user.
+	 */
+	func hasPermission(
+		_ permission: PermissionType
+	) async throws -> Bool
+	/**
+	 * Requests a system permission from the user.
+	 */
+	func requestPermission(
+		_ permission: PermissionType
+	) async throws -> Void
 }

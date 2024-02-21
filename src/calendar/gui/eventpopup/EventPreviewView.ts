@@ -45,6 +45,7 @@ export const ReplyButtons = pureComponent((participation: NonNullable<EventPrevi
 		Object.assign(
 			{
 				text,
+				class: "width-min-content",
 				click: async () => {
 					try {
 						await participation.setParticipation(status)

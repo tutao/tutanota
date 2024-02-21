@@ -110,6 +110,7 @@ import { ContactFacade } from "../worker/facades/lazy/ContactFacade.js"
 import { ContactImporter } from "../../contacts/ContactImporter.js"
 import { MobileContactsFacade } from "../../native/common/generatedipc/MobileContactsFacade.js"
 import { PermissionError } from "../common/error/PermissionError.js"
+import stream from "mithril/stream"
 
 assertMainOrNode()
 
@@ -471,6 +472,10 @@ class MainLocator {
 
 	get mobileContactsFacade(): MobileContactsFacade {
 		return this.getNativeInterface("mobileContactsFacade")
+	}
+
+	get isAppVisible(): stream<boolean> {
+		return this.getNativeInterface("isAppVisible")
 	}
 
 	async mailAddressTableModelForOwnMailbox(): Promise<MailAddressTableModel> {

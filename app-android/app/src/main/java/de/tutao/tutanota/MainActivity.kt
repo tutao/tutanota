@@ -502,7 +502,7 @@ class MainActivity : FragmentActivity() {
 	get() = BuildConfig.RES_ADDRESS
 
 
-  private fun hasPermission(permission: String): Boolean {
+	fun hasPermission(permission: String): Boolean {
 	return ContextCompat.checkSelfPermission(this, permission) == PackageManager.PERMISSION_GRANTED
   }
 

@@ -23,7 +23,7 @@ export class BaseButton implements ClassComponent<BaseButtonAttrs> {
 	private dom: HTMLElement | null = null
 
 	view({ attrs, children }: Vnode<BaseButtonAttrs, this>): Children | void | null {
-		const disabled = booleanToAttributeValue(attrs.disabled)
+		const disabled = attrs.disabled ? true : null
 		const pressed = booleanToAttributeValue(attrs.pressed)
 		return m(
 			"button",

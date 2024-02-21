@@ -16,4 +16,10 @@ export class MobileSystemFacadeSendDispatcher implements MobileSystemFacade {
 	async shareText(...args: Parameters<MobileSystemFacade["shareText"]>) {
 		return this.transport.invokeNative("ipc", ["MobileSystemFacade", "shareText", ...args])
 	}
+	async hasPermission(...args: Parameters<MobileSystemFacade["hasPermission"]>) {
+		return this.transport.invokeNative("ipc", ["MobileSystemFacade", "hasPermission", ...args])
+	}
+	async requestPermission(...args: Parameters<MobileSystemFacade["requestPermission"]>) {
+		return this.transport.invokeNative("ipc", ["MobileSystemFacade", "requestPermission", ...args])
+	}
 }

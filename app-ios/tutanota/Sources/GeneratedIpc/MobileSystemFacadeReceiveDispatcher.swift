@@ -28,6 +28,18 @@ public class MobileSystemFacadeReceiveDispatcher {
 				title
 			)
 			return toJson(result)
+		case "hasPermission":
+			let permission = try! JSONDecoder().decode(PermissionType.self, from: arg[0].data(using: .utf8)!)
+			let result = try await self.facade.hasPermission(
+				permission
+			)
+			return toJson(result)
+		case "requestPermission":
+			let permission = try! JSONDecoder().decode(PermissionType.self, from: arg[0].data(using: .utf8)!)
+			try await self.facade.requestPermission(
+				permission
+			)
+			return "null"
 		default:
 			fatalError("licc messed up! \(method)")
 		}
