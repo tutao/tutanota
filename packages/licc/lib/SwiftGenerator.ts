@@ -1,4 +1,5 @@
 import {
+	camelCaseToSnakeCase,
 	EnumDefinition,
 	FacadeDefinition,
 	getArgs,
@@ -224,7 +225,7 @@ export class SwiftGenerator implements LangGenerator {
 		return new Accumulator()
 			.do((acc) => this.generateDocComment(acc, doc))
 			.line(`public enum ${name}: Int {`)
-			.indented((acc) => acc.lines(values.map((value, index) => `case ${value} = ${index}`)))
+			.indented((acc) => acc.lines(values.map((value, index) => `case ${camelCaseToSnakeCase(value)} = ${index}`))) // enums are snake_case
 			.line("}")
 			.finish()
 	}

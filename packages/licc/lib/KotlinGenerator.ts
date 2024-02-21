@@ -1,4 +1,5 @@
 import {
+	camelCaseToSnakeCase,
 	EnumDefinition,
 	FacadeDefinition,
 	getArgs,
@@ -213,7 +214,7 @@ export class KotlinGenerator implements LangGenerator {
 		return new Accumulator()
 			.do((acc) => this.generateDocComment(acc, doc))
 			.line(`enum class ${name} {`)
-			.indented((acc) => acc.lines(values.map((value) => `${value},`)))
+			.indented((acc) => acc.lines(values.map((value) => `${camelCaseToSnakeCase(value).toUpperCase()},`))) // enums are SCREAMING_SNAKE_CASE
 			.line("}")
 			.finish()
 	}
