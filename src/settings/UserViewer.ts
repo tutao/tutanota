@@ -157,7 +157,7 @@ export class UserViewer implements UpdatableSettingsDetailsViewer {
 	}
 
 	private onChangeName(name: string) {
-		Dialog.showProcessTextInputDialog("edit_action", "name_label", null, name, (newName) => {
+		Dialog.showProcessTextInputDialog({ title: "edit_action", label: "name_label", defaultValue: name }, (newName) => {
 			this.userGroupInfo.name = newName
 			return locator.entityClient.update(this.userGroupInfo)
 		})
