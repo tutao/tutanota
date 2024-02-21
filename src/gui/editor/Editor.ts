@@ -236,7 +236,11 @@ export class Editor implements ImageHandler, Component {
 	}
 
 	makeLink() {
-		Dialog.showTextInputDialog("makeLink_action", "url_label", null, "", undefined, TextFieldType.Url).then((url) => {
+		Dialog.showTextInputDialog({
+			title: "makeLink_action",
+			label: "url_label",
+			textFieldType: TextFieldType.Url,
+		}).then((url) => {
 			if (isMailAddress(url, false)) {
 				url = "mailto:" + url
 			} else if (!url.startsWith("http://") && !url.startsWith("https://") && !url.startsWith("mailto:") && !url.startsWith("{")) {

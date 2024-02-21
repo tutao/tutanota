@@ -520,7 +520,11 @@ export class ContactEditor {
 	private onTypeSelected<K, T extends { type: K; customTypeName: string }>(isCustom: boolean, key: K, aggregate: T): void {
 		if (isCustom) {
 			setTimeout(() => {
-				Dialog.showTextInputDialog("customLabel_label", "customLabel_label", null, aggregate.customTypeName).then((name) => {
+				Dialog.showTextInputDialog({
+					title: "customLabel_label",
+					label: "customLabel_label",
+					defaultValue: aggregate.customTypeName,
+				}).then((name) => {
 					aggregate.customTypeName = name
 					aggregate.type = key
 				})
