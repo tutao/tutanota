@@ -30,6 +30,24 @@
 				}
 			],
 			"ret": "boolean"
+		},
+		"hasPermission": {
+			"doc": "Returns whether the specified system permission has already been granted by the user.",
+			"arg": [
+				{
+					"permission": "PermissionType"
+				}
+			],
+			"ret": "boolean"
+		},
+		"requestPermission": {
+			"doc": "Requests a system permission from the user.",
+			"arg": [
+				{
+					"permission": "PermissionType"
+				}
+			],
+			"ret": "void"
 		}
 	}
 }

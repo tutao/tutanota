@@ -28,4 +28,16 @@ interface MobileSystemFacade {
 		text: String,
 		title: String,
 	): Boolean
+	/**
+	 * Returns whether the specified system permission has already been granted by the user.
+	 */
+	 suspend fun hasPermission(
+		permission: PermissionType,
+	): Boolean
+	/**
+	 * Requests a system permission from the user.
+	 */
+	 suspend fun requestPermission(
+		permission: PermissionType,
+	): Unit
 }

@@ -260,6 +260,9 @@ styles.registerStyle("main", () => {
 			width: "min-content",
 			height: "min-content",
 		},
+		".width-min-content": {
+			width: "min-content",
+		},
 		// margins
 		".m-0": {
 			margin: 0,

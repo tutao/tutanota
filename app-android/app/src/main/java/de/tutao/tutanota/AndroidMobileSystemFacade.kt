@@ -1,6 +1,6 @@
 package de.tutao.tutanota
 
-import android.app.Activity
+import android.Manifest
 import android.content.ActivityNotFoundException
 import android.content.ClipData
 import android.content.Intent
@@ -10,6 +10,7 @@ import android.util.Log
 import androidx.core.content.ContextCompat.startActivity
 import androidx.core.content.FileProvider
 import de.tutao.tutanota.ipc.MobileSystemFacade
+import de.tutao.tutanota.ipc.PermissionType
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.withContext
 import java.io.File
@@ -17,7 +18,7 @@ import java.io.IOException
 
 class AndroidMobileSystemFacade(
   private val fileFacade: AndroidFileFacade,
-  private val activity: Activity,
+  private val activity: MainActivity,
 ) : MobileSystemFacade {
 
 
@@ -34,15 +35,19 @@ class AndroidMobileSystemFacade(
 	}
   }
 
+
+
   override suspend fun goToSettings() {
 	withContext(Dispatchers.Main) {
 	  val intent = Intent(
-		Settings.ACTION_APPLICATION_DETAILS_SETTINGS,
-		Uri.parse("package:${activity.packageName}")
+			  Settings.ACTION_APPLICATION_DETAILS_SETTINGS,
+			  Uri.parse("package:${activity.packageName}")
 	  )
 	  startActivity(activity, intent, null)
 	}
   }
+
+
 
   override suspend fun shareText(text: String, title: String): Boolean {
 	val sendIntent = Intent(Intent.ACTION_SEND)
@@ -83,5 +88,24 @@ class AndroidMobileSystemFacade(
 
   companion object {
 	private const val TAG = "SystemFacade"
+  }
+
+  override suspend fun hasPermission(permission: PermissionType): Boolean {
+	return when (permission) {
+	  PermissionType.CONTACTS -> activity.hasPermission(Manifest.permission.READ_CONTACTS) && activity.hasPermission(Manifest.permission.WRITE_CONTACTS)
+	  PermissionType.IGNORE_BATTERY_OPTIMIZATION -> activity.hasPermission(Manifest.permission.REQUEST_IGNORE_BATTERY_OPTIMIZATIONS)
+	  PermissionType.NOTIFICATION -> if (atLeastTiramisu()) activity.hasPermission(Manifest.permission.POST_NOTIFICATIONS) else true
+	}
+  }
+
+  override suspend fun requestPermission(permission: PermissionType) {
+	when (permission) {
+	  PermissionType.CONTACTS -> {
+		activity.getPermission(Manifest.permission.READ_CONTACTS)
+		activity.getPermission(Manifest.permission.WRITE_CONTACTS)
+	  }
+	  PermissionType.IGNORE_BATTERY_OPTIMIZATION -> activity.getPermission(Manifest.permission.REQUEST_IGNORE_BATTERY_OPTIMIZATIONS)
+	  PermissionType.NOTIFICATION -> if (atLeastTiramisu()) activity.getPermission(Manifest.permission.POST_NOTIFICATIONS)
+	}
   }
 }
