@@ -24,11 +24,7 @@ await program
  */
 async function run({ platform }) {
 	console.log(`bumping version for ${platform ?? "all"}`)
-	const clientVersions = await calculateClientVersions()
-
-	const currentVersion = clientVersions.currentVersion
-	const currentVersionString = clientVersions.currentVersionString
-	const newVersionString = clientVersions.newVersionString
+	const { currentVersion, currentVersionString, newVersionString } = await calculateClientVersions()
 
 	if (platform === "all" || platform === "webdesktop") {
 		await bumpWorkspaces(newVersionString)
