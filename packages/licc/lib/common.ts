@@ -98,3 +98,16 @@ export function capitalize(input: string): string {
 export function minusculize(input: string): string {
 	return input.replace(/^\w/, (c) => c.toLowerCase())
 }
+
+export function camelCaseToSnakeCase(name: string): string {
+	let finalName = ""
+	for (let i = 0; i < name.length; i++) {
+		const char = name.charAt(i)
+		const lower = char.toLowerCase()
+		if (char !== lower) {
+			finalName += "_"
+		}
+		finalName += lower
+	}
+	return finalName
+}
