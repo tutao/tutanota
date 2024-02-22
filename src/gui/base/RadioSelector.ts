@@ -6,7 +6,7 @@ import { theme } from "../theme"
 export type RadioSelectorOption<T> = {
 	name: TranslationText
 	value: T
-	helpText: TranslationText
+	helpText?: TranslationText
 }
 export type RadioSelectorAttrs<T> = {
 	options: ReadonlyArray<RadioSelectorOption<T>>
@@ -34,7 +34,7 @@ export class RadioSelector<T> implements Component<RadioSelectorAttrs<T>> {
 					onOptionSelected(option.value)
 				},
 			},
-			[m(".b", lang.getMaybeLazy(option.name)), m(".small", lang.getMaybeLazy(option.helpText))],
+			[m(".b", lang.getMaybeLazy(option.name)), option.helpText != null ? m(".small", lang.getMaybeLazy(option.helpText)) : null],
 		)
 	}
 }
