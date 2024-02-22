@@ -10,7 +10,7 @@ import { LoginController } from "./LoginController"
 import type { ContactModel } from "../../contacts/model/ContactModel"
 import { EntityClient } from "../common/EntityClient"
 import type { CalendarInfo, CalendarModel } from "../../calendar/model/CalendarModel"
-import { defer, DeferredObject, lazy, lazyAsync, lazyMemoized, noOp, ofClass } from "@tutao/tutanota-utils"
+import { assert, defer, DeferredObject, lazy, lazyAsync, lazyMemoized, noOp, ofClass } from "@tutao/tutanota-utils"
 import { ProgressTracker } from "./ProgressTracker"
 import { MinimizedMailEditorViewModel } from "../../mail/model/MinimizedMailEditorViewModel"
 import { SchedulerImpl } from "../common/utils/Scheduler.js"
@@ -164,7 +164,6 @@ class MainLocator {
 	infoMessageHandler!: InfoMessageHandler
 	Const!: Record<string, any>
 
-	private nativeContactSyncManager!: NativeContactsSyncManager | null
 	private nativeInterfaces: NativeInterfaces | null = null
 	private exposedNativeInterfaces: ExposedNativeInterface | null = null
 	private entropyFacade!: EntropyFacade
@@ -848,20 +847,8 @@ class MainLocator {
 	}
 
 	nativeContactsSyncManager = lazyMemoized(() => {
-		if (!isApp()) return null
-
-		if (this.nativeContactSyncManager == null) {
-			this.nativeContactSyncManager = new NativeContactsSyncManager(
-				this.logins,
-				this.mobileContactsFacade,
-				this.entityClient,
-				this.eventController,
-				this.contactModel,
-				deviceConfig,
-			)
-		}
-
-		return this.nativeContactSyncManager
+		assert(isApp(), "isApp")
+		return new NativeContactsSyncManager(this.logins, this.mobileContactsFacade, this.entityClient, this.eventController, this.contactModel, deviceConfig)
 	})
 
 	// For testing argon2 migration after login. The production server will reject this request.
