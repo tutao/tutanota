@@ -17,7 +17,7 @@ import { CancelledError } from "../../api/common/error/CancelledError.js"
 import { Keys } from "../../api/common/TutanotaConstants.js"
 import { BaseButton } from "../base/buttons/BaseButton.js"
 
-const DEFAULT_MODE = CredentialEncryptionMode.DEVICE_LOCK
+export const DEFAULT_CREDENTIAL_ENCRYPTION_MODE = CredentialEncryptionMode.DEVICE_LOCK
 
 export async function showCredentialsEncryptionModeDialog(credentialsProvider: CredentialsProvider): Promise<void> {
 	await CredentialEncryptionMethodDialog.showAndWaitForSelection(credentialsProvider)
@@ -57,7 +57,7 @@ class CredentialEncryptionMethodDialog {
 									left: () => [
 										{
 											label: "skip_action",
-											click: () => this._onModeSelected(DEFAULT_MODE),
+											click: () => this._onModeSelected(DEFAULT_CREDENTIAL_ENCRYPTION_MODE),
 											type: ButtonType.Secondary,
 										} as const,
 									],
@@ -68,9 +68,9 @@ class CredentialEncryptionMethodDialog {
 						".rel",
 						m(SelectCredentialsEncryptionModeView, {
 							error: this._error,
-							onModeSelected: (mode) => this._onModeSelected(mode),
+							onConfirm: (mode) => this._onModeSelected(mode),
 							supportedModes: this._supportedModes,
-							previousSelection: this._previousSelection ?? DEFAULT_MODE,
+							previousSelection: this._previousSelection ?? DEFAULT_CREDENTIAL_ENCRYPTION_MODE,
 						}),
 					),
 				])
@@ -125,12 +125,13 @@ class CredentialEncryptionMethodDialog {
 
 type SelectCredentialEncryptionModeDialogAttrs = {
 	previousSelection: CredentialEncryptionMode
-	onModeSelected: (arg0: CredentialEncryptionMode) => unknown
+	onConfirm: ((encryptionMode: CredentialEncryptionMode) => unknown) | null
 	supportedModes: ReadonlyArray<CredentialEncryptionMode>
 	error: string | null
+	onModeSelected?: (mode: CredentialEncryptionMode) => unknown
 }
 
-class SelectCredentialsEncryptionModeView implements Component<SelectCredentialEncryptionModeDialogAttrs> {
+export class SelectCredentialsEncryptionModeView implements Component<SelectCredentialEncryptionModeDialogAttrs> {
 	_currentMode: CredentialEncryptionMode
 
 	constructor({ attrs }: Vnode<SelectCredentialEncryptionModeDialogAttrs>) {
@@ -140,6 +141,7 @@ class SelectCredentialsEncryptionModeView implements Component<SelectCredentialE
 	view({ attrs }: Vnode<SelectCredentialEncryptionModeDialogAttrs>): Children {
 		const options = this._getSupportedOptions(attrs)
 
+		const { onConfirm } = attrs
 		return [
 			m(
 				".flex.col.pt.scroll.plr-l",
@@ -160,12 +162,13 @@ class SelectCredentialsEncryptionModeView implements Component<SelectCredentialE
 							selectedOption: this._currentMode,
 							onOptionSelected: (mode: CredentialEncryptionMode) => {
 								this._currentMode = mode
+								attrs.onModeSelected?.(mode)
 							},
 						}),
 					),
 				],
 			),
-			this.renderSelectButton(() => attrs.onModeSelected(this._currentMode)),
+			onConfirm ? this.renderSelectButton(() => onConfirm(this._currentMode)) : null,
 		]
 	}
 

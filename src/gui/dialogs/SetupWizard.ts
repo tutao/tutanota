@@ -16,6 +16,7 @@ import stream from "mithril/stream"
 import { TranslationKey } from "../../misc/LanguageViewModel.js"
 import { SetupThemePage, SetupThemePageAttrs } from "./setupwizardpages/SetupThemePage.js"
 import { SetupContactsPage, SetupContactsPageAttrs } from "./setupwizardpages/SetupContactsPage.js"
+import { SetupLockPage, SetupLockPageAttrs } from "./setupwizardpages/SetupLockPage.js"
 
 export function renderPermissionButton(permissionName: TranslationKey, isPermissionGranted: boolean, onclick: ClickHandler) {
 	return m(BannerButton, {
@@ -50,6 +51,7 @@ export async function showSetupWizard(): Promise<void> {
 			SetupContactsPage,
 			new SetupContactsPageAttrs(locator.nativeContactsSyncManager(), await locator.contactImporter(), locator.systemFacade),
 		),
+		wizardPageWrapper(SetupLockPage, new SetupLockPageAttrs(locator.credentialsProvider)),
 	]
 	const deferred = defer<void>()
 
