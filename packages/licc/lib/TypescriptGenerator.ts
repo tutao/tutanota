@@ -169,7 +169,7 @@ export class TypescriptGenerator implements LangGenerator {
 		return new Accumulator()
 			.do((acc) => this.generateDocComment(acc, doc))
 			.line(`export const enum ${name} {`)
-			.indented((acc) => acc.lines(values.map((value, index) => `${value} = ${index},`)))
+			.indented((acc) => acc.lines(values.map((value, index) => `${value} = "${index}",`)))
 			.line("}")
 			.finish()
 	}
