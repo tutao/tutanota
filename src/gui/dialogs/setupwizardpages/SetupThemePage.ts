@@ -1,26 +1,19 @@
-import m, { Children, VnodeDOM } from "mithril"
+import m, { Children } from "mithril"
 import { WizardPageAttrs, WizardPageN } from "../../base/WizardDialog.js"
-import { renderNextButton } from "../SetupWizard.js"
-import { Icon } from "../../base/Icon.js"
 import { Icons } from "../../base/icons/Icons.js"
 import { lang } from "../../../misc/LanguageViewModel.js"
 import { RadioSelector, RadioSelectorAttrs } from "../../base/RadioSelector.js"
 import { themeOptions } from "../../../settings/AppearanceSettingsViewer.js"
 import { themeController, ThemePreference } from "../../theme.js"
+import { SetupPageLayout } from "./SetupPageLayout.js"
 
 export class SetupThemePage implements WizardPageN<null> {
-	private dom!: HTMLElement
-
-	oncreate(vnode: VnodeDOM<WizardPageAttrs<null>>) {
-		this.dom = vnode.dom as HTMLElement
-	}
-
 	view(): Children {
-		return m("section.full-height.center", [
-			m(Icon, {
-				icon: Icons.Notifications,
-				large: true,
-			}),
+		return m(
+			SetupPageLayout,
+			{
+				icon: Icons.Palette,
+			},
 			m("p.full-width.pt-l", "Which theme would you like to use?"),
 			m(RadioSelector, {
 				options: themeOptions,
@@ -29,8 +22,7 @@ export class SetupThemePage implements WizardPageN<null> {
 					themeController.setThemePreference(option, true)
 				},
 			} satisfies RadioSelectorAttrs<ThemePreference>),
-			renderNextButton(this.dom),
-		])
+		)
 	}
 }
 
