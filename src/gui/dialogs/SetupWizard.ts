@@ -31,16 +31,6 @@ export function renderPermissionButton(permissionName: TranslationKey, isPermiss
 	})
 }
 
-export function renderNextButton(dom: HTMLElement) {
-	return m(LoginButton, {
-		label: "next_action",
-		class: "wizard-next-button",
-		onclick: () => {
-			emitWizardEvent(dom, WizardEventType.SHOW_NEXT_PAGE)
-		},
-	})
-}
-
 // Show the onboarding wizard if this is the first time the app has been opened since install
 export async function showSetupWizardIfNeeded(): Promise<void> {
 	const isSetupComplete = deviceConfig.getIsSetupComplete()

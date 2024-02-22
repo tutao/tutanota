@@ -3,11 +3,11 @@ import { WizardPageAttrs, WizardPageN } from "../../base/WizardDialog.js"
 import { PermissionType } from "../../../native/common/generatedipc/PermissionType.js"
 import { isAndroidApp } from "../../../api/common/Env.js"
 import { lang } from "../../../misc/LanguageViewModel.js"
-import { queryPermissionsState, renderNextButton, renderPermissionButton, requestPermission } from "../SetupWizard.js"
-import { Icon } from "../../base/Icon.js"
+import { queryPermissionsState, renderPermissionButton, requestPermission } from "../SetupWizard.js"
 import { Icons } from "../../base/icons/Icons.js"
 import { locator } from "../../../api/main/MainLocator.js"
 import stream from "mithril/stream"
+import { SetupPageLayout } from "./SetupPageLayout.js"
 
 export interface NotificationPermissionsData {
 	isNotificationPermissionGranted: boolean
@@ -15,10 +15,7 @@ export interface NotificationPermissionsData {
 }
 
 export class SetupNotificationsPage implements WizardPageN<stream<NotificationPermissionsData>> {
-	private dom!: HTMLElement
-
 	oncreate(vnode: VnodeDOM<WizardPageAttrs<stream<NotificationPermissionsData>>>) {
-		this.dom = vnode.dom as HTMLElement
 		// Redraw the page when the user resumes the app to check for changes in permissions
 		locator.isAppVisible.map((isVisible) => {
 			if (isVisible) {
@@ -31,11 +28,7 @@ export class SetupNotificationsPage implements WizardPageN<stream<NotificationPe
 	}
 
 	view({ attrs }: Vnode<WizardPageAttrs<stream<NotificationPermissionsData>>>): Children {
-		return m("section.center.pt", [
-			m(Icon, {
-				icon: Icons.Notifications,
-				large: true,
-			}),
+		return m(SetupPageLayout, { icon: Icons.Notifications }, [
 			m("p", lang.get("allowNotifications_msg")),
 			renderPermissionButton("grant_notification_permission_action", attrs.data().isNotificationPermissionGranted, async () => {
 				// Ask for the notification permission
@@ -60,7 +53,6 @@ export class SetupNotificationsPage implements WizardPageN<stream<NotificationPe
 						}),
 				  ])
 				: null,
-			renderNextButton(this.dom),
 		])
 	}
 }
