@@ -16,6 +16,25 @@ import { isDesktop } from "../api/common/Env"
 import { locator } from "../api/main/MainLocator"
 import { EntityUpdateData, isUpdateForTypeRef } from "../api/common/utils/EntityUpdateUtils.js"
 
+export const themeOptions = [
+	{
+		name: "systemThemePref_label",
+		value: "auto:light|dark",
+	},
+	{
+		name: "light_label",
+		value: "light",
+	},
+	{
+		name: "dark_label",
+		value: "dark",
+	},
+	{
+		name: "blue_label",
+		value: "blue",
+	},
+] as const
+
 export class AppearanceSettingsViewer implements UpdatableSettingsViewer {
 	private _customThemes: Array<ThemeId> | null = null
 
@@ -138,24 +157,7 @@ export class AppearanceSettingsViewer implements UpdatableSettingsViewer {
 
 		const themeDropDownAttrs: DropDownSelectorAttrs<ThemePreference> = {
 			label: "switchColorTheme_action",
-			items: [
-				{
-					name: lang.get("systemThemePref_label"),
-					value: "auto:light|dark",
-				},
-				{
-					name: lang.get("light_label"),
-					value: "light",
-				},
-				{
-					name: lang.get("dark_label"),
-					value: "dark",
-				},
-				{
-					name: lang.get("blue_label"),
-					value: "blue",
-				},
-			].concat(customOptions),
+			items: [...themeOptions.map(({ name, value }) => ({ name: lang.get(name), value: value })), ...customOptions],
 			selectedValue: themeController.themePreference,
 			selectionChangedHandler: (value) => themeController.setThemePreference(value),
 			dropdownWidth: 300,

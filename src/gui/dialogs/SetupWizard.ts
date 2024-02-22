@@ -15,6 +15,7 @@ import { PermissionError } from "../../api/common/error/PermissionError.js"
 import { Dialog } from "../base/Dialog.js"
 import stream from "mithril/stream"
 import { TranslationKey } from "../../misc/LanguageViewModel.js"
+import { SetupThemePage, SetupThemePageAttrs } from "./setupwizardpages/SetupThemePage.js"
 
 export function renderPermissionButton(permissionName: TranslationKey, isPermissionGranted: boolean, onclick: ClickHandler) {
 	return m(BannerButton, {
@@ -54,6 +55,7 @@ export async function showSetupWizard(): Promise<void> {
 	const wizardPages = [
 		wizardPageWrapper(SetupCongratulationsPage, new SetupCongratulationsPageAttrs()),
 		wizardPageWrapper(SetupNotificationsPage, new SetupNotificationsPageAttrs(NotificationPermissions)),
+		wizardPageWrapper(SetupThemePage, new SetupThemePageAttrs()),
 	]
 	const deferred = defer<void>()
 
