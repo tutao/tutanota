@@ -1,13 +1,12 @@
 import { Dialog, DialogType } from "../gui/base/Dialog.js"
-import { assertNotNull, getFirstOrThrow, NBSP, ofClass } from "@tutao/tutanota-utils"
-import { vCardFileToVCards, vCardListToContacts } from "./VCardImporter.js"
+import { assert, assertNotNull, getFirstOrThrow, NBSP, ofClass, promiseMap } from "@tutao/tutanota-utils"
 import { locator } from "../api/main/MainLocator.js"
-import { GroupType } from "../api/common/TutanotaConstants.js"
+import { vCardFileToVCards, vCardListToContacts } from "./VCardImporter.js"
 import { ImportError } from "../api/common/error/ImportError.js"
 import { lang } from "../misc/LanguageViewModel.js"
 import { showProgressDialog } from "../gui/dialogs/ProgressDialog.js"
 import { ContactFacade } from "../api/worker/facades/lazy/ContactFacade.js"
-import { Contact } from "../api/entities/tutanota/TypeRefs.js"
+import { Contact, createContact, createContactAddress, createContactMailAddress, createContactPhoneNumber } from "../api/entities/tutanota/TypeRefs.js"
 import m, { Children } from "mithril"
 import { List, ListAttrs, ListLoadingState, MultiselectMode, RenderConfig, ViewHolder } from "../gui/base/List.js"
 import { px, size } from "../gui/size.js"
@@ -15,6 +14,10 @@ import { getContactListName } from "./model/ContactUtils.js"
 import { UserError } from "../api/main/UserError.js"
 import { DialogHeaderBar, DialogHeaderBarAttrs } from "../gui/base/DialogHeaderBar.js"
 import { ButtonType } from "../gui/base/Button.js"
+import { isApp } from "../api/common/Env.js"
+import { ImportNativeContactBooksDialog } from "../settings/ImportNativeContactBooksDialog.js"
+import { StructuredContact } from "../native/common/generatedipc/StructuredContact.js"
+import { isoDateToBirthday } from "../api/common/utils/BirthdayUtils.js"
 
 export class ContactImporter {
 	constructor(private readonly contactFacade: ContactFacade) {}
@@ -53,6 +56,86 @@ export class ContactImporter {
 				"{1}": contacts.length,
 			}),
 		)
+	}
+
+	async importContactsFromDevice() {
+		assert(isApp(), "isApp")
+		const contactBooks = await showProgressDialog("pleaseWait_msg", locator.mobileContactsFacade.getContactBooks())
+		const importDialog = new ImportNativeContactBooksDialog(contactBooks)
+		const books = await importDialog.show()
+		if (books == null || books.length === 0) return
+
+		const contactListId = await locator.contactModel.getContactListId()
+		const contactGroupId = await locator.contactModel.getContactGroupId()
+		const contactsToImport: Contact[] = (
+			await promiseMap(books, async (book) => {
+				const structuredContacts = await locator.mobileContactsFacade.getContactsInContactBook(book.id)
+				return structuredContacts.map((contact) => this.contactFromStructuredContact(contactGroupId, contact))
+			})
+		).flat()
+
+		const importer = await locator.contactImporter()
+
+		showContactImportDialog(contactsToImport, (dialog) => {
+			dialog.close()
+			importer.importContacts(contactsToImport, assertNotNull(contactListId))
+		})
+	}
+
+	private contactFromStructuredContact(ownerGroupId: Id, contact: StructuredContact): Contact {
+		const userId = locator.logins.getUserController().userId
+		return createContact({
+			_owner: userId,
+			_ownerGroup: ownerGroupId,
+			nickname: contact.nickname,
+			firstName: contact.firstName,
+			lastName: contact.lastName,
+			company: contact.company,
+			addresses: contact.addresses.map((address) =>
+				createContactAddress({
+					type: address.type,
+					address: address.address,
+					customTypeName: address.customTypeName,
+				}),
+			),
+			mailAddresses: contact.mailAddresses.map((address) =>
+				createContactMailAddress({
+					type: address.type,
+					address: address.address,
+					customTypeName: address.customTypeName,
+				}),
+			),
+			phoneNumbers: contact.phoneNumbers.map((number) =>
+				createContactPhoneNumber({
+					type: number.type,
+					number: number.number,
+					customTypeName: number.customTypeName,
+				}),
+			),
+			role: "",
+			oldBirthdayAggregate: null,
+			oldBirthdayDate: null,
+			photo: null,
+			presharedPassword: null,
+			socialIds: [],
+			birthdayIso: this.validateBirthdayOfContact(contact),
+			autoTransmitPassword: "",
+			title: null,
+			comment: "",
+		})
+	}
+
+	private validateBirthdayOfContact(contact: StructuredContact) {
+		if (contact.birthday != null) {
+			try {
+				isoDateToBirthday(contact.birthday)
+				return contact.birthday
+			} catch (_) {
+				return null
+			}
+		} else {
+			return null
+		}
 	}
 }
 

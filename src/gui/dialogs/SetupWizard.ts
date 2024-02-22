@@ -1,9 +1,8 @@
-import { createWizardDialog, emitWizardEvent, WizardEventType, wizardPageWrapper } from "../base/WizardDialog.js"
+import { createWizardDialog, wizardPageWrapper } from "../base/WizardDialog.js"
 import { defer } from "@tutao/tutanota-utils"
 import { SetupCongratulationsPage, SetupCongratulationsPageAttrs } from "./setupwizardpages/SetupCongraulationsPage.js"
 import { deviceConfig } from "../../misc/DeviceConfig.js"
 import m from "mithril"
-import { LoginButton } from "../base/buttons/LoginButton.js"
 import { isAndroidApp, isApp } from "../../api/common/Env.js"
 import { NotificationPermissionsData, SetupNotificationsPage, SetupNotificationsPageAttrs } from "./setupwizardpages/SetupNotificationsPage.js"
 import { BannerButton } from "../base/buttons/BannerButton.js"
@@ -16,6 +15,7 @@ import { Dialog } from "../base/Dialog.js"
 import stream from "mithril/stream"
 import { TranslationKey } from "../../misc/LanguageViewModel.js"
 import { SetupThemePage, SetupThemePageAttrs } from "./setupwizardpages/SetupThemePage.js"
+import { SetupContactsPage, SetupContactsPageAttrs } from "./setupwizardpages/SetupContactsPage.js"
 
 export function renderPermissionButton(permissionName: TranslationKey, isPermissionGranted: boolean, onclick: ClickHandler) {
 	return m(BannerButton, {
@@ -46,6 +46,10 @@ export async function showSetupWizard(): Promise<void> {
 		wizardPageWrapper(SetupCongratulationsPage, new SetupCongratulationsPageAttrs()),
 		wizardPageWrapper(SetupNotificationsPage, new SetupNotificationsPageAttrs(NotificationPermissions)),
 		wizardPageWrapper(SetupThemePage, new SetupThemePageAttrs()),
+		wizardPageWrapper(
+			SetupContactsPage,
+			new SetupContactsPageAttrs(locator.nativeContactsSyncManager(), await locator.contactImporter(), locator.systemFacade),
+		),
 	]
 	const deferred = defer<void>()
 

@@ -966,28 +966,8 @@ export function confirmMerge(keptContact: Contact, goodbyeContact: Contact): Pro
 }
 
 export async function importContacts() {
-	assert(isApp(), "isApp")
-	const { ImportNativeContactBooksDialog } = await import("../../settings/ImportNativeContactBooksDialog.js")
-	const contactBooks = await showProgressDialog("pleaseWait_msg", locator.mobileContactsFacade.getContactBooks())
-	const importDialog = new ImportNativeContactBooksDialog(contactBooks)
-	const books = await importDialog.show()
-	if (books == null || books.length === 0) return
-
-	const contactListId = await locator.contactModel.getContactListId()
-	const contactGroupId = await locator.contactModel.getContactGroupId()
-	const contactsToImport: Contact[] = (
-		await promiseMap(books, async (book) => {
-			const structuredContacts = await locator.mobileContactsFacade.getContactsInContactBook(book.id)
-			return structuredContacts.map((contact) => contactFromStructuredContact(contactGroupId, contact))
-		})
-	).flat()
-
 	const importer = await locator.contactImporter()
-
-	showContactImportDialog(contactsToImport, (dialog) => {
-		dialog.close()
-		importer.importContacts(contactsToImport, assertNotNull(contactListId))
-	})
+	await importer.importContactsFromDevice()
 }
 
 export function contactFromStructuredContact(ownerGroupId: Id, contact: StructuredContact): Contact {
