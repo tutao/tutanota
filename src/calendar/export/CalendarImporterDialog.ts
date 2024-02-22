@@ -63,6 +63,9 @@ export async function showCalendarImportDialog(calendarGroupRoot: CalendarGroupR
 	return await importEvents(eventsForCreation)
 }
 
+// add some method here to import calendar ics files that have been downloaded into a calendarGroup
+// should we add subscriptionUrl to the calendarGroupRoot?
+
 async function selectAndParseIcalFile(): Promise<ParsedEvent[]> {
 	try {
 		const dataFiles = await showFileChooser(true, ["ical", "ics", "ifb", "icalendar"])
