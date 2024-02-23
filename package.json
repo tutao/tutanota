@@ -56,7 +56,7 @@
 		"luxon": "3.4.4",
 		"mithril": "2.2.2",
 		"qrcode-svg": "1.0.0",
-		"squire-rte": "2.2.5",
+		"squire-rte": "2.2.7",
 		"systemjs": "6.10.2",
 		"undici": "6.0.1",
 		"winreg": "1.2.4",
