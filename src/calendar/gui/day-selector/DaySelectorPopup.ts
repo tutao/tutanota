@@ -10,14 +10,13 @@ import { px } from "../../../gui/size.js"
 import { formatMonthWithFullYear } from "../../../misc/Formatter.js"
 import { incrementMonth } from "@tutao/tutanota-utils"
 import { styles } from "../../../gui/styles.js"
-import { DaysToEvents } from "../../date/CalendarEventsRepository.js"
 import renderSwitchMonthArrowIcon from "../../../gui/base/buttons/ArrowButton.js"
 
 export interface DaySelectorPopupAttrs {
 	selectedDate: Date
 	onDateSelected: (date: Date, dayClick: boolean) => unknown
 	startOfTheWeekOffset: number
-	eventsForDays: DaysToEvents
+	hasEventsOn: (date: Date) => boolean
 	highlightToday: boolean
 	highlightSelectedWeek: boolean
 }
@@ -69,7 +68,6 @@ export class DaySelectorPopup implements ModalComponent {
 						wide: true,
 						startOfTheWeekOffset: this.attrs.startOfTheWeekOffset,
 						isDaySelectorExpanded: true,
-						eventsForDays: this.attrs.eventsForDays,
 						handleDayPickerSwipe: (isNext) => {
 							this.onMonthChange(isNext)
 							m.redraw()
@@ -78,6 +76,7 @@ export class DaySelectorPopup implements ModalComponent {
 						highlightToday: this.attrs.highlightToday,
 						highlightSelectedWeek: this.attrs.highlightSelectedWeek,
 						useNarrowWeekName: styles.isSingleColumnLayout(),
+						hasEventOn: this.attrs.hasEventsOn,
 					}),
 				]),
 			],

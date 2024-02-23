@@ -331,7 +331,7 @@ export class CalendarMonthView implements Component<CalendarMonthAttrs>, ClassCo
 	/** render the events for the given week */
 	private renderWeekEvents(attrs: CalendarMonthAttrs, week: ReadonlyArray<CalendarDay>, zone: string): Children {
 		const eventsOnDays = attrs.getEventsOnDaysToRender(week.map((day) => day.date))
-		const events = new Set(eventsOnDays.longEvents.concat(eventsOnDays.shortEvents.flat()))
+		const events = new Set(eventsOnDays.longEvents.concat(eventsOnDays.shortEventsPerDay.flat()))
 		const firstDayOfWeek = week[0].date
 		const lastDayOfWeek = lastThrow(week)
 

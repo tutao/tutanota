@@ -1,5 +1,5 @@
 import m, { Child, Children, Component, Vnode, VnodeDOM } from "mithril"
-import { incrementDate, isSameDay, neverNull } from "@tutao/tutanota-utils"
+import { incrementDate, isSameDay } from "@tutao/tutanota-utils"
 import { lang } from "../../misc/LanguageViewModel"
 import { getTimeZone } from "../date/CalendarUtils"
 import type { CalendarEvent } from "../../api/entities/tutanota/TypeRefs.js"
@@ -21,7 +21,7 @@ import { CalendarTimeIndicator } from "./CalendarTimeIndicator.js"
 import { Time } from "../date/Time.js"
 import { DaysToEvents } from "../date/CalendarEventsRepository.js"
 
-import { formatEventTimes, getEventColor } from "../gui/CalendarGuiUtils.js"
+import { formatEventTimes, getEventColor, shouldDisplayEvent } from "../gui/CalendarGuiUtils.js"
 import { PageView } from "../../gui/base/PageView.js"
 
 export type CalendarAgendaViewAttrs = {
@@ -107,7 +107,6 @@ export class CalendarAgendaView implements Component<CalendarAgendaViewAttrs> {
 							},
 						},
 						m(DaySelector, {
-							eventsForDays: attrs.eventsForDays,
 							selectedDate: selectedDate,
 							onDateSelected: (selectedDate: Date) => attrs.onDateSelected(selectedDate),
 							wide: true,
@@ -126,6 +125,8 @@ export class CalendarAgendaView implements Component<CalendarAgendaViewAttrs> {
 							highlightToday: true,
 							highlightSelectedWeek: false,
 							useNarrowWeekName: styles.isSingleColumnLayout(),
+							hasEventOn: (date) =>
+								attrs.eventsForDays.get(date.getTime())?.some((event) => shouldDisplayEvent(event, attrs.hiddenCalendars)) ?? false,
 						}),
 					),
 			  )
@@ -183,7 +184,9 @@ export class CalendarAgendaView implements Component<CalendarAgendaViewAttrs> {
 	}
 
 	private getEventsToRender(day: Date, attrs: CalendarAgendaViewAttrs): readonly CalendarEvent[] {
-		return (attrs.eventsForDays.get(day.getTime()) ?? []).filter((e) => !attrs.hiddenCalendars.has(neverNull(e._ownerGroup)))
+		return (attrs.eventsForDays.get(day.getTime()) ?? []).filter((e) => {
+			return shouldDisplayEvent(e, attrs.hiddenCalendars)
+		})
 	}
 
 	private renderAgenda(attrs: CalendarAgendaViewAttrs, isDesktopLayout: boolean): Children {
