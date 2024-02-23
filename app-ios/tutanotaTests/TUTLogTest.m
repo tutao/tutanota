@@ -7,15 +7,6 @@
 @end
 
 @implementation TUTLogTest
-
-- (void)setUp {
-    // Put setup code here. This method is called before the invocation of each test method in the class.
-}
-
-- (void)tearDown {
-    // Put teardown code here. This method is called after the invocation of each test method in the class.
-}
-
 - (void)testBigLog {
     let logger = [TUTLogger new];
     for (int i = 0; i < LOG_SIZE + 2; i++) {

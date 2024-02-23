@@ -10,12 +10,12 @@
             buildForTesting = "YES"
             buildForRunning = "YES"
             buildForProfiling = "YES"
-            buildForArchiving = "YES"
+            buildForArchiving = "NO"
             buildForAnalyzing = "YES">
             <BuildableReference
                BuildableIdentifier = "primary"
                BlueprintIdentifier = "3DD4A08220F8C6240086EB36"
-               BuildableName = "tutanota.app"
+               BuildableName = "Tuta D.app"
                BlueprintName = "tutanota"
                ReferencedContainer = "container:tutanota.xcodeproj">
             </BuildableReference>
@@ -23,7 +23,7 @@
       </BuildActionEntries>
    </BuildAction>
    <TestAction
-      buildConfiguration = "Debug"
+      buildConfiguration = "Debug Development"
       selectedDebuggerIdentifier = "Xcode.DebuggerFoundation.Debugger.LLDB"
       selectedLauncherIdentifier = "Xcode.DebuggerFoundation.Launcher.LLDB"
       shouldUseLaunchSchemeArgsEnv = "YES">
@@ -31,7 +31,7 @@
          <BuildableReference
             BuildableIdentifier = "primary"
             BlueprintIdentifier = "3DD4A08220F8C6240086EB36"
-            BuildableName = "tutanota.app"
+            BuildableName = "Tuta D.app"
             BlueprintName = "tutanota"
             ReferencedContainer = "container:tutanota.xcodeproj">
          </BuildableReference>
@@ -61,7 +61,7 @@
       </Testables>
    </TestAction>
    <LaunchAction
-      buildConfiguration = "Debug"
+      buildConfiguration = "Debug Development"
       selectedDebuggerIdentifier = "Xcode.DebuggerFoundation.Debugger.LLDB"
       selectedLauncherIdentifier = "Xcode.DebuggerFoundation.Launcher.LLDB"
       launchStyle = "0"
@@ -75,14 +75,14 @@
          <BuildableReference
             BuildableIdentifier = "primary"
             BlueprintIdentifier = "3DD4A08220F8C6240086EB36"
-            BuildableName = "tutanota.app"
+            BuildableName = "Tuta D.app"
             BlueprintName = "tutanota"
             ReferencedContainer = "container:tutanota.xcodeproj">
          </BuildableReference>
       </BuildableProductRunnable>
    </LaunchAction>
    <ProfileAction
-      buildConfiguration = "Release"
+      buildConfiguration = "Release Development"
       shouldUseLaunchSchemeArgsEnv = "YES"
       savedToolIdentifier = ""
       useCustomWorkingDirectory = "NO"
@@ -92,17 +92,17 @@
          <BuildableReference
             BuildableIdentifier = "primary"
             BlueprintIdentifier = "3DD4A08220F8C6240086EB36"
-            BuildableName = "tutanota.app"
+            BuildableName = "Tuta D.app"
             BlueprintName = "tutanota"
             ReferencedContainer = "container:tutanota.xcodeproj">
          </BuildableReference>
       </BuildableProductRunnable>
    </ProfileAction>
    <AnalyzeAction
-      buildConfiguration = "Debug">
+      buildConfiguration = "Debug Development">
    </AnalyzeAction>
    <ArchiveAction
-      buildConfiguration = "Release"
+      buildConfiguration = "Release Development"
       revealArchiveInOrganizer = "YES">
    </ArchiveAction>
 </Scheme>
