@@ -12,7 +12,7 @@ import { createGroupSettings } from "../../api/entities/tutanota/TypeRefs.js"
 import { defaultCalendarColor, GroupType, Keys, reverse, ShareCapability, TabIndex, TimeFormat, WeekStart } from "../../api/common/TutanotaConstants"
 import { locator } from "../../api/main/MainLocator"
 import { getStartOfTheWeekOffset, getStartOfTheWeekOffsetForUser, getTimeZone, getWeekNumber } from "../date/CalendarUtils"
-import { ButtonColor, ButtonType } from "../../gui/base/Button.js"
+import { ButtonColor } from "../../gui/base/Button.js"
 import { CalendarMonthView } from "./CalendarMonthView"
 import { DateTime } from "luxon"
 import { NotFoundError } from "../../api/common/error/RestError"
@@ -34,7 +34,7 @@ import { GroupInvitationFolderRow } from "../../sharing/view/GroupInvitationFold
 import { SidebarSection } from "../../gui/SidebarSection"
 import type { HtmlSanitizer } from "../../misc/HtmlSanitizer"
 import { ProgrammingError } from "../../api/common/error/ProgrammingError"
-import { calendarNavConfiguration, CalendarViewType, getGroupColors, shouldDefaultToAmPmTimeFormat } from "../gui/CalendarGuiUtils.js"
+import { calendarNavConfiguration, CalendarViewType, daysHaveEvents, getGroupColors, shouldDefaultToAmPmTimeFormat } from "../gui/CalendarGuiUtils.js"
 import { CalendarViewModel, MouseOrPointerEvent } from "./CalendarViewModel"
 import { showNewCalendarEventEditDialog } from "../gui/eventeditor-view/CalendarEventEditDialog.js"
 import { CalendarEventPopup } from "../gui/eventpopup/CalendarEventPopup.js"
@@ -111,10 +111,10 @@ export class CalendarView extends BaseTopLevelView implements TopLevelView<Calen
 										startOfTheWeekOffset: getStartOfTheWeekOffset(
 											downcast(locator.logins.getUserController().userSettingsGroupRoot.startOfTheWeek),
 										),
-										eventsForDays: this.viewModel.eventsForDays,
 										showDaySelection: this.currentViewType !== CalendarViewType.MONTH && this.currentViewType !== CalendarViewType.WEEK,
 										highlightToday: true,
 										highlightSelectedWeek: this.currentViewType === CalendarViewType.WEEK,
+										hasEventsOn: (date) => this.hasEventsOn(date),
 								  })
 								: null,
 							m(
@@ -213,12 +213,10 @@ export class CalendarView extends BaseTopLevelView implements TopLevelView<Calen
 										this.setUrl(CalendarViewType.DAY, date)
 									},
 									groupColors,
-									hiddenCalendars: this.viewModel.hiddenCalendars,
 									onChangeViewPeriod: (next) => this.viewPeriod(CalendarViewType.DAY, next),
 									startOfTheWeek: downcast(locator.logins.getUserController().userSettingsGroupRoot.startOfTheWeek),
 									dragHandlerCallbacks: this.viewModel,
 									isDaySelectorExpanded: this.viewModel.isDaySelectorExpanded(),
-									eventsForDays: this.viewModel.eventsForDays,
 									selectedTime: this.viewModel.selectedTime,
 								}),
 							})
@@ -242,11 +240,9 @@ export class CalendarView extends BaseTopLevelView implements TopLevelView<Calen
 									},
 									startOfTheWeek: downcast(locator.logins.getUserController().userSettingsGroupRoot.startOfTheWeek),
 									groupColors,
-									hiddenCalendars: this.viewModel.hiddenCalendars,
 									onChangeViewPeriod: (next) => this.viewPeriod(CalendarViewType.WEEK, next),
 									dragHandlerCallbacks: this.viewModel,
 									isDaySelectorExpanded: this.viewModel.isDaySelectorExpanded(),
-									eventsForDays: this.viewModel.eventsForDays,
 									selectedTime: this.viewModel.selectedTime,
 								}),
 							})
@@ -833,11 +829,15 @@ export class CalendarView extends BaseTopLevelView implements TopLevelView<Calen
 				selector.close()
 			},
 			startOfTheWeekOffset: getStartOfTheWeekOffset(locator.logins.getUserController().userSettingsGroupRoot.startOfTheWeek as WeekStart),
-			eventsForDays: this.viewModel.eventsForDays,
 			highlightToday: true,
 			highlightSelectedWeek: this.currentViewType === CalendarViewType.WEEK,
+			hasEventsOn: (date) => this.hasEventsOn(date),
 		})
 
 		selector.show()
+	}
+
+	private hasEventsOn(date: Date): boolean {
+		return daysHaveEvents(this.viewModel.getEventsOnDaysToRender([date]))
 	}
 }

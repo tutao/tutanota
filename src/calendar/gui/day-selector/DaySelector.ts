@@ -1,7 +1,6 @@
 import m, { Children, Component, Vnode } from "mithril"
 import { assertNotNull, getStartOfDay, incrementDate, isSameDayOfDate, isToday } from "@tutao/tutanota-utils"
 import { DateTime } from "luxon"
-import { DaysToEvents } from "../../date/CalendarEventsRepository.js"
 import { Carousel } from "../../../gui/base/Carousel.js"
 import { getCalendarMonth } from "../CalendarGuiUtils.js"
 import { CalendarDay, CalendarMonth } from "../../date/CalendarUtils.js"
@@ -18,12 +17,12 @@ export interface DaySelectorAttrs {
 	wide: boolean
 	startOfTheWeekOffset: number
 	isDaySelectorExpanded: boolean
-	eventsForDays: DaysToEvents
 	handleDayPickerSwipe: (isNext: boolean) => void
 	showDaySelection: boolean
 	highlightToday: boolean
 	highlightSelectedWeek: boolean
 	useNarrowWeekName: boolean
+	hasEventOn: (date: Date) => boolean
 }
 
 /**
@@ -135,9 +134,7 @@ export class DaySelector implements Component<DaySelectorAttrs> {
 	}
 
 	private renderDay({ date, day, isPaddingDay }: CalendarDay, attrs: DaySelectorAttrs, hidden: boolean): Children {
-		const eventForDay = attrs.eventsForDays?.get(date.getTime())
 		const isSelectedDay = isSameDayOfDate(date, attrs.selectedDate)
-		const hasEvent = eventForDay && eventForDay.length > 0
 		let circleStyle = {}
 		let textStyle = {}
 		if (isSelectedDay && attrs.showDaySelection) {
@@ -190,7 +187,7 @@ export class DaySelector implements Component<DaySelectorAttrs> {
 					},
 					day,
 				),
-				hasEvent ? m(".day-events-indicator", { style: styles.isDesktopLayout() ? { width: "3px", height: "3px" } : {} }) : null,
+				attrs.hasEventOn(date) ? m(".day-events-indicator", { style: styles.isDesktopLayout() ? { width: "3px", height: "3px" } : {} }) : null,
 			],
 		)
 	}

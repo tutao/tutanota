@@ -8,11 +8,13 @@ import type { MousePosAndBounds } from "../../gui/base/GuiUtils.js"
 import { Time } from "../date/Time.js"
 import {
 	assert,
+	assertNotNull,
 	clamp,
 	clone,
 	getFromMap,
 	getStartOfDay,
 	incrementDate,
+	isNotEmpty,
 	isSameDay,
 	isSameDayOfDate,
 	memoized,
@@ -65,6 +67,7 @@ import { CalendarInfo } from "../model/CalendarModel.js"
 import { User } from "../../api/entities/sys/TypeRefs.js"
 import { EventType } from "./eventeditor-model/CalendarEventModel.js"
 import { hasCapabilityOnGroup } from "../../sharing/GroupUtils.js"
+import { EventsOnDays } from "../view/CalendarViewModel.js"
 
 export function renderCalendarSwitchLeftButton(label: TranslationKey, click: () => unknown): Child {
 	return m(IconButton, {
@@ -793,4 +796,12 @@ export function getEventType(
 		// 3. the event is an invitation that has another organizer and/or attendees.
 		return EventType.INVITE
 	}
+}
+
+export function shouldDisplayEvent(e: CalendarEvent, hiddenCalendars: ReadonlySet<Id>): boolean {
+	return !hiddenCalendars.has(assertNotNull(e._ownerGroup, "event without ownerGroup in getEventsOnDays"))
+}
+
+export function daysHaveEvents(eventsOnDays: EventsOnDays): boolean {
+	return eventsOnDays.shortEventsPerDay.some(isNotEmpty) || isNotEmpty(eventsOnDays.longEvents)
 }

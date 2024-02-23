@@ -192,6 +192,10 @@ export function isEmpty<T>(array: ReadonlyArray<T>): boolean {
 	return array.length === 0
 }
 
+export function isNotEmpty(array: ReadonlyArray<unknown>): boolean {
+	return array.length != 0
+}
+
 export function lastThrow<T>(array: ReadonlyArray<T>): T {
 	if (isEmpty(array)) {
 		throw new RangeError("Array is empty")
