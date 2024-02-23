@@ -2,16 +2,23 @@
 
 // it would be faster to just run from "../node_modules/.bin/tsc" because we wouldn't need to wait for the (sluggish) npm to start
 // but since we are imported from other places (like admin client) we don't have a luxury of knowing where our node_modules will end up.
-import { $ } from "zx"
+import { $, glob } from "zx"
+import fs from "node:fs/promises"
 
-// packages that we actually need to build the app
-const RUNTIME_PACKAGES = ["tutanota-utils", "tutanota-crypto", "tutanota-usagetests", "tutanota-error"]
-
-export async function buildRuntimePackages(pathPrefix = ".") {
-	const packagesArg = RUNTIME_PACKAGES.map((p) => `${pathPrefix}/packages/${p}`)
-	await $`npx tsc -b ${packagesArg}`
+/**
+ * Build packages that are needed at runtime, the list is taken from tsconfig.json -> references.
+ */
+export async function buildRuntimePackages() {
+	// tsconfig is rather JSON5, if it becomes a problem switch to JSON5 parser here
+	const tsconfig = JSON.parse(await fs.readFile("tsconfig.json", { encoding: "utf-8" }))
+	const packagePaths = tsconfig.references.map((ref) => ref.path)
+	await $`npx tsc -b ${packagePaths}`
 }
 
+/**
+ * Build all packages in packages directory.
+ */
 export async function buildPackages(pathPrefix = ".") {
-	await $`npx tsc -b ${pathPrefix}/packages/*`
+	const packages = await glob(`${pathPrefix}/packages/*`, { deep: 1, onlyDirectories: true })
+	await $`npx tsc -b ${packages}`
 }
