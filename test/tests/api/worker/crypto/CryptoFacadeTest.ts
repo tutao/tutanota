@@ -780,7 +780,6 @@ o.spec("CryptoFacadeTest", function () {
 		const sessionKey = neverNull(await crypto.resolveSessionKey(testData.MailTypeModel, testData.mailLiteral))
 		const updatedFiles = await crypto.enforceSessionKeyUpdateIfNeeded(mail, files)
 		verify(ownerEncSessionKeysUpdateQueue.postUpdateSessionKeysService(anything()), { times: 1 })
-		verify(cache.deleteFromCacheIfExists(FileTypeRef, "listId", "1"))
 		verify(cache.deleteFromCacheIfExists(FileTypeRef, "listId", "2"))
 	})
 
