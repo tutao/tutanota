@@ -14,6 +14,7 @@ export {
 	filterNull,
 	last,
 	isEmpty,
+	isNotEmpty,
 	lastThrow,
 	getFirstOrThrow,
 	first,

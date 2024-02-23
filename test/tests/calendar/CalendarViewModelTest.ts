@@ -302,15 +302,15 @@ o.spec("CalendarViewModel", function () {
 			]
 			const { days, eventsForDays } = init(inputEvents)
 			const expected = {
-				shortEvents: [[], [], [inputEvents[2]], [], [], [], []],
+				shortEventsPerDay: [[], [], [inputEvents[2]], [], [], [], []],
 				longEvents: [inputEvents[0], inputEvents[1]],
 			}
 
 			eventsRepository.getEventsForMonths()(eventsForDays)
 
-			const { shortEvents, longEvents } = viewModel.getEventsOnDaysToRender(days)
+			const { shortEventsPerDay, longEvents } = viewModel.getEventsOnDaysToRender(days)
 			o({
-				shortEvents,
+				shortEventsPerDay,
 				longEvents: Array.from(longEvents),
 			}).deepEquals(expected)
 		})
@@ -331,8 +331,8 @@ o.spec("CalendarViewModel", function () {
 				shortEvents: [[], [], [], [viewModel._draggedEvent?.eventClone], [], [], []],
 				longEvents: [inputEvents[0], inputEvents[1]],
 			} as any
-			const { shortEvents, longEvents } = viewModel.getEventsOnDaysToRender(days)
-			o(shortEvents).deepEquals(expected.shortEvents)
+			const { shortEventsPerDay, longEvents } = viewModel.getEventsOnDaysToRender(days)
+			o(shortEventsPerDay).deepEquals(expected.shortEvents)
 			o(Array.from(longEvents)).deepEquals(expected.longEvents)
 		})
 		o("After drop, before load", async function () {
@@ -355,8 +355,8 @@ o.spec("CalendarViewModel", function () {
 				shortEvents: [[], [], [], [], [viewModel._transientEvents[0]], [], []],
 				longEvents: [inputEvents[0], inputEvents[1]],
 			}
-			const { shortEvents, longEvents } = viewModel.getEventsOnDaysToRender(days)
-			o(shortEvents).deepEquals(expected.shortEvents)
+			const { shortEventsPerDay, longEvents } = viewModel.getEventsOnDaysToRender(days)
+			o(shortEventsPerDay).deepEquals(expected.shortEvents)
 			o(Array.from(longEvents)).deepEquals(expected.longEvents)
 		})
 	})
