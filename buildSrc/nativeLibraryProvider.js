@@ -209,7 +209,8 @@ export async function getCachedLibPath({ rootDir, nodeModule, environment, platf
 	if (environment === "electron") {
 		versionedEnvironment = `electron-${await getInstalledModuleVersion("electron", log)}`
 	} else {
-		versionedEnvironment = "node"
+		// process.versions.modules is an ABI version. It is not significant for modules that use new ABI but still matters for those we use
+		versionedEnvironment = `node-${process.versions.modules}`
 	}
 	return await buildCachedLibPath({ rootDir, nodeModule, environment, versionedEnvironment, platform, libraryVersion, architecture })
 }
