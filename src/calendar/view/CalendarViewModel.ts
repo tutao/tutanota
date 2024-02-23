@@ -117,6 +117,14 @@ export class CalendarViewModel implements EventDragHandlerCallbacks {
 		this.eventsRepository.getEventsForMonths().map(() => this.doRedraw())
 	}
 
+	isDaySelectorExpanded(): boolean {
+		return this.deviceConfig.isCalendarDaySelectorExpanded()
+	}
+
+	setDaySelectorExpanded(expanded: boolean) {
+		this.deviceConfig.setCalendarDaySelectorExpanded(expanded)
+	}
+
 	/**
 	 * react to changes to the calendar data by making sure we have the current month + the two adjacent months
 	 * ready to be rendered
