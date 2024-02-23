@@ -19,7 +19,7 @@ console.log(
 		rootDir: "test",
 		platform: "linux",
 		environment: "node",
-		versionedEnvironment: "node",
+		versionedEnvironment: `node-${process.versions.modules}`,
 		nodeModule: module,
 		libraryVersion: version,
 		architecture: process.arch,
