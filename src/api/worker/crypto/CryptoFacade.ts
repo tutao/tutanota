@@ -99,7 +99,6 @@ import { InstanceMapper } from "./InstanceMapper.js"
 import { OwnerEncSessionKeysUpdateQueue } from "./OwnerEncSessionKeysUpdateQueue.js"
 import { PQFacade } from "../facades/PQFacade.js"
 import { decodePQMessage, encodePQMessage } from "../facades/PQMessage.js"
-import { ProgrammingError } from "../../common/error/ProgrammingError.js"
 import { DefaultEntityRestCache } from "../rest/DefaultEntityRestCache.js"
 
 assertWorkerOrNode()
@@ -845,18 +844,16 @@ export class CryptoFacade {
 			return childInstances
 		}
 		const typeModel = await resolveTypeReference(mainInstance._type)
-		if (!mainInstance.bucketKey) {
-			throw new ProgrammingError(
-				"passed invalid type to enforceSessionKeyUpdate " + JSON.stringify(mainInstance._type) + " for instance " + JSON.stringify(mainInstance._id),
-			)
+		const outOfSyncInstances = childInstances.filter((f) => f._ownerEncSessionKey == null)
+		if (mainInstance.bucketKey) {
+			// invoke updateSessionKeys service in case a bucket key is still available
+			const bucketKey = await this.convertBucketKeyToInstanceIfNecessary(mainInstance.bucketKey)
+			const resolvedSessionKeys = await this.resolveWithBucketKey(bucketKey, mainInstance, typeModel)
+			await this.ownerEncSessionKeysUpdateQueue.postUpdateSessionKeysService(resolvedSessionKeys.instanceSessionKeys)
+		} else {
+			console.warn("files are out of sync refreshing", outOfSyncInstances.map((f) => f._id).join(", "))
 		}
-		// if we have a bucket key, then we need to cache the session keys stored in the bucket key for details, files, etc.
-		// we need to do this BEFORE we check the owner enc session key
-		const bucketKey = await this.convertBucketKeyToInstanceIfNecessary(mainInstance.bucketKey)
-		const resolvedSessionKeys = await this.resolveWithBucketKey(bucketKey, mainInstance, typeModel)
-		await this.ownerEncSessionKeysUpdateQueue.postUpdateSessionKeysService(resolvedSessionKeys.instanceSessionKeys)
-
-		for (const childInstance of childInstances) {
+		for (const childInstance of outOfSyncInstances) {
 			await this.cache?.deleteFromCacheIfExists(FileTypeRef, getListId(childInstance), getElementId(childInstance))
 		}
 		// we have a caching entity client, so this re-inserts the deleted instances
