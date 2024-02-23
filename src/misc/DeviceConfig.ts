@@ -37,10 +37,12 @@ interface ConfigObject {
 	_testAssignments: PersistedAssignmentData | null
 	offlineTimeRangeDaysByUser: Record<Id, number>
 	conversationViewShowOnlySelectedMail: boolean
-	// true on old domain if it sent the credentials, true on new if it tried to receive them
+	/** true on legacy domain if it sent the credentials, true on new if it tried to receive them */
 	hasParticipatedInCredentialsMigration: boolean
-	// Stores each users' definition about contact synchronization
+	/** Stores each users' definition about contact synchronization */
 	syncContactsWithPhonePreference: Record<Id, boolean>
+	/** Whether mobile calendar navigation is in the "per week" or "per month" mode */
+	isCalendarDaySelectorExpanded: boolean
 }
 
 /**
@@ -95,6 +97,7 @@ export class DeviceConfig implements CredentialsStorage, UsageTestStorage, NewsI
 			conversationViewShowOnlySelectedMail: loadedConfig.conversationViewShowOnlySelectedMail ?? false,
 			hasParticipatedInCredentialsMigration: loadedConfig.hasParticipatedInCredentialsMigration ?? false,
 			syncContactsWithPhonePreference: loadedConfig.syncContactsWithPhonePreference ?? {},
+			isCalendarDaySelectorExpanded: loadedConfig.isCalendarDaySelectorExpanded ?? false,
 		}
 
 		// We need to write the config if there was a migration and if we generate the signup token and if.
@@ -330,6 +333,15 @@ export class DeviceConfig implements CredentialsStorage, UsageTestStorage, NewsI
 
 	setUserSyncContactsWithPhonePreference(user: Id, value: boolean) {
 		this.config.syncContactsWithPhonePreference[user] = value
+		this.writeToStorage()
+	}
+
+	isCalendarDaySelectorExpanded(): boolean {
+		return this.config.isCalendarDaySelectorExpanded
+	}
+
+	setCalendarDaySelectorExpanded(expanded: boolean) {
+		this.config.isCalendarDaySelectorExpanded = expanded
 		this.writeToStorage()
 	}
 }

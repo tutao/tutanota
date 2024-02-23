@@ -77,7 +77,6 @@ export class CalendarView extends BaseTopLevelView implements TopLevelView<Calen
 	private readonly viewModel: CalendarViewModel
 	// For sanitizing event descriptions, which get rendered as html in the CalendarEventPopup
 	private readonly htmlSanitizer: Promise<HtmlSanitizer>
-	private isDaySelectorExpanded: boolean = false
 	private redrawIntervalId: number | null = null
 	private redrawTimeoutId: number | null = null
 	oncreate: Component["oncreate"]
@@ -218,7 +217,7 @@ export class CalendarView extends BaseTopLevelView implements TopLevelView<Calen
 									onChangeViewPeriod: (next) => this.viewPeriod(CalendarViewType.DAY, next),
 									startOfTheWeek: downcast(locator.logins.getUserController().userSettingsGroupRoot.startOfTheWeek),
 									dragHandlerCallbacks: this.viewModel,
-									isDaySelectorExpanded: this.isDaySelectorExpanded,
+									isDaySelectorExpanded: this.viewModel.isDaySelectorExpanded(),
 									eventsForDays: this.viewModel.eventsForDays,
 									selectedTime: this.viewModel.selectedTime,
 								}),
@@ -246,7 +245,7 @@ export class CalendarView extends BaseTopLevelView implements TopLevelView<Calen
 									hiddenCalendars: this.viewModel.hiddenCalendars,
 									onChangeViewPeriod: (next) => this.viewPeriod(CalendarViewType.WEEK, next),
 									dragHandlerCallbacks: this.viewModel,
-									isDaySelectorExpanded: this.isDaySelectorExpanded,
+									isDaySelectorExpanded: this.viewModel.isDaySelectorExpanded(),
 									eventsForDays: this.viewModel.eventsForDays,
 									selectedTime: this.viewModel.selectedTime,
 								}),
@@ -272,7 +271,7 @@ export class CalendarView extends BaseTopLevelView implements TopLevelView<Calen
 									groupColors,
 									hiddenCalendars: this.viewModel.hiddenCalendars,
 									startOfTheWeekOffset: getStartOfTheWeekOffsetForUser(locator.logins.getUserController().userSettingsGroupRoot),
-									isDaySelectorExpanded: this.isDaySelectorExpanded,
+									isDaySelectorExpanded: this.viewModel.isDaySelectorExpanded(),
 									onDateSelected: (date) => this.setUrl(CalendarViewType.AGENDA, date),
 									onShowDate: (date: Date) => this.setUrl(CalendarViewType.DAY, date),
 									eventPreviewModel: this.viewModel.eventPreviewModel,
@@ -357,7 +356,7 @@ export class CalendarView extends BaseTopLevelView implements TopLevelView<Calen
 			viewType: this.currentViewType,
 			viewSlider: this.viewSlider,
 			showExpandIcon: !styles.isDesktopLayout() && this.currentViewType !== CalendarViewType.MONTH,
-			isDaySelectorExpanded: this.isDaySelectorExpanded,
+			isDaySelectorExpanded: this.viewModel.isDaySelectorExpanded(),
 			navConfiguration: calendarNavConfiguration(
 				this.currentViewType,
 				this.viewModel.selectedDate(),
@@ -374,11 +373,14 @@ export class CalendarView extends BaseTopLevelView implements TopLevelView<Calen
 			onViewTypeSelected: (viewType) => this.setUrl(viewType, this.viewModel.selectedDate()),
 			onTap: (_event, dom) => {
 				if (this.currentViewType !== CalendarViewType.MONTH && styles.isSingleColumnLayout()) {
-					return (this.isDaySelectorExpanded = !this.isDaySelectorExpanded)
+					this.viewModel.setDaySelectorExpanded(!this.viewModel.isDaySelectorExpanded())
+					return
 				}
 
 				if (!styles.isDesktopLayout() && this.currentViewType !== CalendarViewType.MONTH) {
-					if (this.isDaySelectorExpanded) this.isDaySelectorExpanded = false
+					if (this.viewModel.isDaySelectorExpanded()) {
+						this.viewModel.setDaySelectorExpanded(false)
+					}
 
 					this.showCalendarPopup(dom)
 				}
@@ -477,8 +479,8 @@ export class CalendarView extends BaseTopLevelView implements TopLevelView<Calen
 				duration = styles.isDesktopLayout()
 					? { day: 1 }
 					: {
-							week: this.isDaySelectorExpanded ? 0 : 1,
-							month: this.isDaySelectorExpanded ? 1 : 0,
+							week: this.viewModel.isDaySelectorExpanded() ? 0 : 1,
+							month: this.viewModel.isDaySelectorExpanded() ? 1 : 0,
 					  }
 				unit = "day"
 				break
