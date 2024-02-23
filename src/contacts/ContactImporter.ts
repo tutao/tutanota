@@ -101,7 +101,7 @@ function showContactImportDialog(contacts: Contact[], okAction: (dialog: Dialog)
 			),
 			/** variable-size child container that may be scrollable. */
 			m(
-				".dialog-max-height.plr-l.pb.text-break.scroll.nav-bg",
+				".dialog-max-height.plr-l.pb.text-break.nav-bg",
 				m(
 					".plr-l",
 					m(
@@ -110,7 +110,7 @@ function showContactImportDialog(contacts: Contact[], okAction: (dialog: Dialog)
 							".flex.col.rel",
 							{
 								style: {
-									height: px(size.list_row_height * contacts.length),
+									height: "80vh",
 								},
 							},
 							m(List, {
