@@ -1,11 +1,10 @@
 import m, { Children, Component, VnodeDOM } from "mithril"
 import { LayerType } from "../../RootView"
-import type { lazy } from "@tutao/tutanota-utils"
+import { lazy, makeSingleUse } from "@tutao/tutanota-utils"
 import { assertMainOrNodeBoot } from "../../api/common/Env"
 import { px, size } from "../size.js"
 import { styles } from "../styles.js"
 import { getSafeAreaInsetBottom } from "../HtmlUtils.js"
-import { ProgrammingError } from "../../api/common/error/ProgrammingError.js"
 
 assertMainOrNodeBoot()
 export type PositionRect = {
@@ -49,12 +48,14 @@ export function displayOverlay(
 	// Add the new overlay into the overlay container
 	overlays.set(overlayKey, pair)
 
-	return () => {
+	// Make single so fast taps doesn't try to remove
+	// the same overlay twice
+	return makeSingleUse(() => {
 		// Remove the overlay & error if unsuccessful
 		if (!overlays.delete(overlayKey)) {
-			throw new ProgrammingError(`Failed to remove overlay with key:${overlayKey}!`)
+			console.warn(`Missing overlay with key:${overlayKey}!`)
 		}
-	}
+	}) as () => void
 }
 
 export const overlay: Component = {
