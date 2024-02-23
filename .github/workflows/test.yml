@@ -8,7 +8,7 @@ jobs:
 
     strategy:
       matrix:
-        node-version: [ 18.17.0 ]
+        node-version: [ 20.11.1 ]
 
     steps:
       - uses: actions/checkout@v3
@@ -26,8 +26,6 @@ jobs:
         with:
           path: ${{ env.better_sqlite3_path }}
           key: ${{ env.better_sqlite3_path }}
-      - name: install npm
-        run: npm i -g npm@9.6.7
       - name: install packages
         run: npm ci
       - name: lint, formatting
