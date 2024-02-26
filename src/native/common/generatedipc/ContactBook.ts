@@ -5,5 +5,5 @@
  */
 export interface ContactBook {
 	readonly id: string
-	readonly name: string
+	readonly name: string | null
 }

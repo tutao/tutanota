@@ -4,6 +4,6 @@
 	"doc": "Represents an account/list from the device's phonebook.",
 	"fields": {
 		"id": "string",
-		"name": "string"
+		"name": "string?"
 	}
 }
