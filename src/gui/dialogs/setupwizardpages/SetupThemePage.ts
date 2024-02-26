@@ -27,7 +27,6 @@ export class SetupThemePage implements WizardPageN<null> {
 }
 
 export class SetupThemePageAttrs implements WizardPageAttrs<null> {
-	preventGoBack = true
 	hidePagingButtonForPage = false
 	data: null = null
 

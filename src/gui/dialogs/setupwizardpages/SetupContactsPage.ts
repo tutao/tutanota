@@ -49,7 +49,6 @@ export class SetupContactsPage implements Component<SetupContactsPageAttrs> {
 }
 
 export class SetupContactsPageAttrs implements WizardPageAttrs<null> {
-	preventGoBack = true
 	hidePagingButtonForPage = false
 	data: null = null
 
