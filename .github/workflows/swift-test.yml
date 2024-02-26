@@ -2,8 +2,9 @@ name: Swift CI
 
 on:
   push:
+    branches-ignore:
+      - master
     paths: [ "app-ios/**" ]
-  workflow_dispatch:
 
 env:
   swift-version: "5.9.2"
