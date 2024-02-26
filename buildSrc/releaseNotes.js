@@ -8,7 +8,7 @@ const wasRunFromCli = fileURLToPath(import.meta.url).startsWith(process.argv[1])
 
 if (wasRunFromCli) {
 	program
-		.requiredOption("--milestone <milestone>", "Milestone to reference")
+		.requiredOption("--milestone <milestone>", "Milestone name or milestone number to reference")
 		.addOption(
 			new Option("--platform <platform>", "label filter for the issues to include in the notes")
 				.choices(["android", "ios", "desktop", "web"])
@@ -40,7 +40,7 @@ async function renderReleaseNotes({ milestone, platform }) {
 	console.log(releaseNotes)
 }
 
-async function getMilestone(octokit, milestoneName) {
+async function getMilestone(octokit, milestoneNameOrNumber) {
 	const { data } = await octokit.issues.listMilestones({
 		owner: "tutao",
 		repo: "tutanota",
@@ -48,13 +48,14 @@ async function getMilestone(octokit, milestoneName) {
 		state: "all",
 	})
 
-	const milestone = data.find((m) => m.title === milestoneName)
+	const milestone = data.find((m) => m.title === milestoneNameOrNumber || String(m.number) === milestoneNameOrNumber)
 
 	if (milestone) {
 		return milestone
 	} else {
-		const titles = data.map((m) => m.title)
-		throw new Error(`No milestone named ${milestoneName} found. Milestones: ${titles.join(", ")}`)
+		const titles = data.map((m) => `${m.title} (${m.number})`)
+		throw new Error(`No milestone ${milestoneNameOrNumber} found. Milestones:
+	${titles.join(",\n\t")}`)
 	}
 }
 
