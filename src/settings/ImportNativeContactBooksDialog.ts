@@ -40,7 +40,7 @@ export class ImportNativeContactBooksDialog {
 			".flex.items-center",
 			m(Checkbox, {
 				checked,
-				label: () => book.name,
+				label: () => book.name ?? lang.get("pushIdentifierCurrentDevice_label"),
 				onChecked: () => {
 					if (checked) {
 						this.selectedContactBooks.delete(book.id)

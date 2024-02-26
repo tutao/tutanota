@@ -6,5 +6,5 @@
  */
 public struct ContactBook : Codable {
 	let id: String
-	let name: String
+	let name: String?
 }

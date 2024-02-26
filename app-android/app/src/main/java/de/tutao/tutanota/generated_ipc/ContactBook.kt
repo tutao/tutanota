@@ -13,5 +13,5 @@ import kotlinx.serialization.json.*
 @Serializable
 data class ContactBook(
 	val id: String,
-	val name: String,
+	val name: String?,
 )

@@ -4,11 +4,17 @@ import { ColumnType, ViewColumn } from "../../gui/base/ViewColumn"
 import { AppHeaderAttrs, Header } from "../../gui/Header.js"
 import { Button, ButtonColor, ButtonType } from "../../gui/base/Button.js"
 import { ContactEditor } from "../ContactEditor"
-import type { Contact } from "../../api/entities/tutanota/TypeRefs.js"
-import { ContactTypeRef } from "../../api/entities/tutanota/TypeRefs.js"
+import {
+	Contact,
+	ContactTypeRef,
+	createContact,
+	createContactAddress,
+	createContactMailAddress,
+	createContactPhoneNumber,
+} from "../../api/entities/tutanota/TypeRefs.js"
 import { ContactListView } from "./ContactListView"
 import { lang } from "../../misc/LanguageViewModel"
-import { assertNotNull, clear, getFirstOrThrow, noOp, ofClass } from "@tutao/tutanota-utils"
+import { assert, assertNotNull, clear, getFirstOrThrow, noOp, ofClass, promiseMap } from "@tutao/tutanota-utils"
 import { ContactMergeAction, Keys } from "../../api/common/TutanotaConstants"
 import { assertMainOrNode, isApp } from "../../api/common/Env"
 import type { Shortcut } from "../../misc/KeyManager"
@@ -65,6 +71,9 @@ import { showPlanUpgradeRequiredDialog } from "../../misc/SubscriptionDialogs.js
 import ColumnEmptyMessageBox from "../../gui/base/ColumnEmptyMessageBox.js"
 import { ContactListInfo } from "../model/ContactModel.js"
 import { CONTACTLIST_PREFIX } from "../../misc/RouteChange.js"
+import { showContactImportDialog } from "../ContactImporter.js"
+import { StructuredContact } from "../../native/common/generatedipc/StructuredContact.js"
+import { validateBirthdayOfContact } from "../model/ContactUtils.js"
 
 assertMainOrNode()
 
@@ -564,7 +573,13 @@ export class ContactView extends BaseTopLevelView implements TopLevelView<Contac
 				},
 				childAttrs: () => {
 					const vcardButtons: Array<DropdownButtonAttrs> = isApp()
-						? []
+						? [
+								{
+									label: "importContacts_label",
+									click: () => importContacts(),
+									icon: Icons.ContactImport,
+								},
+						  ]
 						: [
 								{
 									label: "importVCard_action",
@@ -942,4 +957,72 @@ export function confirmMerge(keptContact: Contact, goodbyeContact: Contact): Pro
 	} else {
 		return Dialog.message("presharedPasswordsUnequal_msg")
 	}
+}
+
+export async function importContacts() {
+	assert(isApp(), "isApp")
+	const { ImportNativeContactBooksDialog } = await import("../../settings/ImportNativeContactBooksDialog.js")
+	const contactBooks = await showProgressDialog("pleaseWait_msg", locator.mobileContactsFacade.getContactBooks())
+	const importDialog = new ImportNativeContactBooksDialog(contactBooks)
+	const books = await importDialog.show()
+	if (books == null || books.length === 0) return
+
+	const contactListId = await locator.contactModel.getContactListId()
+	const contactGroupId = await locator.contactModel.getContactGroupId()
+	const contactsToImport: Contact[] = (
+		await promiseMap(books, async (book) => {
+			const structuredContacts = await locator.mobileContactsFacade.getContactsInContactBook(book.id)
+			return structuredContacts.map((contact) => contactFromStructuredContact(contactGroupId, contact))
+		})
+	).flat()
+
+	const importer = await locator.contactImporter()
+
+	showContactImportDialog(contactsToImport, (dialog) => {
+		dialog.close()
+		importer.importContacts(contactsToImport, assertNotNull(contactListId))
+	})
+}
+
+export function contactFromStructuredContact(ownerGroupId: Id, contact: StructuredContact): Contact {
+	const userId = locator.logins.getUserController().userId
+	return createContact({
+		_owner: userId,
+		_ownerGroup: ownerGroupId,
+		nickname: contact.nickname,
+		firstName: contact.firstName,
+		lastName: contact.lastName,
+		company: contact.company,
+		addresses: contact.addresses.map((address) =>
+			createContactAddress({
+				type: address.type,
+				address: address.address,
+				customTypeName: address.customTypeName,
+			}),
+		),
+		mailAddresses: contact.mailAddresses.map((address) =>
+			createContactMailAddress({
+				type: address.type,
+				address: address.address,
+				customTypeName: address.customTypeName,
+			}),
+		),
+		phoneNumbers: contact.phoneNumbers.map((number) =>
+			createContactPhoneNumber({
+				type: number.type,
+				number: number.number,
+				customTypeName: number.customTypeName,
+			}),
+		),
+		role: "",
+		oldBirthdayAggregate: null,
+		oldBirthdayDate: null,
+		photo: null,
+		presharedPassword: null,
+		socialIds: [],
+		birthdayIso: validateBirthdayOfContact(contact),
+		autoTransmitPassword: "",
+		title: null,
+		comment: "",
+	})
 }
