@@ -98,6 +98,7 @@ export async function runTestBuild({ clean, fast = false }) {
 				"tls",
 				"buffer",
 				"events",
+				"util",
 				"string_decoder",
 			],
 			// even though tests might be running in browser we set it to node so that it ignores all builtins
