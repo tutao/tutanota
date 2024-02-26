@@ -1,15 +1,14 @@
 import { assertMainOrNode } from "../../api/common/Env"
 import type { BaseThemeId, Theme } from "../../gui/theme"
 import { assertNotNull, clone, debounceStart, downcast } from "@tutao/tutanota-utils"
-import type { WhitelabelConfig } from "../../api/entities/sys/TypeRefs.js"
-import type { DomainInfo } from "../../api/entities/sys/TypeRefs.js"
-import { VALID_HEX_CODE_FORMAT } from "../../gui/base/Color"
+import type { DomainInfo, WhitelabelConfig } from "../../api/entities/sys/TypeRefs.js"
+import { isValidColorCode } from "../../gui/base/Color"
 import stream from "mithril/stream"
-import type { ThemeCustomizations, CustomizationKey, ThemeKey } from "../../misc/WhitelabelCustomizations"
+import Stream from "mithril/stream"
+import type { CustomizationKey, ThemeCustomizations, ThemeKey } from "../../misc/WhitelabelCustomizations"
 import { ThemeController } from "../../gui/ThemeController"
 import { EntityClient } from "../../api/common/EntityClient"
 import type { LoginController } from "../../api/main/LoginController"
-import Stream from "mithril/stream"
 
 assertMainOrNode()
 export type CustomColor = {
@@ -161,7 +160,7 @@ export class CustomColorsEditorViewModel {
 	}
 
 	_isValidColorValue(colorValue: string): boolean {
-		return VALID_HEX_CODE_FORMAT.test(colorValue.trim()) || colorValue.trim() === ""
+		return isValidColorCode(colorValue.trim()) || colorValue.trim() === ""
 	}
 
 	/**
