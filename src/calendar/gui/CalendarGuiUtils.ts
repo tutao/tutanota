@@ -730,7 +730,7 @@ export const iconForAttendeeStatus: Record<CalendarAttendeeStatus, AllIcons> = O
 })
 export const getGroupColors = memoized((userSettingsGroupRoot: UserSettingsGroupRoot) => {
 	return userSettingsGroupRoot.groupSettings.reduce((acc, { group, color }) => {
-		if (!isValidColorCode(color)) {
+		if (!isValidColorCode("#" + color)) {
 			color = defaultCalendarColor
 		}
 		acc.set(group, color)
