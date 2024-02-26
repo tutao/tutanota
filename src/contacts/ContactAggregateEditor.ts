@@ -1,4 +1,4 @@
-import type { TextFieldType } from "../gui/base/TextField.js"
+import { TextFieldAttrs, TextFieldType } from "../gui/base/TextField.js"
 import { TextField } from "../gui/base/TextField.js"
 import type { TranslationKey } from "../misc/LanguageViewModel"
 import { lang } from "../misc/LanguageViewModel"
@@ -9,6 +9,8 @@ import { attachDropdown } from "../gui/base/Dropdown.js"
 import { IconButton } from "../gui/base/IconButton.js"
 import { BootIcons } from "../gui/base/icons/BootIcons.js"
 import { ButtonSize } from "../gui/base/ButtonSize.js"
+import { lazy } from "@tutao/tutanota-utils"
+import type { TranslationKeyType } from "../misc/TranslationKey.js"
 
 export type AggregateEditorAttrs<AggregateType> = {
 	value: string
@@ -20,7 +22,7 @@ export type AggregateEditorAttrs<AggregateType> = {
 	fieldType: TextFieldType
 	onUpdate: (newValue: string) => unknown
 	label: string
-	helpLabel: TranslationKey
+	helpLabel: TranslationKey | lazy<string>
 	typeLabels: ReadonlyArray<[AggregateType, TranslationKey]>
 	onTypeSelected: (arg0: AggregateType) => unknown
 }
@@ -37,12 +39,19 @@ export class ContactAggregateEditor implements Component<AggregateEditorAttrs<an
 
 	view(vnode: Vnode<AggregateEditorAttrs<any>>): Children {
 		const attrs = vnode.attrs
+		const helpLabel = () => {
+			if (typeof attrs.helpLabel === "function") {
+				return attrs.helpLabel()
+			}
+
+			return lang.get(attrs.helpLabel)
+		}
 		return m(".flex.items-center.child-grow", [
 			m(TextField, {
 				value: attrs.value,
 				label: () => attrs.label,
 				type: attrs.fieldType,
-				helpLabel: () => lang.get(attrs.helpLabel),
+				helpLabel: () => helpLabel(),
 				injectionsRight: () => this._moreButtonFor(attrs),
 				oninput: (value) => attrs.onUpdate(value),
 			}),

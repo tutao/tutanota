@@ -1,0 +1,9 @@
+{
+	"name": "StructuredMessengerHandle",
+	"type": "struct",
+	"fields": {
+		"handle": "string",
+		"type": "ContactMessengerHandleType",
+		"customTypeName": "string"
+	}
+}

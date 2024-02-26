@@ -3,7 +3,7 @@
 import { DAY_IN_MILLIS, downcast } from "@tutao/tutanota-utils"
 import type { CertificateInfo, CreditCard, EmailSenderListElement, GroupMembership } from "../entities/sys/TypeRefs.js"
 import { AccountingInfo, Customer } from "../entities/sys/TypeRefs.js"
-import type { CalendarEventAttendee, UserSettingsGroupRoot } from "../entities/tutanota/TypeRefs.js"
+import type { CalendarEventAttendee, ContactCustomDate, ContactRelationship, UserSettingsGroupRoot } from "../entities/tutanota/TypeRefs.js"
 import { ContactSocialId, MailFolder } from "../entities/tutanota/TypeRefs.js"
 import { isApp, isElectronClient } from "./Env"
 import type { Country } from "./CountryList"
@@ -125,7 +125,46 @@ export const enum ContactSocialType {
 	CUSTOM = "5",
 }
 
+export const enum ContactRelationshipType {
+	PARENT = "0",
+	BROTHER = "1",
+	SISTER = "2",
+	CHILD = "3",
+	FRIEND = "4",
+	RELATIVE = "5",
+	SPOUSE = "6",
+	PARTNER = "7",
+	ASSISTANT = "8",
+	MANAGER = "9",
+	OTHER = "10",
+	CUSTOM = "11",
+}
+
+export const enum ContactMessengerHandleType {
+	SIGNAL = "0",
+	WHATSAPP = "1",
+	TELEGRAM = "2",
+	DISCORD = "3",
+	OTHER = "4",
+	CUSTOM = "5",
+}
+
+export const enum ContactWebsiteType {
+	PRIVATE = "0",
+	WORK = "1",
+	OTHER = "2",
+	CUSTOM = "3",
+}
+
+export const enum ContactCustomDateType {
+	ANNIVERSARY = "0",
+	OTHER = "1",
+	CUSTOM = "2",
+}
+
 export const getContactSocialType = (contactSocialId: ContactSocialId): ContactSocialType => downcast(contactSocialId.type)
+export const getCustomDateType = (customDate: ContactCustomDate): ContactCustomDateType => downcast(customDate.type)
+export const getRelationshipType = (relationship: ContactRelationship): ContactRelationshipType => downcast(relationship.type)
 
 export const enum OperationType {
 	CREATE = "0",

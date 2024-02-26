@@ -4,14 +4,24 @@ import {
 	ContactTypeRef,
 	createContact,
 	createContactAddress,
+	createContactCustomDate,
 	createContactMailAddress,
 	createContactPhoneNumber,
+	createContactRelationship,
+	createContactWebsite,
 } from "../../api/entities/tutanota/TypeRefs.js"
 import { GroupType, OperationType } from "../../api/common/TutanotaConstants.js"
 import { defer, getFirstOrThrow, getFromMap, ofClass } from "@tutao/tutanota-utils"
 import { StructuredContact } from "../../native/common/generatedipc/StructuredContact.js"
 import { elementIdPart, getElementId, StrippedEntity } from "../../api/common/utils/EntityUtils.js"
-import { extractStructuredAddresses, extractStructuredMailAddresses, extractStructuredPhoneNumbers } from "./ContactUtils.js"
+import {
+	extractStructuredAddresses,
+	extractStructuredCustomDates,
+	extractStructuredMailAddresses,
+	extractStructuredPhoneNumbers,
+	extractStructuredRelationships,
+	extractStructuredWebsites,
+} from "./ContactUtils.js"
 import { LoginController } from "../../api/main/LoginController.js"
 import { EntityClient } from "../../api/common/EntityClient.js"
 import { EventController } from "../../api/main/EventController.js"
@@ -20,6 +30,7 @@ import { DeviceConfig } from "../../misc/DeviceConfig.js"
 import { PermissionError } from "../../api/common/error/PermissionError.js"
 import { MobileContactsFacade } from "../../native/common/generatedipc/MobileContactsFacade.js"
 import { ContactSyncResult } from "../../native/common/generatedipc/ContactSyncResult.js"
+import { isIOSApp } from "../../api/common/Env.js"
 
 export class NativeContactsSyncManager {
 	private entityUpdateLock: Promise<void> = Promise.resolve()
@@ -80,6 +91,19 @@ export class NativeContactsSyncManager {
 					phoneNumbers: extractStructuredPhoneNumbers(contact.phoneNumbers),
 					addresses: extractStructuredAddresses(contact.addresses),
 					rawId: null,
+					customDate: extractStructuredCustomDates(contact.customDate),
+					department: contact.department,
+					messengerHandles: [],
+					middleName: contact.middleName,
+					nameSuffix: contact.nameSuffix,
+					phoneticFirst: contact.phoneticFirst,
+					phoneticLast: contact.phoneticLast,
+					phoneticMiddle: contact.phoneticMiddle,
+					relationships: extractStructuredRelationships(contact.relationships),
+					websites: extractStructuredWebsites(contact.websites),
+					notes: contact.comment,
+					title: contact.title ?? "",
+					role: contact.role,
 				})
 			})
 		}
@@ -113,6 +137,19 @@ export class NativeContactsSyncManager {
 				addresses: extractStructuredAddresses(contact.addresses),
 				rawId: null,
 				deleted: false,
+				customDate: extractStructuredCustomDates(contact.customDate),
+				department: contact.department,
+				messengerHandles: [],
+				middleName: contact.middleName,
+				nameSuffix: contact.nameSuffix,
+				phoneticFirst: contact.phoneticFirst,
+				phoneticLast: contact.phoneticLast,
+				phoneticMiddle: contact.phoneticMiddle,
+				relationships: extractStructuredRelationships(contact.relationships),
+				websites: extractStructuredWebsites(contact.websites),
+				notes: contact.comment,
+				title: contact.title ?? "",
+				role: contact.role,
 			}
 		})
 
@@ -193,11 +230,8 @@ export class NativeContactsSyncManager {
 			).group,
 			_owner: this.loginController.getUserController().user._id,
 			autoTransmitPassword: "",
-			comment: "",
 			oldBirthdayDate: null,
 			presharedPassword: null,
-			role: "",
-			title: null,
 			oldBirthdayAggregate: null,
 			photo: null,
 			socialIds: [],
@@ -209,6 +243,20 @@ export class NativeContactsSyncManager {
 			company: contact.company,
 			birthdayIso: contact.birthday,
 			addresses: contact.addresses.map((address) => createContactAddress(address)),
+			customDate: contact.customDate.map((date) => createContactCustomDate(date)),
+			department: contact.department,
+			messengerHandles: [],
+			middleName: contact.middleName,
+			nameSuffix: contact.nameSuffix,
+			phoneticFirst: contact.phoneticFirst,
+			phoneticLast: contact.phoneticLast,
+			phoneticMiddle: contact.phoneticMiddle,
+			pronouns: [],
+			relationships: contact.relationships.map((relation) => createContactRelationship(relation)),
+			websites: contact.websites.map((website) => createContactWebsite(website)),
+			comment: contact.notes,
+			title: contact.title ?? "",
+			role: contact.role,
 		}
 	}
 
@@ -223,6 +271,19 @@ export class NativeContactsSyncManager {
 			company: contact.company,
 			birthdayIso: contact.birthday,
 			addresses: contact.addresses.map((address) => createContactAddress(address)),
+			customDate: contact.customDate.map((date) => createContactCustomDate(date)),
+			department: contact.department,
+			messengerHandles: [],
+			middleName: contact.middleName,
+			nameSuffix: contact.nameSuffix,
+			phoneticFirst: contact.phoneticFirst,
+			phoneticLast: contact.phoneticLast,
+			phoneticMiddle: contact.phoneticMiddle,
+			relationships: contact.relationships.map((relation) => createContactRelationship(relation)),
+			websites: contact.websites.map((website) => createContactWebsite(website)),
+			comment: contact.notes,
+			title: contact.title ?? "",
+			role: contact.role,
 		}
 	}
 }

@@ -1,13 +1,35 @@
 import { lang } from "../../misc/LanguageViewModel"
-import { Birthday, Contact, ContactAddress, ContactMailAddress, ContactPhoneNumber, ContactSocialId } from "../../api/entities/tutanota/TypeRefs.js"
+import {
+	Birthday,
+	Contact,
+	ContactAddress,
+	ContactCustomDate,
+	ContactMailAddress,
+	ContactMessengerHandle,
+	ContactPhoneNumber,
+	ContactRelationship,
+	ContactSocialId,
+	ContactWebsite,
+} from "../../api/entities/tutanota/TypeRefs.js"
 import { formatDate } from "../../misc/Formatter"
 import { isoDateToBirthday } from "../../api/common/utils/BirthdayUtils"
 import { assertMainOrNode } from "../../api/common/Env"
-import { ContactAddressType, ContactPhoneNumberType, ContactSocialType } from "../../api/common/TutanotaConstants"
+import {
+	ContactAddressType,
+	ContactCustomDateType,
+	ContactMessengerHandleType,
+	ContactPhoneNumberType,
+	ContactRelationshipType,
+	ContactSocialType,
+	ContactWebsiteType,
+} from "../../api/common/TutanotaConstants"
 import { StructuredMailAddress } from "../../native/common/generatedipc/StructuredMailAddress.js"
 import { StructuredPhoneNumber } from "../../native/common/generatedipc/StructuredPhoneNumber.js"
 import { StructuredAddress } from "../../native/common/generatedipc/StructuredAddress.js"
 import { StructuredContact } from "../../native/common/generatedipc/StructuredContact.js"
+import { StructuredCustomDate } from "../../native/common/generatedipc/StructuredCustomDate.js"
+import { StructuredWebsite } from "../../native/common/generatedipc/StructuredWebsite.js"
+import { StructuredRelationship } from "../../native/common/generatedipc/StructuredRelationship.js"
 
 assertMainOrNode()
 
@@ -41,14 +63,12 @@ export function formatBirthdayNumeric(birthday: Birthday): string {
 }
 
 /**
- * Returns the birthday of the contact as formatted string using default date formatter including date, month and year.
- * If birthday contains no year only month and day will be included.
- * If there is no birthday or an invalid birthday format an empty string returns.
+ * Returns the given date of the contact as formatted string using default date formatter including date, month and year.
+ * If date contains no year only month and day will be included.
+ * If there is no date or an invalid birthday format an empty string returns.
  */
-export function formatBirthdayOfContact(contact: Contact): string {
-	if (contact.birthdayIso) {
-		const isoDate = contact.birthdayIso
-
+export function formatContactDate(isoDate: string | null): string {
+	if (isoDate) {
 		try {
 			return formatBirthdayNumeric(isoDateToBirthday(isoDate))
 		} catch (e) {
@@ -97,6 +117,40 @@ export function getSocialUrl(contactId: ContactSocialId): string {
 	return `${http}${worldwidew}${socialUrlType}${contactId.socialId.trim()}`
 }
 
+export function getWebsiteUrl(websiteUrl: string): string {
+	let http = "https://"
+	let worldwidew = "www."
+
+	const isSchemePrefixed = websiteUrl.indexOf("http") !== -1
+	const isWwwDotPrefixed = websiteUrl.indexOf(worldwidew) !== -1
+
+	if (isSchemePrefixed) {
+		http = ""
+	}
+
+	if (isSchemePrefixed || isWwwDotPrefixed) {
+		worldwidew = ""
+	}
+
+	return `${http}${worldwidew}${websiteUrl}`
+}
+
+export function getMessengerHandleUrl(handle: ContactMessengerHandle): string {
+	const replaceNumberExp = new RegExp(/[^0-9+]/g)
+	switch (handle.type) {
+		case ContactMessengerHandleType.SIGNAL:
+			return `sgnl://signal.me/#p/${handle.handle.replaceAll(replaceNumberExp, "")}`
+		case ContactMessengerHandleType.WHATSAPP:
+			return `whatsapp://send?phone=${handle.handle.replaceAll(replaceNumberExp, "")}`
+		case ContactMessengerHandleType.TELEGRAM:
+			return `tg://resolve?domain=${handle.handle}`
+		case ContactMessengerHandleType.DISCORD:
+			return `discord://-/users/${handle.handle}`
+		default:
+			return ""
+	}
+}
+
 export function extractStructuredMailAddresses(addresses: ContactMailAddress[]): ReadonlyArray<StructuredMailAddress> {
 	return addresses.map((address) => ({
 		address: address.address,
@@ -118,6 +172,30 @@ export function extractStructuredPhoneNumbers(numbers: ContactPhoneNumber[]): Re
 		number: number.number,
 		type: number.type as ContactPhoneNumberType,
 		customTypeName: number.customTypeName,
+	}))
+}
+
+export function extractStructuredCustomDates(dates: ContactCustomDate[]): ReadonlyArray<StructuredCustomDate> {
+	return dates.map((date) => ({
+		dateIso: date.dateIso,
+		type: date.type as ContactCustomDateType,
+		customTypeName: date.customTypeName,
+	}))
+}
+
+export function extractStructuredWebsites(websites: ContactWebsite[]): ReadonlyArray<StructuredWebsite> {
+	return websites.map((website) => ({
+		url: website.url,
+		type: website.type as ContactWebsiteType,
+		customTypeName: website.customTypeName,
+	}))
+}
+
+export function extractStructuredRelationships(relationships: ContactRelationship[]): ReadonlyArray<StructuredRelationship> {
+	return relationships.map((relation) => ({
+		person: relation.person,
+		type: relation.type as ContactRelationshipType,
+		customTypeName: relation.customTypeName,
 	}))
 }
 

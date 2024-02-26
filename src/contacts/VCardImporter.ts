@@ -315,6 +315,19 @@ export function vCardListToContacts(vCardList: string[], ownerGroupId: Id): Cont
 			photo: null,
 			oldBirthdayDate: null,
 			oldBirthdayAggregate: null,
+
+			// FIXME: see if anything in here can be imported from the vcard
+			department: null,
+			middleName: null,
+			nameSuffix: null,
+			phoneticFirst: null,
+			phoneticLast: null,
+			phoneticMiddle: null,
+			customDate: [],
+			messengerHandles: [],
+			pronouns: [],
+			relationships: [],
+			websites: [],
 		})
 	}
 

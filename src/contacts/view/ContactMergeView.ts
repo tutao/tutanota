@@ -5,7 +5,7 @@ import { Icons } from "../../gui/base/icons/Icons"
 import { ContactAddressType, ContactMergeAction, getContactSocialType, Keys } from "../../api/common/TutanotaConstants"
 import type { TranslationKey } from "../../misc/LanguageViewModel"
 import { lang } from "../../misc/LanguageViewModel"
-import { formatBirthdayOfContact } from "../model/ContactUtils"
+import { formatContactDate } from "../model/ContactUtils"
 import { defer, DeferredObject, delay, downcast, Thunk } from "@tutao/tutanota-utils"
 import { HtmlEditor, HtmlEditorMode } from "../../gui/editor/HtmlEditor"
 import { ButtonType } from "../../gui/base/Button.js"
@@ -89,7 +89,7 @@ export class ContactMergeView {
 
 		let roleFields = this._createTextFields(this.contact1.role, this.contact2.role, "role_placeholder")
 
-		let birthdayFields = this._createTextFields(formatBirthdayOfContact(this.contact1), formatBirthdayOfContact(this.contact2), "birthday_alt")
+		let birthdayFields = this._createTextFields(formatContactDate(this.contact1.birthdayIso), formatContactDate(this.contact2.birthdayIso), "birthday_alt")
 
 		let presharedPasswordFields = this._createTextFields(
 			this.contact1.presharedPassword && this.contact1.presharedPassword.length > 0 ? "***" : "",
