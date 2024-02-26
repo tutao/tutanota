@@ -1,5 +1,5 @@
 import { lang } from "../../misc/LanguageViewModel"
-import type { Birthday, Contact, ContactAddress, ContactMailAddress, ContactPhoneNumber, ContactSocialId } from "../../api/entities/tutanota/TypeRefs.js"
+import { Birthday, Contact, ContactAddress, ContactMailAddress, ContactPhoneNumber, ContactSocialId } from "../../api/entities/tutanota/TypeRefs.js"
 import { formatDate } from "../../misc/Formatter"
 import { isoDateToBirthday } from "../../api/common/utils/BirthdayUtils"
 import { assertMainOrNode } from "../../api/common/Env"
@@ -7,6 +7,7 @@ import { ContactAddressType, ContactPhoneNumberType, ContactSocialType } from ".
 import { StructuredMailAddress } from "../../native/common/generatedipc/StructuredMailAddress.js"
 import { StructuredPhoneNumber } from "../../native/common/generatedipc/StructuredPhoneNumber.js"
 import { StructuredAddress } from "../../native/common/generatedipc/StructuredAddress.js"
+import { StructuredContact } from "../../native/common/generatedipc/StructuredContact.js"
 
 assertMainOrNode()
 
@@ -118,4 +119,17 @@ export function extractStructuredPhoneNumbers(numbers: ContactPhoneNumber[]): Re
 		type: number.type as ContactPhoneNumberType,
 		customTypeName: number.customTypeName,
 	}))
+}
+
+export function validateBirthdayOfContact(contact: StructuredContact) {
+	if (contact.birthday != null) {
+		try {
+			isoDateToBirthday(contact.birthday)
+			return contact.birthday
+		} catch (_) {
+			return null
+		}
+	} else {
+		return null
+	}
 }
