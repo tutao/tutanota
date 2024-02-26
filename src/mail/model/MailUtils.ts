@@ -86,6 +86,17 @@ export function createNewContact(user: User, mailAddress: string, name: string):
 		phoneNumbers: [],
 		photo: null,
 		socialIds: [],
+		department: null,
+		middleName: null,
+		nameSuffix: null,
+		phoneticFirst: null,
+		phoneticLast: null,
+		phoneticMiddle: null,
+		customDate: [],
+		messengerHandles: [],
+		pronouns: [],
+		relationships: [],
+		websites: [],
 	})
 	return contact
 }

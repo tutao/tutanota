@@ -8,9 +8,11 @@ import {
 	Contact,
 	ContactTypeRef,
 	createContact,
-	createContactAddress,
-	createContactMailAddress,
+	createContactAddress, createContactCustomDate,
+	createContactMailAddress, createContactMessengerHandle,
 	createContactPhoneNumber,
+	createContactRelationship,
+	createContactWebsite,
 } from "../../api/entities/tutanota/TypeRefs.js"
 import { ContactListView } from "./ContactListView"
 import { lang } from "../../misc/LanguageViewModel"
@@ -419,7 +421,7 @@ export class ContactView extends BaseTopLevelView implements TopLevelView<Contac
 										type: ButtonType.Secondary,
 										click: () => this.contactListViewModel.listModel?.selectNone(),
 								  })
-								: undefined,
+								: null,
 						backgroundColor: theme.navigation_bg,
 				  })
 				: m(ContactListEntryViewer, {
@@ -988,6 +990,41 @@ export async function importContacts() {
 export function contactFromStructuredContact(ownerGroupId: Id, contact: StructuredContact): Contact {
 	const userId = locator.logins.getUserController().userId
 	return createContact({
+		customDate: contact.customDate.map((date) =>
+			createContactCustomDate({
+				type: date.type,
+				dateIso: date.dateIso,
+				customTypeName: date.customTypeName,
+			}),
+		),
+		department: contact.department,
+		messengerHandles: contact.messengerHandles.map((handle) =>
+			createContactMessengerHandle({
+				type: handle.type,
+				handle: handle.handle,
+				customTypeName: handle.customTypeName,
+			}),
+		),
+		middleName: contact.middleName,
+		nameSuffix: contact.nameSuffix,
+		phoneticFirst: contact.phoneticFirst,
+		phoneticLast: contact.phoneticLast,
+		phoneticMiddle: contact.phoneticMiddle,
+		pronouns: [],
+		relationships: contact.relationships.map((relation) =>
+			createContactRelationship({
+				type: relation.type,
+				person: relation.person,
+				customTypeName: relation.customTypeName,
+			}),
+		),
+		websites: contact.websites.map((website) =>
+			createContactWebsite({
+				type: website.type,
+				url: website.url,
+				customTypeName: website.customTypeName,
+			}),
+		),
 		_owner: userId,
 		_ownerGroup: ownerGroupId,
 		nickname: contact.nickname,

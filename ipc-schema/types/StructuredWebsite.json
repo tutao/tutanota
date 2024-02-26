@@ -1,0 +1,9 @@
+{
+	"name": "StructuredWebsite",
+	"type": "struct",
+	"fields": {
+		"url": "string",
+		"type": "ContactWebsiteType",
+		"customTypeName": "string"
+	}
+}

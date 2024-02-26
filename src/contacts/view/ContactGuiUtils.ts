@@ -1,4 +1,12 @@
-import { ContactAddressType, ContactPhoneNumberType, ContactSocialType } from "../../api/common/TutanotaConstants"
+import {
+	ContactAddressType,
+	ContactCustomDateType,
+	ContactMessengerHandleType,
+	ContactPhoneNumberType,
+	ContactRelationshipType,
+	ContactSocialType,
+	ContactWebsiteType,
+} from "../../api/common/TutanotaConstants"
 import type { TranslationKey } from "../../misc/LanguageViewModel"
 import { lang } from "../../misc/LanguageViewModel"
 import type { Contact } from "../../api/entities/tutanota/TypeRefs.js"
@@ -50,6 +58,75 @@ export function getContactSocialTypeLabel(type: ContactSocialType, custom: strin
 		return custom
 	} else {
 		return lang.get(ContactSocialTypeToLabel[type])
+	}
+}
+
+export const ContactRelationshipTypeToLabel: Record<ContactRelationshipType, TranslationKey> = {
+	[ContactRelationshipType.PARENT]: "parent_label",
+	[ContactRelationshipType.BROTHER]: "brother_label",
+	[ContactRelationshipType.SISTER]: "sister_label",
+	[ContactRelationshipType.CHILD]: "child_label",
+	[ContactRelationshipType.FRIEND]: "friend_label",
+	[ContactRelationshipType.RELATIVE]: "relative_label",
+	[ContactRelationshipType.SPOUSE]: "spouse_label",
+	[ContactRelationshipType.PARTNER]: "partner_label",
+	[ContactRelationshipType.ASSISTANT]: "assistant_label",
+	[ContactRelationshipType.MANAGER]: "manager_label",
+	[ContactRelationshipType.OTHER]: "other_label",
+	[ContactRelationshipType.CUSTOM]: "custom_label",
+}
+
+export function getContactRelationshipTypeToLabel(type: ContactRelationshipType, custom: string): string {
+	if (type === ContactRelationshipType.CUSTOM) {
+		return custom
+	} else {
+		return lang.get(ContactRelationshipTypeToLabel[type])
+	}
+}
+
+export const ContactMessengerHandleTypeToLabel: Record<ContactMessengerHandleType, TranslationKey> = {
+	[ContactMessengerHandleType.SIGNAL]: "signal_label",
+	[ContactMessengerHandleType.WHATSAPP]: "whatsapp_label",
+	[ContactMessengerHandleType.TELEGRAM]: "telegram_label",
+	[ContactMessengerHandleType.DISCORD]: "discord_label",
+	[ContactMessengerHandleType.OTHER]: "other_label",
+	[ContactMessengerHandleType.CUSTOM]: "custom_label",
+}
+
+export function getContactMessengerHandleTypeToLabel(type: ContactMessengerHandleType, custom: string): string {
+	if (type === ContactMessengerHandleType.CUSTOM) {
+		return custom
+	} else {
+		return lang.get(ContactMessengerHandleTypeToLabel[type])
+	}
+}
+
+export const ContactCustomDateTypeToLabel: Record<ContactCustomDateType, TranslationKey> = {
+	[ContactCustomDateType.ANNIVERSARY]: "anniversary_label",
+	[ContactCustomDateType.OTHER]: "other_label",
+	[ContactCustomDateType.CUSTOM]: "custom_label",
+}
+
+export function getContactCustomDateTypeToLabel(type: ContactCustomDateType, custom: string): string {
+	if (type === ContactCustomDateType.CUSTOM) {
+		return custom
+	} else {
+		return lang.get(ContactCustomDateTypeToLabel[type])
+	}
+}
+
+export const ContactCustomWebsiteTypeToLabel: Record<ContactWebsiteType, TranslationKey> = {
+	[ContactWebsiteType.PRIVATE]: "private_label",
+	[ContactWebsiteType.WORK]: "work_label",
+	[ContactWebsiteType.OTHER]: "other_label",
+	[ContactWebsiteType.CUSTOM]: "custom_label",
+}
+
+export function getContactCustomWebsiteTypeToLabel(type: ContactWebsiteType, custom: string): string {
+	if (type === ContactWebsiteType.CUSTOM) {
+		return custom
+	} else {
+		return lang.get(ContactCustomWebsiteTypeToLabel[type])
 	}
 }
 

@@ -571,7 +571,21 @@ private extension CNContact {
 			mailAddresses: emailAddresses.map { $0.toStructuredMailAddress() },
 			phoneNumbers: phoneNumbers.map { $0.toStructuredPhoneNumber() },
 			addresses: postalAddresses.map { $0.toStructuredAddress() },
-			rawId: identifier
+			rawId: identifier,
+
+			customDate: dates.map { $0.toStructuredCustomDate() },
+			department: departmentName,
+			messengerHandles: instantMessageAddresses.map { $0.toStructuredMessengerHandle() },
+			middleName: middleName,
+			nameSuffix: nameSuffix,
+			phoneticFirst: phoneticGivenName,
+			phoneticLast: phoneticFamilyName,
+			phoneticMiddle: phoneticMiddleName,
+			relationships: contactRelations.map { $0.toStructuredRelationship() },
+			websites: urlAddresses.map { $0.toStructuredWebsite() },
+			notes: "",  // FIXME: not apple approved
+			title: namePrefix,
+			role: jobTitle
 		)
 	}
 }

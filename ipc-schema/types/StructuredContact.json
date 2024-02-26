@@ -11,6 +11,19 @@
 		"mailAddresses": "List<StructuredMailAddress>",
 		"phoneNumbers": "List<StructuredPhoneNumber>",
 		"addresses": "List<StructuredAddress>",
-		"rawId": "string?"
+		"rawId": "string?",
+		"customDate": "List<StructuredCustomDate>",
+		"department": "string?",
+		"messengerHandles": "List<StructuredMessengerHandle>",
+		"middleName": "string?",
+		"nameSuffix": "string?",
+		"phoneticFirst": " string?",
+		"phoneticLast": "string?",
+		"phoneticMiddle": "string?",
+		"relationships": "List<StructuredRelationship>",
+		"websites": "List<StructuredWebsite>",
+		"notes": "string",
+		"title": "string",
+		"role": "string"
 	}
 }

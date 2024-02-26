@@ -124,10 +124,10 @@ export class NavButton implements Component<NavButtonAttrs> {
 			title: this.getLabel(a.label),
 			target: this._isExternalUrl(a.href) ? "_blank" : undefined,
 			selector: this._getNavButtonClass(a),
-			onclick: (e: MouseEvent) => this.click(e, a),
-			onkeyup: (e: KeyboardEvent) => {
+			onclick: (e: MouseEvent, dom: HTMLElement) => this.click(e, a, dom),
+			onkeyup: (e: KeyboardEvent, dom: HTMLElement) => {
 				if (isKeyPressed(e.key, Keys.SPACE)) {
-					this.click(e, a)
+					this.click(e, a, dom)
 				}
 			},
 			onfocus: a.onfocus,
@@ -171,13 +171,13 @@ export class NavButton implements Component<NavButtonAttrs> {
 		return attr
 	}
 
-	click(event: Event, a: NavButtonAttrs) {
+	click(event: Event, a: NavButtonAttrs, dom: HTMLElement) {
 		if (!this._isExternalUrl(a.href)) {
 			m.route.set(this._getUrl(a.href))
 
 			try {
 				if (a.click != null) {
-					a.click(event, this._domButton)
+					a.click(event, dom)
 				}
 
 				event.preventDefault()

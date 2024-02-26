@@ -1,0 +1,9 @@
+{
+	"name": "StructuredRelationship",
+	"type": "struct",
+	"fields": {
+		"person": "string",
+		"type": "ContactRelationshipType",
+		"customTypeName": "string"
+	}
+}

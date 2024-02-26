@@ -1,0 +1,9 @@
+{
+	"name": "StructuredCustomDate",
+	"type": "struct",
+	"fields": {
+		"dateIso": "string",
+		"type": "ContactCustomDateType",
+		"customTypeName": "string"
+	}
+}

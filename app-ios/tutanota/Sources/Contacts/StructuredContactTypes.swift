@@ -48,6 +48,58 @@ extension StructuredPhoneNumber: Hashable {
 	}
 }
 
+extension StructuredWebsite: Equatable {
+	public static func == (lhs: Self, rhs: Self) -> Bool { lhs.type == rhs.type && lhs.customTypeName == rhs.customTypeName && lhs.url == rhs.url }
+}
+
+extension StructuredWebsite: Hashable {
+	public func hash(into hasher: inout Hasher) {
+		hasher.combine(url)
+		hasher.combine(type)
+		hasher.combine(customTypeName)
+	}
+}
+
+extension StructuredCustomDate: Equatable {
+	public static func == (lhs: Self, rhs: Self) -> Bool { lhs.type == rhs.type && lhs.customTypeName == rhs.customTypeName && lhs.dateIso == rhs.dateIso }
+}
+
+extension StructuredCustomDate: Hashable {
+	public func hash(into hasher: inout Hasher) {
+		hasher.combine(dateIso)
+		hasher.combine(type)
+		hasher.combine(customTypeName)
+	}
+}
+
+extension StructuredMessengerHandle: Equatable {
+	public static func == (lhs: Self, rhs: Self) -> Bool { lhs.type == rhs.type && lhs.customTypeName == rhs.customTypeName && lhs.handle == rhs.handle }
+}
+
+extension StructuredMessengerHandle: Hashable {
+	public func hash(into hasher: inout Hasher) {
+		hasher.combine(handle)
+		hasher.combine(type)
+		hasher.combine(customTypeName)
+	}
+}
+
+extension StructuredRelationship: Equatable {
+	public static func == (lhs: Self, rhs: Self) -> Bool { lhs.type == rhs.type && lhs.customTypeName == rhs.customTypeName && lhs.person == rhs.person }
+}
+
+extension StructuredPronouns: Equatable {
+	public static func == (lhs: Self, rhs: Self) -> Bool { lhs.pronouns == rhs.pronouns && lhs.language == rhs.language }
+}
+
+extension StructuredRelationship: Hashable {
+	public func hash(into hasher: inout Hasher) {
+		hasher.combine(person)
+		hasher.combine(type)
+		hasher.combine(customTypeName)
+	}
+}
+
 extension StructuredPhoneNumber: Equatable {
 	public static func == (lhs: Self, rhs: Self) -> Bool { lhs.number == rhs.number && lhs.type == rhs.type && lhs.customTypeName == rhs.customTypeName }
 }
@@ -56,6 +108,11 @@ extension StructuredContact: Equatable {
 	public static func == (lhs: Self, rhs: Self) -> Bool {
 		lhs.id == rhs.id && lhs.firstName == rhs.firstName && lhs.lastName == rhs.lastName && lhs.nickname == rhs.nickname && lhs.company == rhs.company
 			&& lhs.birthday == rhs.birthday && lhs.mailAddresses == rhs.mailAddresses && lhs.phoneNumbers == rhs.phoneNumbers && lhs.addresses == rhs.addresses
+			&& lhs.customDate == rhs.customDate && lhs.department == rhs.department && lhs.messengerHandles == rhs.messengerHandles
+			&& lhs.middleName == rhs.middleName && lhs.nameSuffix == rhs.nameSuffix && lhs.phoneticFirst == rhs.phoneticFirst
+			&& lhs.phoneticLast == rhs.phoneticLast && lhs.phoneticMiddle == rhs.phoneticMiddle
+			&& lhs.relationships == rhs.relationships && lhs.websites == rhs.websites && lhs.notes == rhs.notes && lhs.title == rhs.title
+			&& lhs.role == rhs.role
 	}
 }
 
@@ -70,5 +127,19 @@ extension StructuredContact: Hashable {
 		hasher.combine(mailAddresses)
 		hasher.combine(phoneNumbers)
 		hasher.combine(addresses)
+		// hasher.combine(rawId)  // no need
+		hasher.combine(customDate)
+		hasher.combine(department)
+		hasher.combine(messengerHandles)
+		hasher.combine(middleName)
+		hasher.combine(nameSuffix)
+		hasher.combine(phoneticFirst)
+		hasher.combine(phoneticLast)
+		hasher.combine(phoneticMiddle)
+		hasher.combine(relationships)
+		hasher.combine(websites)
+		hasher.combine(notes)
+		hasher.combine(title)
+		hasher.combine(role)
 	}
 }

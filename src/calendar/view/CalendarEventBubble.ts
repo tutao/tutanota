@@ -50,9 +50,9 @@ export class CalendarEventBubble implements Component<CalendarEventBubbleAttrs> 
 					opacity: attrs.opacity,
 					pointerEvents: enablePointerEvents ? "auto" : "none",
 				},
-				onclick: (e: MouseEvent) => {
+				onclick: (e: MouseEvent, dom: HTMLElement) => {
 					e.stopPropagation()
-					attrs.click(e, e.target as HTMLElement)
+					attrs.click(e, dom)
 				},
 			},
 			[

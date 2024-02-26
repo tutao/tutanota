@@ -57,10 +57,10 @@ o.spec("DesktopContextMenu Test", () => {
 		}
 		contextMenu.open(contextMenuParams as ContextMenuParams)
 		for (const i of downcast(electronMock.MenuItem).mockedInstances) {
-			i.click?.(undefined, undefined)
+			i.click?.(undefined)
 		}
 		for (const i of downcast(electronMock.MenuItem).mockedInstances) {
-			i.click?.(undefined, "nowebcontents")
+			i.click?.(undefined)
 		}
 	})
 })

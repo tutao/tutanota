@@ -2,12 +2,26 @@ import m, { Children, ClassComponent, Vnode } from "mithril"
 import { lang } from "../../misc/LanguageViewModel"
 import { TextField, TextFieldType } from "../../gui/base/TextField.js"
 import { Icons } from "../../gui/base/icons/Icons"
-import type { ContactAddressType } from "../../api/common/TutanotaConstants"
-import { ContactPhoneNumberType, getContactSocialType } from "../../api/common/TutanotaConstants"
-import type { Contact, ContactAddress, ContactPhoneNumber, ContactSocialId } from "../../api/entities/tutanota/TypeRefs.js"
+import { ContactAddressType, ContactPhoneNumberType, getContactSocialType, getCustomDateType, getRelationshipType } from "../../api/common/TutanotaConstants"
+import type {
+	Contact,
+	ContactAddress,
+	ContactMessengerHandle,
+	ContactPhoneNumber,
+	ContactSocialId,
+	ContactWebsite,
+} from "../../api/entities/tutanota/TypeRefs.js"
 import { assertNotNull, downcast, memoized, NBSP, noOp } from "@tutao/tutanota-utils"
-import { getContactAddressTypeLabel, getContactPhoneNumberTypeLabel, getContactSocialTypeLabel } from "./ContactGuiUtils"
-import { formatBirthdayOfContact, getSocialUrl } from "../model/ContactUtils"
+import {
+	getContactAddressTypeLabel,
+	getContactCustomDateTypeToLabel,
+	getContactCustomWebsiteTypeToLabel,
+	getContactMessengerHandleTypeToLabel,
+	getContactPhoneNumberTypeLabel,
+	getContactRelationshipTypeToLabel,
+	getContactSocialTypeLabel,
+} from "./ContactGuiUtils"
+import { formatContactDate, getMessengerHandleUrl, getSocialUrl, getWebsiteUrl } from "../model/ContactUtils"
 import { assertMainOrNode } from "../../api/common/Env"
 import { IconButton } from "../../gui/base/IconButton.js"
 import { ButtonSize } from "../../gui/base/ButtonSize.js"
@@ -29,13 +43,24 @@ export interface ContactViewerAttrs {
 export class ContactViewer implements ClassComponent<ContactViewerAttrs> {
 	private readonly contactAppellation = memoized((contact: Contact) => {
 		const title = contact.title ? `${contact.title} ` : ""
-		// const nickname = contact.nickname ? ` | "${contact.nickname}"` : ""
-		const fullName = `${contact.firstName} ${contact.lastName}`
-		return (title + fullName).trim()
+		const middleName = contact.middleName != null ? ` ${contact.middleName} ` : " "
+		const fullName = `${contact.firstName}${middleName}${contact.lastName} `
+		const suffix = contact.nameSuffix ?? ""
+		return (title + fullName + suffix).trim()
+	})
+
+	private readonly contactPhoneticName = memoized((contact: Contact): string | null => {
+		const firstName = contact.phoneticFirst ?? ""
+		const middleName = contact.phoneticMiddle ? ` ${contact.phoneticMiddle}` : ""
+		const lastName = contact.phoneticLast ? ` ${contact.phoneticLast}` : ""
+
+		const phoneticName = (firstName + middleName + lastName).trim()
+
+		return phoneticName.length > 0 ? phoneticName : null
 	})
 
 	private readonly formattedBirthday = memoized((contact: Contact) => {
-		return this.hasBirthday(contact) ? formatBirthdayOfContact(contact) : null
+		return this.hasBirthday(contact) ? formatContactDate(contact.birthdayIso) : null
 	})
 
 	private hasBirthday(contact: Contact): boolean {
@@ -44,6 +69,9 @@ export class ContactViewer implements ClassComponent<ContactViewerAttrs> {
 
 	view({ attrs }: Vnode<ContactViewerAttrs>): Children {
 		const { contact, onWriteMail } = attrs
+
+		const phoneticName = this.contactPhoneticName(attrs.contact)
+
 		return m(".plr-l.pb-floating.mlr-safe-inset", [
 			m("", [
 				m(
@@ -53,21 +81,10 @@ export class ContactViewer implements ClassComponent<ContactViewerAttrs> {
 							this.contactAppellation(contact),
 							NBSP, // alignment in case nothing is present here
 						]),
+						phoneticName ? m("", phoneticName) : null,
+						contact.pronouns.length > 0 ? this.renderPronounsInfo(contact) : null,
 						contact.nickname ? m("", `"${contact.nickname}"`) : null,
-						m(
-							"",
-							insertBetween([contact.role ? m("span", contact.role) : null, contact.company ? m("span", contact.company) : null], () =>
-								m(
-									"span.plr-s",
-									{
-										style: {
-											fontWeight: "900",
-										},
-									},
-									" · ",
-								),
-							),
-						),
+						m("", this.renderJobInformation(contact)),
 						this.hasBirthday(contact) ? m("", this.formattedBirthday(contact)) : null,
 					]),
 					contact && (attrs.editAction || attrs.deleteAction)
@@ -109,10 +126,52 @@ export class ContactViewer implements ClassComponent<ContactViewerAttrs> {
 				),
 				m("hr.hr.mt.mb"),
 			]),
+			this.renderCustomDatesAndRelationships(contact),
 			this.renderMailAddressesAndPhones(contact, onWriteMail),
 			this.renderAddressesAndSocialIds(contact),
+			this.renderWebsitesAndInstantMessengers(contact),
 			this.renderComment(contact),
 		])
+	}
+
+	private renderJobInformation(contact: Contact): Children {
+		const spacerFunction = () =>
+			m(
+				"span.plr-s",
+				{
+					style: {
+						fontWeight: "900",
+					},
+				},
+				" · ",
+			)
+
+		return insertBetween(
+			[
+				contact.role ? m("span", contact.role) : null,
+				contact.department ? m("span", contact.department) : null,
+				contact.company ? m("span", contact.company) : null,
+			],
+			spacerFunction,
+		)
+	}
+
+	private renderPronounsInfo(contact: Contact): Children {
+		const spacerFunction = () =>
+			m(
+				"span.plr-s",
+				{
+					style: {
+						fontWeight: "900",
+					},
+				},
+				" · ",
+			)
+
+		return insertBetween(
+			contact.pronouns.map((pronouns) => m("span", `${pronouns.language}: ${pronouns.pronouns}`)),
+			spacerFunction,
+		)
 	}
 
 	private renderAddressesAndSocialIds(contact: Contact): Children {
@@ -122,6 +181,47 @@ export class ContactViewer implements ClassComponent<ContactViewerAttrs> {
 			? m(".wrapping-row", [
 					m(".address.mt-l", addresses.length > 0 ? [m(".h4", lang.get("address_label")), m(".aggregateEditors", addresses)] : null),
 					m(".social.mt-l", socials.length > 0 ? [m(".h4", lang.get("social_label")), m(".aggregateEditors", socials)] : null),
+			  ])
+			: null
+	}
+
+	private renderWebsitesAndInstantMessengers(contact: Contact): Children {
+		const websites = contact.websites.map((element) => this.renderWebsite(element))
+		const instantMessengers = contact.messengerHandles.map((element) => this.renderMessengerHandle(element))
+		return websites.length > 0 || instantMessengers.length > 0
+			? m(".wrapping-row", [
+					m(".website.mt-l", websites.length > 0 ? [m(".h4", lang.get("websites_label")), m(".aggregateEditors", websites)] : null),
+					m(
+						".messenger-handles.mt-l",
+						instantMessengers.length > 0 ? [m(".h4", lang.get("messenger_handles_label")), m(".aggregateEditors", instantMessengers)] : null,
+					),
+			  ])
+			: null
+	}
+
+	private renderCustomDatesAndRelationships(contact: Contact): Children {
+		const dates = contact.customDate.map((element) =>
+			m(TextField, {
+				label: () => getContactCustomDateTypeToLabel(getCustomDateType(element), element.customTypeName),
+				value: formatContactDate(element.dateIso),
+				isReadOnly: true,
+			}),
+		)
+		const relationships = contact.relationships.map((element) =>
+			m(TextField, {
+				label: () => getContactRelationshipTypeToLabel(getRelationshipType(element), element.customTypeName),
+				value: element.person,
+				isReadOnly: true,
+			}),
+		)
+
+		return dates.length > 0 || relationships.length > 0
+			? m(".wrapping-row", [
+					m(".dates.mt-l", dates.length > 0 ? [m(".h4", lang.get("dates_label")), m(".aggregateEditors", dates)] : null),
+					m(
+						".relationships.mt-l",
+						relationships.length > 0 ? [m(".h4", lang.get("relationships_label")), m(".aggregateEditors", relationships)] : null,
+					),
 			  ])
 			: null
 	}
@@ -155,6 +255,36 @@ export class ContactViewer implements ClassComponent<ContactViewerAttrs> {
 			value: contactSocialId.socialId,
 			isReadOnly: true,
 			injectionsRight: () => m(`a[href=${getSocialUrl(contactSocialId)}][target=_blank]`, showButton),
+		})
+	}
+
+	private renderWebsite(website: ContactWebsite): Children {
+		const showButton = m(IconButton, {
+			title: "showURL_alt",
+			click: noOp,
+			icon: Icons.ArrowForward,
+			size: ButtonSize.Compact,
+		})
+		return m(TextField, {
+			label: () => getContactCustomWebsiteTypeToLabel(downcast(website.type), website.customTypeName),
+			value: website.url,
+			isReadOnly: true,
+			injectionsRight: () => m(`a[href=${getWebsiteUrl(website.url)}][target=_blank]`, showButton),
+		})
+	}
+
+	private renderMessengerHandle(messengerHandle: ContactMessengerHandle): Children {
+		const showButton = m(IconButton, {
+			title: "showURL_alt",
+			click: noOp,
+			icon: Icons.ArrowForward,
+			size: ButtonSize.Compact,
+		})
+		return m(TextField, {
+			label: () => getContactMessengerHandleTypeToLabel(downcast(messengerHandle.type), messengerHandle.customTypeName),
+			value: messengerHandle.handle,
+			isReadOnly: true,
+			injectionsRight: () => m(`a[href=${getMessengerHandleUrl(messengerHandle)}][target=_blank]`, showButton),
 		})
 	}
 
