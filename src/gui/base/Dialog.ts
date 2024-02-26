@@ -58,15 +58,15 @@ export type ActionDialogProps = {
 	type?: DialogType
 }
 
-export type TextInputDialogProps = {
+export interface TextInputDialogParams {
 	/** title of the dialog */
-	title: TranslationKey | lazy<string>
+	title: TranslationText
 
 	/** label of the text field */
-	label: TranslationKey | lazy<string>
+	label: TranslationText
 
 	/** help label of the text field */
-	infoMsgId?: TranslationKey | lazy<string>
+	infoMsgId?: TranslationText
 
 	/** initial value, if any */
 	defaultValue?: string
@@ -770,18 +770,16 @@ export class Dialog implements ModalComponent {
 	 * Shows a dialog with a text field input and ok/cancel buttons.
 	 * @returns A promise resolving to the entered text. The returned promise is only resolved if "ok" is clicked.
 	 */
-	static showTextInputDialog(props: TextInputDialogProps): Promise<string> {
+	static showTextInputDialog(props: TextInputDialogParams): Promise<string> {
 		return new Promise((resolve) => {
-			Dialog.showProcessTextInputDialog(props, async (value) => {
-				resolve(value)
-			})
+			Dialog.showProcessTextInputDialog(props, async (value) => resolve(value))
 		})
 	}
 
 	/**
 	 * Shows a dialog with a text field input and ok/cancel buttons. In contrast to {@link showTextInputDialog} the entered text is not returned but processed in the okAction.
 	 */
-	static showProcessTextInputDialog(props: TextInputDialogProps, okAction: (action: string) => Promise<unknown>) {
+	static showProcessTextInputDialog(props: TextInputDialogParams, okAction: (action: string) => Promise<unknown>) {
 		let textFieldType = props.textFieldType ?? TextFieldType.Text
 
 		let result = props.defaultValue ?? ""
