@@ -1,9 +1,9 @@
 name: Node CI
 
 on:
-  push:
-    branches-ignore:
-      - master
+  pull_request:
+    types: [ opened, synchronize, edited ]
+  merge_group:
 
 jobs:
   test:
