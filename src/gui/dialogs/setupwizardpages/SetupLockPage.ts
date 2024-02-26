@@ -27,7 +27,6 @@ export class SetupLockPage implements Component<SetupLockPageAttrs> {
 }
 
 export class SetupLockPageAttrs implements WizardPageAttrs<null> {
-	preventGoBack = true
 	hidePagingButtonForPage = false
 	data: null = null
 

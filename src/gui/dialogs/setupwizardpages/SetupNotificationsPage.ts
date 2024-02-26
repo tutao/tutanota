@@ -58,7 +58,6 @@ export class SetupNotificationsPage implements WizardPageN<stream<NotificationPe
 }
 
 export class SetupNotificationsPageAttrs implements WizardPageAttrs<stream<NotificationPermissionsData>> {
-	preventGoBack = false
 	hidePagingButtonForPage = false
 	data: stream<NotificationPermissionsData>
 	// Cache the permission values to avoid the page becoming disabled while on it.
