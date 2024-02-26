@@ -11,7 +11,7 @@ export default {
 		"other"
 	],
 	"created_at": "2015-03-23T11:36:16Z",
-	"updated_at": "2024-02-16T19:42:52Z",
+	"updated_at": "2024-02-26T11:01:08Z",
 	"source_locale": null,
 	"fallback_locale": null,
 	"keys": {
@@ -831,6 +831,7 @@ export default {
 		"mailAddressBusy_msg": "Verifierar e-postadress...",
 		"mailAddressDelay_msg": "Alltför många förfrågningar, försök igen senare.",
 		"mailAddresses_label": "E-postadresser",
+		"mailAddressInfoLegacy_msg": "Inaktiverade e-postadresser kan omfördelas till en annan användare eller brevlåda inom ditt konto.",
 		"mailAddressInfo_msg": "Anpassade domänadresser räknas inte in i begränsningen. Inaktiverade e-postadresser kan omfördelas till en annan användare eller brevlåda inom ditt konto.",
 		"mailAddressInvalid_msg": "Adressen är inte giltig.",
 		"mailAddressNANudge_msg": "E-postadressen är inte tillgänglig. Prova en annan domän från rullgardinsmenyn.",

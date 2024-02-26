@@ -13,7 +13,7 @@ export default {
 		"other"
 	],
 	"created_at": "2015-04-24T12:42:36Z",
-	"updated_at": "2024-02-16T14:39:26Z",
+	"updated_at": "2024-02-20T06:24:03Z",
 	"source_locale": null,
 	"fallback_locale": null,
 	"keys": {
@@ -504,7 +504,7 @@ export default {
 		"enforcePasswordUpdate_title": "Vynutit změnu hesla",
 		"enterAsCSV_msg": "Prosím, zadejte své uživatelské údaje jako CSV.",
 		"enterCustomDomain_title": "Zadejte svou doménu",
-		"enterDetails_msg": "Zde zadejte další podrobnosti, pokud chcete",
+		"enterDetails_msg": "Volitelné: zde zadejte podrobnosti",
 		"enterDomainFieldHelp_label": "S touto vaší vlastní e-mailovou doménou můžete vytvořit e-mailovou adresu např. hello@{domain}.",
 		"enterDomainGetReady_msg": "Je potřeba změnit vaši konfiguraci DNS. Otevřete prosím nové okno v prohlížeči a přihlaste se na administrativní platformu vašeho poskytovatele domény. Průvodce nastavením vám po krocích ukáže, které změny je nutné provést.",
 		"enterDomainIntroduction_msg": "U Tutanoty můžete nastavit vlastní e-mailovou doménu v několika málo krocích.",
@@ -1628,7 +1628,7 @@ export default {
 		"whitelabelThemeDetected_msg": "Pro tento účet bylo zjištěno vlastní téma. Chcete ho použít?",
 		"whitelabel_label": "Whitelabel",
 		"who_label": "Kdo",
-		"whyLeave_msg": "Proč nejste spokojeni se schránkou Tuta?",
+		"whyLeave_msg": "Mrzí nás, že odcházíte! Co můžeme vylepšit?",
 		"work_label": "Práce",
 		"wrongUserCsvFormat_msg": "Opravte prosím CSV formát vašich dat na: {format}",
 		"xing_label": "XING",
