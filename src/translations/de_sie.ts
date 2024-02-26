@@ -11,7 +11,7 @@ export default {
 		"other"
 	],
 	"created_at": "2018-01-12T10:51:54Z",
-	"updated_at": "2024-02-16T14:40:04Z",
+	"updated_at": "2024-02-26T09:57:23Z",
 	"source_locale": {
 		"id": "2001c6fdcc9cd338c1d600cb2636918b",
 		"name": "de",
@@ -835,6 +835,7 @@ export default {
 		"mailAddressBusy_msg": "E-Mail-Adresse wird überprüft ...",
 		"mailAddressDelay_msg": "Zu viele Anfragen, bitte versuchen Sie es später erneut.",
 		"mailAddresses_label": "E-Mail-Adressen",
+		"mailAddressInfoLegacy_msg": "Deaktivierte E-Mail-Adressen können einer anderen Mailbox innerhalb Ihres Kontos zugewiesen werden.",
 		"mailAddressInfo_msg": "Adressen mit der eigenen Domain werden nicht auf das Limit angerechnet. Deaktivierte E-Mail-Adressen können einer anderen Mailbox innerhalb Ihres Kontos zugewiesen werden.",
 		"mailAddressInvalid_msg": "Ungültige E-Mail-Adresse.",
 		"mailAddressNANudge_msg": "E-Mail-Adresse ist bereits vergeben. Versuchen Sie eine andere Domain aus dem Dropdown.",
@@ -1643,7 +1644,6 @@ export default {
 		"yourCalendars_label": "Deine Kalender",
 		"yourFolders_action": "Ihre ORDNER",
 		"yourMessage_label": "Ihre Nachricht",
-		"you_label": "Sie",
-		"mailAddressInfoLegacy_msg": "Deaktivierte E-Mail-Adressen können einer anderen Mailbox innerhalb Ihres Kontos zugewiesen werden."
+		"you_label": "Sie"
 	}
 }

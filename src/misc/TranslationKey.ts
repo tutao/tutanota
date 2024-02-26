@@ -815,6 +815,7 @@ export type TranslationKeyType =
 	| "mailAddressBusy_msg"
 	| "mailAddressDelay_msg"
 	| "mailAddresses_label"
+	| "mailAddressInfoLegacy_msg"
 	| "mailAddressInfo_msg"
 	| "mailAddressInvalid_msg"
 	| "mailAddressNANudge_msg"
@@ -1625,4 +1626,3 @@ export type TranslationKeyType =
 	| "yourMessage_label"
 	| "you_label"
 	| "emptyString_msg"
-	| "mailAddressInfoLegacy_msg"
