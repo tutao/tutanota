@@ -11,10 +11,10 @@ interface SetupPageLayoutAttrs {
 
 export class SetupPageLayout implements Component<SetupPageLayoutAttrs> {
 	view({ attrs, children }: Vnode<SetupPageLayoutAttrs>): Children {
-		return m("section.full-height.center", [
+		return m("section.wizard-container.center.flex.flex-column", [
 			m(Icon, {
 				icon: attrs.icon,
-				class: "icon-xl",
+				class: "icon-xl center-h",
 			}),
 			children,
 			m(LoginButton, {

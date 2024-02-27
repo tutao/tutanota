@@ -28,7 +28,7 @@ export class SetupContactsPage implements Component<SetupContactsPageAttrs> {
 				text: attrs.syncManager.isEnabled() ? "activated_label" : "activate_action",
 				borderColor: theme.content_accent,
 				color: theme.content_accent,
-				class: "b full-width mt-s",
+				class: "b full-width mt-s mb-l",
 				click: () => {
 					this.enableSync(attrs)
 				},

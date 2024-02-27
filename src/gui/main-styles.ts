@@ -1194,10 +1194,8 @@ styles.registerStyle("main", () => {
 			"max-height": px(size.button_height),
 		},
 		".wizard-next-button": {
-			position: "absolute",
-			bottom: px(size.vpad),
-			left: px(size.hpad_medium),
-			width: "90%",
+			"margin-top": "auto",
+			"margin-bottom": px(size.vpad),
 		},
 		".compact": {
 			width: `${size.button_height_compact}px !important`,
@@ -1382,6 +1380,14 @@ styles.registerStyle("main", () => {
 		},
 		".dialog-max-height": {
 			"max-height": "calc(100vh - 100px)",
+		},
+		".wizard-container": {
+			position: "absolute",
+			left: "0",
+			right: "0",
+			"margin-left": px(size.hpad_large),
+			"margin-right": px(size.hpad_large),
+			"min-height": "92%",
 		},
 		// mail folder view column
 		" .folder-column": {
