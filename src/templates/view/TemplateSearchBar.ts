@@ -2,7 +2,7 @@ import m, { Children, ClassComponent, Component, Vnode } from "mithril"
 import type { TranslationKey } from "../../misc/LanguageViewModel"
 import { lang } from "../../misc/LanguageViewModel"
 import { inputLineHeight, px } from "../../gui/size"
-import type { keyHandler } from "../../misc/KeyManager"
+import { keyboardEventToKeyPress, keyHandler } from "../../misc/KeyManager"
 import { theme } from "../../gui/theme"
 import type { lazy } from "@tutao/tutanota-utils"
 import Stream from "mithril/stream"
@@ -40,11 +40,7 @@ export class TemplateSearchBar implements ClassComponent<TemplateSearchBarAttrs>
 				this.domInput.focus()
 			},
 			onkeydown: (e: KeyboardEvent) => {
-				let key = {
-					key: e.key,
-					ctrl: e.ctrlKey,
-					shift: e.shiftKey,
-				}
+				const key = keyboardEventToKeyPress(e)
 				return a.keyHandler != null ? a.keyHandler(key) : true
 			},
 			oninput: () => {

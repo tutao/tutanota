@@ -17,7 +17,6 @@ import { AddressInfo, AddressStatus, MailAddressTableModel } from "./MailAddress
 import { showAddAliasDialog } from "./AddAliasDialog.js"
 import { locator } from "../../api/main/MainLocator.js"
 import { UpgradeRequiredError } from "../../api/main/UpgradeRequiredError.js"
-import { PlanType } from "../../api/common/TutanotaConstants.js"
 
 assertMainOrNode()
 
@@ -78,7 +77,7 @@ export class MailAddressTable implements Component<MailAddressTableAttrs> {
 								"{totalAmount}": model.aliasCount.totalAliases,
 							}),
 						),
-						m(".small.mt-s", lang.get("mailAddressInfo_msg")),
+						m(".small.mt-s", lang.get(model.aliasLimitIncludesCustomDomains() ? "mailAddressInfoLegacy_msg" : "mailAddressInfo_msg")),
 				  ]
 				: null,
 		]
@@ -204,11 +203,11 @@ async function switchAliasStatus(alias: AddressInfo, attrs: MailAddressTableAttr
 }
 
 function showSenderNameChangeDialog(model: MailAddressTableModel, alias: { address: string; name: string }) {
-	Dialog.showTextInputDialog(
-		"edit_action",
-		"mailName_label",
-		() => alias.address,
+	Dialog.showTextInputDialog({
+		title: "edit_action",
+		label: "mailName_label",
+		infoMsgId: () => alias.address,
 		// Use name as default value if there was nothing set before e.g. if we populated the mapping before we set the sender name for the first time
-		alias.name || model.defaultSenderName(),
-	).then((newName) => showProgressDialog("pleaseWait_msg", model.setAliasName(alias.address, newName)))
+		defaultValue: alias.name || model.defaultSenderName(),
+	}).then((newName) => showProgressDialog("pleaseWait_msg", model.setAliasName(alias.address, newName)))
 }

@@ -309,7 +309,7 @@ o.spec("LoginViewModelTest", () => {
 			verify(credentialsProviderMock.deleteByUserId(testCredentials.userId))
 			verify(credentialRemovalHandler.onCredentialsRemoved(credentialsAndKey))
 			o(viewModel.getSavedCredentials()).deepEquals([])
-			o(viewModel._autoLoginCredentials).equals(null)
+			o(viewModel.autoLoginCredentials).equals(null)
 		})
 		o("login should fail for expired stored credentials", async function () {
 			await credentialsProviderMock.store({ credentials: testCredentials, databaseKey: null })

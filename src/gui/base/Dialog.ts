@@ -58,6 +58,26 @@ export type ActionDialogProps = {
 	type?: DialogType
 }
 
+export interface TextInputDialogParams {
+	/** title of the dialog */
+	title: TranslationText
+
+	/** label of the text field */
+	label: TranslationText
+
+	/** help label of the text field */
+	infoMsgId?: TranslationText
+
+	/** initial value, if any */
+	defaultValue?: string
+
+	/** Called when "Ok" is clicked receiving the entered text. Must return null if the text is valid or an error messageId if the text is invalid, so an error message is shown. */
+	inputValidator?: stringValidator
+
+	/** Text field type to display (determines what keyboard to display on mobile devices) */
+	textFieldType?: TextFieldType
+}
+
 export class Dialog implements ModalComponent {
 	private static _keyboardHeight: number = 0
 	private _domDialog: HTMLElement | null = null
@@ -748,81 +768,43 @@ export class Dialog implements ModalComponent {
 
 	/**
 	 * Shows a dialog with a text field input and ok/cancel buttons.
-	 * @param titleId title of the dialog
-	 * @param labelIdOrLabelFunction label of the text field
-	 * @param infoMsgId help label of the text field
-	 * @param value initial value
-	 * @param inputValidator Called when "Ok" is clicked receiving the entered text. Must return null if the text is valid or an error messageId if the text is invalid, so an error message is shown.
 	 * @returns A promise resolving to the entered text. The returned promise is only resolved if "ok" is clicked.
 	 */
-	static showTextInputDialog(
-		titleId: TranslationKey | lazy<string>,
-		labelIdOrLabelFunction: TranslationKey | lazy<string>,
-		infoMsgId: (TranslationKey | null) | (lazy<string> | null),
-		value: string,
-		inputValidator?: stringValidator,
-	): Promise<string> {
+	static showTextInputDialog(props: TextInputDialogParams): Promise<string> {
 		return new Promise((resolve) => {
-			let result = value
-			Dialog.showActionDialog({
-				title: lang.getMaybeLazy(titleId),
-				child: () =>
-					m(TextField, {
-						label: labelIdOrLabelFunction,
-						value: result,
-						oninput: (newValue) => (result = newValue),
-						helpLabel: () => (infoMsgId ? lang.getMaybeLazy(infoMsgId) : ""),
-					}),
-				validator: () => (inputValidator ? inputValidator(result) : null),
-				allowOkWithReturn: true,
-				okAction: (dialog: Dialog) => {
-					resolve(result)
-					dialog.close()
-				},
-			})
+			Dialog.showProcessTextInputDialog(props, async (value) => resolve(value))
 		})
 	}
 
 	/**
-	 * Shows a dialog with a text field input and ok/cancel buttons. In contrast to {@link showTextInputDialog} the entered text is not returned but processed in the okayAction.
-	 * @param titleId title of the dialog
-	 * @param labelIdOrLabelFunction label of the text field
-	 * @param infoMsgId help label of the text field
-	 * @param value initial value
-	 * @param inputValidator Called when "Ok" is clicked receiving the entered text. Must return null if the text is valid or an error messageId if the text is invalid, so an error message is shown.
-	 * @param okAction Called when "OK" is clicked, receives the entered text. If the okayAction results in a ConnectionsError the dialog is not closed.
+	 * Shows a dialog with a text field input and ok/cancel buttons. In contrast to {@link showTextInputDialog} the entered text is not returned but processed in the okAction.
 	 */
-	static showProcessTextInputDialog(
-		titleId: TranslationKey | lazy<string>,
-		labelIdOrLabelFunction: TranslationKey | lazy<string>,
-		infoMsgId: (TranslationKey | null) | (lazy<string> | null),
-		value: string,
-		okAction: (arg0: string) => Promise<unknown>,
-		inputValidator?: stringValidator,
-	) {
-		let result = value
+	static showProcessTextInputDialog(props: TextInputDialogParams, okAction: (action: string) => Promise<unknown>) {
+		let textFieldType = props.textFieldType ?? TextFieldType.Text
+
+		let result = props.defaultValue ?? ""
 		Dialog.showActionDialog({
-			title: lang.getMaybeLazy(titleId),
+			title: lang.getMaybeLazy(props.title),
 			child: () =>
 				m(TextField, {
-					label: labelIdOrLabelFunction,
+					label: props.label,
 					value: result,
+					type: textFieldType,
 					oninput: (newValue) => (result = newValue),
-					helpLabel: () => (infoMsgId ? lang.getMaybeLazy(infoMsgId) : ""),
+					helpLabel: () => (props.infoMsgId ? lang.getMaybeLazy(props.infoMsgId) : ""),
 				}),
-			validator: () => (inputValidator ? inputValidator(result) : null),
+			validator: () => (props.inputValidator ? props.inputValidator(result) : null),
 			allowOkWithReturn: true,
-			okAction: (dialog: Dialog) => {
-				okAction(result)
-					.then(() => {
+			okAction: async (dialog: Dialog) => {
+				try {
+					await okAction(result)
+					dialog.close()
+				} catch (error) {
+					if (!isOfflineError(error)) {
 						dialog.close()
-					})
-					.catch((error) => {
-						if (!isOfflineError(error)) {
-							dialog.close()
-						}
-						throw error
-					})
+					}
+					throw error
+				}
 			},
 		})
 	}

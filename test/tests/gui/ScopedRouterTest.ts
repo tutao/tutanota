@@ -1,4 +1,4 @@
-import o from "ospec"
+import o from "@tutao/otest"
 import { routeMatchesPrefix } from "../../../src/gui/ScopedRouter.js"
 
 o.spec("ScopedRouter", function () {

@@ -74,7 +74,7 @@ export class WebDesktopFacade implements DesktopFacade {
 	async addShortcuts(shortcuts: Array<NativeShortcut>): Promise<void> {
 		const baseShortcut: Shortcut = {
 			exec: () => true,
-			ctrl: false,
+			ctrlOrCmd: false,
 			alt: false,
 			meta: false,
 			help: "emptyString_msg",

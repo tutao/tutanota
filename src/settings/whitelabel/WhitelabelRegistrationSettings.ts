@@ -62,7 +62,11 @@ export class WhitelabelRegistrationSettings implements Component<WhitelabelRegis
 	}
 
 	private editRegistrationCode(whitelabelCode: string, onWhitelabelCodeChanged: (arg0: string) => unknown) {
-		Dialog.showTextInputDialog("edit_action", "whitelabelRegistrationCode_label", null, whitelabelCode).then((newCode) => {
+		Dialog.showTextInputDialog({
+			title: "edit_action",
+			label: "whitelabelRegistrationCode_label",
+			defaultValue: whitelabelCode,
+		}).then((newCode) => {
 			onWhitelabelCodeChanged(newCode)
 		})
 	}

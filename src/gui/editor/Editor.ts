@@ -6,6 +6,7 @@ import { Dialog } from "../base/Dialog"
 import { isMailAddress } from "../../misc/FormatValidator"
 import type { ImageHandler } from "../../mail/model/MailUtils"
 import { TabIndex } from "../../api/common/TutanotaConstants"
+import { TextFieldType } from "../base/TextField.js"
 
 type SanitizerFn = (html: string, isPaste: boolean) => DocumentFragment
 export type ImagePasteEvent = CustomEvent<{ clipboardData: DataTransfer }>
@@ -24,7 +25,8 @@ export class Editor implements ImageHandler, Component {
 	squire: SquireEditor | null
 	initialized = defer<void>()
 	domElement: HTMLElement | null = null
-	enabled = true
+	private enabled = true
+	private readOnly = false
 	private createsLists = true
 	private userHasPasted = false
 	private styleActions = Object.freeze({
@@ -149,9 +151,16 @@ export class Editor implements ImageHandler, Component {
 
 	setEnabled(enabled: boolean) {
 		this.enabled = enabled
-		if (this.domElement) {
-			this.domElement.setAttribute("contenteditable", String(enabled))
-		}
+		this.updateContentEditableAttribute()
+	}
+
+	setReadOnly(readOnly: boolean) {
+		this.readOnly = readOnly
+		this.updateContentEditableAttribute()
+	}
+
+	isReadOnly(): boolean {
+		return this.readOnly
 	}
 
 	isEnabled(): boolean {
@@ -235,7 +244,11 @@ export class Editor implements ImageHandler, Component {
 	}
 
 	makeLink() {
-		Dialog.showTextInputDialog("makeLink_action", "url_label", null, "").then((url) => {
+		Dialog.showTextInputDialog({
+			title: "makeLink_action",
+			label: "url_label",
+			textFieldType: TextFieldType.Url,
+		}).then((url) => {
 			if (isMailAddress(url, false)) {
 				url = "mailto:" + url
 			} else if (!url.startsWith("http://") && !url.startsWith("https://") && !url.startsWith("mailto:") && !url.startsWith("{")) {
@@ -285,5 +298,11 @@ export class Editor implements ImageHandler, Component {
 
 	setSelection(range: Range) {
 		this.squire.setSelection(range)
+	}
+
+	private updateContentEditableAttribute() {
+		if (this.domElement) {
+			this.domElement.setAttribute("contenteditable", String(this.isEnabled() && !this.isReadOnly()))
+		}
 	}
 }

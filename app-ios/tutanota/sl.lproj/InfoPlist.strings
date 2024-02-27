@@ -1,7 +1,7 @@
 NSCameraUsageDescription = "Posnemite sliko ali videoposnetek, če ga želite dodati kot prilogo.";
 NSPhotoLibraryUsageDescription = "Dodaj sliko iz knjižnice kot priponko.";
 NSMicrophoneUsageDescription = "Uporabljeno med snemanjem videa za prilogo.";
-NSContactsUsageDescription = "Najdi prejemnikov poštni naslov v stikih.";
+NSContactsUsageDescription = "1. Najdi prejemnikov poštni naslov v stikih.\n2. Po želji sinhronizirajte Tuta stike z napravo.";
 NSRemindersUsageDescription = "Prikaže obvestilo, ko prispe novo sporočilo.";
 TutaoShowCameraAction = "Kamera";
 TutaoChoosePhotosAction = "Slike";

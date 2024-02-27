@@ -599,7 +599,7 @@ export class SearchView extends BaseTopLevelView implements TopLevelView<SearchV
 					m(ContactViewerActions, {
 						contacts: this.searchViewModel.getSelectedContacts(),
 						onEdit: () => new ContactEditor(locator.entityClient, getFirstOrThrow(this.searchViewModel.getSelectedContacts())).show(),
-						onDelete: deleteContacts,
+						onDelete: (contacts: Contact[]) => deleteContacts(contacts, () => this.searchViewModel.listModel.selectNone()),
 						onMerge: confirmMerge,
 						onExport: exportContacts,
 					}),
@@ -814,7 +814,7 @@ export class SearchView extends BaseTopLevelView implements TopLevelView<SearchV
 		return m(TextField, {
 			label: "periodOfTime_label",
 			value: timeDisplayValue,
-			disabled: true,
+			isReadOnly: true,
 			class: "plr-button",
 			injectionsRight: () =>
 				m(IconButton, {

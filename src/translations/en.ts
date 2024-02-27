@@ -11,7 +11,7 @@ export default {
 		"other"
 	],
 	"created_at": "2015-01-13T20:10:13Z",
-	"updated_at": "2024-02-16T14:40:40Z",
+	"updated_at": "2024-02-26T09:57:23Z",
 	"source_locale": null,
 	"fallback_locale": null,
 	"keys": {
@@ -831,6 +831,7 @@ export default {
 		"mailAddressBusy_msg": "Verifying email address ...",
 		"mailAddressDelay_msg": "Too many requests, please try again later.",
 		"mailAddresses_label": "Email addresses",
+		"mailAddressInfoLegacy_msg": "Disabled email addresses can be reassigned to another user or mailbox within your account.",
 		"mailAddressInfo_msg": "Custom domain addresses do not count towards the limit. Disabled email addresses can be reassigned to another user or mailbox within your account.",
 		"mailAddressInvalid_msg": "Mail address is not valid.",
 		"mailAddressNANudge_msg": "Email address is not available. Try another domain from the dropdown.",

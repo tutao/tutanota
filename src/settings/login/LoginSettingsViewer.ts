@@ -253,17 +253,17 @@ export class LoginSettingsViewer implements UpdatableSettingsViewer {
 						m(TextField, {
 							label: "client_label",
 							value: isThisSession ? lang.get("thisClient_label") : session.clientIdentifier,
-							disabled: true,
+							isReadOnly: true,
 						}),
 						m(TextField, {
 							label: "lastAccess_label",
 							value: `${formatDateTimeFromYesterdayOn(session.lastAccessTime)}`,
-							disabled: true,
+							isReadOnly: true,
 						}),
 						m(TextField, {
 							label: "IpAddress_label",
 							value: session.loginIpAddress ? session.loginIpAddress : "",
-							disabled: true,
+							isReadOnly: true,
 						}),
 					]
 				},

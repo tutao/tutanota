@@ -151,18 +151,24 @@ export class GroupDetailsView implements UpdatableSettingsDetailsViewer {
 
 	private showChangeNameDialog(): void {
 		Dialog.showProcessTextInputDialog(
-			"edit_action",
-			"name_label",
-			null,
-			this.model.getGroupName(),
+			{
+				title: "edit_action",
+				label: "name_label",
+				defaultValue: this.model.getGroupName(),
+				inputValidator: (newName) => this.model.validateGroupName(newName),
+			},
 			(newName) => this.model.changeGroupName(newName),
-			(newName) => this.model.validateGroupName(newName),
 		)
 	}
 
 	private showChangeSenderNameDialog(): void {
-		Dialog.showProcessTextInputDialog("edit_action", "name_label", null, this.model.getGroupSenderName(), (newName) =>
-			this.model.changeGroupSenderName(newName),
+		Dialog.showProcessTextInputDialog(
+			{
+				title: "edit_action",
+				label: "name_label",
+				defaultValue: this.model.getGroupSenderName(),
+			},
+			(newName) => this.model.changeGroupSenderName(newName),
 		)
 	}
 

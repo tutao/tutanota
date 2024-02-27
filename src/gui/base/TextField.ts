@@ -5,7 +5,7 @@ import { theme } from "../theme"
 import type { TranslationKey } from "../../misc/LanguageViewModel"
 import { lang } from "../../misc/LanguageViewModel"
 import type { lazy } from "@tutao/tutanota-utils"
-import type { keyHandler } from "../../misc/KeyManager"
+import { keyboardEventToKeyPress, keyHandler } from "../../misc/KeyManager"
 import { TabIndex } from "../../api/common/TutanotaConstants"
 import { ClickHandler, getOperatingClasses } from "./GuiUtils"
 
@@ -45,6 +45,7 @@ export const enum TextFieldType {
 	Area = "area",
 	Number = "number",
 	Time = "time",
+	Url = "url",
 }
 
 // relevant subset of possible values for the autocomplete html field
@@ -64,7 +65,7 @@ export const enum Autocomplete {
 export const inputLineHeight: number = size.font_size_base + 8
 const inputMarginTop = size.font_size_small + size.hpad_small + 3
 
-// this is not always correct because font size can be biggger/smaller and we ideally should take that into account
+// this is not always correct because font size can be bigger/smaller, and we ideally should take that into account
 const baseLabelPosition = 21
 // it should fit
 // compact button + 1 px border + 1 px padding to keep things centered = 32
@@ -256,11 +257,7 @@ export class TextField implements ClassComponent<TextFieldAttrs> {
 						onblur: (e: FocusEvent) => this.blur(e, a),
 						onkeydown: (e: KeyboardEvent) => {
 							// keydown is used to cancel certain keypresses of the user (mainly needed for the BubbleTextField)
-							let key = {
-								key: e.key,
-								ctrl: e.ctrlKey,
-								shift: e.shiftKey,
-							}
+							const key = keyboardEventToKeyPress(e)
 							return a.keyHandler != null ? a.keyHandler(key) : true
 						},
 						onupdate: () => {
@@ -314,11 +311,7 @@ export class TextField implements ClassComponent<TextFieldAttrs> {
 				onfocus: (e: FocusEvent) => this.focus(e, a),
 				onblur: (e: FocusEvent) => this.blur(e, a),
 				onkeydown: (e: KeyboardEvent) => {
-					let key = {
-						key: e.key,
-						ctrl: e.ctrlKey,
-						shift: e.shiftKey,
-					}
+					const key = keyboardEventToKeyPress(e)
 					return a.keyHandler != null ? a.keyHandler(key) : true
 				},
 				oninput: () => {

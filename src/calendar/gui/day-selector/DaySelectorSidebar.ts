@@ -9,10 +9,10 @@ export interface DaySelectorSidebarAttrs {
 	selectedDate: Date
 	onDateSelected: (date: Date, dayClick: boolean) => unknown
 	startOfTheWeekOffset: number
-	eventsForDays: DaysToEvents
 	showDaySelection: boolean
 	highlightToday: boolean
 	highlightSelectedWeek: boolean
+	hasEventsOn: (date: Date) => boolean
 }
 
 export class DaySelectorSidebar implements Component<DaySelectorSidebarAttrs> {
@@ -41,7 +41,6 @@ export class DaySelectorSidebar implements Component<DaySelectorSidebarAttrs> {
 						wide: false,
 						startOfTheWeekOffset: vnode.attrs.startOfTheWeekOffset,
 						isDaySelectorExpanded: true,
-						eventsForDays: vnode.attrs.eventsForDays,
 						handleDayPickerSwipe: (isNext) => {
 							this.onMonthChange(isNext)
 							m.redraw()
@@ -50,6 +49,7 @@ export class DaySelectorSidebar implements Component<DaySelectorSidebarAttrs> {
 						highlightToday: vnode.attrs.highlightToday,
 						highlightSelectedWeek: vnode.attrs.highlightSelectedWeek,
 						useNarrowWeekName: true,
+						hasEventOn: vnode.attrs.hasEventsOn,
 					}),
 				]),
 			]),

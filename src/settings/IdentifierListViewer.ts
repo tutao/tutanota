@@ -15,7 +15,7 @@ import type { ExpanderAttrs } from "../gui/base/Expander"
 import { ExpanderButton, ExpanderPanel } from "../gui/base/Expander"
 import stream from "mithril/stream"
 import Stream from "mithril/stream"
-import { TextField } from "../gui/base/TextField.js"
+import { TextField, TextFieldType } from "../gui/base/TextField.js"
 
 import { showNotAvailableForFreeDialog } from "../misc/SubscriptionDialogs"
 import { getCleanedMailAddress } from "../misc/parsing/MailAddressParser"
@@ -186,6 +186,7 @@ export class IdentifierListViewer {
 						m(TextField, {
 							label: "mailAddress_label",
 							value: mailAddress,
+							type: TextFieldType.Email,
 							oninput: (newValue) => (mailAddress = newValue),
 						}),
 						m(".small.mt-s", lang.get("emailPushNotification_msg")),

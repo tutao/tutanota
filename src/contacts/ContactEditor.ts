@@ -266,7 +266,7 @@ export class ContactEditor {
 		const typeLabels: Array<[ContactAddressType, TranslationKey]> = typedEntries(ContactMailAddressTypeToLabel)
 		return m(ContactAggregateEditor, {
 			value: mailAddress.address,
-			fieldType: TextFieldType.Text,
+			fieldType: TextFieldType.Email,
 			label: getContactAddressTypeLabel(downcast(mailAddress.type), mailAddress.customTypeName),
 			helpLabel,
 			cancelAction: () => {
@@ -520,7 +520,11 @@ export class ContactEditor {
 	private onTypeSelected<K, T extends { type: K; customTypeName: string }>(isCustom: boolean, key: K, aggregate: T): void {
 		if (isCustom) {
 			setTimeout(() => {
-				Dialog.showTextInputDialog("customLabel_label", "customLabel_label", null, aggregate.customTypeName).then((name) => {
+				Dialog.showTextInputDialog({
+					title: "customLabel_label",
+					label: "customLabel_label",
+					defaultValue: aggregate.customTypeName,
+				}).then((name) => {
 					aggregate.customTypeName = name
 					aggregate.type = key
 				})
@@ -563,7 +567,7 @@ export class ContactEditor {
 			})
 			.addShortcut({
 				key: Keys.S,
-				ctrl: true,
+				ctrlOrCmd: true,
 				exec: () => {
 					// noinspection JSIgnoredPromiseFromCall
 					this.validateAndSave()

@@ -118,7 +118,8 @@ export class HtmlEditor implements Component {
 									"font-family": this.htmlMonospace ? "monospace" : "inherit",
 									"min-height": this.minHeight ? px(this.minHeight) : "initial",
 								},
-								disabled: !this.editor.enabled,
+								disabled: !this.editor.isEnabled(),
+								readonly: this.editor.isReadOnly(),
 							}),
 					  ),
 			]),
@@ -215,6 +216,14 @@ export class HtmlEditor implements Component {
 		this.editor.setEnabled(enabled)
 		if (this.domTextArea) {
 			this.domTextArea.disabled = !enabled
+		}
+		return this
+	}
+
+	setReadOnly(readOnly: boolean): this {
+		this.editor.setReadOnly(readOnly)
+		if (this.domTextArea) {
+			this.domTextArea.readOnly = readOnly
 		}
 		return this
 	}

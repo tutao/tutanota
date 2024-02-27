@@ -100,6 +100,7 @@ o.spec("DeviceConfig", function () {
 				conversationViewShowOnlySelectedMail: false,
 				hasParticipatedInCredentialsMigration: false,
 				syncContactsWithPhonePreference: {},
+				isCalendarDaySelectorExpanded: false,
 			}
 
 			when(localStorageMock.getItem(DeviceConfig.LocalStorageKey)).thenReturn(JSON.stringify(storedInLocalStorage))

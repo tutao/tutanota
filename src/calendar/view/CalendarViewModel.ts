@@ -11,7 +11,7 @@ import Stream from "mithril/stream"
 import { getDiffIn60mIntervals, getMonthRange, isEventBetweenDays } from "../date/CalendarUtils"
 import { isAllDayEvent } from "../../api/common/utils/CommonCalendarUtils"
 import { CalendarEventModel, CalendarOperation, EventSaveResult, getNonOrganizerAttendees } from "../gui/eventeditor-model/CalendarEventModel.js"
-import { askIfShouldSendCalendarUpdatesToAttendees } from "../gui/CalendarGuiUtils.js"
+import { askIfShouldSendCalendarUpdatesToAttendees, shouldDisplayEvent } from "../gui/CalendarGuiUtils.js"
 import { ReceivedGroupInvitationsModel } from "../../sharing/model/ReceivedGroupInvitationsModel"
 import type { CalendarInfo, CalendarModel } from "../model/CalendarModel"
 import { EventController } from "../../api/main/EventController"
@@ -27,7 +27,7 @@ import { EntityUpdateData, isUpdateFor, isUpdateForTypeRef } from "../../api/com
 
 export type EventsOnDays = {
 	days: Array<Date>
-	shortEvents: Array<Array<CalendarEvent>>
+	shortEventsPerDay: Array<Array<CalendarEvent>>
 	longEvents: Array<CalendarEvent>
 }
 
@@ -115,6 +115,14 @@ export class CalendarViewModel implements EventDragHandlerCallbacks {
 		calendarInvitationsModel.init()
 
 		this.eventsRepository.getEventsForMonths().map(() => this.doRedraw())
+	}
+
+	isDaySelectorExpanded(): boolean {
+		return this.deviceConfig.isCalendarDaySelectorExpanded()
+	}
+
+	setDaySelectorExpanded(expanded: boolean) {
+		this.deviceConfig.setCalendarDaySelectorExpanded(expanded)
 	}
 
 	/**
@@ -212,6 +220,10 @@ export class CalendarViewModel implements EventDragHandlerCallbacks {
 		}
 	}
 
+	onDragCancel() {
+		this._draggedEvent = null
+	}
+
 	get temporaryEvents(): Array<CalendarEvent> {
 		return this._transientEvents.concat(this._draggedEvent ? [this._draggedEvent.eventClone] : [])
 	}
@@ -272,10 +284,7 @@ export class CalendarViewModel implements EventDragHandlerCallbacks {
 					continue
 				}
 
-				if (
-					this._draggedEvent?.originalEvent !== event &&
-					!this._hiddenCalendars.has(assertNotNull(event._ownerGroup, "event without ownerGroup in getEventsOnDays"))
-				) {
+				if (this._draggedEvent?.originalEvent !== event && shouldDisplayEvent(event, this._hiddenCalendars)) {
 					// this is not the dragged event (not rendered) and does not belong to a hidden calendar, so we should render it.
 					sortEvent(event, shortEventsForDay)
 				}
@@ -301,7 +310,7 @@ export class CalendarViewModel implements EventDragHandlerCallbacks {
 		return {
 			days,
 			longEvents: longEventsArray,
-			shortEvents: shortEvents,
+			shortEventsPerDay: shortEvents,
 		}
 	}
 

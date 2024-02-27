@@ -29,17 +29,24 @@ import { getPosAndBoundsFromMouseEvent } from "../../gui/base/GuiUtils"
 import { UserError } from "../../api/main/UserError"
 import { showUserError } from "../../misc/ErrorHandlerImpl"
 import { styles } from "../../gui/styles"
-import { CALENDAR_EVENT_HEIGHT, CalendarViewType, EventLayoutMode, getEventColor, layOutEvents, TEMPORARY_EVENT_OPACITY } from "../gui/CalendarGuiUtils.js"
+import {
+	CALENDAR_EVENT_HEIGHT,
+	CalendarViewType,
+	daysHaveEvents,
+	EventLayoutMode,
+	getEventColor,
+	layOutEvents,
+	TEMPORARY_EVENT_OPACITY,
+} from "../gui/CalendarGuiUtils.js"
 import type { CalendarEventBubbleClickHandler, EventsOnDays } from "./CalendarViewModel"
 import { ContinuingCalendarEventBubble } from "./ContinuingCalendarEventBubble"
 import { isAllDayEvent } from "../../api/common/utils/CommonCalendarUtils"
 import { locator } from "../../api/main/MainLocator.js"
 import { DateTime } from "luxon"
-import { DaysToEvents } from "../date/CalendarEventsRepository.js"
 import { Time } from "../date/Time.js"
 import { DaySelector } from "../gui/day-selector/DaySelector.js"
 
-export type Attrs = {
+export type MultiDayCalendarViewAttrs = {
 	selectedDate: Date
 	daysInPeriod: number
 	onDateSelected: (date: Date, calendarViewTypeToShow?: CalendarViewType) => unknown
@@ -47,18 +54,15 @@ export type Attrs = {
 	onNewEvent: (date: Date | null) => unknown
 	onEventClicked: CalendarEventBubbleClickHandler
 	groupColors: GroupColors
-	hiddenCalendars: ReadonlySet<Id>
 	startOfTheWeek: WeekStart
 	onChangeViewPeriod: (next: boolean) => unknown
 	temporaryEvents: Array<CalendarEvent>
 	dragHandlerCallbacks: EventDragHandlerCallbacks
-	eventsForDays: DaysToEvents
 	isDaySelectorExpanded: boolean
 	selectedTime?: Time
 }
 
-export class MultiDayCalendarView implements Component<Attrs> {
-	private redrawIntervalId: NodeJS.Timeout | null = null
+export class MultiDayCalendarView implements Component<MultiDayCalendarViewAttrs> {
 	private longEventsDom: HTMLElement | null = null
 	private domElements: HTMLElement[] = []
 	private scrollPosition: number
@@ -68,20 +72,20 @@ export class MultiDayCalendarView implements Component<Attrs> {
 	private lastMousePos: MousePos | null = null
 	private isHeaderEventBeingDragged: boolean = false
 
-	constructor({ attrs }: Vnode<Attrs>) {
+	constructor({ attrs }: Vnode<MultiDayCalendarViewAttrs>) {
 		this.scrollPosition = size.calendar_hour_height * DEFAULT_HOUR_OF_DAY
 		this.eventDragHandler = new EventDragHandler(neverNull(document.body as HTMLBodyElement), attrs.dragHandlerCallbacks)
 	}
 
-	oncreate(vnode: VnodeDOM<Attrs>) {
+	oncreate(vnode: VnodeDOM<MultiDayCalendarViewAttrs>) {
 		this.viewDom = vnode.dom as HTMLElement
 	}
 
-	onupdate(vnode: VnodeDOM<Attrs>) {
+	onupdate(vnode: VnodeDOM<MultiDayCalendarViewAttrs>) {
 		this.viewDom = vnode.dom as HTMLElement
 	}
 
-	view({ attrs }: Vnode<Attrs>): Children {
+	view({ attrs }: Vnode<MultiDayCalendarViewAttrs>): Children {
 		// Special case for week view
 
 		const startOfThisPeriod =
@@ -129,7 +133,7 @@ export class MultiDayCalendarView implements Component<Attrs> {
 		return getEventsFunction(weekRange)
 	}
 
-	private renderDateSelector(attrs: Attrs, isDayView: boolean): Children {
+	private renderDateSelector(attrs: MultiDayCalendarViewAttrs, isDayView: boolean): Children {
 		return m("", [
 			m(
 				".header-bg.pb-s.overflow-hidden",
@@ -139,7 +143,6 @@ export class MultiDayCalendarView implements Component<Attrs> {
 					},
 				},
 				m(DaySelector, {
-					eventsForDays: attrs.eventsForDays,
 					selectedDate: attrs.selectedDate,
 					onDateSelected: (date) => attrs.onDateSelected(date),
 					wide: true,
@@ -158,6 +161,7 @@ export class MultiDayCalendarView implements Component<Attrs> {
 					highlightToday: true,
 					highlightSelectedWeek: !isDayView,
 					useNarrowWeekName: styles.isSingleColumnLayout(),
+					hasEventOn: (date) => daysHaveEvents(attrs.getEventsOnDays([date])),
 				}),
 			),
 		])
@@ -167,7 +171,13 @@ export class MultiDayCalendarView implements Component<Attrs> {
 		return getStartOfDay(new Date()).getTime()
 	}
 
-	private renderDays(attrs: Attrs, thisPeriod: EventsOnDays, mainPeriod: EventsOnDays, isDayView: boolean, isDesktopLayout: boolean): Children {
+	private renderDays(
+		attrs: MultiDayCalendarViewAttrs,
+		thisPeriod: EventsOnDays,
+		mainPeriod: EventsOnDays,
+		isDayView: boolean,
+		isDesktopLayout: boolean,
+	): Children {
 		let containerStyle
 
 		if (isDesktopLayout) {
@@ -201,7 +211,7 @@ export class MultiDayCalendarView implements Component<Attrs> {
 				onmouseleave: (mouseEvent: EventRedraw<MouseEvent>) => {
 					mouseEvent.redraw = false
 
-					this.endDrag(mouseEvent)
+					this.cancelDrag()
 				},
 			},
 			[
@@ -269,7 +279,7 @@ export class MultiDayCalendarView implements Component<Attrs> {
 						m(
 							".flex.flex-grow",
 							thisPeriod.days.map((weekday, i) => {
-								const events = thisPeriod.shortEvents[i]
+								const events = thisPeriod.shortEventsPerDay[i]
 
 								const newEventHandler = (hours: number, minutes: number) => {
 									const newDate = new Date(weekday)
@@ -345,7 +355,7 @@ export class MultiDayCalendarView implements Component<Attrs> {
 		)
 	}
 
-	private renderHeaderDesktop(attrs: Attrs, thisPageEvents: EventsOnDays, mainPageEvents: EventsOnDays): Children {
+	private renderHeaderDesktop(attrs: MultiDayCalendarViewAttrs, thisPageEvents: EventsOnDays, mainPageEvents: EventsOnDays): Children {
 		const { daysInPeriod, onDateSelected, onEventClicked, groupColors, temporaryEvents } = attrs
 		return m(".calendar-long-events-header.flex-fixed.content-bg.pt-s", [
 			m(".calendar-hour-margin", [this.renderDayNamesRow(thisPageEvents.days, onDateSelected)]),
@@ -516,8 +526,11 @@ export class MultiDayCalendarView implements Component<Attrs> {
 								},
 								key: event._id[0] + event._id[1] + event.startTime.getTime(),
 								onmousedown: () => {
-									this.isHeaderEventBeingDragged = true
-									this.startEventDrag(event)
+									// Only allow dragging all-day events on the desktop layout, since the header supports it
+									if (styles.isDesktopLayout()) {
+										this.isHeaderEventBeingDragged = true
+										this.startEventDrag(event)
+									}
 								},
 							},
 							this.renderLongEventBubble(
@@ -641,5 +654,9 @@ export class MultiDayCalendarView implements Component<Attrs> {
 		if (this.dateUnderMouse) {
 			this.eventDragHandler.endDrag(this.dateUnderMouse, pos).catch(ofClass(UserError, showUserError))
 		}
+	}
+
+	private cancelDrag() {
+		this.eventDragHandler.cancelDrag()
 	}
 }
