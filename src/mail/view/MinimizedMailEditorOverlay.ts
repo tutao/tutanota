@@ -17,7 +17,6 @@ import { noOp } from "@tutao/tutanota-utils"
 assertMainOrNode()
 const MINIMIZED_OVERLAY_WIDTH_WIDE = 350
 const MINIMIZED_OVERLAY_WIDTH_SMALL = 220
-const MINIMIZED_EDITOR_HEIGHT = size.button_height
 
 export function showMinimizedMailEditor(
 	dialog: Dialog,
@@ -55,7 +54,7 @@ function showMinimizedEditorOverlay(viewModel: MinimizedMailEditorViewModel, min
 
 function getOverlayPosition() {
 	return {
-		bottom: px(MINIMIZED_EDITOR_HEIGHT),
+		bottom: styles.isUsingBottomNavigation() ? px(size.hpad) : px(size.vpad),
 		// position will change with translateY
 		right: styles.isUsingBottomNavigation() ? px(size.hpad) : px(size.hpad_medium),
 		width: px(styles.isSingleColumnLayout() ? MINIMIZED_OVERLAY_WIDTH_SMALL : MINIMIZED_OVERLAY_WIDTH_WIDE),
