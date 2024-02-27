@@ -820,7 +820,7 @@ export class ContactView extends BaseTopLevelView implements TopLevelView<Contac
 	}
 
 	private deleteSelectedContacts(): Promise<void> {
-		return deleteContacts(this.getSelectedContacts())
+		return deleteContacts(this.getSelectedContacts(), () => this.contactViewModel.listModel.selectNone())
 	}
 
 	getViewSlider(): ViewSlider | null {
