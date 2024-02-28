@@ -8,9 +8,12 @@ import {
 	Contact,
 	ContactTypeRef,
 	createContact,
-	createContactAddress, createContactCustomDate,
-	createContactMailAddress, createContactMessengerHandle,
+	createContactAddress,
+	createContactCustomDate,
+	createContactMailAddress,
+	createContactMessengerHandle,
 	createContactPhoneNumber,
+	createContactPronouns,
 	createContactRelationship,
 	createContactWebsite,
 } from "../../api/entities/tutanota/TypeRefs.js"
@@ -1052,7 +1055,7 @@ export function contactFromStructuredContact(ownerGroupId: Id, contact: Structur
 				customTypeName: number.customTypeName,
 			}),
 		),
-		role: "",
+		role: contact.role,
 		oldBirthdayAggregate: null,
 		oldBirthdayDate: null,
 		photo: null,
@@ -1060,7 +1063,7 @@ export function contactFromStructuredContact(ownerGroupId: Id, contact: Structur
 		socialIds: [],
 		birthdayIso: validateBirthdayOfContact(contact),
 		autoTransmitPassword: "",
-		title: null,
-		comment: "",
+		title: contact.title,
+		comment: contact.notes,
 	})
 }

@@ -649,7 +649,7 @@ class AndroidMobileContactsFacade(private val activity: MainActivity) : MobileCo
 	  }
 	  ContactsContract.CommonDataKinds.Relation.CONTENT_ITEM_TYPE -> storedContact.relationships.add(AndroidRelationship(data1, entityCursor.getInt(5), if (!entityCursor.isNull(6)) entityCursor.getString(6) else ""))
 	  ContactsContract.CommonDataKinds.Website.CONTENT_ITEM_TYPE -> storedContact.websites.add(AndroidWebsite(data1, entityCursor.getInt(5), if (!entityCursor.isNull(6)) entityCursor.getString(6) else ""))
-	  ContactsContract.CommonDataKinds.Note.CONTENT_ITEM_TYPE -> storedContact.notes = data1
+	  ContactsContract.CommonDataKinds.Note.CONTENT_ITEM_TYPE -> storedContact.notes = data1 ?: ""
 	}
   }
 

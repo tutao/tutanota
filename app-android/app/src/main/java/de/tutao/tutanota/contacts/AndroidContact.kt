@@ -64,6 +64,8 @@ data class AndroidContact(
 		val customDate: MutableList<AndroidCustomDate> = mutableListOf(),
 		val websites: MutableList<AndroidWebsite> = mutableListOf(),
 		val relationships: MutableList<AndroidRelationship> = mutableListOf(),
+		val pronouns: List<StructuredPronouns> = listOf(),
+		val messengerHandles: List<StructuredMessengerHandle> = listOf(),
 		var notes: String = "",
 		var title: String = "",
 		var role: String = ""
@@ -87,10 +89,10 @@ data class AndroidContact(
 			phoneticMiddle = phoneticMiddle,
 			phoneticLast = phoneticLast,
 			customDate = customDate.map { it.toStructured() },
-			messengerHandles = listOf(), // Will be deprecated on Android 15, not worth to implement now
+			messengerHandles = messengerHandles, // Will be deprecated on Android 15, not worth to implement now
 			websites = websites.map { it.toStructured() },
 			relationships = relationships.map { it.toStructured() },
-			pronouns = listOf(), // Not supported on Android
+			pronouns = pronouns, // Not supported on Android
 			notes = notes,
 			title = title,
 			role = role
