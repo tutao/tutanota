@@ -1527,6 +1527,7 @@ export default {
 		"termsAndConditionsLink_label": "General terms and conditions",
 		"termsAndConditions_label": "I have read and agree to the following documents:",
 		"textTooLong_msg": "The entered text is too long",
+		"theme_label": "Theme",
 		"thisClient_label": "<This client>",
 		"timeFormatTwelveHour_label": "12 hour",
 		"timeFormatTwentyFourHour_label": "24 hour",

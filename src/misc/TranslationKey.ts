@@ -1511,6 +1511,7 @@ export type TranslationKeyType =
 	| "termsAndConditionsLink_label"
 	| "termsAndConditions_label"
 	| "textTooLong_msg"
+	| "theme_label"
 	| "thisClient_label"
 	| "timeFormatTwelveHour_label"
 	| "timeFormatTwentyFourHour_label"

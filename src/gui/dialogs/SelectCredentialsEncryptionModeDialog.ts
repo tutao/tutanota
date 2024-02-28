@@ -4,7 +4,7 @@ import type { CredentialsProvider } from "../../misc/credentials/CredentialsProv
 import m, { Children, Component, Vnode } from "mithril"
 import { lang } from "../../misc/LanguageViewModel"
 import { DialogHeaderBar } from "../base/DialogHeaderBar"
-import type { RadioSelectorOption } from "../base/RadioSelector"
+import type { RadioSelectorAttrs, RadioSelectorOption } from "../base/RadioSelector"
 import { RadioSelector } from "../base/RadioSelector"
 import { ButtonType } from "../base/Button.js"
 import { CredentialAuthenticationError } from "../../api/common/error/CredentialAuthenticationError"
@@ -158,13 +158,14 @@ export class SelectCredentialsEncryptionModeView implements Component<SelectCred
 					m(
 						".mt",
 						m(RadioSelector, {
+							name: "credentialsEncryptionMode_label",
 							options,
 							selectedOption: this._currentMode,
 							onOptionSelected: (mode: CredentialEncryptionMode) => {
 								this._currentMode = mode
 								attrs.onModeSelected?.(mode)
 							},
-						}),
+						} satisfies RadioSelectorAttrs<CredentialEncryptionMode>),
 					),
 				],
 			),

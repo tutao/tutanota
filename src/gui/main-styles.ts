@@ -640,6 +640,9 @@ styles.registerStyle("main", () => {
 		".content-accent-fg": {
 			color: theme.content_accent,
 		},
+		".content-accent-accent": {
+			"accent-color": theme.content_accent,
+		},
 		".icon-accent svg": {
 			fill: theme.content_accent,
 		},
@@ -723,6 +726,10 @@ styles.registerStyle("main", () => {
 			bottom: 0,
 			left: 0,
 			right: 0,
+		},
+		".fill-flex": {
+			"flex-basis": "100%",
+			"flex-shrink": 0,
 		},
 		".abs": {
 			position: "absolute",
