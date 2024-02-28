@@ -16,6 +16,43 @@ enum ContactPhoneNumberType: String, Codable {
 	case custom = "5"
 }
 
+enum ContactCustomDateType: String, Codable {
+	case anniversary = "0"
+	case other = "1"
+	case custom = "2"
+}
+
+enum ContactMessengerHandleType: String, Codable {
+	case signal = "0"
+	case whatsapp = "1"
+	case telegram = "2"
+	case discord = "3"
+	case other = "4"
+	case custom = "5"
+}
+
+enum ContactRelationshipType: String, Codable {
+	case parent = "0"
+	case brother = "1"
+	case sister = "2"
+	case child = "3"
+	case friend = "4"
+	case relative = "5"
+	case spouse = "6"
+	case partner = "7"
+	case assistant = "8"
+	case manager = "9"
+	case other = "10"
+	case custom = "11"
+}
+
+enum ContactWebsiteType: String, Codable {
+	case _private = "0"
+	case work = "1"
+	case other = "2"
+	case custom = "3"
+}
+
 extension StructuredMailAddress: Equatable {
 	public static func == (lhs: Self, rhs: Self) -> Bool { lhs.address == rhs.address && lhs.type == rhs.type && lhs.customTypeName == rhs.customTypeName }
 }

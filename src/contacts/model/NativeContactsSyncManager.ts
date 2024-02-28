@@ -22,7 +22,6 @@ import {
 	extractStructuredMailAddresses,
 	extractStructuredMessengerHandle,
 	extractStructuredPhoneNumbers,
-	extractStructuredPronouns,
 	extractStructuredRelationships,
 	extractStructuredWebsites,
 } from "./ContactUtils.js"
@@ -265,6 +264,9 @@ export class NativeContactsSyncManager {
 	}
 
 	private mergeNativeContactWithTutaContact(contact: StructuredContact, partialContact: Contact): Contact {
+		// iOS requires a special entitlement from Apple to access these fields
+		const canMergeCommentField = !isIOSApp()
+
 		return {
 			...partialContact,
 			firstName: contact.firstName,
@@ -285,7 +287,7 @@ export class NativeContactsSyncManager {
 			phoneticMiddle: contact.phoneticMiddle,
 			relationships: contact.relationships.map((relation) => createContactRelationship(relation)),
 			websites: contact.websites.map((website) => createContactWebsite(website)),
-			comment: contact.notes,
+			comment: canMergeCommentField ? partialContact.comment : contact.notes,
 			title: contact.title ?? "",
 			role: contact.role,
 		}

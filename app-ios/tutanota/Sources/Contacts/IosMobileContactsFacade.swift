@@ -15,10 +15,14 @@ struct UserContactMapping: Codable {
 	var localContactIdentifierToHash: [String: Int]
 }
 
+// FIXME: get entitlement to add CNContactNoteKey; see https://developer.apple.com/documentation/bundleresources/entitlements/com_apple_developer_contacts_notes
+//        yes, it actually requires special permission for some reason
 private let ALL_SUPPORTED_CONTACT_KEYS: [CNKeyDescriptor] =
 	[
 		CNContactIdentifierKey, CNContactGivenNameKey, CNContactFamilyNameKey, CNContactNicknameKey, CNContactOrganizationNameKey, CNContactBirthdayKey,
-		CNContactEmailAddressesKey, CNContactPhoneNumbersKey, CNContactPostalAddressesKey,
+		CNContactEmailAddressesKey, CNContactPhoneNumbersKey, CNContactPostalAddressesKey, CNContactDatesKey, CNContactDepartmentNameKey,
+		CNContactInstantMessageAddressesKey, CNContactMiddleNameKey, CNContactNameSuffixKey, CNContactPhoneticGivenNameKey, CNContactPhoneticMiddleNameKey,
+		CNContactPhoneticFamilyNameKey, CNContactRelationsKey, CNContactUrlAddressesKey, CNContactNamePrefixKey, CNContactJobTitleKey
 	] as [CNKeyDescriptor]
 
 /// Handles synchronization between contacts in Tuta and contacts on the device.
@@ -410,29 +414,34 @@ private class NativeMutableContact {
 	}
 
 	func updateContactWithData(_ data: StructuredContact) {
+		var customDates = [CNLabeledValue<NSDateComponents>]()
+		for date in data.customDate {
+			guard let parsed = date.toLabeledValue() else { continue }
+			customDates.append(parsed)
+		}
+
 		self.contact.givenName = data.firstName
 		self.contact.familyName = data.lastName
 		self.contact.nickname = data.nickname
 		self.contact.organizationName = data.company
-
-		if data.birthday == nil {
-			self.contact.birthday = nil
-		} else {
-			// Init the formatter and set it to handle the format yyyy-mm-dd
-			let formatter = ISO8601DateFormatter()
-			formatter.formatOptions = [.withFullDate]
-
-			let date = formatter.date(from: data.birthday!)
-			if date != nil {
-				self.contact.birthday = Calendar(identifier: Calendar.Identifier.gregorian).dateComponents([.year, .day, .month], from: date!)
-			} else {
-				self.contact.birthday = nil
-			}
-		}
-
 		self.contact.emailAddresses = data.mailAddresses.map { address in address.toLabeledValue() }
 		self.contact.phoneNumbers = data.phoneNumbers.map { number in number.toLabeledValue() }
 		self.contact.postalAddresses = data.addresses.map { address in address.toLabeledValue() }
+		self.contact.dates = customDates
+		self.contact.departmentName = data.department ?? ""
+		self.contact.instantMessageAddresses = data.messengerHandles.map { $0.toLabeledValue() }
+		self.contact.middleName = data.middleName ?? ""
+		self.contact.nameSuffix = data.nameSuffix ?? ""
+		self.contact.phoneticGivenName = data.phoneticFirst ?? ""
+		self.contact.phoneticFamilyName = data.phoneticLast ?? ""
+		self.contact.phoneticMiddleName = data.phoneticMiddle ?? ""
+		self.contact.contactRelations = data.relationships.map { $0.toLabeledValue() }
+		self.contact.urlAddresses = data.websites.map { $0.toLabeledValue() }
+		// self.contact.note = data.notes // FIXME: not apple approved
+		self.contact.namePrefix = data.title
+		self.contact.jobTitle = data.role
+
+		if let birthday = data.birthday { self.contact.birthday = DateComponents.fromIso(birthday) } else { self.contact.birthday = nil }
 	}
 }
 
@@ -465,6 +474,110 @@ private extension StructuredPhoneNumber {
 	}
 }
 
+private extension CNLabeledValue<CNContactRelation> {
+	func toStructuredRelationship() -> StructuredRelationship {
+		let (type, label): (ContactRelationshipType, String?) =
+			switch self.label {
+			case CNLabelContactRelationParent: (.parent, nil)
+			case CNLabelContactRelationBrother: (.brother, nil)
+			case CNLabelContactRelationSister: (.sister, nil)
+			case CNLabelContactRelationChild: (.child, nil)
+			case CNLabelContactRelationFriend: (.friend, nil)
+			case CNLabelContactRelationSpouse: (.spouse, nil)
+			case CNLabelContactRelationPartner: (.partner, nil)
+			case CNLabelContactRelationAssistant: (.assistant, nil)
+			case CNLabelContactRelationManager: (.manager, nil)
+			case CNLabelOther: (.other, nil)
+			// FIXME: how do we handle the hundreds of other possible labels here that aren't just custom labels
+			default: (.other, self.label)
+			}
+		return StructuredRelationship(person: value.name, type: type, customTypeName: label ?? "")
+	}
+}
+
+private extension StructuredRelationship {
+	func toLabeledValue() -> CNLabeledValue<CNContactRelation> {
+		let label =
+			switch self.type {
+			case .parent: CNLabelContactRelationParent
+			case .brother: CNLabelContactRelationBrother
+			case .sister: CNLabelContactRelationSister
+			case .child: CNLabelContactRelationChild
+			case .friend: CNLabelContactRelationFriend
+			case .spouse: CNLabelContactRelationSpouse
+			case .partner: CNLabelContactRelationPartner
+			case .assistant: CNLabelContactRelationAssistant
+			case .manager: CNLabelContactRelationManager
+			case .other: CNLabelOther
+			case .custom: self.customTypeName
+			case .relative: CNLabelOther
+			}
+
+		return CNLabeledValue(label: label, value: CNContactRelation(name: person))
+	}
+}
+
+private enum StructuredMessengerHandleTypeName: String {
+	case signal = "Signal"
+	case whatsapp = "WhatsApp"
+	case telegram = "Telegram"
+	case discord = "Discord"
+}
+
+private extension CNLabeledValue<CNInstantMessageAddress> {
+	func toStructuredMessengerHandle() -> StructuredMessengerHandle {
+		let (type, label): (ContactMessengerHandleType, String?) =
+			switch self.value.service {
+			case StructuredMessengerHandleTypeName.signal.rawValue: (.signal, nil)
+			case StructuredMessengerHandleTypeName.whatsapp.rawValue: (.whatsapp, nil)
+			case StructuredMessengerHandleTypeName.telegram.rawValue: (.telegram, nil)
+			case StructuredMessengerHandleTypeName.discord.rawValue: (.discord, nil)
+			default: (.custom, self.value.service)
+			}
+		return StructuredMessengerHandle(handle: value.username, type: type, customTypeName: label ?? "")
+	}
+}
+
+private extension StructuredMessengerHandle {
+	func toLabeledValue() -> CNLabeledValue<CNInstantMessageAddress> {
+		let label =
+			switch self.type {
+			case .signal: StructuredMessengerHandleTypeName.signal.rawValue
+			case .whatsapp: StructuredMessengerHandleTypeName.whatsapp.rawValue
+			case .telegram: StructuredMessengerHandleTypeName.telegram.rawValue
+			case .discord: StructuredMessengerHandleTypeName.discord.rawValue
+			case .custom: self.customTypeName
+			case .other: CNLabelOther
+			}
+		return CNLabeledValue(label: CNLabelOther, value: CNInstantMessageAddress(username: handle, service: label))
+	}
+}
+
+private extension CNLabeledValue<NSDateComponents> {
+	func toStructuredCustomDate() -> StructuredCustomDate {
+		let (type, label): (ContactCustomDateType, String?) =
+			switch self.label {
+			case CNLabelDateAnniversary: (.anniversary, nil)
+			case CNLabelOther: (.other, nil)
+			default: (.custom, self.label)
+			}
+		return StructuredCustomDate(dateIso: value.toIso(), type: type, customTypeName: label ?? "")
+	}
+}
+
+private extension StructuredCustomDate {
+	func toLabeledValue() -> CNLabeledValue<NSDateComponents>? {
+		guard let date = NSDateComponents.fromIso(self.dateIso) else { return nil }
+		let label =
+			switch self.type {
+			case .anniversary: CNLabelDateAnniversary
+			case .other: CNLabelOther
+			case .custom: self.customTypeName
+			}
+		return CNLabeledValue(label: label, value: date)
+	}
+}
+
 private extension CNLabeledValue<CNPhoneNumber> {
 	func toStructuredPhoneNumber() -> StructuredPhoneNumber {
 		let (type, label): (ContactPhoneNumberType, String?) =
@@ -491,6 +604,16 @@ private extension CNLabeledValue<NSString> {
 			}
 		return StructuredMailAddress(address: self.value as String, type: type, customTypeName: label ?? "")
 	}
+	func toStructuredWebsite() -> StructuredWebsite {
+		let (type, label): (ContactWebsiteType, String?) =
+			switch self.label {
+			case CNLabelHome: (._private, nil)
+			case CNLabelWork: (.work, nil)
+			case CNLabelOther: (.other, nil)
+			default: (.custom, self.label)
+			}
+		return StructuredWebsite(url: self.value as String, type: type, customTypeName: label ?? "")
+	}
 }
 
 private extension StructuredAddress {
@@ -507,6 +630,19 @@ private extension StructuredAddress {
 		// and that's not how it works in many parts of the world either.
 		address.street = self.address
 		return CNLabeledValue(label: label, value: address)
+	}
+}
+
+private extension StructuredWebsite {
+	func toLabeledValue() -> CNLabeledValue<NSString> {
+		let label =
+			switch self.type {
+			case ._private: CNLabelHome
+			case .work: CNLabelWork
+			case .custom: self.customTypeName
+			case .other: CNLabelOther
+			}
+		return CNLabeledValue(label: label, value: url as NSString)
 	}
 }
 
@@ -549,25 +685,48 @@ private struct MatchContactResult {
 	var deletedOnDevice: [String] = []
 }
 
+private extension DateComponents {
+	func toIso() -> String? {
+		if let year, let month, let day {
+			String(format: "%04d-%02d-%02d", year, month, day)
+		} else if let month, let day {
+			String(format: "--%02d-%02d", month, day)
+		} else {
+			nil
+		}
+	}
+	static func fromIso(_ iso: String) -> DateComponents? {
+		guard let date = Date.fromIso(iso) else { return nil }
+		return Calendar(identifier: Calendar.Identifier.gregorian).dateComponents([.year, .day, .month], from: date)
+	}
+}
+
+private extension Date {
+	static func fromIso(_ iso: String) -> Date? {
+		let formatter = ISO8601DateFormatter()
+		formatter.formatOptions = [.withFullDate]
+
+		return formatter.date(from: iso)
+	}
+}
+
+private extension NSDateComponents {
+	func toIso() -> String { String(format: "%04d-%02d-%02d", year, month, day) }
+	static func fromIso(_ iso: String) -> NSDateComponents? {
+		guard let date = DateComponents.fromIso(iso) else { return nil }
+		return date as NSDateComponents
+	}
+}
+
 private extension CNContact {
 	func toStructuredContact(serverId: String?) -> StructuredContact {
-		let birthday = birthday.flatMap { birthday in
-			if let year = birthday.year, let month = birthday.month, let day = birthday.day {
-				String(format: "%04d-%02d-%02d", year, month, day)
-			} else if let month = birthday.month, let day = birthday.day {
-				String(format: "--%02d-%02d", month, day)
-			} else {
-				nil
-			}
-		}
-
-		return StructuredContact(
+		StructuredContact(
 			id: serverId,
 			firstName: givenName,
 			lastName: familyName,
 			nickname: nickname,
 			company: organizationName,
-			birthday: birthday,
+			birthday: birthday?.toIso(),
 			mailAddresses: emailAddresses.map { $0.toStructuredMailAddress() },
 			phoneNumbers: phoneNumbers.map { $0.toStructuredPhoneNumber() },
 			addresses: postalAddresses.map { $0.toStructuredAddress() },
