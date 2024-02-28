@@ -200,7 +200,7 @@ class IosMobileContactsFacade: MobileContactsFacade {
 
 		try store.enumerateContacts(with: fetch) { contact, _ in save.delete(contact.mutableCopy() as! CNMutableContact) }
 
-		for (localIdentifier, serverId) in localAndServerIds {
+		for (localIdentifier, _) in localAndServerIds {
 			user.localContactIdentifierToServerId.removeValue(forKey: localIdentifier)
 			user.localContactIdentifierToHash.removeValue(forKey: localIdentifier)
 		}
