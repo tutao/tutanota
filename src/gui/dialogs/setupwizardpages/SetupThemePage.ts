@@ -16,6 +16,7 @@ export class SetupThemePage implements WizardPageN<null> {
 			},
 			m("p.full-width.pt-l", "Which theme would you like to use?"),
 			m(RadioSelector, {
+				name: "theme_label",
 				options: themeOptions,
 				selectedOption: themeController.themePreference,
 				onOptionSelected: (option) => {
