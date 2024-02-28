@@ -64,15 +64,13 @@ class CredentialEncryptionMethodDialog {
 								}),
 						  )
 						: null,
-					m(
-						".rel",
-						m(SelectCredentialsEncryptionModeView, {
-							error: this._error,
-							onConfirm: (mode) => this._onModeSelected(mode),
-							supportedModes: this._supportedModes,
-							previousSelection: this._previousSelection ?? DEFAULT_CREDENTIAL_ENCRYPTION_MODE,
-						}),
-					),
+					m(SelectCredentialsEncryptionModeView, {
+						class: "pt plr-l mb-xxl height-100p",
+						error: this._error,
+						onConfirm: (mode) => this._onModeSelected(mode),
+						supportedModes: this._supportedModes,
+						previousSelection: this._previousSelection ?? DEFAULT_CREDENTIAL_ENCRYPTION_MODE,
+					}),
 				])
 			},
 		}).addShortcut({
@@ -124,6 +122,7 @@ class CredentialEncryptionMethodDialog {
 }
 
 type SelectCredentialEncryptionModeDialogAttrs = {
+	class?: string
 	previousSelection: CredentialEncryptionMode
 	onConfirm: ((encryptionMode: CredentialEncryptionMode) => unknown) | null
 	supportedModes: ReadonlyArray<CredentialEncryptionMode>
@@ -144,13 +143,9 @@ export class SelectCredentialsEncryptionModeView implements Component<SelectCred
 		const { onConfirm } = attrs
 		return [
 			m(
-				".flex.col.pt.scroll.plr-l",
+				".flex.col.scroll",
 				{
-					style: {
-						position: "relative",
-						height: "100%",
-						paddingBottom: "64px", // Padding to not overlap the button below
-					},
+					class: attrs.class,
 				},
 				[
 					attrs.error ? m(".small.center.statusTextColor.pb-s", liveDataAttrs(), attrs.error) : null,

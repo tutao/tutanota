@@ -309,6 +309,9 @@ styles.registerStyle("main", () => {
 		".mb-xl": {
 			"margin-bottom": px(size.vpad_xl),
 		},
+		".mb-xxl": {
+			"margin-bottom": px(size.vpad_xxl),
+		},
 		".mlr": {
 			"margin-left": px(size.hpad),
 			"margin-right": px(size.hpad),
