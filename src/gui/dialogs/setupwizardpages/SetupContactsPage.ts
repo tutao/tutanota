@@ -68,7 +68,7 @@ export class SetupContactsPageAttrs implements WizardPageAttrs<null> {
 	}
 
 	isSkipAvailable(): boolean {
-		return true
+		return false
 	}
 
 	isEnabled(): boolean {
