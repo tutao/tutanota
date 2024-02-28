@@ -4,7 +4,7 @@ import { client } from "../misc/ClientDetector"
 import { lang } from "../misc/LanguageViewModel"
 import { noselect, position_absolute, positionValue } from "./mixins"
 import { assertMainOrNode, isAdminClient, isApp, isElectronClient } from "../api/common/Env"
-import { getElevatedBackground, getNavigationMenuBg, theme } from "./theme"
+import { getContentButtonIconBackground, getElevatedBackground, getNavigationMenuBg, theme } from "./theme"
 import { BrowserType } from "../misc/ClientConstants"
 import { stateBgActive, stateBgFocus, stateBgHover, stateBgLike } from "./builtinThemes.js"
 import { FontIcons } from "./base/icons/FontIcons.js"
@@ -1206,6 +1206,38 @@ styles.registerStyle("main", () => {
 		".wizard-next-button": {
 			"margin-top": "auto",
 			"margin-bottom": px(size.vpad),
+		},
+		".wizard-breadcrumb": {
+			border: `1px solid ${getContentButtonIconBackground()}`,
+			color: "inherit",
+			"transition-property": "border-width, border-color, color, background-color",
+			"transition-duration": `${DefaultAnimationTime - 70}ms`,
+			"transition-timing-function": "ease-out",
+		},
+		".wizard-breadcrumb-active": {
+			border: `2px solid ${theme.content_accent}`,
+			color: theme.content_accent,
+			"transition-property": "border-width, border-color, color, background-color",
+			"transition-duration": `${DefaultAnimationTime - 70}ms`,
+			"transition-timing-function": "ease-out",
+		},
+		".wizard-breadcrumb-previous": {
+			border: `1px solid ${theme.content_accent}`,
+			color: "inherit",
+			"background-color": theme.content_accent,
+			"transition-property": "border-width, border-color, color, background-color",
+			"transition-duration": `${DefaultAnimationTime - 70}ms`,
+			"transition-timing-function": "ease-out",
+		},
+		".wizard-breadcrumb-line": {
+			"border-top": `3px dotted ${theme.content_border}`,
+			height: 0,
+			transition: `border-top-color ${DefaultAnimationTime}ms ease-out`,
+		},
+		".wizard-breadcrumb-line-active": {
+			"border-top": `3px solid ${theme.content_accent}`,
+			height: 0,
+			transition: `border-top-color ${DefaultAnimationTime}ms ease-out`,
 		},
 		".compact": {
 			width: `${size.button_height_compact}px !important`,
