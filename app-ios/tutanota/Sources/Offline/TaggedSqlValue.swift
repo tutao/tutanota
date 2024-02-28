@@ -17,7 +17,7 @@ public enum TaggedSqlValue: Codable {
 	case bytes(value: DataWrapper)  // Uint8Array
 
 	public func encode(to encoder: Encoder) throws {
-		var container = encoder.container(keyedBy: Self.CodingKeys)
+		var container = encoder.container(keyedBy: CodingKeys.self)
 
 		switch self {
 		case .null:
@@ -36,18 +36,18 @@ public enum TaggedSqlValue: Codable {
 	}
 
 	public init(from decoder: Decoder) throws {
-		let typeString = try decoder.container(keyedBy: Self.CodingKeys).decode(String.self, forKey: .type)
+		let typeString = try decoder.container(keyedBy: CodingKeys.self).decode(String.self, forKey: .type)
 		guard let type = SqlType(rawValue: typeString) else { fatalError("unknown sql type \(typeString), can't decode") }
 		switch type {
 		case .null: self = .null
 		case .string:
-			let value: String = try decoder.container(keyedBy: Self.CodingKeys).decode(String.self, forKey: .value)
+			let value: String = try decoder.container(keyedBy: CodingKeys.self).decode(String.self, forKey: .value)
 			self = .string(value: value)
 		case .number:
-			let value: Int = try decoder.container(keyedBy: Self.CodingKeys).decode(Int.self, forKey: .value)
+			let value: Int = try decoder.container(keyedBy: CodingKeys.self).decode(Int.self, forKey: .value)
 			self = .number(value: value)
 		case .bytes:
-			let value: DataWrapper = try decoder.container(keyedBy: Self.CodingKeys).decode(DataWrapper.self, forKey: .value)
+			let value: DataWrapper = try decoder.container(keyedBy: CodingKeys.self).decode(DataWrapper.self, forKey: .value)
 			self = .bytes(value: value)
 		}
 	}
