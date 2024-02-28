@@ -70,7 +70,7 @@ export class SetupLockPageAttrs implements WizardPageAttrs<null> {
 	}
 
 	isSkipAvailable(): boolean {
-		return true
+		return false
 	}
 
 	isEnabled(): boolean {

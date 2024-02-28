@@ -41,7 +41,7 @@ export class SetupThemePageAttrs implements WizardPageAttrs<null> {
 	}
 
 	isSkipAvailable(): boolean {
-		return true
+		return false
 	}
 
 	isEnabled(): boolean {
