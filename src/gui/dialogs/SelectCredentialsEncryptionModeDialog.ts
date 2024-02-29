@@ -2,7 +2,7 @@ import { CredentialEncryptionMode } from "../../misc/credentials/CredentialEncry
 import { Dialog, DialogType } from "../base/Dialog"
 import type { CredentialsProvider } from "../../misc/credentials/CredentialsProvider.js"
 import m, { Children, Component, Vnode } from "mithril"
-import { lang } from "../../misc/LanguageViewModel"
+import { lang, TranslationKey } from "../../misc/LanguageViewModel"
 import { DialogHeaderBar } from "../base/DialogHeaderBar"
 import type { RadioSelectorAttrs, RadioSelectorOption } from "../base/RadioSelector"
 import { RadioSelector } from "../base/RadioSelector"
@@ -65,6 +65,7 @@ class CredentialEncryptionMethodDialog {
 						  )
 						: null,
 					m(SelectCredentialsEncryptionModeView, {
+						isWithHelpText: true,
 						class: "pt plr-l mb-xxl height-100p",
 						error: this._error,
 						onConfirm: (mode) => this._onModeSelected(mode),
@@ -123,6 +124,7 @@ class CredentialEncryptionMethodDialog {
 
 type SelectCredentialEncryptionModeDialogAttrs = {
 	class?: string
+	isWithHelpText: boolean
 	previousSelection: CredentialEncryptionMode
 	onConfirm: ((encryptionMode: CredentialEncryptionMode) => unknown) | null
 	supportedModes: ReadonlyArray<CredentialEncryptionMode>
@@ -138,7 +140,7 @@ export class SelectCredentialsEncryptionModeView implements Component<SelectCred
 	}
 
 	view({ attrs }: Vnode<SelectCredentialEncryptionModeDialogAttrs>): Children {
-		const options = this._getSupportedOptions(attrs)
+		const options = this.getSupportedOptions(attrs)
 
 		const { onConfirm } = attrs
 		return [
@@ -168,28 +170,26 @@ export class SelectCredentialsEncryptionModeView implements Component<SelectCred
 		]
 	}
 
-	_getSupportedOptions(attrs: SelectCredentialEncryptionModeDialogAttrs): Array<RadioSelectorOption<CredentialEncryptionMode>> {
+	private getSupportedOptions(attrs: SelectCredentialEncryptionModeDialogAttrs): Array<RadioSelectorOption<CredentialEncryptionMode>> {
+		const generateOption = (
+			name: TranslationKey,
+			value: CredentialEncryptionMode,
+			helpText: TranslationKey,
+		): RadioSelectorOption<CredentialEncryptionMode> => ({
+			name,
+			value,
+			helpText: attrs.isWithHelpText ? helpText : undefined,
+		})
+
 		const options = [
-			{
-				name: "credentialsEncryptionModeDeviceLock_label",
-				value: CredentialEncryptionMode.DEVICE_LOCK,
-				helpText: "credentialsEncryptionModeDeviceLockHelp_msg",
-			},
-			{
-				name: "credentialsEncryptionModeDeviceCredentials_label",
-				value: CredentialEncryptionMode.SYSTEM_PASSWORD,
-				helpText: "credentialsEncryptionModeDeviceCredentialsHelp_msg",
-			},
-			{
-				name: "credentialsEncryptionModeBiometrics_label",
-				value: CredentialEncryptionMode.BIOMETRICS,
-				helpText: "credentialsEncryptionModeBiometricsHelp_msg",
-			},
-			{
-				name: "credentialsEncryptionModeAppPassword_label",
-				value: CredentialEncryptionMode.APP_PASSWORD,
-				helpText: "credentialsEncryptionModeAppPasswordHelp_msg",
-			},
+			generateOption("credentialsEncryptionModeDeviceLock_label", CredentialEncryptionMode.DEVICE_LOCK, "credentialsEncryptionModeDeviceLockHelp_msg"),
+			generateOption(
+				"credentialsEncryptionModeDeviceCredentials_label",
+				CredentialEncryptionMode.SYSTEM_PASSWORD,
+				"credentialsEncryptionModeDeviceCredentialsHelp_msg",
+			),
+			generateOption("credentialsEncryptionModeBiometrics_label", CredentialEncryptionMode.BIOMETRICS, "credentialsEncryptionModeBiometricsHelp_msg"),
+			generateOption("credentialsEncryptionModeAppPassword_label", CredentialEncryptionMode.APP_PASSWORD, "credentialsEncryptionModeAppPasswordHelp_msg"),
 		] as const
 		return options.filter((option) => attrs.supportedModes.includes(option.value))
 	}
