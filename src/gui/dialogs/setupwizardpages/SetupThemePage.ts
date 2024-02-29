@@ -14,7 +14,7 @@ export class SetupThemePage implements WizardPageN<null> {
 			{
 				icon: Icons.Palette,
 			},
-			m("p.full-width.pt-l", "Which theme would you like to use?"),
+			m("p.full-width", "Which theme would you like to use?"),
 			m(RadioSelector, {
 				name: "theme_label",
 				options: themeOptions,

@@ -19,16 +19,19 @@ import { SetupContactsPage, SetupContactsPageAttrs } from "./setupwizardpages/Se
 import { SetupLockPage, SetupLockPageAttrs } from "./setupwizardpages/SetupLockPage.js"
 
 export function renderPermissionButton(permissionName: TranslationKey, isPermissionGranted: boolean, onclick: ClickHandler) {
+	return renderBannerButton(isPermissionGranted ? "granted_msg" : permissionName, onclick, isPermissionGranted)
+}
+
+export function renderBannerButton(text: TranslationKey, onclick: ClickHandler, isDisabled?: boolean, classes?: string) {
 	return m(BannerButton, {
-		text: isPermissionGranted ? "granted_msg" : permissionName,
+		text,
 		borderColor: theme.content_accent,
 		color: theme.content_accent,
-		class: "b full-width mt-s",
+		class: "b full-width mt-s button-content " + classes,
 		click: (event: MouseEvent, dom: HTMLElement) => {
 			onclick(event, dom)
-			console.log("Click called.")
 		},
-		disabled: isPermissionGranted,
+		disabled: isDisabled ?? undefined,
 	})
 }
 

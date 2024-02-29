@@ -3,37 +3,30 @@ import { WizardPageAttrs } from "../../base/WizardDialog.js"
 import { lang } from "../../../misc/LanguageViewModel.js"
 import { SetupPageLayout } from "./SetupPageLayout.js"
 import { BootIcons } from "../../base/icons/BootIcons.js"
-import { BannerButton } from "../../base/buttons/BannerButton.js"
-import { theme } from "../../theme.js"
 import { NativeContactsSyncManager } from "../../../contacts/model/NativeContactsSyncManager.js"
 import { ContactImporter } from "../../../contacts/ContactImporter.js"
 import { Dialog } from "../../base/Dialog.js"
 import { MobileSystemFacade } from "../../../native/common/generatedipc/MobileSystemFacade.js"
+import { renderBannerButton } from "../SetupWizard.js"
 
 export class SetupContactsPage implements Component<SetupContactsPageAttrs> {
 	view({ attrs }: Vnode<SetupContactsPageAttrs>): Children {
+		const isContactSyncEnabled = attrs.syncManager.isEnabled()
+
 		return m(SetupPageLayout, { icon: BootIcons.Contacts }, [
 			m("p", lang.get("importContacts_msg")),
-			m(BannerButton, {
-				text: "import_action",
-				borderColor: theme.content_accent,
-				color: theme.content_accent,
-				class: "b full-width mt-s",
-				click: () => {
-					attrs.contactImporter.importContactsFromDevice()
-				},
+			renderBannerButton("import_action", () => {
+				attrs.contactImporter.importContactsFromDevice()
 			}),
-			m("p", lang.get("allowContactSynchronization")),
-			m(BannerButton, {
-				text: attrs.syncManager.isEnabled() ? "activated_label" : "activate_action",
-				borderColor: theme.content_accent,
-				color: theme.content_accent,
-				class: "b full-width mt-s mb-l",
-				click: () => {
+			m("p.mt-xl", lang.get("allowContactSynchronization")),
+			renderBannerButton(
+				isContactSyncEnabled ? "activated_label" : "activate_action",
+				() => {
 					this.enableSync(attrs)
 				},
-				disabled: attrs.syncManager.isEnabled(),
-			}),
+				isContactSyncEnabled,
+				"mb-l",
+			),
 		])
 	}
 
