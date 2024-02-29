@@ -39,7 +39,6 @@ export type NativeInterfaces = {
 	mobileSystemFacade: MobileSystemFacade
 	commonSystemFacade: CommonSystemFacade
 	themeFacade: ThemeFacade
-	isAppVisible: stream<boolean>
 	mobileContactsFacade: MobileContactsFacade
 }
 
@@ -85,7 +84,6 @@ export function createNativeInterfaces(
 		commonSystemFacade,
 		themeFacade,
 		mobileContactsFacade,
-		isAppVisible: mobileFacade.getIsAppVisible(),
 	}
 }
 

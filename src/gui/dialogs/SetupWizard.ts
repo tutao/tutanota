@@ -4,15 +4,14 @@ import { SetupCongratulationsPage, SetupCongratulationsPageAttrs } from "./setup
 import { deviceConfig } from "../../misc/DeviceConfig.js"
 import m from "mithril"
 import { isAndroidApp, isApp } from "../../api/common/Env.js"
-import { NotificationPermissionsData, SetupNotificationsPage, SetupNotificationsPageAttrs } from "./setupwizardpages/SetupNotificationsPage.js"
+import { SetupNotificationsPage, SetupNotificationsPageAttrs } from "./setupwizardpages/SetupNotificationsPage.js"
 import { BannerButton } from "../base/buttons/BannerButton.js"
 import { theme } from "../theme.js"
 import { ClickHandler } from "../base/GuiUtils.js"
 import { PermissionType } from "../../native/common/generatedipc/PermissionType.js"
 import { locator } from "../../api/main/MainLocator.js"
 import { PermissionError } from "../../api/common/error/PermissionError.js"
-import { Dialog } from "../base/Dialog.js"
-import stream from "mithril/stream"
+import { Dialog, DialogType } from "../base/Dialog.js"
 import { TranslationKey } from "../../misc/LanguageViewModel.js"
 import { SetupThemePage, SetupThemePageAttrs } from "./setupwizardpages/SetupThemePage.js"
 import { SetupContactsPage, SetupContactsPageAttrs } from "./setupwizardpages/SetupContactsPage.js"
@@ -44,11 +43,9 @@ export async function showSetupWizardIfNeeded(): Promise<void> {
 }
 
 export async function showSetupWizard(): Promise<void> {
-	const NotificationPermissions = stream<NotificationPermissionsData>(await queryPermissionsState())
-
 	const wizardPages = [
 		wizardPageWrapper(SetupCongratulationsPage, new SetupCongratulationsPageAttrs()),
-		wizardPageWrapper(SetupNotificationsPage, new SetupNotificationsPageAttrs(NotificationPermissions)),
+		wizardPageWrapper(SetupNotificationsPage, new SetupNotificationsPageAttrs(await queryPermissionsState(), locator.webMobileFacade.getIsAppVisible())),
 		wizardPageWrapper(SetupThemePage, new SetupThemePageAttrs()),
 		wizardPageWrapper(
 			SetupContactsPage,

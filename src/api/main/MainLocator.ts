@@ -110,7 +110,7 @@ import { ContactFacade } from "../worker/facades/lazy/ContactFacade.js"
 import { ContactImporter } from "../../contacts/ContactImporter.js"
 import { MobileContactsFacade } from "../../native/common/generatedipc/MobileContactsFacade.js"
 import { PermissionError } from "../common/error/PermissionError.js"
-import stream from "mithril/stream"
+import { WebMobileFacade } from "../../native/main/WebMobileFacade.js"
 
 assertMainOrNode()
 
@@ -154,6 +154,7 @@ class MainLocator {
 	searchTextFacade!: SearchTextInAppFacade
 	desktopSettingsFacade!: SettingsFacade
 	desktopSystemFacade!: DesktopSystemFacade
+	webMobileFacade!: WebMobileFacade
 	interWindowEventSender!: InterWindowEventFacadeSendDispatcher
 	cacheStorage!: ExposedCacheStorage
 	workerFacade!: WorkerFacade
@@ -473,10 +474,6 @@ class MainLocator {
 		return this.getNativeInterface("mobileContactsFacade")
 	}
 
-	get isAppVisible(): stream<boolean> {
-		return this.getNativeInterface("isAppVisible")
-	}
-
 	async mailAddressTableModelForOwnMailbox(): Promise<MailAddressTableModel> {
 		const { MailAddressTableModel } = await import("../../settings/mailaddress/MailAddressTableModel.js")
 		const nameChanger = await this.ownMailAddressNameChanger()
@@ -668,8 +665,9 @@ class MainLocator {
 			const { WebInterWindowEventFacade } = await import("../../native/main/WebInterWindowEventFacade.js")
 			const { WebAuthnFacadeSendDispatcher } = await import("../../native/common/generatedipc/WebAuthnFacadeSendDispatcher.js")
 			const { createNativeInterfaces, createDesktopInterfaces } = await import("../../native/main/NativeInterfaceFactory.js")
+			this.webMobileFacade = new WebMobileFacade(this.connectivityModel, this.mailModel)
 			this.nativeInterfaces = createNativeInterfaces(
-				new WebMobileFacade(this.connectivityModel, this.mailModel),
+				this.webMobileFacade,
 				new WebDesktopFacade(),
 				new WebInterWindowEventFacade(this.logins, windowFacade, deviceConfig),
 				new WebCommonNativeFacade(),
