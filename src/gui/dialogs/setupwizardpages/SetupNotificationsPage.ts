@@ -1,12 +1,11 @@
-import m, { Children, Vnode, VnodeDOM } from "mithril"
-import { WizardPageAttrs, WizardPageN } from "../../base/WizardDialog.js"
+import m, { Children, Component, Vnode } from "mithril"
+import { WizardPageAttrs } from "../../base/WizardDialog.js"
 import { PermissionType } from "../../../native/common/generatedipc/PermissionType.js"
 import { isAndroidApp } from "../../../api/common/Env.js"
 import { lang } from "../../../misc/LanguageViewModel.js"
 import { queryPermissionsState, renderPermissionButton, requestPermission } from "../SetupWizard.js"
 import { Icons } from "../../base/icons/Icons.js"
-import { locator } from "../../../api/main/MainLocator.js"
-import stream from "mithril/stream"
+import Stream from "mithril/stream"
 import { SetupPageLayout } from "./SetupPageLayout.js"
 
 export interface NotificationPermissionsData {
@@ -14,55 +13,62 @@ export interface NotificationPermissionsData {
 	isBatteryPermissionGranted: boolean
 }
 
-export class SetupNotificationsPage implements WizardPageN<stream<NotificationPermissionsData>> {
-	oncreate(vnode: VnodeDOM<WizardPageAttrs<stream<NotificationPermissionsData>>>) {
-		// Redraw the page when the user resumes the app to check for changes in permissions
-		locator.isAppVisible.map((isVisible) => {
+export class SetupNotificationsPage implements Component<SetupNotificationsPageAttrs> {
+	view({ attrs }: Vnode<SetupNotificationsPageAttrs>): Children {
+		return m(SetupPageLayout, { icon: Icons.Notifications }, [
+			m("p", lang.get("allowNotifications_msg")),
+			renderPermissionButton("grant_notification_permission_action", attrs.data.isNotificationPermissionGranted, () =>
+				attrs.askForNotificationPermission(),
+			),
+			!isAndroidApp()
+				? null
+				: m("section.mt-l.mb-l", [
+						m("p", lang.get("allowBatteryPermission_msg")),
+						renderPermissionButton("grant_battery_permission_action", attrs.data.isBatteryPermissionGranted, () =>
+							attrs.askForBatteryNotificationPermission(),
+						),
+				  ]),
+		])
+	}
+}
+
+export class SetupNotificationsPageAttrs implements WizardPageAttrs<NotificationPermissionsData> {
+	hidePagingButtonForPage = false
+	data: NotificationPermissionsData
+	// Cache the permission values to avoid the page becoming disabled while on it.
+	private readonly isPageVisible: boolean
+
+	constructor(permissionData: NotificationPermissionsData, visiblityStream: Stream<boolean>) {
+		this.isPageVisible = this.isPageNeeded(permissionData)
+		this.data = permissionData
+
+		visiblityStream.map((isVisible) => {
+			// Redraw the page when the user resumes the app to check for changes in permissions
 			if (isVisible) {
 				queryPermissionsState().then((permissionState) => {
-					vnode.attrs.data(permissionState)
+					this.data = permissionState
 					m.redraw()
 				})
 			}
 		})
 	}
 
-	view({ attrs }: Vnode<WizardPageAttrs<stream<NotificationPermissionsData>>>): Children {
-		return m(SetupPageLayout, { icon: Icons.Notifications }, [
-			m("p", lang.get("allowNotifications_msg")),
-			renderPermissionButton("grant_notification_permission_action", attrs.data().isNotificationPermissionGranted, async () => {
-				// Ask for the notification permission
-				attrs.data({
-					...attrs.data(),
-					isNotificationPermissionGranted: await requestPermission(PermissionType.Notification, "grant_notification_permission_action"),
-				})
-				m.redraw()
-			}),
-			isAndroidApp()
-				? m("section.mt-l.mb-l", [
-						m("p", lang.get("allowBatteryPermission_msg")),
-						renderPermissionButton("grant_battery_permission_action", attrs.data().isBatteryPermissionGranted, async () => {
-							// Ask for permission to disable battery optimisations
-							attrs.data({
-								...attrs.data(),
-								isBatteryPermissionGranted: await requestPermission(PermissionType.IgnoreBatteryOptimization, "allowBatteryPermission_msg"),
-							})
-						}),
-				  ])
-				: null,
-		])
+	async askForNotificationPermission() {
+		// Ask for the notification permission
+		this.data = {
+			...this.data,
+			isNotificationPermissionGranted: await requestPermission(PermissionType.Notification, "grant_notification_permission_action"),
+		}
+		m.redraw()
 	}
-}
 
-export class SetupNotificationsPageAttrs implements WizardPageAttrs<stream<NotificationPermissionsData>> {
-	hidePagingButtonForPage = false
-	data: stream<NotificationPermissionsData>
-	// Cache the permission values to avoid the page becoming disabled while on it.
-	private readonly isPageVisible: boolean
-
-	constructor(permissionData: stream<NotificationPermissionsData>) {
-		this.isPageVisible = this.isPageNeeded(permissionData())
-		this.data = permissionData
+	async askForBatteryNotificationPermission() {
+		// Ask for permission to disable battery optimisations
+		this.data = {
+			...this.data,
+			isBatteryPermissionGranted: await requestPermission(PermissionType.IgnoreBatteryOptimization, "allowBatteryPermission_msg"),
+		}
+		m.redraw()
 	}
 
 	private isPageNeeded(data: NotificationPermissionsData): boolean {
