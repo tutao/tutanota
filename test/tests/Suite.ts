@@ -121,6 +121,7 @@ import "./api/worker/pdf/DeflaterTest.js"
 import "./api/worker/pdf/PdfWriterTest.js"
 import "./api/worker/pdf/PdfObjectTest.js"
 import "./api/worker/invoicegen/PdfInvoiceGeneratorTest.js"
+import "./subscription/SignupFormTest.js"
 import "./api/worker/facades/ContactFacadeTest.js"
 
 import * as td from "testdouble"
