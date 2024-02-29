@@ -91,7 +91,9 @@ export default {
 		"ageConfirmation_msg": "Ich bin mindestens 16 Jahre alt.",
 		"agenda_label": "Agenda",
 		"allDay_label": "Ganztags",
+		"allowBatteryPermission_msg": "Wir brauchen deine Erlaubnis, im Hintergrund zu bleiben, um du zuverlässig zu benachrichtigst.",
 		"allowContactReadWrite_msg": "Die Tuta App benötigt die Berechtigung zum Lesen und Schreiben in deinem Adressbuch, um deine Kontakte zu synchronisieren. Du kannst dies jederzeit in den Systemeinstellungen ändern.",
+		"allowContactSynchronization": "Wir benötigen die Erlaubnis, die Kontakte auf Ihrem Gerät mit unseren Kontakten zu synchronisieren.",
 		"allowExternalContentSender_action": "Dieser Adresse immer vertrauen",
 		"allowOperation_msg": "Möchtest du das erlauben?",
 		"allowNotifications_msg": "Um du über eingehende E-Mails benachrichtigen und Erinnerungen anzeigen zu können, benötigen wir deine Erlaubnis zur Anzeige von Push-Benachrichtigungen.",
@@ -1682,5 +1684,6 @@ export default {
 		"importContacts_label": "Kontakte importieren",
 		"dates_label": "Daten",
 		"relationships_label": "Beziehungen",
+		"importContacts_msg": "Importiere du Kontakte aus deinem Telefonbuch, um sie auf allen deinen Geräten verfügbar zu machen."
 	}
 }

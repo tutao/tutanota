@@ -40,15 +40,12 @@ export class SetupNotificationsPage implements WizardPageN<stream<NotificationPe
 			}),
 			isAndroidApp()
 				? m("section.mt-l.mb-l", [
-						m("p", lang.get("allowPushNotification_msg")),
+						m("p", lang.get("allowBatteryPermission_msg")),
 						renderPermissionButton("grant_battery_permission_action", attrs.data().isBatteryPermissionGranted, async () => {
 							// Ask for permission to disable battery optimisations
 							attrs.data({
 								...attrs.data(),
-								isBatteryPermissionGranted: await requestPermission(
-									PermissionType.IgnoreBatteryOptimization,
-									"grant_battery_permission_action",
-								),
+								isBatteryPermissionGranted: await requestPermission(PermissionType.IgnoreBatteryOptimization, "allowBatteryPermission_msg"),
 							})
 						}),
 				  ])

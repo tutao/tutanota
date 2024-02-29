@@ -6,7 +6,7 @@ import { BootIcons } from "../../base/icons/BootIcons.js"
 
 export class SetupCongratulationsPage implements WizardPageN<null> {
 	view(): Children {
-		return m(SetupPageLayout, { icon: BootIcons.Premium }, [m("h2.pt", lang.get("welcome_text")), m("p.full-width.pt-l", lang.get("onboarding_text"))])
+		return m(SetupPageLayout, { icon: BootIcons.Premium }, [m("h2.pt.b", lang.get("welcome_text")), m("p.full-width.pt-l", lang.get("onboarding_text"))])
 	}
 }
 
