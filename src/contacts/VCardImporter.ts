@@ -1,14 +1,30 @@
-import type { Contact, ContactAddress, ContactMailAddress, ContactPhoneNumber, ContactSocialId } from "../api/entities/tutanota/TypeRefs.js"
 import {
 	Birthday,
+	Contact,
+	ContactAddress,
+	ContactMailAddress,
+	ContactMessengerHandle,
+	ContactPhoneNumber,
+	ContactPronouns,
+	ContactRelationship,
+	ContactWebsite,
 	createBirthday,
 	createContact,
 	createContactAddress,
 	createContactMailAddress,
+	createContactMessengerHandle,
 	createContactPhoneNumber,
-	createContactSocialId,
+	createContactPronouns,
+	createContactRelationship,
+	createContactWebsite,
 } from "../api/entities/tutanota/TypeRefs.js"
-import { ContactAddressType, ContactPhoneNumberType, ContactSocialType } from "../api/common/TutanotaConstants"
+import {
+	ContactAddressType,
+	ContactMessengerHandleType,
+	ContactPhoneNumberType,
+	ContactRelationshipType,
+	ContactWebsiteType,
+} from "../api/common/TutanotaConstants"
 import { decodeBase64, decodeQuotedPrintable } from "@tutao/tutanota-utils"
 import { birthdayToIsoDate, isValidBirthday } from "../api/common/utils/BirthdayUtils"
 import { ParsingError } from "../api/common/error/ParsingError"
@@ -102,6 +118,11 @@ function _decodeTag(encoding: string, charset: string, text: string): string {
 		.join(";")
 }
 
+export function getPropertyValue(property: string, tagValue: string) {
+	const exp = new RegExp(property + "=(.*?)[:;]", "gi")
+	return (Array.from(tagValue.matchAll(exp), (m) => m[1])[0] ?? "").trim()
+}
+
 /**
  * @returns The list of created Contact instances (but not yet saved) or null if vCardFileData is not a valid vCard string.
  */
@@ -117,10 +138,16 @@ export function vCardListToContacts(vCardList: string[], ownerGroupId: Id): Cont
 		let comment: string = ""
 		let nickname: string | null = null
 		let role = ""
+		let department = ""
+		let middleName = ""
+		let suffix = ""
 		const addresses: Array<ContactAddress> = []
 		const mailAddresses: Array<ContactMailAddress> = []
 		const phoneNumbers: Array<ContactPhoneNumber> = []
-		const socialIds: Array<ContactSocialId> = []
+		const websites: Array<ContactWebsite> = []
+		const relationships: Array<ContactRelationship> = []
+		const pronouns: Array<ContactPronouns> = []
+		const messengerHandles: Array<ContactMessengerHandle> = []
 		let vCardLines = vCardList[i].split("\n")
 
 		for (let j = 0; j < vCardLines.length; j++) {
@@ -138,19 +165,20 @@ export function vCardListToContacts(vCardList: string[], ownerGroupId: Id): Cont
 				case "N":
 					let nameDetails = vCardReescapingArray(vCardEscapingSplit(tagValue))
 
-					for (let i = nameDetails.length; nameDetails.length < 3; i++) {
+					for (let i = nameDetails.length; nameDetails.length < 4; i++) {
 						nameDetails.push("")
 					}
 
 					lastName = nameDetails[0]
-					firstName = (nameDetails[1] + " " + nameDetails[2]).trim() // nameDetails[2] (second first name) may be empty
-
+					firstName = nameDetails[1]
+					middleName = nameDetails[2]
 					title = nameDetails[3]
+					suffix = nameDetails[4]
 					break
 
 				case "FN":
 					//Thunderbird can export FULLNAME tag if that is given with the email address automatic contact creation. If there is no first name or second name the namestring will be saved as full name.
-					if (firstName === "" && lastName === "" && title == null) {
+					if (firstName === "" && lastName === "" && title == null && middleName === "" && suffix === "") {
 						let fullName = vCardReescapingArray(vCardEscapingSplit(tagValue))
 						firstName = fullName.join(" ").replace(/"/g, "") //Thunderbird saves the Fullname in "quoteations marks" they are deleted here
 					}
@@ -201,6 +229,11 @@ export function vCardListToContacts(vCardList: string[], ownerGroupId: Id): Cont
 
 				case "ORG":
 					let orgDetails = vCardReescapingArray(vCardEscapingSplit(tagValue))
+					for (let i = orgDetails.length; orgDetails.length < 2; i++) {
+						orgDetails.push("")
+					}
+
+					department = orgDetails.pop() ?? ""
 					company = orgDetails.join(" ")
 					break
 
@@ -265,12 +298,7 @@ export function vCardListToContacts(vCardList: string[], ownerGroupId: Id): Cont
 
 				case "ITEM2.URL":
 					// necessary for apple vcards
-					let website = createContactSocialId({
-						type: ContactSocialType.OTHER,
-						socialId: vCardReescapingArray(vCardEscapingSplit(tagValue)).join(""),
-						customTypeName: "",
-					})
-					socialIds.push(website)
+					addWebsite(tagValue, websites)
 					break
 
 				case "NICKNAME":
@@ -291,6 +319,50 @@ export function vCardListToContacts(vCardList: string[], ownerGroupId: Id): Cont
 					role += (" " + vcardRole.join(" ")).trim()
 					break
 
+				// The content bellow this comment is present only on vCard 4.0+ - RFC 6350
+				case "RELATED":
+					let type = ContactRelationshipType.OTHER
+					const vCardPropertyType = getPropertyValue("TYPE", tagAndTypeString).toLowerCase()
+					if (vCardPropertyType === "friend") {
+						type = ContactRelationshipType.FRIEND
+					} else if (vCardPropertyType === "child") {
+						type = ContactRelationshipType.CHILD
+					} else if (vCardPropertyType === "parent") {
+						type = ContactRelationshipType.PARENT
+					} else if (vCardPropertyType === "spouse") {
+						type = ContactRelationshipType.SPOUSE
+					}
+
+					addRelationship(tagValue, relationships, type)
+					break
+
+				case "PRONOUNS":
+					const lang = getPropertyValue("LANG", tagAndTypeString)
+					addPronouns(tagValue, pronouns, lang)
+					break
+
+				case "IMPP":
+					const imRawType = getPropertyValue("TYPE", tagAndTypeString)
+					let imType = ContactMessengerHandleType.OTHER
+					let customTypeName = ""
+
+					if (imRawType.toLowerCase() === "telegram") {
+						imType = ContactMessengerHandleType.TELEGRAM
+					} else if (imRawType.toLowerCase() === "whatsapp") {
+						imType = ContactMessengerHandleType.WHATSAPP
+					} else if (imRawType.toLowerCase() === "signal") {
+						imType = ContactMessengerHandleType.SIGNAL
+					} else if (imRawType.toLowerCase() === "discord") {
+						imType = ContactMessengerHandleType.DISCORD
+					} else if (imRawType.trim() != "") {
+						imType = ContactMessengerHandleType.CUSTOM
+						customTypeName = imRawType.trim()
+					}
+
+					// Remove the im:/xmpp: added by the vcard standard
+					const handleData = tagValue.indexOf(":") > -1 ? tagValue.substring(tagValue.indexOf(":") + 1) : tagValue
+					addMessengerHandle(handleData, messengerHandles, imType, customTypeName)
+					break
 				default:
 			}
 		}
@@ -310,24 +382,22 @@ export function vCardListToContacts(vCardList: string[], ownerGroupId: Id): Cont
 			addresses,
 			mailAddresses,
 			phoneNumbers,
-			socialIds,
-			presharedPassword: null,
-			photo: null,
-			oldBirthdayDate: null,
-			oldBirthdayAggregate: null,
-
-			// FIXME: see if anything in here can be imported from the vcard
-			department: null,
-			middleName: null,
-			nameSuffix: null,
+			department,
+			middleName,
+			websites,
+			relationships,
+			pronouns,
+			messengerHandles,
+			nameSuffix: suffix,
 			phoneticFirst: null,
 			phoneticLast: null,
 			phoneticMiddle: null,
 			customDate: [],
-			messengerHandles: [],
-			pronouns: [],
-			relationships: [],
-			websites: [],
+			socialIds: [],
+			presharedPassword: null,
+			photo: null,
+			oldBirthdayDate: null,
+			oldBirthdayAggregate: null,
 		})
 	}
 
@@ -357,6 +427,41 @@ export function vCardListToContacts(vCardList: string[], ownerGroupId: Id): Cont
 			customTypeName: "",
 		})
 		mailAddresses.push(email)
+	}
+
+	function addRelationship(relationshipPerson: string, relationships: Array<ContactRelationship>, type: ContactRelationshipType) {
+		const relationship = createContactRelationship({
+			type: type,
+			person: relationshipPerson,
+			customTypeName: "",
+		})
+		relationships.push(relationship)
+	}
+
+	function addPronouns(pronouns: string, pronounsArray: Array<ContactPronouns>, lang: string) {
+		const pronounsToAdd = createContactPronouns({
+			language: lang,
+			pronouns,
+		})
+		pronounsArray.push(pronounsToAdd)
+	}
+
+	function addMessengerHandle(handle: string, messengerHandleArray: Array<ContactMessengerHandle>, type: ContactMessengerHandleType, customTypeName: string) {
+		const newHandle = createContactMessengerHandle({
+			handle,
+			type,
+			customTypeName,
+		})
+		messengerHandleArray.push(newHandle)
+	}
+
+	function addWebsite(tagValue: string, websites: Array<ContactWebsite>) {
+		let website = createContactWebsite({
+			type: ContactWebsiteType.OTHER,
+			url: vCardReescapingArray(vCardEscapingSplit(tagValue)).join(""),
+			customTypeName: "",
+		})
+		websites.push(website)
 	}
 
 	return contacts
