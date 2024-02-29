@@ -13,7 +13,7 @@ import { MobileSystemFacade } from "../../../native/common/generatedipc/MobileSy
 export class SetupContactsPage implements Component<SetupContactsPageAttrs> {
 	view({ attrs }: Vnode<SetupContactsPageAttrs>): Children {
 		return m(SetupPageLayout, { icon: BootIcons.Contacts }, [
-			m("p", "Import contacts from your phone book to make them available across your devices."),
+			m("p", lang.get("importContacts_msg")),
 			m(BannerButton, {
 				text: "import_action",
 				borderColor: theme.content_accent,
@@ -23,7 +23,7 @@ export class SetupContactsPage implements Component<SetupContactsPageAttrs> {
 					attrs.contactImporter.importContactsFromDevice()
 				},
 			}),
-			m("p", lang.get("contactsSynchronizationWarning_msg")),
+			m("p", lang.get("allowContactSynchronization")),
 			m(BannerButton, {
 				text: attrs.syncManager.isEnabled() ? "activated_label" : "activate_action",
 				borderColor: theme.content_accent,

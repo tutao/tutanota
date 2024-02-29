@@ -6,7 +6,17 @@ import { ImportError } from "../api/common/error/ImportError.js"
 import { lang } from "../misc/LanguageViewModel.js"
 import { showProgressDialog } from "../gui/dialogs/ProgressDialog.js"
 import { ContactFacade } from "../api/worker/facades/lazy/ContactFacade.js"
-import { Contact, createContact, createContactAddress, createContactMailAddress, createContactPhoneNumber } from "../api/entities/tutanota/TypeRefs.js"
+import {
+	Contact,
+	createContact,
+	createContactAddress,
+	createContactCustomDate,
+	createContactMailAddress,
+	createContactMessengerHandle,
+	createContactPhoneNumber,
+	createContactRelationship,
+	createContactWebsite,
+} from "../api/entities/tutanota/TypeRefs.js"
 import m, { Children } from "mithril"
 import { List, ListAttrs, ListLoadingState, MultiselectMode, RenderConfig, ViewHolder } from "../gui/base/List.js"
 import { px, size } from "../gui/size.js"
@@ -112,7 +122,6 @@ export class ContactImporter {
 					customTypeName: number.customTypeName,
 				}),
 			),
-			role: "",
 			oldBirthdayAggregate: null,
 			oldBirthdayDate: null,
 			photo: null,
@@ -120,8 +129,20 @@ export class ContactImporter {
 			socialIds: [],
 			birthdayIso: this.validateBirthdayOfContact(contact),
 			autoTransmitPassword: "",
-			title: null,
-			comment: "",
+			pronouns: [],
+			customDate: contact.customDate.map((date) => createContactCustomDate(date)),
+			department: contact.department,
+			messengerHandles: contact.messengerHandles.map((handle) => createContactMessengerHandle(handle)),
+			middleName: contact.middleName,
+			nameSuffix: contact.nameSuffix,
+			phoneticFirst: contact.phoneticFirst,
+			phoneticLast: contact.phoneticLast,
+			phoneticMiddle: contact.phoneticMiddle,
+			relationships: contact.relationships.map((relation) => createContactRelationship(relation)),
+			websites: contact.websites.map((website) => createContactWebsite(website)),
+			comment: contact.notes,
+			title: contact.title ?? "",
+			role: contact.role,
 		})
 	}
 
