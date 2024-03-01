@@ -14,7 +14,22 @@ o.spec("ContactFacadeTest", function () {
 		const facade = new ContactFacade(entityClient)
 
 		const contacts = [
-			createFilledContact("Test", "User", "Hello World!", "Tutao", "Mr.", "Jung", ["jung@tuta.com"], ["93291381"]),
+			createFilledContact(
+				"Test",
+				"User",
+				"Hello World!",
+				"Tutao",
+				"Mr.",
+				"Jung",
+				"Lange",
+				"Jr.",
+				"It",
+				["jung@tuta.com"],
+				["93291381"],
+				[],
+				[],
+				["tutanota.com"],
+			),
 			createFilledContact(
 				"Ant",
 				"Ste",
@@ -22,6 +37,9 @@ o.spec("ContactFacadeTest", function () {
 				"Tutao",
 				"Mr.",
 				"Buffalo",
+				"Lange",
+				"Jr.",
+				"IT",
 				["antste@antste.de", "bentste@bentste.de"],
 				["123123123", "321321321"],
 				["diaspora.de"],

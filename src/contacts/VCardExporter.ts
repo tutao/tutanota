@@ -5,7 +5,7 @@ import { stringToUtf8Uint8Array } from "@tutao/tutanota-utils"
 import { ContactAddressType, ContactPhoneNumberType } from "../api/common/TutanotaConstants"
 import { assertMainOrNode } from "../api/common/Env"
 import { locator } from "../api/main/MainLocator"
-import { getSocialUrl } from "./model/ContactUtils.js"
+import { getSocialUrl, getWebsiteUrl } from "./model/ContactUtils.js"
 
 assertMainOrNode()
 
@@ -58,7 +58,7 @@ export function _contactToVCard(contact: Contact): string {
 	nString += contact.firstName ? _getVCardEscaped(contact.firstName) + ";" : ";"
 	nString += contact.middleName ? _getVCardEscaped(contact.middleName) + ";" : ";"
 	nString += contact.title ? _getVCardEscaped(contact.title) + ";" : ";"
-	nString += contact.nameSuffix ? _getVCardEscaped(contact.nameSuffix) + ";" : ""
+	nString += contact.nameSuffix ? _getVCardEscaped(contact.nameSuffix) + "" : ""
 	contactToVCardString += _getFoldedString(nString) + "\n"
 	contactToVCardString += contact.nickname ? _getFoldedString("NICKNAME:" + _getVCardEscaped(contact.nickname)) + "\n" : ""
 
@@ -77,16 +77,16 @@ export function _contactToVCard(contact: Contact): string {
 	contactToVCardString += _vCardFormatArrayToString(_socialIdsToVCardSocialUrls(contact.socialIds), "URL")
 	contactToVCardString += contact.role != "" ? _getFoldedString("TITLE:" + _getVCardEscaped(contact.role)) + "\n" : ""
 
+	contact.websites.map((website) => {
+		contactToVCardString += _getFoldedString("URL:" + getWebsiteUrl(website.url) + "\n")
+	})
+
 	const company = contact.company ? _getFoldedString("ORG:" + _getVCardEscaped(contact.company)) : ""
 	if (contact.department) {
-		contactToVCardString += company + ";" + contact.department + "\n"
+		contactToVCardString += company + ";" + _getVCardEscaped(contact.department) + "\n"
 	} else {
 		contactToVCardString += contact.company ? _getFoldedString("ORG:" + _getVCardEscaped(contact.company)) + "\n" : ""
 	}
-
-	contact.websites.map((website) => {
-		contactToVCardString += _getFoldedString("URL:" + _getVCardEscaped(website.url) + "\n")
-	})
 
 	contactToVCardString += contact.comment ? _getFoldedString("NOTE:" + _getVCardEscaped(contact.comment)) + "\n" : ""
 	contactToVCardString += "END:VCARD\n\n" //must be included in vCard3.0

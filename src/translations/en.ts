@@ -1648,7 +1648,6 @@ export default {
 		"dates_label": "Dates",
 		"relationships_label": "Relationships",
 		"middleName_placeholder": "Middle Name",
-		"namePrefix_placeholder": "Name Prefix",
 		"nameSuffix_placeholder": "Name Suffix",
 		"department_placeholder": "Department",
 		"phoneticFirst_placeholder": "Phonetic First Name",

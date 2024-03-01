@@ -152,7 +152,7 @@ ADR;TYPE=HOME,PREF:;;Humboldstrasse 5;\\nBerlin;;12345;Deutschland`,
 		o(vCardFileToVCards(str)!).deepEquals(expected)
 	})
 	o("testToContactNames", function () {
-		let a = ["N:Public\\\\;John\\;Quinlan;;Mr.;Esq.\nBDAY:2016-09-09\nADR:Die Heide 81\\nBasche\nNOTE:Hello World\\nHier ist ein Umbruch"]
+		let a = ["N:Public\\\\;John\\;Quinlan;Lange;Mr.;Esq.\nBDAY:2016-09-09\nADR:Die Heide 81\\nBasche\nNOTE:Hello World\\nHier ist ein Umbruch"]
 		let contacts = vCardListToContacts(a, "")
 		let b = createTestEntity(ContactTypeRef)
 		b._owner = ""
@@ -164,12 +164,15 @@ ADR;TYPE=HOME,PREF:;;Humboldstrasse 5;\\nBerlin;;12345;Deutschland`,
 			customTypeName: "",
 			type: "2",
 		}
+		b.middleName = "Lange"
+		b.department = ""
 		b.firstName = "John;Quinlan"
 		b.lastName = "Public\\"
 		b.comment = "Hello World\nHier ist ein Umbruch"
 		b.company = ""
 		b.role = ""
 		b.title = "Mr."
+		b.nameSuffix = "Esq."
 		b.nickname = neverNull(null)
 		b.birthdayIso = "2016-09-09"
 		o(JSON.stringify(contacts[0])).equals(JSON.stringify(b))
@@ -187,11 +190,14 @@ ADR;TYPE=HOME,PREF:;;Humboldstrasse 5;\\nBerlin;;12345;Deutschland`,
 			customTypeName: "",
 			type: "2",
 		}
+		b.middleName = ""
 		b.firstName = "John;Quinlan"
 		b.lastName = "Public\\"
 		b.comment = ""
+		b.department = ""
 		b.company = ""
 		b.role = ""
+		b.nameSuffix = "Esq."
 		b.title = "Mr."
 		b.nickname = neverNull(null)
 		b.birthdayIso = "2016-09-09"
@@ -212,10 +218,13 @@ ADR;TYPE=HOME,PREF:;;Humboldstrasse 5;\\nBerlin;;12345;Deutschland`,
 		}
 		b.firstName = "John; Quinlan"
 		b.lastName = "Public\\"
+		b.middleName = ""
 		b.comment = ""
+		b.department = ""
 		b.company = ""
 		b.role = ""
 		b.title = "Mr."
+		b.nameSuffix = "Esq."
 		b.nickname = neverNull(null)
 		b.birthdayIso = "2016-09-09"
 		o(JSON.stringify(contacts[0])).equals(JSON.stringify(b))
@@ -233,6 +242,9 @@ ADR;TYPE=HOME,PREF:;;Humboldstrasse 5;\\nBerlin;;12345;Deutschland`,
 		let b = createTestEntity(ContactTypeRef)
 		b._owner = ""
 		b._ownerGroup = ""
+		b.middleName = ""
+		b.department = ""
+		b.nameSuffix = ""
 		b.mailAddresses[0] = {
 			_type: ContactMailAddressTypeRef,
 			_id: neverNull(null),

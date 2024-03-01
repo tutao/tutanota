@@ -1629,7 +1629,6 @@ export type TranslationKeyType =
 	| "mailAddressInfoLegacy_msg"
 	| "websites_label"
 	| "middleName_placeholder"
-	| "namePrefix_placeholder"
 	| "nameSuffix_placeholder"
 	| "department_placeholder"
 	| "phoneticFirst_placeholder"

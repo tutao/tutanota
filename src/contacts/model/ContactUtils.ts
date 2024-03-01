@@ -7,7 +7,6 @@ import {
 	ContactMailAddress,
 	ContactMessengerHandle,
 	ContactPhoneNumber,
-	ContactPronouns,
 	ContactRelationship,
 	ContactSocialId,
 	ContactWebsite,
@@ -135,7 +134,7 @@ export function getWebsiteUrl(websiteUrl: string): string {
 		worldwidew = ""
 	}
 
-	return `${http}${worldwidew}${websiteUrl}`
+	return `${http}${worldwidew}${websiteUrl}`.trim()
 }
 
 export function getMessengerHandleUrl(handle: ContactMessengerHandle): string {
