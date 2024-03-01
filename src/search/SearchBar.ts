@@ -392,6 +392,11 @@ export class SearchBar implements Component<SearchBarAttrs> {
 				})
 				.finally(() => (this.confirmDialogShown = false))
 		} else {
+			// Skip the search if the user is trying to bypass the search dialog
+			if (!locator.search.indexState().mailIndexEnabled && isSameTypeRef(restriction.type, MailTypeRef)) {
+				return
+			}
+
 			if (!locator.search.isNewSearch(query, restriction) && oldQuery === query) {
 				const result = locator.search.result()
 
