@@ -928,17 +928,6 @@ o.spec("calendar utils tests", function () {
 		o.beforeEach(function () {
 			eventsForDays = new Map()
 		})
-		o("excluding an instance of a recurring event correctly removes it from the map when addDays is called again", function () {
-			const event = createEvent(getDateInZone("2023-07-20T12:00"), getDateInZone("2023-07-20T13:00"))
-			event.repeatRule = createRepeatRuleWithValues(RepeatPeriod.DAILY, 1, zone)
-			event.repeatRule.endType = EndType.Count
-			event.repeatRule.endValue = "2"
-			addDaysForRecurringEvent(eventsForDays, event, getMonthRange(getDateInZone("2023-07-01"), zone), zone)
-			o(countDaysWithEvents(eventsForDays)).equals(2)
-			event.repeatRule.excludedDates = [createTestEntity(DateWrapperTypeRef, { date: getDateInZone("2023-07-21T12:00") })]
-			addDaysForRecurringEvent(eventsForDays, event, getMonthRange(getDateInZone("2023-07-01"), zone), zone)
-			o(countDaysWithEvents(eventsForDays)).equals(1)
-		})
 		o("recurring event - short with time ", function () {
 			// event that goes on for 2 hours and repeats weekly
 			const event = createEvent(getDateInZone("2019-05-02T10:00"), getDateInZone("2019-05-02T12:00"))

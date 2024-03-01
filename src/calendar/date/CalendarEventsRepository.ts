@@ -2,15 +2,7 @@ import Stream from "mithril/stream"
 import stream from "mithril/stream"
 import { CalendarInfo, CalendarModel } from "../model/CalendarModel.js"
 import { IProgressMonitor } from "../../api/common/utils/ProgressMonitor.js"
-import {
-	addDaysForRecurringEvent,
-	areRepeatRulesEqual,
-	CalendarTimeRange,
-	getEventEnd,
-	getEventStart,
-	getMonthRange,
-	isSameEventInstance,
-} from "./CalendarUtils.js"
+import { addDaysForRecurringEvent, CalendarTimeRange, getEventEnd, getEventStart, getMonthRange } from "./CalendarUtils.js"
 import { CalendarEvent, CalendarEventTypeRef } from "../../api/entities/tutanota/TypeRefs.js"
 import { getListId, isSameId } from "../../api/common/utils/EntityUtils.js"
 import { DateTime } from "luxon"
@@ -102,10 +94,7 @@ export class CalendarEventsRepository {
 			// no short event covers more than two months, so this should cover everything.
 			if (eventEndMonth.start != eventStartMonth.start && this.loadedMonths.has(eventEndMonth.start)) await this.addDaysForEvent(event, eventEndMonth)
 		} else if (isSameId(calendarInfo.groupRoot.longEvents, eventListId)) {
-			const loadedLongEvents = await this.entityClient.loadAll(CalendarEventTypeRef, calendarInfo.groupRoot.longEvents)
-			this.removeExistingEvent(loadedLongEvents, event)
-
-			loadedLongEvents.push(event)
+			this.removeExistingEvent(event)
 
 			for (const firstDayTimestamp of this.loadedMonths) {
 				const loadedMonth = getMonthRange(new Date(firstDayTimestamp), this.zone)
@@ -155,32 +144,15 @@ export class CalendarEventsRepository {
 
 	/**
 	 * Removes {@param eventToRemove} from {@param events} using isSameEvent()
-	 * also removes it from {@code this._eventsForDays} if end time does not match
 	 */
-	private removeExistingEvent(events: Array<CalendarEvent>, eventToRemove: CalendarEvent) {
-		const indexOfOldEvent = events.findIndex((el) => isSameEventInstance(el, eventToRemove))
+	private removeExistingEvent(eventToRemove: CalendarEvent) {
+		const newMap = this.cloneEvents()
 
-		if (indexOfOldEvent == -1) {
-			return
-		}
-		const oldEvent = events[indexOfOldEvent]
-		// in some cases, we need to remove all references to an event from the events map to make sure everything that needs to be removed is removed.
-		// specifically, this is the case when there are now less days than before that the event occurs on:
-		// * end time changed
-		// * repeat rule gained exclusions
-		// * repeat rule changed end condition or the interval
-		// when the start time changes, the ID of the event is also changed, so it is not a problem - we'll completely re-create it and all references.
-		if (oldEvent.endTime.getTime() !== eventToRemove.endTime.getTime() || !areRepeatRulesEqual(oldEvent.repeatRule, eventToRemove.repeatRule)) {
-			const newMap = this.cloneEvents()
-
-			for (const dayEvents of newMap.values()) {
-				findAllAndRemove(dayEvents, (e) => isSameId(e._id, oldEvent._id))
-			}
-
-			this.replaceEvents(newMap)
+		for (const dayEvents of newMap.values()) {
+			findAllAndRemove(dayEvents, (e) => isSameId(e._id, eventToRemove._id))
 		}
 
-		events.splice(indexOfOldEvent, 1)
+		this.replaceEvents(newMap)
 	}
 
 	private async addDaysForEvent(event: CalendarEvent, month: CalendarTimeRange) {
