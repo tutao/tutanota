@@ -1330,6 +1330,7 @@ export default {
 		"saveAll_action": "Alle speichern",
 		"saveDownloadNotPossibleIos_msg": "Leider unterstützt dieser Browser nicht das Abspeichern von Anhängen. Manche Dateitypen können aber im Browser durch Klicken auf den obigen Link angezeigt werden.",
 		"saveEncryptedIpAddress_label": "Speichern der IP-Adresse in Sessions und Audit-Log aktivieren. IP-Adressen werden verschlüsselt gespeichert.",
+		"saveEncryptedIpAddress_title": "Speichern der IP-Adresse in Logs",
 		"save_action": "Speichern",
 		"save_msg": "Die Daten werden gespeichert ...",
 		"scheduleAlarmError_msg": "Ein Fehler ist beim Erstellen einer Erinnerung aufgetreten. Bitte aktualisieren Sie die Anwendung.",

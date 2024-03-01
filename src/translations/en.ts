@@ -1326,6 +1326,7 @@ export default {
 		"saveAll_action": "Save all",
 		"saveDownloadNotPossibleIos_msg": "This browser does not support saving attachments to disk. Some file types can be displayed in the browser by clicking the link above.",
 		"saveEncryptedIpAddress_label": "Enable saving of IP addresses in sessions and audit log. IP addresses are stored encrypted.",
+		"saveEncryptedIpAddress_title": "Save IP addresses in logs",
 		"save_action": "Save",
 		"save_msg": "Saving data ...",
 		"scheduleAlarmError_msg": "Could not set up an alarm. Please update the application.",
