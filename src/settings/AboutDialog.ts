@@ -23,7 +23,11 @@ export class AboutDialog implements Component {
 					class: "mlr mt",
 				}),
 			]),
-			m(".flex.justify-center.flex-wrap", [m("p.center.mt.mlr", `v${env.versionNumber}`), m("p.text-center.mlr", "GPL-v3"), m("p", "© 2023 Tutao GmbH")]),
+			m(".flex.justify-center.selectable.flex-wrap", [
+				m("p.center.mt.mlr", `v${env.versionNumber}`),
+				m("p.text-center.mlr", "GPL-v3"),
+				m("p", "© 2023 Tutao GmbH"),
+			]),
 			this._sendLogsLink(),
 		])
 	}
