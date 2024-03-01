@@ -1292,6 +1292,7 @@ export type TranslationKeyType =
 	| "saveAll_action"
 	| "saveDownloadNotPossibleIos_msg"
 	| "saveEncryptedIpAddress_label"
+	| "saveEncryptedIpAddress_title"
 	| "save_action"
 	| "save_msg"
 	| "scheduleAlarmError_msg"
