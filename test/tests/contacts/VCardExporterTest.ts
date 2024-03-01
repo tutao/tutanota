@@ -2,22 +2,17 @@
 // them.
 
 import o from "@tutao/otest"
-import type { Contact } from "../../../src/api/entities/tutanota/TypeRefs.js"
 import {
 	BirthdayTypeRef,
+	Contact,
 	ContactAddressTypeRef,
 	ContactMailAddressTypeRef,
 	ContactPhoneNumberTypeRef,
 	ContactSocialIdTypeRef,
 	ContactTypeRef,
-	createBirthday,
-	createContact,
-	createContactAddress,
-	createContactMailAddress,
-	createContactPhoneNumber,
-	createContactSocialId,
+	ContactWebsiteTypeRef,
 } from "../../../src/api/entities/tutanota/TypeRefs.js"
-import { ContactAddressType, ContactPhoneNumberType, ContactSocialType } from "../../../src/api/common/TutanotaConstants.js"
+import { ContactAddressType, ContactPhoneNumberType, ContactSocialType, ContactWebsiteType } from "../../../src/api/common/TutanotaConstants.js"
 import {
 	_addressesToVCardAddresses,
 	_phoneNumbersToVCardPhoneNumbers,
@@ -41,25 +36,29 @@ o.spec("VCardExporterTest", function () {
 			"Tutao",
 			"Mr.",
 			"Buffalo",
+			"Lange",
+			"Jr.",
+			"IT",
 			["antste@antste.de", "bentste@bentste.de"],
 			["123123123", "321321321"],
 			["diaspora.de"],
 			["Housestreet 123\nTown 123\nState 123\nCountry 123"],
+			["tuta.com", "tutanota.com"],
 		)
 		contactArray.push(contact1)
-		let c1String = `BEGIN:VCARD\nVERSION:3.0\nFN:Mr. Ant Ste\nN:Ste;Ant;;Mr.;\nNICKNAME:Buffalo\nADR;TYPE=work:Housestreet 123\\nTown 123\\nState 123\\nCountry 123\nEMAIL;TYPE=work:antste@antste.de\nEMAIL;TYPE=work:bentste@bentste.de\nTEL;TYPE=work:123123123\nTEL;TYPE=work:321321321\nURL:https://www.diaspora.de\nORG:Tutao\nNOTE:Hello World!\nEND:VCARD\n\n`
+		let c1String = `BEGIN:VCARD\nVERSION:3.0\nFN:Mr. Ant Lange Ste, Jr.\nN:Ste;Ant;Lange;Mr.;Jr.\nNICKNAME:Buffalo\nADR;TYPE=work:Housestreet 123\\nTown 123\\nState 123\\nCountry 123\nEMAIL;TYPE=work:antste@antste.de\nEMAIL;TYPE=work:bentste@bentste.de\nTEL;TYPE=work:123123123\nTEL;TYPE=work:321321321\nURL:https://www.diaspora.de\nURL:https://www.tuta.com\nURL:https://www.tutanota.com\nORG:Tutao;IT\nNOTE:Hello World!\nEND:VCARD\n\n`
 		o(contactsToVCard(contactArray)).equals(c1String)
 		contactArray = []
-		contact1 = createFilledContact("", "", "", "", "", "", [], [], [], [])
+		contact1 = createFilledContact("", "", "", "", "", "", "", "", "", [], [], [], [])
 		c1String = `BEGIN:VCARD\nVERSION:3.0\nFN:\nN:;;;;\nEND:VCARD\n\n`
 		contactArray.push(contact1)
 		o(contactsToVCard(contactArray)).equals(c1String)
 		contactArray = []
-		contact1 = createFilledContact("Ant", "", "", "", "", "", [], [], [], [])
+		contact1 = createFilledContact("Ant", "", "", "", "", "", "", "", "", [], [], [], [])
 		c1String = `BEGIN:VCARD\nVERSION:3.0\nFN:Ant\nN:;Ant;;;\nEND:VCARD\n\n`
 		contactArray.push(contact1)
 		o(contactsToVCard(contactArray)).equals(c1String)
-		contact1 = createFilledContact("Ant", "Tut", "", "", "", "", [], [], [], [])
+		contact1 = createFilledContact("Ant", "Tut", "", "", "", "", "", "", "", [], [], [], [])
 		c1String = `BEGIN:VCARD\nVERSION:3.0\nFN:Ant\nN:;Ant;;;\nEND:VCARD\n\nBEGIN:VCARD\nVERSION:3.0\nFN:Ant Tut\nN:Tut;Ant;;;\nEND:VCARD\n\n`
 		contactArray.push(contact1)
 		o(contactsToVCard(contactArray)).equals(c1String)
@@ -70,12 +69,16 @@ o.spec("VCardExporterTest", function () {
 			"Tutao",
 			"Mr.",
 			"Buffalo",
+			"Lange",
+			"Jr.",
+			"IT",
 			["antste@antste.de", "bentste@bentste.de"],
 			["123123123", "321321321"],
 			["diaspora.de"],
 			["Housestreet 123\nTown 123\nState 123\nCountry 123"],
+			["tuta.com", "tutanota.com"],
 		)
-		c1String = `BEGIN:VCARD\nVERSION:3.0\nFN:Ant\nN:;Ant;;;\nEND:VCARD\n\nBEGIN:VCARD\nVERSION:3.0\nFN:Ant Tut\nN:Tut;Ant;;;\nEND:VCARD\n\nBEGIN:VCARD\nVERSION:3.0\nFN:Mr. Ant Ste\nN:Ste;Ant;;Mr.;\nNICKNAME:Buffalo\nADR;TYPE=work:Housestreet 123\\nTown 123\\nState 123\\nCountry 123\nEMAIL;TYPE=work:antste@antste.de\nEMAIL;TYPE=work:bentste@bentste.de\nTEL;TYPE=work:123123123\nTEL;TYPE=work:321321321\nURL:https://www.diaspora.de\nORG:Tutao\nNOTE:Hello World!\nEND:VCARD\n\n`
+		c1String = `BEGIN:VCARD\nVERSION:3.0\nFN:Ant\nN:;Ant;;;\nEND:VCARD\n\nBEGIN:VCARD\nVERSION:3.0\nFN:Ant Tut\nN:Tut;Ant;;;\nEND:VCARD\n\nBEGIN:VCARD\nVERSION:3.0\nFN:Mr. Ant Lange Ste, Jr.\nN:Ste;Ant;Lange;Mr.;Jr.\nNICKNAME:Buffalo\nADR;TYPE=work:Housestreet 123\\nTown 123\\nState 123\\nCountry 123\nEMAIL;TYPE=work:antste@antste.de\nEMAIL;TYPE=work:bentste@bentste.de\nTEL;TYPE=work:123123123\nTEL;TYPE=work:321321321\nURL:https://www.diaspora.de\nURL:https://www.tuta.com\nURL:https://www.tutanota.com\nORG:Tutao;IT\nNOTE:Hello World!\nEND:VCARD\n\n`
 		contactArray.push(contact1)
 		o(contactsToVCard(contactArray)).equals(c1String)
 		contactArray = []
@@ -86,15 +89,19 @@ o.spec("VCardExporterTest", function () {
 			"Tutao",
 			"Mr.",
 			"Buffalo",
+			"Lange",
+			"Jr.",
+			"IT",
 			["antste@antste.de", "bentste@bentste.de"],
 			["123123123", "321321321"],
 			["diaspora.de"],
 			["Housestreet 123\nTown 123\nState 123\nCountry 123"],
+			["tuta.com", "tutanota.com"],
 		)
 		contactArray.push(contact1)
 		contactArray.push(contact1)
-		c1String = `BEGIN:VCARD\nVERSION:3.0\nFN:Mr. Ant Ste\nN:Ste;Ant;;Mr.;\nNICKNAME:Buffalo\nADR;TYPE=work:Housestreet 123\\nTown 123\\nState 123\\nCountry 123\nEMAIL;TYPE=work:antste@antste.de\nEMAIL;TYPE=work:bentste@bentste.de\nTEL;TYPE=work:123123123\nTEL;TYPE=work:321321321\nURL:https://www.diaspora.de\nORG:Tutao\nNOTE:Hello World!\nEND:VCARD\n
-BEGIN:VCARD\nVERSION:3.0\nFN:Mr. Ant Ste\nN:Ste;Ant;;Mr.;\nNICKNAME:Buffalo\nADR;TYPE=work:Housestreet 123\\nTown 123\\nState 123\\nCountry 123\nEMAIL;TYPE=work:antste@antste.de\nEMAIL;TYPE=work:bentste@bentste.de\nTEL;TYPE=work:123123123\nTEL;TYPE=work:321321321\nURL:https://www.diaspora.de\nORG:Tutao\nNOTE:Hello World!\nEND:VCARD\n\n`
+		c1String = `BEGIN:VCARD\nVERSION:3.0\nFN:Mr. Ant Lange Ste, Jr.\nN:Ste;Ant;Lange;Mr.;Jr.\nNICKNAME:Buffalo\nADR;TYPE=work:Housestreet 123\\nTown 123\\nState 123\\nCountry 123\nEMAIL;TYPE=work:antste@antste.de\nEMAIL;TYPE=work:bentste@bentste.de\nTEL;TYPE=work:123123123\nTEL;TYPE=work:321321321\nURL:https://www.diaspora.de\nURL:https://www.tuta.com\nURL:https://www.tutanota.com\nORG:Tutao;IT\nNOTE:Hello World!\nEND:VCARD\n
+BEGIN:VCARD\nVERSION:3.0\nFN:Mr. Ant Lange Ste, Jr.\nN:Ste;Ant;Lange;Mr.;Jr.\nNICKNAME:Buffalo\nADR;TYPE=work:Housestreet 123\\nTown 123\\nState 123\\nCountry 123\nEMAIL;TYPE=work:antste@antste.de\nEMAIL;TYPE=work:bentste@bentste.de\nTEL;TYPE=work:123123123\nTEL;TYPE=work:321321321\nURL:https://www.diaspora.de\nURL:https://www.tuta.com\nURL:https://www.tutanota.com\nORG:Tutao;IT\nNOTE:Hello World!\nEND:VCARD\n\n`
 		o(contactsToVCard(contactArray)).equals(c1String)
 		contactArray = []
 		contact1 = createFilledContact(
@@ -104,10 +111,14 @@ BEGIN:VCARD\nVERSION:3.0\nFN:Mr. Ant Ste\nN:Ste;Ant;;Mr.;\nNICKNAME:Buffalo\nADR
 			"Tutao",
 			"Mr.",
 			"",
+			"Lange",
+			"Jr.",
+			"IT",
 			["antste@antste.de", "bentste@bentste.de"],
 			["123123123", "321321321"],
 			[],
 			["Housestreet 123\nTown 123\nState 123\nCountry 123"],
+			["tuta.com", "tutanota.com"],
 		)
 		contactArray.push(contact1)
 		contact1 = createFilledContact(
@@ -117,54 +128,58 @@ BEGIN:VCARD\nVERSION:3.0\nFN:Mr. Ant Ste\nN:Ste;Ant;;Mr.;\nNICKNAME:Buffalo\nADR
 			"Tuta",
 			"Phd.",
 			"",
+			"Manthey",
+			"VI",
+			"HR",
 			["bobkev@antste.de", "bobkev@bentste.de"],
 			["89", "78"],
 			[],
 			["Housestreet 890\nTown 098\nState 098\nCountry 789"],
+			["tuta.com.br", "tutanota.com.br"],
 		)
 		contactArray.push(contact1)
-		c1String = `BEGIN:VCARD\nVERSION:3.0\nFN:Mr. Ant Ste\nN:Ste;Ant;;Mr.;\nADR;TYPE=work:Housestreet 123\\nTown 123\\nState 123\\nCountry 123\nEMAIL;TYPE=work:antste@antste.de\nEMAIL;TYPE=work:bentste@bentste.de\nTEL;TYPE=work:123123123\nTEL;TYPE=work:321321321\nORG:Tutao\nEND:VCARD\n
-BEGIN:VCARD\nVERSION:3.0\nFN:Phd. Bob Kev\nN:Kev;Bob;;Phd.;\nADR;TYPE=work:Housestreet 890\\nTown 098\\nState 098\\nCountry 789\nEMAIL;TYPE=work:bobkev@antste.de\nEMAIL;TYPE=work:bobkev@bentste.de\nTEL;TYPE=work:89\nTEL;TYPE=work:78\nORG:Tuta\nEND:VCARD\n\n`
+		c1String = `BEGIN:VCARD\nVERSION:3.0\nFN:Mr. Ant Lange Ste, Jr.\nN:Ste;Ant;Lange;Mr.;Jr.\nADR;TYPE=work:Housestreet 123\\nTown 123\\nState 123\\nCountry 123\nEMAIL;TYPE=work:antste@antste.de\nEMAIL;TYPE=work:bentste@bentste.de\nTEL;TYPE=work:123123123\nTEL;TYPE=work:321321321\nURL:https://www.tuta.com\nURL:https://www.tutanota.com\nORG:Tutao;IT\nEND:VCARD\n
+BEGIN:VCARD\nVERSION:3.0\nFN:Phd. Bob Manthey Kev, VI\nN:Kev;Bob;Manthey;Phd.;VI\nADR;TYPE=work:Housestreet 890\\nTown 098\\nState 098\\nCountry 789\nEMAIL;TYPE=work:bobkev@antste.de\nEMAIL;TYPE=work:bobkev@bentste.de\nTEL;TYPE=work:89\nTEL;TYPE=work:78\nURL:https://www.tuta.com.br\nURL:https://www.tutanota.com.br\nORG:Tuta;HR\nEND:VCARD\n\n`
 		o(contactsToVCard(contactArray)).equals(c1String)
 	})
 	o("birthdayToVCardsFormatString", function () {
 		//oldBirthday
 		let contactArray: Contact[] = []
-		let contact1 = createFilledContact("Ant", "", "", "", "", "", [], [], [], [])
+		let contact1 = createFilledContact("Ant", "", "", "", "", "", "", "", "", [], [], [], [])
 		contact1.birthdayIso = "2000-09-09"
 		let c1String = `BEGIN:VCARD\nVERSION:3.0\nFN:Ant\nN:;Ant;;;\nBDAY:2000-09-09\nEND:VCARD\n\n`
 		contactArray.push(contact1)
 		o(contactsToVCard(contactArray)).equals(c1String)
 		contactArray = []
-		contact1 = createFilledContact("Ant", "", "", "", "", "", [], [], [], [])
+		contact1 = createFilledContact("Ant", "", "", "", "", "", "", "", "", [], [], [], [])
 		contact1.birthdayIso = "2000-10-10"
 		c1String = `BEGIN:VCARD\nVERSION:3.0\nFN:Ant\nN:;Ant;;;\nBDAY:2000-10-10\nEND:VCARD\n\n`
 		contactArray.push(contact1)
 		o(contactsToVCard(contactArray)).equals(c1String)
 		contactArray = []
-		contact1 = createFilledContact("Ant", "", "", "", "", "", [], [], [], [])
+		contact1 = createFilledContact("Ant", "", "", "", "", "", "", "", "", [], [], [], [])
 		contact1.birthdayIso = "1800-10-10"
 		c1String = `BEGIN:VCARD\nVERSION:3.0\nFN:Ant\nN:;Ant;;;\nBDAY:1800-10-10\nEND:VCARD\n\n`
 		contactArray.push(contact1)
 		o(contactsToVCard(contactArray)).equals(c1String)
 		//Birthday
-		contact1 = createFilledContact("Ant", "", "", "", "", "", [], [], [], [])
+		contact1 = createFilledContact("Ant", "", "", "", "", "", "", "", "", [], [], [], [])
 		contact1.birthdayIso = "2000-09-01"
 		o(contactsToVCard([contact1])).equals(`BEGIN:VCARD\nVERSION:3.0\nFN:Ant\nN:;Ant;;;\nBDAY:2000-09-01\nEND:VCARD\n\n`)
-		contact1 = createFilledContact("Ant", "", "", "", "", "", [], [], [], [])
+		contact1 = createFilledContact("Ant", "", "", "", "", "", "", "", "", [], [], [], [])
 		contact1.birthdayIso = "2000-09-09"
 		o(contactsToVCard([contact1])).equals(`BEGIN:VCARD\nVERSION:3.0\nFN:Ant\nN:;Ant;;;\nBDAY:2000-09-09\nEND:VCARD\n\n`)
-		contact1 = createFilledContact("Ant", "", "", "", "", "", [], [], [], [])
+		contact1 = createFilledContact("Ant", "", "", "", "", "", "", "", "", [], [], [], [])
 		contact1.birthdayIso = "1991-10-10"
 		o(contactsToVCard([contact1])).equals(`BEGIN:VCARD\nVERSION:3.0\nFN:Ant\nN:;Ant;;;\nBDAY:1991-10-10\nEND:VCARD\n\n`)
-		contact1 = createFilledContact("Ant", "", "", "", "", "", [], [], [], [])
+		contact1 = createFilledContact("Ant", "", "", "", "", "", "", "", "", [], [], [], [])
 		contact1.birthdayIso = "1943-10-10"
 		o(contactsToVCard([contact1])).equals(`BEGIN:VCARD\nVERSION:3.0\nFN:Ant\nN:;Ant;;;\nBDAY:1943-10-10\nEND:VCARD\n\n`)
-		contact1 = createFilledContact("Ant", "", "", "", "", "", [], [], [], [])
+		contact1 = createFilledContact("Ant", "", "", "", "", "", "", "", "", [], [], [], [])
 		contact1.birthdayIso = "1800-01-31"
 		c1String = `BEGIN:VCARD\nVERSION:3.0\nFN:Ant\nN:;Ant;;;\nBDAY:1800-01-31\nEND:VCARD\n\n`
 		o(contactsToVCard([contact1])).equals(c1String)
-		contact1 = createFilledContact("Ant", "", "", "", "", "", [], [], [], [])
+		contact1 = createFilledContact("Ant", "", "", "", "", "", "", "", "", [], [], [], [])
 		contact1.birthdayIso = "--10-10"
 		c1String = `BEGIN:VCARD\nVERSION:3.0\nFN:Ant\nN:;Ant;;;\nBDAY:1111-10-10\nEND:VCARD\n\n`
 		o(contactsToVCard([contact1])).equals(c1String)
@@ -180,15 +195,19 @@ BEGIN:VCARD\nVERSION:3.0\nFN:Phd. Bob Kev\nN:Kev;Bob;;Phd.;\nADR;TYPE=work:House
 				"Tutao",
 				"Mr.",
 				"Buffalo",
+				"Lange",
+				"Jr.",
+				"IT",
 				["antste@antste.de", "bentste@bentste.de"],
 				["123123123", "321321321"],
 				["diaspora.de"],
 				["Housestreet 123\nTown 123\nState 123\nCountry 123 this is so there is a line break in this contact"],
+				["tuta.com", "tutanota.com"],
 			)
 			const exprected = `BEGIN:VCARD
 VERSION:3.0
-FN:Mr. Ant Ste
-N:Ste;Ant;;Mr.;
+FN:Mr. Ant Lange Ste, Jr.
+N:Ste;Ant;Lange;Mr.;Jr.
 NICKNAME:Buffalo
 ADR;TYPE=work:Housestreet 123\\nTown 123\\nState 123\\nCountry 123 this is so \n there is a line break in this contact
 EMAIL;TYPE=work:antste@antste.de
@@ -196,7 +215,9 @@ EMAIL;TYPE=work:bentste@bentste.de
 TEL;TYPE=work:123123123
 TEL;TYPE=work:321321321
 URL:https://www.diaspora.de
-ORG:Tutao
+URL:https://www.tuta.com
+URL:https://www.tutanota.com
+ORG:Tutao;IT
 NOTE:Hello World!
 END:VCARD
 
@@ -212,15 +233,19 @@ END:VCARD
 				"Tutao is the best mail client for your privacy just go for it and youll see it will be amazing!!!!!",
 				"Mr.",
 				"Buffalo",
+				"Lange",
+				"Jr.",
+				"IT",
 				["antste@antste.de", "bentste@bentste.de"],
 				["123123123", "321321321"],
 				["diaspora.de", "facebook.com/aaaa/bbb/cccccc/DDDDDDD/llllllll/uuuuuuu/ppppp/aaaaaaaaaaaaaaaaaaaaa"],
 				["Housestreet 123\nTown 123\nState 123\nCountry 123 this is so there is a line break in this contact"],
+				["tuta.com", "tutanota.com"],
 			)
 			const expected = `BEGIN:VCARD
 VERSION:3.0
-FN:Mr. Ant Ste
-N:Ste;Ant;;Mr.;
+FN:Mr. Ant Lange Ste, Jr.
+N:Ste;Ant;Lange;Mr.;Jr.
 NICKNAME:Buffalo
 ADR;TYPE=work:Housestreet 123\\nTown 123\\nState 123\\nCountry 123 this is so \n there is a line break in this contact
 EMAIL;TYPE=work:antste@antste.de
@@ -230,8 +255,10 @@ TEL;TYPE=work:321321321
 URL:https://www.diaspora.de
 URL:https://www.facebook.com/aaaa/bbb/cccccc/DDDDDDD/llllllll/uuuuuuu/ppppp
  /aaaaaaaaaaaaaaaaaaaaa
+URL:https://www.tuta.com
+URL:https://www.tutanota.com
 ORG:Tutao is the best mail client for your privacy just go for it and youll
-  see it will be amazing!!!!!
+  see it will be amazing!!!!!;IT
 NOTE:Hello World!
 END:VCARD
 
@@ -250,6 +277,9 @@ END:VCARD
 			"Tutao;:",
 			"Mr.:",
 			"Buffalo;p",
+			"Lange,",
+			"Jr.,",
+			"IT,",
 			[":antste@antste.de;", "bentste@bent:ste.de"],
 			["1;23123123", "32132:1321"],
 			["https://diaspora.de"],
@@ -258,8 +288,8 @@ END:VCARD
 		contactArray.push(contact1)
 		let c1String = `BEGIN:VCARD
 VERSION:3.0
-FN:Mr.: Ant\\, Ste\\;
-N:Ste\\;;Ant\\,;;Mr.:;
+FN:Mr.: Ant\\, Lange\\, Ste\\;, Jr.\\,
+N:Ste\\;;Ant\\,;Lange\\,;Mr.:;Jr.\\,
 NICKNAME:Buffalo\\;p
 ADR;TYPE=work:Housestreet 123\\nTo:wn 123\\nState 123\\nCountry 123
 EMAIL;TYPE=work::antste@antste.de\\;
@@ -267,7 +297,7 @@ EMAIL;TYPE=work:bentste@bent:ste.de
 TEL;TYPE=work:1\\;23123123
 TEL;TYPE=work:32132:1321
 URL:https://diaspora.de
-ORG:Tutao\\;:
+ORG:Tutao\\;:;IT\\,
 NOTE:Hello::: World!
 END:VCARD
 
@@ -282,6 +312,9 @@ END:VCARD
 			"Tutao",
 			"Mr.",
 			"Buffalo",
+			"Lange",
+			"Jr.",
+			"IT",
 			["antste@antste.de", "bentste@bentste.de"],
 			["123123123", "321321321"],
 			["diaspora.de"],
@@ -313,6 +346,9 @@ END:VCARD
 			"Tutao",
 			"Mr.",
 			"Buffalo",
+			"Lange",
+			"Jr.",
+			"IT",
 			["antste@antste.de", "bentste@bentste.de"],
 			["123123123", "321321321"],
 			["diaspora.de"],
@@ -344,6 +380,9 @@ END:VCARD
 			"Tutao",
 			"Mr.",
 			"Buffalo",
+			"Lange",
+			"Jr.",
+			"IT",
 			["antste@antste.de", "bentste@bentste.de"],
 			["123123123", "321321321"],
 			["diaspora.de"],
@@ -379,6 +418,9 @@ END:VCARD
 			"Tutao",
 			"Mr.",
 			"Buffalo",
+			"Lange",
+			"Jr.",
+			"IT",
 			["antste@antste.de", "bentste@bentste.de"],
 			["123123123", "321321321"],
 			["TutanotaTeam", "xing.com", "facebook.de"],
@@ -483,10 +525,14 @@ export function createFilledContact(
 	company: string,
 	title: string,
 	nickname: string,
+	middleName: string,
+	nameSuffix: string,
+	department: string,
 	emailAddresses?: string[] | null | undefined,
 	phoneNumbers?: string[] | null | undefined,
 	socialIds?: Array<string | string[]> | null | undefined,
 	addresses?: string[] | null | undefined,
+	websites?: Array<string>,
 	birthdayIso?: string | null | undefined,
 ): Contact {
 	let c = createTestEntity(ContactTypeRef)
@@ -539,10 +585,22 @@ export function createFilledContact(
 		}
 	}
 
+	if (websites) {
+		for (const website of websites) {
+			let entity = createTestEntity(ContactWebsiteTypeRef)
+			entity.url = website
+			entity.type = ContactWebsiteType.OTHER
+			c.websites.push(entity)
+		}
+	}
+
 	c.title = title
 	c.comment = comment
 	c.company = company
 	c.nickname = nickname
 	c.birthdayIso = birthdayIso ?? null
+	c.middleName = middleName
+	c.nameSuffix = nameSuffix
+	c.department = department
 	return c
 }

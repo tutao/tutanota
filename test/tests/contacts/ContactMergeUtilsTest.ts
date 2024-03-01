@@ -7,7 +7,6 @@ import {
 	ContactPhoneNumberTypeRef,
 	ContactSocialIdTypeRef,
 	ContactTypeRef,
-	createContactPhoneNumber,
 } from "../../../src/api/entities/tutanota/TypeRefs.js"
 import {
 	_areResidualContactFieldsEqual,
@@ -139,7 +138,7 @@ o.spec("ContactMergeUtilsTest", function () {
 		emailAddresses?: string[] | null | undefined,
 		phoneNumbers?: string[] | null | undefined,
 	): Contact {
-		return createFilledContact(firstName, lastName, "", "", "", "", emailAddresses, phoneNumbers)
+		return createFilledContact(firstName, lastName, "", "", "", "", "", "", "", emailAddresses, phoneNumbers)
 	}
 
 	o("testCompareMailaddresses", function () {
@@ -266,7 +265,7 @@ o.spec("ContactMergeUtilsTest", function () {
 	})
 
 	function createFilledContactOtherFields(comment: string, company: string, title: string, nickname: string) {
-		return createFilledContact("", "", comment, company, title, nickname)
+		return createFilledContact("", "", "", "", "", comment, company, title, nickname)
 	}
 
 	function addFilledContactOtherFields(
@@ -423,38 +422,38 @@ o.spec("ContactMergeUtilsTest", function () {
 		})
 		//________________________________Birthday test cases for merge________________________________________<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<
 		o("contacts are equal - all is equal", function () {
-			const c1 = createFilledContact("ant", "bent", "hello", "tuta", "Mr.", "Bob", [], [], [], [], "1991-12-8")
-			const c2 = createFilledContact("ant", "bent", "hello", "tuta", "Mr.", "Bob", [], [], [], [], "1991-12-8")
+			const c1 = createFilledContact("ant", "bent", "hello", "tuta", "Mr.", "Bob", "", "", "", [], [], [], [], [], "1991-12-8")
+			const c2 = createFilledContact("ant", "bent", "hello", "tuta", "Mr.", "Bob", "", "", "", [], [], [], [], [], "1991-12-8")
 			o(_compareContactsForMerge(c1, c2)).equals(ContactComparisonResult.Equal)
 			o(_compareContactsForMerge(c2, c1)).equals(ContactComparisonResult.Equal)
 		})
 		o("contacts are equal - all is equal birthday without year", function () {
-			const c1 = createFilledContact("ant", "bent", "hello", "tuta", "Mr.", "Bob", [], [], [], [], "--12-8")
-			const c2 = createFilledContact("ant", "bent", "hello", "tuta", "Mr.", "Bob", [], [], [], [], "--12-8")
+			const c1 = createFilledContact("ant", "bent", "hello", "tuta", "Mr.", "Bob", "", "", "", [], [], [], [], [], "--12-8")
+			const c2 = createFilledContact("ant", "bent", "hello", "tuta", "Mr.", "Bob", "", "", "", [], [], [], [], [], "--12-8")
 			o(_compareContactsForMerge(c1, c2)).equals(ContactComparisonResult.Equal)
 			o(_compareContactsForMerge(c2, c1)).equals(ContactComparisonResult.Equal)
 		})
 		o("contacts are similar - birthday with and without year", function () {
-			const c1 = createFilledContact("ant", "bent", "hello", "tuta", "Mr.", "Bob", ["ant@ant.de"], [], [], [], "--08-12")
-			const c2 = createFilledContact("ant", "bent", "hello", "tuta", "Mr.", "Bob", ["ant@ant.de"], [], [], [], "1991-08-12")
+			const c1 = createFilledContact("ant", "bent", "hello", "tuta", "Mr.", "Bob", "", "", "", ["ant@ant.de"], [], [], [], [], "--08-12")
+			const c2 = createFilledContact("ant", "bent", "hello", "tuta", "Mr.", "Bob", "", "", "", ["ant@ant.de"], [], [], [], [], "1991-08-12")
 			o(_compareContactsForMerge(c1, c2)).equals(ContactComparisonResult.Similar)
 			o(_compareContactsForMerge(c2, c1)).equals(ContactComparisonResult.Similar)
 		})
 		o("contacts are similar - on birthday without year", function () {
-			const c1 = createFilledContact("ant", "bent", "hello", "tuta", "Mr.", "Bob", [], [], [], [], "--08-12")
-			const c2 = createFilledContact("ant", "bent", "hello", "tuta", "Mr.", "Bob", [], [], [], [], null)
+			const c1 = createFilledContact("ant", "bent", "hello", "tuta", "Mr.", "Bob", "", "", "", [], [], [], [], [], "--08-12")
+			const c2 = createFilledContact("ant", "bent", "hello", "tuta", "Mr.", "Bob", "", "", "", [], [], [], [], [], null)
 			o(_compareContactsForMerge(c1, c2)).equals(ContactComparisonResult.Similar)
 			o(_compareContactsForMerge(c2, c1)).equals(ContactComparisonResult.Similar)
 		})
 		o("contacts are similar - one birthday with year", function () {
-			const c1 = createFilledContact("ant", "bent", "hello", "tuta", "Mr.", "Bob", [], [], [], [], null)
-			const c2 = createFilledContact("ant", "bent", "hello", "tuta", "Mr.", "Bob", [], [], [], [], "--08-12")
+			const c1 = createFilledContact("ant", "bent", "hello", "tuta", "Mr.", "Bob", "", "", "", [], [], [], [], [], null)
+			const c2 = createFilledContact("ant", "bent", "hello", "tuta", "Mr.", "Bob", "", "", "", [], [], [], [], [], "--08-12")
 			o(_compareContactsForMerge(c1, c2)).equals(ContactComparisonResult.Similar)
 			o(_compareContactsForMerge(c2, c1)).equals(ContactComparisonResult.Similar)
 		})
 		o("contacts are unique - different birthdays", function () {
-			const c1 = createFilledContact("ant", "bent", "hello", "tuta", "Mr.", "Bob", [], [], [], [], "1992-08-12")
-			const c2 = createFilledContact("ant", "bent", "hello", "tuta", "Mr.", "Bob", [], [], [], [], "1991-09-13")
+			const c1 = createFilledContact("ant", "bent", "hello", "tuta", "Mr.", "Bob", "", "", "", [], [], [], [], [], "1992-08-12")
+			const c2 = createFilledContact("ant", "bent", "hello", "tuta", "Mr.", "Bob", "", "", "", [], [], [], [], [], "1991-09-13")
 			o(_compareContactsForMerge(c1, c2)).equals(ContactComparisonResult.Unique)
 			o(_compareContactsForMerge(c2, c1)).equals(ContactComparisonResult.Unique)
 		})
@@ -676,7 +675,7 @@ o.spec("ContactMergeUtilsTest", function () {
 	})
 
 	function _createBirthdayContact(birthdayIso: string | null | undefined): Contact {
-		return createFilledContact("A", "B", "", "", "", "", null, null, null, null, birthdayIso)
+		return createFilledContact("A", "B", "", "", "", "", "", "", "", null, null, null, null, [], birthdayIso)
 	}
 
 	function _testMerge(c1: Contact, c2: Contact, merged: Contact) {
@@ -803,8 +802,8 @@ o.spec("ContactMergeUtilsTest", function () {
 		o(c1.presharedPassword).equals("flop")
 	})
 	o("getMergedEmailAddressesTest", function () {
-		let keptContact = createFilledContact("", "", "", "", "", "", ["antste@antste.de", "bentste@bentste.de"], [], [], [])
-		let eliminatedContact = createFilledContact("", "", "", "", "", "", ["antste@antste.de", "bentste@bentste.de"], [], [], [])
+		let keptContact = createFilledContact("", "", "", "", "", "", "", "", "", ["antste@antste.de", "bentste@bentste.de"], [], [], [])
+		let eliminatedContact = createFilledContact("", "", "", "", "", "", "", "", "", ["antste@antste.de", "bentste@bentste.de"], [], [], [])
 		keptContact.mailAddresses = _getMergedEmailAddresses(keptContact.mailAddresses, eliminatedContact.mailAddresses)
 		o(keptContact.mailAddresses[0].address).equals("antste@antste.de")
 		//type is also merged
@@ -812,9 +811,9 @@ o.spec("ContactMergeUtilsTest", function () {
 		o(keptContact.mailAddresses[1].address).equals("bentste@bentste.de")
 		o(keptContact.mailAddresses[1].type).equals(ContactAddressType.WORK)
 		o(keptContact.mailAddresses.length).equals(2)
-		keptContact = createFilledContact("", "", "", "", "", "", ["antste@antste.de"], [], [], [])
+		keptContact = createFilledContact("", "", "", "", "", "", "", "", "", ["antste@antste.de"], [], [], [])
 		keptContact.mailAddresses[0].type = ContactAddressType.OTHER
-		eliminatedContact = createFilledContact("", "", "", "", "", "", ["antste@antste.de", "bentste@bentste.de"], [], [], [])
+		eliminatedContact = createFilledContact("", "", "", "", "", "", "", "", "", ["antste@antste.de", "bentste@bentste.de"], [], [], [])
 		eliminatedContact.mailAddresses[0].type = ContactAddressType.WORK
 		eliminatedContact.mailAddresses[1].type = ContactAddressType.OTHER
 		keptContact.mailAddresses = _getMergedEmailAddresses(keptContact.mailAddresses, eliminatedContact.mailAddresses)
@@ -823,32 +822,32 @@ o.spec("ContactMergeUtilsTest", function () {
 		o(keptContact.mailAddresses[1].address).equals("bentste@bentste.de")
 		o(keptContact.mailAddresses[1].type).equals(ContactAddressType.OTHER)
 		o(keptContact.mailAddresses.length).equals(2)
-		keptContact = createFilledContact("", "", "", "", "", "", [], [], [], [])
-		eliminatedContact = createFilledContact("", "", "", "", "", "", ["antste@antste.de", "bentste@bentste.de"], [], [], [])
+		keptContact = createFilledContact("", "", "", "", "", "", "", "", "", [], [], [], [])
+		eliminatedContact = createFilledContact("", "", "", "", "", "", "", "", "", ["antste@antste.de", "bentste@bentste.de"], [], [], [])
 		keptContact.mailAddresses = _getMergedEmailAddresses(keptContact.mailAddresses, eliminatedContact.mailAddresses)
 		o(keptContact.mailAddresses[0].address).equals("antste@antste.de")
 		o(keptContact.mailAddresses[0].type).equals(ContactAddressType.WORK)
 		o(keptContact.mailAddresses[1].address).equals("bentste@bentste.de")
 		o(keptContact.mailAddresses[0].type).equals(ContactAddressType.WORK)
 		o(keptContact.mailAddresses.length).equals(2)
-		keptContact = createFilledContact("", "", "", "", "", "", ["antste@antste.de", "bentste@bentste.de"], [], [], [])
-		eliminatedContact = createFilledContact("", "", "", "", "", "", ["bentste@bentste.de"], [], [], [])
+		keptContact = createFilledContact("", "", "", "", "", "", "", "", "", ["antste@antste.de", "bentste@bentste.de"], [], [], [])
+		eliminatedContact = createFilledContact("", "", "", "", "", "", "", "", "", ["bentste@bentste.de"], [], [], [])
 		keptContact.mailAddresses = _getMergedEmailAddresses(keptContact.mailAddresses, eliminatedContact.mailAddresses)
 		o(keptContact.mailAddresses[0].address).equals("antste@antste.de")
 		o(keptContact.mailAddresses[1].address).equals("bentste@bentste.de")
 		o(keptContact.mailAddresses.length).equals(2)
-		keptContact = createFilledContact("", "", "", "", "", "", ["antste@antste.de", "bentste@bentste.de"], [], [], [])
-		eliminatedContact = createFilledContact("", "", "", "", "", "", [], [], [], [])
+		keptContact = createFilledContact("", "", "", "", "", "", "", "", "", ["antste@antste.de", "bentste@bentste.de"], [], [], [])
+		eliminatedContact = createFilledContact("", "", "", "", "", "", "", "", "", [], [], [], [])
 		keptContact.mailAddresses = _getMergedEmailAddresses(keptContact.mailAddresses, eliminatedContact.mailAddresses)
 		o(keptContact.mailAddresses[0].address).equals("antste@antste.de")
 		o(keptContact.mailAddresses[1].address).equals("bentste@bentste.de")
 		o(keptContact.mailAddresses.length).equals(2)
-		keptContact = createFilledContact("", "", "", "", "", "", [], [], [], [])
-		eliminatedContact = createFilledContact("", "", "", "", "", "", [], [], [], [])
+		keptContact = createFilledContact("", "", "", "", "", "", "", "", "", [], [], [], [])
+		eliminatedContact = createFilledContact("", "", "", "", "", "", "", "", "", [], [], [], [])
 		keptContact.mailAddresses = _getMergedEmailAddresses(keptContact.mailAddresses, eliminatedContact.mailAddresses)
 		o(keptContact.mailAddresses.length).equals(0)
-		keptContact = createFilledContact("", "", "", "", "", "", ["antste@antste.de", "bentste@bentste.de", "bent@bent.de"], [], [], [])
-		eliminatedContact = createFilledContact("", "", "", "", "", "", ["antste@antste.de", "bentste@bentste.de"], [], [], [])
+		keptContact = createFilledContact("", "", "", "", "", "", "", "", "", ["antste@antste.de", "bentste@bentste.de", "bent@bent.de"], [], [], [])
+		eliminatedContact = createFilledContact("", "", "", "", "", "", "", "", "", ["antste@antste.de", "bentste@bentste.de"], [], [], [])
 		keptContact.mailAddresses = _getMergedEmailAddresses(keptContact.mailAddresses, eliminatedContact.mailAddresses)
 		o(keptContact.mailAddresses[0].address).equals("antste@antste.de")
 		o(keptContact.mailAddresses[1].address).equals("bentste@bentste.de")
@@ -856,8 +855,8 @@ o.spec("ContactMergeUtilsTest", function () {
 		o(keptContact.mailAddresses.length).equals(3)
 	})
 	o("getMergedPhoneNumbersTest", function () {
-		let keptContact = createFilledContact("", "", "", "", "", "", [], ["789654123", "963258741"], [], [])
-		let eliminatedContact = createFilledContact("", "", "", "", "", "", [], ["789654123", "963258741"], [], [])
+		let keptContact = createFilledContact("", "", "", "", "", "", "", "", "", [], ["789654123", "963258741"], [], [])
+		let eliminatedContact = createFilledContact("", "", "", "", "", "", "", "", "", [], ["789654123", "963258741"], [], [])
 		keptContact.phoneNumbers = _getMergedPhoneNumbers(keptContact.phoneNumbers, eliminatedContact.phoneNumbers)
 		o(keptContact.phoneNumbers[0].number).equals("789654123")
 		//type is also merged
@@ -865,9 +864,9 @@ o.spec("ContactMergeUtilsTest", function () {
 		o(keptContact.phoneNumbers[1].number).equals("963258741")
 		o(keptContact.phoneNumbers[1].type).equals(ContactPhoneNumberType.WORK)
 		o(keptContact.phoneNumbers.length).equals(2)
-		keptContact = createFilledContact("", "", "", "", "", "", [], ["789654123"], [], [])
+		keptContact = createFilledContact("", "", "", "", "", "", "", "", "", [], ["789654123"], [], [])
 		keptContact.phoneNumbers[0].type = ContactPhoneNumberType.OTHER
-		eliminatedContact = createFilledContact("", "", "", "", "", "", [], ["789654123", "963258741"], [], [])
+		eliminatedContact = createFilledContact("", "", "", "", "", "", "", "", "", [], ["789654123", "963258741"], [], [])
 		eliminatedContact.phoneNumbers[0].type = ContactPhoneNumberType.WORK
 		eliminatedContact.phoneNumbers[1].type = ContactPhoneNumberType.OTHER
 		keptContact.phoneNumbers = _getMergedPhoneNumbers(keptContact.phoneNumbers, eliminatedContact.phoneNumbers)
@@ -876,32 +875,32 @@ o.spec("ContactMergeUtilsTest", function () {
 		o(keptContact.phoneNumbers[1].number).equals("963258741")
 		o(keptContact.phoneNumbers[1].type).equals(ContactPhoneNumberType.OTHER)
 		o(keptContact.phoneNumbers.length).equals(2)
-		keptContact = createFilledContact("", "", "", "", "", "", [], [], [], [])
-		eliminatedContact = createFilledContact("", "", "", "", "", "", [], ["789654123", "963258741"], [], [])
+		keptContact = createFilledContact("", "", "", "", "", "", "", "", "", [], [], [], [])
+		eliminatedContact = createFilledContact("", "", "", "", "", "", "", "", "", [], ["789654123", "963258741"], [], [])
 		keptContact.phoneNumbers = _getMergedPhoneNumbers(keptContact.phoneNumbers, eliminatedContact.phoneNumbers)
 		o(keptContact.phoneNumbers[0].number).equals("789654123")
 		o(keptContact.phoneNumbers[0].type).equals(ContactPhoneNumberType.WORK)
 		o(keptContact.phoneNumbers[1].number).equals("963258741")
 		o(keptContact.phoneNumbers[0].type).equals(ContactPhoneNumberType.WORK)
 		o(keptContact.phoneNumbers.length).equals(2)
-		keptContact = createFilledContact("", "", "", "", "", "", [], ["789654123", "963258741"], [], [])
-		eliminatedContact = createFilledContact("", "", "", "", "", "", [], ["963258741"], [], [])
+		keptContact = createFilledContact("", "", "", "", "", "", "", "", "", [], ["789654123", "963258741"], [], [])
+		eliminatedContact = createFilledContact("", "", "", "", "", "", "", "", "", [], ["963258741"], [], [])
 		keptContact.phoneNumbers = _getMergedPhoneNumbers(keptContact.phoneNumbers, eliminatedContact.phoneNumbers)
 		o(keptContact.phoneNumbers[0].number).equals("789654123")
 		o(keptContact.phoneNumbers[1].number).equals("963258741")
 		o(keptContact.phoneNumbers.length).equals(2)
-		keptContact = createFilledContact("", "", "", "", "", "", [], ["789654123", "963258741"], [], [])
-		eliminatedContact = createFilledContact("", "", "", "", "", "", [], [], [], [])
+		keptContact = createFilledContact("", "", "", "", "", "", "", "", "", [], ["789654123", "963258741"], [], [])
+		eliminatedContact = createFilledContact("", "", "", "", "", "", "", "", "", [], [], [], [])
 		keptContact.phoneNumbers = _getMergedPhoneNumbers(keptContact.phoneNumbers, eliminatedContact.phoneNumbers)
 		o(keptContact.phoneNumbers[0].number).equals("789654123")
 		o(keptContact.phoneNumbers[1].number).equals("963258741")
 		o(keptContact.phoneNumbers.length).equals(2)
-		keptContact = createFilledContact("", "", "", "", "", "", [], [], [], [])
-		eliminatedContact = createFilledContact("", "", "", "", "", "", [], [], [], [])
+		keptContact = createFilledContact("", "", "", "", "", "", "", "", "", [], [], [], [])
+		eliminatedContact = createFilledContact("", "", "", "", "", "", "", "", "", [], [], [], [])
 		keptContact.phoneNumbers = _getMergedPhoneNumbers(keptContact.phoneNumbers, eliminatedContact.phoneNumbers)
 		o(keptContact.phoneNumbers.length).equals(0)
-		keptContact = createFilledContact("", "", "", "", "", "", [], ["789654123", "963258741", "789852"], [], [])
-		eliminatedContact = createFilledContact("", "", "", "", "", "", [], ["789654123", "963258741"], [], [])
+		keptContact = createFilledContact("", "", "", "", "", "", "", "", "", [], ["789654123", "963258741", "789852"], [], [])
+		eliminatedContact = createFilledContact("", "", "", "", "", "", "", "", "", [], ["789654123", "963258741"], [], [])
 		keptContact.phoneNumbers = _getMergedPhoneNumbers(keptContact.phoneNumbers, eliminatedContact.phoneNumbers)
 		o(keptContact.phoneNumbers[0].number).equals("789654123")
 		o(keptContact.phoneNumbers[1].number).equals("963258741")
@@ -925,8 +924,8 @@ o.spec("ContactMergeUtilsTest", function () {
 		])
 	})
 	o("getMergedAddressesTest", function () {
-		let keptContact = createFilledContact("", "", "", "", "", "", [], [], [], ["antste@antste.de", "bentste@bentste.de"])
-		let eliminatedContact = createFilledContact("", "", "", "", "", "", [], [], [], ["antste@antste.de", "bentste@bentste.de"])
+		let keptContact = createFilledContact("", "", "", "", "", "", "", "", "", [], [], [], ["antste@antste.de", "bentste@bentste.de"])
+		let eliminatedContact = createFilledContact("", "", "", "", "", "", "", "", "", [], [], [], ["antste@antste.de", "bentste@bentste.de"])
 		keptContact.addresses = _getMergedAddresses(keptContact.addresses, eliminatedContact.addresses)
 		o(keptContact.addresses[0].address).equals("antste@antste.de")
 		//type is also merged
@@ -934,9 +933,9 @@ o.spec("ContactMergeUtilsTest", function () {
 		o(keptContact.addresses[1].address).equals("bentste@bentste.de")
 		o(keptContact.addresses[1].type).equals(ContactAddressType.WORK)
 		o(keptContact.addresses.length).equals(2)
-		keptContact = createFilledContact("", "", "", "", "", "", [], [], [], ["antste@antste.de"])
+		keptContact = createFilledContact("", "", "", "", "", "", "", "", "", [], [], [], ["antste@antste.de"])
 		keptContact.addresses[0].type = ContactAddressType.OTHER
-		eliminatedContact = createFilledContact("", "", "", "", "", "", [], [], [], ["antste@antste.de", "bentste@bentste.de"])
+		eliminatedContact = createFilledContact("", "", "", "", "", "", "", "", "", [], [], [], ["antste@antste.de", "bentste@bentste.de"])
 		eliminatedContact.addresses[0].type = ContactAddressType.WORK
 		eliminatedContact.addresses[1].type = ContactAddressType.OTHER
 		keptContact.addresses = _getMergedAddresses(keptContact.addresses, eliminatedContact.addresses)
@@ -945,32 +944,32 @@ o.spec("ContactMergeUtilsTest", function () {
 		o(keptContact.addresses[1].address).equals("bentste@bentste.de")
 		o(keptContact.addresses[1].type).equals(ContactAddressType.OTHER)
 		o(keptContact.addresses.length).equals(2)
-		keptContact = createFilledContact("", "", "", "", "", "", [], [], [], [])
-		eliminatedContact = createFilledContact("", "", "", "", "", "", [], [], [], ["antste@antste.de", "bentste@bentste.de"])
+		keptContact = createFilledContact("", "", "", "", "", "", "", "", "", [], [], [], [])
+		eliminatedContact = createFilledContact("", "", "", "", "", "", "", "", "", [], [], [], ["antste@antste.de", "bentste@bentste.de"])
 		keptContact.addresses = _getMergedAddresses(keptContact.addresses, eliminatedContact.addresses)
 		o(keptContact.addresses[0].address).equals("antste@antste.de")
 		o(keptContact.addresses[0].type).equals(ContactAddressType.WORK)
 		o(keptContact.addresses[1].address).equals("bentste@bentste.de")
 		o(keptContact.addresses[0].type).equals(ContactAddressType.WORK)
 		o(keptContact.addresses.length).equals(2)
-		keptContact = createFilledContact("", "", "", "", "", "", [], [], [], ["antste@antste.de", "bentste@bentste.de"])
-		eliminatedContact = createFilledContact("", "", "", "", "", "", [], [], [], ["bentste@bentste.de"])
+		keptContact = createFilledContact("", "", "", "", "", "", "", "", "", [], [], [], ["antste@antste.de", "bentste@bentste.de"])
+		eliminatedContact = createFilledContact("", "", "", "", "", "", "", "", "", [], [], [], ["bentste@bentste.de"])
 		keptContact.addresses = _getMergedAddresses(keptContact.addresses, eliminatedContact.addresses)
 		o(keptContact.addresses[0].address).equals("antste@antste.de")
 		o(keptContact.addresses[1].address).equals("bentste@bentste.de")
 		o(keptContact.addresses.length).equals(2)
-		keptContact = createFilledContact("", "", "", "", "", "", [], [], [], ["antste@antste.de", "bentste@bentste.de"])
-		eliminatedContact = createFilledContact("", "", "", "", "", "", [], [], [], [])
+		keptContact = createFilledContact("", "", "", "", "", "", "", "", "", [], [], [], ["antste@antste.de", "bentste@bentste.de"])
+		eliminatedContact = createFilledContact("", "", "", "", "", "", "", "", "", [], [], [], [])
 		keptContact.addresses = _getMergedAddresses(keptContact.addresses, eliminatedContact.addresses)
 		o(keptContact.addresses[0].address).equals("antste@antste.de")
 		o(keptContact.addresses[1].address).equals("bentste@bentste.de")
 		o(keptContact.addresses.length).equals(2)
-		keptContact = createFilledContact("", "", "", "", "", "", [], [], [], [])
-		eliminatedContact = createFilledContact("", "", "", "", "", "", [], [], [], [])
+		keptContact = createFilledContact("", "", "", "", "", "", "", "", "", [], [], [], [])
+		eliminatedContact = createFilledContact("", "", "", "", "", "", "", "", "", [], [], [], [])
 		keptContact.addresses = _getMergedAddresses(keptContact.addresses, eliminatedContact.addresses)
 		o(keptContact.addresses.length).equals(0)
-		keptContact = createFilledContact("", "", "", "", "", "", [], [], [], ["antste@antste.de", "bentste@bentste.de", "bent@bent.de"])
-		eliminatedContact = createFilledContact("", "", "", "", "", "", [], [], [], ["antste@antste.de", "bentste@bentste.de"])
+		keptContact = createFilledContact("", "", "", "", "", "", "", "", "", [], [], [], ["antste@antste.de", "bentste@bentste.de", "bent@bent.de"])
+		eliminatedContact = createFilledContact("", "", "", "", "", "", "", "", "", [], [], [], ["antste@antste.de", "bentste@bentste.de"])
 		keptContact.addresses = _getMergedAddresses(keptContact.addresses, eliminatedContact.addresses)
 		o(keptContact.addresses[0].address).equals("antste@antste.de")
 		o(keptContact.addresses[1].address).equals("bentste@bentste.de")
@@ -978,8 +977,8 @@ o.spec("ContactMergeUtilsTest", function () {
 		o(keptContact.addresses.length).equals(3)
 	})
 	o("getMergedSocialIdsTest", function () {
-		let keptContact = createFilledContact("", "", "", "", "", "", [], [], ["antste@antste.de", "bentste@bentste.de"], [])
-		let eliminatedContact = createFilledContact("", "", "", "", "", "", [], [], ["antste@antste.de", "bentste@bentste.de"], [])
+		let keptContact = createFilledContact("", "", "", "", "", "", "", "", "", [], [], ["antste@antste.de", "bentste@bentste.de"], [])
+		let eliminatedContact = createFilledContact("", "", "", "", "", "", "", "", "", [], [], ["antste@antste.de", "bentste@bentste.de"], [])
 		keptContact.socialIds = _getMergedSocialIds(keptContact.socialIds, eliminatedContact.socialIds)
 		o(keptContact.socialIds[0].socialId).equals("antste@antste.de")
 		//type is also merged
@@ -987,9 +986,9 @@ o.spec("ContactMergeUtilsTest", function () {
 		o(keptContact.socialIds[1].socialId).equals("bentste@bentste.de")
 		o(keptContact.socialIds[1].type).equals(ContactSocialType.OTHER)
 		o(keptContact.socialIds.length).equals(2)
-		keptContact = createFilledContact("", "", "", "", "", "", [], [], ["antste@antste.de"], [])
+		keptContact = createFilledContact("", "", "", "", "", "", "", "", "", [], [], ["antste@antste.de"], [])
 		keptContact.socialIds[0].type = ContactSocialType.OTHER
-		eliminatedContact = createFilledContact("", "", "", "", "", "", [], [], ["antste@antste.de", "bentste@bentste.de"], [])
+		eliminatedContact = createFilledContact("", "", "", "", "", "", "", "", "", [], [], ["antste@antste.de", "bentste@bentste.de"], [])
 		eliminatedContact.socialIds[0].type = ContactSocialType.OTHER
 		eliminatedContact.socialIds[1].type = ContactSocialType.OTHER
 		keptContact.socialIds = _getMergedSocialIds(keptContact.socialIds, eliminatedContact.socialIds)
@@ -998,32 +997,32 @@ o.spec("ContactMergeUtilsTest", function () {
 		o(keptContact.socialIds[1].socialId).equals("bentste@bentste.de")
 		o(keptContact.socialIds[1].type).equals(ContactSocialType.OTHER)
 		o(keptContact.socialIds.length).equals(2)
-		keptContact = createFilledContact("", "", "", "", "", "", [], [], [], [])
-		eliminatedContact = createFilledContact("", "", "", "", "", "", [], [], ["antste@antste.de", "bentste@bentste.de"], [])
+		keptContact = createFilledContact("", "", "", "", "", "", "", "", "", [], [], [], [])
+		eliminatedContact = createFilledContact("", "", "", "", "", "", "", "", "", [], [], ["antste@antste.de", "bentste@bentste.de"], [])
 		keptContact.socialIds = _getMergedSocialIds(keptContact.socialIds, eliminatedContact.socialIds)
 		o(keptContact.socialIds[0].socialId).equals("antste@antste.de")
 		o(keptContact.socialIds[0].type).equals(ContactSocialType.OTHER)
 		o(keptContact.socialIds[1].socialId).equals("bentste@bentste.de")
 		o(keptContact.socialIds[0].type).equals(ContactSocialType.OTHER)
 		o(keptContact.socialIds.length).equals(2)
-		keptContact = createFilledContact("", "", "", "", "", "", [], [], ["antste@antste.de", "bentste@bentste.de"], [])
-		eliminatedContact = createFilledContact("", "", "", "", "", "", [], [], ["bentste@bentste.de"], [])
+		keptContact = createFilledContact("", "", "", "", "", "", "", "", "", [], [], ["antste@antste.de", "bentste@bentste.de"], [])
+		eliminatedContact = createFilledContact("", "", "", "", "", "", "", "", "", [], [], ["bentste@bentste.de"], [])
 		keptContact.socialIds = _getMergedSocialIds(keptContact.socialIds, eliminatedContact.socialIds)
 		o(keptContact.socialIds[0].socialId).equals("antste@antste.de")
 		o(keptContact.socialIds[1].socialId).equals("bentste@bentste.de")
 		o(keptContact.socialIds.length).equals(2)
-		keptContact = createFilledContact("", "", "", "", "", "", [], [], ["antste@antste.de", "bentste@bentste.de"], [])
-		eliminatedContact = createFilledContact("", "", "", "", "", "", [], [], [], [])
+		keptContact = createFilledContact("", "", "", "", "", "", "", "", "", [], [], ["antste@antste.de", "bentste@bentste.de"], [])
+		eliminatedContact = createFilledContact("", "", "", "", "", "", "", "", "", [], [], [], [])
 		keptContact.socialIds = _getMergedSocialIds(keptContact.socialIds, eliminatedContact.socialIds)
 		o(keptContact.socialIds[0].socialId).equals("antste@antste.de")
 		o(keptContact.socialIds[1].socialId).equals("bentste@bentste.de")
 		o(keptContact.socialIds.length).equals(2)
-		keptContact = createFilledContact("", "", "", "", "", "", [], [], [], [])
-		eliminatedContact = createFilledContact("", "", "", "", "", "", [], [], [], [])
+		keptContact = createFilledContact("", "", "", "", "", "", "", "", "", [], [], [], [])
+		eliminatedContact = createFilledContact("", "", "", "", "", "", "", "", "", [], [], [], [])
 		keptContact.socialIds = _getMergedSocialIds(keptContact.socialIds, eliminatedContact.socialIds)
 		o(keptContact.socialIds.length).equals(0)
-		keptContact = createFilledContact("", "", "", "", "", "", [], [], ["antste@antste.de", "bentste@bentste.de", "bent@bent.de"], [])
-		eliminatedContact = createFilledContact("", "", "", "", "", "", [], [], ["antste@antste.de", "bentste@bentste.de"], [])
+		keptContact = createFilledContact("", "", "", "", "", "", "", "", "", [], [], ["antste@antste.de", "bentste@bentste.de", "bent@bent.de"], [])
+		eliminatedContact = createFilledContact("", "", "", "", "", "", "", "", "", [], [], ["antste@antste.de", "bentste@bentste.de"], [])
 		keptContact.socialIds = _getMergedSocialIds(keptContact.socialIds, eliminatedContact.socialIds)
 		o(keptContact.socialIds[0].socialId).equals("antste@antste.de")
 		o(keptContact.socialIds[1].socialId).equals("bentste@bentste.de")
@@ -1031,22 +1030,22 @@ o.spec("ContactMergeUtilsTest", function () {
 		o(keptContact.socialIds.length).equals(3)
 	})
 	o("mergeContactsTest", function () {
-		let keptContact = createFilledContact("", "", "", "", "", "", [], [], ["antste@antste.de", "bentste@bentste.de"], [])
-		let eliminatedContact = createFilledContact("", "", "", "", "", "", [], [], ["antste@antste.de", "bentste@bentste.de"], [])
-		let compareContact = createFilledContact("", "", "", "", "", "", [], [], ["antste@antste.de", "bentste@bentste.de"], [])
+		let keptContact = createFilledContact("", "", "", "", "", "", "", "", "", [], [], ["antste@antste.de", "bentste@bentste.de"], [])
+		let eliminatedContact = createFilledContact("", "", "", "", "", "", "", "", "", [], [], ["antste@antste.de", "bentste@bentste.de"], [])
+		let compareContact = createFilledContact("", "", "", "", "", "", "", "", "", [], [], ["antste@antste.de", "bentste@bentste.de"], [])
 		mergeContacts(keptContact, eliminatedContact)
 		o(_contactToVCard(keptContact)).equals(_contactToVCard(compareContact))
-		keptContact = createFilledContact("", "", "", "", "", "", [], [], ["antste@antste.de"], [])
-		eliminatedContact = createFilledContact("", "", "", "", "", "", [], ["0989089"], ["antste@antste.de", "bentste@bentste.de"], [])
-		compareContact = createFilledContact("", "", "", "", "", "", [], ["0989089"], ["antste@antste.de", "bentste@bentste.de"], [])
+		keptContact = createFilledContact("", "", "", "", "", "", "", "", "", [], [], ["antste@antste.de"], [])
+		eliminatedContact = createFilledContact("", "", "", "", "", "", "", "", "", [], ["0989089"], ["antste@antste.de", "bentste@bentste.de"], [])
+		compareContact = createFilledContact("", "", "", "", "", "", "", "", "", [], ["0989089"], ["antste@antste.de", "bentste@bentste.de"], [])
 		mergeContacts(keptContact, eliminatedContact)
 		o(_contactToVCard(keptContact)).equals(_contactToVCard(compareContact))
-		keptContact = createFilledContact("", "", "", "", "", "", [], [], [], [])
-		eliminatedContact = createFilledContact("", "", "", "", "", "", [], [], [], [])
-		compareContact = createFilledContact("", "", "", "", "", "", [], [], [], [])
+		keptContact = createFilledContact("", "", "", "", "", "", "", "", "", [], [], [], [])
+		eliminatedContact = createFilledContact("", "", "", "", "", "", "", "", "", [], [], [], [])
+		compareContact = createFilledContact("", "", "", "", "", "", "", "", "", [], [], [], [])
 		mergeContacts(keptContact, eliminatedContact)
 		o(_contactToVCard(keptContact)).equals(_contactToVCard(compareContact))
-		keptContact = createFilledContact("", "", "Tests are great ... noooot", "", "", "", [], [], [], [])
+		keptContact = createFilledContact("", "", "Tests are great ... noooot", "", "", "", "", "", "", [], [], [], [])
 		eliminatedContact = createFilledContact(
 			"Ant",
 			"Ste",
@@ -1054,6 +1053,9 @@ o.spec("ContactMergeUtilsTest", function () {
 			"Tutao",
 			"Mr.",
 			"Buffalo",
+			"",
+			"",
+			"",
 			["antste@antste.de", "bentste@bentste.de"],
 			["123123123", "321321321"],
 			["diaspora.de"],
@@ -1066,6 +1068,9 @@ o.spec("ContactMergeUtilsTest", function () {
 			"Tutao",
 			"Mr.",
 			"Buffalo",
+			"",
+			"",
+			"",
 			["antste@antste.de", "bentste@bentste.de"],
 			["123123123", "321321321"],
 			["diaspora.de"],
