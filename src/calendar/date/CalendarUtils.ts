@@ -465,8 +465,6 @@ export function addDaysForRecurringEvent(
 		if (isExcludedDate(startTime, exclusions)) {
 			const eventsOnExcludedDay = daysToEvents.get(getStartOfDayWithZone(startTime, timeZone).getTime())
 			if (!eventsOnExcludedDay) continue
-			const eventOnThisDay = { _id: event._id, startTime }
-			findAndRemove(eventsOnExcludedDay, (e) => isSameEventInstance(e, eventOnThisDay))
 		} else {
 			const eventClone = clone(event)
 			if (allDay) {
