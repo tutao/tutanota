@@ -7,7 +7,6 @@ import { Keys } from "../../api/common/TutanotaConstants.js"
 import { NewsList } from "./NewsList.js"
 import { NewsModel } from "./NewsModel.js"
 import { progressIcon } from "../../gui/base/Icon.js"
-import { locator } from "../../api/main/MainLocator.js"
 
 export function showNewsDialog(newsModel: NewsModel) {
 	const closeButton: ButtonAttrs = {
@@ -52,7 +51,7 @@ export function showNewsDialog(newsModel: NewsModel) {
 
 	const dialog = new Dialog(DialogType.EditLarge, {
 		view: () => {
-			return m("", [m(".dialog-header.plr-l", m(DialogHeaderBar, header)), m(".dialog-container.scroll", m(".fill-absolute", m(child)))])
+			return m("", [m(DialogHeaderBar, header), m(".dialog-container.scroll", m(".fill-absolute", m(child)))])
 		},
 	}).addShortcut({
 		key: Keys.ESC,

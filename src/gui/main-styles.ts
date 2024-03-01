@@ -1420,16 +1420,11 @@ styles.registerStyle("main", () => {
 			"border-left": `1px solid ${theme.content_border}`,
 			"margin-left": "0",
 		},
+		".dialog-height-small": {
+			height: px(400),
+		},
 		".dialog-max-height": {
 			"max-height": "calc(100vh - 100px)",
-		},
-		".wizard-container": {
-			position: "absolute",
-			left: "0",
-			right: "0",
-			"margin-left": px(size.hpad_large),
-			"margin-right": px(size.hpad_large),
-			"min-height": "92%",
 		},
 		// mail folder view column
 		" .folder-column": {

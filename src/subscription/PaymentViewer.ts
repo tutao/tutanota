@@ -446,7 +446,7 @@ function _showPayConfirmDialog(price: number): Promise<boolean> {
 		}
 		dialog = new Dialog(DialogType.EditSmall, {
 			view: (): Children => [
-				m(".dialog-header.plr-l", m(DialogHeaderBar, actionBarAttrs)),
+				m(DialogHeaderBar, actionBarAttrs),
 				m(
 					".plr-l.pb",
 					m("", [

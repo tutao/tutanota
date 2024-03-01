@@ -51,18 +51,15 @@ class CredentialEncryptionMethodDialog {
 				return m("", [
 					// Only allow skipping if it's first time user selects mode (not from settings)
 					previousSelection == null
-						? m(
-								".dialog-header.plr-l",
-								m(DialogHeaderBar, {
-									left: () => [
-										{
-											label: "skip_action",
-											click: () => this._onModeSelected(DEFAULT_CREDENTIAL_ENCRYPTION_MODE),
-											type: ButtonType.Secondary,
-										} as const,
-									],
-								}),
-						  )
+						? m(DialogHeaderBar, {
+								left: () => [
+									{
+										label: "skip_action",
+										click: () => this._onModeSelected(DEFAULT_CREDENTIAL_ENCRYPTION_MODE),
+										type: ButtonType.Secondary,
+									} as const,
+								],
+						  })
 						: null,
 					m(SelectCredentialsEncryptionModeView, {
 						isWithHelpText: true,

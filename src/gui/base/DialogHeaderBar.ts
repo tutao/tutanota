@@ -11,6 +11,7 @@ export type DialogHeaderBarAttrs = {
 	create?: (dom: HTMLElement) => void
 	remove?: () => void
 	noHeader?: boolean
+	class?: string
 }
 
 /**
@@ -28,7 +29,7 @@ export class DialogHeaderBar implements Component<DialogHeaderBarAttrs> {
 		)
 		let columnClass = a.middle ? ".flex-third.overflow-hidden" : ".flex-half.overflow-hidden"
 		return m(
-			".flex-space-between.dialog-header-line-height",
+			".dialog-header.plr-l.flex-space-between.dialog-header-line-height",
 			{
 				oncreate: ({ dom }) => {
 					if (a.create) a.create(dom as HTMLElement)
@@ -36,6 +37,7 @@ export class DialogHeaderBar implements Component<DialogHeaderBarAttrs> {
 				onremove: () => {
 					if (a.remove) a.remove()
 				},
+				class: vnode.attrs.class,
 			},
 			[
 				m(

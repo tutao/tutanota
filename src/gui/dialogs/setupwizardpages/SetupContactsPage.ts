@@ -18,7 +18,7 @@ export class SetupContactsPage implements Component<SetupContactsPageAttrs> {
 			renderBannerButton("import_action", () => {
 				attrs.contactImporter.importContactsFromDevice()
 			}),
-			m("p.mt-xl", lang.get("allowContactSynchronization")),
+			m("p", lang.get("allowContactSynchronization")),
 			renderBannerButton(
 				isContactSyncEnabled ? "activated_label" : "activate_action",
 				() => {

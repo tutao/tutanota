@@ -11,7 +11,7 @@ interface SetupPageLayoutAttrs {
 
 export class SetupPageLayout implements Component<SetupPageLayoutAttrs> {
 	view({ attrs, children }: Vnode<SetupPageLayoutAttrs>): Children {
-		return m("section.wizard-container.center.flex.flex-column", [
+		return m("section.center.flex.flex-column.dialog-height-small", [
 			m(Icon, {
 				icon: attrs.icon,
 				class: "icon-xl center-h",
