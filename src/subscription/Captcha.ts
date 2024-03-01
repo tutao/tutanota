@@ -143,7 +143,7 @@ function showCaptchaDialog(challenge: Uint8Array, token: string): Promise<string
 		dialog = new Dialog(DialogType.EditSmall, {
 			view: (): Children => {
 				return [
-					m(".dialog-header.plr-l", m(DialogHeaderBar, actionBarAttrs)),
+					m(DialogHeaderBar, actionBarAttrs),
 					m(".plr-l.pb", [
 						m("img.mt-l", {
 							src: imageData,

@@ -182,30 +182,27 @@ export function showContactImportDialog(contacts: Contact[], okAction: (dialog: 
 	const dialog = new Dialog(DialogType.EditSmall, {
 		view: () => [
 			/** fixed-height header with a title, left and right buttons that's fixed to the top of the dialog's area */
-			m(
-				".dialog-header.plr-l",
-				m(DialogHeaderBar, {
-					left: [
-						{
-							type: ButtonType.Secondary,
-							label: "cancel_action",
-							click: () => {
-								dialog.close()
-							},
+			m(DialogHeaderBar, {
+				left: [
+					{
+						type: ButtonType.Secondary,
+						label: "cancel_action",
+						click: () => {
+							dialog.close()
 						},
-					],
-					middle: () => lang.get("importVCard_action"),
-					right: [
-						{
-							type: ButtonType.Primary,
-							label: "import_action",
-							click: () => {
-								okAction(dialog)
-							},
+					},
+				],
+				middle: () => lang.get("importVCard_action"),
+				right: [
+					{
+						type: ButtonType.Primary,
+						label: "import_action",
+						click: () => {
+							okAction(dialog)
 						},
-					],
-				} satisfies DialogHeaderBarAttrs),
-			),
+					},
+				],
+			} satisfies DialogHeaderBarAttrs),
 			/** variable-size child container that may be scrollable. */
 			m(
 				".dialog-max-height.plr-l.pb.text-break.nav-bg",

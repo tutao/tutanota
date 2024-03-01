@@ -1,5 +1,5 @@
 import m, { Children, Component, Vnode, VnodeDOM } from "mithril"
-import { Dialog } from "./Dialog"
+import { Dialog, DialogType } from "./Dialog"
 import type { ButtonAttrs } from "./Button.js"
 import { ButtonType } from "./Button.js"
 import { Icons } from "./icons/Icons"
@@ -348,7 +348,12 @@ export type WizardDialogAttrsBuilder<T> = {
 }
 
 // Use to generate a new wizard
-export function createWizardDialog<T>(data: T, pages: ReadonlyArray<WizardPageWrapper<T>>, closeAction?: () => $Promisable<void>): WizardDialogAttrsBuilder<T> {
+export function createWizardDialog<T>(
+	data: T,
+	pages: ReadonlyArray<WizardPageWrapper<T>>,
+	closeAction: (() => $Promisable<void>) | null = null,
+	dialogType: DialogType.EditLarge | DialogType.EditSmall = DialogType.EditLarge,
+): WizardDialogAttrsBuilder<T> {
 	// We need the close action of the dialog before we can create the proper attributes
 
 	let view: () => Children = () => null
@@ -365,7 +370,10 @@ export function createWizardDialog<T>(data: T, pages: ReadonlyArray<WizardPageWr
 		unregisterCloseListener()
 	}
 	const wizardDialogAttrs = new WizardDialogAttrs(data, pages, closeActionWrapper)
-	const wizardDialog = Dialog.largeDialog(wizardDialogAttrs.headerBarAttrs, child)
+	const wizardDialog =
+		dialogType === DialogType.EditLarge
+			? Dialog.largeDialog(wizardDialogAttrs.headerBarAttrs, child)
+			: Dialog.editSmallDialog(wizardDialogAttrs.headerBarAttrs, () => m(child))
 
 	view = () => m(WizardDialog, wizardDialogAttrs)
 	wizardDialog

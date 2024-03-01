@@ -44,7 +44,7 @@ export class NativeWebauthnView implements TopLevelView {
 			},
 			[
 				m(".flex.col.justify-center", [
-					m(".dialog-header", m(DialogHeaderBar, headerBarAttrs)),
+					m(DialogHeaderBar, headerBarAttrs),
 					m(".flex-center.mt-s", m("img", { src: SecondFactorImage })),
 					m(".mt.flex.col", [m(".flex.justify-center", [m(".mr-s", progressIcon()), m("", lang.get("waitingForU2f_msg"))])]),
 				]),

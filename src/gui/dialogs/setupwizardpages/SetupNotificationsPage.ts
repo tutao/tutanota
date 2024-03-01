@@ -22,7 +22,7 @@ export class SetupNotificationsPage implements Component<SetupNotificationsPageA
 			),
 			!isAndroidApp()
 				? null
-				: m("section.mt-l.mb-l", [
+				: m("section.mt.mb", [
 						m("p", lang.get("allowBatteryPermission_msg")),
 						renderPermissionButton("grant_battery_permission_action", attrs.data.isBatteryPermissionGranted, () =>
 							attrs.askForBatteryNotificationPermission(),

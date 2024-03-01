@@ -9,7 +9,7 @@ import { BrowserWebauthn } from "../misc/2fa/webauthn/BrowserWebauthn.js"
 import { WebAuthnSignChallenge } from "../native/common/generatedipc/WebAuthnSignChallenge.js"
 import { stringToBase64 } from "@tutao/tutanota-utils"
 import { WebAuthnRegistrationChallenge } from "../native/common/generatedipc/WebAuthnRegistrationChallenge.js"
-import { TopLevelView, TopLevelAttrs } from "../TopLevelView.js"
+import { TopLevelAttrs, TopLevelView } from "../TopLevelView.js"
 
 export interface MobileWebauthnAttrs extends TopLevelAttrs {
 	browserWebauthn: BrowserWebauthn
@@ -53,7 +53,7 @@ export class MobileWebauthnView implements TopLevelView<MobileWebauthnAttrs> {
 			},
 			[
 				m(".flex.col.justify-center", [
-					m(".dialog-header", m(DialogHeaderBar, headerBarAttrs)),
+					m(DialogHeaderBar, headerBarAttrs),
 					m(".flex-center.mt-s", m("img", { src: SecondFactorImage })),
 					m(".mt.flex.col", [m(".flex.justify-center", [m(".mr-s", progressIcon()), m("", lang.get("waitingForU2f_msg"))])]),
 				]),
