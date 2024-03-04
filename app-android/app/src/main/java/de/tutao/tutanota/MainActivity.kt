@@ -89,6 +89,11 @@ class MainActivity : FragmentActivity() {
   override fun onCreate(savedInstanceState: Bundle?) {
 	Log.d(TAG, "App started")
 
+		// App is handling a redelivered intent, ignoring as we probably already handled it
+		if (savedInstanceState != null && (intent.action == OPEN_USER_MAILBOX_ACTION || intent.action == OPEN_CALENDAR_ACTION)) {
+			intent.putExtra(ALREADY_HANDLED_INTENT, true)
+		}
+
 	val fileFacade =
 			AndroidFileFacade(this, LocalNotificationsFacade(this), SecureRandom(), NetworkUtils.defaultClient)
 	val cryptoFacade = AndroidNativeCryptoFacade(this, fileFacade.tempDir)
@@ -321,28 +326,28 @@ class MainActivity : FragmentActivity() {
 	}
   }
 
-  private fun getMimeTypeForUrl(url: String): String {
-	// Opening devTools requests some URL that looks like https://assets.tutanota.com/index-app.html/login?theme=blah
-	// and MimeTypeMap fails to handle it because of that /login path.
-	// There should be no actual resource under index-app.html/, it's only "virtual" paths (handled by JS) for the
-	// app so we assume that it is html.
-	if (url.startsWith("https://assets.tutanota.com/index-app.html/")) {
-	  return "text/html"
+	private fun getMimeTypeForUrl(url: String): String {
+		// Opening devTools requests some URL that looks like https://assets.tutanota.com/index-app.html/login?theme=blah
+		// and MimeTypeMap fails to handle it because of that /login path.
+		// There should be no actual resource under index-app.html/, it's only "virtual" paths (handled by JS) for the
+		// app so we assume that it is html.
+		if (url.startsWith("https://assets.tutanota.com/index-app.html/")) {
+			return "text/html"
+		}
+		val ext = MimeTypeMap.getFileExtensionFromUrl(url)
+		// on old android mimetypemap doesn't contain js and returns null
+		// we add a few more for safety.
+		val mimeType = MimeTypeMap.getSingleton().getMimeTypeFromExtension(ext)
+		return mimeType ?: when (ext) {
+			"js", "mjs" -> "text/javascript"
+			"json" -> "application/json"
+			"html" -> "text/html"
+			"ttf" -> "font/ttf"
+			"wasm" -> "application/wasm"
+			"icc" -> "application/vnd.iccprofile"
+			else -> error("Unknown extension $ext for url $url")
+		}
 	}
-	val ext = MimeTypeMap.getFileExtensionFromUrl(url)
-	// on old android mimetypemap doesn't contain js and returns null
-	// we add a few more for safety.
-	val mimeType = MimeTypeMap.getSingleton().getMimeTypeFromExtension(ext)
-	return mimeType ?: when (ext) {
-	  "js", "mjs" -> "text/javascript"
-	  "json" -> "application/json"
-	  "html" -> "text/html"
-	  "ttf" -> "font/ttf"
-	  "wasm" -> "application/wasm"
-	  "icc" -> "application/vnd.iccprofile"
-	  else -> error("Unknown extension $ext for url $url")
-	}
-  }
 
   override fun onStart() {
 	super.onStart()
@@ -369,6 +374,7 @@ class MainActivity : FragmentActivity() {
 	runBlocking {
 	  sqlCipherFacade.closeDb()
 	}
+
 	super.onDestroy()
   }
 
@@ -405,7 +411,7 @@ class MainActivity : FragmentActivity() {
 	  return@launchWhenCreated
 	}
 
-	if (intent.action != null) {
+		if (intent.action != null && !intent.getBooleanExtra(ALREADY_HANDLED_INTENT, false)) {
 	  when (intent.action) {
 		Intent.ACTION_SEND, Intent.ACTION_SEND_MULTIPLE, Intent.ACTION_SENDTO -> share(
 				intent
@@ -764,6 +770,7 @@ class MainActivity : FragmentActivity() {
 	const val OPEN_USER_MAILBOX_MAIL_ADDRESS_KEY = "mailAddress"
 	const val OPEN_USER_MAILBOX_USERID_KEY = "userId"
 	const val IS_SUMMARY_EXTRA = "isSummary"
+		const val ALREADY_HANDLED_INTENT = "alreadyHandledIntent"
 	private const val ASKED_BATTERY_OPTIMIZATIONS_PREF = "askedBatteryOptimizations"
 	private const val TAG = "MainActivity"
 	private var requestId = 0
