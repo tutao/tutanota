@@ -25,7 +25,7 @@ import { UserError } from "../api/main/UserError.js"
 import { DialogHeaderBar, DialogHeaderBarAttrs } from "../gui/base/DialogHeaderBar.js"
 import { ButtonType } from "../gui/base/Button.js"
 import { isApp } from "../api/common/Env.js"
-import { ImportNativeContactBooksDialog } from "../settings/ImportNativeContactBooksDialog.js"
+import { ImportNativeContactBooksDialog } from "./view/ImportNativeContactBooksDialog.js"
 import { StructuredContact } from "../native/common/generatedipc/StructuredContact.js"
 import { isoDateToBirthday } from "../api/common/utils/BirthdayUtils.js"
 

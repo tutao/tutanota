@@ -1,9 +1,9 @@
-import { Dialog, DialogType } from "../gui/base/Dialog.js"
-import { ContactBook } from "../native/common/generatedipc/ContactBook.js"
+import { Dialog, DialogType } from "../../gui/base/Dialog.js"
+import { ContactBook } from "../../native/common/generatedipc/ContactBook.js"
 import m, { Children } from "mithril"
-import { Checkbox } from "../gui/base/Checkbox.js"
+import { Checkbox } from "../../gui/base/Checkbox.js"
 import { defer } from "@tutao/tutanota-utils"
-import { lang } from "../misc/LanguageViewModel.js"
+import { lang } from "../../misc/LanguageViewModel.js"
 
 /**
  * Displays a list of contact books to import contacts from.
