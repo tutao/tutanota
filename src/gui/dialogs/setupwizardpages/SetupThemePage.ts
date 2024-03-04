@@ -3,8 +3,7 @@ import { WizardPageAttrs, WizardPageN } from "../../base/WizardDialog.js"
 import { Icons } from "../../base/icons/Icons.js"
 import { lang } from "../../../misc/LanguageViewModel.js"
 import { RadioSelector, RadioSelectorAttrs } from "../../base/RadioSelector.js"
-import { themeOptions } from "../../../settings/AppearanceSettingsViewer.js"
-import { themeController, ThemePreference } from "../../theme.js"
+import { themeController, themeOptions, ThemePreference } from "../../theme.js"
 import { SetupPageLayout } from "./SetupPageLayout.js"
 
 export class SetupThemePage implements WizardPageN<null> {
