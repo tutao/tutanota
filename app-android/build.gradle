@@ -8,7 +8,9 @@ buildscript {
 		gradlePluginPortal()
 	}
 	dependencies {
-		classpath 'com.android.tools.build:gradle:7.4.2'
+		// This is what usually referred by as AGP.
+		// Make sure your Android Studio version supports it.
+		classpath 'com.android.tools.build:gradle:8.3.0'
 		classpath "org.jetbrains.kotlin:kotlin-gradle-plugin:$kotlin_version"
 
 		// NOTE: Do not place your application dependencies here; they belong
