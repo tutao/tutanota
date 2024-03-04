@@ -6,14 +6,14 @@ plugins {
 }
 
 android {
-	defaultConfig {
+  defaultConfig {
 		compileSdk 33
-		applicationId "de.tutao.tutanota"
-		minSdkVersion 23
-		targetSdkVersion 33
+	applicationId "de.tutao.tutanota"
+	minSdkVersion 23
+	targetSdkVersion 33
 		versionCode 396314
 		versionName "218.240311.0"
-		testInstrumentationRunner "androidx.test.runner.AndroidJUnitRunner"
+	testInstrumentationRunner "androidx.test.runner.AndroidJUnitRunner"
 
 	javaCompileOptions {
 	  annotationProcessorOptions {
