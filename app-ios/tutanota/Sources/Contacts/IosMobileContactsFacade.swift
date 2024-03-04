@@ -15,14 +15,12 @@ struct UserContactMapping: Codable {
 	var localContactIdentifierToHash: [String: Int]
 }
 
-// FIXME: get entitlement to add CNContactNoteKey; see https://developer.apple.com/documentation/bundleresources/entitlements/com_apple_developer_contacts_notes
-//        yes, it actually requires special permission for some reason
 private let ALL_SUPPORTED_CONTACT_KEYS: [CNKeyDescriptor] =
 	[
 		CNContactIdentifierKey, CNContactGivenNameKey, CNContactFamilyNameKey, CNContactNicknameKey, CNContactOrganizationNameKey, CNContactBirthdayKey,
 		CNContactEmailAddressesKey, CNContactPhoneNumbersKey, CNContactPostalAddressesKey, CNContactDatesKey, CNContactDepartmentNameKey,
 		CNContactInstantMessageAddressesKey, CNContactMiddleNameKey, CNContactNameSuffixKey, CNContactPhoneticGivenNameKey, CNContactPhoneticMiddleNameKey,
-		CNContactPhoneticFamilyNameKey, CNContactRelationsKey, CNContactUrlAddressesKey, CNContactNamePrefixKey, CNContactJobTitleKey
+		CNContactPhoneticFamilyNameKey, CNContactRelationsKey, CNContactUrlAddressesKey, CNContactNamePrefixKey, CNContactJobTitleKey,
 	] as [CNKeyDescriptor]
 
 /// Handles synchronization between contacts in Tuta and contacts on the device.
@@ -437,7 +435,7 @@ private class NativeMutableContact {
 		self.contact.phoneticMiddleName = data.phoneticMiddle ?? ""
 		self.contact.contactRelations = data.relationships.map { $0.toLabeledValue() }
 		self.contact.urlAddresses = data.websites.map { $0.toLabeledValue() }
-		// self.contact.note = data.notes // FIXME: not apple approved
+		// self.contact.note = data.notes  // TODO: get the entitlement for this
 		self.contact.namePrefix = data.title
 		self.contact.jobTitle = data.role
 
@@ -488,7 +486,6 @@ private extension CNLabeledValue<CNContactRelation> {
 			case CNLabelContactRelationAssistant: (.assistant, nil)
 			case CNLabelContactRelationManager: (.manager, nil)
 			case CNLabelOther: (.other, nil)
-			// FIXME: how do we handle the hundreds of other possible labels here that aren't just custom labels
 			default: (.other, self.label)
 			}
 		return StructuredRelationship(person: value.name, type: type, customTypeName: label ?? "")
@@ -731,7 +728,6 @@ private extension CNContact {
 			phoneNumbers: phoneNumbers.map { $0.toStructuredPhoneNumber() },
 			addresses: postalAddresses.map { $0.toStructuredAddress() },
 			rawId: identifier,
-
 			customDate: dates.map { $0.toStructuredCustomDate() },
 			department: departmentName,
 			messengerHandles: instantMessageAddresses.map { $0.toStructuredMessengerHandle() },
@@ -742,7 +738,7 @@ private extension CNContact {
 			phoneticMiddle: phoneticMiddleName,
 			relationships: contactRelations.map { $0.toStructuredRelationship() },
 			websites: urlAddresses.map { $0.toStructuredWebsite() },
-			notes: "",  // FIXME: not apple approved
+			notes: "",  // TODO: add when contact notes entitlement is obtained
 			title: namePrefix,
 			role: jobTitle
 		)

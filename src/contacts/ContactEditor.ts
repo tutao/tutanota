@@ -637,6 +637,8 @@ export class ContactEditor {
 			label,
 			value: (this.contact[fieldName] ?? "") as string,
 			oninput: (value: string) => {
+				// Typescript will complain about it as an Unnecessary type check, but when the code gets
+				// transpiled to javascript, without the check, we can pass any value
 				if (typeof value === "string") {
 					this.contact[fieldName] = downcast(value)
 				}

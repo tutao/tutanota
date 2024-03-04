@@ -70,7 +70,7 @@ enum class ContactWebsiteType {
   CUSTOM,
 }
 
-/** Mirror of ContactWebsiteType from TutanotaConstants */
+/** Mirror of ContactMessengerHandleType from TutanotaConstants */
 @Serializable
 enum class ContactMessengerHandleType {
   @SerialName("0")
@@ -92,7 +92,7 @@ enum class ContactMessengerHandleType {
   CUSTOM
 }
 
-/** Mirror of ContactWebsiteType from TutanotaConstants */
+/** Mirror of ContactRelationshipType from TutanotaConstants */
 @Serializable
 enum class ContactRelationshipType {
   @SerialName("0")
