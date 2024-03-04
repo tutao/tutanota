@@ -1650,7 +1650,6 @@ export type TranslationKeyType =
 	| "yourMessage_label"
 	| "you_label"
 	| "emptyString_msg"
-	| "mailAddressInfoLegacy_msg"
 	| "websites_label"
 	| "middleName_placeholder"
 	| "nameSuffix_placeholder"
