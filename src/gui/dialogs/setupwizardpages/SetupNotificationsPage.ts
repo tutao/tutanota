@@ -7,6 +7,7 @@ import { queryPermissionsState, renderPermissionButton, requestPermission } from
 import { Icons } from "../../base/icons/Icons.js"
 import Stream from "mithril/stream"
 import { SetupPageLayout } from "./SetupPageLayout.js"
+import { locator } from "../../../api/main/MainLocator.js"
 
 export interface NotificationPermissionsData {
 	isNotificationPermissionGranted: boolean
@@ -55,9 +56,15 @@ export class SetupNotificationsPageAttrs implements WizardPageAttrs<Notification
 
 	async askForNotificationPermission() {
 		// Ask for the notification permission
+		const isNotificationPermissionGranted = await requestPermission(PermissionType.Notification, "grant_notification_permission_action")
 		this.data = {
 			...this.data,
-			isNotificationPermissionGranted: await requestPermission(PermissionType.Notification, "grant_notification_permission_action"),
+			isNotificationPermissionGranted,
+		}
+
+		// Register the push notifications if granted
+		if (isNotificationPermissionGranted) {
+			locator.pushService.register()
 		}
 		m.redraw()
 	}
