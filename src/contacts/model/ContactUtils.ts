@@ -30,7 +30,6 @@ import { StructuredContact } from "../../native/common/generatedipc/StructuredCo
 import { StructuredCustomDate } from "../../native/common/generatedipc/StructuredCustomDate.js"
 import { StructuredWebsite } from "../../native/common/generatedipc/StructuredWebsite.js"
 import { StructuredRelationship } from "../../native/common/generatedipc/StructuredRelationship.js"
-import { StructuredPronouns } from "../../native/common/generatedipc/StructuredPronouns.js"
 import { StructuredMessengerHandle } from "../../native/common/generatedipc/StructuredMessengerHandle.js"
 
 assertMainOrNode()
@@ -198,13 +197,6 @@ export function extractStructuredRelationships(relationships: ContactRelationshi
 		person: relation.person,
 		type: relation.type as ContactRelationshipType,
 		customTypeName: relation.customTypeName,
-	}))
-}
-
-export function extractStructuredPronouns(pronouns: ContactPronouns[]): ReadonlyArray<StructuredPronouns> {
-	return pronouns.map((pronounsItem) => ({
-		language: pronounsItem.language,
-		pronouns: pronounsItem.pronouns,
 	}))
 }
 

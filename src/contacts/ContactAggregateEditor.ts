@@ -1,6 +1,6 @@
 import { TextFieldAttrs, TextFieldType } from "../gui/base/TextField.js"
 import { TextField } from "../gui/base/TextField.js"
-import type { TranslationKey } from "../misc/LanguageViewModel"
+import { TranslationKey, TranslationText } from "../misc/LanguageViewModel"
 import { lang } from "../misc/LanguageViewModel"
 import m, { Children, Component, Vnode, VnodeDOM } from "mithril"
 import { Icons } from "../gui/base/icons/Icons"
@@ -22,7 +22,7 @@ export type AggregateEditorAttrs<AggregateType> = {
 	fieldType: TextFieldType
 	onUpdate: (newValue: string) => unknown
 	label: string
-	helpLabel: TranslationKey | lazy<string>
+	helpLabel: TranslationText
 	typeLabels: ReadonlyArray<[AggregateType, TranslationKey]>
 	onTypeSelected: (arg0: AggregateType) => unknown
 }

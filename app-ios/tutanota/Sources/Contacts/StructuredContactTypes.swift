@@ -147,9 +147,8 @@ extension StructuredContact: Equatable {
 			&& lhs.birthday == rhs.birthday && lhs.mailAddresses == rhs.mailAddresses && lhs.phoneNumbers == rhs.phoneNumbers && lhs.addresses == rhs.addresses
 			&& lhs.customDate == rhs.customDate && lhs.department == rhs.department && lhs.messengerHandles == rhs.messengerHandles
 			&& lhs.middleName == rhs.middleName && lhs.nameSuffix == rhs.nameSuffix && lhs.phoneticFirst == rhs.phoneticFirst
-			&& lhs.phoneticLast == rhs.phoneticLast && lhs.phoneticMiddle == rhs.phoneticMiddle
-			&& lhs.relationships == rhs.relationships && lhs.websites == rhs.websites && lhs.notes == rhs.notes && lhs.title == rhs.title
-			&& lhs.role == rhs.role
+			&& lhs.phoneticLast == rhs.phoneticLast && lhs.phoneticMiddle == rhs.phoneticMiddle && lhs.relationships == rhs.relationships
+			&& lhs.websites == rhs.websites && lhs.notes == rhs.notes && lhs.title == rhs.title && lhs.role == rhs.role
 	}
 }
 
@@ -164,7 +163,6 @@ extension StructuredContact: Hashable {
 		hasher.combine(mailAddresses)
 		hasher.combine(phoneNumbers)
 		hasher.combine(addresses)
-		// hasher.combine(rawId)  // no need
 		hasher.combine(customDate)
 		hasher.combine(department)
 		hasher.combine(messengerHandles)

@@ -8,7 +8,6 @@ import {
 	createContactMailAddress,
 	createContactMessengerHandle,
 	createContactPhoneNumber,
-	createContactPronouns,
 	createContactRelationship,
 	createContactWebsite,
 } from "../../api/entities/tutanota/TypeRefs.js"
@@ -254,7 +253,7 @@ export class NativeContactsSyncManager {
 			phoneticFirst: contact.phoneticFirst,
 			phoneticLast: contact.phoneticLast,
 			phoneticMiddle: contact.phoneticMiddle,
-			pronouns: contact.pronouns.map((pronouns) => createContactPronouns(pronouns)),
+			pronouns: [],
 			relationships: contact.relationships.map((relation) => createContactRelationship(relation)),
 			websites: contact.websites.map((website) => createContactWebsite(website)),
 			comment: contact.notes,
@@ -264,7 +263,7 @@ export class NativeContactsSyncManager {
 	}
 
 	private mergeNativeContactWithTutaContact(contact: StructuredContact, partialContact: Contact): Contact {
-		// iOS requires a special entitlement from Apple to access these fields
+		// TODO: iOS requires a special entitlement from Apple to access these fields
 		const canMergeCommentField = !isIOSApp()
 
 		return {
