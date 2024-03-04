@@ -127,8 +127,11 @@ export class PostLoginActions implements PostLoginAction {
 			await this.remindActiveOutOfOfficeNotification()
 		}
 
-		if (isApp() || isDesktop()) {
+		// Only automatically request notification permission on Desktop as the onboarding wizard handles it on mobile
+		if (isDesktop()) {
 			locator.pushService.register()
+		}
+		if (isApp() || isDesktop()) {
 			await this.maybeSetCustomTheme()
 		}
 
