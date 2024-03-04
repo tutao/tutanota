@@ -64,56 +64,54 @@ data class AndroidContact(
 		val customDate: MutableList<AndroidCustomDate> = mutableListOf(),
 		val websites: MutableList<AndroidWebsite> = mutableListOf(),
 		val relationships: MutableList<AndroidRelationship> = mutableListOf(),
-		val pronouns: List<StructuredPronouns> = listOf(),
 		val messengerHandles: List<StructuredMessengerHandle> = listOf(),
 		var notes: String = "",
 		var title: String = "",
 		var role: String = ""
 ) {
-  fun toStructured(): StructuredContact {
-	return StructuredContact(
-			id = sourceId,
-			firstName = givenName ?: "",
-			lastName = lastName ?: "",
-			nickname = nickname,
-			company = company,
-			birthday = birthday,
-			mailAddresses = emailAddresses.map { it.toStructured() },
-			phoneNumbers = phoneNumbers.map { it.toStructured() },
-			addresses = addresses.map { it.toStructured() },
-			rawId = rawId.toString(),
-			department = department,
-			middleName = middleName,
-			nameSuffix = nameSuffix,
-			phoneticFirst = phoneticFirst,
-			phoneticMiddle = phoneticMiddle,
-			phoneticLast = phoneticLast,
-			customDate = customDate.map { it.toStructured() },
-			messengerHandles = messengerHandles, // Will be deprecated on Android 15, not worth to implement now
-			websites = websites.map { it.toStructured() },
-			relationships = relationships.map { it.toStructured() },
-			pronouns = pronouns, // Not supported on Android
-			notes = notes,
-			title = title,
-			role = role
-	)
-  }
+	fun toStructured(): StructuredContact {
+		return StructuredContact(
+				id = sourceId,
+				firstName = givenName ?: "",
+				lastName = lastName ?: "",
+				nickname = nickname,
+				company = company,
+				birthday = birthday,
+				mailAddresses = emailAddresses.map { it.toStructured() },
+				phoneNumbers = phoneNumbers.map { it.toStructured() },
+				addresses = addresses.map { it.toStructured() },
+				rawId = rawId.toString(),
+				department = department,
+				middleName = middleName,
+				nameSuffix = nameSuffix,
+				phoneticFirst = phoneticFirst,
+				phoneticMiddle = phoneticMiddle,
+				phoneticLast = phoneticLast,
+				customDate = customDate.map { it.toStructured() },
+				messengerHandles = messengerHandles, // Will be deprecated on Android 15, not worth to implement now
+				websites = websites.map { it.toStructured() },
+				relationships = relationships.map { it.toStructured() },
+				notes = notes,
+				title = title,
+				role = role
+		)
+	}
 }
 
 fun ContactAddressType.toAndroidType(): Int = when (this) {
-  ContactAddressType.PRIVATE -> ContactsContract.CommonDataKinds.Email.TYPE_HOME
-  ContactAddressType.WORK -> ContactsContract.CommonDataKinds.Email.TYPE_WORK
-  ContactAddressType.OTHER -> ContactsContract.CommonDataKinds.Email.TYPE_OTHER
-  ContactAddressType.CUSTOM -> ContactsContract.CommonDataKinds.Email.TYPE_CUSTOM
+	ContactAddressType.PRIVATE -> ContactsContract.CommonDataKinds.Email.TYPE_HOME
+	ContactAddressType.WORK -> ContactsContract.CommonDataKinds.Email.TYPE_WORK
+	ContactAddressType.OTHER -> ContactsContract.CommonDataKinds.Email.TYPE_OTHER
+	ContactAddressType.CUSTOM -> ContactsContract.CommonDataKinds.Email.TYPE_CUSTOM
 }
 
 fun ContactPhoneNumberType.toAndroidType(): Int = when (this) {
-  ContactPhoneNumberType.PRIVATE -> ContactsContract.CommonDataKinds.Phone.TYPE_HOME
-  ContactPhoneNumberType.WORK -> ContactsContract.CommonDataKinds.Phone.TYPE_WORK
-  ContactPhoneNumberType.MOBILE -> ContactsContract.CommonDataKinds.Phone.TYPE_MOBILE
-  ContactPhoneNumberType.FAX -> ContactsContract.CommonDataKinds.Phone.TYPE_OTHER_FAX
-  ContactPhoneNumberType.OTHER -> ContactsContract.CommonDataKinds.Phone.TYPE_OTHER
-  ContactPhoneNumberType.CUSTOM -> ContactsContract.CommonDataKinds.Phone.TYPE_CUSTOM
+	ContactPhoneNumberType.PRIVATE -> ContactsContract.CommonDataKinds.Phone.TYPE_HOME
+	ContactPhoneNumberType.WORK -> ContactsContract.CommonDataKinds.Phone.TYPE_WORK
+	ContactPhoneNumberType.MOBILE -> ContactsContract.CommonDataKinds.Phone.TYPE_MOBILE
+	ContactPhoneNumberType.FAX -> ContactsContract.CommonDataKinds.Phone.TYPE_OTHER_FAX
+	ContactPhoneNumberType.OTHER -> ContactsContract.CommonDataKinds.Phone.TYPE_OTHER
+	ContactPhoneNumberType.CUSTOM -> ContactsContract.CommonDataKinds.Phone.TYPE_CUSTOM
 }
 
 fun AndroidEmailAddress.toStructured() = StructuredMailAddress(
@@ -129,31 +127,31 @@ fun AndroidPhoneNumber.toStructured() = StructuredPhoneNumber(
 )
 
 fun ContactRelationshipType.toAndroidType(): Int = when (this) {
-  ContactRelationshipType.PARENT -> ContactsContract.CommonDataKinds.Relation.TYPE_PARENT
-  ContactRelationshipType.BROTHER -> ContactsContract.CommonDataKinds.Relation.TYPE_BROTHER
-  ContactRelationshipType.SISTER -> ContactsContract.CommonDataKinds.Relation.TYPE_SISTER
-  ContactRelationshipType.CHILD -> ContactsContract.CommonDataKinds.Relation.TYPE_CHILD
-  ContactRelationshipType.FRIEND -> ContactsContract.CommonDataKinds.Relation.TYPE_FRIEND
-  ContactRelationshipType.RELATIVE -> ContactsContract.CommonDataKinds.Relation.TYPE_RELATIVE
-  ContactRelationshipType.SPOUSE -> ContactsContract.CommonDataKinds.Relation.TYPE_SPOUSE
-  ContactRelationshipType.PARTNER -> ContactsContract.CommonDataKinds.Relation.TYPE_PARTNER
-  ContactRelationshipType.ASSISTANT -> ContactsContract.CommonDataKinds.Relation.TYPE_ASSISTANT
-  ContactRelationshipType.MANAGER -> ContactsContract.CommonDataKinds.Relation.TYPE_MANAGER
-  ContactRelationshipType.CUSTOM -> ContactsContract.CommonDataKinds.Relation.TYPE_CUSTOM
-  else -> ContactsContract.CommonDataKinds.Relation.TYPE_CUSTOM
+	ContactRelationshipType.PARENT -> ContactsContract.CommonDataKinds.Relation.TYPE_PARENT
+	ContactRelationshipType.BROTHER -> ContactsContract.CommonDataKinds.Relation.TYPE_BROTHER
+	ContactRelationshipType.SISTER -> ContactsContract.CommonDataKinds.Relation.TYPE_SISTER
+	ContactRelationshipType.CHILD -> ContactsContract.CommonDataKinds.Relation.TYPE_CHILD
+	ContactRelationshipType.FRIEND -> ContactsContract.CommonDataKinds.Relation.TYPE_FRIEND
+	ContactRelationshipType.RELATIVE -> ContactsContract.CommonDataKinds.Relation.TYPE_RELATIVE
+	ContactRelationshipType.SPOUSE -> ContactsContract.CommonDataKinds.Relation.TYPE_SPOUSE
+	ContactRelationshipType.PARTNER -> ContactsContract.CommonDataKinds.Relation.TYPE_PARTNER
+	ContactRelationshipType.ASSISTANT -> ContactsContract.CommonDataKinds.Relation.TYPE_ASSISTANT
+	ContactRelationshipType.MANAGER -> ContactsContract.CommonDataKinds.Relation.TYPE_MANAGER
+	ContactRelationshipType.CUSTOM -> ContactsContract.CommonDataKinds.Relation.TYPE_CUSTOM
+	else -> ContactsContract.CommonDataKinds.Relation.TYPE_CUSTOM
 }
 
 fun ContactWebsiteType.toAndroidType(): Int = when (this) {
-  ContactWebsiteType.PRIVATE -> ContactsContract.CommonDataKinds.Website.TYPE_HOME
-  ContactWebsiteType.WORK -> ContactsContract.CommonDataKinds.Website.TYPE_WORK
-  ContactWebsiteType.CUSTOM -> ContactsContract.CommonDataKinds.Website.TYPE_CUSTOM
-  else -> ContactsContract.CommonDataKinds.Website.TYPE_OTHER
+	ContactWebsiteType.PRIVATE -> ContactsContract.CommonDataKinds.Website.TYPE_HOME
+	ContactWebsiteType.WORK -> ContactsContract.CommonDataKinds.Website.TYPE_WORK
+	ContactWebsiteType.CUSTOM -> ContactsContract.CommonDataKinds.Website.TYPE_CUSTOM
+	else -> ContactsContract.CommonDataKinds.Website.TYPE_OTHER
 }
 
 fun ContactCustomDateType.toAndroidType(): Int = when (this) {
-  ContactCustomDateType.ANNIVERSARY -> ContactsContract.CommonDataKinds.Event.TYPE_ANNIVERSARY
-  ContactCustomDateType.CUSTOM -> ContactsContract.CommonDataKinds.Event.TYPE_CUSTOM
-  else -> ContactsContract.CommonDataKinds.Event.TYPE_OTHER
+	ContactCustomDateType.ANNIVERSARY -> ContactsContract.CommonDataKinds.Event.TYPE_ANNIVERSARY
+	ContactCustomDateType.CUSTOM -> ContactsContract.CommonDataKinds.Event.TYPE_CUSTOM
+	else -> ContactsContract.CommonDataKinds.Event.TYPE_OTHER
 }
 
 fun AndroidCustomDate.toStructured() = StructuredCustomDate(
@@ -175,49 +173,49 @@ fun AndroidRelationship.toStructured() = StructuredRelationship(
 )
 
 fun relationshipTypeFromAndroid(androidType: Int): ContactRelationshipType = when (androidType) {
-  ContactsContract.CommonDataKinds.Relation.TYPE_PARENT -> ContactRelationshipType.PARENT
-  ContactsContract.CommonDataKinds.Relation.TYPE_BROTHER -> ContactRelationshipType.BROTHER
-  ContactsContract.CommonDataKinds.Relation.TYPE_SISTER -> ContactRelationshipType.SISTER
-  ContactsContract.CommonDataKinds.Relation.TYPE_CHILD -> ContactRelationshipType.CHILD
-  ContactsContract.CommonDataKinds.Relation.TYPE_FRIEND -> ContactRelationshipType.FRIEND
-  ContactsContract.CommonDataKinds.Relation.TYPE_RELATIVE -> ContactRelationshipType.RELATIVE
-  ContactsContract.CommonDataKinds.Relation.TYPE_SPOUSE -> ContactRelationshipType.SPOUSE
-  ContactsContract.CommonDataKinds.Relation.TYPE_PARTNER -> ContactRelationshipType.PARTNER
-  ContactsContract.CommonDataKinds.Relation.TYPE_ASSISTANT -> ContactRelationshipType.ASSISTANT
-  ContactsContract.CommonDataKinds.Relation.TYPE_MANAGER -> ContactRelationshipType.MANAGER
-  ContactsContract.CommonDataKinds.Relation.TYPE_CUSTOM -> ContactRelationshipType.CUSTOM
-  else -> ContactRelationshipType.OTHER
+	ContactsContract.CommonDataKinds.Relation.TYPE_PARENT -> ContactRelationshipType.PARENT
+	ContactsContract.CommonDataKinds.Relation.TYPE_BROTHER -> ContactRelationshipType.BROTHER
+	ContactsContract.CommonDataKinds.Relation.TYPE_SISTER -> ContactRelationshipType.SISTER
+	ContactsContract.CommonDataKinds.Relation.TYPE_CHILD -> ContactRelationshipType.CHILD
+	ContactsContract.CommonDataKinds.Relation.TYPE_FRIEND -> ContactRelationshipType.FRIEND
+	ContactsContract.CommonDataKinds.Relation.TYPE_RELATIVE -> ContactRelationshipType.RELATIVE
+	ContactsContract.CommonDataKinds.Relation.TYPE_SPOUSE -> ContactRelationshipType.SPOUSE
+	ContactsContract.CommonDataKinds.Relation.TYPE_PARTNER -> ContactRelationshipType.PARTNER
+	ContactsContract.CommonDataKinds.Relation.TYPE_ASSISTANT -> ContactRelationshipType.ASSISTANT
+	ContactsContract.CommonDataKinds.Relation.TYPE_MANAGER -> ContactRelationshipType.MANAGER
+	ContactsContract.CommonDataKinds.Relation.TYPE_CUSTOM -> ContactRelationshipType.CUSTOM
+	else -> ContactRelationshipType.OTHER
 }
 
 fun websiteTypeFromAndroid(androidType: Int): ContactWebsiteType = when (androidType) {
-  ContactsContract.CommonDataKinds.Website.TYPE_HOME -> ContactWebsiteType.PRIVATE
-  ContactsContract.CommonDataKinds.Website.TYPE_WORK -> ContactWebsiteType.WORK
-  ContactsContract.CommonDataKinds.Website.TYPE_CUSTOM -> ContactWebsiteType.CUSTOM
-  else -> ContactWebsiteType.WORK
+	ContactsContract.CommonDataKinds.Website.TYPE_HOME -> ContactWebsiteType.PRIVATE
+	ContactsContract.CommonDataKinds.Website.TYPE_WORK -> ContactWebsiteType.WORK
+	ContactsContract.CommonDataKinds.Website.TYPE_CUSTOM -> ContactWebsiteType.CUSTOM
+	else -> ContactWebsiteType.WORK
 }
 
 fun dateTypeFromAndroid(androidType: Int): ContactCustomDateType = when (androidType) {
-  ContactsContract.CommonDataKinds.Event.TYPE_ANNIVERSARY -> ContactCustomDateType.ANNIVERSARY
-  ContactsContract.CommonDataKinds.Event.TYPE_CUSTOM -> ContactCustomDateType.CUSTOM
-  else -> ContactCustomDateType.OTHER
+	ContactsContract.CommonDataKinds.Event.TYPE_ANNIVERSARY -> ContactCustomDateType.ANNIVERSARY
+	ContactsContract.CommonDataKinds.Event.TYPE_CUSTOM -> ContactCustomDateType.CUSTOM
+	else -> ContactCustomDateType.OTHER
 }
 
 fun addressTypeFromAndroid(androidType: Int): ContactAddressType = when (androidType) {
-  ContactsContract.CommonDataKinds.Email.TYPE_HOME -> ContactAddressType.PRIVATE
-  ContactsContract.CommonDataKinds.Email.TYPE_WORK -> ContactAddressType.WORK
-  ContactsContract.CommonDataKinds.Email.TYPE_CUSTOM -> ContactAddressType.CUSTOM
-  ContactsContract.CommonDataKinds.Email.TYPE_OTHER -> ContactAddressType.OTHER
-  else -> ContactAddressType.OTHER
+	ContactsContract.CommonDataKinds.Email.TYPE_HOME -> ContactAddressType.PRIVATE
+	ContactsContract.CommonDataKinds.Email.TYPE_WORK -> ContactAddressType.WORK
+	ContactsContract.CommonDataKinds.Email.TYPE_CUSTOM -> ContactAddressType.CUSTOM
+	ContactsContract.CommonDataKinds.Email.TYPE_OTHER -> ContactAddressType.OTHER
+	else -> ContactAddressType.OTHER
 }
 
 fun phoneNumberTypeFromAndroid(androidType: Int): ContactPhoneNumberType = when (androidType) {
-  ContactsContract.CommonDataKinds.Phone.TYPE_HOME -> ContactPhoneNumberType.PRIVATE
-  ContactsContract.CommonDataKinds.Phone.TYPE_WORK -> ContactPhoneNumberType.WORK
-  ContactsContract.CommonDataKinds.Phone.TYPE_MOBILE -> ContactPhoneNumberType.MOBILE
-  ContactsContract.CommonDataKinds.Phone.TYPE_OTHER_FAX -> ContactPhoneNumberType.FAX
-  ContactsContract.CommonDataKinds.Phone.TYPE_OTHER -> ContactPhoneNumberType.OTHER
-  ContactsContract.CommonDataKinds.Phone.TYPE_CUSTOM -> ContactPhoneNumberType.CUSTOM
-  else -> ContactPhoneNumberType.OTHER
+	ContactsContract.CommonDataKinds.Phone.TYPE_HOME -> ContactPhoneNumberType.PRIVATE
+	ContactsContract.CommonDataKinds.Phone.TYPE_WORK -> ContactPhoneNumberType.WORK
+	ContactsContract.CommonDataKinds.Phone.TYPE_MOBILE -> ContactPhoneNumberType.MOBILE
+	ContactsContract.CommonDataKinds.Phone.TYPE_OTHER_FAX -> ContactPhoneNumberType.FAX
+	ContactsContract.CommonDataKinds.Phone.TYPE_OTHER -> ContactPhoneNumberType.OTHER
+	ContactsContract.CommonDataKinds.Phone.TYPE_CUSTOM -> ContactPhoneNumberType.CUSTOM
+	else -> ContactPhoneNumberType.OTHER
 }
 
 fun AndroidAddress.toStructured() = StructuredAddress(
