@@ -6,8 +6,8 @@ plugins {
 }
 
 android {
-	compileSdkVersion 33
 	defaultConfig {
+		compileSdk 33
 		applicationId "de.tutao.tutanota"
 		minSdkVersion 23
 		targetSdkVersion 33
@@ -65,6 +65,10 @@ android {
 		}
 	}
 
+	buildFeatures {
+		buildConfig = true
+	}
+
 	applicationVariants.all { variant ->
 		variant.outputs.all { output ->
 			def flavor = variant.productFlavors[0].name
@@ -80,9 +84,14 @@ android {
 	}
 
 	compileOptions {
-		sourceCompatibility JavaVersion.VERSION_1_8
-		targetCompatibility JavaVersion.VERSION_1_8
+		sourceCompatibility = JavaVersion.VERSION_17
+		targetCompatibility = JavaVersion.VERSION_17
 	}
+
+	kotlinOptions {
+		jvmTarget = "17"
+	}
+
 	packagingOptions {
 		resources {
 			excludes += ['META-INF/LICENSE', 'META-INF/ASL2.0']
