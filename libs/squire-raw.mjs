@@ -1909,9 +1909,13 @@ var _onKey = function (event) {
 	if (event.defaultPrevented || event.isComposing) {
 		return;
 	}
-	// tutao: we need to normalize in case key combo includes "Shift" as it will be set as uppercase letter
+	// tutao: we need to lowercase the last letter in case the key combo contains "Shift" as it will be set as uppercase letter
 	// see https://github.com/fastmail/Squire/issues/457
-	let key = event.key.toLowerCase();
+	let key = event.key;
+	const lastCharacterIndex = key.length - 1
+	const lastCharacter = key.charAt(lastCharacterIndex)
+	key = key.substring(0, lastCharacterIndex) + lastCharacter.toLowerCase()
+
 	let modifiers = "";
 	if (key !== "Backspace" && key !== "Delete") {
 		if (event.altKey) {
