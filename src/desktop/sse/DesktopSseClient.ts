@@ -418,6 +418,8 @@ export class DesktopSseClient {
 	}
 
 	_handleNotificationInfo(title: string, ni: NotificationInfo): void {
+		// FIXME remove
+		console.log("Missed notification with mail id", ni)
 		const w = this._wm.getAll().find((w) => w.getUserId() === ni.userId)
 
 		if (w && w.isFocused()) {
@@ -425,7 +427,7 @@ export class DesktopSseClient {
 			return
 		}
 
-		this._notifier.submitGroupedNotification(title, `${ni.mailAddress} (${ni.counter})`, ni.userId, (res) => {
+		this._notifier.submitGroupedNotification(title, `${ni.mailAddress}`, ni.userId, (res) => {
 			if (res === NotificationResult.Click) {
 				this._wm.openMailBox({
 					userId: ni.userId,
