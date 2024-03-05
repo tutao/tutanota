@@ -92,10 +92,9 @@ function weekTitle(date: Date, weekStart: WeekStart): string {
 
 	if (firstDate.getMonth() !== lastDate.getMonth()) {
 		if (firstDate.getFullYear() !== lastDate.getFullYear()) {
-			return `${lang.formats.monthLong.format(firstDate)} ${lang.formats.yearNumeric.format(firstDate)} -
-											${lang.formats.monthLong.format(lastDate)} ${lang.formats.yearNumeric.format(lastDate)}`
+			return `${lang.formats.monthShortWithFullYear.format(firstDate)} - ${lang.formats.monthShortWithFullYear.format(lastDate)}`
 		}
-		return `${lang.formats.monthLong.format(firstDate)} - ${lang.formats.monthLong.format(lastDate)} ${lang.formats.yearNumeric.format(firstDate)}`
+		return `${lang.formats.monthShort.format(firstDate)} - ${lang.formats.monthShort.format(lastDate)} ${lang.formats.yearNumeric.format(firstDate)}`
 	} else {
 		return `${lang.formats.monthLong.format(firstDate)} ${lang.formats.yearNumeric.format(firstDate)}`
 	}
