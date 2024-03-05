@@ -135,25 +135,14 @@ export class DaySelector implements Component<DaySelectorAttrs> {
 
 	private renderDay({ date, day, isPaddingDay }: CalendarDay, attrs: DaySelectorAttrs, hidden: boolean): Children {
 		const isSelectedDay = isSameDayOfDate(date, attrs.selectedDate)
-		let circleStyle = {}
-		let textStyle = {}
+		let circleClass = ""
+		let textClass = ""
 		if (isSelectedDay && attrs.showDaySelection) {
-			circleStyle = {
-				backgroundColor: theme.content_accent,
-				opacity: "0.20",
-			}
-			textStyle = {
-				color: theme.content_accent,
-				fontWeight: "bold",
-			}
+			circleClass = "calendar-selected-day-circle"
+			textClass = "calendar-selected-day-text"
 		} else if (isToday(date) && attrs.highlightToday) {
-			circleStyle = {
-				backgroundColor: theme.content_button,
-				opacity: "0.25",
-			}
-			textStyle = {
-				fontWeight: "bold",
-			}
+			circleClass = "calendar-current-day-circle"
+			textClass = "calendar-current-day-text"
 		}
 
 		const size = this.getElementSize(attrs)
@@ -171,8 +160,8 @@ export class DaySelector implements Component<DaySelectorAttrs> {
 			},
 			[
 				m(".abs.z1.circle", {
+					class: circleClass,
 					style: {
-						...circleStyle,
 						width: px(size * 0.625),
 						height: px(size * 0.625),
 					},
@@ -180,8 +169,8 @@ export class DaySelector implements Component<DaySelectorAttrs> {
 				m(
 					".full-width.height-100p.center.z2",
 					{
+						class: textClass,
 						style: {
-							...textStyle,
 							fontSize: px(attrs.wide ? 14 : 12),
 						},
 					},

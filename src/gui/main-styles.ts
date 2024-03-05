@@ -2103,6 +2103,20 @@ styles.registerStyle("main", () => {
 			"font-weight": "600",
 			"box-sizing": "content-box",
 		},
+		".calendar-current-day-circle": {
+			"background-color": theme.content_button,
+		},
+		".calendar-selected-day-circle": {
+			"background-color": theme.content_accent,
+		},
+		".calendar-current-day-text": {
+			color: theme.content_bg,
+			"font-weight": "bold",
+		},
+		".calendar-selected-day-text": {
+			color: theme.content_bg,
+			"font-weight": "bold",
+		},
 		".animation-reverse": {
 			"animation-direction": "reverse",
 		},

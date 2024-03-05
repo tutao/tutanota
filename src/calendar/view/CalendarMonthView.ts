@@ -39,7 +39,6 @@ import type { CalendarEventBubbleClickHandler, EventsOnDays } from "./CalendarVi
 import { Time } from "../date/Time.js"
 import { client } from "../../misc/ClientDetector"
 import { locator } from "../../api/main/MainLocator.js"
-import { theme } from "../../gui/theme.js"
 import { PageView } from "../../gui/base/PageView.js"
 import { DaysToEvents } from "../date/CalendarEventsRepository.js"
 
@@ -280,21 +279,6 @@ export class CalendarMonthView implements Component<CalendarMonthAttrs>, ClassCo
 		{ date, day, isPaddingDay }: CalendarDay,
 		onDateSelected: (date: Date, calendarViewTypeToShow: CalendarViewType) => unknown,
 	): Children {
-		let circleStyle
-		let textStyle
-		if (isToday(date)) {
-			circleStyle = {
-				backgroundColor: theme.content_button,
-				opacity: "0.25",
-			}
-			textStyle = {
-				fontWeight: "bold",
-			}
-		} else {
-			circleStyle = {}
-			textStyle = {}
-		}
-
 		const size = styles.isDesktopLayout() ? px(22) : px(20)
 		return m(
 			".rel.click.flex.items-center.justify-center.rel.ml-hpad_small",
@@ -307,8 +291,8 @@ export class CalendarMonthView implements Component<CalendarMonthAttrs>, ClassCo
 			},
 			[
 				m(".abs.z1.circle", {
+					class: isToday(date) ? "calendar-current-day-circle" : "",
 					style: {
-						...circleStyle,
 						width: size,
 						height: size,
 					},
@@ -316,8 +300,8 @@ export class CalendarMonthView implements Component<CalendarMonthAttrs>, ClassCo
 				m(
 					".full-width.height-100p.center.z2",
 					{
+						class: isToday(date) ? "calendar-current-day-text" : "",
 						style: {
-							...textStyle,
 							opacity: isPaddingDay ? 0.4 : 1,
 							fontWeight: isPaddingDay ? "500" : null,
 							fontSize: styles.isDesktopLayout() ? "14px" : "12px",

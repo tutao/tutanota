@@ -592,22 +592,6 @@ export class MultiDayCalendarView implements Component<MultiDayCalendarViewAttrs
 				// the click handler is set on each child individually so as to not make the entire flex container clickable, only the text
 				const onclick = () => onDateSelected(day, CalendarViewType.DAY)
 
-				let circleStyle
-				let textStyle
-
-				if (isToday(day)) {
-					circleStyle = {
-						backgroundColor: theme.content_button,
-						opacity: "0.25",
-					}
-					textStyle = {
-						fontWeight: "bold",
-					}
-				} else {
-					circleStyle = {}
-					textStyle = {}
-				}
-
 				return m(".flex.center-horizontally.flex-grow.center.b", [
 					m(
 						".calendar-day-indicator.clickable",
@@ -627,8 +611,8 @@ export class MultiDayCalendarView implements Component<MultiDayCalendarViewAttrs
 						},
 						[
 							m(".abs.z1.circle", {
+								class: isToday(day) ? "calendar-current-day-circle" : "",
 								style: {
-									...circleStyle,
 									width: px(25),
 									height: px(25),
 								},
@@ -636,8 +620,8 @@ export class MultiDayCalendarView implements Component<MultiDayCalendarViewAttrs
 							m(
 								".full-width.height-100p.center.z2",
 								{
+									class: isToday(day) ? "calendar-current-day-text" : "",
 									style: {
-										...textStyle,
 										fontSize: "14px",
 										lineHeight: "25px",
 									},
