@@ -169,7 +169,14 @@ export class ContactViewer implements ClassComponent<ContactViewerAttrs> {
 			)
 
 		return insertBetween(
-			contact.pronouns.map((pronouns) => m("span", `${pronouns.language}: ${pronouns.pronouns}`)),
+			contact.pronouns.map((pronouns) => {
+				let language = ""
+				if (pronouns.language != "") {
+					language = `${pronouns.language}: `
+				}
+
+				return m("span", `${language}${pronouns.pronouns}`)
+			}),
 			spacerFunction,
 		)
 	}
