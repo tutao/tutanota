@@ -401,7 +401,7 @@ export class ContactEditor {
 			label: getContactCustomDateTypeToLabel(downcast(date.type), date.customTypeName),
 			helpLabel: () => dateHelpText(),
 			cancelAction: () => {
-				findAndRemove(this.mailAddresses, (t) => t[1] === id)
+				findAndRemove(this.customDates, (t) => t[1] === id)
 			},
 			onUpdate: (value) => {
 				date.date = value
@@ -601,7 +601,7 @@ export class ContactEditor {
 			label: pronouns.language,
 			helpLabel: "emptyString_msg",
 			cancelAction: () => {
-				findAndRemove(this.messengerHandles, (t) => t[1] === id)
+				findAndRemove(this.pronouns, (t) => t[1] === id)
 			},
 			onUpdate: (value) => {
 				pronouns.pronouns = value
