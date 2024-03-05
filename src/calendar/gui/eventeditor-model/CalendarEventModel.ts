@@ -393,6 +393,13 @@ export class CalendarEventModel {
 		return this.operation !== CalendarOperation.EditThis && (this.eventType === EventType.OWN || this.eventType === EventType.SHARED_RW)
 	}
 
+	canChangeCalendar(): boolean {
+		return (
+			this.operation !== CalendarOperation.EditThis &&
+			(this.eventType === EventType.OWN || this.eventType === EventType.SHARED_RW || this.eventType === EventType.INVITE)
+		)
+	}
+
 	isAskingForUpdatesNeeded(): boolean {
 		return (
 			this.eventType === EventType.OWN &&
