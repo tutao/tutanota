@@ -1,21 +1,19 @@
 import { emitWizardEvent, WizardEventType } from "../../base/WizardDialog.js"
 import m, { Children, Component, Vnode } from "mithril"
-import { AllIcons, Icon } from "../../base/Icon.js"
 import { LoginButton } from "../../base/buttons/LoginButton.js"
 import { TranslationKey } from "../../../misc/LanguageViewModel.js"
 
 interface SetupPageLayoutAttrs {
-	icon: AllIcons
+	image: string
 	buttonLabel?: TranslationKey
 }
 
 export class SetupPageLayout implements Component<SetupPageLayoutAttrs> {
 	view({ attrs, children }: Vnode<SetupPageLayoutAttrs>): Children {
-		return m("section.center.flex.flex-column.dialog-height-small", [
-			m(Icon, {
-				icon: attrs.icon,
-				class: "icon-xl center-h",
-			}),
+		return m("section.center.flex.flex-column.dialog-height-small.mt", [
+			// Sanitizing the images removes the classes from the svg for unknown reasons
+			// So the svg is used raw for now
+			m(".onboarding-logo.center-h", m.trust(attrs.image)),
 			children,
 			m(LoginButton, {
 				label: attrs.buttonLabel ?? "next_action",

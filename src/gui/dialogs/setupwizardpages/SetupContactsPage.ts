@@ -2,18 +2,18 @@ import m, { Children, Component, Vnode } from "mithril"
 import { WizardPageAttrs } from "../../base/WizardDialog.js"
 import { lang } from "../../../misc/LanguageViewModel.js"
 import { SetupPageLayout } from "./SetupPageLayout.js"
-import { BootIcons } from "../../base/icons/BootIcons.js"
 import { NativeContactsSyncManager } from "../../../contacts/model/NativeContactsSyncManager.js"
 import { ContactImporter } from "../../../contacts/ContactImporter.js"
 import { Dialog } from "../../base/Dialog.js"
 import { MobileSystemFacade } from "../../../native/common/generatedipc/MobileSystemFacade.js"
 import { renderBannerButton } from "../SetupWizard.js"
+import { OnboardingContactsImage } from "../../base/icons/Icons.js"
 
 export class SetupContactsPage implements Component<SetupContactsPageAttrs> {
 	view({ attrs }: Vnode<SetupContactsPageAttrs>): Children {
 		const isContactSyncEnabled = attrs.syncManager.isEnabled()
 
-		return m(SetupPageLayout, { icon: BootIcons.Contacts }, [
+		return m(SetupPageLayout, { image: OnboardingContactsImage }, [
 			m("p", lang.get("importContacts_msg")),
 			renderBannerButton("import_action", () => {
 				attrs.contactImporter.importContactsFromDevice()

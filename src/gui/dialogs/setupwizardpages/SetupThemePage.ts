@@ -1,6 +1,6 @@
 import m, { Children } from "mithril"
 import { WizardPageAttrs, WizardPageN } from "../../base/WizardDialog.js"
-import { Icons } from "../../base/icons/Icons.js"
+import { OnboardingThemeImage } from "../../base/icons/Icons.js"
 import { lang } from "../../../misc/LanguageViewModel.js"
 import { RadioSelector, RadioSelectorAttrs } from "../../base/RadioSelector.js"
 import { themeController, themeOptions, ThemePreference } from "../../theme.js"
@@ -11,7 +11,7 @@ export class SetupThemePage implements WizardPageN<null> {
 		return m(
 			SetupPageLayout,
 			{
-				icon: Icons.Palette,
+				image: OnboardingThemeImage,
 			},
 			m("p.full-width", "Which theme would you like to use?"),
 			m(RadioSelector, {
