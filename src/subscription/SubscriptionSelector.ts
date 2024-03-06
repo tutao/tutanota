@@ -129,7 +129,11 @@ export class SubscriptionSelector implements Component<SubscriptionSelectorAttr>
 				]
 			})
 
-		const showCurrentPlanDiscontinuedHint = vnode.attrs.currentPlanType != null && LegacyPlans.includes(vnode.attrs.currentPlanType)
+		const changePlanMessage = vnode.attrs.msg
+			? lang.getMaybeLazy(vnode.attrs.msg)
+			: vnode.attrs.currentPlanType != null && LegacyPlans.includes(vnode.attrs.currentPlanType)
+			? lang.get("currentPlanDiscontinued_msg")
+			: null
 		return m("", { lang: lang.code }, [
 			showBusinessSelector
 				? m(SegmentControl, {
@@ -141,8 +145,7 @@ export class SubscriptionSelector implements Component<SubscriptionSelectorAttr>
 			m(".flex-center.items-center.mt", [
 				vnode.attrs.priceInfoTextId && lang.exists(vnode.attrs.priceInfoTextId) ? m(".b.center", lang.get(vnode.attrs.priceInfoTextId)) : null,
 			]),
-			vnode.attrs.msg ? m(".b.center.mt", lang.getMaybeLazy(vnode.attrs.msg)) : null,
-			showCurrentPlanDiscontinuedHint ? m(".b.center.mt", lang.get("currentPlanDiscontinued_msg")) : null,
+			changePlanMessage ? m(".b.center.mt", changePlanMessage) : null,
 			m(
 				".flex.center-horizontally.wrap",
 				{
