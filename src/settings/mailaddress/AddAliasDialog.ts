@@ -4,7 +4,7 @@ import { DEFAULT_FREE_MAIL_ADDRESS_SIGNUP_DOMAIN, NewPaidPlans, TUTANOTA_MAIL_AD
 import m from "mithril"
 import { SelectMailAddressForm } from "../SelectMailAddressForm.js"
 import { ExpanderPanel } from "../../gui/base/Expander.js"
-import { getFirstOrThrow } from "@tutao/tutanota-utils"
+import { filterInt, getFirstOrThrow, ofClass } from "@tutao/tutanota-utils"
 import { showProgressDialog } from "../../gui/dialogs/ProgressDialog.js"
 import { InvalidDataError, PreconditionFailedError } from "../../api/common/error/RestError.js"
 import { MailAddressTableModel } from "./MailAddressTableModel.js"
@@ -16,6 +16,15 @@ const FAILURE_USER_DISABLED = "mailaddressaliasservice.group_disabled"
 
 export function showAddAliasDialog(model: MailAddressTableModel, isNewPaidPlan: boolean) {
 	model.getAvailableDomains().then((domains) => {
+		if (model.aliasCount && filterInt(model.aliasCount.usedAliases) >= filterInt(model.aliasCount.totalAliases)) {
+			const hasCustomDomains = domains.some((domain) => !TUTANOTA_MAIL_ADDRESS_DOMAINS.includes(domain.domain))
+
+			if (isNewPaidPlan || !hasCustomDomains) {
+				model.handleTooManyAliases().catch(ofClass(UpgradeRequiredError, (e) => showPlanUpgradeRequiredDialog(e.plans, e.message)))
+				return
+			}
+		}
+
 		let isVerificationBusy = false
 		let mailAddress: string
 		let formErrorId: TranslationKey | null = "mailAddressNeutral_msg"
