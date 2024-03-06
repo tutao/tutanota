@@ -107,6 +107,7 @@ export class SearchBar implements Component<SearchBarAttrs> {
 		if (locator.search.isNewSearch(this.state().query, getRestriction(newPath))) {
 			this.updateState({
 				searchResult: null,
+				selected: null,
 				entities: [],
 			})
 		}

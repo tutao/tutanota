@@ -11,7 +11,7 @@ import { BootIcons } from "../../gui/base/icons/BootIcons"
 import { CalendarEvent, CalendarEventTypeRef, Contact, ContactTypeRef, Mail, MailTypeRef } from "../../api/entities/tutanota/TypeRefs.js"
 import { SearchListView, SearchListViewAttrs } from "./SearchListView"
 import { px, size } from "../../gui/size"
-import { getFreeSearchStartDate, SEARCH_MAIL_FIELDS } from "../model/SearchUtils"
+import { createRestriction, getFreeSearchStartDate, SEARCH_MAIL_FIELDS } from "../model/SearchUtils"
 import { Dialog } from "../../gui/base/Dialog"
 import { locator } from "../../api/main/MainLocator"
 import { getIndentedFolderNameForDropdown } from "../../mail/model/MailUtils"
@@ -151,7 +151,10 @@ export class SearchView extends BaseTopLevelView implements TopLevelView<SearchV
 										m(NavButton, {
 											label: "emails_label",
 											icon: () => BootIcons.Mail,
-											href: () => "/search/mail",
+											href: "#",
+											click: async () => {
+												await this.routeToType("mail")
+											},
 											isSelectedPrefix: "/search/mail",
 											colors: NavButtonColor.Nav,
 											persistentBackground: true,
@@ -162,7 +165,11 @@ export class SearchView extends BaseTopLevelView implements TopLevelView<SearchV
 										m(NavButton, {
 											label: "contacts_label",
 											icon: () => BootIcons.Contacts,
-											href: "/search/contact",
+											href: "#",
+											click: async () => {
+												await this.routeToType("contact")
+											},
+											isSelectedPrefix: "/search/contact",
 											colors: NavButtonColor.Nav,
 											persistentBackground: true,
 										}),
@@ -172,7 +179,11 @@ export class SearchView extends BaseTopLevelView implements TopLevelView<SearchV
 										m(NavButton, {
 											label: "calendar_label",
 											icon: () => BootIcons.Calendar,
-											href: "/search/calendar",
+											href: "#",
+											click: async () => {
+												await this.routeToType("calendar")
+											},
+											isSelectedPrefix: "/search/calendar",
 											colors: NavButtonColor.Nav,
 											persistentBackground: true,
 										}),
@@ -230,6 +241,27 @@ export class SearchView extends BaseTopLevelView implements TopLevelView<SearchV
 			},
 		)
 		this.viewSlider = new ViewSlider([this.folderColumn, this.resultListColumn, this.resultDetailsColumn])
+	}
+
+	private async routeToType(type: string): Promise<void> {
+		let latestRestriction = null
+		// contacts do not have restrictions at this time
+		if (type === "mail") {
+			latestRestriction = this.searchViewModel.latestMailRestriction
+		} else if (type === "calendar") {
+			latestRestriction = this.searchViewModel.latestCalendarRestriction
+		}
+		const searchRouter = await locator.scopedSearchRouter()
+		if (this.searchViewModel.currentQuery) {
+			if (latestRestriction) {
+				this.searchViewModel.router.routeTo(this.searchViewModel.currentQuery, latestRestriction)
+			} else {
+				this.searchViewModel.router.routeTo(this.searchViewModel.currentQuery, createRestriction(type, null, null, null, [], null))
+			}
+		} else {
+			this.searchViewModel.router.routeTo("", createRestriction(type, null, null, null, [], null))
+		}
+		this.viewSlider.focus(this.resultListColumn)
 	}
 
 	private getResultColumnLayout() {
@@ -915,7 +947,7 @@ export class SearchView extends BaseTopLevelView implements TopLevelView<SearchV
 
 	async onNewUrl(args: Record<string, any>, requestedPath: string) {
 		// calling init here too because this is called very early in the lifecycle and onNewUrl won't work properly if init is called
-		// afterwards
+		// afterwords
 		await this.searchViewModel.init()
 		this.searchViewModel.onNewUrl(args, requestedPath)
 		if (

@@ -75,6 +75,8 @@ export class SearchViewModel {
 	_searchResult: SearchResult | null = null
 	private _mailFilterType: MailFilterType | null = null
 	includeRepeatingEvents: boolean = true
+	latestMailRestriction: SearchRestriction | null = null
+	latestCalendarRestriction: SearchRestriction | null = null
 
 	/**
 	 * the type ref that determines which search filters and details
@@ -107,10 +109,10 @@ export class SearchViewModel {
 		m.redraw()
 		return calendarInfos
 	})
-	private currentQuery: string = ""
+	currentQuery: string = ""
 
 	constructor(
-		private readonly router: SearchRouter,
+		readonly router: SearchRouter,
 		private readonly search: SearchModel,
 		private readonly searchFacade: SearchFacade,
 		private readonly mailModel: MailModel,
@@ -270,12 +272,14 @@ export class SearchViewModel {
 				this.endDate = restriction.start ? new Date(restriction.start) : null
 				this.selectedMailFolder = restriction.listIds
 				this.loadAndSelectIfNeeded(args.id)
+				this.latestMailRestriction = restriction
 			} else if (isSameTypeRef(restriction.type, CalendarEventTypeRef)) {
 				this.startDate = restriction.start ? new Date(restriction.start) : null
 				this.endDate = restriction.end ? new Date(restriction.end) : null
 				this.selectedCalendar = this.extractCalendarListIds(restriction.listIds)
 				this.includeRepeatingEvents = restriction.eventSeries ?? true
 				this.lazyCalendarInfos.load()
+				this.latestCalendarRestriction = restriction
 
 				if (args.id != null) {
 					const { start, id } = decodeCalendarSearchKey(args.id)
