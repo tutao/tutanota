@@ -4,7 +4,7 @@ import { PermissionType } from "../../../native/common/generatedipc/PermissionTy
 import { isAndroidApp } from "../../../api/common/Env.js"
 import { lang } from "../../../misc/LanguageViewModel.js"
 import { queryPermissionsState, renderPermissionButton, requestPermission } from "../SetupWizard.js"
-import { Icons } from "../../base/icons/Icons.js"
+import { OnboardingNotificationsImage } from "../../base/icons/Icons.js"
 import Stream from "mithril/stream"
 import { SetupPageLayout } from "./SetupPageLayout.js"
 import { locator } from "../../../api/main/MainLocator.js"
@@ -16,8 +16,8 @@ export interface NotificationPermissionsData {
 
 export class SetupNotificationsPage implements Component<SetupNotificationsPageAttrs> {
 	view({ attrs }: Vnode<SetupNotificationsPageAttrs>): Children {
-		return m(SetupPageLayout, { icon: Icons.Notifications }, [
-			m("p", lang.get("allowNotifications_msg")),
+		return m(SetupPageLayout, { image: OnboardingNotificationsImage }, [
+			m("p.mt-l", lang.get("allowNotifications_msg")),
 			renderPermissionButton("grant_notification_permission_action", attrs.data.isNotificationPermissionGranted, () =>
 				attrs.askForNotificationPermission(),
 			),

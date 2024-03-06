@@ -2,11 +2,14 @@ import m, { Children } from "mithril"
 import { WizardPageAttrs, WizardPageN } from "../../base/WizardDialog.js"
 import { lang } from "../../../misc/LanguageViewModel.js"
 import { SetupPageLayout } from "./SetupPageLayout.js"
-import { BootIcons } from "../../base/icons/BootIcons.js"
+import { OnboardingWelcomeImage } from "../../base/icons/Icons.js"
 
 export class SetupCongratulationsPage implements WizardPageN<null> {
 	view(): Children {
-		return m(SetupPageLayout, { icon: BootIcons.Premium }, [m("h2.pt.b", lang.get("welcome_text")), m("p.full-width.pt-l", lang.get("onboarding_text"))])
+		return m(SetupPageLayout, { image: OnboardingWelcomeImage }, [
+			m("h2.mt-l.mb-l.b", lang.get("welcome_text")),
+			m("p.full-width.pt-l", lang.get("onboarding_text")),
+		])
 	}
 }
 

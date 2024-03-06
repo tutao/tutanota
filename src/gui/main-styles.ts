@@ -1421,7 +1421,7 @@ styles.registerStyle("main", () => {
 			"margin-left": "0",
 		},
 		".dialog-height-small": {
-			height: px(400),
+			height: "65vh",
 		},
 		".dialog-max-height": {
 			"max-height": "calc(100vh - 100px)",
@@ -1740,6 +1740,10 @@ styles.registerStyle("main", () => {
 		".payment-logo": {
 			// that's the size of the SVG and it seems to be a good size
 			width: "124px",
+		},
+		".onboarding-logo, .onboarding-logo > svg": {
+			width: px(130),
+			height: px(130),
 		},
 		// contact
 		".wrapping-row": {

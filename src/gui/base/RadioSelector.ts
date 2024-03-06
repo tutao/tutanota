@@ -38,7 +38,7 @@ export class RadioSelector<T> implements Component<RadioSelectorAttrs<T>> {
 			".state-bg.border.border-radius.flex.flex-wrap.items-center.mb.pl-l.pr",
 			{
 				// Make the option the same size as a button if a description is not given
-				class: option.helpText != null ? "pt pb" : "button-content",
+				class: option.helpText != null ? "pt pb" : "button-content button-min-height",
 				style: {
 					borderColor: isSelected ? theme.content_accent : theme.content_border,
 					borderWidth: "2px",
