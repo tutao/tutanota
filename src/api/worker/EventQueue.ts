@@ -2,10 +2,10 @@ import { OperationType } from "../common/TutanotaConstants.js"
 import { assertNotNull, findAllAndRemove, isSameTypeRefByAttr, remove } from "@tutao/tutanota-utils"
 import { ConnectionError, ServiceUnavailableError } from "../common/error/RestError.js"
 import type { EntityUpdate } from "../entities/sys/TypeRefs.js"
+import { CustomerInfoTypeRef } from "../entities/sys/TypeRefs.js"
 import { ProgrammingError } from "../common/error/ProgrammingError.js"
 import { MailTypeRef } from "../entities/tutanota/TypeRefs.js"
 import { isSameId } from "../common/utils/EntityUtils.js"
-import { CustomerInfoTypeRef } from "../entities/sys/TypeRefs.js"
 import { containsEventOfType, EntityUpdateData, getEventOfType } from "../common/utils/EntityUpdateUtils.js"
 
 export type QueuedBatch = {
@@ -75,20 +75,23 @@ export class EventQueue {
 	readonly _optimizationEnabled: boolean
 	_processingBatch: QueuedBatch | null
 	_paused: boolean
+	readonly name: string
 
 	/**
 	 * @param queueAction which is executed for each batch. Must *never* throw.
 	 */
-	constructor(optimizationEnabled: boolean, queueAction: QueueAction) {
+	constructor(optimizationEnabled: boolean, queueAction: QueueAction, name: string = "default") {
 		this._eventQueue = []
 		this._lastOperationForEntity = new Map()
 		this._queueAction = queueAction
 		this._optimizationEnabled = optimizationEnabled
 		this._processingBatch = null
 		this._paused = false
+		this.name = name
 	}
 
 	addBatches(batches: ReadonlyArray<QueuedBatch>) {
+		console.log("EventQueue", this.name, "addBatches() batches:", batches)
 		for (const batch of batches) {
 			this.add(batch.batchId, batch.groupId, batch.events)
 		}
@@ -98,6 +101,7 @@ export class EventQueue {
 	 * @return whether the batch was added (not optimized away)
 	 */
 	add(batchId: Id, groupId: Id, newEvents: ReadonlyArray<EntityUpdate>): boolean {
+		console.log("EventQueue", this.name, "add() newEvents:", newEvents)
 		const newBatch: QueuedBatch = {
 			events: [],
 			groupId,
@@ -239,6 +243,7 @@ export class EventQueue {
 	}
 
 	removeEventsForInstance(elementId: Id, startIndex: number = 0): void {
+		console.log("EventQueue", this.name, "removeEventsForInstance() elementId:", elementId)
 		// this will remove batches with an empty event list
 		findAllAndRemove(
 			this._eventQueue,
@@ -256,6 +261,7 @@ export class EventQueue {
 	}
 
 	start() {
+		console.log("EventQueue", this.name, "start() processingBatch:", this._processingBatch, "paused:", this._paused)
 		if (this._processingBatch) {
 			return
 		}
@@ -273,7 +279,7 @@ export class EventQueue {
 		}
 
 		const next = this._eventQueue[0]
-
+		console.log("EventQueue", this.name, "_processNext() next:", next)
 		if (next) {
 			this._processingBatch = next
 
@@ -304,6 +310,7 @@ export class EventQueue {
 	}
 
 	clear() {
+		console.log("EventQueue", this.name, "clear() next:", this.queueSize())
 		this._eventQueue.splice(0)
 
 		this._processingBatch = null
@@ -314,10 +321,12 @@ export class EventQueue {
 	}
 
 	pause() {
+		console.log("EventQueue", this.name, "pause() paused:", this._paused)
 		this._paused = true
 	}
 
 	resume() {
+		console.log("EventQueue", this.name, "resume() paused:", this._paused)
 		this._paused = false
 		this.start()
 	}

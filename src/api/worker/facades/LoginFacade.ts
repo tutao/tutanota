@@ -326,7 +326,17 @@ export class LoginFacade {
 			verifier: newAuthVerifier,
 			oldVerifier: currentAuthVerifier,
 		})
-		console.log("Migrate KDF from:", user.kdfVersion, "to", targetKdfType)
+
+		console.log(
+			"Migrate KDF from:",
+			user.kdfVersion,
+			"to",
+			targetKdfType,
+			"current",
+			uint8ArrayToBase64(currentAuthVerifier),
+			"new",
+			uint8ArrayToBase64(newAuthVerifier),
+		)
 		return this.serviceExecutor.post(ChangeKdfService, changeKdfPostIn)
 	}
 

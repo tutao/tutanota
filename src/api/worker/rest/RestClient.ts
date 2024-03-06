@@ -244,7 +244,10 @@ export class RestClient {
 
 			if (!isNaN(serverTime)) {
 				const now = Date.now()
+
 				this.serverTimeOffsetMs = serverTime - now
+				// console.log("xxxx server time offset", serverTime, " serverTimeOffsetMs", this.serverTimeOffsetMs)
+				this.getServerTimestampMs()
 			}
 		}
 	}
@@ -256,7 +259,10 @@ export class RestClient {
 	 */
 	getServerTimestampMs(): number {
 		const timeOffset = assertNotNull(this.serverTimeOffsetMs, "You can't get server time if no rest requests were made")
-		return Date.now() + timeOffset
+		const clientTime = Date.now()
+		const serverTime = clientTime + timeOffset
+		console.log("xxxx Time client: ", clientTime, "server:", serverTime, "diff", clientTime - serverTime, "serverTimeOffsetMs", this.serverTimeOffsetMs)
+		return serverTime
 	}
 
 	/**

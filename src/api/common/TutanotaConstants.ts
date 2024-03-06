@@ -286,7 +286,7 @@ export const Const: ConstType = {
 	// because it will be redirected to tuta.com after new domain deploy.
 	U2F_LEGACY_APPID: "https://tutanota.com/u2f-appid.json",
 	// Controls actual execution of the KDF migration
-	EXECUTE_KDF_MIGRATION: false,
+	EXECUTE_KDF_MIGRATION: true,
 } as const
 
 export const TUTANOTA_MAIL_ADDRESS_DOMAINS: ReadonlyArray<string> = Object.freeze([

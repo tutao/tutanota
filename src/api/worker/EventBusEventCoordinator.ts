@@ -67,13 +67,18 @@ export class EventBusEventCoordinator implements EventBusListener {
 		// This is a compromise to not add entityClient to UserFacade which would introduce a circular dep.
 		for (const update of data) {
 			const user = this.userFacade.getUser()
+			if (isSameTypeRefByAttr(UserTypeRef, update.application, update.type) && !user) {
+				console.log("EventBusEventCoordinator - updateUser no user on userFacade")
+			}
 			if (
 				user != null &&
 				update.operation === OperationType.UPDATE &&
 				isSameTypeRefByAttr(UserTypeRef, update.application, update.type) &&
 				isSameId(user._id, update.instanceId)
 			) {
-				this.userFacade.updateUser(await this.entityClient.load(UserTypeRef, user._id))
+				const newUser = await this.entityClient.load(UserTypeRef, user._id)
+				console.log("EventBusEventCoordinator - updateUser. old:", user, "new", newUser)
+				this.userFacade.updateUser(newUser)
 			}
 		}
 	}
