@@ -183,6 +183,7 @@ export class GroupListView implements UpdatableSettingsViewer {
 					}
 				}
 			},
+			type: GroupInfoTypeRef,
 		})
 
 		listModel.setFilter((item: GroupInfo) => this.groupFilter(item) && this.queryFilter(item))

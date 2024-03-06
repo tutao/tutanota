@@ -91,6 +91,7 @@ export class ContactListViewModel {
 				return this.entityClient.load(ContactListEntryTypeRef, [listId, elementId])
 			},
 			sortCompare: (rl1, rl2) => rl1.emailAddress.localeCompare(rl2.emailAddress),
+			type: ContactListEntryTypeRef,
 		})
 
 		this.listModelStateStream?.end(true)

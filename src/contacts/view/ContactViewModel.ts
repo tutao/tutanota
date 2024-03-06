@@ -39,6 +39,7 @@ export class ContactViewModel {
 			return this.entityClient.load(ContactTypeRef, [listId, elementId])
 		},
 		sortCompare: (c1, c2) => compareContacts(c1, c2, this.sortByFirstName),
+		type: ContactTypeRef,
 	})
 
 	async init(contactListId?: Id, contactId?: Id) {

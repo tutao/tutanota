@@ -100,6 +100,7 @@ export class KnowledgeBaseListView implements UpdatableSettingsViewer {
 			loadSingle: (elementId) => {
 				return this.entityClient.load<KnowledgeBaseEntry>(KnowledgeBaseEntryTypeRef, [this.getListId(), elementId])
 			},
+			type: KnowledgeBaseEntryTypeRef,
 		})
 
 		listModel.setFilter((item: KnowledgeBaseEntry) => this.queryFilter(item))

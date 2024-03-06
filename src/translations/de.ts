@@ -1686,5 +1686,11 @@ export default {
 		"dates_label": "Daten",
 		"relationships_label": "Beziehungen",
 		"importContacts_msg": "Importiere du Kontakte aus deinem Telefonbuch, um sie auf allen deinen Geräten verfügbar zu machen."
+		"you_label": "Du",
+		"general_label": "Allgemeine",
+		"behaviorAfterMovingEmail_label": "Verhalten nach dem Verschieben einer E-Mail",
+		"showOlder_label": "Ältere anzeigen",
+		"showNewer_label": "Neuere anzeigen",
+		"showNone_label": "Keine anzeigen"
 	}
 }

@@ -1,5 +1,5 @@
 import o from "@tutao/otest"
-import { DeviceConfig, migrateConfig, migrateConfigV2to3 } from "../../../src/misc/DeviceConfig.js"
+import { BehaviorAfterMoveEmailAction, DeviceConfig, migrateConfig, migrateConfigV2to3 } from "../../../src/misc/DeviceConfig.js"
 import { PersistentCredentials } from "../../../src/misc/credentials/CredentialsProvider.js"
 import { matchers, object, when } from "testdouble"
 import { verify } from "@tutao/tutanota-test-utils"
@@ -101,6 +101,7 @@ o.spec("DeviceConfig", function () {
 				hasParticipatedInCredentialsMigration: false,
 				syncContactsWithPhonePreference: {},
 				isCalendarDaySelectorExpanded: false,
+				behaviorAfterMoveEmailAction: BehaviorAfterMoveEmailAction.OLDER,
 				isSetupComplete: true,
 			}
 

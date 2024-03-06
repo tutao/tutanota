@@ -672,6 +672,7 @@ export class SearchViewModel {
 					return sortCompareByReverseId(o1.entry, o2.entry)
 				}
 			},
+			type: this.searchedType,
 		})
 	}
 
