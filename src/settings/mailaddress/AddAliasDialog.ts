@@ -1,6 +1,6 @@
 import { lang, TranslationKey } from "../../misc/LanguageViewModel.js"
 import { Dialog } from "../../gui/base/Dialog.js"
-import { NewPaidPlans, TUTANOTA_MAIL_ADDRESS_DOMAINS } from "../../api/common/TutanotaConstants.js"
+import { DEFAULT_FREE_MAIL_ADDRESS_SIGNUP_DOMAIN, NewPaidPlans, TUTANOTA_MAIL_ADDRESS_DOMAINS } from "../../api/common/TutanotaConstants.js"
 import m from "mithril"
 import { SelectMailAddressForm } from "../SelectMailAddressForm.js"
 import { ExpanderPanel } from "../../gui/base/Expander.js"
@@ -20,6 +20,9 @@ export function showAddAliasDialog(model: MailAddressTableModel, isNewPaidPlan: 
 		let mailAddress: string
 		let formErrorId: TranslationKey | null = "mailAddressNeutral_msg"
 		let formDomain = getFirstOrThrow(domains)
+		if (!isNewPaidPlan) {
+			formDomain = domains.find((domain) => domain.domain === DEFAULT_FREE_MAIL_ADDRESS_SIGNUP_DOMAIN) ?? formDomain
+		}
 		let senderName = model.defaultSenderName()
 
 		const addEmailAliasOkAction = (dialog: Dialog) => {
