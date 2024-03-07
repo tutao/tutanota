@@ -6,17 +6,17 @@ import android.content.Context
 import android.content.Intent
 import android.util.Log
 import de.tutao.tutanota.BuildConfig
-import java.util.*
+import java.util.Date
 
 
 class SystemAlarmFacade(private val context: Context) {
 	fun scheduleAlarmOccurrenceWithSystem(
-			alarmTime: Date,
-			occurrence: Int,
-			identifier: String,
-			summary: String,
-			eventDate: Date,
-			user: String
+		alarmTime: Date,
+		occurrence: Int,
+		identifier: String,
+		summary: String,
+		eventDate: Date,
+		user: String
 	) {
 		if (BuildConfig.DEBUG) {
 			Log.d(TAG, "Scheduled notification $identifier at $alarmTime")
@@ -39,14 +39,14 @@ class SystemAlarmFacade(private val context: Context) {
 		get() = context.getSystemService(Context.ALARM_SERVICE) as AlarmManager
 
 	private fun makeAlarmPendingIntent(
-			occurrence: Int,
-			identifier: String,
-			summary: String,
-			eventDate: Date,
-			user: String?
+		occurrence: Int,
+		identifier: String,
+		summary: String,
+		eventDate: Date,
+		user: String?
 	): PendingIntent {
 		val intent: Intent =
-				AlarmBroadcastReceiver.makeAlarmIntent(context, occurrence, identifier, summary, eventDate, user)
+			AlarmBroadcastReceiver.makeAlarmIntent(context, occurrence, identifier, summary, eventDate, user)
 		return PendingIntent.getBroadcast(context, 1, intent, PendingIntent.FLAG_IMMUTABLE)
 	}
 
