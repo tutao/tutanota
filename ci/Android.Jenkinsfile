@@ -12,6 +12,10 @@ pipeline {
 		label 'linux'
 	}
 
+	tools {
+		jdk 'jdk-21.0.2'
+	}
+
 	parameters {
 		booleanParam(
 			name: 'RELEASE', defaultValue: false,
