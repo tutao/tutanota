@@ -280,9 +280,9 @@ export async function initLocator(worker: WorkerImpl, browserData: BrowserData) 
 			locator.user,
 			await locator.counters(),
 			locator.cachingEntityClient,
-			locator.rsa,
 			locator.serviceExecutor,
 			assertNotNull(cache),
+			locator.pqFacade,
 		)
 	})
 	locator.userManagement = lazyMemoized(async () => {
@@ -291,11 +291,11 @@ export async function initLocator(worker: WorkerImpl, browserData: BrowserData) 
 			locator.user,
 			await locator.groupManagement(),
 			await locator.counters(),
-			locator.rsa,
 			locator.cachingEntityClient,
 			locator.serviceExecutor,
 			mainInterface.operationProgressTracker,
 			locator.login,
+			locator.pqFacade,
 		)
 	})
 	locator.customer = lazyMemoized(async () => {

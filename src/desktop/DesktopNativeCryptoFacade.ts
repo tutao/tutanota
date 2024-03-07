@@ -9,7 +9,6 @@ import { NativeCryptoFacade } from "../native/common/generatedipc/NativeCryptoFa
 import { EncryptedFileInfo } from "../native/common/generatedipc/EncryptedFileInfo.js"
 import { RsaPrivateKey } from "../native/common/generatedipc/RsaPrivateKey.js"
 import { RsaPublicKey } from "../native/common/generatedipc/RsaPublicKey.js"
-import { RsaKeyPair } from "../native/common/generatedipc/RsaKeyPair.js"
 import { nonClobberingFilename } from "./PathUtils.js"
 import { TempFs } from "./files/TempFs.js"
 import { KyberKeyPair } from "../native/common/generatedipc/KyberKeyPair.js"
@@ -115,10 +114,6 @@ export class DesktopNativeCryptoFacade implements NativeCryptoFacade {
 
 	randomBytes(count: number): Uint8Array {
 		return this.cryptoFns.randomBytes(count)
-	}
-
-	async generateRsaKey(seed: Uint8Array): Promise<RsaKeyPair> {
-		throw new Error("not implemented for this platform")
 	}
 
 	async rsaDecrypt(privateKey: RsaPrivateKey, data: Uint8Array): Promise<Uint8Array> {

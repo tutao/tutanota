@@ -11,6 +11,7 @@ import {
 import {
 	ContactAddressType,
 	ConversationType,
+	EncryptionAuthStatus,
 	getMailFolderType,
 	GroupType,
 	MailFolderType,
@@ -40,6 +41,8 @@ import { FolderSystem } from "../../api/common/mail/FolderSystem.js"
 import { ListFilter } from "../../misc/ListModel.js"
 import { MailFacade } from "../../api/worker/facades/lazy/MailFacade.js"
 import { getDisplayedSender, isExcludedMailAddress, MailAddressAndName } from "../../api/common/mail/CommonMailUtils.js"
+import { ProgrammingError } from "../../api/common/error/ProgrammingError.js"
+import { FontIcons } from "../../gui/base/icons/FontIcons.js"
 
 assertMainOrNode()
 export const LINE_BREAK = "<br>"
@@ -443,5 +446,30 @@ export function getMailFilterForType(filter: MailFilterType | null): ListFilter<
 			return (mail) => mail.attachments.length > 0
 		case null:
 			return null
+	}
+}
+
+/**
+ * Returns the confidential font icon for the given mail which indicates either RSA or PQ encryption.
+ * The caller must ensure that the mail is in a confidential state.
+ */
+export function getConfidentialFontIcon(mail: Mail): String {
+	const confidentialIcon = getConfidentialIcon(mail)
+	return confidentialIcon === Icons.PQLock ? FontIcons.PQConfidential : FontIcons.Confidential
+}
+
+/**
+ * Returns the confidential icon for the given mail which indicates either RSA or PQ encryption.
+ * The caller must ensure that the mail is in a confidential state.
+ */
+export function getConfidentialIcon(mail: Mail): Icons {
+	if (!mail.confidential) throw new ProgrammingError("mail is not confidential")
+	if (
+		mail.encryptionAuthStatus == EncryptionAuthStatus.PQ_AUTHENTICATION_SUCCEEDED ||
+		mail.encryptionAuthStatus == EncryptionAuthStatus.PQ_AUTHENTICATION_FAILED
+	) {
+		return Icons.PQLock
+	} else {
+		return Icons.Lock
 	}
 }

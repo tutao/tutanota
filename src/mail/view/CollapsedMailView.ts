@@ -1,5 +1,5 @@
 import m, { Children, Component, Vnode } from "mithril"
-import { getFolderIconByType, getMailAddressDisplayText } from "../model/MailUtils.js"
+import { getConfidentialIcon, getFolderIconByType, getMailAddressDisplayText } from "../model/MailUtils.js"
 import { formatDateWithWeekday, formatTime } from "../../misc/Formatter.js"
 import { MailViewerViewModel } from "./MailViewerViewModel.js"
 import { theme } from "../../gui/theme.js"
@@ -45,7 +45,7 @@ export class CollapsedMailView implements Component<CollapsedMailViewAttrs> {
 				m(this.getMailAddressDisplayClasses(viewModel), getMailAddressDisplayText(sender.name, sender.address, true)),
 				m(".flex.ml-between-s.items-center", [
 					mail.attachments.length > 0 ? this.renderIcon(Icons.Attachment) : null,
-					viewModel.isConfidential() ? this.renderIcon(Icons.Lock) : null,
+					viewModel.isConfidential() ? this.renderIcon(getConfidentialIcon(mail)) : null,
 					this.renderIcon(getFolderIconByType(folderInfo.folderType), folderInfo.name),
 					m(".small.font-weight-600", dateTime),
 				]),

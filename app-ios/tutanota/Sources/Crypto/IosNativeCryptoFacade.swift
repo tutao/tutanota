@@ -35,11 +35,6 @@ actor IosNativeCryptoFacade: NativeCryptoFacade {
 		return plaintextPath
 	}
 
-	func generateRsaKey(_ seed: DataWrapper) async throws -> RsaKeyPair {
-		let tutKeyPair = try self.crypto.generateRsaKey(withSeed: seed.data)
-		return RsaKeyPair(tutKeyPair)
-	}
-
 	func rsaEncrypt(_ publicKey: RsaPublicKey, _ data: DataWrapper, _ seed: DataWrapper) async throws -> DataWrapper {
 		try self.crypto.rsaEncrypt(with: publicKey.toObjcKey(), data: data.data, seed: seed.data).wrap()
 	}

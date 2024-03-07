@@ -51,8 +51,6 @@ static NSInteger const TUTAO_IV_BYTE_SIZE = 16;
  */
 @interface TUTCrypto : NSObject
 
-- (TUTKeyPair *_Nullable)generateRsaKeyWithSeed:(NSData * _Nonnull)seed error:(NSError **)error;
-
 - (NSData *_Nullable)rsaEncryptWithPublicKey:(TUTPublicKey *_Nonnull)publicKey
                                         data:(NSData * _Nonnull)data
                                         seed:(NSData * _Nonnull)seed

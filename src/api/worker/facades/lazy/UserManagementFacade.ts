@@ -28,13 +28,13 @@ import {
 	generateRandomSalt,
 	random,
 } from "@tutao/tutanota-crypto"
-import type { RsaImplementation } from "../../crypto/RsaImplementation.js"
 import { EntityClient } from "../../../common/EntityClient.js"
 import { IServiceExecutor } from "../../../common/ServiceRequest.js"
 import { MembershipService, ResetPasswordService, SystemKeysService, UpdateAdminshipService, UserService } from "../../../entities/sys/Services.js"
 import { UserAccountService } from "../../../entities/tutanota/Services.js"
 import { UserFacade } from "../UserFacade.js"
 import { ExposedOperationProgressTracker, OperationId } from "../../../main/OperationProgressTracker.js"
+import { PQFacade } from "../PQFacade.js"
 
 assertWorkerOrNode()
 
@@ -43,11 +43,11 @@ export class UserManagementFacade {
 		private readonly userFacade: UserFacade,
 		private readonly groupManagement: GroupManagementFacade,
 		private readonly counters: CounterFacade,
-		private readonly rsa: RsaImplementation,
 		private readonly entityClient: EntityClient,
 		private readonly serviceExecutor: IServiceExecutor,
 		private readonly operationProgressTracker: ExposedOperationProgressTracker,
 		private readonly loginFacade: LoginFacade,
+		private readonly pqFacade: PQFacade = pqFacade,
 	) {}
 
 	async changeUserPassword(user: User, newPassword: string): Promise<void> {
@@ -206,7 +206,7 @@ export class UserManagementFacade {
 
 		const userGroupKey = aes256RandomKey()
 		const userGroupInfoSessionKey = aes256RandomKey()
-		const keyPair = await this.rsa.generateKey()
+		const keyPair = await this.pqFacade.generateKeyPairs()
 		const userGroupData = await this.groupManagement.generateInternalGroupData(
 			keyPair,
 			userGroupKey,

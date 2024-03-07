@@ -1,8 +1,12 @@
 import o from "@tutao/otest"
-import { createEncryptedMailAddress, createMail, createMailAddress, Mail } from "../../../../../src/api/entities/tutanota/TypeRefs.js"
-import { MailAuthenticationStatus, MailState } from "../../../../../src/api/common/TutanotaConstants.js"
+import { createEncryptedMailAddress, createMail, createMailAddress, Mail, MailTypeRef } from "../../../../../src/api/entities/tutanota/TypeRefs.js"
+import { EncryptionAuthStatus, MailAuthenticationStatus, MailState } from "../../../../../src/api/common/TutanotaConstants.js"
 import { downcast } from "@tutao/tutanota-utils"
 import { getDisplayedSender, isTutanotaTeamAddress, MailAddressAndName } from "../../../../../src/api/common/mail/CommonMailUtils.js"
+import { createTestEntity } from "../../../TestUtils.js"
+import { getConfidentialIcon } from "../../../../../src/mail/model/MailUtils.js"
+import { Icons } from "../../../../../src/gui/base/icons/Icons.js"
+import { ProgrammingError } from "../../../../../src/api/common/error/ProgrammingError.js"
 
 o.spec("MailUtilsTest", function () {
 	function createSystemMail(realSender: MailAddressAndName): Mail {
@@ -88,5 +92,25 @@ o.spec("MailUtilsTest", function () {
 		o(isTutanotaTeamAddress("no-reply@tutao.de")).deepEquals(true)
 		o(isTutanotaTeamAddress("sales@tutao.de")).deepEquals(true)
 		o(isTutanotaTeamAddress("no-reply@tutanota.de")).deepEquals(true)
+	})
+
+	o("getConfidentialIcon", function () {
+		const mail: Mail = createTestEntity(MailTypeRef, { confidential: true, encryptionAuthStatus: EncryptionAuthStatus.PQ_AUTHENTICATION_SUCCEEDED })
+		o(getConfidentialIcon(mail)).equals(Icons.PQLock)
+
+		mail.encryptionAuthStatus = EncryptionAuthStatus.PQ_AUTHENTICATION_FAILED
+		o(getConfidentialIcon(mail)).equals(Icons.PQLock)
+
+		mail.encryptionAuthStatus = EncryptionAuthStatus.AES_NO_AUTHENTICATION
+		o(getConfidentialIcon(mail)).equals(Icons.Lock)
+
+		mail.encryptionAuthStatus = null
+		o(getConfidentialIcon(mail)).equals(Icons.Lock)
+
+		mail.encryptionAuthStatus = EncryptionAuthStatus.RSA_NO_AUTHENTICATION
+		o(getConfidentialIcon(mail)).equals(Icons.Lock)
+
+		mail.confidential = false
+		o(() => getConfidentialIcon(mail)).throws(ProgrammingError)
 	})
 })

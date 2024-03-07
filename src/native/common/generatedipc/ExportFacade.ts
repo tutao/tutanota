@@ -2,6 +2,7 @@
 
 import { MailBundle } from "./MailBundle.js"
 import { DataFile } from "./DataFile.js"
+
 export interface ExportFacade {
 	/**
 	 * Convert mail to .msg format.

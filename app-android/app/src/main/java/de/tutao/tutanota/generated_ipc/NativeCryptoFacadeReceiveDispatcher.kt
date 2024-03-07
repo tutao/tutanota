@@ -54,13 +54,6 @@ class NativeCryptoFacadeReceiveDispatcher(
 				)
 				return json.encodeToString(result)
 			}
-			"generateRsaKey" -> {
-				val seed: DataWrapper = json.decodeFromString(arg[0])
-				val result: RsaKeyPair = this.facade.generateRsaKey(
-					seed,
-				)
-				return json.encodeToString(result)
-			}
 			"argon2idHashRaw" -> {
 				val password: DataWrapper = json.decodeFromString(arg[0])
 				val salt: DataWrapper = json.decodeFromString(arg[1])

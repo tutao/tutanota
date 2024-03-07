@@ -31,9 +31,6 @@ interface NativeCryptoFacade {
 		key: DataWrapper,
 		fileUri: String,
 	): String
-	 suspend fun generateRsaKey(
-		seed: DataWrapper,
-	): RsaKeyPair
 	 suspend fun argon2idHashRaw(
 		password: DataWrapper,
 		salt: DataWrapper,

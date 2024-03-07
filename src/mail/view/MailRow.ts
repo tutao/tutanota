@@ -1,8 +1,8 @@
-import { getMailFolderType, MailFolderType, MailState, ReplyType } from "../../api/common/TutanotaConstants"
+import { EncryptionAuthStatus, getMailFolderType, MailFolderType, MailState, ReplyType } from "../../api/common/TutanotaConstants"
 import { FontIcons } from "../../gui/base/icons/FontIcons"
 import type { Mail } from "../../api/entities/tutanota/TypeRefs.js"
 import { formatTimeOrDateOrYesterday } from "../../misc/Formatter"
-import { getSenderOrRecipientHeading } from "../model/MailUtils"
+import { getConfidentialFontIcon, getSenderOrRecipientHeading } from "../model/MailUtils"
 import { locator } from "../../api/main/MainLocator"
 import m, { Children } from "mithril"
 import Badge from "../../gui/base/Badge"
@@ -281,7 +281,7 @@ export class MailRow implements VirtualRow<Mail> {
 		}
 
 		if (mail.confidential) {
-			iconText += FontIcons.Confidential
+			iconText += getConfidentialFontIcon(mail)
 		}
 
 		if (mail.attachments.length > 0) {

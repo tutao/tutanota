@@ -3,11 +3,11 @@
 import { RsaPublicKey } from "./RsaPublicKey.js"
 import { RsaPrivateKey } from "./RsaPrivateKey.js"
 import { EncryptedFileInfo } from "./EncryptedFileInfo.js"
-import { RsaKeyPair } from "./RsaKeyPair.js"
 import { KyberKeyPair } from "./KyberKeyPair.js"
 import { KyberPublicKey } from "./KyberPublicKey.js"
 import { KyberEncapsulation } from "./KyberEncapsulation.js"
 import { KyberPrivateKey } from "./KyberPrivateKey.js"
+
 export interface NativeCryptoFacade {
 	rsaEncrypt(publicKey: RsaPublicKey, data: Uint8Array, seed: Uint8Array): Promise<Uint8Array>
 
@@ -22,8 +22,6 @@ export interface NativeCryptoFacade {
 	 * Decrypt file specified by the `fileUri`. Returns URI of the decrypted file.
 	 */
 	aesDecryptFile(key: Uint8Array, fileUri: string): Promise<string>
-
-	generateRsaKey(seed: Uint8Array): Promise<RsaKeyPair>
 
 	argon2idHashRaw(password: Uint8Array, salt: Uint8Array, timeCost: number, memoryCost: number, parallelism: number, hashLength: number): Promise<Uint8Array>
 
