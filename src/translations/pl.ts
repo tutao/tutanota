@@ -13,7 +13,7 @@ export default {
 		"other"
 	],
 	"created_at": "2015-01-27T13:13:41Z",
-	"updated_at": "2024-02-16T17:13:20Z",
+	"updated_at": "2024-02-27T19:43:07Z",
 	"source_locale": {
 		"id": "fcd7471b347c8e517663e194dcddf237",
 		"name": "en",
@@ -834,6 +834,7 @@ export default {
 		"mailAddressBusy_msg": "Weryfikacja adresu e-mail...",
 		"mailAddressDelay_msg": "Zbyt wiele prób, spróbuj ponownie później.",
 		"mailAddresses_label": "Adresy e-mail",
+		"mailAddressInfoLegacy_msg": "Wyłączone adresy e-mail można przypisać do innego użytkownika lub skrzynki pocztowej na koncie.",
 		"mailAddressInfo_msg": "Własne adresy domen nie wliczają się do limitu. Wyłączone adresy e-mail można przypisać do innego użytkownika lub skrzynki pocztowej na twoim koncie.",
 		"mailAddressInvalid_msg": "Adres e-mail jest nieprawidłowy.",
 		"mailAddressNANudge_msg": "Adres e-mail nie jest dostępny. Wypróbuj inną domenę z listy rozwijanej.",

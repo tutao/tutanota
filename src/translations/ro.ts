@@ -12,7 +12,7 @@ export default {
 		"other"
 	],
 	"created_at": "2015-02-18T09:07:31Z",
-	"updated_at": "2024-02-23T22:11:13Z",
+	"updated_at": "2024-02-29T18:39:38Z",
 	"source_locale": {
 		"id": "fcd7471b347c8e517663e194dcddf237",
 		"name": "en",
@@ -836,6 +836,7 @@ export default {
 		"mailAddressBusy_msg": "Se verifică adresa de e-mail ...",
 		"mailAddressDelay_msg": "Prea multe cereri, încearcă din nou mai târziu.",
 		"mailAddresses_label": "Adrese de e-mail",
+		"mailAddressInfoLegacy_msg": "Adresele de e-mail dezactivate pot fi realocate unui alt utilizator sau unei alte cutii poștale din contul tău.",
 		"mailAddressInfo_msg": "Adresele de domenii personalizate nu se iau în considerare pentru limită. Adresele de e-mail dezactivate pot fi realocate unui alt utilizator sau unei alte cutii poștale din contul tău.",
 		"mailAddressInvalid_msg": "Adresa de e-mail e greșită.",
 		"mailAddressNANudge_msg": "Adresa de e-mail nu este disponibilă. Încearcă un alt domeniu din listă.",
