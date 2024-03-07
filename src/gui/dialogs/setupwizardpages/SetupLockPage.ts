@@ -76,6 +76,6 @@ export class SetupLockPageAttrs implements WizardPageAttrs<null> {
 	}
 
 	isEnabled(): boolean {
-		return true
+		return this.supportedModes.length > 1
 	}
 }
