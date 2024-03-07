@@ -1,8 +1,18 @@
 package de.tutao.tutanota
 
-import de.tutao.tutanota.alarms.*
+import de.tutao.tutanota.alarms.AlarmInterval
+import de.tutao.tutanota.alarms.AlarmIntervalUnit
 import de.tutao.tutanota.alarms.AlarmModel.calculateAlarmTime
+import de.tutao.tutanota.alarms.AlarmNotificationEntity
 import de.tutao.tutanota.alarms.AlarmNotificationEntity.NotificationSessionKey
+import de.tutao.tutanota.alarms.AlarmNotificationsManager
+import de.tutao.tutanota.alarms.EncryptedAlarmInfo
+import de.tutao.tutanota.alarms.EncryptedAlarmNotification
+import de.tutao.tutanota.alarms.EncryptedRepeatRule
+import de.tutao.tutanota.alarms.EndType
+import de.tutao.tutanota.alarms.RepeatPeriod
+import de.tutao.tutanota.alarms.SystemAlarmFacade
+import de.tutao.tutanota.alarms.toEntity
 import de.tutao.tutanota.push.LocalNotificationsFacade
 import de.tutao.tutanota.push.SseStorage
 import org.junit.Before
@@ -16,13 +26,16 @@ import org.mockito.kotlin.eq
 import org.mockito.stubbing.Answer
 import org.robolectric.RobolectricTestRunner
 import org.robolectric.annotation.Config
+import org.robolectric.annotation.ConscryptMode
 import java.security.KeyStoreException
 import java.security.UnrecoverableEntryException
-import java.util.*
+import java.util.Calendar
+import java.util.Date
 import java.util.concurrent.TimeUnit
 
 @RunWith(RobolectricTestRunner::class)
 @Config(manifest = Config.NONE)
+@ConscryptMode(ConscryptMode.Mode.OFF)
 class AlarmNotificationsManagerTest {
 
 	private lateinit var manager: AlarmNotificationsManager
@@ -41,8 +54,14 @@ class AlarmNotificationsManagerTest {
 		systemAlarmFacade = Mockito.mock(SystemAlarmFacade::class.java)
 		sseStorage = Mockito.mock(SseStorage::class.java)
 		crypto = Mockito.mock(AndroidNativeCryptoFacade::class.java)
-		manager = AlarmNotificationsManager(sseStorage, crypto, systemAlarmFacade, Mockito.mock(LocalNotificationsFacade::class.java))
-		Mockito.`when`(crypto.aesDecryptBase64String(any(), Mockito.anyString())).thenAnswer(Answer { invocation: InvocationOnMock -> (invocation.getArgument<Any>(1) as String).toByteArray() } as Answer<ByteArray>)
+		manager = AlarmNotificationsManager(
+			sseStorage,
+			crypto,
+			systemAlarmFacade,
+			Mockito.mock(LocalNotificationsFacade::class.java)
+		)
+		Mockito.`when`(crypto.aesDecryptBase64String(any(), Mockito.anyString()))
+			.thenAnswer(Answer { invocation: InvocationOnMock -> (invocation.getArgument<Any>(1) as String).toByteArray() } as Answer<ByteArray>)
 		Mockito.`when`(sseStorage.getPushIdentifierSessionKey(pushIdentifierElementId)).thenReturn(pushIdentifierKey)
 	}
 
@@ -52,8 +71,10 @@ class AlarmNotificationsManagerTest {
 		val singleAlarmIdentifier = "singleAlarmIdentifier"
 		val repeatingAlarmIdentifier = "repeatingAlarmIdentifier"
 		val alarmNotification = createEncryptedAlarmNotification(userId, singleAlarmIdentifier, null, null)
-		val repeatRule = EncryptedRepeatRule("1", "1", "Europe/Berlin", EndType.COUNT.ordinal.toString(), "2", emptyList())
-		val repeatingAlarmNotification = createEncryptedAlarmNotification(userId, repeatingAlarmIdentifier, null, repeatRule
+		val repeatRule =
+			EncryptedRepeatRule("1", "1", "Europe/Berlin", EndType.COUNT.ordinal.toString(), "2", emptyList())
+		val repeatingAlarmNotification = createEncryptedAlarmNotification(
+			userId, repeatingAlarmIdentifier, null, repeatRule
 		)
 		val anotherUserAlarm = createEncryptedAlarmNotification("anotherUserId", "someIdentifeir", null, null)
 		val alarms = ArrayList<AlarmNotificationEntity>()
@@ -77,23 +98,30 @@ class AlarmNotificationsManagerTest {
 		val notTooFarSingle = createEncryptedAlarmNotification(userId, notFarIdentifier, startDate, null)
 		manager.scheduleNewAlarms(listOf(notTooFarSingle))
 		val alarmtime = calculateAlarmTime(startDate, null, AlarmInterval(AlarmIntervalUnit.MINUTE, 10))
-		Mockito.verify(systemAlarmFacade).scheduleAlarmOccurrenceWithSystem(alarmtime, 0, notFarIdentifier, "summary", startDate, userId)
+		Mockito.verify(systemAlarmFacade)
+			.scheduleAlarmOccurrenceWithSystem(alarmtime, 0, notFarIdentifier, "summary", startDate, userId)
 	}
 
 	@Test
 	fun testNotScheduleSingleTooFar() {
 		val identifier = "tooFar"
-		val startDate = Date(System.currentTimeMillis() + AlarmNotificationsManager.TIME_IN_THE_FUTURE_LIMIT_MS + TimeUnit.MINUTES.toMillis(20))
+		val startDate = Date(
+			System.currentTimeMillis() + AlarmNotificationsManager.TIME_IN_THE_FUTURE_LIMIT_MS + TimeUnit.MINUTES.toMillis(
+				20
+			)
+		)
 		val tooFarSingle = createEncryptedAlarmNotification(userId, identifier, startDate, null)
 		manager.scheduleNewAlarms(listOf(tooFarSingle))
-		Mockito.verify(systemAlarmFacade, Mockito.never()).scheduleAlarmOccurrenceWithSystem(any(), anyInt(), any(), any(), any(), any())
+		Mockito.verify(systemAlarmFacade, Mockito.never())
+			.scheduleAlarmOccurrenceWithSystem(any(), anyInt(), any(), any(), any(), any())
 	}
 
 	@Test
 	fun someAreTooFarRepeating() {
 		val identifier = "notTooFarR"
 		val startDate = Date(System.currentTimeMillis() - TimeUnit.DAYS.toMillis(1))
-		val repeatRule = EncryptedRepeatRule(RepeatPeriod.WEEKLY.value().toString(), "1", "Europe/Berlin", "0", "0", emptyList())
+		val repeatRule =
+			EncryptedRepeatRule(RepeatPeriod.WEEKLY.value().toString(), "1", "Europe/Berlin", "0", "0", emptyList())
 		val alarmNotification = createEncryptedAlarmNotification(userId, identifier, startDate, repeatRule)
 		manager.scheduleNewAlarms(listOf(alarmNotification))
 
@@ -103,19 +131,26 @@ class AlarmNotificationsManagerTest {
 		// |_|______|_|______|_|______|
 		// s n     s+1 n+1  s+2 n+2   s+3
 		// s - event start, n - now. s+2 is before n+2 so it will occur but s+3 is already too far
-		Mockito.verify(systemAlarmFacade, Mockito.times(2)).scheduleAlarmOccurrenceWithSystem(any(), anyInt(), any(), eq("summary"), any(), eq(userId))
+		Mockito.verify(systemAlarmFacade, Mockito.times(2))
+			.scheduleAlarmOccurrenceWithSystem(any(), anyInt(), any(), eq("summary"), any(), eq(userId))
 	}
 
-	private fun createEncryptedAlarmNotification(userId: String, alarmIdentifier: String, startDate: Date?, repeatRule: EncryptedRepeatRule?): EncryptedAlarmNotification {
+	private fun createEncryptedAlarmNotification(
+		userId: String,
+		alarmIdentifier: String,
+		startDate: Date?,
+		repeatRule: EncryptedRepeatRule?
+	): EncryptedAlarmNotification {
 		val encSessionKey = "encSessionKey".toByteArray()
 		try {
-			Mockito.`when`(crypto.decryptKey(arrayEq(pushIdentifierKey), arrayEq(encSessionKey))).thenReturn(encSessionKey)
+			Mockito.`when`(crypto.decryptKey(arrayEq(pushIdentifierKey), arrayEq(encSessionKey)))
+				.thenReturn(encSessionKey)
 		} catch (cryptoError: CryptoError) {
 			throw RuntimeException(cryptoError)
 		}
 		val notificationSessionKey = NotificationSessionKey(
-				IdTuple("listId", pushIdentifierElementId),
-				encSessionKey.toBase64()
+			IdTuple("listId", pushIdentifierElementId),
+			encSessionKey.toBase64()
 		)
 		val calendar = Calendar.getInstance()
 		if (startDate != null) {
@@ -131,13 +166,14 @@ class AlarmNotificationsManagerTest {
 		val end = calendar.timeInMillis.toString()
 
 		return EncryptedAlarmNotification(
-				operation = OperationType.CREATE,
-				"summary",
-				eventStart = start,
-				eventEnd = end,
-				alarmInfo = EncryptedAlarmInfo("10M", alarmIdentifier),
-				repeatRule = repeatRule,
-				listOf(notificationSessionKey),
-				user = userId)
+			operation = OperationType.CREATE,
+			"summary",
+			eventStart = start,
+			eventEnd = end,
+			alarmInfo = EncryptedAlarmInfo("10M", alarmIdentifier),
+			repeatRule = repeatRule,
+			listOf(notificationSessionKey),
+			user = userId
+		)
 	}
 }
