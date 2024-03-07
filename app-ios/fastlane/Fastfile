@@ -27,6 +27,9 @@ platform :ios do
 			keychain_password: ENV["FASTLANE_KEYCHAIN_PASSWORD"],
 			api_key_path: ENV["API_KEY_JSON_FILE_PATH"]
 		)
+
+		clear_derived_data
+
 		build_app(
 			scheme: "tutanota",
 			output_directory: "releases",
@@ -57,6 +60,9 @@ platform :ios do
 			keychain_password: ENV["FASTLANE_KEYCHAIN_PASSWORD"],
 			api_key_path: ENV["API_KEY_JSON_FILE_PATH"]
 		)
+
+		clear_derived_data
+
 		build_app(
 			scheme: "tutanota",
 			output_directory: "releases",
@@ -79,6 +85,9 @@ platform :ios do
 			keychain_password: ENV["FASTLANE_KEYCHAIN_PASSWORD"],
 			api_key_path: ENV["API_KEY_JSON_FILE_PATH"]
 		)
+
+		clear_derived_data
+
 		build_app(
 			scheme: "tutanota",
 			output_directory: "releases",
@@ -95,6 +104,9 @@ platform :ios do
 		# Create tutanota-3/build if it's not there because we try to copy it during build
 		sh "mkdir -p ../../build"
  		sh "if xcrun simctl list | grep iphone-15-ios-17-2; then echo 'Using existing simulator'; else xcrun simctl create iphone-15-ios-17-2 com.apple.CoreSimulator.SimDeviceType.iPhone-15 com.apple.CoreSimulator.SimRuntime.iOS-17-2; fi"
+
+ 		clear_derived_data
+
 		run_tests(
 				scheme: "tutanota",
 				devices: ["iphone-15-ios-17-2"]
