@@ -1742,8 +1742,13 @@ styles.registerStyle("main", () => {
 			width: "124px",
 		},
 		".onboarding-logo, .onboarding-logo > svg": {
-			width: px(130),
-			height: px(130),
+			width: "fit-content",
+			height: px(160),
+		},
+		".onboarding-logo-large, .onboarding-logo-large > svg": {
+			width: "fit-content",
+			// This value brings the bottom of the illustration inline with the first button on the notifications page
+			height: px(222),
 		},
 		// contact
 		".wrapping-row": {

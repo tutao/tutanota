@@ -17,7 +17,7 @@ export class SetupLockPage implements Component<SetupLockPageAttrs> {
 		return m(SetupPageLayout, { image: OnboardingLockImage, buttonLabel: "finish_action" }, [
 			m(SelectCredentialsEncryptionModeView, {
 				isWithHelpText: false,
-				class: "mt-l",
+				class: "mt",
 				error: attrs.error,
 				supportedModes: attrs.supportedModes,
 				previousSelection: DEFAULT_CREDENTIAL_ENCRYPTION_MODE,

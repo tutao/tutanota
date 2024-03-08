@@ -6,9 +6,9 @@ import { OnboardingWelcomeImage } from "./OnboardingImages.js"
 
 export class SetupCongratulationsPage implements WizardPageN<null> {
 	view(): Children {
-		return m(SetupPageLayout, { image: OnboardingWelcomeImage }, [
-			m("h2.mt-l.mb-l.b", lang.get("welcome_text")),
-			m("p.full-width.pt-l", lang.get("onboarding_text")),
+		return m(SetupPageLayout, { image: OnboardingWelcomeImage, class: "onboarding-logo-large" }, [
+			m("h2.mt-l.b", lang.get("welcome_text")),
+			m("p.mt-s.full-width", lang.get("onboarding_text")),
 		])
 	}
 }

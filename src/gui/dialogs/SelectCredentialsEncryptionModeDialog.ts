@@ -63,7 +63,7 @@ class CredentialEncryptionMethodDialog {
 						: null,
 					m(SelectCredentialsEncryptionModeView, {
 						isWithHelpText: true,
-						class: "pt plr-l mb-xxl height-100p",
+						class: "scroll pt plr-l mb-xxl height-100p",
 						error: this._error,
 						onConfirm: (mode) => this._onModeSelected(mode),
 						supportedModes: this._supportedModes,
@@ -142,7 +142,7 @@ export class SelectCredentialsEncryptionModeView implements Component<SelectCred
 		const { onConfirm } = attrs
 		return [
 			m(
-				".flex.col.scroll",
+				".flex.col",
 				{
 					class: attrs.class,
 				},

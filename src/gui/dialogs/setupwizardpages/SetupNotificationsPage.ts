@@ -17,14 +17,14 @@ export interface NotificationPermissionsData {
 export class SetupNotificationsPage implements Component<SetupNotificationsPageAttrs> {
 	view({ attrs }: Vnode<SetupNotificationsPageAttrs>): Children {
 		return m(SetupPageLayout, { image: OnboardingNotificationsImage }, [
-			m("p.mt-l", lang.get("allowNotifications_msg")),
+			m("p.mb-s", lang.get("allowNotifications_msg")),
 			renderPermissionButton("grant_notification_permission_action", attrs.data.isNotificationPermissionGranted, () =>
 				attrs.askForNotificationPermission(),
 			),
 			!isAndroidApp()
 				? null
-				: m("section.mt.mb", [
-						m("p", lang.get("allowBatteryPermission_msg")),
+				: m("section.mt-s.mb", [
+						m("p.mb-s.mt-s", lang.get("allowBatteryPermission_msg")),
 						renderPermissionButton("grant_battery_permission_action", attrs.data.isBatteryPermissionGranted, () =>
 							attrs.askForBatteryNotificationPermission(),
 						),

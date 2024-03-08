@@ -26,7 +26,7 @@ export function renderBannerButton(text: TranslationKey, onclick: ClickHandler, 
 		text,
 		borderColor: theme.content_accent,
 		color: theme.content_accent,
-		class: "b full-width mt-s button-content " + classes,
+		class: "b full-width button-content " + classes,
 		click: (event: MouseEvent, dom: HTMLElement) => {
 			onclick(event, dom)
 		},

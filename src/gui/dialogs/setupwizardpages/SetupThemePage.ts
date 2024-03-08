@@ -17,6 +17,7 @@ export class SetupThemePage implements WizardPageN<null> {
 			m(RadioSelector, {
 				name: "theme_label",
 				options: themeOptions,
+				class: "mb-s",
 				selectedOption: themeController.themePreference,
 				onOptionSelected: (option) => {
 					themeController.setThemePreference(option, true)

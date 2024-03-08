@@ -14,11 +14,11 @@ export class SetupContactsPage implements Component<SetupContactsPageAttrs> {
 		const isContactSyncEnabled = attrs.syncManager.isEnabled()
 
 		return m(SetupPageLayout, { image: OnboardingContactsImage }, [
-			m("p", lang.get("importContacts_msg")),
+			m("p.mb-s", lang.get("importContacts_msg")),
 			renderBannerButton("import_action", () => {
 				attrs.contactImporter.importContactsFromDevice()
 			}),
-			m("p", lang.get("allowContactSynchronization")),
+			m("p.mb-s", lang.get("allowContactSynchronization")),
 			renderBannerButton(
 				isContactSyncEnabled ? "activated_label" : "activate_action",
 				() => {
