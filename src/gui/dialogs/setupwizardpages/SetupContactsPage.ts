@@ -7,7 +7,7 @@ import { ContactImporter } from "../../../contacts/ContactImporter.js"
 import { Dialog } from "../../base/Dialog.js"
 import { MobileSystemFacade } from "../../../native/common/generatedipc/MobileSystemFacade.js"
 import { renderBannerButton } from "../SetupWizard.js"
-import { OnboardingContactsImage } from "../../base/icons/Icons.js"
+import { OnboardingContactsImage } from "./OnboardingImages.js"
 
 export class SetupContactsPage implements Component<SetupContactsPageAttrs> {
 	view({ attrs }: Vnode<SetupContactsPageAttrs>): Children {

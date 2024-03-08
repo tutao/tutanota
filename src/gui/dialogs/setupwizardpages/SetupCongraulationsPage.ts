@@ -2,7 +2,7 @@ import m, { Children } from "mithril"
 import { WizardPageAttrs, WizardPageN } from "../../base/WizardDialog.js"
 import { lang } from "../../../misc/LanguageViewModel.js"
 import { SetupPageLayout } from "./SetupPageLayout.js"
-import { OnboardingWelcomeImage } from "../../base/icons/Icons.js"
+import { OnboardingWelcomeImage } from "./OnboardingImages.js"
 
 export class SetupCongratulationsPage implements WizardPageN<null> {
 	view(): Children {

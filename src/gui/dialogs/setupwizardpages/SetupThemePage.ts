@@ -1,10 +1,10 @@
 import m, { Children } from "mithril"
 import { WizardPageAttrs, WizardPageN } from "../../base/WizardDialog.js"
-import { OnboardingThemeImage } from "../../base/icons/Icons.js"
 import { lang } from "../../../misc/LanguageViewModel.js"
 import { RadioSelector, RadioSelectorAttrs } from "../../base/RadioSelector.js"
 import { themeController, themeOptions, ThemePreference } from "../../theme.js"
 import { SetupPageLayout } from "./SetupPageLayout.js"
+import { OnboardingThemeImage } from "./OnboardingImages.js"
 
 export class SetupThemePage implements WizardPageN<null> {
 	view(): Children {

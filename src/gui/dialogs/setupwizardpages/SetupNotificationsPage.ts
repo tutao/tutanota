@@ -4,10 +4,10 @@ import { PermissionType } from "../../../native/common/generatedipc/PermissionTy
 import { isAndroidApp } from "../../../api/common/Env.js"
 import { lang } from "../../../misc/LanguageViewModel.js"
 import { queryPermissionsState, renderPermissionButton, requestPermission } from "../SetupWizard.js"
-import { OnboardingNotificationsImage } from "../../base/icons/Icons.js"
 import Stream from "mithril/stream"
 import { SetupPageLayout } from "./SetupPageLayout.js"
 import { locator } from "../../../api/main/MainLocator.js"
+import { OnboardingNotificationsImage } from "./OnboardingImages.js"
 
 export interface NotificationPermissionsData {
 	isNotificationPermissionGranted: boolean

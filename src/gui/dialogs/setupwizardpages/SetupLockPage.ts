@@ -10,7 +10,7 @@ import { windowFacade } from "../../../misc/WindowFacade.js"
 import { CancelledError } from "../../../api/common/error/CancelledError.js"
 import { CredentialsProvider } from "../../../misc/credentials/CredentialsProvider.js"
 import { CredentialEncryptionMode } from "../../../misc/credentials/CredentialEncryptionMode.js"
-import { OnboardingLockImage } from "../../base/icons/Icons.js"
+import { OnboardingLockImage } from "./OnboardingImages.js"
 
 export class SetupLockPage implements Component<SetupLockPageAttrs> {
 	view({ attrs }: Vnode<SetupLockPageAttrs>): Children {
