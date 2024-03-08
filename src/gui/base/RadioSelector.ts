@@ -12,6 +12,7 @@ export type RadioSelectorAttrs<T> = {
 	// The unique name of the radio button group. The browser uses it to group the radio buttons together.
 	name: TranslationText
 	options: ReadonlyArray<RadioSelectorOption<T>>
+	class?: string
 	selectedOption: T
 	onOptionSelected: (arg0: T) => unknown
 }
@@ -21,10 +22,16 @@ export type RadioSelectorAttrs<T> = {
  */
 export class RadioSelector<T> implements Component<RadioSelectorAttrs<T>> {
 	view({ attrs }: Vnode<RadioSelectorAttrs<T>>): Children {
-		return attrs.options.map((option) => this.renderOption(attrs.name, option, attrs.selectedOption, attrs.onOptionSelected))
+		return attrs.options.map((option) => this.renderOption(attrs.name, option, attrs.selectedOption, attrs.class, attrs.onOptionSelected))
 	}
 
-	private renderOption(groupName: TranslationText, option: RadioSelectorOption<T>, selectedOption: T, onOptionSelected: (arg0: T) => unknown): Children {
+	private renderOption(
+		groupName: TranslationText,
+		option: RadioSelectorOption<T>,
+		selectedOption: T,
+		optionClass: string | undefined,
+		onOptionSelected: (arg0: T) => unknown,
+	): Children {
 		const name = lang.getMaybeLazy(groupName)
 		const valueString = String(option.value)
 		const isSelected = option.value === selectedOption
@@ -33,12 +40,14 @@ export class RadioSelector<T> implements Component<RadioSelectorAttrs<T>> {
 		const optionId = name + valueString
 		const descriptionId = option.helpText != null ? optionId + "Description" : null
 
+		const attrClasses = optionClass != null ? " " + optionClass : ""
+
 		// The wrapper is needed because <input> is self-closing and will not take the label as a child
 		return m(
 			".state-bg.border.border-radius.flex.flex-wrap.items-center.mb.pl-l.pr",
 			{
 				// Make the option the same size as a button if a description is not given
-				class: option.helpText != null ? "pt pb" : "button-content button-min-height",
+				class: option.helpText != null ? "pt pb" : "button-content button-min-height" + attrClasses,
 				style: {
 					borderColor: isSelected ? theme.content_accent : theme.content_border,
 					borderWidth: "2px",
