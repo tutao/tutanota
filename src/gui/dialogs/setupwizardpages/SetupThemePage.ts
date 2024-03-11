@@ -4,14 +4,13 @@ import { lang } from "../../../misc/LanguageViewModel.js"
 import { RadioSelector, RadioSelectorAttrs } from "../../base/RadioSelector.js"
 import { themeController, themeOptions, ThemePreference } from "../../theme.js"
 import { SetupPageLayout } from "./SetupPageLayout.js"
-import { OnboardingThemeImage } from "./OnboardingImages.js"
 
 export class SetupThemePage implements WizardPageN<null> {
 	view(): Children {
 		return m(
 			SetupPageLayout,
 			{
-				image: OnboardingThemeImage,
+				image: "theme",
 			},
 			m("p.full-width", "Which theme would you like to use?"),
 			m(RadioSelector, {

@@ -2,11 +2,10 @@ import m, { Children } from "mithril"
 import { WizardPageAttrs, WizardPageN } from "../../base/WizardDialog.js"
 import { lang } from "../../../misc/LanguageViewModel.js"
 import { SetupPageLayout } from "./SetupPageLayout.js"
-import { OnboardingWelcomeImage } from "./OnboardingImages.js"
 
 export class SetupCongratulationsPage implements WizardPageN<null> {
 	view(): Children {
-		return m(SetupPageLayout, { image: OnboardingWelcomeImage, class: "onboarding-logo-large" }, [
+		return m(SetupPageLayout, { image: "congratulations", class: "onboarding-logo-large" }, [
 			m("h2.mt-l.b", lang.get("welcome_text")),
 			m("p.mt-s.full-width", lang.get("onboarding_text")),
 		])

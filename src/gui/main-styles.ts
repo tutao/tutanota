@@ -2239,7 +2239,7 @@ styles.registerStyle("main", () => {
 				width: px(size.column_width_s_mobile),
 			},
 			// Speed up SVG rendering in the onboarding wizard by disabling antialiasing
-			svg: {
+			"svg, img": {
 				"shape-rendering": "optimizeSpeed",
 			},
 		},

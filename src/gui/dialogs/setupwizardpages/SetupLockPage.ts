@@ -10,11 +10,10 @@ import { windowFacade } from "../../../misc/WindowFacade.js"
 import { CancelledError } from "../../../api/common/error/CancelledError.js"
 import { CredentialsProvider } from "../../../misc/credentials/CredentialsProvider.js"
 import { CredentialEncryptionMode } from "../../../misc/credentials/CredentialEncryptionMode.js"
-import { OnboardingLockImage } from "./OnboardingImages.js"
 
 export class SetupLockPage implements Component<SetupLockPageAttrs> {
 	view({ attrs }: Vnode<SetupLockPageAttrs>): Children {
-		return m(SetupPageLayout, { image: OnboardingLockImage, buttonLabel: "finish_action" }, [
+		return m(SetupPageLayout, { image: "lock", buttonLabel: "finish_action" }, [
 			m(SelectCredentialsEncryptionModeView, {
 				isWithHelpText: false,
 				class: "mt",

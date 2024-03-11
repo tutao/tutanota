@@ -12,9 +12,13 @@ interface SetupPageLayoutAttrs {
 export class SetupPageLayout implements Component<SetupPageLayoutAttrs> {
 	view({ attrs, children }: Vnode<SetupPageLayoutAttrs>): Children {
 		return m("section.center.flex.flex-column.dialog-height-small.mt", [
-			// Sanitizing the images removes the classes from the svg for unknown reasons
-			// So the svg is used raw for now
-			m(".onboarding-logo.center-h", { class: attrs.class }, m.trust(attrs.image)),
+			m("img.onboarding-logo.center-h", {
+				src: `${window.tutao.appState.prefixWithoutFile}/images/onboarding-wizard/${attrs.image}.svg`,
+				rel: "noreferrer",
+				loading: "lazy",
+				decoding: "async",
+				class: attrs.class,
+			}),
 			children,
 			m(LoginButton, {
 				label: attrs.buttonLabel ?? "next_action",
