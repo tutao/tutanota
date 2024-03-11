@@ -1,0 +1,19 @@
+#import <Foundation/Foundation.h>
+
+#import <TutanotaSharedFramework/sqlite3.h>
+#import <TutanotaSharedFramework/TUTErrorFactory.h>
+#import <TutanotaSharedFramework/TUTLog.h>
+#import <TutanotaSharedFramework/TUTCrypto.h>
+#import <TutanotaSharedFramework/TUTEncodingConverter.h>
+#import <TutanotaSharedFramework/rsa_oaep_sha256.h>
+#import <TutanotaSharedFramework/PSPDFFastEnumeration.h>
+
+//! Project version number for TutanotaSharedFramework.
+FOUNDATION_EXPORT double TutanotaSharedFrameworkVersionNumber;
+
+//! Project version string for TutanotaSharedFramework.
+FOUNDATION_EXPORT const unsigned char TutanotaSharedFrameworkVersionString[];
+
+// In this header, you should import all the public headers of your framework using statements like #import <TutanotaSharedFramework/PublicHeader.h>
+
+

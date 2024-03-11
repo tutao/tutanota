@@ -1,4 +1,5 @@
 import type { Base64, Base64Url } from "@tutao/tutanota-utils"
+import { CredentialType } from "./CredentialType.js"
 
 /** Data obtained after logging in. */
 export interface Credentials {
@@ -12,5 +13,5 @@ export interface Credentials {
 	encryptedPassword: Base64 | null
 	accessToken: Base64Url
 	userId: Id
-	type: "internal" | "external"
+	type: CredentialType
 }

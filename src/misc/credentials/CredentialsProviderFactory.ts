@@ -1,4 +1,4 @@
-import type { CredentialsAndDatabaseKey, CredentialsEncryption, PersistentCredentials } from "./CredentialsProvider.js"
+import type { CredentialsAndDatabaseKey, CredentialsEncryption } from "./CredentialsProvider.js"
 import { CredentialsProvider } from "./CredentialsProvider.js"
 import { deviceConfig } from "../DeviceConfig"
 import { isAdminClient, isBrowser, isDesktop } from "../../api/common/Env"
@@ -11,6 +11,7 @@ import { DatabaseKeyFactory } from "./DatabaseKeyFactory"
 import { DefaultCredentialsKeyMigrator, StubCredentialsKeyMigrator } from "./CredentialsKeyMigrator.js"
 import { InterWindowEventFacadeSendDispatcher } from "../../native/common/generatedipc/InterWindowEventFacadeSendDispatcher.js"
 import { SqlCipherFacade } from "../../native/common/generatedipc/SqlCipherFacade.js"
+import { PersistedCredentials } from "../../native/common/generatedipc/PersistedCredentials.js"
 
 export function usingKeychainAuthenticationWithOptions(): boolean {
 	return !isBrowser() && !isAdminClient()
@@ -32,12 +33,12 @@ export async function createCredentialsProvider(
 	if (usingKeychainAuthenticationWithOptions()) {
 		const { NativeCredentialsFacadeSendDispatcher } = await import("../../native/common/generatedipc/NativeCredentialsFacadeSendDispatcher.js")
 		const nativeCredentials = new NativeCredentialsFacadeSendDispatcher(assertNotNull(nativeApp))
-		const credentialsKeyProvider = new CredentialsKeyProvider(nativeCredentials, deviceConfig, deviceEncryptionFacade)
+		const credentialsKeyProvider = new CredentialsKeyProvider(nativeCredentials, deviceEncryptionFacade)
 		const credentialsEncryption = new NativeCredentialsEncryption(credentialsKeyProvider, deviceEncryptionFacade, nativeCredentials)
 		const credentialsKeyMigrator = new DefaultCredentialsKeyMigrator(nativeCredentials)
 		return new CredentialsProvider(
 			credentialsEncryption,
-			deviceConfig,
+			nativeCredentials,
 			credentialsKeyMigrator,
 			new DatabaseKeyFactory(deviceEncryptionFacade),
 			sqlCipherFacade,
@@ -62,7 +63,7 @@ export async function createCredentialsProvider(
  */
 
 class NoopCredentialsEncryption implements CredentialsEncryption {
-	async encrypt({ credentials, databaseKey }: CredentialsAndDatabaseKey): Promise<PersistentCredentials> {
+	async encrypt({ credentials, databaseKey }: CredentialsAndDatabaseKey): Promise<PersistedCredentials> {
 		const { encryptedPassword } = credentials
 
 		if (encryptedPassword == null) {
@@ -70,7 +71,7 @@ class NoopCredentialsEncryption implements CredentialsEncryption {
 		}
 
 		return {
-			credentialInfo: {
+			credentialsInfo: {
 				login: credentials.login,
 				userId: credentials.userId,
 				type: credentials.type,
@@ -81,14 +82,14 @@ class NoopCredentialsEncryption implements CredentialsEncryption {
 		}
 	}
 
-	async decrypt(encryptedCredentials: PersistentCredentials): Promise<CredentialsAndDatabaseKey> {
+	async decrypt(encryptedCredentials: PersistedCredentials): Promise<CredentialsAndDatabaseKey> {
 		return {
 			credentials: {
-				login: encryptedCredentials.credentialInfo.login,
+				login: encryptedCredentials.credentialsInfo.login,
 				encryptedPassword: encryptedCredentials.encryptedPassword,
 				accessToken: encryptedCredentials.accessToken,
-				userId: encryptedCredentials.credentialInfo.userId,
-				type: encryptedCredentials.credentialInfo.type,
+				userId: encryptedCredentials.credentialsInfo.userId,
+				type: encryptedCredentials.credentialsInfo.type,
 			},
 			databaseKey: null,
 		}

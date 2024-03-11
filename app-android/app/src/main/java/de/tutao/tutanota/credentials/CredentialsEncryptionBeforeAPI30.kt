@@ -1,5 +1,6 @@
 package de.tutao.tutanota.credentials
 
+import android.content.Context
 import android.security.keystore.KeyPermanentlyInvalidatedException
 import android.security.keystore.UserNotAuthenticatedException
 import androidx.biometric.BiometricManager
@@ -10,17 +11,17 @@ import de.tutao.tutanota.AndroidKeyStoreFacade
 import de.tutao.tutanota.CredentialAuthenticationException
 import de.tutao.tutanota.CryptoError
 import de.tutao.tutanota.R
+import de.tutao.tutanota.ipc.CredentialEncryptionMode
 import de.tutao.tutanota.ipc.DataWrapper
-import de.tutao.tutanota.ipc.NativeCredentialsFacade
 import de.tutao.tutanota.ipc.wrap
 import java.security.KeyStoreException
 import javax.crypto.Cipher
 
 class CredentialsEncryptionBeforeAPI30(
-		private val keyStoreFacade: AndroidKeyStoreFacade,
-		private val activity: FragmentActivity,
-		private val authenticationPrompt: AuthenticationPrompt,
-) : NativeCredentialsFacade {
+	private val keyStoreFacade: AndroidKeyStoreFacade,
+	private val activity: Context,
+	private val authenticationPrompt: AuthenticationPrompt,
+) : AndroidNativeCredentialsFacade(keyStoreFacade, activity, authenticationPrompt) {
 	@Throws(
 			KeyStoreException::class,
 			CryptoError::class,
@@ -34,11 +35,11 @@ class CredentialsEncryptionBeforeAPI30(
 			cipher = keyStoreFacade.getCipherForEncryptionMode(encryptionMode)
 			if (encryptionMode == CredentialEncryptionMode.BIOMETRICS) {
 				val cryptoObject = BiometricPrompt.CryptoObject(cipher)
-				authenticationPrompt.authenticateCryptoObject(activity, createPromptInfo(encryptionMode), cryptoObject)
+				authenticationPrompt.authenticateCryptoObject(activity as FragmentActivity, createPromptInfo(encryptionMode), cryptoObject)
 			}
 		} catch (e: KeyStoreException) {
 			cipher = if (e.cause is UserNotAuthenticatedException) {
-				authenticationPrompt.authenticate(activity, createPromptInfo(encryptionMode))
+				authenticationPrompt.authenticate(activity as FragmentActivity, createPromptInfo(encryptionMode))
 				keyStoreFacade.getCipherForEncryptionMode(encryptionMode)
 			} else {
 				throw e
@@ -63,11 +64,11 @@ class CredentialsEncryptionBeforeAPI30(
 			cipher = keyStoreFacade.getCipherForDecryptionMode(encryptionMode, dataToDecrypt)
 			if (encryptionMode == CredentialEncryptionMode.BIOMETRICS) {
 				val cryptoObject = BiometricPrompt.CryptoObject(cipher)
-				authenticationPrompt.authenticateCryptoObject(activity, createPromptInfo(encryptionMode), cryptoObject)
+				authenticationPrompt.authenticateCryptoObject(activity as FragmentActivity, createPromptInfo(encryptionMode), cryptoObject)
 			}
 		} catch (e: KeyStoreException) {
 			cipher = if (e.cause is UserNotAuthenticatedException) {
-				authenticationPrompt.authenticate(activity, createPromptInfo(encryptionMode))
+				authenticationPrompt.authenticate(activity as FragmentActivity, createPromptInfo(encryptionMode))
 				keyStoreFacade.getCipherForDecryptionMode(encryptionMode, dataToDecrypt)
 			} else {
 				throw e

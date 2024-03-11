@@ -2,7 +2,7 @@
   "formatVersion": 1,
   "database": {
     "version": 2,
-    "identityHash": "1fe0e3b4ee146734bb2273e9ac67f4b2",
+    "identityHash": "a8f85d2d981f38438ec8413baa24fd54",
     "entities": [
       {
         "tableName": "KeyValue",
@@ -167,6 +167,56 @@
         "foreignKeys": []
       },
       {
+        "tableName": "PersistedCredentials",
+        "createSql": "CREATE TABLE IF NOT EXISTS `${TABLE_NAME}` (`accessToken` TEXT NOT NULL, `databaseKey` TEXT, `encryptedPassword` TEXT NOT NULL, `login` TEXT NOT NULL, `userId` TEXT NOT NULL, `type` TEXT NOT NULL, PRIMARY KEY(`userId`))",
+        "fields": [
+          {
+            "fieldPath": "accessToken",
+            "columnName": "accessToken",
+            "affinity": "TEXT",
+            "notNull": true
+          },
+          {
+            "fieldPath": "databaseKey",
+            "columnName": "databaseKey",
+            "affinity": "TEXT",
+            "notNull": false
+          },
+          {
+            "fieldPath": "encryptedPassword",
+            "columnName": "encryptedPassword",
+            "affinity": "TEXT",
+            "notNull": true
+          },
+          {
+            "fieldPath": "login",
+            "columnName": "login",
+            "affinity": "TEXT",
+            "notNull": true
+          },
+          {
+            "fieldPath": "userId",
+            "columnName": "userId",
+            "affinity": "TEXT",
+            "notNull": true
+          },
+          {
+            "fieldPath": "type",
+            "columnName": "type",
+            "affinity": "TEXT",
+            "notNull": true
+          }
+        ],
+        "primaryKey": {
+          "columnNames": [
+            "userId"
+          ],
+          "autoGenerate": false
+        },
+        "indices": [],
+        "foreignKeys": []
+      },
+      {
         "tableName": "User",
         "createSql": "CREATE TABLE IF NOT EXISTS `${TABLE_NAME}` (`userId` TEXT NOT NULL, PRIMARY KEY(`userId`))",
         "fields": [
@@ -190,7 +240,7 @@
     "views": [],
     "setupQueries": [
       "CREATE TABLE IF NOT EXISTS room_master_table (id INTEGER PRIMARY KEY,identity_hash TEXT)",
-      "INSERT OR REPLACE INTO room_master_table (id,identity_hash) VALUES(42, '1fe0e3b4ee146734bb2273e9ac67f4b2')"
+      "INSERT OR REPLACE INTO room_master_table (id,identity_hash) VALUES(42, 'a8f85d2d981f38438ec8413baa24fd54')"
     ]
   }
 }

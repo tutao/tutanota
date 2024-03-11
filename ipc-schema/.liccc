@@ -3,5 +3,5 @@
 	"android": "../app-android/app/src/main/java/de/tutao/tutanota/generated_ipc",
 	"web": "../src/native/common/generatedipc",
 	"desktop": "../src/native/common/generatedipc",
-	"ios": "../app-ios/tutanota/Sources/GeneratedIpc"
+	"ios": "../app-ios/TutanotaSharedFramework//GeneratedIpc"
 }

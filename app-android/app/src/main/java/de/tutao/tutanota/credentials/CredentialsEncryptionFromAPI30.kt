@@ -1,5 +1,6 @@
 package de.tutao.tutanota.credentials
 
+import android.content.Context
 import android.security.keystore.KeyPermanentlyInvalidatedException
 import android.security.keystore.UserNotAuthenticatedException
 import android.util.Log
@@ -12,8 +13,8 @@ import de.tutao.tutanota.AndroidKeyStoreFacade
 import de.tutao.tutanota.CredentialAuthenticationException
 import de.tutao.tutanota.CryptoError
 import de.tutao.tutanota.R
+import de.tutao.tutanota.ipc.CredentialEncryptionMode
 import de.tutao.tutanota.ipc.DataWrapper
-import de.tutao.tutanota.ipc.NativeCredentialsFacade
 import de.tutao.tutanota.ipc.wrap
 import java.security.KeyStoreException
 import javax.crypto.Cipher
@@ -21,10 +22,10 @@ import javax.crypto.Cipher
 
 @RequiresApi(30)
 class CredentialsEncryptionFromAPI30(
-		private val keyStoreFacade: AndroidKeyStoreFacade,
-		private val activity: FragmentActivity,
-		private val authenticationPrompt: AuthenticationPrompt
-) : NativeCredentialsFacade {
+	private val keyStoreFacade: AndroidKeyStoreFacade,
+	private val activity: Context,
+	private val authenticationPrompt: AuthenticationPrompt,
+) : AndroidNativeCredentialsFacade(keyStoreFacade, activity, authenticationPrompt) {
 	@Throws(
 			KeyStoreException::class,
 			CryptoError::class,
@@ -99,7 +100,7 @@ class CredentialsEncryptionFromAPI30(
 			promptInfoBuilder.setNegativeButtonText(activity.getString(android.R.string.cancel))
 		}
 		val promptInfo = promptInfoBuilder.build()
-		authenticationPrompt.authenticateCryptoObject(activity, promptInfo, cryptoObject)
+		authenticationPrompt.authenticateCryptoObject(activity as FragmentActivity, promptInfo, cryptoObject)
 	}
 
 	@Throws(
@@ -116,7 +117,7 @@ class CredentialsEncryptionFromAPI30(
 				val message =
 						"Got UserNotAuthenticatedException for enc w/ mode $encryptionMode , likely an old key, falling back to old auth"
 				Log.i(TAG, message, e)
-				authenticationPrompt.authenticate(activity, createPromptInfo(encryptionMode))
+				authenticationPrompt.authenticate(activity as FragmentActivity, createPromptInfo(encryptionMode))
 				keyStoreFacade.getCipherForEncryptionMode(encryptionMode)
 			} else {
 				throw e
@@ -146,7 +147,7 @@ class CredentialsEncryptionFromAPI30(
 				val message =
 						"Got UserNotAuthenticatedException for dec w/ mode $encryptionMode , likely an old key, falling back to old auth"
 				Log.i(TAG, message, e)
-				authenticationPrompt.authenticate(activity, createPromptInfo(encryptionMode))
+				authenticationPrompt.authenticate(activity as FragmentActivity, createPromptInfo(encryptionMode))
 				keyStoreFacade.getCipherForDecryptionMode(encryptionMode, dataToDecrypt)
 			} else {
 				throw e

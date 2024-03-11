@@ -6,7 +6,7 @@ import type { LoginController } from "../api/main/LoginController"
 import stream from "mithril/stream"
 import Stream from "mithril/stream"
 import { ProgrammingError } from "../api/common/error/ProgrammingError"
-import type { CredentialsAndDatabaseKey, CredentialsInfo, CredentialsProvider, PersistentCredentials } from "../misc/credentials/CredentialsProvider.js"
+import type { CredentialsAndDatabaseKey, CredentialsProvider } from "../misc/credentials/CredentialsProvider.js"
 import { CredentialAuthenticationError } from "../api/common/error/CredentialAuthenticationError"
 import { first, noOp } from "@tutao/tutanota-utils"
 import { KeyPermanentlyInvalidatedError } from "../api/common/error/KeyPermanentlyInvalidatedError"
@@ -19,6 +19,8 @@ import { getWhitelabelRegistrationDomains } from "./LoginView.js"
 import { CancelledError } from "../api/common/error/CancelledError.js"
 import { CredentialRemovalHandler } from "./CredentialRemovalHandler.js"
 import { NativePushServiceApp } from "../native/main/NativePushServiceApp.js"
+import { CredentialsInfo } from "../native/common/generatedipc/CredentialsInfo.js"
+import { PersistedCredentials } from "../native/common/generatedipc/PersistedCredentials.js"
 
 assertMainOrNode()
 
@@ -250,19 +252,20 @@ export class LoginViewModel implements ILoginViewModel {
 	}
 
 	/** only used to put the credentials we got from the old domain into the storage, unaltered. */
-	async addAllCredentials(credentials: Array<PersistentCredentials>) {
+	async addAllCredentials(credentials: Array<PersistedCredentials>) {
 		for (const cred of credentials) this.credentialsProvider.storeRaw(cred)
 		this.setHasAttemptedCredentialsFlag()
 		await this.updateCachedCredentials()
 	}
 
-	getAllCredentials(): Array<PersistentCredentials> {
-		return this.deviceConfig.loadAll()
+	getAllCredentials(): Array<PersistedCredentials> {
+		// FIXME
+		throw new Error("Not implemented!")
 	}
 
 	async deleteAllCredentials(): Promise<void> {
-		for (const creds of this.deviceConfig.loadAll()) {
-			this.deviceConfig.deleteByUserId(creds.credentialInfo.userId)
+		for (const creds of await this.deviceConfig.loadAll()) {
+			await this.deviceConfig.deleteByUserId(creds.credentialsInfo.userId)
 		}
 		this.setHasAttemptedCredentialsFlag()
 	}

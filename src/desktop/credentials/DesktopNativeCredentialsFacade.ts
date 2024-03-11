@@ -7,11 +7,12 @@ import { CommonNativeFacade } from "../../native/common/generatedipc/CommonNativ
 import { LanguageViewModel } from "../../misc/LanguageViewModel.js"
 import { DesktopConfig } from "../config/DesktopConfig.js"
 import { DesktopConfigKey } from "../config/ConfigKeys.js"
-import { KEY_LENGTH_BYTES_AES_256 } from "@tutao/tutanota-crypto"
-import { generateKeyFromPassphraseArgon2id } from "@tutao/tutanota-crypto"
+import { Aes256Key, generateKeyFromPassphraseArgon2id, KEY_LENGTH_BYTES_AES_256 } from "@tutao/tutanota-crypto"
 import { CryptoError } from "@tutao/tutanota-crypto/error.js"
 import { CancelledError } from "../../api/common/error/CancelledError.js"
 import { KeyPermanentlyInvalidatedError } from "../../api/common/error/KeyPermanentlyInvalidatedError.js"
+import { PersistedCredentials } from "../../native/common/generatedipc/PersistedCredentials.js"
+import { Type } from "cborg"
 
 /** the single source of truth for this configuration */
 const SUPPORTED_MODES = Object.freeze([CredentialEncryptionMode.DEVICE_LOCK, CredentialEncryptionMode.APP_PASSWORD] as const)
@@ -125,6 +126,38 @@ export class DesktopNativeCredentialsFacade implements NativeCredentialsFacade {
 
 	async getSupportedEncryptionModes(): Promise<ReadonlyArray<DesktopCredentialsMode>> {
 		return SUPPORTED_MODES
+	}
+
+	deleteByUserId(id: string): Promise<void> {
+		throw new Error("Not implemented!")
+	}
+
+	getCredentialEncryptionMode(): Promise<CredentialEncryptionMode | null> {
+		throw new Error("Not implemented!")
+	}
+
+	getCredentialsEncryptionKey(): Promise<Uint8Array> {
+		throw new Error("Not implemented!")
+	}
+
+	loadAll(): Promise<ReadonlyArray<PersistedCredentials>> {
+		throw new Error("Not implemented!")
+	}
+
+	loadByUserId(id: string): Promise<PersistedCredentials | null> {
+		throw new Error("Not implemented!")
+	}
+
+	setCredentialEncryptionMode(encryptionMode: CredentialEncryptionMode): Promise<void> {
+		throw new Error("Not implemented!")
+	}
+
+	setCredentialsEncryptionKey(credentialsEncryptionKey: Uint8Array | null): Promise<void> {
+		throw new Error("Not implemented!")
+	}
+
+	store(credentials: PersistedCredentials): Promise<void> {
+		throw new Error("Not implemented!")
 	}
 
 	private assertSupportedEncryptionMode(encryptionMode: DesktopCredentialsMode) {

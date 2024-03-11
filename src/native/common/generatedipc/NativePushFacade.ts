@@ -1,7 +1,6 @@
 /* generated file, don't edit. */
 
 import { EncryptedAlarmNotification } from "./EncryptedAlarmNotification.js"
-
 /**
  * Push notifications and alarms operations
  */

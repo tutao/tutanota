@@ -17,8 +17,8 @@ import { CalendarFacade } from "../../api/worker/facades/lazy/CalendarFacade.js"
 import modelInfo from "../../api/entities/sys/ModelInfo.js"
 
 // keep in sync with SYS_MODEL_VERSION in app-android/app/build.gradle
-// keep in sync with app-ios/tutanota/Sources/Utils/Utils.swift
-const MOBILE_SYS_MODEL_VERSION = 85
+// keep in sync with app-ios/TutanotaSharedFramework/Utils/Utils.swift
+const MOBILE_SYS_MODEL_VERSION = 96
 
 function effectiveModelVersion(): number {
 	// on desktop we use generated classes

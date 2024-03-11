@@ -1,4 +1,5 @@
 import UIKit
+import TutanotaSharedFramework
 
 @UIApplicationMain class AppDelegate: UIResponder, UIApplicationDelegate, UNUserNotificationCenterDelegate {
 	var window: UIWindow?
@@ -42,7 +43,13 @@ import UIKit
 		)
 		self.notificationsHandler = NotificationsHandler(alarmManager: self.alarmManager, notificationStorage: notificationStorage)
 		self.window = UIWindow(frame: UIScreen.main.bounds)
-		let credentialsEncryption = IosNativeCredentialsFacade(keychainManager: keychainManager)
+		// FIXME should probably not crash
+		let credentialsDb = try! CredentialsDatabase(db: SqliteDb())
+		let credentialsEncryption = IosNativeCredentialsFacade(
+			keychainManager: keychainManager,
+			credentialsDb: credentialsDb,
+			userDefaults: UserDefaults(suiteName: "group.de.tutao.tutanota")!
+		)
 
 		self.viewController = ViewController(
 			crypto: IosNativeCryptoFacade(),

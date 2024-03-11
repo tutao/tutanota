@@ -5,7 +5,7 @@ import kotlinx.serialization.Serializable
 
 @Serializable
 data class MissedNotification(
-		val alarmNotifications: List<EncryptedAlarmNotification>,
-		val notificationInfos: List<NotificationInfo>,
-		val lastProcessedNotificationId: String,
+	val notificationInfos: List<NotificationInfo>,
+	val alarmNotifications: List<EncryptedAlarmNotification>,
+	val lastProcessedNotificationId: String,
 )

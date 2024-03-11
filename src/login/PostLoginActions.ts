@@ -85,7 +85,7 @@ export class PostLoginActions implements PostLoginAction {
 		if (
 			loggedInEvent.sessionType === SessionType.Persistent &&
 			usingKeychainAuthenticationWithOptions() &&
-			this.credentialsProvider.getCredentialsEncryptionMode() == null
+			(await this.credentialsProvider.getCredentialsEncryptionMode()) == null
 		) {
 			// If the encryption mode is not selected, we opt user into automatic mode.
 			// We keep doing it here for now to have some flexibility if we want to show some other option here in the future.

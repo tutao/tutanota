@@ -1,30 +1,7 @@
-import Foundation
-
-typealias Base64 = String
-
-/// Alarm notification as received from the server. Also peristed.
-/// Contains both signaling about the event (opeartion) and the payload itself
-public struct EncryptedAlarmNotification: Codable {
-	let operation: Operation
-	let summary: Base64
-	let eventStart: Base64
-	let eventEnd: Base64
-	let alarmInfo: EncryptedAlarmInfo
-	let repeatRule: EncryptedRepeatRule?
-	let notificationSessionKeys: [NotificationSessionKey]
-	let user: Base64
-}
-
-extension EncryptedAlarmNotification: Equatable {
-	public static func == (lhs: EncryptedAlarmNotification, rhs: EncryptedAlarmNotification) -> Bool {
-		lhs.alarmInfo.alarmIdentifier == rhs.alarmInfo.alarmIdentifier
-	}
-}
-
-extension EncryptedAlarmNotification: Hashable { public func hash(into hasher: inout Hasher) { self.alarmInfo.alarmIdentifier.hash(into: &hasher) } }
+import TutanotaSharedFramework
 
 struct AlarmNotification: Equatable {
-	let operation: Operation
+	let operation: TutanotaSharedFramework.Operation
 	let summary: String
 	let eventStart: Date
 	let eventEnd: Date

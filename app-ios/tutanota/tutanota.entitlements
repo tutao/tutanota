@@ -12,5 +12,9 @@
 	<array>
 		<string>group.de.tutao.tutanota</string>
 	</array>
+	<key>keychain-access-groups</key>
+	<array>
+		<string>$(AppIdentifierPrefix)de.tutao.tutanota</string>
+	</array>
 </dict>
 </plist>

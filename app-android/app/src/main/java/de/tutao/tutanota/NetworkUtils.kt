@@ -7,14 +7,18 @@ import okhttp3.OkHttpClient
 import okhttp3.Request
 import org.conscrypt.Conscrypt
 import java.security.Security
-import java.util.*
 import java.util.concurrent.TimeUnit
 import javax.net.ssl.SSLContext
 import javax.net.ssl.TrustManager
 import javax.net.ssl.X509TrustManager
 
-fun addCommonHeaders(request: Request.Builder) {
+fun addCommonHeadersWithSysModelVersion(request: Request.Builder) {
 	request.header("v", BuildConfig.SYS_MODEL_VERSION)
+	request.header("cv", BuildConfig.VERSION_NAME)
+}
+
+fun addCommonHeadersWithTutanotaModelVersion(request: Request.Builder) {
+	request.header("v", BuildConfig.TUTANOTA_MODEL_VERSION)
 	request.header("cv", BuildConfig.VERSION_NAME)
 }
 

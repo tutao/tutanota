@@ -1,5 +1,6 @@
 import Combine
 import Foundation
+import TutanotaSharedFramework
 
 enum InitState {
 	case waitingForInit

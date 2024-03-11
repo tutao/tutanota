@@ -1,4 +1,5 @@
 import AuthenticationServices
+import TutanotaSharedFramework
 import DictionaryCoding
 import UIKit
 import UserNotifications

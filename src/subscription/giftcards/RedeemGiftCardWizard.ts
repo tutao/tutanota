@@ -25,7 +25,6 @@ import { PaymentMethodType, PlanType } from "../../api/common/TutanotaConstants"
 import { formatPrice, getPaymentMethodName, PaymentInterval, PriceAndConfigProvider } from "../PriceUtils"
 import { TextField } from "../../gui/base/TextField.js"
 import { elementIdPart, isSameId } from "../../api/common/utils/EntityUtils"
-import type { CredentialsInfo } from "../../misc/credentials/CredentialsProvider.js"
 import { CredentialsProvider } from "../../misc/credentials/CredentialsProvider.js"
 import { SessionType } from "../../api/common/SessionType.js"
 import { NotAuthorizedError, NotFoundError } from "../../api/common/error/RestError.js"
@@ -36,6 +35,7 @@ import { renderCountryDropdown } from "../../gui/base/GuiUtils.js"
 import { UpgradePriceType } from "../FeatureListProvider"
 import { SecondFactorHandler } from "../../misc/2fa/SecondFactorHandler.js"
 import { LoginButton } from "../../gui/base/buttons/LoginButton.js"
+import { CredentialsInfo } from "../../native/common/generatedipc/CredentialsInfo.js"
 
 const enum GetCredentialsMethod {
 	Login,

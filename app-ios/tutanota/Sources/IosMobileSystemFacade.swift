@@ -1,4 +1,5 @@
 import Contacts
+import TutanotaSharedFramework
 import Foundation
 
 class IosMobileSystemFacade: MobileSystemFacade {

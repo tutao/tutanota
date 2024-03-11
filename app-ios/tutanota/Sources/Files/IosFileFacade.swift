@@ -1,4 +1,5 @@
 import Foundation
+import TutanotaSharedFramework
 import MobileCoreServices
 
 class IosFileFacade: FileFacade {

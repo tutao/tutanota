@@ -20,4 +20,25 @@ interface NativeCredentialsFacade {
 	): DataWrapper
 	 suspend fun getSupportedEncryptionModes(
 	): List<CredentialEncryptionMode>
+	 suspend fun loadAll(
+	): List<PersistedCredentials>
+	 suspend fun store(
+		credentials: PersistedCredentials,
+	): Unit
+	 suspend fun loadByUserId(
+		id: String,
+	): PersistedCredentials?
+	 suspend fun deleteByUserId(
+		id: String,
+	): Unit
+	 suspend fun getCredentialEncryptionMode(
+	): CredentialEncryptionMode?
+	 suspend fun setCredentialEncryptionMode(
+		encryptionMode: CredentialEncryptionMode?,
+	): Unit
+	 suspend fun getCredentialsEncryptionKey(
+	): DataWrapper?
+	 suspend fun setCredentialsEncryptionKey(
+		credentialsEncryptionKey: DataWrapper?,
+	): Unit
 }

@@ -1,4 +1,5 @@
 import AuthenticationServices
+import TutanotaSharedFramework
 import Foundation
 
 let WEBAUTHN_ERROR_DOMAIN = "de.tutao.tutanota.Webauthn"

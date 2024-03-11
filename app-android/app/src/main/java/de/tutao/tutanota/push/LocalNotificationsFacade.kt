@@ -1,7 +1,11 @@
 package de.tutao.tutanota.push
 
 import android.annotation.TargetApi
-import android.app.*
+import android.app.DownloadManager
+import android.app.Notification
+import android.app.NotificationChannel
+import android.app.NotificationManager
+import android.app.PendingIntent
 import android.content.ClipData
 import android.content.Context
 import android.content.Intent
@@ -17,10 +21,15 @@ import androidx.core.app.NotificationCompat
 import androidx.core.app.NotificationManagerCompat
 import androidx.core.content.FileProvider
 import androidx.core.net.toUri
-import de.tutao.tutanota.*
+import de.tutao.tutanota.BuildConfig
+import de.tutao.tutanota.MainActivity
+import de.tutao.tutanota.R
+import de.tutao.tutanota.atLeastNougat
+import de.tutao.tutanota.getMimeType
 import java.io.File
 import java.text.SimpleDateFormat
-import java.util.*
+import java.util.Date
+import java.util.TimeZone
 import java.util.concurrent.ConcurrentHashMap
 
 const val NOTIFICATION_DISMISSED_ADDR_EXTRA = "notificationDismissed"
@@ -86,18 +95,21 @@ class LocalNotificationsFacade(private val context: Context) {
 		}
 	}
 
-	fun sendEmailNotifications(notificationInfos: List<NotificationInfo>) {
-		if (notificationInfos.isEmpty()) {
+	fun sendEmailNotifications(mailMetadatas: List<Pair<NotificationInfo, MailMetadata?>>) {
+		if (mailMetadatas.isEmpty()) {
 			return
 		}
 
 		val title = context.getString(R.string.pushNewMail_msg)
-		for (notificationInfo in notificationInfos) {
-			val counterPerAlias = aliasNotification[notificationInfo.mailAddress]?.incremented(notificationInfo.counter)
-					?: LocalNotificationInfo(
-							title,
-							notificationInfo.counter, notificationInfo
-					)
+		// FIXME get rid of the counter at some point
+		for (dataPair in mailMetadatas) {
+			val notificationInfo = dataPair.first
+			val metadata = dataPair.second ?: continue
+			val counterPerAlias = aliasNotification[notificationInfo.mailAddress]?.incremented(1)
+				?: LocalNotificationInfo(
+					title,
+					1, notificationInfo
+				)
 
 			aliasNotification[notificationInfo.mailAddress] = counterPerAlias
 			val notificationId = makeNotificationId(notificationInfo.mailAddress)
@@ -108,7 +120,7 @@ class LocalNotificationsFacade(private val context: Context) {
 
 			notificationBuilder.setContentTitle(title)
 					.setColor(redColor)
-					.setContentText(notificationContent(notificationInfo.mailAddress))
+			    	.setContentText(previewNotificationContent(metadata))
 					.setNumber(counterPerAlias.counter)
 					.setSmallIcon(R.drawable.ic_status)
 					.setDeleteIntent(intentForDelete(arrayListOf(notificationInfo.mailAddress)))
@@ -122,8 +134,12 @@ class LocalNotificationsFacade(private val context: Context) {
 		}
 		sendSummaryNotification(
 				notificationManager, title,
-				notificationInfos[0], true
+			    mailMetadatas[0].first, true
 		)
+	}
+
+	private fun previewNotificationContent(metadata: MailMetadata): String {
+		return "sender: ${metadata.sender.address}, first recipient: ${metadata.firstRecipient.address}"
 	}
 
 	@TargetApi(Build.VERSION_CODES.Q)
@@ -164,7 +180,7 @@ class LocalNotificationsFacade(private val context: Context) {
 			val count = value.counter
 			if (count > 0) {
 				summaryCounter += count
-				inboxStyle.addLine(notificationContent(key))
+				inboxStyle.addLine(summaryNotificationContent(key))
 				addresses.add(key)
 			}
 		}
@@ -172,7 +188,7 @@ class LocalNotificationsFacade(private val context: Context) {
 				.setBadgeIconType(NotificationCompat.BADGE_ICON_SMALL)
 		@ColorInt val red = context.resources.getColor(R.color.red, context.theme)
 		val notification = builder.setContentTitle(title)
-				.setContentText(notificationContent(notificationInfo.mailAddress))
+			.setContentText(summaryNotificationContent(notificationInfo.mailAddress))
 				.setSmallIcon(R.drawable.ic_status)
 				.setGroup(NOTIFICATION_EMAIL_GROUP)
 				.setGroupSummary(true)
@@ -272,7 +288,7 @@ class LocalNotificationsFacade(private val context: Context) {
 		return this
 	}
 
-	private fun notificationContent(address: String): String {
+	private fun summaryNotificationContent(address: String): String {
 		return aliasNotification[address]!!.counter.toString() + " " + address
 	}
 

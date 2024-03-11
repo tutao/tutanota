@@ -1,4 +1,4 @@
-import Foundation
+import TutanotaSharedFramework
 
 /// High-level cryptographic operations API
 /// Is an actor because we want to have serial execution for all the cryptogaphic operations, doing them in parallel is usually too

@@ -3,7 +3,6 @@
 import { DesktopConfigKey } from "./DesktopConfigKey.js"
 import { UpdateInfo } from "./UpdateInfo.js"
 import { IntegrationInfo } from "./IntegrationInfo.js"
-
 /**
  * Desktop preferences.
  */

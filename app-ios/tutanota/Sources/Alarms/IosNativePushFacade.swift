@@ -1,4 +1,5 @@
 import Foundation
+import TutanotaSharedFramework
 
 class IosNativePushFacade: NativePushFacade {
 

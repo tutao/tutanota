@@ -19,9 +19,29 @@ export class SwiftGenerator implements LangGenerator {
 		this.generateDocComment(acc, definition.doc)
 		acc.line(`public struct ${definition.name} : Codable {`)
 		const fieldGenerator = acc.indent()
-		for (const [name, fieldDefinition] of Object.entries(definition.fields)) {
+
+		fieldGenerator.line("public init(")
+		const fields = Object.entries(definition.fields)
+		fieldGenerator.indented((initGenerator) => {
+			for (const [i, [name, fieldDefinition]] of fields.entries()) {
+				const renderedType = typeNameSwift(fieldDefinition)
+				if (i === fields.length - 1) {
+					initGenerator.line(`${name}: ${renderedType.name}`)
+				} else {
+					initGenerator.line(`${name}: ${renderedType.name},`)
+				}
+			}
+		})
+		fieldGenerator.line(") {")
+		const initBodyGenerator = fieldGenerator.indent()
+		for (const [name] of fields) {
+			initBodyGenerator.line(`self.${name} = ${name}`)
+		}
+		fieldGenerator.line("}")
+
+		for (const [name, fieldDefinition] of fields) {
 			const renderedType = typeNameSwift(fieldDefinition)
-			fieldGenerator.line(`let ${name}: ${renderedType.name}`)
+			fieldGenerator.line(`public let ${name}: ${renderedType.name}`)
 		}
 		acc.line("}")
 		return acc.finish()
@@ -49,8 +69,14 @@ export class SwiftGenerator implements LangGenerator {
 		return acc.finish()
 	}
 
-	private static generateMethodSignature(methodGenerator: Accumulator, name: string, methodDefinition: MethodDefinition) {
-		methodGenerator.line(`func ${name}(`)
+	private static generateMethodSignature(
+		methodGenerator: Accumulator,
+		name: string,
+		methodDefinition: MethodDefinition,
+		visibility: "public" | "private" | "internal" = "internal",
+	) {
+		const renderedVisibilty = visibility === "internal" ? "" : ` ${visibility} `
+		methodGenerator.line(`${renderedVisibilty}func ${name}(`)
 		const argGenerator = methodGenerator.indent()
 		const args = getArgs(name, methodDefinition)
 		const lastArg = args[args.length - 1]
@@ -74,7 +100,7 @@ export class SwiftGenerator implements LangGenerator {
 		methodAcc.indent().line(`self.facade = facade`)
 		methodAcc.line(`}`)
 
-		methodAcc.line(`func dispatch(method: String, arg: [String]) async throws -> String {`)
+		methodAcc.line(`public func dispatch(method: String, arg: [String]) async throws -> String {`)
 		const switchAcc = methodAcc.indent()
 		switchAcc.line(`switch method {`)
 		const caseAcc = switchAcc.indent()
@@ -123,7 +149,7 @@ export class SwiftGenerator implements LangGenerator {
 				acc
 					.lines(facadeNames.map((facadeName) => `private let ${minusculize(facadeName)}: ${facadeName}ReceiveDispatcher`))
 					.line()
-					.line(`init(`)
+					.line(`public init(`)
 					.indented((acc) =>
 						acc.lines(
 							facadeNames.map((name) => `${minusculize(name)} : ${name}`),
@@ -136,7 +162,7 @@ export class SwiftGenerator implements LangGenerator {
 					)
 					.line(`}`)
 					.line()
-					.line(`func dispatch(facadeName: String, methodName: String, args: Array<String>) async throws -> String {`)
+					.line(`public func dispatch(facadeName: String, methodName: String, args: Array<String>) async throws -> String {`)
 					.indented((acc) =>
 						acc
 							.line(`switch facadeName {`)
@@ -160,13 +186,13 @@ export class SwiftGenerator implements LangGenerator {
 		const acc = new Accumulator()
 		acc.line("import Foundation")
 		acc.line()
-		acc.line(`class ${definition.name}SendDispatcher : ${definition.name} {`)
+		acc.line(`public class ${definition.name}SendDispatcher : ${definition.name} {`)
 		const classBodyAcc = acc.indent()
 		classBodyAcc.line(`private let transport: NativeInterface`)
-		classBodyAcc.line(`init(transport: NativeInterface) { self.transport = transport }`)
+		classBodyAcc.line(`public init(transport: NativeInterface) { self.transport = transport }`)
 		classBodyAcc.line()
 		for (const [methodName, methodDefinition] of Object.entries(definition.methods)) {
-			SwiftGenerator.generateMethodSignature(classBodyAcc, methodName, methodDefinition)
+			SwiftGenerator.generateMethodSignature(classBodyAcc, methodName, methodDefinition, "public")
 			const methodBodyAcc = classBodyAcc.indent()
 			methodBodyAcc.line("{")
 			const args = getArgs(methodName, methodDefinition)
@@ -206,11 +232,11 @@ export class SwiftGenerator implements LangGenerator {
 
 	private static generateNativeInterface(): string {
 		const acc = new Accumulator()
-		acc.line(`protocol NativeInterface {`)
+		acc.line(`public protocol NativeInterface {`)
 		acc.indent().line(`func sendRequest(requestType: String, args: [String]) async throws -> String`)
 		acc.line(`}`)
 		acc.line()
-		acc.line("func toJson<T>(_ thing: T) -> String where T : Encodable {")
+		acc.line("public func toJson<T>(_ thing: T) -> String where T : Encodable {")
 		acc.indent().line("return String(data: try! JSONEncoder().encode(thing), encoding: .utf8)!")
 		acc.line("}")
 		acc.line()

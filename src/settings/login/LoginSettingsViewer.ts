@@ -47,6 +47,7 @@ export class LoginSettingsViewer implements UpdatableSettingsViewer {
 	)
 	private readonly credentialsEncryptionModeHelpLabel: (() => string) | null
 	private readonly _usageTestModel: UsageTestModel
+	private credentialEncryptionMode: CredentialEncryptionMode | null = null
 
 	constructor(private readonly credentialsProvider: CredentialsProvider) {
 		this.credentialsEncryptionModeHelpLabel =
@@ -54,6 +55,12 @@ export class LoginSettingsViewer implements UpdatableSettingsViewer {
 		this._usageTestModel = locator.usageTestModel
 
 		this._updateSessions()
+		this.loadCredentialEncryptionMode()
+	}
+
+	private async loadCredentialEncryptionMode() {
+		this.credentialEncryptionMode = await this.credentialsProvider.getCredentialsEncryptionMode()
+		m.redraw()
 	}
 
 	view(): Children {
@@ -183,7 +190,7 @@ export class LoginSettingsViewer implements UpdatableSettingsViewer {
 			return null
 		}
 
-		const usedMode = this.credentialsProvider.getCredentialsEncryptionMode() ?? CredentialEncryptionMode.DEVICE_LOCK
+		const usedMode = this.credentialEncryptionMode ?? CredentialEncryptionMode.DEVICE_LOCK
 
 		return m(TextField, {
 			label: "credentialsEncryptionMode_label",
@@ -194,7 +201,7 @@ export class LoginSettingsViewer implements UpdatableSettingsViewer {
 				m(IconButton, {
 					title: "edit_action",
 					icon: Icons.Edit,
-					click: () => showCredentialsEncryptionModeDialog(this.credentialsProvider).then(m.redraw),
+					click: () => showCredentialsEncryptionModeDialog(this.credentialsProvider).then(() => this.loadCredentialEncryptionMode()),
 				}),
 		})
 	}
