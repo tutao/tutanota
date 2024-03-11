@@ -1,6 +1,8 @@
 import o from "@tutao/otest"
-import { hexToRsaPublicKey, random, eccDecapsulate, eccEncapsulate, generateEccKeyPair, EccKeyPair } from "../lib/index.js"
+import { eccDecapsulate, eccEncapsulate, EccKeyPair, generateEccKeyPair, hexToRsaPublicKey, random } from "../lib/index.js"
 import { CryptoError } from "../lib/error.js"
+import { derivePublicKey } from "../lib/encryption/Ecc.js"
+import { Hex } from "@tutao/tutanota-utils"
 
 const originalRandom = random.generateRandomData
 o.spec("EccTest", function () {
@@ -52,4 +54,32 @@ o.spec("EccTest", function () {
 			o(key.privateKey[key.privateKey.length - 1] & 0b01000000).equals(0b01000000)("the second-highest bit needs to be set")
 		}
 	})
+
+	o("derive public key", function () {
+		const publicKey = derivePublicKey(hexToUint8Array("0830c900aac181eea064380d39f718f9a8791133909b26624fecca112ff4be4f"))
+		o("897624991b880cb534a5721c3270e8a5732987739e20f5dc537ebb9c1e5b7e00").equals(uint8ArrayToHex(publicKey))
+	})
 })
+
+export function hexToUint8Array(hex: Hex): Uint8Array {
+	let bufView = new Uint8Array(hex.length / 2)
+
+	for (let i = 0; i < bufView.byteLength; i++) {
+		bufView[i] = parseInt(hex.substring(i * 2, i * 2 + 2), 16)
+	}
+
+	return bufView
+}
+
+const hexDigits = "0123456789abcdef"
+
+export function uint8ArrayToHex(uint8Array: Uint8Array): Hex {
+	let hex = ""
+
+	for (let i = 0; i < uint8Array.byteLength; i++) {
+		let value = uint8Array[i]
+		hex += hexDigits[value >> 4] + hexDigits[value & 15]
+	}
+
+	return hex
+}
