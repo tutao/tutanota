@@ -285,6 +285,21 @@
 					"info": "RemoveValue Customer/canceledPremiumAccount/902."
 				}
 			]
+		},
+		{
+			"version": 99,
+			"changes": [
+				{
+					"name": "AddAssociation",
+					"sourceType": "NotificationInfo",
+					"info": "AddAssociation NotificationInfo/mailId/AGGREGATION/2319."
+				},
+				{
+					"name": "RemoveValue",
+					"sourceType": "NotificationInfo",
+					"info": "RemoveValue NotificationInfo/counter/1367."
+				}
+			]
 		}
 	]
 }

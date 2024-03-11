@@ -23,7 +23,6 @@ import { WriteStream } from "fs-extra"
 import { BuildConfigKey, DesktopConfigKey } from "../config/ConfigKeys.js"
 import { CancelledError } from "../../api/common/error/CancelledError.js"
 import { DesktopConfig } from "../config/DesktopConfig.js"
-import { DesktopUtils } from "../DesktopUtils.js"
 import { DateProvider } from "../../api/common/DateProvider.js"
 import { TempFs } from "./TempFs.js"
 import OpenDialogOptions = Electron.OpenDialogOptions
@@ -37,7 +36,6 @@ export class DesktopFileFacade implements FileFacade {
 	constructor(
 		private readonly win: ApplicationWindow,
 		private readonly conf: DesktopConfig,
-		private readonly desktopUtils: DesktopUtils,
 		private readonly dateProvider: DateProvider,
 		private readonly net: DesktopNetworkClient,
 		private readonly electron: ElectronExports,
@@ -58,7 +56,7 @@ export class DesktopFileFacade implements FileFacade {
 
 	async download(sourceUrl: string, fileName: string, headers: Record<string, string>): Promise<DownloadTaskResponse> {
 		// Propagate error in initial request if it occurs (I/O errors and such)
-		const response = await this.net.executeRequest(sourceUrl, {
+		const response = await this.net.executeRequest(new URL(sourceUrl), {
 			method: "GET",
 			timeout: 20000,
 			headers,
@@ -221,7 +219,7 @@ export class DesktopFileFacade implements FileFacade {
 
 	async upload(fileUri: string, targetUrl: string, method: string, headers: Record<string, string>): Promise<UploadTaskResponse> {
 		const fileStream = this.fs.createReadStream(fileUri)
-		const response = await this.net.executeRequest(targetUrl, { method, headers, timeout: 20000 }, fileStream)
+		const response = await this.net.executeRequest(new URL(targetUrl), { method, headers, timeout: 20000 }, fileStream)
 
 		let responseBody: Uint8Array
 		if (response.statusCode == 200 || response.statusCode == 201) {

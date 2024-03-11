@@ -9,12 +9,13 @@ import { DesktopContextMenu } from "./DesktopContextMenu"
 import { log } from "./DesktopLog"
 import type { LocalShortcutManager } from "./electron-localshortcut/LocalShortcut"
 import { BuildConfigKey, DesktopConfigEncKey, DesktopConfigKey } from "./config/ConfigKeys"
-import type { SseInfo } from "./sse/DesktopSseClient"
 import { isRectContainedInRect } from "./DesktopUtils"
 import { DesktopThemeFacade } from "./DesktopThemeFacade"
 import { ElectronExports } from "./ElectronExportTypes"
 import { RemoteBridge } from "./ipc/RemoteBridge.js"
 import { ASSET_PROTOCOL } from "./net/ProtocolProxy.js"
+
+import { SseInfo } from "./sse/SseInfo.js"
 
 const TAG = "[DesktopWindowManager]"
 

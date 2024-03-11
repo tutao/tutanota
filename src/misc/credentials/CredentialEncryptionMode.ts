@@ -1,7 +1,7 @@
 /**
  * Enum that describes the different methods for encrypting the intermediate key used for credentials encryption.
  */
-export const enum CredentialEncryptionMode {
+export enum CredentialEncryptionMode {
 	/**
 	 * Credentials key can be decrypted without user interaction if the device is in an unlocked state.
 	 */

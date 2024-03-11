@@ -61,7 +61,8 @@ export class CredentialsMigrationViewModel {
 		const commands = {
 			abort: async () => (this.aborted = true),
 			ready: async () => {
-				await this.dispatcher?.postRequest(new Request("credentials", [this.logins.getAllCredentials()]))
+				const allCredentials = await this.logins.getAllCredentials()
+				await this.dispatcher?.postRequest(new Request("credentials", [allCredentials]))
 				if (this.aborted) return
 				await this.logins.deleteAllCredentials()
 			},

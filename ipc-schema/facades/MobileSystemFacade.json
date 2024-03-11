@@ -48,6 +48,22 @@
 				}
 			],
 			"ret": "void"
+		},
+		"getAppLockMethod": {
+			"arg": [],
+			"ret": "AppLockMethod"
+		},
+		"setAppLockMethod": {
+			"arg": [{ "method": "AppLockMethod" }],
+			"ret": "void"
+		},
+		"enforceAppLock": {
+			"arg": [{ "method": "AppLockMethod" }],
+			"ret": "void"
+		},
+		"getSupportedAppLockMethods": {
+			"arg": [],
+			"ret": "List<AppLockMethod>"
 		}
 	}
 }

@@ -1,18 +1,12 @@
 import o from "@tutao/otest"
 import { verify } from "@tutao/tutanota-test-utils"
-import { customTypeEncoders, OfflineStorage, sql } from "../../../../../src/api/worker/offline/OfflineStorage.js"
+import { customTypeEncoders, OfflineStorage } from "../../../../../src/api/worker/offline/OfflineStorage.js"
 import { instance, object, when } from "testdouble"
 import * as cborg from "cborg"
 import { GENERATED_MIN_ID, generatedIdToTimestamp, getElementId, timestampToGeneratedId } from "../../../../../src/api/common/utils/EntityUtils.js"
 import { getDayShifted, getFirstOrThrow, getTypeId, lastThrow, mapNullable, promiseMap, TypeRef } from "@tutao/tutanota-utils"
 import { DateProvider } from "../../../../../src/api/common/DateProvider.js"
 import {
-	createFile,
-	createMail,
-	createMailBody,
-	createMailDetails,
-	createMailDetailsBlob,
-	createMailFolder,
 	FileTypeRef,
 	Mail,
 	MailBody,
@@ -32,9 +26,10 @@ import { resolveTypeReference } from "../../../../../src/api/common/EntityFuncti
 import { Type as TypeId } from "../../../../../src/api/common/EntityConstants.js"
 import { expandId } from "../../../../../src/api/worker/rest/DefaultEntityRestCache.js"
 import { WorkerImpl } from "../../../../../src/api/worker/WorkerImpl.js"
-import { createUser, UserTypeRef } from "../../../../../src/api/entities/sys/TypeRefs.js"
+import { UserTypeRef } from "../../../../../src/api/entities/sys/TypeRefs.js"
 import { DesktopSqlCipher } from "../../../../../src/desktop/db/DesktopSqlCipher.js"
 import { createTestEntity } from "../../../TestUtils.js"
+import { sql } from "../../../../../src/api/worker/offline/Sql.js"
 
 function incrementId(id: Id, ms: number) {
 	const timestamp = generatedIdToTimestamp(id)

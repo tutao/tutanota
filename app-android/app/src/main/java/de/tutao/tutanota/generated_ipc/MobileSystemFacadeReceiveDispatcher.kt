@@ -49,6 +49,30 @@ class MobileSystemFacadeReceiveDispatcher(
 				)
 				return json.encodeToString(result)
 			}
+			"getAppLockMethod" -> {
+				val result: AppLockMethod = this.facade.getAppLockMethod(
+				)
+				return json.encodeToString(result)
+			}
+			"setAppLockMethod" -> {
+				val method: AppLockMethod = json.decodeFromString(arg[0])
+				val result: Unit = this.facade.setAppLockMethod(
+					method,
+				)
+				return json.encodeToString(result)
+			}
+			"enforceAppLock" -> {
+				val method: AppLockMethod = json.decodeFromString(arg[0])
+				val result: Unit = this.facade.enforceAppLock(
+					method,
+				)
+				return json.encodeToString(result)
+			}
+			"getSupportedAppLockMethods" -> {
+				val result: List<AppLockMethod> = this.facade.getSupportedAppLockMethods(
+				)
+				return json.encodeToString(result)
+			}
 			else -> throw Error("unknown method for MobileSystemFacade: $method")
 		}
 	}

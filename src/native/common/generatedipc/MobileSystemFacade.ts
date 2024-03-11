@@ -1,6 +1,7 @@
 /* generated file, don't edit. */
 
 import { PermissionType } from "./PermissionType.js"
+import { AppLockMethod } from "./AppLockMethod.js"
 /**
  * Common operations implemented by each mobile platform.
  */
@@ -29,4 +30,12 @@ export interface MobileSystemFacade {
 	 * Requests a system permission from the user.
 	 */
 	requestPermission(permission: PermissionType): Promise<void>
+
+	getAppLockMethod(): Promise<AppLockMethod>
+
+	setAppLockMethod(method: AppLockMethod): Promise<void>
+
+	enforceAppLock(method: AppLockMethod): Promise<void>
+
+	getSupportedAppLockMethods(): Promise<ReadonlyArray<AppLockMethod>>
 }

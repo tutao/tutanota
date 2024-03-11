@@ -126,6 +126,7 @@ const ErrorNameToType = {
 	SuspensionError,
 	LoginIncompleteError,
 	ParserError,
+	KeyPermanentlyInvalidatedError,
 	Error,
 	"java.net.SocketTimeoutException": ConnectionError,
 	"java.net.SocketException": ConnectionError,

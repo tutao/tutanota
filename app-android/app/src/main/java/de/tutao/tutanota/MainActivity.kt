@@ -3,7 +3,11 @@ package de.tutao.tutanota
 import android.annotation.SuppressLint
 import android.app.job.JobInfo
 import android.app.job.JobScheduler
-import android.content.*
+import android.content.ActivityNotFoundException
+import android.content.ClipData
+import android.content.ClipboardManager
+import android.content.ComponentName
+import android.content.Intent
 import android.content.pm.PackageManager
 import android.content.res.Configuration
 import android.graphics.Color
@@ -17,8 +21,15 @@ import android.util.Log
 import android.view.ContextMenu
 import android.view.ContextMenu.ContextMenuInfo
 import android.view.View
-import android.webkit.*
+import android.webkit.CookieManager
+import android.webkit.MimeTypeMap
+import android.webkit.WebResourceError
+import android.webkit.WebResourceRequest
+import android.webkit.WebResourceResponse
+import android.webkit.WebSettings
+import android.webkit.WebView
 import android.webkit.WebView.HitTestResult
+import android.webkit.WebViewClient
 import android.widget.Toast
 import androidx.annotation.MainThread
 import androidx.annotation.RequiresPermission
@@ -33,9 +44,18 @@ import de.tutao.tutanota.alarms.AlarmNotificationsManager
 import de.tutao.tutanota.alarms.SystemAlarmFacade
 import de.tutao.tutanota.credentials.CredentialsEncryptionFactory
 import de.tutao.tutanota.data.AppDatabase
-import de.tutao.tutanota.ipc.*
+import de.tutao.tutanota.ipc.AndroidGlobalDispatcher
+import de.tutao.tutanota.ipc.CommonNativeFacade
+import de.tutao.tutanota.ipc.CommonNativeFacadeSendDispatcher
+import de.tutao.tutanota.ipc.MobileFacade
+import de.tutao.tutanota.ipc.MobileFacadeSendDispatcher
+import de.tutao.tutanota.ipc.SqlCipherFacade
 import de.tutao.tutanota.offline.AndroidSqlCipherFacade
-import de.tutao.tutanota.push.*
+import de.tutao.tutanota.push.AndroidNativePushFacade
+import de.tutao.tutanota.push.LocalNotificationsFacade
+import de.tutao.tutanota.push.PushNotificationService
+import de.tutao.tutanota.push.SseStorage
+import de.tutao.tutanota.push.notificationDismissedIntent
 import de.tutao.tutanota.webauthn.AndroidWebauthnFacade
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
@@ -51,7 +71,6 @@ import java.io.IOException
 import java.io.UnsupportedEncodingException
 import java.net.URLEncoder
 import java.security.SecureRandom
-import java.util.*
 import java.util.concurrent.ConcurrentHashMap
 import java.util.concurrent.TimeUnit
 import kotlin.coroutines.Continuation
@@ -93,29 +112,33 @@ class MainActivity : FragmentActivity() {
 			intent.putExtra(ALREADY_HANDLED_INTENT, true)
 		}
 
+		val db = AppDatabase.getDatabase(this, false)
+		sseStorage = SseStorage(
+			db,
+			createAndroidKeyStoreFacade()
+		)
+		val localNotificationsFacade = LocalNotificationsFacade(this, sseStorage)
 	val fileFacade =
-			AndroidFileFacade(this, LocalNotificationsFacade(this), SecureRandom(), NetworkUtils.defaultClient)
+			AndroidFileFacade(this, localNotificationsFacade, SecureRandom(), NetworkUtils.defaultClient)
 	val cryptoFacade = AndroidNativeCryptoFacade(this, fileFacade.tempDir)
-	sseStorage = SseStorage(
-			AppDatabase.getDatabase(this, false),
-			createAndroidKeyStoreFacade(cryptoFacade)
-	)
+
+
 	val alarmNotificationsManager = AlarmNotificationsManager(
 			sseStorage,
 			cryptoFacade,
 			SystemAlarmFacade(this),
-			LocalNotificationsFacade(this)
+			localNotificationsFacade
 	)
 	val nativePushFacade = AndroidNativePushFacade(
 			this,
 			sseStorage,
-			alarmNotificationsManager
+			alarmNotificationsManager,
+			localNotificationsFacade,
 	)
 
 	val ipcJson = Json { ignoreUnknownKeys = true }
 
 	themeFacade = AndroidThemeFacade(this, this)
-	val androidMobileContactsFacade = AndroidMobileContactsFacade(this)
 
 	sqlCipherFacade = AndroidSqlCipherFacade(this)
 	commonSystemFacade = AndroidCommonSystemFacade(this, sqlCipherFacade, fileFacade.tempDir)
@@ -127,8 +150,8 @@ class MainActivity : FragmentActivity() {
 			commonSystemFacade,
 			fileFacade,
 			AndroidMobileContactsFacade(this),
-			AndroidMobileSystemFacade(fileFacade, this),
-			CredentialsEncryptionFactory.create(this, cryptoFacade),
+			AndroidMobileSystemFacade(fileFacade, this, db),
+			CredentialsEncryptionFactory.create(this, cryptoFacade, db),
 			cryptoFacade,
 			nativePushFacade,
 			sqlCipherFacade,
@@ -386,37 +409,38 @@ class MainActivity : FragmentActivity() {
 	}
   }
 
-  @MainThread
-  private fun startWebApp(parameters: MutableMap<String, String>) {
-	webView.loadUrl(getInitialUrl(parameters, themeFacade.currentThemeWithFallback))
-	remoteBridge.setup()
-  }
-
-  override fun onNewIntent(intent: Intent) {
-	super.onNewIntent(intent)
-	handleIntent(intent)
-  }
-
-  private fun handleIntent(intent: Intent) = lifecycleScope.launchWhenCreated {
-	// When we redirect to the app from outside, for example after doing payment verification,
-	// we don't want to do any kind of intent handling
-	val data = intent.data
-
-	if (data != null && data.scheme == "tutanota" && data.host == "webauthn") {
-	  handleWebauthn(intent, data)
+	@MainThread
+	private fun startWebApp(parameters: MutableMap<String, String>) {
+		webView.loadUrl(getInitialUrl(parameters, themeFacade.currentThemeWithFallback))
+		remoteBridge.setup()
 	}
 
-	if (data != null && data.toString().startsWith("tutanota://")) {
-	  return@launchWhenCreated
+	override fun onNewIntent(intent: Intent) {
+		super.onNewIntent(intent)
+		handleIntent(intent)
 	}
+
+	private fun handleIntent(intent: Intent) = lifecycleScope.launchWhenCreated {
+		// When we redirect to the app from outside, for example after doing payment verification,
+		// we don't want to do any kind of intent handling
+		val data = intent.data
+
+		if (data != null && data.scheme == "tutanota" && data.host == "webauthn") {
+			handleWebauthn(intent, data)
+		}
+
+		if (data != null && data.toString().startsWith("tutanota://")) {
+			return@launchWhenCreated
+		}
 
 		if (intent.action != null && !intent.getBooleanExtra(ALREADY_HANDLED_INTENT, false)) {
-	  when (intent.action) {
-		Intent.ACTION_SEND, Intent.ACTION_SEND_MULTIPLE, Intent.ACTION_SENDTO -> share(
-				intent
-		)
-		OPEN_USER_MAILBOX_ACTION -> openMailbox(intent)
-		OPEN_CALENDAR_ACTION -> openCalendar(intent)
+			when (intent.action) {
+				Intent.ACTION_SEND, Intent.ACTION_SEND_MULTIPLE, Intent.ACTION_SENDTO -> share(
+					intent
+				)
+
+				OPEN_USER_MAILBOX_ACTION -> openMailbox(intent)
+				OPEN_CALENDAR_ACTION -> openCalendar(intent)
 		Intent.ACTION_VIEW -> {
 			when (intent.scheme) {
 				"mailto" -> share(intent)
@@ -424,348 +448,348 @@ class MainActivity : FragmentActivity() {
 				"content" -> view(intent)
 			}
 		}
-	  }
+			}
+		}
 	}
-  }
 
-  private fun handleWebauthn(intent: Intent, data: Uri) {
-	if (webauthnResultHandler != null) {
-	  val result = intent.getStringExtra("result")
-	  if (result != null) {
-		webauthnResultHandler?.onResult(result)
-	  } else {
-		Log.w(TAG, "Webauthn result is not defined! $data")
-		webauthnResultHandler?.onNoResult()
-	  }
-	  this.webauthnResultHandler = null
-	} else {
-	  Log.w(TAG, "Webauthn handler is not set!")
+	private fun handleWebauthn(intent: Intent, data: Uri) {
+		if (webauthnResultHandler != null) {
+			val result = intent.getStringExtra("result")
+			if (result != null) {
+				webauthnResultHandler?.onResult(result)
+			} else {
+				Log.w(TAG, "Webauthn result is not defined! $data")
+				webauthnResultHandler?.onNoResult()
+			}
+			this.webauthnResultHandler = null
+		} else {
+			Log.w(TAG, "Webauthn handler is not set!")
+		}
 	}
-  }
 
 	fun hasBatteryOptimizationPermission(): Boolean {
 		val pm = ContextCompat.getSystemService(this, PowerManager::class.java)!!
 		return pm.isIgnoringBatteryOptimizations(this.packageName)
 	}
 
-  suspend fun requestBatteryOptimizationPermission() {
-	  withContext(Dispatchers.Main) {
-		  @SuppressLint("BatteryLife")
-		  val intent = Intent(
-			  Settings.ACTION_REQUEST_IGNORE_BATTERY_OPTIMIZATIONS,
-			  Uri.parse("package:$packageName")
-		  )
-		  startActivityForResult(intent)
-	  }
-  }
-
-  private fun getInitialUrl(parameters: MutableMap<String, String>, theme: Theme?): String {
-	if (theme != null) {
-	  parameters["theme"] = JSONObject.wrap(theme)!!.toString()
-	}
-	parameters["platformId"] = "android"
-	val queryBuilder = StringBuilder()
-	for ((key, value) in parameters) {
-	  try {
-		val escapedValue = URLEncoder.encode(value, "UTF-8")
-		if (queryBuilder.isEmpty()) {
-		  queryBuilder.append("?")
-		} else {
-		  queryBuilder.append("&")
+	suspend fun requestBatteryOptimizationPermission() {
+		withContext(Dispatchers.Main) {
+			@SuppressLint("BatteryLife")
+			val intent = Intent(
+				Settings.ACTION_REQUEST_IGNORE_BATTERY_OPTIMIZATIONS,
+				Uri.parse("package:$packageName")
+			)
+			startActivityForResult(intent)
 		}
-		queryBuilder.append(key)
-		queryBuilder.append('=')
-		queryBuilder.append(escapedValue)
-	  } catch (e: UnsupportedEncodingException) {
-		throw RuntimeException(e)
-	  }
 	}
-	// additional path information like app.html/login are not handled properly by the WebView
-	// when loaded from local file system. so we are just adding parameters to the Url e.g. ../app.html?noAutoLogin=true.
-	return BASE_WEB_VIEW_URL + "index-app.html" + queryBuilder.toString()
-  }
 
-  private val baseAssetPath: String
-	get() = BuildConfig.RES_ADDRESS
+	private fun getInitialUrl(parameters: MutableMap<String, String>, theme: Theme?): String {
+		if (theme != null) {
+			parameters["theme"] = JSONObject.wrap(theme)!!.toString()
+		}
+		parameters["platformId"] = "android"
+		val queryBuilder = StringBuilder()
+		for ((key, value) in parameters) {
+			try {
+				val escapedValue = URLEncoder.encode(value, "UTF-8")
+				if (queryBuilder.isEmpty()) {
+					queryBuilder.append("?")
+				} else {
+					queryBuilder.append("&")
+				}
+				queryBuilder.append(key)
+				queryBuilder.append('=')
+				queryBuilder.append(escapedValue)
+			} catch (e: UnsupportedEncodingException) {
+				throw RuntimeException(e)
+			}
+		}
+		// additional path information like app.html/login are not handled properly by the WebView
+		// when loaded from local file system. so we are just adding parameters to the Url e.g. ../app.html?noAutoLogin=true.
+		return BASE_WEB_VIEW_URL + "index-app.html" + queryBuilder.toString()
+	}
+
+	private val baseAssetPath: String
+		get() = BuildConfig.RES_ADDRESS
 
 
 	fun hasPermission(permission: String): Boolean {
-	return ContextCompat.checkSelfPermission(this, permission) == PackageManager.PERMISSION_GRANTED
-  }
-
-  suspend fun getPermission(permission: String) = suspendCoroutine { continuation ->
-	if (hasPermission(permission)) {
-	  continuation.resume(Unit)
-	} else {
-	  val requestCode = getNextRequestCode()
-	  permissionsRequests[requestCode] = continuation
-	  requestPermissions(arrayOf(permission), requestCode)
+		return ContextCompat.checkSelfPermission(this, permission) == PackageManager.PERMISSION_GRANTED
 	}
-  }
 
-  override fun onRequestPermissionsResult(requestCode: Int, permissions: Array<String>, grantResults: IntArray) {
-	super.onRequestPermissionsResult(requestCode, permissions, grantResults)
-	val continuation = permissionsRequests.remove(requestCode)
-	if (continuation == null) {
-	  Log.w(TAG, "No deferred for the permission request$requestCode")
-	  return
+	suspend fun getPermission(permission: String) = suspendCoroutine { continuation ->
+		if (hasPermission(permission)) {
+			continuation.resume(Unit)
+		} else {
+			val requestCode = getNextRequestCode()
+			permissionsRequests[requestCode] = continuation
+			requestPermissions(arrayOf(permission), requestCode)
+		}
 	}
-	if (grantResults.size == 1 && grantResults[0] == PackageManager.PERMISSION_GRANTED) {
-	  continuation.resume(Unit)
-	} else {
-	  continuation.resumeWithException(SecurityException("Permission missing: " + permissions.contentToString()))
-	}
-  }
 
-  suspend fun startActivityForResult(@RequiresPermission intent: Intent?): ActivityResult =
-		  suspendCoroutine { continuation ->
+	override fun onRequestPermissionsResult(requestCode: Int, permissions: Array<String>, grantResults: IntArray) {
+		super.onRequestPermissionsResult(requestCode, permissions, grantResults)
+		val continuation = permissionsRequests.remove(requestCode)
+		if (continuation == null) {
+			Log.w(TAG, "No deferred for the permission request$requestCode")
+			return
+		}
+		if (grantResults.size == 1 && grantResults[0] == PackageManager.PERMISSION_GRANTED) {
+			continuation.resume(Unit)
+		} else {
+			continuation.resumeWithException(SecurityException("Permission missing: " + permissions.contentToString()))
+		}
+	}
+
+	suspend fun startActivityForResult(@RequiresPermission intent: Intent?): ActivityResult =
+		suspendCoroutine { continuation ->
 			val requestCode = getNextRequestCode()
 			activityRequests[requestCode] = continuation
 			// we need requestCode to identify the request which is not possible with new API
 			@Suppress("DEPRECATION")
 			super.startActivityForResult(intent, requestCode)
-		  }
-
-  @Deprecated("Deprecated in Java")
-  override fun onActivityResult(requestCode: Int, resultCode: Int, data: Intent?) {
-	@Suppress("DEPRECATION")
-	super.onActivityResult(requestCode, resultCode, data)
-	val continuation = activityRequests.remove(requestCode)
-	if (continuation != null) {
-	  continuation.resume(ActivityResult(resultCode, data))
-	} else {
-	  Log.w(TAG, "No deferred for activity request$requestCode")
-	}
-  }
-
-  fun setupPushNotifications() {
-	try {
-	  val serviceIntent = PushNotificationService.startIntent(
-			  this,
-			  "MainActivity#setupPushNotifications",
-			  attemptForeground = true,
-	  )
-	  startService(serviceIntent)
-	} catch (e: IllegalStateException) {
-	  // We can run into this if the app is in the background for some reason
-	  Log.w(TAG, e)
-	}
-	val jobScheduler = getSystemService(JOB_SCHEDULER_SERVICE) as JobScheduler
-	jobScheduler.schedule(
-			JobInfo.Builder(1, ComponentName(this, PushNotificationService::class.java))
-					.setPeriodic(TimeUnit.MINUTES.toMillis(15))
-					.setRequiredNetworkType(JobInfo.NETWORK_TYPE_ANY)
-					.setPersisted(true).build()
-	)
-  }
-
-  /**
-   * The viewing file activity. Either invoked from MainActivity (if the app was not active when the
-   * view action occurred) or from onCreate.
-   */
-  private suspend fun view(intent: Intent) {
-	val files: List<String> = getFilesFromIntent(intent)
-
-	try {
-	  commonNativeFacade.handleFileImport(files)
-	} catch (e: Exception) {
-	  Log.e(TAG, "Falied to read files $files -> $e")
-	}
-  }
-
-  /**
-   * The sharing activity. Either invoked from MainActivity (if the app was not active when the
-   * share occurred) or from onCreate.
-   */
-  private suspend fun share(intent: Intent) {
-	val action = intent.action
-	val clipData = intent.clipData
-	val files: List<String>
-	var text: String? = null
-	val addresses: List<String> = intent.getStringArrayExtra(Intent.EXTRA_EMAIL)?.toList() ?: listOf()
-	val subject = intent.getStringExtra(Intent.EXTRA_SUBJECT)
-	if (Intent.ACTION_SEND == action) {
-	  // Try to read text from the clipboard before fall back on intent.getStringExtra
-	  if (clipData != null && clipData.itemCount > 0) {
-		if (clipData.description.getMimeType(0).startsWith("text")) {
-		  text = clipData.getItemAt(0).htmlText
 		}
-		if (text == null && clipData.getItemAt(0).text != null) {
-		  text = clipData.getItemAt(0).text.toString()
-		}
-	  }
-	  if (text == null) {
-		text = intent.getStringExtra(Intent.EXTRA_TEXT)
-	  }
-	  files = getFilesFromIntent(intent)
-	} else if (Intent.ACTION_SEND_MULTIPLE == action) {
-	  files = getFilesFromIntent(intent)
-	} else {
-	  files = listOf()
-	}
-	val mailToUrlString: String = if (intent.data != null && MailTo.isMailTo(intent.dataString)) {
-	  intent.dataString ?: ""
-	} else {
-	  ""
-	}
-	try {
-	  commonNativeFacade.createMailEditor(
-			  files,
-			  text ?: "",
-			  addresses,
-			  subject ?: "",
-			  mailToUrlString
-	  )
-	} catch (e: RemoteExecutionException) {
-	  val name = if (e.message != null) {
-		val element = Json.parseToJsonElement(e.message)
-		element.jsonObject["name"]?.jsonPrimitive?.content
-	  } else {
-		null
-	  }
-	  Log.d(TAG, "failed to create a mail editor because of a ${name ?: "unknown error"}")
-	}
-  }
 
-  private fun getFilesFromIntent(intent: Intent): List<String> {
-	val clipData = intent.clipData
-	val filesArray: MutableList<String> = mutableListOf()
-	if (clipData != null) {
-	  for (i in 0 until clipData.itemCount) {
-		val item = clipData.getItemAt(i)
-		val uri = item.uri
-		if (uri != null) {
-		  filesArray.add(uri.toString())
-		}
-	  }
-	} else {
-	  // Intent documentation claims that data is copied to ClipData if it's not there
-	  // but we want to be sure
-	  if (Intent.ACTION_SEND_MULTIPLE == intent.action) {
-		// unchecked_cast: we could just check for null instead?
-		// deprecation: the alternative requires API 33
-		@Suppress("UNCHECKED_CAST", "DEPRECATION")
-		val uris = intent.extras!!.getParcelableArrayList<Uri>(Intent.EXTRA_STREAM)
-		if (uris != null) {
-		  for (uri in uris) {
-			filesArray.add(uri.toString())
-		  }
-		}
-	  } else if (intent.hasExtra(Intent.EXTRA_STREAM)) {
-		// depreciation: the alternative requires API 33
+	@Deprecated("Deprecated in Java")
+	override fun onActivityResult(requestCode: Int, resultCode: Int, data: Intent?) {
 		@Suppress("DEPRECATION")
-		val uri = intent.getParcelableExtra<Uri>(Intent.EXTRA_STREAM)
-		filesArray.add(uri.toString())
-	  } else if (intent.data != null) {
-		val uri = intent.data
-		filesArray.add(uri.toString())
-	  } else {
-		Log.w(TAG, "Did not find files in the intent")
-	  }
-	}
-	return filesArray
-  }
-
-  private suspend fun openMailbox(intent: Intent) {
-	val userId = intent.getStringExtra(OPEN_USER_MAILBOX_USERID_KEY)
-	val address = intent.getStringExtra(OPEN_USER_MAILBOX_MAIL_ADDRESS_KEY)
-	val isSummary = intent.getBooleanExtra(IS_SUMMARY_EXTRA, false)
-	if (userId == null || address == null) {
-	  return
-	}
-	val addresses = ArrayList<String>(1)
-	addresses.add(address)
-	startService(
-			notificationDismissedIntent(
-					this, addresses,
-					"MainActivity#openMailbox", isSummary
-			)
-	)
-
-	commonNativeFacade.openMailBox(userId, address, null)
-  }
-
-  private suspend fun openCalendar(intent: Intent) {
-	val userId = intent.getStringExtra(OPEN_USER_MAILBOX_USERID_KEY) ?: return
-	commonNativeFacade.openCalendar(userId)
-  }
-
-  // this still works, but there's onBackPressedDispatcher.addCallback
-  // it should work on all API levels we support:
-  // https://stackoverflow.com/questions/72634225/onbackpressed-is-deprecated-what-is-the-alternative
-  @Deprecated("Deprecated in Java")
-  override fun onBackPressed() {
-	if (commonSystemFacade.initialized) {
-	  lifecycleScope.launchWhenCreated {
-		val result = mobileFacade.handleBackPress()
-		try {
-		  if (!result) {
-			goBack()
-		  }
-		} catch (e: JSONException) {
-		  Log.e(TAG, "error parsing response", e)
+		super.onActivityResult(requestCode, resultCode, data)
+		val continuation = activityRequests.remove(requestCode)
+		if (continuation != null) {
+			continuation.resume(ActivityResult(resultCode, data))
+		} else {
+			Log.w(TAG, "No deferred for activity request$requestCode")
 		}
-	  }
-	} else {
-	  goBack()
 	}
-  }
 
-  private fun goBack() {
-	moveTaskToBack(false)
-  }
-
-  fun reload(parameters: Map<String, String>) {
-	runOnUiThread { startWebApp(parameters.toMutableMap()) }
-  }
-
-  override fun onCreateContextMenu(menu: ContextMenu, v: View, menuInfo: ContextMenuInfo?) {
-	super.onCreateContextMenu(menu, v, menuInfo)
-	val hitTestResult = webView.hitTestResult
-	if (hitTestResult.type == HitTestResult.SRC_ANCHOR_TYPE) {
-	  val link = hitTestResult.extra ?: return
-	  if (link.startsWith(baseAssetPath)) {
-		return
-	  }
-	  menu.setHeaderTitle(link)
-	  menu.add(0, 0, 0, "Copy link").setOnMenuItemClickListener {
-		(getSystemService(CLIPBOARD_SERVICE) as ClipboardManager)
-				.setPrimaryClip(ClipData.newPlainText(link, link))
-		true
-	  }
-	  menu.add(0, 2, 0, "Share").setOnMenuItemClickListener {
-		val intent = Intent(Intent.ACTION_SEND)
-		intent.putExtra(Intent.EXTRA_TEXT, link)
-		intent.setTypeAndNormalize("text/plain")
-		this.startActivity(Intent.createChooser(intent, "Share link"))
-		true
-	  }
+	fun setupPushNotifications() {
+		try {
+			val serviceIntent = PushNotificationService.startIntent(
+				this,
+				"MainActivity#setupPushNotifications",
+				attemptForeground = true,
+			)
+			startService(serviceIntent)
+		} catch (e: IllegalStateException) {
+			// We can run into this if the app is in the background for some reason
+			Log.w(TAG, e)
+		}
+		val jobScheduler = getSystemService(JOB_SCHEDULER_SERVICE) as JobScheduler
+		jobScheduler.schedule(
+			JobInfo.Builder(1, ComponentName(this, PushNotificationService::class.java))
+				.setPeriodic(TimeUnit.MINUTES.toMillis(15))
+				.setRequiredNetworkType(JobInfo.NETWORK_TYPE_ANY)
+				.setPersisted(true).build()
+		)
 	}
-  }
 
-  companion object {
-	// don't remove the trailing slash because otherwise longer domains might match our asset check
-	const val BASE_WEB_VIEW_URL = "https://assets.tutanota.com/"
-	const val OPEN_USER_MAILBOX_ACTION = "de.tutao.tutanota.OPEN_USER_MAILBOX_ACTION"
-	const val OPEN_CALENDAR_ACTION = "de.tutao.tutanota.OPEN_CALENDAR_ACTION"
-	const val OPEN_USER_MAILBOX_MAIL_ADDRESS_KEY = "mailAddress"
-	const val OPEN_USER_MAILBOX_USERID_KEY = "userId"
-	const val IS_SUMMARY_EXTRA = "isSummary"
+	/**
+	 * The viewing file activity. Either invoked from MainActivity (if the app was not active when the
+	 * view action occurred) or from onCreate.
+	 */
+	private suspend fun view(intent: Intent) {
+		val files: List<String> = getFilesFromIntent(intent)
+
+		try {
+			commonNativeFacade.handleFileImport(files)
+		} catch (e: Exception) {
+			Log.e(TAG, "Falied to read files $files -> $e")
+		}
+	}
+
+	/**
+	 * The sharing activity. Either invoked from MainActivity (if the app was not active when the
+	 * share occurred) or from onCreate.
+	 */
+	private suspend fun share(intent: Intent) {
+		val action = intent.action
+		val clipData = intent.clipData
+		val files: List<String>
+		var text: String? = null
+		val addresses: List<String> = intent.getStringArrayExtra(Intent.EXTRA_EMAIL)?.toList() ?: listOf()
+		val subject = intent.getStringExtra(Intent.EXTRA_SUBJECT)
+		if (Intent.ACTION_SEND == action) {
+			// Try to read text from the clipboard before fall back on intent.getStringExtra
+			if (clipData != null && clipData.itemCount > 0) {
+				if (clipData.description.getMimeType(0).startsWith("text")) {
+					text = clipData.getItemAt(0).htmlText
+				}
+				if (text == null && clipData.getItemAt(0).text != null) {
+					text = clipData.getItemAt(0).text.toString()
+				}
+			}
+			if (text == null) {
+				text = intent.getStringExtra(Intent.EXTRA_TEXT)
+			}
+			files = getFilesFromIntent(intent)
+		} else if (Intent.ACTION_SEND_MULTIPLE == action) {
+			files = getFilesFromIntent(intent)
+		} else {
+			files = listOf()
+		}
+		val mailToUrlString: String = if (intent.data != null && MailTo.isMailTo(intent.dataString)) {
+			intent.dataString ?: ""
+		} else {
+			""
+		}
+		try {
+			commonNativeFacade.createMailEditor(
+				files,
+				text ?: "",
+				addresses,
+				subject ?: "",
+				mailToUrlString
+			)
+		} catch (e: RemoteExecutionException) {
+			val name = if (e.message != null) {
+				val element = Json.parseToJsonElement(e.message)
+				element.jsonObject["name"]?.jsonPrimitive?.content
+			} else {
+				null
+			}
+			Log.d(TAG, "failed to create a mail editor because of a ${name ?: "unknown error"}")
+		}
+	}
+
+	private fun getFilesFromIntent(intent: Intent): List<String> {
+		val clipData = intent.clipData
+		val filesArray: MutableList<String> = mutableListOf()
+		if (clipData != null) {
+			for (i in 0 until clipData.itemCount) {
+				val item = clipData.getItemAt(i)
+				val uri = item.uri
+				if (uri != null) {
+					filesArray.add(uri.toString())
+				}
+			}
+		} else {
+			// Intent documentation claims that data is copied to ClipData if it's not there
+			// but we want to be sure
+			if (Intent.ACTION_SEND_MULTIPLE == intent.action) {
+				// unchecked_cast: we could just check for null instead?
+				// deprecation: the alternative requires API 33
+				@Suppress("UNCHECKED_CAST", "DEPRECATION")
+				val uris = intent.extras!!.getParcelableArrayList<Uri>(Intent.EXTRA_STREAM)
+				if (uris != null) {
+					for (uri in uris) {
+						filesArray.add(uri.toString())
+					}
+				}
+			} else if (intent.hasExtra(Intent.EXTRA_STREAM)) {
+				// depreciation: the alternative requires API 33
+				@Suppress("DEPRECATION")
+				val uri = intent.getParcelableExtra<Uri>(Intent.EXTRA_STREAM)
+				filesArray.add(uri.toString())
+			} else if (intent.data != null) {
+				val uri = intent.data
+				filesArray.add(uri.toString())
+			} else {
+				Log.w(TAG, "Did not find files in the intent")
+			}
+		}
+		return filesArray
+	}
+
+	private suspend fun openMailbox(intent: Intent) {
+		val userId = intent.getStringExtra(OPEN_USER_MAILBOX_USERID_KEY)
+		val address = intent.getStringExtra(OPEN_USER_MAILBOX_MAIL_ADDRESS_KEY)
+		val isSummary = intent.getBooleanExtra(IS_SUMMARY_EXTRA, false)
+		if (userId == null || address == null) {
+			return
+		}
+		val addresses = ArrayList<String>(1)
+		addresses.add(address)
+		startService(
+			notificationDismissedIntent(
+				this, addresses,
+				"MainActivity#openMailbox", isSummary
+			)
+		)
+
+		commonNativeFacade.openMailBox(userId, address, null)
+	}
+
+	private suspend fun openCalendar(intent: Intent) {
+		val userId = intent.getStringExtra(OPEN_USER_MAILBOX_USERID_KEY) ?: return
+		commonNativeFacade.openCalendar(userId)
+	}
+
+	// this still works, but there's onBackPressedDispatcher.addCallback
+	// it should work on all API levels we support:
+	// https://stackoverflow.com/questions/72634225/onbackpressed-is-deprecated-what-is-the-alternative
+	@Deprecated("Deprecated in Java")
+	override fun onBackPressed() {
+		if (commonSystemFacade.initialized) {
+			lifecycleScope.launchWhenCreated {
+				val result = mobileFacade.handleBackPress()
+				try {
+					if (!result) {
+						goBack()
+					}
+				} catch (e: JSONException) {
+					Log.e(TAG, "error parsing response", e)
+				}
+			}
+		} else {
+			goBack()
+		}
+	}
+
+	private fun goBack() {
+		moveTaskToBack(false)
+	}
+
+	fun reload(parameters: Map<String, String>) {
+		runOnUiThread { startWebApp(parameters.toMutableMap()) }
+	}
+
+	override fun onCreateContextMenu(menu: ContextMenu, v: View, menuInfo: ContextMenuInfo?) {
+		super.onCreateContextMenu(menu, v, menuInfo)
+		val hitTestResult = webView.hitTestResult
+		if (hitTestResult.type == HitTestResult.SRC_ANCHOR_TYPE) {
+			val link = hitTestResult.extra ?: return
+			if (link.startsWith(baseAssetPath)) {
+				return
+			}
+			menu.setHeaderTitle(link)
+			menu.add(0, 0, 0, "Copy link").setOnMenuItemClickListener {
+				(getSystemService(CLIPBOARD_SERVICE) as ClipboardManager)
+					.setPrimaryClip(ClipData.newPlainText(link, link))
+				true
+			}
+			menu.add(0, 2, 0, "Share").setOnMenuItemClickListener {
+				val intent = Intent(Intent.ACTION_SEND)
+				intent.putExtra(Intent.EXTRA_TEXT, link)
+				intent.setTypeAndNormalize("text/plain")
+				this.startActivity(Intent.createChooser(intent, "Share link"))
+				true
+			}
+		}
+	}
+
+	companion object {
+		// don't remove the trailing slash because otherwise longer domains might match our asset check
+		const val BASE_WEB_VIEW_URL = "https://assets.tutanota.com/"
+		const val OPEN_USER_MAILBOX_ACTION = "de.tutao.tutanota.OPEN_USER_MAILBOX_ACTION"
+		const val OPEN_CALENDAR_ACTION = "de.tutao.tutanota.OPEN_CALENDAR_ACTION"
+		const val OPEN_USER_MAILBOX_MAIL_ADDRESS_KEY = "mailAddress"
+		const val OPEN_USER_MAILBOX_USERID_KEY = "userId"
+		const val IS_SUMMARY_EXTRA = "isSummary"
 		const val ALREADY_HANDLED_INTENT = "alreadyHandledIntent"
-	private const val TAG = "MainActivity"
-	private var requestId = 0
+		private const val TAG = "MainActivity"
+		private var requestId = 0
 
-	@Synchronized
-	private fun getNextRequestCode(): Int {
-	  requestId++
-	  if (requestId < 0) {
-		requestId = 0
-	  }
-	  return requestId
-	}
+		@Synchronized
+		private fun getNextRequestCode(): Int {
+			requestId++
+			if (requestId < 0) {
+				requestId = 0
+			}
+			return requestId
+		}
 
-	init {
-	  System.loadLibrary("tutanota")
+		init {
+			System.loadLibrary("tutanota")
+		}
 	}
-  }
 }

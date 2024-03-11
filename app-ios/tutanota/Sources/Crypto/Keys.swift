@@ -1,4 +1,5 @@
 import Foundation
+import TutanotaSharedFramework
 
 extension RsaPublicKey {
 	init(_ objcKey: TUTPublicKey) {

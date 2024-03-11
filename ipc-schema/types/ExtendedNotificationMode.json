@@ -1,0 +1,5 @@
+{
+	"name": "ExtendedNotificationMode",
+	"type": "enum",
+	"values": ["NoSenderOrSubject", "OnlySender", "SenderAndSubject"]
+}

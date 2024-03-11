@@ -1,0 +1,5 @@
+# Generated
+*.generated.swift
+
+# Caches
+**/*.xcodeproj/MockingbirdCache/

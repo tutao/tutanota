@@ -66,6 +66,25 @@
 			],
 			"ret": "void",
 			"doc": "Unschedule and remove alarms belonging to a specific user from the persistent storage"
+		},
+		"setExtendedNotificationConfig": {
+			"arg": [
+				{
+					"userId": "string"
+				},
+				{
+					"mode": "ExtendedNotificationMode"
+				}
+			],
+			"ret": "void"
+		},
+		"getExtendedNotificationConfig": {
+			"arg": [
+				{
+					"userId": "string"
+				}
+			],
+			"ret": "ExtendedNotificationMode"
 		}
 	}
 }

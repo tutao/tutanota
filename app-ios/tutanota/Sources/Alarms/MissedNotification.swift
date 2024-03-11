@@ -1,4 +1,5 @@
 import Foundation
+import TutanotaSharedFramework
 
 /// Response for the downloading of notifications request
 struct MissedNotification: Codable {

@@ -23,8 +23,8 @@ import { QuotaExceededError } from "../api/common/error/QuotaExceededError"
 import { UserError } from "../api/main/UserError"
 import { showMoreStorageNeededOrderDialog } from "./SubscriptionDialogs"
 import { showSnackBar } from "../gui/base/SnackBar"
-import { Credentials } from "./credentials/Credentials"
-import { showErrorNotification, showErrorDialogNotLoggedIn } from "./ErrorReporter"
+import { Credentials, credentialsToUnencrypted } from "./credentials/Credentials"
+import { showErrorDialogNotLoggedIn, showErrorNotification } from "./ErrorReporter"
 import { CancelledError } from "../api/common/error/CancelledError"
 import { getLoginErrorMessage } from "./LoginUtils"
 
@@ -189,7 +189,7 @@ export async function reloginForExpiredSession() {
 	const userId = logins.getUserController().user._id
 	const mailAddress = assertNotNull(logins.getUserController().userGroupInfo.mailAddress, "could not get mailAddress from userGroupInfo")
 	// Fetch old credentials to preserve database key if it's there
-	const oldCredentials = await credentialsProvider.getCredentialsByUserId(userId)
+	const oldCredentials = await credentialsProvider.getDecryptedCredentialsByUserId(userId)
 	// we're deleting the outdated user here because before resetSession() the cache is still open and can be modified.
 	await cacheStorage?.deleteIfExists(UserTypeRef, null, userId)
 	const sessionReset = loginFacade.resetSession()
@@ -223,7 +223,7 @@ export async function reloginForExpiredSession() {
 			}
 			await credentialsProvider.deleteByUserId(userId, { deleteOfflineDb: false })
 			if (oldSessionType === SessionType.Persistent) {
-				await credentialsProvider.store({ credentials, databaseKey })
+				await credentialsProvider.store(credentialsToUnencrypted(credentials, databaseKey))
 			}
 			loginDialogActive = false
 			dialog.close()

@@ -63,7 +63,7 @@ export const allowedImports = {
 	"native-common": ["polyfill-helpers", "common-min", "common"],
 	"native-main": ["polyfill-helpers", "common-min", "common", "boot", "gui-base", "main", "native-common", "login"],
 	"native-worker": ["polyfill-helpers", "common-min", "common"],
-	"setup-wizard": ["boot", "common-min", "gui-base", "main", "native-common", "settings", "ui-extra"],
+	"setup-wizard": ["boot", "common-min", "gui-base", "main", "native-common", "native-main", "settings", "ui-extra"],
 	jszip: ["polyfill-helpers"],
 	"worker-lazy": ["common-min", "common", "worker", "worker-search", "date"],
 	"worker-search": ["common-min", "common", "worker", "worker-lazy"],

@@ -9,6 +9,8 @@ export interface Scheduler {
 
 	unscheduleTimeout(id: ScheduledTimeoutId): void
 
+	scheduleAfter(thunk: Thunk, after: number): ScheduledTimeoutId
+
 	schedulePeriodic(thunk: Thunk, period: number): ScheduledPeriodicId
 
 	unschedulePeriodic(id: ScheduledPeriodicId): void
@@ -58,6 +60,11 @@ export class SchedulerImpl implements Scheduler {
 
 		timeoutId = this.scheduleAtInternal(wrappedCallback, date)
 		return timeoutId
+	}
+
+	scheduleAfter(thunk: Thunk, after: number): ScheduledTimeoutId {
+		const date = new Date(this.dateProvider.now() + after)
+		return this.scheduleAt(thunk, date)
 	}
 
 	/** We have separate internal version which does not re-wrap the thunk. */

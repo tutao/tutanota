@@ -1,150 +1,132 @@
-import { CredentialEncryptionMode } from "../../misc/credentials/CredentialEncryptionMode"
-import { DesktopKeyStoreFacade } from "../DesktopKeyStoreFacade.js"
+import { CredentialEncryptionMode } from "../../misc/credentials/CredentialEncryptionMode.js"
 import { DesktopNativeCryptoFacade } from "../DesktopNativeCryptoFacade"
-import { assert, base64ToUint8Array, Thunk, uint8ArrayToBase64 } from "@tutao/tutanota-utils"
+import { stringToUtf8Uint8Array, utf8Uint8ArrayToString } from "@tutao/tutanota-utils"
 import { NativeCredentialsFacade } from "../../native/common/generatedipc/NativeCredentialsFacade.js"
-import { CommonNativeFacade } from "../../native/common/generatedipc/CommonNativeFacade.js"
-import { LanguageViewModel } from "../../misc/LanguageViewModel.js"
-import { DesktopConfig } from "../config/DesktopConfig.js"
-import { DesktopConfigKey } from "../config/ConfigKeys.js"
-import { Argon2IDExports, generateKeyFromPassphraseArgon2id, KEY_LENGTH_BYTES_AES_256 } from "@tutao/tutanota-crypto"
-import { CryptoError } from "@tutao/tutanota-crypto/error.js"
-import { CancelledError } from "../../api/common/error/CancelledError.js"
+import { bitArrayToUint8Array, uint8ArrayToBitArray } from "@tutao/tutanota-crypto"
 import { KeyPermanentlyInvalidatedError } from "../../api/common/error/KeyPermanentlyInvalidatedError.js"
-
-/** the single source of truth for this configuration */
-const SUPPORTED_MODES = Object.freeze([CredentialEncryptionMode.DEVICE_LOCK, CredentialEncryptionMode.APP_PASSWORD] as const)
-export type DesktopCredentialsMode = typeof SUPPORTED_MODES[number]
+import { PersistedCredentials } from "../../native/common/generatedipc/PersistedCredentials.js"
+import { DesktopCredentialsStorage } from "../db/DesktopCredentialsStorage.js"
+import { UnencryptedCredentials } from "../../native/common/generatedipc/UnencryptedCredentials.js"
+import { assertDesktopEncryptionMode, assertSupportedEncryptionMode, DesktopCredentialsMode, SUPPORTED_MODES } from "./CredentialCommons.js"
+import { KeychainEncryption } from "./KeychainEncryption.js"
 
 /**
- *
+ * Native storage will transparently encrypt and decrypt database key and access token during load and store calls.
  */
 export class DesktopNativeCredentialsFacade implements NativeCredentialsFacade {
-	/**
-	 * @param desktopKeyStoreFacade
-	 * @param crypto
-	 * @param argon2idFacade
-	 * @param lang
-	 * @param conf
-	 * @param getCurrentCommonNativeFacade a "factory" that returns the commonNativeFacade for the window that would be most suited to serve a given request
-	 */
 	constructor(
-		private readonly desktopKeyStoreFacade: DesktopKeyStoreFacade,
 		private readonly crypto: DesktopNativeCryptoFacade,
-		private readonly argon2idFacade: Promise<Argon2IDExports>,
-		private readonly lang: LanguageViewModel,
-		private readonly conf: DesktopConfig,
-		private readonly getCurrentCommonNativeFacade: () => Promise<CommonNativeFacade>,
+		private readonly credentialDb: DesktopCredentialsStorage,
+		private readonly keychainEncryption: KeychainEncryption,
 	) {}
-
-	async decryptUsingKeychain(encryptedDataWithAppPassWrapper: Uint8Array, encryptionMode: DesktopCredentialsMode): Promise<Uint8Array> {
-		// making extra sure that the mode is the right one since this comes over IPC
-		this.assertSupportedEncryptionMode(encryptionMode)
-		const encryptedData = await this.removeAppPassWrapper(encryptedDataWithAppPassWrapper, encryptionMode)
-		const keyChainKey = await this.desktopKeyStoreFacade.getKeyChainKey()
-		return this.crypto.unauthenticatedAes256DecryptKey(keyChainKey, encryptedData)
-	}
-
-	async encryptUsingKeychain(data: Uint8Array, encryptionMode: DesktopCredentialsMode): Promise<Uint8Array> {
-		// making extra sure that the mode is the right one since this comes over IPC
-		this.assertSupportedEncryptionMode(encryptionMode)
-		const keyChainKey = await this.desktopKeyStoreFacade.getKeyChainKey()
-		const encryptedData = this.crypto.aes256EncryptKey(keyChainKey, data)
-		return this.addAppPassWrapper(encryptedData, encryptionMode)
-	}
-
-	private async removeAppPassWrapper(dataWithAppPassWrapper: Uint8Array, encryptionMode: DesktopCredentialsMode): Promise<Uint8Array> {
-		// our mode is not app Pass, so there is no wrapper to remove
-		if (encryptionMode !== CredentialEncryptionMode.APP_PASSWORD) return dataWithAppPassWrapper
-		const appPassKey = await this.deriveKeyFromAppPass()
-		if (appPassKey == null) throw new KeyPermanentlyInvalidatedError("can't remove app pass wrapper without salt")
-
-		try {
-			return this.crypto.aesDecryptBytes(appPassKey, dataWithAppPassWrapper)
-		} catch (e) {
-			if (e instanceof CryptoError) {
-				const nativeFacade = await this.getCurrentCommonNativeFacade()
-				//noinspection ES6MissingAwait
-				nativeFacade.showAlertDialog("invalidPassword_msg")
-				throw new CancelledError("app Pass verification failed")
-			} else {
-				throw e
-			}
-		}
-	}
-
-	private async addAppPassWrapper(dataWithoutAppPassWrapper: Uint8Array, encryptionMode: DesktopCredentialsMode): Promise<Uint8Array> {
-		if (encryptionMode === CredentialEncryptionMode.APP_PASSWORD) {
-			const appPassKey = (await this.deriveKeyFromAppPass()) ?? (await this.enrollForAppPass())
-			return this.crypto.aesEncryptBytes(appPassKey, dataWithoutAppPassWrapper)
-		} else {
-			// our mode is not app Pass, so the app Pass salt should not be set
-			await this.conf.setVar(DesktopConfigKey.appPassSalt, null)
-			return dataWithoutAppPassWrapper
-		}
-	}
-
-	/**
-	 * if there is a salt stored, use it and a password prompt to derive the app Pass key.
-	 * if there isn't, ask for a new password, generate a salt & store it, then derive the key.
-	 * @return the derived 256 bit key or null if none is found
-	 */
-	private async deriveKeyFromAppPass(): Promise<Aes256Key | null> {
-		const storedAppPassSaltB64 = await this.conf.getVar(DesktopConfigKey.appPassSalt)
-		if (storedAppPassSaltB64 == null) return null
-		const commonNativeFacade = await this.getCurrentCommonNativeFacade()
-		const pw = await this.tryWhileSaltNotChanged(commonNativeFacade.promptForPassword(this.lang.get("credentialsEncryptionModeAppPassword_label")))
-		const salt = base64ToUint8Array(storedAppPassSaltB64)
-		return generateKeyFromPassphraseArgon2id(await this.argon2idFacade, pw, salt)
-	}
-
-	private async enrollForAppPass(): Promise<Aes256Key> {
-		const newSalt = this.crypto.randomBytes(KEY_LENGTH_BYTES_AES_256)
-		const commonNativeFacade = await this.getCurrentCommonNativeFacade()
-		const newPw = await this.tryWhileSaltNotChanged(
-			commonNativeFacade.promptForNewPassword(this.lang.get("credentialsEncryptionModeAppPassword_label"), null),
-		)
-		const newAppPassSaltB64 = uint8ArrayToBase64(newSalt)
-		await this.conf.setVar(DesktopConfigKey.appPassSalt, newAppPassSaltB64)
-		return generateKeyFromPassphraseArgon2id(await this.argon2idFacade, newPw, newSalt)
-	}
-
-	private async tryWhileSaltNotChanged(pwPromise: Promise<string>): Promise<string> {
-		const commonNativeFacade = await this.getCurrentCommonNativeFacade()
-		return resolveChecked<string>(
-			pwPromise,
-			new Promise((_, reject) =>
-				this.conf.once(DesktopConfigKey.appPassSalt, () => {
-					reject(new CancelledError("salt changed during pw prompt"))
-				}),
-			),
-			() => commonNativeFacade.showAlertDialog("retry_action"),
-		)
-	}
 
 	async getSupportedEncryptionModes(): Promise<ReadonlyArray<DesktopCredentialsMode>> {
 		return SUPPORTED_MODES
 	}
 
-	private assertSupportedEncryptionMode(encryptionMode: DesktopCredentialsMode) {
-		assert(SUPPORTED_MODES.includes(encryptionMode), `should not use unsupported encryption mode ${encryptionMode}`)
+	async deleteByUserId(id: string): Promise<void> {
+		this.credentialDb.deleteByUserId(id)
 	}
-}
 
-/**
- * resolve a promise, but inject another action if whileNot did reject in the meantime.
- * if whileNot did reject, the returned promise will reject as well.
- */
-export async function resolveChecked<R>(promise: Promise<R>, whileNotRejected: Promise<never>, otherWiseAlso: Thunk): Promise<R> {
-	let cancelled = false
-	return await Promise.race<R>([
-		promise.then((value) => {
-			if (cancelled) otherWiseAlso()
-			return value
-		}),
-		whileNotRejected.catch((e) => {
-			cancelled = true
-			throw e
-		}),
-	])
+	async getCredentialEncryptionMode(): Promise<CredentialEncryptionMode | null> {
+		return this.credentialDb.getCredentialEncryptionMode()
+	}
+
+	private getDesktopCredentialEncryptionMode(): DesktopCredentialsMode | null {
+		const retVal = this.credentialDb.getCredentialEncryptionMode()
+		return retVal ? CredentialEncryptionMode[retVal as DesktopCredentialsMode] : null
+	}
+
+	async loadAll(): Promise<ReadonlyArray<PersistedCredentials>> {
+		return this.credentialDb.getAllCredentials()
+	}
+
+	async loadByUserId(id: string): Promise<UnencryptedCredentials | null> {
+		const credentialsKey = await this.getCredentialsEncryptionKey()
+		if (credentialsKey == null) {
+			throw new KeyPermanentlyInvalidatedError("Credentials key is missing, cannot decrypt credentials")
+		}
+		const encryptedCredentials = this.credentialDb.getCredentialsByUserId(id)
+		return encryptedCredentials ? this.decryptCredentials(encryptedCredentials, credentialsKey) : null
+	}
+
+	private decryptCredentials(persistedCredentials: PersistedCredentials, credentialsKey: BitArray): UnencryptedCredentials {
+		try {
+			return {
+				credentialInfo: persistedCredentials.credentialInfo,
+				encryptedPassword: persistedCredentials.encryptedPassword,
+				accessToken: utf8Uint8ArrayToString(this.crypto.aesDecryptBytes(credentialsKey, persistedCredentials.accessToken)),
+				databaseKey: persistedCredentials.databaseKey ? this.crypto.aesDecryptBytes(credentialsKey, persistedCredentials.databaseKey) : null,
+			}
+		} catch (e) {
+			throw new KeyPermanentlyInvalidatedError("Failed AES decrypt: " + e)
+		}
+	}
+
+	private encryptCredentials(unencryptedCredentials: UnencryptedCredentials, credentialsEncryptionKey: BitArray): PersistedCredentials {
+		return {
+			credentialInfo: unencryptedCredentials.credentialInfo,
+			accessToken: this.crypto.aesEncryptBytes(credentialsEncryptionKey, stringToUtf8Uint8Array(unencryptedCredentials.accessToken)),
+			encryptedPassword: unencryptedCredentials.encryptedPassword,
+			databaseKey: unencryptedCredentials.databaseKey ? this.crypto.aesEncryptBytes(credentialsEncryptionKey, unencryptedCredentials.databaseKey) : null,
+		}
+	}
+
+	async setCredentialEncryptionMode(encryptionMode: CredentialEncryptionMode): Promise<void> {
+		assertDesktopEncryptionMode(encryptionMode)
+		const decryptedKey = await this.getOrCreateCredentialEncryptionKey()
+		const encryptedKey = await this.keychainEncryption.encryptUsingKeychain(bitArrayToUint8Array(decryptedKey), encryptionMode)
+		this.credentialDb.setCredentialEncryptionMode(encryptionMode)
+		this.credentialDb.setCredentialEncryptionKey(encryptedKey)
+	}
+
+	async store(credentials: UnencryptedCredentials): Promise<void> {
+		const credentialsEncryptionKey = await this.getOrCreateCredentialEncryptionKey()
+		const encryptedCredentials: PersistedCredentials = this.encryptCredentials(credentials, credentialsEncryptionKey)
+		return this.storeEncrypted(encryptedCredentials)
+	}
+
+	async clear(): Promise<void> {
+		this.credentialDb.deleteAllCredentials()
+		this.credentialDb.setCredentialEncryptionKey(null)
+		this.credentialDb.setCredentialEncryptionMode(null)
+	}
+
+	async migrateToNativeCredentials(credentials: ReadonlyArray<PersistedCredentials>, encryptionMode: CredentialEncryptionMode, credentialsKey: Uint8Array) {
+		// store persistedCredentials, key & mode
+		assertSupportedEncryptionMode(encryptionMode as DesktopCredentialsMode)
+		this.credentialDb.setCredentialEncryptionMode(encryptionMode)
+		this.credentialDb.setCredentialEncryptionKey(credentialsKey)
+		for (const credential of credentials) {
+			await this.storeEncrypted(credential)
+		}
+	}
+
+	async storeEncrypted(credentials: PersistedCredentials): Promise<void> {
+		this.credentialDb.store(credentials)
+	}
+
+	private async getOrCreateCredentialEncryptionKey(): Promise<BitArray> {
+		const existingKey = await this.getCredentialsEncryptionKey()
+		if (existingKey != null) {
+			return existingKey
+		} else {
+			const encryptionMode = this.getDesktopCredentialEncryptionMode() ?? CredentialEncryptionMode.DEVICE_LOCK
+			const newKey = bitArrayToUint8Array(this.crypto.generateDeviceKey())
+			const encryptedKey = await this.keychainEncryption.encryptUsingKeychain(newKey, encryptionMode)
+			this.credentialDb.setCredentialEncryptionKey(encryptedKey)
+			return uint8ArrayToBitArray(newKey)
+		}
+	}
+
+	private async getCredentialsEncryptionKey(): Promise<BitArray | null> {
+		const encryptionMode = this.getDesktopCredentialEncryptionMode() ?? CredentialEncryptionMode.DEVICE_LOCK
+		const existingKey = this.credentialDb.getCredentialEncryptionKey()
+		if (existingKey != null) {
+			const decryptedKey = await this.keychainEncryption.decryptUsingKeychain(existingKey, encryptionMode)
+			return uint8ArrayToBitArray(decryptedKey)
+		} else {
+			return null
+		}
+	}
 }

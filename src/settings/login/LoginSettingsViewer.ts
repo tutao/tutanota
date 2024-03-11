@@ -18,10 +18,9 @@ import { ColumnWidth, Table } from "../../gui/base/Table.js"
 import { ifAllowedTutaLinks } from "../../gui/base/GuiUtils.js"
 import type { UpdatableSettingsViewer } from "../SettingsView.js"
 import { CredentialEncryptionMode } from "../../misc/credentials/CredentialEncryptionMode.js"
-import type { CredentialsProvider } from "../../misc/credentials/CredentialsProvider.js"
-import { usingKeychainAuthenticationWithOptions } from "../../misc/credentials/CredentialsProviderFactory.js"
+import { CredentialsProvider } from "../../misc/credentials/CredentialsProvider.js"
 import { showCredentialsEncryptionModeDialog } from "../../gui/dialogs/SelectCredentialsEncryptionModeDialog.js"
-import { assertMainOrNode } from "../../api/common/Env.js"
+import { assertMainOrNode, isDesktop } from "../../api/common/Env.js"
 import { locator } from "../../api/main/MainLocator.js"
 import { elementIdPart, getElementId } from "../../api/common/utils/EntityUtils.js"
 import { showChangeOwnPasswordDialog } from "./ChangePasswordDialogs.js"
@@ -33,6 +32,8 @@ import { UserSettingsGroupRootTypeRef } from "../../api/entities/tutanota/TypeRe
 import { EntityUpdateData, isUpdateForTypeRef } from "../../api/common/utils/EntityUpdateUtils.js"
 import { Dialog } from "../../gui/base/Dialog.js"
 import { MoreInfoLink } from "../../misc/news/MoreInfoLink.js"
+import { AppLockMethod } from "../../native/common/generatedipc/AppLockMethod.js"
+import { MobileSystemFacade } from "../../native/common/generatedipc/MobileSystemFacade.js"
 
 assertMainOrNode()
 
@@ -45,15 +46,24 @@ export class LoginSettingsViewer implements UpdatableSettingsViewer {
 		new LazyLoaded(() => Promise.resolve(locator.logins.getUserController().user)),
 		locator.domainConfigProvider(),
 	)
-	private readonly credentialsEncryptionModeHelpLabel: (() => string) | null
 	private readonly _usageTestModel: UsageTestModel
+	private credentialEncryptionMode: CredentialEncryptionMode | null = null
+	private appLockMethod: AppLockMethod | null = null
 
-	constructor(private readonly credentialsProvider: CredentialsProvider) {
-		this.credentialsEncryptionModeHelpLabel =
-			this.credentialsProvider.getCredentialsEncryptionMode() === null ? () => lang.get("deviceEncryptionSaveCredentialsHelpText_msg") : null
+	constructor(private readonly credentialsProvider: CredentialsProvider, private readonly mobileSystemFacade: MobileSystemFacade | null) {
 		this._usageTestModel = locator.usageTestModel
 
 		this._updateSessions()
+		this.updateAppLockData()
+	}
+
+	private async updateAppLockData() {
+		if (isDesktop()) {
+			this.credentialEncryptionMode = await this.credentialsProvider.getCredentialEncryptionMode()
+		} else if (this.mobileSystemFacade) {
+			this.appLockMethod = await this.mobileSystemFacade.getAppLockMethod()
+		}
+		m.redraw()
 	}
 
 	view(): Children {
@@ -145,7 +155,7 @@ export class LoginSettingsViewer implements UpdatableSettingsViewer {
 					m(TextField, mailAddressAttrs),
 					m(TextField, passwordAttrs),
 					user.isGlobalAdmin() ? m(TextField, recoveryCodeFieldAttrs) : null,
-					this._renderEncryptionModeField(),
+					this.renderAppLockField(),
 					m(this._secondFactorsForm),
 					m(".h4.mt-l", lang.get("activeSessions_label")),
 					this._renderActiveSessions(),
@@ -178,25 +188,42 @@ export class LoginSettingsViewer implements UpdatableSettingsViewer {
 		}
 	}
 
-	private _renderEncryptionModeField(): Children {
-		if (!usingKeychainAuthenticationWithOptions()) {
-			return null
+	private renderAppLockField(): Children {
+		const mobileSystemFacade = this.mobileSystemFacade
+
+		// On mobile we display app lock dialog, on desktop credential encryption dialog. They are similar but different.
+		if (mobileSystemFacade) {
+			const onEdit = async () => {
+				const { showAppLockMethodDialog } = await import("../../native/main/SelectAppLockMethodDialog.js")
+				await showAppLockMethodDialog(mobileSystemFacade)
+				await this.updateAppLockData()
+			}
+			return m(TextField, {
+				label: "credentialsEncryptionMode_label",
+				value: this.appLockMethodName(this.appLockMethod ?? AppLockMethod.None),
+				isReadOnly: true,
+				injectionsRight: () =>
+					m(IconButton, {
+						title: "edit_action",
+						icon: Icons.Edit,
+						click: () => onEdit(),
+					}),
+			})
+		} else if (isDesktop()) {
+			const usedMode = this.credentialEncryptionMode ?? CredentialEncryptionMode.DEVICE_LOCK
+
+			return m(TextField, {
+				label: "credentialsEncryptionMode_label",
+				value: this.credentialsEncryptionModeName(usedMode),
+				isReadOnly: true,
+				injectionsRight: () =>
+					m(IconButton, {
+						title: "edit_action",
+						icon: Icons.Edit,
+						click: () => showCredentialsEncryptionModeDialog(this.credentialsProvider).then(() => this.updateAppLockData()),
+					}),
+			})
 		}
-
-		const usedMode = this.credentialsProvider.getCredentialsEncryptionMode() ?? CredentialEncryptionMode.DEVICE_LOCK
-
-		return m(TextField, {
-			label: "credentialsEncryptionMode_label",
-			helpLabel: this.credentialsEncryptionModeHelpLabel,
-			value: this._credentialsEncryptionModeName(usedMode),
-			isReadOnly: true,
-			injectionsRight: () =>
-				m(IconButton, {
-					title: "edit_action",
-					icon: Icons.Edit,
-					click: () => showCredentialsEncryptionModeDialog(this.credentialsProvider).then(m.redraw),
-				}),
-		})
 	}
 
 	async _updateSessions(): Promise<void> {
@@ -296,7 +323,7 @@ export class LoginSettingsViewer implements UpdatableSettingsViewer {
 		}
 	}
 
-	private _credentialsEncryptionModeName(credentialsEncryptionMode: CredentialEncryptionMode): string {
+	private credentialsEncryptionModeName(credentialsEncryptionMode: CredentialEncryptionMode): string {
 		const mapping = {
 			[CredentialEncryptionMode.DEVICE_LOCK]: "credentialsEncryptionModeDeviceLock_label",
 			[CredentialEncryptionMode.SYSTEM_PASSWORD]: "credentialsEncryptionModeDeviceCredentials_label",
@@ -304,6 +331,15 @@ export class LoginSettingsViewer implements UpdatableSettingsViewer {
 			[CredentialEncryptionMode.APP_PASSWORD]: "credentialsEncryptionModeAppPassword_label",
 		} as const
 		return lang.get(mapping[credentialsEncryptionMode])
+	}
+
+	private appLockMethodName(appLockMethod: AppLockMethod): string {
+		const mapping = {
+			[AppLockMethod.None]: "credentialsEncryptionModeDeviceLock_label",
+			[AppLockMethod.SystemPassOrBiometrics]: "credentialsEncryptionModeDeviceCredentials_label",
+			[AppLockMethod.Biometrics]: "credentialsEncryptionModeBiometrics_label",
+		} as const
+		return lang.get(mapping[appLockMethod])
 	}
 
 	private _renderClosedSessions(): Children {

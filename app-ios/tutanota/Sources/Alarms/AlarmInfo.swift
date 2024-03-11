@@ -1,9 +1,4 @@
-import Foundation
-
-struct EncryptedAlarmInfo: Codable {
-	let alarmIdentifier: String
-	let trigger: Base64
-}
+import TutanotaSharedFramework
 
 enum AlarmIntervalUnit: String {
 	case minute = "M"

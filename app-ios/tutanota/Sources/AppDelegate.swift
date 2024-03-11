@@ -1,3 +1,4 @@
+import TutanotaSharedFramework
 import UIKit
 
 @UIApplicationMain class AppDelegate: UIResponder, UIApplicationDelegate, UNUserNotificationCenterDelegate {
@@ -32,6 +33,7 @@ import UIKit
 		let userPreferencesProvider = UserPreferencesProviderImpl()
 		let notificationStorage = NotificationStorage(userPreferencesProvider: userPreferencesProvider)
 		let keychainManager = KeychainManager(keyGenerator: KeyGenerator())
+		let keychainEncryption = KeychainEncryption(keychainManager: keychainManager)
 
 		let alarmModel = AlarmModel(dateProvider: SystemDateProvider())
 		self.alarmManager = AlarmManager(
@@ -42,7 +44,13 @@ import UIKit
 		)
 		self.notificationsHandler = NotificationsHandler(alarmManager: self.alarmManager, notificationStorage: notificationStorage)
 		self.window = UIWindow(frame: UIScreen.main.bounds)
-		let credentialsEncryption = IosNativeCredentialsFacade(keychainManager: keychainManager)
+
+		let credentialsDb = try! CredentialsDatabase(dbPath: credentialsDatabasePath().absoluteString)
+		let credentialsEncryption = IosNativeCredentialsFacade(
+			keychainEncryption: keychainEncryption,
+			credentialsDb: credentialsDb,
+			cryptoFns: CryptoFunctions()
+		)
 
 		self.viewController = ViewController(
 			crypto: IosNativeCryptoFacade(),
@@ -53,7 +61,8 @@ import UIKit
 			notificaionsHandler: notificationsHandler,
 			credentialsEncryption: credentialsEncryption,
 			blobUtils: BlobUtil(),
-			contactsSynchronization: IosMobileContactsFacade(userDefault: UserDefaults.standard)
+			contactsSynchronization: IosMobileContactsFacade(userDefault: UserDefaults.standard),
+			userPreferencesProvider: userPreferencesProvider
 		)
 		self.window!.rootViewController = viewController
 

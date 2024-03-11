@@ -13,17 +13,17 @@ interface CommonSystemFacade {
 	/**
 	 * Must be called before any other methods are called.
 	 */
-	 suspend fun initializeRemoteBridge(
+	suspend fun initializeRemoteBridge(
 	): Unit
 	/**
 	 * Reload the webpage with the specified query arguments.
 	 */
-	 suspend fun reload(
+	suspend fun reload(
 		query: Map<String, String>,
 	): Unit
 	/**
 	 * Returns the log contents of the native process.
 	 */
-	 suspend fun getLog(
+	suspend fun getLog(
 	): String
 }

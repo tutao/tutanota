@@ -7,19 +7,19 @@ import kotlinx.serialization.*
 import kotlinx.serialization.json.*
 
 interface NativeCryptoFacade {
-	 suspend fun rsaEncrypt(
+	suspend fun rsaEncrypt(
 		publicKey: RsaPublicKey,
 		data: DataWrapper,
 		seed: DataWrapper,
 	): DataWrapper
-	 suspend fun rsaDecrypt(
+	suspend fun rsaDecrypt(
 		privateKey: RsaPrivateKey,
 		data: DataWrapper,
 	): DataWrapper
 	/**
 	 * Encrypt file specified by the `fileUri`. Returns URI of the encrypted file.
 	 */
-	 suspend fun aesEncryptFile(
+	suspend fun aesEncryptFile(
 		key: DataWrapper,
 		fileUri: String,
 		iv: DataWrapper,
@@ -27,11 +27,11 @@ interface NativeCryptoFacade {
 	/**
 	 * Decrypt file specified by the `fileUri`. Returns URI of the decrypted file.
 	 */
-	 suspend fun aesDecryptFile(
+	suspend fun aesDecryptFile(
 		key: DataWrapper,
 		fileUri: String,
 	): String
-	 suspend fun argon2idHashRaw(
+	suspend fun argon2idHashRaw(
 		password: DataWrapper,
 		salt: DataWrapper,
 		timeCost: Int,
@@ -39,14 +39,14 @@ interface NativeCryptoFacade {
 		parallelism: Int,
 		hashLength: Int,
 	): DataWrapper
-	 suspend fun generateKyberKeypair(
+	suspend fun generateKyberKeypair(
 		seed: DataWrapper,
 	): KyberKeyPair
-	 suspend fun kyberEncapsulate(
+	suspend fun kyberEncapsulate(
 		publicKey: KyberPublicKey,
 		seed: DataWrapper,
 	): KyberEncapsulation
-	 suspend fun kyberDecapsulate(
+	suspend fun kyberDecapsulate(
 		privateKey: KyberPrivateKey,
 		ciphertext: DataWrapper,
 	): DataWrapper

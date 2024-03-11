@@ -37,7 +37,7 @@ export class DesktopSqlCipher implements SqlCipherFacade {
 			// If we can't initialize the database we don't want to be stuck in a state where we hold the file lock, we need to retry the whole process again
 			this.db.close()
 			this._db = null
-			throw e
+			throw e // "file is not a database" is most likely wrong database key
 		}
 	}
 

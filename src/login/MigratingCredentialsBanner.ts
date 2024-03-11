@@ -83,7 +83,7 @@ export class MigratingCredentialsBanner implements Component<CredentialsBannerAt
 				style: { cursor: "pointer" },
 				onclick: (e: Event) => {
 					e.preventDefault()
-					this.startMigration(vnode)
+					this.startMigration(vnode.attrs.viewModel)
 				},
 			},
 			href,
@@ -91,18 +91,19 @@ export class MigratingCredentialsBanner implements Component<CredentialsBannerAt
 	}
 
 	/** open the other domain in a new tab and migrate the credentials to the new one */
-	startMigration(vnode: Vnode<CredentialsBannerAttrs>) {
+	private async startMigration(viewModel: LoginViewModel) {
 		showProgressDialog("pleaseWait_msg", this.migrationPromise.promise)
 		if (isLegacyDomain()) {
-			if (vnode.attrs.viewModel.getAllCredentials().length === 0) {
+			const allCredentials = await viewModel.getAllCredentials()
+			if (allCredentials.length === 0) {
 				// no credentials, nothing to migrate, but we still want to have people
 				// use the new domain. replaces current tab with the new domain.
 				window.open(this.childOrigin, "_self")
 			} else {
-				this.openChildFromLegacyDomain(vnode.attrs.viewModel)
+				this.openChildFromLegacyDomain(viewModel)
 			}
 		} else {
-			this.openChildFromNewDomain(vnode.attrs.viewModel)
+			this.openChildFromNewDomain(viewModel)
 		}
 	}
 
@@ -110,7 +111,7 @@ export class MigratingCredentialsBanner implements Component<CredentialsBannerAt
 		const childURL = new URL(this.childOrigin)
 		childURL.pathname = "migrate"
 
-		const handleInitialMessageAsLegacyDomain = (msg: MessageEvent) => {
+		const handleInitialMessageAsLegacyDomain = async (msg: MessageEvent) => {
 			console.log("got first message as legacy:", msg)
 			window.removeEventListener("message", handleInitialMessageAsLegacyDomain)
 			if (msg.source == null) {
@@ -138,7 +139,8 @@ export class MigratingCredentialsBanner implements Component<CredentialsBannerAt
 				},
 			}
 			this.dispatcher = new MessageDispatcher(this.transport, commands, "main-tab")
-			this.dispatcher.postRequest(new Request("credentials", [viewModel.getAllCredentials()]))
+			const allCredentials = await viewModel.getAllCredentials()
+			this.dispatcher.postRequest(new Request("credentials", [allCredentials]))
 		}
 
 		window.open(childURL, "_blank")

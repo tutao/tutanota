@@ -2,6 +2,7 @@ import Atomics
 import CryptoTokenKit
 import DictionaryCoding
 import Foundation
+import TutanotaSharedFramework
 
 /// Gateway for communicating with Javascript code in WebView. Can send messages and handle requests.
 class RemoteBridge: NSObject, NativeInterface {
@@ -31,7 +32,8 @@ class RemoteBridge: NSObject, NativeInterface {
 		keychainManager: KeychainManager,
 		webAuthnFacade: WebAuthnFacade,
 		sqlCipherFacade: IosSqlCipherFacade,
-		contactsSynchronization: IosMobileContactsFacade
+		contactsSynchronization: IosMobileContactsFacade,
+		userPreferencesProvider: UserPreferencesProvider
 	) {
 		self.webView = webView
 		self.viewController = viewController
@@ -54,7 +56,11 @@ class RemoteBridge: NSObject, NativeInterface {
 			commonSystemFacade: commonSystemFacade,
 			fileFacade: fileFacade,
 			mobileContactsFacade: IosMobileContactsFacade(userDefault: UserDefaults.standard),
-			mobileSystemFacade: IosMobileSystemFacade(viewController: self.viewController),
+			mobileSystemFacade: IosMobileSystemFacade(
+				viewController: self.viewController,
+				userPreferencesProvider: userPreferencesProvider,
+				appLockHandler: AppLockHandler()
+			),
 			nativeCredentialsFacade: nativeCredentialsFacade,
 			nativeCryptoFacade: nativeCryptoFacade,
 			nativePushFacade: nativePushFacade,

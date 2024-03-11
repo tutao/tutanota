@@ -10,6 +10,15 @@
       }
     },
     {
+      "identity" : "mockingbird",
+      "kind" : "remoteSourceControl",
+      "location" : "https://github.com/birdrides/mockingbird",
+      "state" : {
+        "revision" : "6e0d473df6b975719e145f6aebf90990c634700e",
+        "version" : "0.20.0"
+      }
+    },
+    {
       "identity" : "swift-atomics",
       "kind" : "remoteSourceControl",
       "location" : "https://github.com/apple/swift-atomics.git",

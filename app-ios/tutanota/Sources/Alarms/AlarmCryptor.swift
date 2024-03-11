@@ -1,4 +1,5 @@
 import Foundation
+import TutanotaSharedFramework
 
 protocol AlarmCryptor { func decrypt(alarm: EncryptedAlarmNotification) throws -> AlarmNotification }
 

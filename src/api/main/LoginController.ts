@@ -9,10 +9,10 @@ import type { LoginFacade, NewSessionData } from "../worker/facades/LoginFacade"
 import { ResumeSessionErrorReason } from "../worker/facades/LoginFacade"
 import type { Credentials } from "../../misc/credentials/Credentials"
 import { FeatureType, KdfType } from "../common/TutanotaConstants"
-import { CredentialsAndDatabaseKey } from "../../misc/credentials/CredentialsProvider.js"
 import { SessionType } from "../common/SessionType"
-import { IMainLocator, locator } from "./MainLocator"
+import { IMainLocator } from "./MainLocator"
 import { ExternalUserKeyDeriver } from "../../misc/LoginUtils.js"
+import { UnencryptedCredentials } from "../../native/common/generatedipc/UnencryptedCredentials.js"
 
 assertMainOrNodeBoot()
 
@@ -148,17 +148,24 @@ export class LoginController {
 
 	/**
 	 * Resume an existing session using stored credentials, may or may not unlock a persistent local database
-	 * @param credentials: The stored credentials and optional database key for the offline db
+	 * @param unencryptedCredentials The stored credentials and optional database key for the offline db
 	 * @param externalUserKeyDeriver The KDF type and salt to resume a session
 	 * @param offlineTimeRangeDays the user configured time range for their offline storage, used to initialize the offline db
 	 */
 	async resumeSession(
-		{ credentials, databaseKey }: CredentialsAndDatabaseKey,
+		unencryptedCredentials: UnencryptedCredentials,
 		externalUserKeyDeriver?: ExternalUserKeyDeriver | null,
 		offlineTimeRangeDays?: number | null,
 	): Promise<ResumeSessionResult> {
 		const loginFacade = await this.getLoginFacade()
-		const resumeResult = await loginFacade.resumeSession(credentials, externalUserKeyDeriver ?? null, databaseKey ?? null, offlineTimeRangeDays ?? null)
+		const { unencryptedToCredentials } = await import("../../misc/credentials/Credentials.js")
+		const credentials = unencryptedToCredentials(unencryptedCredentials)
+		const resumeResult = await loginFacade.resumeSession(
+			credentials,
+			externalUserKeyDeriver ?? null,
+			unencryptedCredentials.databaseKey ?? null,
+			offlineTimeRangeDays ?? null,
+		)
 		if (resumeResult.type === "error") {
 			return resumeResult
 		} else {
@@ -257,7 +264,7 @@ export class LoginController {
 	 * @param credentials
 	 * @param pushIdentifier identifier associated with this device, if any, to delete PushIdentifier on the server
 	 */
-	async deleteOldSession(credentials: Credentials, pushIdentifier: string | null = null): Promise<void> {
+	async deleteOldSession(credentials: UnencryptedCredentials, pushIdentifier: string | null = null): Promise<void> {
 		const loginFacade = await this.getLoginFacade()
 
 		try {

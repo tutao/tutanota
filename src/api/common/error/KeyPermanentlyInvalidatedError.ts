@@ -1,7 +1,9 @@
 //@bundleInto:common-min
 
-export class KeyPermanentlyInvalidatedError extends Error {
+import { TutanotaError } from "@tutao/tutanota-error"
+
+export class KeyPermanentlyInvalidatedError extends TutanotaError {
 	constructor(message: string) {
-		super(message)
+		super("KeyPermanentlyInvalidatedError", message)
 	}
 }

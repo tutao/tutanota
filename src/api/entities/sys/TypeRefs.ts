@@ -1399,6 +1399,19 @@ export type GroupRoot = {
 	externalUserAreaGroupInfos:  null | UserAreaGroups;
 	externalUserReferences: Id;
 }
+export const IdTupleWrapperTypeRef: TypeRef<IdTupleWrapper> = new TypeRef("sys", "IdTupleWrapper")
+
+export function createIdTupleWrapper(values: StrippedEntity<IdTupleWrapper>): IdTupleWrapper {
+	return Object.assign(create(typeModels.IdTupleWrapper, IdTupleWrapperTypeRef), values)
+}
+
+export type IdTupleWrapper = {
+	_type: TypeRef<IdTupleWrapper>;
+
+	_id: Id;
+	listElementId: Id;
+	listId: Id;
+}
 export const InstanceSessionKeyTypeRef: TypeRef<InstanceSessionKey> = new TypeRef("sys", "InstanceSessionKey")
 
 export function createInstanceSessionKey(values: StrippedEntity<InstanceSessionKey>): InstanceSessionKey {
@@ -1814,9 +1827,10 @@ export type NotificationInfo = {
 	_type: TypeRef<NotificationInfo>;
 
 	_id: Id;
-	counter: NumberString;
 	mailAddress: string;
 	userId: Id;
+
+	mailId:  null | IdTupleWrapper;
 }
 export const NotificationMailTemplateTypeRef: TypeRef<NotificationMailTemplate> = new TypeRef("sys", "NotificationMailTemplate")
 
