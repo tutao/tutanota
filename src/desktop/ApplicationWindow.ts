@@ -66,7 +66,7 @@ export class ApplicationWindow {
 
 	constructor(
 		wm: WindowManager,
-		/** absolute path to web assets (html, js etc) */
+		/** absolute path to web assets (html, js etc.) */
 		private readonly absoluteAssetsPath: string,
 		icon: NativeImage,
 		private readonly electron: typeof Electron.CrossProcessExports,

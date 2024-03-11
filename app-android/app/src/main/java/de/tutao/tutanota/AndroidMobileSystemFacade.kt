@@ -7,8 +7,14 @@ import android.content.Intent
 import android.net.Uri
 import android.provider.Settings
 import android.util.Log
+import androidx.biometric.BiometricManager
+import androidx.biometric.BiometricPrompt
 import androidx.core.content.ContextCompat.startActivity
 import androidx.core.content.FileProvider
+import androidx.fragment.app.FragmentActivity
+import de.tutao.tutanota.credentials.AuthenticationPrompt
+import de.tutao.tutanota.data.AppDatabase
+import de.tutao.tutanota.ipc.AppLockMethod
 import de.tutao.tutanota.ipc.MobileSystemFacade
 import de.tutao.tutanota.ipc.PermissionType
 import kotlinx.coroutines.Dispatchers
@@ -19,8 +25,15 @@ import java.io.IOException
 class AndroidMobileSystemFacade(
 	private val fileFacade: AndroidFileFacade,
 	private val activity: MainActivity,
+	private val db: AppDatabase,
 ) : MobileSystemFacade {
 
+	private val authenticationPrompt = AuthenticationPrompt()
+
+	companion object {
+		private const val TAG = "SystemFacade"
+		const val APP_LOCK_METHOD = "AppLockMethod"
+	}
 
 	override suspend fun openLink(uri: String): Boolean {
 		val intent = Intent(Intent.ACTION_VIEW, Uri.parse(uri))
@@ -84,10 +97,6 @@ class AndroidMobileSystemFacade(
 		return true
 	}
 
-	companion object {
-		private const val TAG = "SystemFacade"
-	}
-
 	override suspend fun hasPermission(permission: PermissionType): Boolean {
 		return when (permission) {
 			PermissionType.CONTACTS -> activity.hasPermission(Manifest.permission.READ_CONTACTS) && activity.hasPermission(
@@ -109,6 +118,50 @@ class AndroidMobileSystemFacade(
 
 			PermissionType.IGNORE_BATTERY_OPTIMIZATION -> activity.requestBatteryOptimizationPermission()
 			PermissionType.NOTIFICATION -> if (atLeastTiramisu()) activity.getPermission(Manifest.permission.POST_NOTIFICATIONS)
+		}
+	}
+
+	override suspend fun getAppLockMethod(): AppLockMethod {
+		return db.keyValueDao().getString(APP_LOCK_METHOD)?.let { AppLockMethod.fromValue(it) } ?: AppLockMethod.NONE
+	}
+
+	override suspend fun setAppLockMethod(method: AppLockMethod) {
+		db.keyValueDao().putString(APP_LOCK_METHOD, method.value)
+	}
+
+	@Throws(CredentialAuthenticationException::class)
+	override suspend fun enforceAppLock(method: AppLockMethod) {
+		val allowedAuthenticators = when (method) {
+			AppLockMethod.NONE -> return
+			AppLockMethod.SYSTEM_PASS_OR_BIOMETRICS -> BiometricManager.Authenticators.DEVICE_CREDENTIAL or BiometricManager.Authenticators.BIOMETRIC_STRONG or BiometricManager.Authenticators.BIOMETRIC_WEAK
+			AppLockMethod.BIOMETRICS -> BiometricManager.Authenticators.BIOMETRIC_STRONG or BiometricManager.Authenticators.BIOMETRIC_WEAK
+		}
+		val promptInfoBuilder = BiometricPrompt.PromptInfo.Builder()
+			.setTitle(activity.getString(R.string.unlockCredentials_action))
+			.setAllowedAuthenticators(allowedAuthenticators)
+		if (method == AppLockMethod.BIOMETRICS) {
+			promptInfoBuilder.setNegativeButtonText(activity.getString(android.R.string.cancel))
+		}
+		val promptInfo = promptInfoBuilder.build()
+		authenticationPrompt.authenticate(activity as FragmentActivity, promptInfo)
+	}
+
+	override suspend fun getSupportedAppLockMethods(): List<AppLockMethod> {
+		return buildList {
+			add(AppLockMethod.NONE)
+			val biometricManager = BiometricManager.from(activity)
+			if (biometricManager.canAuthenticate(
+					BiometricManager.Authenticators.BIOMETRIC_STRONG or BiometricManager.Authenticators.BIOMETRIC_WEAK
+				) == BiometricManager.BIOMETRIC_SUCCESS
+			) {
+				add(AppLockMethod.BIOMETRICS)
+			}
+			if (biometricManager.canAuthenticate(
+					BiometricManager.Authenticators.DEVICE_CREDENTIAL or BiometricManager.Authenticators.BIOMETRIC_STRONG or BiometricManager.Authenticators.BIOMETRIC_WEAK
+				) == BiometricManager.BIOMETRIC_SUCCESS
+			) {
+				add(AppLockMethod.SYSTEM_PASS_OR_BIOMETRICS)
+			}
 		}
 	}
 }

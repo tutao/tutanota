@@ -1,5 +1,6 @@
 import Combine
 import Foundation
+import TutanotaSharedFramework
 
 enum ListIdLockState {
 	case waitingForListIdUnlock
@@ -37,20 +38,12 @@ actor IosSqlCipherFacade: SqlCipherFacade {
 		return try! prepped.bindParams(params).all()
 	}
 
-	func openDb(_ userId: String, _ dbKey: DataWrapper) async throws {
-		let db = SqlCipherDb(userId)
-		try db.open(dbKey.data)
-		self.db = db
-	}
+	func openDb(_ userId: String, _ dbKey: DataWrapper) async throws { self.db = try SqlCipherDb(userId: userId, dbKey: dbKey.data) }
 
-	func closeDb() async throws {
-		if self.db == nil { return }
-		self.db!.close()
-		self.db = nil
-	}
+	func closeDb() async throws { self.db = nil }
 
 	func deleteDb(_ userId: String) async throws {
-		if let db = self.db, db.userId == userId { db.close() }
+		self.db = nil
 
 		do { try FileUtils.deleteFile(path: makeDbPath(userId)) } catch {
 			let err = error as NSError

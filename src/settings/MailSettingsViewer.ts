@@ -25,7 +25,6 @@ import { ColumnWidth, createRowActions, Table } from "../gui/base/Table.js"
 import * as AddInboxRuleDialog from "./AddInboxRuleDialog"
 import { createInboxRuleTemplate } from "./AddInboxRuleDialog"
 import { ExpanderButton, ExpanderPanel } from "../gui/base/Expander"
-import { IdentifierListViewer } from "./IdentifierListViewer"
 import { IndexingNotSupportedError } from "../api/common/error/IndexingNotSupportedError"
 import { LockedError } from "../api/common/error/RestError"
 import { showEditOutOfOfficeNotificationDialog } from "./EditOutOfOfficeNotificationDialog"
@@ -34,7 +33,7 @@ import { getSignatureType, show as showEditSignatureDialog } from "./EditSignatu
 import type { UpdatableSettingsViewer } from "./SettingsView"
 import { OfflineStorageSettingsModel } from "./OfflineStorageSettings"
 import { showNotAvailableForFreeDialog } from "../misc/SubscriptionDialogs"
-import { ListAutoSelectBehavior, deviceConfig } from "../misc/DeviceConfig"
+import { deviceConfig, ListAutoSelectBehavior } from "../misc/DeviceConfig"
 import { IconButton, IconButtonAttrs } from "../gui/base/IconButton.js"
 import { ButtonSize } from "../gui/base/ButtonSize.js"
 import { getReportMovedMailsType } from "../misc/MailboxPropertiesUtils.js"
@@ -58,7 +57,6 @@ export class MailSettingsViewer implements UpdatableSettingsViewer {
 	_inboxRulesTableLines: Stream<Array<TableLineAttrs>>
 	_inboxRulesExpanded: Stream<boolean>
 	_indexStateWatch: Stream<any> | null
-	_identifierListViewer: IdentifierListViewer
 	_outOfOfficeNotification: LazyLoaded<OutOfOfficeNotification | null>
 	_outOfOfficeStatus: Stream<string> // stores the status label, based on whether the notification is/ or will really be activated (checking start time/ end time)
 	private _storageFieldValue: Stream<string>
@@ -82,7 +80,6 @@ export class MailSettingsViewer implements UpdatableSettingsViewer {
 		this._inboxRulesTableLines = stream<Array<TableLineAttrs>>([])
 		this._outOfOfficeStatus = stream(lang.get("deactivated_label"))
 		this._indexStateWatch = null
-		this._identifierListViewer = new IdentifierListViewer(locator.logins.getUserController().user)
 		// normally we would maybe like to get it as an argument but these viewers are created in an odd way
 		locator.mailAddressTableModelForOwnMailbox().then((model) => {
 			this.mailAddressTableModel = model
@@ -378,7 +375,6 @@ export class MailSettingsViewer implements UpdatableSettingsViewer {
 									}),
 								),
 						  ],
-					m(this._identifierListViewer),
 				],
 			),
 		]
@@ -500,7 +496,6 @@ export class MailSettingsViewer implements UpdatableSettingsViewer {
 			} else if (isUpdateForTypeRef(MailboxPropertiesTypeRef, update)) {
 				this._mailboxProperties.reload().then(() => this._updateMailboxPropertiesSettings())
 			}
-			await this._identifierListViewer.entityEventReceived(update)
 		}
 		m.redraw()
 	}

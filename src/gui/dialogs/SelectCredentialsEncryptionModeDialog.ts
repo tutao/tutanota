@@ -1,4 +1,4 @@
-import { CredentialEncryptionMode } from "../../misc/credentials/CredentialEncryptionMode"
+import { CredentialEncryptionMode } from "../../misc/credentials/CredentialEncryptionMode.js"
 import { Dialog, DialogType } from "../base/Dialog"
 import type { CredentialsProvider } from "../../misc/credentials/CredentialsProvider.js"
 import m, { Children, Component, Vnode } from "mithril"
@@ -76,7 +76,7 @@ class CredentialEncryptionMethodDialog {
 
 	static async showAndWaitForSelection(credentialsProvider: CredentialsProvider) {
 		const supportedModes = await credentialsProvider.getSupportedEncryptionModes()
-		const previousSelection = credentialsProvider.getCredentialsEncryptionMode()
+		const previousSelection = await credentialsProvider.getCredentialEncryptionMode()
 		const credentialsDialog = new CredentialEncryptionMethodDialog(credentialsProvider, supportedModes, previousSelection)
 
 		credentialsDialog.dialog.show()
@@ -86,7 +86,7 @@ class CredentialEncryptionMethodDialog {
 
 	private async onModeSelected(mode: CredentialEncryptionMode) {
 		try {
-			await this.credentialsProvider.setCredentialsEncryptionMode(mode)
+			await this.credentialsProvider.setCredentialEncryptionMode(mode)
 
 			this.dialog.close()
 

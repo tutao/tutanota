@@ -1,15 +1,26 @@
 import { NativePushFacade } from "../../native/common/generatedipc/NativePushFacade.js"
-import { DesktopSseClient } from "./DesktopSseClient.js"
 import { EncryptedAlarmNotification } from "../../native/common/EncryptedAlarmNotification.js"
 import { NativeAlarmScheduler } from "./DesktopAlarmScheduler.js"
 import { DesktopAlarmStorage } from "./DesktopAlarmStorage.js"
+import { ExtendedNotificationMode } from "../../native/common/generatedipc/ExtendedNotificationMode.js"
+import { SseStorage } from "./SseStorage.js"
+import { TutaSseFacade } from "./TutaSseFacade.js"
 
 export class DesktopNativePushFacade implements NativePushFacade {
 	constructor(
-		private readonly sse: DesktopSseClient,
+		private readonly sse: TutaSseFacade,
 		private readonly alarmScheduler: NativeAlarmScheduler,
 		private readonly alarmStorage: DesktopAlarmStorage,
+		private readonly sseStorage: SseStorage,
 	) {}
+
+	getExtendedNotificationConfig(userId: string): Promise<ExtendedNotificationMode> {
+		return this.sseStorage.getExtendedNotificationConfig(userId)
+	}
+
+	setExtendedNotificationConfig(userId: string, mode: ExtendedNotificationMode): Promise<void> {
+		return this.sseStorage.setExtendedNotificationConfig(userId, mode)
+	}
 
 	async closePushNotifications(addressesArray: ReadonlyArray<string>): Promise<void> {
 		// only gets called in the app
@@ -17,12 +28,13 @@ export class DesktopNativePushFacade implements NativePushFacade {
 	}
 
 	async getPushIdentifier(): Promise<string | null> {
-		const sseInfo = await this.sse.getSseInfo()
+		const sseInfo = await this.sseStorage.getSseInfo()
 		return sseInfo?.identifier ?? null
 	}
 
 	async initPushNotifications(): Promise<void> {
-		// Nothing to do here because sse connection is opened when starting the native part.
+		// make sure that we are connected if we just received new push datap
+		await this.sse.connect()
 	}
 
 	async scheduleAlarms(alarms: ReadonlyArray<EncryptedAlarmNotification>): Promise<void> {
@@ -38,15 +50,21 @@ export class DesktopNativePushFacade implements NativePushFacade {
 		pushIdentifierId: string,
 		pushIdentifierSessionKey: Uint8Array,
 	): Promise<void> {
-		await this.sse.storePushIdentifier(identifier, userId, sseOrigin)
+		await this.sseStorage.storePushIdentifier(identifier, userId, sseOrigin)
 		await this.alarmStorage.storePushIdentifierSessionKey(pushIdentifierId, pushIdentifierSessionKey)
 	}
 
-	removeUser(userId: string): Promise<void> {
-		return this.sse.removeUser(userId)
+	async removeUser(userId: string): Promise<void> {
+		await this.sse.removeUser(userId)
 	}
 
 	async invalidateAlarmsForUser(userId: string): Promise<void> {
 		await this.alarmScheduler.unscheduleAllAlarms(userId)
+	}
+
+	async resetStoredState() {
+		await this.sse.disconnect()
+		await this.alarmScheduler.unscheduleAllAlarms()
+		await this.sseStorage.clear()
 	}
 }

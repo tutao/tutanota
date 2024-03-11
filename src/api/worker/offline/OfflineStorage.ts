@@ -43,12 +43,13 @@ import { CustomCacheHandlerMap, CustomCalendarEventCacheHandler } from "../rest/
 import { EntityRestClient } from "../rest/EntityRestClient.js"
 import { InterWindowEventFacadeSendDispatcher } from "../../../native/common/generatedipc/InterWindowEventFacadeSendDispatcher.js"
 import { SqlCipherFacade } from "../../../native/common/generatedipc/SqlCipherFacade.js"
-import { FormattedQuery, SqlValue, TaggedSqlValue, tagSqlValue, untagSqlObject } from "./SqlValue.js"
+import { FormattedQuery, SqlValue, TaggedSqlValue, untagSqlObject } from "./SqlValue.js"
 import { FolderSystem } from "../../common/mail/FolderSystem.js"
 import { isDetailsDraft, isLegacyMail } from "../../common/MailWrapper.js"
 import { Type as TypeId } from "../../common/EntityConstants.js"
 import { OutOfSyncError } from "../../common/error/OutOfSyncError.js"
 import { isSpamOrTrashFolder } from "../../common/mail/CommonMailUtils.js"
+import { sql, SqlFragment } from "./Sql.js"
 
 /**
  * this is the value of SQLITE_MAX_VARIABLE_NUMBER in sqlite3.c
@@ -735,56 +736,4 @@ function firstIdBigger(...args: [string, "elementId"] | ["elementId", string]): 
 		l = "?"
 	}
 	return new SqlFragment(`(CASE WHEN length(${l}) > length(${r}) THEN 1 WHEN length(${l}) < length(${r}) THEN 0 ELSE ${l} > ${r} END)`, [v, v, v])
-}
-
-/**
- * this tagged template function exists because android doesn't allow us to define SQL functions, so we have made a way to inline
- * SQL fragments into queries.
- * to make it less error-prone, we automate the generation of the params array for the actual sql call.
- * In this way, we offload the escaping of actual user content to the SQL engine, which makes this safe from an SQLI point of view.
- *
- * usage example:
- * const type = "sys/User"
- * const listId = "someList"
- * const startId = "ABC"
- * sql`SELECT entity FROM list_entities WHERE type = ${type} AND listId = ${listId} AND ${firstIdBigger(startId, "elementId")}`
- *
- * this will result in
- * const {query, params} = {
- *     query: `SELECT entity FROM list_entities WHERE type = ? AND listId = ? AND (CASE WHEN length(?) > length(elementId) THEN 1 WHEN length(?) < length(elementId) THEN 0 ELSE ? > elementId END)`,
- *     params: [
- *     		{type: SqlType.String, value: "sys/User"},
- *     		{type: SqlType.String, value: "someList"},
- *     		{type: SqlType.String, value: "ABC"},
- *     		{type: SqlType.String, value: "ABC"},
- *     		{type: SqlType.String, value: "ABC"}
- *     ]
- * }
- *
- * which can be consumed by sql.run(query, params).
- *
- * It is important that the caller ensures that the amount of SQL variables does not exceed MAX_SAFE_SQL_VARS!
- * Violating this rule will lead to an uncaught error with bad stack traces.
- */
-export function sql(queryParts: TemplateStringsArray, ...paramInstances: (SqlValue | SqlFragment)[]): FormattedQuery {
-	let query = ""
-	let params: TaggedSqlValue[] = []
-	let i: number
-	for (i = 0; i < paramInstances.length; i++) {
-		query += queryParts[i]
-		const param = paramInstances[i]
-		if (param instanceof SqlFragment) {
-			query += param.text
-			params.push(...param.params.map(tagSqlValue))
-		} else {
-			query += "?"
-			params.push(tagSqlValue(param))
-		}
-	}
-	query += queryParts[i]
-	return { query, params }
-}
-
-class SqlFragment {
-	constructor(readonly text: string, readonly params: SqlValue[]) {}
 }

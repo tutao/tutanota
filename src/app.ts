@@ -167,6 +167,9 @@ import("./translations/en")
 			login: makeViewResolver<LoginViewAttrs, LoginView, { makeViewModel: () => LoginViewModel }>(
 				{
 					prepareRoute: async () => {
+						const migrator = await locator.credentialFormatMigrator()
+						await migrator.migrate()
+
 						const { LoginView } = await import("./login/LoginView.js")
 						const makeViewModel = await locator.loginViewModelFactory()
 						return {

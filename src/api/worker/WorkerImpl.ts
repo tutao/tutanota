@@ -21,7 +21,6 @@ import { SearchFacade } from "./search/SearchFacade"
 import { MailAddressFacade } from "./facades/lazy/MailAddressFacade.js"
 import { UserManagementFacade } from "./facades/lazy/UserManagementFacade.js"
 import { DelayedImpls, exposeLocalDelayed, exposeRemote } from "../common/WorkerProxy"
-import type { DeviceEncryptionFacade } from "./facades/DeviceEncryptionFacade"
 import { random } from "@tutao/tutanota-crypto"
 import type { NativeInterface } from "../../native/common/NativeInterface"
 import type { EntityRestInterface } from "./rest/EntityRestClient"
@@ -72,7 +71,6 @@ export interface WorkerInterface {
 	readonly blobAccessTokenFacade: BlobAccessTokenFacade
 	readonly blobFacade: BlobFacade
 	readonly userManagementFacade: UserManagementFacade
-	readonly deviceEncryptionFacade: DeviceEncryptionFacade
 	readonly restInterface: EntityRestInterface
 	readonly serviceExecutor: IServiceExecutor
 	readonly cryptoFacade: CryptoFacade
@@ -204,10 +202,6 @@ export class WorkerImpl implements NativeInterface {
 
 			async userManagementFacade() {
 				return locator.userManagement()
-			},
-
-			async deviceEncryptionFacade() {
-				return locator.deviceEncryptionFacade
 			},
 
 			async restInterface() {

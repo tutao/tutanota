@@ -1,0 +1,25 @@
+{
+  "configurations" : [
+    {
+      "id" : "798666DE-53AF-4675-A579-73A1B0C7A697",
+      "name" : "Test Scheme Action",
+      "options" : {
+
+      }
+    }
+  ],
+  "defaultOptions" : {
+    "codeCoverage" : false
+  },
+  "testTargets" : [
+    {
+      "parallelizable" : true,
+      "target" : {
+        "containerPath" : "container:tutanota.xcodeproj",
+        "identifier" : "3D2671D52BEA8A020022C12F",
+        "name" : "TutanotaSharedTests"
+      }
+    }
+  ],
+  "version" : 1
+}

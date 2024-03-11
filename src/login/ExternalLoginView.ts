@@ -16,7 +16,7 @@ import { GENERATED_MIN_ID } from "../api/common/utils/EntityUtils"
 import { getLoginErrorMessage, handleExpectedLoginError } from "../misc/LoginUtils"
 import type { CredentialsProvider } from "../misc/credentials/CredentialsProvider.js"
 import { assertMainOrNode } from "../api/common/Env"
-import type { Credentials } from "../misc/credentials/Credentials"
+import { credentialsToUnencrypted } from "../misc/credentials/Credentials"
 import { SessionType } from "../api/common/SessionType.js"
 import { ResumeSessionErrorReason } from "../api/worker/facades/LoginFacade"
 import { TopLevelAttrs, TopLevelView } from "../TopLevelView.js"
@@ -24,6 +24,7 @@ import { BaseTopLevelView } from "../gui/BaseTopLevelView.js"
 import { locator } from "../api/main/MainLocator.js"
 import { LoginScreenHeader } from "../gui/LoginScreenHeader.js"
 import { LoginButton } from "../gui/base/buttons/LoginButton.js"
+import { UnencryptedCredentials } from "../native/common/generatedipc/UnencryptedCredentials.js"
 import { PasswordField } from "../misc/passwords/PasswordField.js"
 
 assertMainOrNode()
@@ -65,16 +66,16 @@ export class ExternalLoginViewModel {
 
 		this.password = ""
 
-		const storedCredentials = await this.credentialsProvider.getCredentialsByUserId(userId)
+		const storedCredentials = await this.credentialsProvider.getDecryptedCredentialsByUserId(userId)
 
 		// For external users userId is used instead of email address
 		if (persistentSession) {
-			await this.credentialsProvider.store({ credentials: newCredentials })
+			await this.credentialsProvider.store(credentialsToUnencrypted(newCredentials, null))
 		}
 
 		if (storedCredentials) {
 			// delete persistent session if a new session is created
-			await locator.logins.deleteOldSession(storedCredentials.credentials)
+			await locator.logins.deleteOldSession(storedCredentials)
 
 			if (!persistentSession) {
 				await this.credentialsProvider.deleteByUserId(userId)
@@ -82,7 +83,7 @@ export class ExternalLoginViewModel {
 		}
 	}
 
-	async autologin(credentials: Credentials) {
+	async autologin(credentials: UnencryptedCredentials) {
 		this.autologinInProgress = true
 		await showProgressDialog(
 			"login_msg",
@@ -93,8 +94,8 @@ export class ExternalLoginViewModel {
 		)
 	}
 
-	private async resumeSession(credentials: Credentials): Promise<void> {
-		const result = await locator.logins.resumeSession({ credentials, databaseKey: null }, { salt: this.urlData.salt, kdfType: this.urlData.kdfType }, null)
+	private async resumeSession(credentials: UnencryptedCredentials): Promise<void> {
+		const result = await locator.logins.resumeSession(credentials, { salt: this.urlData.salt, kdfType: this.urlData.kdfType }, null)
 		if (result.type === "error") {
 			switch (result.reason) {
 				case ResumeSessionErrorReason.OfflineNotAvailableForFree:
@@ -105,9 +106,9 @@ export class ExternalLoginViewModel {
 
 	async loginWithStoredCredentials() {
 		try {
-			const credentials = await this.credentialsProvider.getCredentialsByUserId(this.urlData.userId)
+			const credentials = await this.credentialsProvider.getDecryptedCredentialsByUserId(this.urlData.userId)
 			if (credentials) {
-				await this.autologin(credentials.credentials)
+				await this.autologin(credentials)
 			}
 		} finally {
 			// in case there is an error or there are no credentials we should show the form
@@ -158,10 +159,10 @@ export class ExternalLoginViewModel {
 				kdfType: kdfType,
 			}
 
-			const credentials = await this.credentialsProvider.getCredentialsByUserId(this.urlData.userId)
+			const credentials = await this.credentialsProvider.getDecryptedCredentialsByUserId(this.urlData.userId)
 
 			if (credentials && args.noAutoLogin !== true) {
-				await this.autologin(credentials.credentials)
+				await this.autologin(credentials)
 			} else {
 				this.showAutoLoginButton = credentials != null
 				m.redraw()

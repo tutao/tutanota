@@ -27,7 +27,7 @@ export type ClientRequestOptions = {
 }
 
 export class DesktopNetworkClient {
-	request(url: string, opts: ClientRequestOptions): http.ClientRequest {
+	request(url: URL, opts: ClientRequestOptions): http.ClientRequest {
 		return this.getModule(url).request(url, opts)
 	}
 
@@ -37,7 +37,7 @@ export class DesktopNetworkClient {
 	 *
 	 * later errors must be handled on the response onerror handler
 	 */
-	executeRequest(url: string, opts: ClientRequestOptions, uploadStream?: ReadStream): Promise<http.IncomingMessage> {
+	executeRequest(url: URL, opts: ClientRequestOptions, uploadStream?: ReadStream): Promise<http.IncomingMessage> {
 		return new Promise<http.IncomingMessage>((resolve, reject) => {
 			let resp: http.IncomingMessage | null = null
 
@@ -68,8 +68,8 @@ export class DesktopNetworkClient {
 		})
 	}
 
-	private getModule(url: string): typeof import("http") | typeof import("https") {
-		if (url.startsWith("https")) {
+	private getModule(url: URL): typeof import("http") | typeof import("https") {
+		if (url.protocol === "https:") {
 			return https
 		} else {
 			return http

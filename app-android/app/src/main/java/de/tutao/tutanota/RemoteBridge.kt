@@ -134,6 +134,7 @@ class RemoteBridge internal constructor(
 	}
 
 	private fun sendErrorResponse(requestId: String, ex: Throwable) {
+		Log.d(TAG, "Error:", ex)
 		val builder = StringBuilder()
 		builder.appendLine("requestError")
 		builder.appendLine(requestId)

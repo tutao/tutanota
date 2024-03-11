@@ -1,9 +1,9 @@
 import o from "@tutao/otest"
-import { DeviceConfig, ListAutoSelectBehavior, migrateConfig, migrateConfigV2to3 } from "../../../src/misc/DeviceConfig.js"
-import { PersistentCredentials } from "../../../src/misc/credentials/CredentialsProvider.js"
+import { DeviceConfig, DeviceConfigCredentials, ListAutoSelectBehavior, migrateConfig, migrateConfigV2to3 } from "../../../src/misc/DeviceConfig.js"
 import { matchers, object, when } from "testdouble"
 import { verify } from "@tutao/tutanota-test-utils"
 import { CredentialEncryptionMode } from "../../../src/misc/credentials/CredentialEncryptionMode.js"
+import { CredentialType } from "../../../src/misc/credentials/CredentialType.js"
 
 o.spec("DeviceConfig", function () {
 	o.spec("migrateConfig", function () {
@@ -28,12 +28,12 @@ o.spec("DeviceConfig", function () {
 
 			migrateConfigV2to3(oldConfig)
 
-			const expectedCredentialsAfterMigration: Record<string, Omit<PersistentCredentials, "databaseKey">> = {
+			const expectedCredentialsAfterMigration: Record<string, Omit<DeviceConfigCredentials, "databaseKey">> = {
 				internalUserId: {
 					credentialInfo: {
 						login: "internal@example.com",
 						userId: "internalUserId",
-						type: "internal",
+						type: CredentialType.internal,
 					},
 					accessToken: "internalAccessToken",
 					encryptedPassword: "internalEncPassword",
@@ -42,7 +42,7 @@ o.spec("DeviceConfig", function () {
 					credentialInfo: {
 						login: "externalUserId",
 						userId: "externalUserId",
-						type: "external",
+						type: CredentialType.external,
 					},
 					accessToken: "externalAccessToken",
 					encryptedPassword: "externalEncPassword",
@@ -129,6 +129,7 @@ o.spec("DeviceConfig", function () {
 				},
 				hasParticipatedInCredentialsMigration: false,
 				isSetupComplete: true,
+				isCredentialsMigratedToNative: false,
 			})
 
 			// We can't just call verify on localStorageMock.setItem because the JSON string may not match perfectly

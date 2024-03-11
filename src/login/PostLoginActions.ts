@@ -19,11 +19,10 @@ import { CloseEventBusOption, Const, SecondFactorType } from "../api/common/Tuta
 import { showMoreStorageNeededOrderDialog } from "../misc/SubscriptionDialogs"
 import { notifications } from "../gui/Notifications"
 import { LockedError } from "../api/common/error/RestError"
-import type { CredentialsProvider } from "../misc/credentials/CredentialsProvider.js"
-import { usingKeychainAuthenticationWithOptions } from "../misc/credentials/CredentialsProviderFactory"
+import { CredentialsProvider, usingKeychainAuthenticationWithOptions } from "../misc/credentials/CredentialsProvider.js"
 import type { ThemeCustomizations } from "../misc/WhitelabelCustomizations"
 import { getThemeCustomizations } from "../misc/WhitelabelCustomizations"
-import { CredentialEncryptionMode } from "../misc/credentials/CredentialEncryptionMode"
+import { CredentialEncryptionMode } from "../misc/credentials/CredentialEncryptionMode.js"
 import { SecondFactorHandler } from "../misc/2fa/SecondFactorHandler"
 import { SessionType } from "../api/common/SessionType"
 import { StorageBehavior } from "../misc/UsageTestModel.js"
@@ -88,11 +87,11 @@ export class PostLoginActions implements PostLoginAction {
 		if (
 			loggedInEvent.sessionType === SessionType.Persistent &&
 			usingKeychainAuthenticationWithOptions() &&
-			this.credentialsProvider.getCredentialsEncryptionMode() == null
+			(await this.credentialsProvider.getCredentialEncryptionMode()) == null
 		) {
 			// If the encryption mode is not selected, we opt user into automatic mode.
 			// We keep doing it here for now to have some flexibility if we want to show some other option here in the future.
-			await this.credentialsProvider.setCredentialsEncryptionMode(CredentialEncryptionMode.DEVICE_LOCK)
+			await this.credentialsProvider.setCredentialEncryptionMode(CredentialEncryptionMode.DEVICE_LOCK)
 		}
 
 		lang.updateFormats({

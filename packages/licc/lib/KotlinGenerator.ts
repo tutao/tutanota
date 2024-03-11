@@ -88,7 +88,7 @@ export class KotlinGenerator implements LangGenerator {
 		const methodAcc = acc.indent()
 		for (const [name, methodDefinition] of Object.entries(definition.methods)) {
 			this.generateDocComment(methodAcc, methodDefinition.doc)
-			KotlinGenerator.generateMethodSignature(methodAcc, name, methodDefinition)
+			KotlinGenerator.generateMethodSignature(methodAcc, name, methodDefinition, "suspend")
 		}
 		acc.line("}")
 		return acc.finish()
@@ -149,7 +149,7 @@ export class KotlinGenerator implements LangGenerator {
 	}
 
 	private static generateMethodSignature(methodGenerator: Accumulator, name: string, methodDefinition: MethodDefinition, prefix: string = "") {
-		methodGenerator.line(`${prefix} suspend fun ${name}(`)
+		methodGenerator.line(`${prefix} fun ${name}(`)
 		const argGenerator = methodGenerator.indent()
 		for (const argument of getArgs(name, methodDefinition)) {
 			const renderedArgument = typeNameKotlin(argument.type)
@@ -169,7 +169,7 @@ export class KotlinGenerator implements LangGenerator {
 		acc.line(`) : ${definition.name} {`)
 		classBodyAcc.line(`private val encodedFacade = json.encodeToString("${definition.name}")`)
 		for (const [methodName, methodDefinition] of Object.entries(definition.methods)) {
-			KotlinGenerator.generateMethodSignature(classBodyAcc, methodName, methodDefinition, "override")
+			KotlinGenerator.generateMethodSignature(classBodyAcc, methodName, methodDefinition, "override suspend")
 			classBodyAcc.line("{")
 
 			const methodBodyAcc = classBodyAcc.indent()
@@ -215,19 +215,37 @@ export class KotlinGenerator implements LangGenerator {
 			.do((acc) => KotlinGenerator.generateImports(acc))
 			.do((acc) => this.generateDocComment(acc, doc))
 			.line("@Serializable")
-			.line(`enum class ${name} {`)
+			.line(`enum class ${name}(val value: String) {`)
 			.indented((acc) => {
 				const finalValue = values.length - 1
 				for (let i = 0; i < finalValue; i++) {
 					acc.line(`@SerialName("${i}")`)
-					acc.line(`${camelCaseToSnakeCase(values[i]).toUpperCase()},`) // enums are SCREAMING_SNAKE_CASE
+					acc.line(`${this.formatEnumValue(values[i])}("${i}"),`) // enums are SCREAMING_SNAKE_CASE
 					acc.line()
 				}
 				acc.line(`@SerialName("${finalValue}")`)
-				acc.line(`${camelCaseToSnakeCase(values[finalValue]).toUpperCase()};`)
+				acc.line(`${this.formatEnumValue(values[finalValue])}("${finalValue}");`)
+				acc.line()
+				acc.line("companion object {")
+				acc.indented((acc) => {
+					KotlinGenerator.generateMethodSignature(acc, "fromValue", { arg: [{ value: "String" }], ret: `${name}?` })
+					acc.indented((acc) => {
+						acc.line("= when (value) {")
+						for (const [index, value] of Object.entries(values)) {
+							acc.line(`"${index}" -> ${this.formatEnumValue(value)}`)
+						}
+						acc.line("else -> null")
+					})
+					acc.line("}")
+				})
+				acc.line("}")
 			})
 			.line("}")
 			.finish()
+	}
+
+	private formatEnumValue(value: string) {
+		return camelCaseToSnakeCase(value).toUpperCase()
 	}
 }
 

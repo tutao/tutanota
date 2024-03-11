@@ -7,7 +7,11 @@ import kotlinx.serialization.Serializable
 import kotlinx.serialization.descriptors.SerialDescriptor
 import kotlinx.serialization.descriptors.buildClassSerialDescriptor
 import kotlinx.serialization.descriptors.element
-import kotlinx.serialization.encoding.*
+import kotlinx.serialization.encoding.CompositeDecoder
+import kotlinx.serialization.encoding.Decoder
+import kotlinx.serialization.encoding.Encoder
+import kotlinx.serialization.encoding.decodeStructure
+import kotlinx.serialization.encoding.encodeStructure
 
 /**
  * this class is needed to send byte arrays over our ipc bridge and corresponds
@@ -15,8 +19,13 @@ import kotlinx.serialization.encoding.*
  */
 @Serializable(with = DataWrapperSerializer::class)
 class DataWrapper(
-		val data: ByteArray
-)
+	val data: ByteArray
+) {
+	override fun equals(other: Any?): Boolean {
+		val otherWrapper = other as? DataWrapper ?: return false
+		return this.data.contentEquals(otherWrapper.data)
+	}
+}
 
 object DataWrapperSerializer : KSerializer<DataWrapper> {
 	override val descriptor: SerialDescriptor = buildClassSerialDescriptor("DataWrapper") {

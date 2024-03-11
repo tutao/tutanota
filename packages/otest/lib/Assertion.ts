@@ -61,7 +61,7 @@ export class Assertion<T> {
 	/**
 	 * Verify that the value satisfies the {@param check}.
 	 */
-	satisfies(check: (value: T) => { pass: boolean; message: string }): AssertionDescriber {
+	satisfies(check: (value: T) => { pass: false; message: string } | { pass: true }): AssertionDescriber {
 		const result = check(this.actual)
 		if (!result.pass) {
 			return this.addError(`expected "${asString(this.actual)}" to satisfy condition: "${result.message}"`)
@@ -167,6 +167,15 @@ function deepEqual(a: any, b: any): boolean {
 
 		if (a instanceof Date && b instanceof Date) return a.getTime() === b.getTime()
 
+		if (a instanceof Uint8Array && b instanceof Uint8Array) {
+			if (a.length != b.length) return false
+			for (let i = 0; i < a.length; i++) {
+				if (a[i] !== b[i]) return false
+			}
+
+			return true
+		}
+
 		if (a instanceof Object && b instanceof Object && !aIsArgs && !bIsArgs) {
 			for (let i in a) {
 				if (!(i in b) || !deepEqual(a[i], b[i])) return false
@@ -181,6 +190,7 @@ function deepEqual(a: any, b: any): boolean {
 
 		// @ts-ignore: we would need to include all @types/node for this to work or import it explicitly. Should probably be rewritten for all typed arrays.
 		if (typeof Buffer === "function" && a instanceof Buffer && b instanceof Buffer) {
+			if (a.length != b.length) return false
 			for (let i = 0; i < a.length; i++) {
 				if (a[i] !== b[i]) return false
 			}

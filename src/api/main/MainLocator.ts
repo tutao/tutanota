@@ -10,12 +10,11 @@ import { LoginController } from "./LoginController"
 import type { ContactModel } from "../../contacts/model/ContactModel"
 import { EntityClient } from "../common/EntityClient"
 import type { CalendarInfo, CalendarModel } from "../../calendar/model/CalendarModel"
-import { assert, defer, DeferredObject, lazy, lazyAsync, lazyMemoized, noOp, ofClass } from "@tutao/tutanota-utils"
+import { assert, assertNotNull, defer, DeferredObject, lazy, lazyAsync, lazyMemoized, noOp, ofClass } from "@tutao/tutanota-utils"
 import { ProgressTracker } from "./ProgressTracker"
 import { MinimizedMailEditorViewModel } from "../../mail/model/MinimizedMailEditorViewModel"
 import { SchedulerImpl } from "../common/utils/Scheduler.js"
 import type { CredentialsProvider } from "../../misc/credentials/CredentialsProvider.js"
-import { createCredentialsProvider } from "../../misc/credentials/CredentialsProviderFactory"
 import type { LoginFacade } from "../worker/facades/LoginFacade"
 import type { CustomerFacade } from "../worker/facades/lazy/CustomerFacade.js"
 import type { GiftCardFacade } from "../worker/facades/lazy/GiftCardFacade.js"
@@ -28,7 +27,6 @@ import type { Indexer } from "../worker/search/Indexer"
 import type { SearchFacade } from "../worker/search/SearchFacade"
 import type { BookingFacade } from "../worker/facades/lazy/BookingFacade.js"
 import type { MailAddressFacade } from "../worker/facades/lazy/MailAddressFacade.js"
-import type { DeviceEncryptionFacade } from "../worker/facades/DeviceEncryptionFacade"
 import { FileController, guiDownload } from "../../file/FileController"
 import type { NativeFileApp } from "../../native/common/FileApp"
 import type { NativePushServiceApp } from "../../native/main/NativePushServiceApp"
@@ -40,7 +38,6 @@ import { WebauthnClient } from "../../misc/2fa/webauthn/WebauthnClient"
 import type { UserManagementFacade } from "../worker/facades/lazy/UserManagementFacade.js"
 import type { GroupManagementFacade } from "../worker/facades/lazy/GroupManagementFacade.js"
 import { WorkerRandomizer } from "../worker/WorkerImpl"
-import { ExposedNativeInterface } from "../../native/common/NativeInterface"
 import { BrowserWebauthn } from "../../misc/2fa/webauthn/BrowserWebauthn.js"
 import { UsageTestController } from "@tutao/tutanota-usagetests"
 import { EphemeralUsageTestStorage, StorageBehavior, UsageTestModel } from "../../misc/UsageTestModel"
@@ -83,7 +80,7 @@ import { OfflineIndicatorViewModel } from "../../gui/base/OfflineIndicatorViewMo
 import { AppHeaderAttrs, Header } from "../../gui/Header.js"
 import { CalendarViewModel } from "../../calendar/view/CalendarViewModel.js"
 import { ReceivedGroupInvitationsModel } from "../../sharing/model/ReceivedGroupInvitationsModel.js"
-import { Const, FeatureType, GroupType } from "../common/TutanotaConstants.js"
+import { Const, FeatureType, GroupType, KdfType } from "../common/TutanotaConstants.js"
 import type { ExternalLoginViewModel } from "../../login/ExternalLoginView.js"
 import type { ConversationViewModel, ConversationViewModelFactory } from "../../mail/view/ConversationViewModel.js"
 import type { AlarmScheduler } from "../../calendar/date/AlarmScheduler.js"
@@ -111,6 +108,11 @@ import { ContactImporter } from "../../contacts/ContactImporter.js"
 import { MobileContactsFacade } from "../../native/common/generatedipc/MobileContactsFacade.js"
 import { PermissionError } from "../common/error/PermissionError.js"
 import { WebMobileFacade } from "../../native/main/WebMobileFacade.js"
+import { CredentialFormatMigrator } from "../../misc/credentials/CredentialFormatMigrator.js"
+import { NativeCredentialsFacade } from "../../native/common/generatedipc/NativeCredentialsFacade.js"
+import { SqlCipherFacade } from "../../native/common/generatedipc/SqlCipherFacade.js"
+import { AddNotificationEmailDialog } from "../../settings/AddNotificationEmailDialog.js"
+import { MobileAppLock, NoOpAppLock } from "../../login/AppLock.js"
 import { PostLoginActions } from "../../login/PostLoginActions.js"
 import { SystemPermissionHandler } from "../../native/main/SystemPermissionHandler.js"
 
@@ -146,7 +148,6 @@ class MainLocator {
 	mailAddressFacade!: MailAddressFacade
 	blobFacade!: BlobFacade
 	userManagementFacade!: UserManagementFacade
-	deviceEncryptionFacade!: DeviceEncryptionFacade
 	contactFacade!: ContactFacade
 	usageTestController!: UsageTestController
 	usageTestModel!: UsageTestModel
@@ -169,8 +170,8 @@ class MainLocator {
 	Const!: Record<string, any>
 
 	private nativeInterfaces: NativeInterfaces | null = null
-	private exposedNativeInterfaces: ExposedNativeInterface | null = null
 	private entropyFacade!: EntropyFacade
+	private sqlCipherFacade!: SqlCipherFacade
 
 	readonly recipientsModel: lazyAsync<RecipientsModel> = lazyMemoized(async () => {
 		const { RecipientsModel } = await import("./RecipientsModel.js")
@@ -479,6 +480,10 @@ class MainLocator {
 		return this.getNativeInterface("mobileContactsFacade")
 	}
 
+	get nativeCredentialsFacade(): NativeCredentialsFacade {
+		return this.getNativeInterface("nativeCredentialsFacade")
+	}
+
 	async mailAddressTableModelForOwnMailbox(): Promise<MailAddressTableModel> {
 		const { MailAddressTableModel } = await import("../../settings/mailaddress/MailAddressTableModel.js")
 		const nameChanger = await this.ownMailAddressNameChanger()
@@ -541,11 +546,16 @@ class MainLocator {
 	async loginViewModelFactory(): Promise<lazy<LoginViewModel>> {
 		const { LoginViewModel } = await import("../../login/LoginViewModel.js")
 		const credentialsRemovalHandler = await locator.credentialsRemovalHandler()
+		const { MobileAppLock, NoOpAppLock } = await import("../../login/AppLock.js")
+		const appLock = isApp()
+			? new MobileAppLock(assertNotNull(this.nativeInterfaces).mobileSystemFacade, assertNotNull(this.nativeInterfaces).nativeCredentialsFacade)
+			: new NoOpAppLock()
 		return () => {
 			const domainConfig = isBrowser()
 				? locator.domainConfigProvider().getDomainConfigForHostname(location.hostname, location.protocol, location.port)
 				: // in this case, we know that we have a staticUrl set that we need to use
 				  locator.domainConfigProvider().getCurrentDomainConfig()
+
 			return new LoginViewModel(
 				locator.logins,
 				locator.credentialsProvider,
@@ -554,6 +564,7 @@ class MainLocator {
 				domainConfig,
 				credentialsRemovalHandler,
 				isBrowser() ? null : this.pushService,
+				appLock,
 			)
 		}
 	}
@@ -608,7 +619,6 @@ class MainLocator {
 			mailAddressFacade,
 			blobFacade,
 			userManagementFacade,
-			deviceEncryptionFacade,
 			restInterface,
 			serviceExecutor,
 			cryptoFacade,
@@ -635,9 +645,9 @@ class MainLocator {
 		this.mailAddressFacade = mailAddressFacade
 		this.blobFacade = blobFacade
 		this.userManagementFacade = userManagementFacade
-		this.deviceEncryptionFacade = deviceEncryptionFacade
 		this.contactFacade = contactFacade
 		this.serviceExecutor = serviceExecutor
+		this.sqlCipherFacade = sqlCipherFacade
 		this.logins = new LoginController()
 		// Should be called elsewhere later e.g. in mainLocator
 		this.logins.init()
@@ -713,12 +723,7 @@ class MainLocator {
 			this.domainConfigProvider(),
 		)
 		this.loginListener = new PageContextLoginListener(this.secondFactorHandler)
-		this.credentialsProvider = await createCredentialsProvider(
-			deviceEncryptionFacade,
-			this.nativeInterfaces?.native ?? null,
-			sqlCipherFacade,
-			isDesktop() ? this.interWindowEventSender : null,
-		)
+		this.credentialsProvider = await this.createCredentialsProvider()
 		this.random = random
 
 		this.usageTestModel = new UsageTestModel(
@@ -851,7 +856,7 @@ class MainLocator {
 		return popupModel
 	}
 
-	nativeContactsSyncManager = lazyMemoized(() => {
+	readonly nativeContactsSyncManager = lazyMemoized(() => {
 		assert(isApp(), "isApp")
 		return new NativeContactsSyncManager(this.logins, this.mobileContactsFacade, this.entityClient, this.eventController, this.contactModel, deviceConfig)
 	})
@@ -884,6 +889,41 @@ class MainLocator {
 				await this.nativeContactsSyncManager(),
 				deviceConfig,
 			)
+		}
+	}
+	readonly credentialFormatMigrator: () => Promise<CredentialFormatMigrator> = lazyMemoized(async () => {
+		const { CredentialFormatMigrator } = await import("../../misc/credentials/CredentialFormatMigrator.js")
+		if (isDesktop()) {
+			return new CredentialFormatMigrator(deviceConfig, this.nativeCredentialsFacade, null)
+		} else if (isApp()) {
+			return new CredentialFormatMigrator(deviceConfig, this.nativeCredentialsFacade, this.systemFacade)
+		} else {
+			return new CredentialFormatMigrator(deviceConfig, null, null)
+		}
+	})
+
+	async addNotificationEmailDialog(): Promise<AddNotificationEmailDialog> {
+		const { AddNotificationEmailDialog } = await import("../../settings/AddNotificationEmailDialog.js")
+		return new AddNotificationEmailDialog(this.logins, this.entityClient)
+	}
+
+	// For testing argon2 migration after login. The production server will reject this request.
+	// This can be removed when we enable the migration.
+	async changeToBycrypt(passphrase: string): Promise<unknown> {
+		const currentUser = this.logins.getUserController().user
+		return this.loginFacade.migrateKdfType(KdfType.Bcrypt, passphrase, currentUser)
+	}
+
+	/**
+	 * Factory method for credentials provider that will return an instance injected with the implementations appropriate for the platform.
+	 */
+	private async createCredentialsProvider(): Promise<CredentialsProvider> {
+		const { CredentialsProvider } = await import("../../misc/credentials/CredentialsProvider.js")
+		if (isDesktop() || isApp()) {
+			return new CredentialsProvider(this.nativeCredentialsFacade, this.sqlCipherFacade, isDesktop() ? this.interWindowEventSender : null)
+		} else {
+			const { WebCredentialsFacade } = await import("../../misc/credentials/WebCredentialsFacade.js")
+			return new CredentialsProvider(new WebCredentialsFacade(deviceConfig), null, null)
 		}
 	}
 }

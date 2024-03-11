@@ -6,11 +6,11 @@ import type { LoginController } from "../api/main/LoginController"
 import stream from "mithril/stream"
 import Stream from "mithril/stream"
 import { ProgrammingError } from "../api/common/error/ProgrammingError"
-import type { CredentialsAndDatabaseKey, CredentialsInfo, CredentialsProvider, PersistentCredentials } from "../misc/credentials/CredentialsProvider.js"
+import type { CredentialsProvider } from "../misc/credentials/CredentialsProvider.js"
 import { CredentialAuthenticationError } from "../api/common/error/CredentialAuthenticationError"
 import { first, noOp } from "@tutao/tutanota-utils"
 import { KeyPermanentlyInvalidatedError } from "../api/common/error/KeyPermanentlyInvalidatedError"
-import { assertMainOrNode, isBrowser } from "../api/common/Env"
+import { assertMainOrNode, isBrowser, isWebClient } from "../api/common/Env"
 import { SessionType } from "../api/common/SessionType"
 import { DeviceStorageUnavailableError } from "../api/common/error/DeviceStorageUnavailableError"
 import { DeviceConfig } from "../misc/DeviceConfig"
@@ -19,6 +19,11 @@ import { getWhitelabelRegistrationDomains } from "./LoginView.js"
 import { CancelledError } from "../api/common/error/CancelledError.js"
 import { CredentialRemovalHandler } from "./CredentialRemovalHandler.js"
 import { NativePushServiceApp } from "../native/main/NativePushServiceApp.js"
+import { CredentialsInfo } from "../native/common/generatedipc/CredentialsInfo.js"
+import { PersistedCredentials } from "../native/common/generatedipc/PersistedCredentials.js"
+import { credentialsToUnencrypted } from "../misc/credentials/Credentials.js"
+import { UnencryptedCredentials } from "../native/common/generatedipc/UnencryptedCredentials.js"
+import { AppLock } from "./AppLock.js"
 
 assertMainOrNode()
 
@@ -144,6 +149,7 @@ export class LoginViewModel implements ILoginViewModel {
 		private readonly domainConfig: DomainConfig,
 		private readonly credentialRemovalHandler: CredentialRemovalHandler,
 		private readonly pushServiceApp: NativePushServiceApp | null,
+		private readonly appLock: AppLock,
 	) {
 		this.state = LoginState.NotAuthenticated
 		this.displayMode = DisplayMode.Form
@@ -217,7 +223,7 @@ export class LoginViewModel implements ILoginViewModel {
 			 * 2. It is used as a session ID
 			 * Since we want to also delete the session from the server, we need the (decrypted) accessToken in its function as a session id.
 			 */
-			credentials = await this.credentialsProvider.getCredentialsByUserId(encryptedCredentials.userId)
+			credentials = await this.unlockAppAndGetCredentials(encryptedCredentials.userId)
 		} catch (e) {
 			if (e instanceof KeyPermanentlyInvalidatedError) {
 				await this.credentialsProvider.clearCredentials(e)
@@ -237,11 +243,17 @@ export class LoginViewModel implements ILoginViewModel {
 		}
 
 		if (credentials) {
-			await this.loginController.deleteOldSession(credentials.credentials, (await this.pushServiceApp?.loadPushIdentifierFromNative()) ?? null)
-			await this.credentialsProvider.deleteByUserId(credentials.credentials.userId)
+			await this.loginController.deleteOldSession(credentials, (await this.pushServiceApp?.loadPushIdentifierFromNative()) ?? null)
+			await this.credentialsProvider.deleteByUserId(credentials.credentialInfo.userId)
 			await this.credentialRemovalHandler.onCredentialsRemoved(credentials)
 			await this.updateCachedCredentials()
 		}
+	}
+
+	/** @throws CredentialAuthenticationError */
+	private async unlockAppAndGetCredentials(userId: Id): Promise<UnencryptedCredentials | null> {
+		await this.appLock.enforce()
+		return await this.credentialsProvider.getDecryptedCredentialsByUserId(userId)
 	}
 
 	/** get the origin that the current domain should open to start the credentials migration */
@@ -250,19 +262,19 @@ export class LoginViewModel implements ILoginViewModel {
 	}
 
 	/** only used to put the credentials we got from the old domain into the storage, unaltered. */
-	async addAllCredentials(credentials: Array<PersistentCredentials>) {
+	async addAllCredentials(credentials: Array<PersistedCredentials>) {
 		for (const cred of credentials) this.credentialsProvider.storeRaw(cred)
 		this.setHasAttemptedCredentialsFlag()
 		await this.updateCachedCredentials()
 	}
 
-	getAllCredentials(): Array<PersistentCredentials> {
-		return this.deviceConfig.loadAll()
+	getAllCredentials(): Promise<readonly PersistedCredentials[]> {
+		return this.credentialsProvider.getAllInternalCredentials()
 	}
 
 	async deleteAllCredentials(): Promise<void> {
-		for (const creds of this.deviceConfig.loadAll()) {
-			this.deviceConfig.deleteByUserId(creds.credentialInfo.userId)
+		for (const creds of await this.deviceConfig.getCredentials()) {
+			await this.deviceConfig.deleteByUserId(creds.credentialInfo.userId)
 		}
 		this.setHasAttemptedCredentialsFlag()
 	}
@@ -331,7 +343,7 @@ export class LoginViewModel implements ILoginViewModel {
 	}
 
 	private async autologin(): Promise<void> {
-		let credentials: CredentialsAndDatabaseKey | null = null
+		let credentials: UnencryptedCredentials | null = null
 		try {
 			if (this.autoLoginCredentials == null) {
 				const allCredentials = await this.credentialsProvider.getInternalCredentialsInfos()
@@ -341,7 +353,7 @@ export class LoginViewModel implements ILoginViewModel {
 			// we don't want to auto-login on the legacy domain, there's a banner
 			// there to move people to the new domain.
 			if (this.autoLoginCredentials) {
-				credentials = await this.credentialsProvider.getCredentialsByUserId(this.autoLoginCredentials.userId)
+				credentials = await this.unlockAppAndGetCredentials(this.autoLoginCredentials.userId)
 
 				if (credentials) {
 					const offlineTimeRange = this.deviceConfig.getOfflineTimeRangeDays(this.autoLoginCredentials.userId)
@@ -399,6 +411,8 @@ export class LoginViewModel implements ILoginViewModel {
 
 			const { credentials, databaseKey } = await this.loginController.createSession(mailAddress, password, sessionType)
 			await this.onLogin()
+			// enforce app lock always, even if we don't access stored credentials
+			await this.appLock.enforce()
 
 			// we don't want to have multiple credentials that
 			// * share the same userId with different mail addresses (may happen if a user chooses a different alias to log in than the one they saved)
@@ -406,21 +420,18 @@ export class LoginViewModel implements ILoginViewModel {
 			const storedCredentialsToDelete = this.savedInternalCredentials.filter((c) => c.login === mailAddress || c.userId === credentials.userId)
 
 			for (const credentialToDelete of storedCredentialsToDelete) {
-				const credentials = await this.credentialsProvider.getCredentialsByUserId(credentialToDelete.userId)
+				const credentials = await this.credentialsProvider.getDecryptedCredentialsByUserId(credentialToDelete.userId)
 
 				if (credentials) {
-					await this.loginController.deleteOldSession(credentials.credentials)
+					await this.loginController.deleteOldSession(credentials)
 					// we handled the deletion of the offlineDb in createSession already
-					await this.credentialsProvider.deleteByUserId(credentials.credentials.userId, { deleteOfflineDb: false })
+					await this.credentialsProvider.deleteByUserId(credentials.credentialInfo.userId, { deleteOfflineDb: false })
 				}
 			}
 
 			if (savePassword) {
 				try {
-					await this.credentialsProvider.store({
-						credentials,
-						databaseKey,
-					})
+					await this.credentialsProvider.store(credentialsToUnencrypted(credentials, databaseKey))
 				} catch (e) {
 					if (e instanceof KeyPermanentlyInvalidatedError) {
 						await this.credentialsProvider.clearCredentials(e)

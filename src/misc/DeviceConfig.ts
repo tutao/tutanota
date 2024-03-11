@@ -1,15 +1,14 @@
-import type { Base64 } from "@tutao/tutanota-utils"
-import { base64ToUint8Array, typedEntries, uint8ArrayToBase64 } from "@tutao/tutanota-utils"
+import { Base64, base64ToUint8Array, typedEntries, uint8ArrayToBase64 } from "@tutao/tutanota-utils"
 import type { LanguageCode } from "./LanguageViewModel"
 import type { ThemePreference } from "../gui/theme"
-import type { CredentialsStorage, PersistentCredentials } from "./credentials/CredentialsProvider.js"
 import { ProgrammingError } from "../api/common/error/ProgrammingError"
-import type { CredentialEncryptionMode } from "./credentials/CredentialEncryptionMode"
+import type { CredentialEncryptionMode } from "./credentials/CredentialEncryptionMode.js"
 import { assertMainOrNodeBoot, isApp } from "../api/common/Env"
 import { PersistedAssignmentData, UsageTestStorage } from "./UsageTestModel"
 import { client } from "./ClientDetector"
 import { NewsItemStorage } from "./news/NewsModel.js"
 import { CalendarViewType } from "../calendar/gui/CalendarGuiUtils.js"
+import { CredentialsInfo } from "../native/common/generatedipc/CredentialsInfo.js"
 
 assertMainOrNodeBoot()
 export const defaultThemePreference: ThemePreference = "auto:light|dark"
@@ -25,7 +24,7 @@ export enum ListAutoSelectBehavior {
  */
 interface ConfigObject {
 	_version: number
-	_credentials: Map<Id, PersistentCredentials>
+	_credentials: Map<Id, DeviceConfigCredentials>
 	scheduledAlarmModelVersionPerUser: Record<Id, number>
 	_themeId: ThemePreference
 	_language: LanguageCode | null
@@ -53,12 +52,14 @@ interface ConfigObject {
 	mailAutoSelectBehavior: ListAutoSelectBehavior
 	// True if the app has already been run after install
 	isSetupComplete: boolean
+	// True if the credentials have been migrated to native
+	isCredentialsMigratedToNative: boolean
 }
 
 /**
  * Device config for internal user auto login. Only one config per device is stored.
  */
-export class DeviceConfig implements CredentialsStorage, UsageTestStorage, NewsItemStorage {
+export class DeviceConfig implements UsageTestStorage, NewsItemStorage {
 	public static Version = 4
 	public static LocalStorageKey = "tutanotaConfig"
 
@@ -110,6 +111,7 @@ export class DeviceConfig implements CredentialsStorage, UsageTestStorage, NewsI
 			isCalendarDaySelectorExpanded: loadedConfig.isCalendarDaySelectorExpanded ?? false,
 			mailAutoSelectBehavior: loadedConfig.mailAutoSelectBehavior ?? (isApp() ? ListAutoSelectBehavior.NONE : ListAutoSelectBehavior.OLDER),
 			isSetupComplete: loadedConfig.isSetupComplete ?? false,
+			isCredentialsMigratedToNative: loadedConfig.isCredentialsMigratedToNative ?? false,
 		}
 
 		// We need to write the config if there was a migration and if we generate the signup token and if.
@@ -137,28 +139,30 @@ export class DeviceConfig implements CredentialsStorage, UsageTestStorage, NewsI
 		}
 	}
 
-	store(persistentCredentials: PersistentCredentials): void {
-		const existing = this.config._credentials.get(persistentCredentials.credentialInfo.userId)
-
-		if (existing?.databaseKey) {
-			persistentCredentials.databaseKey = existing.databaseKey
-		}
-
-		this.config._credentials.set(persistentCredentials.credentialInfo.userId, persistentCredentials)
+	storeCredentials(credentials: DeviceConfigCredentials) {
+		this.config._credentials.set(credentials.credentialInfo.userId, credentials)
 
 		this.writeToStorage()
 	}
 
-	loadByUserId(userId: Id): PersistentCredentials | null {
+	getCredentialsByUserId(userId: Id): DeviceConfigCredentials | null {
 		return this.config._credentials.get(userId) ?? null
 	}
 
-	loadAll(): Array<PersistentCredentials> {
+	getCredentials(): Array<DeviceConfigCredentials> {
 		return Array.from(this.config._credentials.values())
 	}
 
-	deleteByUserId(userId: Id): void {
+	async deleteByUserId(userId: Id): Promise<void> {
 		this.config._credentials.delete(userId)
+
+		this.writeToStorage()
+	}
+
+	async clearCredentialsData(): Promise<void> {
+		this.config._credentials.clear()
+		this.config._encryptedCredentialsKey = null
+		this.config._credentialEncryptionMode = null
 
 		this.writeToStorage()
 	}
@@ -187,6 +191,15 @@ export class DeviceConfig implements CredentialsStorage, UsageTestStorage, NewsI
 
 	setIsSetupComplete(value: boolean): void {
 		this.config.isSetupComplete = value
+		this.writeToStorage()
+	}
+
+	getIsCredentialsMigratedToNative(): boolean {
+		return this.config.isCredentialsMigratedToNative ?? false
+	}
+
+	setIsCredentialsMigratedToNative(value: boolean): void {
+		this.config.isCredentialsMigratedToNative = value
 		this.writeToStorage()
 	}
 
@@ -279,28 +292,12 @@ export class DeviceConfig implements CredentialsStorage, UsageTestStorage, NewsI
 		}
 	}
 
-	getCredentialEncryptionMode(): CredentialEncryptionMode | null {
+	async getCredentialEncryptionMode(): Promise<CredentialEncryptionMode | null> {
 		return this.config._credentialEncryptionMode
 	}
 
-	setCredentialEncryptionMode(encryptionMode: CredentialEncryptionMode | null) {
-		this.config._credentialEncryptionMode = encryptionMode
-
-		this.writeToStorage()
-	}
-
-	getCredentialsEncryptionKey(): Uint8Array | null {
+	async getCredentialsEncryptionKey(): Promise<Uint8Array | null> {
 		return this.config._encryptedCredentialsKey ? base64ToUint8Array(this.config._encryptedCredentialsKey) : null
-	}
-
-	setCredentialsEncryptionKey(value: Uint8Array | null) {
-		if (value != null) {
-			this.config._encryptedCredentialsKey = uint8ArrayToBase64(value)
-		} else {
-			this.config._encryptedCredentialsKey = null
-		}
-
-		this.writeToStorage()
 	}
 
 	async getTestDeviceId(): Promise<string | null> {
@@ -421,6 +418,17 @@ export function migrateConfigV2to3(loadedConfig: any) {
 			accessToken: credential.accessToken,
 		}
 	}
+}
+
+/**
+ * Credentials as they are stored in DeviceConfig (byte arrays replaced with strings as DeviceConfig can only deal with strings).
+ * @private visibleForTesting
+ */
+export interface DeviceConfigCredentials {
+	readonly credentialInfo: CredentialsInfo
+	readonly accessToken: string
+	readonly databaseKey: Base64 | null
+	readonly encryptedPassword: string
 }
 
 export const deviceConfig: DeviceConfig = new DeviceConfig(DeviceConfig.Version, client.localStorage() ? localStorage : null)

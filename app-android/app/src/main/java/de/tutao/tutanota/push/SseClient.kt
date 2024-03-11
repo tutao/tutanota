@@ -203,7 +203,7 @@ class SseClient internal constructor(
 			.header("Content-Type", "application/json")
 			.header("Connection", "Keep-Alive")
 			.header("Accept", "text/event-stream")
-		addCommonHeaders(requestBuilder)
+		addCommonHeadersWithSysModelVersion(requestBuilder)
 
 		val req = requestBuilder.build()
 

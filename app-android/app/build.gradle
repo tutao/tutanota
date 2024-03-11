@@ -82,7 +82,8 @@ android {
   buildTypes.each {
 	it.buildConfigField 'String', 'FILE_PROVIDER_AUTHORITY', '"' + it.manifestPlaceholders['contentProviderAuthority'] + '"'
 	// keep in sync with src/native/main/NativePushServiceApp.ts
-	it.buildConfigField 'String', "SYS_MODEL_VERSION", '"85"'
+	it.buildConfigField 'String', "SYS_MODEL_VERSION", '"99"'
+	it.buildConfigField 'String', "TUTANOTA_MODEL_VERSION", '"71"'
 	it.buildConfigField 'String', 'RES_ADDRESS', '"tutanota"'
   }
 
@@ -130,6 +131,7 @@ dependencies {
   def room_version = "2.4.2"
   def lifecycle_version = "2.4.1"
   def activity_version = "1.4.0"
+  def coroutines_version = "1.8.0"
 
   // Important: cannot be updated without additional measures as Android 6 and 7 do not have Java 9
   //noinspection GradleDependency
@@ -140,6 +142,7 @@ dependencies {
   implementation "androidx.browser:browser:1.3.0"
   implementation "androidx.biometric:biometric:1.1.0"
   implementation "androidx.core:core-splashscreen:1.0.0"
+  implementation "androidx.datastore:datastore-preferences:1.0.0"
 
   if (file("../libs/android-database-sqlcipher-4.5.0.aar").exists()) {
 	implementation fileTree(include: ['*.aar'], dir: '../libs')
@@ -164,7 +167,7 @@ dependencies {
 
   implementation "org.jetbrains.kotlinx:kotlinx-serialization-json:1.6.2"
   implementation "org.jetbrains.kotlin:kotlin-stdlib:$kotlin_version"
-  implementation 'org.jetbrains.kotlinx:kotlinx-coroutines-android:1.5.0'
+  implementation "org.jetbrains.kotlinx:kotlinx-coroutines-android:$coroutines_version"
 
   // TLS1.3 backwards compatibility for Android < 10
   implementation 'org.conscrypt:conscrypt-android:2.5.2'
@@ -174,8 +177,10 @@ dependencies {
   testImplementation "org.jetbrains.kotlin:kotlin-stdlib-jdk8:$kotlin_version"
   testImplementation 'androidx.test.ext:junit-ktx:1.1.3'
   testImplementation 'junit:junit:4.13.2'
-	testImplementation "org.robolectric:robolectric:4.11.1"
-	testImplementation "org.mockito.kotlin:mockito-kotlin:5.2.1"
+  testImplementation "org.robolectric:robolectric:4.11.1"
+  testImplementation "org.mockito.kotlin:mockito-kotlin:5.2.1"
+  // JVM-based unit tests (that don't need a real device or emulator)
+  testImplementation "org.jetbrains.kotlinx:kotlinx-coroutines-test:$coroutines_version"
 
   androidTestImplementation 'androidx.test.espresso:espresso-core:3.4.0'
   androidTestImplementation 'androidx.test:runner:1.4.0'

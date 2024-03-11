@@ -39,17 +39,53 @@ export async function runDevBuild({ stage, host, desktop, clean, ignoreMigration
 		await sh`npx tsc --incremental ${true} --noEmit true`
 	})
 
+	function updateDomainConfigForHostname(host) {
+		if (host == null) {
+			return { ...domainConfigs }
+		} else {
+			const url = new URL(host)
+			const { protocol, hostname, port } = url
+			return {
+				...domainConfigs,
+				[url.hostname]: {
+					firstPartyDomain: true,
+					partneredDomainTransitionUrl: `${protocol}//${hostname}:${port}`,
+					apiUrl: `${protocol}//${hostname}:${port}`,
+					paymentUrl: `${protocol}//${hostname}:${port}/braintree.html`,
+					webauthnUrl: `${protocol}//${hostname}:${port}/webauthn`,
+					legacyWebauthnUrl: `${protocol}//${hostname}:${port}/webauthn`,
+					webauthnMobileUrl: `${protocol}//${hostname}:${port}/webauthnmobile`,
+					legacyWebauthnMobileUrl: `${protocol}//${hostname}:${port}/webauthnmobile`,
+					webauthnRpId: `${hostname}:${port}`,
+					u2fAppId: `${protocol}//${hostname}:${port}/u2f-appid.json`,
+					giftCardBaseUrl: `${protocol}//${hostname}:${port}/giftcard`,
+					referralBaseUrl: `${protocol}//${hostname}:${port}/signup`,
+					websiteBaseUrl: "https://tuta.com",
+				},
+			}
+		}
+	}
+
+	const extendedDomainConfigs = updateDomainConfigForHostname(host)
+
 	const mode = desktop ? "Desktop" : "Browser"
-	await buildWebPart({ stage, host, version, mode })
+	await buildWebPart({ stage, host, version, mode, domainConfigs: extendedDomainConfigs })
 
 	if (desktop) {
 		await buildDesktopPart({ version })
 	}
 }
 
-async function buildWebPart({ stage, host, version, mode }) {
+/**
+ * @param stage {string}
+ * @param host {string|null}
+ * @param version {string}
+ * @param domainConfigs {DomainConfigMap}
+ * @return {Promise<void>}
+ */
+async function buildWebPart({ stage, host, version, domainConfigs }) {
 	await runStep("Web: Assets", async () => {
-		await prepareAssets(stage, host, version)
+		await prepareAssets(stage, host, version, domainConfigs)
 		await fs.promises.writeFile(
 			"build/worker-bootstrap.js",
 			`importScripts("./polyfill.js")
@@ -123,6 +159,10 @@ async function buildDesktopPart({ version }) {
 			sourcemap: "linked",
 			platform: "node",
 			external: ["electron"],
+			banner: {
+				js: `globalThis.buildOptions = globalThis.buildOptions ?? {}
+globalThis.buildOptions.sqliteNativePath = "./better-sqlite3.node";`,
+			},
 			plugins: [
 				libDeps(),
 				sqliteNativePlugin({
@@ -214,7 +254,14 @@ function getStaticUrl(stage, mode, host) {
 	}
 }
 
-export async function prepareAssets(stage, host, version) {
+/**
+ * @param stage {string}
+ * @param host {string|null}
+ * @param version {string}
+ * @param domainConfigs {DomainConfigMap}
+ * @return {Promise<void>}
+ */
+export async function prepareAssets(stage, host, version, domainConfigs) {
 	await Promise.all([
 		await fs.emptyDir(path.join(root, "build/images")),
 		fs.copy(path.join(root, "/resources/favicon"), path.join(root, "/build/images")),

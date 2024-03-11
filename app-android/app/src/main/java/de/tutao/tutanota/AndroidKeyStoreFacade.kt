@@ -1,6 +1,5 @@
 package de.tutao.tutanota
 
-import android.content.Context
 import android.security.keystore.KeyGenParameterSpec
 import android.security.keystore.KeyPermanentlyInvalidatedException
 import android.security.keystore.KeyProperties
@@ -19,11 +18,8 @@ import javax.crypto.spec.IvParameterSpec
  * Used to access keys stored in Android KeyStore and do cryptographic operations with them.
  */
 class AndroidKeyStoreFacade(
-		private val crypto: AndroidNativeCryptoFacade,
-		private val dataKeyGenerator: DataKeyGenerator
-		) {
-
-
+	private val dataKeyGenerator: DataKeyGenerator
+) {
 	private val keyStore: KeyStore by lazy(LazyThreadSafetyMode.SYNCHRONIZED) {
 		try {
 			val keyStore = KeyStore.getInstance(AndroidKeyStore)
@@ -205,14 +201,14 @@ class AndroidKeyStoreFacade(
 	private fun generateSymmetricKey() {
 		val keyGenerator = KeyGenerator.getInstance("AES", AndroidKeyStore)
 		keyGenerator.init(
-				KeyGenParameterSpec.Builder(
-						SYMMETRIC_KEY_ALIAS,
-						KeyProperties.PURPOSE_ENCRYPT or KeyProperties.PURPOSE_DECRYPT
-				)
-						.setBlockModes(KeyProperties.BLOCK_MODE_CBC)
-						.setEncryptionPaddings(KeyProperties.ENCRYPTION_PADDING_NONE)
-						.setRandomizedEncryptionRequired(false)
-						.build()
+			KeyGenParameterSpec.Builder(
+				SYMMETRIC_KEY_ALIAS,
+				KeyProperties.PURPOSE_ENCRYPT or KeyProperties.PURPOSE_DECRYPT
+			)
+				.setBlockModes(KeyProperties.BLOCK_MODE_CBC)
+				.setEncryptionPaddings(KeyProperties.ENCRYPTION_PADDING_NONE)
+				.setRandomizedEncryptionRequired(false)
+				.build()
 		)
 		keyGenerator.generateKey()
 	}
@@ -268,7 +264,7 @@ class AndroidKeyStoreFacade(
 	private fun getIV(dataAndIV: ByteArray) = dataAndIV.copyOfRange(0, AndroidNativeCryptoFacade.AES_BLOCK_SIZE_BYTES)
 
 	private fun getData(dataAndIV: ByteArray) =
-			dataAndIV.copyOfRange(AndroidNativeCryptoFacade.AES_BLOCK_SIZE_BYTES, dataAndIV.lastIndex + 1)
+		dataAndIV.copyOfRange(AndroidNativeCryptoFacade.AES_BLOCK_SIZE_BYTES, dataAndIV.lastIndex + 1)
 
 	companion object {
 		const val TAG = "AndroidKeyStoreFacade"
@@ -287,6 +283,7 @@ class AndroidKeyStoreFacade(
 		private const val SYMMETRIC_KEY_ALIAS = "TutanotaAppDeviceKey"
 		private const val DEVICE_LOCK_DATA_KEY_ALIAS = "DeviceLockDataKey"
 		private const val SYSTEM_PASSWORD_DATA_KEY_ALIAS = "SystemPasswordDataKey"
+
 		/** Yes it has a typo which we have to live with. */
 		private const val BIOMETRICS_DATA_KEY_ALIAS = "BIometricsDataKey"
 		private const val ASYMMETRIC_KEY_ALIAS = "TutanotaAppDeviceAsymmetricKey"

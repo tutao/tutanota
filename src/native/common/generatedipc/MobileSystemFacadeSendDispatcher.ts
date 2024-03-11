@@ -22,4 +22,16 @@ export class MobileSystemFacadeSendDispatcher implements MobileSystemFacade {
 	async requestPermission(...args: Parameters<MobileSystemFacade["requestPermission"]>) {
 		return this.transport.invokeNative("ipc", ["MobileSystemFacade", "requestPermission", ...args])
 	}
+	async getAppLockMethod(...args: Parameters<MobileSystemFacade["getAppLockMethod"]>) {
+		return this.transport.invokeNative("ipc", ["MobileSystemFacade", "getAppLockMethod", ...args])
+	}
+	async setAppLockMethod(...args: Parameters<MobileSystemFacade["setAppLockMethod"]>) {
+		return this.transport.invokeNative("ipc", ["MobileSystemFacade", "setAppLockMethod", ...args])
+	}
+	async enforceAppLock(...args: Parameters<MobileSystemFacade["enforceAppLock"]>) {
+		return this.transport.invokeNative("ipc", ["MobileSystemFacade", "enforceAppLock", ...args])
+	}
+	async getSupportedAppLockMethods(...args: Parameters<MobileSystemFacade["getSupportedAppLockMethods"]>) {
+		return this.transport.invokeNative("ipc", ["MobileSystemFacade", "getSupportedAppLockMethods", ...args])
+	}
 }

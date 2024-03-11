@@ -1,166 +1,111 @@
 import o from "@tutao/otest"
-import {
-	CredentialsAndDatabaseKey,
-	CredentialsEncryption,
-	CredentialsInfo,
-	CredentialsProvider,
-	CredentialsStorage,
-	PersistentCredentials,
-} from "../../../../src/misc/credentials/CredentialsProvider.js"
-import { assertNotNull, base64ToUint8Array, uint8ArrayToBase64 } from "@tutao/tutanota-utils"
+import { CredentialsProvider } from "../../../../src/misc/credentials/CredentialsProvider.js"
+import { assertNotNull, stringToUtf8Uint8Array } from "@tutao/tutanota-utils"
 import { CredentialEncryptionMode } from "../../../../src/misc/credentials/CredentialEncryptionMode.js"
-import type { Credentials } from "../../../../src/misc/credentials/Credentials.js"
-import { instance, object, when } from "testdouble"
-import { DatabaseKeyFactory } from "../../../../src/misc/credentials/DatabaseKeyFactory.js"
-import { keyToBase64 } from "@tutao/tutanota-crypto"
+import { object, when } from "testdouble"
 import { verify } from "@tutao/tutanota-test-utils"
-import { CredentialsKeyMigrator } from "../../../../src/misc/credentials/CredentialsKeyMigrator.js"
 import { InterWindowEventFacadeSendDispatcher } from "../../../../src/native/common/generatedipc/InterWindowEventFacadeSendDispatcher.js"
 import { SqlCipherFacade } from "../../../../src/native/common/generatedipc/SqlCipherFacade.js"
-
-const encryptionKey = new Uint8Array([1, 2, 5, 8])
-
-class CredentialsEncryptionStub implements CredentialsEncryption {
-	async encrypt({ credentials, databaseKey }: CredentialsAndDatabaseKey): Promise<PersistentCredentials> {
-		const { encryptedPassword } = credentials
-		if (encryptedPassword == null) {
-			throw new Error("Trying to encrypt non-persistent credentials")
-		}
-		return {
-			credentialInfo: {
-				login: credentials.login,
-				userId: credentials.userId,
-				type: credentials.type,
-			},
-			encryptedPassword,
-			accessToken: credentials.accessToken,
-			databaseKey: databaseKey ? uint8ArrayToBase64(databaseKey) : null,
-		}
-	}
-
-	async decrypt(encryptedCredentials: PersistentCredentials): Promise<CredentialsAndDatabaseKey> {
-		let databaseKey: Uint8Array | null = null
-		if (encryptedCredentials.databaseKey) {
-			databaseKey = base64ToUint8Array(encryptedCredentials.databaseKey)
-		}
-		return {
-			credentials: {
-				login: encryptedCredentials.credentialInfo.login,
-				userId: encryptedCredentials.credentialInfo.userId,
-				type: encryptedCredentials.credentialInfo.type,
-				encryptedPassword: encryptedCredentials.encryptedPassword,
-				accessToken: encryptedCredentials.accessToken,
-			},
-			databaseKey,
-		}
-	}
-
-	async getSupportedEncryptionModes() {
-		return []
-	}
-}
+import { PersistedCredentials } from "../../../../src/native/common/generatedipc/PersistedCredentials.js"
+import { UnencryptedCredentials } from "../../../../src/native/common/generatedipc/UnencryptedCredentials.js"
+import { CredentialType } from "../../../../src/misc/credentials/CredentialType.js"
+import { NativeCredentialsFacade } from "../../../../src/native/common/generatedipc/NativeCredentialsFacade.js"
+import { CredentialsInfo } from "../../../../src/native/common/generatedipc/CredentialsInfo.js"
 
 o.spec("CredentialsProvider", function () {
-	let encryption
-	let storageMock
 	let credentialsProvider: CredentialsProvider
-	let internalCredentials: Credentials
-	let internalCredentials2: Credentials
-	let externalCredentials: Credentials
-	let encryptedInternalCredentials: PersistentCredentials
-	let encryptedExternalCredentials: PersistentCredentials
-	let encryptedInternalCredentialsWithoutDatabaseKey: Omit<PersistentCredentials, "databaseKey">
-	let keyMigratorMock: CredentialsKeyMigrator
-	let databaseKeyFactoryMock: DatabaseKeyFactory
+	let internalCredentials: UnencryptedCredentials
+	let internalCredentials2: UnencryptedCredentials
+	let externalCredentials: UnencryptedCredentials
+	let encryptedInternalCredentials: PersistedCredentials
+	let encryptedExternalCredentials: PersistedCredentials
+	let encryptedInternalCredentialsWithoutDatabaseKey: Omit<PersistedCredentials, "databaseKey">
 	let sqlCipherFacadeMock: SqlCipherFacade
 	let interWindowEventSenderMock: InterWindowEventFacadeSendDispatcher
+	let nativeCredentialFacadeMock: NativeCredentialsFacade
 	o.beforeEach(function () {
 		internalCredentials = {
-			login: "test@example.com",
+			credentialInfo: {
+				login: "test@example.com",
+				userId: "789",
+				type: CredentialType.internal,
+			},
 			encryptedPassword: "123",
 			accessToken: "456",
-			userId: "789",
-			type: "internal",
+			databaseKey: null,
 		}
 		internalCredentials2 = {
-			login: "test@example.com",
+			credentialInfo: {
+				login: "test@example.com",
+				userId: "789012",
+				type: CredentialType.internal,
+			},
 			encryptedPassword: "123456",
 			accessToken: "456789",
-			userId: "789012",
-			type: "internal",
+			databaseKey: null,
 		}
 		externalCredentials = {
-			login: "test2@example.com",
+			credentialInfo: {
+				login: "test2@example.com",
+				userId: "7892",
+				type: CredentialType.external,
+			},
 			encryptedPassword: "1232",
 			accessToken: "4562",
-			userId: "7892",
-			type: "external",
+			databaseKey: null,
 		}
 		encryptedInternalCredentials = {
 			credentialInfo: {
-				login: internalCredentials.login,
-				userId: internalCredentials.userId,
-				type: internalCredentials.type,
+				login: internalCredentials.credentialInfo.login,
+				userId: internalCredentials.credentialInfo.userId,
+				type: internalCredentials.credentialInfo.type,
 			},
 			encryptedPassword: assertNotNull(internalCredentials.encryptedPassword),
-			accessToken: internalCredentials.accessToken,
-			databaseKey: "SSBhbSBhIGtleQo=",
+			accessToken: stringToUtf8Uint8Array(internalCredentials.accessToken),
+			databaseKey: new Uint8Array([1, 2, 3]),
 		}
 		encryptedExternalCredentials = {
 			credentialInfo: {
-				login: externalCredentials.login,
-				userId: externalCredentials.userId,
-				type: externalCredentials.type,
+				login: externalCredentials.credentialInfo.login,
+				userId: externalCredentials.credentialInfo.userId,
+				type: externalCredentials.credentialInfo.type,
 			},
 			encryptedPassword: assertNotNull(externalCredentials.encryptedPassword),
-			accessToken: externalCredentials.accessToken,
-			databaseKey: "SSBhbSBhIGtleQo=",
+			accessToken: stringToUtf8Uint8Array(externalCredentials.accessToken),
+			databaseKey: new Uint8Array([1, 2, 3]),
 		}
 		encryptedInternalCredentialsWithoutDatabaseKey = {
 			credentialInfo: {
-				login: internalCredentials2.login,
-				userId: internalCredentials2.userId,
-				type: internalCredentials2.type,
+				login: internalCredentials.credentialInfo.login,
+				userId: internalCredentials.credentialInfo.userId,
+				type: internalCredentials.credentialInfo.type,
 			},
 			encryptedPassword: assertNotNull(internalCredentials2.encryptedPassword),
-			accessToken: internalCredentials2.accessToken,
+			accessToken: stringToUtf8Uint8Array(internalCredentials2.accessToken),
 		}
-		encryption = new CredentialsEncryptionStub()
-		storageMock = object<CredentialsStorage>()
-
-		keyMigratorMock = object<CredentialsKeyMigrator>()
-		databaseKeyFactoryMock = instance(DatabaseKeyFactory)
 		sqlCipherFacadeMock = object()
 		interWindowEventSenderMock = object()
-		credentialsProvider = new CredentialsProvider(
-			encryption,
-			storageMock,
-			keyMigratorMock,
-			databaseKeyFactoryMock,
-			sqlCipherFacadeMock,
-			interWindowEventSenderMock,
-		)
+		nativeCredentialFacadeMock = object()
+		credentialsProvider = new CredentialsProvider(nativeCredentialFacadeMock, sqlCipherFacadeMock, interWindowEventSenderMock)
 	})
 
 	o.spec("Storing credentials", function () {
 		o("Should store credentials", async function () {
-			await credentialsProvider.store({ credentials: internalCredentials, databaseKey: null })
-
-			const expectedEncrypted = await encryption.encrypt({ credentials: internalCredentials, databaseKey: null })
-			verify(storageMock.store(expectedEncrypted))
+			await credentialsProvider.store(internalCredentials)
+			verify(nativeCredentialFacadeMock.store(internalCredentials))
 		})
 	})
 
 	o.spec("Reading Credentials", function () {
 		o.beforeEach(async function () {
-			when(storageMock.loadByUserId(internalCredentials.userId)).thenReturn(encryptedInternalCredentials)
-			when(storageMock.loadByUserId(externalCredentials.userId)).thenReturn(encryptedExternalCredentials)
-			when(storageMock.loadAll()).thenReturn([encryptedInternalCredentials, encryptedExternalCredentials])
+			when(nativeCredentialFacadeMock.loadByUserId(internalCredentials.credentialInfo.userId)).thenResolve(internalCredentials)
+			when(nativeCredentialFacadeMock.loadByUserId(externalCredentials.credentialInfo.userId)).thenResolve(externalCredentials)
+			when(nativeCredentialFacadeMock.loadAll()).thenResolve([encryptedInternalCredentials, encryptedExternalCredentials])
 		})
 		o("Should return internal Credentials", async function () {
-			const retrievedCredentials = await credentialsProvider.getCredentialsByUserId(internalCredentials.userId)
+			const retrievedCredentials = await credentialsProvider.getDecryptedCredentialsByUserId(internalCredentials.credentialInfo.userId)
 
-			o(retrievedCredentials?.credentials ?? {}).deepEquals(internalCredentials)
+			o(retrievedCredentials).deepEquals(internalCredentials)
 		})
 
 		o("Should return credential infos for internal users", async function () {
@@ -168,43 +113,28 @@ o.spec("CredentialsProvider", function () {
 
 			o(retrievedCredentials).deepEquals([encryptedInternalCredentials.credentialInfo])
 		})
-
-		o("Should generate a database key if one doesn't exist on the stored credentials", async function () {
-			const newDatabaseKey = base64ToUint8Array(keyToBase64([3957386659, 354339016, 3786337319, 3366334248]))
-
-			when(databaseKeyFactoryMock.generateKey()).thenResolve(newDatabaseKey)
-			when(storageMock.loadByUserId(internalCredentials2.userId)).thenReturn(encryptedInternalCredentialsWithoutDatabaseKey)
-
-			const retrievedCredentials = await credentialsProvider.getCredentialsByUserId(internalCredentials2.userId)
-
-			o(retrievedCredentials?.databaseKey).equals(newDatabaseKey)
-
-			const expectedEncrypted = await encryption.encrypt({ credentials: internalCredentials2, databaseKey: newDatabaseKey })
-			verify(storageMock.store(expectedEncrypted), { times: 1 })
-		})
 	})
 
 	o.spec("Deleting credentials", function () {
 		o("Should delete credentials from storage", async function () {
-			await credentialsProvider.deleteByUserId(internalCredentials.userId)
-			verify(storageMock.deleteByUserId(internalCredentials.userId), { times: 1 })
+			await credentialsProvider.deleteByUserId(internalCredentials.credentialInfo.userId)
+			verify(nativeCredentialFacadeMock.deleteByUserId(internalCredentials.credentialInfo.userId), { times: 1 })
 		})
 		o("Deletes offline database", async function () {
-			await credentialsProvider.deleteByUserId(internalCredentials.userId)
-			verify(sqlCipherFacadeMock.deleteDb(internalCredentials.userId))
+			await credentialsProvider.deleteByUserId(internalCredentials.credentialInfo.userId)
+			verify(sqlCipherFacadeMock.deleteDb(internalCredentials.credentialInfo.userId))
 		})
 		o("Sends event over EventBus", async function () {
-			await credentialsProvider.deleteByUserId(internalCredentials.userId)
-			verify(interWindowEventSenderMock.localUserDataInvalidated(internalCredentials.userId))
+			await credentialsProvider.deleteByUserId(internalCredentials.credentialInfo.userId)
+			verify(interWindowEventSenderMock.localUserDataInvalidated(internalCredentials.credentialInfo.userId))
 		})
 	})
 
 	o.spec("Setting credentials encryption mode", function () {
 		o("Enrolling", async function () {
-			when(storageMock.getCredentialEncryptionMode()).thenReturn(null)
 			const newEncryptionMode = CredentialEncryptionMode.DEVICE_LOCK
-			await credentialsProvider.setCredentialsEncryptionMode(newEncryptionMode)
-			verify(storageMock.setCredentialEncryptionMode(newEncryptionMode), { times: 1 })
+			await credentialsProvider.setCredentialEncryptionMode(newEncryptionMode)
+			verify(nativeCredentialFacadeMock.setCredentialEncryptionMode(newEncryptionMode), { times: 1 })
 		})
 	})
 
@@ -212,38 +142,23 @@ o.spec("CredentialsProvider", function () {
 		o("Changing encryption mode", async function () {
 			const oldEncryptionMode = CredentialEncryptionMode.SYSTEM_PASSWORD
 			const newEncryptionMode = CredentialEncryptionMode.DEVICE_LOCK
-			const migratedKey = new Uint8Array([8, 3, 5, 8])
 
-			when(storageMock.getCredentialEncryptionMode()).thenReturn(oldEncryptionMode)
-			when(storageMock.getCredentialsEncryptionKey()).thenReturn(encryptionKey)
-			when(keyMigratorMock.migrateCredentialsKey(encryptionKey, oldEncryptionMode, newEncryptionMode)).thenResolve(migratedKey)
+			when(nativeCredentialFacadeMock.getCredentialEncryptionMode()).thenResolve(oldEncryptionMode)
 
-			await credentialsProvider.setCredentialsEncryptionMode(newEncryptionMode)
+			await credentialsProvider.setCredentialEncryptionMode(newEncryptionMode)
 
-			verify(storageMock.setCredentialEncryptionMode(newEncryptionMode))
-			verify(storageMock.setCredentialsEncryptionKey(migratedKey))
+			verify(nativeCredentialFacadeMock.setCredentialEncryptionMode(newEncryptionMode))
 		})
 	})
 
 	o.spec("clearCredentials", function () {
 		o.beforeEach(function () {
-			when(storageMock.loadAll()).thenReturn([encryptedInternalCredentials, encryptedExternalCredentials])
+			when(nativeCredentialFacadeMock.loadAll()).thenResolve([encryptedInternalCredentials, encryptedExternalCredentials])
 		})
 		o("deleted credentials, key and mode", async function () {
 			await credentialsProvider.clearCredentials("testing")
 
-			verify(storageMock.deleteByUserId(internalCredentials.userId))
-			verify(storageMock.deleteByUserId(externalCredentials.userId))
-		})
-		o("Clears offline databases", async function () {
-			await credentialsProvider.clearCredentials("testing")
-			verify(sqlCipherFacadeMock.deleteDb(internalCredentials.userId))
-			verify(sqlCipherFacadeMock.deleteDb(externalCredentials.userId))
-		})
-		o("Sends event over EventBus", async function () {
-			await credentialsProvider.clearCredentials("testing")
-			verify(interWindowEventSenderMock.localUserDataInvalidated(internalCredentials.userId))
-			verify(interWindowEventSenderMock.localUserDataInvalidated(externalCredentials.userId))
+			verify(nativeCredentialFacadeMock.clear())
 		})
 	})
 
@@ -252,27 +167,27 @@ o.spec("CredentialsProvider", function () {
 		const credentials: CredentialsInfo = {
 			login: "login",
 			userId: userId,
-			type: "internal",
+			type: CredentialType.internal,
 		}
-		const persistentCredentials: PersistentCredentials = {
+		const persistentCredentials: PersistedCredentials = {
 			credentialInfo: credentials,
-			accessToken: "accessToken",
-			databaseKey: "databaseKey",
+			accessToken: stringToUtf8Uint8Array("accessToken"),
+			databaseKey: new Uint8Array([1, 2, 3]),
 			encryptedPassword: "old encrypted password",
 		}
 		const newEncryptedPassword = "uhagre2"
 		o.beforeEach(function () {
-			when(storageMock.loadByUserId(userId)).thenReturn(persistentCredentials)
+			when(nativeCredentialFacadeMock.loadAll()).thenResolve([persistentCredentials])
 		})
 
 		o("replace only", async function () {
 			await credentialsProvider.replacePassword(credentials, newEncryptedPassword)
 
 			verify(
-				storageMock.store({
+				nativeCredentialFacadeMock.storeEncrypted({
 					credentialInfo: credentials,
-					accessToken: "accessToken",
-					databaseKey: "databaseKey",
+					accessToken: stringToUtf8Uint8Array("accessToken"),
+					databaseKey: new Uint8Array([1, 2, 3]),
 					encryptedPassword: newEncryptedPassword,
 				}),
 			)

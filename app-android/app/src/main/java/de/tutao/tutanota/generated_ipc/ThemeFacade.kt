@@ -7,16 +7,16 @@ import kotlinx.serialization.*
 import kotlinx.serialization.json.*
 
 interface ThemeFacade {
-	 suspend fun getThemes(
+	suspend fun getThemes(
 	): List<Map<String, String>>
-	 suspend fun setThemes(
+	suspend fun setThemes(
 		themes: List<Map<String, String>>,
 	): Unit
-	 suspend fun getThemePreference(
+	suspend fun getThemePreference(
 	): String?
-	 suspend fun setThemePreference(
+	suspend fun setThemePreference(
 		themePreference: String,
 	): Unit
-	 suspend fun prefersDark(
+	suspend fun prefersDark(
 	): Boolean
 }

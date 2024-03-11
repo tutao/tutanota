@@ -1,4 +1,5 @@
 import Social
+import TutanotaSharedFramework
 import UIKit
 import WebKit
 
@@ -54,7 +55,7 @@ import WebKit
 			return nil
 		}
 		let imageName = generateImageFileName(imageData: pngData)
-		return try? await writeToSharedStorage(subdir: subdir, name: imageName, content: pngData)
+		return try? writeToSharedStorage(subdir: subdir, name: imageName, content: pngData)
 	}
 
 	/// when the IOS contact app shares contact, it gives us the VCARD text. we need to write it to disk to be able to
@@ -67,7 +68,7 @@ import WebKit
 			return nil
 		}
 		let vcardName: String = extractFNfrom(vcard: vcardText)
-		return try? await writeToSharedStorage(subdir: subdir, name: vcardName.appending(".vcf"), content: convertedData)
+		return try? writeToSharedStorage(subdir: subdir, name: vcardName.appending(".vcf"), content: convertedData)
 	}
 
 	private func openMainAppWithOpenUrl(_ infoLocation: String) {

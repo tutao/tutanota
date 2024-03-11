@@ -1,14 +1,22 @@
 package de.tutao.tutanota.push
 
 import android.util.Log
+import androidx.lifecycle.LifecycleCoroutineScope
+import de.tutao.tutanota.AndroidNativeCryptoFacade
 import de.tutao.tutanota.R
-import de.tutao.tutanota.addCommonHeaders
+import de.tutao.tutanota.addCommonHeadersWithSysModelVersion
+import de.tutao.tutanota.addCommonHeadersWithTutanotaModelVersion
 import de.tutao.tutanota.alarms.AlarmNotificationsManager
 import de.tutao.tutanota.alarms.EncryptedAlarmNotification
 import de.tutao.tutanota.base64ToBase64Url
+import de.tutao.tutanota.credentials.CredentialEncryptionMode
+import de.tutao.tutanota.data.AppDatabase
 import de.tutao.tutanota.data.SseInfo
+import de.tutao.tutanota.decryptString
+import de.tutao.tutanota.ipc.NativeCredentialsFacade
 import de.tutao.tutanota.toBase64
-import kotlinx.serialization.decodeFromString
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.launch
 import kotlinx.serialization.json.Json
 import okhttp3.OkHttpClient
 import okhttp3.Request
@@ -16,7 +24,6 @@ import okhttp3.Response
 import org.apache.commons.io.IOUtils
 import java.io.FileNotFoundException
 import java.io.IOException
-import java.net.HttpURLConnection
 import java.net.MalformedURLException
 import java.net.URL
 import java.nio.charset.StandardCharsets
@@ -24,10 +31,14 @@ import java.util.*
 import java.util.concurrent.TimeUnit
 
 class TutanotaNotificationsHandler(
-		private val localNotificationsFacade: LocalNotificationsFacade,
-		private val sseStorage: SseStorage,
-		private val alarmNotificationsManager: AlarmNotificationsManager,
-		private val defaultClient: OkHttpClient
+	private val localNotificationsFacade: LocalNotificationsFacade,
+	private val sseStorage: SseStorage,
+	private val appDatabase: AppDatabase,
+	private val crypto: AndroidNativeCryptoFacade,
+	private val credentialsEncryption: NativeCredentialsFacade,
+	private val alarmNotificationsManager: AlarmNotificationsManager,
+	private val defaultClient: OkHttpClient,
+	private val lifecycleScope: LifecycleCoroutineScope
 ) {
 
 	private val json = Json { ignoreUnknownKeys = true }
@@ -40,7 +51,7 @@ class TutanotaNotificationsHandler(
 		}
 		val missedNotification = downloadMissedNotification(sseInfo)
 		if (missedNotification != null) {
-			handleNotificationInfos(missedNotification.notificationInfos)
+			handleNotificationInfos(sseInfo, missedNotification.notificationInfos)
 			handleAlarmNotifications(missedNotification.alarmNotifications)
 			sseStorage.setLastProcessedNotificationId(missedNotification.lastProcessedNotificationId)
 			sseStorage.setLastMissedNotificationCheckTime(Date())
@@ -85,8 +96,8 @@ class TutanotaNotificationsHandler(
 				return null
 			} catch (e: ServiceUnavailableException) {
 				Log.d(
-						TAG, "ServiceUnavailable when downloading missed notification, waiting " +
-						e.suspensionSeconds + "s"
+					TAG, "ServiceUnavailable when downloading missed notification, waiting " +
+							e.suspensionSeconds + "s"
 				)
 				try {
 					Thread.sleep(TimeUnit.SECONDS.toMillis(e.suspensionSeconds.toLong()))
@@ -95,8 +106,8 @@ class TutanotaNotificationsHandler(
 				// tries are not decremented and we don't return, we just wait and try again.
 			} catch (e: TooManyRequestsException) {
 				Log.d(
-						TAG, "TooManyRequestsException when downloading missed notification, waiting " +
-						e.retryAfterSeconds + "s"
+					TAG, "TooManyRequestsException when downloading missed notification, waiting " +
+							e.retryAfterSeconds + "s"
 				)
 				try {
 					Thread.sleep(TimeUnit.SECONDS.toMillis(e.retryAfterSeconds.toLong()))
@@ -124,14 +135,14 @@ class TutanotaNotificationsHandler(
 	}
 
 	@Throws(IllegalArgumentException::class, IOException::class, HttpException::class)
-	private fun executeMissedNotificationDownload(sseInfo: SseInfo, userId: String?): MissedNotification {
+	private fun executeMissedNotificationDownload(sseInfo: SseInfo, userId: String?): MissedNotification? {
 		val url = makeAlarmNotificationUrl(sseInfo)
 		val requestBuilder = Request.Builder()
-				.url(url)
-				.method("GET", null)
-				.header("Content-Type", "application/json")
-				.header("userIds", userId?:"")
-		addCommonHeaders(requestBuilder)
+			.url(url)
+			.method("GET", null)
+			.header("Content-Type", "application/json")
+			.header("userIds", userId ?: "")
+		addCommonHeadersWithSysModelVersion(requestBuilder)
 		val lastProcessedNotificationId = sseStorage.getLastProcessedNotificationId()
 		if (lastProcessedNotificationId != null) {
 			requestBuilder.header("lastProcessedNotificationId", lastProcessedNotificationId)
@@ -140,13 +151,13 @@ class TutanotaNotificationsHandler(
 		var req = requestBuilder.build()
 
 		val response = defaultClient
-				.newBuilder()
-				.connectTimeout(30, TimeUnit.SECONDS)
-				.writeTimeout(20, TimeUnit.SECONDS)
-				.readTimeout(20, TimeUnit.SECONDS)
-				.build()
-				.newCall(req)
-				.execute()
+			.newBuilder()
+			.connectTimeout(30, TimeUnit.SECONDS)
+			.writeTimeout(20, TimeUnit.SECONDS)
+			.readTimeout(20, TimeUnit.SECONDS)
+			.build()
+			.newCall(req)
+			.execute()
 
 		val responseCode = response.code
 		Log.d(TAG, "MissedNotification response code $responseCode")
@@ -160,28 +171,32 @@ class TutanotaNotificationsHandler(
 	}
 
 	@Throws(
-			FileNotFoundException::class,
-			ServerResponseException::class,
-			ClientRequestException::class,
-			ServiceUnavailableException::class,
-			TooManyRequestsException::class
+		FileNotFoundException::class,
+		ServerResponseException::class,
+		ClientRequestException::class,
+		ServiceUnavailableException::class,
+		TooManyRequestsException::class
 	)
 	private fun handleResponseCode(response: Response) {
 		when (response.code) {
 			404 -> {
 				throw FileNotFoundException("Missed notification not found: " + 404)
 			}
+
 			ServiceUnavailableException.CODE -> {
 				val suspensionTime = extractSuspensionTime(response)
 				throw ServiceUnavailableException(suspensionTime)
 			}
+
 			TooManyRequestsException.CODE -> {
 				val suspensionTime = extractSuspensionTime(response)
 				throw TooManyRequestsException(suspensionTime)
 			}
+
 			in 400..499 -> {
 				throw ClientRequestException(response.code)
 			}
+
 			in 500..600 -> {
 				throw ServerResponseException(response.code)
 			}
@@ -190,20 +205,77 @@ class TutanotaNotificationsHandler(
 
 	private fun extractSuspensionTime(response: Response): Int {
 		val retryAfterHeader = response.header("Retry-After")
-				?: response.header("Suspension-Time")
+			?: response.header("Suspension-Time")
 		return retryAfterHeader?.toIntOrNull() ?: 0
+	}
+
+	@Throws(MalformedURLException::class)
+	private fun makeEmailMetaDownloadUrl(sseInfo: SseInfo, notificationInfo: NotificationInfo): URL {
+		val listId = notificationInfo.mailId?.listId
+		val listElementId = notificationInfo.mailId?.listElementId
+		return URL("${sseInfo.sseOrigin}/rest/tutanota/mail/$listId/$listElementId")
 	}
 
 	@Throws(MalformedURLException::class)
 	private fun makeAlarmNotificationUrl(sseInfo: SseInfo): URL {
 		val customId =
-				sseInfo.pushIdentifier.toByteArray(StandardCharsets.UTF_8).toBase64().base64ToBase64Url()
+			sseInfo.pushIdentifier.toByteArray(StandardCharsets.UTF_8).toBase64().base64ToBase64Url()
 		return URL(sseInfo.sseOrigin + "/rest/sys/missednotification/" + customId)
 	}
 
-	private fun handleNotificationInfos(notificationInfos: List<NotificationInfo>) {
-		// TODO: translate
-		localNotificationsFacade.sendEmailNotifications(notificationInfos)
+	private fun handleNotificationInfos(sseInfo: SseInfo, notificationInfos: List<NotificationInfo>) {
+		lifecycleScope.launch(Dispatchers.IO) {
+			val metadatas = notificationInfos.map {
+				try {
+					Pair(it, downloadEmailMetadata(sseInfo, it))
+				} catch (e: Throwable) {
+					Log.w(TAG, e)
+					Pair(it, null)
+				}
+
+			}
+			localNotificationsFacade.sendEmailNotifications(metadatas)
+		}
+	}
+
+	private suspend fun downloadEmailMetadata(sseInfo: SseInfo, notificationInfo: NotificationInfo): MailMetadata? {
+		val url = makeEmailMetaDownloadUrl(sseInfo, notificationInfo)
+
+		val credentials = credentialsEncryption.loadByUserId(notificationInfo.userId)
+		if (credentials == null) {
+			Log.w(TAG, "Not found credentials to download notification, userId ${notificationInfo.userId}")
+			return null
+		}
+
+		val requestBuilder = Request.Builder()
+			.url(url)
+			.method("GET", null)
+			.header("Content-Type", "application/json")
+			.header("userIds", notificationInfo.userId ?: "")
+			.header("accessToken", credentials.accessToken)
+		// why here v is sys model version but on ios it is entity model version?
+		addCommonHeadersWithTutanotaModelVersion(requestBuilder)
+
+		val req = requestBuilder.build()
+
+		val response = defaultClient
+				.newBuilder()
+				.connectTimeout(30, TimeUnit.SECONDS)
+				.writeTimeout(20, TimeUnit.SECONDS)
+				.readTimeout(20, TimeUnit.SECONDS)
+				.build()
+				.newCall(req)
+				.execute()
+
+		val responseCode = response.code
+		Log.d(TAG, "Notification email metadata response code $responseCode")
+		handleResponseCode(response)
+
+		response.body?.byteStream().use { inputStream ->
+			val responseString = IOUtils.toString(inputStream, StandardCharsets.UTF_8)
+			Log.d(TAG, "Loaded notifications email metadata response")
+			return json.decodeFromString(responseString)
+		}
 	}
 
 	private fun handleAlarmNotifications(alarmNotifications: List<EncryptedAlarmNotification>) {

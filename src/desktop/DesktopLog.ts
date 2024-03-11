@@ -29,3 +29,12 @@ function makeLog() {
 		info: console.info.bind(console),
 	}
 }
+
+export function makeTaggedLogger(tag: string): typeof log {
+	return {
+		debug: (...args) => log.debug(tag, ...args),
+		info: (...args) => log.info(tag, ...args),
+		warn: (...args) => log.warn(tag, ...args),
+		error: (...args) => log.error(tag, ...args),
+	}
+}

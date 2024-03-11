@@ -66,6 +66,7 @@ import { loadTemplateGroupInstances } from "../templates/model/TemplatePopupMode
 import { TemplateListView } from "./TemplateListView.js"
 import { TextField } from "../gui/base/TextField.js"
 import { ContactsSettingsViewer } from "./ContactsSettingsViewer.js"
+import { NotificationSettingsViewer } from "./NotificationSettingsViewer.js"
 
 assertMainOrNode()
 
@@ -116,7 +117,7 @@ export class SettingsView extends BaseTopLevelView implements TopLevelView<Setti
 				"login_label",
 				() => BootIcons.Contacts,
 				"login",
-				() => new LoginSettingsViewer(locator.credentialsProvider),
+				() => new LoginSettingsViewer(locator.credentialsProvider, isApp() ? locator.systemFacade : null),
 				undefined,
 			),
 			new SettingsFolder(
@@ -138,6 +139,13 @@ export class SettingsView extends BaseTopLevelView implements TopLevelView<Setti
 				() => Icons.Palette,
 				"appearance",
 				() => new AppearanceSettingsViewer(),
+				undefined,
+			),
+			new SettingsFolder(
+				"notificationSettings_action",
+				() => Icons.Bell,
+				"notifications",
+				() => new NotificationSettingsViewer(),
 				undefined,
 			),
 		]

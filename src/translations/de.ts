@@ -1722,6 +1722,11 @@ export default {
 		"yourCalendars_label": "Deine Kalender",
 		"yourFolders_action": "DEINE ORDNER",
 		"yourMessage_label": "Deine Nachricht",
-		"you_label": "Du"
+		"you_label": "Du",
+		"notificationTargets_label": "Benachrichtigungsziele",
+		"notificationContent_label": "Inhalt der Benachrichtigungen",
+		"notificationPreferenceNoSenderOrSubject_action": "Kein Absender oder Betreff",
+		"notificationPreferenceOnlySender_action": "Nur Absender",
+		"notificationPreferenceSenderAndSubject_action": "Absender und Betreff",
 	}
 }

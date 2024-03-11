@@ -1,6 +1,7 @@
 /* generated file, don't edit. */
 
 import { EncryptedAlarmNotification } from "./EncryptedAlarmNotification.js"
+import { ExtendedNotificationMode } from "./ExtendedNotificationMode.js"
 import { NativePushFacade } from "./NativePushFacade.js"
 
 export class NativePushFacadeReceiveDispatcher {
@@ -36,6 +37,15 @@ export class NativePushFacadeReceiveDispatcher {
 			case "invalidateAlarmsForUser": {
 				const userId: string = arg[0]
 				return this.facade.invalidateAlarmsForUser(userId)
+			}
+			case "setExtendedNotificationConfig": {
+				const userId: string = arg[0]
+				const mode: ExtendedNotificationMode = arg[1]
+				return this.facade.setExtendedNotificationConfig(userId, mode)
+			}
+			case "getExtendedNotificationConfig": {
+				const userId: string = arg[0]
+				return this.facade.getExtendedNotificationConfig(userId)
 			}
 		}
 	}

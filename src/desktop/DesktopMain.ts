@@ -7,7 +7,6 @@ import { DesktopUtils } from "./DesktopUtils"
 import { setupAssetProtocol, WindowManager } from "./DesktopWindowManager"
 import { DesktopNotifier } from "./DesktopNotifier"
 import { ElectronUpdater } from "./ElectronUpdater.js"
-import { DesktopSseClient } from "./sse/DesktopSseClient"
 import { Socketeer } from "./Socketeer"
 import { DesktopAlarmStorage } from "./sse/DesktopAlarmStorage"
 import { DesktopAlarmScheduler } from "./sse/DesktopAlarmScheduler"
@@ -60,6 +59,16 @@ import { DefaultDateProvider } from "../calendar/date/CalendarUtils.js"
 import { OfflineDbRefCounter } from "./db/OfflineDbRefCounter.js"
 import { WorkerSqlCipher } from "./db/WorkerSqlCipher.js"
 import { TempFs } from "./files/TempFs.js"
+import { makeDbPath } from "./db/DbUtils.js"
+import { DesktopCredentialsStorage } from "./db/DesktopCredentialsStorage.js"
+import { AppPassHandler } from "./credentials/AppPassHandler.js"
+import { SseClient } from "./sse/SseClient.js"
+import { suspensionAwareFetch } from "./sse/SuspensionAwareFetch.js"
+import { TutaNotificationHandler } from "./sse/TutaNotificationHandler.js"
+import { TutaSseFacade } from "./sse/TutaSseFacade.js"
+import { SseStorage } from "./sse/SseStorage.js"
+import { DesktopSseDelay } from "./sse/reconnectDelay.js"
+import { KeychainEncryption } from "./credentials/KeychainEncryption.js"
 import { Argon2IDExports } from "@tutao/tutanota-crypto"
 
 /**
@@ -80,7 +89,7 @@ mp()
 type Components = {
 	readonly wm: WindowManager
 	readonly tfs: TempFs
-	readonly sse: DesktopSseClient
+	readonly sse: TutaSseFacade
 	readonly conf: DesktopConfig
 	readonly keyStoreFacade: DesktopKeyStoreFacade
 	readonly notifier: DesktopNotifier
@@ -157,10 +166,13 @@ async function createComponents(): Promise<Components> {
 	const alarmStorage = new DesktopAlarmStorage(conf, desktopCrypto, keyStoreFacade)
 	const updater = new ElectronUpdater(conf, notifier, desktopCrypto, app, appIcon, new UpdaterWrapper(), fs)
 	const shortcutManager = new LocalShortcutManager()
-	const nativeCredentialsFacade = new DesktopNativeCredentialsFacade(keyStoreFacade, desktopCrypto, wasmLoader(), lang, conf, async () => {
+	const credentialsDb = new DesktopCredentialsStorage(buildOptions.sqliteNativePath, makeDbPath("credentials"), app)
+	const appPassHandler = new AppPassHandler(desktopCrypto, conf, wasmLoader(), lang, async () => {
 		const last = await wm.getLastFocused(true)
 		return last.commonNativeFacade
 	})
+	const keychainManager = new KeychainEncryption(appPassHandler, desktopCrypto, keyStoreFacade)
+	const nativeCredentialsFacade = new DesktopNativeCredentialsFacade(desktopCrypto, credentialsDb, keychainManager)
 
 	updater.setUpdateDownloadedListener(() => {
 		for (let applicationWindow of wm.getAll()) {
@@ -171,7 +183,7 @@ async function createComponents(): Promise<Components> {
 	/** functions to create and delete the physical db file on disk */
 	const offlineDbFactory: OfflineDbFactory = {
 		async create(userId: string, key: Uint8Array, retry: boolean = true): Promise<SqlCipherFacade> {
-			const db = new WorkerSqlCipher(buildOptions.sqliteNativePath, makeDbPath(userId), true)
+			const db = new WorkerSqlCipher(buildOptions.sqliteNativePath, makeDbPath(`offline_${userId}`), true)
 			try {
 				await db.openDb(userId, key)
 			} catch (e) {
@@ -184,7 +196,7 @@ async function createComponents(): Promise<Components> {
 		},
 		async delete(userId: string): Promise<void> {
 			log.debug("deleting db for", userId)
-			const dbPath = makeDbPath(userId)
+			const dbPath = makeDbPath(`offline_${userId}`)
 			// force to suppress ENOENT which is not a problem.
 			// maxRetries should reduce EBUSY
 			await fs.promises.rm(dbPath, { maxRetries: 3, force: true })
@@ -201,11 +213,12 @@ async function createComponents(): Promise<Components> {
 
 	const wm = new WindowManager(conf, tray, notifier, electron, shortcutManager, appIcon)
 	const themeFacade = new DesktopThemeFacade(conf, wm, electron.nativeTheme)
-	const alarmScheduler = new AlarmScheduler(dateProvider, new SchedulerImpl(dateProvider, global, global))
+	const schedulerImpl = new SchedulerImpl(dateProvider, global, global)
+	const alarmScheduler = new AlarmScheduler(dateProvider, schedulerImpl)
 	const desktopAlarmScheduler = new DesktopAlarmScheduler(wm, notifier, alarmStorage, desktopCrypto, alarmScheduler)
 	desktopAlarmScheduler.rescheduleAll().catch((e) => {
 		log.error("Could not reschedule alarms", e)
-		return sse.resetStoredState()
+		return pushFacade.resetStoredState()
 	})
 	const webDialogController = new WebDialogController()
 
@@ -220,7 +233,21 @@ async function createComponents(): Promise<Components> {
 	})
 
 	tray.setWindowManager(wm)
-	const sse = new DesktopSseClient(app, conf, notifier, wm, desktopAlarmScheduler, desktopNet, desktopCrypto, alarmStorage, lang)
+
+	const sseStorage = new SseStorage(conf)
+	const notificationHandler = new TutaNotificationHandler(
+		wm,
+		nativeCredentialsFacade,
+		sseStorage,
+		notifier,
+		desktopAlarmScheduler,
+		alarmStorage,
+		lang,
+		suspensionAwareFetch,
+		app.getVersion(),
+	)
+	const sseClient = new SseClient(desktopNet, new DesktopSseDelay(), schedulerImpl)
+	const sse = new TutaSseFacade(sseStorage, notificationHandler, sseClient, desktopCrypto, app.getVersion(), suspensionAwareFetch, dateProvider)
 	// It should be ok to await this, all we are waiting for is dynamic imports
 	const integrator = await getDesktopIntegratorForPlatform(electron, fs, child_process, () => import("winreg"))
 
@@ -228,7 +255,7 @@ async function createComponents(): Promise<Components> {
 		eml: desktopUtils.getIconByName("eml.png"),
 		msg: desktopUtils.getIconByName("msg.png"),
 	}
-	const pushFacade = new DesktopNativePushFacade(sse, desktopAlarmScheduler, alarmStorage)
+	const pushFacade = new DesktopNativePushFacade(sse, desktopAlarmScheduler, alarmStorage, sseStorage)
 	const settingsFacade = new DesktopSettingsFacade(conf, desktopUtils, integrator, updater, lang)
 
 	const dispatcherFactory = (window: ApplicationWindow) => {
@@ -240,7 +267,7 @@ async function createComponents(): Promise<Components> {
 			desktopCommonSystemFacade,
 			new DesktopDesktopSystemFacade(wm, window, sock),
 			new DesktopExportFacade(tfs, conf, window, dragIcons),
-			new DesktopFileFacade(window, conf, desktopUtils, dateProvider, desktopNet, electron, tfs, fs),
+			new DesktopFileFacade(window, conf, dateProvider, desktopNet, electron, tfs, fs),
 			new DesktopInterWindowEventFacade(window, wm),
 			nativeCredentialsFacade,
 			desktopCrypto,
@@ -261,10 +288,6 @@ async function createComponents(): Promise<Components> {
 	}
 
 	const remoteBridge = new RemoteBridge(dispatcherFactory, facadeHandlerFactory)
-
-	function makeDbPath(userId: string): string {
-		return path.join(app.getPath("userData"), `offline_${userId}.sqlite`)
-	}
 
 	const contextMenu = new DesktopContextMenu(electron, wm)
 	wm.lateInit(contextMenu, themeFacade, remoteBridge)
@@ -291,7 +314,7 @@ async function createComponents(): Promise<Components> {
 async function startupInstance(components: Components) {
 	const { wm, sse, tfs } = components
 	if (!(await desktopUtils.cleanupOldInstance())) return
-	sse.start().catch((e) => log.warn("unable to start sse client", e))
+	sse.connect().catch((e) => log.warn("unable to start sse client", e))
 	// The second-instance event fires when we call app.requestSingleInstanceLock inside of DesktopUtils.makeSingleInstance
 	app.on("second-instance", async (_ev, args) => desktopUtils.handleSecondInstance(wm, args))
 	app.on("open-url", (e, url) => {

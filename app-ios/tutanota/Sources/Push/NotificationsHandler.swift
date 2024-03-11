@@ -136,11 +136,3 @@ private func stringToCustomId(customId: String) -> String {
 	customId.data(using: .utf8)!.base64EncodedString().replacingOccurrences(of: "+", with: "-").replacingOccurrences(of: "/", with: "_")
 		.replacingOccurrences(of: "=", with: "")
 }
-
-enum HttpStatusCode: Int {
-	case ok = 200
-	case notAuthenticated = 401
-	case notFound = 404
-	case tooManyRequests = 429
-	case serviceUnavailable = 503
-}

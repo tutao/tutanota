@@ -92,6 +92,7 @@ import { ProgrammingError } from "../../common/error/ProgrammingError.js"
 import { DatabaseKeyFactory } from "../../../misc/credentials/DatabaseKeyFactory.js"
 import { ExternalUserKeyDeriver } from "../../../misc/LoginUtils.js"
 import { Argon2idFacade } from "./Argon2idFacade.js"
+import { CredentialType } from "../../../misc/credentials/CredentialType.js"
 import { KeyRotationFacade } from "./KeyRotationFacade.js"
 
 assertWorkerOrNode()
@@ -280,7 +281,7 @@ export class LoginFacade {
 				accessToken,
 				encryptedPassword: sessionType === SessionType.Persistent ? uint8ArrayToBase64(encryptString(neverNull(accessKey), passphrase)) : null,
 				userId: sessionData.userId,
-				type: "internal",
+				type: CredentialType.internal,
 			},
 			// we always try to make a persistent cache with a key for persistent session, but this
 			// falls back to ephemeral cache in browsers. no point storing the key then.
@@ -455,7 +456,7 @@ export class LoginFacade {
 				accessToken,
 				encryptedPassword: accessKey ? uint8ArrayToBase64(encryptString(accessKey, passphrase)) : null,
 				userId,
-				type: "external",
+				type: CredentialType.external,
 			},
 			databaseKey: null,
 		}

@@ -1,0 +1,5 @@
+{
+	"name": "AppLockMethod",
+	"type": "enum",
+	"values": ["None", "SystemPassOrBiometrics", "Biometrics"]
+}

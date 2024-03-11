@@ -18,6 +18,7 @@ import { ContactImporter } from "../../../contacts/ContactImporter.js"
 import { MobileSystemFacade } from "../../common/generatedipc/MobileSystemFacade.js"
 import { CredentialsProvider } from "../../../misc/credentials/CredentialsProvider.js"
 import { NativeContactsSyncManager } from "../../../contacts/model/NativeContactsSyncManager.js"
+import { locator } from "../../../api/main/MainLocator.js"
 
 export function renderPermissionButton(permissionName: TranslationKey, isPermissionGranted: boolean, onclick: ClickHandler) {
 	return renderBannerButton(isPermissionGranted ? "granted_msg" : permissionName, onclick, isPermissionGranted)
@@ -53,7 +54,7 @@ export async function showSetupWizard(
 		),
 		wizardPageWrapper(SetupThemePage, new SetupThemePageAttrs()),
 		wizardPageWrapper(SetupContactsPage, new SetupContactsPageAttrs(contactSyncManager, contactImporter, systemFacade)),
-		wizardPageWrapper(SetupLockPage, new SetupLockPageAttrs(credentialsProvider)),
+		wizardPageWrapper(SetupLockPage, new SetupLockPageAttrs(locator.systemFacade)),
 	]
 	const deferred = defer<void>()
 
