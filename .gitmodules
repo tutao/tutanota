@@ -4,3 +4,6 @@
 [submodule "libs/webassembly/liboqs"]
 	path = libs/webassembly/liboqs
 	url = https://github.com/open-quantum-safe/liboqs
+[submodule "app-ios/libcrypto/OpenSSL-for-iPhone"]
+	path = app-ios/libcrypto/OpenSSL-for-iPhone
+	url = https://github.com/x2on/OpenSSL-for-iPhone.git

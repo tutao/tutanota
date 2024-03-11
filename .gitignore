@@ -11,6 +11,7 @@ test-ca
 fastlane
 android-app/app/release
 app-ios/releases
+app-ios/libcrypto/lib
 native-cache
 test/native-cache
 test/testdatabase.sqlite

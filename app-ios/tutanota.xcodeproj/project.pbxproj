@@ -265,7 +265,6 @@
 		3DD4A09020F8C6260086EB36 /* Assets.xcassets in Resources */ = {isa = PBXBuildFile; fileRef = 3DD4A08F20F8C6260086EB36 /* Assets.xcassets */; };
 		3DD4A09320F8C6260086EB36 /* LaunchScreen.storyboard in Resources */ = {isa = PBXBuildFile; fileRef = 3DD4A09120F8C6260086EB36 /* LaunchScreen.storyboard */; };
 		3DD4EA3B2726F41200D58207 /* DictionaryCoding in Frameworks */ = {isa = PBXBuildFile; productRef = 3DD4EA3A2726F41200D58207 /* DictionaryCoding */; };
-		3DDB5E6F28FDA59100E1E4BE /* libcrypto.xcframework in Frameworks */ = {isa = PBXBuildFile; fileRef = 3DDB5E6E28FDA59100E1E4BE /* libcrypto.xcframework */; };
 		3DDE413B28F4665700837BE6 /* SqlCipherDb.swift in Sources */ = {isa = PBXBuildFile; fileRef = 3DDE413A28F4665700837BE6 /* SqlCipherDb.swift */; };
 		3DDE55242AB88D8300A77D14 /* AES.swift in Sources */ = {isa = PBXBuildFile; fileRef = 3DDE55232AB88D8300A77D14 /* AES.swift */; };
 		3DE1E44526666F0A0018C9DE /* UIColor+utils.swift in Sources */ = {isa = PBXBuildFile; fileRef = 3DE1E44426666F0A0018C9DE /* UIColor+utils.swift */; };
@@ -279,6 +278,13 @@
 /* End PBXBuildFile section */
 
 /* Begin PBXContainerItemProxy section */
+		3D22AEB62B95FCEE00138BA4 /* PBXContainerItemProxy */ = {
+			isa = PBXContainerItemProxy;
+			containerPortal = 3DD4A07B20F8C6240086EB36 /* Project object */;
+			proxyType = 1;
+			remoteGlobalIDString = 3D22AEB22B95FBB400138BA4;
+			remoteInfo = "libcrypto setup";
+		};
 		3D6715312B4412D600E26D7D /* PBXContainerItemProxy */ = {
 			isa = PBXContainerItemProxy;
 			containerPortal = 3DD4A07B20F8C6240086EB36 /* Project object */;
@@ -303,6 +309,16 @@
 /* End PBXContainerItemProxy section */
 
 /* Begin PBXCopyFilesBuildPhase section */
+		3D22AE8B2B92312D00138BA4 /* Copy Files */ = {
+			isa = PBXCopyFilesBuildPhase;
+			buildActionMask = 2147483647;
+			dstPath = "";
+			dstSubfolderSpec = 7;
+			files = (
+			);
+			name = "Copy Files";
+			runOnlyForDeploymentPostprocessing = 0;
+		};
 		3DE114102AAF1A3E000D75B2 /* Embed Frameworks */ = {
 			isa = PBXCopyFilesBuildPhase;
 			buildActionMask = 2147483647;
@@ -589,7 +605,6 @@
 		3DD4A09420F8C6260086EB36 /* Info.plist */ = {isa = PBXFileReference; lastKnownFileType = text.plist.xml; path = Info.plist; sourceTree = "<group>"; };
 		3DD4A09B20F8C6260086EB36 /* tutanotaTests.xctest */ = {isa = PBXFileReference; explicitFileType = wrapper.cfbundle; includeInIndex = 0; path = tutanotaTests.xctest; sourceTree = BUILT_PRODUCTS_DIR; };
 		3DD4A0A120F8C6260086EB36 /* Info.plist */ = {isa = PBXFileReference; lastKnownFileType = text.plist.xml; path = Info.plist; sourceTree = "<group>"; };
-		3DDB5E6E28FDA59100E1E4BE /* libcrypto.xcframework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.xcframework; path = libcrypto.xcframework; sourceTree = "<group>"; };
 		3DDE413A28F4665700837BE6 /* SqlCipherDb.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SqlCipherDb.swift; sourceTree = "<group>"; };
 		3DDE55232AB88D8300A77D14 /* AES.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AES.swift; sourceTree = "<group>"; };
 		3DE1E44426666F0A0018C9DE /* UIColor+utils.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = "UIColor+utils.swift"; sourceTree = "<group>"; };
@@ -614,7 +629,6 @@
 				3DD4EA3B2726F41200D58207 /* DictionaryCoding in Frameworks */,
 				3D4E3C9E28EC5B31001FA9D1 /* Security.framework in Frameworks */,
 				3D3B5169293797DC00C1B7DA /* Atomics in Frameworks */,
-				3DDB5E6F28FDA59100E1E4BE /* libcrypto.xcframework in Frameworks */,
 				3D4E3CA028EC5B43001FA9D1 /* Foundation.framework in Frameworks */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
@@ -967,7 +981,6 @@
 		3D891EEC2105A5590031E528 /* Frameworks */ = {
 			isa = PBXGroup;
 			children = (
-				3DDB5E6E28FDA59100E1E4BE /* libcrypto.xcframework */,
 				3D4E3C9F28EC5B43001FA9D1 /* Foundation.framework */,
 				3D4E3C9D28EC5B31001FA9D1 /* Security.framework */,
 				3D36BCC1274E4A6100428878 /* CryptoTokenKit.framework */,
@@ -1719,6 +1732,20 @@
 /* End PBXHeadersBuildPhase section */
 
 /* Begin PBXLegacyTarget section */
+		3D22AEB22B95FBB400138BA4 /* libcrypto setup */ = {
+			isa = PBXLegacyTarget;
+			buildArgumentsString = "$(ACTION)";
+			buildConfigurationList = 3D22AEB32B95FBB400138BA4 /* Build configuration list for PBXLegacyTarget "libcrypto setup" */;
+			buildPhases = (
+			);
+			buildToolPath = "$(PROJECT_DIR)/libcrypto/build_libcrypto.sh";
+			buildWorkingDirectory = "$(PROJECT_DIR)/libcrypto";
+			dependencies = (
+			);
+			name = "libcrypto setup";
+			passBuildSettingsInEnvironment = 1;
+			productName = "libcrypto setup";
+		};
 		3D67152D2B4410B200E26D7D /* liboqs header setup */ = {
 			isa = PBXLegacyTarget;
 			buildArgumentsString = "-f Makefile_liboqs include";
@@ -1748,10 +1775,12 @@
 				3DD4A08120F8C6240086EB36 /* Resources */,
 				3DEF18E82924E14B009C4B55 /* Embed App Extensions */,
 				3DE114102AAF1A3E000D75B2 /* Embed Frameworks */,
+				3D22AE8B2B92312D00138BA4 /* Copy Files */,
 			);
 			buildRules = (
 			);
 			dependencies = (
+				3D22AEB72B95FCEE00138BA4 /* PBXTargetDependency */,
 				3D6715322B4412D600E26D7D /* PBXTargetDependency */,
 				3DEF18F92924E1F1009C4B55 /* PBXTargetDependency */,
 			);
@@ -1809,10 +1838,13 @@
 		3DD4A07B20F8C6240086EB36 /* Project object */ = {
 			isa = PBXProject;
 			attributes = {
-				LastSwiftUpdateCheck = 1430;
+				LastSwiftUpdateCheck = 1520;
 				LastUpgradeCheck = 1300;
 				ORGANIZATIONNAME = "Tutao GmbH";
 				TargetAttributes = {
+					3D22AEB22B95FBB400138BA4 = {
+						CreatedOnToolsVersion = 15.2;
+					};
 					3D67152D2B4410B200E26D7D = {
 						CreatedOnToolsVersion = 15.0.1;
 					};
@@ -1942,6 +1974,7 @@
 				3DD4A09A20F8C6260086EB36 /* tutanotaTests */,
 				3DEF18EF2924E1F1009C4B55 /* TutanotaShareExtension */,
 				3D67152D2B4410B200E26D7D /* liboqs header setup */,
+				3D22AEB22B95FBB400138BA4 /* libcrypto setup */,
 			);
 		};
 /* End PBXProject section */
@@ -2346,6 +2379,11 @@
 /* End PBXSourcesBuildPhase section */
 
 /* Begin PBXTargetDependency section */
+		3D22AEB72B95FCEE00138BA4 /* PBXTargetDependency */ = {
+			isa = PBXTargetDependency;
+			target = 3D22AEB22B95FBB400138BA4 /* libcrypto setup */;
+			targetProxy = 3D22AEB62B95FCEE00138BA4 /* PBXContainerItemProxy */;
+		};
 		3D6715322B4412D600E26D7D /* PBXTargetDependency */ = {
 			isa = PBXTargetDependency;
 			target = 3D67152D2B4410B200E26D7D /* liboqs header setup */;
@@ -2879,6 +2917,44 @@
 /* End PBXVariantGroup section */
 
 /* Begin XCBuildConfiguration section */
+		3D22AEB42B95FBB400138BA4 /* Debug */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				ASSETCATALOG_COMPILER_GENERATE_SWIFT_ASSET_SYMBOL_EXTENSIONS = YES;
+				CLANG_CXX_LANGUAGE_STANDARD = "gnu++20";
+				CODE_SIGN_STYLE = Automatic;
+				DEBUGGING_SYMBOLS = YES;
+				DEBUG_INFORMATION_FORMAT = dwarf;
+				ENABLE_USER_SCRIPT_SANDBOXING = YES;
+				GCC_C_LANGUAGE_STANDARD = gnu17;
+				GCC_GENERATE_DEBUGGING_SYMBOLS = YES;
+				GCC_OPTIMIZATION_LEVEL = 0;
+				LOCALIZATION_PREFERS_STRING_CATALOGS = YES;
+				MTL_ENABLE_DEBUG_INFO = INCLUDE_SOURCE;
+				MTL_FAST_MATH = YES;
+				OTHER_CFLAGS = "";
+				OTHER_LDFLAGS = "";
+				PRODUCT_NAME = "$(TARGET_NAME)";
+			};
+			name = Debug;
+		};
+		3D22AEB52B95FBB400138BA4 /* Release */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				ASSETCATALOG_COMPILER_GENERATE_SWIFT_ASSET_SYMBOL_EXTENSIONS = YES;
+				CLANG_CXX_LANGUAGE_STANDARD = "gnu++20";
+				CODE_SIGN_STYLE = Automatic;
+				DEBUG_INFORMATION_FORMAT = "dwarf-with-dsym";
+				ENABLE_USER_SCRIPT_SANDBOXING = YES;
+				GCC_C_LANGUAGE_STANDARD = gnu17;
+				LOCALIZATION_PREFERS_STRING_CATALOGS = YES;
+				MTL_FAST_MATH = YES;
+				OTHER_CFLAGS = "";
+				OTHER_LDFLAGS = "";
+				PRODUCT_NAME = "$(TARGET_NAME)";
+			};
+			name = Release;
+		};
 		3D67152E2B4410B300E26D7D /* Debug */ = {
 			isa = XCBuildConfiguration;
 			buildSettings = {
@@ -3053,6 +3129,7 @@
 					"\"$(TARGET_BUILD_DIR)/usr/local/lib/include\"",
 					"\"$(BUILT_PRODUCTS_DIR)\"",
 					"\"${PROJECT_DIR}/tutanota/include\"/**",
+					"\"${PROJECT_DIR}/libcrypto/OpenSSL-for-iPhone/include\"",
 				);
 				INFOPLIST_FILE = tutanota/Info.plist;
 				IPHONEOS_DEPLOYMENT_TARGET = 15.0;
@@ -3064,7 +3141,7 @@
 					"$(inherited)",
 					"$(PROJECT_DIR)",
 					"\"$(TARGET_BUILD_DIR)/usr/local/lib/include\"",
-					"$(PROJECT_DIR)/tutanota/Frameworks",
+					"$(PROJECT_DIR)/libcrypto/lib",
 				);
 				"OTHER_CFLAGS[arch=*]" = (
 					"-DSQLITE_HAS_CODEC",
@@ -3078,6 +3155,8 @@
 					"-DOQS_ENABLE_KEM_KYBER=1",
 				);
 				OTHER_LDFLAGS = "";
+				"OTHER_LDFLAGS[sdk=iphoneos*]" = "-lcrypto";
+				"OTHER_LDFLAGS[sdk=iphonesimulator*]" = "-lcrypto-sim";
 				OTHER_SWIFT_FLAGS = "";
 				"OTHER_SWIFT_FLAGS[arch=*]" = "-D DEBUG";
 				PRODUCT_BUNDLE_IDENTIFIER = de.tutao.tutanota;
@@ -3111,6 +3190,7 @@
 					"\"$(TARGET_BUILD_DIR)/usr/local/lib/include\"",
 					"\"$(BUILT_PRODUCTS_DIR)\"",
 					"\"${PROJECT_DIR}/tutanota/include\"/**",
+					"\"${PROJECT_DIR}/libcrypto/OpenSSL-for-iPhone/include\"",
 				);
 				INFOPLIST_FILE = tutanota/Info.plist;
 				IPHONEOS_DEPLOYMENT_TARGET = 15.0;
@@ -3122,7 +3202,7 @@
 					"$(inherited)",
 					"$(PROJECT_DIR)",
 					"\"$(TARGET_BUILD_DIR)/usr/local/lib/include\"",
-					"$(PROJECT_DIR)/tutanota/Frameworks",
+					"$(PROJECT_DIR)/libcrypto/lib",
 				);
 				"OTHER_CFLAGS[arch=*]" = (
 					"-DSQLITE_HAS_CODEC",
@@ -3136,6 +3216,8 @@
 					"-DOQS_ENABLE_KEM_KYBER=1",
 				);
 				OTHER_LDFLAGS = "";
+				"OTHER_LDFLAGS[sdk=iphoneos*]" = "-lcrypto";
+				"OTHER_LDFLAGS[sdk=iphonesimulator*]" = "-lcrypto-sim";
 				OTHER_SWIFT_FLAGS = "";
 				PRODUCT_BUNDLE_IDENTIFIER = de.tutao.tutanota;
 				PRODUCT_NAME = "$(TARGET_NAME)";
@@ -3272,6 +3354,15 @@
 /* End XCBuildConfiguration section */
 
 /* Begin XCConfigurationList section */
+		3D22AEB32B95FBB400138BA4 /* Build configuration list for PBXLegacyTarget "libcrypto setup" */ = {
+			isa = XCConfigurationList;
+			buildConfigurations = (
+				3D22AEB42B95FBB400138BA4 /* Debug */,
+				3D22AEB52B95FBB400138BA4 /* Release */,
+			);
+			defaultConfigurationIsVisible = 0;
+			defaultConfigurationName = Release;
+		};
 		3D6715302B4410B300E26D7D /* Build configuration list for PBXLegacyTarget "liboqs header setup" */ = {
 			isa = XCConfigurationList;
 			buildConfigurations = (
