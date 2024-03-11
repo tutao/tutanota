@@ -7,13 +7,12 @@ import { ContactImporter } from "../../../contacts/ContactImporter.js"
 import { Dialog } from "../../base/Dialog.js"
 import { MobileSystemFacade } from "../../../native/common/generatedipc/MobileSystemFacade.js"
 import { renderBannerButton } from "../SetupWizard.js"
-import { OnboardingContactsImage } from "./OnboardingImages.js"
 
 export class SetupContactsPage implements Component<SetupContactsPageAttrs> {
 	view({ attrs }: Vnode<SetupContactsPageAttrs>): Children {
 		const isContactSyncEnabled = attrs.syncManager.isEnabled()
 
-		return m(SetupPageLayout, { image: OnboardingContactsImage }, [
+		return m(SetupPageLayout, { image: "contacts" }, [
 			m("p.mb-s", lang.get("importContacts_msg")),
 			renderBannerButton("import_action", () => {
 				attrs.contactImporter.importContactsFromDevice()

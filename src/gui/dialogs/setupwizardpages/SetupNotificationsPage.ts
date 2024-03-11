@@ -7,7 +7,6 @@ import { queryPermissionsState, renderPermissionButton, requestPermission } from
 import Stream from "mithril/stream"
 import { SetupPageLayout } from "./SetupPageLayout.js"
 import { locator } from "../../../api/main/MainLocator.js"
-import { OnboardingNotificationsImage } from "./OnboardingImages.js"
 
 export interface NotificationPermissionsData {
 	isNotificationPermissionGranted: boolean
@@ -16,7 +15,7 @@ export interface NotificationPermissionsData {
 
 export class SetupNotificationsPage implements Component<SetupNotificationsPageAttrs> {
 	view({ attrs }: Vnode<SetupNotificationsPageAttrs>): Children {
-		return m(SetupPageLayout, { image: OnboardingNotificationsImage }, [
+		return m(SetupPageLayout, { image: "notifications" }, [
 			m("p.mb-s", lang.get("allowNotifications_msg")),
 			renderPermissionButton("grant_notification_permission_action", attrs.data.isNotificationPermissionGranted, () =>
 				attrs.askForNotificationPermission(),
