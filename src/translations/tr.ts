@@ -11,7 +11,7 @@ export default {
 		"other"
 	],
 	"created_at": "2015-01-27T13:15:41Z",
-	"updated_at": "2024-02-07T15:05:17Z",
+	"updated_at": "2024-03-10T18:57:47Z",
 	"source_locale": {
 		"id": "fcd7471b347c8e517663e194dcddf237",
 		"name": "en",
@@ -177,6 +177,9 @@ export default {
 		"callNumber_alt": "Bu numarayı ara",
 		"cameraUsageDescription_msg": "Ek olarak eklemek için bir fotoğraf veya video çekin.",
 		"cancelContactForm_label": "İletişim formunu iptal et",
+		"cancellationReasonSpam_label": "Çok fazla spam e-posta alıyorum",
+		"cancellationReasonUI_label": "Tuta'nın görünüşünü sevmiyorum",
+		"cancellationReasonUsability_label": "Tuta'nın kullanımı çok zor",
 		"cancelledBy_label": "(tarafından iptal edildi{endOfSubscriptionPeriod})",
 		"cancelledReferralCreditPosting_label": "İptal edilen yönlendirme avansı",
 		"cancelLocalAdminGroup_label": "yerel yönetici gruplarını iptal et",
