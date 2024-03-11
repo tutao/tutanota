@@ -1213,6 +1213,7 @@ styles.registerStyle("main", () => {
 			"transition-property": "border-width, border-color, color, background-color",
 			"transition-duration": `${DefaultAnimationTime - 70}ms`,
 			"transition-timing-function": "ease-out",
+			"will-change": "border-width, border-color, color",
 		},
 		".wizard-breadcrumb-active": {
 			border: `2px solid ${theme.content_accent}`,
@@ -1220,6 +1221,7 @@ styles.registerStyle("main", () => {
 			"transition-property": "border-width, border-color, color, background-color",
 			"transition-duration": `${DefaultAnimationTime - 70}ms`,
 			"transition-timing-function": "ease-out",
+			"will-change": "border-width, color, background-color",
 		},
 		".wizard-breadcrumb-previous": {
 			border: `1px solid ${theme.content_accent}`,
@@ -1228,11 +1230,13 @@ styles.registerStyle("main", () => {
 			"transition-property": "border-width, border-color, color, background-color",
 			"transition-duration": `${DefaultAnimationTime - 70}ms`,
 			"transition-timing-function": "ease-out",
+			"will-change": "border-width, border-color, color, background-color",
 		},
 		".wizard-breadcrumb-line": {
 			"border-top": `3px dotted ${theme.content_border}`,
 			height: 0,
 			transition: `border-top-color ${DefaultAnimationTime}ms ease-out`,
+			"will-change": "border-top-style, border-top-color",
 		},
 		".wizard-breadcrumb-line-active": {
 			"border-top": `3px solid ${theme.content_accent}`,
@@ -2233,6 +2237,10 @@ styles.registerStyle("main", () => {
 			},
 			".column-width-small": {
 				width: px(size.column_width_s_mobile),
+			},
+			// Speed up SVG rendering in the onboarding wizard by disabling antialiasing
+			svg: {
+				"shape-rendering": "optimizeSpeed",
 			},
 		},
 		"@keyframes move-stripes": {
