@@ -14,7 +14,7 @@ import { CalendarViewType } from "../calendar/gui/CalendarGuiUtils.js"
 assertMainOrNodeBoot()
 export const defaultThemePreference: ThemePreference = "auto:light|dark"
 
-export enum BehaviorAfterMoveEmailAction {
+export enum ListAutoSelectBehavior {
 	NONE,
 	OLDER,
 	NEWER,
@@ -50,6 +50,7 @@ interface ConfigObject {
 	/** Whether mobile calendar navigation is in the "per week" or "per month" mode */
 	isCalendarDaySelectorExpanded: boolean
 	/** Stores user's desired behavior to the view when an email is removed from the list */
+	mailAutoSelectBehavior: ListAutoSelectBehavior
 	behaviorAfterMoveEmailAction: BehaviorAfterMoveEmailAction
 	// True if the app has already been run after install
 	isSetupComplete: boolean
@@ -108,8 +109,7 @@ export class DeviceConfig implements CredentialsStorage, UsageTestStorage, NewsI
 			hasParticipatedInCredentialsMigration: loadedConfig.hasParticipatedInCredentialsMigration ?? false,
 			syncContactsWithPhonePreference: loadedConfig.syncContactsWithPhonePreference ?? {},
 			isCalendarDaySelectorExpanded: loadedConfig.isCalendarDaySelectorExpanded ?? false,
-			behaviorAfterMoveEmailAction:
-				loadedConfig.behaviorAfterMoveEmailAction ?? (isApp() ? BehaviorAfterMoveEmailAction.NONE : BehaviorAfterMoveEmailAction.OLDER),
+			mailAutoSelectBehavior: loadedConfig.behaviorAfterMoveEmailAction ?? (isApp() ? ListAutoSelectBehavior.NONE : ListAutoSelectBehavior.OLDER),
 			isSetupComplete: loadedConfig.isSetupComplete ?? false,
 		}
 
@@ -367,12 +367,12 @@ export class DeviceConfig implements CredentialsStorage, UsageTestStorage, NewsI
 		this.writeToStorage()
 	}
 
-	getBehaviorAfterMoveEmailAction(): BehaviorAfterMoveEmailAction {
-		return this.config.behaviorAfterMoveEmailAction
+	getMailAutoSelectBehavior(): ListAutoSelectBehavior {
+		return this.config.mailAutoSelectBehavior
 	}
 
-	setBehaviorAfterMoveEmailAction(action: BehaviorAfterMoveEmailAction) {
-		this.config.behaviorAfterMoveEmailAction = action
+	setMailAutoSelectBehavior(action: ListAutoSelectBehavior) {
+		this.config.mailAutoSelectBehavior = action
 		this.writeToStorage()
 	}
 }

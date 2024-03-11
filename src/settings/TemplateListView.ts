@@ -99,7 +99,7 @@ export class TemplateListView implements UpdatableSettingsViewer {
 			loadSingle: (elementId) => {
 				return this.entityClient.load<EmailTemplate>(EmailTemplateTypeRef, [this.templateListId(), elementId])
 			},
-			type: EmailTemplateTypeRef,
+			autoSelectBehavior: null,
 		})
 
 		listModel.setFilter((item: EmailTemplate) => this.queryFilter(item))

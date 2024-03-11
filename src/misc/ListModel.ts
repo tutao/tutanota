@@ -10,7 +10,6 @@ import {
 	findLast,
 	first,
 	getFirstOrThrow,
-	isSameTypeRef,
 	last,
 	lastThrow,
 	memoizedWithHiddenArgument,
@@ -19,14 +18,12 @@ import {
 	setEquals,
 	setMap,
 	settledThen,
-	TypeRef,
 } from "@tutao/tutanota-utils"
 import Stream from "mithril/stream"
 import stream from "mithril/stream"
 import { ListFetchResult, PageSize } from "../gui/base/ListUtils.js"
 import { isOfflineError } from "../api/common/utils/ErrorUtils.js"
-import { MailTypeRef } from "../api/entities/tutanota/TypeRefs.js"
-import { BehaviorAfterMoveEmailAction, deviceConfig } from "./DeviceConfig.js"
+import { ListAutoSelectBehavior } from "./DeviceConfig.js"
 
 export interface ListModelConfig<ElementType> {
 	topId: Id
@@ -43,7 +40,7 @@ export interface ListModelConfig<ElementType> {
 
 	sortCompare(entity1: ElementType, entity2: ElementType): number
 
-	type: TypeRef<unknown>
+	autoSelectBehavior: (() => ListAutoSelectBehavior) | null
 }
 
 export type ListFilter<ElementType extends ListElement> = (item: ElementType) => boolean
@@ -293,17 +290,13 @@ export class ListModel<ElementType extends ListElement> {
 				selectedItems.delete(entity)
 
 				if (this.rawState.filteredItems.length > 1) {
-					if (isSameTypeRef(this.config.type, MailTypeRef)) {
-						const desiredBehavior = deviceConfig.getBehaviorAfterMoveEmailAction()
-						if (desiredBehavior === BehaviorAfterMoveEmailAction.OLDER) {
-							newActiveElement = this.getNextItem(entity, null)
-						} else if (desiredBehavior === BehaviorAfterMoveEmailAction.NEWER) {
-							newActiveElement = this.getPreviousItem(entity)
-						}
-
-						if (desiredBehavior === BehaviorAfterMoveEmailAction.NONE || this.state.inMultiselect) {
-							selectedItems.clear()
-						}
+					const desiredBehavior = this.config.autoSelectBehavior?.() ?? null
+					if (desiredBehavior === ListAutoSelectBehavior.NONE || this.state.inMultiselect) {
+						selectedItems.clear()
+					} else if (desiredBehavior === ListAutoSelectBehavior.OLDER) {
+						newActiveElement = this.getNextItem(entity, null)
+					} else if (desiredBehavior === ListAutoSelectBehavior.NEWER) {
+						newActiveElement = this.getPreviousItem(entity)
 					} else if (this.getSelectedAsArray().length === 1 && this.getSelectedAsArray()[0] === entity && !this.rawState.inMultiselect) {
 						newActiveElement =
 							entity === last(this.state.items)

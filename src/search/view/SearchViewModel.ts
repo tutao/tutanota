@@ -54,6 +54,7 @@ import m from "mithril"
 import { CalendarFacade } from "../../api/worker/facades/lazy/CalendarFacade.js"
 import { ProgrammingError } from "../../api/common/error/ProgrammingError.js"
 import { ProgressTracker } from "../../api/main/ProgressTracker.js"
+import { ListAutoSelectBehavior } from "../../misc/DeviceConfig.js"
 
 const SEARCH_PAGE_SIZE = 100
 
@@ -122,6 +123,7 @@ export class SearchViewModel {
 		private readonly progressTracker: ProgressTracker,
 		private readonly conversationViewModelFactory: ConversationViewModelFactory,
 		private readonly updateUi: () => unknown,
+		private readonly selectionBehavior: ListAutoSelectBehavior,
 	) {
 		this.currentQuery = this.search.result()?.query ?? ""
 		this.listModel = this.createList()
@@ -672,7 +674,7 @@ export class SearchViewModel {
 					return sortCompareByReverseId(o1.entry, o2.entry)
 				}
 			},
-			type: this.searchedType,
+			autoSelectBehavior: isSameTypeRef(this.searchedType, MailTypeRef) ? () => this.selectionBehavior : null,
 		})
 	}
 

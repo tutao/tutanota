@@ -11,6 +11,7 @@ import { NotAuthorizedError, NotFoundError } from "../../api/common/error/RestEr
 import { isOfTypeOrSubfolderOf } from "../../api/common/mail/CommonMailUtils.js"
 import { MailModel } from "../model/MailModel.js"
 import { EntityUpdateData, isUpdateForTypeRef } from "../../api/common/utils/EntityUpdateUtils.js"
+import { ListAutoSelectBehavior } from "../../misc/DeviceConfig.js"
 
 export type MailViewerViewModelFactory = (options: CreateMailViewerOptions) => MailViewerViewModel
 
@@ -19,6 +20,8 @@ export type ConversationItem = MailItem
 
 export interface ConversationPrefProvider {
 	getConversationViewShowOnlySelectedMail(): boolean
+
+	getMailAutoSelectBehavior(): ListAutoSelectBehavior
 }
 
 export type ConversationViewModelFactory = (options: CreateMailViewerOptions) => ConversationViewModel

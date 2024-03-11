@@ -195,7 +195,7 @@ export class MailViewModel {
 			},
 			loadSingle: (elementId: Id): Promise<Mail | null> => this.entityClient.load(MailTypeRef, [listId, elementId]),
 			sortCompare: sortCompareByReverseId,
-			type: MailTypeRef,
+			autoSelectBehavior: () => this.conversationPrefProvider.getMailAutoSelectBehavior(),
 		})
 	})
 

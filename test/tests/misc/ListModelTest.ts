@@ -20,7 +20,7 @@ o.spec("ListModel", function () {
 		loadSingle: () => {
 			throw new Error("noop")
 		},
-		type: KnowledgeBaseEntryTypeRef,
+		autoSelectBehavior: null,
 	}
 
 	const itemA = createTestEntity(KnowledgeBaseEntryTypeRef, {

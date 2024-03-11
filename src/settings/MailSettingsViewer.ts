@@ -34,7 +34,7 @@ import { getSignatureType, show as showEditSignatureDialog } from "./EditSignatu
 import type { UpdatableSettingsViewer } from "./SettingsView"
 import { OfflineStorageSettingsModel } from "./OfflineStorageSettings"
 import { showNotAvailableForFreeDialog } from "../misc/SubscriptionDialogs"
-import { BehaviorAfterMoveEmailAction, deviceConfig } from "../misc/DeviceConfig"
+import { ListAutoSelectBehavior, deviceConfig } from "../misc/DeviceConfig"
 import { IconButton, IconButtonAttrs } from "../gui/base/IconButton.js"
 import { ButtonSize } from "../gui/base/ButtonSize.js"
 import { getReportMovedMailsType } from "../misc/MailboxPropertiesUtils.js"
@@ -254,25 +254,25 @@ export class MailSettingsViewer implements UpdatableSettingsViewer {
 			},
 			dropdownWidth: 250,
 		}
-		const behaviorAfterMoveEmailAction: DropDownSelectorAttrs<BehaviorAfterMoveEmailAction> = {
+		const behaviorAfterMoveEmailAction: DropDownSelectorAttrs<ListAutoSelectBehavior> = {
 			label: "behaviorAfterMovingEmail_label",
 			helpLabel: () => "",
 			items: [
 				{
 					name: lang.get("showOlder_label"),
-					value: BehaviorAfterMoveEmailAction.OLDER,
+					value: ListAutoSelectBehavior.OLDER,
 				},
 				{
 					name: lang.get("showNewer_label"),
-					value: BehaviorAfterMoveEmailAction.NEWER,
+					value: ListAutoSelectBehavior.NEWER,
 				},
 				{
 					name: lang.get("showNone_label"),
-					value: BehaviorAfterMoveEmailAction.NONE,
+					value: ListAutoSelectBehavior.NONE,
 				},
 			],
-			selectedValue: deviceConfig.getBehaviorAfterMoveEmailAction(),
-			selectionChangedHandler: (behavior) => deviceConfig.setBehaviorAfterMoveEmailAction(behavior),
+			selectedValue: deviceConfig.getMailAutoSelectBehavior(),
+			selectionChangedHandler: (behavior) => deviceConfig.setMailAutoSelectBehavior(behavior),
 			dropdownWidth: 250,
 		}
 		const reportMovedMailsAttrs = this.makeReportMovedMailsDropdownAttrs()

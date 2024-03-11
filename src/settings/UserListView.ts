@@ -240,7 +240,7 @@ export class UserListView implements UpdatableSettingsViewer {
 					}
 				}
 			},
-			type: GroupInfoTypeRef,
+			autoSelectBehavior: null,
 		})
 
 		listModel.setFilter((gi) => this.groupFilter(gi) && this.queryFilter(gi))

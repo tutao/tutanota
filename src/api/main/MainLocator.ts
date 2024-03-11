@@ -249,6 +249,7 @@ class MainLocator {
 				this.progressTracker,
 				conversationViewModelFactory,
 				redraw,
+				deviceConfig.getMailAutoSelectBehavior(),
 			)
 		}
 	}
