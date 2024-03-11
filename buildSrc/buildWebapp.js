@@ -13,6 +13,7 @@ import os from "node:os"
 import * as env from "./env.js"
 import { createHtml } from "./createHtml.js"
 import { domainConfigs } from "./DomainConfigs.js"
+import { visualizer } from "rollup-plugin-visualizer"
 
 /**
  * Builds the web app for production.
@@ -82,6 +83,7 @@ export async function buildWebapp({ version, stage, host, measure, minify, proje
 			}),
 			minify && terser(),
 			analyzer(projectDir),
+			visualizer({ filename: "build/stats.html", gzipSize: true }),
 			bundleDependencyCheckPlugin(),
 			nodeResolve({
 				preferBuiltins: true,
