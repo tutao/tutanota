@@ -24,7 +24,7 @@ export class FolderColumnView implements Component<Attrs> {
 			m(".folder-column.flex-grow.overflow-x-hidden.flex.col", landmarkAttrs(AriaLandmarks.Navigation, lang.getMaybeLazy(attrs.ariaLabel)), [
 				this.renderMainButton(attrs),
 				m(
-					".scroll.overflow-x-hidden.flex.col.flex-grow",
+					".scroll.scrollbar-gutter-stable-or-fallback.visible-scrollbar.overflow-x-hidden.flex.col.flex-grow",
 					{
 						onscroll: (e: Event) => {
 							const target = e.target as HTMLElement
@@ -45,7 +45,7 @@ export class FolderColumnView implements Component<Attrs> {
 		if (attrs.button) {
 			const label = lang.get(attrs.button.label)
 			return m(
-				".plr-button-double",
+				".plr-button-double.scrollbar-gutter-stable-or-fallback.scroll",
 				m(BaseButton, {
 					label,
 					text: label,

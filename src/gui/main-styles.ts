@@ -34,7 +34,7 @@ export function getFonts(): string {
 const boxShadow = `0 10px 20px rgba(0,0,0,0.19), 0 6px 6px rgba(0,0,0,0.23)`
 const searchBarShadow = "0px 2px 4px rgb(0, 0, 0, 0.12)"
 
-const scrollbarWidthHeight = "18px"
+const scrollbarWidthHeight = px(18)
 styles.registerStyle("main", () => {
 	return {
 		"#link-tt": isElectronClient()
