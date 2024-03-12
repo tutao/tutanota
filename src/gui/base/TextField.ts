@@ -5,9 +5,10 @@ import { theme } from "../theme"
 import type { TranslationKey } from "../../misc/LanguageViewModel"
 import { lang } from "../../misc/LanguageViewModel"
 import type { lazy } from "@tutao/tutanota-utils"
-import { keyboardEventToKeyPress, keyHandler } from "../../misc/KeyManager"
+import { keyHandler, useKeyHandler } from "../../misc/KeyManager"
 import { TabIndex } from "../../api/common/TutanotaConstants"
 import { ClickHandler, getOperatingClasses } from "./GuiUtils"
+import { AriaPopupType } from "../AriaUtils.js"
 
 export type TextFieldAttrs = {
 	id?: string
@@ -15,6 +16,7 @@ export type TextFieldAttrs = {
 	value: string
 	autocompleteAs?: Autocomplete
 	type?: TextFieldType
+	hasPopup?: AriaPopupType
 	helpLabel?: lazy<Children> | null
 	alignRight?: boolean
 	injectionsLeft?: lazy<Children>
@@ -99,6 +101,7 @@ export class TextField implements ClassComponent<TextFieldAttrs> {
 				id: vnode.attrs.id,
 				oncreate: (vnode) => (this._domWrapper = vnode.dom as HTMLElement),
 				onclick: (e: MouseEvent) => (a.onclick ? a.onclick(e, this._domInputWrapper) : this.focus(e, a)),
+				"aria-haspopup": a.hasPopup,
 				class: a.class != null ? a.class : "pt" + " " + getOperatingClasses(a.disabled),
 				style: maxWidth
 					? {
@@ -255,11 +258,7 @@ export class TextField implements ClassComponent<TextFieldAttrs> {
 							a.onfocus && a.onfocus(this._domWrapper, this.domInput)
 						},
 						onblur: (e: FocusEvent) => this.blur(e, a),
-						onkeydown: (e: KeyboardEvent) => {
-							// keydown is used to cancel certain keypresses of the user (mainly needed for the BubbleTextField)
-							const key = keyboardEventToKeyPress(e)
-							return a.keyHandler != null ? a.keyHandler(key) : true
-						},
+						onkeydown: (e: KeyboardEvent) => useKeyHandler(e, a.keyHandler),
 						onupdate: () => {
 							// only change the value if the value has changed otherwise the cursor in Safari and in the iOS App cannot be positioned.
 							if (this.domInput.value !== a.value) {
@@ -310,10 +309,7 @@ export class TextField implements ClassComponent<TextFieldAttrs> {
 				},
 				onfocus: (e: FocusEvent) => this.focus(e, a),
 				onblur: (e: FocusEvent) => this.blur(e, a),
-				onkeydown: (e: KeyboardEvent) => {
-					const key = keyboardEventToKeyPress(e)
-					return a.keyHandler != null ? a.keyHandler(key) : true
-				},
+				onkeydown: (e: KeyboardEvent) => useKeyHandler(e, a.keyHandler),
 				oninput: () => {
 					this.domInput.style.height = "0px"
 					this.domInput.style.height = px(this.domInput.scrollHeight)
