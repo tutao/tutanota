@@ -157,7 +157,7 @@ export class CalendarView extends BaseTopLevelView implements TopLevelView<Calen
 			},
 			ColumnType.Foreground,
 			{
-				minWidth: size.first_col_min_width,
+				minWidth: size.calendar_first_col_min_width,
 				maxWidth: size.first_col_max_width,
 				headerCenter: () => (this.currentViewType === CalendarViewType.WEEK ? lang.get("month_label") : lang.get("calendar_label")),
 			},

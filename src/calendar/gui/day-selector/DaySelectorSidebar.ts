@@ -32,7 +32,7 @@ export class DaySelectorSidebar implements Component<DaySelectorSidebarAttrs> {
 
 		return m(
 			".plr-m.mt-form",
-			m(".elevated-bg.plr.pt-s.pb-m.border-radius.flex.flex-column", [
+			m(".elevated-bg.pt-s.pb-m.border-radius.flex.flex-column", [
 				this.renderPickerHeader(this.currentDate),
 				m(".flex-grow.overflow-hidden", [
 					m(DaySelector, {
