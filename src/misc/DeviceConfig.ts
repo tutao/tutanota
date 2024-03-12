@@ -51,7 +51,6 @@ interface ConfigObject {
 	isCalendarDaySelectorExpanded: boolean
 	/** Stores user's desired behavior to the view when an email is removed from the list */
 	mailAutoSelectBehavior: ListAutoSelectBehavior
-	behaviorAfterMoveEmailAction: BehaviorAfterMoveEmailAction
 	// True if the app has already been run after install
 	isSetupComplete: boolean
 }

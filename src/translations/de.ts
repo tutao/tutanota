@@ -1685,8 +1685,7 @@ export default {
 		"importContacts_label": "Kontakte importieren",
 		"dates_label": "Daten",
 		"relationships_label": "Beziehungen",
-		"importContacts_msg": "Importiere du Kontakte aus deinem Telefonbuch, um sie auf allen deinen Geräten verfügbar zu machen."
-		"you_label": "Du",
+		"importContacts_msg": "Importiere du Kontakte aus deinem Telefonbuch, um sie auf allen deinen Geräten verfügbar zu machen.",
 		"general_label": "Allgemeine",
 		"behaviorAfterMovingEmail_label": "Verhalten nach dem Verschieben einer E-Mail",
 		"showOlder_label": "Ältere anzeigen",

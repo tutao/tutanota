@@ -291,17 +291,14 @@ export class ListModel<ElementType extends ListElement> {
 
 				if (this.rawState.filteredItems.length > 1) {
 					const desiredBehavior = this.config.autoSelectBehavior?.() ?? null
-					if ((desiredBehavior === ListAutoSelectBehavior.NONE || this.state.inMultiselect) && wasEntityRemoved) {
-						selectedItems.clear()
-					} else if (desiredBehavior === ListAutoSelectBehavior.OLDER) {
-						newActiveElement = this.getNextItem(entity, null)
-					} else if (desiredBehavior === ListAutoSelectBehavior.NEWER) {
-						newActiveElement = this.getPreviousItem(entity)
-					} else if (this.getSelectedAsArray().length === 1 && this.getSelectedAsArray()[0] === entity && !this.rawState.inMultiselect) {
-						newActiveElement =
-							entity === last(this.state.items)
-								? this.state.items[this.state.items.length - 2]
-								: this.state.items[this.state.items.indexOf(entity) + 1]
+					if (wasEntityRemoved) {
+						if (desiredBehavior === ListAutoSelectBehavior.NONE || this.state.inMultiselect) {
+							selectedItems.clear()
+						} else if (desiredBehavior === ListAutoSelectBehavior.NEWER) {
+							newActiveElement = this.getPreviousItem(entity)
+						} else {
+							newActiveElement = entity === last(this.state.items) ? this.getPreviousItem(entity) : this.getNextItem(entity, null)
+						}
 					}
 
 					if (newActiveElement) {

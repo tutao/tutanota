@@ -8,6 +8,7 @@ import { ListLoadingState } from "../../../src/gui/base/List.js"
 import { ConnectionError } from "../../../src/api/common/error/RestError.js"
 import { OperationType } from "../../../src/api/common/TutanotaConstants.js"
 import { createTestEntity } from "../TestUtils.js"
+import { ListAutoSelectBehavior } from "../../../src/misc/DeviceConfig.js"
 
 o.spec("ListModel", function () {
 	const listId = "listId"
@@ -20,7 +21,7 @@ o.spec("ListModel", function () {
 		loadSingle: () => {
 			throw new Error("noop")
 		},
-		autoSelectBehavior: null,
+		autoSelectBehavior: () => ListAutoSelectBehavior.OLDER,
 	}
 
 	const itemA = createTestEntity(KnowledgeBaseEntryTypeRef, {
