@@ -26,7 +26,13 @@ export class RepeatRuleEditor implements Component<RepeatRuleEditorAttrs> {
 			renderTwoColumnsIfFits(
 				[
 					m(".flex-grow.pr-s", this.renderRepeatPeriod(attrs)),
-					m(".flex-grow.pl-s" + (model.repeatPeriod != null ? "" : ".hidden"), this.renderRepeatInterval(attrs)),
+					m(
+						".flex-grow.pl-s" + (model.repeatPeriod != null ? "" : ".hidden"),
+						this.renderRepeatInterval({
+							...attrs,
+							disabled: model.repeatPeriod == null ? true : attrs.disabled,
+						}),
+					),
 				],
 				this.renderEndCondition(attrs),
 			),
