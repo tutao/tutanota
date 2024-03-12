@@ -23,6 +23,7 @@ import { ReceivedGroupInvitationsModel } from "../../sharing/model/ReceivedGroup
 import { GroupType } from "../../api/common/TutanotaConstants.js"
 import { locator } from "../../api/main/MainLocator.js"
 import { EntityUpdateData, isUpdateForTypeRef } from "../../api/common/utils/EntityUpdateUtils.js"
+import { ListAutoSelectBehavior } from "../../misc/DeviceConfig.js"
 
 export class ContactListViewModel {
 	private selectedContactList: Id | null = null
@@ -91,7 +92,7 @@ export class ContactListViewModel {
 				return this.entityClient.load(ContactListEntryTypeRef, [listId, elementId])
 			},
 			sortCompare: (rl1, rl2) => rl1.emailAddress.localeCompare(rl2.emailAddress),
-			autoSelectBehavior: null,
+			autoSelectBehavior: () => ListAutoSelectBehavior.OLDER,
 		})
 
 		this.listModelStateStream?.end(true)

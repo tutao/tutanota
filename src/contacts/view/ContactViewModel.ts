@@ -10,6 +10,7 @@ import { GENERATED_MAX_ID, getElementId } from "../../api/common/utils/EntityUti
 import Stream from "mithril/stream"
 import { Router } from "../../gui/ScopedRouter.js"
 import { isUpdateForTypeRef } from "../../api/common/utils/EntityUpdateUtils.js"
+import { ListAutoSelectBehavior } from "../../misc/DeviceConfig.js"
 
 /** ViewModel for the overall contact view. */
 export class ContactViewModel {
@@ -39,7 +40,7 @@ export class ContactViewModel {
 			return this.entityClient.load(ContactTypeRef, [listId, elementId])
 		},
 		sortCompare: (c1, c2) => compareContacts(c1, c2, this.sortByFirstName),
-		autoSelectBehavior: null,
+		autoSelectBehavior: () => ListAutoSelectBehavior.NONE,
 	})
 
 	async init(contactListId?: Id, contactId?: Id) {

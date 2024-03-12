@@ -40,7 +40,7 @@ export interface ListModelConfig<ElementType> {
 
 	sortCompare(entity1: ElementType, entity2: ElementType): number
 
-	autoSelectBehavior: (() => ListAutoSelectBehavior) | null
+	autoSelectBehavior: () => ListAutoSelectBehavior
 }
 
 export type ListFilter<ElementType extends ListElement> = (item: ElementType) => boolean
@@ -287,11 +287,11 @@ export class ListModel<ElementType extends ListElement> {
 			let newActiveElement
 
 			if (entity) {
-				selectedItems.delete(entity)
+				const wasEntityRemoved = selectedItems.delete(entity)
 
 				if (this.rawState.filteredItems.length > 1) {
 					const desiredBehavior = this.config.autoSelectBehavior?.() ?? null
-					if (desiredBehavior === ListAutoSelectBehavior.NONE || this.state.inMultiselect) {
+					if ((desiredBehavior === ListAutoSelectBehavior.NONE || this.state.inMultiselect) && wasEntityRemoved) {
 						selectedItems.clear()
 					} else if (desiredBehavior === ListAutoSelectBehavior.OLDER) {
 						newActiveElement = this.getNextItem(entity, null)

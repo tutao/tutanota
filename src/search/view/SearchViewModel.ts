@@ -674,7 +674,7 @@ export class SearchViewModel {
 					return sortCompareByReverseId(o1.entry, o2.entry)
 				}
 			},
-			autoSelectBehavior: isSameTypeRef(this.searchedType, MailTypeRef) ? () => this.selectionBehavior : null,
+			autoSelectBehavior: () => (isSameTypeRef(this.searchedType, MailTypeRef) ? this.selectionBehavior : ListAutoSelectBehavior.OLDER),
 		})
 	}
 

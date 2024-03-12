@@ -29,6 +29,7 @@ import { BaseSearchBar, BaseSearchBarAttrs } from "../gui/base/BaseSearchBar.js"
 import { lang } from "../misc/LanguageViewModel.js"
 import { keyManager } from "../misc/KeyManager.js"
 import { EntityUpdateData, isUpdateForTypeRef } from "../api/common/utils/EntityUpdateUtils.js"
+import { ListAutoSelectBehavior } from "../misc/DeviceConfig.js"
 
 assertMainOrNode()
 
@@ -99,7 +100,7 @@ export class TemplateListView implements UpdatableSettingsViewer {
 			loadSingle: (elementId) => {
 				return this.entityClient.load<EmailTemplate>(EmailTemplateTypeRef, [this.templateListId(), elementId])
 			},
-			autoSelectBehavior: null,
+			autoSelectBehavior: () => ListAutoSelectBehavior.OLDER,
 		})
 
 		listModel.setFilter((item: EmailTemplate) => this.queryFilter(item))

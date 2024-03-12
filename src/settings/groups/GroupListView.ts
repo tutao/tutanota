@@ -29,6 +29,7 @@ import { theme } from "../../gui/theme.js"
 import { IconButton } from "../../gui/base/IconButton.js"
 import { NewPaidPlans } from "../../api/common/TutanotaConstants.js"
 import { EntityUpdateData, isUpdateForTypeRef } from "../../api/common/utils/EntityUpdateUtils.js"
+import { ListAutoSelectBehavior } from "../../misc/DeviceConfig.js"
 
 assertMainOrNode()
 const className = "group-list"
@@ -183,7 +184,7 @@ export class GroupListView implements UpdatableSettingsViewer {
 					}
 				}
 			},
-			autoSelectBehavior: null,
+			autoSelectBehavior: () => ListAutoSelectBehavior.OLDER,
 		})
 
 		listModel.setFilter((item: GroupInfo) => this.groupFilter(item) && this.queryFilter(item))
