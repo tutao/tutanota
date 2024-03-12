@@ -305,7 +305,7 @@ export class VisualDatePicker implements Component<VisualDatePickerAttrs> {
 	private renderDay({ date, day, isPaddingDay }: CalendarDay, index: number, attrs: VisualDatePickerAttrs): Children {
 		const isSelectedDay = isSameDayOfDate(date, attrs.selectedDate)
 		const size = this.getElementWidth(attrs)
-		const selector = isSelectedDay ? ".circle.accent-bg" : ""
+		const selector = isSelectedDay && !isPaddingDay ? ".circle.accent-bg" : ""
 		return m(
 			".rel.flex.items-center.justify-center",
 			{
