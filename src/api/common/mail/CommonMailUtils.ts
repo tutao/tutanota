@@ -54,10 +54,11 @@ function hasValidEncryptionAuthForTeamOrSystemMail({ encryptionAuthStatus }: Mai
 		case null:
 		case undefined:
 		case EncryptionAuthStatus.RSA_NO_AUTHENTICATION:
-		case EncryptionAuthStatus.PQ_AUTHENTICATION_SUCCEEDED:
+		case EncryptionAuthStatus.TUTACRYPT_AUTHENTICATION_SUCCEEDED:
+		case EncryptionAuthStatus.TUTACRYPT_SENDER: // should only be set for sent NOT received mails
 			return true
 		case EncryptionAuthStatus.AES_NO_AUTHENTICATION:
-		case EncryptionAuthStatus.PQ_AUTHENTICATION_FAILED:
+		case EncryptionAuthStatus.TUTACRYPT_AUTHENTICATION_FAILED:
 		// we have to be able to handle future cases, to be safe we say that they are not valid encryptionAuth
 		default:
 			return false

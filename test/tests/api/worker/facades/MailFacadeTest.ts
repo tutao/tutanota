@@ -1,7 +1,15 @@
 import o from "@tutao/otest"
 import { MailFacade, phishingMarkerValue, validateMimeTypesForAttachments } from "../../../../../src/api/worker/facades/lazy/MailFacade.js"
-import { MailAddressTypeRef, MailTypeRef, ReportedMailFieldMarkerTypeRef } from "../../../../../src/api/entities/tutanota/TypeRefs.js"
-import { MailAuthenticationStatus, ReportedMailFieldType } from "../../../../../src/api/common/TutanotaConstants.js"
+import {
+	InternalRecipientKeyDataTypeRef,
+	MailAddressTypeRef,
+	MailTypeRef,
+	ReportedMailFieldMarkerTypeRef,
+	SecureExternalRecipientKeyDataTypeRef,
+	SendDraftDataTypeRef,
+	SymEncInternalRecipientKeyDataTypeRef,
+} from "../../../../../src/api/entities/tutanota/TypeRefs.js"
+import { CryptoProtocolVersion, MailAuthenticationStatus, ReportedMailFieldType } from "../../../../../src/api/common/TutanotaConstants.js"
 import { object } from "testdouble"
 import { CryptoFacade } from "../../../../../src/api/worker/crypto/CryptoFacade.js"
 import { IServiceExecutor } from "../../../../../src/api/common/ServiceRequest.js"
@@ -437,6 +445,73 @@ o.spec("MailFacade test", function () {
 			o(() => {
 				validateMimeTypesForAttachments([attach("video/webm; parameterwithoutavalue", "bad.webm")])
 			}).throws(ProgrammingError)
+		})
+
+		o("isTutaCryptMail", () => {
+			const pqRecipient = createTestEntity(InternalRecipientKeyDataTypeRef, { protocolVersion: CryptoProtocolVersion.TUTA_CRYPT })
+			const rsaRecipient = createTestEntity(InternalRecipientKeyDataTypeRef, { protocolVersion: CryptoProtocolVersion.RSA })
+			const secureExternalRecipient = createTestEntity(SecureExternalRecipientKeyDataTypeRef, {})
+			const symEncInternalRecipient = createTestEntity(SymEncInternalRecipientKeyDataTypeRef, {})
+
+			o(
+				facade.isTutaCryptMail(
+					createTestEntity(SendDraftDataTypeRef, {
+						internalRecipientKeyData: [pqRecipient],
+						secureExternalRecipientKeyData: [],
+						symEncInternalRecipientKeyData: [],
+					}),
+				),
+			).equals(true)
+
+			o(
+				facade.isTutaCryptMail(
+					createTestEntity(SendDraftDataTypeRef, {
+						internalRecipientKeyData: [pqRecipient, pqRecipient],
+						secureExternalRecipientKeyData: [],
+						symEncInternalRecipientKeyData: [],
+					}),
+				),
+			).equals(true)
+
+			o(
+				facade.isTutaCryptMail(
+					createTestEntity(SendDraftDataTypeRef, {
+						internalRecipientKeyData: [],
+						secureExternalRecipientKeyData: [],
+						symEncInternalRecipientKeyData: [],
+					}),
+				),
+			).equals(false)
+
+			o(
+				facade.isTutaCryptMail(
+					createTestEntity(SendDraftDataTypeRef, {
+						internalRecipientKeyData: [pqRecipient, rsaRecipient],
+						secureExternalRecipientKeyData: [],
+						symEncInternalRecipientKeyData: [],
+					}),
+				),
+			).equals(false)
+
+			o(
+				facade.isTutaCryptMail(
+					createTestEntity(SendDraftDataTypeRef, {
+						internalRecipientKeyData: [pqRecipient],
+						secureExternalRecipientKeyData: [secureExternalRecipient],
+						symEncInternalRecipientKeyData: [],
+					}),
+				),
+			).equals(false)
+
+			o(
+				facade.isTutaCryptMail(
+					createTestEntity(SendDraftDataTypeRef, {
+						internalRecipientKeyData: [pqRecipient],
+						secureExternalRecipientKeyData: [],
+						symEncInternalRecipientKeyData: [symEncInternalRecipient],
+					}),
+				),
+			).equals(false)
 		})
 	})
 })

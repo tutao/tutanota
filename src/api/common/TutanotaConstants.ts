@@ -978,11 +978,13 @@ export enum EncryptionAuthStatus {
 	/** the entity was encrypted with RSA, it had no authentication*/
 	RSA_NO_AUTHENTICATION = "0",
 	/** the entity was encrypted with tuta-crypt and authentication succeeded */
-	PQ_AUTHENTICATION_SUCCEEDED = "1",
+	TUTACRYPT_AUTHENTICATION_SUCCEEDED = "1",
 	/** the entity was encrypted with tuta-crypt and authentication failed */
-	PQ_AUTHENTICATION_FAILED = "2",
+	TUTACRYPT_AUTHENTICATION_FAILED = "2",
 	/** the entity was encrypted symmetrically, with AES, it had no authentication, e.g. secure external mailboxes */
 	AES_NO_AUTHENTICATION = "3",
+	/** the entity was sent by us encrypted with TutaCrypt, so it is authenticated */
+	TUTACRYPT_SENDER = "4",
 }
 
 export const enum MailReportType {

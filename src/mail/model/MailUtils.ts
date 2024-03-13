@@ -462,8 +462,9 @@ export function getConfidentialFontIcon(mail: Mail): String {
 export function getConfidentialIcon(mail: Mail): Icons {
 	if (!mail.confidential) throw new ProgrammingError("mail is not confidential")
 	if (
-		mail.encryptionAuthStatus == EncryptionAuthStatus.PQ_AUTHENTICATION_SUCCEEDED ||
-		mail.encryptionAuthStatus == EncryptionAuthStatus.PQ_AUTHENTICATION_FAILED
+		mail.encryptionAuthStatus == EncryptionAuthStatus.TUTACRYPT_AUTHENTICATION_SUCCEEDED ||
+		mail.encryptionAuthStatus == EncryptionAuthStatus.TUTACRYPT_AUTHENTICATION_FAILED ||
+		mail.encryptionAuthStatus == EncryptionAuthStatus.TUTACRYPT_SENDER
 	) {
 		return Icons.PQLock
 	} else {
