@@ -14,6 +14,7 @@ export class SetupPageLayout implements Component<SetupPageLayoutAttrs> {
 		return m("section.center.flex.flex-column.dialog-height-small.mt", [
 			m("img.onboarding-logo.center-h", {
 				src: `${window.tutao.appState.prefixWithoutFile}/images/onboarding-wizard/${attrs.image}.svg`,
+				alt: "",
 				rel: "noreferrer",
 				loading: "lazy",
 				decoding: "async",
