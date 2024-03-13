@@ -8,33 +8,6 @@ import Foundation
  */
 public protocol MobileSystemFacade {
 	/**
-	 * Find suggestions in the OS contact provider.
-	 */
-	func findSuggestions(
-		_ query: String
-	) async throws -> [NativeContact]
-	/**
-	 * Store one or more contacts in system's contact book
-	 */
-	func saveContacts(
-		_ username: String,
-		_ contacts: [StructuredContact]
-	) async throws -> Void
-	/**
-	 * Sync all Tuta contacts with system's contact book, this operation includes Inserts, Updates and Deletions
-	 */
-	func syncContacts(
-		_ username: String,
-		_ contacts: [StructuredContact]
-	) async throws -> Void
-	/**
-	 * Delete all or a specific Tuta contact from system's contact book
-	 */
-	func deleteContacts(
-		_ username: String,
-		_ contactId: String?
-	) async throws -> Void
-	/**
 	 * Redirect the user to Phone's Settings
 	 */
 	func goToSettings(
@@ -52,4 +25,16 @@ public protocol MobileSystemFacade {
 		_ text: String,
 		_ title: String
 	) async throws -> Bool
+	/**
+	 * Returns whether the specified system permission has already been granted by the user.
+	 */
+	func hasPermission(
+		_ permission: PermissionType
+	) async throws -> Bool
+	/**
+	 * Requests a system permission from the user.
+	 */
+	func requestPermission(
+		_ permission: PermissionType
+	) async throws -> Void
 }

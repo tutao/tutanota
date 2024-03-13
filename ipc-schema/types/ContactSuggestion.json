@@ -1,5 +1,5 @@
 {
-	"name": "NativeContact",
+	"name": "ContactSuggestion",
 	"type": "struct",
 	"fields": {
 		"name": "string",

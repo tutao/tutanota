@@ -10,7 +10,7 @@ import { LoginController } from "./LoginController"
 import type { ContactModel } from "../../contacts/model/ContactModel"
 import { EntityClient } from "../common/EntityClient"
 import type { CalendarInfo, CalendarModel } from "../../calendar/model/CalendarModel"
-import { assertNotNull, defer, DeferredObject, lazy, lazyAsync, lazyMemoized, noOp } from "@tutao/tutanota-utils"
+import { assert, defer, DeferredObject, lazy, lazyAsync, lazyMemoized, noOp, ofClass } from "@tutao/tutanota-utils"
 import { ProgressTracker } from "./ProgressTracker"
 import { MinimizedMailEditorViewModel } from "../../mail/model/MinimizedMailEditorViewModel"
 import { SchedulerImpl } from "../common/utils/Scheduler.js"
@@ -83,7 +83,7 @@ import { OfflineIndicatorViewModel } from "../../gui/base/OfflineIndicatorViewMo
 import { AppHeaderAttrs, Header } from "../../gui/Header.js"
 import { CalendarViewModel } from "../../calendar/view/CalendarViewModel.js"
 import { ReceivedGroupInvitationsModel } from "../../sharing/model/ReceivedGroupInvitationsModel.js"
-import { asKdfType, Const, FeatureType, GroupType, KdfType } from "../common/TutanotaConstants.js"
+import { Const, FeatureType, GroupType, KdfType } from "../common/TutanotaConstants.js"
 import type { ExternalLoginViewModel } from "../../login/ExternalLoginView.js"
 import type { ConversationViewModel, ConversationViewModelFactory } from "../../mail/view/ConversationViewModel.js"
 import type { AlarmScheduler } from "../../calendar/date/AlarmScheduler.js"
@@ -106,6 +106,11 @@ import { isCustomizationEnabledForCustomer } from "../common/utils/CustomerUtils
 import { CalendarEventsRepository } from "../../calendar/date/CalendarEventsRepository.js"
 import { CalendarInviteHandler } from "../../calendar/view/CalendarInvites.js"
 import { NativeContactsSyncManager } from "../../contacts/model/NativeContactsSyncManager.js"
+import { ContactFacade } from "../worker/facades/lazy/ContactFacade.js"
+import { ContactImporter } from "../../contacts/ContactImporter.js"
+import { MobileContactsFacade } from "../../native/common/generatedipc/MobileContactsFacade.js"
+import { PermissionError } from "../common/error/PermissionError.js"
+import { WebMobileFacade } from "../../native/main/WebMobileFacade.js"
 
 assertMainOrNode()
 
@@ -140,6 +145,7 @@ class MainLocator {
 	blobFacade!: BlobFacade
 	userManagementFacade!: UserManagementFacade
 	deviceEncryptionFacade!: DeviceEncryptionFacade
+	contactFacade!: ContactFacade
 	usageTestController!: UsageTestController
 	usageTestModel!: UsageTestModel
 	newsModel!: NewsModel
@@ -148,6 +154,7 @@ class MainLocator {
 	searchTextFacade!: SearchTextInAppFacade
 	desktopSettingsFacade!: SettingsFacade
 	desktopSystemFacade!: DesktopSystemFacade
+	webMobileFacade!: WebMobileFacade
 	interWindowEventSender!: InterWindowEventFacadeSendDispatcher
 	cacheStorage!: ExposedCacheStorage
 	workerFacade!: WorkerFacade
@@ -158,7 +165,6 @@ class MainLocator {
 	infoMessageHandler!: InfoMessageHandler
 	Const!: Record<string, any>
 
-	private nativeContactSyncManager!: NativeContactsSyncManager | null
 	private nativeInterfaces: NativeInterfaces | null = null
 	private exposedNativeInterfaces: ExposedNativeInterface | null = null
 	private entropyFacade!: EntropyFacade
@@ -377,7 +383,10 @@ class MainLocator {
 
 	async recipientsSearchModel(): Promise<RecipientsSearchModel> {
 		const { RecipientsSearchModel } = await import("../../misc/RecipientsSearchModel.js")
-		return new RecipientsSearchModel(await this.recipientsModel(), this.contactModel, isApp() ? this.systemFacade : null, this.entityClient)
+		const suggestionsProvider = isApp()
+			? (query: string) => this.mobileContactsFacade.findSuggestions(query).catch(ofClass(PermissionError, () => []))
+			: null
+		return new RecipientsSearchModel(await this.recipientsModel(), this.contactModel, suggestionsProvider, this.entityClient)
 	}
 
 	readonly conversationViewModelFactory: lazyAsync<ConversationViewModelFactory> = async () => {
@@ -402,6 +411,11 @@ class MainLocator {
 		return factory(options)
 	}
 
+	contactImporter = async (): Promise<ContactImporter> => {
+		const { ContactImporter } = await import("../../contacts/ContactImporter.js")
+		return new ContactImporter(this.contactFacade)
+	}
+
 	async mailViewerViewModelFactory(): Promise<(options: CreateMailViewerOptions) => MailViewerViewModel> {
 		const { MailViewerViewModel } = await import("../../mail/view/MailViewerViewModel.js")
 		return ({ mail, showFolder }) =>
@@ -423,6 +437,7 @@ class MainLocator {
 				this.search,
 				this.mailFacade,
 				this.cryptoFacade,
+				() => this.contactImporter(),
 			)
 	}
 
@@ -453,6 +468,10 @@ class MainLocator {
 
 	get systemFacade(): MobileSystemFacade {
 		return this.getNativeInterface("mobileSystemFacade")
+	}
+
+	get mobileContactsFacade(): MobileContactsFacade {
+		return this.getNativeInterface("mobileContactsFacade")
 	}
 
 	async mailAddressTableModelForOwnMailbox(): Promise<MailAddressTableModel> {
@@ -511,7 +530,7 @@ class MainLocator {
 		const { NoopCredentialRemovalHandler, AppsCredentialRemovalHandler } = await import("../../login/CredentialRemovalHandler.js")
 		return isBrowser()
 			? new NoopCredentialRemovalHandler()
-			: new AppsCredentialRemovalHandler(this.indexerFacade, this.pushService, this.configFacade, isApp() ? this.systemFacade : null)
+			: new AppsCredentialRemovalHandler(this.indexerFacade, this.pushService, this.configFacade, isApp() ? this.mobileContactsFacade : null)
 	}
 
 	async loginViewModelFactory(): Promise<lazy<LoginViewModel>> {
@@ -594,6 +613,7 @@ class MainLocator {
 			entropyFacade,
 			workerFacade,
 			sqlCipherFacade,
+			contactFacade,
 		} = this.worker.getWorkerInterface()
 		this.loginFacade = loginFacade
 		this.customerFacade = customerFacade
@@ -611,6 +631,7 @@ class MainLocator {
 		this.blobFacade = blobFacade
 		this.userManagementFacade = userManagementFacade
 		this.deviceEncryptionFacade = deviceEncryptionFacade
+		this.contactFacade = contactFacade
 		this.serviceExecutor = serviceExecutor
 		this.logins = new LoginController()
 		// Should be called elsewhere later e.g. in mainLocator
@@ -644,8 +665,9 @@ class MainLocator {
 			const { WebInterWindowEventFacade } = await import("../../native/main/WebInterWindowEventFacade.js")
 			const { WebAuthnFacadeSendDispatcher } = await import("../../native/common/generatedipc/WebAuthnFacadeSendDispatcher.js")
 			const { createNativeInterfaces, createDesktopInterfaces } = await import("../../native/main/NativeInterfaceFactory.js")
+			this.webMobileFacade = new WebMobileFacade(this.connectivityModel, this.mailModel)
 			this.nativeInterfaces = createNativeInterfaces(
-				new WebMobileFacade(this.connectivityModel, this.mailModel),
+				this.webMobileFacade,
 				new WebDesktopFacade(),
 				new WebInterWindowEventFacade(this.logins, windowFacade, deviceConfig),
 				new WebCommonNativeFacade(),
@@ -823,20 +845,8 @@ class MainLocator {
 	}
 
 	nativeContactsSyncManager = lazyMemoized(() => {
-		if (!isApp()) return null
-
-		if (this.nativeContactSyncManager == null) {
-			this.nativeContactSyncManager = new NativeContactsSyncManager(
-				this.logins,
-				this.systemFacade,
-				this.entityClient,
-				this.eventController,
-				this.contactModel,
-				deviceConfig,
-			)
-		}
-
-		return this.nativeContactSyncManager
+		assert(isApp(), "isApp")
+		return new NativeContactsSyncManager(this.logins, this.mobileContactsFacade, this.entityClient, this.eventController, this.contactModel, deviceConfig)
 	})
 
 	// For testing argon2 migration after login. The production server will reject this request.

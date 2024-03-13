@@ -11,28 +11,28 @@
 		3D0E44A42B3C3CE500F933A1 /* symmetric-shake.c in Sources */ = {isa = PBXBuildFile; fileRef = 3D0E44842B3C3CE500F933A1 /* symmetric-shake.c */; };
 		3D0E44A52B3C3CE500F933A1 /* cbd.c in Sources */ = {isa = PBXBuildFile; fileRef = 3D0E44852B3C3CE500F933A1 /* cbd.c */; };
 		3D0E44A62B3C3CE500F933A1 /* ntt.c in Sources */ = {isa = PBXBuildFile; fileRef = 3D0E44862B3C3CE500F933A1 /* ntt.c */; };
-		3D0E44A72B3C3CE500F933A1 /* poly.c in Sources */ = {isa = PBXBuildFile; fileRef = 3D0E44872B3C3CE500F933A1 /* poly.c */; };
+		3D0E44A72B3C3CE500F933A1 /* poly.c in Sources */ = {isa = PBXBuildFile; fileRef = 3D0E44872B3C3CE500F933A1 /* poly.c */; settings = {COMPILER_FLAGS = "-Wno-everything"; }; };
 		3D0E44A82B3C3CE500F933A1 /* params.h in Headers */ = {isa = PBXBuildFile; fileRef = 3D0E44882B3C3CE500F933A1 /* params.h */; };
 		3D0E44A92B3C3CE500F933A1 /* polyvec.h in Headers */ = {isa = PBXBuildFile; fileRef = 3D0E44892B3C3CE500F933A1 /* polyvec.h */; };
 		3D0E44AA2B3C3CE500F933A1 /* reduce.c in Sources */ = {isa = PBXBuildFile; fileRef = 3D0E448A2B3C3CE500F933A1 /* reduce.c */; };
 		3D0E44AB2B3C3CE500F933A1 /* verify.c in Sources */ = {isa = PBXBuildFile; fileRef = 3D0E448B2B3C3CE500F933A1 /* verify.c */; };
-		3D0E44AC2B3C3CE500F933A1 /* kem.c in Sources */ = {isa = PBXBuildFile; fileRef = 3D0E448C2B3C3CE500F933A1 /* kem.c */; };
-		3D0E44AD2B3C3CE500F933A1 /* indcpa.c in Sources */ = {isa = PBXBuildFile; fileRef = 3D0E448D2B3C3CE500F933A1 /* indcpa.c */; };
+		3D0E44AC2B3C3CE500F933A1 /* kem.c in Sources */ = {isa = PBXBuildFile; fileRef = 3D0E448C2B3C3CE500F933A1 /* kem.c */; settings = {COMPILER_FLAGS = "-Wno-everything"; }; };
+		3D0E44AD2B3C3CE500F933A1 /* indcpa.c in Sources */ = {isa = PBXBuildFile; fileRef = 3D0E448D2B3C3CE500F933A1 /* indcpa.c */; settings = {COMPILER_FLAGS = "-Wno-everything"; }; };
 		3D0E44AE2B3C3CE500F933A1 /* symmetric.h in Headers */ = {isa = PBXBuildFile; fileRef = 3D0E448E2B3C3CE500F933A1 /* symmetric.h */; };
 		3D0E44AF2B3C3CE500F933A1 /* ntt.h in Headers */ = {isa = PBXBuildFile; fileRef = 3D0E448F2B3C3CE500F933A1 /* ntt.h */; };
 		3D0E44B02B3C3CE500F933A1 /* cbd.h in Headers */ = {isa = PBXBuildFile; fileRef = 3D0E44902B3C3CE500F933A1 /* cbd.h */; };
 		3D0E44B12B3C3CE500F933A1 /* reduce.h in Headers */ = {isa = PBXBuildFile; fileRef = 3D0E44912B3C3CE500F933A1 /* reduce.h */; };
-		3D0E44B22B3C3CE500F933A1 /* polyvec.c in Sources */ = {isa = PBXBuildFile; fileRef = 3D0E44922B3C3CE500F933A1 /* polyvec.c */; };
+		3D0E44B22B3C3CE500F933A1 /* polyvec.c in Sources */ = {isa = PBXBuildFile; fileRef = 3D0E44922B3C3CE500F933A1 /* polyvec.c */; settings = {COMPILER_FLAGS = "-Wno-everything"; }; };
 		3D0E44B32B3C3CE500F933A1 /* poly.h in Headers */ = {isa = PBXBuildFile; fileRef = 3D0E44932B3C3CE500F933A1 /* poly.h */; };
 		3D0E44B42B3C3CE500F933A1 /* indcpa.h in Headers */ = {isa = PBXBuildFile; fileRef = 3D0E44942B3C3CE500F933A1 /* indcpa.h */; };
 		3D0E44B52B3C3CE500F933A1 /* verify.h in Headers */ = {isa = PBXBuildFile; fileRef = 3D0E44952B3C3CE500F933A1 /* verify.h */; };
 		3D0E44B62B3C3CE500F933A1 /* kem_kyber_1024.c in Sources */ = {isa = PBXBuildFile; fileRef = 3D0E44962B3C3CE500F933A1 /* kem_kyber_1024.c */; };
-		3D0E44B72B3C3CE500F933A1 /* common.c in Sources */ = {isa = PBXBuildFile; fileRef = 3D0E44982B3C3CE500F933A1 /* common.c */; };
+		3D0E44B72B3C3CE500F933A1 /* common.c in Sources */ = {isa = PBXBuildFile; fileRef = 3D0E44982B3C3CE500F933A1 /* common.c */; settings = {COMPILER_FLAGS = "-Wno-everything"; }; };
 		3D0E44B82B3C3CE500F933A1 /* xkcp_dispatch.h in Headers */ = {isa = PBXBuildFile; fileRef = 3D0E449A2B3C3CE500F933A1 /* xkcp_dispatch.h */; };
 		3D0E44B92B3C3CE500F933A1 /* KeccakP-1600-opt64.c in Sources */ = {isa = PBXBuildFile; fileRef = 3D0E449E2B3C3CE500F933A1 /* KeccakP-1600-opt64.c */; };
 		3D0E44BA2B3C3CE500F933A1 /* xkcp_sha3.c in Sources */ = {isa = PBXBuildFile; fileRef = 3D0E449F2B3C3CE500F933A1 /* xkcp_sha3.c */; };
 		3D0E44BB2B3C3CE500F933A1 /* fips202.h in Headers */ = {isa = PBXBuildFile; fileRef = 3D0E44A12B3C3CE500F933A1 /* fips202.h */; };
-		3D0E44BC2B3C3CE500F933A1 /* fips202.c in Sources */ = {isa = PBXBuildFile; fileRef = 3D0E44A22B3C3CE500F933A1 /* fips202.c */; };
+		3D0E44BC2B3C3CE500F933A1 /* fips202.c in Sources */ = {isa = PBXBuildFile; fileRef = 3D0E44A22B3C3CE500F933A1 /* fips202.c */; settings = {COMPILER_FLAGS = "-Wno-everything"; }; };
 		3D0E44BE2B3C3D4900F933A1 /* randombytes.h in Headers */ = {isa = PBXBuildFile; fileRef = 3D0E44BD2B3C3D4900F933A1 /* randombytes.h */; };
 		3D0E44C02B3C3DAC00F933A1 /* brg_endian.h in Headers */ = {isa = PBXBuildFile; fileRef = 3D0E44BF2B3C3DAC00F933A1 /* brg_endian.h */; };
 		3D0E44C22B3C3DC400F933A1 /* KeccakP-1600-SnP.h in Headers */ = {isa = PBXBuildFile; fileRef = 3D0E44C12B3C3DC400F933A1 /* KeccakP-1600-SnP.h */; };
@@ -70,16 +70,76 @@
 		3D4A426529B63E1E00B10451 /* AlarmPersistor.swift in Sources */ = {isa = PBXBuildFile; fileRef = 3D4A426429B63E1E00B10451 /* AlarmPersistor.swift */; };
 		3D4A426729B6453700B10451 /* AlarmScheduler.swift in Sources */ = {isa = PBXBuildFile; fileRef = 3D4A426629B6453700B10451 /* AlarmScheduler.swift */; };
 		3D4A426929B6513900B10451 /* DateProvider.swift in Sources */ = {isa = PBXBuildFile; fileRef = 3D4A426829B6513900B10451 /* DateProvider.swift */; };
-		3D4D78252B62606D00829803 /* ContactsAuthorization.swift in Sources */ = {isa = PBXBuildFile; fileRef = 3D4D78242B62606D00829803 /* ContactsAuthorization.swift */; };
-		3D4D78272B62610200829803 /* ContactsSynchronization.swift in Sources */ = {isa = PBXBuildFile; fileRef = 3D4D78262B62610200829803 /* ContactsSynchronization.swift */; };
+		3D4D78252B62606D00829803 /* ContactsPermission.swift in Sources */ = {isa = PBXBuildFile; fileRef = 3D4D78242B62606D00829803 /* ContactsPermission.swift */; };
+		3D4D78272B62610200829803 /* IosMobileContactsFacade.swift in Sources */ = {isa = PBXBuildFile; fileRef = 3D4D78262B62610200829803 /* IosMobileContactsFacade.swift */; };
 		3D4E16F4273D2F8A00256630 /* SyncCompletion.swift in Sources */ = {isa = PBXBuildFile; fileRef = 3D4E16F3273D2F8A00256630 /* SyncCompletion.swift */; };
 		3D4E3C9E28EC5B31001FA9D1 /* Security.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 3D4E3C9D28EC5B31001FA9D1 /* Security.framework */; };
 		3D4E3CA028EC5B43001FA9D1 /* Foundation.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 3D4E3C9F28EC5B43001FA9D1 /* Foundation.framework */; };
 		3D4E3CA228EC5C4F001FA9D1 /* IosSqlCipherFade.swift in Sources */ = {isa = PBXBuildFile; fileRef = 3D4E3CA128EC5C4F001FA9D1 /* IosSqlCipherFade.swift */; };
-		3D4E3CA828EC63A6001FA9D1 /* sqlite3.c in Sources */ = {isa = PBXBuildFile; fileRef = 3D4E3C9C28EC5A3D001FA9D1 /* sqlite3.c */; };
+		3D4E3CA828EC63A6001FA9D1 /* sqlite3.c in Sources */ = {isa = PBXBuildFile; fileRef = 3D4E3C9C28EC5A3D001FA9D1 /* sqlite3.c */; settings = {COMPILER_FLAGS = "-Wno-everything"; }; };
 		3D4E3CAA28EC6787001FA9D1 /* sqlite3.h in Headers */ = {isa = PBXBuildFile; fileRef = 3D4E3C9B28EC5A3D001FA9D1 /* sqlite3.h */; };
 		3D4F1BFA26EBADE500E87BF5 /* TUTBigNum.m in Sources */ = {isa = PBXBuildFile; fileRef = 3D4F1BF926EBADE500E87BF5 /* TUTBigNum.m */; };
 		3D4F1BFB26EBADE500E87BF5 /* TUTBigNum.m in Sources */ = {isa = PBXBuildFile; fileRef = 3D4F1BF926EBADE500E87BF5 /* TUTBigNum.m */; };
+		3D4FACEA2B8F368300BEDF5A /* MobileContactsFacade.swift in Sources */ = {isa = PBXBuildFile; fileRef = 3D4FACAF2B8F368300BEDF5A /* MobileContactsFacade.swift */; };
+		3D4FACEB2B8F368300BEDF5A /* WebAuthnFacadeReceiveDispatcher.swift in Sources */ = {isa = PBXBuildFile; fileRef = 3D4FACB02B8F368300BEDF5A /* WebAuthnFacadeReceiveDispatcher.swift */; };
+		3D4FACEC2B8F368300BEDF5A /* ContactSuggestion.swift in Sources */ = {isa = PBXBuildFile; fileRef = 3D4FACB12B8F368300BEDF5A /* ContactSuggestion.swift */; };
+		3D4FACED2B8F368300BEDF5A /* EncryptedFileInfo.swift in Sources */ = {isa = PBXBuildFile; fileRef = 3D4FACB22B8F368300BEDF5A /* EncryptedFileInfo.swift */; };
+		3D4FACEE2B8F368300BEDF5A /* FileFacade.swift in Sources */ = {isa = PBXBuildFile; fileRef = 3D4FACB32B8F368300BEDF5A /* FileFacade.swift */; };
+		3D4FACEF2B8F368300BEDF5A /* StructuredPronouns.swift in Sources */ = {isa = PBXBuildFile; fileRef = 3D4FACB42B8F368300BEDF5A /* StructuredPronouns.swift */; };
+		3D4FACF02B8F368300BEDF5A /* KyberPublicKey.swift in Sources */ = {isa = PBXBuildFile; fileRef = 3D4FACB52B8F368300BEDF5A /* KyberPublicKey.swift */; };
+		3D4FACF12B8F368300BEDF5A /* NativeCredentialsFacade.swift in Sources */ = {isa = PBXBuildFile; fileRef = 3D4FACB62B8F368300BEDF5A /* NativeCredentialsFacade.swift */; };
+		3D4FACF22B8F368300BEDF5A /* StructuredCustomDate.swift in Sources */ = {isa = PBXBuildFile; fileRef = 3D4FACB72B8F368300BEDF5A /* StructuredCustomDate.swift */; };
+		3D4FACF32B8F368300BEDF5A /* MobileContactsFacadeReceiveDispatcher.swift in Sources */ = {isa = PBXBuildFile; fileRef = 3D4FACB82B8F368300BEDF5A /* MobileContactsFacadeReceiveDispatcher.swift */; };
+		3D4FACF42B8F368300BEDF5A /* StructuredRelationship.swift in Sources */ = {isa = PBXBuildFile; fileRef = 3D4FACB92B8F368300BEDF5A /* StructuredRelationship.swift */; };
+		3D4FACF52B8F368300BEDF5A /* WebauthnKeyDescriptor.swift in Sources */ = {isa = PBXBuildFile; fileRef = 3D4FACBA2B8F368300BEDF5A /* WebauthnKeyDescriptor.swift */; };
+		3D4FACF62B8F368300BEDF5A /* RsaKeyPair.swift in Sources */ = {isa = PBXBuildFile; fileRef = 3D4FACBB2B8F368300BEDF5A /* RsaKeyPair.swift */; };
+		3D4FACF72B8F368300BEDF5A /* NativeCryptoFacade.swift in Sources */ = {isa = PBXBuildFile; fileRef = 3D4FACBC2B8F368300BEDF5A /* NativeCryptoFacade.swift */; };
+		3D4FACF82B8F368300BEDF5A /* CommonSystemFacadeReceiveDispatcher.swift in Sources */ = {isa = PBXBuildFile; fileRef = 3D4FACBD2B8F368300BEDF5A /* CommonSystemFacadeReceiveDispatcher.swift */; };
+		3D4FACF92B8F368300BEDF5A /* MobileFacadeSendDispatcher.swift in Sources */ = {isa = PBXBuildFile; fileRef = 3D4FACBE2B8F368300BEDF5A /* MobileFacadeSendDispatcher.swift */; };
+		3D4FACFA2B8F368300BEDF5A /* RsaPublicKey.swift in Sources */ = {isa = PBXBuildFile; fileRef = 3D4FACBF2B8F368300BEDF5A /* RsaPublicKey.swift */; };
+		3D4FACFB2B8F368300BEDF5A /* SqlCipherFacade.swift in Sources */ = {isa = PBXBuildFile; fileRef = 3D4FACC02B8F368300BEDF5A /* SqlCipherFacade.swift */; };
+		3D4FACFC2B8F368300BEDF5A /* MobileSystemFacade.swift in Sources */ = {isa = PBXBuildFile; fileRef = 3D4FACC12B8F368300BEDF5A /* MobileSystemFacade.swift */; };
+		3D4FACFD2B8F368300BEDF5A /* DownloadTaskResponse.swift in Sources */ = {isa = PBXBuildFile; fileRef = 3D4FACC22B8F368300BEDF5A /* DownloadTaskResponse.swift */; };
+		3D4FACFE2B8F368300BEDF5A /* StructuredMessengerHandle.swift in Sources */ = {isa = PBXBuildFile; fileRef = 3D4FACC32B8F368300BEDF5A /* StructuredMessengerHandle.swift */; };
+		3D4FACFF2B8F368300BEDF5A /* StructuredPhoneNumber.swift in Sources */ = {isa = PBXBuildFile; fileRef = 3D4FACC42B8F368300BEDF5A /* StructuredPhoneNumber.swift */; };
+		3D4FAD002B8F368300BEDF5A /* IpcClientRect.swift in Sources */ = {isa = PBXBuildFile; fileRef = 3D4FACC52B8F368300BEDF5A /* IpcClientRect.swift */; };
+		3D4FAD012B8F368300BEDF5A /* MobileSystemFacadeReceiveDispatcher.swift in Sources */ = {isa = PBXBuildFile; fileRef = 3D4FACC62B8F368300BEDF5A /* MobileSystemFacadeReceiveDispatcher.swift */; };
+		3D4FAD022B8F368300BEDF5A /* ContactSyncResult.swift in Sources */ = {isa = PBXBuildFile; fileRef = 3D4FACC72B8F368300BEDF5A /* ContactSyncResult.swift */; };
+		3D4FAD032B8F368300BEDF5A /* MobileFacade.swift in Sources */ = {isa = PBXBuildFile; fileRef = 3D4FACC82B8F368300BEDF5A /* MobileFacade.swift */; };
+		3D4FAD042B8F368300BEDF5A /* StructuredAddress.swift in Sources */ = {isa = PBXBuildFile; fileRef = 3D4FACC92B8F368300BEDF5A /* StructuredAddress.swift */; };
+		3D4FAD052B8F368300BEDF5A /* WebAuthnSignResult.swift in Sources */ = {isa = PBXBuildFile; fileRef = 3D4FACCA2B8F368300BEDF5A /* WebAuthnSignResult.swift */; };
+		3D4FAD062B8F368300BEDF5A /* ThemeFacadeReceiveDispatcher.swift in Sources */ = {isa = PBXBuildFile; fileRef = 3D4FACCB2B8F368300BEDF5A /* ThemeFacadeReceiveDispatcher.swift */; };
+		3D4FAD072B8F368300BEDF5A /* NativePushFacadeReceiveDispatcher.swift in Sources */ = {isa = PBXBuildFile; fileRef = 3D4FACCC2B8F368300BEDF5A /* NativePushFacadeReceiveDispatcher.swift */; };
+		3D4FAD082B8F368300BEDF5A /* NativeShortcut.swift in Sources */ = {isa = PBXBuildFile; fileRef = 3D4FACCD2B8F368300BEDF5A /* NativeShortcut.swift */; };
+		3D4FAD092B8F368300BEDF5A /* WebAuthnFacade.swift in Sources */ = {isa = PBXBuildFile; fileRef = 3D4FACCE2B8F368300BEDF5A /* WebAuthnFacade.swift */; };
+		3D4FAD0A2B8F368300BEDF5A /* StructuredWebsite.swift in Sources */ = {isa = PBXBuildFile; fileRef = 3D4FACCF2B8F368300BEDF5A /* StructuredWebsite.swift */; };
+		3D4FAD0B2B8F368300BEDF5A /* WebAuthnSignChallenge.swift in Sources */ = {isa = PBXBuildFile; fileRef = 3D4FACD02B8F368300BEDF5A /* WebAuthnSignChallenge.swift */; };
+		3D4FAD0C2B8F368300BEDF5A /* IosGlobalDispatcher.swift in Sources */ = {isa = PBXBuildFile; fileRef = 3D4FACD12B8F368300BEDF5A /* IosGlobalDispatcher.swift */; };
+		3D4FAD0D2B8F368300BEDF5A /* SqlCipherFacadeReceiveDispatcher.swift in Sources */ = {isa = PBXBuildFile; fileRef = 3D4FACD22B8F368300BEDF5A /* SqlCipherFacadeReceiveDispatcher.swift */; };
+		3D4FAD0E2B8F368300BEDF5A /* NativeInterface.swift in Sources */ = {isa = PBXBuildFile; fileRef = 3D4FACD32B8F368300BEDF5A /* NativeInterface.swift */; };
+		3D4FAD0F2B8F368300BEDF5A /* KyberEncapsulation.swift in Sources */ = {isa = PBXBuildFile; fileRef = 3D4FACD42B8F368300BEDF5A /* KyberEncapsulation.swift */; };
+		3D4FAD102B8F368300BEDF5A /* WebAuthnRegistrationResult.swift in Sources */ = {isa = PBXBuildFile; fileRef = 3D4FACD52B8F368300BEDF5A /* WebAuthnRegistrationResult.swift */; };
+		3D4FAD112B8F368300BEDF5A /* NativeCryptoFacadeReceiveDispatcher.swift in Sources */ = {isa = PBXBuildFile; fileRef = 3D4FACD62B8F368300BEDF5A /* NativeCryptoFacadeReceiveDispatcher.swift */; };
+		3D4FAD122B8F368300BEDF5A /* RsaPrivateKey.swift in Sources */ = {isa = PBXBuildFile; fileRef = 3D4FACD72B8F368300BEDF5A /* RsaPrivateKey.swift */; };
+		3D4FAD132B8F368300BEDF5A /* IntegrationInfo.swift in Sources */ = {isa = PBXBuildFile; fileRef = 3D4FACD82B8F368300BEDF5A /* IntegrationInfo.swift */; };
+		3D4FAD142B8F368300BEDF5A /* FileFacadeReceiveDispatcher.swift in Sources */ = {isa = PBXBuildFile; fileRef = 3D4FACD92B8F368300BEDF5A /* FileFacadeReceiveDispatcher.swift */; };
+		3D4FAD152B8F368300BEDF5A /* StructuredContact.swift in Sources */ = {isa = PBXBuildFile; fileRef = 3D4FACDA2B8F368300BEDF5A /* StructuredContact.swift */; };
+		3D4FAD162B8F368300BEDF5A /* ThemeFacade.swift in Sources */ = {isa = PBXBuildFile; fileRef = 3D4FACDB2B8F368300BEDF5A /* ThemeFacade.swift */; };
+		3D4FAD172B8F368300BEDF5A /* CommonNativeFacadeSendDispatcher.swift in Sources */ = {isa = PBXBuildFile; fileRef = 3D4FACDC2B8F368300BEDF5A /* CommonNativeFacadeSendDispatcher.swift */; };
+		3D4FAD182B8F368300BEDF5A /* WebAuthnRegistrationChallenge.swift in Sources */ = {isa = PBXBuildFile; fileRef = 3D4FACDD2B8F368300BEDF5A /* WebAuthnRegistrationChallenge.swift */; };
+		3D4FAD192B8F368300BEDF5A /* ErrorInfo.swift in Sources */ = {isa = PBXBuildFile; fileRef = 3D4FACDE2B8F368300BEDF5A /* ErrorInfo.swift */; };
+		3D4FAD1A2B8F368300BEDF5A /* ElectronResult.swift in Sources */ = {isa = PBXBuildFile; fileRef = 3D4FACDF2B8F368300BEDF5A /* ElectronResult.swift */; };
+		3D4FAD1B2B8F368300BEDF5A /* KyberPrivateKey.swift in Sources */ = {isa = PBXBuildFile; fileRef = 3D4FACE02B8F368300BEDF5A /* KyberPrivateKey.swift */; };
+		3D4FAD1C2B8F368300BEDF5A /* UploadTaskResponse.swift in Sources */ = {isa = PBXBuildFile; fileRef = 3D4FACE12B8F368300BEDF5A /* UploadTaskResponse.swift */; };
+		3D4FAD1D2B8F368300BEDF5A /* KyberKeyPair.swift in Sources */ = {isa = PBXBuildFile; fileRef = 3D4FACE22B8F368300BEDF5A /* KyberKeyPair.swift */; };
+		3D4FAD1E2B8F368300BEDF5A /* CommonSystemFacade.swift in Sources */ = {isa = PBXBuildFile; fileRef = 3D4FACE32B8F368300BEDF5A /* CommonSystemFacade.swift */; };
+		3D4FAD1F2B8F368300BEDF5A /* NativeKey.swift in Sources */ = {isa = PBXBuildFile; fileRef = 3D4FACE42B8F368300BEDF5A /* NativeKey.swift */; };
+		3D4FAD202B8F368300BEDF5A /* ContactBook.swift in Sources */ = {isa = PBXBuildFile; fileRef = 3D4FACE52B8F368300BEDF5A /* ContactBook.swift */; };
+		3D4FAD212B8F368300BEDF5A /* CommonNativeFacade.swift in Sources */ = {isa = PBXBuildFile; fileRef = 3D4FACE62B8F368300BEDF5A /* CommonNativeFacade.swift */; };
+		3D4FAD222B8F368300BEDF5A /* NativeCredentialsFacadeReceiveDispatcher.swift in Sources */ = {isa = PBXBuildFile; fileRef = 3D4FACE72B8F368300BEDF5A /* NativeCredentialsFacadeReceiveDispatcher.swift */; };
+		3D4FAD232B8F368300BEDF5A /* StructuredMailAddress.swift in Sources */ = {isa = PBXBuildFile; fileRef = 3D4FACE82B8F368300BEDF5A /* StructuredMailAddress.swift */; };
+		3D4FAD242B8F368300BEDF5A /* NativePushFacade.swift in Sources */ = {isa = PBXBuildFile; fileRef = 3D4FACE92B8F368300BEDF5A /* NativePushFacade.swift */; };
+		3D5C6FA12B7BC15D00342E8C /* PermissionError.swift in Sources */ = {isa = PBXBuildFile; fileRef = 3D5C6FA02B7BC15D00342E8C /* PermissionError.swift */; };
 		3D63A0E3233D009E00D05259 /* TUTLog.m in Sources */ = {isa = PBXBuildFile; fileRef = 3D63A0E2233D009E00D05259 /* TUTLog.m */; };
 		3D63A0E5233D0C1400D05259 /* TUTLogTest.m in Sources */ = {isa = PBXBuildFile; fileRef = 3D63A0E4233D0C1400D05259 /* TUTLogTest.m */; };
 		3D648B202AB98BEA00893C8D /* argon2.h in Headers */ = {isa = PBXBuildFile; fileRef = 3D648B0F2AB98BEA00893C8D /* argon2.h */; };
@@ -90,9 +150,9 @@
 		3D648B252AB98BEA00893C8D /* blake2.h in Headers */ = {isa = PBXBuildFile; fileRef = 3D648B162AB98BEA00893C8D /* blake2.h */; };
 		3D648B262AB98BEA00893C8D /* blake2b.c in Sources */ = {isa = PBXBuildFile; fileRef = 3D648B172AB98BEA00893C8D /* blake2b.c */; };
 		3D648B272AB98BEA00893C8D /* blake2-impl.h in Headers */ = {isa = PBXBuildFile; fileRef = 3D648B182AB98BEA00893C8D /* blake2-impl.h */; };
-		3D648B282AB98BEA00893C8D /* ref.c in Sources */ = {isa = PBXBuildFile; fileRef = 3D648B192AB98BEA00893C8D /* ref.c */; };
+		3D648B282AB98BEA00893C8D /* ref.c in Sources */ = {isa = PBXBuildFile; fileRef = 3D648B192AB98BEA00893C8D /* ref.c */; settings = {COMPILER_FLAGS = "-Wno-everything"; }; };
 		3D648B292AB98BEA00893C8D /* encoding.h in Headers */ = {isa = PBXBuildFile; fileRef = 3D648B1A2AB98BEA00893C8D /* encoding.h */; };
-		3D648B2A2AB98BEA00893C8D /* core.c in Sources */ = {isa = PBXBuildFile; fileRef = 3D648B1B2AB98BEA00893C8D /* core.c */; };
+		3D648B2A2AB98BEA00893C8D /* core.c in Sources */ = {isa = PBXBuildFile; fileRef = 3D648B1B2AB98BEA00893C8D /* core.c */; settings = {COMPILER_FLAGS = "-Wno-everything"; }; };
 		3D648B2B2AB98BEA00893C8D /* thread.h in Headers */ = {isa = PBXBuildFile; fileRef = 3D648B1C2AB98BEA00893C8D /* thread.h */; };
 		3D648B2C2AB98BEA00893C8D /* argon2.c in Sources */ = {isa = PBXBuildFile; fileRef = 3D648B1D2AB98BEA00893C8D /* argon2.c */; };
 		3D648B2D2AB98BEA00893C8D /* encoding.c in Sources */ = {isa = PBXBuildFile; fileRef = 3D648B1E2AB98BEA00893C8D /* encoding.c */; };
@@ -101,57 +161,7 @@
 		3D6A0AEA212C1701001CD791 /* CompatibilityTest.m in Sources */ = {isa = PBXBuildFile; fileRef = 3D6A0AE9212C1701001CD791 /* CompatibilityTest.m */; settings = {COMPILER_FLAGS = "-Itutanota/include"; }; };
 		3D73DA312731953E008E7A8A /* RemoteProtocol.swift in Sources */ = {isa = PBXBuildFile; fileRef = 3D73DA302731953E008E7A8A /* RemoteProtocol.swift */; };
 		3D73DA3427319A91008E7A8A /* Operation.swift in Sources */ = {isa = PBXBuildFile; fileRef = 3D73DA3327319A91008E7A8A /* Operation.swift */; };
-		3D78AC842B600F1C009C9EED /* IpcClientRect.swift in Sources */ = {isa = PBXBuildFile; fileRef = 3D78AC542B600F1B009C9EED /* IpcClientRect.swift */; };
-		3D78AC852B600F1C009C9EED /* KyberPrivateKey.swift in Sources */ = {isa = PBXBuildFile; fileRef = 3D78AC552B600F1B009C9EED /* KyberPrivateKey.swift */; };
-		3D78AC862B600F1C009C9EED /* MobileFacade.swift in Sources */ = {isa = PBXBuildFile; fileRef = 3D78AC562B600F1B009C9EED /* MobileFacade.swift */; };
-		3D78AC872B600F1C009C9EED /* StructuredContact.swift in Sources */ = {isa = PBXBuildFile; fileRef = 3D78AC572B600F1B009C9EED /* StructuredContact.swift */; };
-		3D78AC882B600F1C009C9EED /* SqlCipherFacade.swift in Sources */ = {isa = PBXBuildFile; fileRef = 3D78AC582B600F1B009C9EED /* SqlCipherFacade.swift */; };
-		3D78AC892B600F1C009C9EED /* StructuredMailAddress.swift in Sources */ = {isa = PBXBuildFile; fileRef = 3D78AC592B600F1B009C9EED /* StructuredMailAddress.swift */; };
-		3D78AC8A2B600F1C009C9EED /* WebAuthnFacade.swift in Sources */ = {isa = PBXBuildFile; fileRef = 3D78AC5A2B600F1B009C9EED /* WebAuthnFacade.swift */; };
-		3D78AC8B2B600F1C009C9EED /* CommonSystemFacadeReceiveDispatcher.swift in Sources */ = {isa = PBXBuildFile; fileRef = 3D78AC5B2B600F1B009C9EED /* CommonSystemFacadeReceiveDispatcher.swift */; };
-		3D78AC8C2B600F1C009C9EED /* KyberPublicKey.swift in Sources */ = {isa = PBXBuildFile; fileRef = 3D78AC5C2B600F1B009C9EED /* KyberPublicKey.swift */; };
-		3D78AC8D2B600F1C009C9EED /* MobileSystemFacadeReceiveDispatcher.swift in Sources */ = {isa = PBXBuildFile; fileRef = 3D78AC5D2B600F1B009C9EED /* MobileSystemFacadeReceiveDispatcher.swift */; };
-		3D78AC8E2B600F1C009C9EED /* NativeCredentialsFacadeReceiveDispatcher.swift in Sources */ = {isa = PBXBuildFile; fileRef = 3D78AC5E2B600F1B009C9EED /* NativeCredentialsFacadeReceiveDispatcher.swift */; };
-		3D78AC8F2B600F1C009C9EED /* RsaPrivateKey.swift in Sources */ = {isa = PBXBuildFile; fileRef = 3D78AC5F2B600F1B009C9EED /* RsaPrivateKey.swift */; };
-		3D78AC902B600F1C009C9EED /* ElectronResult.swift in Sources */ = {isa = PBXBuildFile; fileRef = 3D78AC602B600F1B009C9EED /* ElectronResult.swift */; };
-		3D78AC912B600F1C009C9EED /* NativeCryptoFacade.swift in Sources */ = {isa = PBXBuildFile; fileRef = 3D78AC612B600F1B009C9EED /* NativeCryptoFacade.swift */; };
-		3D78AC922B600F1C009C9EED /* MobileSystemFacade.swift in Sources */ = {isa = PBXBuildFile; fileRef = 3D78AC622B600F1B009C9EED /* MobileSystemFacade.swift */; };
-		3D78AC932B600F1C009C9EED /* RsaPublicKey.swift in Sources */ = {isa = PBXBuildFile; fileRef = 3D78AC632B600F1B009C9EED /* RsaPublicKey.swift */; };
-		3D78AC942B600F1C009C9EED /* SqlCipherFacadeReceiveDispatcher.swift in Sources */ = {isa = PBXBuildFile; fileRef = 3D78AC642B600F1B009C9EED /* SqlCipherFacadeReceiveDispatcher.swift */; };
-		3D78AC952B600F1C009C9EED /* ThemeFacade.swift in Sources */ = {isa = PBXBuildFile; fileRef = 3D78AC652B600F1B009C9EED /* ThemeFacade.swift */; };
-		3D78AC962B600F1C009C9EED /* FileFacade.swift in Sources */ = {isa = PBXBuildFile; fileRef = 3D78AC662B600F1B009C9EED /* FileFacade.swift */; };
-		3D78AC972B600F1C009C9EED /* MobileFacadeSendDispatcher.swift in Sources */ = {isa = PBXBuildFile; fileRef = 3D78AC672B600F1B009C9EED /* MobileFacadeSendDispatcher.swift */; };
-		3D78AC982B600F1C009C9EED /* WebauthnKeyDescriptor.swift in Sources */ = {isa = PBXBuildFile; fileRef = 3D78AC682B600F1B009C9EED /* WebauthnKeyDescriptor.swift */; };
-		3D78AC992B600F1C009C9EED /* NativePushFacadeReceiveDispatcher.swift in Sources */ = {isa = PBXBuildFile; fileRef = 3D78AC692B600F1B009C9EED /* NativePushFacadeReceiveDispatcher.swift */; };
-		3D78AC9A2B600F1C009C9EED /* WebAuthnFacadeReceiveDispatcher.swift in Sources */ = {isa = PBXBuildFile; fileRef = 3D78AC6A2B600F1B009C9EED /* WebAuthnFacadeReceiveDispatcher.swift */; };
-		3D78AC9B2B600F1C009C9EED /* IosGlobalDispatcher.swift in Sources */ = {isa = PBXBuildFile; fileRef = 3D78AC6B2B600F1B009C9EED /* IosGlobalDispatcher.swift */; };
-		3D78AC9C2B600F1C009C9EED /* NativeContact.swift in Sources */ = {isa = PBXBuildFile; fileRef = 3D78AC6C2B600F1B009C9EED /* NativeContact.swift */; };
-		3D78AC9D2B600F1C009C9EED /* NativePushFacade.swift in Sources */ = {isa = PBXBuildFile; fileRef = 3D78AC6D2B600F1B009C9EED /* NativePushFacade.swift */; };
-		3D78AC9E2B600F1C009C9EED /* KyberEncapsulation.swift in Sources */ = {isa = PBXBuildFile; fileRef = 3D78AC6E2B600F1B009C9EED /* KyberEncapsulation.swift */; };
-		3D78AC9F2B600F1C009C9EED /* NativeShortcut.swift in Sources */ = {isa = PBXBuildFile; fileRef = 3D78AC6F2B600F1B009C9EED /* NativeShortcut.swift */; };
-		3D78ACA02B600F1C009C9EED /* RsaKeyPair.swift in Sources */ = {isa = PBXBuildFile; fileRef = 3D78AC702B600F1B009C9EED /* RsaKeyPair.swift */; };
-		3D78ACA12B600F1C009C9EED /* KyberKeyPair.swift in Sources */ = {isa = PBXBuildFile; fileRef = 3D78AC712B600F1B009C9EED /* KyberKeyPair.swift */; };
-		3D78ACA22B600F1C009C9EED /* WebAuthnSignResult.swift in Sources */ = {isa = PBXBuildFile; fileRef = 3D78AC722B600F1B009C9EED /* WebAuthnSignResult.swift */; };
-		3D78ACA32B600F1C009C9EED /* UploadTaskResponse.swift in Sources */ = {isa = PBXBuildFile; fileRef = 3D78AC732B600F1B009C9EED /* UploadTaskResponse.swift */; };
-		3D78ACA42B600F1C009C9EED /* WebAuthnRegistrationResult.swift in Sources */ = {isa = PBXBuildFile; fileRef = 3D78AC742B600F1B009C9EED /* WebAuthnRegistrationResult.swift */; };
-		3D78ACA52B600F1C009C9EED /* FileFacadeReceiveDispatcher.swift in Sources */ = {isa = PBXBuildFile; fileRef = 3D78AC752B600F1B009C9EED /* FileFacadeReceiveDispatcher.swift */; };
-		3D78ACA62B600F1C009C9EED /* CommonNativeFacade.swift in Sources */ = {isa = PBXBuildFile; fileRef = 3D78AC762B600F1B009C9EED /* CommonNativeFacade.swift */; };
-		3D78ACA72B600F1C009C9EED /* IntegrationInfo.swift in Sources */ = {isa = PBXBuildFile; fileRef = 3D78AC772B600F1B009C9EED /* IntegrationInfo.swift */; };
-		3D78ACA82B600F1C009C9EED /* DownloadTaskResponse.swift in Sources */ = {isa = PBXBuildFile; fileRef = 3D78AC782B600F1B009C9EED /* DownloadTaskResponse.swift */; };
-		3D78ACA92B600F1C009C9EED /* WebAuthnRegistrationChallenge.swift in Sources */ = {isa = PBXBuildFile; fileRef = 3D78AC792B600F1B009C9EED /* WebAuthnRegistrationChallenge.swift */; };
-		3D78ACAA2B600F1C009C9EED /* CommonSystemFacade.swift in Sources */ = {isa = PBXBuildFile; fileRef = 3D78AC7A2B600F1B009C9EED /* CommonSystemFacade.swift */; };
-		3D78ACAB2B600F1C009C9EED /* WebAuthnSignChallenge.swift in Sources */ = {isa = PBXBuildFile; fileRef = 3D78AC7B2B600F1B009C9EED /* WebAuthnSignChallenge.swift */; };
-		3D78ACAC2B600F1C009C9EED /* NativeInterface.swift in Sources */ = {isa = PBXBuildFile; fileRef = 3D78AC7C2B600F1B009C9EED /* NativeInterface.swift */; };
-		3D78ACAD2B600F1C009C9EED /* NativeCryptoFacadeReceiveDispatcher.swift in Sources */ = {isa = PBXBuildFile; fileRef = 3D78AC7D2B600F1B009C9EED /* NativeCryptoFacadeReceiveDispatcher.swift */; };
-		3D78ACAE2B600F1C009C9EED /* CommonNativeFacadeSendDispatcher.swift in Sources */ = {isa = PBXBuildFile; fileRef = 3D78AC7E2B600F1B009C9EED /* CommonNativeFacadeSendDispatcher.swift */; };
-		3D78ACAF2B600F1C009C9EED /* ThemeFacadeReceiveDispatcher.swift in Sources */ = {isa = PBXBuildFile; fileRef = 3D78AC7F2B600F1C009C9EED /* ThemeFacadeReceiveDispatcher.swift */; };
-		3D78ACB02B600F1C009C9EED /* EncryptedFileInfo.swift in Sources */ = {isa = PBXBuildFile; fileRef = 3D78AC802B600F1C009C9EED /* EncryptedFileInfo.swift */; };
-		3D78ACB12B600F1C009C9EED /* NativeKey.swift in Sources */ = {isa = PBXBuildFile; fileRef = 3D78AC812B600F1C009C9EED /* NativeKey.swift */; };
-		3D78ACB22B600F1C009C9EED /* NativeCredentialsFacade.swift in Sources */ = {isa = PBXBuildFile; fileRef = 3D78AC822B600F1C009C9EED /* NativeCredentialsFacade.swift */; };
-		3D78ACB32B600F1C009C9EED /* ErrorInfo.swift in Sources */ = {isa = PBXBuildFile; fileRef = 3D78AC832B600F1C009C9EED /* ErrorInfo.swift */; };
 		3D78ACB52B600FB6009C9EED /* StructuredContactTypes.swift in Sources */ = {isa = PBXBuildFile; fileRef = 3D78ACB42B600FB6009C9EED /* StructuredContactTypes.swift */; };
-		3D78ACB82B601F5C009C9EED /* StructuredAddress.swift in Sources */ = {isa = PBXBuildFile; fileRef = 3D78ACB62B601F5C009C9EED /* StructuredAddress.swift */; };
-		3D78ACB92B601F5C009C9EED /* StructuredPhoneNumber.swift in Sources */ = {isa = PBXBuildFile; fileRef = 3D78ACB72B601F5C009C9EED /* StructuredPhoneNumber.swift */; };
 		3D7A108029472A6000311B6B /* CancelledError.swift in Sources */ = {isa = PBXBuildFile; fileRef = 3D7A107F29472A6000311B6B /* CancelledError.swift */; };
 		3D84F56B2721B92C00858A58 /* MissedNotification.swift in Sources */ = {isa = PBXBuildFile; fileRef = 3D84F56A2721B92C00858A58 /* MissedNotification.swift */; };
 		3D84F56D2722CEF900858A58 /* FileUtils.swift in Sources */ = {isa = PBXBuildFile; fileRef = 3D84F56C2722CEF900858A58 /* FileUtils.swift */; };
@@ -233,7 +243,6 @@
 		3D9A1F4A22031B99002C2455 /* LaunchScreen.storyboard in Resources */ = {isa = PBXBuildFile; fileRef = 3D9A1F0522031B99002C2455 /* LaunchScreen.storyboard */; };
 		3D9A1F4B22031B99002C2455 /* Main.storyboard in Resources */ = {isa = PBXBuildFile; fileRef = 3D9A1F0722031B99002C2455 /* Main.storyboard */; };
 		3D9B1294272167D4002B46A1 /* IconFactory.swift in Sources */ = {isa = PBXBuildFile; fileRef = 3D9B1293272167D4002B46A1 /* IconFactory.swift */; };
-		3D9B129727216D60002B46A1 /* ContactsSource.swift in Sources */ = {isa = PBXBuildFile; fileRef = 3D9B129627216D60002B46A1 /* ContactsSource.swift */; };
 		3D9B129A27216DE0002B46A1 /* Response.swift in Sources */ = {isa = PBXBuildFile; fileRef = 3D9B129927216DE0002B46A1 /* Response.swift */; };
 		3D9B129D272189BB002B46A1 /* AlarmModel.swift in Sources */ = {isa = PBXBuildFile; fileRef = 3D9B129C272189BB002B46A1 /* AlarmModel.swift */; };
 		3D9B12A027218AF9002B46A1 /* RepeatRule.swift in Sources */ = {isa = PBXBuildFile; fileRef = 3D9B129F27218AF9002B46A1 /* RepeatRule.swift */; };
@@ -274,6 +283,7 @@
 		3DEA43312B6D1E2E0037F318 /* lint.sh in Resources */ = {isa = PBXBuildFile; fileRef = 3DEA43302B6D1E2E0037F318 /* lint.sh */; };
 		3DEF18F32924E1F1009C4B55 /* ShareViewController.swift in Sources */ = {isa = PBXBuildFile; fileRef = 3DEF18F22924E1F1009C4B55 /* ShareViewController.swift */; };
 		3DEF18FA2924E1F1009C4B55 /* TutanotaShareExtension.appex in Embed App Extensions */ = {isa = PBXBuildFile; fileRef = 3DEF18F02924E1F1009C4B55 /* TutanotaShareExtension.appex */; settings = {ATTRIBUTES = (RemoveHeadersOnCopy, ); }; };
+		3DEF392A2B8CA8C000019695 /* PermissionType.swift in Sources */ = {isa = PBXBuildFile; fileRef = 3DEF39292B8CA8C000019695 /* PermissionType.swift */; };
 		3DF7FA5A2AB2EE3B00DB08D1 /* Argon2.swift in Sources */ = {isa = PBXBuildFile; fileRef = 3DF7FA592AB2EE3B00DB08D1 /* Argon2.swift */; };
 		3DF7FA5E2AB2FBE700DB08D1 /* CompatibilityTestSwift.swift in Sources */ = {isa = PBXBuildFile; fileRef = 3DF7FA5D2AB2FBE700DB08D1 /* CompatibilityTestSwift.swift */; };
 /* End PBXBuildFile section */
@@ -385,8 +395,8 @@
 		3D4A426829B6513900B10451 /* DateProvider.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = DateProvider.swift; sourceTree = "<group>"; };
 		3D4D3204210747000081813A /* PSPDFFastEnumeration.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = PSPDFFastEnumeration.h; sourceTree = "<group>"; };
 		3D4D3205210747240081813A /* Swiftier.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = Swiftier.h; sourceTree = "<group>"; };
-		3D4D78242B62606D00829803 /* ContactsAuthorization.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ContactsAuthorization.swift; sourceTree = "<group>"; };
-		3D4D78262B62610200829803 /* ContactsSynchronization.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ContactsSynchronization.swift; sourceTree = "<group>"; };
+		3D4D78242B62606D00829803 /* ContactsPermission.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ContactsPermission.swift; sourceTree = "<group>"; };
+		3D4D78262B62610200829803 /* IosMobileContactsFacade.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = IosMobileContactsFacade.swift; sourceTree = "<group>"; };
 		3D4E16F3273D2F8A00256630 /* SyncCompletion.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SyncCompletion.swift; sourceTree = "<group>"; };
 		3D4E3C9B28EC5A3D001FA9D1 /* sqlite3.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = sqlite3.h; sourceTree = "<group>"; };
 		3D4E3C9C28EC5A3D001FA9D1 /* sqlite3.c */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.c; path = sqlite3.c; sourceTree = "<group>"; };
@@ -395,6 +405,66 @@
 		3D4E3CA128EC5C4F001FA9D1 /* IosSqlCipherFade.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = IosSqlCipherFade.swift; sourceTree = "<group>"; };
 		3D4F1BF826EBADE500E87BF5 /* TUTBigNum.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = TUTBigNum.h; sourceTree = "<group>"; };
 		3D4F1BF926EBADE500E87BF5 /* TUTBigNum.m */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.objc; path = TUTBigNum.m; sourceTree = "<group>"; };
+		3D4FACAF2B8F368300BEDF5A /* MobileContactsFacade.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = MobileContactsFacade.swift; sourceTree = "<group>"; };
+		3D4FACB02B8F368300BEDF5A /* WebAuthnFacadeReceiveDispatcher.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = WebAuthnFacadeReceiveDispatcher.swift; sourceTree = "<group>"; };
+		3D4FACB12B8F368300BEDF5A /* ContactSuggestion.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = ContactSuggestion.swift; sourceTree = "<group>"; };
+		3D4FACB22B8F368300BEDF5A /* EncryptedFileInfo.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = EncryptedFileInfo.swift; sourceTree = "<group>"; };
+		3D4FACB32B8F368300BEDF5A /* FileFacade.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = FileFacade.swift; sourceTree = "<group>"; };
+		3D4FACB42B8F368300BEDF5A /* StructuredPronouns.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = StructuredPronouns.swift; sourceTree = "<group>"; };
+		3D4FACB52B8F368300BEDF5A /* KyberPublicKey.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = KyberPublicKey.swift; sourceTree = "<group>"; };
+		3D4FACB62B8F368300BEDF5A /* NativeCredentialsFacade.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = NativeCredentialsFacade.swift; sourceTree = "<group>"; };
+		3D4FACB72B8F368300BEDF5A /* StructuredCustomDate.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = StructuredCustomDate.swift; sourceTree = "<group>"; };
+		3D4FACB82B8F368300BEDF5A /* MobileContactsFacadeReceiveDispatcher.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = MobileContactsFacadeReceiveDispatcher.swift; sourceTree = "<group>"; };
+		3D4FACB92B8F368300BEDF5A /* StructuredRelationship.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = StructuredRelationship.swift; sourceTree = "<group>"; };
+		3D4FACBA2B8F368300BEDF5A /* WebauthnKeyDescriptor.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = WebauthnKeyDescriptor.swift; sourceTree = "<group>"; };
+		3D4FACBB2B8F368300BEDF5A /* RsaKeyPair.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = RsaKeyPair.swift; sourceTree = "<group>"; };
+		3D4FACBC2B8F368300BEDF5A /* NativeCryptoFacade.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = NativeCryptoFacade.swift; sourceTree = "<group>"; };
+		3D4FACBD2B8F368300BEDF5A /* CommonSystemFacadeReceiveDispatcher.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = CommonSystemFacadeReceiveDispatcher.swift; sourceTree = "<group>"; };
+		3D4FACBE2B8F368300BEDF5A /* MobileFacadeSendDispatcher.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = MobileFacadeSendDispatcher.swift; sourceTree = "<group>"; };
+		3D4FACBF2B8F368300BEDF5A /* RsaPublicKey.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = RsaPublicKey.swift; sourceTree = "<group>"; };
+		3D4FACC02B8F368300BEDF5A /* SqlCipherFacade.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = SqlCipherFacade.swift; sourceTree = "<group>"; };
+		3D4FACC12B8F368300BEDF5A /* MobileSystemFacade.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = MobileSystemFacade.swift; sourceTree = "<group>"; };
+		3D4FACC22B8F368300BEDF5A /* DownloadTaskResponse.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = DownloadTaskResponse.swift; sourceTree = "<group>"; };
+		3D4FACC32B8F368300BEDF5A /* StructuredMessengerHandle.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = StructuredMessengerHandle.swift; sourceTree = "<group>"; };
+		3D4FACC42B8F368300BEDF5A /* StructuredPhoneNumber.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = StructuredPhoneNumber.swift; sourceTree = "<group>"; };
+		3D4FACC52B8F368300BEDF5A /* IpcClientRect.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = IpcClientRect.swift; sourceTree = "<group>"; };
+		3D4FACC62B8F368300BEDF5A /* MobileSystemFacadeReceiveDispatcher.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = MobileSystemFacadeReceiveDispatcher.swift; sourceTree = "<group>"; };
+		3D4FACC72B8F368300BEDF5A /* ContactSyncResult.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = ContactSyncResult.swift; sourceTree = "<group>"; };
+		3D4FACC82B8F368300BEDF5A /* MobileFacade.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = MobileFacade.swift; sourceTree = "<group>"; };
+		3D4FACC92B8F368300BEDF5A /* StructuredAddress.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = StructuredAddress.swift; sourceTree = "<group>"; };
+		3D4FACCA2B8F368300BEDF5A /* WebAuthnSignResult.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = WebAuthnSignResult.swift; sourceTree = "<group>"; };
+		3D4FACCB2B8F368300BEDF5A /* ThemeFacadeReceiveDispatcher.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = ThemeFacadeReceiveDispatcher.swift; sourceTree = "<group>"; };
+		3D4FACCC2B8F368300BEDF5A /* NativePushFacadeReceiveDispatcher.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = NativePushFacadeReceiveDispatcher.swift; sourceTree = "<group>"; };
+		3D4FACCD2B8F368300BEDF5A /* NativeShortcut.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = NativeShortcut.swift; sourceTree = "<group>"; };
+		3D4FACCE2B8F368300BEDF5A /* WebAuthnFacade.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = WebAuthnFacade.swift; sourceTree = "<group>"; };
+		3D4FACCF2B8F368300BEDF5A /* StructuredWebsite.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = StructuredWebsite.swift; sourceTree = "<group>"; };
+		3D4FACD02B8F368300BEDF5A /* WebAuthnSignChallenge.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = WebAuthnSignChallenge.swift; sourceTree = "<group>"; };
+		3D4FACD12B8F368300BEDF5A /* IosGlobalDispatcher.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = IosGlobalDispatcher.swift; sourceTree = "<group>"; };
+		3D4FACD22B8F368300BEDF5A /* SqlCipherFacadeReceiveDispatcher.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = SqlCipherFacadeReceiveDispatcher.swift; sourceTree = "<group>"; };
+		3D4FACD32B8F368300BEDF5A /* NativeInterface.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = NativeInterface.swift; sourceTree = "<group>"; };
+		3D4FACD42B8F368300BEDF5A /* KyberEncapsulation.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = KyberEncapsulation.swift; sourceTree = "<group>"; };
+		3D4FACD52B8F368300BEDF5A /* WebAuthnRegistrationResult.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = WebAuthnRegistrationResult.swift; sourceTree = "<group>"; };
+		3D4FACD62B8F368300BEDF5A /* NativeCryptoFacadeReceiveDispatcher.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = NativeCryptoFacadeReceiveDispatcher.swift; sourceTree = "<group>"; };
+		3D4FACD72B8F368300BEDF5A /* RsaPrivateKey.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = RsaPrivateKey.swift; sourceTree = "<group>"; };
+		3D4FACD82B8F368300BEDF5A /* IntegrationInfo.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = IntegrationInfo.swift; sourceTree = "<group>"; };
+		3D4FACD92B8F368300BEDF5A /* FileFacadeReceiveDispatcher.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = FileFacadeReceiveDispatcher.swift; sourceTree = "<group>"; };
+		3D4FACDA2B8F368300BEDF5A /* StructuredContact.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = StructuredContact.swift; sourceTree = "<group>"; };
+		3D4FACDB2B8F368300BEDF5A /* ThemeFacade.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = ThemeFacade.swift; sourceTree = "<group>"; };
+		3D4FACDC2B8F368300BEDF5A /* CommonNativeFacadeSendDispatcher.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = CommonNativeFacadeSendDispatcher.swift; sourceTree = "<group>"; };
+		3D4FACDD2B8F368300BEDF5A /* WebAuthnRegistrationChallenge.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = WebAuthnRegistrationChallenge.swift; sourceTree = "<group>"; };
+		3D4FACDE2B8F368300BEDF5A /* ErrorInfo.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = ErrorInfo.swift; sourceTree = "<group>"; };
+		3D4FACDF2B8F368300BEDF5A /* ElectronResult.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = ElectronResult.swift; sourceTree = "<group>"; };
+		3D4FACE02B8F368300BEDF5A /* KyberPrivateKey.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = KyberPrivateKey.swift; sourceTree = "<group>"; };
+		3D4FACE12B8F368300BEDF5A /* UploadTaskResponse.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = UploadTaskResponse.swift; sourceTree = "<group>"; };
+		3D4FACE22B8F368300BEDF5A /* KyberKeyPair.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = KyberKeyPair.swift; sourceTree = "<group>"; };
+		3D4FACE32B8F368300BEDF5A /* CommonSystemFacade.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = CommonSystemFacade.swift; sourceTree = "<group>"; };
+		3D4FACE42B8F368300BEDF5A /* NativeKey.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = NativeKey.swift; sourceTree = "<group>"; };
+		3D4FACE52B8F368300BEDF5A /* ContactBook.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = ContactBook.swift; sourceTree = "<group>"; };
+		3D4FACE62B8F368300BEDF5A /* CommonNativeFacade.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = CommonNativeFacade.swift; sourceTree = "<group>"; };
+		3D4FACE72B8F368300BEDF5A /* NativeCredentialsFacadeReceiveDispatcher.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = NativeCredentialsFacadeReceiveDispatcher.swift; sourceTree = "<group>"; };
+		3D4FACE82B8F368300BEDF5A /* StructuredMailAddress.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = StructuredMailAddress.swift; sourceTree = "<group>"; };
+		3D4FACE92B8F368300BEDF5A /* NativePushFacade.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = NativePushFacade.swift; sourceTree = "<group>"; };
+		3D5C6FA02B7BC15D00342E8C /* PermissionError.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PermissionError.swift; sourceTree = "<group>"; };
 		3D63A0DD233CF7C900D05259 /* TUTLog.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = TUTLog.h; sourceTree = "<group>"; };
 		3D63A0E2233D009E00D05259 /* TUTLog.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = TUTLog.m; sourceTree = "<group>"; };
 		3D63A0E4233D0C1400D05259 /* TUTLogTest.m */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.objc; path = TUTLogTest.m; sourceTree = "<group>"; };
@@ -417,57 +487,7 @@
 		3D6A0AE9212C1701001CD791 /* CompatibilityTest.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = CompatibilityTest.m; sourceTree = "<group>"; };
 		3D73DA302731953E008E7A8A /* RemoteProtocol.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = RemoteProtocol.swift; sourceTree = "<group>"; };
 		3D73DA3327319A91008E7A8A /* Operation.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Operation.swift; sourceTree = "<group>"; };
-		3D78AC542B600F1B009C9EED /* IpcClientRect.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = IpcClientRect.swift; sourceTree = "<group>"; };
-		3D78AC552B600F1B009C9EED /* KyberPrivateKey.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = KyberPrivateKey.swift; sourceTree = "<group>"; };
-		3D78AC562B600F1B009C9EED /* MobileFacade.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = MobileFacade.swift; sourceTree = "<group>"; };
-		3D78AC572B600F1B009C9EED /* StructuredContact.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = StructuredContact.swift; sourceTree = "<group>"; };
-		3D78AC582B600F1B009C9EED /* SqlCipherFacade.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = SqlCipherFacade.swift; sourceTree = "<group>"; };
-		3D78AC592B600F1B009C9EED /* StructuredMailAddress.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = StructuredMailAddress.swift; sourceTree = "<group>"; };
-		3D78AC5A2B600F1B009C9EED /* WebAuthnFacade.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = WebAuthnFacade.swift; sourceTree = "<group>"; };
-		3D78AC5B2B600F1B009C9EED /* CommonSystemFacadeReceiveDispatcher.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = CommonSystemFacadeReceiveDispatcher.swift; sourceTree = "<group>"; };
-		3D78AC5C2B600F1B009C9EED /* KyberPublicKey.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = KyberPublicKey.swift; sourceTree = "<group>"; };
-		3D78AC5D2B600F1B009C9EED /* MobileSystemFacadeReceiveDispatcher.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = MobileSystemFacadeReceiveDispatcher.swift; sourceTree = "<group>"; };
-		3D78AC5E2B600F1B009C9EED /* NativeCredentialsFacadeReceiveDispatcher.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = NativeCredentialsFacadeReceiveDispatcher.swift; sourceTree = "<group>"; };
-		3D78AC5F2B600F1B009C9EED /* RsaPrivateKey.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = RsaPrivateKey.swift; sourceTree = "<group>"; };
-		3D78AC602B600F1B009C9EED /* ElectronResult.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = ElectronResult.swift; sourceTree = "<group>"; };
-		3D78AC612B600F1B009C9EED /* NativeCryptoFacade.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = NativeCryptoFacade.swift; sourceTree = "<group>"; };
-		3D78AC622B600F1B009C9EED /* MobileSystemFacade.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = MobileSystemFacade.swift; sourceTree = "<group>"; };
-		3D78AC632B600F1B009C9EED /* RsaPublicKey.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = RsaPublicKey.swift; sourceTree = "<group>"; };
-		3D78AC642B600F1B009C9EED /* SqlCipherFacadeReceiveDispatcher.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = SqlCipherFacadeReceiveDispatcher.swift; sourceTree = "<group>"; };
-		3D78AC652B600F1B009C9EED /* ThemeFacade.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = ThemeFacade.swift; sourceTree = "<group>"; };
-		3D78AC662B600F1B009C9EED /* FileFacade.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = FileFacade.swift; sourceTree = "<group>"; };
-		3D78AC672B600F1B009C9EED /* MobileFacadeSendDispatcher.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = MobileFacadeSendDispatcher.swift; sourceTree = "<group>"; };
-		3D78AC682B600F1B009C9EED /* WebauthnKeyDescriptor.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = WebauthnKeyDescriptor.swift; sourceTree = "<group>"; };
-		3D78AC692B600F1B009C9EED /* NativePushFacadeReceiveDispatcher.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = NativePushFacadeReceiveDispatcher.swift; sourceTree = "<group>"; };
-		3D78AC6A2B600F1B009C9EED /* WebAuthnFacadeReceiveDispatcher.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = WebAuthnFacadeReceiveDispatcher.swift; sourceTree = "<group>"; };
-		3D78AC6B2B600F1B009C9EED /* IosGlobalDispatcher.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = IosGlobalDispatcher.swift; sourceTree = "<group>"; };
-		3D78AC6C2B600F1B009C9EED /* NativeContact.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = NativeContact.swift; sourceTree = "<group>"; };
-		3D78AC6D2B600F1B009C9EED /* NativePushFacade.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = NativePushFacade.swift; sourceTree = "<group>"; };
-		3D78AC6E2B600F1B009C9EED /* KyberEncapsulation.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = KyberEncapsulation.swift; sourceTree = "<group>"; };
-		3D78AC6F2B600F1B009C9EED /* NativeShortcut.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = NativeShortcut.swift; sourceTree = "<group>"; };
-		3D78AC702B600F1B009C9EED /* RsaKeyPair.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = RsaKeyPair.swift; sourceTree = "<group>"; };
-		3D78AC712B600F1B009C9EED /* KyberKeyPair.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = KyberKeyPair.swift; sourceTree = "<group>"; };
-		3D78AC722B600F1B009C9EED /* WebAuthnSignResult.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = WebAuthnSignResult.swift; sourceTree = "<group>"; };
-		3D78AC732B600F1B009C9EED /* UploadTaskResponse.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = UploadTaskResponse.swift; sourceTree = "<group>"; };
-		3D78AC742B600F1B009C9EED /* WebAuthnRegistrationResult.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = WebAuthnRegistrationResult.swift; sourceTree = "<group>"; };
-		3D78AC752B600F1B009C9EED /* FileFacadeReceiveDispatcher.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = FileFacadeReceiveDispatcher.swift; sourceTree = "<group>"; };
-		3D78AC762B600F1B009C9EED /* CommonNativeFacade.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = CommonNativeFacade.swift; sourceTree = "<group>"; };
-		3D78AC772B600F1B009C9EED /* IntegrationInfo.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = IntegrationInfo.swift; sourceTree = "<group>"; };
-		3D78AC782B600F1B009C9EED /* DownloadTaskResponse.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = DownloadTaskResponse.swift; sourceTree = "<group>"; };
-		3D78AC792B600F1B009C9EED /* WebAuthnRegistrationChallenge.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = WebAuthnRegistrationChallenge.swift; sourceTree = "<group>"; };
-		3D78AC7A2B600F1B009C9EED /* CommonSystemFacade.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = CommonSystemFacade.swift; sourceTree = "<group>"; };
-		3D78AC7B2B600F1B009C9EED /* WebAuthnSignChallenge.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = WebAuthnSignChallenge.swift; sourceTree = "<group>"; };
-		3D78AC7C2B600F1B009C9EED /* NativeInterface.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = NativeInterface.swift; sourceTree = "<group>"; };
-		3D78AC7D2B600F1B009C9EED /* NativeCryptoFacadeReceiveDispatcher.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = NativeCryptoFacadeReceiveDispatcher.swift; sourceTree = "<group>"; };
-		3D78AC7E2B600F1B009C9EED /* CommonNativeFacadeSendDispatcher.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = CommonNativeFacadeSendDispatcher.swift; sourceTree = "<group>"; };
-		3D78AC7F2B600F1C009C9EED /* ThemeFacadeReceiveDispatcher.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = ThemeFacadeReceiveDispatcher.swift; sourceTree = "<group>"; };
-		3D78AC802B600F1C009C9EED /* EncryptedFileInfo.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = EncryptedFileInfo.swift; sourceTree = "<group>"; };
-		3D78AC812B600F1C009C9EED /* NativeKey.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = NativeKey.swift; sourceTree = "<group>"; };
-		3D78AC822B600F1C009C9EED /* NativeCredentialsFacade.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = NativeCredentialsFacade.swift; sourceTree = "<group>"; };
-		3D78AC832B600F1C009C9EED /* ErrorInfo.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = ErrorInfo.swift; sourceTree = "<group>"; };
 		3D78ACB42B600FB6009C9EED /* StructuredContactTypes.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = StructuredContactTypes.swift; sourceTree = "<group>"; };
-		3D78ACB62B601F5C009C9EED /* StructuredAddress.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = StructuredAddress.swift; sourceTree = "<group>"; };
-		3D78ACB72B601F5C009C9EED /* StructuredPhoneNumber.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = StructuredPhoneNumber.swift; sourceTree = "<group>"; };
 		3D7A107F29472A6000311B6B /* CancelledError.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CancelledError.swift; sourceTree = "<group>"; };
 		3D84F56A2721B92C00858A58 /* MissedNotification.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MissedNotification.swift; sourceTree = "<group>"; };
 		3D84F56C2722CEF900858A58 /* FileUtils.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = FileUtils.swift; sourceTree = "<group>"; };
@@ -553,7 +573,6 @@
 		3D9A1F0622031B99002C2455 /* Base */ = {isa = PBXFileReference; lastKnownFileType = file.storyboard; name = Base; path = LaunchScreen.storyboard; sourceTree = "<group>"; };
 		3D9A1F0822031B99002C2455 /* Base */ = {isa = PBXFileReference; lastKnownFileType = file.storyboard; name = Base; path = Main.storyboard; sourceTree = "<group>"; };
 		3D9B1293272167D4002B46A1 /* IconFactory.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = IconFactory.swift; sourceTree = "<group>"; };
-		3D9B129627216D60002B46A1 /* ContactsSource.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ContactsSource.swift; sourceTree = "<group>"; };
 		3D9B129927216DE0002B46A1 /* Response.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Response.swift; sourceTree = "<group>"; };
 		3D9B129C272189BB002B46A1 /* AlarmModel.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AlarmModel.swift; sourceTree = "<group>"; };
 		3D9B129F27218AF9002B46A1 /* RepeatRule.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = RepeatRule.swift; sourceTree = "<group>"; };
@@ -583,7 +602,7 @@
 		3DCE7AA927200E0A0085E40D /* WebviewHacks.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = WebviewHacks.h; sourceTree = "<group>"; };
 		3DCE7AAA27200E0A0085E40D /* WebviewHacks.m */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.objc; path = WebviewHacks.m; sourceTree = "<group>"; };
 		3DD10DB127EA148D0076C9A2 /* BlobUtil.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = BlobUtil.swift; sourceTree = "<group>"; };
-		3DD4A08320F8C6240086EB36 /* tutanota.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = tutanota.app; sourceTree = BUILT_PRODUCTS_DIR; };
+		3DD4A08320F8C6240086EB36 /* Tuta D.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = "Tuta D.app"; sourceTree = BUILT_PRODUCTS_DIR; };
 		3DD4A08F20F8C6260086EB36 /* Assets.xcassets */ = {isa = PBXFileReference; lastKnownFileType = folder.assetcatalog; path = Assets.xcassets; sourceTree = "<group>"; };
 		3DD4A09220F8C6260086EB36 /* Base */ = {isa = PBXFileReference; lastKnownFileType = file.storyboard; name = Base; path = Base.lproj/LaunchScreen.storyboard; sourceTree = "<group>"; };
 		3DD4A09420F8C6260086EB36 /* Info.plist */ = {isa = PBXFileReference; lastKnownFileType = text.plist.xml; path = Info.plist; sourceTree = "<group>"; };
@@ -600,6 +619,7 @@
 		3DEF18F02924E1F1009C4B55 /* TutanotaShareExtension.appex */ = {isa = PBXFileReference; explicitFileType = "wrapper.app-extension"; includeInIndex = 0; path = TutanotaShareExtension.appex; sourceTree = BUILT_PRODUCTS_DIR; };
 		3DEF18F22924E1F1009C4B55 /* ShareViewController.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ShareViewController.swift; sourceTree = "<group>"; };
 		3DEF18F72924E1F1009C4B55 /* Info.plist */ = {isa = PBXFileReference; lastKnownFileType = text.plist.xml; path = Info.plist; sourceTree = "<group>"; };
+		3DEF39292B8CA8C000019695 /* PermissionType.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = PermissionType.swift; sourceTree = "<group>"; };
 		3DF3055B253853C300E942A8 /* TUTCrypto.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = TUTCrypto.h; path = tutanota/Sources/Crypto/TUTCrypto.h; sourceTree = SOURCE_ROOT; };
 		3DF7FA592AB2EE3B00DB08D1 /* Argon2.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Argon2.swift; sourceTree = "<group>"; };
 		3DF7FA5D2AB2FBE700DB08D1 /* CompatibilityTestSwift.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CompatibilityTestSwift.swift; sourceTree = "<group>"; };
@@ -771,6 +791,73 @@
 			path = Sharing;
 			sourceTree = "<group>";
 		};
+		3D4FACAE2B8F368300BEDF5A /* GeneratedIpc */ = {
+			isa = PBXGroup;
+			children = (
+				3D4FACAF2B8F368300BEDF5A /* MobileContactsFacade.swift */,
+				3D4FACB02B8F368300BEDF5A /* WebAuthnFacadeReceiveDispatcher.swift */,
+				3D4FACB12B8F368300BEDF5A /* ContactSuggestion.swift */,
+				3D4FACB22B8F368300BEDF5A /* EncryptedFileInfo.swift */,
+				3D4FACB32B8F368300BEDF5A /* FileFacade.swift */,
+				3D4FACB42B8F368300BEDF5A /* StructuredPronouns.swift */,
+				3D4FACB52B8F368300BEDF5A /* KyberPublicKey.swift */,
+				3D4FACB62B8F368300BEDF5A /* NativeCredentialsFacade.swift */,
+				3D4FACB72B8F368300BEDF5A /* StructuredCustomDate.swift */,
+				3D4FACB82B8F368300BEDF5A /* MobileContactsFacadeReceiveDispatcher.swift */,
+				3D4FACB92B8F368300BEDF5A /* StructuredRelationship.swift */,
+				3D4FACBA2B8F368300BEDF5A /* WebauthnKeyDescriptor.swift */,
+				3D4FACBB2B8F368300BEDF5A /* RsaKeyPair.swift */,
+				3D4FACBC2B8F368300BEDF5A /* NativeCryptoFacade.swift */,
+				3D4FACBD2B8F368300BEDF5A /* CommonSystemFacadeReceiveDispatcher.swift */,
+				3D4FACBE2B8F368300BEDF5A /* MobileFacadeSendDispatcher.swift */,
+				3D4FACBF2B8F368300BEDF5A /* RsaPublicKey.swift */,
+				3D4FACC02B8F368300BEDF5A /* SqlCipherFacade.swift */,
+				3D4FACC12B8F368300BEDF5A /* MobileSystemFacade.swift */,
+				3D4FACC22B8F368300BEDF5A /* DownloadTaskResponse.swift */,
+				3D4FACC32B8F368300BEDF5A /* StructuredMessengerHandle.swift */,
+				3D4FACC42B8F368300BEDF5A /* StructuredPhoneNumber.swift */,
+				3D4FACC52B8F368300BEDF5A /* IpcClientRect.swift */,
+				3D4FACC62B8F368300BEDF5A /* MobileSystemFacadeReceiveDispatcher.swift */,
+				3D4FACC72B8F368300BEDF5A /* ContactSyncResult.swift */,
+				3D4FACC82B8F368300BEDF5A /* MobileFacade.swift */,
+				3D4FACC92B8F368300BEDF5A /* StructuredAddress.swift */,
+				3D4FACCA2B8F368300BEDF5A /* WebAuthnSignResult.swift */,
+				3D4FACCB2B8F368300BEDF5A /* ThemeFacadeReceiveDispatcher.swift */,
+				3D4FACCC2B8F368300BEDF5A /* NativePushFacadeReceiveDispatcher.swift */,
+				3D4FACCD2B8F368300BEDF5A /* NativeShortcut.swift */,
+				3D4FACCE2B8F368300BEDF5A /* WebAuthnFacade.swift */,
+				3D4FACCF2B8F368300BEDF5A /* StructuredWebsite.swift */,
+				3D4FACD02B8F368300BEDF5A /* WebAuthnSignChallenge.swift */,
+				3D4FACD12B8F368300BEDF5A /* IosGlobalDispatcher.swift */,
+				3D4FACD22B8F368300BEDF5A /* SqlCipherFacadeReceiveDispatcher.swift */,
+				3D4FACD32B8F368300BEDF5A /* NativeInterface.swift */,
+				3D4FACD42B8F368300BEDF5A /* KyberEncapsulation.swift */,
+				3D4FACD52B8F368300BEDF5A /* WebAuthnRegistrationResult.swift */,
+				3D4FACD62B8F368300BEDF5A /* NativeCryptoFacadeReceiveDispatcher.swift */,
+				3D4FACD72B8F368300BEDF5A /* RsaPrivateKey.swift */,
+				3D4FACD82B8F368300BEDF5A /* IntegrationInfo.swift */,
+				3D4FACD92B8F368300BEDF5A /* FileFacadeReceiveDispatcher.swift */,
+				3D4FACDA2B8F368300BEDF5A /* StructuredContact.swift */,
+				3D4FACDB2B8F368300BEDF5A /* ThemeFacade.swift */,
+				3D4FACDC2B8F368300BEDF5A /* CommonNativeFacadeSendDispatcher.swift */,
+				3D4FACDD2B8F368300BEDF5A /* WebAuthnRegistrationChallenge.swift */,
+				3D4FACDE2B8F368300BEDF5A /* ErrorInfo.swift */,
+				3D4FACDF2B8F368300BEDF5A /* ElectronResult.swift */,
+				3D4FACE02B8F368300BEDF5A /* KyberPrivateKey.swift */,
+				3D4FACE12B8F368300BEDF5A /* UploadTaskResponse.swift */,
+				3D4FACE22B8F368300BEDF5A /* KyberKeyPair.swift */,
+				3D4FACE32B8F368300BEDF5A /* CommonSystemFacade.swift */,
+				3D4FACE42B8F368300BEDF5A /* NativeKey.swift */,
+				3D4FACE52B8F368300BEDF5A /* ContactBook.swift */,
+				3D4FACE62B8F368300BEDF5A /* CommonNativeFacade.swift */,
+				3D4FACE72B8F368300BEDF5A /* NativeCredentialsFacadeReceiveDispatcher.swift */,
+				3D4FACE82B8F368300BEDF5A /* StructuredMailAddress.swift */,
+				3D4FACE92B8F368300BEDF5A /* NativePushFacade.swift */,
+			);
+			name = GeneratedIpc;
+			path = tutanota/Sources/GeneratedIpc;
+			sourceTree = SOURCE_ROOT;
+		};
 		3D57BEB322B796AC00205B1B /* Alarms */ = {
 			isa = PBXGroup;
 			children = (
@@ -866,7 +953,6 @@
 				3D220203293F75B000366FD2 /* Webauthn */,
 				3D378ED22536F3A80001F1F3 /* tutanota-Bridging-Header.h */,
 				3DDE413928F45E3700837BE6 /* Offline */,
-				3DBA56B62850AAA6004416BE /* GeneratedIpc */,
 				3D73DA2F2731951F008E7A8A /* Remote */,
 				3D57BEB322B796AC00205B1B /* Alarms */,
 				3D6C6D0522B7707B00289576 /* Keychain */,
@@ -874,6 +960,7 @@
 				3D74536421089DA300B16F2E /* Utils */,
 				3D74536321089D8100B16F2E /* Files */,
 				3D74536221089D5700B16F2E /* Crypto */,
+				3D4FACAE2B8F368300BEDF5A /* GeneratedIpc */,
 				3DC299F9267358AF00E1E79F /* ThemeManager.swift */,
 				3D0EB1F826F49E36002E5102 /* AppDelegate.swift */,
 				3DCE7AA6271D63BF0085E40D /* ViewController.swift */,
@@ -949,6 +1036,7 @@
 				3D4A426829B6513900B10451 /* DateProvider.swift */,
 				3DCC3F462ACED5DB00C9C27E /* UnfairLock.swift */,
 				3DCA74F52B63BE900007A1B0 /* UserPreferences.swift */,
+				3D5C6FA02B7BC15D00342E8C /* PermissionError.swift */,
 			);
 			path = Utils;
 			sourceTree = "<group>";
@@ -956,9 +1044,8 @@
 		3D7453682108A0CE00B16F2E /* Contacts */ = {
 			isa = PBXGroup;
 			children = (
-				3D4D78242B62606D00829803 /* ContactsAuthorization.swift */,
-				3D9B129627216D60002B46A1 /* ContactsSource.swift */,
-				3D4D78262B62610200829803 /* ContactsSynchronization.swift */,
+				3D4D78242B62606D00829803 /* ContactsPermission.swift */,
+				3D4D78262B62610200829803 /* IosMobileContactsFacade.swift */,
 				3D78ACB42B600FB6009C9EED /* StructuredContactTypes.swift */,
 			);
 			path = Contacts;
@@ -1481,63 +1568,6 @@
 			path = Push;
 			sourceTree = "<group>";
 		};
-		3DBA56B62850AAA6004416BE /* GeneratedIpc */ = {
-			isa = PBXGroup;
-			children = (
-				3D78ACB62B601F5C009C9EED /* StructuredAddress.swift */,
-				3D78ACB72B601F5C009C9EED /* StructuredPhoneNumber.swift */,
-				3D78AC762B600F1B009C9EED /* CommonNativeFacade.swift */,
-				3D78AC7E2B600F1B009C9EED /* CommonNativeFacadeSendDispatcher.swift */,
-				3D78AC7A2B600F1B009C9EED /* CommonSystemFacade.swift */,
-				3D78AC5B2B600F1B009C9EED /* CommonSystemFacadeReceiveDispatcher.swift */,
-				3D78AC782B600F1B009C9EED /* DownloadTaskResponse.swift */,
-				3D78AC602B600F1B009C9EED /* ElectronResult.swift */,
-				3D78AC802B600F1C009C9EED /* EncryptedFileInfo.swift */,
-				3D78AC832B600F1C009C9EED /* ErrorInfo.swift */,
-				3D78AC662B600F1B009C9EED /* FileFacade.swift */,
-				3D78AC752B600F1B009C9EED /* FileFacadeReceiveDispatcher.swift */,
-				3D78AC772B600F1B009C9EED /* IntegrationInfo.swift */,
-				3D78AC6B2B600F1B009C9EED /* IosGlobalDispatcher.swift */,
-				3D78AC542B600F1B009C9EED /* IpcClientRect.swift */,
-				3D78AC6E2B600F1B009C9EED /* KyberEncapsulation.swift */,
-				3D78AC712B600F1B009C9EED /* KyberKeyPair.swift */,
-				3D78AC552B600F1B009C9EED /* KyberPrivateKey.swift */,
-				3D78AC5C2B600F1B009C9EED /* KyberPublicKey.swift */,
-				3D78AC562B600F1B009C9EED /* MobileFacade.swift */,
-				3D78AC672B600F1B009C9EED /* MobileFacadeSendDispatcher.swift */,
-				3D78AC622B600F1B009C9EED /* MobileSystemFacade.swift */,
-				3D78AC5D2B600F1B009C9EED /* MobileSystemFacadeReceiveDispatcher.swift */,
-				3D78AC6C2B600F1B009C9EED /* NativeContact.swift */,
-				3D78AC822B600F1C009C9EED /* NativeCredentialsFacade.swift */,
-				3D78AC5E2B600F1B009C9EED /* NativeCredentialsFacadeReceiveDispatcher.swift */,
-				3D78AC612B600F1B009C9EED /* NativeCryptoFacade.swift */,
-				3D78AC7D2B600F1B009C9EED /* NativeCryptoFacadeReceiveDispatcher.swift */,
-				3D78AC7C2B600F1B009C9EED /* NativeInterface.swift */,
-				3D78AC812B600F1C009C9EED /* NativeKey.swift */,
-				3D78AC6D2B600F1B009C9EED /* NativePushFacade.swift */,
-				3D78AC692B600F1B009C9EED /* NativePushFacadeReceiveDispatcher.swift */,
-				3D78AC6F2B600F1B009C9EED /* NativeShortcut.swift */,
-				3D78AC702B600F1B009C9EED /* RsaKeyPair.swift */,
-				3D78AC5F2B600F1B009C9EED /* RsaPrivateKey.swift */,
-				3D78AC632B600F1B009C9EED /* RsaPublicKey.swift */,
-				3D78AC582B600F1B009C9EED /* SqlCipherFacade.swift */,
-				3D78AC642B600F1B009C9EED /* SqlCipherFacadeReceiveDispatcher.swift */,
-				3D78AC572B600F1B009C9EED /* StructuredContact.swift */,
-				3D78AC592B600F1B009C9EED /* StructuredMailAddress.swift */,
-				3D78AC652B600F1B009C9EED /* ThemeFacade.swift */,
-				3D78AC7F2B600F1C009C9EED /* ThemeFacadeReceiveDispatcher.swift */,
-				3D78AC732B600F1B009C9EED /* UploadTaskResponse.swift */,
-				3D78AC5A2B600F1B009C9EED /* WebAuthnFacade.swift */,
-				3D78AC6A2B600F1B009C9EED /* WebAuthnFacadeReceiveDispatcher.swift */,
-				3D78AC682B600F1B009C9EED /* WebauthnKeyDescriptor.swift */,
-				3D78AC792B600F1B009C9EED /* WebAuthnRegistrationChallenge.swift */,
-				3D78AC742B600F1B009C9EED /* WebAuthnRegistrationResult.swift */,
-				3D78AC7B2B600F1B009C9EED /* WebAuthnSignChallenge.swift */,
-				3D78AC722B600F1B009C9EED /* WebAuthnSignResult.swift */,
-			);
-			path = GeneratedIpc;
-			sourceTree = "<group>";
-		};
 		3DD4A07A20F8C6240086EB36 = {
 			isa = PBXGroup;
 			children = (
@@ -1553,7 +1583,7 @@
 		3DD4A08420F8C6240086EB36 /* Products */ = {
 			isa = PBXGroup;
 			children = (
-				3DD4A08320F8C6240086EB36 /* tutanota.app */,
+				3DD4A08320F8C6240086EB36 /* Tuta D.app */,
 				3DD4A09B20F8C6260086EB36 /* tutanotaTests.xctest */,
 				3DEF18F02924E1F1009C4B55 /* TutanotaShareExtension.appex */,
 			);
@@ -1761,7 +1791,7 @@
 				3D3B5168293797DC00C1B7DA /* Atomics */,
 			);
 			productName = tutanota;
-			productReference = 3DD4A08320F8C6240086EB36 /* tutanota.app */;
+			productReference = 3DD4A08320F8C6240086EB36 /* Tuta D.app */;
 			productType = "com.apple.product-type.application";
 		};
 		3DD4A09A20F8C6260086EB36 /* tutanotaTests */ = {
@@ -2161,152 +2191,162 @@
 			isa = PBXSourcesBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
-				3D78ACA72B600F1C009C9EED /* IntegrationInfo.swift in Sources */,
-				3D78AC972B600F1C009C9EED /* MobileFacadeSendDispatcher.swift in Sources */,
+				3D4FAD0F2B8F368300BEDF5A /* KyberEncapsulation.swift in Sources */,
+				3D4FACF92B8F368300BEDF5A /* MobileFacadeSendDispatcher.swift in Sources */,
 				3D9B1294272167D4002B46A1 /* IconFactory.swift in Sources */,
 				3D378EE72536F51F0001F1F3 /* FileChooser.swift in Sources */,
 				3D9B12A027218AF9002B46A1 /* RepeatRule.swift in Sources */,
-				3D78AC842B600F1C009C9EED /* IpcClientRect.swift in Sources */,
 				3D7A108029472A6000311B6B /* CancelledError.swift in Sources */,
 				3D4F1BFA26EBADE500E87BF5 /* TUTBigNum.m in Sources */,
+				3D4FAD0B2B8F368300BEDF5A /* WebAuthnSignChallenge.swift in Sources */,
 				3D73DA312731953E008E7A8A /* RemoteProtocol.swift in Sources */,
-				3D78ACB92B601F5C009C9EED /* StructuredPhoneNumber.swift in Sources */,
-				3D78AC9E2B600F1C009C9EED /* KyberEncapsulation.swift in Sources */,
 				3DB07C7B27303F0600BFBB4D /* Keys.swift in Sources */,
+				3D4FAD1F2B8F368300BEDF5A /* NativeKey.swift in Sources */,
 				3D3B516229376C2200C1B7DA /* SharingUtils.swift in Sources */,
 				3D78ACB52B600FB6009C9EED /* StructuredContactTypes.swift in Sources */,
 				3D0E44AA2B3C3CE500F933A1 /* reduce.c in Sources */,
-				3D78AC922B600F1C009C9EED /* MobileSystemFacade.swift in Sources */,
 				3D220205293F75C100366FD2 /* IosWebauthnFacade.swift in Sources */,
 				3DCC3F472ACED5DB00C9C27E /* UnfairLock.swift in Sources */,
-				3D78ACB32B600F1C009C9EED /* ErrorInfo.swift in Sources */,
-				3D78AC952B600F1C009C9EED /* ThemeFacade.swift in Sources */,
 				3DC5DECD2858C1F5007364FF /* IosNativePushFacade.swift in Sources */,
 				3D3AFAEC285C5C6E0077F302 /* DataFile.swift in Sources */,
 				3D84F5822723225C00858A58 /* Utils.swift in Sources */,
-				3D78ACAC2B600F1C009C9EED /* NativeInterface.swift in Sources */,
 				3D448A8B292BB1D00030DB2F /* SharingStorage.swift in Sources */,
 				3D9B12B42721A1E2002B46A1 /* TUTErrorFactory.m in Sources */,
+				3D4FAD242B8F368300BEDF5A /* NativePushFacade.swift in Sources */,
 				3D4E16F4273D2F8A00256630 /* SyncCompletion.swift in Sources */,
+				3D4FAD0E2B8F368300BEDF5A /* NativeInterface.swift in Sources */,
+				3D4FAD072B8F368300BEDF5A /* NativePushFacadeReceiveDispatcher.swift in Sources */,
+				3D5C6FA12B7BC15D00342E8C /* PermissionError.swift in Sources */,
 				3D84F56B2721B92C00858A58 /* MissedNotification.swift in Sources */,
+				3D4FAD1B2B8F368300BEDF5A /* KyberPrivateKey.swift in Sources */,
+				3D4FAD1C2B8F368300BEDF5A /* UploadTaskResponse.swift in Sources */,
 				3DAED2AF29A6267D00806DEA /* NotificationsHandler.swift in Sources */,
 				3DCE7AAC27200E0A0085E40D /* WebviewHacks.m in Sources */,
 				3DCE7AA22719D04B0085E40D /* NotificationStorage.swift in Sources */,
-				3D78ACA42B600F1C009C9EED /* WebAuthnRegistrationResult.swift in Sources */,
-				3D78ACB22B600F1C009C9EED /* NativeCredentialsFacade.swift in Sources */,
+				3D4FAD0D2B8F368300BEDF5A /* SqlCipherFacadeReceiveDispatcher.swift in Sources */,
 				3D0EB1F626F489AD002E5102 /* KeychainManager.swift in Sources */,
-				3D78AC862B600F1C009C9EED /* MobileFacade.swift in Sources */,
+				3D4FAD172B8F368300BEDF5A /* CommonNativeFacadeSendDispatcher.swift in Sources */,
+				3D4FACF52B8F368300BEDF5A /* WebauthnKeyDescriptor.swift in Sources */,
 				3D4A426929B6513900B10451 /* DateProvider.swift in Sources */,
-				3D78AC8D2B600F1C009C9EED /* MobileSystemFacadeReceiveDispatcher.swift in Sources */,
-				3D78ACA32B600F1C009C9EED /* UploadTaskResponse.swift in Sources */,
+				3D4FAD142B8F368300BEDF5A /* FileFacadeReceiveDispatcher.swift in Sources */,
 				3D0E44BA2B3C3CE500F933A1 /* xkcp_sha3.c in Sources */,
+				3D4FACEC2B8F368300BEDF5A /* ContactSuggestion.swift in Sources */,
 				3D92867C273A7D19006B8FB2 /* TutanotaError.swift in Sources */,
 				3D0E44AC2B3C3CE500F933A1 /* kem.c in Sources */,
+				3D4FAD012B8F368300BEDF5A /* MobileSystemFacadeReceiveDispatcher.swift in Sources */,
+				3D4FAD222B8F368300BEDF5A /* NativeCredentialsFacadeReceiveDispatcher.swift in Sources */,
 				3D69DE002AD4427E00C6C900 /* Kyber.swift in Sources */,
 				3D0E44A62B3C3CE500F933A1 /* ntt.c in Sources */,
 				3D891F082105B12F0031E528 /* rsa_oaep_sha256.c in Sources */,
 				3D9B12AF2721966C002B46A1 /* IdTuple.swift in Sources */,
 				3D92867F273BBA9D006B8FB2 /* KeyGeneratorSecureEnclave.swift in Sources */,
 				3D0E44CA2B3C3EC000F933A1 /* rand_entropy.c in Sources */,
-				3D78AC882B600F1C009C9EED /* SqlCipherFacade.swift in Sources */,
+				3D4FAD162B8F368300BEDF5A /* ThemeFacade.swift in Sources */,
 				3D9B12A6272192C2002B46A1 /* AlarmNotification.swift in Sources */,
-				3D78ACA12B600F1C009C9EED /* KyberKeyPair.swift in Sources */,
-				3D78ACAF2B600F1C009C9EED /* ThemeFacadeReceiveDispatcher.swift in Sources */,
-				3D78ACAD2B600F1C009C9EED /* NativeCryptoFacadeReceiveDispatcher.swift in Sources */,
+				3D4FACED2B8F368300BEDF5A /* EncryptedFileInfo.swift in Sources */,
+				3DEF392A2B8CA8C000019695 /* PermissionType.swift in Sources */,
 				3D87ECE6212D9EB000FD7315 /* TUTIcons.m in Sources */,
 				3D9B12A32721926E002B46A1 /* ValueEncryption.swift in Sources */,
-				3D78AC8A2B600F1C009C9EED /* WebAuthnFacade.swift in Sources */,
 				3D891F0D2105B12F0031E528 /* TUTEncodingConverter.m in Sources */,
-				3D78AC912B600F1C009C9EED /* NativeCryptoFacade.swift in Sources */,
-				3D78ACA02B600F1C009C9EED /* RsaKeyPair.swift in Sources */,
 				3D4E3CA228EC5C4F001FA9D1 /* IosSqlCipherFade.swift in Sources */,
+				3D4FACFB2B8F368300BEDF5A /* SqlCipherFacade.swift in Sources */,
+				3D4FAD112B8F368300BEDF5A /* NativeCryptoFacadeReceiveDispatcher.swift in Sources */,
 				3D0EB1FC26F4BEE4002E5102 /* AlarmManager.swift in Sources */,
+				3D4FACEE2B8F368300BEDF5A /* FileFacade.swift in Sources */,
+				3D4FACF42B8F368300BEDF5A /* StructuredRelationship.swift in Sources */,
 				3DCB9B8728F711220042A6BB /* SqlCipherStatement.swift in Sources */,
 				3DC299FD2673668000E1E79F /* QueryUtils.swift in Sources */,
-				3D78ACA52B600F1C009C9EED /* FileFacadeReceiveDispatcher.swift in Sources */,
-				3D78AC8E2B600F1C009C9EED /* NativeCredentialsFacadeReceiveDispatcher.swift in Sources */,
 				3D0E44A42B3C3CE500F933A1 /* symmetric-shake.c in Sources */,
 				3D0E44AB2B3C3CE500F933A1 /* verify.c in Sources */,
-				3D78AC9D2B600F1C009C9EED /* NativePushFacade.swift in Sources */,
+				3D4FACFD2B8F368300BEDF5A /* DownloadTaskResponse.swift in Sources */,
 				3D0E44B72B3C3CE500F933A1 /* common.c in Sources */,
-				3D78AC902B600F1C009C9EED /* ElectronResult.swift in Sources */,
 				3DC299FA267358AF00E1E79F /* ThemeManager.swift in Sources */,
-				3D4D78252B62606D00829803 /* ContactsAuthorization.swift in Sources */,
-				3D78ACA82B600F1C009C9EED /* DownloadTaskResponse.swift in Sources */,
+				3D4FAD062B8F368300BEDF5A /* ThemeFacadeReceiveDispatcher.swift in Sources */,
+				3D4D78252B62606D00829803 /* ContactsPermission.swift in Sources */,
 				3D0E44B22B3C3CE500F933A1 /* polyvec.c in Sources */,
-				3D78AC892B600F1C009C9EED /* StructuredMailAddress.swift in Sources */,
 				3D3AFAE8285B0DB60077F302 /* IosMobileSystemFacade.swift in Sources */,
+				3D4FACEF2B8F368300BEDF5A /* StructuredPronouns.swift in Sources */,
+				3D4FAD1E2B8F368300BEDF5A /* CommonSystemFacade.swift in Sources */,
+				3D4FACEA2B8F368300BEDF5A /* MobileContactsFacade.swift in Sources */,
 				3DDE55242AB88D8300A77D14 /* AES.swift in Sources */,
-				3D9B129727216D60002B46A1 /* ContactsSource.swift in Sources */,
 				3D9B12A927219538002B46A1 /* AlarmInfo.swift in Sources */,
+				3D4FAD0A2B8F368300BEDF5A /* StructuredWebsite.swift in Sources */,
+				3D4FACEB2B8F368300BEDF5A /* WebAuthnFacadeReceiveDispatcher.swift in Sources */,
+				3D4FAD092B8F368300BEDF5A /* WebAuthnFacade.swift in Sources */,
+				3D4FAD002B8F368300BEDF5A /* IpcClientRect.swift in Sources */,
 				3D3AFAEA285B292C0077F302 /* DataWrapper.swift in Sources */,
+				3D4FAD032B8F368300BEDF5A /* MobileFacade.swift in Sources */,
 				3DCA74F62B63BE900007A1B0 /* UserPreferences.swift in Sources */,
 				3DD10DB227EA148D0076C9A2 /* BlobUtil.swift in Sources */,
+				3D4FACF22B8F368300BEDF5A /* StructuredCustomDate.swift in Sources */,
 				3D0E44A52B3C3CE500F933A1 /* cbd.c in Sources */,
-				3D78ACA62B600F1C009C9EED /* CommonNativeFacade.swift in Sources */,
-				3D78AC962B600F1C009C9EED /* FileFacade.swift in Sources */,
 				3D97821A2739600700DB639C /* URLSession+Sync.swift in Sources */,
 				3D3AFAF2285CB2CF0077F302 /* IosCommonSystemFacade.swift in Sources */,
 				3D84F57C27231F1F00858A58 /* Serialization.swift in Sources */,
 				3D0E44B92B3C3CE500F933A1 /* KeccakP-1600-opt64.c in Sources */,
 				3D2DB91B2733F43B00BCEF4C /* IosNativeCredentialsFacade.swift in Sources */,
-				3D78AC942B600F1C009C9EED /* SqlCipherFacadeReceiveDispatcher.swift in Sources */,
-				3D78AC8F2B600F1C009C9EED /* RsaPrivateKey.swift in Sources */,
 				3D4A426529B63E1E00B10451 /* AlarmPersistor.swift in Sources */,
 				3D84F56D2722CEF900858A58 /* FileUtils.swift in Sources */,
-				3D78ACAA2B600F1C009C9EED /* CommonSystemFacade.swift in Sources */,
-				3D78ACB12B600F1C009C9EED /* NativeKey.swift in Sources */,
+				3D4FAD052B8F368300BEDF5A /* WebAuthnSignResult.swift in Sources */,
+				3D4FAD102B8F368300BEDF5A /* WebAuthnRegistrationResult.swift in Sources */,
+				3D4FACFC2B8F368300BEDF5A /* MobileSystemFacade.swift in Sources */,
 				3DCE7AA7271D63BF0085E40D /* ViewController.swift in Sources */,
+				3D4FACF62B8F368300BEDF5A /* RsaKeyPair.swift in Sources */,
 				3D73DA3427319A91008E7A8A /* Operation.swift in Sources */,
+				3D4FAD132B8F368300BEDF5A /* IntegrationInfo.swift in Sources */,
 				3D0E44CE2B3C40AB00F933A1 /* kem.c in Sources */,
+				3D4FACFA2B8F368300BEDF5A /* RsaPublicKey.swift in Sources */,
 				3DE46D2B2848EBDA00DC9D43 /* IosFileFacade.swift in Sources */,
 				3D4A426729B6453700B10451 /* AlarmScheduler.swift in Sources */,
 				3D0E44A72B3C3CE500F933A1 /* poly.c in Sources */,
-				3D78AC9F2B600F1C009C9EED /* NativeShortcut.swift in Sources */,
 				3D4A426329B63C0E00B10451 /* AlarmCryptor.swift in Sources */,
-				3D4D78272B62610200829803 /* ContactsSynchronization.swift in Sources */,
+				3D4FAD082B8F368300BEDF5A /* NativeShortcut.swift in Sources */,
+				3D4FACF02B8F368300BEDF5A /* KyberPublicKey.swift in Sources */,
+				3D4D78272B62610200829803 /* IosMobileContactsFacade.swift in Sources */,
+				3D4FAD042B8F368300BEDF5A /* StructuredAddress.swift in Sources */,
 				3DDE413B28F4665700837BE6 /* SqlCipherDb.swift in Sources */,
-				3D78AC8B2B600F1C009C9EED /* CommonSystemFacadeReceiveDispatcher.swift in Sources */,
 				3DCB9B8528F710CC0042A6BB /* TaggedSqlValue.swift in Sources */,
-				3D78ACB02B600F1C009C9EED /* EncryptedFileInfo.swift in Sources */,
+				3D4FAD202B8F368300BEDF5A /* ContactBook.swift in Sources */,
+				3D4FAD0C2B8F368300BEDF5A /* IosGlobalDispatcher.swift in Sources */,
 				3DF7FA5A2AB2EE3B00DB08D1 /* Argon2.swift in Sources */,
 				3DBE94BA273147830077A6EA /* RemoteBridge.swift in Sources */,
 				3D84F5762723112400858A58 /* FileViewer.swift in Sources */,
+				3D4FAD192B8F368300BEDF5A /* ErrorInfo.swift in Sources */,
 				3D891F0B2105B12F0031E528 /* TUTCrypto.m in Sources */,
-				3D78ACAE2B600F1C009C9EED /* CommonNativeFacadeSendDispatcher.swift in Sources */,
-				3D78ACAB2B600F1C009C9EED /* WebAuthnSignChallenge.swift in Sources */,
+				3D4FAD212B8F368300BEDF5A /* CommonNativeFacade.swift in Sources */,
 				3D63A0E3233D009E00D05259 /* TUTLog.m in Sources */,
-				3D78ACB82B601F5C009C9EED /* StructuredAddress.swift in Sources */,
-				3D78AC982B600F1C009C9EED /* WebauthnKeyDescriptor.swift in Sources */,
 				3D9B129D272189BB002B46A1 /* AlarmModel.swift in Sources */,
-				3D78ACA92B600F1C009C9EED /* WebAuthnRegistrationChallenge.swift in Sources */,
 				3DE1E44526666F0A0018C9DE /* UIColor+utils.swift in Sources */,
-				3D78AC9A2B600F1C009C9EED /* WebAuthnFacadeReceiveDispatcher.swift in Sources */,
 				3DE46D2E2849E33000DC9D43 /* IosThemeFacade.swift in Sources */,
-				3D78AC852B600F1C009C9EED /* KyberPrivateKey.swift in Sources */,
+				3D4FAD152B8F368300BEDF5A /* StructuredContact.swift in Sources */,
+				3D4FAD1A2B8F368300BEDF5A /* ElectronResult.swift in Sources */,
 				3D84F57927231E8600858A58 /* SSEInfo.swift in Sources */,
 				3D239302287EC96200DD7396 /* CustomSchemeHandlers.swift in Sources */,
+				3D4FACF82B8F368300BEDF5A /* CommonSystemFacadeReceiveDispatcher.swift in Sources */,
+				3D4FACF12B8F368300BEDF5A /* NativeCredentialsFacade.swift in Sources */,
 				3D0E44AD2B3C3CE500F933A1 /* indcpa.c in Sources */,
+				3D4FAD1D2B8F368300BEDF5A /* KyberKeyPair.swift in Sources */,
 				3D84F5732722F35600858A58 /* IosNativeCryptoFacade.swift in Sources */,
-				3D78AC9B2B600F1C009C9EED /* IosGlobalDispatcher.swift in Sources */,
-				3D78AC872B600F1C009C9EED /* StructuredContact.swift in Sources */,
 				3D0EB1F926F49E36002E5102 /* AppDelegate.swift in Sources */,
+				3D4FAD022B8F368300BEDF5A /* ContactSyncResult.swift in Sources */,
 				3D9B129A27216DE0002B46A1 /* Response.swift in Sources */,
 				3D9B12AC27219623002B46A1 /* NotificationSessionKey.swift in Sources */,
-				3D78AC9C2B600F1C009C9EED /* NativeContact.swift in Sources */,
+				3D4FAD182B8F368300BEDF5A /* WebAuthnRegistrationChallenge.swift in Sources */,
+				3D4FACFE2B8F368300BEDF5A /* StructuredMessengerHandle.swift in Sources */,
+				3D4FACFF2B8F368300BEDF5A /* StructuredPhoneNumber.swift in Sources */,
 				3D0E44BC2B3C3CE500F933A1 /* fips202.c in Sources */,
-				3D78AC8C2B600F1C009C9EED /* KyberPublicKey.swift in Sources */,
-				3D78ACA22B600F1C009C9EED /* WebAuthnSignResult.swift in Sources */,
 				3D4E3CA828EC63A6001FA9D1 /* sqlite3.c in Sources */,
 				3D648B282AB98BEA00893C8D /* ref.c in Sources */,
 				3D648B2A2AB98BEA00893C8D /* core.c in Sources */,
 				3D0E44B62B3C3CE500F933A1 /* kem_kyber_1024.c in Sources */,
+				3D4FAD232B8F368300BEDF5A /* StructuredMailAddress.swift in Sources */,
+				3D4FAD122B8F368300BEDF5A /* RsaPrivateKey.swift in Sources */,
+				3D4FACF32B8F368300BEDF5A /* MobileContactsFacadeReceiveDispatcher.swift in Sources */,
+				3D4FACF72B8F368300BEDF5A /* NativeCryptoFacade.swift in Sources */,
 				3D648B262AB98BEA00893C8D /* blake2b.c in Sources */,
-				3D78AC992B600F1C009C9EED /* NativePushFacadeReceiveDispatcher.swift in Sources */,
 				3D648B212AB98BEA00893C8D /* thread.c in Sources */,
 				3D648B2C2AB98BEA00893C8D /* argon2.c in Sources */,
 				3D648B2D2AB98BEA00893C8D /* encoding.c in Sources */,
-				3D78AC932B600F1C009C9EED /* RsaPublicKey.swift in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -2879,7 +2919,7 @@
 /* End PBXVariantGroup section */
 
 /* Begin XCBuildConfiguration section */
-		3D67152E2B4410B300E26D7D /* Debug */ = {
+		3D67152E2B4410B300E26D7D /* Debug Development */ = {
 			isa = XCBuildConfiguration;
 			buildSettings = {
 				ASSETCATALOG_COMPILER_GENERATE_SWIFT_ASSET_SYMBOL_EXTENSIONS = YES;
@@ -2898,9 +2938,9 @@
 				OTHER_LDFLAGS = "";
 				PRODUCT_NAME = "$(TARGET_NAME)";
 			};
-			name = Debug;
+			name = "Debug Development";
 		};
-		3D67152F2B4410B300E26D7D /* Release */ = {
+		3D67152F2B4410B300E26D7D /* Release Development */ = {
 			isa = XCBuildConfiguration;
 			buildSettings = {
 				ASSETCATALOG_COMPILER_GENERATE_SWIFT_ASSET_SYMBOL_EXTENSIONS = YES;
@@ -2915,9 +2955,9 @@
 				OTHER_LDFLAGS = "";
 				PRODUCT_NAME = "$(TARGET_NAME)";
 			};
-			name = Release;
+			name = "Release Development";
 		};
-		3DD4A0A220F8C6260086EB36 /* Debug */ = {
+		3DC5F5722B8900860020BD53 /* Debug Production */ = {
 			isa = XCBuildConfiguration;
 			buildSettings = {
 				ALWAYS_SEARCH_USER_PATHS = NO;
@@ -2974,11 +3014,356 @@
 				MTL_ENABLE_DEBUG_INFO = YES;
 				ONLY_ACTIVE_ARCH = YES;
 				"OTHER_SWIFT_FLAGS[arch=*]" = "-D DEBUG";
+				PRODUCT_NAME = tutanota;
 				SDKROOT = iphoneos;
 			};
-			name = Debug;
+			name = "Debug Production";
 		};
-		3DD4A0A320F8C6260086EB36 /* Release */ = {
+		3DC5F5732B8900860020BD53 /* Debug Production */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				ALWAYS_EMBED_SWIFT_STANDARD_LIBRARIES = YES;
+				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
+				CLANG_ENABLE_MODULES = YES;
+				CLANG_WARN_SUSPICIOUS_IMPLICIT_CONVERSION = YES;
+				CODE_SIGN_ENTITLEMENTS = tutanota/tutanota.entitlements;
+				CODE_SIGN_IDENTITY = "Apple Development";
+				CODE_SIGN_STYLE = Automatic;
+				DEVELOPMENT_TEAM = JKCH89Z3M9;
+				GCC_PREPROCESSOR_DEFINITIONS = "";
+				"GCC_PREPROCESSOR_DEFINITIONS[arch=*]" = (
+					"SQLITE_HAS_CODEC=1",
+					"OQS_ENABLE_KEM_kyber_1024=1",
+				);
+				HEADER_SEARCH_PATHS = (
+					"\"$(TARGET_BUILD_DIR)/usr/local/lib/include\"",
+					"\"$(BUILT_PRODUCTS_DIR)\"",
+					"\"${PROJECT_DIR}/tutanota/include\"/**",
+				);
+				INFOPLIST_FILE = tutanota/Info.plist;
+				IPHONEOS_DEPLOYMENT_TARGET = 15.0;
+				LD_RUNPATH_SEARCH_PATHS = (
+					"$(inherited)",
+					"@executable_path/Frameworks",
+				);
+				LIBRARY_SEARCH_PATHS = (
+					"$(inherited)",
+					"$(PROJECT_DIR)",
+					"\"$(TARGET_BUILD_DIR)/usr/local/lib/include\"",
+					"$(PROJECT_DIR)/tutanota/Frameworks",
+				);
+				"OTHER_CFLAGS[arch=*]" = (
+					"-DSQLITE_HAS_CODEC",
+					"-DSQLITE_TEMP_STORE=3",
+					"-DSQLCIPHER_CRYPTO_CC",
+					"-DNDEBUG",
+					"-DKYBER_K=4",
+					"-DOQS_VERSION_TEXT=\\\"whatever\\\"",
+					"-DOQS_ENABLE_KEM_kyber_1024=1",
+					"-DOQS_DIST_BUILD=1",
+					"-DOQS_ENABLE_KEM_KYBER=1",
+				);
+				OTHER_LDFLAGS = "";
+				OTHER_SWIFT_FLAGS = "";
+				"OTHER_SWIFT_FLAGS[arch=*]" = "-D DEBUG";
+				PRODUCT_BUNDLE_IDENTIFIER = de.tutao.tutanota;
+				PRODUCT_MODULE_NAME = tutanota;
+				PRODUCT_NAME = "Tuta Mail";
+				PROVISIONING_PROFILE = "";
+				PROVISIONING_PROFILE_SPECIFIER = "";
+				SWIFT_OBJC_BRIDGING_HEADER = "tutanota/Sources/tutanota-Bridging-Header.h";
+				SWIFT_OPTIMIZATION_LEVEL = "-Onone";
+				SWIFT_VERSION = 5.0;
+				TARGETED_DEVICE_FAMILY = "1,2";
+			};
+			name = "Debug Production";
+		};
+		3DC5F5742B8900860020BD53 /* Debug Production */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				ALWAYS_EMBED_SWIFT_STANDARD_LIBRARIES = YES;
+				BUNDLE_LOADER = "$(TEST_HOST)";
+				CLANG_ENABLE_MODULES = YES;
+				"CODE_SIGN_IDENTITY[sdk=macosx*]" = "Apple Development";
+				CODE_SIGN_STYLE = Automatic;
+				DEVELOPMENT_TEAM = JKCH89Z3M9;
+				HEADER_SEARCH_PATHS = "\"${PROJECT_DIR}/tutanota/include\"/**";
+				INFOPLIST_FILE = tutanotaTests/Info.plist;
+				LD_RUNPATH_SEARCH_PATHS = (
+					"$(inherited)",
+					"@executable_path/Frameworks",
+					"@loader_path/Frameworks",
+				);
+				PRODUCT_BUNDLE_IDENTIFIER = de.tutao.tutanotaTests;
+				PRODUCT_NAME = "$(TARGET_NAME)";
+				SWIFT_OBJC_BRIDGING_HEADER = "tutanotaTests/tutanotaTests-Bridging-Header.h";
+				SWIFT_OPTIMIZATION_LEVEL = "-Onone";
+				SWIFT_VERSION = 5.0;
+				TARGETED_DEVICE_FAMILY = "1,2";
+				TEST_HOST = "$(BUILT_PRODUCTS_DIR)/Tuta D.app/$(BUNDLE_EXECUTABLE_FOLDER_PATH)/Tuta D";
+			};
+			name = "Debug Production";
+		};
+		3DC5F5752B8900860020BD53 /* Debug Production */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				CLANG_CXX_LANGUAGE_STANDARD = "gnu++17";
+				CODE_SIGN_ENTITLEMENTS = TutanotaShareExtension/TutanotaShareExtension.entitlements;
+				CODE_SIGN_IDENTITY = "Apple Development";
+				CODE_SIGN_STYLE = Automatic;
+				CURRENT_PROJECT_VERSION = 1;
+				DEVELOPMENT_TEAM = JKCH89Z3M9;
+				GENERATE_INFOPLIST_FILE = YES;
+				HEADER_SEARCH_PATHS = "\"${PROJECT_DIR}/tutanota/include\"/**";
+				INFOPLIST_FILE = TutanotaShareExtension/Info.plist;
+				INFOPLIST_KEY_CFBundleDisplayName = TutanotaShareExtension;
+				INFOPLIST_KEY_NSHumanReadableCopyright = "Copyright © 2023 Tutao GmbH. All rights reserved.";
+				IPHONEOS_DEPLOYMENT_TARGET = 15.5;
+				LD_RUNPATH_SEARCH_PATHS = (
+					"$(inherited)",
+					"@executable_path/Frameworks",
+					"@executable_path/../../Frameworks",
+				);
+				MARKETING_VERSION = 3.104.5;
+				MTL_ENABLE_DEBUG_INFO = INCLUDE_SOURCE;
+				MTL_FAST_MATH = YES;
+				PRODUCT_BUNDLE_IDENTIFIER = de.tutao.tutanota.TutanotaShareExtension;
+				PRODUCT_NAME = "$(TARGET_NAME)";
+				SKIP_INSTALL = YES;
+				SWIFT_ACTIVE_COMPILATION_CONDITIONS = DEBUG;
+				SWIFT_EMIT_LOC_STRINGS = YES;
+				SWIFT_OBJC_BRIDGING_HEADER = "tutanota/Sources/tutanota-Bridging-Header.h";
+				SWIFT_OPTIMIZATION_LEVEL = "-Onone";
+				SWIFT_VERSION = 5.0;
+				TARGETED_DEVICE_FAMILY = "1,2";
+			};
+			name = "Debug Production";
+		};
+		3DC5F5762B8900860020BD53 /* Debug Production */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				ASSETCATALOG_COMPILER_GENERATE_SWIFT_ASSET_SYMBOL_EXTENSIONS = YES;
+				CLANG_CXX_LANGUAGE_STANDARD = "gnu++20";
+				CODE_SIGN_STYLE = Automatic;
+				DEBUGGING_SYMBOLS = YES;
+				DEBUG_INFORMATION_FORMAT = dwarf;
+				ENABLE_USER_SCRIPT_SANDBOXING = YES;
+				GCC_C_LANGUAGE_STANDARD = gnu17;
+				GCC_GENERATE_DEBUGGING_SYMBOLS = YES;
+				GCC_OPTIMIZATION_LEVEL = 0;
+				LOCALIZATION_PREFERS_STRING_CATALOGS = YES;
+				MTL_ENABLE_DEBUG_INFO = INCLUDE_SOURCE;
+				MTL_FAST_MATH = YES;
+				OTHER_CFLAGS = "";
+				OTHER_LDFLAGS = "";
+				PRODUCT_NAME = "$(TARGET_NAME)";
+			};
+			name = "Debug Production";
+		};
+		3DC5F5772B8900880020BD53 /* Debug Staging */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				ALWAYS_SEARCH_USER_PATHS = NO;
+				CLANG_ANALYZER_LOCALIZABILITY_NONLOCALIZED = YES;
+				CLANG_ANALYZER_NONNULL = YES;
+				CLANG_ANALYZER_NUMBER_OBJECT_CONVERSION = YES_AGGRESSIVE;
+				CLANG_CXX_LANGUAGE_STANDARD = "gnu++14";
+				CLANG_CXX_LIBRARY = "libc++";
+				CLANG_ENABLE_MODULES = YES;
+				CLANG_ENABLE_OBJC_ARC = YES;
+				CLANG_ENABLE_OBJC_WEAK = YES;
+				CLANG_WARN_BLOCK_CAPTURE_AUTORELEASING = YES;
+				CLANG_WARN_BOOL_CONVERSION = YES;
+				CLANG_WARN_COMMA = YES;
+				CLANG_WARN_CONSTANT_CONVERSION = YES;
+				CLANG_WARN_DEPRECATED_OBJC_IMPLEMENTATIONS = YES;
+				CLANG_WARN_DIRECT_OBJC_ISA_USAGE = YES_ERROR;
+				CLANG_WARN_DOCUMENTATION_COMMENTS = YES;
+				CLANG_WARN_EMPTY_BODY = YES;
+				CLANG_WARN_ENUM_CONVERSION = YES;
+				CLANG_WARN_INFINITE_RECURSION = YES;
+				CLANG_WARN_INT_CONVERSION = YES;
+				CLANG_WARN_NON_LITERAL_NULL_CONVERSION = YES;
+				CLANG_WARN_OBJC_IMPLICIT_RETAIN_SELF = YES;
+				CLANG_WARN_OBJC_LITERAL_CONVERSION = YES;
+				CLANG_WARN_OBJC_ROOT_CLASS = YES_ERROR;
+				CLANG_WARN_QUOTED_INCLUDE_IN_FRAMEWORK_HEADER = YES;
+				CLANG_WARN_RANGE_LOOP_ANALYSIS = YES;
+				CLANG_WARN_STRICT_PROTOTYPES = YES;
+				CLANG_WARN_SUSPICIOUS_MOVE = YES;
+				CLANG_WARN_UNGUARDED_AVAILABILITY = YES_AGGRESSIVE;
+				CLANG_WARN_UNREACHABLE_CODE = YES;
+				CLANG_WARN__DUPLICATE_METHOD_MATCH = YES;
+				CODE_SIGN_IDENTITY = "iPhone Developer";
+				COPY_PHASE_STRIP = NO;
+				DEBUG_INFORMATION_FORMAT = dwarf;
+				ENABLE_STRICT_OBJC_MSGSEND = YES;
+				ENABLE_TESTABILITY = YES;
+				GCC_C_LANGUAGE_STANDARD = gnu11;
+				GCC_DYNAMIC_NO_PIC = NO;
+				GCC_NO_COMMON_BLOCKS = YES;
+				GCC_OPTIMIZATION_LEVEL = 0;
+				GCC_PREPROCESSOR_DEFINITIONS = (
+					"DEBUG=1",
+					"$(inherited)",
+				);
+				GCC_WARN_64_TO_32_BIT_CONVERSION = YES;
+				GCC_WARN_ABOUT_RETURN_TYPE = YES_ERROR;
+				GCC_WARN_UNDECLARED_SELECTOR = YES;
+				GCC_WARN_UNINITIALIZED_AUTOS = YES_AGGRESSIVE;
+				GCC_WARN_UNUSED_FUNCTION = YES;
+				GCC_WARN_UNUSED_VARIABLE = YES;
+				IPHONEOS_DEPLOYMENT_TARGET = 15.0;
+				MTL_ENABLE_DEBUG_INFO = YES;
+				ONLY_ACTIVE_ARCH = YES;
+				"OTHER_SWIFT_FLAGS[arch=*]" = "-D DEBUG";
+				PRODUCT_NAME = tutanota;
+				SDKROOT = iphoneos;
+			};
+			name = "Debug Staging";
+		};
+		3DC5F5782B8900880020BD53 /* Debug Staging */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				ALWAYS_EMBED_SWIFT_STANDARD_LIBRARIES = YES;
+				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
+				CLANG_ENABLE_MODULES = YES;
+				CLANG_WARN_SUSPICIOUS_IMPLICIT_CONVERSION = YES;
+				CODE_SIGN_ENTITLEMENTS = tutanota/tutanota.entitlements;
+				CODE_SIGN_IDENTITY = "Apple Development";
+				CODE_SIGN_STYLE = Automatic;
+				DEVELOPMENT_TEAM = JKCH89Z3M9;
+				GCC_PREPROCESSOR_DEFINITIONS = "";
+				"GCC_PREPROCESSOR_DEFINITIONS[arch=*]" = (
+					"SQLITE_HAS_CODEC=1",
+					"OQS_ENABLE_KEM_kyber_1024=1",
+				);
+				HEADER_SEARCH_PATHS = (
+					"\"$(TARGET_BUILD_DIR)/usr/local/lib/include\"",
+					"\"$(BUILT_PRODUCTS_DIR)\"",
+					"\"${PROJECT_DIR}/tutanota/include\"/**",
+				);
+				INFOPLIST_FILE = tutanota/Info.plist;
+				IPHONEOS_DEPLOYMENT_TARGET = 15.0;
+				LD_RUNPATH_SEARCH_PATHS = (
+					"$(inherited)",
+					"@executable_path/Frameworks",
+				);
+				LIBRARY_SEARCH_PATHS = (
+					"$(inherited)",
+					"$(PROJECT_DIR)",
+					"\"$(TARGET_BUILD_DIR)/usr/local/lib/include\"",
+					"$(PROJECT_DIR)/tutanota/Frameworks",
+				);
+				"OTHER_CFLAGS[arch=*]" = (
+					"-DSQLITE_HAS_CODEC",
+					"-DSQLITE_TEMP_STORE=3",
+					"-DSQLCIPHER_CRYPTO_CC",
+					"-DNDEBUG",
+					"-DKYBER_K=4",
+					"-DOQS_VERSION_TEXT=\\\"whatever\\\"",
+					"-DOQS_ENABLE_KEM_kyber_1024=1",
+					"-DOQS_DIST_BUILD=1",
+					"-DOQS_ENABLE_KEM_KYBER=1",
+				);
+				OTHER_LDFLAGS = "";
+				OTHER_SWIFT_FLAGS = "";
+				"OTHER_SWIFT_FLAGS[arch=*]" = "-D DEBUG";
+				PRODUCT_BUNDLE_IDENTIFIER = de.tutao.tutanota.test;
+				PRODUCT_MODULE_NAME = tutanota;
+				PRODUCT_NAME = "Tuta Test";
+				PROVISIONING_PROFILE = "";
+				PROVISIONING_PROFILE_SPECIFIER = "";
+				SWIFT_OBJC_BRIDGING_HEADER = "tutanota/Sources/tutanota-Bridging-Header.h";
+				SWIFT_OPTIMIZATION_LEVEL = "-Onone";
+				SWIFT_VERSION = 5.0;
+				TARGETED_DEVICE_FAMILY = "1,2";
+			};
+			name = "Debug Staging";
+		};
+		3DC5F5792B8900880020BD53 /* Debug Staging */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				ALWAYS_EMBED_SWIFT_STANDARD_LIBRARIES = YES;
+				BUNDLE_LOADER = "$(TEST_HOST)";
+				CLANG_ENABLE_MODULES = YES;
+				"CODE_SIGN_IDENTITY[sdk=macosx*]" = "Apple Development";
+				CODE_SIGN_STYLE = Automatic;
+				DEVELOPMENT_TEAM = JKCH89Z3M9;
+				HEADER_SEARCH_PATHS = "\"${PROJECT_DIR}/tutanota/include\"/**";
+				INFOPLIST_FILE = tutanotaTests/Info.plist;
+				LD_RUNPATH_SEARCH_PATHS = (
+					"$(inherited)",
+					"@executable_path/Frameworks",
+					"@loader_path/Frameworks",
+				);
+				PRODUCT_BUNDLE_IDENTIFIER = de.tutao.tutanotaTests;
+				PRODUCT_NAME = "$(TARGET_NAME)";
+				SWIFT_OBJC_BRIDGING_HEADER = "tutanotaTests/tutanotaTests-Bridging-Header.h";
+				SWIFT_OPTIMIZATION_LEVEL = "-Onone";
+				SWIFT_VERSION = 5.0;
+				TARGETED_DEVICE_FAMILY = "1,2";
+				TEST_HOST = "$(BUILT_PRODUCTS_DIR)/Tuta D.app/$(BUNDLE_EXECUTABLE_FOLDER_PATH)/Tuta D";
+			};
+			name = "Debug Staging";
+		};
+		3DC5F57A2B8900880020BD53 /* Debug Staging */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				CLANG_CXX_LANGUAGE_STANDARD = "gnu++17";
+				CODE_SIGN_ENTITLEMENTS = TutanotaShareExtension/TutanotaShareExtension.entitlements;
+				CODE_SIGN_IDENTITY = "Apple Development";
+				CODE_SIGN_STYLE = Automatic;
+				CURRENT_PROJECT_VERSION = 1;
+				DEVELOPMENT_TEAM = JKCH89Z3M9;
+				GENERATE_INFOPLIST_FILE = YES;
+				HEADER_SEARCH_PATHS = "\"${PROJECT_DIR}/tutanota/include\"/**";
+				INFOPLIST_FILE = TutanotaShareExtension/Info.plist;
+				INFOPLIST_KEY_CFBundleDisplayName = TutanotaShareExtension;
+				INFOPLIST_KEY_NSHumanReadableCopyright = "Copyright © 2023 Tutao GmbH. All rights reserved.";
+				IPHONEOS_DEPLOYMENT_TARGET = 15.5;
+				LD_RUNPATH_SEARCH_PATHS = (
+					"$(inherited)",
+					"@executable_path/Frameworks",
+					"@executable_path/../../Frameworks",
+				);
+				MARKETING_VERSION = 3.104.5;
+				MTL_ENABLE_DEBUG_INFO = INCLUDE_SOURCE;
+				MTL_FAST_MATH = YES;
+				PRODUCT_BUNDLE_IDENTIFIER = de.tutao.tutanota.test.TutanotaShareExtension;
+				PRODUCT_NAME = "$(TARGET_NAME)";
+				SKIP_INSTALL = YES;
+				SWIFT_ACTIVE_COMPILATION_CONDITIONS = DEBUG;
+				SWIFT_EMIT_LOC_STRINGS = YES;
+				SWIFT_OBJC_BRIDGING_HEADER = "tutanota/Sources/tutanota-Bridging-Header.h";
+				SWIFT_OPTIMIZATION_LEVEL = "-Onone";
+				SWIFT_VERSION = 5.0;
+				TARGETED_DEVICE_FAMILY = "1,2";
+			};
+			name = "Debug Staging";
+		};
+		3DC5F57B2B8900880020BD53 /* Debug Staging */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				ASSETCATALOG_COMPILER_GENERATE_SWIFT_ASSET_SYMBOL_EXTENSIONS = YES;
+				CLANG_CXX_LANGUAGE_STANDARD = "gnu++20";
+				CODE_SIGN_STYLE = Automatic;
+				DEBUGGING_SYMBOLS = YES;
+				DEBUG_INFORMATION_FORMAT = dwarf;
+				ENABLE_USER_SCRIPT_SANDBOXING = YES;
+				GCC_C_LANGUAGE_STANDARD = gnu17;
+				GCC_GENERATE_DEBUGGING_SYMBOLS = YES;
+				GCC_OPTIMIZATION_LEVEL = 0;
+				LOCALIZATION_PREFERS_STRING_CATALOGS = YES;
+				MTL_ENABLE_DEBUG_INFO = INCLUDE_SOURCE;
+				MTL_FAST_MATH = YES;
+				OTHER_CFLAGS = "";
+				OTHER_LDFLAGS = "";
+				PRODUCT_NAME = "$(TARGET_NAME)";
+			};
+			name = "Debug Staging";
+		};
+		3DC5F57C2B89008C0020BD53 /* Release Staging */ = {
 			isa = XCBuildConfiguration;
 			buildSettings = {
 				ALWAYS_SEARCH_USER_PATHS = NO;
@@ -3027,13 +3412,458 @@
 				GCC_WARN_UNUSED_VARIABLE = YES;
 				IPHONEOS_DEPLOYMENT_TARGET = 15.0;
 				MTL_ENABLE_DEBUG_INFO = NO;
+				PRODUCT_NAME = tutanota;
 				SDKROOT = iphoneos;
 				SWIFT_COMPILATION_MODE = wholemodule;
 				VALIDATE_PRODUCT = YES;
 			};
-			name = Release;
+			name = "Release Staging";
 		};
-		3DD4A0A520F8C6260086EB36 /* Debug */ = {
+		3DC5F57D2B89008C0020BD53 /* Release Staging */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				ALWAYS_EMBED_SWIFT_STANDARD_LIBRARIES = YES;
+				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
+				CLANG_ENABLE_MODULES = YES;
+				CLANG_WARN_SUSPICIOUS_IMPLICIT_CONVERSION = YES;
+				CODE_SIGN_ENTITLEMENTS = tutanota/tutanota.entitlements;
+				CODE_SIGN_IDENTITY = "iPhone Distribution";
+				CODE_SIGN_STYLE = Manual;
+				DEVELOPMENT_TEAM = JKCH89Z3M9;
+				GCC_PREPROCESSOR_DEFINITIONS = "";
+				"GCC_PREPROCESSOR_DEFINITIONS[arch=*]" = (
+					"SQLITE_HAS_CODEC=1",
+					"OQS_ENABLE_KEM_kyber_1024=1",
+				);
+				HEADER_SEARCH_PATHS = (
+					"\"$(TARGET_BUILD_DIR)/usr/local/lib/include\"",
+					"\"$(BUILT_PRODUCTS_DIR)\"",
+					"\"${PROJECT_DIR}/tutanota/include\"/**",
+				);
+				INFOPLIST_FILE = tutanota/Info.plist;
+				IPHONEOS_DEPLOYMENT_TARGET = 15.0;
+				LD_RUNPATH_SEARCH_PATHS = (
+					"$(inherited)",
+					"@executable_path/Frameworks",
+				);
+				LIBRARY_SEARCH_PATHS = (
+					"$(inherited)",
+					"$(PROJECT_DIR)",
+					"\"$(TARGET_BUILD_DIR)/usr/local/lib/include\"",
+					"$(PROJECT_DIR)/tutanota/Frameworks",
+				);
+				"OTHER_CFLAGS[arch=*]" = (
+					"-DSQLITE_HAS_CODEC",
+					"-DSQLITE_TEMP_STORE=3",
+					"-DSQLCIPHER_CRYPTO_CC",
+					"-DNDEBUG",
+					"-DOQS_ENABLE_KEM_kyber_1024=1",
+					"-DOQS_DIST_BUILD=1",
+					"-DOQS_VERSION_TEXT=\\\"whatever\\\"",
+					"-DKYBER_K=4",
+					"-DOQS_ENABLE_KEM_KYBER=1",
+				);
+				OTHER_LDFLAGS = "";
+				OTHER_SWIFT_FLAGS = "";
+				PRODUCT_BUNDLE_IDENTIFIER = de.tutao.tutanota.test;
+				PRODUCT_MODULE_NAME = tutanota;
+				PRODUCT_NAME = "Tuta Test";
+				PROVISIONING_PROFILE = "";
+				PROVISIONING_PROFILE_SPECIFIER = "match AdHoc de.tutao.tutanota.test";
+				SWIFT_OBJC_BRIDGING_HEADER = "tutanota/Sources/tutanota-Bridging-Header.h";
+				SWIFT_VERSION = 5.0;
+				TARGETED_DEVICE_FAMILY = "1,2";
+			};
+			name = "Release Staging";
+		};
+		3DC5F57E2B89008C0020BD53 /* Release Staging */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				ALWAYS_EMBED_SWIFT_STANDARD_LIBRARIES = YES;
+				BUNDLE_LOADER = "$(TEST_HOST)";
+				CLANG_ENABLE_MODULES = YES;
+				"CODE_SIGN_IDENTITY[sdk=macosx*]" = "Apple Development";
+				CODE_SIGN_STYLE = Automatic;
+				DEVELOPMENT_TEAM = JKCH89Z3M9;
+				HEADER_SEARCH_PATHS = "\"${PROJECT_DIR}/tutanota/include\"/**";
+				INFOPLIST_FILE = tutanotaTests/Info.plist;
+				LD_RUNPATH_SEARCH_PATHS = (
+					"$(inherited)",
+					"@executable_path/Frameworks",
+					"@loader_path/Frameworks",
+				);
+				PRODUCT_BUNDLE_IDENTIFIER = de.tutao.tutanotaTests;
+				PRODUCT_NAME = "$(TARGET_NAME)";
+				SWIFT_OBJC_BRIDGING_HEADER = "tutanotaTests/tutanotaTests-Bridging-Header.h";
+				SWIFT_VERSION = 5.0;
+				TARGETED_DEVICE_FAMILY = "1,2";
+				TEST_HOST = "$(BUILT_PRODUCTS_DIR)/Tuta D.app/$(BUNDLE_EXECUTABLE_FOLDER_PATH)/Tuta D";
+			};
+			name = "Release Staging";
+		};
+		3DC5F57F2B89008C0020BD53 /* Release Staging */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				CLANG_CXX_LANGUAGE_STANDARD = "gnu++17";
+				CODE_SIGN_ENTITLEMENTS = TutanotaShareExtension/TutanotaShareExtension.entitlements;
+				CODE_SIGN_IDENTITY = "iPhone Distribution";
+				CODE_SIGN_STYLE = Manual;
+				CURRENT_PROJECT_VERSION = 1;
+				DEVELOPMENT_TEAM = "";
+				"DEVELOPMENT_TEAM[sdk=iphoneos*]" = JKCH89Z3M9;
+				GENERATE_INFOPLIST_FILE = YES;
+				HEADER_SEARCH_PATHS = "\"${PROJECT_DIR}/tutanota/include\"/**";
+				INFOPLIST_FILE = TutanotaShareExtension/Info.plist;
+				INFOPLIST_KEY_CFBundleDisplayName = TutanotaShareExtension;
+				INFOPLIST_KEY_NSHumanReadableCopyright = "Copyright © 2023 Tutao GmbH. All rights reserved.";
+				IPHONEOS_DEPLOYMENT_TARGET = 15.5;
+				LD_RUNPATH_SEARCH_PATHS = (
+					"$(inherited)",
+					"@executable_path/Frameworks",
+					"@executable_path/../../Frameworks",
+				);
+				MARKETING_VERSION = 3.104.5;
+				MTL_FAST_MATH = YES;
+				PRODUCT_BUNDLE_IDENTIFIER = de.tutao.tutanota.test.TutanotaShareExtension;
+				PRODUCT_NAME = "$(TARGET_NAME)";
+				PROVISIONING_PROFILE_SPECIFIER = "";
+				"PROVISIONING_PROFILE_SPECIFIER[sdk=iphoneos*]" = "match AdHoc de.tutao.tutanota.test.TutanotaShareExtension";
+				SKIP_INSTALL = YES;
+				SWIFT_EMIT_LOC_STRINGS = YES;
+				SWIFT_OBJC_BRIDGING_HEADER = "tutanota/Sources/tutanota-Bridging-Header.h";
+				SWIFT_OPTIMIZATION_LEVEL = "-O";
+				SWIFT_VERSION = 5.0;
+				TARGETED_DEVICE_FAMILY = "1,2";
+			};
+			name = "Release Staging";
+		};
+		3DC5F5802B89008C0020BD53 /* Release Staging */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				ASSETCATALOG_COMPILER_GENERATE_SWIFT_ASSET_SYMBOL_EXTENSIONS = YES;
+				CLANG_CXX_LANGUAGE_STANDARD = "gnu++20";
+				CODE_SIGN_STYLE = Automatic;
+				DEBUG_INFORMATION_FORMAT = "dwarf-with-dsym";
+				ENABLE_USER_SCRIPT_SANDBOXING = YES;
+				GCC_C_LANGUAGE_STANDARD = gnu17;
+				LOCALIZATION_PREFERS_STRING_CATALOGS = YES;
+				MTL_FAST_MATH = YES;
+				OTHER_CFLAGS = "";
+				OTHER_LDFLAGS = "";
+				PRODUCT_NAME = "$(TARGET_NAME)";
+			};
+			name = "Release Staging";
+		};
+		3DC5F5812B89008E0020BD53 /* Release Production */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				ALWAYS_SEARCH_USER_PATHS = NO;
+				CLANG_ANALYZER_LOCALIZABILITY_NONLOCALIZED = YES;
+				CLANG_ANALYZER_NONNULL = YES;
+				CLANG_ANALYZER_NUMBER_OBJECT_CONVERSION = YES_AGGRESSIVE;
+				CLANG_CXX_LANGUAGE_STANDARD = "gnu++14";
+				CLANG_CXX_LIBRARY = "libc++";
+				CLANG_ENABLE_MODULES = YES;
+				CLANG_ENABLE_OBJC_ARC = YES;
+				CLANG_ENABLE_OBJC_WEAK = YES;
+				CLANG_WARN_BLOCK_CAPTURE_AUTORELEASING = YES;
+				CLANG_WARN_BOOL_CONVERSION = YES;
+				CLANG_WARN_COMMA = YES;
+				CLANG_WARN_CONSTANT_CONVERSION = YES;
+				CLANG_WARN_DEPRECATED_OBJC_IMPLEMENTATIONS = YES;
+				CLANG_WARN_DIRECT_OBJC_ISA_USAGE = YES_ERROR;
+				CLANG_WARN_DOCUMENTATION_COMMENTS = YES;
+				CLANG_WARN_EMPTY_BODY = YES;
+				CLANG_WARN_ENUM_CONVERSION = YES;
+				CLANG_WARN_INFINITE_RECURSION = YES;
+				CLANG_WARN_INT_CONVERSION = YES;
+				CLANG_WARN_NON_LITERAL_NULL_CONVERSION = YES;
+				CLANG_WARN_OBJC_IMPLICIT_RETAIN_SELF = YES;
+				CLANG_WARN_OBJC_LITERAL_CONVERSION = YES;
+				CLANG_WARN_OBJC_ROOT_CLASS = YES_ERROR;
+				CLANG_WARN_QUOTED_INCLUDE_IN_FRAMEWORK_HEADER = YES;
+				CLANG_WARN_RANGE_LOOP_ANALYSIS = YES;
+				CLANG_WARN_STRICT_PROTOTYPES = YES;
+				CLANG_WARN_SUSPICIOUS_MOVE = YES;
+				CLANG_WARN_UNGUARDED_AVAILABILITY = YES_AGGRESSIVE;
+				CLANG_WARN_UNREACHABLE_CODE = YES;
+				CLANG_WARN__DUPLICATE_METHOD_MATCH = YES;
+				CODE_SIGN_IDENTITY = "iPhone Developer";
+				COPY_PHASE_STRIP = NO;
+				DEBUG_INFORMATION_FORMAT = "dwarf-with-dsym";
+				ENABLE_NS_ASSERTIONS = NO;
+				ENABLE_STRICT_OBJC_MSGSEND = YES;
+				GCC_C_LANGUAGE_STANDARD = gnu11;
+				GCC_NO_COMMON_BLOCKS = YES;
+				GCC_WARN_64_TO_32_BIT_CONVERSION = YES;
+				GCC_WARN_ABOUT_RETURN_TYPE = YES_ERROR;
+				GCC_WARN_UNDECLARED_SELECTOR = YES;
+				GCC_WARN_UNINITIALIZED_AUTOS = YES_AGGRESSIVE;
+				GCC_WARN_UNUSED_FUNCTION = YES;
+				GCC_WARN_UNUSED_VARIABLE = YES;
+				IPHONEOS_DEPLOYMENT_TARGET = 15.0;
+				MTL_ENABLE_DEBUG_INFO = NO;
+				PRODUCT_NAME = tutanota;
+				SDKROOT = iphoneos;
+				SWIFT_COMPILATION_MODE = wholemodule;
+				VALIDATE_PRODUCT = YES;
+			};
+			name = "Release Production";
+		};
+		3DC5F5822B89008E0020BD53 /* Release Production */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				ALWAYS_EMBED_SWIFT_STANDARD_LIBRARIES = YES;
+				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
+				CLANG_ENABLE_MODULES = YES;
+				CLANG_WARN_SUSPICIOUS_IMPLICIT_CONVERSION = YES;
+				CODE_SIGN_ENTITLEMENTS = tutanota/tutanota.entitlements;
+				CODE_SIGN_IDENTITY = "iPhone Distribution";
+				CODE_SIGN_STYLE = Manual;
+				DEVELOPMENT_TEAM = JKCH89Z3M9;
+				GCC_PREPROCESSOR_DEFINITIONS = "";
+				"GCC_PREPROCESSOR_DEFINITIONS[arch=*]" = (
+					"SQLITE_HAS_CODEC=1",
+					"OQS_ENABLE_KEM_kyber_1024=1",
+				);
+				HEADER_SEARCH_PATHS = (
+					"\"$(TARGET_BUILD_DIR)/usr/local/lib/include\"",
+					"\"$(BUILT_PRODUCTS_DIR)\"",
+					"\"${PROJECT_DIR}/tutanota/include\"/**",
+				);
+				INFOPLIST_FILE = tutanota/Info.plist;
+				IPHONEOS_DEPLOYMENT_TARGET = 15.0;
+				LD_RUNPATH_SEARCH_PATHS = (
+					"$(inherited)",
+					"@executable_path/Frameworks",
+				);
+				LIBRARY_SEARCH_PATHS = (
+					"$(inherited)",
+					"$(PROJECT_DIR)",
+					"\"$(TARGET_BUILD_DIR)/usr/local/lib/include\"",
+					"$(PROJECT_DIR)/tutanota/Frameworks",
+				);
+				"OTHER_CFLAGS[arch=*]" = (
+					"-DSQLITE_HAS_CODEC",
+					"-DSQLITE_TEMP_STORE=3",
+					"-DSQLCIPHER_CRYPTO_CC",
+					"-DNDEBUG",
+					"-DOQS_ENABLE_KEM_kyber_1024=1",
+					"-DOQS_DIST_BUILD=1",
+					"-DOQS_VERSION_TEXT=\\\"whatever\\\"",
+					"-DKYBER_K=4",
+					"-DOQS_ENABLE_KEM_KYBER=1",
+				);
+				OTHER_LDFLAGS = "";
+				OTHER_SWIFT_FLAGS = "";
+				PRODUCT_BUNDLE_IDENTIFIER = de.tutao.tutanota;
+				PRODUCT_MODULE_NAME = tutanota;
+				PRODUCT_NAME = "Tuta Mail";
+				PROVISIONING_PROFILE = "";
+				PROVISIONING_PROFILE_SPECIFIER = "match AdHoc de.tutao.tutanota";
+				SWIFT_OBJC_BRIDGING_HEADER = "tutanota/Sources/tutanota-Bridging-Header.h";
+				SWIFT_VERSION = 5.0;
+				TARGETED_DEVICE_FAMILY = "1,2";
+			};
+			name = "Release Production";
+		};
+		3DC5F5832B89008E0020BD53 /* Release Production */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				ALWAYS_EMBED_SWIFT_STANDARD_LIBRARIES = YES;
+				BUNDLE_LOADER = "$(TEST_HOST)";
+				CLANG_ENABLE_MODULES = YES;
+				"CODE_SIGN_IDENTITY[sdk=macosx*]" = "Apple Development";
+				CODE_SIGN_STYLE = Automatic;
+				DEVELOPMENT_TEAM = JKCH89Z3M9;
+				HEADER_SEARCH_PATHS = "\"${PROJECT_DIR}/tutanota/include\"/**";
+				INFOPLIST_FILE = tutanotaTests/Info.plist;
+				LD_RUNPATH_SEARCH_PATHS = (
+					"$(inherited)",
+					"@executable_path/Frameworks",
+					"@loader_path/Frameworks",
+				);
+				PRODUCT_BUNDLE_IDENTIFIER = de.tutao.tutanotaTests;
+				PRODUCT_NAME = "$(TARGET_NAME)";
+				SWIFT_OBJC_BRIDGING_HEADER = "tutanotaTests/tutanotaTests-Bridging-Header.h";
+				SWIFT_VERSION = 5.0;
+				TARGETED_DEVICE_FAMILY = "1,2";
+				TEST_HOST = "$(BUILT_PRODUCTS_DIR)/Tuta D.app/$(BUNDLE_EXECUTABLE_FOLDER_PATH)/Tuta D";
+			};
+			name = "Release Production";
+		};
+		3DC5F5842B89008E0020BD53 /* Release Production */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				CLANG_CXX_LANGUAGE_STANDARD = "gnu++17";
+				CODE_SIGN_ENTITLEMENTS = TutanotaShareExtension/TutanotaShareExtension.entitlements;
+				CODE_SIGN_IDENTITY = "iPhone Distribution";
+				CODE_SIGN_STYLE = Manual;
+				CURRENT_PROJECT_VERSION = 1;
+				DEVELOPMENT_TEAM = "";
+				"DEVELOPMENT_TEAM[sdk=iphoneos*]" = JKCH89Z3M9;
+				GENERATE_INFOPLIST_FILE = YES;
+				HEADER_SEARCH_PATHS = "\"${PROJECT_DIR}/tutanota/include\"/**";
+				INFOPLIST_FILE = TutanotaShareExtension/Info.plist;
+				INFOPLIST_KEY_CFBundleDisplayName = TutanotaShareExtension;
+				INFOPLIST_KEY_NSHumanReadableCopyright = "Copyright © 2023 Tutao GmbH. All rights reserved.";
+				IPHONEOS_DEPLOYMENT_TARGET = 15.5;
+				LD_RUNPATH_SEARCH_PATHS = (
+					"$(inherited)",
+					"@executable_path/Frameworks",
+					"@executable_path/../../Frameworks",
+				);
+				MARKETING_VERSION = 3.104.5;
+				MTL_FAST_MATH = YES;
+				PRODUCT_BUNDLE_IDENTIFIER = de.tutao.tutanota.TutanotaShareExtension;
+				PRODUCT_NAME = "$(TARGET_NAME)";
+				PROVISIONING_PROFILE_SPECIFIER = "";
+				"PROVISIONING_PROFILE_SPECIFIER[sdk=iphoneos*]" = "match AdHoc de.tutao.tutanota.TutanotaShareExtension";
+				SKIP_INSTALL = YES;
+				SWIFT_EMIT_LOC_STRINGS = YES;
+				SWIFT_OBJC_BRIDGING_HEADER = "tutanota/Sources/tutanota-Bridging-Header.h";
+				SWIFT_OPTIMIZATION_LEVEL = "-O";
+				SWIFT_VERSION = 5.0;
+				TARGETED_DEVICE_FAMILY = "1,2";
+			};
+			name = "Release Production";
+		};
+		3DC5F5852B89008E0020BD53 /* Release Production */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				ASSETCATALOG_COMPILER_GENERATE_SWIFT_ASSET_SYMBOL_EXTENSIONS = YES;
+				CLANG_CXX_LANGUAGE_STANDARD = "gnu++20";
+				CODE_SIGN_STYLE = Automatic;
+				DEBUG_INFORMATION_FORMAT = "dwarf-with-dsym";
+				ENABLE_USER_SCRIPT_SANDBOXING = YES;
+				GCC_C_LANGUAGE_STANDARD = gnu17;
+				LOCALIZATION_PREFERS_STRING_CATALOGS = YES;
+				MTL_FAST_MATH = YES;
+				OTHER_CFLAGS = "";
+				OTHER_LDFLAGS = "";
+				PRODUCT_NAME = "$(TARGET_NAME)";
+			};
+			name = "Release Production";
+		};
+		3DD4A0A220F8C6260086EB36 /* Debug Development */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				ALWAYS_SEARCH_USER_PATHS = NO;
+				CLANG_ANALYZER_LOCALIZABILITY_NONLOCALIZED = YES;
+				CLANG_ANALYZER_NONNULL = YES;
+				CLANG_ANALYZER_NUMBER_OBJECT_CONVERSION = YES_AGGRESSIVE;
+				CLANG_CXX_LANGUAGE_STANDARD = "gnu++14";
+				CLANG_CXX_LIBRARY = "libc++";
+				CLANG_ENABLE_MODULES = YES;
+				CLANG_ENABLE_OBJC_ARC = YES;
+				CLANG_ENABLE_OBJC_WEAK = YES;
+				CLANG_WARN_BLOCK_CAPTURE_AUTORELEASING = YES;
+				CLANG_WARN_BOOL_CONVERSION = YES;
+				CLANG_WARN_COMMA = YES;
+				CLANG_WARN_CONSTANT_CONVERSION = YES;
+				CLANG_WARN_DEPRECATED_OBJC_IMPLEMENTATIONS = YES;
+				CLANG_WARN_DIRECT_OBJC_ISA_USAGE = YES_ERROR;
+				CLANG_WARN_DOCUMENTATION_COMMENTS = YES;
+				CLANG_WARN_EMPTY_BODY = YES;
+				CLANG_WARN_ENUM_CONVERSION = YES;
+				CLANG_WARN_INFINITE_RECURSION = YES;
+				CLANG_WARN_INT_CONVERSION = YES;
+				CLANG_WARN_NON_LITERAL_NULL_CONVERSION = YES;
+				CLANG_WARN_OBJC_IMPLICIT_RETAIN_SELF = YES;
+				CLANG_WARN_OBJC_LITERAL_CONVERSION = YES;
+				CLANG_WARN_OBJC_ROOT_CLASS = YES_ERROR;
+				CLANG_WARN_QUOTED_INCLUDE_IN_FRAMEWORK_HEADER = YES;
+				CLANG_WARN_RANGE_LOOP_ANALYSIS = YES;
+				CLANG_WARN_STRICT_PROTOTYPES = YES;
+				CLANG_WARN_SUSPICIOUS_MOVE = YES;
+				CLANG_WARN_UNGUARDED_AVAILABILITY = YES_AGGRESSIVE;
+				CLANG_WARN_UNREACHABLE_CODE = YES;
+				CLANG_WARN__DUPLICATE_METHOD_MATCH = YES;
+				CODE_SIGN_IDENTITY = "iPhone Developer";
+				COPY_PHASE_STRIP = NO;
+				DEBUG_INFORMATION_FORMAT = dwarf;
+				ENABLE_STRICT_OBJC_MSGSEND = YES;
+				ENABLE_TESTABILITY = YES;
+				GCC_C_LANGUAGE_STANDARD = gnu11;
+				GCC_DYNAMIC_NO_PIC = NO;
+				GCC_NO_COMMON_BLOCKS = YES;
+				GCC_OPTIMIZATION_LEVEL = 0;
+				GCC_PREPROCESSOR_DEFINITIONS = (
+					"DEBUG=1",
+					"$(inherited)",
+				);
+				GCC_WARN_64_TO_32_BIT_CONVERSION = YES;
+				GCC_WARN_ABOUT_RETURN_TYPE = YES_ERROR;
+				GCC_WARN_UNDECLARED_SELECTOR = YES;
+				GCC_WARN_UNINITIALIZED_AUTOS = YES_AGGRESSIVE;
+				GCC_WARN_UNUSED_FUNCTION = YES;
+				GCC_WARN_UNUSED_VARIABLE = YES;
+				IPHONEOS_DEPLOYMENT_TARGET = 15.0;
+				MTL_ENABLE_DEBUG_INFO = YES;
+				ONLY_ACTIVE_ARCH = YES;
+				"OTHER_SWIFT_FLAGS[arch=*]" = "-D DEBUG";
+				PRODUCT_NAME = tutanota;
+				SDKROOT = iphoneos;
+			};
+			name = "Debug Development";
+		};
+		3DD4A0A320F8C6260086EB36 /* Release Development */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				ALWAYS_SEARCH_USER_PATHS = NO;
+				CLANG_ANALYZER_LOCALIZABILITY_NONLOCALIZED = YES;
+				CLANG_ANALYZER_NONNULL = YES;
+				CLANG_ANALYZER_NUMBER_OBJECT_CONVERSION = YES_AGGRESSIVE;
+				CLANG_CXX_LANGUAGE_STANDARD = "gnu++14";
+				CLANG_CXX_LIBRARY = "libc++";
+				CLANG_ENABLE_MODULES = YES;
+				CLANG_ENABLE_OBJC_ARC = YES;
+				CLANG_ENABLE_OBJC_WEAK = YES;
+				CLANG_WARN_BLOCK_CAPTURE_AUTORELEASING = YES;
+				CLANG_WARN_BOOL_CONVERSION = YES;
+				CLANG_WARN_COMMA = YES;
+				CLANG_WARN_CONSTANT_CONVERSION = YES;
+				CLANG_WARN_DEPRECATED_OBJC_IMPLEMENTATIONS = YES;
+				CLANG_WARN_DIRECT_OBJC_ISA_USAGE = YES_ERROR;
+				CLANG_WARN_DOCUMENTATION_COMMENTS = YES;
+				CLANG_WARN_EMPTY_BODY = YES;
+				CLANG_WARN_ENUM_CONVERSION = YES;
+				CLANG_WARN_INFINITE_RECURSION = YES;
+				CLANG_WARN_INT_CONVERSION = YES;
+				CLANG_WARN_NON_LITERAL_NULL_CONVERSION = YES;
+				CLANG_WARN_OBJC_IMPLICIT_RETAIN_SELF = YES;
+				CLANG_WARN_OBJC_LITERAL_CONVERSION = YES;
+				CLANG_WARN_OBJC_ROOT_CLASS = YES_ERROR;
+				CLANG_WARN_QUOTED_INCLUDE_IN_FRAMEWORK_HEADER = YES;
+				CLANG_WARN_RANGE_LOOP_ANALYSIS = YES;
+				CLANG_WARN_STRICT_PROTOTYPES = YES;
+				CLANG_WARN_SUSPICIOUS_MOVE = YES;
+				CLANG_WARN_UNGUARDED_AVAILABILITY = YES_AGGRESSIVE;
+				CLANG_WARN_UNREACHABLE_CODE = YES;
+				CLANG_WARN__DUPLICATE_METHOD_MATCH = YES;
+				CODE_SIGN_IDENTITY = "iPhone Developer";
+				COPY_PHASE_STRIP = NO;
+				DEBUG_INFORMATION_FORMAT = "dwarf-with-dsym";
+				ENABLE_NS_ASSERTIONS = NO;
+				ENABLE_STRICT_OBJC_MSGSEND = YES;
+				GCC_C_LANGUAGE_STANDARD = gnu11;
+				GCC_NO_COMMON_BLOCKS = YES;
+				GCC_WARN_64_TO_32_BIT_CONVERSION = YES;
+				GCC_WARN_ABOUT_RETURN_TYPE = YES_ERROR;
+				GCC_WARN_UNDECLARED_SELECTOR = YES;
+				GCC_WARN_UNINITIALIZED_AUTOS = YES_AGGRESSIVE;
+				GCC_WARN_UNUSED_FUNCTION = YES;
+				GCC_WARN_UNUSED_VARIABLE = YES;
+				IPHONEOS_DEPLOYMENT_TARGET = 15.0;
+				MTL_ENABLE_DEBUG_INFO = NO;
+				PRODUCT_NAME = tutanota;
+				SDKROOT = iphoneos;
+				SWIFT_COMPILATION_MODE = wholemodule;
+				VALIDATE_PRODUCT = YES;
+			};
+			name = "Release Development";
+		};
+		3DD4A0A520F8C6260086EB36 /* Debug Development */ = {
 			isa = XCBuildConfiguration;
 			buildSettings = {
 				ALWAYS_EMBED_SWIFT_STANDARD_LIBRARIES = YES;
@@ -3080,8 +3910,9 @@
 				OTHER_LDFLAGS = "";
 				OTHER_SWIFT_FLAGS = "";
 				"OTHER_SWIFT_FLAGS[arch=*]" = "-D DEBUG";
-				PRODUCT_BUNDLE_IDENTIFIER = de.tutao.tutanota;
-				PRODUCT_NAME = "$(TARGET_NAME)";
+				PRODUCT_BUNDLE_IDENTIFIER = de.tutao.tutanota.debug;
+				PRODUCT_MODULE_NAME = tutanota;
+				PRODUCT_NAME = "Tuta D";
 				PROVISIONING_PROFILE = "";
 				PROVISIONING_PROFILE_SPECIFIER = "";
 				SWIFT_OBJC_BRIDGING_HEADER = "tutanota/Sources/tutanota-Bridging-Header.h";
@@ -3089,9 +3920,9 @@
 				SWIFT_VERSION = 5.0;
 				TARGETED_DEVICE_FAMILY = "1,2";
 			};
-			name = Debug;
+			name = "Debug Development";
 		};
-		3DD4A0A620F8C6260086EB36 /* Release */ = {
+		3DD4A0A620F8C6260086EB36 /* Release Development */ = {
 			isa = XCBuildConfiguration;
 			buildSettings = {
 				ALWAYS_EMBED_SWIFT_STANDARD_LIBRARIES = YES;
@@ -3137,17 +3968,18 @@
 				);
 				OTHER_LDFLAGS = "";
 				OTHER_SWIFT_FLAGS = "";
-				PRODUCT_BUNDLE_IDENTIFIER = de.tutao.tutanota;
-				PRODUCT_NAME = "$(TARGET_NAME)";
+				PRODUCT_BUNDLE_IDENTIFIER = de.tutao.tutanota.debug;
+				PRODUCT_MODULE_NAME = tutanota;
+				PRODUCT_NAME = "Tuta D";
 				PROVISIONING_PROFILE = "";
 				PROVISIONING_PROFILE_SPECIFIER = "match AdHoc de.tutao.tutanota";
 				SWIFT_OBJC_BRIDGING_HEADER = "tutanota/Sources/tutanota-Bridging-Header.h";
 				SWIFT_VERSION = 5.0;
 				TARGETED_DEVICE_FAMILY = "1,2";
 			};
-			name = Release;
+			name = "Release Development";
 		};
-		3DD4A0A820F8C6260086EB36 /* Debug */ = {
+		3DD4A0A820F8C6260086EB36 /* Debug Development */ = {
 			isa = XCBuildConfiguration;
 			buildSettings = {
 				ALWAYS_EMBED_SWIFT_STANDARD_LIBRARIES = YES;
@@ -3169,11 +4001,11 @@
 				SWIFT_OPTIMIZATION_LEVEL = "-Onone";
 				SWIFT_VERSION = 5.0;
 				TARGETED_DEVICE_FAMILY = "1,2";
-				TEST_HOST = "$(BUILT_PRODUCTS_DIR)/tutanota.app/tutanota";
+				TEST_HOST = "$(BUILT_PRODUCTS_DIR)/Tuta D.app/$(BUNDLE_EXECUTABLE_FOLDER_PATH)/Tuta D";
 			};
-			name = Debug;
+			name = "Debug Development";
 		};
-		3DD4A0A920F8C6260086EB36 /* Release */ = {
+		3DD4A0A920F8C6260086EB36 /* Release Development */ = {
 			isa = XCBuildConfiguration;
 			buildSettings = {
 				ALWAYS_EMBED_SWIFT_STANDARD_LIBRARIES = YES;
@@ -3194,11 +4026,11 @@
 				SWIFT_OBJC_BRIDGING_HEADER = "tutanotaTests/tutanotaTests-Bridging-Header.h";
 				SWIFT_VERSION = 5.0;
 				TARGETED_DEVICE_FAMILY = "1,2";
-				TEST_HOST = "$(BUILT_PRODUCTS_DIR)/tutanota.app/tutanota";
+				TEST_HOST = "$(BUILT_PRODUCTS_DIR)/Tuta D.app/$(BUNDLE_EXECUTABLE_FOLDER_PATH)/Tuta D";
 			};
-			name = Release;
+			name = "Release Development";
 		};
-		3DEF18FC2924E1F1009C4B55 /* Debug */ = {
+		3DEF18FC2924E1F1009C4B55 /* Debug Development */ = {
 			isa = XCBuildConfiguration;
 			buildSettings = {
 				CLANG_CXX_LANGUAGE_STANDARD = "gnu++17";
@@ -3221,7 +4053,7 @@
 				MARKETING_VERSION = 3.104.5;
 				MTL_ENABLE_DEBUG_INFO = INCLUDE_SOURCE;
 				MTL_FAST_MATH = YES;
-				PRODUCT_BUNDLE_IDENTIFIER = de.tutao.tutanota.TutanotaShareExtension;
+				PRODUCT_BUNDLE_IDENTIFIER = de.tutao.tutanota.debug.TutanotaShareExtension;
 				PRODUCT_NAME = "$(TARGET_NAME)";
 				SKIP_INSTALL = YES;
 				SWIFT_ACTIVE_COMPILATION_CONDITIONS = DEBUG;
@@ -3231,9 +4063,9 @@
 				SWIFT_VERSION = 5.0;
 				TARGETED_DEVICE_FAMILY = "1,2";
 			};
-			name = Debug;
+			name = "Debug Development";
 		};
-		3DEF18FD2924E1F1009C4B55 /* Release */ = {
+		3DEF18FD2924E1F1009C4B55 /* Release Development */ = {
 			isa = XCBuildConfiguration;
 			buildSettings = {
 				CLANG_CXX_LANGUAGE_STANDARD = "gnu++17";
@@ -3256,7 +4088,7 @@
 				);
 				MARKETING_VERSION = 3.104.5;
 				MTL_FAST_MATH = YES;
-				PRODUCT_BUNDLE_IDENTIFIER = de.tutao.tutanota.TutanotaShareExtension;
+				PRODUCT_BUNDLE_IDENTIFIER = de.tutao.tutanota.debug.TutanotaShareExtension;
 				PRODUCT_NAME = "$(TARGET_NAME)";
 				PROVISIONING_PROFILE_SPECIFIER = "";
 				"PROVISIONING_PROFILE_SPECIFIER[sdk=iphoneos*]" = "match AdHoc de.tutao.tutanota.TutanotaShareExtension";
@@ -3267,7 +4099,7 @@
 				SWIFT_VERSION = 5.0;
 				TARGETED_DEVICE_FAMILY = "1,2";
 			};
-			name = Release;
+			name = "Release Development";
 		};
 /* End XCBuildConfiguration section */
 
@@ -3275,47 +4107,67 @@
 		3D6715302B4410B300E26D7D /* Build configuration list for PBXLegacyTarget "liboqs header setup" */ = {
 			isa = XCConfigurationList;
 			buildConfigurations = (
-				3D67152E2B4410B300E26D7D /* Debug */,
-				3D67152F2B4410B300E26D7D /* Release */,
+				3D67152E2B4410B300E26D7D /* Debug Development */,
+				3DC5F57B2B8900880020BD53 /* Debug Staging */,
+				3DC5F5762B8900860020BD53 /* Debug Production */,
+				3D67152F2B4410B300E26D7D /* Release Development */,
+				3DC5F5802B89008C0020BD53 /* Release Staging */,
+				3DC5F5852B89008E0020BD53 /* Release Production */,
 			);
 			defaultConfigurationIsVisible = 0;
-			defaultConfigurationName = Release;
+			defaultConfigurationName = "Release Development";
 		};
 		3DD4A07E20F8C6240086EB36 /* Build configuration list for PBXProject "tutanota" */ = {
 			isa = XCConfigurationList;
 			buildConfigurations = (
-				3DD4A0A220F8C6260086EB36 /* Debug */,
-				3DD4A0A320F8C6260086EB36 /* Release */,
+				3DD4A0A220F8C6260086EB36 /* Debug Development */,
+				3DC5F5772B8900880020BD53 /* Debug Staging */,
+				3DC5F5722B8900860020BD53 /* Debug Production */,
+				3DD4A0A320F8C6260086EB36 /* Release Development */,
+				3DC5F57C2B89008C0020BD53 /* Release Staging */,
+				3DC5F5812B89008E0020BD53 /* Release Production */,
 			);
 			defaultConfigurationIsVisible = 0;
-			defaultConfigurationName = Release;
+			defaultConfigurationName = "Release Development";
 		};
 		3DD4A0A420F8C6260086EB36 /* Build configuration list for PBXNativeTarget "tutanota" */ = {
 			isa = XCConfigurationList;
 			buildConfigurations = (
-				3DD4A0A520F8C6260086EB36 /* Debug */,
-				3DD4A0A620F8C6260086EB36 /* Release */,
+				3DD4A0A520F8C6260086EB36 /* Debug Development */,
+				3DC5F5782B8900880020BD53 /* Debug Staging */,
+				3DC5F5732B8900860020BD53 /* Debug Production */,
+				3DD4A0A620F8C6260086EB36 /* Release Development */,
+				3DC5F57D2B89008C0020BD53 /* Release Staging */,
+				3DC5F5822B89008E0020BD53 /* Release Production */,
 			);
 			defaultConfigurationIsVisible = 0;
-			defaultConfigurationName = Release;
+			defaultConfigurationName = "Release Development";
 		};
 		3DD4A0A720F8C6260086EB36 /* Build configuration list for PBXNativeTarget "tutanotaTests" */ = {
 			isa = XCConfigurationList;
 			buildConfigurations = (
-				3DD4A0A820F8C6260086EB36 /* Debug */,
-				3DD4A0A920F8C6260086EB36 /* Release */,
+				3DD4A0A820F8C6260086EB36 /* Debug Development */,
+				3DC5F5792B8900880020BD53 /* Debug Staging */,
+				3DC5F5742B8900860020BD53 /* Debug Production */,
+				3DD4A0A920F8C6260086EB36 /* Release Development */,
+				3DC5F57E2B89008C0020BD53 /* Release Staging */,
+				3DC5F5832B89008E0020BD53 /* Release Production */,
 			);
 			defaultConfigurationIsVisible = 0;
-			defaultConfigurationName = Release;
+			defaultConfigurationName = "Release Development";
 		};
 		3DEF18FB2924E1F1009C4B55 /* Build configuration list for PBXNativeTarget "TutanotaShareExtension" */ = {
 			isa = XCConfigurationList;
 			buildConfigurations = (
-				3DEF18FC2924E1F1009C4B55 /* Debug */,
-				3DEF18FD2924E1F1009C4B55 /* Release */,
+				3DEF18FC2924E1F1009C4B55 /* Debug Development */,
+				3DC5F57A2B8900880020BD53 /* Debug Staging */,
+				3DC5F5752B8900860020BD53 /* Debug Production */,
+				3DEF18FD2924E1F1009C4B55 /* Release Development */,
+				3DC5F57F2B89008C0020BD53 /* Release Staging */,
+				3DC5F5842B89008E0020BD53 /* Release Production */,
 			);
 			defaultConfigurationIsVisible = 0;
-			defaultConfigurationName = Release;
+			defaultConfigurationName = "Release Development";
 		};
 /* End XCConfigurationList section */
 

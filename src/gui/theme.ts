@@ -94,6 +94,25 @@ if (selectedThemeFacade instanceof WebThemeFacade) {
 // We keep this singleton available because it is convenient to refer to, and already everywhere in the code before the addition of ThemeController.
 export const theme = themeSingleton as Theme
 
+export const themeOptions = [
+	{
+		name: "systemThemePref_label",
+		value: "auto:light|dark",
+	},
+	{
+		name: "light_label",
+		value: "light",
+	},
+	{
+		name: "dark_label",
+		value: "dark",
+	},
+	{
+		name: "blue_label",
+		value: "blue",
+	},
+] as const
+
 export function getContentButtonIconBackground(): string {
 	return theme.content_button_icon_bg || theme.content_button // fallback for the new color content_button_icon_bg
 }

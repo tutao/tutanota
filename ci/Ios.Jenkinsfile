@@ -14,7 +14,7 @@ pipeline {
 			name: 'RELEASE',
 			defaultValue: false,
 			description: "Build testing and production version, and upload them to nexus/testflight/appstore. " +
-				"The production version will need to be released manually from appstoreconnect.apple.com"
+				"The production version will need to be released manually from appstoreconnect.apple.com."
 		)
 		persistentText(
 			name: "releaseNotes",
@@ -34,7 +34,7 @@ pipeline {
     	}
 		stage("Run tests") {
 			agent {
-				label 'mac'
+				label 'mac-intel'
 			}
 			environment {
 				LC_ALL = "en_US.UTF-8"
@@ -57,25 +57,31 @@ pipeline {
 				LANG = "en_US.UTF-8"
 			}
 			agent {
-				label 'mac'
+				label 'mac-intel'
 			}
 			stages {
-				stage('Testing') {
+				stage('Staging') {
 					steps {
 						script {
-							script {
-								doBuild('test', 'adhoctest', false)
-								stash includes: "app-ios/releases/tutanota-${VERSION}-test.ipa", name: 'ipa-testing'
+							buildWebapp("test")
+							runFastlane("de.tutao.tutanota.test", "adhoc_staging")
+							if (params.RELEASE) {
+								runFastlane("de.tutao.tautano.test", "testflight_staging")
 							}
+							stash includes: "app-ios/releases/tutanota-${VERSION}-adhoc-test.ipa", name: 'ipa-testing'
 						}
 					}
 				}
 				stage('Production') {
 					steps {
 						script {
-							doBuild('prod', 'adhoc', params.RELEASE)
+							buildWebapp("prod")
+							runFastlane("de.tutao.tutanota", "adhoc_prod")
+							if (params.RELEASE) {
+								writeReleaseNotesForAppStore()
+								runFastlane("de.tutao.tautanota", "appstore_prod submit:true")
+							}
 							stash includes: "app-ios/releases/tutanota-${VERSION}-adhoc.ipa", name: 'ipa-production'
-
 						}
 					}
 				}
@@ -100,7 +106,7 @@ pipeline {
 
 					script {
 						catchError(stageResult: 'UNSTABLE', buildResult: 'SUCCESS', message: 'There was an error when uploading to Nexus') {
-							publishToNexus("ios-test", "tutanota-${VERSION}-test.ipa")
+							publishToNexus("ios-test", "tutanota-${VERSION}-adhoc-test.ipa")
 							publishToNexus("ios", "tutanota-${VERSION}-adhoc.ipa")
 						}
 					}
@@ -140,26 +146,18 @@ pipeline {
 	}
 }
 
-void doBuild(String stage, String lane, boolean publishToAppStore) {
-
-	// Prepare the fastlane Appfile which defines the required ids for the ios app build.
+void buildWebapp(String stage) {
 	script {
-		def app_identifier = 'de.tutao.tutanota'
-		def appfile = './app-ios/fastlane/Appfile'
-
-		sh "echo \"app_identifier('${app_identifier}')\" > ${appfile}"
-
-		withCredentials([string(credentialsId: 'apple-id', variable: 'apple_id')]) {
-			sh "echo \"apple_id('${apple_id}')\" >> ${appfile}"
-		}
-		withCredentials([string(credentialsId: 'itc-team-id', variable: 'itc_team_id')]) {
-			sh "echo \"itc_team_id('${itc_team_id}')\" >> ${appfile}"
-		}
-		withCredentials([string(credentialsId: 'team-id', variable: 'team_id')]) {
-			sh "echo \"team_id('${team_id}')\" >> ${appfile}"
-		}
+		sh "pwd"
+		sh "echo $PATH"
+    	sh "npm ci"
+    	sh 'npm run build-packages'
+    	sh "node --max-old-space-size=8192 webapp ${stage}"
+    	sh "node buildSrc/prepareMobileBuild.js dist"
 	}
+}
 
+void writeReleaseNotesForAppStore() {
 	script {
 		catchError(stageResult: 'UNSTABLE', buildResult: 'SUCCESS', message: 'Failed to create github release notes for ios') {
 			// need to run npm ci to install dependencies of releaseNotes.js
@@ -176,13 +174,25 @@ void doBuild(String stage, String lane, boolean publishToAppStore) {
 	}
 
 	sh "echo Created release notes for fastlane ${RELEASE_NOTES_PATH}"
-	sh "pwd"
+}
 
-	sh "echo $PATH"
-	sh "npm ci"
-	sh 'npm run build-packages'
-	sh "node --max-old-space-size=8192 webapp ${stage}"
-	sh "node buildSrc/prepareMobileBuild.js dist"
+void runFastlane(String app_identifier, String  lane) {
+	// Prepare the fastlane Appfile which defines the required ids for the ios app build.
+	script {
+		def appfile = './app-ios/fastlane/Appfile'
+
+		sh "echo \"app_identifier('${app_identifier}')\" > ${appfile}"
+
+		withCredentials([string(credentialsId: 'apple-id', variable: 'apple_id')]) {
+			sh "echo \"apple_id('${apple_id}')\" >> ${appfile}"
+		}
+		withCredentials([string(credentialsId: 'itc-team-id', variable: 'itc_team_id')]) {
+			sh "echo \"itc_team_id('${itc_team_id}')\" >> ${appfile}"
+		}
+		withCredentials([string(credentialsId: 'team-id', variable: 'team_id')]) {
+			sh "echo \"team_id('${team_id}')\" >> ${appfile}"
+		}
+	}
 
 	withCredentials([
 			file(credentialsId: 'appstore-api-key-json', variable: "API_KEY_JSON_FILE_PATH"),
@@ -194,11 +204,10 @@ void doBuild(String stage, String lane, boolean publishToAppStore) {
 		dir('app-ios') {
 			sh "security unlock-keychain -p ${FASTLANE_KEYCHAIN_PASSWORD}"
 
-			// Set git ssh command to avoid ssh prompting to confirm an unknown host
-			// (since we don't have console access we can't confirm and it gets stuck)
-			sh "GIT_SSH_COMMAND=\"ssh -o UserKnownHostsFile=/dev/null -o StrictHostKeyChecking=no\" fastlane ${lane}"
-			if (publishToAppStore) {
-				sh "GIT_SSH_COMMAND=\"ssh -o UserKnownHostsFile=/dev/null -o StrictHostKeyChecking=no\" fastlane release submit:true"
+			script {
+				// Set git ssh command to avoid ssh prompting to confirm an unknown host
+				// (since we don't have console access we can't confirm and it gets stuck)
+				sh "GIT_SSH_COMMAND=\"ssh -o UserKnownHostsFile=/dev/null -o StrictHostKeyChecking=no\" fastlane ${lane}"
 			}
 		}
 	}

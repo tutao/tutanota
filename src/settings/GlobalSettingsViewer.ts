@@ -179,7 +179,8 @@ export class GlobalSettingsViewer implements UpdatableSettingsViewer {
 				m(".mt-l", [
 					m(".h4", lang.get("security_title")),
 					m(DropDownSelector, {
-						label: "saveEncryptedIpAddress_label",
+						label: "saveEncryptedIpAddress_title",
+						helpLabel: () => lang.get("saveEncryptedIpAddress_label"),
 						selectedValue: this.saveIpAddress,
 						selectionChangedHandler: (value) => {
 							const newProps = Object.assign({}, this.props(), {

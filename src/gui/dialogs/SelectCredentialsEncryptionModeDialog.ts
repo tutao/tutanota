@@ -2,9 +2,9 @@ import { CredentialEncryptionMode } from "../../misc/credentials/CredentialEncry
 import { Dialog, DialogType } from "../base/Dialog"
 import type { CredentialsProvider } from "../../misc/credentials/CredentialsProvider.js"
 import m, { Children, Component, Vnode } from "mithril"
-import { lang } from "../../misc/LanguageViewModel"
+import { lang, TranslationKey } from "../../misc/LanguageViewModel"
 import { DialogHeaderBar } from "../base/DialogHeaderBar"
-import type { RadioSelectorOption } from "../base/RadioSelector"
+import type { RadioSelectorAttrs, RadioSelectorOption } from "../base/RadioSelector"
 import { RadioSelector } from "../base/RadioSelector"
 import { ButtonType } from "../base/Button.js"
 import { CredentialAuthenticationError } from "../../api/common/error/CredentialAuthenticationError"
@@ -17,7 +17,7 @@ import { CancelledError } from "../../api/common/error/CancelledError.js"
 import { Keys } from "../../api/common/TutanotaConstants.js"
 import { BaseButton } from "../base/buttons/BaseButton.js"
 
-const DEFAULT_MODE = CredentialEncryptionMode.DEVICE_LOCK
+export const DEFAULT_CREDENTIAL_ENCRYPTION_MODE = CredentialEncryptionMode.DEVICE_LOCK
 
 export async function showCredentialsEncryptionModeDialog(credentialsProvider: CredentialsProvider): Promise<void> {
 	await CredentialEncryptionMethodDialog.showAndWaitForSelection(credentialsProvider)
@@ -51,28 +51,24 @@ class CredentialEncryptionMethodDialog {
 				return m("", [
 					// Only allow skipping if it's first time user selects mode (not from settings)
 					previousSelection == null
-						? m(
-								".dialog-header.plr-l",
-								m(DialogHeaderBar, {
-									left: () => [
-										{
-											label: "skip_action",
-											click: () => this._onModeSelected(DEFAULT_MODE),
-											type: ButtonType.Secondary,
-										} as const,
-									],
-								}),
-						  )
+						? m(DialogHeaderBar, {
+								left: () => [
+									{
+										label: "skip_action",
+										click: () => this._onModeSelected(DEFAULT_CREDENTIAL_ENCRYPTION_MODE),
+										type: ButtonType.Secondary,
+									} as const,
+								],
+						  })
 						: null,
-					m(
-						".rel",
-						m(SelectCredentialsEncryptionModeView, {
-							error: this._error,
-							onModeSelected: (mode) => this._onModeSelected(mode),
-							supportedModes: this._supportedModes,
-							previousSelection: this._previousSelection ?? DEFAULT_MODE,
-						}),
-					),
+					m(SelectCredentialsEncryptionModeView, {
+						isWithHelpText: true,
+						class: "scroll pt plr-l mb-xxl height-100p",
+						error: this._error,
+						onConfirm: (mode) => this._onModeSelected(mode),
+						supportedModes: this._supportedModes,
+						previousSelection: this._previousSelection ?? DEFAULT_CREDENTIAL_ENCRYPTION_MODE,
+					}),
 				])
 			},
 		}).addShortcut({
@@ -124,13 +120,16 @@ class CredentialEncryptionMethodDialog {
 }
 
 type SelectCredentialEncryptionModeDialogAttrs = {
+	class?: string
+	isWithHelpText: boolean
 	previousSelection: CredentialEncryptionMode
-	onModeSelected: (arg0: CredentialEncryptionMode) => unknown
+	onConfirm: ((encryptionMode: CredentialEncryptionMode) => unknown) | null
 	supportedModes: ReadonlyArray<CredentialEncryptionMode>
 	error: string | null
+	onModeSelected?: (mode: CredentialEncryptionMode) => unknown
 }
 
-class SelectCredentialsEncryptionModeView implements Component<SelectCredentialEncryptionModeDialogAttrs> {
+export class SelectCredentialsEncryptionModeView implements Component<SelectCredentialEncryptionModeDialogAttrs> {
 	_currentMode: CredentialEncryptionMode
 
 	constructor({ attrs }: Vnode<SelectCredentialEncryptionModeDialogAttrs>) {
@@ -138,17 +137,14 @@ class SelectCredentialsEncryptionModeView implements Component<SelectCredentialE
 	}
 
 	view({ attrs }: Vnode<SelectCredentialEncryptionModeDialogAttrs>): Children {
-		const options = this._getSupportedOptions(attrs)
+		const options = this.getSupportedOptions(attrs)
 
+		const { onConfirm } = attrs
 		return [
 			m(
-				".flex.col.pt.scroll.plr-l",
+				".flex.col",
 				{
-					style: {
-						position: "relative",
-						height: "100%",
-						paddingBottom: "64px", // Padding to not overlap the button below
-					},
+					class: attrs.class,
 				},
 				[
 					attrs.error ? m(".small.center.statusTextColor.pb-s", liveDataAttrs(), attrs.error) : null,
@@ -156,41 +152,41 @@ class SelectCredentialsEncryptionModeView implements Component<SelectCredentialE
 					m(
 						".mt",
 						m(RadioSelector, {
+							name: "credentialsEncryptionMode_label",
 							options,
 							selectedOption: this._currentMode,
 							onOptionSelected: (mode: CredentialEncryptionMode) => {
 								this._currentMode = mode
+								attrs.onModeSelected?.(mode)
 							},
-						}),
+						} satisfies RadioSelectorAttrs<CredentialEncryptionMode>),
 					),
 				],
 			),
-			this.renderSelectButton(() => attrs.onModeSelected(this._currentMode)),
+			onConfirm ? this.renderSelectButton(() => onConfirm(this._currentMode)) : null,
 		]
 	}
 
-	_getSupportedOptions(attrs: SelectCredentialEncryptionModeDialogAttrs): Array<RadioSelectorOption<CredentialEncryptionMode>> {
+	private getSupportedOptions(attrs: SelectCredentialEncryptionModeDialogAttrs): Array<RadioSelectorOption<CredentialEncryptionMode>> {
+		const generateOption = (
+			name: TranslationKey,
+			value: CredentialEncryptionMode,
+			helpText: TranslationKey,
+		): RadioSelectorOption<CredentialEncryptionMode> => ({
+			name,
+			value,
+			helpText: attrs.isWithHelpText ? helpText : undefined,
+		})
+
 		const options = [
-			{
-				name: "credentialsEncryptionModeDeviceLock_label",
-				value: CredentialEncryptionMode.DEVICE_LOCK,
-				helpText: "credentialsEncryptionModeDeviceLockHelp_msg",
-			},
-			{
-				name: "credentialsEncryptionModeDeviceCredentials_label",
-				value: CredentialEncryptionMode.SYSTEM_PASSWORD,
-				helpText: "credentialsEncryptionModeDeviceCredentialsHelp_msg",
-			},
-			{
-				name: "credentialsEncryptionModeBiometrics_label",
-				value: CredentialEncryptionMode.BIOMETRICS,
-				helpText: "credentialsEncryptionModeBiometricsHelp_msg",
-			},
-			{
-				name: "credentialsEncryptionModeAppPassword_label",
-				value: CredentialEncryptionMode.APP_PASSWORD,
-				helpText: "credentialsEncryptionModeAppPasswordHelp_msg",
-			},
+			generateOption("credentialsEncryptionModeDeviceLock_label", CredentialEncryptionMode.DEVICE_LOCK, "credentialsEncryptionModeDeviceLockHelp_msg"),
+			generateOption(
+				"credentialsEncryptionModeDeviceCredentials_label",
+				CredentialEncryptionMode.SYSTEM_PASSWORD,
+				"credentialsEncryptionModeDeviceCredentialsHelp_msg",
+			),
+			generateOption("credentialsEncryptionModeBiometrics_label", CredentialEncryptionMode.BIOMETRICS, "credentialsEncryptionModeBiometricsHelp_msg"),
+			generateOption("credentialsEncryptionModeAppPassword_label", CredentialEncryptionMode.APP_PASSWORD, "credentialsEncryptionModeAppPasswordHelp_msg"),
 		] as const
 		return options.filter((option) => attrs.supportedModes.includes(option.value))
 	}

@@ -26,7 +26,20 @@ import { ContactModel } from "../../contacts/model/ContactModel"
 import { ConfigurationDatabase } from "../../api/worker/facades/lazy/ConfigurationDatabase.js"
 import { InlineImages } from "./MailViewer"
 import stream from "mithril/stream"
-import { addAll, assertNonNull, contains, downcast, filterInt, first, neverNull, noOp, ofClass, startsWith } from "@tutao/tutanota-utils"
+import {
+	addAll,
+	assertNonNull,
+	contains,
+	downcast,
+	filterInt,
+	first,
+	lazyAsync,
+	neverNull,
+	noOp,
+	ofClass,
+	startsWith,
+	utf8Uint8ArrayToString,
+} from "@tutao/tutanota-utils"
 import { lang } from "../../misc/LanguageViewModel"
 import {
 	getDefaultSender,
@@ -72,7 +85,8 @@ import { MailFacade } from "../../api/worker/facades/lazy/MailFacade.js"
 import { EntityUpdateData, isUpdateForTypeRef } from "../../api/common/utils/EntityUpdateUtils.js"
 import { isOfflineError } from "../../api/common/utils/ErrorUtils.js"
 import { CryptoFacade } from "../../api/worker/crypto/CryptoFacade.js"
-import { ExposedCacheStorage } from "../../api/worker/rest/DefaultEntityRestCache.js"
+import { AttachmentType, getAttachmentType } from "../../gui/AttachmentBubble.js"
+import type { ContactImporter } from "../../contacts/ContactImporter.js"
 
 export const enum ContentBlockingStatus {
 	Block = "0",
@@ -138,6 +152,7 @@ export class MailViewerViewModel {
 		private readonly searchModel: SearchModel,
 		private readonly mailFacade: MailFacade,
 		private readonly cryptoFacade: CryptoFacade,
+		private readonly contactImporter: lazyAsync<ContactImporter>,
 	) {
 		this.folderMailboxText = null
 		if (showFolder) {
@@ -1041,6 +1056,31 @@ export class MailViewerViewModel {
 				await Dialog.message("errorDuringFileOpen_msg")
 			}
 		}
+	}
+
+	async importAttachment(file: TutanotaFile) {
+		if (getAttachmentType(file.mimeType ?? "") === AttachmentType.CONTACT) {
+			await this.importContacts(file)
+		}
+	}
+
+	private async importContacts(file: TutanotaFile) {
+		file = (await this.cryptoFacade.enforceSessionKeyUpdateIfNeeded(this._mail, [file]))[0]
+		try {
+			const dataFile = await this.fileController.getAsDataFile(file)
+			const contactListId = await this.contactModel.getContactListId()
+			// this shouldn't happen but if it did we can just bail
+			if (contactListId == null) return
+			const contactImporter = await this.contactImporter()
+			await contactImporter.importContactsFromFile(utf8Uint8ArrayToString(dataFile.data), contactListId)
+		} catch (e) {
+			console.log(e)
+			throw new UserError("errorDuringFileOpen_msg")
+		}
+	}
+
+	canImportFile(file: TutanotaFile): boolean {
+		return this.logins.isInternalUserLoggedIn() && file.mimeType != null && getAttachmentType(file.mimeType) === AttachmentType.CONTACT
 	}
 
 	canReplyAll(): boolean {

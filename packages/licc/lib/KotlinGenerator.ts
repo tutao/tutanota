@@ -212,9 +212,20 @@ export class KotlinGenerator implements LangGenerator {
 
 	generateEnum({ name, values, doc }: EnumDefinition): string {
 		return new Accumulator()
+			.do((acc) => KotlinGenerator.generateImports(acc))
 			.do((acc) => this.generateDocComment(acc, doc))
+			.line("@Serializable")
 			.line(`enum class ${name} {`)
-			.indented((acc) => acc.lines(values.map((value) => `${camelCaseToSnakeCase(value).toUpperCase()},`))) // enums are SCREAMING_SNAKE_CASE
+			.indented((acc) => {
+				const finalValue = values.length - 1
+				for (let i = 0; i < finalValue; i++) {
+					acc.line(`@SerialName("${i}")`)
+					acc.line(`${camelCaseToSnakeCase(values[i]).toUpperCase()},`) // enums are SCREAMING_SNAKE_CASE
+					acc.line()
+				}
+				acc.line(`@SerialName("${finalValue}")`)
+				acc.line(`${camelCaseToSnakeCase(values[finalValue]).toUpperCase()};`)
+			})
 			.line("}")
 			.finish()
 	}

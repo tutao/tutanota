@@ -113,7 +113,8 @@ export class Dialog implements ModalComponent {
 
 		this.view = (): Children => {
 			const marginPx = px(size.hpad)
-			const sidesMargin = styles.isSingleColumnLayout() && dialogType === DialogType.EditLarge ? "4px" : marginPx
+			const isEditLarge = dialogType === DialogType.EditLarge
+			const sidesMargin = styles.isSingleColumnLayout() && isEditLarge ? "4px" : marginPx
 			return m(
 				this._getDialogWrapperClasses(dialogType),
 				{
@@ -128,14 +129,14 @@ export class Dialog implements ModalComponent {
 				 * here because otherwise the content of the dialog may make this wrapper grow bigger outside
 				 * the window on some browsers, e.g. upgrade reminder on Firefox mobile */
 				m(
-					".flex.justify-center.align-self-stretch.rel.overflow-hidden" + (dialogType === DialogType.EditLarge ? ".flex-grow" : ".transition-margin"),
+					".flex.justify-center.align-self-stretch.rel.overflow-hidden" + (isEditLarge ? ".flex-grow" : ".transition-margin"),
 					{
 						// controls horizontal alignment
 						style: {
 							marginTop: marginPx,
 							marginLeft: sidesMargin,
 							marginRight: sidesMargin,
-							"margin-bottom": Dialog._keyboardHeight > 0 ? px(Dialog._keyboardHeight) : dialogType === DialogType.EditLarge ? 0 : marginPx,
+							"margin-bottom": Dialog._keyboardHeight > 0 ? px(Dialog._keyboardHeight) : isEditLarge ? 0 : marginPx,
 						},
 					},
 					[
@@ -152,7 +153,7 @@ export class Dialog implements ModalComponent {
 									this._domDialog = vnode.dom as HTMLElement
 									let animation: AnimationPromise | null = null
 
-									if (dialogType === DialogType.EditLarge) {
+									if (isEditLarge) {
 										this._domDialog.style.transform = `translateY(${window.innerHeight}px)`
 										animation = animations.add(this._domDialog, transform(TransformEnum.TranslateY, window.innerHeight, 0))
 									} else {
@@ -181,6 +182,12 @@ export class Dialog implements ModalComponent {
 										this._focusOnLoadFunction(assertNotNull(this._domDialog))
 
 										this._wasFocusOnLoadCalled = true
+
+										// Fall back to the CSS classes after completing the opening animation.
+										// Because `bgcolor` is only calculated on create and not on theme change.
+										if (this._domDialog != null && !isEditLarge) {
+											this._domDialog.style.removeProperty("background-color")
+										}
 									})
 								},
 							},
@@ -599,7 +606,7 @@ export class Dialog implements ModalComponent {
 				middle: title,
 			}
 			saveDialog = new Dialog(DialogType.EditMedium, {
-				view: () => m("", [m(".dialog-header.plr-l", m(DialogHeaderBar, actionBarAttrs)), m(".plr-l.pb.text-break", m(child))]),
+				view: () => m("", [m(DialogHeaderBar, actionBarAttrs), m(".plr-l.pb.text-break", m(child))]),
 			})
 				.setCloseHandler(closeAction)
 				.show()
@@ -742,7 +749,7 @@ export class Dialog implements ModalComponent {
 		}
 		dialog = new Dialog(type, {
 			view: () => [
-				m(".dialog-header.plr-l", m(DialogHeaderBar, actionBarAttrs)),
+				m(DialogHeaderBar, actionBarAttrs),
 				m(".dialog-max-height.plr-l.pb.text-break.scroll", "function" === typeof child ? child() : m(child)),
 			],
 		}).setCloseHandler(doCancel)
@@ -892,10 +899,7 @@ export class Dialog implements ModalComponent {
 	static largeDialog(headerBarAttrs: DialogHeaderBarAttrs, child: Component): Dialog {
 		return new Dialog(DialogType.EditLarge, {
 			view: () => {
-				return m("", [
-					m(".dialog-header.plr-l", m(DialogHeaderBar, headerBarAttrs)),
-					m(".dialog-container.scroll", m(".fill-absolute.plr-l", m(child))),
-				])
+				return m("", [m(DialogHeaderBar, headerBarAttrs), m(".dialog-container.scroll", m(".fill-absolute.plr-l", m(child)))])
 			},
 		})
 	}
@@ -905,10 +909,21 @@ export class Dialog implements ModalComponent {
 			view: () =>
 				m("", [
 					/** fixed-height header with a title, left and right buttons that's fixed to the top of the dialog's area */
-					headerBarAttrs.noHeader ? null : m(".dialog-header.plr-l", m(DialogHeaderBar, headerBarAttrs)),
+					headerBarAttrs.noHeader ? null : m(DialogHeaderBar, headerBarAttrs),
 					/** variable-size child container that may be scrollable. */
 					m(".dialog-container.scroll.hide-outline", m(".fill-absolute.plr-l", m(child, childAttrs))),
 				]),
+		})
+	}
+
+	static editSmallDialog<T extends {}>(headerBarAttrs: DialogHeaderBarAttrs, child: () => Children): Dialog {
+		return new Dialog(DialogType.EditSmall, {
+			view: () => [
+				/** fixed-height header with a title, left and right buttons that's fixed to the top of the dialog's area */
+				headerBarAttrs.noHeader ? null : m(DialogHeaderBar, headerBarAttrs),
+				/** variable-size child container that may be scrollable. */
+				m(".scroll.hide-outline.plr-l", child()),
+			],
 		})
 	}
 

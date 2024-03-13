@@ -9,8 +9,7 @@ import { TimeFormat, WeekStart } from "../api/common/TutanotaConstants"
 import { downcast, incrementDate, noOp, promiseMap } from "@tutao/tutanota-utils"
 import { UserSettingsGroupRootTypeRef } from "../api/entities/tutanota/TypeRefs.js"
 import { getHourCycle } from "../misc/Formatter"
-import type { ThemeId, ThemePreference } from "../gui/theme"
-import { themeController } from "../gui/theme"
+import { themeController, ThemeId, themeOptions, ThemePreference } from "../gui/theme"
 import type { UpdatableSettingsViewer } from "./SettingsView"
 import { isDesktop } from "../api/common/Env"
 import { locator } from "../api/main/MainLocator"
@@ -138,24 +137,7 @@ export class AppearanceSettingsViewer implements UpdatableSettingsViewer {
 
 		const themeDropDownAttrs: DropDownSelectorAttrs<ThemePreference> = {
 			label: "switchColorTheme_action",
-			items: [
-				{
-					name: lang.get("systemThemePref_label"),
-					value: "auto:light|dark",
-				},
-				{
-					name: lang.get("light_label"),
-					value: "light",
-				},
-				{
-					name: lang.get("dark_label"),
-					value: "dark",
-				},
-				{
-					name: lang.get("blue_label"),
-					value: "blue",
-				},
-			].concat(customOptions),
+			items: [...themeOptions.map(({ name, value }) => ({ name: lang.get(name), value: value })), ...customOptions],
 			selectedValue: themeController.themePreference,
 			selectionChangedHandler: (value) => themeController.setThemePreference(value),
 			dropdownWidth: 300,

@@ -1,0 +1,5 @@
+{
+	"name": "PermissionType",
+	"type": "enum",
+	"values": ["Contacts", "IgnoreBatteryOptimization", "Notification"]
+}

@@ -175,7 +175,6 @@ export class MailAddressTableModel {
 	 */
 	public async handleTooManyAliases(): Promise<void> {
 		// Determine if there is an available plan we can switch to that would let the user add an alias.
-		//
 		// If so, show an upgrade dialog. Otherwise, inform the user that they reached the maximum number of aliases.
 		const plansWithMoreAliases = await getAvailableMatchingPlans(
 			this.serviceExecutor,

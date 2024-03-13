@@ -31,8 +31,6 @@ class AndroidNativePushFacade(
 
 	override suspend fun initPushNotifications() {
 		withContext(Dispatchers.Main) {
-			activity.askBatteryOptimizationsIfNeeded()
-			activity.askNotificationPermissionIfNeeded()
 			activity.setupPushNotifications()
 		}
 	}

@@ -7,18 +7,6 @@ interface NativeInterface {
 }
 export class MobileSystemFacadeSendDispatcher implements MobileSystemFacade {
 	constructor(private readonly transport: NativeInterface) {}
-	async findSuggestions(...args: Parameters<MobileSystemFacade["findSuggestions"]>) {
-		return this.transport.invokeNative("ipc", ["MobileSystemFacade", "findSuggestions", ...args])
-	}
-	async saveContacts(...args: Parameters<MobileSystemFacade["saveContacts"]>) {
-		return this.transport.invokeNative("ipc", ["MobileSystemFacade", "saveContacts", ...args])
-	}
-	async syncContacts(...args: Parameters<MobileSystemFacade["syncContacts"]>) {
-		return this.transport.invokeNative("ipc", ["MobileSystemFacade", "syncContacts", ...args])
-	}
-	async deleteContacts(...args: Parameters<MobileSystemFacade["deleteContacts"]>) {
-		return this.transport.invokeNative("ipc", ["MobileSystemFacade", "deleteContacts", ...args])
-	}
 	async goToSettings(...args: Parameters<MobileSystemFacade["goToSettings"]>) {
 		return this.transport.invokeNative("ipc", ["MobileSystemFacade", "goToSettings", ...args])
 	}
@@ -27,5 +15,11 @@ export class MobileSystemFacadeSendDispatcher implements MobileSystemFacade {
 	}
 	async shareText(...args: Parameters<MobileSystemFacade["shareText"]>) {
 		return this.transport.invokeNative("ipc", ["MobileSystemFacade", "shareText", ...args])
+	}
+	async hasPermission(...args: Parameters<MobileSystemFacade["hasPermission"]>) {
+		return this.transport.invokeNative("ipc", ["MobileSystemFacade", "hasPermission", ...args])
+	}
+	async requestPermission(...args: Parameters<MobileSystemFacade["requestPermission"]>) {
+		return this.transport.invokeNative("ipc", ["MobileSystemFacade", "requestPermission", ...args])
 	}
 }

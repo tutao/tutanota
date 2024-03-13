@@ -4,11 +4,22 @@ import { ColumnType, ViewColumn } from "../../gui/base/ViewColumn"
 import { AppHeaderAttrs, Header } from "../../gui/Header.js"
 import { Button, ButtonColor, ButtonType } from "../../gui/base/Button.js"
 import { ContactEditor } from "../ContactEditor"
-import type { Contact } from "../../api/entities/tutanota/TypeRefs.js"
-import { ContactTypeRef } from "../../api/entities/tutanota/TypeRefs.js"
+import {
+	Contact,
+	ContactTypeRef,
+	createContact,
+	createContactAddress,
+	createContactCustomDate,
+	createContactMailAddress,
+	createContactMessengerHandle,
+	createContactPhoneNumber,
+	createContactPronouns,
+	createContactRelationship,
+	createContactWebsite,
+} from "../../api/entities/tutanota/TypeRefs.js"
 import { ContactListView } from "./ContactListView"
 import { lang } from "../../misc/LanguageViewModel"
-import { assertNotNull, clear, getFirstOrThrow, noOp, ofClass } from "@tutao/tutanota-utils"
+import { assert, assertNotNull, clear, getFirstOrThrow, noOp, ofClass, promiseMap } from "@tutao/tutanota-utils"
 import { ContactMergeAction, Keys } from "../../api/common/TutanotaConstants"
 import { assertMainOrNode, isApp } from "../../api/common/Env"
 import type { Shortcut } from "../../misc/KeyManager"
@@ -65,6 +76,9 @@ import { showPlanUpgradeRequiredDialog } from "../../misc/SubscriptionDialogs.js
 import ColumnEmptyMessageBox from "../../gui/base/ColumnEmptyMessageBox.js"
 import { ContactListInfo } from "../model/ContactModel.js"
 import { CONTACTLIST_PREFIX } from "../../misc/RouteChange.js"
+import { showContactImportDialog } from "../ContactImporter.js"
+import { StructuredContact } from "../../native/common/generatedipc/StructuredContact.js"
+import { validateBirthdayOfContact } from "../model/ContactUtils.js"
 
 assertMainOrNode()
 
@@ -410,7 +424,7 @@ export class ContactView extends BaseTopLevelView implements TopLevelView<Contac
 										type: ButtonType.Secondary,
 										click: () => this.contactListViewModel.listModel?.selectNone(),
 								  })
-								: undefined,
+								: null,
 						backgroundColor: theme.navigation_bg,
 				  })
 				: m(ContactListEntryViewer, {
@@ -564,7 +578,13 @@ export class ContactView extends BaseTopLevelView implements TopLevelView<Contac
 				},
 				childAttrs: () => {
 					const vcardButtons: Array<DropdownButtonAttrs> = isApp()
-						? []
+						? [
+								{
+									label: "importContacts_label",
+									click: () => importContacts(),
+									icon: Icons.ContactImport,
+								},
+						  ]
 						: [
 								{
 									label: "importVCard_action",
@@ -800,7 +820,7 @@ export class ContactView extends BaseTopLevelView implements TopLevelView<Contac
 	}
 
 	private deleteSelectedContacts(): Promise<void> {
-		return deleteContacts(this.getSelectedContacts())
+		return deleteContacts(this.getSelectedContacts(), () => this.contactViewModel.listModel.selectNone())
 	}
 
 	getViewSlider(): ViewSlider | null {
@@ -943,4 +963,87 @@ export function confirmMerge(keptContact: Contact, goodbyeContact: Contact): Pro
 	} else {
 		return Dialog.message("presharedPasswordsUnequal_msg")
 	}
+}
+
+export async function importContacts() {
+	const importer = await locator.contactImporter()
+	await importer.importContactsFromDevice()
+}
+
+export function contactFromStructuredContact(ownerGroupId: Id, contact: StructuredContact): Contact {
+	const userId = locator.logins.getUserController().userId
+	return createContact({
+		customDate: contact.customDate.map((date) =>
+			createContactCustomDate({
+				type: date.type,
+				dateIso: date.dateIso,
+				customTypeName: date.customTypeName,
+			}),
+		),
+		department: contact.department,
+		messengerHandles: contact.messengerHandles.map((handle) =>
+			createContactMessengerHandle({
+				type: handle.type,
+				handle: handle.handle,
+				customTypeName: handle.customTypeName,
+			}),
+		),
+		middleName: contact.middleName,
+		nameSuffix: contact.nameSuffix,
+		phoneticFirst: contact.phoneticFirst,
+		phoneticLast: contact.phoneticLast,
+		phoneticMiddle: contact.phoneticMiddle,
+		pronouns: [],
+		relationships: contact.relationships.map((relation) =>
+			createContactRelationship({
+				type: relation.type,
+				person: relation.person,
+				customTypeName: relation.customTypeName,
+			}),
+		),
+		websites: contact.websites.map((website) =>
+			createContactWebsite({
+				type: website.type,
+				url: website.url,
+				customTypeName: website.customTypeName,
+			}),
+		),
+		_owner: userId,
+		_ownerGroup: ownerGroupId,
+		nickname: contact.nickname,
+		firstName: contact.firstName,
+		lastName: contact.lastName,
+		company: contact.company,
+		addresses: contact.addresses.map((address) =>
+			createContactAddress({
+				type: address.type,
+				address: address.address,
+				customTypeName: address.customTypeName,
+			}),
+		),
+		mailAddresses: contact.mailAddresses.map((address) =>
+			createContactMailAddress({
+				type: address.type,
+				address: address.address,
+				customTypeName: address.customTypeName,
+			}),
+		),
+		phoneNumbers: contact.phoneNumbers.map((number) =>
+			createContactPhoneNumber({
+				type: number.type,
+				number: number.number,
+				customTypeName: number.customTypeName,
+			}),
+		),
+		role: contact.role,
+		oldBirthdayAggregate: null,
+		oldBirthdayDate: null,
+		photo: null,
+		presharedPassword: null,
+		socialIds: [],
+		birthdayIso: validateBirthdayOfContact(contact),
+		autoTransmitPassword: "",
+		title: contact.title,
+		comment: contact.notes,
+	})
 }

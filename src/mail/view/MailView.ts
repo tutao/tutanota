@@ -2,7 +2,6 @@ import m, { Children, Vnode } from "mithril"
 import { ViewSlider } from "../../gui/nav/ViewSlider.js"
 import { ColumnType, ViewColumn } from "../../gui/base/ViewColumn"
 import { lang } from "../../misc/LanguageViewModel"
-import { ButtonType } from "../../gui/base/Button.js"
 import { Dialog } from "../../gui/base/Dialog"
 import { FeatureType, Keys, MailFolderType } from "../../api/common/TutanotaConstants"
 import { AppHeaderAttrs, Header } from "../../gui/Header.js"
@@ -60,6 +59,7 @@ import { ListLoadingState, MultiselectMode } from "../../gui/base/List.js"
 import { EnterMultiselectIconButton } from "../../gui/EnterMultiselectIconButton.js"
 import { MailFilterButton } from "./MailFilterButton.js"
 import { listSelectionKeyboardShortcuts } from "../../gui/base/ListUtils.js"
+import { showSetupWizardIfNeeded } from "../../gui/dialogs/SetupWizard.js"
 
 assertMainOrNode()
 
@@ -232,6 +232,8 @@ export class MailView extends BaseTopLevelView implements TopLevelView<MailViewA
 
 			keyManager.unregisterShortcuts(shortcuts)
 		}
+
+		showSetupWizardIfNeeded()
 	}
 
 	private renderFilterButton() {

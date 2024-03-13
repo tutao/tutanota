@@ -17,12 +17,18 @@ import { uint8ArrayToBase64 } from "@tutao/tutanota-utils"
  * @returns {string} HH:MM if parsed, null otherwise
  */
 export function parseCaptchaInput(captchaInput: string): string | null {
-	if (captchaInput.match(/^[0-2]?[0-9]:[0-5]?[05]$/)) {
+	if (captchaInput.match(/^[0-2]?[0-9]:[0-5]?[0-9]$/)) {
 		let [h, m] = captchaInput
 			.trim()
 			.split(":")
 			.map((t) => Number(t))
-		return [h % 12, m % 60].map((a) => String(a).padStart(2, "0")).join(":")
+
+		// regex correctly matches 0-59 minutes, but matches hours 0-29, so we need to make sure hours is 0-24
+		if (h > 24) {
+			return null
+		}
+
+		return [h % 12, m].map((a) => String(a).padStart(2, "0")).join(":")
 	} else {
 		return null
 	}
@@ -91,20 +97,28 @@ function showCaptchaDialog(challenge: Uint8Array, token: string): Promise<string
 		const okAction = () => {
 			let parsedInput = parseCaptchaInput(captchaInput)
 
-			if (parsedInput) {
-				dialog.close()
-
-				locator.serviceExecutor
-					.post(RegistrationCaptchaService, createRegistrationCaptchaServiceData({ token, response: parsedInput }))
-					.then(() => {
-						resolve(token)
-					})
-					.catch((e) => {
-						reject(e)
-					})
-			} else {
+			// User entered an incorrectly formatted time
+			if (parsedInput == null) {
 				Dialog.message("captchaEnter_msg")
+				return
 			}
+
+			// The user entered a correctly formatted time, but not one that our captcha will ever give out (i.e. not *0 or *5)
+			const minuteOnesPlace = parsedInput[parsedInput.length - 1]
+			if (minuteOnesPlace !== "0" && minuteOnesPlace !== "5") {
+				Dialog.message("createAccountInvalidCaptcha_msg")
+				return
+			}
+
+			dialog.close()
+			locator.serviceExecutor
+				.post(RegistrationCaptchaService, createRegistrationCaptchaServiceData({ token, response: parsedInput }))
+				.then(() => {
+					resolve(token)
+				})
+				.catch((e) => {
+					reject(e)
+				})
 		}
 
 		let actionBarAttrs: DialogHeaderBarAttrs = {
@@ -129,7 +143,7 @@ function showCaptchaDialog(challenge: Uint8Array, token: string): Promise<string
 		dialog = new Dialog(DialogType.EditSmall, {
 			view: (): Children => {
 				return [
-					m(".dialog-header.plr-l", m(DialogHeaderBar, actionBarAttrs)),
+					m(DialogHeaderBar, actionBarAttrs),
 					m(".plr-l.pb", [
 						m("img.mt-l", {
 							src: imageData,

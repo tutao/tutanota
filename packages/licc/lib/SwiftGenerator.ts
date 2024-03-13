@@ -224,8 +224,8 @@ export class SwiftGenerator implements LangGenerator {
 	generateEnum({ name, values, doc }: EnumDefinition): string {
 		return new Accumulator()
 			.do((acc) => this.generateDocComment(acc, doc))
-			.line(`public enum ${name}: Int {`)
-			.indented((acc) => acc.lines(values.map((value, index) => `case ${camelCaseToSnakeCase(value)} = ${index}`))) // enums are snake_case
+			.line(`public enum ${name}: String, Codable {`)
+			.indented((acc) => acc.lines(values.map((value, index) => `case ${camelCaseToSnakeCase(value)} = "${index}"`))) // enums are snake_case
 			.line("}")
 			.finish()
 	}

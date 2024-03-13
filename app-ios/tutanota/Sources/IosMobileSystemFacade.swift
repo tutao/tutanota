@@ -1,38 +1,11 @@
 import Contacts
 import Foundation
 
-private let PERMISSION_ERROR_DOMAIN = "de.tutao.tutanota.PermissionError"
-
 class IosMobileSystemFacade: MobileSystemFacade {
-	private let contactsSynchronization: ContactsSynchronization
-	private let contactsSource: ContactsSource
 	private let viewController: ViewController
-	init(contactsSource: ContactsSource, viewController: ViewController, contactsSynchronization: ContactsSynchronization) {
-		self.contactsSource = contactsSource
-		self.viewController = viewController
-		self.contactsSynchronization = contactsSynchronization
-	}
 
-	func syncContacts(_ userId: String, _ contacts: [StructuredContact]) async throws {
-		do { try await self.contactsSynchronization.syncLocalContacts(contacts, forUsername: userId) } catch {
-			let err = error as NSError
-			if err.domain == CNErrorDomain && err.code == CNError.authorizationDenied.rawValue {
-				throw TUTErrorFactory.createError(withDomain: PERMISSION_ERROR_DOMAIN, message: "Missing permission to handle contacts")
-			} else {
-				throw error
-			}
-		}
-	}
+	init(viewController: ViewController) { self.viewController = viewController }
 
-	func deleteContacts(_ userId: String, _ contactId: String?) async throws {
-		try await self.contactsSynchronization.deleteLocalContact(contactId, forUsername: userId)
-	}
-
-	func saveContacts(_ userId: String, _ contacts: [StructuredContact]) async throws {
-		try await self.contactsSynchronization.saveLocalContacts(contacts, forUsername: userId)
-	}
-
-	func findSuggestions(_ query: String) async throws -> [NativeContact] { try await contactsSource.search(query: query) }
 	func goToSettings() async throws {
 		DispatchQueue.main.async {
 			let url = URL(string: UIApplication.openSettingsURLString)!
@@ -53,5 +26,30 @@ class IosMobileSystemFacade: MobileSystemFacade {
 
 		self.viewController.present(activityViewController, animated: true, completion: nil)
 		return true
+	}
+	func hasPermission(_ permission: PermissionType) async throws -> Bool {
+		switch permission {
+		case PermissionType.contacts:
+			let status = CNContactStore.authorizationStatus(for: .contacts)
+			return status == .authorized
+		case PermissionType.ignore_battery_optimization:
+			// This permission does not exist in iOS, only on Android
+			return true
+		case PermissionType.notification:
+			let settings = await UNUserNotificationCenter.current().notificationSettings()
+			return settings.authorizationStatus == .authorized
+		}
+	}
+
+	func requestPermission(_ permission: PermissionType) async throws {
+		switch permission {
+		case PermissionType.contacts: try await acquireContactsPermission()
+		case PermissionType.ignore_battery_optimization:
+			// This permission does not exist in iOS, only on Android
+			return
+		case PermissionType.notification:
+			let isPermissionGranted = try await UNUserNotificationCenter.current().requestAuthorization(options: [.alert, .badge, .sound])
+			if !isPermissionGranted { throw PermissionError(message: "Notification Permission was not granted.") }
+		}
 	}
 }

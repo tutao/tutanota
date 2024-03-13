@@ -10,6 +10,7 @@ import { WebsocketConnectivityModel } from "../../misc/WebsocketConnectivityMode
 import { MailModel } from "../../mail/model/MailModel.js"
 import { TopLevelView } from "../../TopLevelView.js"
 import { assertSystemFolderOfType } from "../../api/common/mail/CommonMailUtils.js"
+import stream from "mithril/stream"
 
 assertMainOrNode()
 
@@ -20,7 +21,13 @@ assertMainOrNode()
 export class WebMobileFacade implements MobileFacade {
 	private disconnectTimeoutId: TimeoutID | null
 
+	private isAppVisible: stream<boolean> = stream(false)
+
 	constructor(private readonly connectivityModel: WebsocketConnectivityModel, private readonly mailModel: MailModel) {}
+
+	public getIsAppVisible(): stream<boolean> {
+		return this.isAppVisible
+	}
 
 	async handleBackPress(): Promise<boolean> {
 		await Promise.resolve()
@@ -97,6 +104,7 @@ export class WebMobileFacade implements MobileFacade {
 
 	async visibilityChange(visibility: boolean): Promise<void> {
 		console.log("native visibility change", visibility)
+		this.isAppVisible(visibility)
 
 		if (visibility) {
 			if (this.disconnectTimeoutId != null) {

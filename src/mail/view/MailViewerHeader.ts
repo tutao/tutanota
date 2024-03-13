@@ -25,7 +25,7 @@ import { BootIcons } from "../../gui/base/icons/BootIcons.js"
 import { editDraft, mailViewerMoreActions } from "./MailViewerUtils.js"
 import { liveDataAttrs } from "../../gui/AriaUtils.js"
 import { isKeyPressed } from "../../misc/KeyManager.js"
-import { AttachmentBubble } from "../../gui/AttachmentBubble.js"
+import { AttachmentBubble, getAttachmentType } from "../../gui/AttachmentBubble.js"
 import { responsiveCardHMargin, responsiveCardHPadding } from "../../gui/cards.js"
 import { companyTeamLabel } from "../../misc/ClientConstants.js"
 import { isTutanotaTeamMail, MailAddressAndName } from "../../api/common/mail/CommonMailUtils.js"
@@ -42,6 +42,7 @@ export interface MailViewerHeaderAttrs {
 	viewModel: MailViewerViewModel
 	createMailAddressContextButtons: MailAddressDropdownCreator
 	isPrimary: boolean
+	importFile: (file: TutanotaFile) => void
 }
 
 /** The upper part of the mail viewer, everything but the mail body itself. */
@@ -65,7 +66,7 @@ export class MailViewerHeader implements Component<MailViewerHeaderAttrs> {
 				},
 				this.renderDetails(attrs, { bubbleMenuWidth: 300 }),
 			),
-			this.renderAttachments(viewModel),
+			this.renderAttachments(viewModel, attrs.importFile),
 			this.renderConnectionLostBanner(viewModel),
 			this.renderEventBanner(viewModel),
 			this.renderBanners(attrs),
@@ -460,7 +461,7 @@ export class MailViewerHeader implements Component<MailViewerHeaderAttrs> {
 		])
 	}
 
-	private renderAttachments(viewModel: MailViewerViewModel): Children {
+	private renderAttachments(viewModel: MailViewerViewModel, importFile: (file: TutanotaFile) => void): Children {
 		// Show a loading symbol if we are loading attachments
 		if (viewModel.isLoadingAttachments() && !viewModel.isConnectionLost()) {
 			return m(".flex." + responsiveCardHMargin(), [
@@ -486,7 +487,7 @@ export class MailViewerHeader implements Component<MailViewerHeaderAttrs> {
 				m(".flex.mt-s.mb-s" + "." + responsiveCardHMargin(), liveDataAttrs(), [
 					attachmentCount === 1
 						? // If we have exactly one attachment, just show the attachment
-						  this.renderAttachmentContainer(viewModel, attachments)
+						  this.renderAttachmentContainer(viewModel, attachments, importFile)
 						: // Otherwise, we show the number of attachments and its total size along with a show all button
 						  m(ExpanderButton, {
 								label: () =>
@@ -516,7 +517,7 @@ export class MailViewerHeader implements Component<MailViewerHeaderAttrs> {
 								expanded: this.filesExpanded,
 							},
 							m(".flex.col." + responsiveCardHMargin(), [
-								m(".flex.flex-wrap.gap-hpad", this.renderAttachmentContainer(viewModel, attachments)),
+								m(".flex.flex-wrap.gap-hpad", this.renderAttachmentContainer(viewModel, attachments, importFile)),
 								isIOSApp()
 									? null
 									: m(
@@ -534,9 +535,10 @@ export class MailViewerHeader implements Component<MailViewerHeaderAttrs> {
 		}
 	}
 
-	private renderAttachmentContainer(viewModel: MailViewerViewModel, attachments: TutanotaFile[]): Children {
-		return attachments.map((attachment) =>
-			m(AttachmentBubble, {
+	private renderAttachmentContainer(viewModel: MailViewerViewModel, attachments: TutanotaFile[], importFile: (file: TutanotaFile) => void): Children {
+		return attachments.map((attachment) => {
+			const attachmentType = getAttachmentType(attachment.mimeType ?? "")
+			return m(AttachmentBubble, {
 				attachment,
 				remove: null,
 				download:
@@ -544,8 +546,10 @@ export class MailViewerHeader implements Component<MailViewerHeaderAttrs> {
 						? () => viewModel.downloadAndOpenAttachment(attachment, false)
 						: () => viewModel.downloadAndOpenAttachment(attachment, true),
 				open: isAndroidApp() || isDesktop() ? () => viewModel.downloadAndOpenAttachment(attachment, true) : null,
-			}),
-		)
+				fileImport: viewModel.canImportFile(attachment) ? () => importFile(attachment) : null,
+				type: attachmentType,
+			})
+		})
 	}
 
 	private tutaoBadge(viewModel: MailViewerViewModel): Children {

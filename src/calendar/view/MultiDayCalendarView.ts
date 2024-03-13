@@ -357,7 +357,8 @@ export class MultiDayCalendarView implements Component<MultiDayCalendarViewAttrs
 
 	private renderHeaderDesktop(attrs: MultiDayCalendarViewAttrs, thisPageEvents: EventsOnDays, mainPageEvents: EventsOnDays): Children {
 		const { daysInPeriod, onDateSelected, onEventClicked, groupColors, temporaryEvents } = attrs
-		return m(".calendar-long-events-header.flex-fixed.content-bg.pt-s", [
+		// `scrollbar-gutter-stable-or-fallback` is needed because the scroll bar brings the calendar body out of line with the header
+		return m(".calendar-long-events-header.flex-fixed.content-bg.pt-s.scrollbar-gutter-stable-or-fallback", [
 			m(".calendar-hour-margin", [this.renderDayNamesRow(thisPageEvents.days, onDateSelected)]),
 			m(".content-bg", [
 				m(

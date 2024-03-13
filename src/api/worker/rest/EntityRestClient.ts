@@ -79,7 +79,7 @@ export interface EntityRestInterface {
 	/**
 	 * Creates multiple elements on the server. Entities are encrypted before they are sent.
 	 */
-	setupMultiple<T extends SomeEntity>(listId: Id | null, instances: Array<T>): Promise<Array<Id>>
+	setupMultiple<T extends SomeEntity>(listId: Id | null, instances: ReadonlyArray<T>): Promise<Array<Id>>
 
 	/**
 	 * Modifies a single element on the server. Entities are encrypted before they are sent.

@@ -1,0 +1,9 @@
+{
+	"name": "ContactSyncResult",
+	"type": "struct",
+	"fields": {
+		"createdOnDevice": "List<StructuredContact>",
+		"editedOnDevice": "List<StructuredContact>",
+		"deletedOnDevice": "List<string>"
+	}
+}

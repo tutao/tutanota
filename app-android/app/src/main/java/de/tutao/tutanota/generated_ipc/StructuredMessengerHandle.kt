@@ -8,7 +8,8 @@ import kotlinx.serialization.json.*
 
 
 @Serializable
-data class NativeContact(
-	val name: String,
-	val mailAddress: String,
+data class StructuredMessengerHandle(
+	val handle: String,
+	val type: ContactMessengerHandleType,
+	val customTypeName: String,
 )

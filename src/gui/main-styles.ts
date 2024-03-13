@@ -4,7 +4,7 @@ import { client } from "../misc/ClientDetector"
 import { lang } from "../misc/LanguageViewModel"
 import { noselect, position_absolute, positionValue } from "./mixins"
 import { assertMainOrNode, isAdminClient, isApp, isElectronClient } from "../api/common/Env"
-import { getElevatedBackground, getNavigationMenuBg, theme } from "./theme"
+import { getContentButtonIconBackground, getElevatedBackground, getNavigationMenuBg, theme } from "./theme"
 import { BrowserType } from "../misc/ClientConstants"
 import { stateBgActive, stateBgFocus, stateBgHover, stateBgLike } from "./builtinThemes.js"
 import { FontIcons } from "./base/icons/FontIcons.js"
@@ -260,6 +260,9 @@ styles.registerStyle("main", () => {
 			width: "min-content",
 			height: "min-content",
 		},
+		".width-min-content": {
+			width: "min-content",
+		},
 		// margins
 		".m-0": {
 			margin: 0,
@@ -305,6 +308,9 @@ styles.registerStyle("main", () => {
 		},
 		".mb-xl": {
 			"margin-bottom": px(size.vpad_xl),
+		},
+		".mb-xxl": {
+			"margin-bottom": px(size.vpad_xxl),
 		},
 		".mlr": {
 			"margin-left": px(size.hpad),
@@ -637,6 +643,9 @@ styles.registerStyle("main", () => {
 		".content-accent-fg": {
 			color: theme.content_accent,
 		},
+		".content-accent-accent": {
+			"accent-color": theme.content_accent,
+		},
 		".icon-accent svg": {
 			fill: theme.content_accent,
 		},
@@ -720,6 +729,10 @@ styles.registerStyle("main", () => {
 			bottom: 0,
 			left: 0,
 			right: 0,
+		},
+		".fill-flex": {
+			"flex-basis": "100%",
+			"flex-shrink": 0,
 		},
 		".abs": {
 			position: "absolute",
@@ -1190,6 +1203,46 @@ styles.registerStyle("main", () => {
 			"max-width": px(size.button_height),
 			"max-height": px(size.button_height),
 		},
+		".wizard-next-button": {
+			"margin-top": "auto",
+			"margin-bottom": px(size.vpad),
+		},
+		".wizard-breadcrumb": {
+			border: `1px solid ${getContentButtonIconBackground()}`,
+			color: "inherit",
+			"transition-property": "border-width, border-color, color, background-color",
+			"transition-duration": `${DefaultAnimationTime - 70}ms`,
+			"transition-timing-function": "ease-out",
+			"will-change": "border-width, border-color, color",
+		},
+		".wizard-breadcrumb-active": {
+			border: `2px solid ${theme.content_accent}`,
+			color: theme.content_accent,
+			"transition-property": "border-width, border-color, color, background-color",
+			"transition-duration": `${DefaultAnimationTime - 70}ms`,
+			"transition-timing-function": "ease-out",
+			"will-change": "border-width, color, background-color",
+		},
+		".wizard-breadcrumb-previous": {
+			border: `1px solid ${theme.content_accent}`,
+			color: "inherit",
+			"background-color": theme.content_accent,
+			"transition-property": "border-width, border-color, color, background-color",
+			"transition-duration": `${DefaultAnimationTime - 70}ms`,
+			"transition-timing-function": "ease-out",
+			"will-change": "border-width, border-color, color, background-color",
+		},
+		".wizard-breadcrumb-line": {
+			"border-top": `3px dotted ${theme.content_border}`,
+			height: 0,
+			transition: `border-top-color ${DefaultAnimationTime}ms ease-out`,
+			"will-change": "border-top-style, border-top-color",
+		},
+		".wizard-breadcrumb-line-active": {
+			"border-top": `3px solid ${theme.content_accent}`,
+			height: 0,
+			transition: `border-top-color ${DefaultAnimationTime}ms ease-out`,
+		},
 		".compact": {
 			width: `${size.button_height_compact}px !important`,
 			height: `${size.button_height_compact}px !important`,
@@ -1370,6 +1423,9 @@ styles.registerStyle("main", () => {
 		".dialog-buttons > button:not(:first-child)": {
 			"border-left": `1px solid ${theme.content_border}`,
 			"margin-left": "0",
+		},
+		".dialog-height-small": {
+			height: "65vh",
 		},
 		".dialog-max-height": {
 			"max-height": "calc(100vh - 100px)",
@@ -1688,6 +1744,15 @@ styles.registerStyle("main", () => {
 		".payment-logo": {
 			// that's the size of the SVG and it seems to be a good size
 			width: "124px",
+		},
+		".onboarding-logo, .onboarding-logo > svg": {
+			width: "fit-content",
+			height: px(160),
+		},
+		".onboarding-logo-large, .onboarding-logo-large > svg": {
+			width: "fit-content",
+			// This value brings the bottom of the illustration inline with the first button on the notifications page
+			height: px(222),
 		},
 		// contact
 		".wrapping-row": {
@@ -2172,6 +2237,10 @@ styles.registerStyle("main", () => {
 			},
 			".column-width-small": {
 				width: px(size.column_width_s_mobile),
+			},
+			// Speed up SVG rendering in the onboarding wizard by disabling antialiasing
+			"svg, img": {
+				"shape-rendering": "optimizeSpeed",
 			},
 		},
 		"@keyframes move-stripes": {

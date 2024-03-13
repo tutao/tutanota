@@ -2,14 +2,28 @@
 	"name": "StructuredContact",
 	"type": "struct",
 	"fields": {
-		"id": "string",
+		"id": "string?",
 		"firstName": "string",
 		"lastName": "string",
-		"nickname": "string?",
+		"nickname": "string",
 		"company": "string",
 		"birthday": "string?",
 		"mailAddresses": "List<StructuredMailAddress>",
 		"phoneNumbers": "List<StructuredPhoneNumber>",
-		"addresses": "List<StructuredAddress>"
+		"addresses": "List<StructuredAddress>",
+		"rawId": "string?",
+		"customDate": "List<StructuredCustomDate>",
+		"department": "string?",
+		"messengerHandles": "List<StructuredMessengerHandle>",
+		"middleName": "string?",
+		"nameSuffix": "string?",
+		"phoneticFirst": " string?",
+		"phoneticLast": "string?",
+		"phoneticMiddle": "string?",
+		"relationships": "List<StructuredRelationship>",
+		"websites": "List<StructuredWebsite>",
+		"notes": "string",
+		"title": "string",
+		"role": "string"
 	}
 }

@@ -19,7 +19,7 @@ export class RecipientButton implements Component<Attrs> {
 					},
 					attrs.style,
 				),
-				onclick: (e: MouseEvent) => attrs.click(e, e.target as HTMLElement),
+				onclick: (e: MouseEvent, dom: HTMLElement) => attrs.click(e, dom),
 			},
 			[attrs.label],
 		)

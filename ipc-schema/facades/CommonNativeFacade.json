@@ -86,6 +86,15 @@
 				}
 			],
 			"ret": "string"
+		},
+		"handleFileImport": {
+			"doc": "Pass a list of files (.vcf) to be handled by the app and if compatible, import them",
+			"arg": [
+				{
+					"filesUris": "List<string>"
+				}
+			],
+			"ret": "void"
 		}
 	}
 }

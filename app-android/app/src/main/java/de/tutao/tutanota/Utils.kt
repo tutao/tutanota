@@ -5,6 +5,7 @@ package de.tutao.tutanota
 import android.content.Context
 import android.content.SharedPreferences
 import android.content.res.Resources
+import android.database.Cursor
 import android.net.Uri
 import android.os.Build
 import android.provider.OpenableColumns
@@ -148,4 +149,15 @@ fun Int.toDp(): Int = (this / Resources.getSystem().displayMetrics.density).toIn
 fun getDefaultSharedPreferences(context: Context): SharedPreferences {
 	val name = context.packageName + "_preferences"
 	return context.getSharedPreferences(name, Context.MODE_PRIVATE)
+}
+
+inline fun Cursor.forEachRow(block: (cursor: Cursor) -> Unit) {
+  while (this.moveToNext()) {
+	block(this)
+  }
+}
+
+inline fun <R, C : MutableCollection<in R>> Cursor.mapTo(collection: C, mapper: (cursor: Cursor) -> R): C {
+  forEachRow { collection.add(mapper(this)) }
+  return collection
 }

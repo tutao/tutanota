@@ -1,12 +1,14 @@
 import { CommonNativeFacade } from "../common/generatedipc/CommonNativeFacade.js"
-import { IMainLocator } from "../../api/main/MainLocator.js"
+import { IMainLocator, locator } from "../../api/main/MainLocator.js"
 import { TranslationKey } from "../../misc/LanguageViewModel.js"
-import { noOp, ofClass } from "@tutao/tutanota-utils"
+import { assertNotNull, noOp, ofClass } from "@tutao/tutanota-utils"
 import { CancelledError } from "../../api/common/error/CancelledError.js"
 import { UserError } from "../../api/main/UserError.js"
 import { themeController } from "../../gui/theme.js"
 import m from "mithril"
 import { Dialog } from "../../gui/base/Dialog.js"
+import { FileReference } from "../../api/common/utils/FileUtils.js"
+import { AttachmentType, getAttachmentType } from "../../gui/AttachmentBubble.js"
 
 export class WebCommonNativeFacade implements CommonNativeFacade {
 	/**
@@ -37,32 +39,51 @@ export class WebCommonNativeFacade implements CommonNativeFacade {
 			if (mailToUrlString) {
 				editor = await newMailtoUrlMailEditor(mailToUrlString, false, mailboxDetails).catch(ofClass(CancelledError, noOp))
 				if (!editor) return
+
+				editor.show()
 			} else {
 				const files = await fileApp.getFilesMetaData(filesUris)
-				const address = (addresses && addresses[0]) || ""
-				const recipients = address
-					? {
-							to: [
-								{
-									name: "",
-									address: address,
-								},
-							],
-					  }
-					: {}
-				editor = await newMailEditorFromTemplate(
-					mailboxDetails,
-					recipients,
-					subject || (files.length > 0 ? files[0].name : ""),
-					signatureModule.appendEmailSignature(text || "", logins.getUserController().props),
-					files,
-					undefined,
-					undefined,
-					true, // we want emails created in this method to always default to saving changes
-				)
-			}
+				const allFilesAreVCards = files.every((file) => getAttachmentType(file.mimeType) === AttachmentType.CONTACT)
 
-			editor.show()
+				let willImport = false
+				if (allFilesAreVCards) {
+					willImport = await Dialog.choice("vcardInSharingFiles_msg", [
+						{
+							text: "import_action",
+							value: true,
+						},
+						{ text: "attachFiles_action", value: false },
+					])
+				}
+
+				if (willImport) {
+					await this.handleFileImport(filesUris)
+				} else {
+					const address = (addresses && addresses[0]) || ""
+					const recipients = address
+						? {
+								to: [
+									{
+										name: "",
+										address: address,
+									},
+								],
+						  }
+						: {}
+					editor = await newMailEditorFromTemplate(
+						mailboxDetails,
+						recipients,
+						subject || (files.length > 0 ? files[0].name : ""),
+						signatureModule.appendEmailSignature(text || "", logins.getUserController().props),
+						files,
+						undefined,
+						undefined,
+						true, // we want emails created in this method to always default to saving changes
+					)
+
+					editor.show()
+				}
+			}
 		} catch (e) {
 			if (e instanceof UserError) {
 				// noinspection ES6MissingAwait
@@ -151,5 +172,43 @@ export class WebCommonNativeFacade implements CommonNativeFacade {
 		const { locator } = await import("../../api/main/MainLocator")
 		await locator.initialized
 		return locator
+	}
+
+	private async parseContacts(fileList: FileReference[]) {
+		const { fileApp, logins, fileController } = await WebCommonNativeFacade.getInitializedLocator()
+
+		await logins.waitForPartialLogin()
+
+		const rawContacts: string[] = []
+		for (const file of fileList) {
+			if (getAttachmentType(file.mimeType) === AttachmentType.CONTACT) {
+				const dataFile = await fileApp.readDataFile(file.location)
+				if (dataFile == null) continue
+
+				const decoder = new TextDecoder("utf-8")
+				const vCardData = decoder.decode(dataFile.data)
+
+				rawContacts.push(vCardData)
+			}
+		}
+
+		return rawContacts
+	}
+
+	/**
+	 * Parse and handle files given a list of files URI. For now, it just supports .vcf files
+	 * @param filesUris List of files URI to be parsed
+	 */
+	async handleFileImport(filesUris: ReadonlyArray<string>): Promise<void> {
+		const { fileApp, contactModel, contactImporter } = await WebCommonNativeFacade.getInitializedLocator()
+		const importer = await contactImporter()
+
+		// For now, we just handle .vcf files, so we don't need to care about the file type
+		const files = await fileApp.getFilesMetaData(filesUris)
+		const contacts = await this.parseContacts(files)
+		const vCardData = contacts.join("\n")
+		const contactListId = assertNotNull(await contactModel.getContactListId())
+
+		await importer.importContactsFromFile(vCardData, contactListId)
 	}
 }

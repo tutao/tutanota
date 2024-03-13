@@ -3,7 +3,7 @@ import m, { Children, Component, Vnode } from "mithril"
 import stream from "mithril/stream"
 import { windowFacade, windowSizeListener } from "../../misc/WindowFacade"
 import { FeatureType, InboxRuleType, Keys, MailFolderType, SpamRuleFieldType, SpamRuleType } from "../../api/common/TutanotaConstants"
-import type { Mail } from "../../api/entities/tutanota/TypeRefs.js"
+import { File as TutanotaFile, Mail } from "../../api/entities/tutanota/TypeRefs.js"
 import { lang } from "../../misc/LanguageViewModel"
 import { assertMainOrNode } from "../../api/common/Env"
 import { assertNonNull, assertNotNull, defer, DeferredObject, noOp, ofClass } from "@tutao/tutanota-utils"
@@ -35,6 +35,7 @@ import { locator } from "../../api/main/MainLocator.js"
 import { PinchZoom } from "../../gui/PinchZoom.js"
 import { responsiveCardHMargin, responsiveCardHPadding } from "../../gui/cards.js"
 import { isTutanotaTeamMail } from "../../api/common/mail/CommonMailUtils.js"
+import { Dialog } from "../../gui/base/Dialog.js"
 
 assertMainOrNode()
 // map of inline image cid to InlineImageReference
@@ -246,6 +247,7 @@ export class MailViewer implements Component<MailViewerAttrs> {
 			viewModel: this.viewModel,
 			createMailAddressContextButtons: this.createMailAddressContextButtons.bind(this),
 			isPrimary: attrs.isPrimary,
+			importFile: (file: TutanotaFile) => this.handleAttachmentImport(file),
 		})
 	}
 
@@ -725,6 +727,19 @@ export class MailViewer implements Component<MailViewerAttrs> {
 			)
 		}
 		return false
+	}
+
+	private async handleAttachmentImport(file: TutanotaFile) {
+		try {
+			await this.viewModel.importAttachment(file)
+		} catch (e) {
+			console.log(e)
+			if (e instanceof UserError) {
+				return await Dialog.message(() => e.message)
+			}
+
+			await Dialog.message("unknownError_msg")
+		}
 	}
 }
 

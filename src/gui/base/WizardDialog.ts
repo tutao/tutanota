@@ -1,10 +1,10 @@
 import m, { Children, Component, Vnode, VnodeDOM } from "mithril"
-import { Dialog } from "./Dialog"
+import { Dialog, DialogType } from "./Dialog"
 import type { ButtonAttrs } from "./Button.js"
 import { ButtonType } from "./Button.js"
 import { Icons } from "./icons/Icons"
 import { Icon } from "./Icon"
-import { getContentButtonIconBackground, theme } from "../theme"
+import { theme } from "../theme"
 import { lang } from "../../misc/LanguageViewModel"
 import type { DialogHeaderBarAttrs } from "./DialogHeaderBar"
 import { Keys, TabIndex } from "../../api/common/TutanotaConstants"
@@ -119,33 +119,39 @@ class WizardDialog<T> implements Component<WizardDialogAttrs<T>> {
 
 	view(vnode: Vnode<WizardDialogAttrs<T>>) {
 		const a = vnode.attrs
-		const selectedIndex = a.currentPage ? a._getEnabledPages().indexOf(a.currentPage) : -1
+		const enabledPages = a._getEnabledPages()
+		const selectedIndex = a.currentPage ? enabledPages.indexOf(a.currentPage) : -1
+		const visiblePages = enabledPages.filter((page) => !page.attrs.hidePagingButtonForPage)
+		const lastIndex = visiblePages.length - 1
+
 		return m("#wizardDialogContent.pt", [
 			a.currentPage && a.currentPage.attrs.hideAllPagingButtons
 				? null
 				: m(
-						"nav#wizard-paging.flex-space-around.border-top",
+						"nav#wizard-paging.flex-space-around.center-vertically.mb-s",
 						{
 							"aria-label": "Breadcrumb",
-							style: {
-								height: "22px",
-								marginTop: "22px",
-							},
 						},
-						a
-							._getEnabledPages()
-							.filter((page) => !page.attrs.hidePagingButtonForPage)
-							.map((p, index) =>
-								m(WizardPagingButton, {
-									pageIndex: index,
-									getSelectedPageIndex: () => selectedIndex,
-									isClickable: () => a.allowedToVisitPage(index, selectedIndex),
-									navigateBackHandler: (index) => a._goToPageAction(index),
-								}),
-							),
+						visiblePages.map((p, index) => [
+							m(WizardPagingButton, {
+								pageIndex: index,
+								getSelectedPageIndex: () => selectedIndex,
+								isClickable: () => a.allowedToVisitPage(index, selectedIndex),
+								navigateBackHandler: (index) => a._goToPageAction(index),
+							}),
+							index === lastIndex ? null : m(".flex-grow", { class: this.getLineClass(index < selectedIndex) }),
+						]),
 				  ),
 			a.currentPage ? a.currentPage.view() : null,
 		])
+	}
+
+	private getLineClass(isPreviousPage: boolean) {
+		if (isPreviousPage) {
+			return "wizard-breadcrumb-line-active"
+		} else {
+			return "wizard-breadcrumb-line"
+		}
 	}
 }
 
@@ -289,17 +295,21 @@ export class WizardPagingButton {
 	view(vnode: Vnode<WizardPagingButtonAttrs>): Children {
 		const selectedPageIndex = vnode.attrs.getSelectedPageIndex()
 		const pageIndex = vnode.attrs.pageIndex
-		const filledBg = getContentButtonIconBackground()
 		const isClickable = vnode.attrs.isClickable()
 		const nextIndex = (pageIndex + 1).toString()
 		const isSelectedPage = selectedPageIndex === pageIndex
 		const isPreviousPage = pageIndex < selectedPageIndex
 
 		return m(
-			".button-content.flex-center.items-center",
+			"button.button-icon.flex-center.items-center",
 			{
+				tabIndex: isClickable ? TabIndex.Default : TabIndex.Programmatic,
+				"aria-disabled": isClickable.toString(),
+				"aria-label": isClickable ? lang.get("previous_action") : nextIndex,
+				"aria-current": isSelectedPage ? "step" : "false",
+				"aria-live": isSelectedPage ? "polite" : "off",
+				class: this.getClass(isSelectedPage, isPreviousPage),
 				style: {
-					marginTop: "-22px",
 					cursor: isClickable ? "pointer" : "auto",
 				},
 				onclick: () => {
@@ -308,32 +318,27 @@ export class WizardPagingButton {
 					}
 				},
 			},
-			m(
-				"button.button-icon.flex-center.items-center.no-hover",
-				{
-					tabIndex: isClickable ? TabIndex.Default : TabIndex.Programmatic,
-					"aria-disabled": isClickable.toString(),
-					"aria-label": isClickable ? lang.get("previous_action") : nextIndex,
-					"aria-current": isSelectedPage ? "step" : "false",
-					"aria-live": isSelectedPage ? "polite" : "off",
-					style: {
-						border: isSelectedPage ? `2px solid ${theme.content_accent}` : `1px solid ${filledBg}`,
-						color: isSelectedPage ? theme.content_accent : "inherit",
-						"background-color": isPreviousPage ? filledBg : theme.content_bg,
-						cursor: isClickable ? "pointer" : "auto",
-					},
-				},
-				isPreviousPage
-					? m(Icon, {
-							icon: Icons.Checkmark,
-							style: {
-								fill: theme.content_button_icon,
-								"background-color": filledBg,
-							},
-					  })
-					: nextIndex,
-			),
+			isPreviousPage
+				? m(Icon, {
+						icon: Icons.Checkmark,
+						large: true,
+						style: {
+							fill: theme.content_bg,
+						},
+				  })
+				: nextIndex,
 		)
+	}
+
+	// Apply the correct styling based on the current page number
+	private getClass(isSelectedPage: boolean, isPreviousPage: boolean) {
+		if (isSelectedPage) {
+			return "wizard-breadcrumb-active"
+		} else if (isPreviousPage) {
+			return "wizard-breadcrumb-previous"
+		} else {
+			return "wizard-breadcrumb"
+		}
 	}
 }
 
@@ -343,7 +348,12 @@ export type WizardDialogAttrsBuilder<T> = {
 }
 
 // Use to generate a new wizard
-export function createWizardDialog<T>(data: T, pages: ReadonlyArray<WizardPageWrapper<T>>, closeAction?: () => $Promisable<void>): WizardDialogAttrsBuilder<T> {
+export function createWizardDialog<T>(
+	data: T,
+	pages: ReadonlyArray<WizardPageWrapper<T>>,
+	closeAction: (() => $Promisable<void>) | null = null,
+	dialogType: DialogType.EditLarge | DialogType.EditSmall = DialogType.EditLarge,
+): WizardDialogAttrsBuilder<T> {
 	// We need the close action of the dialog before we can create the proper attributes
 
 	let view: () => Children = () => null
@@ -360,7 +370,10 @@ export function createWizardDialog<T>(data: T, pages: ReadonlyArray<WizardPageWr
 		unregisterCloseListener()
 	}
 	const wizardDialogAttrs = new WizardDialogAttrs(data, pages, closeActionWrapper)
-	const wizardDialog = Dialog.largeDialog(wizardDialogAttrs.headerBarAttrs, child)
+	const wizardDialog =
+		dialogType === DialogType.EditLarge
+			? Dialog.largeDialog(wizardDialogAttrs.headerBarAttrs, child)
+			: Dialog.editSmallDialog(wizardDialogAttrs.headerBarAttrs, () => m(child))
 
 	view = () => m(WizardDialog, wizardDialogAttrs)
 	wizardDialog

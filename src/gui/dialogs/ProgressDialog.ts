@@ -30,7 +30,7 @@ export async function showProgressDialog<T>(
 	const progressDialog = new Dialog(DialogType.Progress, {
 		view: () =>
 			m("", [
-				isCancelable && headerBarAttrs ? m(".dialog-header.mb-l.mt-negative-l.mr-negative-l.ml-negative-l", m(DialogHeaderBar, headerBarAttrs)) : null,
+				isCancelable && headerBarAttrs ? m(DialogHeaderBar, { ...headerBarAttrs, class: "mb-l mt-negative-l mr-negative-l ml-negative-l" }) : null,
 				m(
 					".hide-outline",
 					{

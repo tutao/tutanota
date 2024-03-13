@@ -43,6 +43,10 @@ export class CommonNativeFacadeReceiveDispatcher {
 				const title: string = arg[0]
 				return this.facade.promptForPassword(title)
 			}
+			case "handleFileImport": {
+				const filesUris: ReadonlyArray<string> = arg[0]
+				return this.facade.handleFileImport(filesUris)
+			}
 		}
 	}
 }

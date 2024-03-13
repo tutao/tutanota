@@ -23,6 +23,12 @@ import { isOfflineError } from "../api/common/utils/ErrorUtils.js"
 assertMainOrNode()
 export const CALENDAR_MIME_TYPE = "text/calendar"
 
+// We want to handle both types of vCards
+export enum VCARD_MIME_TYPES {
+	X_VCARD = "text/x-vcard",
+	VCARD = "text/vcard",
+}
+
 const enum DownloadPostProcessing {
 	Open,
 	Write,
@@ -60,7 +66,7 @@ export abstract class FileController {
 			}
 			if (downloadedFiles.length > 0) {
 				if (action === DownloadPostProcessing.Open) {
-					await this.openDownloadedFiles(downloadedFiles)
+					this.openDownloadedFiles(downloadedFiles)
 				} else {
 					await this.writeDownloadedFiles(downloadedFiles)
 				}

@@ -64,7 +64,7 @@ export class CalendarMobileHeader implements Component<CalendarMobileHeaderAttrs
 				this.renderViewSelector(attrs),
 				m(IconButton, {
 					icon: Icons.Add,
-					title: "createEvent_label",
+					title: "newEvent_action",
 					click: attrs.onCreateEvent,
 				}),
 			],

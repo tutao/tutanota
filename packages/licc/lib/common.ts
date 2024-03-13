@@ -104,7 +104,7 @@ export function camelCaseToSnakeCase(name: string): string {
 	for (let i = 0; i < name.length; i++) {
 		const char = name.charAt(i)
 		const lower = char.toLowerCase()
-		if (char !== lower) {
+		if (char !== lower && i > 0) {
 			finalName += "_"
 		}
 		finalName += lower
