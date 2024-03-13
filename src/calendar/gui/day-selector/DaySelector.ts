@@ -7,7 +7,7 @@ import { CalendarDay, CalendarMonth } from "../../date/CalendarUtils.js"
 import { DefaultAnimationTime } from "../../../gui/animation/Animations.js"
 import { ExpanderPanel } from "../../../gui/base/Expander.js"
 import { theme } from "../../../gui/theme.js"
-import { px } from "../../../gui/size.js"
+import { px, size } from "../../../gui/size.js"
 import { styles } from "../../../gui/styles.js"
 import { hexToRGBAString } from "../../../gui/base/Color.js"
 
@@ -191,9 +191,9 @@ export class DaySelector implements Component<DaySelectorAttrs> {
 		if (highlight) {
 			style = {
 				backgroundColor: hexToRGBAString(theme.content_accent, 0.2),
-				borderRadius: px(styles.isDesktopLayout() ? 19 : 25),
 				height: px(styles.isDesktopLayout() ? 19 : 25),
-				width: "95%",
+				borderRadius: px(styles.isDesktopLayout() ? 6 : 25),
+				width: `calc(100% - ${px(size.hpad_small)})`,
 			}
 		} else {
 			style = {}
