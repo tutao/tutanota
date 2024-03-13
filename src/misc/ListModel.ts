@@ -23,6 +23,7 @@ import Stream from "mithril/stream"
 import stream from "mithril/stream"
 import { ListFetchResult, PageSize } from "../gui/base/ListUtils.js"
 import { isOfflineError } from "../api/common/utils/ErrorUtils.js"
+import { ListAutoSelectBehavior } from "./DeviceConfig.js"
 
 export interface ListModelConfig<ElementType> {
 	topId: Id
@@ -38,6 +39,8 @@ export interface ListModelConfig<ElementType> {
 	loadSingle(elementId: Id): Promise<ElementType | null>
 
 	sortCompare(entity1: ElementType, entity2: ElementType): number
+
+	autoSelectBehavior: () => ListAutoSelectBehavior
 }
 
 export type ListFilter<ElementType extends ListElement> = (item: ElementType) => boolean
@@ -284,28 +287,32 @@ export class ListModel<ElementType extends ListElement> {
 			let newActiveElement
 
 			if (entity) {
-				selectedItems.delete(entity)
+				const wasEntityRemoved = selectedItems.delete(entity)
 
-				// select next item in the list
-				if (
-					this.getSelectedAsArray().length === 1 &&
-					this.getSelectedAsArray()[0] === entity &&
-					this.rawState.filteredItems.length > 1 &&
-					!this.rawState.inMultiselect
-				) {
-					newActiveElement =
-						entity === last(this.state.items)
-							? this.state.items[this.state.items.length - 2]
-							: this.state.items[this.state.items.indexOf(entity) + 1]
+				if (this.rawState.filteredItems.length > 1) {
+					const desiredBehavior = this.config.autoSelectBehavior?.() ?? null
+					if (wasEntityRemoved) {
+						if (desiredBehavior === ListAutoSelectBehavior.NONE || this.state.inMultiselect) {
+							selectedItems.clear()
+						} else if (desiredBehavior === ListAutoSelectBehavior.NEWER) {
+							newActiveElement = this.getPreviousItem(entity)
+						} else {
+							newActiveElement = entity === last(this.state.items) ? this.getPreviousItem(entity) : this.getNextItem(entity, null)
+						}
+					}
 
-					selectedItems.add(newActiveElement)
+					if (newActiveElement) {
+						selectedItems.add(newActiveElement)
+					} else {
+						newActiveElement = this.rawState.activeElement
+					}
 				}
 
 				const filteredItems = this.rawState.filteredItems.slice()
 				remove(filteredItems, entity)
 				const unfilteredItems = this.rawState.unfilteredItems.slice()
 				remove(unfilteredItems, entity)
-				this.updateState({ filteredItems, selectedItems, unfilteredItems, activeElement: newActiveElement ?? this.rawState.activeElement })
+				this.updateState({ filteredItems, selectedItems, unfilteredItems, activeElement: newActiveElement })
 			}
 		})
 	}
@@ -431,10 +438,8 @@ export class ListModel<ElementType extends ListElement> {
 
 	selectPrevious(multiselect: boolean) {
 		const oldActiveItem = this.rawState.activeElement
-		const newActiveItem =
-			oldActiveItem == null
-				? first(this.state.items)
-				: findLast(this.state.items, (el) => this.config.sortCompare(el, oldActiveItem) < 0) ?? first(this.state.items)
+		const newActiveItem = this.getPreviousItem(oldActiveItem)
+
 		if (newActiveItem != null) {
 			if (!multiselect) {
 				this.onSingleSelection(newActiveItem)
@@ -452,20 +457,22 @@ export class ListModel<ElementType extends ListElement> {
 					// add
 					selectedItems.add(newActiveItem)
 				}
+
 				this.updateState({ activeElement: newActiveItem, selectedItems, inMultiselect: true })
 			}
 		}
 	}
 
+	private getPreviousItem(oldActiveItem: ElementType | null) {
+		return oldActiveItem == null
+			? first(this.state.items)
+			: findLast(this.state.items, (el) => this.config.sortCompare(el, oldActiveItem) < 0) ?? first(this.state.items)
+	}
+
 	selectNext(multiselect: boolean) {
 		const oldActiveItem = this.rawState.activeElement
 		const lastItem = last(this.state.items)
-		const newActiveItem =
-			oldActiveItem == null
-				? first(this.state.items)
-				: lastItem && this.config.sortCompare(lastItem, oldActiveItem) <= 0
-				? lastItem
-				: this.state.items.find((el) => this.config.sortCompare(el, oldActiveItem) > 0) ?? first(this.state.items)
+		const newActiveItem = this.getNextItem(oldActiveItem, lastItem)
 
 		if (newActiveItem != null) {
 			if (!multiselect) {
@@ -485,6 +492,14 @@ export class ListModel<ElementType extends ListElement> {
 				this.updateState({ selectedItems, inMultiselect: true, activeElement: newActiveItem })
 			}
 		}
+	}
+
+	private getNextItem(oldActiveItem: ElementType | null, lastItem: ElementType | null | undefined) {
+		return oldActiveItem == null
+			? first(this.state.items)
+			: lastItem && this.config.sortCompare(lastItem, oldActiveItem) <= 0
+			? lastItem
+			: this.state.items.find((el) => this.config.sortCompare(el, oldActiveItem) > 0) ?? first(this.state.items)
 	}
 
 	areAllSelected(): boolean {

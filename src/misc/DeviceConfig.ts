@@ -5,7 +5,7 @@ import type { ThemePreference } from "../gui/theme"
 import type { CredentialsStorage, PersistentCredentials } from "./credentials/CredentialsProvider.js"
 import { ProgrammingError } from "../api/common/error/ProgrammingError"
 import type { CredentialEncryptionMode } from "./credentials/CredentialEncryptionMode"
-import { assertMainOrNodeBoot } from "../api/common/Env"
+import { assertMainOrNodeBoot, isApp } from "../api/common/Env"
 import { PersistedAssignmentData, UsageTestStorage } from "./UsageTestModel"
 import { client } from "./ClientDetector"
 import { NewsItemStorage } from "./news/NewsModel.js"
@@ -13,6 +13,12 @@ import { CalendarViewType } from "../calendar/gui/CalendarGuiUtils.js"
 
 assertMainOrNodeBoot()
 export const defaultThemePreference: ThemePreference = "auto:light|dark"
+
+export enum ListAutoSelectBehavior {
+	NONE,
+	OLDER,
+	NEWER,
+}
 
 /**
  * Definition of the config object that will be saved to local storage
@@ -43,6 +49,8 @@ interface ConfigObject {
 	syncContactsWithPhonePreference: Record<Id, boolean>
 	/** Whether mobile calendar navigation is in the "per week" or "per month" mode */
 	isCalendarDaySelectorExpanded: boolean
+	/** Stores user's desired behavior to the view when an email is removed from the list */
+	mailAutoSelectBehavior: ListAutoSelectBehavior
 	// True if the app has already been run after install
 	isSetupComplete: boolean
 }
@@ -100,6 +108,7 @@ export class DeviceConfig implements CredentialsStorage, UsageTestStorage, NewsI
 			hasParticipatedInCredentialsMigration: loadedConfig.hasParticipatedInCredentialsMigration ?? false,
 			syncContactsWithPhonePreference: loadedConfig.syncContactsWithPhonePreference ?? {},
 			isCalendarDaySelectorExpanded: loadedConfig.isCalendarDaySelectorExpanded ?? false,
+			mailAutoSelectBehavior: loadedConfig.behaviorAfterMoveEmailAction ?? (isApp() ? ListAutoSelectBehavior.NONE : ListAutoSelectBehavior.OLDER),
 			isSetupComplete: loadedConfig.isSetupComplete ?? false,
 		}
 
@@ -354,6 +363,15 @@ export class DeviceConfig implements CredentialsStorage, UsageTestStorage, NewsI
 
 	setCalendarDaySelectorExpanded(expanded: boolean) {
 		this.config.isCalendarDaySelectorExpanded = expanded
+		this.writeToStorage()
+	}
+
+	getMailAutoSelectBehavior(): ListAutoSelectBehavior {
+		return this.config.mailAutoSelectBehavior
+	}
+
+	setMailAutoSelectBehavior(action: ListAutoSelectBehavior) {
+		this.config.mailAutoSelectBehavior = action
 		this.writeToStorage()
 	}
 }

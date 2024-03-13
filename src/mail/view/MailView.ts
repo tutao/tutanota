@@ -106,6 +106,7 @@ export class MailView extends BaseTopLevelView implements TopLevelView<MailViewA
 		this.cache = vnode.attrs.cache
 		this.folderColumn = this.createFolderColumn(null, vnode.attrs.drawerAttrs)
 		this.mailViewModel = vnode.attrs.mailViewModel
+
 		this.listColumn = new ViewColumn(
 			{
 				view: () => {
@@ -638,6 +639,10 @@ export class MailView extends BaseTopLevelView implements TopLevelView<MailViewA
 			locator.pushService.closePushNotification(
 				userGroupInfo.mailAddressAliases.map((alias) => alias.mailAddress).concat(userGroupInfo.mailAddress || []),
 			)
+		}
+
+		if (styles.isSingleColumnLayout() && !args.mailId && this.viewSlider.focusedColumn === this.mailColumn) {
+			this.viewSlider.focusPreviousColumn()
 		}
 
 		this.mailViewModel.showMail(args.listId, args.mailId)

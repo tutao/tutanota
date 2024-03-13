@@ -34,7 +34,7 @@ import { getSignatureType, show as showEditSignatureDialog } from "./EditSignatu
 import type { UpdatableSettingsViewer } from "./SettingsView"
 import { OfflineStorageSettingsModel } from "./OfflineStorageSettings"
 import { showNotAvailableForFreeDialog } from "../misc/SubscriptionDialogs"
-import { deviceConfig } from "../misc/DeviceConfig"
+import { ListAutoSelectBehavior, deviceConfig } from "../misc/DeviceConfig"
 import { IconButton, IconButtonAttrs } from "../gui/base/IconButton.js"
 import { ButtonSize } from "../gui/base/ButtonSize.js"
 import { getReportMovedMailsType } from "../misc/MailboxPropertiesUtils.js"
@@ -254,6 +254,27 @@ export class MailSettingsViewer implements UpdatableSettingsViewer {
 			},
 			dropdownWidth: 250,
 		}
+		const behaviorAfterMoveEmailAction: DropDownSelectorAttrs<ListAutoSelectBehavior> = {
+			label: "behaviorAfterMovingEmail_label",
+			helpLabel: () => "",
+			items: [
+				{
+					name: lang.get("showOlder_label"),
+					value: ListAutoSelectBehavior.OLDER,
+				},
+				{
+					name: lang.get("showNewer_label"),
+					value: ListAutoSelectBehavior.NEWER,
+				},
+				{
+					name: lang.get("showNone_label"),
+					value: ListAutoSelectBehavior.NONE,
+				},
+			],
+			selectedValue: deviceConfig.getMailAutoSelectBehavior(),
+			selectionChangedHandler: (behavior) => deviceConfig.setMailAutoSelectBehavior(behavior),
+			dropdownWidth: 250,
+		}
 		const reportMovedMailsAttrs = this.makeReportMovedMailsDropdownAttrs()
 		const templateRule = createInboxRuleTemplate(InboxRuleType.RECIPIENT_TO_EQUALS, "")
 		const addInboxRuleButtonAttrs: IconButtonAttrs = {
@@ -313,15 +334,17 @@ export class MailSettingsViewer implements UpdatableSettingsViewer {
 								}),
 						  ]
 						: null,
+					m(".h4.mt-l", lang.get("general_label")),
+					m(DropDownSelector, conversationViewDropdownAttrs),
+					m(DropDownSelector, enableMailIndexingAttrs),
+					m(DropDownSelector, behaviorAfterMoveEmailAction),
 					m(".h4.mt-l", lang.get("emailSending_label")),
 					m(DropDownSelector, defaultSenderAttrs),
 					m(TextField, signatureAttrs),
 					locator.logins.isEnabled(FeatureType.InternalCommunication) ? null : m(DropDownSelector, defaultUnconfidentialAttrs),
 					locator.logins.isEnabled(FeatureType.InternalCommunication) ? null : m(DropDownSelector, sendPlaintextAttrs),
-					m(DropDownSelector, enableMailIndexingAttrs),
 					m(DropDownSelector, reportMovedMailsAttrs),
 					m(TextField, outOfOfficeAttrs),
-					m(DropDownSelector, conversationViewDropdownAttrs),
 					this.renderLocalDataSection(),
 					this.mailAddressTableModel
 						? m(MailAddressTable, {

@@ -2,12 +2,13 @@ import o from "@tutao/otest"
 import { ListModel, ListModelConfig } from "../../../src/misc/ListModel.js"
 import { GENERATED_MAX_ID, getElementId, sortCompareById, timestampToGeneratedId } from "../../../src/api/common/utils/EntityUtils.js"
 import { defer, DeferredObject } from "@tutao/tutanota-utils"
-import { createKnowledgeBaseEntry, KnowledgeBaseEntry, KnowledgeBaseEntryTypeRef } from "../../../src/api/entities/tutanota/TypeRefs.js"
+import { KnowledgeBaseEntry, KnowledgeBaseEntryTypeRef } from "../../../src/api/entities/tutanota/TypeRefs.js"
 import { ListFetchResult } from "../../../src/gui/base/ListUtils.js"
 import { ListLoadingState } from "../../../src/gui/base/List.js"
 import { ConnectionError } from "../../../src/api/common/error/RestError.js"
 import { OperationType } from "../../../src/api/common/TutanotaConstants.js"
 import { createTestEntity } from "../TestUtils.js"
+import { ListAutoSelectBehavior } from "../../../src/misc/DeviceConfig.js"
 
 o.spec("ListModel", function () {
 	const listId = "listId"
@@ -20,6 +21,7 @@ o.spec("ListModel", function () {
 		loadSingle: () => {
 			throw new Error("noop")
 		},
+		autoSelectBehavior: () => ListAutoSelectBehavior.OLDER,
 	}
 
 	const itemA = createTestEntity(KnowledgeBaseEntryTypeRef, {

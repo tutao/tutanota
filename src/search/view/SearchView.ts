@@ -918,6 +918,14 @@ export class SearchView extends BaseTopLevelView implements TopLevelView<SearchV
 		// afterwards
 		await this.searchViewModel.init()
 		this.searchViewModel.onNewUrl(args, requestedPath)
+		if (
+			isSameTypeRef(this.searchViewModel.searchedType, MailTypeRef) &&
+			styles.isSingleColumnLayout() &&
+			!args.id &&
+			this.viewSlider.focusedColumn === this.resultDetailsColumn
+		) {
+			this.viewSlider.focusPreviousColumn()
+		}
 		// redraw because init() is async
 		m.redraw()
 	}

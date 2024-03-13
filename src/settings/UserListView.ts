@@ -30,6 +30,7 @@ import { attachDropdown } from "../gui/base/Dropdown.js"
 import { lang } from "../misc/LanguageViewModel.js"
 import { keyManager } from "../misc/KeyManager.js"
 import { EntityUpdateData, isUpdateFor, isUpdateForTypeRef } from "../api/common/utils/EntityUpdateUtils.js"
+import { ListAutoSelectBehavior } from "../misc/DeviceConfig.js"
 
 assertMainOrNode()
 
@@ -240,6 +241,7 @@ export class UserListView implements UpdatableSettingsViewer {
 					}
 				}
 			},
+			autoSelectBehavior: () => ListAutoSelectBehavior.OLDER,
 		})
 
 		listModel.setFilter((gi) => this.groupFilter(gi) && this.queryFilter(gi))

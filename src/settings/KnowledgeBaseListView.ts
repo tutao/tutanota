@@ -29,6 +29,7 @@ import { knowledgeBaseSearch } from "../knowledgebase/model/KnowledgeBaseSearchF
 import { showKnowledgeBaseEditor } from "./KnowledgeBaseEditor.js"
 import { keyManager } from "../misc/KeyManager.js"
 import { EntityUpdateData, isUpdateForTypeRef } from "../api/common/utils/EntityUpdateUtils.js"
+import { ListAutoSelectBehavior } from "../misc/DeviceConfig.js"
 
 assertMainOrNode()
 
@@ -100,6 +101,7 @@ export class KnowledgeBaseListView implements UpdatableSettingsViewer {
 			loadSingle: (elementId) => {
 				return this.entityClient.load<KnowledgeBaseEntry>(KnowledgeBaseEntryTypeRef, [this.getListId(), elementId])
 			},
+			autoSelectBehavior: () => ListAutoSelectBehavior.OLDER,
 		})
 
 		listModel.setFilter((item: KnowledgeBaseEntry) => this.queryFilter(item))
