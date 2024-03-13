@@ -11,7 +11,7 @@ export default {
 		"other"
 	],
 	"created_at": "2015-04-28T07:47:04Z",
-	"updated_at": "2024-02-07T15:05:17Z",
+	"updated_at": "2024-03-13T15:09:54Z",
 	"source_locale": null,
 	"fallback_locale": null,
 	"keys": {
@@ -693,7 +693,7 @@ export default {
 		"mailAddressInvalid_msg": "Mail adressen er ikke gyldig.",
 		"mailAddressNANudge_msg": "Email-adresse er ikke tilgængelig. Prøv et andet domæne fra rullelisten.",
 		"mailAddressNA_msg": "E-mailadresse er ikke tilgængelig.",
-		"mailAddressNeutral_msg": "Indtast venligst e-mailadresse.",
+		"mailAddressNeutral_msg": "Indtast venligst e-mailadresse",
 		"mailAddress_label": "E-mailadresse",
 		"mailAuthFailed_msg": "Beskeden er måske forfalsket. Hav ikke tillid til denne besked, da afsender eller indholdet kan være forfalsket!",
 		"mailAuthMissingWithTechnicalSender_msg": "Vi kunne ikke bekræfte, at indholdet eller afsenderen af denne besked er gyldig. Den tekniske afsender er: {sender}.",
@@ -767,7 +767,7 @@ export default {
 		"nickname_placeholder": "Kælenavn",
 		"noAppAvailable_msg": "Der er ikke installeret nogen app til at håndtere denne handling. ",
 		"noContacts_msg": "Der er ingen kontakter på denne liste.",
-		"noContact_msg": "Ingen kontakter valgt.",
+		"noContact_msg": "Ingen kontakter valgt",
 		"noEntries_msg": "<Intet registreret>",
 		"noEntryFound_label": "Ingen poster fundet",
 		"noInputWasMade_msg": "Indtastningsfelt er tomt!",
