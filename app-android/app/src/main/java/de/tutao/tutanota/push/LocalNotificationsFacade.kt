@@ -43,7 +43,7 @@ class LocalNotificationsFacade(private val context: Context) {
 		return NotificationCompat.Builder(context, PERSISTENT_NOTIFICATION_CHANNEL_ID)
 				.setContentTitle("Notification service")
 				.setContentText("Syncing notifications")
-				.setSmallIcon(R.drawable.ic_status)
+				.setSmallIcon(R.drawable.ic_sync)
 				.setProgress(0, 0, true)
 				.build()
 	}
@@ -339,7 +339,7 @@ fun showAlarmNotification(context: Context, timestamp: Long, summary: String, in
 	notificationManager.notify(
 			System.currentTimeMillis().toInt(),
 			NotificationCompat.Builder(context, ALARM_NOTIFICATION_CHANNEL_ID)
-					.setSmallIcon(R.drawable.ic_status)
+					.setSmallIcon(R.drawable.ic_alarm)
 					.setContentTitle(context.getString(R.string.reminder_label))
 					.setContentText(contentText)
 					.setDefaults(NotificationCompat.DEFAULT_ALL)
