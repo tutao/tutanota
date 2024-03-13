@@ -1,7 +1,7 @@
 NSCameraUsageDescription = "Ta et bilde eller video for å legge dette til som vedlegg.";
 NSPhotoLibraryUsageDescription = "Legg til et bilde fra ditt bibliotek som vedlegg.";
 NSMicrophoneUsageDescription = "Brukes når man innspiller en video som vedlegg.";
-NSContactsUsageDescription = "Finn mottakerens e-postadresse i kontakter.";
+NSContactsUsageDescription = "1. Finn mottakerens e-postadresse i kontakter.\n2. Du kan eventuelt synkronisere Tuta-kontakter til enheten din.";
 NSRemindersUsageDescription = "Viser varsling når det kommer ny e-post";
 TutaoShowCameraAction = "Kamera";
 TutaoChoosePhotosAction = "Bilder";
