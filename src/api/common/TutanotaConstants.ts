@@ -977,9 +977,10 @@ export enum MailAuthenticationStatus {
  */
 export enum EncryptionAuthStatus {
 	RSA_NO_AUTHENTICATION = "0",
-	PQ_AUTHENTICATION_SUCCEEDED = "1",
-	PQ_AUTHENTICATION_FAILED = "2",
+	TUTACRYPT_AUTHENTICATION_SUCCEEDED = "1",
+	TUTACRYPT_AUTHENTICATION_FAILED = "2",
 	AES_NO_AUTHENTICATION = "3",
+	TUTACRYPT_SENDER = "4",
 }
 
 export const enum MailReportType {

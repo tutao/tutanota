@@ -1740,6 +1740,7 @@ export type SendDraftData = {
 	mailSessionKey: null | Uint8Array;
 	plaintext: boolean;
 	senderNameUnencrypted: null | string;
+	sessionEncEncryptionAuthStatus: null | Uint8Array;
 
 	attachmentKeyData: AttachmentKeyData[];
 	internalRecipientKeyData: InternalRecipientKeyData[];
