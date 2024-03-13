@@ -85,7 +85,6 @@
 		3D4FACEC2B8F368300BEDF5A /* ContactSuggestion.swift in Sources */ = {isa = PBXBuildFile; fileRef = 3D4FACB12B8F368300BEDF5A /* ContactSuggestion.swift */; };
 		3D4FACED2B8F368300BEDF5A /* EncryptedFileInfo.swift in Sources */ = {isa = PBXBuildFile; fileRef = 3D4FACB22B8F368300BEDF5A /* EncryptedFileInfo.swift */; };
 		3D4FACEE2B8F368300BEDF5A /* FileFacade.swift in Sources */ = {isa = PBXBuildFile; fileRef = 3D4FACB32B8F368300BEDF5A /* FileFacade.swift */; };
-		3D4FACEF2B8F368300BEDF5A /* StructuredPronouns.swift in Sources */ = {isa = PBXBuildFile; fileRef = 3D4FACB42B8F368300BEDF5A /* StructuredPronouns.swift */; };
 		3D4FACF02B8F368300BEDF5A /* KyberPublicKey.swift in Sources */ = {isa = PBXBuildFile; fileRef = 3D4FACB52B8F368300BEDF5A /* KyberPublicKey.swift */; };
 		3D4FACF12B8F368300BEDF5A /* NativeCredentialsFacade.swift in Sources */ = {isa = PBXBuildFile; fileRef = 3D4FACB62B8F368300BEDF5A /* NativeCredentialsFacade.swift */; };
 		3D4FACF22B8F368300BEDF5A /* StructuredCustomDate.swift in Sources */ = {isa = PBXBuildFile; fileRef = 3D4FACB72B8F368300BEDF5A /* StructuredCustomDate.swift */; };
@@ -271,6 +270,7 @@
 		3DCE7AAB27200E0A0085E40D /* WebviewHacks.h in Headers */ = {isa = PBXBuildFile; fileRef = 3DCE7AA927200E0A0085E40D /* WebviewHacks.h */; };
 		3DCE7AAC27200E0A0085E40D /* WebviewHacks.m in Sources */ = {isa = PBXBuildFile; fileRef = 3DCE7AAA27200E0A0085E40D /* WebviewHacks.m */; };
 		3DD10DB227EA148D0076C9A2 /* BlobUtil.swift in Sources */ = {isa = PBXBuildFile; fileRef = 3DD10DB127EA148D0076C9A2 /* BlobUtil.swift */; };
+		3DD272D52BA203E20047ABF8 /* PermissionType.swift in Sources */ = {isa = PBXBuildFile; fileRef = 3DD272D42BA203E20047ABF8 /* PermissionType.swift */; };
 		3DD4A09020F8C6260086EB36 /* Assets.xcassets in Resources */ = {isa = PBXBuildFile; fileRef = 3DD4A08F20F8C6260086EB36 /* Assets.xcassets */; };
 		3DD4A09320F8C6260086EB36 /* LaunchScreen.storyboard in Resources */ = {isa = PBXBuildFile; fileRef = 3DD4A09120F8C6260086EB36 /* LaunchScreen.storyboard */; };
 		3DD4EA3B2726F41200D58207 /* DictionaryCoding in Frameworks */ = {isa = PBXBuildFile; productRef = 3DD4EA3A2726F41200D58207 /* DictionaryCoding */; };
@@ -283,7 +283,6 @@
 		3DEA43312B6D1E2E0037F318 /* lint.sh in Resources */ = {isa = PBXBuildFile; fileRef = 3DEA43302B6D1E2E0037F318 /* lint.sh */; };
 		3DEF18F32924E1F1009C4B55 /* ShareViewController.swift in Sources */ = {isa = PBXBuildFile; fileRef = 3DEF18F22924E1F1009C4B55 /* ShareViewController.swift */; };
 		3DEF18FA2924E1F1009C4B55 /* TutanotaShareExtension.appex in Embed App Extensions */ = {isa = PBXBuildFile; fileRef = 3DEF18F02924E1F1009C4B55 /* TutanotaShareExtension.appex */; settings = {ATTRIBUTES = (RemoveHeadersOnCopy, ); }; };
-		3DEF392A2B8CA8C000019695 /* PermissionType.swift in Sources */ = {isa = PBXBuildFile; fileRef = 3DEF39292B8CA8C000019695 /* PermissionType.swift */; };
 		3DF7FA5A2AB2EE3B00DB08D1 /* Argon2.swift in Sources */ = {isa = PBXBuildFile; fileRef = 3DF7FA592AB2EE3B00DB08D1 /* Argon2.swift */; };
 		3DF7FA5E2AB2FBE700DB08D1 /* CompatibilityTestSwift.swift in Sources */ = {isa = PBXBuildFile; fileRef = 3DF7FA5D2AB2FBE700DB08D1 /* CompatibilityTestSwift.swift */; };
 /* End PBXBuildFile section */
@@ -410,7 +409,6 @@
 		3D4FACB12B8F368300BEDF5A /* ContactSuggestion.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = ContactSuggestion.swift; sourceTree = "<group>"; };
 		3D4FACB22B8F368300BEDF5A /* EncryptedFileInfo.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = EncryptedFileInfo.swift; sourceTree = "<group>"; };
 		3D4FACB32B8F368300BEDF5A /* FileFacade.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = FileFacade.swift; sourceTree = "<group>"; };
-		3D4FACB42B8F368300BEDF5A /* StructuredPronouns.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = StructuredPronouns.swift; sourceTree = "<group>"; };
 		3D4FACB52B8F368300BEDF5A /* KyberPublicKey.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = KyberPublicKey.swift; sourceTree = "<group>"; };
 		3D4FACB62B8F368300BEDF5A /* NativeCredentialsFacade.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = NativeCredentialsFacade.swift; sourceTree = "<group>"; };
 		3D4FACB72B8F368300BEDF5A /* StructuredCustomDate.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = StructuredCustomDate.swift; sourceTree = "<group>"; };
@@ -602,6 +600,7 @@
 		3DCE7AA927200E0A0085E40D /* WebviewHacks.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = WebviewHacks.h; sourceTree = "<group>"; };
 		3DCE7AAA27200E0A0085E40D /* WebviewHacks.m */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.objc; path = WebviewHacks.m; sourceTree = "<group>"; };
 		3DD10DB127EA148D0076C9A2 /* BlobUtil.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = BlobUtil.swift; sourceTree = "<group>"; };
+		3DD272D42BA203E20047ABF8 /* PermissionType.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = PermissionType.swift; sourceTree = "<group>"; };
 		3DD4A08320F8C6240086EB36 /* Tuta D.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = "Tuta D.app"; sourceTree = BUILT_PRODUCTS_DIR; };
 		3DD4A08F20F8C6260086EB36 /* Assets.xcassets */ = {isa = PBXFileReference; lastKnownFileType = folder.assetcatalog; path = Assets.xcassets; sourceTree = "<group>"; };
 		3DD4A09220F8C6260086EB36 /* Base */ = {isa = PBXFileReference; lastKnownFileType = file.storyboard; name = Base; path = Base.lproj/LaunchScreen.storyboard; sourceTree = "<group>"; };
@@ -619,7 +618,6 @@
 		3DEF18F02924E1F1009C4B55 /* TutanotaShareExtension.appex */ = {isa = PBXFileReference; explicitFileType = "wrapper.app-extension"; includeInIndex = 0; path = TutanotaShareExtension.appex; sourceTree = BUILT_PRODUCTS_DIR; };
 		3DEF18F22924E1F1009C4B55 /* ShareViewController.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ShareViewController.swift; sourceTree = "<group>"; };
 		3DEF18F72924E1F1009C4B55 /* Info.plist */ = {isa = PBXFileReference; lastKnownFileType = text.plist.xml; path = Info.plist; sourceTree = "<group>"; };
-		3DEF39292B8CA8C000019695 /* PermissionType.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = PermissionType.swift; sourceTree = "<group>"; };
 		3DF3055B253853C300E942A8 /* TUTCrypto.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = TUTCrypto.h; path = tutanota/Sources/Crypto/TUTCrypto.h; sourceTree = SOURCE_ROOT; };
 		3DF7FA592AB2EE3B00DB08D1 /* Argon2.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Argon2.swift; sourceTree = "<group>"; };
 		3DF7FA5D2AB2FBE700DB08D1 /* CompatibilityTestSwift.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CompatibilityTestSwift.swift; sourceTree = "<group>"; };
@@ -794,65 +792,65 @@
 		3D4FACAE2B8F368300BEDF5A /* GeneratedIpc */ = {
 			isa = PBXGroup;
 			children = (
-				3D4FACAF2B8F368300BEDF5A /* MobileContactsFacade.swift */,
-				3D4FACB02B8F368300BEDF5A /* WebAuthnFacadeReceiveDispatcher.swift */,
-				3D4FACB12B8F368300BEDF5A /* ContactSuggestion.swift */,
-				3D4FACB22B8F368300BEDF5A /* EncryptedFileInfo.swift */,
-				3D4FACB32B8F368300BEDF5A /* FileFacade.swift */,
-				3D4FACB42B8F368300BEDF5A /* StructuredPronouns.swift */,
-				3D4FACB52B8F368300BEDF5A /* KyberPublicKey.swift */,
-				3D4FACB62B8F368300BEDF5A /* NativeCredentialsFacade.swift */,
-				3D4FACB72B8F368300BEDF5A /* StructuredCustomDate.swift */,
-				3D4FACB82B8F368300BEDF5A /* MobileContactsFacadeReceiveDispatcher.swift */,
-				3D4FACB92B8F368300BEDF5A /* StructuredRelationship.swift */,
-				3D4FACBA2B8F368300BEDF5A /* WebauthnKeyDescriptor.swift */,
-				3D4FACBB2B8F368300BEDF5A /* RsaKeyPair.swift */,
-				3D4FACBC2B8F368300BEDF5A /* NativeCryptoFacade.swift */,
+				3DD272D42BA203E20047ABF8 /* PermissionType.swift */,
+				3D4FACE62B8F368300BEDF5A /* CommonNativeFacade.swift */,
+				3D4FACDC2B8F368300BEDF5A /* CommonNativeFacadeSendDispatcher.swift */,
+				3D4FACE32B8F368300BEDF5A /* CommonSystemFacade.swift */,
 				3D4FACBD2B8F368300BEDF5A /* CommonSystemFacadeReceiveDispatcher.swift */,
-				3D4FACBE2B8F368300BEDF5A /* MobileFacadeSendDispatcher.swift */,
-				3D4FACBF2B8F368300BEDF5A /* RsaPublicKey.swift */,
-				3D4FACC02B8F368300BEDF5A /* SqlCipherFacade.swift */,
-				3D4FACC12B8F368300BEDF5A /* MobileSystemFacade.swift */,
-				3D4FACC22B8F368300BEDF5A /* DownloadTaskResponse.swift */,
-				3D4FACC32B8F368300BEDF5A /* StructuredMessengerHandle.swift */,
-				3D4FACC42B8F368300BEDF5A /* StructuredPhoneNumber.swift */,
-				3D4FACC52B8F368300BEDF5A /* IpcClientRect.swift */,
-				3D4FACC62B8F368300BEDF5A /* MobileSystemFacadeReceiveDispatcher.swift */,
+				3D4FACE52B8F368300BEDF5A /* ContactBook.swift */,
+				3D4FACB12B8F368300BEDF5A /* ContactSuggestion.swift */,
 				3D4FACC72B8F368300BEDF5A /* ContactSyncResult.swift */,
+				3D4FACC22B8F368300BEDF5A /* DownloadTaskResponse.swift */,
+				3D4FACDF2B8F368300BEDF5A /* ElectronResult.swift */,
+				3D4FACB22B8F368300BEDF5A /* EncryptedFileInfo.swift */,
+				3D4FACDE2B8F368300BEDF5A /* ErrorInfo.swift */,
+				3D4FACB32B8F368300BEDF5A /* FileFacade.swift */,
+				3D4FACD92B8F368300BEDF5A /* FileFacadeReceiveDispatcher.swift */,
+				3D4FACD82B8F368300BEDF5A /* IntegrationInfo.swift */,
+				3D4FACD12B8F368300BEDF5A /* IosGlobalDispatcher.swift */,
+				3D4FACC52B8F368300BEDF5A /* IpcClientRect.swift */,
+				3D4FACD42B8F368300BEDF5A /* KyberEncapsulation.swift */,
+				3D4FACE22B8F368300BEDF5A /* KyberKeyPair.swift */,
+				3D4FACE02B8F368300BEDF5A /* KyberPrivateKey.swift */,
+				3D4FACB52B8F368300BEDF5A /* KyberPublicKey.swift */,
+				3D4FACAF2B8F368300BEDF5A /* MobileContactsFacade.swift */,
+				3D4FACB82B8F368300BEDF5A /* MobileContactsFacadeReceiveDispatcher.swift */,
 				3D4FACC82B8F368300BEDF5A /* MobileFacade.swift */,
-				3D4FACC92B8F368300BEDF5A /* StructuredAddress.swift */,
-				3D4FACCA2B8F368300BEDF5A /* WebAuthnSignResult.swift */,
-				3D4FACCB2B8F368300BEDF5A /* ThemeFacadeReceiveDispatcher.swift */,
+				3D4FACBE2B8F368300BEDF5A /* MobileFacadeSendDispatcher.swift */,
+				3D4FACC12B8F368300BEDF5A /* MobileSystemFacade.swift */,
+				3D4FACC62B8F368300BEDF5A /* MobileSystemFacadeReceiveDispatcher.swift */,
+				3D4FACB62B8F368300BEDF5A /* NativeCredentialsFacade.swift */,
+				3D4FACE72B8F368300BEDF5A /* NativeCredentialsFacadeReceiveDispatcher.swift */,
+				3D4FACBC2B8F368300BEDF5A /* NativeCryptoFacade.swift */,
+				3D4FACD62B8F368300BEDF5A /* NativeCryptoFacadeReceiveDispatcher.swift */,
+				3D4FACD32B8F368300BEDF5A /* NativeInterface.swift */,
+				3D4FACE42B8F368300BEDF5A /* NativeKey.swift */,
+				3D4FACE92B8F368300BEDF5A /* NativePushFacade.swift */,
 				3D4FACCC2B8F368300BEDF5A /* NativePushFacadeReceiveDispatcher.swift */,
 				3D4FACCD2B8F368300BEDF5A /* NativeShortcut.swift */,
-				3D4FACCE2B8F368300BEDF5A /* WebAuthnFacade.swift */,
-				3D4FACCF2B8F368300BEDF5A /* StructuredWebsite.swift */,
-				3D4FACD02B8F368300BEDF5A /* WebAuthnSignChallenge.swift */,
-				3D4FACD12B8F368300BEDF5A /* IosGlobalDispatcher.swift */,
-				3D4FACD22B8F368300BEDF5A /* SqlCipherFacadeReceiveDispatcher.swift */,
-				3D4FACD32B8F368300BEDF5A /* NativeInterface.swift */,
-				3D4FACD42B8F368300BEDF5A /* KyberEncapsulation.swift */,
-				3D4FACD52B8F368300BEDF5A /* WebAuthnRegistrationResult.swift */,
-				3D4FACD62B8F368300BEDF5A /* NativeCryptoFacadeReceiveDispatcher.swift */,
+				3D4FACBB2B8F368300BEDF5A /* RsaKeyPair.swift */,
 				3D4FACD72B8F368300BEDF5A /* RsaPrivateKey.swift */,
-				3D4FACD82B8F368300BEDF5A /* IntegrationInfo.swift */,
-				3D4FACD92B8F368300BEDF5A /* FileFacadeReceiveDispatcher.swift */,
+				3D4FACBF2B8F368300BEDF5A /* RsaPublicKey.swift */,
+				3D4FACC02B8F368300BEDF5A /* SqlCipherFacade.swift */,
+				3D4FACD22B8F368300BEDF5A /* SqlCipherFacadeReceiveDispatcher.swift */,
+				3D4FACC92B8F368300BEDF5A /* StructuredAddress.swift */,
 				3D4FACDA2B8F368300BEDF5A /* StructuredContact.swift */,
-				3D4FACDB2B8F368300BEDF5A /* ThemeFacade.swift */,
-				3D4FACDC2B8F368300BEDF5A /* CommonNativeFacadeSendDispatcher.swift */,
-				3D4FACDD2B8F368300BEDF5A /* WebAuthnRegistrationChallenge.swift */,
-				3D4FACDE2B8F368300BEDF5A /* ErrorInfo.swift */,
-				3D4FACDF2B8F368300BEDF5A /* ElectronResult.swift */,
-				3D4FACE02B8F368300BEDF5A /* KyberPrivateKey.swift */,
-				3D4FACE12B8F368300BEDF5A /* UploadTaskResponse.swift */,
-				3D4FACE22B8F368300BEDF5A /* KyberKeyPair.swift */,
-				3D4FACE32B8F368300BEDF5A /* CommonSystemFacade.swift */,
-				3D4FACE42B8F368300BEDF5A /* NativeKey.swift */,
-				3D4FACE52B8F368300BEDF5A /* ContactBook.swift */,
-				3D4FACE62B8F368300BEDF5A /* CommonNativeFacade.swift */,
-				3D4FACE72B8F368300BEDF5A /* NativeCredentialsFacadeReceiveDispatcher.swift */,
+				3D4FACB72B8F368300BEDF5A /* StructuredCustomDate.swift */,
 				3D4FACE82B8F368300BEDF5A /* StructuredMailAddress.swift */,
-				3D4FACE92B8F368300BEDF5A /* NativePushFacade.swift */,
+				3D4FACC32B8F368300BEDF5A /* StructuredMessengerHandle.swift */,
+				3D4FACC42B8F368300BEDF5A /* StructuredPhoneNumber.swift */,
+				3D4FACB92B8F368300BEDF5A /* StructuredRelationship.swift */,
+				3D4FACCF2B8F368300BEDF5A /* StructuredWebsite.swift */,
+				3D4FACDB2B8F368300BEDF5A /* ThemeFacade.swift */,
+				3D4FACCB2B8F368300BEDF5A /* ThemeFacadeReceiveDispatcher.swift */,
+				3D4FACE12B8F368300BEDF5A /* UploadTaskResponse.swift */,
+				3D4FACCE2B8F368300BEDF5A /* WebAuthnFacade.swift */,
+				3D4FACB02B8F368300BEDF5A /* WebAuthnFacadeReceiveDispatcher.swift */,
+				3D4FACBA2B8F368300BEDF5A /* WebauthnKeyDescriptor.swift */,
+				3D4FACDD2B8F368300BEDF5A /* WebAuthnRegistrationChallenge.swift */,
+				3D4FACD52B8F368300BEDF5A /* WebAuthnRegistrationResult.swift */,
+				3D4FACD02B8F368300BEDF5A /* WebAuthnSignChallenge.swift */,
+				3D4FACCA2B8F368300BEDF5A /* WebAuthnSignResult.swift */,
 			);
 			name = GeneratedIpc;
 			path = tutanota/Sources/GeneratedIpc;
@@ -1577,6 +1575,7 @@
 				3DEF18F12924E1F1009C4B55 /* TutanotaShareExtension */,
 				3DD4A08420F8C6240086EB36 /* Products */,
 				3D891EEC2105A5590031E528 /* Frameworks */,
+				3DD272D32BA201D00047ABF8 /* Recovered References */,
 			);
 			sourceTree = "<group>";
 		};
@@ -2237,6 +2236,7 @@
 				3D4FAD222B8F368300BEDF5A /* NativeCredentialsFacadeReceiveDispatcher.swift in Sources */,
 				3D69DE002AD4427E00C6C900 /* Kyber.swift in Sources */,
 				3D0E44A62B3C3CE500F933A1 /* ntt.c in Sources */,
+				3DD272D52BA203E20047ABF8 /* PermissionType.swift in Sources */,
 				3D891F082105B12F0031E528 /* rsa_oaep_sha256.c in Sources */,
 				3D9B12AF2721966C002B46A1 /* IdTuple.swift in Sources */,
 				3D92867F273BBA9D006B8FB2 /* KeyGeneratorSecureEnclave.swift in Sources */,
@@ -2265,7 +2265,6 @@
 				3D4D78252B62606D00829803 /* ContactsPermission.swift in Sources */,
 				3D0E44B22B3C3CE500F933A1 /* polyvec.c in Sources */,
 				3D3AFAE8285B0DB60077F302 /* IosMobileSystemFacade.swift in Sources */,
-				3D4FACEF2B8F368300BEDF5A /* StructuredPronouns.swift in Sources */,
 				3D4FAD1E2B8F368300BEDF5A /* CommonSystemFacade.swift in Sources */,
 				3D4FACEA2B8F368300BEDF5A /* MobileContactsFacade.swift in Sources */,
 				3DDE55242AB88D8300A77D14 /* AES.swift in Sources */,

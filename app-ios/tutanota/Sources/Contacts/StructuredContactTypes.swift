@@ -125,10 +125,6 @@ extension StructuredRelationship: Equatable {
 	public static func == (lhs: Self, rhs: Self) -> Bool { lhs.type == rhs.type && lhs.customTypeName == rhs.customTypeName && lhs.person == rhs.person }
 }
 
-extension StructuredPronouns: Equatable {
-	public static func == (lhs: Self, rhs: Self) -> Bool { lhs.pronouns == rhs.pronouns && lhs.language == rhs.language }
-}
-
 extension StructuredRelationship: Hashable {
 	public func hash(into hasher: inout Hasher) {
 		hasher.combine(person)
