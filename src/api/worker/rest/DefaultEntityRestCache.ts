@@ -757,6 +757,9 @@ export class DefaultEntityRestCache implements EntityRestCache {
 	private async processUpdateEvent(typeRef: TypeRef<SomeEntity>, update: EntityUpdate): Promise<EntityUpdate | null> {
 		const { instanceId, instanceListId } = getUpdateInstanceId(update)
 		const cached = await this.storage.get(typeRef, instanceListId, instanceId)
+		if (isSameTypeRef(typeRef, UserTypeRef) && !cached) {
+			console.log("DefaultEntityRestCache process user update event. user is not cached")
+		}
 		// No need to try to download something that's not there anymore
 		if (cached != null) {
 			try {
@@ -769,6 +772,7 @@ export class DefaultEntityRestCache implements EntityRestCache {
 				// outdated credentials while not connected to the internet.
 				const newEntity = await this.entityRestClient.load(typeRef, collapseId(instanceListId, instanceId))
 				if (isSameTypeRef(typeRef, UserTypeRef)) {
+					console.log("DefaultEntityRestCache process user update event. cached: ", cached, "new", newEntity)
 					await this.handleUpdatedUser(cached, newEntity)
 				}
 				await this.storage.put(newEntity)
