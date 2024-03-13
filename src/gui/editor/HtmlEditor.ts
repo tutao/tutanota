@@ -30,7 +30,7 @@ export class HtmlEditor implements Component {
 	private toolbarAttrs: Omit<RichTextToolbarAttrs, "editor"> = {}
 
 	constructor(private label?: TranslationText, private readonly injections?: () => Children) {
-		this.editor = new Editor(null, (html) => htmlSanitizer.sanitizeFragment(html, { blockExternalContent: false }).fragment)
+		this.editor = new Editor(null, (html) => htmlSanitizer.sanitizeFragment(html, { blockExternalContent: false }).fragment).setTabCreatesWhitespace(false)
 		this.view = this.view.bind(this)
 		this.initializeEditorListeners()
 	}
