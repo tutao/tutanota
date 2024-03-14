@@ -927,6 +927,35 @@ export class Dialog implements ModalComponent {
 		})
 	}
 
+	static async viewerDialog<T extends {}>(title: TranslationText, child: Class<Component<T>>, childAttrs: T): Promise<void> {
+		return new Promise((resolve) => {
+			let dialog: Dialog
+
+			const close = () => {
+				dialog.close()
+				resolve()
+			}
+
+			const headerAttrs: DialogHeaderBarAttrs = {
+				left: [
+					{
+						label: "close_alt",
+						click: close,
+						type: ButtonType.Secondary,
+					},
+				],
+				middle: () => lang.getMaybeLazy(title),
+			}
+			dialog = Dialog.editDialog(headerAttrs, child, childAttrs)
+				.addShortcut({
+					key: Keys.ESC,
+					exec: close,
+					help: "close_alt",
+				})
+				.show()
+		})
+	}
+
 	/**
 	 * Requests a password from the user. Stays open until the caller sets the error message to "".
 	 * @param props.action will be executed as an attempt to apply new password. Error message is the return value.
