@@ -196,12 +196,6 @@ export function mailViewerMoreActions(viewModel: MailViewerViewModel, showReadBu
 		})
 	}
 
-	moreButtons.push({
-		label: "showSource_action",
-		click: () => showSourceDialog(viewModel.getMailBody()),
-		icon: Icons.Book,
-	})
-
 	if (viewModel.canReport()) {
 		moreButtons.push({
 			label: "reportEmail_action",
