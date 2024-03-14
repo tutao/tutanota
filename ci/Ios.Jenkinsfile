@@ -66,7 +66,7 @@ pipeline {
 							buildWebapp("test")
 							runFastlane("de.tutao.tutanota.test", "adhoc_staging")
 							if (params.RELEASE) {
-								runFastlane("de.tutao.tautano.test", "testflight_staging")
+								runFastlane("de.tutao.tutanota.test", "testflight_staging")
 							}
 							stash includes: "app-ios/releases/tutanota-${VERSION}-adhoc-test.ipa", name: 'ipa-testing'
 						}
@@ -79,7 +79,7 @@ pipeline {
 							runFastlane("de.tutao.tutanota", "adhoc_prod")
 							if (params.RELEASE) {
 								writeReleaseNotesForAppStore()
-								runFastlane("de.tutao.tautanota", "appstore_prod submit:true")
+								runFastlane("de.tutao.tutanota", "appstore_prod submit:true")
 							}
 							stash includes: "app-ios/releases/tutanota-${VERSION}-adhoc.ipa", name: 'ipa-production'
 						}
