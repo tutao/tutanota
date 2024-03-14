@@ -211,7 +211,9 @@ export class MultiDayCalendarView implements Component<MultiDayCalendarViewAttrs
 				onmouseleave: (mouseEvent: EventRedraw<MouseEvent>) => {
 					mouseEvent.redraw = false
 
-					this.cancelDrag()
+					if (this.eventDragHandler.isDragging) {
+						this.cancelDrag()
+					}
 				},
 			},
 			[

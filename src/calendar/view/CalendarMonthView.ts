@@ -205,7 +205,9 @@ export class CalendarMonthView implements Component<CalendarMonthAttrs>, ClassCo
 				onmouseleave: (mouseEvent: MouseEvent & { redraw?: boolean }) => {
 					mouseEvent.redraw = false
 
-					this.endDrag(mouseEvent)
+					if (this.eventDragHandler.isDragging) {
+						this.eventDragHandler.cancelDrag()
+					}
 				},
 			},
 			weeks.map((week, weekIndex) => {

@@ -299,7 +299,6 @@ export class CalendarViewModel implements EventDragHandlerCallbacks {
 			const temporaryEvent = this._draggedEvent?.eventClone
 
 			if (temporaryEvent && isEventBetweenDays(temporaryEvent, day, day, this.timeZone)) {
-				console.log("add temp", day, temporaryEvent)
 				sortEvent(temporaryEvent, shortEventsForDay)
 			}
 
