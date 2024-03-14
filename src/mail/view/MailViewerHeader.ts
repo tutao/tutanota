@@ -1,6 +1,6 @@
 import m, { Children, Component, Vnode } from "mithril"
 import { InfoLink, lang } from "../../misc/LanguageViewModel.js"
-import { getConfidentialIcon, getFolderIconByType, getMailAddressDisplayText, getSenderAddressDisplay } from "../model/MailUtils.js"
+import { getConfidentialIcon, getFolderIconByType, getMailAddressDisplayText } from "../model/MailUtils.js"
 import { theme } from "../../gui/theme.js"
 import { styles } from "../../gui/styles.js"
 import { ExpanderButton, ExpanderPanel } from "../../gui/base/Expander.js"
@@ -97,6 +97,7 @@ export class MailViewerHeader implements Component<MailViewerHeaderAttrs> {
 		const folderInfo = viewModel.getFolderInfo()
 		if (!folderInfo) return null
 
+		const displayedSender = viewModel.getDisplayedSender()
 		return m(
 			".flex.mt-xs.click.col",
 			{
@@ -116,7 +117,11 @@ export class MailViewerHeader implements Component<MailViewerHeaderAttrs> {
 				},
 			},
 			[
-				m(".small.flex.flex-wrap.items-start", [m("span.text-break", getSenderAddressDisplay(viewModel.getDisplayedSender()))]),
+				displayedSender == null
+					? null
+					: m(".small.flex.flex-wrap.items-start", [
+							m("span.text-break", getMailAddressDisplayText(displayedSender.name, displayedSender.address, false)),
+					  ]),
 				m(".flex", [
 					this.getRecipientEmailAddress(attrs),
 					m(".flex-grow"),
@@ -197,7 +202,7 @@ export class MailViewerHeader implements Component<MailViewerHeaderAttrs> {
 							  )
 							: null,
 						this.tutaoBadge(viewModel),
-						m("span.text-break" + (viewModel.isUnread() ? ".font-weight-600" : ""), viewModel.getDisplayedSender().name),
+						m("span.text-break" + (viewModel.isUnread() ? ".font-weight-600" : ""), viewModel.getDisplayedSender()?.name ?? ""),
 					],
 				),
 				m(
@@ -299,18 +304,22 @@ export class MailViewerHeader implements Component<MailViewerHeaderAttrs> {
 		return m("." + responsiveCardHPadding(), liveDataAttrs(), [
 			m(
 				".mt-s",
-				m(".small.b", lang.get("from_label")),
-				m(RecipientButton, {
-					label: getMailAddressDisplayText(displayedSender.name, displayedSender.address, false),
-					click: createAsyncDropdown({
-						lazyButtons: () =>
-							createMailAddressContextButtons({
-								mailAddress: displayedSender,
-								defaultInboxRuleField: InboxRuleType.FROM_EQUALS,
+				displayedSender == null
+					? null
+					: [
+							m(".small.b", lang.get("from_label")),
+							m(RecipientButton, {
+								label: getMailAddressDisplayText(displayedSender.name, displayedSender.address, false),
+								click: createAsyncDropdown({
+									lazyButtons: () =>
+										createMailAddressContextButtons({
+											mailAddress: displayedSender,
+											defaultInboxRuleField: InboxRuleType.FROM_EQUALS,
+										}),
+									width: bubbleMenuWidth,
+								}),
 							}),
-						width: bubbleMenuWidth,
-					}),
-				}),
+					  ],
 				envelopeSender
 					? [
 							m(".small.b", lang.get("sender_label")),

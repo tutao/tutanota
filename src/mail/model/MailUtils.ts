@@ -40,7 +40,7 @@ import { isDetailsDraft, isLegacyMail, MailWrapper } from "../../api/common/Mail
 import { FolderSystem } from "../../api/common/mail/FolderSystem.js"
 import { ListFilter } from "../../misc/ListModel.js"
 import { MailFacade } from "../../api/worker/facades/lazy/MailFacade.js"
-import { getDisplayedSender, isExcludedMailAddress, MailAddressAndName } from "../../api/common/mail/CommonMailUtils.js"
+import { getDisplayedSender, isSystemNotification } from "../../api/common/mail/CommonMailUtils.js"
 import { ProgrammingError } from "../../api/common/error/ProgrammingError.js"
 import { FontIcons } from "../../gui/base/icons/FontIcons.js"
 
@@ -111,23 +111,6 @@ export function getMailAddressDisplayText(name: string | null, mailAddress: stri
 	}
 }
 
-export function getSenderHeading(mail: Mail, preferNameOnly: boolean) {
-	const sender = getDisplayedSender(mail)
-	if (isExcludedMailAddress(sender.address)) {
-		return ""
-	} else {
-		return getMailAddressDisplayText(sender.name, sender.address, preferNameOnly)
-	}
-}
-
-export function getSenderAddressDisplay(sender: MailAddressAndName): string {
-	if (isExcludedMailAddress(sender.address)) {
-		return ""
-	} else {
-		return sender.address
-	}
-}
-
 export function getRecipientHeading(mail: Mail, preferNameOnly: boolean) {
 	if (isLegacyMail(mail)) {
 		const allRecipients = mail.toRecipients.concat(mail.ccRecipients).concat(mail.bccRecipients)
@@ -149,8 +132,11 @@ export function getRecipientHeading(mail: Mail, preferNameOnly: boolean) {
 }
 
 export function getSenderOrRecipientHeading(mail: Mail, preferNameOnly: boolean): string {
-	if (mail.state === MailState.RECEIVED) {
-		return getSenderHeading(mail, preferNameOnly)
+	if (isSystemNotification(mail)) {
+		return ""
+	} else if (mail.state === MailState.RECEIVED) {
+		const sender = getDisplayedSender(mail)
+		return getMailAddressDisplayText(sender.name, sender.address, preferNameOnly)
 	} else {
 		return getRecipientHeading(mail, preferNameOnly)
 	}

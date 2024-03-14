@@ -1,6 +1,5 @@
 import {
 	ConversationEntryTypeRef,
-	createEncryptedMailAddress,
 	createMailAddress,
 	EncryptedMailAddress,
 	File as TutanotaFile,
@@ -34,7 +33,6 @@ import {
 	filterInt,
 	first,
 	lazyAsync,
-	neverNull,
 	noOp,
 	ofClass,
 	startsWith,
@@ -65,7 +63,6 @@ import { checkApprovalStatus } from "../../misc/LoginUtils"
 import { formatDateTime, urlEncodeHtmlTags } from "../../misc/Formatter"
 import { UserError } from "../../api/main/UserError"
 import { showUserError } from "../../misc/ErrorHandlerImpl"
-import { GroupInfo } from "../../api/entities/sys/TypeRefs.js"
 import { LoadingStateTracker } from "../../offline/LoadingState"
 import { ProgrammingError } from "../../api/common/error/ProgrammingError"
 import { InitAsResponseArgs, SendMailModel } from "../editor/SendMailModel"
@@ -76,9 +73,10 @@ import { SearchModel } from "../../search/model/SearchModel.js"
 import {
 	assertSystemFolderOfType,
 	getDisplayedSender,
-	isExcludedMailAddress,
+	isNoReplyTeamAddress,
 	isTutanotaTeamMail,
 	MailAddressAndName,
+	isSystemNotification,
 } from "../../api/common/mail/CommonMailUtils.js"
 import { ParsedIcalFileContent } from "../../calendar/view/CalendarInvites.js"
 import { MailFacade } from "../../api/worker/facades/lazy/MailFacade.js"
@@ -401,8 +399,15 @@ export class MailViewerViewModel {
 		return this.mail.sender
 	}
 
-	getDisplayedSender(): MailAddressAndName {
-		return getDisplayedSender(this.mail)
+	/**
+	 * Can be {@code null} if sender should not be displayed e.g. for system notifications.
+	 */
+	getDisplayedSender(): MailAddressAndName | null {
+		if (isSystemNotification(this.mail)) {
+			return null
+		} else {
+			return getDisplayedSender(this.mail)
+		}
 	}
 
 	getPhishingStatus(): MailPhishingStatus {
@@ -590,7 +595,12 @@ export class MailViewerViewModel {
 	}
 
 	isAnnouncement(): boolean {
-		return isExcludedMailAddress(this.getDisplayedSender().address)
+		const replyTos = this.mailWrapper?.getReplyTos()
+		return (
+			isSystemNotification(this.mail) &&
+			// hide the actions until mailDetails are loaded rather than showing them quickly and then hiding them
+			(replyTos == null || replyTos?.length === 0 || (replyTos?.length === 1 && isNoReplyTeamAddress(replyTos[0].address)))
+		)
 	}
 
 	async unsubscribe(): Promise<boolean> {
@@ -769,13 +779,15 @@ export class MailViewerViewModel {
 			addressesInMail.push(...mailWrapper.getBccRecipients())
 
 			const mailAddressAndName = this.getDisplayedSender()
-			addressesInMail.push(
-				createMailAddress({
-					name: mailAddressAndName.name,
-					address: mailAddressAndName.address,
-					contact: null,
-				}),
-			)
+			if (mailAddressAndName) {
+				addressesInMail.push(
+					createMailAddress({
+						name: mailAddressAndName.name,
+						address: mailAddressAndName.address,
+						contact: null,
+					}),
+				)
+			}
 			const foundAddress = addressesInMail.find((address) => contains(myMailAddresses, address.address.toLowerCase()))
 			if (foundAddress) {
 				return foundAddress.address.toLowerCase()
@@ -807,7 +819,10 @@ export class MailViewerViewModel {
 		addSignature: boolean,
 	): Promise<InitAsResponseArgs> {
 		let infoLine = lang.get("date_label") + ": " + formatDateTime(this.mail.receivedDate) + "<br>"
-		infoLine += lang.get("from_label") + ": " + this.getDisplayedSender().address + "<br>"
+		const senderAddress = this.getDisplayedSender()?.address
+		if (senderAddress) {
+			infoLine += lang.get("from_label") + ": " + senderAddress + "<br>"
+		}
 
 		if (this.getToRecipients().length > 0) {
 			infoLine +=
@@ -848,7 +863,7 @@ export class MailViewerViewModel {
 
 	async reply(replyAll: boolean): Promise<void> {
 		if (this.isAnnouncement()) {
-			return Promise.resolve()
+			return
 		}
 
 		const sendAllowed = await checkApprovalStatus(this.logins, false)
@@ -859,7 +874,9 @@ export class MailViewerViewModel {
 				return
 			}
 
-			const mailAddressAndName = this.getDisplayedSender()
+			// We already know it is not an announcement email and we want to get the sender even if it
+			// is hidden. It will be replaced with replyTo() anyway
+			const mailAddressAndName = getDisplayedSender(this.mail)
 			const sender = createMailAddress({
 				name: mailAddressAndName.name,
 				address: mailAddressAndName.address,
@@ -980,42 +997,6 @@ export class MailViewerViewModel {
 			links,
 			blockedExternalContent,
 		}
-	}
-
-	private async getAssignableMailRecipients(): Promise<GroupInfo[]> {
-		return []
-	}
-
-	async assignMail(userGroupInfo: GroupInfo): Promise<boolean> {
-		const recipient = createMailAddress({
-			address: neverNull(userGroupInfo.mailAddress),
-			name: userGroupInfo.name,
-			contact: null,
-		})
-		let newReplyTos
-
-		if (this.getReplyTos().length > 0) {
-			newReplyTos = this.getReplyTos()
-		} else {
-			newReplyTos = [createEncryptedMailAddress(this.getDisplayedSender())]
-		}
-
-		const args = await this.createResponseMailArgsForForwarding([recipient], newReplyTos, false)
-		const mailboxDetails = await this.getMailboxDetails()
-		if (mailboxDetails == null) {
-			return false
-		}
-		// Make sure inline images are loaded
-		await this.loadAll(Promise.resolve(), { notify: false })
-		const model = await this.sendMailModelFactory(mailboxDetails)
-		await model.initAsResponse(args, this.getLoadedInlineImages())
-		await model.send(MailMethod.NONE)
-		const folders = await this.mailModel.getMailboxFolders(this.mail)
-		if (folders == null) {
-			return false
-		}
-		const archive = assertSystemFolderOfType(folders, MailFolderType.ARCHIVE)
-		return moveMails({ mailModel: this.mailModel, mails: [this.mail], targetMailFolder: archive })
 	}
 
 	getNonInlineAttachments(): TutanotaFile[] {
