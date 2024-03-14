@@ -1,6 +1,5 @@
 package de.tutao.tutanota
 
-import android.Manifest
 import android.annotation.SuppressLint
 import android.app.job.JobInfo
 import android.app.job.JobScheduler
@@ -438,44 +437,20 @@ class MainActivity : FragmentActivity() {
 	}
   }
 
-  suspend fun askBatteryOptimizationsIfNeeded() {
-	val powerManager = getSystemService(POWER_SERVICE) as PowerManager
+	fun hasBatteryOptimizationPermission(): Boolean {
+		val pm = ContextCompat.getSystemService(this, PowerManager::class.java)!!
+		return pm.isIgnoringBatteryOptimizations(this.packageName)
+	}
 
-	val preferences = getDefaultSharedPreferences(this)
-
-	if (
-			!preferences.getBoolean(ASKED_BATTERY_OPTIMIZATIONS_PREF, false)
-			&& !powerManager.isIgnoringBatteryOptimizations(packageName)
-	) {
-
-	  commonNativeFacade.showAlertDialog("allowPushNotification_msg")
-
+  suspend fun requestBatteryOptimizationPermission() {
 	  withContext(Dispatchers.Main) {
-		saveAskedBatteryOptimizations(preferences)
-		@SuppressLint("BatteryLife")
-		val intent = Intent(
-				Settings.ACTION_REQUEST_IGNORE_BATTERY_OPTIMIZATIONS,
-				Uri.parse("package:$packageName")
-		)
-		startActivityForResult(intent)
+		  @SuppressLint("BatteryLife")
+		  val intent = Intent(
+			  Settings.ACTION_REQUEST_IGNORE_BATTERY_OPTIMIZATIONS,
+			  Uri.parse("package:$packageName")
+		  )
+		  startActivityForResult(intent)
 	  }
-	}
-  }
-
-  suspend fun askNotificationPermissionIfNeeded() {
-	// if API < 33 we should have the permission automatically
-	// check also enables us to use the POST_NOTIFICATIONS const
-	if (!atLeastTiramisu()) return
-	try {
-	  this.getPermission(Manifest.permission.POST_NOTIFICATIONS)
-	} catch (e: SecurityException) {
-	  Log.d(TAG, "got denied notification permission")
-	}
-  }
-
-
-  private fun saveAskedBatteryOptimizations(preferences: SharedPreferences) {
-	preferences.edit().putBoolean(ASKED_BATTERY_OPTIMIZATIONS_PREF, true).apply()
   }
 
   private fun getInitialUrl(parameters: MutableMap<String, String>, theme: Theme?): String {
@@ -771,7 +746,6 @@ class MainActivity : FragmentActivity() {
 	const val OPEN_USER_MAILBOX_USERID_KEY = "userId"
 	const val IS_SUMMARY_EXTRA = "isSummary"
 		const val ALREADY_HANDLED_INTENT = "alreadyHandledIntent"
-	private const val ASKED_BATTERY_OPTIMIZATIONS_PREF = "askedBatteryOptimizations"
 	private const val TAG = "MainActivity"
 	private var requestId = 0
 
