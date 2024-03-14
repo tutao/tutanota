@@ -88,9 +88,14 @@ export function makeOneOrMoreParser<T>(parser: Parser<T>): Parser<Array<T>> {
 
 export function maybeParse<T>(parser: Parser<T>): Parser<T | null> {
 	return (iterator) => {
+		const iteratorPosition = iterator.position
+
 		try {
 			return parser(iterator)
 		} catch (e) {
+			if (e instanceof ParserError) {
+				iterator.position = iteratorPosition
+			}
 			return null
 		}
 	}
