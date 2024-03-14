@@ -44,13 +44,14 @@ export class RadioSelector<T> implements Component<RadioSelectorAttrs<T>> {
 
 		// The wrapper is needed because <input> is self-closing and will not take the label as a child
 		return m(
-			".state-bg.border.border-radius.flex.flex-wrap.items-center.mb.pl-l.pr",
+			".state-bg.border.border-radius.flex.items-center.mb.pl-l.pr",
 			{
 				// Make the option the same size as a button if a description is not given
-				class: option.helpText != null ? "pt pb" : "button-content button-min-height" + attrClasses,
+				class: option.helpText != null ? "pt pb" : "button-min-width button-min-height" + attrClasses,
 				style: {
 					borderColor: isSelected ? theme.content_accent : theme.content_border,
 					borderWidth: "2px",
+					height: "fit-content",
 				},
 				onclick: () => {
 					onOptionSelected(option.value)
@@ -68,7 +69,7 @@ export class RadioSelector<T> implements Component<RadioSelectorAttrs<T>> {
 					checked: isSelected ? true : null,
 					"aria-describedby": descriptionId,
 				}),
-				m("label.b", { for: optionId }, lang.getMaybeLazy(option.name)),
+				m("label.b.left.pt-xs.pb-xs", { for: optionId }, lang.getMaybeLazy(option.name)),
 				option.helpText != null ? m("p.small.fill-flex.left", { id: descriptionId }, lang.getMaybeLazy(option.helpText)) : null,
 			],
 		)

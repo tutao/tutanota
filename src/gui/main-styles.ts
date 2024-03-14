@@ -848,6 +848,9 @@ styles.registerStyle("main", () => {
 		".button-min-height": {
 			"min-height": px(size.button_height),
 		},
+		".button-min-width": {
+			"min-width": px(size.button_height),
+		},
 		".button-width-fixed": {
 			width: px(size.button_height),
 		},
