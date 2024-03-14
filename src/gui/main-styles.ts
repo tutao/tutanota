@@ -2073,6 +2073,12 @@ styles.registerStyle("main", () => {
 		".calendar-hour-margin": {
 			"margin-left": px(size.calendar_hour_width),
 		},
+		".calendar-hour-column": {
+			width: px(size.calendar_hour_width),
+		},
+		".calendar-days-header-row": {
+			height: px(size.calendar_days_header_height),
+		},
 		".calendar-day": {
 			"border-top": `1px solid ${theme.list_border}`,
 			transition: "background 0.4s",
@@ -2082,9 +2088,9 @@ styles.registerStyle("main", () => {
 			cursor: "pointer",
 		},
 		".calendar-day-indicator": {
-			// overriden for mobile
-			height: "22px",
-			"line-height": "24px",
+			// overridden for mobile
+			height: px(size.calendar_days_header_height),
+			"line-height": px(size.calendar_days_header_height),
 			"text-align": "center",
 			"font-size": "14px",
 		},

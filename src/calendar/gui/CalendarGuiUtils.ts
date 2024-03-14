@@ -112,9 +112,9 @@ export function getNextFourteenDays(startOfToday: Date): Array<Date> {
 	return days
 }
 
-export type CalendarNavConfiguration = { back: Child; title: string; forward: Child; week: string | null }
+export type CalendarNavConfiguration = { back: Child; title: string; forward: Child }
 
-function calendarWeek(date: Date, weekStart: WeekStart) {
+export function calendarWeek(date: Date, weekStart: WeekStart) {
 	// According to ISO 8601, weeks always start on Monday. Week numbering systems for
 	// weeks that do not start on Monday are not strictly defined, so we only display
 	// a week number if the user's client is configured to start weeks on Monday
@@ -149,28 +149,24 @@ export function calendarNavConfiguration(
 				back: renderCalendarSwitchLeftButton("prevDay_label", onBack),
 				forward: renderCalendarSwitchRightButton("nextDay_label", onForward),
 				title: titleType === "short" ? formatMonthWithFullYear(date) : formatDateWithWeekday(date),
-				week: calendarWeek(date, weekStart),
 			}
 		case CalendarViewType.MONTH:
 			return {
 				back: renderCalendarSwitchLeftButton("prevMonth_label", onBack),
 				forward: renderCalendarSwitchRightButton("nextMonth_label", onForward),
 				title: formatMonthWithFullYear(date),
-				week: null,
 			}
 		case CalendarViewType.WEEK:
 			return {
 				back: renderCalendarSwitchLeftButton("prevWeek_label", onBack),
 				forward: renderCalendarSwitchRightButton("nextWeek_label", onForward),
 				title: titleType === "short" ? formatMonthWithFullYear(date) : weekTitle(date, weekStart),
-				week: calendarWeek(date, weekStart),
 			}
 		case CalendarViewType.AGENDA:
 			return {
 				back: renderCalendarSwitchLeftButton("prevWeek_label", onBack),
 				forward: renderCalendarSwitchRightButton("nextWeek_label", onForward),
 				title: titleType === "short" ? formatMonthWithFullYear(date) : formatDateWithWeekday(date),
-				week: null,
 			}
 	}
 }
