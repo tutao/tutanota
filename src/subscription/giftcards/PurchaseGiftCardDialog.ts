@@ -207,6 +207,7 @@ class GiftCardPurchaseView implements Component<GiftCardPurchaseViewAttrs> {
  */
 
 export async function showPurchaseGiftCardDialog() {
+	// FIXME: do we allow gift cards in iOS?
 	if (isIOSApp()) {
 		return Dialog.message("notAvailableInApp_msg")
 	}

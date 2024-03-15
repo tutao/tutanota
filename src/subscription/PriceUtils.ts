@@ -40,6 +40,8 @@ export function getPaymentMethodName(paymentMethod: PaymentMethodType): string {
 		return "PayPal"
 	} else if (paymentMethod === PaymentMethodType.AccountBalance) {
 		return lang.get("paymentMethodAccountBalance_label")
+	} else if (paymentMethod === PaymentMethodType.AppStore) {
+		return "App Store"
 	} else {
 		return "<" + lang.get("comboBoxSelectionNone_msg") + ">"
 	}

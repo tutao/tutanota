@@ -4,7 +4,7 @@ import { lang } from "../misc/LanguageViewModel"
 import type { Country } from "../api/common/CountryList"
 import { CountryType } from "../api/common/CountryList"
 import type { PaymentData } from "../api/common/TutanotaConstants"
-import { PaymentMethodType } from "../api/common/TutanotaConstants"
+import { PaymentMethodType, defaultPaymentMethod } from "../api/common/TutanotaConstants"
 import { PayPalLogo } from "../gui/base/icons/Icons"
 import { LazyLoaded, noOp, promiseMap } from "@tutao/tutanota-utils"
 import { showProgressDialog } from "../gui/dialogs/ProgressDialog"
@@ -21,6 +21,7 @@ import { SimplifiedCreditCardViewModel } from "./SimplifiedCreditCardInputModel.
 import { isUpdateForTypeRef } from "../api/common/utils/EntityUpdateUtils.js"
 import { EntityEventsListener } from "../api/main/EventController.js"
 import { BaseButton } from "../gui/base/buttons/BaseButton.js"
+import { isIOSApp } from "../api/common/Env"
 
 /**
  * Component to display the input fields for a payment method. The selector to switch between payment methods is not included.
@@ -64,7 +65,7 @@ export class PaymentMethodInput {
 			}).then(noOp)
 		}
 
-		this._selectedPaymentMethod = PaymentMethodType.CreditCard
+		this._selectedPaymentMethod = defaultPaymentMethod()
 	}
 
 	oncreate() {
@@ -76,38 +77,42 @@ export class PaymentMethodInput {
 	}
 
 	view(): Children {
-		if (this._selectedPaymentMethod === PaymentMethodType.Invoice) {
-			return m(
-				".flex-center",
-				m(
-					MessageBox,
-					{
-						style: {
-							marginTop: px(16),
+		switch (this._selectedPaymentMethod) {
+			case PaymentMethodType.Invoice:
+				return m(
+					".flex-center",
+					m(
+						MessageBox,
+						{
+							style: {
+								marginTop: px(16),
+							},
 						},
-					},
-					this.isOnAccountAllowed()
-						? lang.get("paymentMethodOnAccount_msg") + " " + lang.get("paymentProcessingTime_msg")
-						: lang.get("paymentMethodNotAvailable_msg"),
-				),
-			)
-		} else if (this._selectedPaymentMethod === PaymentMethodType.AccountBalance) {
-			return m(
-				".flex-center",
-				m(
-					MessageBox,
-					{
-						style: {
-							marginTop: px(16),
+						this.isOnAccountAllowed()
+							? lang.get("paymentMethodOnAccount_msg") + " " + lang.get("paymentProcessingTime_msg")
+							: lang.get("paymentMethodNotAvailable_msg"),
+					),
+				)
+			case PaymentMethodType.AccountBalance:
+				return m(
+					".flex-center",
+					m(
+						MessageBox,
+						{
+							style: {
+								marginTop: px(16),
+							},
 						},
-					},
-					lang.get("paymentMethodAccountBalance_msg"),
-				),
-			)
-		} else if (this._selectedPaymentMethod === PaymentMethodType.Paypal) {
-			return m(PaypalInput, this._payPalAttrs)
-		} else {
-			return m(SimplifiedCreditCardInput, { viewModel: this.ccViewModel as SimplifiedCreditCardViewModel })
+						lang.get("paymentMethodAccountBalance_msg"),
+					),
+				)
+			case PaymentMethodType.Paypal:
+				return m(PaypalInput, this._payPalAttrs)
+			case PaymentMethodType.CreditCard:
+			case PaymentMethodType.Sepa: // FIXME: where to put this? this was how this if/else thing worked before!
+				return m(SimplifiedCreditCardInput, { viewModel: this.ccViewModel as SimplifiedCreditCardViewModel })
+			case PaymentMethodType.AppStore:
+				return [] // FIXME: add app store payment button
 		}
 	}
 
@@ -182,19 +187,28 @@ export class PaymentMethodInput {
 		name: string
 		value: PaymentMethodType
 	}> {
-		const availablePaymentMethods = [
-			{
-				name: lang.get("paymentMethodCreditCard_label"),
-				value: PaymentMethodType.CreditCard,
-			},
-			{
-				name: "PayPal",
-				value: PaymentMethodType.Paypal,
-			},
-		]
+		const appleOnly = isIOSApp()
+
+		const availablePaymentMethods = appleOnly
+			? [
+					{
+						name: "App Store",
+						value: PaymentMethodType.AppStore,
+					},
+			  ]
+			: [
+					{
+						name: lang.get("paymentMethodCreditCard_label"),
+						value: PaymentMethodType.CreditCard,
+					},
+					{
+						name: "PayPal",
+						value: PaymentMethodType.Paypal,
+					},
+			  ]
 
 		// show bank transfer in case of business use, even if it is not available for the selected country
-		if (this._subscriptionOptions.businessUse() || this._accountingInfo.paymentMethod === PaymentMethodType.Invoice) {
+		if (!appleOnly && (this._subscriptionOptions.businessUse() || this._accountingInfo.paymentMethod === PaymentMethodType.Invoice)) {
 			availablePaymentMethods.push({
 				name: lang.get("paymentMethodOnAccount_label"),
 				value: PaymentMethodType.Invoice,
@@ -202,7 +216,7 @@ export class PaymentMethodInput {
 		}
 
 		// show account balance only if this is the current payment method
-		if (this._accountingInfo.paymentMethod === PaymentMethodType.AccountBalance) {
+		if (!appleOnly && this._accountingInfo.paymentMethod === PaymentMethodType.AccountBalance) {
 			availablePaymentMethods.push({
 				name: lang.get("paymentMethodAccountBalance_label"),
 				value: PaymentMethodType.AccountBalance,

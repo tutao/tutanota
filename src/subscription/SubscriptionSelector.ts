@@ -72,6 +72,10 @@ export class SubscriptionSelector implements Component<SubscriptionSelectorAttr>
 		All: false,
 	}
 
+	constructor() {
+		console.log("hello world")
+	}
+
 	oninit(vnode: Vnode<SubscriptionSelectorAttr>): any {
 		const acceptedPlans = vnode.attrs.acceptedPlans
 		const onlyBusinessPlansAccepted = acceptedPlans.every((plan) => NewBusinessPlans.includes(plan))

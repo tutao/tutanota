@@ -5,7 +5,7 @@ import type { CertificateInfo, CreditCard, EmailSenderListElement, GroupMembersh
 import { AccountingInfo, Customer } from "../entities/sys/TypeRefs.js"
 import type { CalendarEventAttendee, ContactCustomDate, ContactRelationship, UserSettingsGroupRoot } from "../entities/tutanota/TypeRefs.js"
 import { ContactSocialId, MailFolder } from "../entities/tutanota/TypeRefs.js"
-import { isApp, isElectronClient } from "./Env"
+import { isApp, isElectronClient, isIOSApp } from "./Env"
 import type { Country } from "./CountryList"
 import { ProgrammingError } from "./error/ProgrammingError"
 
@@ -287,6 +287,11 @@ export enum PaymentMethodType {
 	Sepa = "2",
 	Paypal = "3",
 	AccountBalance = "4",
+	AppStore = "5",
+}
+
+export function defaultPaymentMethod(): PaymentMethodType {
+	return isIOSApp() ? PaymentMethodType.AppStore : PaymentMethodType.CreditCard
 }
 
 export const PaymentMethodTypeToName = reverse(PaymentMethodType)

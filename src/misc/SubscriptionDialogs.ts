@@ -2,34 +2,27 @@ import { assertNotNull, downcast, isEmpty, neverNull } from "@tutao/tutanota-uti
 import { Dialog } from "../gui/base/Dialog"
 import type { TranslationKey, TranslationText } from "./LanguageViewModel"
 import { lang } from "./LanguageViewModel"
-import { isIOSApp } from "../api/common/Env"
 import type { ClickHandler } from "../gui/base/GuiUtils"
 import { locator } from "../api/main/MainLocator"
 import type { UserController } from "../api/main/UserController.js"
 import { BookingTypeRef } from "../api/entities/sys/TypeRefs.js"
 import { GENERATED_MAX_ID } from "../api/common/utils/EntityUtils.js"
 import { AvailablePlanType, Const, NewBusinessPlans, NewPaidPlans, NewPersonalPlans, PlanType } from "../api/common/TutanotaConstants.js"
-import { showSwitchDialog } from "../subscription/SwitchSubscriptionDialog.js"
 import { ProgrammingError } from "../api/common/error/ProgrammingError.js"
-import { getAvailableMatchingPlans } from "../subscription/SubscriptionUtils.js"
 
 /**
  * Opens a dialog which states that the function is not available in the Free subscription and provides an option to upgrade.
  */
 export async function showNotAvailableForFreeDialog(acceptedPlans: AvailablePlanType[] = NewPaidPlans) {
-	if (isIOSApp()) {
-		await Dialog.message("notAvailableInApp_msg")
-	} else {
-		const wizard = await import("../subscription/UpgradeSubscriptionWizard")
-		const customerInfo = await locator.logins.getUserController().loadCustomerInfo()
+	const wizard = await import("../subscription/UpgradeSubscriptionWizard")
+	const customerInfo = await locator.logins.getUserController().loadCustomerInfo()
 
-		const businessPlanRequired =
-			acceptedPlans.filter((plan) => NewBusinessPlans.includes(plan)).length === acceptedPlans.length &&
-			NewPersonalPlans.includes(downcast(customerInfo.plan))
-		const msg = businessPlanRequired ? "pricing.notSupportedByPersonalPlan_msg" : "newPaidPlanRequired_msg"
+	const businessPlanRequired =
+		acceptedPlans.filter((plan) => NewBusinessPlans.includes(plan)).length === acceptedPlans.length &&
+		NewPersonalPlans.includes(downcast(customerInfo.plan))
+	const msg = businessPlanRequired ? "pricing.notSupportedByPersonalPlan_msg" : "newPaidPlanRequired_msg"
 
-		await wizard.showUpgradeWizard(locator.logins, acceptedPlans, msg)
-	}
+	await wizard.showUpgradeWizard(locator.logins, acceptedPlans, msg)
 }
 
 export function createNotAvailableForFreeClickHandler(acceptedPlans: AvailablePlanType[], click: ClickHandler, available: () => boolean): ClickHandler {

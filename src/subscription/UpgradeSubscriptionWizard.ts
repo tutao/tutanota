@@ -1,7 +1,7 @@
 import type { Hex } from "@tutao/tutanota-utils"
 import { defer } from "@tutao/tutanota-utils"
 import { AccountingInfo, Customer } from "../api/entities/sys/TypeRefs.js"
-import type { InvoiceData, PaymentData } from "../api/common/TutanotaConstants"
+import { InvoiceData, PaymentData, defaultPaymentMethod } from "../api/common/TutanotaConstants"
 import {
 	AvailablePlans,
 	AvailablePlanType,
@@ -85,7 +85,7 @@ export async function showUpgradeWizard(logins: LoginController, acceptedPlans: 
 			vatNumber: accountingInfo.invoiceVatIdNo, // only for EU countries otherwise empty
 		},
 		paymentData: {
-			paymentMethod: getPaymentMethodType(accountingInfo) || PaymentMethod.CreditCard,
+			paymentMethod: getPaymentMethodType(accountingInfo) || defaultPaymentMethod(),
 			creditCardData: null,
 		},
 		price: "",
@@ -153,7 +153,7 @@ export async function loadSignupWizard(
 			vatNumber: "", // only for EU countries otherwise empty
 		},
 		paymentData: {
-			paymentMethod: PaymentMethod.CreditCard,
+			paymentMethod: defaultPaymentMethod(),
 			creditCardData: null,
 		},
 		price: "",

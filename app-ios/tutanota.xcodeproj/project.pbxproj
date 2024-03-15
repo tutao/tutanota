@@ -50,6 +50,8 @@
 		3D2671E72BEA8A100022C12F /* Mockingbird in Frameworks */ = {isa = PBXBuildFile; productRef = 3D2671E62BEA8A100022C12F /* Mockingbird */; settings = {ATTRIBUTES = (Required, ); }; };
 		3D33044F2BBD7AD2007B5C5D /* PrivacyInfo.xcprivacy in Resources */ = {isa = PBXBuildFile; fileRef = 3D33044E2BBD7AD2007B5C5D /* PrivacyInfo.xcprivacy */; };
 		3D3304512BBD7AEE007B5C5D /* PrivacyInfo.xcprivacy in Resources */ = {isa = PBXBuildFile; fileRef = 3D3304502BBD7AEE007B5C5D /* PrivacyInfo.xcprivacy */; };
+		3D246D902BA883E400F5B3BE /* StoreKit.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 3D246D8F2BA883E400F5B3BE /* StoreKit.framework */; };
+		3D2DB91B2733F43B00BCEF4C /* IosNativeCredentialsFacade.swift in Sources */ = {isa = PBXBuildFile; fileRef = 3D2DB91A2733F43B00BCEF4C /* IosNativeCredentialsFacade.swift */; };
 		3D36BCC2274E4A6100428878 /* CryptoTokenKit.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 3D36BCC1274E4A6100428878 /* CryptoTokenKit.framework */; settings = {ATTRIBUTES = (Weak, ); }; };
 		3D378EE72536F51F0001F1F3 /* FileChooser.swift in Sources */ = {isa = PBXBuildFile; fileRef = 3D378EE62536F51F0001F1F3 /* FileChooser.swift */; };
 		3D3AFAE8285B0DB60077F302 /* IosMobileSystemFacade.swift in Sources */ = {isa = PBXBuildFile; fileRef = 3D3AFAE7285B0DB60077F302 /* IosMobileSystemFacade.swift */; };
@@ -455,6 +457,9 @@
 		3D1801532AB0B85100C72613 /* AlarmEntitiesTest.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AlarmEntitiesTest.swift; sourceTree = "<group>"; };
 		3D220204293F75C100366FD2 /* IosWebauthnFacade.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = IosWebauthnFacade.swift; sourceTree = "<group>"; };
 		3D239301287EC96200DD7396 /* CustomSchemeHandlers.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CustomSchemeHandlers.swift; sourceTree = "<group>"; };
+		3D246D8F2BA883E400F5B3BE /* StoreKit.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = StoreKit.framework; path = System/Library/Frameworks/StoreKit.framework; sourceTree = SDKROOT; };
+		3D246D912BA885D300F5B3BE /* Plans.storekit */ = {isa = PBXFileReference; lastKnownFileType = text; path = Plans.storekit; sourceTree = "<group>"; };
+		3D2DB91A2733F43B00BCEF4C /* IosNativeCredentialsFacade.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = IosNativeCredentialsFacade.swift; sourceTree = "<group>"; };
 		3D2671D62BEA8A020022C12F /* TutanotaSharedTests.xctest */ = {isa = PBXFileReference; explicitFileType = wrapper.cfbundle; includeInIndex = 0; path = TutanotaSharedTests.xctest; sourceTree = BUILT_PRODUCTS_DIR; };
 		3D33044E2BBD7AD2007B5C5D /* PrivacyInfo.xcprivacy */ = {isa = PBXFileReference; lastKnownFileType = text.xml; path = PrivacyInfo.xcprivacy; sourceTree = "<group>"; };
 		3D3304502BBD7AEE007B5C5D /* PrivacyInfo.xcprivacy */ = {isa = PBXFileReference; lastKnownFileType = text.xml; path = PrivacyInfo.xcprivacy; sourceTree = "<group>"; };
@@ -772,6 +777,7 @@
 			files = (
 				3D4F5EA52C11DD3900477585 /* Alamofire in Frameworks */,
 				3D36BCC2274E4A6100428878 /* CryptoTokenKit.framework in Frameworks */,
+				3D246D902BA883E400F5B3BE /* StoreKit.framework in Frameworks */,
 				3DD4EA3B2726F41200D58207 /* DictionaryCoding in Frameworks */,
 				3D4E3C9E28EC5B31001FA9D1 /* Security.framework in Frameworks */,
 				3DF973A42BB18ABB00AF3FDE /* TutanotaSharedFramework.framework in Frameworks */,
@@ -1121,7 +1127,7 @@
 			isa = PBXGroup;
 			children = (
 				3D7733C42C1353B4008F0715 /* tutasdk.framework */,
-				3D7733C02C135002008F0715 /* tutasdk.framework */,
+				3D246D8F2BA883E400F5B3BE /* StoreKit.framework */,
 				3D881B0C2C04B48800E629BE /* tutasdk.framework */,
 				3D881B092C04925400E629BE /* tutasdk.framework */,
 				3D881B062C04920700E629BE /* tutasdk.framework */,
@@ -1678,13 +1684,15 @@
 		3DD4A07A20F8C6240086EB36 = {
 			isa = PBXGroup;
 			children = (
-				3D891EEC2105A5590031E528 /* Frameworks */,
+				3D246D912BA885D300F5B3BE /* Plans.storekit */,
 				3DEA43302B6D1E2E0037F318 /* lint.sh */,
 				3DD4A08420F8C6240086EB36 /* Products */,
 				3DD4A08520F8C6240086EB36 /* tutanota */,
 				3DF974702BB18F1700AF3FDE /* TutanotaNotificationExtension */,
 				3DF9762F2BB1A2B900AF3FDE /* TutanotaSharedFramework */,
 				3DEF18F12924E1F1009C4B55 /* TutanotaShareExtension */,
+				3DD4A08420F8C6240086EB36 /* Products */,
+				3D891EEC2105A5590031E528 /* Frameworks */,
 				3DD4A09E20F8C6260086EB36 /* tutanotaTests */,
 				3D2671D72BEA8A020022C12F /* TutanotaSharedTests */,
 				CA9955A73D4B56D09B230F54 /* Generated Mocks */,
@@ -2650,6 +2658,7 @@
 				3D0E44A62B3C3CE500F933A1 /* ntt.c in Sources */,
 				3D0E44CA2B3C3EC000F933A1 /* rand_entropy.c in Sources */,
 				3D9B12A6272192C2002B46A1 /* AlarmNotification.swift in Sources */,
+				3D4FACED2B8F368300BEDF5A /* EncryptedFileInfo.swift in Sources */,
 				3D87ECE6212D9EB000FD7315 /* TUTIcons.m in Sources */,
 				3D4E3CA228EC5C4F001FA9D1 /* IosSqlCipherFade.swift in Sources */,
 				3D0EB1FC26F4BEE4002E5102 /* AlarmManager.swift in Sources */,
