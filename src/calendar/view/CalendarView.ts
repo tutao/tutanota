@@ -235,6 +235,7 @@ export class CalendarView extends BaseTopLevelView implements TopLevelView<Calen
 									},
 									selectedDate: this.viewModel.selectedDate(),
 									onDateSelected: (date, viewType) => {
+										this.viewModel.selectedDate(date)
 										this.setUrl(viewType ?? CalendarViewType.WEEK, date)
 									},
 									startOfTheWeek: downcast(locator.logins.getUserController().userSettingsGroupRoot.startOfTheWeek),
