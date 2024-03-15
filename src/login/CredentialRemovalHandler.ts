@@ -3,6 +3,8 @@ import { CredentialsAndDatabaseKey } from "../misc/credentials/CredentialsProvid
 import { NativePushServiceApp } from "../native/main/NativePushServiceApp.js"
 import { ConfigurationDatabase } from "../api/worker/facades/lazy/ConfigurationDatabase.js"
 import { MobileContactsFacade } from "../native/common/generatedipc/MobileContactsFacade.js"
+import { ofClass } from "@tutao/tutanota-utils"
+import { PermissionError } from "../api/common/error/PermissionError.js"
 
 export interface CredentialRemovalHandler {
 	onCredentialsRemoved(credentialsAndDbKey: CredentialsAndDatabaseKey): Promise<void>
@@ -29,6 +31,8 @@ export class AppsCredentialRemovalHandler implements CredentialRemovalHandler {
 			await this.configFacade.delete(userId)
 		}
 
-		await this.mobileContactsFacade?.deleteContacts(credentialsAndDbKey.credentials.login, null)
+		await this.mobileContactsFacade
+			?.deleteContacts(credentialsAndDbKey.credentials.login, null)
+			.catch(ofClass(PermissionError, (e) => console.log("No permission to clear contacts", e)))
 	}
 }
