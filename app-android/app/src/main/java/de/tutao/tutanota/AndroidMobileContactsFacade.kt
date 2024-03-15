@@ -634,29 +634,29 @@ class AndroidMobileContactsFacade(private val activity: MainActivity) : MobileCo
 	}
 
 	private fun parseStoredContactData(entityCursor: Cursor, storedContact: AndroidContact) {
-		val mimeType = getCursorString(entityCursor, 3)
-		val data1 = getCursorString(entityCursor, 4)
+		val mimeType = entityCursor.getNullableString(3)
+		val data1 = entityCursor.getNullableString(4)
 
 		when (mimeType) {
 			ContactsContract.CommonDataKinds.StructuredName.CONTENT_ITEM_TYPE -> {
-				storedContact.givenName = getCursorString(entityCursor, 5)
-				storedContact.lastName = getCursorString(entityCursor, 6)
-				storedContact.title = getCursorString(entityCursor, 8)
-				storedContact.middleName = getCursorString(entityCursor, 9)
-				storedContact.nameSuffix = getCursorString(entityCursor, 10)
-				storedContact.phoneticFirst = getCursorString(entityCursor, 11)
-				storedContact.phoneticMiddle = getCursorString(entityCursor, 12)
-				storedContact.phoneticLast = getCursorString(entityCursor, 13)
+				storedContact.givenName = entityCursor.getNullableString(5)
+				storedContact.lastName = entityCursor.getNullableString(6)
+				storedContact.title = entityCursor.getNullableString(8)
+				storedContact.middleName = entityCursor.getNullableString(9)
+				storedContact.nameSuffix = entityCursor.getNullableString(10)
+				storedContact.phoneticFirst = entityCursor.getNullableString(11)
+				storedContact.phoneticMiddle = entityCursor.getNullableString(12)
+				storedContact.phoneticLast = entityCursor.getNullableString(13)
 			}
 
-			ContactsContract.CommonDataKinds.Email.CONTENT_ITEM_TYPE -> storedContact.emailAddresses.add(AndroidEmailAddress(data1, entityCursor.getInt(5), getCursorString(entityCursor, 6)))
-			ContactsContract.CommonDataKinds.Phone.CONTENT_ITEM_TYPE -> storedContact.phoneNumbers.add(AndroidPhoneNumber(data1, entityCursor.getInt(5), getCursorString(entityCursor, 6)))
-			ContactsContract.CommonDataKinds.StructuredPostal.CONTENT_ITEM_TYPE -> storedContact.addresses.add(AndroidAddress(data1, entityCursor.getInt(5), getCursorString(entityCursor, 6)))
+			ContactsContract.CommonDataKinds.Email.CONTENT_ITEM_TYPE -> storedContact.emailAddresses.add(AndroidEmailAddress(data1, entityCursor.getInt(5), entityCursor.getNullableString(6)))
+			ContactsContract.CommonDataKinds.Phone.CONTENT_ITEM_TYPE -> storedContact.phoneNumbers.add(AndroidPhoneNumber(data1, entityCursor.getInt(5), entityCursor.getNullableString(6)))
+			ContactsContract.CommonDataKinds.StructuredPostal.CONTENT_ITEM_TYPE -> storedContact.addresses.add(AndroidAddress(data1, entityCursor.getInt(5), entityCursor.getNullableString(6)))
 			ContactsContract.CommonDataKinds.Nickname.CONTENT_ITEM_TYPE -> storedContact.nickname = data1 ?: ""
 			ContactsContract.CommonDataKinds.Organization.CONTENT_ITEM_TYPE -> {
 				storedContact.company = data1
-				storedContact.role = getCursorString(entityCursor, 8)
-				storedContact.department = getCursorString(entityCursor, 9)
+				storedContact.role = entityCursor.getNullableString(8)
+				storedContact.department = entityCursor.getNullableString(9)
 			}
 
 			ContactsContract.CommonDataKinds.Event.CONTENT_ITEM_TYPE -> {
@@ -664,22 +664,14 @@ class AndroidMobileContactsFacade(private val activity: MainActivity) : MobileCo
 				if (type == ContactsContract.CommonDataKinds.Event.TYPE_BIRTHDAY) {
 					storedContact.birthday = data1
 				} else {
-					storedContact.customDate.add(AndroidCustomDate(data1, type, getCursorString(entityCursor, 6)))
+					storedContact.customDate.add(AndroidCustomDate(data1, type, entityCursor.getNullableString(6)))
 				}
 			}
 
-			ContactsContract.CommonDataKinds.Relation.CONTENT_ITEM_TYPE -> storedContact.relationships.add(AndroidRelationship(data1, entityCursor.getInt(5), getCursorString(entityCursor, 6)))
-			ContactsContract.CommonDataKinds.Website.CONTENT_ITEM_TYPE -> storedContact.websites.add(AndroidWebsite(data1, entityCursor.getInt(5), getCursorString(entityCursor, 6)))
+			ContactsContract.CommonDataKinds.Relation.CONTENT_ITEM_TYPE -> storedContact.relationships.add(AndroidRelationship(data1, entityCursor.getInt(5), entityCursor.getNullableString(6)))
+			ContactsContract.CommonDataKinds.Website.CONTENT_ITEM_TYPE -> storedContact.websites.add(AndroidWebsite(data1, entityCursor.getInt(5), entityCursor.getNullableString(6)))
 			ContactsContract.CommonDataKinds.Note.CONTENT_ITEM_TYPE -> storedContact.notes = data1 ?: ""
 		}
-	}
-
-	private fun getCursorString(cursor: Cursor, index: Int): String {
-		if (cursor.isNull(index)) {
-			return ""
-		}
-
-		return cursor.getString(index)
 	}
 
 	private fun insertAddressOperation(address: StructuredAddress): ContentProviderOperation.Builder {
@@ -761,6 +753,14 @@ class AndroidMobileContactsFacade(private val activity: MainActivity) : MobileCo
 	}
 
 	private data class SaveContactsResult(val cleanContacts: Map<String, AndroidContact>, val dirtyContacts: List<StructuredContact>)
+
+	private fun Cursor.getNullableString(index: Int): String {
+		if (this.isNull(index)) {
+			return ""
+		}
+
+		return this.getString(index)
+	}
 }
 
 
