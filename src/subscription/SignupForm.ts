@@ -26,7 +26,6 @@ import { CURRENT_PRIVACY_VERSION, CURRENT_TERMS_VERSION, renderTermsAndCondition
 import { UsageTest } from "@tutao/tutanota-usagetests"
 import { runCaptchaFlow } from "./Captcha.js"
 import { EmailDomainData, isPaidPlanDomain } from "../settings/mailaddress/MailAddressesUtils.js"
-import { isIOSApp } from "../api/common/Env.js"
 import { LoginButton } from "../gui/base/buttons/LoginButton.js"
 import { ExternalLink } from "../gui/base/ExternalLink.js"
 
@@ -61,10 +60,7 @@ export class SignupForm implements Component<SignupFormAttrs> {
 	private readonly availableDomains: readonly EmailDomainData[] = (locator.domainConfigProvider().getCurrentDomainConfig().firstPartyDomain
 		? TUTANOTA_MAIL_ADDRESS_SIGNUP_DOMAINS
 		: getWhitelabelRegistrationDomains()
-	)
-		.map((domain) => ({ domain, isPaid: isPaidPlanDomain(domain) }))
-		// hide paid domains for iOS
-		.filter(isIOSApp() ? (domainData) => !domainData.isPaid : () => true)
+	).map((domain) => ({ domain, isPaid: isPaidPlanDomain(domain) }))
 
 	constructor(vnode: Vnode<SignupFormAttrs>) {
 		this.selectedDomain = getFirstOrThrow(this.availableDomains)

@@ -111,6 +111,7 @@ export class PaymentViewer implements UpdatableSettingsViewer {
 			? getPaymentMethodName(getPaymentMethodType(neverNull(this._accountingInfo))) + " " + getPaymentMethodInfoText(neverNull(this._accountingInfo))
 			: lang.get("loading_msg")
 
+		// FIXME: add iOS payment method options here
 		return m(TextField, {
 			label: "paymentMethod_label",
 			value: paymentMethod,

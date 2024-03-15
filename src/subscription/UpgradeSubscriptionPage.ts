@@ -289,6 +289,6 @@ export class UpgradeSubscriptionPageAttrs implements WizardPageAttrs<UpgradeSubs
 	}
 
 	isEnabled(): boolean {
-		return !(isApp() && client.isIos())
+		return true
 	}
 }
