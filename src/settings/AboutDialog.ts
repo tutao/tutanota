@@ -8,6 +8,7 @@ import { newMailEditorFromTemplate } from "../mail/editor/MailEditor"
 import { UserError } from "../api/main/UserError"
 import { clientInfoString, getLogAttachments } from "../misc/ErrorReporter"
 import { ExternalLink } from "../gui/base/ExternalLink.js"
+import { isApp } from "../api/common/Env.js"
 
 interface AboutDialogAttrs {
 	onShowSetupWizard: () => unknown
@@ -34,14 +35,16 @@ export class AboutDialog implements Component<AboutDialogAttrs> {
 			]),
 			this._sendLogsLink(),
 			// wrap it in a div so that it's not filling the whole width
-			m(
-				"",
-				m(Button, {
-					label: () => "Show welcome dialog",
-					type: ButtonType.Primary,
-					click: vnode.attrs.onShowSetupWizard,
-				}),
-			),
+			isApp()
+				? m(
+						"",
+						m(Button, {
+							label: () => "Show welcome dialog",
+							type: ButtonType.Primary,
+							click: vnode.attrs.onShowSetupWizard,
+						}),
+				  )
+				: null,
 		])
 	}
 
