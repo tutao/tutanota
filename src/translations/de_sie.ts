@@ -11,7 +11,7 @@ export default {
 		"other"
 	],
 	"created_at": "2018-01-12T10:51:54Z",
-	"updated_at": "2024-03-13T15:08:01Z",
+	"updated_at": "2024-03-15T11:39:19Z",
 	"source_locale": {
 		"id": "2001c6fdcc9cd338c1d600cb2636918b",
 		"name": "de",
@@ -507,6 +507,7 @@ export default {
 		"emailSending_label": "Senden von E-Mails",
 		"emailSignatureTypeCustom_msg": "Eigene",
 		"emailSignatureTypeDefault_msg": "Standard",
+		"emailSourceCode_title": "E-Mail-Quellcode",
 		"emails_label": "E-Mails",
 		"email_label": "E-Mail",
 		"emptyShortcut_msg": "Der Shortcut ist leer",
@@ -1460,6 +1461,7 @@ export default {
 		"showOnlySelectedMail_label": "Nur die ausgewählte E-Mail anzeigen",
 		"showRejectReason_action": "Ablehnungsgrund anzeigen",
 		"showRichTextToolbar_action": "Formatierungswerkzeuge",
+		"showSource_action": "E-Mail-Quellcode anzeigen",
 		"showText_action": "Text anzeigen",
 		"showURL_alt": "Link öffnen",
 		"show_action": "Anzeigen",

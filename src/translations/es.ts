@@ -11,7 +11,7 @@ export default {
 		"other"
 	],
 	"created_at": "2015-01-27T13:13:02Z",
-	"updated_at": "2024-03-13T18:25:39Z",
+	"updated_at": "2024-03-15T13:10:06Z",
 	"source_locale": {
 		"id": "fcd7471b347c8e517663e194dcddf237",
 		"name": "en",
@@ -507,6 +507,7 @@ export default {
 		"emailSending_label": "Enviando mensajes",
 		"emailSignatureTypeCustom_msg": "Personalizar",
 		"emailSignatureTypeDefault_msg": "Predeterminado",
+		"emailSourceCode_title": "Código fuente del correo electrónico",
 		"emails_label": "Correos",
 		"email_label": "Correo",
 		"emptyShortcut_msg": "Proporciona un acceso directo para la plantilla",
@@ -1460,6 +1461,7 @@ export default {
 		"showOnlySelectedMail_label": "Mostrar sólo el correo electrónico seleccionado",
 		"showRejectReason_action": "Muestra las razones de rechazo",
 		"showRichTextToolbar_action": "Mostrar herramientas de formato",
+		"showSource_action": "Mostrar el código fuente del correo electrónico",
 		"showText_action": "Mostrar texto",
 		"showURL_alt": "Abrir enlace",
 		"show_action": "Mostrar",
