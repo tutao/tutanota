@@ -11,7 +11,7 @@ export default {
 		"other"
 	],
 	"created_at": "2015-01-13T20:10:13Z",
-	"updated_at": "2024-03-13T15:08:01Z",
+	"updated_at": "2024-03-15T11:53:09Z",
 	"source_locale": null,
 	"fallback_locale": null,
 	"keys": {
@@ -89,7 +89,7 @@ export default {
 		"allDay_label": "All Day",
 		"allowBatteryPermission_msg": "We need your permission to remain in the background to notify you reliably.",
 		"allowContactReadWrite_msg": "In order to synchronize your contacts, the Tuta app needs the permission to read and write to your address book. You can change this anytime in the system settings.",
-		"allowContactSynchronization": "We need permission to synchronize the contacts on your device to Tuta contacts",
+		"allowContactSynchronization": "We need permission to synchronize the contacts on your device to Tuta contacts.",
 		"allowExternalContentSender_action": "Always trust sender",
 		"allowNotifications_msg": "We need your permission to display push notifications.",
 		"allowOperation_msg": "Do you want to allow this?",
@@ -503,6 +503,7 @@ export default {
 		"emailSending_label": "Sending emails",
 		"emailSignatureTypeCustom_msg": "Custom",
 		"emailSignatureTypeDefault_msg": "Default",
+		"emailSourceCode_title": "Email Source Code",
 		"emails_label": "Emails",
 		"email_label": "Email",
 		"emptyShortcut_msg": "Please provide a shortcut for the template",
@@ -1456,6 +1457,7 @@ export default {
 		"showOnlySelectedMail_label": "Show selected email only",
 		"showRejectReason_action": "Show reject reason",
 		"showRichTextToolbar_action": "Show formatting tools",
+		"showSource_action": "Show email source code",
 		"showText_action": "Show text",
 		"showURL_alt": "Open link",
 		"show_action": "Show",
