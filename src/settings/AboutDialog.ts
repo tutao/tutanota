@@ -8,9 +8,14 @@ import { newMailEditorFromTemplate } from "../mail/editor/MailEditor"
 import { UserError } from "../api/main/UserError"
 import { clientInfoString, getLogAttachments } from "../misc/ErrorReporter"
 import { ExternalLink } from "../gui/base/ExternalLink.js"
+import { isApp } from "../api/common/Env.js"
 
-export class AboutDialog implements Component {
-	view(vnode: Vnode): Children {
+interface AboutDialogAttrs {
+	onShowSetupWizard: () => unknown
+}
+
+export class AboutDialog implements Component<AboutDialogAttrs> {
+	view(vnode: Vnode<AboutDialogAttrs>): Children {
 		return m(".flex.col", [
 			m(".center.mt", "Powered by"),
 			m(".center.mt", m.trust(getColouredTutanotaLogo())),
@@ -29,12 +34,23 @@ export class AboutDialog implements Component {
 				m("p", "© 2023 Tutao GmbH"),
 			]),
 			this._sendLogsLink(),
+			// wrap it in a div so that it's not filling the whole width
+			isApp()
+				? m(
+						"",
+						m(Button, {
+							label: () => "Show welcome dialog",
+							type: ButtonType.Primary,
+							click: vnode.attrs.onShowSetupWizard,
+						}),
+				  )
+				: null,
 		])
 	}
 
 	_sendLogsLink(): Children {
 		return m(
-			".mt.right",
+			".mt",
 			m(Button, {
 				label: () => lang.get("sendLogs_action"),
 				click: () => this._sendDeviceLogs(),

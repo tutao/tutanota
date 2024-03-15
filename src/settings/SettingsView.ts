@@ -66,6 +66,7 @@ import { loadTemplateGroupInstances } from "../templates/model/TemplatePopupMode
 import { TemplateListView } from "./TemplateListView.js"
 import { TextField } from "../gui/base/TextField.js"
 import { ContactsSettingsViewer } from "./ContactsSettingsViewer.js"
+import { showSetupWizard } from "../gui/dialogs/SetupWizard.js"
 
 assertMainOrNode()
 
@@ -712,9 +713,15 @@ export class SettingsView extends BaseTopLevelView implements TopLevelView<Setti
 					onclick: () => {
 						this.viewSlider.focusNextColumn()
 						setTimeout(() => {
-							Dialog.showActionDialog({
+							const dialog = Dialog.showActionDialog({
 								title: () => lang.get("about_label"),
-								child: () => m(AboutDialog),
+								child: () =>
+									m(AboutDialog, {
+										onShowSetupWizard: () => {
+											dialog.close()
+											showSetupWizard()
+										},
+									}),
 								allowOkWithReturn: true,
 								okAction: (dialog: Dialog) => dialog.close(),
 								allowCancel: false,
