@@ -239,7 +239,7 @@ class AndroidFileFacade(
 
 		val requestBody: RequestBody = object : RequestBody() {
 		  override fun contentLength(): Long {
-			return fd.declaredLength
+			return fd.length
 		  }
 
 		  override fun contentType(): MediaType? {
