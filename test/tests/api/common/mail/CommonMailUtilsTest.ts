@@ -95,10 +95,10 @@ o.spec("MailUtilsTest", function () {
 	})
 
 	o("getConfidentialIcon", function () {
-		const mail: Mail = createTestEntity(MailTypeRef, { confidential: true, encryptionAuthStatus: EncryptionAuthStatus.PQ_AUTHENTICATION_SUCCEEDED })
+		const mail: Mail = createTestEntity(MailTypeRef, { confidential: true, encryptionAuthStatus: EncryptionAuthStatus.TUTACRYPT_AUTHENTICATION_SUCCEEDED })
 		o(getConfidentialIcon(mail)).equals(Icons.PQLock)
 
-		mail.encryptionAuthStatus = EncryptionAuthStatus.PQ_AUTHENTICATION_FAILED
+		mail.encryptionAuthStatus = EncryptionAuthStatus.TUTACRYPT_AUTHENTICATION_FAILED
 		o(getConfidentialIcon(mail)).equals(Icons.PQLock)
 
 		mail.encryptionAuthStatus = EncryptionAuthStatus.AES_NO_AUTHENTICATION
@@ -109,6 +109,9 @@ o.spec("MailUtilsTest", function () {
 
 		mail.encryptionAuthStatus = EncryptionAuthStatus.RSA_NO_AUTHENTICATION
 		o(getConfidentialIcon(mail)).equals(Icons.Lock)
+
+		mail.encryptionAuthStatus = EncryptionAuthStatus.TUTACRYPT_SENDER
+		o(getConfidentialIcon(mail)).equals(Icons.PQLock)
 
 		mail.confidential = false
 		o(() => getConfidentialIcon(mail)).throws(ProgrammingError)

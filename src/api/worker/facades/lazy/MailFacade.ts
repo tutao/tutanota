@@ -14,7 +14,9 @@ import {
 	ArchiveDataType,
 	ConversationType,
 	CounterType,
+	CryptoProtocolVersion,
 	DEFAULT_KDF_TYPE,
+	EncryptionAuthStatus,
 	GroupType,
 	MailAuthenticationStatus,
 	MailMethod,
@@ -84,6 +86,7 @@ import {
 	byteLength,
 	contains,
 	defer,
+	isEmpty,
 	isNotNull,
 	isSameTypeRef,
 	isSameTypeRefByAttr,
@@ -478,6 +481,7 @@ export class MailFacade {
 			senderNameUnencrypted: null,
 			secureExternalRecipientKeyData: [],
 			symEncInternalRecipientKeyData: [],
+			sessionEncEncryptionAuthStatus: null,
 		})
 
 		const attachments = await this.getAttachmentIds(draft)
@@ -503,7 +507,7 @@ export class MailFacade {
 			this.entityClient.loadRoot(TutanotaPropertiesTypeRef, this.userFacade.getUserGroupId()).then((tutanotaProperties) => {
 				sendDraftData.plaintext = tutanotaProperties.sendPlaintextOnly
 			}),
-			this.crypto.resolveSessionKeyForInstance(draft).then((mailSessionkey) => {
+			this.crypto.resolveSessionKeyForInstance(draft).then(async (mailSessionkey) => {
 				let sk = assertNotNull(mailSessionkey, "mailSessionKey was null")
 				sendDraftData.calendarMethod = draft.method !== MailMethod.NONE
 
@@ -515,7 +519,10 @@ export class MailFacade {
 						sendDraftData.senderNameUnencrypted = draft.sender.name // needed for notification mail
 					}
 
-					return this._addRecipientKeyData(bucketKey, sendDraftData, recipients, senderMailGroupId)
+					await this._addRecipientKeyData(bucketKey, sendDraftData, recipients, senderMailGroupId)
+					if (this.isTutaCryptMail(sendDraftData)) {
+						sendDraftData.sessionEncEncryptionAuthStatus = encryptString(sk, EncryptionAuthStatus.TUTACRYPT_SENDER)
+					}
 				} else {
 					sendDraftData.mailSessionKey = bitArrayToUint8Array(sk)
 				}
@@ -705,6 +712,22 @@ export class MailFacade {
 		if (notFoundRecipients.length > 0) {
 			throw new RecipientsNotFoundError(notFoundRecipients.join("\n"))
 		}
+	}
+
+	/**
+	 * Checks if the given send draft data contains only encrypt keys that have been encrypted with TutaCrypt protocol.
+	 * @VisibleForTesting
+	 * @param sendDraftData The send drafta for the mail that should be sent
+	 */
+	isTutaCryptMail(sendDraftData: SendDraftData) {
+		// if an secure external recipient is involved in the conversation we do not use asymmetric encryption
+		if (sendDraftData.symEncInternalRecipientKeyData.length > 0 || sendDraftData.secureExternalRecipientKeyData.length) {
+			return false
+		}
+		if (isEmpty(sendDraftData.internalRecipientKeyData)) {
+			return false
+		}
+		return sendDraftData.internalRecipientKeyData.every((recipientData) => recipientData.protocolVersion === CryptoProtocolVersion.TUTA_CRYPT)
 	}
 
 	private getContactPassword(contact: Contact | null): string | null {
