@@ -1428,7 +1428,7 @@ styles.registerStyle("main", () => {
 			"margin-left": "0",
 		},
 		".dialog-height-small": {
-			height: "65vh",
+			"min-height": "65vh",
 		},
 		".dialog-max-height": {
 			"max-height": "calc(100vh - 100px)",
