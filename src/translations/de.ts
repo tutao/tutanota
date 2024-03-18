@@ -11,7 +11,7 @@ export default {
 		"other"
 	],
 	"created_at": "2015-01-13T20:40:31Z",
-	"updated_at": "2024-03-15T11:39:18Z",
+	"updated_at": "2024-03-16T20:23:05Z",
 	"source_locale": {
 		"id": "fcd7471b347c8e517663e194dcddf237",
 		"name": "en",
@@ -205,7 +205,7 @@ export default {
 		"cancelUserAccounts_label": "Abbestellung von {1} Benutzer",
 		"cancel_action": "Abbrechen",
 		"cannotEditEvent_msg": "Du kannst nur Teile dieses Ereignisses bearbeiten.",
-		"cannotEditFullEvent_msg": "Du kannst nur Teile dieses Termins bearbeiten, weil es nicht in deinem Kalender erstellt wurde.",
+		"cannotEditFullEvent_msg": "Du kannst nur Teile dieses Termins bearbeiten, weil er nicht in deinem Kalender erstellt wurde.",
 		"cannotEditNotOrganizer_msg": "Du kannst diesen Termin nicht bearbeiten, da du nicht der Organisator bist.",
 		"cannotEditSingleInstance_msg": "Du kannst nur Teile dieses Termins bearbeiten, weil er Teil einer Serie ist.",
 		"canNotOpenFileOnDevice_msg": "Diese Datei kann auf diesem Gerät nicht geöffnet werden.",

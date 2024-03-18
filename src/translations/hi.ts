@@ -11,7 +11,7 @@ export default {
 		"other"
 	],
 	"created_at": "2015-06-01T09:47:21Z",
-	"updated_at": "2024-02-07T15:05:17Z",
+	"updated_at": "2024-03-16T20:33:17Z",
 	"source_locale": null,
 	"fallback_locale": null,
 	"keys": {
@@ -1251,7 +1251,7 @@ export default {
 		"toggleFullScreen_action": "पूर्णस्क्रीन चालू करें",
 		"toggleUnread_action": "अपठित टॉगल करें",
 		"tomorrow_label": "कल\n",
-		"tooBigAttachment_msg": "अनुलग्नक फ़ाइल अनुमत सीमा से बड़ी है",
+		"tooBigAttachment_msg": "निम्नलिखित फ़ाइलें संलग्न नहीं की जा सकीं क्योंकि कुल आकार 25 एमबी से अधिक है:",
 		"tooBigInlineImages_msg": "केवल {size} KB तक की फ़ाइलों की अनुमति है।",
 		"tooManyAttempts_msg": "अनुमत प्रयासों की संख्या पार हो गई। बाद में पुनः प्रयास करें। ",
 		"tooManyCustomDomains_msg": "आपके पास बहुत अधिक कस्टम डोमेन सक्रिय हैं. व्यवसाय सुविधा को अक्षम करते समय केवल एक ही उपलब्ध होता है।",

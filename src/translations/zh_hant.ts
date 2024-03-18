@@ -10,7 +10,7 @@ export default {
 		"other"
 	],
 	"created_at": "2019-01-02T11:09:03Z",
-	"updated_at": "2024-03-14T17:17:16Z",
+	"updated_at": "2024-03-15T17:47:22Z",
 	"source_locale": null,
 	"fallback_locale": null,
 	"keys": {
@@ -500,6 +500,7 @@ export default {
 		"emailSending_label": "發送電郵中",
 		"emailSignatureTypeCustom_msg": "自訂",
 		"emailSignatureTypeDefault_msg": "預設",
+		"emailSourceCode_title": "電郵原始碼",
 		"emails_label": "電郵",
 		"email_label": "電郵",
 		"emptyShortcut_msg": "請提供範本的快捷鍵",
@@ -533,7 +534,7 @@ export default {
 		"everyone_label": "所有人",
 		"executableOpen_label": "可執行附件",
 		"executableOpen_msg": "此檔案看來是一個程式。您是否確定要現在執行它？",
-		"existingAccount_label": "使用已存在的帳戶",
+		"existingAccount_label": "使用現有帳戶",
 		"existingMailAddress_msg": "以下電郵地址無法被邀請，因為他們已收到邀請：",
 		"experienceSamplingAnswer_label": "請選擇答案",
 		"experienceSamplingHeader_label": "問巻",
@@ -1452,6 +1453,7 @@ export default {
 		"showOnlySelectedMail_label": "只顯示所選電郵",
 		"showRejectReason_action": "顯示拒絕原因",
 		"showRichTextToolbar_action": "顯示格式化工具",
+		"showSource_action": "顯示電郵原始碼",
 		"showText_action": "顯示文字",
 		"showURL_alt": "開啟連結",
 		"show_action": "顯示",
