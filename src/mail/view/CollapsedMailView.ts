@@ -8,7 +8,6 @@ import { Icons } from "../../gui/base/icons/Icons.js"
 import { responsiveCardHPadding } from "../../gui/cards.js"
 import { Keys, TabIndex } from "../../api/common/TutanotaConstants.js"
 import { isKeyPressed } from "../../misc/KeyManager.js"
-import { getDisplayedSender } from "../../api/common/mail/CommonMailUtils.js"
 
 export interface CollapsedMailViewAttrs {
 	viewModel: MailViewerViewModel
@@ -21,8 +20,6 @@ export class CollapsedMailView implements Component<CollapsedMailViewAttrs> {
 		const dateTime = formatDateWithWeekday(mail.receivedDate) + " • " + formatTime(mail.receivedDate)
 		const folderInfo = viewModel.getFolderInfo()
 		if (!folderInfo) return null
-
-		const sender = getDisplayedSender(mail)
 
 		return m(
 			".flex.items-center.pt.pb.click.no-wrap",
@@ -42,7 +39,7 @@ export class CollapsedMailView implements Component<CollapsedMailViewAttrs> {
 			[
 				viewModel.isUnread() ? this.renderUnreadDot() : null,
 				viewModel.isDraftMail() ? m(".mr-xs", this.renderIcon(Icons.Edit)) : null,
-				m(this.getMailAddressDisplayClasses(viewModel), getMailAddressDisplayText(sender.name, sender.address, true)),
+				this.renderSender(viewModel),
 				m(".flex.ml-between-s.items-center", [
 					mail.attachments.length > 0 ? this.renderIcon(Icons.Attachment) : null,
 					viewModel.isConfidential() ? this.renderIcon(getConfidentialIcon(mail)) : null,
@@ -51,6 +48,11 @@ export class CollapsedMailView implements Component<CollapsedMailViewAttrs> {
 				]),
 			],
 		)
+	}
+
+	private renderSender(viewModel: MailViewerViewModel) {
+		const sender = viewModel.getDisplayedSender()
+		return m(this.getMailAddressDisplayClasses(viewModel), sender == null ? "" : getMailAddressDisplayText(sender.name, sender.address, true))
 	}
 
 	private getMailAddressDisplayClasses(viewModel: MailViewerViewModel): string {
