@@ -176,11 +176,13 @@ export class CalendarViewModel implements EventDragHandlerCallbacks {
 	}
 
 	onDragStart(originalEvent: CalendarEvent, timeToMoveBy: number) {
-		let eventClone = clone(originalEvent)
-		updateTemporaryEventWithDiff(eventClone, originalEvent, timeToMoveBy)
-		this._draggedEvent = {
-			originalEvent,
-			eventClone,
+		if (this.calendarModel.canFullyEditEvent(originalEvent)) {
+			let eventClone = clone(originalEvent)
+			updateTemporaryEventWithDiff(eventClone, originalEvent, timeToMoveBy)
+			this._draggedEvent = {
+				originalEvent,
+				eventClone,
+			}
 		}
 	}
 

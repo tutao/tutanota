@@ -49,6 +49,9 @@ import { ObservableLazyLoaded } from "../../api/common/utils/ObservableLazyLoade
 import { UserController } from "../../api/main/UserController.js"
 import { formatDateWithWeekdayAndTime, formatTime } from "../../misc/Formatter.js"
 import { EntityUpdateData, isUpdateFor, isUpdateForTypeRef } from "../../api/common/utils/EntityUpdateUtils.js"
+import { getEnabledMailAddressesWithUser } from "../../mail/model/MailUtils.js"
+import { getEventType } from "../gui/CalendarGuiUtils.js"
+import { EventType } from "../gui/eventeditor-model/CalendarEventModel.js"
 
 const TAG = "[CalendarModel]"
 export type CalendarInfo = {
@@ -800,6 +803,17 @@ export class CalendarModel {
 	// VisibleForTesting
 	getFileIdToSkippedCalendarEventUpdates(): Map<Id, CalendarEventUpdate> {
 		return this.fileIdToSkippedCalendarEventUpdates
+	}
+
+	canFullyEditEvent(event: CalendarEvent): boolean {
+		const userController = this.logins.getUserController()
+		const userMailGroup = userController.getUserMailGroupMembership().group
+		const mailboxDetailsArray = this.mailModel.mailboxDetails()
+		const mailboxDetails = assertNotNull(mailboxDetailsArray.find((md) => md.mailGroup._id === userMailGroup))
+		const ownMailAddresses = getEnabledMailAddressesWithUser(mailboxDetails, userController.userGroupInfo)
+		const calendarInfos = this.getCalendarInfosStream()()
+		const eventType = getEventType(event, calendarInfos, ownMailAddresses, userController.user)
+		return eventType === EventType.OWN || eventType === EventType.SHARED_RW
 	}
 }
 
