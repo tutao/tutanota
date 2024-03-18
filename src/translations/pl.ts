@@ -13,7 +13,7 @@ export default {
 		"other"
 	],
 	"created_at": "2015-01-27T13:13:41Z",
-	"updated_at": "2024-03-13T23:05:43Z",
+	"updated_at": "2024-03-16T22:01:43Z",
 	"source_locale": {
 		"id": "fcd7471b347c8e517663e194dcddf237",
 		"name": "en",
@@ -507,6 +507,7 @@ export default {
 		"emailSending_label": "Wysyłanie wiadomości",
 		"emailSignatureTypeCustom_msg": "Własny",
 		"emailSignatureTypeDefault_msg": "Domyślny",
+		"emailSourceCode_title": "Kod źródłowy e-mail",
 		"emails_label": "Wiadomości",
 		"email_label": "Wiadomość e-mail",
 		"emptyShortcut_msg": "Podaj skrót do szablonu",
@@ -1458,6 +1459,7 @@ export default {
 		"showOnlySelectedMail_label": "Pokaż tylko wybrane wiadomości e-mail",
 		"showRejectReason_action": "Pokaż powód odrzucenia",
 		"showRichTextToolbar_action": "Pokaż narzędzia formatowanie tekstu",
+		"showSource_action": "Pokaż kod źródłowy wiadomości e-mail",
 		"showText_action": "Pokaż tekst",
 		"showURL_alt": "Otwórz link",
 		"show_action": "Pokaż",

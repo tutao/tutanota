@@ -13,7 +13,7 @@ export default {
 		"other"
 	],
 	"created_at": "2015-01-27T13:15:23Z",
-	"updated_at": "2024-03-14T15:15:10Z",
+	"updated_at": "2024-03-16T16:47:07Z",
 	"source_locale": {
 		"id": "fcd7471b347c8e517663e194dcddf237",
 		"name": "en",
@@ -507,6 +507,7 @@ export default {
 		"emailSending_label": "Отправить",
 		"emailSignatureTypeCustom_msg": "Пользовательский",
 		"emailSignatureTypeDefault_msg": "По умолчанию",
+		"emailSourceCode_title": "Исходный код электронной почты",
 		"emails_label": "Письма",
 		"email_label": "Почта",
 		"emptyShortcut_msg": "Пожалуйста, укажите ярлык для шаблона",
@@ -1457,6 +1458,7 @@ export default {
 		"showOnlySelectedMail_label": "Показать только выбранное сообщение электронной почты",
 		"showRejectReason_action": "Показать причину отказа",
 		"showRichTextToolbar_action": "Показать инструменты форматирования",
+		"showSource_action": "Показать исходный код электронной почты",
 		"showText_action": "Показать текст",
 		"showURL_alt": "Открыть ссылку",
 		"show_action": "Показать",

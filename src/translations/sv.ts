@@ -11,7 +11,7 @@ export default {
 		"other"
 	],
 	"created_at": "2015-03-23T11:36:16Z",
-	"updated_at": "2024-03-14T11:13:46Z",
+	"updated_at": "2024-03-15T17:06:18Z",
 	"source_locale": null,
 	"fallback_locale": null,
 	"keys": {
@@ -503,6 +503,7 @@ export default {
 		"emailSending_label": "Skicka e-post",
 		"emailSignatureTypeCustom_msg": "Anpassad",
 		"emailSignatureTypeDefault_msg": "Förval",
+		"emailSourceCode_title": "E-post källkod",
 		"emails_label": "E-post",
 		"email_label": "E-post",
 		"emptyShortcut_msg": "Ange en genväg för mallen",
@@ -1456,6 +1457,7 @@ export default {
 		"showOnlySelectedMail_label": "Visa endast markerade mejl",
 		"showRejectReason_action": "Visa orsak till avvisning",
 		"showRichTextToolbar_action": "Visa formateringsverktygen",
+		"showSource_action": "Visa källkoden för e-post",
 		"showText_action": "Visa text",
 		"showURL_alt": "Öppna länk",
 		"show_action": "Visa",

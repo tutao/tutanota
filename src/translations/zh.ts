@@ -10,7 +10,7 @@ export default {
 		"other"
 	],
 	"created_at": "2015-01-27T13:15:05Z",
-	"updated_at": "2024-03-14T13:00:17Z",
+	"updated_at": "2024-03-16T07:23:42Z",
 	"source_locale": {
 		"id": "fcd7471b347c8e517663e194dcddf237",
 		"name": "en",
@@ -411,6 +411,7 @@ export default {
 		"filter_label": "过滤",
 		"finallyDeleteEmails_msg": "您确定要永久删除选中的邮件吗？",
 		"finallyDeleteSelectedEmails_msg": "您选择的是垃圾箱中的邮件，它们将被永久删除。",
+		"finish_action": "完成",
 		"firstMergeContact_label": "联系人 1",
 		"firstName_placeholder": "名",
 		"firstReminderAutomatic_msg": "很遗憾，无法从您的账户里扣除编号{1}发票的总额。谨请您在“设置”->“支付数据”的{2}中更新支付细节，并在“设置”->“发票”里完成支付。",
@@ -937,6 +938,7 @@ export default {
 		"reportPhishing_action": "举报网络钓鱼",
 		"reportSpam_action": "举报垃圾邮件",
 		"requestApproval_msg": "抱歉，为了防止垃圾邮件，您的帐号正在等待审核，您目前不能发送或接收邮件（发给Tuta支持团队的除外）。请给approval@tutao.de发邮件说明此邮箱用途。",
+		"requiresNewWindow_msg": "将在任何新窗口中生效。",
 		"responsiblePersonsInfo_msg": "限制此邮件可以被转发给的人。若列表为空，则没有限制。",
 		"responsiblePersons_label": "参与者",
 		"restartBefore_action": "发送之前重新启动 Tuta",
@@ -1038,6 +1040,7 @@ export default {
 		"social_label": "社交网络",
 		"spamRuleEnterValue_msg": "请输入值。",
 		"spam_action": "垃圾邮件",
+		"spelling_label": "拼写",
 		"startAfterEnd_label": "开始时间不能晚于结束时间。",
 		"state_label": "状态",
 		"stillReferencedFromContactForm_msg": "无法关闭这个条目因为它仍然被一个联系人表引用。",
