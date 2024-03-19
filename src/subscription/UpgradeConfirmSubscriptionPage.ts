@@ -3,7 +3,7 @@ import { Dialog } from "../gui/base/Dialog"
 import { lang } from "../misc/LanguageViewModel"
 import { formatPriceWithInfo, getPaymentMethodName, PaymentInterval } from "./PriceUtils"
 import { createSwitchAccountTypePostIn } from "../api/entities/sys/TypeRefs.js"
-import { AccountType, Const, PaymentMethodTypeToName } from "../api/common/TutanotaConstants"
+import { AccountType, Const, PaymentMethodType, PaymentMethodTypeToName, PlanTypeToName } from "../api/common/TutanotaConstants"
 import { showProgressDialog } from "../gui/dialogs/ProgressDialog"
 import type { UpgradeSubscriptionData } from "./UpgradeSubscriptionWizard"
 import { BadGatewayError, PreconditionFailedError } from "../api/common/error/RestError"
@@ -17,6 +17,9 @@ import { SwitchAccountTypeService } from "../api/entities/sys/Services"
 import { UsageTest } from "@tutao/tutanota-usagetests"
 import { getDisplayNameOfPlanType, SelectedSubscriptionOptions } from "./FeatureListProvider"
 import { LoginButton } from "../gui/base/buttons/LoginButton.js"
+import { isIOSApp } from "../api/common/Env"
+import { MobilePaymentResultType } from "../native/common/generatedipc/MobilePaymentResultType"
+import { updatePaymentData } from "./InvoiceAndPaymentDataPage"
 
 export class UpgradeConfirmSubscriptionPage implements WizardPageN<UpgradeSubscriptionData> {
 	private dom!: HTMLElement
@@ -34,7 +37,14 @@ export class UpgradeConfirmSubscriptionPage implements WizardPageN<UpgradeSubscr
 		return this.renderConfirmSubscription(attrs)
 	}
 
-	private upgrade(data: UpgradeSubscriptionData) {
+	private async upgrade(data: UpgradeSubscriptionData) {
+		if (data.paymentData.paymentMethod === PaymentMethodType.AppStore) {
+			let result = await locator.mobilePaymentsFacade.requestSubscriptionToPlan(PlanTypeToName[data.type].toLowerCase(), data.options.paymentInterval())
+			if (result.result !== MobilePaymentResultType.Success) {
+				return
+			}
+		}
+
 		const serviceData = createSwitchAccountTypePostIn({
 			accountType: AccountType.PAID,
 			customer: null,
@@ -83,6 +93,29 @@ export class UpgradeConfirmSubscriptionPage implements WizardPageN<UpgradeSubscr
 					)
 				}),
 			)
+	}
+
+	private async handleAppStorePayment(data: UpgradeSubscriptionData): Promise<boolean> {
+		const customerIdBytes = base64ToUint8Array(base64ExtToBase64(data.customer!._id))
+		let result = await locator.mobilePaymentsFacade.requestSubscriptionToPlan(
+			PlanTypeToName[data.type].toLowerCase(),
+			data.options.paymentInterval(),
+			customerIdBytes,
+		)
+
+		if (result.result !== MobilePaymentResultType.Success) {
+			return false
+		}
+
+		return updatePaymentData(
+			data.options.paymentInterval(),
+			data.invoiceData,
+			data.paymentData,
+			null,
+			data.newAccountData != null,
+			null,
+			data.accountingInfo!,
+		)
 	}
 
 	private renderConfirmSubscription(attrs: WizardPageAttrs<UpgradeSubscriptionData>) {

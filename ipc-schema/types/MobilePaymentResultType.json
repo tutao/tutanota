@@ -1,0 +1,5 @@
+{
+	"name": "MobilePaymentResultType",
+	"type": "enum",
+	"values": ["Success", "Cancelled", "Pending"]
+}

@@ -13,7 +13,6 @@ import type { AccountingInfo, Customer } from "../api/entities/sys/TypeRefs.js"
 import { DropDownSelector } from "../gui/base/DropDownSelector.js"
 import { asPaymentInterval } from "./PriceUtils.js"
 import { getLazyLoadedPayPalUrl } from "./SubscriptionUtils.js"
-import { locator } from "../api/main/MainLocator.js"
 import { formatNameAndAddress } from "../api/common/utils/CommonFormatter.js"
 
 /**

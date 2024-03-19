@@ -1,0 +1,21 @@
+{
+	"name": "MobilePaymentsFacade",
+	"type": "facade",
+	"senders": ["web"],
+	"receivers": ["ios"],
+	"doc": "Operations for handling mobile payments.",
+	"methods": {
+		"requestSubscriptionToPlan": {
+			"doc": "Display a pop-up for the user to start a subscription",
+			"arg": [
+				{
+					"plan": "string"
+				},
+				{
+					"interval": "number"
+				}
+			],
+			"ret": "MobilePaymentResult"
+		}
+	}
+}

@@ -32,6 +32,8 @@ import { MobileContactsFacadeSendDispatcher } from "../common/generatedipc/Mobil
 import { WebMobileFacade } from "./WebMobileFacade.js"
 import { NativeCredentialsFacade } from "../common/generatedipc/NativeCredentialsFacade.js"
 import { NativeCredentialsFacadeSendDispatcher } from "../common/generatedipc/NativeCredentialsFacadeSendDispatcher.js"
+import { MobilePaymentsFacade } from "../common/generatedipc/MobilePaymentsFacade.js"
+import { MobilePaymentsFacadeSendDispatcher } from "../common/generatedipc/MobilePaymentsFacadeSendDispatcher.js"
 
 export type NativeInterfaces = {
 	native: NativeInterfaceMain
@@ -42,6 +44,7 @@ export type NativeInterfaces = {
 	themeFacade: ThemeFacade
 	mobileContactsFacade: MobileContactsFacade
 	nativeCredentialsFacade: NativeCredentialsFacade
+	mobilePaymentsFacade: MobilePaymentsFacade
 }
 
 export type DesktopInterfaces = {
@@ -79,6 +82,7 @@ export function createNativeInterfaces(
 	const themeFacade = new ThemeFacadeSendDispatcher(native)
 	const mobileContactsFacade = new MobileContactsFacadeSendDispatcher(native)
 	const nativeCredentialsFacade = new NativeCredentialsFacadeSendDispatcher(native)
+	const mobilePaymentsFacade = new MobilePaymentsFacadeSendDispatcher(native)
 	return {
 		native,
 		fileApp,
@@ -88,6 +92,7 @@ export function createNativeInterfaces(
 		themeFacade,
 		mobileContactsFacade,
 		nativeCredentialsFacade,
+		mobilePaymentsFacade,
 	}
 }
 

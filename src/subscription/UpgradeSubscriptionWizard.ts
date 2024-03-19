@@ -19,7 +19,7 @@ import { createWizardDialog, wizardPageWrapper } from "../gui/base/WizardDialog.
 import { InvoiceAndPaymentDataPage, InvoiceAndPaymentDataPageAttrs } from "./InvoiceAndPaymentDataPage"
 import { UpgradeCongratulationsPage, UpgradeCongratulationsPageAttrs } from "./UpgradeCongratulationsPage.js"
 import { SignupPage, SignupPageAttrs } from "./SignupPage"
-import { assertMainOrNode } from "../api/common/Env"
+import { assertMainOrNode, isIOSApp } from "../api/common/Env"
 import { locator } from "../api/main/MainLocator"
 import { StorageBehavior } from "../misc/UsageTestModel"
 import { FeatureListProvider, SelectedSubscriptionOptions } from "./FeatureListProvider"
@@ -107,13 +107,14 @@ export async function showUpgradeWizard(logins: LoginController, acceptedPlans: 
 		acceptedPlans,
 		msg: msg != null ? msg : null,
 	}
-	const wizardPages = [
-		wizardPageWrapper(UpgradeSubscriptionPage, new UpgradeSubscriptionPageAttrs(upgradeData)),
-		wizardPageWrapper(InvoiceAndPaymentDataPage, new InvoiceAndPaymentDataPageAttrs(upgradeData)),
-		wizardPageWrapper(UpgradeConfirmSubscriptionPage, new InvoiceAndPaymentDataPageAttrs(upgradeData)),
-	]
-	const deferred = defer<void>()
 
+	const wizardPages = [wizardPageWrapper(UpgradeSubscriptionPage, new UpgradeSubscriptionPageAttrs(upgradeData))]
+	if (!isIOSApp()) {
+		wizardPages.push(wizardPageWrapper(InvoiceAndPaymentDataPage, new InvoiceAndPaymentDataPageAttrs(upgradeData)))
+	}
+	wizardPages.push(wizardPageWrapper(UpgradeConfirmSubscriptionPage, new InvoiceAndPaymentDataPageAttrs(upgradeData)))
+
+	const deferred = defer<void>()
 	const wizardBuilder = createWizardDialog(
 		upgradeData,
 		wizardPages,

@@ -116,6 +116,7 @@ import { MobileAppLock, NoOpAppLock } from "../../login/AppLock.js"
 import { PostLoginActions } from "../../login/PostLoginActions.js"
 import { SystemPermissionHandler } from "../../native/main/SystemPermissionHandler.js"
 import { RecoverCodeFacade } from "../worker/facades/lazy/RecoverCodeFacade.js"
+import { MobilePaymentsFacade } from "../../native/common/generatedipc/MobilePaymentsFacade.js"
 
 assertMainOrNode()
 
@@ -484,6 +485,10 @@ class MainLocator {
 
 	get nativeCredentialsFacade(): NativeCredentialsFacade {
 		return this.getNativeInterface("nativeCredentialsFacade")
+	}
+
+	get mobilePaymentsFacade(): MobilePaymentsFacade {
+		return this.getNativeInterface("mobilePaymentsFacade")
 	}
 
 	async mailAddressTableModelForOwnMailbox(): Promise<MailAddressTableModel> {
