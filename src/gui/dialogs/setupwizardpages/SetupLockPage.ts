@@ -15,7 +15,6 @@ export class SetupLockPage implements Component<SetupLockPageAttrs> {
 	view({ attrs }: Vnode<SetupLockPageAttrs>): Children {
 		return m(SetupPageLayout, { image: "lock", buttonLabel: "finish_action" }, [
 			m(SelectCredentialsEncryptionModeView, {
-				isWithHelpText: false,
 				class: "mt",
 				error: attrs.error,
 				supportedModes: attrs.supportedModes,
