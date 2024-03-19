@@ -175,8 +175,8 @@ export class CalendarViewModel implements EventDragHandlerCallbacks {
 		return getWeekStart(this.logins.getUserController().userSettingsGroupRoot)
 	}
 
-	// Public for testing
-	allowDrag(event: CalendarEvent) {
+	// visibleForTesting
+	allowDrag(event: CalendarEvent): boolean {
 		return this.calendarModel.canFullyEditEvent(event)
 	}
 

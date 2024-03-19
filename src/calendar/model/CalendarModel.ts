@@ -805,6 +805,10 @@ export class CalendarModel {
 		return this.fileIdToSkippedCalendarEventUpdates
 	}
 
+	/**
+	 * Partially mirrors the logic from CalendarEventModel.prototype.isFullyWritable() to determine
+	 * if the user can edit more than just alarms for a given event
+	 */
 	canFullyEditEvent(event: CalendarEvent): boolean {
 		const userController = this.logins.getUserController()
 		const userMailGroup = userController.getUserMailGroupMembership().group
