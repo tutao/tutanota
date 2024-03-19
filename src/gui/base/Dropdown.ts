@@ -577,7 +577,7 @@ class DropdownButton implements Component<InternalDropdownButtonAttrs> {
 				role: "menuitem",
 				"aria-selected": String(attrs.selected ?? false),
 				oncreate: (vnode) => (this.dom = vnode.dom as HTMLElement),
-				onclick: (e: MouseEvent, dom: HTMLElement) => attrs.click?.(e, dom),
+				onclick: (e: MouseEvent) => attrs.click?.(e, assertNotNull(this.dom)),
 			},
 			[
 				attrs.icon && attrs.showingIcons

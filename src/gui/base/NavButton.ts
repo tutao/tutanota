@@ -124,7 +124,7 @@ export class NavButton implements Component<NavButtonAttrs> {
 			title: this.getLabel(a.label),
 			target: this._isExternalUrl(a.href) ? "_blank" : undefined,
 			selector: this._getNavButtonClass(a),
-			onclick: (e: MouseEvent, dom: HTMLElement) => this.click(e, a, dom),
+			onclick: (e: MouseEvent) => this.click(e, a, e.target as HTMLElement),
 			onkeyup: (e: KeyboardEvent, dom: HTMLElement) => {
 				if (isKeyPressed(e.key, Keys.SPACE)) {
 					this.click(e, a, dom)
