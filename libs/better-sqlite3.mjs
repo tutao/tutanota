@@ -6,11 +6,7 @@ function getDefaultExportFromCjs (x) {
 	return x && x.__esModule && Object.prototype.hasOwnProperty.call(x, 'default') ? x['default'] : x;
 }
 
-var libExports = {};
-var lib = {
-  get exports(){ return libExports; },
-  set exports(v){ libExports = v; },
-};
+var lib = {exports: {}};
 
 var util$1 = {};
 
@@ -27,9 +23,9 @@ util$1.inspect = Symbol.for('nodejs.util.inspect.custom');
 
 const descriptor = { value: 'SqliteError', writable: true, enumerable: false, configurable: true };
 
-function SqliteError$1(message, code) {
-	if (new.target !== SqliteError$1) {
-		return new SqliteError$1(message, code);
+function SqliteError$2(message, code) {
+	if (new.target !== SqliteError$2) {
+		return new SqliteError$2(message, code);
 	}
 	if (typeof code !== 'string') {
 		throw new TypeError('Expected second argument to be a string');
@@ -37,19 +33,15 @@ function SqliteError$1(message, code) {
 	Error.call(this, message);
 	descriptor.value = '' + message;
 	Object.defineProperty(this, 'message', descriptor);
-	Error.captureStackTrace(this, SqliteError$1);
+	Error.captureStackTrace(this, SqliteError$2);
 	this.code = code;
 }
-Object.setPrototypeOf(SqliteError$1, Error);
-Object.setPrototypeOf(SqliteError$1.prototype, Error.prototype);
-Object.defineProperty(SqliteError$1.prototype, 'name', descriptor);
-var sqliteError = SqliteError$1;
+Object.setPrototypeOf(SqliteError$2, Error);
+Object.setPrototypeOf(SqliteError$2.prototype, Error.prototype);
+Object.defineProperty(SqliteError$2.prototype, 'name', descriptor);
+var sqliteError = SqliteError$2;
 
-var bindingsExports = {};
-var bindings = {
-  get exports(){ return bindingsExports; },
-  set exports(v){ bindingsExports = v; },
-};
+var bindings = {exports: {}};
 
 var fileUriToPath_1;
 var hasRequiredFileUriToPath;
@@ -130,7 +122,7 @@ function requireFileUriToPath () {
 var hasRequiredBindings;
 
 function requireBindings () {
-	if (hasRequiredBindings) return bindingsExports;
+	if (hasRequiredBindings) return bindings.exports;
 	hasRequiredBindings = 1;
 	(function (module, exports) {
 		var fs = require$$0,
@@ -349,9 +341,9 @@ function requireBindings () {
 		    prev = dir;
 		    dir = join(dir, '..');
 		  }
-		};
-} (bindings, bindingsExports));
-	return bindingsExports;
+		}; 
+	} (bindings, bindings.exports));
+	return bindings.exports;
 }
 
 var wrappers$1 = {};
@@ -390,6 +382,10 @@ function requireWrappers () {
 	wrappers$1.unsafeMode = function unsafeMode(...args) {
 		this[cppdb].unsafeMode(...args);
 		return this;
+	};
+
+	wrappers$1.signalTokenize = function signalTokenize(...args) {
+		return this[cppdb].signalTokenize(...args);
 	};
 
 	wrappers$1.getters = {
@@ -906,6 +902,38 @@ function requireTable () {
 	return table;
 }
 
+var createFTS5Tokenizer;
+var hasRequiredCreateFTS5Tokenizer;
+
+function requireCreateFTS5Tokenizer () {
+	if (hasRequiredCreateFTS5Tokenizer) return createFTS5Tokenizer;
+	hasRequiredCreateFTS5Tokenizer = 1;
+	const { cppdb } = util$1;
+
+	createFTS5Tokenizer = function createFTS5Tokenizer(name, factory) {
+		// Validate arguments
+		if (typeof name !== 'string') throw new TypeError('Expected first argument to be a string');
+		if (!name) throw new TypeError('Virtual table module name cannot be an empty string');
+		if (typeof factory !== 'function') throw new TypeError('Expected second argument to be a constructor');
+
+		this[cppdb].createFTS5Tokenizer(name, function create(params) {
+			const instance = new factory(params);
+
+			function run(str) {
+				if (!instance.run) {
+					// This will throw in C++
+					return;
+				}
+				return instance.run(str);
+			}
+
+			return run;
+		});
+		return this;
+	};
+	return createFTS5Tokenizer;
+}
+
 var inspect;
 var hasRequiredInspect;
 
@@ -923,7 +951,7 @@ function requireInspect () {
 const fs = require$$0;
 const path = require$$1;
 const util = util$1;
-const SqliteError = sqliteError;
+const SqliteError$1 = sqliteError;
 
 let DEFAULT_ADDON;
 
@@ -971,7 +999,8 @@ function Database(filenameGiven, options) {
 		addon = require(nativeBindingPath.replace(/(\.node)?$/, '.node'));
 	}
 	if (!addon.isInitialized) {
-		addon.setErrorConstructor(SqliteError);
+		addon.setErrorConstructor(SqliteError$1);
+		addon.setLogHandler(logHandlerWrap);
 		addon.isInitialized = true;
 	}
 
@@ -986,6 +1015,13 @@ function Database(filenameGiven, options) {
 	});
 }
 
+let logHandler;
+function logHandlerWrap(code, warning) {
+	if (logHandler) {
+		logHandler(code, warning);
+	}
+}
+
 const wrappers = requireWrappers();
 Database.prototype.prepare = wrappers.prepare;
 Database.prototype.transaction = requireTransaction();
@@ -995,20 +1031,26 @@ Database.prototype.serialize = requireSerialize();
 Database.prototype.function = require_function();
 Database.prototype.aggregate = requireAggregate();
 Database.prototype.table = requireTable();
+Database.prototype.createFTS5Tokenizer = requireCreateFTS5Tokenizer();
 Database.prototype.loadExtension = wrappers.loadExtension;
 Database.prototype.exec = wrappers.exec;
 Database.prototype.close = wrappers.close;
 Database.prototype.defaultSafeIntegers = wrappers.defaultSafeIntegers;
 Database.prototype.unsafeMode = wrappers.unsafeMode;
+Database.prototype.signalTokenize = wrappers.signalTokenize;
 Database.prototype[util.inspect] = requireInspect();
+
+// Static
+Database.setLogHandler = function setLogHandler(fn) {
+	logHandler = fn;
+};
 
 var database = Database;
 
-(function (module) {
-	module.exports = database;
-	module.exports.SqliteError = sqliteError;
-} (lib));
+lib.exports = database;
+var SqliteError = lib.exports.SqliteError = sqliteError;
 
+var libExports = lib.exports;
 var index = /*@__PURE__*/getDefaultExportFromCjs(libExports);
 
-export { index as default };
+export { SqliteError, index as default };

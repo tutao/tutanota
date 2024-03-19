@@ -136,17 +136,168 @@ CancellationToken$1.CancellationError = CancellationError;
 
 var httpExecutor = {};
 
-var srcExports = {};
-var src = {
-  get exports(){ return srcExports; },
-  set exports(v){ srcExports = v; },
-};
+var src = {exports: {}};
 
-var browserExports = {};
-var browser = {
-  get exports(){ return browserExports; },
-  set exports(v){ browserExports = v; },
-};
+var node = {exports: {}};
+
+var hasFlag;
+var hasRequiredHasFlag;
+
+function requireHasFlag () {
+	if (hasRequiredHasFlag) return hasFlag;
+	hasRequiredHasFlag = 1;
+
+	hasFlag = (flag, argv = process.argv) => {
+		const prefix = flag.startsWith('-') ? '' : (flag.length === 1 ? '-' : '--');
+		const position = argv.indexOf(prefix + flag);
+		const terminatorPosition = argv.indexOf('--');
+		return position !== -1 && (terminatorPosition === -1 || position < terminatorPosition);
+	};
+	return hasFlag;
+}
+
+var supportsColor_1;
+var hasRequiredSupportsColor;
+
+function requireSupportsColor () {
+	if (hasRequiredSupportsColor) return supportsColor_1;
+	hasRequiredSupportsColor = 1;
+	const os = require$$0$1;
+	const tty = require$$1;
+	const hasFlag = requireHasFlag();
+
+	const {env} = process;
+
+	let forceColor;
+	if (hasFlag('no-color') ||
+		hasFlag('no-colors') ||
+		hasFlag('color=false') ||
+		hasFlag('color=never')) {
+		forceColor = 0;
+	} else if (hasFlag('color') ||
+		hasFlag('colors') ||
+		hasFlag('color=true') ||
+		hasFlag('color=always')) {
+		forceColor = 1;
+	}
+
+	if ('FORCE_COLOR' in env) {
+		if (env.FORCE_COLOR === 'true') {
+			forceColor = 1;
+		} else if (env.FORCE_COLOR === 'false') {
+			forceColor = 0;
+		} else {
+			forceColor = env.FORCE_COLOR.length === 0 ? 1 : Math.min(parseInt(env.FORCE_COLOR, 10), 3);
+		}
+	}
+
+	function translateLevel(level) {
+		if (level === 0) {
+			return false;
+		}
+
+		return {
+			level,
+			hasBasic: true,
+			has256: level >= 2,
+			has16m: level >= 3
+		};
+	}
+
+	function supportsColor(haveStream, streamIsTTY) {
+		if (forceColor === 0) {
+			return 0;
+		}
+
+		if (hasFlag('color=16m') ||
+			hasFlag('color=full') ||
+			hasFlag('color=truecolor')) {
+			return 3;
+		}
+
+		if (hasFlag('color=256')) {
+			return 2;
+		}
+
+		if (haveStream && !streamIsTTY && forceColor === undefined) {
+			return 0;
+		}
+
+		const min = forceColor || 0;
+
+		if (env.TERM === 'dumb') {
+			return min;
+		}
+
+		if (process.platform === 'win32') {
+			// Windows 10 build 10586 is the first Windows release that supports 256 colors.
+			// Windows 10 build 14931 is the first release that supports 16m/TrueColor.
+			const osRelease = os.release().split('.');
+			if (
+				Number(osRelease[0]) >= 10 &&
+				Number(osRelease[2]) >= 10586
+			) {
+				return Number(osRelease[2]) >= 14931 ? 3 : 2;
+			}
+
+			return 1;
+		}
+
+		if ('CI' in env) {
+			if (['TRAVIS', 'CIRCLECI', 'APPVEYOR', 'GITLAB_CI', 'GITHUB_ACTIONS', 'BUILDKITE'].some(sign => sign in env) || env.CI_NAME === 'codeship') {
+				return 1;
+			}
+
+			return min;
+		}
+
+		if ('TEAMCITY_VERSION' in env) {
+			return /^(9\.(0*[1-9]\d*)\.|\d{2,}\.)/.test(env.TEAMCITY_VERSION) ? 1 : 0;
+		}
+
+		if (env.COLORTERM === 'truecolor') {
+			return 3;
+		}
+
+		if ('TERM_PROGRAM' in env) {
+			const version = parseInt((env.TERM_PROGRAM_VERSION || '').split('.')[0], 10);
+
+			switch (env.TERM_PROGRAM) {
+				case 'iTerm.app':
+					return version >= 3 ? 3 : 2;
+				case 'Apple_Terminal':
+					return 2;
+				// No default
+			}
+		}
+
+		if (/-256(color)?$/i.test(env.TERM)) {
+			return 2;
+		}
+
+		if (/^screen|^xterm|^vt100|^vt220|^rxvt|color|ansi|cygwin|linux/i.test(env.TERM)) {
+			return 1;
+		}
+
+		if ('COLORTERM' in env) {
+			return 1;
+		}
+
+		return min;
+	}
+
+	function getSupportLevel(stream) {
+		const level = supportsColor(stream, stream && stream.isTTY);
+		return translateLevel(level);
+	}
+
+	supportsColor_1 = {
+		supportsColor: getSupportLevel,
+		stdout: translateLevel(supportsColor(true, tty.isatty(1))),
+		stderr: translateLevel(supportsColor(true, tty.isatty(2)))
+	};
+	return supportsColor_1;
+}
 
 /**
  * Helpers.
@@ -601,12 +752,287 @@ function requireCommon () {
 	return common$6;
 }
 
+/**
+ * Module dependencies.
+ */
+
+var hasRequiredNode;
+
+function requireNode () {
+	if (hasRequiredNode) return node.exports;
+	hasRequiredNode = 1;
+	(function (module, exports) {
+		const tty = require$$1;
+		const util = require$$1$1;
+
+		/**
+		 * This is the Node.js implementation of `debug()`.
+		 */
+
+		exports.init = init;
+		exports.log = log;
+		exports.formatArgs = formatArgs;
+		exports.save = save;
+		exports.load = load;
+		exports.useColors = useColors;
+		exports.destroy = util.deprecate(
+			() => {},
+			'Instance method `debug.destroy()` is deprecated and no longer does anything. It will be removed in the next major version of `debug`.'
+		);
+
+		/**
+		 * Colors.
+		 */
+
+		exports.colors = [6, 2, 3, 4, 5, 1];
+
+		try {
+			// Optional dependency (as in, doesn't need to be installed, NOT like optionalDependencies in package.json)
+			// eslint-disable-next-line import/no-extraneous-dependencies
+			const supportsColor = requireSupportsColor();
+
+			if (supportsColor && (supportsColor.stderr || supportsColor).level >= 2) {
+				exports.colors = [
+					20,
+					21,
+					26,
+					27,
+					32,
+					33,
+					38,
+					39,
+					40,
+					41,
+					42,
+					43,
+					44,
+					45,
+					56,
+					57,
+					62,
+					63,
+					68,
+					69,
+					74,
+					75,
+					76,
+					77,
+					78,
+					79,
+					80,
+					81,
+					92,
+					93,
+					98,
+					99,
+					112,
+					113,
+					128,
+					129,
+					134,
+					135,
+					148,
+					149,
+					160,
+					161,
+					162,
+					163,
+					164,
+					165,
+					166,
+					167,
+					168,
+					169,
+					170,
+					171,
+					172,
+					173,
+					178,
+					179,
+					184,
+					185,
+					196,
+					197,
+					198,
+					199,
+					200,
+					201,
+					202,
+					203,
+					204,
+					205,
+					206,
+					207,
+					208,
+					209,
+					214,
+					215,
+					220,
+					221
+				];
+			}
+		} catch (error) {
+			// Swallow - we only care if `supports-color` is available; it doesn't have to be.
+		}
+
+		/**
+		 * Build up the default `inspectOpts` object from the environment variables.
+		 *
+		 *   $ DEBUG_COLORS=no DEBUG_DEPTH=10 DEBUG_SHOW_HIDDEN=enabled node script.js
+		 */
+
+		exports.inspectOpts = Object.keys(process.env).filter(key => {
+			return /^debug_/i.test(key);
+		}).reduce((obj, key) => {
+			// Camel-case
+			const prop = key
+				.substring(6)
+				.toLowerCase()
+				.replace(/_([a-z])/g, (_, k) => {
+					return k.toUpperCase();
+				});
+
+			// Coerce string value into JS value
+			let val = process.env[key];
+			if (/^(yes|on|true|enabled)$/i.test(val)) {
+				val = true;
+			} else if (/^(no|off|false|disabled)$/i.test(val)) {
+				val = false;
+			} else if (val === 'null') {
+				val = null;
+			} else {
+				val = Number(val);
+			}
+
+			obj[prop] = val;
+			return obj;
+		}, {});
+
+		/**
+		 * Is stdout a TTY? Colored output is enabled when `true`.
+		 */
+
+		function useColors() {
+			return 'colors' in exports.inspectOpts ?
+				Boolean(exports.inspectOpts.colors) :
+				tty.isatty(process.stderr.fd);
+		}
+
+		/**
+		 * Adds ANSI color escape codes if enabled.
+		 *
+		 * @api public
+		 */
+
+		function formatArgs(args) {
+			const {namespace: name, useColors} = this;
+
+			if (useColors) {
+				const c = this.color;
+				const colorCode = '\u001B[3' + (c < 8 ? c : '8;5;' + c);
+				const prefix = `  ${colorCode};1m${name} \u001B[0m`;
+
+				args[0] = prefix + args[0].split('\n').join('\n' + prefix);
+				args.push(colorCode + 'm+' + module.exports.humanize(this.diff) + '\u001B[0m');
+			} else {
+				args[0] = getDate() + name + ' ' + args[0];
+			}
+		}
+
+		function getDate() {
+			if (exports.inspectOpts.hideDate) {
+				return '';
+			}
+			return new Date().toISOString() + ' ';
+		}
+
+		/**
+		 * Invokes `util.format()` with the specified arguments and writes to stderr.
+		 */
+
+		function log(...args) {
+			return process.stderr.write(util.format(...args) + '\n');
+		}
+
+		/**
+		 * Save `namespaces`.
+		 *
+		 * @param {String} namespaces
+		 * @api private
+		 */
+		function save(namespaces) {
+			if (namespaces) {
+				process.env.DEBUG = namespaces;
+			} else {
+				// If you set a process.env field to null or undefined, it gets cast to the
+				// string 'null' or 'undefined'. Just delete instead.
+				delete process.env.DEBUG;
+			}
+		}
+
+		/**
+		 * Load `namespaces`.
+		 *
+		 * @return {String} returns the previously persisted debug modes
+		 * @api private
+		 */
+
+		function load() {
+			return process.env.DEBUG;
+		}
+
+		/**
+		 * Init logic for `debug` instances.
+		 *
+		 * Create a new `inspectOpts` object in case `useColors` is set
+		 * differently for a particular `debug` instance.
+		 */
+
+		function init(debug) {
+			debug.inspectOpts = {};
+
+			const keys = Object.keys(exports.inspectOpts);
+			for (let i = 0; i < keys.length; i++) {
+				debug.inspectOpts[keys[i]] = exports.inspectOpts[keys[i]];
+			}
+		}
+
+		module.exports = requireCommon()(exports);
+
+		const {formatters} = module.exports;
+
+		/**
+		 * Map %o to `util.inspect()`, all on a single line.
+		 */
+
+		formatters.o = function (v) {
+			this.inspectOpts.colors = this.useColors;
+			return util.inspect(v, this.inspectOpts)
+				.split('\n')
+				.map(str => str.trim())
+				.join(' ');
+		};
+
+		/**
+		 * Map %O to `util.inspect()`, allowing multiple lines if needed.
+		 */
+
+		formatters.O = function (v) {
+			this.inspectOpts.colors = this.useColors;
+			return util.inspect(v, this.inspectOpts);
+		}; 
+	} (node, node.exports));
+	return node.exports;
+}
+
+var browser = {exports: {}};
+
 /* eslint-env browser */
 
 var hasRequiredBrowser;
 
 function requireBrowser () {
-	if (hasRequiredBrowser) return browserExports;
+	if (hasRequiredBrowser) return browser.exports;
 	hasRequiredBrowser = 1;
 	(function (module, exports) {
 		/**
@@ -875,447 +1301,9 @@ function requireBrowser () {
 			} catch (error) {
 				return '[UnexpectedJSONParseError]: ' + error.message;
 			}
-		};
-} (browser, browserExports));
-	return browserExports;
-}
-
-var nodeExports = {};
-var node = {
-  get exports(){ return nodeExports; },
-  set exports(v){ nodeExports = v; },
-};
-
-var hasFlag;
-var hasRequiredHasFlag;
-
-function requireHasFlag () {
-	if (hasRequiredHasFlag) return hasFlag;
-	hasRequiredHasFlag = 1;
-
-	hasFlag = (flag, argv = process.argv) => {
-		const prefix = flag.startsWith('-') ? '' : (flag.length === 1 ? '-' : '--');
-		const position = argv.indexOf(prefix + flag);
-		const terminatorPosition = argv.indexOf('--');
-		return position !== -1 && (terminatorPosition === -1 || position < terminatorPosition);
-	};
-	return hasFlag;
-}
-
-var supportsColor_1;
-var hasRequiredSupportsColor;
-
-function requireSupportsColor () {
-	if (hasRequiredSupportsColor) return supportsColor_1;
-	hasRequiredSupportsColor = 1;
-	const os = require$$0$1;
-	const tty = require$$1;
-	const hasFlag = requireHasFlag();
-
-	const {env} = process;
-
-	let forceColor;
-	if (hasFlag('no-color') ||
-		hasFlag('no-colors') ||
-		hasFlag('color=false') ||
-		hasFlag('color=never')) {
-		forceColor = 0;
-	} else if (hasFlag('color') ||
-		hasFlag('colors') ||
-		hasFlag('color=true') ||
-		hasFlag('color=always')) {
-		forceColor = 1;
-	}
-
-	if ('FORCE_COLOR' in env) {
-		if (env.FORCE_COLOR === 'true') {
-			forceColor = 1;
-		} else if (env.FORCE_COLOR === 'false') {
-			forceColor = 0;
-		} else {
-			forceColor = env.FORCE_COLOR.length === 0 ? 1 : Math.min(parseInt(env.FORCE_COLOR, 10), 3);
-		}
-	}
-
-	function translateLevel(level) {
-		if (level === 0) {
-			return false;
-		}
-
-		return {
-			level,
-			hasBasic: true,
-			has256: level >= 2,
-			has16m: level >= 3
-		};
-	}
-
-	function supportsColor(haveStream, streamIsTTY) {
-		if (forceColor === 0) {
-			return 0;
-		}
-
-		if (hasFlag('color=16m') ||
-			hasFlag('color=full') ||
-			hasFlag('color=truecolor')) {
-			return 3;
-		}
-
-		if (hasFlag('color=256')) {
-			return 2;
-		}
-
-		if (haveStream && !streamIsTTY && forceColor === undefined) {
-			return 0;
-		}
-
-		const min = forceColor || 0;
-
-		if (env.TERM === 'dumb') {
-			return min;
-		}
-
-		if (process.platform === 'win32') {
-			// Windows 10 build 10586 is the first Windows release that supports 256 colors.
-			// Windows 10 build 14931 is the first release that supports 16m/TrueColor.
-			const osRelease = os.release().split('.');
-			if (
-				Number(osRelease[0]) >= 10 &&
-				Number(osRelease[2]) >= 10586
-			) {
-				return Number(osRelease[2]) >= 14931 ? 3 : 2;
-			}
-
-			return 1;
-		}
-
-		if ('CI' in env) {
-			if (['TRAVIS', 'CIRCLECI', 'APPVEYOR', 'GITLAB_CI', 'GITHUB_ACTIONS', 'BUILDKITE'].some(sign => sign in env) || env.CI_NAME === 'codeship') {
-				return 1;
-			}
-
-			return min;
-		}
-
-		if ('TEAMCITY_VERSION' in env) {
-			return /^(9\.(0*[1-9]\d*)\.|\d{2,}\.)/.test(env.TEAMCITY_VERSION) ? 1 : 0;
-		}
-
-		if (env.COLORTERM === 'truecolor') {
-			return 3;
-		}
-
-		if ('TERM_PROGRAM' in env) {
-			const version = parseInt((env.TERM_PROGRAM_VERSION || '').split('.')[0], 10);
-
-			switch (env.TERM_PROGRAM) {
-				case 'iTerm.app':
-					return version >= 3 ? 3 : 2;
-				case 'Apple_Terminal':
-					return 2;
-				// No default
-			}
-		}
-
-		if (/-256(color)?$/i.test(env.TERM)) {
-			return 2;
-		}
-
-		if (/^screen|^xterm|^vt100|^vt220|^rxvt|color|ansi|cygwin|linux/i.test(env.TERM)) {
-			return 1;
-		}
-
-		if ('COLORTERM' in env) {
-			return 1;
-		}
-
-		return min;
-	}
-
-	function getSupportLevel(stream) {
-		const level = supportsColor(stream, stream && stream.isTTY);
-		return translateLevel(level);
-	}
-
-	supportsColor_1 = {
-		supportsColor: getSupportLevel,
-		stdout: translateLevel(supportsColor(true, tty.isatty(1))),
-		stderr: translateLevel(supportsColor(true, tty.isatty(2)))
-	};
-	return supportsColor_1;
-}
-
-/**
- * Module dependencies.
- */
-
-var hasRequiredNode;
-
-function requireNode () {
-	if (hasRequiredNode) return nodeExports;
-	hasRequiredNode = 1;
-	(function (module, exports) {
-		const tty = require$$1;
-		const util = require$$1$1;
-
-		/**
-		 * This is the Node.js implementation of `debug()`.
-		 */
-
-		exports.init = init;
-		exports.log = log;
-		exports.formatArgs = formatArgs;
-		exports.save = save;
-		exports.load = load;
-		exports.useColors = useColors;
-		exports.destroy = util.deprecate(
-			() => {},
-			'Instance method `debug.destroy()` is deprecated and no longer does anything. It will be removed in the next major version of `debug`.'
-		);
-
-		/**
-		 * Colors.
-		 */
-
-		exports.colors = [6, 2, 3, 4, 5, 1];
-
-		try {
-			// Optional dependency (as in, doesn't need to be installed, NOT like optionalDependencies in package.json)
-			// eslint-disable-next-line import/no-extraneous-dependencies
-			const supportsColor = requireSupportsColor();
-
-			if (supportsColor && (supportsColor.stderr || supportsColor).level >= 2) {
-				exports.colors = [
-					20,
-					21,
-					26,
-					27,
-					32,
-					33,
-					38,
-					39,
-					40,
-					41,
-					42,
-					43,
-					44,
-					45,
-					56,
-					57,
-					62,
-					63,
-					68,
-					69,
-					74,
-					75,
-					76,
-					77,
-					78,
-					79,
-					80,
-					81,
-					92,
-					93,
-					98,
-					99,
-					112,
-					113,
-					128,
-					129,
-					134,
-					135,
-					148,
-					149,
-					160,
-					161,
-					162,
-					163,
-					164,
-					165,
-					166,
-					167,
-					168,
-					169,
-					170,
-					171,
-					172,
-					173,
-					178,
-					179,
-					184,
-					185,
-					196,
-					197,
-					198,
-					199,
-					200,
-					201,
-					202,
-					203,
-					204,
-					205,
-					206,
-					207,
-					208,
-					209,
-					214,
-					215,
-					220,
-					221
-				];
-			}
-		} catch (error) {
-			// Swallow - we only care if `supports-color` is available; it doesn't have to be.
-		}
-
-		/**
-		 * Build up the default `inspectOpts` object from the environment variables.
-		 *
-		 *   $ DEBUG_COLORS=no DEBUG_DEPTH=10 DEBUG_SHOW_HIDDEN=enabled node script.js
-		 */
-
-		exports.inspectOpts = Object.keys(process.env).filter(key => {
-			return /^debug_/i.test(key);
-		}).reduce((obj, key) => {
-			// Camel-case
-			const prop = key
-				.substring(6)
-				.toLowerCase()
-				.replace(/_([a-z])/g, (_, k) => {
-					return k.toUpperCase();
-				});
-
-			// Coerce string value into JS value
-			let val = process.env[key];
-			if (/^(yes|on|true|enabled)$/i.test(val)) {
-				val = true;
-			} else if (/^(no|off|false|disabled)$/i.test(val)) {
-				val = false;
-			} else if (val === 'null') {
-				val = null;
-			} else {
-				val = Number(val);
-			}
-
-			obj[prop] = val;
-			return obj;
-		}, {});
-
-		/**
-		 * Is stdout a TTY? Colored output is enabled when `true`.
-		 */
-
-		function useColors() {
-			return 'colors' in exports.inspectOpts ?
-				Boolean(exports.inspectOpts.colors) :
-				tty.isatty(process.stderr.fd);
-		}
-
-		/**
-		 * Adds ANSI color escape codes if enabled.
-		 *
-		 * @api public
-		 */
-
-		function formatArgs(args) {
-			const {namespace: name, useColors} = this;
-
-			if (useColors) {
-				const c = this.color;
-				const colorCode = '\u001B[3' + (c < 8 ? c : '8;5;' + c);
-				const prefix = `  ${colorCode};1m${name} \u001B[0m`;
-
-				args[0] = prefix + args[0].split('\n').join('\n' + prefix);
-				args.push(colorCode + 'm+' + module.exports.humanize(this.diff) + '\u001B[0m');
-			} else {
-				args[0] = getDate() + name + ' ' + args[0];
-			}
-		}
-
-		function getDate() {
-			if (exports.inspectOpts.hideDate) {
-				return '';
-			}
-			return new Date().toISOString() + ' ';
-		}
-
-		/**
-		 * Invokes `util.format()` with the specified arguments and writes to stderr.
-		 */
-
-		function log(...args) {
-			return process.stderr.write(util.format(...args) + '\n');
-		}
-
-		/**
-		 * Save `namespaces`.
-		 *
-		 * @param {String} namespaces
-		 * @api private
-		 */
-		function save(namespaces) {
-			if (namespaces) {
-				process.env.DEBUG = namespaces;
-			} else {
-				// If you set a process.env field to null or undefined, it gets cast to the
-				// string 'null' or 'undefined'. Just delete instead.
-				delete process.env.DEBUG;
-			}
-		}
-
-		/**
-		 * Load `namespaces`.
-		 *
-		 * @return {String} returns the previously persisted debug modes
-		 * @api private
-		 */
-
-		function load() {
-			return process.env.DEBUG;
-		}
-
-		/**
-		 * Init logic for `debug` instances.
-		 *
-		 * Create a new `inspectOpts` object in case `useColors` is set
-		 * differently for a particular `debug` instance.
-		 */
-
-		function init(debug) {
-			debug.inspectOpts = {};
-
-			const keys = Object.keys(exports.inspectOpts);
-			for (let i = 0; i < keys.length; i++) {
-				debug.inspectOpts[keys[i]] = exports.inspectOpts[keys[i]];
-			}
-		}
-
-		module.exports = requireCommon()(exports);
-
-		const {formatters} = module.exports;
-
-		/**
-		 * Map %o to `util.inspect()`, all on a single line.
-		 */
-
-		formatters.o = function (v) {
-			this.inspectOpts.colors = this.useColors;
-			return util.inspect(v, this.inspectOpts)
-				.split('\n')
-				.map(str => str.trim())
-				.join(' ');
-		};
-
-		/**
-		 * Map %O to `util.inspect()`, allowing multiple lines if needed.
-		 */
-
-		formatters.O = function (v) {
-			this.inspectOpts.colors = this.useColors;
-			return util.inspect(v, this.inspectOpts);
-		};
-} (node, nodeExports));
-	return nodeExports;
+		}; 
+	} (browser, browser.exports));
+	return browser.exports;
 }
 
 /**
@@ -1323,13 +1311,13 @@ function requireNode () {
  * treat as a browser.
  */
 
-(function (module) {
-	if (typeof process === 'undefined' || process.type === 'renderer' || process.browser === true || process.__nwjs) {
-		module.exports = requireBrowser();
-	} else {
-		module.exports = requireNode();
-	}
-} (src));
+if (typeof process === 'undefined' || process.type === 'renderer' || process.browser === true || process.__nwjs) {
+	src.exports = requireBrowser();
+} else {
+	src.exports = requireNode();
+}
+
+var srcExports = src.exports;
 
 var ProgressCallbackTransform$1 = {};
 
@@ -1815,7 +1803,7 @@ Please double check that your authentication token is correct. Due to security r
 	    }, 2);
 	}
 	httpExecutor.safeStringifyJson = safeStringifyJson;
-
+	
 	return httpExecutor;
 }
 
@@ -2173,7 +2161,7 @@ function requireUuid () {
 	// UUID.v3 = function(options, callback) {
 	//     return uuidNamed("md5", 0x30, options, callback)
 	// }
-
+	
 	return uuid;
 }
 
@@ -3753,7 +3741,7 @@ var sax = {};
 	      }
 	    }());
 	  }
-	})(exports);
+	})(exports); 
 } (sax));
 
 var hasRequiredXml;
@@ -3868,7 +3856,7 @@ function requireXml () {
 	    return rootElement;
 	}
 	xml.parseXml = parseXml;
-
+	
 	return xml;
 }
 
@@ -3928,8 +3916,8 @@ function requireOut () {
 		    return error;
 		}
 		exports.newError = newError;
-
-} (out));
+		
+	} (out));
 	return out;
 }
 
@@ -5033,7 +5021,7 @@ function retry () {
 	    'fs.realpath.native is not a function. Is fs being monkey-patched?',
 	    'Warning', 'fs-extra-WARN0003'
 	  );
-	}
+	} 
 } (fs$i));
 
 var makeDir$1 = {};
@@ -6970,12 +6958,6 @@ function makeSnippet$1(mark, options) {
 
 var snippet = makeSnippet$1;
 
-var coreExports = {};
-var core = {
-  get exports(){ return coreExports; },
-  set exports(v){ coreExports = v; },
-};
-
 var YAMLException$3 = exception;
 
 var TYPE_CONSTRUCTOR_OPTIONS = [
@@ -7041,159 +7023,352 @@ function Type$e(tag, options) {
 
 var type = Type$e;
 
-/*eslint-disable max-len*/
+var Type$d = type;
 
-var YAMLException$2 = exception;
-var Type$d          = type;
+var YAML_DATE_REGEXP = new RegExp(
+  '^([0-9][0-9][0-9][0-9])'          + // [1] year
+  '-([0-9][0-9])'                    + // [2] month
+  '-([0-9][0-9])$');                   // [3] day
 
+var YAML_TIMESTAMP_REGEXP = new RegExp(
+  '^([0-9][0-9][0-9][0-9])'          + // [1] year
+  '-([0-9][0-9]?)'                   + // [2] month
+  '-([0-9][0-9]?)'                   + // [3] day
+  '(?:[Tt]|[ \\t]+)'                 + // ...
+  '([0-9][0-9]?)'                    + // [4] hour
+  ':([0-9][0-9])'                    + // [5] minute
+  ':([0-9][0-9])'                    + // [6] second
+  '(?:\\.([0-9]*))?'                 + // [7] fraction
+  '(?:[ \\t]*(Z|([-+])([0-9][0-9]?)' + // [8] tz [9] tz_sign [10] tz_hour
+  '(?::([0-9][0-9]))?))?$');           // [11] tz_minute
 
-function compileList(schema, name) {
-  var result = [];
-
-  schema[name].forEach(function (currentType) {
-    var newIndex = result.length;
-
-    result.forEach(function (previousType, previousIndex) {
-      if (previousType.tag === currentType.tag &&
-          previousType.kind === currentType.kind &&
-          previousType.multi === currentType.multi) {
-
-        newIndex = previousIndex;
-      }
-    });
-
-    result[newIndex] = currentType;
-  });
-
-  return result;
+function resolveYamlTimestamp(data) {
+  if (data === null) return false;
+  if (YAML_DATE_REGEXP.exec(data) !== null) return true;
+  if (YAML_TIMESTAMP_REGEXP.exec(data) !== null) return true;
+  return false;
 }
 
+function constructYamlTimestamp(data) {
+  var match, year, month, day, hour, minute, second, fraction = 0,
+      delta = null, tz_hour, tz_minute, date;
 
-function compileMap(/* lists... */) {
-  var result = {
-        scalar: {},
-        sequence: {},
-        mapping: {},
-        fallback: {},
-        multi: {
-          scalar: [],
-          sequence: [],
-          mapping: [],
-          fallback: []
-        }
-      }, index, length;
+  match = YAML_DATE_REGEXP.exec(data);
+  if (match === null) match = YAML_TIMESTAMP_REGEXP.exec(data);
 
-  function collectType(type) {
-    if (type.multi) {
-      result.multi[type.kind].push(type);
-      result.multi['fallback'].push(type);
-    } else {
-      result[type.kind][type.tag] = result['fallback'][type.tag] = type;
+  if (match === null) throw new Error('Date resolve error');
+
+  // match: [1] year [2] month [3] day
+
+  year = +(match[1]);
+  month = +(match[2]) - 1; // JS month starts with 0
+  day = +(match[3]);
+
+  if (!match[4]) { // no hour
+    return new Date(Date.UTC(year, month, day));
+  }
+
+  // match: [4] hour [5] minute [6] second [7] fraction
+
+  hour = +(match[4]);
+  minute = +(match[5]);
+  second = +(match[6]);
+
+  if (match[7]) {
+    fraction = match[7].slice(0, 3);
+    while (fraction.length < 3) { // milli-seconds
+      fraction += '0';
     }
+    fraction = +fraction;
   }
 
-  for (index = 0, length = arguments.length; index < length; index += 1) {
-    arguments[index].forEach(collectType);
+  // match: [8] tz [9] tz_sign [10] tz_hour [11] tz_minute
+
+  if (match[9]) {
+    tz_hour = +(match[10]);
+    tz_minute = +(match[11] || 0);
+    delta = (tz_hour * 60 + tz_minute) * 60000; // delta in mili-seconds
+    if (match[9] === '-') delta = -delta;
   }
-  return result;
+
+  date = new Date(Date.UTC(year, month, day, hour, minute, second, fraction));
+
+  if (delta) date.setTime(date.getTime() - delta);
+
+  return date;
 }
 
-
-function Schema$1(definition) {
-  return this.extend(definition);
+function representYamlTimestamp(object /*, style*/) {
+  return object.toISOString();
 }
 
-
-Schema$1.prototype.extend = function extend(definition) {
-  var implicit = [];
-  var explicit = [];
-
-  if (definition instanceof Type$d) {
-    // Schema.extend(type)
-    explicit.push(definition);
-
-  } else if (Array.isArray(definition)) {
-    // Schema.extend([ type1, type2, ... ])
-    explicit = explicit.concat(definition);
-
-  } else if (definition && (Array.isArray(definition.implicit) || Array.isArray(definition.explicit))) {
-    // Schema.extend({ explicit: [ type1, type2, ... ], implicit: [ type1, type2, ... ] })
-    if (definition.implicit) implicit = implicit.concat(definition.implicit);
-    if (definition.explicit) explicit = explicit.concat(definition.explicit);
-
-  } else {
-    throw new YAMLException$2('Schema.extend argument should be a Type, [ Type ], ' +
-      'or a schema definition ({ implicit: [...], explicit: [...] })');
-  }
-
-  implicit.forEach(function (type) {
-    if (!(type instanceof Type$d)) {
-      throw new YAMLException$2('Specified list of YAML types (or a single Type object) contains a non-Type object.');
-    }
-
-    if (type.loadKind && type.loadKind !== 'scalar') {
-      throw new YAMLException$2('There is a non-scalar type in the implicit list of a schema. Implicit resolving of such types is not supported.');
-    }
-
-    if (type.multi) {
-      throw new YAMLException$2('There is a multi type in the implicit list of a schema. Multi tags can only be listed as explicit.');
-    }
-  });
-
-  explicit.forEach(function (type) {
-    if (!(type instanceof Type$d)) {
-      throw new YAMLException$2('Specified list of YAML types (or a single Type object) contains a non-Type object.');
-    }
-  });
-
-  var result = Object.create(Schema$1.prototype);
-
-  result.implicit = (this.implicit || []).concat(implicit);
-  result.explicit = (this.explicit || []).concat(explicit);
-
-  result.compiledImplicit = compileList(result, 'implicit');
-  result.compiledExplicit = compileList(result, 'explicit');
-  result.compiledTypeMap  = compileMap(result.compiledImplicit, result.compiledExplicit);
-
-  return result;
-};
-
-
-var schema = Schema$1;
+var timestamp = new Type$d('tag:yaml.org,2002:timestamp', {
+  kind: 'scalar',
+  resolve: resolveYamlTimestamp,
+  construct: constructYamlTimestamp,
+  instanceOf: Date,
+  represent: representYamlTimestamp
+});
 
 var Type$c = type;
 
-var str = new Type$c('tag:yaml.org,2002:str', {
+function resolveYamlMerge(data) {
+  return data === '<<' || data === null;
+}
+
+var merge = new Type$c('tag:yaml.org,2002:merge', {
   kind: 'scalar',
-  construct: function (data) { return data !== null ? data : ''; }
+  resolve: resolveYamlMerge
 });
+
+/*eslint-disable no-bitwise*/
+
 
 var Type$b = type;
 
-var seq = new Type$b('tag:yaml.org,2002:seq', {
-  kind: 'sequence',
-  construct: function (data) { return data !== null ? data : []; }
+
+// [ 64, 65, 66 ] -> [ padding, CR, LF ]
+var BASE64_MAP = 'ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789+/=\n\r';
+
+
+function resolveYamlBinary(data) {
+  if (data === null) return false;
+
+  var code, idx, bitlen = 0, max = data.length, map = BASE64_MAP;
+
+  // Convert one by one.
+  for (idx = 0; idx < max; idx++) {
+    code = map.indexOf(data.charAt(idx));
+
+    // Skip CR/LF
+    if (code > 64) continue;
+
+    // Fail on illegal characters
+    if (code < 0) return false;
+
+    bitlen += 6;
+  }
+
+  // If there are any bits left, source was corrupted
+  return (bitlen % 8) === 0;
+}
+
+function constructYamlBinary(data) {
+  var idx, tailbits,
+      input = data.replace(/[\r\n=]/g, ''), // remove CR/LF & padding to simplify scan
+      max = input.length,
+      map = BASE64_MAP,
+      bits = 0,
+      result = [];
+
+  // Collect by 6*4 bits (3 bytes)
+
+  for (idx = 0; idx < max; idx++) {
+    if ((idx % 4 === 0) && idx) {
+      result.push((bits >> 16) & 0xFF);
+      result.push((bits >> 8) & 0xFF);
+      result.push(bits & 0xFF);
+    }
+
+    bits = (bits << 6) | map.indexOf(input.charAt(idx));
+  }
+
+  // Dump tail
+
+  tailbits = (max % 4) * 6;
+
+  if (tailbits === 0) {
+    result.push((bits >> 16) & 0xFF);
+    result.push((bits >> 8) & 0xFF);
+    result.push(bits & 0xFF);
+  } else if (tailbits === 18) {
+    result.push((bits >> 10) & 0xFF);
+    result.push((bits >> 2) & 0xFF);
+  } else if (tailbits === 12) {
+    result.push((bits >> 4) & 0xFF);
+  }
+
+  return new Uint8Array(result);
+}
+
+function representYamlBinary(object /*, style*/) {
+  var result = '', bits = 0, idx, tail,
+      max = object.length,
+      map = BASE64_MAP;
+
+  // Convert every three bytes to 4 ASCII characters.
+
+  for (idx = 0; idx < max; idx++) {
+    if ((idx % 3 === 0) && idx) {
+      result += map[(bits >> 18) & 0x3F];
+      result += map[(bits >> 12) & 0x3F];
+      result += map[(bits >> 6) & 0x3F];
+      result += map[bits & 0x3F];
+    }
+
+    bits = (bits << 8) + object[idx];
+  }
+
+  // Dump tail
+
+  tail = max % 3;
+
+  if (tail === 0) {
+    result += map[(bits >> 18) & 0x3F];
+    result += map[(bits >> 12) & 0x3F];
+    result += map[(bits >> 6) & 0x3F];
+    result += map[bits & 0x3F];
+  } else if (tail === 2) {
+    result += map[(bits >> 10) & 0x3F];
+    result += map[(bits >> 4) & 0x3F];
+    result += map[(bits << 2) & 0x3F];
+    result += map[64];
+  } else if (tail === 1) {
+    result += map[(bits >> 2) & 0x3F];
+    result += map[(bits << 4) & 0x3F];
+    result += map[64];
+    result += map[64];
+  }
+
+  return result;
+}
+
+function isBinary(obj) {
+  return Object.prototype.toString.call(obj) ===  '[object Uint8Array]';
+}
+
+var binary = new Type$b('tag:yaml.org,2002:binary', {
+  kind: 'scalar',
+  resolve: resolveYamlBinary,
+  construct: constructYamlBinary,
+  predicate: isBinary,
+  represent: representYamlBinary
 });
 
 var Type$a = type;
 
-var map = new Type$a('tag:yaml.org,2002:map', {
-  kind: 'mapping',
-  construct: function (data) { return data !== null ? data : {}; }
-});
+var _hasOwnProperty$3 = Object.prototype.hasOwnProperty;
+var _toString$2       = Object.prototype.toString;
 
-var Schema = schema;
+function resolveYamlOmap(data) {
+  if (data === null) return true;
 
+  var objectKeys = [], index, length, pair, pairKey, pairHasKey,
+      object = data;
 
-var failsafe = new Schema({
-  explicit: [
-    str,
-    seq,
-    map
-  ]
+  for (index = 0, length = object.length; index < length; index += 1) {
+    pair = object[index];
+    pairHasKey = false;
+
+    if (_toString$2.call(pair) !== '[object Object]') return false;
+
+    for (pairKey in pair) {
+      if (_hasOwnProperty$3.call(pair, pairKey)) {
+        if (!pairHasKey) pairHasKey = true;
+        else return false;
+      }
+    }
+
+    if (!pairHasKey) return false;
+
+    if (objectKeys.indexOf(pairKey) === -1) objectKeys.push(pairKey);
+    else return false;
+  }
+
+  return true;
+}
+
+function constructYamlOmap(data) {
+  return data !== null ? data : [];
+}
+
+var omap = new Type$a('tag:yaml.org,2002:omap', {
+  kind: 'sequence',
+  resolve: resolveYamlOmap,
+  construct: constructYamlOmap
 });
 
 var Type$9 = type;
+
+var _toString$1 = Object.prototype.toString;
+
+function resolveYamlPairs(data) {
+  if (data === null) return true;
+
+  var index, length, pair, keys, result,
+      object = data;
+
+  result = new Array(object.length);
+
+  for (index = 0, length = object.length; index < length; index += 1) {
+    pair = object[index];
+
+    if (_toString$1.call(pair) !== '[object Object]') return false;
+
+    keys = Object.keys(pair);
+
+    if (keys.length !== 1) return false;
+
+    result[index] = [ keys[0], pair[keys[0]] ];
+  }
+
+  return true;
+}
+
+function constructYamlPairs(data) {
+  if (data === null) return [];
+
+  var index, length, pair, keys, result,
+      object = data;
+
+  result = new Array(object.length);
+
+  for (index = 0, length = object.length; index < length; index += 1) {
+    pair = object[index];
+
+    keys = Object.keys(pair);
+
+    result[index] = [ keys[0], pair[keys[0]] ];
+  }
+
+  return result;
+}
+
+var pairs = new Type$9('tag:yaml.org,2002:pairs', {
+  kind: 'sequence',
+  resolve: resolveYamlPairs,
+  construct: constructYamlPairs
+});
+
+var Type$8 = type;
+
+var _hasOwnProperty$2 = Object.prototype.hasOwnProperty;
+
+function resolveYamlSet(data) {
+  if (data === null) return true;
+
+  var key, object = data;
+
+  for (key in object) {
+    if (_hasOwnProperty$2.call(object, key)) {
+      if (object[key] !== null) return false;
+    }
+  }
+
+  return true;
+}
+
+function constructYamlSet(data) {
+  return data !== null ? data : {};
+}
+
+var set = new Type$8('tag:yaml.org,2002:set', {
+  kind: 'mapping',
+  resolve: resolveYamlSet,
+  construct: constructYamlSet
+});
+
+var Type$7 = type;
 
 function resolveYamlNull(data) {
   if (data === null) return true;
@@ -7212,7 +7387,7 @@ function isNull(object) {
   return object === null;
 }
 
-var _null = new Type$9('tag:yaml.org,2002:null', {
+var _null = new Type$7('tag:yaml.org,2002:null', {
   kind: 'scalar',
   resolve: resolveYamlNull,
   construct: constructYamlNull,
@@ -7227,7 +7402,7 @@ var _null = new Type$9('tag:yaml.org,2002:null', {
   defaultStyle: 'lowercase'
 });
 
-var Type$8 = type;
+var Type$6 = type;
 
 function resolveYamlBoolean(data) {
   if (data === null) return false;
@@ -7248,7 +7423,7 @@ function isBoolean(object) {
   return Object.prototype.toString.call(object) === '[object Boolean]';
 }
 
-var bool = new Type$8('tag:yaml.org,2002:bool', {
+var bool = new Type$6('tag:yaml.org,2002:bool', {
   kind: 'scalar',
   resolve: resolveYamlBoolean,
   construct: constructYamlBoolean,
@@ -7262,7 +7437,7 @@ var bool = new Type$8('tag:yaml.org,2002:bool', {
 });
 
 var common$3 = common$5;
-var Type$7   = type;
+var Type$5   = type;
 
 function isHexCode(c) {
   return ((0x30/* 0 */ <= c) && (c <= 0x39/* 9 */)) ||
@@ -7395,7 +7570,7 @@ function isInteger(object) {
          (object % 1 === 0 && !common$3.isNegativeZero(object));
 }
 
-var int = new Type$7('tag:yaml.org,2002:int', {
+var int = new Type$5('tag:yaml.org,2002:int', {
   kind: 'scalar',
   resolve: resolveYamlInteger,
   construct: constructYamlInteger,
@@ -7417,7 +7592,7 @@ var int = new Type$7('tag:yaml.org,2002:int', {
 });
 
 var common$2 = common$5;
-var Type$6   = type;
+var Type$4   = type;
 
 var YAML_FLOAT_PATTERN = new RegExp(
   // 2.5e4, 2.5 and integers
@@ -7503,13 +7678,165 @@ function isFloat(object) {
          (object % 1 !== 0 || common$2.isNegativeZero(object));
 }
 
-var float = new Type$6('tag:yaml.org,2002:float', {
+var float = new Type$4('tag:yaml.org,2002:float', {
   kind: 'scalar',
   resolve: resolveYamlFloat,
   construct: constructYamlFloat,
   predicate: isFloat,
   represent: representYamlFloat,
   defaultStyle: 'lowercase'
+});
+
+/*eslint-disable max-len*/
+
+var YAMLException$2 = exception;
+var Type$3          = type;
+
+
+function compileList(schema, name) {
+  var result = [];
+
+  schema[name].forEach(function (currentType) {
+    var newIndex = result.length;
+
+    result.forEach(function (previousType, previousIndex) {
+      if (previousType.tag === currentType.tag &&
+          previousType.kind === currentType.kind &&
+          previousType.multi === currentType.multi) {
+
+        newIndex = previousIndex;
+      }
+    });
+
+    result[newIndex] = currentType;
+  });
+
+  return result;
+}
+
+
+function compileMap(/* lists... */) {
+  var result = {
+        scalar: {},
+        sequence: {},
+        mapping: {},
+        fallback: {},
+        multi: {
+          scalar: [],
+          sequence: [],
+          mapping: [],
+          fallback: []
+        }
+      }, index, length;
+
+  function collectType(type) {
+    if (type.multi) {
+      result.multi[type.kind].push(type);
+      result.multi['fallback'].push(type);
+    } else {
+      result[type.kind][type.tag] = result['fallback'][type.tag] = type;
+    }
+  }
+
+  for (index = 0, length = arguments.length; index < length; index += 1) {
+    arguments[index].forEach(collectType);
+  }
+  return result;
+}
+
+
+function Schema$1(definition) {
+  return this.extend(definition);
+}
+
+
+Schema$1.prototype.extend = function extend(definition) {
+  var implicit = [];
+  var explicit = [];
+
+  if (definition instanceof Type$3) {
+    // Schema.extend(type)
+    explicit.push(definition);
+
+  } else if (Array.isArray(definition)) {
+    // Schema.extend([ type1, type2, ... ])
+    explicit = explicit.concat(definition);
+
+  } else if (definition && (Array.isArray(definition.implicit) || Array.isArray(definition.explicit))) {
+    // Schema.extend({ explicit: [ type1, type2, ... ], implicit: [ type1, type2, ... ] })
+    if (definition.implicit) implicit = implicit.concat(definition.implicit);
+    if (definition.explicit) explicit = explicit.concat(definition.explicit);
+
+  } else {
+    throw new YAMLException$2('Schema.extend argument should be a Type, [ Type ], ' +
+      'or a schema definition ({ implicit: [...], explicit: [...] })');
+  }
+
+  implicit.forEach(function (type) {
+    if (!(type instanceof Type$3)) {
+      throw new YAMLException$2('Specified list of YAML types (or a single Type object) contains a non-Type object.');
+    }
+
+    if (type.loadKind && type.loadKind !== 'scalar') {
+      throw new YAMLException$2('There is a non-scalar type in the implicit list of a schema. Implicit resolving of such types is not supported.');
+    }
+
+    if (type.multi) {
+      throw new YAMLException$2('There is a multi type in the implicit list of a schema. Multi tags can only be listed as explicit.');
+    }
+  });
+
+  explicit.forEach(function (type) {
+    if (!(type instanceof Type$3)) {
+      throw new YAMLException$2('Specified list of YAML types (or a single Type object) contains a non-Type object.');
+    }
+  });
+
+  var result = Object.create(Schema$1.prototype);
+
+  result.implicit = (this.implicit || []).concat(implicit);
+  result.explicit = (this.explicit || []).concat(explicit);
+
+  result.compiledImplicit = compileList(result, 'implicit');
+  result.compiledExplicit = compileList(result, 'explicit');
+  result.compiledTypeMap  = compileMap(result.compiledImplicit, result.compiledExplicit);
+
+  return result;
+};
+
+
+var schema = Schema$1;
+
+var Type$2 = type;
+
+var str = new Type$2('tag:yaml.org,2002:str', {
+  kind: 'scalar',
+  construct: function (data) { return data !== null ? data : ''; }
+});
+
+var Type$1 = type;
+
+var seq = new Type$1('tag:yaml.org,2002:seq', {
+  kind: 'sequence',
+  construct: function (data) { return data !== null ? data : []; }
+});
+
+var Type = type;
+
+var map = new Type('tag:yaml.org,2002:map', {
+  kind: 'mapping',
+  construct: function (data) { return data !== null ? data : {}; }
+});
+
+var Schema = schema;
+
+
+var failsafe = new Schema({
+  explicit: [
+    str,
+    seq,
+    map
+  ]
 });
 
 var json = failsafe.extend({
@@ -7521,358 +7848,9 @@ var json = failsafe.extend({
   ]
 });
 
-(function (module) {
+var core = json;
 
-
-	module.exports = json;
-} (core));
-
-var Type$5 = type;
-
-var YAML_DATE_REGEXP = new RegExp(
-  '^([0-9][0-9][0-9][0-9])'          + // [1] year
-  '-([0-9][0-9])'                    + // [2] month
-  '-([0-9][0-9])$');                   // [3] day
-
-var YAML_TIMESTAMP_REGEXP = new RegExp(
-  '^([0-9][0-9][0-9][0-9])'          + // [1] year
-  '-([0-9][0-9]?)'                   + // [2] month
-  '-([0-9][0-9]?)'                   + // [3] day
-  '(?:[Tt]|[ \\t]+)'                 + // ...
-  '([0-9][0-9]?)'                    + // [4] hour
-  ':([0-9][0-9])'                    + // [5] minute
-  ':([0-9][0-9])'                    + // [6] second
-  '(?:\\.([0-9]*))?'                 + // [7] fraction
-  '(?:[ \\t]*(Z|([-+])([0-9][0-9]?)' + // [8] tz [9] tz_sign [10] tz_hour
-  '(?::([0-9][0-9]))?))?$');           // [11] tz_minute
-
-function resolveYamlTimestamp(data) {
-  if (data === null) return false;
-  if (YAML_DATE_REGEXP.exec(data) !== null) return true;
-  if (YAML_TIMESTAMP_REGEXP.exec(data) !== null) return true;
-  return false;
-}
-
-function constructYamlTimestamp(data) {
-  var match, year, month, day, hour, minute, second, fraction = 0,
-      delta = null, tz_hour, tz_minute, date;
-
-  match = YAML_DATE_REGEXP.exec(data);
-  if (match === null) match = YAML_TIMESTAMP_REGEXP.exec(data);
-
-  if (match === null) throw new Error('Date resolve error');
-
-  // match: [1] year [2] month [3] day
-
-  year = +(match[1]);
-  month = +(match[2]) - 1; // JS month starts with 0
-  day = +(match[3]);
-
-  if (!match[4]) { // no hour
-    return new Date(Date.UTC(year, month, day));
-  }
-
-  // match: [4] hour [5] minute [6] second [7] fraction
-
-  hour = +(match[4]);
-  minute = +(match[5]);
-  second = +(match[6]);
-
-  if (match[7]) {
-    fraction = match[7].slice(0, 3);
-    while (fraction.length < 3) { // milli-seconds
-      fraction += '0';
-    }
-    fraction = +fraction;
-  }
-
-  // match: [8] tz [9] tz_sign [10] tz_hour [11] tz_minute
-
-  if (match[9]) {
-    tz_hour = +(match[10]);
-    tz_minute = +(match[11] || 0);
-    delta = (tz_hour * 60 + tz_minute) * 60000; // delta in mili-seconds
-    if (match[9] === '-') delta = -delta;
-  }
-
-  date = new Date(Date.UTC(year, month, day, hour, minute, second, fraction));
-
-  if (delta) date.setTime(date.getTime() - delta);
-
-  return date;
-}
-
-function representYamlTimestamp(object /*, style*/) {
-  return object.toISOString();
-}
-
-var timestamp = new Type$5('tag:yaml.org,2002:timestamp', {
-  kind: 'scalar',
-  resolve: resolveYamlTimestamp,
-  construct: constructYamlTimestamp,
-  instanceOf: Date,
-  represent: representYamlTimestamp
-});
-
-var Type$4 = type;
-
-function resolveYamlMerge(data) {
-  return data === '<<' || data === null;
-}
-
-var merge = new Type$4('tag:yaml.org,2002:merge', {
-  kind: 'scalar',
-  resolve: resolveYamlMerge
-});
-
-/*eslint-disable no-bitwise*/
-
-
-var Type$3 = type;
-
-
-// [ 64, 65, 66 ] -> [ padding, CR, LF ]
-var BASE64_MAP = 'ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789+/=\n\r';
-
-
-function resolveYamlBinary(data) {
-  if (data === null) return false;
-
-  var code, idx, bitlen = 0, max = data.length, map = BASE64_MAP;
-
-  // Convert one by one.
-  for (idx = 0; idx < max; idx++) {
-    code = map.indexOf(data.charAt(idx));
-
-    // Skip CR/LF
-    if (code > 64) continue;
-
-    // Fail on illegal characters
-    if (code < 0) return false;
-
-    bitlen += 6;
-  }
-
-  // If there are any bits left, source was corrupted
-  return (bitlen % 8) === 0;
-}
-
-function constructYamlBinary(data) {
-  var idx, tailbits,
-      input = data.replace(/[\r\n=]/g, ''), // remove CR/LF & padding to simplify scan
-      max = input.length,
-      map = BASE64_MAP,
-      bits = 0,
-      result = [];
-
-  // Collect by 6*4 bits (3 bytes)
-
-  for (idx = 0; idx < max; idx++) {
-    if ((idx % 4 === 0) && idx) {
-      result.push((bits >> 16) & 0xFF);
-      result.push((bits >> 8) & 0xFF);
-      result.push(bits & 0xFF);
-    }
-
-    bits = (bits << 6) | map.indexOf(input.charAt(idx));
-  }
-
-  // Dump tail
-
-  tailbits = (max % 4) * 6;
-
-  if (tailbits === 0) {
-    result.push((bits >> 16) & 0xFF);
-    result.push((bits >> 8) & 0xFF);
-    result.push(bits & 0xFF);
-  } else if (tailbits === 18) {
-    result.push((bits >> 10) & 0xFF);
-    result.push((bits >> 2) & 0xFF);
-  } else if (tailbits === 12) {
-    result.push((bits >> 4) & 0xFF);
-  }
-
-  return new Uint8Array(result);
-}
-
-function representYamlBinary(object /*, style*/) {
-  var result = '', bits = 0, idx, tail,
-      max = object.length,
-      map = BASE64_MAP;
-
-  // Convert every three bytes to 4 ASCII characters.
-
-  for (idx = 0; idx < max; idx++) {
-    if ((idx % 3 === 0) && idx) {
-      result += map[(bits >> 18) & 0x3F];
-      result += map[(bits >> 12) & 0x3F];
-      result += map[(bits >> 6) & 0x3F];
-      result += map[bits & 0x3F];
-    }
-
-    bits = (bits << 8) + object[idx];
-  }
-
-  // Dump tail
-
-  tail = max % 3;
-
-  if (tail === 0) {
-    result += map[(bits >> 18) & 0x3F];
-    result += map[(bits >> 12) & 0x3F];
-    result += map[(bits >> 6) & 0x3F];
-    result += map[bits & 0x3F];
-  } else if (tail === 2) {
-    result += map[(bits >> 10) & 0x3F];
-    result += map[(bits >> 4) & 0x3F];
-    result += map[(bits << 2) & 0x3F];
-    result += map[64];
-  } else if (tail === 1) {
-    result += map[(bits >> 2) & 0x3F];
-    result += map[(bits << 4) & 0x3F];
-    result += map[64];
-    result += map[64];
-  }
-
-  return result;
-}
-
-function isBinary(obj) {
-  return Object.prototype.toString.call(obj) ===  '[object Uint8Array]';
-}
-
-var binary = new Type$3('tag:yaml.org,2002:binary', {
-  kind: 'scalar',
-  resolve: resolveYamlBinary,
-  construct: constructYamlBinary,
-  predicate: isBinary,
-  represent: representYamlBinary
-});
-
-var Type$2 = type;
-
-var _hasOwnProperty$3 = Object.prototype.hasOwnProperty;
-var _toString$2       = Object.prototype.toString;
-
-function resolveYamlOmap(data) {
-  if (data === null) return true;
-
-  var objectKeys = [], index, length, pair, pairKey, pairHasKey,
-      object = data;
-
-  for (index = 0, length = object.length; index < length; index += 1) {
-    pair = object[index];
-    pairHasKey = false;
-
-    if (_toString$2.call(pair) !== '[object Object]') return false;
-
-    for (pairKey in pair) {
-      if (_hasOwnProperty$3.call(pair, pairKey)) {
-        if (!pairHasKey) pairHasKey = true;
-        else return false;
-      }
-    }
-
-    if (!pairHasKey) return false;
-
-    if (objectKeys.indexOf(pairKey) === -1) objectKeys.push(pairKey);
-    else return false;
-  }
-
-  return true;
-}
-
-function constructYamlOmap(data) {
-  return data !== null ? data : [];
-}
-
-var omap = new Type$2('tag:yaml.org,2002:omap', {
-  kind: 'sequence',
-  resolve: resolveYamlOmap,
-  construct: constructYamlOmap
-});
-
-var Type$1 = type;
-
-var _toString$1 = Object.prototype.toString;
-
-function resolveYamlPairs(data) {
-  if (data === null) return true;
-
-  var index, length, pair, keys, result,
-      object = data;
-
-  result = new Array(object.length);
-
-  for (index = 0, length = object.length; index < length; index += 1) {
-    pair = object[index];
-
-    if (_toString$1.call(pair) !== '[object Object]') return false;
-
-    keys = Object.keys(pair);
-
-    if (keys.length !== 1) return false;
-
-    result[index] = [ keys[0], pair[keys[0]] ];
-  }
-
-  return true;
-}
-
-function constructYamlPairs(data) {
-  if (data === null) return [];
-
-  var index, length, pair, keys, result,
-      object = data;
-
-  result = new Array(object.length);
-
-  for (index = 0, length = object.length; index < length; index += 1) {
-    pair = object[index];
-
-    keys = Object.keys(pair);
-
-    result[index] = [ keys[0], pair[keys[0]] ];
-  }
-
-  return result;
-}
-
-var pairs = new Type$1('tag:yaml.org,2002:pairs', {
-  kind: 'sequence',
-  resolve: resolveYamlPairs,
-  construct: constructYamlPairs
-});
-
-var Type = type;
-
-var _hasOwnProperty$2 = Object.prototype.hasOwnProperty;
-
-function resolveYamlSet(data) {
-  if (data === null) return true;
-
-  var key, object = data;
-
-  for (key in object) {
-    if (_hasOwnProperty$2.call(object, key)) {
-      if (object[key] !== null) return false;
-    }
-  }
-
-  return true;
-}
-
-function constructYamlSet(data) {
-  return data !== null ? data : {};
-}
-
-var set = new Type('tag:yaml.org,2002:set', {
-  kind: 'mapping',
-  resolve: resolveYamlSet,
-  construct: constructYamlSet
-});
-
-var _default = coreExports.extend({
+var _default = core.extend({
   implicit: [
     timestamp,
     merge
@@ -10593,7 +10571,7 @@ jsYaml.Type                = type;
 jsYaml.Schema              = schema;
 jsYaml.FAILSAFE_SCHEMA     = failsafe;
 jsYaml.JSON_SCHEMA         = json;
-jsYaml.CORE_SCHEMA         = coreExports;
+jsYaml.CORE_SCHEMA         = core;
 jsYaml.DEFAULT_SCHEMA      = _default;
 jsYaml.load                = loader.load;
 jsYaml.loadAll             = loader.loadAll;
@@ -10653,15 +10631,11 @@ function requireMain$1 () {
 	    }
 	}
 	main$1.Lazy = Lazy;
-
+	
 	return main$1;
 }
 
-var reExports = {};
-var re = {
-  get exports(){ return reExports; },
-  set exports(v){ reExports = v; },
-};
+var re = {exports: {}};
 
 var constants;
 var hasRequiredConstants;
@@ -10728,7 +10702,7 @@ function requireDebug () {
 var hasRequiredRe;
 
 function requireRe () {
-	if (hasRequiredRe) return reExports;
+	if (hasRequiredRe) return re.exports;
 	hasRequiredRe = 1;
 	(function (module, exports) {
 		const {
@@ -10887,12 +10861,17 @@ function requireRe () {
 
 		// Coercion.
 		// Extract anything that could conceivably be a part of a valid semver
-		createToken('COERCE', `${'(^|[^\\d])' +
+		createToken('COERCEPLAIN', `${'(^|[^\\d])' +
 		              '(\\d{1,'}${MAX_SAFE_COMPONENT_LENGTH}})` +
 		              `(?:\\.(\\d{1,${MAX_SAFE_COMPONENT_LENGTH}}))?` +
-		              `(?:\\.(\\d{1,${MAX_SAFE_COMPONENT_LENGTH}}))?` +
+		              `(?:\\.(\\d{1,${MAX_SAFE_COMPONENT_LENGTH}}))?`);
+		createToken('COERCE', `${src[t.COERCEPLAIN]}(?:$|[^\\d])`);
+		createToken('COERCEFULL', src[t.COERCEPLAIN] +
+		              `(?:${src[t.PRERELEASE]})?` +
+		              `(?:${src[t.BUILD]})?` +
 		              `(?:$|[^\\d])`);
 		createToken('COERCERTL', src[t.COERCE], true);
+		createToken('COERCERTLFULL', src[t.COERCEFULL], true);
 
 		// Tilde ranges.
 		// Meaning is "reasonably at or greater than"
@@ -10942,9 +10921,9 @@ function requireRe () {
 		createToken('STAR', '(<|>)?=?\\s*\\*');
 		// >=0.0.0 is like a star
 		createToken('GTE0', '^\\s*>=\\s*0\\.0\\.0\\s*$');
-		createToken('GTE0PRE', '^\\s*>=\\s*0\\.0\\.0-0\\s*$');
-} (re, reExports));
-	return reExports;
+		createToken('GTE0PRE', '^\\s*>=\\s*0\\.0\\.0-0\\s*$'); 
+	} (re, re.exports));
+	return re.exports;
 }
 
 var parseOptions_1;
@@ -11760,35 +11739,43 @@ function requireCoerce () {
 
 	  let match = null;
 	  if (!options.rtl) {
-	    match = version.match(re[t.COERCE]);
+	    match = version.match(options.includePrerelease ? re[t.COERCEFULL] : re[t.COERCE]);
 	  } else {
 	    // Find the right-most coercible string that does not share
 	    // a terminus with a more left-ward coercible string.
 	    // Eg, '1.2.3.4' wants to coerce '2.3.4', not '3.4' or '4'
+	    // With includePrerelease option set, '1.2.3.4-rc' wants to coerce '2.3.4-rc', not '2.3.4'
 	    //
 	    // Walk through the string checking with a /g regexp
 	    // Manually set the index so as to pick up overlapping matches.
 	    // Stop when we get a match that ends at the string end, since no
 	    // coercible string can be more right-ward without the same terminus.
+	    const coerceRtlRegex = options.includePrerelease ? re[t.COERCERTLFULL] : re[t.COERCERTL];
 	    let next;
-	    while ((next = re[t.COERCERTL].exec(version)) &&
+	    while ((next = coerceRtlRegex.exec(version)) &&
 	        (!match || match.index + match[0].length !== version.length)
 	    ) {
 	      if (!match ||
 	            next.index + next[0].length !== match.index + match[0].length) {
 	        match = next;
 	      }
-	      re[t.COERCERTL].lastIndex = next.index + next[1].length + next[2].length;
+	      coerceRtlRegex.lastIndex = next.index + next[1].length + next[2].length;
 	    }
 	    // leave it in a clean state
-	    re[t.COERCERTL].lastIndex = -1;
+	    coerceRtlRegex.lastIndex = -1;
 	  }
 
 	  if (match === null) {
 	    return null
 	  }
 
-	  return parse(`${match[2]}.${match[3] || '0'}.${match[4] || '0'}`, options)
+	  const major = match[2];
+	  const minor = match[3] || '0';
+	  const patch = match[4] || '0';
+	  const prerelease = options.includePrerelease && match[5] ? `-${match[5]}` : '';
+	  const build = options.includePrerelease && match[6] ? `+${match[6]}` : '';
+
+	  return parse(`${major}.${minor}.${patch}${prerelease}${build}`, options)
 	};
 	coerce_1 = coerce;
 	return coerce_1;
@@ -14020,11 +14007,7 @@ function requireSemver () {
 
 var DownloadedUpdateHelper$1 = {};
 
-var lodash_isequalExports = {};
-var lodash_isequal = {
-  get exports(){ return lodash_isequalExports; },
-  set exports(v){ lodash_isequalExports = v; },
-};
+var lodash_isequal = {exports: {}};
 
 /**
  * Lodash (Custom Build) <https://lodash.com/>
@@ -14034,6 +14017,7 @@ var lodash_isequal = {
  * Based on Underscore.js 1.8.3 <http://underscorejs.org/LICENSE>
  * Copyright Jeremy Ashkenas, DocumentCloud and Investigative Reporters & Editors
  */
+lodash_isequal.exports;
 
 (function (module, exports) {
 	/** Used as the size to enable large array optimizations. */
@@ -15874,8 +15858,10 @@ var lodash_isequal = {
 	  return false;
 	}
 
-	module.exports = isEqual;
-} (lodash_isequal, lodash_isequalExports));
+	module.exports = isEqual; 
+} (lodash_isequal, lodash_isequal.exports));
+
+var lodash_isequalExports = lodash_isequal.exports;
 
 Object.defineProperty(DownloadedUpdateHelper$1, "__esModule", { value: true });
 DownloadedUpdateHelper$1.createTempUpdateFile = DownloadedUpdateHelper$1.DownloadedUpdateHelper = void 0;
@@ -16192,7 +16178,7 @@ var electronHttpExecutor = {};
 	    }
 	}
 	exports.ElectronHttpExecutor = ElectronHttpExecutor;
-
+	
 } (electronHttpExecutor));
 
 var GenericProvider$1 = {};
@@ -17609,7 +17595,7 @@ function requireAppUpdater () {
 	    }
 	}
 	AppUpdater.NoOpLogger = NoOpLogger;
-
+	
 	return AppUpdater;
 }
 
@@ -17762,7 +17748,7 @@ function requireBaseUpdater () {
 	    }
 	};
 	BaseUpdater.BaseUpdater = BaseUpdater$1;
-
+	
 	return BaseUpdater;
 }
 
@@ -18702,7 +18688,7 @@ function requireAppImageUpdater () {
 	    }
 	};
 	AppImageUpdater.AppImageUpdater = AppImageUpdater$1;
-
+	
 	return AppImageUpdater;
 }
 
@@ -18751,7 +18737,7 @@ function requireDebUpdater () {
 	    }
 	};
 	DebUpdater.DebUpdater = DebUpdater$1;
-
+	
 	return DebUpdater;
 }
 
@@ -18826,7 +18812,7 @@ function requireRpmUpdater () {
 	    }
 	};
 	RpmUpdater.RpmUpdater = RpmUpdater$1;
-
+	
 	return RpmUpdater;
 }
 
@@ -19048,7 +19034,7 @@ function requireMacUpdater () {
 	    }
 	};
 	MacUpdater.MacUpdater = MacUpdater$1;
-
+	
 	return MacUpdater;
 }
 
@@ -19410,7 +19396,7 @@ function requireNsisUpdater () {
 	    }
 	};
 	NsisUpdater.NsisUpdater = NsisUpdater$1;
-
+	
 	return NsisUpdater;
 }
 
@@ -19512,8 +19498,8 @@ function requireMain () {
 		        emitter.on(event, handler);
 		    }
 		}
-
-} (main$2));
+		
+	} (main$2));
 	return main$2;
 }
 
