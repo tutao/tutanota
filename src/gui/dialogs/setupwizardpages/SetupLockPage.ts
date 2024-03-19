@@ -18,7 +18,7 @@ export class SetupLockPage implements Component<SetupLockPageAttrs> {
 				class: "mt",
 				error: attrs.error,
 				supportedModes: attrs.supportedModes,
-				previousSelection: DEFAULT_CREDENTIAL_ENCRYPTION_MODE,
+				previousSelection: attrs.currentMode,
 				onConfirm: null,
 				onModeSelected: (mode) => (attrs.currentMode = mode),
 			}),
