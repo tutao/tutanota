@@ -464,10 +464,9 @@ export const enum InputFieldType {
 export enum SecondFactorType {
 	u2f = "0",
 	totp = "1",
-	webauthn = "2",
+	webauthn = "2", // actually refers to u2f in client
 }
 
-export const SecondFactorTypeNames = ["U2F", "TOTP"]
 export const MAX_ATTACHMENT_SIZE = 1024 * 1024 * 25
 export const MAX_LOGO_SIZE = 1024 * 100
 export const MAX_BASE64_IMAGE_SIZE = MAX_LOGO_SIZE
