@@ -182,7 +182,7 @@ export class NativeContactsSyncManager {
 	}
 
 	async disableSync() {
-		this.deviceConfig.setUserSyncContactsWithPhonePreference(this.loginController.getUserController().userId, true)
+		this.deviceConfig.setUserSyncContactsWithPhonePreference(this.loginController.getUserController().userId, false)
 		const loginUsername = this.loginController.getUserController().loginUsername
 		await this.mobilContactsFacade
 			.deleteContacts(loginUsername, null)
