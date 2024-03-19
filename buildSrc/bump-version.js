@@ -136,8 +136,6 @@ async function bumpWorkspaces(version) {
 	const workspaces = await getWorkspaces()
 	for (const workspace of workspaces) {
 		await bumpWorkspaceVersion(version, workspace)
-		// npm list finds invalid dependencies if we don't do this.
-		await fs.promises.rm(path.join(workspace.directory, "node_modules"), { recursive: true })
 	}
 
 	for (const workspace of workspaces) {
@@ -152,7 +150,8 @@ async function bumpWorkspaces(version) {
  * @return {Promise<void>}
  */
 async function bumpWorkspaceVersion(version, workspace) {
-	await $`npm version --no-git-tag-version --workspace=${workspace.name} ${version}`
+	// set --workspaces-update to false to not run install (it's slow, doesn't work sometimes and we don't need it)
+	await $`npm version --workspaces-update false --no-git-tag-version --workspace=${workspace.name} ${version}`
 }
 
 /**
