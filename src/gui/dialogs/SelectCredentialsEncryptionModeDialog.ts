@@ -62,8 +62,7 @@ class CredentialEncryptionMethodDialog {
 						  })
 						: null,
 					m(SelectCredentialsEncryptionModeView, {
-						isWithHelpText: true,
-						class: "scroll pt plr-l mb-xxl height-100p",
+						class: "scroll pt plr-l height-100p",
 						error: this._error,
 						onConfirm: (mode) => this._onModeSelected(mode),
 						supportedModes: this._supportedModes,
@@ -121,7 +120,6 @@ class CredentialEncryptionMethodDialog {
 
 type SelectCredentialEncryptionModeDialogAttrs = {
 	class?: string
-	isWithHelpText: boolean
 	previousSelection: CredentialEncryptionMode
 	onConfirm: ((encryptionMode: CredentialEncryptionMode) => unknown) | null
 	supportedModes: ReadonlyArray<CredentialEncryptionMode>
@@ -168,25 +166,16 @@ export class SelectCredentialsEncryptionModeView implements Component<SelectCred
 	}
 
 	private getSupportedOptions(attrs: SelectCredentialEncryptionModeDialogAttrs): Array<RadioSelectorOption<CredentialEncryptionMode>> {
-		const generateOption = (
-			name: TranslationKey,
-			value: CredentialEncryptionMode,
-			helpText: TranslationKey,
-		): RadioSelectorOption<CredentialEncryptionMode> => ({
+		const generateOption = (name: TranslationKey, value: CredentialEncryptionMode): RadioSelectorOption<CredentialEncryptionMode> => ({
 			name,
 			value,
-			helpText: attrs.isWithHelpText ? helpText : undefined,
 		})
 
 		const options = [
-			generateOption("credentialsEncryptionModeDeviceLock_label", CredentialEncryptionMode.DEVICE_LOCK, "credentialsEncryptionModeDeviceLockHelp_msg"),
-			generateOption(
-				"credentialsEncryptionModeDeviceCredentials_label",
-				CredentialEncryptionMode.SYSTEM_PASSWORD,
-				"credentialsEncryptionModeDeviceCredentialsHelp_msg",
-			),
-			generateOption("credentialsEncryptionModeBiometrics_label", CredentialEncryptionMode.BIOMETRICS, "credentialsEncryptionModeBiometricsHelp_msg"),
-			generateOption("credentialsEncryptionModeAppPassword_label", CredentialEncryptionMode.APP_PASSWORD, "credentialsEncryptionModeAppPasswordHelp_msg"),
+			generateOption("credentialsEncryptionModeDeviceLock_label", CredentialEncryptionMode.DEVICE_LOCK),
+			generateOption("credentialsEncryptionModeDeviceCredentials_label", CredentialEncryptionMode.SYSTEM_PASSWORD),
+			generateOption("credentialsEncryptionModeBiometrics_label", CredentialEncryptionMode.BIOMETRICS),
+			generateOption("credentialsEncryptionModeAppPassword_label", CredentialEncryptionMode.APP_PASSWORD),
 		] as const
 		return options.filter((option) => attrs.supportedModes.includes(option.value))
 	}

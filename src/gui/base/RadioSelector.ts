@@ -4,9 +4,8 @@ import m, { Children, Component, Vnode } from "mithril"
 import { theme } from "../theme"
 
 export type RadioSelectorOption<T> = {
-	name: TranslationText
-	value: T
-	helpText?: TranslationText
+	readonly name: TranslationText
+	readonly value: T
 }
 export type RadioSelectorAttrs<T> = {
 	// The unique name of the radio button group. The browser uses it to group the radio buttons together.
@@ -38,7 +37,6 @@ export class RadioSelector<T> implements Component<RadioSelectorAttrs<T>> {
 
 		// IDs used to link the label and description for accessibility
 		const optionId = name + valueString
-		const descriptionId = option.helpText != null ? optionId + "Description" : null
 
 		const attrClasses = optionClass != null ? " " + optionClass : ""
 
@@ -47,7 +45,7 @@ export class RadioSelector<T> implements Component<RadioSelectorAttrs<T>> {
 			".state-bg.border.border-radius.flex.items-center.mb.pl-l.pr",
 			{
 				// Make the option the same size as a button if a description is not given
-				class: option.helpText != null ? "pt pb" : "button-min-width button-min-height" + attrClasses,
+				class: "button-min-width button-min-height" + attrClasses,
 				style: {
 					borderColor: isSelected ? theme.content_accent : theme.content_border,
 					borderWidth: "2px",
@@ -67,10 +65,8 @@ export class RadioSelector<T> implements Component<RadioSelectorAttrs<T>> {
 					id: optionId,
 					// Handle changes in value from the attributes
 					checked: isSelected ? true : null,
-					"aria-describedby": descriptionId,
 				}),
 				m("label.b.left.pt-xs.pb-xs", { for: optionId }, lang.getMaybeLazy(option.name)),
-				option.helpText != null ? m("p.small.fill-flex.left", { id: descriptionId }, lang.getMaybeLazy(option.helpText)) : null,
 			],
 		)
 	}
