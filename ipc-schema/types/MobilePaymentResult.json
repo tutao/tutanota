@@ -1,0 +1,9 @@
+{
+	"name": "MobilePaymentResult",
+	"type": "struct",
+	"fields": {
+		"result": "MobilePaymentResultType",
+		"transactionID": "string?",
+		"transactionHash": "string?"
+	}
+}

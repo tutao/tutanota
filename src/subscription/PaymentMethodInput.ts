@@ -3,8 +3,8 @@ import type { TranslationKey } from "../misc/LanguageViewModel"
 import { lang } from "../misc/LanguageViewModel"
 import type { Country } from "../api/common/CountryList"
 import { CountryType } from "../api/common/CountryList"
-import type { PaymentData } from "../api/common/TutanotaConstants"
-import { PaymentMethodType, defaultPaymentMethod } from "../api/common/TutanotaConstants"
+import { PaymentData } from "../api/common/TutanotaConstants"
+import { defaultPaymentMethod, PaymentMethodType } from "../api/common/TutanotaConstants"
 import { PayPalLogo } from "../gui/base/icons/Icons"
 import { LazyLoaded, noOp, promiseMap } from "@tutao/tutanota-utils"
 import { showProgressDialog } from "../gui/dialogs/ProgressDialog"
@@ -112,7 +112,7 @@ export class PaymentMethodInput {
 			case PaymentMethodType.Sepa: // FIXME: where to put this? this was how this if/else thing worked before!
 				return m(SimplifiedCreditCardInput, { viewModel: this.ccViewModel as SimplifiedCreditCardViewModel })
 			case PaymentMethodType.AppStore:
-				return [] // FIXME: add app store payment button
+				throw new Error("should not get here") // this should have been bypassed
 		}
 	}
 

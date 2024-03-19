@@ -51,6 +51,70 @@
 		3D33044F2BBD7AD2007B5C5D /* PrivacyInfo.xcprivacy in Resources */ = {isa = PBXBuildFile; fileRef = 3D33044E2BBD7AD2007B5C5D /* PrivacyInfo.xcprivacy */; };
 		3D3304512BBD7AEE007B5C5D /* PrivacyInfo.xcprivacy in Resources */ = {isa = PBXBuildFile; fileRef = 3D3304502BBD7AEE007B5C5D /* PrivacyInfo.xcprivacy */; };
 		3D246D902BA883E400F5B3BE /* StoreKit.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 3D246D8F2BA883E400F5B3BE /* StoreKit.framework */; };
+		3D246DD02BA99A6000F5B3BE /* SqlCipherFacade.swift in Sources */ = {isa = PBXBuildFile; fileRef = 3D246D922BA99A5E00F5B3BE /* SqlCipherFacade.swift */; };
+		3D246DD12BA99A6000F5B3BE /* NativePushFacadeReceiveDispatcher.swift in Sources */ = {isa = PBXBuildFile; fileRef = 3D246D932BA99A5E00F5B3BE /* NativePushFacadeReceiveDispatcher.swift */; };
+		3D246DD22BA99A6000F5B3BE /* SqlCipherFacadeReceiveDispatcher.swift in Sources */ = {isa = PBXBuildFile; fileRef = 3D246D942BA99A5E00F5B3BE /* SqlCipherFacadeReceiveDispatcher.swift */; };
+		3D246DD32BA99A6000F5B3BE /* IntegrationInfo.swift in Sources */ = {isa = PBXBuildFile; fileRef = 3D246D952BA99A5E00F5B3BE /* IntegrationInfo.swift */; };
+		3D246DD42BA99A6000F5B3BE /* MobileContactsFacadeReceiveDispatcher.swift in Sources */ = {isa = PBXBuildFile; fileRef = 3D246D962BA99A5E00F5B3BE /* MobileContactsFacadeReceiveDispatcher.swift */; };
+		3D246DD52BA99A6000F5B3BE /* NativeKey.swift in Sources */ = {isa = PBXBuildFile; fileRef = 3D246D972BA99A5E00F5B3BE /* NativeKey.swift */; };
+		3D246DD62BA99A6000F5B3BE /* EncryptedFileInfo.swift in Sources */ = {isa = PBXBuildFile; fileRef = 3D246D982BA99A5E00F5B3BE /* EncryptedFileInfo.swift */; };
+		3D246DD72BA99A6000F5B3BE /* KyberPrivateKey.swift in Sources */ = {isa = PBXBuildFile; fileRef = 3D246D992BA99A5E00F5B3BE /* KyberPrivateKey.swift */; };
+		3D246DD82BA99A6000F5B3BE /* PermissionType.swift in Sources */ = {isa = PBXBuildFile; fileRef = 3D246D9A2BA99A5E00F5B3BE /* PermissionType.swift */; };
+		3D246DD92BA99A6000F5B3BE /* IpcClientRect.swift in Sources */ = {isa = PBXBuildFile; fileRef = 3D246D9B2BA99A5E00F5B3BE /* IpcClientRect.swift */; };
+		3D246DDA2BA99A6000F5B3BE /* MobileSystemFacade.swift in Sources */ = {isa = PBXBuildFile; fileRef = 3D246D9C2BA99A5E00F5B3BE /* MobileSystemFacade.swift */; };
+		3D246DDB2BA99A6000F5B3BE /* KyberEncapsulation.swift in Sources */ = {isa = PBXBuildFile; fileRef = 3D246D9D2BA99A5E00F5B3BE /* KyberEncapsulation.swift */; };
+		3D246DDC2BA99A6000F5B3BE /* FileFacade.swift in Sources */ = {isa = PBXBuildFile; fileRef = 3D246D9E2BA99A5E00F5B3BE /* FileFacade.swift */; };
+		3D246DDD2BA99A6000F5B3BE /* StructuredPhoneNumber.swift in Sources */ = {isa = PBXBuildFile; fileRef = 3D246D9F2BA99A5E00F5B3BE /* StructuredPhoneNumber.swift */; };
+		3D246DDE2BA99A6000F5B3BE /* WebAuthnFacade.swift in Sources */ = {isa = PBXBuildFile; fileRef = 3D246DA02BA99A5E00F5B3BE /* WebAuthnFacade.swift */; };
+		3D246DDF2BA99A6000F5B3BE /* CommonSystemFacade.swift in Sources */ = {isa = PBXBuildFile; fileRef = 3D246DA12BA99A5E00F5B3BE /* CommonSystemFacade.swift */; };
+		3D246DE02BA99A6000F5B3BE /* ContactSyncResult.swift in Sources */ = {isa = PBXBuildFile; fileRef = 3D246DA22BA99A5E00F5B3BE /* ContactSyncResult.swift */; };
+		3D246DE12BA99A6000F5B3BE /* StructuredContact.swift in Sources */ = {isa = PBXBuildFile; fileRef = 3D246DA32BA99A5E00F5B3BE /* StructuredContact.swift */; };
+		3D246DE22BA99A6000F5B3BE /* CommonNativeFacadeSendDispatcher.swift in Sources */ = {isa = PBXBuildFile; fileRef = 3D246DA42BA99A5E00F5B3BE /* CommonNativeFacadeSendDispatcher.swift */; };
+		3D246DE32BA99A6000F5B3BE /* NativePushFacade.swift in Sources */ = {isa = PBXBuildFile; fileRef = 3D246DA52BA99A5E00F5B3BE /* NativePushFacade.swift */; };
+		3D246DE42BA99A6000F5B3BE /* StructuredMessengerHandle.swift in Sources */ = {isa = PBXBuildFile; fileRef = 3D246DA62BA99A5E00F5B3BE /* StructuredMessengerHandle.swift */; };
+		3D246DE52BA99A6000F5B3BE /* MobileContactsFacade.swift in Sources */ = {isa = PBXBuildFile; fileRef = 3D246DA72BA99A5E00F5B3BE /* MobileContactsFacade.swift */; };
+		3D246DE62BA99A6000F5B3BE /* MobilePaymentsFacade.swift in Sources */ = {isa = PBXBuildFile; fileRef = 3D246DA82BA99A5E00F5B3BE /* MobilePaymentsFacade.swift */; };
+		3D246DE72BA99A6000F5B3BE /* RsaPrivateKey.swift in Sources */ = {isa = PBXBuildFile; fileRef = 3D246DA92BA99A5E00F5B3BE /* RsaPrivateKey.swift */; };
+		3D246DE82BA99A6000F5B3BE /* NativeCredentialsFacadeReceiveDispatcher.swift in Sources */ = {isa = PBXBuildFile; fileRef = 3D246DAA2BA99A5E00F5B3BE /* NativeCredentialsFacadeReceiveDispatcher.swift */; };
+		3D246DE92BA99A6000F5B3BE /* StructuredRelationship.swift in Sources */ = {isa = PBXBuildFile; fileRef = 3D246DAB2BA99A5E00F5B3BE /* StructuredRelationship.swift */; };
+		3D246DEA2BA99A6000F5B3BE /* UploadTaskResponse.swift in Sources */ = {isa = PBXBuildFile; fileRef = 3D246DAC2BA99A5E00F5B3BE /* UploadTaskResponse.swift */; };
+		3D246DEB2BA99A6000F5B3BE /* ContactBook.swift in Sources */ = {isa = PBXBuildFile; fileRef = 3D246DAD2BA99A5E00F5B3BE /* ContactBook.swift */; };
+		3D246DEC2BA99A6000F5B3BE /* StructuredMailAddress.swift in Sources */ = {isa = PBXBuildFile; fileRef = 3D246DAE2BA99A5E00F5B3BE /* StructuredMailAddress.swift */; };
+		3D246DED2BA99A6000F5B3BE /* MobileFacadeSendDispatcher.swift in Sources */ = {isa = PBXBuildFile; fileRef = 3D246DAF2BA99A5E00F5B3BE /* MobileFacadeSendDispatcher.swift */; };
+		3D246DEE2BA99A6000F5B3BE /* MobileFacade.swift in Sources */ = {isa = PBXBuildFile; fileRef = 3D246DB02BA99A5F00F5B3BE /* MobileFacade.swift */; };
+		3D246DEF2BA99A6000F5B3BE /* WebAuthnSignResult.swift in Sources */ = {isa = PBXBuildFile; fileRef = 3D246DB12BA99A5F00F5B3BE /* WebAuthnSignResult.swift */; };
+		3D246DF02BA99A6000F5B3BE /* CommonNativeFacade.swift in Sources */ = {isa = PBXBuildFile; fileRef = 3D246DB22BA99A5F00F5B3BE /* CommonNativeFacade.swift */; };
+		3D246DF12BA99A6000F5B3BE /* WebAuthnSignChallenge.swift in Sources */ = {isa = PBXBuildFile; fileRef = 3D246DB32BA99A5F00F5B3BE /* WebAuthnSignChallenge.swift */; };
+		3D246DF22BA99A6000F5B3BE /* ElectronResult.swift in Sources */ = {isa = PBXBuildFile; fileRef = 3D246DB42BA99A5F00F5B3BE /* ElectronResult.swift */; };
+		3D246DF32BA99A6000F5B3BE /* WebauthnKeyDescriptor.swift in Sources */ = {isa = PBXBuildFile; fileRef = 3D246DB52BA99A5F00F5B3BE /* WebauthnKeyDescriptor.swift */; };
+		3D246DF42BA99A6000F5B3BE /* WebAuthnRegistrationResult.swift in Sources */ = {isa = PBXBuildFile; fileRef = 3D246DB62BA99A5F00F5B3BE /* WebAuthnRegistrationResult.swift */; };
+		3D246DF52BA99A6000F5B3BE /* IosGlobalDispatcher.swift in Sources */ = {isa = PBXBuildFile; fileRef = 3D246DB72BA99A5F00F5B3BE /* IosGlobalDispatcher.swift */; };
+		3D246DF62BA99A6000F5B3BE /* NativeCredentialsFacade.swift in Sources */ = {isa = PBXBuildFile; fileRef = 3D246DB82BA99A5F00F5B3BE /* NativeCredentialsFacade.swift */; };
+		3D246DF72BA99A6000F5B3BE /* CommonSystemFacadeReceiveDispatcher.swift in Sources */ = {isa = PBXBuildFile; fileRef = 3D246DB92BA99A5F00F5B3BE /* CommonSystemFacadeReceiveDispatcher.swift */; };
+		3D246DF82BA99A6000F5B3BE /* MobileSystemFacadeReceiveDispatcher.swift in Sources */ = {isa = PBXBuildFile; fileRef = 3D246DBA2BA99A5F00F5B3BE /* MobileSystemFacadeReceiveDispatcher.swift */; };
+		3D246DF92BA99A6000F5B3BE /* ThemeFacadeReceiveDispatcher.swift in Sources */ = {isa = PBXBuildFile; fileRef = 3D246DBB2BA99A5F00F5B3BE /* ThemeFacadeReceiveDispatcher.swift */; };
+		3D246DFA2BA99A6000F5B3BE /* StructuredWebsite.swift in Sources */ = {isa = PBXBuildFile; fileRef = 3D246DBC2BA99A5F00F5B3BE /* StructuredWebsite.swift */; };
+		3D246DFB2BA99A6000F5B3BE /* ThemeFacade.swift in Sources */ = {isa = PBXBuildFile; fileRef = 3D246DBD2BA99A5F00F5B3BE /* ThemeFacade.swift */; };
+		3D246DFC2BA99A6000F5B3BE /* ContactSuggestion.swift in Sources */ = {isa = PBXBuildFile; fileRef = 3D246DBE2BA99A5F00F5B3BE /* ContactSuggestion.swift */; };
+		3D246DFD2BA99A6000F5B3BE /* NativeCryptoFacade.swift in Sources */ = {isa = PBXBuildFile; fileRef = 3D246DBF2BA99A5F00F5B3BE /* NativeCryptoFacade.swift */; };
+		3D246DFE2BA99A6000F5B3BE /* RsaKeyPair.swift in Sources */ = {isa = PBXBuildFile; fileRef = 3D246DC02BA99A5F00F5B3BE /* RsaKeyPair.swift */; };
+		3D246DFF2BA99A6000F5B3BE /* DownloadTaskResponse.swift in Sources */ = {isa = PBXBuildFile; fileRef = 3D246DC12BA99A5F00F5B3BE /* DownloadTaskResponse.swift */; };
+		3D246E002BA99A6000F5B3BE /* MobilePaymentsFacadeReceiveDispatcher.swift in Sources */ = {isa = PBXBuildFile; fileRef = 3D246DC22BA99A5F00F5B3BE /* MobilePaymentsFacadeReceiveDispatcher.swift */; };
+		3D246E012BA99A6000F5B3BE /* StructuredAddress.swift in Sources */ = {isa = PBXBuildFile; fileRef = 3D246DC32BA99A5F00F5B3BE /* StructuredAddress.swift */; };
+		3D246E022BA99A6000F5B3BE /* KyberKeyPair.swift in Sources */ = {isa = PBXBuildFile; fileRef = 3D246DC42BA99A5F00F5B3BE /* KyberKeyPair.swift */; };
+		3D246E032BA99A6000F5B3BE /* RsaPublicKey.swift in Sources */ = {isa = PBXBuildFile; fileRef = 3D246DC52BA99A5F00F5B3BE /* RsaPublicKey.swift */; };
+		3D246E042BA99A6000F5B3BE /* NativeInterface.swift in Sources */ = {isa = PBXBuildFile; fileRef = 3D246DC62BA99A5F00F5B3BE /* NativeInterface.swift */; };
+		3D246E052BA99A6000F5B3BE /* WebAuthnFacadeReceiveDispatcher.swift in Sources */ = {isa = PBXBuildFile; fileRef = 3D246DC72BA99A5F00F5B3BE /* WebAuthnFacadeReceiveDispatcher.swift */; };
+		3D246E062BA99A6000F5B3BE /* ErrorInfo.swift in Sources */ = {isa = PBXBuildFile; fileRef = 3D246DC82BA99A5F00F5B3BE /* ErrorInfo.swift */; };
+		3D246E072BA99A6000F5B3BE /* MobilePaymentResult.swift in Sources */ = {isa = PBXBuildFile; fileRef = 3D246DC92BA99A5F00F5B3BE /* MobilePaymentResult.swift */; };
+		3D246E082BA99A6000F5B3BE /* KyberPublicKey.swift in Sources */ = {isa = PBXBuildFile; fileRef = 3D246DCA2BA99A5F00F5B3BE /* KyberPublicKey.swift */; };
+		3D246E092BA99A6000F5B3BE /* NativeCryptoFacadeReceiveDispatcher.swift in Sources */ = {isa = PBXBuildFile; fileRef = 3D246DCB2BA99A5F00F5B3BE /* NativeCryptoFacadeReceiveDispatcher.swift */; };
+		3D246E0A2BA99A6000F5B3BE /* WebAuthnRegistrationChallenge.swift in Sources */ = {isa = PBXBuildFile; fileRef = 3D246DCC2BA99A5F00F5B3BE /* WebAuthnRegistrationChallenge.swift */; };
+		3D246E0B2BA99A6000F5B3BE /* NativeShortcut.swift in Sources */ = {isa = PBXBuildFile; fileRef = 3D246DCD2BA99A6000F5B3BE /* NativeShortcut.swift */; };
+		3D246E0C2BA99A6000F5B3BE /* StructuredCustomDate.swift in Sources */ = {isa = PBXBuildFile; fileRef = 3D246DCE2BA99A6000F5B3BE /* StructuredCustomDate.swift */; };
+		3D246E0D2BA99A6000F5B3BE /* FileFacadeReceiveDispatcher.swift in Sources */ = {isa = PBXBuildFile; fileRef = 3D246DCF2BA99A6000F5B3BE /* FileFacadeReceiveDispatcher.swift */; };
+		3D246E0F2BA99AB700F5B3BE /* IosMobilePaymentsFacade.swift in Sources */ = {isa = PBXBuildFile; fileRef = 3D246E0E2BA99AB700F5B3BE /* IosMobilePaymentsFacade.swift */; };
+		3D246E142BA9C02400F5B3BE /* MobilePaymentResultType.swift in Sources */ = {isa = PBXBuildFile; fileRef = 3D246E132BA9C02400F5B3BE /* MobilePaymentResultType.swift */; };
 		3D2DB91B2733F43B00BCEF4C /* IosNativeCredentialsFacade.swift in Sources */ = {isa = PBXBuildFile; fileRef = 3D2DB91A2733F43B00BCEF4C /* IosNativeCredentialsFacade.swift */; };
 		3D36BCC2274E4A6100428878 /* CryptoTokenKit.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 3D36BCC1274E4A6100428878 /* CryptoTokenKit.framework */; settings = {ATTRIBUTES = (Weak, ); }; };
 		3D378EE72536F51F0001F1F3 /* FileChooser.swift in Sources */ = {isa = PBXBuildFile; fileRef = 3D378EE62536F51F0001F1F3 /* FileChooser.swift */; };
@@ -76,6 +140,10 @@
 		3D4E3CA028EC5B43001FA9D1 /* Foundation.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 3D4E3C9F28EC5B43001FA9D1 /* Foundation.framework */; };
 		3D4E3CA228EC5C4F001FA9D1 /* IosSqlCipherFade.swift in Sources */ = {isa = PBXBuildFile; fileRef = 3D4E3CA128EC5C4F001FA9D1 /* IosSqlCipherFade.swift */; };
 		3D4F5EA52C11DD3900477585 /* Alamofire in Frameworks */ = {isa = PBXBuildFile; productRef = 3D4F5EA42C11DD3900477585 /* Alamofire */; };
+		3D4E3CA828EC63A6001FA9D1 /* sqlite3.c in Sources */ = {isa = PBXBuildFile; fileRef = 3D4E3C9C28EC5A3D001FA9D1 /* sqlite3.c */; settings = {COMPILER_FLAGS = "-Wno-everything"; }; };
+		3D4E3CAA28EC6787001FA9D1 /* sqlite3.h in Headers */ = {isa = PBXBuildFile; fileRef = 3D4E3C9B28EC5A3D001FA9D1 /* sqlite3.h */; };
+		3D4F1BFA26EBADE500E87BF5 /* TUTBigNum.m in Sources */ = {isa = PBXBuildFile; fileRef = 3D4F1BF926EBADE500E87BF5 /* TUTBigNum.m */; };
+		3D4F1BFB26EBADE500E87BF5 /* TUTBigNum.m in Sources */ = {isa = PBXBuildFile; fileRef = 3D4F1BF926EBADE500E87BF5 /* TUTBigNum.m */; };
 		3D51A08F2BE90A4F0036B966 /* CancelledError.swift in Sources */ = {isa = PBXBuildFile; fileRef = 3D7A107F29472A6000311B6B /* CancelledError.swift */; };
 		3D5C6FA12B7BC15D00342E8C /* PermissionError.swift in Sources */ = {isa = PBXBuildFile; fileRef = 3D5C6FA02B7BC15D00342E8C /* PermissionError.swift */; };
 		3D648B202AB98BEA00893C8D /* argon2.h in Headers */ = {isa = PBXBuildFile; fileRef = 3D648B0F2AB98BEA00893C8D /* argon2.h */; };
@@ -459,6 +527,70 @@
 		3D239301287EC96200DD7396 /* CustomSchemeHandlers.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CustomSchemeHandlers.swift; sourceTree = "<group>"; };
 		3D246D8F2BA883E400F5B3BE /* StoreKit.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = StoreKit.framework; path = System/Library/Frameworks/StoreKit.framework; sourceTree = SDKROOT; };
 		3D246D912BA885D300F5B3BE /* Plans.storekit */ = {isa = PBXFileReference; lastKnownFileType = text; path = Plans.storekit; sourceTree = "<group>"; };
+		3D246D922BA99A5E00F5B3BE /* SqlCipherFacade.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = SqlCipherFacade.swift; sourceTree = "<group>"; };
+		3D246D932BA99A5E00F5B3BE /* NativePushFacadeReceiveDispatcher.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = NativePushFacadeReceiveDispatcher.swift; sourceTree = "<group>"; };
+		3D246D942BA99A5E00F5B3BE /* SqlCipherFacadeReceiveDispatcher.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = SqlCipherFacadeReceiveDispatcher.swift; sourceTree = "<group>"; };
+		3D246D952BA99A5E00F5B3BE /* IntegrationInfo.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = IntegrationInfo.swift; sourceTree = "<group>"; };
+		3D246D962BA99A5E00F5B3BE /* MobileContactsFacadeReceiveDispatcher.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = MobileContactsFacadeReceiveDispatcher.swift; sourceTree = "<group>"; };
+		3D246D972BA99A5E00F5B3BE /* NativeKey.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = NativeKey.swift; sourceTree = "<group>"; };
+		3D246D982BA99A5E00F5B3BE /* EncryptedFileInfo.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = EncryptedFileInfo.swift; sourceTree = "<group>"; };
+		3D246D992BA99A5E00F5B3BE /* KyberPrivateKey.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = KyberPrivateKey.swift; sourceTree = "<group>"; };
+		3D246D9A2BA99A5E00F5B3BE /* PermissionType.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = PermissionType.swift; sourceTree = "<group>"; };
+		3D246D9B2BA99A5E00F5B3BE /* IpcClientRect.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = IpcClientRect.swift; sourceTree = "<group>"; };
+		3D246D9C2BA99A5E00F5B3BE /* MobileSystemFacade.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = MobileSystemFacade.swift; sourceTree = "<group>"; };
+		3D246D9D2BA99A5E00F5B3BE /* KyberEncapsulation.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = KyberEncapsulation.swift; sourceTree = "<group>"; };
+		3D246D9E2BA99A5E00F5B3BE /* FileFacade.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = FileFacade.swift; sourceTree = "<group>"; };
+		3D246D9F2BA99A5E00F5B3BE /* StructuredPhoneNumber.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = StructuredPhoneNumber.swift; sourceTree = "<group>"; };
+		3D246DA02BA99A5E00F5B3BE /* WebAuthnFacade.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = WebAuthnFacade.swift; sourceTree = "<group>"; };
+		3D246DA12BA99A5E00F5B3BE /* CommonSystemFacade.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = CommonSystemFacade.swift; sourceTree = "<group>"; };
+		3D246DA22BA99A5E00F5B3BE /* ContactSyncResult.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = ContactSyncResult.swift; sourceTree = "<group>"; };
+		3D246DA32BA99A5E00F5B3BE /* StructuredContact.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = StructuredContact.swift; sourceTree = "<group>"; };
+		3D246DA42BA99A5E00F5B3BE /* CommonNativeFacadeSendDispatcher.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = CommonNativeFacadeSendDispatcher.swift; sourceTree = "<group>"; };
+		3D246DA52BA99A5E00F5B3BE /* NativePushFacade.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = NativePushFacade.swift; sourceTree = "<group>"; };
+		3D246DA62BA99A5E00F5B3BE /* StructuredMessengerHandle.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = StructuredMessengerHandle.swift; sourceTree = "<group>"; };
+		3D246DA72BA99A5E00F5B3BE /* MobileContactsFacade.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = MobileContactsFacade.swift; sourceTree = "<group>"; };
+		3D246DA82BA99A5E00F5B3BE /* MobilePaymentsFacade.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = MobilePaymentsFacade.swift; sourceTree = "<group>"; };
+		3D246DA92BA99A5E00F5B3BE /* RsaPrivateKey.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = RsaPrivateKey.swift; sourceTree = "<group>"; };
+		3D246DAA2BA99A5E00F5B3BE /* NativeCredentialsFacadeReceiveDispatcher.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = NativeCredentialsFacadeReceiveDispatcher.swift; sourceTree = "<group>"; };
+		3D246DAB2BA99A5E00F5B3BE /* StructuredRelationship.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = StructuredRelationship.swift; sourceTree = "<group>"; };
+		3D246DAC2BA99A5E00F5B3BE /* UploadTaskResponse.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = UploadTaskResponse.swift; sourceTree = "<group>"; };
+		3D246DAD2BA99A5E00F5B3BE /* ContactBook.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = ContactBook.swift; sourceTree = "<group>"; };
+		3D246DAE2BA99A5E00F5B3BE /* StructuredMailAddress.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = StructuredMailAddress.swift; sourceTree = "<group>"; };
+		3D246DAF2BA99A5E00F5B3BE /* MobileFacadeSendDispatcher.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = MobileFacadeSendDispatcher.swift; sourceTree = "<group>"; };
+		3D246DB02BA99A5F00F5B3BE /* MobileFacade.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = MobileFacade.swift; sourceTree = "<group>"; };
+		3D246DB12BA99A5F00F5B3BE /* WebAuthnSignResult.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = WebAuthnSignResult.swift; sourceTree = "<group>"; };
+		3D246DB22BA99A5F00F5B3BE /* CommonNativeFacade.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = CommonNativeFacade.swift; sourceTree = "<group>"; };
+		3D246DB32BA99A5F00F5B3BE /* WebAuthnSignChallenge.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = WebAuthnSignChallenge.swift; sourceTree = "<group>"; };
+		3D246DB42BA99A5F00F5B3BE /* ElectronResult.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = ElectronResult.swift; sourceTree = "<group>"; };
+		3D246DB52BA99A5F00F5B3BE /* WebauthnKeyDescriptor.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = WebauthnKeyDescriptor.swift; sourceTree = "<group>"; };
+		3D246DB62BA99A5F00F5B3BE /* WebAuthnRegistrationResult.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = WebAuthnRegistrationResult.swift; sourceTree = "<group>"; };
+		3D246DB72BA99A5F00F5B3BE /* IosGlobalDispatcher.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = IosGlobalDispatcher.swift; sourceTree = "<group>"; };
+		3D246DB82BA99A5F00F5B3BE /* NativeCredentialsFacade.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = NativeCredentialsFacade.swift; sourceTree = "<group>"; };
+		3D246DB92BA99A5F00F5B3BE /* CommonSystemFacadeReceiveDispatcher.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = CommonSystemFacadeReceiveDispatcher.swift; sourceTree = "<group>"; };
+		3D246DBA2BA99A5F00F5B3BE /* MobileSystemFacadeReceiveDispatcher.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = MobileSystemFacadeReceiveDispatcher.swift; sourceTree = "<group>"; };
+		3D246DBB2BA99A5F00F5B3BE /* ThemeFacadeReceiveDispatcher.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = ThemeFacadeReceiveDispatcher.swift; sourceTree = "<group>"; };
+		3D246DBC2BA99A5F00F5B3BE /* StructuredWebsite.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = StructuredWebsite.swift; sourceTree = "<group>"; };
+		3D246DBD2BA99A5F00F5B3BE /* ThemeFacade.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = ThemeFacade.swift; sourceTree = "<group>"; };
+		3D246DBE2BA99A5F00F5B3BE /* ContactSuggestion.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = ContactSuggestion.swift; sourceTree = "<group>"; };
+		3D246DBF2BA99A5F00F5B3BE /* NativeCryptoFacade.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = NativeCryptoFacade.swift; sourceTree = "<group>"; };
+		3D246DC02BA99A5F00F5B3BE /* RsaKeyPair.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = RsaKeyPair.swift; sourceTree = "<group>"; };
+		3D246DC12BA99A5F00F5B3BE /* DownloadTaskResponse.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = DownloadTaskResponse.swift; sourceTree = "<group>"; };
+		3D246DC22BA99A5F00F5B3BE /* MobilePaymentsFacadeReceiveDispatcher.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = MobilePaymentsFacadeReceiveDispatcher.swift; sourceTree = "<group>"; };
+		3D246DC32BA99A5F00F5B3BE /* StructuredAddress.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = StructuredAddress.swift; sourceTree = "<group>"; };
+		3D246DC42BA99A5F00F5B3BE /* KyberKeyPair.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = KyberKeyPair.swift; sourceTree = "<group>"; };
+		3D246DC52BA99A5F00F5B3BE /* RsaPublicKey.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = RsaPublicKey.swift; sourceTree = "<group>"; };
+		3D246DC62BA99A5F00F5B3BE /* NativeInterface.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = NativeInterface.swift; sourceTree = "<group>"; };
+		3D246DC72BA99A5F00F5B3BE /* WebAuthnFacadeReceiveDispatcher.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = WebAuthnFacadeReceiveDispatcher.swift; sourceTree = "<group>"; };
+		3D246DC82BA99A5F00F5B3BE /* ErrorInfo.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = ErrorInfo.swift; sourceTree = "<group>"; };
+		3D246DC92BA99A5F00F5B3BE /* MobilePaymentResult.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = MobilePaymentResult.swift; sourceTree = "<group>"; };
+		3D246DCA2BA99A5F00F5B3BE /* KyberPublicKey.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = KyberPublicKey.swift; sourceTree = "<group>"; };
+		3D246DCB2BA99A5F00F5B3BE /* NativeCryptoFacadeReceiveDispatcher.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = NativeCryptoFacadeReceiveDispatcher.swift; sourceTree = "<group>"; };
+		3D246DCC2BA99A5F00F5B3BE /* WebAuthnRegistrationChallenge.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = WebAuthnRegistrationChallenge.swift; sourceTree = "<group>"; };
+		3D246DCD2BA99A6000F5B3BE /* NativeShortcut.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = NativeShortcut.swift; sourceTree = "<group>"; };
+		3D246DCE2BA99A6000F5B3BE /* StructuredCustomDate.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = StructuredCustomDate.swift; sourceTree = "<group>"; };
+		3D246DCF2BA99A6000F5B3BE /* FileFacadeReceiveDispatcher.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = FileFacadeReceiveDispatcher.swift; sourceTree = "<group>"; };
+		3D246E0E2BA99AB700F5B3BE /* IosMobilePaymentsFacade.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = IosMobilePaymentsFacade.swift; sourceTree = "<group>"; };
+		3D246E132BA9C02400F5B3BE /* MobilePaymentResultType.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MobilePaymentResultType.swift; sourceTree = "<group>"; };
 		3D2DB91A2733F43B00BCEF4C /* IosNativeCredentialsFacade.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = IosNativeCredentialsFacade.swift; sourceTree = "<group>"; };
 		3D2671D62BEA8A020022C12F /* TutanotaSharedTests.xctest */ = {isa = PBXFileReference; explicitFileType = wrapper.cfbundle; includeInIndex = 0; path = TutanotaSharedTests.xctest; sourceTree = BUILT_PRODUCTS_DIR; };
 		3D33044E2BBD7AD2007B5C5D /* PrivacyInfo.xcprivacy */ = {isa = PBXFileReference; lastKnownFileType = text.xml; path = PrivacyInfo.xcprivacy; sourceTree = "<group>"; };
@@ -485,6 +617,8 @@
 		3D4E3C9D28EC5B31001FA9D1 /* Security.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = Security.framework; path = System/Library/Frameworks/Security.framework; sourceTree = SDKROOT; };
 		3D4E3C9F28EC5B43001FA9D1 /* Foundation.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = Foundation.framework; path = System/Library/Frameworks/Foundation.framework; sourceTree = SDKROOT; };
 		3D4E3CA128EC5C4F001FA9D1 /* IosSqlCipherFade.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = IosSqlCipherFade.swift; sourceTree = "<group>"; };
+		3D4F1BF826EBADE500E87BF5 /* TUTBigNum.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = TUTBigNum.h; sourceTree = "<group>"; };
+		3D4F1BF926EBADE500E87BF5 /* TUTBigNum.m */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.objc; path = TUTBigNum.m; sourceTree = "<group>"; };
 		3D51A0902BE913AB0036B966 /* AppLockHandler.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AppLockHandler.swift; sourceTree = "<group>"; };
 		3D5C6FA02B7BC15D00342E8C /* PermissionError.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PermissionError.swift; sourceTree = "<group>"; };
 		3D63A0E4233D0C1400D05259 /* TUTLogTest.m */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.objc; path = TUTLogTest.m; sourceTree = "<group>"; };
@@ -961,6 +1095,15 @@
 			path = TutanotaSharedTests;
 			sourceTree = "<group>";
 		};
+		3D246E122BA9C00600F5B3BE /* Payment */ = {
+			isa = PBXGroup;
+			children = (
+				3D246E0E2BA99AB700F5B3BE /* IosMobilePaymentsFacade.swift */,
+				3D246E132BA9C02400F5B3BE /* MobilePaymentResultType.swift */,
+			);
+			path = Payment;
+			sourceTree = "<group>";
+		};
 		3D448A89292BB17B0030DB2F /* Sharing */ = {
 			isa = PBXGroup;
 			children = (
@@ -969,6 +1112,76 @@
 			);
 			path = Sharing;
 			sourceTree = "<group>";
+		};
+		3D4FACAE2B8F368300BEDF5A /* GeneratedIpc */ = {
+			isa = PBXGroup;
+			children = (
+				3D246DB22BA99A5F00F5B3BE /* CommonNativeFacade.swift */,
+				3D246DA42BA99A5E00F5B3BE /* CommonNativeFacadeSendDispatcher.swift */,
+				3D246DA12BA99A5E00F5B3BE /* CommonSystemFacade.swift */,
+				3D246DB92BA99A5F00F5B3BE /* CommonSystemFacadeReceiveDispatcher.swift */,
+				3D246DAD2BA99A5E00F5B3BE /* ContactBook.swift */,
+				3D246DBE2BA99A5F00F5B3BE /* ContactSuggestion.swift */,
+				3D246DA22BA99A5E00F5B3BE /* ContactSyncResult.swift */,
+				3D246DC12BA99A5F00F5B3BE /* DownloadTaskResponse.swift */,
+				3D246DB42BA99A5F00F5B3BE /* ElectronResult.swift */,
+				3D246D982BA99A5E00F5B3BE /* EncryptedFileInfo.swift */,
+				3D246DC82BA99A5F00F5B3BE /* ErrorInfo.swift */,
+				3D246D9E2BA99A5E00F5B3BE /* FileFacade.swift */,
+				3D246DCF2BA99A6000F5B3BE /* FileFacadeReceiveDispatcher.swift */,
+				3D246D952BA99A5E00F5B3BE /* IntegrationInfo.swift */,
+				3D246DB72BA99A5F00F5B3BE /* IosGlobalDispatcher.swift */,
+				3D246D9B2BA99A5E00F5B3BE /* IpcClientRect.swift */,
+				3D246D9D2BA99A5E00F5B3BE /* KyberEncapsulation.swift */,
+				3D246DC42BA99A5F00F5B3BE /* KyberKeyPair.swift */,
+				3D246D992BA99A5E00F5B3BE /* KyberPrivateKey.swift */,
+				3D246DCA2BA99A5F00F5B3BE /* KyberPublicKey.swift */,
+				3D246DA72BA99A5E00F5B3BE /* MobileContactsFacade.swift */,
+				3D246D962BA99A5E00F5B3BE /* MobileContactsFacadeReceiveDispatcher.swift */,
+				3D246DB02BA99A5F00F5B3BE /* MobileFacade.swift */,
+				3D246DAF2BA99A5E00F5B3BE /* MobileFacadeSendDispatcher.swift */,
+				3D246DC92BA99A5F00F5B3BE /* MobilePaymentResult.swift */,
+				3D246DA82BA99A5E00F5B3BE /* MobilePaymentsFacade.swift */,
+				3D246DC22BA99A5F00F5B3BE /* MobilePaymentsFacadeReceiveDispatcher.swift */,
+				3D246D9C2BA99A5E00F5B3BE /* MobileSystemFacade.swift */,
+				3D246DBA2BA99A5F00F5B3BE /* MobileSystemFacadeReceiveDispatcher.swift */,
+				3D246DB82BA99A5F00F5B3BE /* NativeCredentialsFacade.swift */,
+				3D246DAA2BA99A5E00F5B3BE /* NativeCredentialsFacadeReceiveDispatcher.swift */,
+				3D246DBF2BA99A5F00F5B3BE /* NativeCryptoFacade.swift */,
+				3D246DCB2BA99A5F00F5B3BE /* NativeCryptoFacadeReceiveDispatcher.swift */,
+				3D246DC62BA99A5F00F5B3BE /* NativeInterface.swift */,
+				3D246D972BA99A5E00F5B3BE /* NativeKey.swift */,
+				3D246DA52BA99A5E00F5B3BE /* NativePushFacade.swift */,
+				3D246D932BA99A5E00F5B3BE /* NativePushFacadeReceiveDispatcher.swift */,
+				3D246DCD2BA99A6000F5B3BE /* NativeShortcut.swift */,
+				3D246D9A2BA99A5E00F5B3BE /* PermissionType.swift */,
+				3D246DC02BA99A5F00F5B3BE /* RsaKeyPair.swift */,
+				3D246DA92BA99A5E00F5B3BE /* RsaPrivateKey.swift */,
+				3D246DC52BA99A5F00F5B3BE /* RsaPublicKey.swift */,
+				3D246D922BA99A5E00F5B3BE /* SqlCipherFacade.swift */,
+				3D246D942BA99A5E00F5B3BE /* SqlCipherFacadeReceiveDispatcher.swift */,
+				3D246DC32BA99A5F00F5B3BE /* StructuredAddress.swift */,
+				3D246DA32BA99A5E00F5B3BE /* StructuredContact.swift */,
+				3D246DCE2BA99A6000F5B3BE /* StructuredCustomDate.swift */,
+				3D246DAE2BA99A5E00F5B3BE /* StructuredMailAddress.swift */,
+				3D246DA62BA99A5E00F5B3BE /* StructuredMessengerHandle.swift */,
+				3D246D9F2BA99A5E00F5B3BE /* StructuredPhoneNumber.swift */,
+				3D246DAB2BA99A5E00F5B3BE /* StructuredRelationship.swift */,
+				3D246DBC2BA99A5F00F5B3BE /* StructuredWebsite.swift */,
+				3D246DBD2BA99A5F00F5B3BE /* ThemeFacade.swift */,
+				3D246DBB2BA99A5F00F5B3BE /* ThemeFacadeReceiveDispatcher.swift */,
+				3D246DAC2BA99A5E00F5B3BE /* UploadTaskResponse.swift */,
+				3D246DA02BA99A5E00F5B3BE /* WebAuthnFacade.swift */,
+				3D246DC72BA99A5F00F5B3BE /* WebAuthnFacadeReceiveDispatcher.swift */,
+				3D246DB52BA99A5F00F5B3BE /* WebauthnKeyDescriptor.swift */,
+				3D246DCC2BA99A5F00F5B3BE /* WebAuthnRegistrationChallenge.swift */,
+				3D246DB62BA99A5F00F5B3BE /* WebAuthnRegistrationResult.swift */,
+				3D246DB32BA99A5F00F5B3BE /* WebAuthnSignChallenge.swift */,
+				3D246DB12BA99A5F00F5B3BE /* WebAuthnSignResult.swift */,
+			);
+			name = GeneratedIpc;
+			path = tutanota/Sources/GeneratedIpc;
+			sourceTree = SOURCE_ROOT;
 		};
 		3D57BEB322B796AC00205B1B /* Alarms */ = {
 			isa = PBXGroup;
@@ -1056,6 +1269,7 @@
 				3D7453682108A0CE00B16F2E /* Contacts */,
 				3D74536421089DA300B16F2E /* Utils */,
 				3D74536321089D8100B16F2E /* Files */,
+				3D246E122BA9C00600F5B3BE /* Payment */,
 				3D74536221089D5700B16F2E /* Crypto */,
 				3DC299F9267358AF00E1E79F /* ThemeManager.swift */,
 				3D0EB1F826F49E36002E5102 /* AppDelegate.swift */,
@@ -2637,73 +2851,166 @@
 			isa = PBXSourcesBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
+				3D246DF72BA99A6000F5B3BE /* CommonSystemFacadeReceiveDispatcher.swift in Sources */,
 				3D9B1294272167D4002B46A1 /* IconFactory.swift in Sources */,
 				3D378EE72536F51F0001F1F3 /* FileChooser.swift in Sources */,
 				3D9B12A027218AF9002B46A1 /* RepeatRule.swift in Sources */,
+				3D7A108029472A6000311B6B /* CancelledError.swift in Sources */,
+				3D4F1BFA26EBADE500E87BF5 /* TUTBigNum.m in Sources */,
+				3D246DDF2BA99A6000F5B3BE /* CommonSystemFacade.swift in Sources */,
+				3D246DF12BA99A6000F5B3BE /* WebAuthnSignChallenge.swift in Sources */,
 				3D73DA312731953E008E7A8A /* RemoteProtocol.swift in Sources */,
 				3DB07C7B27303F0600BFBB4D /* Keys.swift in Sources */,
+				3D246E002BA99A6000F5B3BE /* MobilePaymentsFacadeReceiveDispatcher.swift in Sources */,
+				3D3B516229376C2200C1B7DA /* SharingUtils.swift in Sources */,
+				3D246E052BA99A6000F5B3BE /* WebAuthnFacadeReceiveDispatcher.swift in Sources */,
+				3D78ACB52B600FB6009C9EED /* StructuredContactTypes.swift in Sources */,
 				3D0E44AA2B3C3CE500F933A1 /* reduce.c in Sources */,
+				3D246E142BA9C02400F5B3BE /* MobilePaymentResultType.swift in Sources */,
+				3D246DF62BA99A6000F5B3BE /* NativeCredentialsFacade.swift in Sources */,
+				3D246DDA2BA99A6000F5B3BE /* MobileSystemFacade.swift in Sources */,
+				3D246DFF2BA99A6000F5B3BE /* DownloadTaskResponse.swift in Sources */,
+				3D246DD52BA99A6000F5B3BE /* NativeKey.swift in Sources */,
 				3D220205293F75C100366FD2 /* IosWebauthnFacade.swift in Sources */,
 				3DCC3F472ACED5DB00C9C27E /* UnfairLock.swift in Sources */,
+				3D246DDE2BA99A6000F5B3BE /* WebAuthnFacade.swift in Sources */,
 				3DC5DECD2858C1F5007364FF /* IosNativePushFacade.swift in Sources */,
+				3D3AFAEC285C5C6E0077F302 /* DataFile.swift in Sources */,
+				3D84F5822723225C00858A58 /* Utils.swift in Sources */,
+				3D448A8B292BB1D00030DB2F /* SharingStorage.swift in Sources */,
+				3D9B12B42721A1E2002B46A1 /* TUTErrorFactory.m in Sources */,
+				3D4E16F4273D2F8A00256630 /* SyncCompletion.swift in Sources */,
 				3D5C6FA12B7BC15D00342E8C /* PermissionError.swift in Sources */,
 				3D84F56B2721B92C00858A58 /* MissedNotification.swift in Sources */,
+				3D246E0D2BA99A6000F5B3BE /* FileFacadeReceiveDispatcher.swift in Sources */,
+				3D246E0C2BA99A6000F5B3BE /* StructuredCustomDate.swift in Sources */,
+				3D246DF82BA99A6000F5B3BE /* MobileSystemFacadeReceiveDispatcher.swift in Sources */,
+				3D246DE32BA99A6000F5B3BE /* NativePushFacade.swift in Sources */,
 				3DAED2AF29A6267D00806DEA /* NotificationsHandler.swift in Sources */,
 				3DCE7AAC27200E0A0085E40D /* WebviewHacks.m in Sources */,
+				3D246E0B2BA99A6000F5B3BE /* NativeShortcut.swift in Sources */,
+				3DCE7AA22719D04B0085E40D /* NotificationStorage.swift in Sources */,
+				3D0EB1F626F489AD002E5102 /* KeychainManager.swift in Sources */,
 				3D4A426929B6513900B10451 /* DateProvider.swift in Sources */,
 				3D0E44BA2B3C3CE500F933A1 /* xkcp_sha3.c in Sources */,
+				3D92867C273A7D19006B8FB2 /* TutanotaError.swift in Sources */,
 				3D0881E62BEA588400E37D7D /* AppLockHandler.swift in Sources */,
 				3D0E44AC2B3C3CE500F933A1 /* kem.c in Sources */,
+				3D246DEF2BA99A6000F5B3BE /* WebAuthnSignResult.swift in Sources */,
 				3D69DE002AD4427E00C6C900 /* Kyber.swift in Sources */,
 				3D0E44A62B3C3CE500F933A1 /* ntt.c in Sources */,
+				3D246DDC2BA99A6000F5B3BE /* FileFacade.swift in Sources */,
+				3D246E092BA99A6000F5B3BE /* NativeCryptoFacadeReceiveDispatcher.swift in Sources */,
+				3D891F082105B12F0031E528 /* rsa_oaep_sha256.c in Sources */,
+				3D246DD62BA99A6000F5B3BE /* EncryptedFileInfo.swift in Sources */,
+				3D9B12AF2721966C002B46A1 /* IdTuple.swift in Sources */,
+				3D246DF92BA99A6000F5B3BE /* ThemeFacadeReceiveDispatcher.swift in Sources */,
+				3D92867F273BBA9D006B8FB2 /* KeyGeneratorSecureEnclave.swift in Sources */,
+				3D246DD92BA99A6000F5B3BE /* IpcClientRect.swift in Sources */,
+				3D246DD12BA99A6000F5B3BE /* NativePushFacadeReceiveDispatcher.swift in Sources */,
 				3D0E44CA2B3C3EC000F933A1 /* rand_entropy.c in Sources */,
+				3D246DD02BA99A6000F5B3BE /* SqlCipherFacade.swift in Sources */,
 				3D9B12A6272192C2002B46A1 /* AlarmNotification.swift in Sources */,
-				3D4FACED2B8F368300BEDF5A /* EncryptedFileInfo.swift in Sources */,
 				3D87ECE6212D9EB000FD7315 /* TUTIcons.m in Sources */,
+				3D9B12A32721926E002B46A1 /* ValueEncryption.swift in Sources */,
+				3D891F0D2105B12F0031E528 /* TUTEncodingConverter.m in Sources */,
+				3D246DE72BA99A6000F5B3BE /* RsaPrivateKey.swift in Sources */,
 				3D4E3CA228EC5C4F001FA9D1 /* IosSqlCipherFade.swift in Sources */,
+				3D246DEA2BA99A6000F5B3BE /* UploadTaskResponse.swift in Sources */,
+				3D246DFE2BA99A6000F5B3BE /* RsaKeyPair.swift in Sources */,
+				3D246DEB2BA99A6000F5B3BE /* ContactBook.swift in Sources */,
 				3D0EB1FC26F4BEE4002E5102 /* AlarmManager.swift in Sources */,
+				3D246DF02BA99A6000F5B3BE /* CommonNativeFacade.swift in Sources */,
+				3DCB9B8728F711220042A6BB /* SqlCipherStatement.swift in Sources */,
 				3DC299FD2673668000E1E79F /* QueryUtils.swift in Sources */,
 				3D0E44A42B3C3CE500F933A1 /* symmetric-shake.c in Sources */,
+				3D246DED2BA99A6000F5B3BE /* MobileFacadeSendDispatcher.swift in Sources */,
 				3D0E44AB2B3C3CE500F933A1 /* verify.c in Sources */,
+				3D246DE52BA99A6000F5B3BE /* MobileContactsFacade.swift in Sources */,
 				3D0E44B72B3C3CE500F933A1 /* common.c in Sources */,
 				3DC299FA267358AF00E1E79F /* ThemeManager.swift in Sources */,
+				3D246E032BA99A6000F5B3BE /* RsaPublicKey.swift in Sources */,
 				3D4D78252B62606D00829803 /* ContactsPermission.swift in Sources */,
 				3D0E44B22B3C3CE500F933A1 /* polyvec.c in Sources */,
 				3D3AFAE8285B0DB60077F302 /* IosMobileSystemFacade.swift in Sources */,
+				3D246DEE2BA99A6000F5B3BE /* MobileFacade.swift in Sources */,
+				3D246E062BA99A6000F5B3BE /* ErrorInfo.swift in Sources */,
+				3DDE55242AB88D8300A77D14 /* AES.swift in Sources */,
 				3D9B12A927219538002B46A1 /* AlarmInfo.swift in Sources */,
+				3D246DE62BA99A6000F5B3BE /* MobilePaymentsFacade.swift in Sources */,
+				3D246E072BA99A6000F5B3BE /* MobilePaymentResult.swift in Sources */,
+				3D246DF52BA99A6000F5B3BE /* IosGlobalDispatcher.swift in Sources */,
+				3D3AFAEA285B292C0077F302 /* DataWrapper.swift in Sources */,
+				3D246E042BA99A6000F5B3BE /* NativeInterface.swift in Sources */,
+				3D246DD42BA99A6000F5B3BE /* MobileContactsFacadeReceiveDispatcher.swift in Sources */,
+				3D246DE22BA99A6000F5B3BE /* CommonNativeFacadeSendDispatcher.swift in Sources */,
+				3D246E082BA99A6000F5B3BE /* KyberPublicKey.swift in Sources */,
+				3DCA74F62B63BE900007A1B0 /* UserPreferences.swift in Sources */,
+				3D246DD82BA99A6000F5B3BE /* PermissionType.swift in Sources */,
 				3DD10DB227EA148D0076C9A2 /* BlobUtil.swift in Sources */,
 				3D0E44A52B3C3CE500F933A1 /* cbd.c in Sources */,
+				3D246DFD2BA99A6000F5B3BE /* NativeCryptoFacade.swift in Sources */,
+				3D246E012BA99A6000F5B3BE /* StructuredAddress.swift in Sources */,
+				3D246DFB2BA99A6000F5B3BE /* ThemeFacade.swift in Sources */,
+				3D246DDD2BA99A6000F5B3BE /* StructuredPhoneNumber.swift in Sources */,
+				3D97821A2739600700DB639C /* URLSession+Sync.swift in Sources */,
 				3D3AFAF2285CB2CF0077F302 /* IosCommonSystemFacade.swift in Sources */,
+				3D246DD22BA99A6000F5B3BE /* SqlCipherFacadeReceiveDispatcher.swift in Sources */,
 				3D84F57C27231F1F00858A58 /* Serialization.swift in Sources */,
 				3D0E44B92B3C3CE500F933A1 /* KeccakP-1600-opt64.c in Sources */,
+				3D2DB91B2733F43B00BCEF4C /* IosNativeCredentialsFacade.swift in Sources */,
+				3D246E0F2BA99AB700F5B3BE /* IosMobilePaymentsFacade.swift in Sources */,
 				3D4A426529B63E1E00B10451 /* AlarmPersistor.swift in Sources */,
 				3DA2B7512BC42484006B551B /* ContactStoreError.swift in Sources */,
+				3D84F56D2722CEF900858A58 /* FileUtils.swift in Sources */,
 				3DCE7AA7271D63BF0085E40D /* ViewController.swift in Sources */,
+				3D73DA3427319A91008E7A8A /* Operation.swift in Sources */,
+				3D246E0A2BA99A6000F5B3BE /* WebAuthnRegistrationChallenge.swift in Sources */,
+				3D246DFC2BA99A6000F5B3BE /* ContactSuggestion.swift in Sources */,
 				3D0E44CE2B3C40AB00F933A1 /* kem.c in Sources */,
 				3DE46D2B2848EBDA00DC9D43 /* IosFileFacade.swift in Sources */,
+				3D246DE82BA99A6000F5B3BE /* NativeCredentialsFacadeReceiveDispatcher.swift in Sources */,
 				3D4A426729B6453700B10451 /* AlarmScheduler.swift in Sources */,
+				3D246DD72BA99A6000F5B3BE /* KyberPrivateKey.swift in Sources */,
 				3D0E44A72B3C3CE500F933A1 /* poly.c in Sources */,
 				3D4A426329B63C0E00B10451 /* AlarmCryptor.swift in Sources */,
+				3D246DF32BA99A6000F5B3BE /* WebauthnKeyDescriptor.swift in Sources */,
+				3D246DEC2BA99A6000F5B3BE /* StructuredMailAddress.swift in Sources */,
 				3D881A9D2C04631300E629BE /* sdktest.swift in Sources */,
 				3D4D78272B62610200829803 /* IosMobileContactsFacade.swift in Sources */,
+				3D246DE92BA99A6000F5B3BE /* StructuredRelationship.swift in Sources */,
 				3DDE413B28F4665700837BE6 /* SqlCipherDb.swift in Sources */,
+				3DCB9B8528F710CC0042A6BB /* TaggedSqlValue.swift in Sources */,
 				3DF7FA5A2AB2EE3B00DB08D1 /* Argon2.swift in Sources */,
+				3D246DF22BA99A6000F5B3BE /* ElectronResult.swift in Sources */,
 				3DBE94BA273147830077A6EA /* RemoteBridge.swift in Sources */,
+				3D246DF42BA99A6000F5B3BE /* WebAuthnRegistrationResult.swift in Sources */,
 				3D84F5762723112400858A58 /* FileViewer.swift in Sources */,
+				3D246DE12BA99A6000F5B3BE /* StructuredContact.swift in Sources */,
+				3D891F0B2105B12F0031E528 /* TUTCrypto.m in Sources */,
+				3D63A0E3233D009E00D05259 /* TUTLog.m in Sources */,
 				3D9B129D272189BB002B46A1 /* AlarmModel.swift in Sources */,
 				3DE1E44526666F0A0018C9DE /* UIColor+utils.swift in Sources */,
 				3DE46D2E2849E33000DC9D43 /* IosThemeFacade.swift in Sources */,
+				3D246DDB2BA99A6000F5B3BE /* KyberEncapsulation.swift in Sources */,
+				3D84F57927231E8600858A58 /* SSEInfo.swift in Sources */,
+				3D246DD32BA99A6000F5B3BE /* IntegrationInfo.swift in Sources */,
 				3D239302287EC96200DD7396 /* CustomSchemeHandlers.swift in Sources */,
 				3D0E44AD2B3C3CE500F933A1 /* indcpa.c in Sources */,
+				3D246DE02BA99A6000F5B3BE /* ContactSyncResult.swift in Sources */,
 				3D84F5732722F35600858A58 /* IosNativeCryptoFacade.swift in Sources */,
 				3D0EB1F926F49E36002E5102 /* AppDelegate.swift in Sources */,
+				3D246DE42BA99A6000F5B3BE /* StructuredMessengerHandle.swift in Sources */,
 				3D9B129A27216DE0002B46A1 /* Response.swift in Sources */,
+				3D9B12AC27219623002B46A1 /* NotificationSessionKey.swift in Sources */,
 				3D0E44BC2B3C3CE500F933A1 /* fips202.c in Sources */,
 				3D648B282AB98BEA00893C8D /* ref.c in Sources */,
 				3D648B2A2AB98BEA00893C8D /* core.c in Sources */,
+				3D246DFA2BA99A6000F5B3BE /* StructuredWebsite.swift in Sources */,
 				3D0E44B62B3C3CE500F933A1 /* kem_kyber_1024.c in Sources */,
 				3D648B262AB98BEA00893C8D /* blake2b.c in Sources */,
 				3D648B212AB98BEA00893C8D /* thread.c in Sources */,
+				3D246E022BA99A6000F5B3BE /* KyberKeyPair.swift in Sources */,
 				3D648B2C2AB98BEA00893C8D /* argon2.c in Sources */,
 				3D648B2D2AB98BEA00893C8D /* encoding.c in Sources */,
 			);
