@@ -2,6 +2,10 @@ import require$$0 from 'util';
 import require$$1 from 'path';
 import require$$2 from 'child_process';
 
+function getDefaultExportFromCjs (x) {
+	return x && x.__esModule && Object.prototype.hasOwnProperty.call(x, 'default') ? x['default'] : x;
+}
+
 /************************************************************************************************************
  * registry.js - contains a wrapper for the REG command under Windows, which provides access to the registry
  *
@@ -971,4 +975,6 @@ Registry.prototype.valueExists = function valueExists (name, cb) {
 
 var registry = Registry;
 
-export { registry as default };
+var registry$1 = /*@__PURE__*/getDefaultExportFromCjs(registry);
+
+export { registry$1 as default };

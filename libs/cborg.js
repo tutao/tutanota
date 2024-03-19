@@ -529,6 +529,7 @@ function decodeCodePointsArray (codePoints) {
  * the current cursor. Negative offsets probably work but are untested.
  */
 
+
 // the ts-ignores in this file are almost all for the `Uint8Array|number[]` duality that exists
 // for perf reasons. Consider better approaches to this or removing it entirely, it is quite
 // risky because of some assumptions about small chunks === number[] and everything else === Uint8Array.
@@ -649,6 +650,7 @@ function assertEnoughData (data, pos, need) {
 }
 
 /* globals BigInt */
+
 
 const uintBoundaries = [24, 256, 65536, 4294967296, BigInt('18446744073709551616')];
 
@@ -874,6 +876,7 @@ encodeUint.compareTokens = function compareTokens (tok1, tok2) {
 };
 
 /* eslint-env es2020 */
+
 
 /**
  * @typedef {import('./bl.js').Bl} Bl
@@ -1494,6 +1497,8 @@ encodeTag.encodedSize = function encodedSize (token) {
 };
 
 // TODO: shift some of the bytes logic to bytes-utils so we can use Buffer
+// where possible
+
 
 /**
  * @typedef {import('./bl.js').Bl} Bl
