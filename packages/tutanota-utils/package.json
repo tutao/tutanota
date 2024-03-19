@@ -1,6 +1,6 @@
 {
 	"name": "@tutao/tutanota-utils",
-	"version": "220.240319.0",
+	"version": "220.240319.1",
 	"license": "GPL-3.0",
 	"main": "./dist/index.js",
 	"types": "./dist/index.d.ts",
@@ -22,7 +22,7 @@
 		"tsconfig.json"
 	],
 	"devDependencies": {
-		"typescript": "5.0.3",
-		"@tutao/otest": "220.240319.0"
+		"typescript": "5.3.3",
+		"@tutao/otest": "220.240319.1"
 	}
 }
