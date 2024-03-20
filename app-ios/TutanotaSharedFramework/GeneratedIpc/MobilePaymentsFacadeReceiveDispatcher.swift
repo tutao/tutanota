@@ -13,9 +13,11 @@ public class MobilePaymentsFacadeReceiveDispatcher {
 		case "requestSubscriptionToPlan":
 			let plan = try! JSONDecoder().decode(String.self, from: arg[0].data(using: .utf8)!)
 			let interval = try! JSONDecoder().decode(Int.self, from: arg[1].data(using: .utf8)!)
+			let customerIdBytes = try! JSONDecoder().decode(DataWrapper.self, from: arg[2].data(using: .utf8)!)
 			let result = try await self.facade.requestSubscriptionToPlan(
 				plan,
-				interval
+				interval,
+				customerIdBytes
 			)
 			return toJson(result)
 		default:

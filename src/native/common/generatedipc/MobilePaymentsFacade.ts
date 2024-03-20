@@ -8,5 +8,5 @@ export interface MobilePaymentsFacade {
 	/**
 	 * Display a pop-up for the user to start a subscription
 	 */
-	requestSubscriptionToPlan(plan: string, interval: number): Promise<MobilePaymentResult>
+	requestSubscriptionToPlan(plan: string, interval: number, customerIdBytes: Uint8Array): Promise<MobilePaymentResult>
 }

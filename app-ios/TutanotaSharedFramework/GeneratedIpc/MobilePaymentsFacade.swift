@@ -12,6 +12,7 @@ public protocol MobilePaymentsFacade {
 	 */
 	func requestSubscriptionToPlan(
 		_ plan: String,
-		_ interval: Int
+		_ interval: Int,
+		_ customerIdBytes: DataWrapper
 	) async throws -> MobilePaymentResult
 }
