@@ -1610,6 +1610,34 @@ export type KeyPair = {
 	symEncPrivRsaKey: null | Uint8Array;
 	version: NumberString;
 }
+export const KeyRotationTypeRef: TypeRef<KeyRotation> = new TypeRef("sys", "KeyRotation")
+
+export function createKeyRotation(values: StrippedEntity<KeyRotation>): KeyRotation {
+	return Object.assign(create(typeModels.KeyRotation, KeyRotationTypeRef), values)
+}
+
+export type KeyRotation = {
+	_type: TypeRef<KeyRotation>;
+
+	_format: NumberString;
+	_id: IdTuple;
+	_ownerGroup: null | Id;
+	_permissions: Id;
+	nextKeyVersion: NumberString;
+}
+export const KeyRotationsRefTypeRef: TypeRef<KeyRotationsRef> = new TypeRef("sys", "KeyRotationsRef")
+
+export function createKeyRotationsRef(values: StrippedEntity<KeyRotationsRef>): KeyRotationsRef {
+	return Object.assign(create(typeModels.KeyRotationsRef, KeyRotationsRefTypeRef), values)
+}
+
+export type KeyRotationsRef = {
+	_type: TypeRef<KeyRotationsRef>;
+
+	_id: Id;
+
+	list: Id;
+}
 export const LocationServiceGetReturnTypeRef: TypeRef<LocationServiceGetReturn> = new TypeRef("sys", "LocationServiceGetReturn")
 
 export function createLocationServiceGetReturn(values: StrippedEntity<LocationServiceGetReturn>): LocationServiceGetReturn {
@@ -3168,6 +3196,7 @@ export type UserGroupRoot = {
 	_permissions: Id;
 
 	invitations: Id;
+	keyRotations:  null | KeyRotationsRef;
 }
 export const UserReturnTypeRef: TypeRef<UserReturn> = new TypeRef("sys", "UserReturn")
 
