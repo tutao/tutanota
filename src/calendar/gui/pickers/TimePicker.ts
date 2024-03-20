@@ -65,19 +65,26 @@ export class TimePicker implements Component<TimePickerAttrs> {
 
 		this.value = timeAsString
 
-		return m(TextField, {
-			label: "emptyString_msg",
-			value: this.value,
-			type: TextFieldType.Time,
-			oninput: (value) => {
-				if (this.value === value) {
-					return
-				}
-				this.value = value
-				attrs.onTimeSelected(Time.parseFromString(value))
-			},
-			disabled: attrs.disabled,
-		})
+		const displayTime = attrs.time?.toString(this.amPm) ?? ""
+
+		return [
+			m(TextField, {
+				class: "time-picker pt",
+				label: "emptyString_msg",
+				value: this.value,
+				type: TextFieldType.Time,
+				oninput: (value) => {
+					if (this.value === value) {
+						return
+					}
+					this.value = value
+					attrs.onTimeSelected(Time.parseFromString(value))
+				},
+				disabled: attrs.disabled,
+			}),
+			// A 'fake' display that overlays over the real time input that allows us to show 12 or 24 time format regardless of browser locale
+			m(".time-picker-fake-display.rel.no-hover", displayTime),
+		]
 	}
 
 	private renderCustomTimePicker(attrs: TimePickerAttrs): Children {

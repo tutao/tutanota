@@ -2184,6 +2184,13 @@ styles.registerStyle("main", () => {
 		".time-field": {
 			width: "80px",
 		},
+		".time-picker input": {
+			color: "rgba(0, 0, 0, 0)",
+		},
+		".time-picker-fake-display": {
+			bottom: "1.6em",
+			left: "0.1em",
+		},
 		".calendar-agenda-time-column": {
 			width: px(80),
 		},
