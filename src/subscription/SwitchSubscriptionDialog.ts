@@ -34,6 +34,7 @@ import { getByAbbreviation } from "../api/common/CountryList.js"
 import { formatNameAndAddress } from "../api/common/utils/CommonFormatter.js"
 import { LoginButtonAttrs } from "../gui/base/buttons/LoginButton.js"
 import { CancellationReasonInput } from "./CancellationReasonInput.js"
+import { showLeavingUserSurveyWizard } from "./LeavingUserSurveyWizard.js"
 
 /**
  * Only shown if the user is already a Premium user. Allows cancelling the subscription (only private use) and switching the subscription to a different paid subscription.
@@ -109,7 +110,11 @@ export async function showSwitchDialog(
 		[PlanType.Free]: () =>
 			({
 				label: "pricing.select_action",
-				onclick: () => cancelSubscription(dialog, currentPlanInfo, deferred, customer),
+				onclick: () =>
+					showLeavingUserSurveyWizard().then((reason) => {
+						console.log("Reason: ", reason.reason, " Category: ", reason.category, " details: ", reason.details)
+						cancelSubscription(dialog, currentPlanInfo, deferred, customer)
+					}),
 			} as LoginButtonAttrs),
 
 		[PlanType.Revolutionary]: createPlanButton(dialog, PlanType.Revolutionary, currentPlanInfo, deferred, paymentInterval, accountingInfo),
