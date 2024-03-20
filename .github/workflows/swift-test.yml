@@ -4,7 +4,8 @@ on:
   push:
     branches-ignore:
       - master
-    paths: [ "app-ios/**" ]
+    paths:
+      - 'app-ios/**'
 
 env:
   swift-version: "5.9.2"
