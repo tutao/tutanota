@@ -28,7 +28,6 @@ export class Editor implements ImageHandler, Component {
 	private enabled = true
 	private readOnly = false
 	private createsLists = true
-	private tabCreatesWhitespace = true
 	private userHasPasted = false
 	private styleActions = Object.freeze({
 		b: [() => this.squire.bold(), () => this.squire.removeBold(), () => this.styles.b],
@@ -121,11 +120,6 @@ export class Editor implements ImageHandler, Component {
 		return this
 	}
 
-	setTabCreatesWhitespace(tabCreatesWhitespace: boolean): Editor {
-		this.tabCreatesWhitespace = tabCreatesWhitespace
-		return this
-	}
-
 	initSquire(domElement: HTMLElement) {
 		this.squire = new SquireEditor(domElement, {
 			sanitizeToDOMFragment: (html: string) => this.sanitizer(html, this.userHasPasted),
@@ -147,15 +141,6 @@ export class Editor implements ImageHandler, Component {
 		this.squire.addEventListener("pathChange", () => {
 			this.getStylesAtPath()
 			m.redraw() // allow richtexttoolbar to redraw elements
-		})
-
-		// Create an emspace whenever tab is pressed
-		this.squire.addEventListener("keydown", (e: KeyboardEvent) => {
-			if (this.isEditable() && this.tabCreatesWhitespace && e.key === "Tab" && this.styles.listing == null) {
-				this.squire.insertHTML("&emsp;")
-				e.preventDefault()
-				e.stopPropagation()
-			}
 		})
 
 		this.domElement = domElement
