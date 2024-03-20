@@ -34,6 +34,7 @@ import { EntropyFacade } from "../../../../../src/api/worker/facades/EntropyFaca
 import { DatabaseKeyFactory } from "../../../../../src/misc/credentials/DatabaseKeyFactory.js"
 import { Argon2idFacade } from "../../../../../src/api/worker/facades/Argon2idFacade.js"
 import { createTestEntity } from "../../../TestUtils.js"
+import { KeyRotationFacade } from "../../../../../src/api/worker/facades/KeyRotationFacade.js"
 
 const { anything, argThat } = matchers
 
@@ -146,6 +147,7 @@ o.spec("LoginFacadeTest", function () {
 			loginListener,
 			instanceMapperMock,
 			cryptoFacadeMock,
+			instance(KeyRotationFacade),
 			cacheStorageInitializerMock,
 			serviceExecutor,
 			userFacade,
@@ -399,12 +401,10 @@ o.spec("LoginFacadeTest", function () {
 					throw connectionError
 				})
 
-				const deferred = defer()
-				when(loginListener.onPartialLoginSuccess()).thenDo(() => deferred.resolve(null))
-
 				const result = await facade.resumeSession(credentials, { salt: user.salt!, kdfType: DEFAULT_KDF_TYPE }, dbKey, timeRangeDays)
 
-				await deferred.promise
+				// we expect async resume session so we have to pause current code execution.
+				await Promise.resolve()
 
 				o(result.type).equals("success")
 				o(calls).deepEquals(["setUser", "sessionService"])

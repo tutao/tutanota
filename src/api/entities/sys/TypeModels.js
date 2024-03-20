@@ -6712,6 +6712,108 @@ export const typeModels = {
         "app": "sys",
         "version": "96"
     },
+    "KeyRotation": {
+        "name": "KeyRotation",
+        "since": 96,
+        "type": "LIST_ELEMENT_TYPE",
+        "id": 2283,
+        "rootId": "A3N5cwAI6w",
+        "versioned": false,
+        "encrypted": false,
+        "values": {
+            "_format": {
+                "final": false,
+                "name": "_format",
+                "id": 2287,
+                "since": 96,
+                "type": "Number",
+                "cardinality": "One",
+                "encrypted": false
+            },
+            "_id": {
+                "final": true,
+                "name": "_id",
+                "id": 2285,
+                "since": 96,
+                "type": "GeneratedId",
+                "cardinality": "One",
+                "encrypted": false
+            },
+            "_ownerGroup": {
+                "final": true,
+                "name": "_ownerGroup",
+                "id": 2288,
+                "since": 96,
+                "type": "GeneratedId",
+                "cardinality": "ZeroOrOne",
+                "encrypted": false
+            },
+            "_permissions": {
+                "final": true,
+                "name": "_permissions",
+                "id": 2286,
+                "since": 96,
+                "type": "GeneratedId",
+                "cardinality": "One",
+                "encrypted": false
+            },
+            "groupType": {
+                "final": true,
+                "name": "groupType",
+                "id": 2290,
+                "since": 96,
+                "type": "Number",
+                "cardinality": "One",
+                "encrypted": false
+            },
+            "targetKeyVersion": {
+                "final": true,
+                "name": "targetKeyVersion",
+                "id": 2289,
+                "since": 96,
+                "type": "Number",
+                "cardinality": "One",
+                "encrypted": false
+            }
+        },
+        "associations": {},
+        "app": "sys",
+        "version": "96"
+    },
+    "KeyRotationsRef": {
+        "name": "KeyRotationsRef",
+        "since": 96,
+        "type": "AGGREGATED_TYPE",
+        "id": 2291,
+        "rootId": "A3N5cwAI8w",
+        "versioned": false,
+        "encrypted": false,
+        "values": {
+            "_id": {
+                "final": true,
+                "name": "_id",
+                "id": 2292,
+                "since": 96,
+                "type": "CustomId",
+                "cardinality": "One",
+                "encrypted": false
+            }
+        },
+        "associations": {
+            "list": {
+                "final": true,
+                "name": "list",
+                "id": 2293,
+                "since": 96,
+                "type": "LIST_ASSOCIATION",
+                "cardinality": "One",
+                "refType": "KeyRotation",
+                "dependency": null
+            }
+        },
+        "app": "sys",
+        "version": "96"
+    },
     "LocationServiceGetReturn": {
         "name": "LocationServiceGetReturn",
         "since": 30,
@@ -12755,6 +12857,16 @@ export const typeModels = {
                 "type": "LIST_ASSOCIATION",
                 "cardinality": "One",
                 "refType": "ReceivedGroupInvitation",
+                "dependency": null
+            },
+            "keyRotations": {
+                "final": false,
+                "name": "keyRotations",
+                "id": 2294,
+                "since": 96,
+                "type": "AGGREGATION",
+                "cardinality": "ZeroOrOne",
+                "refType": "KeyRotationsRef",
                 "dependency": null
             }
         },

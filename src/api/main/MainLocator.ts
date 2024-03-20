@@ -875,6 +875,7 @@ class MainLocator {
 			this.userManagementFacade,
 			this.customerFacade,
 			() => this.showSetupWizard(),
+			this.loginFacade,
 		)
 	})
 

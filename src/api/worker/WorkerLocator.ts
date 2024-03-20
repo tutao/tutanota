@@ -68,6 +68,7 @@ import { PQFacade } from "./facades/PQFacade.js"
 import { PdfWriter } from "./pdf/PdfWriter.js"
 import { ContactFacade } from "./facades/lazy/ContactFacade.js"
 import { KeyLoaderFacade } from "./facades/KeyLoaderFacade.js"
+import { KeyRotationFacade } from "./facades/KeyRotationFacade.js"
 
 assertWorkerOrNode()
 
@@ -87,6 +88,7 @@ export type WorkerLocatorType = {
 	entropyFacade: EntropyFacade
 	blobAccessToken: BlobAccessTokenFacade
 	keyLoader: KeyLoaderFacade
+	keyRotation: KeyRotationFacade
 
 	// login
 	user: UserFacade
@@ -218,11 +220,9 @@ export async function initLocator(worker: WorkerImpl, browserData: BrowserData) 
 		locator.keyLoader,
 	)
 
-	const loginListener: LoginListener = {
-		onPartialLoginSuccess(): Promise<void> {
-			return mainInterface.loginListener.onPartialLoginSuccess()
-		},
+	locator.keyRotation = new KeyRotationFacade(locator.cachingEntityClient)
 
+	const loginListener: LoginListener = {
 		onFullLoginSuccess(sessionType: SessionType, cacheInfo: CacheInfo): Promise<void> {
 			if (!isTest() && sessionType !== SessionType.Temporary && !isAdminClient()) {
 				// index new items in background
@@ -263,6 +263,7 @@ export async function initLocator(worker: WorkerImpl, browserData: BrowserData) 
 		loginListener,
 		locator.instanceMapper,
 		locator.crypto,
+		locator.keyRotation,
 		maybeUninitializedStorage,
 		locator.serviceExecutor,
 		locator.user,

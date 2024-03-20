@@ -91,6 +91,7 @@ import { ProgrammingError } from "../../common/error/ProgrammingError.js"
 import { DatabaseKeyFactory } from "../../../misc/credentials/DatabaseKeyFactory.js"
 import { ExternalUserKeyDeriver } from "../../../misc/LoginUtils.js"
 import { Argon2idFacade } from "./Argon2idFacade.js"
+import { KeyRotationFacade } from "./KeyRotationFacade.js"
 
 assertWorkerOrNode()
 
@@ -141,11 +142,6 @@ export type PassphraseKeyData = {
 
 export interface LoginListener {
 	/**
-	 * Partial login reached: cached entities and user are available.
-	 */
-	onPartialLoginSuccess(): Promise<void>
-
-	/**
 	 * Full login reached: any network requests can be made
 	 */
 	onFullLoginSuccess(sessionType: SessionType, cacheInfo: CacheInfo): Promise<void>
@@ -183,6 +179,7 @@ export class LoginFacade {
 		private readonly loginListener: LoginListener,
 		private readonly instanceMapper: InstanceMapper,
 		private readonly cryptoFacade: CryptoFacade,
+		private readonly keyRotationFacade: KeyRotationFacade,
 		/**
 		 *  Only needed so that we can initialize the offline storage after login.
 		 *  This is necessary because we don't know if we'll be persistent or not until the user tries to login
@@ -268,6 +265,9 @@ export class LoginFacade {
 
 		if (!this.isModernKdfType(kdfType)) {
 			await this.migrateKdfType(KdfType.Argon2id, passphrase, user)
+		} else {
+			// If we have not migrated to argon2 we postpone key rotation until next login.
+			await this.keyRotationFacade.loadPendingKeyRotations(user, userPassphraseKey)
 		}
 
 		return {
@@ -565,7 +565,6 @@ export class LoginFacade {
 					)
 				}
 				this.userFacade.setUser(user)
-				this.loginListener.onPartialLoginSuccess()
 
 				// Temporary workaround for the transitional period
 				// Before offline login was enabled (in 3.96.4) we didn't use cache for the login process, only afterwards.
@@ -674,6 +673,10 @@ export class LoginFacade {
 		// We only need to migrate the kdf in case an internal user resumes the session.
 		if (kdfType && !this.isModernKdfType(kdfType)) {
 			await this.migrateKdfType(KdfType.Argon2id, passphrase, user)
+		} else if (!isExternalUser) {
+			// We trigger group key rotation only for internal users.
+			// If we have not migrated to argon2 we postpone key rotation until next login.
+			await this.keyRotationFacade.loadPendingKeyRotations(user, userPassphraseKey)
 		}
 
 		return { type: "success", data }
@@ -705,7 +708,6 @@ export class LoginFacade {
 			const wasPartiallyLoggedIn = this.userFacade.isPartiallyLoggedIn()
 			if (!wasPartiallyLoggedIn) {
 				this.userFacade.setUser(user)
-				this.loginListener.onPartialLoginSuccess()
 			}
 			const wasFullyLoggedIn = this.userFacade.isFullyLoggedIn()
 
@@ -1074,5 +1076,9 @@ export class LoginFacade {
 		} else {
 			throw new Error("credentials went missing")
 		}
+	}
+
+	async rotateKeysIfNeeded() {
+		await this.keyRotationFacade.processPendingKeyRotation()
 	}
 }

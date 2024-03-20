@@ -1,6 +1,6 @@
-import { create, StrippedEntity } from "../../common/utils/EntityUtils.js"
-import { TypeRef } from "@tutao/tutanota-utils"
-import { typeModels } from "./TypeModels.js"
+import { create, Stripped, StrippedEntity } from "../../common/utils/EntityUtils.js"
+import {TypeRef} from "@tutao/tutanota-utils"
+import {typeModels} from "./TypeModels.js"
 
 
 export const AccountingInfoTypeRef: TypeRef<AccountingInfo> = new TypeRef("sys", "AccountingInfo")
@@ -1588,6 +1588,35 @@ export type KeyPair = {
 	symEncPrivKyberKey: null | Uint8Array;
 	symEncPrivRsaKey: null | Uint8Array;
 }
+export const KeyRotationTypeRef: TypeRef<KeyRotation> = new TypeRef("sys", "KeyRotation")
+
+export function createKeyRotation(values: StrippedEntity<KeyRotation>): KeyRotation {
+	return Object.assign(create(typeModels.KeyRotation, KeyRotationTypeRef), values)
+}
+
+export type KeyRotation = {
+	_type: TypeRef<KeyRotation>;
+
+	_format: NumberString;
+	_id: IdTuple;
+	_ownerGroup: null | Id;
+	_permissions: Id;
+	groupType: NumberString;
+	targetKeyVersion: NumberString;
+}
+export const KeyRotationsRefTypeRef: TypeRef<KeyRotationsRef> = new TypeRef("sys", "KeyRotationsRef")
+
+export function createKeyRotationsRef(values: StrippedEntity<KeyRotationsRef>): KeyRotationsRef {
+	return Object.assign(create(typeModels.KeyRotationsRef, KeyRotationsRefTypeRef), values)
+}
+
+export type KeyRotationsRef = {
+	_type: TypeRef<KeyRotationsRef>;
+
+	_id: Id;
+
+	list: Id;
+}
 export const LocationServiceGetReturnTypeRef: TypeRef<LocationServiceGetReturn> = new TypeRef("sys", "LocationServiceGetReturn")
 
 export function createLocationServiceGetReturn(values: StrippedEntity<LocationServiceGetReturn>): LocationServiceGetReturn {
@@ -3140,6 +3169,7 @@ export type UserGroupRoot = {
 	_permissions: Id;
 
 	invitations: Id;
+	keyRotations:  null | KeyRotationsRef;
 }
 export const VariableExternalAuthInfoTypeRef: TypeRef<VariableExternalAuthInfo> = new TypeRef("sys", "VariableExternalAuthInfo")
 
