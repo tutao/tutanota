@@ -860,6 +860,9 @@ styles.registerStyle("main", () => {
 		".large-button-width": {
 			width: px(size.button_floating_size),
 		},
+		".notification-min-width": {
+			"min-width": px(400),
+		},
 		// Stretch editor a little bit more than parent so that the content is visible
 		".full-height": {
 			"min-height": client.isIos() ? "101%" : "100%",

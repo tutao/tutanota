@@ -61,9 +61,10 @@ function showNextNotification() {
 	const margin = (width - Math.min(400, width)) / 2
 	const allButtons = buttons.slice()
 	const overlayRect = {
+		width: "fit-content",
 		top: px(0),
-		left: px(margin),
-		right: px(margin),
+		left: px(0),
+		right: px(0),
 	}
 	const closeFunction = displayOverlay(
 		() => overlayRect,
@@ -75,6 +76,8 @@ function showNextNotification() {
 				}),
 		},
 		"slide-top",
+		undefined,
+		"dropdown-shadow center-h notification-min-width",
 	)
 
 	const closeAndOpenNext = () => {
