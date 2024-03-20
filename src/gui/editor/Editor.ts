@@ -7,6 +7,7 @@ import { isMailAddress } from "../../misc/FormatValidator"
 import type { ImageHandler } from "../../mail/model/MailUtils"
 import { TabIndex } from "../../api/common/TutanotaConstants"
 import { TextFieldType } from "../base/TextField.js"
+import { HTML_EDITOR_LINE_HEIGHT } from "./HtmlEditor.js"
 
 type SanitizerFn = (html: string, isPaste: boolean) => DocumentFragment
 export type ImagePasteEvent = CustomEvent<{ clipboardData: DataTransfer }>
@@ -62,7 +63,7 @@ export class Editor implements ImageHandler, Component {
 	 */
 	private pasteListener: (e: ClipboardEvent) => void = (_: ClipboardEvent) => (this.userHasPasted = true)
 
-	constructor(private minHeight: number | null, private sanitizer: SanitizerFn) {
+	constructor(private minHeight: number | null, private sanitizer: SanitizerFn, private staticLineAmount: number | null) {
 		this.onremove = this.onremove.bind(this)
 		this.onbeforeupdate = this.onbeforeupdate.bind(this)
 		this.view = this.view.bind(this)
@@ -90,7 +91,13 @@ export class Editor implements ImageHandler, Component {
 			tabindex: TabIndex.Default,
 			oncreate: (vnode) => this.initSquire(vnode.dom as HTMLElement),
 			class: "flex-grow",
-			style: this.minHeight
+			style: this.staticLineAmount
+				? {
+						"max-height": px(this.staticLineAmount * HTML_EDITOR_LINE_HEIGHT),
+						"min-height:": px(this.staticLineAmount * HTML_EDITOR_LINE_HEIGHT),
+						overflow: "scroll",
+				  }
+				: this.minHeight
 				? {
 						"min-height": px(this.minHeight),
 				  }
@@ -112,6 +119,16 @@ export class Editor implements ImageHandler, Component {
 
 	setMinHeight(minHeight: number): Editor {
 		this.minHeight = minHeight
+		return this
+	}
+
+	/**
+	 * Sets a static amount 'n' of lines the Editor should always render/allow.
+	 * When using n+1 lines, the editor will instead begin to be scrollable.
+	 * Currently, this overwrites min-height.
+	 */
+	setStaticNumberOfLines(numberOfLines: number): Editor {
+		this.staticLineAmount = numberOfLines
 		return this
 	}
 

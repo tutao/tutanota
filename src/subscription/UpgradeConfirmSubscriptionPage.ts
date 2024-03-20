@@ -42,8 +42,7 @@ export class UpgradeConfirmSubscriptionPage implements WizardPageN<UpgradeSubscr
 			date: Const.CURRENT_DATE,
 			referralCode: data.referralCode,
 			specialPriceUserSingle: null,
-			reasonCategory: null,
-			reason: null,
+			surveyData: null,
 		})
 		showProgressDialog(
 			"pleaseWait_msg",

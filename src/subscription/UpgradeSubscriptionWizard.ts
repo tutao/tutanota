@@ -28,6 +28,7 @@ import { UpgradeConfirmSubscriptionPage } from "./UpgradeConfirmSubscriptionPage
 import { asPaymentInterval, PaymentInterval, PriceAndConfigProvider } from "./PriceUtils"
 import { formatNameAndAddress } from "../api/common/utils/CommonFormatter.js"
 import { LoginController } from "../api/main/LoginController.js"
+import { DialogType } from "../gui/base/Dialog.js"
 
 assertMainOrNode()
 export type SubscriptionParameters = {
@@ -113,9 +114,14 @@ export async function showUpgradeWizard(logins: LoginController, acceptedPlans: 
 	]
 	const deferred = defer<void>()
 
-	const wizardBuilder = createWizardDialog(upgradeData, wizardPages, async () => {
-		deferred.resolve()
-	})
+	const wizardBuilder = createWizardDialog(
+		upgradeData,
+		wizardPages,
+		async () => {
+			deferred.resolve()
+		},
+		DialogType.EditLarge,
+	)
 	wizardBuilder.dialog.show()
 	return deferred.promise
 }
@@ -177,22 +183,27 @@ export async function loadSignupWizard(
 		wizardPageWrapper(UpgradeConfirmSubscriptionPage, invoiceAttrs),
 		wizardPageWrapper(UpgradeCongratulationsPage, new UpgradeCongratulationsPageAttrs(signupData)),
 	]
-	const wizardBuilder = createWizardDialog(signupData, wizardPages, async () => {
-		if (locator.logins.isUserLoggedIn()) {
-			await locator.logins.logout(false)
-		}
+	const wizardBuilder = createWizardDialog(
+		signupData,
+		wizardPages,
+		async () => {
+			if (locator.logins.isUserLoggedIn()) {
+				await locator.logins.logout(false)
+			}
 
-		if (signupData.newAccountData) {
-			m.route.set("/login", {
-				noAutoLogin: true,
-				loginWith: signupData.newAccountData.mailAddress,
-			})
-		} else {
-			m.route.set("/login", {
-				noAutoLogin: true,
-			})
-		}
-	})
+			if (signupData.newAccountData) {
+				m.route.set("/login", {
+					noAutoLogin: true,
+					loginWith: signupData.newAccountData.mailAddress,
+				})
+			} else {
+				m.route.set("/login", {
+					noAutoLogin: true,
+				})
+			}
+		},
+		DialogType.EditLarge,
+	)
 
 	// for signup specifically, we only want the invoice and payment page as well as the confirmation page to show up if signing up for a paid account (and the user did not go back to the first page!)
 	invoiceAttrs.setEnabledFunction(() => signupData.type !== PlanType.Free && wizardBuilder.attrs.currentPage !== wizardPages[0])

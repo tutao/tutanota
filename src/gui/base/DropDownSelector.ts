@@ -37,6 +37,7 @@ export interface DropDownSelectorAttrs<T> {
 	icon?: AllIcons
 	disabled?: boolean
 	class?: string
+	style?: Record<string, any> // Temporary, do not use
 	doShowBorder?: boolean | null
 }
 
@@ -50,6 +51,7 @@ export class DropDownSelector<T> implements ClassComponent<DropDownSelectorAttrs
 			isReadOnly: true,
 			onclick: a.disabled ? noOp : this.createDropdown(a),
 			class: "click " + (a.class == null ? "mt" : a.class) + " " + getOperatingClasses(a.disabled),
+			style: a.style,
 			injectionsRight: () =>
 				a.disabled
 					? null

@@ -747,9 +747,9 @@ export type CustomerAccountTerminationPostIn = {
 	_type: TypeRef<CustomerAccountTerminationPostIn>;
 
 	_format: NumberString;
-	reason: null | string;
-	reasonCategory: null | NumberString;
 	terminationDate: null | Date;
+
+	surveyData:  null | SurveyData;
 }
 export const CustomerAccountTerminationPostOutTypeRef: TypeRef<CustomerAccountTerminationPostOut> = new TypeRef("sys", "CustomerAccountTerminationPostOut")
 
@@ -906,12 +906,12 @@ export type DeleteCustomerData = {
 
 	_format: NumberString;
 	authVerifier: null | Uint8Array;
-	reason: string;
-	reasonCategory: null | NumberString;
+	reason: null | string;
 	takeoverMailAddress: null | string;
 	undelete: boolean;
 
 	customer: Id;
+	surveyData:  null | SurveyData;
 }
 export const DnsRecordTypeRef: TypeRef<DnsRecord> = new TypeRef("sys", "DnsRecord")
 
@@ -2757,6 +2757,21 @@ export type StringWrapper = {
 	_id: Id;
 	value: string;
 }
+export const SurveyDataTypeRef: TypeRef<SurveyData> = new TypeRef("sys", "SurveyData")
+
+export function createSurveyData(values: StrippedEntity<SurveyData>): SurveyData {
+	return Object.assign(create(typeModels.SurveyData, SurveyDataTypeRef), values)
+}
+
+export type SurveyData = {
+	_type: TypeRef<SurveyData>;
+
+	_id: Id;
+	category: NumberString;
+	details: null | string;
+	reason: NumberString;
+	version: NumberString;
+}
 export const SwitchAccountTypePostInTypeRef: TypeRef<SwitchAccountTypePostIn> = new TypeRef("sys", "SwitchAccountTypePostIn")
 
 export function createSwitchAccountTypePostIn(values: StrippedEntity<SwitchAccountTypePostIn>): SwitchAccountTypePostIn {
@@ -2771,11 +2786,10 @@ export type SwitchAccountTypePostIn = {
 	customer: null | Id;
 	date: null | Date;
 	plan: NumberString;
-	reason: null | string;
-	reasonCategory: null | NumberString;
 	specialPriceUserSingle: null | NumberString;
 
 	referralCode:  null | Id;
+	surveyData:  null | SurveyData;
 }
 export const SystemKeysReturnTypeRef: TypeRef<SystemKeysReturn> = new TypeRef("sys", "SystemKeysReturn")
 

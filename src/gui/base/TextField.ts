@@ -29,6 +29,7 @@ export type TextFieldAttrs = {
 	onblur?: (...args: Array<any>) => any
 	maxWidth?: number
 	class?: string
+	style?: Record<string, any> //Temporary, Do not use
 	disabled?: boolean
 	// Creates a dummy TextField without interactively & disabled styling
 	isReadOnly?: boolean
@@ -106,8 +107,9 @@ export class TextField implements ClassComponent<TextFieldAttrs> {
 				style: maxWidth
 					? {
 							maxWidth: px(maxWidth),
+							...a.style,
 					  }
-					: {},
+					: { ...a.style },
 			},
 			[
 				m(

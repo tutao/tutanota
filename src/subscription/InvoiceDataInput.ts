@@ -29,7 +29,7 @@ export class InvoiceDataInput implements Component {
 		this.__paymentPaypalTest = locator.usageTestController.getTest("payment.paypal")
 
 		this.invoiceAddressComponent = new HtmlEditor()
-			.setMinHeight(120)
+			.setStaticNumberOfLines(5)
 			.showBorders()
 			.setPlaceholderId("invoiceAddress_label")
 			.setMode(HtmlEditorMode.HTML)

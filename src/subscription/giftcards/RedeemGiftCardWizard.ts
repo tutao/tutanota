@@ -5,7 +5,7 @@ import type { WizardPageAttrs, WizardPageN } from "../../gui/base/WizardDialog.j
 import { createWizardDialog, emitWizardEvent, WizardEventType, wizardPageWrapper } from "../../gui/base/WizardDialog.js"
 import { LoginController } from "../../api/main/LoginController"
 import type { NewAccountData } from "../UpgradeSubscriptionWizard"
-import { Dialog } from "../../gui/base/Dialog"
+import { Dialog, DialogType } from "../../gui/base/Dialog"
 import { LoginForm } from "../../login/LoginForm"
 import { CredentialsSelector } from "../../login/CredentialsSelector"
 import { showProgressDialog } from "../../gui/dialogs/ProgressDialog"
@@ -545,10 +545,15 @@ export async function loadRedeemGiftCardWizard(hashFromUrl: string): Promise<Dia
 			isEnabled: () => true,
 		}),
 	]
-	return createWizardDialog(model, wizardPages, async () => {
-		const urlParams = model.mailAddress ? { loginWith: model.mailAddress, noAutoLogin: true } : {}
-		m.route.set("/login", urlParams)
-	}).dialog
+	return createWizardDialog(
+		model,
+		wizardPages,
+		async () => {
+			const urlParams = model.mailAddress ? { loginWith: model.mailAddress, noAutoLogin: true } : {}
+			m.route.set("/login", urlParams)
+		},
+		DialogType.EditLarge,
+	).dialog
 }
 
 async function loadModel(hashFromUrl: string): Promise<RedeemGiftCardModel> {

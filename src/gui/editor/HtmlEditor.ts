@@ -14,6 +14,8 @@ export enum HtmlEditorMode {
 	WYSIWYG = "what you see is what you get",
 }
 
+export const HTML_EDITOR_LINE_HEIGHT: number = 24 // Height required for one line in the HTML editor
+
 export class HtmlEditor implements Component {
 	editor: Editor
 	private mode = HtmlEditorMode.WYSIWYG
@@ -28,9 +30,10 @@ export class HtmlEditor implements Component {
 	private modeSwitcherLabel: TranslationText | null = null
 	private toolbarEnabled = false
 	private toolbarAttrs: Omit<RichTextToolbarAttrs, "editor"> = {}
+	private staticLineAmount: number | null = null // Static amount of lines the editor shall allow at all times
 
 	constructor(private label?: TranslationText, private readonly injections?: () => Children) {
-		this.editor = new Editor(null, (html) => htmlSanitizer.sanitizeFragment(html, { blockExternalContent: false }).fragment)
+		this.editor = new Editor(null, (html) => htmlSanitizer.sanitizeFragment(html, { blockExternalContent: false }).fragment, null)
 		this.view = this.view.bind(this)
 		this.initializeEditorListeners()
 	}
@@ -39,8 +42,8 @@ export class HtmlEditor implements Component {
 		const modeSwitcherLabel = this.modeSwitcherLabel
 		let borderClasses = this._showBorders
 			? this.active && this.editor.isEnabled()
-				? ".editor-border-active"
-				: ".editor-border" + (modeSwitcherLabel != null ? ".editor-no-top-border" : "")
+				? ".editor-border-active.border-radius"
+				: ".editor-border.border-radius." + (modeSwitcherLabel != null ? ".editor-no-top-border" : "")
 			: ""
 
 		const renderedInjections = this.injections?.() ?? null
@@ -114,10 +117,16 @@ export class HtmlEditor implements Component {
 										this.domTextArea.style.height = this.domTextArea.scrollHeight + "px"
 									}
 								},
-								style: {
-									"font-family": this.htmlMonospace ? "monospace" : "inherit",
-									"min-height": this.minHeight ? px(this.minHeight) : "initial",
-								},
+								style: this.staticLineAmount
+									? {
+											"max-height": px(this.staticLineAmount * HTML_EDITOR_LINE_HEIGHT),
+											"min-height": px(this.staticLineAmount * HTML_EDITOR_LINE_HEIGHT),
+											overflow: "scroll",
+									  }
+									: {
+											"font-family": this.htmlMonospace ? "monospace" : "inherit",
+											"min-height": this.minHeight ? px(this.minHeight) : "initial",
+									  },
 								disabled: !this.editor.isEnabled(),
 								readonly: this.editor.isReadOnly(),
 							}),
@@ -161,6 +170,17 @@ export class HtmlEditor implements Component {
 	setMinHeight(height: number): HtmlEditor {
 		this.minHeight = height
 		this.editor.setMinHeight(height)
+		return this
+	}
+
+	/**
+	 * Sets a static amount 'n' of lines the Editor should always render/allow.
+	 * When using n+1 lines, the editor will instead begin to be scrollable.
+	 * Currently, this overwrites min-height.
+	 */
+	setStaticNumberOfLines(numberOfLines: number): HtmlEditor {
+		this.staticLineAmount = numberOfLines
+		this.editor.setStaticNumberOfLines(numberOfLines)
 		return this
 	}
 
