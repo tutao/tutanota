@@ -11,13 +11,12 @@ import { getPreconditionFailedPaymentMsg, UpgradeType } from "./SubscriptionUtil
 import type { WizardPageAttrs, WizardPageN } from "../gui/base/WizardDialog.js"
 import { emitWizardEvent, WizardEventType } from "../gui/base/WizardDialog.js"
 import { TextField } from "../gui/base/TextField.js"
-import { ofClass } from "@tutao/tutanota-utils"
+import { base64ExtToBase64, base64ToUint8Array, ofClass } from "@tutao/tutanota-utils"
 import { locator } from "../api/main/MainLocator"
 import { SwitchAccountTypeService } from "../api/entities/sys/Services"
 import { UsageTest } from "@tutao/tutanota-usagetests"
 import { getDisplayNameOfPlanType, SelectedSubscriptionOptions } from "./FeatureListProvider"
 import { LoginButton } from "../gui/base/buttons/LoginButton.js"
-import { isIOSApp } from "../api/common/Env"
 import { MobilePaymentResultType } from "../native/common/generatedipc/MobilePaymentResultType"
 import { updatePaymentData } from "./InvoiceAndPaymentDataPage"
 
@@ -39,7 +38,12 @@ export class UpgradeConfirmSubscriptionPage implements WizardPageN<UpgradeSubscr
 
 	private async upgrade(data: UpgradeSubscriptionData) {
 		if (data.paymentData.paymentMethod === PaymentMethodType.AppStore) {
-			let result = await locator.mobilePaymentsFacade.requestSubscriptionToPlan(PlanTypeToName[data.type].toLowerCase(), data.options.paymentInterval())
+			const customerIdBytes = base64ToUint8Array(base64ExtToBase64(data.customer!._id))
+			let result = await locator.mobilePaymentsFacade.requestSubscriptionToPlan(
+				PlanTypeToName[data.type].toLowerCase(),
+				data.options.paymentInterval(),
+				customerIdBytes,
+			)
 			if (result.result !== MobilePaymentResultType.Success) {
 				return
 			}
