@@ -113,8 +113,12 @@ pipeline {
 							build job: 'tutanota-3-ios', parameters: params.generateReleaseNotes ? [
 								booleanParam(name: "RELEASE", value: !params.dryRun),
 								text(name: "releaseNotes", value: releaseNotes.ios),
+								booleanParam(name: "STAGING", value: true),
+								booleanParam(name: "PROD", value: true),
 							] : [
 								booleanParam(name: "RELEASE", value: !params.dryRun),
+								booleanParam(name: "STAGING", value: true),
+								booleanParam(name: "PROD", value: true),
 							]
 						} // script
 					} // steps
