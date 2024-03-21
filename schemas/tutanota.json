@@ -280,6 +280,16 @@
 					"info": "AddValue InternalGroupData/ownerKeyVersion/1416."
 				},
 				{
+					"name": "RemoveValue",
+					"sourceType": "SecureExternalRecipientKeyData",
+					"info": "RemoveValue SecureExternalRecipientKeyData/symEncBucketKey/535."
+				},
+				{
+					"name": "ChangeValueCardinality",
+					"sourceType": "SecureExternalRecipientKeyData",
+					"info": "ChangeValueCardinality SecureExternalRecipientKeyData/ownerEncBucketKey/One."
+				},
+				{
 					"name": "AddValue",
 					"sourceType": "SecureExternalRecipientKeyData",
 					"info": "AddValue SecureExternalRecipientKeyData/ownerKeyVersion/1417."

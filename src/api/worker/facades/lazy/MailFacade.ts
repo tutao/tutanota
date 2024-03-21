@@ -688,7 +688,6 @@ export class MailFacade {
 				const ownerEncBucketKey = encryptKeyWithVersionedKey(externalGroupKeys.externalMailGroupKey, bucketKey)
 				const data = createSecureExternalRecipientKeyData({
 					mailAddress: recipient.address,
-					symEncBucketKey: null, // legacy for old permission system, not used anymore
 					kdfVersion: kdfType,
 					ownerEncBucketKey: ownerEncBucketKey.key,
 					ownerKeyVersion: ownerEncBucketKey.encryptingKeyVersion.toString(),

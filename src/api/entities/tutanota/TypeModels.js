@@ -7114,7 +7114,7 @@ export const typeModels = {
                 "id": 599,
                 "since": 13,
                 "type": "Bytes",
-                "cardinality": "ZeroOrOne",
+                "cardinality": "One",
                 "encrypted": false
             },
             "ownerKeyVersion": {
@@ -7157,15 +7157,6 @@ export const typeModels = {
                 "final": true,
                 "name": "saltHash",
                 "id": 539,
-                "since": 11,
-                "type": "Bytes",
-                "cardinality": "ZeroOrOne",
-                "encrypted": false
-            },
-            "symEncBucketKey": {
-                "final": true,
-                "name": "symEncBucketKey",
-                "id": 535,
                 "since": 11,
                 "type": "Bytes",
                 "cardinality": "ZeroOrOne",
