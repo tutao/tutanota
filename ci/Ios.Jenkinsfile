@@ -16,6 +16,14 @@ pipeline {
 			description: "Build testing and production version, and upload them to nexus/testflight/appstore. " +
 				"The production version will need to be released manually from appstoreconnect.apple.com."
 		)
+		booleanParam(
+			name: 'PROD',
+			defaultValue: true
+		)
+		booleanParam(
+			name: 'STAGING',
+			defaultValue: true
+		)
 		persistentText(
 			name: "releaseNotes",
 			defaultValue: "",
@@ -61,6 +69,9 @@ pipeline {
 			}
 			stages {
 				stage('Staging') {
+					when {
+						expression { params.STAGING }
+					}
 					steps {
 						script {
 							buildWebapp("test")
@@ -73,6 +84,9 @@ pipeline {
 					}
 				}
 				stage('Production') {
+					when {
+						expression { params.PROD }
+					}
 					steps {
 						script {
 							buildWebapp("prod")
@@ -100,13 +114,16 @@ pipeline {
 			}
 			steps {
 				script {
-
-					unstash 'ipa-testing'
-					unstash 'ipa-production'
-
-					script {
+					if (params.STAGING) {
+						unstash 'ipa-testing'
 						catchError(stageResult: 'UNSTABLE', buildResult: 'SUCCESS', message: 'There was an error when uploading to Nexus') {
 							publishToNexus("ios-test", "tutanota-${VERSION}-adhoc-test.ipa")
+						}
+					}
+
+					if (params.PROD) {
+						unstash 'ipa-production'
+						catchError(stageResult: 'UNSTABLE', buildResult: 'SUCCESS', message: 'There was an error when uploading to Nexus') {
 							publishToNexus("ios", "tutanota-${VERSION}-adhoc.ipa")
 						}
 					}
