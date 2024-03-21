@@ -1753,13 +1753,12 @@ export type SecureExternalRecipientKeyData = {
 	autoTransmitPassword: null | string;
 	kdfVersion: NumberString;
 	mailAddress: string;
-	ownerEncBucketKey: null | Uint8Array;
+	ownerEncBucketKey: Uint8Array;
 	ownerKeyVersion: NumberString;
 	passwordVerifier: Uint8Array;
 	pwEncCommunicationKey: null | Uint8Array;
 	salt: null | Uint8Array;
 	saltHash: null | Uint8Array;
-	symEncBucketKey: null | Uint8Array;
 
 	passwordChannelPhoneNumbers: PasswordChannelPhoneNumber[];
 }
