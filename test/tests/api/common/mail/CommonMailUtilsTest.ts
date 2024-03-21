@@ -1,11 +1,7 @@
 import o from "@tutao/otest"
-import { createMail, createMailAddress, Mail, MailTypeRef } from "../../../../../src/api/entities/tutanota/TypeRefs.js"
+import { createMail, createMailAddress, Mail, MailAddressTypeRef, MailTypeRef } from "../../../../../src/api/entities/tutanota/TypeRefs.js"
 import { EncryptionAuthStatus, MailState } from "../../../../../src/api/common/TutanotaConstants.js"
 import { getDisplayedSender, isSystemNotification, isTutanotaTeamAddress, isTutanotaTeamMail } from "../../../../../src/api/common/mail/CommonMailUtils.js"
-import { createEncryptedMailAddress, Mail, MailAddressTypeRef, MailTypeRef } from "../../../../../src/api/entities/tutanota/TypeRefs.js"
-import { EncryptionAuthStatus, MailAuthenticationStatus, MailState } from "../../../../../src/api/common/TutanotaConstants.js"
-import { downcast } from "@tutao/tutanota-utils"
-import { getDisplayedSender, isTutanotaTeamAddress, MailAddressAndName } from "../../../../../src/api/common/mail/CommonMailUtils.js"
 import { createTestEntity } from "../../../TestUtils.js"
 import { getConfidentialIcon } from "../../../../../src/mail/model/MailUtils.js"
 import { Icons } from "../../../../../src/gui/base/icons/Icons.js"
@@ -16,7 +12,7 @@ o.spec("MailUtilsTest", function () {
 		return createTestEntity(MailTypeRef, {
 			...{
 				sender: createTestEntity(MailAddressTypeRef, { address: "system@tutanota.de", name: "System" }),
-			replyTos: [],
+				replyTos: [],
 				state: MailState.RECEIVED,
 				authStatus: null,
 				_errors: {},
