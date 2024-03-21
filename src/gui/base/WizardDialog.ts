@@ -128,7 +128,7 @@ class WizardDialog<T> implements Component<WizardDialogAttrs<T>> {
 			a.currentPage && a.currentPage.attrs.hideAllPagingButtons
 				? null
 				: m(
-						"nav#wizard-paging.flex-space-around.center-vertically.mb-s",
+						"nav#wizard-paging.flex-space-around.center-vertically.mb-s.plr-2l",
 						{
 							"aria-label": "Breadcrumb",
 						},
