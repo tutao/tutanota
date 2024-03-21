@@ -12,7 +12,7 @@ import { createGroupSettings } from "../../api/entities/tutanota/TypeRefs.js"
 import { defaultCalendarColor, GroupType, Keys, reverse, ShareCapability, TabIndex, TimeFormat, WeekStart } from "../../api/common/TutanotaConstants"
 import { locator } from "../../api/main/MainLocator"
 import { getStartOfTheWeekOffset, getStartOfTheWeekOffsetForUser, getTimeZone, getWeekNumber } from "../date/CalendarUtils"
-import { ButtonColor, ButtonType } from "../../gui/base/Button.js"
+import { ButtonColor } from "../../gui/base/Button.js"
 import { CalendarMonthView } from "./CalendarMonthView"
 import { DateTime } from "luxon"
 import { NotFoundError } from "../../api/common/error/RestError"
@@ -122,29 +122,7 @@ export class CalendarView extends BaseTopLevelView implements TopLevelView<Calen
 								SidebarSection,
 								{
 									name: "yourCalendars_label",
-									button: m(IconButton, {
-										title: "addCalendar_action",
-										colors: ButtonColor.Nav,
-										size: ButtonSize.Compact,
-										icon: Icons.Add,
-										click: () =>
-											createDropdown({
-												lazyButtons: () => [
-													{
-														label: "addCalendar_action",
-														icon: Icons.Add,
-														size: ButtonSize.Compact,
-														click: () => this.onPressedAddCalendar(),
-													},
-													{
-														label: "subscribeCalendarPerUrl_action",
-														icon: Icons.Add,
-														size: ButtonSize.Compact,
-														click: () => this.onPressedSubscribeCalendarPerUrl(),
-													},
-												],
-											}),
-									}),
+									button: this.getButton(),
 								},
 								this.renderCalendars(false),
 							),
@@ -345,6 +323,32 @@ export class CalendarView extends BaseTopLevelView implements TopLevelView<Calen
 				listener.end(true)
 			}
 		}
+	}
+
+	private getButton() {
+		return m(IconButton, {
+			title: "addCalendar_action",
+			colors: ButtonColor.Nav,
+			size: ButtonSize.Compact,
+			icon: Icons.Add,
+			click: () => this.onPressedSubscribeCalendarPerUrl(),
+			// createDropdown({
+			// 	lazyButtons: () => [
+			// 		{
+			// 			label: "addCalendar_action",
+			// 			icon: Icons.Add,
+			// 			size: ButtonSize.Compact,
+			// 			click: () => this.onPressedAddCalendar(),
+			// 		},
+			// 		{
+			// 			label: "subscribeCalendarPerUrl_action",
+			// 			icon: Icons.Add,
+			// 			size: ButtonSize.Compact,
+			// 			click: () => this.onPressedSubscribeCalendarPerUrl(),
+			// 		},
+			// 	],
+			// }),
+		})
 	}
 
 	private renderDesktopToolbar(): Children {

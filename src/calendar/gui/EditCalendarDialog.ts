@@ -40,7 +40,7 @@ export function showEditCalendarDialog(
 							colorStream(target.value)
 						},
 					}),
-					iCalSubscriptionUrl ? renderICalSubscriptionUrlField(iCalSubscriptionUrl) : null,
+					iCalSubscriptionUrl != null ? renderICalSubscriptionUrlField(iCalSubscriptionUrl) : null,
 				]),
 		},
 		okActionTextId: okTextId,

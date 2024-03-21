@@ -56,7 +56,7 @@ export type CalendarInfo = {
 	groupInfo: GroupInfo
 	group: Group
 	shared: boolean
-	subscribedPerUrl: boolean
+	//subscribedPerUrl: boolean
 }
 
 export class CalendarModel {
@@ -216,7 +216,7 @@ export class CalendarModel {
 				group: group._id,
 				color: color,
 				name: null,
-				iCalSubscriptionUrl: iCalSubscriptionUrl,
+				//iCalSubscriptionUrl: iCalSubscriptionUrl,
 			})
 			userSettingsGroupRoot.groupSettings.push(newGroupSettings)
 			await this.entityClient.update(userSettingsGroupRoot)
