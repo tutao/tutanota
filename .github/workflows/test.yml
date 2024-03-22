@@ -9,14 +9,29 @@ jobs:
   test:
     runs-on: ubuntu-latest
 
+    permissions:
+      actions: none
+      checks: none
+      contents: read
+      deployments: none
+      id-token: none
+      issues: none
+      discussions: none
+      packages: none
+      pages: none
+      pull-requests: none
+      repository-projects: none
+      security-events: none
+      statuses: none
+
     strategy:
       matrix:
         node-version: [ 20.11.1 ]
 
     steps:
-      - uses: actions/checkout@v3
+      - uses: actions/checkout@b4ffde65f46336ab88eb53be808477a3936bae11 #v4.1.1
       - name: Use Node.js ${{ matrix.node-version }}
-        uses: actions/setup-node@v3
+        uses: actions/setup-node@60edb5dd545a775178f52524783378180af0d1f8 #v4.0.2
         with:
           node-version: ${{ matrix.node-version }}
           cache: 'npm'
@@ -25,7 +40,7 @@ jobs:
         run: |
           echo "better_sqlite3_path=$(node buildSrc/getNativeCacheLocation.js better-sqlite3)" >> $GITHUB_ENV
       - name: try to use cached better-sqlite3
-        uses: actions/cache@v3
+        uses: actions/cache@0c45773b623bea8c8e75f6c82b208c3cf94ea4f9 #v4.0.2
         with:
           path: ${{ env.better_sqlite3_path }}
           key: ${{ env.better_sqlite3_path }}
@@ -40,7 +55,7 @@ jobs:
           npm run test-ci
       - name: install chrome
         id: setup-chrome
-        uses: browser-actions/setup-chrome@v1
+        uses: browser-actions/setup-chrome@97349de5c98094d4fc9412f31c524d7697115ad8 #v1.5.0
         with:
           chrome-version: stable
       - name: run test in browser
