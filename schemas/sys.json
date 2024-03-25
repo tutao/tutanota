@@ -258,6 +258,11 @@
 					"name": "AddValue",
 					"sourceType": "ReceivedGroupInvitation",
 					"info": "AddValue ReceivedGroupInvitation/sharedGroupKeyVersion/2280."
+				},
+				{
+					"name": "AddValue",
+					"sourceType": "RecoverCode",
+					"info": "AddValue RecoverCode/userKeyVersion/2281."
 				}
 			]
 		}

@@ -1085,10 +1085,3 @@ export class LoginFacade {
 		}
 	}
 }
-
-export type RecoverData = {
-	userEncRecoverCode: Uint8Array
-	recoverCodeEncUserGroupKey: Uint8Array
-	hexCode: Hex
-	recoveryCodeVerifier: Uint8Array
-}

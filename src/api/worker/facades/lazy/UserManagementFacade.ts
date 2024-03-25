@@ -10,11 +10,10 @@ import {
 	RecoverCodeTypeRef,
 } from "../../../entities/sys/TypeRefs.js"
 import { encryptBytes, encryptKeyWithVersionedKey, encryptString, VersionedEncryptedKey, VersionedKey } from "../../crypto/CryptoFacade.js"
-import { assertNotNull, neverNull, uint8ArrayToHex } from "@tutao/tutanota-utils"
+import { assertNotNull, type Hex, neverNull, uint8ArrayToHex } from "@tutao/tutanota-utils"
 import type { UserAccountUserData } from "../../../entities/tutanota/TypeRefs.js"
 import { createUserAccountCreateData, createUserAccountUserData } from "../../../entities/tutanota/TypeRefs.js"
 import type { GroupManagementFacade } from "./GroupManagementFacade.js"
-import type { RecoverData } from "../LoginFacade.js"
 import { LoginFacade } from "../LoginFacade.js"
 import { CounterFacade } from "./CounterFacade.js"
 import { assertWorkerOrNode } from "../../../common/Env.js"
@@ -37,8 +36,17 @@ import { UserFacade } from "../UserFacade.js"
 import { ExposedOperationProgressTracker, OperationId } from "../../../main/OperationProgressTracker.js"
 import { PQFacade } from "../PQFacade.js"
 import { freshVersioned } from "@tutao/tutanota-utils/dist/Utils.js"
+import { KeyLoaderFacade } from "../KeyLoaderFacade.js"
 
 assertWorkerOrNode()
+
+export type RecoverData = {
+	userEncRecoverCode: Uint8Array
+	userKeyVersion: number
+	recoverCodeEncUserGroupKey: Uint8Array
+	hexCode: Hex
+	recoveryCodeVerifier: Uint8Array
+}
 
 export class UserManagementFacade {
 	constructor(
@@ -49,7 +57,8 @@ export class UserManagementFacade {
 		private readonly serviceExecutor: IServiceExecutor,
 		private readonly operationProgressTracker: ExposedOperationProgressTracker,
 		private readonly loginFacade: LoginFacade,
-		private readonly pqFacade: PQFacade = pqFacade,
+		private readonly pqFacade: PQFacade,
+		private readonly keyLoaderFacade: KeyLoaderFacade,
 	) {}
 
 	async changeUserPassword(user: User, newPassword: string): Promise<void> {
@@ -231,7 +240,7 @@ export class UserManagementFacade {
 				mailAddress,
 				password,
 				name,
-				this.generateRecoveryCode(userGroupKey.object),
+				this.generateRecoveryCode(userGroupKey),
 			),
 		})
 		await this.serviceExecutor.post(UserAccountService, data)
@@ -314,13 +323,14 @@ export class UserManagementFacade {
 
 	// always pass the current user group key. if the key is rotated, the recovery code must be reencrypted.
 	// If we don't reencrypt, we can store the user group key version to be able to find out who ever had access to it
-	generateRecoveryCode(userGroupKey: AesKey): RecoverData {
+	generateRecoveryCode(userGroupKey: VersionedKey): RecoverData {
 		const recoveryCode = aes256RandomKey()
-		const userEncRecoverCode = encryptKey(userGroupKey, recoveryCode)
-		const recoverCodeEncUserGroupKey = encryptKey(recoveryCode, userGroupKey)
+		const userEncRecoverCode = encryptKey(userGroupKey.object, recoveryCode)
+		const recoverCodeEncUserGroupKey = encryptKey(recoveryCode, userGroupKey.object)
 		const recoveryCodeVerifier = createAuthVerifier(recoveryCode)
 		return {
 			userEncRecoverCode,
+			userKeyVersion: userGroupKey.version,
 			recoverCodeEncUserGroupKey,
 			hexCode: uint8ArrayToHex(bitArrayToUint8Array(recoveryCode)),
 			recoveryCodeVerifier,
@@ -345,7 +355,8 @@ export class UserManagementFacade {
 		}
 
 		const recoveryCodeEntity = await this.entityClient.load(RecoverCodeTypeRef, recoverCodeId, undefined, extraHeaders)
-		return uint8ArrayToHex(bitArrayToUint8Array(decryptKey(this.userFacade.getUserGroupKey().object, recoveryCodeEntity.userEncRecoverCode)))
+		const userGroupKey = await this.keyLoaderFacade.loadSymUserGroupKey(Number(recoveryCodeEntity.userKeyVersion))
+		return uint8ArrayToHex(bitArrayToUint8Array(decryptKey(userGroupKey, recoveryCodeEntity.userEncRecoverCode)))
 	}
 
 	async createRecoveryCode(passphrase: string): Promise<string> {
@@ -355,11 +366,12 @@ export class UserManagementFacade {
 			throw new Error("Invalid state: no user or no user.auth")
 		}
 
-		const { userEncRecoverCode, recoverCodeEncUserGroupKey, hexCode, recoveryCodeVerifier } = this.generateRecoveryCode(
-			this.userFacade.getUserGroupKey().object,
+		const { userEncRecoverCode, userKeyVersion, recoverCodeEncUserGroupKey, hexCode, recoveryCodeVerifier } = this.generateRecoveryCode(
+			this.userFacade.getUserGroupKey(),
 		)
 		const recoverPasswordEntity = createRecoverCode({
 			userEncRecoverCode: userEncRecoverCode,
+			userKeyVersion: String(userKeyVersion),
 			recoverCodeEncUserGroupKey: recoverCodeEncUserGroupKey,
 			_ownerGroup: this.userFacade.getUserGroupId(),
 			verifier: recoveryCodeVerifier,
