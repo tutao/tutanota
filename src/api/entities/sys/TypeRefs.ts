@@ -3017,7 +3017,6 @@ export type User = {
 	kdfVersion: NumberString;
 	requirePasswordUpdate: boolean;
 	salt: null | Uint8Array;
-	userEncClientKey: Uint8Array;
 	verifier: Uint8Array;
 
 	alarmInfoList:  null | UserAlarmInfoListType;

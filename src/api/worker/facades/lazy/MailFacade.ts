@@ -831,7 +831,6 @@ export class MailFacade {
 		const externalMailGroupKey = freshVersioned(aes256RandomKey())
 		const externalUserGroupInfoSessionKey = aes256RandomKey()
 		const externalMailGroupInfoSessionKey = aes256RandomKey()
-		const clientKey = aes256RandomKey()
 		const tutanotaPropertiesSessionKey = aes256RandomKey()
 		const mailboxSessionKey = aes256RandomKey()
 		const userEncEntropy = encryptBytes(externalUserGroupKey.object, random.generateRandomData(32))
@@ -843,8 +842,6 @@ export class MailFacade {
 			internalUserEncUserGroupKey: internalUserEncGroupKey.key,
 			internalUserGroupKeyVersion: internalUserEncGroupKey.encryptingKeyVersion.toString(),
 		})
-
-		const userEncClientKey = encryptKeyWithVersionedKey(externalUserGroupKey, clientKey)
 
 		const externalUserEncUserGroupInfoSessionKey = encryptKeyWithVersionedKey(externalUserGroupKey, externalUserGroupInfoSessionKey)
 		const externalUserEncMailGroupKey = encryptKeyWithVersionedKey(externalUserGroupKey, externalMailGroupKey.object)
@@ -858,7 +855,6 @@ export class MailFacade {
 
 		const d = createExternalUserData({
 			verifier: verifier,
-			userEncClientKey: userEncClientKey.key,
 			userGroupData: userGroupData,
 			kdfVersion: KdfType.Bcrypt,
 

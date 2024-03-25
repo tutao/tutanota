@@ -325,6 +325,11 @@
 					"info": "AddValue UserAccountUserData/customerKeyVersion/1428."
 				},
 				{
+					"name": "RemoveValue",
+					"sourceType": "UserAccountUserData",
+					"info": "RemoveValue UserAccountUserData/userEncClientKey/628."
+				},
+				{
 					"name": "AddValue",
 					"sourceType": "DraftAttachment",
 					"info": "AddValue DraftAttachment/ownerKeyVersion/1437."

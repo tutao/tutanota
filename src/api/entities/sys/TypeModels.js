@@ -12233,15 +12233,6 @@ export const typeModels = {
                 "cardinality": "ZeroOrOne",
                 "encrypted": false
             },
-            "userEncClientKey": {
-                "final": true,
-                "name": "userEncClientKey",
-                "id": 89,
-                "since": 1,
-                "type": "Bytes",
-                "cardinality": "One",
-                "encrypted": false
-            },
             "verifier": {
                 "final": true,
                 "name": "verifier",
