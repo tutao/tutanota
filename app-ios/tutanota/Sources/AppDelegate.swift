@@ -48,7 +48,7 @@ import TutanotaSharedFramework
 		let credentialsEncryption = IosNativeCredentialsFacade(
 			keychainManager: keychainManager,
 			credentialsDb: credentialsDb,
-			userDefaults: UserDefaults(suiteName: "group.de.tutao.tutanota")!
+			userDefaults: UserDefaults(suiteName: TUTANOTA_APP_GROUP)!
 		)
 
 		self.viewController = ViewController(

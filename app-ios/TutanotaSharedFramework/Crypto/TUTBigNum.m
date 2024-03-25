@@ -2,7 +2,7 @@
 #import <openssl/bn.h>
 
 @implementation TUTBigNum
-+ (void)toBIGNUM:(BIGNUM *) number fromB64:(NSString*)value{
++ (void)toBIGNUM:(const BIGNUM *) number fromB64:(NSString*)value{
   NSData *valueData =  [[NSData alloc] initWithBase64EncodedString:value options: 0];
   BN_bin2bn((unsigned char *) [valueData bytes], (int) [valueData length], number);
 }

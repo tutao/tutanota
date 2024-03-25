@@ -17,14 +17,14 @@ class NotificationService: UNNotificationServiceExtension {
 			let credentialsEncryption = IosNativeCredentialsFacade(
 				keychainManager: keychainManager,
 				credentialsDb: credentialsDb,
-				userDefaults: UserDefaults(suiteName: "group.de.tutao.tutanota")!
+				userDefaults: UserDefaults(suiteName: TUTANOTA_APP_GROUP)!
 			)
 
 			let mailId = bestAttemptContent.userInfo["mailId"] as? [String]
 			let userId = bestAttemptContent.userInfo["userId"] as? String
 
 			let record = try! credentialsDb.getAll().first {
-				$0.credentialInfo.userId == userId
+				$0.credentialsInfo.userId == userId
 			}
 			let accessToken = record?.accessToken ?? ""
 

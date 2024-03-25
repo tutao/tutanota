@@ -1,23 +1,30 @@
 import Foundation
+import UIKit
 
-let TUTANOTA_APP_GROUP = "group.de.tutao.tutanota"
-let TUTANOTA_SHARE_SCHEME = "tutashare"
+public let TUTANOTA_APP_GROUP = "group." + (Bundle.main.bundleIdentifier ?? "")
+public let TUTANOTA_SHARE_SCHEME = "tutashare"
 
 /// this gets shared to the main app and contains all the info
 /// to create a new mail & the cleanup
-struct SharingInfo: Codable {
+public struct SharingInfo: Codable {
 	/// this is the key that the information is stored under in the
 	/// UserDefaults and on disk
-	var identifier: String
+	public var identifier: String
 	/// body text of new mail
-	var text: String
+	public var text: String
 	/// files to attach
-	var fileUrls: [URL]
+	public var fileUrls: [URL]
+
+	public init(identifier: String, text: String, fileUrls: [URL]) {
+		self.identifier = identifier
+		self.text = text
+		self.fileUrls = fileUrls
+	}
 }
 
 /// different errors that can happen when trying to load, convert and write
 /// shared items to the app group storage
-enum SharingError: Error {
+public enum SharingError: Error {
 	case failedToLoad
 	case failedToWrite
 	case failedToRead
@@ -25,13 +32,13 @@ enum SharingError: Error {
 
 /// different types of items are shared under different names
 /// ident identifies the type, content the associated data
-enum SharedItem {
+public enum SharedItem {
 	case fileUrl(ident: String, content: URL)
 	case image(ident: String, content: UIImage)
 	case text(ident: String, content: String)
 	case contact(ident: String, content: String)
 
-	func ident() -> String {
+	public func ident() -> String {
 		switch self {
 		case .fileUrl(ident: let ident, content: _), .text(ident: let ident, content: _), .contact(ident: let ident, content: _),
 			.image(ident: let ident, content: _):
@@ -43,7 +50,7 @@ enum SharedItem {
 /// there is a bunch of uniform type identifiers that can be set by the sharing app. it's not clear what's available,
 /// but there are some constants defined available with "import UniformTypeIdentifiers".
 /// note that these are mentioned explicitly in the info.plist of the extension
-@MainActor func loadSharedItemWith(ident: String, fromAttachment: NSItemProvider) async -> SharedItem? {
+@MainActor public func loadSharedItemWith(ident: String, fromAttachment: NSItemProvider) async -> SharedItem? {
 	switch ident {
 	case "public.png", "public.jpeg", "public.tiff",  // shared from photos
 		"public.file-url"  // shared from files
@@ -72,7 +79,7 @@ enum SharedItem {
 }
 
 /// write a single file to a subdirectory in the shared storage of the app group
-func writeToSharedStorage(subdir: String, name: String, content: Data) throws -> URL {
+public func writeToSharedStorage(subdir: String, name: String, content: Data) throws -> URL {
 	guard let sharedURL = try? FileUtils.ensureSharedStorage(inSubdir: subdir) else {
 		TUTSLog("failed to ensure sharing directory for this request")
 		throw SharingError.failedToWrite
@@ -90,7 +97,7 @@ func writeToSharedStorage(subdir: String, name: String, content: Data) throws ->
 /// returning a new list of URLs pointing to the new locations
 /// file URLs pointing to directories lead to zipped directories and are appended to the list
 /// any files or directories that fail to be copied are ignored and omitted from the return value
-func copyToSharedStorage(subdir: String, fileUrls: [URL]) async throws -> [URL] {
+public func copyToSharedStorage(subdir: String, fileUrls: [URL]) async throws -> [URL] {
 	var newLocations: [URL] = []
 	for fileUrl in fileUrls {
 		let isDirectory: Bool = (try? fileUrl.resourceValues(forKeys: [.isDirectoryKey]))?.isDirectory == true
@@ -135,7 +142,7 @@ func zipSharedStorageFile(fileUrl: URL, subdir: String) -> URL? {
 }
 
 /// write the text and file paths for this share request to shared UserDefaults
-func writeSharingInfo(info: SharingInfo, infoLocation: String) throws {
+public func writeSharingInfo(info: SharingInfo, infoLocation: String) throws {
 	let encoder = JSONEncoder()
 	encoder.outputFormatting = .prettyPrinted
 	let jsonData = try encoder.encode(info)
@@ -145,7 +152,7 @@ func writeSharingInfo(info: SharingInfo, infoLocation: String) throws {
 
 /// read the information needed to create a mail editor from a share request
 /// from the shared UserDefaults
-func readSharingInfo(infoLocation: String) -> SharingInfo? {
+public func readSharingInfo(infoLocation: String) -> SharingInfo? {
 	guard let defaults = try? getSharedDefaults() else { return nil }
 	defer { defaults.removeObject(forKey: infoLocation) }
 
@@ -170,7 +177,7 @@ private func getSharedDefaults() throws -> UserDefaults {
 }
 
 /// get a reasonably unique identifier for a sharing reuest to pass to the main app
-func getUniqueInfoLocation() -> String {
+public func getUniqueInfoLocation() -> String {
 
 	// returns a timestamp derived from the kernel's monotonic clock in microseconds.
 	// start time is arbitrary, does not increment while system is asleep.

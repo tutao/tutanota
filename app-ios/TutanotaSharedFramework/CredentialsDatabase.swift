@@ -41,7 +41,7 @@ public class CredentialsDatabase {
 
 			let databaseKey: String? = if case let .string(value) = sqlRow["databaseKey"] { value } else { nil }
 			return PersistedCredentials(
-				credentialInfo: credentialsInfo,
+				credentialsInfo: credentialsInfo,
 				accessToken: try sqlRow["accessToken"]!.asString(),
 				databaseKey: databaseKey,
 				encryptedPassword: try sqlRow["encryptedPassword"]!.asString()
@@ -58,8 +58,8 @@ public class CredentialsDatabase {
 				"""
 		)
 		.bindParams([
-			.string(value: credentials.credentialInfo.login), .string(value: credentials.credentialInfo.userId),
-			.string(value: credentials.credentialInfo.type.rawValue), .string(value: credentials.accessToken), databaseKey,
+			.string(value: credentials.credentialsInfo.login), .string(value: credentials.credentialsInfo.userId),
+			.string(value: credentials.credentialsInfo.type.rawValue), .string(value: credentials.accessToken), databaseKey,
 			.string(value: credentials.encryptedPassword),
 		])
 		.run()

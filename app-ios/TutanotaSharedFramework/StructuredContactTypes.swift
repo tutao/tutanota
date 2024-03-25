@@ -16,13 +16,13 @@ public enum ContactPhoneNumberType: String, Codable {
 	case custom = "5"
 }
 
-enum ContactCustomDateType: String, Codable {
+public enum ContactCustomDateType: String, Codable {
 	case anniversary = "0"
 	case other = "1"
 	case custom = "2"
 }
 
-enum ContactMessengerHandleType: String, Codable {
+public enum ContactMessengerHandleType: String, Codable {
 	case signal = "0"
 	case whatsapp = "1"
 	case telegram = "2"
@@ -31,7 +31,7 @@ enum ContactMessengerHandleType: String, Codable {
 	case custom = "5"
 }
 
-enum ContactRelationshipType: String, Codable {
+public enum ContactRelationshipType: String, Codable {
 	case parent = "0"
 	case brother = "1"
 	case sister = "2"
@@ -46,7 +46,7 @@ enum ContactRelationshipType: String, Codable {
 	case custom = "11"
 }
 
-enum ContactWebsiteType: String, Codable {
+public enum ContactWebsiteType: String, Codable {
 	case _private = "0"
 	case work = "1"
 	case other = "2"

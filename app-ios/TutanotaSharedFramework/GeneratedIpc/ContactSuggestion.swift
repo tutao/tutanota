@@ -1,7 +1,7 @@
 /* generated file, don't edit. */
 
 
-public struct NativeContact : Codable {
+public struct ContactSuggestion : Codable {
 	public init(
 		name: String,
 		mailAddress: String

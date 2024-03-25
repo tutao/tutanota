@@ -23,7 +23,7 @@ public class IosNativeCredentialsFacade: NativeCredentialsFacade {
 	public func store(_ credentials: PersistedCredentials) async throws { try self.credentialsDb.store(credentials: credentials) }
 	public func loadByUserId(_ id: String) async throws -> PersistedCredentials? {
 		let credentials = try self.credentialsDb.getAll()
-		return credentials.first { persistedCredentials in persistedCredentials.credentialInfo.userId == id }
+		return credentials.first { persistedCredentials in persistedCredentials.credentialsInfo.userId == id }
 	}
 	public func deleteByUserId(_ id: String) async throws { try self.credentialsDb.delete(userId: id) }
 	public func getCredentialEncryptionMode() async throws -> CredentialEncryptionMode? {

@@ -2,7 +2,7 @@ import CryptoKit
 import Foundation
 
 /// given a vcard, extract the value of the mandatory formatted name (FN) field or return a default of "contact"
-func extractFNfrom(vcard: String) -> String {
+public func extractFNfrom(vcard: String) -> String {
 	let fnRegex = try! NSRegularExpression(pattern: "^\\s*FN:(.*)$", options: .anchorsMatchLines.union(.caseInsensitive))
 	let match = fnRegex.firstMatch(in: vcard, range: NSRange(location: 0, length: (vcard as NSString).length))
 	if match != nil {
@@ -14,7 +14,7 @@ func extractFNfrom(vcard: String) -> String {
 }
 
 /// generate a file name for a blob of image data we got shared so we can share it as an image file
-func generateImageFileName(imageData: Data) -> String {
+public func generateImageFileName(imageData: Data) -> String {
 	let digest = SHA256.hash(data: imageData)
 	let hashStr = digest.compactMap { String(format: "%02x", $0) }.joined()
 	let sliceIndex = hashStr.index(hashStr.startIndex, offsetBy: 12)

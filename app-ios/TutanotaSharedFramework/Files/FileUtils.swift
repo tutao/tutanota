@@ -1,25 +1,25 @@
 import Foundation
 
-let FILES_ERROR_DOMAIN = "tutanota_files"
+public let FILES_ERROR_DOMAIN = "tutanota_files"
 let SHARED_CONTENT_DIRNAME = "shared-content"
 let ENCRYPTED_DIRNAME = "encrypted"
 let DECRYPTED_DIRNAME = "decrypted"
 
-class FileUtils {
+public class FileUtils {
 
 	/// temporary storage for encrypted files after download or before upload
 	/// - Returns path to folder with encrypted content
-	static func getEncryptedFolder() throws -> String { try Self.makeTempDir(name: ENCRYPTED_DIRNAME) }
+	public static func getEncryptedFolder() throws -> String { try Self.makeTempDir(name: ENCRYPTED_DIRNAME) }
 
 	/// temporary storage for decrypted files before displaying them or encrypting them
 	/// - Returns path to folder with decrypted content
-	static func getDecryptedFolder() throws -> String { try Self.makeTempDir(name: DECRYPTED_DIRNAME) }
+	public static func getDecryptedFolder() throws -> String { try Self.makeTempDir(name: DECRYPTED_DIRNAME) }
 
-	static func deleteFile(path: URL) throws { try FileManager.default.removeItem(at: path) }
+	public static func deleteFile(path: URL) throws { try FileManager.default.removeItem(at: path) }
 
 	/// deletes the shared-content folder in the shared app group container recursively,
 	/// removing any files that were copied there after bering shared by another app
-	static func deleteSharedStorage() throws {
+	public static func deleteSharedStorage() throws {
 		let sharedDir = try getAppGroupFolder()
 		try FileManager.default.removeItem(at: sharedDir.appendingPathComponent(SHARED_CONTENT_DIRNAME))
 		TUTSLog("deleted shared storage")
@@ -27,7 +27,7 @@ class FileUtils {
 
 	/// deletes a specific folder in the shared-content folder in the shared app group container recursively,
 	/// removing any files that were copied there after bering shared by another app
-	static func deleteSharedStorage(subDir: String) throws {
+	public static func deleteSharedStorage(subDir: String) throws {
 		let sharedDir = try getAppGroupFolder()
 		let dirToDelete = sharedDir.appendingPathComponent(SHARED_CONTENT_DIRNAME).appendingPathComponent(subDir)
 		try FileManager.default.removeItem(atPath: dirToDelete.path)
@@ -52,7 +52,7 @@ class FileUtils {
 
 	/// check if the given path points to a file on the file system.
 	/// the path must be an absolute path, not a file URL with file:// protocol.
-	static func fileExists(atPath path: String) -> Bool { FileManager.default.fileExists(atPath: path) }
+	public static func fileExists(atPath path: String) -> Bool { FileManager.default.fileExists(atPath: path) }
 
 	private static func makeTempDir(name: String) throws -> String {
 		let encryptedFolderPath = (NSTemporaryDirectory() as NSString).appendingPathComponent(name)

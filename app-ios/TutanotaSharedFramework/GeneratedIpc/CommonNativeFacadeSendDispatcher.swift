@@ -107,7 +107,7 @@ public class CommonNativeFacadeSendDispatcher : CommonNativeFacade {
 		return try! JSONDecoder().decode(String.self, from: returnValue.data(using: .utf8)!)
 		}
 	
-	func handleFileImport(
+	 public func handleFileImport(
 		_ filesUris: [String]
 	) async throws -> Void
 		{
