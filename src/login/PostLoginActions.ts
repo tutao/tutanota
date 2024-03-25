@@ -34,6 +34,7 @@ import { EntityClient } from "../api/common/EntityClient.js"
 import { shouldShowStorageWarning, shouldShowUpgradeReminder } from "./PostLoginUtils.js"
 import { UserManagementFacade } from "../api/worker/facades/lazy/UserManagementFacade.js"
 import { CustomerFacade } from "../api/worker/facades/lazy/CustomerFacade.js"
+import { deviceConfig } from "../misc/DeviceConfig"
 
 /**
  * This is a collection of all things that need to be initialized/global state to be set after a user has logged in successfully.
@@ -128,7 +129,16 @@ export class PostLoginActions implements PostLoginAction {
 		}
 
 		if (isApp() || isDesktop()) {
-			locator.pushService.register()
+			if ((isApp() && deviceConfig.getIsSetupComplete()) || isDesktop()) {
+				// Do not try to register for notifications while the setup dialog
+				// is being shown because we might not have a permission yet and
+				// we don't want to ask for it while dialog is shown, we will ask in
+				// the dialog anyway.
+				// After dialog is finished or dismissed the setup is "complete".
+				locator.pushService.register()
+			} else {
+				console.log("Skipping registering for notifications while setup dialog is shown")
+			}
 			await this.maybeSetCustomTheme()
 		}
 
