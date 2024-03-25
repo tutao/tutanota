@@ -9542,6 +9542,15 @@ export const typeModels = {
                 "cardinality": "One",
                 "encrypted": false
             },
+            "userKeyVersion": {
+                "final": true,
+                "name": "userKeyVersion",
+                "id": 2281,
+                "since": 96,
+                "type": "Number",
+                "cardinality": "One",
+                "encrypted": false
+            },
             "verifier": {
                 "final": true,
                 "name": "verifier",

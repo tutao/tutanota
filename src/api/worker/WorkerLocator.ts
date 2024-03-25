@@ -306,6 +306,7 @@ export async function initLocator(worker: WorkerImpl, browserData: BrowserData) 
 			mainInterface.operationProgressTracker,
 			locator.login,
 			locator.pqFacade,
+			locator.keyLoader,
 		)
 	})
 	locator.customer = lazyMemoized(async () => {

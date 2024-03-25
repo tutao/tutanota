@@ -50,7 +50,7 @@ import type { Country } from "../../../common/CountryList.js"
 import { getByAbbreviation } from "../../../common/CountryList.js"
 import { LockedError } from "../../../common/error/RestError.js"
 import type { PQKeyPairs } from "@tutao/tutanota-crypto"
-import { aes256RandomKey, bitArrayToUint8Array, encryptKey, hexToRsaPublicKey, sha256Hash, uint8ArrayToBitArray } from "@tutao/tutanota-crypto"
+import { aes256RandomKey, bitArrayToUint8Array, hexToRsaPublicKey, sha256Hash, uint8ArrayToBitArray } from "@tutao/tutanota-crypto"
 import type { RsaImplementation } from "../../crypto/RsaImplementation.js"
 import { EntityClient } from "../../../common/EntityClient.js"
 import { DataFile } from "../../../common/DataFile.js"
@@ -326,7 +326,7 @@ export class CustomerFacade {
 			customerGroupKey,
 		)
 
-		const recoverData = this.userManagement.generateRecoveryCode(userGroupKey.object)
+		const recoverData = this.userManagement.generateRecoveryCode(userGroupKey)
 
 		const userEncAdminGroupKey = encryptKeyWithVersionedKey(userGroupKey, adminGroupKey.object)
 		const adminEncAccountingInfoSessionKey = encryptKeyWithVersionedKey(adminGroupKey, accountingInfoSessionKey)

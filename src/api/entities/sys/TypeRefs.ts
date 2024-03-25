@@ -2315,6 +2315,7 @@ export type RecoverCode = {
 	_permissions: Id;
 	recoverCodeEncUserGroupKey: Uint8Array;
 	userEncRecoverCode: Uint8Array;
+	userKeyVersion: NumberString;
 	verifier: Uint8Array;
 }
 export const ReferralCodeGetInTypeRef: TypeRef<ReferralCodeGetIn> = new TypeRef("sys", "ReferralCodeGetIn")
