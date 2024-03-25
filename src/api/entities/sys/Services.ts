@@ -1,94 +1,92 @@
-import {AlarmServicePostTypeRef} from "./TypeRefs.js"
-import {AutoLoginDataGetTypeRef} from "./TypeRefs.js"
-import {AutoLoginDataReturnTypeRef} from "./TypeRefs.js"
-import {AutoLoginPostReturnTypeRef} from "./TypeRefs.js"
-import {AutoLoginDataDeleteTypeRef} from "./TypeRefs.js"
-import {BrandingDomainGetReturnTypeRef} from "./TypeRefs.js"
-import {BrandingDomainDataTypeRef} from "./TypeRefs.js"
-import {BrandingDomainDeleteDataTypeRef} from "./TypeRefs.js"
-import {ChangeKdfPostInTypeRef} from "./TypeRefs.js"
-import {ChangePasswordDataTypeRef} from "./TypeRefs.js"
-import {CloseSessionServicePostTypeRef} from "./TypeRefs.js"
-import {CreateCustomerServerPropertiesDataTypeRef} from "./TypeRefs.js"
-import {CreateCustomerServerPropertiesReturnTypeRef} from "./TypeRefs.js"
-import {CustomDomainCheckGetInTypeRef} from "./TypeRefs.js"
-import {CustomDomainCheckGetOutTypeRef} from "./TypeRefs.js"
-import {CustomDomainDataTypeRef} from "./TypeRefs.js"
-import {CustomDomainReturnTypeRef} from "./TypeRefs.js"
-import {CustomerAccountTerminationPostInTypeRef} from "./TypeRefs.js"
-import {CustomerAccountTerminationPostOutTypeRef} from "./TypeRefs.js"
-import {PublicKeyGetOutTypeRef} from "./TypeRefs.js"
-import {CustomerDataTypeRef} from "./TypeRefs.js"
-import {CustomerReturnTypeRef} from "./TypeRefs.js"
-import {DeleteCustomerDataTypeRef} from "./TypeRefs.js"
-import {DebitServicePutDataTypeRef} from "./TypeRefs.js"
-import {DomainMailAddressAvailabilityDataTypeRef} from "./TypeRefs.js"
-import {DomainMailAddressAvailabilityReturnTypeRef} from "./TypeRefs.js"
-import {ExternalPropertiesReturnTypeRef} from "./TypeRefs.js"
-import {GiftCardRedeemDataTypeRef} from "./TypeRefs.js"
-import {GiftCardRedeemGetReturnTypeRef} from "./TypeRefs.js"
-import {GiftCardGetReturnTypeRef} from "./TypeRefs.js"
-import {GiftCardCreateDataTypeRef} from "./TypeRefs.js"
-import {GiftCardCreateReturnTypeRef} from "./TypeRefs.js"
-import {GiftCardDeleteDataTypeRef} from "./TypeRefs.js"
-import {InvoiceDataGetInTypeRef} from "./TypeRefs.js"
-import {InvoiceDataGetOutTypeRef} from "./TypeRefs.js"
-import {LocationServiceGetReturnTypeRef} from "./TypeRefs.js"
-import {MailAddressAliasGetInTypeRef} from "./TypeRefs.js"
-import {MailAddressAliasServiceReturnTypeRef} from "./TypeRefs.js"
-import {MailAddressAliasServiceDataTypeRef} from "./TypeRefs.js"
-import {MailAddressAliasServiceDataDeleteTypeRef} from "./TypeRefs.js"
-import {MembershipAddDataTypeRef} from "./TypeRefs.js"
-import {MembershipRemoveDataTypeRef} from "./TypeRefs.js"
-import {MultipleMailAddressAvailabilityDataTypeRef} from "./TypeRefs.js"
-import {MultipleMailAddressAvailabilityReturnTypeRef} from "./TypeRefs.js"
-import {PaymentDataServiceGetDataTypeRef} from "./TypeRefs.js"
-import {PaymentDataServiceGetReturnTypeRef} from "./TypeRefs.js"
-import {PaymentDataServicePostDataTypeRef} from "./TypeRefs.js"
-import {PaymentDataServicePutDataTypeRef} from "./TypeRefs.js"
-import {PaymentDataServicePutReturnTypeRef} from "./TypeRefs.js"
-import {PdfInvoiceServiceDataTypeRef} from "./TypeRefs.js"
-import {PdfInvoiceServiceReturnTypeRef} from "./TypeRefs.js"
-import {PlanServiceGetOutTypeRef} from "./TypeRefs.js"
-import {PremiumFeatureDataTypeRef} from "./TypeRefs.js"
-import {PremiumFeatureReturnTypeRef} from "./TypeRefs.js"
-import {PriceServiceDataTypeRef} from "./TypeRefs.js"
-import {PriceServiceReturnTypeRef} from "./TypeRefs.js"
-import {PublicKeyGetInTypeRef} from "./TypeRefs.js"
-import {PublicKeyPutInTypeRef} from "./TypeRefs.js"
-import {ReferralCodeGetInTypeRef} from "./TypeRefs.js"
-import {ReferralCodePostInTypeRef} from "./TypeRefs.js"
-import {ReferralCodePostOutTypeRef} from "./TypeRefs.js"
-import {RegistrationCaptchaServiceGetDataTypeRef} from "./TypeRefs.js"
-import {RegistrationCaptchaServiceReturnTypeRef} from "./TypeRefs.js"
-import {RegistrationCaptchaServiceDataTypeRef} from "./TypeRefs.js"
-import {RegistrationServiceDataTypeRef} from "./TypeRefs.js"
-import {RegistrationReturnTypeRef} from "./TypeRefs.js"
-import {ResetFactorsDeleteDataTypeRef} from "./TypeRefs.js"
-import {ResetPasswordDataTypeRef} from "./TypeRefs.js"
-import {SaltDataTypeRef} from "./TypeRefs.js"
-import {SaltReturnTypeRef} from "./TypeRefs.js"
-import {SecondFactorAuthAllowedReturnTypeRef} from "./TypeRefs.js"
-import {SecondFactorAuthGetDataTypeRef} from "./TypeRefs.js"
-import {SecondFactorAuthGetReturnTypeRef} from "./TypeRefs.js"
-import {SecondFactorAuthDataTypeRef} from "./TypeRefs.js"
-import {SecondFactorAuthDeleteDataTypeRef} from "./TypeRefs.js"
-import {CreateSessionDataTypeRef} from "./TypeRefs.js"
-import {CreateSessionReturnTypeRef} from "./TypeRefs.js"
-import {SignOrderProcessingAgreementDataTypeRef} from "./TypeRefs.js"
-import {SwitchAccountTypePostInTypeRef} from "./TypeRefs.js"
-import {SystemKeysReturnTypeRef} from "./TypeRefs.js"
-import {TakeOverDeletedAddressDataTypeRef} from "./TypeRefs.js"
-import {UpdateAdminshipDataTypeRef} from "./TypeRefs.js"
-import {UpdatePermissionKeyDataTypeRef} from "./TypeRefs.js"
-import {UpdateSessionKeysPostInTypeRef} from "./TypeRefs.js"
-import {UpgradePriceServiceDataTypeRef} from "./TypeRefs.js"
-import {UpgradePriceServiceReturnTypeRef} from "./TypeRefs.js"
-import {UserDataTypeRef} from "./TypeRefs.js"
-import {UserReturnTypeRef} from "./TypeRefs.js"
-import {UserDataDeleteTypeRef} from "./TypeRefs.js"
-import {VersionDataTypeRef} from "./TypeRefs.js"
-import {VersionReturnTypeRef} from "./TypeRefs.js"
+import {
+	AlarmServicePostTypeRef,
+	AutoLoginDataDeleteTypeRef,
+	AutoLoginDataGetTypeRef,
+	AutoLoginDataReturnTypeRef,
+	AutoLoginPostReturnTypeRef,
+	BrandingDomainDataTypeRef,
+	BrandingDomainDeleteDataTypeRef,
+	BrandingDomainGetReturnTypeRef,
+	ChangeKdfPostInTypeRef,
+	ChangePasswordDataTypeRef,
+	CloseSessionServicePostTypeRef,
+	CreateCustomerServerPropertiesDataTypeRef,
+	CreateCustomerServerPropertiesReturnTypeRef,
+	CreateSessionDataTypeRef,
+	CreateSessionReturnTypeRef,
+	CustomDomainCheckGetInTypeRef,
+	CustomDomainCheckGetOutTypeRef,
+	CustomDomainDataTypeRef,
+	CustomDomainReturnTypeRef,
+	CustomerAccountTerminationPostInTypeRef,
+	CustomerAccountTerminationPostOutTypeRef,
+	DebitServicePutDataTypeRef,
+	DeleteCustomerDataTypeRef,
+	DomainMailAddressAvailabilityDataTypeRef,
+	DomainMailAddressAvailabilityReturnTypeRef,
+	ExternalPropertiesReturnTypeRef,
+	GiftCardCreateDataTypeRef,
+	GiftCardCreateReturnTypeRef,
+	GiftCardDeleteDataTypeRef,
+	GiftCardGetReturnTypeRef,
+	GiftCardRedeemDataTypeRef,
+	GiftCardRedeemGetReturnTypeRef,
+	InvoiceDataGetInTypeRef,
+	InvoiceDataGetOutTypeRef,
+	LocationServiceGetReturnTypeRef,
+	MailAddressAliasGetInTypeRef,
+	MailAddressAliasServiceDataDeleteTypeRef,
+	MailAddressAliasServiceDataTypeRef,
+	MailAddressAliasServiceReturnTypeRef,
+	MembershipAddDataTypeRef,
+	MembershipRemoveDataTypeRef,
+	MultipleMailAddressAvailabilityDataTypeRef,
+	MultipleMailAddressAvailabilityReturnTypeRef,
+	PaymentDataServiceGetDataTypeRef,
+	PaymentDataServiceGetReturnTypeRef,
+	PaymentDataServicePostDataTypeRef,
+	PaymentDataServicePutDataTypeRef,
+	PaymentDataServicePutReturnTypeRef,
+	PdfInvoiceServiceDataTypeRef,
+	PdfInvoiceServiceReturnTypeRef,
+	PlanServiceGetOutTypeRef,
+	PremiumFeatureDataTypeRef,
+	PremiumFeatureReturnTypeRef,
+	PriceServiceDataTypeRef,
+	PriceServiceReturnTypeRef,
+	PublicKeyGetInTypeRef,
+	PublicKeyGetOutTypeRef,
+	PublicKeyPutInTypeRef,
+	ReferralCodeGetInTypeRef,
+	ReferralCodePostInTypeRef,
+	ReferralCodePostOutTypeRef,
+	RegistrationCaptchaServiceDataTypeRef,
+	RegistrationCaptchaServiceGetDataTypeRef,
+	RegistrationCaptchaServiceReturnTypeRef,
+	RegistrationReturnTypeRef,
+	RegistrationServiceDataTypeRef,
+	ResetFactorsDeleteDataTypeRef,
+	ResetPasswordDataTypeRef,
+	SaltDataTypeRef,
+	SaltReturnTypeRef,
+	SecondFactorAuthAllowedReturnTypeRef,
+	SecondFactorAuthDataTypeRef,
+	SecondFactorAuthDeleteDataTypeRef,
+	SecondFactorAuthGetDataTypeRef,
+	SecondFactorAuthGetReturnTypeRef,
+	SignOrderProcessingAgreementDataTypeRef,
+	SwitchAccountTypePostInTypeRef,
+	SystemKeysReturnTypeRef,
+	TakeOverDeletedAddressDataTypeRef,
+	UpdateAdminshipDataTypeRef,
+	UpdatePermissionKeyDataTypeRef,
+	UpdateSessionKeysPostInTypeRef,
+	UpgradePriceServiceDataTypeRef,
+	UpgradePriceServiceReturnTypeRef,
+	UserDataDeleteTypeRef,
+	VersionDataTypeRef,
+	VersionReturnTypeRef
+} from "./TypeRefs.js"
 
 export const AlarmService = Object.freeze({
 	app: "sys",
@@ -193,7 +191,7 @@ export const CustomerService = Object.freeze({
 	app: "sys",
 	name: "CustomerService",
 	get: null,
-	post: {data: CustomerDataTypeRef, return: CustomerReturnTypeRef},
+	post: null,
 	put: null,
 	delete: {data: DeleteCustomerDataTypeRef, return: null},
 } as const)
@@ -499,7 +497,7 @@ export const UserService = Object.freeze({
 	app: "sys",
 	name: "UserService",
 	get: null,
-	post: {data: UserDataTypeRef, return: UserReturnTypeRef},
+	post: null,
 	put: null,
 	delete: {data: UserDataDeleteTypeRef, return: null},
 } as const)

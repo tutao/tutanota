@@ -1,6 +1,6 @@
-import { create, Stripped, StrippedEntity } from "../../common/utils/EntityUtils.js"
-import {TypeRef} from "@tutao/tutanota-utils"
-import {typeModels} from "./TypeModels.js"
+import { create, StrippedEntity } from "../../common/utils/EntityUtils.js"
+import { TypeRef } from "@tutao/tutanota-utils"
+import { typeModels } from "./TypeModels.js"
 
 
 export const AccountingInfoTypeRef: TypeRef<AccountingInfo> = new TypeRef("sys", "AccountingInfo")
@@ -610,40 +610,6 @@ export type CreateCustomerServerPropertiesReturn = {
 
 	id: Id;
 }
-export const CreateGroupDataTypeRef: TypeRef<CreateGroupData> = new TypeRef("sys", "CreateGroupData")
-
-export function createCreateGroupData(values: StrippedEntity<CreateGroupData>): CreateGroupData {
-	return Object.assign(create(typeModels.CreateGroupData, CreateGroupDataTypeRef), values)
-}
-
-export type CreateGroupData = {
-	_type: TypeRef<CreateGroupData>;
-
-	_id: Id;
-	adminEncGKey: Uint8Array;
-	customerEncUserGroupInfoSessionKey: null | Uint8Array;
-	encryptedName: Uint8Array;
-	listEncSessionKey: Uint8Array;
-	mailAddress: null | string;
-	pubKey: Uint8Array;
-	symEncGKey: Uint8Array;
-	symEncPrivKey: Uint8Array;
-}
-export const CreateGroupListDataTypeRef: TypeRef<CreateGroupListData> = new TypeRef("sys", "CreateGroupListData")
-
-export function createCreateGroupListData(values: StrippedEntity<CreateGroupListData>): CreateGroupListData {
-	return Object.assign(create(typeModels.CreateGroupListData, CreateGroupListDataTypeRef), values)
-}
-
-export type CreateGroupListData = {
-	_type: TypeRef<CreateGroupListData>;
-
-	_id: Id;
-	adminEncGroupInfoListKey: Uint8Array;
-	customerEncGroupInfoListKey: Uint8Array;
-
-	createGroupData:  null | CreateGroupData;
-}
 export const CreateSessionDataTypeRef: TypeRef<CreateSessionData> = new TypeRef("sys", "CreateSessionData")
 
 export function createCreateSessionData(values: StrippedEntity<CreateSessionData>): CreateSessionData {
@@ -834,34 +800,6 @@ export type CustomerAccountTerminationRequest = {
 
 	customer: Id;
 }
-export const CustomerDataTypeRef: TypeRef<CustomerData> = new TypeRef("sys", "CustomerData")
-
-export function createCustomerData(values: StrippedEntity<CustomerData>): CustomerData {
-	return Object.assign(create(typeModels.CustomerData, CustomerDataTypeRef), values)
-}
-
-export type CustomerData = {
-	_type: TypeRef<CustomerData>;
-
-	_format: NumberString;
-	accountingInfoBucketEncAccountingInfoSessionKey: Uint8Array;
-	adminEncAccountingInfoSessionKey: Uint8Array;
-	authToken: string;
-	company: string;
-	date: null | Date;
-	domain: string;
-	salt: Uint8Array;
-	symEncAccountGroupKey: Uint8Array;
-	systemCustomerPubEncAccountingInfoBucketKey: Uint8Array;
-	systemCustomerPubKeyVersion: NumberString;
-	userEncClientKey: Uint8Array;
-	verifier: Uint8Array;
-
-	adminGroupList: CreateGroupListData;
-	customerGroupList: CreateGroupListData;
-	teamGroupList: CreateGroupListData;
-	userGroupList: CreateGroupListData;
-}
 export const CustomerInfoTypeRef: TypeRef<CustomerInfo> = new TypeRef("sys", "CustomerInfo")
 
 export function createCustomerInfo(values: StrippedEntity<CustomerInfo>): CustomerInfo {
@@ -925,20 +863,6 @@ export type CustomerProperties = {
 	bigLogo:  null | File;
 	notificationMailTemplates: NotificationMailTemplate[];
 	smallLogo:  null | File;
-}
-export const CustomerReturnTypeRef: TypeRef<CustomerReturn> = new TypeRef("sys", "CustomerReturn")
-
-export function createCustomerReturn(values: StrippedEntity<CustomerReturn>): CustomerReturn {
-	return Object.assign(create(typeModels.CustomerReturn, CustomerReturnTypeRef), values)
-}
-
-export type CustomerReturn = {
-	_type: TypeRef<CustomerReturn>;
-
-	_format: NumberString;
-
-	adminUser: Id;
-	adminUserGroup: Id;
 }
 export const CustomerServerPropertiesTypeRef: TypeRef<CustomerServerProperties> = new TypeRef("sys", "CustomerServerProperties")
 
@@ -3168,25 +3092,6 @@ export type UserAuthentication = {
 	secondFactors: Id;
 	sessions: Id;
 }
-export const UserDataTypeRef: TypeRef<UserData> = new TypeRef("sys", "UserData")
-
-export function createUserData(values: StrippedEntity<UserData>): UserData {
-	return Object.assign(create(typeModels.UserData, UserDataTypeRef), values)
-}
-
-export type UserData = {
-	_type: TypeRef<UserData>;
-
-	_format: NumberString;
-	date: null | Date;
-	mobilePhoneNumber: string;
-	salt: Uint8Array;
-	userEncClientKey: Uint8Array;
-	userEncCustomerGroupKey: Uint8Array;
-	verifier: Uint8Array;
-
-	userGroupData:  null | CreateGroupData;
-}
 export const UserDataDeleteTypeRef: TypeRef<UserDataDelete> = new TypeRef("sys", "UserDataDelete")
 
 export function createUserDataDelete(values: StrippedEntity<UserDataDelete>): UserDataDelete {
@@ -3234,20 +3139,6 @@ export type UserGroupRoot = {
 	_permissions: Id;
 
 	invitations: Id;
-}
-export const UserReturnTypeRef: TypeRef<UserReturn> = new TypeRef("sys", "UserReturn")
-
-export function createUserReturn(values: StrippedEntity<UserReturn>): UserReturn {
-	return Object.assign(create(typeModels.UserReturn, UserReturnTypeRef), values)
-}
-
-export type UserReturn = {
-	_type: TypeRef<UserReturn>;
-
-	_format: NumberString;
-
-	user: Id;
-	userGroup: Id;
 }
 export const VariableExternalAuthInfoTypeRef: TypeRef<VariableExternalAuthInfo> = new TypeRef("sys", "VariableExternalAuthInfo")
 

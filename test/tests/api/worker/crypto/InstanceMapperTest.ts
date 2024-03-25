@@ -1,5 +1,5 @@
 import o from "@tutao/otest"
-import { UserReturn, UserReturnTypeRef } from "../../../../../src/api/entities/sys/TypeRefs.js"
+import { CustomerAccountTerminationRequest, CustomerAccountTerminationRequestTypeRef } from "../../../../../src/api/entities/sys/TypeRefs.js"
 import { aes256RandomKey, aesDecrypt, aesEncrypt, ENABLE_MAC, IV_BYTE_LENGTH, random } from "@tutao/tutanota-crypto"
 import { decryptValue, encryptValue, InstanceMapper } from "../../../../../src/api/worker/crypto/InstanceMapper.js"
 import { Cardinality, ValueType } from "../../../../../src/api/common/EntityConstants.js"
@@ -393,31 +393,45 @@ o.spec("InstanceMapper", function () {
 	})
 
 	o("map unencrypted to instance", async function () {
-		let userReturnLiteral = {
+		const dummyDate = new Date()
+		const customerAccountTerminationRequestLiteral = {
 			_format: "0",
-			user: "KOBqO7a----0",
-			userGroup: "someUserGroup",
+			terminationDate: dummyDate.getTime().toString(),
+			terminationRequestDate: dummyDate.getTime().toString(),
+			customer: "customerId",
 		}
-		const UserReturnTypeModel = await resolveTypeReference(UserReturnTypeRef)
+		const CustomerAccountTerminationTypeModel = await resolveTypeReference(CustomerAccountTerminationRequestTypeRef)
 
-		const userReturn: UserReturn = await instanceMapper.decryptAndMapToInstance(UserReturnTypeModel, userReturnLiteral, null)
-		o(userReturn._format).equals("0")
-		o(userReturn.user).equals("KOBqO7a----0")
+		const customerAccountTerminationRequest: CustomerAccountTerminationRequest = await instanceMapper.decryptAndMapToInstance(
+			CustomerAccountTerminationTypeModel,
+			customerAccountTerminationRequestLiteral,
+			null,
+		)
+		o(customerAccountTerminationRequest._format).equals("0")
+		o(customerAccountTerminationRequest.customer).equals("customerId")
+		o(customerAccountTerminationRequest.terminationDate).deepEquals(dummyDate)
+		o(customerAccountTerminationRequest.terminationRequestDate).deepEquals(dummyDate)
 	})
 
 	o("map unencrypted to DB literal", async function () {
-		let userReturn = createTestEntity(UserReturnTypeRef)
-		userReturn._format = "0"
-		userReturn.user = "KOBqO7a----0"
-		let userReturnLiteral = {
+		const dummyDate = new Date()
+		const customerAccountTerminationRequest = createTestEntity(CustomerAccountTerminationRequestTypeRef)
+		customerAccountTerminationRequest._format = "0"
+		customerAccountTerminationRequest.terminationDate = dummyDate
+		customerAccountTerminationRequest.terminationRequestDate = dummyDate
+		customerAccountTerminationRequest.customer = "customerId"
+		const customerAccountTerminationRequestLiteral = {
 			_format: "0",
-			user: "KOBqO7a----0",
-			userGroup: "someUserGroup",
+			_id: null,
+			_ownerGroup: null,
+			_permissions: null,
+			terminationDate: dummyDate.getTime().toString(),
+			terminationRequestDate: dummyDate.getTime().toString(),
+			customer: "customerId",
 		}
-		const UserReturnTypeModel = await resolveTypeReference(UserReturnTypeRef)
-		return instanceMapper.encryptAndMapToLiteral(UserReturnTypeModel, userReturnLiteral, null).then((result) => {
-			o(result).deepEquals(userReturnLiteral)
-		})
+		const CustomerAccountTerminationRequestTypeModel = await resolveTypeReference(CustomerAccountTerminationRequestTypeRef)
+		const result = await instanceMapper.encryptAndMapToLiteral(CustomerAccountTerminationRequestTypeModel, customerAccountTerminationRequest, null)
+		o(result).deepEquals(customerAccountTerminationRequestLiteral)
 	})
 
 	o("decryption errors should be written to _errors field", async function () {
