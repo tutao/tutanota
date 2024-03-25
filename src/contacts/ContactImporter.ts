@@ -28,6 +28,7 @@ import { isApp } from "../api/common/Env.js"
 import { ImportNativeContactBooksDialog } from "./view/ImportNativeContactBooksDialog.js"
 import { StructuredContact } from "../native/common/generatedipc/StructuredContact.js"
 import { isoDateToBirthday } from "../api/common/utils/BirthdayUtils.js"
+import { ContactBook } from "../native/common/generatedipc/ContactBook.js"
 
 export class ContactImporter {
 	constructor(private readonly contactFacade: ContactFacade) {}
@@ -71,15 +72,26 @@ export class ContactImporter {
 	async importContactsFromDevice() {
 		assert(isApp(), "isApp")
 		const contactBooks = await showProgressDialog("pleaseWait_msg", locator.mobileContactsFacade.getContactBooks())
-		const importDialog = new ImportNativeContactBooksDialog(contactBooks)
-		const books = await importDialog.show()
-		if (books == null || books.length === 0) return
+		let books: readonly ContactBook[]
+		if (contactBooks.length === 0) {
+			return
+		} else if (contactBooks.length === 1) {
+			books = contactBooks
+		} else {
+			const importDialog = new ImportNativeContactBooksDialog(contactBooks)
+			const selectedBooks = await importDialog.show()
+			if (selectedBooks == null || selectedBooks.length === 0) return
+			books = selectedBooks
+		}
 
 		const contactListId = await locator.contactModel.getContactListId()
 		const contactGroupId = await locator.contactModel.getContactGroupId()
 		const contactsToImport: Contact[] = (
 			await promiseMap(books, async (book) => {
-				const structuredContacts = await locator.mobileContactsFacade.getContactsInContactBook(book.id)
+				const structuredContacts = await locator.mobileContactsFacade.getContactsInContactBook(
+					book.id,
+					locator.logins.getUserController().loginUsername,
+				)
 				return structuredContacts.map((contact) => this.contactFromStructuredContact(contactGroupId, contact))
 			})
 		).flat()

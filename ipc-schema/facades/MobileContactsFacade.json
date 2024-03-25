@@ -48,6 +48,9 @@
 			"arg": [
 				{
 					"bookId": "string"
+				},
+				{
+					"username": "string"
 				}
 			],
 			"ret": "List<StructuredContact>"

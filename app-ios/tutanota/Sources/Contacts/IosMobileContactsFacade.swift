@@ -7,6 +7,7 @@ private typealias TutaToNativeContacts = [String: NativeMutableContact]
 private typealias TutaToStructuredContacts = [String: StructuredContact]
 
 private let CONTACTS_MAPPINGS = "ContactsMappings"
+private let CONTACT_BOOK_ID = "APPLE_DEFAULT"
 
 struct UserContactMapping: Codable {
 	let username: String
@@ -81,27 +82,38 @@ class IosMobileContactsFacade: MobileContactsFacade {
 
 	func getContactBooks() async throws -> [ContactBook] {
 		try await acquireContactsPermission()
-
-		let store = CNContactStore()
-		let result = try store.groups(matching: nil)
-
-		return result.map { group in ContactBook(id: group.identifier, name: group.name) }
+		// we can't effectively query containers so we just pretend that we have one book
+		return [ContactBook(id: CONTACT_BOOK_ID, name: "")]
 	}
 
-	func getContactsInContactBook(_ bookId: String) async throws -> [StructuredContact] {
+	func getContactsInContactBook(_ containerId: String, _ username: String) async throws -> [StructuredContact] {
+		assert(containerId == CONTACT_BOOK_ID, "Invalid contact book: \(containerId)")
 		try await acquireContactsPermission()
 
 		let fetch = CNContactFetchRequest(keysToFetch: ALL_SUPPORTED_CONTACT_KEYS)
-		fetch.predicate = CNContact.predicateForContactsInGroup(withIdentifier: bookId)
+		fetch.sortOrder = CNContactSortOrder.givenName
 
 		let store = CNContactStore()
 		var addresses = [StructuredContact]()
+		let mapping = self.getMapping(username: username)
 		try store.enumerateContacts(with: fetch) { (contact, _) in
-			// we don't need (and probably don't have?) a server id in this case
-			addresses.append(contact.toStructuredContact(serverId: nil))
+			if mapping?.localContactIdentifierToHash[contact.identifier] == nil {
+				// we don't need (and probably don't have?) a server id in this case
+				addresses.append(contact.toStructuredContact(serverId: nil))
+			}
 		}
 
 		return addresses
+	}
+	func getStoredTutaContacts(_ username: String) throws -> [CNContact] {
+		let store = CNContactStore()
+		var mapping = try self.getOrCreateMapping(username: username)
+		let tutaGroup = try getTutaContactGroup(forUser: &mapping)
+		let fetch = CNContactFetchRequest(keysToFetch: ALL_SUPPORTED_CONTACT_KEYS)
+		fetch.predicate = CNContact.predicateForContactsInGroup(withIdentifier: tutaGroup.identifier)
+		var contacts = [CNContact]()
+		try store.enumerateContacts(with: fetch) { (contact, _) in contacts.append(contact) }
+		return contacts
 	}
 
 	func deleteContacts(_ username: String, _ contactId: String?) async throws {

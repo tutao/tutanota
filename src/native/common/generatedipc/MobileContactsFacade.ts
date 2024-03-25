@@ -31,7 +31,7 @@ export interface MobileContactsFacade {
 	/**
 	 * Get all contacts in the specified contact book.
 	 */
-	getContactsInContactBook(bookId: string): Promise<ReadonlyArray<StructuredContact>>
+	getContactsInContactBook(bookId: string, username: string): Promise<ReadonlyArray<StructuredContact>>
 
 	/**
 	 * Delete all or a specific Tuta contact from system's contact book
