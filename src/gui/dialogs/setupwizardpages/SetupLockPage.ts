@@ -32,12 +32,15 @@ export class SetupLockPageAttrs implements WizardPageAttrs<null> {
 
 	error: string | null = null
 	supportedModes: ReadonlyArray<CredentialEncryptionMode> = []
-	currentMode: CredentialEncryptionMode = this.credentialsProvider.getCredentialsEncryptionMode() ?? DEFAULT_CREDENTIAL_ENCRYPTION_MODE
+	currentMode: CredentialEncryptionMode = DEFAULT_CREDENTIAL_ENCRYPTION_MODE
 
 	constructor(public readonly credentialsProvider: CredentialsProvider) {
 		credentialsProvider.getSupportedEncryptionModes().then((supportedModes) => {
 			this.supportedModes = supportedModes
 			m.redraw
+		})
+		this.credentialsProvider.getCredentialsEncryptionMode().then((encryptionMode) => {
+			this.currentMode = encryptionMode ?? DEFAULT_CREDENTIAL_ENCRYPTION_MODE
 		})
 	}
 

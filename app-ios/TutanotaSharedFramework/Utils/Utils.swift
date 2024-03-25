@@ -14,7 +14,7 @@ public func addSystemModelHeaders(to headers: inout [String: String]) { headers[
 public func addTutanotaModelHeaders(to headers: inout [String: String]) { headers["v"] = String(TUTANOTA_MODEL_VERSION) }
 
 public func makeDbPath(fileName: String) -> URL {
-	let sharedDirectory = FileManager.default.containerURL(forSecurityApplicationGroupIdentifier: TUTANOTA_APP_GROUP)
+	let sharedDirectory = FileManager.default.containerURL(forSecurityApplicationGroupIdentifier: getAppGroupName())
 
 	return (sharedDirectory?.appendingPathComponent(fileName))!
 }

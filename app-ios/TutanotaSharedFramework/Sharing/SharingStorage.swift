@@ -1,7 +1,7 @@
 import Foundation
 import UIKit
+import RegexBuilder
 
-public let TUTANOTA_APP_GROUP = "group." + (Bundle.main.bundleIdentifier ?? "")
 public let TUTANOTA_SHARE_SCHEME = "tutashare"
 
 /// this gets shared to the main app and contains all the info
@@ -167,8 +167,9 @@ public func readSharingInfo(infoLocation: String) -> SharingInfo? {
 }
 
 private func getSharedDefaults() throws -> UserDefaults {
-	guard let defaults = UserDefaults(suiteName: TUTANOTA_APP_GROUP) else {
-		let msg = "failed to get shared user defaults with suite \(TUTANOTA_APP_GROUP)"
+	let appGroupName = getAppGroupName()
+	guard let defaults = UserDefaults(suiteName: appGroupName) else {
+		let msg = "failed to get shared user defaults with suite \(appGroupName)"
 		TUTSLog(msg)
 		throw TUTErrorFactory.createError(msg)
 	}
@@ -221,4 +222,11 @@ private func codingToVCard(_ ident: String, _ coding: NSSecureCoding) -> SharedI
 	}
 
 	return .contact(ident: ident, content: String(data: vcardText, encoding: .utf8)!)
+}
+
+public func getAppGroupName() -> String {
+	let bundleId = Bundle.main.bundleIdentifier
+	let correctedBundleId = bundleId?.replacingOccurrences(of: "." + (Bundle.main.executableURL?.lastPathComponent ?? ""), with: "") ?? ""
+	let groupName = "group." + correctedBundleId
+	return groupName
 }

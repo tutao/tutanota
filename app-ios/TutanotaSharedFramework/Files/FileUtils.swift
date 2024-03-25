@@ -44,7 +44,7 @@ public class FileUtils {
 	}
 
 	static func getAppGroupFolder() throws -> URL {
-		guard let sharedDir = FileManager.default.containerURL(forSecurityApplicationGroupIdentifier: TUTANOTA_APP_GROUP) else {
+		guard let sharedDir = FileManager.default.containerURL(forSecurityApplicationGroupIdentifier: getAppGroupName()) else {
 			throw TUTErrorFactory.createError(withDomain: FILES_ERROR_DOMAIN, message: "could not get app group shared storage")
 		}
 		return sharedDir

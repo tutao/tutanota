@@ -17,7 +17,7 @@ class NotificationService: UNNotificationServiceExtension {
 			let credentialsEncryption = IosNativeCredentialsFacade(
 				keychainManager: keychainManager,
 				credentialsDb: credentialsDb,
-				userDefaults: UserDefaults(suiteName: TUTANOTA_APP_GROUP)!
+				userDefaults: UserDefaults(suiteName: getAppGroupName())!
 			)
 
 			let mailId = bestAttemptContent.userInfo["mailId"] as? [String]
