@@ -1994,7 +1994,7 @@ export const typeModels = {
             "internalUserGroupKeyVersion": {
                 "final": false,
                 "name": "internalUserGroupKeyVersion",
-                "id": 1439,
+                "id": 1438,
                 "since": 68,
                 "type": "Number",
                 "cardinality": "One",
@@ -2243,7 +2243,7 @@ export const typeModels = {
             "mailGroupKeyVersion": {
                 "final": false,
                 "name": "mailGroupKeyVersion",
-                "id": 1435,
+                "id": 1434,
                 "since": 68,
                 "type": "Number",
                 "cardinality": "One",
@@ -2597,7 +2597,7 @@ export const typeModels = {
             "ownerKeyVersion": {
                 "final": true,
                 "name": "ownerKeyVersion",
-                "id": 1436,
+                "id": 1435,
                 "since": 68,
                 "type": "Number",
                 "cardinality": "One",
@@ -2681,24 +2681,6 @@ export const typeModels = {
                 "since": 11,
                 "type": "String",
                 "cardinality": "ZeroOrOne",
-                "encrypted": false
-            },
-            "symEncSessionKey": {
-                "final": true,
-                "name": "symEncSessionKey",
-                "id": 513,
-                "since": 11,
-                "type": "Bytes",
-                "cardinality": "One",
-                "encrypted": false
-            },
-            "symKeyVersion": {
-                "final": false,
-                "name": "symKeyVersion",
-                "id": 1430,
-                "since": 68,
-                "type": "Number",
-                "cardinality": "One",
                 "encrypted": false
             }
         },
@@ -3185,7 +3167,7 @@ export const typeModels = {
             "symKeyVersion": {
                 "final": false,
                 "name": "symKeyVersion",
-                "id": 1431,
+                "id": 1430,
                 "since": 68,
                 "type": "Number",
                 "cardinality": "One",
@@ -3278,7 +3260,7 @@ export const typeModels = {
             "userKeyVersion": {
                 "final": false,
                 "name": "userKeyVersion",
-                "id": 1438,
+                "id": 1437,
                 "since": 68,
                 "type": "Number",
                 "cardinality": "One",
@@ -3328,7 +3310,7 @@ export const typeModels = {
             "externalMailGroupKeyVersion": {
                 "final": false,
                 "name": "externalMailGroupKeyVersion",
-                "id": 1434,
+                "id": 1433,
                 "since": 68,
                 "type": "Number",
                 "cardinality": "One",
@@ -3373,7 +3355,7 @@ export const typeModels = {
             "externalUserGroupKeyVersion": {
                 "final": false,
                 "name": "externalUserGroupKeyVersion",
-                "id": 1432,
+                "id": 1431,
                 "since": 68,
                 "type": "Number",
                 "cardinality": "One",
@@ -3400,7 +3382,7 @@ export const typeModels = {
             "internalMailGroupKeyVersion": {
                 "final": false,
                 "name": "internalMailGroupKeyVersion",
-                "id": 1433,
+                "id": 1432,
                 "since": 68,
                 "type": "Number",
                 "cardinality": "One",
@@ -4392,7 +4374,7 @@ export const typeModels = {
             "senderKeyVersion": {
                 "final": true,
                 "name": "senderKeyVersion",
-                "id": 1437,
+                "id": 1436,
                 "since": 68,
                 "type": "Number",
                 "cardinality": "ZeroOrOne",
@@ -7570,7 +7552,7 @@ export const typeModels = {
             "symKeyVersion": {
                 "final": false,
                 "name": "symKeyVersion",
-                "id": 1440,
+                "id": 1439,
                 "since": 68,
                 "type": "Number",
                 "cardinality": "One",

@@ -649,8 +649,6 @@ export type DraftCreateData = {
 	ownerEncSessionKey: Uint8Array;
 	ownerKeyVersion: NumberString;
 	previousMessageId: null | string;
-	symEncSessionKey: Uint8Array;
-	symKeyVersion: NumberString;
 
 	draftData: DraftData;
 }
