@@ -3415,15 +3415,6 @@ export const typeModels = {
                 "cardinality": "One",
                 "encrypted": false
             },
-            "userEncClientKey": {
-                "final": false,
-                "name": "userEncClientKey",
-                "id": 147,
-                "since": 1,
-                "type": "Bytes",
-                "cardinality": "One",
-                "encrypted": false
-            },
             "verifier": {
                 "final": false,
                 "name": "verifier",
@@ -8106,15 +8097,6 @@ export const typeModels = {
                 "final": false,
                 "name": "salt",
                 "id": 626,
-                "since": 16,
-                "type": "Bytes",
-                "cardinality": "One",
-                "encrypted": false
-            },
-            "userEncClientKey": {
-                "final": false,
-                "name": "userEncClientKey",
-                "id": 628,
                 "since": 16,
                 "type": "Bytes",
                 "cardinality": "One",

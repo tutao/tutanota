@@ -262,7 +262,6 @@ export class UserManagementFacade {
 		const mailGroupKey = freshVersioned(aes256RandomKey())
 		const contactGroupKey = freshVersioned(aes256RandomKey())
 		const fileGroupKey = freshVersioned(aes256RandomKey())
-		const clientKey = aes256RandomKey()
 		const mailboxSessionKey = aes256RandomKey()
 		const contactListSessionKey = aes256RandomKey()
 		const fileSystemSessionKey = aes256RandomKey()
@@ -276,7 +275,6 @@ export class UserManagementFacade {
 		const userEncContactGroupKey = encryptKeyWithVersionedKey(userGroupKey, contactGroupKey.object)
 		const userEncFileGroupKey = encryptKeyWithVersionedKey(userGroupKey, fileGroupKey.object)
 		const userEncTutanotaPropertiesSessionKey = encryptKeyWithVersionedKey(userGroupKey, tutanotaPropertiesSessionKey)
-		const userEncClientKey = encryptKeyWithVersionedKey(userGroupKey, clientKey)
 		const userEncEntropy = encryptBytes(userGroupKey.object, random.generateRandomData(32))
 
 		const customerEncMailGroupInfoSessionKey = encryptKeyWithVersionedKey(customerGroupKey, mailGroupInfoSessionKey)
@@ -301,7 +299,6 @@ export class UserManagementFacade {
 			userEncContactGroupKey: userEncContactGroupKey.key,
 			userEncFileGroupKey: userEncFileGroupKey.key,
 			userEncEntropy: userEncEntropy,
-			userEncClientKey: userEncClientKey.key,
 			userEncTutanotaPropertiesSessionKey: userEncTutanotaPropertiesSessionKey.key,
 
 			contactEncContactListSessionKey: contactEncContactListSessionKey.key,

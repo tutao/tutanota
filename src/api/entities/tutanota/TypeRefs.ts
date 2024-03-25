@@ -1,10 +1,7 @@
-import { create, Stripped, StrippedEntity } from "../../common/utils/EntityUtils.js"
-import {TypeRef} from "@tutao/tutanota-utils"
-import {typeModels} from "./TypeModels.js"
-import {DateWrapper} from '../sys/TypeRefs.js'
-import {Blob} from '../sys/TypeRefs.js'
-import {BucketKey} from '../sys/TypeRefs.js'
-import {BlobReferenceTokenWrapper} from '../sys/TypeRefs.js'
+import { create, StrippedEntity } from "../../common/utils/EntityUtils.js"
+import { TypeRef } from "@tutao/tutanota-utils"
+import { typeModels } from "./TypeModels.js"
+import { Blob, BlobReferenceTokenWrapper, BucketKey, DateWrapper } from '../sys/TypeRefs.js'
 
 export const AttachmentKeyDataTypeRef: TypeRef<AttachmentKeyData> = new TypeRef("tutanota", "AttachmentKeyData")
 
@@ -834,7 +831,6 @@ export type ExternalUserData = {
 	internalMailEncUserGroupInfoSessionKey: Uint8Array;
 	internalMailGroupKeyVersion: NumberString;
 	kdfVersion: NumberString;
-	userEncClientKey: Uint8Array;
 	verifier: Uint8Array;
 
 	userGroupData: CreateExternalUserGroupData;
@@ -1966,7 +1962,6 @@ export type UserAccountUserData = {
 	recoverCodeEncUserGroupKey: Uint8Array;
 	recoverCodeVerifier: Uint8Array;
 	salt: Uint8Array;
-	userEncClientKey: Uint8Array;
 	userEncContactGroupKey: Uint8Array;
 	userEncCustomerGroupKey: Uint8Array;
 	userEncEntropy: Uint8Array;
