@@ -11,11 +11,13 @@ import { Icon, IconAttrs } from "./Icon.js"
 import { theme } from "../theme.js"
 import { lang } from "../../misc/LanguageViewModel.js"
 import { BaseButton, BaseButtonAttrs } from "./buttons/BaseButton.js"
+import { getOperatingClasses } from "./GuiUtils.js"
 
 export interface BaseSearchBarAttrs {
 	placeholder?: string | null
 	text: string
 	busy: boolean
+	disabled?: boolean
 	onInput: (text: string) => unknown
 	onFocus?: () => unknown
 	onBlur?: () => unknown
@@ -36,6 +38,7 @@ export class BaseSearchBar implements ClassComponent<BaseSearchBarAttrs> {
 			{
 				focused: String(this.isFocused),
 				...landmarkAttrs(AriaLandmarks.Search),
+				class: getOperatingClasses(attrs.disabled),
 				style: {
 					"min-height": px(inputLineHeight + 2),
 					"margin-top": px(6),
@@ -46,8 +49,10 @@ export class BaseSearchBar implements ClassComponent<BaseSearchBarAttrs> {
 					attrs.onWrapperCreated?.(dom as HTMLElement)
 				},
 				onclick: () => {
-					this.domInput?.focus()
-					attrs.onSearchClick?.()
+					if (!attrs.disabled) {
+						this.domInput?.focus()
+						attrs.onSearchClick?.()
+					}
 				},
 			},
 			[
@@ -86,7 +91,9 @@ export class BaseSearchBar implements ClassComponent<BaseSearchBarAttrs> {
 									fill: theme.header_button,
 								},
 							}),
-							onclick: () => attrs.onClear?.(),
+							onclick: () => {
+								if (!attrs.disabled) attrs.onClear?.()
+							},
 							disabled: attrs.busy,
 							style: {
 								width: size.icon_size_large,
@@ -105,6 +112,7 @@ export class BaseSearchBar implements ClassComponent<BaseSearchBarAttrs> {
 			placeholder: attrs.placeholder,
 			type: TextFieldType.Text,
 			value: attrs.text,
+			disabled: attrs.disabled,
 			oncreate: (vnode) => {
 				this.domInput = vnode.dom as HTMLInputElement
 				attrs.onInputCreated?.(this.domInput)
