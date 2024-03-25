@@ -332,7 +332,7 @@
 				{
 					"name": "AddValue",
 					"sourceType": "DraftAttachment",
-					"info": "AddValue DraftAttachment/ownerKeyVersion/1437."
+					"info": "AddValue DraftAttachment/ownerKeyVersion/1436."
 				},
 				{
 					"name": "RenameAttribute",
@@ -342,12 +342,12 @@
 				{
 					"name": "AddValue",
 					"sourceType": "InternalRecipientKeyData",
-					"info": "AddValue InternalRecipientKeyData/senderKeyVersion/1438."
+					"info": "AddValue InternalRecipientKeyData/senderKeyVersion/1437."
 				},
 				{
 					"name": "AddValue",
 					"sourceType": "CreateExternalUserGroupData",
-					"info": "AddValue CreateExternalUserGroupData/internalUserGroupKeyVersion/1440."
+					"info": "AddValue CreateExternalUserGroupData/internalUserGroupKeyVersion/1439."
 				},
 				{
 					"name": "RenameAttribute",
@@ -357,7 +357,7 @@
 				{
 					"name": "AddValue",
 					"sourceType": "SymEncInternalRecipientKeyData",
-					"info": "AddValue SymEncInternalRecipientKeyData/symKeyVersion/1441."
+					"info": "AddValue SymEncInternalRecipientKeyData/symKeyVersion/1440."
 				}
 			]
 		}
