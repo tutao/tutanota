@@ -1628,7 +1628,6 @@ export default {
 		"whitelabelDomain_label": "Dominio de Personalización",
 		"whitelabelRegistrationCode_label": "Código de rexistro",
 		"whitelabelRegistrationEmailDomain_label": "Domino do correo de rexistro",
-		"whitelabelThemeDetected_msg": "Detectamos un decorado personalizado para esta conta. Queres aplicalo agora?",
 		"whitelabel_label": "Personalización",
 		"who_label": "Quen",
 		"whyLeave_msg": "Lamentamos que marches! Como podemos mellorar?",

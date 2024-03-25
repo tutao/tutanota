@@ -1514,7 +1514,6 @@ export default {
 		"whitelabelDomain_label": "Бела листа домен",
 		"whitelabelRegistrationCode_label": "Регистрацијска лозинка",
 		"whitelabelRegistrationEmailDomain_label": "Регистрација емаил домена",
-		"whitelabelThemeDetected_msg": "Откривена је прилагођена тема за овај налог. Да ли желите сада да је примените?",
 		"whitelabel_label": "Бела ознака",
 		"who_label": "Ko",
 		"work_label": "Посао",

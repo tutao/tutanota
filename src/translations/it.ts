@@ -1576,7 +1576,6 @@ export default {
 		"whitelabelDomain_label": "Dominio whitelabel",
 		"whitelabelRegistrationCode_label": "Codice di registrazione",
 		"whitelabelRegistrationEmailDomain_label": "Dominio di registrazione email",
-		"whitelabelThemeDetected_msg": "È stato rilevato un tema personalizzato per questo account. Vuoi applicarlo ora?",
 		"whitelabel_label": "Whitelabel",
 		"who_label": "Chi",
 		"work_label": "Lavoro",

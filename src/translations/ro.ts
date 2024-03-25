@@ -1655,7 +1655,6 @@ export default {
 		"whitelabelDomain_label": "Domeniu personalizat",
 		"whitelabelRegistrationCode_label": "Cod de înregistrare",
 		"whitelabelRegistrationEmailDomain_label": "Înregistrare domeniu de e-mail",
-		"whitelabelThemeDetected_msg": "A fost găsit un aspect personalizat pentru acest cont. Vrei să-l folosești acum?",
 		"whitelabel_label": "Personalizare",
 		"who_label": "Cine",
 		"whyLeave_msg": "Ne pare rău că pleci! Ce putem îmbunătăți?",

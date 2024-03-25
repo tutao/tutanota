@@ -1675,7 +1675,6 @@ export default {
 		"whitelabelDomain_label": "Whitelabel domain",
 		"whitelabelRegistrationCode_label": "Registration code",
 		"whitelabelRegistrationEmailDomain_label": "Registration email domain",
-		"whitelabelThemeDetected_msg": "A custom theme has been detected for this account. Do you want to apply it now?",
 		"whitelabel_label": "Whitelabel",
 		"who_label": "Who",
 		"whyLeave_msg": "We're sorry to see you go! Where can we improve?",

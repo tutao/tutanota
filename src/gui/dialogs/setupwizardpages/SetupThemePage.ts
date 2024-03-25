@@ -1,11 +1,24 @@
 import m, { Children } from "mithril"
 import { WizardPageAttrs, WizardPageN } from "../../base/WizardDialog.js"
 import { lang } from "../../../misc/LanguageViewModel.js"
-import { RadioSelector, RadioSelectorAttrs } from "../../base/RadioSelector.js"
+import { RadioSelector, RadioSelectorAttrs, RadioSelectorOption } from "../../base/RadioSelector.js"
 import { themeController, themeOptions, ThemePreference } from "../../theme.js"
 import { SetupPageLayout } from "./SetupPageLayout.js"
 
-export class SetupThemePage implements WizardPageN<null> {
+export class SetupThemePage implements WizardPageN<SetupThemePageAttrs> {
+	// The whitelabel themes formatted as `RadioSelectorOption`s.
+	private customThemes: Array<RadioSelectorOption<string>> | null = null
+
+	oninit() {
+		// Get the whitelabel themes from the theme controller and map them to `RadioSelector` options.
+		themeController.getCustomThemes().then((customThemes) => {
+			this.customThemes = customThemes.map((themeId) => {
+				return { name: () => themeId, value: themeId }
+			})
+			m.redraw()
+		})
+	}
+
 	view(): Children {
 		return m(
 			SetupPageLayout,
@@ -13,15 +26,18 @@ export class SetupThemePage implements WizardPageN<null> {
 				image: "theme",
 			},
 			m("p.full-width", "Which theme would you like to use?"),
-			m(RadioSelector, {
-				name: "theme_label",
-				options: themeOptions,
-				class: "mb-s",
-				selectedOption: themeController.themePreference,
-				onOptionSelected: (option) => {
-					themeController.setThemePreference(option, true)
-				},
-			} satisfies RadioSelectorAttrs<ThemePreference>),
+			// We need to await the promise from `themeController.getCustomThemes()`, so we delay rendering the `RadioSelector` until it does.
+			this.customThemes == null
+				? null
+				: m(RadioSelector, {
+						name: "theme_label",
+						options: [...themeOptions, ...this.customThemes],
+						class: "mb-s",
+						selectedOption: themeController.themePreference,
+						onOptionSelected: (option) => {
+							themeController.setThemePreference(option, true)
+						},
+				  } satisfies RadioSelectorAttrs<ThemePreference>),
 		)
 	}
 }

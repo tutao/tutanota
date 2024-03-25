@@ -1502,7 +1502,6 @@ export default {
 		"whitelabelDomain_label": "맞춤 도메인",
 		"whitelabelRegistrationCode_label": "등록 코드",
 		"whitelabelRegistrationEmailDomain_label": "이메일 도메인 등록",
-		"whitelabelThemeDetected_msg": "이 계정에 사용자 지정 테마가 감지되었습니다. 지금 적용하시겠습니까?",
 		"whitelabel_label": "화이트라벨",
 		"who_label": "누구",
 		"work_label": "직장",

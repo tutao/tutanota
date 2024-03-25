@@ -1356,7 +1356,6 @@ export default {
 		"whitelabelDomain_label": "श्वेतपद डाॅमेन",
 		"whitelabelRegistrationCode_label": "पंजीकरण संख्या",
 		"whitelabelRegistrationEmailDomain_label": "पंजीकरण के लिए ईमेल डाॅमेन",
-		"whitelabelThemeDetected_msg": "इस खाते के लिए एक कस्टम थीम का पता चला है। क्या आप इसे अभी लागू करना चाहते हैं?",
 		"whitelabel_label": "श्वेतपद",
 		"who_label": "कौन",
 		"work_label": "कार्य",

@@ -1529,7 +1529,6 @@ export default {
 		"whitelabelDomain_label": "דומיין מותג מדבקה",
 		"whitelabelRegistrationCode_label": "קוד הרשמה",
 		"whitelabelRegistrationEmailDomain_label": "דומיין דוא\"ל הרשמה",
-		"whitelabelThemeDetected_msg": "זוהתה ערכת נושא מותאמת אישית לחשבון זה. האם ברצונך להפעיל אותה כעת?",
 		"whitelabel_label": "מותג מדבקה",
 		"who_label": "מי",
 		"work_label": "עבודה",

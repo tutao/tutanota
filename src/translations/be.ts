@@ -1628,7 +1628,6 @@ export default {
 		"whitelabelDomain_label": "Дамэйн Whitelabel",
 		"whitelabelRegistrationCode_label": "Рэгістрацыйны код",
 		"whitelabelRegistrationEmailDomain_label": "Імэйлавы дамэйн для рэгістрацыі",
-		"whitelabelThemeDetected_msg": "Карыстальніцкая тэма знойдзена для гэтага акаўнту. Ці жадаеш ты ўжыць яе?",
 		"whitelabel_label": "Whitelabel",
 		"who_label": "Хто",
 		"whyLeave_msg": "Нам шкада, што ты пакідаеш нас. Што мы маглі б палепшыць?",

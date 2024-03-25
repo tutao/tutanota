@@ -1588,7 +1588,6 @@ export default {
 		"whitelabelDomain_label": "Domínio marca branca",
 		"whitelabelRegistrationCode_label": "Código de registo",
 		"whitelabelRegistrationEmailDomain_label": "Registo de domínio de email",
-		"whitelabelThemeDetected_msg": "Foi detectado um tema personalizado para esta conta. Pretende aplicá-lo agora?",
 		"whitelabel_label": "Marca branca",
 		"who_label": "Quem",
 		"work_label": "Trabalho",

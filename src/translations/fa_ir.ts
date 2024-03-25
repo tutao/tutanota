@@ -1486,7 +1486,6 @@ export default {
 		"whitelabelDomain_label": "دامنه برچسب‌ سفید",
 		"whitelabelRegistrationCode_label": "کد ثبت‌نام ",
 		"whitelabelRegistrationEmailDomain_label": "دامنهٔ ثبت‌نام  ایمیل",
-		"whitelabelThemeDetected_msg": "یک زمینه دلخواه برای این حساب شناسایی شده است. آیا می‌خواهید اینک آن را اضافه کنید؟",
 		"whitelabel_label": "برچسب‌ سفید",
 		"who_label": "چه کسی ",
 		"work_label": "کار",

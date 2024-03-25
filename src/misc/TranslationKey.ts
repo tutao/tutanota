@@ -1659,7 +1659,6 @@ export type TranslationKeyType =
 	| "whitelabelDomain_label"
 	| "whitelabelRegistrationCode_label"
 	| "whitelabelRegistrationEmailDomain_label"
-	| "whitelabelThemeDetected_msg"
 	| "whitelabel_label"
 	| "who_label"
 	| "whyLeave_msg"

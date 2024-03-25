@@ -1664,7 +1664,6 @@ export default {
 		"whitelabelDomain_label": "Domena z lastno blagovno znamko",
 		"whitelabelRegistrationCode_label": "Registracijska koda",
 		"whitelabelRegistrationEmailDomain_label": "Registracija poštne domene",
-		"whitelabelThemeDetected_msg": "Za ta račun je bila zaznana tema po meri. Želite uporabiti to temo?",
 		"whitelabel_label": "Lastna blagovna znamka",
 		"who_label": "Kdo",
 		"whyLeave_msg": "Žal nam je, da odhajate. Kje se lahko izboljšamo?",

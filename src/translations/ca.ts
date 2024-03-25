@@ -1111,7 +1111,6 @@ export default {
 		"whitelabelDomain_label": "Domini etiqueta blanca",
 		"whitelabelRegistrationCode_label": "Codi de registre",
 		"whitelabelRegistrationEmailDomain_label": "Domini de correu electrònic de registre",
-		"whitelabelThemeDetected_msg": "S'ha detectat un tema personalitzat per a aquest compte. Voleu aplicar-lo ara?",
 		"whitelabel_label": "Etiqueta blanca",
 		"who_label": "Qui",
 		"work_label": "Feina",
