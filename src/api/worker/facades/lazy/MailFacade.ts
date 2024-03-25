@@ -255,12 +255,10 @@ export class MailFacade {
 
 		const sk = aes256RandomKey()
 		const ownerEncSessionKey = encryptKeyWithVersionedKey(mailGroupKey, sk)
-		const symEncSessionKey = encryptKeyWithVersionedKey(userGroupKey, sk) // legacy
 		const service = createDraftCreateData({
 			previousMessageId: previousMessageId,
 			conversationType: conversationType,
 			ownerEncSessionKey: ownerEncSessionKey.key,
-			symEncSessionKey: symEncSessionKey.key,
 			draftData: createDraftData({
 				subject,
 				compressedBodyText: bodyText,
@@ -277,7 +275,6 @@ export class MailFacade {
 				removedAttachments: [],
 			}),
 			ownerKeyVersion: ownerEncSessionKey.encryptingKeyVersion.toString(),
-			symKeyVersion: symEncSessionKey.encryptingKeyVersion.toString(),
 		})
 		const createDraftReturn = await this.serviceExecutor.post(DraftService, service, { sessionKey: sk })
 		return this.entityClient.load(MailTypeRef, createDraftReturn.draft)
