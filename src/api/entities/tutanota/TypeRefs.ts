@@ -1229,7 +1229,6 @@ export type MailBox = {
 	_ownerKeyVersion: null | NumberString;
 	_permissions: Id;
 	lastInfoDate: Date;
-	symEncShareBucketKey: null | Uint8Array;
 
 	folders:  null | MailFolderRef;
 	mailDetailsDrafts:  null | MailDetailsDraftsRef;
