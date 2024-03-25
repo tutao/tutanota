@@ -47,6 +47,7 @@ import { showDeleteAccountDialog } from "../subscription/DeleteAccountDialog.js"
 import { getCustomMailDomains } from "../api/common/utils/CustomerUtils.js"
 import { EntityUpdateData, isUpdateForTypeRef } from "../api/common/utils/EntityUpdateUtils.js"
 import { LoginButton } from "../gui/base/buttons/LoginButton.js"
+import { showLeavingUserSurveyWizard } from "../subscription/LeavingUserSurveyWizard.js"
 
 assertMainOrNode()
 // Number of days for that we load rejected senders
@@ -298,7 +299,11 @@ export class GlobalSettingsViewer implements UpdatableSettingsViewer {
 								},
 								m(LoginButton, {
 									label: "adminDeleteAccount_action",
-									onclick: showDeleteAccountDialog,
+									onclick: () =>
+										showLeavingUserSurveyWizard().then((reason) => {
+											console.log("Reason: ", reason.reason, " Category: ", reason.category, " details: ", reason.details)
+											showDeleteAccountDialog()
+										}),
 								}),
 							),
 						),

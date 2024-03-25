@@ -5,6 +5,7 @@ import { LoginButton } from "../gui/base/buttons/LoginButton.js"
 import { DropDownSelector, type DropDownSelectorAttrs } from "../gui/base/DropDownSelector.js"
 import { lang } from "../misc/LanguageViewModel.js"
 import { mainSurveyImage } from "../gui/base/icons/Icons.js"
+import { theme } from "../gui/theme.js"
 
 export class LeavingUserSurveyCategoryPage implements WizardPageN<LeavingUserSurveyData> {
 	private _dom: HTMLElement | null = null
@@ -16,19 +17,23 @@ export class LeavingUserSurveyCategoryPage implements WizardPageN<LeavingUserSur
 	view(vnode: Vnode<WizardPageAttrs<LeavingUserSurveyData>>) {
 		return m(
 			"#leaving-user-survey-dialog.pt.flex-center",
-			m(".flex-grow-shrink-auto.max-width-m.pt.pb.plr-l", [
+			m(".flex.flex-column.max-width-m.pt.pb.plr-l", { style: { minHeight: "800px", minWidth: "450px" } }, [
 				m("img.pt.bg-white.pt.pb.block", {
 					src: mainSurveyImage,
 					style: {
-						width: "100%",
-						maxWidth: "300px",
-						margin: "auto",
+						width: "300px",
+						height: "250px",
+						margin: "20px auto 20px auto",
 					},
 				}),
 				m("h3.center.b", "We're sad to see you go!"),
-				m("p.pb-s.center", "We would greatly appreciate it, if you could let us know why you don't need the paid plan anymore."),
+				m(
+					"p.center",
+					{ style: { height: "45px" } },
+					"We would greatly appreciate it, if you could let us know why you don't need the paid plan anymore.",
+				),
 				m(DropDownSelector, {
-					style: { border: "2px solid #bbb", borderRadius: "5px", padding: "4px 8px" },
+					style: { border: `2px solid ${theme.content_border}`, borderRadius: "6px", padding: "4px 8px" },
 					doShowBorder: false,
 					label: () => "Where can we improve?",
 					items: [
@@ -64,16 +69,14 @@ export class LeavingUserSurveyCategoryPage implements WizardPageN<LeavingUserSur
 					dropdownWidth: 350,
 				} satisfies DropDownSelectorAttrs<NumberString | null>),
 				m(
-					".flex-center.full-width.pt-l",
-					m(
-						".full-width",
-						m(LoginButton, {
-							label: "next_action",
-							class: !vnode.attrs.data.category ? "no-hover button-bg" : "",
-							onclick: () => this.showNextPage(),
-							disabled: !vnode.attrs.data.category,
-						}),
-					),
+					".full-width",
+					{ style: { margin: "auto 0 0 0" } },
+					m(LoginButton, {
+						label: "next_action",
+						class: !vnode.attrs.data.category ? "no-hover button-bg" : "",
+						onclick: () => this.showNextPage(),
+						disabled: !vnode.attrs.data.category,
+					}),
 				),
 			]),
 		)

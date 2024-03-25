@@ -11,6 +11,7 @@ import { CustomerAccountTerminationRequest } from "../api/entities/sys/TypeRefs.
 import { BaseTopLevelView } from "../gui/BaseTopLevelView.js"
 import { TopLevelAttrs, TopLevelView } from "../TopLevelView.js"
 import { LoginScreenHeader } from "../gui/LoginScreenHeader.js"
+import { LeavingUserSurveyData, showLeavingUserSurveyWizard } from "../subscription/LeavingUserSurveyWizard.js"
 
 assertMainOrNode()
 
@@ -21,10 +22,18 @@ export interface TerminationViewAttrs extends TopLevelAttrs {
 export class TerminationView extends BaseTopLevelView implements TopLevelView<TerminationViewAttrs> {
 	private bottomMargin = 0
 	private model: TerminationViewModel
+	private surveyResult: LeavingUserSurveyData | null = null
 
 	constructor({ attrs }: Vnode<TerminationViewAttrs>) {
 		super()
 		this.model = attrs.makeViewModel()
+	}
+
+	async oncreate() {
+		showLeavingUserSurveyWizard().then((reason) => {
+			this.surveyResult = reason
+			console.log(this.surveyResult)
+		})
 	}
 
 	keyboardListener = (keyboardSize: number) => {
