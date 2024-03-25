@@ -53,124 +53,99 @@ enum ContactWebsiteType: String, Codable {
 	case custom = "3"
 }
 
-extension StructuredMailAddress: Equatable {
-	public static func == (lhs: Self, rhs: Self) -> Bool { lhs.address == rhs.address && lhs.type == rhs.type && lhs.customTypeName == rhs.customTypeName }
+protocol StableHashable { func hash(into: inout MurmurHash3.FourBytesHash) }
+
+extension String: StableHashable { func hash(into hasher: inout MurmurHash3.FourBytesHash) { hasher.update(self.data(using: .utf8)!) } }
+
+extension Optional: StableHashable where Wrapped: StableHashable { func hash(into hasher: inout MurmurHash3.FourBytesHash) {} }
+
+extension Array: StableHashable where Element: StableHashable {
+	func hash(into hasher: inout MurmurHash3.FourBytesHash) { for element in self { element.hash(into: &hasher) } }
 }
 
-extension StructuredMailAddress: Hashable {
-	public func hash(into hasher: inout Hasher) {
-		hasher.combine(address)
-		hasher.combine(type)
-		hasher.combine(customTypeName)
+extension StructuredMailAddress: StableHashable {
+	func hash(into hasher: inout MurmurHash3.FourBytesHash) {
+		address.hash(into: &hasher)
+		type.hash(into: &hasher)
+		customTypeName.hash(into: &hasher)
 	}
 }
 
-extension StructuredAddress: Hashable {
-	public func hash(into hasher: inout Hasher) {
-		hasher.combine(address)
-		hasher.combine(type)
-		hasher.combine(customTypeName)
+extension StructuredAddress: StableHashable {
+	func hash(into hasher: inout MurmurHash3.FourBytesHash) {
+		address.hash(into: &hasher)
+		type.hash(into: &hasher)
+		customTypeName.hash(into: &hasher)
 	}
 }
 
-extension StructuredAddress: Equatable {
-	public static func == (lhs: Self, rhs: Self) -> Bool { lhs.address == rhs.address && lhs.type == rhs.type && lhs.customTypeName == rhs.customTypeName }
-}
-
-extension StructuredPhoneNumber: Hashable {
-	public func hash(into hasher: inout Hasher) {
-		hasher.combine(number)
-		hasher.combine(type)
-		hasher.combine(customTypeName)
+extension StructuredPhoneNumber: StableHashable {
+	func hash(into hasher: inout MurmurHash3.FourBytesHash) {
+		number.hash(into: &hasher)
+		type.hash(into: &hasher)
+		customTypeName.hash(into: &hasher)
 	}
 }
 
-extension StructuredWebsite: Equatable {
-	public static func == (lhs: Self, rhs: Self) -> Bool { lhs.type == rhs.type && lhs.customTypeName == rhs.customTypeName && lhs.url == rhs.url }
-}
-
-extension StructuredWebsite: Hashable {
-	public func hash(into hasher: inout Hasher) {
-		hasher.combine(url)
-		hasher.combine(type)
-		hasher.combine(customTypeName)
+extension StructuredCustomDate: StableHashable {
+	func hash(into hasher: inout MurmurHash3.FourBytesHash) {
+		dateIso.hash(into: &hasher)
+		type.hash(into: &hasher)
+		customTypeName.hash(into: &hasher)
 	}
 }
 
-extension StructuredCustomDate: Equatable {
-	public static func == (lhs: Self, rhs: Self) -> Bool { lhs.type == rhs.type && lhs.customTypeName == rhs.customTypeName && lhs.dateIso == rhs.dateIso }
-}
-
-extension StructuredCustomDate: Hashable {
-	public func hash(into hasher: inout Hasher) {
-		hasher.combine(dateIso)
-		hasher.combine(type)
-		hasher.combine(customTypeName)
+extension StructuredMessengerHandle: StableHashable {
+	func hash(into hasher: inout MurmurHash3.FourBytesHash) {
+		handle.hash(into: &hasher)
+		type.hash(into: &hasher)
+		customTypeName.hash(into: &hasher)
 	}
 }
 
-extension StructuredMessengerHandle: Equatable {
-	public static func == (lhs: Self, rhs: Self) -> Bool { lhs.type == rhs.type && lhs.customTypeName == rhs.customTypeName && lhs.handle == rhs.handle }
-}
-
-extension StructuredMessengerHandle: Hashable {
-	public func hash(into hasher: inout Hasher) {
-		hasher.combine(handle)
-		hasher.combine(type)
-		hasher.combine(customTypeName)
+extension StructuredRelationship: StableHashable {
+	func hash(into hasher: inout MurmurHash3.FourBytesHash) {
+		person.hash(into: &hasher)
+		type.hash(into: &hasher)
+		customTypeName.hash(into: &hasher)
 	}
 }
 
-extension StructuredRelationship: Equatable {
-	public static func == (lhs: Self, rhs: Self) -> Bool { lhs.type == rhs.type && lhs.customTypeName == rhs.customTypeName && lhs.person == rhs.person }
-}
-
-extension StructuredRelationship: Hashable {
-	public func hash(into hasher: inout Hasher) {
-		hasher.combine(person)
-		hasher.combine(type)
-		hasher.combine(customTypeName)
+extension StructuredWebsite: StableHashable {
+	func hash(into hasher: inout MurmurHash3.FourBytesHash) {
+		url.hash(into: &hasher)
+		type.hash(into: &hasher)
+		customTypeName.hash(into: &hasher)
 	}
 }
 
-extension StructuredPhoneNumber: Equatable {
-	public static func == (lhs: Self, rhs: Self) -> Bool { lhs.number == rhs.number && lhs.type == rhs.type && lhs.customTypeName == rhs.customTypeName }
-}
+extension RawRepresentable where RawValue: StableHashable { func hash(into hasher: inout MurmurHash3.FourBytesHash) { rawValue.hash(into: &hasher) } }
 
-extension StructuredContact: Equatable {
-	public static func == (lhs: Self, rhs: Self) -> Bool {
-		lhs.id == rhs.id && lhs.firstName == rhs.firstName && lhs.lastName == rhs.lastName && lhs.nickname == rhs.nickname && lhs.company == rhs.company
-			&& lhs.birthday == rhs.birthday && lhs.mailAddresses == rhs.mailAddresses && lhs.phoneNumbers == rhs.phoneNumbers && lhs.addresses == rhs.addresses
-			&& lhs.customDate == rhs.customDate && lhs.department == rhs.department && lhs.messengerHandles == rhs.messengerHandles
-			&& lhs.middleName == rhs.middleName && lhs.nameSuffix == rhs.nameSuffix && lhs.phoneticFirst == rhs.phoneticFirst
-			&& lhs.phoneticLast == rhs.phoneticLast && lhs.phoneticMiddle == rhs.phoneticMiddle && lhs.relationships == rhs.relationships
-			&& lhs.websites == rhs.websites && lhs.notes == rhs.notes && lhs.title == rhs.title && lhs.role == rhs.role
-	}
-}
-
-extension StructuredContact: Hashable {
-	public func hash(into hasher: inout Hasher) {
-		hasher.combine(id)
-		hasher.combine(firstName)
-		hasher.combine(lastName)
-		hasher.combine(nickname)
-		hasher.combine(company)
-		hasher.combine(birthday)
-		hasher.combine(mailAddresses)
-		hasher.combine(phoneNumbers)
-		hasher.combine(addresses)
-		hasher.combine(customDate)
-		hasher.combine(department)
-		hasher.combine(messengerHandles)
-		hasher.combine(middleName)
-		hasher.combine(nameSuffix)
-		hasher.combine(phoneticFirst)
-		hasher.combine(phoneticLast)
-		hasher.combine(phoneticMiddle)
-		hasher.combine(relationships)
-		hasher.combine(websites)
-		hasher.combine(notes)
-		hasher.combine(title)
-		hasher.combine(role)
+extension StructuredContact {
+	func stableHash() -> UInt32 {
+		var hash = MurmurHash3.FourBytesHash()
+		id?.hash(into: &hash)
+		firstName.hash(into: &hash)
+		lastName.hash(into: &hash)
+		nickname.hash(into: &hash)
+		company.hash(into: &hash)
+		birthday.hash(into: &hash)
+		mailAddresses.hash(into: &hash)
+		phoneNumbers.hash(into: &hash)
+		addresses.hash(into: &hash)
+		customDate.hash(into: &hash)
+		department.hash(into: &hash)
+		messengerHandles.hash(into: &hash)
+		middleName.hash(into: &hash)
+		nameSuffix.hash(into: &hash)
+		phoneticFirst.hash(into: &hash)
+		phoneticLast.hash(into: &hash)
+		phoneticMiddle.hash(into: &hash)
+		relationships.hash(into: &hash)
+		websites.hash(into: &hash)
+		notes.hash(into: &hash)
+		title.hash(into: &hash)
+		role.hash(into: &hash)
+		return hash.digest()
 	}
 }

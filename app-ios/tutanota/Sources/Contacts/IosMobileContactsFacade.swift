@@ -12,7 +12,9 @@ struct UserContactMapping: Codable {
 	let username: String
 	var systemGroupIdentifier: String
 	var localContactIdentifierToServerId: [String: String]
-	var localContactIdentifierToHash: [String: Int]
+	var localContactIdentifierToHash: [String: UInt32]
+	/// Whether we use Swift's built-in Hasher that is seeded randomly or our own hashing that is stable between runs
+	var stableHash: Bool?
 }
 
 private let ALL_SUPPORTED_CONTACT_KEYS: [CNKeyDescriptor] =
@@ -35,15 +37,20 @@ class IosMobileContactsFacade: MobileContactsFacade {
 	}
 
 	func saveContacts(_ username: String, _ contacts: [StructuredContact]) async throws {
+		TUTSLog("MobileContactsFacade: save with \(contacts.count) contacts")
 		try await acquireContactsPermission()
 		var mapping = try self.getOrCreateMapping(username: username)
 		let queryResult = try self.matchStoredContacts(against: contacts, forUser: &mapping)
+		// Here is ok to have an equal count of deletedOnDevice and deletedOnServer since not all server contacts and not all local contacts are inside the contacts array
+		TUTSLog(
+			"Contact SAVE match result: createdOnDevice: \(queryResult.createdOnDevice.count) editedOnDevice: \(queryResult.editedOnDevice.count) deletedOnDevice: \(queryResult.deletedOnDevice.count) newServerContacts: \(queryResult.newServerContacts.count) deletedOnServer: \(queryResult.deletedOnServer.count) existingServerContacts: \(queryResult.existingServerContacts.count) nativeContactWithoutSourceId: \(queryResult.nativeContactWithoutSourceId.count)"
+		)
 		try self.insert(contacts: queryResult.newServerContacts, forUser: &mapping)
 		try self.update(contacts: queryResult.existingServerContacts, forUser: &mapping)
 		for unmappedDeviceContact in queryResult.nativeContactWithoutSourceId {
 			mapping.localContactIdentifierToServerId[unmappedDeviceContact.contact.identifier] = unmappedDeviceContact.serverId
 			mapping.localContactIdentifierToHash[unmappedDeviceContact.localIdentifier] = unmappedDeviceContact.contact
-				.toStructuredContact(serverId: unmappedDeviceContact.serverId).computeHash()
+				.toStructuredContact(serverId: unmappedDeviceContact.serverId).stableHash()
 		}
 
 		// The hash will not match and that's expected as we already returned it as edited on device in sync,
@@ -54,9 +61,13 @@ class IosMobileContactsFacade: MobileContactsFacade {
 	}
 
 	func syncContacts(_ username: String, _ contacts: [StructuredContact]) async throws -> ContactSyncResult {
+		TUTSLog("MobileContactsFacade: sync with \(contacts.count) contacts")
 		try await acquireContactsPermission()
 		var mapping = try self.getOrCreateMapping(username: username)
 		let matchResult = try self.matchStoredContacts(against: contacts, forUser: &mapping)
+		TUTSLog(
+			"Contact SYNC result: createdOnDevice: \(matchResult.createdOnDevice.count) editedOnDevice: \(matchResult.editedOnDevice.count) deletedOnDevice: \(matchResult.deletedOnDevice.count) newServerContacts: \(matchResult.newServerContacts.count) deletedOnServer: \(matchResult.deletedOnServer.count) existingServerContacts: \(matchResult.existingServerContacts.count) nativeContactWithoutSourceId: \(matchResult.nativeContactWithoutSourceId.count)"
+		)
 		try self.insert(contacts: matchResult.newServerContacts, forUser: &mapping)
 		if !matchResult.deletedOnServer.isEmpty { try self.delete(contactsWithServerIDs: matchResult.deletedOnServer, forUser: &mapping) }
 		try self.update(contacts: matchResult.existingServerContacts, forUser: &mapping)
@@ -66,7 +77,7 @@ class IosMobileContactsFacade: MobileContactsFacade {
 		for unmappedDeviceContact in matchResult.nativeContactWithoutSourceId {
 			mapping.localContactIdentifierToServerId[unmappedDeviceContact.contact.identifier] = unmappedDeviceContact.serverId
 			mapping.localContactIdentifierToHash[unmappedDeviceContact.localIdentifier] = unmappedDeviceContact.contact
-				.toStructuredContact(serverId: unmappedDeviceContact.serverId).computeHash()
+				.toStructuredContact(serverId: unmappedDeviceContact.serverId).stableHash()
 		}
 
 		self.saveMapping(mapping, forUsername: mapping.username)
@@ -167,7 +178,7 @@ class IosMobileContactsFacade: MobileContactsFacade {
 
 		for (nativeContact, structuredContact) in insertedContacts {
 			user.localContactIdentifierToServerId[nativeContact.contact.identifier] = structuredContact.id
-			user.localContactIdentifierToHash[nativeContact.contact.identifier] = structuredContact.computeHash()
+			user.localContactIdentifierToHash[nativeContact.contact.identifier] = structuredContact.stableHash()
 		}
 	}
 
@@ -178,7 +189,7 @@ class IosMobileContactsFacade: MobileContactsFacade {
 		for (nativeMutableContact, serverContact) in contacts {
 			nativeMutableContact.updateContactWithData(serverContact)
 			saveRequest.update(nativeMutableContact.contact)
-			user.localContactIdentifierToHash[nativeMutableContact.contact.identifier] = serverContact.computeHash()
+			user.localContactIdentifierToHash[nativeMutableContact.contact.identifier] = serverContact.stableHash()
 		}
 
 		try store.execute(saveRequest)
@@ -251,7 +262,8 @@ class IosMobileContactsFacade: MobileContactsFacade {
 					// won't get all updated on the server. We just want to write the mapping on the first run.
 					if expectedHash == nil {
 						queryResult.nativeContactWithoutSourceId.append(nativeMutableContact)
-					} else if structuredNative.computeHash() != expectedHash {
+					} else if structuredNative.stableHash() != expectedHash {
+						TUTSLog("MobileContactsFacade: hash mismatch for \(nativeContact.identifier) \(serverContactId)")
 						queryResult.editedOnDevice.append((nativeMutableContact, serverContact))
 					} else {
 						queryResult.existingServerContacts.append((nativeMutableContact, serverContact))
@@ -262,6 +274,7 @@ class IosMobileContactsFacade: MobileContactsFacade {
 			} else {
 				let serverContactWithMatchingRawId = contacts.first { $0.rawId == nativeContact.identifier }
 				if let serverId = serverContactWithMatchingRawId?.id {
+					TUTSLog("MobileContactsFacade: Matched contact \(nativeContact.identifier) to server contact \(serverId) by raw id")
 					contactsById.removeValue(forKey: serverId)
 					queryResult.nativeContactWithoutSourceId.append(
 						NativeMutableContact(existingContact: nativeContact, serverId: serverId, container: localContainer)
@@ -276,6 +289,7 @@ class IosMobileContactsFacade: MobileContactsFacade {
 		queryResult.deletedOnDevice = nativeContactIdentifierToHash.keys.compactMap { identifier in user.localContactIdentifierToServerId[identifier] }
 
 		queryResult.newServerContacts = Array(contactsById.values)
+		TUTSLog("MobileContactsFacade: New server contacts: \(queryResult.newServerContacts.count)")
 		return queryResult
 	}
 
@@ -307,12 +321,14 @@ class IosMobileContactsFacade: MobileContactsFacade {
 		if let mapping = self.getMapping(username: username) {
 			return mapping
 		} else {
+			TUTSLog("MobileContactsFacade: creating new mapping for \(username)")
 			let newGroup = try self.createCNGroup(username: username)
 			let mapping = UserContactMapping(
 				username: username,
 				systemGroupIdentifier: newGroup.identifier,
 				localContactIdentifierToServerId: [:],
-				localContactIdentifierToHash: [:]
+				localContactIdentifierToHash: [:],
+				stableHash: true
 			)
 
 			self.saveMapping(mapping, forUsername: username)
@@ -328,7 +344,13 @@ class IosMobileContactsFacade: MobileContactsFacade {
 	private func getMapping(username: String) -> UserContactMapping? {
 		if var dict = getMappingsDictionary()[username] {
 			// migration from the version that didn't have hashes
-			if dict["localContactIdentifierToHash"] == nil { dict["localContactIdentifierToHash"] = [String: Int]() }
+			if dict["localContactIdentifierToHash"] == nil { dict["localContactIdentifierToHash"] = [String: UInt32]() }
+			if dict["stableHash"] == nil {
+				TUTSLog("Migrating old unstable hashes")
+				// Map old values Int64 to a truncated UInt32 hash
+				dict["localContactIdentifierToHash"] = (dict["localContactIdentifierToHash"] as! [String: Int]).mapValues { UInt32($0 & 0xFFFFFFFF) }
+				dict["stablehash"] = true
+			}
 			return try! DictionaryDecoder().decode(UserContactMapping.self, from: dict)
 		} else {
 			return nil
