@@ -358,6 +358,11 @@
 					"name": "AddValue",
 					"sourceType": "SymEncInternalRecipientKeyData",
 					"info": "AddValue SymEncInternalRecipientKeyData/symKeyVersion/1439."
+				},
+				{
+					"name": "RemoveValue",
+					"sourceType": "MailBox",
+					"info": "RemoveValue MailBox/symEncShareBucketKey/131."
 				}
 			]
 		}

@@ -5168,15 +5168,6 @@ export const typeModels = {
                 "type": "Date",
                 "cardinality": "One",
                 "encrypted": false
-            },
-            "symEncShareBucketKey": {
-                "final": true,
-                "name": "symEncShareBucketKey",
-                "id": 131,
-                "since": 1,
-                "type": "Bytes",
-                "cardinality": "ZeroOrOne",
-                "encrypted": false
             }
         },
         "associations": {
