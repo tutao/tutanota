@@ -32,6 +32,7 @@ import {
 	createPublicKeyGetIn,
 	createPublicKeyGetOut,
 	createTypeInfo,
+	CustomerAccountTerminationRequestTypeRef,
 	Group,
 	GroupMembershipTypeRef,
 	GroupTypeRef,
@@ -43,7 +44,6 @@ import {
 	TypeInfoTypeRef,
 	UpdatePermissionKeyData,
 	User,
-	UserReturnTypeRef,
 	UserTypeRef,
 } from "../../../../../src/api/entities/sys/TypeRefs.js"
 import { spy } from "@tutao/tutanota-test-utils"
@@ -200,13 +200,15 @@ o.spec("CryptoFacadeTest", function () {
 	})
 
 	o("resolve session key: unencrypted instance", async function () {
-		const userReturnLiteral = {
-			_format: "0",
-			user: "KOBqO7a----0",
-			userGroup: "someUserGroup",
+		const dummyDate = new Date().getTime().toString()
+		const customerAccountTerminationRequestLiteral = {
+			_format: 0,
+			terminationDate: dummyDate,
+			terminationRequestDate: dummyDate,
+			customer: "customerId",
 		}
-		const UserReturnTypeModel = await resolveTypeReference(UserReturnTypeRef)
-		o(await crypto.resolveSessionKey(UserReturnTypeModel, userReturnLiteral)).equals(null)
+		const CustomerAccountTerminationTypeModel = await resolveTypeReference(CustomerAccountTerminationRequestTypeRef)
+		o(await crypto.resolveSessionKey(CustomerAccountTerminationTypeModel, customerAccountTerminationRequestLiteral)).equals(null)
 	})
 
 	o("resolve session key: _ownerEncSessionKey instance.", async function () {
