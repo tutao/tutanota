@@ -271,6 +271,7 @@
 		3DCE7AAC27200E0A0085E40D /* WebviewHacks.m in Sources */ = {isa = PBXBuildFile; fileRef = 3DCE7AAA27200E0A0085E40D /* WebviewHacks.m */; };
 		3DD10DB227EA148D0076C9A2 /* BlobUtil.swift in Sources */ = {isa = PBXBuildFile; fileRef = 3DD10DB127EA148D0076C9A2 /* BlobUtil.swift */; };
 		3DD272D52BA203E20047ABF8 /* PermissionType.swift in Sources */ = {isa = PBXBuildFile; fileRef = 3DD272D42BA203E20047ABF8 /* PermissionType.swift */; };
+		3DD2ADB82BB2CBAB00DE30B8 /* MurMurHash.swift in Sources */ = {isa = PBXBuildFile; fileRef = 3DD2ADB72BB2CBAB00DE30B8 /* MurMurHash.swift */; };
 		3DD4A09020F8C6260086EB36 /* Assets.xcassets in Resources */ = {isa = PBXBuildFile; fileRef = 3DD4A08F20F8C6260086EB36 /* Assets.xcassets */; };
 		3DD4A09320F8C6260086EB36 /* LaunchScreen.storyboard in Resources */ = {isa = PBXBuildFile; fileRef = 3DD4A09120F8C6260086EB36 /* LaunchScreen.storyboard */; };
 		3DD4EA3B2726F41200D58207 /* DictionaryCoding in Frameworks */ = {isa = PBXBuildFile; productRef = 3DD4EA3A2726F41200D58207 /* DictionaryCoding */; };
@@ -601,6 +602,7 @@
 		3DCE7AAA27200E0A0085E40D /* WebviewHacks.m */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.objc; path = WebviewHacks.m; sourceTree = "<group>"; };
 		3DD10DB127EA148D0076C9A2 /* BlobUtil.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = BlobUtil.swift; sourceTree = "<group>"; };
 		3DD272D42BA203E20047ABF8 /* PermissionType.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = PermissionType.swift; sourceTree = "<group>"; };
+		3DD2ADB72BB2CBAB00DE30B8 /* MurMurHash.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MurMurHash.swift; sourceTree = "<group>"; };
 		3DD4A08320F8C6240086EB36 /* Tuta D.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = "Tuta D.app"; sourceTree = BUILT_PRODUCTS_DIR; };
 		3DD4A08F20F8C6260086EB36 /* Assets.xcassets */ = {isa = PBXFileReference; lastKnownFileType = folder.assetcatalog; path = Assets.xcassets; sourceTree = "<group>"; };
 		3DD4A09220F8C6260086EB36 /* Base */ = {isa = PBXFileReference; lastKnownFileType = file.storyboard; name = Base; path = Base.lproj/LaunchScreen.storyboard; sourceTree = "<group>"; };
@@ -1035,6 +1037,7 @@
 				3DCC3F462ACED5DB00C9C27E /* UnfairLock.swift */,
 				3DCA74F52B63BE900007A1B0 /* UserPreferences.swift */,
 				3D5C6FA02B7BC15D00342E8C /* PermissionError.swift */,
+				3DD2ADB72BB2CBAB00DE30B8 /* MurMurHash.swift */,
 			);
 			path = Utils;
 			sourceTree = "<group>";
@@ -1575,7 +1578,6 @@
 				3DEF18F12924E1F1009C4B55 /* TutanotaShareExtension */,
 				3DD4A08420F8C6240086EB36 /* Products */,
 				3D891EEC2105A5590031E528 /* Frameworks */,
-				3DD272D32BA201D00047ABF8 /* Recovered References */,
 			);
 			sourceTree = "<group>";
 		};
@@ -2244,7 +2246,6 @@
 				3D4FAD162B8F368300BEDF5A /* ThemeFacade.swift in Sources */,
 				3D9B12A6272192C2002B46A1 /* AlarmNotification.swift in Sources */,
 				3D4FACED2B8F368300BEDF5A /* EncryptedFileInfo.swift in Sources */,
-				3DEF392A2B8CA8C000019695 /* PermissionType.swift in Sources */,
 				3D87ECE6212D9EB000FD7315 /* TUTIcons.m in Sources */,
 				3D9B12A32721926E002B46A1 /* ValueEncryption.swift in Sources */,
 				3D891F0D2105B12F0031E528 /* TUTEncodingConverter.m in Sources */,
@@ -2298,6 +2299,7 @@
 				3DE46D2B2848EBDA00DC9D43 /* IosFileFacade.swift in Sources */,
 				3D4A426729B6453700B10451 /* AlarmScheduler.swift in Sources */,
 				3D0E44A72B3C3CE500F933A1 /* poly.c in Sources */,
+				3DD2ADB82BB2CBAB00DE30B8 /* MurMurHash.swift in Sources */,
 				3D4A426329B63C0E00B10451 /* AlarmCryptor.swift in Sources */,
 				3D4FAD082B8F368300BEDF5A /* NativeShortcut.swift in Sources */,
 				3D4FACF02B8F368300BEDF5A /* KyberPublicKey.swift in Sources */,
