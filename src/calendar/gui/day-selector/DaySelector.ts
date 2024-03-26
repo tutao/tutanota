@@ -74,6 +74,7 @@ export class DaySelector implements Component<DaySelectorAttrs> {
 
 		return m(Carousel, {
 			label: "date_label",
+			class: "center-horizontally",
 			style: {
 				fontSize: px(14),
 				lineHeight: px(this.getElementSize(vnode.attrs)),
