@@ -356,8 +356,13 @@
 				},
 				{
 					"name": "AddValue",
+					"sourceType": "TutanotaProperties",
+					"info": "AddValue TutanotaProperties/userKeyVersion/1439."
+				},
+				{
+					"name": "AddValue",
 					"sourceType": "SymEncInternalRecipientKeyData",
-					"info": "AddValue SymEncInternalRecipientKeyData/symKeyVersion/1439."
+					"info": "AddValue SymEncInternalRecipientKeyData/symKeyVersion/1440."
 				},
 				{
 					"name": "RemoveValue",

@@ -7543,7 +7543,7 @@ export const typeModels = {
             "symKeyVersion": {
                 "final": false,
                 "name": "symKeyVersion",
-                "id": 1439,
+                "id": 1440,
                 "since": 68,
                 "type": "Number",
                 "cardinality": "One",
@@ -7795,6 +7795,15 @@ export const typeModels = {
                 "id": 410,
                 "since": 2,
                 "type": "Bytes",
+                "cardinality": "ZeroOrOne",
+                "encrypted": false
+            },
+            "userKeyVersion": {
+                "final": false,
+                "name": "userKeyVersion",
+                "id": 1439,
+                "since": 68,
+                "type": "Number",
                 "cardinality": "ZeroOrOne",
                 "encrypted": false
             }

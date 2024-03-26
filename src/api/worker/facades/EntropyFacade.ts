@@ -1,11 +1,12 @@
-import { EntropySource, Randomizer } from "@tutao/tutanota-crypto"
+import { authenticatedAesDecrypt, EntropySource, random, Randomizer } from "@tutao/tutanota-crypto"
 import { UserFacade } from "./UserFacade.js"
-import { createEntropyData } from "../../entities/tutanota/TypeRefs.js"
+import { createEntropyData, TutanotaProperties } from "../../entities/tutanota/TypeRefs.js"
 import { encryptBytes } from "../crypto/CryptoFacade.js"
 import { EntropyService } from "../../entities/tutanota/Services.js"
-import { noOp, ofClass } from "@tutao/tutanota-utils"
+import { lazy, noOp, ofClass } from "@tutao/tutanota-utils"
 import { ConnectionError, LockedError, ServiceUnavailableError } from "../../common/error/RestError.js"
 import { IServiceExecutor } from "../../common/ServiceRequest.js"
+import { KeyLoaderFacade } from "./KeyLoaderFacade.js"
 
 export interface EntropyDataChunk {
 	source: EntropySource
@@ -18,7 +19,12 @@ export class EntropyFacade {
 	private newEntropy: number = -1
 	private lastEntropyUpdate: number = Date.now()
 
-	constructor(private readonly userFacade: UserFacade, private readonly serviceExecutor: IServiceExecutor, private readonly random: Randomizer) {}
+	constructor(
+		private readonly userFacade: UserFacade,
+		private readonly serviceExecutor: IServiceExecutor,
+		private readonly random: Randomizer,
+		private readonly lazyKeyLoaderFacade: lazy<KeyLoaderFacade>,
+	) {}
 
 	/**
 	 * Adds entropy to the randomizer. Updated the stored entropy for a user when enough entropy has been collected.
@@ -59,5 +65,21 @@ export class EntropyFacade {
 					console.log("could not store entropy", e)
 				}),
 			)
+	}
+
+	/**
+	 * Loads entropy from the last logout.
+	 */
+	public async loadEntropy(tutanotaProperties: TutanotaProperties): Promise<void> {
+		if (tutanotaProperties.userEncEntropy && tutanotaProperties.userKeyVersion != null) {
+			try {
+				const keyLoaderFacade = this.lazyKeyLoaderFacade()
+				const userGroupKey = await keyLoaderFacade.loadSymUserGroupKey(Number(tutanotaProperties.userKeyVersion))
+				const entropy = authenticatedAesDecrypt(userGroupKey, tutanotaProperties.userEncEntropy)
+				random.addStaticEntropy(entropy)
+			} catch (error) {
+				console.log("could not decrypt entropy", error)
+			}
+		}
 	}
 }
