@@ -7,17 +7,20 @@ export type LeavingUserSurveyData = {
 	category: NumberString | null
 	reason: NumberString | null
 	details: string | null
+	submitted: boolean // we need a separate submit flag, because the user might go back from page 2 and cancel the dialog, in which case the values will be set
 }
 
 export async function showLeavingUserSurveyWizard(): Promise<LeavingUserSurveyData> {
 	let category: NumberString | null = null
 	let reason: string | null = null
 	let details: string | null = null
+	let submitted: boolean = false
 
 	const leavingUserSurveyData: LeavingUserSurveyData = {
 		category,
 		reason,
 		details,
+		submitted,
 	}
 
 	const wizardPages = [

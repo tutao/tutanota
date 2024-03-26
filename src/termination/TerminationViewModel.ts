@@ -56,6 +56,7 @@ export class TerminationViewModel {
 				terminationDate: this.getTerminationDate(),
 				reason: reason.text,
 				reasonCategory: reason.reasonCategory,
+				surveyData: null,
 			})
 			let serviceResponse = await this.serviceExecutor.post(CustomerAccountTerminationService, inputData)
 			this.acceptedTerminationRequest = await this.entityClient.load(CustomerAccountTerminationRequestTypeRef, serviceResponse.terminationRequest)

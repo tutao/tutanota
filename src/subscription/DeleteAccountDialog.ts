@@ -9,8 +9,10 @@ import { locator } from "../api/main/MainLocator"
 import { getEtId } from "../api/common/utils/EntityUtils"
 import { CloseEventBusOption } from "../api/common/TutanotaConstants.js"
 import { CancellationReasonInput } from "./CancellationReasonInput.js"
+import { LeavingUserSurveyData } from "./LeavingUserSurveyWizard.js"
+import { SurveyDataIn } from "../api/entities/sys/TypeRefs.js"
 
-export function showDeleteAccountDialog() {
+export function showDeleteAccountDialog(surveyData: SurveyDataIn | null = null) {
 	let reasonCategory: NumberString | null = null
 	let reason = ""
 	let takeover = ""
@@ -22,13 +24,6 @@ export function showDeleteAccountDialog() {
 		child: {
 			view: () =>
 				m("#delete-account-dialog", [
-					m(CancellationReasonInput, {
-						reason: reason,
-						reasonHandler: (enteredReason: string) => (reason = enteredReason),
-						category: reasonCategory,
-						categoryHandler: (category: NumberString) => (reasonCategory = category),
-					}),
-					m(".list-border-bottom.pb-l"),
 					m(TextField, {
 						label: "targetAddress_label",
 						value: takeover,
@@ -47,7 +42,7 @@ export function showDeleteAccountDialog() {
 				]),
 		},
 		okAction: async () => {
-			const isDeleted = await deleteAccount(reasonCategory, reason, takeover, password)
+			const isDeleted = await deleteAccount(takeover, password, surveyData)
 			if (isDeleted) {
 				await locator.credentialsProvider.deleteByUserId(userId)
 				m.route.set("/login", { noAutoLogin: true })
@@ -58,7 +53,7 @@ export function showDeleteAccountDialog() {
 	})
 }
 
-async function deleteAccount(reasonCategory: string | null, reasonText: string, takeover: string, password: string): Promise<boolean> {
+async function deleteAccount(takeover: string, password: string, surveyData: SurveyDataIn | null = null): Promise<boolean> {
 	const cleanedTakeover = takeover === "" ? "" : getCleanedMailAddress(takeover)
 
 	if (cleanedTakeover === null) {
@@ -78,7 +73,7 @@ async function deleteAccount(reasonCategory: string | null, reasonText: string, 
 		// which is an immediate crash on ios
 		await locator.connectivityModel.close(CloseEventBusOption.Terminate)
 		try {
-			await locator.loginFacade.deleteAccount(password, reasonCategory, reasonText, neverNull(cleanedTakeover))
+			await locator.loginFacade.deleteAccount(password, neverNull(cleanedTakeover), surveyData)
 			return true
 		} catch (e) {
 			if (e instanceof PreconditionFailedError) await Dialog.message("passwordWrongInvalid_msg")

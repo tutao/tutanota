@@ -91,6 +91,7 @@ export class LeavingUserSurveyReasonPage implements WizardPageN<LeavingUserSurve
 						label: () => "Submit",
 						onclick: () => {
 							vnode.attrs.data.details = this.customReasonEditor.getValue()
+							vnode.attrs.data.submitted = true
 							this.closeDialog()
 						},
 					}),

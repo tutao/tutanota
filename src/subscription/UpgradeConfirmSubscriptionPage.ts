@@ -44,6 +44,7 @@ export class UpgradeConfirmSubscriptionPage implements WizardPageN<UpgradeSubscr
 			specialPriceUserSingle: null,
 			reasonCategory: null,
 			reason: null,
+			surveyData: null,
 		})
 		showProgressDialog(
 			"pleaseWait_msg",

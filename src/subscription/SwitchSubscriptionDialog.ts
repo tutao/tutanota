@@ -112,6 +112,7 @@ export async function showSwitchDialog(
 				label: "pricing.select_action",
 				onclick: () =>
 					showLeavingUserSurveyWizard().then((reason) => {
+						// TODO
 						console.log("Reason: ", reason.reason, " Category: ", reason.category, " details: ", reason.details)
 						cancelSubscription(dialog, currentPlanInfo, deferred, customer)
 					}),
@@ -259,33 +260,6 @@ async function cancelSubscription(dialog: Dialog, currentPlanInfo: CurrentPlanIn
 		return
 	}
 
-	let reasonCategory: string | null = null
-	let reason = ""
-
-	let result = await new Promise((resolve) => {
-		let dialog = Dialog.showActionDialog({
-			title: lang.get("survey_label"),
-			child: {
-				view: () =>
-					m(CancellationReasonInput, {
-						reason: reason,
-						reasonHandler: (enteredReason: string) => (reason = enteredReason),
-						category: reasonCategory,
-						categoryHandler: (category: NumberString) => (reasonCategory = category),
-					}),
-			},
-			okAction: () => {
-				dialog.close()
-				resolve(true)
-			},
-			cancelAction: () => {
-				dialog.close()
-				resolve(false)
-			},
-			cancelActionTextId: "skip_action",
-		})
-	})
-
 	const switchAccountTypeData = createSwitchAccountTypePostIn({
 		accountType: AccountType.FREE,
 		date: Const.CURRENT_DATE,
@@ -293,8 +267,9 @@ async function cancelSubscription(dialog: Dialog, currentPlanInfo: CurrentPlanIn
 		specialPriceUserSingle: null,
 		referralCode: null,
 		plan: PlanType.Free,
-		reasonCategory: result ? reasonCategory : null,
-		reason: result ? reason : null,
+		reasonCategory: null,
+		reason: null,
+		surveyData: null,
 	})
 	try {
 		await showProgressDialog(
@@ -336,6 +311,7 @@ async function switchSubscription(targetSubscription: PlanType, dialog: Dialog, 
 			specialPriceUserSingle: null,
 			reasonCategory: null,
 			reason: null,
+			surveyData: null,
 		})
 
 		try {

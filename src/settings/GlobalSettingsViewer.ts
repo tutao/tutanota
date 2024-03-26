@@ -3,7 +3,7 @@ import { DAY_IN_MILLIS, LazyLoaded, neverNull, noOp, ofClass, promiseMap } from 
 import { InfoLink, lang } from "../misc/LanguageViewModel"
 import { getSpamRuleFieldToName, getSpamRuleTypeNameMapping, showAddSpamRuleDialog } from "./AddSpamRuleDialog"
 import { getSpamRuleField, GroupType, OperationType, SpamRuleFieldType, SpamRuleType } from "../api/common/TutanotaConstants"
-import type { AuditLogEntry, Customer, CustomerInfo, CustomerServerProperties, DomainInfo, GroupInfo } from "../api/entities/sys/TypeRefs.js"
+import { AuditLogEntry, createSurveyDataIn, Customer, CustomerInfo, CustomerServerProperties, DomainInfo, GroupInfo } from "../api/entities/sys/TypeRefs.js"
 import {
 	AuditLogEntryTypeRef,
 	createEmailSenderListElement,
@@ -302,6 +302,14 @@ export class GlobalSettingsViewer implements UpdatableSettingsViewer {
 									onclick: () =>
 										showLeavingUserSurveyWizard().then((reason) => {
 											console.log("Reason: ", reason.reason, " Category: ", reason.category, " details: ", reason.details)
+											if (reason.submitted && reason.category && reason.reason) {
+												const surveyDataIn = createSurveyDataIn({
+													category: reason.category,
+													details: reason.details,
+													reason: reason.reason,
+												})
+												showDeleteAccountDialog(surveyDataIn)
+											}
 											showDeleteAccountDialog()
 										}),
 								}),

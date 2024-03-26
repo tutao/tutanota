@@ -794,6 +794,8 @@ export type CustomerAccountTerminationPostIn = {
 	reason: null | string;
 	reasonCategory: null | NumberString;
 	terminationDate: null | Date;
+
+	surveyData:  null | SurveyDataIn;
 }
 export const CustomerAccountTerminationPostOutTypeRef: TypeRef<CustomerAccountTerminationPostOut> = new TypeRef("sys", "CustomerAccountTerminationPostOut")
 
@@ -991,12 +993,13 @@ export type DeleteCustomerData = {
 
 	_format: NumberString;
 	authVerifier: null | Uint8Array;
-	reason: string;
+	reason: null | string;
 	reasonCategory: null | NumberString;
 	takeoverMailAddress: null | string;
 	undelete: boolean;
 
 	customer: Id;
+	surveyData:  null | SurveyDataIn;
 }
 export const DnsRecordTypeRef: TypeRef<DnsRecord> = new TypeRef("sys", "DnsRecord")
 
@@ -2795,6 +2798,40 @@ export type StringWrapper = {
 	_id: Id;
 	value: string;
 }
+export const SurveyDataTypeRef: TypeRef<SurveyData> = new TypeRef("sys", "SurveyData")
+
+export function createSurveyData(values: StrippedEntity<SurveyData>): SurveyData {
+	return Object.assign(create(typeModels.SurveyData, SurveyDataTypeRef), values)
+}
+
+export type SurveyData = {
+	_type: TypeRef<SurveyData>;
+
+	_format: NumberString;
+	_id: IdTuple;
+	_ownerGroup: null | Id;
+	_permissions: Id;
+	accountAgeInDays: NumberString;
+	cancellationType: NumberString;
+	paidAgeInDays: null | NumberString;
+	plan: NumberString;
+
+	data: SurveyDataIn;
+}
+export const SurveyDataInTypeRef: TypeRef<SurveyDataIn> = new TypeRef("sys", "SurveyDataIn")
+
+export function createSurveyDataIn(values: StrippedEntity<SurveyDataIn>): SurveyDataIn {
+	return Object.assign(create(typeModels.SurveyDataIn, SurveyDataInTypeRef), values)
+}
+
+export type SurveyDataIn = {
+	_type: TypeRef<SurveyDataIn>;
+
+	_id: Id;
+	category: NumberString;
+	details: null | string;
+	reason: NumberString;
+}
 export const SwitchAccountTypePostInTypeRef: TypeRef<SwitchAccountTypePostIn> = new TypeRef("sys", "SwitchAccountTypePostIn")
 
 export function createSwitchAccountTypePostIn(values: StrippedEntity<SwitchAccountTypePostIn>): SwitchAccountTypePostIn {
@@ -2814,6 +2851,7 @@ export type SwitchAccountTypePostIn = {
 	specialPriceUserSingle: null | NumberString;
 
 	referralCode:  null | Id;
+	surveyData:  null | SurveyDataIn;
 }
 export const SystemKeysReturnTypeRef: TypeRef<SystemKeysReturn> = new TypeRef("sys", "SystemKeysReturn")
 

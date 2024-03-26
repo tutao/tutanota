@@ -42,6 +42,7 @@ import {
 	RecoverCodeTypeRef,
 	SecondFactorAuthData,
 	SessionTypeRef,
+	SurveyDataIn,
 	User,
 	UserTypeRef,
 } from "../../entities/sys/TypeRefs.js"
@@ -92,6 +93,7 @@ import { ProgrammingError } from "../../common/error/ProgrammingError.js"
 import { DatabaseKeyFactory } from "../../../misc/credentials/DatabaseKeyFactory.js"
 import { ExternalUserKeyDeriver } from "../../../misc/LoginUtils.js"
 import { Argon2idFacade } from "./Argon2idFacade.js"
+import { LeavingUserSurveyData } from "../../../subscription/LeavingUserSurveyWizard.js"
 
 assertWorkerOrNode()
 
@@ -923,7 +925,7 @@ export class LoginFacade {
 		}
 	}
 
-	async deleteAccount(password: string, reasonCategory: NumberString | null, reasonText: string, takeover: string): Promise<void> {
+	async deleteAccount(password: string, takeover: string, surveyData: SurveyDataIn | null = null): Promise<void> {
 		const userSalt = assertNotNull(this.userFacade.getLoggedInUser().salt)
 
 		const passphraseKeyData = {
@@ -934,11 +936,12 @@ export class LoginFacade {
 		const passwordKey = await this.deriveUserPassphraseKey(passphraseKeyData)
 		const deleteCustomerData = createDeleteCustomerData({
 			authVerifier: createAuthVerifier(passwordKey),
-			reason: reasonText,
-			reasonCategory: reasonCategory,
+			reason: null,
+			reasonCategory: null,
 			takeoverMailAddress: null,
 			undelete: false,
 			customer: neverNull(neverNull(this.userFacade.getLoggedInUser()).customer),
+			surveyData: surveyData,
 		})
 
 		if (takeover !== "") {
