@@ -225,6 +225,7 @@ export class PressReleaseForm implements Component<PressReleaseFormAttrs> {
 				htmlSanitizer.sanitizeFragment(html, {
 					blockExternalContent: false,
 				}).fragment,
+			null,
 		)
 		this.editor.initialized.promise.then(() => {
 			this.editor.setHTML(bodyHtml())

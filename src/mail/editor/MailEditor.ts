@@ -165,15 +165,19 @@ export class MailEditor implements Component<MailEditorAttrs> {
 		// if we have any CC/BCC recipients, we should show these so, should the user send the mail, they know where it will be going to
 		this.areDetailsExpanded = model.bccRecipients().length + model.ccRecipients().length > 0
 
-		this.editor = new Editor(200, (html, isPaste) => {
-			const sanitized = htmlSanitizer.sanitizeFragment(html, {
-				blockExternalContent: !isPaste && this.blockExternalContent,
-			})
-			this.blockedExternalContent = sanitized.blockedExternalContent
+		this.editor = new Editor(
+			200,
+			(html, isPaste) => {
+				const sanitized = htmlSanitizer.sanitizeFragment(html, {
+					blockExternalContent: !isPaste && this.blockExternalContent,
+				})
+				this.blockedExternalContent = sanitized.blockedExternalContent
 
-			this.mentionedInlineImages = sanitized.inlineImageCids
-			return sanitized.fragment
-		})
+				this.mentionedInlineImages = sanitized.inlineImageCids
+				return sanitized.fragment
+			},
+			null,
+		)
 
 		const onEditorChanged = () => {
 			cleanupInlineAttachments(this.editor.getDOM(), this.inlineImageElements, model.getAttachments())

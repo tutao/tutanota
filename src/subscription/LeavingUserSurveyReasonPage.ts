@@ -37,7 +37,7 @@ export class LeavingUserSurveyReasonPage implements WizardPageN<LeavingUserSurve
 
 	constructor() {
 		this.customReasonEditor = new HtmlEditor()
-			.setMinHeight(120)
+			.setStaticHeight(120)
 			.showBorders()
 			.setPlaceholderId("enterDetails_msg")
 			.setMode(HtmlEditorMode.HTML)

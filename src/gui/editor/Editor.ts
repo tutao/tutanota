@@ -63,7 +63,7 @@ export class Editor implements ImageHandler, Component {
 	 */
 	private pasteListener: (e: ClipboardEvent) => void = (_: ClipboardEvent) => (this.userHasPasted = true)
 
-	constructor(private minHeight: number | null, private sanitizer: SanitizerFn) {
+	constructor(private minHeight: number | null, private sanitizer: SanitizerFn, private staticHeight: number | null) {
 		this.onremove = this.onremove.bind(this)
 		this.onbeforeupdate = this.onbeforeupdate.bind(this)
 		this.view = this.view.bind(this)
@@ -91,7 +91,13 @@ export class Editor implements ImageHandler, Component {
 			tabindex: TabIndex.Default,
 			oncreate: (vnode) => this.initSquire(vnode.dom as HTMLElement),
 			class: "flex-grow",
-			style: this.minHeight
+			style: this.staticHeight
+				? {
+						"max-height": px(this.staticHeight),
+						"min-height:": px(this.staticHeight),
+						overflow: "scroll",
+				  }
+				: this.minHeight
 				? {
 						"min-height": px(this.minHeight),
 				  }
@@ -113,6 +119,16 @@ export class Editor implements ImageHandler, Component {
 
 	setMinHeight(minHeight: number): Editor {
 		this.minHeight = minHeight
+		return this
+	}
+
+	/**
+	 * Sets a static height for the editor. The height of the editor will always remain at this value.
+	 * Adding too many lines will make the contents within the editor scrollable.
+	 * Currently, this overwrites min-height.
+	 */
+	setStaticHeight(height: number): Editor {
+		this.staticHeight = height
 		return this
 	}
 

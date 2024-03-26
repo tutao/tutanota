@@ -28,9 +28,12 @@ export class HtmlEditor implements Component {
 	private modeSwitcherLabel: TranslationText | null = null
 	private toolbarEnabled = false
 	private toolbarAttrs: Omit<RichTextToolbarAttrs, "editor"> = {}
+	private staticHeight: number | null = null
 
 	constructor(private label?: TranslationText, private readonly injections?: () => Children) {
-		this.editor = new Editor(null, (html) => htmlSanitizer.sanitizeFragment(html, { blockExternalContent: false }).fragment).setTabCreatesWhitespace(false)
+		this.editor = new Editor(null, (html) => htmlSanitizer.sanitizeFragment(html, { blockExternalContent: false }).fragment, null).setTabCreatesWhitespace(
+			false,
+		)
 		this.view = this.view.bind(this)
 		this.initializeEditorListeners()
 	}
@@ -114,10 +117,16 @@ export class HtmlEditor implements Component {
 										this.domTextArea.style.height = this.domTextArea.scrollHeight + "px"
 									}
 								},
-								style: {
-									"font-family": this.htmlMonospace ? "monospace" : "inherit",
-									"min-height": this.minHeight ? px(this.minHeight) : "initial",
-								},
+								style: this.staticHeight
+									? {
+											"max-height": px(this.staticHeight),
+											"min-height": px(this.staticHeight),
+											overflow: "scroll",
+									  }
+									: {
+											"font-family": this.htmlMonospace ? "monospace" : "inherit",
+											"min-height": this.minHeight ? px(this.minHeight) : "initial",
+									  },
 								disabled: !this.editor.isEnabled(),
 								readonly: this.editor.isReadOnly(),
 							}),
@@ -161,6 +170,17 @@ export class HtmlEditor implements Component {
 	setMinHeight(height: number): HtmlEditor {
 		this.minHeight = height
 		this.editor.setMinHeight(height)
+		return this
+	}
+
+	/**
+	 * Sets a static height for the editor. The height of the editor will always remain at this value.
+	 * Adding too many lines will make the contents within the editor scrollable.
+	 * Currently, this overwrites min-height.
+	 */
+	setStaticHeight(height: number): HtmlEditor {
+		this.staticHeight = height
+		this.editor.setStaticHeight(height)
 		return this
 	}
 
