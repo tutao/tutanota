@@ -290,7 +290,7 @@ export class CalendarView extends BaseTopLevelView implements TopLevelView<Calen
 			},
 			ColumnType.Background,
 			{
-				minWidth: size.second_col_min_width + size.third_col_min_width,
+				minWidth: size.calendar_first_col_min_width + size.third_col_min_width,
 				maxWidth: size.third_col_max_width,
 			},
 		)
@@ -337,7 +337,7 @@ export class CalendarView extends BaseTopLevelView implements TopLevelView<Calen
 
 	private renderDesktopToolbar(): Children {
 		return m(CalendarDesktopToolbar, {
-			navConfig: calendarNavConfiguration(this.currentViewType, this.viewModel.selectedDate(), this.viewModel.weekStart, "short", (viewType, next) =>
+			navConfig: calendarNavConfiguration(this.currentViewType, this.viewModel.selectedDate(), this.viewModel.weekStart, "detailed", (viewType, next) =>
 				this.viewPeriod(viewType, next),
 			),
 			viewType: this.currentViewType,
