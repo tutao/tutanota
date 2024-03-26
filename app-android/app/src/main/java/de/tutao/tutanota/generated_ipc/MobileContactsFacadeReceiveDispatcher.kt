@@ -46,8 +46,10 @@ class MobileContactsFacadeReceiveDispatcher(
 			}
 			"getContactsInContactBook" -> {
 				val bookId: String = json.decodeFromString(arg[0])
+				val username: String = json.decodeFromString(arg[1])
 				val result: List<StructuredContact> = this.facade.getContactsInContactBook(
 					bookId,
+					username,
 				)
 				return json.encodeToString(result)
 			}

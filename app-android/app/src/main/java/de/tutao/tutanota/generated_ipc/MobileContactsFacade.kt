@@ -40,6 +40,7 @@ interface MobileContactsFacade {
 	 */
 	 suspend fun getContactsInContactBook(
 		bookId: String,
+		username: String,
 	): List<StructuredContact>
 	/**
 	 * Delete all or a specific Tuta contact from system's contact book
