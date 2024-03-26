@@ -298,7 +298,7 @@ export class NativeContactsSyncManager {
 			phoneticMiddle: contact.phoneticMiddle,
 			relationships: contact.relationships.map((relation) => createContactRelationship(relation)),
 			websites: contact.websites.map((website) => createContactWebsite(website)),
-			comment: canMergeCommentField ? partialContact.comment : contact.notes,
+			comment: canMergeCommentField ? contact.notes : partialContact.comment,
 			title: contact.title ?? "",
 			role: contact.role,
 		}
