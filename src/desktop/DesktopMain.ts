@@ -60,6 +60,8 @@ import { DefaultDateProvider } from "../calendar/date/CalendarUtils.js"
 import { OfflineDbRefCounter } from "./db/OfflineDbRefCounter.js"
 import { WorkerSqlCipher } from "./db/WorkerSqlCipher.js"
 import { TempFs } from "./files/TempFs.js"
+import { makeDbPath } from "./db/DbUtils.js"
+import { DesktopCredentialsSqlDb } from "./db/DesktopCredentialsSqlDb.js"
 
 /**
  * Should be injected during build time.
@@ -154,7 +156,9 @@ async function createComponents(): Promise<Components> {
 	const alarmStorage = new DesktopAlarmStorage(conf, desktopCrypto, keyStoreFacade)
 	const updater = new ElectronUpdater(conf, notifier, desktopCrypto, app, appIcon, new UpdaterWrapper(), fs)
 	const shortcutManager = new LocalShortcutManager()
-	const nativeCredentialsFacade = new DesktopNativeCredentialsFacade(keyStoreFacade, desktopCrypto, wasmLoader(), lang, conf, async () => {
+	const wm = new WindowManager(conf, tray, notifier, electron, shortcutManager, appIcon)
+	const credentialsDb = new DesktopCredentialsSqlDb(buildOptions.sqliteNativePath)
+	const nativeCredentialsFacade = new DesktopNativeCredentialsFacade(wm, keyStoreFacade, desktopCrypto, wasmLoader(), lang, conf, credentialsDb, async () => {
 		const last = await wm.getLastFocused(true)
 		return last.commonNativeFacade
 	})
@@ -168,7 +172,7 @@ async function createComponents(): Promise<Components> {
 	/** functions to create and delete the physical db file on disk */
 	const offlineDbFactory: OfflineDbFactory = {
 		async create(userId: string, key: Uint8Array, retry: boolean = true): Promise<SqlCipherFacade> {
-			const db = new WorkerSqlCipher(buildOptions.sqliteNativePath, makeDbPath(userId), true)
+			const db = new WorkerSqlCipher(buildOptions.sqliteNativePath, makeDbPath(`offline_${userId}`), true)
 			try {
 				await db.openDb(userId, key)
 			} catch (e) {
@@ -190,7 +194,6 @@ async function createComponents(): Promise<Components> {
 
 	const offlineDbRefCounter = new OfflineDbRefCounter(offlineDbFactory)
 
-	const wm = new WindowManager(conf, tray, notifier, electron, shortcutManager, appIcon)
 	const themeFacade = new DesktopThemeFacade(conf, wm, electron.nativeTheme)
 	const alarmScheduler = new AlarmScheduler(dateProvider, new SchedulerImpl(dateProvider, global, global))
 	const desktopAlarmScheduler = new DesktopAlarmScheduler(wm, notifier, alarmStorage, desktopCrypto, alarmScheduler)
@@ -252,10 +255,6 @@ async function createComponents(): Promise<Components> {
 	}
 
 	const remoteBridge = new RemoteBridge(dispatcherFactory, facadeHandlerFactory)
-
-	function makeDbPath(userId: string): string {
-		return path.join(app.getPath("userData"), `offline_${userId}.sqlite`)
-	}
 
 	const contextMenu = new DesktopContextMenu(electron, wm)
 	wm.lateInit(contextMenu, themeFacade, remoteBridge)

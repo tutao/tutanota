@@ -10,6 +10,12 @@ export class DesktopFacadeSendDispatcher implements DesktopFacade {
 	async print(...args: Parameters<DesktopFacade["print"]>) {
 		return this.transport.invokeNative("ipc", ["DesktopFacade", "print", ...args])
 	}
+	async getCredentialEncryptionMode(...args: Parameters<DesktopFacade["getCredentialEncryptionMode"]>) {
+		return this.transport.invokeNative("ipc", ["DesktopFacade", "getCredentialEncryptionMode", ...args])
+	}
+	async setCredentialEncryptionMode(...args: Parameters<DesktopFacade["setCredentialEncryptionMode"]>) {
+		return this.transport.invokeNative("ipc", ["DesktopFacade", "setCredentialEncryptionMode", ...args])
+	}
 	async showSpellcheckDropdown(...args: Parameters<DesktopFacade["showSpellcheckDropdown"]>) {
 		return this.transport.invokeNative("ipc", ["DesktopFacade", "showSpellcheckDropdown", ...args])
 	}

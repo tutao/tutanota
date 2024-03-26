@@ -12,7 +12,8 @@ import { CryptoError } from "@tutao/tutanota-crypto/error.js"
 import { CancelledError } from "../../api/common/error/CancelledError.js"
 import { KeyPermanentlyInvalidatedError } from "../../api/common/error/KeyPermanentlyInvalidatedError.js"
 import { PersistedCredentials } from "../../native/common/generatedipc/PersistedCredentials.js"
-import { Type } from "cborg"
+import { DesktopCredentialsSqlDb } from "../db/DesktopCredentialsSqlDb.js"
+import { WindowManager } from "../DesktopWindowManager.js"
 
 /** the single source of truth for this configuration */
 const SUPPORTED_MODES = Object.freeze([CredentialEncryptionMode.DEVICE_LOCK, CredentialEncryptionMode.APP_PASSWORD] as const)
@@ -23,19 +24,23 @@ export type DesktopCredentialsMode = typeof SUPPORTED_MODES[number]
  */
 export class DesktopNativeCredentialsFacade implements NativeCredentialsFacade {
 	/**
+	 * @param wm
 	 * @param desktopKeyStoreFacade
 	 * @param crypto
 	 * @param argon2idFacade
 	 * @param lang
 	 * @param conf
+	 * @param credentialDb
 	 * @param getCurrentCommonNativeFacade a "factory" that returns the commonNativeFacade for the window that would be most suited to serve a given request
 	 */
 	constructor(
+		private readonly wm: WindowManager,
 		private readonly desktopKeyStoreFacade: DesktopKeyStoreFacade,
 		private readonly crypto: DesktopNativeCryptoFacade,
 		private readonly argon2idFacade: Promise<WebAssembly.Exports>,
 		private readonly lang: LanguageViewModel,
 		private readonly conf: DesktopConfig,
+		private readonly credentialDb: DesktopCredentialsSqlDb,
 		private readonly getCurrentCommonNativeFacade: () => Promise<CommonNativeFacade>,
 	) {}
 
@@ -89,7 +94,7 @@ export class DesktopNativeCredentialsFacade implements NativeCredentialsFacade {
 	/**
 	 * if there is a salt stored, use it and a password prompt to derive the app Pass key.
 	 * if there isn't, ask for a new password, generate a salt & store it, then derive the key.
-	 * @return the derived 256 bit key or null if none is found
+	 * @return the derived 256-bit key or null if none is found
 	 */
 	private async deriveKeyFromAppPass(): Promise<Aes256Key | null> {
 		const storedAppPassSaltB64 = await this.conf.getVar(DesktopConfigKey.appPassSalt)
@@ -132,24 +137,30 @@ export class DesktopNativeCredentialsFacade implements NativeCredentialsFacade {
 		throw new Error("Not implemented!")
 	}
 
-	getCredentialEncryptionMode(): Promise<CredentialEncryptionMode | null> {
-		throw new Error("Not implemented!")
+	async getCredentialEncryptionMode(): Promise<CredentialEncryptionMode | null> {
+		const lastWindow = await this.wm.getLastFocused(true)
+		return lastWindow.desktopFacade.getCredentialEncryptionMode()
 	}
 
 	getCredentialsEncryptionKey(): Promise<Uint8Array> {
 		throw new Error("Not implemented!")
 	}
 
-	loadAll(): Promise<ReadonlyArray<PersistedCredentials>> {
-		throw new Error("Not implemented!")
+	async loadAll(): Promise<ReadonlyArray<PersistedCredentials>> {
+		const records = await this.credentialDb.all("SELECT * FROM credentials", [])
+		console.log(records)
+		return new Promise((resolve, reject) => {
+			resolve([])
+		})
 	}
 
 	loadByUserId(id: string): Promise<PersistedCredentials | null> {
 		throw new Error("Not implemented!")
 	}
 
-	setCredentialEncryptionMode(encryptionMode: CredentialEncryptionMode): Promise<void> {
-		throw new Error("Not implemented!")
+	async setCredentialEncryptionMode(encryptionMode: CredentialEncryptionMode): Promise<void> {
+		const lastWindow = await this.wm.getLastFocused(true)
+		await lastWindow.desktopFacade.setCredentialEncryptionMode(encryptionMode)
 	}
 
 	setCredentialsEncryptionKey(credentialsEncryptionKey: Uint8Array | null): Promise<void> {

@@ -12,6 +12,7 @@ import { checkOfflineDatabaseMigrations } from "./checkOfflineDbMigratons.js"
 import { buildRuntimePackages } from "./packageBuilderFunctions.js"
 import { domainConfigs } from "./DomainConfigs.js"
 import { sh } from "./sh.js"
+import { nativeBannerPlugin } from "./nativeLibraryRollupPlugin.js"
 
 export async function runDevBuild({ stage, host, desktop, clean, ignoreMigrations }) {
 	if (clean) {
@@ -92,6 +93,10 @@ async function buildDesktopPart({ version }) {
 			sourcemap: "linked",
 			platform: "node",
 			external: ["electron"],
+			banner: {
+				js: `globalThis.buildOptions = globalThis.buildOptions ?? {}
+globalThis.buildOptions.sqliteNativePath = "./better-sqlite3.node";`,
+			},
 			plugins: [
 				libDeps(),
 				sqliteNativePlugin({
