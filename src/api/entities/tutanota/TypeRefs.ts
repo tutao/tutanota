@@ -1610,30 +1610,6 @@ export type PasswordMessagingReturn = {
 	_format: NumberString;
 	autoAuthenticationId: Id;
 }
-export const PasswordRetrievalDataTypeRef: TypeRef<PasswordRetrievalData> = new TypeRef("tutanota", "PasswordRetrievalData")
-
-export function createPasswordRetrievalData(values: StrippedEntity<PasswordRetrievalData>): PasswordRetrievalData {
-	return Object.assign(create(typeModels.PasswordRetrievalData, PasswordRetrievalDataTypeRef), values)
-}
-
-export type PasswordRetrievalData = {
-	_type: TypeRef<PasswordRetrievalData>;
-
-	_format: NumberString;
-	autoAuthenticationId: Id;
-}
-export const PasswordRetrievalReturnTypeRef: TypeRef<PasswordRetrievalReturn> = new TypeRef("tutanota", "PasswordRetrievalReturn")
-
-export function createPasswordRetrievalReturn(values: StrippedEntity<PasswordRetrievalReturn>): PasswordRetrievalReturn {
-	return Object.assign(create(typeModels.PasswordRetrievalReturn, PasswordRetrievalReturnTypeRef), values)
-}
-
-export type PasswordRetrievalReturn = {
-	_type: TypeRef<PasswordRetrievalReturn>;
-
-	_format: NumberString;
-	transmissionKeyEncryptedPassword: string;
-}
 export const PhishingMarkerWebsocketDataTypeRef: TypeRef<PhishingMarkerWebsocketData> = new TypeRef("tutanota", "PhishingMarkerWebsocketData")
 
 export function createPhishingMarkerWebsocketData(values: StrippedEntity<PhishingMarkerWebsocketData>): PhishingMarkerWebsocketData {
