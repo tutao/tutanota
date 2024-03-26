@@ -64,7 +64,6 @@ import {
 	aes256RandomKey,
 	aesDecrypt,
 	AesKey,
-	authenticatedAesDecrypt,
 	base64ToKey,
 	createAuthVerifier,
 	createAuthVerifierAsBase64Url,
@@ -73,7 +72,6 @@ import {
 	generateRandomSalt,
 	KeyLength,
 	keyToUint8Array,
-	random,
 	sha256Hash,
 	TotpSecret,
 	TotpVerifier,
@@ -880,14 +878,7 @@ export class LoginFacade {
 	 */
 	private async loadEntropy(): Promise<void> {
 		const tutanotaProperties = await this.entityClient.loadRoot(TutanotaPropertiesTypeRef, this.userFacade.getUserGroupId())
-		if (tutanotaProperties.userEncEntropy) {
-			try {
-				const entropy = authenticatedAesDecrypt(this.userFacade.getUserGroupKey().object, tutanotaProperties.userEncEntropy)
-				random.addStaticEntropy(entropy)
-			} catch (error) {
-				console.log("could not decrypt entropy", error)
-			}
-		}
+		return this.entropyFacade.loadEntropy(tutanotaProperties)
 	}
 
 	/**

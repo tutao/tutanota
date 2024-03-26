@@ -1901,6 +1901,7 @@ export type TutanotaProperties = {
 	notificationMailLanguage: null | string;
 	sendPlaintextOnly: boolean;
 	userEncEntropy: null | Uint8Array;
+	userKeyVersion: null | NumberString;
 
 	imapSyncConfig: ImapSyncConfiguration[];
 	inboxRules: InboxRule[];
