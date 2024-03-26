@@ -51,7 +51,16 @@ export class DaySelector implements Component<DaySelectorAttrs> {
 		}
 
 		let { weeks, weekdays } = getCalendarMonth(this.displayingDate, vnode.attrs.startOfTheWeekOffset, vnode.attrs.useNarrowWeekName)
-		return m(".flex.flex-column", [m(".flex-space-around", this.renderWeekDays(vnode.attrs.wide, weekdays)), this.renderDayPickerCarousel(vnode)])
+		return m(
+			".flex.flex-column",
+			{
+				onwheel: (event: WheelEvent) => {
+					// Go to the next period if scrolling down or right
+					this.handleDayPickerSwipe(event.deltaY > 0 || event.deltaX > 0)
+				},
+			},
+			[m(".flex-space-around", this.renderWeekDays(vnode.attrs.wide, weekdays)), this.renderDayPickerCarousel(vnode)],
+		)
 	}
 
 	private renderDayPickerCarousel(vnode: Vnode<DaySelectorAttrs>) {
