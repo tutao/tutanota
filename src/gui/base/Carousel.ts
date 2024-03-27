@@ -7,6 +7,7 @@ type Slide = { label: TranslationKey; element: Children }
 interface CarouselAttrs {
 	label: TranslationKey
 	slides: Slide[]
+	class?: string
 	style?: Record<string, any>
 	onSwipe: (isNext: boolean) => void
 }
@@ -23,6 +24,7 @@ export class Carousel implements Component<CarouselAttrs> {
 				role: "group",
 				"aria-roledescription": "carousel",
 				"aria-label": lang.get(attrs.label),
+				class: attrs.class,
 				style: attrs.style,
 				oncreate: (swiperNode) => {
 					this.containerDom = swiperNode.dom as HTMLElement
