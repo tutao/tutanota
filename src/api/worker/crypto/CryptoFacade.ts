@@ -386,7 +386,7 @@ export class CryptoFacade {
 		this.setOwnerEncSessionKeyUnmapped(data, groupEncSessionKey, this.userFacade.getUserGroupId())
 		const migrationData = createEncryptTutanotaPropertiesData({
 			properties: data._id,
-			symKeyVersion: String(userGroupKey.version),
+			symKeyVersion: String(groupEncSessionKey.encryptingKeyVersion),
 			symEncSessionKey: groupEncSessionKey.key,
 		})
 		await this.serviceExecutor.post(EncryptTutanotaPropertiesService, migrationData)
@@ -397,15 +397,17 @@ export class CryptoFacade {
 		const customerGroupMembership = assertNotNull(
 			this.userFacade.getLoggedInUser().memberships.find((g: GroupMembership) => g.groupType === GroupType.Customer),
 		)
-		const customerGroupKey = this.userFacade.getGroupKey(customerGroupMembership.group)
 		const listPermissions = await this.entityClient.loadAll(PermissionTypeRef, data._id[0])
-
 		const customerGroupPermission = listPermissions.find((p) => p.group === customerGroupMembership.group)
+
 		if (!customerGroupPermission) throw new SessionKeyNotFoundError("Permission not found, could not apply OwnerGroup migration")
-		const listKey = decryptKey(customerGroupKey.object, assertNotNull(customerGroupPermission.symEncSessionKey))
+		const customerGroupKeyVersion = Number(customerGroupPermission.symKeyVersion ?? 0)
+		const customerGroupKey = await this.keyLoaderFacade.loadSymGroupKey(customerGroupMembership.group, customerGroupKeyVersion)
+		const versionedCustomerGroupKey = { object: customerGroupKey, version: customerGroupKeyVersion }
+		const listKey = decryptKey(customerGroupKey, assertNotNull(customerGroupPermission.symEncSessionKey))
 		const groupInfoSk = decryptKey(listKey, base64ToUint8Array(data._listEncSessionKey))
 
-		this.setOwnerEncSessionKeyUnmapped(data, encryptKeyWithVersionedKey(customerGroupKey, groupInfoSk), customerGroupMembership.group)
+		this.setOwnerEncSessionKeyUnmapped(data, encryptKeyWithVersionedKey(versionedCustomerGroupKey, groupInfoSk), customerGroupMembership.group)
 		return data
 	}
 

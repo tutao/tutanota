@@ -90,7 +90,7 @@ export class InstanceMapper {
 		})
 	}
 
-	encryptAndMapToLiteral<T>(model: TypeModel, instance: T, sk: Aes128Key | null): Promise<Record<string, unknown>> {
+	encryptAndMapToLiteral<T>(model: TypeModel, instance: T, sk: AesKey | null): Promise<Record<string, unknown>> {
 		let encrypted: Record<string, unknown> = {}
 		let i = instance as any
 
