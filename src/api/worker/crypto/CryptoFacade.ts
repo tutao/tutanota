@@ -233,7 +233,7 @@ export class CryptoFacade {
 			} else {
 				// See PermissionType jsdoc for more info on permissions
 				const permissions = await this.entityClient.loadAll(PermissionTypeRef, instance._permissions)
-				return this.trySymmetricPermission(permissions) ?? (await this.resolveWithPublicOrExternalPermission(permissions, instance, typeModel))
+				return (await this.trySymmetricPermission(permissions)) ?? (await this.resolveWithPublicOrExternalPermission(permissions, instance, typeModel))
 			}
 		} catch (e) {
 			if (e instanceof CryptoError) {
@@ -296,6 +296,7 @@ export class CryptoFacade {
 		} else if (bucketKey.groupEncBucketKey) {
 			// received as secure external recipient or reply from secure external sender
 			let keyGroup
+			const groupKeyVersion = Number(bucketKey.recipientKeyVersion)
 			if (bucketKey.keyGroup) {
 				// 1. Uses when receiving confidential replies from external users.
 				// 2. legacy code path for old external clients that used to encrypt bucket keys with user group keys.
@@ -305,7 +306,7 @@ export class CryptoFacade {
 				keyGroup = neverNull(instance._ownerGroup)
 			}
 
-			decBucketKey = await this.resolveWithGroupReference(keyGroup, bucketKey.groupEncBucketKey)
+			decBucketKey = await this.resolveWithGroupReference(keyGroup, groupKeyVersion, bucketKey.groupEncBucketKey)
 			unencryptedSenderAuthStatus = EncryptionAuthStatus.AES_NO_AUTHENTICATION
 		} else {
 			throw new SessionKeyNotFoundError(`encrypted bucket key not set on instance ${typeModel.name}`)
@@ -344,28 +345,49 @@ export class CryptoFacade {
 	 * member of the key group the function tries to resolve the group key using the adminEncGroupKey.
 	 * This is necessary for resolving the BucketKey when receiving a reply from an external Mailbox.
 	 * @param keyGroup The group that holds the encryption key.
+	 * @param groupKeyVersion the version of the key from the keyGroup
 	 * @param groupEncBucketKey The group key encrypted bucket key.
 	 */
-	private async resolveWithGroupReference(keyGroup: Id, groupEncBucketKey: Uint8Array): Promise<Aes128Key | Aes256Key> {
+	private async resolveWithGroupReference(keyGroup: Id, groupKeyVersion: number, groupEncBucketKey: Uint8Array): Promise<Aes128Key | Aes256Key> {
 		if (this.userFacade.hasGroup(keyGroup)) {
 			// the logged-in user (most likely external) is a member of that group. Then we have the group key from the memberships
-			return decryptKey(this.userFacade.getGroupKey(keyGroup).object, groupEncBucketKey)
+			const groupKey = await this.keyLoaderFacade.loadSymGroupKey(keyGroup, groupKeyVersion)
+			return decryptKey(groupKey, groupEncBucketKey)
 		} else {
 			// internal user receiving a mail from secure external:
 			// internal user group key -> external user group key -> external mail group key -> bucket key
-			const keyGroupInstance = await this.entityClient.load(GroupTypeRef, keyGroup)
-			if (keyGroupInstance.admin) {
-				const adminGroup = await this.entityClient.load(GroupTypeRef, keyGroupInstance.admin) // admin of the external mailbox is the external user group.
-				if (adminGroup.admin && this.userFacade.hasGroup(adminGroup.admin)) {
-					const adminGroupKey = decryptKey(this.userFacade.getGroupKey(adminGroup.admin).object, assertNotNull(adminGroup.adminGroupEncGKey))
-					const groupKey = decryptKey(adminGroupKey, assertNotNull(keyGroupInstance.adminGroupEncGKey))
-					return decryptKey(groupKey, groupEncBucketKey)
-				} else {
-					throw new SessionKeyNotFoundError("no admin group or no membership of admin group: " + adminGroup.admin)
-				}
-			} else {
-				throw new SessionKeyNotFoundError("no admin group on key group: " + keyGroup)
+			const externalMailGroupId = keyGroup
+			const externalMailGroupKeyVersion = groupKeyVersion
+			const externalMailGroup = await this.entityClient.load(GroupTypeRef, externalMailGroupId)
+
+			const externalUserGroupdId = externalMailGroup.admin
+			if (!externalUserGroupdId) {
+				throw new SessionKeyNotFoundError("no admin group on key group: " + externalMailGroupId)
 			}
+			const externalUserGroupKeyVersion = Number(externalMailGroup.adminGroupKeyVersion ?? 0)
+			const externalUserGroup = await this.entityClient.load(GroupTypeRef, externalUserGroupdId)
+
+			const internalUserGroupId = externalUserGroup.admin
+			const internalUserGroupKeyVersion = Number(externalUserGroup.adminGroupKeyVersion ?? 0)
+			if (!(internalUserGroupId && this.userFacade.hasGroup(internalUserGroupId))) {
+				throw new SessionKeyNotFoundError("no admin group or no membership of admin group: " + internalUserGroupId)
+			}
+
+			const internalUserGroupKey = await this.keyLoaderFacade.loadSymGroupKey(internalUserGroupId, internalUserGroupKeyVersion)
+
+			const currentExternalUserGroupKey = decryptKey(internalUserGroupKey, assertNotNull(externalUserGroup.adminGroupEncGKey))
+			const externalUserGroupKey = await this.keyLoaderFacade.loadSymGroupKey(externalUserGroupdId, externalUserGroupKeyVersion, {
+				object: currentExternalUserGroupKey,
+				version: Number(externalUserGroup.groupKeyVersion),
+			})
+
+			const currentExternalMailGroupKey = decryptKey(externalUserGroupKey, assertNotNull(externalMailGroup.adminGroupEncGKey))
+			const externalMailGroupKey = await this.keyLoaderFacade.loadSymGroupKey(externalMailGroupId, externalMailGroupKeyVersion, {
+				object: currentExternalMailGroupKey,
+				version: Number(externalMailGroup.groupKeyVersion),
+			})
+
+			return decryptKey(externalMailGroupKey, groupEncBucketKey)
 		}
 	}
 
@@ -386,7 +408,7 @@ export class CryptoFacade {
 		this.setOwnerEncSessionKeyUnmapped(data, groupEncSessionKey, this.userFacade.getUserGroupId())
 		const migrationData = createEncryptTutanotaPropertiesData({
 			properties: data._id,
-			symKeyVersion: String(userGroupKey.version),
+			symKeyVersion: String(groupEncSessionKey.encryptingKeyVersion),
 			symEncSessionKey: groupEncSessionKey.key,
 		})
 		await this.serviceExecutor.post(EncryptTutanotaPropertiesService, migrationData)
@@ -397,15 +419,17 @@ export class CryptoFacade {
 		const customerGroupMembership = assertNotNull(
 			this.userFacade.getLoggedInUser().memberships.find((g: GroupMembership) => g.groupType === GroupType.Customer),
 		)
-		const customerGroupKey = this.userFacade.getGroupKey(customerGroupMembership.group)
 		const listPermissions = await this.entityClient.loadAll(PermissionTypeRef, data._id[0])
-
 		const customerGroupPermission = listPermissions.find((p) => p.group === customerGroupMembership.group)
+
 		if (!customerGroupPermission) throw new SessionKeyNotFoundError("Permission not found, could not apply OwnerGroup migration")
-		const listKey = decryptKey(customerGroupKey.object, assertNotNull(customerGroupPermission.symEncSessionKey))
+		const customerGroupKeyVersion = Number(customerGroupPermission.symKeyVersion ?? 0)
+		const customerGroupKey = await this.keyLoaderFacade.loadSymGroupKey(customerGroupMembership.group, customerGroupKeyVersion)
+		const versionedCustomerGroupKey = { object: customerGroupKey, version: customerGroupKeyVersion }
+		const listKey = decryptKey(customerGroupKey, assertNotNull(customerGroupPermission.symEncSessionKey))
 		const groupInfoSk = decryptKey(listKey, base64ToUint8Array(data._listEncSessionKey))
 
-		this.setOwnerEncSessionKeyUnmapped(data, encryptKeyWithVersionedKey(customerGroupKey, groupInfoSk), customerGroupMembership.group)
+		this.setOwnerEncSessionKeyUnmapped(data, encryptKeyWithVersionedKey(versionedCustomerGroupKey, groupInfoSk), customerGroupMembership.group)
 		return data
 	}
 
@@ -426,7 +450,7 @@ export class CryptoFacade {
 		return typeof elementOrLiteral._type === "undefined"
 	}
 
-	private trySymmetricPermission(listPermissions: Permission[]) {
+	private async trySymmetricPermission(listPermissions: Permission[]): Promise<AesKey | null> {
 		const symmetricPermission: Permission | null =
 			listPermissions.find(
 				(p) =>
@@ -436,8 +460,13 @@ export class CryptoFacade {
 			) ?? null
 
 		if (symmetricPermission) {
-			const gk = this.userFacade.getGroupKey(assertNotNull(symmetricPermission._ownerGroup))
-			return decryptKey(gk.object, assertNotNull(symmetricPermission._ownerEncSessionKey))
+			const gk = await this.keyLoaderFacade.loadSymGroupKey(
+				assertNotNull(symmetricPermission._ownerGroup),
+				Number(symmetricPermission._ownerKeyVersion ?? 0),
+			)
+			return decryptKey(gk, assertNotNull(symmetricPermission._ownerEncSessionKey))
+		} else {
+			return null
 		}
 	}
 
@@ -583,7 +612,10 @@ export class CryptoFacade {
 		if (isPqKeyPairs(keyPair)) {
 			const pqMessage = decodePQMessage(pubEncBucketKey)
 			const decryptedBucketKey = await this.pq.decapsulate(pqMessage, keyPair)
-			return { decryptedBucketKey: uint8ArrayToBitArray(decryptedBucketKey), pqMessageSenderIdentityPubKey: pqMessage.senderIdentityPubKey }
+			return {
+				decryptedBucketKey: uint8ArrayToBitArray(decryptedBucketKey),
+				pqMessageSenderIdentityPubKey: pqMessage.senderIdentityPubKey,
+			}
 		} else if (isRsaOrRsaEccKeyPair(keyPair)) {
 			const privateKey: RsaPrivateKey = keyPair.privateKey
 			const decryptedBucketKey = await this.rsa.decrypt(privateKey, pubEncBucketKey)

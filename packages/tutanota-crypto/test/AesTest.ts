@@ -2,7 +2,7 @@ import o from "@tutao/otest"
 import type { Hex } from "@tutao/tutanota-utils"
 import { concat, hexToUint8Array, stringToUtf8Uint8Array, uint8ArrayToBase64, uint8ArrayToHex, utf8Uint8ArrayToString } from "@tutao/tutanota-utils"
 import {
-	aes128RandomKey,
+	_aes128RandomKey,
 	Aes256Key,
 	aes256RandomKey,
 	aesDecrypt,
@@ -22,8 +22,8 @@ import { assertThrows, throwsErrorWithMessage } from "@tutao/tutanota-test-utils
 import sjcl from "../lib/internal/sjcl.js"
 
 o.spec("aes", function () {
-	o("encryption roundtrip 128 without mac", () => arrayRoundtrip(aesEncrypt, aesDecrypt, aes128RandomKey(), false))
-	o("encryption roundtrip 128 with mac", () => arrayRoundtrip(aesEncrypt, aesDecrypt, aes128RandomKey(), true))
+	o("encryption roundtrip 128 without mac", () => arrayRoundtrip(aesEncrypt, aesDecrypt, _aes128RandomKey(), false))
+	o("encryption roundtrip 128 with mac", () => arrayRoundtrip(aesEncrypt, aesDecrypt, _aes128RandomKey(), true))
 	o("encryption roundtrip 256 without mac throws", async () => {
 		await assertThrows(CryptoError, async () => await arrayRoundtrip(aesEncrypt, aesDecrypt, aes256RandomKey(), false))
 	})
@@ -54,7 +54,7 @@ o.spec("aes", function () {
 		await runArrayRoundtrip(key, random.generateRandomData(12345))
 	}
 
-	o("generateRandomKeyAndBase64Conversion 128", () => randomKeyBase64Conversion(aes128RandomKey, 24))
+	o("generateRandomKeyAndBase64Conversion 128", () => randomKeyBase64Conversion(_aes128RandomKey, 24))
 	o("generateRandomKeyAndBase64Conversion 256", () => randomKeyBase64Conversion(aes256RandomKey, 44))
 
 	function randomKeyBase64Conversion(randomKey, length) {
@@ -107,7 +107,7 @@ o.spec("aes", function () {
 	}
 
 	o("decryptInvalidData 128", () =>
-		decryptInvalidData(aes128RandomKey(), aesDecrypt, "Invalid IV length in aesDecrypt: 10 bytes, must be 16 bytes (128 bits)"),
+		decryptInvalidData(_aes128RandomKey(), aesDecrypt, "Invalid IV length in aesDecrypt: 10 bytes, must be 16 bytes (128 bits)"),
 	)
 	o("decryptInvalidData 256 without hmac", () =>
 		decryptInvalidData(aes256RandomKey(), unauthenticatedAesDecrypt, "Invalid IV length in aesDecrypt: 10 bytes, must be 16 bytes (128 bits)"),
@@ -191,9 +191,9 @@ o.spec("aes", function () {
 	// 	})
 	// }))
 	o("decryptWithWrongKey 128 without mac", () =>
-		decryptWithWrongKey(aes128RandomKey(), aes128RandomKey(), aesEncrypt, aesDecrypt, false, "aes decryption failed> pkcs#5 padding corrupt"),
+		decryptWithWrongKey(_aes128RandomKey(), _aes128RandomKey(), aesEncrypt, aesDecrypt, false, "aes decryption failed> pkcs#5 padding corrupt"),
 	)
-	o("decryptWithWrongKey 128 with mac", () => decryptWithWrongKey(aes128RandomKey(), aes128RandomKey(), aesEncrypt, aesDecrypt, true, "invalid mac"))
+	o("decryptWithWrongKey 128 with mac", () => decryptWithWrongKey(_aes128RandomKey(), _aes128RandomKey(), aesEncrypt, aesDecrypt, true, "invalid mac"))
 	o("decryptWithWrongKey 256 with mac", () => decryptWithWrongKey(aes256RandomKey(), aes256RandomKey(), aesEncrypt, aesDecrypt, true, "invalid mac"))
 
 	function decryptWithWrongKey(key, key2, encrypt, decrypt, useMac, errorMessage) {
@@ -214,8 +214,8 @@ o.spec("aes", function () {
 	// 		done()
 	// 	})
 	// }))
-	o("ciphertextLengths 128 without mac", () => ciphertextLengths(aes128RandomKey(), aesEncrypt, 32, 48, false))
-	o("ciphertextLengths 128 with mac", () => ciphertextLengths(aes128RandomKey(), aesEncrypt, 65, 81, true))
+	o("ciphertextLengths 128 without mac", () => ciphertextLengths(_aes128RandomKey(), aesEncrypt, 32, 48, false))
+	o("ciphertextLengths 128 with mac", () => ciphertextLengths(_aes128RandomKey(), aesEncrypt, 65, 81, true))
 	o("ciphertextLengths 256 with mac", () => ciphertextLengths(aes256RandomKey(), aesEncrypt, 65, 81, true))
 
 	function ciphertextLengths(key, encrypt, length15BytePlainText, length16BytePlainText, useMac) {

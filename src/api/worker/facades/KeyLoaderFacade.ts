@@ -11,13 +11,13 @@ import { VersionedKey } from "../crypto/CryptoFacade.js"
 export class KeyLoaderFacade {
 	constructor(private readonly userFacade: UserFacade, private readonly entityClient: EntityClient) {}
 
-	async loadSymGroupKey(groupId: Id, version: number): Promise<AesKey> {
-		const group = await this.entityClient.load(GroupTypeRef, groupId)
-		const groupKey = this.userFacade.getGroupKey(group._id)
+	async loadSymGroupKey(groupId: Id, version: number, currentGroupKey?: VersionedKey): Promise<AesKey> {
+		const groupKey = currentGroupKey ?? this.userFacade.getGroupKey(groupId)
 
 		if (groupKey.version === version) {
 			return groupKey.object
 		}
+		const group = await this.entityClient.load(GroupTypeRef, groupId)
 		const { symmetricGroupKey } = await this.findFormerGroupKey(group, groupKey, version)
 
 		return symmetricGroupKey

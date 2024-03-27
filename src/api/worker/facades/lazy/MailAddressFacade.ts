@@ -150,7 +150,7 @@ export class MailAddressFacade {
 			mailboxGroupRoot.mailboxProperties,
 			undefined,
 			undefined,
-			groupKey.object,
+			groupKey.object, // TODO might be the wrong version
 		)
 
 		return mailboxProperties.mailAddressProperties.length === 0 ? this.mailboxPropertiesWithLegacySenderName(mailboxProperties, viaUser) : mailboxProperties
@@ -212,6 +212,7 @@ export class MailAddressFacade {
 			? await this.groupManagement.getGroupKeyViaUser(assertNotNull(mailboxProperties._ownerGroup), viaUser)
 			: await this.groupManagement.getGroupKeyViaAdminEncGKey(assertNotNull(mailboxProperties._ownerGroup))
 		await this.nonCachingEntityClient.update(mailboxProperties, groupKey)
+		// TODO handle groupkey version correctly
 		return await this.nonCachingEntityClient.load(MailboxPropertiesTypeRef, mailboxProperties._id, undefined, undefined, groupKey.object)
 	}
 

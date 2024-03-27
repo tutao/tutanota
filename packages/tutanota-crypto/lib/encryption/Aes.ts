@@ -186,8 +186,11 @@ export function verifyKeySize(key: AesKey, bitLength: number[]) {
 }
 
 /************************ Legacy AES128 ************************/
-/** @private visible for tests */
-export function aes128RandomKey(): Aes128Key {
+/**
+ * @private visible for tests
+ * @deprecated
+ * */
+export function _aes128RandomKey(): Aes128Key {
 	return uint8ArrayToBitArray(random.generateRandomData(KEY_LENGTH_BYTES_AES_128))
 }
 
