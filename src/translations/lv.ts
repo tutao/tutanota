@@ -1111,6 +1111,7 @@ export default {
 		"whitelabelDomainNeeded_msg": "Lūdzu, sākumā konfigurējiet savu baltā marķējuma domēnu.",
 		"whitelabelDomain_label": "Baltā marķējuma domēns",
 		"whitelabelRegistrationEmailDomain_label": "Reģistrācijas e-pasta domēns",
+		"whitelabelThemeDetected_msg": "Šim kontam ir konstatēta individuāla/pielāgota tēma. Vai vēlaties to iespējot tagad?",
 		"whitelabel_label": "Baltais marķējums",
 		"who_label": "Kas",
 		"work_label": "Darbs",

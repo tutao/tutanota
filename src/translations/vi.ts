@@ -1591,6 +1591,7 @@ export default {
 		"whitelabelDomain_label": "Miền Nhãn trắng",
 		"whitelabelRegistrationCode_label": "Mã đăng kí",
 		"whitelabelRegistrationEmailDomain_label": "Miền thư đăng kí",
+		"whitelabelThemeDetected_msg": "Đã thấy có một chủ đề riêng cho danh khoản này. Bạn có muốn áp dụng nó ngay không?",
 		"whitelabel_label": "Nhãn trắng",
 		"who_label": "Ai",
 		"work_label": "Công sở",

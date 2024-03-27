@@ -1671,6 +1671,7 @@ export default {
 		"whitelabelDomain_label": "白標域名",
 		"whitelabelRegistrationCode_label": "註冊碼",
 		"whitelabelRegistrationEmailDomain_label": "註冊電郵域名",
+		"whitelabelThemeDetected_msg": "偵測到此帳戶的自訂主題。您想現在套用它嗎？",
 		"whitelabel_label": "白標",
 		"who_label": "誰",
 		"whyLeave_msg": "我們很遺憾看到你離開！我們可以改善哪些地方？",

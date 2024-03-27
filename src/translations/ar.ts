@@ -1420,6 +1420,7 @@ export default {
 		"whitelabelDomain_label": "مجال Whitelabel",
 		"whitelabelRegistrationCode_label": "كود التسجيل",
 		"whitelabelRegistrationEmailDomain_label": "تسجيل نطاق البريد الالكتروني",
+		"whitelabelThemeDetected_msg": "تم الكشف عن نسُق مخصص لهذا الحساب. هل تريد تطبيقه الآن؟",
 		"whitelabel_label": "البطاقة البيضاء",
 		"who_label": "من ",
 		"work_label": "العمل",

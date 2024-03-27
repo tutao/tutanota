@@ -1674,6 +1674,7 @@ export default {
 		"whitelabelDomain_label": "Átcimkézési domain",
 		"whitelabelRegistrationCode_label": "Regisztrációs kód",
 		"whitelabelRegistrationEmailDomain_label": "E-mail domain regisztrálása",
+		"whitelabelThemeDetected_msg": "A szokásos téma észlelhető ehhez a számlához. Kívánja most alkalmazni?",
 		"whitelabel_label": "Átcímkézés",
 		"who_label": "Kik",
 		"whyLeave_msg": "Sajnáljuk távozását! Mit tudnák fejleszteni?",

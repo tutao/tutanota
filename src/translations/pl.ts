@@ -1677,6 +1677,7 @@ export default {
 		"whitelabelDomain_label": "Domena Whitelabel ",
 		"whitelabelRegistrationCode_label": "Kod rejestracyjny",
 		"whitelabelRegistrationEmailDomain_label": "Rejestracja domeny e-mail",
+		"whitelabelThemeDetected_msg": "Na tym koncie znaleziono własny motyw. Czy chcesz go teraz zastosować?",
 		"whitelabel_label": "Whitelabel",
 		"who_label": "Kto",
 		"whyLeave_msg": "Przykro nam, że odchodzisz! Co możemy poprawić?",
