@@ -394,6 +394,7 @@ export type BrandingDomainData = {
 	sessionEncPemCertificateChain: null | Uint8Array;
 	sessionEncPemPrivateKey: null | Uint8Array;
 	systemAdminPubEncSessionKey: Uint8Array;
+	systemAdminPubKeyVersion: NumberString;
 	systemAdminPublicProtocolVersion: NumberString;
 }
 export const BrandingDomainDeleteDataTypeRef: TypeRef<BrandingDomainDeleteData> = new TypeRef("sys", "BrandingDomainDeleteData")

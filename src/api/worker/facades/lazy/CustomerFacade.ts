@@ -33,7 +33,7 @@ import {
 import { assertWorkerOrNode } from "../../../common/Env.js"
 import type { Hex, lazyAsync } from "@tutao/tutanota-utils"
 import { assertNotNull, neverNull, noOp, ofClass, stringToUtf8Uint8Array, uint8ArrayToBase64, uint8ArrayToHex } from "@tutao/tutanota-utils"
-import { CryptoFacade, encryptKeyWithVersionedKey, VersionedKey } from "../../crypto/CryptoFacade.js"
+import { CryptoFacade, encryptKeyWithVersionedKey, VersionedEncryptedKey, VersionedKey } from "../../crypto/CryptoFacade.js"
 import {
 	BrandingDomainService,
 	CreateCustomerServerProperties,
@@ -144,6 +144,7 @@ export class CustomerFacade {
 		const data = createBrandingDomainData({
 			domain: domainName,
 			systemAdminPubEncSessionKey: pubEncSymKey,
+			systemAdminPubKeyVersion: String(systemAdminPubKeys.version),
 			systemAdminPublicProtocolVersion: cryptoProtocolVersion,
 			sessionEncPemPrivateKey: null,
 			sessionEncPemCertificateChain: null,
@@ -287,12 +288,16 @@ export class CustomerFacade {
 		const pubRsaKey = keyData.systemAdminPubRsaKey
 		const pubEccKey = keyData.systemAdminPubEccKey
 		const pubKyberKey = keyData.systemAdminPubKyberKey
-		let systemAdminPubEncAccountingInfoSessionKey
+		let systemAdminPubEncAccountingInfoSessionKey: VersionedEncryptedKey
 		let systemAdminPublicProtocolVersion
 
 		if (pubRsaKey) {
 			const rsaPublicKey = hexToRsaPublicKey(uint8ArrayToHex(pubRsaKey))
-			systemAdminPubEncAccountingInfoSessionKey = await this.rsa.encrypt(rsaPublicKey, bitArrayToUint8Array(accountingInfoSessionKey))
+			const systemAdminPubEncAccountingInfoSessionKeyBytes = await this.rsa.encrypt(rsaPublicKey, bitArrayToUint8Array(accountingInfoSessionKey))
+			systemAdminPubEncAccountingInfoSessionKey = {
+				key: systemAdminPubEncAccountingInfoSessionKeyBytes,
+				encryptingKeyVersion: Number(keyData.systemAdminPubKeyVersion),
+			}
 			systemAdminPublicProtocolVersion = CryptoProtocolVersion.RSA
 		} else {
 			// we need to release tuta-crypt by default first before we can encrypt keys for the system admin with PQ public keys.
@@ -351,12 +356,12 @@ export class CustomerFacade {
 			adminGroupData,
 			customerGroupData,
 			adminEncAccountingInfoSessionKey: adminEncAccountingInfoSessionKey.key,
-			systemAdminPubEncAccountingInfoSessionKey,
+			systemAdminPubEncAccountingInfoSessionKey: systemAdminPubEncAccountingInfoSessionKey.key,
+			systemAdminPubKeyVersion: String(systemAdminPubEncAccountingInfoSessionKey.encryptingKeyVersion),
 			systemAdminPublicProtocolVersion,
 			adminEncCustomerServerPropertiesSessionKey: adminEncCustomerServerPropertiesSessionKey.key,
 			userEncAccountGroupKey: new Uint8Array(0),
 			accountGroupKeyVersion: "0",
-			adminKeyVersion: adminEncAccountingInfoSessionKey.encryptingKeyVersion.toString(),
 		})
 		await this.serviceExecutor.post(CustomerAccountService, data)
 		return recoverData.hexCode

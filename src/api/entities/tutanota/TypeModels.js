@@ -2301,15 +2301,6 @@ export const typeModels = {
                 "cardinality": "One",
                 "encrypted": false
             },
-            "adminKeyVersion": {
-                "final": false,
-                "name": "adminKeyVersion",
-                "id": 1422,
-                "since": 68,
-                "type": "Number",
-                "cardinality": "One",
-                "encrypted": false
-            },
             "authToken": {
                 "final": false,
                 "name": "authToken",
@@ -2352,6 +2343,15 @@ export const typeModels = {
                 "id": 660,
                 "since": 16,
                 "type": "Bytes",
+                "cardinality": "One",
+                "encrypted": false
+            },
+            "systemAdminPubKeyVersion": {
+                "final": false,
+                "name": "systemAdminPubKeyVersion",
+                "id": 1422,
+                "since": 68,
+                "type": "Number",
                 "cardinality": "One",
                 "encrypted": false
             },

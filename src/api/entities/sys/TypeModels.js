@@ -1518,6 +1518,15 @@ export const typeModels = {
                 "cardinality": "One",
                 "encrypted": false
             },
+            "systemAdminPubKeyVersion": {
+                "final": true,
+                "name": "systemAdminPubKeyVersion",
+                "id": 2282,
+                "since": 96,
+                "type": "Number",
+                "cardinality": "One",
+                "encrypted": false
+            },
             "systemAdminPublicProtocolVersion": {
                 "final": true,
                 "name": "systemAdminPublicProtocolVersion",

@@ -559,12 +559,12 @@ export type CustomerAccountCreateData = {
 	accountGroupKeyVersion: NumberString;
 	adminEncAccountingInfoSessionKey: Uint8Array;
 	adminEncCustomerServerPropertiesSessionKey: Uint8Array;
-	adminKeyVersion: NumberString;
 	authToken: string;
 	code: string;
 	date: null | Date;
 	lang: string;
 	systemAdminPubEncAccountingInfoSessionKey: Uint8Array;
+	systemAdminPubKeyVersion: NumberString;
 	systemAdminPublicProtocolVersion: NumberString;
 	userEncAccountGroupKey: Uint8Array;
 	userEncAdminGroupKey: Uint8Array;
