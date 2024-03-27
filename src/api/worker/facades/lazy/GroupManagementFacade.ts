@@ -78,7 +78,6 @@ export class GroupManagementFacade {
 			encryptedName: encryptString(mailGroupInfoSessionKey, name),
 			mailEncMailboxSessionKey: mailEncMailboxSessionKey.key,
 			groupData: mailGroupData,
-			mailGroupKeyVersion: mailEncMailboxSessionKey.encryptingKeyVersion.toString(),
 		})
 		await this.serviceExecutor.post(MailGroupService, data)
 	}
