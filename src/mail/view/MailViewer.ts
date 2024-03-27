@@ -29,7 +29,7 @@ import { showUserError } from "../../misc/ErrorHandlerImpl"
 import { isNewMailActionAvailable } from "../../gui/nav/NavFunctions"
 import { CancelledError } from "../../api/common/error/CancelledError"
 import { MailViewerHeader } from "./MailViewerHeader.js"
-import { editDraft, showHeaderDialog } from "./MailViewerUtils.js"
+import { editDraft, showHeaderDialog, showSourceDialog } from "./MailViewerUtils.js"
 import { ToggleButton } from "../../gui/base/buttons/ToggleButton.js"
 import { locator } from "../../api/main/MainLocator.js"
 import { PinchZoom } from "../../gui/PinchZoom.js"
@@ -531,6 +531,14 @@ export class MailViewer implements Component<MailViewerAttrs> {
 					showHeaderDialog(this.viewModel.getHeaders())
 				},
 				help: "showHeaders_action",
+			},
+			{
+				key: Keys.I,
+				enabled: () => !this.viewModel.isDraftMail(),
+				exec: () => {
+					showSourceDialog(this.viewModel.getMailBody())
+				},
+				help: "showSource_action",
 			},
 			{
 				key: Keys.R,

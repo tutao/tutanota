@@ -21,6 +21,7 @@ import { showProgressDialog } from "../../gui/dialogs/ProgressDialog.js"
 import { LockedError } from "../../api/common/error/RestError.js"
 import { ifAllowedTutaLinks } from "../../gui/base/GuiUtils.js"
 import { ExternalLink } from "../../gui/base/ExternalLink.js"
+import { SourceCodeViewer } from "./SourceCodeViewer.js"
 
 export function insertInlineImageB64ClickHandler(ev: Event, handler: ImageHandler) {
 	showFileChooser(true, ALLOWED_IMAGE_FORMATS).then((files) => {
@@ -123,6 +124,10 @@ export async function editDraft(viewModel: MailViewerViewModel): Promise<void> {
 			}
 		}
 	}
+}
+
+export async function showSourceDialog(rawHtml: string) {
+	return Dialog.viewerDialog("emailSourceCode_title", SourceCodeViewer, { rawHtml })
 }
 
 export function mailViewerMoreActions(viewModel: MailViewerViewModel, showReadButton: boolean = true): Array<DropdownButtonAttrs> {

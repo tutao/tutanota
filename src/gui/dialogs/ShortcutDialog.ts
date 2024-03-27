@@ -25,33 +25,8 @@ function makeShortcutName(shortcut: Shortcut): string {
  * return a promise that resolves when the dialog is closed
  */
 export function showShortcutDialog(shortcuts: Array<Shortcut>): Promise<void> {
-	return new Promise((resolve) => {
-		let dialog: Dialog
-
-		const close = () => {
-			dialog.close()
-			resolve()
-		}
-
-		const headerAttrs: DialogHeaderBarAttrs = {
-			left: [
-				{
-					label: "close_alt",
-					click: close,
-					type: ButtonType.Secondary,
-				},
-			],
-			middle: () => lang.get("keyboardShortcuts_title"),
-		}
-		dialog = Dialog.editDialog(headerAttrs, ShortcutDialog, {
-			shortcuts,
-		})
-			.addShortcut({
-				key: Keys.ESC,
-				exec: close,
-				help: "close_alt",
-			})
-			.show()
+	return Dialog.viewerDialog("keyboardShortcuts_title", ShortcutDialog, {
+		shortcuts,
 	})
 }
 
