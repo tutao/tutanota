@@ -1,7 +1,4 @@
 import { assertMainOrNodeBoot } from "../api/common/Env"
-
-assertMainOrNodeBoot()
-
 /**
  * Collections of utility functions to support Accessible Rich Internet Applications (ARIA).
  *
@@ -12,6 +9,8 @@ assertMainOrNodeBoot()
  *
  */
 import { TabIndex } from "../api/common/TutanotaConstants"
+
+assertMainOrNodeBoot()
 
 // See: https://webaim.org/techniques/aria/#landmarks
 export const enum AriaLandmarks {
@@ -51,6 +50,15 @@ export function liveDataAttrs(): Record<string, string> {
 		"aria-live": AriaLiveData.Polite,
 		"aria-atomic": "true",
 	}
+}
+
+export const enum AriaPopupType {
+	None = "false",
+	Menu = "menu",
+	ListBox = "listbox",
+	Tree = "tree",
+	Grid = "grid",
+	Dialog = "dialog",
 }
 
 /**

@@ -54,6 +54,12 @@ export function keyboardEventToKeyPress(event: KeyboardEvent): KeyPress {
  */
 export type keyHandler = (key: KeyPress) => boolean
 
+export function useKeyHandler(e: KeyboardEvent, onKey: keyHandler | undefined) {
+	// keydown is used to cancel certain keypresses of the user (mainly needed for the BubbleTextField)
+	const key = keyboardEventToKeyPress(e)
+	return onKey != null ? onKey(key) : true
+}
+
 export interface Shortcut {
 	// key to use (the code/name is important here)
 	key: Key
@@ -252,7 +258,7 @@ class KeyManager {
  * @param key The key to be checked, should correspond to KeyEvent.key
  * @param keys Keys to be checked against, type of Keys
  */
-export function isKeyPressed(key: string | undefined, ...keys: Array<Values<typeof Keys>>): boolean {
+export function isKeyPressed(key: string | undefined, ...keys: Array<Key>): boolean {
 	if (key != null) {
 		return keys.some((k) => k.code === key.toLowerCase())
 	}

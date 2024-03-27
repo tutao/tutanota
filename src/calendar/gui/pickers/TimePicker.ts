@@ -15,16 +15,16 @@ export type TimePickerAttrs = {
 }
 
 export class TimePicker implements Component<TimePickerAttrs> {
-	private _values: ReadonlyArray<string>
-	private _focused: boolean
-	private _selectedIndex!: number
-	private _oldValue: string
-	private _value: string
-	private amPm: boolean
+	private values: ReadonlyArray<string>
+	private focused: boolean
+	private selectedIndex!: number
+	private oldValue: string
+	private value: string
+	private readonly amPm: boolean
 
 	constructor({ attrs }: Vnode<TimePickerAttrs>) {
-		this._focused = false
-		this._value = ""
+		this.focused = false
+		this.value = ""
 		this.amPm = attrs.timeFormat === TimeFormat.TWELVE_HOURS
 		const times: string[] = []
 
@@ -33,77 +33,77 @@ export class TimePicker implements Component<TimePickerAttrs> {
 				times.push(timeStringFromParts(hour, minute, this.amPm))
 			}
 		}
-		this._oldValue = attrs.time?.toString(false) ?? "--"
-		this._values = times
+		this.oldValue = attrs.time?.toString(false) ?? "--"
+		this.values = times
 	}
 
 	view({ attrs }: Vnode<TimePickerAttrs>): Children {
 		if (attrs.time) {
 			const timeAsString = attrs.time?.toString(this.amPm) ?? ""
-			this._selectedIndex = this._values.indexOf(timeAsString)
+			this.selectedIndex = this.values.indexOf(timeAsString)
 
-			if (!this._focused) {
-				this._value = timeAsString
+			if (!this.focused) {
+				this.value = timeAsString
 			}
 		}
 
 		if (client.isMobileDevice()) {
-			return this._renderNativeTimePicker(attrs)
+			return this.renderNativeTimePicker(attrs)
 		} else {
-			return this._renderCustomTimePicker(attrs)
+			return this.renderCustomTimePicker(attrs)
 		}
 	}
 
-	_renderNativeTimePicker(attrs: TimePickerAttrs): Children {
-		if (this._oldValue !== attrs.time?.toString(false)) {
-			this._onSelected(attrs)
+	private renderNativeTimePicker(attrs: TimePickerAttrs): Children {
+		if (this.oldValue !== attrs.time?.toString(false)) {
+			this.onSelected(attrs)
 		}
 
 		// input[type=time] wants time in 24h format, no matter what is actually displayed. Otherwise it will be empty.
 		const timeAsString = attrs.time?.toString(false) ?? ""
-		this._oldValue = timeAsString
+		this.oldValue = timeAsString
 
-		this._value = timeAsString
+		this.value = timeAsString
 
 		return m(TextField, {
 			label: "emptyString_msg",
-			value: this._value,
+			value: this.value,
 			type: TextFieldType.Time,
 			oninput: (value) => {
-				if (this._value === value) {
+				if (this.value === value) {
 					return
 				}
-				this._value = value
+				this.value = value
 				attrs.onTimeSelected(Time.parseFromString(value))
 			},
 			disabled: attrs.disabled,
 		})
 	}
 
-	_renderCustomTimePicker(attrs: TimePickerAttrs): Children {
-		return [this._renderInputField(attrs), this._focused ? this._renderTimeSelector(attrs) : null]
+	private renderCustomTimePicker(attrs: TimePickerAttrs): Children {
+		return [this.renderInputField(attrs), this.focused ? this.renderTimeSelector(attrs) : null]
 	}
 
-	_renderInputField(attrs: TimePickerAttrs): Children {
+	private renderInputField(attrs: TimePickerAttrs): Children {
 		return m(TextField, {
 			label: "emptyString_msg",
-			value: this._value,
-			oninput: (v) => (this._value = v),
+			value: this.value,
+			oninput: (v) => (this.value = v),
 			disabled: attrs.disabled,
 			onfocus: (dom, input) => {
-				this._focused = true
+				this.focused = true
 				input.select()
 			},
 			onblur: (e) => {
-				if (this._focused) {
-					this._onSelected(attrs)
+				if (this.focused) {
+					this.onSelected(attrs)
 				}
 
 				e.redraw = false
 			},
 			keyHandler: (key) => {
 				if (isKeyPressed(key.key, Keys.RETURN)) {
-					this._onSelected(attrs)
+					this.onSelected(attrs)
 					const active = document.activeElement as HTMLElement | null
 					active?.blur()
 				}
@@ -113,12 +113,12 @@ export class TimePicker implements Component<TimePickerAttrs> {
 		})
 	}
 
-	_renderTimeSelector(attrs: TimePickerAttrs): Children {
+	private renderTimeSelector(attrs: TimePickerAttrs): Children {
 		return m(
 			".fixed.flex.col.mt-s.menu-shadow",
 			{
-				oncreate: (vnode) => this._setScrollTop(attrs, vnode),
-				onupdate: (vnode) => this._setScrollTop(attrs, vnode),
+				oncreate: (vnode) => this.setScrollTop(attrs, vnode),
+				onupdate: (vnode) => this.setScrollTop(attrs, vnode),
 				style: {
 					width: "100px",
 					height: "400px",
@@ -127,18 +127,18 @@ export class TimePicker implements Component<TimePickerAttrs> {
 					overflow: "auto",
 				},
 			},
-			this._values.map((time, i) =>
+			this.values.map((time, i) =>
 				m(
 					"pr-s.pl-s.darker-hover",
 					{
 						key: time,
 						style: {
-							"background-color": this._selectedIndex === i ? theme.list_bg : theme.list_alternate_bg,
+							"background-color": this.selectedIndex === i ? theme.list_bg : theme.list_alternate_bg,
 							flex: "1 0 auto",
 							"line-height": "44px",
 						},
 						onmousedown: () => {
-							this._focused = false
+							this.focused = false
 							attrs.onTimeSelected(Time.parseFromString(time))
 						},
 					},
@@ -148,16 +148,16 @@ export class TimePicker implements Component<TimePickerAttrs> {
 		)
 	}
 
-	_onSelected(attrs: TimePickerAttrs) {
-		this._focused = false
+	private onSelected(attrs: TimePickerAttrs) {
+		this.focused = false
 
-		attrs.onTimeSelected(Time.parseFromString(this._value))
+		attrs.onTimeSelected(Time.parseFromString(this.value))
 	}
 
-	_setScrollTop(attrs: TimePickerAttrs, vnode: VnodeDOM<TimePickerAttrs>) {
-		if (this._selectedIndex !== -1) {
+	private setScrollTop(attrs: TimePickerAttrs, vnode: VnodeDOM<TimePickerAttrs>) {
+		if (this.selectedIndex !== -1) {
 			requestAnimationFrame(() => {
-				vnode.dom.scrollTop = 44 * this._selectedIndex
+				vnode.dom.scrollTop = 44 * this.selectedIndex
 			})
 		}
 	}

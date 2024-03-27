@@ -1,5 +1,4 @@
 import m, { Children, Component, Vnode } from "mithril"
-import { Icons } from "../../../gui/base/icons/Icons.js"
 import { client } from "../../../misc/ClientDetector.js"
 import { formatDate, formatDateWithWeekdayAndYear, formatMonthWithFullYear } from "../../../misc/Formatter.js"
 import type { TranslationText } from "../../../misc/LanguageViewModel.js"
@@ -11,12 +10,13 @@ import { getStartOfDay, isSameDayOfDate } from "@tutao/tutanota-utils"
 import { DateTime } from "luxon"
 import { getAllDayDateLocal } from "../../../api/common/utils/CommonCalendarUtils.js"
 import { TextField } from "../../../gui/base/TextField.js"
-import { Keys } from "../../../api/common/TutanotaConstants.js"
 import type { CalendarDay } from "../../date/CalendarUtils.js"
 import { parseDate } from "../../../misc/DateParser.js"
-import { isKeyPressed } from "../../../misc/KeyManager.js"
 import renderSwitchMonthArrowIcon from "../../../gui/base/buttons/ArrowButton.js"
 import { getCalendarMonth } from "../CalendarGuiUtils.js"
+import { isKeyPressed, keyboardEventToKeyPress, keyHandler, KeyPress, useKeyHandler } from "../../../misc/KeyManager.js"
+import { Keys, TabIndex } from "../../../api/common/TutanotaConstants.js"
+import { AriaPopupType } from "../../../gui/AriaUtils.js"
 
 export interface DatePickerAttrs {
 	date: Date
@@ -43,7 +43,7 @@ export class DatePicker implements Component<DatePickerAttrs> {
 	private inputText: string = ""
 	private showingDropdown: boolean = false
 	private domInput: HTMLElement | null = null
-	private documentClickListener: ((e: MouseEvent) => unknown) | null = null
+	private documentInteractionListener: ((e: MouseEvent) => unknown) | null = null
 	private textFieldHasFocus: boolean = false
 
 	constructor({ attrs }: Vnode<DatePickerAttrs>) {
@@ -89,26 +89,41 @@ export class DatePicker implements Component<DatePickerAttrs> {
 				label,
 				helpLabel: () => this.renderHelpLabel(date, nullSelectionText ?? null),
 				disabled,
+				hasPopup: AriaPopupType.Dialog,
 				oninput: (text) => this.handleInput(text, onDateSelected),
-				onfocus: () => {
-					this.showingDropdown = true
+				onfocus: (_, input) => {
+					if (!disabled) {
+						this.showingDropdown = true
+					}
 					this.textFieldHasFocus = true
+				},
+				onDomInputCreated: (input) => {
+					if (this.domInput == null) {
+						this.domInput = input
+					}
 				},
 				onblur: () => {
 					this.textFieldHasFocus = false
 				},
-				oncreate: (vnode) => {
-					this.domInput = vnode.dom as HTMLElement
-				},
 				keyHandler: (key) => {
-					if (isKeyPressed(key.key, Keys.TAB)) {
-						this.showingDropdown = false
+					if (isKeyPressed(key.key, Keys.DOWN)) {
+						if (!disabled && !key.shift && !key.ctrl && !key.meta) {
+							this.showingDropdown = true
+						}
 					}
-
-					return true
+					return this.handleEscapePress(key)
 				},
 			}),
 		)
+	}
+
+	private handleEscapePress(key: KeyPress) {
+		if (isKeyPressed(key.key, Keys.ESC) && this.showingDropdown) {
+			this.domInput?.focus()
+			this.showingDropdown = false
+			return false
+		}
+		return true
 	}
 
 	private renderHelpLabel(date: Date | null, nullSelectionText: TranslationText | null): Children {
@@ -121,15 +136,16 @@ export class DatePicker implements Component<DatePickerAttrs> {
 		}
 	}
 
-	private renderDropdown({ date, onDateSelected, startOfTheWeekOffset, rightAlignDropdown }: DatePickerAttrs): Children {
+	private renderDropdown({ date, onDateSelected, startOfTheWeekOffset, rightAlignDropdown, label }: DatePickerAttrs): Children {
 		return m(
 			".fixed.content-bg.z3.menu-shadow.plr.pb-s",
 			{
+				"aria-modal": "true",
+				"aria-label": lang.getMaybeLazy(label),
 				style: {
 					width: "280px",
 					right: rightAlignDropdown ? "0" : null,
 				},
-				onblur: () => (this.showingDropdown = false),
 				oncreate: (vnode) => {
 					const listener = (e: MouseEvent) => {
 						if (!vnode.dom.contains(e.target as HTMLElement)) {
@@ -138,12 +154,14 @@ export class DatePicker implements Component<DatePickerAttrs> {
 						}
 					}
 
-					this.documentClickListener = listener
+					this.documentInteractionListener = listener
 					document.addEventListener("click", listener, true)
+					document.addEventListener("focus", listener, true)
 				},
 				onremove: (vnode) => {
-					if (this.documentClickListener) {
-						document.removeEventListener("click", this.documentClickListener, true)
+					if (this.documentInteractionListener) {
+						document.removeEventListener("click", this.documentInteractionListener, true)
+						document.removeEventListener("focus", this.documentInteractionListener, true)
 					}
 				},
 			},
@@ -153,10 +171,12 @@ export class DatePicker implements Component<DatePickerAttrs> {
 					this.handleSelectedDate(newDate, onDateSelected)
 
 					if (dayClick) {
-						// Do not close dropdown on changing a month
+						// Do not close the dropdown when changing the month
+						this.domInput?.focus()
 						this.showingDropdown = false
 					}
 				},
+				keyHandler: (key: KeyPress) => this.handleEscapePress(key),
 				wide: false,
 				startOfTheWeekOffset: startOfTheWeekOffset,
 			}),
@@ -210,6 +230,7 @@ export class DatePicker implements Component<DatePickerAttrs> {
 type VisualDatePickerAttrs = {
 	selectedDate: Date | null
 	onDateSelected?: (date: Date, dayClick: boolean) => unknown
+	keyHandler?: keyHandler
 	wide: boolean
 	startOfTheWeekOffset: number
 }
@@ -234,20 +255,26 @@ export class VisualDatePicker implements Component<VisualDatePickerAttrs> {
 
 		let date = new Date(this.displayingDate)
 		let { weeks, weekdays } = getCalendarMonth(this.displayingDate, vnode.attrs.startOfTheWeekOffset, true)
-		return m(".flex.flex-column", [
-			this.renderPickerHeader(vnode, date),
-			m(".flex.flex-space-between", this.renderWeekDays(vnode.attrs.wide, weekdays)),
-			m(
-				".flex.flex-column.flex-space-around",
-				{
-					style: {
-						fontSize: px(14),
-						lineHeight: px(this.getElementWidth(vnode.attrs)),
+		return m(
+			".flex.flex-column",
+			{
+				onkeydown: (event: KeyboardEvent) => useKeyHandler(event, vnode.attrs.keyHandler),
+			},
+			[
+				this.renderPickerHeader(vnode, date),
+				m(".flex.flex-space-between", this.renderWeekDays(vnode.attrs.wide, weekdays)),
+				m(
+					".flex.flex-column.flex-space-around",
+					{
+						style: {
+							fontSize: px(14),
+							lineHeight: px(this.getElementWidth(vnode.attrs)),
+						},
 					},
-				},
-				weeks.map((w) => this.renderWeek(w, vnode.attrs)),
-			),
-		])
+					weeks.map((w) => this.renderWeek(w, vnode.attrs)),
+				),
+			],
+		)
 	}
 
 	private renderPickerHeader(vnode: Vnode<VisualDatePickerAttrs>, date: Date): Children {
@@ -275,22 +302,126 @@ export class VisualDatePicker implements Component<VisualDatePickerAttrs> {
 		this.displayingDate.setMonth(this.displayingDate.getMonth() + 1)
 	}
 
-	private renderDay({ date, day, isPaddingDay }: CalendarDay, attrs: VisualDatePickerAttrs): Children {
+	private renderDay({ date, day, isPaddingDay }: CalendarDay, index: number, attrs: VisualDatePickerAttrs): Children {
 		const isSelectedDay = isSameDayOfDate(date, attrs.selectedDate)
 		const size = this.getElementWidth(attrs)
-		const selector = isSelectedDay ? ".circle.accent-bg" : ""
+		const selector = isSelectedDay && !isPaddingDay ? ".circle.accent-bg" : ""
 		return m(
-			".rel.click.flex.items-center.justify-center",
+			".rel.flex.items-center.justify-center",
 			{
 				style: {
 					height: px(size),
 					width: px(size),
 				},
+				class: isPaddingDay ? undefined : "click",
 				"aria-hidden": `${isPaddingDay}`,
 				"aria-label": date.toLocaleDateString(),
 				"aria-selected": `${isSelectedDay}`,
 				role: "option",
+				tabindex: isSelectedDay ? TabIndex.Default : TabIndex.Programmatic,
 				onclick: isPaddingDay ? undefined : () => attrs.onDateSelected?.(date, true),
+				onkeydown: (event: KeyboardEvent) => {
+					const key = keyboardEventToKeyPress(event)
+					const target = event.target as HTMLInputElement
+
+					if (isKeyPressed(key.key, Keys.LEFT)) {
+						let targetDay
+
+						if (target.previousElementSibling == null) {
+							// If the user presses left on the first day of the week, go to the last day of the previous week
+							targetDay = target.parentElement?.previousElementSibling?.children.item(6)
+						} else {
+							targetDay = target.previousElementSibling
+						}
+
+						if (!this.focusDayIfPossible(target, targetDay)) {
+							this.onPrevMonthSelected()
+							m.redraw.sync()
+							this.focusLastDay(target)
+						}
+						event.preventDefault()
+					}
+
+					if (isKeyPressed(key.key, Keys.RIGHT)) {
+						let targetDay
+
+						if (target.nextElementSibling == null) {
+							targetDay = target.parentElement?.nextElementSibling?.children.item(0)
+						} else {
+							targetDay = target.nextElementSibling
+						}
+
+						if (!this.focusDayIfPossible(target, targetDay)) {
+							this.onNextMonthSelected()
+							m.redraw.sync()
+							this.focusFirstDay(target)
+						}
+						event.preventDefault()
+					}
+
+					if (isKeyPressed(key.key, Keys.UP)) {
+						const dayAbove = target.parentElement?.previousElementSibling?.children.item(index)
+						if (!this.focusDayIfPossible(target, dayAbove)) {
+							// If the user presses up on the first week, go to the same day of the previous week
+							this.onPrevMonthSelected()
+							m.redraw.sync()
+							this.focusLastWeekDay(target, index)
+						}
+						event.preventDefault()
+					}
+
+					if (isKeyPressed(key.key, Keys.DOWN)) {
+						const dayBelow = target.parentElement?.nextElementSibling?.children.item(index)
+						if (!this.focusDayIfPossible(target, dayBelow)) {
+							this.onNextMonthSelected()
+							m.redraw.sync()
+							this.focusFirstWeekDay(target, index)
+						}
+						event.preventDefault()
+					}
+
+					if (isKeyPressed(key.key, Keys.HOME) && !isPaddingDay) {
+						this.focusFirstDay(target)
+						event.preventDefault()
+					}
+
+					if (isKeyPressed(key.key, Keys.END) && !isPaddingDay) {
+						this.focusLastDay(target)
+						event.preventDefault()
+					}
+
+					if (isKeyPressed(key.key, Keys.PAGE_UP) && !isPaddingDay) {
+						if (key.shift) {
+							this.displayingDate.setFullYear(this.displayingDate.getFullYear() - 1)
+						} else {
+							this.onPrevMonthSelected()
+						}
+						m.redraw.sync()
+						this.focusFirstDay(target)
+						event.preventDefault()
+					}
+
+					if (isKeyPressed(key.key, Keys.PAGE_DOWN) && !isPaddingDay) {
+						if (key.shift) {
+							this.displayingDate.setFullYear(this.displayingDate.getFullYear() + 1)
+						} else {
+							this.onNextMonthSelected()
+						}
+						m.redraw.sync()
+						this.focusFirstDay(target)
+						event.preventDefault()
+					}
+
+					if (isKeyPressed(key.key, Keys.RETURN) && !isPaddingDay) {
+						attrs.onDateSelected?.(date, true)
+						event.preventDefault()
+					}
+
+					if (isKeyPressed(key.key, Keys.SPACE) && !isPaddingDay) {
+						attrs.onDateSelected?.(date, false)
+						event.preventDefault()
+					}
+				},
 			},
 			[
 				m(".abs.z1" + selector, {
@@ -304,6 +435,93 @@ export class VisualDatePicker implements Component<VisualDatePickerAttrs> {
 		)
 	}
 
+	// Focuses on a day if it is not a padding day & returns whether it focused on the day
+	private focusDayIfPossible(previousElement: HTMLElement, dayElement: globalThis.Element | null | undefined): boolean {
+		const element = dayElement as HTMLInputElement | null | undefined
+		if (element != null && element.getAttribute("aria-hidden") === "false") {
+			element.focus()
+			// Put the currently focused element into the tab index so the next tab press follows the tab index
+			element.tabIndex = 0
+			previousElement.tabIndex = -1
+			return true
+		}
+		return false
+	}
+
+	// Focus the last day of the month in the calendar
+	private focusLastDay(target: HTMLInputElement) {
+		const weeks = target.parentElement?.parentElement?.children
+		if (weeks != null) {
+			for (let i = weeks.length - 1; i > 0; i--) {
+				const week = weeks.item(i)?.children
+				let isDateFound = false
+				if (week != null) {
+					for (let j = week.length - 1; j > 0; j--) {
+						const child = week.item(j)
+						if (this.focusDayIfPossible(target, child)) {
+							isDateFound = true
+							break
+						}
+					}
+				}
+				if (isDateFound) break
+			}
+		}
+	}
+
+	// Focus a day in the final week of the calendar
+	private focusLastWeekDay(target: HTMLInputElement, weekDay: number) {
+		const weeks = target.parentElement?.parentElement?.children
+		if (weeks != null) {
+			for (let i = weeks.length - 1; i > 0; i--) {
+				const week = weeks.item(i)?.children
+				if (week != null) {
+					const child = week.item(weekDay)
+					if (this.focusDayIfPossible(target, child)) {
+						break
+					}
+				}
+			}
+		}
+	}
+
+	// Focus the first day of the month in the calendar
+	private focusFirstDay(target: HTMLInputElement) {
+		const weeks = target.parentElement?.parentElement?.children
+		if (weeks != null) {
+			for (let i = 0; i < weeks.length - 1; i++) {
+				const week = weeks.item(i)?.children
+				let isDateFound = false
+				if (week != null) {
+					for (let j = 0; j < week.length - 1; j++) {
+						const child = week.item(j)
+						if (this.focusDayIfPossible(target, child)) {
+							isDateFound = true
+							break
+						}
+					}
+				}
+				if (isDateFound) break
+			}
+		}
+	}
+
+	// Focus a day in the first week of the calendar
+	private focusFirstWeekDay(target: HTMLInputElement, weekDay: number) {
+		const weeks = target.parentElement?.parentElement?.children
+		if (weeks != null) {
+			for (let i = 0; i < weeks.length - 1; i++) {
+				const week = weeks.item(i)?.children
+				if (week != null) {
+					const child = week.item(weekDay)
+					if (this.focusDayIfPossible(target, child)) {
+						break
+					}
+				}
+			}
+		}
+	}
+
 	private getElementWidth(attrs: VisualDatePickerAttrs): number {
 		return attrs.wide ? 40 : 24
 	}
@@ -311,7 +529,7 @@ export class VisualDatePicker implements Component<VisualDatePickerAttrs> {
 	private renderWeek(week: ReadonlyArray<CalendarDay>, attrs: VisualDatePickerAttrs): Children {
 		return m(
 			".flex.flex-space-between",
-			week.map((d) => this.renderDay(d, attrs)),
+			week.map((d, i) => this.renderDay(d, i, attrs)),
 		)
 	}
 
