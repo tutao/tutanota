@@ -543,7 +543,6 @@ export type CreateMailGroupData = {
 	encryptedName: Uint8Array;
 	mailAddress: string;
 	mailEncMailboxSessionKey: Uint8Array;
-	mailGroupKeyVersion: NumberString;
 
 	groupData: InternalGroupData;
 }
@@ -569,7 +568,6 @@ export type CustomerAccountCreateData = {
 	systemAdminPublicProtocolVersion: NumberString;
 	userEncAccountGroupKey: Uint8Array;
 	userEncAdminGroupKey: Uint8Array;
-	userKeyVersion: NumberString;
 
 	adminGroupData: InternalGroupData;
 	customerGroupData: InternalGroupData;

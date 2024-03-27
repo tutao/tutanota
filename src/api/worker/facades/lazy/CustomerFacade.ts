@@ -357,7 +357,6 @@ export class CustomerFacade {
 			userEncAccountGroupKey: new Uint8Array(0),
 			accountGroupKeyVersion: "0",
 			adminKeyVersion: adminEncAccountingInfoSessionKey.encryptingKeyVersion.toString(),
-			userKeyVersion: userEncAdminGroupKey.encryptingKeyVersion.toString(),
 		})
 		await this.serviceExecutor.post(CustomerAccountService, data)
 		return recoverData.hexCode
