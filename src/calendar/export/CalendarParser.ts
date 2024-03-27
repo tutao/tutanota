@@ -1,4 +1,4 @@
-import { DAY_IN_MILLIS, downcast, filterInt, neverNull, Require } from "@tutao/tutanota-utils"
+import { DAY_IN_MILLIS, filterInt, neverNull, Require } from "@tutao/tutanota-utils"
 import { DateTime, Duration, IANAZone } from "luxon"
 import type { CalendarEvent, EncryptedMailAddress } from "../../api/entities/tutanota/TypeRefs.js"
 import { CalendarEventAttendee, createCalendarEvent, createCalendarEventAttendee, createEncryptedMailAddress } from "../../api/entities/tutanota/TypeRefs.js"
@@ -572,7 +572,13 @@ function getContents(eventObjects: ICalObject[], zone: string) {
 			alarmInfos: [],
 		}) as Require<"uid", CalendarEvent>
 
-		const alarms: AlarmInfoTemplate[] = getAlarms(eventObj, startTime)
+		let alarms: AlarmInfoTemplate[] = []
+
+		try {
+			alarms = getAlarms(eventObj, startTime)
+		} catch (e) {
+			console.log("alarm is invalid for event: ", event.summary, event.startTime)
+		}
 
 		return {
 			event,
@@ -848,16 +854,8 @@ function parsePropertyName(iterator: StringIterator): string {
 }
 
 const secondDurationParser: Parser<[number, string]> = combineParsers(numberParser, makeCharacterParser("S"))
-const minuteDurationParser: Parser<[number, string, [number, string] | null]> = combineParsers(
-	numberParser,
-	makeCharacterParser("M"),
-	maybeParse(secondDurationParser),
-)
-const hourDurationParser: Parser<[number, string, [number, string, [number, string] | null] | null]> = combineParsers(
-	numberParser,
-	makeCharacterParser("H"),
-	maybeParse(minuteDurationParser),
-)
+const minuteDurationParser: Parser<[number, string]> = combineParsers(numberParser, makeCharacterParser("M"))
+const hourDurationParser: Parser<[number, string]> = combineParsers(numberParser, makeCharacterParser("H"))
 type TimeDuration = {
 	type: "time"
 	hour?: number
@@ -873,89 +871,52 @@ type WeekDuration = {
 	type: "week"
 	week: number
 }
-const durationTimeParser: Parser<TimeDuration> = mapParser(
-	combineParsers(makeCharacterParser("T"), makeEitherParser(hourDurationParser, makeEitherParser(minuteDurationParser, secondDurationParser))),
-	([t, value]) => {
-		let minuteTuple, secondTuple
-		let hour, minute, second
+const durationTimeParser = mapParser(
+	combineParsers(makeCharacterParser("T"), maybeParse(hourDurationParser), maybeParse(minuteDurationParser), maybeParse(secondDurationParser)),
+	(parsed) => {
+		//Note: we parse for seconds in case they are there, but do not have that as an option, so they are ignored
+		let hour, minute
 
-		if (value[1] === "H") {
-			hour = value[0]
-			minuteTuple = downcast(value)[2]
-		} else if (value[1] === "M") {
-			minuteTuple = value
-		} else if (value[1] === "S") {
-			secondTuple = value
+		// the first item in parsed is T (if time is there)
+		if (parsed[1]) {
+			hour = parsed[1][0]
 		}
-
-		if (minuteTuple) {
-			minute = minuteTuple[0]
-			secondTuple = downcast(minuteTuple)[2]
-		}
-
-		if (secondTuple) {
-			second = secondTuple[0]
+		if (parsed[2]) {
+			minute = parsed[2][0]
 		}
 
 		return {
-			type: "time",
 			hour,
 			minute,
-			second,
 		}
 	},
 )
-const durationDayParser = combineParsers(numberParser, makeCharacterParser("D"))
-const durationWeekParser: Parser<WeekDuration> = mapParser(combineParsers(numberParser, makeCharacterParser("W")), (parsed) => {
-	return {
-		type: "week",
-		week: parsed[0],
-	}
-})
-const durationDateParser: Parser<DateDuration> = mapParser(combineParsers(durationDayParser, maybeParse(durationTimeParser)), (parsed) => {
-	return {
-		type: "date",
-		day: parsed[0][0],
-		time: parsed[1],
-	} as DateDuration
-})
+const durationDayParser: Parser<[number, string]> = combineParsers(numberParser, makeCharacterParser("D"))
+const durationWeekParser: Parser<[number, string]> = combineParsers(numberParser, makeCharacterParser("W"))
 const durationParser = mapParser(
 	combineParsers(
 		maybeParse(makeEitherParser(makeCharacterParser("+"), makeCharacterParser("-"))),
 		makeCharacterParser("P"),
-		maybeParse(makeEitherParser(durationDateParser, makeEitherParser(durationTimeParser, durationWeekParser))),
+		maybeParse(durationWeekParser),
+		maybeParse(durationDayParser),
+		maybeParse(durationTimeParser),
 	),
-	([sign, p, durationValue]) => {
-		const positive = sign !== "-"
-		let day, timeDuration, week, hour, minute
-
-		if (durationValue) {
-			switch (durationValue.type) {
-				case "date":
-					day = durationValue.day
-					timeDuration = durationValue.time
-					break
-
-				case "time":
-					timeDuration = durationValue
-					break
-
-				case "week":
-					week = durationValue.week
-			}
-
-			if (timeDuration) {
-				hour = timeDuration.hour
-				minute = timeDuration.minute
-			}
+	(parsed) => {
+		const positive = parsed[0] !== "-"
+		let week, day, hour, minute
+		if (parsed[2]) {
+			week = parsed[2][0]
+		}
+		if (parsed[3]) {
+			day = parsed[3][0]
 		}
 
 		return {
 			positive,
-			day,
-			hour,
-			minute,
 			week,
+			day,
+			hour: parsed[4]?.hour,
+			minute: parsed[4]?.minute,
 		}
 	},
 )

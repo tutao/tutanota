@@ -16,8 +16,8 @@ import { ParserError, StringIterator } from "../../../src/misc/parsing/ParserCom
 import { DateTime } from "luxon"
 import { DateWrapperTypeRef } from "../../../src/api/entities/sys/TypeRefs.js"
 import { getDateInUTC, zone } from "./CalendarTestUtils.js"
-import { AlarmIntervalUnit } from "../../../src/calendar/date/CalendarUtils.js"
 import { createTestEntity } from "../TestUtils.js"
+import { AlarmIntervalUnit } from "../../../src/calendar/date/CalendarUtils.js"
 
 o.spec("CalendarParser", function () {
 	o.spec("propertySequenceParser", function () {
@@ -104,25 +104,11 @@ o.spec("CalendarParser", function () {
 		})
 	})
 	o("parseDuration", function () {
-		o(parseDuration("PT3H15M")).deepEquals({
+		o(parseDuration("P")).deepEquals({
 			positive: true,
 			day: undefined,
-			hour: 3,
-			minute: 15,
-			week: undefined,
-		})
-		o(parseDuration("-PT3H15M")).deepEquals({
-			positive: false,
-			day: undefined,
-			hour: 3,
-			minute: 15,
-			week: undefined,
-		})
-		o(parseDuration("P60DT15M05S")).deepEquals({
-			positive: true,
-			day: 60,
 			hour: undefined,
-			minute: 15,
+			minute: undefined,
 			week: undefined,
 		})
 		o(parseDuration("P8W")).deepEquals({
@@ -132,11 +118,109 @@ o.spec("CalendarParser", function () {
 			minute: undefined,
 			week: 8,
 		})
-		o(parseDuration("P")).deepEquals({
+		o(parseDuration("-P11W6D")).deepEquals({
+			positive: false,
+			day: 6,
+			hour: undefined,
+			minute: undefined,
+			week: 11,
+		})
+		o(parseDuration("P36WT21H")).deepEquals({
+			positive: true,
+			day: undefined,
+			hour: 21,
+			minute: undefined,
+			week: 36,
+		})
+		o(parseDuration("P1WT1M")).deepEquals({
 			positive: true,
 			day: undefined,
 			hour: undefined,
+			minute: 1,
+			week: 1,
+		})
+		o(parseDuration("-P11W6DT15H")).deepEquals({
+			positive: false,
+			day: 6,
+			hour: 15,
 			minute: undefined,
+			week: 11,
+		})
+		o(parseDuration("P2W5DT30M")).deepEquals({
+			positive: true,
+			day: 5,
+			hour: undefined,
+			minute: 30,
+			week: 2,
+		})
+		o(parseDuration("-P11WT15H15M")).deepEquals({
+			positive: false,
+			day: undefined,
+			hour: 15,
+			minute: 15,
+			week: 11,
+		})
+		o(parseDuration("-P5W4DT3H18M")).deepEquals({
+			positive: false,
+			day: 4,
+			hour: 3,
+			minute: 18,
+			week: 5,
+		})
+		o(parseDuration("P3D")).deepEquals({
+			positive: true,
+			day: 3,
+			hour: undefined,
+			minute: undefined,
+			week: undefined,
+		})
+		o(parseDuration("P22DT60H")).deepEquals({
+			positive: true,
+			day: 22,
+			hour: 60,
+			minute: undefined,
+			week: undefined,
+		})
+		o(parseDuration("P4DT20M")).deepEquals({
+			positive: true,
+			day: 4,
+			hour: undefined,
+			minute: 20,
+			week: undefined,
+		})
+		o(parseDuration("P40DT60H120M")).deepEquals({
+			positive: true,
+			day: 40,
+			hour: 60,
+			minute: 120,
+			week: undefined,
+		})
+		o(parseDuration("-PT4H")).deepEquals({
+			positive: false,
+			day: undefined,
+			hour: 4,
+			minute: undefined,
+			week: undefined,
+		})
+		o(parseDuration("PT3H15M")).deepEquals({
+			positive: true,
+			day: undefined,
+			hour: 3,
+			minute: 15,
+			week: undefined,
+		})
+		o(parseDuration("PT18M")).deepEquals({
+			positive: true,
+			day: undefined,
+			hour: undefined,
+			minute: 18,
+			week: undefined,
+		})
+		o(parseDuration("P60DT15M05S")).deepEquals({
+			positive: true,
+			day: 60,
+			hour: undefined,
+			minute: 15,
 			week: undefined,
 		})
 		o(() => parseDuration("P8W15M")).throws(Error)
