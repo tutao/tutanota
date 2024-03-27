@@ -474,7 +474,7 @@ import("./translations/en")
 		}
 
 		// append catch all at the end because mithril will stop at the first match
-		resolvers["/:path"] = {
+		resolvers["/:path..."] = {
 			onmatch: async () => {
 				const { NotFoundPage } = await import("./gui/base/NotFoundPage.js")
 				return {
