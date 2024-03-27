@@ -301,7 +301,6 @@ export class GlobalSettingsViewer implements UpdatableSettingsViewer {
 									label: "adminDeleteAccount_action",
 									onclick: () =>
 										showLeavingUserSurveyWizard().then((reason) => {
-											console.log("Reason: ", reason.reason, " Category: ", reason.category, " details: ", reason.details)
 											if (reason.submitted && reason.category && reason.reason) {
 												const surveyDataIn = createSurveyDataIn({
 													category: reason.category,
@@ -309,8 +308,9 @@ export class GlobalSettingsViewer implements UpdatableSettingsViewer {
 													reason: reason.reason,
 												})
 												showDeleteAccountDialog(surveyDataIn)
+											} else {
+												showDeleteAccountDialog()
 											}
-											showDeleteAccountDialog()
 										}),
 								}),
 							),
