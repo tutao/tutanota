@@ -112,7 +112,7 @@ class AndroidMobileContactsFacade(private val activity: MainActivity) : MobileCo
 		return "${RawContacts.ACCOUNT_TYPE} = ? AND ${RawContacts.ACCOUNT_NAME} = ?"
 	}
 
-	override suspend fun getContactsInContactBook(bookId: String): List<StructuredContact> {
+	override suspend fun getContactsInContactBook(bookId: String, username: String): List<StructuredContact> {
 		checkContactPermissions()
 
 		val (accountType, accountName) = ContactBookId.fromJson(bookId)
