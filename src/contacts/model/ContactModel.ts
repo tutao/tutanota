@@ -1,6 +1,6 @@
 import type { Contact, ContactList } from "../../api/entities/tutanota/TypeRefs.js"
 import { ContactListGroupRoot, ContactListGroupRootTypeRef, ContactListTypeRef, ContactTypeRef } from "../../api/entities/tutanota/TypeRefs.js"
-import { createRestriction } from "../../search/model/SearchUtils"
+import { createRestriction, SearchCategoryTypes } from "../../search/model/SearchUtils"
 import { getFirstOrThrow, isNotNull, LazyLoaded, ofClass, promiseMap } from "@tutao/tutanota-utils"
 import { NotAuthorizedError, NotFoundError } from "../../api/common/error/RestError"
 import { DbError } from "../../api/common/error/DbError"
@@ -78,7 +78,11 @@ export class ContactModel {
 		const cleanedMailAddress = cleanMailAddress(mailAddress)
 		let result
 		try {
-			result = await this.searchFacade.search('"' + cleanedMailAddress + '"', createRestriction("contact", null, null, "mailAddress", [], null), 0)
+			result = await this.searchFacade.search(
+				'"' + cleanedMailAddress + '"',
+				createRestriction(SearchCategoryTypes.contact, null, null, "mailAddress", [], null),
+				0,
+			)
 		} catch (e) {
 			// If IndexedDB is not supported or isn't working for some reason we load contacts from the server and
 			// search manually.
@@ -121,7 +125,7 @@ export class ContactModel {
 		if (!this.loginController.isFullyLoggedIn()) {
 			throw new LoginIncompleteError("cannot search for contacts as online login is not completed")
 		}
-		const result = await this.searchFacade.search(query, createRestriction("contact", null, null, field, [], null), minSuggestionCount)
+		const result = await this.searchFacade.search(query, createRestriction(SearchCategoryTypes.contact, null, null, field, [], null), minSuggestionCount)
 		return await loadMultipleFromLists(ContactTypeRef, this.entityClient, result.results)
 	}
 

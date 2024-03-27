@@ -36,7 +36,14 @@ import { areResultsForTheSameQuery, hasMoreResults, isSameSearchRestriction, Sea
 import { NotFoundError } from "../../api/common/error/RestError.js"
 import { compareContacts } from "../../contacts/view/ContactGuiUtils.js"
 import { ConversationViewModel, ConversationViewModelFactory } from "../../mail/view/ConversationViewModel.js"
-import { createRestriction, decodeCalendarSearchKey, encodeCalendarSearchKey, getRestriction, searchCategoryForRestriction } from "../model/SearchUtils.js"
+import {
+	createRestriction,
+	decodeCalendarSearchKey,
+	encodeCalendarSearchKey,
+	getRestriction,
+	searchCategoryForRestriction,
+	SearchCategoryTypes,
+} from "../model/SearchUtils.js"
 import Stream from "mithril/stream"
 import { MailboxDetail, MailModel } from "../../mail/model/MailModel.js"
 import { getStartOfTheWeekOffsetForUser } from "../../calendar/date/CalendarUtils.js"
@@ -75,6 +82,8 @@ export class SearchViewModel {
 	_searchResult: SearchResult | null = null
 	private _mailFilterType: MailFilterType | null = null
 	includeRepeatingEvents: boolean = true
+	latestMailRestriction: SearchRestriction | null = null
+	latestCalendarRestriction: SearchRestriction | null = null
 
 	/**
 	 * the type ref that determines which search filters and details
@@ -107,10 +116,10 @@ export class SearchViewModel {
 		m.redraw()
 		return calendarInfos
 	})
-	private currentQuery: string = ""
+	currentQuery: string = ""
 
 	constructor(
-		private readonly router: SearchRouter,
+		readonly router: SearchRouter,
 		private readonly search: SearchModel,
 		private readonly searchFacade: SearchFacade,
 		private readonly mailModel: MailModel,
@@ -214,7 +223,7 @@ export class SearchViewModel {
 			restriction = getRestriction(requestedPath)
 		} catch (e) {
 			// if restriction is broken replace it with non-broken version
-			this.router.routeTo(args.query, createRestriction("mail", null, null, null, [], null))
+			this.router.routeTo(args.query, createRestriction(SearchCategoryTypes.mail, null, null, null, [], null))
 			return
 		}
 
@@ -270,12 +279,14 @@ export class SearchViewModel {
 				this.endDate = restriction.start ? new Date(restriction.start) : null
 				this.selectedMailFolder = restriction.listIds
 				this.loadAndSelectIfNeeded(args.id)
+				this.latestMailRestriction = restriction
 			} else if (isSameTypeRef(restriction.type, CalendarEventTypeRef)) {
 				this.startDate = restriction.start ? new Date(restriction.start) : null
 				this.endDate = restriction.end ? new Date(restriction.end) : null
 				this.selectedCalendar = this.extractCalendarListIds(restriction.listIds)
 				this.includeRepeatingEvents = restriction.eventSeries ?? true
 				this.lazyCalendarInfos.load()
+				this.latestCalendarRestriction = restriction
 
 				if (args.id != null) {
 					const { start, id } = decodeCalendarSearchKey(args.id)
@@ -403,7 +414,7 @@ export class SearchViewModel {
 
 	searchAgain(confirmCallback: ConfirmCallback): void {
 		const startDate = this.startDate
-		if (startDate && startDate.getTime() < this.search.indexState().currentMailIndexTimestamp && this.getCategory() === "mail") {
+		if (startDate && startDate.getTime() < this.search.indexState().currentMailIndexTimestamp && this.getCategory() === SearchCategoryTypes.mail) {
 			confirmCallback().then(async (confirmed) => {
 				if (confirmed) {
 					await this.indexerFacade.extendMailIndex(startDate.getTime())
@@ -414,6 +425,31 @@ export class SearchViewModel {
 		} else {
 			this.updateSearchUrl()
 			this.updateUi()
+		}
+	}
+
+	switchSearchCategory(category: SearchCategoryTypes) {
+		if (this.currentQuery) {
+			let latestRestriction: SearchRestriction | null = null
+			switch (category) {
+				case SearchCategoryTypes.mail:
+					latestRestriction = this.latestMailRestriction
+					break
+				case SearchCategoryTypes.calendar:
+					latestRestriction = this.latestCalendarRestriction
+					break
+				case SearchCategoryTypes.contact:
+					// contacts do not have restrictions at this time
+					break
+			}
+
+			if (latestRestriction) {
+				this.router.routeTo(this.currentQuery, latestRestriction)
+			} else {
+				this.router.routeTo(this.currentQuery, createRestriction(category, null, null, null, [], null))
+			}
+		} else {
+			this.router.routeTo("", createRestriction(category, null, null, null, [], null))
 		}
 	}
 
@@ -488,7 +524,7 @@ export class SearchViewModel {
 		}
 	}
 
-	private getCategory(): string {
+	private getCategory(): SearchCategoryTypes {
 		const restriction = this.router.getRestriction()
 		return searchCategoryForRestriction(restriction)
 	}

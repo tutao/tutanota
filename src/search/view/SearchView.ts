@@ -11,7 +11,7 @@ import { BootIcons } from "../../gui/base/icons/BootIcons"
 import { CalendarEvent, CalendarEventTypeRef, Contact, ContactTypeRef, Mail, MailTypeRef } from "../../api/entities/tutanota/TypeRefs.js"
 import { SearchListView, SearchListViewAttrs } from "./SearchListView"
 import { px, size } from "../../gui/size"
-import { getFreeSearchStartDate, SEARCH_MAIL_FIELDS } from "../model/SearchUtils"
+import { getFreeSearchStartDate, SEARCH_MAIL_FIELDS, SearchCategoryTypes } from "../model/SearchUtils"
 import { Dialog } from "../../gui/base/Dialog"
 import { locator } from "../../api/main/MainLocator"
 import { getIndentedFolderNameForDropdown } from "../../mail/model/MailUtils"
@@ -151,7 +151,10 @@ export class SearchView extends BaseTopLevelView implements TopLevelView<SearchV
 										m(NavButton, {
 											label: "emails_label",
 											icon: () => BootIcons.Mail,
-											href: () => "/search/mail",
+											href: "#",
+											click: () => {
+												this.switchCategory(SearchCategoryTypes.mail)
+											},
 											isSelectedPrefix: "/search/mail",
 											colors: NavButtonColor.Nav,
 											persistentBackground: true,
@@ -162,7 +165,11 @@ export class SearchView extends BaseTopLevelView implements TopLevelView<SearchV
 										m(NavButton, {
 											label: "contacts_label",
 											icon: () => BootIcons.Contacts,
-											href: "/search/contact",
+											href: "#",
+											click: () => {
+												this.switchCategory(SearchCategoryTypes.contact)
+											},
+											isSelectedPrefix: "/search/contact",
 											colors: NavButtonColor.Nav,
 											persistentBackground: true,
 										}),
@@ -172,7 +179,11 @@ export class SearchView extends BaseTopLevelView implements TopLevelView<SearchV
 										m(NavButton, {
 											label: "calendar_label",
 											icon: () => BootIcons.Calendar,
-											href: "/search/calendar",
+											href: "#",
+											click: () => {
+												this.switchCategory(SearchCategoryTypes.calendar)
+											},
+											isSelectedPrefix: "/search/calendar",
 											colors: NavButtonColor.Nav,
 											persistentBackground: true,
 										}),
@@ -200,7 +211,7 @@ export class SearchView extends BaseTopLevelView implements TopLevelView<SearchV
 						backgroundColor: theme.navigation_bg,
 						desktopToolbar: () =>
 							m(DesktopListToolbar, [
-								this.searchViewModel.listModel && getCurrentSearchMode() !== "calendar"
+								this.searchViewModel.listModel && getCurrentSearchMode() !== SearchCategoryTypes.calendar
 									? [
 											m(SelectAllCheckbox, selectionAttrsForList(this.searchViewModel.listModel)),
 											isSameTypeRef(this.searchViewModel.searchedType, MailTypeRef) ? this.renderFilterButton() : null,
@@ -230,6 +241,11 @@ export class SearchView extends BaseTopLevelView implements TopLevelView<SearchV
 			},
 		)
 		this.viewSlider = new ViewSlider([this.folderColumn, this.resultListColumn, this.resultDetailsColumn])
+	}
+
+	private switchCategory(category: SearchCategoryTypes): void {
+		this.searchViewModel.switchSearchCategory(category)
+		this.viewSlider.focus(this.resultListColumn)
 	}
 
 	private getResultColumnLayout() {
@@ -333,7 +349,7 @@ export class SearchView extends BaseTopLevelView implements TopLevelView<SearchV
 		return m(MultiselectMobileHeader, {
 			...selectionAttrsForList(this.searchViewModel.listModel),
 			message:
-				getCurrentSearchMode() === "mail"
+				getCurrentSearchMode() === SearchCategoryTypes.mail
 					? getMailSelectionMessage(this.searchViewModel.getSelectedMails())
 					: getContactSelectionMessage(this.searchViewModel.getSelectedContacts().length),
 		})
@@ -348,7 +364,7 @@ export class SearchView extends BaseTopLevelView implements TopLevelView<SearchV
 			return null
 		}
 
-		if (getCurrentSearchMode() === "contact") {
+		if (getCurrentSearchMode() === SearchCategoryTypes.contact) {
 			const selectedContacts = this.searchViewModel.getSelectedContacts()
 
 			const actions = m(ContactViewerActions, {
@@ -384,7 +400,7 @@ export class SearchView extends BaseTopLevelView implements TopLevelView<SearchV
 							: m(ContactCardViewer, { contact: selectedContacts[0], onWriteMail: writeMail }),
 					),
 			})
-		} else if (getCurrentSearchMode() === "mail") {
+		} else if (getCurrentSearchMode() === SearchCategoryTypes.mail) {
 			const selectedMails = this.searchViewModel.getSelectedMails()
 
 			const conversationViewModel = this.searchViewModel.conversationViewModel
@@ -448,7 +464,7 @@ export class SearchView extends BaseTopLevelView implements TopLevelView<SearchV
 					}),
 				})
 			}
-		} else if (getCurrentSearchMode() === "calendar") {
+		} else if (getCurrentSearchMode() === SearchCategoryTypes.calendar) {
 			const selectedEvent = this.searchViewModel.getSelectedEvents()[0]
 			return m(BackgroundColumnLayout, {
 				backgroundColor: theme.navigation_bg,
@@ -536,7 +552,7 @@ export class SearchView extends BaseTopLevelView implements TopLevelView<SearchV
 		if (this.viewSlider.focusedColumn === this.resultDetailsColumn && this.searchViewModel.conversationViewModel) {
 			return m(MobileMailActionBar, { viewModel: this.searchViewModel.conversationViewModel?.primaryViewModel() })
 		} else if (!isInMultiselect && this.viewSlider.focusedColumn === this.resultDetailsColumn) {
-			if (getCurrentSearchMode() === "contact") {
+			if (getCurrentSearchMode() === SearchCategoryTypes.contact) {
 				return m(MobileActionBar, {
 					actions: [
 						{
@@ -551,7 +567,7 @@ export class SearchView extends BaseTopLevelView implements TopLevelView<SearchV
 						},
 					],
 				})
-			} else if (getCurrentSearchMode() === "calendar") {
+			} else if (getCurrentSearchMode() === SearchCategoryTypes.calendar) {
 				const selectedEvent = this.searchViewModel.getSelectedEvents()[0]
 				if (!selectedEvent) {
 					this.viewSlider.focus(this.resultListColumn)
@@ -587,7 +603,7 @@ export class SearchView extends BaseTopLevelView implements TopLevelView<SearchV
 				return m(MobileActionBar, { actions })
 			}
 		} else if (isInMultiselect) {
-			if (getCurrentSearchMode() === "mail") {
+			if (getCurrentSearchMode() === SearchCategoryTypes.mail) {
 				return m(MobileMailMultiselectionActionBar, {
 					mails: this.searchViewModel.getSelectedMails(),
 					selectNone: () => this.searchViewModel.listModel.selectNone(),
@@ -891,31 +907,31 @@ export class SearchView extends BaseTopLevelView implements TopLevelView<SearchV
 			key: Keys.A,
 			exec: () => this.archiveSelected(),
 			help: "archive_action",
-			enabled: () => getCurrentSearchMode() === "mail",
+			enabled: () => getCurrentSearchMode() === SearchCategoryTypes.mail,
 		},
 		{
 			key: Keys.I,
 			exec: () => this.moveSelectedToInbox(),
 			help: "moveToInbox_action",
-			enabled: () => getCurrentSearchMode() === "mail",
+			enabled: () => getCurrentSearchMode() === SearchCategoryTypes.mail,
 		},
 		{
 			key: Keys.V,
 			exec: () => this.move(),
 			help: "move_action",
-			enabled: () => getCurrentSearchMode() === "mail",
+			enabled: () => getCurrentSearchMode() === SearchCategoryTypes.mail,
 		},
 		{
 			key: Keys.U,
 			exec: () => this.toggleUnreadStatus(),
 			help: "toggleUnread_action",
-			enabled: () => getCurrentSearchMode() === "mail",
+			enabled: () => getCurrentSearchMode() === SearchCategoryTypes.mail,
 		},
 	])
 
 	async onNewUrl(args: Record<string, any>, requestedPath: string) {
 		// calling init here too because this is called very early in the lifecycle and onNewUrl won't work properly if init is called
-		// afterwards
+		// afterwords
 		await this.searchViewModel.init()
 		this.searchViewModel.onNewUrl(args, requestedPath)
 		if (
@@ -1121,14 +1137,14 @@ export class SearchView extends BaseTopLevelView implements TopLevelView<SearchV
 	}
 }
 
-function getCurrentSearchMode() {
+function getCurrentSearchMode(): SearchCategoryTypes {
 	const route = m.route.get()
 	if (route.startsWith("/search/contact")) {
-		return "contact"
+		return SearchCategoryTypes.contact
 	} else if (route.startsWith("/search/calendar")) {
-		return "calendar"
+		return SearchCategoryTypes.calendar
 	} else {
-		return "mail"
+		return SearchCategoryTypes.mail
 	}
 }
 

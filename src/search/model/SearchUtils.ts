@@ -26,17 +26,23 @@ assertMainOrNode()
 
 const FIXED_FREE_SEARCH_DAYS = 28
 
+export const enum SearchCategoryTypes {
+	mail = "mail",
+	contact = "contact",
+	calendar = "calendar",
+}
+
 const SEARCH_CATEGORIES = [
 	{
-		name: "mail",
+		name: SearchCategoryTypes.mail,
 		typeRef: MailTypeRef,
 	},
 	{
-		name: "contact",
+		name: SearchCategoryTypes.contact,
 		typeRef: ContactTypeRef,
 	},
 	{
-		name: "calendar",
+		name: SearchCategoryTypes.calendar,
 		typeRef: CalendarEventTypeRef,
 	},
 ] as const
@@ -97,7 +103,7 @@ export function setSearchUrl(url: string) {
 	}
 }
 
-export function searchCategoryForRestriction(restriction: SearchRestriction): string {
+export function searchCategoryForRestriction(restriction: SearchRestriction): SearchCategoryTypes {
 	return assertNotNull(SEARCH_CATEGORIES.find((c) => isSameTypeRef(c.typeRef, restriction.type))).name
 }
 
@@ -145,14 +151,14 @@ export function getFreeSearchStartDate(): Date {
  * Adjusts the restriction according to the account type if necessary
  */
 export function createRestriction(
-	searchCategory: string,
+	searchCategory: SearchCategoryTypes,
 	start: number | null,
 	end: number | null,
 	field: string | null,
 	listIds: Array<string>,
 	eventSeries: boolean | null,
 ): SearchRestriction {
-	if (locator.logins.getUserController().isFreeAccount() && searchCategory === "mail") {
+	if (locator.logins.getUserController().isFreeAccount() && searchCategory === SearchCategoryTypes.mail) {
 		start = null
 		end = getFreeSearchStartDate().getTime()
 		field = null
@@ -174,16 +180,16 @@ export function createRestriction(
 		return r
 	}
 
-	if (searchCategory === "mail") {
+	if (searchCategory === SearchCategoryTypes.mail) {
 		let fieldData = SEARCH_MAIL_FIELDS.find((f) => f.field === field)
 
 		if (fieldData) {
 			r.field = field
 			r.attributeIds = fieldData.attributeIds
 		}
-	} else if (searchCategory === "calendar") {
+	} else if (searchCategory === SearchCategoryTypes.contact) {
 		// nothing to do, the calendar restriction was completely set up already.
-	} else if (searchCategory === "contact") {
+	} else if (searchCategory === SearchCategoryTypes.calendar) {
 		if (field === "recipient") {
 			r.field = field
 			r.attributeIds = [
@@ -204,7 +210,7 @@ export function createRestriction(
  * Adjusts the restriction according to the account type if necessary
  */
 export function getRestriction(route: string): SearchRestriction {
-	let category: string
+	let category: SearchCategoryTypes
 	let start: number | null = null
 	let end: number | null = null
 	let field: string | null = null
@@ -212,7 +218,7 @@ export function getRestriction(route: string): SearchRestriction {
 	let eventSeries: boolean | null = null
 
 	if (route.startsWith("/mail") || route.startsWith("/search/mail")) {
-		category = "mail"
+		category = SearchCategoryTypes.mail
 
 		if (route.startsWith("/search/mail")) {
 			try {
@@ -239,7 +245,7 @@ export function getRestriction(route: string): SearchRestriction {
 			}
 		}
 	} else if (route.startsWith("/contact") || route.startsWith("/search/contact")) {
-		category = "contact"
+		category = SearchCategoryTypes.contact
 	} else if (route.startsWith("/calendar") || route.startsWith("/search/calendar")) {
 		const { params } = m.parsePathname(route)
 
@@ -264,7 +270,7 @@ export function getRestriction(route: string): SearchRestriction {
 			console.log("invalid query: " + route, e)
 		}
 
-		category = "calendar"
+		category = SearchCategoryTypes.calendar
 		if (start == null) {
 			const now = new Date()
 			now.setDate(1)
