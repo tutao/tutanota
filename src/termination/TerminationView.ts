@@ -7,7 +7,7 @@ import { TerminationViewModel } from "./TerminationViewModel.js"
 import { TerminationForm } from "./TerminationForm.js"
 import { formatDateTime, formatDateWithMonth } from "../misc/Formatter.js"
 import { showProgressDialog } from "../gui/dialogs/ProgressDialog.js"
-import { CustomerAccountTerminationRequest } from "../api/entities/sys/TypeRefs.js"
+import { createSurveyDataIn, CustomerAccountTerminationRequest } from "../api/entities/sys/TypeRefs.js"
 import { BaseTopLevelView } from "../gui/BaseTopLevelView.js"
 import { TopLevelAttrs, TopLevelView } from "../TopLevelView.js"
 import { LoginScreenHeader } from "../gui/LoginScreenHeader.js"
@@ -32,7 +32,6 @@ export class TerminationView extends BaseTopLevelView implements TopLevelView<Te
 	async oncreate() {
 		showLeavingUserSurveyWizard().then((reason) => {
 			this.surveyResult = reason
-			console.log(this.surveyResult)
 		})
 	}
 
@@ -92,14 +91,23 @@ export class TerminationView extends BaseTopLevelView implements TopLevelView<Te
 		])
 	}
 
-	private async cancelWithProgressDialog(reason: { text: string; reasonCategory: string | null }) {
-		await showProgressDialog("pleaseWait_msg", this.model.createAccountTerminationRequest(reason))
+	private async cancelWithProgressDialog() {
+		if (this.surveyResult && this.surveyResult.submitted && this.surveyResult.category && this.surveyResult.reason) {
+			const data = createSurveyDataIn({
+				category: this.surveyResult.category,
+				reason: this.surveyResult.reason,
+				details: this.surveyResult.details,
+			})
+			await showProgressDialog("pleaseWait_msg", this.model.createAccountTerminationRequest(data))
+		} else {
+			await showProgressDialog("pleaseWait_msg", this.model.createAccountTerminationRequest())
+		}
 		m.redraw()
 	}
 
 	private renderTerminationForm(): Children {
 		return m(TerminationForm, {
-			onSubmit: (reason: { text: string; reasonCategory: string | null }) => this.cancelWithProgressDialog(reason),
+			onSubmit: () => this.cancelWithProgressDialog(),
 			mailAddress: this.model.mailAddress,
 			onMailAddressChanged: (mailAddress) => (this.model.mailAddress = mailAddress),
 			password: this.model.password,

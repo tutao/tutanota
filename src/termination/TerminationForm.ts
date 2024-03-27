@@ -10,7 +10,7 @@ import { liveDataAttrs } from "../gui/AriaUtils.js"
 import { LoginButton } from "../gui/base/buttons/LoginButton.js"
 
 export interface TerminationFormAttrs {
-	onSubmit: (reason: { text: string; reasonCategory: string | null }) => unknown
+	onSubmit: () => unknown
 	mailAddress: string
 	onMailAddressChanged: (mailAddress: string) => unknown
 	password: string
@@ -25,8 +25,6 @@ export interface TerminationFormAttrs {
 export class TerminationForm implements Component<TerminationFormAttrs> {
 	mailAddressTextField!: TextField
 	passwordTextField!: TextField
-	reasonCategory: string | null = null
-	reason: string = ""
 
 	onremove(vnode: Vnode<TerminationFormAttrs>) {
 		this.passwordTextField.domInput.value = ""
@@ -125,7 +123,7 @@ export class TerminationForm implements Component<TerminationFormAttrs> {
 					".mt-l",
 					m(LoginButton, {
 						label: "termination_action",
-						onclick: () => a.onSubmit({ text: this.reason, reasonCategory: this.reasonCategory }),
+						onclick: () => a.onSubmit(),
 					}),
 				),
 				m(".small.center.statusTextColor.mt", liveDataAttrs(), [a.helpText]),

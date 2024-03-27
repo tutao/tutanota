@@ -2798,26 +2798,6 @@ export type StringWrapper = {
 	_id: Id;
 	value: string;
 }
-export const SurveyDataTypeRef: TypeRef<SurveyData> = new TypeRef("sys", "SurveyData")
-
-export function createSurveyData(values: StrippedEntity<SurveyData>): SurveyData {
-	return Object.assign(create(typeModels.SurveyData, SurveyDataTypeRef), values)
-}
-
-export type SurveyData = {
-	_type: TypeRef<SurveyData>;
-
-	_format: NumberString;
-	_id: IdTuple;
-	_ownerGroup: null | Id;
-	_permissions: Id;
-	accountAgeInDays: NumberString;
-	cancellationType: NumberString;
-	paidAgeInDays: null | NumberString;
-	plan: NumberString;
-
-	data: SurveyDataIn;
-}
 export const SurveyDataInTypeRef: TypeRef<SurveyDataIn> = new TypeRef("sys", "SurveyDataIn")
 
 export function createSurveyDataIn(values: StrippedEntity<SurveyDataIn>): SurveyDataIn {

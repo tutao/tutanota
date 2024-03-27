@@ -2,7 +2,7 @@ import m from "mithril"
 import { Dialog } from "../gui/base/Dialog"
 import { lang, TranslationText } from "../misc/LanguageViewModel"
 import { ButtonType } from "../gui/base/Button.js"
-import type { AccountingInfo, Booking, Customer, CustomerInfo, SwitchAccountTypePostIn } from "../api/entities/sys/TypeRefs.js"
+import { AccountingInfo, Booking, createSurveyDataIn, Customer, CustomerInfo, SurveyDataIn, SwitchAccountTypePostIn } from "../api/entities/sys/TypeRefs.js"
 import { createSwitchAccountTypePostIn } from "../api/entities/sys/TypeRefs.js"
 import {
 	AccountType,
@@ -112,9 +112,16 @@ export async function showSwitchDialog(
 				label: "pricing.select_action",
 				onclick: () =>
 					showLeavingUserSurveyWizard().then((reason) => {
-						// TODO
-						console.log("Reason: ", reason.reason, " Category: ", reason.category, " details: ", reason.details)
-						cancelSubscription(dialog, currentPlanInfo, deferred, customer)
+						if (reason.submitted && reason.category && reason.reason) {
+							const data = createSurveyDataIn({
+								category: reason.category,
+								reason: reason.reason,
+								details: reason.details,
+							})
+							cancelSubscription(dialog, currentPlanInfo, deferred, customer, data)
+						} else {
+							cancelSubscription(dialog, currentPlanInfo, deferred, customer)
+						}
 					}),
 			} as LoginButtonAttrs),
 
@@ -255,7 +262,13 @@ async function tryDowngradePremiumToFree(switchAccountTypeData: SwitchAccountTyp
 	}
 }
 
-async function cancelSubscription(dialog: Dialog, currentPlanInfo: CurrentPlanInfo, planPromise: DeferredObject<PlanType>, customer: Customer): Promise<void> {
+async function cancelSubscription(
+	dialog: Dialog,
+	currentPlanInfo: CurrentPlanInfo,
+	planPromise: DeferredObject<PlanType>,
+	customer: Customer,
+	surveyData: SurveyDataIn | null = null,
+): Promise<void> {
 	if (!(await Dialog.confirm("unsubscribeConfirm_msg"))) {
 		return
 	}
@@ -269,7 +282,7 @@ async function cancelSubscription(dialog: Dialog, currentPlanInfo: CurrentPlanIn
 		plan: PlanType.Free,
 		reasonCategory: null,
 		reason: null,
-		surveyData: null,
+		surveyData: surveyData,
 	})
 	try {
 		await showProgressDialog(

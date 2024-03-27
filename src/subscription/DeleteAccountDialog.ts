@@ -13,8 +13,6 @@ import { LeavingUserSurveyData } from "./LeavingUserSurveyWizard.js"
 import { SurveyDataIn } from "../api/entities/sys/TypeRefs.js"
 
 export function showDeleteAccountDialog(surveyData: SurveyDataIn | null = null) {
-	let reasonCategory: NumberString | null = null
-	let reason = ""
 	let takeover = ""
 	let password = ""
 	const userId = getEtId(locator.logins.getUserController().user)
