@@ -1628,6 +1628,7 @@ export default {
 		"whitelabelDomain_label": "Whitelabel domain",
 		"whitelabelRegistrationCode_label": "Κωδικός εγγραφής ",
 		"whitelabelRegistrationEmailDomain_label": "Καταχώρηση τομέα email",
+		"whitelabelThemeDetected_msg": "Στον λογαριασμό εντοπίστηκε ένα προσαρμοσμένο θέμα. Θέλετε να το εφαρμόσετε; ",
 		"whitelabel_label": "Whitelabel",
 		"who_label": "Ποιός",
 		"whyLeave_msg": "Λυπούμαστε που φεύγεις! Πού μπορούμε να βελτιωθούμε;",

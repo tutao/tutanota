@@ -1679,6 +1679,7 @@ export default {
 		"whitelabelDomain_label": "Domaine de marque blanche",
 		"whitelabelRegistrationCode_label": "Code d'enregistrement",
 		"whitelabelRegistrationEmailDomain_label": "Domaine d'enregistrement d'e-mail",
+		"whitelabelThemeDetected_msg": "Un thème personnalisé a été détecté pour ce compte. Voulez-vous l'appliquer maintenant?",
 		"whitelabel_label": "Marque blanche",
 		"who_label": "Qui",
 		"whyLeave_msg": "Nous sommes désolés de vous voir partir ! Que pouvons-nous améliorer ?",

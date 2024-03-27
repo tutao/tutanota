@@ -1679,6 +1679,7 @@ export default {
 		"whitelabelDomain_label": "Dominio Etiqueta Blanca",
 		"whitelabelRegistrationCode_label": "Código de registro",
 		"whitelabelRegistrationEmailDomain_label": "Dominio de registro del correo",
+		"whitelabelThemeDetected_msg": "Se ha detectado un tema personalizado para esta cuenta. ¿Quieres aplicarlo ahora?",
 		"whitelabel_label": "Etiqueta Blanca",
 		"who_label": "Quién",
 		"whyLeave_msg": "¿Por qué estás descontento con Tuta?",

@@ -1519,6 +1519,7 @@ export default {
 		"whitelabelDomain_label": "Whitelabel doména",
 		"whitelabelRegistrationCode_label": "Registračný kód",
 		"whitelabelRegistrationEmailDomain_label": "Doména registračného e-mailu",
+		"whitelabelThemeDetected_msg": "Pri tomto účte sa zistil vlastný motív. Chceš ho použiť teraz?",
 		"whitelabel_label": "Whitelabel",
 		"who_label": "Kto",
 		"work_label": "Pracovný",

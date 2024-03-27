@@ -11,7 +11,7 @@ export default {
 		"other"
 	],
 	"created_at": "2015-04-10T11:48:14Z",
-	"updated_at": "2024-03-12T10:37:11Z",
+	"updated_at": "2024-03-26T13:34:57Z",
 	"source_locale": null,
 	"fallback_locale": null,
 	"keys": {
@@ -1252,7 +1252,7 @@ export default {
 		"recoveryCodeEmpty_msg": "Skriv inn en gjenopprettingskode",
 		"recoveryCodeReminder_msg": "Har du allerede skrevet ned gjenopprettingskoden? Denne koden er din eneste mulighet til å tilbakestille passordet ditt eller tofaktorautentisering dersom du mister tilgang til en av dem.",
 		"recoveryCode_label": "Gjenopprettingskode",
-		"recoveryCode_msg": "Ta deg tid til å skrive ned gjenopprettingskoden din. Denne koden er din eneste mulighet til å tilbakestille passordet ditt eller tofaktorautentisering dersom du mister mister tilgang til en av dem.",
+		"recoveryCode_msg": "Ta deg tid til å skrive ned gjenopprettingskoden din. Denne koden er din eneste mulighet til å tilbakestille passordet ditt eller tofaktorautentisering dersom du mister tilgang til en av dem.",
 		"recover_label": "Gjenopprett",
 		"redeemedGiftCardPosting_label": "Innløste gavekort",
 		"redeem_label": "Løs inn",
@@ -1648,6 +1648,7 @@ export default {
 		"whitelabelDomain_label": "Whitelabel-domene",
 		"whitelabelRegistrationCode_label": "Registreringskode",
 		"whitelabelRegistrationEmailDomain_label": "E-postdomene for registrering",
+		"whitelabelThemeDetected_msg": "Et tilpasset tema er oppdaget for denne kontoen. Vil du bruke det nå?",
 		"whitelabel_label": "Whitelabel",
 		"who_label": "Hvem",
 		"whyLeave_msg": "Det er trist at du forlater oss! Hvordan kan vi forbedre oss?",

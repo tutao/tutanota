@@ -1679,6 +1679,7 @@ export default {
 		"whitelabelDomain_label": "Whitelabel-Domain",
 		"whitelabelRegistrationCode_label": "Registrierungs-Code",
 		"whitelabelRegistrationEmailDomain_label": "E-Mail-Domain für Registrierung",
+		"whitelabelThemeDetected_msg": "Ein benutzerdefiniertes Design wurde für diesen Account erkannt. Möchtest du es jetzt anwenden?",
 		"whitelabel_label": "Whitelabel",
 		"who_label": "Wer",
 		"whyLeave_msg": "Schade, dass du kündigen möchtest. Wie können wir uns verbessern?",
