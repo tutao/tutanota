@@ -3,7 +3,7 @@ import { getDateInZone, makeEvent, makeUserController, zone } from "./CalendarTe
 import type { LoginController } from "../../../src/api/main/LoginController.js"
 import { assertThrows, spy } from "@tutao/tutanota-test-utils"
 import { assertNotNull, downcast, getStartOfDay, neverNull, noOp } from "@tutao/tutanota-utils"
-import type { CalendarEvent } from "../../../src/api/entities/tutanota/TypeRefs.js"
+import { CalendarEvent } from "../../../src/api/entities/tutanota/TypeRefs.js"
 import { addDaysForEventInstance, getMonthRange } from "../../../src/calendar/date/CalendarUtils.js"
 import type { CalendarModel } from "../../../src/calendar/model/CalendarModel.js"
 import { CalendarInfo } from "../../../src/calendar/model/CalendarModel.js"
@@ -290,6 +290,16 @@ o.spec("CalendarViewModel", function () {
 			o(viewModel._draggedEvent?.originalEvent).equals(undefined)
 			o(viewModel._transientEvents).deepEquals([temporaryEvent2])
 		})
+		o("Block user from dragging non-editable events", async function () {
+			const { viewModel } = initCalendarViewModel(makeCalendarEventModel)
+			let originalEventStartTime = new Date(2021, 8, 22)
+			const event = makeEvent("event", originalEventStartTime, new Date(2021, 8, 23))
+
+			// Try to drag
+			simulateDrag(event, new Date(2021, 8, 24), viewModel, false)
+
+			o(viewModel._draggedEvent?.eventClone).equals(undefined)
+		})
 	})
 	o.spec("Filtering events", function () {
 		o("Before drag, input events are all used", async function () {
@@ -402,8 +412,9 @@ o.spec("CalendarViewModel", function () {
 	})
 })
 
-function simulateDrag(originalEvent: CalendarEvent, newDate: Date, viewModel: CalendarViewModel) {
+function simulateDrag(originalEvent: CalendarEvent, newDate: Date, viewModel: CalendarViewModel, allowDrag: boolean = true) {
 	let diff = newDate.getTime() - originalEvent.startTime.getTime()
+	when(viewModel.allowDrag(originalEvent)).thenReturn(allowDrag)
 	viewModel.onDragStart(originalEvent, diff)
 	return diff
 }

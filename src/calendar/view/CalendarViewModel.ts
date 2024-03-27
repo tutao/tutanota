@@ -175,12 +175,19 @@ export class CalendarViewModel implements EventDragHandlerCallbacks {
 		return getWeekStart(this.logins.getUserController().userSettingsGroupRoot)
 	}
 
+	// visibleForTesting
+	allowDrag(event: CalendarEvent): boolean {
+		return this.calendarModel.canFullyEditEvent(event)
+	}
+
 	onDragStart(originalEvent: CalendarEvent, timeToMoveBy: number) {
-		let eventClone = clone(originalEvent)
-		updateTemporaryEventWithDiff(eventClone, originalEvent, timeToMoveBy)
-		this._draggedEvent = {
-			originalEvent,
-			eventClone,
+		if (this.allowDrag(originalEvent)) {
+			let eventClone = clone(originalEvent)
+			updateTemporaryEventWithDiff(eventClone, originalEvent, timeToMoveBy)
+			this._draggedEvent = {
+				originalEvent,
+				eventClone,
+			}
 		}
 	}
 
