@@ -1648,7 +1648,6 @@ export default {
 		"whitelabelDomain_label": "Whitelabel-domene",
 		"whitelabelRegistrationCode_label": "Registreringskode",
 		"whitelabelRegistrationEmailDomain_label": "E-postdomene for registrering",
-		"whitelabelThemeDetected_msg": "Et tilpasset tema er oppdaget for denne kontoen. Vil du bruke det nå?",
 		"whitelabel_label": "Whitelabel",
 		"who_label": "Hvem",
 		"whyLeave_msg": "Det er trist at du forlater oss! Hvordan kan vi forbedre oss?",

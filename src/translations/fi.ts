@@ -1675,7 +1675,6 @@ export default {
 		"whitelabelDomain_label": "Brändätty verkkotunnus",
 		"whitelabelRegistrationCode_label": "Rekisteröintikoodi",
 		"whitelabelRegistrationEmailDomain_label": "Rekisteröity verkkotunnus",
-		"whitelabelThemeDetected_msg": "Tälle tilille on löydetty mukautettu teema. Haluatko ottaa sen käyttöön nyt?",
 		"whitelabel_label": "Brändäys",
 		"who_label": "Kuka",
 		"whyLeave_msg": "Olemme pahoillamme, että olet päättänyt lähteä! Missä meillä on parannettavaa?",

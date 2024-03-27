@@ -1538,7 +1538,6 @@ export default {
 		"whitelabelDomain_label": "ホワイトラベルのドメイン",
 		"whitelabelRegistrationCode_label": "登録コード",
 		"whitelabelRegistrationEmailDomain_label": "メールドメインの登録",
-		"whitelabelThemeDetected_msg": "このアカウントのカスタム テーマが検出されました。今すぐ適用しますか?",
 		"whitelabel_label": "ホワイトラベル",
 		"who_label": "誰",
 		"work_label": "仕事",

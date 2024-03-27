@@ -1625,7 +1625,6 @@ export default {
 		"whitelabelDomain_label": "Домен з функцією whitelabel",
 		"whitelabelRegistrationCode_label": "Код реєстрації",
 		"whitelabelRegistrationEmailDomain_label": "Реєстрація домену електронної пошти",
-		"whitelabelThemeDetected_msg": "Для цього облікового запису виявлено настроювану тему. Застосувати  зараз?",
 		"whitelabel_label": "Whitelabel",
 		"who_label": "Хто",
 		"whyLeave_msg": "Нам шкода, що ви покидаєте нас! В чому ми можемо покращитися?",

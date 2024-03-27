@@ -1663,7 +1663,6 @@ export default {
 		"whitelabelDomain_label": "Whitelabel domein",
 		"whitelabelRegistrationCode_label": "Registratiecode",
 		"whitelabelRegistrationEmailDomain_label": "Registratie e-maildomein",
-		"whitelabelThemeDetected_msg": "Een op maat gemaakte thema is voor dit account gedetecteerd. Wilt u hem nu toepassen?",
 		"whitelabel_label": "Whitelabel",
 		"who_label": "Wie",
 		"whyLeave_msg": "We vinden het jammer dat u weggaat! Wat kunnen we verbeteren?",

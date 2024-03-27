@@ -1627,7 +1627,6 @@ export default {
 		"whitelabelDomain_label": "Beyaz etiket alanı",
 		"whitelabelRegistrationCode_label": "kayıt kodu",
 		"whitelabelRegistrationEmailDomain_label": "Kayıt e-posta alanı",
-		"whitelabelThemeDetected_msg": "Bu hesap için özel bir renk teması algılandı. Onu şimdi uygulamak istiyor musunuz?",
 		"whitelabel_label": "Beyazetiket",
 		"who_label": "Kim",
 		"whyLeave_msg": "Gittiğinizi gördüğümüz için üzgünüz! Nereyi geliştirebiliriz?",

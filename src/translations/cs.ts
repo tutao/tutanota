@@ -1665,7 +1665,6 @@ export default {
 		"whitelabelDomain_label": "Whitelabel doména",
 		"whitelabelRegistrationCode_label": "Registrační kód",
 		"whitelabelRegistrationEmailDomain_label": "Doména registračního e-mailu",
-		"whitelabelThemeDetected_msg": "Pro tento účet bylo zjištěno vlastní téma. Chcete ho použít?",
 		"whitelabel_label": "Whitelabel",
 		"who_label": "Kdo",
 		"whyLeave_msg": "Mrzí nás, že odcházíte! Co můžeme vylepšit?",

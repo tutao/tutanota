@@ -1323,7 +1323,6 @@ export default {
 		"whitelabelDomain_label": "Domain whitelabel",
 		"whitelabelRegistrationCode_label": "Kode registrasi",
 		"whitelabelRegistrationEmailDomain_label": "Pendaftaran domain surel",
-		"whitelabelThemeDetected_msg": "Tema khusus telah terdeteksi untuk akun ini.  Apakah Anda ingin menerapkannya sekarang?",
 		"whitelabel_label": "Whitelabel",
 		"who_label": "Siapa",
 		"work_label": "Kerja",

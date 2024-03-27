@@ -1676,7 +1676,6 @@ export default {
 		"whitelabelDomain_label": "Домен Whitelabel",
 		"whitelabelRegistrationCode_label": "Регистрационный код",
 		"whitelabelRegistrationEmailDomain_label": "Регистрация почтового домена",
-		"whitelabelThemeDetected_msg": "Пользовательская тема обнаружена у этой учётной записи.  Хотите ли сейчас применить её?",
 		"whitelabel_label": "Whitelabel",
 		"who_label": "Кто",
 		"whyLeave_msg": "Нам жаль, что вы уходите! Что мы можем улучшить?",

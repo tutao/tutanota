@@ -1675,7 +1675,6 @@ export default {
 		"whitelabelDomain_label": "Whitelabel-domän",
 		"whitelabelRegistrationCode_label": "Registreringskod",
 		"whitelabelRegistrationEmailDomain_label": "Registrering e-postdomän",
-		"whitelabelThemeDetected_msg": "Ett anpassat tema har upptäckts för det här kontot. Vill du använda det nu?",
 		"whitelabel_label": "Whitelabel",
 		"who_label": "Vem",
 		"whyLeave_msg": "Vi är ledsna att se dig gå! Vad kan vi förbättra?",

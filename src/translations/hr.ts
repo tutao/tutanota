@@ -1630,7 +1630,6 @@ export default {
 		"whitelabelDomain_label": "whitelabelDomena_oznaka\nWhitelabel domena",
 		"whitelabelRegistrationCode_label": "Registracijski kod",
 		"whitelabelRegistrationEmailDomain_label": "Domena e-pošte za registraciju",
-		"whitelabelThemeDetected_msg": "Otkrivena je personalizirana tema za ovaj račun. Želite li ju primijeniti sada?",
 		"whitelabel_label": "Whitelabel",
 		"who_label": "Tko",
 		"whyLeave_msg": "Žao nam je što odlazite! Gdje se možemo poboljšati?",

@@ -1302,7 +1302,6 @@ export default {
 		"whitelabelDomain_label": "Godkendte domæner",
 		"whitelabelRegistrationCode_label": "Registreringskode ",
 		"whitelabelRegistrationEmailDomain_label": "E-maildomæne til registerering",
-		"whitelabelThemeDetected_msg": "Der er fundet et brugerdefinerede tema for denne konto. Vil du anvende det nu? ",
 		"whitelabel_label": "Whitelabel",
 		"who_label": "Hvem",
 		"work_label": "Arbejde",

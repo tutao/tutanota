@@ -1571,7 +1571,6 @@ export default {
 		"whitelabel.login_tooltip": "ඔබගේ සේවකයින් සඳහා ඔබගේම අඩවියේ ටුටානෝටා පිවිසුම තබන්න.",
 		"whitelabelRegistrationCode_label": "ලියාපදිංචි කේතය",
 		"whitelabelRegistrationEmailDomain_label": "ලියාපදිංචි කිරීමේ වි-තැපැල් වසම",
-		"whitelabelThemeDetected_msg": "මෙම ගිණුම සඳහා අභිරුචි තේමාවක් අනාවරණය වී ඇත. දැන් ඔබට එය යෙදීමට ඇවැසිද?",
 		"who_label": "කවුද",
 		"work_label": "කාර්යාලය",
 		"wrongUserCsvFormat_msg": "ඔබගේ දත්තවල සීඑස්වී ආකෘතිය නිවරදි කරන්න:\n{format}",

@@ -139,7 +139,7 @@ export class PostLoginActions implements PostLoginAction {
 			} else {
 				console.log("Skipping registering for notifications while setup dialog is shown")
 			}
-			await this.maybeSetCustomTheme()
+			this.storeNewCustomThemes()
 		}
 
 		if (this.logins.isGlobalAdminUserLoggedIn() && !isAdminClient()) {
@@ -196,24 +196,19 @@ export class PostLoginActions implements PostLoginAction {
 		})
 	}
 
-	private async maybeSetCustomTheme(): Promise<any> {
+	private async storeNewCustomThemes(): Promise<void> {
 		const domainInfoAndConfig = await this.logins.getUserController().loadWhitelabelConfig()
-
 		if (domainInfoAndConfig && domainInfoAndConfig.whitelabelConfig.jsonTheme) {
 			const customizations: ThemeCustomizations = getThemeCustomizations(domainInfoAndConfig.whitelabelConfig)
-
 			// jsonTheme is stored on WhitelabelConfig as an empty json string ("{}", or whatever JSON.stringify({}) gives you)
 			// so we can't just check `!whitelabelConfig.jsonTheme`
 			if (Object.keys(customizations).length > 0) {
-				const themeId = (customizations.themeId = domainInfoAndConfig.domainInfo.domain)
-				const previouslySavedThemes = await themeController.getCustomThemes()
 				await themeController.storeCustomThemeForCustomizations(customizations)
-				const isExistingTheme = previouslySavedThemes.includes(domainInfoAndConfig.domainInfo.domain)
 
-				if (!isExistingTheme && (await Dialog.confirm("whitelabelThemeDetected_msg"))) {
-					await themeController.setThemePreference(themeId)
-				} else {
-					// If the theme has changed we want to reload it, otherwise this is no-op
+				// Update the already loaded custom themes to their latest version
+				const previouslySavedThemes = await themeController.getCustomThemes()
+				const isExistingTheme = previouslySavedThemes.includes(domainInfoAndConfig.domainInfo.domain)
+				if (isExistingTheme) {
 					await themeController.reloadTheme()
 				}
 			}
