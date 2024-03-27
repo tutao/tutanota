@@ -320,6 +320,7 @@ class MainLocator {
 			deviceConfig,
 			await this.receivedGroupInvitationsModel(GroupType.Calendar),
 			timeZone,
+			this.mailModel,
 		)
 	})
 

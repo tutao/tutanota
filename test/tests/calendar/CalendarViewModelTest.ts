@@ -23,6 +23,7 @@ import { EntityUpdateData } from "../../../src/api/common/utils/EntityUpdateUtil
 import stream from "mithril/stream"
 import Stream from "mithril/stream"
 import { CalendarEventsRepository, DaysToEvents } from "../../../src/calendar/date/CalendarEventsRepository.js"
+import { MailModel } from "../../../src/mail/model/MailModel.js"
 
 let saveAndSendMock
 let rescheduleEventMock
@@ -68,6 +69,7 @@ o.spec("CalendarViewModel", function () {
 			getUserController: () => userController,
 			isInternalUserLoggedIn: () => true,
 		})
+		const mailModel: MailModel = object()
 		const previewModelFactory: CalendarEventPreviewModelFactory = async () => object()
 		const viewModel = new CalendarViewModel(
 			loginController,
@@ -81,8 +83,9 @@ o.spec("CalendarViewModel", function () {
 			deviceConfig,
 			calendarInvitations,
 			zone,
+			mailModel,
 		)
-
+		viewModel.allowDrag = () => true
 		return { viewModel, calendarModel, eventsRepository }
 	}
 
@@ -296,7 +299,8 @@ o.spec("CalendarViewModel", function () {
 			const event = makeEvent("event", originalEventStartTime, new Date(2021, 8, 23))
 
 			// Try to drag
-			simulateDrag(event, new Date(2021, 8, 24), viewModel, false)
+			viewModel.allowDrag = () => false
+			simulateDrag(event, new Date(2021, 8, 24), viewModel)
 
 			o(viewModel._draggedEvent?.eventClone).equals(undefined)
 		})
@@ -412,9 +416,8 @@ o.spec("CalendarViewModel", function () {
 	})
 })
 
-function simulateDrag(originalEvent: CalendarEvent, newDate: Date, viewModel: CalendarViewModel, allowDrag: boolean = true) {
+function simulateDrag(originalEvent: CalendarEvent, newDate: Date, viewModel: CalendarViewModel) {
 	let diff = newDate.getTime() - originalEvent.startTime.getTime()
-	when(viewModel.allowDrag(originalEvent)).thenReturn(allowDrag)
 	viewModel.onDragStart(originalEvent, diff)
 	return diff
 }

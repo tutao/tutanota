@@ -804,21 +804,6 @@ export class CalendarModel {
 	getFileIdToSkippedCalendarEventUpdates(): Map<Id, CalendarEventUpdate> {
 		return this.fileIdToSkippedCalendarEventUpdates
 	}
-
-	/**
-	 * Partially mirrors the logic from CalendarEventModel.prototype.isFullyWritable() to determine
-	 * if the user can edit more than just alarms for a given event
-	 */
-	canFullyEditEvent(event: CalendarEvent): boolean {
-		const userController = this.logins.getUserController()
-		const userMailGroup = userController.getUserMailGroupMembership().group
-		const mailboxDetailsArray = this.mailModel.mailboxDetails()
-		const mailboxDetails = assertNotNull(mailboxDetailsArray.find((md) => md.mailGroup._id === userMailGroup))
-		const ownMailAddresses = getEnabledMailAddressesWithUser(mailboxDetails, userController.userGroupInfo)
-		const calendarInfos = this.getCalendarInfosStream()()
-		const eventType = getEventType(event, calendarInfos, ownMailAddresses, userController.user)
-		return eventType === EventType.OWN || eventType === EventType.SHARED_RW
-	}
 }
 
 /** return false when the given events (representing the new and old version of the same event) are both long events

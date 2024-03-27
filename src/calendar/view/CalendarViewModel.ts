@@ -10,8 +10,8 @@ import stream from "mithril/stream"
 import Stream from "mithril/stream"
 import { getDiffIn60mIntervals, getMonthRange, isEventBetweenDays } from "../date/CalendarUtils"
 import { isAllDayEvent } from "../../api/common/utils/CommonCalendarUtils"
-import { CalendarEventModel, CalendarOperation, EventSaveResult, getNonOrganizerAttendees } from "../gui/eventeditor-model/CalendarEventModel.js"
-import { askIfShouldSendCalendarUpdatesToAttendees, shouldDisplayEvent } from "../gui/CalendarGuiUtils.js"
+import { CalendarEventModel, CalendarOperation, EventSaveResult, EventType, getNonOrganizerAttendees } from "../gui/eventeditor-model/CalendarEventModel.js"
+import { askIfShouldSendCalendarUpdatesToAttendees, getEventType, shouldDisplayEvent } from "../gui/CalendarGuiUtils.js"
 import { ReceivedGroupInvitationsModel } from "../../sharing/model/ReceivedGroupInvitationsModel"
 import type { CalendarInfo, CalendarModel } from "../model/CalendarModel"
 import { EventController } from "../../api/main/EventController"
@@ -24,6 +24,8 @@ import { Time } from "../date/Time.js"
 import { CalendarEventsRepository, DaysToEvents } from "../date/CalendarEventsRepository.js"
 import { CalendarEventPreviewViewModel } from "../gui/eventpopup/CalendarEventPreviewViewModel.js"
 import { EntityUpdateData, isUpdateFor, isUpdateForTypeRef } from "../../api/common/utils/EntityUpdateUtils.js"
+import { getEnabledMailAddressesWithUser } from "../../mail/model/MailUtils.js"
+import { MailModel } from "../../mail/model/MailModel.js"
 
 export type EventsOnDays = {
 	days: Array<Date>
@@ -82,6 +84,7 @@ export class CalendarViewModel implements EventDragHandlerCallbacks {
 		private readonly deviceConfig: DeviceConfig,
 		private readonly calendarInvitationsModel: ReceivedGroupInvitationsModel<GroupType.Calendar>,
 		private readonly timeZone: string,
+		private readonly mailModel: MailModel,
 	) {
 		this._transientEvents = []
 
@@ -177,7 +180,21 @@ export class CalendarViewModel implements EventDragHandlerCallbacks {
 
 	// visibleForTesting
 	allowDrag(event: CalendarEvent): boolean {
-		return this.calendarModel.canFullyEditEvent(event)
+		return this.canFullyEditEvent(event)
+	}
+
+	/**
+	 * Partially mirrors the logic from CalendarEventModel.prototype.isFullyWritable() to determine
+	 * if the user can edit more than just alarms for a given event
+	 */
+	private canFullyEditEvent(event: CalendarEvent): boolean {
+		const userController = this.logins.getUserController()
+		const userMailGroup = userController.getUserMailGroupMembership().group
+		const mailboxDetailsArray = this.mailModel.mailboxDetails()
+		const mailboxDetails = assertNotNull(mailboxDetailsArray.find((md) => md.mailGroup._id === userMailGroup))
+		const ownMailAddresses = getEnabledMailAddressesWithUser(mailboxDetails, userController.userGroupInfo)
+		const eventType = getEventType(event, this.calendarInfos, ownMailAddresses, userController.user)
+		return eventType === EventType.OWN || eventType === EventType.SHARED_RW
 	}
 
 	onDragStart(originalEvent: CalendarEvent, timeToMoveBy: number) {
