@@ -808,3 +808,14 @@ export function shouldDisplayEvent(e: CalendarEvent, hiddenCalendars: ReadonlySe
 export function daysHaveEvents(eventsOnDays: EventsOnDays): boolean {
 	return eventsOnDays.shortEventsPerDay.some(isNotEmpty) || isNotEmpty(eventsOnDays.longEvents)
 }
+
+/**
+ * A handler for `onwheel` to move to a forwards or previous view based on mouse wheel movement
+ * @returns a function to be used by `onwheel`
+ */
+export function changePeriodOnWheel(callback: (isNext: boolean) => unknown): (event: WheelEvent) => void {
+	return (event: WheelEvent) => {
+		// Go to the next period if scrolling down or right
+		callback(event.deltaY > 0 || event.deltaX > 0)
+	}
+}

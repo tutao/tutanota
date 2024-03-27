@@ -2,7 +2,7 @@ import m, { Children, Component, Vnode } from "mithril"
 import { assertNotNull, getStartOfDay, incrementDate, isSameDayOfDate, isToday } from "@tutao/tutanota-utils"
 import { DateTime } from "luxon"
 import { Carousel } from "../../../gui/base/Carousel.js"
-import { getCalendarMonth } from "../CalendarGuiUtils.js"
+import { changePeriodOnWheel, getCalendarMonth } from "../CalendarGuiUtils.js"
 import { CalendarDay, CalendarMonth } from "../../date/CalendarUtils.js"
 import { DefaultAnimationTime } from "../../../gui/animation/Animations.js"
 import { ExpanderPanel } from "../../../gui/base/Expander.js"
@@ -51,7 +51,13 @@ export class DaySelector implements Component<DaySelectorAttrs> {
 		}
 
 		let { weeks, weekdays } = getCalendarMonth(this.displayingDate, vnode.attrs.startOfTheWeekOffset, vnode.attrs.useNarrowWeekName)
-		return m(".flex.flex-column", [m(".flex-space-around", this.renderWeekDays(vnode.attrs.wide, weekdays)), this.renderDayPickerCarousel(vnode)])
+		return m(
+			".flex.flex-column",
+			{
+				onwheel: changePeriodOnWheel(this.handleDayPickerSwipe),
+			},
+			[m(".flex-space-around", this.renderWeekDays(vnode.attrs.wide, weekdays)), this.renderDayPickerCarousel(vnode)],
+		)
 	}
 
 	private renderDayPickerCarousel(vnode: Vnode<DaySelectorAttrs>) {

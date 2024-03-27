@@ -27,6 +27,7 @@ import { showUserError } from "../../misc/ErrorHandlerImpl"
 import {
 	CALENDAR_EVENT_HEIGHT,
 	CalendarViewType,
+	changePeriodOnWheel,
 	EventLayoutMode,
 	getCalendarMonth,
 	getDateFromMousePos,
@@ -124,6 +125,7 @@ export class CalendarMonthView implements Component<CalendarMonthAttrs>, ClassCo
 				class:
 					(!styles.isUsingBottomNavigation() ? "content-bg" : "") +
 					(styles.isDesktopLayout() ? " mlr-l border-radius-big" : " mlr-safe-inset border-radius-top-left-big border-radius-top-right-big"),
+				onwheel: changePeriodOnWheel(attrs.onChangeMonth),
 			},
 			[
 				m(
