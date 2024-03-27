@@ -156,9 +156,8 @@ async function createComponents(): Promise<Components> {
 	const alarmStorage = new DesktopAlarmStorage(conf, desktopCrypto, keyStoreFacade)
 	const updater = new ElectronUpdater(conf, notifier, desktopCrypto, app, appIcon, new UpdaterWrapper(), fs)
 	const shortcutManager = new LocalShortcutManager()
-	const wm = new WindowManager(conf, tray, notifier, electron, shortcutManager, appIcon)
 	const credentialsDb = new DesktopCredentialsSqlDb(buildOptions.sqliteNativePath)
-	const nativeCredentialsFacade = new DesktopNativeCredentialsFacade(wm, keyStoreFacade, desktopCrypto, wasmLoader(), lang, conf, credentialsDb, async () => {
+	const nativeCredentialsFacade = new DesktopNativeCredentialsFacade(keyStoreFacade, desktopCrypto, wasmLoader(), lang, conf, credentialsDb, async () => {
 		const last = await wm.getLastFocused(true)
 		return last.commonNativeFacade
 	})
@@ -194,6 +193,7 @@ async function createComponents(): Promise<Components> {
 
 	const offlineDbRefCounter = new OfflineDbRefCounter(offlineDbFactory)
 
+	const wm = new WindowManager(conf, tray, notifier, electron, shortcutManager, appIcon)
 	const themeFacade = new DesktopThemeFacade(conf, wm, electron.nativeTheme)
 	const alarmScheduler = new AlarmScheduler(dateProvider, new SchedulerImpl(dateProvider, global, global))
 	const desktopAlarmScheduler = new DesktopAlarmScheduler(wm, notifier, alarmStorage, desktopCrypto, alarmScheduler)

@@ -100,6 +100,21 @@
 					"info": "AddAssociation CustomerInfo/supportInfo/ELEMENT_ASSOCIATION/2197."
 				}
 			]
+		},
+		{
+			"version": 96,
+			"changes": [
+				{
+					"name": "AddAssociation",
+					"sourceType": "NotificationInfo",
+					"info": "AddAssociation NotificationInfo/mailId/AGGREGATION/2227."
+				},
+				{
+					"name": "RemoveValue",
+					"sourceType": "NotificationInfo",
+					"info": "RemoveValue NotificationInfo/counter/1367."
+				}
+			]
 		}
 	]
 }

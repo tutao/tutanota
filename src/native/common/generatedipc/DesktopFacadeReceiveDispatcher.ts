@@ -1,6 +1,5 @@
 /* generated file, don't edit. */
 
-import { CredentialEncryptionMode } from "./CredentialEncryptionMode.js"
 import { ElectronResult } from "./ElectronResult.js"
 import { ErrorInfo } from "./ErrorInfo.js"
 import { NativeShortcut } from "./NativeShortcut.js"
@@ -12,13 +11,6 @@ export class DesktopFacadeReceiveDispatcher {
 		switch (method) {
 			case "print": {
 				return this.facade.print()
-			}
-			case "getCredentialEncryptionMode": {
-				return this.facade.getCredentialEncryptionMode()
-			}
-			case "setCredentialEncryptionMode": {
-				const encryptionMode: CredentialEncryptionMode = arg[0]
-				return this.facade.setCredentialEncryptionMode(encryptionMode)
 			}
 			case "showSpellcheckDropdown": {
 				return this.facade.showSpellcheckDropdown()

@@ -1823,9 +1823,10 @@ export type NotificationInfo = {
 	_type: TypeRef<NotificationInfo>;
 
 	_id: Id;
-	counter: NumberString;
 	mailAddress: string;
 	userId: Id;
+
+	mailId:  null | IdTupleWrapper;
 }
 export const NotificationMailTemplateTypeRef: TypeRef<NotificationMailTemplate> = new TypeRef("sys", "NotificationMailTemplate")
 

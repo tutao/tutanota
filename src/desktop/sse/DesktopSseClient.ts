@@ -28,6 +28,7 @@ import { log } from "../DesktopLog"
 import { BuildConfigKey, DesktopConfigEncKey, DesktopConfigKey } from "../config/ConfigKeys"
 import http from "node:http"
 import { EncryptedAlarmNotification } from "../../native/common/EncryptedAlarmNotification.js"
+import tutanotaModelInfo from "../../api/entities/tutanota/ModelInfo.js"
 
 export type SseInfo = {
 	identifier: string
@@ -425,13 +426,16 @@ export class DesktopSseClient {
 			return
 		}
 
-		this._notifier.submitGroupedNotification(title, `${ni.mailAddress} (${ni.counter})`, ni.userId, (res) => {
-			if (res === NotificationResult.Click) {
-				this._wm.openMailBox({
-					userId: ni.userId,
-					mailAddress: ni.mailAddress,
-				})
-			}
+		this._downloadMailMetadata(ni).then((meta) => {
+			console.log(meta)
+			this._notifier.submitGroupedNotification(title, `${ni.mailAddress} (1)`, ni.userId, (res) => {
+				if (res === NotificationResult.Click) {
+					this._wm.openMailBox({
+						userId: ni.userId,
+						mailAddress: ni.mailAddress,
+					})
+				}
+			})
 		})
 	}
 
@@ -442,7 +446,7 @@ export class DesktopSseClient {
 					res.destroy()
 				}
 
-				req.abort()
+				req.destroy()
 				reject(e)
 			}
 
@@ -469,7 +473,7 @@ export class DesktopSseClient {
 				})
 				.on("timeout", () => {
 					log.debug(TAG, "Missed notification download timeout")
-					req.abort()
+					req.destroy()
 				})
 				.on("socket", (s) => {
 					// We add this listener purely as a workaround for some problem with net module.
@@ -489,7 +493,7 @@ export class DesktopSseClient {
 						const time = filterInt((res.headers["retry-after"] ?? res.headers["suspension-time"]) as string)
 						log.debug(TAG, `ServiceUnavailable when downloading missed notification, waiting ${time}s`)
 						res.destroy()
-						req.abort()
+						req.destroy()
 
 						this._delayHandler(() => {
 							this._downloadMissedNotification(userId).then(resolve, reject)
@@ -528,6 +532,12 @@ export class DesktopSseClient {
 		const customId = uint8ArrayToBase64(stringToUtf8Uint8Array(identifier))
 		const url = new URL(sseOrigin)
 		url.pathname = "rest/sys/missednotification/" + base64ToBase64Url(customId)
+		return url.toString()
+	}
+
+	private _makeMailMetadataUrl(sseInfo: SseInfo, ni: NotificationInfo): string {
+		const url = new URL(sseInfo.sseOrigin)
+		url.pathname = "rest/tutanota/mail/" + base64ToBase64Url(ni.mailId?.listId ?? "") + "/" + base64ToBase64Url(ni.mailId?.listElementId ?? "")
 		return url.toString()
 	}
 
@@ -572,5 +582,80 @@ export class DesktopSseClient {
 		url.pathname = "sse"
 		url.searchParams.append("_body", this._requestJson(sseInfo.identifier, userId))
 		return url.toString()
+	}
+
+	private async _downloadMailMetadata(ni: NotificationInfo): Promise<any> {
+		return new Promise(async (resolve, reject) => {
+			const fail = (req: http.ClientRequest, res: http.IncomingMessage | null, e: TutanotaError | null) => {
+				if (res) {
+					res.destroy()
+				}
+
+				req.destroy()
+				reject(e)
+			}
+
+			const url = this._makeMailMetadataUrl(assertNotNull(this._connectedSseInfo), assertNotNull(ni))
+
+			log.debug(TAG, "downloading mail notification metadata")
+			const headers: Record<string, string> = {
+				userIds: ni.userId,
+				v: tutanotaModelInfo.version.toString(),
+				cv: this._app.getVersion(),
+			}
+
+			const req: http.ClientRequest = this._net
+				.request(url, {
+					method: "GET",
+					headers,
+					// this defines the timeout for the connection attempt, not for waiting for the servers response after a connection was made
+					timeout: 20000,
+				})
+				.on("timeout", () => {
+					log.debug(TAG, "Missed notification download timeout")
+					req.destroy()
+				})
+				.on("response", (res) => {
+					log.debug(TAG, "missed notification response", res.statusCode)
+
+					if (
+						(res.statusCode === ServiceUnavailableError.CODE || TooManyRequestsError.CODE) &&
+						(res.headers["retry-after"] || res.headers["suspension-time"])
+					) {
+						// headers are lowercased, see https://nodejs.org/api/http.html#http_message_headers
+						const time = filterInt((res.headers["retry-after"] ?? res.headers["suspension-time"]) as string)
+						log.debug(TAG, `ServiceUnavailable when downloading missed notification, waiting ${time}s`)
+						res.destroy()
+						req.destroy()
+
+						this._delayHandler(() => {
+							this._downloadMailMetadata(ni).then(resolve, reject)
+						}, time * 1000)
+
+						return
+					} else if (res.statusCode !== 200) {
+						const tutanotaError = handleRestError(neverNull(res.statusCode), url, res.headers["Error-Id"] as string, null)
+						fail(req, res, tutanotaError)
+						return
+					}
+
+					res.setEncoding("utf8")
+					let resData = ""
+					res.on("data", (chunk) => {
+						resData += chunk
+					})
+						.on("end", () => {
+							try {
+								resolve(JSON.parse(resData))
+							} catch (e) {
+								fail(req, res, e)
+							}
+						})
+						.on("close", () => log.debug(TAG, "dl missed notification response closed"))
+						.on("error", (e) => fail(req, res, e))
+				})
+				.on("error", (e) => fail(req, null, e))
+			req.end()
+		})
 	}
 }

@@ -1,15 +1,10 @@
 /* generated file, don't edit. */
 
-import { CredentialEncryptionMode } from "./CredentialEncryptionMode.js"
 import { ElectronResult } from "./ElectronResult.js"
 import { ErrorInfo } from "./ErrorInfo.js"
 import { NativeShortcut } from "./NativeShortcut.js"
 export interface DesktopFacade {
 	print(): Promise<void>
-
-	getCredentialEncryptionMode(): Promise<CredentialEncryptionMode | null>
-
-	setCredentialEncryptionMode(encryptionMode: CredentialEncryptionMode): Promise<void>
 
 	showSpellcheckDropdown(): Promise<void>
 

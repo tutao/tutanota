@@ -8,14 +8,6 @@
 			"arg": [],
 			"ret": "void"
 		},
-		"getCredentialEncryptionMode": {
-			"arg": [],
-			"ret": "CredentialEncryptionMode?"
-		},
-		"setCredentialEncryptionMode": {
-			"arg": [{ "encryptionMode": "CredentialEncryptionMode" }],
-			"ret": "void"
-		},
 		"showSpellcheckDropdown": {
 			"arg": [],
 			"ret": "void"

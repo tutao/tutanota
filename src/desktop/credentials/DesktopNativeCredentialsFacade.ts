@@ -13,7 +13,8 @@ import { CancelledError } from "../../api/common/error/CancelledError.js"
 import { KeyPermanentlyInvalidatedError } from "../../api/common/error/KeyPermanentlyInvalidatedError.js"
 import { PersistedCredentials } from "../../native/common/generatedipc/PersistedCredentials.js"
 import { DesktopCredentialsSqlDb } from "../db/DesktopCredentialsSqlDb.js"
-import { WindowManager } from "../DesktopWindowManager.js"
+import { sql } from "../../api/worker/offline/OfflineStorage.js"
+import { CredentialType } from "../../misc/credentials/CredentialType.js"
 
 /** the single source of truth for this configuration */
 const SUPPORTED_MODES = Object.freeze([CredentialEncryptionMode.DEVICE_LOCK, CredentialEncryptionMode.APP_PASSWORD] as const)
@@ -24,7 +25,6 @@ export type DesktopCredentialsMode = typeof SUPPORTED_MODES[number]
  */
 export class DesktopNativeCredentialsFacade implements NativeCredentialsFacade {
 	/**
-	 * @param wm
 	 * @param desktopKeyStoreFacade
 	 * @param crypto
 	 * @param argon2idFacade
@@ -34,7 +34,6 @@ export class DesktopNativeCredentialsFacade implements NativeCredentialsFacade {
 	 * @param getCurrentCommonNativeFacade a "factory" that returns the commonNativeFacade for the window that would be most suited to serve a given request
 	 */
 	constructor(
-		private readonly wm: WindowManager,
 		private readonly desktopKeyStoreFacade: DesktopKeyStoreFacade,
 		private readonly crypto: DesktopNativeCryptoFacade,
 		private readonly argon2idFacade: Promise<WebAssembly.Exports>,
@@ -134,41 +133,73 @@ export class DesktopNativeCredentialsFacade implements NativeCredentialsFacade {
 	}
 
 	deleteByUserId(id: string): Promise<void> {
-		throw new Error("Not implemented!")
+		const formattedQuery = sql`DELETE FROM credentials WHERE userId = ${id}`
+		return this.credentialDb.run(formattedQuery.query, formattedQuery.params)
 	}
 
 	async getCredentialEncryptionMode(): Promise<CredentialEncryptionMode | null> {
-		const lastWindow = await this.wm.getLastFocused(true)
-		return lastWindow.desktopFacade.getCredentialEncryptionMode()
+		const retVal = await this.conf.getVar(DesktopConfigKey.credentialEncryptionMode)
+		return retVal ? CredentialEncryptionMode[retVal as keyof typeof CredentialEncryptionMode] : null
 	}
 
-	getCredentialsEncryptionKey(): Promise<Uint8Array> {
-		throw new Error("Not implemented!")
+	async getCredentialsEncryptionKey(): Promise<Uint8Array | null> {
+		const credentialsEncryptionKey = await this.conf.getVar(DesktopConfigKey.credentialsEncryptionKey)
+		return credentialsEncryptionKey ? base64ToUint8Array(credentialsEncryptionKey) : null
 	}
 
 	async loadAll(): Promise<ReadonlyArray<PersistedCredentials>> {
-		const records = await this.credentialDb.all("SELECT * FROM credentials", [])
-		console.log(records)
-		return new Promise((resolve, reject) => {
-			resolve([])
+		const formattedQuery = sql`SELECT * FROM credentials`
+		const records = await this.credentialDb.all(formattedQuery.query, formattedQuery.params)
+		return records.map((row) => {
+			const credentialType = CredentialType[row.type.value as keyof typeof CredentialType]
+			if (!credentialType) throw Error() // FIXME
+			const persistedCredential: PersistedCredentials = {
+				credentialsInfo: {
+					login: row.login.value as string,
+					userId: row.userId.value as string,
+					type: credentialType,
+				},
+				encryptedPassword: row.encryptedPassword.value as string,
+				accessToken: row.accessToken.value as string,
+				databaseKey: row.databaseKey.value as string,
+			}
+			return persistedCredential
 		})
 	}
 
-	loadByUserId(id: string): Promise<PersistedCredentials | null> {
-		throw new Error("Not implemented!")
+	async loadByUserId(id: string): Promise<PersistedCredentials | null> {
+		const formattedQuery = sql`SELECT * FROM credentials WHERE userId = ${id}`
+		const row = await this.credentialDb.get(formattedQuery.query, formattedQuery.params)
+		if (!row) return null
+		const credentialType = CredentialType[row.type.value as keyof typeof CredentialType]
+		if (!credentialType) throw Error() // FIXME
+		return row
+			? {
+					credentialsInfo: {
+						login: row.login.value as string,
+						userId: row.userId.value as string,
+						type: credentialType,
+					},
+					encryptedPassword: row.encryptedPassword.value as string,
+					accessToken: row.accessToken.value as string,
+					databaseKey: row.databaseKey.value as string,
+			  }
+			: null
 	}
 
 	async setCredentialEncryptionMode(encryptionMode: CredentialEncryptionMode): Promise<void> {
-		const lastWindow = await this.wm.getLastFocused(true)
-		await lastWindow.desktopFacade.setCredentialEncryptionMode(encryptionMode)
+		await this.conf.setVar(DesktopConfigKey.credentialEncryptionMode, encryptionMode)
 	}
 
-	setCredentialsEncryptionKey(credentialsEncryptionKey: Uint8Array | null): Promise<void> {
-		throw new Error("Not implemented!")
+	async setCredentialsEncryptionKey(credentialsEncryptionKey: Uint8Array | null): Promise<void> {
+		if (credentialsEncryptionKey) await this.conf.setVar(DesktopConfigKey.credentialsEncryptionKey, uint8ArrayToBase64(credentialsEncryptionKey))
 	}
 
 	store(credentials: PersistedCredentials): Promise<void> {
-		throw new Error("Not implemented!")
+		const formattedQuery = sql`INSERT INTO credentials (login, userId, type, accessToken, databaseKey, encryptedPassword) VALUES (
+${credentials.credentialsInfo.login}, ${credentials.credentialsInfo.userId}, ${credentials.credentialsInfo.type},
+${credentials.accessToken}, ${credentials.databaseKey}, ${credentials.encryptedPassword})`
+		return this.credentialDb.run(formattedQuery.query, formattedQuery.params)
 	}
 
 	private assertSupportedEncryptionMode(encryptionMode: DesktopCredentialsMode) {

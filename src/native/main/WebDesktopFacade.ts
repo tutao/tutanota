@@ -15,6 +15,14 @@ export class WebDesktopFacade implements DesktopFacade {
 		return Promise.resolve()
 	}
 
+	getCredentialsEncryptionKey(): Promise<Uint8Array | null> {
+		return deviceConfig.getCredentialsEncryptionKey()
+	}
+
+	setCredentialsEncryptionKey(credentialsEncryptionKey: Uint8Array | null): Promise<void> {
+		return deviceConfig.setCredentialsEncryptionKey(credentialsEncryptionKey)
+	}
+
 	getCredentialEncryptionMode(): Promise<CredentialEncryptionMode | null> {
 		return deviceConfig.getCredentialEncryptionMode()
 	}

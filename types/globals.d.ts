@@ -16,6 +16,10 @@ declare type PropertyType<T, K> = K extends keyof T ? T[K] : never
 
 declare type Id = string
 declare type IdTuple = Readonly<[Id, Id]>
+declare type IdTupleWrapper = {
+	listId: Id
+	listElementId: Id
+}
 
 declare type Writeable<T> = { -readonly [P in keyof T]: T[P] }
 
