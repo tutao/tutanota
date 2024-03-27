@@ -5,6 +5,7 @@ import { ProgrammingError } from "../../common/error/ProgrammingError.js"
 import { SqlCipherFacade } from "../../../native/common/generatedipc/SqlCipherFacade.js"
 import { OutOfSyncError } from "../../common/error/OutOfSyncError.js"
 import { sys94 } from "./migrations/sys-v94.js"
+import { sys96 } from "./migrations/sys-v96.js"
 import { tutanota66 } from "./migrations/tutanota-v66.js"
 import { sys92 } from "./migrations/sys-v92.js"
 import { tutanota65 } from "./migrations/tutanota-v65.js"
@@ -26,7 +27,7 @@ export interface OfflineMigration {
  * Normally you should only add them to the end of the list but with offline ones it can be a bit tricky since they change the db structure itself so sometimes
  * they should rather be in the beginning.
  */
-export const OFFLINE_STORAGE_MIGRATIONS: ReadonlyArray<OfflineMigration> = [sys90, tutanota64, sys91, tutanota65, sys92, tutanota66, sys94, tutanota67]
+export const OFFLINE_STORAGE_MIGRATIONS: ReadonlyArray<OfflineMigration> = [sys90, tutanota64, sys91, tutanota65, sys92, tutanota66, sys94, tutanota67, sys96]
 
 const CURRENT_OFFLINE_VERSION = 1
 

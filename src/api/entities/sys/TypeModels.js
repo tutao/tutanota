@@ -6799,9 +6799,18 @@ export const typeModels = {
                 "cardinality": "One",
                 "encrypted": false
             },
-            "nextKeyVersion": {
+            "groupType": {
                 "final": true,
-                "name": "nextKeyVersion",
+                "name": "groupType",
+                "id": 2230,
+                "since": 96,
+                "type": "Number",
+                "cardinality": "One",
+                "encrypted": false
+            },
+            "targetKeyVersion": {
+                "final": true,
+                "name": "targetKeyVersion",
                 "id": 2229,
                 "since": 96,
                 "type": "Number",
@@ -6813,19 +6822,53 @@ export const typeModels = {
         "app": "sys",
         "version": "96"
     },
+    "KeyRotationWebsocketData": {
+        "name": "KeyRotationWebsocketData",
+        "since": 96,
+        "type": "DATA_TRANSFER_TYPE",
+        "id": 2235,
+        "rootId": "A3N5cwAIuw",
+        "versioned": false,
+        "encrypted": false,
+        "values": {
+            "_format": {
+                "final": false,
+                "name": "_format",
+                "id": 2236,
+                "since": 96,
+                "type": "Number",
+                "cardinality": "One",
+                "encrypted": false
+            }
+        },
+        "associations": {
+            "pendingKeyRotations": {
+                "final": false,
+                "name": "pendingKeyRotations",
+                "id": 2237,
+                "since": 96,
+                "type": "LIST_ELEMENT_ASSOCIATION",
+                "cardinality": "Any",
+                "refType": "KeyRotation",
+                "dependency": null
+            }
+        },
+        "app": "sys",
+        "version": "96"
+    },
     "KeyRotationsRef": {
         "name": "KeyRotationsRef",
         "since": 96,
         "type": "AGGREGATED_TYPE",
-        "id": 2230,
-        "rootId": "A3N5cwAItg",
+        "id": 2231,
+        "rootId": "A3N5cwAItw",
         "versioned": false,
         "encrypted": false,
         "values": {
             "_id": {
                 "final": true,
                 "name": "_id",
-                "id": 2231,
+                "id": 2232,
                 "since": 96,
                 "type": "CustomId",
                 "cardinality": "One",
@@ -6836,7 +6879,7 @@ export const typeModels = {
             "list": {
                 "final": true,
                 "name": "list",
-                "id": 2232,
+                "id": 2233,
                 "since": 96,
                 "type": "LIST_ASSOCIATION",
                 "cardinality": "One",
@@ -12866,7 +12909,7 @@ export const typeModels = {
             "keyRotations": {
                 "final": false,
                 "name": "keyRotations",
-                "id": 2233,
+                "id": 2234,
                 "since": 96,
                 "type": "AGGREGATION",
                 "cardinality": "ZeroOrOne",

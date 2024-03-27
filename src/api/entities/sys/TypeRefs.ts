@@ -1623,7 +1623,21 @@ export type KeyRotation = {
 	_id: IdTuple;
 	_ownerGroup: null | Id;
 	_permissions: Id;
-	nextKeyVersion: NumberString;
+	groupType: NumberString;
+	targetKeyVersion: NumberString;
+}
+export const KeyRotationWebsocketDataTypeRef: TypeRef<KeyRotationWebsocketData> = new TypeRef("sys", "KeyRotationWebsocketData")
+
+export function createKeyRotationWebsocketData(values: StrippedEntity<KeyRotationWebsocketData>): KeyRotationWebsocketData {
+	return Object.assign(create(typeModels.KeyRotationWebsocketData, KeyRotationWebsocketDataTypeRef), values)
+}
+
+export type KeyRotationWebsocketData = {
+	_type: TypeRef<KeyRotationWebsocketData>;
+
+	_format: NumberString;
+
+	pendingKeyRotations: IdTuple[];
 }
 export const KeyRotationsRefTypeRef: TypeRef<KeyRotationsRef> = new TypeRef("sys", "KeyRotationsRef")
 
