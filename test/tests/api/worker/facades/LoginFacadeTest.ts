@@ -399,12 +399,9 @@ o.spec("LoginFacadeTest", function () {
 					throw connectionError
 				})
 
-				const deferred = defer()
-				when(loginListener.onPartialLoginSuccess()).thenDo(() => deferred.resolve(null))
-
 				const result = await facade.resumeSession(credentials, { salt: user.salt!, kdfType: DEFAULT_KDF_TYPE }, dbKey, timeRangeDays)
 
-				await deferred.promise
+				await Promise.resolve()
 
 				o(result.type).equals("success")
 				o(calls).deepEquals(["setUser", "sessionService"])

@@ -142,11 +142,6 @@ export type PassphraseKeyData = {
 
 export interface LoginListener {
 	/**
-	 * Partial login reached: cached entities and user are available.
-	 */
-	onPartialLoginSuccess(): Promise<void>
-
-	/**
 	 * Full login reached: any network requests can be made
 	 */
 	onFullLoginSuccess(sessionType: SessionType, cacheInfo: CacheInfo): Promise<void>
@@ -566,7 +561,6 @@ export class LoginFacade {
 					)
 				}
 				this.userFacade.setUser(user)
-				this.loginListener.onPartialLoginSuccess()
 
 				// Temporary workaround for the transitional period
 				// Before offline login was enabled (in 3.96.4) we didn't use cache for the login process, only afterwards.
@@ -706,7 +700,6 @@ export class LoginFacade {
 			const wasPartiallyLoggedIn = this.userFacade.isPartiallyLoggedIn()
 			if (!wasPartiallyLoggedIn) {
 				this.userFacade.setUser(user)
-				this.loginListener.onPartialLoginSuccess()
 			}
 			const wasFullyLoggedIn = this.userFacade.isFullyLoggedIn()
 

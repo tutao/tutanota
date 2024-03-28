@@ -214,10 +214,6 @@ export async function initLocator(worker: WorkerImpl, browserData: BrowserData) 
 	)
 
 	const loginListener: LoginListener = {
-		onPartialLoginSuccess(): Promise<void> {
-			return mainInterface.loginListener.onPartialLoginSuccess()
-		},
-
 		onFullLoginSuccess(sessionType: SessionType, cacheInfo: CacheInfo): Promise<void> {
 			if (!isTest() && sessionType !== SessionType.Temporary && !isAdminClient()) {
 				// index new items in background
