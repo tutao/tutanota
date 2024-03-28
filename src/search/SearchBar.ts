@@ -43,6 +43,7 @@ export type ShowMoreAction = {
 export type SearchBarAttrs = {
 	placeholder?: string | null
 	returnListener?: (() => unknown) | null
+	disabled?: boolean
 }
 
 const MAX_SEARCH_PREVIEW_RESULTS = 10
@@ -120,6 +121,7 @@ export class SearchBar implements Component<SearchBarAttrs> {
 			placeholder: vnode.attrs.placeholder,
 			text: this.state().query,
 			busy: this.busy,
+			disabled: vnode.attrs.disabled,
 			onInput: (text) => this.search(text),
 			onSearchClick: () => this.handleSearchClick(),
 			onClear: () => {
