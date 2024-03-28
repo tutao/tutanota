@@ -34,7 +34,14 @@ import { GroupInvitationFolderRow } from "../../sharing/view/GroupInvitationFold
 import { SidebarSection } from "../../gui/SidebarSection"
 import type { HtmlSanitizer } from "../../misc/HtmlSanitizer"
 import { ProgrammingError } from "../../api/common/error/ProgrammingError"
-import { calendarNavConfiguration, CalendarViewType, daysHaveEvents, getGroupColors, shouldDefaultToAmPmTimeFormat } from "../gui/CalendarGuiUtils.js"
+import {
+	calendarNavConfiguration,
+	CalendarViewType,
+	calendarWeek,
+	daysHaveEvents,
+	getGroupColors,
+	shouldDefaultToAmPmTimeFormat,
+} from "../gui/CalendarGuiUtils.js"
 import { CalendarViewModel, MouseOrPointerEvent } from "./CalendarViewModel"
 import { showNewCalendarEventEditDialog } from "../gui/eventeditor-view/CalendarEventEditDialog.js"
 import { CalendarEventPopup } from "../gui/eventpopup/CalendarEventPopup.js"
@@ -157,7 +164,7 @@ export class CalendarView extends BaseTopLevelView implements TopLevelView<Calen
 			},
 			ColumnType.Foreground,
 			{
-				minWidth: size.first_col_min_width,
+				minWidth: size.calendar_first_col_min_width,
 				maxWidth: size.first_col_max_width,
 				headerCenter: () => (this.currentViewType === CalendarViewType.WEEK ? lang.get("month_label") : lang.get("calendar_label")),
 			},
@@ -216,6 +223,7 @@ export class CalendarView extends BaseTopLevelView implements TopLevelView<Calen
 									startOfTheWeek: downcast(locator.logins.getUserController().userSettingsGroupRoot.startOfTheWeek),
 									dragHandlerCallbacks: this.viewModel,
 									isDaySelectorExpanded: this.viewModel.isDaySelectorExpanded(),
+									weekIndicator: calendarWeek(this.viewModel.selectedDate(), this.viewModel.weekStart),
 									selectedTime: this.viewModel.selectedTime,
 								}),
 							})
@@ -243,6 +251,7 @@ export class CalendarView extends BaseTopLevelView implements TopLevelView<Calen
 									onChangeViewPeriod: (next) => this.viewPeriod(CalendarViewType.WEEK, next),
 									dragHandlerCallbacks: this.viewModel,
 									isDaySelectorExpanded: this.viewModel.isDaySelectorExpanded(),
+									weekIndicator: calendarWeek(this.viewModel.selectedDate(), this.viewModel.weekStart),
 									selectedTime: this.viewModel.selectedTime,
 								}),
 							})
@@ -281,7 +290,7 @@ export class CalendarView extends BaseTopLevelView implements TopLevelView<Calen
 			},
 			ColumnType.Background,
 			{
-				minWidth: size.second_col_min_width + size.third_col_min_width,
+				minWidth: size.calendar_first_col_min_width + size.third_col_min_width,
 				maxWidth: size.third_col_max_width,
 			},
 		)
@@ -327,15 +336,10 @@ export class CalendarView extends BaseTopLevelView implements TopLevelView<Calen
 	}
 
 	private renderDesktopToolbar(): Children {
-		const navConfig = calendarNavConfiguration(
-			this.currentViewType,
-			this.viewModel.selectedDate(),
-			this.viewModel.weekStart,
-			"detailed",
-			(viewType, next) => this.viewPeriod(viewType, next),
-		)
 		return m(CalendarDesktopToolbar, {
-			navConfig,
+			navConfig: calendarNavConfiguration(this.currentViewType, this.viewModel.selectedDate(), this.viewModel.weekStart, "detailed", (viewType, next) =>
+				this.viewPeriod(viewType, next),
+			),
 			viewType: this.currentViewType,
 			onToday: () => {
 				// in case it has been set, when onToday is called we definitely do not want the time to be ignored

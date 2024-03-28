@@ -34,7 +34,7 @@ export function getFonts(): string {
 const boxShadow = `0 10px 20px rgba(0,0,0,0.19), 0 6px 6px rgba(0,0,0,0.23)`
 const searchBarShadow = "0px 2px 4px rgb(0, 0, 0, 0.12)"
 
-const scrollbarWidthHeight = "18px"
+const scrollbarWidthHeight = px(18)
 styles.registerStyle("main", () => {
 	return {
 		"#link-tt": isElectronClient()
@@ -2076,6 +2076,12 @@ styles.registerStyle("main", () => {
 		".calendar-hour-margin": {
 			"margin-left": px(size.calendar_hour_width),
 		},
+		".calendar-hour-column": {
+			width: px(size.calendar_hour_width),
+		},
+		".calendar-days-header-row": {
+			height: px(size.calendar_days_header_height),
+		},
 		".calendar-day": {
 			"border-top": `1px solid ${theme.list_border}`,
 			transition: "background 0.4s",
@@ -2085,9 +2091,9 @@ styles.registerStyle("main", () => {
 			cursor: "pointer",
 		},
 		".calendar-day-indicator": {
-			// overriden for mobile
-			height: "22px",
-			"line-height": "24px",
+			// overridden for mobile
+			height: px(size.calendar_days_header_height),
+			"line-height": px(size.calendar_days_header_height),
 			"text-align": "center",
 			"font-size": "14px",
 		},
@@ -2105,6 +2111,20 @@ styles.registerStyle("main", () => {
 			"padding-left": "4px",
 			"font-weight": "600",
 			"box-sizing": "content-box",
+		},
+		".calendar-current-day-circle": {
+			"background-color": theme.content_button,
+		},
+		".calendar-selected-day-circle": {
+			"background-color": theme.content_accent,
+		},
+		".calendar-current-day-text": {
+			color: theme.content_bg,
+			"font-weight": "bold",
+		},
+		".calendar-selected-day-text": {
+			color: theme.content_bg,
+			"font-weight": "bold",
 		},
 		".animation-reverse": {
 			"animation-direction": "reverse",

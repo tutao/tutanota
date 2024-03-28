@@ -27,7 +27,6 @@ export class CalendarDesktopToolbar implements Component<CalendarDesktopToolbarA
 			},
 			[
 				m("h1", navConfig.title),
-				navConfig.week && this.renderWeekNumberLabel(navConfig.week),
 				m(".flex.items-center.justify-center.flex-grow.height-100p", this.renderViewSelector(attrs)),
 				m(".flex.pt-xs.pb-xs", [
 					navConfig.back ?? m(".button-width-fixed"),
@@ -86,19 +85,6 @@ export class CalendarDesktopToolbar implements Component<CalendarDesktopToolbarA
 				items: calendarViewValues,
 				maxItemWidth: 48,
 			}),
-		)
-	}
-
-	private renderWeekNumberLabel(label: string): Children {
-		return m(
-			".ml-m.small.font-weight-600",
-			{
-				style: {
-					padding: "2px 8px",
-					backgroundColor: theme.list_alternate_bg,
-				},
-			},
-			label,
 		)
 	}
 }

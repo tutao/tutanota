@@ -62,8 +62,10 @@ export const size = {
 		return (this.calendar_line_height + 2 * this.calendar_event_border + this.calendar_day_event_padding) * 4
 	},
 
+	calendar_days_header_height: 25,
 	calendar_hour_width: 80,
 	calendar_hour_width_mobile: 30,
+	calendar_first_col_min_width: 270,
 	calendar_event_margin: 6,
 	calendar_event_margin_mobile: 2,
 	calendar_event_border: 1,
