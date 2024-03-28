@@ -1,5 +1,5 @@
 import type { App } from "electron"
-import type { TimeoutSetter } from "@tutao/tutanota-utils"
+import { base64ToUint8Array, TimeoutSetter, uint8ArrayToString } from "@tutao/tutanota-utils"
 import {
 	assertNotNull,
 	base64ToBase64Url,
@@ -29,6 +29,10 @@ import { BuildConfigKey, DesktopConfigEncKey, DesktopConfigKey } from "../config
 import http from "node:http"
 import { EncryptedAlarmNotification } from "../../native/common/EncryptedAlarmNotification.js"
 import tutanotaModelInfo from "../../api/entities/tutanota/ModelInfo.js"
+import { DesktopNativeCredentialsFacade } from "../credentials/DesktopNativeCredentialsFacade.js"
+import { CredentialEncryptionMode } from "../../misc/credentials/CredentialEncryptionMode.js"
+import { uint8ArrayToBitArray } from "@tutao/tutanota-crypto"
+import { Agent, fetch } from "undici"
 
 export type SseInfo = {
 	identifier: string
@@ -50,6 +54,7 @@ export class DesktopSseClient {
 	private readonly _delayHandler: TimeoutSetter
 	private readonly _lang: LanguageViewModelType
 	private readonly _crypto: DesktopNativeCryptoFacade
+	private readonly _nativeCredentialFacade: DesktopNativeCredentialsFacade
 	private _connectedSseInfo: SseInfo | null = null
 	private _connection: http.ClientRequest | null = null
 	_readTimeoutInSeconds!: number
@@ -69,6 +74,7 @@ export class DesktopSseClient {
 		alarmScheduler: NativeAlarmScheduler,
 		net: DesktopNetworkClient,
 		desktopCrypto: DesktopNativeCryptoFacade,
+		nativeCredentialsFacade: DesktopNativeCredentialsFacade,
 		alarmStorage: DesktopAlarmStorage,
 		lang: LanguageViewModelType,
 		delayHandler: TimeoutSetter = setTimeout,
@@ -80,6 +86,7 @@ export class DesktopSseClient {
 		this._alarmScheduler = alarmScheduler
 		this._net = net
 		this._crypto = desktopCrypto
+		this._nativeCredentialFacade = nativeCredentialsFacade
 		this._alarmStorage = alarmStorage
 		this._lang = lang
 		this._delayHandler = delayHandler
@@ -428,14 +435,19 @@ export class DesktopSseClient {
 
 		this._downloadMailMetadata(ni).then((meta) => {
 			console.log(meta)
-			this._notifier.submitGroupedNotification(title, `${ni.mailAddress} (1)`, ni.userId, (res) => {
-				if (res === NotificationResult.Click) {
-					this._wm.openMailBox({
-						userId: ni.userId,
-						mailAddress: ni.mailAddress,
-					})
-				}
-			})
+			this._notifier.submitGroupedNotification(
+				title,
+				`sender: ${meta.sender.address} first recipient: ${meta.firstRecipient.address}`,
+				ni.userId,
+				(res) => {
+					if (res === NotificationResult.Click) {
+						this._wm.openMailBox({
+							userId: ni.userId,
+							mailAddress: ni.mailAddress,
+						})
+					}
+				},
+			)
 		})
 	}
 
@@ -543,7 +555,7 @@ export class DesktopSseClient {
 
 	_disconnect() {
 		if (this._connection) {
-			this._connection.abort()
+			this._connection.destroy()
 
 			this._connection = null
 		}
@@ -586,76 +598,53 @@ export class DesktopSseClient {
 
 	private async _downloadMailMetadata(ni: NotificationInfo): Promise<any> {
 		return new Promise(async (resolve, reject) => {
-			const fail = (req: http.ClientRequest, res: http.IncomingMessage | null, e: TutanotaError | null) => {
-				if (res) {
-					res.destroy()
-				}
-
-				req.destroy()
-				reject(e)
-			}
-
 			const url = this._makeMailMetadataUrl(assertNotNull(this._connectedSseInfo), assertNotNull(ni))
+
+			// decrypt access token
+			const credentials = await this._nativeCredentialFacade.loadByUserId(ni.userId)
+			const encryptedCredentialsKey = await this._nativeCredentialFacade.getCredentialsEncryptionKey()
+			if (!encryptedCredentialsKey || !credentials) return
+			const credentialsKey = await this._nativeCredentialFacade.decryptUsingKeychain(encryptedCredentialsKey, CredentialEncryptionMode.DEVICE_LOCK)
+			const decryptedAccessToken = uint8ArrayToString(
+				"utf-8",
+				this._crypto.aesDecryptBytes(uint8ArrayToBitArray(credentialsKey), base64ToUint8Array(credentials.accessToken)),
+			)
 
 			log.debug(TAG, "downloading mail notification metadata")
 			const headers: Record<string, string> = {
 				userIds: ni.userId,
 				v: tutanotaModelInfo.version.toString(),
 				cv: this._app.getVersion(),
+				accessToken: decryptedAccessToken,
 			}
 
-			const req: http.ClientRequest = this._net
-				.request(url, {
-					method: "GET",
-					headers,
-					// this defines the timeout for the connection attempt, not for waiting for the servers response after a connection was made
-					timeout: 20000,
+			try {
+				const response = await fetch(url, {
+					headers: headers,
+					dispatcher: new Agent({ connectTimeout: 20000 }),
 				})
-				.on("timeout", () => {
-					log.debug(TAG, "Missed notification download timeout")
-					req.destroy()
-				})
-				.on("response", (res) => {
-					log.debug(TAG, "missed notification response", res.statusCode)
+				if (
+					(response.status === ServiceUnavailableError.CODE || TooManyRequestsError.CODE) &&
+					(response.headers.get("retry-after") || response.headers.get("suspension-time"))
+				) {
+					// headers are lowercase, see https://nodejs.org/api/http.html#http_message_headers
+					const time = filterInt((response.headers.get("retry-after") ?? response.headers.get("suspension-time")) as string)
+					log.debug(TAG, `ServiceUnavailable when downloading missed notification, waiting ${time}s`)
 
-					if (
-						(res.statusCode === ServiceUnavailableError.CODE || TooManyRequestsError.CODE) &&
-						(res.headers["retry-after"] || res.headers["suspension-time"])
-					) {
-						// headers are lowercased, see https://nodejs.org/api/http.html#http_message_headers
-						const time = filterInt((res.headers["retry-after"] ?? res.headers["suspension-time"]) as string)
-						log.debug(TAG, `ServiceUnavailable when downloading missed notification, waiting ${time}s`)
-						res.destroy()
-						req.destroy()
+					this._delayHandler(() => {
+						this._downloadMailMetadata(ni).then(resolve, reject)
+					}, time * 1000)
 
-						this._delayHandler(() => {
-							this._downloadMailMetadata(ni).then(resolve, reject)
-						}, time * 1000)
+					return
+				} else if (!response.ok) {
+					const tutanotaError = handleRestError(neverNull(response.status), url, response.headers.get("Error-Id"), null)
+					reject(tutanotaError)
+				}
 
-						return
-					} else if (res.statusCode !== 200) {
-						const tutanotaError = handleRestError(neverNull(res.statusCode), url, res.headers["Error-Id"] as string, null)
-						fail(req, res, tutanotaError)
-						return
-					}
-
-					res.setEncoding("utf8")
-					let resData = ""
-					res.on("data", (chunk) => {
-						resData += chunk
-					})
-						.on("end", () => {
-							try {
-								resolve(JSON.parse(resData))
-							} catch (e) {
-								fail(req, res, e)
-							}
-						})
-						.on("close", () => log.debug(TAG, "dl missed notification response closed"))
-						.on("error", (e) => fail(req, res, e))
-				})
-				.on("error", (e) => fail(req, null, e))
-			req.end()
+				resolve(await response.json())
+			} catch (e) {
+				log.debug(TAG, "Error fetching mail metadata, " + (e as Error).message)
+			}
 		})
 	}
 }
