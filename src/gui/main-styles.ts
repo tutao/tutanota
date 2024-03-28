@@ -554,6 +554,13 @@ styles.registerStyle("main", () => {
 			"min-width": 0,
 			"white-space": "nowrap",
 		},
+		".text-ellipsis-multi-line": {
+			display: "-webkit-box",
+			"-webkit-line-clamp": 3,
+			"-webkit-box-orient": "vertical",
+			overflow: " hidden",
+			"text-overflow": "ellipsis",
+		},
 		".min-width-0": {
 			"min-width": 0,
 		},
