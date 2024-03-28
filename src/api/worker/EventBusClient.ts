@@ -13,8 +13,6 @@ import {
 	EntityEventBatch,
 	EntityEventBatchTypeRef,
 	EntityUpdate,
-	KeyRotationWebsocketData,
-	KeyRotationWebsocketDataTypeRef,
 	WebsocketCounterData,
 	WebsocketCounterDataTypeRef,
 	WebsocketEntityData,
@@ -40,7 +38,7 @@ import { SleepDetector } from "./utils/SleepDetector.js"
 import sysModelInfo from "../entities/sys/ModelInfo.js"
 import tutanotaModelInfo from "../entities/tutanota/ModelInfo.js"
 import { resolveTypeReference } from "../common/EntityFunctions.js"
-import { PhishingMarkerWebsocketData, PhishingMarkerWebsocketDataTypeRef, ReportedMailFieldMarker } from "../entities/tutanota/TypeRefs"
+import { ReportedMailFieldMarker, PhishingMarkerWebsocketData, PhishingMarkerWebsocketDataTypeRef } from "../entities/tutanota/TypeRefs"
 import { UserFacade } from "./facades/UserFacade"
 import { ExposedProgressTracker } from "../main/ProgressTracker.js"
 
@@ -79,7 +77,6 @@ const enum MessageType {
 	UnreadCounterUpdate = "unreadCounterUpdate",
 	PhishingMarkers = "phishingMarkers",
 	LeaderStatus = "leaderStatus",
-	KeyRotation = "keyRotations",
 }
 
 export const enum ConnectMode {
@@ -327,7 +324,7 @@ export class EventBusClient {
 				this.listener.onPhishingMarkersReceived(data.markers)
 				break
 			}
-			case MessageType.LeaderStatus: {
+			case MessageType.LeaderStatus:
 				const data: WebsocketLeaderStatus = await this.instanceMapper.decryptAndMapToInstance(
 					await resolveTypeReference(WebsocketLeaderStatusTypeRef),
 					JSON.parse(value),
@@ -336,17 +333,6 @@ export class EventBusClient {
 				await this.userFacade.setLeaderStatus(data)
 				await this.listener.onLeaderStatusChanged(data)
 				break
-			}
-			case MessageType.KeyRotation: {
-				const data: KeyRotationWebsocketData = await this.instanceMapper.decryptAndMapToInstance(
-					await resolveTypeReference(KeyRotationWebsocketDataTypeRef),
-					JSON.parse(value),
-					null,
-				)
-				console.log("KEY ROTATION: ", data)
-
-				break
-			}
 			default:
 				console.log("ws message with unknown type", type)
 				break
