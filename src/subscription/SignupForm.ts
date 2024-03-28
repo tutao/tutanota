@@ -2,7 +2,8 @@ import m, { Children, Component, Vnode } from "mithril"
 import stream from "mithril/stream"
 import Stream from "mithril/stream"
 import { Dialog } from "../gui/base/Dialog"
-import { Autocomplete, TextField } from "../gui/base/TextField.js"
+import { Autocomplete, BorderTextField } from "../gui/base/BorderTextField.js"
+import { Button, ButtonType } from "../gui/base/Button.js"
 import { getWhitelabelRegistrationDomains } from "../login/LoginView"
 import type { NewAccountData } from "./UpgradeSubscriptionWizard"
 import { SelectMailAddressForm, SelectMailAddressFormAttrs } from "../settings/SelectMailAddressForm"
@@ -47,6 +48,7 @@ export type SignupFormAttrs = {
 export class SignupForm implements Component<SignupFormAttrs> {
 	private readonly passwordModel: PasswordModel
 	private readonly _confirmTerms: Stream<boolean>
+	private readonly _confirmPrivacy: Stream<boolean>
 	private readonly _confirmAge: Stream<boolean>
 	private readonly _code: Stream<string>
 	private selectedDomain: EmailDomainData
@@ -92,6 +94,7 @@ export class SignupForm implements Component<SignupFormAttrs> {
 		this.__signupPaidTest = locator.usageTestController.getTest("signup.paid")
 
 		this._confirmTerms = stream<boolean>(false)
+		this._confirmPrivacy = stream<boolean>(false)
 		this._confirmAge = stream<boolean>(false)
 		this._code = stream("")
 		this._isMailVerificationBusy = false
@@ -105,7 +108,11 @@ export class SignupForm implements Component<SignupFormAttrs> {
 			selectedDomain: this.selectedDomain,
 			onDomainChanged: (domain) => {
 				if (!domain.isPaid || a.isPaidSubscription()) {
-					this.selectedDomain = domain
+					if (domain.domain == "your-domain.com") {
+						Dialog.message(() => `${lang.get("configureCustomDomainAfterSignup_msg") + faqCustomDomainLink}`) // fixme: faq link is not clickable!
+					} else {
+						this.selectedDomain = domain
+					}
 				} else {
 					Dialog.confirm(() => `${lang.get("paidEmailDomainSignup_msg")}\n${lang.get("changePaidPlan_msg")}`).then((confirmed) => {
 						if (confirmed) {
@@ -131,9 +138,14 @@ export class SignupForm implements Component<SignupFormAttrs> {
 			},
 		}
 		const confirmTermsCheckBoxAttrs: CheckboxAttrs = {
-			label: renderTermsLabel,
+			label: () => renderTermsAndConditionsButton(TermsSection.Terms, CURRENT_TERMS_VERSION),
 			checked: this._confirmTerms(),
 			onChecked: this._confirmTerms,
+		}
+		const confirmPrivacyPolicyCheckBoxAttrs: CheckboxAttrs = {
+			label: () => renderTermsAndConditionsButton(TermsSection.Privacy, CURRENT_PRIVACY_VERSION),
+			checked: this._confirmPrivacy(),
+			onChecked: this._confirmPrivacy,
 		}
 		const confirmAgeCheckBoxAttrs: CheckboxAttrs = {
 			label: () => lang.get("ageConfirmation_msg"),
@@ -152,7 +164,9 @@ export class SignupForm implements Component<SignupFormAttrs> {
 			}
 
 			const errorMessage =
-				this._mailAddressFormErrorId || this.passwordModel.getErrorMessageId() || (!this._confirmTerms() ? "termsAcceptedNeutral_msg" : null)
+				this._mailAddressFormErrorId ||
+				this.passwordModel.getErrorMessageId() ||
+				(!this._confirmTerms() || !this._confirmPrivacy() ? "termsAcceptedNeutral_msg" : null)
 
 			if (errorMessage) {
 				Dialog.message(errorMessage)
@@ -182,7 +196,7 @@ export class SignupForm implements Component<SignupFormAttrs> {
 			"#signup-account-dialog.flex-center",
 			m(".flex-grow-shrink-auto.max-width-m.pt.pb.plr-l", [
 				a.readonly
-					? m(TextField, {
+					? m(BorderTextField, {
 							label: "mailAddress_label",
 							value: a.prefilledMailAddress ?? "",
 							autocompleteAs: Autocomplete.newPassword,
@@ -190,23 +204,19 @@ export class SignupForm implements Component<SignupFormAttrs> {
 					  })
 					: [
 							m(SelectMailAddressForm, mailAddressFormAttrs), // Leave as is
-							a.isPaidSubscription()
-								? m(".small.mt-s", lang.get("configureCustomDomainAfterSignup_msg"), [
-										m(ExternalLink, { href: faqCustomDomainLink, isCompanySite: true }),
-								  ])
-								: null,
 							m(PasswordForm, {
 								model: this.passwordModel,
-								passwordInfoKey: "passwordImportance_msg",
 							}),
 							getWhitelabelRegistrationDomains().length > 0
-								? m(TextField, {
+								? m(BorderTextField, {
 										value: this._code(),
 										oninput: this._code,
 										label: "whitelabelRegistrationCode_label",
 								  })
 								: null,
+							m("", [lang.get("termsAndConditions_label")]),
 							m(Checkbox, confirmTermsCheckBoxAttrs),
+							m(Checkbox, confirmPrivacyPolicyCheckBoxAttrs),
 							m(Checkbox, confirmAgeCheckBoxAttrs),
 					  ],
 				m(
@@ -240,14 +250,6 @@ export class SignupForm implements Component<SignupFormAttrs> {
 			await this.__signupPaidTest.getStage(3).complete()
 		}
 	}
-}
-
-function renderTermsLabel(): Children {
-	return [
-		lang.get("termsAndConditions_label"),
-		m("div", renderTermsAndConditionsButton(TermsSection.Terms, CURRENT_TERMS_VERSION)),
-		m("div", renderTermsAndConditionsButton(TermsSection.Privacy, CURRENT_PRIVACY_VERSION)),
-	]
 }
 
 /**

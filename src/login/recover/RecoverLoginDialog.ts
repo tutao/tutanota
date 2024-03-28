@@ -4,12 +4,11 @@ import Stream from "mithril/stream"
 import { AccessBlockedError, AccessDeactivatedError, NotAuthenticatedError, TooManyRequestsError } from "../../api/common/error/RestError"
 import { showProgressDialog } from "../../gui/dialogs/ProgressDialog"
 import { isMailAddress } from "../../misc/FormatValidator"
-import { Autocomplete, TextField, TextFieldType } from "../../gui/base/TextField.js"
+import { Autocomplete, BorderTextField, BorderTextFieldType } from "../../gui/base/BorderTextField.js"
 import { lang } from "../../misc/LanguageViewModel"
 import { PasswordForm, PasswordModel } from "../../settings/PasswordForm"
 import { Icons } from "../../gui/base/icons/Icons"
 import { Dialog, DialogType } from "../../gui/base/Dialog"
-import { HtmlEditor, HtmlEditorMode } from "../../gui/editor/HtmlEditor"
 import { client } from "../../misc/ClientDetector"
 import { CancelledError } from "../../api/common/error/CancelledError"
 import { locator } from "../../api/main/MainLocator"
@@ -18,6 +17,7 @@ import { assertMainOrNode } from "../../api/common/Env"
 import { createDropdown, DropdownButtonAttrs } from "../../gui/base/Dropdown.js"
 import { IconButton, IconButtonAttrs } from "../../gui/base/IconButton.js"
 import { ButtonSize } from "../../gui/base/ButtonSize.js"
+import { theme } from "../../gui/theme"
 
 assertMainOrNode()
 export type ResetAction = "password" | "secondFactor"
@@ -27,6 +27,7 @@ export function show(mailAddress?: string | null, resetAction?: ResetAction): Di
 	const passwordModel = new PasswordModel(locator.usageTestController, locator.logins, { checkOldPassword: false, enforceStrength: true })
 	const passwordValueStream = stream("")
 	const emailAddressStream = stream(mailAddress || "")
+	const recoveryCodeStream = stream("")
 	const resetPasswordAction: DropdownButtonAttrs = {
 		label: "recoverSetNewPassword_action",
 		click: () => selectedAction("password"),
@@ -54,26 +55,26 @@ export function show(mailAddress?: string | null, resetAction?: ResetAction): Di
 			return lang.get("choose_label")
 		}
 	})
-	const editor = new HtmlEditor("recoveryCode_label")
-	editor.setMode(HtmlEditorMode.HTML)
-	editor.setHtmlMonospace(true)
-	editor.setMinHeight(80)
-	editor.showBorders()
 	const recoverDialog = Dialog.showActionDialog({
 		title: lang.get("recover_label"),
 		type: DialogType.EditSmall,
 		child: {
 			view: () => {
 				return [
-					m(TextField, {
+					m(BorderTextField, {
 						label: "mailAddress_label",
 						value: emailAddressStream(),
 						autocompleteAs: Autocomplete.email,
 						type: TextFieldType.Email,
 						oninput: emailAddressStream,
 					}),
-					m(editor),
-					m(TextField, {
+					m(BorderTextField, {
+						label: "recoveryCode_label",
+						value: recoveryCodeStream(),
+						oninput: recoveryCodeStream,
+						type: BorderTextFieldType.Area,
+					}),
+					m(BorderTextField, {
 						label: "action_label",
 						value: selectedValueLabelStream(),
 						oninput: selectedValueLabelStream,
@@ -84,9 +85,9 @@ export function show(mailAddress?: string | null, resetAction?: ResetAction): Di
 						? null
 						: selectedAction() === "password"
 						? m(PasswordForm, { model: passwordModel })
-						: m(TextField, {
+						: m(BorderTextField, {
 								label: "password_label",
-								type: TextFieldType.Password,
+								type: BorderTextFieldType.Password,
 								value: passwordValueStream(),
 								autocompleteAs: Autocomplete.currentPassword,
 								oninput: passwordValueStream,
@@ -96,7 +97,7 @@ export function show(mailAddress?: string | null, resetAction?: ResetAction): Di
 		},
 		okAction: async () => {
 			const cleanMailAddress = emailAddressStream().trim().toLowerCase()
-			const cleanRecoverCodeValue = editor.getValue().replace(/\s/g, "").toLowerCase()
+			const cleanRecoverCodeValue = recoveryCodeStream().trim().replace(/\s/g, "").toLowerCase()
 
 			if (!isMailAddress(cleanMailAddress, true)) {
 				Dialog.message("mailAddressInvalid_msg")

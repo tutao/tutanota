@@ -335,6 +335,7 @@ export const TUTANOTA_MAIL_ADDRESS_DOMAINS: ReadonlyArray<string> = Object.freez
 	"tutanota.com",
 	"tutanota.de",
 	"keemail.me",
+	"your-domain.com",
 ])
 export const TUTANOTA_MAIL_ADDRESS_SIGNUP_DOMAINS = TUTANOTA_MAIL_ADDRESS_DOMAINS
 export const DEFAULT_PAID_MAIL_ADDRESS_SIGNUP_DOMAIN = "tuta.com"

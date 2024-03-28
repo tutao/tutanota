@@ -1,24 +1,24 @@
-import m, { Children, Component, Vnode } from "mithril"
+import m, { Child, Children, Component, Vnode } from "mithril"
 import type { TranslationKey } from "../misc/LanguageViewModel"
 import { lang } from "../misc/LanguageViewModel"
 import { isMailAddress } from "../misc/FormatValidator"
 import { AccessDeactivatedError } from "../api/common/error/RestError"
 import { formatMailAddressFromParts } from "../misc/Formatter"
-import { Icon } from "../gui/base/Icon"
 import { locator } from "../api/main/MainLocator"
 import { assertMainOrNode } from "../api/common/Env"
 import { px, size } from "../gui/size.js"
-import { Autocomplete, inputLineHeight, TextField } from "../gui/base/TextField.js"
+import { Autocomplete, inputLineHeight, BorderTextField } from "../gui/base/BorderTextField.js"
 import { attachDropdown, DropdownButtonAttrs } from "../gui/base/Dropdown.js"
 import { IconButton, IconButtonAttrs } from "../gui/base/IconButton.js"
 import { ButtonSize } from "../gui/base/ButtonSize.js"
 import { EmailDomainData } from "./mailaddress/MailAddressesUtils.js"
 import { BootIcons } from "../gui/base/icons/BootIcons.js"
 import { isTutanotaMailAddress } from "../api/common/mail/CommonMailUtils.js"
+import { Icon } from "../gui/base/Icon"
+import { ButtonColor } from "../gui/base/Button"
+import { Icons } from "../gui/base/icons/Icons"
 
 assertMainOrNode()
-
-const VALID_MESSAGE_ID = "mailAddressAvailable_msg"
 
 export interface SelectMailAddressFormAttrs {
 	selectedDomain: EmailDomainData
@@ -37,7 +37,7 @@ export interface ValidationResult {
 
 export class SelectMailAddressForm implements Component<SelectMailAddressFormAttrs> {
 	private username: string
-	private messageId: TranslationKey | null
+	private messageId?: TranslationKey | null
 	private checkAddressTimeout: TimeoutID | null
 	private isVerificationBusy: boolean
 	private lastAttrs: SelectMailAddressFormAttrs
@@ -67,16 +67,14 @@ export class SelectMailAddressForm implements Component<SelectMailAddressFormAtt
 			attrs.injectionsRightButtonAttrs.click = (event, dom) => {
 				originalCallback(event, dom)
 				this.username = ""
-				this.messageId = "mailAddressNeutral_msg"
 			}
 		}
 
-		return m(TextField, {
+		return m(BorderTextField, {
 			label: "mailAddress_label",
 			value: this.username,
 			alignRight: true,
 			autocompleteAs: Autocomplete.newPassword,
-			helpLabel: () => this.addressHelpLabel(),
 			fontSize: px(size.font_size_smaller),
 			oninput: (value) => {
 				this.username = value
@@ -87,7 +85,7 @@ export class SelectMailAddressForm implements Component<SelectMailAddressFormAtt
 					".flex.items-end.align-self-end",
 					{
 						style: {
-							"padding-bottom": "1px",
+							"padding-bottom": "3px",
 							flex: "1 1 auto",
 							fontSize: px(size.font_size_smaller),
 							lineHeight: px(inputLineHeight),
@@ -112,25 +110,35 @@ export class SelectMailAddressForm implements Component<SelectMailAddressFormAtt
 					: attrs.injectionsRightButtonAttrs
 					? m(IconButton, attrs.injectionsRightButtonAttrs)
 					: null,
+
+				this.isVerificationBusy
+					? m(IconButton, {
+							title: "mailAddressBusy_msg",
+							icon: BootIcons.Progress,
+							size: ButtonSize.Compact,
+							click: () => {},
+					  })
+					: this.messageId
+					? m(IconButton, {
+							title: this.messageId,
+							icon: this.messageId == "mailAddressNeutral_msg" ? Icons.Warning : Icons.CircleReject,
+							size: ButtonSize.Compact,
+							colors: ButtonColor.Error, // fixme: no don't display red when no input
+							click: () => {},
+					  })
+					: m(IconButton, {
+							title: () => "",
+							icon: Icons.Checkmark,
+							size: ButtonSize.Compact,
+							colors: ButtonColor.Success,
+							click: () => {},
+					  }),
 			],
 		})
 	}
 
 	private getCleanMailAddress(attrs: SelectMailAddressFormAttrs) {
 		return formatMailAddressFromParts(this.username, attrs.selectedDomain.domain)
-	}
-
-	private addressHelpLabel(): Children {
-		return this.isVerificationBusy
-			? m(".flex.items-center.mt-s", [this.progressIcon(), lang.get("mailAddressBusy_msg")])
-			: m(".mt-s", lang.get(this.messageId ?? VALID_MESSAGE_ID))
-	}
-
-	private progressIcon(): Children {
-		return m(Icon, {
-			icon: BootIcons.Progress,
-			class: "icon-progress mr-s",
-		})
 	}
 
 	private createDropdownItemAttrs(domainData: EmailDomainData, attrs: SelectMailAddressFormAttrs): DropdownButtonAttrs {

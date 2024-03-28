@@ -23,5 +23,5 @@ export async function getAvailableDomains(logins: LoginController, onlyCustomDom
 }
 
 export function isPaidPlanDomain(domain: String): boolean {
-	return domain === "tuta.com"
+	return domain === "tuta.com" || domain === "your-domain.com"
 }
