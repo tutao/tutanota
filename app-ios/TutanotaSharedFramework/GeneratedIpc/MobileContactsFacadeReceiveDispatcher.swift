@@ -38,8 +38,10 @@ public class MobileContactsFacadeReceiveDispatcher {
 			return toJson(result)
 		case "getContactsInContactBook":
 			let bookId = try! JSONDecoder().decode(String.self, from: arg[0].data(using: .utf8)!)
+			let username = try! JSONDecoder().decode(String.self, from: arg[1].data(using: .utf8)!)
 			let result = try await self.facade.getContactsInContactBook(
-				bookId
+				bookId,
+				username
 			)
 			return toJson(result)
 		case "deleteContacts":

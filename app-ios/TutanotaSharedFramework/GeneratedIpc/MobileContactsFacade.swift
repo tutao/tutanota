@@ -36,7 +36,8 @@ public protocol MobileContactsFacade {
 	 * Get all contacts in the specified contact book.
 	 */
 	func getContactsInContactBook(
-		_ bookId: String
+		_ bookId: String,
+		_ username: String
 	) async throws -> [StructuredContact]
 	/**
 	 * Delete all or a specific Tuta contact from system's contact book
