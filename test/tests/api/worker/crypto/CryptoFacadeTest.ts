@@ -1020,9 +1020,17 @@ o.spec("CryptoFacadeTest", function () {
 	o("authenticateSender | no authentication needed for secure external sender", async function () {
 		//o.timeout(500) // in CI or with debugging it can take a while
 		const testData = await prepareConfidentialReplyFromExternalUser()
+		const externalUser = testData.externalUser
 
 		const mailSessionKey = neverNull(await crypto.resolveSessionKey(testData.MailTypeModel, testData.mailLiteral))
 		o(mailSessionKey).deepEquals(testData.sk)
+
+		const mailCaptor = matchers.captor()
+		const userCaptor = matchers.captor()
+		verify(keyLoaderFacade.loadSymGroupKey(externalUser.userGroup._id, Number(externalUser.mailGroup.adminGroupKeyVersion), userCaptor.capture()))
+		verify(keyLoaderFacade.loadSymGroupKey(externalUser.mailGroup._id, testData.recipientKeyVersion, mailCaptor.capture()))
+		o(userCaptor.value.version).equals(Number(externalUser.userGroup.groupKeyVersion))
+		o(mailCaptor.value.version).equals(Number(externalUser.mailGroup.groupKeyVersion))
 
 		const updatedInstanceSessionKeysCaptor = captor()
 		verify(ownerEncSessionKeysUpdateQueue.updateInstanceSessionKeys(updatedInstanceSessionKeysCaptor.capture()), { times: 1 })
@@ -1743,6 +1751,7 @@ o.spec("CryptoFacadeTest", function () {
 		MailTypeModel: TypeModel
 		internalUser: TestUser
 		externalUser: TestUser
+		recipientKeyVersion: number
 	}> {
 		// Setup test users and groups
 		const internalUser = createTestUser("Alice", entityClient)
@@ -1751,12 +1760,22 @@ o.spec("CryptoFacadeTest", function () {
 		// Setup relationship between internal and external user
 		externalUser.userGroup.admin = internalUser.userGroup._id
 		externalUser.userGroup.adminGroupEncGKey = encryptKey(internalUser.userGroupKey, externalUser.userGroupKey)
+		externalUser.userGroup.adminGroupKeyVersion = "0"
 		externalUser.mailGroup.admin = externalUser.userGroup._id
 		externalUser.mailGroup.adminGroupEncGKey = encryptKey(externalUser.userGroupKey, externalUser.mailGroupKey)
+		externalUser.mailGroup.adminGroupKeyVersion = "4"
+		const recipientKeyVersion = "5"
+		externalUser.userGroup.groupKeyVersion = "7"
+		externalUser.mailGroup.groupKeyVersion = "8"
 
 		configureLoggedInUser(internalUser, userFacade, keyLoaderFacade)
 
-		// setup test mail (confidentail reply from external)
+		when(keyLoaderFacade.loadSymGroupKey(externalUser.mailGroup._id, Number(recipientKeyVersion), anything())).thenResolve(externalUser.mailGroupKey)
+		when(keyLoaderFacade.loadSymGroupKey(externalUser.userGroup._id, Number(externalUser.mailGroup.adminGroupKeyVersion), anything())).thenResolve(
+			externalUser.userGroupKey,
+		)
+
+		// setup test mail (confidential reply from external)
 
 		let subject = "this is our subject"
 		let confidential = true
@@ -1787,7 +1806,10 @@ o.spec("CryptoFacadeTest", function () {
 			pubEncBucketKey: null,
 			keyGroup: keyGroup,
 			groupEncBucketKey: groupEncBucketKey,
+			recipientKeyVersion,
 			bucketEncSessionKeys: bucketEncSessionKeys,
+			protocolVersion: CryptoProtocolVersion.SYMMETRIC_ENCRYPTION,
+			senderKeyVersion: null,
 		})
 
 		const BucketKeyModel = await resolveTypeReference(BucketKeyTypeRef)
@@ -1802,6 +1824,7 @@ o.spec("CryptoFacadeTest", function () {
 			MailTypeModel,
 			internalUser,
 			externalUser,
+			recipientKeyVersion: Number(recipientKeyVersion),
 		}
 	}
 })
@@ -1868,12 +1891,14 @@ export function createTestUser(name: string, entityClient: EntityClient): TestUs
 		_id: "userGroup" + name,
 		type: GroupType.User,
 		currentKeys: null,
+		groupKeyVersion: "0",
 	})
 
 	const mailGroup = createTestEntity(GroupTypeRef, {
 		_id: "mailGroup" + name,
 		type: GroupType.Mail,
 		currentKeys: null,
+		groupKeyVersion: "0",
 	})
 
 	const userGroupMembership = createTestEntity(GroupMembershipTypeRef, {
