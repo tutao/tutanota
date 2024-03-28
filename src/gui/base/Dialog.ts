@@ -947,6 +947,7 @@ export class Dialog implements ModalComponent {
 				middle: () => lang.getMaybeLazy(title),
 			}
 			dialog = Dialog.editDialog(headerAttrs, child, childAttrs)
+				.setCloseHandler(close)
 				.addShortcut({
 					key: Keys.ESC,
 					exec: close,
