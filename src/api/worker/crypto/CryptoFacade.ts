@@ -325,7 +325,7 @@ export class CryptoFacade {
 
 		// for symmetrically encrypted instances _ownerEncSessionKey is sent from the server.
 		// in this case it is not yet and we need to set it because the rest of the app expects it.
-		const groupKey = this.userFacade.getGroupKey(instance._ownerGroup)
+		const groupKey = this.userFacade.getGroupKey(instance._ownerGroup) // TODO handle versions
 		this.setOwnerEncSessionKeyUnmapped(
 			instance as UnmappedOwnerGroupInstance,
 			encryptKeyWithVersionedKey(groupKey, resolvedSessionKeys.resolvedSessionKeyForInstance),
@@ -486,8 +486,8 @@ export class CryptoFacade {
 		let resolvedSessionKeyForInstance: AesKey | undefined = undefined
 		const instanceSessionKeys = await promiseMap(bucketKey.bucketEncSessionKeys, async (instanceSessionKey) => {
 			const decryptedSessionKey = decryptKey(decBucketKey, instanceSessionKey.symEncSessionKey)
-			const groupKey = await this.keyLoaderFacade.loadSymGroupKey(instance._ownerGroup, Number(instance._ownerKeyVersion ?? 0))
-			const ownerEncSessionKey = encryptKey(groupKey, decryptedSessionKey)
+			const groupKey = this.userFacade.getGroupKey(instance._ownerGroup)
+			const ownerEncSessionKey = encryptKey(groupKey.object, decryptedSessionKey)
 			const instanceSessionKeyWithOwnerEncSessionKey = createInstanceSessionKey(instanceSessionKey)
 			if (instanceElementId == instanceSessionKey.instanceId) {
 				resolvedSessionKeyForInstance = decryptedSessionKey
@@ -506,6 +506,7 @@ export class CryptoFacade {
 				)
 			}
 			instanceSessionKeyWithOwnerEncSessionKey.symEncSessionKey = ownerEncSessionKey
+			instanceSessionKeyWithOwnerEncSessionKey.symKeyVersion = String(groupKey.version)
 			return instanceSessionKeyWithOwnerEncSessionKey
 		})
 
@@ -657,8 +658,8 @@ export class CryptoFacade {
 
 		if (bucketPermission._ownerGroup) {
 			// is not defined for some old AccountingInfos
-			let bucketPermissionOwnerGroupKey = this.userFacade.getGroupKey(neverNull(bucketPermission._ownerGroup))
-			this.userFacade.getGroupKey(bucketPermission.group)
+			let bucketPermissionOwnerGroupKey = this.userFacade.getGroupKey(neverNull(bucketPermission._ownerGroup)) // TODO versions
+			this.userFacade.getGroupKey(bucketPermission.group) // TODO what?
 			await this.updateWithSymPermissionKey(typeModel, instance, pubOrExtPermission, bucketPermission, bucketPermissionOwnerGroupKey, sk).catch(
 				ofClass(NotFoundError, () => {
 					console.log("w> could not find instance to update permission")
@@ -828,7 +829,6 @@ export class CryptoFacade {
 		const externalMailGroupKey = this.userFacade.getGroupKey(keyGroup)
 		return createSymEncInternalRecipientKeyData({
 			mailAddress: recipientMailAddress,
-			// TODO version
 			symEncBucketKey: encryptKey(externalMailGroupKey.object, bucketKey),
 			keyGroup,
 			symKeyVersion: String(externalMailGroupKey.version),
