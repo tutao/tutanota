@@ -42,6 +42,7 @@ export type ModelAssociation = {
 
 export interface Instance extends Entity {
 	_ownerEncSessionKey: null | Uint8Array
+	_ownerKeyVersion: null | NumberString
 	_ownerGroup: null | Id
 	_id: Id | IdTuple
 }

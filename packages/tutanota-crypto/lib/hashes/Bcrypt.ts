@@ -6,7 +6,8 @@ import { uint8ArrayToBitArray } from "../misc/Utils.js"
 import { KeyLength } from "../misc/Constants.js"
 import { CryptoError } from "../misc/CryptoError.js"
 import { sha256Hash } from "./Sha256.js"
-import { Aes128Key, Aes256Key } from "../encryption/Aes.js"
+import { AesKey } from "../encryption/Aes.js"
+
 const logRounds = 8 // pbkdf2 number of iterations
 
 export type SignedBytes = number[]
@@ -26,7 +27,7 @@ export function generateRandomSalt(): Uint8Array {
  * @param keyLengthType Defines the length of the key that shall be generated.
  * @return resolved with the key
  */
-export function generateKeyFromPassphrase(passphrase: string, salt: Uint8Array, keyLengthType: KeyLength): Aes128Key | Aes256Key {
+export function generateKeyFromPassphrase(passphrase: string, salt: Uint8Array, keyLengthType: KeyLength): AesKey {
 	// hash the password first to avoid login with multiples of a password, i.e. "hello" and "hellohello" produce the same key if the same _salt is used
 	let passphraseBytes = sha256Hash(stringToUtf8Uint8Array(passphrase))
 	let bytes = crypt_raw(passphraseBytes, salt, logRounds)

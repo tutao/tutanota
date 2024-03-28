@@ -2,7 +2,6 @@ import o from "@tutao/otest"
 import {
 	aesDecrypt,
 	aesEncrypt,
-	KeyPairType,
 	bitArrayToUint8Array,
 	bytesToKyberPrivateKey,
 	bytesToKyberPublicKey,
@@ -18,6 +17,7 @@ import {
 	hexToRsaPublicKey,
 	hkdf,
 	KeyLength,
+	KeyPairType,
 	kyberPrivateKeyToBytes,
 	kyberPublicKeyToBytes,
 	PQKeyPairs,
@@ -30,6 +30,8 @@ import {
 } from "@tutao/tutanota-crypto"
 import {
 	base64ToUint8Array,
+	byteArraysToBytes,
+	bytesToByteArrays,
 	hexToUint8Array,
 	neverNull,
 	stringToUtf8Uint8Array,
@@ -40,10 +42,8 @@ import {
 import testData from "./CompatibilityTestData.json"
 import { uncompress } from "../../../../../src/api/worker/Compression.js"
 import { matchers, object, when } from "testdouble"
-import { byteArraysToBytes, bytesToByteArrays } from "@tutao/tutanota-utils/dist/Encoding.js"
 import { PQFacade } from "../../../../../src/api/worker/facades/PQFacade.js"
 import { WASMKyberFacade } from "../../../../../src/api/worker/facades/KyberFacade.js"
-import { decodePQMessage } from "../../../../../src/api/worker/facades/PQMessage.js"
 import { loadArgon2WASM, loadLibOQSWASM } from "../WASMTestUtils.js"
 
 const originalRandom = random.generateRandomData
@@ -281,10 +281,10 @@ o.spec("crypto compatibility", function () {
 			const pqKeyPairs: PQKeyPairs = { keyPairType: KeyPairType.TUTA_CRYPT, eccKeyPair, kyberKeyPair }
 			const pqFacade = new PQFacade(new WASMKyberFacade(liboqs))
 
-			const encapsulation = await pqFacade.encapsulate(eccKeyPair, ephemeralKeyPair, pqPublicKeys, bucketKey)
-			o(encapsulation).deepEquals(decodePQMessage(hexToUint8Array(td.pqMessage)))
+			const encapsulation = await pqFacade.encapsulateEncoded(eccKeyPair, ephemeralKeyPair, pqPublicKeys, bucketKey)
+			o(encapsulation).deepEquals(hexToUint8Array(td.pqMessage))
 
-			const decapsulation = await pqFacade.decapsulate(encapsulation, pqKeyPairs)
+			const decapsulation = await pqFacade.decapsulateEncoded(encapsulation, pqKeyPairs)
 			o(decapsulation).deepEquals(bucketKey)
 		}
 	})

@@ -1,6 +1,6 @@
-import { create, Stripped, StrippedEntity } from "../../common/utils/EntityUtils.js"
-import {TypeRef} from "@tutao/tutanota-utils"
-import {typeModels} from "./TypeModels.js"
+import { create, StrippedEntity } from "../../common/utils/EntityUtils.js"
+import { TypeRef } from "@tutao/tutanota-utils"
+import { typeModels } from "./TypeModels.js"
 
 
 export const AccountingInfoTypeRef: TypeRef<AccountingInfo> = new TypeRef("sys", "AccountingInfo")
@@ -18,6 +18,7 @@ export type AccountingInfo = {
 	_modified: Date;
 	_ownerEncSessionKey: null | Uint8Array;
 	_ownerGroup: null | Id;
+	_ownerKeyVersion: null | NumberString;
 	_permissions: Id;
 	invoiceAddress: string;
 	invoiceCountry: null | string;
@@ -156,6 +157,7 @@ export type AuditLogEntry = {
 	_id: IdTuple;
 	_ownerEncSessionKey: null | Uint8Array;
 	_ownerGroup: null | Id;
+	_ownerKeyVersion: null | NumberString;
 	_permissions: Id;
 	action: string;
 	actorIpAddress: null | string;
@@ -392,6 +394,7 @@ export type BrandingDomainData = {
 	sessionEncPemCertificateChain: null | Uint8Array;
 	sessionEncPemPrivateKey: null | Uint8Array;
 	systemAdminPubEncSessionKey: Uint8Array;
+	systemAdminPubKeyVersion: NumberString;
 	systemAdminPublicProtocolVersion: NumberString;
 }
 export const BrandingDomainDeleteDataTypeRef: TypeRef<BrandingDomainDeleteData> = new TypeRef("sys", "BrandingDomainDeleteData")
@@ -445,6 +448,8 @@ export type BucketKey = {
 	groupEncBucketKey: null | Uint8Array;
 	protocolVersion: NumberString;
 	pubEncBucketKey: null | Uint8Array;
+	recipientKeyVersion: NumberString;
+	senderKeyVersion: null | NumberString;
 
 	bucketEncSessionKeys: InstanceSessionKey[];
 	keyGroup:  null | Id;
@@ -463,10 +468,13 @@ export type BucketPermission = {
 	_ownerGroup: null | Id;
 	_permissions: Id;
 	ownerEncBucketKey: null | Uint8Array;
+	ownerKeyVersion: null | NumberString;
 	protocolVersion: NumberString;
 	pubEncBucketKey: null | Uint8Array;
 	pubKeyVersion: null | NumberString;
+	senderKeyVersion: null | NumberString;
 	symEncBucketKey: null | Uint8Array;
+	symKeyVersion: null | NumberString;
 	type: NumberString;
 
 	group: Id;
@@ -588,6 +596,7 @@ export type CreateCustomerServerPropertiesData = {
 
 	_format: NumberString;
 	adminGroupEncSessionKey: Uint8Array;
+	adminGroupKeyVersion: NumberString;
 }
 export const CreateCustomerServerPropertiesReturnTypeRef: TypeRef<CreateCustomerServerPropertiesReturn> = new TypeRef("sys", "CreateCustomerServerPropertiesReturn")
 
@@ -601,40 +610,6 @@ export type CreateCustomerServerPropertiesReturn = {
 	_format: NumberString;
 
 	id: Id;
-}
-export const CreateGroupDataTypeRef: TypeRef<CreateGroupData> = new TypeRef("sys", "CreateGroupData")
-
-export function createCreateGroupData(values: StrippedEntity<CreateGroupData>): CreateGroupData {
-	return Object.assign(create(typeModels.CreateGroupData, CreateGroupDataTypeRef), values)
-}
-
-export type CreateGroupData = {
-	_type: TypeRef<CreateGroupData>;
-
-	_id: Id;
-	adminEncGKey: Uint8Array;
-	customerEncUserGroupInfoSessionKey: null | Uint8Array;
-	encryptedName: Uint8Array;
-	listEncSessionKey: Uint8Array;
-	mailAddress: null | string;
-	pubKey: Uint8Array;
-	symEncGKey: Uint8Array;
-	symEncPrivKey: Uint8Array;
-}
-export const CreateGroupListDataTypeRef: TypeRef<CreateGroupListData> = new TypeRef("sys", "CreateGroupListData")
-
-export function createCreateGroupListData(values: StrippedEntity<CreateGroupListData>): CreateGroupListData {
-	return Object.assign(create(typeModels.CreateGroupListData, CreateGroupListDataTypeRef), values)
-}
-
-export type CreateGroupListData = {
-	_type: TypeRef<CreateGroupListData>;
-
-	_id: Id;
-	adminEncGroupInfoListKey: Uint8Array;
-	customerEncGroupInfoListKey: Uint8Array;
-
-	createGroupData:  null | CreateGroupData;
 }
 export const CreateSessionDataTypeRef: TypeRef<CreateSessionData> = new TypeRef("sys", "CreateSessionData")
 
@@ -826,34 +801,6 @@ export type CustomerAccountTerminationRequest = {
 
 	customer: Id;
 }
-export const CustomerDataTypeRef: TypeRef<CustomerData> = new TypeRef("sys", "CustomerData")
-
-export function createCustomerData(values: StrippedEntity<CustomerData>): CustomerData {
-	return Object.assign(create(typeModels.CustomerData, CustomerDataTypeRef), values)
-}
-
-export type CustomerData = {
-	_type: TypeRef<CustomerData>;
-
-	_format: NumberString;
-	accountingInfoBucketEncAccountingInfoSessionKey: Uint8Array;
-	adminEncAccountingInfoSessionKey: Uint8Array;
-	authToken: string;
-	company: string;
-	date: null | Date;
-	domain: string;
-	salt: Uint8Array;
-	symEncAccountGroupKey: Uint8Array;
-	systemCustomerPubEncAccountingInfoBucketKey: Uint8Array;
-	systemCustomerPubKeyVersion: NumberString;
-	userEncClientKey: Uint8Array;
-	verifier: Uint8Array;
-
-	adminGroupList: CreateGroupListData;
-	customerGroupList: CreateGroupListData;
-	teamGroupList: CreateGroupListData;
-	userGroupList: CreateGroupListData;
-}
 export const CustomerInfoTypeRef: TypeRef<CustomerInfo> = new TypeRef("sys", "CustomerInfo")
 
 export function createCustomerInfo(values: StrippedEntity<CustomerInfo>): CustomerInfo {
@@ -918,20 +865,6 @@ export type CustomerProperties = {
 	notificationMailTemplates: NotificationMailTemplate[];
 	smallLogo:  null | File;
 }
-export const CustomerReturnTypeRef: TypeRef<CustomerReturn> = new TypeRef("sys", "CustomerReturn")
-
-export function createCustomerReturn(values: StrippedEntity<CustomerReturn>): CustomerReturn {
-	return Object.assign(create(typeModels.CustomerReturn, CustomerReturnTypeRef), values)
-}
-
-export type CustomerReturn = {
-	_type: TypeRef<CustomerReturn>;
-
-	_format: NumberString;
-
-	adminUser: Id;
-	adminUserGroup: Id;
-}
 export const CustomerServerPropertiesTypeRef: TypeRef<CustomerServerProperties> = new TypeRef("sys", "CustomerServerProperties")
 
 export function createCustomerServerProperties(values: StrippedEntity<CustomerServerProperties>): CustomerServerProperties {
@@ -946,6 +879,7 @@ export type CustomerServerProperties = {
 	_id: Id;
 	_ownerEncSessionKey: null | Uint8Array;
 	_ownerGroup: null | Id;
+	_ownerKeyVersion: null | NumberString;
 	_permissions: Id;
 	requirePasswordUpdateAfterReset: boolean;
 	saveEncryptedIpAddressInSession: boolean;
@@ -1210,6 +1144,7 @@ export type GiftCard = {
 	_id: IdTuple;
 	_ownerEncSessionKey: null | Uint8Array;
 	_ownerGroup: null | Id;
+	_ownerKeyVersion: null | NumberString;
 	_permissions: Id;
 	message: string;
 	migrated: boolean;
@@ -1231,6 +1166,7 @@ export type GiftCardCreateData = {
 	keyHash: Uint8Array;
 	message: string;
 	ownerEncSessionKey: Uint8Array;
+	ownerKeyVersion: NumberString;
 	value: NumberString;
 }
 export const GiftCardCreateReturnTypeRef: TypeRef<GiftCardCreateReturn> = new TypeRef("sys", "GiftCardCreateReturn")
@@ -1344,17 +1280,21 @@ export type Group = {
 	_ownerGroup: null | Id;
 	_permissions: Id;
 	adminGroupEncGKey: null | Uint8Array;
+	adminGroupKeyVersion: null | NumberString;
 	enabled: boolean;
 	external: boolean;
+	groupKeyVersion: NumberString;
+	pubAdminGroupEncGKey: null | Uint8Array;
 	type: NumberString;
 
 	admin:  null | Id;
 	administratedGroups:  null | AdministratedGroupsRef;
 	archives: ArchiveType[];
+	currentKeys:  null | KeyPair;
 	customer:  null | Id;
+	formerGroupKeys:  null | GroupKeysRef;
 	groupInfo: IdTuple;
 	invitations: Id;
-	keys: KeyPair[];
 	members: Id;
 	storageCounter:  null | Id;
 	user:  null | Id;
@@ -1374,6 +1314,7 @@ export type GroupInfo = {
 	_listEncSessionKey: null | Uint8Array;
 	_ownerEncSessionKey: null | Uint8Array;
 	_ownerGroup: null | Id;
+	_ownerKeyVersion: null | NumberString;
 	_permissions: Id;
 	created: Date;
 	deleted: null | Date;
@@ -1384,6 +1325,40 @@ export type GroupInfo = {
 	group: Id;
 	localAdmin:  null | Id;
 	mailAddressAliases: MailAddressAlias[];
+}
+export const GroupKeyTypeRef: TypeRef<GroupKey> = new TypeRef("sys", "GroupKey")
+
+export function createGroupKey(values: StrippedEntity<GroupKey>): GroupKey {
+	return Object.assign(create(typeModels.GroupKey, GroupKeyTypeRef), values)
+}
+
+export type GroupKey = {
+	_type: TypeRef<GroupKey>;
+
+	_format: NumberString;
+	_id: IdTuple;
+	_ownerGroup: null | Id;
+	_permissions: Id;
+	adminGroupEncGKey: null | Uint8Array;
+	adminGroupKeyVersion: NumberString;
+	ownerEncGKey: Uint8Array;
+	ownerKeyVersion: NumberString;
+	pubAdminGroupEncGKey: null | Uint8Array;
+
+	keyPair:  null | KeyPair;
+}
+export const GroupKeysRefTypeRef: TypeRef<GroupKeysRef> = new TypeRef("sys", "GroupKeysRef")
+
+export function createGroupKeysRef(values: StrippedEntity<GroupKeysRef>): GroupKeysRef {
+	return Object.assign(create(typeModels.GroupKeysRef, GroupKeysRefTypeRef), values)
+}
+
+export type GroupKeysRef = {
+	_type: TypeRef<GroupKeysRef>;
+
+	_id: Id;
+
+	list: Id;
 }
 export const GroupMemberTypeRef: TypeRef<GroupMember> = new TypeRef("sys", "GroupMember")
 
@@ -1416,8 +1391,10 @@ export type GroupMembership = {
 	_id: Id;
 	admin: boolean;
 	capability: null | NumberString;
+	groupKeyVersion: NumberString;
 	groupType: null | NumberString;
 	symEncGKey: Uint8Array;
+	symKeyVersion: NumberString;
 
 	group: Id;
 	groupInfo: IdTuple;
@@ -1455,6 +1432,7 @@ export type InstanceSessionKey = {
 	instanceId: Id;
 	instanceList: Id;
 	symEncSessionKey: Uint8Array;
+	symKeyVersion: NumberString;
 
 	typeInfo: TypeInfo;
 }
@@ -1472,6 +1450,7 @@ export type Invoice = {
 	_id: Id;
 	_ownerEncSessionKey: null | Uint8Array;
 	_ownerGroup: null | Id;
+	_ownerKeyVersion: null | NumberString;
 	_permissions: Id;
 	address: string;
 	adminUser: null | string;
@@ -1608,7 +1587,6 @@ export type KeyPair = {
 	symEncPrivEccKey: null | Uint8Array;
 	symEncPrivKyberKey: null | Uint8Array;
 	symEncPrivRsaKey: null | Uint8Array;
-	version: NumberString;
 }
 export const LocationServiceGetReturnTypeRef: TypeRef<LocationServiceGetReturn> = new TypeRef("sys", "LocationServiceGetReturn")
 
@@ -1746,7 +1724,9 @@ export type MembershipAddData = {
 	_type: TypeRef<MembershipAddData>;
 
 	_format: NumberString;
+	groupKeyVersion: NumberString;
 	symEncGKey: Uint8Array;
+	symKeyVersion: NumberString;
 
 	group: Id;
 	user: Id;
@@ -1779,6 +1759,7 @@ export type MissedNotification = {
 	_id: Id;
 	_ownerEncSessionKey: null | Uint8Array;
 	_ownerGroup: null | Id;
+	_ownerKeyVersion: null | NumberString;
 	_permissions: Id;
 	changeTime: Date;
 	confirmationId: Id;
@@ -1869,6 +1850,7 @@ export type OrderProcessingAgreement = {
 	_id: IdTuple;
 	_ownerEncSessionKey: null | Uint8Array;
 	_ownerGroup: null | Id;
+	_ownerKeyVersion: null | NumberString;
 	_permissions: Id;
 	customerAddress: string;
 	signatureDate: Date;
@@ -2021,12 +2003,14 @@ export type Permission = {
 	_id: IdTuple;
 	_ownerEncSessionKey: null | Uint8Array;
 	_ownerGroup: null | Id;
+	_ownerKeyVersion: null | NumberString;
 	_permissions: Id;
 	bucketEncSessionKey: null | Uint8Array;
 	listElementApplication: null | string;
 	listElementTypeId: null | NumberString;
 	ops: null | string;
 	symEncSessionKey: null | Uint8Array;
+	symKeyVersion: null | NumberString;
 	type: NumberString;
 
 	bucket:  null | Bucket;
@@ -2218,6 +2202,7 @@ export type PublicKeyGetIn = {
 
 	_format: NumberString;
 	mailAddress: string;
+	version: null | NumberString;
 }
 export const PublicKeyGetOutTypeRef: TypeRef<PublicKeyGetOut> = new TypeRef("sys", "PublicKeyGetOut")
 
@@ -2265,6 +2250,7 @@ export type PushIdentifier = {
 	_owner: Id;
 	_ownerEncSessionKey: null | Uint8Array;
 	_ownerGroup: null | Id;
+	_ownerKeyVersion: null | NumberString;
 	_permissions: Id;
 	disabled: boolean;
 	displayName: string;
@@ -2301,6 +2287,7 @@ export type ReceivedGroupInvitation = {
 	_id: IdTuple;
 	_ownerEncSessionKey: null | Uint8Array;
 	_ownerGroup: null | Id;
+	_ownerKeyVersion: null | NumberString;
 	_permissions: Id;
 	capability: NumberString;
 	groupType: null | NumberString;
@@ -2308,6 +2295,7 @@ export type ReceivedGroupInvitation = {
 	inviterMailAddress: string;
 	inviterName: string;
 	sharedGroupKey: Uint8Array;
+	sharedGroupKeyVersion: NumberString;
 	sharedGroupName: string;
 
 	sentInvitation: IdTuple;
@@ -2328,6 +2316,7 @@ export type RecoverCode = {
 	_permissions: Id;
 	recoverCodeEncUserGroupKey: Uint8Array;
 	userEncRecoverCode: Uint8Array;
+	userKeyVersion: NumberString;
 	verifier: Uint8Array;
 }
 export const ReferralCodeGetInTypeRef: TypeRef<ReferralCodeGetIn> = new TypeRef("sys", "ReferralCodeGetIn")
@@ -2732,6 +2721,7 @@ export type Session = {
 	_id: IdTuple;
 	_ownerEncSessionKey: null | Uint8Array;
 	_ownerGroup: null | Id;
+	_ownerKeyVersion: null | NumberString;
 	_permissions: Id;
 	accessKey: null | Uint8Array;
 	clientIdentifier: string;
@@ -2826,8 +2816,9 @@ export type SystemKeysReturn = {
 
 	_format: NumberString;
 	freeGroupKey: Uint8Array;
+	freeGroupKeyVersion: NumberString;
 	premiumGroupKey: Uint8Array;
-	starterGroupKey: Uint8Array;
+	premiumGroupKeyVersion: NumberString;
 	systemAdminPubEccKey: null | Uint8Array;
 	systemAdminPubKeyVersion: NumberString;
 	systemAdminPubKyberKey: null | Uint8Array;
@@ -2948,8 +2939,8 @@ export type UpdatePermissionKeyData = {
 	_type: TypeRef<UpdatePermissionKeyData>;
 
 	_format: NumberString;
-	ownerEncSessionKey: null | Uint8Array;
-	symEncSessionKey: null | Uint8Array;
+	ownerEncSessionKey: Uint8Array;
+	ownerKeyVersion: NumberString;
 
 	bucketPermission: IdTuple;
 	permission: IdTuple;
@@ -3027,7 +3018,6 @@ export type User = {
 	kdfVersion: NumberString;
 	requirePasswordUpdate: boolean;
 	salt: null | Uint8Array;
-	userEncClientKey: Uint8Array;
 	verifier: Uint8Array;
 
 	alarmInfoList:  null | UserAlarmInfoListType;
@@ -3057,6 +3047,7 @@ export type UserAlarmInfo = {
 	_id: IdTuple;
 	_ownerEncSessionKey: null | Uint8Array;
 	_ownerGroup: null | Id;
+	_ownerKeyVersion: null | NumberString;
 	_permissions: Id;
 
 	alarmInfo: AlarmInfo;
@@ -3101,25 +3092,6 @@ export type UserAuthentication = {
 	recoverCode:  null | Id;
 	secondFactors: Id;
 	sessions: Id;
-}
-export const UserDataTypeRef: TypeRef<UserData> = new TypeRef("sys", "UserData")
-
-export function createUserData(values: StrippedEntity<UserData>): UserData {
-	return Object.assign(create(typeModels.UserData, UserDataTypeRef), values)
-}
-
-export type UserData = {
-	_type: TypeRef<UserData>;
-
-	_format: NumberString;
-	date: null | Date;
-	mobilePhoneNumber: string;
-	salt: Uint8Array;
-	userEncClientKey: Uint8Array;
-	userEncCustomerGroupKey: Uint8Array;
-	verifier: Uint8Array;
-
-	userGroupData:  null | CreateGroupData;
 }
 export const UserDataDeleteTypeRef: TypeRef<UserDataDelete> = new TypeRef("sys", "UserDataDelete")
 
@@ -3168,20 +3140,6 @@ export type UserGroupRoot = {
 	_permissions: Id;
 
 	invitations: Id;
-}
-export const UserReturnTypeRef: TypeRef<UserReturn> = new TypeRef("sys", "UserReturn")
-
-export function createUserReturn(values: StrippedEntity<UserReturn>): UserReturn {
-	return Object.assign(create(typeModels.UserReturn, UserReturnTypeRef), values)
-}
-
-export type UserReturn = {
-	_type: TypeRef<UserReturn>;
-
-	_format: NumberString;
-
-	user: Id;
-	userGroup: Id;
 }
 export const VariableExternalAuthInfoTypeRef: TypeRef<VariableExternalAuthInfo> = new TypeRef("sys", "VariableExternalAuthInfo")
 
@@ -3367,6 +3325,7 @@ export type WhitelabelChild = {
 	_id: IdTuple;
 	_ownerEncSessionKey: null | Uint8Array;
 	_ownerGroup: null | Id;
+	_ownerKeyVersion: null | NumberString;
 	_permissions: Id;
 	comment: string;
 	createdDate: Date;

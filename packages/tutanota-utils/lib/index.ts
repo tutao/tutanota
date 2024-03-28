@@ -85,6 +85,8 @@ export {
 	decodeQuotedPrintable,
 	decodeBase64,
 	stringToBase64,
+	byteArraysToBytes,
+	bytesToByteArrays,
 } from "./Encoding.js"
 export type { Base64, Base64Ext, Base64Url, Hex } from "./Encoding.js"
 export { LazyLoaded } from "./LazyLoaded.js"
@@ -150,8 +152,9 @@ export {
 	Require,
 	memoizedWithHiddenArgument,
 	BoundedExecutor,
+	freshVersioned,
 } from "./Utils.js"
-export type { Callback, DeferredObject, lazy, lazyAsync, Thunk, DeferredObjectWithHandler, MaybeLazy, TimeoutSetter, ErrorInfo } from "./Utils.js"
+export type { Callback, DeferredObject, lazy, lazyAsync, Thunk, DeferredObjectWithHandler, MaybeLazy, TimeoutSetter, ErrorInfo, Versioned } from "./Utils.js"
 
 export {
 	callWebAssemblyFunctionWithArguments,

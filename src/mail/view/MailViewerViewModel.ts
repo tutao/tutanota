@@ -74,9 +74,9 @@ import {
 	assertSystemFolderOfType,
 	getDisplayedSender,
 	isNoReplyTeamAddress,
+	isSystemNotification,
 	isTutanotaTeamMail,
 	MailAddressAndName,
-	isSystemNotification,
 } from "../../api/common/mail/CommonMailUtils.js"
 import { ParsedIcalFileContent } from "../../calendar/view/CalendarInvites.js"
 import { MailFacade } from "../../api/worker/facades/lazy/MailFacade.js"

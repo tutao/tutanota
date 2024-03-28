@@ -20,7 +20,7 @@ import sysModelInfo from "../../../../../src/api/entities/sys/ModelInfo.js"
 import { AuthDataProvider } from "../../../../../src/api/worker/facades/UserFacade.js"
 import { LoginIncompleteError } from "../../../../../src/api/common/error/LoginIncompleteError.js"
 import { BlobServerAccessInfoTypeRef, BlobServerUrlTypeRef } from "../../../../../src/api/entities/storage/TypeRefs.js"
-import { Mapper, ofClass } from "@tutao/tutanota-utils"
+import { freshVersioned, Mapper, ofClass } from "@tutao/tutanota-utils"
 import { ProgrammingError } from "../../../../../src/api/common/error/ProgrammingError.js"
 import { BlobAccessTokenFacade } from "../../../../../src/api/worker/facades/BlobAccessTokenFacade.js"
 import {
@@ -536,7 +536,7 @@ o.spec("EntityRestClient", function () {
 				{ times: 1 },
 			).thenResolve(JSON.stringify({ generatedId: resultId }))
 
-			const ownerKey = [1, 2, 3]
+			const ownerKey = freshVersioned([1, 2, 3])
 			const sessionKey = [3, 2, 1]
 			when(cryptoFacadeMock.setNewOwnerEncSessionKey(typeModel, anything(), ownerKey)).thenReturn(sessionKey)
 
@@ -823,9 +823,9 @@ o.spec("EntityRestClient", function () {
 				}),
 			)
 
-			const ownerKey = [1, 2, 3]
+			const ownerKey = freshVersioned([1, 2, 3])
 			const sessionKey = [3, 2, 1]
-			when(cryptoFacadeMock.resolveSessionKeyWithOwnerKey(anything(), ownerKey)).thenReturn(sessionKey)
+			when(cryptoFacadeMock.resolveSessionKeyWithOwnerKey(anything(), ownerKey.object)).thenReturn(sessionKey)
 
 			await entityRestClient.update(newCustomer, ownerKey)
 

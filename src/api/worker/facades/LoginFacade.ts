@@ -63,7 +63,7 @@ import {
 	Aes256Key,
 	aes256RandomKey,
 	aesDecrypt,
-	authenticatedAesDecrypt,
+	AesKey,
 	base64ToKey,
 	createAuthVerifier,
 	createAuthVerifierAsBase64Url,
@@ -72,7 +72,6 @@ import {
 	generateRandomSalt,
 	KeyLength,
 	keyToUint8Array,
-	random,
 	sha256Hash,
 	TotpSecret,
 	TotpVerifier,
@@ -316,7 +315,7 @@ export class LoginFacade {
 		}
 		const newUserPassphraseKey = await this.deriveUserPassphraseKey(newPassphraseKeyData)
 
-		const pwEncUserGroupKey = encryptKey(newUserPassphraseKey, this.userFacade.getUserGroupKey())
+		const pwEncUserGroupKey = encryptKey(newUserPassphraseKey, this.userFacade.getUserGroupKey().object)
 		const newAuthVerifier = createAuthVerifier(newUserPassphraseKey)
 
 		const changeKdfPostIn = createChangeKdfPostIn({
@@ -465,7 +464,7 @@ export class LoginFacade {
 	/**
 	 * Derive a key given a KDF type, passphrase, and salt
 	 */
-	async deriveUserPassphraseKey({ kdfType, passphrase, salt }: PassphraseKeyData): Promise<Aes128Key | Aes256Key> {
+	async deriveUserPassphraseKey({ kdfType, passphrase, salt }: PassphraseKeyData): Promise<AesKey> {
 		switch (kdfType) {
 			case KdfType.Bcrypt: {
 				return generateKeyFromPassphraseBcrypt(passphrase, salt, KeyLength.b128)
@@ -641,7 +640,7 @@ export class LoginFacade {
 		const sessionData = await this.loadSessionData(credentials.accessToken)
 		const encryptedPassword = base64ToUint8Array(assertNotNull(credentials.encryptedPassword, "encryptedPassword was null!"))
 		const passphrase = utf8Uint8ArrayToString(aesDecrypt(assertNotNull(sessionData.accessKey, "no access key on session data!"), encryptedPassword))
-		let userPassphraseKey: Aes128Key | Aes256Key
+		let userPassphraseKey: AesKey
 		let kdfType: KdfType | null
 
 		const isExternalUser = externalUserKeyDeriver != null
@@ -795,7 +794,7 @@ export class LoginFacade {
 		}
 	}
 
-	private async loadUserPassphraseKey(mailAddress: string, passphrase: string): Promise<{ kdfType: KdfType; userPassphraseKey: Aes128Key | Aes256Key }> {
+	private async loadUserPassphraseKey(mailAddress: string, passphrase: string): Promise<{ kdfType: KdfType; userPassphraseKey: AesKey }> {
 		mailAddress = mailAddress.toLowerCase().trim()
 		const saltRequest = createSaltData({ mailAddress })
 		const saltReturn = await this.serviceExecutor.get(SaltService, saltRequest)
@@ -879,14 +878,7 @@ export class LoginFacade {
 	 */
 	private async loadEntropy(): Promise<void> {
 		const tutanotaProperties = await this.entityClient.loadRoot(TutanotaPropertiesTypeRef, this.userFacade.getUserGroupId())
-		if (tutanotaProperties.groupEncEntropy) {
-			try {
-				const entropy = authenticatedAesDecrypt(this.userFacade.getUserGroupKey(), tutanotaProperties.groupEncEntropy)
-				random.addStaticEntropy(entropy)
-			} catch (error) {
-				console.log("could not decrypt entropy", error)
-			}
-		}
+		return this.entropyFacade.loadEntropy(tutanotaProperties)
 	}
 
 	/**
@@ -899,7 +891,7 @@ export class LoginFacade {
 		const newPasswordKeyData = { ...newPasswordKeyDataTemplate, salt: generateRandomSalt() }
 
 		const newUserPassphraseKey = await this.deriveUserPassphraseKey(newPasswordKeyData)
-		const pwEncUserGroupKey = encryptKey(newUserPassphraseKey, this.userFacade.getUserGroupKey())
+		const pwEncUserGroupKey = encryptKey(newUserPassphraseKey, this.userFacade.getUserGroupKey().object)
 		const authVerifier = createAuthVerifier(newUserPassphraseKey)
 		const service = createChangePasswordData({
 			code: null,
@@ -1083,11 +1075,4 @@ export class LoginFacade {
 			throw new Error("credentials went missing")
 		}
 	}
-}
-
-export type RecoverData = {
-	userEncRecoverCode: Uint8Array
-	recoverCodeEncUserGroupKey: Uint8Array
-	hexCode: Hex
-	recoveryCodeVerifier: Uint8Array
 }

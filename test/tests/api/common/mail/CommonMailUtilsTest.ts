@@ -1,5 +1,5 @@
 import o from "@tutao/otest"
-import { createMail, createMailAddress, Mail, MailTypeRef } from "../../../../../src/api/entities/tutanota/TypeRefs.js"
+import { createMail, createMailAddress, Mail, MailAddressTypeRef, MailTypeRef } from "../../../../../src/api/entities/tutanota/TypeRefs.js"
 import { EncryptionAuthStatus, MailState } from "../../../../../src/api/common/TutanotaConstants.js"
 import { getDisplayedSender, isSystemNotification, isTutanotaTeamAddress, isTutanotaTeamMail } from "../../../../../src/api/common/mail/CommonMailUtils.js"
 import { createTestEntity } from "../../../TestUtils.js"
@@ -9,15 +9,9 @@ import { ProgrammingError } from "../../../../../src/api/common/error/Programmin
 
 o.spec("MailUtilsTest", function () {
 	function createSystemMail(overrides: Partial<Mail> = {}): Mail {
-		return createMail({
+		return createTestEntity(MailTypeRef, {
 			...{
-				sender: createMailAddress({
-					address: "system@tutanota.de",
-					name: "System",
-					_id: "",
-					_ownerGroup: "",
-					contact: null,
-				}),
+				sender: createTestEntity(MailAddressTypeRef, { address: "system@tutanota.de", name: "System" }),
 				replyTos: [],
 				state: MailState.RECEIVED,
 				authStatus: null,
