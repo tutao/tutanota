@@ -325,7 +325,7 @@ export class CryptoFacade {
 
 		// for symmetrically encrypted instances _ownerEncSessionKey is sent from the server.
 		// in this case it is not yet and we need to set it because the rest of the app expects it.
-		const groupKey = this.userFacade.getGroupKey(instance._ownerGroup) // TODO handle versions
+		const groupKey = this.userFacade.getGroupKey(instance._ownerGroup) // get current key for encrypting
 		this.setOwnerEncSessionKeyUnmapped(
 			instance as UnmappedOwnerGroupInstance,
 			encryptKeyWithVersionedKey(groupKey, resolvedSessionKeys.resolvedSessionKeyForInstance),
@@ -498,7 +498,7 @@ export class CryptoFacade {
 					typeModel,
 					encryptionAuthStatus,
 					pqMessageSenderKey,
-					Number(bucketKey.senderKeyVersion ?? "0"),
+					bucketKey.protocolVersion === CryptoProtocolVersion.TUTA_CRYPT ? Number(bucketKey.senderKeyVersion ?? "0") : null,
 					instance,
 					resolvedSessionKeyForInstance,
 					instanceSessionKeyWithOwnerEncSessionKey,
@@ -582,14 +582,17 @@ export class CryptoFacade {
 		let bucketKey
 
 		if (bucketPermission.ownerEncBucketKey != null) {
-			const ownerGroupKey = await this.keyLoaderFacade.loadSymGroupKey(neverNull(bucketPermission._ownerGroup), Number(bucketPermission.ownerKeyVersion))
+			const ownerGroupKey = await this.keyLoaderFacade.loadSymGroupKey(
+				neverNull(bucketPermission._ownerGroup),
+				Number(bucketPermission.ownerKeyVersion ?? 0),
+			)
 			bucketKey = decryptKey(ownerGroupKey, bucketPermission.ownerEncBucketKey)
 		} else if (bucketPermission.symEncBucketKey) {
 			// legacy case: for very old email sent to external user we used symEncBucketKey on the bucket permission.
 			// The bucket key is encrypted with the user group key of the external user.
 			// We maintain this code as we still have some old BucketKeys in some external mailboxes.
 			// Can be removed if we finished mail details migration or when we do cleanup of external mailboxes.
-			const userGroupKey = await this.keyLoaderFacade.loadSymGroupKey(this.userFacade.getUserGroupId(), Number(bucketPermission.symKeyVersion))
+			const userGroupKey = await this.keyLoaderFacade.loadSymUserGroupKey(Number(bucketPermission.symKeyVersion ?? 0))
 			bucketKey = decryptKey(userGroupKey, bucketPermission.symEncBucketKey)
 		} else {
 			throw new SessionKeyNotFoundError(
@@ -651,15 +654,14 @@ export class CryptoFacade {
 		const { decryptedBucketKey } = await this.decryptBucketKeyWithKeyPairOfGroupAndPrepareAuthentication(
 			bucketPermission.group,
 			pubEncBucketKey,
-			Number(assertNotNull(bucketPermission.pubKeyVersion)),
+			Number(bucketPermission.pubKeyVersion ?? 0),
 		)
 
 		const sk = decryptKey(decryptedBucketKey, bucketEncSessionKey)
 
 		if (bucketPermission._ownerGroup) {
 			// is not defined for some old AccountingInfos
-			let bucketPermissionOwnerGroupKey = this.userFacade.getGroupKey(neverNull(bucketPermission._ownerGroup)) // TODO versions
-			this.userFacade.getGroupKey(bucketPermission.group) // TODO what?
+			let bucketPermissionOwnerGroupKey = this.userFacade.getGroupKey(neverNull(bucketPermission._ownerGroup)) // get current key for encrypting
 			await this.updateWithSymPermissionKey(typeModel, instance, pubOrExtPermission, bucketPermission, bucketPermissionOwnerGroupKey, sk).catch(
 				ofClass(NotFoundError, () => {
 					console.log("w> could not find instance to update permission")
@@ -679,9 +681,9 @@ export class CryptoFacade {
 	 */
 	async resolveServiceSessionKey(typeModel: TypeModel, instance: Record<string, any>): Promise<Aes128Key | Aes256Key | null> {
 		if (instance._ownerPublicEncSessionKey) {
-			const keypair = await this.keyLoaderFacade.loadKeypair(instance._ownerGroup, Number(assertNotNull(instance._ownerKeyVersion)))
+			const keypair = await this.keyLoaderFacade.loadKeypair(instance._ownerGroup, Number(instance._ownerKeyVersion ?? 0)) // TODO correct version? should we verify that this version is now written correctly
 			return this.decryptPubEncSymKey(
-				base64ToUint8Array(instance._ownerPublicEncSessionKey),
+				base64ToUint8Array(instance._ownerPublicEncSessionKey), // TODO is this field versioned? what about sender AND recipient version?
 				assertEnumValue(CryptoProtocolVersion, instance._publicCryptoProtocolVersion),
 				keypair,
 			)
