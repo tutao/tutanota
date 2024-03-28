@@ -104,9 +104,10 @@ export class CalendarEventBubble implements Component<CalendarEventBubbleAttrs> 
 			const linesInBubble = Math.floor(height / lineHeight)
 			// leave space for the second text line. it will be restricted to a maximum of one line in height
 			const topSectionMaxLines = secondLineText != null ? linesInBubble - 1 : linesInBubble
-			const topSectionClass = topSectionMaxLines === 1 ? ".text-ellipsis" : ".text-overflow"
+			const topSectionClass = topSectionMaxLines === 1 ? ".text-ellipsis" : ".text-ellipsis-multi-line"
 			return [
-				this.renderTextSection(topSectionClass, text, topSectionMaxLines * lineHeight),
+				// The wrapper around `text` is needed to stop `-webkit-box` from changing the height
+				this.renderTextSection("", m(topSectionClass, text), topSectionMaxLines * lineHeight),
 				secondLineText ? this.renderTextSection(".text-ellipsis", secondLineText, lineHeight) : null,
 			]
 		} else {
