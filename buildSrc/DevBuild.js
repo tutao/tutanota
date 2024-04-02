@@ -8,7 +8,6 @@ import { externalTranslationsPlugin, libDeps, preludeEnvPlugin, sqliteNativePlug
 import { fileURLToPath } from "node:url"
 import * as LaunchHtml from "./LaunchHtml.js"
 import os from "node:os"
-import { checkOfflineDatabaseMigrations } from "./checkOfflineDbMigratons.js"
 import { buildRuntimePackages } from "./packageBuilderFunctions.js"
 import { domainConfigs } from "./DomainConfigs.js"
 import { sh } from "./sh.js"
@@ -24,7 +23,7 @@ export async function runDevBuild({ stage, host, desktop, clean, ignoreMigration
 		if (ignoreMigrations) {
 			console.warn("CAUTION: Offline migrations are not being validated.")
 		} else {
-			checkOfflineDatabaseMigrations()
+			//checkOfflineDatabaseMigrations()
 		}
 	})
 

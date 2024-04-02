@@ -16,6 +16,7 @@ export function showEditCalendarDialog(
 	warningMessage?: () => Children,
 ) {
 	const nameStream = stream(name)
+	const icalSubscriptionUrlStream = iCalSubscriptionUrl ? stream(iCalSubscriptionUrl) : null
 	let colorPickerDom: HTMLInputElement | null
 	const colorStream = stream("#" + color)
 	Dialog.showActionDialog({
@@ -40,7 +41,7 @@ export function showEditCalendarDialog(
 							colorStream(target.value)
 						},
 					}),
-					iCalSubscriptionUrl != null ? renderICalSubscriptionUrlField(iCalSubscriptionUrl) : null,
+					icalSubscriptionUrlStream != null ? renderICalSubscriptionUrlField(icalSubscriptionUrlStream) : null,
 				]),
 		},
 		okActionTextId: okTextId,
@@ -53,8 +54,7 @@ export function showEditCalendarDialog(
 	})
 }
 
-function renderICalSubscriptionUrlField(iCalSubscriptionUrl: string) {
-	const iCalSubscriptionUrlStream = stream(iCalSubscriptionUrl)
+function renderICalSubscriptionUrlField(iCalSubscriptionUrlStream: stream<string>) {
 	return m(TextField, {
 		value: iCalSubscriptionUrlStream(),
 		oninput: iCalSubscriptionUrlStream,

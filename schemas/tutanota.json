@@ -95,6 +95,76 @@
 					"info": "AddValue InternalRecipientKeyData/protocolVersion/1352."
 				}
 			]
+		},
+		{
+			"version": 67,
+			"changes": [
+				{
+					"name": "AddValue",
+					"sourceType": "Contact",
+					"info": "AddValue Contact/middleName/1380."
+				},
+				{
+					"name": "AddValue",
+					"sourceType": "Contact",
+					"info": "AddValue Contact/nameSuffix/1381."
+				},
+				{
+					"name": "AddValue",
+					"sourceType": "Contact",
+					"info": "AddValue Contact/phoneticFirst/1382."
+				},
+				{
+					"name": "AddValue",
+					"sourceType": "Contact",
+					"info": "AddValue Contact/phoneticMiddle/1383."
+				},
+				{
+					"name": "AddValue",
+					"sourceType": "Contact",
+					"info": "AddValue Contact/phoneticLast/1384."
+				},
+				{
+					"name": "AddValue",
+					"sourceType": "Contact",
+					"info": "AddValue Contact/department/1385."
+				},
+				{
+					"name": "AddAssociation",
+					"sourceType": "Contact",
+					"info": "AddAssociation Contact/customDate/AGGREGATION/1386."
+				},
+				{
+					"name": "AddAssociation",
+					"sourceType": "Contact",
+					"info": "AddAssociation Contact/websites/AGGREGATION/1387."
+				},
+				{
+					"name": "AddAssociation",
+					"sourceType": "Contact",
+					"info": "AddAssociation Contact/relationships/AGGREGATION/1388."
+				},
+				{
+					"name": "AddAssociation",
+					"sourceType": "Contact",
+					"info": "AddAssociation Contact/messengerHandles/AGGREGATION/1389."
+				},
+				{
+					"name": "AddAssociation",
+					"sourceType": "Contact",
+					"info": "AddAssociation Contact/pronouns/AGGREGATION/1390."
+				}
+			]
+		},
+		{
+			"version": 68,
+			"changes": [
+				{
+					"name": "AddValue",
+					"sourceType": "CalendarGroupRoot",
+					"info": "AddValue CalendarGroupRoot/iCalSubscriptionUrl/1391."
+				}
+			]
 		}
 	]
 }

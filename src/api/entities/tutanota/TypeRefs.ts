@@ -183,6 +183,7 @@ export type CalendarGroupRoot = {
 	_ownerEncSessionKey: null | Uint8Array;
 	_ownerGroup: null | Id;
 	_permissions: Id;
+	iCalSubscriptionUrl: null | string;
 
 	index:  null | CalendarEventIndexRef;
 	longEvents: Id;
@@ -227,20 +228,31 @@ export type Contact = {
 	birthdayIso: null | string;
 	comment: string;
 	company: string;
+	department: null | string;
 	firstName: string;
 	lastName: string;
+	middleName: null | string;
+	nameSuffix: null | string;
 	nickname: null | string;
 	oldBirthdayDate: null | Date;
+	phoneticFirst: null | string;
+	phoneticLast: null | string;
+	phoneticMiddle: null | string;
 	presharedPassword: null | string;
 	role: string;
 	title: null | string;
 
 	addresses: ContactAddress[];
+	customDate: ContactCustomDate[];
 	mailAddresses: ContactMailAddress[];
+	messengerHandles: ContactMessengerHandle[];
 	oldBirthdayAggregate:  null | Birthday;
 	phoneNumbers: ContactPhoneNumber[];
 	photo:  null | IdTuple;
+	pronouns: ContactPronouns[];
+	relationships: ContactRelationship[];
 	socialIds: ContactSocialId[];
+	websites: ContactWebsite[];
 }
 export const ContactAddressTypeRef: TypeRef<ContactAddress> = new TypeRef("tutanota", "ContactAddress")
 
@@ -254,6 +266,20 @@ export type ContactAddress = {
 	_id: Id;
 	address: string;
 	customTypeName: string;
+	type: NumberString;
+}
+export const ContactCustomDateTypeRef: TypeRef<ContactCustomDate> = new TypeRef("tutanota", "ContactCustomDate")
+
+export function createContactCustomDate(values: StrippedEntity<ContactCustomDate>): ContactCustomDate {
+	return Object.assign(create(typeModels.ContactCustomDate, ContactCustomDateTypeRef), values)
+}
+
+export type ContactCustomDate = {
+	_type: TypeRef<ContactCustomDate>;
+
+	_id: Id;
+	customTypeName: string;
+	dateIso: string;
 	type: NumberString;
 }
 export const ContactListTypeRef: TypeRef<ContactList> = new TypeRef("tutanota", "ContactList")
@@ -324,6 +350,20 @@ export type ContactMailAddress = {
 	customTypeName: string;
 	type: NumberString;
 }
+export const ContactMessengerHandleTypeRef: TypeRef<ContactMessengerHandle> = new TypeRef("tutanota", "ContactMessengerHandle")
+
+export function createContactMessengerHandle(values: StrippedEntity<ContactMessengerHandle>): ContactMessengerHandle {
+	return Object.assign(create(typeModels.ContactMessengerHandle, ContactMessengerHandleTypeRef), values)
+}
+
+export type ContactMessengerHandle = {
+	_type: TypeRef<ContactMessengerHandle>;
+
+	_id: Id;
+	customTypeName: string;
+	handle: string;
+	type: NumberString;
+}
 export const ContactPhoneNumberTypeRef: TypeRef<ContactPhoneNumber> = new TypeRef("tutanota", "ContactPhoneNumber")
 
 export function createContactPhoneNumber(values: StrippedEntity<ContactPhoneNumber>): ContactPhoneNumber {
@@ -336,6 +376,33 @@ export type ContactPhoneNumber = {
 	_id: Id;
 	customTypeName: string;
 	number: string;
+	type: NumberString;
+}
+export const ContactPronounsTypeRef: TypeRef<ContactPronouns> = new TypeRef("tutanota", "ContactPronouns")
+
+export function createContactPronouns(values: StrippedEntity<ContactPronouns>): ContactPronouns {
+	return Object.assign(create(typeModels.ContactPronouns, ContactPronounsTypeRef), values)
+}
+
+export type ContactPronouns = {
+	_type: TypeRef<ContactPronouns>;
+
+	_id: Id;
+	language: string;
+	pronouns: string;
+}
+export const ContactRelationshipTypeRef: TypeRef<ContactRelationship> = new TypeRef("tutanota", "ContactRelationship")
+
+export function createContactRelationship(values: StrippedEntity<ContactRelationship>): ContactRelationship {
+	return Object.assign(create(typeModels.ContactRelationship, ContactRelationshipTypeRef), values)
+}
+
+export type ContactRelationship = {
+	_type: TypeRef<ContactRelationship>;
+
+	_id: Id;
+	customTypeName: string;
+	person: string;
 	type: NumberString;
 }
 export const ContactSocialIdTypeRef: TypeRef<ContactSocialId> = new TypeRef("tutanota", "ContactSocialId")
@@ -351,6 +418,20 @@ export type ContactSocialId = {
 	customTypeName: string;
 	socialId: string;
 	type: NumberString;
+}
+export const ContactWebsiteTypeRef: TypeRef<ContactWebsite> = new TypeRef("tutanota", "ContactWebsite")
+
+export function createContactWebsite(values: StrippedEntity<ContactWebsite>): ContactWebsite {
+	return Object.assign(create(typeModels.ContactWebsite, ContactWebsiteTypeRef), values)
+}
+
+export type ContactWebsite = {
+	_type: TypeRef<ContactWebsite>;
+
+	_id: Id;
+	customTypeName: string;
+	type: NumberString;
+	url: string;
 }
 export const ConversationEntryTypeRef: TypeRef<ConversationEntry> = new TypeRef("tutanota", "ConversationEntry")
 

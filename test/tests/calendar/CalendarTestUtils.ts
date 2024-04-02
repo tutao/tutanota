@@ -123,6 +123,7 @@ export const calendars: ReadonlyMap<Id, CalendarInfo> = new Map([
 		{
 			groupRoot: createTestEntity(CalendarGroupRootTypeRef, {}),
 			shared: false,
+			subscribed: false,
 			longEvents: new LazyLoaded(() => Promise.resolve([])),
 			groupInfo: createTestEntity(GroupInfoTypeRef, {}),
 			group: createTestEntity(GroupTypeRef, {
@@ -137,6 +138,7 @@ export const calendars: ReadonlyMap<Id, CalendarInfo> = new Map([
 		{
 			groupRoot: createTestEntity(CalendarGroupRootTypeRef, {}),
 			shared: true,
+			subscribed: false,
 			longEvents: new LazyLoaded(() => Promise.resolve([])),
 			groupInfo: createTestEntity(GroupInfoTypeRef, {}),
 			group: createTestEntity(GroupTypeRef, {
@@ -251,6 +253,7 @@ export function makeCalendarInfo(type: "own" | "shared", id: string): CalendarIn
 			user: type === "own" ? ownerId : "anotherUserId",
 		}),
 		shared: type === "shared",
+		subscribed: false,
 	}
 }
 

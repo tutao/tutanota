@@ -58,6 +58,7 @@ import { Time } from "../date/Time.js"
 import { DaySelectorSidebar } from "../gui/day-selector/DaySelectorSidebar.js"
 import { CalendarOperation } from "../gui/eventeditor-model/CalendarEventModel.js"
 import { DaySelectorPopup } from "../gui/day-selector/DaySelectorPopup.js"
+import { updateICalSubscriptionCalendar } from "../export/CalendarSubscriber.js"
 
 export type GroupColors = Map<Id, string>
 
@@ -122,7 +123,13 @@ export class CalendarView extends BaseTopLevelView implements TopLevelView<Calen
 								SidebarSection,
 								{
 									name: "yourCalendars_label",
-									button: this.getButton(),
+									button: m(IconButton, {
+										title: "addCalendar_action",
+										colors: ButtonColor.Nav,
+										size: ButtonSize.Compact,
+										icon: Icons.Add,
+										click: () => this.onPressedAddCalendar(),
+									}),
 								},
 								this.renderCalendars(false),
 							),
@@ -130,6 +137,13 @@ export class CalendarView extends BaseTopLevelView implements TopLevelView<Calen
 								SidebarSection,
 								{
 									name: "otherCalendars_label",
+									button: m(IconButton, {
+										title: "addCalendar_action",
+										colors: ButtonColor.Nav,
+										size: ButtonSize.Compact,
+										icon: Icons.Add,
+										click: () => this.onPressedSubscribeCalendarPerUrl(),
+									}),
 								},
 								this.renderCalendars(true),
 							),
@@ -592,7 +606,7 @@ export class CalendarView extends BaseTopLevelView implements TopLevelView<Calen
 		const calendarInfos = this.viewModel.calendarInfos
 		return calendarInfos.size > 0
 			? Array.from(calendarInfos.values())
-					.filter((calendarInfo) => calendarInfo.shared === shared)
+					.filter((calendarInfo) => calendarInfo.shared === shared || calendarInfo.subscribed)
 					.map((calendarInfo) => {
 						const { userSettingsGroupRoot } = locator.logins.getUserController()
 						const existingGroupSettings = userSettingsGroupRoot.groupSettings.find((gc) => gc.group === calendarInfo.groupInfo.group) ?? null
@@ -676,7 +690,7 @@ export class CalendarView extends BaseTopLevelView implements TopLevelView<Calen
 						? {
 								label: "import_action",
 								icon: Icons.Import,
-								click: () => showCalendarImportDialog(groupRoot),
+								click: () => updateICalSubscriptionCalendar(groupRoot),
 						  }
 						: null,
 					!isApp() && group.type === GroupType.Calendar && hasCapabilityOnGroup(user, group, ShareCapability.Read)
