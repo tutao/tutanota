@@ -88,7 +88,7 @@ export class DomRectReadOnlyPolyfilled implements PosRect {
 
 // TODO: add resize listener like in the old Dropdown
 export class Dropdown implements ModalComponent {
-	children: ReadonlyArray<DropdownChildAttrs>
+	private children: ReadonlyArray<DropdownChildAttrs>
 	private _domDropdown: HTMLElement | null = null
 	origin: PosRect | null = null
 	oninit: ModalComponent["oninit"]
@@ -131,12 +131,13 @@ export class Dropdown implements ModalComponent {
 		const _inputField = () => {
 			return this._isFilterable
 				? m(
-						"input.dropdown-bar.elevated-bg.doNotClose.pl-l.button-height.abs",
+						"input.input.dropdown-bar.elevated-bg.doNotClose.pl-l.button-height.abs",
 						{
 							placeholder: lang.get("typeToFilter_label"),
 							oncreate: (vnode) => {
 								this._domInput = downcast<HTMLInputElement>(vnode.dom)
 								this._domInput.value = this._filterString
+								this._domInput.focus()
 							},
 							oninput: () => {
 								this._filterString = neverNull(this._domInput).value
@@ -161,7 +162,7 @@ export class Dropdown implements ModalComponent {
 				".dropdown-content.scroll.abs",
 				{
 					role: "menu",
-					tabindex: TabIndex.Default,
+					tabindex: TabIndex.Programmatic,
 					oncreate: (vnode) => {
 						this._domContents = vnode.dom as HTMLElement
 					},

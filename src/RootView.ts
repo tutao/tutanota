@@ -39,6 +39,7 @@ let currentNavigationType: PrimaryNavigationType = isApp() ? PrimaryNavigationTy
  */
 export class RootView implements ClassComponent {
 	private dom: HTMLElement | null = null
+
 	constructor() {
 		// still "old-style" component, we don't want to lose "this" reference
 		this.view = this.view.bind(this)
@@ -63,7 +64,7 @@ export class RootView implements ClassComponent {
 				},
 				onkeyup: (e: EventRedraw<KeyboardEvent>) => {
 					// tab key can be pressed in some other situations e.g. editor but it would be switched back quickly again if needed.
-					if (isKeyPressed(e.key, Keys.TAB)) {
+					if (isKeyPressed(e.key, Keys.TAB, Keys.UP, Keys.DOWN)) {
 						this.switchNavType(PrimaryNavigationType.Keyboard)
 					}
 					e.redraw = false
