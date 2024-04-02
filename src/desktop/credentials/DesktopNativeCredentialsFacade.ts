@@ -7,8 +7,7 @@ import { CommonNativeFacade } from "../../native/common/generatedipc/CommonNativ
 import { LanguageViewModel } from "../../misc/LanguageViewModel.js"
 import { DesktopConfig } from "../config/DesktopConfig.js"
 import { DesktopConfigKey } from "../config/ConfigKeys.js"
-import { KEY_LENGTH_BYTES_AES_256 } from "@tutao/tutanota-crypto"
-import { generateKeyFromPassphraseArgon2id } from "@tutao/tutanota-crypto"
+import { Argon2IDExports, generateKeyFromPassphraseArgon2id, KEY_LENGTH_BYTES_AES_256 } from "@tutao/tutanota-crypto"
 import { CryptoError } from "@tutao/tutanota-crypto/error.js"
 import { CancelledError } from "../../api/common/error/CancelledError.js"
 import { KeyPermanentlyInvalidatedError } from "../../api/common/error/KeyPermanentlyInvalidatedError.js"
@@ -32,7 +31,7 @@ export class DesktopNativeCredentialsFacade implements NativeCredentialsFacade {
 	constructor(
 		private readonly desktopKeyStoreFacade: DesktopKeyStoreFacade,
 		private readonly crypto: DesktopNativeCryptoFacade,
-		private readonly argon2idFacade: Promise<WebAssembly.Exports>,
+		private readonly argon2idFacade: Promise<Argon2IDExports>,
 		private readonly lang: LanguageViewModel,
 		private readonly conf: DesktopConfig,
 		private readonly getCurrentCommonNativeFacade: () => Promise<CommonNativeFacade>,

@@ -1,24 +1,33 @@
 import { Aes256Key } from "../../encryption/Aes.js"
 import { callWebAssemblyFunctionWithArguments, ConstPtr, mutableSecureFree, Ptr, secureFree, stringToUtf8Uint8Array } from "@tutao/tutanota-utils"
 import { uint8ArrayToBitArray } from "../../misc/Utils.js"
-
+import { WASMExports } from "@tutao/tutanota-utils/dist/WebAssembly.js"
 // Per OWASP's recommendations @ https://cheatsheetseries.owasp.org/cheatsheets/Password_Storage_Cheat_Sheet.html
 export const ARGON2ID_ITERATIONS = 4
 export const ARGON2ID_MEMORY_IN_KiB = 32 * 1024
 export const ARGON2ID_PARALLELISM = 1
 export const ARGON2ID_KEY_LENGTH = 32
 
-type Argon2IDHashRawFN = (
-	t_cost: number,
-	m_cost: number,
-	parallelism: number,
-	pwd: ConstPtr,
-	pwdlen: number,
-	salt: ConstPtr,
-	saltlen: number,
-	hash: Ptr,
-	hashlen: number,
-) => number
+export interface Argon2IDExports extends WASMExports {
+	argon2id_hash_raw(
+		t_cost: number,
+		m_cost: number,
+		parallelism: number,
+		pwd: ConstPtr,
+		pwdlen: number,
+		salt: ConstPtr,
+		saltlen: number,
+		hash: Ptr,
+		hashlen: number,
+	): number
+}
+
+/*
+ * @returns A promise that resolves on the JS Transpile of Liboqs
+ */
+export async function getArgon2Fallback() {
+	return await import("./argon2.js")
+}
 
 /**
  * Create a 256-bit symmetric key from the given passphrase.
@@ -27,8 +36,8 @@ type Argon2IDHashRawFN = (
  * @param salt 16 bytes of random data
  * @return resolved with the key
  */
-export function generateKeyFromPassphrase(argon2: WebAssembly.Exports, pass: string, salt: Uint8Array): Aes256Key {
-	const hash = argon2idHashRaw(
+export async function generateKeyFromPassphrase(argon2: Argon2IDExports, pass: string, salt: Uint8Array): Promise<Aes256Key> {
+	const hash = await argon2idHashRaw(
 		argon2,
 		ARGON2ID_ITERATIONS,
 		ARGON2ID_MEMORY_IN_KiB,
@@ -37,21 +46,22 @@ export function generateKeyFromPassphrase(argon2: WebAssembly.Exports, pass: str
 		salt,
 		ARGON2ID_KEY_LENGTH,
 	)
+
 	return uint8ArrayToBitArray(hash)
 }
 
-function argon2idHashRaw(
-	argon2: WebAssembly.Exports,
+async function argon2idHashRaw(
+	argon2: Argon2IDExports,
 	timeCost: number,
 	memoryCost: number,
 	parallelism: number,
 	password: Uint8Array,
 	salt: Uint8Array,
 	hashLength: number,
-): Uint8Array {
+): Promise<Uint8Array> {
 	const hash = new Uint8Array(hashLength)
 	const result = callWebAssemblyFunctionWithArguments(
-		argon2.argon2id_hash_raw as Argon2IDHashRawFN,
+		argon2.argon2id_hash_raw,
 		argon2,
 		timeCost,
 		memoryCost,

@@ -167,6 +167,7 @@ export {
 	mutableSecureFree,
 	secureFree,
 	mutable,
+	WASMExports,
 } from "./WebAssembly.js"
 
 export { mod, clamp } from "./MathUtils.js"

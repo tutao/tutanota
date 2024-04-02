@@ -468,3 +468,9 @@ export async function resetLocator(): Promise<void> {
 if (typeof self !== "undefined") {
 	;(self as unknown as WorkerGlobalScope).locator = locator // export in worker scope
 }
+/*
+ * @returns true if webassembly is supported
+ */
+export function isWebAssemblySupported() {
+	return typeof WebAssembly === "object" && typeof WebAssembly.instantiate === "function"
+}

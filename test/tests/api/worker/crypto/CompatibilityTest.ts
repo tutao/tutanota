@@ -44,11 +44,13 @@ import { uncompress } from "../../../../../src/api/worker/Compression.js"
 import { matchers, object, when } from "testdouble"
 import { PQFacade } from "../../../../../src/api/worker/facades/PQFacade.js"
 import { WASMKyberFacade } from "../../../../../src/api/worker/facades/KyberFacade.js"
+import { decodePQMessage } from "../../../../../src/api/worker/facades/PQMessage.js"
 import { loadArgon2WASM, loadLibOQSWASM } from "../WASMTestUtils.js"
 
 const originalRandom = random.generateRandomData
 
 const liboqs = await loadLibOQSWASM()
+const liboqsFallback = await loadLibOQSFallback()
 
 o.spec("crypto compatibility", function () {
 	o.afterEach(function () {
@@ -84,6 +86,26 @@ o.spec("crypto compatibility", function () {
 			o(encapsulation.ciphertext).deepEquals(hexToUint8Array(td.cipherText))
 
 			const decapsulatedSharedSecret = decapsulateKyber(liboqs, privateKey, hexToUint8Array(td.cipherText))
+			o(decapsulatedSharedSecret).deepEquals(hexToUint8Array(td.sharedSecret))
+		}
+	})
+	o("kyber - fallback", async () => {
+		for (const td of testData.kyberEncryptionTests) {
+			const publicKey = bytesToKyberPublicKey(hexToUint8Array(td.publicKey))
+			const privateKey = bytesToKyberPrivateKey(hexToUint8Array(td.privateKey))
+			o(uint8ArrayToHex(kyberPublicKeyToBytes(publicKey))).deepEquals(td.publicKey)
+			o(uint8ArrayToHex(kyberPrivateKeyToBytes(privateKey))).deepEquals(td.privateKey)
+
+			const seed = hexToUint8Array(td.seed)
+
+			const randomizer = object<Randomizer>()
+			when(randomizer.generateRandomData(matchers.anything())).thenReturn(seed)
+
+			const encapsulation = encapsulateKyber(liboqsFallback, publicKey, randomizer)
+			o(encapsulation.sharedSecret).deepEquals(hexToUint8Array(td.sharedSecret))
+			o(encapsulation.ciphertext).deepEquals(hexToUint8Array(td.cipherText))
+
+			const decapsulatedSharedSecret = decapsulateKyber(liboqsFallback, privateKey, hexToUint8Array(td.cipherText))
 			o(decapsulatedSharedSecret).deepEquals(hexToUint8Array(td.sharedSecret))
 		}
 	})
@@ -191,7 +213,14 @@ o.spec("crypto compatibility", function () {
 	o("argon2id", async function () {
 		const argon2 = await loadArgon2WASM()
 		for (let td of testData.argon2idTests) {
-			let key = generateKeyFromPassphraseArgon2id(argon2, td.password, hexToUint8Array(td.saltHex))
+			let key = await generateKeyFromPassphraseArgon2id(argon2, td.password, hexToUint8Array(td.saltHex))
+			o(uint8ArrayToHex(bitArrayToUint8Array(key))).equals(td.keyHex)
+		}
+	})
+	o("argon2id - fallback", async function () {
+		const argon2 = await loadArgon2Fallback()
+		for (let td of testData.argon2idTests) {
+			let key = await generateKeyFromPassphraseArgon2id(argon2, td.password, hexToUint8Array(td.saltHex))
 			o(uint8ArrayToHex(bitArrayToUint8Array(key))).equals(td.keyHex)
 		}
 	})
@@ -280,6 +309,43 @@ o.spec("crypto compatibility", function () {
 			}
 			const pqKeyPairs: PQKeyPairs = { keyPairType: KeyPairType.TUTA_CRYPT, eccKeyPair, kyberKeyPair }
 			const pqFacade = new PQFacade(new WASMKyberFacade(liboqs))
+
+			const encapsulation = await pqFacade.encapsulateEncoded(eccKeyPair, ephemeralKeyPair, pqPublicKeys, bucketKey)
+			o(encapsulation).deepEquals(hexToUint8Array(td.pqMessage))
+
+			const decapsulation = await pqFacade.decapsulate(encapsulation, pqKeyPairs)
+			o(decapsulation).deepEquals(bucketKey)
+		}
+	})
+
+	o("pqcrypt - kyber fallback", async function () {
+		for (const td of testData.pqcryptEncryptionTests) {
+			random.generateRandomData = (number) => hexToUint8Array(td.seed).slice(0, number)
+
+			const bucketKey = hexToUint8Array(td.bucketKey)
+
+			const eccKeyPair = {
+				publicKey: hexToUint8Array(td.publicX25519Key),
+				privateKey: hexToUint8Array(td.privateX25519Key),
+			}
+
+			const ephemeralKeyPair = {
+				publicKey: hexToUint8Array(td.epheremalPublicX25519Key),
+				privateKey: hexToUint8Array(td.epheremalPrivateX25519Key),
+			}
+
+			const kyberKeyPair = {
+				publicKey: bytesToKyberPublicKey(hexToUint8Array(td.publicKyberKey)),
+				privateKey: bytesToKyberPrivateKey(hexToUint8Array(td.privateKyberKey)),
+			}
+
+			const pqPublicKeys: PQPublicKeys = {
+				keyPairType: KeyPairType.TUTA_CRYPT,
+				eccPublicKey: eccKeyPair.publicKey,
+				kyberPublicKey: kyberKeyPair.publicKey,
+			}
+			const pqKeyPairs: PQKeyPairs = { keyPairType: KeyPairType.TUTA_CRYPT, eccKeyPair, kyberKeyPair }
+			const pqFacade = new PQFacade(new WASMKyberFacade(liboqsFallback))
 
 			const encapsulation = await pqFacade.encapsulateEncoded(eccKeyPair, ephemeralKeyPair, pqPublicKeys, bucketKey)
 			o(encapsulation).deepEquals(hexToUint8Array(td.pqMessage))
