@@ -1,5 +1,16 @@
 import { stringToUtf8Uint8Array } from "./Encoding.js"
 
+/*
+ * Minimal type for the functions required to be present inside the fallback
+ */
+
+export type WebAssemblyFallback = {
+	free: FreeFN
+	malloc: MallocFN
+	memory: MemoryIF
+}
+export type WasmWithFallback = WebAssembly.Exports | WebAssemblyFallback
+
 /**
  * Call the WebAssembly function with the given arguments.
  *
@@ -13,7 +24,7 @@ import { stringToUtf8Uint8Array } from "./Encoding.js"
  */
 export function callWebAssemblyFunctionWithArguments<T>(
 	func: (...args: number[]) => T,
-	exports: WebAssembly.Exports,
+	exports: WasmWithFallback,
 	...args: (string | number | Uint8Array | Int8Array | MutableUint8Array | SecureFreeUint8Array | boolean | null)[]
 ): T {
 	const free = exports.free as FreeFN
@@ -96,9 +107,9 @@ export function callWebAssemblyFunctionWithArguments<T>(
  * @param length length of data to allocate
  * @param exports WASM module instance's exports
  */
-export function allocateBuffer(length: number, exports: WebAssembly.Exports): Uint8Array {
+export function allocateBuffer(length: number, exports: WasmWithFallback): Uint8Array {
 	const malloc = exports.malloc as MallocFN
-	const memory = exports.memory as WebAssembly.Memory
+	const memory = exports.memory as MemoryIF
 	const ptr = malloc(length)
 	if (ptr === 0) {
 		throw new Error("malloc failed to allocate memory for string")
@@ -181,7 +192,12 @@ export type ConstPtr = number
  */
 export type FreeFN = (what: Ptr) => void
 
-function allocateStringCopy(str: string, exports: WebAssembly.Exports, toFree: Ptr[]): Uint8Array {
+/*
+ * ArrayBuffer or SharedArrayBuffer that holds the raw bytes of memory
+ */
+export type MemoryIF = WebAssembly.Memory
+
+function allocateStringCopy(str: string, exports: WasmWithFallback, toFree: Ptr[]): Uint8Array {
 	const strBytes = stringToUtf8Uint8Array(str)
 	const allocationAmount = strBytes.length + 1
 	let buf = allocateBuffer(allocationAmount, exports)
@@ -197,7 +213,7 @@ function allocateStringCopy(str: string, exports: WebAssembly.Exports, toFree: P
 	}
 }
 
-function allocateArrayCopy(arr: Uint8Array | Int8Array, exports: WebAssembly.Exports, toFree: Ptr[]): Uint8Array {
+function allocateArrayCopy(arr: Uint8Array | Int8Array, exports: WasmWithFallback, toFree: Ptr[]): Uint8Array {
 	const allocationAmount = arr.length
 	let buf = allocateBuffer(allocationAmount, exports)
 	try {
@@ -211,7 +227,7 @@ function allocateArrayCopy(arr: Uint8Array | Int8Array, exports: WebAssembly.Exp
 	}
 }
 
-function allocateSecureArrayCopy(arr: Uint8Array | Int8Array, exports: WebAssembly.Exports, toFree: Ptr[], toClear: Uint8Array[]): Uint8Array {
+function allocateSecureArrayCopy(arr: Uint8Array | Int8Array, exports: WasmWithFallback, toFree: Ptr[], toClear: Uint8Array[]): Uint8Array {
 	const arrayInWASM = allocateArrayCopy(arr, exports, toFree)
 	try {
 		toClear.push(arrayInWASM)

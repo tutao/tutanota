@@ -1,7 +1,6 @@
 import { Aes256Key } from "../../encryption/Aes.js"
 import { callWebAssemblyFunctionWithArguments, ConstPtr, mutableSecureFree, Ptr, secureFree, stringToUtf8Uint8Array } from "@tutao/tutanota-utils"
 import { uint8ArrayToBitArray } from "../../misc/Utils.js"
-
 // Per OWASP's recommendations @ https://cheatsheetseries.owasp.org/cheatsheets/Password_Storage_Cheat_Sheet.html
 export const ARGON2ID_ITERATIONS = 4
 export const ARGON2ID_MEMORY_IN_KiB = 32 * 1024
@@ -27,42 +26,62 @@ type Argon2IDHashRawFN = (
  * @param salt 16 bytes of random data
  * @return resolved with the key
  */
-export function generateKeyFromPassphrase(argon2: WebAssembly.Exports, pass: string, salt: Uint8Array): Aes256Key {
-	const hash = argon2idHashRaw(
-		argon2,
+export async function generateKeyFromPassphrase(pass: string, salt: Uint8Array, argon2?: WebAssembly.Exports): Promise<Aes256Key> {
+	const hash = await argon2idHashRaw(
 		ARGON2ID_ITERATIONS,
 		ARGON2ID_MEMORY_IN_KiB,
 		ARGON2ID_PARALLELISM,
 		stringToUtf8Uint8Array(pass),
 		salt,
 		ARGON2ID_KEY_LENGTH,
+		argon2,
 	)
+
 	return uint8ArrayToBitArray(hash)
 }
 
-function argon2idHashRaw(
-	argon2: WebAssembly.Exports,
+async function argon2idHashRaw(
 	timeCost: number,
 	memoryCost: number,
 	parallelism: number,
 	password: Uint8Array,
 	salt: Uint8Array,
 	hashLength: number,
-): Uint8Array {
+	argon2?: WebAssembly.Exports,
+): Promise<Uint8Array> {
 	const hash = new Uint8Array(hashLength)
-	const result = callWebAssemblyFunctionWithArguments(
-		argon2.argon2id_hash_raw as Argon2IDHashRawFN,
-		argon2,
-		timeCost,
-		memoryCost,
-		parallelism,
-		secureFree(password),
-		password.length,
-		salt,
-		salt.length,
-		mutableSecureFree(hash),
-		hash.length,
-	)
+	let result = 0
+	if (!argon2) {
+		const argon2JsFallback = await import("./argon2.js")
+
+		result = callWebAssemblyFunctionWithArguments(
+			argon2JsFallback.argon2id_hash_raw,
+			argon2JsFallback,
+			ARGON2ID_ITERATIONS,
+			ARGON2ID_MEMORY_IN_KiB,
+			ARGON2ID_PARALLELISM,
+			secureFree(password),
+			password.length,
+			salt,
+			salt.length,
+			mutableSecureFree(hash),
+			hash.length,
+		)
+	} else {
+		result = callWebAssemblyFunctionWithArguments(
+			argon2.argon2id_hash_raw as Argon2IDHashRawFN,
+			argon2,
+			timeCost,
+			memoryCost,
+			parallelism,
+			secureFree(password),
+			password.length,
+			salt,
+			salt.length,
+			mutableSecureFree(hash),
+			hash.length,
+		)
+	}
 
 	if (result !== 0) {
 		// If you hit this, refer to argon.h (look for Argon2_ErrorCodes) for a description of what it means. It's likely an issue with one of your inputs.

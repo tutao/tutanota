@@ -132,7 +132,8 @@ export class DesktopNativeCryptoFacade implements NativeCryptoFacade {
 		parallelism: number,
 		hashLength: number,
 	): Promise<Uint8Array> {
-		return bitArrayToUint8Array(generateKeyFromPassphraseArgon2id(await this.argon2, utf8Uint8ArrayToString(password), salt))
+		const hash = await generateKeyFromPassphraseArgon2id(utf8Uint8ArrayToString(password), salt, await this.argon2)
+		return bitArrayToUint8Array(hash)
 	}
 
 	generateKyberKeypair(seed: Uint8Array): Promise<KyberKeyPair> {
