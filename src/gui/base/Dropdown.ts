@@ -27,7 +27,10 @@ export type DropdownInfoAttrs = {
 }
 
 export interface DropdownButtonAttrs {
+	/** accessibility & tooltip description */
 	label: TranslationText
+	/** visible text inside button */
+	text?: TranslationText
 	icon?: AllIcons
 	click?: ClickHandler
 	selected?: boolean
@@ -234,6 +237,7 @@ export class Dropdown implements ModalComponent {
 			role: AriaRole.MenuItem,
 			selected: child.selected,
 			label: child.label,
+			text: child.text,
 			icon: child.icon && showingIcons ? child.icon : showingIcons ? "none" : undefined,
 			class: "dropdown-button",
 			onclick: child.click ? child.click : noOp,
