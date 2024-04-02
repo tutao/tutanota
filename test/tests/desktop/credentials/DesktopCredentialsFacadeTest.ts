@@ -14,18 +14,19 @@ import { DesktopConfigKey } from "../../../../src/desktop/config/ConfigKeys.js"
 import { CommonNativeFacade } from "../../../../src/native/common/generatedipc/CommonNativeFacade.js"
 import { CancelledError } from "../../../../src/api/common/error/CancelledError.js"
 import { KeyPermanentlyInvalidatedError } from "../../../../src/api/common/error/KeyPermanentlyInvalidatedError.js"
+import { Argon2IDExports } from "@tutao/tutanota-crypto"
 
-async function loadArgon2ModuleFromFile(path: string): Promise<WebAssembly.Exports> {
+async function loadArgon2ModuleFromFile(path: string): Promise<Argon2IDExports> {
 	if (typeof process !== "undefined") {
 		try {
 			const { readFile } = await import("node:fs/promises")
 			const wasmBuffer = await readFile(path)
-			return (await WebAssembly.instantiate(wasmBuffer)).instance.exports
+			return (await WebAssembly.instantiate(wasmBuffer)).instance.exports as unknown as Argon2IDExports
 		} catch (e) {
 			throw new Error(`Can't load argon2 module: ${e}`)
 		}
 	} else {
-		return (await WebAssembly.instantiateStreaming(await fetch(path))).instance.exports
+		return (await WebAssembly.instantiateStreaming(await fetch(path))).instance.exports as unknown as Argon2IDExports
 	}
 }
 

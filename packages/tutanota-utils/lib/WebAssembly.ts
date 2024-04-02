@@ -1,6 +1,40 @@
 import { stringToUtf8Uint8Array } from "./Encoding.js"
 
 /**
+ * General interface for WASM exports, whether from native WASM or a fallback.
+ */
+export interface WASMExports {
+	/**
+	 * Allocates a set number of bytes on the heap.
+	 *
+	 * This data will be permanently allocated until manually freed with free. Be careful with this function!
+	 *
+	 * See https://en.cppreference.com/w/c/memory/malloc
+	 *
+	 * @param len number of bytes
+	 * @return pointer to data or 0 if allocation failed
+	 */
+	malloc(len: number): Ptr
+
+	/**
+	 * Frees data allocated with malloc.
+	 *
+	 * `what` MUST point to something allocated with malloc, or it must be 0 (which will be a no-op). Passing a pointer not allocated with malloc or a pointer
+	 * that was already freed (with the exception of 0 in both cases) will result in undefined behavior. Be careful with this function!
+	 *
+	 * See https://en.cppreference.com/w/c/memory/free
+	 *
+	 * @param what data to free or 0
+	 */
+	free(what: Ptr): void
+
+	/**
+	 * WebAssembly memory/heap
+	 */
+	memory: MemoryIF
+}
+
+/**
  * Call the WebAssembly function with the given arguments.
  *
  * Automatically allocates strings and buffers and frees them while passing booleans and numbers as-is.
@@ -13,11 +47,9 @@ import { stringToUtf8Uint8Array } from "./Encoding.js"
  */
 export function callWebAssemblyFunctionWithArguments<T>(
 	func: (...args: number[]) => T,
-	exports: WebAssembly.Exports,
+	exports: WASMExports,
 	...args: (string | number | Uint8Array | Int8Array | MutableUint8Array | SecureFreeUint8Array | boolean | null)[]
 ): T {
-	const free = exports.free as FreeFN
-
 	const argsToPass: number[] = []
 	const toFree: Ptr[] = []
 	const toClear: Uint8Array[] = []
@@ -42,7 +74,7 @@ export function callWebAssemblyFunctionWithArguments<T>(
 					argsToPass.push(s.byteOffset)
 					toFree.push(s.byteOffset)
 				} catch (e) {
-					free(s.byteOffset)
+					exports.free(s.byteOffset)
 					throw e
 				}
 			} else if (arg instanceof MutableUint8Array) {
@@ -83,7 +115,7 @@ export function callWebAssemblyFunctionWithArguments<T>(
 		}
 		// Finally free
 		for (const f of toFree) {
-			free(f)
+			exports.free(f)
 		}
 	}
 }
@@ -96,18 +128,16 @@ export function callWebAssemblyFunctionWithArguments<T>(
  * @param length length of data to allocate
  * @param exports WASM module instance's exports
  */
-export function allocateBuffer(length: number, exports: WebAssembly.Exports): Uint8Array {
-	const malloc = exports.malloc as MallocFN
-	const memory = exports.memory as WebAssembly.Memory
-	const ptr = malloc(length)
+export function allocateBuffer(length: number, exports: WASMExports): Uint8Array {
+	const memory = exports.memory
+	const ptr = exports.malloc(length)
 	if (ptr === 0) {
 		throw new Error("malloc failed to allocate memory for string")
 	}
 	try {
 		return new Uint8Array(memory.buffer, ptr, length)
 	} catch (e) {
-		const free = exports.free as FreeFN
-		free(ptr)
+		exports.free(ptr)
 		throw e
 	}
 }
@@ -181,7 +211,12 @@ export type ConstPtr = number
  */
 export type FreeFN = (what: Ptr) => void
 
-function allocateStringCopy(str: string, exports: WebAssembly.Exports, toFree: Ptr[]): Uint8Array {
+/*
+ * ArrayBuffer or SharedArrayBuffer that holds the raw bytes of memory
+ */
+export type MemoryIF = WebAssembly.Memory
+
+function allocateStringCopy(str: string, exports: WASMExports, toFree: Ptr[]): Uint8Array {
 	const strBytes = stringToUtf8Uint8Array(str)
 	const allocationAmount = strBytes.length + 1
 	let buf = allocateBuffer(allocationAmount, exports)
@@ -191,13 +226,12 @@ function allocateStringCopy(str: string, exports: WebAssembly.Exports, toFree: P
 		toFree.push(buf.byteOffset)
 		return buf
 	} catch (e) {
-		const free = exports.free as FreeFN
-		free(buf.byteOffset)
+		exports.free(buf.byteOffset)
 		throw e
 	}
 }
 
-function allocateArrayCopy(arr: Uint8Array | Int8Array, exports: WebAssembly.Exports, toFree: Ptr[]): Uint8Array {
+function allocateArrayCopy(arr: Uint8Array | Int8Array, exports: WASMExports, toFree: Ptr[]): Uint8Array {
 	const allocationAmount = arr.length
 	let buf = allocateBuffer(allocationAmount, exports)
 	try {
@@ -205,13 +239,12 @@ function allocateArrayCopy(arr: Uint8Array | Int8Array, exports: WebAssembly.Exp
 		toFree.push(buf.byteOffset)
 		return buf
 	} catch (e) {
-		const free = exports.free as FreeFN
-		free(buf.byteOffset)
+		exports.free(buf.byteOffset)
 		throw e
 	}
 }
 
-function allocateSecureArrayCopy(arr: Uint8Array | Int8Array, exports: WebAssembly.Exports, toFree: Ptr[], toClear: Uint8Array[]): Uint8Array {
+function allocateSecureArrayCopy(arr: Uint8Array | Int8Array, exports: WASMExports, toFree: Ptr[], toClear: Uint8Array[]): Uint8Array {
 	const arrayInWASM = allocateArrayCopy(arr, exports, toFree)
 	try {
 		toClear.push(arrayInWASM)
