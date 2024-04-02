@@ -2,6 +2,7 @@ import { KyberEncapsulation, KyberKeyPair, KyberPrivateKey, KyberPublicKey } fro
 import { callWebAssemblyFunctionWithArguments, mutableSecureFree, Ptr, secureFree } from "@tutao/tutanota-utils"
 import { Randomizer } from "../../random/Randomizer.js"
 import { CryptoError } from "../../misc/CryptoError.js"
+import { WasmWithFallback } from "@tutao/tutanota-utils/dist/WebAssembly.js"
 
 /**
  * Number of random bytes required for a Kyber operation
@@ -26,10 +27,17 @@ type OQS_KEM_encaps_RawFn = (kem: KemPtr, ciphertext: Ptr, sharedSecret: Ptr, pu
 type OQS_KEM_decaps_RawFn = (kem: KemPtr, shared_secret: Ptr, ciphertext: Ptr, secret_key: Ptr) => number
 type KemPtr = Ptr
 
+/*
+ * @returns A promise that resolves on the JS Transpile of Liboqs
+ */
+export async function getKyberFallback() {
+	return await import("./liboqs.js")
+}
+
 /**
  * @returns a new random kyber key pair.
  */
-export function generateKeyPair(kyberWasm: WebAssembly.Exports, randomizer: Randomizer): KyberKeyPair {
+export function generateKeyPair(kyberWasm: WasmWithFallback, randomizer: Randomizer): KyberKeyPair {
 	const OQS_KEM = createKem(kyberWasm)
 	try {
 		fillEntropyPool(kyberWasm, randomizer)
@@ -55,12 +63,12 @@ export function generateKeyPair(kyberWasm: WebAssembly.Exports, randomizer: Rand
 }
 
 /**
- * @param kyberWasm the WebAssembly module that implements our kyber primitives (liboqs)
+ * @param kyberWasm the WebAssembly/JsFallback module that implements our kyber primitives (liboqs)
  * @param publicKey the public key to encapsulate with
  * @param randomizer our randomizer that is used to the native library with entropy
  * @return the plaintext secret key and the encapsulated key for use with AES or as input to a KDF
  */
-export function encapsulate(kyberWasm: WebAssembly.Exports, publicKey: KyberPublicKey, randomizer: Randomizer): KyberEncapsulation {
+export function encapsulate(kyberWasm: WasmWithFallback, publicKey: KyberPublicKey, randomizer: Randomizer): KyberEncapsulation {
 	if (publicKey.raw.length != OQS_KEM_kyber_1024_length_public_key) {
 		throw new CryptoError(`Invalid public key length; expected ${OQS_KEM_kyber_1024_length_public_key}, got ${publicKey.raw.length}`)
 	}
@@ -88,12 +96,12 @@ export function encapsulate(kyberWasm: WebAssembly.Exports, publicKey: KyberPubl
 }
 
 /**
- * @param kyberWasm the WebAssembly module that implements our kyber primitives (liboqs)
+ * @param kyberWasm the WebAssembly/JsFallback module that implements our kyber primitives (liboqs)
  * @param privateKey      the corresponding private key of the public key with which the encapsulatedKey was encapsulated with
  * @param ciphertext the ciphertext output of encapsulate()
  * @return the plaintext secret key
  */
-export function decapsulate(kyberWasm: WebAssembly.Exports, privateKey: KyberPrivateKey, ciphertext: Uint8Array): Uint8Array {
+export function decapsulate(kyberWasm: WasmWithFallback, privateKey: KyberPrivateKey, ciphertext: Uint8Array): Uint8Array {
 	if (privateKey.raw.length != OQS_KEM_kyber_1024_length_secret_key) {
 		throw new CryptoError(`Invalid private key length; expected ${OQS_KEM_kyber_1024_length_secret_key}, got ${privateKey.raw.length}`)
 	}
@@ -121,17 +129,17 @@ export function decapsulate(kyberWasm: WebAssembly.Exports, privateKey: KyberPri
 	}
 }
 
-function freeKem(kyberWasm: WebAssembly.Exports, OQS_KEM: KemPtr) {
+function freeKem(kyberWasm: WasmWithFallback, OQS_KEM: KemPtr) {
 	callWebAssemblyFunctionWithArguments(kyberWasm.OQS_KEM_free as OQS_KEM_FREE_RawFN, kyberWasm, OQS_KEM)
 }
 
 // The returned pointer needs to be freed once not needed anymore by the caller
-function createKem(kyberWasm: WebAssembly.Exports): KemPtr {
+function createKem(kyberWasm: WasmWithFallback): KemPtr {
 	return callWebAssemblyFunctionWithArguments(kyberWasm.OQS_KEM_new as OQS_KEM_NEW_RawFN, kyberWasm, KYBER_ALGORITHM)
 }
 
 // Add bytes externally to the random number generator
-function fillEntropyPool(exports: WebAssembly.Exports, randomizer: Randomizer) {
+function fillEntropyPool(exports: WasmWithFallback, randomizer: Randomizer) {
 	const TUTA_inject_entropy = exports.TUTA_inject_entropy as TUTA_inject_entropy_RawFN
 	const entropyAmount = randomizer.generateRandomData(KYBER_RAND_AMOUNT_OF_ENTROPY)
 	const remaining = callWebAssemblyFunctionWithArguments(TUTA_inject_entropy, exports, entropyAmount, entropyAmount.length)

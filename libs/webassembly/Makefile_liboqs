@@ -4,14 +4,17 @@
 TOTAL_MEMORY=48MB
 
 CC=emcc
+WASM2JS=wasm2js
 TUTA_CRYPTO_LIB=../../packages/tutanota-crypto/lib/encryption/Liboqs
 WASM=${TUTA_CRYPTO_LIB}/liboqs.wasm
+WASM_JS_FALLBACK=${TUTA_CRYPTO_LIB}/liboqs.js
 
 LIBOQS_DIR=liboqs
 
 all: ${WASM}
 clean:
 	rm -f ${WASM}
+	rm -f ${WASM_JS_FALLBACK}
 	rm -rf include
 include:
 	mkdir -p include/oqs
@@ -60,4 +63,8 @@ ${WASM}: include
     	-s TOTAL_MEMORY=${TOTAL_MEMORY} \
     	-s EXPORTED_FUNCTIONS="['_OQS_KEM_new', '_OQS_KEM_free', '_OQS_KEM_keypair', '_OQS_KEM_encaps', '_OQS_KEM_decaps', '_TUTA_inject_entropy', '_malloc', '_free']" \
     	-o ${WASM}
+	${WASM2JS} \
+		${WASM} \
+		-O3 \
+		-o ${WASM_JS_FALLBACK}
 	rm -r "include/"

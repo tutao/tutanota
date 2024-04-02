@@ -1,14 +1,34 @@
 import { stringToUtf8Uint8Array } from "./Encoding.js"
 
 /*
- * Minimal type for the functions required to be present inside the fallback
+ * Functions required to be present inside the Argon2 fallback
  */
-
-export type WebAssemblyFallback = {
-	free: FreeFN
-	malloc: MallocFN
-	memory: MemoryIF
+type Argon2WebAssemblyFallback = {
+	argon2id_hash_raw: Record<string, WebAssembly.ExportValue>
 }
+
+/*
+ * Functions required to be present inside the Liboqs fallback
+ */
+type KyberWebAssemblyFallback = {
+	OQS_KEM_keypair: Record<string, WebAssembly.ExportValue>
+	TUTA_inject_entropy: Record<string, WebAssembly.ExportValue>
+	OQS_KEM_encaps: Record<string, WebAssembly.ExportValue>
+	OQS_KEM_decaps: Record<string, WebAssembly.ExportValue>
+	OQS_KEM_free: Record<string, WebAssembly.ExportValue>
+	OQS_KEM_new: Record<string, WebAssembly.ExportValue>
+}
+
+/*
+ * WebAssembly fallback
+ */
+export type WebAssemblyFallback = Argon2WebAssemblyFallback &
+	KyberWebAssemblyFallback & {
+		free: FreeFN
+		malloc: MallocFN
+		memory: MemoryIF
+	}
+
 export type WasmWithFallback = WebAssembly.Exports | WebAssemblyFallback
 
 /**

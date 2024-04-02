@@ -15,6 +15,7 @@ import { KyberKeyPair } from "../native/common/generatedipc/KyberKeyPair.js"
 import { KyberPublicKey } from "../native/common/generatedipc/KyberPublicKey.js"
 import { KyberEncapsulation } from "../native/common/generatedipc/KyberEncapsulation.js"
 import { KyberPrivateKey } from "../native/common/generatedipc/KyberPrivateKey.js"
+import { WasmWithFallback } from "@tutao/tutanota-utils"
 
 type FsExports = typeof FsModule
 
@@ -23,7 +24,7 @@ export class DesktopNativeCryptoFacade implements NativeCryptoFacade {
 		private readonly fs: FsExports,
 		private readonly cryptoFns: CryptoFunctions,
 		private readonly tfs: TempFs,
-		private readonly argon2: Promise<WebAssembly.Exports>,
+		private readonly argon2: Promise<WasmWithFallback>,
 	) {}
 
 	aesEncryptObject(encryptionKey: Aes256Key, object: number | string | boolean | ReadonlyArray<unknown> | {}): string {
@@ -132,7 +133,7 @@ export class DesktopNativeCryptoFacade implements NativeCryptoFacade {
 		parallelism: number,
 		hashLength: number,
 	): Promise<Uint8Array> {
-		const hash = await generateKeyFromPassphraseArgon2id(utf8Uint8ArrayToString(password), salt, await this.argon2)
+		const hash = await generateKeyFromPassphraseArgon2id(await this.argon2, utf8Uint8ArrayToString(password), salt)
 		return bitArrayToUint8Array(hash)
 	}
 

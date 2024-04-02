@@ -1,4 +1,4 @@
-import { LazyLoaded } from "@tutao/tutanota-utils"
+import { LazyLoaded, WasmWithFallback } from "@tutao/tutanota-utils"
 import { NativeCryptoFacade } from "../../../native/common/generatedipc/NativeCryptoFacade.js"
 import { assertWorkerOrNode } from "../../common/Env.js"
 import {
@@ -12,6 +12,8 @@ import {
 	KyberPublicKey,
 	random,
 } from "@tutao/tutanota-crypto"
+import { client } from "../../../misc/ClientDetector.js"
+import { getKyberFallback } from "@tutao/tutanota-crypto"
 
 assertWorkerOrNode()
 
@@ -47,7 +49,11 @@ export class WASMKyberFacade implements KyberFacade {
 	constructor(private readonly testWASM?: WebAssembly.Exports) {}
 
 	// loads liboqs WASM
-	private liboqs: LazyLoaded<WebAssembly.Exports> = new LazyLoaded(async () => {
+	private liboqs: LazyLoaded<WasmWithFallback> = new LazyLoaded(async () => {
+		if (!client.webassembly()) {
+			return await getKyberFallback()
+		}
+
 		if (this.testWASM) {
 			return this.testWASM
 		}

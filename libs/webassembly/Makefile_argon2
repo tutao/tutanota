@@ -11,7 +11,8 @@ ARGON2_DIR=phc-winner-argon2
 
 all: ${WASM}
 clean:
-	rm -f ${WASM} && rm -f ${WASM_JS_FALLBACK}
+	rm -f ${WASM}
+	rm -f ${WASM_JS_FALLBACK}
 ${WASM}:
 	${CC} \
     	"${ARGON2_DIR}/src/argon2.c" \
@@ -25,7 +26,7 @@ ${WASM}:
     	--no-entry \
     	-s TOTAL_MEMORY=${TOTAL_MEMORY} \
     	-s EXPORTED_FUNCTIONS="['_argon2id_hash_raw', '_malloc', '_free']" \
-    	-o ${WASM} && \
+    	-o ${WASM}
 	${WASM2JS} \
 		${WASM} \
 		-O3 \

@@ -15,6 +15,7 @@ export {
 export { EccPrivateKey, EccPublicKey, EccKeyPair, EccSharedSecrets, generateEccKeyPair, eccEncapsulate, eccDecapsulate } from "./encryption/Ecc.js"
 export { generateRandomSalt, generateKeyFromPassphrase as generateKeyFromPassphraseBcrypt } from "./hashes/Bcrypt.js"
 export {
+	getKyberFallback,
 	generateKeyPair as generateKeyPairKyber,
 	encapsulate as encapsulateKyber,
 	decapsulate as decapsulateKyber,
@@ -33,6 +34,7 @@ export {
 	bytesToKyberPublicKey,
 } from "./encryption/Liboqs/KyberKeyPair.js"
 export {
+	getArgon2Fallback,
 	generateKeyFromPassphrase as generateKeyFromPassphraseArgon2id,
 	ARGON2ID_ITERATIONS,
 	ARGON2ID_KEY_LENGTH,

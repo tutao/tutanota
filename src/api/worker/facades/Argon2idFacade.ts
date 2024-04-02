@@ -11,6 +11,8 @@ import { LazyLoaded, stringToUtf8Uint8Array } from "@tutao/tutanota-utils"
 import { NativeCryptoFacade } from "../../../native/common/generatedipc/NativeCryptoFacade.js"
 import { assertWorkerOrNode } from "../../common/Env.js"
 import { client } from "../../../misc/ClientDetector.js"
+import { WasmWithFallback } from "@tutao/tutanota-utils/dist/WebAssembly.js"
+import { getArgon2Fallback } from "@tutao/tutanota-crypto"
 
 assertWorkerOrNode()
 
@@ -32,8 +34,8 @@ export interface Argon2idFacade {
  */
 export class WASMArgon2idFacade implements Argon2idFacade {
 	// loads argon2 WASM
-	private argon2: LazyLoaded<WebAssembly.Exports | undefined> = new LazyLoaded(async () => {
-		if (!client.webassembly()) return undefined
+	private argon2: LazyLoaded<WasmWithFallback> = new LazyLoaded(async () => {
+		if (!client.webassembly()) return await getArgon2Fallback()
 		const wasm = fetch("wasm/argon2.wasm")
 		if (WebAssembly.instantiateStreaming) {
 			return (await WebAssembly.instantiateStreaming(wasm)).instance.exports
@@ -45,7 +47,7 @@ export class WASMArgon2idFacade implements Argon2idFacade {
 	})
 
 	async generateKeyFromPassphrase(passphrase: string, salt: Uint8Array): Promise<Aes256Key> {
-		return generateKeyFromPassphraseArgon2id(passphrase, salt, await this.argon2.getAsync())
+		return generateKeyFromPassphraseArgon2id(await this.argon2.getAsync(), passphrase, salt)
 	}
 }
 

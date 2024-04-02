@@ -1,7 +1,7 @@
 import { CredentialEncryptionMode } from "../../misc/credentials/CredentialEncryptionMode"
 import { DesktopKeyStoreFacade } from "../DesktopKeyStoreFacade.js"
 import { DesktopNativeCryptoFacade } from "../DesktopNativeCryptoFacade"
-import { assert, base64ToUint8Array, Thunk, uint8ArrayToBase64 } from "@tutao/tutanota-utils"
+import { assert, base64ToUint8Array, Thunk, uint8ArrayToBase64, WasmWithFallback } from "@tutao/tutanota-utils"
 import { NativeCredentialsFacade } from "../../native/common/generatedipc/NativeCredentialsFacade.js"
 import { CommonNativeFacade } from "../../native/common/generatedipc/CommonNativeFacade.js"
 import { LanguageViewModel } from "../../misc/LanguageViewModel.js"
@@ -31,7 +31,7 @@ export class DesktopNativeCredentialsFacade implements NativeCredentialsFacade {
 	constructor(
 		private readonly desktopKeyStoreFacade: DesktopKeyStoreFacade,
 		private readonly crypto: DesktopNativeCryptoFacade,
-		private readonly argon2idFacade: Promise<WebAssembly.Exports>,
+		private readonly argon2idFacade: Promise<WasmWithFallback>,
 		private readonly lang: LanguageViewModel,
 		private readonly conf: DesktopConfig,
 		private readonly getCurrentCommonNativeFacade: () => Promise<CommonNativeFacade>,
@@ -95,7 +95,7 @@ export class DesktopNativeCredentialsFacade implements NativeCredentialsFacade {
 		const commonNativeFacade = await this.getCurrentCommonNativeFacade()
 		const pw = await this.tryWhileSaltNotChanged(commonNativeFacade.promptForPassword(this.lang.get("credentialsEncryptionModeAppPassword_label")))
 		const salt = base64ToUint8Array(storedAppPassSaltB64)
-		return generateKeyFromPassphraseArgon2id(pw, salt, await this.argon2idFacade)
+		return generateKeyFromPassphraseArgon2id(await this.argon2idFacade, pw, salt)
 	}
 
 	private async enrollForAppPass(): Promise<Aes256Key> {
@@ -106,7 +106,7 @@ export class DesktopNativeCredentialsFacade implements NativeCredentialsFacade {
 		)
 		const newAppPassSaltB64 = uint8ArrayToBase64(newSalt)
 		await this.conf.setVar(DesktopConfigKey.appPassSalt, newAppPassSaltB64)
-		return generateKeyFromPassphraseArgon2id(newPw, newSalt, await this.argon2idFacade)
+		return generateKeyFromPassphraseArgon2id(await this.argon2idFacade, newPw, newSalt)
 	}
 
 	private async tryWhileSaltNotChanged(pwPromise: Promise<string>): Promise<string> {
