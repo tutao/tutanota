@@ -1,10 +1,9 @@
-import m, { Children, Component, Vnode } from "mithril"
+import m, { Children } from "mithril"
 import { modal, ModalComponent } from "./Modal"
 import { animations, opacity, transform, TransformEnum } from "../animation/Animations"
 import { ease } from "../animation/Easing"
 import { px, size } from "../size"
-import type { Shortcut } from "../../misc/KeyManager"
-import { focusNext, focusPrevious } from "../../misc/KeyManager"
+import { focusNext, focusPrevious, Shortcut } from "../../misc/KeyManager"
 import type { ButtonAttrs } from "./Button.js"
 import { lang, TranslationText } from "../../misc/LanguageViewModel"
 import { Keys, TabIndex } from "../../api/common/TutanotaConstants"
@@ -16,14 +15,22 @@ import { pureComponent } from "./PureComponent"
 import type { ClickHandler } from "./GuiUtils"
 import { assertMainOrNode } from "../../api/common/Env"
 import { IconButtonAttrs } from "./IconButton.js"
-import { AllIcons, Icon } from "./Icon.js"
-import { theme } from "../theme.js"
+import { AllIcons } from "./Icon.js"
+import { RowButton, RowButtonAttrs } from "./buttons/RowButton.js"
+import { AriaRole } from "../AriaUtils.js"
 
 assertMainOrNode()
 export type DropdownInfoAttrs = {
 	info: string
 	center: boolean
 	bold: boolean
+}
+
+export interface DropdownButtonAttrs {
+	label: TranslationText
+	icon?: AllIcons
+	click?: ClickHandler
+	selected?: boolean
 }
 
 /**
@@ -195,7 +202,7 @@ export class Dropdown implements ModalComponent {
 					if (isDropDownInfo(child)) {
 						return m(DropdownInfo, child)
 					} else {
-						return m(DropdownButton, { ...child, showingIcons } as InternalDropdownButtonAttrs)
+						return Dropdown.renderDropDownButton(child, showingIcons)
 					}
 				}),
 			)
@@ -219,6 +226,17 @@ export class Dropdown implements ModalComponent {
 				[_inputField(), _contents()],
 			)
 		}
+	}
+
+	private static renderDropDownButton(child: DropdownButtonAttrs, showingIcons: boolean) {
+		return m(RowButton, {
+			role: AriaRole.MenuItem,
+			selected: child.selected,
+			label: child.label,
+			icon: child.icon && showingIcons ? child.icon : showingIcons ? "none" : undefined,
+			class: "dropdown-button",
+			onclick: child.click ? child.click : noOp,
+		} satisfies RowButtonAttrs)
 	}
 
 	wrapClick(fn: (event: MouseEvent, dom: HTMLElement) => unknown): (event: MouseEvent, dom: HTMLElement) => unknown {
@@ -553,60 +571,4 @@ export function showDropdown(origin: PosRect, domDropdown: HTMLElement, contentH
 	return animations.add(domDropdown, [opacity(0, 1, true), transform(TransformEnum.Scale, 0.5, 1)], {
 		easing: ease.out,
 	})
-}
-
-export interface DropdownButtonAttrs {
-	label: TranslationText
-	icon?: AllIcons
-	click?: ClickHandler
-	selected?: boolean
-}
-
-interface InternalDropdownButtonAttrs extends DropdownButtonAttrs {
-	showingIcons: boolean
-}
-
-class DropdownButton implements Component<InternalDropdownButtonAttrs> {
-	private dom: HTMLElement | null = null
-
-	view({ attrs }: Vnode<InternalDropdownButtonAttrs>): Children {
-		const color = attrs.selected ? theme.content_button_selected : theme.content_button
-		return m(
-			"button.flex.dropdown-button.items-center.state-bg",
-			{
-				role: "menuitem",
-				"aria-selected": String(attrs.selected ?? false),
-				oncreate: (vnode) => (this.dom = vnode.dom as HTMLElement),
-				onclick: (e: MouseEvent) => attrs.click?.(e, assertNotNull(this.dom)),
-			},
-			[
-				attrs.icon && attrs.showingIcons
-					? m(Icon, {
-							icon: attrs.icon,
-							large: true,
-							style: {
-								fill: color,
-								// margin on the sides of the button is 16px, but it actually looks more coherent to have the smaller spacing between the icon and text
-								marginRight: px(12),
-							},
-					  })
-					: attrs.showingIcons
-					? m(".icon-large", {
-							style: {
-								marginRight: px(12),
-							},
-					  })
-					: null,
-				m(
-					".text-ellipsis",
-					{
-						style: {
-							color,
-						},
-					},
-					lang.getMaybeLazy(attrs.label),
-				),
-			],
-		)
-	}
 }
