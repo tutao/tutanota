@@ -102,6 +102,11 @@ export class PostLoginActions implements PostLoginAction {
 			locator.fileApp.clearFileData().catch((e) => console.log("Failed to clean file data", e))
 			locator.nativeContactsSyncManager()?.syncContacts()
 		}
+
+		// We already have user data to load themes
+		if (isApp() || isDesktop()) {
+			await this.storeNewCustomThemes()
+		}
 	}
 
 	async onFullLoginSuccess(loggedInEvent: LoggedInEvent): Promise<void> {
@@ -139,7 +144,6 @@ export class PostLoginActions implements PostLoginAction {
 			} else {
 				console.log("Skipping registering for notifications while setup dialog is shown")
 			}
-			this.storeNewCustomThemes()
 		}
 
 		if (this.logins.isGlobalAdminUserLoggedIn() && !isAdminClient()) {
