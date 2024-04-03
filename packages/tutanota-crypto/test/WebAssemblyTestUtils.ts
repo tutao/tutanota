@@ -1,3 +1,5 @@
+import { WebAssemblyFallback } from "@tutao/tutanota-utils"
+
 /**
  * Helper function to load a wasm module from file for testing.
  */
@@ -13,4 +15,8 @@ export async function loadWasmModuleFromFile(path: string): Promise<WebAssembly.
 	} else {
 		return (await WebAssembly.instantiateStreaming(await fetch(path))).instance.exports
 	}
+}
+
+export async function loadWasmModuleFallback(path: string): Promise<WebAssemblyFallback> {
+	return await import(path)
 }
