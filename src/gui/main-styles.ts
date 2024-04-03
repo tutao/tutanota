@@ -555,6 +555,11 @@ styles.registerStyle("main", () => {
 			"white-space": "nowrap",
 		},
 		".text-ellipsis-multi-line": {
+			/*
+			 * The `-webkit-line-clamp` property is standardized and supported by all major browsers.
+			 * It will likely be replaced by a property called `line-clamp` in the future.
+			 * See: https://developer.mozilla.org/en-US/docs/Web/CSS/-webkit-line-clamp
+			 */
 			display: "-webkit-box",
 			"-webkit-line-clamp": 3,
 			"-webkit-box-orient": "vertical",
