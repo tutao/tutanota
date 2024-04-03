@@ -11,7 +11,7 @@ export default {
 		"other"
 	],
 	"created_at": "2015-01-13T20:40:31Z",
-	"updated_at": "2024-03-16T20:23:05Z",
+	"updated_at": "2024-04-03T13:04:07Z",
 	"source_locale": {
 		"id": "fcd7471b347c8e517663e194dcddf237",
 		"name": "en",
@@ -292,7 +292,7 @@ export default {
 		"contactListName_label": "Name der Kontaktliste",
 		"contactLists_label": "Kontaktlisten",
 		"contactsManagement_label": "Kontaktverwaltung",
-		"contactsSynchronizationWarning_msg": "Durch die Aktivierung der Kontaktsynchronisierung werden deine Tuta-Kontakte an andere Anwendungen weitergegeben, denen du Zugriff auf dein Telefonbuch erlaubst. Tuta synchronisiert nur Änderungen, die innerhalb der Tuta-App vorgenommen wurden; Änderungen in den Kontakten deines Telefons werden überschrieben.",
+		"contactsSynchronizationWarning_msg": "Durch die Aktivierung der Kontaktsynchronisierung werden deine Tuta-Kontakte mit anderen Anwendungen geteilt, denen du Zugriff auf dein Telefonbuch erlaubst. Deine Tuta-Kontakte werden automatisch synchronisiert.",
 		"contactsSynchronization_label": "Kontaktsynchronisierung",
 		"contactSupport_action": "Support kontaktieren",
 		"contactsUsageDescription_msg": "1. Suche Empfänger-E-Mail-Adressen in Kontakten.\\n2. Synchronisieren von Tuta-Kontakten mit deinem Gerät, falls aktiviert.",
