@@ -47,6 +47,8 @@
 		3D220205293F75C100366FD2 /* IosWebauthnFacade.swift in Sources */ = {isa = PBXBuildFile; fileRef = 3D220204293F75C100366FD2 /* IosWebauthnFacade.swift */; };
 		3D239302287EC96200DD7396 /* CustomSchemeHandlers.swift in Sources */ = {isa = PBXBuildFile; fileRef = 3D239301287EC96200DD7396 /* CustomSchemeHandlers.swift */; };
 		3D2DB91B2733F43B00BCEF4C /* IosNativeCredentialsFacade.swift in Sources */ = {isa = PBXBuildFile; fileRef = 3D2DB91A2733F43B00BCEF4C /* IosNativeCredentialsFacade.swift */; };
+		3D33044F2BBD7AD2007B5C5D /* PrivacyInfo.xcprivacy in Resources */ = {isa = PBXBuildFile; fileRef = 3D33044E2BBD7AD2007B5C5D /* PrivacyInfo.xcprivacy */; };
+		3D3304512BBD7AEE007B5C5D /* PrivacyInfo.xcprivacy in Resources */ = {isa = PBXBuildFile; fileRef = 3D3304502BBD7AEE007B5C5D /* PrivacyInfo.xcprivacy */; };
 		3D36BCC2274E4A6100428878 /* CryptoTokenKit.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 3D36BCC1274E4A6100428878 /* CryptoTokenKit.framework */; settings = {ATTRIBUTES = (Weak, ); }; };
 		3D378EE72536F51F0001F1F3 /* FileChooser.swift in Sources */ = {isa = PBXBuildFile; fileRef = 3D378EE62536F51F0001F1F3 /* FileChooser.swift */; };
 		3D3AFAE8285B0DB60077F302 /* IosMobileSystemFacade.swift in Sources */ = {isa = PBXBuildFile; fileRef = 3D3AFAE7285B0DB60077F302 /* IosMobileSystemFacade.swift */; };
@@ -378,6 +380,8 @@
 		3D220204293F75C100366FD2 /* IosWebauthnFacade.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = IosWebauthnFacade.swift; sourceTree = "<group>"; };
 		3D239301287EC96200DD7396 /* CustomSchemeHandlers.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CustomSchemeHandlers.swift; sourceTree = "<group>"; };
 		3D2DB91A2733F43B00BCEF4C /* IosNativeCredentialsFacade.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = IosNativeCredentialsFacade.swift; sourceTree = "<group>"; };
+		3D33044E2BBD7AD2007B5C5D /* PrivacyInfo.xcprivacy */ = {isa = PBXFileReference; lastKnownFileType = text.xml; path = PrivacyInfo.xcprivacy; sourceTree = "<group>"; };
+		3D3304502BBD7AEE007B5C5D /* PrivacyInfo.xcprivacy */ = {isa = PBXFileReference; lastKnownFileType = text.xml; path = PrivacyInfo.xcprivacy; sourceTree = "<group>"; };
 		3D36BCC1274E4A6100428878 /* CryptoTokenKit.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = CryptoTokenKit.framework; path = System/Library/Frameworks/CryptoTokenKit.framework; sourceTree = SDKROOT; };
 		3D378ED22536F3A80001F1F3 /* tutanota-Bridging-Header.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = "tutanota-Bridging-Header.h"; sourceTree = "<group>"; };
 		3D378EE62536F51F0001F1F3 /* FileChooser.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = FileChooser.swift; sourceTree = "<group>"; };
@@ -1665,6 +1669,7 @@
 				3D652B5720F8DC1500DF9962 /* build */,
 				3DD4A08F20F8C6260086EB36 /* Assets.xcassets */,
 				3DD4A09120F8C6260086EB36 /* LaunchScreen.storyboard */,
+				3D33044E2BBD7AD2007B5C5D /* PrivacyInfo.xcprivacy */,
 				3DD4A09420F8C6260086EB36 /* Info.plist */,
 			);
 			path = tutanota;
@@ -1705,6 +1710,7 @@
 		3DEF18F12924E1F1009C4B55 /* TutanotaShareExtension */ = {
 			isa = PBXGroup;
 			children = (
+				3D3304502BBD7AEE007B5C5D /* PrivacyInfo.xcprivacy */,
 				3D448A88292BB0B70030DB2F /* TutanotaShareExtension.entitlements */,
 				3DEF18F22924E1F1009C4B55 /* ShareViewController.swift */,
 				3DEF18F72924E1F1009C4B55 /* Info.plist */,
@@ -2015,6 +2021,7 @@
 				3D9A1F1022031B99002C2455 /* InfoPlist.strings in Resources */,
 				3D9A1F0C22031B99002C2455 /* InfoPlist.strings in Resources */,
 				3D9A1F3622031B99002C2455 /* InfoPlist.strings in Resources */,
+				3D33044F2BBD7AD2007B5C5D /* PrivacyInfo.xcprivacy in Resources */,
 				3D9A1F1522031B99002C2455 /* InfoPlist.strings in Resources */,
 				3D9A1F1322031B99002C2455 /* InfoPlist.strings in Resources */,
 				3D9A1F4522031B99002C2455 /* InfoPlist.strings in Resources */,
@@ -2068,6 +2075,7 @@
 			isa = PBXResourcesBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
+				3D3304512BBD7AEE007B5C5D /* PrivacyInfo.xcprivacy in Resources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
