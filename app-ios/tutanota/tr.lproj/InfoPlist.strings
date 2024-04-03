@@ -1,7 +1,7 @@
 NSCameraUsageDescription = "Ek olarak eklemek için bir fotoğraf veya video çekin.";
 NSPhotoLibraryUsageDescription = "Galerinizde bulunan bir resmi ek şeklinde ekleyin.";
 NSMicrophoneUsageDescription = "Video kaydını ek olarak kaydederken kullanılır.";
-NSContactsUsageDescription = "Alıcının e-posta adresine kişilerden eriş.";
+NSContactsUsageDescription = "1. Kişilerde alıcı e-posta adresini bulun.\n2. İsteğe bağlı olarak Tuta kişilerini cihazınızla senkronize edin.";
 NSRemindersUsageDescription = "Yeni e-posta geldiğinde bildirim gösterir.";
 TutaoShowCameraAction = "Kamera";
 TutaoChoosePhotosAction = "Fotoğraflar";

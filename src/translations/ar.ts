@@ -14,7 +14,7 @@ export default {
 		"other"
 	],
 	"created_at": "2015-01-27T13:11:44Z",
-	"updated_at": "2024-02-07T15:05:17Z",
+	"updated_at": "2024-04-03T12:31:22Z",
 	"source_locale": {
 		"id": "fcd7471b347c8e517663e194dcddf237",
 		"name": "en",
@@ -853,7 +853,7 @@ export default {
 		"oldPasswordNeutral_msg": "الرجاء إدخال كلمة المرور القديمة.",
 		"oldPassword_label": "كلمة المرور القديمة",
 		"oneMailSelected_msg": "رسالة إلكترونيّة واحدة محدّدة.",
-		"online_label": "أونلاين ",
+		"online_label": "متصل",
 		"onlyAccountAdminFeature_msg": "فقط مسؤول الحساب يمكنه القيام بذلك",
 		"onlyPrivateAccountFeature_msg": "لا يجوز استرداد بطاقات الهدايا إلا من خلال حسابات خاصة",
 		"onlyPrivateComputer_msg": "فقط اختر هذا الخيار إذا كنت تستخدم جهاز خاص.",

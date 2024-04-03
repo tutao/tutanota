@@ -10,7 +10,7 @@ export default {
 		"other"
 	],
 	"created_at": "2019-01-02T11:09:03Z",
-	"updated_at": "2024-03-15T17:47:22Z",
+	"updated_at": "2024-04-03T13:01:47Z",
 	"source_locale": null,
 	"fallback_locale": null,
 	"keys": {
@@ -544,7 +544,7 @@ export default {
 		"exportUsers_action": "匯出用戶",
 		"exportVCard_action": "匯出vCard",
 		"export_action": "匯出",
-		"externalFormattingInfo_msg": "設定所有訊息是否在發送時包含（HTML）格式或轉換成純文字。",
+		"externalFormattingInfo_msg": "設定所有訊息是否在發送時包含格式（HTML）或轉換成純文字。",
 		"externalFormatting_label": "格式",
 		"externalMailPassword_msg": "您的Tuta密碼：「{1}」",
 		"externalNotificationMailBody1_msg": "您好，",

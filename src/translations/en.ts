@@ -11,7 +11,7 @@ export default {
 		"other"
 	],
 	"created_at": "2015-01-13T20:10:13Z",
-	"updated_at": "2024-03-15T11:53:09Z",
+	"updated_at": "2024-04-03T13:01:46Z",
 	"source_locale": null,
 	"fallback_locale": null,
 	"keys": {
@@ -288,7 +288,7 @@ export default {
 		"contactListName_label": "Contact list name",
 		"contactLists_label": "Contact lists",
 		"contactsManagement_label": "Contacts Management",
-		"contactsSynchronizationWarning_msg": "Enabling contact synchronization will share your Tuta contacts to other applications that you allow access to your phone's contact book. Tuta only synchronizes changes made inside of the Tuta app, changes made on your phone's contact book will be overwritten.",
+		"contactsSynchronizationWarning_msg": "Enabling contact synchronization will share your Tuta contacts to other applications that you allow to access your phonebook. Your Tuta contacts will synchronize automatically.",
 		"contactsSynchronization_label": "Contacts Synchronization",
 		"contactSupport_action": "Contact support",
 		"contactsUsageDescription_msg": "1. Find recipient email address in contacts.\\n2. Optionally synchronize Tuta contacts to your device.",

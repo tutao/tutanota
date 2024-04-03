@@ -1,7 +1,7 @@
 NSCameraUsageDescription = "Vytvoriť fotografiu alebo video do prílohy.";
-NSPhotoLibraryUsageDescription = "Pridaj obrázok zo svojej knižnice ako prílohu.";
+NSPhotoLibraryUsageDescription = "Pridajte obrázok z knižnice ako prílohu.";
 NSMicrophoneUsageDescription = "Používa sa pri nahrávaní videa ako prílohy.";
-NSContactsUsageDescription = "Nájdi e-mailovú adresu príjemcu v kontaktoch.";
+NSContactsUsageDescription = "1. Vyhľadajte e-mailovú adresu príjemcu v kontaktoch.\n2. Voliteľne môžete synchronizovať Tuta kontakty s Vaším zariadením.";
 NSRemindersUsageDescription = "Zobrazuje oznámenie, keď príde nový e-mail.";
 TutaoShowCameraAction = "Fotoaparát";
 TutaoChoosePhotosAction = "Fotky";
