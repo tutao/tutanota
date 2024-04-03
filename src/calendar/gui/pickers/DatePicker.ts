@@ -304,6 +304,10 @@ export class VisualDatePicker implements Component<VisualDatePickerAttrs> {
 
 	private renderDay({ date, day, isPaddingDay }: CalendarDay, index: number, attrs: VisualDatePickerAttrs): Children {
 		const isSelectedDay = isSameDayOfDate(date, attrs.selectedDate)
+		// We need a day to tab onto if the selected day is not visible, so we use the first day of the month
+		const isSubstituteDay = attrs.selectedDate?.getMonth() !== date.getMonth() && date.getDate() === 1
+		const isTabbable = !isPaddingDay && (isSelectedDay || isSubstituteDay)
+
 		const size = this.getElementWidth(attrs)
 		const selector = isSelectedDay && !isPaddingDay ? ".circle.accent-bg" : ""
 		return m(
@@ -318,7 +322,7 @@ export class VisualDatePicker implements Component<VisualDatePickerAttrs> {
 				"aria-label": date.toLocaleDateString(),
 				"aria-selected": `${isSelectedDay}`,
 				role: "option",
-				tabindex: isSelectedDay ? TabIndex.Default : TabIndex.Programmatic,
+				tabindex: isTabbable ? TabIndex.Default : TabIndex.Programmatic,
 				onclick: isPaddingDay ? undefined : () => attrs.onDateSelected?.(date, true),
 				onkeydown: (event: KeyboardEvent) => {
 					const key = keyboardEventToKeyPress(event)
