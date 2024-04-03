@@ -304,6 +304,10 @@ export class VisualDatePicker implements Component<VisualDatePickerAttrs> {
 
 	private renderDay({ date, day, isPaddingDay }: CalendarDay, index: number, attrs: VisualDatePickerAttrs): Children {
 		const isSelectedDay = isSameDayOfDate(date, attrs.selectedDate)
+		// We need a day to tab onto if the selected day is not visible, so we use the first day of the month
+		const isSubstituteDay = attrs.selectedDate?.getMonth() !== date.getMonth() && date.getDate() === 1
+		const isTabbable = !isPaddingDay && (isSelectedDay || isSubstituteDay)
+
 		const size = this.getElementWidth(attrs)
 		const selector = isSelectedDay && !isPaddingDay ? ".circle.accent-bg" : ""
 		return m(
@@ -318,7 +322,7 @@ export class VisualDatePicker implements Component<VisualDatePickerAttrs> {
 				"aria-label": date.toLocaleDateString(),
 				"aria-selected": `${isSelectedDay}`,
 				role: "option",
-				tabindex: isSelectedDay ? TabIndex.Default : TabIndex.Programmatic,
+				tabindex: isTabbable ? TabIndex.Default : TabIndex.Programmatic,
 				onclick: isPaddingDay ? undefined : () => attrs.onDateSelected?.(date, true),
 				onkeydown: (event: KeyboardEvent) => {
 					const key = keyboardEventToKeyPress(event)
@@ -438,7 +442,7 @@ export class VisualDatePicker implements Component<VisualDatePickerAttrs> {
 	// Focuses on a day if it is not a padding day & returns whether it focused on the day
 	private focusDayIfPossible(previousElement: HTMLElement, dayElement: globalThis.Element | null | undefined): boolean {
 		const element = dayElement as HTMLInputElement | null | undefined
-		if (element != null && element.getAttribute("aria-hidden") === "false") {
+		if (element != null && element.ariaHidden === "false") {
 			element.focus()
 			// Put the currently focused element into the tab index so the next tab press follows the tab index
 			element.tabIndex = 0
@@ -452,11 +456,11 @@ export class VisualDatePicker implements Component<VisualDatePickerAttrs> {
 	private focusLastDay(target: HTMLInputElement) {
 		const weeks = target.parentElement?.parentElement?.children
 		if (weeks != null) {
-			for (let i = weeks.length - 1; i > 0; i--) {
+			for (let i = weeks.length - 1; i >= 0; i--) {
 				const week = weeks.item(i)?.children
 				let isDateFound = false
 				if (week != null) {
-					for (let j = week.length - 1; j > 0; j--) {
+					for (let j = week.length - 1; j >= 0; j--) {
 						const child = week.item(j)
 						if (this.focusDayIfPossible(target, child)) {
 							isDateFound = true
@@ -473,7 +477,7 @@ export class VisualDatePicker implements Component<VisualDatePickerAttrs> {
 	private focusLastWeekDay(target: HTMLInputElement, weekDay: number) {
 		const weeks = target.parentElement?.parentElement?.children
 		if (weeks != null) {
-			for (let i = weeks.length - 1; i > 0; i--) {
+			for (let i = weeks.length - 1; i >= 0; i--) {
 				const week = weeks.item(i)?.children
 				if (week != null) {
 					const child = week.item(weekDay)
@@ -489,11 +493,11 @@ export class VisualDatePicker implements Component<VisualDatePickerAttrs> {
 	private focusFirstDay(target: HTMLInputElement) {
 		const weeks = target.parentElement?.parentElement?.children
 		if (weeks != null) {
-			for (let i = 0; i < weeks.length - 1; i++) {
+			for (let i = 0; i < weeks.length; i++) {
 				const week = weeks.item(i)?.children
 				let isDateFound = false
 				if (week != null) {
-					for (let j = 0; j < week.length - 1; j++) {
+					for (let j = 0; j < week.length; j++) {
 						const child = week.item(j)
 						if (this.focusDayIfPossible(target, child)) {
 							isDateFound = true
@@ -510,7 +514,7 @@ export class VisualDatePicker implements Component<VisualDatePickerAttrs> {
 	private focusFirstWeekDay(target: HTMLInputElement, weekDay: number) {
 		const weeks = target.parentElement?.parentElement?.children
 		if (weeks != null) {
-			for (let i = 0; i < weeks.length - 1; i++) {
+			for (let i = 0; i < weeks.length; i++) {
 				const week = weeks.item(i)?.children
 				if (week != null) {
 					const child = week.item(weekDay)
