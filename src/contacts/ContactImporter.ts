@@ -29,6 +29,8 @@ import { ImportNativeContactBooksDialog } from "./view/ImportNativeContactBooksD
 import { StructuredContact } from "../native/common/generatedipc/StructuredContact.js"
 import { isoDateToBirthday } from "../api/common/utils/BirthdayUtils.js"
 import { ContactBook } from "../native/common/generatedipc/ContactBook.js"
+import { requestPermission } from "../gui/dialogs/SetupWizard.js"
+import { PermissionType } from "../native/common/generatedipc/PermissionType.js"
 
 export class ContactImporter {
 	constructor(private readonly contactFacade: ContactFacade) {}
@@ -67,6 +69,16 @@ export class ContactImporter {
 				"{1}": contacts.length,
 			}),
 		)
+	}
+
+	// will check for permission and ask for it if it is not granted
+	async importContactsFromDeviceSafely() {
+		// check for permission
+		const isContactPermissionGranted = await requestPermission(PermissionType.Contacts, "grantContactPermissionAction")
+
+		if (isContactPermissionGranted) {
+			await this.importContactsFromDevice()
+		}
 	}
 
 	async importContactsFromDevice() {

@@ -140,6 +140,6 @@ export class ContactsSettingsViewer implements UpdatableSettingsViewer {
 
 	private async importContactsFromDevice() {
 		const importer = await locator.contactImporter()
-		await importer.importContactsFromDevice()
+		await importer.importContactsFromDeviceSafely()
 	}
 }

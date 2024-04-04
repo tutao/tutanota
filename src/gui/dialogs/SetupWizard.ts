@@ -87,7 +87,11 @@ export async function requestPermission(permission: PermissionType, deniedMessag
 	} catch (e) {
 		if (e instanceof PermissionError) {
 			console.warn("Permission denied for", permission)
-			Dialog.message(deniedMessage).then(() => locator.systemFacade.goToSettings())
+			Dialog.confirm(deniedMessage).then((confirmed) => {
+				if (confirmed) {
+					locator.systemFacade.goToSettings()
+				}
+			})
 			return false
 		}
 		throw e

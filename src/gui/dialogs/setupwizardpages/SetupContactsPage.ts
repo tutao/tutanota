@@ -15,7 +15,7 @@ export class SetupContactsPage implements Component<SetupContactsPageAttrs> {
 		return m(SetupPageLayout, { image: "contacts" }, [
 			m("p.mb-s", lang.get("importContacts_msg")),
 			renderBannerButton("import_action", () => {
-				attrs.contactImporter.importContactsFromDevice()
+				attrs.contactImporter.importContactsFromDeviceSafely()
 			}),
 			m("p.mb-s", lang.get("allowContactSynchronization")),
 			renderBannerButton(

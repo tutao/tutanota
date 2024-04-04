@@ -627,6 +627,7 @@ export default {
 		"granted_msg": "Granted",
 		"grant_battery_permission_action": "Turn off battery optimization",
 		"grant_notification_permission_action": "Grant Notification Permission",
+		"grantContactPermissionAction": "Grant permission to access contacts",
 		"gross_label": "incl. taxes",
 		"groupCapabilityInvite_label": "Write and manage sharing",
 		"groupCapabilityRead_label": "Read only",
