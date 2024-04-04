@@ -106,6 +106,9 @@ tp stay up-to-date with the server (for caching and indexing).
 
 ## Workflow and Testing
 
+Install Node.js, preferably via [nvm](https://github.com/nvm-sh/nvm). Run `nvm install` to install the updated version of
+Node used by the project.
+
 ```bash
 node make
 ```
