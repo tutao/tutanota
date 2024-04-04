@@ -16,7 +16,7 @@ import {
 import { Group, GroupKey, GroupKeysRefTypeRef, GroupKeyTypeRef, GroupTypeRef, KeyPair, KeyPairTypeRef } from "../../../../../src/api/entities/sys/TypeRefs.js"
 import { createTestEntity } from "../../../TestUtils.js"
 import { EntityClient } from "../../../../../src/api/common/EntityClient.js"
-import { matchers, object, when } from "testdouble"
+import { object, when } from "testdouble"
 import { KeyLoaderFacade } from "../../../../../src/api/worker/facades/KeyLoaderFacade.js"
 import { stringToCustomId } from "../../../../../src/api/common/utils/EntityUtils.js"
 import { VersionedKey } from "../../../../../src/api/worker/crypto/CryptoFacade.js"
@@ -86,7 +86,7 @@ o.spec("KeyLoaderFacadeTest", function () {
 			formerGroupKeys: createTestEntity(GroupKeysRefTypeRef, { list: "list" }),
 			groupKeyVersion: String(currentGroupKeyVersion),
 		})
-		when(userFacade.getGroupKey(group._id)).thenReturn(currentGroupKey)
+		when(userFacade.getCurrentGroupKey(group._id)).thenReturn(currentGroupKey)
 		when(entityClient.load(GroupTypeRef, group._id)).thenResolve(group)
 		for (let i = 0; i < FORMER_KEYS; i++) {
 			when(

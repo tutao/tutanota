@@ -40,7 +40,7 @@ export class GiftCardFacade {
 		}
 
 		const adminGroupId = getFirstOrThrow(adminGroupIds)
-		const ownerKey = this.user.getGroupKey(adminGroupId)
+		const ownerKey = this.user.getCurrentGroupKey(adminGroupId)
 
 		const sessionKey = aes256RandomKey()
 		const ownerEncSessionKey = encryptKeyWithVersionedKey(ownerKey, sessionKey)

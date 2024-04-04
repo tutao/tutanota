@@ -639,7 +639,7 @@ o.spec("CryptoFacadeTest", function () {
 			pqMessage,
 		)
 		when(entityClient.load(GroupTypeRef, senderUserGroup._id)).thenResolve(senderUserGroup)
-		when(userFacade.getGroupKey(senderUserGroup._id)).thenReturn({ object: senderGroupKey, version: 0 })
+		when(userFacade.getCurrentGroupKey(senderUserGroup._id)).thenReturn({ object: senderGroupKey, version: 0 })
 
 		const internalRecipientKeyData = (await cryptoFacadeTmp.encryptBucketKeyForInternalRecipient(
 			senderUserGroup._id,
@@ -756,7 +756,7 @@ o.spec("CryptoFacadeTest", function () {
 		)
 		when(pqFacadeMock.encapsulate(anything(), anything(), pqKeyPairsToPublicKeys(recipientKeyPairs), bitArrayToUint8Array(bk))).thenResolve(pqMessage)
 		when(entityClient.load(GroupTypeRef, senderUserGroup._id)).thenResolve(senderUserGroup)
-		when(userFacade.getGroupKey(senderUserGroup._id)).thenReturn({ object: senderGroupKey, version: 0 })
+		when(userFacade.getCurrentGroupKey(senderUserGroup._id)).thenReturn({ object: senderGroupKey, version: 0 })
 		when(userFacade.getUserGroupKey()).thenReturn({ object: senderGroupKey, version: 0 })
 
 		const internalRecipientKeyData = (await cryptoFacadeTmp.encryptBucketKeyForInternalRecipient(
@@ -863,7 +863,7 @@ o.spec("CryptoFacadeTest", function () {
 			}),
 		)
 		when(entityClient.load(GroupTypeRef, senderUserGroup._id)).thenResolve(senderUserGroup)
-		when(userFacade.getGroupKey(senderUserGroup._id)).thenReturn({ object: senderGroupKey, version: 0 })
+		when(userFacade.getCurrentGroupKey(senderUserGroup._id)).thenReturn({ object: senderGroupKey, version: 0 })
 
 		const internalRecipientKeyData = (await cryptoFacadeTmp.encryptBucketKeyForInternalRecipient(
 			senderUserGroup._id,
@@ -1438,7 +1438,7 @@ o.spec("CryptoFacadeTest", function () {
 		const gk = aes256RandomKey()
 		const sk = aes256RandomKey()
 		const ownerGroup = "mailGroupId"
-		when(userFacade.getGroupKey(ownerGroup)).thenReturn({ object: gk, version: 0 })
+		when(userFacade.getCurrentGroupKey(ownerGroup)).thenReturn({ object: gk, version: 0 })
 		when(userFacade.hasGroup(ownerGroup)).thenReturn(true)
 		when(userFacade.isFullyLoggedIn()).thenReturn(true)
 
@@ -1930,8 +1930,8 @@ export function createTestUser(name: string, entityClient: EntityClient): TestUs
  */
 export function configureLoggedInUser(testUser: TestUser, userFacade: UserFacade, keyLoaderFacade: KeyLoaderFacade) {
 	when(userFacade.getLoggedInUser()).thenReturn(testUser.user)
-	when(userFacade.getGroupKey(testUser.mailGroup._id)).thenReturn({ object: testUser.mailGroupKey, version: 0 })
-	when(userFacade.getGroupKey(testUser.userGroup._id)).thenReturn({ object: testUser.userGroupKey, version: 0 })
+	when(userFacade.getCurrentGroupKey(testUser.mailGroup._id)).thenReturn({ object: testUser.mailGroupKey, version: 0 })
+	when(userFacade.getCurrentGroupKey(testUser.userGroup._id)).thenReturn({ object: testUser.userGroupKey, version: 0 })
 	when(userFacade.hasGroup(testUser.userGroup._id)).thenReturn(true)
 	when(userFacade.hasGroup(testUser.mailGroup._id)).thenReturn(true)
 	when(userFacade.getUserGroupKey()).thenReturn({ object: testUser.userGroupKey, version: 0 })

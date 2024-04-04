@@ -9,7 +9,7 @@ import {
 import { assertThrows } from "@tutao/tutanota-test-utils"
 import { SetupMultipleError } from "../../../../../src/api/common/error/SetupMultipleError.js"
 import { HttpMethod, MediaType, resolveTypeReference } from "../../../../../src/api/common/EntityFunctions.js"
-import { CustomerTypeRef } from "../../../../../src/api/entities/sys/TypeRefs.js"
+import { CustomerServerPropertiesTypeRef, CustomerTypeRef } from "../../../../../src/api/entities/sys/TypeRefs.js"
 import { doBlobRequestWithRetry, EntityRestClient, tryServers, typeRefToPath } from "../../../../../src/api/worker/rest/EntityRestClient.js"
 import { RestClient } from "../../../../../src/api/worker/rest/RestClient.js"
 import type { CryptoFacade } from "../../../../../src/api/worker/crypto/CryptoFacade.js"
@@ -175,18 +175,18 @@ o.spec("EntityRestClient", function () {
 					responseType: MediaType.Json,
 					queryParams: undefined,
 				}),
-			).thenResolve(JSON.stringify({ instance: "calendar" }))
+			).thenResolve(JSON.stringify({ _ownerEncSessionKey: "some key" }))
 
 			const ownerKey = [1, 2, 3]
 			const sessionKey = [3, 2, 1]
 			when(cryptoFacadeMock.resolveSessionKeyWithOwnerKey(anything(), ownerKey)).thenReturn(sessionKey)
 
-			const result = await entityRestClient.load(CalendarEventTypeRef, [calendarListId, id1], undefined, undefined, ownerKey)
+			const result = await entityRestClient.load(CalendarEventTypeRef, [calendarListId, id1], undefined, undefined, async (_) => ownerKey)
 
 			const typeModel = await resolveTypeReference(CalendarEventTypeRef)
 			verify(instanceMapperMock.decryptAndMapToInstance(typeModel, anything(), sessionKey))
 			verify(cryptoFacadeMock.resolveSessionKey(anything(), anything()), { times: 0 })
-			o(result as any).deepEquals({ instance: "calendar", decrypted: true, migrated: true, migratedForInstance: true })
+			o(result as any).deepEquals({ _ownerEncSessionKey: "some key", decrypted: true, migrated: true, migratedForInstance: true })
 		})
 	})
 
@@ -521,17 +521,19 @@ o.spec("EntityRestClient", function () {
 		})
 
 		o("when ownerKey is passed it is used instead for session key resolution", async function () {
-			const typeModel = await resolveTypeReference(CustomerTypeRef)
+			const typeModel = await resolveTypeReference(CustomerServerPropertiesTypeRef)
 			const v = typeModel.version
-			const newCustomer = createTestEntity(CustomerTypeRef)
+			const newCustomerServerProperties = createTestEntity(CustomerServerPropertiesTypeRef, {
+				_ownerEncSessionKey: new Uint8Array([4, 5, 6]),
+			})
 			const resultId = "id"
 			when(
-				restClient.request(`/rest/sys/customer`, HttpMethod.POST, {
+				restClient.request(`/rest/sys/customerserverproperties`, HttpMethod.POST, {
 					baseUrl: undefined,
 					headers: { ...authHeader, v },
 					queryParams: undefined,
 					responseType: MediaType.Json,
-					body: JSON.stringify({ ...newCustomer, encrypted: true }),
+					body: JSON.stringify({ ...newCustomerServerProperties, encrypted: true }),
 				}),
 				{ times: 1 },
 			).thenResolve(JSON.stringify({ generatedId: resultId }))
@@ -540,7 +542,7 @@ o.spec("EntityRestClient", function () {
 			const sessionKey = [3, 2, 1]
 			when(cryptoFacadeMock.setNewOwnerEncSessionKey(typeModel, anything(), ownerKey)).thenReturn(sessionKey)
 
-			const result = await entityRestClient.setup(null, newCustomer, undefined, { ownerKey })
+			const result = await entityRestClient.setup(null, newCustomerServerProperties, undefined, { ownerKey })
 
 			verify(instanceMapperMock.encryptAndMapToLiteral(anything(), anything(), sessionKey))
 			verify(cryptoFacadeMock.resolveSessionKey(anything(), anything()), { times: 0 })
@@ -811,15 +813,16 @@ o.spec("EntityRestClient", function () {
 		})
 
 		o("when ownerKey is passed it is used instead for session key resolution", async function () {
-			const typeModel = await resolveTypeReference(CustomerTypeRef)
+			const typeModel = await resolveTypeReference(CustomerServerPropertiesTypeRef)
 			const version = typeModel.version
-			const newCustomer = createTestEntity(CustomerTypeRef, {
+			const newCustomerServerProperties = createTestEntity(CustomerServerPropertiesTypeRef, {
 				_id: "id",
+				_ownerEncSessionKey: new Uint8Array([4, 5, 6]),
 			})
 			when(
-				restClient.request("/rest/sys/customer/id", HttpMethod.PUT, {
+				restClient.request("/rest/sys/customerserverproperties/id", HttpMethod.PUT, {
 					headers: { ...authHeader, v: version },
-					body: JSON.stringify({ ...newCustomer, encrypted: true }),
+					body: JSON.stringify({ ...newCustomerServerProperties, encrypted: true }),
 				}),
 			)
 
@@ -827,7 +830,7 @@ o.spec("EntityRestClient", function () {
 			const sessionKey = [3, 2, 1]
 			when(cryptoFacadeMock.resolveSessionKeyWithOwnerKey(anything(), ownerKey.object)).thenReturn(sessionKey)
 
-			await entityRestClient.update(newCustomer, ownerKey)
+			await entityRestClient.update(newCustomerServerProperties, ownerKey)
 
 			verify(instanceMapperMock.encryptAndMapToLiteral(anything(), anything(), sessionKey))
 			verify(cryptoFacadeMock.resolveSessionKey(anything(), anything()), { times: 0 })

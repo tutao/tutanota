@@ -1,4 +1,4 @@
-import type { EntityRestInterface, OwnerEncSessionKeyProvider } from "../worker/rest/EntityRestClient"
+import type { EntityRestInterface, OwnerEncSessionKeyProvider, OwnerKeyProvider } from "../worker/rest/EntityRestClient"
 import { EntityRestClientSetupOptions } from "../worker/rest/EntityRestClient"
 import type { RootInstance } from "../entities/sys/TypeRefs.js"
 import { RootInstanceTypeRef } from "../entities/sys/TypeRefs.js"
@@ -26,7 +26,7 @@ export class EntityClient {
 		this._target = target
 	}
 
-	load<T extends SomeEntity>(typeRef: TypeRef<T>, id: PropertyType<T, "_id">, query?: Dict, extraHeaders?: Dict, ownerKey?: Aes128Key): Promise<T> {
+	load<T extends SomeEntity>(typeRef: TypeRef<T>, id: PropertyType<T, "_id">, query?: Dict, extraHeaders?: Dict, ownerKey?: OwnerKeyProvider): Promise<T> {
 		return this._target.load(typeRef, id, query, extraHeaders, ownerKey)
 	}
 

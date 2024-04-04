@@ -12,7 +12,7 @@ export class KeyLoaderFacade {
 	constructor(private readonly userFacade: UserFacade, private readonly entityClient: EntityClient) {}
 
 	async loadSymGroupKey(groupId: Id, version: number, currentGroupKey?: VersionedKey): Promise<AesKey> {
-		const groupKey = currentGroupKey ?? this.userFacade.getGroupKey(groupId)
+		const groupKey = currentGroupKey ?? this.userFacade.getCurrentGroupKey(groupId)
 
 		if (groupKey.version === version) {
 			return groupKey.object
@@ -33,7 +33,7 @@ export class KeyLoaderFacade {
 
 	async loadKeypair(keyPairGroupId: Id, groupKeyVersion: number): Promise<AsymmetricKeyPair> {
 		const group = await this.entityClient.load(GroupTypeRef, keyPairGroupId)
-		const groupKey = this.userFacade.getGroupKey(group._id)
+		const groupKey = this.userFacade.getCurrentGroupKey(group._id)
 
 		if (groupKey.version === groupKeyVersion) {
 			return this.getAndDecryptKeyPair(group, groupKey.object)
@@ -57,7 +57,7 @@ export class KeyLoaderFacade {
 
 	async loadCurrentKeyPair(groupId: Id): Promise<Versioned<RsaKeyPair | RsaEccKeyPair | PQKeyPairs>> {
 		const group = await this.entityClient.load(GroupTypeRef, groupId)
-		const groupKey = this.userFacade.getGroupKey(group._id)
+		const groupKey = this.userFacade.getCurrentGroupKey(group._id)
 
 		const result = this.getAndDecryptKeyPair(group, groupKey.object)
 		if (isPqKeyPairs(result)) {

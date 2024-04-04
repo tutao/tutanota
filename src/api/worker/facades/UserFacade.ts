@@ -106,9 +106,10 @@ export class UserFacade implements AuthDataProvider {
 		return userGroupKey
 	}
 
-	getGroupKey(groupId: Id): VersionedKey {
+	getCurrentGroupKey(groupId: Id): VersionedKey {
 		return getFromMap(this.currentGroupKeys, groupId, () => {
 			const groupMembership = this.getMembership(groupId)
+			// TODO make sure we have the right user group version
 			return {
 				version: Number(groupMembership.groupKeyVersion),
 				object: decryptKey(this.getUserGroupKey().object, groupMembership.symEncGKey),

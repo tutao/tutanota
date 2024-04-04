@@ -55,8 +55,8 @@ export class GroupManagementFacade {
 			adminGroupIds = this.user.getGroupIds(GroupType.LocalAdmin)
 		}
 
-		let adminGroupKey = this.user.getGroupKey(adminGroupIds[0])
-		let customerGroupKey = this.user.getGroupKey(this.user.getGroupId(GroupType.Customer))
+		let adminGroupKey = this.user.getCurrentGroupKey(adminGroupIds[0])
+		let customerGroupKey = this.user.getCurrentGroupKey(this.user.getGroupId(GroupType.Customer))
 		let mailGroupKey = freshVersioned(aes256RandomKey())
 
 		let mailGroupInfoSessionKey = aes256RandomKey()
@@ -99,11 +99,11 @@ export class GroupManagementFacade {
 
 			if (this.user.getAllGroupIds().indexOf(adminGroupId) !== -1) {
 				// getGroupKey throws an error if user is not member of that group - so check first
-				adminGroupKey = this.user.getGroupKey(adminGroupId)
+				adminGroupKey = this.user.getCurrentGroupKey(adminGroupId)
 			}
 
 			const customerGroupId = this.user.getGroupId(GroupType.Customer)
-			const customerGroupKey = this.user.getGroupKey(customerGroupId)
+			const customerGroupKey = this.user.getCurrentGroupKey(customerGroupId)
 			const userGroupKey = this.user.getUserGroupKey()
 			const groupKey = freshVersioned(aes256RandomKey())
 
@@ -201,8 +201,8 @@ export class GroupManagementFacade {
 	}
 
 	async addUserToGroup(user: User, groupId: Id): Promise<void> {
-		const userGroupKey = await this.getGroupKeyViaAdminEncGKey(user.userGroup.group)
-		const groupKey = await this.getGroupKeyViaAdminEncGKey(groupId)
+		const userGroupKey = await this.getCurrentGroupKeyViaAdminEncGKey(user.userGroup.group)
+		const groupKey = await this.getCurrentGroupKeyViaAdminEncGKey(groupId)
 		const symEncGKey = encryptKeyWithVersionedKey(userGroupKey, groupKey.object)
 		const data = createMembershipAddData({
 			user: user._id,
@@ -237,24 +237,40 @@ export class GroupManagementFacade {
 		}
 	}
 
+	async getGroupKeyViaUser(groupId: Id, version: number, viaUser: Id): Promise<AesKey> {
+		const currentGroupKey = await this.getCurrentGroupKeyViaUser(groupId, viaUser)
+		return this.keyLoaderFacade.loadSymGroupKey(groupId, version, currentGroupKey)
+	}
+
 	/**
 	 * Get a group key for any group we are admin and know some member of.
 	 *
-	 * Unlike {@link getGroupKeyViaAdminEncGKey} this should work for any group because we will actually go a "long" route of decrypting userGroupKey of the
+	 * Unlike {@link getCurrentGroupKeyViaAdminEncGKey} this should work for any group because we will actually go a "long" route of decrypting userGroupKey of the
 	 * member and decrypting group key with that.
 	 */
-	async getGroupKeyViaUser(groupId: Id, viaUser: Id): Promise<VersionedKey> {
+	async getCurrentGroupKeyViaUser(groupId: Id, viaUser: Id): Promise<VersionedKey> {
 		const user = await this.entityClient.load(UserTypeRef, viaUser)
-		const userGroupKey = await this.getGroupKeyViaAdminEncGKey(user.userGroup.group)
 		const membership = user.memberships.find((m) => m.group === groupId)
 		if (membership == null) {
 			throw new Error(`User doesn't have this group membership! User: ${viaUser} groupId: ${groupId}`)
 		}
+		const requiredUserGroupKeyVersion = membership.symKeyVersion
+		const requiredUserGroupKey = await this.getGroupKeyViaAdminEncGKey(user.userGroup.group, Number(requiredUserGroupKeyVersion))
 
-		const key = decryptKey(userGroupKey.object, membership.symEncGKey)
+		const key = decryptKey(requiredUserGroupKey, membership.symEncGKey)
 		const version = Number(membership.groupKeyVersion)
 
 		return { object: key, version }
+	}
+
+	async getGroupKeyViaAdminEncGKey(groupId: Id, version: number): Promise<AesKey> {
+		if (this.user.hasGroup(groupId)) {
+			// e.g. I am a global admin and want to add another user to the global admin group
+			return this.keyLoaderFacade.loadSymGroupKey(groupId, version)
+		} else {
+			const currentGroupKey = await this.getCurrentGroupKeyViaAdminEncGKey(groupId)
+			return this.keyLoaderFacade.loadSymGroupKey(groupId, version, currentGroupKey)
+		}
 	}
 
 	/**
@@ -263,41 +279,23 @@ export class GroupManagementFacade {
 	 * Some groups (e.g. user groups or shared mailboxes) have adminGroupEncGKey set on creation. For those groups we can fairly easily get a group key without
 	 * decrypting userGroupKey of some member of that group.
 	 */
-	async getGroupKeyViaAdminEncGKey(groupId: Id): Promise<VersionedKey> {
+	async getCurrentGroupKeyViaAdminEncGKey(groupId: Id): Promise<VersionedKey> {
 		if (this.user.hasGroup(groupId)) {
 			// e.g. I am a global admin and want to add another user to the global admin group
-			return this.user.getGroupKey(groupId)
+			return this.user.getCurrentGroupKey(groupId)
 		} else {
 			const group = await this.entityClient.load(GroupTypeRef, groupId)
 			if (group.adminGroupEncGKey == null || group.adminGroupEncGKey.length === 0) {
 				throw new ProgrammingError("Group doesn't have adminGroupEncGKey, you can't get group key this way")
 			}
-			let adminGroupKey: VersionedKey
-			if (group.admin && this.user.hasGroup(group.admin)) {
-				// e.g. I am a member of the group that administrates group G and want to add a new member to G
-				const version = Number(group.adminGroupKeyVersion)
-				adminGroupKey = {
-					object: await this.keyLoaderFacade.loadSymGroupKey(assertNotNull(group.admin), version),
-					version,
-				}
-			} else {
-				// e.g. I am a global admin but group G is administrated by a local admin group and want to add a new member to G
-				const globalAdminGroupId = this.user.getGroupId(GroupType.Admin)
-				const localAdminGroup = await this.entityClient.load(GroupTypeRef, assertNotNull(group.admin))
-				const version = Number(localAdminGroup.adminGroupKeyVersion)
-				const globalAdminGroupKey = await this.keyLoaderFacade.loadSymGroupKey(globalAdminGroupId, version)
-
-				if (localAdminGroup.admin === globalAdminGroupId) {
-					adminGroupKey = {
-						object: decryptKey(globalAdminGroupKey, assertNotNull(localAdminGroup.adminGroupEncGKey)),
-						version,
-					}
-				} else {
-					throw new Error(`local admin group ${localAdminGroup._id} is not administrated by global admin group ${globalAdminGroupId}`)
-				}
+			if (!(group.admin && this.user.hasGroup(group.admin))) {
+				throw new Error(`The user is not a member of the admin group ${group.admin} when trying to get the group key for group ${groupId}`)
 			}
 
-			const decryptedKey = decryptKey(adminGroupKey.object, assertNotNull(group.adminGroupEncGKey))
+			// e.g. I am a member of the group that administrates group G and want to add a new member to G
+			const version = Number(group.adminGroupKeyVersion ?? 0)
+			const requiredAdminGroupKey = await this.keyLoaderFacade.loadSymGroupKey(assertNotNull(group.admin), version)
+			const decryptedKey = decryptKey(requiredAdminGroupKey, assertNotNull(group.adminGroupEncGKey))
 			return { object: decryptedKey, version: Number(group.groupKeyVersion) }
 		}
 	}

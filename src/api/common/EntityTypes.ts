@@ -53,16 +53,19 @@ export interface Entity {
 
 export interface ElementEntity extends Entity, Element {
 	_ownerEncSessionKey?: null | Uint8Array
+	_ownerKeyVersion?: null | NumberString
 	_ownerGroup: null | Id
 }
 
 export interface ListElementEntity extends Entity, ListElement {
 	_ownerEncSessionKey?: null | Uint8Array
+	_ownerKeyVersion?: null | NumberString
 	_ownerGroup: null | Id
 }
 
 export interface BlobElementEntity extends Entity, BlobElement {
 	_ownerEncSessionKey?: null | Uint8Array
+	_ownerKeyVersion?: null | NumberString
 	_ownerGroup: null | Id
 }
 

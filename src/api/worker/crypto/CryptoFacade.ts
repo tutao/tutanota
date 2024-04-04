@@ -251,7 +251,7 @@ export class CryptoFacade {
 	 * @param data
 	 * @return the unmapped and still encrypted instance
 	 */
-	async applyMigrations<T extends SomeEntity>(typeRef: TypeRef<T>, data: Record<string, any>): Promise<any> {
+	async applyMigrations<T extends SomeEntity>(typeRef: TypeRef<T>, data: Record<string, any>): Promise<Record<string, any>> {
 		if (isSameTypeRef(typeRef, GroupInfoTypeRef) && data._ownerGroup == null) {
 			return this.applyCustomerGroupOwnershipToGroupInfo(data)
 		} else if (isSameTypeRef(typeRef, TutanotaPropertiesTypeRef) && data._ownerEncSessionKey == null) {
@@ -325,7 +325,7 @@ export class CryptoFacade {
 
 		// for symmetrically encrypted instances _ownerEncSessionKey is sent from the server.
 		// in this case it is not yet and we need to set it because the rest of the app expects it.
-		const groupKey = this.userFacade.getGroupKey(instance._ownerGroup) // get current key for encrypting
+		const groupKey = this.userFacade.getCurrentGroupKey(instance._ownerGroup) // get current key for encrypting
 		this.setOwnerEncSessionKeyUnmapped(
 			instance as UnmappedOwnerGroupInstance,
 			encryptKeyWithVersionedKey(groupKey, resolvedSessionKeys.resolvedSessionKeyForInstance),
@@ -391,7 +391,7 @@ export class CryptoFacade {
 		}
 	}
 
-	private async addSessionKeyToPushIdentifier(data: any): Promise<any> {
+	private async addSessionKeyToPushIdentifier(data: Record<string, any>): Promise<Record<string, any>> {
 		const userGroupKey = this.userFacade.getUserGroupKey()
 
 		// set sessionKey for allowing encryption when old instance (< v43) is updated
@@ -400,12 +400,12 @@ export class CryptoFacade {
 		return data
 	}
 
-	private async encryptTutanotaProperties(data: any): Promise<any> {
+	private async encryptTutanotaProperties(data: Record<string, any>): Promise<Record<string, any>> {
 		const userGroupKey = this.userFacade.getUserGroupKey()
 
 		// EncryptTutanotaPropertiesService could be removed and replaced with a Migration that writes the key
 		const groupEncSessionKey = encryptKeyWithVersionedKey(userGroupKey, aes256RandomKey())
-		this.setOwnerEncSessionKeyUnmapped(data, groupEncSessionKey, this.userFacade.getUserGroupId())
+		this.setOwnerEncSessionKeyUnmapped(data as UnmappedOwnerGroupInstance, groupEncSessionKey, this.userFacade.getUserGroupId())
 		const migrationData = createEncryptTutanotaPropertiesData({
 			properties: data._id,
 			symKeyVersion: String(groupEncSessionKey.encryptingKeyVersion),
@@ -415,7 +415,7 @@ export class CryptoFacade {
 		return data
 	}
 
-	private async applyCustomerGroupOwnershipToGroupInfo(data: any): Promise<any> {
+	private async applyCustomerGroupOwnershipToGroupInfo(data: Record<string, any>): Promise<Record<string, any>> {
 		const customerGroupMembership = assertNotNull(
 			this.userFacade.getLoggedInUser().memberships.find((g: GroupMembership) => g.groupType === GroupType.Customer),
 		)
@@ -429,7 +429,11 @@ export class CryptoFacade {
 		const listKey = decryptKey(customerGroupKey, assertNotNull(customerGroupPermission.symEncSessionKey))
 		const groupInfoSk = decryptKey(listKey, base64ToUint8Array(data._listEncSessionKey))
 
-		this.setOwnerEncSessionKeyUnmapped(data, encryptKeyWithVersionedKey(versionedCustomerGroupKey, groupInfoSk), customerGroupMembership.group)
+		this.setOwnerEncSessionKeyUnmapped(
+			data as UnmappedOwnerGroupInstance,
+			encryptKeyWithVersionedKey(versionedCustomerGroupKey, groupInfoSk),
+			customerGroupMembership.group,
+		)
 		return data
 	}
 
@@ -486,7 +490,7 @@ export class CryptoFacade {
 		let resolvedSessionKeyForInstance: AesKey | undefined = undefined
 		const instanceSessionKeys = await promiseMap(bucketKey.bucketEncSessionKeys, async (instanceSessionKey) => {
 			const decryptedSessionKey = decryptKey(decBucketKey, instanceSessionKey.symEncSessionKey)
-			const groupKey = this.userFacade.getGroupKey(instance._ownerGroup)
+			const groupKey = this.userFacade.getCurrentGroupKey(instance._ownerGroup)
 			const ownerEncSessionKey = encryptKey(groupKey.object, decryptedSessionKey)
 			const instanceSessionKeyWithOwnerEncSessionKey = createInstanceSessionKey(instanceSessionKey)
 			if (instanceElementId == instanceSessionKey.instanceId) {
@@ -661,7 +665,7 @@ export class CryptoFacade {
 
 		if (bucketPermission._ownerGroup) {
 			// is not defined for some old AccountingInfos
-			let bucketPermissionOwnerGroupKey = this.userFacade.getGroupKey(neverNull(bucketPermission._ownerGroup)) // get current key for encrypting
+			let bucketPermissionOwnerGroupKey = this.userFacade.getCurrentGroupKey(neverNull(bucketPermission._ownerGroup)) // get current key for encrypting
 			await this.updateWithSymPermissionKey(typeModel, instance, pubOrExtPermission, bucketPermission, bucketPermissionOwnerGroupKey, sk).catch(
 				ofClass(NotFoundError, () => {
 					console.log("w> could not find instance to update permission")
@@ -756,7 +760,7 @@ export class CryptoFacade {
 			}
 
 			const sessionKey = aes256RandomKey()
-			const effectiveKeyToEncryptSessionKey = keyToEncryptSessionKey ?? this.userFacade.getGroupKey(entity._ownerGroup)
+			const effectiveKeyToEncryptSessionKey = keyToEncryptSessionKey ?? this.userFacade.getCurrentGroupKey(entity._ownerGroup)
 			const encryptedSessionKey = encryptKeyWithVersionedKey(effectiveKeyToEncryptSessionKey, sessionKey)
 			this.setOwnerEncSessionKey(entity as Instance, encryptedSessionKey)
 			return sessionKey
@@ -828,7 +832,7 @@ export class CryptoFacade {
 
 	private createSymEncInternalRecipientKeyData(recipientMailAddress: string, bucketKey: AesKey) {
 		const keyGroup = this.userFacade.getGroupId(GroupType.Mail)
-		const externalMailGroupKey = this.userFacade.getGroupKey(keyGroup)
+		const externalMailGroupKey = this.userFacade.getCurrentGroupKey(keyGroup)
 		return createSymEncInternalRecipientKeyData({
 			mailAddress: recipientMailAddress,
 			symEncBucketKey: encryptKey(externalMailGroupKey.object, bucketKey),
@@ -852,7 +856,7 @@ export class CryptoFacade {
 		} else if (isRsaEccKeyPair(senderKeyPair)) {
 			return { publicKey: senderKeyPair.publicEccKey, privateKey: senderKeyPair.privateEccKey }
 		} else if (isRsaOrRsaEccKeyPair(senderKeyPair)) {
-			let userGroupKey = keyGroupId ? this.userFacade.getGroupKey(keyGroupId) : this.userFacade.getUserGroupKey()
+			let userGroupKey = keyGroupId ? this.userFacade.getCurrentGroupKey(keyGroupId) : this.userFacade.getUserGroupKey()
 			const newIdentityKeyPair = generateEccKeyPair()
 			const symEncPrivEccKey = encryptEccKey(userGroupKey.object, newIdentityKeyPair.privateKey)
 			const data = createPublicKeyPutIn({ pubEccKey: newIdentityKeyPair.publicKey, symEncPrivEccKey, keyGroup: keyGroupId })

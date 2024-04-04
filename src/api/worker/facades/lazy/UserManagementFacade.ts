@@ -62,7 +62,7 @@ export class UserManagementFacade {
 	) {}
 
 	async changeUserPassword(user: User, newPassword: string): Promise<void> {
-		const userGroupKey = await this.groupManagement.getGroupKeyViaAdminEncGKey(user.userGroup.group)
+		const userGroupKey = await this.groupManagement.getCurrentGroupKeyViaAdminEncGKey(user.userGroup.group)
 		const salt = generateRandomSalt()
 		const kdfType = DEFAULT_KDF_TYPE
 		const passwordKey = await this.loginFacade.deriveUserPassphraseKey({ kdfType, passphrase: newPassword, salt })
@@ -80,7 +80,7 @@ export class UserManagementFacade {
 
 	async changeAdminFlag(user: User, admin: boolean): Promise<void> {
 		const adminGroupId = this.userFacade.getGroupId(GroupType.Admin)
-		const adminGroupKey = this.userFacade.getGroupKey(adminGroupId)
+		const adminGroupKey = this.userFacade.getCurrentGroupKey(adminGroupId)
 
 		const userGroup = await this.entityClient.load(GroupTypeRef, user.userGroup.group)
 		const userGroupKey = { object: decryptKey(adminGroupKey.object, neverNull(userGroup.adminGroupEncGKey)), version: Number(userGroup.groupKeyVersion) }
@@ -139,7 +139,7 @@ export class UserManagementFacade {
 		const newAdminGroup = await this.entityClient.load(GroupTypeRef, newAdminGroupId)
 		const group = await this.entityClient.load(GroupTypeRef, groupId)
 		const oldAdminGroup = await this.entityClient.load(GroupTypeRef, neverNull(group.admin))
-		const adminGroupKey = this.userFacade.getGroupKey(adminGroupId)
+		const adminGroupKey = this.userFacade.getCurrentGroupKey(adminGroupId)
 
 		let groupKey
 		if (oldAdminGroup._id === adminGroupId) {
@@ -213,9 +213,9 @@ export class UserManagementFacade {
 
 		const adminGroupId = adminGroupIds[0]
 
-		const adminGroupKey = this.userFacade.getGroupKey(adminGroupId)
+		const adminGroupKey = this.userFacade.getCurrentGroupKey(adminGroupId)
 
-		const customerGroupKey = this.userFacade.getGroupKey(this.userFacade.getGroupId(GroupType.Customer))
+		const customerGroupKey = this.userFacade.getCurrentGroupKey(this.userFacade.getGroupId(GroupType.Customer))
 
 		const userGroupKey = freshVersioned(aes256RandomKey())
 		const userGroupInfoSessionKey = aes256RandomKey()

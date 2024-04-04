@@ -178,7 +178,7 @@ export class MailFacade {
 	) {}
 
 	async createMailFolder(name: string, parent: IdTuple | null, ownerGroupId: Id): Promise<void> {
-		const mailGroupKey = this.userFacade.getGroupKey(ownerGroupId)
+		const mailGroupKey = this.userFacade.getCurrentGroupKey(ownerGroupId)
 
 		const sk = aes256RandomKey()
 		const ownerEncSessionKey = encryptKeyWithVersionedKey(mailGroupKey, sk)
@@ -251,7 +251,7 @@ export class MailFacade {
 
 		const userGroupKey = this.userFacade.getUserGroupKey()
 
-		const mailGroupKey = this.userFacade.getGroupKey(senderMailGroupId)
+		const mailGroupKey = this.userFacade.getCurrentGroupKey(senderMailGroupId)
 
 		const sk = aes256RandomKey()
 		const ownerEncSessionKey = encryptKeyWithVersionedKey(mailGroupKey, sk)
@@ -312,7 +312,7 @@ export class MailFacade {
 
 		const senderMailGroupId = await this._getMailGroupIdForMailAddress(this.userFacade.getLoggedInUser(), senderMailAddress)
 
-		const mailGroupKey = this.userFacade.getGroupKey(senderMailGroupId)
+		const mailGroupKey = this.userFacade.getCurrentGroupKey(senderMailGroupId)
 		const currentAttachments = await this.getAttachmentIds(draft)
 		const replyTos = await this.getReplyTos(draft)
 
@@ -822,7 +822,7 @@ export class MailFacade {
 	}
 
 	private async createExternalUser(cleanedMailAddress: string, externalUserPwKey: AesKey, userGroupKey: VersionedKey, verifier: Uint8Array) {
-		const internalMailGroupKey = this.userFacade.getGroupKey(this.userFacade.getGroupId(GroupType.Mail))
+		const internalMailGroupKey = this.userFacade.getCurrentGroupKey(this.userFacade.getGroupId(GroupType.Mail))
 
 		const externalUserGroupKey = freshVersioned(aes256RandomKey())
 		const externalMailGroupKey = freshVersioned(aes256RandomKey())

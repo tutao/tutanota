@@ -136,21 +136,26 @@ export class MailAddressFacade {
 	}
 
 	private async getOrCreateMailboxProperties(mailGroupId: Id, viaUser?: Id): Promise<MailboxProperties> {
-		const groupKey = viaUser
-			? await this.groupManagement.getGroupKeyViaUser(mailGroupId, viaUser)
-			: await this.groupManagement.getGroupKeyViaAdminEncGKey(mailGroupId)
-
-		// Using non-caching entityClient because we are not a member of the user's mail group and we won't receive updates for it
+		// Using non-caching entityClient because we are not a member of the user's mail group, and we won't receive updates for it
 		const mailboxGroupRoot = await this.nonCachingEntityClient.load(MailboxGroupRootTypeRef, mailGroupId)
+
 		if (mailboxGroupRoot.mailboxProperties == null) {
-			mailboxGroupRoot.mailboxProperties = await this.createMailboxProperties(mailboxGroupRoot, groupKey)
+			const currentGroupKey = viaUser
+				? await this.groupManagement.getCurrentGroupKeyViaUser(mailGroupId, viaUser)
+				: await this.groupManagement.getCurrentGroupKeyViaAdminEncGKey(mailGroupId)
+			mailboxGroupRoot.mailboxProperties = await this.createMailboxProperties(mailboxGroupRoot, currentGroupKey)
 		}
+
+		const groupKeyProvider = async (version: number) =>
+			viaUser
+				? await this.groupManagement.getGroupKeyViaUser(mailGroupId, version, viaUser)
+				: await this.groupManagement.getGroupKeyViaAdminEncGKey(mailGroupId, version)
 		const mailboxProperties = await this.nonCachingEntityClient.load(
 			MailboxPropertiesTypeRef,
 			mailboxGroupRoot.mailboxProperties,
 			undefined,
 			undefined,
-			groupKey.object, // TODO might be the wrong version
+			groupKeyProvider,
 		)
 
 		return mailboxProperties.mailAddressProperties.length === 0 ? this.mailboxPropertiesWithLegacySenderName(mailboxProperties, viaUser) : mailboxProperties
@@ -209,11 +214,15 @@ export class MailAddressFacade {
 
 	private async updateMailboxProperties(mailboxProperties: MailboxProperties, viaUser?: Id): Promise<MailboxProperties> {
 		const groupKey = viaUser
-			? await this.groupManagement.getGroupKeyViaUser(assertNotNull(mailboxProperties._ownerGroup), viaUser)
-			: await this.groupManagement.getGroupKeyViaAdminEncGKey(assertNotNull(mailboxProperties._ownerGroup))
+			? await this.groupManagement.getCurrentGroupKeyViaUser(assertNotNull(mailboxProperties._ownerGroup), viaUser)
+			: await this.groupManagement.getCurrentGroupKeyViaAdminEncGKey(assertNotNull(mailboxProperties._ownerGroup))
 		await this.nonCachingEntityClient.update(mailboxProperties, groupKey)
-		// TODO handle groupkey version correctly
-		return await this.nonCachingEntityClient.load(MailboxPropertiesTypeRef, mailboxProperties._id, undefined, undefined, groupKey.object)
+
+		const groupKeyProvider = async (version: number) =>
+			viaUser
+				? await this.groupManagement.getGroupKeyViaUser(assertNotNull(mailboxProperties._ownerGroup), version, viaUser)
+				: await this.groupManagement.getGroupKeyViaAdminEncGKey(assertNotNull(mailboxProperties._ownerGroup), version)
+		return await this.nonCachingEntityClient.load(MailboxPropertiesTypeRef, mailboxProperties._id, undefined, undefined, groupKeyProvider)
 	}
 
 	private async collectSenderNames(mailboxProperties: MailboxProperties): Promise<Map<string, string>> {

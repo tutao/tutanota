@@ -215,7 +215,7 @@ export class CustomerFacade {
 			// create properties
 			const sessionKey = aes256RandomKey()
 			const adminGroupId = this.userFacade.getGroupId(GroupType.Admin)
-			const adminGroupKey = this.userFacade.getGroupKey(adminGroupId)
+			const adminGroupKey = this.userFacade.getCurrentGroupKey(adminGroupId)
 
 			const groupEncSessionKey = encryptKeyWithVersionedKey(adminGroupKey, sessionKey)
 			const data = createCreateCustomerServerPropertiesData({
