@@ -143,7 +143,9 @@ extension StructuredContact {
 		phoneticMiddle.hash(into: &hash)
 		relationships.hash(into: &hash)
 		websites.hash(into: &hash)
-		notes.hash(into: &hash)
+		// Do not take notes into account for hash as we cannot write them to native contacts anyway.
+		// If we do try to use them for hash we will think that the contact is edited each time.
+		//		notes.hash(into: &hash)
 		title.hash(into: &hash)
 		role.hash(into: &hash)
 		return hash.digest()
