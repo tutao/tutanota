@@ -30,6 +30,8 @@ export function handleProtocols(session: Session, assetDir: string): void {
 		keepAliveTimeout: SOCKET_IDLE_TIMEOUT_MS,
 		bodyTimeout: READ_TIMEOUT_MS,
 		headersTimeout: READ_TIMEOUT_MS,
+		// this is needed to address issues in some cases where IPv6 does not really work
+		autoSelectFamily: true,
 	})
 	const customFetch: typeof fetch = (info: UndiciRequestInfo, requestInit?: UndiciRequestInit) => {
 		return fetch(info, {
