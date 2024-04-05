@@ -19,7 +19,7 @@ export function showAddAliasDialog(model: MailAddressTableModel, isNewPaidPlan: 
 		if (model.aliasCount && filterInt(model.aliasCount.usedAliases) >= filterInt(model.aliasCount.totalAliases)) {
 			const hasCustomDomains = domains.some((domain) => !TUTANOTA_MAIL_ADDRESS_DOMAINS.includes(domain.domain))
 
-			if (isNewPaidPlan || !hasCustomDomains) {
+			if (!(isNewPaidPlan && hasCustomDomains)) {
 				model.handleTooManyAliases().catch(ofClass(UpgradeRequiredError, (e) => showPlanUpgradeRequiredDialog(e.plans, e.message)))
 				return
 			}
