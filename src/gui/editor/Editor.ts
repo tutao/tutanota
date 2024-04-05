@@ -143,22 +143,6 @@ export class Editor implements ImageHandler, Component {
 			m.redraw() // allow richtexttoolbar to redraw elements
 		})
 
-		// Scroll to the cursor if it moves out of view
-		this.squire.addEventListener("cursor", () => {
-			const scrollableContainer = domElement.closest(".scroll") as HTMLElement | null
-			if (scrollableContainer == null) return
-
-			const cursorPosition = this.getCursorPosition()
-
-			// Get whether the cursors edges have exceeded the bounds of the dialog
-			const offsetBottom = scrollableContainer.offsetTop + scrollableContainer.offsetHeight
-			if (cursorPosition.top <= scrollableContainer.offsetTop || cursorPosition.bottom >= offsetBottom) {
-				// Scroll to the cursor minus an arbitrary offset for aesthetic reasons
-				const offset = 10
-				scrollableContainer.scrollTo(cursorPosition.x - offset, cursorPosition.y)
-			}
-		})
-
 		this.domElement = domElement
 		// the _editor might have been disabled before the dom element was there
 		this.setEnabled(this.enabled)
