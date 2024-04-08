@@ -34,6 +34,7 @@ import { MobileContactsFacade } from "../../native/common/generatedipc/MobileCon
 import { ContactSyncResult } from "../../native/common/generatedipc/ContactSyncResult.js"
 import { isIOSApp } from "../../api/common/Env.js"
 import { ContactStoreError } from "../../api/common/error/ContactStoreError.js"
+import { NotFoundError } from "../../api/common/error/RestError.js"
 
 export class NativeContactsSyncManager {
 	private entityUpdateLock: Promise<void> = Promise.resolve()
@@ -226,7 +227,15 @@ export class NativeContactsSyncManager {
 				console.warn("Could not find a server contact for the contact edited on device: ", contact.id)
 			} else {
 				const updatedContact = this.mergeNativeContactWithTutaContact(contact, cleanContact)
-				await this.entityClient.update(updatedContact)
+				try {
+					await this.entityClient.update(updatedContact)
+				} catch (e) {
+					if (e instanceof NotFoundError) {
+						console.warn("Not found contact to update during sync: ", cleanContact._id, e)
+					} else {
+						throw e
+					}
+				}
 			}
 		}
 		for (const deletedContactId of syncResult.deletedOnDevice) {
@@ -234,7 +243,15 @@ export class NativeContactsSyncManager {
 			if (cleanContact == null) {
 				console.warn("Could not find a server contact for the contact deleted on device: ", deletedContactId)
 			} else {
-				await this.entityClient.erase(cleanContact)
+				try {
+					await this.entityClient.erase(cleanContact)
+				} catch (e) {
+					if (e instanceof NotFoundError) {
+						console.warn("Not found contact to delete during sync: ", cleanContact._id, e)
+					} else {
+						throw e
+					}
+				}
 			}
 		}
 
