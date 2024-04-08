@@ -13,7 +13,7 @@ import type { QueuedBatch } from "../../EventQueue.js"
 const VERSION: number = 2
 const DB_KEY_PREFIX: string = "ConfigStorage"
 const ExternalImageListOS: ObjectStoreName = "ExternalAllowListOS"
-export const MetaDataOS: ObjectStoreName = "MetaDataOS"
+export const ConfigurationMetaDataOS: ObjectStoreName = "MetaDataOS"
 type EncryptionMetadata = {
 	readonly key: Aes128Key
 	readonly iv: Uint8Array
@@ -86,7 +86,7 @@ export class ConfigurationDatabase {
 		const id = this.getDbId(user._id)
 		const db = new DbFacade(VERSION, async (event, db, dbFacade) => {
 			if (event.oldVersion === 0) {
-				db.createObjectStore(MetaDataOS)
+				db.createObjectStore(ConfigurationMetaDataOS)
 				db.createObjectStore(ExternalImageListOS, {
 					keyPath: "address",
 				})
@@ -121,7 +121,7 @@ export class ConfigurationDatabase {
 			}
 			const configDb = await this.db.getAsync()
 			if (configDb.db.isSameDbId(this.getDbId(event.instanceId))) {
-				return updateEncryptionMetadata(configDb.db, this.keyLoaderFacade, MetaDataOS)
+				return updateEncryptionMetadata(configDb.db, this.keyLoaderFacade, ConfigurationMetaDataOS)
 			}
 		}
 	}
@@ -148,8 +148,8 @@ async function loadDataWithGivenVersion(
 ): Promise<EncryptionMetadata | null> {
 	const userGroupKey = await keyLoaderFacade.loadSymUserGroupKey(userGroupKeyVersion)
 
-	const encDbKey = await transaction.get(MetaDataOS, Metadata.userEncDbKey)
-	const encDbIv = await transaction.get(MetaDataOS, Metadata.encDbIv)
+	const encDbKey = await transaction.get(ConfigurationMetaDataOS, Metadata.userEncDbKey)
+	const encDbIv = await transaction.get(ConfigurationMetaDataOS, Metadata.encDbIv)
 
 	if (encDbKey == null || encDbIv == null) {
 		return null
@@ -170,8 +170,8 @@ async function loadDataWithGivenVersion(
  */
 export async function loadEncryptionMetadata(db: DbFacade, id: string, keyLoaderFacade: KeyLoaderFacade): Promise<EncryptionMetadata | null> {
 	await db.open(id)
-	const transaction = await db.createTransaction(true, [MetaDataOS])
-	const userGroupKeyVersion = await getMetaDataGroupKeyVersion(transaction, MetaDataOS)
+	const transaction = await db.createTransaction(true, [ConfigurationMetaDataOS])
+	const userGroupKeyVersion = await getMetaDataGroupKeyVersion(transaction, ConfigurationMetaDataOS)
 	return await loadDataWithGivenVersion(keyLoaderFacade, userGroupKeyVersion, transaction)
 }
 
@@ -202,9 +202,9 @@ async function getMetaDataGroupKeyVersion(transaction: DbTransaction, objectStor
 
 async function encryptAndSaveDbKey(userGroupKey: VersionedKey, dbKey: AesKey, dbIv: Uint8Array, transaction: DbTransaction) {
 	const groupEncSessionKey = encryptKeyWithVersionedKey(userGroupKey, dbKey)
-	await transaction.put(MetaDataOS, Metadata.userEncDbKey, groupEncSessionKey.key)
-	await transaction.put(MetaDataOS, Metadata.userGroupKeyVersion, groupEncSessionKey.encryptingKeyVersion)
-	await transaction.put(MetaDataOS, Metadata.encDbIv, aesEncrypt(dbKey, dbIv))
+	await transaction.put(ConfigurationMetaDataOS, Metadata.userEncDbKey, groupEncSessionKey.key)
+	await transaction.put(ConfigurationMetaDataOS, Metadata.userGroupKeyVersion, groupEncSessionKey.encryptingKeyVersion)
+	await transaction.put(ConfigurationMetaDataOS, Metadata.encDbIv, aesEncrypt(dbKey, dbIv))
 }
 
 /**
@@ -217,7 +217,7 @@ export async function initializeDb(db: DbFacade, id: string, keyLoaderFacade: Ke
 	await db.deleteDatabase(id).then(() => db.open(id))
 	const key = aes256RandomKey()
 	const iv = random.generateRandomData(IV_BYTE_LENGTH)
-	const transaction = await db.createTransaction(false, [MetaDataOS, ExternalImageListOS])
+	const transaction = await db.createTransaction(false, [ConfigurationMetaDataOS, ExternalImageListOS])
 	const userGroupKey = keyLoaderFacade.getCurrentUserGroupKey()
 	await encryptAndSaveDbKey(userGroupKey, key, iv, transaction)
 	return {

@@ -1,10 +1,10 @@
 import o from "@tutao/otest"
 import {
 	ConfigurationDatabase,
+	ConfigurationMetaDataOS,
 	encryptItem,
 	initializeDb,
 	loadEncryptionMetadata,
-	MetaDataOS,
 	updateEncryptionMetadata,
 } from "../../../../../src/api/worker/facades/lazy/ConfigurationDatabase.js"
 import { downcast } from "@tutao/tutanota-utils"
@@ -142,7 +142,7 @@ o.spec("ConfigurationDbTest", function () {
 			dbKey = aes256RandomKey()
 			iv = random.generateRandomData(16)
 			encIv = aesEncrypt(dbKey, iv, undefined, true, true)
-			when(transaction.get(MetaDataOS, Metadata.encDbIv)).thenResolve(encIv)
+			when(transaction.get(ConfigurationMetaDataOS, Metadata.encDbIv)).thenResolve(encIv)
 		})
 
 		o("write group key version when initializing", async function () {
@@ -153,7 +153,7 @@ o.spec("ConfigurationDbTest", function () {
 			await initializeDb(dbFacade, "dbId", keyLoaderFacade)
 
 			verify(keyLoaderFacade.getCurrentUserGroupKey())
-			verify(transaction.put(MetaDataOS, Metadata.userGroupKeyVersion, currentUserGroupKey.version))
+			verify(transaction.put(ConfigurationMetaDataOS, Metadata.userGroupKeyVersion, currentUserGroupKey.version))
 		})
 
 		o("read group key version when opening database", async function () {
@@ -161,8 +161,8 @@ o.spec("ConfigurationDbTest", function () {
 			const groupKey = aes256RandomKey()
 
 			const encDBKey = aesEncrypt(groupKey, bitArrayToUint8Array(dbKey), iv, false, true)
-			when(transaction.get(MetaDataOS, Metadata.userGroupKeyVersion)).thenResolve(groupKeyVersion)
-			when(transaction.get(MetaDataOS, Metadata.userEncDbKey)).thenResolve(encDBKey)
+			when(transaction.get(ConfigurationMetaDataOS, Metadata.userGroupKeyVersion)).thenResolve(groupKeyVersion)
+			when(transaction.get(ConfigurationMetaDataOS, Metadata.userEncDbKey)).thenResolve(encDBKey)
 			when(keyLoaderFacade.loadSymUserGroupKey(groupKeyVersion)).thenResolve(groupKey)
 
 			const encryptionMetadata = await loadEncryptionMetadata(dbFacade, "dbId", keyLoaderFacade)
@@ -175,15 +175,15 @@ o.spec("ConfigurationDbTest", function () {
 		o("write group key version when updating database", async function () {
 			const oldGroupKey = { version: currentUserGroupKey.version - 1, object: aes256RandomKey() }
 			when(keyLoaderFacade.loadSymUserGroupKey(oldGroupKey.version)).thenResolve(oldGroupKey.object)
-			when(transaction.get(MetaDataOS, Metadata.userGroupKeyVersion)).thenResolve(oldGroupKey.version)
-			when(transaction.get(MetaDataOS, Metadata.userEncDbKey)).thenResolve(encryptKey(oldGroupKey.object, dbKey))
+			when(transaction.get(ConfigurationMetaDataOS, Metadata.userGroupKeyVersion)).thenResolve(oldGroupKey.version)
+			when(transaction.get(ConfigurationMetaDataOS, Metadata.userEncDbKey)).thenResolve(encryptKey(oldGroupKey.object, dbKey))
 
-			await updateEncryptionMetadata(dbFacade, keyLoaderFacade, MetaDataOS)
+			await updateEncryptionMetadata(dbFacade, keyLoaderFacade, ConfigurationMetaDataOS)
 
 			verify(keyLoaderFacade.getCurrentUserGroupKey())
-			verify(transaction.put(MetaDataOS, Metadata.userGroupKeyVersion, currentUserGroupKey.version))
+			verify(transaction.put(ConfigurationMetaDataOS, Metadata.userGroupKeyVersion, currentUserGroupKey.version))
 			const encDbKeyCaptor = matchers.captor()
-			verify(transaction.put(MetaDataOS, Metadata.userEncDbKey, encDbKeyCaptor.capture()))
+			verify(transaction.put(ConfigurationMetaDataOS, Metadata.userEncDbKey, encDbKeyCaptor.capture()))
 			const capturedDbKey = aesDecrypt(currentUserGroupKey.object, encDbKeyCaptor.value, false)
 			o(capturedDbKey).deepEquals(bitArrayToUint8Array(dbKey))
 		})
@@ -193,8 +193,8 @@ o.spec("ConfigurationDbTest", function () {
 			const groupKey = aes256RandomKey()
 
 			const encDBKey = aesEncrypt(groupKey, bitArrayToUint8Array(dbKey), iv, false, true)
-			when(transaction.get(MetaDataOS, Metadata.userGroupKeyVersion)).thenResolve(undefined)
-			when(transaction.get(MetaDataOS, Metadata.userEncDbKey)).thenResolve(encDBKey)
+			when(transaction.get(ConfigurationMetaDataOS, Metadata.userGroupKeyVersion)).thenResolve(undefined)
+			when(transaction.get(ConfigurationMetaDataOS, Metadata.userEncDbKey)).thenResolve(encDBKey)
 			when(keyLoaderFacade.loadSymUserGroupKey(groupKeyVersion)).thenResolve(groupKey)
 
 			const encryptionMetadata = await loadEncryptionMetadata(dbFacade, "dbId", keyLoaderFacade)
