@@ -59,6 +59,7 @@ class IosMobileContactsFacade: MobileContactsFacade {
 		try self.update(contacts: queryResult.editedOnDevice, forUser: &mapping)
 
 		self.saveMapping(mapping, forUsername: mapping.username)
+		TUTSLog("Contact SAVE finished")
 	}
 
 	func syncContacts(_ username: String, _ contacts: [StructuredContact]) async throws -> ContactSyncResult {
@@ -82,6 +83,7 @@ class IosMobileContactsFacade: MobileContactsFacade {
 		}
 
 		self.saveMapping(mapping, forUsername: mapping.username)
+		TUTSLog("Contact SYNC finished")
 
 		return ContactSyncResult(
 			createdOnDevice: matchResult.createdOnDevice,
@@ -186,7 +188,7 @@ class IosMobileContactsFacade: MobileContactsFacade {
 			}
 		}
 
-		try store.execute(saveRequest)
+		do { try store.execute(saveRequest) } catch { throw ContactStoreError(message: "Could not insert contacts", underlyingError: error) }
 
 		for (nativeContact, structuredContact) in insertedContacts {
 			user.localContactIdentifierToServerId[nativeContact.contact.identifier] = structuredContact.id
@@ -204,7 +206,7 @@ class IosMobileContactsFacade: MobileContactsFacade {
 			user.localContactIdentifierToHash[nativeMutableContact.contact.identifier] = serverContact.stableHash()
 		}
 
-		try store.execute(saveRequest)
+		do { try store.execute(saveRequest) } catch { throw ContactStoreError(message: "Could not update contacts", underlyingError: error) }
 	}
 
 	private func delete(contactsWithServerIDs serverIdsToDelete: [String], forUser user: inout UserContactMapping) throws {
@@ -376,7 +378,7 @@ class IosMobileContactsFacade: MobileContactsFacade {
 		let saveRequest = CNSaveRequest()
 		saveRequest.add(newGroup, toContainerWithIdentifier: localContainer)
 
-		try CNContactStore().execute(saveRequest)
+		do { try CNContactStore().execute(saveRequest) } catch { throw ContactStoreError(message: "Could not create CNGroup", underlyingError: error) }
 
 		return newGroup
 	}

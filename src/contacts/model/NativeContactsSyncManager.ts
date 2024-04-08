@@ -33,6 +33,7 @@ import { PermissionError } from "../../api/common/error/PermissionError.js"
 import { MobileContactsFacade } from "../../native/common/generatedipc/MobileContactsFacade.js"
 import { ContactSyncResult } from "../../native/common/generatedipc/ContactSyncResult.js"
 import { isIOSApp } from "../../api/common/Env.js"
+import { ContactStoreError } from "../../api/common/error/ContactStoreError.js"
 
 export class NativeContactsSyncManager {
 	private entityUpdateLock: Promise<void> = Promise.resolve()
@@ -74,6 +75,7 @@ export class NativeContactsSyncManager {
 				await this.mobilContactsFacade
 					.deleteContacts(loginUsername, event.instanceId)
 					.catch(ofClass(PermissionError, (e) => this.handleNoPermissionError(userId, e)))
+					.catch(ofClass(ContactStoreError, (e) => console.warn("Could not delete contact during sync: ", e)))
 			}
 		}
 
@@ -114,6 +116,7 @@ export class NativeContactsSyncManager {
 			await this.mobilContactsFacade
 				.saveContacts(loginUsername, contactsToInsertOrUpdate)
 				.catch(ofClass(PermissionError, (e) => this.handleNoPermissionError(userId, e)))
+				.catch(ofClass(ContactStoreError, (e) => console.warn("Could not save contacts:", e)))
 		}
 	}
 
@@ -172,6 +175,9 @@ export class NativeContactsSyncManager {
 		} catch (e) {
 			if (e instanceof PermissionError) {
 				this.handleNoPermissionError(userId, e)
+				return false
+			} else if (e instanceof ContactStoreError) {
+				console.warn("Could not sync contacts:", e)
 				return false
 			}
 

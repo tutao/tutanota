@@ -51,6 +51,7 @@ import { FileNotFoundError } from "../error/FileNotFoundError.js"
 import { CredentialAuthenticationError } from "../error/CredentialAuthenticationError.js"
 import { KeyPermanentlyInvalidatedError } from "../error/KeyPermanentlyInvalidatedError.js"
 import { ParserError } from "../../../misc/parsing/ParserCombinator.js"
+import { ContactStoreError } from "../error/ContactStoreError.js"
 
 /**
  * Checks if the given instance has an error in the _errors property which is usually written
@@ -151,6 +152,7 @@ const ErrorNameToType = {
 	"de.tutao.tutanota.webauthn.WebauthnError": WebauthnError,
 	"de.tutao.tutanota.Webauthn": WebauthnError,
 	"de.tutao.tutanota.PermissionError": PermissionError,
+	"de.tutao.ContactStoreError": ContactStoreError,
 }
 
 export function isSecurityError(e: any): boolean {
