@@ -155,7 +155,7 @@ export class ServiceExecutor implements IServiceExecutor {
 		const responseTypeModel = await resolveTypeReference(typeRef)
 		// Filter out __proto__ to avoid prototype pollution.
 		const instance = JSON.parse(data, (k, v) => (k === "__proto__" ? undefined : v))
-		const resolvedSessionKey = await this.cryptoFacade().resolveServiceSessionKey(responseTypeModel, instance)
+		const resolvedSessionKey = await this.cryptoFacade().resolveServiceSessionKey(instance)
 		return this.instanceMapper.decryptAndMapToInstance(responseTypeModel, instance, resolvedSessionKey ?? params?.sessionKey ?? null)
 	}
 }

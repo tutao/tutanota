@@ -106,11 +106,11 @@ import { KeyLoaderFacade } from "../facades/KeyLoaderFacade.js"
 
 assertWorkerOrNode()
 
-export function encryptBytes(sk: Aes128Key, value: Uint8Array): Uint8Array {
+export function encryptBytes(sk: AesKey, value: Uint8Array): Uint8Array {
 	return aesEncrypt(sk, value, random.generateRandomData(IV_BYTE_LENGTH), true, ENABLE_MAC)
 }
 
-export function encryptString(sk: Aes128Key | Aes256Key, value: string): Uint8Array {
+export function encryptString(sk: AesKey, value: string): Uint8Array {
 	return aesEncrypt(sk, stringToUtf8Uint8Array(value), random.generateRandomData(IV_BYTE_LENGTH), true, ENABLE_MAC)
 }
 
@@ -127,8 +127,40 @@ export type PublicKeys = {
 	pubKyberKey: null | Uint8Array
 }
 
+/**
+ * An AesKey (usually a group key) and its version.
+ */
+export type VersionedKey = Versioned<AesKey>
+
+/**
+ * A key that is encrypted with a given version of some other key.
+ */
+export type VersionedEncryptedKey = {
+	encryptingKeyVersion: number // the version of the encryption key NOT the encrypted key
+	key: Uint8Array // encrypted key
+}
+
+/**
+ * Encrypts the key with the encryptingKey and return the encrypted key and the version of the encryptingKey.
+ * @param encryptingKey the encrypting key.
+ * @param key the key to be encrypted.
+ */
+export function encryptKeyWithVersionedKey(encryptingKey: VersionedKey, key: AesKey): VersionedEncryptedKey {
+	return {
+		encryptingKeyVersion: encryptingKey.version,
+		key: encryptKey(encryptingKey.object, key),
+	}
+}
+
+// Unmapped encrypted owner group instance
+type UnmappedOwnerGroupInstance = {
+	_ownerEncSessionKey: string
+	_ownerKeyVersion: NumberString
+	_ownerGroup: Id
+}
+
 type ResolvedSessionKeys = {
-	resolvedSessionKeyForInstance: Aes128Key | Aes256Key
+	resolvedSessionKeyForInstance: AesKey
 	instanceSessionKeys: Array<InstanceSessionKey>
 }
 
@@ -177,7 +209,7 @@ export class CryptoFacade {
 		return decryptedInstance
 	}
 
-	async resolveSessionKeyForInstance(instance: SomeEntity): Promise<Aes128Key | null> {
+	async resolveSessionKeyForInstance(instance: SomeEntity): Promise<AesKey | null> {
 		const typeModel = await resolveTypeReference(instance._type)
 		return this.resolveSessionKey(typeModel, instance)
 	}
@@ -189,7 +221,7 @@ export class CryptoFacade {
 	}
 
 	/** Resolve a session key an {@param instance} using an already known {@param ownerKey}. */
-	resolveSessionKeyWithOwnerKey(instance: Record<string, any>, ownerKey: AesKey): Aes128Key {
+	resolveSessionKeyWithOwnerKey(instance: Record<string, any>, ownerKey: AesKey): AesKey {
 		let key: Uint8Array | string = instance._ownerEncSessionKey
 		if (typeof key === "string") {
 			key = base64ToUint8Array(key)
@@ -348,7 +380,7 @@ export class CryptoFacade {
 	 * @param groupKeyVersion the version of the key from the keyGroup
 	 * @param groupEncBucketKey The group key encrypted bucket key.
 	 */
-	private async resolveWithGroupReference(keyGroup: Id, groupKeyVersion: number, groupEncBucketKey: Uint8Array): Promise<Aes128Key | Aes256Key> {
+	private async resolveWithGroupReference(keyGroup: Id, groupKeyVersion: number, groupEncBucketKey: Uint8Array): Promise<AesKey> {
 		if (this.userFacade.hasGroup(keyGroup)) {
 			// the logged-in user (most likely external) is a member of that group. Then we have the group key from the memberships
 			const groupKey = await this.keyLoaderFacade.loadSymGroupKey(keyGroup, groupKeyVersion)
@@ -502,7 +534,7 @@ export class CryptoFacade {
 					typeModel,
 					encryptionAuthStatus,
 					pqMessageSenderKey,
-					bucketKey.protocolVersion === CryptoProtocolVersion.TUTA_CRYPT ? Number(bucketKey.senderKeyVersion ?? "0") : null,
+					bucketKey.protocolVersion === CryptoProtocolVersion.TUTA_CRYPT ? Number(bucketKey.senderKeyVersion ?? 0) : null,
 					instance,
 					resolvedSessionKeyForInstance,
 					instanceSessionKeyWithOwnerEncSessionKey,
@@ -641,7 +673,7 @@ export class CryptoFacade {
 		instance: Record<string, any>,
 		pubOrExtPermission: Permission,
 		typeModel: TypeModel,
-	): Promise<Aes128Key> {
+	): Promise<AesKey> {
 		const pubEncBucketKey = bucketPermission.pubEncBucketKey
 		if (pubEncBucketKey == null) {
 			throw new SessionKeyNotFoundError(
@@ -679,27 +711,28 @@ export class CryptoFacade {
 	 * Returns the session key for the provided service response:
 	 * * null, if the instance is unencrypted
 	 * * the decrypted _ownerPublicEncSessionKey, if it is available
-	 * @param typeModel
 	 * @param instance The unencrypted (client-side) or encrypted (server-side) instance
 	 *
 	 */
-	async resolveServiceSessionKey(typeModel: TypeModel, instance: Record<string, any>): Promise<Aes128Key | Aes256Key | null> {
+	async resolveServiceSessionKey(instance: Record<string, any>): Promise<Aes256Key | null> {
 		if (instance._ownerPublicEncSessionKey) {
-			const keypair = await this.keyLoaderFacade.loadKeypair(instance._ownerGroup, Number(instance._ownerKeyVersion ?? 0)) // TODO correct version? should we verify that this version is now written correctly
-			return this.decryptPubEncSymKey(
-				base64ToUint8Array(instance._ownerPublicEncSessionKey), // TODO is this field versioned? what about sender AND recipient version?
+			// we assume the server uses the current key pair of the recipient
+			const keypair = await this.keyLoaderFacade.loadCurrentKeyPair(instance._ownerGroup)
+			// we do not authenticate as we could remove data transfer type encryption altogether and only rely on tls
+			return this.unauthenticatedDecryptPubEncSessionKey(
+				base64ToUint8Array(instance._ownerPublicEncSessionKey),
 				assertEnumValue(CryptoProtocolVersion, instance._publicCryptoProtocolVersion),
-				keypair,
+				keypair.object,
 			)
 		}
-		return Promise.resolve(null)
+		return null
 	}
 
-	async encryptPubSymKey(symKey: Aes128Key | Aes256Key, recipientPublicKeys: Versioned<PublicKeys>, senderGroupId: Id): Promise<PubEncSymKey> {
+	async encryptPubSymKey(symKey: AesKey, recipientPublicKeys: Versioned<PublicKeys>, senderGroupId: Id): Promise<PubEncSymKey> {
 		let pubEncSymKey, cryptoProtocolVersion
 		const recipientPublicKey = this.getRecipientPublicKey(recipientPublicKeys.object)
 		const algo = recipientPublicKey.keyPairType
-		let senderKeyVersion: NumberString
+		let senderKeyVersion: NumberString | null
 		if (isPqPublicKey(recipientPublicKey)) {
 			const senderKeyPair = await this.keyLoaderFacade.loadCurrentKeyPair(senderGroupId)
 			const senderEccKeyPair = await this.getOrMakeSenderIdentityKeyPair(senderKeyPair.object, senderGroupId)
@@ -710,32 +743,38 @@ export class CryptoFacade {
 		} else if (isRsaPublicKey(recipientPublicKey)) {
 			pubEncSymKey = await this.rsa.encrypt(recipientPublicKey, bitArrayToUint8Array(symKey))
 			cryptoProtocolVersion = CryptoProtocolVersion.RSA
-			senderKeyVersion = "0"
+			senderKeyVersion = null
 		} else {
 			throw new CryptoError("unknown public key type: " + algo)
 		}
 		return { pubEncSymKey, cryptoProtocolVersion, senderKeyVersion, recipientKeyVersion: String(recipientPublicKeys.version) }
 	}
 
-	async decryptPubEncSymKey(
-		pubEncSymKey: Uint8Array,
+	/**
+	 * Decrypts the pubEncSymKey with the keyPair.
+	 * @param pubEncSessionKey the asymmetrically encrypted session key
+	 * @param cryptoProtocolVersion asymmetric protocol to decrypt pubEncSessionKey (RSA or TutaCrypt)
+	 * @param keyPair the current keyPair
+	 */
+	async unauthenticatedDecryptPubEncSessionKey(
+		pubEncSessionKey: Uint8Array,
 		cryptoProtocolVersion: CryptoProtocolVersion,
 		keyPair: AsymmetricKeyPair,
-	): Promise<Aes128Key | Aes256Key> {
+	): Promise<Aes256Key> {
 		let decryptedBytes: Uint8Array
 		switch (cryptoProtocolVersion) {
 			case CryptoProtocolVersion.RSA: {
 				if (!isRsaOrRsaEccKeyPair(keyPair)) {
 					throw new CryptoError("wrong key type. expecte rsa. got " + keyPair.keyPairType)
 				}
-				decryptedBytes = await this.rsa.decrypt(keyPair.privateKey, pubEncSymKey)
+				decryptedBytes = await this.rsa.decrypt(keyPair.privateKey, pubEncSessionKey)
 				break
 			}
 			case CryptoProtocolVersion.TUTA_CRYPT: {
 				if (!isPqKeyPairs(keyPair)) {
 					throw new CryptoError("wrong key type. expected tuta-crypt. got " + keyPair.keyPairType)
 				}
-				decryptedBytes = await this.pq.decapsulate(decodePQMessage(pubEncSymKey), keyPair)
+				decryptedBytes = await this.pq.decapsulate(decodePQMessage(pubEncSessionKey), keyPair)
 				break
 			}
 			default:
@@ -771,7 +810,7 @@ export class CryptoFacade {
 
 	async encryptBucketKeyForInternalRecipient(
 		senderUserGroupId: Id,
-		bucketKey: Aes128Key | Aes256Key,
+		bucketKey: AesKey,
 		recipientMailAddress: string,
 		notFoundRecipients: Array<string>,
 	): Promise<InternalRecipientKeyData | SymEncInternalRecipientKeyData | null> {
@@ -806,19 +845,14 @@ export class CryptoFacade {
 		}
 	}
 
-	private async createPubEncInternalRecipientKeyData(
-		bucketKey: Aes128Key | Aes256Key,
-		recipientMailAddress: string,
-		publicKeyGetOut: PublicKeyGetOut,
-		senderGroupId: Id,
-	) {
+	private async createPubEncInternalRecipientKeyData(bucketKey: AesKey, recipientMailAddress: string, publicKeyGetOut: PublicKeyGetOut, senderGroupId: Id) {
 		const recipientPublicKeys: Versioned<PublicKeys> = {
 			object: {
 				pubRsaKey: publicKeyGetOut.pubRsaKey,
 				pubKyberKey: publicKeyGetOut.pubKyberKey,
 				pubEccKey: publicKeyGetOut.pubEccKey,
 			},
-			version: 0,
+			version: Number(publicKeyGetOut.pubKeyVersion),
 		}
 		const pubEncBucketKey = await this.encryptPubSymKey(bucketKey, recipientPublicKeys, senderGroupId)
 		return createInternalRecipientKeyData({
@@ -867,10 +901,10 @@ export class CryptoFacade {
 		}
 	}
 
-	async authenticateSender(mailSenderAddress: string, senderIdentityPubKey: Uint8Array, publicKeyVersion: number): Promise<EncryptionAuthStatus> {
+	async authenticateSender(mailSenderAddress: string, senderIdentityPubKey: Uint8Array, senderKeyVersion: number): Promise<EncryptionAuthStatus> {
 		let keyData = createPublicKeyGetIn({
 			mailAddress: mailSenderAddress,
-			version: publicKeyVersion.toString(),
+			version: senderKeyVersion.toString(),
 		})
 		try {
 			const publicKeyGetOut = await this.serviceExecutor.get(PublicKeyService, keyData)
@@ -898,7 +932,7 @@ export class CryptoFacade {
 		permission: Permission,
 		bucketPermission: BucketPermission,
 		permissionOwnerGroupKey: VersionedKey,
-		sessionKey: Aes128Key,
+		sessionKey: AesKey,
 	): Promise<void> {
 		if (!this.isLiteralInstance(instance) || !this.userFacade.isLeader()) {
 			// do not update the session key in case of an unencrypted (client-side) instance
@@ -952,7 +986,7 @@ export class CryptoFacade {
 		)
 	}
 
-	private updateOwnerEncSessionKey(typeModel: TypeModel, instance: Record<string, any>, ownerGroupKey: VersionedKey, sessionKey: Aes128Key): Promise<void> {
+	private updateOwnerEncSessionKey(typeModel: TypeModel, instance: Record<string, any>, ownerGroupKey: VersionedKey, sessionKey: AesKey): Promise<void> {
 		this.setOwnerEncSessionKeyUnmapped(instance as UnmappedOwnerGroupInstance, encryptKeyWithVersionedKey(ownerGroupKey, sessionKey))
 		// we have to call the rest client directly because instance is still the encrypted server-side version
 		const path = typeRefToPath(new TypeRef(typeModel.app, typeModel.name)) + "/" + (instance._id instanceof Array ? instance._id.join("/") : instance._id)
@@ -1006,31 +1040,4 @@ if (!("toJSON" in Error.prototype)) {
 		configurable: true,
 		writable: true,
 	})
-}
-
-/**
- * An AesKey (usually a group key) and its version.
- */
-export type VersionedKey = Versioned<AesKey>
-
-/**
- * A key that is encrypted with a given version of some other key.
- */
-export type VersionedEncryptedKey = {
-	encryptingKeyVersion: number // the version of the encryption key NOT the encrypted key
-	key: Uint8Array // encrypted key
-}
-
-export function encryptKeyWithVersionedKey(encryptingKey: VersionedKey, key: AesKey): VersionedEncryptedKey {
-	return {
-		encryptingKeyVersion: encryptingKey.version,
-		key: encryptKey(encryptingKey.object, key),
-	}
-}
-
-// Unmapped encrypted owner group instance
-type UnmappedOwnerGroupInstance = {
-	_ownerEncSessionKey: string
-	_ownerKeyVersion: NumberString
-	_ownerGroup: Id
 }

@@ -533,7 +533,7 @@ o.spec("ServiceExecutor", function () {
 			const literal = { literal: true }
 			const saltTypeModel = await resolveTypeReference(SaltDataTypeRef)
 			const sessionKey = [1, 2, 3]
-			when(cryptoFacade.resolveServiceSessionKey(saltTypeModel, literal)).thenResolve(sessionKey)
+			when(cryptoFacade.resolveServiceSessionKey(literal)).thenResolve(sessionKey)
 			when(instanceMapper.decryptAndMapToInstance(saltTypeModel, literal, sessionKey)).thenResolve(returnData)
 
 			respondWith(`{"literal":true}`)
@@ -562,7 +562,7 @@ o.spec("ServiceExecutor", function () {
 			const literal = { literal: true }
 			const saltTypeModel = await resolveTypeReference(SaltDataTypeRef)
 			const sessionKey = [1, 2, 3]
-			when(cryptoFacade.resolveServiceSessionKey(saltTypeModel, literal)).thenResolve(null)
+			when(cryptoFacade.resolveServiceSessionKey(literal)).thenResolve(null)
 			when(instanceMapper.decryptAndMapToInstance(saltTypeModel, literal, sessionKey)).thenResolve(returnData)
 
 			respondWith(`{"literal":true}`)
