@@ -1,6 +1,5 @@
 export {
 	aes256RandomKey,
-	_aes128RandomKey,
 	generateIV,
 	aesEncrypt,
 	aesDecrypt,
