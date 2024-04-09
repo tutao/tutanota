@@ -1,7 +1,7 @@
 import { createWizardDialog, wizardPageWrapper } from "../base/WizardDialog.js"
 import { defer } from "@tutao/tutanota-utils"
 import { SetupCongratulationsPage, SetupCongratulationsPageAttrs } from "./setupwizardpages/SetupCongraulationsPage.js"
-import { deviceConfig } from "../../misc/DeviceConfig.js"
+import { DeviceConfig, deviceConfig } from "../../misc/DeviceConfig.js"
 import m from "mithril"
 import { isAndroidApp, isApp } from "../../api/common/Env.js"
 import { SetupNotificationsPage, SetupNotificationsPageAttrs } from "./setupwizardpages/SetupNotificationsPage.js"
@@ -16,6 +16,12 @@ import { TranslationKey } from "../../misc/LanguageViewModel.js"
 import { SetupThemePage, SetupThemePageAttrs } from "./setupwizardpages/SetupThemePage.js"
 import { SetupContactsPage, SetupContactsPageAttrs } from "./setupwizardpages/SetupContactsPage.js"
 import { SetupLockPage, SetupLockPageAttrs } from "./setupwizardpages/SetupLockPage.js"
+import { SystemPermissionHandler } from "../../native/main/SystemPermissionHandler.js"
+import { WebMobileFacade } from "../../native/main/WebMobileFacade.js"
+import { ContactImporter } from "../../contacts/ContactImporter.js"
+import { MobileSystemFacade } from "../../native/common/generatedipc/MobileSystemFacade.js"
+import { CredentialsProvider } from "../../misc/credentials/CredentialsProvider.js"
+import { NativeContactsSyncManager } from "../../contacts/model/NativeContactsSyncManager.js"
 
 export function renderPermissionButton(permissionName: TranslationKey, isPermissionGranted: boolean, onclick: ClickHandler) {
 	return renderBannerButton(isPermissionGranted ? "granted_msg" : permissionName, onclick, isPermissionGranted)
@@ -34,24 +40,24 @@ export function renderBannerButton(text: TranslationKey, onclick: ClickHandler, 
 	})
 }
 
-// Show the onboarding wizard if this is the first time the app has been opened since install
-export async function showSetupWizardIfNeeded(): Promise<void> {
-	const isSetupComplete = deviceConfig.getIsSetupComplete()
-	if (isApp() && !isSetupComplete) {
-		await showSetupWizard()
-	}
-}
-
-export async function showSetupWizard(): Promise<void> {
+export async function showSetupWizard(
+	systemPermissionHandler: SystemPermissionHandler,
+	webMobileFacade: WebMobileFacade,
+	contactImporter: ContactImporter,
+	systemFacade: MobileSystemFacade,
+	credentialsProvider: CredentialsProvider,
+	contactSyncManager: NativeContactsSyncManager,
+	deviceConfig: DeviceConfig,
+): Promise<void> {
 	const wizardPages = [
 		wizardPageWrapper(SetupCongratulationsPage, new SetupCongratulationsPageAttrs()),
-		wizardPageWrapper(SetupNotificationsPage, new SetupNotificationsPageAttrs(await queryPermissionsState(), locator.webMobileFacade.getIsAppVisible())),
-		wizardPageWrapper(SetupThemePage, new SetupThemePageAttrs()),
 		wizardPageWrapper(
-			SetupContactsPage,
-			new SetupContactsPageAttrs(locator.nativeContactsSyncManager(), await locator.contactImporter(), locator.systemFacade),
+			SetupNotificationsPage,
+			new SetupNotificationsPageAttrs(await systemPermissionHandler.queryPermissionsState(), webMobileFacade.getIsAppVisible(), systemPermissionHandler),
 		),
-		wizardPageWrapper(SetupLockPage, new SetupLockPageAttrs(locator.credentialsProvider)),
+		wizardPageWrapper(SetupThemePage, new SetupThemePageAttrs()),
+		wizardPageWrapper(SetupContactsPage, new SetupContactsPageAttrs(contactSyncManager, contactImporter, systemFacade)),
+		wizardPageWrapper(SetupLockPage, new SetupLockPageAttrs(credentialsProvider)),
 	]
 	const deferred = defer<void>()
 
@@ -67,33 +73,4 @@ export async function showSetupWizard(): Promise<void> {
 
 	wizardBuilder.dialog.show()
 	return deferred.promise
-}
-
-export async function queryPermissionsState() {
-	return {
-		isNotificationPermissionGranted: await hasPermission(PermissionType.Notification),
-		isBatteryPermissionGranted: isAndroidApp() ? await hasPermission(PermissionType.IgnoreBatteryOptimization) : true,
-	}
-}
-
-async function hasPermission(permission: PermissionType): Promise<boolean> {
-	return await locator.systemFacade.hasPermission(permission)
-}
-
-export async function requestPermission(permission: PermissionType, deniedMessage: TranslationKey): Promise<boolean> {
-	try {
-		await locator.systemFacade.requestPermission(permission)
-		return true
-	} catch (e) {
-		if (e instanceof PermissionError) {
-			console.warn("Permission denied for", permission)
-			Dialog.confirm(deniedMessage).then((confirmed) => {
-				if (confirmed) {
-					locator.systemFacade.goToSettings()
-				}
-			})
-			return false
-		}
-		throw e
-	}
 }

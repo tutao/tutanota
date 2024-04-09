@@ -50,6 +50,7 @@ export class PostLoginActions implements PostLoginAction {
 		private readonly entityClient: EntityClient,
 		private readonly userManagementFacade: UserManagementFacade,
 		private readonly customerFacade: CustomerFacade,
+		private readonly showSetupWizard: () => unknown,
 	) {}
 
 	async onPartialLoginSuccess(loggedInEvent: LoggedInEvent): Promise<void> {
@@ -107,6 +108,8 @@ export class PostLoginActions implements PostLoginAction {
 		if (isApp() || isDesktop()) {
 			await this.storeNewCustomThemes()
 		}
+
+		this.showSetupWizardIfNeeded()
 	}
 
 	async onFullLoginSuccess(loggedInEvent: LoggedInEvent): Promise<void> {
@@ -267,6 +270,14 @@ export class PostLoginActions implements PostLoginAction {
 					},
 				])
 			}
+		}
+	}
+
+	// Show the onboarding wizard if this is the first time the app has been opened since install
+	private async showSetupWizardIfNeeded(): Promise<void> {
+		const isSetupComplete = deviceConfig.getIsSetupComplete()
+		if (isApp() && !isSetupComplete) {
+			await this.showSetupWizard()
 		}
 	}
 }

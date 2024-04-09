@@ -13,13 +13,12 @@ import {
 	createContactMailAddress,
 	createContactMessengerHandle,
 	createContactPhoneNumber,
-	createContactPronouns,
 	createContactRelationship,
 	createContactWebsite,
 } from "../../api/entities/tutanota/TypeRefs.js"
 import { ContactListView } from "./ContactListView"
 import { lang } from "../../misc/LanguageViewModel"
-import { assert, assertNotNull, clear, getFirstOrThrow, noOp, ofClass, promiseMap } from "@tutao/tutanota-utils"
+import { assertNotNull, clear, getFirstOrThrow, noOp, ofClass } from "@tutao/tutanota-utils"
 import { ContactMergeAction, Keys } from "../../api/common/TutanotaConstants"
 import { assertMainOrNode, isApp } from "../../api/common/Env"
 import type { Shortcut } from "../../misc/KeyManager"
@@ -76,7 +75,6 @@ import { showPlanUpgradeRequiredDialog } from "../../misc/SubscriptionDialogs.js
 import ColumnEmptyMessageBox from "../../gui/base/ColumnEmptyMessageBox.js"
 import { ContactListInfo } from "../model/ContactModel.js"
 import { CONTACTLIST_PREFIX } from "../../misc/RouteChange.js"
-import { showContactImportDialog } from "../ContactImporter.js"
 import { StructuredContact } from "../../native/common/generatedipc/StructuredContact.js"
 import { validateBirthdayOfContact } from "../model/ContactUtils.js"
 
@@ -967,7 +965,7 @@ export function confirmMerge(keptContact: Contact, goodbyeContact: Contact): Pro
 
 export async function importContacts() {
 	const importer = await locator.contactImporter()
-	await importer.importContactsFromDevice()
+	await importer.importContactsFromDeviceSafely()
 }
 
 export function contactFromStructuredContact(ownerGroupId: Id, contact: StructuredContact): Contact {
