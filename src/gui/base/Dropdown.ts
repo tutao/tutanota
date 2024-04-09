@@ -140,7 +140,6 @@ export class Dropdown implements ModalComponent {
 							oncreate: (vnode) => {
 								this._domInput = downcast<HTMLInputElement>(vnode.dom)
 								this._domInput.value = this._filterString
-								this._domInput.focus()
 							},
 							oninput: () => {
 								this._filterString = neverNull(this._domInput).value
