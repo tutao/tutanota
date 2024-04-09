@@ -28,11 +28,10 @@ import {
 	UserSettingsGroupRootTypeRef,
 } from "../../../entities/tutanota/TypeRefs.js"
 
-export const tutanota68: OfflineMigration = {
+export const tutanota69: OfflineMigration = {
 	app: "tutanota",
-	version: 67,
+	version: 69,
 	async migrate(storage: OfflineStorage) {
-		// TODO migrate manual model changes
 		const encryptedElementTypes: Array<TypeRef<ElementEntity>> = [
 			FileSystemTypeRef,
 			MailBodyTypeRef,

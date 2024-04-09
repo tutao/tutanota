@@ -157,8 +157,23 @@
 			]
 		},
 		{
-			"version": 68,
+			"version": 69,
 			"changes": [
+				{
+					"name": "RemoveValue",
+					"sourceType": "SecureExternalRecipientKeyData",
+					"info": "RemoveValue SecureExternalRecipientKeyData/symEncBucketKey/535."
+				},
+				{
+					"name": "ChangeValueCardinality",
+					"sourceType": "SecureExternalRecipientKeyData",
+					"info": "ChangeValueCardinality SecureExternalRecipientKeyData/ownerEncBucketKey/One."
+				},
+				{
+					"name": "RemoveValue",
+					"sourceType": "UserAccountUserData",
+					"info": "RemoveValue UserAccountUserData/userEncClientKey/628."
+				},
 				{
 					"name": "AddValue",
 					"sourceType": "File",
@@ -280,16 +295,6 @@
 					"info": "AddValue InternalGroupData/ownerKeyVersion/1416."
 				},
 				{
-					"name": "RemoveValue",
-					"sourceType": "SecureExternalRecipientKeyData",
-					"info": "RemoveValue SecureExternalRecipientKeyData/symEncBucketKey/535."
-				},
-				{
-					"name": "ChangeValueCardinality",
-					"sourceType": "SecureExternalRecipientKeyData",
-					"info": "ChangeValueCardinality SecureExternalRecipientKeyData/ownerEncBucketKey/One."
-				},
-				{
 					"name": "AddValue",
 					"sourceType": "SecureExternalRecipientKeyData",
 					"info": "AddValue SecureExternalRecipientKeyData/ownerKeyVersion/1417."
@@ -323,11 +328,6 @@
 					"name": "AddValue",
 					"sourceType": "UserAccountUserData",
 					"info": "AddValue UserAccountUserData/customerKeyVersion/1427."
-				},
-				{
-					"name": "RemoveValue",
-					"sourceType": "UserAccountUserData",
-					"info": "RemoveValue UserAccountUserData/userEncClientKey/628."
 				},
 				{
 					"name": "AddValue",
