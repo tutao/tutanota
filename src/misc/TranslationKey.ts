@@ -564,6 +564,7 @@ export type TranslationKeyType =
 	| "firstName_placeholder"
 	| "firstReminderAutomatic_msg"
 	| "firstReminderSubject_msg"
+	| "folderDepth_label"
 	| "folderNameInvalidExisting_msg"
 	| "folderNameNeutral_msg"
 	| "folderName_label"

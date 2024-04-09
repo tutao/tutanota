@@ -580,6 +580,7 @@ export default {
 		"firstName_placeholder": "First name",
 		"firstReminderAutomatic_msg": "Unfortunately, we haven't received the payment for your Tuta account yet. Therefore, we kindly ask you to verify your payment details in 'Settings' -> 'Payment'. \n\nFor further details you can also check your invoices there.",
 		"firstReminderSubject_msg": "Reminder / overdue payment",
+		"folderDepth_label": "{folderName}, {depth} layers deep.",
 		"folderNameInvalidExisting_msg": "A folder with this name already exists.",
 		"folderNameNeutral_msg": "Please enter folder name.",
 		"folderName_label": "Name",

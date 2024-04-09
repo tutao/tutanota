@@ -321,7 +321,7 @@ export async function showMoveMailsDropdown(
 	if (folders.length === 0) return
 	const folderButtons = folders.map((f) => ({
 		// We need to pass in the raw folder name to avoid including it in searches
-		label: () => getFolderName(f.folder),
+		label: () => lang.get("folderDepth_label", { folderName: getFolderName(f.folder), depth: f.level }),
 		text: () => getIndentedFolderNameForDropdown(f),
 		click: () => {
 			onSelected()

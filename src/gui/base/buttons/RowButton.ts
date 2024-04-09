@@ -19,6 +19,7 @@ export interface RowButtonAttrs {
 	role?: AriaRole
 }
 
+/** A button that is styled the same as a `NavButton`. */
 export class RowButton implements Component<RowButtonAttrs> {
 	view(vnode: Vnode<RowButtonAttrs>) {
 		const attrs = vnode.attrs

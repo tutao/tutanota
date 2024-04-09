@@ -164,7 +164,7 @@ export class Dropdown implements ModalComponent {
 			return m(
 				".dropdown-content.scroll.abs",
 				{
-					role: "menu",
+					role: AriaRole.Menu,
 					tabindex: TabIndex.Programmatic,
 					oncreate: (vnode) => {
 						this._domContents = vnode.dom as HTMLElement
@@ -234,7 +234,7 @@ export class Dropdown implements ModalComponent {
 
 	private static renderDropDownButton(child: DropdownButtonAttrs, showingIcons: boolean) {
 		return m(RowButton, {
-			role: AriaRole.MenuItem,
+			role: AriaRole.Option,
 			selected: child.selected,
 			label: child.label,
 			text: child.text,
