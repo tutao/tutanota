@@ -267,16 +267,14 @@ export class UserManagementFacade {
 		})
 	}
 
-	// always pass the current user group key. if the key is rotated, the recovery code must be reencrypted.
-	// If we don't reencrypt, we can store the user group key version to be able to find out who ever had access to it
-	generateRecoveryCode(userGroupKey: VersionedKey): RecoverData {
+	generateRecoveryCode(currentUserGroupKey: VersionedKey): RecoverData {
 		const recoveryCode = aes256RandomKey()
-		const userEncRecoverCode = encryptKey(userGroupKey.object, recoveryCode)
-		const recoverCodeEncUserGroupKey = encryptKey(recoveryCode, userGroupKey.object)
+		const userEncRecoverCode = encryptKey(currentUserGroupKey.object, recoveryCode)
+		const recoverCodeEncUserGroupKey = encryptKey(recoveryCode, currentUserGroupKey.object)
 		const recoveryCodeVerifier = createAuthVerifier(recoveryCode)
 		return {
 			userEncRecoverCode,
-			userKeyVersion: userGroupKey.version,
+			userKeyVersion: currentUserGroupKey.version,
 			recoverCodeEncUserGroupKey,
 			hexCode: uint8ArrayToHex(bitArrayToUint8Array(recoveryCode)),
 			recoveryCodeVerifier,

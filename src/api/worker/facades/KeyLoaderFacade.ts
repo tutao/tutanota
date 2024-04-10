@@ -1,5 +1,5 @@
 import { EntityClient } from "../../common/EntityClient.js"
-import { AesKey, AsymmetricKeyPair, decryptKey, decryptKeyPair, isPqKeyPairs, PQKeyPairs, RsaEccKeyPair, RsaKeyPair } from "@tutao/tutanota-crypto"
+import { AesKey, AsymmetricKeyPair, decryptKey, decryptKeyPair } from "@tutao/tutanota-crypto"
 import { Group, GroupKey, GroupKeyTypeRef, GroupTypeRef } from "../../entities/sys/TypeRefs.js"
 import { Versioned } from "@tutao/tutanota-utils/dist/Utils.js"
 import { UserFacade } from "./UserFacade.js"
@@ -8,9 +8,19 @@ import { NotFoundError } from "../../common/error/RestError.js"
 import { customIdToString, getElementId, stringToCustomId } from "../../common/utils/EntityUtils.js"
 import { VersionedKey } from "../crypto/CryptoFacade.js"
 
+/**
+ * Load symmetric and asymmetric keys and decrypt them.
+ * Handle group key versioning.
+ */
 export class KeyLoaderFacade {
 	constructor(private readonly userFacade: UserFacade, private readonly entityClient: EntityClient) {}
 
+	/**
+	 * Load the symmetric group key for the groupId with the provided version.
+	 * @param groupId the id of the group
+	 * @param version the version of the key to be loaded
+	 * @param currentGroupKey needs to be set if the user is not a member of the group (e.g. an admin)
+	 */
 	async loadSymGroupKey(groupId: Id, version: number, currentGroupKey?: VersionedKey): Promise<AesKey> {
 		const groupKey = currentGroupKey ?? this.userFacade.getCurrentGroupKey(groupId)
 
@@ -55,16 +65,12 @@ export class KeyLoaderFacade {
 		}
 	}
 
-	async loadCurrentKeyPair(groupId: Id): Promise<Versioned<RsaKeyPair | RsaEccKeyPair | PQKeyPairs>> {
+	async loadCurrentKeyPair(groupId: Id): Promise<Versioned<AsymmetricKeyPair>> {
 		const group = await this.entityClient.load(GroupTypeRef, groupId)
 		const groupKey = this.userFacade.getCurrentGroupKey(group._id)
 
 		const result = this.getAndDecryptKeyPair(group, groupKey.object)
-		if (isPqKeyPairs(result)) {
-			return { object: result, version: Number(group.groupKeyVersion) }
-		} else {
-			return { object: result, version: 0 }
-		}
+		return { object: result, version: Number(group.groupKeyVersion) }
 	}
 
 	private async findFormerGroupKey(
@@ -74,24 +80,24 @@ export class KeyLoaderFacade {
 	): Promise<{ symmetricGroupKey: AesKey; groupKeyInstance: GroupKey }> {
 		const formerKeysList = assertNotNull(
 			group.formerGroupKeys,
-			"no former group keys, current key version: " + group.groupKeyVersion + " target key version: " + targetKeyVersion,
+			`no former group keys, current key version: ${group.groupKeyVersion}, target key version: ${targetKeyVersion}`,
 		).list
 		const startId = stringToCustomId(String(currentGroupKey.version - 1))
 		const amountOfKeysIncludingTarget = currentGroupKey.version - targetKeyVersion
 		const formerKeys: GroupKey[] = await this.entityClient.loadRange(GroupKeyTypeRef, formerKeysList, startId, amountOfKeysIncludingTarget, true)
 
 		let lastVersion = currentGroupKey.version
-		let lastOwnerGroupKey = currentGroupKey.object
-		let lastGroupKey: GroupKey | null = null
+		let lastGroupKey = currentGroupKey.object
+		let lastGroupKeyInstance: GroupKey | null = null
 
-		for (const encryptedKey of formerKeys) {
-			const version = this.decodeGroupKeyVersion(getElementId(encryptedKey))
+		for (const formerKey of formerKeys) {
+			const version = this.decodeGroupKeyVersion(getElementId(formerKey))
 			if (version + 1 > lastVersion) {
 				continue
 			} else if (version + 1 === lastVersion) {
-				lastOwnerGroupKey = decryptKey(lastOwnerGroupKey, encryptedKey.ownerEncGKey)
+				lastGroupKey = decryptKey(lastGroupKey, formerKey.ownerEncGKey)
 				lastVersion = version
-				lastGroupKey = encryptedKey
+				lastGroupKeyInstance = formerKey
 				if (lastVersion <= targetKeyVersion) {
 					break
 				}
@@ -100,11 +106,11 @@ export class KeyLoaderFacade {
 			}
 		}
 
-		if (lastVersion !== targetKeyVersion || !lastGroupKey) {
+		if (lastVersion !== targetKeyVersion || !lastGroupKeyInstance) {
 			throw new Error(`could not get version (last version is ${lastVersion} of ${formerKeys.length} key(s) loaded from list ${formerKeysList})`)
 		}
 
-		return { symmetricGroupKey: lastOwnerGroupKey, groupKeyInstance: lastGroupKey }
+		return { symmetricGroupKey: lastGroupKey, groupKeyInstance: lastGroupKeyInstance }
 	}
 
 	private decodeGroupKeyVersion(id: Id): number {
