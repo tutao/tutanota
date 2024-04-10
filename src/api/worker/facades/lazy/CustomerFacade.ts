@@ -217,10 +217,10 @@ export class CustomerFacade {
 			const adminGroupId = this.userFacade.getGroupId(GroupType.Admin)
 			const adminGroupKey = this.userFacade.getCurrentGroupKey(adminGroupId)
 
-			const groupEncSessionKey = encryptKeyWithVersionedKey(adminGroupKey, sessionKey)
+			const adminGroupEncSessionKey = encryptKeyWithVersionedKey(adminGroupKey, sessionKey)
 			const data = createCreateCustomerServerPropertiesData({
-				adminGroupEncSessionKey: groupEncSessionKey.key,
-				adminGroupKeyVersion: groupEncSessionKey.encryptingKeyVersion.toString(),
+				adminGroupEncSessionKey: adminGroupEncSessionKey.key,
+				adminGroupKeyVersion: adminGroupEncSessionKey.encryptingKeyVersion.toString(),
 			})
 			const returnData = await this.serviceExecutor.post(CreateCustomerServerProperties, data)
 			cspId = returnData.id
@@ -289,7 +289,7 @@ export class CustomerFacade {
 		const pubEccKey = keyData.systemAdminPubEccKey
 		const pubKyberKey = keyData.systemAdminPubKyberKey
 		let systemAdminPubEncAccountingInfoSessionKey: VersionedEncryptedKey
-		let systemAdminPublicProtocolVersion
+		let systemAdminPublicProtocolVersion: CryptoProtocolVersion
 
 		if (pubRsaKey) {
 			const rsaPublicKey = hexToRsaPublicKey(uint8ArrayToHex(pubRsaKey))
@@ -360,7 +360,7 @@ export class CustomerFacade {
 			systemAdminPubKeyVersion: String(systemAdminPubEncAccountingInfoSessionKey.encryptingKeyVersion),
 			systemAdminPublicProtocolVersion,
 			adminEncCustomerServerPropertiesSessionKey: adminEncCustomerServerPropertiesSessionKey.key,
-			userEncAccountGroupKey: new Uint8Array(0),
+			userEncAccountGroupKey: new Uint8Array(0), // if we some day start passing the right key here, we'll also need to pass the right version
 			accountGroupKeyVersion: "0",
 		})
 		await this.serviceExecutor.post(CustomerAccountService, data)
@@ -370,7 +370,7 @@ export class CustomerFacade {
 	async switchFreeToPremiumGroup(): Promise<void> {
 		try {
 			const keyData = await this.serviceExecutor.get(SystemKeysService, null)
-			await this.switchCustomerGroup(neverNull(keyData.freeGroup), neverNull(keyData.premiumGroup), {
+			await this.switchAccountGroup(neverNull(keyData.freeGroup), neverNull(keyData.premiumGroup), {
 				object: uint8ArrayToBitArray(keyData.premiumGroupKey),
 				version: Number(keyData.premiumGroupKeyVersion),
 			})
@@ -384,7 +384,7 @@ export class CustomerFacade {
 	async switchPremiumToFreeGroup(): Promise<void> {
 		try {
 			const keyData = await this.serviceExecutor.get(SystemKeysService, null)
-			await this.switchCustomerGroup(neverNull(keyData.premiumGroup), neverNull(keyData.freeGroup), {
+			await this.switchAccountGroup(neverNull(keyData.premiumGroup), neverNull(keyData.freeGroup), {
 				object: uint8ArrayToBitArray(keyData.freeGroupKey),
 				version: Number(keyData.freeGroupKeyVersion),
 			})
@@ -462,7 +462,7 @@ export class CustomerFacade {
 		return this.entityClient.load(AccountingInfoTypeRef, customerInfo.accountingInfo)
 	}
 
-	private async switchCustomerGroup(oldGroup: Id, newGroup: Id, newGroupKey: VersionedKey): Promise<void> {
+	private async switchAccountGroup(oldGroup: Id, newGroup: Id, newGroupKey: VersionedKey): Promise<void> {
 		const loggedInUser = this.userFacade.getLoggedInUser()
 		const symEncGKey = encryptKeyWithVersionedKey(this.userFacade.getUserGroupKey(), newGroupKey.object)
 		const membershipAddData = createMembershipAddData({

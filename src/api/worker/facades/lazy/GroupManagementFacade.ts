@@ -124,8 +124,7 @@ export class GroupManagementFacade {
 				adminGroup: adminGroupId,
 				customerKeyVersion: customerEncGroupInfoSessionKey.encryptingKeyVersion.toString(),
 				userKeyVersion: userGroupKey.version.toString(),
-				adminKeyVersion: adminEncGroupKey?.encryptingKeyVersion.toString() ?? "0",
-				groupKeyVersion: groupEncGroupRootSessionKey.encryptingKeyVersion.toString(),
+				adminKeyVersion: adminEncGroupKey?.encryptingKeyVersion.toString() ?? null,
 			})
 		})
 	}
@@ -174,6 +173,10 @@ export class GroupManagementFacade {
 		await this.serviceExecutor.delete(ContactListGroupService, serviceData)
 	}
 
+	/**
+	 * Assemble the data transfer type to create a new internal group on the server.
+	 * The group key version is not needed because it is always zero.
+	 */
 	generateInternalGroupData(
 		keyPair: PQKeyPairs,
 		groupKey: AesKey,
