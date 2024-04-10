@@ -1,6 +1,6 @@
-import { create, Stripped, StrippedEntity } from "../../common/utils/EntityUtils.js"
-import {TypeRef} from "@tutao/tutanota-utils"
-import {typeModels} from "./TypeModels.js"
+import { create, StrippedEntity } from "../../common/utils/EntityUtils.js"
+import { TypeRef } from "@tutao/tutanota-utils"
+import { typeModels } from "./TypeModels.js"
 
 
 export const AccountingInfoTypeRef: TypeRef<AccountingInfo> = new TypeRef("sys", "AccountingInfo")
@@ -35,24 +35,6 @@ export type AccountingInfo = {
 	secondCountryInfo: NumberString;
 
 	invoiceInfo:  null | Id;
-}
-export const AdministratedGroupTypeRef: TypeRef<AdministratedGroup> = new TypeRef("sys", "AdministratedGroup")
-
-export function createAdministratedGroup(values: StrippedEntity<AdministratedGroup>): AdministratedGroup {
-	return Object.assign(create(typeModels.AdministratedGroup, AdministratedGroupTypeRef), values)
-}
-
-export type AdministratedGroup = {
-	_type: TypeRef<AdministratedGroup>;
-
-	_format: NumberString;
-	_id: IdTuple;
-	_ownerGroup: null | Id;
-	_permissions: Id;
-	groupType: NumberString;
-
-	groupInfo: IdTuple;
-	localAdminGroup: Id;
 }
 export const AdministratedGroupsRefTypeRef: TypeRef<AdministratedGroupsRef> = new TypeRef("sys", "AdministratedGroupsRef")
 
@@ -2942,21 +2924,6 @@ export type U2fResponseData = {
 	clientData: string;
 	keyHandle: string;
 	signatureData: string;
-}
-export const UpdateAdminshipDataTypeRef: TypeRef<UpdateAdminshipData> = new TypeRef("sys", "UpdateAdminshipData")
-
-export function createUpdateAdminshipData(values: StrippedEntity<UpdateAdminshipData>): UpdateAdminshipData {
-	return Object.assign(create(typeModels.UpdateAdminshipData, UpdateAdminshipDataTypeRef), values)
-}
-
-export type UpdateAdminshipData = {
-	_type: TypeRef<UpdateAdminshipData>;
-
-	_format: NumberString;
-	newAdminGroupEncGKey: Uint8Array;
-
-	group: Id;
-	newAdminGroup: Id;
 }
 export const UpdatePermissionKeyDataTypeRef: TypeRef<UpdatePermissionKeyData> = new TypeRef("sys", "UpdatePermissionKeyData")
 

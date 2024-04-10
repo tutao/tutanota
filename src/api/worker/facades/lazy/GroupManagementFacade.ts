@@ -17,13 +17,7 @@ import { assertWorkerOrNode } from "../../../common/Env.js"
 import { encryptKeyWithVersionedKey, encryptString, VersionedKey } from "../../crypto/CryptoFacade.js"
 import { aes256RandomKey, aesEncrypt, AesKey, decryptKey, kyberPrivateKeyToBytes, kyberPublicKeyToBytes, PQKeyPairs } from "@tutao/tutanota-crypto"
 import { IServiceExecutor } from "../../../common/ServiceRequest.js"
-import {
-	CalendarService,
-	ContactListGroupService,
-	LocalAdminGroupService,
-	MailGroupService,
-	TemplateGroupService,
-} from "../../../entities/tutanota/Services.js"
+import { CalendarService, ContactListGroupService, MailGroupService, TemplateGroupService } from "../../../entities/tutanota/Services.js"
 import { MembershipService } from "../../../entities/sys/Services.js"
 import { UserFacade } from "../UserFacade.js"
 import { ProgrammingError } from "../../../common/error/ProgrammingError.js"
@@ -233,8 +227,6 @@ export class GroupManagementFacade {
 
 		if (group.type === GroupType.Mail) {
 			await this.serviceExecutor.delete(MailGroupService, data)
-		} else if (group.type === GroupType.LocalAdmin) {
-			await this.serviceExecutor.delete(LocalAdminGroupService, data)
 		} else {
 			throw new Error("invalid group type for deactivation")
 		}

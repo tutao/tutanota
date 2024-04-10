@@ -2048,49 +2048,6 @@ export const typeModels = {
         "app": "tutanota",
         "version": "69"
     },
-    "CreateLocalAdminGroupData": {
-        "name": "CreateLocalAdminGroupData",
-        "since": 19,
-        "type": "DATA_TRANSFER_TYPE",
-        "id": 703,
-        "rootId": "CHR1dGFub3RhAAK_",
-        "versioned": false,
-        "encrypted": false,
-        "values": {
-            "_format": {
-                "final": false,
-                "name": "_format",
-                "id": 704,
-                "since": 19,
-                "type": "Number",
-                "cardinality": "One",
-                "encrypted": false
-            },
-            "encryptedName": {
-                "final": false,
-                "name": "encryptedName",
-                "id": 705,
-                "since": 19,
-                "type": "Bytes",
-                "cardinality": "One",
-                "encrypted": false
-            }
-        },
-        "associations": {
-            "groupData": {
-                "final": false,
-                "name": "groupData",
-                "id": 706,
-                "since": 19,
-                "type": "AGGREGATION",
-                "cardinality": "One",
-                "refType": "InternalGroupData",
-                "dependency": null
-            }
-        },
-        "app": "tutanota",
-        "version": "69"
-    },
     "CreateMailFolderData": {
         "name": "CreateMailFolderData",
         "since": 7,

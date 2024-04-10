@@ -484,20 +484,6 @@ export type CreateGroupPostReturn = {
 
 	group: Id;
 }
-export const CreateLocalAdminGroupDataTypeRef: TypeRef<CreateLocalAdminGroupData> = new TypeRef("tutanota", "CreateLocalAdminGroupData")
-
-export function createCreateLocalAdminGroupData(values: StrippedEntity<CreateLocalAdminGroupData>): CreateLocalAdminGroupData {
-	return Object.assign(create(typeModels.CreateLocalAdminGroupData, CreateLocalAdminGroupDataTypeRef), values)
-}
-
-export type CreateLocalAdminGroupData = {
-	_type: TypeRef<CreateLocalAdminGroupData>;
-
-	_format: NumberString;
-	encryptedName: Uint8Array;
-
-	groupData: InternalGroupData;
-}
 export const CreateMailFolderDataTypeRef: TypeRef<CreateMailFolderData> = new TypeRef("tutanota", "CreateMailFolderData")
 
 export function createCreateMailFolderData(values: StrippedEntity<CreateMailFolderData>): CreateMailFolderData {

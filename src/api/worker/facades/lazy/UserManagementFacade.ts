@@ -4,12 +4,11 @@ import {
 	createMembershipAddData,
 	createRecoverCode,
 	createResetPasswordData,
-	createUpdateAdminshipData,
 	createUserDataDelete,
 	GroupTypeRef,
 	RecoverCodeTypeRef,
 } from "../../../entities/sys/TypeRefs.js"
-import { encryptBytes, encryptKeyWithVersionedKey, encryptString, VersionedEncryptedKey, VersionedKey } from "../../crypto/CryptoFacade.js"
+import { encryptBytes, encryptKeyWithVersionedKey, encryptString, VersionedKey } from "../../crypto/CryptoFacade.js"
 import { assertNotNull, type Hex, neverNull, uint8ArrayToHex } from "@tutao/tutanota-utils"
 import type { UserAccountUserData } from "../../../entities/tutanota/TypeRefs.js"
 import { createUserAccountCreateData, createUserAccountUserData } from "../../../entities/tutanota/TypeRefs.js"
@@ -31,7 +30,7 @@ import {
 } from "@tutao/tutanota-crypto"
 import { EntityClient } from "../../../common/EntityClient.js"
 import { IServiceExecutor } from "../../../common/ServiceRequest.js"
-import { MembershipService, ResetPasswordService, SystemKeysService, UpdateAdminshipService, UserService } from "../../../entities/sys/Services.js"
+import { MembershipService, ResetPasswordService, SystemKeysService, UserService } from "../../../entities/sys/Services.js"
 import { UserAccountService } from "../../../entities/tutanota/Services.js"
 import { UserFacade } from "../UserFacade.js"
 import { ExposedOperationProgressTracker, OperationId } from "../../../main/OperationProgressTracker.js"
@@ -134,42 +133,6 @@ export class UserManagementFacade {
 			throw new Error(`Trying to get keyData for user with account type ${user.accountType}`)
 		}
 	}
-
-	async updateAdminship(groupId: Id, newAdminGroupId: Id): Promise<void> {
-		const adminGroupId = this.userFacade.getGroupId(GroupType.Admin)
-		const newAdminGroup = await this.entityClient.load(GroupTypeRef, newAdminGroupId)
-		const group = await this.entityClient.load(GroupTypeRef, groupId)
-		const oldAdminGroup = await this.entityClient.load(GroupTypeRef, neverNull(group.admin))
-		const adminGroupKey = this.userFacade.getCurrentGroupKey(adminGroupId)
-
-		let groupKey
-		if (oldAdminGroup._id === adminGroupId) {
-			groupKey = decryptKey(adminGroupKey.object, neverNull(group.adminGroupEncGKey))
-		} else {
-			let localAdminGroupKey = decryptKey(adminGroupKey.object, neverNull(oldAdminGroup.adminGroupEncGKey))
-			groupKey = decryptKey(localAdminGroupKey, neverNull(group.adminGroupEncGKey))
-		}
-
-		let newAdminGroupEncGKey: VersionedEncryptedKey
-		if (newAdminGroup._id === adminGroupId) {
-			newAdminGroupEncGKey = encryptKeyWithVersionedKey(adminGroupKey, groupKey)
-		} else {
-			const localAdminGroupKey: VersionedKey = {
-				object: decryptKey(adminGroupKey.object, neverNull(newAdminGroup.adminGroupEncGKey)),
-				version: Number(newAdminGroup.groupKeyVersion),
-			}
-			newAdminGroupEncGKey = encryptKeyWithVersionedKey(localAdminGroupKey, groupKey)
-		}
-
-		const data = createUpdateAdminshipData({
-			group: group._id,
-			newAdminGroup: newAdminGroup._id,
-			newAdminGroupEncGKey: newAdminGroupEncGKey.key,
-		})
-
-		await this.serviceExecutor.post(UpdateAdminshipService, data)
-	}
-
 	async readUsedUserStorage(user: User): Promise<number> {
 		const counterValue = await this.counters.readCounterValue(CounterType.UserStorageLegacy, neverNull(user.customer), user.userGroup.group)
 		return Number(counterValue)
@@ -183,21 +146,6 @@ export class UserManagementFacade {
 		})
 		await this.serviceExecutor.delete(UserService, data)
 	}
-
-	_getGroupId(user: User, groupType: GroupType): Id {
-		if (groupType === GroupType.User) {
-			return user.userGroup.group
-		} else {
-			let membership = user.memberships.find((m) => m.groupType === groupType)
-
-			if (!membership) {
-				throw new Error("could not find groupType " + groupType + " for user " + user._id)
-			}
-
-			return membership.group
-		}
-	}
-
 	async createUser(
 		name: string,
 		mailAddress: string,

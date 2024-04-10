@@ -1,5 +1,4 @@
 import {
-	AdministratedGroupTypeRef,
 	createGroupInfo,
 	CustomerTypeRef,
 	Group,
@@ -11,11 +10,9 @@ import {
 } from "../../api/entities/sys/TypeRefs.js"
 import { assertNotNull, getFirstOrThrow, LazyLoaded, neverNull, promiseMap } from "@tutao/tutanota-utils"
 import { EntityClient } from "../../api/common/EntityClient.js"
-import { GENERATED_MAX_ID, GENERATED_MIN_ID, isSameId } from "../../api/common/utils/EntityUtils.js"
+import { GENERATED_MIN_ID, isSameId } from "../../api/common/utils/EntityUtils.js"
 import { BookingItemFeatureType, GroupType, OperationType } from "../../api/common/TutanotaConstants.js"
-import { localAdminGroupInfoModel } from "../LocalAdminGroupInfoModel.js"
 import { lang, TranslationKey } from "../../misc/LanguageViewModel.js"
-import { SelectorItemList } from "../../gui/base/DropDownSelector.js"
 import { stringValidator } from "../../gui/base/Dialog.js"
 import { locator } from "../../api/main/MainLocator.js"
 import { BadRequestError, NotAuthorizedError, PreconditionFailedError } from "../../api/common/error/RestError.js"
@@ -31,8 +28,6 @@ export class GroupDetailsModel {
 	private readonly group: LazyLoaded<Group>
 	private usedStorageInBytes!: number
 	private readonly members: LazyLoaded<Array<GroupInfo>>
-	private administratedGroups!: LazyLoaded<Array<GroupInfo>>
-	private localAdminGroupInfo: LazyLoaded<Array<GroupInfo>>
 
 	private senderName!: LazyLoaded<string>
 
@@ -53,19 +48,11 @@ export class GroupDetailsModel {
 		// noinspection JSIgnoredPromiseFromCall
 		this.updateMembers()
 
-		if (this.groupInfo.groupType === GroupType.LocalAdmin) {
-			this.administratedGroups = new LazyLoaded(() => this.loadAdministratedGroups())
-			// noinspection JSIgnoredPromiseFromCall
-			this.updateAdministratedGroups()
-		} else if (this.groupInfo.groupType === GroupType.Mail) {
+		if (this.groupInfo.groupType === GroupType.Mail) {
 			this.senderName = new LazyLoaded<string>(() => this.loadSenderName())
 			// noinspection JSIgnoredPromiseFromCall
 			this.updateSenderName()
 		}
-
-		this.localAdminGroupInfo = new LazyLoaded(() => localAdminGroupInfoModel.init())
-
-		this.localAdminGroupInfo.getAsync().then(() => this.updateViewCallback())
 
 		// noinspection JSIgnoredPromiseFromCall
 		this.updateUsedStorage()
@@ -73,19 +60,6 @@ export class GroupDetailsModel {
 
 	isMailGroup(): boolean {
 		return this.groupInfo.groupType === GroupType.Mail
-	}
-
-	private async loadAdministratedGroups(): Promise<Array<GroupInfo>> {
-		const group = await this.group.getAsync()
-		// load only up to 200 members to avoid too long loading, like for account groups
-		const administratedGroups = await this.entityClient.loadRange(
-			AdministratedGroupTypeRef,
-			assertNotNull(group.administratedGroups).items,
-			GENERATED_MAX_ID,
-			200,
-			true,
-		)
-		return promiseMap(administratedGroups, (administratedGroup) => this.entityClient.load(GroupInfoTypeRef, administratedGroup.groupInfo))
 	}
 
 	private async loadSenderName(): Promise<string> {
@@ -115,10 +89,6 @@ export class GroupDetailsModel {
 
 	getMembersInfo(): Array<GroupInfo> {
 		return this.members.isLoaded() ? this.members.getLoaded() : []
-	}
-
-	getAdministratedGroups(): Array<GroupInfo> {
-		return this.administratedGroups.isLoaded() ? this.administratedGroups.getLoaded() : []
 	}
 
 	getGroupMailAddress(): string {
@@ -224,62 +194,6 @@ export class GroupDetailsModel {
 		}
 	}
 
-	createAdministratedByInfo(): { options: SelectorItemList<Id | null>; currentVal: Id | null } | null {
-		if (!locator.logins.getUserController().isGlobalAdmin() || !this.localAdminGroupInfo.isLoaded()) return null
-
-		const filteredLocalAdminGroupInfo = this.localAdminGroupInfo.getLoaded().filter((groupInfo) => !groupInfo.deleted)
-
-		const adminGroupIdToName: SelectorItemList<Id | null> = [
-			{
-				name: lang.get("globalAdmin_label"),
-				value: null,
-			},
-			...filteredLocalAdminGroupInfo.map((gi) => {
-				return {
-					name: getGroupInfoDisplayName(gi),
-					value: gi.group,
-				}
-			}),
-		]
-
-		return {
-			options: adminGroupIdToName,
-			currentVal: this.groupInfo.localAdmin,
-		}
-	}
-
-	/**
-	 * change the local admin of this group to the group with the given id
-	 * @param id the new admin groups id or null if it should be administrated by the global admin
-	 */
-	async changeAdministratedBy(id: Id | null): Promise<void> {
-		if (this.groupInfo.groupType === GroupType.LocalAdmin) {
-			throw new UserError("updateAdminshipLocalAdminGroupError_msg")
-		} else {
-			const newAdminGroupId = id || this.getAdminGroupId()
-			return locator.userManagementFacade.updateAdminship(this.groupInfo.group, newAdminGroupId)
-		}
-	}
-
-	/**
-	 * whether this user can remove administrated groups.
-	 */
-	canRemoveAdminship(): boolean {
-		return locator.logins.getUserController().isGlobalAdmin()
-	}
-
-	async removeAdministratedGroup(groupId: Id): Promise<void> {
-		let adminGroupId = this.getAdminGroupId()
-		return locator.userManagementFacade.updateAdminship(groupId, adminGroupId)
-	}
-
-	private getAdminGroupId(): Id {
-		return assertNotNull(
-			locator.logins.getUserController().user.memberships.find((gm) => gm.groupType === GroupType.Admin),
-			"this user is not in any admin group",
-		).group
-	}
-
 	async getPossibleMembers(): Promise<Array<{ name: string; value: Id }>> {
 		const customer = await this.entityClient.load(CustomerTypeRef, neverNull(locator.logins.getUserController().user.customer))
 		const userGroupInfos = await this.entityClient.loadAll(GroupInfoTypeRef, customer.userGroups)
@@ -320,12 +234,6 @@ export class GroupDetailsModel {
 	private async updateMembers(): Promise<void> {
 		this.members.reset()
 		await this.members.getAsync()
-		this.updateViewCallback()
-	}
-
-	private async updateAdministratedGroups(): Promise<void> {
-		this.administratedGroups.reset()
-		await this.administratedGroups.getAsync()
 		this.updateViewCallback()
 	}
 
@@ -370,13 +278,6 @@ export class GroupDetailsModel {
 			) {
 				// the members have changed
 				return this.updateMembers()
-			} else if (
-				isUpdateForTypeRef(AdministratedGroupTypeRef, update) &&
-				this.group.isLoaded() &&
-				this.group.getLoaded().administratedGroups &&
-				this.group.getLoaded().administratedGroups!.items === assertNotNull(instanceListId, "got administratedGroup update without instanceListId")
-			) {
-				return this.updateAdministratedGroups()
 			} else if (this.isMailGroup() && isUpdateForTypeRef(MailboxPropertiesTypeRef, update) && update.operation === OperationType.UPDATE) {
 				// the sender name belonging to this group may have changed.
 				// noinspection ES6MissingAwait

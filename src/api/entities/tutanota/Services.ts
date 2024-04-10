@@ -1,36 +1,37 @@
-import {UserAreaGroupPostDataTypeRef} from "./TypeRefs.js"
-import {CreateGroupPostReturnTypeRef} from "./TypeRefs.js"
-import {CalendarDeleteDataTypeRef} from "./TypeRefs.js"
-import {UserAreaGroupDeleteDataTypeRef} from "./TypeRefs.js"
-import {CustomerAccountCreateDataTypeRef} from "./TypeRefs.js"
-import {DraftCreateDataTypeRef} from "./TypeRefs.js"
-import {DraftCreateReturnTypeRef} from "./TypeRefs.js"
-import {DraftUpdateDataTypeRef} from "./TypeRefs.js"
-import {DraftUpdateReturnTypeRef} from "./TypeRefs.js"
-import {EncryptTutanotaPropertiesDataTypeRef} from "./TypeRefs.js"
-import {EntropyDataTypeRef} from "./TypeRefs.js"
-import {ExternalUserDataTypeRef} from "./TypeRefs.js"
-import {GroupInvitationPostDataTypeRef} from "./TypeRefs.js"
-import {GroupInvitationPostReturnTypeRef} from "./TypeRefs.js"
-import {GroupInvitationPutDataTypeRef} from "./TypeRefs.js"
-import {GroupInvitationDeleteDataTypeRef} from "./TypeRefs.js"
-import {ListUnsubscribeDataTypeRef} from "./TypeRefs.js"
-import {CreateLocalAdminGroupDataTypeRef} from "./TypeRefs.js"
-import {DeleteGroupDataTypeRef} from "./TypeRefs.js"
-import {CreateMailFolderDataTypeRef} from "./TypeRefs.js"
-import {CreateMailFolderReturnTypeRef} from "./TypeRefs.js"
-import {UpdateMailFolderDataTypeRef} from "./TypeRefs.js"
-import {DeleteMailFolderDataTypeRef} from "./TypeRefs.js"
-import {CreateMailGroupDataTypeRef} from "./TypeRefs.js"
-import {DeleteMailDataTypeRef} from "./TypeRefs.js"
-import {MoveMailDataTypeRef} from "./TypeRefs.js"
-import {NewsOutTypeRef} from "./TypeRefs.js"
-import {NewsInTypeRef} from "./TypeRefs.js"
-import {ReceiveInfoServiceDataTypeRef} from "./TypeRefs.js"
-import {ReportMailPostDataTypeRef} from "./TypeRefs.js"
-import {SendDraftDataTypeRef} from "./TypeRefs.js"
-import {SendDraftReturnTypeRef} from "./TypeRefs.js"
-import {UserAccountCreateDataTypeRef} from "./TypeRefs.js"
+import {
+	CalendarDeleteDataTypeRef,
+	CreateGroupPostReturnTypeRef,
+	CreateMailFolderDataTypeRef,
+	CreateMailFolderReturnTypeRef,
+	CreateMailGroupDataTypeRef,
+	CustomerAccountCreateDataTypeRef,
+	DeleteGroupDataTypeRef,
+	DeleteMailDataTypeRef,
+	DeleteMailFolderDataTypeRef,
+	DraftCreateDataTypeRef,
+	DraftCreateReturnTypeRef,
+	DraftUpdateDataTypeRef,
+	DraftUpdateReturnTypeRef,
+	EncryptTutanotaPropertiesDataTypeRef,
+	EntropyDataTypeRef,
+	ExternalUserDataTypeRef,
+	GroupInvitationDeleteDataTypeRef,
+	GroupInvitationPostDataTypeRef,
+	GroupInvitationPostReturnTypeRef,
+	GroupInvitationPutDataTypeRef,
+	ListUnsubscribeDataTypeRef,
+	MoveMailDataTypeRef,
+	NewsInTypeRef,
+	NewsOutTypeRef,
+	ReceiveInfoServiceDataTypeRef,
+	ReportMailPostDataTypeRef,
+	SendDraftDataTypeRef,
+	SendDraftReturnTypeRef,
+	UpdateMailFolderDataTypeRef,
+	UserAccountCreateDataTypeRef,
+	UserAreaGroupDeleteDataTypeRef,
+	UserAreaGroupPostDataTypeRef
+} from "./TypeRefs.js"
 
 export const CalendarService = Object.freeze({
 	app: "tutanota",
@@ -111,15 +112,6 @@ export const ListUnsubscribeService = Object.freeze({
 	post: {data: ListUnsubscribeDataTypeRef, return: null},
 	put: null,
 	delete: null,
-} as const)
-
-export const LocalAdminGroupService = Object.freeze({
-	app: "tutanota",
-	name: "LocalAdminGroupService",
-	get: null,
-	post: {data: CreateLocalAdminGroupDataTypeRef, return: null},
-	put: null,
-	delete: {data: DeleteGroupDataTypeRef, return: null},
 } as const)
 
 export const MailFolderService = Object.freeze({

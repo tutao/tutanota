@@ -33,44 +33,19 @@ export class GroupDetailsView implements UpdatableSettingsDetailsViewer {
 	}
 
 	renderView(): Children {
-		return m("#user-viewer.fill-absolute.scroll.plr-l", [this.renderHeader(), this.renderCommonInfo(), this.renderTypeDependentInfo()])
+		return m("#user-viewer.fill-absolute.scroll.plr-l", [this.renderHeader(), this.renderCommonInfo(), this.renderMailGroupInfo()])
 	}
-
-	private renderTypeDependentInfo(): ChildArray {
-		return this.model.isMailGroup() ? this.renderMailGroupInfo() : this.renderLocalAdminGroupInfo()
-	}
-
 	/**
 	 * render the fields that are common to all group types
 	 * @private
 	 */
 	private renderCommonInfo(): ChildArray {
-		return [
-			this.renderCreatedTextField(),
-			this.renderNameField(),
-			this.renderAdministratedByDropdown(),
-			this.renderStatusSelector(),
-			this.renderMembersTable(),
-		]
+		return [this.renderCreatedTextField(), this.renderNameField(), this.renderStatusSelector(), this.renderMembersTable()]
 	}
 
 	private renderCreatedTextField(): Children {
 		return m(TextField, { label: "created_label", value: formatDateWithMonth(this.model.getCreationDate()), isReadOnly: true })
 	}
-
-	private renderAdministratedByDropdown(): Children {
-		const administratedByInfo = this.model.createAdministratedByInfo()
-		if (!administratedByInfo) return null
-		const { options, currentVal } = administratedByInfo
-		const attrs: DropDownSelectorAttrs<Id | null> = {
-			label: "administratedBy_label",
-			items: options,
-			selectedValue: currentVal,
-			selectionChangedHandler: async (id) => showProgressDialog("pleaseWait_msg", this.model.changeAdministratedBy(id)),
-		}
-		return m(DropDownSelector, attrs)
-	}
-
 	/**
 	 * render the information that only shared mailboxes have
 	 * @private
@@ -98,15 +73,6 @@ export class GroupDetailsView implements UpdatableSettingsDetailsViewer {
 			}),
 		]
 	}
-
-	/**
-	 * render the information that only local admin groups have
-	 * @private
-	 */
-	private renderLocalAdminGroupInfo(): ChildArray {
-		return [m(".h5.mt-l.mb-s", lang.get("administratedGroups_label")), this.renderAdministratedGroupsTable()]
-	}
-
 	private renderStatusSelector(): Children {
 		const attrs: DropDownSelectorAttrs<boolean> = {
 			label: "state_label",
@@ -249,32 +215,6 @@ export class GroupDetailsView implements UpdatableSettingsDetailsViewer {
 		}
 
 		return [m(".h5.mt-l.mb-s", lang.get("groupMembers_label")), m(Table, membersTableAttrs)]
-	}
-
-	private renderAdministratedGroupsTable(): Children {
-		const renderRemoveButtons = this.model.canRemoveAdminship()
-		const lines: TableLineAttrs[] = this.model.getAdministratedGroups().map((groupInfo) => {
-			let removeButtonAttrs: IconButtonAttrs | null = renderRemoveButtons
-				? {
-						title: "remove_action",
-						click: () => showProgressDialog("pleaseWait_msg", this.model.removeAdministratedGroup(groupInfo.group)),
-						icon: Icons.Cancel,
-						size: ButtonSize.Compact,
-				  }
-				: null
-
-			return {
-				cells: [getGroupTypeDisplayName(neverNull(groupInfo.groupType)), groupInfo.name, neverNull(groupInfo.mailAddress)],
-				actionButtonAttrs: removeButtonAttrs,
-			}
-		})
-
-		return m(Table, {
-			columnHeading: ["type_label", "name_label", "mailAddress_label"],
-			columnWidths: [ColumnWidth.Largest, ColumnWidth.Largest],
-			showActionButtonColumn: true,
-			lines,
-		})
 	}
 }
 
