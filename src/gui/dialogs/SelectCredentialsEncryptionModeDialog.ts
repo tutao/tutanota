@@ -24,25 +24,18 @@ export async function showCredentialsEncryptionModeDialog(credentialsProvider: C
 }
 
 class CredentialEncryptionMethodDialog {
-	readonly _credentialsProvider: CredentialsProvider
-	_error: string | null
-	readonly _finished: DeferredObject<void>
-	readonly _dialog: Dialog
-	readonly _supportedModes: ReadonlyArray<CredentialEncryptionMode>
-	readonly _previousSelection: CredentialEncryptionMode | null
+	private error: string | null
+	private readonly finished: DeferredObject<void>
+	private readonly dialog: Dialog
 
-	/** @private */
-	constructor(
-		credentialsProvider: CredentialsProvider,
-		supportedModes: ReadonlyArray<CredentialEncryptionMode>,
-		previousSelection: CredentialEncryptionMode | null,
+	private constructor(
+		private readonly credentialsProvider: CredentialsProvider,
+		private readonly supportedModes: ReadonlyArray<CredentialEncryptionMode>,
+		private readonly previousSelection: CredentialEncryptionMode | null,
 	) {
-		this._credentialsProvider = credentialsProvider
-		this._supportedModes = supportedModes
-		this._previousSelection = previousSelection
-		this._error = null
-		this._finished = defer()
-		this._dialog = new Dialog(DialogType.EditMedium, {
+		this.error = null
+		this.finished = defer()
+		this.dialog = new Dialog(DialogType.EditMedium, {
 			view: () => {
 				// We need custom dialog because:
 				// - We don't need large dialog
@@ -55,7 +48,7 @@ class CredentialEncryptionMethodDialog {
 								left: () => [
 									{
 										label: "skip_action",
-										click: () => this._onModeSelected(DEFAULT_CREDENTIAL_ENCRYPTION_MODE),
+										click: () => this.onModeSelected(DEFAULT_CREDENTIAL_ENCRYPTION_MODE),
 										type: ButtonType.Secondary,
 									} as const,
 								],
@@ -63,21 +56,21 @@ class CredentialEncryptionMethodDialog {
 						: null,
 					m(SelectCredentialsEncryptionModeView, {
 						class: "scroll pt plr-l height-100p",
-						error: this._error,
-						onConfirm: (mode) => this._onModeSelected(mode),
-						supportedModes: this._supportedModes,
-						previousSelection: this._previousSelection ?? DEFAULT_CREDENTIAL_ENCRYPTION_MODE,
+						error: this.error,
+						onConfirm: (mode) => this.onModeSelected(mode),
+						supportedModes: this.supportedModes,
+						previousSelection: this.previousSelection ?? DEFAULT_CREDENTIAL_ENCRYPTION_MODE,
 					}),
 				])
 			},
 		}).addShortcut({
 			help: "close_alt",
 			key: Keys.ESC,
-			exec: () => this._dialog.close(),
+			exec: () => this.dialog.close(),
 		})
-		this._dialog.setCloseHandler(() => {
-			this._finished.resolve()
-			this._dialog.close()
+		this.dialog.setCloseHandler(() => {
+			this.finished.resolve()
+			this.dialog.close()
 		})
 	}
 
@@ -86,31 +79,32 @@ class CredentialEncryptionMethodDialog {
 		const previousSelection = credentialsProvider.getCredentialsEncryptionMode()
 		const credentialsDialog = new CredentialEncryptionMethodDialog(credentialsProvider, supportedModes, previousSelection)
 
-		credentialsDialog._dialog.show()
+		credentialsDialog.dialog.show()
 
-		await credentialsDialog._finished.promise
+		await credentialsDialog.finished.promise
 	}
 
-	async _onModeSelected(mode: CredentialEncryptionMode) {
+	private async onModeSelected(mode: CredentialEncryptionMode) {
 		try {
-			await this._credentialsProvider.setCredentialsEncryptionMode(mode)
+			await this.credentialsProvider.setCredentialsEncryptionMode(mode)
 
-			this._dialog.close()
+			this.dialog.close()
 
-			this._finished.resolve()
+			this.finished.resolve()
 		} catch (e) {
 			if (e instanceof CredentialAuthenticationError) {
-				this._error = e.message
+				this.error = e.message
 				m.redraw()
 			} else if (e instanceof KeyPermanentlyInvalidatedError) {
-				await this._credentialsProvider.clearCredentials(e)
+				await this.credentialsProvider.clearCredentials(e)
 
-				this._dialog.close()
+				this.dialog.close()
 
 				await Dialog.message("credentialsKeyInvalidated_msg")
 				windowFacade.reload({})
 			} else if (e instanceof CancelledError) {
-				// ignore. this can happen if we switch app pin -> device lock and the user cancels the pin prompt.
+				// if the user cancels, is unrecognized by Face ID, enters an incorrect device password, etc., we should not close the dialog
+				// and instead let them try again or choose a different encryption mode
 			} else {
 				throw e
 			}
@@ -128,10 +122,10 @@ type SelectCredentialEncryptionModeDialogAttrs = {
 }
 
 export class SelectCredentialsEncryptionModeView implements Component<SelectCredentialEncryptionModeDialogAttrs> {
-	_currentMode: CredentialEncryptionMode
+	private currentMode: CredentialEncryptionMode
 
 	constructor({ attrs }: Vnode<SelectCredentialEncryptionModeDialogAttrs>) {
-		this._currentMode = attrs.previousSelection
+		this.currentMode = attrs.previousSelection
 	}
 
 	view({ attrs }: Vnode<SelectCredentialEncryptionModeDialogAttrs>): Children {
@@ -152,16 +146,16 @@ export class SelectCredentialsEncryptionModeView implements Component<SelectCred
 						m(RadioSelector, {
 							name: "credentialsEncryptionMode_label",
 							options,
-							selectedOption: this._currentMode,
+							selectedOption: this.currentMode,
 							onOptionSelected: (mode: CredentialEncryptionMode) => {
-								this._currentMode = mode
+								this.currentMode = mode
 								attrs.onModeSelected?.(mode)
 							},
 						} satisfies RadioSelectorAttrs<CredentialEncryptionMode>),
 					),
 				],
 			),
-			onConfirm ? this.renderSelectButton(() => onConfirm(this._currentMode)) : null,
+			onConfirm ? this.renderSelectButton(() => onConfirm(this.currentMode)) : null,
 		]
 	}
 
