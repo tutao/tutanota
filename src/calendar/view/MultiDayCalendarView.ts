@@ -59,6 +59,7 @@ export type MultiDayCalendarViewAttrs = {
 	temporaryEvents: Array<CalendarEvent>
 	dragHandlerCallbacks: EventDragHandlerCallbacks
 	isDaySelectorExpanded: boolean
+	weekIndicator: string | null
 	selectedTime?: Time
 }
 
@@ -361,7 +362,7 @@ export class MultiDayCalendarView implements Component<MultiDayCalendarViewAttrs
 		const { daysInPeriod, onDateSelected, onEventClicked, groupColors, temporaryEvents } = attrs
 		// `scrollbar-gutter-stable-or-fallback` is needed because the scroll bar brings the calendar body out of line with the header
 		return m(".calendar-long-events-header.flex-fixed.content-bg.pt-s.scrollbar-gutter-stable-or-fallback", [
-			m(".calendar-hour-margin", [this.renderDayNamesRow(thisPageEvents.days, onDateSelected)]),
+			this.renderDayNamesRow(thisPageEvents.days, attrs.weekIndicator, onDateSelected),
 			m(".content-bg", [
 				m(
 					".calendar-hour-margin.content-bg",
@@ -583,71 +584,62 @@ export class MultiDayCalendarView implements Component<MultiDayCalendarViewAttrs
 		})
 	}
 
-	private renderDayNamesRow(days: Array<Date>, onDateSelected: (arg0: Date, arg1: CalendarViewType) => unknown): Children {
-		if (days.length === 1) return null
+	private renderDayNamesRow(days: Array<Date>, weekIndicator: string | null, onDateSelected: (arg0: Date, arg1: CalendarViewType) => unknown): Children {
+		if (days.length === 1 && weekIndicator == null) {
+			return null
+		}
+
+		const rowSize = px(size.calendar_days_header_height)
 
 		return m(
 			".flex.mb-s",
-			days.map((day) => {
-				// the click handler is set on each child individually so as to not make the entire flex container clickable, only the text
-				const onclick = () => onDateSelected(day, CalendarViewType.DAY)
+			weekIndicator ? m(".calendar-hour-column.calendar-day-indicator.b.center-horizontally", weekIndicator) : m(".calendar-hour-margin"),
+			days.length === 1
+				? null
+				: days.map((day) => {
+						// the click handler is set on each child individually so as to not make the entire flex container clickable, only the text
+						const onclick = () => onDateSelected(day, CalendarViewType.DAY)
 
-				let circleStyle
-				let textStyle
-
-				if (isToday(day)) {
-					circleStyle = {
-						backgroundColor: theme.content_button,
-						opacity: "0.25",
-					}
-					textStyle = {
-						fontWeight: "bold",
-					}
-				} else {
-					circleStyle = {}
-					textStyle = {}
-				}
-
-				return m(".flex.center-horizontally.flex-grow.center.b", [
-					m(
-						".calendar-day-indicator.clickable",
-						{
-							onclick,
-							style: {
-								"padding-right": "4px",
-							},
-						},
-						lang.formats.weekdayShort.format(day) + " ",
-					),
-					m(
-						".rel.click.flex.items-center.justify-center.rel.ml-hpad_small",
-						{
-							"aria-label": day.toLocaleDateString(),
-							onclick,
-						},
-						[
-							m(".abs.z1.circle", {
-								style: {
-									...circleStyle,
-									width: px(25),
-									height: px(25),
-								},
-							}),
+						return m(".flex.center-horizontally.flex-grow.center.b", [
 							m(
-								".full-width.height-100p.center.z2",
+								".calendar-day-indicator.clickable",
 								{
+									onclick,
 									style: {
-										...textStyle,
-										fontSize: "14px",
-										lineHeight: "25px",
+										"padding-right": px(4),
 									},
 								},
-								day.getDate(),
+								lang.formats.weekdayShort.format(day) + " ",
 							),
-						],
-					),
-				])
-			}),
+							m(
+								".rel.click.flex.items-center.justify-center.rel.ml-hpad_small",
+								{
+									"aria-label": day.toLocaleDateString(),
+									onclick,
+								},
+								[
+									m(".abs.z1.circle", {
+										class: isToday(day) ? "calendar-current-day-circle" : "",
+										style: {
+											width: rowSize,
+											height: rowSize,
+										},
+									}),
+									m(
+										".full-width.height-100p.center.z2",
+										{
+											class: isToday(day) ? "calendar-current-day-text" : "",
+											style: {
+												fontSize: px(14),
+												lineHeight: rowSize,
+											},
+										},
+										day.getDate(),
+									),
+								],
+							),
+						])
+				  }),
 		)
 	}
 
