@@ -71,10 +71,10 @@ export class EntropyFacade {
 	 * Loads entropy from the last logout.
 	 */
 	public async loadEntropy(tutanotaProperties: TutanotaProperties): Promise<void> {
-		if (tutanotaProperties.userEncEntropy && tutanotaProperties.userKeyVersion != null) {
+		if (tutanotaProperties.userEncEntropy) {
 			try {
 				const keyLoaderFacade = this.lazyKeyLoaderFacade()
-				const userGroupKey = await keyLoaderFacade.loadSymUserGroupKey(Number(tutanotaProperties.userKeyVersion))
+				const userGroupKey = await keyLoaderFacade.loadSymUserGroupKey(Number(tutanotaProperties.userKeyVersion ?? 0))
 				const entropy = authenticatedAesDecrypt(userGroupKey, tutanotaProperties.userEncEntropy)
 				random.addStaticEntropy(entropy)
 			} catch (error) {
