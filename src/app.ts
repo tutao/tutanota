@@ -112,20 +112,7 @@ import("./translations/en")
 			}
 		}
 
-		const { PostLoginActions } = await import("./login/PostLoginActions")
-		locator.logins.addPostLoginAction(
-			async () =>
-				new PostLoginActions(
-					locator.credentialsProvider,
-					locator.secondFactorHandler,
-					locator.connectivityModel,
-					locator.logins,
-					await locator.noZoneDateProvider(),
-					locator.entityClient,
-					locator.userManagementFacade,
-					locator.customerFacade,
-				),
-		)
+		locator.logins.addPostLoginAction(() => locator.postLoginActions())
 
 		if (isOfflineStorageAvailable()) {
 			const { CachePostLoginAction } = await import("./offline/CachePostLoginAction")

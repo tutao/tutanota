@@ -29,9 +29,11 @@ import { ImportNativeContactBooksDialog } from "./view/ImportNativeContactBooksD
 import { StructuredContact } from "../native/common/generatedipc/StructuredContact.js"
 import { isoDateToBirthday } from "../api/common/utils/BirthdayUtils.js"
 import { ContactBook } from "../native/common/generatedipc/ContactBook.js"
+import { PermissionType } from "../native/common/generatedipc/PermissionType.js"
+import { SystemPermissionHandler } from "../native/main/SystemPermissionHandler.js"
 
 export class ContactImporter {
-	constructor(private readonly contactFacade: ContactFacade) {}
+	constructor(private readonly contactFacade: ContactFacade, private readonly systemPermissionHandler: SystemPermissionHandler) {}
 
 	async importContactsFromFile(vCardData: string, contactListId: string) {
 		const vCardList = vCardFileToVCards(vCardData)
@@ -69,7 +71,17 @@ export class ContactImporter {
 		)
 	}
 
-	async importContactsFromDevice() {
+	// will check for permission and ask for it if it is not granted
+	async importContactsFromDeviceSafely() {
+		// check for permission
+		const isContactPermissionGranted = await this.systemPermissionHandler.requestPermission(PermissionType.Contacts, "grantContactPermissionAction")
+
+		if (isContactPermissionGranted) {
+			await this.importContactsFromDevice()
+		}
+	}
+
+	private async importContactsFromDevice() {
 		assert(isApp(), "isApp")
 		const contactBooks = await showProgressDialog("pleaseWait_msg", locator.mobileContactsFacade.getContactBooks())
 		let books: readonly ContactBook[]

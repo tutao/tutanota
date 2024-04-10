@@ -3,10 +3,11 @@ import { WizardPageAttrs } from "../../base/WizardDialog.js"
 import { PermissionType } from "../../../native/common/generatedipc/PermissionType.js"
 import { isAndroidApp } from "../../../api/common/Env.js"
 import { lang } from "../../../misc/LanguageViewModel.js"
-import { queryPermissionsState, renderPermissionButton, requestPermission } from "../SetupWizard.js"
+import { renderPermissionButton } from "../SetupWizard.js"
 import Stream from "mithril/stream"
 import { SetupPageLayout } from "./SetupPageLayout.js"
 import { locator } from "../../../api/main/MainLocator.js"
+import { SystemPermissionHandler } from "../../../native/main/SystemPermissionHandler.js"
 
 export interface NotificationPermissionsData {
 	isNotificationPermissionGranted: boolean
@@ -38,14 +39,18 @@ export class SetupNotificationsPageAttrs implements WizardPageAttrs<Notification
 	// Cache the permission values to avoid the page becoming disabled while on it.
 	private readonly isPageVisible: boolean
 
-	constructor(permissionData: NotificationPermissionsData, visiblityStream: Stream<boolean>) {
+	constructor(
+		permissionData: NotificationPermissionsData,
+		visiblityStream: Stream<boolean>,
+		private readonly systemPermissionHandler: SystemPermissionHandler,
+	) {
 		this.isPageVisible = this.isPageNeeded(permissionData)
 		this.data = permissionData
 
 		visiblityStream.map((isVisible) => {
 			// Redraw the page when the user resumes the app to check for changes in permissions
 			if (isVisible) {
-				queryPermissionsState().then((permissionState) => {
+				this.systemPermissionHandler.queryPermissionsState().then((permissionState) => {
 					this.data = permissionState
 					m.redraw()
 				})
@@ -55,7 +60,10 @@ export class SetupNotificationsPageAttrs implements WizardPageAttrs<Notification
 
 	async askForNotificationPermission() {
 		// Ask for the notification permission
-		const isNotificationPermissionGranted = await requestPermission(PermissionType.Notification, "grant_notification_permission_action")
+		const isNotificationPermissionGranted = await this.systemPermissionHandler.requestPermission(
+			PermissionType.Notification,
+			"grant_notification_permission_action",
+		)
 		this.data = {
 			...this.data,
 			isNotificationPermissionGranted,
@@ -72,7 +80,10 @@ export class SetupNotificationsPageAttrs implements WizardPageAttrs<Notification
 		// Ask for permission to disable battery optimisations
 		this.data = {
 			...this.data,
-			isBatteryPermissionGranted: await requestPermission(PermissionType.IgnoreBatteryOptimization, "allowBatteryPermission_msg"),
+			isBatteryPermissionGranted: await this.systemPermissionHandler.requestPermission(
+				PermissionType.IgnoreBatteryOptimization,
+				"allowBatteryPermission_msg",
+			),
 		}
 		m.redraw()
 	}

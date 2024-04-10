@@ -66,7 +66,6 @@ import { loadTemplateGroupInstances } from "../templates/model/TemplatePopupMode
 import { TemplateListView } from "./TemplateListView.js"
 import { TextField } from "../gui/base/TextField.js"
 import { ContactsSettingsViewer } from "./ContactsSettingsViewer.js"
-import { showSetupWizard } from "../gui/dialogs/SetupWizard.js"
 
 assertMainOrNode()
 
@@ -719,7 +718,7 @@ export class SettingsView extends BaseTopLevelView implements TopLevelView<Setti
 									m(AboutDialog, {
 										onShowSetupWizard: () => {
 											dialog.close()
-											showSetupWizard()
+											locator.showSetupWizard()
 										},
 									}),
 								allowOkWithReturn: true,

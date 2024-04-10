@@ -59,7 +59,6 @@ import { ListLoadingState, MultiselectMode } from "../../gui/base/List.js"
 import { EnterMultiselectIconButton } from "../../gui/EnterMultiselectIconButton.js"
 import { MailFilterButton } from "./MailFilterButton.js"
 import { listSelectionKeyboardShortcuts } from "../../gui/base/ListUtils.js"
-import { showSetupWizardIfNeeded } from "../../gui/dialogs/SetupWizard.js"
 
 assertMainOrNode()
 
@@ -233,8 +232,6 @@ export class MailView extends BaseTopLevelView implements TopLevelView<MailViewA
 
 			keyManager.unregisterShortcuts(shortcuts)
 		}
-
-		showSetupWizardIfNeeded()
 	}
 
 	private renderFilterButton() {

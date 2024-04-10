@@ -111,6 +111,8 @@ import { ContactImporter } from "../../contacts/ContactImporter.js"
 import { MobileContactsFacade } from "../../native/common/generatedipc/MobileContactsFacade.js"
 import { PermissionError } from "../common/error/PermissionError.js"
 import { WebMobileFacade } from "../../native/main/WebMobileFacade.js"
+import { PostLoginActions } from "../../login/PostLoginActions.js"
+import { SystemPermissionHandler } from "../../native/main/SystemPermissionHandler.js"
 
 assertMainOrNode()
 
@@ -155,6 +157,7 @@ class MainLocator {
 	desktopSettingsFacade!: SettingsFacade
 	desktopSystemFacade!: DesktopSystemFacade
 	webMobileFacade!: WebMobileFacade
+	systemPermissionHandler!: SystemPermissionHandler
 	interWindowEventSender!: InterWindowEventFacadeSendDispatcher
 	cacheStorage!: ExposedCacheStorage
 	workerFacade!: WorkerFacade
@@ -415,7 +418,7 @@ class MainLocator {
 
 	contactImporter = async (): Promise<ContactImporter> => {
 		const { ContactImporter } = await import("../../contacts/ContactImporter.js")
-		return new ContactImporter(this.contactFacade)
+		return new ContactImporter(this.contactFacade, this.systemPermissionHandler)
 	}
 
 	async mailViewerViewModelFactory(): Promise<(options: CreateMailViewerOptions) => MailViewerViewModel> {
@@ -689,6 +692,8 @@ class MainLocator {
 					this.desktopSystemFacade = desktopInterfaces.desktopSystemFacade
 				}
 			} else if (isAndroidApp() || isIOSApp()) {
+				const { SystemPermissionHandler } = await import("../../native/main/SystemPermissionHandler.js")
+				this.systemPermissionHandler = new SystemPermissionHandler(this.systemFacade)
 				this.webAuthn = new WebauthnClient(new WebAuthnFacadeSendDispatcher(this.native), this.domainConfigProvider(), isApp())
 			}
 		}
@@ -856,6 +861,36 @@ class MainLocator {
 	async changeToBycrypt(passphrase: string): Promise<unknown> {
 		const currentUser = this.logins.getUserController().user
 		return this.loginFacade.migrateKdfType(KdfType.Bcrypt, passphrase, currentUser)
+	}
+
+	postLoginActions: () => Promise<PostLoginActions> = lazyMemoized(async () => {
+		const { PostLoginActions } = await import("../../login/PostLoginActions")
+		return new PostLoginActions(
+			this.credentialsProvider,
+			this.secondFactorHandler,
+			this.connectivityModel,
+			this.logins,
+			await this.noZoneDateProvider(),
+			this.entityClient,
+			this.userManagementFacade,
+			this.customerFacade,
+			() => this.showSetupWizard(),
+		)
+	})
+
+	showSetupWizard = async () => {
+		if (isApp()) {
+			const { showSetupWizard } = await import("../../gui/dialogs/SetupWizard.js")
+			return showSetupWizard(
+				this.systemPermissionHandler,
+				this.webMobileFacade,
+				await this.contactImporter(),
+				this.systemFacade,
+				this.credentialsProvider,
+				await this.nativeContactsSyncManager(),
+				deviceConfig,
+			)
+		}
 	}
 }
 
