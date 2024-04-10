@@ -254,6 +254,7 @@
 		3D9B12B42721A1E2002B46A1 /* TUTErrorFactory.m in Sources */ = {isa = PBXBuildFile; fileRef = 3D9B12B22721A1E2002B46A1 /* TUTErrorFactory.m */; };
 		3D9CDA4F2AD58266000B9267 /* KyberTest.swift in Sources */ = {isa = PBXBuildFile; fileRef = 3D9CDA4E2AD58266000B9267 /* KyberTest.swift */; };
 		3DA047BF212C1BBE0062C36C /* CompatibilityTestData.json in Resources */ = {isa = PBXBuildFile; fileRef = 3DA047BE212C1BBD0062C36C /* CompatibilityTestData.json */; };
+		3DA2B7512BC42484006B551B /* ContactStoreError.swift in Sources */ = {isa = PBXBuildFile; fileRef = 3DA2B7502BC42484006B551B /* ContactStoreError.swift */; };
 		3DAA23A9267A208200219051 /* UIColorExtensionsTest.swift in Sources */ = {isa = PBXBuildFile; fileRef = 3DAA23A8267A208200219051 /* UIColorExtensionsTest.swift */; };
 		3DAED2AF29A6267D00806DEA /* NotificationsHandler.swift in Sources */ = {isa = PBXBuildFile; fileRef = 3DAED2AE29A6267D00806DEA /* NotificationsHandler.swift */; };
 		3DB07C7B27303F0600BFBB4D /* Keys.swift in Sources */ = {isa = PBXBuildFile; fileRef = 3DB07C7A27303F0600BFBB4D /* Keys.swift */; };
@@ -584,6 +585,7 @@
 		3D9B12B22721A1E2002B46A1 /* TUTErrorFactory.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = TUTErrorFactory.m; sourceTree = "<group>"; };
 		3D9CDA4E2AD58266000B9267 /* KyberTest.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = KyberTest.swift; sourceTree = "<group>"; };
 		3DA047BE212C1BBD0062C36C /* CompatibilityTestData.json */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text.json; path = CompatibilityTestData.json; sourceTree = "<group>"; };
+		3DA2B7502BC42484006B551B /* ContactStoreError.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ContactStoreError.swift; sourceTree = "<group>"; };
 		3DAA23A5267A202000219051 /* tutanotaTests-Bridging-Header.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = "tutanotaTests-Bridging-Header.h"; sourceTree = "<group>"; };
 		3DAA23A8267A208200219051 /* UIColorExtensionsTest.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = UIColorExtensionsTest.swift; sourceTree = "<group>"; };
 		3DAED2AE29A6267D00806DEA /* NotificationsHandler.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = NotificationsHandler.swift; sourceTree = "<group>"; };
@@ -1048,6 +1050,7 @@
 				3D4D78242B62606D00829803 /* ContactsPermission.swift */,
 				3D4D78262B62610200829803 /* IosMobileContactsFacade.swift */,
 				3D78ACB42B600FB6009C9EED /* StructuredContactTypes.swift */,
+				3DA2B7502BC42484006B551B /* ContactStoreError.swift */,
 			);
 			path = Contacts;
 			sourceTree = "<group>";
@@ -2289,6 +2292,7 @@
 				3D84F56D2722CEF900858A58 /* FileUtils.swift in Sources */,
 				3D4FAD052B8F368300BEDF5A /* WebAuthnSignResult.swift in Sources */,
 				3D4FAD102B8F368300BEDF5A /* WebAuthnRegistrationResult.swift in Sources */,
+				3DA2B7512BC42484006B551B /* ContactStoreError.swift in Sources */,
 				3D4FACFC2B8F368300BEDF5A /* MobileSystemFacade.swift in Sources */,
 				3DCE7AA7271D63BF0085E40D /* ViewController.swift in Sources */,
 				3D4FACF62B8F368300BEDF5A /* RsaKeyPair.swift in Sources */,

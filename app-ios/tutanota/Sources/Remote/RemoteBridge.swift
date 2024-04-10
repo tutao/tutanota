@@ -85,8 +85,6 @@ class RemoteBridge: NSObject, NativeInterface {
 	}
 
 	private func sendErrorResponse(requestId: String, err: Error) {
-		TUTSLog("Error: \(err)")
-
 		let responseError: ResponseError
 		var parts: [String] = ["requestError", requestId]
 		if let err = err as? TutanotaError {
@@ -99,6 +97,8 @@ class RemoteBridge: NSObject, NativeInterface {
 
 			responseError = ResponseError(name: nsError.domain, message: message, stack: underlyingError?.debugDescription ?? "")
 		}
+
+		TUTSLog("Error: \(err) \(err.localizedDescription) \(responseError.name) \(responseError.message) \(responseError.stack)")
 		parts.append(toJson(responseError))
 
 		let bridgeMessage = parts.joined(separator: "\n")

@@ -33,6 +33,8 @@ import { PermissionError } from "../../api/common/error/PermissionError.js"
 import { MobileContactsFacade } from "../../native/common/generatedipc/MobileContactsFacade.js"
 import { ContactSyncResult } from "../../native/common/generatedipc/ContactSyncResult.js"
 import { isIOSApp } from "../../api/common/Env.js"
+import { ContactStoreError } from "../../api/common/error/ContactStoreError.js"
+import { NotFoundError } from "../../api/common/error/RestError.js"
 
 export class NativeContactsSyncManager {
 	private entityUpdateLock: Promise<void> = Promise.resolve()
@@ -74,6 +76,7 @@ export class NativeContactsSyncManager {
 				await this.mobilContactsFacade
 					.deleteContacts(loginUsername, event.instanceId)
 					.catch(ofClass(PermissionError, (e) => this.handleNoPermissionError(userId, e)))
+					.catch(ofClass(ContactStoreError, (e) => console.warn("Could not delete contact during sync: ", e)))
 			}
 		}
 
@@ -114,6 +117,7 @@ export class NativeContactsSyncManager {
 			await this.mobilContactsFacade
 				.saveContacts(loginUsername, contactsToInsertOrUpdate)
 				.catch(ofClass(PermissionError, (e) => this.handleNoPermissionError(userId, e)))
+				.catch(ofClass(ContactStoreError, (e) => console.warn("Could not save contacts:", e)))
 		}
 	}
 
@@ -173,6 +177,9 @@ export class NativeContactsSyncManager {
 			if (e instanceof PermissionError) {
 				this.handleNoPermissionError(userId, e)
 				return false
+			} else if (e instanceof ContactStoreError) {
+				console.warn("Could not sync contacts:", e)
+				return false
 			}
 
 			throw e
@@ -220,7 +227,15 @@ export class NativeContactsSyncManager {
 				console.warn("Could not find a server contact for the contact edited on device: ", contact.id)
 			} else {
 				const updatedContact = this.mergeNativeContactWithTutaContact(contact, cleanContact)
-				await this.entityClient.update(updatedContact)
+				try {
+					await this.entityClient.update(updatedContact)
+				} catch (e) {
+					if (e instanceof NotFoundError) {
+						console.warn("Not found contact to update during sync: ", cleanContact._id, e)
+					} else {
+						throw e
+					}
+				}
 			}
 		}
 		for (const deletedContactId of syncResult.deletedOnDevice) {
@@ -228,7 +243,15 @@ export class NativeContactsSyncManager {
 			if (cleanContact == null) {
 				console.warn("Could not find a server contact for the contact deleted on device: ", deletedContactId)
 			} else {
-				await this.entityClient.erase(cleanContact)
+				try {
+					await this.entityClient.erase(cleanContact)
+				} catch (e) {
+					if (e instanceof NotFoundError) {
+						console.warn("Not found contact to delete during sync: ", cleanContact._id, e)
+					} else {
+						throw e
+					}
+				}
 			}
 		}
 
