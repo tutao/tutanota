@@ -4,7 +4,7 @@ import { bitArrayToUint8Array, fixedIv, uint8ArrayToBitArray } from "../misc/Uti
 import { assertNotNull, concat, hexToUint8Array, uint8ArrayToHex } from "@tutao/tutanota-utils"
 import { hexToRsaPrivateKey, hexToRsaPublicKey, rsaPrivateKeyToHex } from "./Rsa.js"
 import type { RsaEccKeyPair, RsaKeyPair, RsaPrivateKey } from "./RsaKeyPair.js"
-import { bytesToKyberPrivateKey, bytesToKyberPublicKey } from "./Liboqs/KyberKeyPair.js"
+import { bytesToKyberPrivateKey, bytesToKyberPublicKey, KyberPrivateKey, kyberPrivateKeyToBytes } from "./Liboqs/KyberKeyPair.js"
 import { EccPrivateKey } from "./Ecc.js"
 import { AsymmetricKeyPair, KeyPairType } from "./AsymmetricKeyPair.js"
 import type { PQKeyPairs } from "./PQKeyPairs.js"
@@ -55,6 +55,10 @@ export function encryptRsaKey(encryptionKey: AesKey, privateKey: RsaPrivateKey, 
 
 export function encryptEccKey(encryptionKey: AesKey, privateKey: EccPrivateKey): Uint8Array {
 	return aesEncrypt(encryptionKey, privateKey, undefined, true, true) // passing IV as undefined here is fine, as it will generate a new one for each encryption
+}
+
+export function encryptKyberKey(encryptionKey: AesKey, privateKey: KyberPrivateKey): Uint8Array {
+	return aesEncrypt(encryptionKey, kyberPrivateKeyToBytes(privateKey)) // passing IV as undefined here is fine, as it will generate a new one for each encryption
 }
 
 export function decryptRsaKey(encryptionKey: AesKey, encryptedPrivateKey: Uint8Array): RsaPrivateKey {

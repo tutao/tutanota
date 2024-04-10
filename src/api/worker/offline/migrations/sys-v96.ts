@@ -64,7 +64,6 @@ export const sys96: OfflineMigration = {
 			changeCardinalityFromAnyToZeroOrOne("currentKeys"),
 			removeKeyPairVersion(),
 			addValue("formerGroupKeys", null),
-			addValue("pubAdminGroupEncGKey", null),
 			addValue("groupKeyVersion", "0"),
 			addAdminGroupKeyVersion(),
 		])

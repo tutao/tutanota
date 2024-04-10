@@ -14,7 +14,7 @@ import { CounterFacade } from "./CounterFacade.js"
 import { EntityClient } from "../../../common/EntityClient.js"
 import { assertWorkerOrNode } from "../../../common/Env.js"
 import { encryptKeyWithVersionedKey, encryptString, VersionedKey } from "../../crypto/CryptoFacade.js"
-import { aes256RandomKey, aesEncrypt, AesKey, decryptKey, kyberPrivateKeyToBytes, kyberPublicKeyToBytes, PQKeyPairs } from "@tutao/tutanota-crypto"
+import { aes256RandomKey, AesKey, decryptKey, encryptEccKey, encryptKyberKey, kyberPublicKeyToBytes, PQKeyPairs } from "@tutao/tutanota-crypto"
 import { IServiceExecutor } from "../../../common/ServiceRequest.js"
 import { CalendarService, ContactListGroupService, MailGroupService, TemplateGroupService } from "../../../entities/tutanota/Services.js"
 import { MembershipService } from "../../../entities/sys/Services.js"
@@ -182,9 +182,9 @@ export class GroupManagementFacade {
 			pubRsaKey: null,
 			groupEncPrivRsaKey: null,
 			pubEccKey: keyPair.eccKeyPair.publicKey,
-			groupEncPrivEccKey: aesEncrypt(groupKey, keyPair.eccKeyPair.privateKey),
+			groupEncPrivEccKey: encryptEccKey(groupKey, keyPair.eccKeyPair.privateKey),
 			pubKyberKey: kyberPublicKeyToBytes(keyPair.kyberKeyPair.publicKey),
-			groupEncPrivKyberKey: aesEncrypt(groupKey, kyberPrivateKeyToBytes(keyPair.kyberKeyPair.privateKey)),
+			groupEncPrivKyberKey: encryptKyberKey(groupKey, keyPair.kyberKeyPair.privateKey),
 			adminGroup: adminGroupId,
 			adminEncGroupKey: adminEncGroupKey.key,
 			ownerEncGroupInfoSessionKey: ownerEncGroupInfoSessionKey.key,

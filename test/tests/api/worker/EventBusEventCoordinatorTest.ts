@@ -8,6 +8,7 @@ import {
 	User,
 	UserGroupKeyDistributionTypeRef,
 	UserTypeRef,
+	WebsocketLeaderStatusTypeRef,
 } from "../../../../src/api/entities/sys/TypeRefs.js"
 import { createTestEntity } from "../../TestUtils.js"
 import { OperationType } from "../../../../src/api/common/TutanotaConstants.js"
@@ -17,6 +18,7 @@ import { EntityClient } from "../../../../src/api/common/EntityClient.js"
 import { lazyAsync, lazyMemoized } from "@tutao/tutanota-utils"
 import { MailFacade } from "../../../../src/api/worker/facades/lazy/MailFacade.js"
 import { EventController } from "../../../../src/api/main/EventController.js"
+import { KeyRotationFacade } from "../../../../src/api/worker/facades/KeyRotationFacade.js"
 
 o.spec("EventBusEventCoordinatorTest", () => {
 	let eventBusEventCoordinator: EventBusEventCoordinator
@@ -28,6 +30,7 @@ o.spec("EventBusEventCoordinatorTest", () => {
 	let entityClient: EntityClient
 	let mailFacade: MailFacade
 	let eventController: EventController
+	let keyRotationFacadeMock: KeyRotationFacade
 
 	o.beforeEach(function () {
 		user = createTestEntity(UserTypeRef, { userGroup: createTestEntity(GroupMembershipTypeRef, { group: userGroupId }), _id: userId })
@@ -40,6 +43,7 @@ o.spec("EventBusEventCoordinatorTest", () => {
 		mailFacade = object()
 		let lazyMailFacade: lazyAsync<MailFacade> = lazyMemoized(async () => mailFacade)
 		eventController = object()
+		keyRotationFacadeMock = object()
 		eventBusEventCoordinator = new EventBusEventCoordinator(
 			object(),
 			object(),
@@ -49,6 +53,7 @@ o.spec("EventBusEventCoordinatorTest", () => {
 			entityClient,
 			eventController,
 			object(),
+			keyRotationFacadeMock,
 		)
 	})
 
@@ -92,5 +97,25 @@ o.spec("EventBusEventCoordinatorTest", () => {
 		verify(userFacade.updateUserGroupKey(userGroupKeyDistribution), { times: 0 })
 		verify(eventController.onEntityUpdateReceived(updates, "groupId"))
 		verify(mailFacade.entityEventsReceived(updates))
+	})
+
+	o.spec("onLeaderStatusChanged", function () {
+		o("If we are not the leader client, delete the passphrase key", function () {
+			env.mode = "Desktop"
+			const leaderStatus = createTestEntity(WebsocketLeaderStatusTypeRef, { leaderStatus: false })
+
+			eventBusEventCoordinator.onLeaderStatusChanged(leaderStatus)
+
+			verify(keyRotationFacadeMock.reset())
+		})
+
+		o("If we are the leader client, execute key rotations", function () {
+			env.mode = "Desktop"
+			const leaderStatus = createTestEntity(WebsocketLeaderStatusTypeRef, { leaderStatus: true })
+
+			eventBusEventCoordinator.onLeaderStatusChanged(leaderStatus)
+
+			verify(keyRotationFacadeMock.loadAndProcessPendingKeyRotations(user))
+		})
 	})
 })

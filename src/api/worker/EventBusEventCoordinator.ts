@@ -14,6 +14,7 @@ import { isSameTypeRefByAttr, lazyAsync } from "@tutao/tutanota-utils"
 import { isSameId } from "../common/utils/EntityUtils.js"
 import { ExposedEventController } from "../main/EventController.js"
 import { ConfigurationDatabase } from "./facades/lazy/ConfigurationDatabase.js"
+import { KeyRotationFacade } from "./facades/KeyRotationFacade.js"
 
 /** A bit of glue to distribute event bus events across the app. */
 export class EventBusEventCoordinator implements EventBusListener {
@@ -26,6 +27,7 @@ export class EventBusEventCoordinator implements EventBusListener {
 		private readonly entityClient: EntityClient,
 		private readonly eventController: ExposedEventController,
 		private readonly configurationDatabase: lazyAsync<ConfigurationDatabase>,
+		private readonly keyRotationFacade: KeyRotationFacade,
 	) {}
 
 	onWebsocketStateChanged(state: WsConnectionState) {
@@ -61,6 +63,16 @@ export class EventBusEventCoordinator implements EventBusListener {
 
 	onLeaderStatusChanged(leaderStatus: WebsocketLeaderStatus) {
 		this.connectivityListener.onLeaderStatusChanged(leaderStatus)
+		if (!isAdminClient()) {
+			if (leaderStatus.leaderStatus) {
+				const user = this.userFacade.getUser()
+				if (user) {
+					this.keyRotationFacade.loadAndProcessPendingKeyRotations(user)
+				}
+			} else {
+				this.keyRotationFacade.reset()
+			}
+		}
 	}
 
 	onCounterChanged(counter: WebsocketCounterData) {

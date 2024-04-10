@@ -48,7 +48,7 @@ import {
 } from "../../entities/sys/TypeRefs.js"
 import { TutanotaPropertiesTypeRef } from "../../entities/tutanota/TypeRefs.js"
 import { HttpMethod, MediaType, resolveTypeReference } from "../../common/EntityFunctions"
-import { assertWorkerOrNode } from "../../common/Env"
+import { assertWorkerOrNode, isAdminClient } from "../../common/Env"
 import { ConnectMode, EventBusClient } from "../EventBusClient"
 import { EntityRestClient, typeRefToPath } from "../rest/EntityRestClient"
 import { AccessExpiredError, ConnectionError, LockedError, NotAuthenticatedError, NotFoundError, SessionExpiredError } from "../../common/error/RestError"
@@ -269,7 +269,9 @@ export class LoginFacade {
 			await this.migrateKdfType(KdfType.Argon2id, passphrase, user)
 		} else {
 			// If we have not migrated to argon2 we postpone key rotation until next login.
-			await this.keyRotationFacade.loadPendingKeyRotations(user, userPassphraseKey)
+			if (!isAdminClient()) {
+				await this.keyRotationFacade.initialize(userPassphraseKey)
+			}
 		}
 
 		return {
@@ -675,10 +677,10 @@ export class LoginFacade {
 		// We only need to migrate the kdf in case an internal user resumes the session.
 		if (kdfType && !this.isModernKdfType(kdfType)) {
 			await this.migrateKdfType(KdfType.Argon2id, passphrase, user)
-		} else if (!isExternalUser) {
+		} else if (!isExternalUser && !isAdminClient()) {
 			// We trigger group key rotation only for internal users.
 			// If we have not migrated to argon2 we postpone key rotation until next login.
-			await this.keyRotationFacade.loadPendingKeyRotations(user, userPassphraseKey)
+			await this.keyRotationFacade.initialize(userPassphraseKey)
 		}
 
 		return { type: "success", data }
@@ -1078,9 +1080,5 @@ export class LoginFacade {
 		} else {
 			throw new Error("credentials went missing")
 		}
-	}
-
-	async rotateKeysIfNeeded() {
-		await this.keyRotationFacade.processPendingKeyRotation()
 	}
 }

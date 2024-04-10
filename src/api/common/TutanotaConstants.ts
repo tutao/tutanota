@@ -39,14 +39,6 @@ export const enum OutOfOfficeNotificationMessageType {
 
 export const OUT_OF_OFFICE_SUBJECT_PREFIX = "Auto-reply: "
 
-export enum GroupKeyRotationType {
-	User = "0",
-	Admin = "1",
-	Team = "2",
-	UserArea = "3",
-	Customer = "4",
-}
-
 export enum GroupType {
 	User = "0",
 	Admin = "1",
@@ -1189,3 +1181,13 @@ export enum CryptoProtocolVersion {
 	SYMMETRIC_ENCRYPTION = "1", // secure external
 	TUTA_CRYPT = "2", // hybrid PQ protocol (Kyber + x25519)
 }
+
+export enum GroupKeyRotationType {
+	User = "0",
+	Admin = "1",
+	Team = "2",
+	UserArea = "3",
+	Customer = "4",
+}
+
+export const GroupKeyRotationTypeNameByCode = reverse(GroupKeyRotationType)

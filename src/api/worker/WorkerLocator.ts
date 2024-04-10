@@ -70,6 +70,7 @@ import { ContactFacade } from "./facades/lazy/ContactFacade.js"
 import { KeyLoaderFacade } from "./facades/KeyLoaderFacade.js"
 import { KeyRotationFacade } from "./facades/KeyRotationFacade.js"
 import { KeyCache } from "./facades/KeyCache.js"
+import { cryptoWrapper } from "./crypto/CryptoWrapper.js"
 
 assertWorkerOrNode()
 
@@ -223,7 +224,7 @@ export async function initLocator(worker: WorkerImpl, browserData: BrowserData) 
 		locator.keyLoader,
 	)
 
-	locator.keyRotation = new KeyRotationFacade(locator.cachingEntityClient)
+	locator.keyRotation = new KeyRotationFacade(locator.cachingEntityClient, locator.keyLoader, locator.pqFacade, locator.serviceExecutor, cryptoWrapper)
 
 	const loginListener: LoginListener = {
 		onFullLoginSuccess(sessionType: SessionType, cacheInfo: CacheInfo): Promise<void> {
@@ -402,6 +403,7 @@ export async function initLocator(worker: WorkerImpl, browserData: BrowserData) 
 		locator.cachingEntityClient,
 		mainInterface.eventController,
 		locator.configFacade,
+		locator.keyRotation,
 	)
 
 	locator.eventBusClient = new EventBusClient(

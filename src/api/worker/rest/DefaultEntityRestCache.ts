@@ -3,15 +3,17 @@ import { EntityRestClient, EntityRestClientSetupOptions } from "./EntityRestClie
 import { resolveTypeReference } from "../../common/EntityFunctions"
 import { OperationType } from "../../common/TutanotaConstants"
 import { assertNotNull, difference, getFirstOrThrow, groupBy, isSameTypeRef, lastThrow, TypeRef } from "@tutao/tutanota-utils"
-import type { EntityUpdate, User } from "../../entities/sys/TypeRefs.js"
 import {
 	BucketPermissionTypeRef,
 	EntityEventBatchTypeRef,
+	EntityUpdate,
+	KeyRotationTypeRef,
 	PermissionTypeRef,
 	RecoverCodeTypeRef,
 	RejectedSenderTypeRef,
 	SecondFactorTypeRef,
 	SessionTypeRef,
+	User,
 	UserTypeRef,
 } from "../../entities/sys/TypeRefs.js"
 import { ValueType } from "../../common/EntityConstants"
@@ -49,6 +51,7 @@ const IGNORED_TYPES = [
 	// this is mainly caused by some calendaring apps sending the same update multiple times in the same mail.
 	// the earliest place where we could deduplicate would be in entityEventsReceived on the calendarModel.
 	CalendarEventUidIndexTypeRef,
+	KeyRotationTypeRef,
 ] as const
 
 export interface EntityRestCache extends EntityRestInterface {
