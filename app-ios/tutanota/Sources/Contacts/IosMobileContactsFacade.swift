@@ -44,7 +44,7 @@ class IosMobileContactsFacade: MobileContactsFacade {
 		let queryResult = try self.matchStoredContacts(against: contacts, forUser: &mapping)
 		// Here is ok to have an equal count of deletedOnDevice and deletedOnServer since not all server contacts and not all local contacts are inside the contacts array
 		TUTSLog(
-			"Contact SAVE match result: createdOnDevice: \(queryResult.createdOnDevice.count) editedOnDevice: \(queryResult.editedOnDevice.count) deletedOnDevice: \(queryResult.deletedOnDevice.count) newServerContacts: \(queryResult.newServerContacts.count) deletedOnServer: \(queryResult.deletedOnServer.count) existingServerContacts: \(queryResult.existingServerContacts.count) nativeContactWithoutSourceId: \(queryResult.nativeContactWithoutSourceId.count)"
+			"Contact SAVE match result: editedOnDevice: \(queryResult.editedOnDevice.count) newServerContacts: \(queryResult.newServerContacts.count) existingServerContacts: \(queryResult.existingServerContacts.count) nativeContactWithoutSourceId: \(queryResult.nativeContactWithoutSourceId.count)"
 		)
 		try self.insert(contacts: queryResult.newServerContacts, forUser: &mapping)
 		try self.update(contacts: queryResult.existingServerContacts, forUser: &mapping)
