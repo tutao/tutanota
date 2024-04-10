@@ -61,6 +61,12 @@ export const enum AriaPopupType {
 	Dialog = "dialog",
 }
 
+export const enum AriaRole {
+	Menu = "Menu",
+	MenuItem = "menuitem",
+	Option = "option",
+}
+
 /**
  * construct spreadable landmark attributes for screen readers.
  * return value includes a hide-outline class that will be overridden if the selector

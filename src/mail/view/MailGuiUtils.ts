@@ -4,7 +4,7 @@ import { createMail } from "../../api/entities/tutanota/TypeRefs.js"
 import { LockedError, PreconditionFailedError } from "../../api/common/error/RestError"
 import { Dialog } from "../../gui/base/Dialog"
 import { locator } from "../../api/main/MainLocator"
-import { getFolderIcon, getIndentedFolderNameForDropdown, getMoveTargetFolderSystems } from "../model/MailUtils"
+import { getFolderIcon, getFolderName, getIndentedFolderNameForDropdown, getMoveTargetFolderSystems } from "../model/MailUtils"
 import { AllIcons } from "../../gui/base/Icon"
 import { Icons } from "../../gui/base/icons/Icons"
 import type { InlineImages } from "./MailViewer"
@@ -320,7 +320,9 @@ export async function showMoveMailsDropdown(
 	const folders = await getMoveTargetFolderSystems(model, mails)
 	if (folders.length === 0) return
 	const folderButtons = folders.map((f) => ({
-		label: () => getIndentedFolderNameForDropdown(f),
+		// We need to pass in the raw folder name to avoid including it in searches
+		label: () => lang.get("folderDepth_label", { folderName: getFolderName(f.folder), depth: f.level }),
+		text: () => getIndentedFolderNameForDropdown(f),
 		click: () => {
 			onSelected()
 			moveMails({ mailModel: model, mails: mails, targetMailFolder: f.folder })

@@ -2,6 +2,7 @@ import m, { Children, ClassComponent, Vnode, VnodeDOM } from "mithril"
 import { ClickHandler } from "../GuiUtils.js"
 import { assertNotNull } from "@tutao/tutanota-utils"
 import { TabIndex } from "../../../api/common/TutanotaConstants.js"
+import { AriaRole } from "../../AriaUtils.js"
 
 // `staticRightText` to be passed as a child
 export interface BaseButtonAttrs {
@@ -12,10 +13,13 @@ export interface BaseButtonAttrs {
 	icon?: Children
 	disabled?: boolean
 	pressed?: boolean
+	/** whether the button is visibly highlighted or not for screen readers */
+	selected?: boolean
 	onclick: ClickHandler
 	onkeydown?: (event: KeyboardEvent) => unknown
 	style?: Record<string, any>
 	class?: string
+	role?: AriaRole
 	iconWrapperSelector?: string
 }
 
@@ -25,19 +29,21 @@ export class BaseButton implements ClassComponent<BaseButtonAttrs> {
 	view({ attrs, children }: Vnode<BaseButtonAttrs, this>): Children | void | null {
 		const disabled = attrs.disabled ? true : null
 		const pressed = booleanToAttributeValue(attrs.pressed)
+		const selected = booleanToAttributeValue(attrs.selected)
 		return m(
 			"button",
 			{
-				title: attrs.label,
 				"aria-label": attrs.label,
 				disabled,
 				"aria-disabled": disabled,
 				pressed,
 				"aria-pressed": pressed,
+				"aria-selected": selected,
 				onclick: (event: MouseEvent) => attrs.onclick(event, assertNotNull(this.dom)),
 				onkeydown: attrs.onkeydown,
 				class: attrs.class,
 				style: attrs.style,
+				role: attrs.role,
 			},
 			[attrs.icon ? this.renderIcon(attrs.icon, attrs.iconWrapperSelector) : null, attrs.text ?? null, children],
 		)

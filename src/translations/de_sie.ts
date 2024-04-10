@@ -584,6 +584,7 @@ export default {
 		"firstName_placeholder": "Vorname",
 		"firstReminderAutomatic_msg": "leider haben wir die Zahlung für Ihren Tuta-Account noch nicht erhalten. Bitte prüfen Sie Ihre Zahlungsdaten in 'Einstellungen' -> 'Bezahlung'. Für weitere Rechnungsdetails können Sie dort auch alle Ihre Rechnungen einsehen.",
 		"firstReminderSubject_msg": "Zahlungserinnerung",
+		"folderDepth_label": "{folderName}, {depth} Lagen tief.",
 		"folderNameInvalidExisting_msg": "Ein Ordner mit diesem Namen existiert bereits.",
 		"folderNameNeutral_msg": "Bitte geben Sie den Namen für den Ordner ein.",
 		"folderName_label": "Name",
