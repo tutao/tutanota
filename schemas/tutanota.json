@@ -327,7 +327,7 @@
 				{
 					"name": "AddValue",
 					"sourceType": "DraftAttachment",
-					"info": "AddValue DraftAttachment/ownerKeyVersion/1432."
+					"info": "AddValue DraftAttachment/ownerKeyVersion/1430."
 				},
 				{
 					"name": "RenameAttribute",
@@ -337,12 +337,12 @@
 				{
 					"name": "AddValue",
 					"sourceType": "InternalRecipientKeyData",
-					"info": "AddValue InternalRecipientKeyData/senderKeyVersion/1433."
+					"info": "AddValue InternalRecipientKeyData/senderKeyVersion/1431."
 				},
 				{
 					"name": "AddValue",
 					"sourceType": "CreateExternalUserGroupData",
-					"info": "AddValue CreateExternalUserGroupData/internalUserGroupKeyVersion/1435."
+					"info": "AddValue CreateExternalUserGroupData/internalUserGroupKeyVersion/1433."
 				},
 				{
 					"name": "RenameAttribute",
@@ -352,12 +352,12 @@
 				{
 					"name": "AddValue",
 					"sourceType": "TutanotaProperties",
-					"info": "AddValue TutanotaProperties/userKeyVersion/1436."
+					"info": "AddValue TutanotaProperties/userKeyVersion/1434."
 				},
 				{
 					"name": "AddValue",
 					"sourceType": "SymEncInternalRecipientKeyData",
-					"info": "AddValue SymEncInternalRecipientKeyData/symKeyVersion/1437."
+					"info": "AddValue SymEncInternalRecipientKeyData/symKeyVersion/1435."
 				},
 				{
 					"name": "RemoveValue",

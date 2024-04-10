@@ -817,12 +817,10 @@ export type ExternalUserData = {
 	_format: NumberString;
 	externalMailEncMailBoxSessionKey: Uint8Array;
 	externalMailEncMailGroupInfoSessionKey: Uint8Array;
-	externalMailGroupKeyVersion: NumberString;
 	externalUserEncEntropy: Uint8Array;
 	externalUserEncMailGroupKey: Uint8Array;
 	externalUserEncTutanotaPropertiesSessionKey: Uint8Array;
 	externalUserEncUserGroupInfoSessionKey: Uint8Array;
-	externalUserGroupKeyVersion: NumberString;
 	internalMailEncMailGroupInfoSessionKey: Uint8Array;
 	internalMailEncUserGroupInfoSessionKey: Uint8Array;
 	internalMailGroupKeyVersion: NumberString;

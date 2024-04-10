@@ -842,7 +842,7 @@ export class MailFacade {
 		const externalMailGroupInfoSessionKey = aes256RandomKey()
 		const tutanotaPropertiesSessionKey = aes256RandomKey()
 		const mailboxSessionKey = aes256RandomKey()
-		const userEncEntropy = encryptBytes(currentExternalUserGroupKey.object, random.generateRandomData(32))
+		const externalUserEncEntropy = encryptBytes(currentExternalUserGroupKey.object, random.generateRandomData(32))
 
 		const internalUserEncGroupKey = encryptKeyWithVersionedKey(internalUserGroupKey, currentExternalUserGroupKey.object)
 		const userGroupData = createCreateExternalUserGroupData({
@@ -862,26 +862,24 @@ export class MailFacade {
 		const internalMailEncUserGroupInfoSessionKey = encryptKeyWithVersionedKey(internalMailGroupKey, externalUserGroupInfoSessionKey)
 		const internalMailEncMailGroupInfoSessionKey = encryptKeyWithVersionedKey(internalMailGroupKey, externalMailGroupInfoSessionKey)
 
-		const d = createExternalUserData({
-			verifier: verifier,
-			userGroupData: userGroupData,
+		const externalUserData = createExternalUserData({
+			verifier,
+			userGroupData,
 			kdfVersion: KdfType.Bcrypt,
 
-			externalUserEncEntropy: userEncEntropy,
+			externalUserEncEntropy,
 			externalUserEncUserGroupInfoSessionKey: externalUserEncUserGroupInfoSessionKey.key,
 			externalUserEncMailGroupKey: externalUserEncMailGroupKey.key,
 			externalUserEncTutanotaPropertiesSessionKey: externalUserEncTutanotaPropertiesSessionKey.key,
-			externalUserGroupKeyVersion: currentExternalUserGroupKey.version.toString(),
 
 			externalMailEncMailGroupInfoSessionKey: externalMailEncMailGroupInfoSessionKey.key,
 			externalMailEncMailBoxSessionKey: externalMailEncMailBoxSessionKey.key,
-			externalMailGroupKeyVersion: currentExternalMailGroupKey.version.toString(),
 
 			internalMailEncUserGroupInfoSessionKey: internalMailEncUserGroupInfoSessionKey.key,
 			internalMailEncMailGroupInfoSessionKey: internalMailEncMailGroupInfoSessionKey.key,
 			internalMailGroupKeyVersion: internalMailGroupKey.version.toString(),
 		})
-		await this.serviceExecutor.post(ExternalUserService, d)
+		await this.serviceExecutor.post(ExternalUserService, externalUserData)
 		return {
 			currentExternalUserGroupKey,
 			currentExternalMailGroupKey,

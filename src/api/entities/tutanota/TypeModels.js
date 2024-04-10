@@ -1994,7 +1994,7 @@ export const typeModels = {
             "internalUserGroupKeyVersion": {
                 "final": false,
                 "name": "internalUserGroupKeyVersion",
-                "id": 1435,
+                "id": 1433,
                 "since": 69,
                 "type": "Number",
                 "cardinality": "One",
@@ -2579,7 +2579,7 @@ export const typeModels = {
             "ownerKeyVersion": {
                 "final": true,
                 "name": "ownerKeyVersion",
-                "id": 1432,
+                "id": 1430,
                 "since": 69,
                 "type": "Number",
                 "cardinality": "One",
@@ -3242,7 +3242,7 @@ export const typeModels = {
             "userKeyVersion": {
                 "final": false,
                 "name": "userKeyVersion",
-                "id": 1434,
+                "id": 1432,
                 "since": 69,
                 "type": "Number",
                 "cardinality": "One",
@@ -3289,15 +3289,6 @@ export const typeModels = {
                 "cardinality": "One",
                 "encrypted": false
             },
-            "externalMailGroupKeyVersion": {
-                "final": false,
-                "name": "externalMailGroupKeyVersion",
-                "id": 1431,
-                "since": 69,
-                "type": "Number",
-                "cardinality": "One",
-                "encrypted": false
-            },
             "externalUserEncEntropy": {
                 "final": false,
                 "name": "externalUserEncEntropy",
@@ -3334,15 +3325,6 @@ export const typeModels = {
                 "cardinality": "One",
                 "encrypted": false
             },
-            "externalUserGroupKeyVersion": {
-                "final": false,
-                "name": "externalUserGroupKeyVersion",
-                "id": 1429,
-                "since": 69,
-                "type": "Number",
-                "cardinality": "One",
-                "encrypted": false
-            },
             "internalMailEncMailGroupInfoSessionKey": {
                 "final": false,
                 "name": "internalMailEncMailGroupInfoSessionKey",
@@ -3364,7 +3346,7 @@ export const typeModels = {
             "internalMailGroupKeyVersion": {
                 "final": false,
                 "name": "internalMailGroupKeyVersion",
-                "id": 1430,
+                "id": 1429,
                 "since": 69,
                 "type": "Number",
                 "cardinality": "One",
@@ -4356,7 +4338,7 @@ export const typeModels = {
             "senderKeyVersion": {
                 "final": true,
                 "name": "senderKeyVersion",
-                "id": 1433,
+                "id": 1431,
                 "since": 69,
                 "type": "Number",
                 "cardinality": "ZeroOrOne",
@@ -7461,7 +7443,7 @@ export const typeModels = {
             "symKeyVersion": {
                 "final": false,
                 "name": "symKeyVersion",
-                "id": 1437,
+                "id": 1435,
                 "since": 69,
                 "type": "Number",
                 "cardinality": "One",
@@ -7719,7 +7701,7 @@ export const typeModels = {
             "userKeyVersion": {
                 "final": false,
                 "name": "userKeyVersion",
-                "id": 1436,
+                "id": 1434,
                 "since": 69,
                 "type": "Number",
                 "cardinality": "ZeroOrOne",
