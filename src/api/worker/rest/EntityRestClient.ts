@@ -336,7 +336,7 @@ export class EntityRestClient implements EntityRestInterface {
 					object: await ownkerKeyProvider(Number(instance._ownerKeyVersion)),
 			  }
 			: undefined
-		const sk = this._crypto.setNewOwnerEncSessionKey(typeModel, instance, versionedOwnerKey)
+		const sk = await this._crypto.setNewOwnerEncSessionKey(typeModel, instance, versionedOwnerKey)
 
 		const encryptedEntity = await this.instanceMapper.encryptAndMapToLiteral(typeModel, instance, sk)
 		const persistencePostReturn = await this.restClient.request(path, HttpMethod.POST, {
@@ -370,8 +370,8 @@ export class EntityRestClient implements EntityRestInterface {
 		const failedInstances: T[] = []
 		const idChunks: Array<Array<Id>> = await promiseMap(instanceChunks, async (instanceChunk) => {
 			try {
-				const encryptedEntities = await promiseMap(instanceChunk, (e) => {
-					const sk = this._crypto.setNewOwnerEncSessionKey(typeModel, e)
+				const encryptedEntities = await promiseMap(instanceChunk, async (e) => {
+					const sk = await this._crypto.setNewOwnerEncSessionKey(typeModel, e)
 
 					return this.instanceMapper.encryptAndMapToLiteral(typeModel, e, sk)
 				})

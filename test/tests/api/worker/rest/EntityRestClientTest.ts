@@ -540,7 +540,7 @@ o.spec("EntityRestClient", function () {
 
 			const ownerKey = freshVersioned([1, 2, 3])
 			const sessionKey = [3, 2, 1]
-			when(cryptoFacadeMock.setNewOwnerEncSessionKey(typeModel, anything(), ownerKey)).thenReturn(sessionKey)
+			when(cryptoFacadeMock.setNewOwnerEncSessionKey(typeModel, anything(), ownerKey)).thenResolve(sessionKey)
 
 			const result = await entityRestClient.setup(null, newCustomerServerProperties, undefined, { ownerKey })
 

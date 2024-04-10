@@ -162,9 +162,9 @@ export class UserManagementFacade {
 
 		const adminGroupId = adminGroupIds[0]
 
-		const adminGroupKey = this.userFacade.getCurrentGroupKey(adminGroupId)
+		const adminGroupKey = await this.keyLoaderFacade.getCurrentSymGroupKey(adminGroupId)
 
-		const customerGroupKey = this.userFacade.getCurrentGroupKey(this.userFacade.getGroupId(GroupType.Customer))
+		const customerGroupKey = await this.keyLoaderFacade.getCurrentSymGroupKey(this.userFacade.getGroupId(GroupType.Customer))
 
 		const userGroupKey = freshVersioned(aes256RandomKey())
 		const userGroupInfoSessionKey = aes256RandomKey()

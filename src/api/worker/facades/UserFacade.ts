@@ -1,6 +1,6 @@
 import { GroupType } from "../../common/TutanotaConstants"
 import { AesKey, decryptKey } from "@tutao/tutanota-crypto"
-import { assertNotNull, getFromMap } from "@tutao/tutanota-utils"
+import { assertNotNull } from "@tutao/tutanota-utils"
 import { ProgrammingError } from "../../common/error/ProgrammingError"
 import { createWebsocketLeaderStatus, GroupMembership, User, WebsocketLeaderStatus } from "../../entities/sys/TypeRefs"
 import { LoginIncompleteError } from "../../common/error/LoginIncompleteError"
@@ -19,8 +19,7 @@ export interface AuthDataProvider {
 export class UserFacade implements AuthDataProvider {
 	private user: User | null = null
 	private accessToken: string | null = null
-	/** A cache for decrypted keys of each group. Encrypted keys are stored on membership.symEncGKey. */
-	private currentGroupKeys: Map<Id, VersionedKey> = new Map()
+	private currentUserGroupKey: VersionedKey | null = null
 	private leaderStatus!: WebsocketLeaderStatus
 
 	constructor() {
@@ -54,10 +53,10 @@ export class UserFacade implements AuthDataProvider {
 			throw new ProgrammingError("Invalid state: no user")
 		}
 		const userGroupMembership = this.user.userGroup
-		this.currentGroupKeys.set(this.getUserGroupId(), {
+		this.currentUserGroupKey = {
 			version: Number(userGroupMembership.groupKeyVersion),
 			object: decryptKey(userPassphraseKey, userGroupMembership.symEncGKey),
-		})
+		}
 	}
 
 	updateUser(user: User) {
@@ -93,28 +92,16 @@ export class UserFacade implements AuthDataProvider {
 	}
 
 	getCurrentUserGroupKey(): VersionedKey {
-		// the userGroupKey is always written after the login to this.groupKeys
+		// the userGroupKey is always written after the login to this.currentUserGroupKey
 		//if the user has only logged in offline this has not happened
-		const userGroupKey = this.currentGroupKeys.get(this.getUserGroupId())
-		if (userGroupKey == null) {
+		if (this.currentUserGroupKey == null) {
 			if (this.isPartiallyLoggedIn()) {
 				throw new LoginIncompleteError("userGroupKey not available")
 			} else {
 				throw new ProgrammingError("Invalid state: userGroupKey is not available")
 			}
 		}
-		return userGroupKey
-	}
-
-	getCurrentGroupKey(groupId: Id): VersionedKey {
-		return getFromMap(this.currentGroupKeys, groupId, () => {
-			const groupMembership = this.getMembership(groupId)
-			// TODO make sure we have the right user group version
-			return {
-				version: Number(groupMembership.groupKeyVersion),
-				object: decryptKey(this.getCurrentUserGroupKey().object, groupMembership.symEncGKey),
-			}
-		})
+		return this.currentUserGroupKey
 	}
 
 	getMembership(groupId: Id): GroupMembership {
@@ -161,7 +148,7 @@ export class UserFacade implements AuthDataProvider {
 
 	isFullyLoggedIn(): boolean {
 		// We have userGroupKey and we can decrypt any other key - we are good to go
-		return this.currentGroupKeys.size > 0
+		return this.currentUserGroupKey != null
 	}
 
 	getLoggedInUser(): User {
@@ -180,7 +167,7 @@ export class UserFacade implements AuthDataProvider {
 	reset() {
 		this.user = null
 		this.accessToken = null
-		this.currentGroupKeys = new Map()
+		this.currentUserGroupKey = null
 		this.leaderStatus = createWebsocketLeaderStatus({
 			leaderStatus: false,
 		})

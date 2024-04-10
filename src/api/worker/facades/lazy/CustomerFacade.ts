@@ -66,6 +66,7 @@ import { ProgrammingError } from "../../../common/error/ProgrammingError.js"
 import { getWhitelabelDomainInfo } from "../../../common/utils/CustomerUtils.js"
 import type { PdfWriter } from "../../pdf/PdfWriter.js"
 import { createCustomerAccountCreateData } from "../../../entities/tutanota/TypeRefs.js"
+import { KeyLoaderFacade } from "../KeyLoaderFacade.js"
 
 assertWorkerOrNode()
 
@@ -83,6 +84,7 @@ export class CustomerFacade {
 		private readonly operationProgressTracker: ExposedOperationProgressTracker,
 		private readonly pdfWriter: lazyAsync<PdfWriter>,
 		private readonly pqFacade: PQFacade,
+		private readonly keyLoaderFacade: KeyLoaderFacade,
 	) {}
 
 	async getDomainValidationRecord(domainName: string): Promise<string> {
@@ -215,7 +217,7 @@ export class CustomerFacade {
 			// create properties
 			const sessionKey = aes256RandomKey()
 			const adminGroupId = this.userFacade.getGroupId(GroupType.Admin)
-			const adminGroupKey = this.userFacade.getCurrentGroupKey(adminGroupId)
+			const adminGroupKey = await this.keyLoaderFacade.getCurrentSymGroupKey(adminGroupId)
 
 			const adminGroupEncSessionKey = encryptKeyWithVersionedKey(adminGroupKey, sessionKey)
 			const data = createCreateCustomerServerPropertiesData({

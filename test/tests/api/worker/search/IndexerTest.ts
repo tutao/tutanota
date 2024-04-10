@@ -107,7 +107,7 @@ o.spec("Indexer test", () => {
 		user.userGroup.group = "user-group-id"
 		let userGroupKey = freshVersioned(aes256RandomKey())
 
-		when(keyLoaderFacade.getCurrentUserGroupKey()).thenReturn(userGroupKey)
+		when(keyLoaderFacade.getCurrentSymUserGroupKey()).thenReturn(userGroupKey)
 
 		await indexer.init({ user, keyLoaderFacade })
 		o(indexer._loadGroupData.args).deepEquals([user])
@@ -1235,14 +1235,14 @@ o.spec("Indexer test", () => {
 
 		o("When init() is called and contacts have already been indexed they are not indexed again", async function () {
 			when(indexer._contact.getIndexTimestamp(contactList)).thenResolve(FULL_INDEXED_TIMESTAMP)
-			when(keyLoaderFacade.getCurrentUserGroupKey()).thenReturn(userGroupKey)
+			when(keyLoaderFacade.getCurrentSymUserGroupKey()).thenReturn(userGroupKey)
 			await indexer.init({ user, keyLoaderFacade })
 			verify(indexer._contact.indexFullContactList(contactList), { times: 0 })
 		})
 
 		o("When init() is called and contacts have not been indexed before, they are indexed", async function () {
 			when(indexer._contact.getIndexTimestamp(contactList)).thenResolve(NOTHING_INDEXED_TIMESTAMP)
-			when(keyLoaderFacade.getCurrentUserGroupKey()).thenReturn(userGroupKey)
+			when(keyLoaderFacade.getCurrentSymUserGroupKey()).thenReturn(userGroupKey)
 			await indexer.init({ user, keyLoaderFacade })
 			verify(indexer._contact.indexFullContactList(contactList))
 		})
@@ -1257,7 +1257,7 @@ o.spec("Indexer test", () => {
 			indexer._mail.enableMailIndexing = func<MailIndexer["enableMailIndexing"]>()
 			when(indexer._mail.enableMailIndexing(matchers.anything())).thenResolve(undefined)
 
-			when(keyLoaderFacade.getCurrentUserGroupKey()).thenReturn(userGroupKey)
+			when(keyLoaderFacade.getCurrentSymUserGroupKey()).thenReturn(userGroupKey)
 			await indexer.init({ user, keyLoaderFacade, cacheInfo })
 			verify(indexer._entity.loadAll(ContactTypeRef, contactList.contacts))
 		})
@@ -1271,7 +1271,7 @@ o.spec("Indexer test", () => {
 			indexer._mail.enableMailIndexing = func<MailIndexer["enableMailIndexing"]>()
 			when(indexer._mail.enableMailIndexing(matchers.anything())).thenResolve(undefined)
 
-			when(keyLoaderFacade.getCurrentUserGroupKey()).thenReturn(userGroupKey)
+			when(keyLoaderFacade.getCurrentSymUserGroupKey()).thenReturn(userGroupKey)
 			await indexer.init({ user, keyLoaderFacade, cacheInfo })
 
 			verify(indexer._contact.indexFullContactList(contactList))
@@ -1287,7 +1287,7 @@ o.spec("Indexer test", () => {
 
 			indexer._mail.enableMailIndexing = func<MailIndexer["enableMailIndexing"]>()
 			when(indexer._mail.enableMailIndexing(matchers.anything())).thenResolve(undefined)
-			when(keyLoaderFacade.getCurrentUserGroupKey()).thenReturn(userGroupKey)
+			when(keyLoaderFacade.getCurrentSymUserGroupKey()).thenReturn(userGroupKey)
 
 			await indexer.init({ user, keyLoaderFacade, cacheInfo })
 		})

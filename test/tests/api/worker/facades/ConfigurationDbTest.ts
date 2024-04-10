@@ -138,7 +138,7 @@ o.spec("ConfigurationDbTest", function () {
 			transaction = object()
 			when(dbFacade.createTransaction(matchers.anything(), matchers.anything())).thenResolve(transaction)
 			currentUserGroupKey = { version: 42, object: aes256RandomKey() }
-			when(keyLoaderFacade.getCurrentUserGroupKey()).thenReturn(currentUserGroupKey)
+			when(keyLoaderFacade.getCurrentSymUserGroupKey()).thenReturn(currentUserGroupKey)
 			dbKey = aes256RandomKey()
 			iv = random.generateRandomData(16)
 			encIv = aesEncrypt(dbKey, iv, undefined, true, true)
@@ -152,7 +152,7 @@ o.spec("ConfigurationDbTest", function () {
 
 			await initializeDb(dbFacade, "dbId", keyLoaderFacade)
 
-			verify(keyLoaderFacade.getCurrentUserGroupKey())
+			verify(keyLoaderFacade.getCurrentSymUserGroupKey())
 			verify(transaction.put(ConfigurationMetaDataOS, Metadata.userGroupKeyVersion, currentUserGroupKey.version))
 		})
 
@@ -180,7 +180,7 @@ o.spec("ConfigurationDbTest", function () {
 
 			await updateEncryptionMetadata(dbFacade, keyLoaderFacade, ConfigurationMetaDataOS)
 
-			verify(keyLoaderFacade.getCurrentUserGroupKey())
+			verify(keyLoaderFacade.getCurrentSymUserGroupKey())
 			verify(transaction.put(ConfigurationMetaDataOS, Metadata.userGroupKeyVersion, currentUserGroupKey.version))
 			const encDbKeyCaptor = matchers.captor()
 			verify(transaction.put(ConfigurationMetaDataOS, Metadata.userEncDbKey, encDbKeyCaptor.capture()))

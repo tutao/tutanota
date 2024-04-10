@@ -178,7 +178,7 @@ export class Indexer {
 			const transaction = await this.db.dbFacade.createTransaction(true, [MetaDataOS])
 			const userEncDbKey = await transaction.get(MetaDataOS, Metadata.userEncDbKey)
 			if (!userEncDbKey) {
-				const userGroupKey = keyLoaderFacade.getCurrentUserGroupKey()
+				const userGroupKey = keyLoaderFacade.getCurrentSymUserGroupKey()
 				// database was opened for the first time - create new tables
 				await this._createIndexTables(user, userGroupKey)
 			} else {

@@ -182,7 +182,7 @@ export async function loadEncryptionMetadata(db: DbFacade, id: string, keyLoader
 export async function updateEncryptionMetadata(db: DbFacade, keyLoaderFacade: KeyLoaderFacade, objectStoreName: string): Promise<void> {
 	const transaction = await db.createTransaction(true, [objectStoreName])
 	const userGroupKeyVersion = await getMetaDataGroupKeyVersion(transaction, objectStoreName)
-	const currentUserGroupKey = keyLoaderFacade.getCurrentUserGroupKey()
+	const currentUserGroupKey = keyLoaderFacade.getCurrentSymUserGroupKey()
 	if (currentUserGroupKey.version === userGroupKeyVersion) return
 
 	const encryptionMetadata = await loadDataWithGivenVersion(keyLoaderFacade, userGroupKeyVersion, transaction)
@@ -218,7 +218,7 @@ export async function initializeDb(db: DbFacade, id: string, keyLoaderFacade: Ke
 	const key = aes256RandomKey()
 	const iv = random.generateRandomData(IV_BYTE_LENGTH)
 	const transaction = await db.createTransaction(false, [ConfigurationMetaDataOS, ExternalImageListOS])
-	const userGroupKey = keyLoaderFacade.getCurrentUserGroupKey()
+	const userGroupKey = keyLoaderFacade.getCurrentSymUserGroupKey()
 	await encryptAndSaveDbKey(userGroupKey, key, iv, transaction)
 	return {
 		key,

@@ -325,6 +325,7 @@ export async function initLocator(worker: WorkerImpl, browserData: BrowserData) 
 			mainInterface.operationProgressTracker,
 			locator.pdfWriter,
 			locator.pqFacade,
+			locator.keyLoader,
 		)
 	})
 	const aesApp = new AesApp(new NativeCryptoFacadeSendDispatcher(worker), random)
@@ -414,11 +415,11 @@ export async function initLocator(worker: WorkerImpl, browserData: BrowserData) 
 	locator.Const = Const
 	locator.share = lazyMemoized(async () => {
 		const { ShareFacade } = await import("./facades/lazy/ShareFacade.js")
-		return new ShareFacade(locator.user, locator.crypto, locator.serviceExecutor, locator.cachingEntityClient)
+		return new ShareFacade(locator.user, locator.crypto, locator.serviceExecutor, locator.cachingEntityClient, locator.keyLoader)
 	})
 	locator.giftCards = lazyMemoized(async () => {
 		const { GiftCardFacade } = await import("./facades/lazy/GiftCardFacade.js")
-		return new GiftCardFacade(locator.user, await locator.customer(), locator.serviceExecutor, locator.crypto)
+		return new GiftCardFacade(locator.user, await locator.customer(), locator.serviceExecutor, locator.crypto, locator.keyLoader)
 	})
 	locator.contactFacade = lazyMemoized(async () => {
 		const { ContactFacade } = await import("./facades/lazy/ContactFacade.js")

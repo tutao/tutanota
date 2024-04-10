@@ -13,13 +13,23 @@ import {
 	kyberPublicKeyToBytes,
 	PQKeyPairs,
 } from "@tutao/tutanota-crypto"
-import { Group, GroupKey, GroupKeysRefTypeRef, GroupKeyTypeRef, GroupTypeRef, KeyPair, KeyPairTypeRef } from "../../../../../src/api/entities/sys/TypeRefs.js"
+import {
+	Group,
+	GroupKey,
+	GroupKeysRefTypeRef,
+	GroupKeyTypeRef,
+	GroupMembershipTypeRef,
+	GroupTypeRef,
+	KeyPair,
+	KeyPairTypeRef,
+} from "../../../../../src/api/entities/sys/TypeRefs.js"
 import { createTestEntity } from "../../../TestUtils.js"
 import { EntityClient } from "../../../../../src/api/common/EntityClient.js"
 import { object, when } from "testdouble"
 import { KeyLoaderFacade } from "../../../../../src/api/worker/facades/KeyLoaderFacade.js"
 import { stringToCustomId } from "../../../../../src/api/common/utils/EntityUtils.js"
 import { VersionedKey } from "../../../../../src/api/worker/crypto/CryptoFacade.js"
+import { freshVersioned } from "@tutao/tutanota-utils"
 
 o.spec("KeyLoaderFacadeTest", function () {
 	let userFacade: UserFacade
@@ -54,12 +64,13 @@ o.spec("KeyLoaderFacadeTest", function () {
 		currentGroupKey = { object: aes256RandomKey(), version: Number(currentGroupKeyVersion) }
 
 		let lastKey = currentGroupKey.object
+
 		for (let i = formerKeysDecrypted.length - 1; i >= 0; i--) {
 			const key: GroupKey = createTestEntity(GroupKeyTypeRef)
 			key._id = ["list", stringToCustomId(i.toString())]
 			key.ownerEncGKey = encryptKey(lastKey, formerKeysDecrypted[i])
-
 			const pqKeyPair = formerKeyPairsDecrypted[i]
+
 			key.keyPair = createTestEntity(KeyPairTypeRef, {
 				pubEccKey: pqKeyPair.eccKeyPair.publicKey,
 				pubKyberKey: kyberPublicKeyToBytes(pqKeyPair.kyberKeyPair.publicKey),
@@ -69,8 +80,8 @@ o.spec("KeyLoaderFacadeTest", function () {
 			lastKey = formerKeysDecrypted[i]
 			formerKeys.unshift(key)
 		}
-
 		currentKeyPair = await pqFacade.generateKeyPairs()
+
 		currentKeys = createTestEntity(KeyPairTypeRef, {
 			pubEccKey: currentKeyPair.eccKeyPair.publicKey,
 			symEncPrivEccKey: encryptEccKey(currentGroupKey.object, currentKeyPair.eccKeyPair.privateKey),
@@ -79,14 +90,21 @@ o.spec("KeyLoaderFacadeTest", function () {
 			pubRsaKey: null,
 			symEncPrivRsaKey: null,
 		})
-
 		group = createTestEntity(GroupTypeRef, {
 			_id: "my group",
 			currentKeys,
 			formerGroupKeys: createTestEntity(GroupKeysRefTypeRef, { list: "list" }),
 			groupKeyVersion: String(currentGroupKeyVersion),
 		})
-		when(userFacade.getCurrentGroupKey(group._id)).thenReturn(currentGroupKey)
+
+		const userGroupKey = freshVersioned(aes256RandomKey())
+		const membership = createTestEntity(GroupMembershipTypeRef, {
+			symKeyVersion: String(userGroupKey.version),
+			symEncGKey: encryptKey(userGroupKey.object, currentGroupKey.object),
+			groupKeyVersion: String(currentGroupKey.version),
+		})
+		when(userFacade.getCurrentUserGroupKey()).thenReturn(userGroupKey)
+		when(userFacade.getMembership(group._id)).thenReturn(membership)
 		when(entityClient.load(GroupTypeRef, group._id)).thenResolve(group)
 		for (let i = 0; i < FORMER_KEYS; i++) {
 			when(

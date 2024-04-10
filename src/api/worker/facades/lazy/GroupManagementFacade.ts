@@ -49,8 +49,8 @@ export class GroupManagementFacade {
 			adminGroupIds = this.user.getGroupIds(GroupType.LocalAdmin)
 		}
 
-		let adminGroupKey = this.user.getCurrentGroupKey(adminGroupIds[0])
-		let customerGroupKey = this.user.getCurrentGroupKey(this.user.getGroupId(GroupType.Customer))
+		let adminGroupKey = await this.keyLoaderFacade.getCurrentSymGroupKey(adminGroupIds[0])
+		let customerGroupKey = await this.keyLoaderFacade.getCurrentSymGroupKey(this.user.getGroupId(GroupType.Customer))
 		let mailGroupKey = freshVersioned(aes256RandomKey())
 
 		let mailGroupInfoSessionKey = aes256RandomKey()
@@ -79,47 +79,44 @@ export class GroupManagementFacade {
 	/**
 	 * Generates keys for the new group and prepares the group data object to create the group.
 	 *
-	 * @param adminGroup Is not set when generating new customer, then the admin group will be the admin of the customer
-	 * @param adminGroupKey Is not set when generating calendar as normal user
-	 * @param customerGroupKey Group key of the customer
-	 * @param userGroupKey user group key
 	 * @param name Name of the group
 	 */
-	generateUserAreaGroupData(name: string): Promise<UserAreaGroupData> {
-		return this.entityClient.load(GroupTypeRef, this.user.getUserGroupId()).then((userGroup) => {
-			const adminGroupId = neverNull(userGroup.admin) // user group has always admin group
+	async generateUserAreaGroupData(name: string): Promise<UserAreaGroupData> {
+		// adminGroup Is not set when generating new customer, then the admin group will be the admin of the customer
+		// adminGroupKey Is not set when generating calendar as normal user
+		const userGroup = await this.entityClient.load(GroupTypeRef, this.user.getUserGroupId())
+		const adminGroupId = neverNull(userGroup.admin) // user group has always admin group
 
-			let adminGroupKey: VersionedKey | null = null
+		let adminGroupKey: VersionedKey | null = null
 
-			if (this.user.getAllGroupIds().indexOf(adminGroupId) !== -1) {
-				// getGroupKey throws an error if user is not member of that group - so check first
-				adminGroupKey = this.user.getCurrentGroupKey(adminGroupId)
-			}
+		if (this.user.getAllGroupIds().indexOf(adminGroupId) !== -1) {
+			// getGroupKey throws an error if user is not member of that group - so check first
+			adminGroupKey = await this.keyLoaderFacade.getCurrentSymGroupKey(adminGroupId)
+		}
 
-			const customerGroupId = this.user.getGroupId(GroupType.Customer)
-			const customerGroupKey = this.user.getCurrentGroupKey(customerGroupId)
-			const userGroupKey = this.user.getCurrentUserGroupKey()
-			const groupKey = freshVersioned(aes256RandomKey())
+		const customerGroupId = this.user.getGroupId(GroupType.Customer)
+		const customerGroupKey = await this.keyLoaderFacade.getCurrentSymGroupKey(customerGroupId)
+		const userGroupKey = this.user.getCurrentUserGroupKey()
+		const groupKey = freshVersioned(aes256RandomKey())
 
-			const groupRootSessionKey = aes256RandomKey()
-			const groupInfoSessionKey = aes256RandomKey()
+		const groupRootSessionKey = aes256RandomKey()
+		const groupInfoSessionKey = aes256RandomKey()
 
-			const userEncGroupKey = encryptKeyWithVersionedKey(userGroupKey, groupKey.object)
-			const adminEncGroupKey = adminGroupKey ? encryptKeyWithVersionedKey(adminGroupKey, groupKey.object) : null
-			const customerEncGroupInfoSessionKey = encryptKeyWithVersionedKey(customerGroupKey, groupInfoSessionKey)
-			const groupEncGroupRootSessionKey = encryptKeyWithVersionedKey(groupKey, groupRootSessionKey)
+		const userEncGroupKey = encryptKeyWithVersionedKey(userGroupKey, groupKey.object)
+		const adminEncGroupKey = adminGroupKey ? encryptKeyWithVersionedKey(adminGroupKey, groupKey.object) : null
+		const customerEncGroupInfoSessionKey = encryptKeyWithVersionedKey(customerGroupKey, groupInfoSessionKey)
+		const groupEncGroupRootSessionKey = encryptKeyWithVersionedKey(groupKey, groupRootSessionKey)
 
-			return createUserAreaGroupData({
-				groupEncGroupRootSessionKey: groupEncGroupRootSessionKey.key,
-				customerEncGroupInfoSessionKey: customerEncGroupInfoSessionKey.key,
-				userEncGroupKey: userEncGroupKey.key,
-				groupInfoEncName: encryptString(groupInfoSessionKey, name),
-				adminEncGroupKey: adminEncGroupKey?.key ?? null,
-				adminGroup: adminGroupId,
-				customerKeyVersion: customerEncGroupInfoSessionKey.encryptingKeyVersion.toString(),
-				userKeyVersion: userGroupKey.version.toString(),
-				adminKeyVersion: adminEncGroupKey?.encryptingKeyVersion.toString() ?? null,
-			})
+		return createUserAreaGroupData({
+			groupEncGroupRootSessionKey: groupEncGroupRootSessionKey.key,
+			customerEncGroupInfoSessionKey: customerEncGroupInfoSessionKey.key,
+			userEncGroupKey: userEncGroupKey.key,
+			groupInfoEncName: encryptString(groupInfoSessionKey, name),
+			adminEncGroupKey: adminEncGroupKey?.key ?? null,
+			adminGroup: adminGroupId,
+			customerKeyVersion: customerEncGroupInfoSessionKey.encryptingKeyVersion.toString(),
+			userKeyVersion: userGroupKey.version.toString(),
+			adminKeyVersion: adminEncGroupKey?.encryptingKeyVersion.toString() ?? null,
 		})
 	}
 
@@ -277,7 +274,7 @@ export class GroupManagementFacade {
 	async getCurrentGroupKeyViaAdminEncGKey(groupId: Id): Promise<VersionedKey> {
 		if (this.user.hasGroup(groupId)) {
 			// e.g. I am a global admin and want to add another user to the global admin group
-			return this.user.getCurrentGroupKey(groupId)
+			return this.keyLoaderFacade.getCurrentSymGroupKey(groupId)
 		} else {
 			const group = await this.entityClient.load(GroupTypeRef, groupId)
 			if (group.adminGroupEncGKey == null || group.adminGroupEncGKey.length === 0) {

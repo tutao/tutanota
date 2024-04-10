@@ -3,7 +3,7 @@ import { AesKey, AsymmetricKeyPair, decryptKey, decryptKeyPair } from "@tutao/tu
 import { Group, GroupKey, GroupKeyTypeRef, GroupTypeRef } from "../../entities/sys/TypeRefs.js"
 import { Versioned } from "@tutao/tutanota-utils/dist/Utils.js"
 import { UserFacade } from "./UserFacade.js"
-import { assertNotNull } from "@tutao/tutanota-utils"
+import { assertNotNull, getFromMap } from "@tutao/tutanota-utils"
 import { NotFoundError } from "../../common/error/RestError.js"
 import { customIdToString, getElementId, stringToCustomId } from "../../common/utils/EntityUtils.js"
 import { VersionedKey } from "../crypto/CryptoFacade.js"
@@ -13,7 +13,12 @@ import { VersionedKey } from "../crypto/CryptoFacade.js"
  * Handle group key versioning.
  */
 export class KeyLoaderFacade {
-	constructor(private readonly userFacade: UserFacade, private readonly entityClient: EntityClient) {}
+	/** A cache for decrypted keys of each group. Encrypted keys are stored on membership.symEncGKey. */
+	private readonly currentGroupKeys: Map<Id, Promise<VersionedKey>>
+
+	constructor(private readonly userFacade: UserFacade, private readonly entityClient: EntityClient) {
+		this.currentGroupKeys = new Map()
+	}
 
 	/**
 	 * Load the symmetric group key for the groupId with the provided version.
@@ -22,7 +27,7 @@ export class KeyLoaderFacade {
 	 * @param currentGroupKey needs to be set if the user is not a member of the group (e.g. an admin)
 	 */
 	async loadSymGroupKey(groupId: Id, version: number, currentGroupKey?: VersionedKey): Promise<AesKey> {
-		const groupKey = currentGroupKey ?? this.userFacade.getCurrentGroupKey(groupId)
+		const groupKey = currentGroupKey ?? (await this.getCurrentSymGroupKey(groupId))
 
 		if (groupKey.version === version) {
 			return groupKey.object
@@ -33,17 +38,29 @@ export class KeyLoaderFacade {
 		return symmetricGroupKey
 	}
 
-	async loadSymUserGroupKey(userGroupKeyVersion: number): Promise<AesKey> {
-		return this.loadSymGroupKey(this.userFacade.getUserGroupId(), userGroupKeyVersion)
+	async getCurrentSymGroupKey(groupId: Id): Promise<VersionedKey> {
+		return getFromMap(this.currentGroupKeys, groupId, async () => {
+			const groupMembership = this.userFacade.getMembership(groupId)
+			const requiredUserGroupKey = await this.loadSymUserGroupKey(Number(groupMembership.symKeyVersion))
+			return {
+				version: Number(groupMembership.groupKeyVersion),
+				object: decryptKey(requiredUserGroupKey, groupMembership.symEncGKey),
+			}
+		})
 	}
 
-	getCurrentUserGroupKey(): VersionedKey {
+	async loadSymUserGroupKey(userGroupKeyVersion: number): Promise<AesKey> {
+		// we provide the current user group key to break a possibly infinite recursion
+		return this.loadSymGroupKey(this.userFacade.getUserGroupId(), userGroupKeyVersion, this.userFacade.getCurrentUserGroupKey())
+	}
+
+	getCurrentSymUserGroupKey(): VersionedKey {
 		return this.userFacade.getCurrentUserGroupKey()
 	}
 
 	async loadKeypair(keyPairGroupId: Id, groupKeyVersion: number): Promise<AsymmetricKeyPair> {
 		const group = await this.entityClient.load(GroupTypeRef, keyPairGroupId)
-		const groupKey = this.userFacade.getCurrentGroupKey(group._id)
+		const groupKey = await this.getCurrentSymGroupKey(group._id)
 
 		if (groupKey.version === groupKeyVersion) {
 			return this.getAndDecryptKeyPair(group, groupKey.object)
@@ -67,7 +84,7 @@ export class KeyLoaderFacade {
 
 	async loadCurrentKeyPair(groupId: Id): Promise<Versioned<AsymmetricKeyPair>> {
 		const group = await this.entityClient.load(GroupTypeRef, groupId)
-		const groupKey = this.userFacade.getCurrentGroupKey(group._id)
+		const groupKey = await this.getCurrentSymGroupKey(group._id)
 
 		const result = this.getAndDecryptKeyPair(group, groupKey.object)
 		return { object: result, version: Number(group.groupKeyVersion) }
