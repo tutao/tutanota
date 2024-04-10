@@ -13,7 +13,7 @@ export default {
 		"other"
 	],
 	"created_at": "2015-06-09T09:37:05Z",
-	"updated_at": "2024-04-03T13:01:47Z",
+	"updated_at": "2024-04-10T11:08:21Z",
 	"source_locale": null,
 	"fallback_locale": null,
 	"keys": {
@@ -478,6 +478,7 @@ export default {
 		"dragAndDrop_action": "Povlecite izbrano pošto v datotečni sistem ali druge programe.",
 		"duplicatedMailAddressInUserList_msg": "Ta poštni naslov je vključen več kot enkrat v vaše vhodne podatke.",
 		"duplicatesNotification_msg": "{1} podvojenih stikov je bilo najdenih in bojo zbrisani.",
+		"Edit contact form": "Uredi kontaktni obrazec",
 		"editContactForm_label": "Uredi kontaktni obrazec",
 		"editContactList_action": "Urejanje seznama stikov",
 		"editContact_label": "Uredi stik",
