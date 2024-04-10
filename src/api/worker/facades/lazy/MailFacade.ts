@@ -795,7 +795,7 @@ export class MailFacade {
 				PublicKeyService,
 				createPublicKeyGetIn({
 					mailAddress,
-					version: null,
+					version: null, // get the current version for encryption
 				}),
 			)
 			.catch(ofClass(NotFoundError, () => null))

@@ -100,7 +100,7 @@ export function base64ToKey(base64: Base64): BitArray {
 		throw new CryptoError("hex to aes key failed", e as Error)
 	}
 }
-// TODO test
+
 export function uint8ArrayToKey(array: Uint8Array): BitArray {
 	return base64ToKey(uint8ArrayToBase64(array))
 }

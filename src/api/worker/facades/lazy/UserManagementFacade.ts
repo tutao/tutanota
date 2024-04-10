@@ -27,6 +27,7 @@ import {
 	encryptKey,
 	generateRandomSalt,
 	random,
+	uint8ArrayToKey,
 } from "@tutao/tutanota-crypto"
 import { EntityClient } from "../../../common/EntityClient.js"
 import { IServiceExecutor } from "../../../common/ServiceRequest.js"
@@ -80,26 +81,26 @@ export class UserManagementFacade {
 
 	async changeAdminFlag(user: User, admin: boolean): Promise<void> {
 		const adminGroupId = this.userFacade.getGroupId(GroupType.Admin)
-		const adminGroupKey = this.userFacade.getCurrentGroupKey(adminGroupId)
 
 		const userGroup = await this.entityClient.load(GroupTypeRef, user.userGroup.group)
-		const userGroupKey = { object: decryptKey(adminGroupKey.object, neverNull(userGroup.adminGroupEncGKey)), version: Number(userGroup.groupKeyVersion) }
+		const requiredAdminKeyVersion = Number(userGroup.adminGroupKeyVersion ?? 0)
+		const requiredAdminGroupKey = await this.keyLoaderFacade.loadSymGroupKey(adminGroupId, requiredAdminKeyVersion)
+		const userGroupKey = { object: decryptKey(requiredAdminGroupKey, neverNull(userGroup.adminGroupEncGKey)), version: Number(userGroup.groupKeyVersion) }
 
 		if (admin) {
 			await this.groupManagement.addUserToGroup(user, adminGroupId)
 
 			if (user.accountType !== AccountType.SYSTEM) {
 				const keyData = await this._getAccountKeyData()
-				const groupKey = decryptKey(this.userFacade.getCurrentUserGroupKey().object, keyData.symEncGKey)
-				const symEncGKey = encryptKeyWithVersionedKey(userGroupKey, groupKey)
+				const userEncAccountGroupKey = encryptKeyWithVersionedKey(userGroupKey, keyData.accountGroupKey)
 
 				// we can not use addUserToGroup here because the admin is not admin of the account group
 				const addAccountGroup = createMembershipAddData({
 					user: user._id,
-					group: keyData.group,
-					symEncGKey: symEncGKey.key,
-					symKeyVersion: symEncGKey.encryptingKeyVersion.toString(),
-					groupKeyVersion: keyData.groupKeyVersion,
+					group: keyData.accountGroup,
+					symEncGKey: userEncAccountGroupKey.key,
+					symKeyVersion: userEncAccountGroupKey.encryptingKeyVersion.toString(),
+					groupKeyVersion: keyData.accountGroupKeyVersion,
 				})
 				await this.serviceExecutor.post(MembershipService, addAccountGroup)
 			}
@@ -108,26 +109,26 @@ export class UserManagementFacade {
 
 			if (user.accountType !== AccountType.SYSTEM) {
 				const keyData = await this._getAccountKeyData()
-				return this.groupManagement.removeUserFromGroup(user._id, keyData.group)
+				return this.groupManagement.removeUserFromGroup(user._id, keyData.accountGroup)
 			}
 		}
 	}
 
 	/**
 	 * Get key and id of premium group.
-	 * @throws Error if account type is not premium or starter
+	 * @throws Error if account type is not paid
 	 *
 	 * @private
 	 */
-	async _getAccountKeyData(): Promise<{ group: Id; groupKeyVersion: string; symEncGKey: Uint8Array }> {
+	async _getAccountKeyData(): Promise<{ accountGroup: Id; accountGroupKeyVersion: string; accountGroupKey: AesKey }> {
 		const keysReturn = await this.serviceExecutor.get(SystemKeysService, null)
 		const user = this.userFacade.getLoggedInUser()
 
 		if (user.accountType === AccountType.PAID) {
 			return {
-				group: neverNull(keysReturn.premiumGroup),
-				symEncGKey: keysReturn.premiumGroupKey,
-				groupKeyVersion: keysReturn.premiumGroupKeyVersion,
+				accountGroup: neverNull(keysReturn.premiumGroup),
+				accountGroupKey: uint8ArrayToKey(keysReturn.premiumGroupKey),
+				accountGroupKeyVersion: keysReturn.premiumGroupKeyVersion,
 			}
 		} else {
 			throw new Error(`Trying to get keyData for user with account type ${user.accountType}`)
