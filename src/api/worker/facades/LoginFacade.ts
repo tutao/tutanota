@@ -315,7 +315,7 @@ export class LoginFacade {
 		}
 		const newUserPassphraseKey = await this.deriveUserPassphraseKey(newPassphraseKeyData)
 
-		const pwEncUserGroupKey = encryptKey(newUserPassphraseKey, this.userFacade.getUserGroupKey().object)
+		const pwEncUserGroupKey = encryptKey(newUserPassphraseKey, this.userFacade.getCurrentUserGroupKey().object)
 		const newAuthVerifier = createAuthVerifier(newUserPassphraseKey)
 
 		const changeKdfPostIn = createChangeKdfPostIn({
@@ -893,7 +893,7 @@ export class LoginFacade {
 		const newPasswordKeyData = { ...newPasswordKeyDataTemplate, salt: generateRandomSalt() }
 
 		const newUserPassphraseKey = await this.deriveUserPassphraseKey(newPasswordKeyData)
-		const pwEncUserGroupKey = encryptKey(newUserPassphraseKey, this.userFacade.getUserGroupKey().object)
+		const pwEncUserGroupKey = encryptKey(newUserPassphraseKey, this.userFacade.getCurrentUserGroupKey().object)
 		const authVerifier = createAuthVerifier(newUserPassphraseKey)
 		const service = createChangePasswordData({
 			code: null,

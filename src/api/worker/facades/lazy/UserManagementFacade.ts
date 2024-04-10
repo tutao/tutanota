@@ -90,7 +90,7 @@ export class UserManagementFacade {
 
 			if (user.accountType !== AccountType.SYSTEM) {
 				const keyData = await this._getAccountKeyData()
-				const groupKey = decryptKey(this.userFacade.getUserGroupKey().object, keyData.symEncGKey)
+				const groupKey = decryptKey(this.userFacade.getCurrentUserGroupKey().object, keyData.symEncGKey)
 				const symEncGKey = encryptKeyWithVersionedKey(userGroupKey, groupKey)
 
 				// we can not use addUserToGroup here because the admin is not admin of the account group
@@ -364,7 +364,7 @@ export class UserManagementFacade {
 		}
 
 		const { userEncRecoverCode, userKeyVersion, recoverCodeEncUserGroupKey, hexCode, recoveryCodeVerifier } = this.generateRecoveryCode(
-			this.userFacade.getUserGroupKey(),
+			this.userFacade.getCurrentUserGroupKey(),
 		)
 		const recoverPasswordEntity = createRecoverCode({
 			userEncRecoverCode: userEncRecoverCode,

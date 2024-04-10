@@ -28,7 +28,7 @@ export class KeyLoaderFacade {
 	}
 
 	getCurrentUserGroupKey(): VersionedKey {
-		return this.userFacade.getUserGroupKey()
+		return this.userFacade.getCurrentUserGroupKey()
 	}
 
 	async loadKeypair(keyPairGroupId: Id, groupKeyVersion: number): Promise<AsymmetricKeyPair> {

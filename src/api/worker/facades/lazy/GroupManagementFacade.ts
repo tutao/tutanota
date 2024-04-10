@@ -104,7 +104,7 @@ export class GroupManagementFacade {
 
 			const customerGroupId = this.user.getGroupId(GroupType.Customer)
 			const customerGroupKey = this.user.getCurrentGroupKey(customerGroupId)
-			const userGroupKey = this.user.getUserGroupKey()
+			const userGroupKey = this.user.getCurrentUserGroupKey()
 			const groupKey = freshVersioned(aes256RandomKey())
 
 			const groupRootSessionKey = aes256RandomKey()

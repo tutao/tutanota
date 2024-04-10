@@ -92,7 +92,7 @@ export class UserFacade implements AuthDataProvider {
 		return groups
 	}
 
-	getUserGroupKey(): VersionedKey {
+	getCurrentUserGroupKey(): VersionedKey {
 		// the userGroupKey is always written after the login to this.groupKeys
 		//if the user has only logged in offline this has not happened
 		const userGroupKey = this.currentGroupKeys.get(this.getUserGroupId())
@@ -112,7 +112,7 @@ export class UserFacade implements AuthDataProvider {
 			// TODO make sure we have the right user group version
 			return {
 				version: Number(groupMembership.groupKeyVersion),
-				object: decryptKey(this.getUserGroupKey().object, groupMembership.symEncGKey),
+				object: decryptKey(this.getCurrentUserGroupKey().object, groupMembership.symEncGKey),
 			}
 		})
 	}

@@ -80,7 +80,7 @@ export class ShareFacade {
 		const userGroupInfo = await this.entityClient.load(GroupInfoTypeRef, this.userFacade.getLoggedInUser().userGroup.groupInfo)
 		const userGroupInfoSessionKey = await this.cryptoFacade.resolveSessionKeyForInstance(userGroupInfo)
 		const sharedGroupKey = { object: uint8ArrayToBitArray(invitation.sharedGroupKey), version: Number(invitation.sharedGroupKeyVersion) }
-		const userGroupKey = this.userFacade.getUserGroupKey()
+		const userGroupKey = this.userFacade.getCurrentUserGroupKey()
 		const userGroupEncGroupKey = encryptKeyWithVersionedKey(userGroupKey, sharedGroupKey.object)
 		const sharedGroupEncInviteeGroupInfoKey = encryptKeyWithVersionedKey(sharedGroupKey, neverNull(userGroupInfoSessionKey))
 		const serviceData = createGroupInvitationPutData({

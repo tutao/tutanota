@@ -757,7 +757,7 @@ o.spec("CryptoFacadeTest", function () {
 		when(pqFacadeMock.encapsulate(anything(), anything(), pqKeyPairsToPublicKeys(recipientKeyPairs), bitArrayToUint8Array(bk))).thenResolve(pqMessage)
 		when(entityClient.load(GroupTypeRef, senderUserGroup._id)).thenResolve(senderUserGroup)
 		when(userFacade.getCurrentGroupKey(senderUserGroup._id)).thenReturn({ object: senderGroupKey, version: 0 })
-		when(userFacade.getUserGroupKey()).thenReturn({ object: senderGroupKey, version: 0 })
+		when(userFacade.getCurrentUserGroupKey()).thenReturn({ object: senderGroupKey, version: 0 })
 
 		const internalRecipientKeyData = (await cryptoFacadeTmp.encryptBucketKeyForInternalRecipient(
 			senderUserGroup._id,
@@ -1934,7 +1934,7 @@ export function configureLoggedInUser(testUser: TestUser, userFacade: UserFacade
 	when(userFacade.getCurrentGroupKey(testUser.userGroup._id)).thenReturn({ object: testUser.userGroupKey, version: 0 })
 	when(userFacade.hasGroup(testUser.userGroup._id)).thenReturn(true)
 	when(userFacade.hasGroup(testUser.mailGroup._id)).thenReturn(true)
-	when(userFacade.getUserGroupKey()).thenReturn({ object: testUser.userGroupKey, version: 0 })
+	when(userFacade.getCurrentUserGroupKey()).thenReturn({ object: testUser.userGroupKey, version: 0 })
 	when(userFacade.isLeader()).thenReturn(true)
 	when(userFacade.isFullyLoggedIn()).thenReturn(true)
 	when(keyLoaderFacade.loadSymGroupKey(testUser.mailGroup._id, 0)).thenResolve(testUser.mailGroupKey)

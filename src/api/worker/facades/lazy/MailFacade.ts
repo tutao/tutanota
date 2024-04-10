@@ -129,6 +129,7 @@ import { LoginFacade } from "../LoginFacade.js"
 import { ProgrammingError } from "../../../common/error/ProgrammingError.js"
 import { OwnerEncSessionKeyProvider } from "../../rest/EntityRestClient.js"
 import { resolveTypeReference } from "../../../common/EntityFunctions.js"
+import { KeyLoaderFacade } from "../KeyLoaderFacade.js"
 
 assertWorkerOrNode()
 type Attachments = ReadonlyArray<TutanotaFile | DataFile | FileReference>
@@ -175,6 +176,7 @@ export class MailFacade {
 		private readonly blobFacade: BlobFacade,
 		private readonly fileApp: NativeFileApp,
 		private readonly loginFacade: LoginFacade,
+		private readonly keyLoaderFacade: KeyLoaderFacade,
 	) {}
 
 	async createMailFolder(name: string, parent: IdTuple | null, ownerGroupId: Id): Promise<void> {
@@ -248,9 +250,6 @@ export class MailFacade {
 		}
 
 		const senderMailGroupId = await this._getMailGroupIdForMailAddress(this.userFacade.getLoggedInUser(), senderMailAddress)
-
-		const userGroupKey = this.userFacade.getUserGroupKey()
-
 		const mailGroupKey = this.userFacade.getCurrentGroupKey(senderMailGroupId)
 
 		const sk = aes256RandomKey()
@@ -312,11 +311,15 @@ export class MailFacade {
 
 		const senderMailGroupId = await this._getMailGroupIdForMailAddress(this.userFacade.getLoggedInUser(), senderMailAddress)
 
-		const mailGroupKey = this.userFacade.getCurrentGroupKey(senderMailGroupId)
+		const mailGroupKeyVersion = Number(draft._ownerKeyVersion ?? 0)
+		const mailGroupKey = {
+			version: mailGroupKeyVersion,
+			object: await this.keyLoaderFacade.loadSymGroupKey(senderMailGroupId, mailGroupKeyVersion),
+		}
 		const currentAttachments = await this.getAttachmentIds(draft)
 		const replyTos = await this.getReplyTos(draft)
 
-		const sk = decryptKey(mailGroupKey.object, draft._ownerEncSessionKey as any)
+		const sk = decryptKey(mailGroupKey.object, assertNotNull(draft._ownerEncSessionKey))
 		const service = createDraftUpdateData({
 			draft: draft._id,
 			draftData: createDraftData({
@@ -681,8 +684,8 @@ export class MailFacade {
 				const kdfType = DEFAULT_KDF_TYPE
 				const passwordKey = await this.loginFacade.deriveUserPassphraseKey({ kdfType, passphrase, salt })
 				const passwordVerifier = createAuthVerifier(passwordKey)
-				const externalGroupKeys = await this.getExternalGroupKey(recipient.address, passwordKey, passwordVerifier)
-				const ownerEncBucketKey = encryptKeyWithVersionedKey(externalGroupKeys.externalMailGroupKey, bucketKey)
+				const externalGroupKeys = await this.getExternalGroupKeys(recipient.address, passwordKey, passwordVerifier)
+				const ownerEncBucketKey = encryptKeyWithVersionedKey(externalGroupKeys.currentExternalMailGroupKey, bucketKey)
 				const data = createSecureExternalRecipientKeyData({
 					mailAddress: recipient.address,
 					kdfVersion: kdfType,
@@ -691,7 +694,7 @@ export class MailFacade {
 					passwordVerifier: passwordVerifier,
 					salt: salt,
 					saltHash: sha256Hash(salt),
-					pwEncCommunicationKey: encryptKey(passwordKey, externalGroupKeys.externalUserGroupKey.object),
+					pwEncCommunicationKey: encryptKey(passwordKey, externalGroupKeys.currentExternalUserGroupKey.object),
 					autoTransmitPassword: null,
 					passwordChannelPhoneNumbers: [],
 				})
@@ -731,50 +734,58 @@ export class MailFacade {
 	 * @param verifier The external user's verifier, base64 encoded.
 	 * @return Resolves to the external user's group key and the external user's mail group key, rejected if an error occurred
 	 */
-	private async getExternalGroupKey(
+	private async getExternalGroupKeys(
 		recipientMailAddress: string,
 		externalUserPwKey: Aes128Key,
 		verifier: Uint8Array,
 	): Promise<{
-		externalUserGroupKey: VersionedKey
-		externalMailGroupKey: VersionedKey
+		currentExternalUserGroupKey: VersionedKey
+		currentExternalMailGroupKey: VersionedKey
 	}> {
 		const groupRoot = await this.entityClient.loadRoot(GroupRootTypeRef, this.userFacade.getUserGroupId())
 		const cleanedMailAddress = recipientMailAddress.trim().toLocaleLowerCase()
 		const mailAddressId = stringToCustomId(cleanedMailAddress)
 
 		let externalUserReference: ExternalUserReference
-		const userGroupKey = this.userFacade.getUserGroupKey()
 		try {
 			externalUserReference = await this.entityClient.load(ExternalUserReferenceTypeRef, [groupRoot.externalUserReferences, mailAddressId])
 		} catch (e) {
 			if (e instanceof NotFoundError) {
-				return this.createExternalUser(cleanedMailAddress, externalUserPwKey, userGroupKey, verifier)
+				return this.createExternalUser(cleanedMailAddress, externalUserPwKey, verifier)
 			}
 			throw e
 		}
 
 		const externalUser = await this.entityClient.load(UserTypeRef, externalUserReference.user)
-		const mailGroupId = assertNotNull(
+		const externalUserGroupId = externalUserReference.userGroup
+		const externalMailGroupId = assertNotNull(
 			externalUser.memberships.find((m) => m.groupType === GroupType.Mail),
 			"no mail group membership on external user",
 		).group
 
-		const externalMailGroup = await this.entityClient.load(GroupTypeRef, mailGroupId)
-		const externalUserGroup = await this.entityClient.load(GroupTypeRef, externalUserReference.userGroup)
-		const userAdminKey = assertNotNull(externalUserGroup.adminGroupEncGKey, "no adminGroupEncGKey on external user group")
-		const mailAdminKey = assertNotNull(externalMailGroup.adminGroupEncGKey, "no adminGroupEncGKey on external mail group")
-		const externalUserGroupKey = {
-			object: decryptKey(userGroupKey.object, userAdminKey),
+		const externalMailGroup = await this.entityClient.load(GroupTypeRef, externalMailGroupId)
+		const externalUserGroup = await this.entityClient.load(GroupTypeRef, externalUserGroupId)
+		const requiredInternalUserGroupKeyVersion = Number(externalUserGroup.adminGroupKeyVersion ?? 0)
+		const requiredExternalUserGroupKeyVersion = Number(externalMailGroup.adminGroupKeyVersion ?? 0)
+		const internalUserEncExternalUserKey = assertNotNull(externalUserGroup.adminGroupEncGKey, "no adminGroupEncGKey on external user group")
+		const externalUserEncExternalMailKey = assertNotNull(externalMailGroup.adminGroupEncGKey, "no adminGroupEncGKey on external mail group")
+		const requiredInternalUserGroupKey = await this.keyLoaderFacade.loadSymGroupKey(this.userFacade.getUserGroupId(), requiredInternalUserGroupKeyVersion)
+		const currentExternalUserGroupKey = {
+			object: decryptKey(requiredInternalUserGroupKey, internalUserEncExternalUserKey),
 			version: Number(externalUserGroup.groupKeyVersion),
 		}
-		const externalMailGroupKey = {
-			object: decryptKey(externalUserGroupKey.object, mailAdminKey),
-			version: Number(externalUserGroup.groupKeyVersion),
+		const requiredExternalUserGroupKey = await this.keyLoaderFacade.loadSymGroupKey(
+			externalUserGroupId,
+			requiredExternalUserGroupKeyVersion,
+			currentExternalUserGroupKey,
+		)
+		const currentExternalMailGroupKey = {
+			object: decryptKey(requiredExternalUserGroupKey, externalUserEncExternalMailKey),
+			version: Number(externalMailGroup.groupKeyVersion),
 		}
 		return {
-			externalUserGroupKey,
-			externalMailGroupKey,
+			currentExternalUserGroupKey,
+			currentExternalMailGroupKey,
 		}
 	}
 
@@ -821,31 +832,32 @@ export class MailFacade {
 		}
 	}
 
-	private async createExternalUser(cleanedMailAddress: string, externalUserPwKey: AesKey, userGroupKey: VersionedKey, verifier: Uint8Array) {
+	private async createExternalUser(cleanedMailAddress: string, externalUserPwKey: AesKey, verifier: Uint8Array) {
+		const internalUserGroupKey = this.userFacade.getCurrentUserGroupKey()
 		const internalMailGroupKey = this.userFacade.getCurrentGroupKey(this.userFacade.getGroupId(GroupType.Mail))
 
-		const externalUserGroupKey = freshVersioned(aes256RandomKey())
-		const externalMailGroupKey = freshVersioned(aes256RandomKey())
+		const currentExternalUserGroupKey = freshVersioned(aes256RandomKey())
+		const currentExternalMailGroupKey = freshVersioned(aes256RandomKey())
 		const externalUserGroupInfoSessionKey = aes256RandomKey()
 		const externalMailGroupInfoSessionKey = aes256RandomKey()
 		const tutanotaPropertiesSessionKey = aes256RandomKey()
 		const mailboxSessionKey = aes256RandomKey()
-		const userEncEntropy = encryptBytes(externalUserGroupKey.object, random.generateRandomData(32))
+		const userEncEntropy = encryptBytes(currentExternalUserGroupKey.object, random.generateRandomData(32))
 
-		const internalUserEncGroupKey = encryptKeyWithVersionedKey(userGroupKey, externalUserGroupKey.object)
+		const internalUserEncGroupKey = encryptKeyWithVersionedKey(internalUserGroupKey, currentExternalUserGroupKey.object)
 		const userGroupData = createCreateExternalUserGroupData({
 			mailAddress: cleanedMailAddress,
-			externalPwEncUserGroupKey: encryptKey(externalUserPwKey, externalUserGroupKey.object),
+			externalPwEncUserGroupKey: encryptKey(externalUserPwKey, currentExternalUserGroupKey.object),
 			internalUserEncUserGroupKey: internalUserEncGroupKey.key,
 			internalUserGroupKeyVersion: internalUserEncGroupKey.encryptingKeyVersion.toString(),
 		})
 
-		const externalUserEncUserGroupInfoSessionKey = encryptKeyWithVersionedKey(externalUserGroupKey, externalUserGroupInfoSessionKey)
-		const externalUserEncMailGroupKey = encryptKeyWithVersionedKey(externalUserGroupKey, externalMailGroupKey.object)
-		const externalUserEncTutanotaPropertiesSessionKey = encryptKeyWithVersionedKey(externalUserGroupKey, tutanotaPropertiesSessionKey)
+		const externalUserEncUserGroupInfoSessionKey = encryptKeyWithVersionedKey(currentExternalUserGroupKey, externalUserGroupInfoSessionKey)
+		const externalUserEncMailGroupKey = encryptKeyWithVersionedKey(currentExternalUserGroupKey, currentExternalMailGroupKey.object)
+		const externalUserEncTutanotaPropertiesSessionKey = encryptKeyWithVersionedKey(currentExternalUserGroupKey, tutanotaPropertiesSessionKey)
 
-		const externalMailEncMailGroupInfoSessionKey = encryptKeyWithVersionedKey(externalMailGroupKey, externalMailGroupInfoSessionKey)
-		const externalMailEncMailBoxSessionKey = encryptKeyWithVersionedKey(externalMailGroupKey, mailboxSessionKey)
+		const externalMailEncMailGroupInfoSessionKey = encryptKeyWithVersionedKey(currentExternalMailGroupKey, externalMailGroupInfoSessionKey)
+		const externalMailEncMailBoxSessionKey = encryptKeyWithVersionedKey(currentExternalMailGroupKey, mailboxSessionKey)
 
 		const internalMailEncUserGroupInfoSessionKey = encryptKeyWithVersionedKey(internalMailGroupKey, externalUserGroupInfoSessionKey)
 		const internalMailEncMailGroupInfoSessionKey = encryptKeyWithVersionedKey(internalMailGroupKey, externalMailGroupInfoSessionKey)
@@ -859,11 +871,11 @@ export class MailFacade {
 			externalUserEncUserGroupInfoSessionKey: externalUserEncUserGroupInfoSessionKey.key,
 			externalUserEncMailGroupKey: externalUserEncMailGroupKey.key,
 			externalUserEncTutanotaPropertiesSessionKey: externalUserEncTutanotaPropertiesSessionKey.key,
-			externalUserGroupKeyVersion: externalUserGroupKey.version.toString(),
+			externalUserGroupKeyVersion: currentExternalUserGroupKey.version.toString(),
 
 			externalMailEncMailGroupInfoSessionKey: externalMailEncMailGroupInfoSessionKey.key,
 			externalMailEncMailBoxSessionKey: externalMailEncMailBoxSessionKey.key,
-			externalMailGroupKeyVersion: externalMailGroupKey.version.toString(),
+			externalMailGroupKeyVersion: currentExternalMailGroupKey.version.toString(),
 
 			internalMailEncUserGroupInfoSessionKey: internalMailEncUserGroupInfoSessionKey.key,
 			internalMailEncMailGroupInfoSessionKey: internalMailEncMailGroupInfoSessionKey.key,
@@ -871,8 +883,8 @@ export class MailFacade {
 		})
 		await this.serviceExecutor.post(ExternalUserService, d)
 		return {
-			externalUserGroupKey: externalUserGroupKey,
-			externalMailGroupKey: externalMailGroupKey,
+			currentExternalUserGroupKey,
+			currentExternalMailGroupKey,
 		}
 	}
 

@@ -753,7 +753,7 @@ o.spec("LoginFacadeTest", function () {
 			const user = await makeUser("userId", KdfType.Bcrypt)
 			user.salt = SALT
 
-			when(userFacade.getUserGroupKey()).thenReturn({ object: [1, 2, 3, 4], version: 0 })
+			when(userFacade.getCurrentUserGroupKey()).thenReturn({ object: [1, 2, 3, 4], version: 0 })
 			await facade.migrateKdfType(KdfType.Argon2id, "hunter2", user)
 
 			verify(

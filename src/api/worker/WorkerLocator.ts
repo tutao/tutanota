@@ -345,7 +345,16 @@ export async function initLocator(worker: WorkerImpl, browserData: BrowserData) 
 	})
 	locator.mail = lazyMemoized(async () => {
 		const { MailFacade } = await import("./facades/lazy/MailFacade.js")
-		return new MailFacade(locator.user, locator.cachingEntityClient, locator.crypto, locator.serviceExecutor, await locator.blob(), fileApp, locator.login)
+		return new MailFacade(
+			locator.user,
+			locator.cachingEntityClient,
+			locator.crypto,
+			locator.serviceExecutor,
+			await locator.blob(),
+			fileApp,
+			locator.login,
+			locator.keyLoader,
+		)
 	})
 	const nativePushFacade = new NativePushFacadeSendDispatcher(worker)
 	locator.calendar = lazyMemoized(async () => {

@@ -464,7 +464,7 @@ export class CustomerFacade {
 
 	private async switchAccountGroup(oldGroup: Id, newGroup: Id, newGroupKey: VersionedKey): Promise<void> {
 		const loggedInUser = this.userFacade.getLoggedInUser()
-		const symEncGKey = encryptKeyWithVersionedKey(this.userFacade.getUserGroupKey(), newGroupKey.object)
+		const symEncGKey = encryptKeyWithVersionedKey(this.userFacade.getCurrentUserGroupKey(), newGroupKey.object)
 		const membershipAddData = createMembershipAddData({
 			user: loggedInUser._id,
 			group: newGroup,

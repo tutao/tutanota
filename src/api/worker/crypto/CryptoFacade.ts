@@ -424,7 +424,7 @@ export class CryptoFacade {
 	}
 
 	private async addSessionKeyToPushIdentifier(data: Record<string, any>): Promise<Record<string, any>> {
-		const userGroupKey = this.userFacade.getUserGroupKey()
+		const userGroupKey = this.userFacade.getCurrentUserGroupKey()
 
 		// set sessionKey for allowing encryption when old instance (< v43) is updated
 		const typeModel = await resolveTypeReference(PushIdentifierTypeRef)
@@ -433,7 +433,7 @@ export class CryptoFacade {
 	}
 
 	private async encryptTutanotaProperties(data: Record<string, any>): Promise<Record<string, any>> {
-		const userGroupKey = this.userFacade.getUserGroupKey()
+		const userGroupKey = this.userFacade.getCurrentUserGroupKey()
 
 		// EncryptTutanotaPropertiesService could be removed and replaced with a Migration that writes the key
 		const groupEncSessionKey = encryptKeyWithVersionedKey(userGroupKey, aes256RandomKey())
@@ -890,7 +890,7 @@ export class CryptoFacade {
 		} else if (isRsaEccKeyPair(senderKeyPair)) {
 			return { publicKey: senderKeyPair.publicEccKey, privateKey: senderKeyPair.privateEccKey }
 		} else if (isRsaOrRsaEccKeyPair(senderKeyPair)) {
-			let userGroupKey = keyGroupId ? this.userFacade.getCurrentGroupKey(keyGroupId) : this.userFacade.getUserGroupKey()
+			let userGroupKey = keyGroupId ? this.userFacade.getCurrentGroupKey(keyGroupId) : this.userFacade.getCurrentUserGroupKey()
 			const newIdentityKeyPair = generateEccKeyPair()
 			const symEncPrivEccKey = encryptEccKey(userGroupKey.object, newIdentityKeyPair.privateKey)
 			const data = createPublicKeyPutIn({ pubEccKey: newIdentityKeyPair.publicKey, symEncPrivEccKey, keyGroup: keyGroupId })
