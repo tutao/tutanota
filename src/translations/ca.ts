@@ -11,7 +11,7 @@ export default {
 		"other"
 	],
 	"created_at": "2015-05-29T11:04:17Z",
-	"updated_at": "2024-02-07T15:05:17Z",
+	"updated_at": "2024-04-10T11:23:51Z",
 	"source_locale": null,
 	"fallback_locale": null,
 	"keys": {
@@ -357,7 +357,7 @@ export default {
 		"emailSending_label": "Enviant els correus electrònics",
 		"emailSignatureTypeCustom_msg": "Personalitzat",
 		"emailSignatureTypeDefault_msg": "Per defecte",
-		"emails_label": "Correus electrònics",
+		"emails_label": "Correus",
 		"email_label": "Correu electrònic",
 		"enableSearchMailbox_msg": "Habilitar la cerca de la vostra bústia us consumeix memòria al vostre dispositiu i podria consumir dades addicionals.",
 		"endsWith_label": "acaba amb",
