@@ -11,7 +11,7 @@ export default {
 		"other"
 	],
 	"created_at": "2015-05-29T11:04:17Z",
-	"updated_at": "2024-04-10T11:23:51Z",
+	"updated_at": "2024-04-11T08:48:47Z",
 	"source_locale": null,
 	"fallback_locale": null,
 	"keys": {
@@ -153,7 +153,6 @@ export default {
 		"certificateTypeAutomatic_label": "Automàtic (Let's Encrypt)",
 		"certificateTypeManual_label": "Manual",
 		"changeAdminPassword_msg": "Ho sentim, no se li permet canviar les contrasenyes d'altres d'administradors.",
-		"changePasswordCode_msg": "El vostre codi de verificació:",
 		"changePassword_label": "Canvi de contrasenya",
 		"changePermissions_msg": "Per tenir-hi accés, heu de modificar els permisos d'aquest dispositiu.",
 		"changeSpellCheckLang_action": "Canvia de llenguatge...",
@@ -726,8 +725,6 @@ export default {
 		"outdatedClientWarningMailBody_msg": "Hola<br>\nactualment esteu utilitzant una versió obsoleta de Tuta. El suport per a la vostra versió s'interromp en els pròxims dies.<br><br>\n\nSi us plau, actualitzeu el client a: {downloadLink}<br><br>\n\nGràcies!<br><br>\n\nL'equip de Tuta",
 		"outdatedClientWarningMailSubject_msg": "Si us plau, actualitzeu Tuta",
 		"outdatedClient_msg": "Si us plau, actualitza Tuta. La versió instal·lada és massa antiga i ja no és compatible.",
-		"outlookInvoiceMailBodyAutomatic_msg": "hi ha una nova factura amb el número {1} adjunta a aquest correu electrònic. Automàticament es carregarà la suma total. També podeu veure totes les factures a {2}.",
-		"outlookInvoiceMailBodyOnAccount_msg": "hi ha una nova factura amb el número {1} adjunta a aquest correu electrònic. El pagament s'ha d'efectuar fins a 7 dies després de la data de facturació. També podeu veure totes les factures a {2}.",
 		"outOfOfficeRecipients_label": "Destinataris de notificacions",
 		"outOfOfficeReminder_label": "S'ha activat l'autoresposta.",
 		"owner_label": "Propietari",
@@ -1100,7 +1097,6 @@ export default {
 		"wantToSendReport_msg": "Quelcom inesperat ha fallat. Voleu enviar un informe d'error? Es pot afegir un missatge per ajudar-nos a solucionar-ho.",
 		"weekNumber_label": "Setmana {week}",
 		"weekStart_label": "Començament de la setmana",
-		"welcomeMailBodyTweetText_msg": "Acabo de crear el meu compte Tuta. Ara puc protegir els meus correus electrònics de mirades curioses! Suma't-hi:",
 		"welcomeMailBody_markdown": "Benvinguts a la bústia de correu de Tuta, segura i sense anuncis, protegida amb xifratge fort. Tuta fa fàcil el canvi des d'altres serveis de correu electrònic. El nostre client web intuïtiu, aplicacions per Android i iOS, així com les aplicacions d'escriptori per a Windows, Mac OS i Linux us permet accedir a la bústia de correu segur des de qualsevol dispositiu. Com a professional, podeu estalviar temps i diners en allotjar tots els correus electrònics d'empresa xifrats d'extrem a extrem als servidors segurs de Tuta, amb seu a Alemanya: Etiqueta blanca Tuta per al seu negoci, posar el login al seu propi lloc web, i afegir un formulari de contacte xifrat per al seu lloc web perquè els clients puguin contactar fàcil i confidencialment. [Obteniu més informació sobre les característiques de negoci completes de Tuta]({businessLink}). **Tuta segueix 4 principis per oferir una alternativa amigable quant a la privacitat** 1. Tuta no et segueix. 2. Tuta no pot escanejar les teves dades. 3. Tuta xifra tota la bústia, contactes i calendari. 4. Tuta incorpora privacitat per disseny. Recomaneu Tuta, [el servei de correu electrònic de codi obert que us respecta i també respecta el dret a la privacitat]({blogOpenSourceLink}). Creiem que tothom es mereix una bústia lliure i privada. Ens podeu donar suport seguint-nos a la vostra xarxa social preferida i compartint el nostre contingut amb els amics i col·legues. Junts canviarem Internet per a millor: * [LinkedIn]({linkedinLink}) * [Facebook]({facebookLink}) * [Mastodon]({mastodonLink}) * [Twitter]({twitterLink}) * [Reddit]({redditLink}) * [Instagram]({instagramLink}) Moltes gràcies,\\ el teu Equip Tuta Tuta és de codi obert. [Podeu inspeccionar i revisar el codi font aquí]({githubLink}).",
 		"welcomeMailSubject_msg": "Segur, respectuós amb el medi ambient i lliure d'anuncis!",
 		"whatIsPhishing_msg": "Què és el phishing?",

@@ -11,7 +11,7 @@ export default {
 		"other"
 	],
 	"created_at": "2015-03-23T11:36:16Z",
-	"updated_at": "2024-04-10T11:18:57Z",
+	"updated_at": "2024-04-11T08:48:47Z",
 	"source_locale": null,
 	"fallback_locale": null,
 	"keys": {
@@ -222,7 +222,6 @@ export default {
 		"changeAdminPassword_msg": "Tyvärr, du får inte ändra andra administratörers lösenord.",
 		"changeMailSettings_msg": "Du kan senare ändra ditt val i e-post inställningarna.",
 		"changePaidPlan_msg": "Vill du byta din plan nu?",
-		"changePasswordCode_msg": "Din verifieringskod:",
 		"changePassword_label": "Ändra lösenord",
 		"changePermissions_msg": "För att bevilja åtkomst måste du ändra behörigheterna för den här enheten.",
 		"changeSpellCheckLang_action": "Ändra språk för stavningskontroll...",
@@ -1019,8 +1018,6 @@ export default {
 		"outdatedClientWarningMailBody_msg": "Hej<br>\n\nDu använder för närvarande en föråldrad version av Tuta. Stödet för din version kommer att upphöra inom de närmaste dagarna.<br><br>\n\nUppdatera klienten här: {downloadLink}<br><br>\n\nKontrollera också om du använder en föråldrad version av Tuta på en annan enhet. Systemet kommer att sluta skicka detta meddelande när alla dina Tuta klienter är uppdaterade.<br><br>\n\nTack!<br> <br>\n\nTeam Tuta",
 		"outdatedClientWarningMailSubject_msg": "Uppdatera Tuta",
 		"outdatedClient_msg": "Uppdatera Tuta. Den installerade versionen är för gammal och stöds inte längre.",
-		"outlookInvoiceMailBodyAutomatic_msg": "Det finns en ny faktura för dig med nummer {1} bifogad i det här mejlet. Totalsumman kommer att debiteras automatiskt . Du kan också se alla dina fakturor under {2}.",
-		"outlookInvoiceMailBodyOnAccount_msg": "Det finns en ny faktura för dig med nummer {1} bifogad i detta mail. Fakturan förfaller inom 7 dagar efter fakturadatum. Du kan också se alla dina fakturor under {2}.",
 		"outOfOfficeDefaultSubject_msg": "Jag är inte på kontoret",
 		"outOfOfficeDefault_msg": "Hej!\n<br>\n<br>Tack för ditt mejl. Jag är borta från kontoret och kommer snart tillbaka. Tills dess har jag begränsad möjlighet att läsa ditt meddelande. \n<br>\n<br>Vänliga Hälsningar",
 		"outOfOfficeEveryone_msg": "Till alla",
@@ -1660,7 +1657,6 @@ export default {
 		"weekStart_label": "Veckan börjar",
 		"weeks_label": "veckor",
 		"week_label": "Vecka",
-		"welcomeMailBodyTweetText_msg": "Skapa mitt Tuta-konto. Nu skyddar jag mina meddelanden från nyfikna! Du kan också gå med:",
 		"welcomeMailBody_markdown": "**Gör dig redo att uppleva en säker, grön och reklamfri e-post! End-to-end kryptering håller dig alltid säker.**︎\n︎\nPå Tuta prioriterar vi din integritet och säkerhet. Med stark kryptering är din brevlåda skyddad från nyfikna ögon vilket säkerställer att din konfidentiella information förblir säker.︎\n︎\nMen det är inte allt. Vi har gjort det enkelt att byta från andra e-posttjänster. Med våra intuitiva appar för Android och iOS tillsammans med skrivbordsappar för Windows, macOS och Linux kan du komma åt din säkra brevlåda och kalender på alla enheter även när du är offline. Säg nej till begränsningar och ja till sömlös tillgänglighet.︎\n︎\nOm du fortfarande har kvar en gammal mejldress behöver du inte oroa dig. Vi har något för dig. Ställ in automatisk vidarebefordran på ditt gamla konto och flytta gradvis över alla dina mejl och kontakter till Tuta. Kolla in vår guide [här]({faqForwardLink}) och se hur du enkelt kan vidarebefordra dina meddelanden till Tuta.︎\n︎\nNär du har överfört alla dina viktiga konversationer kan du avaktivera automatisk vidarebefordran. Luta dig tillbaka och njut av en fin, ren och skräppostfri brevlåda utan bekymmer.︎\n︎\n**På Tuta följer vi fyra grundläggande principer för att tillhandahålla ett integritetsvänligt alternativ till Big Tech:**︎\n︎\n1.    Vi spårar dig inte.︎\n2.    Vi skannar inte dina data.︎\n3.    Vi krypterar hela din brevlåda, kontakter och kalendrar.︎\n4.    Vi prioriterar inbyggd sekretess.︎\n︎\nGillar du Tuta? **Ta gärna en stund och lämna din feedback på sociala medier** (se länkar nedan). Vi vill gärna höra hur det går för oss!\n︎\nMed Tuta möter integritet bekvämlighet. Följ med oss till den krypterade sidan och upplev e-post på ett nytt sätt.︎\n︎\nVi är glada att välkomna dig till din krypterade brevlåda!︎\nDitt Tuta team︎\n︎\n--\n\n**Alla förtjänar frihet.**\n\nDu kan stödja vårt uppdrag att ge världen tillgång till en tjänst med integritet genom att följa oss på din favoritkanal i sociala medier och genom att dela vårt innehåll med dina vänner och kollegor. Tillsammans kommer vi att förändra Internet till det bättre!\n\n* [LinkedIn]({linkedinLink})\n* [Facebook]({facebookLink})\n* [Mastodon]({mastodonLink})\n* [Twitter]({twitterLink})\n* [Reddit]({redditLink})\n* [Instagram]({instagramLink})\n* [YouTube]({youtubeLink})\n\nTuta har öppen källkod. [Du kan inspektera och granska källkoden här]({githubLink}).",
 		"welcomeMailSubject_msg": "Säkert, grön och reklamfri!",
 		"welcome_label": "Välkommen!",

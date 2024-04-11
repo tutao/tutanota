@@ -12,7 +12,7 @@ export default {
 		"other"
 	],
 	"created_at": "2015-02-04T09:56:15Z",
-	"updated_at": "2024-04-05T10:39:27Z",
+	"updated_at": "2024-04-11T08:48:47Z",
 	"source_locale": {
 		"id": "fcd7471b347c8e517663e194dcddf237",
 		"name": "en",
@@ -219,7 +219,6 @@ export default {
 		"changeAdminPassword_msg": "Nije Vam dozvoljeno mijenjati lozinke drugih admina.",
 		"changeMailSettings_msg": "Kasnije možete promijeniti svoju odluku u postavkama e-pošte.",
 		"changePaidPlan_msg": "Želite li sada promijeniti svoju tarifu?",
-		"changePasswordCode_msg": "Kôd za provjeru:",
 		"changePassword_label": "Promjena lozinke",
 		"changePermissions_msg": "Da biste odobrili pristup, morate izmijeniti dopuštenja za ovaj uređaj.",
 		"changeSpellCheckLang_action": "Promjena jezika provjere pravopisa...",
@@ -995,8 +994,6 @@ export default {
 		"outdatedClientWarningMailBody_msg": "Pozdrav,<br> ↩︎\nTrenutno koristite zastarjelu verziju Tutanote. Podrška za vašu verziju će bit prekinuta u sljedećih nekoliko dana.<br><br> ↩︎\n\nAžurirajte svoj klijent na: {downloadLink}<br><br> ↩︎\n↩︎\nTakođer provjerite koristite li zastarjelu verziju Tutanote na drugim uređajima. Sustav će prestati slati ovu e-poštu kada svi vaši Tuta klijenti budu ažurirani.<br><br> ↩︎\n↩︎\nHvala!<br><br> ↩︎\n↩︎\nVaš Tuta tim\n",
 		"outdatedClientWarningMailSubject_msg": "Ažurirajte Tutanotu",
 		"outdatedClient_msg": "Molimo Vas ažurirajte Tuta. Trenutačno instalirana verzija je previše zastarjela i više nije podržana.",
-		"outlookInvoiceMailBodyAutomatic_msg": "postoji nova dostavnica s brojem {1} za Vas, koja je priložena u ovoj e-pošti. Ukupni zbroj automatski će biti terećen. Možete vidjeti i sve dostavnice u {2}",
-		"outlookInvoiceMailBodyOnAccount_msg": "Postoji nova dostavnica sa brojem {1} dostupna za Vas priložena u ovom mailu.  Rok za plaćanje je 7 dana nakon datuma dostavnice.  Možete vidjeti sve Vaše dostavnice u {2}.",
 		"outOfOfficeDefaultSubject_msg": "Izvan ureda sam",
 		"outOfOfficeDefault_msg": "Pozdrav,\n<br>\n<br>hvala na Vašoj e-pošti. Izlazim iz ureda i uskoro se vraćam. Do tada ću imati ograničen pristup svojoj e-pošti.\n<br>\n<br>Lijepi pozdrav",
 		"outOfOfficeEveryone_msg": "Svima",
@@ -1615,7 +1612,6 @@ export default {
 		"weekStart_label": "Početak tjedna",
 		"weeks_label": "tjedni",
 		"week_label": "Tjedan",
-		"welcomeMailBodyTweetText_msg": "Upravo sam postavio svoj Tuta račun. Sada štitim svoje e-mailove od onih koji vole zabadati noseve u tuđe stvari! I ti se možeš pridružiti, ",
 		"welcomeMailBody_markdown": "**Pripremite se za sigurno, zeleno iskustvo e-pošte bez reklama! End-to-end enkripcija vas štiti u svakom trenutku.**\n\nU Tutanoti nam je prioritet vaša privatnost i sigurnost. Uz snažnu enkripciju, vaš je poštanski sandučić zaštićen od znatiželjnih pogleda, osiguravajući da vaši povjerljivi podaci ostanu sigurni.\n\nAli to nije sve. Učinili smo prelazak s drugih usluga e-pošte lakim. Naše intuitivne aplikacije za Android i iOS, zajedno s aplikacijama za stolna računala za Windows, macOS i Linux, omogućuju vam pristup vašem sigurnom poštanskom sandučiću i kalendaru na bilo kojem uređaju, čak i kada ste izvan mreže. Recite zbogom ograničenjima i pozdravite besprijekornu pristupačnost.\n\nAko još uvijek imate staru adresu e-pošte, mi vas pokrivamo. Postavite automatsko prosljeđivanje na svom starom računu i postupno prebacite sve svoje e-poruke i kontakte na Tutanotu. Pogledajte naš vodič [ovdje]({faqForwardLink}) da biste saznali kako možete jednostavno proslijediti svoju e-poštu Tutanoti.\n\nNakon što ste uspješno prenijeli sve važne razgovore, možete deaktivirati automatsko prosljeđivanje. Udobno se smjestite i uživajte u lijepom, čistom poštanskom sandučiću bez spama koji vam donosi mir.\n\n**U Tutanoti slijedimo četiri temeljna načela kako bismo pružili sigurnu alternativu Big Tech-u:**\n\n1. Ne pratimo vas.\n2. Ne skeniramo vaše podatke.\n3. Šifriramo cijeli vaš poštanski sandučić, kontakte i kalendare.\n4. Dajemo prednost privatnosti prema dizajnu.\n\nVeć ste se zaljubili u Tutanotu? **Odvojite trenutak i ostavite svoje povratne informacije na društvenim mrežama** (pogledajte donje poveznice). Voljeli bismo čuti kako nam ide!\n\nUz Tutanotu, privatnost se susreće s praktičnošću. Pridružite nam se na šifriranoj strani i doživite e-poštu kao nikada prije.\n\nDrago nam je što vam možemo poželjeti dobrodošlicu u vaš šifrirani poštanski sandučić!\nVaš Tuta tim\n\n--\n\n**Svatko zaslužuje privatnost.**\n\nMožete podržati našu misiju donošenja privatnosti svijetu prateći nas na svojim omiljenim društvenim mrežama i dijeleći naš sadržaj sa svojim prijateljima i kolegama. Zajedno ćemo promijeniti Internet na bolje!\n\n* [LinkedIn]({linkedinLink})\n* [Facebook]({facebookLink})\n* [Mastodon]({mastodonLink})\n* [Twitter]({twitterLink})\n* [Reddit]({redditLink})\n* [Instagram]({instagramLink})\n* [YouTube]({youtubeLink})\n\nTuta je open source. [Ovdje možete provjeriti i pregledati izvorni kod]({githubLink}).",
 		"welcomeMailSubject_msg": "Sigurno, zeleno i bez reklama!",
 		"whatIsPhishing_msg": "Što je krađa identiteta?",

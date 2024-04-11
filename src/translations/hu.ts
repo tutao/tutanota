@@ -11,7 +11,7 @@ export default {
 		"other"
 	],
 	"created_at": "2015-04-02T12:56:44Z",
-	"updated_at": "2024-04-07T10:00:36Z",
+	"updated_at": "2024-04-11T08:48:47Z",
 	"source_locale": null,
 	"fallback_locale": null,
 	"keys": {
@@ -221,7 +221,6 @@ export default {
 		"changeAdminPassword_msg": "Sajnáljuk, nem változtathatja meg más rendszergazda jelszavát!",
 		"changeMailSettings_msg": "Később megváltoztathatja döntését az email beállításaiban.",
 		"changePaidPlan_msg": "Szeretné most váltani előfizetését?",
-		"changePasswordCode_msg": "A visszaigazoláshoz szükséges kódja:\n",
 		"changePassword_label": "Jelszó megváltoztatása",
 		"changePermissions_msg": "A hozzáféréshez módosítani kell az engedélyeket az eszközön!",
 		"changeSpellCheckLang_action": "Helyesírás-ellenőrző nyelv választás...",
@@ -1016,8 +1015,6 @@ export default {
 		"outdatedClientWarningMailBody_msg": "Üdvözlöm,<br>\nÖn jelenleg egy elavult Tuta verziót használ. Az Ön verziójának támogatása a következő napokban megszűnik.<br><br>\n\nKérjük, frissítse kliensét a következő címen: {downloadLink}<br><br>\n\nKérjük, ellenőrizze azt is, hogy nem használja-e egy másik eszközön a Tuta egy elavult verzióját. A rendszer nem fogja tovább küldeni ezt az e-mailt, amint az összes Tuta kliense naprakész lesz.<br><br>\n\nKöszönjük!<br><br>\n\nAz Ön Tuta csapata.",
 		"outdatedClientWarningMailSubject_msg": "Kérjük, frissítse a Tuta-t!",
 		"outdatedClient_msg": "Frissítse a Tutát! A jelenleg telepített verzió túl régi és a már nem támogatott.",
-		"outlookInvoiceMailBodyAutomatic_msg": "új számla érhető el {1} számmal az emailhez csatoltan. A végösszeg automatikusan terhelésre kerül. Az összes számlát áttekintheti a {2} menüpontban.",
-		"outlookInvoiceMailBodyOnAccount_msg": "új számla érhető el {1} számmal az emailhez csatoltan. A számla kiegyenlítése a rajta szereplő dátumtól számított 7 napon belül esedékes. Az összes számlát áttekintheti a {2} menüpontban.",
 		"outOfOfficeDefaultSubject_msg": "Házon kívül vagyok",
 		"outOfOfficeDefault_msg": "Üdvözlöm,<br><br>köszönöm üzenetét! Sajnos, éppen házon kívül vagyok, de hamarosan visszatérek. Addig csak korlátozottan férek hozzá az üzeneteimhez.<br><br>Szívélyes Üdvözlettel",
 		"outOfOfficeEveryone_msg": "Mindenkinek",
@@ -1657,7 +1654,6 @@ export default {
 		"weekStart_label": "A hét kezdete",
 		"weeks_label": "Hetek.",
 		"week_label": "Hét (naptári)",
-		"welcomeMailBodyTweetText_msg": "Nemrégiben hoztam létre a Tuta postafiókomat. Most már védve vannak az emailjeim a kíváncsi szemek elől! Csatlakozz te is:",
 		"welcomeMailBody_markdown": "**Előkészítve a biztonságos, zöld, és reklámmentes e-mail tapasztalatra, mint semmi más! A végpontok közti titkosítás mindenkor biztonságban  tartja Önt.**\n\nA Tutánál mi prioritást adunk a magánéletének és biztonságának. Az erős titkosítással postaládája védett a kutakodó szemektől, biztosítva bizalmas információinak biztonságban maradását.\n\nDe ez nem minden. Könnyűvé tettük a váltást más e-mail szolgáltatóktól. Intuitív alkalmazásainkkal Androidra és iOS-re, valamint asztali alkalmazásainkkal Windowsra, macOS-re és Linuxra lehetővé tesszük, hogy bármilyen eszközön hozzáférjen biztonságos postafiókjához és naptárához –, még akkor is, ha offline állapotban van. Mondjon búcsút a korlátozásoknak és köszöntse a varrás nélküli hozzáférhetőséget!\n\nHa még mindig megtartotta régi e-mail-címét, mi gondoltunk Önre. Állítsa be az automatikus továbbítást a régi fiókjában, és lassan váltsa át az összes e-mailt és névjegyet a Tutára! Ellenőrizze útmutatónkat [itt,]({faqForwardLink}) elsajátítandó, hogy hogyan tudja könnyen továbbítania e-mailjeit a Tutába!\n\nMiután minden fontos beszélgetést átvitt a Tutára, kikapcsolhatja az automatikus továbbítást. Dőljön hátra és élvezze a szép, tiszta és levélszemétmentes postafiókját, ami elhozza a lelki nyugalmát!\n\n**A Tutánál 4 alapelvet követünk, hogy magánélet-barát Big Tech alternatívát kínáljunk.**\n\n1. Nem követjük.\n2. Nem olvassuk be az Ön adatait.\n3. Titkosítjuk a teljes postafiókját, névjegyeit és naptárait.\n4. Előnyben részesítjük a magánéletet a tervezéskor..\n\nKészen áll szeretni már a Tutát?  **Kérjük, szánjon rá pár pillanatot és  küldjön visszajelzést a közösségi médiában (link alább). Örömmel hallanánk, hol tartunk a munkában!\n\nA Tutánál a magánélet találkozik a kényelemmel. Csatlakozzon a titkosított oldalhoz és élje át a levelezést, mint még soha!\n\nBoldogan üdvözöljük Önt a titkosított postaládájával!\nAz Ön Tuta csapata\n\n--\n\n**Mindenki megérdemli a magánéletet!**\n\nTámogatni tudja küldetésünket, hogy elhozzuk a magánéletet a világba, ha követ minket kedvenc közösségi média csatornáján, és megosztja tartalmainkat barátaival és kollégáival. Együtt jobbá tesszük az internetet!\n\n* [LinkedIn]({linkedinLink})\n* [Facebook]({facebookLink})\n* [Mastodon]({mastodonLink})\n* [Twitter]({twitterLink})\n* [Reddit]({redditLink})\n* [Instagram]({instagramLink})\n* [YouTube]({youtubeLink})\n\nA Tuta nyílt forráskódú. [Ellenőrizheti és felülbírálhatja a forráskódot itt!]({githubLink})\n",
 		"welcomeMailSubject_msg": "Biztonságos, zöld és hirdetésmentes!",
 		"welcome_label": "Üdvözöljük!",

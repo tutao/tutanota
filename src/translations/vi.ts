@@ -10,7 +10,7 @@ export default {
 		"other"
 	],
 	"created_at": "2016-01-14T10:41:20Z",
-	"updated_at": "2024-04-05T10:39:27Z",
+	"updated_at": "2024-04-11T08:48:47Z",
 	"source_locale": null,
 	"fallback_locale": null,
 	"keys": {
@@ -196,7 +196,6 @@ export default {
 		"changeAdminPassword_msg": "Xin lỗi, bạn không được phép thay đổi mật khẩu của QTV khác.",
 		"changeMailSettings_msg": "Bạn có thể thay đổi quyết định về sau, trong thiết lập thư.",
 		"changePaidPlan_msg": "Bạn có muốn chuyển đổi gói cước bây giờ không?",
-		"changePasswordCode_msg": "Mã xác minh của bạn:",
 		"changePassword_label": "Đổi mật khẩu",
 		"changePermissions_msg": "Để cấp quyền truy cập bạn cần phải thay đổi các phép cho thiết bị này.",
 		"changeSpellCheckLang_action": "Đổi ngôn ngữ để kiểm tra đánh vần...",
@@ -958,8 +957,6 @@ export default {
 		"outdatedClientWarningMailBody_msg": "Xin chào,<br>\nbạn hiện đang dùng một phiên bản Tuta đã lỗi thời. Hỗ trợ cho phiên bản của bạn sẽ kết thúc trong vài ngày tới.<br><br>\n\nVui lòng cập nhật tại: {downloadLink}<br><br>\n\nVui lòng kiểm tra thêm xem bạn có đang dùng một phiên bản Tuta lỗi thời trên một thiết bị khác hay không. Hệ thống sẽ ngừng gửi thư này khi tất cả các trình khách Tuta của bạn đều đã được cập nhật.<br><br>\n\nXin cảm ơn!<br><br>\n\nĐội ngũ Tuta",
 		"outdatedClientWarningMailSubject_msg": "Vui lòng cập nhật Tuta",
 		"outdatedClient_msg": "Vui lòng cập nhật Tuta. Phiên bản đang cài quá cũ và không còn được hỗ trợ.",
-		"outlookInvoiceMailBodyAutomatic_msg": "có một hoá đơn mới cho bạn với số {1} đính kèm theo thư này. Tổng chi phí sẽ tự động được ghi nợ. Bạn cũng có thể xem tất cả các hoá đơn của mình ở {2}",
-		"outlookInvoiceMailBodyOnAccount_msg": "có một hoá đơn mới cho bạn với số {1} đính kèm theo thư này. Hạn thanh toán là 7 ngày sau ngày ghi trên hoá đơn. Bạn cũng có thể xem tất cả các hoá đơn của mình ở {2}.",
 		"outOfOfficeDefaultSubject_msg": "Tôi hiện không đi làm",
 		"outOfOfficeDefault_msg": "Xin chào,\n<br>\n<br>cảm ơn bạn đã gửi thư. Tôi hiện không đi làm và sẽ sớm quay lại. Cho đến lúc đó tôi sẽ ít truy cập thư.\n<br>\n<br>Trân trọng",
 		"outOfOfficeEveryone_msg": "Đến mọi người",
@@ -1576,7 +1573,6 @@ export default {
 		"weekStart_label": "Bắt đầu tuần vào",
 		"weeks_label": "tuần",
 		"week_label": "Tuần",
-		"welcomeMailBodyTweetText_msg": "Tôi vừa mới cài đặt hộp thư Tuta. Bây giờ tôi có thể bảo vệ thư điện tử khỏi những con mắt tọc mạch! Bạn cũng có thể tham gia:",
 		"welcomeMailBody_markdown": "**Hãy chuẩn bị cho một trải nghiệm độc nhất với thư an toàn, xanh và không quảng cáo! Sự mật mã hóa nối đầu giữ an toàn cho bạn mọi lúc.**\n\nỞ Tuta, chúng tôi ưu tiên sự riêng tư và an toàn của bạn. Với lớp mật mã hoá mạnh mẽ, hộp thư của bạn được bảo vệ khỏi những con mắt tọc mạch, đảm bảo thông tin mật của bạn luôn được an toàn.\n\nNhưng chưa hết. Chúng tôi làm cho việc chuyển đổi từ các dịch vụ thư khác trở nên thật dễ dàng. Các ứng dụng dành cho Android & iOS, cũng như ứng dụng máy tính dành cho Windows, macOS và Linux đều trực quan, cho phép bạn truy cập hộp thư và lịch an toàn của bạn trên bất kì thiết bị nào, kể cả khi bạn ngoại tuyến. Hãy từ biệt những hạn chế và chào đón khả năng truy cập thông suốt.\n\nNếu bạn vẫn đang dùng một địa chỉ thư cũ thì cũng đừng lo lắng. Chúng tôi có cách cho bạn. Hãy cài đặt tính năng chuyển tiếp tự động ở danh khoản cũ đó và dần dần chuyển hết thư và liên hệ sang Tuta. Xem hướng dẫn của chúng tôi [ở đây]({faqForwardLink}) để biết cách dễ dàng chuyển tiếp thư sang Tuta.\n\nKhi bạn đã chuyển hết các cuộc nói chuyện quan trọng sang Tuta, bạn có thể tắt tính năng chuyển tiếp tự động. Và rồi nghỉ ngơi và tận hưởng một hộp thư đẹp đẽ, sạch sẽ và không rác, giúp bạn không còn chút lo âu.\n\n**Ở Tuta, chúng tôi tuân theo bốn nguyên tắc căn bản để cung cấp một dịch vụ tôn trọng sự riêng tư, thay thế cho các ông lớn về công nghệ:**\n\n1. Chúng tôi không theo dõi bạn.\n2. Chúng tôi không quét dữ liệu của bạn.\n3. Chúng tôi mật mã hóa toàn bộ hộp thư, danh bạ và lịch của bạn.\n4. Chúng tôi ưu tiên tính riêng tư ngay từ thiết kế.\n\nBạn đã phải lòng Tuta? **Vui lòng dành chút thời gian để phản hồi cho chúng tôi trên các kênh truyền thông** (xem các liên kết bên dưới). Chúng tôi rất mong muốn được biết mình đã làm tốt tới đâu!\n\nVới Tuta, tính riêng tư đã gặp được sự tiện lợi. Hãy về phe mật mã hoá cùng chúng tôi và trải nghiệm thư điện tử như chưa từng có.\n\nChúng tôi vui mừng chào đón bạn đến với hộp thư mật mã hoá của bạn!\nĐội ngũ Tuta\n\n--\n\n**Mọi người đều xứng đáng có được sự riêng tư.**\n\nBạn có thể ủng hộ sứ mệnh mang sự riêng tư đến cho thế giới của chúng tôi bằng cách theo dõi chúng tôi trên kênh truyền thông xã hội yêu thích của bạn và chia sẻ nội dung của chúng tôi với bạn bè và đồng nghiệp. Cùng nhau, chúng ta sẽ làm cho Liên Mạng tốt đẹp hơn!\n\n* [LinkedIn]({linkedinLink})\n* [Facebook]({facebookLink})\n* [Mastodon]({mastodonLink})\n* [Twitter]({twitterLink})\n* [Reddit]({redditLink})\n* [Instagram]({instagramLink})\n* [YouTube]({youtubeLink})\n\nTuta có mã nguồn mở. [Bạn có thể rà soát và xét duyệt mã nguồn ở đây]({githubLink}).",
 		"welcomeMailSubject_msg": "An toàn, xanh & không quảng cáo!",
 		"whatIsPhishing_msg": "Giả mạo là gì?",

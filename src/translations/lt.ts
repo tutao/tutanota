@@ -13,7 +13,7 @@ export default {
 		"many"
 	],
 	"created_at": "2015-03-13T10:17:47Z",
-	"updated_at": "2023-11-08T16:06:03Z",
+	"updated_at": "2024-04-11T08:48:47Z",
 	"source_locale": null,
 	"fallback_locale": null,
 	"keys": {
@@ -82,7 +82,6 @@ export default {
 		"cc_label": "Cc",
 		"certificateExpiryDate_label": "Sertifikato pasibaigimo data: {date}",
 		"changeAdminPassword_msg": "Atleiskite, jūs negalite pakeisti kitų administratorių slaptažodžių.",
-		"changePasswordCode_msg": "Jūsų patvirtinimo kodas:",
 		"changePassword_label": "Keisti slaptažodį",
 		"changePermissions_msg": "Norint įgyti prieigą, jūs turite pakeisti leidimus šiame įrenginyje.",
 		"choosePhotos_action": "Nuotraukos",
@@ -551,7 +550,6 @@ export default {
 		"userEmailSignature_label": "Jūsų parašas laiške",
 		"userSettings_label": "Vartotojo nustatymai",
 		"validInputFormat_msg": "Formatas geras.",
-		"welcomeMailBodyTweetText_msg": "Ką tik pasijungiau savo Tuta paskyrą. Dabar aš saugau savo laiškus nuo smalsių akių! Prisijunkite ir Jūs,",
 		"welcomeMailSubject_msg": "Jauskitės ramūs: Jūsų duomenys išliks saugūs.",
 		"work_label": "Darbas",
 		"xing_label": "XING",

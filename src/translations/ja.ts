@@ -10,7 +10,7 @@ export default {
 		"other"
 	],
 	"created_at": "2015-04-20T08:57:36Z",
-	"updated_at": "2024-04-05T10:39:27Z",
+	"updated_at": "2024-04-11T08:48:47Z",
 	"source_locale": null,
 	"fallback_locale": null,
 	"keys": {
@@ -198,7 +198,6 @@ export default {
 		"changeAdminPassword_msg": "申し訳ありませんが、あなたは他の管理者パスワードを変更できません。",
 		"changeMailSettings_msg": "後ほどメールの設定で変更できます。",
 		"changePaidPlan_msg": "今すぐプランを変更しますか?",
-		"changePasswordCode_msg": "あなたの確認コード：",
 		"changePassword_label": "パスワードの変更",
 		"changePermissions_msg": "アクセスを認めるためには、このデバイスのパーミッションを変更しなければなりません。",
 		"changeSpellCheckLang_action": "スペルチェック言語を変更",
@@ -968,8 +967,6 @@ export default {
 		"outdatedClientWarningMailBody_msg": "こんにちは、<br><br>\n\nあなたは現在、古いバージョンの Tuta を使用しています。現在ご利用中のバージョンのサポートは数日以内に終了します。<br><br>\n\nクライアントをアップデートしてください：{downloadLink}<br><br>\n\nご利用いただきありがとうございます。<br><br>\n\nTuta Team より",
 		"outdatedClientWarningMailSubject_msg": "Tuta をアップデートしてください",
 		"outdatedClient_msg": "Tuta をアップデートしてください。現在インストールされているのは古いバージョンであり、現在このバージョンはサポートされていません。",
-		"outlookInvoiceMailBodyAutomatic_msg": "このメールには利用可能な番号{1}の新しい請求書が添付されています。 総計は自動的に引き落とされます。 請求書はすべて{2}で確認できます。",
-		"outlookInvoiceMailBodyOnAccount_msg": "Ihreこのメールには、お客様用の番号{1}の新しい請求書が添付されています。 支払いは請求日の７日後に行われます。 請求書すべてを{2}で見ることができます。",
 		"outOfOfficeDefaultSubject_msg": "現在外出中です。",
 		"outOfOfficeDefault_msg": "こんにちは\n<br>\n<br>電子メールをありがとう。私は外出中ですが、すぐに戻ります。それまで、自分の電子メールへのアクセスが制限されます。\n<br>\n<br>敬具",
 		"outOfOfficeEveryone_msg": "全員へ",
@@ -1587,7 +1584,6 @@ export default {
 		"weekStart_label": "週の始まりの曜日",
 		"weeks_label": "週",
 		"week_label": "週",
-		"welcomeMailBodyTweetText_msg": "ちょうどTuta メールボックスを設定したところです。メールの盗み見から守られています!あなたも参加できますよ:",
 		"welcomeMailBody_markdown": "**他のような安全で、緑、広告のない電子メールの経験のための準備をしなさい！エンドツーエンドの暗号化により、常に安全です。**\n\nTutaはお客様のプライバシーとセキュリティを最優先しています。Tutaはお客様のプライバシーとセキュリティを最優先しています。強力な暗号化により、お客様のメールボックスは覗き見から保護され、機密情報を安全に保つことができます。\n\nそれだけではありません。他のメールサービスからの乗り換えも簡単です。AndroidとiOS用の直感的なアプリ、Windows、macOS、Linux用のデスクトップアプリを使えば、オフラインの状態でも、どのデバイスからでも安全なメールボックスとカレンダーにアクセスできます。制限にサヨナラして、シームレスなアクセシビリティにこんにちは。\n\n古いメールアドレスをまだお持ちの方は、ぜひご利用ください。古いアカウントで自動転送を設定し、すべてのメールと連絡先を徐々にTutaに移行してください。[こちら]({faqForwardLink})のガイドでTutaへ簡単にメールを転送する方法をご確認ください。\n\n全ての重要な会話を転送し終えたら、自動転送を解除してください。安心してスパムのないメールボックスをお楽しみください。\n\n**Tutaは4つの基本原則に基づき、ビッグテックに代わるプライバシーに配慮したサービスを提供しております。**\n\n1.    1.お客様を追跡しません。\n2.    データをスキャンしません。\n3.    メールボックス、連絡先、カレンダーをすべて暗号化します。\n4.    プライバシーの保護を最優先にしています。\n\nすでにツタノタに恋していますか？**ソーシャルメディア**にご意見・ご感想をお寄せください。ご感想をお待ちしております！\n\nTutaはプライバシーと利便性を兼ね備えています。Tutaでプライバシーと利便性を両立させましょう。\n\n暗号化されたメールボックスへようこそ！\nTutaチーム\n\n--\n\n**誰もがプライバシーを守る権利があります。\n\nあなたのお気に入りのソーシャルメディアチャンネルで私たちをフォローし、あなたの友人や同僚と私たちのコンテンツを共有することによって、世界にプライバシーをもたらすという私たちの使命をサポートすることができます。一緒にインターネットをより良いものに変えていきましょう！\n\n* [LinkedIn]({linkedinLink})\n* [Facebook]({facebookLink})\n* [マストドン]({mastodonLink})\n* [ツイッター]({twitterLink})\n* [Reddit]({redditLink})\n* [Instagram]({instagramLink})\n* [YouTube]({youtubeLink})\n\nTutaはオープンソースです。[ソースコードはこちら]({githubLink})で確認できます。",
 		"welcomeMailSubject_msg": "ごゆっくり。 あなたの個人情報は安全です。",
 		"whatIsPhishing_msg": "フィッシングとは何ですか？",

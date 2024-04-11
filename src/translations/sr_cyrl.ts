@@ -12,7 +12,7 @@ export default {
 		"other"
 	],
 	"created_at": "2015-03-11T08:18:43Z",
-	"updated_at": "2024-04-05T10:39:27Z",
+	"updated_at": "2024-04-11T08:48:47Z",
 	"source_locale": null,
 	"fallback_locale": null,
 	"keys": {
@@ -182,7 +182,6 @@ export default {
 		"certificateTypeManual_label": "Приручник",
 		"changeAdminPassword_msg": "Нажалост, нисте овлаштени да мењате лозинке других администратора.",
 		"changeMailSettings_msg": "Можете касније променити своју одлуку у подешавањима е-поште.",
-		"changePasswordCode_msg": "Ваш верификациони код:",
 		"changePassword_label": "Промените лозинку",
 		"changePermissions_msg": "Да одобрите приступ, морате изменити дозволе за овај уређај.",
 		"changeSpellCheckLang_action": "Изабери језик за правопис...",
@@ -912,8 +911,6 @@ export default {
 		"outdatedClientWarningMailBody_msg": "Здраво,<br>\nКористите застарелу верзију Тутаноте. Подршка за вашу верзију ће бити укинута у наредних неколико дана.<br><br>\n\nМолимо ажурирајте вашу апликацију на: {downloadLink}<br><br>\n\nТакође проверите да ли користите застарелу верзију Тутаноте на другом уређају. Систем ће престати да шаље ову е-пошту када сви ваши Тутанота клијенти буду ажурирани.<br><br>\n\nХвала!<br><br>\n\nВаш Тутанота тим",
 		"outdatedClientWarningMailSubject_msg": "Молимо ажурирајте Тутаноту",
 		"outdatedClient_msg": "Молимо надоградите Tuta.  Тренутна верзија је стара и није више подржана.",
-		"outlookInvoiceMailBodyAutomatic_msg": "Нова фактура под бројем {1} вам је на расолагању у прилогу овог мејла. Укупан износ ће аутоматски бити наплаћен. Све ваше фактуре можете видети у {2}",
-		"outlookInvoiceMailBodyOnAccount_msg": "нова фактура са бројем {1} за вас је прикачена за ову е-пошту. Плаћање доспева 7 дана од датума фактуре. Такође можете да видите све своје фактуре на {2}.",
 		"outOfOfficeDefaultSubject_msg": "Ван канцеларије сам",
 		"outOfOfficeDefault_msg": "Здраво,\n<br>\n<br>хвала на Вашој поруци. Нисам у канцеларији и враћам се ускоро. До тада ћу имати ограничен приступ својој е-пошти.\n<br>\n<br>Срдачан поздрав",
 		"outOfOfficeEveryone_msg": "Свима",
@@ -1499,7 +1496,6 @@ export default {
 		"weekStart_label": "Седмица почиње",
 		"weeks_label": "недеље",
 		"week_label": "Седмица",
-		"welcomeMailBodyTweetText_msg": "Управо сам направио своје Tuta поштанско сандуче . Сада штитим своје поруке од знатижељни очију! И ти се исто можеш придружити:",
 		"welcomeMailBody_markdown": "Dobrodošli u vaš bezbedan Tuta mailbox bez reklama, zaštićen sa jakom enkripcijom. Tuta omogućava prelazak sa ostalih email servisa jednostavnim. Naš intuitivni web klijent, aplikacije za Android & iOS, kao i desktop aplikacije za Windows, Mac OS i Linux omogućavaju da bezbedno pristupite svom mailboxu sa bilo kog uređaja. Kao profesionalac, možete sačuvati vreme i novac hostovanjem kompletne svoje poslovne pošte enkriptovane od kraja do kraja na Tuta bezbednim serverima, smeštenim u Nemačkoj: Whitelabel Tuta za vaš biznis, postavite login na svoju webstranu i dodajte enkriptovanu kontakt formu na sajt tako da vaši klijenti mogu i poverljivo pristupiti. [Pronađite više o Tuta raznolikim poslovnim mogućnostima]({businessLink}). **Tutanoda poštuje 4 principa u cilju ponude poštovanja privatnosti kao alternative** 1. Tuta vas ne prati. 2. Tuta ne može da skenira vaše podatke. 3. Tuta enkriptuje vaš kompletan mailbox, kontakte i kalendar. 4. Tuta je inkorporirala privatnost kao deo dizajna. Preporučite Tuta, [besplatni, open source email servis koji poštuje vaše pravo na privatnost.]({blogOpenSourceLink}). Verujemo da svako zaslužuje besplatno i privatno poštansko sanduče. Možete nas pratiti na svom omiljenom kanalu za društvene mreže, kao i da delite naš sadržaj sa svojim prijateljima i kolegama. Zajedno ćemo promeniti Internet na bolje: * [LinkedIn]({linkedinLink}) * [Facebook]({facebookLink}) * [Mastodon]({mastodonLink}) * [Twitter]({twitterLink}) * [Reddit]({redditLink}) * [Instagram]({instagramLink}) Mnogo vam hvala, Vaš Tuta tim Tuta je open source, besplatan. [Ovde možete da pogledate i proverite izvorni kod]({githubLink}).",
 		"welcomeMailSubject_msg": "Безбедно, зелено & без огласа",
 		"whatIsPhishing_msg": "Шта је 'пецање'?",

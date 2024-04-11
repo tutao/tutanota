@@ -11,7 +11,7 @@ export default {
 		"other"
 	],
 	"created_at": "2015-04-28T07:47:04Z",
-	"updated_at": "2024-04-05T10:39:27Z",
+	"updated_at": "2024-04-11T08:48:47Z",
 	"source_locale": null,
 	"fallback_locale": null,
 	"keys": {
@@ -169,7 +169,6 @@ export default {
 		"changeAdminPassword_msg": "Beklager, du må ikke ændre de andre adminstators adgangskoder.",
 		"changeMailSettings_msg": "Du kan ændre dit valg senere i e-mail-indstillingerne.",
 		"changePaidPlan_msg": "Vil du gerne skifte dit abonnement nu?",
-		"changePasswordCode_msg": "Din verificeringskode:",
 		"changePassword_label": "Skift adgangskode",
 		"changePermissions_msg": "For at give adgang er du nødt til at ændre tilladelserne for denne enhed.",
 		"changeSpellCheckLang_action": "Ændre sprog for stavekontrol",
@@ -821,8 +820,6 @@ export default {
 		"outdatedClientWarningMailBody_msg": "Halløjsa,<br>\nDu benytter er en forældet udgave af Tuta. Indenfor de næste få dage vil vi ikke længere uderstøtte denne udgave.<br><br>\n\nVenligst opdatér din klient her: {downloadLink}<br><br>\n\nMange tak!<br><br>\n\nDit Tuta Team",
 		"outdatedClientWarningMailSubject_msg": "Venligst opdatér Tuta",
 		"outdatedClient_msg": "Opdater venligst Tuta. Den installerede version er for gammel og ikke længere understøttet.",
-		"outlookInvoiceMailBodyAutomatic_msg": "Der er en ny faktura med nummeret {1} for dig, der er knyttet til denne email. Den samlede sum vil automatisk blive debiteret. Du kan også se alle dine fakturaer i {2}",
-		"outlookInvoiceMailBodyOnAccount_msg": "Der er en ny faktura med nummeret {1} for dig, der er knyttet til denne email. Betalingen sker 7 dage efter fakturadato. Du kan også se alle dine fakturaer i {2}.",
 		"outOfOfficeDefaultSubject_msg": "Jeg er ikke tilstede",
 		"outOfOfficeDefault_msg": "Hej,\n<br>\n<br>Tak for din mail. Jeg er ikke til stede men er snart tilbage. I mit fravær har jeg begrænset adgang til mail.\n<br>\n<br>Med venlig hilsen",
 		"outOfOfficeEveryone_msg": "Til alle",
@@ -1290,7 +1287,6 @@ export default {
 		"weekStart_label": "Ugestart",
 		"weeks_label": "Uger",
 		"week_label": "Uge",
-		"welcomeMailBodyTweetText_msg": "Jeg har lige oprettet min Tuta konto. Mine e-mails er nu beskyttet fra overvågning! Du kan også oprette dig:",
 		"welcomeMailBody_markdown": "Velkommen til Deres sikre og reklame fri Tuta Email, som er beskyttet med stærk kryptering. Tuta gør det let, at skifte fra andre Email udbydere. Vores intuitive web klient, apps til Android &amp; iOS samt skrivebords apps til Windows, Mac OS og Linux gør det muligt, at tilgå Deres sikre Email på enhver enhed.",
 		"welcomeMailSubject_msg": "Sikker, grøn og reklamefri!",
 		"whatIsPhishing_msg": "Hvad er phishing?",
