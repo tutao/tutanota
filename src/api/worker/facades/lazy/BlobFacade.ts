@@ -7,7 +7,7 @@ import { HttpMethod, MediaType, resolveTypeReference } from "../../../common/Ent
 import { assertWorkerOrNode, isApp, isDesktop } from "../../../common/Env.js"
 import type { SuspensionHandler } from "../../SuspensionHandler.js"
 import { BlobService } from "../../../entities/storage/Services.js"
-import { Aes128Key, aesDecrypt, sha256Hash } from "@tutao/tutanota-crypto"
+import { Aes128Key, aesDecrypt, AesKey, sha256Hash } from "@tutao/tutanota-crypto"
 import type { FileUri, NativeFileApp } from "../../../../native/common/FileApp.js"
 import type { AesApp } from "../../../../native/worker/AesApp.js"
 import { InstanceMapper } from "../../crypto/InstanceMapper.js"
@@ -173,7 +173,7 @@ export class BlobFacade {
 		}
 	}
 
-	private async resolveSessionKey(entity: SomeEntity): Promise<Aes128Key | Aes256Key> {
+	private async resolveSessionKey(entity: SomeEntity): Promise<AesKey> {
 		return neverNull(await this.cryptoFacade.resolveSessionKeyForInstance(entity))
 	}
 

@@ -113,7 +113,7 @@ export function aesDecrypt(key: AesKey, encryptedBytes: Uint8Array, usePadding: 
  * @param usePadding If true, padding is used, otherwise no padding is used and the encrypted data must have the key size.
  * @return The decrypted bytes.
  */
-export function authenticatedAesDecrypt(key: Aes128Key | Aes256Key, encryptedBytes: Uint8Array, usePadding: boolean = true): Uint8Array {
+export function authenticatedAesDecrypt(key: AesKey, encryptedBytes: Uint8Array, usePadding: boolean = true): Uint8Array {
 	return aesDecryptImpl(key, encryptedBytes, usePadding, true)
 }
 
@@ -139,7 +139,7 @@ export function unauthenticatedAesDecrypt(key: Aes256Key, encryptedBytes: Uint8A
  * 				 it must not be used with new cryto anymore.
  * @return The decrypted bytes.
  */
-function aesDecryptImpl(key: Aes128Key | Aes256Key, encryptedBytes: Uint8Array, usePadding: boolean, enforceMac: boolean): Uint8Array {
+function aesDecryptImpl(key: AesKey, encryptedBytes: Uint8Array, usePadding: boolean, enforceMac: boolean): Uint8Array {
 	verifyKeySize(key, [KEY_LENGTH_BITS_AES_128, KEY_LENGTH_BITS_AES_256])
 	const hasMac = encryptedBytes.length % 2 === 1
 	if (enforceMac && !hasMac) {

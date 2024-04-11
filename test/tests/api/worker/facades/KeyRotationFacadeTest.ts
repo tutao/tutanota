@@ -13,7 +13,7 @@ import {
 	UserGroupRootTypeRef,
 	UserTypeRef,
 } from "../../../../../src/api/entities/sys/TypeRefs.js"
-import { createAuthVerifier, encryptKey, KEY_LENGTH_BYTES_AES_256, sha256Hash, uint8ArrayToBitArray } from "@tutao/tutanota-crypto"
+import { AesKey, createAuthVerifier, encryptKey, KEY_LENGTH_BYTES_AES_256, sha256Hash, uint8ArrayToBitArray } from "@tutao/tutanota-crypto"
 import { isEmpty } from "@tutao/tutanota-utils"
 
 const { anything, argThat } = matchers
@@ -67,7 +67,7 @@ o.spec("KeyRotationFacade", function () {
 	})
 })
 
-async function makeUser(userId: Id, userPassphraseKey: Aes128Key | Aes256Key): Promise<User> {
+async function makeUser(userId: Id, userPassphraseKey: AesKey): Promise<User> {
 	const groupKey = encryptKey(userPassphraseKey, [3229306880, 2716953871, 4072167920, 3901332676])
 
 	return createTestEntity(UserTypeRef, {

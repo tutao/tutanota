@@ -10,7 +10,7 @@ import {
 	UserExternalAuthInfoTypeRef,
 	UserTypeRef,
 } from "../../../../../src/api/entities/sys/TypeRefs"
-import { createAuthVerifier, encryptKey, KEY_LENGTH_BYTES_AES_256, keyToBase64, sha256Hash, uint8ArrayToBitArray } from "@tutao/tutanota-crypto"
+import { AesKey, createAuthVerifier, encryptKey, KEY_LENGTH_BYTES_AES_256, keyToBase64, sha256Hash, uint8ArrayToBitArray } from "@tutao/tutanota-crypto"
 import { LoginFacade, LoginListener, ResumeSessionErrorReason } from "../../../../../src/api/worker/facades/LoginFacade"
 import { IServiceExecutor } from "../../../../../src/api/common/ServiceRequest"
 import { EntityClient } from "../../../../../src/api/common/EntityClient"
@@ -62,7 +62,7 @@ export function verify(demonstration: any, config?: td.VerificationConfig) {
 
 const SALT = new Uint8Array([0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15])
 
-async function makeUser(userId: Id, kdfVersion: KdfType = DEFAULT_KDF_TYPE, userPassphraseKey: Aes128Key | Aes256Key = PASSWORD_KEY): Promise<User> {
+async function makeUser(userId: Id, kdfVersion: KdfType = DEFAULT_KDF_TYPE, userPassphraseKey: AesKey = PASSWORD_KEY): Promise<User> {
 	const groupKey = encryptKey(userPassphraseKey, [3229306880, 2716953871, 4072167920, 3901332676])
 
 	return createTestEntity(UserTypeRef, {

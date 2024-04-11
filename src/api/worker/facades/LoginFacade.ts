@@ -763,7 +763,7 @@ export class LoginFacade {
 		credentials: Credentials,
 		sessionData: {
 			userId: Id
-			accessKey: Aes128Key | Aes256Key | null
+			accessKey: AesKey | null
 		},
 		externalUserSalt: Uint8Array,
 	) {
@@ -851,7 +851,7 @@ export class LoginFacade {
 
 	private async loadSessionData(accessToken: Base64Url): Promise<{
 		userId: Id
-		accessKey: Aes128Key | Aes256Key | null
+		accessKey: AesKey | null
 	}> {
 		const path = typeRefToPath(SessionTypeRef) + "/" + this.getSessionListId(accessToken) + "/" + this.getSessionElementId(accessToken)
 		const SessionTypeModel = await resolveTypeReference(SessionTypeRef)
