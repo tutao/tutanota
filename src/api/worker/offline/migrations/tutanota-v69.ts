@@ -1,6 +1,6 @@
 import { OfflineMigration } from "../OfflineStorageMigrator.js"
 import { OfflineStorage } from "../OfflineStorage.js"
-import { addOwnerKeyVersion, migrateAllElements, migrateAllListElements, Migration, renameAttribute } from "../StandardMigrations.js"
+import { addOwnerKeyVersion, addValue, migrateAllElements, migrateAllListElements, Migration, removeValue, renameAttribute } from "../StandardMigrations.js"
 import { ElementEntity, ListElementEntity, SomeEntity } from "../../../common/EntityTypes.js"
 import { TypeRef } from "@tutao/tutanota-utils"
 import {
@@ -69,8 +69,8 @@ export const tutanota69: OfflineMigration = {
 		}
 
 		await migrateAllListElements(MailTypeRef, storage, [addVersionsToBucketKey()])
-
-		await migrateAllElements(TutanotaPropertiesTypeRef, storage, [renameAttribute("groupEncEntropy", "userEncEntropy")])
+		await migrateAllElements(TutanotaPropertiesTypeRef, storage, [renameAttribute("groupEncEntropy", "userEncEntropy"), addValue("userKeyVersion", null)])
+		await migrateAllElements(MailBoxTypeRef, storage, [removeValue("symEncShareBucketKey")])
 	},
 }
 
@@ -78,10 +78,10 @@ function addVersionsToBucketKey<T extends SomeEntity>(): Migration<T> {
 	return function (entity) {
 		const bucketKey = entity["bucketKey"]
 		if (bucketKey != null) {
-			bucketKey["recipientKeyVersion"] = 0
+			bucketKey["recipientKeyVersion"] = "0"
 			bucketKey["senderKeyVersion"] = bucketKey["protocolVersion"] === CryptoProtocolVersion.TUTA_CRYPT ? "0" : null
 			for (const instanceSessionKey of bucketKey["bucketEncSessionKeys"]) {
-				instanceSessionKey["symKeyVersion"] = 0
+				instanceSessionKey["symKeyVersion"] = "0"
 			}
 		}
 		return entity
