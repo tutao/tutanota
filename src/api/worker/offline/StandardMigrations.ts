@@ -40,7 +40,7 @@ export function renameAttribute<T extends SomeEntity>(oldName: string, newName: 
 
 export function addOwnerKeyVersion<T extends SomeEntity>(): Migration<T> {
 	return function (entity) {
-		entity["_ownerKeyVersion"] = entity["_ownerEncSessionKey"] == null ? null : 0
+		entity["_ownerKeyVersion"] = entity["_ownerEncSessionKey"] == null ? null : "0"
 		return entity
 	}
 }

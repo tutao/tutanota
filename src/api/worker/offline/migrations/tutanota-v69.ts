@@ -27,6 +27,7 @@ import {
 	TutanotaPropertiesTypeRef,
 	UserSettingsGroupRootTypeRef,
 } from "../../../entities/tutanota/TypeRefs.js"
+import { CryptoProtocolVersion } from "../../../common/TutanotaConstants.js"
 
 export const tutanota69: OfflineMigration = {
 	app: "tutanota",
@@ -76,10 +77,12 @@ export const tutanota69: OfflineMigration = {
 function addVersionsToBucketKey<T extends SomeEntity>(): Migration<T> {
 	return function (entity) {
 		const bucketKey = entity["bucketKey"]
-		bucketKey["recipientKeyVersion"] = 0
-		bucketKey["senderKeyVersion"] = null // Assuming offline stored instances are not TutaCrypt.
-		for (const membership of entity["bucketEncSessionKeys"]) {
-			membership["symKeyVersion"] = 0
+		if (bucketKey != null) {
+			bucketKey["recipientKeyVersion"] = 0
+			bucketKey["senderKeyVersion"] = bucketKey["protocolVersion"] === CryptoProtocolVersion.TUTA_CRYPT ? "0" : null
+			for (const instanceSessionKey of bucketKey["bucketEncSessionKeys"]) {
+				instanceSessionKey["symKeyVersion"] = 0
+			}
 		}
 		return entity
 	}

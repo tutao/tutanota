@@ -11,11 +11,11 @@ import {
 	InvoiceTypeRef,
 	MissedNotificationTypeRef,
 	OrderProcessingAgreementTypeRef,
-	PermissionTypeRef,
 	PushIdentifierTypeRef,
 	ReceivedGroupInvitationTypeRef,
-	SessionTypeRef,
+	RecoverCodeTypeRef,
 	UserAlarmInfoTypeRef,
+	UserGroupRootTypeRef,
 	UserTypeRef,
 	WhitelabelChildTypeRef,
 } from "../../../entities/sys/TypeRefs.js"
@@ -26,6 +26,7 @@ import {
 	migrateAllElements,
 	migrateAllListElements,
 	Migration,
+	removeValue,
 	renameAttribute,
 } from "../StandardMigrations.js"
 import { ElementEntity, ListElementEntity, SomeEntity } from "../../../common/EntityTypes.js"
@@ -44,14 +45,12 @@ export const sys96: OfflineMigration = {
 		const encryptedListElementTypes: Array<TypeRef<ListElementEntity>> = [
 			GroupInfoTypeRef,
 			AuditLogEntryTypeRef,
-			SessionTypeRef,
 			WhitelabelChildTypeRef,
 			OrderProcessingAgreementTypeRef,
 			UserAlarmInfoTypeRef,
 			ReceivedGroupInvitationTypeRef,
 			GiftCardTypeRef,
 			PushIdentifierTypeRef,
-			PermissionTypeRef,
 		]
 
 		for (const type of encryptedElementTypes) {
@@ -67,24 +66,25 @@ export const sys96: OfflineMigration = {
 			removeKeyPairVersion(),
 			addValue("formerGroupKeys", null),
 			addValue("pubAdminGroupEncGKey", null),
-			addValue("groupKeyVersion", 0),
+			addValue("groupKeyVersion", "0"),
 			addAdminGroupKeyVersion(),
 		])
 
-		await migrateAllElements(UserTypeRef, storage, [addVersionsToGroupMemberships()])
-
-		await migrateAllListElements(ReceivedGroupInvitationTypeRef, storage, [addValue("sharedGroupKeyVersion", 0)])
+		await migrateAllElements(UserTypeRef, storage, [addVersionsToGroupMemberships(), removeValue("userEncClientKey")])
+		await migrateAllListElements(ReceivedGroupInvitationTypeRef, storage, [addValue("sharedGroupKeyVersion", "0")])
+		await migrateAllElements(RecoverCodeTypeRef, storage, [addValue("userKeyVersion", "0")])
+		await migrateAllElements(UserGroupRootTypeRef, storage, [addValue("keyRotations", null)])
 	},
 }
 
 function addVersionsToGroupMemberships<T extends SomeEntity>(): Migration<T> {
 	return function (entity) {
 		const userGroupMembership = entity["userGroup"]
-		userGroupMembership["groupKeyVersion"] = 0
-		userGroupMembership["symKeyVersion"] = 0
+		userGroupMembership["groupKeyVersion"] = "0"
+		userGroupMembership["symKeyVersion"] = "0"
 		for (const membership of entity["memberships"]) {
-			membership["groupKeyVersion"] = 0
-			membership["symKeyVersion"] = 0
+			membership["groupKeyVersion"] = "0"
+			membership["symKeyVersion"] = "0"
 		}
 		return entity
 	}
@@ -92,7 +92,7 @@ function addVersionsToGroupMemberships<T extends SomeEntity>(): Migration<T> {
 
 function addAdminGroupKeyVersion<T extends SomeEntity>(): Migration<T> {
 	return function (entity) {
-		entity["adminGroupKeyVersion"] = entity["adminGroupEncGKey"] == null ? null : 0
+		entity["adminGroupKeyVersion"] = entity["adminGroupEncGKey"] == null ? null : "0"
 		return entity
 	}
 }
