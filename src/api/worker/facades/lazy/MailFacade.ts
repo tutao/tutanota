@@ -459,7 +459,7 @@ export class MailFacade {
 
 	private createAndEncryptDraftAttachment(
 		referenceTokens: BlobReferenceTokenWrapper[],
-		fileSessionKey: Aes128Key,
+		fileSessionKey: AesKey,
 		providedFile: DataFile | FileReference,
 		mailGroupKey: VersionedKey,
 	): DraftAttachment {
@@ -736,7 +736,7 @@ export class MailFacade {
 	 */
 	private async getExternalGroupKeys(
 		recipientMailAddress: string,
-		externalUserPwKey: Aes128Key,
+		externalUserPwKey: AesKey,
 		verifier: Uint8Array,
 	): Promise<{
 		currentExternalUserGroupKey: VersionedKey

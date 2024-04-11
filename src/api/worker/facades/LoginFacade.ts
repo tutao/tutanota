@@ -234,7 +234,7 @@ export class LoginFacade {
 			user: null,
 		})
 
-		let accessKey: Aes128Key | null = null
+		let accessKey: AesKey | null = null
 
 		if (sessionType === SessionType.Persistent) {
 			accessKey = aes256RandomKey()
@@ -685,7 +685,7 @@ export class LoginFacade {
 	private async initSession(
 		userId: Id,
 		accessToken: Base64Url,
-		userPassphraseKey: Aes128Key,
+		userPassphraseKey: AesKey,
 		sessionType: SessionType,
 		cacheInfo: CacheInfo,
 	): Promise<{ user: User; accessToken: string; userGroupInfo: GroupInfo }> {

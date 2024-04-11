@@ -29,7 +29,7 @@ export class InstanceMapper {
 	 * @param sk The session key, must be provided for encrypted instances
 	 * @returns The decrypted and mapped instance
 	 */
-	decryptAndMapToInstance<T>(model: TypeModel, instance: Record<string, any>, sk: Aes128Key | null): Promise<T> {
+	decryptAndMapToInstance<T>(model: TypeModel, instance: Record<string, any>, sk: AesKey | null): Promise<T> {
 		let decrypted: any = {
 			_type: new TypeRef(model.app, model.name),
 		}
@@ -145,7 +145,7 @@ export class InstanceMapper {
 }
 
 // Exported for testing
-export function encryptValue(valueName: string, valueType: ModelValue, value: any, sk: Aes128Key | null): string | Base64 | null {
+export function encryptValue(valueName: string, valueType: ModelValue, value: any, sk: AesKey | null): string | Base64 | null {
 	if (valueName === "_id" || valueName === "_permissions") {
 		return value
 	} else if (value == null) {

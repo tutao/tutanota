@@ -40,7 +40,7 @@ import { elementIdPart, getLetId, getListId, isSameId, listIdPart, uint8arrayToC
 import { GroupManagementFacade } from "./GroupManagementFacade.js"
 import { SetupMultipleError } from "../../../common/error/SetupMultipleError.js"
 import { ImportError } from "../../../common/error/ImportError.js"
-import { aes256RandomKey, encryptKey, sha256Hash } from "@tutao/tutanota-crypto"
+import { aes256RandomKey, AesKey, encryptKey, sha256Hash } from "@tutao/tutanota-crypto"
 import { InstanceMapper } from "../../crypto/InstanceMapper.js"
 import { TutanotaError } from "@tutao/tutanota-error"
 import { IServiceExecutor } from "../../../common/ServiceRequest.js"
@@ -430,8 +430,9 @@ export class CalendarFacade {
 		})
 	}
 
+	// hey valentin, I'm having Wire issues... Shouldn't have clicked update
 	private async encryptNotificationKeyForDevices(
-		notificationSessionKey: Aes128Key,
+		notificationSessionKey: AesKey,
 		alarmNotifications: Array<AlarmNotification>,
 		pushIdentifierList: Array<PushIdentifier>,
 	): Promise<void> {

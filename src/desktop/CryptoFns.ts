@@ -56,7 +56,7 @@ export interface CryptoFunctions {
 
 	aes256RandomKey(): Aes256Key
 
-	decryptAndMapToInstance<T>(model: TypeModel, instance: Record<string, any>, sk: Aes128Key | null): Promise<T>
+	decryptAndMapToInstance<T>(model: TypeModel, instance: Record<string, any>, sk: AesKey | null): Promise<T>
 }
 
 const mapper = new InstanceMapper()
@@ -106,7 +106,7 @@ export const cryptoFns: CryptoFunctions = {
 		return aes256RandomKey()
 	},
 
-	decryptAndMapToInstance<T>(model: TypeModel, instance: Record<string, any>, sk: Aes128Key | null): Promise<T> {
+	decryptAndMapToInstance<T>(model: TypeModel, instance: Record<string, any>, sk: AesKey | null): Promise<T> {
 		return mapper.decryptAndMapToInstance(model, instance, sk)
 	},
 }
