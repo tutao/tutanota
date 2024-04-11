@@ -16,8 +16,7 @@ import { reportMailsAutomatically } from "./MailReportDialog"
 import { DataFile } from "../../api/common/DataFile"
 import { lang, TranslationKey } from "../../misc/LanguageViewModel"
 import { FileController } from "../../file/FileController"
-import { DomRectReadOnlyPolyfilled, Dropdown, PosRect } from "../../gui/base/Dropdown.js"
-import { ButtonSize } from "../../gui/base/ButtonSize.js"
+import { DomRectReadOnlyPolyfilled, Dropdown, DropdownChildAttrs, PosRect } from "../../gui/base/Dropdown.js"
 import { modal } from "../../gui/base/Modal.js"
 import { assertSystemFolderOfType, isOfTypeOrSubfolderOf, isSpamOrTrashFolder } from "../../api/common/mail/CommonMailUtils.js"
 import { ConversationViewModel } from "./ConversationViewModel.js"
@@ -319,17 +318,19 @@ export async function showMoveMailsDropdown(
 	const { width = 300, withBackground = false, onSelected = noOp } = opts ?? {}
 	const folders = await getMoveTargetFolderSystems(model, mails)
 	if (folders.length === 0) return
-	const folderButtons = folders.map((f) => ({
-		// We need to pass in the raw folder name to avoid including it in searches
-		label: () => lang.get("folderDepth_label", { "{folderName}": getFolderName(f.folder), "{depth}": f.level }),
-		text: () => getIndentedFolderNameForDropdown(f),
-		click: () => {
-			onSelected()
-			moveMails({ mailModel: model, mails: mails, targetMailFolder: f.folder })
-		},
-		icon: getFolderIcon(f.folder),
-		size: ButtonSize.Compact,
-	}))
+	const folderButtons = folders.map(
+		(f) =>
+			({
+				// We need to pass in the raw folder name to avoid including it in searches
+				label: () => lang.get("folderDepth_label", { "{folderName}": getFolderName(f.folder), "{depth}": f.level }),
+				text: () => getIndentedFolderNameForDropdown(f),
+				click: () => {
+					onSelected()
+					moveMails({ mailModel: model, mails: mails, targetMailFolder: f.folder })
+				},
+				icon: getFolderIcon(f.folder),
+			} satisfies DropdownChildAttrs),
+	)
 
 	const dropdown = new Dropdown(() => folderButtons, width)
 
