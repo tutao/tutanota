@@ -13,7 +13,7 @@ export default {
 		"other"
 	],
 	"created_at": "2015-04-24T12:42:36Z",
-	"updated_at": "2024-04-05T10:39:27Z",
+	"updated_at": "2024-04-11T08:48:47Z",
 	"source_locale": null,
 	"fallback_locale": null,
 	"keys": {
@@ -222,7 +222,6 @@ export default {
 		"changeAdminPassword_msg": "Je nám líto, nemůžete měnit hesla jiných správců.",
 		"changeMailSettings_msg": "Své rozhodnutí můžete změnit později v nastavení e-mailu.",
 		"changePaidPlan_msg": "Chcete nyní změnit váš tarif?",
-		"changePasswordCode_msg": "Váš ověřovací kód:",
 		"changePassword_label": "Změnit heslo",
 		"changePermissions_msg": "K umožnění přístupu musíte upravit povolení pro toto zařízení.",
 		"changeSpellCheckLang_action": "Změnit jazyk kontroly pravopisu...",
@@ -1015,8 +1014,6 @@ export default {
 		"outdatedClientWarningMailBody_msg": "Dobrý den,<br>\nmomentálně používáte již zastaralou verzi Tuty a její podpora brzy skončí.<br><br>\n\nAktualizujte prosím aplikaci na: {downloadLink}<br><br>\n\nZkontrolujte prosím, zda nepoužíváte zastaralou verzi i na jiných zařízeních. Až budou všechny vaše e-mailové aplikace od Tuty aktualizované, nebudete již tento e-mail dostávat.<br><br>\n\nDěkujeme!<br><br>\n\nVaše Tuta",
 		"outdatedClientWarningMailSubject_msg": "Aktualizujte prosím aplikaci Tuta",
 		"outdatedClient_msg": "Aktualizujte prosím aplikaci Tuta. Nainstalovaná verze je příliš stará a již není podporována.",
-		"outlookInvoiceMailBodyAutomatic_msg": "v příloze je k dispozici nová faktura s číslem {1}. Celková suma bude automaticky zaúčtována. Všechny faktury jsou dostupné v {2}",
-		"outlookInvoiceMailBodyOnAccount_msg": "je k dispozici nová faktura s číslem {1}, která je připojena k tomuto e-mailu. Platba je splatná 7 dní po datu vystavení faktury. Všechny faktury můžete vidět také v {2}.",
 		"outOfOfficeDefaultSubject_msg": "Jsem mimo kancelář",
 		"outOfOfficeDefault_msg": "Dobrý den,\n<br>\n<br>děkuji za váš e-mail. Momentálně jsem mimo kancelář. Než se vrátím, mám pouze omezený přístup k e-mailu.\n<br>\n<br>Hezký den",
 		"outOfOfficeEveryone_msg": "Všem",
@@ -1654,7 +1651,6 @@ export default {
 		"weekStart_label": "Začátek týdne",
 		"weeks_label": "týdny (týdnů)",
 		"week_label": "Týden",
-		"welcomeMailBodyTweetText_msg": "Odteď používám e-mail od Tuty. Mé e-maily jsou tak v bezpečí před slídily! Můžete se také přidat: ",
 		"welcomeMailBody_markdown": "**Vítejte ve své zabezpečené a zelené e-mailové schránce od Tutanoty, která je bez reklam a je chráněna silným šifrováním.**\n\nVaše bezpečnost a ochrana soukromí je pro nás v Tutanotě prioritou. Díky silnému šifrování je vaše schránka chráněna před zraky zvědavců a vaše důvěrná data tak zůstávají v bezpečí.\n\nTo ale není vše. Přechod z jiných e-mailových schránek je s Tutanotou velmi jednoduchý. Naše intuitivní aplikace pro Android a iOS, stejně tak i aplikace pro systémy Windows, Mac OS a Linux, vám umožní přístup k vaší zabezpečené poštovní schránce s kalendáři na jakémkoliv zařízení, i když zrovna nejste připojeni k síti.\n\nPokud stále máte ještě starou e-mailovou adresu, nezoufejte. Máme pro vás řešení. Ve svém starém účtu si nastavte automatické přeposílání a postupně převeďte všechny své e-maily a kontakty na Tutanotu. [Zde]({faqForwardLink}) naleznete návody, jak přeposílání e-mailů do Tutanoty nastavit.\n\nJakmile všechny důležité konverzace přenesete do Tutanoty, můžete automatické přeposílání opět deaktivovat. Budete tak mít čistou schránku bez nevyžádané pošty.\n\n**Aby Tuta byla alternativou respektující soukromí, držíme se 4 zásad** \n\n1.    Nesledujeme vás. \n2.    Neprohlížíme vaše data.\n3.    Šifrujeme celou vaši e-mailovou schránku, kontakty i kalendář.\n4.    Při návrhu dáváme přednost ochraně soukromí.\n\nUž jste si Tutanotu oblíbili? **Zanechte nám prosím zpětnou vazbu na sociálních sítích (odkazy níže)** a dejte nám vědět, jak si vedeme.\n\nDíky Tutanotě se ochrana soukromí pojí s pohodlím. Připojte se k nám na šifrované straně a užívejte si e-mail jako nikdy předtím.\n\nJsme rádi, že vás můžeme přivítat ve vaší šifrované schránce!\nVaše Tuta\n\n--\n\n**Každý si zaslouží ochranu soukromí.**\n\nNaše poslání přinášet světu více soukromí můžete podpořit sledováním na vašich oblíbených sociálních sítích a sdílením našeho obsahu se svými přáteli a kolegy. Společně změníme internet k lepšímu!\n\n* [LinkedIn]({linkedinLink}) \n* [Facebook]({facebookLink}) \n* [Mastodon]({mastodonLink}) \n* [Twitter]({twitterLink}) \n* [Reddit]({redditLink}) \n* [Instagram]({instagramLink}) \n* [YouTube]({youtubeLink})\n\nTuta má otevřený zdrojový kód. [Zde do něj můžete nahlédnout]({githubLink}).",
 		"welcomeMailSubject_msg": "Bezpečný, zelený a bez reklam!",
 		"welcome_label": "Vítejte!",

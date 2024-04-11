@@ -11,7 +11,7 @@ export default {
 		"other"
 	],
 	"created_at": "2015-01-27T13:14:10Z",
-	"updated_at": "2024-04-10T11:09:21Z",
+	"updated_at": "2024-04-11T08:48:47Z",
 	"source_locale": {
 		"id": "fcd7471b347c8e517663e194dcddf237",
 		"name": "en",
@@ -225,7 +225,6 @@ export default {
 		"changeAdminPassword_msg": "Siamo spiacenti, non è consentito modificare le password di altri amministratori.",
 		"changeMailSettings_msg": "Potrai modificare la tua decisione in seguito dalle impostazioni email.",
 		"changePaidPlan_msg": "Vorresti cambiare il tuo piano adesso?",
-		"changePasswordCode_msg": "Il tuo codice di verifica:",
 		"changePassword_label": "Cambia password",
 		"changePermissions_msg": "Per concedere l'accesso è necessario modificare le autorizzazioni per questo dispositivo.",
 		"changeSpellCheckLang_action": "Cambia lingua controllo ortografico...",
@@ -1022,8 +1021,6 @@ export default {
 		"outdatedClientWarningMailBody_msg": "Ciao,<br>\nAttualmente stai utilizzando una versione di Tuta obsoleta. Il supporto per la tua versione verrà interrotto nei prossimi giorni.<br><br>\n\nAggiorna il tuo client all'indirizzo: {downloadLink}<br><br>\n\nControlla anche se stai utilizzando una versione obsoleta di Tuta su un dispositivo diverso. Il sistema interromperà l'invio di questa email una volta che tutti i tuoi client Tuta saranno aggiornati.<br><br>\n\nGrazie!<br><br>\n\nIl tuo team di Tuta",
 		"outdatedClientWarningMailSubject_msg": "Prego, aggiorna Tuta",
 		"outdatedClient_msg": "Si prega di aggiornare Tuta. La versione attualmente installata e' datata e non viene piu' supportata.",
-		"outlookInvoiceMailBodyAutomatic_msg": "c'è una nuova fattura con il numero {1} disponibile per te in allegato a questa email.  Il totale verrà automaticamente addebitato . Puoi anche vedere tutte le tue fatture in {2}",
-		"outlookInvoiceMailBodyOnAccount_msg": "c'è una nuova fattura con il numero {1} disponibile per te in allegato a questa email. Il pagamento è dovuto entro 7 giorni dalla data della fattura. Puoi anche vedere tutte le tue fatture in {2}.",
 		"outOfOfficeDefaultSubject_msg": "Sono fuori ufficio",
 		"outOfOfficeDefault_msg": "Ciao,\n<br>\n<br>grazie per la tua email. Sono fuori ufficio e tornerò presto. Fino ad allora avrò accesso limitato alla mia email.\n<br>\n<br>Cordiali saluti",
 		"outOfOfficeEveryone_msg": "A tutti",
@@ -1662,7 +1659,6 @@ export default {
 		"weekStart_label": "Inizio settimana",
 		"weeks_label": "settimane",
 		"week_label": "Settimana",
-		"welcomeMailBodyTweetText_msg": "Ho appena creato la mia casella Tuta. Ora proteggo le mie email da occhi indiscreti! Puoi iscriverti anche tu:",
 		"welcomeMailBody_markdown": "**Preparati per un'esperienza e-mail sicura, ecologica e senza pubblicità come nessun'altra! La crittografia end-to-end ti tiene sempre al sicuro.**\n\nIn Tuta, diamo la priorità alla tua privacy e sicurezza. Con una crittografia avanzata, la tua casella di posta è protetta da occhi indiscreti, garantendo che le tue informazioni riservate rimangano al sicuro.\n\nMa non è tutto. Abbiamo semplificato il passaggio da altri servizi di posta elettronica. Le nostre app intuitive per Android e iOS, insieme alle app desktop per Windows, macOS e Linux, ti consentono di accedere alla tua casella di posta e al calendario sicuri su qualsiasi dispositivo, anche quando sei offline. Dì addio alle limitazioni e dai il benvenuto all'accessibilità senza soluzione di continuità.\n\nSe hai ancora un vecchio indirizzo email, non preoccuparti. Ti abbiamo coperto. Imposta l'inoltro automatico nel tuo vecchio account e trasferisci gradualmente tutte le tue e-mail e contatti a Tuta. Consulta la nostra guida [qui]({faqForwardLink}) per scoprire come inoltrare facilmente le tue email a Tuta.\n\nDopo aver trasferito con successo tutte le tue conversazioni importanti, puoi disattivare l'inoltro automatico. Siediti e goditi una casella di posta bella, pulita e priva di spam che ti porta tranquillità.\n\n**In Tuta, seguiamo quattro principi fondamentali per fornire un'alternativa rispettosa della privacy alla Big Tech:**\n\n1. Non ti tracciamo.\n2. Non eseguiamo la scansione dei tuoi dati.\n3. Crittografiamo l'intera casella di posta, i contatti e i calendari.\n4. Diamo priorità alla privacy in base alla progettazione.\n\nTi stai già innamorando di Tuta? Ci piacerebbe sentire il tuo feedback! **Prenditi un momento per valutare il nostro Android &amp; App iOS** e facci sapere come stiamo andando.\n\nCon Tuta, la privacy incontra la comodità. Unisciti a noi sul lato crittografato e sperimenta la posta elettronica come mai prima d'ora.\n\nSiamo felici di darti il benvenuto nella tua casella di posta crittografata!\nLa tua squadra Tuta\n\n--\n\n**Tutti meritano la privacy.**\n\nPuoi sostenere la nostra missione di portare la privacy nel mondo seguendoci sul tuo canale di social media preferito e condividendo i nostri contenuti con i tuoi amici e colleghi. Insieme cambieremo Internet in meglio!\n\n* [LinkedIn]({linkedinLink})\n* [Facebook]({facebookLink})\n* [Mastodonte]({mastodonLink})\n* [Twitter]({twitterLink})\n* [Reddit]({redditLink})\n* [Instagram]({instagramLink})\n* [YouTube]({youtubeLink})\n\nTuta è open source. [Puoi ispezionare e rivedere il codice sorgente qui]({githubLink}).",
 		"welcomeMailSubject_msg": "Sicuro, verde e senza pubblicità!",
 		"welcome_label": "Benvenuto/a!",

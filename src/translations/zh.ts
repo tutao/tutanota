@@ -10,7 +10,7 @@ export default {
 		"other"
 	],
 	"created_at": "2015-01-27T13:15:05Z",
-	"updated_at": "2024-04-05T10:39:26Z",
+	"updated_at": "2024-04-11T08:48:47Z",
 	"source_locale": {
 		"id": "fcd7471b347c8e517663e194dcddf237",
 		"name": "en",
@@ -179,7 +179,6 @@ export default {
 		"certificateTypeAutomatic_label": "自动 (Let's Encrypt)",
 		"certificateTypeManual_label": "手册",
 		"changeAdminPassword_msg": "抱歉，您不能改变其他管理员的密码。",
-		"changePasswordCode_msg": "您的验证码：",
 		"changePassword_label": "修改密码",
 		"changePermissions_msg": "为了授权，你必须更改这台设备的权限。",
 		"changeSpellCheckLang_action": "切换检查拼写的语言…",
@@ -719,8 +718,6 @@ export default {
 		"otherPaymentProviderError_msg": "支付提供商返回错误，请稍后再试。",
 		"other_label": "其它",
 		"outdatedClient_msg": "请更新Tuta。当前安装的版本太旧，已不再被支持。",
-		"outlookInvoiceMailBodyAutomatic_msg": "本邮件附有一张编号为{1}的发票可用，总额将自动扣除，您可以在“设置”->“发票”里查看所有发票。",
-		"outlookInvoiceMailBodyOnAccount_msg": "本邮件附有一张编号为{1}的发票可用，发票开具日起7天内支付有效。您还可以在{2}中查看所有发票。",
 		"outOfOfficeMessageInvalid_msg": "标题或/和信息无效。\n不允许空的标题或信息。\n标题最长允许：128个字符。\n信息最大允许：20kB。",
 		"outOfOfficeNotification_title": "自动回复",
 		"outOfOfficeRecipientsInternalExternalHelp_label": "将向组织内外的收件人发送不同的通知。",
@@ -1147,7 +1144,6 @@ export default {
 		"wantToSendReport_msg": "出现未预料的问题。您想要发送错误报告吗？您可以添加消息以帮助我们解决此错误。",
 		"weekNumber_label": "第 {week} 周",
 		"weekStart_label": "一周的第一天",
-		"welcomeMailBodyTweetText_msg": "刚配置好我的 Tuta 邮箱，现在能防止我的邮件被窥探了！你也可以加入：",
 		"welcomeMailBody_markdown": "**准备好享受前所未有的安全、绿色和无广告电子邮件体验吧！端到端加密始终确保您的安全。**\n\n在Tuta，我们将您的隐私和安全放在首位。通过强大的加密功能，您的邮箱不会受到窥探，确保您的机密信息安全无虞。\n\n但这还不是全部。我们让您轻松地从其他电子邮件服务切换到我们的服务。我们的 Android 和 iOS 直观应用程序以及 Windows、macOS 和 Linux 桌面应用程序允许您在任何设备上访问您的安全邮箱和日历，即使您处于离线状态。告别限制，实现无缝访问。\n\n如果您还在使用旧的电子邮件地址，我们会帮您解决。在旧账户中设置自动转发，然后逐步将所有邮件和联系人过渡到 Tuta。查看我们的指南[这里]({faqForwardLink})，了解如何轻松将邮件转发到Tuta。\n\n一旦你成功转移了所有重要对话，就可以停用自动转发功能。坐下来，享受一个漂亮、干净、无垃圾邮件的邮箱，让您高枕无忧。\n\n**在Tuta，我们遵循四项基本原则，为大型科技公司提供隐私友好型替代方案：**\n\n1.    我们不跟踪您。\n2.    我们不扫描您的数据。\n3.    我们对您的整个邮箱、联系人和日历进行加密。\n4.    我们在设计上优先考虑隐私。\n\n您已经爱上图塔诺塔了吗？**请花点时间在社交媒体上留下您的反馈**（请参阅下面的链接）。我们很乐意听到您对我们的评价！\n\n有了Tuta，隐私与便利并存。加入我们，体验前所未有的加密电子邮件。\n\n我们很高兴欢迎您使用加密邮箱！\n您的 Tuta 团队\n\n--\n\n**每个人都应该拥有隐私。**\n\n您可以在您最喜爱的社交媒体渠道上关注我们，并与您的朋友和同事分享我们的内容，从而支持我们为世界带来隐私的使命。我们将共同努力，让互联网变得更好！\n\n* [LinkedIn]({linkedinLink})\n* [Facebook]({facebookLink})\n* [Mastodon]({mastodonLink})\n* [推特]({twitterLink})\n* [Reddit]({redditLink})\n* [Instagram]({instagramLink})\n* [YouTube]({youtubeLink})\n\nTuta 是开源的。[你可以在这里查看和审查源代码]({githubLink})。",
 		"welcomeMailSubject_msg": "就像在家一样:您的资料非常安全。",
 		"whatIsPhishing_msg": "什么是网络钓鱼？",

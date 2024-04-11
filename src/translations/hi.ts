@@ -11,7 +11,7 @@ export default {
 		"other"
 	],
 	"created_at": "2015-06-01T09:47:21Z",
-	"updated_at": "2024-04-05T10:39:27Z",
+	"updated_at": "2024-04-11T08:48:47Z",
 	"source_locale": null,
 	"fallback_locale": null,
 	"keys": {
@@ -169,7 +169,6 @@ export default {
 		"certificateTypeAutomatic_label": "\nस्वचालित(Let's Encrypt)",
 		"changeAdminPassword_msg": "क्षमा करें, आपको अन्य व्यवस्थापक के पासवर्ड बदलने की अनुमति नहीं है",
 		"changeMailSettings_msg": "आप बाद में ईमेल सेटिंग में अपना निर्णय बदल सकते हैं।",
-		"changePasswordCode_msg": "आपका सत्यापन कोड:",
 		"changePassword_label": "पासवर्ड बदलें",
 		"changePermissions_msg": "पहुंच प्रदान करने के लिए आपको इस डिवाइस के लिए अनुमतियों को संशोधित करना होगा.",
 		"changeSpellCheckLang_action": "अशुद्धि शोधन की भाषा बदले।",
@@ -855,7 +854,6 @@ export default {
 		"outdatedClientWarningMailBody_msg": "नमस्ते,<br>\nआप वर्तमान में पुराने Tuta संस्करण उपयोग कर रहे हैं। आपके संस्करण के लिए समर्थन अगले कुछ दिनों में बंद कर दिया जाएगा।<br><br>\n\nकृपया अपने क्लाइंट को यहां से अपडेट करें: {downloadLink}<br><br>\n\nकृपया यह भी जांचें कि क्या आप किसी भिन्न डिवाइस पर Tuta के पुराने संस्करण का उपयोग तो नहीं कर रहे हैं। आपके सभी Tuta क्लाइंट अपडेट हो जाने पर सिस्टम यह email भेजना बंद कर देगा।<br><br>\n\nधन्यवाद!<br><br>\n\nआपकी Tuta टीम",
 		"outdatedClientWarningMailSubject_msg": "कृपया टूटनोटा को अपडेट करें",
 		"outdatedClient_msg": "कृपया टूटानोटा का अद्यतन करें। वर्तमान संस्करण काफी पुराना  और असमर्थित है । ",
-		"outlookInvoiceMailBodyOnAccount_msg": "इस मेल में आपके लिए {1} नं०वाली एक नयी रसीद जुड़ी हुई है । रसीद तारीख़ से सात दिन बाद से आपका भुगतान लंबित है। {2}में आप अपनी सभी रसीदें देख सके हैं। ",
 		"outOfOfficeDefaultSubject_msg": "मैं कार्यालय से बाहर हूँ",
 		"outOfOfficeDefault_msg": "नमस्कार,<br><br>आपके ईमेल के लिए धन्यवाद। मैं कार्यालय से बाहर हूं और जल्द ही वापस आऊंगा। तब तक मेरे पास मेरे ईमेल तक सीमित पहुंच होगी।<br><br>सदर सादर",
 		"outOfOfficeEveryone_msg": "सभि को",
@@ -1344,7 +1342,6 @@ export default {
 		"weekStart_label": "सप्ताह की शुरुआत",
 		"weeks_label": "हफ्तों",
 		"week_label": "सप्ताह",
-		"welcomeMailBodyTweetText_msg": "मैनें अभी अपना टूटनोटा मेलबॉक्स बनाकर अपने ईमेलों को गुप्तचरों से बचाया! आप भी बना सकते हैं:",
 		"welcomeMailBody_markdown": "मजबूत एन्क्रिप्शन के साथ संरक्षित, अपने सुरक्षित और विज्ञापन-मुक्त टूटनोटा मेलबॉक्स में आपका स्वागत है। टूटनोटा अन्य ईमेल सेवाओं से स्विच करना आसान बनाता है। हमारे सहज ज्ञान युक्त वेब क्लाइंट, एंड्रॉइड और आईओएस के लिए ऐप, साथ ही विंडोज, मैक ओएस और लिनक्स के लिए डेस्कटॉप ऐप आपको अपने डिवाइस पर अपने सुरक्षित मेल का उपयोग करने में सक्षम बनाते हैं।\n\nएक पेशेवर के रूप में, आप जर्मनी में स्थित टुटनोटा के सुरक्षित सर्वरों पर अपने सभी व्यावसायिक ईमेलों को एंड-टू-एंड एन्क्रिप्टेड होस्ट करके समय और पैसा बचा सकते हैं: अपने व्यवसाय के लिए व्हिटेलबेल टूटनोटा, अपनी वेबसाइट पर लॉगिन रखें, और एक एन्क्रिप्टेड संपर्क जोड़ें आपकी वेबसाइट के लिए फार्म ताकि ग्राहक आसानी से गोपनीय रूप से आप तक पहुंच सकें। [Find out more about Tuta's comprehensive business features]({businessLink}).\n\n**Tuta follows 4 principles to offer a privacy-friendly alternative** \n \n1. टूटनोटा आपको ट्रैक नहीं करता है।\n2. टूटनोटा आपके डेटा को स्कैन नहीं कर सकता है।\n3. टूटनोटा आपके पूरे मेलबॉक्स, संपर्क और कैलेंडर को एन्क्रिप्ट करता है।\n4. टुटानोटा डिजाइन द्वारा गोपनीयता को शामिल करता है।\n\nटूटनोटा की सिफारिश करें [open source email service that respects you and your right to privacy]({blogOpenSourceLink}).\n\nहम मानते हैं कि हर कोई एक स्वतंत्र और निजी मेलबॉक्स का हकदार है। आप अपने पसंदीदा सोशल मीडिया चैनल पर हमें फॉलो करके और अपने दोस्तों और सहकर्मियों के साथ हमारे कंटेंट को साझा करके हमारा समर्थन कर सकते हैं। हम मिलकर इंटरनेट को बेहतर के लिए बदलेंगे:\n\n* [LinkedIn]({linkedinLink}) \n* [Facebook]({facebookLink}) \n* [Mastodon]({mastodonLink}) \n* [Twitter]({twitterLink}) \n* [Reddit]({redditLink}) \n* [Instagram]({instagramLink}) \n \nआपका बहुत बहुत धन्यवाद,\\\nआपकी टूटनोटा टीम\n \nटूटनोटा खुला स्रोत है। [You can inspect and review the source code here]({githubLink}).",
 		"welcomeMailSubject_msg": "सुरक्षित, हरा और विज्ञापन मुक्त!",
 		"whatIsPhishing_msg": "फ़िशिंग क्या है?",

@@ -11,7 +11,7 @@ export default {
 		"other"
 	],
 	"created_at": "2015-01-27T13:15:41Z",
-	"updated_at": "2024-04-08T10:22:10Z",
+	"updated_at": "2024-04-11T08:48:47Z",
 	"source_locale": {
 		"id": "fcd7471b347c8e517663e194dcddf237",
 		"name": "en",
@@ -226,7 +226,6 @@ export default {
 		"changeAdminPassword_msg": "Üzgünüz, diğer yöneticilerin şifrelerini değiştirmenize izin verilmiyor.",
 		"changeMailSettings_msg": "Dilediğiniz zaman seçiminizi e-posta ayarlarından değiştirebilirsiniz.",
 		"changePaidPlan_msg": "Planınızı şimdi değiştirmek ister misiniz?",
-		"changePasswordCode_msg": "Onay kodunuz:",
 		"changePassword_label": "Şifreyi değiştir",
 		"changePermissions_msg": "Erişim vermek için bu cihazın izinlerini değiştirmeniz gerekir.",
 		"changeSpellCheckLang_action": "Yazım denetimi dilini değiştir…",
@@ -1021,8 +1020,6 @@ export default {
 		"outdatedClientWarningMailBody_msg": "Merhaba,<br>\nŞu anda Tuta'nın eski bir sürümünü kullanıyorsunuz. Bu sürüm için verdiğimiz destek önümüzdeki birkaç gün içinde sona erecektir.<br><br>\n\nLütfen istemcinizi şu adresten güncelleyin:\n{downloadLink}<br><br>\n\nAyrıca lütfen farklı bir cihazda Tuta'nın eski bir sürümünü kullanıp kullanmadığınızı da kontrol edin. Tüm Tuta istemcileriniz güncel olduğunda sistem bu e-postayı göndermeyi durduracaktır.<br><br>\n\nTeşekkürler!<br><br>\n\nTuta Ekibiniz",
 		"outdatedClientWarningMailSubject_msg": "Lütfen Tuta'yı güncelleyin",
 		"outdatedClient_msg": "Lütfen Tuta'yı güncelleyin. Kurulu olan sürüm çok eski ve artık desteklenmiyor.",
-		"outlookInvoiceMailBodyAutomatic_msg": "{1} numaralı yeni faturanız bu mailin ekinde bulunmaktadır. Genel toplam otomatik olarak tahsil edilecektir. Bütün faturalarınızı 'Settings' -> 'Invoicing'  altında görebilirsiniz.",
-		"outlookInvoiceMailBodyOnAccount_msg": "Bu e-postaya ekli olarak sizin için {1} numaralı yeni bir fatura var. Ödeme, fatura tarihinden 7 gün sonra yapılmalıdır. Ayrıca tüm faturalarınızı {2} 'den görebilirsiniz.",
 		"outOfOfficeDefaultSubject_msg": "Ofiste değilim",
 		"outOfOfficeDefault_msg": "Merhaba,\n<br>\n<br>e-postanız için teşekkürler. Şu anda mesai dışındayım ve yakında geri döneceğim. Bu süreç içinde e-postalarıma erişimim kısıtlı.\n<br>\n<br>Saygılarımla",
 		"outOfOfficeEveryone_msg": "Herkese",
@@ -1662,7 +1659,6 @@ export default {
 		"weekStart_label": "Hafta başı",
 		"weeks_label": "hafta",
 		"week_label": "Hafta",
-		"welcomeMailBodyTweetText_msg": "Tuta posta kutumu yeni kurdum. Artık emaillerimi meraklı gözlerden koruyabilirim! Siz de katılabilirsiniz:",
 		"welcomeMailBody_markdown": "**Güçlü şifreleme ile korunan, güvenli, çevre dostu ve reklamsız Tuta posta kutunuza hoş geldiniz.**\n\nTuta, diğer e-posta hizmetlerinden geçiş yapmayı kolaylaştırır: Anlaşılması ve kullanılması kolay Windows, Mac OS ve Linux için masaüstü uygulamalarımızın yanında Android ve iOS için uygulamalarımız, herhangi bir cihazdan güvenli e-posta kutunuza ve takviminize -çevirim dışı olsanız bile- erişmenizi sağlar. Eğer hala eski bir e-posta adresiniz varsa, eski hesabınızda otomatik yönlendirmeyi kurmanızı ve tüm e-posta ve kişilerinizi Tuta'ya yavaşça geçirmenizi tavsiye ederiz.\n\nTuta'ya e-postalarınızı nasıl yönlendireceğinizi öğrenmek için lütfen [tıklayın]({faqForwardLink}).\n\nTüm önemli iletişimlerinizi Tuta'ya aktardıktan sonra, otomatik yönlendirmeyi tekrar devre dışı bırakabilirsiniz. Bu şekilde güzel, temiz ve istenmeyen e-posta içermeyen bir posta kutunuz olur!\n\n**Tuta gizlilik dostu bir alternatif sunmak için bu 4 ilkeye uyar.**\n\n1. Tuta sizi izlemez.\n2. Tuta verilerinizi tarayamaz.\n3. Tuta tüm posta kutunuzu, kişilerinizi ve takviminizi şifreler.\n4. Tuta tasarımı gereği gizliliği içerir.\n\n**Şimdiden Tuta'yı sevdiniz mi? Lütfen Android &amp; iOS uygulamalarımızı değerlendirin!**\n\nŞifreli tarafa hoş geldiniz!\\\nTuta Ekibiniz\n\n--\n\n**Herkes mahremiyeti hak eder.**\n\nBizi en sevdiğiniz sosyal medya kanalından takip ederek ve içeriklerimizi, arkadaşlarınız ve iş arkadaşlarınızla paylaşarak dünyaya mahremiyet getirme misyonumuza destek olabilirsiniz. Birlikte interneti daha iyi bir yer haline getireceğiz!\n\n* [LinkedIn]({linkedinLink})\n* [Facebook]({facebookLink})\n* [Mastodon]({mastodonLink})\n* [Twitter]({twitterLink})\n* [Reddit]({redditLink})\n* [Instagram]({instagramLink})\n* [YouTube]({youtubeLink})\n\nTuta açık kaynak kodludur. [Kaynak kodunu buradan kontrol edebilir ve gözden geçirebilirsiniz]({githubLink}).",
 		"welcomeMailSubject_msg": "Güvenli, yeşil & reklamsız!",
 		"welcome_label": "Hoşgeldin!",

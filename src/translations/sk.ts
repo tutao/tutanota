@@ -13,7 +13,7 @@ export default {
 		"other"
 	],
 	"created_at": "2015-05-11T07:45:17Z",
-	"updated_at": "2024-04-05T10:39:27Z",
+	"updated_at": "2024-04-11T08:48:47Z",
 	"source_locale": null,
 	"fallback_locale": null,
 	"keys": {
@@ -181,7 +181,6 @@ export default {
 		"certificateTypeManual_label": "Manuálny",
 		"changeAdminPassword_msg": "Je nám ľúto, ale nemáš povolenie meniť heslá iných správcov.",
 		"changeMailSettings_msg": "Neskôr to môžeš zmeniť v nastaveniach e-mailu.",
-		"changePasswordCode_msg": "Tvoj overovací kód:",
 		"changePassword_label": "Zmeniť heslo",
 		"changePermissions_msg": "Pre poskytnutie prístupu musíš upraviť povolenia pre toto zariadenie.",
 		"changeSpellCheckLang_action": "Zmeniť jazyk kontroly pravopisu...",
@@ -917,8 +916,6 @@ export default {
 		"outdatedClientWarningMailBody_msg": "Ahoj,<br>\nmomentálne používaš neaktuálnu verziu Tutanoty. Podpora pre tvoju verziu bude v priebehu niekoľkých dní ukončená.<br><br>\n\nProsím, aktualizuj svojho klienta cez tento odkaz: {downloadLink}<br><br>\n\nSkontroluj si tiež, či nepoužívaš neaktuálnu verziu Tutanoty na inom zariadení. Systém prestane posielať tieto e-maily, akonáhle všetky tvoje klienty Tuta budú aktuálne.<br><br>\n\nĎakujeme!<br><br>\n\nTvoj tím Tuta",
 		"outdatedClientWarningMailSubject_msg": "Prosím, aktualizuj Tutanotu",
 		"outdatedClient_msg": "Prosím aktualizuj Tutanotu. Nainštalovaná verzia je príliš stará a nie je už ďalej podporovaná.",
-		"outlookInvoiceMailBodyAutomatic_msg": "v prílohe tohto e-mailu je k dispozícii nová faktúra s číslom {1}. Výsledná suma bude automaticky zaúčtovaná na ťarchu účtu. Všetky svoje faktúry si tiež môžeš pozrieť v časti {2}.",
-		"outlookInvoiceMailBodyOnAccount_msg": "V prílohe tohto e-mailu je k dispozícii nová faktúra s číslom {1}. Splatná je do 7 dní od dátumu vystavenia. Všetky faktúry si tiež môžeš pozrieť v časti {2}.",
 		"outOfOfficeDefaultSubject_msg": "Som mimo kancelárie",
 		"outOfOfficeDefault_msg": "Dobrý deň.\n<br>\n<br>Ďakujem za Váš e-mail. Som mimo kancelárie, ale čoskoro sa tam vrátim. Dovtedy budem mať obmedzený prístup k e-mailu.\n<br>\n<br>S pozdravom",
 		"outOfOfficeEveryone_msg": "Všetkým",
@@ -1504,7 +1501,6 @@ export default {
 		"weekStart_label": "Začiatok týždňa",
 		"weeks_label": "týždne",
 		"week_label": "Týždeň",
-		"welcomeMailBodyTweetText_msg": "Práve som si vytvoril poštovú schránku Tuta. Odteraz chránim svoje e-maily pred zvedavými očami! Môžeš sa pridať tiež:",
 		"welcomeMailBody_markdown": "**Priprav sa na bezpečný, ekologický e-mailový zážitok bez reklám, ako žiadny iný! S end-to-end šifrovaním budeš neustále v bezpečí.**\n\nV Tutanote kladieme dôraz na ochranu súkromia a bezpečnosť. Vďaka silnému šifrovaniu je tvoja schránka chránená pred zvedavými očami a tvoje dôverné informácie zostávajú v bezpečí.\n\nAle to nie je všetko. Prechod z iných e-mailových služieb je doslova hračkou: Naše intuitívne aplikácie pre Android a iOS, ako aj počítačové aplikácie pre Windows, macOS a Linux ti umožňujú pristupovať k zabezpečenej schránke a kalendáru na akomkoľvek zariadení, a to aj v offline režime. Daj zbohom obmedzeniam a privítaj bezproblémovú dostupnosť.\n\nAk si stále držíš starú e-mailovú adresu, nemaj obavy, myslíme aj na to. V starom účte si nastav automatické preposielanie a postupne si popresúvaj všetky e-maily a kontakty do Tutanoty. V našom sprievodcovi [tu]({faqForwardLink}) sa dozvieš, ako si jednoducho preposlať e-maily do Tutanoty.\n\nKeď si úspešne prenesieš všetky dôležité konverzácie, môžeš si automatické preposielanie deaktivovať. Pohodlne sa usaď a užívaj si peknú, uhladenú schránku bez spamu, ktorá ti prinesie pokoj mysle.\n\n**Aby sme mohli ponúkať súkromie rešpektujúcu alternatívu k Big Techu, držíme sa v Tutanote týchto štyroch základných princípov:**\n\n1. Nesledujeme ťa.\n2. Neprezeráme tvoje dáta.\n3. Šifrujeme celú tvoju schránku, kontakty a kalendáre.\n4. Kladieme dôraz na ochranu súkromia už v štádiu návrhu („privacy by design“).\n\nZamiloval/a si si už Tutanotu? Radi by sme získali od teba spätnú väzbu! **Prosíme, ohodnoť naše aplikácie pre Android a iOS** a daj nám vedieť, ako si počíname.\n\nV Tutanote sa snúbia súkromie a praktickosť. Pridaj sa k nám na šifrovanú stranu a zaži e-mail ako nikdy predtým.\n\nRadi ťa privítame v tvojej šifrovanej schránke!\nTvoj tím Tuta\n\n--\n\n**Každý si zaslúži súkromie.**\n\nNašu misiu presadzovania súkromia vo svete môžeš podporiť tak, že náš budeš sledovať na tvojom obľúbenom sociálnom kanáli a zdieľať náš obsah s tvojimi kamarátmi a kolegami. Spolu zmeníme internet k lepšiemu!\n\n* [LinkedIn]({linkedinLink})\n* [Facebook]({facebookLink})\n* [Mastodon]({mastodonLink})\n* [Twitter]({twitterLink})\n* [Reddit]({redditLink})\n* [Instagram]({instagramLink})\n* [YouTube]({youtubeLink})\n\nTuta má otvorený zdrojový kód. [Môžeš ho preskúmať a posúdiť tu]({githubLink}).",
 		"welcomeMailSubject_msg": "Bezpečné, ekologické a bez reklám!",
 		"whatIsPhishing_msg": "Čo je phishing?",

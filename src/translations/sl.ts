@@ -13,7 +13,7 @@ export default {
 		"other"
 	],
 	"created_at": "2015-06-09T09:37:05Z",
-	"updated_at": "2024-04-10T11:08:21Z",
+	"updated_at": "2024-04-11T08:48:47Z",
 	"source_locale": null,
 	"fallback_locale": null,
 	"keys": {
@@ -223,7 +223,6 @@ export default {
 		"changeAdminPassword_msg": "Žal, niste pooblaščeni za spreminjanje gesel drugih skrbnikov.",
 		"changeMailSettings_msg": "Kasneje lahko spremenite svojo odločitev v nastavitvah e-pošte.",
 		"changePaidPlan_msg": "Želite zamenjati svoj paket zdaj?",
-		"changePasswordCode_msg": "Vaša potrditvena koda:",
 		"changePassword_label": "Spremeni geslo",
 		"changePermissions_msg": "Za odobritev dostopa, morate spremeniti dovoljenja za to napravo.",
 		"changeSpellCheckLang_action": "Spremeni jezik za preverjanje črkovanja...",
@@ -1018,8 +1017,6 @@ export default {
 		"outdatedClientWarningMailBody_msg": "Pozdravljeni,<br>\ntrenutno uporabljate zastarelo različico Tutanote. Podpora za vašo verzijo se bo iztekla v naslednjih nekaj dnevih.<br><br>\n\nProsimo, posodobite svojega odjemalca: {downloadLink}<br><br>\n\nPreverite tudi, ali uporabljate zastarelo različico Tutanote na drugi napravi. Sistem bo prenehal pošiljati to sporočilo, ko bodo vsi odjemalci Tuta posodobljeni.<br><br>\n\n\nHvala<br><br>\n\nVaša Tuta",
 		"outdatedClientWarningMailSubject_msg": "Prosimo, posodobite Tutanoto",
 		"outdatedClient_msg": "Prosimo, posodobite Tutanoto. Vaša trenutna verzija ni več podprta, ker je prestara.",
-		"outlookInvoiceMailBodyAutomatic_msg": "prejeli ste nov račun s številko {1}. Lahko ga prenesete v {2}. Skupna vsota bo samodejno bremenjena. Vse svoje račune si lahko ogledate v {2}.",
-		"outlookInvoiceMailBodyOnAccount_msg": "prejeli ste nov račun s številko {1}. Lahko ga prenesete v {2}. Rok plačila je 7 dni po datumu na računu. Vse svoje račune si lahko ogledate v {2}.",
 		"outOfOfficeDefaultSubject_msg": "Trenutno me ni v pisarni",
 		"outOfOfficeDefault_msg": "Spoštovani!\n<br>\n<br>Hvala za vaše sporočilo. Trenutno sem odsoten iz pisarne, zato imam omejen dostop to spletne pošte. Ko se vrnem,  vam bom v najkrajšem možnem času odgovoril.",
 		"outOfOfficeEveryone_msg": "Vsem",
@@ -1658,7 +1655,6 @@ export default {
 		"weekStart_label": "Začetek tedna",
 		"weeks_label": "tedni",
 		"week_label": "Teden",
-		"welcomeMailBodyTweetText_msg": "Nastavite si Tutanotin nabiralnik. Jaz sem zaščitil svojo pošto pred firbci. Sedaj se lahko pridružite tudi vi:",
 		"welcomeMailBody_markdown": "**Pripravite se na varno, zeleno in poštno izkušnjo brez oglasov, kakršne še ni bilo! Šifriranje od pošiljatelja do prejemnika vas varuje ves čas.**︎\n︎\nV podjetju Tuta dajemo prednost vaši zasebnosti in varnosti. Z močnim šifriranjem je vaš poštni predal zaščiten pred radovednimi očmi, kar zagotavlja, da bodo vaši zaupni podatki ostali na varnem.︎\n︎\nTo pa še ni vse. Prehod z drugih poštnih storitev je pri nas zelo enostaven. Naše aplikacije za Android in iOS ter namizne aplikacije za Windows, macOS in Linux, vam omogočajo dostop do varnega poštnega predala in koledarja v kateri koli napravi, tudi ko ste brez povezave. Poslovite se od omejitev in pozdravite brezhibno dostopnost.︎\n︎\nČe se še vedno oklepate starega poštnega naslova, imamo poskrbljeno tudi za vas. V starem računu nastavite samodejno posredovanje in postopoma prenesite vsa sporočila in stike v Tutanoto. Oglejte si naš  [vodič]({faqForwardLink}) in se naučite, kako lahko preprosto posredujete pošto v Tutanoto.︎\n︎\nKo uspešno prenesete vsa pomembna sporočila, lahko onemogočite funkcijo samodejnega posredovanja. Uživajte v lepem, čistem poštnem predalu brez nezaželene pošte, ki vam prinaša mir v duši.︎\n︎\n**V podjetju Tuta sledimo štirim temeljnim načelom, da bi zagotovili zasebnosti prijazno alternativo tehnološkim velikanom:**︎\n︎\n1.    Ne sledimo vam.︎\n2.    Ne pregledujemo vaših podatkov.︎\n3.    Šifriramo vaš celoten poštni predal, stike in koledarje.︎\n4.    Pri načrtovanju dajemo prednost zasebnosti.︎\n︎\nSte se že zaljubili v Tutanoto? **Prosimo, vzamite si trenutek in opišite svoje izkušnje na socialnih omrežjih** (povezave so spodaj).︎ Radi bi slišali, kako nam gre.\n︎\nS storitvijo Tuta se zasebnost združuje s priročnostjo. Pridružite se nam na šifrirani strani in doživite spletno pošto, kot še nikoli prej.︎\n︎\nZ veseljem vas pozdravljamo v vašem šifriranem poštnem predalu!︎\nVaša ekipa Tuta︎\n︎\n--︎\n︎\n**Vsakdo si zasluži zasebnost.**︎\n︎\nNaše poslanstvo, da svetu zagotovimo zasebnost, lahko podprete tako, da nas spremljate na svojem najljubšem kanalu družabnih medijev ter delite našo vsebino s svojimi prijatelji in sodelavci. Skupaj bomo spremenili internet na bolje!︎\n︎\n* [LinkedIn]({linkedinLink})︎\n* [Facebook]({facebookLink})︎\n* [Mastodon]({mastodonLink})︎\n* [Twitter]({twitterLink})︎\n* [Reddit]({redditLink})︎\n* [Instagram]({instagramLink})︎\n* [YouTube]({youtubeLink})︎\n︎\nTuta je odprtokodna. [Izvorno kodo si lahko ogledate in pregledate tukaj]({githubLink}).",
 		"welcomeMailSubject_msg": "Varno, zeleno in brez oglasov!",
 		"welcome_label": "Dobrodošli!",

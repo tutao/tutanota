@@ -12,7 +12,7 @@ export default {
 		"other"
 	],
 	"created_at": "2015-02-18T09:07:31Z",
-	"updated_at": "2024-04-05T22:01:33Z",
+	"updated_at": "2024-04-11T08:48:47Z",
 	"source_locale": {
 		"id": "fcd7471b347c8e517663e194dcddf237",
 		"name": "en",
@@ -227,7 +227,6 @@ export default {
 		"changeAdminPassword_msg": "Nu ai dreptul să schimbi parolele altor administratori.",
 		"changeMailSettings_msg": "Poți modifica ulterior decizia ta în opțiunile e-mailului.",
 		"changePaidPlan_msg": "Vrei să-ți schimbi abonamentul acum?",
-		"changePasswordCode_msg": "Codul tău de verificare:",
 		"changePassword_label": "Schimbă parolă",
 		"changePermissions_msg": "Pentru a permite accesul, trebuie să modifici permisiunile pentru acest aparat.",
 		"changeSpellCheckLang_action": "Schimbă limba corectorului ortografic...",
@@ -1022,8 +1021,6 @@ export default {
 		"outdatedClientWarningMailBody_msg": "Salutări,<br>\nFolosești în acest moment o versiune veche de Tuta. Asistența pentru versiunea ta va fi întreruptă peste câteva zile.<br><br>\n\nActualizează programul la: {downloadLink}<br><br>\n\nDe asemenea, verifică dacă nu cumva folosești o versiune neactualizată a Tuta pe alt aparat. Sistemul va înceta să mai trimită acest e-mail după ce toate programele tale Tuta vor fi actualizate.<br><br>\n\nMulțumim!<br><br>\n\nEchipa Tuta",
 		"outdatedClientWarningMailSubject_msg": "Actualizează Tuta",
 		"outdatedClient_msg": "Actualizează Tuta. Versiunea instalată este prea veche și nu mai este acceptată.",
-		"outlookInvoiceMailBodyAutomatic_msg": "atașat acestui email există o nouă factură cu numărul {1} disponibilă pentru tine . Totalul va fi debitat automat. Poți vedea toate facturile tale în {2}",
-		"outlookInvoiceMailBodyOnAccount_msg": "atașat acestui e-mail găsești o nouă factură cu numărul {1}. Plata trebuie făcută în 7 zile de la data facturii. Îți poți vedea toate facturile în {2}.",
 		"outOfOfficeDefaultSubject_msg": "Nu sunt la birou",
 		"outOfOfficeDefault_msg": "Bună,\n<br>\n<br>mulțumesc pentru e-mail. Am ieșit din birou și mă întorc repede. În timpul acesta voi avea acces limitat la e-mailul meu.\n<br>\n<br>Cu respect",
 		"outOfOfficeEveryone_msg": "Tuturor",
@@ -1662,7 +1659,6 @@ export default {
 		"weekStart_label": "Începutul săptămânii",
 		"weeks_label": "săptămâni",
 		"week_label": "Săptămână",
-		"welcomeMailBodyTweetText_msg": "Tocmai mi-am creat cutia poștală Tuta. Acum îmi protejez toate e-mailurile de ochii indiscreți! Și tu te poți înscrie:",
 		"welcomeMailBody_markdown": "**Fii gata pentru o experiență de e-mail sigură, ecologică și fără reclame cum nu există alta! Cifrarea de la un capăt la altul asigură protecția în orice moment.**︎\n\n La Tuta, acordăm prioritate confidențialității și siguranței. Cu o cifrare puternică, cutia ta poștală este protejată de ochii curioșilor, garantând că informațiile tale confidențiale rămân în siguranță.︎\n\n Tuta permite o tranziție ușoară de la alți furnizori de e-mail. Aplicațiile noastre intuitive pentru Android și iOS, împreună cu programele pentru Windows, macOS și GNU/Linux, îți permit accesarea cutiei poștale și a calendarului sigur de pe orice aparat, chiar și atunci când nu ești conectat la internet. Ia-ți rămas bun de la limitări și salută accesibilitatea fără cusur.︎\n\n Dacă încă mai ai o adresă de e-mail veche, nu-ți face griji. Avem noi grijă de tine. Configurează redirecționarea automată în vechiul tău cont și transferă treptat toate e-mailurile și contactele tale la Tuta. Consultă ghidul nostru [aici]({faqForwardLink}) pentru a afla cum îți poți redirecționa cu ușurință e-mailurile către Tuta.︎\n\n După ce ai transferat toate conversațiile importante în Tuta, poți dezactiva redirecționarea automată. În acest fel, vei avea o cutie poștală frumoasă, curată și fără e-mailuri nedorite!\n\n**Tuta urmează 4 principii pentru a oferi o alternativă prietenoasă**\n\n1. Tuta nu te urmărește.\n2. Tuta nu poate explora datele tale.\n3. Tuta cifrează în întregime cutia poștală, contactele și calendarul.\n4. Tuta integrează confidențialitatea la proiectare.\n\n Te-ai îndrăgostit deja de Tuta? Ne-ar plăcea să auzim părerile tale! **Te rugăm să iei un moment pentru a evalua aplicațiile noastre Android și iOS** și să ne spui cum ne descurcăm.︎\n\n Cu Tuta, intimitatea se îmbină cu confortul. Vino alături de noi de partea cifrată și experimentează e-mailul ca niciodată înainte.︎\n\n Suntem bucuroși să-ți urăm bun venit în cutia ta poștală cifrată!︎\n Echipa Tuta\n\n--\n\n**Toți au dreptul la intimitate.**\n\n Ne poți susține, urmărindu-ne pe canalul preferat de social media și împărtășind conținutul nostru cu prietenii și colegii tăi. Împreună vom schimba Internetul în mai bine!\n\n* [LinkedIn]({linkedinLink})\n* [Facebook]({facebookLink})\n* [Mastodon]({mastodonLink})\n* [Twitter]({twitterLink})\n* [Reddit]({redditLink})\n* [Instagram]({instagramLink})\n* [YouTube]({youtubeLink})\n\nTuta are cod sursă public. [Poți verifica și analiza codul sursă aici]({githubLink}).",
 		"welcomeMailSubject_msg": "Sigur, ecologic și fără reclame!",
 		"welcome_label": "Bun venit!",

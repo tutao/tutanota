@@ -11,7 +11,7 @@ export default {
 		"other"
 	],
 	"created_at": "2015-01-13T20:10:13Z",
-	"updated_at": "2024-04-10T10:18:57Z",
+	"updated_at": "2024-04-11T08:48:47Z",
 	"source_locale": null,
 	"fallback_locale": null,
 	"keys": {
@@ -222,7 +222,6 @@ export default {
 		"changeAdminPassword_msg": "Sorry, you are not allowed to change other admin's passwords.",
 		"changeMailSettings_msg": "You may later change your decision in the email settings.",
 		"changePaidPlan_msg": "Would you like to switch your plan now?",
-		"changePasswordCode_msg": "Your verification code: ",
 		"changePassword_label": "Change password",
 		"changePermissions_msg": "To grant access you have to modify the permissions for this device.",
 		"changeSpellCheckLang_action": "Change spellcheck language…",
@@ -1019,8 +1018,6 @@ export default {
 		"outdatedClientWarningMailBody_msg": "Hi there,<br>\nYou are currently using an outdated Tuta version. Support for your version will be discontinued within the next few days.<br><br>\n\nPlease update your client at: {downloadLink}<br><br>\n\nPlease also check whether you are using an outdated version of Tuta on a different device. The system will stop sending this email once all your Tuta clients are up to date.<br><br>\n\nThanks!<br><br>\n\nYour Tuta Team",
 		"outdatedClientWarningMailSubject_msg": "Please update Tuta",
 		"outdatedClient_msg": "Please update Tuta. The currently installed version is too old and not supported any longer.",
-		"outlookInvoiceMailBodyAutomatic_msg": "there is a new invoice with the number {1} for you available attached to this email. The grand total will automatically be debited. You can also see all your invoices in {2}",
-		"outlookInvoiceMailBodyOnAccount_msg": "there is a new invoice with the number {1} for you available attached to this email. The payment is due 7 days after the invoice date. You can also see all your invoices in {2}.",
 		"outOfOfficeDefaultSubject_msg": "I am out of the office",
 		"outOfOfficeDefault_msg": "Hello,\n<br>\n<br>thanks for your email. I am out of the office and will be back soon. Until then I will have limited access to my email.\n<br>\n<br>Kind Regards",
 		"outOfOfficeEveryone_msg": "To everyone",
@@ -1660,7 +1657,6 @@ export default {
 		"weekStart_label": "Week start",
 		"weeks_label": "weeks",
 		"week_label": "Week",
-		"welcomeMailBodyTweetText_msg": "Just set up my Tuta mailbox. Now I protect my emails from prying eyes! You can join, too: ",
 		"welcomeMailBody_markdown": "**Get ready for a secure, green, and ad-free email experience like no other! End-to-end encryption keeps you safe at all times.**\n\nAt Tuta, we prioritize your privacy and security. With strong encryption, your mailbox is protected from prying eyes, ensuring your confidential information stays safe.\n\nBut that's not all. We've made switching from other email services a breeze. Our intuitive apps for Android & iOS, along with desktop apps for Windows, macOS, and Linux, allow you to access your secure mailbox and calendar on any device, even when you're offline. Say goodbye to limitations and hello to seamless accessibility.\n\nIf you're still holding onto an old email address, we've got you covered. Set up auto-forward in your old account and gradually transition all your emails and contacts to Tuta. Check out our guide [here]({faqForwardLink}) to learn how you can easily forward your emails to Tuta.\n\nOnce you've successfully transferred all your important conversations, you can deactivate auto-forward. Sit back and enjoy a nice, clean, and spam-free mailbox that brings you peace of mind.\n\n**At Tuta, we follow four fundamental principles to provide a privacy-friendly alternative to Big Tech:**\n\n1.    We don't track you.\n2.    We don't scan your data.\n3.    We encrypt your entire mailbox, contacts, and calendars.\n4.    We prioritize privacy by design.\n\nAre you already falling in love with Tuta? **Please take a moment and leave your feedback on social media** (see links below). We'd love to hear how we're doing!\n\nWith Tuta, privacy meets convenience. Join us on the encrypted side and experience email like never before.\n\nWe're happy to welcome you to your encrypted mailbox!\nYour Tuta Team\n\n--\n\n**Everyone deserves privacy.**\n\nYou can support our mission of bringing privacy to the world by following us on your favorite social media channel and by sharing our content with your friends and colleagues. Together we will change the Internet for the better!\n\n* [LinkedIn]({linkedinLink})\n* [Facebook]({facebookLink})\n* [Mastodon]({mastodonLink})\n* [Twitter]({twitterLink})\n* [Reddit]({redditLink})\n* [Instagram]({instagramLink})\n* [YouTube]({youtubeLink})\n\nTuta is open source. [You can inspect and review the source code here]({githubLink}).",
 		"welcomeMailSubject_msg": "Secure, green & ad-free!",
 		"welcome_label": "Welcome!",

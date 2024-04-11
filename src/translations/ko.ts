@@ -10,7 +10,7 @@ export default {
 		"other"
 	],
 	"created_at": "2015-03-13T09:48:48Z",
-	"updated_at": "2024-04-09T14:52:32Z",
+	"updated_at": "2024-04-11T08:48:47Z",
 	"source_locale": null,
 	"fallback_locale": null,
 	"keys": {
@@ -185,7 +185,6 @@ export default {
 		"certificateTypeManual_label": "수동",
 		"changeAdminPassword_msg": "죄송하지만 다른 관리자의 비밀번호는 변경할 수 없습니다.",
 		"changeMailSettings_msg": "나중에 이메일 설정에서 결정사항을 변경할 수 있습니다.",
-		"changePasswordCode_msg": "귀하의 인증 코드:",
 		"changePassword_label": "비밀번호 변경하기",
 		"changePermissions_msg": "액세스 권한을 부여하려면 이 디바이스에 대한 권한을 수정해야 합니다.",
 		"changeSpellCheckLang_action": "맞춤법 검사 언어 변경하기",
@@ -915,8 +914,6 @@ export default {
 		"outdatedClientWarningMailBody_msg": "안녕하세요,<br>\n현재 오래된 버전의 투타노타를 사용 중입니다. 해당 버전에 대한 지원이 며칠 내로 중단될 예정입니다.<br><br>\n\n다음 주소를 통해 클라이언트를 업데이트하세요: {downloadLink}<br><br>\n\n또한 다른 기기에서 오래된 버전의 Tuta를 사용하고 있는지 확인해 주세요. 모든 Tuta 클라이언트가 최신 버전으로 업데이트되면 시스템에서 이 이메일 전송을 중단합니다.<br><br>\n\n감사합니다!<br><br>\n\nTuta 팀",
 		"outdatedClientWarningMailSubject_msg": "Tuta를 업데이트해주세요",
 		"outdatedClient_msg": "Tuta를 업데이트 해주세요. 현재 설치된 버전은 너무 오래되었으며 더 이상 지원되지 않습니다.",
-		"outlookInvoiceMailBodyAutomatic_msg": "이 이메일에 {1} 번호의 새 청구서가 첨부되어 있습니다. 총 금액이 자동으로 인출됩니다. {2}에서 모든 청구서를 확인할 수도 있습니다.",
-		"outlookInvoiceMailBodyOnAccount_msg": "이 이메일에 {1} 번호의 새 청구서가 첨부되어 있습니다. 결제 기한은 청구서 날짜로부터 7일 후입니다. {2}에서 모든 청구서를 확인할 수도 있습니다.",
 		"outOfOfficeDefaultSubject_msg": "부재중입니다",
 		"outOfOfficeDefault_msg": "안녕하세요,\n<br>\n<br>이메일 보내주셔서 감사합니다. 부재 중이며 곧 돌아올 예정입니다. 그때까지는 이메일에 제한적으로 액세스할 수 있습니다.\n<br>\n<br>양해 부탁드립니다.",
 		"outOfOfficeEveryone_msg": "모두에게",
@@ -1496,7 +1493,6 @@ export default {
 		"weekStart_label": "시작 요일",
 		"weeks_label": "주",
 		"week_label": "주",
-		"welcomeMailBodyTweetText_msg": "방금 제 Tuta 이메일 계정을 열었습니다. 이제 제 이메일들은 엿보는 눈으로부터 보호되고 있습니다! 당신도 가입하실 수 있습니다:",
 		"welcomeMailBody_markdown": "강한 암호화로 보호되는 안전하고 광고 없는 Tuta 메일함에 오신 것을 환영합니다. Tuta는 다른 이메일 서비스로부터 쉽게 전환할 수 있습니다. 직관적인 웹 클라이언트, Android & iOS용 앱, 또한 Windows, macOS와 Linux를 위한 데스크톱 앱은 어떤 기기에서든지 보안 메일함에 접속할 수 있도록 해줍니다. 전문가라면 Tuta의 독일에 위치한 보안 서버를 통해 종단간 암호화 비즈니스 이메일을 보냄으로써 시간과 돈을 아낄 수 있습니다: 비즈니스를 위해서 Tuta를 맞춤 변경하고, 소유하고 있는 웹사이트에서 로그인하도록 하며, 웹사이트에 암호화된 연락 양식을 추가함으로써 고객들이 쉽게 기밀을 전달할 수있습니다. [Tuta의 종합적인 비즈니스 기능에 대해서 더 알아보세요]({businessLink})/ **Tuta는 프라이버시 친화 대안을 제공하기 위해서 4가지 원칙을 준수합니다** 1. Tuta는 당신을 추적하지 않습니다. 2. Tuta는 당신의 데이터를 스캔하지 않습니다. 3. Tuta는 메일함, 주소록 & 캘린더 전체를 암호화합니다. 4. Tuta는 설계부터 프라이버시를 포함합니다. [당신과 당신의 프라이버시권을 존중하는 오픈 소스 이메일 서비스]({blogOpenSourceLink})를 추천해주세요. 우리는 모두가 무료이며 공개되지 않는 메일함을 누릴 권리가 있다고 믿습니다. 좋아하는 소셜미디어 채널에서 저희를 팔로우하거나 친구들과 동료들에게 우리의 컨텐츠를 공유함으로써 저희를 지원해주실 수 있습니다. 함께라면 우리는 인터넷을 더 좋게 만들 수 있습니다: * [LinkedIn]({linkedinLink}) * [Facebook]({facebookLink}) * [마스토돈]({mastodonLink}) * [트위터]({twitterLink}) * [Reddit]({redditLink}) * [Instagram]({instagramLink}) 정말 감사합니다,\\ 당신의 Tuta 팀으로부터 Tuta는 오픈 소스입니다. [여기에서 소스 코드를 검사하고 리뷰할 수 있습니다]({githubLink}). ",
 		"welcomeMailSubject_msg": "안전하고 친환경적이며 광고 없는 메일함!",
 		"whatIsPhishing_msg": "피싱이 무엇인가요?",

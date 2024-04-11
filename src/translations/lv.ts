@@ -11,7 +11,7 @@ export default {
 		"other"
 	],
 	"created_at": "2016-03-09T14:04:39Z",
-	"updated_at": "2024-04-05T10:39:27Z",
+	"updated_at": "2024-04-11T08:48:47Z",
 	"source_locale": null,
 	"fallback_locale": null,
 	"keys": {
@@ -153,7 +153,6 @@ export default {
 		"certificateTypeManual_label": "Manuāli",
 		"changeAdminPassword_msg": "Atvainojiet, jūs nevarat mainīt citu administratoru paroles.",
 		"changeMailSettings_msg": "Vēlāk savu lēmumu varēsiet mainīt e-pasta iestatījumos.",
-		"changePasswordCode_msg": "Jūsu verifikācijas kods:",
 		"changePassword_label": "Mainīt paroli",
 		"changePermissions_msg": "Lai piešķirtu piekļuvi, jums ir jāizmaina šīs ierīces atļaujas.",
 		"changeSpellCheckLang_action": "Nomainīt pareizrakstības valodu...",
@@ -720,8 +719,6 @@ export default {
 		"other_label": "Citi",
 		"outdatedClientWarningMailSubject_msg": "Lūgums atjaunot Tuta",
 		"outdatedClient_msg": "Lūdzu, atjaunojiet Tuta. Pašreizējā versija ir novecojusi un vairs netiek atbalstīta.",
-		"outlookInvoiceMailBodyAutomatic_msg": "šai e-pasta ziņai ir pievienots jauns rēķins ar #{1}. Kopējā summa tiks automātiski noņemta (debitēta). Visus savus rēķinus varat skatīt arī šeit: {2}",
-		"outlookInvoiceMailBodyOnAccount_msg": "jums ienācies jauns rēķins # {1}, kurš ir pievienots šai e-vēstulei.  Maksājums jāveic 7 dienu laikā no rēķina datuma. Jūs varat apskatīt savus rēķinus \"Iestatījumi\" -> \"Rēķini\" {1}.",
 		"outOfOfficeDefaultSubject_msg": "Esmu ārpus biroja",
 		"outOfOfficeExternal_msg": "Ārpus jūsu organizācijas",
 		"outOfOfficeMessageInvalid_msg": "Temats un/vai ziņa ir nederīga.\n\"Tukšas\" tēmas vai ziņojumi nav atļauti.\nMaksimālais temata izmērs: 128 rakstzīmes.\nMaksimālais ziņas izmērs: 20KB.",
@@ -1101,7 +1098,6 @@ export default {
 		"wantToSendReport_msg": "Kaut kas negaidīti nogāja greizi. Vai vēlaties nosūtīt ķibeles ziņojumu? Varat pievienot arī aprakstu, lai palīdzētu mums novērst šo kļūdu.",
 		"weekNumber_label": "Nedēļa {week}",
 		"weekStart_label": "Nedēļa sākas ar",
-		"welcomeMailBodyTweetText_msg": "Izveidojiet manu Tuta pasta kastīti. Tagad es pasargāšu savas vēstules no kārām acīm! Jūs arī varat pievienoties:",
 		"welcomeMailBody_markdown": "Esiet sveicināti savā drošajā un reklāmbrīvajā Tuta pastkastē, kura aizsargāta ar drošu šifrēšanu. Tuta īsteno pāriešanu no citiem e-pasta servisiem vienkārši. Mūsu intuitīvais tīmekļa klients, lietotnes priekš Android un iOS, kā arī darbvirsmas lietotnes priekš Linux, MacOS un Windows ļauj jums piekļūt jūsu drošajai pastkastītei no jebkuras ierīces. Kā profesionālis, jūs varat ietaupīt laiku un naudu, visus uzņēmuma e-pastus no gala līdz galam šifrētus mitinot Tutas drošajos serveros, kuri bāzēti Vācijā: ievietojiet Tuta savas uzņēmējdarbības \"baltajā sarakstā\", ievietojiet savā tīmekļvietnē uz šī pakalpojuma balstītu šifrētu kontaktformu, lai klienti var ar jums sazināties konfidenciāli. [Uzzini vairāk par Tutas plašajām iespējām uzņēmumiem]({businessLink}). **Tuta seko 4 principiem lai nodrošinātu alternatīvu, kas privātumam draudzīga ** 1. Tuta jūs neizseko. 2. Tuta nevar skenēt/parsēt jūsu datus. 3. Tuta šifrē visu jūsu pastkasti, kontaktus & kalendāru. 4. Tuta iestrādājusi privātumu pakalpojuma arhitektūrā (by design). Iesaki Tuta, [brīvas un atvērta pirmkoda programmatūras e-pasta servisu, kurš respektē jūs un jūsu tiesības uz privātumu]({blogOpenSourceLink}). Mēs uzskatām, ka ikviens ir pelnījis brīvu, privātu un bezmaksas pastkasti. Jūs varat mūs atbalstīt, sekojot mums jūsu iecienītā sociālā mēdija kanālā un daloties ar mūsu saturu ar saviem draugiem un kolēģiem. Kopā mēs varam padarīt internetu labāku: * [Mastodon]({mastodonLink}) * [Reddit]({redditLink}) * [Facebook]({facebookLink}) * [Čiveklis/Twiteris]({twitterLink}) * [Instagram]({instagramLink}) * [LinkedIn]({linkedinLink}) Liels paldies jums,\\ jūsu Tuta komanda Tuta ir brīva / atvērta pirmkoda programmatūra. [Šeit jūs varat caurskatīt un pārbaudīt kodu]({githubLink}).",
 		"welcomeMailSubject_msg": "Jūtieties kā mājās: jūsu dati ir drošībā.",
 		"whatIsPhishing_msg": "Kas ir pikšķerēšana?",

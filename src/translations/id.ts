@@ -10,7 +10,7 @@ export default {
 		"other"
 	],
 	"created_at": "2015-04-07T07:56:36Z",
-	"updated_at": "2024-04-05T10:39:27Z",
+	"updated_at": "2024-04-11T08:48:47Z",
 	"source_locale": null,
 	"fallback_locale": null,
 	"keys": {
@@ -167,7 +167,6 @@ export default {
 		"certificateTypeManual_label": "Manual",
 		"changeAdminPassword_msg": "Maaf, Anda tidak diizinkan untuk mengganti kata sandi admin lain.",
 		"changeMailSettings_msg": "Anda dapat mengubah keputusan di lain waktu di pengaturan email.",
-		"changePasswordCode_msg": "Kode verifikasi Anda:",
 		"changePassword_label": "Ubah sandi",
 		"changePermissions_msg": "Untuk memberikan akses Anda perlu memodifikasi perizinan bagi perangkat ini.",
 		"changeSpellCheckLang_action": "Ubah bahasa untuk periksa ejaan",
@@ -824,8 +823,6 @@ export default {
 		"outdatedClientWarningMailBody_msg": "Halo,<br>\nAnda saat ini menggunakan versi Tuta yang sudah tertinggal. Dukungan untuk versi yang Anda gunakan akan dihentikan dalam beberapa hari ke depan.<br><br>\n\nMohon perbarui aplikasi klien Anda di: {downloadLink}<br><br>\n\nTerima kasih!<br><br>\n\nTim Tuta",
 		"outdatedClientWarningMailSubject_msg": "Mohon perbarui Tuta",
 		"outdatedClient_msg": "Mohon mutakhirkan Tuta. Versi yang terpasang saat ini sudah terlalu lama dan tidak didukung lagi.",
-		"outlookInvoiceMailBodyAutomatic_msg": "Terdapat tagihan baru dengan nomor _ bagi Anda yang terlampir di email ini. Nominal total akhir akan didebit secara automatis. Anda juga dapat melihat semua tagihan Anda di _.",
-		"outlookInvoiceMailBodyOnAccount_msg": "Terdapat tagihan baru dengan nomor {1} bagi Anda yang terlampir dalam surel ini. Pembayaran jatuh tempo 7 hari setelah tanggal tagihan. Anda dapat melihat semua tagihan Anda di {2}.",
 		"outOfOfficeDefaultSubject_msg": "Saya sedang di luar kantor",
 		"outOfOfficeDefault_msg": "Halo,\n<br>\n<br>Terimakasih atas surel Anda. Saya sedang berada di luar kantor dan akan kembali dalam waktu dekat. Hingga saat itu saya memiliki akses terbatas ke surel saya.\n<br>\n<br>Salam",
 		"outOfOfficeEveryone_msg": "Kepada semuanya",
@@ -1311,7 +1308,6 @@ export default {
 		"weekStart_label": "Permulaan minggu",
 		"weeks_label": "Pekan",
 		"week_label": "Pekan",
-		"welcomeMailBodyTweetText_msg": "Baru saja membuat akun surel Tuta. Sekarang surel saya terlindungi dari para mata-mata! Anda juga dapat bergabung:",
 		"welcomeMailBody_markdown": "Selamat datang di layanan email Tuta yang aman, hijau, dan bebas iklan, terlindungi dengan enkripsi yang kuat. Tuta menjadikan peralihan dari layanan email lainnya menjadi mudah. Aplikasi kami yang intuitif untuk Android & IOS, serta aplikasi desktop di Windows, Mac OS, dan Linux memudahkan Anda untuk mengakses email dan kalender terproteksi Anda pada perangkat apapun - bahkan saat Anda sedang luring. Jika Anda masih memiliki alamat email lama, kami menyarankan Anda untuk mengatur penerusan otomatis (auto-forward) di alamat lama Anda dan perlahan memindahkan semua email dan kontak ke Tuta. Cek [di sini]({faqForwardLink}) untuk mempelajari bagaimana cara meneruskan email Anda ke Tuta. Setelah Anda memindahkan semua pesan penting ke Tuta, Anda dapat kembali menonaktifkan penerusan otomatis. Dengan demikian Anda akan memiliki email yang baik, bersih, dan bebas spam! **Tuta mengikuti 4 prinsip untuk menawarkan alternatif ramah privasi dari Big Tech.** 1. Tuta tidak melacak Anda. 2. Tuta tidak bisa memindai data Anda. 3. Tuta mengenkripsi seluruh email, kontak, dan kalender Anda.favorite 4. Tuta menerapkan privasi sejak awal. **Apa Anda sudah mencintai Tuta? Mohon beri bintang aplikasi Android & iOS kami!** Selamat datang di sisi terenkripsi!\\ Tim Tuta -- **Semua orang berhak atas privasi.** Anda dapat mendukung misi kami membawa privasi ke seluruh dunia dengan mengikuti kami di kanal media sosial favorit Anda dan dengan membagikan konten kami kepada teman dan rekan Anda. Bersama kita akan mengubah Internet menjadi lebih baik! *[LinkedIn]({linkedinLink}) *[Facebook]({facebookLink}) *[Mastodon]({mastodonLink}) *[Twitter]({twitterLink}) *[Reddit]({redditLink}) * [Instagram]({instagramLink}) * [YouTube]({youtubeLink}) Tuta bersifat sumber terbuka. [Anda dapat mengamati dan meninjau kode sumbernya di sini]({githubLink}).",
 		"welcomeMailSubject_msg": "Aman, hijau & bebas iklan!",
 		"when_label": "Kapan",

@@ -11,7 +11,7 @@ export default {
 		"other"
 	],
 	"created_at": "2015-01-13T20:40:31Z",
-	"updated_at": "2024-04-10T10:18:57Z",
+	"updated_at": "2024-04-11T08:48:47Z",
 	"source_locale": {
 		"id": "fcd7471b347c8e517663e194dcddf237",
 		"name": "en",
@@ -226,7 +226,6 @@ export default {
 		"changeAdminPassword_msg": "Das Passwort eines Admins kann nicht zurückgesetzt werden.",
 		"changeMailSettings_msg": "Du kannst deine Entscheidung in den E-Mail-Einstellungen ändern.",
 		"changePaidPlan_msg": "Möchtest du dein Abonnement jetzt wechseln?",
-		"changePasswordCode_msg": "Bestätigungscode: ",
 		"changePassword_label": "Passwort ändern",
 		"changePermissions_msg": "Um die Berechtigung zu erteilen, müssen die Einstellungen für dieses Gerät geändert werden.",
 		"changeSpellCheckLang_action": "Sprache wechseln…",
@@ -1023,8 +1022,6 @@ export default {
 		"outdatedClientWarningMailBody_msg": "Hallo,<br>\nDu benutzt zur Zeit eine veraltete Tuta-Version. Der Support für diese Version wird in den nächsten Tagen eingestellt. <br><br>\n\nBitte aktualisiere den Client unter: {downloadLink}<br><br>\n\nBitte prüfe ggf. auch, ob du eine veraltete Version von Tuta auf einem anderen Gerät verwendest. Das System wird aufhören, diese E-Mail zu senden, sobald alle deine Tuta-Clients auf dem neuesten Stand sind.<br><br>\n\nDanke!<br><br>\n\nDein Tuta-Team",
 		"outdatedClientWarningMailSubject_msg": "Bitte aktualisiere Tuta",
 		"outdatedClient_msg": "Bitte aktualisiere Tuta. Die installierte Version ist zu alt und wird nicht mehr unterstützt.",
-		"outlookInvoiceMailBodyAutomatic_msg": "im Anhang dieser E-Mail finden Sie Ihre neue Rechnung für Tuta für Outlook mit der Nummer {1}. Der Rechnungsbetrag wird automatisch abgebucht. Alle Rechnungen lassen sich auch unter {2} einsehen.",
-		"outlookInvoiceMailBodyOnAccount_msg": "im Anhang dieser E-Mail finden Sie Ihre neue Rechnung für Tuta für Outlook mit der Nummer {1}. Der Rechnungsbetrag ist 7 Tage nach Rechnungsdatum fällig. Alle Rechnungen lassen sich auch unter {2} einsehen.",
 		"outOfOfficeDefaultSubject_msg": "Ich bin nicht im Büro",
 		"outOfOfficeDefault_msg": "Hallo,\n<br>\n<br>danke für Ihre E-Mail. Ich bin derzeit nicht im Büro und werde bald wieder erreichbar sein. Bis dahin habe ich nur eingeschränkten Zugang zu meinen E-Mails.\n<br>\n<br>Mit freundlichen Grüßen",
 		"outOfOfficeEveryone_msg": "An alle",
@@ -1664,7 +1661,6 @@ export default {
 		"weekStart_label": "Wochenstart",
 		"weeks_label": "Wochen",
 		"week_label": "Woche",
-		"welcomeMailBodyTweetText_msg": "Habe mir gerade eine Tuta-Mailbox angelegt. So können meine Mails nicht mitgelesen werden. Mach mit: ",
 		"welcomeMailBody_markdown": "**Willkommen in deiner sicheren, grünen und werbefreien Tuta-Mailbox, geschützt durch starke Verschlüsselung.**\n\nBei Tuta stehen deine Privatsphäre und deine Sicherheit an erster Stelle. Mit einer starken Verschlüsselung ist deine Mailbox vor neugierigen Blicken geschützt, damit deine vertraulichen Informationen sicher bleiben.\n\nAber das ist noch nicht alles. Wir haben den Wechsel von anderen E-Mail-Diensten ganz einfach gemacht. Unsere intuitiven Apps für Android und iOS sowie Desktop-Apps für Windows, macOS und Linux ermöglichen dir den Zugriff auf dein sicheres Postfach und deinen Kalender von jedem Gerät aus, auch wenn du offline bist.\n\nWenn du noch eine alte E-Mail-Adresse besitzt, mach dir keine Gedanken. Wir haben die Lösung für dich: Richte einfach die automatische Weiterleitung in deinem alten E-Mail-Konto ein und stelle alle deine E-Mails und Kontakte nach und nach auf Tuta um. Wir haben den Prozess [hier]({faqForwardLink}) für dich erklärt, damit du ganz einfach alle deine E-Mails an Tuta weiterleiten kannst.\n\nSobald du alle deine wichtigen Konversationen zu Tuta übertragen hast, kannst du die automatische Weiterleitung wieder deaktivieren. Lehne dich zurück und genieße eine schöne, saubere und spamfreie Mailbox, die alle deine Daten schützt.\n\n**Wir bei Tuta folgen vier Grundprinzipien, um eine datenschutzfreundliche Alternative zu Big Tech zu bieten:**\n\n1.    Wir verfolgen dich nicht.\n2.    Wir scannen deine Daten nicht.\n3.    Wir verschlüsseln deine gesamte Mailbox, Kontakte und Kalender.\n4.    Deine Privatsphäre hat bei uns Priorität.\n\nHast du dich bereits in Tuta verliebt? **Bitte nimm dir einen Moment Zeit und lass uns auf Social Media wissen, wie dir Tuta gefällt (siehe Links unten).** \n\nMit Tuta trifft Privatsphäre auf Komfort: Erlebe E-Mail wie nie zuvor.\n\nWir freuen uns, dich in deinem verschlüsselten Postfach begrüßen zu dürfen!\nDein Tuta-Team\n\n--\n\n**Alle verdienen Privatsphäre.**\n\nDu kannst uns unterstützen, indem du uns auf unseren Social-Media-Kanälen folgst und unsere Beiträge mit deinem Bekanntenkreis teilst. Gemeinsam werden wir das Internet zum Besseren verändern!\n\n* [LinkedIn]({linkedinLink})\n* [Facebook]({facebookLink})\n* [Mastodon]({mastodonLink})\n* [Twitter]({twitterLink})\n* [Reddit]({redditLink})\n* [Instagram]({instagramLink})\n* [YouTube]({youtubeLink})\n\nTuta ist Open Source. [Du kannst den Code hier einsehen und analysieren]({githubLink}).",
 		"welcomeMailSubject_msg": "Sicher, grün und werbefrei!",
 		"welcome_label": "Willkommen!",

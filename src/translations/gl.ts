@@ -14,7 +14,7 @@ export default {
 		"other"
 	],
 	"created_at": "2016-04-11T12:51:55Z",
-	"updated_at": "2024-04-06T07:11:02Z",
+	"updated_at": "2024-04-11T08:48:47Z",
 	"source_locale": null,
 	"fallback_locale": null,
 	"keys": {
@@ -225,7 +225,6 @@ export default {
 		"changeAdminPassword_msg": "Lamentámolo, pero non pode cambiar o contrasinal de outros administradores.",
 		"changeMailSettings_msg": "Podes cambiar a túa decisión nos axustes para o correo.",
 		"changePaidPlan_msg": "Gustaríache cambiar agora de plan?",
-		"changePasswordCode_msg": "O seu código de verificación:",
 		"changePassword_label": "Cambiar contrasinal",
 		"changePermissions_msg": "Para permitir o acceso debes modificar os permisos para este dispositivo.",
 		"changeSpellCheckLang_action": "Cambiar idioma da corrección ortográfica...",
@@ -1020,8 +1019,6 @@ export default {
 		"outdatedClientWarningMailBody_msg": "Ola<br>\nestás a utilizar unha versión desactualizada de Tuta. O soporte da túa versión vai rematar nuns días.<br><br>\n\nPor favor, actualiza o cliente en: {downloadLink}<br><br>\n\nComproba tamén se estás a utilizar clientes antigos noutros dispositivos. O sistema deixará de enviar este email unha vez tódolos teus clientes estén actualizados.<br><br>\n\nGrazas!<br><br>\n\nO Equipo Tuta",
 		"outdatedClientWarningMailSubject_msg": "Por favor, actualiza Tuta",
 		"outdatedClient_msg": "Por favor, actualiza Tuta. A versión instalada actualmente é demasiado antiga e xa non está soportada.",
-		"outlookInvoiceMailBodyAutomatic_msg": "hai unha nova factura con número {1} anexa a este correo. A suma total será cargado en conta automáticamente. Podes ver as facturas en {2}",
-		"outlookInvoiceMailBodyOnAccount_msg": "hai unha nova factura con número {1} dispoñible anexa a este correo. O pagamento efectuarase 7 días despóis da data da factura. Podes ver todas as facturas en {2}.",
 		"outOfOfficeDefaultSubject_msg": "Non estou na oficina",
 		"outOfOfficeDefault_msg": "Ola,\n<br>\n<br>grazas polo teu email. Non estou na oficina, volverei pronto, pero ata ese momento teño acceso limitado ao meu email.\n<br>\n<br>Recibe un saúdo",
 		"outOfOfficeEveryone_msg": "A tódalas persoas",
@@ -1660,7 +1657,6 @@ export default {
 		"weekStart_label": "Inicio da semana",
 		"weeks_label": "semanas",
 		"week_label": "Semana",
-		"welcomeMailBodyTweetText_msg": "Xa teño o meu email Tuta. Agora protexo o correo de ollos chismosos! Podes unirte tamén:",
 		"welcomeMailBody_markdown": "**Prepárate para unha experiencia sen par cun correo electrónico seguro, verde e sen publicidade! A cifraxe de extremo-a-extremo protéxete en todo momento.**\n\nEn Tuta dámoslle prioridade á seguridade e á privacidade. Cunha cifraxe forte, a túa caixa de correo está fóra do alcance de ollos covizosos, asegurando que a túa información confidencial permanece segura.\n\nPero isto non é todo. Facilitámos o proceso para cambiar desde outros servizos de correo. Usando as nosas aplicacións para Android e iOS que son moi intuitivas, xunto coas aplicacións de escritorio para Windows, iOS e Linux podes acceder ao teu correo seguro e calendario desde calquera dispositivo, incluso se non tes conexión á rede. Despídete das limitacións e saúda á accesiblidade.\n\nSe aínda dependes dun antigo enderezo de correo, tamén che axudamos. Configura un reenvío automático na túa antiga conta e vai mudando aos poucos todos os correos e contactos a Tuta. [Aquí]({faqForwardLink}) tes a nosa guía para saber como podes reenviar facilmente os teus correos a Tuta.\n\nUnha vez traspases correctamente todas as túas conversas importantes, podes desactivar o reenvío. Reláxate e desfruta tranquilidade dun correo electrónico bonito, limpo e sen spam. \n\n **En Tuta, seguimos catro principios básico para proporcionarche unha alternativa ás Big Tech respetuosa coa privacidade:**\n \n 1.    Non te rastrexamos.\n 2.    Non examinamos os teus datos.\n 3.    Ciframos completamente a túa caixa de correo, contactos e calendarios.\n 4.    Por deseño, damos prioridade á privacidade.\n \n Xa te namoraches de Tuta? Agradaríanos coñecer a túa opinión! **Por favor, adica un momento a valorar as nosas Apps Android e iOS** e déixanos saber que tal o estamos a facer.\n \n En Tuta, privacidade e conveniencia danse a man. Únete a nós no lado cifrado e experimenta un correo electrónico como non tes coñecido.\n \n Alégranos darche a benvida á túa caixa de correo cifrada!\n O Equipo Tuta\n \n --\n \n **Todas as persoas merecen privacidade**  \n\nPodes axudar á nosa misión de traer a privacidade a este mundo seguíndonos na túa rede social favorita e compartindo os nosos contidos coas túas amizades e colegas. Cun traballo común faremos un Internet mellor!\n\n* [LinkedIn]({linkedinLink})\n* [Facebook]({facebookLink})\n* [Mastodon]({mastodonLink})\n* [Twitter]({twitterLink})\n* [Reddit]({redditLink})\n* [Instagram]({instagramLink})\n* [YouTube]({youtubeLink})\n\nTuta é código aberto. [Aquí podes ler e revisar o código fonte]({githubLink}).",
 		"welcomeMailSubject_msg": "Seguro, verde e sen publicidade!",
 		"welcome_label": "Ben vida!",

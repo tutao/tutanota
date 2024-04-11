@@ -11,7 +11,7 @@ export default {
 		"other"
 	],
 	"created_at": "2015-05-11T07:50:49Z",
-	"updated_at": "2023-11-08T16:00:16Z",
+	"updated_at": "2024-04-11T08:48:47Z",
 	"source_locale": null,
 	"fallback_locale": null,
 	"keys": {
@@ -100,7 +100,6 @@ export default {
 		"certificateError_msg": "Sertifikaadi ketil või privaatvõtmel on vale vorming või need ei vasta Teie domeenile.",
 		"certificateStateProcessing_label": "Töötlemine",
 		"certificateTypeAutomatic_label": "Automaatne (Let's Encrypt)",
-		"changePasswordCode_msg": "Teie kinnituskood:",
 		"changePassword_label": "Muuda salasõna",
 		"changeTimeFrame_msg": "Minge Premiumiks ja muutke otsinguperioodi!",
 		"choosePhotos_action": "Pildid",
@@ -683,7 +682,6 @@ export default {
 		"validInputFormat_msg": "Vorming korras.",
 		"view_label": "Vaade",
 		"wantToSendReport_msg": "Midagi ootamatut läks valesti. Kas soovite saata veateadet? Võite lisada sõnumi, et aidata meil seda viga parandada.",
-		"welcomeMailBodyTweetText_msg": "Just lõin oma Tuta konto. Nüüd kaitsen ma oma e-kirju uudishimulike eest! Võid samuti liituda:",
 		"welcomeMailSubject_msg": "Tunne end kui kodus: Teie andmed on turvalises kohas.",
 		"whitelabelDomainExisting_msg": "\"Valge sildi\" domeen on ikka veel alles. Palun eemaldage see domeen.",
 		"whitelabelDomainLinkInfo_msg": "Kui tellid \"valge sildi\" täienduse, saad aktiveerida Tuta sisselogimise oma domeenil (alamdomeenil), muuta Tuta välimust vastavalt vajadustele (nt ettevõtte välimuseks) ning luua oma klientidele kontakteerumisankeete.\nPalun vaata",

@@ -11,7 +11,7 @@ export default {
 		"other"
 	],
 	"created_at": "2015-04-10T11:48:14Z",
-	"updated_at": "2024-04-09T04:30:03Z",
+	"updated_at": "2024-04-11T08:48:47Z",
 	"source_locale": null,
 	"fallback_locale": null,
 	"keys": {
@@ -220,7 +220,6 @@ export default {
 		"changeAdminPassword_msg": "Beklager, du får ikke endre andre administratorers passord.",
 		"changeMailSettings_msg": "Du kan endre valget senere i e-postinnstillingene.",
 		"changePaidPlan_msg": "Vil du bytte plan nå?",
-		"changePasswordCode_msg": "Bekreftelseskoden din:",
 		"changePassword_label": "Endre passord",
 		"changePermissions_msg": "For å gi adgang må du endre tillatelsene for denne enheten.",
 		"changeSpellCheckLang_action": "Endre språket for stavekontroll...",
@@ -1015,8 +1014,6 @@ export default {
 		"outdatedClientWarningMailBody_msg": "Heisann,<br>\nDu bruker for øyeblikket en utdatert versjon av Tuta. Støtte for din versjon vil bli avviklet i løpet av de neste dagene.<br><br>\n\nVennligst oppdater din klient på: {downloadLink}<br><br>\n\nSjekk også om du bruker en utdatert versjon av Tuta på en annen enhet. Vi vil slutte å sende denne e-posten når alle dine Tuta-klienter er oppdatert.<br><br>\n\nTakk!<br><br>\n\nMvh Tuta-teamet",
 		"outdatedClientWarningMailSubject_msg": "Oppdater Tuta",
 		"outdatedClient_msg": "Oppdater Tuta. Den installerte versjonen er utdatert og støttes ikke lenger.",
-		"outlookInvoiceMailBodyAutomatic_msg": "det er en ny faktura med nummer {1} for deg vedlagt denne mailen. Det totale beløpet vil automatisk bli belastet. Du kan også se alle dine fakturer i {2}",
-		"outlookInvoiceMailBodyOnAccount_msg": "det er en ny faktura med nummer {1} tilgjengelig til deg vedlagt denne e-posten. Betalingen forfaller 7 dager etter datoen på fakturaen. Du også se fakturaene i {2}.",
 		"outOfOfficeDefaultSubject_msg": "Jeg er ikke på kontoret",
 		"outOfOfficeDefault_msg": "Hallo,\n<br>\n<br>takk for e-posten din. Jeg er borte fra kontoret og kommer snart tilbake. Inntil da har jeg begrenset tilgang til e-posten min.\n<br>\n<br>Vennlig hilsen",
 		"outOfOfficeEveryone_msg": "Til alle sammen",
@@ -1655,7 +1652,6 @@ export default {
 		"weekStart_label": "Ukestart",
 		"weeks_label": "uker",
 		"week_label": "Uke",
-		"welcomeMailBodyTweetText_msg": "Har akkurat opprettet min Tuta konto. Nå kan jeg beskytte e-posten fra nysgjerrige øyne! Bli med du også:",
 		"welcomeMailBody_markdown": "**Velkommen til din sikre, miljøvennlige og reklamefrie Tuta-postkasse, beskyttet med sterk kryptering fra ende til ende.**\n\nHos Tuta er sikkerhet og privatliv en prioritet. Med sterk kryptering er innboksen din sikret mot ufrivillig gjennomlesing og sørger for konfidensialitet for all din kommunikasjon.\n\nMen det er langt fra alt. Vi har gjort det enkelt å bytte fra andre e-posttjenester: Våre intuitive apper for Android og iOS, så vel som skrivebordsprogrammer for Windows, macOS og Linux gir deg tilgang til den sikre postkassen og kalenderen din på enhver enhet - selv om du ikke er tilkoblet nettet. Vink farvel din begrensninger og ønsk velkommen sømløs tilgang.\n\nHvis du fortsatt har en eldre e-postaddresse anbefaler vi å sette opp videresending og gradvis flytte e-postmeldinger og kontakter til Tuta. Sjekk vår [veiledning]({faqForwardLink}) for å lære hvordan du kan videresende e-post til Tuta.\n\nNår alle viktige samtaler har blitt overført til Tuta kan du deaktivere videresendingen. På denne måten vil du ha en ren og søppelpost-fri postkasse!\n\n** Tuta følger fire prinsipper for å tilby et personvernvennlig alternativ til Big Tech.**\n\n1. Tuta sporer deg ikke.\n2. Tuta går ikke gjennom dine data.\n3. Tuta krypterer hele postkassen, kontaktene og kalenderen.\n4. Tuta inkorporerer personvern ved design.\n\nEr du allerede en entusiast av Tuta? Vi ønsker gjerne tilbakemeldinger! **Gi gjerne en vurdering av appene våre på Android og iOS** og si hva du mener!\n\nMed Tuta møtes trygghet og enkelthet. Og vi ønsker deg velkommen til en kryptert innboks!\nTuta-laget\n\n\n**Alle fortjener personvern.**\n\nDu kan støtte vårt oppdrag med å bringe personvern til hele verden ved å følge oss på sosiale medier, og ved å dele innholdet vårt med dine venner og kolleger. Sammen kan vi forandre internettet til det bedre!\n\n* [LinkedIn]({linkedinLink})\n* [Facebook]({facebookLink})\n* [Mastodon]({mastodonLink})\n* [Twitter]({twitterLink})\n* [Reddit]({redditLink})\n* [Instagram]({instagramLink})\n* [YouTube]({youtubeLink})\n\nTuta er bygget med åpen kildekode. [Du kan inspisere og gjennomgå kildekoden her]({githubLink}).",
 		"welcomeMailSubject_msg": "Sikkert, grønt og reklamefritt!",
 		"welcome_label": "Velkommen!",

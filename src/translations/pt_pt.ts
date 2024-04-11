@@ -11,7 +11,7 @@ export default {
 		"other"
 	],
 	"created_at": "2015-01-27T13:13:20Z",
-	"updated_at": "2024-04-09T17:34:33Z",
+	"updated_at": "2024-04-11T08:48:47Z",
 	"source_locale": {
 		"id": "fcd7471b347c8e517663e194dcddf237",
 		"name": "en",
@@ -204,7 +204,6 @@ export default {
 		"changeAdminPassword_msg": "Desculpe, não tem permissão para alterar as palavras-chave dos outros administradores.",
 		"changeMailSettings_msg": "Mais tarde pode alterar a sua decisão nas definições de email.",
 		"changePaidPlan_msg": "Gostaria de mudar o seu plano agora?",
-		"changePasswordCode_msg": "O seu código de verificação:",
 		"changePassword_label": "Alterar palavra-passe",
 		"changePermissions_msg": "Para atribuir acesso tem de modificar as permissões deste dispositivo.",
 		"changeSpellCheckLang_action": "Alterar língua de verificação ortográfica...",
@@ -974,8 +973,6 @@ export default {
 		"outdatedClientWarningMailBody_msg": "Olá!<br>\nNeste momento está a usar uma versão obsoleta do Tuta. O suporte para a sua versão irá ser descontinuada dentro dos próximos dias.<br><br>\n\nPor favor, renove o seu cliente em: {downloadLink}<br><br>\n\nObrigado!<br><br>\n\nA sua equipa do Tuta",
 		"outdatedClientWarningMailSubject_msg": "Por favor, atualize o Tuta",
 		"outdatedClient_msg": "Por favor, atualize o Tuta. A versão atualmente instalada é muito antiga e já não é suportada.",
-		"outlookInvoiceMailBodyAutomatic_msg": "Existe uma nova fátura com o número {1} para você, disponível em anexo a este email. O valor total será debitado automaticamente. Pode visualizar também todas as suas fáturas em {2}.",
-		"outlookInvoiceMailBodyOnAccount_msg": "está disponível uma nova fatura com o número {1} anexada neste email. O pagamento vence 7 dias após a data da fatura. Pode também visualizar todas as suas faturas em {2}.",
 		"outOfOfficeDefaultSubject_msg": "Estou fora do escritório",
 		"outOfOfficeDefault_msg": "Olá,\n<br>\n<br>\n<br>obrigado pelo seu email. Estou fora do escritório mas volto em breve. Até lá terei acesso limitado ao meu email.\n<br>\n<br>Com os melhores cumprimentos",
 		"outOfOfficeEveryone_msg": "Para todos",
@@ -1593,7 +1590,6 @@ export default {
 		"weekStart_label": "Início da semana",
 		"weeks_label": "semanas",
 		"week_label": "Semana",
-		"welcomeMailBodyTweetText_msg": "Acabei de criar a minha conta Tuta. Agora os meus emails estão protegidos de olhares curiosos! Você também pode participar:",
 		"welcomeMailBody_markdown": "**Prepare-se para uma experiência de email segura, ecológica e sem anúncios como nenhuma outra! A encriptação de ponta a ponta mantém-no(a) sempre seguro(a).**\n\nNo Tuta damos prioridade à sua privacidade e segurança. Com uma encriptação forte, a sua caixa de correio está protegida de olhares indiscretos, garantindo que as suas informações confidenciais permanecem seguras.\n\nMas isso não é tudo. Tornámos muito simples a transição de outros serviços de email. As nossas aplicações intuitivas para Android e iOS, juntamente com as aplicações para Windows, macOS e Linux, permitem-lhe aceder à sua caixa de correio e calendário seguros em qualquer dispositivo, mesmo quando está *offline*. Diga adeus às limitações e olá à acessibilidade sem falhas.\n\nSe ainda está preso(a) a um endereço de correio eletrónico antigo, nós ajudamo-lo(a). Configure o encaminhamento automático na sua conta antiga e faça a transição gradual de todos os seus emails e contactos para o Tuta. Veja o nosso guia [aqui]({faqForwardLink}) para aprender como encaminhar facilmente os seus emails para o Tuta.\n\nDepois de transferir com sucesso todas as suas conversas importantes, você pode desabilitar o encaminhamento automático. Sente-se e desfrute de uma caixa de correio agradável, limpa e livre de *spam* que lhe traz paz de espírito.\n\n**No Tuta, seguimos quatro princípios fundamentais para fornecer uma alternativa às grandes empresas tecnológicas que é amiga da privacidade:**\n\n1. Não o(a) rastreamos.\n2. Não analisamos os seus dados.\n3. Criptografamos toda a sua caixa de correio, contactos e calendários.\n4. Damos prioridade à privacidade, por *design*.\n\nJá se está apaixonando pelo Tuta? **Por favor, reserve um momento para deixar a sua opinião nas redes sociais** (veja as ligações abaixo). Adoraríamos saber como estamos a ir!\n\nCom o Tuta, a privacidade encontra a conveniência. Junte-se a nós no lado encriptado e experimente o email como nunca o fez antes.\n\nEstamos felizes por lhe dar as boas-vindas à sua caixa de correio encriptada!  \nA sua equipa Tuta\n\n--\n\n**Todos merecem privacidade.**\n\nPode apoiar a nossa missão de trazer privacidade ao mundo seguindo-nos no seu canal favorito das redes sociais e partilhando o nosso conteúdo com os seus amigos e colegas. Juntos, mudaremos a Internet para melhor!\n\n* [LinkedIn]({linkedinLink})\n* [Facebook]({facebookLink})\n* [Mastodon]({mastodonLink})\n* [Twitter]({twitterLink})\n* [Reddit]({redditLink})\n* [Instagram]({instagramLink})\n* [YouTube]({youtubeLink})\n\nO Tuta é de código aberto. [Pode examinar e rever o código fonte aqui]({githubLink}).",
 		"welcomeMailSubject_msg": "Seguro, verde e sem publicidade!",
 		"whatIsPhishing_msg": "O que é o phishing?",
