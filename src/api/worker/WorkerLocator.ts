@@ -228,7 +228,7 @@ export async function initLocator(worker: WorkerImpl, browserData: BrowserData) 
 				// index new items in background
 				console.log("initIndexer after log in")
 
-				initIndexer(worker, cacheInfo, locator.user, locator.cachingEntityClient, locator.keyLoader)
+				initIndexer(worker, cacheInfo, locator.keyLoader)
 			}
 
 			return mainInterface.loginListener.onFullLoginSuccess(sessionType, cacheInfo)
@@ -429,13 +429,7 @@ export async function initLocator(worker: WorkerImpl, browserData: BrowserData) 
 
 const RETRY_TIMOUT_AFTER_INIT_INDEXER_ERROR_MS = 30000
 
-async function initIndexer(
-	worker: WorkerImpl,
-	cacheInfo: CacheInfo,
-	userFacade: UserFacade,
-	entityClient: EntityClient,
-	keyLoaderFacade: KeyLoaderFacade,
-): Promise<void> {
+async function initIndexer(worker: WorkerImpl, cacheInfo: CacheInfo, keyLoaderFacade: KeyLoaderFacade): Promise<void> {
 	const indexer = await locator.indexer()
 	try {
 		await indexer.init({
@@ -448,12 +442,12 @@ async function initIndexer(
 			console.log("Retry init indexer in 30 seconds after ServiceUnavailableError")
 			await delay(RETRY_TIMOUT_AFTER_INIT_INDEXER_ERROR_MS)
 			console.log("_initIndexer after ServiceUnavailableError")
-			return initIndexer(worker, cacheInfo, userFacade, entityClient, keyLoaderFacade)
+			return initIndexer(worker, cacheInfo, keyLoaderFacade)
 		} else if (e instanceof ConnectionError) {
 			console.log("Retry init indexer in 30 seconds after ConnectionError")
 			await delay(RETRY_TIMOUT_AFTER_INIT_INDEXER_ERROR_MS)
 			console.log("_initIndexer after ConnectionError")
-			return initIndexer(worker, cacheInfo, userFacade, entityClient, keyLoaderFacade)
+			return initIndexer(worker, cacheInfo, keyLoaderFacade)
 		} else {
 			// not awaiting
 			worker.sendError(e)

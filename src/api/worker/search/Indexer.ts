@@ -180,7 +180,7 @@ export class Indexer {
 			if (!userEncDbKey) {
 				const userGroupKey = keyLoaderFacade.getCurrentSymUserGroupKey()
 				// database was opened for the first time - create new tables
-				await this._createIndexTables(user, userGroupKey)
+				await this.createIndexTables(user, userGroupKey)
 			} else {
 				const userGroupKeyVersion = await transaction.get(MetaDataOS, Metadata.userGroupKeyVersion)
 				const userGroupKey = await keyLoaderFacade.loadSymUserGroupKey(userGroupKeyVersion)
@@ -317,7 +317,7 @@ export class Indexer {
 		})
 	}
 
-	async _createIndexTables(user: User, userGroupKey: VersionedKey): Promise<void> {
+	private async createIndexTables(user: User, userGroupKey: VersionedKey): Promise<void> {
 		this.db.key = aes256RandomKey()
 		this.db.iv = random.generateRandomData(IV_BYTE_LENGTH)
 		const groupBatches = await this._loadGroupData(user)

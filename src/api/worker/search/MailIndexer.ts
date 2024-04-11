@@ -160,13 +160,13 @@ export class MailIndexer {
 				if (isLegacyMail(mail)) {
 					mailWrapper = await this._defaultCachingEntity.load(MailBodyTypeRef, neverNull(mail.body)).then((b) => MailWrapper.body(mail, b))
 				} else if (isDetailsDraft(mail)) {
-					// Will be always there, if it was not updated yet it will still be set by CryptoFacade
+					// Will be always there, if it was not updated yet, it will still be set by CryptoFacade
 					const mailOwnerEncSessionKey = assertNotNull(mail._ownerEncSessionKey)
 					const mailDetailsDraftId = assertNotNull(mail.mailDetailsDraft)
 					mailWrapper = await this._defaultCachingEntity
 						.loadMultiple(MailDetailsDraftTypeRef, listIdPart(mailDetailsDraftId), [elementIdPart(mailDetailsDraftId)], async () => ({
 							key: mailOwnerEncSessionKey,
-							encryptingKeyVersion: Number(mail._ownerKeyVersion),
+							encryptingKeyVersion: Number(mail._ownerKeyVersion ?? 0),
 						}))
 						.then((d) => {
 							const draft = first(d)
@@ -182,7 +182,7 @@ export class MailIndexer {
 					mailWrapper = await this._defaultCachingEntity
 						.loadMultiple(MailDetailsBlobTypeRef, listIdPart(mailDetailsBlobId), [elementIdPart(mailDetailsBlobId)], async () => ({
 							key: mailOwnerEncSessionKey,
-							encryptingKeyVersion: Number(mail._ownerKeyVersion),
+							encryptingKeyVersion: Number(mail._ownerKeyVersion ?? 0),
 						}))
 						.then((d) => {
 							const blob = first(d)
@@ -763,7 +763,7 @@ class IndexLoader {
 				const mail = assertNotNull(mailDetailsBlobMails.find((m) => elementIdPart(assertNotNull(m.mailDetails)) === instanceElementId))
 				return {
 					key: assertNotNull(mail._ownerEncSessionKey),
-					encryptingKeyVersion: Number(mail._ownerKeyVersion),
+					encryptingKeyVersion: Number(mail._ownerKeyVersion ?? 0),
 				}
 			}
 			const mailDetailsBlobs = await this.loadInChunks(MailDetailsBlobTypeRef, listId, ids, ownerEncSessionKeyProvider)
@@ -786,7 +786,7 @@ class IndexLoader {
 				const mail = assertNotNull(mailDetailsDraftMails.find((m) => elementIdPart(assertNotNull(m.mailDetailsDraft)) === instanceElementId))
 				return {
 					key: assertNotNull(mail._ownerEncSessionKey),
-					encryptingKeyVersion: Number(mail._ownerKeyVersion),
+					encryptingKeyVersion: Number(mail._ownerKeyVersion ?? 0),
 				}
 			}
 			const mailDetailsDrafts = await this.loadInChunks(MailDetailsDraftTypeRef, listId, ids, ownerEncSessionKeyProvider)
