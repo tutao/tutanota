@@ -34,7 +34,7 @@ export type ModelAssociation = {
 	refType: string
 	final: boolean
 	/**
-	 * From which model we import this association from. Currently the field only exists for aggregates because they are only ones
+	 * From which model we import this association from. Currently, the field only exists for aggregates because they are only ones
 	 * which can be imported across models.
 	 */
 	dependency?: string | null

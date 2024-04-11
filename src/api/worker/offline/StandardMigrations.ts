@@ -52,7 +52,7 @@ export function removeValue<T extends SomeEntity>(valueName: string): Migration<
 	}
 }
 
-export function addValue<T extends SomeEntity>(valueName: string, value: any): Migration<T> {
+export function addValue<T extends SomeEntity>(valueName: keyof T, value: any): Migration<T> {
 	return function (entity) {
 		entity[valueName] = value
 		return entity
@@ -67,9 +67,12 @@ export function booleanToNumberValue<T extends SomeEntity>(attribute: string): M
 	}
 }
 
-export function changeCardinalityFromAnyToZeroOrOne<T extends SomeEntity>(attribute: string): Migration<T> {
+export function changeCardinalityFromAnyToZeroOrOne<T extends SomeEntity>(attribute: keyof T): Migration<T> {
 	return function (entity) {
-		const value: Array<unknown> = entity[attribute]
+		const value = entity[attribute]
+		if (!Array.isArray(value)) {
+			throw new ProgrammingError("Can only migrate from cardinality ANY.")
+		}
 		const length = value.length
 		if (length === 0) {
 			entity[attribute] = null
