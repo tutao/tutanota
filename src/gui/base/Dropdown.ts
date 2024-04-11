@@ -352,7 +352,8 @@ export class Dropdown implements ModalComponent {
 			if (isDropDownInfo(b)) {
 				return b.info.includes(this._filterString.toLowerCase())
 			} else if (this._isFilterable) {
-				return lang.getMaybeLazy(b.label).toLowerCase().includes(this._filterString.toLowerCase())
+				const filterable = lang.getMaybeLazy(b.text ?? b.label)
+				return filterable.toLowerCase().includes(this._filterString.toLowerCase())
 			} else {
 				return true
 			}
