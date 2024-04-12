@@ -35,7 +35,7 @@ export class DrawerMenu implements Component<DrawerMenuAttrs> {
 		const userController = logins.getUserController()
 
 		return m(
-			"drawer-menu",
+			"drawer-menu.flex.col.items-center.pt.pb",
 			{
 				...landmarkAttrs(AriaLandmarks.Contentinfo, "drawer menu"),
 				style: {
@@ -43,7 +43,7 @@ export class DrawerMenu implements Component<DrawerMenuAttrs> {
 					"border-top-right-radius": styles.isDesktopLayout() ? px(size.border_radius_big) : "",
 				},
 			},
-			m(".flex.col.height-100p.items-center.pt.pb", [
+			[
 				m(".flex-grow"),
 				isInternalUser && isLoggedIn
 					? m(".news-button", [
@@ -130,7 +130,7 @@ export class DrawerMenu implements Component<DrawerMenuAttrs> {
 					click: () => m.route.set(LogoutUrl),
 					colors: ButtonColor.DrawerNav,
 				}),
-			]),
+			],
 		)
 	}
 }
