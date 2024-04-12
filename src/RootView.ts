@@ -22,7 +22,7 @@ export const enum LayerType {
 	Overlay = 400,
 }
 
-const enum PrimaryNavigationType {
+export const enum PrimaryNavigationType {
 	Keyboard,
 	Touch,
 	Mouse,
@@ -31,7 +31,7 @@ const enum PrimaryNavigationType {
 
 // global, in case we have multiple instances for some reason
 /** What we infer to be the user's preferred navigation type. */
-let currentNavigationType: PrimaryNavigationType = isApp() ? PrimaryNavigationType.Touch : PrimaryNavigationType.Mouse
+export let currentNavigationType: PrimaryNavigationType = isApp() ? PrimaryNavigationType.Touch : PrimaryNavigationType.Mouse
 
 /**
  * View which wraps anything that we render.
@@ -64,7 +64,7 @@ export class RootView implements ClassComponent {
 				},
 				onkeyup: (e: EventRedraw<KeyboardEvent>) => {
 					// tab key can be pressed in some other situations e.g. editor but it would be switched back quickly again if needed.
-					if (isKeyPressed(e.key, Keys.TAB, Keys.UP, Keys.DOWN)) {
+					if (isKeyPressed(e.key, Keys.TAB, Keys.UP, Keys.DOWN, Keys.J, Keys.K)) {
 						this.switchNavType(PrimaryNavigationType.Keyboard)
 					}
 					e.redraw = false

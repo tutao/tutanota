@@ -4,6 +4,7 @@ import { theme } from "./theme.js"
 import { styles } from "./styles.js"
 import { px, size } from "./size.js"
 import { DefaultAnimationTime } from "./animation/Animations.js"
+import { currentNavigationType, PrimaryNavigationType } from "../RootView.js"
 
 /** A function that can adjust the style of the selectable row. */
 export type SelectableRowSelectedSetter = (selected: boolean, isInMultiselect: boolean) => unknown
@@ -51,8 +52,10 @@ export class SelectableRowContainer implements ClassComponent<SelectableRowConta
 	}
 
 	private updateDomBg = () => {
-		// in single column layout the "current element" selection is not meaningful and is even annoying
-		const highlight = styles.isSingleColumnLayout() ? this.isInMultiselect && this.selected : this.selected
+		const isUsingKeyboard = currentNavigationType === PrimaryNavigationType.Keyboard
+		// In the single column view, a row may be 'selected' by the URL still linking to a specific mail
+		// So do not highlight in that case but in just multiselect mode and keyboard navigation
+		const highlight = styles.isSingleColumnLayout() ? (this.isInMultiselect || isUsingKeyboard) && this.selected : this.selected
 		if (this.dom) {
 			this.dom.style.backgroundColor = highlight ? stateBgHover : theme.list_bg
 		}

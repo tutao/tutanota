@@ -231,14 +231,13 @@ export class List<T, VH extends ViewHolder<T>> implements ClassComponent<ListAtt
 	}
 
 	private createRow(attrs: ListAttrs<T, VH>, rows: ListRow<T, VH>[]) {
-		return m("li.list-row", {
+		return m("li.list-row.nofocus", {
 			draggable: attrs.renderConfig.dragStart ? "true" : undefined,
 			tabindex: TabIndex.Default,
 			oncreate: (vnode: VnodeDOM) => {
 				const dom = vnode.dom as HTMLElement
-				const r = attrs.renderConfig.createElement(dom)
 				const row = {
-					row: r,
+					row: attrs.renderConfig.createElement(dom),
 					domElement: dom,
 					top: -1,
 					entity: null,
@@ -405,7 +404,6 @@ export class List<T, VH extends ViewHolder<T>> implements ClassComponent<ListAtt
 		for (const row of this.rows) {
 			row.top = nextPosition
 			nextPosition += rowHeight
-
 			const pos = row.top / rowHeight
 			const item = attrs.state.items[pos]
 			row.entity = item
@@ -416,6 +414,10 @@ export class List<T, VH extends ViewHolder<T>> implements ClassComponent<ListAtt
 				row.domElement.style.display = ""
 				row.domElement.style.transform = `translateY(${row.top}px)`
 				row.row.update(item, attrs.state.selectedItems.has(item), attrs.state.inMultiselect)
+			}
+			// Focus the selected row so it can receive keyboard events
+			if (attrs.state.selectedItems.has(item)) {
+				row.domElement.focus()
 			}
 		}
 		this.updateStatus(attrs.state.loadingStatus)
