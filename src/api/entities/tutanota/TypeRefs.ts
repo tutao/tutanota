@@ -1,7 +1,10 @@
-import { create, StrippedEntity } from "../../common/utils/EntityUtils.js"
-import { TypeRef } from "@tutao/tutanota-utils"
-import { typeModels } from "./TypeModels.js"
-import { Blob, BlobReferenceTokenWrapper, BucketKey, DateWrapper } from '../sys/TypeRefs.js'
+import { create, Stripped, StrippedEntity } from "../../common/utils/EntityUtils.js"
+import {TypeRef} from "@tutao/tutanota-utils"
+import {typeModels} from "./TypeModels.js"
+import {DateWrapper} from '../sys/TypeRefs.js'
+import {Blob} from '../sys/TypeRefs.js'
+import {BucketKey} from '../sys/TypeRefs.js'
+import {BlobReferenceTokenWrapper} from '../sys/TypeRefs.js'
 
 export const AttachmentKeyDataTypeRef: TypeRef<AttachmentKeyData> = new TypeRef("tutanota", "AttachmentKeyData")
 
