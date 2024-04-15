@@ -5,7 +5,7 @@ import { Versioned } from "@tutao/tutanota-utils/dist/Utils.js"
 import { UserFacade } from "./UserFacade.js"
 import { assertNotNull, getFromMap } from "@tutao/tutanota-utils"
 import { NotFoundError } from "../../common/error/RestError.js"
-import { customIdToString, getElementId, stringToCustomId } from "../../common/utils/EntityUtils.js"
+import { customIdToString, getElementId, isSameId, stringToCustomId } from "../../common/utils/EntityUtils.js"
 import { VersionedKey } from "../crypto/CryptoFacade.js"
 
 /**
@@ -39,6 +39,10 @@ export class KeyLoaderFacade {
 	}
 
 	async getCurrentSymGroupKey(groupId: Id): Promise<VersionedKey> {
+		// The current user group key should not be included in the map of current keys, because we only keep a copy in userFacade
+		if (isSameId(groupId, this.userFacade.getUserGroupId())) {
+			return this.getCurrentSymUserGroupKey()
+		}
 		return getFromMap(this.currentGroupKeys, groupId, async () => {
 			const groupMembership = this.userFacade.getMembership(groupId)
 			const requiredUserGroupKey = await this.loadSymUserGroupKey(Number(groupMembership.symKeyVersion))

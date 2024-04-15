@@ -5,6 +5,7 @@ import { ProgrammingError } from "../../common/error/ProgrammingError"
 import { createWebsocketLeaderStatus, GroupMembership, User, WebsocketLeaderStatus } from "../../entities/sys/TypeRefs"
 import { LoginIncompleteError } from "../../common/error/LoginIncompleteError"
 import { VersionedKey } from "../crypto/CryptoFacade.js"
+import { isSameId } from "../../common/utils/EntityUtils.js"
 
 export interface AuthDataProvider {
 	/**
@@ -105,7 +106,7 @@ export class UserFacade implements AuthDataProvider {
 	}
 
 	getMembership(groupId: Id): GroupMembership {
-		let membership = this.getLoggedInUser().memberships.find((g: GroupMembership) => g.group === groupId)
+		let membership = this.getLoggedInUser().memberships.find((g: GroupMembership) => isSameId(g.group, groupId))
 
 		if (!membership) {
 			throw new Error(`No group with groupId ${groupId} found!`)

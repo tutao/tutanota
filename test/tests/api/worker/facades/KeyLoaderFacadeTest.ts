@@ -25,7 +25,7 @@ import {
 } from "../../../../../src/api/entities/sys/TypeRefs.js"
 import { createTestEntity } from "../../../TestUtils.js"
 import { EntityClient } from "../../../../../src/api/common/EntityClient.js"
-import { object, when } from "testdouble"
+import { matchers, object, reset, verify, when } from "testdouble"
 import { KeyLoaderFacade } from "../../../../../src/api/worker/facades/KeyLoaderFacade.js"
 import { stringToCustomId } from "../../../../../src/api/common/utils/EntityUtils.js"
 import { VersionedKey } from "../../../../../src/api/worker/crypto/CryptoFacade.js"
@@ -35,10 +35,12 @@ o.spec("KeyLoaderFacadeTest", function () {
 	let userFacade: UserFacade
 	let entityClient: EntityClient
 	let group: Group
+	let userGroup: Group
 	let currentKeys: KeyPair | null = null
 	let formerKeys: GroupKey[]
 	let formerKeysDecrypted: AesKey[]
 	let currentGroupKey: VersionedKey
+	let userGroupKey: VersionedKey
 	let currentGroupKeyVersion: number
 	let keyLoaderFacade: KeyLoaderFacade
 	let pqFacade: PQFacade
@@ -96,8 +98,13 @@ o.spec("KeyLoaderFacadeTest", function () {
 			formerGroupKeys: createTestEntity(GroupKeysRefTypeRef, { list: "list" }),
 			groupKeyVersion: String(currentGroupKeyVersion),
 		})
+		userGroupKey = freshVersioned(aes256RandomKey())
+		userGroup = createTestEntity(GroupTypeRef, {
+			_id: "my userGroup",
+			groupKeyVersion: String(userGroupKey.version),
+			formerGroupKeys: null,
+		})
 
-		const userGroupKey = freshVersioned(aes256RandomKey())
 		const membership = createTestEntity(GroupMembershipTypeRef, {
 			symKeyVersion: String(userGroupKey.version),
 			symEncGKey: encryptKey(userGroupKey.object, currentGroupKey.object),
@@ -105,6 +112,7 @@ o.spec("KeyLoaderFacadeTest", function () {
 		})
 		when(userFacade.getCurrentUserGroupKey()).thenReturn(userGroupKey)
 		when(userFacade.getMembership(group._id)).thenReturn(membership)
+		when(userFacade.getUserGroupId()).thenReturn(userGroup._id)
 		when(entityClient.load(GroupTypeRef, group._id)).thenResolve(group)
 		for (let i = 0; i < FORMER_KEYS; i++) {
 			when(
@@ -117,6 +125,28 @@ o.spec("KeyLoaderFacadeTest", function () {
 				),
 			).thenDo(() => formerKeys.slice(i).reverse()) // create a fresh copy because we modify in place
 		}
+	})
+
+	o.spec("getCurrentSymGroupKey", function () {
+		o("getting userGroup key", async function () {
+			const currentUserGroupKey = await keyLoaderFacade.getCurrentSymGroupKey(userGroup._id)
+			o(currentUserGroupKey.version).equals(Number(userGroup.groupKeyVersion))
+			o(currentUserGroupKey.object).deepEquals(userGroupKey.object)
+			verify(userFacade.getMembership(matchers.anything()), { times: 0 })
+			await keyLoaderFacade.getCurrentSymGroupKey(userGroup._id)
+			verify(userFacade.getCurrentUserGroupKey(), { times: 2 }) // should not be cached
+		})
+
+		o("getting non-userGroup key", async function () {
+			const groupKey = await keyLoaderFacade.getCurrentSymGroupKey(group._id)
+			o(groupKey.version).equals(Number(group.groupKeyVersion))
+			o(groupKey.object).deepEquals(currentGroupKey.object)
+			verify(userFacade.getMembership(group._id))
+			reset()
+			// the key is now cached -> no need to get the membership
+			await keyLoaderFacade.getCurrentSymGroupKey(group._id)
+			verify(userFacade.getMembership(matchers.anything()), { times: 0 })
+		})
 	})
 
 	o("loadKeyPair loads former key", async function (): Promise<void> {
