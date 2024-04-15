@@ -523,7 +523,7 @@ export class CryptoFacade {
 		const instanceSessionKeys = await promiseMap(bucketKey.bucketEncSessionKeys, async (instanceSessionKey) => {
 			const decryptedSessionKey = decryptKey(decBucketKey, instanceSessionKey.symEncSessionKey)
 			const groupKey = await this.keyLoaderFacade.getCurrentSymGroupKey(instance._ownerGroup)
-			const ownerEncSessionKey = encryptKey(groupKey.object, decryptedSessionKey)
+			const ownerEncSessionKey = encryptKeyWithVersionedKey(groupKey, decryptedSessionKey)
 			const instanceSessionKeyWithOwnerEncSessionKey = createInstanceSessionKey(instanceSessionKey)
 			if (instanceElementId == instanceSessionKey.instanceId) {
 				resolvedSessionKeyForInstance = decryptedSessionKey
@@ -541,8 +541,8 @@ export class CryptoFacade {
 					decryptedSessionKey,
 				)
 			}
-			instanceSessionKeyWithOwnerEncSessionKey.symEncSessionKey = ownerEncSessionKey
-			instanceSessionKeyWithOwnerEncSessionKey.symKeyVersion = String(groupKey.version)
+			instanceSessionKeyWithOwnerEncSessionKey.symEncSessionKey = ownerEncSessionKey.key
+			instanceSessionKeyWithOwnerEncSessionKey.symKeyVersion = String(ownerEncSessionKey.encryptingKeyVersion)
 			return instanceSessionKeyWithOwnerEncSessionKey
 		})
 

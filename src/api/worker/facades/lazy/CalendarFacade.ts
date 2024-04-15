@@ -430,7 +430,6 @@ export class CalendarFacade {
 		})
 	}
 
-	// hey valentin, I'm having Wire issues... Shouldn't have clicked update
 	private async encryptNotificationKeyForDevices(
 		notificationSessionKey: AesKey,
 		alarmNotifications: Array<AlarmNotification>,

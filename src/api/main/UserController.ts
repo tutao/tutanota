@@ -102,7 +102,7 @@ export class UserController {
 	}
 
 	/**
-	 * Checks if the account type of the logged in user is FREE.
+	 * Checks if the account type of the logged-in user is FREE.
 	 * @returns True if the account type is FREE otherwise false
 	 */
 	isFreeAccount(): boolean {
