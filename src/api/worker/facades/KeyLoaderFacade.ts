@@ -103,7 +103,8 @@ export class KeyLoaderFacade {
 			group.formerGroupKeys,
 			`no former group keys, current key version: ${group.groupKeyVersion}, target key version: ${targetKeyVersion}`,
 		).list
-		const startId = stringToCustomId(String(currentGroupKey.version - 1))
+		// start id is not included in the result of the range request, so we need to start at current version.
+		const startId = stringToCustomId(String(currentGroupKey.version))
 		const amountOfKeysIncludingTarget = currentGroupKey.version - targetKeyVersion
 		const formerKeys: GroupKey[] = await this.entityClient.loadRange(GroupKeyTypeRef, formerKeysList, startId, amountOfKeysIncludingTarget, true)
 

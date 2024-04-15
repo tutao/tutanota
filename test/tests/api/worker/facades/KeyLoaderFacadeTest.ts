@@ -116,13 +116,7 @@ o.spec("KeyLoaderFacadeTest", function () {
 		when(entityClient.load(GroupTypeRef, group._id)).thenResolve(group)
 		for (let i = 0; i < FORMER_KEYS; i++) {
 			when(
-				entityClient.loadRange(
-					GroupKeyTypeRef,
-					group.formerGroupKeys!.list,
-					stringToCustomId(String(currentGroupKeyVersion - 1)),
-					FORMER_KEYS - i,
-					true,
-				),
+				entityClient.loadRange(GroupKeyTypeRef, group.formerGroupKeys!.list, stringToCustomId(String(currentGroupKeyVersion)), FORMER_KEYS - i, true),
 			).thenDo(() => formerKeys.slice(i).reverse()) // create a fresh copy because we modify in place
 		}
 	})
