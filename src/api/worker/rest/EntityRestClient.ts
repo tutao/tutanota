@@ -93,9 +93,8 @@ export interface EntityRestInterface {
 
 	/**
 	 * Modifies a single element on the server. Entities are encrypted before they are sent.
-	 * @param ownerKey Use this key to decrypt session key instead of trying to resolve the owner key based on the ownerGroup.
 	 */
-	update<T extends SomeEntity>(instance: T, ownerKey?: VersionedKey): Promise<void>
+	update<T extends SomeEntity>(instance: T, ownerKeyProvider?: OwnerKeyProvider): Promise<void>
 
 	/**
 	 * Deletes a single element on the server.
@@ -415,19 +414,18 @@ export class EntityRestClient implements EntityRestInterface {
 		}
 	}
 
-	async update<T extends SomeEntity>(instance: T, ownerKey?: VersionedKey): Promise<void> {
+	async update<T extends SomeEntity>(instance: T, ownerKeyProvider?: OwnerKeyProvider): Promise<void> {
 		if (!instance._id) throw new Error("Id must be defined")
 		const { listId, elementId } = expandId(instance._id)
-		const currentOwnerKeyProvider: OwnerKeyProvider | undefined = ownerKey ? async (version: number) => ownerKey.object : undefined
 		const { path, queryParams, headers, typeModel } = await this._validateAndPrepareRestRequest(
 			instance._type,
 			listId,
 			elementId,
 			undefined,
 			undefined,
-			currentOwnerKeyProvider,
+			ownerKeyProvider,
 		)
-		const sessionKey = await this.resolveSessionKey(currentOwnerKeyProvider, instance, typeModel)
+		const sessionKey = await this.resolveSessionKey(ownerKeyProvider, instance, typeModel)
 		const encryptedEntity = await this.instanceMapper.encryptAndMapToLiteral(typeModel, instance, sessionKey)
 		await this.restClient.request(path, HttpMethod.PUT, {
 			queryParams,

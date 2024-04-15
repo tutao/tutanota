@@ -815,9 +815,11 @@ o.spec("EntityRestClient", function () {
 		o("when ownerKey is passed it is used instead for session key resolution", async function () {
 			const typeModel = await resolveTypeReference(CustomerServerPropertiesTypeRef)
 			const version = typeModel.version
+			const ownerKeyVersion = 2
 			const newCustomerServerProperties = createTestEntity(CustomerServerPropertiesTypeRef, {
 				_id: "id",
 				_ownerEncSessionKey: new Uint8Array([4, 5, 6]),
+				_ownerKeyVersion: String(ownerKeyVersion),
 			})
 			when(
 				restClient.request("/rest/sys/customerserverproperties/id", HttpMethod.PUT, {
@@ -830,7 +832,10 @@ o.spec("EntityRestClient", function () {
 			const sessionKey = [3, 2, 1]
 			when(cryptoFacadeMock.resolveSessionKeyWithOwnerKey(anything(), ownerKey.object)).thenReturn(sessionKey)
 
-			await entityRestClient.update(newCustomerServerProperties, ownerKey)
+			await entityRestClient.update(newCustomerServerProperties, async (version) => {
+				o(version).equals(ownerKeyVersion)
+				return ownerKey.object
+			})
 
 			verify(instanceMapperMock.encryptAndMapToLiteral(anything(), anything(), sessionKey))
 			verify(cryptoFacadeMock.resolveSessionKey(anything(), anything()), { times: 0 })

@@ -17,7 +17,6 @@ import { downcast, groupByAndMap, last, promiseMap, TypeRef } from "@tutao/tutan
 import { resolveTypeReference } from "./EntityFunctions"
 import type { ElementEntity, ListElementEntity, SomeEntity } from "./EntityTypes"
 import { NotAuthorizedError, NotFoundError } from "./error/RestError.js"
-import { VersionedKey } from "../worker/crypto/CryptoFacade.js"
 
 export class EntityClient {
 	_target: EntityRestInterface
@@ -101,8 +100,8 @@ export class EntityClient {
 		return this._target.setupMultiple(listId, instances)
 	}
 
-	update<T extends SomeEntity>(instance: T, ownerKey?: VersionedKey): Promise<void> {
-		return this._target.update(instance, ownerKey)
+	update<T extends SomeEntity>(instance: T, ownerKeyProvider?: OwnerKeyProvider): Promise<void> {
+		return this._target.update(instance, ownerKeyProvider)
 	}
 
 	erase<T extends SomeEntity>(instance: T): Promise<void> {

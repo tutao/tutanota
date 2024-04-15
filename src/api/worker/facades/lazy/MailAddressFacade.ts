@@ -213,15 +213,11 @@ export class MailAddressFacade {
 	}
 
 	private async updateMailboxProperties(mailboxProperties: MailboxProperties, viaUser?: Id): Promise<MailboxProperties> {
-		const groupKey = viaUser
-			? await this.groupManagement.getCurrentGroupKeyViaUser(assertNotNull(mailboxProperties._ownerGroup), viaUser)
-			: await this.groupManagement.getCurrentGroupKeyViaAdminEncGKey(assertNotNull(mailboxProperties._ownerGroup))
-		await this.nonCachingEntityClient.update(mailboxProperties, groupKey)
-
 		const groupKeyProvider = async (version: number) =>
 			viaUser
 				? await this.groupManagement.getGroupKeyViaUser(assertNotNull(mailboxProperties._ownerGroup), version, viaUser)
 				: await this.groupManagement.getGroupKeyViaAdminEncGKey(assertNotNull(mailboxProperties._ownerGroup), version)
+		await this.nonCachingEntityClient.update(mailboxProperties, groupKeyProvider)
 		return await this.nonCachingEntityClient.load(MailboxPropertiesTypeRef, mailboxProperties._id, undefined, undefined, groupKeyProvider)
 	}
 
