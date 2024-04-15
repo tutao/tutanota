@@ -78,11 +78,14 @@ export class ViewColumn implements Component<Attrs> {
 	view() {
 		const zIndex = !this.isVisible && this.columnType === ColumnType.Foreground ? LayerType.ForegroundMenu + 1 : ""
 		const landmark = this.ariaRole ? landmarkAttrs(this.ariaRole, this.ariaLabel ? this.ariaLabel() : this.getTitle()) : {}
+		const isInteractable = this.isVisible || this.isInForeground
 		return m(
 			".view-column.fill-absolute",
 			{
 				...landmark,
-				"aria-hidden": this.isVisible || this.isInForeground ? "false" : "true",
+				// As tab index is not inherited, remove the column from the tab index by not rendering it
+				class: isInteractable ? undefined : "hidden",
+				"aria-hidden": isInteractable ? "false" : "true",
 				oncreate: (vnode) => {
 					this.domColumn = vnode.dom as HTMLElement
 					this.domColumn.style.transform =

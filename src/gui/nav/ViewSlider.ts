@@ -330,6 +330,9 @@ export class ViewSlider implements Component<ViewSliderAttrs> {
 	 * Executes a slide animation for the background buttons.
 	 */
 	private slideBackgroundColumns(nextVisibleViewColumn: ViewColumn, oldOffset: number, newOffset: number): Promise<unknown> {
+		// Remove the `visibility: hidden` from the target column before starting the animation, so it is visible during the animation
+		nextVisibleViewColumn.isVisible = true
+
 		return animations
 			.add(this.domSlidingPart, transform(TransformEnum.TranslateX, oldOffset, newOffset), {
 				easing: ease.inOut,
@@ -339,7 +342,6 @@ export class ViewSlider implements Component<ViewSliderAttrs> {
 				const [removed] = this.visibleBackgroundColumns.splice(0, 1, nextVisibleViewColumn)
 
 				removed.isVisible = false
-				nextVisibleViewColumn.isVisible = true
 			})
 	}
 
