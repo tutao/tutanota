@@ -56,7 +56,7 @@ export class GroupManagementFacade {
 		let mailGroupInfoSessionKey = aes256RandomKey()
 		let mailboxSessionKey = aes256RandomKey()
 		const keyPair = await this.pqFacade.generateKeyPairs()
-		const mailGroupData = await this.generateInternalGroupData(
+		const mailGroupData = this.generateInternalGroupData(
 			keyPair,
 			mailGroupKey.object,
 			mailGroupInfoSessionKey,

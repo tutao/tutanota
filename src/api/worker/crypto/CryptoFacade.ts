@@ -890,9 +890,9 @@ export class CryptoFacade {
 		} else if (isRsaEccKeyPair(senderKeyPair)) {
 			return { publicKey: senderKeyPair.publicEccKey, privateKey: senderKeyPair.privateEccKey }
 		} else if (isRsaOrRsaEccKeyPair(senderKeyPair)) {
-			let userGroupKey = keyGroupId ? await this.keyLoaderFacade.getCurrentSymGroupKey(keyGroupId) : this.userFacade.getCurrentUserGroupKey()
+			const symGroupKey = await this.keyLoaderFacade.getCurrentSymGroupKey(keyGroupId)
 			const newIdentityKeyPair = generateEccKeyPair()
-			const symEncPrivEccKey = encryptEccKey(userGroupKey.object, newIdentityKeyPair.privateKey)
+			const symEncPrivEccKey = encryptEccKey(symGroupKey.object, newIdentityKeyPair.privateKey)
 			const data = createPublicKeyPutIn({ pubEccKey: newIdentityKeyPair.publicKey, symEncPrivEccKey, keyGroup: keyGroupId })
 			await this.serviceExecutor.put(PublicKeyService, data)
 			return newIdentityKeyPair

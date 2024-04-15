@@ -169,7 +169,7 @@ export class UserManagementFacade {
 		const userGroupKey = freshVersioned(aes256RandomKey())
 		const userGroupInfoSessionKey = aes256RandomKey()
 		const keyPair = await this.pqFacade.generateKeyPairs()
-		const userGroupData = await this.groupManagement.generateInternalGroupData(
+		const userGroupData = this.groupManagement.generateInternalGroupData(
 			keyPair,
 			userGroupKey.object,
 			userGroupInfoSessionKey,
