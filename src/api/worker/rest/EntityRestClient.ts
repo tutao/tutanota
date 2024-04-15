@@ -313,14 +313,13 @@ export class EntityRestClient implements EntityRestInterface {
 
 	async setup<T extends SomeEntity>(listId: Id | null, instance: T, extraHeaders?: Dict, options?: EntityRestClientSetupOptions): Promise<Id> {
 		const typeRef = instance._type
-		const ownkerKeyProvider: OwnerKeyProvider | undefined = options?.ownerKey ? async () => options!.ownerKey!.object : undefined
 		const { typeModel, path, headers, queryParams } = await this._validateAndPrepareRestRequest(
 			typeRef,
 			listId,
 			null,
 			undefined,
 			extraHeaders,
-			ownkerKeyProvider,
+			options?.ownerKey,
 		)
 
 		if (typeModel.type === Type.ListElement) {
@@ -329,13 +328,7 @@ export class EntityRestClient implements EntityRestInterface {
 			if (listId) throw new Error("List id must not be defined for ETs")
 		}
 
-		const versionedOwnerKey: VersionedKey | undefined = ownkerKeyProvider
-			? {
-					version: Number(instance._ownerKeyVersion),
-					object: await ownkerKeyProvider(Number(instance._ownerKeyVersion)),
-			  }
-			: undefined
-		const sk = await this._crypto.setNewOwnerEncSessionKey(typeModel, instance, versionedOwnerKey)
+		const sk = await this._crypto.setNewOwnerEncSessionKey(typeModel, instance, options?.ownerKey)
 
 		const encryptedEntity = await this.instanceMapper.encryptAndMapToLiteral(typeModel, instance, sk)
 		const persistencePostReturn = await this.restClient.request(path, HttpMethod.POST, {
@@ -450,7 +443,7 @@ export class EntityRestClient implements EntityRestInterface {
 		elementId: Id | null,
 		queryParams: Dict | undefined,
 		extraHeaders: Dict | undefined,
-		ownerKey: OwnerKeyProvider | undefined,
+		ownerKey: OwnerKeyProvider | VersionedKey | undefined,
 	): Promise<{
 		path: string
 		queryParams: Dict | undefined

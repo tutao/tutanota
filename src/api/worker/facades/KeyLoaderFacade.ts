@@ -13,7 +13,9 @@ import { VersionedKey } from "../crypto/CryptoFacade.js"
  * Handle group key versioning.
  */
 export class KeyLoaderFacade {
-	/** A cache for decrypted keys of each group. Encrypted keys are stored on membership.symEncGKey. */
+	/**
+	 * A cache for decrypted keys of each group. Encrypted keys are stored on membership.symEncGKey.
+	 * The (current) userGroup key is *not* cached here, since it needs special handling and is stored in UserFacade. */
 	private readonly currentGroupKeys: Map<Id, Promise<VersionedKey>>
 
 	constructor(private readonly userFacade: UserFacade, private readonly entityClient: EntityClient) {
