@@ -20,6 +20,9 @@
 		},
 		{
 			"path": "./packages/tutanota-error"
+		},
+		{
+			"path": "./packages/tuta-wasm-loader"
 		}
 	]
 }

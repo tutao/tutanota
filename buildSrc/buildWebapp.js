@@ -14,6 +14,7 @@ import * as env from "./env.js"
 import { createHtml } from "./createHtml.js"
 import { domainConfigs } from "./DomainConfigs.js"
 import { visualizer } from "rollup-plugin-visualizer"
+import { rollupWasmLoader } from "@tutao/tuta-wasm-loader"
 
 /**
  * Builds the web app for production.
@@ -65,13 +66,6 @@ export async function buildWebapp({ version, stage, host, measure, minify, proje
 	await fs.copy(path.join(projectDir, "/resources/wordlibrary.json"), path.join(projectDir, "build/wordlibrary.json"))
 	await fs.copy(path.join(projectDir, "/src/braintree.html"), path.join(projectDir, "/build/braintree.html"))
 
-	const wasmDir = path.join(projectDir, "/build/wasm")
-	await fs.emptyDir(wasmDir)
-	await fs.copy(path.join(projectDir, "/packages/tutanota-crypto/lib/hashes/Argon2id/argon2.wasm"), path.join(wasmDir, "argon2.wasm"))
-	await fs.copy(path.join(projectDir, "/packages/tutanota-crypto/lib/hashes/Argon2id/argon2.js"), path.join(wasmDir, "argon2.js"))
-	await fs.copy(path.join(projectDir, "/packages/tutanota-crypto/lib/encryption/Liboqs/liboqs.wasm"), path.join(wasmDir, "liboqs.wasm"))
-	await fs.copy(path.join(projectDir, "/packages/tutanota-crypto/lib/encryption/Liboqs/liboqs.js"), path.join(wasmDir, "liboqs.js"))
-
 	console.log("started bundling", measure())
 	const bundle = await rollup({
 		input: ["src/app.ts", "src/api/worker/worker.ts"],
@@ -90,6 +84,20 @@ export async function buildWebapp({ version, stage, host, measure, minify, proje
 			nodeResolve({
 				preferBuiltins: true,
 				resolveOnly: [/^@tutao\/.*$/],
+			}),
+			rollupWasmLoader({
+				output: "build",
+				optimizationLevel: "O3",
+				webassemblyLibraries: [
+					{
+						name: "liboqs.wasm",
+						makefilePath: "libs/webassembly/Makefile_liboqs",
+					},
+					{
+						name: "argon2.wasm",
+						makefilePath: "libs/webassembly/Makefile_argon2",
+					},
+				],
 			}),
 		],
 	})

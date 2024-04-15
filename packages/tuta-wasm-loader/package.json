@@ -1,0 +1,31 @@
+{
+	"name" : "@tutao/tuta-wasm-loader",
+	"version" : "227.240426.1",
+	"license" : "GPL-3.0",
+	"main" : "./dist/index.js",
+	"types" : "./dist/index.d.ts",
+	"keywords" : [
+		"rollup-plugin"
+	],
+	"repository" : {
+		"type" : "git",
+		"url" : "https://github.com/tutao/tutanota.git",
+		"directory" : "packages/tuta-wasm-loader"
+	},
+	"scripts" : {
+		"prepublishOnly" : "npm run build",
+		"test" : "tsc -b --verbose test && cd build/test && node 'Suite.js'",
+		"build" : "tsc -b"
+	},
+	"type" : "module",
+	"files" : [
+		"dist/*",
+		"README.md",
+		"LICENSE.txt",
+		"tsconfig.json"
+	],
+	"devDependencies" : {
+		"typescript" : "5.3.3",
+		"@tutao/otest" : "220.240403.0"
+	}
+}
