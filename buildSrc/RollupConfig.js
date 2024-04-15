@@ -24,6 +24,8 @@ export const dependencyMap = {
  */
 export const allowedImports = {
 	"polyfill-helpers": [],
+	"wasm-fallback": [],
+	wasm: ["wasm-fallback"],
 	"common-min": ["polyfill-helpers"],
 	boot: ["polyfill-helpers", "common-min"],
 	common: ["polyfill-helpers", "common-min"],
@@ -39,7 +41,7 @@ export const allowedImports = {
 	contacts: ["polyfill-helpers", "common-min", "common", "boot", "gui-base", "main", "mail-view", "date", "date-gui", "mail-editor"],
 	"calendar-view": ["polyfill-helpers", "common-min", "common", "boot", "gui-base", "main", "date", "date-gui", "sharing"],
 	login: ["polyfill-helpers", "common-min", "common", "boot", "gui-base", "main"],
-	worker: ["polyfill-helpers", "common-min", "common", "native-common", "native-worker"],
+	worker: ["polyfill-helpers", "common-min", "common", "native-common", "native-worker", "wasm", "wasm-fallback"],
 	settings: [
 		"polyfill-helpers",
 		"common-min",
@@ -156,6 +158,10 @@ export function getChunkName(moduleId, { getModuleInfo }) {
 		return "main"
 	} else if (isIn("src/mail/view") || isIn("src/mail/export")) {
 		return "mail-view"
+	} else if (moduleId.includes("wasm-gen-fallback")) {
+		return "wasm"
+	} else if (moduleId.includes("wasm-bin-fallback")) {
+		return "wasm-fallback"
 	} else if (isIn("src/native/worker")) {
 		return "worker"
 	} else if (isIn("src/native/common")) {
@@ -297,6 +303,7 @@ export function bundleDependencyCheckPlugin() {
 					}
 					const ownChunk = getChunkName(moduleId, { getModuleInfo })
 					if (!allowedImports[ownChunk]) {
+						console.log("Adding unknown chunk 1 ", ownChunk, moduleId)
 						unknownChunks.push(`${ownChunk} of ${moduleId}`)
 					}
 
@@ -307,6 +314,7 @@ export function bundleDependencyCheckPlugin() {
 						}
 						const importedChunk = getChunkName(importedId, { getModuleInfo })
 						if (!allowedImports[importedChunk]) {
+							console.log("Adding unknown chunk 2", importedChunk, moduleId)
 							unknownChunks.push(`${importedChunk} of ${importedId}`)
 						}
 						if (ownChunk !== importedChunk && !allowedImports[ownChunk]?.includes(importedChunk)) {

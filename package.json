@@ -87,7 +87,6 @@
 		"electron-packager": "17.1.2",
 		"esbuild": "0.17.15",
 		"esbuild-plugin-alias-path": "2.0.2",
-		"esbuild-plugin-wat": "^0.2.7",
 		"eslint": "8.44.0",
 		"eslint-config-prettier": "8.8.0",
 		"eslint-plugin-unicorn": "47.0.0",

@@ -7,9 +7,9 @@ import { getTutanotaAppVersion, runStep, writeFile } from "../buildSrc/buildUtil
 import { aliasPath as esbuildPluginAliasPath } from "esbuild-plugin-alias-path"
 import { libDeps, preludeEnvPlugin, sqliteNativePlugin } from "../buildSrc/esbuildUtils.js"
 import { buildPackages } from "../buildSrc/packageBuilderFunctions.js"
-import watPlugin from "esbuild-plugin-wat"
 import { domainConfigs } from "../buildSrc/DomainConfigs.js"
 import { sh } from "../buildSrc/sh.js"
+import { esbuildWasmLoader } from "@tutao/tuta-wasm-loader"
 
 export async function runTestBuild({ clean, fast = false }) {
 	if (clean) {
@@ -123,8 +123,18 @@ export async function runTestBuild({ clean, fast = false }) {
 					architecture: process.arch,
 					nativeBindingPath: path.resolve("../node_modules/better-sqlite3/build/Release/better_sqlite3.node"),
 				}),
-				watPlugin({
-					loader: "file",
+				esbuildWasmLoader({
+					optimizationLevel: "O3",
+					webassemblyLibraries: [
+						{
+							name: "liboqs.wasm",
+							makefilePath: "../libs/webassembly/Makefile_liboqs",
+						},
+						{
+							name: "argon2.wasm",
+							makefilePath: "../libs/webassembly/Makefile_argon2",
+						},
+					],
 				}),
 			],
 		})

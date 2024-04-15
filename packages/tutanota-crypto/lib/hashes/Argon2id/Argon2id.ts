@@ -22,13 +22,6 @@ export interface Argon2IDExports extends WASMExports {
 	): number
 }
 
-/*
- * @returns A promise that resolves on the JS Transpile of Liboqs
- */
-export async function getArgon2Fallback() {
-	return await import("./argon2.js")
-}
-
 /**
  * Create a 256-bit symmetric key from the given passphrase.
  * @param argon2 argon2 module exports

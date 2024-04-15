@@ -5,15 +5,11 @@ TOTAL_MEMORY=48MB
 
 CC=emcc
 WASM2JS=wasm2js
-WASM=../../packages/tutanota-crypto/lib/hashes/Argon2id/argon2.wasm
-WASM_JS_FALLBACK=../../packages/tutanota-crypto/lib/hashes/Argon2id/argon2.js
 ARGON2_DIR=phc-winner-argon2
 
-all: ${WASM}
 clean:
-	rm -f ${WASM}
-	rm -f ${WASM_JS_FALLBACK}
-${WASM}:
+	rm -f $(WASM)
+build:
 	${CC} \
     	"${ARGON2_DIR}/src/argon2.c" \
     	"${ARGON2_DIR}/src/core.c" \
@@ -26,8 +22,4 @@ ${WASM}:
     	--no-entry \
     	-s TOTAL_MEMORY=${TOTAL_MEMORY} \
     	-s EXPORTED_FUNCTIONS="['_argon2id_hash_raw', '_malloc', '_free']" \
-    	-o ${WASM}
-	${WASM2JS} \
-		${WASM} \
-		-O3 \
-		-o ${WASM_JS_FALLBACK}
+    	-o $(WASM)

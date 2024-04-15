@@ -35,13 +35,6 @@ export interface LibOQSExports extends WASMExports {
 	OQS_KEM_new(methodName: Ptr): Ptr
 }
 
-/*
- * @returns A promise that resolves on the JS Transpile of Liboqs
- */
-export async function getKyberFallback() {
-	return await import("./liboqs.js")
-}
-
 /**
  * @returns a new random kyber key pair.
  */

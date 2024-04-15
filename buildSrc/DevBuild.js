@@ -12,6 +12,7 @@ import { checkOfflineDatabaseMigrations } from "./checkOfflineDbMigratons.js"
 import { buildRuntimePackages } from "./packageBuilderFunctions.js"
 import { domainConfigs } from "./DomainConfigs.js"
 import { sh } from "./sh.js"
+import { esbuildWasmLoader } from "@tutao/tuta-wasm-loader"
 
 export async function runDevBuild({ stage, host, desktop, clean, ignoreMigrations }) {
 	if (clean) {
@@ -75,7 +76,23 @@ importScripts("./worker.js")
 				// See Env.ts for explanation
 				NO_THREAD_ASSERTIONS: "true",
 			},
-			plugins: [libDeps(), externalTranslationsPlugin()],
+			plugins: [
+				libDeps(),
+				externalTranslationsPlugin(),
+				esbuildWasmLoader({
+					optimizationLevel: "O3",
+					webassemblyLibraries: [
+						{
+							name: "liboqs.wasm",
+							makefilePath: "libs/webassembly/Makefile_liboqs",
+						},
+						{
+							name: "argon2.wasm",
+							makefilePath: "libs/webassembly/Makefile_argon2",
+						},
+					],
+				}),
+			],
 		})
 	})
 }
@@ -195,13 +212,13 @@ export async function prepareAssets(stage, host, version) {
 	])
 
 	const wasmDir = path.join(root, "/build/wasm")
-	await Promise.all([
-		await fs.emptyDir(wasmDir),
-		fs.copy(path.join(root, "/packages/tutanota-crypto/lib/hashes/Argon2id/argon2.wasm"), path.join(wasmDir, "argon2.wasm")),
-		fs.copy(path.join(root, "/packages/tutanota-crypto/lib/hashes/Argon2id/argon2.js"), path.join(wasmDir, "argon2.js")),
-		fs.copy(path.join(root, "/packages/tutanota-crypto/lib/encryption/Liboqs/liboqs.wasm"), path.join(wasmDir, "liboqs.wasm")),
-		fs.copy(path.join(root, "/packages/tutanota-crypto/lib/encryption/Liboqs/liboqs.js"), path.join(wasmDir, "liboqs.js")),
-	])
+	// await Promise.all([
+	// 	await fs.emptyDir(wasmDir),
+	// 	fs.copy(path.join(root, "/packages/tutanota-crypto/lib/hashes/Argon2id/argon2.wasm"), path.join(wasmDir, "argon2.wasm")),
+	// 	fs.copy(path.join(root, "/packages/tutanota-crypto/lib/hashes/Argon2id/argon2.js"), path.join(wasmDir, "argon2.js")),
+	// 	fs.copy(path.join(root, "/packages/tutanota-crypto/lib/encryption/Liboqs/liboqs.wasm"), path.join(wasmDir, "liboqs.wasm")),
+	// 	fs.copy(path.join(root, "/packages/tutanota-crypto/lib/encryption/Liboqs/liboqs.js"), path.join(wasmDir, "liboqs.js")),
+	// ])
 
 	// write empty file
 	await fs.writeFile("build/polyfill.js", "")
