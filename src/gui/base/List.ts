@@ -264,6 +264,20 @@ export class List<T, VH extends ViewHolder<T>> implements ClassComponent<ListAtt
 			}
 		}
 
+		// Handle highlighting the row when tabbed onto or out of
+		const onFocus = (focusType: "focus" | "blur") => {
+			return (e: FocusEvent) => {
+				const dom = e.target as HTMLElement | null
+				// Activate the background colour in `SelectableRowContainer`
+				// TODO: Transition to `state-bg`
+				if (dom && dom.firstElementChild) {
+					dom.firstElementChild?.dispatchEvent(new FocusEvent(focusType))
+				}
+			}
+		}
+		domElement.onfocus = onFocus("focus")
+		domElement.onblur = onFocus("blur")
+
 		domElement.ondragstart = (e: DragEvent) => {
 			// The quick change of the background color is to prevent a white background appearing in dark mode
 			if (row.domElement) row.domElement!.style.background = theme.navigation_bg
