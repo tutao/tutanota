@@ -48,7 +48,11 @@ export class SelectableRowContainer implements ClassComponent<SelectableRowConta
 				},
 				onblur: () => {
 					if (SelectableRowContainer.getIsUsingKeyboard()) {
-						this.setBackground(theme.list_bg)
+						if (this.selected && !styles.isSingleColumnLayout()) {
+							this.setBackground(stateBgHover)
+						} else {
+							this.setBackground(theme.list_bg)
+						}
 					}
 				},
 				onpointerdown: () => this.setBackground(stateBgActive),
