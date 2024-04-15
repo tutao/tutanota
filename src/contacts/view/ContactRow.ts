@@ -140,5 +140,7 @@ export class ContactRow implements VirtualRow<Contact> {
 		this.domAddress.style.paddingRight = padding
 		this.domName.style.paddingRight = padding
 		this.checkboxDom.style.transform = scale
+		// Stop the hidden checkbox from entering the tab index
+		if (!show) this.checkboxDom.style.display = "none"
 	}
 }
