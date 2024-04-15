@@ -93,6 +93,8 @@ export interface EntityRestInterface {
 
 	/**
 	 * Modifies a single element on the server. Entities are encrypted before they are sent.
+	 * @param instance
+	 * @param ownerKeyProvider Use the key provided by this to decrypt the existing ownerEncSessionKey instead of trying to resolve the owner key based on the ownerGroup.
 	 */
 	update<T extends SomeEntity>(instance: T, ownerKeyProvider?: OwnerKeyProvider): Promise<void>
 
