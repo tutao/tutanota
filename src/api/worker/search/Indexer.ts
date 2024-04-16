@@ -183,7 +183,7 @@ export class Indexer {
 				await this.createIndexTables(user, userGroupKey)
 			} else {
 				const userGroupKeyVersion = await transaction.get(MetaDataOS, Metadata.userGroupKeyVersion)
-				const userGroupKey = await keyLoaderFacade.loadSymUserGroupKey(userGroupKeyVersion)
+				const userGroupKey = await keyLoaderFacade.loadSymUserGroupKey(userGroupKeyVersion ?? 0)
 				await this.loadIndexTables(transaction, user, userGroupKey, userEncDbKey)
 			}
 
