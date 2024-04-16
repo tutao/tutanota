@@ -100,7 +100,9 @@ function addAdminGroupKeyVersion<T extends SomeEntity>(): Migration<T> {
 function removeKeyPairVersion<T extends SomeEntity>(): Migration<T> {
 	return function (entity) {
 		const currentKeys = entity["currentKeys"]
-		delete currentKeys["version"]
+		if (currentKeys) {
+			delete currentKeys["version"]
+		}
 		return entity
 	}
 }
