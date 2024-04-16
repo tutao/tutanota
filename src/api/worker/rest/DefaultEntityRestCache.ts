@@ -26,6 +26,7 @@ import { QueuedBatch } from "../EventQueue.js"
 import { ENTITY_EVENT_BATCH_EXPIRE_MS } from "../EventBusClient"
 import { CustomCacheHandlerMap } from "./CustomCacheHandler.js"
 import { containsEventOfType, EntityUpdateData, getEventOfType } from "../../common/utils/EntityUpdateUtils.js"
+import { isLegacyMail } from "../../common/MailWrapper.js"
 
 assertWorkerOrNode()
 
@@ -225,17 +226,29 @@ export class DefaultEntityRestCache implements EntityRestCache {
 	): Promise<T> {
 		const { listId, elementId } = expandId(id)
 
+		// if a specific version is requested we have to load again and do not want to store it in the cache
+		if (queryParameters?.version != null) {
+			return await this.entityRestClient.load(typeRef, id, queryParameters, extraHeaders, ownerKeyProvider)
+		}
+
 		const cachedEntity = await this.storage.get(typeRef, listId, elementId)
-		if (
-			queryParameters?.version != null || //if a specific version is requested we have to load again
-			cachedEntity == null
-		) {
+
+		if (cachedEntity == null) {
 			const entity = await this.entityRestClient.load(typeRef, id, queryParameters, extraHeaders, ownerKeyProvider)
-			if (queryParameters?.version == null && !isIgnoredType(typeRef)) {
+			if (!isIgnoredType(typeRef)) {
 				await this.storage.put(entity)
 			}
 			return entity
 		}
+
+		// we do NOT want to keep legacy mails (without mailDetails or without mailDetailsDraft) in the cache
+		// and therefore reload the already migrated mail from the server
+		if (isSameTypeRef(MailTypeRef, typeRef) && isLegacyMail(cachedEntity as Mail)) {
+			const entity = await this.entityRestClient.load(typeRef, id, queryParameters, extraHeaders, ownerKeyProvider)
+			await this.storage.put(entity)
+			return entity
+		}
+
 		return cachedEntity
 	}
 
@@ -327,9 +340,15 @@ export class DefaultEntityRestCache implements EntityRestCache {
 		const entitiesInCache: T[] = []
 		const idsToLoad: Id[] = []
 		for (let id of ids) {
-			const items = await this.storage.get(typeRef, listId, id)
-			if (items != null) {
-				entitiesInCache.push(items)
+			const cachedEntity = await this.storage.get(typeRef, listId, id)
+			if (cachedEntity != null) {
+				if (isSameTypeRef(MailTypeRef, typeRef) && isLegacyMail(cachedEntity as Mail)) {
+					// we do NOT want to keep legacy mails (without mailDetails or without mailDetailsDraft) in the cache
+					// and therefore reload the already migrated mail from the server
+					idsToLoad.push(id)
+				} else {
+					entitiesInCache.push(cachedEntity)
+				}
 			} else {
 				idsToLoad.push(id)
 			}
@@ -372,11 +391,34 @@ export class DefaultEntityRestCache implements EntityRestCache {
 				await this.extendTowardsRange(typeRef, listId, start, count, reverse)
 			}
 
-			return this.storage.provideFromRange(typeRef, listId, start, count, reverse)
+			const cachedEntities = await this.storage.provideFromRange(typeRef, listId, start, count, reverse)
+			if (isSameTypeRef(MailTypeRef, typeRef)) {
+				return this.reloadLegacyMailsIfNeeded(cachedEntities)
+			} else {
+				return cachedEntities
+			}
 		} finally {
 			// We unlock access to the "ranges" db here. We lock it in order to prevent race conditions when accessing the "ranges" database.
 			await this.storage.unlockRangesDbAccess(listId)
 		}
+	}
+
+	/**
+	 * take a list of mail entities and replace the legacy mail it contains with freshly loaded
+	 * versions from the server, updating them in the storage.
+	 *
+	 */
+	private reloadLegacyMailsIfNeeded<T>(cachedEntities: T[]) {
+		return Promise.all(
+			cachedEntities.map(async (entity) => {
+				const mail = entity as Mail
+				if (isLegacyMail(mail)) {
+					return (await this.load(MailTypeRef, mail._id)) as T
+				} else {
+					return mail as T
+				}
+			}),
+		)
 	}
 
 	/**
@@ -862,7 +904,7 @@ export function getUpdateInstanceId(update: EntityUpdate): { instanceListId: Id 
 }
 
 /**
- * Check if a range request begins inside of an existing range
+ * Check if a range request begins inside an existing range
  */
 function isStartIdWithinRange(range: Range, startId: Id): boolean {
 	return !firstBiggerThanSecond(startId, range.upper) && !firstBiggerThanSecond(range.lower, startId)
