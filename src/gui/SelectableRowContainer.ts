@@ -42,12 +42,12 @@ export class SelectableRowContainer implements ClassComponent<SelectableRowConta
 				},
 				// Highlight the row when it is tabbed into
 				onfocus: () => {
-					if (SelectableRowContainer.getIsUsingKeyboard()) {
+					if (SelectableRowContainer.isUsingKeyboard()) {
 						this.setBackground(stateBgActive)
 					}
 				},
 				onblur: () => {
-					if (SelectableRowContainer.getIsUsingKeyboard()) {
+					if (SelectableRowContainer.isUsingKeyboard()) {
 						if (this.selected && !styles.isSingleColumnLayout()) {
 							this.setBackground(stateBgHover)
 						} else {
@@ -68,12 +68,12 @@ export class SelectableRowContainer implements ClassComponent<SelectableRowConta
 		if (this.dom) this.dom.style.backgroundColor = color
 	}
 
-	private static getIsUsingKeyboard() {
+	private static isUsingKeyboard() {
 		return currentNavigationType === PrimaryNavigationType.Keyboard
 	}
 
 	private updateDomBg = () => {
-		const isUsingKeyboard = SelectableRowContainer.getIsUsingKeyboard()
+		const isUsingKeyboard = SelectableRowContainer.isUsingKeyboard()
 		// In the single column view, a row may be 'selected' by the URL still linking to a specific mail
 		// So do not highlight in that case but in just multiselect mode and keyboard navigation
 		const highlight = styles.isSingleColumnLayout() ? (this.isInMultiselect || isUsingKeyboard) && this.selected : this.selected
