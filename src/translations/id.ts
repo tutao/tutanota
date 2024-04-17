@@ -10,7 +10,7 @@ export default {
 		"other"
 	],
 	"created_at": "2015-04-07T07:56:36Z",
-	"updated_at": "2024-04-11T08:48:47Z",
+	"updated_at": "2024-04-16T07:58:43Z",
 	"source_locale": null,
 	"fallback_locale": null,
 	"keys": {
@@ -39,6 +39,7 @@ export default {
 		"addCalendar_action": "Tambahkan kalender",
 		"addCustomDomainAddresses_title": "Tambahkan alamat surel bagi domain custom Anda.",
 		"addCustomDomain_action": "Tambahkan domain custom",
+		"addDNSValue_label": "Tambah nilai baru",
 		"addEmailAlias_label": "Tambah alias surel",
 		"addEntry_label": "Tambahkan entri",
 		"addGroup_label": "Tambah grup",
@@ -661,6 +662,7 @@ export default {
 		"languageVietnamese_label": "Vietnam",
 		"languageWelsh_label": "Wales",
 		"language_label": "Bahasa",
+		"largeSignature_msg": "Tanda tangan yang Anda tentukan berukuran lebih dari {1}kB. Tanda tangan ini akan ditambahkan ke setiap email secara default. Apakah Anda tetap ingin menggunakannya?",
 		"lastAccess_label": "Akses terakhir",
 		"lastName_placeholder": "Nama belakang",
 		"laterInvoicingInfo_msg": "Info: Fitur tambahan yang dipesan tidak akan ditagihkan secara langsung, tapi pada permulaan bulan langganan berikutnya.",
@@ -1310,6 +1312,7 @@ export default {
 		"week_label": "Pekan",
 		"welcomeMailBody_markdown": "Selamat datang di layanan email Tuta yang aman, hijau, dan bebas iklan, terlindungi dengan enkripsi yang kuat. Tuta menjadikan peralihan dari layanan email lainnya menjadi mudah. Aplikasi kami yang intuitif untuk Android & IOS, serta aplikasi desktop di Windows, Mac OS, dan Linux memudahkan Anda untuk mengakses email dan kalender terproteksi Anda pada perangkat apapun - bahkan saat Anda sedang luring. Jika Anda masih memiliki alamat email lama, kami menyarankan Anda untuk mengatur penerusan otomatis (auto-forward) di alamat lama Anda dan perlahan memindahkan semua email dan kontak ke Tuta. Cek [di sini]({faqForwardLink}) untuk mempelajari bagaimana cara meneruskan email Anda ke Tuta. Setelah Anda memindahkan semua pesan penting ke Tuta, Anda dapat kembali menonaktifkan penerusan otomatis. Dengan demikian Anda akan memiliki email yang baik, bersih, dan bebas spam! **Tuta mengikuti 4 prinsip untuk menawarkan alternatif ramah privasi dari Big Tech.** 1. Tuta tidak melacak Anda. 2. Tuta tidak bisa memindai data Anda. 3. Tuta mengenkripsi seluruh email, kontak, dan kalender Anda.favorite 4. Tuta menerapkan privasi sejak awal. **Apa Anda sudah mencintai Tuta? Mohon beri bintang aplikasi Android & iOS kami!** Selamat datang di sisi terenkripsi!\\ Tim Tuta -- **Semua orang berhak atas privasi.** Anda dapat mendukung misi kami membawa privasi ke seluruh dunia dengan mengikuti kami di kanal media sosial favorit Anda dan dengan membagikan konten kami kepada teman dan rekan Anda. Bersama kita akan mengubah Internet menjadi lebih baik! *[LinkedIn]({linkedinLink}) *[Facebook]({facebookLink}) *[Mastodon]({mastodonLink}) *[Twitter]({twitterLink}) *[Reddit]({redditLink}) * [Instagram]({instagramLink}) * [YouTube]({youtubeLink}) Tuta bersifat sumber terbuka. [Anda dapat mengamati dan meninjau kode sumbernya di sini]({githubLink}).",
 		"welcomeMailSubject_msg": "Aman, hijau & bebas iklan!",
+		"whatIsPhishing_msg": "Apakah \"phising\" itu?",
 		"when_label": "Kapan",
 		"whitelabel.login_title": "Masuk ke situs sendiri",
 		"whitelabel.login_tooltip": "Tempatkan login Tuta di situs Anda untuk pegawai Anda.",

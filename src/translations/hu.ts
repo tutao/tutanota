@@ -11,7 +11,7 @@ export default {
 		"other"
 	],
 	"created_at": "2015-04-02T12:56:44Z",
-	"updated_at": "2024-04-11T08:48:47Z",
+	"updated_at": "2024-04-16T09:16:55Z",
 	"source_locale": null,
 	"fallback_locale": null,
 	"keys": {
@@ -579,6 +579,7 @@ export default {
 		"firstName_placeholder": "Keresztnév",
 		"firstReminderAutomatic_msg": "sajnos még nem kaptuk meg a számla összegét a Tuta számlájára. Ezért kérjük, hogy ellenőrizze fizetési adatait a 'Beállítások'->'Számlázás' menüpontban! További részletekért ezen a lapon ellenőrizheti a számláit is!",
 		"firstReminderSubject_msg": "Emlékeztető / megkésett fizetés",
+		"folderDepth_label": "{folderName}, {depth} rétegek mélyén.",
 		"folderNameInvalidExisting_msg": "Ugyanezzel a névvel már létezik egy mappa.",
 		"folderNameNeutral_msg": "Adja meg a mappa nevét.",
 		"folderName_label": "Név",
@@ -623,6 +624,7 @@ export default {
 		"globalAdmin_label": "Teljes körű adminisztrátor",
 		"globalSettings_label": "Általános beállítások",
 		"goPremium_msg": "Fizető felhasználóként a bal oldali menüben beállíthatja a keresési szűrőket.",
+		"grantContactPermissionAction": "Engedély megadása a kapcsolatokhoz való hozzáféréshez",
 		"granted_msg": "Megadva",
 		"grant_battery_permission_action": "Kapcsolja ki az akkumulátor optimalizálását!",
 		"grant_notification_permission_action": "Értesítési Engedély megadása",
@@ -712,7 +714,7 @@ export default {
 		"invalidTimePeriod_msg": "A bevitt időszak érvénytelen.",
 		"invalidVatIdNumber_msg": "Az általános forgalmi adó azonosítószáma (VAT-ID) érvénytelen.",
 		"invalidVatIdValidationFailed_msg": "Nem sikerült az ÁFA szám hitelesítése. Kérjük, próbálja újra később!",
-		"invitationMailBody_msg": "Üdvözlöm!<br><br>A Tutanotára váltottam, a világ legbiztonságosabb, könnyen használható, nyilt forráskódú és eleve titkosra tervezett szolgáltatására. Reklámmentes és 100%-ban megújuló energiát használ.\n <br><br>Most pedig szeretném meghívni Önt is a Tutára! Ha az én személyes meghívó linkemmel regisztrál, akkor egy további ingyenes hónapot kap bármelyik éves előfizetéséhez:<br>{registrationLink} <br><br><br> Üdvözlettel:<br>{username} <br><br> Ui: Ingyenes tagságot is kap, és később frissíthet.",
+		"invitationMailBody_msg": "Üdvözlöm!<br><br>A Tutára váltottam, a világ legbiztonságosabb, könnyen használható, nyilt forráskódú és eleve titkosra tervezett szolgáltatására. Reklámmentes és 100%-ban megújuló energiát használ.\n <br><br>Most pedig szeretném meghívni Önt is a Tutára! Ha az én személyes meghívó linkemmel regisztrál, akkor egy további ingyenes hónapot kap bármelyik éves előfizetéséhez:<br>{registrationLink} <br><br><br> Üdvözlettel:<br>{username} <br><br> Ui: Ingyenes tagságot is kap, és később frissíthet.",
 		"invitationMailSubject_msg": "Az új email címem - csatlakozzon a Tutához, hogy visszavehessük a privát-szféránkat!",
 		"invitation_label": "Meghívó",
 		"invitedToEvent_msg": "Meghívást kapott, hogy vegyen részt ezen az eseményen. Szeretne részt venni?",

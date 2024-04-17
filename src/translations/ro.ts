@@ -12,7 +12,7 @@ export default {
 		"other"
 	],
 	"created_at": "2015-02-18T09:07:31Z",
-	"updated_at": "2024-04-11T08:48:47Z",
+	"updated_at": "2024-04-13T16:18:17Z",
 	"source_locale": {
 		"id": "fcd7471b347c8e517663e194dcddf237",
 		"name": "en",
@@ -585,6 +585,7 @@ export default {
 		"firstName_placeholder": "Prenume",
 		"firstReminderAutomatic_msg": "din păcate, nu am primit încă plata pentru contul tău Tuta. Prin urmare, te rugăm să verifici detaliile de plată in „Opțiuni” -> „Plată”. Pentru detalii suplimentare poți verifica facturile pe pagina respectivă.",
 		"firstReminderSubject_msg": "Reamintire / plată restantă",
+		"folderDepth_label": "{folderName}, nivelul {depth}.",
 		"folderNameInvalidExisting_msg": "Există deja un dosar cu acest nume.",
 		"folderNameNeutral_msg": "Introdu numele dosarului.",
 		"folderName_label": "Nume",
@@ -629,6 +630,7 @@ export default {
 		"globalAdmin_label": "Administrator global",
 		"globalSettings_label": "Opțiuni globale",
 		"goPremium_msg": "În calitate de utilizator cu plată, poți modifica filtrele de căutare din opțiuni, în stânga.",
+		"grantContactPermissionAction": "Permite accesul la contacte",
 		"granted_msg": "Acordată",
 		"grant_battery_permission_action": "Dezactivează optimizarea bateriei",
 		"grant_notification_permission_action": "Acordă permisiunea de notificare",
