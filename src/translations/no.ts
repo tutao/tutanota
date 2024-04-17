@@ -11,7 +11,7 @@ export default {
 		"other"
 	],
 	"created_at": "2015-04-10T11:48:14Z",
-	"updated_at": "2024-04-11T08:48:47Z",
+	"updated_at": "2024-04-12T11:43:39Z",
 	"source_locale": null,
 	"fallback_locale": null,
 	"keys": {
@@ -578,6 +578,7 @@ export default {
 		"firstName_placeholder": "Fornavn",
 		"firstReminderAutomatic_msg": "Dessverre så har vi ikke mottatt betalingen for Tuta-kontoen din ennå. Derfor ber vi deg bekrefte betalingsopplysningene dine i 'Innstillinger' -> 'Betaling'. \n\nFor ytterligere informasjon kan du også sjekke fakturaene dine der.",
 		"firstReminderSubject_msg": "Purring / forfalt betaling",
+		"folderDepth_label": "{folderName}, {depth} lag dype.",
 		"folderNameInvalidExisting_msg": "Det finnes allerede en mappe med det navnet.",
 		"folderNameNeutral_msg": "Skriv inn mappenavn.",
 		"folderName_label": "Navn",
@@ -622,6 +623,7 @@ export default {
 		"globalAdmin_label": "Global admin",
 		"globalSettings_label": "Globale innstillinger",
 		"goPremium_msg": "Som en betalende bruker kan du justere søkefiltrene i menyen til venstre.",
+		"grantContactPermissionAction": "Gi tillatelse til å få tilgang til kontakter",
 		"granted_msg": "Innvilget",
 		"grant_battery_permission_action": "Slå av batterioptimalisering",
 		"grant_notification_permission_action": "Gi varslingstillatelse",

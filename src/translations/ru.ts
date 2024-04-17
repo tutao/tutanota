@@ -13,7 +13,7 @@ export default {
 		"other"
 	],
 	"created_at": "2015-01-27T13:15:23Z",
-	"updated_at": "2024-04-11T08:48:47Z",
+	"updated_at": "2024-04-13T09:30:02Z",
 	"source_locale": {
 		"id": "fcd7471b347c8e517663e194dcddf237",
 		"name": "en",
@@ -583,6 +583,7 @@ export default {
 		"firstName_placeholder": "Имя",
 		"firstReminderAutomatic_msg": "К сожалению, мы ещё не получили оплату по вашей учётной записи. Поэтому мы просим вас проверить подробности платежа в «Настройки» -> «Оплата». Также на этой странице вы можете получить дополнительную информацию по счетам.",
 		"firstReminderSubject_msg": "Напоминание / просрочка платежа",
+		"folderDepth_label": "{folderName}, {depth} слоев в глубину.",
 		"folderNameInvalidExisting_msg": "У вас уже есть папка с таким названием.",
 		"folderNameNeutral_msg": "Пожалуйста, введите название папки.",
 		"folderName_label": "Имя",
