@@ -34,7 +34,7 @@ export type ModelAssociation = {
 	refType: string
 	final: boolean
 	/**
-	 * From which model we import this association from. Currently the field only exists for aggregates because they are only ones
+	 * From which model we import this association from. Currently, the field only exists for aggregates because they are only ones
 	 * which can be imported across models.
 	 */
 	dependency?: string | null
@@ -42,6 +42,7 @@ export type ModelAssociation = {
 
 export interface Instance extends Entity {
 	_ownerEncSessionKey: null | Uint8Array
+	_ownerKeyVersion: null | NumberString
 	_ownerGroup: null | Id
 	_id: Id | IdTuple
 }
@@ -52,16 +53,19 @@ export interface Entity {
 
 export interface ElementEntity extends Entity, Element {
 	_ownerEncSessionKey?: null | Uint8Array
+	_ownerKeyVersion?: null | NumberString
 	_ownerGroup: null | Id
 }
 
 export interface ListElementEntity extends Entity, ListElement {
 	_ownerEncSessionKey?: null | Uint8Array
+	_ownerKeyVersion?: null | NumberString
 	_ownerGroup: null | Id
 }
 
 export interface BlobElementEntity extends Entity, BlobElement {
 	_ownerEncSessionKey?: null | Uint8Array
+	_ownerKeyVersion?: null | NumberString
 	_ownerGroup: null | Id
 }
 

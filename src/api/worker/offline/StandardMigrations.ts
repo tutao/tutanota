@@ -2,6 +2,7 @@ import { OfflineStorage } from "./OfflineStorage.js"
 import { modelInfos } from "../../common/EntityFunctions.js"
 import { typedKeys, TypeRef } from "@tutao/tutanota-utils"
 import { ElementEntity, ListElementEntity, SomeEntity } from "../../common/EntityTypes.js"
+import { ProgrammingError } from "../../common/error/ProgrammingError.js"
 
 export async function migrateAllListElements<T extends ListElementEntity>(typeRef: TypeRef<T>, storage: OfflineStorage, migrations: Array<Migration<T>>) {
 	let entities = await storage.getListElementsOfType(typeRef)
@@ -37,9 +38,23 @@ export function renameAttribute<T extends SomeEntity>(oldName: string, newName: 
 	}
 }
 
+export function addOwnerKeyVersion<T extends SomeEntity>(): Migration<T> {
+	return function (entity) {
+		entity["_ownerKeyVersion"] = entity["_ownerEncSessionKey"] == null ? null : "0"
+		return entity
+	}
+}
+
 export function removeValue<T extends SomeEntity>(valueName: string): Migration<T> {
 	return function (entity) {
 		delete entity[valueName as keyof T]
+		return entity
+	}
+}
+
+export function addValue<T extends SomeEntity>(valueName: keyof T, value: any): Migration<T> {
+	return function (entity) {
+		entity[valueName] = value
 		return entity
 	}
 }
@@ -48,6 +63,24 @@ export function booleanToNumberValue<T extends SomeEntity>(attribute: string): M
 	return function (entity) {
 		// same default value mapping as in the tutadb migration
 		entity[attribute] = (entity[attribute] ? "1" : "0") as unknown as T[keyof T]
+		return entity
+	}
+}
+
+export function changeCardinalityFromAnyToZeroOrOne<T extends SomeEntity>(attribute: keyof T): Migration<T> {
+	return function (entity) {
+		const value = entity[attribute]
+		if (!Array.isArray(value)) {
+			throw new ProgrammingError("Can only migrate from cardinality ANY.")
+		}
+		const length = value.length
+		if (length === 0) {
+			entity[attribute] = null
+		} else if (length === 1) {
+			entity[attribute] = value[0]
+		} else {
+			throw new ProgrammingError(`not possible to migrate ANY to ZERO_OR_ONE with array length > 1. actual length: ${length}`)
+		}
 		return entity
 	}
 }

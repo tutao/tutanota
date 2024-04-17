@@ -35,6 +35,7 @@ import { shouldShowStorageWarning, shouldShowUpgradeReminder } from "./PostLogin
 import { UserManagementFacade } from "../api/worker/facades/lazy/UserManagementFacade.js"
 import { CustomerFacade } from "../api/worker/facades/lazy/CustomerFacade.js"
 import { deviceConfig } from "../misc/DeviceConfig"
+import { LoginFacade } from "../api/worker/facades/LoginFacade.js"
 
 /**
  * This is a collection of all things that need to be initialized/global state to be set after a user has logged in successfully.
@@ -51,6 +52,7 @@ export class PostLoginActions implements PostLoginAction {
 		private readonly userManagementFacade: UserManagementFacade,
 		private readonly customerFacade: CustomerFacade,
 		private readonly showSetupWizard: () => unknown,
+		private readonly loginFacade: LoginFacade,
 	) {}
 
 	async onPartialLoginSuccess(loggedInEvent: LoggedInEvent): Promise<void> {
@@ -134,6 +136,7 @@ export class PostLoginActions implements PostLoginAction {
 			const calendarModel = await locator.calendarModel()
 			await calendarModel.init()
 			await this.remindActiveOutOfOfficeNotification()
+			await this.loginFacade.rotateKeysIfNeeded()
 		}
 
 		if (isApp() || isDesktop()) {

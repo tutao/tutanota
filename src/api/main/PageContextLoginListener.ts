@@ -26,13 +26,6 @@ export class PageContextLoginListener implements LoginListener {
 	}
 
 	/**
-	 * Partial login reached: cached entities and user are available.
-	 */
-	onPartialLoginSuccess(): Promise<void> {
-		return Promise.resolve()
-	}
-
-	/**
 	 * Full login reached: any network requests can be made
 	 */
 	async onFullLoginSuccess(): Promise<void> {

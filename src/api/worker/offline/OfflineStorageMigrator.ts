@@ -12,6 +12,8 @@ import { sys91 } from "./migrations/sys-v91.js"
 import { sys90 } from "./migrations/sys-v90.js"
 import { tutanota64 } from "./migrations/tutanota-v64.js"
 import { tutanota67 } from "./migrations/tutanota-v67.js"
+import { sys96 } from "./migrations/sys-v96.js"
+import { tutanota69 } from "./migrations/tutanota-v69.js"
 
 export interface OfflineMigration {
 	readonly app: VersionMetadataBaseKey
@@ -26,7 +28,18 @@ export interface OfflineMigration {
  * Normally you should only add them to the end of the list but with offline ones it can be a bit tricky since they change the db structure itself so sometimes
  * they should rather be in the beginning.
  */
-export const OFFLINE_STORAGE_MIGRATIONS: ReadonlyArray<OfflineMigration> = [sys90, tutanota64, sys91, tutanota65, sys92, tutanota66, sys94, tutanota67]
+export const OFFLINE_STORAGE_MIGRATIONS: ReadonlyArray<OfflineMigration> = [
+	sys90,
+	tutanota64,
+	sys91,
+	tutanota65,
+	sys92,
+	tutanota66,
+	sys94,
+	tutanota67,
+	sys96,
+	tutanota69,
+]
 
 const CURRENT_OFFLINE_VERSION = 1
 

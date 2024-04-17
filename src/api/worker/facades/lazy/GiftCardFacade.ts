@@ -11,14 +11,15 @@ import {
 } from "@tutao/tutanota-utils"
 import type { GiftCardRedeemGetReturn } from "../../../entities/sys/TypeRefs.js"
 import { createGiftCardCreateData, createGiftCardRedeemData, GiftCard } from "../../../entities/sys/TypeRefs.js"
-import { aes256RandomKey, base64ToKey, bitArrayToUint8Array, encryptKey, sha256Hash } from "@tutao/tutanota-crypto"
+import { aes256RandomKey, base64ToKey, bitArrayToUint8Array, sha256Hash } from "@tutao/tutanota-crypto"
 import { IServiceExecutor } from "../../../common/ServiceRequest.js"
 import { GiftCardRedeemService, GiftCardService } from "../../../entities/sys/Services.js"
 import { elementIdPart, GENERATED_MAX_ID } from "../../../common/utils/EntityUtils.js"
-import { CryptoFacade } from "../../crypto/CryptoFacade.js"
+import { CryptoFacade, encryptKeyWithVersionedKey } from "../../crypto/CryptoFacade.js"
 import { UserFacade } from "../UserFacade.js"
 import { ProgrammingError } from "../../../common/error/ProgrammingError.js"
 import { CustomerFacade } from "./CustomerFacade.js"
+import { KeyLoaderFacade } from "../KeyLoaderFacade.js"
 
 const ID_LENGTH = GENERATED_MAX_ID.length
 const KEY_LENGTH_128_BIT_B64 = 24
@@ -30,6 +31,7 @@ export class GiftCardFacade {
 		private customer: CustomerFacade,
 		private readonly serviceExecutor: IServiceExecutor,
 		private readonly cryptoFacade: CryptoFacade,
+		private readonly keyLoaderFacade: KeyLoaderFacade,
 	) {}
 
 	async generateGiftCard(message: string, value: NumberString): Promise<IdTuple> {
@@ -39,16 +41,19 @@ export class GiftCardFacade {
 			throw new Error("missing admin membership")
 		}
 
-		const ownerKey = this.user.getGroupKey(getFirstOrThrow(adminGroupIds)) // adminGroupKey
+		const adminGroupId = getFirstOrThrow(adminGroupIds)
+		const ownerKey = await this.keyLoaderFacade.getCurrentSymGroupKey(adminGroupId)
 
 		const sessionKey = aes256RandomKey()
+		const ownerEncSessionKey = encryptKeyWithVersionedKey(ownerKey, sessionKey)
 		const { giftCard } = await this.serviceExecutor.post(
 			GiftCardService,
 			createGiftCardCreateData({
 				message: message,
 				keyHash: sha256Hash(bitArrayToUint8Array(sessionKey)),
 				value,
-				ownerEncSessionKey: encryptKey(ownerKey, sessionKey),
+				ownerEncSessionKey: ownerEncSessionKey.key,
+				ownerKeyVersion: ownerEncSessionKey.encryptingKeyVersion.toString(),
 			}),
 			{ sessionKey },
 		)

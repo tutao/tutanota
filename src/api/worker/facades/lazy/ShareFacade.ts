@@ -1,5 +1,5 @@
 import type { CryptoFacade } from "../../crypto/CryptoFacade.js"
-import { encryptBytes, encryptString } from "../../crypto/CryptoFacade.js"
+import { encryptBytes, encryptKeyWithVersionedKey, encryptString } from "../../crypto/CryptoFacade.js"
 import type { GroupInfo, ReceivedGroupInvitation } from "../../../entities/sys/TypeRefs.js"
 import { GroupInfoTypeRef } from "../../../entities/sys/TypeRefs.js"
 import type { ShareCapability } from "../../../common/TutanotaConstants.js"
@@ -19,6 +19,7 @@ import { IServiceExecutor } from "../../../common/ServiceRequest.js"
 import { GroupInvitationService } from "../../../entities/tutanota/Services.js"
 import { UserFacade } from "../UserFacade.js"
 import { EntityClient } from "../../../common/EntityClient.js"
+import { KeyLoaderFacade } from "../KeyLoaderFacade.js"
 
 assertWorkerOrNode()
 
@@ -28,6 +29,7 @@ export class ShareFacade {
 		private readonly cryptoFacade: CryptoFacade,
 		private readonly serviceExecutor: IServiceExecutor,
 		private readonly entityClient: EntityClient,
+		private readonly keyLoaderFacade: KeyLoaderFacade,
 	) {}
 
 	async sendGroupInvitation(
@@ -36,22 +38,25 @@ export class ShareFacade {
 		recipientMailAddresses: Array<string>,
 		shareCapability: ShareCapability,
 	): Promise<GroupInvitationPostReturn> {
-		const sharedGroupKey = this.userFacade.getGroupKey(sharedGroupInfo.group)
+		const sharedGroupKey = await this.keyLoaderFacade.getCurrentSymGroupKey(sharedGroupInfo.group)
 		const userGroupInfo = await this.entityClient.load(GroupInfoTypeRef, this.userFacade.getLoggedInUser().userGroup.groupInfo)
 
 		const userGroupInfoSessionKey = await this.cryptoFacade.resolveSessionKeyForInstance(userGroupInfo)
 		const sharedGroupInfoSessionKey = await this.cryptoFacade.resolveSessionKeyForInstance(sharedGroupInfo)
 		const bucketKey = aes256RandomKey()
 		const invitationSessionKey = aes256RandomKey()
+		const sharedGroupEncInviterGroupInfoKey = encryptKeyWithVersionedKey(sharedGroupKey, neverNull(userGroupInfoSessionKey))
+		const sharedGroupEncSharedGroupInfoKey = encryptKeyWithVersionedKey(sharedGroupKey, neverNull(sharedGroupInfoSessionKey))
 		const sharedGroupData = createSharedGroupData({
 			sessionEncInviterName: encryptString(invitationSessionKey, userGroupInfo.name),
-			sessionEncSharedGroupKey: encryptBytes(invitationSessionKey, bitArrayToUint8Array(sharedGroupKey)),
+			sessionEncSharedGroupKey: encryptBytes(invitationSessionKey, bitArrayToUint8Array(sharedGroupKey.object)),
 			sessionEncSharedGroupName: encryptString(invitationSessionKey, sharedGroupName),
 			bucketEncInvitationSessionKey: encryptKey(bucketKey, invitationSessionKey),
-			sharedGroupEncInviterGroupInfoKey: encryptKey(sharedGroupKey, neverNull(userGroupInfoSessionKey)),
-			sharedGroupEncSharedGroupInfoKey: encryptKey(sharedGroupKey, neverNull(sharedGroupInfoSessionKey)),
 			capability: shareCapability,
 			sharedGroup: sharedGroupInfo.group,
+			sharedGroupEncInviterGroupInfoKey: sharedGroupEncInviterGroupInfoKey.key,
+			sharedGroupEncSharedGroupInfoKey: sharedGroupEncSharedGroupInfoKey.key,
+			sharedGroupKeyVersion: sharedGroupEncSharedGroupInfoKey.encryptingKeyVersion.toString(),
 		})
 		const invitationData = createGroupInvitationPostData({
 			sharedGroupData,
@@ -76,11 +81,16 @@ export class ShareFacade {
 	async acceptGroupInvitation(invitation: ReceivedGroupInvitation): Promise<void> {
 		const userGroupInfo = await this.entityClient.load(GroupInfoTypeRef, this.userFacade.getLoggedInUser().userGroup.groupInfo)
 		const userGroupInfoSessionKey = await this.cryptoFacade.resolveSessionKeyForInstance(userGroupInfo)
-		const sharedGroupKey = uint8ArrayToBitArray(invitation.sharedGroupKey)
+		const sharedGroupKey = { object: uint8ArrayToBitArray(invitation.sharedGroupKey), version: Number(invitation.sharedGroupKeyVersion) }
+		const userGroupKey = this.userFacade.getCurrentUserGroupKey()
+		const userGroupEncGroupKey = encryptKeyWithVersionedKey(userGroupKey, sharedGroupKey.object)
+		const sharedGroupEncInviteeGroupInfoKey = encryptKeyWithVersionedKey(sharedGroupKey, neverNull(userGroupInfoSessionKey))
 		const serviceData = createGroupInvitationPutData({
 			receivedInvitation: invitation._id,
-			userGroupEncGroupKey: encryptKey(this.userFacade.getUserGroupKey(), sharedGroupKey),
-			sharedGroupEncInviteeGroupInfoKey: encryptKey(sharedGroupKey, neverNull(userGroupInfoSessionKey)),
+			userGroupEncGroupKey: userGroupEncGroupKey.key,
+			sharedGroupEncInviteeGroupInfoKey: sharedGroupEncInviteeGroupInfoKey.key,
+			userGroupKeyVersion: userGroupEncGroupKey.encryptingKeyVersion.toString(),
+			sharedGroupKeyVersion: sharedGroupEncInviteeGroupInfoKey.encryptingKeyVersion.toString(),
 		})
 		await this.serviceExecutor.put(GroupInvitationService, serviceData)
 	}

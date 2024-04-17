@@ -1,7 +1,7 @@
 import { TypeRef } from "@tutao/tutanota-utils"
 import { assertMainOrNode } from "./Env.js"
 import type { Entity } from "./EntityTypes.js"
-import { Aes128Key } from "@tutao/tutanota-crypto"
+import { Aes128Key, AesKey } from "@tutao/tutanota-crypto"
 import { SuspensionBehavior } from "../worker/rest/RestClient"
 
 assertMainOrNode()
@@ -56,7 +56,7 @@ export interface IServiceExecutor {
 
 export interface ExtraServiceParams {
 	queryParams?: Dict
-	sessionKey?: Aes128Key
+	sessionKey?: AesKey
 	extraHeaders?: Dict
 	suspensionBehavior?: SuspensionBehavior
 	/** override origin for the request */

@@ -10,6 +10,7 @@ import {
 	aes256RandomKey,
 	aesDecrypt,
 	aesEncrypt,
+	AesKey,
 	base64ToKey,
 	decryptKey,
 	random,
@@ -37,13 +38,13 @@ const seed = () => {
 seed()
 
 export interface CryptoFunctions {
-	aesEncrypt(key: Aes128Key | Aes256Key, bytes: Uint8Array, iv?: Uint8Array, usePadding?: boolean, useMac?: boolean): Uint8Array
+	aesEncrypt(key: AesKey, bytes: Uint8Array, iv?: Uint8Array, usePadding?: boolean, useMac?: boolean): Uint8Array
 
-	aesDecrypt(key: Aes128Key | Aes256Key, encryptedBytes: Uint8Array, usePadding: boolean): Uint8Array
+	aesDecrypt(key: AesKey, encryptedBytes: Uint8Array, usePadding: boolean): Uint8Array
 
 	unauthenticatedAesDecrypt(key: Aes256Key, encryptedBytes: Uint8Array, usePadding: boolean): Uint8Array
 
-	decryptKey(encryptionKey: Aes128Key | Aes256Key, key: Uint8Array): Aes128Key | Aes256Key
+	decryptKey(encryptionKey: AesKey, key: Uint8Array): AesKey
 
 	bytesToKey(bytes: Uint8Array): BitArray
 
@@ -55,12 +56,12 @@ export interface CryptoFunctions {
 
 	aes256RandomKey(): Aes256Key
 
-	decryptAndMapToInstance<T>(model: TypeModel, instance: Record<string, any>, sk: Aes128Key | null): Promise<T>
+	decryptAndMapToInstance<T>(model: TypeModel, instance: Record<string, any>, sk: AesKey | null): Promise<T>
 }
 
 const mapper = new InstanceMapper()
 export const cryptoFns: CryptoFunctions = {
-	aesEncrypt(key: Aes128Key | Aes256Key, bytes: Uint8Array, iv?: Uint8Array, usePadding?: boolean, useMac?: boolean): Uint8Array {
+	aesEncrypt(key: AesKey, bytes: Uint8Array, iv?: Uint8Array, usePadding?: boolean, useMac?: boolean): Uint8Array {
 		return aesEncrypt(key, bytes, iv, usePadding, useMac)
 	},
 
@@ -72,7 +73,7 @@ export const cryptoFns: CryptoFunctions = {
 		return unauthenticatedAesDecrypt(key, encryptedBytes, usePadding)
 	},
 
-	decryptKey(encryptionKey: Aes128Key | Aes256Key, key: Uint8Array): Aes128Key | Aes256Key {
+	decryptKey(encryptionKey: AesKey, key: Uint8Array): AesKey {
 		return decryptKey(encryptionKey, key)
 	},
 
@@ -105,7 +106,7 @@ export const cryptoFns: CryptoFunctions = {
 		return aes256RandomKey()
 	},
 
-	decryptAndMapToInstance<T>(model: TypeModel, instance: Record<string, any>, sk: Aes128Key | null): Promise<T> {
+	decryptAndMapToInstance<T>(model: TypeModel, instance: Record<string, any>, sk: AesKey | null): Promise<T> {
 		return mapper.decryptAndMapToInstance(model, instance, sk)
 	},
 }

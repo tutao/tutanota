@@ -3,7 +3,7 @@ import { base64ToUint8Array } from "@tutao/tutanota-utils"
 import { aes256DecryptWithRecoveryKey, decryptKey, decryptRsaKey, encryptKey, encryptRsaKey } from "../lib/encryption/KeyEncryption.js"
 import { hexToRsaPrivateKey } from "../lib/encryption/Rsa.js"
 import { bitArrayToUint8Array, fixedIv, uint8ArrayToBitArray } from "../lib/misc/Utils.js"
-import { aes128RandomKey, aes256RandomKey } from "../lib/encryption/Aes.js"
+import { _aes128RandomKey, aes256RandomKey } from "../lib/encryption/Aes.js"
 import { aes256EncryptLegacy } from "./AesTest.js"
 
 o.spec("key encryption", function () {
@@ -48,7 +48,7 @@ o.spec("key encryption", function () {
 	})
 
 	o("encrypt / decrypt legacy recovery code with fixed iv aes256", function () {
-		const key = aes128RandomKey()
+		const key = _aes128RandomKey()
 		const encryptionKey = aes256RandomKey()
 
 		const encryptedKey = aes256EncryptLegacy(encryptionKey, bitArrayToUint8Array(key), fixedIv, false, false).slice(fixedIv.length)
@@ -58,7 +58,7 @@ o.spec("key encryption", function () {
 	})
 
 	o("encrypt / decrypt legacy recovery code without fixed iv aes256", function () {
-		const key = aes128RandomKey()
+		const key = _aes128RandomKey()
 		const encryptionKey = aes256RandomKey()
 
 		const encryptedKey = encryptKey(encryptionKey, key)

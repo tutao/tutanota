@@ -17,4 +17,5 @@ export const Metadata = {
 	encDbIv: "encDbIv",
 	// server timestamp of the last time we indexed on this client, in millis
 	lastEventIndexTimeMs: "lastEventIndexTimeMs",
+	userGroupKeyVersion: "userGroupKeyVersion",
 }

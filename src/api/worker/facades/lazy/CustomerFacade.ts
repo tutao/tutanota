@@ -1,5 +1,15 @@
-import type { InvoiceData, PaymentData, SpamRuleFieldType, SpamRuleType } from "../../../common/TutanotaConstants.js"
-import { AccountType, BookingItemFeatureType, Const, CounterType, CryptoProtocolVersion, GroupType } from "../../../common/TutanotaConstants.js"
+import {
+	AccountType,
+	BookingItemFeatureType,
+	Const,
+	CounterType,
+	CryptoProtocolVersion,
+	GroupType,
+	InvoiceData,
+	PaymentData,
+	SpamRuleFieldType,
+	SpamRuleType,
+} from "../../../common/TutanotaConstants.js"
 import {
 	AccountingInfo,
 	AccountingInfoTypeRef,
@@ -23,8 +33,16 @@ import {
 import { assertWorkerOrNode } from "../../../common/Env.js"
 import type { Hex, lazyAsync } from "@tutao/tutanota-utils"
 import { assertNotNull, neverNull, noOp, ofClass, stringToUtf8Uint8Array, uint8ArrayToBase64, uint8ArrayToHex } from "@tutao/tutanota-utils"
-import { CryptoFacade } from "../../crypto/CryptoFacade.js"
-import { createCustomerAccountCreateData } from "../../../entities/tutanota/TypeRefs.js"
+import { CryptoFacade, encryptKeyWithVersionedKey, VersionedEncryptedKey, VersionedKey } from "../../crypto/CryptoFacade.js"
+import {
+	BrandingDomainService,
+	CreateCustomerServerProperties,
+	CustomDomainService,
+	InvoiceDataService,
+	MembershipService,
+	PaymentDataService,
+	SystemKeysService,
+} from "../../../entities/sys/Services.js"
 import type { UserManagementFacade } from "./UserManagementFacade.js"
 import type { GroupManagementFacade } from "./GroupManagementFacade.js"
 import { CounterFacade } from "./CounterFacade.js"
@@ -32,7 +50,7 @@ import type { Country } from "../../../common/CountryList.js"
 import { getByAbbreviation } from "../../../common/CountryList.js"
 import { LockedError } from "../../../common/error/RestError.js"
 import type { PQKeyPairs } from "@tutao/tutanota-crypto"
-import { aes256RandomKey, bitArrayToUint8Array, encryptKey, hexToRsaPublicKey, sha256Hash, uint8ArrayToBitArray } from "@tutao/tutanota-crypto"
+import { aes256RandomKey, bitArrayToUint8Array, hexToRsaPublicKey, sha256Hash, uint8ArrayToBitArray } from "@tutao/tutanota-crypto"
 import type { RsaImplementation } from "../../crypto/RsaImplementation.js"
 import { EntityClient } from "../../../common/EntityClient.js"
 import { DataFile } from "../../../common/DataFile.js"
@@ -46,16 +64,9 @@ import { formatNameAndAddress } from "../../../common/utils/CommonFormatter.js"
 import { PQFacade } from "../PQFacade.js"
 import { ProgrammingError } from "../../../common/error/ProgrammingError.js"
 import { getWhitelabelDomainInfo } from "../../../common/utils/CustomerUtils.js"
-import {
-	BrandingDomainService,
-	CreateCustomerServerProperties,
-	CustomDomainService,
-	InvoiceDataService,
-	MembershipService,
-	PaymentDataService,
-	SystemKeysService,
-} from "../../../entities/sys/Services.js"
 import type { PdfWriter } from "../../pdf/PdfWriter.js"
+import { createCustomerAccountCreateData } from "../../../entities/tutanota/TypeRefs.js"
+import { KeyLoaderFacade } from "../KeyLoaderFacade.js"
 
 assertWorkerOrNode()
 
@@ -73,6 +84,7 @@ export class CustomerFacade {
 		private readonly operationProgressTracker: ExposedOperationProgressTracker,
 		private readonly pdfWriter: lazyAsync<PdfWriter>,
 		private readonly pqFacade: PQFacade,
+		private readonly keyLoaderFacade: KeyLoaderFacade,
 	) {}
 
 	async getDomainValidationRecord(domainName: string): Promise<string> {
@@ -117,7 +129,14 @@ export class CustomerFacade {
 		const pubRsaKey = keyData.systemAdminPubRsaKey
 		const pubEccKey = keyData.systemAdminPubEccKey
 		const pubKyberKey = keyData.systemAdminPubKyberKey
-		const systemAdminPubKeys = { pubEccKey, pubKyberKey, pubRsaKey }
+		const systemAdminPubKeys = {
+			object: {
+				pubEccKey,
+				pubKyberKey,
+				pubRsaKey,
+			},
+			version: Number(keyData.systemAdminPubKeyVersion),
+		}
 		const { pubEncSymKey, cryptoProtocolVersion } = await this.cryptoFacade.encryptPubSymKey(
 			sessionKey,
 			systemAdminPubKeys,
@@ -127,6 +146,7 @@ export class CustomerFacade {
 		const data = createBrandingDomainData({
 			domain: domainName,
 			systemAdminPubEncSessionKey: pubEncSymKey,
+			systemAdminPubKeyVersion: String(systemAdminPubKeys.version),
 			systemAdminPublicProtocolVersion: cryptoProtocolVersion,
 			sessionEncPemPrivateKey: null,
 			sessionEncPemCertificateChain: null,
@@ -196,11 +216,13 @@ export class CustomerFacade {
 		} else {
 			// create properties
 			const sessionKey = aes256RandomKey()
-			const adminGroupKey = this.userFacade.getGroupKey(this.userFacade.getGroupId(GroupType.Admin))
+			const adminGroupId = this.userFacade.getGroupId(GroupType.Admin)
+			const adminGroupKey = await this.keyLoaderFacade.getCurrentSymGroupKey(adminGroupId)
 
-			const groupEncSessionKey = encryptKey(adminGroupKey, sessionKey)
+			const adminGroupEncSessionKey = encryptKeyWithVersionedKey(adminGroupKey, sessionKey)
 			const data = createCreateCustomerServerPropertiesData({
-				adminGroupEncSessionKey: groupEncSessionKey,
+				adminGroupEncSessionKey: adminGroupEncSessionKey.key,
+				adminGroupKeyVersion: adminGroupEncSessionKey.encryptingKeyVersion.toString(),
 			})
 			const returnData = await this.serviceExecutor.post(CreateCustomerServerProperties, data)
 			cspId = returnData.id
@@ -255,9 +277,9 @@ export class CustomerFacade {
 		registrationCode: string,
 		currentLanguage: string,
 	): Promise<Hex> {
-		const userGroupKey = aes256RandomKey()
-		const adminGroupKey = aes256RandomKey()
-		const customerGroupKey = aes256RandomKey()
+		const userGroupKey = { object: aes256RandomKey(), version: 0 }
+		const adminGroupKey = { object: aes256RandomKey(), version: 0 }
+		const customerGroupKey = { object: aes256RandomKey(), version: 0 }
 		const userGroupInfoSessionKey = aes256RandomKey()
 		const adminGroupInfoSessionKey = aes256RandomKey()
 		const customerGroupInfoSessionKey = aes256RandomKey()
@@ -268,12 +290,16 @@ export class CustomerFacade {
 		const pubRsaKey = keyData.systemAdminPubRsaKey
 		const pubEccKey = keyData.systemAdminPubEccKey
 		const pubKyberKey = keyData.systemAdminPubKyberKey
-		let systemAdminPubEncAccountingInfoSessionKey
-		let systemAdminPublicProtocolVersion
+		let systemAdminPubEncAccountingInfoSessionKey: VersionedEncryptedKey
+		let systemAdminPublicProtocolVersion: CryptoProtocolVersion
 
 		if (pubRsaKey) {
 			const rsaPublicKey = hexToRsaPublicKey(uint8ArrayToHex(pubRsaKey))
-			systemAdminPubEncAccountingInfoSessionKey = await this.rsa.encrypt(rsaPublicKey, bitArrayToUint8Array(accountingInfoSessionKey))
+			const systemAdminPubEncAccountingInfoSessionKeyBytes = await this.rsa.encrypt(rsaPublicKey, bitArrayToUint8Array(accountingInfoSessionKey))
+			systemAdminPubEncAccountingInfoSessionKey = {
+				key: systemAdminPubEncAccountingInfoSessionKeyBytes,
+				encryptingKeyVersion: Number(keyData.systemAdminPubKeyVersion),
+			}
 			systemAdminPublicProtocolVersion = CryptoProtocolVersion.RSA
 		} else {
 			// we need to release tuta-crypt by default first before we can encrypt keys for the system admin with PQ public keys.
@@ -282,7 +308,7 @@ export class CustomerFacade {
 
 		const userGroupData = this.groupManagement.generateInternalGroupData(
 			keyPairs[0],
-			userGroupKey,
+			userGroupKey.object,
 			userGroupInfoSessionKey,
 			null,
 			adminGroupKey,
@@ -291,7 +317,7 @@ export class CustomerFacade {
 
 		const adminGroupData = this.groupManagement.generateInternalGroupData(
 			keyPairs[1],
-			adminGroupKey,
+			adminGroupKey.object,
 			adminGroupInfoSessionKey,
 			null,
 			adminGroupKey,
@@ -300,7 +326,7 @@ export class CustomerFacade {
 
 		const customerGroupData = this.groupManagement.generateInternalGroupData(
 			keyPairs[2],
-			customerGroupKey,
+			customerGroupKey.object,
 			customerGroupInfoSessionKey,
 			null,
 			adminGroupKey,
@@ -308,6 +334,10 @@ export class CustomerFacade {
 		)
 
 		const recoverData = this.userManagement.generateRecoveryCode(userGroupKey)
+
+		const userEncAdminGroupKey = encryptKeyWithVersionedKey(userGroupKey, adminGroupKey.object)
+		const adminEncAccountingInfoSessionKey = encryptKeyWithVersionedKey(adminGroupKey, accountingInfoSessionKey)
+		const adminEncCustomerServerPropertiesSessionKey = encryptKeyWithVersionedKey(adminGroupKey, customerServerPropertiesSessionKey)
 
 		const data = createCustomerAccountCreateData({
 			authToken,
@@ -323,15 +353,17 @@ export class CustomerFacade {
 				"",
 				recoverData,
 			),
-			userEncAdminGroupKey: encryptKey(userGroupKey, adminGroupKey),
+			userEncAdminGroupKey: userEncAdminGroupKey.key,
 			userGroupData,
 			adminGroupData,
 			customerGroupData,
-			adminEncAccountingInfoSessionKey: encryptKey(adminGroupKey, accountingInfoSessionKey),
-			systemAdminPubEncAccountingInfoSessionKey,
+			adminEncAccountingInfoSessionKey: adminEncAccountingInfoSessionKey.key,
+			systemAdminPubEncAccountingInfoSessionKey: systemAdminPubEncAccountingInfoSessionKey.key,
+			systemAdminPubKeyVersion: String(systemAdminPubEncAccountingInfoSessionKey.encryptingKeyVersion),
 			systemAdminPublicProtocolVersion,
-			adminEncCustomerServerPropertiesSessionKey: encryptKey(adminGroupKey, customerServerPropertiesSessionKey),
-			userEncAccountGroupKey: new Uint8Array(0),
+			adminEncCustomerServerPropertiesSessionKey: adminEncCustomerServerPropertiesSessionKey.key,
+			userEncAccountGroupKey: new Uint8Array(0), // if we some day start passing the right key here, we'll also need to pass the right version
+			accountGroupKeyVersion: "0",
 		})
 		await this.serviceExecutor.post(CustomerAccountService, data)
 		return recoverData.hexCode
@@ -340,17 +372,10 @@ export class CustomerFacade {
 	async switchFreeToPremiumGroup(): Promise<void> {
 		try {
 			const keyData = await this.serviceExecutor.get(SystemKeysService, null)
-			const membershipAddData = createMembershipAddData({
-				user: this.userFacade.getLoggedInUser()._id,
-				group: neverNull(keyData.premiumGroup),
-				symEncGKey: encryptKey(this.userFacade.getUserGroupKey(), uint8ArrayToBitArray(keyData.premiumGroupKey)),
+			await this.switchAccountGroup(neverNull(keyData.freeGroup), neverNull(keyData.premiumGroup), {
+				object: uint8ArrayToBitArray(keyData.premiumGroupKey),
+				version: Number(keyData.premiumGroupKeyVersion),
 			})
-			await this.serviceExecutor.post(MembershipService, membershipAddData)
-			const membershipRemoveData = createMembershipRemoveData({
-				user: this.userFacade.getLoggedInUser()._id,
-				group: neverNull(keyData.freeGroup),
-			})
-			await this.serviceExecutor.delete(MembershipService, membershipRemoveData)
 		} catch (e) {
 			e.message = e.message + " error switching free to premium group"
 			console.log(e)
@@ -361,17 +386,10 @@ export class CustomerFacade {
 	async switchPremiumToFreeGroup(): Promise<void> {
 		try {
 			const keyData = await this.serviceExecutor.get(SystemKeysService, null)
-			const membershipAddData = createMembershipAddData({
-				user: this.userFacade.getLoggedInUser()._id,
-				group: neverNull(keyData.freeGroup),
-				symEncGKey: encryptKey(this.userFacade.getUserGroupKey(), uint8ArrayToBitArray(keyData.freeGroupKey)),
+			await this.switchAccountGroup(neverNull(keyData.premiumGroup), neverNull(keyData.freeGroup), {
+				object: uint8ArrayToBitArray(keyData.freeGroupKey),
+				version: Number(keyData.freeGroupKeyVersion),
 			})
-			await this.serviceExecutor.post(MembershipService, membershipAddData)
-			const membershipRemoveData = createMembershipRemoveData({
-				user: this.userFacade.getLoggedInUser()._id,
-				group: neverNull(keyData.premiumGroup),
-			})
-			await this.serviceExecutor.delete(MembershipService, membershipRemoveData)
 		} catch (e) {
 			e.message = e.message + " error switching premium to free group"
 			console.log(e)
@@ -444,5 +462,23 @@ export class CustomerFacade {
 		const customer = await this.entityClient.load(CustomerTypeRef, assertNotNull(this.userFacade.getUser()?.customer))
 		const customerInfo = await this.entityClient.load(CustomerInfoTypeRef, customer.customerInfo)
 		return this.entityClient.load(AccountingInfoTypeRef, customerInfo.accountingInfo)
+	}
+
+	private async switchAccountGroup(oldGroup: Id, newGroup: Id, newGroupKey: VersionedKey): Promise<void> {
+		const loggedInUser = this.userFacade.getLoggedInUser()
+		const symEncGKey = encryptKeyWithVersionedKey(this.userFacade.getCurrentUserGroupKey(), newGroupKey.object)
+		const membershipAddData = createMembershipAddData({
+			user: loggedInUser._id,
+			group: newGroup,
+			symEncGKey: symEncGKey.key,
+			groupKeyVersion: newGroupKey.version.toString(),
+			symKeyVersion: symEncGKey.encryptingKeyVersion.toString(),
+		})
+		await this.serviceExecutor.post(MembershipService, membershipAddData)
+		const membershipRemoveData = createMembershipRemoveData({
+			user: loggedInUser._id,
+			group: oldGroup,
+		})
+		return this.serviceExecutor.delete(MembershipService, membershipRemoveData)
 	}
 }

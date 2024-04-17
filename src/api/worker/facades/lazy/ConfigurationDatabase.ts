@@ -1,16 +1,19 @@
-import { b64UserIdHash, DbFacade } from "../../search/DbFacade.js"
-import { assertNotNull, concat, downcast, LazyLoaded, stringToUtf8Uint8Array, utf8Uint8ArrayToString } from "@tutao/tutanota-utils"
-import type { User } from "../../../entities/sys/TypeRefs.js"
-import { ExternalImageRule } from "../../../common/TutanotaConstants.js"
-import { aes256RandomKey, aesDecrypt, aesEncrypt, decryptKey, encryptKey, IV_BYTE_LENGTH, random, unauthenticatedAesDecrypt } from "@tutao/tutanota-crypto"
+import { b64UserIdHash, DbFacade, DbTransaction } from "../../search/DbFacade.js"
+import { assertNotNull, concat, downcast, isSameTypeRefByAttr, LazyLoaded, stringToUtf8Uint8Array, utf8Uint8ArrayToString } from "@tutao/tutanota-utils"
+import { User, UserTypeRef } from "../../../entities/sys/TypeRefs.js"
+import { ExternalImageRule, OperationType } from "../../../common/TutanotaConstants.js"
+import { aes256RandomKey, aesEncrypt, AesKey, decryptKey, IV_BYTE_LENGTH, random, unauthenticatedAesDecrypt } from "@tutao/tutanota-crypto"
 import { UserFacade } from "../UserFacade.js"
 import { Metadata, ObjectStoreName } from "../../search/IndexTables.js"
 import { DbError } from "../../../common/error/DbError.js"
+import { encryptKeyWithVersionedKey, VersionedKey } from "../../crypto/CryptoFacade.js"
+import { KeyLoaderFacade } from "../KeyLoaderFacade.js"
+import type { QueuedBatch } from "../../EventQueue.js"
 
 const VERSION: number = 2
 const DB_KEY_PREFIX: string = "ConfigStorage"
 const ExternalImageListOS: ObjectStoreName = "ExternalAllowListOS"
-const MetaDataOS: ObjectStoreName = "MetaDataOS"
+export const ConfigurationMetaDataOS: ObjectStoreName = "MetaDataOS"
 type EncryptionMetadata = {
 	readonly key: Aes128Key
 	readonly iv: Uint8Array
@@ -41,12 +44,13 @@ export class ConfigurationDatabase {
 
 	constructor(
 		userFacade: UserFacade,
-		dbLoadFn: (arg0: User, arg1: Aes128Key) => Promise<ConfigDb> = (user: User, userGroupKey: Aes128Key) => this.loadConfigDb(user, userGroupKey),
+		dbLoadFn: (arg0: User, arg1: KeyLoaderFacade) => Promise<ConfigDb> = (user: User, keyLoaderFacade: KeyLoaderFacade) =>
+			this.loadConfigDb(user, keyLoaderFacade),
+		readonly keyLoaderFacade: KeyLoaderFacade,
 	) {
 		this.db = new LazyLoaded(() => {
 			const user = assertNotNull(userFacade.getLoggedInUser())
-			const userGroupKey = userFacade.getUserGroupKey()
-			return dbLoadFn(user, userGroupKey)
+			return dbLoadFn(user, keyLoaderFacade)
 		})
 	}
 
@@ -78,16 +82,16 @@ export class ConfigurationDatabase {
 		return rule
 	}
 
-	async loadConfigDb(user: User, userGroupKey: Aes128Key): Promise<ConfigDb> {
+	async loadConfigDb(user: User, keyLoaderFacade: KeyLoaderFacade): Promise<ConfigDb> {
 		const id = this.getDbId(user._id)
 		const db = new DbFacade(VERSION, async (event, db, dbFacade) => {
 			if (event.oldVersion === 0) {
-				db.createObjectStore(MetaDataOS)
+				db.createObjectStore(ConfigurationMetaDataOS)
 				db.createObjectStore(ExternalImageListOS, {
 					keyPath: "address",
 				})
 			}
-			const metaData = (await loadEncryptionMetadata(dbFacade, id, userGroupKey)) || (await initializeDb(dbFacade, id, userGroupKey))
+			const metaData = (await loadEncryptionMetadata(dbFacade, id, keyLoaderFacade)) || (await initializeDb(dbFacade, id, keyLoaderFacade))
 
 			if (event.oldVersion === 1) {
 				// migrate from plain, mac-and-static-iv aes256 to aes256 with mac
@@ -102,10 +106,23 @@ export class ConfigurationDatabase {
 				}
 			}
 		})
-		const metaData = (await loadEncryptionMetadata(db, id, userGroupKey)) || (await initializeDb(db, id, userGroupKey))
+		const metaData = (await loadEncryptionMetadata(db, id, keyLoaderFacade)) || (await initializeDb(db, id, keyLoaderFacade))
 		return {
 			db,
 			metaData,
+		}
+	}
+
+	async onEntityEventsReceived(batch: QueuedBatch): Promise<any> {
+		const { events, groupId, batchId } = batch
+		for (const event of events) {
+			if (!(event.operation === OperationType.UPDATE && isSameTypeRefByAttr(UserTypeRef, event.application, event.type))) {
+				continue
+			}
+			const configDb = await this.db.getAsync()
+			if (configDb.db.isSameDbId(this.getDbId(event.instanceId))) {
+				return updateEncryptionMetadata(configDb.db, this.keyLoaderFacade, ConfigurationMetaDataOS)
+			}
 		}
 	}
 
@@ -124,15 +141,15 @@ export class ConfigurationDatabase {
 	}
 }
 
-/**
- * Load the encryption key and iv from the db
- * @return { key, iv } or null if one or both don't exist
- */
-async function loadEncryptionMetadata(db: DbFacade, id: string, userGroupKey: Aes128Key): Promise<EncryptionMetadata | null> {
-	await db.open(id)
-	const transaction = await db.createTransaction(true, [MetaDataOS])
-	const encDbKey = await transaction.get(MetaDataOS, Metadata.userEncDbKey)
-	const encDbIv = await transaction.get(MetaDataOS, Metadata.encDbIv)
+async function loadDataWithGivenVersion(
+	keyLoaderFacade: KeyLoaderFacade,
+	userGroupKeyVersion: number,
+	transaction: DbTransaction,
+): Promise<EncryptionMetadata | null> {
+	const userGroupKey = await keyLoaderFacade.loadSymUserGroupKey(userGroupKeyVersion)
+
+	const encDbKey = await transaction.get(ConfigurationMetaDataOS, Metadata.userEncDbKey)
+	const encDbIv = await transaction.get(ConfigurationMetaDataOS, Metadata.encDbIv)
 
 	if (encDbKey == null || encDbIv == null) {
 		return null
@@ -147,16 +164,62 @@ async function loadEncryptionMetadata(db: DbFacade, id: string, userGroupKey: Ae
 }
 
 /**
+ * Load the encryption key and iv from the db
+ * @return { key, iv } or null if one or both don't exist
+ * @VisibleForTesting
+ */
+export async function loadEncryptionMetadata(db: DbFacade, id: string, keyLoaderFacade: KeyLoaderFacade): Promise<EncryptionMetadata | null> {
+	await db.open(id)
+	const transaction = await db.createTransaction(true, [ConfigurationMetaDataOS])
+	const userGroupKeyVersion = await getMetaDataGroupKeyVersion(transaction, ConfigurationMetaDataOS)
+	return await loadDataWithGivenVersion(keyLoaderFacade, userGroupKeyVersion, transaction)
+}
+
+/**
+ * Reencrypt the DB key and IV if there is a new userGroupKey
+ * @VisibleForTesting
+ */
+export async function updateEncryptionMetadata(db: DbFacade, keyLoaderFacade: KeyLoaderFacade, objectStoreName: string): Promise<void> {
+	const transaction = await db.createTransaction(true, [objectStoreName])
+	const userGroupKeyVersion = await getMetaDataGroupKeyVersion(transaction, objectStoreName)
+	const currentUserGroupKey = keyLoaderFacade.getCurrentSymUserGroupKey()
+	if (currentUserGroupKey.version === userGroupKeyVersion) return
+
+	const encryptionMetadata = await loadDataWithGivenVersion(keyLoaderFacade, userGroupKeyVersion, transaction)
+	if (encryptionMetadata == null) return
+	const { key, iv } = encryptionMetadata
+	await encryptAndSaveDbKey(currentUserGroupKey, key, iv, transaction)
+}
+
+/**
+ * Helper function to get the group key version for the group key that was used to encrypt the db key. In case the version has not been written to the db we assume 0.
+ * @param transaction a valid db transaction object.
+ */
+async function getMetaDataGroupKeyVersion(transaction: DbTransaction, objectStoreName: string): Promise<number> {
+	const userGroupKeyVersion = await transaction.get<number>(objectStoreName, Metadata.userGroupKeyVersion)
+	return userGroupKeyVersion ?? 0
+}
+
+async function encryptAndSaveDbKey(userGroupKey: VersionedKey, dbKey: AesKey, dbIv: Uint8Array, transaction: DbTransaction) {
+	const groupEncSessionKey = encryptKeyWithVersionedKey(userGroupKey, dbKey)
+	await transaction.put(ConfigurationMetaDataOS, Metadata.userEncDbKey, groupEncSessionKey.key)
+	await transaction.put(ConfigurationMetaDataOS, Metadata.userGroupKeyVersion, groupEncSessionKey.encryptingKeyVersion)
+	await transaction.put(ConfigurationMetaDataOS, Metadata.encDbIv, aesEncrypt(dbKey, dbIv))
+}
+
+/**
  * @caution This will clear any existing data in the database, because they key and IV will be regenerated
  * @return the newly generated key and iv for the database contents
+ * @VisibleForTesting
+ *
  */
-async function initializeDb(db: DbFacade, id: string, userGroupKey: Aes128Key): Promise<EncryptionMetadata> {
+export async function initializeDb(db: DbFacade, id: string, keyLoaderFacade: KeyLoaderFacade): Promise<EncryptionMetadata> {
 	await db.deleteDatabase(id).then(() => db.open(id))
 	const key = aes256RandomKey()
 	const iv = random.generateRandomData(IV_BYTE_LENGTH)
-	const transaction = await db.createTransaction(false, [MetaDataOS, ExternalImageListOS])
-	await transaction.put(MetaDataOS, Metadata.userEncDbKey, encryptKey(userGroupKey, key))
-	await transaction.put(MetaDataOS, Metadata.encDbIv, aesEncrypt(key, iv))
+	const transaction = await db.createTransaction(false, [ConfigurationMetaDataOS, ExternalImageListOS])
+	const userGroupKey = keyLoaderFacade.getCurrentSymUserGroupKey()
+	await encryptAndSaveDbKey(userGroupKey, key, iv, transaction)
 	return {
 		key,
 		iv,

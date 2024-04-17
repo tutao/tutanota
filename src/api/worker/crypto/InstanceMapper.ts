@@ -16,7 +16,7 @@ import { AssociationType, Cardinality, Type, ValueType } from "../../common/Enti
 import { compress, uncompress } from "../Compression"
 import type { ModelValue, TypeModel } from "../../common/EntityTypes"
 import { assertWorkerOrNode } from "../../common/Env"
-import { aesDecrypt, aesEncrypt, ENABLE_MAC, IV_BYTE_LENGTH, random } from "@tutao/tutanota-crypto"
+import { aesDecrypt, aesEncrypt, AesKey, ENABLE_MAC, IV_BYTE_LENGTH, random } from "@tutao/tutanota-crypto"
 import { CryptoError } from "@tutao/tutanota-crypto/error.js"
 
 assertWorkerOrNode()
@@ -29,7 +29,7 @@ export class InstanceMapper {
 	 * @param sk The session key, must be provided for encrypted instances
 	 * @returns The decrypted and mapped instance
 	 */
-	decryptAndMapToInstance<T>(model: TypeModel, instance: Record<string, any>, sk: Aes128Key | null): Promise<T> {
+	decryptAndMapToInstance<T>(model: TypeModel, instance: Record<string, any>, sk: AesKey | null): Promise<T> {
 		let decrypted: any = {
 			_type: new TypeRef(model.app, model.name),
 		}
@@ -90,7 +90,7 @@ export class InstanceMapper {
 		})
 	}
 
-	encryptAndMapToLiteral<T>(model: TypeModel, instance: T, sk: Aes128Key | null): Promise<Record<string, unknown>> {
+	encryptAndMapToLiteral<T>(model: TypeModel, instance: T, sk: AesKey | null): Promise<Record<string, unknown>> {
 		let encrypted: Record<string, unknown> = {}
 		let i = instance as any
 
@@ -145,7 +145,7 @@ export class InstanceMapper {
 }
 
 // Exported for testing
-export function encryptValue(valueName: string, valueType: ModelValue, value: any, sk: Aes128Key | null): string | Base64 | null {
+export function encryptValue(valueName: string, valueType: ModelValue, value: any, sk: AesKey | null): string | Base64 | null {
 	if (valueName === "_id" || valueName === "_permissions") {
 		return value
 	} else if (value == null) {
@@ -175,7 +175,7 @@ export function encryptValue(valueName: string, valueType: ModelValue, value: an
 }
 
 // Exported for testing
-export function decryptValue(valueName: string, valueType: ModelValue, value: (Base64 | null) | string, sk: Aes128Key | Aes256Key | null): any {
+export function decryptValue(valueName: string, valueType: ModelValue, value: (Base64 | null) | string, sk: AesKey | null): any {
 	if (value == null) {
 		if (valueType.cardinality === Cardinality.ZeroOrOne) {
 			return null

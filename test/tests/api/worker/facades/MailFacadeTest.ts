@@ -14,6 +14,7 @@ import { DataFile } from "../../../../../src/api/common/DataFile.js"
 import { downcast } from "@tutao/tutanota-utils"
 import { ProgrammingError } from "../../../../../src/api/common/error/ProgrammingError.js"
 import { createTestEntity } from "../../../TestUtils.js"
+import { KeyLoaderFacade } from "../../../../../src/api/worker/facades/KeyLoaderFacade.js"
 
 o.spec("MailFacade test", function () {
 	let facade: MailFacade
@@ -24,6 +25,7 @@ o.spec("MailFacade test", function () {
 	let blobFacade: BlobFacade
 	let fileApp: NativeFileApp
 	let loginFacade: LoginFacade
+	let keyLoaderFacade: KeyLoaderFacade
 
 	o.beforeEach(function () {
 		userFacade = object()
@@ -33,7 +35,8 @@ o.spec("MailFacade test", function () {
 		serviceExecutor = object()
 		fileApp = object()
 		loginFacade = object()
-		facade = new MailFacade(userFacade, entity, cryptoFacade, serviceExecutor, blobFacade, fileApp, loginFacade)
+		keyLoaderFacade = object()
+		facade = new MailFacade(userFacade, entity, cryptoFacade, serviceExecutor, blobFacade, fileApp, loginFacade, keyLoaderFacade)
 	})
 
 	o.spec("checkMailForPhishing", function () {

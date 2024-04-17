@@ -7,7 +7,7 @@ import { HttpMethod, MediaType, resolveTypeReference } from "../../../common/Ent
 import { assertWorkerOrNode, isApp, isDesktop } from "../../../common/Env.js"
 import type { SuspensionHandler } from "../../SuspensionHandler.js"
 import { BlobService } from "../../../entities/storage/Services.js"
-import { Aes128Key, aesDecrypt, sha256Hash } from "@tutao/tutanota-crypto"
+import { aesDecrypt, AesKey, sha256Hash } from "@tutao/tutanota-crypto"
 import type { FileUri, NativeFileApp } from "../../../../native/common/FileApp.js"
 import type { AesApp } from "../../../../native/worker/AesApp.js"
 import { InstanceMapper } from "../../crypto/InstanceMapper.js"
@@ -54,12 +54,7 @@ export class BlobFacade {
 	 *
 	 * @returns blobReferenceToken that must be used to reference a blobs from an instance. Only to be used once.
 	 */
-	async encryptAndUpload(
-		archiveDataType: ArchiveDataType,
-		blobData: Uint8Array,
-		ownerGroupId: Id,
-		sessionKey: Aes128Key,
-	): Promise<BlobReferenceTokenWrapper[]> {
+	async encryptAndUpload(archiveDataType: ArchiveDataType, blobData: Uint8Array, ownerGroupId: Id, sessionKey: AesKey): Promise<BlobReferenceTokenWrapper[]> {
 		const chunks = splitUint8ArrayInChunks(MAX_BLOB_SIZE_BYTES, blobData)
 		const doBlobRequest = async () => {
 			const blobServerAccessInfo = await this.blobAccessTokenFacade.requestWriteToken(archiveDataType, ownerGroupId)
@@ -80,7 +75,7 @@ export class BlobFacade {
 		archiveDataType: ArchiveDataType,
 		fileUri: FileUri,
 		ownerGroupId: Id,
-		sessionKey: Aes128Key,
+		sessionKey: AesKey,
 	): Promise<BlobReferenceTokenWrapper[]> {
 		if (!isApp() && !isDesktop()) {
 			throw new ProgrammingError("Environment is not app or Desktop!")
@@ -173,15 +168,11 @@ export class BlobFacade {
 		}
 	}
 
-	private async resolveSessionKey(entity: SomeEntity): Promise<Aes128Key | Aes256Key> {
+	private async resolveSessionKey(entity: SomeEntity): Promise<AesKey> {
 		return neverNull(await this.cryptoFacade.resolveSessionKeyForInstance(entity))
 	}
 
-	private async encryptAndUploadChunk(
-		chunk: Uint8Array,
-		blobServerAccessInfo: BlobServerAccessInfo,
-		sessionKey: Aes128Key,
-	): Promise<BlobReferenceTokenWrapper> {
+	private async encryptAndUploadChunk(chunk: Uint8Array, blobServerAccessInfo: BlobServerAccessInfo, sessionKey: AesKey): Promise<BlobReferenceTokenWrapper> {
 		const encryptedData = encryptBytes(sessionKey, chunk)
 		const blobHash = uint8ArrayToBase64(sha256Hash(encryptedData).slice(0, 6))
 		const queryParams = await this.blobAccessTokenFacade.createQueryParams(blobServerAccessInfo, { blobHash }, BlobGetInTypeRef)
@@ -204,7 +195,7 @@ export class BlobFacade {
 	private async encryptAndUploadNativeChunk(
 		fileUri: FileUri,
 		blobServerAccessInfo: BlobServerAccessInfo,
-		sessionKey: Aes128Key,
+		sessionKey: AesKey,
 	): Promise<BlobReferenceTokenWrapper> {
 		const encryptedFileInfo = await this.aesApp.aesEncryptFile(sessionKey, fileUri)
 		const encryptedChunkUri = encryptedFileInfo.uri
@@ -252,7 +243,7 @@ export class BlobFacade {
 		return createBlobReferenceTokenWrapper({ blobReferenceToken })
 	}
 
-	private async downloadAndDecryptChunk(blob: Blob, blobServerAccessInfo: BlobServerAccessInfo, sessionKey: Aes128Key): Promise<Uint8Array> {
+	private async downloadAndDecryptChunk(blob: Blob, blobServerAccessInfo: BlobServerAccessInfo, sessionKey: AesKey): Promise<Uint8Array> {
 		const { archiveId, blobId } = blob
 		const getData = createBlobGetIn({
 			archiveId,
@@ -279,7 +270,7 @@ export class BlobFacade {
 		)
 	}
 
-	private async downloadAndDecryptChunkNative(blob: Blob, blobServerAccessInfo: BlobServerAccessInfo, sessionKey: Aes128Key): Promise<FileUri> {
+	private async downloadAndDecryptChunkNative(blob: Blob, blobServerAccessInfo: BlobServerAccessInfo, sessionKey: AesKey): Promise<FileUri> {
 		const { archiveId, blobId } = blob
 		const getData = createBlobGetIn({
 			archiveId,
@@ -307,7 +298,7 @@ export class BlobFacade {
 	private async downloadNative(
 		serverUrl: string,
 		blobServerAccessInfo: BlobServerAccessInfo,
-		sessionKey: Aes128Key,
+		sessionKey: AesKey,
 		fileName: string,
 		additionalParams: Dict,
 	): Promise<FileUri> {

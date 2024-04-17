@@ -160,16 +160,14 @@ export class MailIndexer {
 				if (isLegacyMail(mail)) {
 					mailWrapper = await this._defaultCachingEntity.load(MailBodyTypeRef, neverNull(mail.body)).then((b) => MailWrapper.body(mail, b))
 				} else if (isDetailsDraft(mail)) {
-					// Will be always there, if it was not updated yet it will still be set by CryptoFacade
+					// Will be always there, if it was not updated yet, it will still be set by CryptoFacade
 					const mailOwnerEncSessionKey = assertNotNull(mail._ownerEncSessionKey)
 					const mailDetailsDraftId = assertNotNull(mail.mailDetailsDraft)
 					mailWrapper = await this._defaultCachingEntity
-						.loadMultiple(
-							MailDetailsDraftTypeRef,
-							listIdPart(mailDetailsDraftId),
-							[elementIdPart(mailDetailsDraftId)],
-							async () => mailOwnerEncSessionKey,
-						)
+						.loadMultiple(MailDetailsDraftTypeRef, listIdPart(mailDetailsDraftId), [elementIdPart(mailDetailsDraftId)], async () => ({
+							key: mailOwnerEncSessionKey,
+							encryptingKeyVersion: Number(mail._ownerKeyVersion ?? 0),
+						}))
 						.then((d) => {
 							const draft = first(d)
 							if (draft == null) {
@@ -182,12 +180,10 @@ export class MailIndexer {
 					const mailOwnerEncSessionKey = assertNotNull(mail._ownerEncSessionKey)
 					const mailDetailsBlobId = neverNull(mail.mailDetails)
 					mailWrapper = await this._defaultCachingEntity
-						.loadMultiple(
-							MailDetailsBlobTypeRef,
-							listIdPart(mailDetailsBlobId),
-							[elementIdPart(mailDetailsBlobId)],
-							async () => mailOwnerEncSessionKey,
-						)
+						.loadMultiple(MailDetailsBlobTypeRef, listIdPart(mailDetailsBlobId), [elementIdPart(mailDetailsBlobId)], async () => ({
+							key: mailOwnerEncSessionKey,
+							encryptingKeyVersion: Number(mail._ownerKeyVersion ?? 0),
+						}))
 						.then((d) => {
 							const blob = first(d)
 							if (blob == null) {
@@ -763,9 +759,12 @@ class IndexLoader {
 			(m) => neverNull(m.mailDetails)[1],
 		)
 		for (let [listId, ids] of listIdToMailDetailsBlobIds) {
-			const ownerEncSessionKeyProvider = async (instanceElementId: Id) => {
+			const ownerEncSessionKeyProvider: OwnerEncSessionKeyProvider = async (instanceElementId: Id) => {
 				const mail = assertNotNull(mailDetailsBlobMails.find((m) => elementIdPart(assertNotNull(m.mailDetails)) === instanceElementId))
-				return assertNotNull(mail._ownerEncSessionKey)
+				return {
+					key: assertNotNull(mail._ownerEncSessionKey),
+					encryptingKeyVersion: Number(mail._ownerKeyVersion ?? 0),
+				}
 			}
 			const mailDetailsBlobs = await this.loadInChunks(MailDetailsBlobTypeRef, listId, ids, ownerEncSessionKeyProvider)
 			result.push(
@@ -783,9 +782,12 @@ class IndexLoader {
 			(m) => neverNull(m.mailDetailsDraft)[1],
 		)
 		for (let [listId, ids] of listIdToMailDetailsDraftIds) {
-			const ownerEncSessionKeyProvider = async (instanceElementId: Id) => {
+			const ownerEncSessionKeyProvider: OwnerEncSessionKeyProvider = async (instanceElementId: Id) => {
 				const mail = assertNotNull(mailDetailsDraftMails.find((m) => elementIdPart(assertNotNull(m.mailDetailsDraft)) === instanceElementId))
-				return assertNotNull(mail._ownerEncSessionKey)
+				return {
+					key: assertNotNull(mail._ownerEncSessionKey),
+					encryptingKeyVersion: Number(mail._ownerKeyVersion ?? 0),
+				}
 			}
 			const mailDetailsDrafts = await this.loadInChunks(MailDetailsDraftTypeRef, listId, ids, ownerEncSessionKeyProvider)
 			result.push(

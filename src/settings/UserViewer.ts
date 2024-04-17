@@ -22,7 +22,7 @@ import { isSameId } from "../api/common/utils/EntityUtils"
 import { showBuyDialog } from "../subscription/BuyDialog"
 import { TextField } from "../gui/base/TextField.js"
 import { locator } from "../api/main/MainLocator"
-import { DropDownSelector, SelectorItem } from "../gui/base/DropDownSelector.js"
+import { DropDownSelector } from "../gui/base/DropDownSelector.js"
 import { UpdatableSettingsDetailsViewer } from "./SettingsView"
 import { showChangeOwnPasswordDialog, showChangeUserPasswordAsAdminDialog } from "./login/ChangePasswordDialogs.js"
 import { IconButton, IconButtonAttrs } from "../gui/base/IconButton.js"
@@ -124,7 +124,7 @@ export class UserViewer implements UpdatableSettingsDetailsViewer {
 			m("", [
 				this.renderName(),
 				m(TextField, passwordFieldAttrs),
-				locator.logins.getUserController().isGlobalAdmin() ? [this.renderAdminStatusSelector(), this.renderAdministratedBySelector()] : null,
+				locator.logins.getUserController().isGlobalAdmin() ? this.renderAdminStatusSelector() : null,
 				this.renderUserStatusSelector(),
 			]),
 			m(this.secondFactorsForm),
@@ -193,44 +193,6 @@ export class UserViewer implements UpdatableSettingsDetailsViewer {
 			},
 		})
 	}
-
-	private renderAdministratedBySelector(): Children {
-		return m(DropDownSelector, {
-			label: "administratedBy_label",
-			items: [
-				{
-					name: lang.get("globalAdmin_label"),
-					value: null,
-				} as SelectorItem<Id | null>,
-			].concat(
-				this.availableTeamGroupInfos.map((gi) => ({
-					name: getGroupInfoDisplayName(gi),
-					value: gi.group,
-				})),
-			),
-			selectedValue: this.userGroupInfo.localAdmin,
-			selectionChangedHandler: async (value: Id) => {
-				const user = await this.user.getAsync()
-				if (this.userGroupInfo.deleted) {
-					Dialog.message("userAccountDeactivated_msg")
-				} else if (this.isItMe()) {
-					Dialog.message("updateOwnAdminship_msg")
-				} else if (this.isAdminUser(user)) {
-					Dialog.message("updateAdminshipGlobalAdmin_msg")
-				} else {
-					showProgressDialog(
-						"pleaseWait_msg",
-						Promise.resolve().then(() => {
-							const newAdminGroupId =
-								value ?? neverNull(locator.logins.getUserController().user.memberships.find((gm) => gm.groupType === GroupType.Admin)).group
-							return locator.userManagementFacade.updateAdminship(this.userGroupInfo.group, newAdminGroupId)
-						}),
-					)
-				}
-			},
-		})
-	}
-
 	private renderUserStatusSelector(): Children {
 		return m(DropDownSelector, {
 			label: "state_label",

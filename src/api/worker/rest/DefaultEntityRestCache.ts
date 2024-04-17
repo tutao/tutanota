@@ -1,4 +1,4 @@
-import type { EntityRestInterface, OwnerEncSessionKeyProvider } from "./EntityRestClient"
+import type { EntityRestInterface, OwnerEncSessionKeyProvider, OwnerKeyProvider } from "./EntityRestClient"
 import { EntityRestClient, EntityRestClientSetupOptions } from "./EntityRestClient"
 import { resolveTypeReference } from "../../common/EntityFunctions"
 import { OperationType } from "../../common/TutanotaConstants"
@@ -221,7 +221,7 @@ export class DefaultEntityRestCache implements EntityRestCache {
 		id: PropertyType<T, "_id">,
 		queryParameters?: Dict,
 		extraHeaders?: Dict,
-		ownerKey?: Aes128Key,
+		ownerKeyProvider?: OwnerKeyProvider,
 	): Promise<T> {
 		const { listId, elementId } = expandId(id)
 
@@ -230,7 +230,7 @@ export class DefaultEntityRestCache implements EntityRestCache {
 			queryParameters?.version != null || //if a specific version is requested we have to load again
 			cachedEntity == null
 		) {
-			const entity = await this.entityRestClient.load(typeRef, id, queryParameters, extraHeaders, ownerKey)
+			const entity = await this.entityRestClient.load(typeRef, id, queryParameters, extraHeaders, ownerKeyProvider)
 			if (queryParameters?.version == null && !isIgnoredType(typeRef)) {
 				await this.storage.put(entity)
 			}

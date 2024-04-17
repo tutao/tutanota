@@ -63,7 +63,7 @@ import {
 	Aes256Key,
 	aes256RandomKey,
 	aesDecrypt,
-	authenticatedAesDecrypt,
+	AesKey,
 	base64ToKey,
 	createAuthVerifier,
 	createAuthVerifierAsBase64Url,
@@ -72,7 +72,6 @@ import {
 	generateRandomSalt,
 	KeyLength,
 	keyToUint8Array,
-	random,
 	sha256Hash,
 	TotpSecret,
 	TotpVerifier,
@@ -92,6 +91,7 @@ import { ProgrammingError } from "../../common/error/ProgrammingError.js"
 import { DatabaseKeyFactory } from "../../../misc/credentials/DatabaseKeyFactory.js"
 import { ExternalUserKeyDeriver } from "../../../misc/LoginUtils.js"
 import { Argon2idFacade } from "./Argon2idFacade.js"
+import { KeyRotationFacade } from "./KeyRotationFacade.js"
 
 assertWorkerOrNode()
 
@@ -142,11 +142,6 @@ export type PassphraseKeyData = {
 
 export interface LoginListener {
 	/**
-	 * Partial login reached: cached entities and user are available.
-	 */
-	onPartialLoginSuccess(): Promise<void>
-
-	/**
 	 * Full login reached: any network requests can be made
 	 */
 	onFullLoginSuccess(sessionType: SessionType, cacheInfo: CacheInfo): Promise<void>
@@ -184,6 +179,7 @@ export class LoginFacade {
 		private readonly loginListener: LoginListener,
 		private readonly instanceMapper: InstanceMapper,
 		private readonly cryptoFacade: CryptoFacade,
+		private readonly keyRotationFacade: KeyRotationFacade,
 		/**
 		 *  Only needed so that we can initialize the offline storage after login.
 		 *  This is necessary because we don't know if we'll be persistent or not until the user tries to login
@@ -238,7 +234,7 @@ export class LoginFacade {
 			user: null,
 		})
 
-		let accessKey: Aes128Key | null = null
+		let accessKey: AesKey | null = null
 
 		if (sessionType === SessionType.Persistent) {
 			accessKey = aes256RandomKey()
@@ -269,6 +265,9 @@ export class LoginFacade {
 
 		if (!this.isModernKdfType(kdfType)) {
 			await this.migrateKdfType(KdfType.Argon2id, passphrase, user)
+		} else {
+			// If we have not migrated to argon2 we postpone key rotation until next login.
+			await this.keyRotationFacade.loadPendingKeyRotations(user, userPassphraseKey)
 		}
 
 		return {
@@ -316,7 +315,7 @@ export class LoginFacade {
 		}
 		const newUserPassphraseKey = await this.deriveUserPassphraseKey(newPassphraseKeyData)
 
-		const pwEncUserGroupKey = encryptKey(newUserPassphraseKey, this.userFacade.getUserGroupKey())
+		const pwEncUserGroupKey = encryptKey(newUserPassphraseKey, this.userFacade.getCurrentUserGroupKey().object)
 		const newAuthVerifier = createAuthVerifier(newUserPassphraseKey)
 
 		const changeKdfPostIn = createChangeKdfPostIn({
@@ -465,7 +464,7 @@ export class LoginFacade {
 	/**
 	 * Derive a key given a KDF type, passphrase, and salt
 	 */
-	async deriveUserPassphraseKey({ kdfType, passphrase, salt }: PassphraseKeyData): Promise<Aes128Key | Aes256Key> {
+	async deriveUserPassphraseKey({ kdfType, passphrase, salt }: PassphraseKeyData): Promise<AesKey> {
 		switch (kdfType) {
 			case KdfType.Bcrypt: {
 				return generateKeyFromPassphraseBcrypt(passphrase, salt, KeyLength.b128)
@@ -566,7 +565,6 @@ export class LoginFacade {
 					)
 				}
 				this.userFacade.setUser(user)
-				this.loginListener.onPartialLoginSuccess()
 
 				// Temporary workaround for the transitional period
 				// Before offline login was enabled (in 3.96.4) we didn't use cache for the login process, only afterwards.
@@ -641,7 +639,7 @@ export class LoginFacade {
 		const sessionData = await this.loadSessionData(credentials.accessToken)
 		const encryptedPassword = base64ToUint8Array(assertNotNull(credentials.encryptedPassword, "encryptedPassword was null!"))
 		const passphrase = utf8Uint8ArrayToString(aesDecrypt(assertNotNull(sessionData.accessKey, "no access key on session data!"), encryptedPassword))
-		let userPassphraseKey: Aes128Key | Aes256Key
+		let userPassphraseKey: AesKey
 		let kdfType: KdfType | null
 
 		const isExternalUser = externalUserKeyDeriver != null
@@ -675,6 +673,10 @@ export class LoginFacade {
 		// We only need to migrate the kdf in case an internal user resumes the session.
 		if (kdfType && !this.isModernKdfType(kdfType)) {
 			await this.migrateKdfType(KdfType.Argon2id, passphrase, user)
+		} else if (!isExternalUser) {
+			// We trigger group key rotation only for internal users.
+			// If we have not migrated to argon2 we postpone key rotation until next login.
+			await this.keyRotationFacade.loadPendingKeyRotations(user, userPassphraseKey)
 		}
 
 		return { type: "success", data }
@@ -683,7 +685,7 @@ export class LoginFacade {
 	private async initSession(
 		userId: Id,
 		accessToken: Base64Url,
-		userPassphraseKey: Aes128Key,
+		userPassphraseKey: AesKey,
 		sessionType: SessionType,
 		cacheInfo: CacheInfo,
 	): Promise<{ user: User; accessToken: string; userGroupInfo: GroupInfo }> {
@@ -706,7 +708,6 @@ export class LoginFacade {
 			const wasPartiallyLoggedIn = this.userFacade.isPartiallyLoggedIn()
 			if (!wasPartiallyLoggedIn) {
 				this.userFacade.setUser(user)
-				this.loginListener.onPartialLoginSuccess()
 			}
 			const wasFullyLoggedIn = this.userFacade.isFullyLoggedIn()
 
@@ -762,7 +763,7 @@ export class LoginFacade {
 		credentials: Credentials,
 		sessionData: {
 			userId: Id
-			accessKey: Aes128Key | Aes256Key | null
+			accessKey: AesKey | null
 		},
 		externalUserSalt: Uint8Array,
 	) {
@@ -795,7 +796,7 @@ export class LoginFacade {
 		}
 	}
 
-	private async loadUserPassphraseKey(mailAddress: string, passphrase: string): Promise<{ kdfType: KdfType; userPassphraseKey: Aes128Key | Aes256Key }> {
+	private async loadUserPassphraseKey(mailAddress: string, passphrase: string): Promise<{ kdfType: KdfType; userPassphraseKey: AesKey }> {
 		mailAddress = mailAddress.toLowerCase().trim()
 		const saltRequest = createSaltData({ mailAddress })
 		const saltReturn = await this.serviceExecutor.get(SaltService, saltRequest)
@@ -850,7 +851,7 @@ export class LoginFacade {
 
 	private async loadSessionData(accessToken: Base64Url): Promise<{
 		userId: Id
-		accessKey: Aes128Key | Aes256Key | null
+		accessKey: AesKey | null
 	}> {
 		const path = typeRefToPath(SessionTypeRef) + "/" + this.getSessionListId(accessToken) + "/" + this.getSessionElementId(accessToken)
 		const SessionTypeModel = await resolveTypeReference(SessionTypeRef)
@@ -879,14 +880,7 @@ export class LoginFacade {
 	 */
 	private async loadEntropy(): Promise<void> {
 		const tutanotaProperties = await this.entityClient.loadRoot(TutanotaPropertiesTypeRef, this.userFacade.getUserGroupId())
-		if (tutanotaProperties.groupEncEntropy) {
-			try {
-				const entropy = authenticatedAesDecrypt(this.userFacade.getUserGroupKey(), tutanotaProperties.groupEncEntropy)
-				random.addStaticEntropy(entropy)
-			} catch (error) {
-				console.log("could not decrypt entropy", error)
-			}
-		}
+		return this.entropyFacade.loadEntropy(tutanotaProperties)
 	}
 
 	/**
@@ -899,7 +893,7 @@ export class LoginFacade {
 		const newPasswordKeyData = { ...newPasswordKeyDataTemplate, salt: generateRandomSalt() }
 
 		const newUserPassphraseKey = await this.deriveUserPassphraseKey(newPasswordKeyData)
-		const pwEncUserGroupKey = encryptKey(newUserPassphraseKey, this.userFacade.getUserGroupKey())
+		const pwEncUserGroupKey = encryptKey(newUserPassphraseKey, this.userFacade.getCurrentUserGroupKey().object)
 		const authVerifier = createAuthVerifier(newUserPassphraseKey)
 		const service = createChangePasswordData({
 			code: null,
@@ -1083,11 +1077,8 @@ export class LoginFacade {
 			throw new Error("credentials went missing")
 		}
 	}
-}
 
-export type RecoverData = {
-	userEncRecoverCode: Uint8Array
-	recoverCodeEncUserGroupKey: Uint8Array
-	hexCode: Hex
-	recoveryCodeVerifier: Uint8Array
+	async rotateKeysIfNeeded() {
+		await this.keyRotationFacade.processPendingKeyRotation()
+	}
 }

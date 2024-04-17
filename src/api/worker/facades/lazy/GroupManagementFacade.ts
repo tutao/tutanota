@@ -8,27 +8,22 @@ import {
 	createUserAreaGroupDeleteData,
 	createUserAreaGroupPostData,
 } from "../../../entities/tutanota/TypeRefs.js"
-import { assertNotNull, neverNull } from "@tutao/tutanota-utils"
+import { assertNotNull, freshVersioned, neverNull } from "@tutao/tutanota-utils"
 import type { Group, User } from "../../../entities/sys/TypeRefs.js"
 import { createMembershipAddData, createMembershipRemoveData, GroupTypeRef, UserTypeRef } from "../../../entities/sys/TypeRefs.js"
 import { CounterFacade } from "./CounterFacade.js"
 import { EntityClient } from "../../../common/EntityClient.js"
 import { assertWorkerOrNode } from "../../../common/Env.js"
-import { encryptString } from "../../crypto/CryptoFacade.js"
-import { aes256RandomKey, aesEncrypt, decryptKey, encryptKey, kyberPrivateKeyToBytes, kyberPublicKeyToBytes, PQKeyPairs } from "@tutao/tutanota-crypto"
+import { encryptKeyWithVersionedKey, encryptString, VersionedKey } from "../../crypto/CryptoFacade.js"
+import { aes256RandomKey, aesEncrypt, AesKey, decryptKey, kyberPrivateKeyToBytes, kyberPublicKeyToBytes, PQKeyPairs } from "@tutao/tutanota-crypto"
 import { IServiceExecutor } from "../../../common/ServiceRequest.js"
-import {
-	CalendarService,
-	ContactListGroupService,
-	LocalAdminGroupService,
-	MailGroupService,
-	TemplateGroupService,
-} from "../../../entities/tutanota/Services.js"
+import { CalendarService, ContactListGroupService, MailGroupService, TemplateGroupService } from "../../../entities/tutanota/Services.js"
 import { MembershipService } from "../../../entities/sys/Services.js"
 import { UserFacade } from "../UserFacade.js"
 import { ProgrammingError } from "../../../common/error/ProgrammingError.js"
 import { DefaultEntityRestCache } from "../../rest/DefaultEntityRestCache.js"
 import { PQFacade } from "../PQFacade.js"
+import { KeyLoaderFacade } from "../KeyLoaderFacade.js"
 
 assertWorkerOrNode()
 
@@ -40,6 +35,7 @@ export class GroupManagementFacade {
 		private readonly serviceExecutor: IServiceExecutor,
 		private readonly entityRestCache: DefaultEntityRestCache,
 		private readonly pqFacade: PQFacade = pqFacade,
+		private readonly keyLoaderFacade: KeyLoaderFacade,
 	) {}
 
 	async readUsedSharedMailGroupStorage(group: Group): Promise<number> {
@@ -53,26 +49,28 @@ export class GroupManagementFacade {
 			adminGroupIds = this.user.getGroupIds(GroupType.LocalAdmin)
 		}
 
-		let adminGroupKey = this.user.getGroupKey(adminGroupIds[0])
+		let adminGroupKey = await this.keyLoaderFacade.getCurrentSymGroupKey(adminGroupIds[0])
+		let customerGroupKey = await this.keyLoaderFacade.getCurrentSymGroupKey(this.user.getGroupId(GroupType.Customer))
+		let mailGroupKey = freshVersioned(aes256RandomKey())
 
-		let customerGroupKey = this.user.getGroupKey(this.user.getGroupId(GroupType.Customer))
-
-		let mailGroupKey = aes256RandomKey()
 		let mailGroupInfoSessionKey = aes256RandomKey()
 		let mailboxSessionKey = aes256RandomKey()
 		const keyPair = await this.pqFacade.generateKeyPairs()
-		const mailGroupData = await this.generateInternalGroupData(
+		const mailGroupData = this.generateInternalGroupData(
 			keyPair,
-			mailGroupKey,
+			mailGroupKey.object,
 			mailGroupInfoSessionKey,
 			adminGroupIds[0],
 			adminGroupKey,
 			customerGroupKey,
 		)
+
+		const mailEncMailboxSessionKey = encryptKeyWithVersionedKey(mailGroupKey, mailboxSessionKey)
+
 		const data = createCreateMailGroupData({
 			mailAddress,
 			encryptedName: encryptString(mailGroupInfoSessionKey, name),
-			mailEncMailboxSessionKey: encryptKey(mailGroupKey, mailboxSessionKey),
+			mailEncMailboxSessionKey: mailEncMailboxSessionKey.key,
 			groupData: mailGroupData,
 		})
 		await this.serviceExecutor.post(MailGroupService, data)
@@ -81,38 +79,44 @@ export class GroupManagementFacade {
 	/**
 	 * Generates keys for the new group and prepares the group data object to create the group.
 	 *
-	 * @param adminGroup Is not set when generating new customer, then the admin group will be the admin of the customer
-	 * @param adminGroupKey Is not set when generating calendar as normal user
-	 * @param customerGroupKey Group key of the customer
-	 * @param userGroupKey user group key
 	 * @param name Name of the group
 	 */
-	generateUserAreaGroupData(name: string): Promise<UserAreaGroupData> {
-		return this.entityClient.load(GroupTypeRef, this.user.getUserGroupId()).then((userGroup) => {
-			const adminGroupId = neverNull(userGroup.admin) // user group has always admin group
+	async generateUserAreaGroupData(name: string): Promise<UserAreaGroupData> {
+		// adminGroup Is not set when generating new customer, then the admin group will be the admin of the customer
+		// adminGroupKey Is not set when generating calendar as normal user
+		const userGroup = await this.entityClient.load(GroupTypeRef, this.user.getUserGroupId())
+		const adminGroupId = neverNull(userGroup.admin) // user group has always admin group
 
-			let adminGroupKey: BitArray | null = null
+		let adminGroupKey: VersionedKey | null = null
 
-			if (this.user.getAllGroupIds().indexOf(adminGroupId) !== -1) {
-				// getGroupKey throws an error if user is not member of that group - so check first
-				adminGroupKey = this.user.getGroupKey(adminGroupId)
-			}
+		if (this.user.getAllGroupIds().indexOf(adminGroupId) !== -1) {
+			// getGroupKey throws an error if user is not member of that group - so check first
+			adminGroupKey = await this.keyLoaderFacade.getCurrentSymGroupKey(adminGroupId)
+		}
 
-			const customerGroupKey = this.user.getGroupKey(this.user.getGroupId(GroupType.Customer))
+		const customerGroupId = this.user.getGroupId(GroupType.Customer)
+		const customerGroupKey = await this.keyLoaderFacade.getCurrentSymGroupKey(customerGroupId)
+		const userGroupKey = this.user.getCurrentUserGroupKey()
+		const groupKey = freshVersioned(aes256RandomKey())
 
-			const userGroupKey = this.user.getUserGroupKey()
+		const groupRootSessionKey = aes256RandomKey()
+		const groupInfoSessionKey = aes256RandomKey()
 
-			const groupRootSessionKey = aes256RandomKey()
-			const groupInfoSessionKey = aes256RandomKey()
-			const groupKey = aes256RandomKey()
-			return createUserAreaGroupData({
-				groupEncGroupRootSessionKey: encryptKey(groupKey, groupRootSessionKey),
-				customerEncGroupInfoSessionKey: encryptKey(customerGroupKey, groupInfoSessionKey),
-				userEncGroupKey: encryptKey(userGroupKey, groupKey),
-				groupInfoEncName: encryptString(groupInfoSessionKey, name),
-				adminEncGroupKey: adminGroupKey ? encryptKey(adminGroupKey, groupKey) : null,
-				adminGroup: adminGroupId,
-			})
+		const userEncGroupKey = encryptKeyWithVersionedKey(userGroupKey, groupKey.object)
+		const adminEncGroupKey = adminGroupKey ? encryptKeyWithVersionedKey(adminGroupKey, groupKey.object) : null
+		const customerEncGroupInfoSessionKey = encryptKeyWithVersionedKey(customerGroupKey, groupInfoSessionKey)
+		const groupEncGroupRootSessionKey = encryptKeyWithVersionedKey(groupKey, groupRootSessionKey)
+
+		return createUserAreaGroupData({
+			groupEncGroupRootSessionKey: groupEncGroupRootSessionKey.key,
+			customerEncGroupInfoSessionKey: customerEncGroupInfoSessionKey.key,
+			userEncGroupKey: userEncGroupKey.key,
+			groupInfoEncName: encryptString(groupInfoSessionKey, name),
+			adminEncGroupKey: adminEncGroupKey?.key ?? null,
+			adminGroup: adminGroupId,
+			customerKeyVersion: customerEncGroupInfoSessionKey.encryptingKeyVersion.toString(),
+			userKeyVersion: userGroupKey.version.toString(),
+			adminKeyVersion: adminEncGroupKey?.encryptingKeyVersion.toString() ?? null,
 		})
 	}
 
@@ -160,14 +164,21 @@ export class GroupManagementFacade {
 		await this.serviceExecutor.delete(ContactListGroupService, serviceData)
 	}
 
+	/**
+	 * Assemble the data transfer type to create a new internal group on the server.
+	 * The group key version is not needed because it is always zero.
+	 */
 	generateInternalGroupData(
 		keyPair: PQKeyPairs,
-		groupKey: Aes128Key,
-		groupInfoSessionKey: Aes128Key,
+		groupKey: AesKey,
+		groupInfoSessionKey: AesKey,
 		adminGroupId: Id | null,
-		adminGroupKey: Aes128Key,
-		ownerGroupKey: Aes128Key,
+		adminGroupKey: VersionedKey,
+		ownerGroupKey: VersionedKey,
 	): InternalGroupData {
+		const adminEncGroupKey = encryptKeyWithVersionedKey(adminGroupKey, groupKey)
+		const ownerEncGroupInfoSessionKey = encryptKeyWithVersionedKey(ownerGroupKey, groupInfoSessionKey)
+
 		return createInternalGroupData({
 			pubRsaKey: null,
 			groupEncPrivRsaKey: null,
@@ -176,18 +187,23 @@ export class GroupManagementFacade {
 			pubKyberKey: kyberPublicKeyToBytes(keyPair.kyberKeyPair.publicKey),
 			groupEncPrivKyberKey: aesEncrypt(groupKey, kyberPrivateKeyToBytes(keyPair.kyberKeyPair.privateKey)),
 			adminGroup: adminGroupId,
-			adminEncGroupKey: encryptKey(adminGroupKey, groupKey),
-			ownerEncGroupInfoSessionKey: encryptKey(ownerGroupKey, groupInfoSessionKey),
+			adminEncGroupKey: adminEncGroupKey.key,
+			ownerEncGroupInfoSessionKey: ownerEncGroupInfoSessionKey.key,
+			adminKeyVersion: adminEncGroupKey.encryptingKeyVersion.toString(),
+			ownerKeyVersion: ownerEncGroupInfoSessionKey.encryptingKeyVersion.toString(),
 		})
 	}
 
 	async addUserToGroup(user: User, groupId: Id): Promise<void> {
-		const userGroupKey = await this.getGroupKeyViaAdminEncGKey(user.userGroup.group)
-		const groupKey = await this.getGroupKeyViaAdminEncGKey(groupId)
+		const userGroupKey = await this.getCurrentGroupKeyViaAdminEncGKey(user.userGroup.group)
+		const groupKey = await this.getCurrentGroupKeyViaAdminEncGKey(groupId)
+		const symEncGKey = encryptKeyWithVersionedKey(userGroupKey, groupKey.object)
 		const data = createMembershipAddData({
 			user: user._id,
 			group: groupId,
-			symEncGKey: encryptKey(userGroupKey, groupKey),
+			symEncGKey: symEncGKey.key,
+			groupKeyVersion: String(groupKey.version),
+			symKeyVersion: symEncGKey.encryptingKeyVersion.toString(),
 		})
 		await this.serviceExecutor.post(MembershipService, data)
 	}
@@ -208,68 +224,71 @@ export class GroupManagementFacade {
 
 		if (group.type === GroupType.Mail) {
 			await this.serviceExecutor.delete(MailGroupService, data)
-		} else if (group.type === GroupType.LocalAdmin) {
-			await this.serviceExecutor.delete(LocalAdminGroupService, data)
 		} else {
 			throw new Error("invalid group type for deactivation")
 		}
 	}
 
+	async getGroupKeyViaUser(groupId: Id, version: number, viaUser: Id): Promise<AesKey> {
+		const currentGroupKey = await this.getCurrentGroupKeyViaUser(groupId, viaUser)
+		return this.keyLoaderFacade.loadSymGroupKey(groupId, version, currentGroupKey)
+	}
+
 	/**
 	 * Get a group key for any group we are admin and know some member of.
 	 *
-	 * Unlike {@link getGroupKeyViaAdminEncGKey} this should work for any group because we will actually go a "long" route of decrypting userGroupKey of the
+	 * Unlike {@link getCurrentGroupKeyViaAdminEncGKey} this should work for any group because we will actually go a "long" route of decrypting userGroupKey of the
 	 * member and decrypting group key with that.
 	 */
-	async getGroupKeyViaUser(groupId: Id, viaUser: Id): Promise<Aes128Key> {
+	async getCurrentGroupKeyViaUser(groupId: Id, viaUser: Id): Promise<VersionedKey> {
 		const user = await this.entityClient.load(UserTypeRef, viaUser)
-		const userGroupKey = await this.getGroupKeyViaAdminEncGKey(user.userGroup.group)
-		const ship = user.memberships.find((m) => m.group === groupId)
-		if (ship == null) {
+		const membership = user.memberships.find((m) => m.group === groupId)
+		if (membership == null) {
 			throw new Error(`User doesn't have this group membership! User: ${viaUser} groupId: ${groupId}`)
 		}
-		return decryptKey(userGroupKey, ship.symEncGKey)
+		const requiredUserGroupKeyVersion = membership.symKeyVersion
+		const requiredUserGroupKey = await this.getGroupKeyViaAdminEncGKey(user.userGroup.group, Number(requiredUserGroupKeyVersion))
+
+		const key = decryptKey(requiredUserGroupKey, membership.symEncGKey)
+		const version = Number(membership.groupKeyVersion)
+
+		return { object: key, version }
+	}
+
+	async getGroupKeyViaAdminEncGKey(groupId: Id, version: number): Promise<AesKey> {
+		if (this.user.hasGroup(groupId)) {
+			// e.g. I am a global admin and want to add another user to the global admin group
+			return this.keyLoaderFacade.loadSymGroupKey(groupId, version)
+		} else {
+			const currentGroupKey = await this.getCurrentGroupKeyViaAdminEncGKey(groupId)
+			return this.keyLoaderFacade.loadSymGroupKey(groupId, version, currentGroupKey)
+		}
 	}
 
 	/**
 	 * Get a group key for certain group types.
 	 *
-	 * Some groups (e.g. user groups or shared mailboxes) have adminGroupEncGKey set on creation. For those groups we can fairly easy get a group key without
+	 * Some groups (e.g. user groups or shared mailboxes) have adminGroupEncGKey set on creation. For those groups we can fairly easily get a group key without
 	 * decrypting userGroupKey of some member of that group.
 	 */
-	getGroupKeyViaAdminEncGKey(groupId: Id): Promise<Aes128Key> {
+	async getCurrentGroupKeyViaAdminEncGKey(groupId: Id): Promise<VersionedKey> {
 		if (this.user.hasGroup(groupId)) {
 			// e.g. I am a global admin and want to add another user to the global admin group
-			return Promise.resolve(this.user.getGroupKey(groupId))
+			return this.keyLoaderFacade.getCurrentSymGroupKey(groupId)
 		} else {
-			return this.entityClient.load(GroupTypeRef, groupId).then((group) => {
-				if (group.adminGroupEncGKey == null || group.adminGroupEncGKey.length === 0) {
-					throw new ProgrammingError("Group doesn't have adminGroupEncGKey, you can't get group key this way")
-				}
-				return Promise.resolve()
-					.then(() => {
-						if (group.admin && this.user.hasGroup(group.admin)) {
-							// e.g. I am a member of the group that administrates group G and want to add a new member to G
-							return this.user.getGroupKey(assertNotNull(group.admin))
-						} else {
-							// e.g. I am a global admin but group G is administrated by a local admin group and want to add a new member to G
-							let globalAdminGroupId = this.user.getGroupId(GroupType.Admin)
+			const group = await this.entityClient.load(GroupTypeRef, groupId)
+			if (group.adminGroupEncGKey == null || group.adminGroupEncGKey.length === 0) {
+				throw new ProgrammingError("Group doesn't have adminGroupEncGKey, you can't get group key this way")
+			}
+			if (!(group.admin && this.user.hasGroup(group.admin))) {
+				throw new Error(`The user is not a member of the admin group ${group.admin} when trying to get the group key for group ${groupId}`)
+			}
 
-							let globalAdminGroupKey = this.user.getGroupKey(globalAdminGroupId)
-
-							return this.entityClient.load(GroupTypeRef, assertNotNull(group.admin)).then((localAdminGroup) => {
-								if (localAdminGroup.admin === globalAdminGroupId) {
-									return decryptKey(globalAdminGroupKey, assertNotNull(localAdminGroup.adminGroupEncGKey))
-								} else {
-									throw new Error(`local admin group ${localAdminGroup._id} is not administrated by global admin group ${globalAdminGroupId}`)
-								}
-							})
-						}
-					})
-					.then((adminGroupKey) => {
-						return decryptKey(adminGroupKey, assertNotNull(group.adminGroupEncGKey))
-					})
-			})
+			// e.g. I am a member of the group that administrates group G and want to add a new member to G
+			const version = Number(group.adminGroupKeyVersion ?? 0)
+			const requiredAdminGroupKey = await this.keyLoaderFacade.loadSymGroupKey(assertNotNull(group.admin), version)
+			const decryptedKey = decryptKey(requiredAdminGroupKey, assertNotNull(group.adminGroupEncGKey))
+			return { object: decryptedKey, version: Number(group.groupKeyVersion) }
 		}
 	}
 

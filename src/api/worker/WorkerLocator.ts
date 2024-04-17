@@ -67,6 +67,8 @@ import { KyberFacade, NativeKyberFacade, WASMKyberFacade } from "./facades/Kyber
 import { PQFacade } from "./facades/PQFacade.js"
 import { PdfWriter } from "./pdf/PdfWriter.js"
 import { ContactFacade } from "./facades/lazy/ContactFacade.js"
+import { KeyLoaderFacade } from "./facades/KeyLoaderFacade.js"
+import { KeyRotationFacade } from "./facades/KeyRotationFacade.js"
 
 assertWorkerOrNode()
 
@@ -85,6 +87,8 @@ export type WorkerLocatorType = {
 	pqFacade: PQFacade
 	entropyFacade: EntropyFacade
 	blobAccessToken: BlobAccessTokenFacade
+	keyLoader: KeyLoaderFacade
+	keyRotation: KeyRotationFacade
 
 	// login
 	user: UserFacade
@@ -141,7 +145,7 @@ export async function initLocator(worker: WorkerImpl, browserData: BrowserData) 
 
 	locator.restClient = new RestClient(suspensionHandler, domainConfig)
 	locator.serviceExecutor = new ServiceExecutor(locator.restClient, locator.user, locator.instanceMapper, () => locator.crypto)
-	locator.entropyFacade = new EntropyFacade(locator.user, locator.serviceExecutor, random)
+	locator.entropyFacade = new EntropyFacade(locator.user, locator.serviceExecutor, random, () => locator.keyLoader)
 	locator.blobAccessToken = new BlobAccessTokenFacade(locator.serviceExecutor, dateProvider, locator.user)
 	const entityRestClient = new EntityRestClient(locator.user, locator.restClient, () => locator.crypto, locator.instanceMapper, locator.blobAccessToken)
 	locator._browserData = browserData
@@ -201,6 +205,8 @@ export async function initLocator(worker: WorkerImpl, browserData: BrowserData) 
 
 	locator.pqFacade = new PQFacade(locator.kyberFacade)
 
+	locator.keyLoader = new KeyLoaderFacade(locator.user, locator.cachingEntityClient)
+
 	locator.crypto = new CryptoFacade(
 		locator.user,
 		locator.cachingEntityClient,
@@ -211,19 +217,18 @@ export async function initLocator(worker: WorkerImpl, browserData: BrowserData) 
 		new OwnerEncSessionKeysUpdateQueue(locator.user, locator.serviceExecutor),
 		locator.pqFacade,
 		cache,
+		locator.keyLoader,
 	)
 
-	const loginListener: LoginListener = {
-		onPartialLoginSuccess(): Promise<void> {
-			return mainInterface.loginListener.onPartialLoginSuccess()
-		},
+	locator.keyRotation = new KeyRotationFacade(locator.cachingEntityClient)
 
+	const loginListener: LoginListener = {
 		onFullLoginSuccess(sessionType: SessionType, cacheInfo: CacheInfo): Promise<void> {
 			if (!isTest() && sessionType !== SessionType.Temporary && !isAdminClient()) {
 				// index new items in background
 				console.log("initIndexer after log in")
 
-				initIndexer(worker, cacheInfo)
+				initIndexer(worker, cacheInfo, locator.keyLoader)
 			}
 
 			return mainInterface.loginListener.onFullLoginSuccess(sessionType, cacheInfo)
@@ -258,6 +263,7 @@ export async function initLocator(worker: WorkerImpl, browserData: BrowserData) 
 		loginListener,
 		locator.instanceMapper,
 		locator.crypto,
+		locator.keyRotation,
 		maybeUninitializedStorage,
 		locator.serviceExecutor,
 		locator.user,
@@ -287,6 +293,7 @@ export async function initLocator(worker: WorkerImpl, browserData: BrowserData) 
 			locator.serviceExecutor,
 			assertNotNull(cache),
 			locator.pqFacade,
+			locator.keyLoader,
 		)
 	})
 	locator.userManagement = lazyMemoized(async () => {
@@ -300,6 +307,7 @@ export async function initLocator(worker: WorkerImpl, browserData: BrowserData) 
 			mainInterface.operationProgressTracker,
 			locator.login,
 			locator.pqFacade,
+			locator.keyLoader,
 		)
 	})
 	locator.customer = lazyMemoized(async () => {
@@ -317,6 +325,7 @@ export async function initLocator(worker: WorkerImpl, browserData: BrowserData) 
 			mainInterface.operationProgressTracker,
 			locator.pdfWriter,
 			locator.pqFacade,
+			locator.keyLoader,
 		)
 	})
 	const aesApp = new AesApp(new NativeCryptoFacadeSendDispatcher(worker), random)
@@ -337,7 +346,16 @@ export async function initLocator(worker: WorkerImpl, browserData: BrowserData) 
 	})
 	locator.mail = lazyMemoized(async () => {
 		const { MailFacade } = await import("./facades/lazy/MailFacade.js")
-		return new MailFacade(locator.user, locator.cachingEntityClient, locator.crypto, locator.serviceExecutor, await locator.blob(), fileApp, locator.login)
+		return new MailFacade(
+			locator.user,
+			locator.cachingEntityClient,
+			locator.crypto,
+			locator.serviceExecutor,
+			await locator.blob(),
+			fileApp,
+			locator.login,
+			locator.keyLoader,
+		)
 	})
 	const nativePushFacade = new NativePushFacadeSendDispatcher(worker)
 	locator.calendar = lazyMemoized(async () => {
@@ -367,6 +385,11 @@ export async function initLocator(worker: WorkerImpl, browserData: BrowserData) 
 	})
 	const scheduler = new SchedulerImpl(dateProvider, self, self)
 
+	locator.configFacade = lazyMemoized(async () => {
+		const { ConfigurationDatabase } = await import("./facades/lazy/ConfigurationDatabase.js")
+		return new ConfigurationDatabase(locator.user, undefined, locator.keyLoader)
+	})
+
 	const eventBusCoordinator = new EventBusEventCoordinator(
 		worker,
 		mainInterface.wsConnectivityListener,
@@ -375,6 +398,7 @@ export async function initLocator(worker: WorkerImpl, browserData: BrowserData) 
 		locator.user,
 		locator.cachingEntityClient,
 		mainInterface.eventController,
+		locator.configFacade,
 	)
 
 	locator.eventBusClient = new EventBusClient(
@@ -391,15 +415,11 @@ export async function initLocator(worker: WorkerImpl, browserData: BrowserData) 
 	locator.Const = Const
 	locator.share = lazyMemoized(async () => {
 		const { ShareFacade } = await import("./facades/lazy/ShareFacade.js")
-		return new ShareFacade(locator.user, locator.crypto, locator.serviceExecutor, locator.cachingEntityClient)
+		return new ShareFacade(locator.user, locator.crypto, locator.serviceExecutor, locator.cachingEntityClient, locator.keyLoader)
 	})
 	locator.giftCards = lazyMemoized(async () => {
 		const { GiftCardFacade } = await import("./facades/lazy/GiftCardFacade.js")
-		return new GiftCardFacade(locator.user, await locator.customer(), locator.serviceExecutor, locator.crypto)
-	})
-	locator.configFacade = lazyMemoized(async () => {
-		const { ConfigurationDatabase } = await import("./facades/lazy/ConfigurationDatabase.js")
-		return new ConfigurationDatabase(locator.user)
+		return new GiftCardFacade(locator.user, await locator.customer(), locator.serviceExecutor, locator.crypto, locator.keyLoader)
 	})
 	locator.contactFacade = lazyMemoized(async () => {
 		const { ContactFacade } = await import("./facades/lazy/ContactFacade.js")
@@ -409,25 +429,25 @@ export async function initLocator(worker: WorkerImpl, browserData: BrowserData) 
 
 const RETRY_TIMOUT_AFTER_INIT_INDEXER_ERROR_MS = 30000
 
-async function initIndexer(worker: WorkerImpl, cacheInfo: CacheInfo): Promise<void> {
+async function initIndexer(worker: WorkerImpl, cacheInfo: CacheInfo, keyLoaderFacade: KeyLoaderFacade): Promise<void> {
 	const indexer = await locator.indexer()
 	try {
 		await indexer.init({
 			user: assertNotNull(locator.user.getUser()),
-			userGroupKey: locator.user.getUserGroupKey(),
 			cacheInfo,
+			keyLoaderFacade,
 		})
 	} catch (e) {
 		if (e instanceof ServiceUnavailableError) {
 			console.log("Retry init indexer in 30 seconds after ServiceUnavailableError")
 			await delay(RETRY_TIMOUT_AFTER_INIT_INDEXER_ERROR_MS)
 			console.log("_initIndexer after ServiceUnavailableError")
-			return initIndexer(worker, cacheInfo)
+			return initIndexer(worker, cacheInfo, keyLoaderFacade)
 		} else if (e instanceof ConnectionError) {
 			console.log("Retry init indexer in 30 seconds after ConnectionError")
 			await delay(RETRY_TIMOUT_AFTER_INIT_INDEXER_ERROR_MS)
 			console.log("_initIndexer after ConnectionError")
-			return initIndexer(worker, cacheInfo)
+			return initIndexer(worker, cacheInfo, keyLoaderFacade)
 		} else {
 			// not awaiting
 			worker.sendError(e)

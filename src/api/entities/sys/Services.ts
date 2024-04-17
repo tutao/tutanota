@@ -18,8 +18,6 @@ import {CustomDomainReturnTypeRef} from "./TypeRefs.js"
 import {CustomerAccountTerminationPostInTypeRef} from "./TypeRefs.js"
 import {CustomerAccountTerminationPostOutTypeRef} from "./TypeRefs.js"
 import {PublicKeyGetOutTypeRef} from "./TypeRefs.js"
-import {CustomerDataTypeRef} from "./TypeRefs.js"
-import {CustomerReturnTypeRef} from "./TypeRefs.js"
 import {DeleteCustomerDataTypeRef} from "./TypeRefs.js"
 import {DebitServicePutDataTypeRef} from "./TypeRefs.js"
 import {DomainMailAddressAvailabilityDataTypeRef} from "./TypeRefs.js"
@@ -79,13 +77,10 @@ import {SignOrderProcessingAgreementDataTypeRef} from "./TypeRefs.js"
 import {SwitchAccountTypePostInTypeRef} from "./TypeRefs.js"
 import {SystemKeysReturnTypeRef} from "./TypeRefs.js"
 import {TakeOverDeletedAddressDataTypeRef} from "./TypeRefs.js"
-import {UpdateAdminshipDataTypeRef} from "./TypeRefs.js"
 import {UpdatePermissionKeyDataTypeRef} from "./TypeRefs.js"
 import {UpdateSessionKeysPostInTypeRef} from "./TypeRefs.js"
 import {UpgradePriceServiceDataTypeRef} from "./TypeRefs.js"
 import {UpgradePriceServiceReturnTypeRef} from "./TypeRefs.js"
-import {UserDataTypeRef} from "./TypeRefs.js"
-import {UserReturnTypeRef} from "./TypeRefs.js"
 import {UserDataDeleteTypeRef} from "./TypeRefs.js"
 import {VersionDataTypeRef} from "./TypeRefs.js"
 import {VersionReturnTypeRef} from "./TypeRefs.js"
@@ -193,7 +188,7 @@ export const CustomerService = Object.freeze({
 	app: "sys",
 	name: "CustomerService",
 	get: null,
-	post: {data: CustomerDataTypeRef, return: CustomerReturnTypeRef},
+	post: null,
 	put: null,
 	delete: {data: DeleteCustomerDataTypeRef, return: null},
 } as const)
@@ -459,15 +454,6 @@ export const TakeOverDeletedAddressService = Object.freeze({
 	delete: null,
 } as const)
 
-export const UpdateAdminshipService = Object.freeze({
-	app: "sys",
-	name: "UpdateAdminshipService",
-	get: null,
-	post: {data: UpdateAdminshipDataTypeRef, return: null},
-	put: null,
-	delete: null,
-} as const)
-
 export const UpdatePermissionKeyService = Object.freeze({
 	app: "sys",
 	name: "UpdatePermissionKeyService",
@@ -499,7 +485,7 @@ export const UserService = Object.freeze({
 	app: "sys",
 	name: "UserService",
 	get: null,
-	post: {data: UserDataTypeRef, return: UserReturnTypeRef},
+	post: null,
 	put: null,
 	delete: {data: UserDataDeleteTypeRef, return: null},
 } as const)

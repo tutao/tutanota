@@ -10,7 +10,7 @@ import {
 	UserExternalAuthInfoTypeRef,
 	UserTypeRef,
 } from "../../../../../src/api/entities/sys/TypeRefs"
-import { createAuthVerifier, encryptKey, KEY_LENGTH_BYTES_AES_256, keyToBase64, sha256Hash, uint8ArrayToBitArray } from "@tutao/tutanota-crypto"
+import { AesKey, createAuthVerifier, encryptKey, KEY_LENGTH_BYTES_AES_256, keyToBase64, sha256Hash, uint8ArrayToBitArray } from "@tutao/tutanota-crypto"
 import { LoginFacade, LoginListener, ResumeSessionErrorReason } from "../../../../../src/api/worker/facades/LoginFacade"
 import { IServiceExecutor } from "../../../../../src/api/common/ServiceRequest"
 import { EntityClient } from "../../../../../src/api/common/EntityClient"
@@ -34,6 +34,7 @@ import { EntropyFacade } from "../../../../../src/api/worker/facades/EntropyFaca
 import { DatabaseKeyFactory } from "../../../../../src/misc/credentials/DatabaseKeyFactory.js"
 import { Argon2idFacade } from "../../../../../src/api/worker/facades/Argon2idFacade.js"
 import { createTestEntity } from "../../../TestUtils.js"
+import { KeyRotationFacade } from "../../../../../src/api/worker/facades/KeyRotationFacade.js"
 
 const { anything, argThat } = matchers
 
@@ -61,7 +62,7 @@ export function verify(demonstration: any, config?: td.VerificationConfig) {
 
 const SALT = new Uint8Array([0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15])
 
-async function makeUser(userId: Id, kdfVersion: KdfType = DEFAULT_KDF_TYPE, userPassphraseKey: Aes128Key | Aes256Key = PASSWORD_KEY): Promise<User> {
+async function makeUser(userId: Id, kdfVersion: KdfType = DEFAULT_KDF_TYPE, userPassphraseKey: AesKey = PASSWORD_KEY): Promise<User> {
 	const groupKey = encryptKey(userPassphraseKey, [3229306880, 2716953871, 4072167920, 3901332676])
 
 	return createTestEntity(UserTypeRef, {
@@ -146,6 +147,7 @@ o.spec("LoginFacadeTest", function () {
 			loginListener,
 			instanceMapperMock,
 			cryptoFacadeMock,
+			instance(KeyRotationFacade),
 			cacheStorageInitializerMock,
 			serviceExecutor,
 			userFacade,
@@ -399,12 +401,10 @@ o.spec("LoginFacadeTest", function () {
 					throw connectionError
 				})
 
-				const deferred = defer()
-				when(loginListener.onPartialLoginSuccess()).thenDo(() => deferred.resolve(null))
-
 				const result = await facade.resumeSession(credentials, { salt: user.salt!, kdfType: DEFAULT_KDF_TYPE }, dbKey, timeRangeDays)
 
-				await deferred.promise
+				// we expect async resume session so we have to pause current code execution.
+				await Promise.resolve()
 
 				o(result.type).equals("success")
 				o(calls).deepEquals(["setUser", "sessionService"])
@@ -753,7 +753,7 @@ o.spec("LoginFacadeTest", function () {
 			const user = await makeUser("userId", KdfType.Bcrypt)
 			user.salt = SALT
 
-			when(userFacade.getUserGroupKey()).thenReturn([1, 2, 3, 4])
+			when(userFacade.getCurrentUserGroupKey()).thenReturn({ object: [1, 2, 3, 4], version: 0 })
 			await facade.migrateKdfType(KdfType.Argon2id, "hunter2", user)
 
 			verify(

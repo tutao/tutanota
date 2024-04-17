@@ -100,6 +100,181 @@
 					"info": "AddAssociation CustomerInfo/supportInfo/ELEMENT_ASSOCIATION/2197."
 				}
 			]
+		},
+		{
+			"version": 96,
+			"changes": [
+				{
+					"name": "AddValue",
+					"sourceType": "AccountingInfo",
+					"info": "AddValue AccountingInfo/_ownerKeyVersion/2223."
+				},
+				{
+					"name": "AddValue",
+					"sourceType": "CustomerServerProperties",
+					"info": "AddValue CustomerServerProperties/_ownerKeyVersion/2224."
+				},
+				{
+					"name": "AddValue",
+					"sourceType": "GroupInfo",
+					"info": "AddValue GroupInfo/_ownerKeyVersion/2225."
+				},
+				{
+					"name": "AddValue",
+					"sourceType": "AuditLogEntry",
+					"info": "AddValue AuditLogEntry/_ownerKeyVersion/2227."
+				},
+				{
+					"name": "AddValue",
+					"sourceType": "Session",
+					"info": "AddValue Session/_ownerKeyVersion/2229."
+				},
+				{
+					"name": "AddValue",
+					"sourceType": "WhitelabelChild",
+					"info": "AddValue WhitelabelChild/_ownerKeyVersion/2230."
+				},
+				{
+					"name": "AddValue",
+					"sourceType": "OrderProcessingAgreement",
+					"info": "AddValue OrderProcessingAgreement/_ownerKeyVersion/2231."
+				},
+				{
+					"name": "AddValue",
+					"sourceType": "UserAlarmInfo",
+					"info": "AddValue UserAlarmInfo/_ownerKeyVersion/2233."
+				},
+				{
+					"name": "AddValue",
+					"sourceType": "ReceivedGroupInvitation",
+					"info": "AddValue ReceivedGroupInvitation/_ownerKeyVersion/2234."
+				},
+				{
+					"name": "AddValue",
+					"sourceType": "Invoice",
+					"info": "AddValue Invoice/_ownerKeyVersion/2235."
+				},
+				{
+					"name": "AddValue",
+					"sourceType": "MissedNotification",
+					"info": "AddValue MissedNotification/_ownerKeyVersion/2236."
+				},
+				{
+					"name": "AddValue",
+					"sourceType": "GiftCard",
+					"info": "AddValue GiftCard/_ownerKeyVersion/2238."
+				},
+				{
+					"name": "AddValue",
+					"sourceType": "PushIdentifier",
+					"info": "AddValue PushIdentifier/_ownerKeyVersion/2241."
+				},
+				{
+					"name": "AddValue",
+					"sourceType": "Permission",
+					"info": "AddValue Permission/_ownerKeyVersion/2242."
+				},
+				{
+					"name": "AddValue",
+					"sourceType": "GroupMembership",
+					"info": "AddValue GroupMembership/groupKeyVersion/2246."
+				},
+				{
+					"name": "AddValue",
+					"sourceType": "GroupMembership",
+					"info": "AddValue GroupMembership/symKeyVersion/2247."
+				},
+				{
+					"name": "AddValue",
+					"sourceType": "BucketPermission",
+					"info": "AddValue BucketPermission/ownerKeyVersion/2248."
+				},
+				{
+					"name": "AddValue",
+					"sourceType": "BucketPermission",
+					"info": "AddValue BucketPermission/symKeyVersion/2249."
+				},
+				{
+					"name": "AddValue",
+					"sourceType": "BucketPermission",
+					"info": "AddValue BucketPermission/senderKeyVersion/2250."
+				},
+				{
+					"name": "AddValue",
+					"sourceType": "Permission",
+					"info": "AddValue Permission/symKeyVersion/2251."
+				},
+				{
+					"name": "AddValue",
+					"sourceType": "BucketKey",
+					"info": "AddValue BucketKey/recipientKeyVersion/2252."
+				},
+				{
+					"name": "AddValue",
+					"sourceType": "BucketKey",
+					"info": "AddValue BucketKey/senderKeyVersion/2253."
+				},
+				{
+					"name": "AddValue",
+					"sourceType": "InstanceSessionKey",
+					"info": "AddValue InstanceSessionKey/symKeyVersion/2254."
+				},
+				{
+					"name": "RemoveValue",
+					"sourceType": "KeyPair",
+					"info": "RemoveValue KeyPair/version/4."
+				},
+				{
+					"name": "AddValue",
+					"sourceType": "Group",
+					"info": "AddValue Group/adminGroupKeyVersion/2270."
+				},
+				{
+					"name": "AddValue",
+					"sourceType": "Group",
+					"info": "AddValue Group/groupKeyVersion/2271."
+				},
+				{
+					"name": "AddValue",
+					"sourceType": "Group",
+					"info": "AddValue Group/pubAdminGroupEncGKey/2272."
+				},
+				{
+					"name": "RenameAttribute",
+					"sourceType": "Group",
+					"info": "RenameAttribute Group: keys -> currentKeys."
+				},
+				{
+					"name": "ChangeAssociationCardinality",
+					"sourceType": "Group",
+					"info": "ChangeAssociationCardinality Group/currentKeys/ZeroOrOne."
+				},
+				{
+					"name": "AddAssociation",
+					"sourceType": "Group",
+					"info": "AddAssociation Group/formerGroupKeys/AGGREGATION/2273."
+				},
+				{
+					"name": "AddValue",
+					"sourceType": "ReceivedGroupInvitation",
+					"info": "AddValue ReceivedGroupInvitation/sharedGroupKeyVersion/2280."
+				},
+				{
+					"name": "RemoveValue",
+					"sourceType": "User",
+					"info": "RemoveValue User/userEncClientKey/89."
+				},
+				{
+					"name": "AddValue",
+					"sourceType": "RecoverCode",
+					"info": "AddValue RecoverCode/userKeyVersion/2281."
+				},
+				{
+					"name": "AddAssociation",
+					"sourceType": "UserGroupRoot",
+					"info": "AddAssociation UserGroupRoot/keyRotations/AGGREGATION/2294."
+				}
+			]
 		}
 	]
 }

@@ -75,6 +75,7 @@ export type CalendarEvent = {
 	_id: IdTuple;
 	_ownerEncSessionKey: null | Uint8Array;
 	_ownerGroup: null | Id;
+	_ownerKeyVersion: null | NumberString;
 	_permissions: Id;
 	description: string;
 	endTime: Date;
@@ -150,6 +151,7 @@ export type CalendarEventUpdate = {
 	_id: IdTuple;
 	_ownerEncSessionKey: null | Uint8Array;
 	_ownerGroup: null | Id;
+	_ownerKeyVersion: null | NumberString;
 	_permissions: Id;
 	sender: string;
 
@@ -182,6 +184,7 @@ export type CalendarGroupRoot = {
 	_id: Id;
 	_ownerEncSessionKey: null | Uint8Array;
 	_ownerGroup: null | Id;
+	_ownerKeyVersion: null | NumberString;
 	_permissions: Id;
 
 	index:  null | CalendarEventIndexRef;
@@ -222,6 +225,7 @@ export type Contact = {
 	_owner: Id;
 	_ownerEncSessionKey: null | Uint8Array;
 	_ownerGroup: null | Id;
+	_ownerKeyVersion: null | NumberString;
 	_permissions: Id;
 	autoTransmitPassword: string;
 	birthdayIso: null | string;
@@ -295,6 +299,7 @@ export type ContactList = {
 	_id: Id;
 	_ownerEncSessionKey: null | Uint8Array;
 	_ownerGroup: null | Id;
+	_ownerKeyVersion: null | NumberString;
 	_permissions: Id;
 
 	contacts: Id;
@@ -314,6 +319,7 @@ export type ContactListEntry = {
 	_id: IdTuple;
 	_ownerEncSessionKey: null | Uint8Array;
 	_ownerGroup: null | Id;
+	_ownerKeyVersion: null | NumberString;
 	_permissions: Id;
 	emailAddress: string;
 }
@@ -331,6 +337,7 @@ export type ContactListGroupRoot = {
 	_id: Id;
 	_ownerEncSessionKey: null | Uint8Array;
 	_ownerGroup: null | Id;
+	_ownerKeyVersion: null | NumberString;
 	_permissions: Id;
 
 	entries: Id;
@@ -463,6 +470,7 @@ export type CreateExternalUserGroupData = {
 	_id: Id;
 	externalPwEncUserGroupKey: Uint8Array;
 	internalUserEncUserGroupKey: Uint8Array;
+	internalUserGroupKeyVersion: NumberString;
 	mailAddress: string;
 }
 export const CreateGroupPostReturnTypeRef: TypeRef<CreateGroupPostReturn> = new TypeRef("tutanota", "CreateGroupPostReturn")
@@ -479,20 +487,6 @@ export type CreateGroupPostReturn = {
 
 	group: Id;
 }
-export const CreateLocalAdminGroupDataTypeRef: TypeRef<CreateLocalAdminGroupData> = new TypeRef("tutanota", "CreateLocalAdminGroupData")
-
-export function createCreateLocalAdminGroupData(values: StrippedEntity<CreateLocalAdminGroupData>): CreateLocalAdminGroupData {
-	return Object.assign(create(typeModels.CreateLocalAdminGroupData, CreateLocalAdminGroupDataTypeRef), values)
-}
-
-export type CreateLocalAdminGroupData = {
-	_type: TypeRef<CreateLocalAdminGroupData>;
-
-	_format: NumberString;
-	encryptedName: Uint8Array;
-
-	groupData: InternalGroupData;
-}
 export const CreateMailFolderDataTypeRef: TypeRef<CreateMailFolderData> = new TypeRef("tutanota", "CreateMailFolderData")
 
 export function createCreateMailFolderData(values: StrippedEntity<CreateMailFolderData>): CreateMailFolderData {
@@ -507,6 +501,7 @@ export type CreateMailFolderData = {
 	folderName: string;
 	ownerEncSessionKey: Uint8Array;
 	ownerGroup: null | Id;
+	ownerKeyVersion: NumberString;
 
 	parentFolder:  null | IdTuple;
 }
@@ -550,6 +545,7 @@ export type CustomerAccountCreateData = {
 	_type: TypeRef<CustomerAccountCreateData>;
 
 	_format: NumberString;
+	accountGroupKeyVersion: NumberString;
 	adminEncAccountingInfoSessionKey: Uint8Array;
 	adminEncCustomerServerPropertiesSessionKey: Uint8Array;
 	authToken: string;
@@ -557,6 +553,7 @@ export type CustomerAccountCreateData = {
 	date: null | Date;
 	lang: string;
 	systemAdminPubEncAccountingInfoSessionKey: Uint8Array;
+	systemAdminPubKeyVersion: NumberString;
 	systemAdminPublicProtocolVersion: NumberString;
 	userEncAccountGroupKey: Uint8Array;
 	userEncAdminGroupKey: Uint8Array;
@@ -619,6 +616,7 @@ export type DraftAttachment = {
 
 	_id: Id;
 	ownerEncFileSessionKey: Uint8Array;
+	ownerKeyVersion: NumberString;
 
 	existingFile:  null | IdTuple;
 	newFile:  null | NewDraftAttachment;
@@ -636,8 +634,8 @@ export type DraftCreateData = {
 	_format: NumberString;
 	conversationType: NumberString;
 	ownerEncSessionKey: Uint8Array;
+	ownerKeyVersion: NumberString;
 	previousMessageId: null | string;
-	symEncSessionKey: Uint8Array;
 
 	draftData: DraftData;
 }
@@ -735,6 +733,7 @@ export type EmailTemplate = {
 	_id: IdTuple;
 	_ownerEncSessionKey: null | Uint8Array;
 	_ownerGroup: null | Id;
+	_ownerKeyVersion: null | NumberString;
 	_permissions: Id;
 	tag: string;
 	title: string;
@@ -765,6 +764,7 @@ export type EncryptTutanotaPropertiesData = {
 
 	_format: NumberString;
 	symEncSessionKey: Uint8Array;
+	symKeyVersion: NumberString;
 
 	properties: Id;
 }
@@ -791,7 +791,8 @@ export type EntropyData = {
 	_type: TypeRef<EntropyData>;
 
 	_format: NumberString;
-	groupEncEntropy: Uint8Array;
+	userEncEntropy: Uint8Array;
+	userKeyVersion: NumberString;
 }
 export const ExternalUserDataTypeRef: TypeRef<ExternalUserData> = new TypeRef("tutanota", "ExternalUserData")
 
@@ -811,8 +812,8 @@ export type ExternalUserData = {
 	externalUserEncUserGroupInfoSessionKey: Uint8Array;
 	internalMailEncMailGroupInfoSessionKey: Uint8Array;
 	internalMailEncUserGroupInfoSessionKey: Uint8Array;
+	internalMailGroupKeyVersion: NumberString;
 	kdfVersion: NumberString;
-	userEncClientKey: Uint8Array;
 	verifier: Uint8Array;
 
 	userGroupData: CreateExternalUserGroupData;
@@ -833,6 +834,7 @@ export type File = {
 	_owner: Id;
 	_ownerEncSessionKey: null | Uint8Array;
 	_ownerGroup: null | Id;
+	_ownerKeyVersion: null | NumberString;
 	_permissions: Id;
 	cid: null | string;
 	mimeType: null | string;
@@ -857,6 +859,7 @@ export type FileSystem = {
 	_id: Id;
 	_ownerEncSessionKey: null | Uint8Array;
 	_ownerGroup: null | Id;
+	_ownerKeyVersion: null | NumberString;
 	_permissions: Id;
 
 	files: Id;
@@ -914,7 +917,9 @@ export type GroupInvitationPutData = {
 
 	_format: NumberString;
 	sharedGroupEncInviteeGroupInfoKey: Uint8Array;
+	sharedGroupKeyVersion: NumberString;
 	userGroupEncGroupKey: Uint8Array;
+	userGroupKeyVersion: NumberString;
 
 	receivedInvitation: IdTuple;
 }
@@ -1021,10 +1026,12 @@ export type InternalGroupData = {
 
 	_id: Id;
 	adminEncGroupKey: Uint8Array;
+	adminKeyVersion: NumberString;
 	groupEncPrivEccKey: null | Uint8Array;
 	groupEncPrivKyberKey: null | Uint8Array;
 	groupEncPrivRsaKey: null | Uint8Array;
 	ownerEncGroupInfoSessionKey: Uint8Array;
+	ownerKeyVersion: NumberString;
 	pubEccKey: null | Uint8Array;
 	pubKyberKey: null | Uint8Array;
 	pubRsaKey: null | Uint8Array;
@@ -1044,7 +1051,8 @@ export type InternalRecipientKeyData = {
 	mailAddress: string;
 	protocolVersion: NumberString;
 	pubEncBucketKey: Uint8Array;
-	pubKeyVersion: NumberString;
+	recipientKeyVersion: NumberString;
+	senderKeyVersion: null | NumberString;
 }
 export const KnowledgeBaseEntryTypeRef: TypeRef<KnowledgeBaseEntry> = new TypeRef("tutanota", "KnowledgeBaseEntry")
 
@@ -1060,6 +1068,7 @@ export type KnowledgeBaseEntry = {
 	_id: IdTuple;
 	_ownerEncSessionKey: null | Uint8Array;
 	_ownerGroup: null | Id;
+	_ownerKeyVersion: null | NumberString;
 	_permissions: Id;
 	description: string;
 	title: string;
@@ -1107,6 +1116,7 @@ export type Mail = {
 	_id: IdTuple;
 	_ownerEncSessionKey: null | Uint8Array;
 	_ownerGroup: null | Id;
+	_ownerKeyVersion: null | NumberString;
 	_permissions: Id;
 	authStatus: null | NumberString;
 	confidential: boolean;
@@ -1182,6 +1192,7 @@ export type MailBody = {
 	_owner: Id;
 	_ownerEncSessionKey: null | Uint8Array;
 	_ownerGroup: null | Id;
+	_ownerKeyVersion: null | NumberString;
 	_permissions: Id;
 	compressedText: null | string;
 	text: null | string;
@@ -1200,9 +1211,9 @@ export type MailBox = {
 	_id: Id;
 	_ownerEncSessionKey: null | Uint8Array;
 	_ownerGroup: null | Id;
+	_ownerKeyVersion: null | NumberString;
 	_permissions: Id;
 	lastInfoDate: Date;
-	symEncShareBucketKey: null | Uint8Array;
 
 	folders:  null | MailFolderRef;
 	mailDetailsDrafts:  null | MailDetailsDraftsRef;
@@ -1243,6 +1254,7 @@ export type MailDetailsBlob = {
 	_id: IdTuple;
 	_ownerEncSessionKey: null | Uint8Array;
 	_ownerGroup: null | Id;
+	_ownerKeyVersion: null | NumberString;
 	_permissions: Id;
 
 	details: MailDetails;
@@ -1261,6 +1273,7 @@ export type MailDetailsDraft = {
 	_id: IdTuple;
 	_ownerEncSessionKey: null | Uint8Array;
 	_ownerGroup: null | Id;
+	_ownerKeyVersion: null | NumberString;
 	_permissions: Id;
 
 	details: MailDetails;
@@ -1292,6 +1305,7 @@ export type MailFolder = {
 	_id: IdTuple;
 	_ownerEncSessionKey: null | Uint8Array;
 	_ownerGroup: null | Id;
+	_ownerKeyVersion: null | NumberString;
 	_permissions: Id;
 	folderType: NumberString;
 	name: string;
@@ -1327,6 +1341,7 @@ export type MailHeaders = {
 	_id: Id;
 	_ownerEncSessionKey: null | Uint8Array;
 	_ownerGroup: null | Id;
+	_ownerKeyVersion: null | NumberString;
 	_permissions: Id;
 	compressedHeaders: null | string;
 	headers: null | string;
@@ -1367,6 +1382,7 @@ export type MailboxProperties = {
 	_id: Id;
 	_ownerEncSessionKey: null | Uint8Array;
 	_ownerGroup: null | Id;
+	_ownerKeyVersion: null | NumberString;
 	_permissions: Id;
 	reportMovedMails: NumberString;
 
@@ -1579,30 +1595,6 @@ export type PasswordMessagingReturn = {
 	_format: NumberString;
 	autoAuthenticationId: Id;
 }
-export const PasswordRetrievalDataTypeRef: TypeRef<PasswordRetrievalData> = new TypeRef("tutanota", "PasswordRetrievalData")
-
-export function createPasswordRetrievalData(values: StrippedEntity<PasswordRetrievalData>): PasswordRetrievalData {
-	return Object.assign(create(typeModels.PasswordRetrievalData, PasswordRetrievalDataTypeRef), values)
-}
-
-export type PasswordRetrievalData = {
-	_type: TypeRef<PasswordRetrievalData>;
-
-	_format: NumberString;
-	autoAuthenticationId: Id;
-}
-export const PasswordRetrievalReturnTypeRef: TypeRef<PasswordRetrievalReturn> = new TypeRef("tutanota", "PasswordRetrievalReturn")
-
-export function createPasswordRetrievalReturn(values: StrippedEntity<PasswordRetrievalReturn>): PasswordRetrievalReturn {
-	return Object.assign(create(typeModels.PasswordRetrievalReturn, PasswordRetrievalReturnTypeRef), values)
-}
-
-export type PasswordRetrievalReturn = {
-	_type: TypeRef<PasswordRetrievalReturn>;
-
-	_format: NumberString;
-	transmissionKeyEncryptedPassword: string;
-}
 export const PhishingMarkerWebsocketDataTypeRef: TypeRef<PhishingMarkerWebsocketData> = new TypeRef("tutanota", "PhishingMarkerWebsocketData")
 
 export function createPhishingMarkerWebsocketData(values: StrippedEntity<PhishingMarkerWebsocketData>): PhishingMarkerWebsocketData {
@@ -1715,12 +1707,12 @@ export type SecureExternalRecipientKeyData = {
 	autoTransmitPassword: null | string;
 	kdfVersion: NumberString;
 	mailAddress: string;
-	ownerEncBucketKey: null | Uint8Array;
+	ownerEncBucketKey: Uint8Array;
+	ownerKeyVersion: NumberString;
 	passwordVerifier: Uint8Array;
 	pwEncCommunicationKey: null | Uint8Array;
 	salt: null | Uint8Array;
 	saltHash: null | Uint8Array;
-	symEncBucketKey: null | Uint8Array;
 
 	passwordChannelPhoneNumbers: PasswordChannelPhoneNumber[];
 }
@@ -1781,6 +1773,7 @@ export type SharedGroupData = {
 	sharedGroup: Id;
 	sharedGroupEncInviterGroupInfoKey: Uint8Array;
 	sharedGroupEncSharedGroupInfoKey: Uint8Array;
+	sharedGroupKeyVersion: NumberString;
 }
 export const SpamResultsTypeRef: TypeRef<SpamResults> = new TypeRef("tutanota", "SpamResults")
 
@@ -1820,6 +1813,7 @@ export type SymEncInternalRecipientKeyData = {
 	_id: Id;
 	mailAddress: string;
 	symEncBucketKey: Uint8Array;
+	symKeyVersion: NumberString;
 
 	keyGroup: Id;
 }
@@ -1837,6 +1831,7 @@ export type TemplateGroupRoot = {
 	_id: Id;
 	_ownerEncSessionKey: null | Uint8Array;
 	_ownerGroup: null | Id;
+	_ownerKeyVersion: null | NumberString;
 	_permissions: Id;
 
 	knowledgeBase: Id;
@@ -1856,16 +1851,18 @@ export type TutanotaProperties = {
 	_id: Id;
 	_ownerEncSessionKey: null | Uint8Array;
 	_ownerGroup: null | Id;
+	_ownerKeyVersion: null | NumberString;
 	_permissions: Id;
 	customEmailSignature: string;
 	defaultSender: null | string;
 	defaultUnconfidential: boolean;
 	emailSignatureType: NumberString;
-	groupEncEntropy: null | Uint8Array;
 	lastSeenAnnouncement: NumberString;
 	noAutomaticContacts: boolean;
 	notificationMailLanguage: null | string;
 	sendPlaintextOnly: boolean;
+	userEncEntropy: null | Uint8Array;
+	userKeyVersion: null | NumberString;
 
 	imapSyncConfig: ImapSyncConfiguration[];
 	inboxRules: InboxRule[];
@@ -1914,6 +1911,7 @@ export type UserAccountUserData = {
 	customerEncContactGroupInfoSessionKey: Uint8Array;
 	customerEncFileGroupInfoSessionKey: Uint8Array;
 	customerEncMailGroupInfoSessionKey: Uint8Array;
+	customerKeyVersion: NumberString;
 	encryptedName: Uint8Array;
 	fileEncFileSystemSessionKey: Uint8Array;
 	kdfVersion: NumberString;
@@ -1923,7 +1921,6 @@ export type UserAccountUserData = {
 	recoverCodeEncUserGroupKey: Uint8Array;
 	recoverCodeVerifier: Uint8Array;
 	salt: Uint8Array;
-	userEncClientKey: Uint8Array;
 	userEncContactGroupKey: Uint8Array;
 	userEncCustomerGroupKey: Uint8Array;
 	userEncEntropy: Uint8Array;
@@ -1944,10 +1941,13 @@ export type UserAreaGroupData = {
 
 	_id: Id;
 	adminEncGroupKey: null | Uint8Array;
+	adminKeyVersion: null | NumberString;
 	customerEncGroupInfoSessionKey: Uint8Array;
+	customerKeyVersion: NumberString;
 	groupEncGroupRootSessionKey: Uint8Array;
 	groupInfoEncName: Uint8Array;
 	userEncGroupKey: Uint8Array;
+	userKeyVersion: NumberString;
 
 	adminGroup:  null | Id;
 }
@@ -1991,6 +1991,7 @@ export type UserSettingsGroupRoot = {
 	_id: Id;
 	_ownerEncSessionKey: null | Uint8Array;
 	_ownerGroup: null | Id;
+	_ownerKeyVersion: null | NumberString;
 	_permissions: Id;
 	startOfTheWeek: NumberString;
 	timeFormat: NumberString;

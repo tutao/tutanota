@@ -7,6 +7,7 @@ export {
 	IV_BYTE_LENGTH,
 	Aes128Key,
 	Aes256Key,
+	AesKey,
 	aes256EncryptSearchIndexEntry,
 	authenticatedAesDecrypt,
 	unauthenticatedAesDecrypt,

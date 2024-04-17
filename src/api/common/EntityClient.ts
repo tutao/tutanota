@@ -1,4 +1,4 @@
-import type { EntityRestInterface, OwnerEncSessionKeyProvider } from "../worker/rest/EntityRestClient"
+import type { EntityRestInterface, OwnerEncSessionKeyProvider, OwnerKeyProvider } from "../worker/rest/EntityRestClient"
 import { EntityRestClientSetupOptions } from "../worker/rest/EntityRestClient"
 import type { RootInstance } from "../entities/sys/TypeRefs.js"
 import { RootInstanceTypeRef } from "../entities/sys/TypeRefs.js"
@@ -15,7 +15,7 @@ import {
 import { Type, ValueType } from "./EntityConstants"
 import { downcast, groupByAndMap, last, promiseMap, TypeRef } from "@tutao/tutanota-utils"
 import { resolveTypeReference } from "./EntityFunctions"
-import { ElementEntity, ListElementEntity, SomeEntity } from "./EntityTypes"
+import type { ElementEntity, ListElementEntity, SomeEntity } from "./EntityTypes"
 import { NotAuthorizedError, NotFoundError } from "./error/RestError.js"
 
 export class EntityClient {
@@ -25,7 +25,7 @@ export class EntityClient {
 		this._target = target
 	}
 
-	load<T extends SomeEntity>(typeRef: TypeRef<T>, id: PropertyType<T, "_id">, query?: Dict, extraHeaders?: Dict, ownerKey?: Aes128Key): Promise<T> {
+	load<T extends SomeEntity>(typeRef: TypeRef<T>, id: PropertyType<T, "_id">, query?: Dict, extraHeaders?: Dict, ownerKey?: OwnerKeyProvider): Promise<T> {
 		return this._target.load(typeRef, id, query, extraHeaders, ownerKey)
 	}
 
@@ -100,8 +100,8 @@ export class EntityClient {
 		return this._target.setupMultiple(listId, instances)
 	}
 
-	update<T extends SomeEntity>(instance: T, ownerKey?: Aes128Key): Promise<void> {
-		return this._target.update(instance, ownerKey)
+	update<T extends SomeEntity>(instance: T, ownerKeyProvider?: OwnerKeyProvider): Promise<void> {
+		return this._target.update(instance, ownerKeyProvider)
 	}
 
 	erase<T extends SomeEntity>(instance: T): Promise<void> {

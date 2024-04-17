@@ -7,27 +7,13 @@ import { RsaImplementation } from "../../../../../src/api/worker/crypto/RsaImple
 import { EntityClient } from "../../../../../src/api/common/EntityClient.js"
 import { ServiceExecutor } from "../../../../../src/api/worker/rest/ServiceExecutor.js"
 import { matchers, object, when } from "testdouble"
-import {
-	createMailAddressProperties,
-	createMailboxGroupRoot,
-	createMailboxProperties,
-	MailAddressPropertiesTypeRef,
-	MailboxGroupRootTypeRef,
-	MailboxPropertiesTypeRef,
-} from "../../../../../src/api/entities/tutanota/TypeRefs.js"
+import { MailAddressPropertiesTypeRef, MailboxGroupRootTypeRef, MailboxPropertiesTypeRef } from "../../../../../src/api/entities/tutanota/TypeRefs.js"
 import { mapToObject } from "@tutao/tutanota-test-utils"
-import {
-	createGroupInfo,
-	createGroupMembership,
-	createMailAddressAlias,
-	createUser,
-	GroupInfoTypeRef,
-	GroupMembershipTypeRef,
-	MailAddressAliasTypeRef,
-	UserTypeRef,
-} from "../../../../../src/api/entities/sys/TypeRefs.js"
+import { GroupInfoTypeRef, GroupMembershipTypeRef, MailAddressAliasTypeRef, UserTypeRef } from "../../../../../src/api/entities/sys/TypeRefs.js"
 import { MailAddressFacade } from "../../../../../src/api/worker/facades/lazy/MailAddressFacade.js"
 import { createTestEntity } from "../../../TestUtils.js"
+import { arrayEquals, freshVersioned } from "@tutao/tutanota-utils"
+import { OwnerKeyProvider } from "../../../../../src/api/worker/rest/EntityRestClient.js"
 
 o.spec("MailAddressFacadeTest", function () {
 	let worker: WorkerImpl
@@ -59,7 +45,7 @@ o.spec("MailAddressFacadeTest", function () {
 				_ownerGroup: mailGroupId,
 				mailboxProperties: mailboxPropertiesId,
 			})
-			const mailGroupKey = [1, 2, 3]
+			const mailGroupKey = freshVersioned([1, 2, 3])
 			const mailboxProperties = createTestEntity(MailboxPropertiesTypeRef, {
 				mailAddressProperties: [
 					createTestEntity(MailAddressPropertiesTypeRef, {
@@ -73,9 +59,20 @@ o.spec("MailAddressFacadeTest", function () {
 				],
 			})
 
-			when(groupManagementFacade.getGroupKeyViaUser(mailGroupId, viaUser)).thenResolve(mailGroupKey)
+			when(groupManagementFacade.getCurrentGroupKeyViaUser(mailGroupId, viaUser)).thenResolve(mailGroupKey)
 			when(nonCachingEntityClient.load(MailboxGroupRootTypeRef, mailGroupId)).thenResolve(mailboxGroupRoot)
-			when(nonCachingEntityClient.load(MailboxPropertiesTypeRef, mailboxPropertiesId, undefined, undefined, mailGroupKey)).thenResolve(mailboxProperties)
+			when(
+				nonCachingEntityClient.load(
+					MailboxPropertiesTypeRef,
+					mailboxPropertiesId,
+					undefined,
+					undefined,
+					matchers.argThat(async (arg: OwnerKeyProvider) => {
+						const providedMailGroupKey = await arg(mailGroupKey.version)
+						return arrayEquals(mailGroupKey.object, providedMailGroupKey)
+					}),
+				),
+			).thenResolve(mailboxProperties)
 
 			const result = await facade.getSenderNames(mailGroupId, viaUser)
 			o(mapToObject(result)).deepEquals({
@@ -92,7 +89,7 @@ o.spec("MailAddressFacadeTest", function () {
 				_ownerGroup: mailGroupId,
 				mailboxProperties: null,
 			})
-			const mailGroupKey = [1, 2, 3]
+			const mailGroupKey = freshVersioned([1, 2, 3])
 			const mailboxProperties = createTestEntity(MailboxPropertiesTypeRef, {
 				_id: mailboxPropertiesId,
 				_ownerGroup: mailGroupId,
@@ -120,10 +117,21 @@ o.spec("MailAddressFacadeTest", function () {
 
 			when(nonCachingEntityClient.load(UserTypeRef, viaUser)).thenResolve(user)
 			when(nonCachingEntityClient.load(GroupInfoTypeRef, userGroupInfoId)).thenResolve(userGroupInfo)
-			when(groupManagementFacade.getGroupKeyViaUser(mailGroupId, viaUser)).thenResolve(mailGroupKey)
+			when(groupManagementFacade.getCurrentGroupKeyViaUser(mailGroupId, viaUser)).thenResolve(mailGroupKey)
 			when(nonCachingEntityClient.load(MailboxGroupRootTypeRef, mailGroupId)).thenResolve(mailboxGroupRoot)
 			when(nonCachingEntityClient.setup(null, matchers.anything(), undefined, { ownerKey: mailGroupKey })).thenResolve(mailboxPropertiesId)
-			when(nonCachingEntityClient.load(MailboxPropertiesTypeRef, mailboxPropertiesId, undefined, undefined, mailGroupKey)).thenResolve(mailboxProperties)
+			when(
+				nonCachingEntityClient.load(
+					MailboxPropertiesTypeRef,
+					mailboxPropertiesId,
+					undefined,
+					undefined,
+					matchers.argThat(async (arg: OwnerKeyProvider) => {
+						const providedMailGroupKey = await arg(mailGroupKey.version)
+						return arrayEquals(mailGroupKey.object, providedMailGroupKey)
+					}),
+				),
+			).thenResolve(mailboxProperties)
 
 			const result = await facade.getSenderNames(mailGroupId, viaUser)
 
