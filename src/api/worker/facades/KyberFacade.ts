@@ -1,4 +1,4 @@
-import { LazyLoaded, WasmWithFallback } from "@tutao/tutanota-utils"
+import { LazyLoaded } from "@tutao/tutanota-utils"
 import { NativeCryptoFacade } from "../../../native/common/generatedipc/NativeCryptoFacade.js"
 import { assertWorkerOrNode } from "../../common/Env.js"
 import {
@@ -11,6 +11,7 @@ import {
 	KyberKeyPair,
 	KyberPrivateKey,
 	KyberPublicKey,
+	LibOQSExports,
 	random,
 } from "@tutao/tutanota-crypto"
 import { isWebAssemblySupported } from "../WorkerLocator.js"
@@ -46,10 +47,10 @@ export interface KyberFacade {
  * WebAssembly implementation of Liboqs
  */
 export class WASMKyberFacade implements KyberFacade {
-	constructor(private readonly testWASM?: WasmWithFallback) {}
+	constructor(private readonly testWASM?: LibOQSExports) {}
 
 	// loads liboqs WASM
-	private liboqs: LazyLoaded<WasmWithFallback> = new LazyLoaded(async () => {
+	private liboqs: LazyLoaded<LibOQSExports> = new LazyLoaded(async () => {
 		if (!isWebAssemblySupported()) {
 			return await getKyberFallback()
 		}
@@ -59,11 +60,11 @@ export class WASMKyberFacade implements KyberFacade {
 		}
 		const wasm = fetch("wasm/liboqs.wasm")
 		if (WebAssembly.instantiateStreaming) {
-			return (await WebAssembly.instantiateStreaming(wasm)).instance.exports
+			return (await WebAssembly.instantiateStreaming(wasm)).instance.exports as unknown as LibOQSExports
 		} else {
 			// Fallback if the client does not support instantiateStreaming
 			const buffer = await (await wasm).arrayBuffer()
-			return (await WebAssembly.instantiate(buffer)).instance.exports
+			return (await WebAssembly.instantiate(buffer)).instance.exports as unknown as LibOQSExports
 		}
 	})
 

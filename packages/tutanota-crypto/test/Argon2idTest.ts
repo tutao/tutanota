@@ -1,12 +1,12 @@
 import o from "@tutao/otest"
-import { bitArrayToUint8Array, generateRandomSalt } from "../lib/index.js"
+import { Argon2IDExports, bitArrayToUint8Array, generateRandomSalt } from "../lib/index.js"
 import { generateKeyFromPassphrase } from "../lib/hashes/Argon2id/Argon2id.js"
 import { loadWasmModuleFallback, loadWasmModuleFromFile } from "./WebAssemblyTestUtils.js"
 
-const argon2 = await loadWasmModuleFromFile("../lib/hashes/Argon2id/argon2.wasm")
-
 o.spec("Argon2id", function () {
 	o("GenerateKeyFromPassphrase", async function () {
+		const argon2 = (await loadWasmModuleFromFile("../lib/hashes/Argon2id/argon2.wasm")) as Argon2IDExports
+
 		let salt1 = generateRandomSalt()
 		let salt2 = generateRandomSalt()
 		let key0 = await generateKeyFromPassphrase(argon2, "hello", salt1)
@@ -24,7 +24,7 @@ o.spec("Argon2id", function () {
 	})
 
 	o("GenerateKeyFromPassphrase - fallback", async function () {
-		const argon2Fallback = await loadWasmModuleFallback("../lib/hashes/Argon2id/argon2.js")
+		const argon2Fallback = (await loadWasmModuleFallback("../lib/hashes/Argon2id/argon2.js")) as Argon2IDExports
 		let salt1 = generateRandomSalt()
 		let salt2 = generateRandomSalt()
 		let key0 = await generateKeyFromPassphrase(argon2Fallback, "hello", salt1)

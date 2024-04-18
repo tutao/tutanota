@@ -60,6 +60,7 @@ import { DefaultDateProvider } from "../calendar/date/CalendarUtils.js"
 import { OfflineDbRefCounter } from "./db/OfflineDbRefCounter.js"
 import { WorkerSqlCipher } from "./db/WorkerSqlCipher.js"
 import { TempFs } from "./files/TempFs.js"
+import { Argon2IDExports } from "@tutao/tutanota-crypto"
 
 /**
  * Should be injected during build time.
@@ -94,7 +95,7 @@ const wasmLoader = async () => {
 	const wasmSourcePath = path.join(electron.app.getAppPath(), "wasm/argon2.wasm")
 	const wasmSource: Buffer = await fs.promises.readFile(wasmSourcePath)
 	const { exports } = (await WebAssembly.instantiate(wasmSource)).instance
-	return exports
+	return exports as unknown as Argon2IDExports
 }
 const desktopCrypto = new DesktopNativeCryptoFacade(fs, cryptoFns, tfs, wasmLoader())
 const opts = {

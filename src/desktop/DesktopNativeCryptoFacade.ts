@@ -2,7 +2,7 @@ import { base64ToBase64Url, base64ToUint8Array, stringToUtf8Uint8Array, uint8Arr
 import type { CryptoFunctions } from "./CryptoFns.js"
 import type { TypeModel } from "../api/common/EntityTypes.js"
 import type * as FsModule from "node:fs"
-import { Aes256Key, bitArrayToUint8Array, generateKeyFromPassphraseArgon2id, uint8ArrayToKey } from "@tutao/tutanota-crypto"
+import { Aes256Key, Argon2IDExports, bitArrayToUint8Array, generateKeyFromPassphraseArgon2id, uint8ArrayToKey } from "@tutao/tutanota-crypto"
 import { FileUri } from "../native/common/FileApp.js"
 import path from "node:path"
 import { NativeCryptoFacade } from "../native/common/generatedipc/NativeCryptoFacade.js"
@@ -15,7 +15,6 @@ import { KyberKeyPair } from "../native/common/generatedipc/KyberKeyPair.js"
 import { KyberPublicKey } from "../native/common/generatedipc/KyberPublicKey.js"
 import { KyberEncapsulation } from "../native/common/generatedipc/KyberEncapsulation.js"
 import { KyberPrivateKey } from "../native/common/generatedipc/KyberPrivateKey.js"
-import { WasmWithFallback } from "@tutao/tutanota-utils"
 
 type FsExports = typeof FsModule
 
@@ -24,7 +23,7 @@ export class DesktopNativeCryptoFacade implements NativeCryptoFacade {
 		private readonly fs: FsExports,
 		private readonly cryptoFns: CryptoFunctions,
 		private readonly tfs: TempFs,
-		private readonly argon2: Promise<WasmWithFallback>,
+		private readonly argon2: Promise<Argon2IDExports>,
 	) {}
 
 	aesEncryptObject(encryptionKey: Aes256Key, object: number | string | boolean | ReadonlyArray<unknown> | {}): string {
