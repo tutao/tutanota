@@ -42,14 +42,14 @@ import {
 	getGroupColors,
 	shouldDefaultToAmPmTimeFormat,
 } from "../gui/CalendarGuiUtils.js"
-import { CalendarViewModel, MouseOrPointerEvent } from "./CalendarViewModel"
+import { CalendarEventBubbleKeyUpHandler, CalendarViewModel, MouseOrPointerEvent } from "./CalendarViewModel"
 import { showNewCalendarEventEditDialog } from "../gui/eventeditor-view/CalendarEventEditDialog.js"
 import { CalendarEventPopup } from "../gui/eventpopup/CalendarEventPopup.js"
 import { showProgressDialog } from "../../gui/dialogs/ProgressDialog"
 import type { CalendarInfo } from "../model/CalendarModel"
 import type Stream from "mithril/stream"
 import { IconButton } from "../../gui/base/IconButton.js"
-import { createDropdown } from "../../gui/base/Dropdown.js"
+import { createDropdown, PosRect } from "../../gui/base/Dropdown.js"
 import { ButtonSize } from "../../gui/base/ButtonSize.js"
 import { BottomNav } from "../../gui/nav/BottomNav.js"
 import { DrawerMenuAttrs } from "../../gui/nav/DrawerMenu.js"
@@ -186,6 +186,7 @@ export class CalendarView extends BaseTopLevelView implements TopLevelView<Calen
 									eventsForDays: this.viewModel.eventsForDays,
 									getEventsOnDaysToRender: this.viewModel.getEventsOnDaysToRender.bind(this.viewModel),
 									onEventClicked: (calendarEvent, domEvent) => this.onEventSelected(calendarEvent, domEvent, this.htmlSanitizer),
+									onEventKeyUp: this.handleEventKeyUp(),
 									onNewEvent: (date) => {
 										this.createNewEventDialog(date)
 									},
@@ -211,6 +212,7 @@ export class CalendarView extends BaseTopLevelView implements TopLevelView<Calen
 									getEventsOnDays: this.viewModel.getEventsOnDaysToRender.bind(this.viewModel),
 									daysInPeriod: 1,
 									onEventClicked: (event, domEvent) => this.onEventSelected(event, domEvent, this.htmlSanitizer),
+									onEventKeyup: this.handleEventKeyUp(),
 									onNewEvent: (date) => {
 										this.createNewEventDialog(date)
 									},
@@ -238,6 +240,7 @@ export class CalendarView extends BaseTopLevelView implements TopLevelView<Calen
 									getEventsOnDays: this.viewModel.getEventsOnDaysToRender.bind(this.viewModel),
 									daysInPeriod: 7,
 									onEventClicked: (event, domEvent) => this.onEventSelected(event, domEvent, this.htmlSanitizer),
+									onEventKeyup: this.handleEventKeyUp(),
 									onNewEvent: (date) => {
 										this.createNewEventDialog(date)
 									},
@@ -271,6 +274,15 @@ export class CalendarView extends BaseTopLevelView implements TopLevelView<Calen
 											this.viewModel.updatePreviewedEvent(event)
 										} else {
 											this.onEventSelected(event, domEvent, this.htmlSanitizer)
+										}
+									},
+									onEventKeyUp: (event, domEvent) => {
+										if (isKeyPressed(domEvent.key, Keys.RETURN, Keys.SPACE)) {
+											if (styles.isDesktopLayout()) {
+												this.viewModel.updatePreviewedEvent(event)
+											} else {
+												this.showCalendarEventPopupAtEvent(event, domEvent.target as HTMLElement, this.htmlSanitizer)
+											}
 										}
 									},
 									groupColors,
@@ -812,10 +824,35 @@ export class CalendarView extends BaseTopLevelView implements TopLevelView<Calen
 			right: x,
 		}
 
+		await this.showCalendarEventPopup(selectedEvent, rect, htmlSanitizerPromise)
+	}
+
+	private handleEventKeyUp(): CalendarEventBubbleKeyUpHandler {
+		return (calendarEvent, domEvent) => {
+			if (isKeyPressed(domEvent.key, Keys.RETURN, Keys.SPACE)) {
+				this.showCalendarEventPopupAtEvent(calendarEvent, domEvent.target as HTMLElement, this.htmlSanitizer)
+			}
+		}
+	}
+
+	private async showCalendarEventPopup(selectedEvent: CalendarEvent, eventBubbleRect: PosRect, htmlSanitizerPromise: Promise<HtmlSanitizer>) {
 		const calendars = await this.viewModel.getCalendarInfosCreateIfNeeded()
 		const [popupModel, htmlSanitizer] = await Promise.all([locator.calendarEventPreviewModel(selectedEvent, calendars), htmlSanitizerPromise])
 
-		new CalendarEventPopup(popupModel, rect, htmlSanitizer).show()
+		new CalendarEventPopup(popupModel, eventBubbleRect, htmlSanitizer).show()
+	}
+
+	private async showCalendarEventPopupAtEvent(selectedEvent: CalendarEvent, target: HTMLElement, htmlSanitizerPromise: Promise<HtmlSanitizer>) {
+		const targetRect = target.getBoundingClientRect()
+		const rect = {
+			bottom: targetRect.bottom,
+			height: 0,
+			width: 0,
+			top: targetRect.top,
+			left: targetRect.left,
+			right: targetRect.right,
+		}
+		await this.showCalendarEventPopup(selectedEvent, rect, htmlSanitizerPromise)
 	}
 
 	private showCalendarPopup(dom: HTMLElement) {
