@@ -4,7 +4,7 @@ import { lang } from "../../misc/LanguageViewModel"
 import { getTimeZone } from "../date/CalendarUtils"
 import type { CalendarEvent } from "../../api/entities/tutanota/TypeRefs.js"
 import type { GroupColors } from "./CalendarView"
-import type { CalendarEventBubbleClickHandler } from "./CalendarViewModel"
+import type { CalendarEventBubbleClickHandler, CalendarEventBubbleKeyUpHandler } from "./CalendarViewModel"
 import { styles } from "../../gui/styles.js"
 import { DateTime } from "luxon"
 import { CalendarAgendaItemView } from "./CalendarAgendaItemView.js"
@@ -33,6 +33,7 @@ export type CalendarAgendaViewAttrs = {
 	eventsForDays: DaysToEvents
 	amPmFormat: boolean
 	onEventClicked: CalendarEventBubbleClickHandler
+	onEventKeyUp: CalendarEventBubbleKeyUpHandler
 	groupColors: GroupColors
 	hiddenCalendars: ReadonlySet<Id>
 	startOfTheWeekOffset: number
@@ -229,7 +230,7 @@ export class CalendarAgendaView implements Component<CalendarAgendaViewAttrs> {
 	}
 
 	private renderEventsForDay(events: readonly CalendarEvent[], zone: string, day: Date, attrs: CalendarAgendaViewAttrs) {
-		const { groupColors: colors, onEventClicked: click, eventPreviewModel: modelPromise } = attrs
+		const { groupColors: colors, onEventClicked: click, onEventKeyUp: keyUp, eventPreviewModel: modelPromise } = attrs
 		const agendaItemHeight = 62
 		const agendaGap = 3
 		const currentTime = attrs.selectedTime?.toDate()
@@ -253,6 +254,7 @@ export class CalendarAgendaView implements Component<CalendarAgendaViewAttrs> {
 					color: getEventColor(event, colors),
 					selected: event === modelPromise?.calendarEvent,
 					click: (domEvent) => click(event, domEvent),
+					keyUp: (domEvent) => keyUp(event, domEvent),
 					zone,
 					day: day,
 					height: agendaItemHeight,

@@ -13,6 +13,7 @@ export interface CalendarAgendaItemViewAttrs {
 	event: CalendarEvent
 	color: string
 	click: (domEvent: MouseEvent) => unknown
+	keyUp: (event: KeyboardEvent) => unknown
 	timeText: string
 	selected?: boolean
 	height?: number
@@ -29,6 +30,7 @@ export class CalendarAgendaItemView implements Component<CalendarAgendaItemViewA
 				class: styles.isDesktopLayout() ? "hide-outline" : "state-bg",
 				tabIndex: TabIndex.Default,
 				onclick: attrs.click,
+				onkeyup: (event: KeyboardEvent) => attrs.keyUp(event),
 				onfocus: () => (this.isFocused = true),
 				onblur: () => (this.isFocused = false),
 				style: {
