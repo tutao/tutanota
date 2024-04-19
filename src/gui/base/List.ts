@@ -11,6 +11,7 @@ import { applySafeAreaInsetMarginLR } from "../HtmlUtils.js"
 import { theme, ThemeId } from "../theme.js"
 import { ProgrammingError } from "../../api/common/error/ProgrammingError.js"
 import { Coordinate2D } from "./SwipeHandler.js"
+import { styles } from "../styles.js"
 
 export type ListState<T> = Readonly<{
 	items: ReadonlyArray<T>
@@ -154,6 +155,7 @@ export class List<T, VH extends ViewHolder<T>> implements ClassComponent<ListAtt
 					this.updateDomElements(attrs)
 					this.state = attrs.state
 					this.lastThemeId = theme.themeId
+					if (styles.isSingleColumnLayout()) this.innerDom.focus()
 				},
 				onupdate: ({ dom }) => {
 					if (oldAttrs.renderConfig !== attrs.renderConfig) {
@@ -429,8 +431,8 @@ export class List<T, VH extends ViewHolder<T>> implements ClassComponent<ListAtt
 				row.domElement.style.transform = `translateY(${row.top}px)`
 				row.row.update(item, attrs.state.selectedItems.has(item), attrs.state.inMultiselect)
 			}
-			// Focus the selected row so it can receive keyboard events
-			if (attrs.state.selectedItems.has(item)) {
+			// Focus the selected row so it can receive keyboard events in the single-column layout and on other layouts if the focus is within the list.
+			if (attrs.state.selectedItems.has(item) && (document.activeElement?.tagName === "LI" || styles.isSingleColumnLayout())) {
 				row.domElement.focus()
 			}
 		}
