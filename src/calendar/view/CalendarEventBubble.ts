@@ -4,6 +4,7 @@ import { Icon } from "../../gui/base/Icon"
 import { Icons } from "../../gui/base/icons/Icons"
 import type { ClickHandler } from "../../gui/base/GuiUtils"
 import { colorForBg } from "../gui/CalendarGuiUtils.js"
+import { TabIndex } from "../../api/common/TutanotaConstants.js"
 
 export type CalendarEventBubbleAttrs = {
 	text: string
@@ -24,17 +25,17 @@ const lineHeight = size.calendar_line_height
 const lineHeightPx = px(lineHeight)
 
 export class CalendarEventBubble implements Component<CalendarEventBubbleAttrs> {
-	_hasFinishedInitialRender: boolean = false
+	private hasFinishedInitialRender: boolean = false
 
 	oncreate(vnode: Vnode<CalendarEventBubbleAttrs>) {
-		this._hasFinishedInitialRender = true
+		this.hasFinishedInitialRender = true
 	}
 
 	view({ attrs }: Vnode<CalendarEventBubbleAttrs>): Children {
 		// This helps us stop flickering in certain cases where we want to disable and re-enable fade in (ie. when dragging events)
 		// Reapplying the animation to the element will cause it to trigger instantly, so we don't want to do that
-		const doFadeIn = !this._hasFinishedInitialRender && attrs.fadeIn
-		let enablePointerEvents = attrs.enablePointerEvents
+		const doFadeIn = !this.hasFinishedInitialRender && attrs.fadeIn
+		const enablePointerEvents = attrs.enablePointerEvents
 		return m(
 			".calendar-event.small.overflow-hidden.flex.cursor-pointer" +
 				(doFadeIn ? ".fade-in" : "") +
@@ -50,6 +51,7 @@ export class CalendarEventBubble implements Component<CalendarEventBubbleAttrs> 
 					opacity: attrs.opacity,
 					pointerEvents: enablePointerEvents ? "auto" : "none",
 				},
+				tabIndex: enablePointerEvents ? TabIndex.Default : TabIndex.Programmatic,
 				onclick: (e: MouseEvent) => {
 					e.stopPropagation()
 					attrs.click(e, e.target as HTMLElement)
@@ -86,13 +88,13 @@ export class CalendarEventBubble implements Component<CalendarEventBubbleAttrs> 
 							width: "95%",
 						},
 					},
-					this.renderContent(attrs),
+					CalendarEventBubble.renderContent(attrs),
 				),
 			],
 		)
 	}
 
-	renderContent({ height: maybeHeight, text, secondLineText, color }: CalendarEventBubbleAttrs): Children {
+	private static renderContent({ height: maybeHeight, text, secondLineText, color }: CalendarEventBubbleAttrs): Children {
 		// If the bubble has 2 or more lines worth of vertical space, then we will render the text + the secondLineText on separate lines
 		// Otherwise we will combine them onto a single line
 		const height = maybeHeight ?? lineHeight
@@ -107,11 +109,11 @@ export class CalendarEventBubble implements Component<CalendarEventBubbleAttrs> 
 			const topSectionClass = topSectionMaxLines === 1 ? ".text-ellipsis" : ".text-ellipsis-multi-line"
 			return [
 				// The wrapper around `text` is needed to stop `-webkit-box` from changing the height
-				this.renderTextSection("", m(topSectionClass, text), topSectionMaxLines * lineHeight),
-				secondLineText ? this.renderTextSection(".text-ellipsis", secondLineText, lineHeight) : null,
+				CalendarEventBubble.renderTextSection("", m(topSectionClass, text), topSectionMaxLines * lineHeight),
+				secondLineText ? CalendarEventBubble.renderTextSection(".text-ellipsis", secondLineText, lineHeight) : null,
 			]
 		} else {
-			return this.renderTextSection(
+			return CalendarEventBubble.renderTextSection(
 				".text-ellipsis",
 				secondLineText
 					? [
@@ -134,7 +136,7 @@ export class CalendarEventBubble implements Component<CalendarEventBubbleAttrs> 
 		}
 	}
 
-	renderTextSection(classes: string, text: Children, maxHeight: number): Child {
+	private static renderTextSection(classes: string, text: Children, maxHeight: number): Child {
 		return m(
 			classes,
 			{
