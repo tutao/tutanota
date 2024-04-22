@@ -1,7 +1,6 @@
 import type { Shortcut } from "../../../misc/KeyManager.js"
-import m, { Children } from "mithril"
+import m, { Children, VnodeDOM } from "mithril"
 import { px } from "../../../gui/size.js"
-import { Button, ButtonColor, ButtonType } from "../../../gui/base/Button.js"
 import { Icons } from "../../../gui/base/icons/Icons.js"
 import type { ModalComponent } from "../../../gui/base/Modal.js"
 import { modal } from "../../../gui/base/Modal.js"
@@ -30,6 +29,7 @@ export class CalendarEventPopup implements ModalComponent {
 	private readonly _shortcuts: Shortcut[] = []
 	private readonly sanitizedDescription: string
 	private dom: HTMLElement | null = null
+	private focusedBeforeShown: HTMLElement | null = null
 
 	/**
 	 * @param model
@@ -176,6 +176,7 @@ export class CalendarEventPopup implements ModalComponent {
 	}
 
 	show() {
+		this.focusedBeforeShown = document.activeElement as HTMLElement
 		modal.display(this, false)
 	}
 
@@ -202,6 +203,10 @@ export class CalendarEventPopup implements ModalComponent {
 	popState(e: Event): boolean {
 		modal.remove(this)
 		return false
+	}
+
+	callingElement(): HTMLElement | null {
+		return this.focusedBeforeShown
 	}
 
 	private setupShortcuts() {

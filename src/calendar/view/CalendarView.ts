@@ -3,7 +3,7 @@ import { AppHeaderAttrs, Header } from "../../gui/Header.js"
 import { ColumnType, ViewColumn } from "../../gui/base/ViewColumn"
 import { lang } from "../../misc/LanguageViewModel"
 import { ViewSlider } from "../../gui/nav/ViewSlider.js"
-import type { Shortcut } from "../../misc/KeyManager"
+import type { Key, Shortcut } from "../../misc/KeyManager"
 import { isKeyPressed, keyManager } from "../../misc/KeyManager"
 import { Icons } from "../../gui/base/icons/Icons"
 import { downcast, getStartOfDay, isSameDayOfDate, ofClass } from "@tutao/tutanota-utils"
@@ -401,6 +401,14 @@ export class CalendarView extends BaseTopLevelView implements TopLevelView<Calen
 	}
 
 	private setupShortcuts(): Shortcut[] {
+		const generatePeriodShortcut = (key: Key, next: boolean): Shortcut => {
+			return {
+				key,
+				enabled: () => this.currentViewType !== CalendarViewType.AGENDA,
+				exec: () => this.viewPeriod(this.currentViewType, next),
+				help: next ? "viewNextPeriod_action" : "viewPrevPeriod_action",
+			}
+		}
 		return [
 			{
 				key: Keys.ONE,
@@ -422,18 +430,10 @@ export class CalendarView extends BaseTopLevelView implements TopLevelView<Calen
 				exec: () => this.setUrl(m.route.param("view"), new Date()),
 				help: "viewToday_action",
 			},
-			{
-				key: Keys.J,
-				enabled: () => this.currentViewType !== CalendarViewType.AGENDA,
-				exec: () => this.viewPeriod(this.currentViewType, true),
-				help: "viewNextPeriod_action",
-			},
-			{
-				key: Keys.K,
-				enabled: () => this.currentViewType !== CalendarViewType.AGENDA,
-				exec: () => this.viewPeriod(this.currentViewType, false),
-				help: "viewPrevPeriod_action",
-			},
+			generatePeriodShortcut(Keys.J, true),
+			generatePeriodShortcut(Keys.K, false),
+			generatePeriodShortcut(Keys.RIGHT, true),
+			generatePeriodShortcut(Keys.LEFT, false),
 			{
 				key: Keys.N,
 				exec: () => {

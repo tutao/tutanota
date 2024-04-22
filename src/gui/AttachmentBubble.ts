@@ -100,6 +100,7 @@ export class AttachmentDetailsPopup implements ModalComponent {
 	private domContent: HTMLElement | null = null
 	private domPanel: HTMLElement | null = null
 	private closeDefer: DeferredObject<void> = defer()
+	private focusedBeforeShown: HTMLElement | null = null
 
 	get deferAfterClose(): Promise<void> {
 		return this.closeDefer.promise
@@ -284,6 +285,7 @@ export class AttachmentDetailsPopup implements ModalComponent {
 	}
 
 	show() {
+		this.focusedBeforeShown = document.activeElement as HTMLElement
 		modal.displayUnique(this, true)
 	}
 
@@ -312,6 +314,10 @@ export class AttachmentDetailsPopup implements ModalComponent {
 	popState(e: Event): boolean {
 		modal.remove(this)
 		return false
+	}
+
+	callingElement(): HTMLElement | null {
+		return this.focusedBeforeShown
 	}
 }
 

@@ -18,19 +18,19 @@ type ModalComponentWrapper = {
 
 class Modal implements Component {
 	components: Array<ModalComponentWrapper>
-	_uniqueComponent: ModalComponent | null
+	private uniqueComponent: ModalComponent | null
 	view: Component["view"]
 	visible: boolean
 	currentKey: number
-	private _closingComponents: Array<ModalComponent>
-	private readonly _historyEventListener = (e: Event) => this._popState(e)
+	private closingComponents: Array<ModalComponent>
+	private readonly historyEventListener = (e: Event) => this.popState(e)
 
 	constructor() {
 		this.currentKey = 0
 		this.components = []
 		this.visible = false
-		this._uniqueComponent = null
-		this._closingComponents = []
+		this.uniqueComponent = null
+		this.closingComponents = []
 
 		this.view = (): Children => {
 			return m(
@@ -79,13 +79,13 @@ class Modal implements Component {
 							},
 							onbeforeremove: (vnode) => {
 								if (wrapper.needsBg) {
-									this._closingComponents.push(wrapper.component)
+									this.closingComponents.push(wrapper.component)
 
 									return Promise.all([
 										this.addAnimation(vnode.dom as HTMLElement, false).then(() => {
-											remove(this._closingComponents, wrapper.component)
+											remove(this.closingComponents, wrapper.component)
 
-											if (this.components.length === 0 && this._closingComponents.length === 0) {
+											if (this.components.length === 0 && this.closingComponents.length === 0) {
 												this.visible = false
 											}
 										}),
@@ -94,7 +94,7 @@ class Modal implements Component {
 										m.redraw()
 									})
 								} else {
-									if (this.components.length === 0 && this._closingComponents.length === 0) {
+									if (this.components.length === 0 && this.closingComponents.length === 0) {
 										this.visible = false
 									}
 
@@ -111,8 +111,8 @@ class Modal implements Component {
 
 	display(component: ModalComponent, needsBg: boolean = true) {
 		// move the handler to the top of the handler stack
-		windowFacade.removeHistoryEventListener(this._historyEventListener)
-		windowFacade.addHistoryEventListener(this._historyEventListener)
+		windowFacade.removeHistoryEventListener(this.historyEventListener)
+		windowFacade.addHistoryEventListener(this.historyEventListener)
 		if (this.components.length > 0) {
 			keyManager.unregisterModalShortcuts(this.components[this.components.length - 1].component.shortcuts())
 		}
@@ -140,7 +140,7 @@ class Modal implements Component {
 	 * @param e: the DOM Event
 	 * @private
 	 */
-	_popState(e: Event): boolean {
+	private popState(e: Event): boolean {
 		console.log("modal popstate")
 		const len = this.components.length
 
@@ -153,7 +153,7 @@ class Modal implements Component {
 		const keys = this.components.map((c) => c.key)
 
 		for (let i = len - 1; i >= 0; i--) {
-			const component = this._getComponentByKey(keys[i])
+			const component = this.getComponentByKey(keys[i])
 
 			if (!component) {
 				console.log("component went AWOL, continuing")
@@ -175,16 +175,16 @@ class Modal implements Component {
 	 * @param component
 	 */
 	displayUnique(component: ModalComponent, needsBg: boolean = true) {
-		if (this._uniqueComponent) {
+		if (this.uniqueComponent) {
 			console.log("tried to open unique component while another was open!")
 			return
 		}
 
 		this.display(component, needsBg)
-		this._uniqueComponent = component
+		this.uniqueComponent = component
 	}
 
-	_getComponentByKey(key: number): ModalComponent | null {
+	private getComponentByKey(key: number): ModalComponent | null {
 		const entry = this.components.find((c) => c.key === key)
 		return entry?.component ?? null
 	}
@@ -206,8 +206,8 @@ class Modal implements Component {
 
 		this.components.splice(componentIndex, 1)
 
-		if (this._uniqueComponent === component) {
-			this._uniqueComponent = null
+		if (this.uniqueComponent === component) {
+			this.uniqueComponent = null
 		}
 
 		m.redraw()
@@ -216,6 +216,9 @@ class Modal implements Component {
 			// the removed component was the last component, so we can now register the shortcuts of the now last component
 			keyManager.registerModalShortcuts(this.components[this.components.length - 1].component.shortcuts())
 		}
+
+		// Return the focus back to it's calling element.
+		component.callingElement()?.focus()
 	}
 
 	/**
@@ -245,4 +248,7 @@ export interface ModalComponent extends Component {
 	 * @param e
 	 */
 	popState(e: Event): boolean
+
+	// The element that was interacted with to show the modal.
+	callingElement(): HTMLElement | null
 }
