@@ -69,6 +69,7 @@ import { PdfWriter } from "./pdf/PdfWriter.js"
 import { ContactFacade } from "./facades/lazy/ContactFacade.js"
 import { KeyLoaderFacade } from "./facades/KeyLoaderFacade.js"
 import { KeyRotationFacade } from "./facades/KeyRotationFacade.js"
+import { KeyCache } from "./facades/KeyCache.js"
 
 assertWorkerOrNode()
 
@@ -87,6 +88,7 @@ export type WorkerLocatorType = {
 	pqFacade: PQFacade
 	entropyFacade: EntropyFacade
 	blobAccessToken: BlobAccessTokenFacade
+	keyCache: KeyCache
 	keyLoader: KeyLoaderFacade
 	keyRotation: KeyRotationFacade
 
@@ -131,7 +133,8 @@ export type WorkerLocatorType = {
 export const locator: WorkerLocatorType = {} as any
 
 export async function initLocator(worker: WorkerImpl, browserData: BrowserData) {
-	locator.user = new UserFacade()
+	locator.keyCache = new KeyCache()
+	locator.user = new UserFacade(locator.keyCache)
 	locator.workerFacade = new WorkerFacade()
 	const dateProvider = new NoZoneDateProvider()
 
@@ -205,7 +208,7 @@ export async function initLocator(worker: WorkerImpl, browserData: BrowserData) 
 
 	locator.pqFacade = new PQFacade(locator.kyberFacade)
 
-	locator.keyLoader = new KeyLoaderFacade(locator.user, locator.cachingEntityClient)
+	locator.keyLoader = new KeyLoaderFacade(locator.keyCache, locator.user, locator.cachingEntityClient)
 
 	locator.crypto = new CryptoFacade(
 		locator.user,

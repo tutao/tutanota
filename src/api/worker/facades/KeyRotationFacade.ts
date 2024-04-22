@@ -1,6 +1,6 @@
 import { EntityClient } from "../../common/EntityClient.js"
 import { KeyRotation, KeyRotationTypeRef, User, UserGroupRootTypeRef } from "../../entities/sys/TypeRefs.js"
-import { GroupType } from "../../common/TutanotaConstants.js"
+import { GroupKeyRotationType, GroupType } from "../../common/TutanotaConstants.js"
 import { isEmpty } from "@tutao/tutanota-utils"
 
 /**
@@ -40,13 +40,15 @@ export class KeyRotationFacade {
 		if (userGroupRoot.keyRotations != null) {
 			const pendingKeyRotations = await this.entityClient.loadAll(KeyRotationTypeRef, userGroupRoot.keyRotations.list)
 			const adminOrUserGroupRotation = pendingKeyRotations.find(
-				(keyRotation) => keyRotation.groupType === GroupType.Admin || keyRotation.groupType === GroupType.User,
+				(keyRotation) =>
+					keyRotation.groupKeyRotationType === GroupKeyRotationType.Admin || keyRotation.groupKeyRotationType === GroupKeyRotationType.User,
 			)
 			this.pendingKeyRotations = {
 				pwKey: adminOrUserGroupRotation ? pwKey : null,
 				adminOrUserGroupKeyRotation: adminOrUserGroupRotation || null,
 				otherGroupsKeyRotation: pendingKeyRotations.filter(
-					(keyRotation) => keyRotation.groupType !== GroupType.User && keyRotation.groupType !== GroupType.Admin,
+					(keyRotation) =>
+						keyRotation.groupKeyRotationType !== GroupKeyRotationType.User && keyRotation.groupKeyRotationType !== GroupKeyRotationType.Admin,
 				),
 			}
 		}
@@ -58,9 +60,9 @@ export class KeyRotationFacade {
 	public async processPendingKeyRotation() {
 		// first admin, then user and then user area
 		if (this.pendingKeyRotations.adminOrUserGroupKeyRotation && this.pendingKeyRotations.pwKey) {
-			if (this.pendingKeyRotations.adminOrUserGroupKeyRotation.groupType == GroupType.Admin) {
+			if (this.pendingKeyRotations.adminOrUserGroupKeyRotation.groupKeyRotationType == GroupKeyRotationType.Admin) {
 				await this.rotateAdminGroup(this.pendingKeyRotations.pwKey)
-			} else if (this.pendingKeyRotations.adminOrUserGroupKeyRotation.groupType == GroupType.User) {
+			} else if (this.pendingKeyRotations.adminOrUserGroupKeyRotation.groupKeyRotationType == GroupKeyRotationType.User) {
 				await this.rotateUserGroup(this.pendingKeyRotations.pwKey)
 			}
 			this.pendingKeyRotations.adminOrUserGroupKeyRotation = null

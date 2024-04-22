@@ -327,7 +327,8 @@ export class LoginFacade {
 			oldVerifier: currentAuthVerifier,
 		})
 		console.log("Migrate KDF from:", user.kdfVersion, "to", targetKdfType)
-		return this.serviceExecutor.post(ChangeKdfService, changeKdfPostIn)
+		await this.serviceExecutor.post(ChangeKdfService, changeKdfPostIn)
+		this.userFacade.setUserGroupKeyDistributionKey(newUserPassphraseKey)
 	}
 
 	/**
@@ -551,8 +552,8 @@ export class LoginFacade {
 
 			// If a user enables offline storage for the first time, after already having saved credentials
 			// then upon their next login, they won't have an offline database available, meaning we have to do
-			// synchronous login in order to load all of the necessary keys and such
-			// the next time they login they will be able to do asynchronous login
+			// synchronous login in order to load all the necessary keys and such
+			// the next time they log in they will be able to do asynchronous login
 			if (cacheInfo?.isPersistent && !cacheInfo.isNewOfflineDb) {
 				const user = await this.entityClient.load(UserTypeRef, credentials.userId)
 				if (user.accountType !== AccountType.PAID) {
@@ -709,7 +710,6 @@ export class LoginFacade {
 			// this may be the second time we set user in case we had a partial offline login before
 			// we do it unconditionally here, to make sure we unlock the latest user group key right below
 			this.userFacade.setUser(user)
-
 			const wasFullyLoggedIn = this.userFacade.isFullyLoggedIn()
 
 			this.userFacade.unlockUserGroupKey(userPassphraseKey)
@@ -718,7 +718,7 @@ export class LoginFacade {
 			await this.loadEntropy()
 
 			// If we have been fully logged in at least once already (probably expired ephemeral session)
-			// then we just reconnnect and re-download missing events.
+			// then we just reconnect and re-download missing events.
 			// For new connections we have special handling.
 			if (wasFullyLoggedIn) {
 				this.eventBusClient.connect(ConnectMode.Reconnect)
@@ -908,6 +908,7 @@ export class LoginFacade {
 
 		await this.serviceExecutor.post(ChangePasswordService, service)
 
+		this.userFacade.setUserGroupKeyDistributionKey(newUserPassphraseKey)
 		const accessToken = assertNotNull(this.userFacade.getAccessToken())
 		const sessionData = await this.loadSessionData(accessToken)
 		if (sessionData.accessKey != null) {

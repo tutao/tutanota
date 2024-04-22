@@ -39,6 +39,14 @@ export const enum OutOfOfficeNotificationMessageType {
 
 export const OUT_OF_OFFICE_SUBJECT_PREFIX = "Auto-reply: "
 
+export enum GroupKeyRotationType {
+	User = "0",
+	Admin = "1",
+	Team = "2",
+	UserArea = "3",
+	Customer = "4",
+}
+
 export enum GroupType {
 	User = "0",
 	Admin = "1",

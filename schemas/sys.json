@@ -300,6 +300,16 @@
 					"info": "RemoveValue NotificationInfo/counter/1367."
 				}
 			]
+		},
+		{
+			"version": 100,
+			"changes": [
+				{
+					"name": "RenameAttribute",
+					"sourceType": "KeyRotation",
+					"info": "RenameAttribute KeyRotation: groupType -> groupKeyRotationType."
+				}
+			]
 		}
 	]
 }

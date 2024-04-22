@@ -1,6 +1,6 @@
 import { EventBusListener } from "./EventBusClient.js"
 import { WsConnectionState } from "../main/WorkerClient.js"
-import { EntityUpdate, UserTypeRef, WebsocketCounterData, WebsocketLeaderStatus } from "../entities/sys/TypeRefs.js"
+import { EntityUpdate, UserGroupKeyDistributionTypeRef, UserTypeRef, WebsocketCounterData, WebsocketLeaderStatus } from "../entities/sys/TypeRefs.js"
 import { ReportedMailFieldMarker } from "../entities/tutanota/TypeRefs.js"
 import { WebsocketConnectivityListener } from "../../misc/WebsocketConnectivityModel.js"
 import { WorkerImpl } from "./WorkerImpl.js"
@@ -77,7 +77,23 @@ export class EventBusEventCoordinator implements EventBusListener {
 				isSameTypeRefByAttr(UserTypeRef, update.application, update.type) &&
 				isSameId(user._id, update.instanceId)
 			) {
-				this.userFacade.updateUser(await this.entityClient.load(UserTypeRef, user._id))
+				await this.userFacade.updateUser(await this.entityClient.load(UserTypeRef, user._id))
+			} else if (
+				user != null &&
+				(update.operation === OperationType.CREATE || update.operation === OperationType.UPDATE) &&
+				isSameTypeRefByAttr(UserGroupKeyDistributionTypeRef, update.application, update.type) &&
+				isSameId(user.userGroup.group, update.instanceId)
+			) {
+				// this handles updates of the user group key which is also stored on the user as a membership
+				// we might not have access to the password to decrypt it, though. therefore we handle it here
+				try {
+					const userGroupKeyDistribution = await this.entityClient.load(UserGroupKeyDistributionTypeRef, update.instanceId)
+					this.userFacade.updateUserGroupKey(userGroupKeyDistribution)
+				} catch (e) {
+					// we do not want to fail here, as this update might be outdated in case we only process updates after a longer period of being offline
+					// in such case we should have set the correct user group key already during the regular login
+					console.log("Could not update user group key after entity update", e)
+				}
 			}
 		}
 	}

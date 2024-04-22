@@ -29,6 +29,8 @@ import {GiftCardGetReturnTypeRef} from "./TypeRefs.js"
 import {GiftCardCreateDataTypeRef} from "./TypeRefs.js"
 import {GiftCardCreateReturnTypeRef} from "./TypeRefs.js"
 import {GiftCardDeleteDataTypeRef} from "./TypeRefs.js"
+import {GroupKeyRotationInfoGetOutTypeRef} from "./TypeRefs.js"
+import {GroupKeyRotationPostInTypeRef} from "./TypeRefs.js"
 import {InvoiceDataGetInTypeRef} from "./TypeRefs.js"
 import {InvoiceDataGetOutTypeRef} from "./TypeRefs.js"
 import {LocationServiceGetReturnTypeRef} from "./TypeRefs.js"
@@ -234,6 +236,24 @@ export const GiftCardService = Object.freeze({
 	post: {data: GiftCardCreateDataTypeRef, return: GiftCardCreateReturnTypeRef},
 	put: null,
 	delete: {data: GiftCardDeleteDataTypeRef, return: null},
+} as const)
+
+export const GroupKeyRotationInfoService = Object.freeze({
+	app: "sys",
+	name: "GroupKeyRotationInfoService",
+	get: {data: null, return: GroupKeyRotationInfoGetOutTypeRef},
+	post: null,
+	put: null,
+	delete: null,
+} as const)
+
+export const GroupKeyRotationService = Object.freeze({
+	app: "sys",
+	name: "GroupKeyRotationService",
+	get: null,
+	post: {data: GroupKeyRotationPostInTypeRef, return: null},
+	put: null,
+	delete: null,
 } as const)
 
 export const InvoiceDataService = Object.freeze({
