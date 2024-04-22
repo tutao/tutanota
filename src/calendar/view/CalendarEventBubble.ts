@@ -13,7 +13,7 @@ export type CalendarEventBubbleAttrs = {
 	hasAlarm: boolean
 	isAltered: boolean
 	click: ClickHandler
-	keyUp: (event: KeyboardEvent, dom: HTMLElement) => unknown
+	keyDown: (event: KeyboardEvent, dom: HTMLElement) => unknown
 	height?: number
 	noBorderRight?: boolean
 	noBorderLeft?: boolean
@@ -57,9 +57,9 @@ export class CalendarEventBubble implements Component<CalendarEventBubbleAttrs> 
 					e.stopPropagation()
 					attrs.click(e, e.target as HTMLElement)
 				},
-				onkeyup: (e: KeyboardEvent) => {
+				onkeydown: (e: KeyboardEvent) => {
 					e.stopPropagation()
-					attrs.keyUp(e, e.target as HTMLElement)
+					attrs.keyDown(e, e.target as HTMLElement)
 				},
 			},
 			[

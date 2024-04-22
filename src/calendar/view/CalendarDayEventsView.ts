@@ -15,7 +15,7 @@ import {
 	layOutEvents,
 	TEMPORARY_EVENT_OPACITY,
 } from "../gui/CalendarGuiUtils.js"
-import type { CalendarEventBubbleClickHandler, CalendarEventBubbleKeyUpHandler } from "./CalendarViewModel"
+import type { CalendarEventBubbleClickHandler, CalendarEventBubbleKeyDownHandler } from "./CalendarViewModel"
 import type { GroupColors } from "./CalendarView"
 import { styles } from "../../gui/styles"
 import { locator } from "../../api/main/MainLocator.js"
@@ -23,7 +23,7 @@ import { CalendarTimeIndicator } from "./CalendarTimeIndicator.js"
 
 export type Attrs = {
 	onEventClicked: CalendarEventBubbleClickHandler
-	onEventKeyup: CalendarEventBubbleKeyUpHandler
+	onEventKeyDown: CalendarEventBubbleKeyDownHandler
 	groupColors: GroupColors
 	events: Array<CalendarEvent>
 	displayTimeIndicator: boolean
@@ -121,7 +121,7 @@ export class CalendarDayEventsView implements Component<Attrs> {
 				secondLineText: mapNullable(getTimeTextFormatForLongEvent(ev, attrs.day, attrs.day, zone), (option) => formatEventTime(ev, option)),
 				color: getEventColor(ev, attrs.groupColors),
 				click: (domEvent) => attrs.onEventClicked(ev, domEvent),
-				keyUp: (domEvent) => attrs.onEventKeyup(ev, domEvent),
+				keyDown: (domEvent) => attrs.onEventKeyDown(ev, domEvent),
 				height: height - size.calendar_day_event_padding,
 				hasAlarm: hasAlarmsForTheUser(locator.logins.getUserController().user, ev),
 				isAltered: ev.recurrenceId != null,

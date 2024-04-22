@@ -38,7 +38,7 @@ import {
 	layOutEvents,
 	TEMPORARY_EVENT_OPACITY,
 } from "../gui/CalendarGuiUtils.js"
-import type { CalendarEventBubbleClickHandler, CalendarEventBubbleKeyUpHandler, EventsOnDays } from "./CalendarViewModel"
+import type { CalendarEventBubbleClickHandler, CalendarEventBubbleKeyDownHandler, EventsOnDays } from "./CalendarViewModel"
 import { ContinuingCalendarEventBubble } from "./ContinuingCalendarEventBubble"
 import { isAllDayEvent } from "../../api/common/utils/CommonCalendarUtils"
 import { locator } from "../../api/main/MainLocator.js"
@@ -53,7 +53,7 @@ export type MultiDayCalendarViewAttrs = {
 	getEventsOnDays: (range: Array<Date>) => EventsOnDays
 	onNewEvent: (date: Date | null) => unknown
 	onEventClicked: CalendarEventBubbleClickHandler
-	onEventKeyup: CalendarEventBubbleKeyUpHandler
+	onEventKeyDown: CalendarEventBubbleKeyDownHandler
 	groupColors: GroupColors
 	startOfTheWeek: WeekStart
 	onChangeViewPeriod: (next: boolean) => unknown
@@ -112,7 +112,7 @@ export class MultiDayCalendarView implements Component<MultiDayCalendarViewAttrs
 							isDayView ? currentPageEvents : weekEvents,
 							attrs.groupColors,
 							attrs.onEventClicked,
-							attrs.onEventKeyup,
+							attrs.onEventKeyDown,
 							attrs.temporaryEvents,
 						),
 				  ]
@@ -308,7 +308,7 @@ export class MultiDayCalendarView implements Component<MultiDayCalendarViewAttrs
 									},
 									m(CalendarDayEventsView, {
 										onEventClicked: attrs.onEventClicked,
-										onEventKeyup: attrs.onEventKeyup,
+										onEventKeyDown: attrs.onEventKeyDown,
 										groupColors: attrs.groupColors,
 										events: events,
 										displayTimeIndicator: weekday.getTime() === MultiDayCalendarView.getTodayTimestamp(),
@@ -342,7 +342,7 @@ export class MultiDayCalendarView implements Component<MultiDayCalendarViewAttrs
 		thisPageEvents: EventsOnDays,
 		groupColors: GroupColors,
 		onEventClicked: CalendarEventBubbleClickHandler,
-		onEventKeyUp: CalendarEventBubbleKeyUpHandler,
+		onEventKeyDown: CalendarEventBubbleKeyDownHandler,
 		temporaryEvents: Array<CalendarEvent>,
 	): Children {
 		const longEventsResult = this.renderLongEvents(
@@ -350,7 +350,7 @@ export class MultiDayCalendarView implements Component<MultiDayCalendarViewAttrs
 			thisPageEvents.longEvents,
 			groupColors,
 			onEventClicked,
-			onEventKeyUp,
+			onEventKeyDown,
 			temporaryEvents,
 			false,
 		)
@@ -376,7 +376,7 @@ export class MultiDayCalendarView implements Component<MultiDayCalendarViewAttrs
 	}
 
 	private renderHeaderDesktop(attrs: MultiDayCalendarViewAttrs, thisPageEvents: EventsOnDays, mainPageEvents: EventsOnDays): Children {
-		const { daysInPeriod, onDateSelected, onEventClicked, onEventKeyup, groupColors, temporaryEvents } = attrs
+		const { daysInPeriod, onDateSelected, onEventClicked, onEventKeyDown, groupColors, temporaryEvents } = attrs
 		// `scrollbar-gutter-stable-or-fallback` is needed because the scroll bar brings the calendar body out of line with the header
 		return m(".calendar-long-events-header.flex-fixed.content-bg.pt-s.scrollbar-gutter-stable-or-fallback", [
 			this.renderDayNamesRow(thisPageEvents.days, attrs.weekIndicator, onDateSelected),
@@ -404,7 +404,7 @@ export class MultiDayCalendarView implements Component<MultiDayCalendarViewAttrs
 					// in day view there's no days row and no selection indicator.
 					// it all must work with and without long events.
 					// thread carefully and test all the cases.
-					[this.renderLongEventsSection(thisPageEvents, mainPageEvents, groupColors, onEventClicked, onEventKeyup, temporaryEvents)],
+					[this.renderLongEventsSection(thisPageEvents, mainPageEvents, groupColors, onEventClicked, onEventKeyDown, temporaryEvents)],
 				),
 			]),
 		])
@@ -415,7 +415,7 @@ export class MultiDayCalendarView implements Component<MultiDayCalendarViewAttrs
 		mainPageEvents: EventsOnDays,
 		groupColors: GroupColors,
 		onEventClicked: CalendarEventBubbleClickHandler,
-		onEventKeyUp: CalendarEventBubbleKeyUpHandler,
+		onEventKeyDown: CalendarEventBubbleKeyDownHandler,
 		temporaryEvents: Array<CalendarEvent>,
 	): Children {
 		const thisPageLongEvents = this.renderLongEvents(
@@ -423,7 +423,7 @@ export class MultiDayCalendarView implements Component<MultiDayCalendarViewAttrs
 			thisPageEvents.longEvents,
 			groupColors,
 			onEventClicked,
-			onEventKeyUp,
+			onEventKeyDown,
 			temporaryEvents,
 			true,
 		)
@@ -432,7 +432,7 @@ export class MultiDayCalendarView implements Component<MultiDayCalendarViewAttrs
 			mainPageEvents.longEvents,
 			groupColors,
 			onEventClicked,
-			onEventKeyUp,
+			onEventKeyDown,
 			temporaryEvents,
 			true,
 		)
@@ -470,7 +470,7 @@ export class MultiDayCalendarView implements Component<MultiDayCalendarViewAttrs
 		events: Array<CalendarEvent>,
 		groupColors: GroupColors,
 		onEventClicked: CalendarEventBubbleClickHandler,
-		onEventKeyUp: CalendarEventBubbleKeyUpHandler,
+		onEventKeyDown: CalendarEventBubbleKeyDownHandler,
 		temporaryEvents: Array<CalendarEvent>,
 		isDesktopLayout: boolean,
 	): {
@@ -480,12 +480,12 @@ export class MultiDayCalendarView implements Component<MultiDayCalendarViewAttrs
 		if (isDesktopLayout) {
 			return dayRange.length === 1
 				? {
-						children: this.renderLongEventsForSingleDay(dayRange[0], events, groupColors, onEventClicked, onEventKeyUp, temporaryEvents),
+						children: this.renderLongEventsForSingleDay(dayRange[0], events, groupColors, onEventClicked, onEventKeyDown, temporaryEvents),
 						rows: events.length,
 				  }
-				: this.renderLongEventsForMultipleDays(dayRange, events, groupColors, onEventClicked, onEventKeyUp, temporaryEvents)
+				: this.renderLongEventsForMultipleDays(dayRange, events, groupColors, onEventClicked, onEventKeyDown, temporaryEvents)
 		} else {
-			return this.renderLongEventsForMultipleDays(dayRange, events, groupColors, onEventClicked, onEventKeyUp, temporaryEvents)
+			return this.renderLongEventsForMultipleDays(dayRange, events, groupColors, onEventClicked, onEventKeyDown, temporaryEvents)
 		}
 	}
 
@@ -497,7 +497,7 @@ export class MultiDayCalendarView implements Component<MultiDayCalendarViewAttrs
 		events: Array<CalendarEvent>,
 		groupColors: GroupColors,
 		onEventClicked: CalendarEventBubbleClickHandler,
-		onEventKeyUp: CalendarEventBubbleKeyUpHandler,
+		onEventKeyDown: CalendarEventBubbleKeyDownHandler,
 		temporaryEvents: Array<CalendarEvent>,
 	): Children {
 		const zone = getTimeZone()
@@ -512,7 +512,7 @@ export class MultiDayCalendarView implements Component<MultiDayCalendarViewAttrs
 						eventEndsAfterDay(day, zone, event),
 						groupColors,
 						(_, domEvent) => onEventClicked(event, domEvent),
-						(_, domEvent) => onEventKeyUp(event, domEvent),
+						(_, domEvent) => onEventKeyDown(event, domEvent),
 						temporaryEvents.includes(event),
 					)
 				}),
@@ -525,7 +525,7 @@ export class MultiDayCalendarView implements Component<MultiDayCalendarViewAttrs
 		events: Array<CalendarEvent>,
 		groupColors: GroupColors,
 		onEventClicked: CalendarEventBubbleClickHandler,
-		onEventKeyUp: CalendarEventBubbleKeyUpHandler,
+		onEventKeyDown: CalendarEventBubbleKeyDownHandler,
 		temporaryEvents: Array<CalendarEvent>,
 	): {
 		children: Children
@@ -582,7 +582,7 @@ export class MultiDayCalendarView implements Component<MultiDayCalendarViewAttrs
 								endsAfter,
 								groupColors,
 								onEventClicked,
-								onEventKeyUp,
+								onEventKeyDown,
 								temporaryEvents.includes(event),
 							),
 						)
@@ -604,7 +604,7 @@ export class MultiDayCalendarView implements Component<MultiDayCalendarViewAttrs
 		endsAfter: boolean,
 		groupColors: GroupColors,
 		onEventClicked: CalendarEventBubbleClickHandler,
-		onEventKeyUp: CalendarEventBubbleKeyUpHandler,
+		onEventKeyDown: CalendarEventBubbleKeyDownHandler,
 		isTemporary: boolean,
 	): Children {
 		const fadeIn = !isTemporary
@@ -616,7 +616,7 @@ export class MultiDayCalendarView implements Component<MultiDayCalendarViewAttrs
 			endsAfter,
 			color: getEventColor(event, groupColors),
 			onEventClicked,
-			onEventKeyUp,
+			onEventKeyDown: onEventKeyDown,
 			showTime,
 			user: locator.logins.getUserController().user,
 			fadeIn,
