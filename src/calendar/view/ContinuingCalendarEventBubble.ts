@@ -4,7 +4,7 @@ import { CalendarEventBubble } from "./CalendarEventBubble"
 import type { CalendarEvent } from "../../api/entities/tutanota/TypeRefs.js"
 import type { User } from "../../api/entities/sys/TypeRefs.js"
 import type { EventTextTimeOption } from "../../api/common/TutanotaConstants"
-import type { CalendarEventBubbleClickHandler, CalendarEventBubbleKeyUpHandler } from "./CalendarViewModel"
+import type { CalendarEventBubbleClickHandler, CalendarEventBubbleKeyDownHandler } from "./CalendarViewModel"
 import { formatEventTime } from "../gui/CalendarGuiUtils.js"
 
 type ContinuingCalendarEventBubbleAttrs = {
@@ -13,7 +13,7 @@ type ContinuingCalendarEventBubbleAttrs = {
 	endsAfter: boolean
 	color: string
 	onEventClicked: CalendarEventBubbleClickHandler
-	onEventKeyUp: CalendarEventBubbleKeyUpHandler
+	onEventKeyDown: CalendarEventBubbleKeyDownHandler
 	showTime: EventTextTimeOption | null
 	user: User
 	fadeIn: boolean
@@ -40,7 +40,7 @@ export class ContinuingCalendarEventBubble implements Component<ContinuingCalend
 					text: (attrs.showTime != null ? formatEventTime(attrs.event, attrs.showTime) + " " : "") + attrs.event.summary,
 					color: attrs.color,
 					click: (e) => attrs.onEventClicked(attrs.event, e),
-					keyUp: (e) => attrs.onEventKeyUp(attrs.event, e),
+					keyDown: (e) => attrs.onEventKeyDown(attrs.event, e),
 					noBorderLeft: attrs.startsBefore,
 					noBorderRight: attrs.endsAfter,
 					hasAlarm: hasAlarmsForTheUser(attrs.user, attrs.event),

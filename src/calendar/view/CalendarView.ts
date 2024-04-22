@@ -42,7 +42,7 @@ import {
 	getGroupColors,
 	shouldDefaultToAmPmTimeFormat,
 } from "../gui/CalendarGuiUtils.js"
-import { CalendarEventBubbleKeyUpHandler, CalendarViewModel, MouseOrPointerEvent } from "./CalendarViewModel"
+import { CalendarEventBubbleKeyDownHandler, CalendarViewModel, MouseOrPointerEvent } from "./CalendarViewModel"
 import { showNewCalendarEventEditDialog } from "../gui/eventeditor-view/CalendarEventEditDialog.js"
 import { CalendarEventPopup } from "../gui/eventpopup/CalendarEventPopup.js"
 import { showProgressDialog } from "../../gui/dialogs/ProgressDialog"
@@ -186,7 +186,7 @@ export class CalendarView extends BaseTopLevelView implements TopLevelView<Calen
 									eventsForDays: this.viewModel.eventsForDays,
 									getEventsOnDaysToRender: this.viewModel.getEventsOnDaysToRender.bind(this.viewModel),
 									onEventClicked: (calendarEvent, domEvent) => this.onEventSelected(calendarEvent, domEvent, this.htmlSanitizer),
-									onEventKeyUp: this.handleEventKeyUp(),
+									onEventKeyDown: this.handleEventKeyDown(),
 									onNewEvent: (date) => {
 										this.createNewEventDialog(date)
 									},
@@ -212,7 +212,7 @@ export class CalendarView extends BaseTopLevelView implements TopLevelView<Calen
 									getEventsOnDays: this.viewModel.getEventsOnDaysToRender.bind(this.viewModel),
 									daysInPeriod: 1,
 									onEventClicked: (event, domEvent) => this.onEventSelected(event, domEvent, this.htmlSanitizer),
-									onEventKeyup: this.handleEventKeyUp(),
+									onEventKeyDown: this.handleEventKeyDown(),
 									onNewEvent: (date) => {
 										this.createNewEventDialog(date)
 									},
@@ -240,7 +240,7 @@ export class CalendarView extends BaseTopLevelView implements TopLevelView<Calen
 									getEventsOnDays: this.viewModel.getEventsOnDaysToRender.bind(this.viewModel),
 									daysInPeriod: 7,
 									onEventClicked: (event, domEvent) => this.onEventSelected(event, domEvent, this.htmlSanitizer),
-									onEventKeyup: this.handleEventKeyUp(),
+									onEventKeyDown: this.handleEventKeyDown(),
 									onNewEvent: (date) => {
 										this.createNewEventDialog(date)
 									},
@@ -276,8 +276,8 @@ export class CalendarView extends BaseTopLevelView implements TopLevelView<Calen
 											this.onEventSelected(event, domEvent, this.htmlSanitizer)
 										}
 									},
-									onEventKeyUp: (event, domEvent) => {
-										if (isKeyPressed(domEvent.key, Keys.RETURN, Keys.SPACE)) {
+									onEventKeyDown: (event, domEvent) => {
+										if (isKeyPressed(domEvent.key, Keys.RETURN, Keys.SPACE) && !domEvent.repeat) {
 											if (styles.isDesktopLayout()) {
 												this.viewModel.updatePreviewedEvent(event)
 											} else {
@@ -827,9 +827,9 @@ export class CalendarView extends BaseTopLevelView implements TopLevelView<Calen
 		await this.showCalendarEventPopup(selectedEvent, rect, htmlSanitizerPromise)
 	}
 
-	private handleEventKeyUp(): CalendarEventBubbleKeyUpHandler {
+	private handleEventKeyDown(): CalendarEventBubbleKeyDownHandler {
 		return (calendarEvent, domEvent) => {
-			if (isKeyPressed(domEvent.key, Keys.RETURN, Keys.SPACE)) {
+			if (isKeyPressed(domEvent.key, Keys.RETURN, Keys.SPACE) && !domEvent.repeat) {
 				this.showCalendarEventPopupAtEvent(calendarEvent, domEvent.target as HTMLElement, this.htmlSanitizer)
 			}
 		}

@@ -43,7 +43,7 @@ export type DraggedEvent = {
 
 export type MouseOrPointerEvent = MouseEvent | PointerEvent
 export type CalendarEventBubbleClickHandler = (arg0: CalendarEvent, arg1: MouseOrPointerEvent) => unknown
-export type CalendarEventBubbleKeyUpHandler = (arg0: CalendarEvent, arg1: KeyboardEvent) => unknown
+export type CalendarEventBubbleKeyDownHandler = (arg0: CalendarEvent, arg1: KeyboardEvent) => unknown
 export type CalendarEventEditModelsFactory = (mode: CalendarOperation, event: CalendarEvent) => Promise<CalendarEventModel | null>
 export type CalendarEventPreviewModelFactory = (
 	selectedEvent: CalendarEvent,

@@ -1,5 +1,5 @@
 import type { Shortcut } from "../../../misc/KeyManager.js"
-import m, { Children, VnodeDOM } from "mithril"
+import m, { Children } from "mithril"
 import { px } from "../../../gui/size.js"
 import { Icons } from "../../../gui/base/icons/Icons.js"
 import type { ModalComponent } from "../../../gui/base/Modal.js"
@@ -129,7 +129,12 @@ export class CalendarEventPopup implements ModalComponent {
 					this.dom = vnode.dom as HTMLElement
 					// This is a hack to get "natural" view size but render it without opacity first and then show dropdown with inferred
 					// size.
-					setTimeout(() => showDropdown(this.eventBubbleRect, this.dom!, this.dom!.offsetHeight, 400), 24)
+					setTimeout(() => {
+						showDropdown(this.eventBubbleRect, this.dom!, this.dom!.offsetHeight, 400)
+						// Move the keyboard focus into the popup's buttons when it is shown
+						const firstButton = vnode.dom.firstElementChild?.firstElementChild as HTMLInputElement | null
+						firstButton?.focus()
+					}, 24)
 				},
 			},
 			[

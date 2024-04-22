@@ -36,7 +36,7 @@ import {
 	SELECTED_DATE_INDICATOR_THICKNESS,
 	TEMPORARY_EVENT_OPACITY,
 } from "../gui/CalendarGuiUtils.js"
-import type { CalendarEventBubbleClickHandler, CalendarEventBubbleKeyUpHandler, EventsOnDays } from "./CalendarViewModel"
+import type { CalendarEventBubbleClickHandler, CalendarEventBubbleKeyDownHandler, EventsOnDays } from "./CalendarViewModel"
 import { Time } from "../date/Time.js"
 import { client } from "../../misc/ClientDetector"
 import { locator } from "../../api/main/MainLocator.js"
@@ -50,7 +50,7 @@ type CalendarMonthAttrs = {
 	getEventsOnDaysToRender: (range: Array<Date>) => EventsOnDays
 	onNewEvent: (date: Date | null) => unknown
 	onEventClicked: CalendarEventBubbleClickHandler
-	onEventKeyUp: CalendarEventBubbleKeyUpHandler
+	onEventKeyDown: CalendarEventBubbleKeyDownHandler
 	onChangeMonth: (next: boolean) => unknown
 	amPmFormat: boolean
 	startOfTheWeek: WeekStart
@@ -448,8 +448,8 @@ export class CalendarMonthView implements Component<CalendarMonthAttrs>, ClassCo
 				onEventClicked: (e, domEvent) => {
 					attrs.onEventClicked(event, domEvent)
 				},
-				onEventKeyUp: (e, domEvent) => {
-					attrs.onEventKeyUp(event, domEvent)
+				onEventKeyDown: (e, domEvent) => {
+					attrs.onEventKeyDown(event, domEvent)
 				},
 				fadeIn: !this.eventDragHandler.isDragging,
 				opacity: isTemporary ? TEMPORARY_EVENT_OPACITY : 1,
