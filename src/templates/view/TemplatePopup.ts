@@ -76,6 +76,7 @@ export class TemplatePopup implements ModalComponent {
 	private _selectTemplateButtonAttrs: ButtonAttrs
 	private _inputDom: HTMLElement | null = null
 	private _debounceFilter: (_: string) => void
+	private focusedBeforeShown: HTMLElement | null = null
 
 	constructor(
 		templateModel: TemplatePopupModel,
@@ -432,6 +433,7 @@ export class TemplatePopup implements ModalComponent {
 	}
 
 	show() {
+		this.focusedBeforeShown = document.activeElement as HTMLElement
 		modal.display(this, false)
 	}
 
@@ -458,6 +460,10 @@ export class TemplatePopup implements ModalComponent {
 
 	popState(e: Event): boolean {
 		return true
+	}
+
+	callingElement(): HTMLElement | null {
+		return this.focusedBeforeShown
 	}
 
 	showTemplateEditor(templateToEdit: EmailTemplate | null, groupRoot: TemplateGroupRoot) {

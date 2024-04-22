@@ -104,6 +104,7 @@ export class Dropdown implements ModalComponent {
 	private _isFilterable: boolean = false
 	private _maxHeight: number | null = null
 	private closeHandler: Thunk | null = null
+	private focusedBeforeShown: HTMLElement | null = document.activeElement as HTMLElement
 
 	constructor(lazyChildren: lazy<ReadonlyArray<DropdownChildAttrs | null>>, width: number) {
 		this.children = []
@@ -318,6 +319,10 @@ export class Dropdown implements ModalComponent {
 	popState(e: Event): boolean {
 		this.onClose()
 		return false
+	}
+
+	callingElement(): HTMLElement | null {
+		return this.focusedBeforeShown
 	}
 
 	chooseMatch: () => boolean = () => {

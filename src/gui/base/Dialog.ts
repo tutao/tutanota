@@ -80,34 +80,34 @@ export interface TextInputDialogParams {
 }
 
 export class Dialog implements ModalComponent {
-	private static _keyboardHeight: number = 0
-	private _domDialog: HTMLElement | null = null
+	private static keyboardHeight: number = 0
+	private domDialog: HTMLElement | null = null
 	private _shortcuts: Shortcut[]
 	view: ModalComponent["view"]
 	visible: boolean
-	private _focusOnLoadFunction: (dom: HTMLElement) => void
-	private _wasFocusOnLoadCalled: boolean
-	private _closeHandler: Thunk | null = null
-	private _focusedBeforeShown: HTMLElement | null = null
-	private _injectionRightAttrs: DialogInjectionRightAttrs<any> | null = null
+	private focusOnLoadFunction: (dom: HTMLElement) => void
+	private wasFocusOnLoadCalled: boolean
+	private closeHandler: Thunk | null = null
+	private focusedBeforeShown: HTMLElement | null = null
+	private injectionRightAttrs: DialogInjectionRightAttrs<any> | null = null
 
 	constructor(dialogType: DialogType, childComponent: Component) {
 		this.visible = false
 
-		this._focusOnLoadFunction = () => this._defaultFocusOnLoad(assertNotNull(this._domDialog))
+		this.focusOnLoadFunction = () => this.defaultFocusOnLoad(assertNotNull(this.domDialog))
 
-		this._wasFocusOnLoadCalled = false
+		this.wasFocusOnLoadCalled = false
 		this._shortcuts = [
 			{
 				key: Keys.TAB,
 				shift: true,
-				exec: () => (this._domDialog ? focusPrevious(this._domDialog) : false),
+				exec: () => (this.domDialog ? focusPrevious(this.domDialog) : false),
 				help: "selectPrevious_action",
 			},
 			{
 				key: Keys.TAB,
 				shift: false,
-				exec: () => (this._domDialog ? focusNext(this._domDialog) : false),
+				exec: () => (this.domDialog ? focusNext(this.domDialog) : false),
 				help: "selectNext_action",
 			},
 		]
@@ -117,7 +117,7 @@ export class Dialog implements ModalComponent {
 			const isEditLarge = dialogType === DialogType.EditLarge
 			const sidesMargin = styles.isSingleColumnLayout() && isEditLarge ? "4px" : marginPx
 			return m(
-				this._getDialogWrapperClasses(dialogType),
+				this.getDialogWrapperClasses(dialogType),
 				{
 					style: {
 						paddingTop: "env(safe-area-inset-top)",
@@ -137,12 +137,12 @@ export class Dialog implements ModalComponent {
 							marginTop: marginPx,
 							marginLeft: sidesMargin,
 							marginRight: sidesMargin,
-							"margin-bottom": Dialog._keyboardHeight > 0 ? px(Dialog._keyboardHeight) : isEditLarge ? 0 : marginPx,
+							"margin-bottom": Dialog.keyboardHeight > 0 ? px(Dialog.keyboardHeight) : isEditLarge ? 0 : marginPx,
 						},
 					},
 					[
 						m(
-							this._getDialogStyle(dialogType),
+							this.getDialogStyle(dialogType),
 							{
 								role: AriaWindow.Dialog,
 								"aria-modal": "true",
@@ -151,21 +151,21 @@ export class Dialog implements ModalComponent {
 								onclick: (e: MouseEvent) => e.stopPropagation(),
 								// do not propagate clicks on the dialog as the Modal expects all propagated clicks to be clicks on the background
 								oncreate: (vnode) => {
-									this._domDialog = vnode.dom as HTMLElement
+									this.domDialog = vnode.dom as HTMLElement
 									let animation: AnimationPromise | null = null
 
 									if (isEditLarge) {
-										this._domDialog.style.transform = `translateY(${window.innerHeight}px)`
-										animation = animations.add(this._domDialog, transform(TransformEnum.TranslateY, window.innerHeight, 0))
+										this.domDialog.style.transform = `translateY(${window.innerHeight}px)`
+										animation = animations.add(this.domDialog, transform(TransformEnum.TranslateY, window.innerHeight, 0))
 									} else {
 										const bgcolor = getElevatedBackground()
-										const children = Array.from(this._domDialog.children) as Array<HTMLElement>
+										const children = Array.from(this.domDialog.children) as Array<HTMLElement>
 										for (let child of children) {
 											child.style.opacity = "0"
 										}
-										this._domDialog.style.backgroundColor = `rgba(0, 0, 0, 0)`
+										this.domDialog.style.backgroundColor = `rgba(0, 0, 0, 0)`
 										animation = Promise.all([
-											animations.add(this._domDialog, alpha(AlphaEnum.BackgroundColor, bgcolor, 0, 1)),
+											animations.add(this.domDialog, alpha(AlphaEnum.BackgroundColor, bgcolor, 0, 1)),
 											animations.add(children, opacity(0, 1, true), {
 												delay: DefaultAnimationTime / 2,
 											}),
@@ -180,21 +180,21 @@ export class Dialog implements ModalComponent {
 										}
 									})
 									animation.then(() => {
-										this._focusOnLoadFunction(assertNotNull(this._domDialog))
+										this.focusOnLoadFunction(assertNotNull(this.domDialog))
 
-										this._wasFocusOnLoadCalled = true
+										this.wasFocusOnLoadCalled = true
 
 										// Fall back to the CSS classes after completing the opening animation.
 										// Because `bgcolor` is only calculated on create and not on theme change.
-										if (this._domDialog != null && !isEditLarge) {
-											this._domDialog.style.removeProperty("background-color")
+										if (this.domDialog != null && !isEditLarge) {
+											this.domDialog.style.removeProperty("background-color")
 										}
 									})
 								},
 							},
 							m(childComponent),
 						),
-						this._injectionRightAttrs ? m(DialogInjectionRight, this._injectionRightAttrs) : null,
+						this.injectionRightAttrs ? m(DialogInjectionRight, this.injectionRightAttrs) : null,
 					],
 				),
 			)
@@ -202,10 +202,10 @@ export class Dialog implements ModalComponent {
 	}
 
 	setInjectionRight(injectionRightAttrs: DialogInjectionRightAttrs<any>) {
-		this._injectionRightAttrs = injectionRightAttrs
+		this.injectionRightAttrs = injectionRightAttrs
 	}
 
-	_defaultFocusOnLoad(dom: HTMLElement) {
+	private defaultFocusOnLoad(dom: HTMLElement) {
 		const inputs = Array.from(dom.querySelectorAll(INPUT)) as Array<HTMLElement>
 		const scrollableWrapper = dom.querySelector(".dialog-container.scroll") as HTMLElement | null
 
@@ -227,15 +227,15 @@ export class Dialog implements ModalComponent {
 	 * By default the focus is set on the first text field after this dialog is fully visible. This behavior can be overwritten by calling this function.
 	 * If it has already been called, then calls it instantly
 	 */
-	setFocusOnLoadFunction(callback: Dialog["_focusOnLoadFunction"]): void {
-		this._focusOnLoadFunction = callback
+	setFocusOnLoadFunction(callback: Dialog["focusOnLoadFunction"]): void {
+		this.focusOnLoadFunction = callback
 
-		if (this._wasFocusOnLoadCalled) {
-			this._focusOnLoadFunction(assertNotNull(this._domDialog))
+		if (this.wasFocusOnLoadCalled) {
+			this.focusOnLoadFunction(assertNotNull(this.domDialog))
 		}
 	}
 
-	_getDialogWrapperClasses(dialogType: DialogType): string {
+	private getDialogWrapperClasses(dialogType: DialogType): string {
 		// change direction of axis to handle resize of dialogs (iOS keyboard open changes size)
 		let dialogWrapperStyle = ".fill-absolute.flex.items-stretch.flex-column"
 
@@ -248,7 +248,7 @@ export class Dialog implements ModalComponent {
 		return dialogWrapperStyle
 	}
 
-	_getDialogStyle(dialogType: DialogType): string {
+	private getDialogStyle(dialogType: DialogType): string {
 		let dialogStyle = ".dialog.elevated-bg.flex-grow.border-radius-top"
 
 		if (dialogType === DialogType.Progress) {
@@ -283,7 +283,7 @@ export class Dialog implements ModalComponent {
 	 * The handler must is then responsible for closing the dialog.
 	 */
 	setCloseHandler(closeHandler: (() => unknown) | null): Dialog {
-		this._closeHandler = closeHandler
+		this.closeHandler = closeHandler
 		return this
 	}
 
@@ -292,7 +292,7 @@ export class Dialog implements ModalComponent {
 	}
 
 	show(): Dialog {
-		this._focusedBeforeShown = document.activeElement as HTMLElement
+		this.focusedBeforeShown = document.activeElement as HTMLElement
 		modal.display(this)
 		this.visible = true
 		return this
@@ -304,15 +304,14 @@ export class Dialog implements ModalComponent {
 	close(): void {
 		this.visible = false
 		modal.remove(this)
-		this._focusedBeforeShown && this._focusedBeforeShown.focus()
 	}
 
 	/**
 	 * Should be called to close a dialog. Notifies the closeHandler about the close attempt.
 	 */
 	onClose(): void {
-		if (this._closeHandler) {
-			this._closeHandler()
+		if (this.closeHandler) {
+			this.closeHandler()
 		} else {
 			this.close()
 		}
@@ -323,6 +322,10 @@ export class Dialog implements ModalComponent {
 		return false
 	}
 
+	callingElement(): HTMLElement | null {
+		return this.focusedBeforeShown
+	}
+
 	/**
 	 * Is invoked from modal as the two animations (background layer opacity and dropdown) should run in parallel
 	 * @returns {Promise.<void>}
@@ -330,10 +333,10 @@ export class Dialog implements ModalComponent {
 	hideAnimation(): Promise<void> {
 		let bgcolor = getElevatedBackground()
 
-		if (this._domDialog) {
+		if (this.domDialog) {
 			return Promise.all([
-				animations.add(this._domDialog.children, opacity(1, 0, true)),
-				animations.add(this._domDialog, alpha(AlphaEnum.BackgroundColor, bgcolor, 1, 0), {
+				animations.add(this.domDialog.children, opacity(1, 0, true)),
+				animations.add(this.domDialog, alpha(AlphaEnum.BackgroundColor, bgcolor, 1, 0), {
 					delay: DefaultAnimationTime / 2,
 					easing: ease.linear,
 				}),
@@ -958,11 +961,11 @@ export class Dialog implements ModalComponent {
 		})
 	}
 
-	static _onKeyboardSizeChanged(newSize: number): void {
-		Dialog._keyboardHeight = newSize
+	static onKeyboardSizeChanged(newSize: number): void {
+		Dialog.keyboardHeight = newSize
 		m.redraw()
 	}
 }
 
 export type stringValidator = (arg0: string) => (TranslationKey | null) | Promise<TranslationKey | null>
-windowFacade.addKeyboardSizeListener(Dialog._onKeyboardSizeChanged)
+windowFacade.addKeyboardSizeListener(Dialog.onKeyboardSizeChanged)

@@ -25,6 +25,7 @@ export class DaySelectorPopup implements ModalComponent {
 	private readonly _shortcuts: Shortcut[] = []
 	private dom: HTMLElement | null = null
 	private currentDate: Date
+	private focusedBeforeShown: HTMLElement | null = null
 
 	/**
 	 * @param rect The rect with coordinates about where the popup should be rendered
@@ -119,6 +120,7 @@ export class DaySelectorPopup implements ModalComponent {
 	}
 
 	show() {
+		this.focusedBeforeShown = document.activeElement as HTMLElement
 		this.turnTrapFocus(true)
 		modal.display(this, false)
 	}
@@ -149,6 +151,10 @@ export class DaySelectorPopup implements ModalComponent {
 		this.turnTrapFocus(false)
 		modal.remove(this)
 		return false
+	}
+
+	callingElement(): HTMLElement | null {
+		return this.focusedBeforeShown
 	}
 
 	private setupShortcuts() {

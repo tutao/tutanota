@@ -165,7 +165,6 @@ export class EditFoldersDialog implements ModalComponent {
 	close(): void {
 		this.visible = false
 		modal.remove(this)
-		this.focusedBeforeShown && this.focusedBeforeShown.focus()
 	}
 
 	/**
@@ -188,6 +187,10 @@ export class EditFoldersDialog implements ModalComponent {
 	popState(e: Event): boolean {
 		this.onClose()
 		return false
+	}
+
+	callingElement(): HTMLElement | null {
+		return this.focusedBeforeShown
 	}
 
 	addShortcut(shortcut: Shortcut): EditFoldersDialog {
