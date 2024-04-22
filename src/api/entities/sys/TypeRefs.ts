@@ -3096,6 +3096,22 @@ export type UserExternalAuthInfo = {
 
 	variableAuthInfo: Id;
 }
+export const UserGroupKeyDistributionTypeRef: TypeRef<UserGroupKeyDistribution> = new TypeRef("sys", "UserGroupKeyDistribution")
+
+export function createUserGroupKeyDistribution(values: StrippedEntity<UserGroupKeyDistribution>): UserGroupKeyDistribution {
+	return Object.assign(create(typeModels.UserGroupKeyDistribution, UserGroupKeyDistributionTypeRef), values)
+}
+
+export type UserGroupKeyDistribution = {
+	_type: TypeRef<UserGroupKeyDistribution>;
+
+	_format: NumberString;
+	_id: Id;
+	_ownerGroup: null | Id;
+	_permissions: Id;
+	distributionEncUserGroupKey: Uint8Array;
+	userGroupKeyVersion: NumberString;
+}
 export const UserGroupRootTypeRef: TypeRef<UserGroupRoot> = new TypeRef("sys", "UserGroupRoot")
 
 export function createUserGroupRoot(values: StrippedEntity<UserGroupRoot>): UserGroupRoot {

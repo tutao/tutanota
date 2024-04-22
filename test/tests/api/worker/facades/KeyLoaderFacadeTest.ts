@@ -30,10 +30,15 @@ import { KeyLoaderFacade } from "../../../../../src/api/worker/facades/KeyLoader
 import { stringToCustomId } from "../../../../../src/api/common/utils/EntityUtils.js"
 import { VersionedKey } from "../../../../../src/api/worker/crypto/CryptoFacade.js"
 import { freshVersioned } from "@tutao/tutanota-utils"
+import { KeyCache } from "../../../../../src/api/worker/facades/KeyCache.js"
 
 o.spec("KeyLoaderFacadeTest", function () {
+	let keyCache: KeyCache
 	let userFacade: UserFacade
 	let entityClient: EntityClient
+	let pqFacade: PQFacade
+	let keyLoaderFacade: KeyLoaderFacade
+
 	let group: Group
 	let userGroup: Group
 	let currentKeys: KeyPair | null = null
@@ -42,17 +47,16 @@ o.spec("KeyLoaderFacadeTest", function () {
 	let currentGroupKey: VersionedKey
 	let userGroupKey: VersionedKey
 	let currentGroupKeyVersion: number
-	let keyLoaderFacade: KeyLoaderFacade
-	let pqFacade: PQFacade
 	let formerKeyPairsDecrypted: PQKeyPairs[]
 	const FORMER_KEYS = 2
 	let currentKeyPair: PQKeyPairs
 
 	o.beforeEach(async () => {
+		keyCache = new KeyCache()
 		userFacade = object()
 		entityClient = object()
-		keyLoaderFacade = new KeyLoaderFacade(userFacade, entityClient)
 		pqFacade = new PQFacade(new WASMKyberFacade(await loadLibOQSWASM()))
+		keyLoaderFacade = new KeyLoaderFacade(keyCache, userFacade, entityClient)
 
 		formerKeys = []
 		formerKeyPairsDecrypted = []

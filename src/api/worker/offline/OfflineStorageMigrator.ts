@@ -14,6 +14,7 @@ import { tutanota64 } from "./migrations/tutanota-v64.js"
 import { tutanota67 } from "./migrations/tutanota-v67.js"
 import { sys96 } from "./migrations/sys-v96.js"
 import { tutanota69 } from "./migrations/tutanota-v69.js"
+import { sys98 } from "./migrations/sys-v98.js"
 import { sys97 } from "./migrations/sys-v97.js"
 import { tutanota71 } from "./migrations/tutanota-v71.js"
 
@@ -43,6 +44,7 @@ export const OFFLINE_STORAGE_MIGRATIONS: ReadonlyArray<OfflineMigration> = [
 	tutanota69,
 	sys97,
 	tutanota71,
+	sys98,
 ]
 
 const CURRENT_OFFLINE_VERSION = 1

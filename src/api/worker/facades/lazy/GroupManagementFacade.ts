@@ -9,8 +9,7 @@ import {
 	createUserAreaGroupPostData,
 } from "../../../entities/tutanota/TypeRefs.js"
 import { assertNotNull, freshVersioned, neverNull } from "@tutao/tutanota-utils"
-import type { Group, User } from "../../../entities/sys/TypeRefs.js"
-import { createMembershipAddData, createMembershipRemoveData, GroupTypeRef, UserTypeRef } from "../../../entities/sys/TypeRefs.js"
+import { createMembershipAddData, createMembershipRemoveData, Group, GroupTypeRef, User, UserTypeRef } from "../../../entities/sys/TypeRefs.js"
 import { CounterFacade } from "./CounterFacade.js"
 import { EntityClient } from "../../../common/EntityClient.js"
 import { assertWorkerOrNode } from "../../../common/Env.js"
@@ -302,7 +301,7 @@ export class GroupManagementFacade {
 		await this.entityRestCache.deleteFromCacheIfExists(UserTypeRef, null, userId)
 
 		const user = await this.entityClient.load(UserTypeRef, userId)
-		this.user.updateUser(user)
+		await this.user.updateUser(user)
 
 		return user
 	}
