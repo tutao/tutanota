@@ -59,4 +59,4 @@ build: include
     	-s TOTAL_MEMORY=${TOTAL_MEMORY} \
     	-s EXPORTED_FUNCTIONS="['_OQS_KEM_new', '_OQS_KEM_free', '_OQS_KEM_keypair', '_OQS_KEM_encaps', '_OQS_KEM_decaps', '_TUTA_inject_entropy', '_malloc', '_free']" \
     	-o $(WASM)
-	rm -r "include/"
+	rm -rf include

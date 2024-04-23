@@ -158,9 +158,9 @@ export function getChunkName(moduleId, { getModuleInfo }) {
 		return "main"
 	} else if (isIn("src/mail/view") || isIn("src/mail/export")) {
 		return "mail-view"
-	} else if (moduleId.includes("wasm-gen-fallback")) {
+	} else if (moduleId.includes("wasm-loader")) {
 		return "wasm"
-	} else if (moduleId.includes("wasm-bin-fallback")) {
+	} else if (moduleId.includes("wasm-fallback")) {
 		return "wasm-fallback"
 	} else if (isIn("src/native/worker")) {
 		return "worker"
@@ -303,7 +303,6 @@ export function bundleDependencyCheckPlugin() {
 					}
 					const ownChunk = getChunkName(moduleId, { getModuleInfo })
 					if (!allowedImports[ownChunk]) {
-						console.log("Adding unknown chunk 1 ", ownChunk, moduleId)
 						unknownChunks.push(`${ownChunk} of ${moduleId}`)
 					}
 
@@ -314,7 +313,6 @@ export function bundleDependencyCheckPlugin() {
 						}
 						const importedChunk = getChunkName(importedId, { getModuleInfo })
 						if (!allowedImports[importedChunk]) {
-							console.log("Adding unknown chunk 2", importedChunk, moduleId)
 							unknownChunks.push(`${importedChunk} of ${importedId}`)
 						}
 						if (ownChunk !== importedChunk && !allowedImports[ownChunk]?.includes(importedChunk)) {

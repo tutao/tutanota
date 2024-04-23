@@ -20,3 +20,9 @@ declare type IdTuple = Readonly<[Id, Id]>
 declare type Writeable<T> = { -readonly [P in keyof T]: T[P] }
 
 declare type None = null | undefined
+
+declare module "*.wasm" {
+	const loadWasm: (options?: { forceFallback?: boolean }) => Promise<Argon2IDExports | LibOQSExports>
+
+	export { loadWasm }
+}

@@ -1,6 +1,4 @@
 import o from "@tutao/otest"
-
-import path from "node:path"
 import { DesktopNativeCredentialsFacade, resolveChecked } from "../../../../src/desktop/credentials/DesktopNativeCredentialsFacade.js"
 import { DesktopNativeCryptoFacade } from "../../../../src/desktop/DesktopNativeCryptoFacade.js"
 import { CredentialEncryptionMode } from "../../../../src/misc/credentials/CredentialEncryptionMode.js"
@@ -14,21 +12,7 @@ import { DesktopConfigKey } from "../../../../src/desktop/config/ConfigKeys.js"
 import { CommonNativeFacade } from "../../../../src/native/common/generatedipc/CommonNativeFacade.js"
 import { CancelledError } from "../../../../src/api/common/error/CancelledError.js"
 import { KeyPermanentlyInvalidatedError } from "../../../../src/api/common/error/KeyPermanentlyInvalidatedError.js"
-import { Argon2IDExports } from "@tutao/tutanota-crypto"
-
-async function loadArgon2ModuleFromFile(path: string): Promise<Argon2IDExports> {
-	if (typeof process !== "undefined") {
-		try {
-			const { readFile } = await import("node:fs/promises")
-			const wasmBuffer = await readFile(path)
-			return (await WebAssembly.instantiate(wasmBuffer)).instance.exports as unknown as Argon2IDExports
-		} catch (e) {
-			throw new Error(`Can't load argon2 module: ${e}`)
-		}
-	} else {
-		return (await WebAssembly.instantiateStreaming(await fetch(path))).instance.exports as unknown as Argon2IDExports
-	}
-}
+import { loadArgon2WASM } from "../../api/worker/WASMTestUtils.js"
 
 o.spec("DesktopNativeCredentialsFacade", () => {
 	const key = new Uint8Array([1, 2, 3])
@@ -37,8 +21,7 @@ o.spec("DesktopNativeCredentialsFacade", () => {
 	const getSubject = async () => {
 		const crypto: DesktopNativeCryptoFacade = object()
 		// too hard to mock
-		const wasmPath = path.resolve("../packages/tutanota-crypto/lib/hashes/Argon2id/argon2.wasm")
-		const argon2 = await loadArgon2ModuleFromFile(wasmPath)
+		const argon2 = await loadArgon2WASM()
 		const lang: LanguageViewModel = object()
 		const conf: DesktopConfig = object()
 		const commonNativeFacade: CommonNativeFacade = object()

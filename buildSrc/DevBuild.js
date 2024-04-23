@@ -80,15 +80,29 @@ importScripts("./worker.js")
 				libDeps(),
 				externalTranslationsPlugin(),
 				esbuildWasmLoader({
-					optimizationLevel: "O3",
+					output: `${process.cwd()}/build/wasm`,
 					webassemblyLibraries: [
 						{
 							name: "liboqs.wasm",
-							makefilePath: "libs/webassembly/Makefile_liboqs",
+							command: "make -f Makefile_liboqs build",
+							options: {
+								workingDir: `${process.cwd()}/libs/webassembly/`,
+								env: {
+									WASM: `${process.cwd()}/build/wasm/liboqs.wasm`,
+								},
+								optimizationLevel: "O3",
+							},
 						},
 						{
 							name: "argon2.wasm",
-							makefilePath: "libs/webassembly/Makefile_argon2",
+							command: "make -f Makefile_argon2 build",
+							options: {
+								workingDir: `${process.cwd()}/libs/webassembly/`,
+								env: {
+									WASM: `${process.cwd()}/build/wasm/argon2.wasm`,
+								},
+								optimizationLevel: "O3",
+							},
 						},
 					],
 				}),
@@ -210,15 +224,6 @@ export async function prepareAssets(stage, host, version) {
 		fs.copy(path.join(root, "/resources/wordlibrary.json"), path.join(root, "build/wordlibrary.json")),
 		fs.copy(path.join(root, "/src/braintree.html"), path.join(root, "build/braintree.html")),
 	])
-
-	const wasmDir = path.join(root, "/build/wasm")
-	// await Promise.all([
-	// 	await fs.emptyDir(wasmDir),
-	// 	fs.copy(path.join(root, "/packages/tutanota-crypto/lib/hashes/Argon2id/argon2.wasm"), path.join(wasmDir, "argon2.wasm")),
-	// 	fs.copy(path.join(root, "/packages/tutanota-crypto/lib/hashes/Argon2id/argon2.js"), path.join(wasmDir, "argon2.js")),
-	// 	fs.copy(path.join(root, "/packages/tutanota-crypto/lib/encryption/Liboqs/liboqs.wasm"), path.join(wasmDir, "liboqs.wasm")),
-	// 	fs.copy(path.join(root, "/packages/tutanota-crypto/lib/encryption/Liboqs/liboqs.js"), path.join(wasmDir, "liboqs.js")),
-	// ])
 
 	// write empty file
 	await fs.writeFile("build/polyfill.js", "")

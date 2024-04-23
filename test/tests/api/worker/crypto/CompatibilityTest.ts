@@ -20,6 +20,7 @@ import {
 	KeyPairType,
 	kyberPrivateKeyToBytes,
 	kyberPublicKeyToBytes,
+	LibOQSExports,
 	PQKeyPairs,
 	PQPublicKeys,
 	random,
@@ -44,13 +45,11 @@ import { uncompress } from "../../../../../src/api/worker/Compression.js"
 import { matchers, object, when } from "testdouble"
 import { PQFacade } from "../../../../../src/api/worker/facades/PQFacade.js"
 import { WASMKyberFacade } from "../../../../../src/api/worker/facades/KyberFacade.js"
-import { decodePQMessage } from "../../../../../src/api/worker/facades/PQMessage.js"
 import { loadArgon2WASM, loadLibOQSWASM } from "../WASMTestUtils.js"
 
 const originalRandom = random.generateRandomData
 
 const liboqs = await loadLibOQSWASM()
-const liboqsFallback = await loadLibOQSFallback()
 
 o.spec("crypto compatibility", function () {
 	o.afterEach(function () {
@@ -100,7 +99,7 @@ o.spec("crypto compatibility", function () {
 
 			const randomizer = object<Randomizer>()
 			when(randomizer.generateRandomData(matchers.anything())).thenReturn(seed)
-
+			const liboqsFallback = (await (await import("liboqs.wasm")).loadWasm({ forceFallback: true })) as LibOQSExports
 			const encapsulation = encapsulateKyber(liboqsFallback, publicKey, randomizer)
 			o(encapsulation.sharedSecret).deepEquals(hexToUint8Array(td.sharedSecret))
 			o(encapsulation.ciphertext).deepEquals(hexToUint8Array(td.cipherText))
@@ -218,7 +217,7 @@ o.spec("crypto compatibility", function () {
 		}
 	})
 	o("argon2id - fallback", async function () {
-		const argon2 = await loadArgon2Fallback()
+		const argon2 = await (await import("argon2.wasm")).loadWasm({ forceFallback: true })
 		for (let td of testData.argon2idTests) {
 			let key = await generateKeyFromPassphraseArgon2id(argon2, td.password, hexToUint8Array(td.saltHex))
 			o(uint8ArrayToHex(bitArrayToUint8Array(key))).equals(td.keyHex)
@@ -313,7 +312,7 @@ o.spec("crypto compatibility", function () {
 			const encapsulation = await pqFacade.encapsulateEncoded(eccKeyPair, ephemeralKeyPair, pqPublicKeys, bucketKey)
 			o(encapsulation).deepEquals(hexToUint8Array(td.pqMessage))
 
-			const decapsulation = await pqFacade.decapsulate(encapsulation, pqKeyPairs)
+			const decapsulation = await pqFacade.decapsulateEncoded(encapsulation, pqKeyPairs)
 			o(decapsulation).deepEquals(bucketKey)
 		}
 	})
@@ -345,6 +344,7 @@ o.spec("crypto compatibility", function () {
 				kyberPublicKey: kyberKeyPair.publicKey,
 			}
 			const pqKeyPairs: PQKeyPairs = { keyPairType: KeyPairType.TUTA_CRYPT, eccKeyPair, kyberKeyPair }
+			const liboqsFallback = (await (await import("liboqs.wasm")).loadWasm({ forceFallback: true })) as LibOQSExports
 			const pqFacade = new PQFacade(new WASMKyberFacade(liboqsFallback))
 
 			const encapsulation = await pqFacade.encapsulateEncoded(eccKeyPair, ephemeralKeyPair, pqPublicKeys, bucketKey)
