@@ -1,42 +1,47 @@
 import path from "node:path"
-import fs from "node:fs"
-import { $ } from "zx"
-import { WAS2JSOptimizationLevels } from "./index.js"
+import { exec } from "node:child_process"
+import * as util from "node:util"
 
-async function generateWasm(makefilePath: string, output: string) {
-	const currentPath = process.cwd()
-	const outDir = path.dirname(output)
-	const outputFile = path.relative(path.dirname(makefilePath), output)
-	if (fs.existsSync(output)) {
-		return console.log(`Build > WASM: ${path.basename(output)} already exists, skipping WASM build`)
-	}
-
-	const make = $
-	make.verbose = false
-	make.cwd = path.dirname(makefilePath)
-	make.env = {
-		...process.env,
-		WASM: `"${outputFile}"`,
-	}
-	await make`make -f ${path.basename(makefilePath)} build`
-
-	make.cwd = currentPath
+export interface WasmGeneratorOptions {
+	workingDir?: string
+	env?: Record<string, any>
 }
 
-async function generateWasmFallback(wasmFilePath: string, optimizationLevel: WAS2JSOptimizationLevels, wasm2jsPath?: string) {
-	const transpiler = await $`${wasm2jsPath ?? "wasm2js"} ${wasmFilePath} -${optimizationLevel}`
-	return transpiler.stdout
+export interface FallbackGeneratorOptions extends WasmGeneratorOptions {
+	optimizationLevel: string
+	wasm2jsPath?: string
+}
+
+async function generateWasm(command: string, options: WasmGeneratorOptions) {
+	const runner = util.promisify(exec)
+	await runner(`${command}`, {
+		env: {
+			...process.env,
+			...options.env,
+		},
+		cwd: options.workingDir ?? process.cwd(),
+	})
+}
+
+async function generateWasmFallback(wasmFilePath: string, options: FallbackGeneratorOptions) {
+	const transpiler = util.promisify(exec)
+	const result = await transpiler(`${options.wasm2jsPath ?? "wasm2js"} ${wasmFilePath} -${options.optimizationLevel}`, {
+		env: {
+			...process.env,
+			...options.env,
+		},
+	})
+	return result.stdout
 }
 
 async function generateImportCode(wasmFilePath: string) {
-	const fallback = `wasm-bin-fallback:${path.basename(wasmFilePath)}`
+	const fallback = `wasm-fallback:${path.basename(wasmFilePath)}`
 	return `
-		async function loadWasm() {
-			if (typeof WebAssembly !== "object" || typeof WebAssembly.instantiate !== "function") {
-				console.log("Loading fallback")
+		async function loadWasm(options) {
+			const shouldForceFallback = options && options.forceFallback
+			if (typeof WebAssembly !== "object" || typeof WebAssembly.instantiate !== "function" || shouldForceFallback) {
 				return await import("${fallback}").catch((e) => console.log(e))
 			} else {
-				console.log("Loading wasm")
 				const wasm = fetch("${wasmFilePath}")
 				if (WebAssembly.instantiateStreaming) {
 					return (await WebAssembly.instantiateStreaming(wasm)).instance.exports

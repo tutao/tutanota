@@ -11,6 +11,7 @@ import {
 import { LazyLoaded, stringToUtf8Uint8Array } from "@tutao/tutanota-utils"
 import { NativeCryptoFacade } from "../../../native/common/generatedipc/NativeCryptoFacade.js"
 import { assertWorkerOrNode } from "../../common/Env.js"
+import { loadWasm } from "argon2.wasm"
 
 assertWorkerOrNode()
 
@@ -33,8 +34,7 @@ export interface Argon2idFacade {
 export class WASMArgon2idFacade implements Argon2idFacade {
 	// loads argon2 WASM
 	private argon2: LazyLoaded<Argon2IDExports> = new LazyLoaded(async () => {
-		const { loadWasm } = await import("argon2.wasm")
-		return loadWasm()
+		return await loadWasm()
 	})
 
 	async generateKeyFromPassphrase(passphrase: string, salt: Uint8Array): Promise<Aes256Key> {

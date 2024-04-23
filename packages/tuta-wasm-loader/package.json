@@ -14,7 +14,6 @@
 	},
 	"scripts" : {
 		"prepublishOnly" : "npm run build",
-		"test" : "tsc -b --verbose test && cd build/test && node 'Suite.js'",
 		"build" : "tsc -b"
 	},
 	"type" : "module",
@@ -26,6 +25,6 @@
 	],
 	"devDependencies" : {
 		"typescript" : "5.3.3",
-		"@tutao/otest" : "220.240403.0"
+		"@tutao/otest": "225.240417.0"
 	}
 }

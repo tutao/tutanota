@@ -84,10 +84,10 @@ import { OwnerEncSessionKeysUpdateQueue } from "../../../../../src/api/worker/cr
 import { WASMKyberFacade } from "../../../../../src/api/worker/facades/KyberFacade.js"
 import { PQFacade } from "../../../../../src/api/worker/facades/PQFacade.js"
 import { encodePQMessage, PQBucketKeyEncapsulation, PQMessage } from "../../../../../src/api/worker/facades/PQMessage.js"
-import { loadLibOQSWASM } from "../WASMTestUtils.js"
 import { createTestEntity } from "../../../TestUtils.js"
 import { RSA_TEST_KEYPAIR } from "../facades/RsaPqPerformanceTest.js"
 import { DefaultEntityRestCache } from "../../../../../src/api/worker/rest/DefaultEntityRestCache.js"
+import { loadLibOQSWASM } from "../WASMTestUtils.js"
 import { KeyLoaderFacade } from "../../../../../src/api/worker/facades/KeyLoaderFacade.js"
 
 const { captor, anything, argThat } = matchers

@@ -35,10 +35,6 @@ export async function runTestBuild({ clean, fast = false }) {
 		const pjPath = path.join("..", "package.json")
 		await fs.mkdir(inBuildDir(), { recursive: true })
 		await fs.copyFile(pjPath, inBuildDir("package.json"))
-		await fs.copyFile(path.join("..", "packages/tutanota-crypto/lib/hashes/Argon2id/argon2.wasm"), inBuildDir("argon2.wasm"))
-		await fs.copyFile(path.join("..", "packages/tutanota-crypto/lib/hashes/Argon2id/argon2.js"), inBuildDir("argon2.js"))
-		await fs.copyFile(path.join("..", "packages/tutanota-crypto/lib/encryption/Liboqs/liboqs.wasm"), inBuildDir("liboqs.wasm"))
-		await fs.copyFile(path.join("..", "packages/tutanota-crypto/lib/encryption/Liboqs/liboqs.js"), inBuildDir("liboqs.js"))
 		await createUnitTestHtml(localEnv)
 	})
 	await runStep("Esbuild", async () => {
@@ -124,15 +120,29 @@ export async function runTestBuild({ clean, fast = false }) {
 					nativeBindingPath: path.resolve("../node_modules/better-sqlite3/build/Release/better_sqlite3.node"),
 				}),
 				esbuildWasmLoader({
-					optimizationLevel: "O3",
+					output: `${process.cwd()}/build/wasm`,
 					webassemblyLibraries: [
 						{
 							name: "liboqs.wasm",
-							makefilePath: "../libs/webassembly/Makefile_liboqs",
+							command: "make -f Makefile_liboqs build",
+							options: {
+								workingDir: `${process.cwd()}/../libs/webassembly/`,
+								env: {
+									WASM: `${process.cwd()}/build/wasm/liboqs.wasm`,
+								},
+								optimizationLevel: "O3",
+							},
 						},
 						{
 							name: "argon2.wasm",
-							makefilePath: "../libs/webassembly/Makefile_argon2",
+							command: "make -f Makefile_argon2 build",
+							options: {
+								workingDir: `${process.cwd()}/../libs/webassembly/`,
+								env: {
+									WASM: `${process.cwd()}/build/wasm/argon2.wasm`,
+								},
+								optimizationLevel: "O3",
+							},
 						},
 					],
 				}),

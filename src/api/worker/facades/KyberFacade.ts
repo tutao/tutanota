@@ -13,6 +13,7 @@ import {
 	LibOQSExports,
 	random,
 } from "@tutao/tutanota-crypto"
+import { loadWasm } from "liboqs.wasm"
 
 assertWorkerOrNode()
 
@@ -53,8 +54,7 @@ export class WASMKyberFacade implements KyberFacade {
 			return this.testWASM
 		}
 
-		const { loadWasm } = await import("liboqs.wasm")
-		return loadWasm()
+		return await loadWasm()
 	})
 
 	async generateKeypair(): Promise<KyberKeyPair> {
