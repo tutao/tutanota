@@ -1,11 +1,11 @@
 import m, { Children, Component, Vnode } from "mithril"
-import { WizardPageAttrs } from "../../base/WizardDialog.js"
-import { lang } from "../../../misc/LanguageViewModel.js"
+import { WizardPageAttrs } from "../../../../gui/base/WizardDialog.js"
+import { lang } from "../../../../misc/LanguageViewModel.js"
 import { SetupPageLayout } from "./SetupPageLayout.js"
-import { NativeContactsSyncManager } from "../../../contacts/model/NativeContactsSyncManager.js"
-import { ContactImporter } from "../../../contacts/ContactImporter.js"
-import { Dialog } from "../../base/Dialog.js"
-import { MobileSystemFacade } from "../../../native/common/generatedipc/MobileSystemFacade.js"
+import { NativeContactsSyncManager } from "../../../../contacts/model/NativeContactsSyncManager.js"
+import { ContactImporter } from "../../../../contacts/ContactImporter.js"
+import { Dialog } from "../../../../gui/base/Dialog.js"
+import { MobileSystemFacade } from "../../../common/generatedipc/MobileSystemFacade.js"
 import { renderBannerButton } from "../SetupWizard.js"
 
 export class SetupContactsPage implements Component<SetupContactsPageAttrs> {

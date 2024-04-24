@@ -1,8 +1,8 @@
 import m, { Children } from "mithril"
-import { WizardPageAttrs, WizardPageN } from "../../base/WizardDialog.js"
-import { lang } from "../../../misc/LanguageViewModel.js"
-import { RadioSelector, RadioSelectorAttrs, RadioSelectorOption } from "../../base/RadioSelector.js"
-import { themeController, themeOptions, ThemePreference } from "../../theme.js"
+import { WizardPageAttrs, WizardPageN } from "../../../../gui/base/WizardDialog.js"
+import { lang } from "../../../../misc/LanguageViewModel.js"
+import { RadioSelector, RadioSelectorAttrs, RadioSelectorOption } from "../../../../gui/base/RadioSelector.js"
+import { themeController, themeOptions, ThemePreference } from "../../../../gui/theme.js"
 import { SetupPageLayout } from "./SetupPageLayout.js"
 
 export class SetupThemePage implements WizardPageN<SetupThemePageAttrs> {

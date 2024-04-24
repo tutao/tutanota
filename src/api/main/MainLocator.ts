@@ -881,7 +881,7 @@ class MainLocator {
 
 	showSetupWizard = async () => {
 		if (isApp()) {
-			const { showSetupWizard } = await import("../../gui/dialogs/SetupWizard.js")
+			const { showSetupWizard } = await import("../../native/main/wizard/SetupWizard.js")
 			return showSetupWizard(
 				this.systemPermissionHandler,
 				this.webMobileFacade,

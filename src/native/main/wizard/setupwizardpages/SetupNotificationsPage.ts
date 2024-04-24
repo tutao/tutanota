@@ -1,13 +1,13 @@
 import m, { Children, Component, Vnode } from "mithril"
-import { WizardPageAttrs } from "../../base/WizardDialog.js"
-import { PermissionType } from "../../../native/common/generatedipc/PermissionType.js"
-import { isAndroidApp } from "../../../api/common/Env.js"
-import { lang } from "../../../misc/LanguageViewModel.js"
+import { WizardPageAttrs } from "../../../../gui/base/WizardDialog.js"
+import { PermissionType } from "../../../common/generatedipc/PermissionType.js"
+import { isAndroidApp } from "../../../../api/common/Env.js"
+import { lang } from "../../../../misc/LanguageViewModel.js"
 import { renderPermissionButton } from "../SetupWizard.js"
 import Stream from "mithril/stream"
 import { SetupPageLayout } from "./SetupPageLayout.js"
-import { locator } from "../../../api/main/MainLocator.js"
-import { SystemPermissionHandler } from "../../../native/main/SystemPermissionHandler.js"
+import { locator } from "../../../../api/main/MainLocator.js"
+import { SystemPermissionHandler } from "../../SystemPermissionHandler.js"
 
 export interface NotificationPermissionsData {
 	isNotificationPermissionGranted: boolean
