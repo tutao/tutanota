@@ -14,6 +14,7 @@ import { BootIcons } from "../../../gui/base/icons/BootIcons.js"
 import { IconButton } from "../../../gui/base/IconButton.js"
 import { convertTextToHtml } from "../../../misc/Formatter.js"
 import { CalendarEventPreviewViewModel } from "./CalendarEventPreviewViewModel.js"
+import { showDeletePopup } from "../CalendarGuiUtils.js"
 
 /**
  * small modal displaying all relevant information about an event in a compact fashion. offers limited editing capabilities to participants in the
@@ -51,28 +52,7 @@ export class CalendarEventPopup implements ModalComponent {
 	}
 
 	private readonly handleDeleteButtonClick: (ev: MouseEvent, receiver: HTMLElement) => void = async (ev: MouseEvent, receiver: HTMLElement) => {
-		if (await this.model.isRepeatingForDeleting()) {
-			createAsyncDropdown({
-				lazyButtons: () =>
-					Promise.resolve([
-						{
-							label: "deleteSingleEventRecurrence_action",
-							click: async () => {
-								await this.model.deleteSingle()
-								this.close()
-							},
-						},
-						{
-							label: "deleteAllEventRecurrence_action",
-							click: () => this.confirmDeleteClose(),
-						},
-					]),
-				width: 300,
-			})(ev, receiver)
-		} else {
-			// noinspection JSIgnoredPromiseFromCall
-			this.confirmDeleteClose()
-		}
+		showDeletePopup(this.model, ev, receiver, this.close)
 	}
 
 	private readonly handleEditButtonClick: (ev: MouseEvent, receiver: HTMLElement) => void = (ev: MouseEvent, receiver: HTMLElement) => {
@@ -249,11 +229,5 @@ export class CalendarEventPopup implements ModalComponent {
 		if (this.model.canDelete) {
 			this._shortcuts.push(remove)
 		}
-	}
-
-	private async confirmDeleteClose(): Promise<void> {
-		if (!(await Dialog.confirm("deleteEventConfirmation_msg"))) return
-		await this.model.deleteAll()
-		this.close()
 	}
 }

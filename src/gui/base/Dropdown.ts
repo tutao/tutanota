@@ -180,8 +180,11 @@ export class Dropdown implements ModalComponent {
 								// show the dropdown.
 								// Modal always schedules redraw in oncreate() of a component so we are guaranteed to have onupdate() call.
 								showDropdown(this.origin, assertNotNull(this._domDropdown), this._maxHeight, this._width).then(() => {
+									const firstButton = vnode.dom.getElementsByTagName("button").item(0)
 									if (this._domInput && !client.isMobileDevice()) {
 										this._domInput.focus()
+									} else if (firstButton !== null) {
+										firstButton.focus()
 									} else {
 										this._domContents?.focus()
 									}
