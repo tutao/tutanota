@@ -24,6 +24,8 @@ import { DaysToEvents } from "../date/CalendarEventsRepository.js"
 import { formatEventTimes, getEventColor, shouldDisplayEvent } from "../gui/CalendarGuiUtils.js"
 import { PageView } from "../../gui/base/PageView.js"
 import { getIfLargeScroll } from "../../gui/base/GuiUtils.js"
+import { isKeyPressed } from "../../misc/KeyManager.js"
+import { Keys } from "../../api/common/TutanotaConstants.js"
 
 export type CalendarAgendaViewAttrs = {
 	selectedDate: Date
@@ -287,7 +289,31 @@ export class CalendarAgendaView implements Component<CalendarAgendaViewAttrs> {
 					color: getEventColor(event, colors),
 					selected: event === modelPromise?.calendarEvent,
 					click: (domEvent) => click(event, domEvent),
-					keyDown: (domEvent) => keyDown(event, domEvent),
+					keyDown: (domEvent) => {
+						const target = domEvent.target as HTMLElement
+						const newScroll = newScrollPosition - (agendaItemHeight + agendaGap)
+						if (isKeyPressed(domEvent.key, Keys.UP) && !domEvent.repeat) {
+							const previousItem = target.previousElementSibling as HTMLElement | null
+							const previousIndex = eventIndex - 1
+							previousItem?.focus()
+							if (previousIndex >= 0 && !styles.isSingleColumnLayout()) {
+								attrs.onScrollPositionChange(newScroll)
+								keyDown(events[previousIndex], new KeyboardEvent("keydown", { key: Keys.RETURN.code }))
+								return
+							}
+						}
+						if (isKeyPressed(domEvent.key, Keys.DOWN) && !domEvent.repeat) {
+							const nextItem = target.nextElementSibling as HTMLElement | null
+							const nextIndex = eventIndex + 1
+							nextItem?.focus()
+							if (nextIndex < events.length && !styles.isSingleColumnLayout()) {
+								attrs.onScrollPositionChange(newScroll)
+								keyDown(events[nextIndex], new KeyboardEvent("keydown", { key: Keys.RETURN.code }))
+								return
+							}
+						}
+						keyDown(event, domEvent)
+					},
 					zone,
 					day: day,
 					height: agendaItemHeight,

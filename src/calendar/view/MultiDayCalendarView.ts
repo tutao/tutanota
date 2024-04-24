@@ -254,7 +254,7 @@ export class MultiDayCalendarView implements Component<MultiDayCalendarViewAttrs
 							// Ignore calls to `scrollTo()` via the `isProgrammaticScrollInProgress` flag
 							// because they are considered user input by `event.isTrusted`
 							// Safari does not support the scroll end event, so we have to implement it ourselves
-							if (this.isProgrammaticScrollInProgress) {
+							if (this.isProgrammaticScrollInProgress && this.lastScrollPosition === attrs.scrollPosition) {
 								clearTimeout(this.scrollEndTime)
 								this.scrollEndTime = setTimeout(() => {
 									this.isProgrammaticScrollInProgress = false
@@ -348,7 +348,8 @@ export class MultiDayCalendarView implements Component<MultiDayCalendarViewAttrs
 	}
 
 	private scrollDOMs(vnode: VnodeDOM, attrs: MultiDayCalendarViewAttrs, isSmooth: boolean): void {
-		if (this.isProgrammaticScrollInProgress) return
+		// Do not override an ongoing `scrollTo()` call unless the update was caused by user input
+		if (this.isProgrammaticScrollInProgress && this.lastScrollPosition === attrs.scrollPosition) return
 
 		if (isSmooth) {
 			this.isProgrammaticScrollInProgress = true
