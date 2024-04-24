@@ -415,10 +415,17 @@ export class CalendarView extends BaseTopLevelView implements TopLevelView<Calen
 	}
 
 	private setupShortcuts(): Shortcut[] {
-		const getIfNotView = (viewType: CalendarViewType) => {
-			return () => {
-				return this.currentViewType !== viewType
-			}
+		const getIfNotView = (viewType: CalendarViewType | CalendarViewType[]) => {
+			return Array.isArray(viewType)
+				? () => {
+						for (const item of viewType) {
+							if (item === this.currentViewType) return false
+						}
+						return true
+				  }
+				: () => {
+						return this.currentViewType !== viewType
+				  }
 		}
 		const generatePeriodShortcut = (key: Key, next: boolean): Shortcut => {
 			return {
@@ -462,7 +469,7 @@ export class CalendarView extends BaseTopLevelView implements TopLevelView<Calen
 			},
 			{
 				key: Keys.UP,
-				enabled: getIfNotView(CalendarViewType.MONTH),
+				enabled: getIfNotView([CalendarViewType.MONTH, CalendarViewType.AGENDA]),
 				exec: () => {
 					this.viewModel.scroll(-10)
 				},
@@ -470,7 +477,7 @@ export class CalendarView extends BaseTopLevelView implements TopLevelView<Calen
 			},
 			{
 				key: Keys.DOWN,
-				enabled: getIfNotView(CalendarViewType.MONTH),
+				enabled: getIfNotView([CalendarViewType.MONTH, CalendarViewType.AGENDA]),
 				exec: () => {
 					this.viewModel.scroll(10)
 				},
