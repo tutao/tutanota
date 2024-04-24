@@ -483,7 +483,7 @@ export class CalendarView extends BaseTopLevelView implements TopLevelView<Calen
 					const viewSize = this.viewModel.getViewSize()
 					if (viewSize) this.viewModel.scroll(-viewSize)
 				},
-				help: "scrollUp_action",
+				help: "scrollToPreviousScreen_action",
 			},
 			{
 				key: Keys.PAGE_DOWN,
@@ -500,7 +500,7 @@ export class CalendarView extends BaseTopLevelView implements TopLevelView<Calen
 				exec: () => {
 					this.viewModel.setScrollPosition(0)
 				},
-				help: "scrollToPreviousScreen_action",
+				help: "scrollToTop_action",
 			},
 			{
 				key: Keys.END,

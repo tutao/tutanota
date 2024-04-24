@@ -92,28 +92,28 @@ export class DomRectReadOnlyPolyfilled implements PosRect {
 // TODO: add resize listener like in the old Dropdown
 export class Dropdown implements ModalComponent {
 	private children: ReadonlyArray<DropdownChildAttrs>
-	private _domDropdown: HTMLElement | null = null
+	private domDropdown: HTMLElement | null = null
 	origin: PosRect | null = null
 	oninit: ModalComponent["oninit"]
 	view: ModalComponent["view"]
-	private _width: number
+	private readonly width: number
 	shortcuts: (...args: Array<any>) => any
-	private _filterString: string
-	private _domInput: HTMLInputElement | null = null
-	private _domContents: HTMLElement | null = null
-	private _isFilterable: boolean = false
-	private _maxHeight: number | null = null
+	private filterString: string
+	private domInput: HTMLInputElement | null = null
+	private domContents: HTMLElement | null = null
+	private isFilterable: boolean = false
+	private maxHeight: number | null = null
 	private closeHandler: Thunk | null = null
 	private focusedBeforeShown: HTMLElement | null = document.activeElement as HTMLElement
 
 	constructor(lazyChildren: lazy<ReadonlyArray<DropdownChildAttrs | null>>, width: number) {
 		this.children = []
-		this._width = width
-		this._filterString = ""
+		this.width = width
+		this.filterString = ""
 
 		this.oninit = () => {
 			this.children = filterNull(lazyChildren())
-			this._isFilterable = this.children.length > 10
+			this.isFilterable = this.children.length > 10
 			this.children.map((child) => {
 				if (isDropDownInfo(child)) {
 					return child
@@ -132,34 +132,34 @@ export class Dropdown implements ModalComponent {
 			return _shortcuts
 		}
 
-		const _inputField = () => {
-			return this._isFilterable
+		const inputField = () => {
+			return this.isFilterable
 				? m(
 						"input.input.dropdown-bar.elevated-bg.doNotClose.pl-l.button-height.abs",
 						{
 							placeholder: lang.get("typeToFilter_label"),
 							oncreate: (vnode) => {
-								this._domInput = downcast<HTMLInputElement>(vnode.dom)
-								this._domInput.value = this._filterString
+								this.domInput = downcast<HTMLInputElement>(vnode.dom)
+								this.domInput.value = this.filterString
 							},
 							oninput: () => {
-								this._filterString = neverNull(this._domInput).value
+								this.filterString = neverNull(this.domInput).value
 							},
 							style: {
 								paddingLeft: px(size.hpad_large * 2),
 								paddingRight: px(size.hpad_small),
-								width: px(this._width - size.hpad_large),
+								width: px(this.width - size.hpad_large),
 								top: 0,
 								height: px(size.button_height),
 								left: 0,
 							},
 						},
-						this._filterString,
+						this.filterString,
 				  )
 				: null
 		}
 
-		const _contents = () => {
+		const contents = () => {
 			const showingIcons = this.children.some((c) => "icon" in c && typeof c.icon !== "undefined")
 			return m(
 				".dropdown-content.scroll.abs",
@@ -167,26 +167,26 @@ export class Dropdown implements ModalComponent {
 					role: AriaRole.Menu,
 					tabindex: TabIndex.Programmatic,
 					oncreate: (vnode) => {
-						this._domContents = vnode.dom as HTMLElement
+						this.domContents = vnode.dom as HTMLElement
 					},
 					onupdate: (vnode) => {
-						if (this._maxHeight == null) {
+						if (this.maxHeight == null) {
 							const children = Array.from(vnode.dom.children) as Array<HTMLElement>
-							this._maxHeight = children.reduce((accumulator, children) => accumulator + children.offsetHeight, 0) + size.vpad
+							this.maxHeight = children.reduce((accumulator, children) => accumulator + children.offsetHeight, 0) + size.vpad
 
 							if (this.origin) {
 								// The dropdown-content element is added to the dom has a hidden element first.
 								// The maxHeight is available after the first onupdate call. Then this promise will resolve and we can safely
 								// show the dropdown.
 								// Modal always schedules redraw in oncreate() of a component so we are guaranteed to have onupdate() call.
-								showDropdown(this.origin, assertNotNull(this._domDropdown), this._maxHeight, this._width).then(() => {
+								showDropdown(this.origin, assertNotNull(this.domDropdown), this.maxHeight, this.width).then(() => {
 									const firstButton = vnode.dom.getElementsByTagName("button").item(0)
-									if (this._domInput && !client.isMobileDevice()) {
-										this._domInput.focus()
+									if (this.domInput && !client.isMobileDevice()) {
+										this.domInput.focus()
 									} else if (firstButton !== null) {
 										firstButton.focus()
 									} else {
-										this._domContents?.focus()
+										this.domContents?.focus()
 									}
 								})
 							}
@@ -195,17 +195,17 @@ export class Dropdown implements ModalComponent {
 					onscroll: (ev: EventRedraw<Event>) => {
 						const target = ev.target as HTMLElement
 						// needed here to prevent flickering on ios
-						ev.redraw = this._domContents != null && target.scrollTop < 0 && target.scrollTop + this._domContents.offsetHeight > target.scrollHeight
+						ev.redraw = this.domContents != null && target.scrollTop < 0 && target.scrollTop + this.domContents.offsetHeight > target.scrollHeight
 					},
 					style: {
 						// Fixed width for the content of this dropdown is needed to avoid that the elements in the dropdown move during
 						// animation.
-						width: px(this._width),
-						top: px(this._getFilterHeight()),
+						width: px(this.width),
+						top: px(this.getFilterHeight()),
 						bottom: 0,
 					},
 				},
-				this._visibleChildren().map((child) => {
+				this.visibleChildren().map((child) => {
 					if (isDropDownInfo(child)) {
 						return m(DropdownInfo, child)
 					} else {
@@ -220,17 +220,17 @@ export class Dropdown implements ModalComponent {
 				".dropdown-panel.elevated-bg.border-radius.dropdown-shadow",
 				{
 					oncreate: (vnode) => {
-						this._domDropdown = vnode.dom as HTMLElement
+						this.domDropdown = vnode.dom as HTMLElement
 						// It is important to set initial opacity so that user doesn't see it with full opacity before animating.
-						this._domDropdown.style.opacity = "0"
+						this.domDropdown.style.opacity = "0"
 					},
 					onkeypress: () => {
-						if (this._domInput) {
-							this._domInput.focus()
+						if (this.domInput) {
+							this.domInput.focus()
 						}
 					},
 				},
-				[_inputField(), _contents()],
+				[inputField(), contents()],
 			)
 		}
 	}
@@ -257,9 +257,9 @@ export class Dropdown implements ModalComponent {
 
 	backgroundClick(e: MouseEvent) {
 		if (
-			this._domDropdown &&
+			this.domDropdown &&
 			!(e.target as HTMLElement).classList.contains("doNotClose") &&
-			(this._domDropdown.contains(e.target as HTMLElement) || this._domDropdown.parentNode === e.target)
+			(this.domDropdown.contains(e.target as HTMLElement) || this.domDropdown.parentNode === e.target)
 		) {
 			this.onClose()
 		}
@@ -275,23 +275,23 @@ export class Dropdown implements ModalComponent {
 			{
 				key: Keys.TAB,
 				shift: true,
-				exec: () => (this._domDropdown ? focusPrevious(this._domDropdown) : false),
+				exec: () => (this.domDropdown ? focusPrevious(this.domDropdown) : false),
 				help: "selectPrevious_action",
 			},
 			{
 				key: Keys.TAB,
 				shift: false,
-				exec: () => (this._domDropdown ? focusNext(this._domDropdown) : false),
+				exec: () => (this.domDropdown ? focusNext(this.domDropdown) : false),
 				help: "selectNext_action",
 			},
 			{
 				key: Keys.UP,
-				exec: () => (this._domDropdown ? focusPrevious(this._domDropdown) : false),
+				exec: () => (this.domDropdown ? focusPrevious(this.domDropdown) : false),
 				help: "selectPrevious_action",
 			},
 			{
 				key: Keys.DOWN,
-				exec: () => (this._domDropdown ? focusNext(this._domDropdown) : false),
+				exec: () => (this.domDropdown ? focusNext(this.domDropdown) : false),
 				help: "selectNext_action",
 			},
 			{
@@ -329,14 +329,14 @@ export class Dropdown implements ModalComponent {
 	}
 
 	chooseMatch: () => boolean = () => {
-		const filterString = this._filterString.toLowerCase()
+		const filterString = this.filterString.toLowerCase()
 
-		let visibleElements: Array<ButtonAttrs> = downcast(this._visibleChildren().filter((b) => !isDropDownInfo(b)))
+		let visibleElements: Array<ButtonAttrs> = downcast(this.visibleChildren().filter((b) => !isDropDownInfo(b)))
 		let matchingButton =
 			visibleElements.length === 1 ? visibleElements[0] : visibleElements.find((b) => lang.getMaybeLazy(b.label).toLowerCase() === filterString)
 
-		if (this._domInput && document.activeElement === this._domInput && matchingButton && matchingButton.click) {
-			matchingButton.click(new MouseEvent("click"), this._domInput)
+		if (this.domInput && document.activeElement === this.domInput && matchingButton && matchingButton.click) {
+			matchingButton.click(new MouseEvent("click"), this.domInput)
 			return false
 		}
 
@@ -355,21 +355,21 @@ export class Dropdown implements ModalComponent {
 		return this
 	}
 
-	_visibleChildren(): Array<DropdownChildAttrs> {
+	private visibleChildren(): Array<DropdownChildAttrs> {
 		return this.children.filter((b) => {
 			if (isDropDownInfo(b)) {
-				return b.info.includes(this._filterString.toLowerCase())
-			} else if (this._isFilterable) {
+				return b.info.includes(this.filterString.toLowerCase())
+			} else if (this.isFilterable) {
 				const filterable = lang.getMaybeLazy(b.text ?? b.label)
-				return filterable.toLowerCase().includes(this._filterString.toLowerCase())
+				return filterable.toLowerCase().includes(this.filterString.toLowerCase())
 			} else {
 				return true
 			}
 		})
 	}
 
-	_getFilterHeight(): number {
-		return this._isFilterable ? size.button_height + size.vpad_xs : 0
+	private getFilterHeight(): number {
+		return this.isFilterable ? size.button_height + size.vpad_xs : 0
 	}
 }
 
