@@ -68,6 +68,8 @@ import { User } from "../../api/entities/sys/TypeRefs.js"
 import { EventType } from "./eventeditor-model/CalendarEventModel.js"
 import { hasCapabilityOnGroup } from "../../sharing/GroupUtils.js"
 import { EventsOnDays } from "../view/CalendarViewModel.js"
+import { CalendarEventPreviewViewModel } from "./eventpopup/CalendarEventPreviewViewModel.js"
+import { createAsyncDropdown } from "../../gui/base/Dropdown.js"
 
 export function renderCalendarSwitchLeftButton(label: TranslationKey, click: () => unknown): Child {
 	return m(IconButton, {
@@ -813,4 +815,34 @@ export function changePeriodOnWheel(callback: (isNext: boolean) => unknown): (ev
 		// Go to the next period if scrolling down or right
 		callback(event.deltaY > 0 || event.deltaX > 0)
 	}
+}
+
+export async function showDeletePopup(model: CalendarEventPreviewViewModel, ev: MouseEvent, receiver: HTMLElement, onClose?: () => unknown) {
+	if (await model.isRepeatingForDeleting()) {
+		createAsyncDropdown({
+			lazyButtons: () =>
+				Promise.resolve([
+					{
+						label: "deleteSingleEventRecurrence_action",
+						click: async () => {
+							await model.deleteSingle()
+							onClose?.()
+						},
+					},
+					{
+						label: "deleteAllEventRecurrence_action",
+						click: () => confirmDeleteClose(model, onClose),
+					},
+				]),
+			width: 300,
+		})(ev, receiver)
+	} else {
+		// noinspection JSIgnoredPromiseFromCall
+		confirmDeleteClose(model, onClose)
+	}
+}
+async function confirmDeleteClose(model: CalendarEventPreviewViewModel, onClose?: () => unknown): Promise<void> {
+	if (!(await Dialog.confirm("deleteEventConfirmation_msg"))) return
+	await model.deleteAll()
+	onClose?.()
 }

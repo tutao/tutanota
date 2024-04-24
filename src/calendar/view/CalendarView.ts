@@ -41,6 +41,7 @@ import {
 	daysHaveEvents,
 	getGroupColors,
 	shouldDefaultToAmPmTimeFormat,
+	showDeletePopup,
 } from "../gui/CalendarGuiUtils.js"
 import { CalendarEventBubbleKeyDownHandler, CalendarViewModel, MouseOrPointerEvent } from "./CalendarViewModel"
 import { showNewCalendarEventEditDialog } from "../gui/eventeditor-view/CalendarEventEditDialog.js"
@@ -65,6 +66,7 @@ import { Time } from "../date/Time.js"
 import { DaySelectorSidebar } from "../gui/day-selector/DaySelectorSidebar.js"
 import { CalendarOperation } from "../gui/eventeditor-model/CalendarEventModel.js"
 import { DaySelectorPopup } from "../gui/day-selector/DaySelectorPopup.js"
+import { CalendarEventPreviewViewModel } from "../gui/eventpopup/CalendarEventPreviewViewModel.js"
 
 export type GroupColors = Map<Id, string>
 
@@ -289,6 +291,9 @@ export class CalendarView extends BaseTopLevelView implements TopLevelView<Calen
 											} else {
 												this.showCalendarEventPopupAtEvent(event, domEvent.target as HTMLElement, this.htmlSanitizer)
 											}
+										}
+										if (isKeyPressed(domEvent.key, Keys.DELETE) && !domEvent.repeat) {
+											this.openDeletePopup(event, domEvent)
 										}
 									},
 									groupColors,
@@ -897,7 +902,16 @@ export class CalendarView extends BaseTopLevelView implements TopLevelView<Calen
 			if (isKeyPressed(domEvent.key, Keys.RETURN, Keys.SPACE) && !domEvent.repeat) {
 				this.showCalendarEventPopupAtEvent(calendarEvent, domEvent.target as HTMLElement, this.htmlSanitizer)
 			}
+			if (isKeyPressed(domEvent.key, Keys.DELETE) && !domEvent.repeat) {
+				this.openDeletePopup(calendarEvent, domEvent)
+			}
 		}
+	}
+
+	private openDeletePopup(calendarEvent: CalendarEvent, domEvent: KeyboardEvent) {
+		locator.calendarEventPreviewModel(calendarEvent, this.viewModel.calendarInfos).then((eventPreviewModel: CalendarEventPreviewViewModel) => {
+			showDeletePopup(eventPreviewModel, new MouseEvent("click", {}), domEvent.target as HTMLElement)
+		})
 	}
 
 	private async showCalendarEventPopup(selectedEvent: CalendarEvent, eventBubbleRect: PosRect, htmlSanitizerPromise: Promise<HtmlSanitizer>) {
