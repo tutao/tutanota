@@ -226,3 +226,10 @@ export function getOperatingClasses(isDisabled: boolean | null | undefined, curs
 	const cursorClassOrDefault = cursorClass ? cursorClass : ""
 	return isDisabled ? "disabled click-disabled" : cursorClassOrDefault
 }
+
+/* Returns whether the change in a scroll position should be animated */
+export function getIfLargeScroll(oldPosition: number | null, newPosition: number | null): boolean {
+	if (oldPosition === null || newPosition === null) return false
+	const difference = Math.abs(oldPosition - newPosition)
+	return difference > 10
+}

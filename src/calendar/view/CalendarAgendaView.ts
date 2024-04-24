@@ -23,6 +23,7 @@ import { DaysToEvents } from "../date/CalendarEventsRepository.js"
 
 import { formatEventTimes, getEventColor, shouldDisplayEvent } from "../gui/CalendarGuiUtils.js"
 import { PageView } from "../../gui/base/PageView.js"
+import { getIfLargeScroll } from "../../gui/base/GuiUtils.js"
 
 export type CalendarAgendaViewAttrs = {
 	selectedDate: Date
@@ -43,11 +44,13 @@ export type CalendarAgendaViewAttrs = {
 	/**  when the selected date was changed  */
 	onDateSelected: (date: Date) => unknown
 	eventPreviewModel: CalendarEventPreviewViewModel | null
+	scrollPosition: number
+	onScrollPositionChange: (newPosition: number) => unknown
+	onViewChanged: (vnode: VnodeDOM) => unknown
 }
 
 export class CalendarAgendaView implements Component<CalendarAgendaViewAttrs> {
-	private scrollPosition: number = 0
-
+	private lastScrollPosition: number | null = null
 	private lastScrolledDate: Date | null = null
 	private listDom: HTMLElement | null = null
 
@@ -72,7 +75,7 @@ export class CalendarAgendaView implements Component<CalendarAgendaViewAttrs> {
 			this.lastScrolledDate = attrs.selectedDate
 			requestAnimationFrame(() => {
 				if (this.listDom) {
-					this.listDom.scrollTop = this.scrollPosition
+					this.listDom.scrollTop = attrs.scrollPosition
 				}
 			})
 		}
@@ -85,6 +88,11 @@ export class CalendarAgendaView implements Component<CalendarAgendaViewAttrs> {
 					class: isDesktopLayout ? "overflow-hidden" : "content-bg scroll border-radius-top-left-big border-radius-top-right-big",
 					oncreate: (vnode: VnodeDOM) => {
 						if (!isDesktopLayout) this.listDom = vnode.dom as HTMLElement
+					},
+					onupdate: (vnode: VnodeDOM) => {
+						if (!isDesktopLayout) {
+							this.handleScrollOnUpdate(attrs, vnode)
+						}
 					},
 				},
 				agendaChildren,
@@ -178,7 +186,15 @@ export class CalendarAgendaView implements Component<CalendarAgendaViewAttrs> {
 		} else {
 			return m(
 				".pt-s.flex.mb-s.col.overflow-y-scroll.height-100p",
-				{ style: { marginLeft: px(size.calendar_hour_width_mobile) } },
+				{
+					style: { marginLeft: px(size.calendar_hour_width_mobile) },
+					oncreate: (vnode: VnodeDOM) => {
+						attrs.onViewChanged(vnode)
+					},
+					onupdate: (vnode: VnodeDOM) => {
+						this.handleScrollOnUpdate(attrs, vnode)
+					},
+				},
 				this.renderEventsForDay(events, getTimeZone(), day, attrs),
 			)
 		}
@@ -201,7 +217,13 @@ export class CalendarAgendaView implements Component<CalendarAgendaViewAttrs> {
 						"min-width": px(size.second_col_min_width),
 						"max-width": px(size.second_col_max_width),
 					},
-					oncreate: (vnode: VnodeDOM) => (this.listDom = vnode.dom as HTMLElement),
+					oncreate: (vnode: VnodeDOM) => {
+						this.listDom = vnode.dom as HTMLElement
+						attrs.onViewChanged(vnode)
+					},
+					onupdate: (vnode: VnodeDOM) => {
+						this.handleScrollOnUpdate(attrs, vnode)
+					},
 				},
 				[this.renderDesktopEventList(attrs)],
 			),
@@ -227,6 +249,17 @@ export class CalendarAgendaView implements Component<CalendarAgendaViewAttrs> {
 					  }),
 			),
 		])
+	}
+
+	// Updates the view model's copy of the view dom and scrolls to the current `scrollPosition`
+	private handleScrollOnUpdate(attrs: CalendarAgendaViewAttrs, vnode: VnodeDOM): void {
+		attrs.onViewChanged(vnode)
+		if (getIfLargeScroll(this.lastScrollPosition, attrs.scrollPosition)) {
+			vnode.dom.scrollTo({ top: attrs.scrollPosition, behavior: "smooth" })
+		} else {
+			vnode.dom.scrollTop = attrs.scrollPosition
+		}
+		this.lastScrollPosition = attrs.scrollPosition
 	}
 
 	private renderEventsForDay(events: readonly CalendarEvent[], zone: string, day: Date, attrs: CalendarAgendaViewAttrs) {
@@ -263,7 +296,8 @@ export class CalendarAgendaView implements Component<CalendarAgendaViewAttrs> {
 			)
 		}
 		// one agenda item height needs to be removed to show the correct item
-		this.scrollPosition = newScrollPosition - (agendaItemHeight + agendaGap)
+		// Do not scroll to the next element if a scroll command (page up etc.) is given
+		if (attrs.scrollPosition === this.lastScrollPosition) attrs.onScrollPositionChange(newScrollPosition - (agendaItemHeight + agendaGap))
 		return events.length === 0
 			? m(".mb-s", lang.get("noEntries_msg"))
 			: m(

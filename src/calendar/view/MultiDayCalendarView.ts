@@ -3,7 +3,6 @@ import { getStartOfDay, incrementDate, isToday, lastThrow, neverNull, ofClass, r
 import { formatShortTime, formatTime } from "../../misc/Formatter"
 import {
 	combineDateWithTime,
-	DEFAULT_HOUR_OF_DAY,
 	eventEndsAfterDay,
 	eventStartsBefore,
 	getDiffIn24hIntervals,
@@ -25,7 +24,7 @@ import type { CalendarEvent } from "../../api/entities/tutanota/TypeRefs.js"
 import type { GroupColors } from "./CalendarView"
 import type { EventDragHandlerCallbacks, MousePos } from "./EventDragHandler"
 import { EventDragHandler } from "./EventDragHandler"
-import { getPosAndBoundsFromMouseEvent } from "../../gui/base/GuiUtils"
+import { getIfLargeScroll, getPosAndBoundsFromMouseEvent } from "../../gui/base/GuiUtils"
 import { UserError } from "../../api/main/UserError"
 import { showUserError } from "../../misc/ErrorHandlerImpl"
 import { styles } from "../../gui/styles"
@@ -62,20 +61,25 @@ export type MultiDayCalendarViewAttrs = {
 	isDaySelectorExpanded: boolean
 	weekIndicator: string | null
 	selectedTime?: Time
+	scrollPosition: number
+	onScrollPositionChange: (newPosition: number) => unknown
+	onViewChanged: (vnode: VnodeDOM) => unknown
 }
 
 export class MultiDayCalendarView implements Component<MultiDayCalendarViewAttrs> {
 	private longEventsDom: HTMLElement | null = null
 	private domElements: HTMLElement[] = []
-	private scrollPosition: number
 	private eventDragHandler: EventDragHandler
 	private dateUnderMouse: Date | null = null
 	private viewDom: HTMLElement | null = null
 	private lastMousePos: MousePos | null = null
 	private isHeaderEventBeingDragged: boolean = false
+	// These variables are used to prevent `scrollDOMs()` overwriting an in-progress `scrollTo()` from a previous call to `scrollDOMs()`
+	private isProgrammaticScrollInProgress: boolean = false
+	private scrollEndTime: TimeoutID | null = null
+	private lastScrollPosition: number | null = null
 
 	constructor({ attrs }: Vnode<MultiDayCalendarViewAttrs>) {
-		this.scrollPosition = size.calendar_hour_height * DEFAULT_HOUR_OF_DAY
 		this.eventDragHandler = new EventDragHandler(neverNull(document.body as HTMLBodyElement), attrs.dragHandlerCallbacks)
 	}
 
@@ -232,26 +236,39 @@ export class MultiDayCalendarView implements Component<MultiDayCalendarViewAttrs
 					".flex.scroll-no-overlay.content-bg",
 					{
 						oncreate: (vnode) => {
+							this.isProgrammaticScrollInProgress = false
 							if (attrs.selectedTime) {
-								this.scrollPosition = size.calendar_hour_height * attrs.selectedTime.hour
+								attrs.onScrollPositionChange(size.calendar_hour_height * attrs.selectedTime.hour)
 							}
-							vnode.dom.scrollTop = this.scrollPosition
-
-							for (const dom of this.domElements) {
-								dom.scrollTop = this.scrollPosition
-							}
-
+							this.scrollDOMs(vnode, attrs, false)
 							this.domElements.push(vnode.dom as HTMLElement)
+							attrs.onViewChanged(vnode)
+							this.lastScrollPosition = attrs.scrollPosition
+						},
+						onupdate: (vnode) => {
+							this.scrollDOMs(vnode, attrs, getIfLargeScroll(this.lastScrollPosition, attrs.scrollPosition))
+							attrs.onViewChanged(vnode)
+							this.lastScrollPosition = attrs.scrollPosition
 						},
 						onscroll: (event: Event) => {
+							// Ignore calls to `scrollTo()` via the `isProgrammaticScrollInProgress` flag
+							// because they are considered user input by `event.isTrusted`
+							// Safari does not support the scroll end event, so we have to implement it ourselves
+							if (this.isProgrammaticScrollInProgress) {
+								clearTimeout(this.scrollEndTime)
+								this.scrollEndTime = setTimeout(() => {
+									this.isProgrammaticScrollInProgress = false
+								}, 100)
+								return
+							}
+
 							if (thisPeriod === mainPeriod) {
 								for (const dom of this.domElements) {
 									if (dom !== event.target) {
 										dom.scrollTop = (event.target as HTMLElement).scrollTop
 									}
 								}
-
-								this.scrollPosition = (event.target as HTMLElement).scrollTop
+								attrs.onScrollPositionChange((event.target as HTMLElement).scrollTop)
 							}
 						},
 						onremove: (vnode) => {
@@ -328,6 +345,25 @@ export class MultiDayCalendarView implements Component<MultiDayCalendarViewAttrs
 				),
 			],
 		)
+	}
+
+	private scrollDOMs(vnode: VnodeDOM, attrs: MultiDayCalendarViewAttrs, isSmooth: boolean): void {
+		if (this.isProgrammaticScrollInProgress) return
+
+		if (isSmooth) {
+			this.isProgrammaticScrollInProgress = true
+			vnode.dom.scrollTo({ top: attrs.scrollPosition, behavior: "smooth" })
+			for (const dom of this.domElements) {
+				dom.scrollTo({ top: attrs.scrollPosition, behavior: "smooth" })
+			}
+			vnode.dom.dispatchEvent(new Event("scroll"))
+		} else {
+			this.isProgrammaticScrollInProgress = false
+			vnode.dom.scrollTop = attrs.scrollPosition
+			for (const dom of this.domElements) {
+				dom.scrollTop = attrs.scrollPosition
+			}
+		}
 	}
 
 	private startEventDrag(event: CalendarEvent) {

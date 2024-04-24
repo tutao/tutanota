@@ -227,6 +227,9 @@ export class CalendarView extends BaseTopLevelView implements TopLevelView<Calen
 									isDaySelectorExpanded: this.viewModel.isDaySelectorExpanded(),
 									weekIndicator: calendarWeek(this.viewModel.selectedDate(), this.viewModel.weekStart),
 									selectedTime: this.viewModel.selectedTime,
+									scrollPosition: this.viewModel.getScrollPosition(),
+									onScrollPositionChange: (newPosition: number) => this.viewModel.setScrollPosition(newPosition),
+									onViewChanged: (vnode) => this.viewModel.setViewParameters(vnode.dom as HTMLElement),
 								}),
 							})
 
@@ -256,6 +259,9 @@ export class CalendarView extends BaseTopLevelView implements TopLevelView<Calen
 									isDaySelectorExpanded: this.viewModel.isDaySelectorExpanded(),
 									weekIndicator: calendarWeek(this.viewModel.selectedDate(), this.viewModel.weekStart),
 									selectedTime: this.viewModel.selectedTime,
+									scrollPosition: this.viewModel.getScrollPosition(),
+									onScrollPositionChange: (newPosition: number) => this.viewModel.setScrollPosition(newPosition),
+									onViewChanged: (vnode) => this.viewModel.setViewParameters(vnode.dom as HTMLElement),
 								}),
 							})
 
@@ -292,6 +298,9 @@ export class CalendarView extends BaseTopLevelView implements TopLevelView<Calen
 									onDateSelected: (date) => this.setUrl(CalendarViewType.AGENDA, date),
 									onShowDate: (date: Date) => this.setUrl(CalendarViewType.DAY, date),
 									eventPreviewModel: this.viewModel.eventPreviewModel,
+									scrollPosition: this.viewModel.getScrollPosition(),
+									onScrollPositionChange: (newPosition: number) => this.viewModel.setScrollPosition(newPosition),
+									onViewChanged: (vnode) => this.viewModel.setViewParameters(vnode.dom as HTMLElement),
 								} satisfies CalendarAgendaViewAttrs),
 							})
 
@@ -401,10 +410,15 @@ export class CalendarView extends BaseTopLevelView implements TopLevelView<Calen
 	}
 
 	private setupShortcuts(): Shortcut[] {
+		const getIfNotView = (viewType: CalendarViewType) => {
+			return () => {
+				return this.currentViewType !== viewType
+			}
+		}
 		const generatePeriodShortcut = (key: Key, next: boolean): Shortcut => {
 			return {
 				key,
-				enabled: () => this.currentViewType !== CalendarViewType.AGENDA,
+				enabled: getIfNotView(CalendarViewType.AGENDA),
 				exec: () => this.viewPeriod(this.currentViewType, next),
 				help: next ? "viewNextPeriod_action" : "viewPrevPeriod_action",
 			}
@@ -440,6 +454,57 @@ export class CalendarView extends BaseTopLevelView implements TopLevelView<Calen
 					this.createNewEventDialog()
 				},
 				help: "newEvent_action",
+			},
+			{
+				key: Keys.UP,
+				enabled: getIfNotView(CalendarViewType.MONTH),
+				exec: () => {
+					this.viewModel.scroll(-10)
+				},
+				help: "scrollUp_action",
+			},
+			{
+				key: Keys.DOWN,
+				enabled: getIfNotView(CalendarViewType.MONTH),
+				exec: () => {
+					this.viewModel.scroll(10)
+				},
+				help: "scrollDown_action",
+			},
+			{
+				key: Keys.PAGE_UP,
+				enabled: getIfNotView(CalendarViewType.MONTH),
+				exec: () => {
+					const viewSize = this.viewModel.getViewSize()
+					if (viewSize) this.viewModel.scroll(-viewSize)
+				},
+				help: "scrollUp_action",
+			},
+			{
+				key: Keys.PAGE_DOWN,
+				enabled: getIfNotView(CalendarViewType.MONTH),
+				exec: () => {
+					const viewSize = this.viewModel.getViewSize()
+					if (viewSize) this.viewModel.scroll(viewSize)
+				},
+				help: "scrollToNextScreen_action",
+			},
+			{
+				key: Keys.HOME,
+				enabled: getIfNotView(CalendarViewType.MONTH),
+				exec: () => {
+					this.viewModel.setScrollPosition(0)
+				},
+				help: "scrollToPreviousScreen_action",
+			},
+			{
+				key: Keys.END,
+				enabled: getIfNotView(CalendarViewType.MONTH),
+				exec: () => {
+					// Sorry for the dated meme (it's over nine-thousand!)
+					this.viewModel.setScrollPosition(this.viewModel.getScrollMaximum() ?? 9001)
+				},
+				help: "scrollToBottom_action",
 			},
 		]
 	}
