@@ -73,6 +73,12 @@ export class CalendarViewModel implements EventDragHandlerCallbacks {
 	// When set to true, ignores the next setting of selectedTime
 	ignoreNextValidTimeSelection: boolean
 
+	private scrollPosition: number = 0 // size.calendar_hour_height * DEFAULT_HOUR_OF_DAY
+	// The maximum scroll value of the list in the view
+	private scrollMax: number | null = null
+	// The size of the list in the view
+	private viewSize: number | null = null
+
 	constructor(
 		private readonly logins: LoginController,
 		private readonly createCalendarEventEditModel: CalendarEventEditModelsFactory,
@@ -457,6 +463,37 @@ export class CalendarViewModel implements EventDragHandlerCallbacks {
 	private doRedraw() {
 		// Need to pass some argument to make it a "set" operation
 		this._redrawStream(undefined)
+	}
+
+	getScrollPosition(): number {
+		return this.scrollPosition
+	}
+
+	setScrollPosition(newPosition: number): void {
+		if (newPosition < 0) {
+			this.scrollPosition = 0
+		} else if (this.scrollMax !== null && newPosition > this.scrollMax) {
+			this.scrollPosition = this.scrollMax
+		} else {
+			this.scrollPosition = newPosition
+		}
+	}
+
+	getScrollMaximum(): number | null {
+		return this.scrollMax
+	}
+
+	getViewSize(): number | null {
+		return this.viewSize
+	}
+
+	setViewParameters(dom: HTMLElement): void {
+		this.scrollMax = dom.scrollHeight
+		this.viewSize = dom.clientHeight
+	}
+
+	scroll(by: number): void {
+		this.setScrollPosition(this.scrollPosition + by)
 	}
 }
 
