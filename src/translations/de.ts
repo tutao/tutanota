@@ -1554,6 +1554,7 @@ export default {
 		"termsAndConditionsLink_label": "Allgemeine Geschäftsbedingungen",
 		"termsAndConditions_label": "Ich habe die folgenden Dokumente gelesen und erkenne diese an:",
 		"textTooLong_msg": "Der eingegebene Text ist zu lang",
+		"theme_title": "Welches Farbschema würdest du gerne verwenden?",
 		"theme_label": "Farbschema",
 		"thisClient_label": "<Dieser Client>",
 		"timeFormatTwelveHour_label": "12 Stunden",

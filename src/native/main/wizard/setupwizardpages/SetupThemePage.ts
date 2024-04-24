@@ -25,7 +25,7 @@ export class SetupThemePage implements WizardPageN<SetupThemePageAttrs> {
 			{
 				image: "theme",
 			},
-			m("p.full-width", "Which theme would you like to use?"),
+			m("p.full-width", lang.get("theme_title")),
 			// We need to await the promise from `themeController.getCustomThemes()`, so we delay rendering the `RadioSelector` until it does.
 			this.customThemes == null
 				? null
