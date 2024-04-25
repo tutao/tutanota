@@ -488,7 +488,7 @@ export class CalendarViewModel implements EventDragHandlerCallbacks {
 	}
 
 	setViewParameters(dom: HTMLElement): void {
-		this.scrollMax = dom.scrollHeight
+		this.scrollMax = dom.scrollHeight - dom.clientHeight
 		this.viewSize = dom.clientHeight
 	}
 

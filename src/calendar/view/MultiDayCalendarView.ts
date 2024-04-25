@@ -202,6 +202,9 @@ export class MultiDayCalendarView implements Component<MultiDayCalendarViewAttrs
 			containerStyle = {}
 		}
 
+		// Whether the current list is the visible list and not one of the lists used for swiping
+		const isMainView = thisPeriod === mainPeriod
+
 		return m(
 			".fill-absolute.flex.col.overflow-hidden",
 			{
@@ -237,40 +240,39 @@ export class MultiDayCalendarView implements Component<MultiDayCalendarViewAttrs
 					{
 						oncreate: (vnode) => {
 							this.isProgrammaticScrollInProgress = false
-							if (attrs.selectedTime) {
-								attrs.onScrollPositionChange(size.calendar_hour_height * attrs.selectedTime.hour)
-							}
-							this.scrollDOMs(vnode, attrs, false)
-							this.domElements.push(vnode.dom as HTMLElement)
-							attrs.onViewChanged(vnode)
-							this.lastScrollPosition = attrs.scrollPosition
-						},
-						onupdate: (vnode) => {
-							this.scrollDOMs(vnode, attrs, getIfLargeScroll(this.lastScrollPosition, attrs.scrollPosition))
-							attrs.onViewChanged(vnode)
-							this.lastScrollPosition = attrs.scrollPosition
-						},
-						onscroll: (event: Event) => {
-							// Ignore calls to `scrollTo()` via the `isProgrammaticScrollInProgress` flag
-							// because they are considered user input by `event.isTrusted`
-							// Safari does not support the scroll end event, so we have to implement it ourselves
-							if (this.isProgrammaticScrollInProgress && this.lastScrollPosition === attrs.scrollPosition) {
-								clearTimeout(this.scrollEndTime)
-								this.scrollEndTime = setTimeout(() => {
-									this.isProgrammaticScrollInProgress = false
-								}, 100)
-								return
-							}
-
-							if (thisPeriod === mainPeriod) {
-								for (const dom of this.domElements) {
-									if (dom !== event.target) {
-										dom.scrollTop = (event.target as HTMLElement).scrollTop
-									}
+							if (isMainView) {
+								if (attrs.selectedTime) {
+									attrs.onScrollPositionChange(size.calendar_hour_height * attrs.selectedTime.hour)
 								}
-								attrs.onScrollPositionChange((event.target as HTMLElement).scrollTop)
+								this.scrollDOMs(vnode, attrs, false)
+								attrs.onViewChanged(vnode)
+								this.lastScrollPosition = attrs.scrollPosition
 							}
+							this.domElements.push(vnode.dom as HTMLElement)
 						},
+						onupdate: isMainView
+							? (vnode) => {
+									this.scrollDOMs(vnode, attrs, getIfLargeScroll(this.lastScrollPosition, attrs.scrollPosition))
+									attrs.onViewChanged(vnode)
+									this.lastScrollPosition = attrs.scrollPosition
+							  }
+							: undefined,
+						onscroll: isMainView
+							? (event: Event) => {
+									// Ignore calls to `scrollTo()` via the `isProgrammaticScrollInProgress` flag
+									// because they are considered user input by `event.isTrusted`
+									// Safari does not support the scroll end event, so we have to implement it ourselves
+									if (this.isProgrammaticScrollInProgress) {
+										clearTimeout(this.scrollEndTime)
+										this.scrollEndTime = setTimeout(() => {
+											this.isProgrammaticScrollInProgress = false
+											attrs.onScrollPositionChange((event.target as HTMLElement).scrollTop)
+										}, 100)
+									} else {
+										attrs.onScrollPositionChange((event.target as HTMLElement).scrollTop)
+									}
+							  }
+							: undefined,
 						onremove: (vnode) => {
 							remove(this.domElements, vnode.dom as HTMLElement)
 						},
