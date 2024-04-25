@@ -431,8 +431,8 @@ export class List<T, VH extends ViewHolder<T>> implements ClassComponent<ListAtt
 				row.domElement.style.transform = `translateY(${row.top}px)`
 				row.row.update(item, attrs.state.selectedItems.has(item), attrs.state.inMultiselect)
 			}
-			// Focus the selected row so it can receive keyboard events in the single-column layout and on other layouts if the focus is within the list.
-			if (attrs.state.selectedItems.has(item) && (document.activeElement?.tagName === "LI" || styles.isSingleColumnLayout())) {
+			// Focus the selected row so it can receive keyboard events if the user has just changed it
+			if (attrs.state.selectedItems.has(item) && (!this.state?.selectedItems.has(item) || this.state == null)) {
 				row.domElement.focus()
 			}
 		}
