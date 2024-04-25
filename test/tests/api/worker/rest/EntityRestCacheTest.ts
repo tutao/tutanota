@@ -6,6 +6,7 @@ import {
 	CUSTOM_MAX_ID,
 	CUSTOM_MIN_ID,
 	elementIdPart,
+	firstBiggerThanSecond,
 	GENERATED_MAX_ID,
 	GENERATED_MIN_ID,
 	getElementId,
@@ -13,18 +14,9 @@ import {
 	listIdPart,
 	stringToCustomId,
 } from "../../../../../src/api/common/utils/EntityUtils.js"
-import { arrayOf, clone, downcast, isSameTypeRef, neverNull, TypeRef } from "@tutao/tutanota-utils"
+import { arrayOf, clone, downcast, isSameTypeRef, last, neverNull, TypeRef } from "@tutao/tutanota-utils"
 import {
 	BucketKeyTypeRef,
-	createBucketKey,
-	createCustomer,
-	createEntityUpdate,
-	createExternalUserReference,
-	createGroupMembership,
-	createGroupRoot,
-	createInstanceSessionKey,
-	createPermission,
-	createUser,
 	CustomerTypeRef,
 	EntityUpdate,
 	EntityUpdateTypeRef,
@@ -41,11 +33,6 @@ import { CacheStorage, DefaultEntityRestCache, expandId, EXTEND_RANGE_MIN_CHUNK_
 import {
 	CalendarEventTypeRef,
 	ContactTypeRef,
-	createCalendarEvent,
-	createContact,
-	createMail,
-	createMailBody,
-	createMailDetailsBlob,
 	Mail,
 	MailBody,
 	MailBodyTypeRef,
@@ -141,6 +128,7 @@ export function testEntityRestCache(name: string, getStorage: (userId: Id) => Pr
 			let mail = createTestEntity(MailTypeRef)
 			mail._id = [listId, createId(id)]
 			mail.subject = subject ?? ""
+			mail.mailDetails = ["mailDetailsListId", "mailDetailsElementId"]
 			return mail
 		}
 
@@ -771,6 +759,31 @@ export function testEntityRestCache(name: string, getStorage: (userId: Id) => Pr
 				unmockAttribute(loadMock)
 			})
 
+			o("mail loaded from server if mail LegacyMail (without MailDetails or without MailDetailsDraft) in cache ", async function () {
+				// no mailDetails and no mailDetailsDraft == LegacyMail
+				let legacyMail = createMailInstance("listId1", createId("id1"), "hello")
+				legacyMail.mailDetails = null
+				legacyMail.mailDetailsDraft = null
+				await storage.put(legacyMail)
+
+				let mailDetailsMail = createMailInstance("listId1", createId("id1"), "hello")
+
+				const load = spy(function (typeRef, id) {
+					o(isSameTypeRef(typeRef, MailTypeRef)).equals(true)
+					o(id).deepEquals(["listId1", createId("id1")])
+					return Promise.resolve(mailDetailsMail)
+				})
+				const loadMock = mockAttribute(entityRestClient, entityRestClient.load, load)
+
+				const mail = await cache.load(MailTypeRef, ["listId1", createId("id1")])
+
+				o(load.callCount).equals(1) // entity is loaded from server
+				o(mail.mailDetails).deepEquals(["mailDetailsListId", "mailDetailsElementId"])
+				o(await storage.get(MailTypeRef, "listId1", createId("id1"))).deepEquals(mail)
+
+				unmockAttribute(loadMock)
+			})
+
 			o("when deleted from a range, then the remaining range will still be retrieved from the cache", async function () {
 				const originalMails = await setupMailList(true, true)
 				// no load should be called
@@ -1100,6 +1113,29 @@ export function testEntityRestCache(name: string, getStorage: (userId: Id) => Pr
 			const result = await cache.loadRange(MailTypeRef, "listId1", GENERATED_MIN_ID, 4, false)
 
 			o(result).deepEquals([cachedMails[0], cachedMails[1], cachedMails[2], clone(mail4)])
+			o((await storage.get(MailTypeRef, getListId(mail4), getElementId(mail4)))!).deepEquals(mail4)
+			o(loadRange.callCount).equals(1) // entities are provided from server
+
+			unmockAttribute(loadRangeMock)
+		})
+
+		o("load list elements partly from server - range min to id3 loaded - range request id2 count 2", async function () {
+			let mail4 = createMailInstance("listId1", "id4", "subject4")
+			const cachedMails = await setupMailList(true, false)
+			const loadRange = spy(function (typeRef, listId, start, count, reverse) {
+				o(isSameTypeRef(typeRef, MailTypeRef)).equals(true)
+				o(listId).equals("listId1")
+				o(start).equals(getElementId(cachedMails[2]))
+				o(count).equals(1)
+				o(reverse).equals(false)
+				return Promise.resolve([mail4])
+			})
+
+			const loadRangeMock = mockAttribute(entityRestClient, entityRestClient.loadRange, loadRange)
+
+			const result = await cache.loadRange(MailTypeRef, "listId1", createId("id2"), 2, false)
+
+			o(result).deepEquals([cachedMails[2], clone(mail4)])
 			o((await storage.get(MailTypeRef, getListId(mail4), getElementId(mail4)))!).deepEquals(mail4)
 			o(loadRange.callCount).equals(1) // entities are provided from server
 
@@ -1516,6 +1552,130 @@ export function testEntityRestCache(name: string, getStorage: (userId: Id) => Pr
 			}
 			unmockAttribute(mock)
 		})
+
+		o("loadMultiple should load necessary elements from the server, and get the rest from the cache except legacy mails", async function () {
+			const listId = "listId"
+
+			// no mailDetails and no mailDetailsDraft == LegacyMail
+			const legacyMail = createMailInstance(listId, "1", "1")
+			legacyMail.mailDetails = null
+			legacyMail.mailDetailsDraft = null
+			const inCache = [legacyMail, createMailInstance(listId, "3", "3")]
+
+			const mailDetailsMail = createMailInstance(listId, "1", "1")
+			const serverMails = [mailDetailsMail, createMailInstance(listId, "3", "3"), createMailInstance(listId, "4", "4")]
+
+			await Promise.all(inCache.map(async (i) => await storage.put(i)))
+			const allIds = serverMails.map(getElementId)
+
+			const loadMultiple = spy(async (typeRef, listIdToLoad: string, idsToLoad: Array<string>, ownerEncSessionKeyProvider) => {
+				if (listId !== listIdToLoad) throw new NotFoundError("unknown list id")
+				return serverMails.filter((mail) => idsToLoad.includes(getElementId(mail)))
+			})
+			const mock = mockAttribute(entityRestClient, entityRestClient.loadMultiple, loadMultiple)
+
+			await cache.loadMultiple(MailTypeRef, listId, allIds)
+
+			for (const id of allIds) {
+				const mail = await storage.get(MailTypeRef, listId, id)
+				o(mail?.mailDetails).notEquals(null)
+			}
+			unmockAttribute(mock)
+		})
+
+		o("loadRange loads legacy mail from server even if it's cached", async function () {
+			const listId = "listId"
+
+			// no mailDetails and no mailDetailsDraft == LegacyMail
+			const legacyMail = createMailInstance(listId, "1", "1")
+			legacyMail.mailDetails = null
+			legacyMail.mailDetailsDraft = null
+			const inCache = [createMailInstance(listId, "0", "0"), legacyMail, createMailInstance(listId, "3", "3")]
+
+			const mailDetailsMail = createMailInstance(listId, "1", "1")
+			const serverMails = [
+				createMailInstance(listId, "0", "0"),
+				mailDetailsMail,
+				createMailInstance(listId, "3", "3"),
+				createMailInstance(listId, "4", "4"),
+				createMailInstance(listId, "5", "5"),
+				createMailInstance(listId, "6", "6"),
+			]
+
+			await storage.setNewRangeForList(MailTypeRef, listId, createId("0"), createId("3"))
+			await Promise.all(inCache.map(async (i) => await storage.put(i)))
+
+			const load = spy(function (typeRef, id) {
+				o(isSameTypeRef(typeRef, MailTypeRef)).equals(true)
+				o(id).deepEquals([listId, createId("1")])
+				return Promise.resolve(mailDetailsMail)
+			})
+
+			const loadRange = spy(async (typeRef, listIdToLoad: string, startId: Id, count: number, reverse: boolean) => {
+				if (listId !== listIdToLoad) throw new NotFoundError("unknown list id")
+				return serverMails.filter((mail) => firstBiggerThanSecond(getElementId(mail), startId)).slice(0, count)
+			})
+
+			const mockLoad = mockAttribute(entityRestClient, entityRestClient.load, load)
+			const mockLoadRange = mockAttribute(entityRestClient, entityRestClient.loadRange, loadRange)
+			// request for 5 mails starting at 0 excl -> 1, 3, 4, 5, 6
+			const result = await cache.loadRange(MailTypeRef, listId, createId("0"), 5, false)
+
+			// checking if our cache asked us for the right amount of mails:
+			// in this case ids 4, 5 and 6 starting at mail 3 (excl.) since
+			// 1 and 3 were already cached.
+			o(loadRange.invocations[0][3]).equals(3)
+			o(loadRange.invocations[0][2]).equals(createId("3"))
+
+			for (let i = 0; i++; i < result.length) {
+				o(result[i]).deepEquals(serverMails[i])(`result ${i} does not match`)
+			}
+
+			for (const item of inCache.concat(serverMails)) {
+				const mail = await storage.get(MailTypeRef, listId, getElementId(item))
+				o(mail?.mailDetails).notEquals(null)
+			}
+			unmockAttribute(mockLoad)
+			unmockAttribute(mockLoadRange)
+		})
+
+		o("loadRange from server and provide cached entities from the cache", async function () {
+			const listId = "listId"
+
+			const inCache = [createMailInstance(listId, "0", "0"), createMailInstance(listId, "1", "1"), createMailInstance(listId, "3", "3")]
+
+			const serverMails = [...inCache, createMailInstance(listId, "4", "4"), createMailInstance(listId, "5", "5"), createMailInstance(listId, "6", "6")]
+
+			await storage.setNewRangeForList(MailTypeRef, listId, GENERATED_MIN_ID, createId("3"))
+			await Promise.all(inCache.map(async (i) => await storage.put(i)))
+
+			const loadRange = spy(async (typeRef, listIdToLoad: string, startId: Id, count: number, reverse: boolean) => {
+				if (listId !== listIdToLoad) throw new NotFoundError("unknown list id")
+				return serverMails.filter((mail) => firstBiggerThanSecond(getElementId(mail), startId)).slice(0, count)
+			})
+
+			const mockLoadRange = mockAttribute(entityRestClient, entityRestClient.loadRange, loadRange)
+
+			const result = await cache.loadRange(MailTypeRef, listId, createId("1"), 3, false)
+
+			// checking if our cache asked us for the right amount of mails, in this case ids 4, 5 and 6 starting at mail 1 (excl.)
+			o(loadRange.invocations[0][3]).equals(2)
+			o(loadRange.invocations[0][2]).equals(createId("3"))
+
+			for (let i = 0; i++; i < result.length) {
+				o(result[i]).deepEquals(serverMails[i])(`result ${i} does not match`)
+			}
+
+			for (const item of serverMails.slice(0, -1)) {
+				const mail = await storage.get(MailTypeRef, listId, getElementId(item))
+				o(mail).notEquals(null)
+			}
+			const lastId = getElementId(last(serverMails)!)
+			o(await storage.get(MailTypeRef, listId, lastId)).equals(null)
+
+			unmockAttribute(mockLoadRange)
+		})
+
 		o("load passes same parameters to entityRestClient", async function () {
 			const contactId: IdTuple = [createId("0"), createId("1")]
 			const contact = createTestEntity(ContactTypeRef, {

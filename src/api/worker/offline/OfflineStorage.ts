@@ -494,7 +494,12 @@ AND NOT(${firstIdBigger("elementId", upper)})`
 		// Free users always have default time range regardless of what is stored
 		const isFreeUser = user?.accountType === AccountType.FREE
 		const timeRange = isFreeUser || timeRangeDays == null ? OFFLINE_STORAGE_DEFAULT_TIME_RANGE_DAYS : timeRangeDays
-		const cutoffTimestamp = this.dateProvider.now() - timeRange * DAY_IN_MILLIS
+		const now = this.dateProvider.now()
+		const daysSinceDayAfterEpoch = now / DAY_IN_MILLIS - 1
+		const timeRangeMillisSafe = Math.min(daysSinceDayAfterEpoch, timeRange) * DAY_IN_MILLIS
+		// from may 15th 2109 onward, exceeding daysSinceDayAfterEpoch in the time range setting will
+		// lead to an overflow in our 42 bit timestamp in the id.
+		const cutoffTimestamp = now - timeRangeMillisSafe
 		const cutoffId = timestampToGeneratedId(cutoffTimestamp)
 		const folders = await this.getListElementsOfType(MailFolderTypeRef)
 		const folderSystem = new FolderSystem(folders)
