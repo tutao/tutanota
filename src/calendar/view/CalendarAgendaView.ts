@@ -291,25 +291,32 @@ export class CalendarAgendaView implements Component<CalendarAgendaViewAttrs> {
 					click: (domEvent) => click(event, domEvent),
 					keyDown: (domEvent) => {
 						const target = domEvent.target as HTMLElement
-						const newScroll = newScrollPosition - (agendaItemHeight + agendaGap)
-						if (isKeyPressed(domEvent.key, Keys.UP) && !domEvent.repeat) {
+						if (isKeyPressed(domEvent.key, Keys.UP, Keys.K) && !domEvent.repeat) {
 							const previousItem = target.previousElementSibling as HTMLElement | null
 							const previousIndex = eventIndex - 1
-							previousItem?.focus()
-							if (previousIndex >= 0 && !styles.isSingleColumnLayout()) {
-								attrs.onScrollPositionChange(newScroll)
-								keyDown(events[previousIndex], new KeyboardEvent("keydown", { key: Keys.RETURN.code }))
-								return
+							if (previousItem) {
+								previousItem.focus()
+								attrs.onScrollPositionChange(previousItem.offsetTop)
+								if (previousIndex >= 0 && !styles.isSingleColumnLayout()) {
+									keyDown(events[previousIndex], new KeyboardEvent("keydown", { key: Keys.RETURN.code }))
+									return
+								}
+							} else {
+								attrs.onScrollPositionChange(0)
 							}
 						}
-						if (isKeyPressed(domEvent.key, Keys.DOWN) && !domEvent.repeat) {
+						if (isKeyPressed(domEvent.key, Keys.DOWN, Keys.J) && !domEvent.repeat) {
 							const nextItem = target.nextElementSibling as HTMLElement | null
 							const nextIndex = eventIndex + 1
-							nextItem?.focus()
-							if (nextIndex < events.length && !styles.isSingleColumnLayout()) {
-								attrs.onScrollPositionChange(newScroll)
-								keyDown(events[nextIndex], new KeyboardEvent("keydown", { key: Keys.RETURN.code }))
-								return
+							if (nextItem) {
+								nextItem.focus()
+								attrs.onScrollPositionChange(nextItem.offsetTop)
+								if (nextIndex < events.length && !styles.isSingleColumnLayout()) {
+									keyDown(events[nextIndex], new KeyboardEvent("keydown", { key: Keys.RETURN.code }))
+									return
+								}
+							} else {
+								attrs.onScrollPositionChange(target.offsetTop)
 							}
 						}
 						keyDown(event, domEvent)
