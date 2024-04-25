@@ -1,9 +1,8 @@
 import m, { Children, Vnode } from "mithril"
 import { client } from "../misc/ClientDetector"
 import { assertMainOrNode, isApp, isDesktop } from "../api/common/Env"
-import { InfoLink, lang } from "../misc/LanguageViewModel"
-import type { DeferredObject } from "@tutao/tutanota-utils"
-import { defer, mapNullable } from "@tutao/tutanota-utils"
+import { InfoLink, lang, TranslationKey } from "../misc/LanguageViewModel"
+import { defer, DeferredObject, mapNullable } from "@tutao/tutanota-utils"
 import { BootIcons } from "../gui/base/icons/BootIcons"
 import { showProgressDialog } from "../gui/dialogs/ProgressDialog"
 import { windowFacade } from "../misc/WindowFacade"
@@ -33,6 +32,29 @@ export interface LoginViewAttrs extends TopLevelAttrs {
 	/** Default path to redirect to after the login. Can be overridden with query param `requestedPath`. */
 	targetPath: string
 	makeViewModel: () => LoginViewModel
+}
+
+/** create a string provider that changes periodically until promise is resolved */
+function makeDynamicLoggingInMessage(promise: Promise<unknown>): () => string {
+	const messageArray: Array<TranslationKey> = [
+		"dynamicLoginDecryptingMails_msg",
+		"dynamicLoginOrganizingCalendarEvents_msg",
+		"dynamicLoginSortingContacts_msg",
+		"dynamicLoginUpdatingOfflineDatabase_msg",
+		"dynamicLoginCyclingToWork_msg",
+		"dynamicLoginRestockingTutaFridge_msg",
+		"dynamicLoginPreparingRocketLaunch_msg",
+		"dynamicLoginSwitchingOnPrivacy_msg",
+	]
+	let currentMessage: TranslationKey = "login_msg"
+	let messageIndex: number = 0
+	const messageIntervalId = setInterval(() => {
+		currentMessage = messageArray[messageIndex]
+		messageIndex = ++messageIndex % 8
+		m.redraw()
+	}, 4000 /** spinner spins every 2s */)
+	promise.finally(() => clearInterval(messageIntervalId))
+	return () => lang.get(currentMessage)
 }
 
 export class LoginView extends BaseTopLevelView implements TopLevelView<LoginViewAttrs> {
@@ -254,8 +276,9 @@ export class LoginView extends BaseTopLevelView implements TopLevelView<LoginVie
 	}
 
 	async _loginWithProgressDialog() {
-		await showProgressDialog("login_msg", this.viewModel.login())
-		m.redraw()
+		const loginPromise = this.viewModel.login()
+		const dynamicMessage = makeDynamicLoggingInMessage(loginPromise)
+		await showProgressDialog(dynamicMessage, loginPromise)
 
 		if (this.viewModel.state === LoginState.LoggedIn) {
 			m.route.set(this.selectedRedirect)
