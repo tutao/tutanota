@@ -42,8 +42,7 @@ import { UserError } from "../../api/main/UserError"
 import { showProgressDialog } from "../../gui/dialogs/ProgressDialog"
 import { htmlSanitizer } from "../../misc/HtmlSanitizer"
 import { DropDownSelector } from "../../gui/base/DropDownSelector.js"
-import type { File as TutanotaFile, MailboxProperties } from "../../api/entities/tutanota/TypeRefs.js"
-import { ContactTypeRef } from "../../api/entities/tutanota/TypeRefs.js"
+import { ContactTypeRef, createTranslationGetIn, File as TutanotaFile, MailboxProperties } from "../../api/entities/tutanota/TypeRefs.js"
 import type { InlineImages } from "../view/MailViewer"
 import { FileOpenError } from "../../api/common/error/FileOpenError"
 import type { lazy } from "@tutao/tutanota-utils"
@@ -89,6 +88,7 @@ import { canSeeTutaLinks } from "../../gui/base/GuiUtils.js"
 import { BannerButtonAttrs, InfoBanner } from "../../gui/base/InfoBanner.js"
 import { isCustomizationEnabledForCustomer } from "../../api/common/utils/CustomerUtils.js"
 import { isOfflineError } from "../../api/common/utils/ErrorUtils.js"
+import { TranslationService } from "../../api/entities/tutanota/Services.js"
 
 export type MailEditorAttrs = {
 	model: SendMailModel
@@ -1270,7 +1270,8 @@ export async function writeInviteMail(referralLink: string) {
 		"{registrationLink}": referralLink,
 		"{username}": username,
 	})
-	const dialog = await newMailEditorFromTemplate(detailsProperties.mailboxDetails, {}, lang.get("invitationMailSubject_msg"), body, [], false)
+	const { invitationSubject } = await locator.serviceExecutor.get(TranslationService, createTranslationGetIn({ lang: lang.code }))
+	const dialog = await newMailEditorFromTemplate(detailsProperties.mailboxDetails, {}, invitationSubject, body, [], false)
 	dialog.show()
 }
 
@@ -1290,10 +1291,10 @@ export async function writeGiftCardMail(link: string, svg: SVGElement, mailboxDe
 		})
 		.split("\n")
 		.join("<br />")
-	const subject = lang.get("defaultShareGiftCardSubject_msg")
+	const { giftCardSubject } = await locator.serviceExecutor.get(TranslationService, createTranslationGetIn({ lang: lang.code }))
 	locator
 		.sendMailModel(detailsProperties.mailboxDetails, detailsProperties.mailboxProperties)
-		.then((model) => model.initWithTemplate({}, subject, appendEmailSignature(bodyText, locator.logins.getUserController().props), [], false))
+		.then((model) => model.initWithTemplate({}, giftCardSubject, appendEmailSignature(bodyText, locator.logins.getUserController().props), [], false))
 		.then((model) => createMailEditorDialog(model, false))
 		.then((dialog) => dialog.show())
 }
