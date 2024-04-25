@@ -313,19 +313,12 @@ export class SubscriptionViewer implements UpdatableSettingsViewer {
 		m.redraw()
 	}
 
-	private async updateSubscriptionField(cancelled: boolean) {
-		const cancelledText =
-			cancelled && this._periodEndDate
-				? " " +
-				  lang.get("cancelledBy_label", {
-						"{endOfSubscriptionPeriod}": formatDate(this._periodEndDate),
-				  })
-				: ""
+	private async updateSubscriptionField() {
 		const userController = locator.logins.getUserController()
 		const accountType: AccountType = downcast(userController.user.accountType)
 		const planType = await userController.getPlanType()
 
-		this._subscriptionFieldValue(_getAccountTypeName(accountType, planType) + cancelledText)
+		this._subscriptionFieldValue(_getAccountTypeName(accountType, planType))
 	}
 
 	private async updateBookings(): Promise<void> {
@@ -348,11 +341,10 @@ export class SubscriptionViewer implements UpdatableSettingsViewer {
 		const bookings = await locator.entityClient.loadRange(BookingTypeRef, neverNull(customerInfo.bookings).items, GENERATED_MAX_ID, 1, true)
 		this._lastBooking = bookings.length > 0 ? bookings[bookings.length - 1] : null
 		this._customer = customer
-		this._isCancelled = customer.canceledPremiumAccount
 		this.currentPlanType = await userController.getPlanType()
 
 		const planConfig = await userController.getPlanConfig()
-		await this.updateSubscriptionField(this._isCancelled)
+		await this.updateSubscriptionField()
 
 		await Promise.all([
 			this.updateUserField(),

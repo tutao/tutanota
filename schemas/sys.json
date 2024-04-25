@@ -275,6 +275,16 @@
 					"info": "AddAssociation UserGroupRoot/keyRotations/AGGREGATION/2294."
 				}
 			]
+		},
+		{
+			"version": 97,
+			"changes": [
+				{
+					"name": "RemoveValue",
+					"sourceType": "Customer",
+					"info": "RemoveValue Customer/canceledPremiumAccount/902."
+				}
+			]
 		}
 	]
 }

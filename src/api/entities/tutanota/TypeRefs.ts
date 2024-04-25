@@ -1837,6 +1837,31 @@ export type TemplateGroupRoot = {
 	knowledgeBase: Id;
 	templates: Id;
 }
+export const TranslationGetInTypeRef: TypeRef<TranslationGetIn> = new TypeRef("tutanota", "TranslationGetIn")
+
+export function createTranslationGetIn(values: StrippedEntity<TranslationGetIn>): TranslationGetIn {
+	return Object.assign(create(typeModels.TranslationGetIn, TranslationGetInTypeRef), values)
+}
+
+export type TranslationGetIn = {
+	_type: TypeRef<TranslationGetIn>;
+
+	_format: NumberString;
+	lang: string;
+}
+export const TranslationGetOutTypeRef: TypeRef<TranslationGetOut> = new TypeRef("tutanota", "TranslationGetOut")
+
+export function createTranslationGetOut(values: StrippedEntity<TranslationGetOut>): TranslationGetOut {
+	return Object.assign(create(typeModels.TranslationGetOut, TranslationGetOutTypeRef), values)
+}
+
+export type TranslationGetOut = {
+	_type: TypeRef<TranslationGetOut>;
+
+	_format: NumberString;
+	giftCardSubject: string;
+	invitationSubject: string;
+}
 export const TutanotaPropertiesTypeRef: TypeRef<TutanotaProperties> = new TypeRef("tutanota", "TutanotaProperties")
 
 export function createTutanotaProperties(values: StrippedEntity<TutanotaProperties>): TutanotaProperties {

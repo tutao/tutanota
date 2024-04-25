@@ -716,7 +716,6 @@ export type Customer = {
 	_permissions: Id;
 	approvalStatus: NumberString;
 	businessUse: boolean;
-	canceledPremiumAccount: boolean;
 	orderProcessingAgreementNeeded: boolean;
 	type: NumberString;
 
@@ -2098,31 +2097,6 @@ export type PlanServiceGetOut = {
 
 	config: PlanConfiguration;
 }
-export const PremiumFeatureDataTypeRef: TypeRef<PremiumFeatureData> = new TypeRef("sys", "PremiumFeatureData")
-
-export function createPremiumFeatureData(values: StrippedEntity<PremiumFeatureData>): PremiumFeatureData {
-	return Object.assign(create(typeModels.PremiumFeatureData, PremiumFeatureDataTypeRef), values)
-}
-
-export type PremiumFeatureData = {
-	_type: TypeRef<PremiumFeatureData>;
-
-	_format: NumberString;
-	activationCode: string;
-	featureName: string;
-}
-export const PremiumFeatureReturnTypeRef: TypeRef<PremiumFeatureReturn> = new TypeRef("sys", "PremiumFeatureReturn")
-
-export function createPremiumFeatureReturn(values: StrippedEntity<PremiumFeatureReturn>): PremiumFeatureReturn {
-	return Object.assign(create(typeModels.PremiumFeatureReturn, PremiumFeatureReturnTypeRef), values)
-}
-
-export type PremiumFeatureReturn = {
-	_type: TypeRef<PremiumFeatureReturn>;
-
-	_format: NumberString;
-	activatedFeature: NumberString;
-}
 export const PriceDataTypeRef: TypeRef<PriceData> = new TypeRef("sys", "PriceData")
 
 export function createPriceData(values: StrippedEntity<PriceData>): PriceData {
@@ -2408,19 +2382,6 @@ export type RegistrationCaptchaServiceReturn = {
 	_format: NumberString;
 	challenge: null | Uint8Array;
 	token: string;
-}
-export const RegistrationConfigReturnTypeRef: TypeRef<RegistrationConfigReturn> = new TypeRef("sys", "RegistrationConfigReturn")
-
-export function createRegistrationConfigReturn(values: StrippedEntity<RegistrationConfigReturn>): RegistrationConfigReturn {
-	return Object.assign(create(typeModels.RegistrationConfigReturn, RegistrationConfigReturnTypeRef), values)
-}
-
-export type RegistrationConfigReturn = {
-	_type: TypeRef<RegistrationConfigReturn>;
-
-	_format: NumberString;
-	freeEnabled: boolean;
-	starterEnabled: boolean;
 }
 export const RegistrationReturnTypeRef: TypeRef<RegistrationReturn> = new TypeRef("sys", "RegistrationReturn")
 
