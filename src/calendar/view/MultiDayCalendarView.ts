@@ -351,7 +351,10 @@ export class MultiDayCalendarView implements Component<MultiDayCalendarViewAttrs
 
 	private scrollDOMs(vnode: VnodeDOM, attrs: MultiDayCalendarViewAttrs, isSmooth: boolean): void {
 		// Do not override an ongoing `scrollTo()` call unless the update was caused by user input
-		if (this.isProgrammaticScrollInProgress && this.lastScrollPosition === attrs.scrollPosition) return
+		// Also do not scroll to a position the list is already at
+		if ((this.isProgrammaticScrollInProgress && this.lastScrollPosition === attrs.scrollPosition) || vnode.dom.scrollTop === attrs.scrollPosition) {
+			return
+		}
 
 		if (isSmooth) {
 			this.isProgrammaticScrollInProgress = true

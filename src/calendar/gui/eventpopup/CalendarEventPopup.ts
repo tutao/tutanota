@@ -52,7 +52,7 @@ export class CalendarEventPopup implements ModalComponent {
 	}
 
 	private readonly handleDeleteButtonClick: (ev: MouseEvent, receiver: HTMLElement) => void = async (ev: MouseEvent, receiver: HTMLElement) => {
-		showDeletePopup(this.model, ev, receiver, this.close)
+		showDeletePopup(this.model, ev, receiver, () => this.close)
 	}
 
 	private readonly handleEditButtonClick: (ev: MouseEvent, receiver: HTMLElement) => void = (ev: MouseEvent, receiver: HTMLElement) => {
