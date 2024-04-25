@@ -1,4 +1,4 @@
-import type { BrowserWindow, ContextMenuParams, NativeImage, Result, Session } from "electron"
+import type { BrowserWindow, ContextMenuParams, NativeImage, Result } from "electron"
 import type { WindowBounds, WindowManager } from "./DesktopWindowManager"
 import url from "node:url"
 import type { lazy } from "@tutao/tutanota-utils"
@@ -73,7 +73,6 @@ export class ApplicationWindow {
 		private readonly localShortcut: LocalShortcutManager,
 		private readonly themeFacade: DesktopThemeFacade,
 		private readonly remoteBridge: RemoteBridge,
-		dictUrl: string,
 		noAutoLogin?: boolean | null,
 		preloadOverridePath?: string,
 	) {
@@ -169,7 +168,6 @@ export class ApplicationWindow {
 		this.createBrowserWindow(wm, {
 			preloadPath,
 			icon,
-			dictUrl,
 		})
 		this.initFacades()
 
@@ -268,10 +266,10 @@ export class ApplicationWindow {
 		opts: {
 			preloadPath: string
 			icon: NativeImage
-			dictUrl: string
 		},
 	) {
-		const { preloadPath, dictUrl, icon } = opts
+		const { preloadPath, icon } = opts
+
 		this._browserWindow = new this.electron.BrowserWindow({
 			icon,
 			show: false,
@@ -299,6 +297,11 @@ export class ApplicationWindow {
 			},
 		})
 
+		const session = this._browserWindow.webContents.session
+		session.setPermissionRequestHandler((webContents, permission, callback: (_: boolean) => void) => callback(false))
+
+		handleProtocols(session, this.absoluteAssetsPath)
+
 		this._browserWindow.setMenuBarVisibility(false)
 
 		this._browserWindow.removeMenu()
@@ -306,13 +309,6 @@ export class ApplicationWindow {
 		this._browserWindow.setMinimumSize(MINIMUM_WINDOW_SIZE, MINIMUM_WINDOW_SIZE)
 
 		this.id = this._browserWindow.id
-
-		const session = this._browserWindow.webContents.session
-		session.setPermissionRequestHandler((webContents, permission, callback: (_: boolean) => void) => callback(false))
-
-		handleProtocols(session, this.absoluteAssetsPath)
-
-		this.manageDownloadsForSession(session, dictUrl)
 
 		this._browserWindow
 			.on("closed", async () => {
@@ -482,18 +478,6 @@ export class ApplicationWindow {
 		)
 
 		this._desktopFacade.addShortcuts(webShortcuts)
-	}
-
-	private manageDownloadsForSession(session: Session, dictUrl: string) {
-		dictUrl = dictUrl + "/dictionaries/"
-		log.debug(TAG, "getting dictionaries from:", dictUrl)
-		session.setSpellCheckerDictionaryDownloadURL(dictUrl)
-		session
-			.removeAllListeners("spellcheck-dictionary-download-failure")
-			.on("spellcheck-dictionary-initialized", (ev, lcode) => log.debug(TAG, "spellcheck-dictionary-initialized", lcode))
-			.on("spellcheck-dictionary-download-begin", (ev, lcode) => log.debug(TAG, "spellcheck-dictionary-download-begin", lcode))
-			.on("spellcheck-dictionary-download-success", (ev, lcode) => log.debug(TAG, "spellcheck-dictionary-download-success", lcode))
-			.on("spellcheck-dictionary-download-failure", (ev, lcode) => log.debug(TAG, "spellcheck-dictionary-download-failure", lcode))
 	}
 
 	private tryGoBack(): void {

@@ -2,7 +2,7 @@ import { mp } from "./DesktopMonkeyPatch"
 import { err } from "./DesktopErrorHandler"
 import { DesktopConfig } from "./config/DesktopConfig"
 import * as electron from "electron"
-import { app } from "electron"
+import { app, type Session } from "electron"
 import { DesktopUtils } from "./DesktopUtils"
 import { setupAssetProtocol, WindowManager } from "./DesktopWindowManager"
 import { DesktopNotifier } from "./DesktopNotifier"
@@ -72,6 +72,8 @@ declare const buildOptions: {
 dns.setDefaultResultOrder("ipv4first")
 
 setupAssetProtocol(electron)
+
+const TAG = "[DesktopMain]"
 
 mp()
 type Components = {
@@ -189,6 +191,12 @@ async function createComponents(): Promise<Components> {
 	}
 
 	const offlineDbRefCounter = new OfflineDbRefCounter(offlineDbFactory)
+	const updateUrl = await conf.getConst(BuildConfigKey.updateUrl)
+	const dictUrl = updateUrl ? updateUrl : "https://app.tuta.com/desktop/"
+
+	electron.app.on("session-created", async (session) => {
+		manageDownloadsForSession(session, dictUrl)
+	})
 
 	const wm = new WindowManager(conf, tray, notifier, electron, shortcutManager, appIcon)
 	const themeFacade = new DesktopThemeFacade(conf, wm, electron.nativeTheme)
@@ -338,4 +346,16 @@ async function main(components: Components) {
 	updater.start()
 	integrator.runIntegration(wm)
 	await desktopUtils.handleMailto(components.wm)
+}
+
+function manageDownloadsForSession(session: Session, dictUrl: string) {
+	dictUrl = dictUrl + "/dictionaries/"
+	log.debug(TAG, "getting dictionaries from:", dictUrl)
+	session.setSpellCheckerDictionaryDownloadURL(dictUrl)
+	session
+		.removeAllListeners("spellcheck-dictionary-download-failure")
+		.on("spellcheck-dictionary-initialized", (ev, lcode) => log.debug(TAG, "spellcheck-dictionary-initialized", lcode))
+		.on("spellcheck-dictionary-download-begin", (ev, lcode) => log.debug(TAG, "spellcheck-dictionary-download-begin", lcode))
+		.on("spellcheck-dictionary-download-success", (ev, lcode) => log.debug(TAG, "spellcheck-dictionary-download-success", lcode))
+		.on("spellcheck-dictionary-download-failure", (ev, lcode) => log.debug(TAG, "spellcheck-dictionary-download-failure", lcode))
 }
