@@ -50,13 +50,7 @@ export async function checkPaidSubscription(): Promise<boolean> {
 		showNotAvailableForFreeDialog()
 		return false
 	}
-
-	const customer = await locator.logins.getUserController().loadCustomer()
-	if (customer.canceledPremiumAccount) {
-		return Dialog.message("subscriptionCancelledMessage_msg").then(() => false)
-	} else {
-		return true
-	}
+	return true
 }
 
 export async function showMoreStorageNeededOrderDialog(messageIdOrMessageFunction: TranslationKey): Promise<PlanType | void> {

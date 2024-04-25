@@ -3,7 +3,7 @@ import { assertNotNull, filterInt, incrementDate, ofClass } from "@tutao/tutanot
 import { TextField, TextFieldType } from "../gui/base/TextField.js"
 import { Dialog, DialogType } from "../gui/base/Dialog.js"
 import { lang, TranslationKey } from "../misc/LanguageViewModel.js"
-import { AccountType, BookingItemFeatureType, FeatureType } from "../api/common/TutanotaConstants.js"
+import { BookingItemFeatureType, FeatureType } from "../api/common/TutanotaConstants.js"
 import { formatDate } from "../misc/Formatter.js"
 import type { PriceData, PriceServiceReturn } from "../api/entities/sys/TypeRefs.js"
 import { AccountingInfoTypeRef, PriceItemData } from "../api/entities/sys/TypeRefs.js"
@@ -41,27 +41,19 @@ export async function showBuyDialog(params: BookingParams): Promise<boolean> {
 }
 
 async function prepareDialog({ featureType, count, reactivate }: BookingParams): Promise<PriceChangeModel | null> {
-	const customer = await locator.logins.getUserController().loadCustomer()
-	if (customer.type === AccountType.PAID && customer.canceledPremiumAccount) {
-		await Dialog.message("subscriptionCancelledMessage_msg")
+	const price = await locator.bookingFacade.getPrice(featureType, count, reactivate)
+	const priceChangeModel = new PriceChangeModel(price, featureType)
+	const customerInfo = await locator.logins.getUserController().loadCustomerInfo()
+	const accountingInfo = await locator.entityClient.load(AccountingInfoTypeRef, customerInfo.accountingInfo).catch(ofClass(NotAuthorizedError, () => null))
+	if (accountingInfo && accountingInfo.paymentMethod == null) {
+		const confirm = await Dialog.confirm("enterPaymentDataFirst_msg")
+		if (confirm) {
+			m.route.set("/settings/invoice")
+		}
+
 		return null
 	} else {
-		const price = await locator.bookingFacade.getPrice(featureType, count, reactivate)
-		const priceChangeModel = new PriceChangeModel(price, featureType)
-		const customerInfo = await locator.logins.getUserController().loadCustomerInfo()
-		const accountingInfo = await locator.entityClient
-			.load(AccountingInfoTypeRef, customerInfo.accountingInfo)
-			.catch(ofClass(NotAuthorizedError, () => null))
-		if (accountingInfo && accountingInfo.paymentMethod == null) {
-			const confirm = await Dialog.confirm("enterPaymentDataFirst_msg")
-			if (confirm) {
-				m.route.set("/settings/invoice")
-			}
-
-			return null
-		} else {
-			return priceChangeModel
-		}
+		return priceChangeModel
 	}
 }
 
