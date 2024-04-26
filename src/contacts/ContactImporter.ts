@@ -3,7 +3,7 @@ import { assert, assertNotNull, getFirstOrThrow, NBSP, ofClass, promiseMap } fro
 import { locator } from "../api/main/MainLocator.js"
 import { vCardFileToVCards, vCardListToContacts } from "./VCardImporter.js"
 import { ImportError } from "../api/common/error/ImportError.js"
-import { lang } from "../misc/LanguageViewModel.js"
+import { lang, TranslationText } from "../misc/LanguageViewModel.js"
 import { showProgressDialog } from "../gui/dialogs/ProgressDialog.js"
 import { ContactFacade } from "../api/worker/facades/lazy/ContactFacade.js"
 import {
@@ -43,10 +43,14 @@ export class ContactImporter {
 		const contactMembership = getFirstOrThrow(locator.logins.getUserController().getContactGroupMemberships())
 		const contacts = vCardListToContacts(vCardList, contactMembership.group)
 
-		return showContactImportDialog(contacts, (dialog) => {
-			dialog.close()
-			this.importContacts(contacts, contactListId)
-		})
+		return showContactImportDialog(
+			contacts,
+			(dialog) => {
+				dialog.close()
+				this.importContacts(contacts, contactListId)
+			},
+			"importVCard_action",
+		)
 	}
 
 	async importContacts(contacts: ReadonlyArray<Contact>, contactListId: string) {
@@ -110,10 +114,14 @@ export class ContactImporter {
 
 		const importer = await locator.contactImporter()
 
-		showContactImportDialog(contactsToImport, (dialog) => {
-			dialog.close()
-			importer.importContacts(contactsToImport, assertNotNull(contactListId))
-		})
+		showContactImportDialog(
+			contactsToImport,
+			(dialog) => {
+				dialog.close()
+				importer.importContacts(contactsToImport, assertNotNull(contactListId))
+			},
+			"importContacts_label",
+		)
 	}
 
 	private contactFromStructuredContact(ownerGroupId: Id, contact: StructuredContact): Contact {
@@ -189,7 +197,7 @@ export class ContactImporter {
  * @param contacts The contact list to be previewed
  * @param okAction The action to be executed when the user press the import button
  */
-export function showContactImportDialog(contacts: Contact[], okAction: (dialog: Dialog) => unknown) {
+export function showContactImportDialog(contacts: Contact[], okAction: (dialog: Dialog) => unknown, title: TranslationText) {
 	const renderConfig: RenderConfig<Contact, ImportContactRowHolder> = {
 		itemHeight: size.list_row_height,
 		multiselectionAllowed: MultiselectMode.Disabled,
@@ -216,7 +224,7 @@ export function showContactImportDialog(contacts: Contact[], okAction: (dialog: 
 						},
 					},
 				],
-				middle: () => lang.get("importVCard_action"),
+				middle: () => lang.getMaybeLazy(title),
 				right: [
 					{
 						type: ButtonType.Primary,
