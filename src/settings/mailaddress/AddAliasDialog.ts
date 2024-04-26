@@ -16,9 +16,8 @@ const FAILURE_USER_DISABLED = "mailaddressaliasservice.group_disabled"
 
 export function showAddAliasDialog(model: MailAddressTableModel, isNewPaidPlan: boolean) {
 	model.getAvailableDomains().then((domains) => {
+		const hasCustomDomains = domains.some((domain) => !TUTANOTA_MAIL_ADDRESS_DOMAINS.includes(domain.domain))
 		if (model.aliasCount && filterInt(model.aliasCount.usedAliases) >= filterInt(model.aliasCount.totalAliases)) {
-			const hasCustomDomains = domains.some((domain) => !TUTANOTA_MAIL_ADDRESS_DOMAINS.includes(domain.domain))
-
 			if (!(isNewPaidPlan && hasCustomDomains)) {
 				model.handleTooManyAliases().catch(ofClass(UpgradeRequiredError, (e) => showPlanUpgradeRequiredDialog(e.plans, e.message)))
 				return
@@ -29,7 +28,7 @@ export function showAddAliasDialog(model: MailAddressTableModel, isNewPaidPlan: 
 		let mailAddress: string
 		let formErrorId: TranslationKey | null = "mailAddressNeutral_msg"
 		let formDomain = getFirstOrThrow(domains)
-		if (!isNewPaidPlan) {
+		if (!isNewPaidPlan && !hasCustomDomains) {
 			formDomain = domains.find((domain) => domain.domain === DEFAULT_FREE_MAIL_ADDRESS_SIGNUP_DOMAIN) ?? formDomain
 		}
 		let senderName = model.defaultSenderName()
