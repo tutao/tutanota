@@ -53,11 +53,12 @@ export class MailFoldersView implements Component<MailFolderViewAttrs> {
 			.map((f) => f.folder)
 			.find((f) => isSelectedPrefix(MAIL_PREFIX + "/" + f.mails))
 		const path = selectedFolder ? mailboxDetail.folders.getPathToFolder(selectedFolder._id) : []
-		const systemChildren = this.renderFolderTree(systemSystems, groupCounters, attrs, path)
+		const isInternalUser = locator.logins.isInternalUserLoggedIn()
+		const systemChildren = this.renderFolderTree(systemSystems, groupCounters, attrs, path, isInternalUser)
 		if (systemChildren) {
 			children.push(...systemChildren.children)
 		}
-		if (locator.logins.isInternalUserLoggedIn()) {
+		if (isInternalUser) {
 			children.push(
 				m(
 					SidebarSection,
@@ -66,7 +67,7 @@ export class MailFoldersView implements Component<MailFolderViewAttrs> {
 						button: attrs.inEditMode ? this.renderCreateFolderAddButton(null, attrs) : this.renderEditFoldersButton(attrs),
 						key: "yourFolders", // we need to set a key because folder rows also have a key.
 					},
-					this.renderFolderTree(customSystems, groupCounters, attrs, path).children,
+					this.renderFolderTree(customSystems, groupCounters, attrs, path, isInternalUser).children,
 				),
 			)
 			children.push(this.renderAddFolderButtonRow(attrs))
@@ -79,6 +80,7 @@ export class MailFoldersView implements Component<MailFolderViewAttrs> {
 		groupCounters: Counters,
 		attrs: MailFolderViewAttrs,
 		path: MailFolder[],
+		isInternalUser: boolean,
 		indentationLevel: number = 0,
 	): { children: Children[]; numRows: number } {
 		// we need to keep track of how many rows we've drawn so far for this subtree so that we can draw hierarchy lines correctly
@@ -111,12 +113,12 @@ export class MailFoldersView implements Component<MailFolderViewAttrs> {
 			const summedCount = !currentExpansionState && hasChildren ? this.getTotalFolderCounter(groupCounters, system) : groupCounters[system.folder.mails]
 			const childResult =
 				hasChildren && currentExpansionState
-					? this.renderFolderTree(system.children, groupCounters, attrs, path, indentationLevel + 1)
+					? this.renderFolderTree(system.children, groupCounters, attrs, path, isInternalUser, indentationLevel + 1)
 					: { children: null, numRows: 0 }
 			const isTrashOrSpam = system.folder.folderType === MailFolderType.TRASH || system.folder.folderType === MailFolderType.SPAM
 			const isRightButtonVisible = this.visibleRow === id
 			const rightButton =
-				!isTrashOrSpam && (isRightButtonVisible || attrs.inEditMode)
+				isInternalUser && !isTrashOrSpam && (isRightButtonVisible || attrs.inEditMode)
 					? this.createFolderMoreButton(system.folder, attrs, () => {
 							this.visibleRow = null
 					  })
