@@ -15,4 +15,17 @@ public protocol MobilePaymentsFacade {
 		_ interval: Int,
 		_ customerIdBytes: DataWrapper
 	) async throws -> MobilePaymentResult
+	/**
+	 * Returns a displayable price for a plan
+	 */
+	func getPlanPrice(
+		_ plan: String,
+		_ interval: Int
+	) async throws -> MobilePlanPrice?
+	/**
+	 * Returns a displayable price for the current plan
+	 */
+	func getCurrentPlanPrice(
+		_ customerIdBytes: DataWrapper
+	) async throws -> String?
 }

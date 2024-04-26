@@ -1,0 +1,8 @@
+{
+	"name": "MobilePlanPrice",
+	"type": "struct",
+	"fields": {
+		"perMonthPrice": "string",
+		"perIntervalPrice": "string"
+	}
+}

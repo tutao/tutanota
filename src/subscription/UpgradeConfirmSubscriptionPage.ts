@@ -198,6 +198,6 @@ export class UpgradeConfirmSubscriptionPage implements WizardPageN<UpgradeSubscr
 	}
 }
 
-function buildPriceString(price: NumberString, options: SelectedSubscriptionOptions): string {
-	return formatPriceWithInfo(Number(price), options.paymentInterval(), !options.businessUse())
+function buildPriceString(price: string, options: SelectedSubscriptionOptions): string {
+	return formatPriceWithInfo(price, options.paymentInterval(), !options.businessUse())
 }

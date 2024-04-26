@@ -19,6 +19,27 @@
 				}
 			],
 			"ret": "MobilePaymentResult"
+		},
+		"getPlanPrice": {
+			"doc": "Returns a displayable price for a plan",
+			"arg": [
+				{
+					"plan": "string"
+				},
+				{
+					"interval": "number"
+				}
+			],
+			"ret": "MobilePlanPrice?"
+		},
+		"getCurrentPlanPrice": {
+			"doc": "Returns a displayable price for the current plan",
+			"arg": [
+				{
+					"customerIdBytes": "bytes"
+				}
+			],
+			"ret": "string?"
 		}
 	}
 }
