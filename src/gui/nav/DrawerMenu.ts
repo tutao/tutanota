@@ -30,8 +30,12 @@ export class DrawerMenu implements Component<DrawerMenuAttrs> {
 		const { logins, newsModel, desktopSystemFacade } = vnode.attrs
 		const liveNewsCount = newsModel.liveNewsIds.length
 
+		const isInternalUser = logins.isInternalUserLoggedIn()
+		const isLoggedIn = logins.isUserLoggedIn()
+		const userController = logins.getUserController()
+
 		return m(
-			"drawer-menu",
+			"drawer-menu.flex.col.items-center.pt.pb",
 			{
 				...landmarkAttrs(AriaLandmarks.Contentinfo, "drawer menu"),
 				style: {
@@ -39,9 +43,9 @@ export class DrawerMenu implements Component<DrawerMenuAttrs> {
 					"border-top-right-radius": styles.isDesktopLayout() ? px(size.border_radius_big) : "",
 				},
 			},
-			m(".flex.col.height-100p.items-center.pt.pb", [
+			[
 				m(".flex-grow"),
-				logins.isUserLoggedIn()
+				isInternalUser && isLoggedIn
 					? m(".news-button", [
 							m(IconButton, {
 								icon: Icons.Bulb,
@@ -62,7 +66,7 @@ export class DrawerMenu implements Component<DrawerMenuAttrs> {
 								: null,
 					  ])
 					: null,
-				logins.isGlobalAdminUserLoggedIn() && logins.getUserController().isPremiumAccount()
+				logins.isGlobalAdminUserLoggedIn() && userController.isPremiumAccount()
 					? m(IconButton, {
 							icon: Icons.Gift,
 							title: "buyGiftCard_label",
@@ -85,7 +89,7 @@ export class DrawerMenu implements Component<DrawerMenuAttrs> {
 							colors: ButtonColor.DrawerNav,
 					  })
 					: null,
-				!isIOSApp() && logins.isUserLoggedIn() && logins.getUserController().isFreeAccount()
+				!isIOSApp() && isLoggedIn && userController.isFreeAccount()
 					? m(IconButton, {
 							icon: BootIcons.Premium,
 							title: "upgradePremium_label",
@@ -112,7 +116,7 @@ export class DrawerMenu implements Component<DrawerMenuAttrs> {
 						})(e, dom),
 					colors: ButtonColor.DrawerNav,
 				}),
-				logins.isInternalUserLoggedIn()
+				isInternalUser
 					? m(IconButton, {
 							icon: BootIcons.Settings,
 							title: "settings_label",
@@ -126,7 +130,7 @@ export class DrawerMenu implements Component<DrawerMenuAttrs> {
 					click: () => m.route.set(LogoutUrl),
 					colors: ButtonColor.DrawerNav,
 				}),
-			]),
+			],
 		)
 	}
 }
