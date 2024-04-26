@@ -20,6 +20,20 @@ public class MobilePaymentsFacadeReceiveDispatcher {
 				customerIdBytes
 			)
 			return toJson(result)
+		case "getPlanPrice":
+			let plan = try! JSONDecoder().decode(String.self, from: arg[0].data(using: .utf8)!)
+			let interval = try! JSONDecoder().decode(Int.self, from: arg[1].data(using: .utf8)!)
+			let result = try await self.facade.getPlanPrice(
+				plan,
+				interval
+			)
+			return toJson(result)
+		case "getCurrentPlanPrice":
+			let customerIdBytes = try! JSONDecoder().decode(DataWrapper.self, from: arg[0].data(using: .utf8)!)
+			let result = try await self.facade.getCurrentPlanPrice(
+				customerIdBytes
+			)
+			return toJson(result)
 		default:
 			fatalError("licc messed up! \(method)")
 		}

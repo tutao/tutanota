@@ -9,6 +9,7 @@ import {
 	LegacyPlans,
 	NewPaidPlans,
 	OperationType,
+	PaymentMethodType,
 	PlanType,
 } from "../api/common/TutanotaConstants"
 import type { AccountingInfo, Booking, Customer, CustomerInfo, GiftCard, OrderProcessingAgreement, PlanConfiguration } from "../api/entities/sys/TypeRefs.js"
@@ -22,7 +23,7 @@ import {
 	OrderProcessingAgreementTypeRef,
 	UserTypeRef,
 } from "../api/entities/sys/TypeRefs.js"
-import { assertNotNull, downcast, incrementDate, neverNull, promiseMap } from "@tutao/tutanota-utils"
+import { assertNotNull, base64ExtToBase64, base64ToUint8Array, downcast, incrementDate, neverNull, promiseMap } from "@tutao/tutanota-utils"
 import { lang, TranslationKey } from "../misc/LanguageViewModel"
 import { Icons } from "../gui/base/icons/Icons"
 import { asPaymentInterval, formatPrice, formatPriceDataWithInfo, PaymentInterval } from "./PriceUtils"
@@ -284,24 +285,45 @@ export class SubscriptionViewer implements UpdatableSettingsViewer {
 	private async updatePriceInfo(): Promise<void> {
 		if (!this.showPriceData()) {
 			return
-		} else {
-			const priceServiceReturn = await locator.bookingFacade.getCurrentPrice()
-			if (priceServiceReturn.currentPriceThisPeriod != null && priceServiceReturn.currentPriceNextPeriod != null) {
-				if (priceServiceReturn.currentPriceThisPeriod.price !== priceServiceReturn.currentPriceNextPeriod.price) {
-					this._currentPriceFieldValue(formatPriceDataWithInfo(priceServiceReturn.currentPriceThisPeriod))
+		}
 
-					this._nextPriceFieldValue(formatPriceDataWithInfo(neverNull(priceServiceReturn.currentPriceNextPeriod)))
+		// FIXME: Use the accountingInfo we already get
+		const customerId = neverNull(locator.logins.getUserController().user.customer)
+		const accountingInfo = await locator.entityClient
+			.load(CustomerTypeRef, customerId)
+			.then((customer) => {
+				this.updateCustomerData(customer)
+				return locator.logins.getUserController().loadCustomerInfo()
+			})
+			.then((customerInfo) => {
+				this._customerInfo = customerInfo
+				return locator.entityClient.load(AccountingInfoTypeRef, customerInfo.accountingInfo)
+			})
 
-					this._nextPeriodPriceVisible = true
-				} else {
-					this._currentPriceFieldValue(formatPriceDataWithInfo(priceServiceReturn.currentPriceThisPeriod))
+		if (accountingInfo.paymentMethod === PaymentMethodType.AppStore) {
+			// FIXME: make mobilePaymentsFacade passed in with the constructor
+			const amount = await locator.mobilePaymentsFacade.getCurrentPlanPrice(base64ToUint8Array(base64ExtToBase64(customerId)))
+			this._currentPriceFieldValue(amount ?? "FREE TUTA!!!! ;)") // FIXME: add a proper text here that says something about not being able to access the price @ app store
+			m.redraw()
+			return
+		}
 
-					this._nextPeriodPriceVisible = false
-				}
+		const priceServiceReturn = await locator.bookingFacade.getCurrentPrice()
+		if (priceServiceReturn.currentPriceThisPeriod != null && priceServiceReturn.currentPriceNextPeriod != null) {
+			if (priceServiceReturn.currentPriceThisPeriod.price !== priceServiceReturn.currentPriceNextPeriod.price) {
+				this._currentPriceFieldValue(formatPriceDataWithInfo(priceServiceReturn.currentPriceThisPeriod))
 
-				this._periodEndDate = priceServiceReturn.periodEndDate
-				m.redraw()
+				this._nextPriceFieldValue(formatPriceDataWithInfo(neverNull(priceServiceReturn.currentPriceNextPeriod)))
+
+				this._nextPeriodPriceVisible = true
+			} else {
+				this._currentPriceFieldValue(formatPriceDataWithInfo(priceServiceReturn.currentPriceThisPeriod))
+
+				this._nextPeriodPriceVisible = false
 			}
+
+			this._periodEndDate = priceServiceReturn.periodEndDate
+			m.redraw()
 		}
 	}
 
@@ -449,7 +471,7 @@ export class SubscriptionViewer implements UpdatableSettingsViewer {
 
 		if (isUpdateForTypeRef(AccountingInfoTypeRef, update)) {
 			const accountingInfo = await locator.entityClient.load(AccountingInfoTypeRef, instanceId)
-			await this.updateAccountInfoData(accountingInfo)
+			this.updateAccountInfoData(accountingInfo)
 			return await this.updatePriceInfo()
 		} else if (isUpdateForTypeRef(UserTypeRef, update)) {
 			await this.updateBookings()
