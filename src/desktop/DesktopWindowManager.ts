@@ -283,8 +283,6 @@ export class WindowManager {
 
 	private async _newWindow(electron: ElectronExports, localShortcut: LocalShortcutManager, noAutoLogin: boolean | null): Promise<ApplicationWindow> {
 		const absoluteWebAssetsPath = this._electron.app.getAppPath()
-		const updateUrl = await this._conf.getConst(BuildConfigKey.updateUrl)
-		const dictUrl = updateUrl && updateUrl !== "" ? updateUrl : "https://app.tuta.com/desktop/"
 		// custom builds get the dicts from us as well
 		return new ApplicationWindow(
 			this,
@@ -294,7 +292,6 @@ export class WindowManager {
 			localShortcut,
 			this.themeFacade,
 			this.remoteBridge,
-			dictUrl,
 			noAutoLogin,
 			this.preloadOverride,
 		)
