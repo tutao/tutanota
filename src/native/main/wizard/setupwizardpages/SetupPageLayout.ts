@@ -1,7 +1,7 @@
-import { emitWizardEvent, WizardEventType } from "../../base/WizardDialog.js"
+import { emitWizardEvent, WizardEventType } from "../../../../gui/base/WizardDialog.js"
 import m, { Children, Component, Vnode } from "mithril"
-import { LoginButton } from "../../base/buttons/LoginButton.js"
-import { TranslationKey } from "../../../misc/LanguageViewModel.js"
+import { LoginButton } from "../../../../gui/base/buttons/LoginButton.js"
+import { TranslationKey } from "../../../../misc/LanguageViewModel.js"
 
 interface SetupPageLayoutAttrs {
 	image: string

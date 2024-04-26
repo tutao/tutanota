@@ -61,6 +61,7 @@ export const allowedImports = {
 	"native-common": ["polyfill-helpers", "common-min", "common"],
 	"native-main": ["polyfill-helpers", "common-min", "common", "boot", "gui-base", "main", "native-common", "login"],
 	"native-worker": ["polyfill-helpers", "common-min", "common"],
+	"setup-wizard": ["boot", "common-min", "gui-base", "main", "native-common", "settings", "ui-extra"],
 	jszip: ["polyfill-helpers"],
 	"worker-lazy": ["common-min", "common", "worker", "worker-search", "date"],
 	"worker-search": ["common-min", "common", "worker", "worker-lazy"],
@@ -124,6 +125,8 @@ export function getChunkName(moduleId, { getModuleInfo }) {
 	} else if (isIn("src/gui/base")) {
 		// these gui elements are used from everywhere
 		return "gui-base"
+	} else if (isIn("src/native/main/wizard")) {
+		return "setup-wizard"
 	} else if (isIn("src/native/main") || moduleId.includes("SearchInPageOverlay")) {
 		return "native-main"
 	} else if (
