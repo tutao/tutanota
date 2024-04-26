@@ -417,7 +417,13 @@ class MainActivity : FragmentActivity() {
 		)
 		OPEN_USER_MAILBOX_ACTION -> openMailbox(intent)
 		OPEN_CALENDAR_ACTION -> openCalendar(intent)
-		Intent.ACTION_VIEW -> view(intent)
+		Intent.ACTION_VIEW -> {
+			when (intent.scheme) {
+				"mailto" -> share(intent)
+				"file" -> view(intent)
+				"content" -> view(intent)
+			}
+		}
 	  }
 	}
   }
