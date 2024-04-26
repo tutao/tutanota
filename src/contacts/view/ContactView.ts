@@ -321,6 +321,7 @@ export class ContactView extends BaseTopLevelView implements TopLevelView<Contac
 									? null
 									: m(LazySearchBar, {
 											placeholder: lang.get("searchContacts_placeholder"),
+											disabled: !locator.logins.isFullyLoggedIn(),
 									  }),
 							...attrs.header,
 					  }),
