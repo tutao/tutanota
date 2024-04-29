@@ -88,6 +88,10 @@ export const size = {
 
 	dot_size: 7,
 	checkbox_size: 14,
+
+	md_supporting_text_margin: 4,
+	md_default_margin: 16,
+	md_default_line_height: 24,
 }
 export const inputLineHeight: number = size.font_size_base + 8
 

@@ -3,7 +3,7 @@ import stream from "mithril/stream"
 import Stream from "mithril/stream"
 import { liveDataAttrs } from "../gui/AriaUtils"
 import { lang, TranslationKey } from "../misc/LanguageViewModel"
-import { Autocomplete, TextField, TextFieldType } from "../gui/base/TextField.js"
+import { Autocomplete, BorderTextField, BorderTextFieldType } from "../gui/base/BorderTextField.js"
 import { Checkbox } from "../gui/base/Checkbox.js"
 import { client } from "../misc/ClientDetector"
 import { isApp, isDesktop, isOfflineStorageAvailable } from "../api/common/Env"
@@ -11,6 +11,7 @@ import { getWhitelabelCustomizations } from "../misc/WhitelabelCustomizations.js
 import { BootstrapFeatureType } from "../api/common/TutanotaConstants.js"
 import { ACTIVATED_MIGRATION, isLegacyDomain } from "./LoginViewModel.js"
 import { LoginButton } from "../gui/base/buttons/LoginButton.js"
+import { getNavigationMenuBg, theme } from "../gui/theme"
 
 export type LoginFormAttrs = {
 	onSubmit: (username: string, password: string) => unknown
@@ -24,8 +25,8 @@ export type LoginFormAttrs = {
 }
 
 export class LoginForm implements Component<LoginFormAttrs> {
-	mailAddressTextField!: HTMLInputElement
-	passwordTextField!: HTMLInputElement
+	mailAddressBorderTextField!: HTMLInputElement
+	passwordBorderTextField!: HTMLInputElement
 	// When iOS does auto-filling (always in WebView as of iOS 12.2 and in older Safari)
 	// it only sends one input/change event for all fields so we didn't know if fields
 	// were updated. So we kindly ask our fields to update themselves with real DOM values.
@@ -36,9 +37,9 @@ export class LoginForm implements Component<LoginFormAttrs> {
 		this.autofillUpdateHandler = stream.combine(() => {
 			requestAnimationFrame(() => {
 				const oldAddress = a.mailAddress()
-				const newAddress = this.mailAddressTextField.value
+				const newAddress = this.mailAddressBorderTextField.value
 				const oldPassword = a.password()
-				const newPassword = this.passwordTextField.value
+				const newPassword = this.passwordBorderTextField.value
 				// only update values when they are different or we get stuck in an infinite loop
 				if (oldAddress !== newAddress && newAddress != "") a.mailAddress(newAddress)
 				if (oldPassword !== newPassword && newPassword != "") a.password(newPassword)
@@ -49,7 +50,7 @@ export class LoginForm implements Component<LoginFormAttrs> {
 	onremove(vnode: Vnode<LoginFormAttrs>) {
 		vnode.attrs.password("")
 		this.autofillUpdateHandler.end(true)
-		this.passwordTextField.value = ""
+		this.passwordBorderTextField.value = ""
 	}
 
 	_passwordDisabled(): boolean {
@@ -77,29 +78,31 @@ export class LoginForm implements Component<LoginFormAttrs> {
 			[
 				m(
 					"",
-					m(TextField, {
+					m(BorderTextField, {
 						label: "mailAddress_label" as TranslationKey,
 						value: a.mailAddress(),
 						oninput: a.mailAddress,
-						type: TextFieldType.Email,
+						type: BorderTextFieldType.Email,
 						autocompleteAs: Autocomplete.email,
 						onDomInputCreated: (dom) => {
-							this.mailAddressTextField = dom
+							this.mailAddressBorderTextField = dom
 							if (!client.isMobileDevice()) {
 								dom.focus() // have email address auto-focus so the user can immediately type their username (unless on mobile)
 							}
 						},
+						labelBgColorOverwrite: theme.themeId == "dark" ? getNavigationMenuBg() : undefined,
 					}),
 				),
 				m(
 					"",
-					m(TextField, {
+					m(BorderTextField, {
 						label: "password_label",
 						value: a.password(),
 						oninput: a.password,
-						type: TextFieldType.Password,
+						type: BorderTextFieldType.Password,
 						autocompleteAs: Autocomplete.currentPassword,
-						onDomInputCreated: (dom) => (this.passwordTextField = dom),
+						onDomInputCreated: (dom) => (this.passwordBorderTextField = dom),
+						labelBgColorOverwrite: theme.themeId == "dark" ? getNavigationMenuBg() : undefined,
 					}),
 				),
 				a.savePassword && !this._passwordDisabled()

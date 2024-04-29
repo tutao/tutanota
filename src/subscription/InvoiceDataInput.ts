@@ -3,10 +3,9 @@ import type { TranslationKey } from "../misc/LanguageViewModel"
 import { lang } from "../misc/LanguageViewModel"
 import type { Country } from "../api/common/CountryList"
 import { Countries, CountryType } from "../api/common/CountryList"
-import { HtmlEditor, HtmlEditorMode } from "../gui/editor/HtmlEditor"
 import type { LocationServiceGetReturn } from "../api/entities/sys/TypeRefs.js"
 import { renderCountryDropdown } from "../gui/base/GuiUtils"
-import { TextField } from "../gui/base/TextField.js"
+import { BorderTextField, BorderTextFieldType } from "../gui/base/BorderTextField.js"
 import type { InvoiceData } from "../api/common/TutanotaConstants"
 import { LocationService } from "../api/entities/sys/Services"
 import { locator } from "../api/main/MainLocator"
@@ -20,22 +19,14 @@ export enum InvoiceDataInputLocation {
 }
 
 export class InvoiceDataInput implements Component {
-	private readonly invoiceAddressComponent: HtmlEditor
 	public readonly selectedCountry: Stream<Country | null>
 	private vatNumber: string = ""
 	private __paymentPaypalTest?: UsageTest
+	private invoiceAddressStream: stream<string>
 
 	constructor(private businessUse: boolean, invoiceData: InvoiceData, private readonly location = InvoiceDataInputLocation.Other) {
 		this.__paymentPaypalTest = locator.usageTestController.getTest("payment.paypal")
-
-		this.invoiceAddressComponent = new HtmlEditor()
-			.setMinHeight(120)
-			.showBorders()
-			.setPlaceholderId("invoiceAddress_label")
-			.setMode(HtmlEditorMode.HTML)
-			.setHtmlMonospace(false)
-			.setValue(invoiceData.invoiceAddress)
-
+		this.invoiceAddressStream = stream(invoiceData.invoiceAddress)
 		this.selectedCountry = stream(invoiceData.country)
 
 		this.view = this.view.bind(this)
@@ -46,7 +37,16 @@ export class InvoiceDataInput implements Component {
 		return [
 			this.businessUse || this.location !== InvoiceDataInputLocation.InWizard
 				? m("", [
-						m(".pt", m(this.invoiceAddressComponent)),
+						m(
+							".pt",
+							m(BorderTextField, {
+								value: this.invoiceAddressStream(),
+								oninput: this.invoiceAddressStream,
+								areaTextFieldLines: 5,
+								type: BorderTextFieldType.Area,
+								label: "invoiceAddress_label",
+							}),
+						),
 						m(".small", lang.get(this.businessUse ? "invoiceAddressInfoBusiness_msg" : "invoiceAddressInfoPrivate_msg")),
 				  ])
 				: null,
@@ -56,7 +56,7 @@ export class InvoiceDataInput implements Component {
 				helpLabel: () => lang.get("invoiceCountryInfoConsumer_msg"),
 			}),
 			this.isVatIdFieldVisible()
-				? m(TextField, {
+				? m(BorderTextField, {
 						label: "invoiceVatIdNo_label",
 						value: this.vatNumber,
 						oninput: (value) => (this.vatNumber = value),
@@ -117,8 +117,7 @@ export class InvoiceDataInput implements Component {
 	}
 
 	private getAddress(): string {
-		return this.invoiceAddressComponent
-			.getValue()
+		return this.invoiceAddressStream()
 			.split("\n")
 			.filter((line) => line.trim().length > 0)
 			.join("\n")
