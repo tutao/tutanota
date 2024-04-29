@@ -34,7 +34,7 @@ import { isApp, isBrowser, isDesktop } from "../../api/common/Env"
 import { Icons } from "../../gui/base/icons/Icons"
 import { AnimationPromise, animations, height, opacity } from "../../gui/animation/Animations"
 import type { TextFieldAttrs } from "../../gui/base/TextField.js"
-import { Autocomplete, TextField, TextFieldType } from "../../gui/base/TextField.js"
+import { Autocomplete, TextField } from "../../gui/base/TextField.js"
 import { chooseAndAttachFile, cleanupInlineAttachments, createAttachmentBubbleAttrs, getConfidentialStateMessage } from "./MailEditorViewModel"
 import { ExpanderPanel } from "../../gui/base/Expander"
 import { windowFacade } from "../../misc/WindowFacade"
@@ -63,7 +63,6 @@ import { parseMailtoUrl } from "../../misc/parsing/MailAddressParser"
 import { CancelledError } from "../../api/common/error/CancelledError"
 import { Shortcut } from "../../misc/KeyManager"
 import { Recipients, RecipientType } from "../../api/common/recipients/Recipient"
-import { CompletenessIndicator } from "../../gui/CompletenessIndicator.js"
 import { showUserError } from "../../misc/ErrorHandlerImpl"
 import { MailRecipientsTextField } from "../../gui/MailRecipientsTextField.js"
 import { getContactDisplayName } from "../../contacts/model/ContactUtils"
@@ -81,14 +80,13 @@ import { isLegacyMail, MailWrapper } from "../../api/common/MailWrapper.js"
 import { RecipientsSearchModel } from "../../misc/RecipientsSearchModel.js"
 import { createDataFile, DataFile } from "../../api/common/DataFile.js"
 import { AttachmentBubble } from "../../gui/AttachmentBubble.js"
-import { isSecurePassword, scaleToVisualPasswordStrength } from "../../misc/passwords/PasswordUtils.js"
-import { Status, StatusField } from "../../gui/base/StatusField.js"
 import { ContentBlockingStatus } from "../view/MailViewerViewModel.js"
 import { canSeeTutaLinks } from "../../gui/base/GuiUtils.js"
 import { BannerButtonAttrs, InfoBanner } from "../../gui/base/InfoBanner.js"
 import { isCustomizationEnabledForCustomer } from "../../api/common/utils/CustomerUtils.js"
 import { isOfflineError } from "../../api/common/utils/ErrorUtils.js"
 import { TranslationService } from "../../api/entities/tutanota/Services.js"
+import { PasswordField } from "../../gui/base/PasswordField.js"
 
 export type MailEditorAttrs = {
 	model: SendMailModel
@@ -641,47 +639,22 @@ export class MailEditor implements Component<MailEditorAttrs> {
 				.map((recipient) => {
 					if (!this.recipientShowConfidential.has(recipient.address)) this.recipientShowConfidential.set(recipient.address, false)
 
-					return m(TextField, {
+					return m(PasswordField, {
 						oncreate: (vnode) => this.animateHeight(vnode.dom as HTMLElement, true),
 						onbeforeremove: (vnode) => this.animateHeight(vnode.dom as HTMLElement, false),
 						label: () => lang.get("passwordFor_label", { "{1}": recipient.address }),
-						helpLabel: () =>
-							m(".mt-xs.flex.items-center", [
-								m(
-									".mr-s",
-									m(CompletenessIndicator, {
-										percentageCompleted: scaleToVisualPasswordStrength(this.sendMailModel.getPasswordStrength(recipient)),
-									}),
-								),
-								m(StatusField, { status: this.getExternalRecipientPasswordStatus(recipient) }),
-							]),
 						value: this.sendMailModel.getPassword(recipient.address),
+						passwordStrength: this.sendMailModel.getPasswordStrength(recipient),
+						status: "auto",
 						autocompleteAs: Autocomplete.off,
-						type: this.isConfidentialPasswordRevealed(recipient.address) ? TextFieldType.Text : TextFieldType.Password,
 						oninput: (val) => this.sendMailModel.setPassword(recipient.address, val),
-						injectionsRight: () => this.renderRevealIcon(recipient.address),
+						isPasswordRevealed: this.isConfidentialPasswordRevealed(recipient.address),
+						onRevealToggled: () => {
+							this.toggleRevealConfidentialPassword(recipient.address)
+						},
 					})
 				}),
 		)
-	}
-
-	private getExternalRecipientPasswordStatus(recipient: ResolvableRecipient): Status {
-		if (this.sendMailModel.getPassword(recipient.address) === "") {
-			return {
-				type: "neutral",
-				text: "password1Neutral_msg",
-			}
-		} else if (isSecurePassword(this.sendMailModel.getPasswordStrength(recipient))) {
-			return {
-				type: "valid",
-				text: "passwordValid_msg",
-			}
-		} else {
-			return {
-				type: "invalid",
-				text: "password1InvalidUnsecure_msg",
-			}
-		}
 	}
 
 	private renderRecipientField(field: RecipientField, fieldText: Stream<string>, search: RecipientsSearchModel): Children {
@@ -734,19 +707,6 @@ export class MailEditor implements Component<MailEditorAttrs> {
 					  )
 					: null,
 			search,
-		})
-	}
-
-	private renderRevealIcon(address: string): Children {
-		return m(ToggleButton, {
-			title: "revealPassword_action",
-			toggled: this.isConfidentialPasswordRevealed(address),
-			onToggled: (_, e) => {
-				this.toggleRevealConfidentialPassword(address)
-				e.stopPropagation()
-			},
-			icon: this.isConfidentialPasswordRevealed(address) ? Icons.NoEye : Icons.Eye,
-			size: ButtonSize.Compact,
 		})
 	}
 

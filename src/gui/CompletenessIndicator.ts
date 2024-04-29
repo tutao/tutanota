@@ -4,6 +4,7 @@ import { theme } from "./theme.js"
 export interface CompletenessIndicatorAttrs {
 	percentageCompleted: number
 	width?: string
+	class?: string
 }
 
 export class CompletenessIndicator implements Component<CompletenessIndicatorAttrs> {
@@ -11,6 +12,7 @@ export class CompletenessIndicator implements Component<CompletenessIndicatorAtt
 		return m(
 			"",
 			{
+				class: attrs.class,
 				style: {
 					border: `1px solid ${theme.content_button}`,
 					width: attrs.width ?? "100px",

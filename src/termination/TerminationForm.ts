@@ -10,6 +10,7 @@ import { liveDataAttrs } from "../gui/AriaUtils.js"
 import { LoginButton } from "../gui/base/buttons/LoginButton.js"
 import { Button, ButtonType } from "../gui/base/Button.js"
 import { LeavingUserSurveyData, showLeavingUserSurveyWizard } from "../subscription/LeavingUserSurveyWizard.js"
+import { PasswordField } from "../gui/base/PasswordField.js"
 
 export interface TerminationFormAttrs {
 	onSubmit: (surveyData: LeavingUserSurveyData | null) => unknown
@@ -81,7 +82,7 @@ export class TerminationForm implements Component<TerminationFormAttrs> {
 							this.passwordTextField = child.state
 						},
 					},
-					m(TextField, {
+					m(PasswordField, {
 						label: "password_label",
 						value: a.password,
 						autocompleteAs: Autocomplete.currentPassword,
@@ -89,7 +90,6 @@ export class TerminationForm implements Component<TerminationFormAttrs> {
 							this.handleAutofill(a)
 							a.onPasswordChanged(value)
 						},
-						type: TextFieldType.Password,
 					}),
 				),
 				m(".list-border-bottom.pb-l", [

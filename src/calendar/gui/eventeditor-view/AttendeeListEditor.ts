@@ -7,8 +7,7 @@ import { ButtonSize } from "../../../gui/base/ButtonSize.js"
 import { Checkbox } from "../../../gui/base/Checkbox.js"
 import { lang } from "../../../misc/LanguageViewModel.js"
 import { AccountType, CalendarAttendeeStatus } from "../../../api/common/TutanotaConstants.js"
-import { Autocomplete, TextField, TextFieldType } from "../../../gui/base/TextField.js"
-import { CompletenessIndicator } from "../../../gui/CompletenessIndicator.js"
+import { Autocomplete } from "../../../gui/base/TextField.js"
 import { RecipientsSearchModel } from "../../../misc/RecipientsSearchModel.js"
 import { noOp } from "@tutao/tutanota-utils"
 import { Guest } from "../../view/CalendarInvites.js"
@@ -24,10 +23,10 @@ import { CalendarEventModel, CalendarOperation } from "../eventeditor-model/Cale
 import { DropDownSelector } from "../../../gui/base/DropDownSelector.js"
 import { showPlanUpgradeRequiredDialog } from "../../../misc/SubscriptionDialogs.js"
 import { hasPlanWithInvites } from "../eventeditor-model/CalendarNotificationModel.js"
-import { scaleToVisualPasswordStrength } from "../../../misc/passwords/PasswordUtils.js"
 import { Dialog } from "../../../gui/base/Dialog.js"
 
 import { createAttendingItems, iconForAttendeeStatus } from "../CalendarGuiUtils.js"
+import { PasswordField } from "../../../gui/base/PasswordField.js"
 
 export type AttendeeListEditorAttrs = {
 	/** the event that is currently being edited */
@@ -152,34 +151,25 @@ export class AttendeeListEditor implements Component<AttendeeListEditorAttrs> {
 					.map((guest) => {
 						const { address } = guest
 						const { password, strength } = whoModel.getPresharedPassword(address)
-						return m(TextField, {
+						return m(PasswordField, {
 							value: password,
+							passwordStrength: strength,
 							autocompleteAs: Autocomplete.off,
-							type: this.externalPasswordVisibility.get(address) === true ? TextFieldType.Text : TextFieldType.Password,
 							label: () =>
 								lang.get("passwordFor_label", {
 									"{1}": guest.address,
 								}),
-							helpLabel: () => m(".mt-s", m(CompletenessIndicator, { percentageCompleted: scaleToVisualPasswordStrength(strength) })),
 							key: address,
 							oninput: (newValue) => whoModel.setPresharedPassword(address, newValue),
-							injectionsRight: () => this.renderRevealIcon(guest.address),
+							isPasswordRevealed: this.externalPasswordVisibility.get(address) ?? false,
+							onRevealToggled: () => {
+								this.externalPasswordVisibility.set(address, !this.externalPasswordVisibility.get(address))
+							},
 						})
 					})
 			: []
 
 		return m("", [...attendeeRenderers.map((r) => r()), externalGuestPasswords])
-	}
-
-	private renderRevealIcon(address: string): Children {
-		return m(IconButton, {
-			title: this.externalPasswordVisibility.get(address) === true ? "concealPassword_action" : "revealPassword_action",
-			click: () => {
-				this.externalPasswordVisibility.set(address, !this.externalPasswordVisibility.get(address))
-			},
-			icon: this.externalPasswordVisibility.get(address) === true ? Icons.NoEye : Icons.Eye,
-			size: ButtonSize.Compact,
-		})
 	}
 }
 
