@@ -44,7 +44,6 @@ export type AttendeeListEditorAttrs = {
 export class AttendeeListEditor implements Component<AttendeeListEditorAttrs> {
 	private text: string = ""
 	private hasPlanWithInvites: boolean = false
-	private externalPasswordVisibility: Map<string, boolean> = new Map()
 
 	view({ attrs }: Vnode<AttendeeListEditorAttrs>): Children {
 		return [m(".flex-grow", this.renderInvitationField(attrs)), m(".flex-grow", this.renderGuestList(attrs))]
@@ -161,10 +160,6 @@ export class AttendeeListEditor implements Component<AttendeeListEditorAttrs> {
 								}),
 							key: address,
 							oninput: (newValue) => whoModel.setPresharedPassword(address, newValue),
-							isPasswordRevealed: this.externalPasswordVisibility.get(address) ?? false,
-							onRevealToggled: () => {
-								this.externalPasswordVisibility.set(address, !this.externalPasswordVisibility.get(address))
-							},
 						})
 					})
 			: []

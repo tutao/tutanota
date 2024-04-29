@@ -13,54 +13,35 @@ type StatusSetting = Status | "auto"
 export interface PasswordFieldAttrs extends Omit<TextFieldAttrs, "type"> {
 	passwordStrength?: number
 	status?: StatusSetting
-	isPasswordRevealed?: boolean
-	onRevealToggled?: (value: boolean) => unknown
-}
-
-type handledPasswordFieldAttrs = PasswordFieldAttrs & {
-	isPasswordRevealed: boolean
-	onRevealToggled: (value: boolean) => unknown
 }
 
 export class PasswordField implements Component<PasswordFieldAttrs> {
 	private isPasswordRevealed: boolean = false
 
 	view(vnode: Vnode<PasswordFieldAttrs>) {
-		// If the user has not provided a value for `isPasswordRevealed`, then handle the state internally
-		const attrs = this.provideDefaults(vnode.attrs)
-		const { isPasswordRevealed, onRevealToggled, ...textFieldAttrs } = attrs
+		const attrs = vnode.attrs
+		// Separate and pass the generic `TextFieldAttrs` attributes so the user can still use all of `TextFields` properties
+		const { passwordStrength, status, ...textFieldAttrs } = attrs
 		return m(TextField, {
 			...textFieldAttrs,
 			autocompleteAs: attrs.autocompleteAs ? attrs.autocompleteAs : Autocomplete.currentPassword,
-			type: isPasswordRevealed ? TextFieldType.Text : TextFieldType.Password,
-			helpLabel: () => PasswordField.renderHelpLabel(textFieldAttrs.value, attrs.passwordStrength, attrs.status, textFieldAttrs.helpLabel ?? null),
+			type: this.isPasswordRevealed ? TextFieldType.Text : TextFieldType.Password,
+			helpLabel: () => PasswordField.renderHelpLabel(textFieldAttrs.value, passwordStrength, status, textFieldAttrs.helpLabel ?? null),
 			injectionsRight: () => {
 				return [
-					PasswordField.renderRevealIcon(isPasswordRevealed, onRevealToggled),
+					PasswordField.renderRevealIcon(this.isPasswordRevealed, (newValue) => (this.isPasswordRevealed = newValue)),
 					textFieldAttrs.injectionsRight ? textFieldAttrs.injectionsRight() : null,
 				]
 			},
 		})
 	}
 
-	// Replaces `isPasswordRevealed` and `onRevealToggled` with internal handlers if they are `undefined`
-	private provideDefaults(attrs: PasswordFieldAttrs): handledPasswordFieldAttrs {
-		const defaultToggle = (newValue: boolean) => {
-			this.isPasswordRevealed = newValue
-		}
-		return {
-			...attrs,
-			isPasswordRevealed: attrs.isPasswordRevealed ?? this.isPasswordRevealed,
-			onRevealToggled: attrs.onRevealToggled ?? defaultToggle,
-		}
-	}
-
-	private static renderRevealIcon(isPasswordRevealed: boolean, onRevealToggled?: (value: boolean) => unknown): Children {
+	private static renderRevealIcon(isPasswordRevealed: boolean, onRevealToggled: (value: boolean) => unknown): Children {
 		return m(ToggleButton, {
 			title: isPasswordRevealed ? "concealPassword_action" : "revealPassword_action",
 			toggled: isPasswordRevealed,
 			onToggled: (value, e) => {
-				if (onRevealToggled) onRevealToggled(value)
+				onRevealToggled(value)
 				e.stopPropagation()
 			},
 			icon: isPasswordRevealed ? Icons.NoEye : Icons.Eye,
