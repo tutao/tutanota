@@ -648,10 +648,6 @@ export class MailEditor implements Component<MailEditorAttrs> {
 						status: "auto",
 						autocompleteAs: Autocomplete.off,
 						oninput: (val) => this.sendMailModel.setPassword(recipient.address, val),
-						isPasswordRevealed: this.isConfidentialPasswordRevealed(recipient.address),
-						onRevealToggled: () => {
-							this.toggleRevealConfidentialPassword(recipient.address)
-						},
 					})
 				}),
 		)
@@ -784,14 +780,6 @@ export class MailEditor implements Component<MailEditorAttrs> {
 		return animations.add(domElement, fadein ? height(0, childHeight) : height(childHeight, 0)).then(() => {
 			domElement.style.height = ""
 		})
-	}
-
-	private isConfidentialPasswordRevealed(address: string): boolean {
-		return this.recipientShowConfidential.get(address) ?? false
-	}
-
-	private toggleRevealConfidentialPassword(address: string): void {
-		this.recipientShowConfidential.set(address, !this.recipientShowConfidential.get(address))
 	}
 }
 

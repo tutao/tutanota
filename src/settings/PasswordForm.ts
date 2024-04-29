@@ -40,9 +40,6 @@ export class PasswordModel {
 	private oldPassword = ""
 	private repeatedPassword = ""
 	private passwordStrength: number
-	private revealOldPassword: boolean = false
-	private revealNewPassword: boolean = false
-	private revealConfirmPassword: boolean = false
 	private readonly __mailValid?: Stream<boolean>
 	private __signupFreeTest?: UsageTest
 	private __signupPaidTest?: UsageTest
@@ -226,31 +223,6 @@ export class PasswordModel {
 		// 80% strength is minimum. we expand it to 100%, so the password indicator if completely filled when the password is strong enough
 		return getPasswordStrength(this.newPassword, reserved)
 	}
-
-	toggleRevealPassword(type: PasswordFieldType): void {
-		switch (type) {
-			case PasswordFieldType.Old:
-				this.revealOldPassword = !this.revealOldPassword
-				break
-			case PasswordFieldType.New:
-				this.revealNewPassword = !this.revealNewPassword
-				break
-			case PasswordFieldType.Confirm:
-				this.revealConfirmPassword = !this.revealConfirmPassword
-				break
-		}
-	}
-
-	isPasswordRevealed(type: PasswordFieldType): boolean {
-		switch (type) {
-			case PasswordFieldType.Old:
-				return this.revealOldPassword
-			case PasswordFieldType.New:
-				return this.revealNewPassword
-			case PasswordFieldType.Confirm:
-				return this.revealConfirmPassword
-		}
-	}
 }
 
 /**
@@ -273,10 +245,6 @@ export class PasswordForm implements Component<PasswordFormAttrs> {
 							oninput: (input) => attrs.model.setOldPassword(input),
 							autocompleteAs: Autocomplete.currentPassword,
 							fontSize: px(size.font_size_smaller),
-							isPasswordRevealed: attrs.model.isPasswordRevealed(PasswordFieldType.Old),
-							onRevealToggled: () => {
-								attrs.model.toggleRevealPassword(PasswordFieldType.Old)
-							},
 					  } satisfies PasswordFieldAttrs)
 					: null,
 				m(PasswordField, {
@@ -288,10 +256,6 @@ export class PasswordForm implements Component<PasswordFormAttrs> {
 					oninput: (input) => attrs.model.setNewPassword(input),
 					autocompleteAs: Autocomplete.newPassword,
 					fontSize: px(size.font_size_smaller),
-					isPasswordRevealed: attrs.model.isPasswordRevealed(PasswordFieldType.New),
-					onRevealToggled: () => {
-						attrs.model.toggleRevealPassword(PasswordFieldType.New)
-					},
 				}),
 				attrs.model.config.hideConfirmation
 					? null
@@ -302,10 +266,6 @@ export class PasswordForm implements Component<PasswordFormAttrs> {
 							status: attrs.model.getRepeatedPasswordStatus(),
 							oninput: (input) => attrs.model.setRepeatedPassword(input),
 							fontSize: px(size.font_size_smaller),
-							isPasswordRevealed: attrs.model.isPasswordRevealed(PasswordFieldType.Confirm),
-							onRevealToggled: () => {
-								attrs.model.toggleRevealPassword(PasswordFieldType.Confirm)
-							},
 					  }),
 				attrs.passwordInfoKey ? m(".small.mt-s", lang.get(attrs.passwordInfoKey)) : null,
 			],
