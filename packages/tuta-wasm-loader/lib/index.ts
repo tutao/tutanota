@@ -10,11 +10,11 @@ export interface Library {
 }
 
 export interface LoadOptions {
-	// Tool needed to transpile the wasm file to a JavaScript file
+	/** Tool needed to transpile the wasm file to a JavaScript file */
 	wasm2jsPath?: string
-	// Output path for the webassembly files
+	/** Output path for the webassembly files */
 	output: string
-	// List of webassembly files to be compiled and get fallback generated
+	/** List of webassembly files to be compiled and get fallback generated */
 	webassemblyLibraries: Library[]
 }
 
@@ -125,13 +125,6 @@ function rollupWasmLoader(options: LoadOptions & { output: string }) {
 					wasm2jsPath: lib.options.wasm2jsPath,
 				})
 			}
-		},
-		async transform(source: string, id: string) {
-			if (id.includes(".wasm")) {
-				return source
-			}
-
-			return null
 		},
 	}
 }
