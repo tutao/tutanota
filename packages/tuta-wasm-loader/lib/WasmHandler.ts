@@ -8,7 +8,9 @@ export interface WasmGeneratorOptions {
 }
 
 export interface FallbackGeneratorOptions extends WasmGeneratorOptions {
+	/** Optimization level for the JavaScript fallback */
 	optimizationLevel: string
+	/** Tool needed to transpile the wasm file to a JavaScript file */
 	wasm2jsPath?: string
 }
 

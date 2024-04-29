@@ -3,18 +3,26 @@
 # If you run out of memory (ARGON2_MEMORY_ALLOCATION_ERROR) and it's not being caused by a memory leak, try increasing this.
 TOTAL_MEMORY=48MB
 
+.PHONY: build clean
+
 CC=emcc
 WASM2JS=wasm2js
 ARGON2_DIR=phc-winner-argon2
 
+SRC_FILES = \
+	"${ARGON2_DIR}/src/argon2.c" \
+	"${ARGON2_DIR}/src/core.c" \
+	"${ARGON2_DIR}/src/ref.c" \
+	"${ARGON2_DIR}/src/blake2/blake2b.c"
+
 clean:
 	rm -f $(WASM)
-build:
+
+build: $(WASM)
+
+$(WASM):
 	${CC} \
-    	"${ARGON2_DIR}/src/argon2.c" \
-    	"${ARGON2_DIR}/src/core.c" \
-    	"${ARGON2_DIR}/src/ref.c" \
-    	"${ARGON2_DIR}/src/blake2/blake2b.c" \
+    	$(SRC_FILES) \
     	-I "${ARGON2_DIR}/include" \
     	-DARGON2_NO_THREADS \
     	-flto \

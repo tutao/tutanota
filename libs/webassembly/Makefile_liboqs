@@ -3,9 +3,30 @@
 # If you run out of memory and it's not being caused by a memory leak, try increasing this.
 TOTAL_MEMORY=48MB
 
+.PHONY: build include clean
+
 CC=emcc
 WASM2JS=wasm2js
 TUTA_CRYPTO_LIB=../../packages/tutanota-crypto/lib/encryption/Liboqs
+
+SRC_FILES = \
+	"${LIBOQS_DIR}/src/kem/kem.c" \
+	"${LIBOQS_DIR}/src/kem/kyber/pqcrystals-kyber_kyber1024_ref/kem.c" \
+	"${LIBOQS_DIR}/src/kem/kyber/pqcrystals-kyber_kyber1024_ref/verify.c" \
+	"${LIBOQS_DIR}/src/kem/kyber/pqcrystals-kyber_kyber1024_ref/indcpa.c" \
+	"${LIBOQS_DIR}/src/kem/kyber/pqcrystals-kyber_kyber1024_ref/symmetric-shake.c" \
+	"${LIBOQS_DIR}/src/kem/kyber/pqcrystals-kyber_kyber1024_ref/poly.c" \
+	"${LIBOQS_DIR}/src/kem/kyber/pqcrystals-kyber_kyber1024_ref/polyvec.c" \
+	"${LIBOQS_DIR}/src/kem/kyber/pqcrystals-kyber_kyber1024_ref/cbd.c" \
+	"${LIBOQS_DIR}/src/kem/kyber/pqcrystals-kyber_kyber1024_ref/ntt.c" \
+	"${LIBOQS_DIR}/src/kem/kyber/pqcrystals-kyber_kyber1024_ref/reduce.c" \
+	"${LIBOQS_DIR}/src/kem/kyber/kem_kyber_1024.c" \
+	"${LIBOQS_DIR}/src/common/pqclean_shims/fips202.c" \
+	"${LIBOQS_DIR}/src/common/sha3/xkcp_sha3.c" \
+	"${LIBOQS_DIR}/src/common/sha3/xkcp_low/KeccakP-1600/plain-64bits/KeccakP-1600-opt64.c" \
+	"${LIBOQS_DIR}/src/common/common.c" \
+	"${TUTA_CRYPTO_LIB}/rand.c" \
+	"${TUTA_CRYPTO_LIB}/exit.c"
 
 LIBOQS_DIR=liboqs
 
@@ -25,25 +46,12 @@ include:
 	cp "${LIBOQS_DIR}/src/kem/kem.h" include/oqs
 	cp "${LIBOQS_DIR}/src/sig/sig.h" include/oqs
 	touch include/oqs/oqsconfig.h
-build: include
+
+build: $(WASM)
+
+$(WASM): include
 	${CC} \
-    	"${LIBOQS_DIR}/src/kem/kem.c" \
-    	"${LIBOQS_DIR}/src/kem/kyber/pqcrystals-kyber_kyber1024_ref/kem.c" \
-    	"${LIBOQS_DIR}/src/kem/kyber/pqcrystals-kyber_kyber1024_ref/verify.c" \
-    	"${LIBOQS_DIR}/src/kem/kyber/pqcrystals-kyber_kyber1024_ref/indcpa.c" \
-    	"${LIBOQS_DIR}/src/kem/kyber/pqcrystals-kyber_kyber1024_ref/symmetric-shake.c" \
-    	"${LIBOQS_DIR}/src/kem/kyber/pqcrystals-kyber_kyber1024_ref/poly.c" \
-    	"${LIBOQS_DIR}/src/kem/kyber/pqcrystals-kyber_kyber1024_ref/polyvec.c" \
-    	"${LIBOQS_DIR}/src/kem/kyber/pqcrystals-kyber_kyber1024_ref/cbd.c" \
-    	"${LIBOQS_DIR}/src/kem/kyber/pqcrystals-kyber_kyber1024_ref/ntt.c" \
-    	"${LIBOQS_DIR}/src/kem/kyber/pqcrystals-kyber_kyber1024_ref/reduce.c" \
-    	"${LIBOQS_DIR}/src/kem/kyber/kem_kyber_1024.c" \
-    	"${LIBOQS_DIR}/src/common/pqclean_shims/fips202.c" \
-    	"${LIBOQS_DIR}/src/common/sha3/xkcp_sha3.c" \
-    	"${LIBOQS_DIR}/src/common/sha3/xkcp_low/KeccakP-1600/plain-64bits/KeccakP-1600-opt64.c" \
-    	"${LIBOQS_DIR}/src/common/common.c" \
-    	"${TUTA_CRYPTO_LIB}/rand.c" \
-    	"${TUTA_CRYPTO_LIB}/exit.c" \
+		$(SRC_FILES) \
     	-I "include" \
     	-I "${LIBOQS_DIR}/src/kem/kyber/pqcrystals-kyber_kyber1024_ref" \
     	-I "${LIBOQS_DIR}/src/common/pqclean_shims" \

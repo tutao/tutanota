@@ -9,7 +9,6 @@ import { libDeps, preludeEnvPlugin, sqliteNativePlugin } from "../buildSrc/esbui
 import { buildPackages } from "../buildSrc/packageBuilderFunctions.js"
 import { domainConfigs } from "../buildSrc/DomainConfigs.js"
 import { sh } from "../buildSrc/sh.js"
-import { esbuildWasmLoader } from "@tutao/tuta-wasm-loader"
 
 export async function runTestBuild({ clean, fast = false }) {
 	if (clean) {
@@ -38,6 +37,7 @@ export async function runTestBuild({ clean, fast = false }) {
 		await createUnitTestHtml(localEnv)
 	})
 	await runStep("Esbuild", async () => {
+		const { esbuildWasmLoader } = await import("@tutao/tuta-wasm-loader")
 		await esbuild({
 			// this is here because the test build targets esm and esbuild
 			// does not support dynamic requires, which better-sqlite3 uses
@@ -130,7 +130,7 @@ export async function runTestBuild({ clean, fast = false }) {
 								env: {
 									WASM: `${process.cwd()}/build/wasm/liboqs.wasm`,
 								},
-								optimizationLevel: "O3",
+								optimizationLevel: "O1",
 							},
 						},
 						{
@@ -141,7 +141,7 @@ export async function runTestBuild({ clean, fast = false }) {
 								env: {
 									WASM: `${process.cwd()}/build/wasm/argon2.wasm`,
 								},
-								optimizationLevel: "O3",
+								optimizationLevel: "O1",
 							},
 						},
 					],

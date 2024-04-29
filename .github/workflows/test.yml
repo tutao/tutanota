@@ -23,13 +23,16 @@ jobs:
       repository-projects: none
       security-events: none
       statuses: none
-
+    env:
+      emscripten_version: 3.1.59
     strategy:
       matrix:
         node-version: [ 20.11.1 ]
 
     steps:
       - uses: actions/checkout@b4ffde65f46336ab88eb53be808477a3936bae11 #v4.1.1
+        with:
+          submodules: 'true'
       - name: Use Node.js ${{ matrix.node-version }}
         uses: actions/setup-node@60edb5dd545a775178f52524783378180af0d1f8 #v4.0.2
         with:
@@ -49,6 +52,27 @@ jobs:
       - name: lint, formatting
         run: |
           npm run check
+      - name: get emscripten cached location
+        run: |
+          echo "emscripten_path=$(pwd)/emsdk" >> $GITHUB_ENV
+      - name: cache emscripten
+        id: cache-emscripten
+        uses: actions/cache@0c45773b623bea8c8e75f6c82b208c3cf94ea4f9
+        with:
+          path: ${{ env.emscripten_path }}
+          key: emscripten-${{ env.emscripten_version }}
+      - name: install emscripten
+        if: steps.cache-emscripten.outputs.cache-hit != 'true'
+        run: |
+          git clone --branch ${{ env.emscripten_version }} https://github.com/emscripten-core/emsdk.git
+          cd emsdk
+          ./emsdk install latest
+          ./emsdk activate latest
+          source ./emsdk_env.sh
+      - name: add emscripten to path
+        run: |
+          echo ${{ env.emscripten_path }}/upstream/bin >> $GITHUB_PATH
+          echo ${{ env.emscripten_path }}/upstream/emscripten >> $GITHUB_PATH
       - name: run test in node
         run: |
           npm run build-packages
