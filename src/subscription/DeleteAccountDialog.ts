@@ -9,6 +9,7 @@ import { locator } from "../api/main/MainLocator"
 import { getEtId } from "../api/common/utils/EntityUtils"
 import { CloseEventBusOption } from "../api/common/TutanotaConstants.js"
 import { SurveyData } from "../api/entities/sys/TypeRefs.js"
+import { PasswordField } from "../gui/base/PasswordField.js"
 
 export function showDeleteAccountDialog(surveyData: SurveyData | null = null) {
 	let takeover = ""
@@ -27,13 +28,15 @@ export function showDeleteAccountDialog(surveyData: SurveyData | null = null) {
 						oninput: (value) => (takeover = value),
 						helpLabel: () => lang.get("takeoverMailAddressInfo_msg"),
 					}),
-					m(TextField, {
+					m(PasswordField, {
 						label: "password_label",
 						value: password,
 						autocompleteAs: Autocomplete.currentPassword,
 						oninput: (value) => (password = value),
-						helpLabel: () => lang.get("passwordEnterNeutral_msg"),
-						type: TextFieldType.Password,
+						status: {
+							type: "neutral",
+							text: "password1Neutral_msg",
+						},
 					}),
 				]),
 		},

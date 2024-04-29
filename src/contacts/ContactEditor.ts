@@ -75,6 +75,7 @@ import { Icons } from "../gui/base/icons/Icons.js"
 import { ButtonSize } from "../gui/base/ButtonSize.js"
 import { locator } from "../api/main/MainLocator.js"
 import { formatDate } from "../misc/Formatter.js"
+import { PasswordField } from "../gui/base/PasswordField.js"
 
 assertMainOrNode()
 
@@ -98,7 +99,6 @@ export class ContactEditor {
 	private readonly pronouns: Array<[ContactPronouns, Id]>
 	private readonly customDates: Array<[CompleteCustomDate, Id]>
 	private birthday: string
-	private isPasswordRevealed: boolean = false
 	windowCloseUnsubscribe: () => unknown
 	private readonly isNewContact: boolean
 	private readonly contact: Contact
@@ -727,13 +727,11 @@ export class ContactEditor {
 		return m(".wrapping-row", [
 			m(".passwords.mt-xl", [
 				m(".h4", lang.get("presharedPassword_label")),
-				m(TextField, {
-					type: this.isPasswordRevealed ? TextFieldType.Text : TextFieldType.Password,
+				m(PasswordField, {
 					label: "password_label",
 					value: this.contact.presharedPassword ?? "",
 					autocompleteAs: Autocomplete.newPassword,
 					oninput: (value) => (this.contact.presharedPassword = value),
-					injectionsRight: () => this.renderRevealIcon(),
 				}),
 			]),
 			m(".spacer"),
@@ -859,19 +857,6 @@ export class ContactEditor {
 				pronouns.language = name
 			})
 		}, DefaultAnimationTime) // wait till the dropdown is hidden
-	}
-
-	private renderRevealIcon(): Children {
-		return m(ToggleButton, {
-			title: "revealPassword_action",
-			toggled: this.isPasswordRevealed,
-			onToggled: (_, e) => {
-				this.isPasswordRevealed = !this.isPasswordRevealed
-				e.stopPropagation()
-			},
-			icon: this.isPasswordRevealed ? Icons.NoEye : Icons.Eye,
-			size: ButtonSize.Compact,
-		})
 	}
 
 	private createDialog(): Dialog {

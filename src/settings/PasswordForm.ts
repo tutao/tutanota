@@ -1,22 +1,18 @@
 import m, { Children, Component, Vnode } from "mithril"
-import { Autocomplete, TextField, TextFieldType } from "../gui/base/TextField.js"
-import { CompletenessIndicator } from "../gui/CompletenessIndicator.js"
-import { getPasswordStrength, isSecurePassword, scaleToVisualPasswordStrength } from "../misc/passwords/PasswordUtils"
+import { Autocomplete } from "../gui/base/TextField.js"
+import { getPasswordStrength, isSecurePassword } from "../misc/passwords/PasswordUtils"
 import type { TranslationKey } from "../misc/LanguageViewModel"
 import { lang } from "../misc/LanguageViewModel"
 import type { Status } from "../gui/base/StatusField"
-import { StatusField } from "../gui/base/StatusField"
 import { LoginController } from "../api/main/LoginController"
 import { assertMainOrNode } from "../api/common/Env"
 import { getEnabledMailAddressesForGroupInfo } from "../api/common/utils/GroupUtils.js"
 import { showPasswordGeneratorDialog } from "../misc/passwords/PasswordGeneratorDialog"
 import { theme } from "../gui/theme"
-import { Icons } from "../gui/base/icons/Icons"
 import { px, size } from "../gui/size.js"
 import { UsageTest, UsageTestController } from "@tutao/tutanota-usagetests"
 import Stream from "mithril/stream"
-import { ButtonSize } from "../gui/base/ButtonSize.js"
-import { ToggleButton } from "../gui/base/buttons/ToggleButton.js"
+import { PasswordField, PasswordFieldAttrs } from "../gui/base/PasswordField.js"
 
 assertMainOrNode()
 
@@ -270,53 +266,46 @@ export class PasswordForm implements Component<PasswordFormAttrs> {
 			},
 			[
 				attrs.model.config.checkOldPassword
-					? m(TextField, {
+					? m(PasswordField, {
 							label: "oldPassword_label",
 							value: attrs.model.getOldPassword(),
-							helpLabel: () => m(StatusField, { status: attrs.model.getOldPasswordStatus() }),
+							status: attrs.model.getOldPasswordStatus(),
 							oninput: (input) => attrs.model.setOldPassword(input),
 							autocompleteAs: Autocomplete.currentPassword,
 							fontSize: px(size.font_size_smaller),
-							type: attrs.model.isPasswordRevealed(PasswordFieldType.Old) ? TextFieldType.Text : TextFieldType.Password,
-							injectionsRight: () => this.renderRevealIcon(attrs, PasswordFieldType.Old),
-					  })
+							isPasswordRevealed: attrs.model.isPasswordRevealed(PasswordFieldType.Old),
+							onRevealToggled: () => {
+								attrs.model.toggleRevealPassword(PasswordFieldType.Old)
+							},
+					  } satisfies PasswordFieldAttrs)
 					: null,
-				m(TextField, {
+				m(PasswordField, {
 					label: "newPassword_label",
 					value: attrs.model.getNewPassword(),
-					helpLabel: () =>
-						m(".flex.col.mt-xs", [
-							m(".flex.items-center", [
-								m(
-									".mr-s",
-									m(CompletenessIndicator, {
-										percentageCompleted: scaleToVisualPasswordStrength(attrs.model.getPasswordStrength()),
-									}),
-								),
-								m(StatusField, { status: attrs.model.getNewPasswordStatus() }),
-							]),
-							this.renderPasswordGeneratorHelp(attrs),
-						]),
+					passwordStrength: attrs.model.getPasswordStrength(),
+					helpLabel: () => this.renderPasswordGeneratorHelp(attrs),
+					status: attrs.model.getNewPasswordStatus(),
 					oninput: (input) => attrs.model.setNewPassword(input),
 					autocompleteAs: Autocomplete.newPassword,
 					fontSize: px(size.font_size_smaller),
-					type: attrs.model.isPasswordRevealed(PasswordFieldType.New) ? TextFieldType.Text : TextFieldType.Password,
-					injectionsRight: () => this.renderRevealIcon(attrs, PasswordFieldType.New),
+					isPasswordRevealed: attrs.model.isPasswordRevealed(PasswordFieldType.New),
+					onRevealToggled: () => {
+						attrs.model.toggleRevealPassword(PasswordFieldType.New)
+					},
 				}),
 				attrs.model.config.hideConfirmation
 					? null
-					: m(TextField, {
+					: m(PasswordField, {
 							label: "repeatedPassword_label",
 							value: attrs.model.getRepeatedPassword(),
 							autocompleteAs: Autocomplete.newPassword,
-							helpLabel: () =>
-								m(StatusField, {
-									status: attrs.model.getRepeatedPasswordStatus(),
-								}),
+							status: attrs.model.getRepeatedPasswordStatus(),
 							oninput: (input) => attrs.model.setRepeatedPassword(input),
 							fontSize: px(size.font_size_smaller),
-							type: attrs.model.isPasswordRevealed(PasswordFieldType.Confirm) ? TextFieldType.Text : TextFieldType.Password,
-							injectionsRight: () => this.renderRevealIcon(attrs, PasswordFieldType.Confirm),
+							isPasswordRevealed: attrs.model.isPasswordRevealed(PasswordFieldType.Confirm),
+							onRevealToggled: () => {
+								attrs.model.toggleRevealPassword(PasswordFieldType.Confirm)
+							},
 					  }),
 				attrs.passwordInfoKey ? m(".small.mt-s", lang.get(attrs.passwordInfoKey)) : null,
 			],
@@ -324,31 +313,16 @@ export class PasswordForm implements Component<PasswordFormAttrs> {
 	}
 
 	private renderPasswordGeneratorHelp(attrs: PasswordFormAttrs): Children {
-		return m("", [
-			m(
-				".b.mr-xs.hover.click.darkest-hover.mt-xs",
-				{
-					style: { display: "inline-block", color: theme.navigation_button_selected },
-					onclick: async () => {
-						attrs.model.setNewPassword(await showPasswordGeneratorDialog())
-						m.redraw()
-					},
+		return m(
+			".b.mr-xs.hover.click.darkest-hover.mt-xs",
+			{
+				style: { display: "inline-block", color: theme.navigation_button_selected },
+				onclick: async () => {
+					attrs.model.setNewPassword(await showPasswordGeneratorDialog())
+					m.redraw()
 				},
-				lang.get("generatePassphrase_action"),
-			),
-		])
-	}
-
-	private renderRevealIcon(attrs: PasswordFormAttrs, passwordType: PasswordFieldType): Children {
-		return m(ToggleButton, {
-			title: "revealPassword_action",
-			toggled: attrs.model.isPasswordRevealed(passwordType),
-			onToggled: (_, e) => {
-				attrs.model.toggleRevealPassword(passwordType)
-				e.stopPropagation()
 			},
-			icon: attrs.model.isPasswordRevealed(passwordType) ? Icons.NoEye : Icons.Eye,
-			size: ButtonSize.Compact,
-		})
+			lang.get("generatePassphrase_action"),
+		)
 	}
 }
