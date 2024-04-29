@@ -9,6 +9,7 @@ import { fileURLToPath } from "node:url"
 import { rollup } from "rollup"
 import { nodeResolve } from "@rollup/plugin-node-resolve"
 import commonjs from "@rollup/plugin-commonjs"
+import { $ } from "zx"
 
 const __dirname = dirname(fileURLToPath(import.meta.url))
 
@@ -39,7 +40,13 @@ const clientDependencies = [
 run()
 
 async function run() {
+	// since we have git dependencies for which the version in the packages' package.json is
+	// different from the version in our package.json (the git url), we need to make sure that
+	// the installed version is in sync with the version given in package.json before we write it to
+	// vendored-versions.json
+	await $`npm i`
 	await copyToLibs(clientDependencies)
+	updateVendoredVersionsFile()
 }
 
 async function copyToLibs(files) {
@@ -61,6 +68,20 @@ async function copyToLibs(files) {
 		}
 		await fs.copy(path.join(__dirname, srcFile), path.join(__dirname, "../libs/", targetName))
 	}
+}
+
+function updateVendoredVersionsFile() {
+	const names = clientDependencies
+		.map((d) => (typeof d === "string" ? d : d.src))
+		.map(path.normalize)
+		.map((srcPath) => srcPath.split(path.sep)[2])
+	const versions = JSON.parse(fs.readFileSync(path.join(__dirname, "..", "package.json"), "utf-8")).dependencies
+
+	const result = {}
+	for (let i = 0; i < names.length; i++) {
+		result[names[i]] = versions[names[i]]
+	}
+	fs.writeFileSync(path.join(__dirname, "../libs/", "vendored-versions.json"), JSON.stringify(result, null, 2))
 }
 
 /** Will bundle web app dependencies starting at {@param src} into a single file at {@param target}. */

@@ -39,6 +39,9 @@ jobs:
           node-version: ${{ matrix.node-version }}
           cache: 'npm'
           cache-dependency-path: '**/package-lock.json'
+      - name: Check vendored versions
+        run: |
+          node buildSrc/checkVendoredVersions.js
       - name: Get better-sqlite3 cached location
         run: |
           echo "better_sqlite3_path=$(node buildSrc/getNativeCacheLocation.js better-sqlite3)" >> $GITHUB_ENV
