@@ -145,6 +145,14 @@ styles.registerStyle("main", () => {
 			// It is inlined to "transparent" in HTML so we have to overwrite it.
 			"background-color": `${theme.content_bg} !important`,
 		},
+		"::-moz-selection": {
+			color: `${theme.logo}`,
+			background: `${theme.header_box_shadow_bg}`,
+		},
+		"::selection": {
+			color: `${theme.logo}`,
+			background: `${theme.header_box_shadow_bg}`,
+		},
 		"button, textarea": {
 			padding: 0,
 			"text-align": "left",

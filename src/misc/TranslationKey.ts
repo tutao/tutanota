@@ -450,6 +450,7 @@ export type TranslationKeyType =
 	| "doNotAskAgain_label"
 	| "downloadCompleted_msg"
 	| "download_action"
+	| "dracula_label"
 	| "draftNotSavedConnectionLost_msg"
 	| "draftNotSaved_msg"
 	| "draftSaved_msg"

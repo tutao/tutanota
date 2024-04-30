@@ -44,6 +44,21 @@ const dark_darker_0 = "#111111"
 const green = "#00d2a7"
 export const logo_text_bright_grey = "#c5c7c7"
 
+/**
+ * 		dracula theme
+ */
+
+const dracula_logo_text = "#e5f1f9"
+const dracula_light_lighter_0 = "#F8F8F2"
+const dracula_light_lighter_1 = "#E7E7E7"
+const dracula_dark = "#303030"
+const dracula_dark_lighter_0 = "#1e1e1e"
+const dracula_dark_lighter_1 = "#3e3e42"
+const dracula_dark_lighter_2 = "#44475A"
+const dracula_dark_darker_0 = "#252526"
+const dracula_light_grey = "#9e9e9e"
+const dracula_primary = "#5588ff"
+
 // These are constants that have been chosen because they work across themes
 // This is even lighter than hover, for special cases like inactive search bar background
 export const stateBgLike = "rgba(139,139,139,0.18)"
@@ -156,5 +171,41 @@ export const themes: Themes = {
 		navigation_button_icon_selected: light_white,
 		navigation_menu_bg: grey_lighter_3,
 		navigation_menu_icon: grey,
+	}),
+	dracula: Object.freeze({
+		themeId: "dracula",
+		logo: getLogoSvg(dracula_primary, dracula_logo_text),
+		button_bubble_bg: dracula_dark_lighter_2,
+		button_bubble_fg: dracula_light_lighter_1,
+		content_fg: dracula_light_lighter_1,
+		content_button: dracula_light_lighter_0,
+		content_button_selected: dracula_primary,
+		content_button_icon_bg: dracula_dark_lighter_2,
+		content_button_icon: dracula_light_lighter_1,
+		content_button_icon_selected: dracula_dark_lighter_0,
+		content_accent: dracula_primary,
+		content_bg: dracula_dark_darker_0,
+		content_border: dracula_dark_lighter_1,
+		content_message_bg: dracula_dark_lighter_2,
+		header_bg: dracula_dark,
+		header_box_shadow_bg: dracula_dark,
+		header_button: dracula_light_lighter_0,
+		header_button_selected: dracula_primary,
+		list_bg: dracula_dark_darker_0,
+		list_alternate_bg: dracula_dark_lighter_0,
+		list_accent_fg: dracula_primary,
+		list_message_bg: dracula_dark_lighter_2,
+		list_border: dracula_dark_lighter_1,
+		modal_bg: dracula_dark_darker_0,
+		elevated_bg: dracula_dark_lighter_0,
+		navigation_bg: dracula_dark_lighter_0,
+		navigation_border: dracula_dark_lighter_1,
+		navigation_button: dracula_light_lighter_0,
+		navigation_button_icon_bg: dracula_dark_lighter_2,
+		navigation_button_icon: dracula_light_lighter_1,
+		navigation_button_selected: dracula_primary,
+		navigation_button_icon_selected: dracula_light_lighter_0,
+		navigation_menu_bg: dracula_dark_darker_0,
+		navigation_menu_icon: dracula_light_grey,
 	}),
 }

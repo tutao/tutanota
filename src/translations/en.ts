@@ -466,6 +466,7 @@ export default {
 		"doNotAskAgain_label": "Don't ask again for this file",
 		"downloadCompleted_msg": "Download completed",
 		"download_action": "Download",
+		"dracula_label": "Dracula",
 		"draftNotSavedConnectionLost_msg": "Draft not saved (offline).",
 		"draftNotSaved_msg": "Draft not saved.",
 		"draftSaved_msg": "Draft saved.",
