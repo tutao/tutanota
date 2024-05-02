@@ -88,7 +88,7 @@ pipeline {
 					)
 				}
 
-				stash name: 'deb', includes: "${WORKSPACE}/tutanota_${VERSION}_amd64.deb"
+				stash name: 'deb', includes: "tutanota_${VERSION}_amd64.deb"
             }
         }
 
