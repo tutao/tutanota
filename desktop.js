@@ -148,13 +148,8 @@ async function buildDesktopClient(version, { stage, host, platform, architecture
 		await createHtml(env.create({ staticUrl: tutaTestUrl, version, mode: "Desktop", dist: true, domainConfigs }))
 		await buildDesktop(desktopTestOpts)
 	} else if (stage === "prod") {
-		const desktopProdOpts = Object.assign({}, desktopBaseOpts, {
-			version,
-			updateUrl: "http://localhost:9000/desktop",
-			notarize: false,
-		})
 		await createHtml(env.create({ staticUrl: tutaAppUrl, version, mode: "Desktop", dist: true, domainConfigs }))
-		await buildDesktop(desktopProdOpts)
+		await buildDesktop(desktopBaseOpts)
 	} else {
 		// stage = host
 		const desktopHostOpts = Object.assign({}, desktopBaseOpts, {

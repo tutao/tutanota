@@ -10,15 +10,11 @@ pipeline {
 
     parameters {
         booleanParam(
-            name: 'RELEASE',
+            name: 'PUSH_ARTIFACTS',
             defaultValue: false,
             description: "Prepare a release version (doesn't publish to production, this is done manually)"
         )
-		persistentText(
-			name: "releaseNotes",
-			defaultValue: "",
-			description: "release notes for this build"
-		 )
+		choice(name: 'PLATFORM', choices: ['mac', 'win', 'linux'], description: 'Target platform')
     }
 
     agent {
@@ -37,24 +33,12 @@ pipeline {
 
     	stage('Build dependencies') {
     		parallel {
-				stage('Build webapp') {
-					environment {
-						PATH = "${env.NODE_PATH}:${env.PATH}"
-					}
-					agent {
-						label 'linux'
-					}
-					steps {
-						sh 'npm ci'
-						sh 'npm run build-packages'
-						sh 'node webapp.js release'
-
-						// excluding web-specific and mobile specific parts which we don't need in desktop
-						stash includes: 'build/**', excludes: '**/braintree.html, **/index.html, **/app.html, **/desktop.html, **/index-index.js, **/index-app.js, **/index-desktop.js, **/sw.js', name: 'web_base'
-					}
-				}
-
 				stage('Native modules') {
+					when {
+						expression {
+							params.PLATFORM == 'win'
+						}
+					}
 					agent {
 						label 'win-native'
 					}
@@ -69,88 +53,96 @@ pipeline {
     	}
 
         stage('Build desktop clients') {
-            parallel {
-                stage('Windows') {
-					environment {
-						PATH = "${env.NODE_PATH}:${env.PATH}"
+			stage('Windows') {
+				environment {
+					PATH = "${env.NODE_PATH}:${env.PATH}"
+				}
+				agent {
+					label 'win-cross-compile'
+				}
+				when {
+					expression {
+						params.PLATFORM == 'win'
 					}
-					agent {
-						label 'win-cross-compile'
+				}
+				steps {
+					initBuildArea()
+
+					// nativeLibraryProvider.js placed the built native modules in the correct location (native-cache)
+					// so they will be picked up by our rollup plugin
+					unstash 'native_modules'
+
+					withCredentials([string(credentialsId: 'HSM_USER_PIN', variable: 'PW')]) {
+						sh '''
+						export HSM_USER_PIN=${PW};
+						export WIN_CSC_FILE="/opt/etc/codesign.crt";
+						node desktop --platform win '''
 					}
-					steps {
-						initBuildArea()
 
-						// nativeLibraryProvider.js placed the built native modules in the correct location (native-cache)
-						// so they will be picked up by our rollup plugin
-						unstash 'native_modules'
+					dir('artifacts') {
+						stash includes: 'desktop-test/*', name:'win_installer_test'
+						stash includes: 'desktop/*', name:'win_installer'
+					}
+				}
+			}
 
-						withCredentials([string(credentialsId: 'HSM_USER_PIN', variable: 'PW')]) {
+			stage('Mac') {
+				environment {
+					PATH = "${env.NODE_MAC_PATH}:${env.PATH}"
+				}
+				agent {
+					label 'mac-m1'
+				}
+				when {
+					expression {
+						params.PLATFORM == 'win'
+					}
+				}
+				steps {
+					initBuildArea()
+
+					withCredentials([
+							usernamePassword(credentialsId: 'APP_NOTARIZE_CREDS', usernameVariable: 'APPLEIDVAR', passwordVariable: 'APPLEIDPASSVAR'),
+							string(credentialsId: 'fastlane-keychain-password', variable: 'FASTLANE_KEYCHAIN_PASSWORD'),
+							string(credentialsId: 'team-id', variable: 'APPLETEAMIDVAR'),
+					]) {
+						sh 'security unlock-keychain -p $FASTLANE_KEYCHAIN_PASSWORD'
+						script {
+							def stage = params.RELEASE ? 'release' : 'prod'
 							sh '''
-							export HSM_USER_PIN=${PW};
-							export WIN_CSC_FILE="/opt/etc/codesign.crt";
-							node desktop --existing --platform win '''
-						}
-
-						dir('artifacts') {
-							stash includes: 'desktop-test/*', name:'win_installer_test'
-							stash includes: 'desktop/*', name:'win_installer'
-						}
-					}
-                }
-
-                stage('Mac') {
-                    environment {
-                        PATH = "${env.NODE_MAC_PATH}:${env.PATH}"
-                    }
-                    agent {
-                        label 'mac-m1'
-                    }
-                    steps {
-						initBuildArea()
-
-						withCredentials([
-								usernamePassword(credentialsId: 'APP_NOTARIZE_CREDS', usernameVariable: 'APPLEIDVAR', passwordVariable: 'APPLEIDPASSVAR'),
-								string(credentialsId: 'fastlane-keychain-password', variable: 'FASTLANE_KEYCHAIN_PASSWORD'),
-								string(credentialsId: 'team-id', variable: 'APPLETEAMIDVAR'),
-						]) {
-							sh 'security unlock-keychain -p $FASTLANE_KEYCHAIN_PASSWORD'
-							script {
-								def stage = params.RELEASE ? 'release' : 'prod'
-								sh '''
-								export APPLEID=${APPLEIDVAR};
-								export APPLEIDPASS=${APPLEIDPASSVAR};
-								export APPLETEAMID=${APPLETEAMIDVAR};
-								node desktop --existing --architecture universal --platform mac ''' + "${stage}"
-								dir('artifacts') {
-									if (params.RELEASE) {
-										stash includes: 'desktop-test/*', name:'mac_installer_test'
-									}
-									stash includes: 'desktop/*', name:'mac_installer'
+							export APPLEID=${APPLEIDVAR};
+							export APPLEIDPASS=${APPLEIDPASSVAR};
+							export APPLETEAMID=${APPLETEAMIDVAR};
+							node desktop --existing --architecture universal --platform mac ''' + "${stage}"
+							dir('artifacts') {
+								if (params.RELEASE) {
+									stash includes: 'desktop-test/*', name:'mac_installer_test'
 								}
+								stash includes: 'desktop/*', name:'mac_installer'
 							}
 						}
 					}
-                }
+				}
+			}
 
-                stage('Linux') {
-                    agent {
-                        label 'linux'
-                    }
-                    environment {
-                        PATH = "${env.NODE_PATH}:${env.PATH}"
-                    }
-                    steps {
-						initBuildArea()
+			stage('Linux') {
+				agent {
+					label 'linux'
+				}
+				environment {
+					PATH = "${env.NODE_PATH}:${env.PATH}"
+				}
+				steps {
+					initBuildArea()
 
-                        sh 'node desktop --existing --platform linux'
+					sh 'node desktop --existing --platform linux'
 
-                        dir('artifacts') {
-                        	stash includes: 'desktop-test/*', name:'linux_installer_test'
-                        	stash includes: 'desktop/*', name:'linux_installer'
-                        }
-                    }
-                }
-            }
+					dir('artifacts') {
+						stash includes: 'desktop-test/*', name:'linux_installer_test'
+						stash includes: 'desktop/*', name:'linux_installer'
+					}
+				}
+			}
         }
 
 		stage('Build deb and publish') {
