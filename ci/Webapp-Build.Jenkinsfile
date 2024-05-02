@@ -7,7 +7,7 @@ pipeline {
 	}
 	parameters {
         booleanParam(
-			name: 'RELEASE',
+			name: 'PUSH_TO_NEXUS',
 			defaultValue: false,
 			description: "Upload the result artifact to Nexus"
 		)
@@ -63,7 +63,7 @@ pipeline {
          		VERSION = sh(returnStdout: true, script: "node -p -e \"require('./package.json').version\" | tr -d \"\n\"")
          	}
             when {
-            	expression { params.RELEASE }
+            	expression { params.PUSH_TO_NEXUS }
             }
             agent {
                 label 'linux'
