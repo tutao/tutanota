@@ -175,7 +175,7 @@ pipeline {
 					sh '''export HSM_USER_PIN=${PW}; node buildSrc/signDesktopClients.js'''
 				}
 
-				sh 'node buildSrc/publish.js desktop'
+				sh 'node buildSrc/buildDeb.js desktop'
 
 				script { // create release draft
 					def desktopLinux = "build/desktop/tutanota-desktop-linux.AppImage"

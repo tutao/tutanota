@@ -9,13 +9,8 @@ pipeline {
         booleanParam(
 			name: 'RELEASE',
 			defaultValue: false,
-			description: "Prepare a release version (doesn't publish to production, this is done manually). Also publishes NPM modules"
+			description: "Upload the result artifact to Nexus"
 		)
-		persistentText(
-			name: "releaseNotes",
-			defaultValue: "",
-			description: "release notes for this build"
-		 )
     }
     agent {
         label 'master'
@@ -37,7 +32,7 @@ pipeline {
             	sh 'npm ci'
             	sh 'npm run build-packages'
 				sh 'node webapp.js release'
-				// excluding web-specific and mobile specific parts which we don't need in desktop
+				// excluding desktop-specific and mobile specific parts which we don't need in web
 				stash includes: 'build/**', excludes: '**/app.html, **/desktop.html, **/index-app.js, **/index-desktop.js', name: 'webapp_built'
 
 				// Bundle size stats
@@ -63,7 +58,7 @@ pipeline {
             }
         }
 
-        stage('Publish') {
+        stage('Build deb & upload to nexus') {
         	environment {
          		VERSION = sh(returnStdout: true, script: "node -p -e \"require('./package.json').version\" | tr -d \"\n\"")
          	}
@@ -80,32 +75,19 @@ pipeline {
 
 				unstash 'webapp_built'
 				sh 'node buildSrc/buildDeb.js webapp'
-				writeFile file: "notes.txt", text: params.releaseNotes
 
-				catchError(stageResult: 'UNSTABLE', buildResult: 'SUCCESS', message: 'Failed to create github release for webapp') {
-					withCredentials([string(credentialsId: 'github-access-token', variable: 'GITHUB_TOKEN')]) {
-						sh '''node buildSrc/createReleaseDraft.js --name ${VERSION} --tag tutanota-release-${VERSION} --notes notes.txt'''
-					}
+				script {
+					def util = load "ci/jenkins-lib/util.groovy"
+
+					util.publishToNexus(
+							groupId: "app",
+							artifactId: "webapp",
+							version: "${VERSION}",
+							assetFilePath: "${WORKSPACE}/tutanota_${VERSION}_amd64.deb",
+							fileExtension: 'deb'
+					)
 				}
             }
-        }
-
-        stage('Publish npm modules') {
-			when {
-				expression { params.RELEASE }
-			}
-			agent {
-				label 'linux'
-			}
-			steps {
-				catchError(buildResult: 'SUCCESS', stageResult: 'FAILURE') {
-					sh "npm ci && npm run build-packages"
-					// .npmrc expects $NPM_TOKEN
-					withCredentials([string(credentialsId: 'npm-token',variable: 'NPM_TOKEN')]) {
-						sh "npm --workspaces publish --access public"
-					}
-				}
-			}
         }
     }
 }
