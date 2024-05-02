@@ -24,28 +24,6 @@ pipeline {
 				}
 			}
 		}
-        stage('Push deb') {
-        	environment {
-         		VERSION = sh(returnStdout: true, script: "node buildSrc/getTutanotaAppVersion.js")
-         	}
-            agent {
-                label 'linux'
-            }
-            steps {
-            	sh 'echo Publishing version $VERSION'
-
-				script {
-					def util = load "ci/jenkins-lib/util.groovy"
-					util.downloadFromNexus(	groupId: "app",
-											artifactId: "webapp",
-											version: VERSION,
-											outFile: "${WORKSPACE}/tutanota_${VERSION}_amd64.deb",
-											fileExtension: 'deb')
-				}
-				sh "cp ${WORKSPACE}/tutanota_${VERSION}_amd64.deb /opt/repository/tutanota"
-            }
-        }
-
         stage('Github release') {
         	environment {
 				VERSION = sh(returnStdout: true, script: "node buildSrc/getTutanotaAppVersion.js")

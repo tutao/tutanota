@@ -87,7 +87,25 @@ pipeline {
 							fileExtension: 'deb'
 					)
 				}
+
+				stash 'deb', includes: "${WORKSPACE}/tutanota_${VERSION}_amd64.deb"
             }
         }
+
+		stage('Push deb') {
+			environment {
+				VERSION = sh(returnStdout: true, script: "node buildSrc/getTutanotaAppVersion.js")
+			}
+			agent {
+				label 'linux'
+			}
+			steps {
+				unstash 'deb'
+
+				sh 'echo Publishing version $VERSION'
+
+				sh "cp ${WORKSPACE}/tutanota_${VERSION}_amd64.deb /opt/repository/tutanota"
+			}
+		}
     }
 }
