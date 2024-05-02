@@ -17,7 +17,12 @@ export interface MobilePaymentsFacade {
 	getPlanPrice(plan: string, interval: number): Promise<MobilePlanPrice | null>
 
 	/**
-	 * Returns a displayable price for the current plan
+	 * Display a view for the user to configure their subscription.
 	 */
-	getCurrentPlanPrice(customerIdBytes: Uint8Array): Promise<string | null>
+	showSubscriptionConfigView(): Promise<void>
+
+	/**
+	 * Check if the latest transaction using the current Store Account belongs to the user
+	 */
+	checkLastTransactionOwner(customerIdBytes: Uint8Array): Promise<boolean>
 }

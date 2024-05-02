@@ -1728,6 +1728,7 @@ export default {
 		"yourCalendars_label": "Deine Kalender",
 		"yourFolders_action": "Ihre ORDNER",
 		"yourMessage_label": "Ihre Nachricht",
-		"you_label": "Sie"
+		"you_label": "Sie",
+		"storeSubscription_msg": "Die im Geschäft abgeschlossenen Abonnements sollten direkt im Geschäft verwaltet werden."
 	}
 }

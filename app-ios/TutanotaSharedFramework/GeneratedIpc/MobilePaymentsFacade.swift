@@ -23,9 +23,14 @@ public protocol MobilePaymentsFacade {
 		_ interval: Int
 	) async throws -> MobilePlanPrice?
 	/**
-	 * Returns a displayable price for the current plan
+	 * Display a view for the user to configure their subscription.
 	 */
-	func getCurrentPlanPrice(
+	func showSubscriptionConfigView(
+	) async throws -> Void
+	/**
+	 * Check if the latest transaction using the current Store Account belongs to the user
+	 */
+	func checkLastTransactionOwner(
 		_ customerIdBytes: DataWrapper
-	) async throws -> String?
+	) async throws -> Bool
 }

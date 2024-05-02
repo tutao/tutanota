@@ -1,5 +1,5 @@
 {
-  "identifier" : "1A0841AA",
+  "identifier" : "368E468C",
   "nonRenewingSubscriptions" : [
 
   ],
@@ -7,9 +7,12 @@
 
   ],
   "settings" : {
+    "_applicationInternalID" : "922429609",
+    "_developerTeamID" : "JKCH89Z3M9",
     "_failTransactionsEnabled" : false,
+    "_lastSynchronizedDate" : 737281866.58363402,
     "_locale" : "en_US",
-    "_storefront" : "DEU",
+    "_storefront" : "USA",
     "_storeKitErrors" : [
       {
         "current" : null,
@@ -60,7 +63,7 @@
   },
   "subscriptionGroups" : [
     {
-      "id" : "1F60CF3C",
+      "id" : "21467136",
       "localizations" : [
 
       ],
@@ -73,87 +76,22 @@
           "codeOffers" : [
 
           ],
-          "displayPrice" : "3.60",
+          "displayPrice" : "8.99",
           "familyShareable" : false,
           "groupNumber" : 1,
-          "internalID" : "C850E178",
+          "internalID" : "6479765512",
           "introductoryOffer" : null,
           "localizations" : [
             {
-              "description" : "",
-              "displayName" : "Revolutionary (Monthly)",
-              "locale" : "en_US"
-            },
-            {
-              "description" : "",
-              "displayName" : "Revolutionary (Monatlich)",
-              "locale" : "de"
-            }
-          ],
-          "productID" : "plans.revolutionary.monthly",
-          "recurringSubscriptionPeriod" : "P1M",
-          "referenceName" : "Revolutionary (Monthly)",
-          "subscriptionGroupID" : "1F60CF3C",
-          "type" : "RecurringSubscription"
-        },
-        {
-          "adHocOffers" : [
-
-          ],
-          "codeOffers" : [
-
-          ],
-          "displayPrice" : "36",
-          "familyShareable" : false,
-          "groupNumber" : 1,
-          "internalID" : "4C0979E8",
-          "introductoryOffer" : null,
-          "localizations" : [
-            {
-              "description" : "",
-              "displayName" : "Revolutionary (Yearly)",
-              "locale" : "en_US"
-            },
-            {
-              "description" : "",
-              "displayName" : "Revolutionary (Jährlich)",
-              "locale" : "de"
-            }
-          ],
-          "productID" : "plans.revolutionary.yearly",
-          "recurringSubscriptionPeriod" : "P1Y",
-          "referenceName" : "Revolutionary (Yearly)",
-          "subscriptionGroupID" : "1F60CF3C",
-          "type" : "RecurringSubscription"
-        },
-        {
-          "adHocOffers" : [
-
-          ],
-          "codeOffers" : [
-
-          ],
-          "displayPrice" : "9.60",
-          "familyShareable" : false,
-          "groupNumber" : 1,
-          "internalID" : "89D052C3",
-          "introductoryOffer" : null,
-          "localizations" : [
-            {
-              "description" : "",
+              "description" : "One month of the Legend plan.",
               "displayName" : "Legend (Monthly)",
               "locale" : "en_US"
-            },
-            {
-              "description" : "",
-              "displayName" : "Legend (Monatlich)",
-              "locale" : "de"
             }
           ],
           "productID" : "plans.legend.monthly",
           "recurringSubscriptionPeriod" : "P1M",
           "referenceName" : "Legend (Monthly)",
-          "subscriptionGroupID" : "1F60CF3C",
+          "subscriptionGroupID" : "21467136",
           "type" : "RecurringSubscription"
         },
         {
@@ -163,27 +101,22 @@
           "codeOffers" : [
 
           ],
-          "displayPrice" : "96",
+          "displayPrice" : "89.99",
           "familyShareable" : false,
           "groupNumber" : 1,
-          "internalID" : "D580EF40",
+          "internalID" : "6479765828",
           "introductoryOffer" : null,
           "localizations" : [
             {
-              "description" : "",
+              "description" : "One year of the Legend plan.",
               "displayName" : "Legend (Yearly)",
               "locale" : "en_US"
-            },
-            {
-              "description" : "",
-              "displayName" : "Legend (Jährlich)",
-              "locale" : "de"
             }
           ],
           "productID" : "plans.legend.yearly",
           "recurringSubscriptionPeriod" : "P1Y",
           "referenceName" : "Legend (Yearly)",
-          "subscriptionGroupID" : "1F60CF3C",
+          "subscriptionGroupID" : "21467136",
           "type" : "RecurringSubscription"
         },
         {
@@ -193,27 +126,22 @@
           "codeOffers" : [
 
           ],
-          "displayPrice" : "7.20",
+          "displayPrice" : "3.99",
           "familyShareable" : false,
-          "groupNumber" : 1,
-          "internalID" : "76A11188",
+          "groupNumber" : 2,
+          "internalID" : "6479874640",
           "introductoryOffer" : null,
           "localizations" : [
             {
-              "description" : "",
-              "displayName" : "Essential (Monthly)",
+              "description" : "One month of Revolutionary plan.",
+              "displayName" : "Revolutionary (Monthly)",
               "locale" : "en_US"
-            },
-            {
-              "description" : "",
-              "displayName" : "Essential (Monatlich)",
-              "locale" : "de"
             }
           ],
-          "productID" : "plans.essential.monthly",
+          "productID" : "plans.revolutionary.monthly",
           "recurringSubscriptionPeriod" : "P1M",
-          "referenceName" : "Essential (Monthly)",
-          "subscriptionGroupID" : "1F60CF3C",
+          "referenceName" : "Revolutionary (Monthly)",
+          "subscriptionGroupID" : "21467136",
           "type" : "RecurringSubscription"
         },
         {
@@ -223,147 +151,22 @@
           "codeOffers" : [
 
           ],
-          "displayPrice" : "72",
+          "displayPrice" : "39.99",
           "familyShareable" : false,
-          "groupNumber" : 1,
-          "internalID" : "001CF62B",
+          "groupNumber" : 2,
+          "internalID" : "6479874630",
           "introductoryOffer" : null,
           "localizations" : [
             {
-              "description" : "",
-              "displayName" : "Essential (Yearly)",
+              "description" : "One year of Revolutionary plan.",
+              "displayName" : "Revolutionary (Yearly)",
               "locale" : "en_US"
-            },
-            {
-              "description" : "",
-              "displayName" : "Essential (Jährlich)",
-              "locale" : "de"
             }
           ],
-          "productID" : "plans.essential.yearly",
+          "productID" : "plans.revolutionary.yearly",
           "recurringSubscriptionPeriod" : "P1Y",
-          "referenceName" : "Essential (Yearly)",
-          "subscriptionGroupID" : "1F60CF3C",
-          "type" : "RecurringSubscription"
-        },
-        {
-          "adHocOffers" : [
-
-          ],
-          "codeOffers" : [
-
-          ],
-          "displayPrice" : "9.60",
-          "familyShareable" : false,
-          "groupNumber" : 1,
-          "internalID" : "E868A613",
-          "introductoryOffer" : null,
-          "localizations" : [
-            {
-              "description" : "",
-              "displayName" : "Advanced (Monthly)",
-              "locale" : "en_US"
-            },
-            {
-              "description" : "",
-              "displayName" : "Advanced (Monatlich)",
-              "locale" : "de"
-            }
-          ],
-          "productID" : "plans.advanced.monthly",
-          "recurringSubscriptionPeriod" : "P1M",
-          "referenceName" : "Advanced (Monthly)",
-          "subscriptionGroupID" : "1F60CF3C",
-          "type" : "RecurringSubscription"
-        },
-        {
-          "adHocOffers" : [
-
-          ],
-          "codeOffers" : [
-
-          ],
-          "displayPrice" : "96",
-          "familyShareable" : false,
-          "groupNumber" : 1,
-          "internalID" : "3283A401",
-          "introductoryOffer" : null,
-          "localizations" : [
-            {
-              "description" : "",
-              "displayName" : "Advanced (Yearly)",
-              "locale" : "en_US"
-            },
-            {
-              "description" : "",
-              "displayName" : "Advanced (Jährlich)",
-              "locale" : "de"
-            }
-          ],
-          "productID" : "plans.advanced.yearly",
-          "recurringSubscriptionPeriod" : "P1Y",
-          "referenceName" : "Advanced (Yearly)",
-          "subscriptionGroupID" : "1F60CF3C",
-          "type" : "RecurringSubscription"
-        },
-        {
-          "adHocOffers" : [
-
-          ],
-          "codeOffers" : [
-
-          ],
-          "displayPrice" : "14.40",
-          "familyShareable" : false,
-          "groupNumber" : 1,
-          "internalID" : "FEB2B0A3",
-          "introductoryOffer" : null,
-          "localizations" : [
-            {
-              "description" : "",
-              "displayName" : "Unlimited (Monthly)",
-              "locale" : "en_US"
-            },
-            {
-              "description" : "",
-              "displayName" : "Unlimited (Monatlich)",
-              "locale" : "de"
-            }
-          ],
-          "productID" : "plans.unlimited.monthly",
-          "recurringSubscriptionPeriod" : "P1M",
-          "referenceName" : "Unlimited (Monthly)",
-          "subscriptionGroupID" : "1F60CF3C",
-          "type" : "RecurringSubscription"
-        },
-        {
-          "adHocOffers" : [
-
-          ],
-          "codeOffers" : [
-
-          ],
-          "displayPrice" : "144",
-          "familyShareable" : false,
-          "groupNumber" : 1,
-          "internalID" : "BEBB3F71",
-          "introductoryOffer" : null,
-          "localizations" : [
-            {
-              "description" : "",
-              "displayName" : "Unlimited (Yearly)",
-              "locale" : "en_US"
-            },
-            {
-              "description" : "",
-              "displayName" : "Unlimited (Jährlich)",
-              "locale" : "de"
-            }
-          ],
-          "productID" : "plans.unlimited.yearly",
-          "recurringSubscriptionPeriod" : "P1Y",
-          "referenceName" : "Unlimited (Yearly)",
-          "subscriptionGroupID" : "1F60CF3C",
+          "referenceName" : "Revolutionary (Yearly)",
+          "subscriptionGroupID" : "21467136",
           "type" : "RecurringSubscription"
         }
       ]

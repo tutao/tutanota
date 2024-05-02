@@ -13,7 +13,10 @@ export class MobilePaymentsFacadeSendDispatcher implements MobilePaymentsFacade 
 	async getPlanPrice(...args: Parameters<MobilePaymentsFacade["getPlanPrice"]>) {
 		return this.transport.invokeNative("ipc", ["MobilePaymentsFacade", "getPlanPrice", ...args])
 	}
-	async getCurrentPlanPrice(...args: Parameters<MobilePaymentsFacade["getCurrentPlanPrice"]>) {
-		return this.transport.invokeNative("ipc", ["MobilePaymentsFacade", "getCurrentPlanPrice", ...args])
+	async showSubscriptionConfigView(...args: Parameters<MobilePaymentsFacade["showSubscriptionConfigView"]>) {
+		return this.transport.invokeNative("ipc", ["MobilePaymentsFacade", "showSubscriptionConfigView", ...args])
+	}
+	async checkLastTransactionOwner(...args: Parameters<MobilePaymentsFacade["checkLastTransactionOwner"]>) {
+		return this.transport.invokeNative("ipc", ["MobilePaymentsFacade", "checkLastTransactionOwner", ...args])
 	}
 }

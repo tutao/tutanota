@@ -1,11 +1,12 @@
 import m, { Children } from "mithril"
-import { assertMainOrNode } from "../api/common/Env"
+import { assertMainOrNode, isIOSApp } from "../api/common/Env"
 import {
 	AccountType,
 	AccountTypeNames,
 	AvailablePlans,
 	BookingItemFeatureType,
 	Const,
+	getPaymentMethodType,
 	LegacyPlans,
 	NewPaidPlans,
 	OperationType,
@@ -110,6 +111,7 @@ export class SubscriptionViewer implements UpdatableSettingsViewer {
 		this._giftCardsExpanded = stream<boolean>(false)
 
 		this.view = (): Children => {
+			const isAppStorePayment = this._accountingInfo && getPaymentMethodType(this._accountingInfo) === PaymentMethodType.AppStore
 			return m("#subscription-settings.fill-absolute.scroll.plr-l", [
 				m(".h4.mt-l", lang.get("currentlyBooked_label")),
 				m(TextField, {
@@ -128,8 +130,16 @@ export class SubscriptionViewer implements UpdatableSettingsViewer {
 							: !this._isCancelled
 							? m(IconButton, {
 									title: "subscription_label",
-									click: () => {
-										if (this._accountingInfo && this._customer && this._customerInfo && this._lastBooking) {
+									click: async () => {
+										if (isAppStorePayment) {
+											if (!isIOSApp()) {
+												return Dialog.message(() => "Store made subscriptions should be directly managed in the store").then(() => {
+													window.open("https://apps.apple.com/account/subscriptions", "_blank")
+												})
+											}
+
+											this.handleAppStoreSubscriptionChange()
+										} else if (this._accountingInfo && this._customer && this._customerInfo && this._lastBooking) {
 											showSwitchDialog(this._customer, this._customerInfo, this._accountingInfo, this._lastBooking, AvailablePlans, null)
 										}
 									},
@@ -225,6 +235,7 @@ export class SubscriptionViewer implements UpdatableSettingsViewer {
 			})
 			.then((accountingInfo) => {
 				this.updateAccountInfoData(accountingInfo)
+				this.updatePriceInfo()
 			})
 		const loadingString = lang.get("loading_msg")
 		this._currentPriceFieldValue = stream(loadingString)
@@ -241,9 +252,21 @@ export class SubscriptionViewer implements UpdatableSettingsViewer {
 		this._autoResponderFieldValue = stream(loadingString)
 		this._selectedSubscriptionInterval = stream<PaymentInterval | null>(null)
 
-		this.updatePriceInfo()
-
 		this.updateBookings()
+	}
+
+	private async handleAppStoreSubscriptionChange() {
+		// FIXME: refactor mobilePaymentsFacade to constructor
+		const isSameOwner = await locator.mobilePaymentsFacade.checkLastTransactionOwner(base64ToUint8Array(base64ExtToBase64(this._customer!._id)))
+
+		// Show a dialog only if the user's Apple account's last transaction was with this customer ID
+		//
+		// This prevents the user from accidentally changing a subscription that they don't own
+		if (!isSameOwner) {
+			return Dialog.message(() => "YOU SHALL NOT PASS!")
+		}
+
+		await locator.mobilePaymentsFacade.showSubscriptionConfigView()
 	}
 
 	private showOrderAgreement(): boolean {
@@ -279,32 +302,12 @@ export class SubscriptionViewer implements UpdatableSettingsViewer {
 	}
 
 	private showPriceData(): boolean {
-		return locator.logins.getUserController().isPremiumAccount()
+		const isAppStorePayment = this._accountingInfo && getPaymentMethodType(this._accountingInfo) === PaymentMethodType.AppStore
+		return locator.logins.getUserController().isPremiumAccount() && !isIOSApp() && !isAppStorePayment
 	}
 
 	private async updatePriceInfo(): Promise<void> {
 		if (!this.showPriceData()) {
-			return
-		}
-
-		// FIXME: Use the accountingInfo we already get
-		const customerId = neverNull(locator.logins.getUserController().user.customer)
-		const accountingInfo = await locator.entityClient
-			.load(CustomerTypeRef, customerId)
-			.then((customer) => {
-				this.updateCustomerData(customer)
-				return locator.logins.getUserController().loadCustomerInfo()
-			})
-			.then((customerInfo) => {
-				this._customerInfo = customerInfo
-				return locator.entityClient.load(AccountingInfoTypeRef, customerInfo.accountingInfo)
-			})
-
-		if (accountingInfo.paymentMethod === PaymentMethodType.AppStore) {
-			// FIXME: make mobilePaymentsFacade passed in with the constructor
-			const amount = await locator.mobilePaymentsFacade.getCurrentPlanPrice(base64ToUint8Array(base64ExtToBase64(customerId)))
-			this._currentPriceFieldValue(amount ?? "FREE TUTA!!!! ;)") // FIXME: add a proper text here that says something about not being able to access the price @ app store
-			m.redraw()
 			return
 		}
 
@@ -494,6 +497,11 @@ export class SubscriptionViewer implements UpdatableSettingsViewer {
 	}
 
 	private renderIntervals() {
+		const isAppStorePayment = this._accountingInfo && getPaymentMethodType(this._accountingInfo) === PaymentMethodType.AppStore
+		if (isIOSApp() || isAppStorePayment) {
+			return
+		}
+
 		const subscriptionPeriods: SelectorItemList<PaymentInterval | null> = [
 			{
 				name: lang.get("pricing.yearly_label"),
