@@ -2,6 +2,20 @@ import CryptoKit
 import StoreKit
 
 public class IosMobilePaymentsFacade: MobilePaymentsFacade {
+	public func checkLastTransactionOwner(_ customerIdBytes: DataWrapper) async throws -> Bool {
+		var transactions = Transaction.all.makeAsyncIterator()
+		
+		return try await Transaction.all.contains { transaction in
+			let transactionInfo = try transaction.payloadValue
+			let uuid = customerIdToUUID(customerIdBytes.data)
+			let isSameOwner = transactionInfo.appAccountToken == uuid
+			
+			TUTSLog("Checking transactions: \(transactionInfo.appAccountToken) \(uuid) \(isSameOwner)")
+			
+			return isSameOwner
+		}
+	}
+
 	public func getPlanPrice(_ plan: String, _ interval: Int) async throws -> MobilePlanPrice? {
 		let planType = formatPlanType(plan, withInterval: interval)
 		let products = try await Product.products(for: [planType])
@@ -24,11 +38,9 @@ public class IosMobilePaymentsFacade: MobilePaymentsFacade {
 		}
 	}
 	
-	public func getCurrentPlanPrice(_ customerIdBytes: DataWrapper) async throws -> String? {
-		let uuid = customerIdToUUID(customerIdBytes.data)
-
-		// FIXME: DON'T RETURN NIL UNLESS THERE IS NO ESCAPE FROM THIS PAIN THAT I RETAIN GHJAKSGHJKASGHJKASDKUHJGWERAYUERASFOFDSUIORTGUIOP$%TU*)ETSG)U*EDFG)(*FSD)*(FDY&#@Q^&*(ASDYUI THE PAAAAAAIN PAIN!!! AHAHAHAHA MY ERRORS! ALL OF MY ERRORS! YES!!!
-		return nil
+	public func showSubscriptionConfigView() async throws {
+		let window = await UIApplication.shared.keyWindow!.windowScene!
+		try await AppStore.showManageSubscriptions(in: window)
 	}
 	
 	public func requestSubscriptionToPlan(_ plan: String, _ interval: Int, _ customerIdBytes: DataWrapper) async throws -> MobilePaymentResult {

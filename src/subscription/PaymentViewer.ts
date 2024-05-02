@@ -123,7 +123,7 @@ export class PaymentViewer implements UpdatableSettingsViewer {
 					// iOS app doesn't work with PayPal button or 3dsecure redirects
 					click: createNotAvailableForFreeClickHandler(
 						NewPaidPlans,
-						() => this.changePaymentMethod(),
+						() => this._accountingInfo && this.changePaymentMethod(),
 						() => !isIOSApp() && locator.logins.getUserController().isPremiumAccount(),
 					),
 					icon: Icons.Edit,
@@ -149,27 +149,33 @@ export class PaymentViewer implements UpdatableSettingsViewer {
 	}
 
 	private changePaymentMethod() {
-		if (this._accountingInfo) {
-			let nextPayment = this._amountOwed() * -1
-			showProgressDialog(
-				"pleaseWait_msg",
-				locator.bookingFacade.getCurrentPrice().then((priceServiceReturn) => {
-					return Math.max(
-						nextPayment,
-						Number(neverNull(priceServiceReturn.currentPriceThisPeriod).price),
-						Number(neverNull(priceServiceReturn.currentPriceNextPeriod).price),
-					)
-				}),
-			).then((price) => {
-				return PaymentDataDialog.show(neverNull(this._customer), neverNull(this._accountingInfo), price).then((success) => {
-					if (success) {
-						if (this._isPayButtonVisible()) {
-							return this._showPayDialog(this._amountOwed())
-						}
-					}
-				})
+		const isAppStorePayment = this._accountingInfo && getPaymentMethodType(this._accountingInfo) === PaymentMethodType.AppStore
+
+		if (isAppStorePayment) {
+			return Dialog.message(() => "Store made subscriptions should be directly managed in the store").then(() => {
+				window.open("https://apps.apple.com/account/subscriptions", "_blank")
 			})
 		}
+
+		let nextPayment = this._amountOwed() * -1
+		showProgressDialog(
+			"pleaseWait_msg",
+			locator.bookingFacade.getCurrentPrice().then((priceServiceReturn) => {
+				return Math.max(
+					nextPayment,
+					Number(neverNull(priceServiceReturn.currentPriceThisPeriod).price),
+					Number(neverNull(priceServiceReturn.currentPriceNextPeriod).price),
+				)
+			}),
+		).then((price) => {
+			return PaymentDataDialog.show(neverNull(this._customer), neverNull(this._accountingInfo), price).then((success) => {
+				if (success) {
+					if (this._isPayButtonVisible()) {
+						return this._showPayDialog(this._amountOwed())
+					}
+				}
+			})
+		})
 	}
 
 	_renderPostings(postingExpanded: Stream<boolean>): Children {

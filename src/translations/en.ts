@@ -1724,6 +1724,7 @@ export default {
 		"yourCalendars_label": "Your calendars",
 		"yourFolders_action": "YOUR FOLDERS",
 		"yourMessage_label": "Your message",
-		"you_label": "You"
+		"you_label": "You",
+		"storeSubscription_msg": "Store made subscriptions should be directly managed in the store"
 	}
 }
