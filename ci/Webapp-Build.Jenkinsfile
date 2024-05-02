@@ -7,9 +7,9 @@ pipeline {
 	}
 	parameters {
         booleanParam(
-			name: 'PUSH_TO_NEXUS',
+			name: 'PUSH_DEB',
 			defaultValue: false,
-			description: "Upload the result artifact to Nexus"
+			description: "Upload the result artifact"
 		)
     }
     agent {
@@ -63,7 +63,7 @@ pipeline {
          		VERSION = sh(returnStdout: true, script: "node -p -e \"require('./package.json').version\" | tr -d \"\n\"")
          	}
             when {
-            	expression { params.PUSH_TO_NEXUS }
+            	expression { params.PUSH_DEB }
             }
             agent {
                 label 'linux'
@@ -96,13 +96,16 @@ pipeline {
 			environment {
 				VERSION = sh(returnStdout: true, script: "node buildSrc/getTutanotaAppVersion.js")
 			}
+			when {
+				expression { params.PUSH_DEB }
+			}
 			agent {
 				label 'linux'
 			}
 			steps {
 				unstash 'deb'
 
-				sh 'echo Publishing version $VERSION'
+				sh 'echo Copying version $VERSION'
 
 				sh "cp ${WORKSPACE}/tutanota_${VERSION}_amd64.deb /opt/repository/tutanota"
 			}
