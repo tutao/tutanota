@@ -113,11 +113,11 @@ pipeline {
 
 				script {
 					if (params.TARGET == 'prod') {
-						sh "cp tutanota_desktop_${VERSION}_amd64.deb /opt/repository/tutanota-desktop"
+						sh "cp tutanota-desktop_${VERSION}_amd64.deb /opt/repository/tutanota-desktop"
 						sh "cp -f ./build/desktop/tutanota-desktop-linux.AppImage /opt/repository/dev_client/tutanota-desktop-linux-new.AppImage"
 						sh "chmod o+r /opt/repository/dev_client/tutanota-desktop-linux-new.AppImage"
 					} else {
-						sh "cp tutanota_desktop_test_${VERSION}_amd64.deb /opt/repository/tutanota-desktop-test"
+						sh "cp tutanota-desktop-test_${VERSION}_amd64.deb /opt/repository/tutanota-desktop-test"
 					}
 				}
 
