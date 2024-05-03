@@ -32,10 +32,11 @@ pipeline {
 			}
 
 			stages {
-				stage('Testflight') {
+				stage('Download ipa') {
+					agent {
+						label 'linux'
+					}
 					steps {
-						sh 'rm -rf build'
-
 						script {
 							def util = load "ci/jenkins-lib/util.groovy"
 							util.downloadFromNexus(groupId: "app",
@@ -43,10 +44,22 @@ pipeline {
 												   version: VERSION,
 												   outFile: "tutanota-${VERSION}-test.ipa",
 												   fileExtension: 'ipa')
+						   stash includes: "tutanota-${VERSION}-test.ipa", name: "ipa-testflight-staging"
+						}
+					} // steps
+				} // stage Download ipa
+
+				stage('Testflight') {
+					steps {
+						sh 'rm -rf build'
+						unstash "ipa-testflight-staging"
+
+						script {
+							def util = load "ci/jenkins-lib/util.groovy"
 						   util.runFastlane("de.tutao.tutanota.test", "upload_testflight_staging")
 						} // steps
 					}
-				} // stage Play Store
+				} // stage Testflight
 			} // stages
 		} // stage Staging
 
@@ -59,9 +72,27 @@ pipeline {
 			}
 
 			stages {
+				stage('Download ipa') {
+					agent {
+						label 'linux'
+					}
+					steps {
+						script {
+							def util = load "ci/jenkins-lib/util.groovy"
+							util.downloadFromNexus(groupId: "app",
+												   artifactId: "ios",
+												   version: VERSION,
+												   outFile: "tutanota-${VERSION}.ipa",
+												   fileExtension: 'ipa')
+						   stash includes: "tutanota-${VERSION}.ipa", name: 'ipa-appstore-prod'
+						}
+					}
+				} // stage Download ipa
+
 				stage('Appstore') {
 					steps {
 						sh 'rm -rf build'
+						unstash 'ipa-appstore-prod'
 
 						script {
 							def util = load "ci/jenkins-lib/util.groovy"
