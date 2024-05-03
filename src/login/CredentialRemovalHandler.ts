@@ -5,6 +5,7 @@ import { ConfigurationDatabase } from "../api/worker/facades/lazy/ConfigurationD
 import { MobileContactsFacade } from "../native/common/generatedipc/MobileContactsFacade.js"
 import { ofClass } from "@tutao/tutanota-utils"
 import { PermissionError } from "../api/common/error/PermissionError.js"
+import { DeviceConfig } from "../misc/DeviceConfig.js"
 
 export interface CredentialRemovalHandler {
 	onCredentialsRemoved(credentialsAndDbKey: CredentialsAndDatabaseKey): Promise<void>
@@ -16,6 +17,7 @@ export class NoopCredentialRemovalHandler implements CredentialRemovalHandler {
 
 export class AppsCredentialRemovalHandler implements CredentialRemovalHandler {
 	constructor(
+		private readonly configs: DeviceConfig,
 		private readonly indexer: Indexer,
 		private readonly pushApp: NativePushServiceApp,
 		private readonly configFacade: ConfigurationDatabase,
@@ -31,8 +33,10 @@ export class AppsCredentialRemovalHandler implements CredentialRemovalHandler {
 			await this.configFacade.delete(userId)
 		}
 
-		await this.mobileContactsFacade
-			?.deleteContacts(credentialsAndDbKey.credentials.login, null)
-			.catch(ofClass(PermissionError, (e) => console.log("No permission to clear contacts", e)))
+		if (this.configs.getUserSyncContactsWithPhonePreference(credentialsAndDbKey.credentials.userId)) {
+			await this.mobileContactsFacade
+				?.deleteContacts(credentialsAndDbKey.credentials.login, null)
+				.catch(ofClass(PermissionError, (e) => console.log("No permission to clear contacts", e)))
+		}
 	}
 }
