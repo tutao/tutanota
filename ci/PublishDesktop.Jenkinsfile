@@ -36,73 +36,73 @@ pipeline {
 					def util = load "ci/jenkins-lib/util.groovy"
 					if (params.TARGET == 'staging') {
 						util.downloadFromNexus(groupId: "app",
-											   artifactId: "linux-test",
+											   artifactId: "desktop-linux-test",
 											   version: VERSION,
 											   outFile: "${WORKSPACE}/build/desktop-test/tutanota-desktop-test-linux.AppImage",
 											   fileExtension: 'AppImage')
 						util.downloadFromNexus(groupId: "app",
-											   artifactId: "linux-test",
+											   artifactId: "desktop-linux-test",
 											   version: VERSION,
 											   outFile: "${WORKSPACE}/build/desktop-test/latest-linux.yml",
 											   fileExtension: 'yml')
 						util.downloadFromNexus(groupId: "app",
-											   artifactId: "windows-test",
+											   artifactId: "desktop-windows-test",
 											   version: VERSION,
 											   outFile: "${WORKSPACE}/build/desktop-test/tutanota-desktop-test-windows.exe",
 											   fileExtension: 'exe')
 						util.downloadFromNexus(groupId: "app",
-											   artifactId: "windows-test",
+											   artifactId: "desktop-windows-test",
 											   version: VERSION,
 											   outFile: "${WORKSPACE}/build/desktop-test/latest.yml",
 											   fileExtension: 'yml')
 						util.downloadFromNexus(groupId: "app",
-											   artifactId: "mac-test",
+											   artifactId: "desktop-mac-test",
 											   version: VERSION,
 											   outFile: "${WORKSPACE}/build/desktop-test/tutanota-desktop-test-mac.zip",
 											   fileExtension: 'zip')
 						util.downloadFromNexus(groupId: "app",
-											   artifactId: "mac-test",
+											   artifactId: "desktop-mac-test",
 											   version: VERSION,
 											   outFile: "${WORKSPACE}/build/desktop-test/tutanota-desktop-test-mac.dmg",
 											   fileExtension: 'dmg')
 						util.downloadFromNexus(groupId: "app",
-											   artifactId: "mac-test",
+											   artifactId: "desktop-mac-test",
 											   version: VERSION,
 											   outFile: "${WORKSPACE}/build/desktop-test/latest-mac.yml",
 											   fileExtension: 'yml')
 					} else {
 						util.downloadFromNexus(groupId: "app",
-											   artifactId: "linux",
+											   artifactId: "desktop-linux",
 											   version: VERSION,
 											   outFile: "${WORKSPACE}/build/desktop/tutanota-desktop-linux.AppImage",
 											   fileExtension: 'AppImage')
 						util.downloadFromNexus(groupId: "app",
-											   artifactId: "linux",
+											   artifactId: "desktop-linux",
 											   version: VERSION,
 											   outFile: "${WORKSPACE}/build/desktop/latest-linux.yml",
 											   fileExtension: 'yml')
 						util.downloadFromNexus(groupId: "app",
-											   artifactId: "windows",
+											   artifactId: "desktop-windows",
 											   version: VERSION,
 											   outFile: "${WORKSPACE}/build/desktop/tutanota-desktop-windows.exe",
 											   fileExtension: 'exe')
 						util.downloadFromNexus(groupId: "app",
-											   artifactId: "windows",
+											   artifactId: "desktop-windows",
 											   version: VERSION,
 											   outFile: "${WORKSPACE}/build/desktop/latest.yml",
 											   fileExtension: 'yml')
 						util.downloadFromNexus(groupId: "app",
-											   artifactId: "mac",
+											   artifactId: "desktop-mac",
 											   version: VERSION,
 											   outFile: "${WORKSPACE}/build/desktop/tutanota-desktop-mac.zip",
 											   fileExtension: 'zip')
 						util.downloadFromNexus(groupId: "app",
-											   artifactId: "mac",
+											   artifactId: "desktop-mac",
 											   version: VERSION,
 											   outFile: "${WORKSPACE}/build/desktop/tutanota-desktop-mac.dmg",
 											   fileExtension: 'dmg')
 						util.downloadFromNexus(groupId: "app",
-											   artifactId: "mac",
+											   artifactId: "desktop-mac",
 											   version: VERSION,
 											   outFile: "${WORKSPACE}/build/desktop/latest-mac.yml",
 											   fileExtension: 'yml')
