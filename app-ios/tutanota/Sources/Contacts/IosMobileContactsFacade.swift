@@ -109,7 +109,7 @@ class IosMobileContactsFacade: MobileContactsFacade {
 		let store = CNContactStore()
 		var addresses = [StructuredContact]()
 		let mapping = self.getMapping(username: username)
-		try store.enumerateContacts(with: fetch) { (contact, _) in
+		try self.enumerateContactsInContactStore(store, with: fetch) { (contact, _) in
 			if mapping?.localContactIdentifierToHash[contact.identifier] == nil {
 				// we don't need (and probably don't have?) a server id in this case
 				addresses.append(contact.toStructuredContact(serverId: nil))
@@ -125,7 +125,7 @@ class IosMobileContactsFacade: MobileContactsFacade {
 		let fetch = CNContactFetchRequest(keysToFetch: ALL_SUPPORTED_CONTACT_KEYS)
 		fetch.predicate = CNContact.predicateForContactsInGroup(withIdentifier: tutaGroup.identifier)
 		var contacts = [CNContact]()
-		try store.enumerateContacts(with: fetch) { (contact, _) in contacts.append(contact) }
+		try self.enumerateContactsInContactStore(store, with: fetch) { (contact, _) in contacts.append(contact) }
 		return contacts
 	}
 
@@ -147,6 +147,16 @@ class IosMobileContactsFacade: MobileContactsFacade {
 			try store.execute(saveRequest)
 
 			self.deleteMapping(forUsername: username)
+		}
+	}
+
+	private func enumerateContactsInContactStore(
+		_ contactStore: CNContactStore,
+		with fetchRequest: CNContactFetchRequest,
+		usingBlock block: (CNContact, UnsafeMutablePointer<ObjCBool>) -> Void
+	) throws {
+		do { try contactStore.enumerateContacts(with: fetchRequest, usingBlock: block) } catch {
+			throw ContactStoreError(message: "Could not enumerate contacts", underlyingError: error)
 		}
 	}
 
@@ -225,7 +235,7 @@ class IosMobileContactsFacade: MobileContactsFacade {
 		fetch.predicate = CNContact.predicateForContacts(withIdentifiers: nativeIdentifiersToRemove)
 		let save = CNSaveRequest()
 
-		try store.enumerateContacts(with: fetch) { contact, _ in save.delete(contact.mutableCopy() as! CNMutableContact) }
+		try self.enumerateContactsInContactStore(store, with: fetch) { contact, _ in save.delete(contact.mutableCopy() as! CNMutableContact) }
 
 		for (localIdentifier, _) in localAndServerIds {
 			user.localContactIdentifierToServerId.removeValue(forKey: localIdentifier)
@@ -245,7 +255,7 @@ class IosMobileContactsFacade: MobileContactsFacade {
 		fetch.predicate = CNContact.predicateForContactsInGroup(withIdentifier: group.identifier)
 		let save = CNSaveRequest()
 
-		try store.enumerateContacts(with: fetch) { contact, _ in save.delete(contact.mutableCopy() as! CNMutableContact) }
+		try self.enumerateContactsInContactStore(store, with: fetch) { contact, _ in save.delete(contact.mutableCopy() as! CNMutableContact) }
 
 		try store.execute(save)
 	}
@@ -266,7 +276,7 @@ class IosMobileContactsFacade: MobileContactsFacade {
 		var nativeContactIdentifierToHash = user.localContactIdentifierToHash
 
 		// Enumerate all contacts in our group
-		try store.enumerateContacts(with: fetch) { nativeContact, _ in
+		try self.enumerateContactsInContactStore(store, with: fetch) { nativeContact, _ in
 			if let serverContactId = user.localContactIdentifierToServerId[nativeContact.identifier] {
 				if let serverContact = contactsById.removeValue(forKey: serverContactId) {
 					let structuredNative = nativeContact.toStructuredContact(serverId: serverContactId)
@@ -406,7 +416,7 @@ class IosMobileContactsFacade: MobileContactsFacade {
 		// This method is synchronous. Enumeration prevents having all accounts in memory at once.
 		// We are doing the search manually because we can cannot combine predicates.
 		// Alternatively we could query for email and query for name separately and then combine the results
-		try contactsStore.enumerateContacts(with: request) { contact, stopPointer in
+		try self.enumerateContactsInContactStore(contactsStore, with: request) { contact, stopPointer in
 			let name: String = CNContactFormatter.string(from: contact, style: .fullName) ?? ""
 			let matchesName = name.range(of: query, options: .caseInsensitive) != nil
 			for address in contact.emailAddresses {
