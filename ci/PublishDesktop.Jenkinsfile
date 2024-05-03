@@ -46,12 +46,12 @@ pipeline {
 											   outFile: "${WORKSPACE}/build/desktop-test/latest-linux.yml",
 											   fileExtension: 'yml')
 						util.downloadFromNexus(groupId: "app",
-											   artifactId: "desktop-windows-test",
+											   artifactId: "desktop-win-test",
 											   version: VERSION,
 											   outFile: "${WORKSPACE}/build/desktop-test/tutanota-desktop-test-windows.exe",
 											   fileExtension: 'exe')
 						util.downloadFromNexus(groupId: "app",
-											   artifactId: "desktop-windows-test",
+											   artifactId: "desktop-win-test",
 											   version: VERSION,
 											   outFile: "${WORKSPACE}/build/desktop-test/latest.yml",
 											   fileExtension: 'yml')
@@ -82,12 +82,12 @@ pipeline {
 											   outFile: "${WORKSPACE}/build/desktop/latest-linux.yml",
 											   fileExtension: 'yml')
 						util.downloadFromNexus(groupId: "app",
-											   artifactId: "desktop-windows",
+											   artifactId: "desktop-win",
 											   version: VERSION,
 											   outFile: "${WORKSPACE}/build/desktop/tutanota-desktop-windows.exe",
 											   fileExtension: 'exe')
 						util.downloadFromNexus(groupId: "app",
-											   artifactId: "desktop-windows",
+											   artifactId: "desktop-win",
 											   version: VERSION,
 											   outFile: "${WORKSPACE}/build/desktop/latest.yml",
 											   fileExtension: 'yml')
