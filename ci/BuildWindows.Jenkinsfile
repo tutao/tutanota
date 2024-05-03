@@ -98,7 +98,9 @@ pipeline {
 						withCredentials([string(credentialsId: 'HSM_USER_PIN', variable: 'PW')]) {
 							sh '''export HSM_USER_PIN=${PW}; node buildSrc/signDesktopClients.js'''
 						}
-						stash includes: 'build/latest.yml', name: 'signature_staging'
+						dir('build') {
+							stash includes: 'desktop-test/latest.yml', name: 'signature_staging'
+						}
 					} // steps
 				} // stage Sign
 
@@ -126,7 +128,7 @@ pipeline {
 										fileExtension: 'exe'
 									],
 									[
-										path: "${WORKSPACE}/build/latest.yml",
+										path: "${WORKSPACE}/build/desktop-test/latest.yml",
 										fileExtension: 'yml'
 									],
 								]
@@ -186,7 +188,9 @@ pipeline {
 						withCredentials([string(credentialsId: 'HSM_USER_PIN', variable: 'PW')]) {
 							sh '''export HSM_USER_PIN=${PW}; node buildSrc/signDesktopClients.js'''
 						}
-						stash includes: 'build/latest.yml', name: 'signature_prod'
+						dir('build') {
+							stash includes: 'desktop/latest.yml', name: 'signature_prod'
+						}
 					} // steps
 				} // stage Sign
 
@@ -210,11 +214,11 @@ pipeline {
 								version: "${VERSION}",
 								assets: [
 									[
-										path: "${WORKSPACE}/build/desktop-test/tutanota-desktop-win.exe",
+										path: "${WORKSPACE}/build/desktop/tutanota-desktop-win.exe",
 										fileExtension: 'exe'
 									],
 									[
-										path: "${WORKSPACE}/build/latest.yml",
+										path: "${WORKSPACE}/build/desktop/latest.yml",
 										fileExtension: 'yml'
 									],
 								]
