@@ -9,10 +9,10 @@ const spawn = require('child_process').spawn
  *
  * argument names may be fixed by electron-builder
  */
-function signer({
-					path: pathToSign, // path to the file to sign (string)
-					hash: hashAlgorithm // hash algorithm to use (string, defaults to "sha256")
-				}) {
+async function signer({
+						  path: pathToSign, // path to the file to sign (string)
+						  hash: hashAlgorithm // hash algorithm to use (string, defaults to "sha256")
+					  }) {
 	const ext = path.extname(pathToSign)
 	// /thing/thong.AppImage -> /thing/thong-unsigned.AppImage
 	const unsignedFileName = pathToSign.slice(0, pathToSign.length - ext.length) + "-unsigned" + ext
@@ -21,7 +21,8 @@ function signer({
 		? getSelfSignedArgs(unsignedFileName, hashAlgorithm, pathToSign)
 		: getHsmArgs(unsignedFileName, hashAlgorithm, pathToSign)
 
-	return signWithArgs(commandArguments, pathToSign, unsignedFileName)
+	await signWithArgs(commandArguments, pathToSign, unsignedFileName)
+	console.log("signed", pathToSign)
 }
 
 function getSelfSignedArgs(unsignedFileName, hash, signedFileOutPath) {

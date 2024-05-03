@@ -78,7 +78,7 @@ pipeline {
 						}
 
 						dir('artifacts') {
-							stash includes: 'desktop', name: 'installer_staging'
+							stash includes: 'desktop-test/*', name: 'installer_staging'
 						}
 					} // steps
 				} // stage Build
@@ -166,7 +166,7 @@ pipeline {
 						}
 
 						dir('artifacts') {
-							stash includes: 'desktop', name: 'installer_prod'
+							stash includes: 'desktop/*', name: 'installer_prod'
 						}
 					} // steps
 				} // stage Build
