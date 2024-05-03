@@ -232,5 +232,4 @@ void initBuildArea() {
     sh 'npm run build-packages'
     sh 'rm -rf ./build/*'
     sh 'rm -rf ./native-cache/*'
-    unstash 'web_base'
 }
