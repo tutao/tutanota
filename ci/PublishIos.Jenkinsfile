@@ -1,7 +1,7 @@
 pipeline {
 	environment {
 		VERSION = sh(returnStdout: true, script: "${env.NODE_PATH}/node buildSrc/getTutanotaAppVersion.js")
-		PATH = "${env.NODE_PATH}:${env.PATH}"
+		NODE_MAC_PATH = "/usr/local/opt/node@20/bin/"
 		GITHUB_RELEASE_PAGE = "https://github.com/tutao/tutanota/releases/tag/tutanota-android-release-${VERSION}"
 	}
 
@@ -50,13 +50,18 @@ pipeline {
 				} // stage Download ipa
 
 				stage('Testflight') {
+					environment {
+						PATH = "${env.NODE_MAC_PATH}:${env.PATH}"
+					}
 					steps {
 						sh 'rm -rf build'
 						unstash "ipa-testflight-staging"
 
 						script {
 							def util = load "ci/jenkins-lib/util.groovy"
-						   util.runFastlane("de.tutao.tutanota.test", "upload_testflight_staging")
+							echo '$PATH'
+							echo "$PATH"
+						    util.runFastlane("de.tutao.tutanota.test", "upload_testflight_staging")
 						} // steps
 					}
 				} // stage Testflight
@@ -90,6 +95,9 @@ pipeline {
 				} // stage Download ipa
 
 				stage('Appstore') {
+					environment {
+						PATH = "${env.NODE_MAC_PATH}:${env.PATH}"
+					}
 					steps {
 						sh 'rm -rf build'
 						unstash 'ipa-appstore-prod'
