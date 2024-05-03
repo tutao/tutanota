@@ -16,8 +16,8 @@
 default_platform(:ios)
 
 platform :ios do
-	desc "Push a new prod release to AppStore"
-	lane :appstore_prod do |options|
+	desc "Build a new prod release to AppStore"
+	lane :build_appstore_prod do |options|
 		match(
 			app_identifier: ["de.tutao.tutanota", "de.tutao.tutanota.TutanotaShareExtension"],
 			type: "appstore",
@@ -37,20 +37,35 @@ platform :ios do
 			include_symbols: true,
 			verbose: false
 		)
-		if options[:submit]
-			upload_to_app_store(
-				skip_screenshots: true,
-				submit_for_review: false,
-				precheck_include_in_app_purchases: false,
-				# must use force as long as we don't automatically create html previews
-				force: true,
-				api_key_path: ENV["API_KEY_JSON_FILE_PATH"]
-			)
-		end
+	end
+
+	desc "Upload a new prod release to AppStore"
+	lane :upload_appstore_prod do |options|
+		match(
+			app_identifier: ["de.tutao.tutanota", "de.tutao.tutanota.TutanotaShareExtension"],
+			type: "appstore",
+			verbose: false,
+			readonly: true,
+			generate_apple_certs: false,
+			keychain_password: ENV["FASTLANE_KEYCHAIN_PASSWORD"],
+			api_key_path: ENV["API_KEY_JSON_FILE_PATH"]
+		)
+
+		clear_derived_data
+
+		upload_to_app_store(
+			skip_screenshots: true,
+			submit_for_review: false,
+			precheck_include_in_app_purchases: false,
+			# must use force as long as we don't automatically create html previews
+			force: true,
+			api_key_path: ENV["API_KEY_JSON_FILE_PATH"],
+			ipa: "tutanota-" + get_version_number(target: "tutanota") + ".ipa"
+		)
 	end
 
 	desc "Build a new prod release for ad-hoc"
-	lane :adhoc_prod do |options|
+	lane :build_adhoc_prod do |options|
 		match(
 			app_identifier: ["de.tutao.tutanota", "de.tutao.tutanota.TutanotaShareExtension"],
 			type: "adhoc",
@@ -76,7 +91,7 @@ platform :ios do
 	end
 
 	desc "Push a new staging release to TestFlight"
-	lane :testflight_staging do
+	lane :build_testflight_staging do
 		match(
 			app_identifier: ["de.tutao.tutanota.test", "de.tutao.tutanota.test.TutanotaShareExtension"],
 			type: "appstore",
@@ -95,11 +110,15 @@ platform :ios do
 			output_name: "tutanota-" + get_version_number(target: "tutanota") + "-test",
 			verbose: false
 		)
+	end
 
+	desc "Push a new staging release to TestFlight"
+	lane :upload_testflight_staging do
 		upload_to_testflight(
 			app_identifier: "de.tutao.tutanota.test",
 			skip_submission: true,
-			api_key_path: ENV["API_KEY_JSON_FILE_PATH"]
+			api_key_path: ENV["API_KEY_JSON_FILE_PATH"],
+			ipa: "tutanota-" + get_version_number(target: "tutanota") + "-test.ipa",
 		)
 	end
 
