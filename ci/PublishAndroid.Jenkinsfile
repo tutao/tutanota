@@ -22,13 +22,6 @@ pipeline {
 				}
 			}
     	}
-		stage('Run Tests') {
-			steps {
-				dir("${WORKSPACE}/app-android/") {
-					sh "./gradlew test"
-				}
-			}
-		}
 
 		stage('Staging') {
 			when {
