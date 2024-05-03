@@ -70,6 +70,7 @@ pipeline {
 											   version: VERSION,
 											   outFile: "${WORKSPACE}/build/desktop-test/latest-mac.yml",
 											   fileExtension: 'yml')
+						sh 'node buildSrc/buildDeb.js desktop-staging'
 					} else {
 						util.downloadFromNexus(groupId: "app",
 											   artifactId: "desktop-linux",
@@ -106,10 +107,9 @@ pipeline {
 											   version: VERSION,
 											   outFile: "${WORKSPACE}/build/desktop/latest-mac.yml",
 											   fileExtension: 'yml')
+					   sh 'node buildSrc/buildDeb.js desktop-prod'
 					} // if else
 				} // script
-
-				sh 'node buildSrc/buildDeb.js desktop'
 
 				script {
 					if (params.TARGET == 'prod') {
