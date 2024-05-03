@@ -91,6 +91,8 @@ pipeline {
 						expression { params.PUSH_ARTIFACTS }
 					}
 					steps {
+						initBuildArea()
+
 						dir('build') {
 							unstash 'installer_staging'
 						}
@@ -181,6 +183,8 @@ pipeline {
 						expression { params.PUSH_ARTIFACTS }
 					}
 					steps {
+						initBuildArea()
+
 						dir('build') {
 							unstash 'installer_prod'
 						}
