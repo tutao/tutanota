@@ -83,7 +83,7 @@ pipeline {
 						PATH = "${env.NODE_PATH}:${env.PATH}"
 					}
 					when {
-						expression { params.RELEASE }
+						expression { params.PUSH_ARTIFACTS }
 					}
 					agent {
 						label 'linux'
@@ -138,7 +138,7 @@ pipeline {
 						PATH = "${env.NODE_PATH}:${env.PATH}"
 					}
 					when {
-						expression { params.RELEASE }
+						expression { params.PUSH_ARTIFACTS }
 					}
 					agent {
 						label 'linux'
