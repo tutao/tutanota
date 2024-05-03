@@ -135,7 +135,7 @@ pipeline {
 								string(credentialsId: 'apk-sign-store-pass', variable: "APK_SIGN_STORE_PASS"),
 								string(credentialsId: 'apk-sign-key-pass', variable: "APK_SIGN_KEY_PASS")
 						]) {
-							sh 'node android.js -b releaseTest prod'
+							sh 'node android.js -b release prod'
 						}
 
 						stash includes: "build/app-android/tutanota-tutao-release-${VERSION}.apk", name: 'apk-production'
