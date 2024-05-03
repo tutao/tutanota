@@ -13,6 +13,12 @@ def publishToNexus(Map params) {
 }
 
 def publishToNexusMultiple(Map params) {
+	def assetParams = []
+	for (int i = 0; i < params.assets.size(); i++) {
+		def asset = params.assets[i]
+		assetParams.add("-F maven2.asset${i + 1}=@${asset.path}")
+		assetParams.add("-F maven2.asset${i + 1}.extension=${asset.fileExtension}")
+	}
 	withCredentials([usernamePassword(credentialsId: 'nexus-publish', usernameVariable: 'NEXUS_USERNAME', passwordVariable: 'NEXUS_PASSWORD')]) {
 		sh  "curl --silent --show-error --fail " +
 			"-u '${NEXUS_USERNAME}':'${NEXUS_PASSWORD}' " +
@@ -21,12 +27,7 @@ def publishToNexusMultiple(Map params) {
 			"-F maven2.artifactId=${params.artifactId} " +
 			"-F maven2.version=${params.version} " +
 			"-F maven2.generate-pom=true " +
-			params.assets.withIndex().collectMany { asset, index ->
-					[
-					"-F maven2.asset${index + 1}=@${asset.path}",
-					"-F maven2.asset${index + 1}.extension=${asset.fileExtension}"
-					]
-			}.join(" ")
+			assetParams.join(" ")
 	}
 }
 
