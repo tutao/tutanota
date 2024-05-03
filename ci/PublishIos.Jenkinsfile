@@ -52,6 +52,8 @@ pipeline {
 				stage('Testflight') {
 					environment {
 						PATH = "${env.NODE_MAC_PATH}:${env.PATH}"
+						LC_ALL = "en_US.UTF-8"
+						LANG = "en_US.UTF-8"
 					}
 					steps {
 						sh 'rm -rf build'
@@ -97,6 +99,8 @@ pipeline {
 				stage('Appstore') {
 					environment {
 						PATH = "${env.NODE_MAC_PATH}:${env.PATH}"
+						LC_ALL = "en_US.UTF-8"
+						LANG = "en_US.UTF-8"
 					}
 					steps {
 						sh 'rm -rf build'
