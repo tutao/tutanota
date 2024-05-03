@@ -32,13 +32,8 @@ pipeline {
 				sh 'npm ci'
 				sh 'rm -rf ./build/*'
 
-				echo "prepared workspace"
-				echo "workspace: ${WORKSPACE} ${VERSION}"
-				echo VERSION
-
 				script {
-					echo "inside script: workspace: ${WORKSPACE} ${VERSION}"
-					echo VERSION
+					def util = load "ci/jenkins-lib/util.groovy"
 					if (params.TARGET == 'staging') {
 						util.downloadFromNexus(groupId: "app",
 											   artifactId: "linux-test",
