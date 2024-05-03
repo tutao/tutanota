@@ -57,8 +57,9 @@ pipeline {
 					}
 					steps {
 						sh 'rm -rf build'
-						unstash "ipa-testflight-staging"
-
+						dir('app-ios') {
+							unstash "ipa-testflight-staging"
+						}
 						script {
 							def util = load "ci/jenkins-lib/util.groovy"
 							echo '$PATH'
@@ -104,7 +105,9 @@ pipeline {
 					}
 					steps {
 						sh 'rm -rf build'
-						unstash 'ipa-appstore-prod'
+						dir('app-ios') {
+							unstash 'ipa-appstore-prod'
+						}
 
 						script {
 							def util = load "ci/jenkins-lib/util.groovy"
