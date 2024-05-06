@@ -1170,7 +1170,7 @@ export default {
 		"pricing.gdpr_tooltip": "Vsi podatki so shranjeni v skladu s strogimi evropskimi predpisi o varstvu podatkov, skladno z uredbo GDPR.",
 		"pricing.includesTaxes_msg": "Vključuje davek.",
 		"pricing.mailAddressAliasesShort_label": "{amount} dodatnih poštnih naslovov",
-		"pricing.mailAddressAliases_tooltip_markdown": "<p>E-poštni vzdevki lahko zmanjšajo količino neželene pošte in pospešijo razvrščanje prejetih sporočil. Preberite več nasvetov <a target=\"_blank\" rel=\"noopener noreferrer\" href=\"https://tuta.com/blog/posts/secure-email-alias\">na našem blogu</a>.</p>\n",
+		"pricing.mailAddressAliases_tooltip_markdown": "<p>E-poštni vzdevki lahko zmanjšajo količino neželene pošte in pospešijo razvrščanje prejetih sporočil. Preberite več nasvetov <a target=\"_blank\" rel=\"noopener noreferrer\" href=\"https://tuta.com/blog/secure-email-alias\">na našem blogu</a>.</p>\n",
 		"pricing.mailAddressFree_label": "1 brezplačen poštni naslov Tuta",
 		"pricing.management_label": "Upravljanje uporabnikov",
 		"pricing.management_tooltip": "Ponastavite gesla in dvo-nivojsko preverjanje uporabnikov, ustvarite poštne naslove za uporabnike, onemogočite uporabnike in več.",

@@ -1000,7 +1000,7 @@ export default {
 		"pricing.gdpr_label": "متوافق مع اللائحة العامة لحماية البيانات (GDPR)",
 		"pricing.gdpr_tooltip": "يتم تخزين جميع البيانات وفقا للوائح الأوروبية الصارمة لحماية البيانات وفقا للائحة العامة لحماية البيانات.",
 		"pricing.mailAddressAliasesShort_label": "{amount} عنوان (عناوين) بريد إلكتروني إضافي",
-		"pricing.mailAddressAliases_tooltip_markdown": "<p>يمكن لعناوين البريد الإلكتروني المستعارة أن تقلل  من الرسائل غير المرغوب فيها وتساعد في تسريع فرز رسائل البريد الإلكتروني الواردة. اقرأ المزيد من النصائح <a target=\"_blank\" rel=\"noopener noreferrer\" href=\"https://tuta.com/blog/posts/secure-email-alias\">على مدونتنا</a>.</p>\n",
+		"pricing.mailAddressAliases_tooltip_markdown": "<p>يمكن لعناوين البريد الإلكتروني المستعارة أن تقلل  من الرسائل غير المرغوب فيها وتساعد في تسريع فرز رسائل البريد الإلكتروني الواردة. اقرأ المزيد من النصائح <a target=\"_blank\" rel=\"noopener noreferrer\" href=\"https://tuta.com/blog/secure-email-alias\">على مدونتنا</a>.</p>\n",
 		"pricing.mailAddressFree_label": "1 عنوان بريد إلكتروني مجاني في توتانوتا",
 		"pricing.monthly_label": "شهريا",
 		"pricing.months_label": "شهور",

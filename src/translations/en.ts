@@ -1176,7 +1176,7 @@ export default {
 		"pricing.gdpr_tooltip": "All data is stored in compliance with strict European data protection regulations according to the GDPR.",
 		"pricing.includesTaxes_msg": "Includes taxes.",
 		"pricing.mailAddressAliasesShort_label": "{amount} extra email addresses",
-		"pricing.mailAddressAliases_tooltip_markdown": "<p>Email alias addresses can reduce spam and help speed up sorting of incoming emails. Read more tips <a target=\"_blank\" rel=\"noopener noreferrer\" href=\"https://tuta.com/blog/posts/secure-email-alias\">on our blog</a>.</p>\n",
+		"pricing.mailAddressAliases_tooltip_markdown": "<p>Email alias addresses can reduce spam and help speed up sorting of incoming emails. Read more tips <a target=\"_blank\" rel=\"noopener noreferrer\" href=\"https://tuta.com/blog/secure-email-alias\">on our blog</a>.</p>\n",
 		"pricing.mailAddressFree_label": "1 free Tuta email address",
 		"pricing.management_label": "User management",
 		"pricing.management_tooltip": "Reset passwords and second factors of users, create email addresses for users, deactivate users and more.",

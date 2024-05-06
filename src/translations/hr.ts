@@ -1140,7 +1140,7 @@ export default {
 		"pricing.gdpr_tooltip": "Svi podatci se pohranjuju u skladu s europskim propisima o zaštiti podataka, prema GDPR-u.",
 		"pricing.includesTaxes_msg": "Sadrži poreze.",
 		"pricing.mailAddressAliasesShort_label": "{amount} pseudonim(a)",
-		"pricing.mailAddressAliases_tooltip_markdown": "<p>Pseudonim adrese za e-poštu mogu smanjiti neželjenu poštu i ubrzati sortiranje dolaznih poruka e-pošte. Pročitajte više savjeta <a target=\"_blank\" rel=\"noopener noreferrer\" href=\"https://tuta.com/blog/posts/secure-email-alias\">na našem blogu</a>.</p>\n",
+		"pricing.mailAddressAliases_tooltip_markdown": "<p>Pseudonim adrese za e-poštu mogu smanjiti neželjenu poštu i ubrzati sortiranje dolaznih poruka e-pošte. Pročitajte više savjeta <a target=\"_blank\" rel=\"noopener noreferrer\" href=\"https://tuta.com/blog/secure-email-alias\">na našem blogu</a>.</p>\n",
 		"pricing.mailAddressFree_label": "1 besplatna adresa Tuta e-pošte",
 		"pricing.management_label": "Upravljanje korisnicima",
 		"pricing.management_tooltip": "Poništite lozinke i druge faktore korisnika, stvorite pseudonime za korisnike, deaktivirajte korisnike i više.",

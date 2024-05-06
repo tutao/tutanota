@@ -1176,7 +1176,7 @@ export default {
 		"pricing.gdpr_tooltip": "Alla uppgifter lagras i enlighet med strikta Europeiska bestämmelser om dataskydd enligt GDPR.",
 		"pricing.includesTaxes_msg": "Inklusive skatter",
 		"pricing.mailAddressAliasesShort_label": "{amount} extra e-postadresser",
-		"pricing.mailAddressAliases_tooltip_markdown": "<p>Aliasadresser för e-post kan minska skräppost och bidra till snabbare sortering av inkommande e-post. Läs fler tips <a target=\"_blank\" rel=\"noopener noreferrer\" href=\"https://tuta.com/blog/posts/secure-email-alias\">på vår blogg</a>.</p>\n",
+		"pricing.mailAddressAliases_tooltip_markdown": "<p>Aliasadresser för e-post kan minska skräppost och bidra till snabbare sortering av inkommande e-post. Läs fler tips <a target=\"_blank\" rel=\"noopener noreferrer\" href=\"https://tuta.com/blog/secure-email-alias\">på vår blogg</a>.</p>\n",
 		"pricing.mailAddressFree_label": "1 gratis Tuta e-post adress",
 		"pricing.management_label": "Användarhantering",
 		"pricing.management_tooltip": "Återställ lösenord och tvåstegsverifiering för användare, skapa e-postadress för användare, inaktivera användare med mera.",

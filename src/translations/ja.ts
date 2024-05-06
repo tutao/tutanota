@@ -1114,7 +1114,7 @@ export default {
 		"pricing.gdpr_tooltip": "すべてのデータは、GDPRに基づく欧州の厳格なデータ保護規制に準拠して保管されています。",
 		"pricing.includesTaxes_msg": "税込",
 		"pricing.mailAddressAliasesShort_label": "{amount} エイリアス",
-		"pricing.mailAddressAliases_tooltip_markdown": "<p>電子メールエイリアスアドレスは、スパムを減らし、受信した電子メールの仕分けを迅速に行うのに役立ちます。詳しくは、<a target=\"_blank\" rel=\"noopener noreferrer\" href=\"https://tuta.com/blog/posts/secure-email-alias\">ブログ</a>をご覧ください。</p>\n",
+		"pricing.mailAddressAliases_tooltip_markdown": "<p>電子メールエイリアスアドレスは、スパムを減らし、受信した電子メールの仕分けを迅速に行うのに役立ちます。詳しくは、<a target=\"_blank\" rel=\"noopener noreferrer\" href=\"https://tuta.com/blog/secure-email-alias\">ブログ</a>をご覧ください。</p>\n",
 		"pricing.mailAddressFree_label": "1つの無料Tutaメールアドレス",
 		"pricing.management_label": "ユーザー管理",
 		"pricing.management_tooltip": "ユーザーのパスワードとセカンドファクターのリセット、ユーザー用エイリアスの作成、ユーザーの無効化など。",

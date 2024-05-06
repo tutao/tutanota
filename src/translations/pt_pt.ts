@@ -1180,7 +1180,7 @@ export default {
 		"pricing.gdpr_tooltip": "Todos os dados são armazenados em conformidade com os rigorosos regulamentos europeus de protecção de dados, de acordo com o RGPD.",
 		"pricing.includesTaxes_msg": "Inclui impostos.",
 		"pricing.mailAddressAliasesShort_label": "{amount} endereços adicionais",
-		"pricing.mailAddressAliases_tooltip_markdown": "<p>Endereços de email alternativos podem reduzir o spam e ajudar a acelerar a triagem dos emails recebidos. Leia mais dicas <a target=\"_blank\" rel=\"noopener noreferrer\" href=\"https://tuta.com/blog/posts/secure-email-alias\">no nosso blogue</a>.</p>\n",
+		"pricing.mailAddressAliases_tooltip_markdown": "<p>Endereços de email alternativos podem reduzir o spam e ajudar a acelerar a triagem dos emails recebidos. Leia mais dicas <a target=\"_blank\" rel=\"noopener noreferrer\" href=\"https://tuta.com/blog/secure-email-alias\">no nosso blogue</a>.</p>\n",
 		"pricing.mailAddressFree_label": "1 Endereço de email Tuta gratuito ",
 		"pricing.management_label": "Gestão de utilizador",
 		"pricing.management_tooltip": "Redefinir senhas e segundos factores dos utilizadores, criar endereços de email para os utilizadores, desabilitar utilizadores e muito mais.",

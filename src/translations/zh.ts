@@ -829,7 +829,7 @@ export default {
 		"pricing.gdpr_tooltip": "所有数据的存储都符合GDPR规定的严格的欧洲数据保护条例。",
 		"pricing.includesTaxes_msg": "包括税收。",
 		"pricing.mailAddressAliasesShort_label": "{amount} 别名",
-		"pricing.mailAddressAliases_tooltip_markdown": "<p>电子邮件别名地址可以减少垃圾邮件，并帮助加快对收到的电子邮件进行分类。阅读更多提示<a target=\"_blank\" rel=\"noopener noreferrer\" href=\"https://tuta.com/blog/posts/secure-email-alias\">在我们的博客</a>。</p>\n",
+		"pricing.mailAddressAliases_tooltip_markdown": "<p>电子邮件别名地址可以减少垃圾邮件，并帮助加快对收到的电子邮件进行分类。阅读更多提示<a target=\"_blank\" rel=\"noopener noreferrer\" href=\"https://tuta.com/blog/secure-email-alias\">在我们的博客</a>。</p>\n",
 		"pricing.management_label": "用户管理",
 		"pricing.management_tooltip": "重置用户的密码和第二因素，为用户创建别名，停用用户等等。",
 		"pricing.monthly_label": "按月",

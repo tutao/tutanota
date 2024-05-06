@@ -11,7 +11,7 @@ export default {
 		"other"
 	],
 	"created_at": "2015-01-27T13:15:41Z",
-	"updated_at": "2024-04-26T13:28:07Z",
+	"updated_at": "2024-04-26T13:52:47Z",
 	"source_locale": {
 		"id": "fcd7471b347c8e517663e194dcddf237",
 		"name": "en",
@@ -1471,6 +1471,14 @@ export default {
 		"surveyAccountReasonForgotPassword_label": "Şifremi unuttum",
 		"surveyChooseReason_label": "Bir sebep seçin",
 		"surveyFeatureDesignProblems_label": "Özelliklerle ya da tasarımla alakalı problemler",
+		"surveyOtherReasonProvideDetails_label": "Başka sebepler (Lütfen aşağıda belirtiniz)",
+		"surveyOtherReason_label": "Başka sebepler",
+		"surveyParticipate_action": "Ankete katılın",
+		"surveyPriceReasonPricesTooHigh_label": "Yeni fiyatlar çok yüksek",
+		"surveyPrice_label": "Fiyat",
+		"surveyProblemReasonAppAppearance_label": "Tuta'nın görünüşünü sevmiyorum",
+		"surveyProblemReasonCalendar_label": "Takvimle alakalı problemler",
+		"surveyProblemReasonSpamProtection_label": "Yetersiz spam koruması",
 		"survey_label": "Anket",
 		"suspiciousLink_msg": "\"{url}\" adresini açmak istediğinizden emin misiniz? Bağlantı, cihazınızdaki programları çalıştırabilir. Yalnızca güvenilir kaynaklardan gelen bağlantıları açın.",
 		"suspiciousLink_title": "Şüpheli bağlantı",
