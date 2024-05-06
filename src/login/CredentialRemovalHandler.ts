@@ -2,10 +2,7 @@ import { Indexer } from "../api/worker/search/Indexer.js"
 import { CredentialsAndDatabaseKey } from "../misc/credentials/CredentialsProvider.js"
 import { NativePushServiceApp } from "../native/main/NativePushServiceApp.js"
 import { ConfigurationDatabase } from "../api/worker/facades/lazy/ConfigurationDatabase.js"
-import { MobileContactsFacade } from "../native/common/generatedipc/MobileContactsFacade.js"
-import { ofClass } from "@tutao/tutanota-utils"
-import { PermissionError } from "../api/common/error/PermissionError.js"
-import { DeviceConfig } from "../misc/DeviceConfig.js"
+import { NativeContactsSyncManager } from "../contacts/model/NativeContactsSyncManager.js"
 
 export interface CredentialRemovalHandler {
 	onCredentialsRemoved(credentialsAndDbKey: CredentialsAndDatabaseKey): Promise<void>
@@ -17,11 +14,10 @@ export class NoopCredentialRemovalHandler implements CredentialRemovalHandler {
 
 export class AppsCredentialRemovalHandler implements CredentialRemovalHandler {
 	constructor(
-		private readonly configs: DeviceConfig,
 		private readonly indexer: Indexer,
 		private readonly pushApp: NativePushServiceApp,
 		private readonly configFacade: ConfigurationDatabase,
-		private readonly mobileContactsFacade: MobileContactsFacade | null,
+		private readonly mobileContactsManager: NativeContactsSyncManager | null,
 	) {}
 
 	async onCredentialsRemoved(credentialsAndDbKey: CredentialsAndDatabaseKey) {
@@ -33,10 +29,6 @@ export class AppsCredentialRemovalHandler implements CredentialRemovalHandler {
 			await this.configFacade.delete(userId)
 		}
 
-		if (this.configs.getUserSyncContactsWithPhonePreference(credentialsAndDbKey.credentials.userId)) {
-			await this.mobileContactsFacade
-				?.deleteContacts(credentialsAndDbKey.credentials.login, null)
-				.catch(ofClass(PermissionError, (e) => console.log("No permission to clear contacts", e)))
-		}
+		await this.mobileContactsManager?.disableSync(credentialsAndDbKey.credentials.userId, credentialsAndDbKey.credentials.login)
 	}
 }

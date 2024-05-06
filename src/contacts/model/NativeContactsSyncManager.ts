@@ -188,12 +188,15 @@ export class NativeContactsSyncManager {
 		return true
 	}
 
-	async disableSync() {
-		this.deviceConfig.setUserSyncContactsWithPhonePreference(this.loginController.getUserController().userId, false)
-		const loginUsername = this.loginController.getUserController().loginUsername
-		await this.mobilContactsFacade
-			.deleteContacts(loginUsername, null)
-			.catch(ofClass(PermissionError, (e) => console.log("No permission to clear contacts", e)))
+	async disableSync(userId?: string, login?: string) {
+		const userIdToRemove = userId ?? this.loginController.getUserController().userId
+
+		if (this.deviceConfig.getUserSyncContactsWithPhonePreference(userIdToRemove)) {
+			this.deviceConfig.setUserSyncContactsWithPhonePreference(userIdToRemove, false)
+			await this.mobilContactsFacade
+				.deleteContacts(login ?? this.loginController.getUserController().loginUsername, null)
+				.catch(ofClass(PermissionError, (e) => console.log("No permission to clear contacts", e)))
+		}
 	}
 
 	private handleNoPermissionError(userId: string, error: PermissionError) {
