@@ -1168,7 +1168,7 @@ export default {
 		"pricing.gdpr_tooltip": "Всички данни се съхраняват в съответствие със строгите европейски регламенти за защита на данните съгласно GDPR.",
 		"pricing.includesTaxes_msg": "Включва данъци.",
 		"pricing.mailAddressAliasesShort_label": "{amount} имейл адрес(и)",
-		"pricing.mailAddressAliases_tooltip_markdown": "<p>Имейл псевдонимите могат да намалят спама и да ускорят сортирането на входящите имейли. Прочетете повече съвети <a target=\"_blank\" rel=\"noopener noreferrer\" href=\"https://tuta.com/blog/posts/secure-email-alias\">в нашия блог</a>.</p>\n",
+		"pricing.mailAddressAliases_tooltip_markdown": "<p>Имейл псевдонимите могат да намалят спама и да ускорят сортирането на входящите имейли. Прочетете повече съвети <a target=\"_blank\" rel=\"noopener noreferrer\" href=\"https://tuta.com/blog/secure-email-alias\">в нашия блог</a>.</p>\n",
 		"pricing.mailAddressFree_label": "1 безплатен Tuta имейл адрес",
 		"pricing.management_label": "Управляване на потребители",
 		"pricing.management_tooltip": "Възстановяване на паролите и двустепенното удостоверяване на потребителите, създаване на имейл адреси за потребителите, деактивиране на потребителите и др.",

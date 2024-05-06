@@ -1104,7 +1104,7 @@ export default {
 		"pricing.gdpr_tooltip": "Tất cả dữ liệu được lưu trữ tuân theo các quy định nghiêm ngặt của châu Âu về bảo vệ dữ liệu dựa trên GDPR.",
 		"pricing.includesTaxes_msg": "Đã gồm thuế.",
 		"pricing.mailAddressAliasesShort_label": "Thêm {amount} địa chỉ thư",
-		"pricing.mailAddressAliases_tooltip_markdown": "<p>Các địa chỉ biệt danh có thể làm giảm thư rác và giúp tăng tốc độ sắp xếp thư đến. Đọc thêm các mẹo khác <a target=\"_blank\" rel=\"noopener noreferrer\" href=\"https://tuta.com/blog/posts/secure-email-alias\">ở blog của chúng tôi</a>.</p>\n",
+		"pricing.mailAddressAliases_tooltip_markdown": "<p>Các địa chỉ biệt danh có thể làm giảm thư rác và giúp tăng tốc độ sắp xếp thư đến. Đọc thêm các mẹo khác <a target=\"_blank\" rel=\"noopener noreferrer\" href=\"https://tuta.com/blog/secure-email-alias\">ở blog của chúng tôi</a>.</p>\n",
 		"pricing.mailAddressFree_label": "1 địa chỉ thư Tuta miễn phí",
 		"pricing.management_label": "Quản lí người dùng",
 		"pricing.management_tooltip": "Đặt lại mật khẩu và các yếu tố thứ hai của người dùng, tạo địa chỉ thư cho người dùng, tắt người dùng, và các tính năng khác.",

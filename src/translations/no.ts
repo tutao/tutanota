@@ -1167,7 +1167,7 @@ export default {
 		"pricing.gdpr_tooltip": "Alle data er lagret i henhold til strenge europeiske datalagringsdirektiv i samsvar med GDPR.",
 		"pricing.includesTaxes_msg": "Inkludert moms.",
 		"pricing.mailAddressAliasesShort_label": "{amount} aliaser",
-		"pricing.mailAddressAliases_tooltip_markdown": "<p>E-postaliser kan begrense søppelpost og hjelpe til med å raskere sortere innkommende e-poster. Les flere tips  <a target=\"_blank\" rel=\"noopener noreferrer\" href=\"https://tuta.com/blog/posts/secure-email-alias\">på bloggen vår</a>.</p>\n",
+		"pricing.mailAddressAliases_tooltip_markdown": "<p>E-postaliser kan begrense søppelpost og hjelpe til med å raskere sortere innkommende e-poster. Les flere tips  <a target=\"_blank\" rel=\"noopener noreferrer\" href=\"https://tuta.com/blog/secure-email-alias\">på bloggen vår</a>.</p>\n",
 		"pricing.mailAddressFree_label": "1 gratis Tuta e-postadresse",
 		"pricing.management_label": "Brukeradministrasjon",
 		"pricing.management_tooltip": "Tilbakestill passord og tofaktorautentisering for brukere, lag e-postadresser for brukere, deaktiver brukere og mer.",

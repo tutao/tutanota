@@ -1065,7 +1065,7 @@ export default {
 		"pricing.gdpr_tooltip": "כל המידע נשמר בהתאם לרגולציות אירופאיות נוקשות של הגנת המידע על פי GDPR.",
 		"pricing.includesTaxes_msg": "כולל מיסים.",
 		"pricing.mailAddressAliasesShort_label": "{amount} כינויים",
-		"pricing.mailAddressAliases_tooltip_markdown": "<p>כינויי כתובות דוא\"ל יכולים להפחית ספאם ולהאיץ את מיון הדואר המתקבל. קראו על טיפים נוספים <a target=\"_blank\" rel=\"noopener noreferrer\" href=\"https://tuta.com/blog/posts/secure-email-alias\">בבלוג שלנו</a>.</p>\n",
+		"pricing.mailAddressAliases_tooltip_markdown": "<p>כינויי כתובות דוא\"ל יכולים להפחית ספאם ולהאיץ את מיון הדואר המתקבל. קראו על טיפים נוספים <a target=\"_blank\" rel=\"noopener noreferrer\" href=\"https://tuta.com/blog/secure-email-alias\">בבלוג שלנו</a>.</p>\n",
 		"pricing.mailAddressFree_label": "כתובת Tuta יחידה בחינם",
 		"pricing.management_label": "ניהול משתמש",
 		"pricing.monthly_label": "חודשי",

@@ -1180,7 +1180,7 @@ export default {
 		"pricing.gdpr_tooltip": "Alle Daten werden in Übereinstimmung mit den strengen europäischen Datenschutzbestimmungen gemäß der DSGVO gespeichert.",
 		"pricing.includesTaxes_msg": "Inklusive MwSt.",
 		"pricing.mailAddressAliasesShort_label": "{amount} extra E-Mail-Adressen",
-		"pricing.mailAddressAliases_tooltip_markdown": "<p>E-Mail-Alias-Adressen können Spam reduzieren und helfen, das Sortieren eingehender E-Mails zu beschleunigen. Weiterführende Tipps gibt es <a target=\"_blank\" rel=\"noopener noreferrer\" href=\"https://tuta.com/blog/posts/secure-email-alias\">auf unserem Blog</a>.</p>\n",
+		"pricing.mailAddressAliases_tooltip_markdown": "<p>E-Mail-Alias-Adressen können Spam reduzieren und helfen, das Sortieren eingehender E-Mails zu beschleunigen. Weiterführende Tipps gibt es <a target=\"_blank\" rel=\"noopener noreferrer\" href=\"https://tuta.com/blog/secure-email-alias\">auf unserem Blog</a>.</p>\n",
 		"pricing.mailAddressFree_label": "1 Tuta E-Mail-Adresse",
 		"pricing.management_label": "Benutzerverwaltung",
 		"pricing.management_tooltip": "Setze Passwörter und zweite Faktoren zurück, erstelle E-Mail-Adressen, deaktiviere Benutzer*innen und vieles mehr.",

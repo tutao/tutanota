@@ -1,7 +1,7 @@
 NSCameraUsageDescription = "ඇමුණුමක් ලෙස එකතු කිරීමට ඡායාරූපයක් හෝ දෘශ්‍යකයක් ගන්න.";
 NSPhotoLibraryUsageDescription = "ඇමුණුමක් ලෙස ගබඩාවෙන් ඡායාරූපයක් එකතු කරන්න.";
 NSMicrophoneUsageDescription = "දෘශ්‍යකයක් ඇමුණුමක් ලෙස පටිගතයේදී භාවිතා කෙරේ.";
-NSContactsUsageDescription = "සබඳතා තුළ ලබන්නාගේ වි-තැපෑල සොයා ගන්න.";
+NSContactsUsageDescription = "1. සබඳතා තුළ ලබන්නාගේ වි-තැපෑල සොයා ගන්න. \n2. ටුටා සබඳතා ඔබගේ උපාංගයට සමමුහූර්ත කර ගැනීමට ද හැකිය.";
 NSRemindersUsageDescription = "නව වි-තැපැල් පැමිණෙන විට දැනුම්දීමක් පෙන්වන්න.";
 TutaoShowCameraAction = "රූගතය";
 TutaoChoosePhotosAction = "ඡායාරූප";

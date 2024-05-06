@@ -1050,7 +1050,7 @@ export default {
 		"pricing.gdpr_tooltip": "Сви подаци су смештени у складу са строгим европским уредбама о заштити података на основу GDPR.",
 		"pricing.includesTaxes_msg": "Укључује порезе.",
 		"pricing.mailAddressAliasesShort_label": "{amount} псеудонима",
-		"pricing.mailAddressAliases_tooltip_markdown": "<p>Алијас адресе е-поште могу смањити нежељену пошту и убрзати сортирање долазних е-порука. Прочитајте више савета <a target=\"_blank\" rel=\"noopener noreferrer\" href=\"https://tuta.com/blog/posts/secure-email-alias\">на нашем блогу</a>.</p>\n",
+		"pricing.mailAddressAliases_tooltip_markdown": "<p>Алијас адресе е-поште могу смањити нежељену пошту и убрзати сортирање долазних е-порука. Прочитајте више савета <a target=\"_blank\" rel=\"noopener noreferrer\" href=\"https://tuta.com/blog/secure-email-alias\">на нашем блогу</a>.</p>\n",
 		"pricing.mailAddressFree_label": "1 бесплатна Тутанота адреса е-поште",
 		"pricing.management_label": "Управљање корисницима",
 		"pricing.management_tooltip": "Ресетујте лозинке и друге факторе корисника, креирајте псеудониме за кориснике, деактивирајте кориснике и још много тога.",
