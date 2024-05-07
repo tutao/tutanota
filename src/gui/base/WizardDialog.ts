@@ -5,7 +5,7 @@ import { ButtonType } from "./Button.js"
 import { Icons } from "./icons/Icons"
 import { Icon } from "./Icon"
 import { theme } from "../theme"
-import { lang } from "../../misc/LanguageViewModel"
+import { lang, TranslationKey } from "../../misc/LanguageViewModel"
 import type { DialogHeaderBarAttrs } from "./DialogHeaderBar"
 import { Keys, TabIndex } from "../../api/common/TutanotaConstants"
 import { assertMainOrNode } from "../../api/common/Env"
@@ -77,6 +77,7 @@ class WizardDialog<T> implements Component<WizardDialogAttrs<T>> {
 	private _closeWizardDialogListener!: EventListener
 	private _showNextWizardDialogPageListener!: EventListener
 	private _showPreviousWizardDialogPageListener!: EventListener
+	private wizardContentDom: HTMLElement | null = null // we need the wizard content dom to scroll to the top when redirecting to the next page
 
 	oncreate(vnode: VnodeDOM<WizardDialogAttrs<T>>) {
 		// We listen for events triggered by the child WizardPages to close the dialog or show the next page
@@ -92,7 +93,10 @@ class WizardDialog<T> implements Component<WizardDialogAttrs<T>> {
 
 			if (vnode.attrs.currentPage) {
 				vnode.attrs.currentPage.attrs.nextAction(true).then((ready) => {
-					if (ready) vnode.attrs.goToNextPageOrCloseWizard()
+					if (ready) {
+						vnode.attrs.goToNextPageOrCloseWizard()
+						this.wizardContentDom?.scrollIntoView()
+					}
 				})
 			}
 		}
@@ -102,6 +106,7 @@ class WizardDialog<T> implements Component<WizardDialogAttrs<T>> {
 
 			if (!vnode.attrs.currentPage?.attrs.preventGoBack) {
 				vnode.attrs.goToPreviousPageOrClose()
+				this.wizardContentDom?.scrollIntoView()
 			}
 		}
 
@@ -124,26 +129,34 @@ class WizardDialog<T> implements Component<WizardDialogAttrs<T>> {
 		const visiblePages = enabledPages.filter((page) => !page.attrs.hidePagingButtonForPage)
 		const lastIndex = visiblePages.length - 1
 
-		return m("#wizardDialogContent.pt", [
-			a.currentPage && a.currentPage.attrs.hideAllPagingButtons
-				? null
-				: m(
-						"nav#wizard-paging.flex-space-around.center-vertically.mb-s",
-						{
-							"aria-label": "Breadcrumb",
-						},
-						visiblePages.map((p, index) => [
-							m(WizardPagingButton, {
-								pageIndex: index,
-								getSelectedPageIndex: () => selectedIndex,
-								isClickable: () => a.allowedToVisitPage(index, selectedIndex),
-								navigateBackHandler: (index) => a._goToPageAction(index),
-							}),
-							index === lastIndex ? null : m(".flex-grow", { class: this.getLineClass(index < selectedIndex) }),
-						]),
-				  ),
-			a.currentPage ? a.currentPage.view() : null,
-		])
+		return m(
+			"#wizardDialogContent.pt",
+			{
+				oncreate: (vnode) => {
+					this.wizardContentDom = vnode.dom as HTMLElement
+				},
+			},
+			[
+				a.currentPage && a.currentPage.attrs.hideAllPagingButtons
+					? null
+					: m(
+							"nav#wizard-paging.flex-space-around.center-vertically.mb-s.plr-2l",
+							{
+								"aria-label": "Breadcrumb",
+							},
+							visiblePages.map((p, index) => [
+								m(WizardPagingButton, {
+									pageIndex: index,
+									getSelectedPageIndex: () => selectedIndex,
+									isClickable: () => a.allowedToVisitPage(index, selectedIndex),
+									navigateBackHandler: (index) => a._goToPageAction(index),
+								}),
+								index === lastIndex ? null : m(".flex-grow", { class: this.getLineClass(index < selectedIndex) }),
+							]),
+					  ),
+				a.currentPage ? a.currentPage.view() : null,
+			],
+		)
 	}
 
 	private getLineClass(isPreviousPage: boolean) {
@@ -181,13 +194,15 @@ class WizardDialogAttrs<T> {
 	pages: ReadonlyArray<WizardPageWrapper<T>>
 	currentPage: WizardPageWrapper<T> | null
 	closeAction: () => Promise<void>
+	cancelButtonText: TranslationKey
 	private _headerBarAttrs: DialogHeaderBarAttrs = {}
 
 	get headerBarAttrs(): DialogHeaderBarAttrs {
 		return this._headerBarAttrs
 	}
 
-	constructor(data: T, pages: ReadonlyArray<WizardPageWrapper<T>>, closeAction?: () => Promise<void>) {
+	// Idea for refactoring: make optional parameters into separate object
+	constructor(data: T, pages: ReadonlyArray<WizardPageWrapper<T>>, cancelButtonText: TranslationKey | null = null, closeAction?: () => Promise<void>) {
 		this.data = data
 		this.pages = pages
 		this.currentPage = pages.find((p) => p.attrs.isEnabled()) ?? null
@@ -196,6 +211,7 @@ class WizardDialogAttrs<T> {
 			: () => {
 					return Promise.resolve()
 			  }
+		this.cancelButtonText = cancelButtonText ?? "cancel_action"
 		this.updateHeaderBarAttrs()
 	}
 
@@ -217,7 +233,7 @@ class WizardDialogAttrs<T> {
 		let currentPageIndex = this.currentPage ? this._getEnabledPages().indexOf(this.currentPage) : -1
 
 		const backButtonAttrs: ButtonAttrs = {
-			label: () => (currentPageIndex === 0 ? lang.get("cancel_action") : lang.get("back_action")),
+			label: () => (currentPageIndex === 0 ? lang.get(this.cancelButtonText) : lang.get("back_action")),
 			click: () => this.goToPreviousPageOrClose(),
 			type: ButtonType.Secondary,
 		}
@@ -352,7 +368,8 @@ export function createWizardDialog<T>(
 	data: T,
 	pages: ReadonlyArray<WizardPageWrapper<T>>,
 	closeAction: (() => $Promisable<void>) | null = null,
-	dialogType: DialogType.EditLarge | DialogType.EditSmall = DialogType.EditLarge,
+	dialogType: DialogType.EditLarge | DialogType.EditSmall,
+	cancelButtonText: TranslationKey | null = null,
 ): WizardDialogAttrsBuilder<T> {
 	// We need the close action of the dialog before we can create the proper attributes
 
@@ -369,7 +386,7 @@ export function createWizardDialog<T>(
 		wizardDialog.close()
 		unregisterCloseListener()
 	}
-	const wizardDialogAttrs = new WizardDialogAttrs(data, pages, closeActionWrapper)
+	const wizardDialogAttrs = new WizardDialogAttrs(data, pages, cancelButtonText, closeActionWrapper)
 	const wizardDialog =
 		dialogType === DialogType.EditLarge
 			? Dialog.largeDialog(wizardDialogAttrs.headerBarAttrs, child)

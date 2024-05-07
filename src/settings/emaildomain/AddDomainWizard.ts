@@ -12,6 +12,7 @@ import { EnterDomainPage, EnterDomainPageAttrs } from "./EnterDomainPage"
 import { createWizardDialog, wizardPageWrapper } from "../../gui/base/WizardDialog.js"
 import { assertMainOrNode } from "../../api/common/Env"
 import { MailAddressTableModel } from "../mailaddress/MailAddressTableModel.js"
+import { DialogType } from "../../gui/base/Dialog.js"
 
 assertMainOrNode()
 export type AddDomainData = {
@@ -47,11 +48,16 @@ export function showAddDomainWizard(domain: string, customerInfo: CustomerInfo, 
 		wizardPageWrapper(VerifyDnsRecordsPage, new VerifyDnsRecordsPageAttrs(domainData)),
 	]
 	return new Promise((resolve) => {
-		const wizardBuilder = createWizardDialog(domainData, wizardPages, () => {
-			mailAddressTableModel.dispose()
-			resolve()
-			return Promise.resolve()
-		})
+		const wizardBuilder = createWizardDialog(
+			domainData,
+			wizardPages,
+			() => {
+				mailAddressTableModel.dispose()
+				resolve()
+				return Promise.resolve()
+			},
+			DialogType.EditLarge,
+		)
 		const wizard = wizardBuilder.dialog
 		const wizardAttrs = wizardBuilder.attrs
 		wizard.show()

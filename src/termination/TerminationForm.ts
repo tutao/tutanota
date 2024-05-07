@@ -8,10 +8,11 @@ import { TerminationPeriodOptions } from "../api/common/TutanotaConstants.js"
 import { DatePicker } from "../calendar/gui/pickers/DatePicker.js"
 import { liveDataAttrs } from "../gui/AriaUtils.js"
 import { LoginButton } from "../gui/base/buttons/LoginButton.js"
-import { CancellationReasonInput } from "../subscription/CancellationReasonInput.js"
+import { Button, ButtonType } from "../gui/base/Button.js"
+import { LeavingUserSurveyData, showLeavingUserSurveyWizard } from "../subscription/LeavingUserSurveyWizard.js"
 
 export interface TerminationFormAttrs {
-	onSubmit: (reason: { text: string; reasonCategory: string | null }) => unknown
+	onSubmit: (surveyData: LeavingUserSurveyData | null) => unknown
 	mailAddress: string
 	onMailAddressChanged: (mailAddress: string) => unknown
 	password: string
@@ -26,8 +27,7 @@ export interface TerminationFormAttrs {
 export class TerminationForm implements Component<TerminationFormAttrs> {
 	mailAddressTextField!: TextField
 	passwordTextField!: TextField
-	reasonCategory: string | null = null
-	reason: string = ""
+	surveyResult: LeavingUserSurveyData | null = null
 
 	onremove(vnode: Vnode<TerminationFormAttrs>) {
 		this.passwordTextField.domInput.value = ""
@@ -92,7 +92,7 @@ export class TerminationForm implements Component<TerminationFormAttrs> {
 						type: TextFieldType.Password,
 					}),
 				),
-				m(".list-border-bottom.pb-l.mb-l", [
+				m(".list-border-bottom.pb-l", [
 					m(".h3.mt-l", lang.get("terminationDateRequest_title")),
 					m(".mt-s", lang.get("terminationDateRequest_msg")),
 					m(DropDownSelector, {
@@ -123,22 +123,27 @@ export class TerminationForm implements Component<TerminationFormAttrs> {
 						  })
 						: null,
 				]),
-
-				m(CancellationReasonInput, {
-					reason: this.reason,
-					reasonHandler: (enteredReason: string) => (this.reason = enteredReason),
-					category: this.reasonCategory,
-					categoryHandler: (category: NumberString) => (this.reasonCategory = category),
-				}),
-
+				m(".mt-l.text-center", lang.get("surveySecondaryMessageDelete_label")),
 				m(
-					".mt-l",
-					m(LoginButton, {
-						label: "termination_action",
-						onclick: () => a.onSubmit({ text: this.reason, reasonCategory: this.reasonCategory }),
+					".mt.flex-center",
+					m(Button, {
+						type: ButtonType.Secondary,
+						label: "surveyParticipate_action",
+						click: () => {
+							showLeavingUserSurveyWizard(true, false).then((result) => (this.surveyResult = result))
+						},
 					}),
 				),
-				m(".small.center.statusTextColor.mt", liveDataAttrs(), [a.helpText]),
+				m(
+					".mt",
+					m(LoginButton, {
+						label: "termination_action",
+						onclick: () => {
+							a.onSubmit(this.surveyResult)
+						},
+					}),
+				),
+				m(".small.center.statusTextColor.mt.mb", liveDataAttrs(), [a.helpText]),
 			],
 		)
 	}

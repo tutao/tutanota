@@ -209,7 +209,7 @@ export const typeModels = {
             }
         },
         "app": "sys",
-        "version": "97"
+        "version": "98"
     },
     "AdministratedGroupsRef": {
         "name": "AdministratedGroupsRef",
@@ -243,7 +243,7 @@ export const typeModels = {
             }
         },
         "app": "sys",
-        "version": "97"
+        "version": "98"
     },
     "AlarmInfo": {
         "name": "AlarmInfo",
@@ -295,7 +295,7 @@ export const typeModels = {
             }
         },
         "app": "sys",
-        "version": "97"
+        "version": "98"
     },
     "AlarmNotification": {
         "name": "AlarmNotification",
@@ -395,7 +395,7 @@ export const typeModels = {
             }
         },
         "app": "sys",
-        "version": "97"
+        "version": "98"
     },
     "AlarmServicePost": {
         "name": "AlarmServicePost",
@@ -429,7 +429,7 @@ export const typeModels = {
             }
         },
         "app": "sys",
-        "version": "97"
+        "version": "98"
     },
     "ArchiveRef": {
         "name": "ArchiveRef",
@@ -461,7 +461,7 @@ export const typeModels = {
         },
         "associations": {},
         "app": "sys",
-        "version": "97"
+        "version": "98"
     },
     "ArchiveType": {
         "name": "ArchiveType",
@@ -515,7 +515,7 @@ export const typeModels = {
             }
         },
         "app": "sys",
-        "version": "97"
+        "version": "98"
     },
     "AuditLogEntry": {
         "name": "AuditLogEntry",
@@ -649,7 +649,7 @@ export const typeModels = {
             }
         },
         "app": "sys",
-        "version": "97"
+        "version": "98"
     },
     "AuditLogRef": {
         "name": "AuditLogRef",
@@ -683,7 +683,7 @@ export const typeModels = {
             }
         },
         "app": "sys",
-        "version": "97"
+        "version": "98"
     },
     "AuthenticatedDevice": {
         "name": "AuthenticatedDevice",
@@ -733,7 +733,7 @@ export const typeModels = {
         },
         "associations": {},
         "app": "sys",
-        "version": "97"
+        "version": "98"
     },
     "Authentication": {
         "name": "Authentication",
@@ -794,7 +794,7 @@ export const typeModels = {
             }
         },
         "app": "sys",
-        "version": "97"
+        "version": "98"
     },
     "AutoLoginDataDelete": {
         "name": "AutoLoginDataDelete",
@@ -826,7 +826,7 @@ export const typeModels = {
         },
         "associations": {},
         "app": "sys",
-        "version": "97"
+        "version": "98"
     },
     "AutoLoginDataGet": {
         "name": "AutoLoginDataGet",
@@ -869,7 +869,7 @@ export const typeModels = {
             }
         },
         "app": "sys",
-        "version": "97"
+        "version": "98"
     },
     "AutoLoginDataReturn": {
         "name": "AutoLoginDataReturn",
@@ -901,7 +901,7 @@ export const typeModels = {
         },
         "associations": {},
         "app": "sys",
-        "version": "97"
+        "version": "98"
     },
     "AutoLoginPostReturn": {
         "name": "AutoLoginPostReturn",
@@ -933,7 +933,7 @@ export const typeModels = {
         },
         "associations": {},
         "app": "sys",
-        "version": "97"
+        "version": "98"
     },
     "Blob": {
         "name": "Blob",
@@ -983,7 +983,7 @@ export const typeModels = {
         },
         "associations": {},
         "app": "sys",
-        "version": "97"
+        "version": "98"
     },
     "BlobReferenceTokenWrapper": {
         "name": "BlobReferenceTokenWrapper",
@@ -1015,7 +1015,7 @@ export const typeModels = {
         },
         "associations": {},
         "app": "sys",
-        "version": "97"
+        "version": "98"
     },
     "Booking": {
         "name": "Booking",
@@ -1139,7 +1139,7 @@ export const typeModels = {
             }
         },
         "app": "sys",
-        "version": "97"
+        "version": "98"
     },
     "BookingItem": {
         "name": "BookingItem",
@@ -1225,7 +1225,7 @@ export const typeModels = {
         },
         "associations": {},
         "app": "sys",
-        "version": "97"
+        "version": "98"
     },
     "BookingsRef": {
         "name": "BookingsRef",
@@ -1259,7 +1259,7 @@ export const typeModels = {
             }
         },
         "app": "sys",
-        "version": "97"
+        "version": "98"
     },
     "BootstrapFeature": {
         "name": "BootstrapFeature",
@@ -1291,7 +1291,7 @@ export const typeModels = {
         },
         "associations": {},
         "app": "sys",
-        "version": "97"
+        "version": "98"
     },
     "Braintree3ds2Request": {
         "name": "Braintree3ds2Request",
@@ -1341,7 +1341,7 @@ export const typeModels = {
         },
         "associations": {},
         "app": "sys",
-        "version": "97"
+        "version": "98"
     },
     "Braintree3ds2Response": {
         "name": "Braintree3ds2Response",
@@ -1382,7 +1382,7 @@ export const typeModels = {
         },
         "associations": {},
         "app": "sys",
-        "version": "97"
+        "version": "98"
     },
     "BrandingDomainData": {
         "name": "BrandingDomainData",
@@ -1459,7 +1459,7 @@ export const typeModels = {
         },
         "associations": {},
         "app": "sys",
-        "version": "97"
+        "version": "98"
     },
     "BrandingDomainDeleteData": {
         "name": "BrandingDomainDeleteData",
@@ -1491,7 +1491,7 @@ export const typeModels = {
         },
         "associations": {},
         "app": "sys",
-        "version": "97"
+        "version": "98"
     },
     "BrandingDomainGetReturn": {
         "name": "BrandingDomainGetReturn",
@@ -1525,7 +1525,7 @@ export const typeModels = {
             }
         },
         "app": "sys",
-        "version": "97"
+        "version": "98"
     },
     "Bucket": {
         "name": "Bucket",
@@ -1559,7 +1559,7 @@ export const typeModels = {
             }
         },
         "app": "sys",
-        "version": "97"
+        "version": "98"
     },
     "BucketKey": {
         "name": "BucketKey",
@@ -1648,7 +1648,7 @@ export const typeModels = {
             }
         },
         "app": "sys",
-        "version": "97"
+        "version": "98"
     },
     "BucketPermission": {
         "name": "BucketPermission",
@@ -1790,7 +1790,7 @@ export const typeModels = {
             }
         },
         "app": "sys",
-        "version": "97"
+        "version": "98"
     },
     "CalendarEventRef": {
         "name": "CalendarEventRef",
@@ -1831,7 +1831,7 @@ export const typeModels = {
         },
         "associations": {},
         "app": "sys",
-        "version": "97"
+        "version": "98"
     },
     "CertificateInfo": {
         "name": "CertificateInfo",
@@ -1892,7 +1892,7 @@ export const typeModels = {
             }
         },
         "app": "sys",
-        "version": "97"
+        "version": "98"
     },
     "Challenge": {
         "name": "Challenge",
@@ -1945,7 +1945,7 @@ export const typeModels = {
             }
         },
         "app": "sys",
-        "version": "97"
+        "version": "98"
     },
     "ChangeKdfPostIn": {
         "name": "ChangeKdfPostIn",
@@ -2013,7 +2013,7 @@ export const typeModels = {
         },
         "associations": {},
         "app": "sys",
-        "version": "97"
+        "version": "98"
     },
     "ChangePasswordData": {
         "name": "ChangePasswordData",
@@ -2099,7 +2099,7 @@ export const typeModels = {
         },
         "associations": {},
         "app": "sys",
-        "version": "97"
+        "version": "98"
     },
     "Chat": {
         "name": "Chat",
@@ -2149,7 +2149,7 @@ export const typeModels = {
         },
         "associations": {},
         "app": "sys",
-        "version": "97"
+        "version": "98"
     },
     "CloseSessionServicePost": {
         "name": "CloseSessionServicePost",
@@ -2192,7 +2192,7 @@ export const typeModels = {
             }
         },
         "app": "sys",
-        "version": "97"
+        "version": "98"
     },
     "CreateCustomerServerPropertiesData": {
         "name": "CreateCustomerServerPropertiesData",
@@ -2233,7 +2233,7 @@ export const typeModels = {
         },
         "associations": {},
         "app": "sys",
-        "version": "97"
+        "version": "98"
     },
     "CreateCustomerServerPropertiesReturn": {
         "name": "CreateCustomerServerPropertiesReturn",
@@ -2267,7 +2267,7 @@ export const typeModels = {
             }
         },
         "app": "sys",
-        "version": "97"
+        "version": "98"
     },
     "CreateSessionData": {
         "name": "CreateSessionData",
@@ -2355,7 +2355,7 @@ export const typeModels = {
             }
         },
         "app": "sys",
-        "version": "97"
+        "version": "98"
     },
     "CreateSessionReturn": {
         "name": "CreateSessionReturn",
@@ -2408,7 +2408,7 @@ export const typeModels = {
             }
         },
         "app": "sys",
-        "version": "97"
+        "version": "98"
     },
     "CreditCard": {
         "name": "CreditCard",
@@ -2476,7 +2476,7 @@ export const typeModels = {
         },
         "associations": {},
         "app": "sys",
-        "version": "97"
+        "version": "98"
     },
     "CustomDomainCheckGetIn": {
         "name": "CustomDomainCheckGetIn",
@@ -2519,7 +2519,7 @@ export const typeModels = {
             }
         },
         "app": "sys",
-        "version": "97"
+        "version": "98"
     },
     "CustomDomainCheckGetOut": {
         "name": "CustomDomainCheckGetOut",
@@ -2582,7 +2582,7 @@ export const typeModels = {
             }
         },
         "app": "sys",
-        "version": "97"
+        "version": "98"
     },
     "CustomDomainData": {
         "name": "CustomDomainData",
@@ -2625,7 +2625,7 @@ export const typeModels = {
             }
         },
         "app": "sys",
-        "version": "97"
+        "version": "98"
     },
     "CustomDomainReturn": {
         "name": "CustomDomainReturn",
@@ -2668,7 +2668,7 @@ export const typeModels = {
             }
         },
         "app": "sys",
-        "version": "97"
+        "version": "98"
     },
     "Customer": {
         "name": "Customer",
@@ -2925,7 +2925,7 @@ export const typeModels = {
             }
         },
         "app": "sys",
-        "version": "97"
+        "version": "98"
     },
     "CustomerAccountTerminationPostIn": {
         "name": "CustomerAccountTerminationPostIn",
@@ -2945,24 +2945,6 @@ export const typeModels = {
                 "cardinality": "One",
                 "encrypted": false
             },
-            "reason": {
-                "final": true,
-                "name": "reason",
-                "id": 2221,
-                "since": 95,
-                "type": "String",
-                "cardinality": "ZeroOrOne",
-                "encrypted": false
-            },
-            "reasonCategory": {
-                "final": true,
-                "name": "reasonCategory",
-                "id": 2222,
-                "since": 95,
-                "type": "Number",
-                "cardinality": "ZeroOrOne",
-                "encrypted": false
-            },
             "terminationDate": {
                 "final": true,
                 "name": "terminationDate",
@@ -2973,9 +2955,20 @@ export const typeModels = {
                 "encrypted": false
             }
         },
-        "associations": {},
+        "associations": {
+            "surveyData": {
+                "final": false,
+                "name": "surveyData",
+                "id": 2313,
+                "since": 98,
+                "type": "AGGREGATION",
+                "cardinality": "ZeroOrOne",
+                "refType": "SurveyData",
+                "dependency": null
+            }
+        },
         "app": "sys",
-        "version": "97"
+        "version": "98"
     },
     "CustomerAccountTerminationPostOut": {
         "name": "CustomerAccountTerminationPostOut",
@@ -3009,7 +3002,7 @@ export const typeModels = {
             }
         },
         "app": "sys",
-        "version": "97"
+        "version": "98"
     },
     "CustomerAccountTerminationRequest": {
         "name": "CustomerAccountTerminationRequest",
@@ -3088,7 +3081,7 @@ export const typeModels = {
             }
         },
         "app": "sys",
-        "version": "97"
+        "version": "98"
     },
     "CustomerInfo": {
         "name": "CustomerInfo",
@@ -3401,7 +3394,7 @@ export const typeModels = {
             }
         },
         "app": "sys",
-        "version": "97"
+        "version": "98"
     },
     "CustomerProperties": {
         "name": "CustomerProperties",
@@ -3509,7 +3502,7 @@ export const typeModels = {
             }
         },
         "app": "sys",
-        "version": "97"
+        "version": "98"
     },
     "CustomerServerProperties": {
         "name": "CustomerServerProperties",
@@ -3635,7 +3628,7 @@ export const typeModels = {
             }
         },
         "app": "sys",
-        "version": "97"
+        "version": "98"
     },
     "DateWrapper": {
         "name": "DateWrapper",
@@ -3667,7 +3660,7 @@ export const typeModels = {
         },
         "associations": {},
         "app": "sys",
-        "version": "97"
+        "version": "98"
     },
     "DebitServicePutData": {
         "name": "DebitServicePutData",
@@ -3701,7 +3694,7 @@ export const typeModels = {
             }
         },
         "app": "sys",
-        "version": "97"
+        "version": "98"
     },
     "DeleteCustomerData": {
         "name": "DeleteCustomerData",
@@ -3736,15 +3729,6 @@ export const typeModels = {
                 "id": 644,
                 "since": 5,
                 "type": "String",
-                "cardinality": "One",
-                "encrypted": false
-            },
-            "reasonCategory": {
-                "final": true,
-                "name": "reasonCategory",
-                "id": 2218,
-                "since": 95,
-                "type": "Number",
                 "cardinality": "ZeroOrOne",
                 "encrypted": false
             },
@@ -3777,10 +3761,20 @@ export const typeModels = {
                 "cardinality": "One",
                 "refType": "Customer",
                 "dependency": null
+            },
+            "surveyData": {
+                "final": false,
+                "name": "surveyData",
+                "id": 2312,
+                "since": 98,
+                "type": "AGGREGATION",
+                "cardinality": "ZeroOrOne",
+                "refType": "SurveyData",
+                "dependency": null
             }
         },
         "app": "sys",
-        "version": "97"
+        "version": "98"
     },
     "DnsRecord": {
         "name": "DnsRecord",
@@ -3830,7 +3824,7 @@ export const typeModels = {
         },
         "associations": {},
         "app": "sys",
-        "version": "97"
+        "version": "98"
     },
     "DomainInfo": {
         "name": "DomainInfo",
@@ -3892,7 +3886,7 @@ export const typeModels = {
             }
         },
         "app": "sys",
-        "version": "97"
+        "version": "98"
     },
     "DomainMailAddressAvailabilityData": {
         "name": "DomainMailAddressAvailabilityData",
@@ -3924,7 +3918,7 @@ export const typeModels = {
         },
         "associations": {},
         "app": "sys",
-        "version": "97"
+        "version": "98"
     },
     "DomainMailAddressAvailabilityReturn": {
         "name": "DomainMailAddressAvailabilityReturn",
@@ -3956,7 +3950,7 @@ export const typeModels = {
         },
         "associations": {},
         "app": "sys",
-        "version": "97"
+        "version": "98"
     },
     "DomainsRef": {
         "name": "DomainsRef",
@@ -3990,7 +3984,7 @@ export const typeModels = {
             }
         },
         "app": "sys",
-        "version": "97"
+        "version": "98"
     },
     "EmailSenderListElement": {
         "name": "EmailSenderListElement",
@@ -4049,7 +4043,7 @@ export const typeModels = {
         },
         "associations": {},
         "app": "sys",
-        "version": "97"
+        "version": "98"
     },
     "EntityEventBatch": {
         "name": "EntityEventBatch",
@@ -4110,7 +4104,7 @@ export const typeModels = {
             }
         },
         "app": "sys",
-        "version": "97"
+        "version": "98"
     },
     "EntityUpdate": {
         "name": "EntityUpdate",
@@ -4178,7 +4172,7 @@ export const typeModels = {
         },
         "associations": {},
         "app": "sys",
-        "version": "97"
+        "version": "98"
     },
     "Exception": {
         "name": "Exception",
@@ -4219,7 +4213,7 @@ export const typeModels = {
         },
         "associations": {},
         "app": "sys",
-        "version": "97"
+        "version": "98"
     },
     "ExternalPropertiesReturn": {
         "name": "ExternalPropertiesReturn",
@@ -4281,7 +4275,7 @@ export const typeModels = {
             }
         },
         "app": "sys",
-        "version": "97"
+        "version": "98"
     },
     "ExternalUserReference": {
         "name": "ExternalUserReference",
@@ -4352,7 +4346,7 @@ export const typeModels = {
             }
         },
         "app": "sys",
-        "version": "97"
+        "version": "98"
     },
     "Feature": {
         "name": "Feature",
@@ -4384,7 +4378,7 @@ export const typeModels = {
         },
         "associations": {},
         "app": "sys",
-        "version": "97"
+        "version": "98"
     },
     "File": {
         "name": "File",
@@ -4434,7 +4428,7 @@ export const typeModels = {
         },
         "associations": {},
         "app": "sys",
-        "version": "97"
+        "version": "98"
     },
     "GeneratedIdWrapper": {
         "name": "GeneratedIdWrapper",
@@ -4466,7 +4460,7 @@ export const typeModels = {
         },
         "associations": {},
         "app": "sys",
-        "version": "97"
+        "version": "98"
     },
     "GiftCard": {
         "name": "GiftCard",
@@ -4579,7 +4573,7 @@ export const typeModels = {
         },
         "associations": {},
         "app": "sys",
-        "version": "97"
+        "version": "98"
     },
     "GiftCardCreateData": {
         "name": "GiftCardCreateData",
@@ -4647,7 +4641,7 @@ export const typeModels = {
         },
         "associations": {},
         "app": "sys",
-        "version": "97"
+        "version": "98"
     },
     "GiftCardCreateReturn": {
         "name": "GiftCardCreateReturn",
@@ -4681,7 +4675,7 @@ export const typeModels = {
             }
         },
         "app": "sys",
-        "version": "97"
+        "version": "98"
     },
     "GiftCardDeleteData": {
         "name": "GiftCardDeleteData",
@@ -4715,7 +4709,7 @@ export const typeModels = {
             }
         },
         "app": "sys",
-        "version": "97"
+        "version": "98"
     },
     "GiftCardGetReturn": {
         "name": "GiftCardGetReturn",
@@ -4767,7 +4761,7 @@ export const typeModels = {
             }
         },
         "app": "sys",
-        "version": "97"
+        "version": "98"
     },
     "GiftCardOption": {
         "name": "GiftCardOption",
@@ -4799,7 +4793,7 @@ export const typeModels = {
         },
         "associations": {},
         "app": "sys",
-        "version": "97"
+        "version": "98"
     },
     "GiftCardRedeemData": {
         "name": "GiftCardRedeemData",
@@ -4851,7 +4845,7 @@ export const typeModels = {
             }
         },
         "app": "sys",
-        "version": "97"
+        "version": "98"
     },
     "GiftCardRedeemGetReturn": {
         "name": "GiftCardRedeemGetReturn",
@@ -4903,7 +4897,7 @@ export const typeModels = {
             }
         },
         "app": "sys",
-        "version": "97"
+        "version": "98"
     },
     "GiftCardsRef": {
         "name": "GiftCardsRef",
@@ -4937,7 +4931,7 @@ export const typeModels = {
             }
         },
         "app": "sys",
-        "version": "97"
+        "version": "98"
     },
     "Group": {
         "name": "Group",
@@ -5161,7 +5155,7 @@ export const typeModels = {
             }
         },
         "app": "sys",
-        "version": "97"
+        "version": "98"
     },
     "GroupInfo": {
         "name": "GroupInfo",
@@ -5314,7 +5308,7 @@ export const typeModels = {
             }
         },
         "app": "sys",
-        "version": "97"
+        "version": "98"
     },
     "GroupKey": {
         "name": "GroupKey",
@@ -5420,7 +5414,7 @@ export const typeModels = {
             }
         },
         "app": "sys",
-        "version": "97"
+        "version": "98"
     },
     "GroupKeysRef": {
         "name": "GroupKeysRef",
@@ -5454,7 +5448,7 @@ export const typeModels = {
             }
         },
         "app": "sys",
-        "version": "97"
+        "version": "98"
     },
     "GroupMember": {
         "name": "GroupMember",
@@ -5544,7 +5538,7 @@ export const typeModels = {
             }
         },
         "app": "sys",
-        "version": "97"
+        "version": "98"
     },
     "GroupMembership": {
         "name": "GroupMembership",
@@ -5652,7 +5646,7 @@ export const typeModels = {
             }
         },
         "app": "sys",
-        "version": "97"
+        "version": "98"
     },
     "GroupRoot": {
         "name": "GroupRoot",
@@ -5733,7 +5727,7 @@ export const typeModels = {
             }
         },
         "app": "sys",
-        "version": "97"
+        "version": "98"
     },
     "InstanceSessionKey": {
         "name": "InstanceSessionKey",
@@ -5812,7 +5806,7 @@ export const typeModels = {
             }
         },
         "app": "sys",
-        "version": "97"
+        "version": "98"
     },
     "Invoice": {
         "name": "Invoice",
@@ -6028,7 +6022,7 @@ export const typeModels = {
             }
         },
         "app": "sys",
-        "version": "97"
+        "version": "98"
     },
     "InvoiceDataGetIn": {
         "name": "InvoiceDataGetIn",
@@ -6060,7 +6054,7 @@ export const typeModels = {
         },
         "associations": {},
         "app": "sys",
-        "version": "97"
+        "version": "98"
     },
     "InvoiceDataGetOut": {
         "name": "InvoiceDataGetOut",
@@ -6202,7 +6196,7 @@ export const typeModels = {
             }
         },
         "app": "sys",
-        "version": "97"
+        "version": "98"
     },
     "InvoiceDataItem": {
         "name": "InvoiceDataItem",
@@ -6279,7 +6273,7 @@ export const typeModels = {
         },
         "associations": {},
         "app": "sys",
-        "version": "97"
+        "version": "98"
     },
     "InvoiceInfo": {
         "name": "InvoiceInfo",
@@ -6458,7 +6452,7 @@ export const typeModels = {
             }
         },
         "app": "sys",
-        "version": "97"
+        "version": "98"
     },
     "InvoiceItem": {
         "name": "InvoiceItem",
@@ -6544,7 +6538,7 @@ export const typeModels = {
         },
         "associations": {},
         "app": "sys",
-        "version": "97"
+        "version": "98"
     },
     "KeyPair": {
         "name": "KeyPair",
@@ -6621,7 +6615,7 @@ export const typeModels = {
         },
         "associations": {},
         "app": "sys",
-        "version": "97"
+        "version": "98"
     },
     "KeyRotation": {
         "name": "KeyRotation",
@@ -6689,7 +6683,7 @@ export const typeModels = {
         },
         "associations": {},
         "app": "sys",
-        "version": "97"
+        "version": "98"
     },
     "KeyRotationsRef": {
         "name": "KeyRotationsRef",
@@ -6723,7 +6717,7 @@ export const typeModels = {
             }
         },
         "app": "sys",
-        "version": "97"
+        "version": "98"
     },
     "LocationServiceGetReturn": {
         "name": "LocationServiceGetReturn",
@@ -6755,7 +6749,7 @@ export const typeModels = {
         },
         "associations": {},
         "app": "sys",
-        "version": "97"
+        "version": "98"
     },
     "Login": {
         "name": "Login",
@@ -6814,7 +6808,7 @@ export const typeModels = {
         },
         "associations": {},
         "app": "sys",
-        "version": "97"
+        "version": "98"
     },
     "MailAddressAlias": {
         "name": "MailAddressAlias",
@@ -6855,7 +6849,7 @@ export const typeModels = {
         },
         "associations": {},
         "app": "sys",
-        "version": "97"
+        "version": "98"
     },
     "MailAddressAliasGetIn": {
         "name": "MailAddressAliasGetIn",
@@ -6889,7 +6883,7 @@ export const typeModels = {
             }
         },
         "app": "sys",
-        "version": "97"
+        "version": "98"
     },
     "MailAddressAliasServiceData": {
         "name": "MailAddressAliasServiceData",
@@ -6932,7 +6926,7 @@ export const typeModels = {
             }
         },
         "app": "sys",
-        "version": "97"
+        "version": "98"
     },
     "MailAddressAliasServiceDataDelete": {
         "name": "MailAddressAliasServiceDataDelete",
@@ -6984,7 +6978,7 @@ export const typeModels = {
             }
         },
         "app": "sys",
-        "version": "97"
+        "version": "98"
     },
     "MailAddressAliasServiceReturn": {
         "name": "MailAddressAliasServiceReturn",
@@ -7043,7 +7037,7 @@ export const typeModels = {
         },
         "associations": {},
         "app": "sys",
-        "version": "97"
+        "version": "98"
     },
     "MailAddressAvailability": {
         "name": "MailAddressAvailability",
@@ -7084,7 +7078,7 @@ export const typeModels = {
         },
         "associations": {},
         "app": "sys",
-        "version": "97"
+        "version": "98"
     },
     "MailAddressToGroup": {
         "name": "MailAddressToGroup",
@@ -7145,7 +7139,7 @@ export const typeModels = {
             }
         },
         "app": "sys",
-        "version": "97"
+        "version": "98"
     },
     "MembershipAddData": {
         "name": "MembershipAddData",
@@ -7216,7 +7210,7 @@ export const typeModels = {
             }
         },
         "app": "sys",
-        "version": "97"
+        "version": "98"
     },
     "MembershipRemoveData": {
         "name": "MembershipRemoveData",
@@ -7260,7 +7254,7 @@ export const typeModels = {
             }
         },
         "app": "sys",
-        "version": "97"
+        "version": "98"
     },
     "MissedNotification": {
         "name": "MissedNotification",
@@ -7376,7 +7370,7 @@ export const typeModels = {
             }
         },
         "app": "sys",
-        "version": "97"
+        "version": "98"
     },
     "MultipleMailAddressAvailabilityData": {
         "name": "MultipleMailAddressAvailabilityData",
@@ -7410,7 +7404,7 @@ export const typeModels = {
             }
         },
         "app": "sys",
-        "version": "97"
+        "version": "98"
     },
     "MultipleMailAddressAvailabilityReturn": {
         "name": "MultipleMailAddressAvailabilityReturn",
@@ -7444,7 +7438,7 @@ export const typeModels = {
             }
         },
         "app": "sys",
-        "version": "97"
+        "version": "98"
     },
     "NotificationInfo": {
         "name": "NotificationInfo",
@@ -7494,7 +7488,7 @@ export const typeModels = {
         },
         "associations": {},
         "app": "sys",
-        "version": "97"
+        "version": "98"
     },
     "NotificationMailTemplate": {
         "name": "NotificationMailTemplate",
@@ -7544,7 +7538,7 @@ export const typeModels = {
         },
         "associations": {},
         "app": "sys",
-        "version": "97"
+        "version": "98"
     },
     "NotificationSessionKey": {
         "name": "NotificationSessionKey",
@@ -7587,7 +7581,7 @@ export const typeModels = {
             }
         },
         "app": "sys",
-        "version": "97"
+        "version": "98"
     },
     "OrderProcessingAgreement": {
         "name": "OrderProcessingAgreement",
@@ -7703,7 +7697,7 @@ export const typeModels = {
             }
         },
         "app": "sys",
-        "version": "97"
+        "version": "98"
     },
     "OtpChallenge": {
         "name": "OtpChallenge",
@@ -7737,7 +7731,7 @@ export const typeModels = {
             }
         },
         "app": "sys",
-        "version": "97"
+        "version": "98"
     },
     "PaymentDataServiceGetData": {
         "name": "PaymentDataServiceGetData",
@@ -7769,7 +7763,7 @@ export const typeModels = {
         },
         "associations": {},
         "app": "sys",
-        "version": "97"
+        "version": "98"
     },
     "PaymentDataServiceGetReturn": {
         "name": "PaymentDataServiceGetReturn",
@@ -7801,7 +7795,7 @@ export const typeModels = {
         },
         "associations": {},
         "app": "sys",
-        "version": "97"
+        "version": "98"
     },
     "PaymentDataServicePostData": {
         "name": "PaymentDataServicePostData",
@@ -7835,7 +7829,7 @@ export const typeModels = {
             }
         },
         "app": "sys",
-        "version": "97"
+        "version": "98"
     },
     "PaymentDataServicePutData": {
         "name": "PaymentDataServicePutData",
@@ -7950,7 +7944,7 @@ export const typeModels = {
             }
         },
         "app": "sys",
-        "version": "97"
+        "version": "98"
     },
     "PaymentDataServicePutReturn": {
         "name": "PaymentDataServicePutReturn",
@@ -7993,7 +7987,7 @@ export const typeModels = {
             }
         },
         "app": "sys",
-        "version": "97"
+        "version": "98"
     },
     "PaymentErrorInfo": {
         "name": "PaymentErrorInfo",
@@ -8043,7 +8037,7 @@ export const typeModels = {
         },
         "associations": {},
         "app": "sys",
-        "version": "97"
+        "version": "98"
     },
     "PdfInvoiceServiceData": {
         "name": "PdfInvoiceServiceData",
@@ -8086,7 +8080,7 @@ export const typeModels = {
             }
         },
         "app": "sys",
-        "version": "97"
+        "version": "98"
     },
     "PdfInvoiceServiceReturn": {
         "name": "PdfInvoiceServiceReturn",
@@ -8145,7 +8139,7 @@ export const typeModels = {
         },
         "associations": {},
         "app": "sys",
-        "version": "97"
+        "version": "98"
     },
     "Permission": {
         "name": "Permission",
@@ -8297,7 +8291,7 @@ export const typeModels = {
             }
         },
         "app": "sys",
-        "version": "97"
+        "version": "98"
     },
     "PhoneNumber": {
         "name": "PhoneNumber",
@@ -8329,7 +8323,7 @@ export const typeModels = {
         },
         "associations": {},
         "app": "sys",
-        "version": "97"
+        "version": "98"
     },
     "PlanConfiguration": {
         "name": "PlanConfiguration",
@@ -8442,7 +8436,7 @@ export const typeModels = {
         },
         "associations": {},
         "app": "sys",
-        "version": "97"
+        "version": "98"
     },
     "PlanPrices": {
         "name": "PlanPrices",
@@ -8584,7 +8578,7 @@ export const typeModels = {
             }
         },
         "app": "sys",
-        "version": "97"
+        "version": "98"
     },
     "PlanServiceGetOut": {
         "name": "PlanServiceGetOut",
@@ -8618,7 +8612,7 @@ export const typeModels = {
             }
         },
         "app": "sys",
-        "version": "97"
+        "version": "98"
     },
     "PriceData": {
         "name": "PriceData",
@@ -8679,7 +8673,7 @@ export const typeModels = {
             }
         },
         "app": "sys",
-        "version": "97"
+        "version": "98"
     },
     "PriceItemData": {
         "name": "PriceItemData",
@@ -8738,7 +8732,7 @@ export const typeModels = {
         },
         "associations": {},
         "app": "sys",
-        "version": "97"
+        "version": "98"
     },
     "PriceRequestData": {
         "name": "PriceRequestData",
@@ -8815,7 +8809,7 @@ export const typeModels = {
         },
         "associations": {},
         "app": "sys",
-        "version": "97"
+        "version": "98"
     },
     "PriceServiceData": {
         "name": "PriceServiceData",
@@ -8858,7 +8852,7 @@ export const typeModels = {
             }
         },
         "app": "sys",
-        "version": "97"
+        "version": "98"
     },
     "PriceServiceReturn": {
         "name": "PriceServiceReturn",
@@ -8930,7 +8924,7 @@ export const typeModels = {
             }
         },
         "app": "sys",
-        "version": "97"
+        "version": "98"
     },
     "PublicKeyGetIn": {
         "name": "PublicKeyGetIn",
@@ -8971,7 +8965,7 @@ export const typeModels = {
         },
         "associations": {},
         "app": "sys",
-        "version": "97"
+        "version": "98"
     },
     "PublicKeyGetOut": {
         "name": "PublicKeyGetOut",
@@ -9030,7 +9024,7 @@ export const typeModels = {
         },
         "associations": {},
         "app": "sys",
-        "version": "97"
+        "version": "98"
     },
     "PublicKeyPutIn": {
         "name": "PublicKeyPutIn",
@@ -9082,7 +9076,7 @@ export const typeModels = {
             }
         },
         "app": "sys",
-        "version": "97"
+        "version": "98"
     },
     "PushIdentifier": {
         "name": "PushIdentifier",
@@ -9231,7 +9225,7 @@ export const typeModels = {
         },
         "associations": {},
         "app": "sys",
-        "version": "97"
+        "version": "98"
     },
     "PushIdentifierList": {
         "name": "PushIdentifierList",
@@ -9265,7 +9259,7 @@ export const typeModels = {
             }
         },
         "app": "sys",
-        "version": "97"
+        "version": "98"
     },
     "ReceivedGroupInvitation": {
         "name": "ReceivedGroupInvitation",
@@ -9426,7 +9420,7 @@ export const typeModels = {
             }
         },
         "app": "sys",
-        "version": "97"
+        "version": "98"
     },
     "RecoverCode": {
         "name": "RecoverCode",
@@ -9512,7 +9506,7 @@ export const typeModels = {
         },
         "associations": {},
         "app": "sys",
-        "version": "97"
+        "version": "98"
     },
     "ReferralCodeGetIn": {
         "name": "ReferralCodeGetIn",
@@ -9546,7 +9540,7 @@ export const typeModels = {
             }
         },
         "app": "sys",
-        "version": "97"
+        "version": "98"
     },
     "ReferralCodePostIn": {
         "name": "ReferralCodePostIn",
@@ -9569,7 +9563,7 @@ export const typeModels = {
         },
         "associations": {},
         "app": "sys",
-        "version": "97"
+        "version": "98"
     },
     "ReferralCodePostOut": {
         "name": "ReferralCodePostOut",
@@ -9603,7 +9597,7 @@ export const typeModels = {
             }
         },
         "app": "sys",
-        "version": "97"
+        "version": "98"
     },
     "RegistrationCaptchaServiceData": {
         "name": "RegistrationCaptchaServiceData",
@@ -9644,7 +9638,7 @@ export const typeModels = {
         },
         "associations": {},
         "app": "sys",
-        "version": "97"
+        "version": "98"
     },
     "RegistrationCaptchaServiceGetData": {
         "name": "RegistrationCaptchaServiceGetData",
@@ -9712,7 +9706,7 @@ export const typeModels = {
         },
         "associations": {},
         "app": "sys",
-        "version": "97"
+        "version": "98"
     },
     "RegistrationCaptchaServiceReturn": {
         "name": "RegistrationCaptchaServiceReturn",
@@ -9753,7 +9747,7 @@ export const typeModels = {
         },
         "associations": {},
         "app": "sys",
-        "version": "97"
+        "version": "98"
     },
     "RegistrationReturn": {
         "name": "RegistrationReturn",
@@ -9785,7 +9779,7 @@ export const typeModels = {
         },
         "associations": {},
         "app": "sys",
-        "version": "97"
+        "version": "98"
     },
     "RegistrationServiceData": {
         "name": "RegistrationServiceData",
@@ -9835,7 +9829,7 @@ export const typeModels = {
         },
         "associations": {},
         "app": "sys",
-        "version": "97"
+        "version": "98"
     },
     "RejectedSender": {
         "name": "RejectedSender",
@@ -9930,7 +9924,7 @@ export const typeModels = {
         },
         "associations": {},
         "app": "sys",
-        "version": "97"
+        "version": "98"
     },
     "RejectedSendersRef": {
         "name": "RejectedSendersRef",
@@ -9964,7 +9958,7 @@ export const typeModels = {
             }
         },
         "app": "sys",
-        "version": "97"
+        "version": "98"
     },
     "RepeatRule": {
         "name": "RepeatRule",
@@ -10043,7 +10037,7 @@ export const typeModels = {
             }
         },
         "app": "sys",
-        "version": "97"
+        "version": "98"
     },
     "ResetFactorsDeleteData": {
         "name": "ResetFactorsDeleteData",
@@ -10093,7 +10087,7 @@ export const typeModels = {
         },
         "associations": {},
         "app": "sys",
-        "version": "97"
+        "version": "98"
     },
     "ResetPasswordData": {
         "name": "ResetPasswordData",
@@ -10163,7 +10157,7 @@ export const typeModels = {
             }
         },
         "app": "sys",
-        "version": "97"
+        "version": "98"
     },
     "RootInstance": {
         "name": "RootInstance",
@@ -10222,7 +10216,7 @@ export const typeModels = {
         },
         "associations": {},
         "app": "sys",
-        "version": "97"
+        "version": "98"
     },
     "SaltData": {
         "name": "SaltData",
@@ -10254,7 +10248,7 @@ export const typeModels = {
         },
         "associations": {},
         "app": "sys",
-        "version": "97"
+        "version": "98"
     },
     "SaltReturn": {
         "name": "SaltReturn",
@@ -10295,7 +10289,7 @@ export const typeModels = {
         },
         "associations": {},
         "app": "sys",
-        "version": "97"
+        "version": "98"
     },
     "SecondFactor": {
         "name": "SecondFactor",
@@ -10383,7 +10377,7 @@ export const typeModels = {
             }
         },
         "app": "sys",
-        "version": "97"
+        "version": "98"
     },
     "SecondFactorAuthAllowedReturn": {
         "name": "SecondFactorAuthAllowedReturn",
@@ -10415,7 +10409,7 @@ export const typeModels = {
         },
         "associations": {},
         "app": "sys",
-        "version": "97"
+        "version": "98"
     },
     "SecondFactorAuthData": {
         "name": "SecondFactorAuthData",
@@ -10487,7 +10481,7 @@ export const typeModels = {
             }
         },
         "app": "sys",
-        "version": "97"
+        "version": "98"
     },
     "SecondFactorAuthDeleteData": {
         "name": "SecondFactorAuthDeleteData",
@@ -10521,7 +10515,7 @@ export const typeModels = {
             }
         },
         "app": "sys",
-        "version": "97"
+        "version": "98"
     },
     "SecondFactorAuthGetData": {
         "name": "SecondFactorAuthGetData",
@@ -10553,7 +10547,7 @@ export const typeModels = {
         },
         "associations": {},
         "app": "sys",
-        "version": "97"
+        "version": "98"
     },
     "SecondFactorAuthGetReturn": {
         "name": "SecondFactorAuthGetReturn",
@@ -10585,7 +10579,7 @@ export const typeModels = {
         },
         "associations": {},
         "app": "sys",
-        "version": "97"
+        "version": "98"
     },
     "SecondFactorAuthentication": {
         "name": "SecondFactorAuthentication",
@@ -10671,7 +10665,7 @@ export const typeModels = {
         },
         "associations": {},
         "app": "sys",
-        "version": "97"
+        "version": "98"
     },
     "SendRegistrationCodeData": {
         "name": "SendRegistrationCodeData",
@@ -10730,7 +10724,7 @@ export const typeModels = {
         },
         "associations": {},
         "app": "sys",
-        "version": "97"
+        "version": "98"
     },
     "SendRegistrationCodeReturn": {
         "name": "SendRegistrationCodeReturn",
@@ -10762,7 +10756,7 @@ export const typeModels = {
         },
         "associations": {},
         "app": "sys",
-        "version": "97"
+        "version": "98"
     },
     "SentGroupInvitation": {
         "name": "SentGroupInvitation",
@@ -10851,7 +10845,7 @@ export const typeModels = {
             }
         },
         "app": "sys",
-        "version": "97"
+        "version": "98"
     },
     "Session": {
         "name": "Session",
@@ -10994,7 +10988,7 @@ export const typeModels = {
             }
         },
         "app": "sys",
-        "version": "97"
+        "version": "98"
     },
     "SignOrderProcessingAgreementData": {
         "name": "SignOrderProcessingAgreementData",
@@ -11035,7 +11029,7 @@ export const typeModels = {
         },
         "associations": {},
         "app": "sys",
-        "version": "97"
+        "version": "98"
     },
     "SseConnectData": {
         "name": "SseConnectData",
@@ -11078,7 +11072,7 @@ export const typeModels = {
             }
         },
         "app": "sys",
-        "version": "97"
+        "version": "98"
     },
     "StringConfigValue": {
         "name": "StringConfigValue",
@@ -11119,7 +11113,7 @@ export const typeModels = {
         },
         "associations": {},
         "app": "sys",
-        "version": "97"
+        "version": "98"
     },
     "StringWrapper": {
         "name": "StringWrapper",
@@ -11151,7 +11145,66 @@ export const typeModels = {
         },
         "associations": {},
         "app": "sys",
-        "version": "97"
+        "version": "98"
+    },
+    "SurveyData": {
+        "name": "SurveyData",
+        "since": 98,
+        "type": "AGGREGATED_TYPE",
+        "id": 2295,
+        "rootId": "A3N5cwAI9w",
+        "versioned": false,
+        "encrypted": false,
+        "values": {
+            "_id": {
+                "final": true,
+                "name": "_id",
+                "id": 2296,
+                "since": 98,
+                "type": "CustomId",
+                "cardinality": "One",
+                "encrypted": false
+            },
+            "category": {
+                "final": true,
+                "name": "category",
+                "id": 2297,
+                "since": 98,
+                "type": "Number",
+                "cardinality": "One",
+                "encrypted": false
+            },
+            "details": {
+                "final": true,
+                "name": "details",
+                "id": 2299,
+                "since": 98,
+                "type": "String",
+                "cardinality": "ZeroOrOne",
+                "encrypted": false
+            },
+            "reason": {
+                "final": true,
+                "name": "reason",
+                "id": 2298,
+                "since": 98,
+                "type": "Number",
+                "cardinality": "One",
+                "encrypted": false
+            },
+            "version": {
+                "final": true,
+                "name": "version",
+                "id": 2300,
+                "since": 98,
+                "type": "Number",
+                "cardinality": "One",
+                "encrypted": false
+            }
+        },
+        "associations": {},
+        "app": "sys",
+        "version": "98"
     },
     "SwitchAccountTypePostIn": {
         "name": "SwitchAccountTypePostIn",
@@ -11207,24 +11260,6 @@ export const typeModels = {
                 "cardinality": "One",
                 "encrypted": false
             },
-            "reason": {
-                "final": true,
-                "name": "reason",
-                "id": 2219,
-                "since": 95,
-                "type": "String",
-                "cardinality": "ZeroOrOne",
-                "encrypted": false
-            },
-            "reasonCategory": {
-                "final": true,
-                "name": "reasonCategory",
-                "id": 2220,
-                "since": 95,
-                "type": "Number",
-                "cardinality": "ZeroOrOne",
-                "encrypted": false
-            },
             "specialPriceUserSingle": {
                 "final": false,
                 "name": "specialPriceUserSingle",
@@ -11245,10 +11280,20 @@ export const typeModels = {
                 "cardinality": "ZeroOrOne",
                 "refType": "ReferralCode",
                 "dependency": null
+            },
+            "surveyData": {
+                "final": false,
+                "name": "surveyData",
+                "id": 2314,
+                "since": 98,
+                "type": "AGGREGATION",
+                "cardinality": "ZeroOrOne",
+                "refType": "SurveyData",
+                "dependency": null
             }
         },
         "app": "sys",
-        "version": "97"
+        "version": "98"
     },
     "SystemKeysReturn": {
         "name": "SystemKeysReturn",
@@ -11364,7 +11409,7 @@ export const typeModels = {
             }
         },
         "app": "sys",
-        "version": "97"
+        "version": "98"
     },
     "TakeOverDeletedAddressData": {
         "name": "TakeOverDeletedAddressData",
@@ -11423,7 +11468,7 @@ export const typeModels = {
         },
         "associations": {},
         "app": "sys",
-        "version": "97"
+        "version": "98"
     },
     "TypeInfo": {
         "name": "TypeInfo",
@@ -11464,7 +11509,7 @@ export const typeModels = {
         },
         "associations": {},
         "app": "sys",
-        "version": "97"
+        "version": "98"
     },
     "U2fChallenge": {
         "name": "U2fChallenge",
@@ -11507,7 +11552,7 @@ export const typeModels = {
             }
         },
         "app": "sys",
-        "version": "97"
+        "version": "98"
     },
     "U2fKey": {
         "name": "U2fKey",
@@ -11559,7 +11604,7 @@ export const typeModels = {
             }
         },
         "app": "sys",
-        "version": "97"
+        "version": "98"
     },
     "U2fRegisteredDevice": {
         "name": "U2fRegisteredDevice",
@@ -11627,7 +11672,7 @@ export const typeModels = {
         },
         "associations": {},
         "app": "sys",
-        "version": "97"
+        "version": "98"
     },
     "U2fResponseData": {
         "name": "U2fResponseData",
@@ -11677,7 +11722,7 @@ export const typeModels = {
         },
         "associations": {},
         "app": "sys",
-        "version": "97"
+        "version": "98"
     },
     "UpdatePermissionKeyData": {
         "name": "UpdatePermissionKeyData",
@@ -11739,7 +11784,7 @@ export const typeModels = {
             }
         },
         "app": "sys",
-        "version": "97"
+        "version": "98"
     },
     "UpdateSessionKeysPostIn": {
         "name": "UpdateSessionKeysPostIn",
@@ -11773,7 +11818,7 @@ export const typeModels = {
             }
         },
         "app": "sys",
-        "version": "97"
+        "version": "98"
     },
     "UpgradePriceServiceData": {
         "name": "UpgradePriceServiceData",
@@ -11825,7 +11870,7 @@ export const typeModels = {
             }
         },
         "app": "sys",
-        "version": "97"
+        "version": "98"
     },
     "UpgradePriceServiceReturn": {
         "name": "UpgradePriceServiceReturn",
@@ -11996,7 +12041,7 @@ export const typeModels = {
             }
         },
         "app": "sys",
-        "version": "97"
+        "version": "98"
     },
     "User": {
         "name": "User",
@@ -12221,7 +12266,7 @@ export const typeModels = {
             }
         },
         "app": "sys",
-        "version": "97"
+        "version": "98"
     },
     "UserAlarmInfo": {
         "name": "UserAlarmInfo",
@@ -12300,7 +12345,7 @@ export const typeModels = {
             }
         },
         "app": "sys",
-        "version": "97"
+        "version": "98"
     },
     "UserAlarmInfoListType": {
         "name": "UserAlarmInfoListType",
@@ -12334,7 +12379,7 @@ export const typeModels = {
             }
         },
         "app": "sys",
-        "version": "97"
+        "version": "98"
     },
     "UserAreaGroups": {
         "name": "UserAreaGroups",
@@ -12368,7 +12413,7 @@ export const typeModels = {
             }
         },
         "app": "sys",
-        "version": "97"
+        "version": "98"
     },
     "UserAuthentication": {
         "name": "UserAuthentication",
@@ -12422,7 +12467,7 @@ export const typeModels = {
             }
         },
         "app": "sys",
-        "version": "97"
+        "version": "98"
     },
     "UserDataDelete": {
         "name": "UserDataDelete",
@@ -12474,7 +12519,7 @@ export const typeModels = {
             }
         },
         "app": "sys",
-        "version": "97"
+        "version": "98"
     },
     "UserExternalAuthInfo": {
         "name": "UserExternalAuthInfo",
@@ -12544,7 +12589,7 @@ export const typeModels = {
             }
         },
         "app": "sys",
-        "version": "97"
+        "version": "98"
     },
     "UserGroupRoot": {
         "name": "UserGroupRoot",
@@ -12615,7 +12660,7 @@ export const typeModels = {
             }
         },
         "app": "sys",
-        "version": "97"
+        "version": "98"
     },
     "VariableExternalAuthInfo": {
         "name": "VariableExternalAuthInfo",
@@ -12719,7 +12764,7 @@ export const typeModels = {
         },
         "associations": {},
         "app": "sys",
-        "version": "97"
+        "version": "98"
     },
     "VerifyRegistrationCodeData": {
         "name": "VerifyRegistrationCodeData",
@@ -12760,7 +12805,7 @@ export const typeModels = {
         },
         "associations": {},
         "app": "sys",
-        "version": "97"
+        "version": "98"
     },
     "Version": {
         "name": "Version",
@@ -12831,7 +12876,7 @@ export const typeModels = {
             }
         },
         "app": "sys",
-        "version": "97"
+        "version": "98"
     },
     "VersionData": {
         "name": "VersionData",
@@ -12890,7 +12935,7 @@ export const typeModels = {
         },
         "associations": {},
         "app": "sys",
-        "version": "97"
+        "version": "98"
     },
     "VersionInfo": {
         "name": "VersionInfo",
@@ -13015,7 +13060,7 @@ export const typeModels = {
             }
         },
         "app": "sys",
-        "version": "97"
+        "version": "98"
     },
     "VersionReturn": {
         "name": "VersionReturn",
@@ -13049,7 +13094,7 @@ export const typeModels = {
             }
         },
         "app": "sys",
-        "version": "97"
+        "version": "98"
     },
     "WebauthnResponseData": {
         "name": "WebauthnResponseData",
@@ -13108,7 +13153,7 @@ export const typeModels = {
         },
         "associations": {},
         "app": "sys",
-        "version": "97"
+        "version": "98"
     },
     "WebsocketCounterData": {
         "name": "WebsocketCounterData",
@@ -13151,7 +13196,7 @@ export const typeModels = {
             }
         },
         "app": "sys",
-        "version": "97"
+        "version": "98"
     },
     "WebsocketCounterValue": {
         "name": "WebsocketCounterValue",
@@ -13192,7 +13237,7 @@ export const typeModels = {
         },
         "associations": {},
         "app": "sys",
-        "version": "97"
+        "version": "98"
     },
     "WebsocketEntityData": {
         "name": "WebsocketEntityData",
@@ -13244,7 +13289,7 @@ export const typeModels = {
             }
         },
         "app": "sys",
-        "version": "97"
+        "version": "98"
     },
     "WebsocketLeaderStatus": {
         "name": "WebsocketLeaderStatus",
@@ -13276,7 +13321,7 @@ export const typeModels = {
         },
         "associations": {},
         "app": "sys",
-        "version": "97"
+        "version": "98"
     },
     "WhitelabelChild": {
         "name": "WhitelabelChild",
@@ -13391,7 +13436,7 @@ export const typeModels = {
             }
         },
         "app": "sys",
-        "version": "97"
+        "version": "98"
     },
     "WhitelabelChildrenRef": {
         "name": "WhitelabelChildrenRef",
@@ -13425,7 +13470,7 @@ export const typeModels = {
             }
         },
         "app": "sys",
-        "version": "97"
+        "version": "98"
     },
     "WhitelabelConfig": {
         "name": "WhitelabelConfig",
@@ -13560,7 +13605,7 @@ export const typeModels = {
             }
         },
         "app": "sys",
-        "version": "97"
+        "version": "98"
     },
     "WhitelabelParent": {
         "name": "WhitelabelParent",
@@ -13604,6 +13649,6 @@ export const typeModels = {
             }
         },
         "app": "sys",
-        "version": "97"
+        "version": "98"
     }
 }

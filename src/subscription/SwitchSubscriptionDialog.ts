@@ -2,7 +2,7 @@ import m from "mithril"
 import { Dialog } from "../gui/base/Dialog"
 import { lang, TranslationText } from "../misc/LanguageViewModel"
 import { ButtonType } from "../gui/base/Button.js"
-import type { AccountingInfo, Booking, Customer, CustomerInfo, SwitchAccountTypePostIn } from "../api/entities/sys/TypeRefs.js"
+import { AccountingInfo, Booking, createSurveyData, Customer, CustomerInfo, SurveyData, SwitchAccountTypePostIn } from "../api/entities/sys/TypeRefs.js"
 import { createSwitchAccountTypePostIn } from "../api/entities/sys/TypeRefs.js"
 import {
 	AccountType,
@@ -33,7 +33,8 @@ import { showSwitchToBusinessInvoiceDataDialog } from "./SwitchToBusinessInvoice
 import { getByAbbreviation } from "../api/common/CountryList.js"
 import { formatNameAndAddress } from "../api/common/utils/CommonFormatter.js"
 import { LoginButtonAttrs } from "../gui/base/buttons/LoginButton.js"
-import { CancellationReasonInput } from "./CancellationReasonInput.js"
+import { showLeavingUserSurveyWizard } from "./LeavingUserSurveyWizard.js"
+import { SURVEY_VERSION_NUMBER } from "./LeavingUserSurveyConstants.js"
 
 /**
  * Only shown if the user is already a Premium user. Allows cancelling the subscription (only private use) and switching the subscription to a different paid subscription.
@@ -109,7 +110,20 @@ export async function showSwitchDialog(
 		[PlanType.Free]: () =>
 			({
 				label: "pricing.select_action",
-				onclick: () => cancelSubscription(dialog, currentPlanInfo, deferred, customer),
+				onclick: () =>
+					showLeavingUserSurveyWizard(true, true).then((reason) => {
+						if (reason.submitted && reason.category && reason.reason) {
+							const data = createSurveyData({
+								category: reason.category,
+								reason: reason.reason,
+								details: reason.details,
+								version: SURVEY_VERSION_NUMBER,
+							})
+							cancelSubscription(dialog, currentPlanInfo, deferred, customer, data)
+						} else {
+							cancelSubscription(dialog, currentPlanInfo, deferred, customer)
+						}
+					}),
 			} as LoginButtonAttrs),
 
 		[PlanType.Revolutionary]: createPlanButton(dialog, PlanType.Revolutionary, currentPlanInfo, deferred, paymentInterval, accountingInfo),
@@ -249,37 +263,16 @@ async function tryDowngradePremiumToFree(switchAccountTypeData: SwitchAccountTyp
 	}
 }
 
-async function cancelSubscription(dialog: Dialog, currentPlanInfo: CurrentPlanInfo, planPromise: DeferredObject<PlanType>, customer: Customer): Promise<void> {
+async function cancelSubscription(
+	dialog: Dialog,
+	currentPlanInfo: CurrentPlanInfo,
+	planPromise: DeferredObject<PlanType>,
+	customer: Customer,
+	surveyData: SurveyData | null = null,
+): Promise<void> {
 	if (!(await Dialog.confirm("unsubscribeConfirm_msg"))) {
 		return
 	}
-
-	let reasonCategory: string | null = null
-	let reason = ""
-
-	let result = await new Promise((resolve) => {
-		let dialog = Dialog.showActionDialog({
-			title: lang.get("survey_label"),
-			child: {
-				view: () =>
-					m(CancellationReasonInput, {
-						reason: reason,
-						reasonHandler: (enteredReason: string) => (reason = enteredReason),
-						category: reasonCategory,
-						categoryHandler: (category: NumberString) => (reasonCategory = category),
-					}),
-			},
-			okAction: () => {
-				dialog.close()
-				resolve(true)
-			},
-			cancelAction: () => {
-				dialog.close()
-				resolve(false)
-			},
-			cancelActionTextId: "skip_action",
-		})
-	})
 
 	const switchAccountTypeData = createSwitchAccountTypePostIn({
 		accountType: AccountType.FREE,
@@ -288,8 +281,7 @@ async function cancelSubscription(dialog: Dialog, currentPlanInfo: CurrentPlanIn
 		specialPriceUserSingle: null,
 		referralCode: null,
 		plan: PlanType.Free,
-		reasonCategory: result ? reasonCategory : null,
-		reason: result ? reason : null,
+		surveyData: surveyData,
 	})
 	try {
 		await showProgressDialog(
@@ -329,8 +321,7 @@ async function switchSubscription(targetSubscription: PlanType, dialog: Dialog, 
 			referralCode: null,
 			customer: customer._id,
 			specialPriceUserSingle: null,
-			reasonCategory: null,
-			reason: null,
+			surveyData: null,
 		})
 
 		try {
