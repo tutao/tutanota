@@ -59,7 +59,7 @@
 		"qrcode-svg": "1.0.0",
 		"squire-rte": "2.2.7",
 		"systemjs": "6.10.2",
-		"undici": "6.11.1",
+		"undici": "6.16.0",
 		"winreg": "1.2.4"
 	},
 	"optionalDependencies": {
