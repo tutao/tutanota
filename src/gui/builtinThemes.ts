@@ -49,8 +49,8 @@ export const logo_text_bright_grey = "#c5c7c7"
  */
 
 const catppuccin_logo_text = "#cad3f5"
-const catppuccin_light_lighter_0 = "#6e738d"
-const catppuccin_light_lighter_1 = "#8087a2"
+const catppuccin_light_lighter_0 = "#b8c0e0"
+const catppuccin_light_lighter_1 = "#cad3f5"
 const catppuccin_dark = "#1e2030"
 const catppuccin_dark_lighter_0 = "#24273a"
 const catppuccin_dark_lighter_1 = "#363a4f"
