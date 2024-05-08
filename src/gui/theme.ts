@@ -111,6 +111,10 @@ export const themeOptions = [
 		name: "blue_label",
 		value: "blue",
 	},
+	{
+		name: "catppuccin_label",
+		value: "catppuccin",
+	},
 ] as const
 
 export function getContentButtonIconBackground(): string {

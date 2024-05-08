@@ -212,6 +212,10 @@ export class LoginView extends BaseTopLevelView implements TopLevelView<LoginVie
 						label: "blue_label",
 						click: () => themeController.setThemePreference("blue"),
 					},
+					{
+						label: "catppuccin_label",
+						click: () => themeController.setThemePreference("catppuccin"),
+					},
 				]
 				const customButtons = (await themeController.getCustomThemes()).map((themeId) => {
 					return {

@@ -194,6 +194,7 @@ export type TranslationKeyType =
 	| "captchaInfo_msg"
 	| "captchaInput_label"
 	| "catchAllMailbox_label"
+	| "catppuccin_label"
 	| "cc_label"
 	| "certificateError_msg"
 	| "certificateExpiryDate_label"

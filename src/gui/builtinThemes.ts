@@ -44,6 +44,21 @@ const dark_darker_0 = "#111111"
 const green = "#00d2a7"
 export const logo_text_bright_grey = "#c5c7c7"
 
+/**
+ * 		catppuccin theme
+ */
+
+const catppuccin_logo_text = "#cad3f5"
+const catppuccin_light_lighter_0 = "#6e738d"
+const catppuccin_light_lighter_1 = "#8087a2"
+const catppuccin_dark = "#1e2030"
+const catppuccin_dark_lighter_0 = "#24273a"
+const catppuccin_dark_lighter_1 = "#363a4f"
+const catppuccin_dark_lighter_2 = "#494d64"
+const catppuccin_dark_darker_0 = "#181926"
+const catppuccin_light_grey = "#6e738d"
+const catppuccin_primary = "#c6a0f6"
+
 // These are constants that have been chosen because they work across themes
 // This is even lighter than hover, for special cases like inactive search bar background
 export const stateBgLike = "rgba(139,139,139,0.18)"
@@ -156,5 +171,41 @@ export const themes: Themes = {
 		navigation_button_icon_selected: light_white,
 		navigation_menu_bg: grey_lighter_3,
 		navigation_menu_icon: grey,
+	}),
+	catppuccin: Object.freeze({
+		themeId: "catppuccin",
+		logo: getLogoSvg(catppuccin_primary, catppuccin_logo_text),
+		button_bubble_bg: catppuccin_dark_lighter_2,
+		button_bubble_fg: catppuccin_light_lighter_1,
+		content_fg: catppuccin_light_lighter_1,
+		content_button: catppuccin_light_lighter_0,
+		content_button_selected: catppuccin_primary,
+		content_button_icon_bg: catppuccin_dark_lighter_2,
+		content_button_icon: catppuccin_light_lighter_1,
+		content_button_icon_selected: catppuccin_dark_lighter_0,
+		content_accent: catppuccin_primary,
+		content_bg: catppuccin_dark_darker_0,
+		content_border: catppuccin_dark_lighter_1,
+		content_message_bg: catppuccin_dark_lighter_2,
+		header_bg: catppuccin_dark,
+		header_box_shadow_bg: catppuccin_dark,
+		header_button: catppuccin_light_lighter_0,
+		header_button_selected: catppuccin_primary,
+		list_bg: catppuccin_dark_darker_0,
+		list_alternate_bg: catppuccin_dark_lighter_0,
+		list_accent_fg: catppuccin_primary,
+		list_message_bg: catppuccin_dark_lighter_2,
+		list_border: catppuccin_dark_lighter_1,
+		modal_bg: catppuccin_dark_darker_0,
+		elevated_bg: catppuccin_dark_lighter_0,
+		navigation_bg: catppuccin_dark_lighter_0,
+		navigation_border: catppuccin_dark_lighter_1,
+		navigation_button: catppuccin_light_lighter_0,
+		navigation_button_icon_bg: catppuccin_dark_lighter_2,
+		navigation_button_icon: catppuccin_light_lighter_1,
+		navigation_button_selected: catppuccin_primary,
+		navigation_button_icon_selected: catppuccin_light_lighter_0,
+		navigation_menu_bg: catppuccin_dark_darker_0,
+		navigation_menu_icon: catppuccin_light_grey,
 	}),
 }

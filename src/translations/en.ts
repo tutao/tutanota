@@ -210,6 +210,7 @@ export default {
 		"captchaInfo_msg": "Please enter the displayed time to prove you are not a computer.",
 		"captchaInput_label": "Time",
 		"catchAllMailbox_label": "Catch all mailbox",
+		"catppuccin_label": "Catppuccin",
 		"cc_label": "Cc",
 		"certificateError_msg": "The certificate chain or the private key have a bad format or do not match your domain.",
 		"certificateExpiryDate_label": "Certificate expiry date: {date}",
