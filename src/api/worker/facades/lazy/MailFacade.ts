@@ -14,7 +14,9 @@ import {
 	ArchiveDataType,
 	ConversationType,
 	CounterType,
+	CryptoProtocolVersion,
 	DEFAULT_KDF_TYPE,
+	EncryptionAuthStatus,
 	GroupType,
 	KdfType,
 	MailAuthenticationStatus,
@@ -85,6 +87,7 @@ import {
 	byteLength,
 	contains,
 	defer,
+	isEmpty,
 	freshVersioned,
 	isNotNull,
 	isSameTypeRef,
@@ -492,6 +495,7 @@ export class MailFacade {
 			senderNameUnencrypted: null,
 			secureExternalRecipientKeyData: [],
 			symEncInternalRecipientKeyData: [],
+			sessionEncEncryptionAuthStatus: null,
 		})
 
 		const attachments = await this.getAttachmentIds(draft)
@@ -517,7 +521,7 @@ export class MailFacade {
 			this.entityClient.loadRoot(TutanotaPropertiesTypeRef, this.userFacade.getUserGroupId()).then((tutanotaProperties) => {
 				sendDraftData.plaintext = tutanotaProperties.sendPlaintextOnly
 			}),
-			this.crypto.resolveSessionKeyForInstance(draft).then((mailSessionkey) => {
+			this.crypto.resolveSessionKeyForInstance(draft).then(async (mailSessionkey) => {
 				const sk = assertNotNull(mailSessionkey, "mailSessionKey was null")
 				sendDraftData.calendarMethod = draft.method !== MailMethod.NONE
 
@@ -529,7 +533,10 @@ export class MailFacade {
 						sendDraftData.senderNameUnencrypted = draft.sender.name // needed for notification mail
 					}
 
-					return this.addRecipientKeyData(bucketKey, sendDraftData, recipients, senderMailGroupId)
+					await this.addRecipientKeyData(bucketKey, sendDraftData, recipients, senderMailGroupId)
+					if (this.isTutaCryptMail(sendDraftData)) {
+						sendDraftData.sessionEncEncryptionAuthStatus = encryptString(sk, EncryptionAuthStatus.TUTACRYPT_SENDER)
+					}
 				} else {
 					sendDraftData.mailSessionKey = bitArrayToUint8Array(sk)
 				}
@@ -684,7 +691,7 @@ export class MailFacade {
 				const kdfType = DEFAULT_KDF_TYPE
 				const passwordKey = await this.loginFacade.deriveUserPassphraseKey({ kdfType, passphrase, salt })
 				const passwordVerifier = createAuthVerifier(passwordKey)
-				const externalGroupKeys = await this.getExternalGroupKeys(recipient.address, passwordKey, passwordVerifier)
+				const externalGroupKeys = await this.getExternalGroupKeys(recipient.address, kdfType, passwordKey, passwordVerifier)
 				const ownerEncBucketKey = encryptKeyWithVersionedKey(externalGroupKeys.currentExternalMailGroupKey, bucketKey)
 				const data = createSecureExternalRecipientKeyData({
 					mailAddress: recipient.address,
@@ -722,6 +729,22 @@ export class MailFacade {
 		}
 	}
 
+	/**
+	 * Checks if the given send draft data contains only encrypt keys that have been encrypted with TutaCrypt protocol.
+	 * @VisibleForTesting
+	 * @param sendDraftData The send drafta for the mail that should be sent
+	 */
+	isTutaCryptMail(sendDraftData: SendDraftData) {
+		// if an secure external recipient is involved in the conversation we do not use asymmetric encryption
+		if (sendDraftData.symEncInternalRecipientKeyData.length > 0 || sendDraftData.secureExternalRecipientKeyData.length) {
+			return false
+		}
+		if (isEmpty(sendDraftData.internalRecipientKeyData)) {
+			return false
+		}
+		return sendDraftData.internalRecipientKeyData.every((recipientData) => recipientData.protocolVersion === CryptoProtocolVersion.TUTA_CRYPT)
+	}
+
 	private getContactPassword(contact: Contact | null): string | null {
 		return contact?.presharedPassword ?? contact?.autoTransmitPassword ?? null
 	}
@@ -730,18 +753,17 @@ export class MailFacade {
 	 * Checks that an external user instance with a mail box exists for the given recipient. If it does not exist, it is created.
 	 * Returns the user group key and the user mail group key of the external recipient.
 	 * @param recipientMailAddress
+	 * @param externalUserKdfType the kdf type used to derive externalUserPwKey
 	 * @param externalUserPwKey The external user's password key.
 	 * @param verifier The external user's verifier, base64 encoded.
 	 * @return Resolves to the external user's group key and the external user's mail group key, rejected if an error occurred
 	 */
 	private async getExternalGroupKeys(
 		recipientMailAddress: string,
+		externalUserKdfType: KdfType,
 		externalUserPwKey: AesKey,
 		verifier: Uint8Array,
-	): Promise<{
-		currentExternalUserGroupKey: VersionedKey
-		currentExternalMailGroupKey: VersionedKey
-	}> {
+	): Promise<{ currentExternalUserGroupKey: VersionedKey; currentExternalMailGroupKey: VersionedKey }> {
 		const groupRoot = await this.entityClient.loadRoot(GroupRootTypeRef, this.userFacade.getUserGroupId())
 		const cleanedMailAddress = recipientMailAddress.trim().toLocaleLowerCase()
 		const mailAddressId = stringToCustomId(cleanedMailAddress)
@@ -751,7 +773,7 @@ export class MailFacade {
 			externalUserReference = await this.entityClient.load(ExternalUserReferenceTypeRef, [groupRoot.externalUserReferences, mailAddressId])
 		} catch (e) {
 			if (e instanceof NotFoundError) {
-				return this.createExternalUser(cleanedMailAddress, externalUserPwKey, verifier)
+				return this.createExternalUser(cleanedMailAddress, externalUserKdfType, externalUserPwKey, verifier)
 			}
 			throw e
 		}
@@ -832,7 +854,7 @@ export class MailFacade {
 		}
 	}
 
-	private async createExternalUser(cleanedMailAddress: string, externalUserPwKey: AesKey, verifier: Uint8Array) {
+	private async createExternalUser(cleanedMailAddress: string, externalUserKdfType: KdfType, externalUserPwKey: AesKey, verifier: Uint8Array) {
 		const internalUserGroupKey = this.userFacade.getCurrentUserGroupKey()
 		const internalMailGroupKey = await this.keyLoaderFacade.getCurrentSymGroupKey(this.userFacade.getGroupId(GroupType.Mail))
 
@@ -865,7 +887,7 @@ export class MailFacade {
 		const externalUserData = createExternalUserData({
 			verifier,
 			userGroupData,
-			kdfVersion: KdfType.Bcrypt,
+			kdfVersion: externalUserKdfType,
 
 			externalUserEncEntropy,
 			externalUserEncUserGroupInfoSessionKey: externalUserEncUserGroupInfoSessionKey.key,

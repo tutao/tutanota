@@ -1118,14 +1118,14 @@ styles.registerStyle("main", () => {
 			"border-radius": px(size.border_radius_big),
 		},
 		".editor-border": {
-			border: `1px solid ${theme.content_border}`,
+			border: `2px solid ${theme.content_border}`,
 			"padding-top": px(size.vpad_small),
 			"padding-bottom": px(size.vpad_small),
 			"padding-left": px(size.hpad),
 			"padding-right": px(size.hpad),
 		},
 		".editor-border-active": {
-			border: `2px solid ${theme.content_accent}`,
+			border: `3px solid ${theme.content_accent}`,
 			"padding-top": px(size.vpad_small - 1),
 			"padding-bottom": px(size.vpad_small - 1),
 			"padding-left": px(size.hpad - 1),

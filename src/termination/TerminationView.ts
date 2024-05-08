@@ -7,10 +7,12 @@ import { TerminationViewModel } from "./TerminationViewModel.js"
 import { TerminationForm } from "./TerminationForm.js"
 import { formatDateTime, formatDateWithMonth } from "../misc/Formatter.js"
 import { showProgressDialog } from "../gui/dialogs/ProgressDialog.js"
-import { CustomerAccountTerminationRequest } from "../api/entities/sys/TypeRefs.js"
+import { createSurveyData, CustomerAccountTerminationRequest } from "../api/entities/sys/TypeRefs.js"
 import { BaseTopLevelView } from "../gui/BaseTopLevelView.js"
 import { TopLevelAttrs, TopLevelView } from "../TopLevelView.js"
 import { LoginScreenHeader } from "../gui/LoginScreenHeader.js"
+import { LeavingUserSurveyData, showLeavingUserSurveyWizard } from "../subscription/LeavingUserSurveyWizard.js"
+import { SURVEY_VERSION_NUMBER } from "../subscription/LeavingUserSurveyConstants.js"
 
 assertMainOrNode()
 
@@ -83,14 +85,24 @@ export class TerminationView extends BaseTopLevelView implements TopLevelView<Te
 		])
 	}
 
-	private async cancelWithProgressDialog(reason: { text: string; reasonCategory: string | null }) {
-		await showProgressDialog("pleaseWait_msg", this.model.createAccountTerminationRequest(reason))
+	private async cancelWithProgressDialog(surveyResult: LeavingUserSurveyData | null) {
+		if (surveyResult && surveyResult.submitted && surveyResult.category && surveyResult.reason) {
+			const data = createSurveyData({
+				category: surveyResult.category,
+				reason: surveyResult.reason,
+				details: surveyResult.details,
+				version: SURVEY_VERSION_NUMBER,
+			})
+			await showProgressDialog("pleaseWait_msg", this.model.createAccountTerminationRequest(data))
+		} else {
+			await showProgressDialog("pleaseWait_msg", this.model.createAccountTerminationRequest())
+		}
 		m.redraw()
 	}
 
 	private renderTerminationForm(): Children {
 		return m(TerminationForm, {
-			onSubmit: (reason: { text: string; reasonCategory: string | null }) => this.cancelWithProgressDialog(reason),
+			onSubmit: (surveyData) => this.cancelWithProgressDialog(surveyData),
 			mailAddress: this.model.mailAddress,
 			onMailAddressChanged: (mailAddress) => (this.model.mailAddress = mailAddress),
 			password: this.model.password,

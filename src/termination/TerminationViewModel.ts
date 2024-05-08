@@ -11,6 +11,7 @@ import {
 	createCustomerAccountTerminationPostIn,
 	CustomerAccountTerminationRequest,
 	CustomerAccountTerminationRequestTypeRef,
+	SurveyData,
 } from "../api/entities/sys/TypeRefs.js"
 import { EntityClient } from "../api/common/EntityClient.js"
 import { PreconditionFailedError } from "../api/common/error/RestError.js"
@@ -40,22 +41,21 @@ export class TerminationViewModel {
 		this.loginState = LoginState.NotAuthenticated
 	}
 
-	async createAccountTerminationRequest(reason: { text: string; reasonCategory: string | null }): Promise<void> {
+	async createAccountTerminationRequest(surveyData: SurveyData | null = null): Promise<void> {
 		await this.authenticate()
 		if (this.loginState == LoginState.LoggedIn) {
-			await this.createTerminationRequest(reason)
+			await this.createTerminationRequest(surveyData)
 		}
 	}
 
 	/**
 	 * Creates the termination request based on the date option selected by the user and assument that the authentication was successfull.
 	 */
-	private async createTerminationRequest(reason: { text: string; reasonCategory: string | null }) {
+	private async createTerminationRequest(surveyData: SurveyData | null) {
 		try {
 			const inputData = createCustomerAccountTerminationPostIn({
 				terminationDate: this.getTerminationDate(),
-				reason: reason.text,
-				reasonCategory: reason.reasonCategory,
+				surveyData: surveyData,
 			})
 			let serviceResponse = await this.serviceExecutor.post(CustomerAccountTerminationService, inputData)
 			this.acceptedTerminationRequest = await this.entityClient.load(CustomerAccountTerminationRequestTypeRef, serviceResponse.terminationRequest)

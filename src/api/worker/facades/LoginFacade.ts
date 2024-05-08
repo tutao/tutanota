@@ -24,7 +24,7 @@ import {
 	SessionService,
 	TakeOverDeletedAddressService,
 } from "../../entities/sys/Services"
-import { AccountType, asKdfType, CloseEventBusOption, Const, DEFAULT_KDF_TYPE, KdfType } from "../../common/TutanotaConstants"
+import { AccountType, asKdfType, CloseEventBusOption, DEFAULT_KDF_TYPE, KdfType } from "../../common/TutanotaConstants"
 import {
 	Challenge,
 	createChangeKdfPostIn,
@@ -42,6 +42,7 @@ import {
 	RecoverCodeTypeRef,
 	SecondFactorAuthData,
 	SessionTypeRef,
+	SurveyData,
 	User,
 	UserTypeRef,
 } from "../../entities/sys/TypeRefs.js"
@@ -294,11 +295,6 @@ export class LoginFacade {
 	 * @param user the user we are updating
 	 */
 	public async migrateKdfType(targetKdfType: KdfType, passphrase: string, user: User): Promise<void> {
-		if (!Const.EXECUTE_KDF_MIGRATION) {
-			// Migration is not yet enabled on this version.
-			return
-		}
-
 		const currentPassphraseKeyData = {
 			passphrase,
 			kdfType: asKdfType(user.kdfVersion),
@@ -917,7 +913,7 @@ export class LoginFacade {
 		}
 	}
 
-	async deleteAccount(password: string, reasonCategory: NumberString | null, reasonText: string, takeover: string): Promise<void> {
+	async deleteAccount(password: string, takeover: string, surveyData: SurveyData | null = null): Promise<void> {
 		const userSalt = assertNotNull(this.userFacade.getLoggedInUser().salt)
 
 		const passphraseKeyData = {
@@ -928,11 +924,11 @@ export class LoginFacade {
 		const passwordKey = await this.deriveUserPassphraseKey(passphraseKeyData)
 		const deleteCustomerData = createDeleteCustomerData({
 			authVerifier: createAuthVerifier(passwordKey),
-			reason: reasonText,
-			reasonCategory: reasonCategory,
+			reason: null,
 			takeoverMailAddress: null,
 			undelete: false,
 			customer: neverNull(neverNull(this.userFacade.getLoggedInUser()).customer),
+			surveyData: surveyData,
 		})
 
 		if (takeover !== "") {

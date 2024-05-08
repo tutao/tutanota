@@ -23,7 +23,7 @@ import { UserFacade } from "../../../../../src/api/worker/facades/UserFacade"
 import { ChangeKdfService, SaltService, SessionService } from "../../../../../src/api/entities/sys/Services"
 import { Credentials } from "../../../../../src/misc/credentials/Credentials"
 import { defer, DeferredObject, uint8ArrayToBase64 } from "@tutao/tutanota-utils"
-import { AccountType, Const, DEFAULT_KDF_TYPE, KdfType } from "../../../../../src/api/common/TutanotaConstants"
+import { AccountType, DEFAULT_KDF_TYPE, KdfType } from "../../../../../src/api/common/TutanotaConstants"
 import { AccessExpiredError, ConnectionError, NotAuthenticatedError } from "../../../../../src/api/common/error/RestError"
 import { SessionType } from "../../../../../src/api/common/SessionType"
 import { HttpMethod } from "../../../../../src/api/common/EntityFunctions"
@@ -748,8 +748,6 @@ o.spec("LoginFacadeTest", function () {
 
 	o.spec("Migrating the KDF", function () {
 		o("When the migration is enabled, a new key is derived from the same password with Argon2", async function () {
-			Const.EXECUTE_KDF_MIGRATION = true
-
 			const user = await makeUser("userId", KdfType.Bcrypt)
 			user.salt = SALT
 
@@ -772,15 +770,6 @@ o.spec("LoginFacadeTest", function () {
 					}),
 				),
 			)
-		})
-
-		o("When the migration is disabled, the service is not called.", async function () {
-			Const.EXECUTE_KDF_MIGRATION = false
-
-			const user = await makeUser("userId", KdfType.Bcrypt)
-			await facade.migrateKdfType(KdfType.Argon2id, "hunter2", user)
-
-			verify(serviceExecutor.post(ChangeKdfService, anything()), { times: 0 })
 		})
 	})
 })

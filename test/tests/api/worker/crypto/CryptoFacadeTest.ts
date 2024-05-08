@@ -906,7 +906,7 @@ o.spec("CryptoFacadeTest", function () {
 		)
 
 		const actualAutStatus = utf8Uint8ArrayToString(aesDecrypt(testData.sk, neverNull(mailInstanceSessionKey).encryptionAuthStatus!))
-		o(actualAutStatus).deepEquals(EncryptionAuthStatus.PQ_AUTHENTICATION_SUCCEEDED)
+		o(actualAutStatus).deepEquals(EncryptionAuthStatus.TUTACRYPT_AUTHENTICATION_SUCCEEDED)
 	})
 
 	o("authenticateSender | sender is authenticated for correct SenderIdentityKey from system@tutanota.de", async function () {
@@ -940,7 +940,7 @@ o.spec("CryptoFacadeTest", function () {
 		o(pubKeyAddress.mailAddress).equals("system@tutanota.de")
 
 		const actualAutStatus = utf8Uint8ArrayToString(aesDecrypt(testData.sk, neverNull(mailInstanceSessionKey).encryptionAuthStatus!))
-		o(actualAutStatus).deepEquals(EncryptionAuthStatus.PQ_AUTHENTICATION_SUCCEEDED)
+		o(actualAutStatus).deepEquals(EncryptionAuthStatus.TUTACRYPT_AUTHENTICATION_SUCCEEDED)
 	})
 
 	o("authenticateSender | sender is not authenticated for incorrect SenderIdentityKey", async function () {
@@ -972,7 +972,7 @@ o.spec("CryptoFacadeTest", function () {
 		)
 
 		const actualAutStatus = utf8Uint8ArrayToString(aesDecrypt(testData.sk, neverNull(mailInstanceSessionKey).encryptionAuthStatus!))
-		o(actualAutStatus).deepEquals(EncryptionAuthStatus.PQ_AUTHENTICATION_FAILED)
+		o(actualAutStatus).deepEquals(EncryptionAuthStatus.TUTACRYPT_AUTHENTICATION_FAILED)
 	})
 
 	o("authenticateSender | no authentication needed for sender with RSAKeypair", async function () {

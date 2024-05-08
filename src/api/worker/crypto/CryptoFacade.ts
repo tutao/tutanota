@@ -559,8 +559,8 @@ export class CryptoFacade {
 			| EncryptionAuthStatus
 			| null
 			| EncryptionAuthStatus.RSA_NO_AUTHENTICATION
-			| EncryptionAuthStatus.PQ_AUTHENTICATION_SUCCEEDED
-			| EncryptionAuthStatus.PQ_AUTHENTICATION_FAILED
+			| EncryptionAuthStatus.TUTACRYPT_AUTHENTICATION_SUCCEEDED
+			| EncryptionAuthStatus.TUTACRYPT_AUTHENTICATION_FAILED
 			| EncryptionAuthStatus.AES_NO_AUTHENTICATION,
 		pqMessageSenderKey: Uint8Array | null,
 		pqMessageSenderKeyVersion: number | null,
@@ -909,11 +909,11 @@ export class CryptoFacade {
 		try {
 			const publicKeyGetOut = await this.serviceExecutor.get(PublicKeyService, keyData)
 			return publicKeyGetOut.pubEccKey != null && arrayEquals(publicKeyGetOut.pubEccKey, senderIdentityPubKey)
-				? EncryptionAuthStatus.PQ_AUTHENTICATION_SUCCEEDED
-				: EncryptionAuthStatus.PQ_AUTHENTICATION_FAILED
+				? EncryptionAuthStatus.TUTACRYPT_AUTHENTICATION_SUCCEEDED
+				: EncryptionAuthStatus.TUTACRYPT_AUTHENTICATION_FAILED
 		} catch (e) {
 			console.error("Could not authenticate sender", e)
-			return EncryptionAuthStatus.PQ_AUTHENTICATION_FAILED
+			return EncryptionAuthStatus.TUTACRYPT_AUTHENTICATION_FAILED
 		}
 	}
 

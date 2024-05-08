@@ -69,10 +69,10 @@ o.spec("MailUtilsTest", function () {
 	})
 
 	o("getConfidentialIcon", function () {
-		const mail: Mail = createTestEntity(MailTypeRef, { confidential: true, encryptionAuthStatus: EncryptionAuthStatus.PQ_AUTHENTICATION_SUCCEEDED })
+		const mail: Mail = createTestEntity(MailTypeRef, { confidential: true, encryptionAuthStatus: EncryptionAuthStatus.TUTACRYPT_AUTHENTICATION_SUCCEEDED })
 		o(getConfidentialIcon(mail)).equals(Icons.PQLock)
 
-		mail.encryptionAuthStatus = EncryptionAuthStatus.PQ_AUTHENTICATION_FAILED
+		mail.encryptionAuthStatus = EncryptionAuthStatus.TUTACRYPT_AUTHENTICATION_FAILED
 		o(getConfidentialIcon(mail)).equals(Icons.PQLock)
 
 		mail.encryptionAuthStatus = EncryptionAuthStatus.AES_NO_AUTHENTICATION
@@ -83,6 +83,9 @@ o.spec("MailUtilsTest", function () {
 
 		mail.encryptionAuthStatus = EncryptionAuthStatus.RSA_NO_AUTHENTICATION
 		o(getConfidentialIcon(mail)).equals(Icons.Lock)
+
+		mail.encryptionAuthStatus = EncryptionAuthStatus.TUTACRYPT_SENDER
+		o(getConfidentialIcon(mail)).equals(Icons.PQLock)
 
 		mail.confidential = false
 		o(() => getConfidentialIcon(mail)).throws(ProgrammingError)
@@ -113,7 +116,7 @@ o.spec("MailUtilsTest", function () {
 		})
 
 		o("system email failing PQ auth is not", function () {
-			const mail = createSystemMail({ encryptionAuthStatus: EncryptionAuthStatus.PQ_AUTHENTICATION_FAILED })
+			const mail = createSystemMail({ encryptionAuthStatus: EncryptionAuthStatus.TUTACRYPT_AUTHENTICATION_FAILED })
 			o(isTutanotaTeamMail(mail)).equals(false)
 		})
 
@@ -142,7 +145,7 @@ o.spec("MailUtilsTest", function () {
 				confidential: true,
 				state: MailState.RECEIVED,
 				sender: tutaoSender(),
-				encryptionAuthStatus: EncryptionAuthStatus.PQ_AUTHENTICATION_SUCCEEDED,
+				encryptionAuthStatus: EncryptionAuthStatus.TUTACRYPT_AUTHENTICATION_SUCCEEDED,
 			})
 			o(isTutanotaTeamMail(mail)).equals(true)
 		})
@@ -152,7 +155,7 @@ o.spec("MailUtilsTest", function () {
 				confidential: true,
 				state: MailState.RECEIVED,
 				sender: tutaoSender(),
-				encryptionAuthStatus: EncryptionAuthStatus.PQ_AUTHENTICATION_FAILED,
+				encryptionAuthStatus: EncryptionAuthStatus.TUTACRYPT_AUTHENTICATION_FAILED,
 			})
 			o(isTutanotaTeamMail(mail)).equals(false)
 		})
@@ -235,12 +238,12 @@ o.spec("MailUtilsTest", function () {
 		})
 
 		o("system email with PQ auth is", function () {
-			const mail = createSystemMail({ encryptionAuthStatus: EncryptionAuthStatus.PQ_AUTHENTICATION_SUCCEEDED })
+			const mail = createSystemMail({ encryptionAuthStatus: EncryptionAuthStatus.TUTACRYPT_AUTHENTICATION_SUCCEEDED })
 			o(isSystemNotification(mail)).equals(true)
 		})
 
 		o("system email with failing PQ auth is not", function () {
-			const mail = createSystemMail({ encryptionAuthStatus: EncryptionAuthStatus.PQ_AUTHENTICATION_FAILED })
+			const mail = createSystemMail({ encryptionAuthStatus: EncryptionAuthStatus.TUTACRYPT_AUTHENTICATION_FAILED })
 			o(isSystemNotification(mail)).equals(false)
 		})
 
@@ -269,7 +272,7 @@ o.spec("MailUtilsTest", function () {
 				confidential: true,
 				state: MailState.RECEIVED,
 				sender: tutaoSender(),
-				authStatus: EncryptionAuthStatus.PQ_AUTHENTICATION_SUCCEEDED,
+				authStatus: EncryptionAuthStatus.TUTACRYPT_AUTHENTICATION_SUCCEEDED,
 			})
 			o(isSystemNotification(mail)).equals(false)
 		})

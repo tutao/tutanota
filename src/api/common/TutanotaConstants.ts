@@ -303,7 +303,6 @@ type ConstType = {
 	WEBAUTHN_RP_ID: string
 	U2f_APPID_SUFFIX: string
 	U2F_LEGACY_APPID: string
-	EXECUTE_KDF_MIGRATION: boolean
 }
 
 export const Const: ConstType = {
@@ -324,8 +323,6 @@ export const Const: ConstType = {
 	// we'll still get the contents
 	// because it will be redirected to tuta.com after new domain deploy.
 	U2F_LEGACY_APPID: "https://tutanota.com/u2f-appid.json",
-	// Controls actual execution of the KDF migration
-	EXECUTE_KDF_MIGRATION: false,
 } as const
 
 export const TUTANOTA_MAIL_ADDRESS_DOMAINS: ReadonlyArray<string> = Object.freeze([
@@ -978,11 +975,13 @@ export enum EncryptionAuthStatus {
 	/** the entity was encrypted with RSA, it had no authentication*/
 	RSA_NO_AUTHENTICATION = "0",
 	/** the entity was encrypted with tuta-crypt and authentication succeeded */
-	PQ_AUTHENTICATION_SUCCEEDED = "1",
+	TUTACRYPT_AUTHENTICATION_SUCCEEDED = "1",
 	/** the entity was encrypted with tuta-crypt and authentication failed */
-	PQ_AUTHENTICATION_FAILED = "2",
+	TUTACRYPT_AUTHENTICATION_FAILED = "2",
 	/** the entity was encrypted symmetrically, with AES, it had no authentication, e.g. secure external mailboxes */
 	AES_NO_AUTHENTICATION = "3",
+	/** the entity was sent by us encrypted with TutaCrypt, so it is authenticated */
+	TUTACRYPT_SENDER = "4",
 }
 
 export const enum MailReportType {

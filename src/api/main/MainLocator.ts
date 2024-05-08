@@ -83,7 +83,7 @@ import { OfflineIndicatorViewModel } from "../../gui/base/OfflineIndicatorViewMo
 import { AppHeaderAttrs, Header } from "../../gui/Header.js"
 import { CalendarViewModel } from "../../calendar/view/CalendarViewModel.js"
 import { ReceivedGroupInvitationsModel } from "../../sharing/model/ReceivedGroupInvitationsModel.js"
-import { Const, FeatureType, GroupType, KdfType } from "../common/TutanotaConstants.js"
+import { Const, FeatureType, GroupType } from "../common/TutanotaConstants.js"
 import type { ExternalLoginViewModel } from "../../login/ExternalLoginView.js"
 import type { ConversationViewModel, ConversationViewModelFactory } from "../../mail/view/ConversationViewModel.js"
 import type { AlarmScheduler } from "../../calendar/date/AlarmScheduler.js"
@@ -855,13 +855,6 @@ class MainLocator {
 		assert(isApp(), "isApp")
 		return new NativeContactsSyncManager(this.logins, this.mobileContactsFacade, this.entityClient, this.eventController, this.contactModel, deviceConfig)
 	})
-
-	// For testing argon2 migration after login. The production server will reject this request.
-	// This can be removed when we enable the migration.
-	async changeToBycrypt(passphrase: string): Promise<unknown> {
-		const currentUser = this.logins.getUserController().user
-		return this.loginFacade.migrateKdfType(KdfType.Bcrypt, passphrase, currentUser)
-	}
 
 	postLoginActions: () => Promise<PostLoginActions> = lazyMemoized(async () => {
 		const { PostLoginActions } = await import("../../login/PostLoginActions")
