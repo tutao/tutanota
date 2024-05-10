@@ -210,7 +210,7 @@ version = "4.4.7"
 source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "cf9804afaaf59a91e75b022a30fb7229a7901f60c755489cc61c9b423b836442"
 dependencies = [
- "heck",
+ "heck 0.4.1",
  "proc-macro2",
  "quote",
  "syn",
@@ -259,6 +259,12 @@ name = "heck"
 version = "0.4.1"
 source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "95505c38b4572b2d910cecb0281560f54b440a19336cbbcb27bf6ce6adc6f5a8"
+
+[[package]]
+name = "heck"
+version = "0.5.0"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "2304e00983f87ffb38b55b444b5e3b60a884b5d30c0fca7d82fe33449bbe55ea"
 
 [[package]]
 name = "itoa"
@@ -324,12 +330,6 @@ name = "once_cell"
 version = "1.19.0"
 source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "3fdb12b2476b595f9358c5161aa467c2438859caa136dec86c26fdd2efe17b92"
-
-[[package]]
-name = "oneshot-uniffi"
-version = "0.1.6"
-source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "6c548d5c78976f6955d72d0ced18c48ca07030f7a1d4024529fedd7c1c01b29c"
 
 [[package]]
 name = "paste"
@@ -418,9 +418,9 @@ dependencies = [
 
 [[package]]
 name = "serde_json"
-version = "1.0.111"
+version = "1.0.117"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "176e46fa42316f18edd598015a5166857fc835ec732f5215eac6b7bdbf0a84f4"
+checksum = "455182ea6142b14f93f4bc5320a2b31c1f266b66a4a5c858b013302a5d8cbfc3"
 dependencies = [
  "itoa",
  "ryu",
@@ -469,8 +469,6 @@ source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "23d434d3f8967a09480fb04132ebe0a3e088c173e6d0ee7897abbdf4eab0f8b9"
 dependencies = [
  "smawk",
- "unicode-linebreak",
- "unicode-width",
 ]
 
 [[package]]
@@ -507,6 +505,7 @@ name = "tuta-sdk"
 version = "0.1.0"
 dependencies = [
  "async-trait",
+ "serde_json",
  "uniffi",
  "wasm-bindgen",
  "wasm-bindgen-futures",
@@ -528,21 +527,9 @@ source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "3354b9ac3fae1ff6755cb6db53683adb661634f67557942dea4facebec0fee4b"
 
 [[package]]
-name = "unicode-linebreak"
-version = "0.1.5"
-source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "3b09c83c3c29d37506a3e260c08c03743a6bb66a9cd432c6934ab501a190571f"
-
-[[package]]
-name = "unicode-width"
-version = "0.1.11"
-source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "e51733f11c9c4f72aa0c160008246859e340b00807569a0da0e7a1079b27ba85"
-
-[[package]]
 name = "uniffi"
-version = "0.26.0"
-source = "git+https://github.com/mozilla/uniffi-rs.git?rev=49beceaba52f05921fbd42043a23ff055551ef1d#49beceaba52f05921fbd42043a23ff055551ef1d"
+version = "0.27.1"
+source = "git+https://github.com/mozilla/uniffi-rs.git?rev=13a1c559cb3708eeca40dcf95dc8b3ccccf3b88c#13a1c559cb3708eeca40dcf95dc8b3ccccf3b88c"
 dependencies = [
  "anyhow",
  "camino",
@@ -555,18 +542,17 @@ dependencies = [
 
 [[package]]
 name = "uniffi_bindgen"
-version = "0.26.0"
-source = "git+https://github.com/mozilla/uniffi-rs.git?rev=49beceaba52f05921fbd42043a23ff055551ef1d#49beceaba52f05921fbd42043a23ff055551ef1d"
+version = "0.27.1"
+source = "git+https://github.com/mozilla/uniffi-rs.git?rev=13a1c559cb3708eeca40dcf95dc8b3ccccf3b88c#13a1c559cb3708eeca40dcf95dc8b3ccccf3b88c"
 dependencies = [
  "anyhow",
  "askama",
  "camino",
  "cargo_metadata",
- "clap",
  "fs-err",
  "glob",
  "goblin",
- "heck",
+ "heck 0.5.0",
  "once_cell",
  "paste",
  "serde",
@@ -579,8 +565,8 @@ dependencies = [
 
 [[package]]
 name = "uniffi_build"
-version = "0.26.0"
-source = "git+https://github.com/mozilla/uniffi-rs.git?rev=49beceaba52f05921fbd42043a23ff055551ef1d#49beceaba52f05921fbd42043a23ff055551ef1d"
+version = "0.27.1"
+source = "git+https://github.com/mozilla/uniffi-rs.git?rev=13a1c559cb3708eeca40dcf95dc8b3ccccf3b88c#13a1c559cb3708eeca40dcf95dc8b3ccccf3b88c"
 dependencies = [
  "anyhow",
  "camino",
@@ -589,8 +575,8 @@ dependencies = [
 
 [[package]]
 name = "uniffi_checksum_derive"
-version = "0.26.0"
-source = "git+https://github.com/mozilla/uniffi-rs.git?rev=49beceaba52f05921fbd42043a23ff055551ef1d#49beceaba52f05921fbd42043a23ff055551ef1d"
+version = "0.27.1"
+source = "git+https://github.com/mozilla/uniffi-rs.git?rev=13a1c559cb3708eeca40dcf95dc8b3ccccf3b88c#13a1c559cb3708eeca40dcf95dc8b3ccccf3b88c"
 dependencies = [
  "quote",
  "syn",
@@ -598,23 +584,22 @@ dependencies = [
 
 [[package]]
 name = "uniffi_core"
-version = "0.26.0"
-source = "git+https://github.com/mozilla/uniffi-rs.git?rev=49beceaba52f05921fbd42043a23ff055551ef1d#49beceaba52f05921fbd42043a23ff055551ef1d"
+version = "0.27.1"
+source = "git+https://github.com/mozilla/uniffi-rs.git?rev=13a1c559cb3708eeca40dcf95dc8b3ccccf3b88c#13a1c559cb3708eeca40dcf95dc8b3ccccf3b88c"
 dependencies = [
  "anyhow",
  "bytes",
  "camino",
  "log",
  "once_cell",
- "oneshot-uniffi",
  "paste",
  "static_assertions",
 ]
 
 [[package]]
 name = "uniffi_macros"
-version = "0.26.0"
-source = "git+https://github.com/mozilla/uniffi-rs.git?rev=49beceaba52f05921fbd42043a23ff055551ef1d#49beceaba52f05921fbd42043a23ff055551ef1d"
+version = "0.27.1"
+source = "git+https://github.com/mozilla/uniffi-rs.git?rev=13a1c559cb3708eeca40dcf95dc8b3ccccf3b88c#13a1c559cb3708eeca40dcf95dc8b3ccccf3b88c"
 dependencies = [
  "bincode",
  "camino",
@@ -625,14 +610,13 @@ dependencies = [
  "serde",
  "syn",
  "toml",
- "uniffi_build",
  "uniffi_meta",
 ]
 
 [[package]]
 name = "uniffi_meta"
-version = "0.26.0"
-source = "git+https://github.com/mozilla/uniffi-rs.git?rev=49beceaba52f05921fbd42043a23ff055551ef1d#49beceaba52f05921fbd42043a23ff055551ef1d"
+version = "0.27.1"
+source = "git+https://github.com/mozilla/uniffi-rs.git?rev=13a1c559cb3708eeca40dcf95dc8b3ccccf3b88c#13a1c559cb3708eeca40dcf95dc8b3ccccf3b88c"
 dependencies = [
  "anyhow",
  "bytes",
@@ -642,8 +626,8 @@ dependencies = [
 
 [[package]]
 name = "uniffi_testing"
-version = "0.26.0"
-source = "git+https://github.com/mozilla/uniffi-rs.git?rev=49beceaba52f05921fbd42043a23ff055551ef1d#49beceaba52f05921fbd42043a23ff055551ef1d"
+version = "0.27.1"
+source = "git+https://github.com/mozilla/uniffi-rs.git?rev=13a1c559cb3708eeca40dcf95dc8b3ccccf3b88c#13a1c559cb3708eeca40dcf95dc8b3ccccf3b88c"
 dependencies = [
  "anyhow",
  "camino",
@@ -654,8 +638,8 @@ dependencies = [
 
 [[package]]
 name = "uniffi_udl"
-version = "0.26.0"
-source = "git+https://github.com/mozilla/uniffi-rs.git?rev=49beceaba52f05921fbd42043a23ff055551ef1d#49beceaba52f05921fbd42043a23ff055551ef1d"
+version = "0.27.1"
+source = "git+https://github.com/mozilla/uniffi-rs.git?rev=13a1c559cb3708eeca40dcf95dc8b3ccccf3b88c#13a1c559cb3708eeca40dcf95dc8b3ccccf3b88c"
 dependencies = [
  "anyhow",
  "textwrap",
@@ -755,7 +739,7 @@ dependencies = [
 [[package]]
 name = "weedle2"
 version = "5.0.0"
-source = "git+https://github.com/mozilla/uniffi-rs.git?rev=49beceaba52f05921fbd42043a23ff055551ef1d#49beceaba52f05921fbd42043a23ff055551ef1d"
+source = "git+https://github.com/mozilla/uniffi-rs.git?rev=13a1c559cb3708eeca40dcf95dc8b3ccccf3b88c#13a1c559cb3708eeca40dcf95dc8b3ccccf3b88c"
 dependencies = [
  "nom",
 ]

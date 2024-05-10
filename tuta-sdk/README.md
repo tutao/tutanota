@@ -13,6 +13,7 @@ cargo run --bin uniffi-bindgen generate --library target/aarch64-linux-android/r
 # And then consume one way or another.
 # Would be great to expose maven library for Android.
 # Ad-hoc:
-# move target/aarch64-linux/android/release/libtutasdk.so.so into app-android/app/src/main/jniLib/arm64-v8a
+cp target/aarch64-linux-android/release/libtutasdk.so ../app-android/app/src/main/jniLibs/arm64-v8a
+cp out/de/tutao/tutasdk/tutasdk.kt ../app-android/app/src/main/java/de/tutao/tutasdk/tutasdk.kt
 # move generated kotlin code into app/src/main/java
 ```

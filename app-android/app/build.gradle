@@ -6,7 +6,7 @@ plugins {
 }
 
 android {
-	compileSdkVersion 33
+	compileSdkVersion 34
 	defaultConfig {
 		applicationId "de.tutao.tutanota"
 		minSdkVersion 23

@@ -4,7 +4,12 @@ import android.Manifest
 import android.annotation.SuppressLint
 import android.app.job.JobInfo
 import android.app.job.JobScheduler
-import android.content.*
+import android.content.ActivityNotFoundException
+import android.content.ClipData
+import android.content.ClipboardManager
+import android.content.ComponentName
+import android.content.Intent
+import android.content.SharedPreferences
 import android.content.pm.PackageManager
 import android.content.res.Configuration
 import android.graphics.Color
@@ -18,8 +23,15 @@ import android.util.Log
 import android.view.ContextMenu
 import android.view.ContextMenu.ContextMenuInfo
 import android.view.View
-import android.webkit.*
+import android.webkit.CookieManager
+import android.webkit.MimeTypeMap
+import android.webkit.WebResourceError
+import android.webkit.WebResourceRequest
+import android.webkit.WebResourceResponse
+import android.webkit.WebSettings
+import android.webkit.WebView
 import android.webkit.WebView.HitTestResult
+import android.webkit.WebViewClient
 import android.widget.Toast
 import androidx.annotation.MainThread
 import androidx.annotation.RequiresPermission
@@ -34,11 +46,24 @@ import de.tutao.tutanota.alarms.AlarmNotificationsManager
 import de.tutao.tutanota.alarms.SystemAlarmFacade
 import de.tutao.tutanota.credentials.CredentialsEncryptionFactory
 import de.tutao.tutanota.data.AppDatabase
-import de.tutao.tutanota.ipc.*
+import de.tutao.tutanota.ipc.AndroidGlobalDispatcher
+import de.tutao.tutanota.ipc.CommonNativeFacade
+import de.tutao.tutanota.ipc.CommonNativeFacadeSendDispatcher
+import de.tutao.tutanota.ipc.MobileFacade
+import de.tutao.tutanota.ipc.MobileFacadeSendDispatcher
+import de.tutao.tutanota.ipc.SqlCipherFacade
 import de.tutao.tutanota.offline.AndroidSqlCipherFacade
-import de.tutao.tutanota.push.*
+import de.tutao.tutanota.push.AndroidNativePushFacade
+import de.tutao.tutanota.push.LocalNotificationsFacade
+import de.tutao.tutanota.push.PushNotificationService
+import de.tutao.tutanota.push.SseStorage
+import de.tutao.tutanota.push.notificationDismissedIntent
 import de.tutao.tutanota.webauthn.AndroidWebauthnFacade
 import de.tutao.tutasdk.EntityClient
+import de.tutao.tutasdk.HttpMethod
+import de.tutao.tutasdk.RestClient
+import de.tutao.tutasdk.RestClientOptions
+import de.tutao.tutasdk.Sdk
 import de.tutao.tutasdk.TypeRef
 import de.tutao.tutasdk.use
 import kotlinx.coroutines.Dispatchers
@@ -48,6 +73,8 @@ import kotlinx.coroutines.withContext
 import kotlinx.serialization.json.Json
 import kotlinx.serialization.json.jsonObject
 import kotlinx.serialization.json.jsonPrimitive
+import okhttp3.OkHttpClient
+import okhttp3.Request
 import org.json.JSONException
 import org.json.JSONObject
 import java.io.File
@@ -55,7 +82,6 @@ import java.io.IOException
 import java.io.UnsupportedEncodingException
 import java.net.URLEncoder
 import java.security.SecureRandom
-import java.util.*
 import java.util.concurrent.ConcurrentHashMap
 import java.util.concurrent.TimeUnit
 import kotlin.coroutines.Continuation
@@ -294,9 +320,52 @@ class MainActivity : FragmentActivity() {
 		}
 		firstLoaded = true
 
-		EntityClient().use { entityClient ->
-			val typeRef = TypeRef("tutanota", "CalendarEvent")
-			val result = entityClient.loadElement(typeRef, "id1")
+
+		val restClient: RestClient = object : RestClient {
+			val okHttpClient = OkHttpClient()
+				.newBuilder()
+				.connectTimeout(30, TimeUnit.SECONDS)
+				.writeTimeout(20, TimeUnit.SECONDS)
+				.readTimeout(20, TimeUnit.SECONDS)
+				.addInterceptor { chain ->
+					val request = chain.request()
+					Log.d("RestClient", "REQUEST ${request.method} ${request.url}")
+					val response = chain.proceed(request)
+					Log.d("RestClient", "RESPONSE ${request.method} ${request.url} ${response.code}")
+					response
+				}
+				.build()
+
+			override suspend fun requestBinary(
+				url: String,
+				method: HttpMethod,
+				options: RestClientOptions
+			): ByteArray? {
+				val request = Request.Builder()
+					.url(url)
+					// FIXME add body
+					.method(method.name, null)
+					.apply {
+						for ((headerName, headerValue) in options.headers) {
+							addHeader(headerName, headerValue)
+						}
+					}
+					.build()
+
+				val response = okHttpClient.newCall(request).execute()
+				return response.body?.bytes()
+			}
+
+		}
+		lifecycleScope.launch {
+			val sdk = Sdk(
+				"http://DOMAIN:9000",
+				restClient,
+			)
+			sdk.login("ACCESS_TOKEN")
+			val entityClient = sdk.entityClient()
+			val typeRef = TypeRef("tutanota", "Mail")
+			val result = entityClient.loadListElement(typeRef, "NxWsZR4--F-0", "NxWvwAe----0")
 			Log.d(TAG, "LOADED RESULT FROM TUTASDK $result")
 		}
 	}
@@ -417,6 +486,7 @@ class MainActivity : FragmentActivity() {
 				Intent.ACTION_SEND, Intent.ACTION_SEND_MULTIPLE, Intent.ACTION_SENDTO, Intent.ACTION_VIEW -> share(
 					intent
 				)
+
 				OPEN_USER_MAILBOX_ACTION -> openMailbox(intent)
 				OPEN_CALENDAR_ACTION -> openCalendar(intent)
 			}
