@@ -5,7 +5,7 @@ import { memoized } from "@tutao/tutanota-utils"
 import { assertMainOrNode } from "../../api/common/Env"
 import { BootIcons, BootIconsSvg } from "./icons/BootIcons"
 import { Icons } from "./icons/Icons"
-import { px } from "../size.js"
+import { px, size } from "../size.js"
 
 assertMainOrNode()
 
@@ -61,8 +61,9 @@ export class Icon implements Component<IconAttrs> {
 			icon ? m.trust(icon) : null,
 			vnode.attrs.hoverText &&
 				m(
-					"span.tooltiptext.no-wrap",
+					"span.tooltiptext.max-width-m.break-word",
 					{
+						style: { marginRight: "-100vmax" },
 						oncreate: (vnode) => {
 							this.tooltip = vnode.dom as HTMLElement
 						},
@@ -76,7 +77,7 @@ export class Icon implements Component<IconAttrs> {
 		tooltip.style.removeProperty("left")
 		const tooltipRect = tooltip.getBoundingClientRect()
 		// Get the width of the area in pixels that the tooltip penetrates the viewport
-		const distanceOver = tooltipRect.x + tooltipRect.width - window.innerWidth
+		const distanceOver = tooltipRect.x + tooltipRect.width + size.hpad_large - window.innerWidth
 		if (distanceOver > 0) {
 			const parentRect = root.getBoundingClientRect()
 			// Chromium based browsers return a different value for tooltipRect
