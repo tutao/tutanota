@@ -11,6 +11,7 @@ import { getWhitelabelCustomizations } from "../misc/WhitelabelCustomizations.js
 import { BootstrapFeatureType } from "../api/common/TutanotaConstants.js"
 import { ACTIVATED_MIGRATION, isLegacyDomain } from "./LoginViewModel.js"
 import { LoginButton } from "../gui/base/buttons/LoginButton.js"
+import { PasswordField } from "../gui/base/PasswordField.js"
 
 export type LoginFormAttrs = {
 	onSubmit: (username: string, password: string) => unknown
@@ -93,11 +94,10 @@ export class LoginForm implements Component<LoginFormAttrs> {
 				),
 				m(
 					"",
-					m(TextField, {
+					m(PasswordField, {
 						label: "password_label",
 						value: a.password(),
 						oninput: a.password,
-						type: TextFieldType.Password,
 						autocompleteAs: Autocomplete.currentPassword,
 						onDomInputCreated: (dom) => (this.passwordTextField = dom),
 					}),
