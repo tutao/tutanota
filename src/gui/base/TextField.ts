@@ -44,6 +44,7 @@ export type TextFieldAttrs = {
 export const enum TextFieldType {
 	Text = "text",
 	Email = "email",
+	/** @deprecated Prefer the `PasswordField` component over using this type with `TextField` */
 	Password = "password",
 	Area = "area",
 	Number = "number",
