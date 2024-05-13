@@ -1,9 +1,12 @@
 use std::collections::HashMap;
-use std::fmt::Debug;
+use std::fmt::{Debug};
 use std::ops::Deref;
 use std::sync::{Arc, RwLock};
-
+use thiserror::Error;
 use wasm_bindgen::prelude::wasm_bindgen;
+use crate::json_element::JsonElement;
+
+mod json_element;
 
 uniffi::setup_scaffolding!();
 
@@ -45,9 +48,10 @@ pub struct Sdk {
 
 #[uniffi::export]
 impl Sdk {
+    // TODO: will add type models
     #[uniffi::constructor]
     pub fn new(base_url: String, rest_client: Arc<dyn RestClient>) -> Sdk {
-    	// TODO validate parameters
+        // TODO validate parameters
         Sdk {
             state: Arc::new(SdkState {
                 login_state: RwLock::new(LoginState::NotLoggedIn),
@@ -81,11 +85,17 @@ impl AuthHeadersProvider for SdkState {
         let g = self.login_state.read().unwrap();
         match g.deref() {
             LoginState::NotLoggedIn => HashMap::new(),
-            LoginState::LoggedIn { access_token } => HashMap::from([("accessToken".to_owned(), access_token.as_str().to_owned())])
+            LoginState::LoggedIn { access_token } => {
+                HashMap::from([("accessToken".to_owned(), access_token.as_str().to_owned())])
+            }
         }
     }
 }
 
+// It is kind of not ideal that this structure is public as it needs some references and also
+// exposes some internal fields that we have. Might be better to have an EntityClient that is our
+// actual impl and that can make take advantage of some lifetime stuff and then expose a wrapper
+// around it.
 #[derive(uniffi::Object)]
 #[wasm_bindgen]
 pub struct EntityClient {
@@ -96,7 +106,7 @@ pub struct EntityClient {
 
 #[cfg(not(any(target_family = "wasm")))]
 impl EntityClient {
-    pub fn new<'a>(
+    fn new<'a>(
         rest_client: Arc<dyn RestClient>,
         base_url: &str,
         auth_headers_provider: Arc<dyn AuthHeadersProvider + Send + Sync>,
@@ -120,12 +130,27 @@ impl EntityClient {
     }
 }
 
+pub type RawEntity = HashMap<String, json_element::JsonElement>;
+
 #[derive(uniffi::Enum)]
-pub enum JsonElement {
-    Null,
-    String(String),
-    Number(i32),
-    Element(HashMap<String, JsonElement>),
+pub enum ListLoadDirection {
+    ASC,
+    DESC,
+}
+
+#[derive(uniffi::Record, Debug)]
+pub struct IdTuple {
+    pub list_id: String,
+    pub element_id: String,
+}
+
+#[derive(Error, Debug, uniffi::Error)]
+pub enum ApiCallError {
+    #[error("Rest client error")]
+    RestClient {
+        #[from]
+        source: RestClientError
+    },
 }
 
 #[uniffi::export]
@@ -133,32 +158,26 @@ impl EntityClient {
     pub async fn load_list_element(
         &self,
         type_ref: &TypeRef,
-        list_id: &str,
-        element_id: &str,
-    ) -> HashMap<String, JsonElement> {
+        id: &IdTuple,
+    ) -> Result<RawEntity, ApiCallError> {
         let options = RestClientOptions {
             body: None,
             headers: self.auth_headers_provider.auth_headers(),
         };
         let url = format!(
             "{}/rest/{}/{}/{}/{}",
-            self.base_url, type_ref.app, type_ref.type_, list_id, element_id
+            self.base_url, type_ref.app, type_ref.type_, id.list_id, id.element_id
         );
         let response = self
             .rest_client
             .request_binary(url, HttpMethod::GET, options)
-            .await;
-        let response_bytes = String::from_utf8(response.expect("no body")).unwrap();
-        let mut map = HashMap::new();
-        map.insert("response".to_owned(), JsonElement::String(response_bytes));
-        return map;
+            .await?;
+        let response_bytes = response.expect("no body");
+        let response_entity = serde_json::from_slice(response_bytes.as_slice()).unwrap();
+        Ok(response_entity)
     }
 
-    pub async fn load_element(
-        &self,
-        type_ref: &TypeRef,
-        id: String,
-    ) -> HashMap<String, JsonElement> {
+    pub async fn load_element(&self, type_ref: &TypeRef, id: &str) -> Result<RawEntity, ApiCallError> {
         let options = RestClientOptions {
             body: None,
             headers: self.auth_headers_provider.auth_headers(),
@@ -170,12 +189,76 @@ impl EntityClient {
         let response = self
             .rest_client
             .request_binary(url, HttpMethod::GET, options)
-            .await;
-        let response_bytes = String::from_utf8(response.expect("no body")).unwrap();
-        let mut map = HashMap::new();
-        map.insert("response".to_owned(), JsonElement::String(response_bytes));
-        return map;
+            .await?;
+        let response_bytes = response.expect("no body");
+        let response_entity = serde_json::from_slice(response_bytes.as_slice()).unwrap();
+        Ok(response_entity)
     }
+    //
+    // pub async fn load_all(
+    //     &self,
+    //     type_ref: &TypeRef,
+    //     list_id: String,
+    //     start: Option<String>,
+    // ) -> Vec<RawEntity> {
+    //     unimplemented!()
+    // }
+    //
+    // pub async fn load_range(
+    //     &self,
+    //     type_ref: &TypeRef,
+    //     list_id: &str,
+    //     start_id: &str,
+    //     count: &str,
+    //     list_load_direction: ListLoadDirection,
+    // ) -> Vec<RawEntity> {
+    //     unimplemented!()
+    // }
+    //
+    // pub async fn setup_element(&self, type_ref: &TypeRef, entity: RawEntity) -> Vec<String> {
+    //     unimplemented!()
+    // }
+    //
+    // pub async fn setup_list_element(
+    //     &self,
+    //     type_ref: &TypeRef,
+    //     list_id: &str,
+    //     entity: RawEntity,
+    // ) -> Vec<String> {
+    //     unimplemented!()
+    // }
+    //
+    pub async fn update(&self, type_ref: &TypeRef, entity: RawEntity) -> Result<(), ApiCallError> {
+        let body = serde_json::to_vec(&entity).unwrap();
+        let options = RestClientOptions {
+            body: Some(body),
+            headers: self.auth_headers_provider.auth_headers(),
+        };
+        // FIXME we should look at type model whether it is ET or LET
+        let id = match entity.get("_id").unwrap() {
+            JsonElement::String(id) => id.clone(),
+            JsonElement::Array(id_vec) => {
+                let list_id = id_vec.get(0).unwrap().assert_str();
+                format!("{}/{}", list_id, id_vec.get(1).unwrap().assert_str())
+            }
+            _ => panic!("id is not string or array")
+        };
+        let url = format!(
+            "{}/rest/{}/{}/{}",
+            self.base_url, type_ref.app, type_ref.type_, id
+        );
+        self
+            .rest_client
+            .request_binary(url, HttpMethod::PUT, options)
+            .await?;
+        Ok(())
+    }
+    //
+    // pub async fn erase_element(&self, type_ref: &TypeRef, id: &str) {
+    //     unimplemented!()
+    // }
+    //
+    // pub async fn erase_list_element(&self, type_ref: &TypeRef, id: IdTuple) {}
 }
 
 #[derive(uniffi::Enum)]
@@ -192,6 +275,14 @@ pub struct RestClientOptions {
     pub body: Option<Vec<u8>>,
 }
 
+#[derive(Error, Debug, uniffi::Error)]
+pub enum RestClientError {
+    #[error("Network error")]
+    NetworkError,
+    #[error("Server response error, status: {status}")]
+    ServerResponseError { status: u32 },
+}
+
 #[uniffi::export(with_foreign)]
 #[async_trait::async_trait]
 pub trait RestClient: Send + Sync {
@@ -200,5 +291,5 @@ pub trait RestClient: Send + Sync {
         url: String,
         method: HttpMethod,
         options: RestClientOptions,
-    ) -> Option<Vec<u8>>;
+    ) -> Result<Option<Vec<u8>>, RestClientError>;
 }

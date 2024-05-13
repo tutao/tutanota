@@ -59,13 +59,13 @@ import de.tutao.tutanota.push.PushNotificationService
 import de.tutao.tutanota.push.SseStorage
 import de.tutao.tutanota.push.notificationDismissedIntent
 import de.tutao.tutanota.webauthn.AndroidWebauthnFacade
-import de.tutao.tutasdk.EntityClient
 import de.tutao.tutasdk.HttpMethod
+import de.tutao.tutasdk.IdTuple
+import de.tutao.tutasdk.JsonElement
 import de.tutao.tutasdk.RestClient
 import de.tutao.tutasdk.RestClientOptions
 import de.tutao.tutasdk.Sdk
 import de.tutao.tutasdk.TypeRef
-import de.tutao.tutasdk.use
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.runBlocking
@@ -73,8 +73,12 @@ import kotlinx.coroutines.withContext
 import kotlinx.serialization.json.Json
 import kotlinx.serialization.json.jsonObject
 import kotlinx.serialization.json.jsonPrimitive
+import okhttp3.MediaType
+import okhttp3.MediaType.Companion.toMediaType
 import okhttp3.OkHttpClient
 import okhttp3.Request
+import okhttp3.RequestBody
+import okio.BufferedSink
 import org.json.JSONException
 import org.json.JSONObject
 import java.io.File
@@ -95,6 +99,21 @@ const val SYSTEM_GESTURES_EXCLUSION_HEIGHT_DP = 200 // max exclusion height allo
 interface WebauthnHandler {
 	fun onResult(result: String)
 	fun onNoResult()
+}
+
+class JsonRequestBody(val data: ByteArray) : RequestBody() {
+	override fun contentLength(): Long {
+		return data.size.toLong()
+	}
+
+	override fun contentType(): MediaType {
+		return "application/json".toMediaType()
+	}
+
+	@Throws(IOException::class)
+	override fun writeTo(sink: BufferedSink) {
+		sink.write(this.data)
+	}
 }
 
 class MainActivity : FragmentActivity() {
@@ -343,8 +362,7 @@ class MainActivity : FragmentActivity() {
 			): ByteArray? {
 				val request = Request.Builder()
 					.url(url)
-					// FIXME add body
-					.method(method.name, null)
+					.method(method.name, options.body?.let(::JsonRequestBody))
 					.apply {
 						for ((headerName, headerValue) in options.headers) {
 							addHeader(headerName, headerValue)
@@ -359,14 +377,20 @@ class MainActivity : FragmentActivity() {
 		}
 		lifecycleScope.launch {
 			val sdk = Sdk(
-				"http://DOMAIN:9000",
+				"http://ivk:9000",
 				restClient,
 			)
-			sdk.login("ACCESS_TOKEN")
+			sdk.login("Y9yOcj8AAcABbcy1wg_Iw5E4-E1EA-mCDw")
 			val entityClient = sdk.entityClient()
 			val typeRef = TypeRef("tutanota", "Mail")
-			val result = entityClient.loadListElement(typeRef, "NxWsZR4--F-0", "NxWvwAe----0")
-			Log.d(TAG, "LOADED RESULT FROM TUTASDK $result")
+			val result = entityClient.loadListElement(typeRef, IdTuple("NxmDRZ0--k-0", "NxmDSRW----0"))
+			Log.d(TAG, "LOADED RESULT FROM TUTASDK $result ")
+			val sender = ((result.get("sender") as JsonElement.Dict).v1.get("address") as JsonElement.String).v1
+			Log.d(TAG, "LOADED SENDER FROM TUTASDK $sender")
+
+			val updatedMail = result.toMutableMap()
+			updatedMail["unread"] = JsonElement.String("1")
+			entityClient.update(typeRef, updatedMail)
 		}
 	}
 
