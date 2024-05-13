@@ -119,7 +119,7 @@ export class PriceAndConfigProvider {
 	private upgradePriceData: UpgradePriceServiceReturn | null = null
 	private planPrices: Array<PlanPrices> | null = null
 	private isReferralCodeSignup: boolean = false
-	private mobilePrices: Map<string, { monthly: MobilePlanPrice; yearly: MobilePlanPrice }> | null = null
+	private mobilePrices: Map<string, MobilePlanPrice> | null = null
 
 	private constructor() {}
 
@@ -132,14 +132,10 @@ export class PriceAndConfigProvider {
 		this.upgradePriceData = await serviceExecutor.get(UpgradePriceService, data)
 		if (isIOSApp()) {
 			this.mobilePrices = new Map()
-			for (const plan of this.upgradePriceData.plans) {
-				// FIXME: pass this facade in init()
-				const monthly = await locator.mobilePaymentsFacade.getPlanPrice(plan.planName.toLowerCase(), 1)
-				const yearly = await locator.mobilePaymentsFacade.getPlanPrice(plan.planName.toLowerCase(), 12)
-				if (monthly == null || yearly == null) {
-					continue
-				}
-				this.mobilePrices.set(plan.planName, { monthly, yearly })
+
+			const allPrices = await locator.mobilePaymentsFacade.getPlanPrices()
+			for (const plan of allPrices) {
+				this.mobilePrices.set(plan.name, plan)
 			}
 		}
 		this.isReferralCodeSignup = referralCode != null
@@ -170,13 +166,13 @@ export class PriceAndConfigProvider {
 	getSubscriptionPriceWithCurrency(paymentInterval: PaymentInterval, subscription: PlanType, type: UpgradePriceType): string {
 		if (isIOSApp()) {
 			const planName = PlanTypeToName[subscription]
-			const mobilePlan = this.getMobilePrices().get(planName)
+			const mobilePlan = this.getMobilePrices().get(planName.toLowerCase())
 			if (mobilePlan) {
 				switch (paymentInterval) {
 					case PaymentInterval.Monthly:
-						return mobilePlan.monthly.perIntervalPrice
+						return mobilePlan.monthlyPerMonth
 					case PaymentInterval.Yearly:
-						return mobilePlan.yearly.perIntervalPrice
+						return mobilePlan.yearlyPerYear
 				}
 			}
 			throw new Error(`no such iOS plan ${planName}`)
@@ -203,7 +199,7 @@ export class PriceAndConfigProvider {
 		return getPriceForUpgradeType(upgrade, prices)
 	}
 
-	getMobilePrices(): Map<string, { monthly: MobilePlanPrice; yearly: MobilePlanPrice }> {
+	getMobilePrices(): Map<string, MobilePlanPrice> {
 		return assertNotNull(this.mobilePrices)
 	}
 

@@ -67,6 +67,8 @@ import { IconButton, IconButtonAttrs } from "../gui/base/IconButton.js"
 import { ButtonSize } from "../gui/base/ButtonSize.js"
 import { getDisplayNameOfPlanType } from "./FeatureListProvider"
 import { EntityUpdateData, isUpdateForTypeRef } from "../api/common/utils/EntityUpdateUtils.js"
+import { showProgressDialog } from "../gui/dialogs/ProgressDialog"
+import { MobilePaymentsFacade } from "../native/common/generatedipc/MobilePaymentsFacade"
 
 assertMainOrNode()
 const DAY = 1000 * 60 * 60 * 24
@@ -98,7 +100,7 @@ export class SubscriptionViewer implements UpdatableSettingsViewer {
 	private _giftCards: Map<Id, GiftCard>
 	private _giftCardsExpanded: Stream<boolean>
 
-	constructor(currentPlanType: PlanType) {
+	constructor(currentPlanType: PlanType, private readonly mobilePaymentsFacade: MobilePaymentsFacade) {
 		this.currentPlanType = currentPlanType
 		const isPremiumPredicate = () => locator.logins.getUserController().isPremiumAccount()
 
@@ -123,7 +125,7 @@ export class SubscriptionViewer implements UpdatableSettingsViewer {
 						locator.logins.getUserController().isFreeAccount()
 							? m(IconButton, {
 									title: "upgrade_action",
-									click: () => showUpgradeWizard(locator.logins),
+									click: () => showProgressDialog("pleaseWait_msg", showUpgradeWizard(locator.logins)),
 									icon: Icons.Edit,
 									size: ButtonSize.Compact,
 							  })
@@ -256,8 +258,7 @@ export class SubscriptionViewer implements UpdatableSettingsViewer {
 	}
 
 	private async handleAppStoreSubscriptionChange() {
-		// FIXME: refactor mobilePaymentsFacade to constructor
-		const isSameOwner = await locator.mobilePaymentsFacade.checkLastTransactionOwner(base64ToUint8Array(base64ExtToBase64(this._customer!._id)))
+		const isSameOwner = await this.mobilePaymentsFacade.checkLastTransactionOwner(base64ToUint8Array(base64ExtToBase64(this._customer!._id)))
 
 		// Show a dialog only if the user's Apple account's last transaction was with this customer ID
 		//
@@ -266,7 +267,7 @@ export class SubscriptionViewer implements UpdatableSettingsViewer {
 			return Dialog.message(() => "YOU SHALL NOT PASS!")
 		}
 
-		await locator.mobilePaymentsFacade.showSubscriptionConfigView()
+		await this.mobilePaymentsFacade.showSubscriptionConfigView()
 	}
 
 	private showOrderAgreement(): boolean {

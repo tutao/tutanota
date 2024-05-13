@@ -2,7 +2,9 @@
 	"name": "MobilePlanPrice",
 	"type": "struct",
 	"fields": {
-		"perMonthPrice": "string",
-		"perIntervalPrice": "string"
+		"name": "string",
+		"monthlyPerMonth": "string",
+		"yearlyPerYear": "string",
+		"yearlyPerMonth": "string"
 	}
 }

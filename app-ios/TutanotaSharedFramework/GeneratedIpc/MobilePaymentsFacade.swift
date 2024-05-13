@@ -16,12 +16,10 @@ public protocol MobilePaymentsFacade {
 		_ customerIdBytes: DataWrapper
 	) async throws -> MobilePaymentResult
 	/**
-	 * Returns a displayable price for a plan
+	 * Returns displayable prices for all plans
 	 */
-	func getPlanPrice(
-		_ plan: String,
-		_ interval: Int
-	) async throws -> MobilePlanPrice?
+	func getPlanPrices(
+	) async throws -> [MobilePlanPrice]
 	/**
 	 * Display a view for the user to configure their subscription.
 	 */
