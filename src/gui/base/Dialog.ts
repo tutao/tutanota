@@ -29,6 +29,7 @@ import { assertMainOrNode } from "../../api/common/Env"
 import { Icon } from "./Icon"
 import { BootIcons } from "./icons/BootIcons"
 import { isOfflineError } from "../../api/common/utils/ErrorUtils.js"
+import { PasswordField } from "./PasswordField.js"
 
 assertMainOrNode()
 export const INPUT = "input, textarea, div[contenteditable='true']"
@@ -985,13 +986,12 @@ export class Dialog implements ModalComponent {
 			view: () => {
 				const savedState = state
 				return savedState.type == "idle"
-					? m(TextField, {
+					? m(PasswordField, {
 							label: title,
 							helpLabel: () => savedState.message,
 							value: value,
 							oninput: (newValue) => (value = newValue),
 							autocompleteAs: Autocomplete.off,
-							type: TextFieldType.Password,
 							keyHandler: (key: KeyPress) => {
 								if (isKeyPressed(key.key, Keys.RETURN)) {
 									doAction()
