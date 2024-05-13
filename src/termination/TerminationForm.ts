@@ -83,7 +83,6 @@ export class TerminationForm implements Component<TerminationFormAttrs> {
 						},
 					},
 					m(PasswordField, {
-						label: "password_label",
 						value: a.password,
 						autocompleteAs: Autocomplete.currentPassword,
 						oninput: (value) => {
