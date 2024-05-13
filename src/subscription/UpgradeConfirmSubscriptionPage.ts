@@ -11,7 +11,7 @@ import { getPreconditionFailedPaymentMsg, UpgradeType } from "./SubscriptionUtil
 import type { WizardPageAttrs, WizardPageN } from "../gui/base/WizardDialog.js"
 import { emitWizardEvent, WizardEventType } from "../gui/base/WizardDialog.js"
 import { TextField } from "../gui/base/TextField.js"
-import { base64ExtToBase64, base64ToUint8Array, ofClass } from "@tutao/tutanota-utils"
+import { base64ExtToBase64, base64ToUint8Array, neverNull, ofClass } from "@tutao/tutanota-utils"
 import { locator } from "../api/main/MainLocator"
 import { SwitchAccountTypeService } from "../api/entities/sys/Services"
 import { UsageTest } from "@tutao/tutanota-usagetests"
@@ -19,6 +19,7 @@ import { getDisplayNameOfPlanType, SelectedSubscriptionOptions } from "./Feature
 import { LoginButton } from "../gui/base/buttons/LoginButton.js"
 import { MobilePaymentResultType } from "../native/common/generatedipc/MobilePaymentResultType"
 import { updatePaymentData } from "./InvoiceAndPaymentDataPage"
+import { SessionType } from "../api/common/SessionType"
 
 export class UpgradeConfirmSubscriptionPage implements WizardPageN<UpgradeSubscriptionData> {
 	private dom!: HTMLElement
@@ -100,11 +101,18 @@ export class UpgradeConfirmSubscriptionPage implements WizardPageN<UpgradeSubscr
 	}
 
 	private async handleAppStorePayment(data: UpgradeSubscriptionData): Promise<boolean> {
-		const customerIdBytes = base64ToUint8Array(base64ExtToBase64(data.customer!._id))
-		let result = await locator.mobilePaymentsFacade.requestSubscriptionToPlan(
-			PlanTypeToName[data.type].toLowerCase(),
-			data.options.paymentInterval(),
-			customerIdBytes,
+		let customerId
+
+		if (!locator.logins.isUserLoggedIn()) {
+			await locator.logins.createSession(neverNull(data.newAccountData).mailAddress, neverNull(data.newAccountData).password, SessionType.Temporary)
+		}
+		customerId = locator.logins.getUserController().user.customer!
+
+		const customerIdBytes = base64ToUint8Array(base64ExtToBase64(customerId))
+
+		let result = await showProgressDialog(
+			"pleaseWait_msg",
+			locator.mobilePaymentsFacade.requestSubscriptionToPlan(PlanTypeToName[data.type].toLowerCase(), data.options.paymentInterval(), customerIdBytes),
 		)
 
 		if (result.result !== MobilePaymentResultType.Success) {

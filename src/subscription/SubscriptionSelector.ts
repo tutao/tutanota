@@ -217,14 +217,14 @@ export class SubscriptionSelector implements Component<SubscriptionSelectorAttr>
 
 		let price: string
 		if (isIOSApp()) {
-			const prices = priceAndConfigProvider.getMobilePrices().get(PlanTypeToName[targetSubscription])
+			const prices = priceAndConfigProvider.getMobilePrices().get(PlanTypeToName[targetSubscription].toLowerCase())
 			if (prices != null) {
 				switch (interval) {
 					case PaymentInterval.Monthly:
-						price = prices.monthly.perMonthPrice
+						price = prices.monthlyPerMonth
 						break
 					case PaymentInterval.Yearly:
-						price = prices.yearly.perMonthPrice
+						price = prices.yearlyPerMonth
 						break
 				}
 			} else {

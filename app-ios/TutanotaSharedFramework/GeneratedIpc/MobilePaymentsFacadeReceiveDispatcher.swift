@@ -20,12 +20,8 @@ public class MobilePaymentsFacadeReceiveDispatcher {
 				customerIdBytes
 			)
 			return toJson(result)
-		case "getPlanPrice":
-			let plan = try! JSONDecoder().decode(String.self, from: arg[0].data(using: .utf8)!)
-			let interval = try! JSONDecoder().decode(Int.self, from: arg[1].data(using: .utf8)!)
-			let result = try await self.facade.getPlanPrice(
-				plan,
-				interval
+		case "getPlanPrices":
+			let result = try await self.facade.getPlanPrices(
 			)
 			return toJson(result)
 		case "showSubscriptionConfigView":

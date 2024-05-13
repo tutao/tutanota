@@ -1,6 +1,8 @@
 /* generated file, don't edit. */
 
 export interface MobilePlanPrice {
-	readonly perMonthPrice: string
-	readonly perIntervalPrice: string
+	readonly name: string
+	readonly monthlyPerMonth: string
+	readonly yearlyPerYear: string
+	readonly yearlyPerMonth: string
 }

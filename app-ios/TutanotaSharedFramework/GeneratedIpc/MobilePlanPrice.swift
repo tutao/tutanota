@@ -2,6 +2,8 @@
 
 
 public struct MobilePlanPrice : Codable {
-	let perMonthPrice: String
-	let perIntervalPrice: String
+	let name: String
+	let monthlyPerMonth: String
+	let yearlyPerYear: String
+	let yearlyPerMonth: String
 }

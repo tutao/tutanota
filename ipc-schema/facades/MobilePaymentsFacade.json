@@ -20,17 +20,10 @@
 			],
 			"ret": "MobilePaymentResult"
 		},
-		"getPlanPrice": {
-			"doc": "Returns a displayable price for a plan",
-			"arg": [
-				{
-					"plan": "string"
-				},
-				{
-					"interval": "number"
-				}
-			],
-			"ret": "MobilePlanPrice?"
+		"getPlanPrices": {
+			"doc": "Returns displayable prices for all plans",
+			"arg": [],
+			"ret": "List<MobilePlanPrice>"
 		},
 		"showSubscriptionConfigView": {
 			"doc": "Display a view for the user to configure their subscription.",

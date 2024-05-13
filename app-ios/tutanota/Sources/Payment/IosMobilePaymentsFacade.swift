@@ -2,61 +2,74 @@ import CryptoKit
 import StoreKit
 
 public class IosMobilePaymentsFacade: MobilePaymentsFacade {
+	private let ALL_PURCHASEABLE_PLANS = ["revolutionary", "legend"]
+	private let MOBILE_PAYMENT_DOMAIN = "de.tutao.tutanota.MobilePayment"
+
 	public func checkLastTransactionOwner(_ customerIdBytes: DataWrapper) async throws -> Bool {
-		var transactions = Transaction.all.makeAsyncIterator()
-		
-		return try await Transaction.all.contains { transaction in
+		try await Transaction.all.contains { transaction in
 			let transactionInfo = try transaction.payloadValue
 			let uuid = customerIdToUUID(customerIdBytes.data)
 			let isSameOwner = transactionInfo.appAccountToken == uuid
-			
-			TUTSLog("Checking transactions: \(transactionInfo.appAccountToken) \(uuid) \(isSameOwner)")
-			
 			return isSameOwner
 		}
 	}
 
-	public func getPlanPrice(_ plan: String, _ interval: Int) async throws -> MobilePlanPrice? {
-		let planType = formatPlanType(plan, withInterval: interval)
-		let products = try await Product.products(for: [planType])
-		if products.isEmpty {
-			return nil
+	public func getPlanPrices() async throws -> [MobilePlanPrice] {
+		struct TempMobilePlanPrice {
+			var monthlyPerMonth: String?
+			var yearlyPerYear: String?
+			var yearlyPerMonth: String?
 		}
+		let plans: [String] = ALL_PURCHASEABLE_PLANS.flatMap { plan in
+			[self.formatPlanType(plan, withInterval: 1), self.formatPlanType(plan, withInterval: 12)]
+		}
+		let products: [Product] = try await Product.products(for: plans)
+		var result = [String: TempMobilePlanPrice]()
+		for product in products {
+			let productName = String(product.id.split(separator: ".")[1])
+			var plan = result[productName] ?? TempMobilePlanPrice(monthlyPerMonth: nil, yearlyPerYear: nil, yearlyPerMonth: nil)
 
-		let product = products[0]
-
-		switch interval {
-		// If showing a yearly interval, convert to monthly price to show the user which costs less overall per month.
-		case 12:
-			var formatStyle = product.priceFormatStyle
-			var priceDivided = product.price / 12
-			return MobilePlanPrice(perMonthPrice: priceDivided.formatted(formatStyle), perIntervalPrice: product.displayPrice)
-		case 1:
-			return MobilePlanPrice(perMonthPrice: product.displayPrice, perIntervalPrice: product.displayPrice)
-		default:
-			fatalError("unsupported interval \(interval)")
+			let unit = product.subscription!.subscriptionPeriod.unit
+			switch unit {
+			case .year:
+				let formatStyle = product.priceFormatStyle
+				let priceDivided = product.price / 12
+				let yearlyPerMonthPrice = priceDivided.formatted(formatStyle)
+				let yearlyPerYearPrice = product.displayPrice
+				plan.yearlyPerYear = yearlyPerYearPrice
+				plan.yearlyPerMonth = yearlyPerMonthPrice
+			case .month: plan.monthlyPerMonth = product.displayPrice
+			default: fatalError("unexpected subscription period unit \(unit)")
+			}
+			result[productName] = plan
+		}
+		return result.map { name, prices in
+			MobilePlanPrice(name: name, monthlyPerMonth: prices.monthlyPerMonth!, yearlyPerYear: prices.yearlyPerYear!, yearlyPerMonth: prices.yearlyPerMonth!)
 		}
 	}
-	
 	public func showSubscriptionConfigView() async throws {
-		let window = await UIApplication.shared.keyWindow!.windowScene!
-		try await AppStore.showManageSubscriptions(in: window)
+		let window = await UIApplication.shared.connectedScenes.first
+		try await AppStore.showManageSubscriptions(in: window as! UIWindowScene)
 	}
-	
 	public func requestSubscriptionToPlan(_ plan: String, _ interval: Int, _ customerIdBytes: DataWrapper) async throws -> MobilePaymentResult {
 		let uuid = customerIdToUUID(customerIdBytes.data)
 		let planType = formatPlanType(plan, withInterval: interval)
 
 		// FIXME: handle errors/no such product
 		let product = (try await Product.products(for: [planType]))[0]
-		NSLog("Attempting to purchase %@ - %@", product.displayName, product.displayPrice)
+		TUTSLog("Attempting to purchase \(product.displayName) for \(product.displayPrice)")
 		let result = try await product.purchase(options: [Product.PurchaseOption.appAccountToken(uuid)])
 
 		switch result {
 		case .success(let verification):
-			let transaction = checkVerified(verification)
+			let transaction = Self.checkVerified(verification)
+			
 			let id = transaction.id
-			await transaction.finish()  // FIXME: do this after we have confirmed with the server!
+
+			if transaction.appAccountToken != uuid {
+				throw TUTErrorFactory.createError(withDomain: MOBILE_PAYMENT_DOMAIN, message: "Apparently succeeded buying, but actually got a mismatched customer UUID (got \(transaction.appAccountToken?.uuidString ?? "<null>"), expected \(uuid))")
+			}
+
 			return MobilePaymentResult(
 				result: MobilePaymentResultType.success,
 				transactionID: String(id),
@@ -73,13 +86,13 @@ public class IosMobilePaymentsFacade: MobilePaymentsFacade {
 			switch interval {
 			case 1: "monthly"
 			case 12: "yearly"
-			default: fatalError()
+			default: fatalError("invalid plan (\(plan)) interval (\(interval))")
 			}
 
 		return "plans.\(plan).\(intervalString)"
 	}
 
-	func checkVerified<T>(_ result: VerificationResult<T>) -> T {
+	static func checkVerified<T>(_ result: VerificationResult<T>) -> T {
 		switch result {
 		case .unverified: fatalError("failed verification - oh no")
 		case .verified(let safe): return safe
