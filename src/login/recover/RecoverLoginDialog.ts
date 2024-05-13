@@ -18,6 +18,7 @@ import { assertMainOrNode } from "../../api/common/Env"
 import { createDropdown, DropdownButtonAttrs } from "../../gui/base/Dropdown.js"
 import { IconButton, IconButtonAttrs } from "../../gui/base/IconButton.js"
 import { ButtonSize } from "../../gui/base/ButtonSize.js"
+import { PasswordField } from "../../gui/base/PasswordField.js"
 
 assertMainOrNode()
 export type ResetAction = "password" | "secondFactor"
@@ -84,9 +85,8 @@ export function show(mailAddress?: string | null, resetAction?: ResetAction): Di
 						? null
 						: selectedAction() === "password"
 						? m(PasswordForm, { model: passwordModel })
-						: m(TextField, {
+						: m(PasswordField, {
 								label: "password_label",
-								type: TextFieldType.Password,
 								value: passwordValueStream(),
 								autocompleteAs: Autocomplete.currentPassword,
 								oninput: passwordValueStream,

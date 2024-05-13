@@ -24,6 +24,7 @@ import { BaseTopLevelView } from "../gui/BaseTopLevelView.js"
 import { locator } from "../api/main/MainLocator.js"
 import { LoginScreenHeader } from "../gui/LoginScreenHeader.js"
 import { LoginButton } from "../gui/base/buttons/LoginButton.js"
+import { PasswordField } from "../gui/base/PasswordField.js"
 
 assertMainOrNode()
 
@@ -244,8 +245,7 @@ export class ExternalLoginView extends BaseTopLevelView implements TopLevelView<
 
 	renderForm(): Children {
 		return [
-			m(TextField, {
-				type: TextFieldType.Password,
+			m(PasswordField, {
 				label: "password_label",
 				helpLabel: () => lang.get("enterPresharedPassword_msg"),
 				value: this.viewModel.password,
