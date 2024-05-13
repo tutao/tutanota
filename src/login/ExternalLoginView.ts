@@ -246,7 +246,6 @@ export class ExternalLoginView extends BaseTopLevelView implements TopLevelView<
 	renderForm(): Children {
 		return [
 			m(PasswordField, {
-				label: "password_label",
 				helpLabel: () => lang.get("enterPresharedPassword_msg"),
 				value: this.viewModel.password,
 				autocompleteAs: Autocomplete.currentPassword,

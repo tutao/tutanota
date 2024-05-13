@@ -86,7 +86,6 @@ export function show(mailAddress?: string | null, resetAction?: ResetAction): Di
 						: selectedAction() === "password"
 						? m(PasswordForm, { model: passwordModel })
 						: m(PasswordField, {
-								label: "password_label",
 								value: passwordValueStream(),
 								autocompleteAs: Autocomplete.currentPassword,
 								oninput: passwordValueStream,

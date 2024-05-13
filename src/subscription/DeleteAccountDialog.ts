@@ -29,7 +29,6 @@ export function showDeleteAccountDialog(surveyData: SurveyData | null = null) {
 						helpLabel: () => lang.get("takeoverMailAddressInfo_msg"),
 					}),
 					m(PasswordField, {
-						label: "password_label",
 						value: password,
 						autocompleteAs: Autocomplete.currentPassword,
 						oninput: (value) => (password = value),

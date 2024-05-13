@@ -728,7 +728,6 @@ export class ContactEditor {
 			m(".passwords.mt-xl", [
 				m(".h4", lang.get("presharedPassword_label")),
 				m(PasswordField, {
-					label: "password_label",
 					value: this.contact.presharedPassword ?? "",
 					autocompleteAs: Autocomplete.newPassword,
 					oninput: (value) => (this.contact.presharedPassword = value),

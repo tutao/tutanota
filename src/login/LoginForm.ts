@@ -95,7 +95,6 @@ export class LoginForm implements Component<LoginFormAttrs> {
 				m(
 					"",
 					m(PasswordField, {
-						label: "password_label",
 						value: a.password(),
 						oninput: a.password,
 						autocompleteAs: Autocomplete.currentPassword,

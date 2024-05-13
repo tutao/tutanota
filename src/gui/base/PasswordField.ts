@@ -7,10 +7,12 @@ import { CompletenessIndicator } from "../CompletenessIndicator.js"
 import { isSecurePassword, scaleToVisualPasswordStrength } from "../../misc/passwords/PasswordUtils.js"
 import { Status, StatusField } from "./StatusField.js"
 import type { lazy } from "@tutao/tutanota-utils"
+import type { TranslationKey } from "../../misc/LanguageViewModel.js"
 
 type StatusSetting = Status | "auto"
 
-export interface PasswordFieldAttrs extends Omit<TextFieldAttrs, "type"> {
+export interface PasswordFieldAttrs extends Omit<TextFieldAttrs, "label" | "type"> {
+	label?: TranslationKey | lazy<string>
 	passwordStrength?: number
 	status?: StatusSetting
 }
@@ -21,9 +23,10 @@ export class PasswordField implements Component<PasswordFieldAttrs> {
 	view(vnode: Vnode<PasswordFieldAttrs>) {
 		const attrs = vnode.attrs
 		// Separate and pass the generic `TextFieldAttrs` attributes so the user can still use all of `TextFields` properties
-		const { passwordStrength, status, ...textFieldAttrs } = attrs
+		const { passwordStrength, status, label, ...textFieldAttrs } = attrs
 		return m(TextField, {
 			...textFieldAttrs,
+			label: label === undefined ? "password_label" : label,
 			autocompleteAs: attrs.autocompleteAs ? attrs.autocompleteAs : Autocomplete.currentPassword,
 			type: this.isPasswordRevealed ? TextFieldType.Text : TextFieldType.Password,
 			helpLabel: () => PasswordField.renderHelpLabel(textFieldAttrs.value, passwordStrength, status, textFieldAttrs.helpLabel ?? null),
