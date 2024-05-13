@@ -1,4 +1,4 @@
-/*! @license DOMPurify 3.1.2 | (c) Cure53 and other contributors | Released under the Apache license 2.0 and Mozilla Public License 2.0 | github.com/cure53/DOMPurify/blob/3.1.2/LICENSE */
+/*! @license DOMPurify 3.1.3 | (c) Cure53 and other contributors | Released under the Apache license 2.0 and Mozilla Public License 2.0 | github.com/cure53/DOMPurify/blob/3.1.3/LICENSE */
 
 (function (global, factory) {
   typeof exports === 'object' && typeof module !== 'undefined' ? module.exports = factory() :
@@ -54,6 +54,7 @@
   const objectHasOwnProperty = unapply(Object.prototype.hasOwnProperty);
   const regExpTest = unapply(RegExp.prototype.test);
   const typeErrorCreate = unconstruct(TypeError);
+  const numberIsNaN = unapply(Number.isNaN);
 
   /**
    * Creates a new function that calls the given function with a specified thisArg and arguments.
@@ -237,6 +238,24 @@
     CUSTOM_ELEMENT: CUSTOM_ELEMENT
   });
 
+  // https://developer.mozilla.org/en-US/docs/Web/API/Node/nodeType
+  const NODE_TYPE = {
+    element: 1,
+    attribute: 2,
+    text: 3,
+    cdataSection: 4,
+    entityReference: 5,
+    // Deprecated
+    entityNode: 6,
+    // Deprecated
+    progressingInstruction: 7,
+    comment: 8,
+    document: 9,
+    documentType: 10,
+    documentFragment: 11,
+    notation: 12 // Deprecated
+  };
+
   const getGlobal = function getGlobal() {
     return typeof window === 'undefined' ? null : window;
   };
@@ -288,14 +307,14 @@
      * Version label, exposed for easier checks
      * if DOMPurify is up to date or not
      */
-    DOMPurify.version = '3.1.2';
+    DOMPurify.version = '3.1.3';
 
     /**
      * Array of elements that DOMPurify removed during sanitation.
      * Empty if nothing was removed.
      */
     DOMPurify.removed = [];
-    if (!window || !window.document || window.document.nodeType !== 9) {
+    if (!window || !window.document || window.document.nodeType !== NODE_TYPE.document) {
       // Not running in a browser, provide a factory function
       // so that you can pass your own Window
       DOMPurify.isSupported = false;
@@ -1006,13 +1025,13 @@
       }
 
       /* Remove any ocurrence of processing instructions */
-      if (currentNode.nodeType === 7) {
+      if (currentNode.nodeType === NODE_TYPE.progressingInstruction) {
         _forceRemove(currentNode);
         return true;
       }
 
       /* Remove any kind of possibly harmful comments */
-      if (SAFE_FOR_XML && currentNode.nodeType === 8 && regExpTest(/<[/\w]/g, currentNode.data)) {
+      if (SAFE_FOR_XML && currentNode.nodeType === NODE_TYPE.comment && regExpTest(/<[/\w]/g, currentNode.data)) {
         _forceRemove(currentNode);
         return true;
       }
@@ -1059,7 +1078,7 @@
       }
 
       /* Sanitize element content to be template-safe */
-      if (SAFE_FOR_TEMPLATES && currentNode.nodeType === 3) {
+      if (SAFE_FOR_TEMPLATES && currentNode.nodeType === NODE_TYPE.text) {
         /* Get the element's text content */
         content = currentNode.textContent;
         arrayForEach([MUSTACHE_EXPR, ERB_EXPR, TMPLIT_EXPR], expr => {
@@ -1089,7 +1108,7 @@
     // eslint-disable-next-line complexity
     const _isValidAttribute = function _isValidAttribute(lcTag, lcName, value) {
       /* Make sure attribute cannot clobber */
-      if (SANITIZE_DOM && (lcName === 'id' || lcName === 'name') && (value in document || value in formElement)) {
+      if (SANITIZE_DOM && (lcName === 'id' || lcName === 'name') && (value in document || value in formElement || value === '__depth' || value === '__removalCount')) {
         return false;
       }
 
@@ -1193,6 +1212,12 @@
           continue;
         }
 
+        /* Work around a security issue with comments inside attributes */
+        if (SAFE_FOR_XML && regExpTest(/((--!?|])>)|<\/(style|title)/i, value)) {
+          _removeAttribute(name, currentNode);
+          continue;
+        }
+
         /* Sanitize attribute content to be template-safe */
         if (SAFE_FOR_TEMPLATES) {
           arrayForEach([MUSTACHE_EXPR, ERB_EXPR, TMPLIT_EXPR], expr => {
@@ -1243,7 +1268,11 @@
             /* Fallback to setAttribute() for browser-unrecognized namespaces e.g. "x-schema". */
             currentNode.setAttribute(name, value);
           }
-          arrayPop(DOMPurify.removed);
+          if (_isClobbered(currentNode)) {
+            _forceRemove(currentNode);
+          } else {
+            arrayPop(DOMPurify.removed);
+          }
         } catch (_) {}
       }
 
@@ -1273,7 +1302,7 @@
         const parentNode = getParentNode(shadowNode);
 
         /* Set the nesting depth of an element */
-        if (shadowNode.nodeType === 1) {
+        if (shadowNode.nodeType === NODE_TYPE.element) {
           if (parentNode && parentNode.__depth) {
             /*
               We want the depth of the node in the original tree, which can
@@ -1285,8 +1314,11 @@
           }
         }
 
-        /* Remove an element if nested too deeply to avoid mXSS */
-        if (shadowNode.__depth >= MAX_NESTING_DEPTH) {
+        /*
+         * Remove an element if nested too deeply to avoid mXSS
+         * or if the __depth might have been tampered with
+         */
+        if (shadowNode.__depth >= MAX_NESTING_DEPTH || shadowNode.__depth < 0 || numberIsNaN(shadowNode.__depth)) {
           _forceRemove(shadowNode);
         }
 
@@ -1368,7 +1400,7 @@
            elements being stripped by the parser */
         body = _initDocument('<!---->');
         importedNode = body.ownerDocument.importNode(dirty, true);
-        if (importedNode.nodeType === 1 && importedNode.nodeName === 'BODY') {
+        if (importedNode.nodeType === NODE_TYPE.element && importedNode.nodeName === 'BODY') {
           /* Node is already a body, use as is */
           body = importedNode;
         } else if (importedNode.nodeName === 'HTML') {
@@ -1411,7 +1443,7 @@
         const parentNode = getParentNode(currentNode);
 
         /* Set the nesting depth of an element */
-        if (currentNode.nodeType === 1) {
+        if (currentNode.nodeType === NODE_TYPE.element) {
           if (parentNode && parentNode.__depth) {
             /*
               We want the depth of the node in the original tree, which can
@@ -1423,8 +1455,11 @@
           }
         }
 
-        /* Remove an element if nested too deeply to avoid mXSS */
-        if (currentNode.__depth >= MAX_NESTING_DEPTH) {
+        /*
+         * Remove an element if nested too deeply to avoid mXSS
+         * or if the __depth might have been tampered with
+         */
+        if (currentNode.__depth >= MAX_NESTING_DEPTH || currentNode.__depth < 0 || numberIsNaN(currentNode.__depth)) {
           _forceRemove(currentNode);
         }
 

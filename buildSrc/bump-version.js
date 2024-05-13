@@ -34,7 +34,6 @@ async function run({ platform }) {
 		// are installed with the correct version. otherwise, npm list
 		// from the tutanota-3 postinstall script will complain about
 		// invalid installed versions after npm i.
-		await fs.promises.unlink("./package-lock.json")
 		await fs.promises.rm("./node_modules", { recursive: true })
 		await $`npm i`
 	}
