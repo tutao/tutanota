@@ -11,7 +11,7 @@ import { getWhitelabelCustomizations } from "../misc/WhitelabelCustomizations.js
 import { BootstrapFeatureType } from "../api/common/TutanotaConstants.js"
 import { ACTIVATED_MIGRATION, isLegacyDomain } from "./LoginViewModel.js"
 import { LoginButton } from "../gui/base/buttons/LoginButton.js"
-import { PasswordField } from "../gui/base/PasswordField.js"
+import { PasswordField } from "../misc/passwords/PasswordField.js"
 
 export type LoginFormAttrs = {
 	onSubmit: (username: string, password: string) => unknown

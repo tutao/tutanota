@@ -13,6 +13,7 @@ import { getEtId, isSameId } from "../../api/common/utils/EntityUtils.js"
 import { GroupType } from "../../api/common/TutanotaConstants.js"
 import { IconButton } from "../../gui/base/IconButton.js"
 import { MoreInfoLink } from "../../misc/news/MoreInfoLink.js"
+import { showRequestPasswordDialog } from "../../misc/passwords/PasswordRequestDialog.js"
 
 type Action = "get" | "create"
 assertMainOrNode()
@@ -39,7 +40,7 @@ export function showRecoverCodeDialogAfterPasswordVerificationAndInfoDialog(user
 
 export function showRecoverCodeDialogAfterPasswordVerification(action: Action, showMessage: boolean = true) {
 	const userManagementFacade = locator.userManagementFacade
-	const dialog = Dialog.showRequestPasswordDialog({
+	const dialog = showRequestPasswordDialog({
 		action: (pw) => {
 			return (action === "get" ? userManagementFacade.getRecoverCode(pw) : userManagementFacade.createRecoveryCode(pw))
 				.then((recoverCode) => {

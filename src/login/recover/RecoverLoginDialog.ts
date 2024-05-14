@@ -18,7 +18,7 @@ import { assertMainOrNode } from "../../api/common/Env"
 import { createDropdown, DropdownButtonAttrs } from "../../gui/base/Dropdown.js"
 import { IconButton, IconButtonAttrs } from "../../gui/base/IconButton.js"
 import { ButtonSize } from "../../gui/base/ButtonSize.js"
-import { PasswordField } from "../../gui/base/PasswordField.js"
+import { PasswordField } from "../../misc/passwords/PasswordField.js"
 
 assertMainOrNode()
 export type ResetAction = "password" | "secondFactor"

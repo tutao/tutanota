@@ -32,6 +32,7 @@ import { SessionType } from "../api/common/SessionType.js"
 import { OfflineDbClosedError } from "../api/common/error/OfflineDbClosedError.js"
 import { UserTypeRef } from "../api/entities/sys/TypeRefs.js"
 import { isOfflineError } from "../api/common/utils/ErrorUtils.js"
+import { showRequestPasswordDialog } from "./passwords/PasswordRequestDialog.js"
 
 assertMainOrNode()
 
@@ -194,7 +195,7 @@ export async function reloginForExpiredSession() {
 	const sessionReset = loginFacade.resetSession()
 	loginDialogActive = true
 
-	const dialog = Dialog.showRequestPasswordDialog({
+	const dialog = showRequestPasswordDialog({
 		action: async (pw) => {
 			await sessionReset
 			let credentials: Credentials

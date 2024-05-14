@@ -13,6 +13,7 @@ import { UserController } from "../../../api/main/UserController.js"
 import { progressIcon } from "../../../gui/base/Icon.js"
 import { UserManagementFacade } from "../../../api/worker/facades/lazy/UserManagementFacade.js"
 import { isApp } from "../../../api/common/Env.js"
+import { showRequestPasswordDialog } from "../../passwords/PasswordRequestDialog.js"
 
 /**
  * News item that informs admin users about their recovery code.
@@ -137,7 +138,7 @@ export class RecoveryCodeNews implements NewsListItem {
 	}
 
 	private getRecoverCodeDialogAfterPasswordVerification(userController: UserController) {
-		const dialog = Dialog.showRequestPasswordDialog({
+		const dialog = showRequestPasswordDialog({
 			action: (pw) => {
 				const hasRecoveryCode = !!userController.user.auth?.recoverCode
 

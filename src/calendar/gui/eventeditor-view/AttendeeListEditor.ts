@@ -26,7 +26,7 @@ import { hasPlanWithInvites } from "../eventeditor-model/CalendarNotificationMod
 import { Dialog } from "../../../gui/base/Dialog.js"
 
 import { createAttendingItems, iconForAttendeeStatus } from "../CalendarGuiUtils.js"
-import { PasswordField } from "../../../gui/base/PasswordField.js"
+import { PasswordField } from "../../../misc/passwords/PasswordField.js"
 
 export type AttendeeListEditorAttrs = {
 	/** the event that is currently being edited */

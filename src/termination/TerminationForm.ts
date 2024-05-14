@@ -10,7 +10,7 @@ import { liveDataAttrs } from "../gui/AriaUtils.js"
 import { LoginButton } from "../gui/base/buttons/LoginButton.js"
 import { Button, ButtonType } from "../gui/base/Button.js"
 import { LeavingUserSurveyData, showLeavingUserSurveyWizard } from "../subscription/LeavingUserSurveyWizard.js"
-import { PasswordField } from "../gui/base/PasswordField.js"
+import { PasswordField } from "../misc/passwords/PasswordField.js"
 
 export interface TerminationFormAttrs {
 	onSubmit: (surveyData: LeavingUserSurveyData | null) => unknown

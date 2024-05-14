@@ -86,7 +86,7 @@ import { BannerButtonAttrs, InfoBanner } from "../../gui/base/InfoBanner.js"
 import { isCustomizationEnabledForCustomer } from "../../api/common/utils/CustomerUtils.js"
 import { isOfflineError } from "../../api/common/utils/ErrorUtils.js"
 import { TranslationService } from "../../api/entities/tutanota/Services.js"
-import { PasswordField } from "../../gui/base/PasswordField.js"
+import { PasswordField } from "../../misc/passwords/PasswordField.js"
 
 export type MailEditorAttrs = {
 	model: SendMailModel
