@@ -35,8 +35,8 @@ import { SystemPermissionHandler } from "../native/main/SystemPermissionHandler.
 export class ContactImporter {
 	constructor(private readonly contactFacade: ContactFacade, private readonly systemPermissionHandler: SystemPermissionHandler) {}
 
-	async importContactsFromFile(vCardData: string, contactListId: string) {
-		const vCardList = vCardFileToVCards(vCardData)
+	async importContactsFromFile(vCardData: string | string[], contactListId: string) {
+		const vCardList = Array.isArray(vCardData) ? ContactImporter.combineVCardData(vCardData) : vCardFileToVCards(vCardData)
 
 		if (vCardList == null) throw new UserError("importVCardError_msg")
 
@@ -51,6 +51,11 @@ export class ContactImporter {
 			},
 			"importVCard_action",
 		)
+	}
+
+	private static combineVCardData(vCardData: string[]): string[] | null {
+		const combinedVCardData = vCardData.flatMap((itemData) => vCardFileToVCards(itemData))
+		return combinedVCardData.filter((vCard) => vCard != null) as string[]
 	}
 
 	async importContacts(contacts: ReadonlyArray<Contact>, contactListId: string) {

@@ -13,9 +13,9 @@ export class ContactFacade {
 		try {
 			await this.entityClient.setupMultipleEntities(contactListId, contacts)
 		} catch (e) {
-			console.log(e)
+			console.error(e)
 			if (e instanceof SetupMultipleError) {
-				console.log("Importing contacts failed", e)
+				console.error("Importing contacts failed", e)
 				throw new ImportError(e.errors[0], "Could not import all contacts", e.failedInstances.length)
 			}
 			throw e
