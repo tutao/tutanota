@@ -11,6 +11,7 @@ pub enum JsonElement {
     Number(i32),
     Dict(HashMap<String, JsonElement>),
     Array(Vec<JsonElement>),
+    Bool(bool),
 }
 
 impl JsonElement {

@@ -115,6 +115,12 @@ source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "d468802bab17cbc0cc575e9b053f41e72aa36bfa6b7f55e3529ffa43161b97fa"
 
 [[package]]
+name = "base64"
+version = "0.22.1"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "72b3254f16251a8381aa12e40e3c4d2f0199f8c6508fbecb9d91f575e0fbb8c6"
+
+[[package]]
 name = "basic-toml"
 version = "0.1.8"
 source = "registry+https://github.com/rust-lang/crates.io-index"
@@ -505,6 +511,7 @@ name = "tuta-sdk"
 version = "0.1.0"
 dependencies = [
  "async-trait",
+ "base64",
  "serde",
  "serde_json",
  "thiserror",

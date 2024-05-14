@@ -12,6 +12,7 @@ async-trait = "0.1.77"
 serde = "1.0.201"
 serde_json = "1.0.117"
 thiserror = "1.0.60"
+base64 = "0.22.1"
 
 [build-dependencies]
 uniffi = { git = "https://github.com/mozilla/uniffi-rs.git", rev = "13a1c559cb3708eeca40dcf95dc8b3ccccf3b88c", features = ["build"] }

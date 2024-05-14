@@ -339,60 +339,11 @@ class MainActivity : FragmentActivity() {
 		}
 		firstLoaded = true
 
-
-		val restClient: RestClient = object : RestClient {
-			val okHttpClient = OkHttpClient()
-				.newBuilder()
-				.connectTimeout(30, TimeUnit.SECONDS)
-				.writeTimeout(20, TimeUnit.SECONDS)
-				.readTimeout(20, TimeUnit.SECONDS)
-				.addInterceptor { chain ->
-					val request = chain.request()
-					Log.d("RestClient", "REQUEST ${request.method} ${request.url}")
-					val response = chain.proceed(request)
-					Log.d("RestClient", "RESPONSE ${request.method} ${request.url} ${response.code}")
-					response
-				}
-				.build()
-
-			override suspend fun requestBinary(
-				url: String,
-				method: HttpMethod,
-				options: RestClientOptions
-			): ByteArray? {
-				val request = Request.Builder()
-					.url(url)
-					.method(method.name, options.body?.let(::JsonRequestBody))
-					.apply {
-						for ((headerName, headerValue) in options.headers) {
-							addHeader(headerName, headerValue)
-						}
-					}
-					.build()
-
-				val response = okHttpClient.newCall(request).execute()
-				return response.body?.bytes()
-			}
-
-		}
 		lifecycleScope.launch {
-			val sdk = Sdk(
-				"http://ivk:9000",
-				restClient,
-			)
-			sdk.login("Y9yOcj8AAcABbcy1wg_Iw5E4-E1EA-mCDw")
-			val entityClient = sdk.entityClient()
-			val typeRef = TypeRef("tutanota", "Mail")
-			val result = entityClient.loadListElement(typeRef, IdTuple("NxmDRZ0--k-0", "NxmDSRW----0"))
-			Log.d(TAG, "LOADED RESULT FROM TUTASDK $result ")
-			val sender = ((result.get("sender") as JsonElement.Dict).v1.get("address") as JsonElement.String).v1
-			Log.d(TAG, "LOADED SENDER FROM TUTASDK $sender")
-
-			val updatedMail = result.toMutableMap()
-			updatedMail["unread"] = JsonElement.String("1")
-			entityClient.update(typeRef, updatedMail)
+			runSdkExample()
 		}
 	}
+
 
 	/** @return "result" extra value */
 	suspend fun startWebauthn(uri: Uri): String {
