@@ -701,10 +701,10 @@ export class LoginFacade {
 			const user = await this.noncachingEntityClient.load(UserTypeRef, userId)
 			await this.checkOutdatedVerifier(user, accessToken, userPassphraseKey)
 
-			const wasPartiallyLoggedIn = this.userFacade.isPartiallyLoggedIn()
-			if (!wasPartiallyLoggedIn) {
-				this.userFacade.setUser(user)
-			}
+			// this may be the second time we set user in case we had a partial offline login before
+			// we do it unconditionally here, to make sure we unlock the latest user group key right below
+			this.userFacade.setUser(user)
+
 			const wasFullyLoggedIn = this.userFacade.isFullyLoggedIn()
 
 			this.userFacade.unlockUserGroupKey(userPassphraseKey)
