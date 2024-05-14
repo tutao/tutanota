@@ -23,7 +23,7 @@ import { UserFacade } from "../../../../../src/api/worker/facades/UserFacade"
 import { ChangeKdfService, SaltService, SessionService } from "../../../../../src/api/entities/sys/Services"
 import { Credentials } from "../../../../../src/misc/credentials/Credentials"
 import { defer, DeferredObject, uint8ArrayToBase64 } from "@tutao/tutanota-utils"
-import { AccountType, DEFAULT_KDF_TYPE, KdfType } from "../../../../../src/api/common/TutanotaConstants"
+import { AccountType, Const, DEFAULT_KDF_TYPE, KdfType } from "../../../../../src/api/common/TutanotaConstants"
 import { AccessExpiredError, ConnectionError, NotAuthenticatedError } from "../../../../../src/api/common/error/RestError"
 import { SessionType } from "../../../../../src/api/common/SessionType"
 import { HttpMethod } from "../../../../../src/api/common/EntityFunctions"
@@ -753,6 +753,7 @@ o.spec("LoginFacadeTest", function () {
 			user.salt = SALT
 
 			when(userFacade.getCurrentUserGroupKey()).thenReturn({ object: [1, 2, 3, 4], version: 0 })
+			Const.EXECUTE_KDF_MIGRATION = true
 			await facade.migrateKdfType(KdfType.Argon2id, "hunter2", user)
 
 			verify(
@@ -771,6 +772,9 @@ o.spec("LoginFacadeTest", function () {
 					}),
 				),
 			)
+		})
+		o.afterEach(() => {
+			Const.EXECUTE_KDF_MIGRATION = false
 		})
 	})
 })
