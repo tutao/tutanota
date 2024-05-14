@@ -386,7 +386,8 @@ o.spec("LoginFacadeTest", function () {
 				await deferred.promise
 
 				// we would love to prove that part of the login is done async but without injecting some asyncExecutor it's a bit tricky to do
-				o(calls).deepEquals(["setUser", "sessionService"])
+				// we assume to have seUser twice, once using caching entity client and once using non caching entity client.
+				o(calls).deepEquals(["setUser", "sessionService", "setUser"])
 
 				// just wait for the async login to not bleed into other test cases or to not randomly fail
 				await fullLoginDeferred.promise
