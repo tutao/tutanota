@@ -9,7 +9,7 @@ import { locator } from "../api/main/MainLocator"
 import { getEtId } from "../api/common/utils/EntityUtils"
 import { CloseEventBusOption } from "../api/common/TutanotaConstants.js"
 import { SurveyData } from "../api/entities/sys/TypeRefs.js"
-import { PasswordField } from "../gui/base/PasswordField.js"
+import { PasswordField } from "../misc/passwords/PasswordField.js"
 
 export function showDeleteAccountDialog(surveyData: SurveyData | null = null) {
 	let takeover = ""

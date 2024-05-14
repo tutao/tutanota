@@ -75,7 +75,7 @@ import { Icons } from "../gui/base/icons/Icons.js"
 import { ButtonSize } from "../gui/base/ButtonSize.js"
 import { locator } from "../api/main/MainLocator.js"
 import { formatDate } from "../misc/Formatter.js"
-import { PasswordField } from "../gui/base/PasswordField.js"
+import { PasswordField } from "../misc/passwords/PasswordField.js"
 
 assertMainOrNode()
 

@@ -12,7 +12,7 @@ import { theme } from "../gui/theme"
 import { px, size } from "../gui/size.js"
 import { UsageTest, UsageTestController } from "@tutao/tutanota-usagetests"
 import Stream from "mithril/stream"
-import { PasswordField, PasswordFieldAttrs } from "../gui/base/PasswordField.js"
+import { PasswordField, PasswordFieldAttrs } from "../misc/passwords/PasswordField.js"
 
 assertMainOrNode()
 

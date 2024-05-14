@@ -24,7 +24,7 @@ import { BaseTopLevelView } from "../gui/BaseTopLevelView.js"
 import { locator } from "../api/main/MainLocator.js"
 import { LoginScreenHeader } from "../gui/LoginScreenHeader.js"
 import { LoginButton } from "../gui/base/buttons/LoginButton.js"
-import { PasswordField } from "../gui/base/PasswordField.js"
+import { PasswordField } from "../misc/passwords/PasswordField.js"
 
 assertMainOrNode()
 

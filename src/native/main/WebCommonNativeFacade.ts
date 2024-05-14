@@ -9,6 +9,7 @@ import m from "mithril"
 import { Dialog } from "../../gui/base/Dialog.js"
 import { FileReference } from "../../api/common/utils/FileUtils.js"
 import { AttachmentType, getAttachmentType } from "../../gui/AttachmentBubble.js"
+import { showRequestPasswordDialog } from "../../misc/passwords/PasswordRequestDialog.js"
 
 export class WebCommonNativeFacade implements CommonNativeFacade {
 	/**
@@ -153,7 +154,7 @@ export class WebCommonNativeFacade implements CommonNativeFacade {
 		const { Dialog } = await import("../../gui/base/Dialog.js")
 
 		return new Promise((resolve, reject) => {
-			const dialog = Dialog.showRequestPasswordDialog({
+			const dialog = showRequestPasswordDialog({
 				title,
 				action: async (pw) => {
 					resolve(pw)
