@@ -1725,7 +1725,12 @@ export default {
 		"yourFolders_action": "YOUR FOLDERS",
 		"yourMessage_label": "Your message",
 		"you_label": "You",
-		"storeSubscription_msg": "Store made subscriptions should be directly managed in the store",
-		"storeMultiSubscriptionError_msg": "You can't have multiple subscriptions with the same Store Account"
+		"storeSubscription_msg": "Store made subscriptions should be directly managed in the AppStore.\nSee {AppStorePayment}",
+		"storeMultiSubscriptionError_msg": "You can't have multiple subscriptions with the same Apple ID.\nSee {AppStorePayment}",
+		"storeNoSubscription_msg": "There's no subscription able to be changed on the current Apple ID.\nSee {AppStorePayment}",
+		"storePaymentMethodChange_msg": "You can't change you payment method while subscribed through AppStore.\nSee {AppStorePaymentChange}",
+		"storeDowngradeOrResubscribe_msg": "Your current AppStore subscription is expired. Do you want to downgrade your account or resubscribe to keep your paid features?\nSee {AppStoreDowngrade}",
+		"resubscribe_action": "Resubscribe",
+		"downgrade_action": "Downgrade"
 	}
 }

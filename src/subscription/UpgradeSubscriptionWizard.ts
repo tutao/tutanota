@@ -1,20 +1,21 @@
 import type { Hex } from "@tutao/tutanota-utils"
 import { defer } from "@tutao/tutanota-utils"
 import { AccountingInfo, Customer } from "../api/entities/sys/TypeRefs.js"
-import { InvoiceData, PaymentData, defaultPaymentMethod } from "../api/common/TutanotaConstants"
 import {
 	AvailablePlans,
 	AvailablePlanType,
+	defaultPaymentMethod,
 	getPaymentMethodType,
+	InvoiceData,
 	NewPaidPlans,
-	PaymentMethodType as PaymentMethod,
+	PaymentData,
 	PlanType,
 } from "../api/common/TutanotaConstants"
 import { getByAbbreviation } from "../api/common/CountryList"
 import { UpgradeSubscriptionPage, UpgradeSubscriptionPageAttrs } from "./UpgradeSubscriptionPage"
 import m from "mithril"
 import stream from "mithril/stream"
-import type { TranslationKey, TranslationText } from "../misc/LanguageViewModel"
+import { InfoLink, lang, TranslationKey, TranslationText } from "../misc/LanguageViewModel"
 import { createWizardDialog, wizardPageWrapper } from "../gui/base/WizardDialog.js"
 import { InvoiceAndPaymentDataPage, InvoiceAndPaymentDataPageAttrs } from "./InvoiceAndPaymentDataPage"
 import { UpgradeCongratulationsPage, UpgradeCongratulationsPageAttrs } from "./UpgradeCongratulationsPage.js"
@@ -190,7 +191,7 @@ export async function loadSignupWizard(
 		referralCode,
 		multipleUsersAllowed: false,
 		acceptedPlans,
-		msg: hasAppStoreSubscription ? "storeMultiSubscriptionError_msg" : null,
+		msg: hasAppStoreSubscription ? () => lang.get("storeMultiSubscriptionError_msg", { "{AppStorePayment}": InfoLink.AppStorePayment }) : null,
 	}
 
 	const invoiceAttrs = new InvoiceAndPaymentDataPageAttrs(signupData)

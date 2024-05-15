@@ -111,7 +111,6 @@ export class PaymentViewer implements UpdatableSettingsViewer {
 			? getPaymentMethodName(getPaymentMethodType(neverNull(this._accountingInfo))) + " " + getPaymentMethodInfoText(neverNull(this._accountingInfo))
 			: lang.get("loading_msg")
 
-		// FIXME: add iOS payment method options here
 		return m(TextField, {
 			label: "paymentMethod_label",
 			value: paymentMethod,
@@ -120,16 +119,31 @@ export class PaymentViewer implements UpdatableSettingsViewer {
 			injectionsRight: () =>
 				m(IconButton, {
 					title: "paymentMethod_label",
-					// iOS app doesn't work with PayPal button or 3dsecure redirects
-					click: createNotAvailableForFreeClickHandler(
-						NewPaidPlans,
-						() => this._accountingInfo && this.changePaymentMethod(),
-						() => !isIOSApp() && locator.logins.getUserController().isPremiumAccount(),
-					),
+					click: (e, dom) => this.handlePlanChangeClick(e, dom),
 					icon: Icons.Edit,
 					size: ButtonSize.Compact,
 				}),
 		})
+	}
+
+	private handlePlanChangeClick(e: MouseEvent, dom: HTMLElement) {
+		if (isIOSApp()) {
+			return Dialog.message("notAvailableInApp_msg")
+		} else if (this._accountingInfo && getPaymentMethodType(this._accountingInfo) === PaymentMethodType.AppStore) {
+			return Dialog.message(() =>
+				lang.get("storePaymentMethodChange_msg", {
+					"{AppStorePaymentChange}": InfoLink.AppStorePaymentChange,
+				}),
+			)
+		}
+
+		const showPaymentMethodDialog = createNotAvailableForFreeClickHandler(
+			NewPaidPlans,
+			() => this._accountingInfo && this.changePaymentMethod(),
+			() => !isIOSApp() && locator.logins.getUserController().isPremiumAccount(),
+		)
+
+		showPaymentMethodDialog(e, dom)
 	}
 
 	private changeInvoiceData() {
@@ -152,7 +166,11 @@ export class PaymentViewer implements UpdatableSettingsViewer {
 		const isAppStorePayment = this._accountingInfo && getPaymentMethodType(this._accountingInfo) === PaymentMethodType.AppStore
 
 		if (isAppStorePayment) {
-			return Dialog.message(() => "Store made subscriptions should be directly managed in the store").then(() => {
+			return Dialog.message(() =>
+				lang.get("storeSubscription_msg", {
+					"{AppStorePayment}": InfoLink.AppStorePayment,
+				}),
+			).then(() => {
 				window.open("https://apps.apple.com/account/subscriptions", "_blank")
 			})
 		}

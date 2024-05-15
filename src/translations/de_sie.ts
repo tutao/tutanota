@@ -1729,7 +1729,12 @@ export default {
 		"yourFolders_action": "Ihre ORDNER",
 		"yourMessage_label": "Ihre Nachricht",
 		"you_label": "Sie",
-		"storeSubscription_msg": "Die im Geschäft abgeschlossenen Abonnements sollten direkt im Geschäft verwaltet werden.",
-		"storeMultiSubscriptionError_msg": "Sie können nicht mehrere Abonnements mit der gleichen Store-Konto haben"
+		"storeSubscription_msg": "Über den Store erstellte Abonnemente sollten direkt im AppStore verwaltet werden.",
+		"storeMultiSubscriptionError_msg": "Sie können nicht mehrere Abonnements mit der gleichen Apple-ID haben",
+		"storeNoSubscription_msg": "Es gibt kein Abonnement, das mit der aktuellen Apple-ID geändert werden kann.\nSiehe {AppStorePayment}",
+		"storePaymentMethodChange_msg": "Sie können Ihre Zahlungsmethode nicht ändern, solange Sie über den AppStore angemeldet sind.\nSiehe {AppStorePaymentChange}",
+		"storeDowngradeOrResubscribe_msg": "Ihr aktuelles AppStore-Abonnement ist abgelaufen. Möchten Sie Ihr Konto herabstufen oder ein neues Abonnement abschließen, um Ihre bezahlten Funktionen zu behalten?\nSiehe {AppStoreDowngrade}",
+		"resubscribe_action": "Erneut anmelden",
+		"downgrade_action": "Herabstufung"
 	}
 }
