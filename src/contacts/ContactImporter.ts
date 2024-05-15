@@ -234,7 +234,12 @@ export function showContactImportDialog(contacts: Contact[], okAction: (dialog: 
 						type: ButtonType.Primary,
 						label: "import_action",
 						click: () => {
-							okAction(dialog, [...viewModel.getSelectedContacts()])
+							const selectedContacts = [...viewModel.getSelectedContacts()]
+							if (selectedContacts.length <= 0) {
+								Dialog.message("noContact_msg")
+							} else {
+								okAction(dialog, selectedContacts)
+							}
 						},
 					},
 				],
