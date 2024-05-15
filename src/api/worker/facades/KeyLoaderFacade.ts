@@ -57,6 +57,7 @@ export class KeyLoaderFacade {
 
 	async loadSymUserGroupKey(userGroupKeyVersion: number): Promise<AesKey> {
 		// we provide the current user group key to break a possibly infinite recursion
+		console.log("KeyLoaderFacade: loadSymUserGroupKey")
 		return this.loadSymGroupKey(this.userFacade.getUserGroupId(), userGroupKeyVersion, this.userFacade.getCurrentUserGroupKey())
 	}
 

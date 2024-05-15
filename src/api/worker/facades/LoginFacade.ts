@@ -201,7 +201,7 @@ export class LoginFacade {
 	}
 
 	async resetSession(): Promise<void> {
-		this.eventBusClient.close(CloseEventBusOption.Terminate)
+		await this.eventBusClient.close(CloseEventBusOption.Terminate)
 		await this.deInitCache()
 		this.userFacade.reset()
 	}
@@ -729,7 +729,7 @@ export class LoginFacade {
 			this.loginListener.onFullLoginSuccess(sessionType, cacheInfo)
 			return { user, accessToken, userGroupInfo }
 		} catch (e) {
-			this.resetSession()
+			await this.resetSession()
 			throw e
 		}
 	}

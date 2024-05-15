@@ -35,6 +35,7 @@ export class UserFacade implements AuthDataProvider {
 	// 2. User is set
 	// 3. UserGroupKey is unlocked
 	setAccessToken(accessToken: string | null) {
+		console.log("UserFacade: set accesSToken")
 		this.accessToken = accessToken
 	}
 
@@ -43,6 +44,7 @@ export class UserFacade implements AuthDataProvider {
 	}
 
 	setUser(user: User) {
+		console.log("UserFacade: set user")
 		if (this.accessToken == null) {
 			throw new ProgrammingError("invalid state: no access token")
 		}
@@ -50,6 +52,7 @@ export class UserFacade implements AuthDataProvider {
 	}
 
 	unlockUserGroupKey(userPassphraseKey: AesKey) {
+		console.log("UserFacade: unlockUserGroupKey")
 		if (this.user == null) {
 			throw new ProgrammingError("Invalid state: no user")
 		}
@@ -61,6 +64,7 @@ export class UserFacade implements AuthDataProvider {
 	}
 
 	updateUser(user: User) {
+		console.log("UserFacade: updateUser", user)
 		if (this.user == null) {
 			throw new ProgrammingError("Update user is called without logging in. This function is not for you.")
 		}
@@ -99,6 +103,7 @@ export class UserFacade implements AuthDataProvider {
 			if (this.isPartiallyLoggedIn()) {
 				throw new LoginIncompleteError("userGroupKey not available")
 			} else {
+				console.log("UserFacade - getCurrentUserGroupKey - ProgrammingError", new Error())
 				throw new ProgrammingError("Invalid state: userGroupKey is not available")
 			}
 		}
@@ -158,7 +163,7 @@ export class UserFacade implements AuthDataProvider {
 
 	setLeaderStatus(status: WebsocketLeaderStatus) {
 		this.leaderStatus = status
-		console.log("New leader status set:", status.leaderStatus)
+		console.log("UserFacade: New leader status set:", status.leaderStatus)
 	}
 
 	isLeader(): boolean {
@@ -166,6 +171,7 @@ export class UserFacade implements AuthDataProvider {
 	}
 
 	reset() {
+		console.log("UserFacade: reset user")
 		this.user = null
 		this.accessToken = null
 		this.currentUserGroupKey = null
