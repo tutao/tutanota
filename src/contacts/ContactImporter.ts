@@ -1,5 +1,5 @@
 import { Dialog, DialogType } from "../gui/base/Dialog.js"
-import { assert, assertNotNull, getFirstOrThrow, NBSP, ofClass, promiseMap } from "@tutao/tutanota-utils"
+import { assert, assertNotNull, getFirstOrThrow, ofClass, promiseMap } from "@tutao/tutanota-utils"
 import { locator } from "../api/main/MainLocator.js"
 import { vCardFileToVCards, vCardListToContacts } from "./VCardImporter.js"
 import { ImportError } from "../api/common/error/ImportError.js"
@@ -17,10 +17,9 @@ import {
 	createContactRelationship,
 	createContactWebsite,
 } from "../api/entities/tutanota/TypeRefs.js"
-import m, { Children } from "mithril"
-import { List, ListAttrs, ListLoadingState, MultiselectMode, RenderConfig, ViewHolder } from "../gui/base/List.js"
-import { px, size } from "../gui/size.js"
-import { getContactListName } from "./model/ContactUtils.js"
+import m from "mithril"
+import { List, ListAttrs, ListLoadingState, MultiselectMode, RenderConfig } from "../gui/base/List.js"
+import { size } from "../gui/size.js"
 import { UserError } from "../api/main/UserError.js"
 import { DialogHeaderBar, DialogHeaderBarAttrs } from "../gui/base/DialogHeaderBar.js"
 import { ButtonType } from "../gui/base/Button.js"
@@ -31,6 +30,7 @@ import { isoDateToBirthday } from "../api/common/utils/BirthdayUtils.js"
 import { ContactBook } from "../native/common/generatedipc/ContactBook.js"
 import { PermissionType } from "../native/common/generatedipc/PermissionType.js"
 import { SystemPermissionHandler } from "../native/main/SystemPermissionHandler.js"
+import { KindaContactRow } from "./view/ContactListView.js"
 
 export class ContactImporter {
 	constructor(private readonly contactFacade: ContactFacade, private readonly systemPermissionHandler: SystemPermissionHandler) {}
@@ -45,9 +45,9 @@ export class ContactImporter {
 
 		return showContactImportDialog(
 			contacts,
-			(dialog) => {
+			(dialog, selectedContacts) => {
 				dialog.close()
-				this.importContacts(contacts, contactListId)
+				this.importContacts(selectedContacts, contactListId)
 			},
 			"importVCard_action",
 		)
@@ -121,9 +121,9 @@ export class ContactImporter {
 
 		showContactImportDialog(
 			contactsToImport,
-			(dialog) => {
+			(dialog, selectedContacts) => {
 				dialog.close()
-				importer.importContacts(contactsToImport, assertNotNull(contactListId))
+				importer.importContacts(selectedContacts, assertNotNull(contactListId))
 			},
 			"importContacts_label",
 		)
@@ -202,17 +202,14 @@ export class ContactImporter {
  * @param contacts The contact list to be previewed
  * @param okAction The action to be executed when the user press the import button
  */
-export function showContactImportDialog(contacts: Contact[], okAction: (dialog: Dialog) => unknown, title: TranslationText) {
-	const renderConfig: RenderConfig<Contact, ImportContactRowHolder> = {
+export function showContactImportDialog(contacts: Contact[], okAction: (dialog: Dialog, selectedContacts: Contact[]) => unknown, title: TranslationText) {
+	const viewModel: ContactImportDialogViewModel = new ContactImportDialogViewModel()
+	const renderConfig: RenderConfig<Contact, KindaContactRow> = {
 		itemHeight: size.list_row_height,
-		multiselectionAllowed: MultiselectMode.Disabled,
+		multiselectionAllowed: MultiselectMode.Enabled,
 		swipe: null,
 		createElement: (dom) => {
-			const row: ImportContactRowHolder = new ImportContactRowHolder(dom)
-
-			m.render(dom, row.render())
-
-			return row
+			return new KindaContactRow(dom, (selectedContact: Contact) => viewModel.selectContact(selectedContact))
 		},
 	}
 
@@ -235,84 +232,60 @@ export function showContactImportDialog(contacts: Contact[], okAction: (dialog: 
 						type: ButtonType.Primary,
 						label: "import_action",
 						click: () => {
-							okAction(dialog)
+							okAction(dialog, [...viewModel.getSelectedContacts()])
 						},
 					},
 				],
 			} satisfies DialogHeaderBarAttrs),
 			/** variable-size child container that may be scrollable. */
 			m(
-				".dialog-max-height.plr-l.pb.text-break.nav-bg",
+				".dialog-max-height.plr-l.pb.text-break.nav-bg.plr-l",
 				m(
-					".plr-l",
-					m(
-						".mt-s",
-						m(
-							".flex.col.rel",
-							{
-								style: {
-									height: "80vh",
-								},
-							},
-							m(List, {
-								renderConfig,
-								state: {
-									items: contacts,
-									loadingStatus: ListLoadingState.Done,
-									loadingAll: false,
-									selectedItems: new Set(),
-									inMultiselect: false,
-									activeIndex: null,
-								},
-								onLoadMore() {},
-								onRangeSelectionTowards(item: Contact) {},
-								onRetryLoading() {},
-								onSingleSelection(item: any) {},
-								onSingleTogglingMultiselection(item: Contact) {},
-								onStopLoading() {},
-							} satisfies ListAttrs<Contact, ImportContactRowHolder>),
-						),
-					),
+					".flex.col.rel.mt-s",
+					{
+						style: {
+							height: "80vh",
+						},
+					},
+					m(List, {
+						renderConfig,
+						state: {
+							items: contacts,
+							loadingStatus: ListLoadingState.Done,
+							loadingAll: false,
+							selectedItems: viewModel.getSelectedContacts(),
+							inMultiselect: true,
+							activeIndex: null,
+						},
+						onLoadMore() {},
+						onRangeSelectionTowards(item: Contact) {},
+						onRetryLoading() {},
+						onSingleSelection(item: Contact) {
+							viewModel.selectContact(item)
+						},
+						onSingleTogglingMultiselection(item: Contact) {},
+						onStopLoading() {},
+					} satisfies ListAttrs<Contact, KindaContactRow>),
 				),
 			),
 		],
 	}).show()
 }
 
-class ImportContactRowHolder implements ViewHolder<Contact> {
-	private domName!: HTMLElement
-	private domAddress!: HTMLElement
+// Controls the selected contacts in `showContactImportDialog()`
+class ContactImportDialogViewModel {
+	private readonly selectedContacts: Set<Contact> = new Set()
 
-	entity: Contact | null = null
-
-	constructor(dom: HTMLElement) {
-		m.render(dom, this.render())
+	getSelectedContacts(): Set<Contact> {
+		return new Set(this.selectedContacts)
 	}
 
-	update(item: Contact) {
-		this.entity = item
-
-		this.domName.textContent = getContactListName(item)
-		this.domAddress.textContent = item.mailAddresses && item.mailAddresses.length > 0 ? item.mailAddresses[0].address : NBSP
-	}
-
-	render(): Children {
-		return m(
-			".flex.height-100p.pt-xs.items-center",
-			{
-				style: {
-					"max-height": px(size.list_row_height),
-					cursor: "auto",
-				},
-			},
-			m(".height-100p.list-bg.justify-center.border-radius.pl.pr.flex.col.overflow-hidden.flex-grow", [
-				m("p.b.m-0.text-ellipsis.badge-line-height.selectable", {
-					oncreate: (vnode) => (this.domName = vnode.dom as HTMLElement),
-				}),
-				m(".text-ellipsis.smaller.selectable", {
-					oncreate: (vnode) => (this.domAddress = vnode.dom as HTMLElement),
-				}),
-			]),
-		)
+	// Toggles the presence of a contact within the selected contacts
+	selectContact(selectedContact: Contact): void {
+		if (this.selectedContacts.has(selectedContact)) {
+			this.selectedContacts.delete(selectedContact)
+		} else {
+			this.selectedContacts.add(selectedContact)
+		}
 	}
 }
