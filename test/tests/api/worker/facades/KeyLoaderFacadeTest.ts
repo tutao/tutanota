@@ -36,6 +36,7 @@ o.spec("KeyLoaderFacadeTest", function () {
 	let keyCache: KeyCache
 	let userFacade: UserFacade
 	let entityClient: EntityClient
+	let nonCachingEntityClient: EntityClient
 	let pqFacade: PQFacade
 	let keyLoaderFacade: KeyLoaderFacade
 
@@ -55,8 +56,9 @@ o.spec("KeyLoaderFacadeTest", function () {
 		keyCache = new KeyCache()
 		userFacade = object()
 		entityClient = object()
+		nonCachingEntityClient = object()
 		pqFacade = new PQFacade(new WASMKyberFacade(await loadLibOQSWASM()))
-		keyLoaderFacade = new KeyLoaderFacade(keyCache, userFacade, entityClient)
+		keyLoaderFacade = new KeyLoaderFacade(keyCache, userFacade, entityClient, nonCachingEntityClient)
 
 		formerKeys = []
 		formerKeyPairsDecrypted = []
@@ -147,11 +149,29 @@ o.spec("KeyLoaderFacadeTest", function () {
 		})
 	})
 
-	o("loadKeyPair loads former key", async function (): Promise<void> {
-		for (let i = 0; i < FORMER_KEYS; i++) {
-			const keypair = (await keyLoaderFacade.loadKeypair(group._id, i)) as PQKeyPairs
-			o(keypair).deepEquals(formerKeyPairsDecrypted[i])
-		}
+	o.spec("loadKeyPair", function () {
+		o("loads former key.", async function (): Promise<void> {
+			for (let i = 0; i < FORMER_KEYS; i++) {
+				const keypair = (await keyLoaderFacade.loadKeypair(group._id, i)) as PQKeyPairs
+				o(keypair).deepEquals(formerKeyPairsDecrypted[i])
+			}
+			verify(nonCachingEntityClient.load(matchers.anything(), matchers.anything()), { times: 0 })
+		})
+		o("loads former key when reference is missing in cache", async function (): Promise<void> {
+			const cachedGroup = createTestEntity(GroupTypeRef, {
+				_id: "my group",
+				currentKeys,
+				formerGroupKeys: null,
+				groupKeyVersion: String(currentGroupKeyVersion),
+			})
+			when(entityClient.load(GroupTypeRef, group._id)).thenResolve(cachedGroup)
+			when(nonCachingEntityClient.load(GroupTypeRef, group._id)).thenResolve(group)
+
+			for (let i = 0; i < FORMER_KEYS; i++) {
+				const keypair = (await keyLoaderFacade.loadKeypair(group._id, i)) as PQKeyPairs
+				verify(nonCachingEntityClient.load(GroupTypeRef, group._id))
+			}
+		})
 	})
 
 	o("loadCurrentKeyPair", async function () {
@@ -161,10 +181,26 @@ o.spec("KeyLoaderFacadeTest", function () {
 	})
 
 	o.spec("loadSymGroupKey", function () {
-		o("loads and decrypts former keys", async function () {
+		o("loads and decrypts former keys.", async function () {
 			for (let i = 0; i < FORMER_KEYS; i++) {
 				const loadedGroupKey = await keyLoaderFacade.loadSymGroupKey(group._id, i)
 				o(loadedGroupKey).deepEquals(formerKeysDecrypted[i])
+			}
+			verify(nonCachingEntityClient.load(matchers.anything(), matchers.anything()), { times: 0 })
+		})
+		o("loads and decrypts former keys when reference is missing in cache", async function () {
+			const cachedGroup = createTestEntity(GroupTypeRef, {
+				_id: "my group",
+				currentKeys,
+				formerGroupKeys: null,
+				groupKeyVersion: String(currentGroupKeyVersion),
+			})
+			when(entityClient.load(GroupTypeRef, group._id)).thenResolve(cachedGroup)
+			when(nonCachingEntityClient.load(GroupTypeRef, group._id)).thenResolve(group)
+
+			for (let i = 0; i < FORMER_KEYS; i++) {
+				const loadedGroupKey = await keyLoaderFacade.loadSymGroupKey(group._id, i)
+				verify(nonCachingEntityClient.load(GroupTypeRef, group._id))
 			}
 		})
 
