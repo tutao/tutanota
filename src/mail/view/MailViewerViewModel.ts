@@ -965,11 +965,12 @@ export class MailViewerViewModel {
 	private async sanitizeMailBody(mail: Mail, blockExternalContent: boolean): Promise<SanitizedFragment> {
 		const { htmlSanitizer } = await import("../../misc/HtmlSanitizer")
 		const rawBody = this.getMailBody()
-		const urlified = await this.workerFacade.urlify(rawBody).catch((e) => {
-			console.warn("Failed to urlify mail body!", e)
-			return rawBody
-		})
-		const sanitizeResult = htmlSanitizer.sanitizeFragment(urlified, {
+		// Keeping this commented out because we want see the response
+		// const urlified = await this.workerFacade.urlify(rawBody).catch((e) => {
+		// 	console.warn("Failed to urlify mail body!", e)
+		// 	return rawBody
+		// })
+		const sanitizeResult = htmlSanitizer.sanitizeFragment(rawBody, {
 			blockExternalContent,
 			allowRelativeLinks: isTutanotaTeamMail(mail),
 		})
