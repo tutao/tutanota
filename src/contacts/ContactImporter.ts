@@ -31,6 +31,7 @@ import { ContactBook } from "../native/common/generatedipc/ContactBook.js"
 import { PermissionType } from "../native/common/generatedipc/PermissionType.js"
 import { SystemPermissionHandler } from "../native/main/SystemPermissionHandler.js"
 import { KindaContactRow } from "./view/ContactListView.js"
+import { SelectAllCheckbox } from "../gui/SelectAllCheckbox.js"
 
 export class ContactImporter {
 	constructor(private readonly contactFacade: ContactFacade, private readonly systemPermissionHandler: SystemPermissionHandler) {}
@@ -204,12 +205,13 @@ export class ContactImporter {
  */
 export function showContactImportDialog(contacts: Contact[], okAction: (dialog: Dialog, selectedContacts: Contact[]) => unknown, title: TranslationText) {
 	const viewModel: ContactImportDialogViewModel = new ContactImportDialogViewModel()
+	viewModel.selectContacts(contacts)
 	const renderConfig: RenderConfig<Contact, KindaContactRow> = {
 		itemHeight: size.list_row_height,
 		multiselectionAllowed: MultiselectMode.Enabled,
 		swipe: null,
 		createElement: (dom) => {
-			return new KindaContactRow(dom, (selectedContact: Contact) => viewModel.selectContact(selectedContact))
+			return new KindaContactRow(dom, (selectedContact: Contact) => viewModel.selectSingleContact(selectedContact))
 		},
 	}
 
@@ -238,8 +240,18 @@ export function showContactImportDialog(contacts: Contact[], okAction: (dialog: 
 				],
 			} satisfies DialogHeaderBarAttrs),
 			/** variable-size child container that may be scrollable. */
-			m(
-				".dialog-max-height.plr-l.pb.text-break.nav-bg.plr-l",
+			m(".dialog-max-height.plr-l.pb.text-break.nav-bg", [
+				m(
+					".list-bg.border-radius.mt-s.ml-s.mr-s",
+					m(SelectAllCheckbox, {
+						style: {
+							"padding-left": "0",
+						},
+						selected: viewModel.isAllContactsSelected(contacts),
+						selectNone: () => viewModel.clearSelection(),
+						selectAll: () => viewModel.selectContacts(contacts),
+					}),
+				),
 				m(
 					".flex.col.rel.mt-s",
 					{
@@ -261,13 +273,13 @@ export function showContactImportDialog(contacts: Contact[], okAction: (dialog: 
 						onRangeSelectionTowards(item: Contact) {},
 						onRetryLoading() {},
 						onSingleSelection(item: Contact) {
-							viewModel.selectContact(item)
+							viewModel.selectSingleContact(item)
 						},
 						onSingleTogglingMultiselection(item: Contact) {},
 						onStopLoading() {},
 					} satisfies ListAttrs<Contact, KindaContactRow>),
 				),
-			),
+			]),
 		],
 	}).show()
 }
@@ -280,12 +292,31 @@ class ContactImportDialogViewModel {
 		return new Set(this.selectedContacts)
 	}
 
+	// Compares the selected contacts against a list of contacts and returns whether they contain the same contacts
+	isAllContactsSelected(contacts: Contact[]): boolean {
+		const unselectedContacts = contacts.filter((contact) => !this.selectedContacts.has(contact))
+		return unselectedContacts.length <= 0
+	}
+
+	// Deselects all the selected contacts
+	clearSelection(): void {
+		this.selectedContacts.clear()
+	}
+
 	// Toggles the presence of a contact within the selected contacts
-	selectContact(selectedContact: Contact): void {
+	selectSingleContact(selectedContact: Contact): void {
 		if (this.selectedContacts.has(selectedContact)) {
 			this.selectedContacts.delete(selectedContact)
 		} else {
 			this.selectedContacts.add(selectedContact)
+		}
+	}
+
+	// Replaces the selected contacts with the provided contacts
+	selectContacts(contacts: Contact[]): void {
+		this.selectedContacts.clear()
+		for (const contact of contacts) {
+			this.selectedContacts.add(contact)
 		}
 	}
 }

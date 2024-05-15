@@ -3,6 +3,7 @@ import m from "mithril"
 import { lang } from "../misc/LanguageViewModel.js"
 
 export interface SelectAllCheckboxAttrs {
+	style?: Record<string, any>
 	selectAll: () => unknown
 	selectNone: () => unknown
 	selected: boolean
@@ -11,6 +12,7 @@ export interface SelectAllCheckboxAttrs {
 export const SelectAllCheckbox = pureComponent((attrs: SelectAllCheckboxAttrs) => {
 	return m(
 		".flex.items-center.pl-s.mlr.button-height",
+		{ style: attrs.style },
 		m("input.checkbox", {
 			type: "checkbox",
 			title: lang.get("selectAllLoaded_action"),
