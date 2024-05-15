@@ -5,7 +5,7 @@ import type { BuyOptionBoxAttr, BuyOptionDetailsAttr } from "./BuyOptionBox"
 import { BOX_MARGIN, BuyOptionBox, BuyOptionDetails, getActiveSubscriptionActionButtonReplacement } from "./BuyOptionBox"
 import type { SegmentControlItem } from "../gui/base/SegmentControl"
 import { SegmentControl } from "../gui/base/SegmentControl"
-import { formatMonthlyPrice, formatPrice, PaymentInterval, PriceAndConfigProvider } from "./PriceUtils"
+import { formatMonthlyPrice, PaymentInterval, PriceAndConfigProvider } from "./PriceUtils"
 import {
 	FeatureCategory,
 	FeatureListItem,
@@ -17,7 +17,7 @@ import {
 } from "./FeatureListProvider"
 import { ProgrammingError } from "../api/common/error/ProgrammingError"
 import { Button, ButtonType } from "../gui/base/Button.js"
-import { NBSP, assertNonNull, assertNotNull, downcast, lazy, neverNull } from "@tutao/tutanota-utils"
+import { downcast, lazy, NBSP } from "@tutao/tutanota-utils"
 import {
 	AvailablePlanType,
 	HighlightedPlans,
@@ -30,7 +30,6 @@ import {
 import { px } from "../gui/size.js"
 import { LoginButton, LoginButtonAttrs } from "../gui/base/buttons/LoginButton.js"
 import { isIOSApp } from "../api/common/Env"
-import { locator } from "../api/main/MainLocator"
 
 const BusinessUseItems: SegmentControlItem<boolean>[] = [
 	{
@@ -80,10 +79,6 @@ export class SubscriptionSelector implements Component<SubscriptionSelectorAttr>
 		[PlanType.Advanced]: false,
 		[PlanType.Unlimited]: false,
 		All: false,
-	}
-
-	constructor() {
-		console.log("hello world")
 	}
 
 	oninit(vnode: Vnode<SubscriptionSelectorAttr>): any {

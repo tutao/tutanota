@@ -419,7 +419,7 @@ export class SettingsView extends BaseTopLevelView implements TopLevelView<Setti
 						"adminSubscription_action",
 						() => BootIcons.Premium,
 						"subscription",
-						() => new SubscriptionViewer(currentPlanType, locator.mobilePaymentsFacade),
+						() => new SubscriptionViewer(currentPlanType, isIOSApp() ? locator.mobilePaymentsFacade : null),
 						undefined,
 					),
 				)
