@@ -5,13 +5,27 @@ public class IosMobilePaymentsFacade: MobilePaymentsFacade {
 	private let ALL_PURCHASEABLE_PLANS = ["revolutionary", "legend"]
 	private let MOBILE_PAYMENT_DOMAIN = "de.tutao.tutanota.MobilePayment"
 
-	public func checkLastTransactionOwner(_ customerIdBytes: DataWrapper) async throws -> Bool {
-		try await Transaction.all.contains { transaction in
-			let transactionInfo = try transaction.payloadValue
-			let uuid = customerIdToUUID(customerIdBytes.data)
-			let isSameOwner = transactionInfo.appAccountToken == uuid
-			return isSameOwner
+	public func hasOngoingAppStoreSubsciption(_ customerIdBytes: DataWrapper?) async throws -> MobilePaymentSubscriptionOwnership {
+		var currentResult = MobilePaymentSubscriptionOwnership.no_subscription
+		var entitlementIterator = Transaction.currentEntitlements.makeAsyncIterator()
+
+		if let transaction = await entitlementIterator.next() {
+			if let customerBytes = customerIdBytes {
+				let transactionInfo = try transaction.payloadValue
+				let uuid = customerIdToUUID(customerBytes.data)
+				let isSameOwner = transactionInfo.appAccountToken == uuid
+
+				if isSameOwner {
+					currentResult = MobilePaymentSubscriptionOwnership.owner
+				} else {
+					currentResult = MobilePaymentSubscriptionOwnership.not_owner
+				}
+			} else {
+				currentResult = MobilePaymentSubscriptionOwnership.not_owner
+			}
 		}
+
+		return currentResult
 	}
 
 	public func getPlanPrices() async throws -> [MobilePlanPrice] {
@@ -63,11 +77,14 @@ public class IosMobilePaymentsFacade: MobilePaymentsFacade {
 		switch result {
 		case .success(let verification):
 			let transaction = Self.checkVerified(verification)
-			
 			let id = transaction.id
 
 			if transaction.appAccountToken != uuid {
-				throw TUTErrorFactory.createError(withDomain: MOBILE_PAYMENT_DOMAIN, message: "Apparently succeeded buying, but actually got a mismatched customer UUID (got \(transaction.appAccountToken?.uuidString ?? "<null>"), expected \(uuid))")
+				throw TUTErrorFactory.createError(
+					withDomain: MOBILE_PAYMENT_DOMAIN,
+					message:
+						"Apparently succeeded buying, but actually got a mismatched customer UUID (got \(transaction.appAccountToken?.uuidString ?? "<null>"), expected \(uuid)); expires \(transaction.expirationDate!)"
+				)
 			}
 
 			return MobilePaymentResult(

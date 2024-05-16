@@ -28,7 +28,7 @@ public protocol MobilePaymentsFacade {
 	/**
 	 * Check if the latest transaction using the current Store Account belongs to the user
 	 */
-	func checkLastTransactionOwner(
-		_ customerIdBytes: DataWrapper
-	) async throws -> Bool
+	func hasOngoingAppStoreSubsciption(
+		_ customerIdBytes: DataWrapper?
+	) async throws -> MobilePaymentSubscriptionOwnership
 }

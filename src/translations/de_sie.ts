@@ -1729,6 +1729,7 @@ export default {
 		"yourFolders_action": "Ihre ORDNER",
 		"yourMessage_label": "Ihre Nachricht",
 		"you_label": "Sie",
-		"storeSubscription_msg": "Die im Geschäft abgeschlossenen Abonnements sollten direkt im Geschäft verwaltet werden."
+		"storeSubscription_msg": "Die im Geschäft abgeschlossenen Abonnements sollten direkt im Geschäft verwaltet werden.",
+		"storeMultiSubscriptionError_msg": "Sie können nicht mehrere Abonnements mit der gleichen Store-Konto haben"
 	}
 }

@@ -31,7 +31,7 @@ import StoreKit
 	}
 
 	fileprivate func start() {
-		spawnTransactionFinisher();
+		spawnTransactionFinisher()
 
 		let userPreferencesProvider = UserPreferencesProviderImpl()
 		let notificationStorage = NotificationStorage(userPreferencesProvider: userPreferencesProvider)
@@ -138,14 +138,15 @@ import StoreKit
 		do { try FileUtils.deleteSharedStorage() } catch { TUTSLog("failed to delete shared storage on shutdown: \(error)") }
 	}
 
-	// everything is handled on the server. nothing to do here
+	// everything is handled on the server. nothing to do here (should run infinitely in the background)o
 	private func spawnTransactionFinisher() -> Task<Void, Error> {
 		Task.detached {
 			for await result in Transaction.updates {
 				let transaction = IosMobilePaymentsFacade.checkVerified(result)
-				TUTSLog("finishing transaction \(transaction.id)")
 				await transaction.finish()
+				TUTSLog("finished transaction \(transaction.id)")
 			}
+			TUTSLog("unclogged all transactions 🪠")
 		}
 	}
 }
