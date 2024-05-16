@@ -2,6 +2,7 @@
 
 import { MobilePaymentResult } from "./MobilePaymentResult.js"
 import { MobilePlanPrice } from "./MobilePlanPrice.js"
+import { MobilePaymentSubscriptionOwnership } from "./MobilePaymentSubscriptionOwnership.js"
 /**
  * Operations for handling mobile payments.
  */
@@ -24,5 +25,5 @@ export interface MobilePaymentsFacade {
 	/**
 	 * Check if the latest transaction using the current Store Account belongs to the user
 	 */
-	checkLastTransactionOwner(customerIdBytes: Uint8Array): Promise<boolean>
+	hasOngoingAppStoreSubsciption(customerIdBytes: Uint8Array | null): Promise<MobilePaymentSubscriptionOwnership>
 }

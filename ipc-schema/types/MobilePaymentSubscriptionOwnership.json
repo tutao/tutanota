@@ -1,0 +1,5 @@
+{
+	"name": "MobilePaymentSubscriptionOwnership",
+	"type": "enum",
+	"values": ["Owner", "NotOwner", "NoSubscription"]
+}

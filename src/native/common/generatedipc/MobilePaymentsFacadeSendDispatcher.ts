@@ -16,7 +16,7 @@ export class MobilePaymentsFacadeSendDispatcher implements MobilePaymentsFacade 
 	async showSubscriptionConfigView(...args: Parameters<MobilePaymentsFacade["showSubscriptionConfigView"]>) {
 		return this.transport.invokeNative("ipc", ["MobilePaymentsFacade", "showSubscriptionConfigView", ...args])
 	}
-	async checkLastTransactionOwner(...args: Parameters<MobilePaymentsFacade["checkLastTransactionOwner"]>) {
-		return this.transport.invokeNative("ipc", ["MobilePaymentsFacade", "checkLastTransactionOwner", ...args])
+	async hasOngoingAppStoreSubsciption(...args: Parameters<MobilePaymentsFacade["hasOngoingAppStoreSubsciption"]>) {
+		return this.transport.invokeNative("ipc", ["MobilePaymentsFacade", "hasOngoingAppStoreSubsciption", ...args])
 	}
 }

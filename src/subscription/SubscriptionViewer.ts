@@ -1,8 +1,9 @@
 import m, { Children } from "mithril"
-import { assertMainOrNode, isIOSApp } from "../api/common/Env"
+import { assertMainOrNode, isApp, isIOSApp } from "../api/common/Env"
 import {
 	AccountType,
 	AccountTypeNames,
+	ApprovalStatus,
 	AvailablePlans,
 	BookingItemFeatureType,
 	Const,
@@ -29,7 +30,7 @@ import { lang, TranslationKey } from "../misc/LanguageViewModel"
 import { Icons } from "../gui/base/icons/Icons"
 import { asPaymentInterval, formatPrice, formatPriceDataWithInfo, PaymentInterval } from "./PriceUtils"
 import { formatDate, formatStorageSize } from "../misc/Formatter"
-import { showUpgradeWizard } from "./UpgradeSubscriptionWizard"
+import { hasAppStoreOngoingSubscription, showUpgradeWizard } from "./UpgradeSubscriptionWizard"
 import { showSwitchDialog } from "./SwitchSubscriptionDialog"
 import stream from "mithril/stream"
 import Stream from "mithril/stream"
@@ -69,6 +70,7 @@ import { getDisplayNameOfPlanType } from "./FeatureListProvider"
 import { EntityUpdateData, isUpdateForTypeRef } from "../api/common/utils/EntityUpdateUtils.js"
 import { showProgressDialog } from "../gui/dialogs/ProgressDialog"
 import { MobilePaymentsFacade } from "../native/common/generatedipc/MobilePaymentsFacade"
+import { MobilePaymentSubscriptionOwnership } from "../native/common/generatedipc/MobilePaymentSubscriptionOwnership"
 
 assertMainOrNode()
 const DAY = 1000 * 60 * 60 * 24
@@ -125,7 +127,7 @@ export class SubscriptionViewer implements UpdatableSettingsViewer {
 						locator.logins.getUserController().isFreeAccount()
 							? m(IconButton, {
 									title: "upgrade_action",
-									click: () => showProgressDialog("pleaseWait_msg", showUpgradeWizard(locator.logins)),
+									click: () => showProgressDialog("pleaseWait_msg", this.handleUpgradeSubscription()),
 									icon: Icons.Edit,
 									size: ButtonSize.Compact,
 							  })
@@ -257,14 +259,40 @@ export class SubscriptionViewer implements UpdatableSettingsViewer {
 		this.updateBookings()
 	}
 
-	private async handleAppStoreSubscriptionChange() {
-		const isSameOwner = await this.mobilePaymentsFacade.checkLastTransactionOwner(base64ToUint8Array(base64ExtToBase64(this._customer!._id)))
+	private async handleUpgradeSubscription() {
+		if (isIOSApp()) {
+			const hasOngoingAppStoreSubsciption = await hasAppStoreOngoingSubscription(null)
 
+			if (hasOngoingAppStoreSubsciption !== MobilePaymentSubscriptionOwnership.NoSubscription) {
+				return Dialog.message("storeMultiSubscriptionError_msg")
+			}
+		}
+
+		showUpgradeWizard(locator.logins)
+	}
+
+	private async handleAppStoreSubscriptionChange() {
+		const hasOngoingAppStoreSubsciption = await hasAppStoreOngoingSubscription(base64ToUint8Array(base64ExtToBase64(this._customer!._id)))
+		const isAppStorePayment = this._accountingInfo && getPaymentMethodType(this._accountingInfo) === PaymentMethodType.AppStore
+		const userStatus = this._customer?.approvalStatus
 		// Show a dialog only if the user's Apple account's last transaction was with this customer ID
 		//
 		// This prevents the user from accidentally changing a subscription that they don't own
-		if (!isSameOwner) {
+		if (hasOngoingAppStoreSubsciption === MobilePaymentSubscriptionOwnership.NotOwner) {
+			// There's a subscription with this apple account that doesn't belong to this user
 			return Dialog.message(() => "YOU SHALL NOT PASS!")
+		} else if (
+			isAppStorePayment &&
+			hasOngoingAppStoreSubsciption === MobilePaymentSubscriptionOwnership.NoSubscription &&
+			userStatus === ApprovalStatus.REGISTRATION_APPROVED
+		) {
+			// User has an ongoing subscriptions but not on the current Apple Account, so we shouldn't allow them to change their plan with this account
+			// instead of the account owner of the subscriptions
+			return Dialog.message(() => "There's no subscription to be changed on the current Apple AppStore account.") //FIXME: Choose better words
+		} else if (hasOngoingAppStoreSubsciption === MobilePaymentSubscriptionOwnership.NoSubscription) {
+			// User has no ongoing subscription and isn't approved. We should allow them to downgrade their accounts or resubscribe and
+			// restart an Apple Subscription flow
+			return showUpgradeWizard(locator.logins)
 		}
 
 		await this.mobilePaymentsFacade.showSubscriptionConfigView()

@@ -1725,6 +1725,7 @@ export default {
 		"yourFolders_action": "YOUR FOLDERS",
 		"yourMessage_label": "Your message",
 		"you_label": "You",
-		"storeSubscription_msg": "Store made subscriptions should be directly managed in the store"
+		"storeSubscription_msg": "Store made subscriptions should be directly managed in the store",
+		"storeMultiSubscriptionError_msg": "You can't have multiple subscriptions with the same Store Account"
 	}
 }

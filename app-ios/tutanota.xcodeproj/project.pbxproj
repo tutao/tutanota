@@ -166,6 +166,10 @@
 		3D73DA312731953E008E7A8A /* RemoteProtocol.swift in Sources */ = {isa = PBXBuildFile; fileRef = 3D73DA302731953E008E7A8A /* RemoteProtocol.swift */; };
 		3D7733C12C135002008F0715 /* tutasdk.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 3D7733C02C135002008F0715 /* tutasdk.framework */; };
 		3D7733C52C1353B4008F0715 /* tutasdk.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 3D7733C42C1353B4008F0715 /* tutasdk.framework */; };
+		3D73DA3427319A91008E7A8A /* Operation.swift in Sources */ = {isa = PBXBuildFile; fileRef = 3D73DA3327319A91008E7A8A /* Operation.swift */; };
+		3D78ACB52B600FB6009C9EED /* StructuredContactTypes.swift in Sources */ = {isa = PBXBuildFile; fileRef = 3D78ACB42B600FB6009C9EED /* StructuredContactTypes.swift */; };
+		3D7A108029472A6000311B6B /* CancelledError.swift in Sources */ = {isa = PBXBuildFile; fileRef = 3D7A107F29472A6000311B6B /* CancelledError.swift */; };
+		3D828BF92BFCF6970096BD70 /* MobilePaymentSubscriptionOwnership.swift in Sources */ = {isa = PBXBuildFile; fileRef = 3D828BF82BFCF6970096BD70 /* MobilePaymentSubscriptionOwnership.swift */; };
 		3D84F56B2721B92C00858A58 /* MissedNotification.swift in Sources */ = {isa = PBXBuildFile; fileRef = 3D84F56A2721B92C00858A58 /* MissedNotification.swift */; };
 		3D84F5732722F35600858A58 /* IosNativeCryptoFacade.swift in Sources */ = {isa = PBXBuildFile; fileRef = 3D84F5722722F35600858A58 /* IosNativeCryptoFacade.swift */; };
 		3D84F5762723112400858A58 /* FileViewer.swift in Sources */ = {isa = PBXBuildFile; fileRef = 3D84F5752723112400858A58 /* FileViewer.swift */; };
@@ -643,6 +647,7 @@
 		3D7733C02C135002008F0715 /* tutasdk.framework */ = {isa = PBXFileReference; explicitFileType = wrapper.framework; path = tutasdk.framework; sourceTree = BUILT_PRODUCTS_DIR; };
 		3D7733C42C1353B4008F0715 /* tutasdk.framework */ = {isa = PBXFileReference; explicitFileType = wrapper.framework; path = tutasdk.framework; sourceTree = BUILT_PRODUCTS_DIR; };
 		3D7A107F29472A6000311B6B /* CancelledError.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CancelledError.swift; sourceTree = "<group>"; };
+		3D828BF82BFCF6970096BD70 /* MobilePaymentSubscriptionOwnership.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; name = MobilePaymentSubscriptionOwnership.swift; path = tutanota/Sources/GeneratedIpc/MobilePaymentSubscriptionOwnership.swift; sourceTree = SOURCE_ROOT; };
 		3D84F56A2721B92C00858A58 /* MissedNotification.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MissedNotification.swift; sourceTree = "<group>"; };
 		3D84F56C2722CEF900858A58 /* FileUtils.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = FileUtils.swift; sourceTree = "<group>"; };
 		3D84F5722722F35600858A58 /* IosNativeCryptoFacade.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = IosNativeCryptoFacade.swift; sourceTree = "<group>"; };
@@ -1118,6 +1123,7 @@
 		3D4FACAE2B8F368300BEDF5A /* GeneratedIpc */ = {
 			isa = PBXGroup;
 			children = (
+				3D828BF82BFCF6970096BD70 /* MobilePaymentSubscriptionOwnership.swift */,
 				3D246DB22BA99A5F00F5B3BE /* CommonNativeFacade.swift */,
 				3D246DA42BA99A5E00F5B3BE /* CommonNativeFacadeSendDispatcher.swift */,
 				3D246DA12BA99A5E00F5B3BE /* CommonSystemFacade.swift */,
@@ -2992,6 +2998,7 @@
 				3D246DE12BA99A6000F5B3BE /* StructuredContact.swift in Sources */,
 				3D891F0B2105B12F0031E528 /* TUTCrypto.m in Sources */,
 				3D63A0E3233D009E00D05259 /* TUTLog.m in Sources */,
+				3D828BF92BFCF6970096BD70 /* MobilePaymentSubscriptionOwnership.swift in Sources */,
 				3D9B129D272189BB002B46A1 /* AlarmModel.swift in Sources */,
 				3DE1E44526666F0A0018C9DE /* UIColor+utils.swift in Sources */,
 				3DE46D2E2849E33000DC9D43 /* IosThemeFacade.swift in Sources */,
