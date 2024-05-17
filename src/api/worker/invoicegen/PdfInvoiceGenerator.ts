@@ -243,8 +243,14 @@ export class PdfInvoiceGenerator {
 			case VatType.NO_VAT:
 			case VatType.NO_VAT_REVERSE_CHARGE:
 				if (this.invoice.vatIdNumber != null) {
-					this.doc.addText(InvoiceTexts[this.languageCode].reverseChargeVatIdNumber)
-					this.doc.addText(`${InvoiceTexts[this.languageCode].reverseChargeVatIdNumber} ${this.invoice.vatIdNumber}`)
+					this.doc
+						.addText(InvoiceTexts[this.languageCode].reverseChargeVatIdNumber1)
+						.addLineBreak()
+						.addText(InvoiceTexts[this.languageCode].reverseChargeVatIdNumber2)
+						.addLineBreak()
+						.addText(`${InvoiceTexts[this.languageCode].yourVatId} `)
+						.changeFont(PDF_FONTS.BOLD, 11)
+						.addText(`${this.invoice.vatIdNumber}`)
 				} else {
 					this.doc.addText(InvoiceTexts[this.languageCode].netPricesNoVatInGermany)
 				}
