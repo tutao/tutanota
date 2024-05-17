@@ -43,6 +43,18 @@ o.spec("PdfInvoiceGenerator", function () {
 		const gen = new PdfInvoiceGenerator(pdfWriter, renderInvoice, "1978197819801981931", "NiiNii")
 		const pdf = await gen.generate()
 	})
+
+	o("VatId number is generated", async function () {
+		const renderInvoice = createTestEntity(InvoiceDataGetOutTypeRef, {
+			address: "BelgianStreet 5\n12345 Zellig\nBelgium",
+			country: "BE",
+			items: dataMock(15),
+			vatType: "4",
+			vatIdNumber: "1111_2222_3333_4444",
+		})
+		const gen = new PdfInvoiceGenerator(pdfWriter, renderInvoice, "1978197819801981931", "NiiNii")
+		const pdf = await gen.generate()
+	})
 })
 
 function dataMock(amount: number) {

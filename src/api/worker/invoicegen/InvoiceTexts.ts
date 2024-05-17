@@ -29,8 +29,8 @@ export default {
 		includedVat: "incl.",
 		vatPercent: "% VAT",
 
-		reverseChargeVatIdNumber:
-			"All prices are net prices. The recipient is liable for VAT under the reverse charge mechanism (German: Steuerschuld des Leistungsempfängers).",
+		reverseChargeVatIdNumber1: "All prices are net prices. The recipient is liable for VAT under the reverse charge mechanism",
+		reverseChargeVatIdNumber2: "(German: Steuerschuld des Leistungsempfängers).",
 		yourVatId: "Your VAT identification number:",
 		netPricesNoVatInGermany: "All prices are net prices and not subject to value added tax in Germany.",
 		noVatInGermany: "Prices are not subject to value added tax in Germany.",
@@ -97,8 +97,9 @@ export default {
 		cancelCredit: "Stornierung Gutschrift",
 		asAgreedBlock: "Vereinbarungsgemäß rechnen wir folgende Leistungen ab:",
 
-		reverseChargeVatIdNumber: "Alle Beträge sind netto. Die Steuerschuldnerschaft geht auf Sie als Leistungsempfänger über.",
-		yourVatId: " Ihre Umsatzsteuer-Identifikationsnummer:",
+		reverseChargeVatIdNumber1: "Alle Beträge sind netto. Die Steuerschuldnerschaft geht auf Sie als Leistungsempfänger über.",
+		reverseChargeVatIdNumber2: "",
+		yourVatId: "Ihre Umsatzsteuer-Identifikationsnummer:",
 		netPricesNoVatInGermany: "Alle Beträge sind netto und werden nicht in Deutschland versteuert.",
 		noVatInGermany: "Beträge werden nicht in Deutschland versteuert.",
 
