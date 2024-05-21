@@ -121,10 +121,10 @@ export class DesktopNativeCredentialsFacade implements NativeCredentialsFacade {
 
 	private async getCredentialsEncryptionKey(): Promise<BitArray | null> {
 		const encryptionMode = this.getDesktopCredentialEncryptionMode() ?? CredentialEncryptionMode.DEVICE_LOCK
-		const existingKey = this.credentialDb.getCredentialEncryptionKey()
-		if (existingKey != null) {
-			const decryptedKey = await this.keychainEncryption.decryptUsingKeychain(existingKey, encryptionMode)
-			return uint8ArrayToBitArray(decryptedKey)
+		const keyChainEncCredentialsKey = this.credentialDb.getCredentialEncryptionKey()
+		if (keyChainEncCredentialsKey != null) {
+			const credentialsKey = await this.keychainEncryption.decryptUsingKeychain(keyChainEncCredentialsKey, encryptionMode)
+			return uint8ArrayToBitArray(credentialsKey)
 		} else {
 			return null
 		}
