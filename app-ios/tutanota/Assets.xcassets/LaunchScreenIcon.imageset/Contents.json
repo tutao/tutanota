@@ -1,9 +1,8 @@
 {
   "images" : [
     {
-      "filename" : "icon-180-1.png",
-      "idiom" : "universal",
-      "scale" : "1x"
+      "filename" : "tuta_switch_1024.png",
+      "idiom" : "universal"
     },
     {
       "appearances" : [
@@ -12,9 +11,8 @@
           "value" : "light"
         }
       ],
-      "filename" : "icon-180.png",
-      "idiom" : "universal",
-      "scale" : "1x"
+      "filename" : "tuta_switch_1024 1.png",
+      "idiom" : "universal"
     },
     {
       "appearances" : [
@@ -23,63 +21,8 @@
           "value" : "dark"
         }
       ],
-      "filename" : "path_1.png",
-      "idiom" : "universal",
-      "scale" : "1x"
-    },
-    {
-      "filename" : "icon-180@2x-1.png",
-      "idiom" : "universal",
-      "scale" : "2x"
-    },
-    {
-      "appearances" : [
-        {
-          "appearance" : "luminosity",
-          "value" : "light"
-        }
-      ],
-      "filename" : "icon-180@2x.png",
-      "idiom" : "universal",
-      "scale" : "2x"
-    },
-    {
-      "appearances" : [
-        {
-          "appearance" : "luminosity",
-          "value" : "dark"
-        }
-      ],
-      "filename" : "path_2.png",
-      "idiom" : "universal",
-      "scale" : "2x"
-    },
-    {
-      "filename" : "icon-180@3x-1.png",
-      "idiom" : "universal",
-      "scale" : "3x"
-    },
-    {
-      "appearances" : [
-        {
-          "appearance" : "luminosity",
-          "value" : "light"
-        }
-      ],
-      "filename" : "icon-180@3x.png",
-      "idiom" : "universal",
-      "scale" : "3x"
-    },
-    {
-      "appearances" : [
-        {
-          "appearance" : "luminosity",
-          "value" : "dark"
-        }
-      ],
-      "filename" : "path_3.png",
-      "idiom" : "universal",
-      "scale" : "3x"
+      "filename" : "tuta_switch_dark_1024.png",
+      "idiom" : "universal"
     }
   ],
   "info" : {
