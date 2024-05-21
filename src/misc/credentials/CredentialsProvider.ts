@@ -1,5 +1,4 @@
 import type { CredentialEncryptionMode } from "./CredentialEncryptionMode.js"
-import type { Credentials } from "./Credentials"
 import { InterWindowEventFacadeSendDispatcher } from "../../native/common/generatedipc/InterWindowEventFacadeSendDispatcher.js"
 import { SqlCipherFacade } from "../../native/common/generatedipc/SqlCipherFacade.js"
 import { CredentialsInfo } from "../../native/common/generatedipc/CredentialsInfo.js"
@@ -8,11 +7,6 @@ import { PersistedCredentials } from "../../native/common/generatedipc/Persisted
 import { NativeCredentialsFacade } from "../../native/common/generatedipc/NativeCredentialsFacade"
 import { UnencryptedCredentials } from "../../native/common/generatedipc/UnencryptedCredentials.js"
 import { isAdminClient, isBrowser } from "../../api/common/Env.js"
-
-export type CredentialsAndDatabaseKey = {
-	credentials: Credentials
-	databaseKey?: Uint8Array | null
-}
 
 /**
  * Main entry point to interact with credentials, i.e. storing and retrieving credentials from/to persistence.
