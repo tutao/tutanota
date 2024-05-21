@@ -1,6 +1,6 @@
 import { EntityClient } from "../../common/EntityClient.js"
 import { AesKey, AsymmetricKeyPair, decryptKey, decryptKeyPair } from "@tutao/tutanota-crypto"
-import { Group, GroupKey, GroupKeyTypeRef, GroupTypeRef } from "../../entities/sys/TypeRefs.js"
+import { Group, GroupKey, GroupKeyTypeRef, GroupTypeRef, UserTypeRef } from "../../entities/sys/TypeRefs.js"
 import { Versioned } from "@tutao/tutanota-utils/dist/Utils.js"
 import { UserFacade } from "./UserFacade.js"
 import { NotFoundError } from "../../common/error/RestError.js"
@@ -26,12 +26,22 @@ export class KeyLoaderFacade {
 	 * @param groupId the id of the group
 	 * @param version the version of the key to be loaded
 	 * @param currentGroupKey needs to be set if the user is not a member of the group (e.g. an admin)
+	 * @param attempts how many times should we try reloading the user. This is mainly to prevent infinite recursions
 	 */
-	async loadSymGroupKey(groupId: Id, version: number, currentGroupKey?: VersionedKey): Promise<AesKey> {
+	async loadSymGroupKey(groupId: Id, version: number, currentGroupKey?: VersionedKey, attempts: number = 1): Promise<AesKey> {
 		const groupKey = currentGroupKey ?? (await this.getCurrentSymGroupKey(groupId))
 
 		if (groupKey.version === version) {
 			return groupKey.object
+		} else if (groupKey.version < version) {
+			// user doesn't have the newest key, so we update the user and try again
+			if (attempts < 1) {
+				throw new Error("Too many recursive attempts to load group key")
+			}
+			const loggedInUser = this.userFacade.getLoggedInUser()
+			const user = await this.nonCachiungEntityClient.load(UserTypeRef, loggedInUser._id)
+			await this.userFacade.updateUser(user)
+			return this.loadSymGroupKey(groupId, version, currentGroupKey, attempts - 1)
 		}
 		const group = await this.entityClient.load(GroupTypeRef, groupId)
 		const { symmetricGroupKey } = await this.findFormerGroupKey(group, groupKey, version)
@@ -163,5 +173,12 @@ export class KeyLoaderFacade {
 			throw new NotFoundError(`no key pair on group ${group._id}`)
 		}
 		return decryptKeyPair(groupKey, group.currentKeys)
+	}
+
+	/**
+	 * visibleForTesting
+	 */
+	getKeyCache(): KeyCache {
+		return this.keyCache
 	}
 }

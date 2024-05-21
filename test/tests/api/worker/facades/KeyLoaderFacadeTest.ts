@@ -18,10 +18,12 @@ import {
 	GroupKey,
 	GroupKeysRefTypeRef,
 	GroupKeyTypeRef,
+	GroupMembership,
 	GroupMembershipTypeRef,
 	GroupTypeRef,
 	KeyPair,
 	KeyPairTypeRef,
+	UserTypeRef,
 } from "../../../../../src/api/entities/sys/TypeRefs.js"
 import { createTestEntity } from "../../../TestUtils.js"
 import { EntityClient } from "../../../../../src/api/common/EntityClient.js"
@@ -31,6 +33,7 @@ import { stringToCustomId } from "../../../../../src/api/common/utils/EntityUtil
 import { VersionedKey } from "../../../../../src/api/worker/crypto/CryptoFacade.js"
 import { freshVersioned } from "@tutao/tutanota-utils"
 import { KeyCache } from "../../../../../src/api/worker/facades/KeyCache.js"
+import { assertThrows } from "@tutao/tutanota-test-utils"
 
 o.spec("KeyLoaderFacadeTest", function () {
 	let keyCache: KeyCache
@@ -51,6 +54,7 @@ o.spec("KeyLoaderFacadeTest", function () {
 	let formerKeyPairsDecrypted: PQKeyPairs[]
 	const FORMER_KEYS = 2
 	let currentKeyPair: PQKeyPairs
+	let membership: GroupMembership
 
 	o.beforeEach(async () => {
 		keyCache = new KeyCache()
@@ -111,7 +115,8 @@ o.spec("KeyLoaderFacadeTest", function () {
 			formerGroupKeys: null,
 		})
 
-		const membership = createTestEntity(GroupMembershipTypeRef, {
+		membership = createTestEntity(GroupMembershipTypeRef, {
+			group: group._id,
 			symKeyVersion: String(userGroupKey.version),
 			symEncGKey: encryptKey(userGroupKey.object, currentGroupKey.object),
 			groupKeyVersion: String(currentGroupKey.version),
@@ -207,6 +212,56 @@ o.spec("KeyLoaderFacadeTest", function () {
 		o("loads and decrypts the current key", async function () {
 			const loadedGroupKey = await keyLoaderFacade.loadSymGroupKey(group._id, FORMER_KEYS)
 			o(loadedGroupKey).deepEquals(currentGroupKey.object)
+		})
+
+		o.spec("retries recursively", function () {
+			let outOfDateMembership: GroupMembership
+
+			o.beforeEach(function () {
+				outOfDateMembership = createTestEntity(GroupMembershipTypeRef, {
+					group: group._id,
+					symKeyVersion: String(userGroupKey.version),
+					symEncGKey: encryptKey(userGroupKey.object, aes256RandomKey()),
+					groupKeyVersion: String(0),
+				})
+			})
+
+			o("updates the user if out-of-date", async function () {
+				when(userFacade.getMembership(group._id)).thenReturn(outOfDateMembership, membership)
+				const userGroupMembership = createTestEntity(GroupMembershipTypeRef)
+				const user = createTestEntity(UserTypeRef, {
+					_id: "userId",
+					memberships: [membership],
+					userGroup: userGroupMembership,
+				})
+				when(userFacade.getLoggedInUser()).thenReturn(user)
+				when(nonCachingEntityClient.load(UserTypeRef, user._id)).thenResolve(user)
+				keyLoaderFacade.getKeyCache().setCurrentUserGroupKey(userGroupKey)
+				when(userFacade.updateUser(user)).thenDo(async () => {
+					when(userFacade.getMembership(group._id)).thenReturn(membership)
+					await keyLoaderFacade.getKeyCache().removeOutdatedGroupKeys(user)
+				})
+
+				await keyLoaderFacade.loadSymGroupKey(group._id, FORMER_KEYS)
+
+				verify(nonCachingEntityClient.load(UserTypeRef, "userId"))
+				verify(userFacade.updateUser(user))
+			})
+
+			o("does not recurse infinitely", async function () {
+				when(userFacade.getMembership(group._id)).thenReturn(outOfDateMembership)
+				const user = createTestEntity(UserTypeRef, {
+					_id: "userId",
+					memberships: [outOfDateMembership],
+				})
+				when(userFacade.getLoggedInUser()).thenReturn(user)
+				when(nonCachingEntityClient.load(UserTypeRef, user._id)).thenResolve(user)
+
+				await assertThrows(Error, () => keyLoaderFacade.loadSymGroupKey(group._id, FORMER_KEYS))
+
+				verify(nonCachingEntityClient.load(UserTypeRef, "userId"), { times: 1 })
+				verify(userFacade.updateUser(user), { times: 1 })
+			})
 		})
 	})
 })

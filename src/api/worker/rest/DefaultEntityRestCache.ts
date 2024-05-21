@@ -14,6 +14,7 @@ import {
 	SecondFactorTypeRef,
 	SessionTypeRef,
 	User,
+	UserGroupRootTypeRef,
 	UserTypeRef,
 } from "../../entities/sys/TypeRefs.js"
 import { ValueType } from "../../common/EntityConstants"
@@ -52,6 +53,7 @@ const IGNORED_TYPES = [
 	// the earliest place where we could deduplicate would be in entityEventsReceived on the calendarModel.
 	CalendarEventUidIndexTypeRef,
 	KeyRotationTypeRef,
+	UserGroupRootTypeRef,
 ] as const
 
 export interface EntityRestCache extends EntityRestInterface {
