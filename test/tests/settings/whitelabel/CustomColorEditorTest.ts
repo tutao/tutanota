@@ -19,11 +19,11 @@ o.spec("SimpleColorEditor", function () {
 	let defaultTheme
 	// These customizations should always be set if no changes are made
 	const defaultCustomizations: ThemeCustomizations = downcast({
-		list_accent_fg: "#840010",
-		content_accent: "#840010",
-		content_button_selected: "#840010",
-		navigation_button_selected: "#840010",
-		header_button_selected: "#840010",
+		list_accent_fg: "#850122",
+		content_accent: "#850122",
+		content_button_selected: "#850122",
+		navigation_button_selected: "#850122",
+		header_button_selected: "#850122",
 		base: "light",
 	})
 	let entityClient: EntityClient
@@ -62,7 +62,7 @@ o.spec("SimpleColorEditor", function () {
 				entityClient,
 				loginController,
 			)
-			o(model.accentColor).equals("#840010")
+			o(model.accentColor).equals("#850122")
 			o(model.baseThemeId).equals("light")
 			o(themeController.applyCustomizations.callCount).equals(1)
 		})

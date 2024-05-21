@@ -19,7 +19,8 @@ const grey_lighter_0 = "#b8b8b8"
 const grey = "#868686"
 const grey_darker_0 = "#707070"
 const grey_darker_1 = "#303030"
-const red = "#840010"
+const red = "#850122"
+const dunkel = "#410002"
 const blue = "#005885"
 export const logo_text_dark_grey = "#4a4a4a"
 
@@ -55,7 +56,7 @@ type Themes = Record<ThemeId, Theme>
 export const themes: Themes = {
 	light: Object.freeze({
 		themeId: "light",
-		logo: getLogoSvg(red, logo_text_dark_grey),
+		logo: getLogoSvg(red, dunkel),
 		button_bubble_bg: grey_lighter_3,
 		button_bubble_fg: grey_darker_1,
 		content_fg: grey_darker_1,
@@ -125,7 +126,7 @@ export const themes: Themes = {
 	}),
 	blue: Object.freeze({
 		themeId: "blue",
-		logo: getLogoSvg(blue, logo_text_dark_grey),
+		logo: getLogoSvg(blue, dunkel),
 		button_bubble_bg: grey_lighter_3,
 		button_bubble_fg: grey_darker_1,
 		content_fg: grey_darker_1,

@@ -15,7 +15,7 @@ export class DesktopBaseHeader implements ClassComponent {
 		return m(
 			".logo-height",
 			{
-				...landmarkAttrs(AriaLandmarks.Banner, "Tutanota logo"),
+				...landmarkAttrs(AriaLandmarks.Banner, "Tuta logo"),
 				style: {
 					"margin-left": px(sizes.drawer_menu_width + size.hpad + size.hpad_button),
 				},
