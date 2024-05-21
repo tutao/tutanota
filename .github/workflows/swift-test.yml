@@ -39,7 +39,7 @@ jobs:
       - name: Install Homebrew
         uses: Homebrew/actions/setup-homebrew@d54a6744d5fcdff54b45a9659f3e17f769389952
       - name: Install Code Quality Tools
-        run: brew install swiftlint@0.53.0 swift-format@0.53.2
+        run: brew install swiftlint swift-format
       - name: Lint
         working-directory: ./app-ios
         run: ./lint.sh lint:check
