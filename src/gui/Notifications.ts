@@ -1,16 +1,20 @@
 import { noOp } from "@tutao/tutanota-utils"
 import { isApp, isDesktop } from "../api/common/Env"
-import { NotificationIcon } from "./base/icons/Icons"
-import type { ClickHandler } from "./base/GuiUtils"
+import { CalendarNotificationIcon, MailNotificationIcon } from "./base/icons/Icons.js"
+
+export const enum NotificationType {
+	Mail = "Mail",
+	Calendar = "Calendar",
+}
 
 export class Notifications {
-	showNotification(title: string, options?: NotificationOptions, onclick: Notification["onclick"] = noOp): Notification | null {
+	showNotification(type: NotificationType, title: string, options?: NotificationOptions, onclick: Notification["onclick"] = noOp): Notification | null {
 		if (!isApp() && typeof window.Notification !== "undefined" && window.Notification.permission === "granted") {
 			try {
 				const actualOptions: NotificationOptions = Object.assign(
 					{},
 					{
-						icon: NotificationIcon,
+						icon: type == NotificationType.Mail ? MailNotificationIcon : CalendarNotificationIcon,
 					},
 					options,
 				)

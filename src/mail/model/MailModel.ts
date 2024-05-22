@@ -19,7 +19,7 @@ import { FeatureType, MailFolderType, MAX_NBR_MOVE_DELETE_MAIL_SERVICE, Operatio
 
 import { EventController } from "../../api/main/EventController"
 import { lang } from "../../misc/LanguageViewModel"
-import { Notifications } from "../../gui/Notifications"
+import { Notifications, NotificationType } from "../../gui/Notifications"
 import { EntityClient } from "../../api/common/EntityClient"
 import { elementIdPart, GENERATED_MAX_ID, getElementId, getListId, isSameId, listIdPart } from "../../api/common/utils/EntityUtils"
 import { LockedError, NotFoundError, PreconditionFailedError } from "../../api/common/error/RestError"
@@ -380,6 +380,7 @@ export class MailModel {
 
 	_showNotification(mailId: IdTuple) {
 		this.notifications.showNotification(
+			NotificationType.Mail,
 			lang.get("newMails_msg"),
 			{
 				actions: [],

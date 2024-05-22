@@ -75,6 +75,5 @@ excluded:
 - tutanota.xcodeproj
 - tutanota/build
 - tutanota/tutanota-web
-- TutanotaSharedFramework/GeneratedIpc
+- tutanota/Sources/GeneratedIpc
 - MockingbirdMocks
-- MockingbirdSupport

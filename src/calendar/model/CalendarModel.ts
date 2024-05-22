@@ -34,7 +34,7 @@ import { EntityClient } from "../../api/common/EntityClient"
 import type { MailModel } from "../../mail/model/MailModel"
 import { elementIdPart, getElementId, isSameId, listIdPart, removeTechnicalFields } from "../../api/common/utils/EntityUtils"
 import type { AlarmScheduler } from "../date/AlarmScheduler.js"
-import type { Notifications } from "../../gui/Notifications"
+import { Notifications, NotificationType } from "../../gui/Notifications"
 import m from "mithril"
 import type { CalendarEventInstance, CalendarEventProgenitor, CalendarFacade } from "../../api/worker/facades/lazy/CalendarFacade.js"
 import { AlarmInfoTemplate, CachingMode, CalendarEventAlteredInstance, CalendarEventUidIndexEntry } from "../../api/worker/facades/lazy/CalendarFacade.js"
@@ -49,9 +49,6 @@ import { ObservableLazyLoaded } from "../../api/common/utils/ObservableLazyLoade
 import { UserController } from "../../api/main/UserController.js"
 import { formatDateWithWeekdayAndTime, formatTime } from "../../misc/Formatter.js"
 import { EntityUpdateData, isUpdateFor, isUpdateForTypeRef } from "../../api/common/utils/EntityUpdateUtils.js"
-import { getEnabledMailAddressesWithUser } from "../../mail/model/MailUtils.js"
-import { getEventType } from "../gui/CalendarGuiUtils.js"
-import { EventType } from "../gui/eventeditor-model/CalendarEventModel.js"
 
 const TAG = "[CalendarModel]"
 export type CalendarInfo = {
@@ -782,6 +779,7 @@ export class CalendarModel {
 		scheduler.scheduleAlarm(event, userAlarmInfo.alarmInfo, event.repeatRule, (eventTime, summary) => {
 			const { title, body } = formatNotificationForDisplay(eventTime, summary)
 			this.notifications.showNotification(
+				NotificationType.Calendar,
 				title,
 				{
 					body,
