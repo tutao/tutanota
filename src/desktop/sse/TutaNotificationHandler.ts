@@ -1,12 +1,10 @@
 import type { WindowManager } from "../DesktopWindowManager"
 import { NativeCredentialsFacade } from "../../native/common/generatedipc/NativeCredentialsFacade"
-import type { DesktopConfig } from "../config/DesktopConfig"
 import { DesktopNotifier, NotificationResult } from "../DesktopNotifier"
 import { LanguageViewModel } from "../../misc/LanguageViewModel"
 import { Agent, fetch as undiciFetch } from "undici"
 import { IdTupleWrapper, NotificationInfo } from "../../api/entities/sys/TypeRefs"
 import { CredentialEncryptionMode } from "../../misc/credentials/CredentialEncryptionMode.js"
-import { DesktopConfigKey } from "../config/ConfigKeys"
 import { ExtendedNotificationMode } from "../../native/common/generatedipc/ExtendedNotificationMode"
 import { assertNotNull, base64ToBase64Url, neverNull } from "@tutao/tutanota-utils"
 import { log } from "../DesktopLog"
@@ -25,7 +23,7 @@ export type MailMetadata = Pick<Mail, "sender" | "firstRecipient" | "_id">
 
 export class TutaNotificationHandler {
 	constructor(
-		private readonly wm: WindowManager,
+		private readonly windowManager: WindowManager,
 		private readonly nativeCredentialFacade: NativeCredentialsFacade,
 		private readonly sseStorage: SseStorage,
 		private readonly notifier: DesktopNotifier,
@@ -37,9 +35,9 @@ export class TutaNotificationHandler {
 	) {}
 
 	async onMailNotification(sseInfo: SseInfo, notificationInfo: NotificationInfo) {
-		const w = this.wm.getAll().find((w) => w.getUserId() === notificationInfo.userId)
+		const appWindow = this.windowManager.getAll().find((window) => window.getUserId() === notificationInfo.userId)
 
-		if (w && w.isFocused()) {
+		if (appWindow && appWindow.isFocused()) {
 			// no need for notification if user is looking right at the window
 			return
 		}
@@ -66,7 +64,7 @@ export class TutaNotificationHandler {
 
 	private onMailNotificationClick(res: NotificationResult, ni: NotificationInfo) {
 		if (res === NotificationResult.Click) {
-			this.wm.openMailBox({
+			this.windowManager.openMailBox({
 				userId: ni.userId,
 				mailAddress: ni.mailAddress,
 			})
@@ -96,8 +94,7 @@ export class TutaNotificationHandler {
 				dispatcher: new Agent({ connectTimeout: 20000 }),
 			})
 			if (!response.ok) {
-				const tutanotaError = handleRestError(neverNull(response.status), url.toString(), response.headers.get("Error-Id"), null)
-				throw tutanotaError
+				throw handleRestError(neverNull(response.status), url.toString(), response.headers.get("Error-Id"), null)
 			}
 
 			const parsedResponse = await response.json()
@@ -125,6 +122,6 @@ export class TutaNotificationHandler {
 	async onLocalDataInvalidated() {
 		await this.alarmScheduler.unscheduleAllAlarms()
 		await this.alarmStorage.removePushIdentifierKeys()
-		await this.wm.invalidateAlarms()
+		await this.windowManager.invalidateAlarms()
 	}
 }

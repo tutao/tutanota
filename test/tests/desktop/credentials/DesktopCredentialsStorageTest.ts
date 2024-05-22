@@ -7,7 +7,7 @@ import { CredentialType } from "../../../../src/misc/credentials/CredentialType.
 const encryptedCredentials1 = {
 	credentialInfo: {
 		login: "login1@test.com",
-		type: CredentialType.internal,
+		type: CredentialType.Internal,
 		userId: "user1",
 	},
 	encryptedPassword: "pw1",
@@ -18,7 +18,7 @@ const encryptedCredentials1 = {
 const encryptedCredentials2 = {
 	credentialInfo: {
 		login: "login2@test.com",
-		type: CredentialType.internal,
+		type: CredentialType.Internal,
 		userId: "user2",
 	},
 	encryptedPassword: "pw2",

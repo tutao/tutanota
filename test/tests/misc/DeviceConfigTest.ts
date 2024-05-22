@@ -33,7 +33,7 @@ o.spec("DeviceConfig", function () {
 					credentialInfo: {
 						login: "internal@example.com",
 						userId: "internalUserId",
-						type: CredentialType.internal,
+						type: CredentialType.Internal,
 					},
 					accessToken: "internalAccessToken",
 					encryptedPassword: "internalEncPassword",
@@ -42,7 +42,7 @@ o.spec("DeviceConfig", function () {
 					credentialInfo: {
 						login: "externalUserId",
 						userId: "externalUserId",
-						type: CredentialType.external,
+						type: CredentialType.External,
 					},
 					accessToken: "externalAccessToken",
 					encryptedPassword: "externalEncPassword",

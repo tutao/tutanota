@@ -9,6 +9,7 @@ import de.tutao.tutanota.addCommonHeadersWithTutanotaModelVersion
 import de.tutao.tutanota.alarms.AlarmNotificationsManager
 import de.tutao.tutanota.alarms.EncryptedAlarmNotification
 import de.tutao.tutanota.base64ToBase64Url
+import de.tutao.tutanota.credentials.AndroidNativeCredentialsFacade
 import de.tutao.tutanota.credentials.CredentialEncryptionMode
 import de.tutao.tutanota.data.AppDatabase
 import de.tutao.tutanota.data.SseInfo
@@ -33,8 +34,6 @@ import java.util.concurrent.TimeUnit
 class TutanotaNotificationsHandler(
 	private val localNotificationsFacade: LocalNotificationsFacade,
 	private val sseStorage: SseStorage,
-	private val appDatabase: AppDatabase,
-	private val crypto: AndroidNativeCryptoFacade,
 	private val credentialsEncryption: NativeCredentialsFacade,
 	private val alarmNotificationsManager: AlarmNotificationsManager,
 	private val defaultClient: OkHttpClient,

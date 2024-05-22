@@ -28,7 +28,7 @@ o.spec("CredentialsProvider", function () {
 			credentialInfo: {
 				login: "test@example.com",
 				userId: "789",
-				type: CredentialType.internal,
+				type: CredentialType.Internal,
 			},
 			encryptedPassword: "123",
 			accessToken: "456",
@@ -38,7 +38,7 @@ o.spec("CredentialsProvider", function () {
 			credentialInfo: {
 				login: "test@example.com",
 				userId: "789012",
-				type: CredentialType.internal,
+				type: CredentialType.Internal,
 			},
 			encryptedPassword: "123456",
 			accessToken: "456789",
@@ -48,7 +48,7 @@ o.spec("CredentialsProvider", function () {
 			credentialInfo: {
 				login: "test2@example.com",
 				userId: "7892",
-				type: CredentialType.external,
+				type: CredentialType.External,
 			},
 			encryptedPassword: "1232",
 			accessToken: "4562",
@@ -167,7 +167,7 @@ o.spec("CredentialsProvider", function () {
 		const credentials: CredentialsInfo = {
 			login: "login",
 			userId: userId,
-			type: CredentialType.internal,
+			type: CredentialType.Internal,
 		}
 		const persistentCredentials: PersistedCredentials = {
 			credentialInfo: credentials,

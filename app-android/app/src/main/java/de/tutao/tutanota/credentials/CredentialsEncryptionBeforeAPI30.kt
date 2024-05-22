@@ -8,7 +8,6 @@ import androidx.biometric.BiometricPrompt
 import androidx.biometric.BiometricPrompt.PromptInfo
 import androidx.fragment.app.FragmentActivity
 import de.tutao.tutanota.AndroidKeyStoreFacade
-import de.tutao.tutanota.AndroidNativeCryptoFacade
 import de.tutao.tutanota.CredentialAuthenticationException
 import de.tutao.tutanota.CryptoError
 import de.tutao.tutanota.R
@@ -19,7 +18,6 @@ import javax.crypto.Cipher
 class CredentialsEncryptionBeforeAPI30(
 	private val keyStoreFacade: AndroidKeyStoreFacade,
 	private val activity: Context,
-	private val crypto: AndroidNativeCryptoFacade,
 	private val authenticationPrompt: AuthenticationPrompt,
 ) : KeychainEncryption {
 	@Throws(

@@ -1,4 +1,4 @@
 export const enum CredentialType {
-	internal = "internal",
-	external = "external",
+	Internal = "internal",
+	External = "external",
 }

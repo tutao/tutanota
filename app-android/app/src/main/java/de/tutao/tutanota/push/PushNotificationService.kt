@@ -14,6 +14,7 @@ import de.tutao.tutanota.alarms.SystemAlarmFacade
 import de.tutao.tutanota.atLeastOreo
 import de.tutao.tutanota.atLeastTiramisu
 import de.tutao.tutanota.createAndroidKeyStoreFacade
+import de.tutao.tutanota.credentials.AndroidNativeCredentialsFacade
 import de.tutao.tutanota.credentials.CredentialsEncryptionFactory
 import de.tutao.tutanota.data.AppDatabase
 import de.tutao.tutanota.data.SseInfo
@@ -97,8 +98,6 @@ class PushNotificationService : LifecycleJobService() {
 			NotificationSseListener(
 				localNotificationsFacade,
 				sseStorage,
-				appDatabase,
-				crypto,
 				nativeCredentialsFacade,
 				alarmNotificationsManager,
 				NetworkUtils.defaultClient
@@ -225,8 +224,6 @@ class PushNotificationService : LifecycleJobService() {
 	private inner class NotificationSseListener(
 		notificationsFacade: LocalNotificationsFacade,
 		sseStorage: SseStorage,
-		appDatabase: AppDatabase,
-		crypto: AndroidNativeCryptoFacade,
 		nativeCredentialsFacade: NativeCredentialsFacade,
 		alarmNotificationsManager: AlarmNotificationsManager,
 		defaultClient: OkHttpClient
@@ -236,8 +233,6 @@ class PushNotificationService : LifecycleJobService() {
 			TutanotaNotificationsHandler(
 				notificationsFacade,
 				sseStorage,
-				appDatabase,
-				crypto,
 				nativeCredentialsFacade,
 				alarmNotificationsManager,
 				defaultClient,

@@ -69,7 +69,7 @@ export class CredentialsProvider {
 	 */
 	async getInternalCredentialsInfos(): Promise<ReadonlyArray<CredentialsInfo>> {
 		const allCredentials = await this.credentialsFacade.loadAll()
-		return allCredentials.filter((credential) => credential.credentialInfo.type === CredentialType.internal).map((credential) => credential.credentialInfo)
+		return allCredentials.filter((credential) => credential.credentialInfo.type === CredentialType.Internal).map((credential) => credential.credentialInfo)
 	}
 
 	/**
