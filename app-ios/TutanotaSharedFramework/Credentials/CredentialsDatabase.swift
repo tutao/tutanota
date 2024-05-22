@@ -182,7 +182,7 @@ public class CredentialsDatabase: CredentialsStorage {
 }
 
 private extension TaggedSqlValue {
-	struct InvalidSqlType: Error { init() {} }
+	struct InvalidSqlType: Error {}
 
 	func unwrapString() throws -> String { if case let .string(value) = self { return value } else { throw InvalidSqlType() } }
 	func unwrapBytes() throws -> Data { if case let .bytes(value) = self { return value.data } else { throw InvalidSqlType() } }
