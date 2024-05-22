@@ -33,6 +33,7 @@
 	},
 	"dependencies": {
 		"@tutao/oxmsg": "0.0.9-beta.0",
+		"@tutao/tuta-wasm-loader": "229.240521.0",
 		"@tutao/tutanota-crypto": "229.240521.0",
 		"@tutao/tutanota-error": "229.240521.0",
 		"@tutao/tutanota-usagetests": "229.240521.0",
