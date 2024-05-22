@@ -1724,9 +1724,5 @@ export default {
 		"yourMessage_label": "Ihre Nachricht",
 		"you_label": "Sie",
 		"notificationTargets_label": "Benachrichtigungsziele",
-		"notificationContent_label": "Inhalt der Benachrichtigungen",
-		"notificationPreferenceNoSenderOrSubject_action": "Kein Absender oder Betreff",
-		"notificationPreferenceOnlySender_action": "Nur Absender",
-		"notificationPreferenceSenderAndSubject_action": "Absender und Betreff",
 	}
 }
