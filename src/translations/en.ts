@@ -1720,9 +1720,5 @@ export default {
 		"yourMessage_label": "Your message",
 		"you_label": "You",
 		"notificationTargets_label": "Notification targets",
-		"notificationContent_label": "Notification content",
-		"notificationPreferenceNoSenderOrSubject_action": "No sender or subject",
-		"notificationPreferenceOnlySender_action": "Only sender",
-		"notificationPreferenceSenderAndSubject_action": "Sender and subject",
 	}
 }

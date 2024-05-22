@@ -38,6 +38,7 @@
 		"@tutao/tutanota-error": "229.240521.0",
 		"@tutao/tutanota-usagetests": "229.240521.0",
 		"@tutao/tutanota-utils": "229.240521.0",
+		"@tutao/tuta-wasm-loader": "229.240521.0",
 		"@types/better-sqlite3": "7.4.2",
 		"@types/dompurify": "3.0.5",
 		"@types/linkifyjs": "2.1.4",
