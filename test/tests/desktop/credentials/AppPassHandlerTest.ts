@@ -12,7 +12,6 @@ import { CancelledError } from "../../../../src/api/common/error/CancelledError.
 import { assertThrows } from "@tutao/tutanota-test-utils"
 import { KeyPermanentlyInvalidatedError } from "../../../../src/api/common/error/KeyPermanentlyInvalidatedError.js"
 import { loadArgon2WASM } from "../../api/worker/WASMTestUtils.js"
-import path from "node:path"
 
 o.spec("AppPassHandler", () => {
 	let crypto: DesktopNativeCryptoFacade
@@ -25,9 +24,9 @@ o.spec("AppPassHandler", () => {
 		crypto = object()
 		lang = object()
 		conf = object()
+		commonNativeFacade = object()
 		// too hard to mock
-		const argon2 = await loadArgon2WASM()
-		const commonNativeFacade: CommonNativeFacade = object()
+		const argon2 = loadArgon2WASM()
 		appPassHandler = new AppPassHandler(crypto, conf, argon2, lang, () => Promise.resolve(commonNativeFacade))
 	})
 
