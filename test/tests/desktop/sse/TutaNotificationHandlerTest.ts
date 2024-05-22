@@ -154,7 +154,7 @@ o.spec("TutaNotificationHandler", () => {
 			const credentials: UnencryptedCredentials = {
 				credentialInfo: {
 					userId: "user1",
-					type: CredentialType.internal,
+					type: CredentialType.Internal,
 					login: "user1@example.com",
 				},
 				accessToken: "accessToken",

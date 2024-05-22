@@ -23,10 +23,11 @@ class PersistedCredentialsEntity(
 
 		other as PersistedCredentialsEntity
 
-		if (login != other.login) return false
-		if (type != other.type) return false
-		if (userId != other.userId) return false
-		if (encryptedPassword != other.encryptedPassword) return false
+		if (login != other.login
+			|| type != other.type
+			|| userId != other.userId
+			|| encryptedPassword != other.encryptedPassword)
+			return false
 		if (databaseKey != null) {
 			if (other.databaseKey == null) return false
 			if (!databaseKey.contentEquals(other.databaseKey)) return false

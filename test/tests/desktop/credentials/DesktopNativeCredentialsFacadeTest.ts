@@ -19,7 +19,7 @@ o.spec("DesktopNativeCredentialsFacade", () => {
 	const encryptedCredentials1 = {
 		credentialInfo: {
 			login: "login1@test.com",
-			type: CredentialType.internal,
+			type: CredentialType.Internal,
 			userId: "user1",
 		},
 		encryptedPassword: "pw1",
@@ -30,7 +30,7 @@ o.spec("DesktopNativeCredentialsFacade", () => {
 	const decryptedCredentials1 = {
 		credentialInfo: {
 			login: "login1@test.com",
-			type: CredentialType.internal,
+			type: CredentialType.Internal,
 			userId: "user1",
 		},
 		encryptedPassword: "pw1",
@@ -41,7 +41,7 @@ o.spec("DesktopNativeCredentialsFacade", () => {
 	const encryptedCredentials2 = {
 		credentialInfo: {
 			login: "login2@test.com",
-			type: CredentialType.internal,
+			type: CredentialType.Internal,
 			userId: "user2",
 		},
 		encryptedPassword: "pw2",

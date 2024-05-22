@@ -96,7 +96,7 @@ o.spec("LoginViewModelTest", () => {
 		credentialInfo: {
 			userId: "user-id-1",
 			login: "test@example.com",
-			type: CredentialType.internal,
+			type: CredentialType.Internal,
 		},
 		encryptedPassword: "encryptedPassword",
 		accessToken: stringToUtf8Uint8Array("accessToken"),
@@ -108,7 +108,7 @@ o.spec("LoginViewModelTest", () => {
 		login: "test@example.com",
 		encryptedPassword: "encryptedPassword",
 		accessToken: "accessToken",
-		type: CredentialType.internal,
+		type: CredentialType.Internal,
 	})
 
 	let loginControllerMock: LoginController
@@ -355,7 +355,7 @@ o.spec("LoginViewModelTest", () => {
 			encryptedPassword: null,
 			accessToken: testCredentials.accessToken,
 			userId: testCredentials.userId,
-			type: CredentialType.internal,
+			type: CredentialType.Internal,
 		}
 		const password = "password"
 		o("should login and not store password", async function () {
@@ -395,7 +395,7 @@ o.spec("LoginViewModelTest", () => {
 				credentialInfo: {
 					userId: testCredentials.userId,
 					login: testCredentials.login,
-					type: CredentialType.internal,
+					type: CredentialType.Internal,
 				},
 				encryptedPassword: "encPw",
 				accessToken: "oldAccessToken",
