@@ -221,7 +221,7 @@ private func codingToVCard(_ ident: String, _ coding: NSSecureCoding) -> SharedI
 		return nil
 	}
 
-	return .contact(ident: ident, content: String(data: vcardText, encoding: .utf8)!)
+	return .contact(ident: ident, content: String(decoding: vcardText, as: UTF8.self))
 }
 
 public func getAppGroupName() -> String {

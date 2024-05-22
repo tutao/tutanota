@@ -28,13 +28,8 @@ class IosMobileSystemFacade: MobileSystemFacade {
 	func getSupportedAppLockMethods() async throws -> [TutanotaSharedFramework.AppLockMethod] {
 		var supportedMethods = [AppLockMethod.none]
 
-
-		if let systemPasswordSupported = self.appLockHandler.isSystemPasswordSupported() {
-		 supportedMethods.append(.system_pass_or_biometrics)
-		}
-		if let biometricsSupported = self.appLockHandler.isBiometricsSupported() {
-		 supportedMethods.append(.biometrics)
-		}
+		if self.appLockHandler.isSystemPasswordSupported() { supportedMethods.append(.system_pass_or_biometrics) }
+		if self.appLockHandler.isBiometricsSupported() { supportedMethods.append(.biometrics) }
 
 		return supportedMethods
 	}
