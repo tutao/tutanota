@@ -23,7 +23,6 @@ import { IServiceExecutor } from "../../common/ServiceRequest.js"
 import { VersionedKey } from "../crypto/CryptoFacade.js"
 import { assertWorkerOrNode } from "../../common/Env.js"
 import { CryptoWrapper } from "../crypto/CryptoWrapper.js"
-import { PreconditionFailedError } from "../../common/error/RestError.js"
 
 assertWorkerOrNode()
 
@@ -36,26 +35,6 @@ type PendingKeyRotation = {
 	// Therefore, we do not need to save two different key rotations for this case.
 	adminOrUserGroupKeyRotation: KeyRotation | null
 	userAreaGroupsKeyRotation: Array<KeyRotation>
-}
-
-type SkippableOK<T> = {
-	status: "ok"
-	data: T
-}
-
-type SkippableSkip = {
-	status: "skip"
-	reason?: string
-}
-
-type SkippableResult<T> = SkippableSkip | SkippableOK<T>
-
-function skip(reason?: string): SkippableSkip {
-	return { status: "skip", reason }
-}
-
-function ok<T>(data: T): SkippableOK<T> {
-	return { status: "ok", data }
 }
 
 /**
@@ -109,7 +88,8 @@ export class KeyRotationFacade {
 		if (userGroupRoot.keyRotations != null) {
 			const pendingKeyRotations = await this.entityClient.loadAll(KeyRotationTypeRef, userGroupRoot.keyRotations.list)
 			const adminOrUserGroupRotation = pendingKeyRotations.find(
-				(keyRotation) => keyRotation.groupKeyRotationType === GroupKeyRotationType.Admin || keyRotation.groupKeyRotationType === GroupKeyRotationType.User,
+				(keyRotation) =>
+					keyRotation.groupKeyRotationType === GroupKeyRotationType.Admin || keyRotation.groupKeyRotationType === GroupKeyRotationType.User,
 			)
 			this.pendingKeyRotations = {
 				pwKey: this.pendingKeyRotations.pwKey,
@@ -117,8 +97,6 @@ export class KeyRotationFacade {
 				userAreaGroupsKeyRotation: pendingKeyRotations.filter((keyRotation) => keyRotation.groupKeyRotationType === GroupKeyRotationType.UserArea),
 			}
 		}
-
-		this.facadeInitializedDeferredObject.resolve()
 	}
 
 	/**
@@ -171,25 +149,8 @@ export class KeyRotationFacade {
 
 		const serviceData = createGroupKeyRotationPostIn({ groupKeyUpdates: [] })
 		for (const keyRotation of this.pendingKeyRotations.userAreaGroupsKeyRotation) {
-			const groupKeyRotationData = await this.prepareKeyRotationForAreaGroup(
-				keyRotation,
-				user,
-				currentUserGroupKey,
-				currentAdminGroupKey,
-				adminGroupMembership,
-			)
-			const status = groupKeyRotationData.status
-			switch (status) {
-				case "ok":
-					serviceData.groupKeyUpdates.push(groupKeyRotationData.data)
-					break
-				case "skip":
-					console.log(`Skipped group key rotation: ${groupKeyRotationData.reason}`)
-					break
-				default:
-					const _exhaustive: never = status
-					throw new Error(`Exhaustive switch violated with value ${_exhaustive}`)
-			}
+			const groupKeyRotationData = await this.prepareKeyRotationForAreaGroup(keyRotation, currentUserGroupKey, currentAdminGroupKey, adminGroupMembership)
+			serviceData.groupKeyUpdates.push(groupKeyRotationData)
 		}
 		if (serviceData.groupKeyUpdates.length <= 0) {
 			return
@@ -199,26 +160,19 @@ export class KeyRotationFacade {
 
 	private async prepareKeyRotationForAreaGroup(
 		keyRotation: KeyRotation,
-		user: User,
 		currentUserGroupKey: VersionedKey,
 		currentAdminGroupKey: AesKey,
 		adminGroupMembership: GroupMembership,
-	): Promise<SkippableResult<GroupKeyRotationData>> {
+	): Promise<GroupKeyRotationData> {
 		const targetGroupId = this.getTargetGroupId(keyRotation)
 		console.log(`KeyRotationFacade: rotate key for group: ${targetGroupId}, groupKeyRotationType: ${keyRotation.groupKeyRotationType}`)
 		const targetGroup = await this.entityClient.load(GroupTypeRef, targetGroupId)
-		const targetGroupMembershipResult = await this.getTargetGroupMembership(user, keyRotation)
-		if (targetGroupMembershipResult.status === "skip") {
-			return skip(targetGroupMembershipResult.reason)
-		}
-		// * Client checks if it has the latest group key versions.
-		const targetGroupMembership = targetGroupMembershipResult.data
+		const currentGroupKey = await this.keyLoaderFacade.getCurrentSymGroupKey(targetGroupId)
 
 		// * new symmetric group key is generated and encrypted
 		const newSymmetricGroupKey = this.cryptoWrapper.aes256RandomKey()
 		const userGroupEncNewGroupKey = this.cryptoWrapper.encryptKeyWithVersionedKey(currentUserGroupKey, newSymmetricGroupKey)
-		const formerGroupKey = await this.keyLoaderFacade.loadSymGroupKey(targetGroupMembership.group, Number(targetGroupMembership.groupKeyVersion))
-		const newGroupKeyEncFormerGroupKey = this.cryptoWrapper.encryptKey(newSymmetricGroupKey, formerGroupKey)
+		const newGroupKeyEncFormerGroupKey = this.cryptoWrapper.encryptKey(newSymmetricGroupKey, currentGroupKey.object)
 
 		// only encrypt with admin key if exists
 		const { updatedAdminGroupEncGKey, adminGroupKeyVersion } = this.getAdminValues(
@@ -231,18 +185,16 @@ export class KeyRotationFacade {
 		// * new asymmetric key pair is generated, when group already has asymmetric key pair
 		const keyPair = await this.getKeyPairValue(targetGroup, newSymmetricGroupKey)
 
-		return ok(
-			createGroupKeyRotationData({
-				userEncGroupKey: userGroupEncNewGroupKey.key,
-				userKeyVersion: String(currentUserGroupKey.version),
-				adminGroupEncGroupKey: updatedAdminGroupEncGKey,
-				adminGroupKeyVersion: adminGroupKeyVersion ? adminGroupKeyVersion : null,
-				group: targetGroupId,
-				groupKeyVersion: keyRotation.targetKeyVersion,
-				groupEncPreviousGroupKey: newGroupKeyEncFormerGroupKey,
-				keyPair: keyPair,
-			}),
-		)
+		return createGroupKeyRotationData({
+			userEncGroupKey: userGroupEncNewGroupKey.key,
+			userKeyVersion: String(currentUserGroupKey.version),
+			adminGroupEncGroupKey: updatedAdminGroupEncGKey,
+			adminGroupKeyVersion: adminGroupKeyVersion,
+			group: targetGroupId,
+			groupKeyVersion: keyRotation.targetKeyVersion,
+			groupEncPreviousGroupKey: newGroupKeyEncFormerGroupKey,
+			keyPair: keyPair,
+		})
 	}
 
 	/**
@@ -252,16 +204,6 @@ export class KeyRotationFacade {
 		// The KeyRotation is a list element type whose list element ID part is the target group ID,
 		// i.e., an indirect reference to Group.
 		return elementIdPart(keyRotation._id)
-	}
-
-	private async getTargetGroupMembership(user: User, keyRotation: KeyRotation): Promise<SkippableResult<GroupMembership>> {
-		const targetGroupId = this.getTargetGroupId(keyRotation)
-		const targetGroupMembership = user.memberships.find((m) => m.group === targetGroupId)
-		if (targetGroupMembership) {
-			return ok(targetGroupMembership)
-		} else {
-			return skip("Rotating keys for groups we are not a member of is not yet supported.")
-		}
 	}
 
 	/**

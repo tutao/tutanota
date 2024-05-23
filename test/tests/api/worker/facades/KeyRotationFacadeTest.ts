@@ -61,7 +61,7 @@ o.spec("KeyRotationFacade", function () {
 		group = makeGroup(groupId)
 
 		when(entityClientMock.load(GroupTypeRef, groupId)).thenResolve(group)
-		when(keyLoaderFacadeMock.loadSymGroupKey(groupId, 0)).thenResolve(groupKeyVersion0)
+		when(keyLoaderFacadeMock.getCurrentSymGroupKey(groupId)).thenResolve({ version: 0, object: groupKeyVersion0 })
 		when(entityClientMock.load(UserGroupRootTypeRef, anything())).thenResolve(await makeUserGroupRoot(keyRotationsList))
 	})
 
@@ -264,6 +264,7 @@ o.spec("KeyRotationFacade", function () {
 						groupKeyVersion: "0",
 					}),
 				)
+				when(keyLoaderFacadeMock.getCurrentSymGroupKey(secondGroupId)).thenResolve({ object: object() })
 
 				keyRotationFacade.setPendingKeyRotations({
 					pwKey: null,
@@ -333,18 +334,6 @@ o.spec("KeyRotationFacade", function () {
 				// remove admin group membership
 				findAllAndRemove(user.memberships, (m) => m.groupType === GroupType.Admin)
 
-				await keyRotationFacade.processPendingKeyRotation(user)
-
-				verify(serviceExecutorMock.post(anything(), anything()), { times: 0 })
-			})
-			o("If the user is an admin, but not a member of the group key rotations are ignored", async function () {
-				const otherUsersGroupId = makeOtherUsersGroup("usersCustomerGroup")
-				keyRotationFacade.setPendingKeyRotations({
-					pwKey: null,
-					adminOrUserGroupKeyRotation: null,
-					userAreaGroupsKeyRotation: makeKeyRotation(keyRotationsList, GroupKeyRotationType.UserArea, otherUsersGroupId),
-				})
-				prepareKeyMocks(cryptoWrapperMock, keyLoaderFacadeMock, groupKeyVersion0, userEncAdminKey)
 				await keyRotationFacade.processPendingKeyRotation(user)
 
 				verify(serviceExecutorMock.post(anything(), anything()), { times: 0 })

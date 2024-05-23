@@ -679,7 +679,8 @@ export class LoginFacade {
 			await this.migrateKdfType(KdfType.Argon2id, passphrase, user)
 		} else if (!isExternalUser && !isAdminClient()) {
 			// We trigger group key rotation only for internal users.
-			// If we have not migrated to argon2 we postpone key rotation until next login.
+			// If we have not migrated to argon2 we postpone key rotation until next login
+			// instead of reloading the pwKey, which would be updated by the KDF migration.
 			await this.keyRotationFacade.initialize(userPassphraseKey)
 		}
 
