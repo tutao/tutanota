@@ -53,6 +53,7 @@ pipeline {
 			steps {
 				sh 'git clone --branch 3.1.59 https://github.com/emscripten-core/emsdk.git'
 				sh 'cd emsdk'
+				sh 'chmod +x ./emsdk'
 				sh './emsdk install latest'
 				sh './emsdk activate latest'
 				sh 'source ./emsdk_env.sh'
