@@ -130,7 +130,7 @@ export async function runTestBuild({ clean, fast = false }) {
 								env: {
 									WASM: `${process.cwd()}/build/wasm/liboqs.wasm`,
 								},
-								optimizationLevel: "O1",
+								optimizationLevel: "O3",
 							},
 						},
 						{
@@ -141,7 +141,7 @@ export async function runTestBuild({ clean, fast = false }) {
 								env: {
 									WASM: `${process.cwd()}/build/wasm/argon2.wasm`,
 								},
-								optimizationLevel: "O1",
+								optimizationLevel: "O3",
 							},
 						},
 					],
