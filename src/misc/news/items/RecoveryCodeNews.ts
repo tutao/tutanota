@@ -14,6 +14,7 @@ import { progressIcon } from "../../../gui/base/Icon.js"
 import { UserManagementFacade } from "../../../api/worker/facades/lazy/UserManagementFacade.js"
 import { isApp } from "../../../api/common/Env.js"
 import { showRequestPasswordDialog } from "../../passwords/PasswordRequestDialog.js"
+import { RecoverCodeFacade } from "../../../api/worker/facades/lazy/RecoverCodeFacade.js"
 
 /**
  * News item that informs admin users about their recovery code.
@@ -29,7 +30,7 @@ export class RecoveryCodeNews implements NewsListItem {
 	constructor(
 		private readonly newsModel: NewsModel,
 		private readonly userController: UserController,
-		private readonly userManagementFacade: UserManagementFacade,
+		private readonly recoverCodeFacade: RecoverCodeFacade,
 	) {}
 
 	isShown(newsId: NewsId): Promise<boolean> {
@@ -142,7 +143,7 @@ export class RecoveryCodeNews implements NewsListItem {
 			action: (pw) => {
 				const hasRecoveryCode = !!userController.user.auth?.recoverCode
 
-				return (hasRecoveryCode ? this.userManagementFacade.getRecoverCode(pw) : this.userManagementFacade.createRecoveryCode(pw))
+				return (hasRecoveryCode ? this.recoverCodeFacade.getRecoverCodeHex(pw) : this.recoverCodeFacade.createRecoveryCode(pw))
 					.then((recoverCode) => {
 						dialog.close()
 						this.recoveryCode = recoverCode

@@ -1,6 +1,6 @@
-import { create, StrippedEntity } from "../../common/utils/EntityUtils.js"
-import { TypeRef } from "@tutao/tutanota-utils"
-import { typeModels } from "./TypeModels.js"
+import { create, Stripped, StrippedEntity } from "../../common/utils/EntityUtils.js"
+import {TypeRef} from "@tutao/tutanota-utils"
+import {typeModels} from "./TypeModels.js"
 
 
 export const AccountingInfoTypeRef: TypeRef<AccountingInfo> = new TypeRef("sys", "AccountingInfo")
@@ -35,6 +35,20 @@ export type AccountingInfo = {
 	secondCountryInfo: NumberString;
 
 	invoiceInfo:  null | Id;
+}
+export const AdminGroupKeyRotationPostInTypeRef: TypeRef<AdminGroupKeyRotationPostIn> = new TypeRef("sys", "AdminGroupKeyRotationPostIn")
+
+export function createAdminGroupKeyRotationPostIn(values: StrippedEntity<AdminGroupKeyRotationPostIn>): AdminGroupKeyRotationPostIn {
+	return Object.assign(create(typeModels.AdminGroupKeyRotationPostIn, AdminGroupKeyRotationPostInTypeRef), values)
+}
+
+export type AdminGroupKeyRotationPostIn = {
+	_type: TypeRef<AdminGroupKeyRotationPostIn>;
+
+	_format: NumberString;
+
+	adminGroupKeyData: GroupKeyRotationData;
+	userGroupKeyData: UserGroupKeyRotationData;
 }
 export const AdministratedGroupsRefTypeRef: TypeRef<AdministratedGroupsRef> = new TypeRef("sys", "AdministratedGroupsRef")
 
@@ -1321,7 +1335,7 @@ export type GroupKey = {
 	_ownerGroup: null | Id;
 	_permissions: Id;
 	adminGroupEncGKey: null | Uint8Array;
-	adminGroupKeyVersion: NumberString;
+	adminGroupKeyVersion: null | NumberString;
 	ownerEncGKey: Uint8Array;
 	ownerKeyVersion: NumberString;
 	pubAdminGroupEncGKey: null | Uint8Array;
@@ -2333,6 +2347,21 @@ export type RecoverCode = {
 	userKeyVersion: NumberString;
 	verifier: Uint8Array;
 }
+export const RecoverCodeDataTypeRef: TypeRef<RecoverCodeData> = new TypeRef("sys", "RecoverCodeData")
+
+export function createRecoverCodeData(values: StrippedEntity<RecoverCodeData>): RecoverCodeData {
+	return Object.assign(create(typeModels.RecoverCodeData, RecoverCodeDataTypeRef), values)
+}
+
+export type RecoverCodeData = {
+	_type: TypeRef<RecoverCodeData>;
+
+	_id: Id;
+	recoveryCodeEncUserGroupKey: Uint8Array;
+	recoveryCodeVerifier: Uint8Array;
+	userEncRecoveryCode: Uint8Array;
+	userKeyVersion: NumberString;
+}
 export const ReferralCodeGetInTypeRef: TypeRef<ReferralCodeGetIn> = new TypeRef("sys", "ReferralCodeGetIn")
 
 export function createReferralCodeGetIn(values: StrippedEntity<ReferralCodeGetIn>): ReferralCodeGetIn {
@@ -3140,6 +3169,28 @@ export type UserGroupKeyDistribution = {
 	_permissions: Id;
 	distributionEncUserGroupKey: Uint8Array;
 	userGroupKeyVersion: NumberString;
+}
+export const UserGroupKeyRotationDataTypeRef: TypeRef<UserGroupKeyRotationData> = new TypeRef("sys", "UserGroupKeyRotationData")
+
+export function createUserGroupKeyRotationData(values: StrippedEntity<UserGroupKeyRotationData>): UserGroupKeyRotationData {
+	return Object.assign(create(typeModels.UserGroupKeyRotationData, UserGroupKeyRotationDataTypeRef), values)
+}
+
+export type UserGroupKeyRotationData = {
+	_type: TypeRef<UserGroupKeyRotationData>;
+
+	_id: Id;
+	adminGroupEncUserGroupKey: Uint8Array;
+	adminGroupKeyVersion: NumberString;
+	authVerifier: Uint8Array;
+	distributionKeyEncUserGroupKey: Uint8Array;
+	passphraseEncUserGroupKey: Uint8Array;
+	userGroupEncPreviousGroupKey: Uint8Array;
+	userGroupKeyVersion: NumberString;
+
+	group: Id;
+	keyPair: KeyPair;
+	recoverCodeData:  null | RecoverCodeData;
 }
 export const UserGroupRootTypeRef: TypeRef<UserGroupRoot> = new TypeRef("sys", "UserGroupRoot")
 

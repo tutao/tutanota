@@ -1,33 +1,15 @@
-import { AccountType, asKdfType, Const, CounterType, DEFAULT_KDF_TYPE, GroupType } from "../../../common/TutanotaConstants.js"
+import { AccountType, Const, CounterType, DEFAULT_KDF_TYPE, GroupType } from "../../../common/TutanotaConstants.js"
 import type { User } from "../../../entities/sys/TypeRefs.js"
-import {
-	createMembershipAddData,
-	createRecoverCode,
-	createResetPasswordData,
-	createUserDataDelete,
-	GroupTypeRef,
-	RecoverCodeTypeRef,
-} from "../../../entities/sys/TypeRefs.js"
+import { createMembershipAddData, createResetPasswordData, createUserDataDelete, GroupTypeRef } from "../../../entities/sys/TypeRefs.js"
 import { encryptBytes, encryptKeyWithVersionedKey, encryptString, VersionedKey } from "../../crypto/CryptoFacade.js"
-import { assertNotNull, type Hex, neverNull, uint8ArrayToHex } from "@tutao/tutanota-utils"
+import { neverNull } from "@tutao/tutanota-utils"
 import type { UserAccountUserData } from "../../../entities/tutanota/TypeRefs.js"
 import { createUserAccountCreateData, createUserAccountUserData } from "../../../entities/tutanota/TypeRefs.js"
 import type { GroupManagementFacade } from "./GroupManagementFacade.js"
 import { LoginFacade } from "../LoginFacade.js"
 import { CounterFacade } from "./CounterFacade.js"
 import { assertWorkerOrNode } from "../../../common/Env.js"
-import {
-	aes256RandomKey,
-	AesKey,
-	bitArrayToUint8Array,
-	createAuthVerifier,
-	createAuthVerifierAsBase64Url,
-	decryptKey,
-	encryptKey,
-	generateRandomSalt,
-	random,
-	uint8ArrayToKey,
-} from "@tutao/tutanota-crypto"
+import { aes256RandomKey, AesKey, createAuthVerifier, decryptKey, encryptKey, generateRandomSalt, random, uint8ArrayToKey } from "@tutao/tutanota-crypto"
 import { EntityClient } from "../../../common/EntityClient.js"
 import { IServiceExecutor } from "../../../common/ServiceRequest.js"
 import { MembershipService, ResetPasswordService, SystemKeysService, UserService } from "../../../entities/sys/Services.js"
@@ -37,16 +19,9 @@ import { ExposedOperationProgressTracker, OperationId } from "../../../main/Oper
 import { PQFacade } from "../PQFacade.js"
 import { freshVersioned } from "@tutao/tutanota-utils/dist/Utils.js"
 import { KeyLoaderFacade } from "../KeyLoaderFacade.js"
+import { RecoverCodeFacade, RecoverData } from "./RecoverCodeFacade.js"
 
 assertWorkerOrNode()
-
-export type RecoverData = {
-	userEncRecoverCode: Uint8Array
-	userKeyVersion: number
-	recoverCodeEncUserGroupKey: Uint8Array
-	hexCode: Hex
-	recoveryCodeVerifier: Uint8Array
-}
 
 export class UserManagementFacade {
 	constructor(
@@ -59,6 +34,7 @@ export class UserManagementFacade {
 		private readonly loginFacade: LoginFacade,
 		private readonly pqFacade: PQFacade,
 		private readonly keyLoaderFacade: KeyLoaderFacade,
+		private readonly recoverCodeFacade: RecoverCodeFacade,
 	) {}
 
 	async changeUserPassword(user: User, newPassword: string): Promise<void> {
@@ -133,6 +109,7 @@ export class UserManagementFacade {
 			throw new Error(`Trying to get keyData for user with account type ${user.accountType}`)
 		}
 	}
+
 	async readUsedUserStorage(user: User): Promise<number> {
 		const counterValue = await this.counters.readCounterValue(CounterType.UserStorageLegacy, neverNull(user.customer), user.userGroup.group)
 		return Number(counterValue)
@@ -146,6 +123,7 @@ export class UserManagementFacade {
 		})
 		await this.serviceExecutor.delete(UserService, data)
 	}
+
 	async createUser(
 		name: string,
 		mailAddress: string,
@@ -189,7 +167,7 @@ export class UserManagementFacade {
 				mailAddress,
 				password,
 				name,
-				this.generateRecoveryCode(userGroupKey),
+				this.recoverCodeFacade.generateRecoveryCode(userGroupKey),
 			),
 		})
 		await this.serviceExecutor.post(UserAccountService, data)
@@ -265,71 +243,5 @@ export class UserManagementFacade {
 			recoverCodeVerifier: recoverData.recoveryCodeVerifier,
 			userEncRecoverCode: recoverData.userEncRecoverCode,
 		})
-	}
-
-	generateRecoveryCode(currentUserGroupKey: VersionedKey): RecoverData {
-		const recoveryCode = aes256RandomKey()
-		const userEncRecoverCode = encryptKey(currentUserGroupKey.object, recoveryCode)
-		const recoverCodeEncUserGroupKey = encryptKey(recoveryCode, currentUserGroupKey.object)
-		const recoveryCodeVerifier = createAuthVerifier(recoveryCode)
-		return {
-			userEncRecoverCode,
-			userKeyVersion: currentUserGroupKey.version,
-			recoverCodeEncUserGroupKey,
-			hexCode: uint8ArrayToHex(bitArrayToUint8Array(recoveryCode)),
-			recoveryCodeVerifier,
-		}
-	}
-
-	async getRecoverCode(passphrase: string): Promise<string> {
-		const user = this.userFacade.getLoggedInUser()
-		const recoverCodeId = user.auth?.recoverCode
-		if (recoverCodeId == null) {
-			throw new Error("Auth is missing")
-		}
-
-		const passphraseKeyData = {
-			kdfType: asKdfType(user.kdfVersion),
-			passphrase,
-			salt: assertNotNull(user.salt),
-		}
-		const passphraseKey = await this.loginFacade.deriveUserPassphraseKey(passphraseKeyData)
-		const extraHeaders = {
-			authVerifier: createAuthVerifierAsBase64Url(passphraseKey),
-		}
-
-		const recoveryCodeEntity = await this.entityClient.load(RecoverCodeTypeRef, recoverCodeId, undefined, extraHeaders)
-		const userGroupKey = await this.keyLoaderFacade.loadSymUserGroupKey(Number(recoveryCodeEntity.userKeyVersion))
-		return uint8ArrayToHex(bitArrayToUint8Array(decryptKey(userGroupKey, recoveryCodeEntity.userEncRecoverCode)))
-	}
-
-	async createRecoveryCode(passphrase: string): Promise<string> {
-		const user = this.userFacade.getUser()
-
-		if (user == null || user.auth == null) {
-			throw new Error("Invalid state: no user or no user.auth")
-		}
-
-		const { userEncRecoverCode, userKeyVersion, recoverCodeEncUserGroupKey, hexCode, recoveryCodeVerifier } = this.generateRecoveryCode(
-			this.userFacade.getCurrentUserGroupKey(),
-		)
-		const recoverPasswordEntity = createRecoverCode({
-			userEncRecoverCode: userEncRecoverCode,
-			userKeyVersion: String(userKeyVersion),
-			recoverCodeEncUserGroupKey: recoverCodeEncUserGroupKey,
-			_ownerGroup: this.userFacade.getUserGroupId(),
-			verifier: recoveryCodeVerifier,
-		})
-		const passphraseKeyData = {
-			kdfType: asKdfType(user.kdfVersion),
-			passphrase,
-			salt: assertNotNull(user.salt),
-		}
-		const pwKey = await this.loginFacade.deriveUserPassphraseKey(passphraseKeyData)
-		const authVerifier = createAuthVerifierAsBase64Url(pwKey)
-		await this.entityClient.setup(null, recoverPasswordEntity, {
-			authVerifier,
-		})
-		return hexCode
 	}
 }

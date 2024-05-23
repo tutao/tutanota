@@ -18,7 +18,7 @@ export class KeyLoaderFacade {
 		private readonly keyCache: KeyCache,
 		private readonly userFacade: UserFacade,
 		private readonly entityClient: EntityClient,
-		private readonly nonCachiungEntityClient: EntityClient,
+		private readonly nonCachingEntityClient: EntityClient,
 	) {}
 
 	/**
@@ -39,7 +39,7 @@ export class KeyLoaderFacade {
 				throw new Error("Too many recursive attempts to load group key")
 			}
 			const loggedInUser = this.userFacade.getLoggedInUser()
-			const user = await this.nonCachiungEntityClient.load(UserTypeRef, loggedInUser._id)
+			const user = await this.nonCachingEntityClient.load(UserTypeRef, loggedInUser._id)
 			await this.userFacade.updateUser(user)
 			return this.loadSymGroupKey(groupId, version, currentGroupKey, attempts - 1)
 		}
@@ -124,7 +124,7 @@ export class KeyLoaderFacade {
 					"\nDownloading fresh group instance from server...",
 			)
 			// It is possible that we are dealing with a group that has just been updated on the server, but we have not processed the entity update yet.
-			const newGroup = await this.nonCachiungEntityClient.load(GroupTypeRef, group._id)
+			const newGroup = await this.nonCachingEntityClient.load(GroupTypeRef, group._id)
 
 			formerKeysList = assertNotNull(newGroup.formerGroupKeys, `freshly downloaded group has no formerGroupKeys reference either`).list
 		} else {

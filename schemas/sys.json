@@ -308,6 +308,11 @@
 					"name": "RenameAttribute",
 					"sourceType": "KeyRotation",
 					"info": "RenameAttribute KeyRotation: groupType -> groupKeyRotationType."
+				},
+				{
+					"name": "ChangeValueCardinality",
+					"sourceType": "GroupKey",
+					"info": "ChangeValueCardinality GroupKey/adminGroupKeyVersion/ZeroOrOne."
 				}
 			]
 		}

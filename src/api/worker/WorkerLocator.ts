@@ -71,6 +71,7 @@ import { KeyLoaderFacade } from "./facades/KeyLoaderFacade.js"
 import { KeyRotationFacade } from "./facades/KeyRotationFacade.js"
 import { KeyCache } from "./facades/KeyCache.js"
 import { cryptoWrapper } from "./crypto/CryptoWrapper.js"
+import { RecoverCodeFacade } from "./facades/lazy/RecoverCodeFacade.js"
 
 assertWorkerOrNode()
 
@@ -111,6 +112,7 @@ export type WorkerLocatorType = {
 	// management facades
 	groupManagement: lazyAsync<GroupManagementFacade>
 	userManagement: lazyAsync<UserManagementFacade>
+	recoverCode: lazyAsync<RecoverCodeFacade>
 	customer: lazyAsync<CustomerFacade>
 	giftCards: lazyAsync<GiftCardFacade>
 	mailAddress: lazyAsync<MailAddressFacade>
@@ -224,7 +226,19 @@ export async function initLocator(worker: WorkerImpl, browserData: BrowserData) 
 		locator.keyLoader,
 	)
 
-	locator.keyRotation = new KeyRotationFacade(locator.cachingEntityClient, locator.keyLoader, locator.pqFacade, locator.serviceExecutor, cryptoWrapper)
+	locator.recoverCode = lazyMemoized(async () => {
+		const { RecoverCodeFacade } = await import("./facades/lazy/RecoverCodeFacade.js")
+		return new RecoverCodeFacade(locator.user, locator.cachingEntityClient, locator.login, locator.keyLoader)
+	})
+	locator.keyRotation = new KeyRotationFacade(
+		locator.cachingEntityClient,
+		locator.keyLoader,
+		locator.pqFacade,
+		locator.serviceExecutor,
+		cryptoWrapper,
+		locator.recoverCode,
+		locator.user,
+	)
 
 	const loginListener: LoginListener = {
 		onFullLoginSuccess(sessionType: SessionType, cacheInfo: CacheInfo): Promise<void> {
@@ -312,6 +326,7 @@ export async function initLocator(worker: WorkerImpl, browserData: BrowserData) 
 			locator.login,
 			locator.pqFacade,
 			locator.keyLoader,
+			await locator.recoverCode(),
 		)
 	})
 	locator.customer = lazyMemoized(async () => {
@@ -330,6 +345,7 @@ export async function initLocator(worker: WorkerImpl, browserData: BrowserData) 
 			locator.pdfWriter,
 			locator.pqFacade,
 			locator.keyLoader,
+			await locator.recoverCode(),
 		)
 	})
 	const aesApp = new AesApp(new NativeCryptoFacadeSendDispatcher(worker), random)
@@ -391,7 +407,7 @@ export async function initLocator(worker: WorkerImpl, browserData: BrowserData) 
 
 	locator.configFacade = lazyMemoized(async () => {
 		const { ConfigurationDatabase } = await import("./facades/lazy/ConfigurationDatabase.js")
-		return new ConfigurationDatabase(locator.user, undefined, locator.keyLoader)
+		return new ConfigurationDatabase(locator.keyLoader, locator.user)
 	})
 
 	const eventBusCoordinator = new EventBusEventCoordinator(
@@ -473,6 +489,7 @@ export async function resetLocator(): Promise<void> {
 if (typeof self !== "undefined") {
 	;(self as unknown as WorkerGlobalScope).locator = locator // export in worker scope
 }
+
 /*
  * @returns true if webassembly is supported
  */

@@ -39,10 +39,10 @@ export function showRecoverCodeDialogAfterPasswordVerificationAndInfoDialog(user
 }
 
 export function showRecoverCodeDialogAfterPasswordVerification(action: Action, showMessage: boolean = true) {
-	const userManagementFacade = locator.userManagementFacade
+	const recoverCodeFacade = locator.recoverCodeFacade
 	const dialog = showRequestPasswordDialog({
 		action: (pw) => {
-			return (action === "get" ? userManagementFacade.getRecoverCode(pw) : userManagementFacade.createRecoveryCode(pw))
+			return (action === "get" ? recoverCodeFacade.getRecoverCodeHex(pw) : recoverCodeFacade.createRecoveryCode(pw))
 				.then((recoverCode) => {
 					dialog.close()
 					showRecoverCodeDialog(recoverCode, showMessage)

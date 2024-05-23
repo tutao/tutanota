@@ -6,6 +6,7 @@ import { createTestEntity } from "../../../TestUtils.js"
 import {
 	Group,
 	GroupInfoTypeRef,
+	GroupKeyRotationData,
 	GroupKeyRotationInfoGetOutTypeRef,
 	GroupKeyRotationPostIn,
 	GroupMembershipTypeRef,
@@ -14,55 +15,203 @@ import {
 	KeyRotation,
 	KeyRotationsRefTypeRef,
 	KeyRotationTypeRef,
+	RecoverCodeData,
 	User,
+	UserAuthenticationTypeRef,
+	UserGroupKeyRotationData,
 	UserGroupRoot,
 	UserGroupRootTypeRef,
 	UserTypeRef,
 } from "../../../../../src/api/entities/sys/TypeRefs.js"
-import { AesKey, KEY_LENGTH_BYTES_AES_256, KyberPrivateKey, KyberPublicKey, PQKeyPairs, uint8ArrayToBitArray } from "@tutao/tutanota-crypto"
-import { KeyLoaderFacade } from "../../../../../src/api/worker/facades/KeyLoaderFacade.js"
-import { PQFacade } from "../../../../../src/api/worker/facades/PQFacade.js"
+import {
+	Aes256Key,
+	AesKey,
+	createAuthVerifier,
+	EccKeyPair,
+	KEY_LENGTH_BYTES_AES_256,
+	KyberPrivateKey,
+	KyberPublicKey,
+	PQKeyPairs,
+	uint8ArrayToBitArray,
+} from "@tutao/tutanota-crypto"
+import type { KeyLoaderFacade } from "../../../../../src/api/worker/facades/KeyLoaderFacade.js"
+import type { PQFacade } from "../../../../../src/api/worker/facades/PQFacade.js"
 import { IServiceExecutor } from "../../../../../src/api/common/ServiceRequest.js"
 import { ServiceExecutor } from "../../../../../src/api/worker/rest/ServiceExecutor.js"
 import { GroupKeyRotationType, GroupType } from "../../../../../src/api/common/TutanotaConstants.js"
-import { GroupKeyRotationInfoService, GroupKeyRotationService } from "../../../../../src/api/entities/sys/Services.js"
+import { AdminGroupKeyRotationService, GroupKeyRotationInfoService, GroupKeyRotationService } from "../../../../../src/api/entities/sys/Services.js"
 import { VersionedEncryptedKey, VersionedKey } from "../../../../../src/api/worker/crypto/CryptoFacade.js"
-import { findAllAndRemove } from "@tutao/tutanota-utils"
-import { CryptoWrapper } from "../../../../../src/api/worker/crypto/CryptoWrapper.js"
+import { assertNotNull, findAllAndRemove, lazyAsync, lazyMemoized } from "@tutao/tutanota-utils"
+import type { CryptoWrapper } from "../../../../../src/api/worker/crypto/CryptoWrapper.js"
+import { RecoverCodeFacade, RecoverData } from "../../../../../src/api/worker/facades/lazy/RecoverCodeFacade.js"
+import { UserFacade } from "../../../../../src/api/worker/facades/UserFacade.js"
 
 const { anything } = matchers
+const PQ_SAFE_BITARRAY_KEY_LENGTH = KEY_LENGTH_BYTES_AES_256 / 4
 
+const PW_KEY: AesKey = [0]
+PW_KEY.length = PQ_SAFE_BITARRAY_KEY_LENGTH
+
+const CURRENT_USER_GROUP_KEY: VersionedKey = {
+	object: [1],
+	version: 0,
+}
+CURRENT_USER_GROUP_KEY.object.length = PQ_SAFE_BITARRAY_KEY_LENGTH
+
+const CURRENT_ADMIN_GROUP_KEY: VersionedKey = {
+	object: [2],
+	version: 0,
+}
+CURRENT_ADMIN_GROUP_KEY.object.length = PQ_SAFE_BITARRAY_KEY_LENGTH
+
+const NEW_USER_GROUP_KEY: VersionedKey = {
+	object: [3],
+	version: 1,
+}
+const NEW_ADMIN_GROUP_KEY: VersionedKey = {
+	object: [4],
+	version: 1,
+}
+
+const CURRENT_ADMIN_ECC_KEY_PAIR: EccKeyPair = {
+	publicKey: new Uint8Array([5]),
+	privateKey: new Uint8Array([6]),
+}
+const NEW_ADMIN_ECC_KEY_PAIR: EccKeyPair = {
+	publicKey: new Uint8Array([6]),
+	privateKey: new Uint8Array([7]),
+}
+
+const RECOVER_CODE: Aes256Key = [8]
+const RECOVER_CODE_VERIFIER = new Uint8Array([9])
+const AUTH_VERIFIER = createAuthVerifier(PW_KEY)
+const DISTRIBUTION_KEY = [10]
+
+const CURRENT_USER_AREA_GROUP_KEY: VersionedKey = {
+	object: [11],
+	version: 0,
+}
+
+const NEW_USER_AREA_GROUP_KEY: VersionedKey = {
+	object: [12],
+	version: 1,
+}
+
+const DISTRIBUTION_KEY_ENC_NEW_USER_GROUP_KEY = new Uint8Array(DISTRIBUTION_KEY.concat(NEW_USER_GROUP_KEY.object))
+const CURRENT_ADMIN_GROUP_ENC_CURRENT_USER_GROUP_KEY: VersionedEncryptedKey = {
+	key: new Uint8Array(CURRENT_ADMIN_GROUP_KEY.object.concat(CURRENT_USER_GROUP_KEY.object)),
+	encryptingKeyVersion: 0,
+}
+const CURRENT_ADMIN_GROUP_ENC_CURRENT_ADMIN_GROUP_KEY: VersionedEncryptedKey = {
+	key: new Uint8Array(CURRENT_ADMIN_GROUP_KEY.object.concat(CURRENT_ADMIN_GROUP_KEY.object)),
+	encryptingKeyVersion: 0,
+}
+const PW_ENC_CURRENT_USER_GROUP_KEY: VersionedEncryptedKey = {
+	key: new Uint8Array(PW_KEY.concat(CURRENT_USER_GROUP_KEY.object)),
+	encryptingKeyVersion: 0, // dummy
+}
+const NEW_ADMIN_GROUP_ENC_NEW_USER_GROUP_KEY: VersionedEncryptedKey = {
+	key: new Uint8Array(NEW_ADMIN_GROUP_KEY.object.concat(NEW_USER_GROUP_KEY.object)),
+	encryptingKeyVersion: 1,
+}
+const NEW_ADMIN_GROUP_ENC_NEW_ADMIN_GROUP_KEY: VersionedEncryptedKey = {
+	key: new Uint8Array(NEW_ADMIN_GROUP_KEY.object.concat(NEW_ADMIN_GROUP_KEY.object)),
+	encryptingKeyVersion: 1,
+}
+const NEW_USER_GROUP_ENC_NEW_ADMIN_GROUP_KEY: VersionedEncryptedKey = {
+	key: new Uint8Array(NEW_USER_GROUP_KEY.object.concat(NEW_ADMIN_GROUP_KEY.object)),
+	encryptingKeyVersion: 1,
+}
+const NEW_ADMIN_GROUP_ENC_CURRENT_ADMIN_GROUP_KEY: VersionedEncryptedKey = {
+	key: new Uint8Array(NEW_ADMIN_GROUP_KEY.object.concat(CURRENT_ADMIN_GROUP_KEY.object)),
+	encryptingKeyVersion: 1,
+}
+
+const NEW_USER_GROUP_ENC_CURRENT_USER_GROUP_KEY: VersionedEncryptedKey = {
+	key: new Uint8Array(NEW_USER_GROUP_KEY.object.concat(CURRENT_USER_GROUP_KEY.object)),
+	encryptingKeyVersion: 1,
+}
+const PW_ENC_NEW_USER_GROUP_KEY: VersionedEncryptedKey = {
+	key: new Uint8Array(PW_KEY.concat(NEW_USER_GROUP_KEY.object)),
+	encryptingKeyVersion: 0, // dummy
+}
+const NEW_USER_GROUP_ENC_RECOVER_CODE_KEY: VersionedEncryptedKey = {
+	key: new Uint8Array(NEW_USER_GROUP_KEY.object.concat(RECOVER_CODE)),
+	encryptingKeyVersion: 1,
+}
+const RECOVER_CODE_ENC_NEW_USER_GROUP_KEY: VersionedEncryptedKey = {
+	key: new Uint8Array(RECOVER_CODE.concat(NEW_USER_GROUP_KEY.object)),
+	encryptingKeyVersion: 0, // dummy
+}
+
+const NEW_USER_AREA_GROUP_ENC_CURRENT_USER_AREA_GROUP_KEY: VersionedEncryptedKey = {
+	key: new Uint8Array(NEW_USER_AREA_GROUP_KEY.object.concat(CURRENT_USER_AREA_GROUP_KEY.object)),
+	encryptingKeyVersion: 1,
+}
+
+const CURRENT_ADMIN_GROUP_ENC_NEW_USER_AREA_GROUP_KEY: VersionedEncryptedKey = {
+	key: new Uint8Array(CURRENT_ADMIN_GROUP_KEY.object.concat(NEW_USER_AREA_GROUP_KEY.object)),
+	encryptingKeyVersion: 0,
+}
+
+const CURRENT_USER_GROUP_ENC_NEW_USER_AREA_GROUP_KEY: VersionedEncryptedKey = {
+	key: new Uint8Array(CURRENT_USER_GROUP_KEY.object.concat(NEW_USER_AREA_GROUP_KEY.object)),
+	encryptingKeyVersion: 0,
+}
+
+const userId = "userId"
+const userGroupId = "userGroupId"
+const adminGroupId = "adminGroupId"
+const someGroupId = "someGroup"
+const usersCustomerGroupId = "usersCustomerGroupId"
+const groupInfoElementId = "groupInfo"
+const recoverCodeId = "recoverCodeId"
 o.spec("KeyRotationFacade", function () {
 	let entityClientMock: EntityClient
 	let keyRotationFacade: KeyRotationFacade
 	let keyLoaderFacadeMock: KeyLoaderFacade
 	let pqFacadeMock: PQFacade
 	let serviceExecutorMock: IServiceExecutor
+	let userFacade: UserFacade
+	let recoverCodeFacade: RecoverCodeFacade
 
-	const keyRotationsList = "keyRotationsList"
+	const keyRotationsListId = "keyRotationsListId"
 	let user: User
 	const pwKey = uint8ArrayToBitArray(new Uint8Array(Array(KEY_LENGTH_BYTES_AES_256).keys()))
 	let cryptoWrapperMock: CryptoWrapper
 	let userEncAdminKey: Uint8Array
-	const groupId = "someGroup"
+	const groupId = someGroupId
 	let group: Group
 	let groupKeyVersion0: AesKey
 
 	o.beforeEach(async () => {
 		entityClientMock = instance(EntityClient)
-		keyLoaderFacadeMock = instance(KeyLoaderFacade)
-		pqFacadeMock = instance(PQFacade)
+		keyLoaderFacadeMock = object()
+		pqFacadeMock = object()
 		serviceExecutorMock = instance(ServiceExecutor)
 		cryptoWrapperMock = object()
 		userEncAdminKey = object()
-		keyRotationFacade = new KeyRotationFacade(entityClientMock, keyLoaderFacadeMock, pqFacadeMock, serviceExecutorMock, cryptoWrapperMock)
-		user = await makeUser("userId", userEncAdminKey)
-		groupKeyVersion0 = object()
+		recoverCodeFacade = object()
+		const recoverCodeFacadeAsync: lazyAsync<RecoverCodeFacade> = lazyMemoized(async () => recoverCodeFacade)
+		userFacade = object()
+		keyRotationFacade = new KeyRotationFacade(
+			entityClientMock,
+			keyLoaderFacadeMock,
+			pqFacadeMock,
+			serviceExecutorMock,
+			cryptoWrapperMock,
+			recoverCodeFacadeAsync,
+			userFacade,
+		)
+		user = await makeUser(userId, { key: userEncAdminKey, encryptingKeyVersion: 0 })
 		group = makeGroup(groupId)
 
 		when(entityClientMock.load(GroupTypeRef, groupId)).thenResolve(group)
 		when(keyLoaderFacadeMock.getCurrentSymGroupKey(groupId)).thenResolve({ version: 0, object: groupKeyVersion0 })
-		when(entityClientMock.load(UserGroupRootTypeRef, anything())).thenResolve(await makeUserGroupRoot(keyRotationsList))
+		when(entityClientMock.load(UserGroupRootTypeRef, anything())).thenResolve(await makeUserGroupRoot(keyRotationsListId))
+		when(keyLoaderFacadeMock.getCurrentSymUserGroupKey()).thenReturn(CURRENT_USER_GROUP_KEY)
+		when(keyLoaderFacadeMock.getCurrentSymGroupKey(adminGroupId)).thenResolve(CURRENT_ADMIN_GROUP_KEY)
+		when(keyLoaderFacadeMock.getCurrentSymGroupKey(groupId)).thenResolve(CURRENT_USER_AREA_GROUP_KEY)
 	})
 
 	o.spec("initialize", function () {
@@ -88,7 +237,7 @@ o.spec("KeyRotationFacade", function () {
 	o.spec("loadPendingKeyRotations", function () {
 		o("When a key rotation for a user area group exists on the server, the pending key rotation is saved in the facade.", async function () {
 			when(entityClientMock.loadAll(KeyRotationTypeRef, anything())).thenResolve(
-				makeKeyRotation(keyRotationsList, GroupKeyRotationType.UserArea, groupId),
+				makeKeyRotation(keyRotationsListId, GroupKeyRotationType.UserArea, groupId),
 			)
 
 			await keyRotationFacade.loadPendingKeyRotations(user)
@@ -100,7 +249,7 @@ o.spec("KeyRotationFacade", function () {
 		o.spec("When a key rotation for a group that is not yet supported exists on the server, nothing is saved in the facade", function () {
 			o("Team", async function () {
 				when(entityClientMock.loadAll(KeyRotationTypeRef, anything())).thenResolve(
-					makeKeyRotation(keyRotationsList, GroupKeyRotationType.Team, groupId),
+					makeKeyRotation(keyRotationsListId, GroupKeyRotationType.Team, groupId),
 				)
 
 				await keyRotationFacade.loadPendingKeyRotations(user)
@@ -111,7 +260,7 @@ o.spec("KeyRotationFacade", function () {
 
 			o("Customer", async function () {
 				when(entityClientMock.loadAll(KeyRotationTypeRef, anything())).thenResolve(
-					makeKeyRotation(keyRotationsList, GroupKeyRotationType.Customer, groupId),
+					makeKeyRotation(keyRotationsListId, GroupKeyRotationType.Customer, groupId),
 				)
 
 				await keyRotationFacade.loadPendingKeyRotations(user)
@@ -127,7 +276,7 @@ o.spec("KeyRotationFacade", function () {
 		const otherUsersGroup = makeGroup(otherUsersGroupId)
 		when(entityClientMock.load(GroupTypeRef, otherUsersGroupId)).thenResolve(otherUsersGroup)
 		const otherUsersGroupInfo = createTestEntity(GroupInfoTypeRef, { _ownerGroup: customerGroup })
-		when(entityClientMock.load(GroupInfoTypeRef, ["listId", "groupInfo"])).thenResolve(otherUsersGroupInfo)
+		when(entityClientMock.load(GroupInfoTypeRef, ["listId", groupInfoElementId])).thenResolve(otherUsersGroupInfo)
 		return otherUsersGroupId
 	}
 
@@ -137,7 +286,7 @@ o.spec("KeyRotationFacade", function () {
 				keyRotationFacade.setPendingKeyRotations({
 					pwKey: null,
 					adminOrUserGroupKeyRotation: null,
-					userAreaGroupsKeyRotation: makeKeyRotation(keyRotationsList, GroupKeyRotationType.UserArea, groupId),
+					userAreaGroupsKeyRotation: makeKeyRotation(keyRotationsListId, GroupKeyRotationType.UserArea, groupId),
 				})
 
 				const { userEncNewGroupKey, newGroupKeyEncPreviousGroupKey, adminEncNewGroupKey } = prepareKeyMocks(
@@ -157,10 +306,10 @@ o.spec("KeyRotationFacade", function () {
 				o(update.keyPair).equals(null)
 				o(update.group).equals(groupId)
 				o(update.groupKeyVersion).equals("1")
-				o(update.adminGroupEncGroupKey).equals(adminEncNewGroupKey)
+				o(update.adminGroupEncGroupKey).deepEquals(adminEncNewGroupKey.key)
 				o(update.adminGroupKeyVersion).equals("0")
-				o(update.groupEncPreviousGroupKey).equals(newGroupKeyEncPreviousGroupKey)
-				o(update.userEncGroupKey).equals(userEncNewGroupKey.key)
+				o(update.groupEncPreviousGroupKey).deepEquals(newGroupKeyEncPreviousGroupKey.key)
+				o(update.userEncGroupKey).deepEquals(userEncNewGroupKey.key)
 				o(update.userKeyVersion).equals("0")
 			})
 			o("Rotated group does not have adminEncKey", async function () {
@@ -169,7 +318,7 @@ o.spec("KeyRotationFacade", function () {
 				keyRotationFacade.setPendingKeyRotations({
 					pwKey: null,
 					adminOrUserGroupKeyRotation: null,
-					userAreaGroupsKeyRotation: makeKeyRotation(keyRotationsList, GroupKeyRotationType.UserArea, groupId),
+					userAreaGroupsKeyRotation: makeKeyRotation(keyRotationsListId, GroupKeyRotationType.UserArea, groupId),
 				})
 
 				const { userEncNewGroupKey, newGroupKeyEncPreviousGroupKey } = prepareKeyMocks(
@@ -191,8 +340,8 @@ o.spec("KeyRotationFacade", function () {
 				o(update.groupKeyVersion).equals("1")
 				o(update.adminGroupEncGroupKey).equals(null)
 				o(update.adminGroupKeyVersion).equals(null)
-				o(update.groupEncPreviousGroupKey).equals(newGroupKeyEncPreviousGroupKey)
-				o(update.userEncGroupKey).equals(userEncNewGroupKey.key)
+				o(update.groupEncPreviousGroupKey).deepEquals(newGroupKeyEncPreviousGroupKey.key)
+				o(update.userEncGroupKey).deepEquals(userEncNewGroupKey.key)
 				o(update.userKeyVersion).equals("0")
 			})
 
@@ -200,21 +349,10 @@ o.spec("KeyRotationFacade", function () {
 				keyRotationFacade.setPendingKeyRotations({
 					pwKey: null,
 					adminOrUserGroupKeyRotation: null,
-					userAreaGroupsKeyRotation: makeKeyRotation(keyRotationsList, GroupKeyRotationType.UserArea, groupId),
+					userAreaGroupsKeyRotation: makeKeyRotation(keyRotationsListId, GroupKeyRotationType.UserArea, groupId),
 				})
 
 				group.currentKeys = createTestEntity(KeyPairTypeRef)
-
-				const newKeyPairs: PQKeyPairs = object()
-				newKeyPairs.eccKeyPair = {
-					publicKey: object<Uint8Array>(),
-					privateKey: object<Uint8Array>(),
-				}
-				newKeyPairs.kyberKeyPair = {
-					publicKey: object<KyberPublicKey>(),
-					privateKey: object<KyberPrivateKey>(),
-				}
-				when(pqFacadeMock.generateKeyPairs()).thenResolve(newKeyPairs)
 
 				const { userEncNewGroupKey, newGroupKeyEncPreviousGroupKey, newKey, adminEncNewGroupKey } = prepareKeyMocks(
 					cryptoWrapperMock,
@@ -222,13 +360,8 @@ o.spec("KeyRotationFacade", function () {
 					groupKeyVersion0,
 					userEncAdminKey,
 				)
-
-				const encryptedEccPrivKey: Uint8Array = object()
-				when(cryptoWrapperMock.encryptEccKey(newKey, newKeyPairs.eccKeyPair.privateKey)).thenReturn(encryptedEccPrivKey)
-				const encryptedKyberPrivKey: Uint8Array = object()
-				when(cryptoWrapperMock.encryptKyberKey(newKey, newKeyPairs.kyberKeyPair.privateKey)).thenReturn(encryptedKyberPrivKey)
-				const kyberPublicKeyBytes: Uint8Array = object()
-				when(cryptoWrapperMock.kyberPublicKeyToBytes(newKeyPairs.kyberKeyPair.publicKey)).thenReturn(kyberPublicKeyBytes)
+				const generated = mockGenerateKeyPairs(pqFacadeMock, cryptoWrapperMock, newKey.object)
+				const { newKeyPairs, encryptedEccPrivKey, encryptedKyberPrivKey, kyberPublicKeyBytes } = generated.get(newKey.object)!
 
 				await keyRotationFacade.processPendingKeyRotation(user)
 
@@ -247,10 +380,10 @@ o.spec("KeyRotationFacade", function () {
 				o(update.keyPair).deepEquals(sentKeyPairs)
 				o(update.group).equals(groupId)
 				o(update.groupKeyVersion).equals("1")
-				o(update.adminGroupEncGroupKey).equals(adminEncNewGroupKey)
+				o(update.adminGroupEncGroupKey).deepEquals(adminEncNewGroupKey.key)
 				o(update.adminGroupKeyVersion).equals("0")
-				o(update.groupEncPreviousGroupKey).equals(newGroupKeyEncPreviousGroupKey)
-				o(update.userEncGroupKey).equals(userEncNewGroupKey.key)
+				o(update.groupEncPreviousGroupKey).deepEquals(newGroupKeyEncPreviousGroupKey.key)
+				o(update.userEncGroupKey).deepEquals(userEncNewGroupKey.key)
 				o(update.userKeyVersion).equals("0")
 			})
 
@@ -258,6 +391,8 @@ o.spec("KeyRotationFacade", function () {
 				const secondGroupId = "groupId-2"
 
 				when(entityClientMock.load(GroupTypeRef, secondGroupId)).thenResolve(makeGroup(secondGroupId))
+				when(keyLoaderFacadeMock.getCurrentSymGroupKey(secondGroupId)).thenResolve(CURRENT_USER_AREA_GROUP_KEY)
+
 				user.memberships.push(
 					createTestEntity(GroupMembershipTypeRef, {
 						group: secondGroupId,
@@ -272,12 +407,12 @@ o.spec("KeyRotationFacade", function () {
 					userAreaGroupsKeyRotation: [
 						createTestEntity(KeyRotationTypeRef, {
 							groupKeyRotationType: GroupKeyRotationType.UserArea,
-							_id: [keyRotationsList, groupId],
+							_id: [keyRotationsListId, groupId],
 							targetKeyVersion: "1",
 						}),
 						createTestEntity(KeyRotationTypeRef, {
 							groupKeyRotationType: GroupKeyRotationType.UserArea,
-							_id: [keyRotationsList, secondGroupId],
+							_id: [keyRotationsListId, secondGroupId],
 							targetKeyVersion: "1",
 						}),
 					],
@@ -300,27 +435,143 @@ o.spec("KeyRotationFacade", function () {
 			})
 		})
 
-		o("After processing a key rotation for the admin group the key rotation is deleted from the facade.", async function () {
-			keyRotationFacade.setPendingKeyRotations({
-				pwKey: object(),
-				adminOrUserGroupKeyRotation: createTestEntity(KeyRotationTypeRef, { groupKeyRotationType: GroupKeyRotationType.Admin }),
-				userAreaGroupsKeyRotation: [],
+		o.spec("Admin group key rotation", function () {
+			let userGroup: Group
+			let adminGroup: Group
+			let recoverData: RecoverData
+			let generatedKeyPairs: Map<AesKey, MockedKeyPairs>
+			o.beforeEach(function () {
+				userGroup = makeGroup(userGroupId)
+				userGroup.adminGroupEncGKey = CURRENT_ADMIN_GROUP_ENC_CURRENT_USER_GROUP_KEY.key
+				userGroup.adminGroupKeyVersion = String(CURRENT_ADMIN_GROUP_ENC_CURRENT_USER_GROUP_KEY.encryptingKeyVersion)
+				userGroup.type = GroupType.User
+				userGroup.currentKeys = object()
+				adminGroup = makeGroup(adminGroupId)
+				adminGroup.adminGroupEncGKey = CURRENT_ADMIN_GROUP_ENC_CURRENT_ADMIN_GROUP_KEY.key
+				adminGroup.adminGroupKeyVersion = String(CURRENT_ADMIN_GROUP_ENC_CURRENT_ADMIN_GROUP_KEY.encryptingKeyVersion)
+				adminGroup.type = GroupType.Admin
+				adminGroup.currentKeys = object()
+				recoverData = {
+					hexCode: "hexCode",
+					recoverCodeEncUserGroupKey: NEW_USER_GROUP_ENC_RECOVER_CODE_KEY.key,
+					userKeyVersion: NEW_USER_GROUP_ENC_RECOVER_CODE_KEY.encryptingKeyVersion,
+					userEncRecoverCode: RECOVER_CODE_ENC_NEW_USER_GROUP_KEY.key,
+					recoveryCodeVerifier: RECOVER_CODE_VERIFIER,
+				}
+				when(recoverCodeFacade.getRawRecoverCode(PW_KEY)).thenResolve(RECOVER_CODE)
+				when(recoverCodeFacade.encryptRecoveryCode(RECOVER_CODE, NEW_USER_GROUP_KEY)).thenReturn(recoverData)
+				when(userFacade.deriveUserGroupKeyDistributionKey(userGroupId, PW_KEY)).thenReturn(DISTRIBUTION_KEY)
+				const encryptingKeyCaptor = matchers.captor()
+				const keyCaptor = matchers.captor()
+				when(cryptoWrapperMock.encryptKey(DISTRIBUTION_KEY, NEW_USER_GROUP_KEY.object)).thenReturn(DISTRIBUTION_KEY_ENC_NEW_USER_GROUP_KEY)
+				when(cryptoWrapperMock.encryptKeyWithVersionedKey(encryptingKeyCaptor.capture(), keyCaptor.capture())).thenDo((arg) => ({
+					encryptingKeyVersion: encryptingKeyCaptor.value.version,
+					key: new Uint8Array(encryptingKeyCaptor.value.object.concat(keyCaptor.value)),
+				}))
+				when(cryptoWrapperMock.aes256RandomKey()).thenReturn(NEW_ADMIN_GROUP_KEY.object, NEW_USER_GROUP_KEY.object)
+
+				generatedKeyPairs = mockGenerateKeyPairs(pqFacadeMock, cryptoWrapperMock, NEW_ADMIN_GROUP_KEY.object, NEW_USER_GROUP_KEY.object)
 			})
 
-			await keyRotationFacade.processPendingKeyRotation(user)
-			o(keyRotationFacade.pendingKeyRotations.adminOrUserGroupKeyRotation).equals(null)
-		})
+			o("Successful rotation", async function () {
+				keyRotationFacade.setPendingKeyRotations({
+					pwKey: PW_KEY,
+					adminOrUserGroupKeyRotation: createTestEntity(KeyRotationTypeRef, {
+						_id: [keyRotationsListId, adminGroupId],
+						targetKeyVersion: String(Number(adminGroup.groupKeyVersion) + 1),
+						groupKeyRotationType: GroupKeyRotationType.Admin,
+					}),
+					userAreaGroupsKeyRotation: [],
+				})
 
-		o("After processing key rotations the password key is deleted from the facade.", async function () {
-			keyRotationFacade.setPendingKeyRotations({
-				pwKey: object(),
-				adminOrUserGroupKeyRotation: createTestEntity(KeyRotationTypeRef, { groupKeyRotationType: GroupKeyRotationType.Admin }),
-				userAreaGroupsKeyRotation: [],
+				await keyRotationFacade.processPendingKeyRotation(user)
+
+				verify(
+					serviceExecutorMock.post(
+						AdminGroupKeyRotationService,
+						matchers.argThat((arg) => {
+							const userGroupKeyData: UserGroupKeyRotationData = arg.userGroupKeyData
+							const adminGroupKeyData: GroupKeyRotationData = arg.adminGroupKeyData
+
+							const recoverCodeData: RecoverCodeData = assertNotNull(userGroupKeyData.recoverCodeData)
+							o(recoverCodeData.recoveryCodeVerifier).deepEquals(RECOVER_CODE_VERIFIER)
+							o(recoverCodeData.userKeyVersion).equals(String(NEW_USER_GROUP_ENC_RECOVER_CODE_KEY.encryptingKeyVersion))
+							o(recoverCodeData.userEncRecoveryCode).deepEquals(RECOVER_CODE_ENC_NEW_USER_GROUP_KEY.key)
+							o(recoverCodeData.recoveryCodeEncUserGroupKey).deepEquals(NEW_USER_GROUP_ENC_RECOVER_CODE_KEY.key)
+
+							o(userGroupKeyData.adminGroupKeyVersion).deepEquals(String(NEW_ADMIN_GROUP_ENC_NEW_USER_GROUP_KEY.encryptingKeyVersion))
+							o(userGroupKeyData.userGroupKeyVersion).deepEquals(String(NEW_USER_GROUP_KEY.version))
+							o(userGroupKeyData.group).deepEquals(userGroupId)
+							o(userGroupKeyData.authVerifier).deepEquals(AUTH_VERIFIER)
+							o(userGroupKeyData.distributionKeyEncUserGroupKey).deepEquals(DISTRIBUTION_KEY_ENC_NEW_USER_GROUP_KEY)
+							o(userGroupKeyData.adminGroupEncUserGroupKey).deepEquals(NEW_ADMIN_GROUP_ENC_NEW_USER_GROUP_KEY.key)
+							o(userGroupKeyData.keyPair).notEquals(null)
+							const mockedUserKeyPairs = generatedKeyPairs.get(NEW_USER_GROUP_KEY.object)!
+							o(userGroupKeyData.keyPair?.symEncPrivEccKey).deepEquals(mockedUserKeyPairs.encryptedEccPrivKey)
+							o(userGroupKeyData.keyPair?.pubEccKey).deepEquals(mockedUserKeyPairs.newKeyPairs.eccKeyPair.publicKey)
+							o(userGroupKeyData.keyPair?.symEncPrivKyberKey).deepEquals(mockedUserKeyPairs.encryptedKyberPrivKey)
+							o(userGroupKeyData.keyPair?.pubKyberKey).deepEquals(mockedUserKeyPairs.kyberPublicKeyBytes)
+							o(userGroupKeyData.keyPair?.symEncPrivRsaKey).equals(null)
+							o(userGroupKeyData.keyPair?.pubRsaKey).equals(null)
+							o(userGroupKeyData.passphraseEncUserGroupKey).deepEquals(PW_ENC_NEW_USER_GROUP_KEY.key)
+							o(userGroupKeyData.userGroupEncPreviousGroupKey).deepEquals(NEW_USER_GROUP_ENC_CURRENT_USER_GROUP_KEY.key)
+
+							o(adminGroupKeyData.userKeyVersion).deepEquals(String(NEW_USER_GROUP_ENC_NEW_ADMIN_GROUP_KEY.encryptingKeyVersion))
+							o(adminGroupKeyData.adminGroupKeyVersion).deepEquals(String(NEW_ADMIN_GROUP_KEY.version))
+							o(adminGroupKeyData.groupKeyVersion).deepEquals(assertNotNull(adminGroupKeyData.adminGroupKeyVersion))
+							o(adminGroupKeyData.group).deepEquals(adminGroupId)
+							o(adminGroupKeyData.adminGroupEncGroupKey).deepEquals(NEW_ADMIN_GROUP_ENC_NEW_ADMIN_GROUP_KEY.key)
+							o(adminGroupKeyData.userEncGroupKey).deepEquals(NEW_USER_GROUP_ENC_NEW_ADMIN_GROUP_KEY.key)
+							o(adminGroupKeyData.groupEncPreviousGroupKey).deepEquals(NEW_ADMIN_GROUP_ENC_CURRENT_ADMIN_GROUP_KEY.key)
+							o(adminGroupKeyData.keyPair).notEquals(null)
+							const mockedAdminKeyPairs = generatedKeyPairs.get(NEW_ADMIN_GROUP_KEY.object)!
+							o(adminGroupKeyData.keyPair?.symEncPrivEccKey).deepEquals(mockedAdminKeyPairs.encryptedEccPrivKey)
+							o(adminGroupKeyData.keyPair?.pubEccKey).deepEquals(mockedAdminKeyPairs.newKeyPairs.eccKeyPair.publicKey)
+							o(adminGroupKeyData.keyPair?.symEncPrivKyberKey).deepEquals(mockedAdminKeyPairs.encryptedKyberPrivKey)
+							o(adminGroupKeyData.keyPair?.pubKyberKey).deepEquals(mockedAdminKeyPairs.kyberPublicKeyBytes)
+							o(adminGroupKeyData.keyPair?.symEncPrivRsaKey).equals(null)
+							o(adminGroupKeyData.keyPair?.pubRsaKey).equals(null)
+
+							return true
+						}),
+					),
+				)
+
+				o(keyRotationFacade.pendingKeyRotations.adminOrUserGroupKeyRotation).equals(null)
+				o(keyRotationFacade.pendingKeyRotations.pwKey).equals(null)
 			})
 
-			await keyRotationFacade.processPendingKeyRotation(user)
+			o("Successful rotation - no recover code", async function () {
+				keyRotationFacade.setPendingKeyRotations({
+					pwKey: PW_KEY,
+					adminOrUserGroupKeyRotation: createTestEntity(KeyRotationTypeRef, {
+						_id: [keyRotationsListId, adminGroupId],
+						targetKeyVersion: String(Number(adminGroup.groupKeyVersion) + 1),
+						groupKeyRotationType: GroupKeyRotationType.Admin,
+					}),
+					userAreaGroupsKeyRotation: [],
+				})
 
-			o(keyRotationFacade.pendingKeyRotations.pwKey).equals(null)
+				assertNotNull(user.auth).recoverCode = null
+
+				await keyRotationFacade.processPendingKeyRotation(user)
+
+				verify(
+					serviceExecutorMock.post(
+						AdminGroupKeyRotationService,
+						matchers.argThat((arg) => {
+							const userGroupKeyData: UserGroupKeyRotationData = arg.userGroupKeyData
+							const adminGroupKeyData: GroupKeyRotationData = arg.adminGroupKeyData
+							o(userGroupKeyData.recoverCodeData).equals(null)
+							o(userGroupKeyData.userGroupKeyVersion).deepEquals(String(NEW_USER_GROUP_KEY.version))
+							o(adminGroupKeyData.groupKeyVersion).deepEquals(assertNotNull(adminGroupKeyData.adminGroupKeyVersion))
+							return true
+						}),
+					),
+				)
+				verify(recoverCodeFacade.getRawRecoverCode(matchers.anything()), { times: 0 })
+				verify(recoverCodeFacade.encryptRecoveryCode(anything(), anything()), { times: 0 })
+			})
 		})
 
 		o.spec("Ignore currently unsupported cases", function () {
@@ -328,7 +579,7 @@ o.spec("KeyRotationFacade", function () {
 				keyRotationFacade.setPendingKeyRotations({
 					pwKey: null,
 					adminOrUserGroupKeyRotation: null,
-					userAreaGroupsKeyRotation: makeKeyRotation(keyRotationsList, GroupKeyRotationType.UserArea, groupId),
+					userAreaGroupsKeyRotation: makeKeyRotation(keyRotationsListId, GroupKeyRotationType.UserArea, groupId),
 				})
 
 				// remove admin group membership
@@ -343,12 +594,12 @@ o.spec("KeyRotationFacade", function () {
 				keyRotationFacade.setPendingKeyRotations({
 					pwKey: null,
 					adminOrUserGroupKeyRotation: null,
-					userAreaGroupsKeyRotation: makeKeyRotation(keyRotationsList, GroupKeyRotationType.UserArea, groupId),
+					userAreaGroupsKeyRotation: makeKeyRotation(keyRotationsListId, GroupKeyRotationType.UserArea, groupId),
 				})
 
 				const { currentAdminGroupKey } = prepareKeyMocks(cryptoWrapperMock, keyLoaderFacadeMock, groupKeyVersion0, userEncAdminKey)
 				// make admin group key a 128-bit key
-				currentAdminGroupKey!.length = 4
+				currentAdminGroupKey.object.length = 4
 
 				await keyRotationFacade.processPendingKeyRotation(user)
 
@@ -356,23 +607,46 @@ o.spec("KeyRotationFacade", function () {
 			})
 		})
 	})
+
+	function makeGroup(groupId: Id): Group {
+		const group = createTestEntity(GroupTypeRef, {
+			_id: groupId,
+			adminGroupKeyVersion: "0",
+			groupInfo: ["listId", groupInfoElementId],
+			// we need this to be a non-empty byte array
+			adminGroupEncGKey: new Uint8Array(1),
+			groupKeyVersion: "0",
+		})
+		when(entityClientMock.load(GroupTypeRef, groupId)).thenResolve(group)
+		return group
+	}
 })
 
-async function makeUser(userId: Id, userEncAdminKey: Uint8Array): Promise<User> {
+async function makeUser(userId: Id, userEncAdminKey: VersionedEncryptedKey): Promise<User> {
 	return createTestEntity(UserTypeRef, {
 		_id: userId,
-		userGroup: createTestEntity(GroupMembershipTypeRef, {}),
+		userGroup: createTestEntity(GroupMembershipTypeRef, {
+			groupKeyVersion: "0",
+			symKeyVersion: String(PW_ENC_CURRENT_USER_GROUP_KEY.encryptingKeyVersion),
+			symEncGKey: PW_ENC_CURRENT_USER_GROUP_KEY.key,
+			groupType: GroupType.User,
+			group: userGroupId,
+		}),
+		auth: createTestEntity(UserAuthenticationTypeRef, { recoverCode: recoverCodeId }),
 		memberships: [
 			createTestEntity(GroupMembershipTypeRef, {
 				groupType: GroupType.Admin,
-				symEncGKey: userEncAdminKey,
+				groupKeyVersion: "0",
+				symKeyVersion: String(userEncAdminKey.encryptingKeyVersion),
+				symEncGKey: userEncAdminKey.key,
+				group: adminGroupId,
 			}),
 			createTestEntity(GroupMembershipTypeRef, {
-				group: "someGroup",
+				group: someGroupId,
 			}),
 			createTestEntity(GroupMembershipTypeRef, {
 				groupType: GroupType.Customer,
-				group: "usersCustomerGroup",
+				group: usersCustomerGroupId,
 			}),
 		],
 	})
@@ -397,37 +671,58 @@ async function makeUserGroupRoot(keyRotationsList: Id): Promise<UserGroupRoot> {
 	})
 }
 
-function makeGroup(groupId: Id) {
-	return createTestEntity(GroupTypeRef, {
-		_id: groupId,
-		adminGroupKeyVersion: "0",
-		groupInfo: ["listId", "groupInfo"],
-		// we need this to be a non-empty byte array
-		adminGroupEncGKey: new Uint8Array(1),
-	})
+function prepareKeyMocks(cryptoWrapperMock: CryptoWrapper, keyLoaderFacadeMock: KeyLoaderFacade, formerGroupKey: number[], userEncAdminKey: Uint8Array) {
+	when(cryptoWrapperMock.aes256RandomKey()).thenReturn(NEW_USER_AREA_GROUP_KEY.object)
+	when(keyLoaderFacadeMock.getCurrentSymUserGroupKey()).thenReturn(CURRENT_USER_GROUP_KEY)
+
+	const encryptingKeyCaptor = matchers.captor()
+	const keyCaptor = matchers.captor()
+	when(cryptoWrapperMock.encryptKeyWithVersionedKey(encryptingKeyCaptor.capture(), keyCaptor.capture())).thenDo((arg) => ({
+		encryptingKeyVersion: encryptingKeyCaptor.value.version,
+		key: new Uint8Array(encryptingKeyCaptor.value.object.concat(keyCaptor.value)),
+	}))
+
+	when(keyLoaderFacadeMock.getCurrentSymGroupKey(adminGroupId)).thenResolve(CURRENT_ADMIN_GROUP_KEY)
+
+	return {
+		userEncNewGroupKey: CURRENT_USER_GROUP_ENC_NEW_USER_AREA_GROUP_KEY,
+		newGroupKeyEncPreviousGroupKey: NEW_USER_AREA_GROUP_ENC_CURRENT_USER_AREA_GROUP_KEY,
+		newKey: NEW_USER_AREA_GROUP_KEY,
+		adminEncNewGroupKey: CURRENT_ADMIN_GROUP_ENC_NEW_USER_AREA_GROUP_KEY,
+		currentAdminGroupKey: CURRENT_ADMIN_GROUP_KEY,
+	}
 }
 
-function prepareKeyMocks(cryptoWrapperMock: CryptoWrapper, keyLoaderFacadeMock: KeyLoaderFacade, formerGroupKey: number[], userEncAdminKey: Uint8Array) {
-	const newKey: AesKey = object()
-	when(cryptoWrapperMock.aes256RandomKey()).thenReturn(newKey)
+type MockedKeyPairs = {
+	newKeyPairs: PQKeyPairs
+	encryptedEccPrivKey: Uint8Array
+	encryptedKyberPrivKey: Uint8Array
+	kyberPublicKeyBytes: Uint8Array
+}
 
-	const currentUserGroupKey: VersionedKey = { object: object(), version: 0 }
-	currentUserGroupKey.object.length = 8
-	when(keyLoaderFacadeMock.getCurrentSymUserGroupKey()).thenReturn(currentUserGroupKey)
+function mockGenerateKeyPairs(pqFacadeMock: PQFacade, cryptoWrapperMock: CryptoWrapper, ...newKeys: AesKey[]): Map<AesKey, MockedKeyPairs> {
+	const results = new Map<AesKey, MockedKeyPairs>()
+	for (const newKey of newKeys) {
+		const newKeyPairs: PQKeyPairs = object()
+		newKeyPairs.eccKeyPair = {
+			publicKey: object<Uint8Array>(),
+			privateKey: object<Uint8Array>(),
+		}
+		newKeyPairs.kyberKeyPair = {
+			publicKey: object<KyberPublicKey>(),
+			privateKey: object<KyberPrivateKey>(),
+		}
 
-	const userEncNewGroupKey: VersionedEncryptedKey = { key: object(), encryptingKeyVersion: 0 }
-	when(cryptoWrapperMock.encryptKeyWithVersionedKey(currentUserGroupKey, newKey)).thenReturn(userEncNewGroupKey)
-
-	const newGroupKeyEncPreviousGroupKey: Uint8Array = object()
-
-	when(cryptoWrapperMock.encryptKey(newKey, formerGroupKey)).thenReturn(newGroupKeyEncPreviousGroupKey)
-
-	const currentAdminGroupKey: AesKey = object()
-	currentAdminGroupKey.length = 8
-	when(cryptoWrapperMock.decryptKey(currentUserGroupKey.object, userEncAdminKey)).thenReturn(currentAdminGroupKey)
-
-	let adminEncNewGroupKey: Uint8Array = object()
-	when(cryptoWrapperMock.encryptKey(currentAdminGroupKey, newKey)).thenReturn(adminEncNewGroupKey)
-
-	return { userEncNewGroupKey, newGroupKeyEncPreviousGroupKey, newKey, adminEncNewGroupKey, currentAdminGroupKey }
+		const encryptedEccPrivKey: Uint8Array = object()
+		when(cryptoWrapperMock.encryptEccKey(newKey, newKeyPairs.eccKeyPair.privateKey)).thenReturn(encryptedEccPrivKey)
+		const encryptedKyberPrivKey: Uint8Array = object()
+		when(cryptoWrapperMock.encryptKyberKey(newKey, newKeyPairs.kyberKeyPair.privateKey)).thenReturn(encryptedKyberPrivKey)
+		const kyberPublicKeyBytes: Uint8Array = object()
+		when(cryptoWrapperMock.kyberPublicKeyToBytes(newKeyPairs.kyberKeyPair.publicKey)).thenReturn(kyberPublicKeyBytes)
+		results.set(newKey, { newKeyPairs, encryptedEccPrivKey, encryptedKyberPrivKey, kyberPublicKeyBytes })
+	}
+	// we need to pass the first result separately because thenResolve's signature requires it
+	const [first, ...rest] = Array.from(results.values())
+	when(pqFacadeMock.generateKeyPairs()).thenResolve(first.newKeyPairs, ...rest.map((result) => result.newKeyPairs))
+	return results
 }

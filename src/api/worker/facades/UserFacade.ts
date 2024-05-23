@@ -69,16 +69,20 @@ export class UserFacade implements AuthDataProvider {
 			throw new ProgrammingError("Invalid state: no user")
 		}
 		const userGroupMembership = this.user.userGroup
+		const userGroupKeyDistributionKey = this.deriveUserGroupKeyDistributionKey(userGroupMembership.group, userPassphraseKey)
+		this.keyCache.setUserGroupKeyDistributionKey(userGroupKeyDistributionKey)
+	}
+
+	deriveUserGroupKeyDistributionKey(userGroupId: Id, userPassphraseKey: number[]) {
 		// we prepare a key to encrypt potential user group key rotations with
 		// when passwords are changed clients are logged-out of other sessions
 		// this key is only needed by the logged-in clients, so it should be reliable enough to assume that userPassphraseKey is in sync
-		const userGroupIdHash = sha256Hash(stringToUtf8Uint8Array(userGroupMembership.group))
+		const userGroupIdHash = sha256Hash(stringToUtf8Uint8Array(userGroupId))
 		// we bind this to userGroupId and the domain separator USER_GROUP_KEY_DISTRIBUTION_KEY_INFO
 		// the hkdf salt does not have to be secret but should be unique per user and carry some additional entropy which sha256 ensures
-		const userGroupKeyDistributionKey = uint8ArrayToKey(
+		return uint8ArrayToKey(
 			hkdf(userGroupIdHash, keyToUint8Array(userPassphraseKey), stringToUtf8Uint8Array(USER_GROUP_KEY_DISTRIBUTION_KEY_INFO), KEY_LENGTH_BYTES_AES_256),
 		)
-		this.keyCache.setUserGroupKeyDistributionKey(userGroupKeyDistributionKey)
 	}
 
 	async updateUser(user: User) {

@@ -36,7 +36,7 @@ const SERVER_TIME = new Date("1994-06-08").getTime()
 let contactList = createTestEntity(ContactListTypeRef)
 contactList._ownerGroup = "ownerGroupId"
 contactList.contacts = "contactListId"
-o.spec("Indexer test", () => {
+o.spec("IndexerTest", () => {
 	const OUT_OF_DATE_SERVER_TIME = SERVER_TIME - daysToMillis(ENTITY_EVENT_BATCH_TTL_DAYS) - 1000 * 60 * 60 * 24
 	const restClientMock: EntityRestClient = downcast({
 		getRestClient() {
@@ -54,7 +54,7 @@ o.spec("Indexer test", () => {
 
 	o("init new db", async function () {
 		let metadata = {}
-		const expectedKeys = [Metadata.userEncDbKey, Metadata.lastEventIndexTimeMs]
+		const expectedKeys = Object.keys(Metadata)
 		let transaction = {
 			get: (os, key) => {
 				o(os).equals(MetaDataOS)

@@ -211,6 +211,50 @@ export const typeModels = {
         "app": "sys",
         "version": "101"
     },
+    "AdminGroupKeyRotationPostIn": {
+        "name": "AdminGroupKeyRotationPostIn",
+        "since": 101,
+        "type": "DATA_TRANSFER_TYPE",
+        "id": 2364,
+        "rootId": "A3N5cwAJPA",
+        "versioned": false,
+        "encrypted": false,
+        "values": {
+            "_format": {
+                "final": false,
+                "name": "_format",
+                "id": 2365,
+                "since": 101,
+                "type": "Number",
+                "cardinality": "One",
+                "encrypted": false
+            }
+        },
+        "associations": {
+            "adminGroupKeyData": {
+                "final": false,
+                "name": "adminGroupKeyData",
+                "id": 2366,
+                "since": 101,
+                "type": "AGGREGATION",
+                "cardinality": "One",
+                "refType": "GroupKeyRotationData",
+                "dependency": null
+            },
+            "userGroupKeyData": {
+                "final": false,
+                "name": "userGroupKeyData",
+                "id": 2367,
+                "since": 101,
+                "type": "AGGREGATION",
+                "cardinality": "One",
+                "refType": "UserGroupKeyRotationData",
+                "dependency": null
+            }
+        },
+        "app": "sys",
+        "version": "101"
+    },
     "AdministratedGroupsRef": {
         "name": "AdministratedGroupsRef",
         "since": 27,
@@ -5370,7 +5414,7 @@ export const typeModels = {
                 "id": 2265,
                 "since": 96,
                 "type": "Number",
-                "cardinality": "One",
+                "cardinality": "ZeroOrOne",
                 "encrypted": false
             },
             "ownerEncGKey": {
@@ -9613,6 +9657,65 @@ export const typeModels = {
         "app": "sys",
         "version": "101"
     },
+    "RecoverCodeData": {
+        "name": "RecoverCodeData",
+        "since": 101,
+        "type": "AGGREGATED_TYPE",
+        "id": 2346,
+        "rootId": "A3N5cwAJKg",
+        "versioned": false,
+        "encrypted": false,
+        "values": {
+            "_id": {
+                "final": true,
+                "name": "_id",
+                "id": 2347,
+                "since": 101,
+                "type": "CustomId",
+                "cardinality": "One",
+                "encrypted": false
+            },
+            "recoveryCodeEncUserGroupKey": {
+                "final": false,
+                "name": "recoveryCodeEncUserGroupKey",
+                "id": 2349,
+                "since": 101,
+                "type": "Bytes",
+                "cardinality": "One",
+                "encrypted": false
+            },
+            "recoveryCodeVerifier": {
+                "final": false,
+                "name": "recoveryCodeVerifier",
+                "id": 2351,
+                "since": 101,
+                "type": "Bytes",
+                "cardinality": "One",
+                "encrypted": false
+            },
+            "userEncRecoveryCode": {
+                "final": false,
+                "name": "userEncRecoveryCode",
+                "id": 2350,
+                "since": 101,
+                "type": "Bytes",
+                "cardinality": "One",
+                "encrypted": false
+            },
+            "userKeyVersion": {
+                "final": false,
+                "name": "userKeyVersion",
+                "id": 2348,
+                "since": 101,
+                "type": "Number",
+                "cardinality": "One",
+                "encrypted": false
+            }
+        },
+        "associations": {},
+        "app": "sys",
+        "version": "101"
+    },
     "ReferralCodeGetIn": {
         "name": "ReferralCodeGetIn",
         "since": 84,
@@ -12761,6 +12864,123 @@ export const typeModels = {
             }
         },
         "associations": {},
+        "app": "sys",
+        "version": "101"
+    },
+    "UserGroupKeyRotationData": {
+        "name": "UserGroupKeyRotationData",
+        "since": 101,
+        "type": "AGGREGATED_TYPE",
+        "id": 2352,
+        "rootId": "A3N5cwAJMA",
+        "versioned": false,
+        "encrypted": false,
+        "values": {
+            "_id": {
+                "final": true,
+                "name": "_id",
+                "id": 2353,
+                "since": 101,
+                "type": "CustomId",
+                "cardinality": "One",
+                "encrypted": false
+            },
+            "adminGroupEncUserGroupKey": {
+                "final": false,
+                "name": "adminGroupEncUserGroupKey",
+                "id": 2359,
+                "since": 101,
+                "type": "Bytes",
+                "cardinality": "One",
+                "encrypted": false
+            },
+            "adminGroupKeyVersion": {
+                "final": false,
+                "name": "adminGroupKeyVersion",
+                "id": 2360,
+                "since": 101,
+                "type": "Number",
+                "cardinality": "One",
+                "encrypted": false
+            },
+            "authVerifier": {
+                "final": false,
+                "name": "authVerifier",
+                "id": 2362,
+                "since": 101,
+                "type": "Bytes",
+                "cardinality": "One",
+                "encrypted": false
+            },
+            "distributionKeyEncUserGroupKey": {
+                "final": false,
+                "name": "distributionKeyEncUserGroupKey",
+                "id": 2355,
+                "since": 101,
+                "type": "Bytes",
+                "cardinality": "One",
+                "encrypted": false
+            },
+            "passphraseEncUserGroupKey": {
+                "final": false,
+                "name": "passphraseEncUserGroupKey",
+                "id": 2354,
+                "since": 101,
+                "type": "Bytes",
+                "cardinality": "One",
+                "encrypted": false
+            },
+            "userGroupEncPreviousGroupKey": {
+                "final": false,
+                "name": "userGroupEncPreviousGroupKey",
+                "id": 2357,
+                "since": 101,
+                "type": "Bytes",
+                "cardinality": "One",
+                "encrypted": false
+            },
+            "userGroupKeyVersion": {
+                "final": false,
+                "name": "userGroupKeyVersion",
+                "id": 2356,
+                "since": 101,
+                "type": "Number",
+                "cardinality": "One",
+                "encrypted": false
+            }
+        },
+        "associations": {
+            "group": {
+                "final": false,
+                "name": "group",
+                "id": 2361,
+                "since": 101,
+                "type": "ELEMENT_ASSOCIATION",
+                "cardinality": "One",
+                "refType": "Group",
+                "dependency": null
+            },
+            "keyPair": {
+                "final": false,
+                "name": "keyPair",
+                "id": 2358,
+                "since": 101,
+                "type": "AGGREGATION",
+                "cardinality": "One",
+                "refType": "KeyPair",
+                "dependency": null
+            },
+            "recoverCodeData": {
+                "final": false,
+                "name": "recoverCodeData",
+                "id": 2363,
+                "since": 101,
+                "type": "AGGREGATION",
+                "cardinality": "ZeroOrOne",
+                "refType": "RecoverCodeData",
+                "dependency": null
+            }
+        },
         "app": "sys",
         "version": "101"
     },

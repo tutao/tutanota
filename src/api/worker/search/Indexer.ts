@@ -49,6 +49,7 @@ import { CacheInfo } from "../facades/LoginFacade.js"
 import { InfoMessageHandler } from "../../../gui/InfoMessageHandler.js"
 import {
 	ElementDataOS,
+	EncryptedIndexerMetaData,
 	GroupDataOS,
 	Metadata,
 	MetaDataOS,
@@ -60,7 +61,7 @@ import {
 import { MailFacade } from "../facades/lazy/MailFacade.js"
 import { encryptKeyWithVersionedKey, VersionedKey } from "../crypto/CryptoFacade.js"
 import { KeyLoaderFacade } from "../facades/KeyLoaderFacade.js"
-import { updateEncryptionMetadata } from "../facades/lazy/ConfigurationDatabase.js"
+import { getIndexerMetaData, updateEncryptionMetadata } from "../facades/lazy/ConfigurationDatabase.js"
 
 export type InitParams = {
 	user: User
@@ -175,19 +176,16 @@ export class Indexer {
 				this._mail.setIsUsingOfflineCache(cacheInfo.isPersistent)
 			}
 			await this.db.dbFacade.open(this.getDbId(user))
-			const transaction = await this.db.dbFacade.createTransaction(true, [MetaDataOS])
-			const userEncDbKey = await transaction.get(MetaDataOS, Metadata.userEncDbKey)
-			if (!userEncDbKey) {
+			const metaData = await getIndexerMetaData(this.db.dbFacade, MetaDataOS)
+			if (metaData == null) {
 				const userGroupKey = keyLoaderFacade.getCurrentSymUserGroupKey()
 				// database was opened for the first time - create new tables
 				await this.createIndexTables(user, userGroupKey)
 			} else {
-				const userGroupKeyVersion = await transaction.get(MetaDataOS, Metadata.userGroupKeyVersion)
-				const userGroupKey = await keyLoaderFacade.loadSymUserGroupKey(userGroupKeyVersion ?? 0)
-				await this.loadIndexTables(transaction, user, userGroupKey, userEncDbKey)
+				const userGroupKey = await keyLoaderFacade.loadSymUserGroupKey(metaData.userGroupKeyVersion)
+				await this.loadIndexTables(user, userGroupKey, metaData)
 			}
 
-			await transaction.wait()
 			await this.infoMessageHandler.onSearchIndexStateUpdate({
 				initializing: false,
 				mailIndexEnabled: this._mail.mailIndexingEnabled,
@@ -321,8 +319,8 @@ export class Indexer {
 		this.db.key = aes256RandomKey()
 		this.db.iv = random.generateRandomData(IV_BYTE_LENGTH)
 		const groupBatches = await this._loadGroupData(user)
-		const transaction = await this.db.dbFacade.createTransaction(false, [MetaDataOS, GroupDataOS])
 		const userEncDbKey = encryptKeyWithVersionedKey(userGroupKey, this.db.key)
+		const transaction = await this.db.dbFacade.createTransaction(false, [MetaDataOS, GroupDataOS])
 		await transaction.put(MetaDataOS, Metadata.userEncDbKey, userEncDbKey.key)
 		await transaction.put(MetaDataOS, Metadata.mailIndexingEnabled, this._mail.mailIndexingEnabled)
 		await transaction.put(MetaDataOS, Metadata.excludedListIds, this._mail._excludedListIds)
@@ -331,29 +329,20 @@ export class Indexer {
 		await transaction.put(MetaDataOS, Metadata.lastEventIndexTimeMs, this._entityRestClient.getRestClient().getServerTimestampMs())
 		await this._initGroupData(groupBatches, transaction)
 		await this._updateIndexedGroups()
-		await this._dbInitializedDeferredObject.resolve()
+		this._dbInitializedDeferredObject.resolve()
 	}
 
-	private async loadIndexTables(transaction: DbTransaction, user: User, userGroupKey: AesKey, userEncDbKey: Uint8Array): Promise<void> {
-		this.db.key = decryptKey(userGroupKey, userEncDbKey)
-		const encDbIv = await transaction.get(MetaDataOS, Metadata.encDbIv)
-		this.db.iv = unauthenticatedAesDecrypt(this.db.key, neverNull(encDbIv), true)
-		await Promise.all([
-			transaction.get(MetaDataOS, Metadata.mailIndexingEnabled).then((mailIndexingEnabled) => {
-				this._mail.mailIndexingEnabled = neverNull(mailIndexingEnabled)
-			}),
-			transaction.get(MetaDataOS, Metadata.excludedListIds).then((excludedListIds) => {
-				this._mail._excludedListIds = neverNull(excludedListIds)
-			}),
-			this._loadGroupDiff(user)
-				.then((groupDiff) => this._updateGroups(user, groupDiff))
-				.then(() => this._mail.updateCurrentIndexTimestamp(user)),
-		])
+	private async loadIndexTables(user: User, userGroupKey: AesKey, metaData: EncryptedIndexerMetaData): Promise<void> {
+		this.db.key = decryptKey(userGroupKey, metaData.userEncDbKey)
+		this.db.iv = unauthenticatedAesDecrypt(this.db.key, neverNull(metaData.encDbIv), true)
+		this._mail.mailIndexingEnabled = metaData.mailIndexingEnabled
+		this._mail._excludedListIds = metaData.excludedListIds
+		const groupDiff = await this._loadGroupDiff(user)
+		await this._updateGroups(user, groupDiff)
+		await this._mail.updateCurrentIndexTimestamp(user)
 		await this._updateIndexedGroups()
-
 		this._dbInitializedDeferredObject.resolve()
-
-		await Promise.all([this._contact.suggestionFacade.load()])
+		await this._contact.suggestionFacade.load()
 	}
 
 	async _updateIndexedGroups(): Promise<void> {

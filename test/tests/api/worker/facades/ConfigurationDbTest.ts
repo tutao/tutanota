@@ -76,7 +76,7 @@ o.spec("ConfigurationDbTest", function () {
 					address: "fomo@server.com",
 				},
 			])
-			const configDb = new ConfigurationDatabase(logins, loadDb, keyLoaderFacade)
+			const configDb = new ConfigurationDatabase(keyLoaderFacade, logins, loadDb)
 			const shouldBeAllow = await configDb.getExternalImageRule("fomo@server.com")
 			o(shouldBeAllow).equals(ExternalImageRule.Allow)
 			const shouldBeDefault = await configDb.getExternalImageRule("notinthere@neverseen.biz")
@@ -84,7 +84,7 @@ o.spec("ConfigurationDbTest", function () {
 		})
 		o("write", async function () {
 			const { logins, loadDb } = makeMocks([])
-			const configDb = new ConfigurationDatabase(logins, loadDb, keyLoaderFacade)
+			const configDb = new ConfigurationDatabase(keyLoaderFacade, logins, loadDb)
 			await configDb.addExternalImageRule("fomo@server.com", ExternalImageRule.Allow)
 			o(await configDb.getExternalImageRule("fomo@server.com")).equals(ExternalImageRule.Allow)
 			await configDb.addExternalImageRule("fomo@server.com", ExternalImageRule.None)
@@ -103,7 +103,7 @@ o.spec("ConfigurationDbTest", function () {
 					rule: ExternalImageRule.Block,
 				},
 			])
-			const configDb = new ConfigurationDatabase(logins, loadDb, keyLoaderFacade)
+			const configDb = new ConfigurationDatabase(keyLoaderFacade, logins, loadDb)
 			const shouldBeAllow = await configDb.getExternalImageRule("fomo@server.com")
 			o(shouldBeAllow).equals(ExternalImageRule.Allow)
 			const shouldBeBlock = await configDb.getExternalImageRule("lomo@server.com")
@@ -113,7 +113,7 @@ o.spec("ConfigurationDbTest", function () {
 		})
 		o("write", async function () {
 			const { logins, loadDb } = makeMocks([])
-			const configDb = new ConfigurationDatabase(logins, loadDb, keyLoaderFacade)
+			const configDb = new ConfigurationDatabase(keyLoaderFacade, logins, loadDb)
 			await configDb.addExternalImageRule("fomo@server.com", ExternalImageRule.Block)
 			o(await configDb.getExternalImageRule("fomo@server.com")).equals(ExternalImageRule.Block)
 			await configDb.addExternalImageRule("fomo@server.com", ExternalImageRule.Allow)
@@ -150,7 +150,7 @@ o.spec("ConfigurationDbTest", function () {
 			const transaction: DbTransaction = object()
 			when(dbFacade.createTransaction(matchers.anything(), matchers.anything())).thenResolve(transaction)
 
-			await initializeDb(dbFacade, "dbId", keyLoaderFacade)
+			await initializeDb(dbFacade, "dbId", keyLoaderFacade, ConfigurationMetaDataOS)
 
 			verify(keyLoaderFacade.getCurrentSymUserGroupKey())
 			verify(transaction.put(ConfigurationMetaDataOS, Metadata.userGroupKeyVersion, currentUserGroupKey.version))
@@ -165,7 +165,7 @@ o.spec("ConfigurationDbTest", function () {
 			when(transaction.get(ConfigurationMetaDataOS, Metadata.userEncDbKey)).thenResolve(encDBKey)
 			when(keyLoaderFacade.loadSymUserGroupKey(groupKeyVersion)).thenResolve(groupKey)
 
-			const encryptionMetadata = await loadEncryptionMetadata(dbFacade, "dbId", keyLoaderFacade)
+			const encryptionMetadata = await loadEncryptionMetadata(dbFacade, "dbId", keyLoaderFacade, ConfigurationMetaDataOS)
 
 			verify(keyLoaderFacade.loadSymUserGroupKey(groupKeyVersion))
 			o(encryptionMetadata?.key).deepEquals(dbKey)
@@ -197,7 +197,7 @@ o.spec("ConfigurationDbTest", function () {
 			when(transaction.get(ConfigurationMetaDataOS, Metadata.userEncDbKey)).thenResolve(encDBKey)
 			when(keyLoaderFacade.loadSymUserGroupKey(groupKeyVersion)).thenResolve(groupKey)
 
-			const encryptionMetadata = await loadEncryptionMetadata(dbFacade, "dbId", keyLoaderFacade)
+			const encryptionMetadata = await loadEncryptionMetadata(dbFacade, "dbId", keyLoaderFacade, ConfigurationMetaDataOS)
 			verify(keyLoaderFacade.loadSymUserGroupKey(groupKeyVersion))
 			o(encryptionMetadata?.key).deepEquals(dbKey)
 			o(encryptionMetadata?.iv).deepEquals(iv)

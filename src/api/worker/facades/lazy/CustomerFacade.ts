@@ -67,6 +67,7 @@ import { getWhitelabelDomainInfo } from "../../../common/utils/CustomerUtils.js"
 import type { PdfWriter } from "../../pdf/PdfWriter.js"
 import { createCustomerAccountCreateData } from "../../../entities/tutanota/TypeRefs.js"
 import { KeyLoaderFacade } from "../KeyLoaderFacade.js"
+import { RecoverCodeFacade } from "./RecoverCodeFacade.js"
 
 assertWorkerOrNode()
 
@@ -85,6 +86,7 @@ export class CustomerFacade {
 		private readonly pdfWriter: lazyAsync<PdfWriter>,
 		private readonly pqFacade: PQFacade,
 		private readonly keyLoaderFacade: KeyLoaderFacade,
+		private readonly recoverCodeFacade: RecoverCodeFacade,
 	) {}
 
 	async getDomainValidationRecord(domainName: string): Promise<string> {
@@ -333,7 +335,7 @@ export class CustomerFacade {
 			customerGroupKey,
 		)
 
-		const recoverData = this.userManagement.generateRecoveryCode(userGroupKey)
+		const recoverData = this.recoverCodeFacade.generateRecoveryCode(userGroupKey)
 
 		const userEncAdminGroupKey = encryptKeyWithVersionedKey(userGroupKey, adminGroupKey.object)
 		const adminEncAccountingInfoSessionKey = encryptKeyWithVersionedKey(adminGroupKey, accountingInfoSessionKey)

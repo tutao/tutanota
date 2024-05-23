@@ -41,6 +41,7 @@ import { SqlCipherFacade } from "../../native/common/generatedipc/SqlCipherFacad
 import { WebWorkerTransport } from "../common/threading/Transport.js"
 import { CryptoError } from "@tutao/tutanota-crypto/error.js"
 import { ContactFacade } from "./facades/lazy/ContactFacade.js"
+import { RecoverCodeFacade } from "./facades/lazy/RecoverCodeFacade.js"
 
 assertWorkerOrNode()
 
@@ -71,6 +72,7 @@ export interface WorkerInterface {
 	readonly blobAccessTokenFacade: BlobAccessTokenFacade
 	readonly blobFacade: BlobFacade
 	readonly userManagementFacade: UserManagementFacade
+	readonly recoverCodeFacade: RecoverCodeFacade
 	readonly restInterface: EntityRestInterface
 	readonly serviceExecutor: IServiceExecutor
 	readonly cryptoFacade: CryptoFacade
@@ -211,6 +213,10 @@ export class WorkerImpl implements NativeInterface {
 
 			async userManagementFacade() {
 				return locator.userManagement()
+			},
+
+			async recoverCodeFacade() {
+				return locator.recoverCode()
 			},
 
 			async restInterface() {

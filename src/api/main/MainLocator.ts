@@ -115,6 +115,7 @@ import { AddNotificationEmailDialog } from "../../settings/AddNotificationEmailD
 import { MobileAppLock, NoOpAppLock } from "../../login/AppLock.js"
 import { PostLoginActions } from "../../login/PostLoginActions.js"
 import { SystemPermissionHandler } from "../../native/main/SystemPermissionHandler.js"
+import { RecoverCodeFacade } from "../worker/facades/lazy/RecoverCodeFacade.js"
 
 assertMainOrNode()
 
@@ -148,6 +149,7 @@ class MainLocator {
 	mailAddressFacade!: MailAddressFacade
 	blobFacade!: BlobFacade
 	userManagementFacade!: UserManagementFacade
+	recoverCodeFacade!: RecoverCodeFacade
 	contactFacade!: ContactFacade
 	usageTestController!: UsageTestController
 	usageTestModel!: UsageTestModel
@@ -619,6 +621,7 @@ class MainLocator {
 			mailAddressFacade,
 			blobFacade,
 			userManagementFacade,
+			recoverCodeFacade,
 			restInterface,
 			serviceExecutor,
 			cryptoFacade,
@@ -645,6 +648,7 @@ class MainLocator {
 		this.mailAddressFacade = mailAddressFacade
 		this.blobFacade = blobFacade
 		this.userManagementFacade = userManagementFacade
+		this.recoverCodeFacade = recoverCodeFacade
 		this.contactFacade = contactFacade
 		this.serviceExecutor = serviceExecutor
 		this.sqlCipherFacade = sqlCipherFacade
@@ -753,7 +757,7 @@ class MainLocator {
 					return new UsageOptInNews(this.newsModel, this.usageTestModel)
 				case "recoveryCode":
 					const { RecoveryCodeNews } = await import("../../misc/news/items/RecoveryCodeNews.js")
-					return new RecoveryCodeNews(this.newsModel, this.logins.getUserController(), this.userManagementFacade)
+					return new RecoveryCodeNews(this.newsModel, this.logins.getUserController(), this.recoverCodeFacade)
 				case "pinBiometrics":
 					const { PinBiometricsNews } = await import("../../misc/news/items/PinBiometricsNews.js")
 					return new PinBiometricsNews(this.newsModel, this.credentialsProvider, this.logins.getUserController().userId)

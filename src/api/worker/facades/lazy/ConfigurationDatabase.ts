@@ -1,10 +1,10 @@
-import { b64UserIdHash, DbFacade, DbTransaction } from "../../search/DbFacade.js"
+import { b64UserIdHash, DbFacade } from "../../search/DbFacade.js"
 import { assertNotNull, concat, downcast, isSameTypeRefByAttr, LazyLoaded, stringToUtf8Uint8Array, utf8Uint8ArrayToString } from "@tutao/tutanota-utils"
 import { User, UserTypeRef } from "../../../entities/sys/TypeRefs.js"
 import { ExternalImageRule, OperationType } from "../../../common/TutanotaConstants.js"
 import { aes256RandomKey, aesEncrypt, AesKey, decryptKey, IV_BYTE_LENGTH, random, unauthenticatedAesDecrypt } from "@tutao/tutanota-crypto"
 import { UserFacade } from "../UserFacade.js"
-import { Metadata, ObjectStoreName } from "../../search/IndexTables.js"
+import { EncryptedDbKeyBaseMetaData, EncryptedIndexerMetaData, Metadata, ObjectStoreName } from "../../search/IndexTables.js"
 import { DbError } from "../../../common/error/DbError.js"
 import { encryptKeyWithVersionedKey, VersionedKey } from "../../crypto/CryptoFacade.js"
 import { KeyLoaderFacade } from "../KeyLoaderFacade.js"
@@ -43,10 +43,10 @@ export class ConfigurationDatabase {
 	readonly db: LazyLoaded<ConfigDb>
 
 	constructor(
+		private readonly keyLoaderFacade: KeyLoaderFacade,
 		userFacade: UserFacade,
 		dbLoadFn: (arg0: User, arg1: KeyLoaderFacade) => Promise<ConfigDb> = (user: User, keyLoaderFacade: KeyLoaderFacade) =>
 			this.loadConfigDb(user, keyLoaderFacade),
-		readonly keyLoaderFacade: KeyLoaderFacade,
 	) {
 		this.db = new LazyLoaded(() => {
 			const user = assertNotNull(userFacade.getLoggedInUser())
@@ -91,7 +91,9 @@ export class ConfigurationDatabase {
 					keyPath: "address",
 				})
 			}
-			const metaData = (await loadEncryptionMetadata(dbFacade, id, keyLoaderFacade)) || (await initializeDb(dbFacade, id, keyLoaderFacade))
+			const metaData =
+				(await loadEncryptionMetadata(dbFacade, id, keyLoaderFacade, ConfigurationMetaDataOS)) ||
+				(await initializeDb(dbFacade, id, keyLoaderFacade, ConfigurationMetaDataOS))
 
 			if (event.oldVersion === 1) {
 				// migrate from plain, mac-and-static-iv aes256 to aes256 with mac
@@ -106,7 +108,9 @@ export class ConfigurationDatabase {
 				}
 			}
 		})
-		const metaData = (await loadEncryptionMetadata(db, id, keyLoaderFacade)) || (await initializeDb(db, id, keyLoaderFacade))
+		const metaData =
+			(await loadEncryptionMetadata(db, id, keyLoaderFacade, ConfigurationMetaDataOS)) ||
+			(await initializeDb(db, id, keyLoaderFacade, ConfigurationMetaDataOS))
 		return {
 			db,
 			metaData,
@@ -141,22 +145,10 @@ export class ConfigurationDatabase {
 	}
 }
 
-async function loadDataWithGivenVersion(
-	keyLoaderFacade: KeyLoaderFacade,
-	userGroupKeyVersion: number,
-	transaction: DbTransaction,
-): Promise<EncryptionMetadata | null> {
-	const userGroupKey = await keyLoaderFacade.loadSymUserGroupKey(userGroupKeyVersion)
-
-	const encDbKey = await transaction.get(ConfigurationMetaDataOS, Metadata.userEncDbKey)
-	const encDbIv = await transaction.get(ConfigurationMetaDataOS, Metadata.encDbIv)
-
-	if (encDbKey == null || encDbIv == null) {
-		return null
-	}
-
-	const key = decryptKey(userGroupKey, encDbKey)
-	const iv = unauthenticatedAesDecrypt(key, encDbIv)
+async function decryptMetaData(keyLoaderFacade: KeyLoaderFacade, metaData: EncryptedDbKeyBaseMetaData): Promise<EncryptionMetadata> {
+	const userGroupKey = await keyLoaderFacade.loadSymUserGroupKey(metaData.userGroupKeyVersion)
+	const key = decryptKey(userGroupKey, metaData.userEncDbKey)
+	const iv = unauthenticatedAesDecrypt(key, metaData.encDbIv)
 	return {
 		key,
 		iv,
@@ -168,43 +160,91 @@ async function loadDataWithGivenVersion(
  * @return { key, iv } or null if one or both don't exist
  * @VisibleForTesting
  */
-export async function loadEncryptionMetadata(db: DbFacade, id: string, keyLoaderFacade: KeyLoaderFacade): Promise<EncryptionMetadata | null> {
+export async function loadEncryptionMetadata(
+	db: DbFacade,
+	id: string,
+	keyLoaderFacade: KeyLoaderFacade,
+	objectStoreName: ObjectStoreName,
+): Promise<EncryptionMetadata | null> {
 	await db.open(id)
-	const transaction = await db.createTransaction(true, [ConfigurationMetaDataOS])
-	const userGroupKeyVersion = await getMetaDataGroupKeyVersion(transaction, ConfigurationMetaDataOS)
-	return await loadDataWithGivenVersion(keyLoaderFacade, userGroupKeyVersion, transaction)
+	const metaData = await getMetaData(db, objectStoreName)
+	if (metaData != null) {
+		return await decryptMetaData(keyLoaderFacade, metaData)
+	} else {
+		return null
+	}
 }
 
 /**
  * Reencrypt the DB key and IV if there is a new userGroupKey
  * @VisibleForTesting
  */
-export async function updateEncryptionMetadata(db: DbFacade, keyLoaderFacade: KeyLoaderFacade, objectStoreName: string): Promise<void> {
-	const transaction = await db.createTransaction(true, [objectStoreName])
-	const userGroupKeyVersion = await getMetaDataGroupKeyVersion(transaction, objectStoreName)
+export async function updateEncryptionMetadata(db: DbFacade, keyLoaderFacade: KeyLoaderFacade, objectStoreName: ObjectStoreName): Promise<void> {
+	const metaData = await getMetaData(db, objectStoreName)
 	const currentUserGroupKey = keyLoaderFacade.getCurrentSymUserGroupKey()
-	if (currentUserGroupKey.version === userGroupKeyVersion) return
 
-	const encryptionMetadata = await loadDataWithGivenVersion(keyLoaderFacade, userGroupKeyVersion, transaction)
+	if (metaData == null || currentUserGroupKey.version === metaData.userGroupKeyVersion) return
+
+	const encryptionMetadata = await decryptMetaData(keyLoaderFacade, metaData)
 	if (encryptionMetadata == null) return
 	const { key, iv } = encryptionMetadata
-	await encryptAndSaveDbKey(currentUserGroupKey, key, iv, transaction)
+	await encryptAndSaveDbKey(currentUserGroupKey, key, iv, db, objectStoreName)
 }
 
 /**
  * Helper function to get the group key version for the group key that was used to encrypt the db key. In case the version has not been written to the db we assume 0.
- * @param transaction a valid db transaction object.
+ * @param db the dbFacade corresponding to the object store
+ * @param objectStoreName the objectStore to get the metadata from
  */
-async function getMetaDataGroupKeyVersion(transaction: DbTransaction, objectStoreName: string): Promise<number> {
-	const userGroupKeyVersion = await transaction.get<number>(objectStoreName, Metadata.userGroupKeyVersion)
-	return userGroupKeyVersion ?? 0
+export async function getMetaData(db: DbFacade, objectStoreName: ObjectStoreName): Promise<EncryptedDbKeyBaseMetaData | null> {
+	const transaction = await db.createTransaction(true, [objectStoreName])
+	const userEncDbKey = (await transaction.get(objectStoreName, Metadata.userEncDbKey)) as Uint8Array
+	const encDbIv = (await transaction.get(objectStoreName, Metadata.encDbIv)) as Uint8Array
+	const userGroupKeyVersion = (await transaction.get<number>(objectStoreName, Metadata.userGroupKeyVersion)) ?? 0 // was not written for old dbs
+	if (userEncDbKey == null || encDbIv == null) {
+		return null
+	} else {
+		return {
+			userEncDbKey,
+			encDbIv,
+			userGroupKeyVersion,
+		}
+	}
 }
 
-async function encryptAndSaveDbKey(userGroupKey: VersionedKey, dbKey: AesKey, dbIv: Uint8Array, transaction: DbTransaction) {
+/**
+ * Helper function to get the group key version for the group key that was used to encrypt the db key. In case the version has not been written to the db we assume 0.
+ * @param db the dbFacade corresponding to the object store
+ * @param objectStoreName the objectStore to get the metadata from
+ */
+export async function getIndexerMetaData(db: DbFacade, objectStoreName: ObjectStoreName): Promise<EncryptedIndexerMetaData | null> {
+	const transaction = await db.createTransaction(true, [objectStoreName])
+	const userEncDbKey = (await transaction.get(objectStoreName, Metadata.userEncDbKey)) as Uint8Array
+	const encDbIv = (await transaction.get(objectStoreName, Metadata.encDbIv)) as Uint8Array
+	const userGroupKeyVersion = (await transaction.get<number>(objectStoreName, Metadata.userGroupKeyVersion)) ?? 0 // was not written for old dbs
+	const mailIndexingEnabled = (await transaction.get(objectStoreName, Metadata.mailIndexingEnabled)) as boolean
+	const excludedListIds = (await transaction.get(objectStoreName, Metadata.excludedListIds)) as Id[]
+	const lastEventIndexTimeMs = (await transaction.get(objectStoreName, Metadata.lastEventIndexTimeMs)) as number
+	if (userEncDbKey == null || encDbIv == null) {
+		return null
+	} else {
+		return {
+			userEncDbKey,
+			encDbIv,
+			userGroupKeyVersion,
+			mailIndexingEnabled,
+			excludedListIds,
+			lastEventIndexTimeMs,
+		}
+	}
+}
+
+async function encryptAndSaveDbKey(userGroupKey: VersionedKey, dbKey: AesKey, dbIv: Uint8Array, db: DbFacade, objectStoreName: string) {
+	const transaction = await db.createTransaction(false, [objectStoreName]) // create a new transaction to avoid timeouts and for writing
 	const groupEncSessionKey = encryptKeyWithVersionedKey(userGroupKey, dbKey)
-	await transaction.put(ConfigurationMetaDataOS, Metadata.userEncDbKey, groupEncSessionKey.key)
-	await transaction.put(ConfigurationMetaDataOS, Metadata.userGroupKeyVersion, groupEncSessionKey.encryptingKeyVersion)
-	await transaction.put(ConfigurationMetaDataOS, Metadata.encDbIv, aesEncrypt(dbKey, dbIv))
+	await transaction.put(objectStoreName, Metadata.userEncDbKey, groupEncSessionKey.key)
+	await transaction.put(objectStoreName, Metadata.userGroupKeyVersion, groupEncSessionKey.encryptingKeyVersion)
+	await transaction.put(objectStoreName, Metadata.encDbIv, aesEncrypt(dbKey, dbIv))
 }
 
 /**
@@ -213,13 +253,12 @@ async function encryptAndSaveDbKey(userGroupKey: VersionedKey, dbKey: AesKey, db
  * @VisibleForTesting
  *
  */
-export async function initializeDb(db: DbFacade, id: string, keyLoaderFacade: KeyLoaderFacade): Promise<EncryptionMetadata> {
+export async function initializeDb(db: DbFacade, id: string, keyLoaderFacade: KeyLoaderFacade, objectStoreName: ObjectStoreName): Promise<EncryptionMetadata> {
 	await db.deleteDatabase(id).then(() => db.open(id))
 	const key = aes256RandomKey()
 	const iv = random.generateRandomData(IV_BYTE_LENGTH)
-	const transaction = await db.createTransaction(false, [ConfigurationMetaDataOS, ExternalImageListOS])
 	const userGroupKey = keyLoaderFacade.getCurrentSymUserGroupKey()
-	await encryptAndSaveDbKey(userGroupKey, key, iv, transaction)
+	await encryptAndSaveDbKey(userGroupKey, key, iv, db, objectStoreName)
 	return {
 		key,
 		iv,
