@@ -1,7 +1,6 @@
 pipeline {
     environment {
     	// on m1 macs, this is a symlink that must be updated. see wiki.
-    	PATH="${env.PATH}:/home/jenkins/emsdk/upstream/bin/:/home/jenkins/emsdk/:/home/jenkins/emsdk/upstream/emscripten"
         NODE_MAC_PATH = '/usr/local/opt/node@20/bin/'
         VERSION = sh(returnStdout: true, script: "${env.NODE_PATH}/node -p -e \"require('./package.json').version\" | tr -d \"\n\"")
     }
@@ -39,7 +38,7 @@ pipeline {
     		parallel {
 				stage('Build webapp') {
 					environment {
-						PATH = "${env.NODE_PATH}:${env.PATH}"
+						PATH = "${env.NODE_PATH}:${env.PATH}:/home/jenkins/emsdk/upstream/bin/:/home/jenkins/emsdk/:/home/jenkins/emsdk/upstream/emscripten"
 					}
 					agent {
 						label 'linux'
