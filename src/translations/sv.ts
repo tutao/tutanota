@@ -11,7 +11,7 @@ export default {
 		"other"
 	],
 	"created_at": "2015-03-23T11:36:16Z",
-	"updated_at": "2024-05-13T13:15:15Z",
+	"updated_at": "2024-05-23T13:28:24Z",
 	"source_locale": null,
 	"fallback_locale": null,
 	"keys": {
@@ -975,6 +975,7 @@ export default {
 		"notificationsDisabled_label": "Inaktiverad",
 		"notificationSettings_action": "Aviseringar",
 		"notificationSync_msg": "Synkroniseringsnotiser",
+		"notificationTargets_label": "Destination för avisering",
 		"notSigned_msg": "Inte signerad.",
 		"noUpdateAvailable_msg": "Ingen uppdatering hittades.",
 		"noValidMembersToAdd_msg": "Du administrerar inga användare som inte redan är medlemmar i den här gruppen.",
