@@ -979,6 +979,7 @@ export default {
 		"notificationsDisabled_label": "Deaktiviert",
 		"notificationSettings_action": "Benachrichtigungen",
 		"notificationSync_msg": "Synchronisiere Benachrichtigungen",
+		"notificationTargets_label": "Ziele für Benachrichtigungen",
 		"notSigned_msg": "Nicht unterschrieben.",
 		"noUpdateAvailable_msg": "Kein Update gefunden.",
 		"noValidMembersToAdd_msg": "Sie administrieren keine Benutzer, welche noch nicht in dieser Gruppe sind.",
