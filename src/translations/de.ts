@@ -979,6 +979,7 @@ export default {
 		"notificationsDisabled_label": "Deaktiviert",
 		"notificationSettings_action": "Benachrichtigungen",
 		"notificationSync_msg": "Synchronisiere Benachrichtigungen",
+		"notificationTargets_label": "Ziele für Benachrichtigungen",
 		"notSigned_msg": "Nicht unterschrieben.",
 		"noUpdateAvailable_msg": "Keine neue Version verfügbar.",
 		"noValidMembersToAdd_msg": "Du administrierst keine Benutzer, welche noch nicht in dieser Gruppe sind.",
@@ -1722,6 +1723,7 @@ export default {
 		"yourCalendars_label": "Deine Kalender",
 		"yourFolders_action": "DEINE ORDNER",
 		"yourMessage_label": "Deine Nachricht",
-		"you_label": "Du"
+		"you_label": "Du",
+
 	}
 }
