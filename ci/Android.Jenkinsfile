@@ -2,7 +2,7 @@ pipeline {
 	environment {
 		VERSION = sh(returnStdout: true, script: "${env.NODE_PATH}/node -p -e \"require('./package.json').version\" | tr -d \"\n\"")
 		APK_SIGN_STORE = '/opt/android-keystore/android.jks'
-		PATH = "${env.NODE_PATH}:${env.PATH}"
+		PATH = "${env.NODE_PATH}:${env.PATH}:/home/jenkins/emsdk/upstream/bin/"
 		ANDROID_SDK_ROOT = "/opt/android-sdk-linux"
 		ANDROID_HOME = "/opt/android-sdk-linux"
 		GITHUB_RELEASE_PAGE = "https://github.com/tutao/tutanota/releases/tag/tutanota-android-release-${VERSION}"
@@ -51,12 +51,7 @@ pipeline {
 				label 'linux'
 			}
 			steps {
-				sh 'git clone --branch 3.1.59 https://github.com/emscripten-core/emsdk.git'
-				sh 'cd emsdk'
-				sh 'chmod +x ./emsdk'
-				sh './emsdk install latest'
-				sh './emsdk activate latest'
-				sh 'source ./emsdk_env.sh'
+				sh 'source /home/jenkins/emsdk/emsdk_env.sh'
 			}
 		}
 		stage('Build') {
