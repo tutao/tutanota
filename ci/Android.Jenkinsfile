@@ -2,7 +2,7 @@ pipeline {
 	environment {
 		VERSION = sh(returnStdout: true, script: "${env.NODE_PATH}/node -p -e \"require('./package.json').version\" | tr -d \"\n\"")
 		APK_SIGN_STORE = '/opt/android-keystore/android.jks'
-		PATH = "${env.NODE_PATH}:${env.PATH}:/home/jenkins/emsdk/upstream/bin/"
+		PATH = "${env.NODE_PATH}:${env.PATH}:/home/jenkins/emsdk/upstream/bin/:/home/jenkins/emsdk/:/home/jenkins/emsdk/upstream/emscripten"
 		ANDROID_SDK_ROOT = "/opt/android-sdk-linux"
 		ANDROID_HOME = "/opt/android-sdk-linux"
 		GITHUB_RELEASE_PAGE = "https://github.com/tutao/tutanota/releases/tag/tutanota-android-release-${VERSION}"
@@ -44,14 +44,6 @@ pipeline {
 				dir("${WORKSPACE}/app-android/") {
 					sh "./gradlew test"
 				}
-			}
-		}
-		stage('Setup Emscipten') {
-			agent {
-				label 'linux'
-			}
-			steps {
-				sh 'source /home/jenkins/emsdk/emsdk_env.sh'
 			}
 		}
 		stage('Build') {
