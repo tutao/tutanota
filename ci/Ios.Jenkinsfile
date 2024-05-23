@@ -1,6 +1,5 @@
 pipeline {
 	environment {
-		PATH="${env.PATH}:${env.HOME}/emsdk:${env.HOME}/emsdk/upstream/emscripten:${env.HOME}/emsdk/upstream/bin"
 		NODE_MAC_PATH = "/usr/local/opt/node@20/bin/"
 		VERSION = sh(returnStdout: true, script: "${env.NODE_PATH}/node -p -e \"require('./package.json').version\" | tr -d \"\n\"")
 		RELEASE_NOTES_PATH = "app-ios/fastlane/metadata/default/release_notes.txt"
@@ -60,7 +59,7 @@ pipeline {
 
 		stage("Build and upload to Apple") {
 			environment {
-				PATH = "${env.NODE_MAC_PATH}:${env.PATH}"
+				PATH="${env.NODE_MAC_PATH}:${env.PATH}:${env.HOME}/emsdk:${env.HOME}/emsdk/upstream/emscripten:${env.HOME}/emsdk/upstream/bin"
 				MATCH_GIT_URL = "git@gitlab:/tuta/apple-certificates.git"
 				LC_ALL = "en_US.UTF-8"
 				LANG = "en_US.UTF-8"
