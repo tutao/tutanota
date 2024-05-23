@@ -1,7 +1,7 @@
 pipeline {
     environment {
     	// on m1 macs, this is a symlink that must be updated. see wiki.
-    	PATH="${env.PATH}:/home/jenkins/emsdk/upstream/bin/"
+    	PATH="${env.PATH}:/home/jenkins/emsdk/upstream/bin/:/home/jenkins/emsdk/:/home/jenkins/emsdk/upstream/emscripten"
         NODE_MAC_PATH = '/usr/local/opt/node@20/bin/'
         VERSION = sh(returnStdout: true, script: "${env.NODE_PATH}/node -p -e \"require('./package.json').version\" | tr -d \"\n\"")
     }
@@ -33,14 +33,6 @@ pipeline {
 					def util = load "ci/jenkins-lib/util.groovy"
 					util.checkGithub()
 				}
-			}
-		}
-		stage('Setup Emscipten') {
-			agent {
-				label 'linux'
-			}
-			steps {
-				sh 'source /home/jenkins/emsdk/emsdk_env.sh'
 			}
 		}
     	stage('Build dependencies') {

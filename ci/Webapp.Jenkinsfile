@@ -1,6 +1,6 @@
 pipeline {
     environment {
-         PATH="${env.NODE_PATH}:${env.PATH}:/home/jenkins/emsdk/upstream/bin/"
+         PATH="${env.NODE_PATH}:${env.PATH}:/home/jenkins/emsdk/upstream/bin/:/home/jenkins/emsdk/:/home/jenkins/emsdk/upstream/emscripten"
     }
 	options {
 		preserveStashes()
@@ -28,14 +28,6 @@ pipeline {
 					util.checkGithub()
 				}
 			}
-    	}
-    	stage('Setup Emscipten') {
-    		agent {
-    			label 'linux'
-    		}
-    		steps {
-			  	sh 'source /home/jenkins/emsdk/emsdk_env.sh'
-    		}
     	}
         stage('Build') {
             agent {
