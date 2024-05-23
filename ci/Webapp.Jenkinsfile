@@ -1,6 +1,6 @@
 pipeline {
     environment {
-         PATH="${env.NODE_PATH}:${env.PATH}"
+         PATH="${env.NODE_PATH}:${env.PATH}:/home/jenkins/emsdk/upstream/bin/"
     }
 	options {
 		preserveStashes()
@@ -34,12 +34,7 @@ pipeline {
     			label 'linux'
     		}
     		steps {
-    			sh 'git clone --branch 3.1.59 https://github.com/emscripten-core/emsdk.git'
-			  	sh 'cd emsdk'
-			  	sh 'chmod +x ./emsdk'
-			  	sh './emsdk install latest'
-			  	sh './emsdk activate latest'
-			  	sh 'source ./emsdk_env.sh'
+			  	sh 'source /home/jenkins/emsdk/emsdk_env.sh'
     		}
     	}
         stage('Build') {

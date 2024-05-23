@@ -1,6 +1,7 @@
 pipeline {
     environment {
     	// on m1 macs, this is a symlink that must be updated. see wiki.
+    	PATH="${env.PATH}:/home/jenkins/emsdk/upstream/bin/"
         NODE_MAC_PATH = '/usr/local/opt/node@20/bin/'
         VERSION = sh(returnStdout: true, script: "${env.NODE_PATH}/node -p -e \"require('./package.json').version\" | tr -d \"\n\"")
     }
@@ -39,12 +40,7 @@ pipeline {
 				label 'linux'
 			}
 			steps {
-				sh 'git clone --branch 3.1.59 https://github.com/emscripten-core/emsdk.git'
-				sh 'cd emsdk'
-				sh 'chmod +x ./emsdk'
-				sh './emsdk install latest'
-				sh './emsdk activate latest'
-				sh 'source ./emsdk_env.sh'
+				sh 'source /home/jenkins/emsdk/emsdk_env.sh'
 			}
 		}
     	stage('Build dependencies') {
