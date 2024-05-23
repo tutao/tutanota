@@ -1718,7 +1718,6 @@ export default {
 		"yourCalendars_label": "Your calendars",
 		"yourFolders_action": "YOUR FOLDERS",
 		"yourMessage_label": "Your message",
-		"you_label": "You",
-		"notificationTargets_label": "Notification targets",
+		"you_label": "You"
 	}
 }

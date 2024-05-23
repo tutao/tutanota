@@ -11,7 +11,7 @@ export default {
 		"other"
 	],
 	"created_at": "2015-04-02T12:56:44Z",
-	"updated_at": "2024-05-07T14:54:47Z",
+	"updated_at": "2024-05-14T18:52:01Z",
 	"source_locale": null,
 	"fallback_locale": null,
 	"keys": {
@@ -966,8 +966,12 @@ export default {
 		"notFound404_msg": "Sajnáljuk, de a keresett oldal nem található. Ellenőrizze az URL-t és kattintson az újratöltés gombra.",
 		"noThanks_action": "Nem, köszönöm.",
 		"nothingFound_label": "Nem található sablon",
+		"notificationContent_label": "Értesítés tartalma",
 		"notificationMailLanguage_label": "Az értesítő levél nyelve",
 		"notificationMailTemplateTooLarge_msg": "Az értesítési üzenetsablon mérete túl nagy.",
+		"notificationPreferenceNoSenderOrSubject_action": "Nincs feladó vagy tárgy",
+		"notificationPreferenceOnlySender_action": "Csak a feladó",
+		"notificationPreferenceSenderAndSubject_action": "Feladó és tárgy",
 		"notificationsDisabled_label": "Tiltva",
 		"notificationSettings_action": "Értesítések",
 		"notificationSync_msg": "Szinkronizációs értesítések",

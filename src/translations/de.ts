@@ -1722,7 +1722,6 @@ export default {
 		"yourCalendars_label": "Deine Kalender",
 		"yourFolders_action": "DEINE ORDNER",
 		"yourMessage_label": "Deine Nachricht",
-		"you_label": "Du",
-		"notificationTargets_label": "Benachrichtigungsziele",
+		"you_label": "Du"
 	}
 }
