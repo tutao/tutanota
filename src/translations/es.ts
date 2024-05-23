@@ -11,7 +11,7 @@ export default {
 		"other"
 	],
 	"created_at": "2015-01-27T13:13:02Z",
-	"updated_at": "2024-05-13T09:48:34Z",
+	"updated_at": "2024-05-22T10:08:50Z",
 	"source_locale": {
 		"id": "fcd7471b347c8e517663e194dcddf237",
 		"name": "en",
@@ -484,7 +484,7 @@ export default {
 		"dynamicLoginRestockingTutaFridge_msg": "Reabasteciendo la nevera de Tuta &hellip;",
 		"dynamicLoginSortingContacts_msg": "Clasificando contactos &hellip;",
 		"dynamicLoginSwitchingOnPrivacy_msg": "Encendiendo la privacidad ...",
-		"dynamicLoginUpdatingOfflineDatabase_msg": "Actualización de la base de datos offline &hellip;",
+		"dynamicLoginUpdatingOfflineDatabase_msg": "Actualización de la base de datos offline …",
 		"Edit contact form": "Editar formulario de contacto",
 		"editContactForm_label": "Editar formulario de contacto",
 		"editContactList_action": "Editar la lista de contactos",
