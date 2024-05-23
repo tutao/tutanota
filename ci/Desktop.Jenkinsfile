@@ -34,7 +34,18 @@ pipeline {
 				}
 			}
 		}
-
+		stage('Setup Emscipten') {
+			agent {
+				label 'linux'
+			}
+			steps {
+				sh 'git clone --branch 3.1.59 https://github.com/emscripten-core/emsdk.git'
+				sh 'cd emsdk'
+				sh './emsdk install latest'
+				sh './emsdk activate latest'
+				sh 'source ./emsdk_env.sh'
+			}
+		}
     	stage('Build dependencies') {
     		parallel {
 				stage('Build webapp') {
