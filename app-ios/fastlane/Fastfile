@@ -19,7 +19,7 @@ platform :ios do
 	desc "Push a new prod release to AppStore"
 	lane :appstore_prod do |options|
 		match(
-			app_identifier: ["de.tutao.tutanota", "de.tutao.tutanota.TutanotaShareExtension", "de.tutao.tutanota.TutanotaSharedFramework", "de.tutao.tutanota.TutanotaNotificationExtension"],
+			app_identifier: ["de.tutao.tutanota", "de.tutao.tutanota.TutanotaShareExtension"],
 			type: "appstore",
 			verbose: false,
 			readonly: true,
@@ -52,7 +52,7 @@ platform :ios do
 	desc "Build a new prod release for ad-hoc"
 	lane :adhoc_prod do |options|
 		match(
-			app_identifier: ["de.tutao.tutanota", "de.tutao.tutanota.TutanotaShareExtension", "de.tutao.tutanota.TutanotaSharedFramework", "de.tutao.tutanota.TutanotaNotificationExtension"],
+			app_identifier: ["de.tutao.tutanota", "de.tutao.tutanota.TutanotaShareExtension"],
 			type: "adhoc",
 			verbose: false,
 			readonly: true,
@@ -78,7 +78,7 @@ platform :ios do
 	desc "Push a new staging release to TestFlight"
 	lane :testflight_staging do
 		match(
-			app_identifier: ["de.tutao.tutanota.test", "de.tutao.tutanota.test.TutanotaShareExtension", "de.tutao.tutanota.test.TutanotaSharedFramework", "de.tutao.tutanota.test.TutanotaNotificationExtension"],
+			app_identifier: ["de.tutao.tutanota.test", "de.tutao.tutanota.test.TutanotaShareExtension"],
 			type: "appstore",
 			verbose: false,
 			readonly: true,
@@ -106,7 +106,7 @@ platform :ios do
 	desc "Build a new staging release for ad-hoc"
 	lane :adhoc_staging do
 		match(
-			app_identifier: ["de.tutao.tutanota.test", "de.tutao.tutanota.test.TutanotaShareExtension", "de.tutao.tutanota.test.TutanotaSharedFramework", "de.tutao.tutanota.test.TutanotaNotificationExtension"],
+			app_identifier: ["de.tutao.tutanota.test", "de.tutao.tutanota.test.TutanotaShareExtension"],
 			type: "adhoc",
 			verbose: false,
 			readonly: true,
@@ -145,7 +145,7 @@ platform :ios do
  	desc "Renew prod adhoc cert"
  	lane :renew_adhoc_cert_prod do
 		match(
-			app_identifier: ["de.tutao.tutanota", "de.tutao.tutanota.TutanotaShareExtension", "de.tutao.tutanota.TutanotaSharedFramework", "de.tutao.tutanota.TutanotaNotificationExtension"],
+			app_identifier: ["de.tutao.tutanota", "de.tutao.tutanota.TutanotaShareExtension"],
 			type: "adhoc",
 			verbose: true,
 			readonly: false,
@@ -159,7 +159,7 @@ platform :ios do
 	desc "Renew prod appstore cert"
 	lane :renew_appstore_cert_prod do
 		match(
-			app_identifier: ["de.tutao.tutanota", "de.tutao.tutanota.TutanotaShareExtension", "de.tutao.tutanota.TutanotaSharedFramework", "de.tutao.tutanota.TutanotaNotificationExtension"],
+			app_identifier: ["de.tutao.tutanota", "de.tutao.tutanota.TutanotaShareExtension"],
 			type: "appstore",
 			verbose: true,
 			readonly: false,
@@ -173,7 +173,7 @@ platform :ios do
 	desc "Renew staging adhoc cert"
 	lane :renew_adhoc_cert_staging do
 	   match(
-		   app_identifier: ["de.tutao.tutanota.test", "de.tutao.tutanota.test.TutanotaShareExtension", "de.tutao.tutanota.test.TutanotaSharedFramework", "de.tutao.tutanota.test.TutanotaNotificationExtension"],
+		   app_identifier: ["de.tutao.tutanota.test", "de.tutao.tutanota.test.TutanotaShareExtension"],
 		   type: "adhoc",
 		   verbose: true,
 		   readonly: false,
@@ -187,7 +187,7 @@ platform :ios do
    desc "Renew staging appstore cert"
    lane :renew_appstore_cert_staging do
 	   match(
-		   app_identifier: ["de.tutao.tutanota.test", "de.tutao.tutanota.test.TutanotaShareExtension", "de.tutao.tutanota.test.TutanotaSharedFramework", "de.tutao.tutanota.test.TutanotaNotificationExtension"],
+		   app_identifier: ["de.tutao.tutanota.test", "de.tutao.tutanota.test.TutanotaShareExtension"],
 		   type: "appstore",
 		   verbose: true,
 		   readonly: false,
