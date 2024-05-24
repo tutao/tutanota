@@ -67,7 +67,7 @@ pipeline {
 						file(credentialsId: 'appstore-api-key-json', variable: "API_KEY_JSON_FILE_PATH"),
 						string(credentialsId: 'match-password', variable: 'MATCH_PASSWORD'),
 						string(credentialsId: 'team-id', variable: 'FASTLANE_TEAM_ID'),
-						sshUserPrivateKey(credentialsId: 'jenkins', keyFileVariable: 'MATCH_GIT_PRIVATE_KEY'),
+// 						sshUserPrivateKey(credentialsId: 'jenkins', keyFileVariable: 'MATCH_GIT_PRIVATE_KEY'),
 						string(credentialsId: 'fastlane-keychain-password', variable: 'FASTLANE_KEYCHAIN_PASSWORD')
 				]) {
 					dir('app-ios') {
@@ -124,7 +124,7 @@ pipeline {
 						file(credentialsId: 'appstore-api-key-json', variable: "API_KEY_JSON_FILE_PATH"),
 						string(credentialsId: 'match-password', variable: 'MATCH_PASSWORD'),
 						string(credentialsId: 'team-id', variable: 'FASTLANE_TEAM_ID'),
-						sshUserPrivateKey(credentialsId: 'jenkins', keyFileVariable: 'MATCH_GIT_PRIVATE_KEY'),
+// 						sshUserPrivateKey(credentialsId: 'jenkins', keyFileVariable: 'MATCH_GIT_PRIVATE_KEY'),
 						string(credentialsId: 'fastlane-keychain-password', variable: 'FASTLANE_KEYCHAIN_PASSWORD')
 				]) {
 					dir('app-ios') {
