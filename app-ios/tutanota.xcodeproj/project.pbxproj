@@ -210,7 +210,6 @@
 		3DF974852BB18F3C00AF3FDE /* NotificationService.swift in Sources */ = {isa = PBXBuildFile; fileRef = 3DF974812BB18F3C00AF3FDE /* NotificationService.swift */; };
 		3DF974872BB18FA500AF3FDE /* libcrypto.xcframework in Frameworks */ = {isa = PBXBuildFile; fileRef = 3DDB5E6E28FDA59100E1E4BE /* libcrypto.xcframework */; };
 		3DF9748A2BB1925500AF3FDE /* TutanotaSharedFramework.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 3DF9739E2BB18ABA00AF3FDE /* TutanotaSharedFramework.framework */; };
-		3DF9748B2BB1925500AF3FDE /* TutanotaSharedFramework.framework in Embed Frameworks */ = {isa = PBXBuildFile; fileRef = 3DF9739E2BB18ABA00AF3FDE /* TutanotaSharedFramework.framework */; settings = {ATTRIBUTES = (CodeSignOnCopy, RemoveHeadersOnCopy, ); }; };
 		3DF9769A2BB1A2B900AF3FDE /* EncryptedAlarmInfo.swift in Sources */ = {isa = PBXBuildFile; fileRef = 3DF976302BB1A2B900AF3FDE /* EncryptedAlarmInfo.swift */; };
 		3DF9769B2BB1A2B900AF3FDE /* AES.swift in Sources */ = {isa = PBXBuildFile; fileRef = 3DF976322BB1A2B900AF3FDE /* AES.swift */; };
 		3DF9769C2BB1A2B900AF3FDE /* ValueEncryption.swift in Sources */ = {isa = PBXBuildFile; fileRef = 3DF976332BB1A2B900AF3FDE /* ValueEncryption.swift */; };
@@ -313,7 +312,6 @@
 		3DF976FD2BB1A2B900AF3FDE /* CredentialsDatabase.swift in Sources */ = {isa = PBXBuildFile; fileRef = 3DF976982BB1A2B900AF3FDE /* CredentialsDatabase.swift */; };
 		3DF976FE2BB1A2B900AF3FDE /* StructuredContactTypes.swift in Sources */ = {isa = PBXBuildFile; fileRef = 3DF976992BB1A2B900AF3FDE /* StructuredContactTypes.swift */; };
 		3DF976FF2BB1A41900AF3FDE /* TutanotaSharedFramework.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 3DF9739E2BB18ABA00AF3FDE /* TutanotaSharedFramework.framework */; };
-		3DF977002BB1A41900AF3FDE /* TutanotaSharedFramework.framework in Embed Frameworks */ = {isa = PBXBuildFile; fileRef = 3DF9739E2BB18ABA00AF3FDE /* TutanotaSharedFramework.framework */; settings = {ATTRIBUTES = (CodeSignOnCopy, RemoveHeadersOnCopy, ); }; };
 		3DF977042BB1A46A00AF3FDE /* tutanota-notification-bridging-header.h in Sources */ = {isa = PBXBuildFile; fileRef = 3DF974802BB18F3C00AF3FDE /* tutanota-notification-bridging-header.h */; };
 		3DF977112BB1A98600AF3FDE /* SharingStorage.swift in Sources */ = {isa = PBXBuildFile; fileRef = 3D448A8A292BB1D00030DB2F /* SharingStorage.swift */; };
 		3DF977122BB1A98B00AF3FDE /* SharingUtils.swift in Sources */ = {isa = PBXBuildFile; fileRef = 3D3B516129376C2200C1B7DA /* SharingUtils.swift */; };
@@ -409,28 +407,6 @@
 				3DF974762BB18F1700AF3FDE /* TutanotaNotificationExtension.appex in Embed App Extensions */,
 			);
 			name = "Embed App Extensions";
-			runOnlyForDeploymentPostprocessing = 0;
-		};
-		3DF9748E2BB1925500AF3FDE /* Embed Frameworks */ = {
-			isa = PBXCopyFilesBuildPhase;
-			buildActionMask = 2147483647;
-			dstPath = "";
-			dstSubfolderSpec = 10;
-			files = (
-				3DF9748B2BB1925500AF3FDE /* TutanotaSharedFramework.framework in Embed Frameworks */,
-			);
-			name = "Embed Frameworks";
-			runOnlyForDeploymentPostprocessing = 0;
-		};
-		3DF977032BB1A41900AF3FDE /* Embed Frameworks */ = {
-			isa = PBXCopyFilesBuildPhase;
-			buildActionMask = 2147483647;
-			dstPath = "";
-			dstSubfolderSpec = 10;
-			files = (
-				3DF977002BB1A41900AF3FDE /* TutanotaSharedFramework.framework in Embed Frameworks */,
-			);
-			name = "Embed Frameworks";
 			runOnlyForDeploymentPostprocessing = 0;
 		};
 /* End PBXCopyFilesBuildPhase section */
@@ -2157,7 +2133,6 @@
 				3D7BF8DC2B68DC58009BB782 /* Lint with SwiftLint */,
 				3DEF18ED2924E1F1009C4B55 /* Frameworks */,
 				3DEF18EE2924E1F1009C4B55 /* Resources */,
-				3DF977032BB1A41900AF3FDE /* Embed Frameworks */,
 			);
 			buildRules = (
 			);
@@ -2197,7 +2172,6 @@
 				3DF9746B2BB18F1600AF3FDE /* Sources */,
 				3DF9746C2BB18F1600AF3FDE /* Frameworks */,
 				3DF9746D2BB18F1600AF3FDE /* Resources */,
-				3DF9748E2BB1925500AF3FDE /* Embed Frameworks */,
 			);
 			buildRules = (
 			);
@@ -5055,6 +5029,7 @@
 			isa = XCBuildConfiguration;
 			buildSettings = {
 				ALWAYS_SEARCH_USER_PATHS = NO;
+				APPLICATION_EXTENSION_API_ONLY = YES;
 				ASSETCATALOG_COMPILER_GENERATE_SWIFT_ASSET_SYMBOL_EXTENSIONS = YES;
 				CLANG_ANALYZER_NONNULL = YES;
 				CLANG_ANALYZER_NUMBER_OBJECT_CONVERSION = YES_AGGRESSIVE;
@@ -5174,6 +5149,7 @@
 			isa = XCBuildConfiguration;
 			buildSettings = {
 				ALWAYS_SEARCH_USER_PATHS = NO;
+				APPLICATION_EXTENSION_API_ONLY = YES;
 				ASSETCATALOG_COMPILER_GENERATE_SWIFT_ASSET_SYMBOL_EXTENSIONS = YES;
 				CLANG_ANALYZER_NONNULL = YES;
 				CLANG_ANALYZER_NUMBER_OBJECT_CONVERSION = YES_AGGRESSIVE;
@@ -5293,6 +5269,7 @@
 			isa = XCBuildConfiguration;
 			buildSettings = {
 				ALWAYS_SEARCH_USER_PATHS = NO;
+				APPLICATION_EXTENSION_API_ONLY = YES;
 				ASSETCATALOG_COMPILER_GENERATE_SWIFT_ASSET_SYMBOL_EXTENSIONS = YES;
 				CLANG_ANALYZER_NONNULL = YES;
 				CLANG_ANALYZER_NUMBER_OBJECT_CONVERSION = YES_AGGRESSIVE;
@@ -5412,6 +5389,7 @@
 			isa = XCBuildConfiguration;
 			buildSettings = {
 				ALWAYS_SEARCH_USER_PATHS = NO;
+				APPLICATION_EXTENSION_API_ONLY = YES;
 				ASSETCATALOG_COMPILER_GENERATE_SWIFT_ASSET_SYMBOL_EXTENSIONS = YES;
 				CLANG_ANALYZER_NONNULL = YES;
 				CLANG_ANALYZER_NUMBER_OBJECT_CONVERSION = YES_AGGRESSIVE;
@@ -5525,6 +5503,7 @@
 			isa = XCBuildConfiguration;
 			buildSettings = {
 				ALWAYS_SEARCH_USER_PATHS = NO;
+				APPLICATION_EXTENSION_API_ONLY = YES;
 				ASSETCATALOG_COMPILER_GENERATE_SWIFT_ASSET_SYMBOL_EXTENSIONS = YES;
 				CLANG_ANALYZER_NONNULL = YES;
 				CLANG_ANALYZER_NUMBER_OBJECT_CONVERSION = YES_AGGRESSIVE;
@@ -5638,6 +5617,7 @@
 			isa = XCBuildConfiguration;
 			buildSettings = {
 				ALWAYS_SEARCH_USER_PATHS = NO;
+				APPLICATION_EXTENSION_API_ONLY = YES;
 				ASSETCATALOG_COMPILER_GENERATE_SWIFT_ASSET_SYMBOL_EXTENSIONS = YES;
 				CLANG_ANALYZER_NONNULL = YES;
 				CLANG_ANALYZER_NUMBER_OBJECT_CONVERSION = YES_AGGRESSIVE;
@@ -5875,7 +5855,7 @@
 				COPY_PHASE_STRIP = NO;
 				CURRENT_PROJECT_VERSION = 1;
 				DEBUG_INFORMATION_FORMAT = dwarf;
-				DEVELOPMENT_TEAM = "";
+				DEVELOPMENT_TEAM = JKCH89Z3M9;
 				ENABLE_STRICT_OBJC_MSGSEND = YES;
 				ENABLE_TESTABILITY = YES;
 				ENABLE_USER_SCRIPT_SANDBOXING = YES;
