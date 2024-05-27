@@ -43,6 +43,14 @@ async function generateImportCode(wasmFilePath: string) {
 			const shouldForceFallback = options && options.forceFallback
 			if (typeof WebAssembly !== "object" || typeof WebAssembly.instantiate !== "function" || shouldForceFallback) {
 				return await import("${fallback}").catch((e) => console.log(e))
+			} else if (typeof process !== "undefined") {
+				const {readFile} = await import("node:fs/promises")
+				const {dirname, join} = await import("node:path")
+
+				const wasmPath = join(dirname(__filename), "${wasmFilePath}")
+				const wasmSource = await readFile(wasmPath)
+
+				return (await WebAssembly.instantiate(wasmSource)).instance.exports
 			} else {
 				const wasm = fetch("${wasmFilePath}")
 				if (WebAssembly.instantiateStreaming) {

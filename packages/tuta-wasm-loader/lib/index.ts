@@ -84,6 +84,11 @@ function esbuildWasmLoader(options: LoadOptions) {
 					loader: "js",
 				}
 			})
+			build.onResolve({ filter: /node:*/, namespace: "wasm-loader" }, async (args) => {
+				return {
+					external: true,
+				}
+			})
 		},
 	}
 }
@@ -99,7 +104,10 @@ function rollupWasmLoader(options: LoadOptions & { output: string }) {
 			}
 		},
 		async resolveDynamicImport(specifier: string, importer: string) {
-			if (importer.includes("wasm-loader")) {
+			if (importer.includes("wasm-loader") && specifier.startsWith("node:")) {
+				// rollup chokes on node: imports for some reason
+				return { external: true, id: specifier.substring("node:".length) }
+			} else if (importer.includes("wasm-loader")) {
 				return {
 					id: `\0${specifier}`,
 					external: false,

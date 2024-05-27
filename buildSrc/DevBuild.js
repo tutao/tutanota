@@ -12,7 +12,6 @@ import { checkOfflineDatabaseMigrations } from "./checkOfflineDbMigratons.js"
 import { buildRuntimePackages } from "./packageBuilderFunctions.js"
 import { domainConfigs } from "./DomainConfigs.js"
 import { sh } from "./sh.js"
-import { esbuildWasmLoader } from "@tutao/tuta-wasm-loader"
 
 export async function runDevBuild({ stage, host, desktop, clean, ignoreMigrations }) {
 	if (clean) {
@@ -95,6 +94,7 @@ importScripts("./worker.js")
 	})
 
 	await runStep("Web: Esbuild", async () => {
+		const { esbuildWasmLoader } = await import("@tutao/tuta-wasm-loader")
 		await esbuild({
 			// Using named entry points so that it outputs build/worker.js and not build/api/worker/worker.js
 			entryPoints: { app: "src/app.ts", worker: "src/api/worker/worker.ts" },
