@@ -18,33 +18,34 @@ import WebKit
 		let flatAttachments: [NSItemProvider] = (items.compactMap { $0.attachments }).flatMap { $0 }
 
 		Task {
+			do {
+				let loadedAttachments: [SharedItem] = (await flatAttachments.asyncMap { await loadSharedAttachment($0) }).compactMap { $0 }
+				var info = SharingInfo(identifier: getUniqueInfoLocation(), text: "", fileUrls: [])
 
-			let loadedAttachments: [SharedItem] = (await flatAttachments.asyncMap { await loadSharedAttachment($0) }).compactMap { $0 }
-			var info = SharingInfo(identifier: getUniqueInfoLocation(), text: "", fileUrls: [])
-
-			for attachment in loadedAttachments {
-				TUTSLog("attachment type: \(attachment.ident())")
-				switch attachment {
-				case .fileUrl(ident: _, let content): info.fileUrls.append(content)
-				case .image(ident: _, content: let content):
-					guard let imageURL = await saveUIImage(subdir: info.identifier, image: content) else {
-						TUTSLog("failed to save image, skipping")
-						continue
+				for attachment in loadedAttachments {
+					TUTSLog("attachment type: \(attachment.ident())")
+					switch attachment {
+					case .fileUrl(ident: _, let content): info.fileUrls.append(content)
+					case .image(ident: _, content: let content):
+						guard let imageURL = await saveUIImage(subdir: info.identifier, image: content) else {
+							TUTSLog("failed to save image, skipping")
+							continue
+						}
+						info.fileUrls.append(imageURL)
+					case .text(ident: _, let content): info.text = info.text.appending(content).appending("\n")
+					case .contact(ident: _, let content):
+						guard let vcardUrl = await saveVCard(subdir: info.identifier, vcardText: content) else {
+							TUTSLog("failed to save contact, skipping")
+							continue
+						}
+						info.fileUrls.append(vcardUrl)
 					}
-					info.fileUrls.append(imageURL)
-				case .text(ident: _, let content): info.text = info.text.appending(content).appending("\n")
-				case .contact(ident: _, let content):
-					guard let vcardUrl = await saveVCard(subdir: info.identifier, vcardText: content) else {
-						TUTSLog("failed to save contact, skipping")
-						continue
-					}
-					info.fileUrls.append(vcardUrl)
 				}
-			}
 
-			info.fileUrls = try await copyToSharedStorage(subdir: info.identifier, fileUrls: info.fileUrls)
-			try writeSharingInfo(info: info, infoLocation: info.identifier)
-			openMainAppWithOpenUrl(info.identifier)
+				info.fileUrls = try await copyToSharedStorage(subdir: info.identifier, fileUrls: info.fileUrls)
+				try writeSharingInfo(info: info, infoLocation: info.identifier)
+				openMainAppWithOpenUrl(info.identifier)
+			} catch { TUTSLog("Error while sharing: \(error)") }
 		}
 	}
 
