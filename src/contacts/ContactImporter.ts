@@ -211,7 +211,11 @@ export function showContactImportDialog(contacts: Contact[], okAction: (dialog: 
 		multiselectionAllowed: MultiselectMode.Enabled,
 		swipe: null,
 		createElement: (dom) => {
-			return new KindaContactRow(dom, (selectedContact: Contact) => viewModel.selectSingleContact(selectedContact))
+			return new KindaContactRow(
+				dom,
+				(selectedContact: Contact) => viewModel.selectSingleContact(selectedContact),
+				() => true,
+			)
 		},
 	}
 

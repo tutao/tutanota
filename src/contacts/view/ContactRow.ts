@@ -6,7 +6,6 @@ import {
 	selectableRowAnimParams,
 	SelectableRowContainer,
 	SelectableRowSelectedSetter,
-	shouldAlwaysShowMultiselectCheckbox,
 } from "../../gui/SelectableRowContainer.js"
 import { getContactListName } from "../model/ContactUtils.js"
 import { NBSP, noOp } from "@tutao/tutanota-utils"
@@ -27,9 +26,9 @@ export class ContactRow implements VirtualRow<Contact> {
 	private domName!: HTMLElement
 	private domAddress!: HTMLElement
 	private checkboxDom!: HTMLInputElement
-	private checkboxWasVisible = shouldAlwaysShowMultiselectCheckbox()
+	private checkboxWasVisible: boolean = this.shouldShowCheckbox()
 
-	constructor(private readonly onSelected: (entity: Contact, selected: boolean) => unknown) {
+	constructor(private readonly onSelected: (entity: Contact, selected: boolean) => unknown, private readonly shouldShowCheckbox: () => boolean) {
 		this.top = 0
 		this.entity = null
 	}
@@ -37,7 +36,7 @@ export class ContactRow implements VirtualRow<Contact> {
 	update(contact: Contact, selected: boolean, isInMultiSelect: boolean): void {
 		this.entity = contact
 		this.selectionUpdater(selected, isInMultiSelect)
-		this.showCheckboxAnimated(shouldAlwaysShowMultiselectCheckbox() || isInMultiSelect)
+		this.showCheckboxAnimated(this.shouldShowCheckbox() || isInMultiSelect)
 		checkboxOpacity(this.checkboxDom, selected)
 		this.checkboxDom.checked = selected && isInMultiSelect
 
@@ -53,7 +52,7 @@ export class ContactRow implements VirtualRow<Contact> {
 			SelectableRowContainer,
 			{
 				oncreate: (vnode) => {
-					Promise.resolve().then(() => this.showCheckbox(shouldAlwaysShowMultiselectCheckbox()))
+					Promise.resolve().then(() => this.showCheckbox(this.shouldShowCheckbox()))
 				},
 				onSelectedChangeRef: (updater) => (this.selectionUpdater = updater),
 			},
@@ -92,6 +91,7 @@ export class ContactRow implements VirtualRow<Contact> {
 		if (show) {
 			this.domName.style.paddingRight = shiftByForCheckbox
 			this.domAddress.style.paddingRight = shiftByForCheckbox
+			this.checkboxDom.style.display = ""
 
 			const nameAnim = this.domName.animate({ transform: [translateXHide, translateXShow] }, selectableRowAnimParams)
 			const addressAnim = this.domAddress.animate({ transform: [translateXHide, translateXShow] }, selectableRowAnimParams)
@@ -141,6 +141,6 @@ export class ContactRow implements VirtualRow<Contact> {
 		this.domName.style.paddingRight = padding
 		this.checkboxDom.style.transform = scale
 		// Stop the hidden checkbox from entering the tab index
-		if (!show) this.checkboxDom.style.display = "none"
+		this.checkboxDom.style.display = show ? "" : "none"
 	}
 }

@@ -206,6 +206,6 @@ export class RecipientRow implements VirtualRow<ContactListEntry> {
 		this.titleDom.style.paddingRight = padding
 		this.checkboxDom.style.transform = scale
 		// Stop the hidden checkbox from entering the tab index
-		if (!show) this.checkboxDom.style.display = "none"
+		this.checkboxDom.style.display = show ? "" : "none"
 	}
 }
