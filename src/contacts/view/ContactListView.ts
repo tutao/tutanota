@@ -10,6 +10,7 @@ import ColumnEmptyMessageBox from "../../gui/base/ColumnEmptyMessageBox.js"
 import { theme } from "../../gui/theme.js"
 import { BootIcons } from "../../gui/base/icons/BootIcons.js"
 import { styles } from "../../gui/styles.js"
+import { shouldAlwaysShowMultiselectCheckbox } from "../../gui/SelectableRowContainer.js"
 
 assertMainOrNode()
 
@@ -74,8 +75,12 @@ export class KindaContactRow implements ViewHolder<Contact> {
 	domElement: HTMLElement
 	entity: Contact | null = null
 
-	constructor(dom: HTMLElement, onToggleSelection: (item: Contact) => unknown) {
-		this.cr = new ContactRow(onToggleSelection)
+	constructor(
+		dom: HTMLElement,
+		onToggleSelection: (item: Contact) => unknown,
+		shouldShowCheckbox: () => boolean = () => shouldAlwaysShowMultiselectCheckbox(),
+	) {
+		this.cr = new ContactRow(onToggleSelection, shouldShowCheckbox)
 		this.domElement = dom
 		m.render(dom, this.cr.render())
 	}
