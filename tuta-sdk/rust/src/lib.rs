@@ -21,6 +21,7 @@ mod metamodel;
 mod type_model_provider;
 mod mail_facade;
 mod rest_error;
+mod crypto;
 
 uniffi::setup_scaffolding!();
 
