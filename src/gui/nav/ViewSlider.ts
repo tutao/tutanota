@@ -351,6 +351,9 @@ export class ViewSlider implements Component<ViewSliderAttrs> {
 	private slideForegroundColumn(foregroundColumn: ViewColumn, toForeground: boolean): Promise<unknown> {
 		if (!foregroundColumn.domColumn) return Promise.resolve()
 
+		// Remove the `visibility: hidden` from the target column before starting the animation, so it is visible during the animation
+		foregroundColumn.domColumn.style.visibility = "visible"
+
 		const colRect = foregroundColumn.domColumn.getBoundingClientRect()
 
 		const oldOffset = colRect.left

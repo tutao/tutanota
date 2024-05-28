@@ -83,7 +83,6 @@ export class ViewColumn implements Component<Attrs> {
 			".view-column.fill-absolute",
 			{
 				...landmark,
-				// As tab index is not inherited, remove the column from the tab index by not rendering it
 				class: isInteractable ? undefined : "hidden",
 				"aria-hidden": isInteractable ? "false" : "true",
 				oncreate: (vnode) => {
