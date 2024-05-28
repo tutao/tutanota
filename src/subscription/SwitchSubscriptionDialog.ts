@@ -2,8 +2,16 @@ import m from "mithril"
 import { Dialog } from "../gui/base/Dialog"
 import { lang, TranslationText } from "../misc/LanguageViewModel"
 import { ButtonType } from "../gui/base/Button.js"
-import { AccountingInfo, Booking, createSurveyData, Customer, CustomerInfo, SurveyData, SwitchAccountTypePostIn } from "../api/entities/sys/TypeRefs.js"
-import { createSwitchAccountTypePostIn } from "../api/entities/sys/TypeRefs.js"
+import {
+	AccountingInfo,
+	Booking,
+	createSurveyData,
+	createSwitchAccountTypePostIn,
+	Customer,
+	CustomerInfo,
+	SurveyData,
+	SwitchAccountTypePostIn,
+} from "../api/entities/sys/TypeRefs.js"
 import {
 	AccountType,
 	AvailablePlanType,
@@ -224,6 +232,10 @@ function handleSwitchAccountPreconditionFailed(e: PreconditionFailedError): Prom
 			case UnsubscribeFailureReason.WHITELABEL_DOMAIN_ACTIVE:
 			case BookingFailureReason.WHITELABEL_DOMAIN_ACTIVE:
 				detailMsg = lang.get("whitelabelDomainExisting_msg")
+				break
+
+			case UnsubscribeFailureReason.HAS_CONTACT_LIST_GROUP:
+				detailMsg = lang.get("contactListExisting_msg")
 				break
 
 			case UnsubscribeFailureReason.NOT_ENOUGH_CREDIT:
