@@ -12,7 +12,7 @@ export default {
 		"other"
 	],
 	"created_at": "2015-02-18T09:07:31Z",
-	"updated_at": "2024-05-23T10:10:23Z",
+	"updated_at": "2024-05-23T22:04:08Z",
 	"source_locale": {
 		"id": "fcd7471b347c8e517663e194dcddf237",
 		"name": "en",
@@ -980,6 +980,7 @@ export default {
 		"notificationsDisabled_label": "Dezactivat",
 		"notificationSettings_action": "Notificări",
 		"notificationSync_msg": "Sincronizarea notificărilor",
+		"notificationTargets_label": "Destinații pentru notificări",
 		"notSigned_msg": "Nesemnat.",
 		"noUpdateAvailable_msg": "Nu există o versiune nouă.",
 		"noValidMembersToAdd_msg": "Nu administrezi niciun utilizator care nu este deja membru al acestui grup.",

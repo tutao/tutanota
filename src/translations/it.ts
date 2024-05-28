@@ -11,7 +11,7 @@ export default {
 		"other"
 	],
 	"created_at": "2015-01-27T13:14:10Z",
-	"updated_at": "2024-05-23T10:10:23Z",
+	"updated_at": "2024-05-24T04:17:24Z",
 	"source_locale": {
 		"id": "fcd7471b347c8e517663e194dcddf237",
 		"name": "en",
@@ -979,6 +979,7 @@ export default {
 		"notificationsDisabled_label": "Disabilitato",
 		"notificationSettings_action": "Notifiche",
 		"notificationSync_msg": "Sincronizzazione delle notifiche",
+		"notificationTargets_label": "Obiettivi della notifica",
 		"notSigned_msg": "Non firmato.",
 		"noUpdateAvailable_msg": "Nessun aggiornamento trovato.",
 		"noValidMembersToAdd_msg": "Non stai amministrando nessun utente che non sia già membro di questo gruppo.",

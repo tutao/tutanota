@@ -11,7 +11,7 @@ export default {
 		"other"
 	],
 	"created_at": "2015-04-02T12:56:44Z",
-	"updated_at": "2024-05-23T10:10:23Z",
+	"updated_at": "2024-05-25T08:22:52Z",
 	"source_locale": null,
 	"fallback_locale": null,
 	"keys": {
@@ -975,6 +975,7 @@ export default {
 		"notificationsDisabled_label": "Tiltva",
 		"notificationSettings_action": "Értesítések",
 		"notificationSync_msg": "Szinkronizációs értesítések",
+		"notificationTargets_label": "Értesítési célok",
 		"notSigned_msg": "Nincs aláírva.",
 		"noUpdateAvailable_msg": "Nincs újabb frissítés.",
 		"noValidMembersToAdd_msg": "Nem kezelhet felhasználókat, mivel már nem tagja ennek a csoportnak!",
