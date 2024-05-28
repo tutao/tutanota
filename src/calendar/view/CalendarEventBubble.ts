@@ -58,7 +58,6 @@ export class CalendarEventBubble implements Component<CalendarEventBubbleAttrs> 
 					attrs.click(e, e.target as HTMLElement)
 				},
 				onkeydown: (e: KeyboardEvent) => {
-					e.stopPropagation()
 					attrs.keyDown(e, e.target as HTMLElement)
 				},
 			},

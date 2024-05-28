@@ -908,9 +908,11 @@ export class CalendarView extends BaseTopLevelView implements TopLevelView<Calen
 		return (calendarEvent, domEvent) => {
 			if (isKeyPressed(domEvent.key, Keys.RETURN, Keys.SPACE) && !domEvent.repeat) {
 				this.showCalendarEventPopupAtEvent(calendarEvent, domEvent.target as HTMLElement, this.htmlSanitizer)
+				domEvent.stopPropagation()
 			}
 			if (isKeyPressed(domEvent.key, Keys.DELETE) && !domEvent.repeat) {
 				this.openDeletePopup(calendarEvent, domEvent)
+				domEvent.stopPropagation()
 			}
 		}
 	}
