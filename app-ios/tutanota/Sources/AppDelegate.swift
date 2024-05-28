@@ -1,5 +1,6 @@
 import TutanotaSharedFramework
 import UIKit
+import CryptoKit
 
 @UIApplicationMain class AppDelegate: UIResponder, UIApplicationDelegate, UNUserNotificationCenterDelegate {
 	var window: UIWindow?
@@ -73,6 +74,7 @@ import UIKit
 
 	func application(_ application: UIApplication, didFinishLaunchingWithOptions launchOptions: [UIApplication.LaunchOptionsKey: Any]?) -> Bool {
 		TUTSLog("Start Tutanota with launch options: \(String(describing: launchOptions))")
+		try! migrateToSharedstorage()
 		self.start()
 		return true
 	}
@@ -140,4 +142,49 @@ private func deviceTokenAsString(deviceToken: Data) -> String? {
 	var result = ""
 	for byte in deviceToken { result = result.appendingFormat("%02x", byte) }
 	return result
+}
+
+private func migrateToSharedstorage() throws {
+	try migrateUserDefaultsToSharedStorage()
+	try migrateOfflineDbToSharedStorage()
+}
+
+private func migrateUserDefaultsToSharedStorage() throws {
+	// User Defaults - Old
+	let userDefaults = UserDefaults.standard
+
+	// App Groups Default - New
+	let groupDefaults = UserDefaults(suiteName: getAppGroupName())!
+
+	// Key to track if we migrated
+	let didMigrateToAppGroups = "didMigrateToAppGroups"
+
+	if !groupDefaults.bool(forKey: didMigrateToAppGroups) {
+		for (key, value) in userDefaults.dictionaryRepresentation() { groupDefaults.set(value, forKey: key) }
+		groupDefaults.set(true, forKey: didMigrateToAppGroups)
+		TUTSLog("Successfully migrated defaults")
+	} else {
+		TUTSLog("No need to migrate defaults")
+	}
+}
+
+private func migrateOfflineDbToSharedStorage() throws {
+	let oldDbDirectoryUrl = FileManager.default.urls(for: .documentDirectory, in: .userDomainMask)[0]
+	let userDirectoryFiles = try FileManager.default.contentsOfDirectory(at: oldDbDirectoryUrl, includingPropertiesForKeys: nil)
+
+	for item in userDirectoryFiles {
+		if item.isFileURL && item.relativePath.contains("offline") && item.relativePath.hasSuffix(".sqlite") {
+			let fileName = item.pathComponents.last!
+			let newFileUrl = makeDbPath(fileName: fileName)
+			do {
+				let offlineDbHashBefore =  SHA256.hash(data: try! Data(contentsOf: item)).description
+				try FileManager.default.moveItem(at: item, to: newFileUrl)
+				let offlineDbHashAfter =  SHA256.hash(data: try! Data(contentsOf: newFileUrl)).description
+				TUTSLog("Did move offline db \(fileName) to \(newFileUrl.relativePath) \(offlineDbHashBefore) \(offlineDbHashAfter)")
+			} catch {
+				TUTSLog("Could not move offline db \(fileName): \(error)")
+				do { try FileManager.default.removeItem(at: item) } catch { TUTSLog("Could not clean up offline db: \(error)") }
+			}
+		}
+	}
 }
