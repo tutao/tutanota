@@ -46,12 +46,14 @@ final class CredentialsFacadeTest: XCTestCase {
 
 	func test_GetCredentialEncryptionode_returns_null_from_the_db() async throws {
 		given(credentialsDb.getCredentialEncryptionMode()).willReturn(nil)
-		try XCTAssertNil(facade.getCredentialEncryptionMode())
+		let mode = try await facade.getCredentialEncryptionMode()
+		XCTAssertNil(mode)
 	}
 
 	func test_GetCredentialEncryptionode_returns_value_from_the_db() async throws {
 		given(credentialsDb.getCredentialEncryptionMode()).willReturn(.systemPassword)
-		try await XCTAssertEqual(CredentialEncryptionMode.systemPassword, facade.getCredentialEncryptionMode())
+		let mode = try await facade.getCredentialEncryptionMode()
+		XCTAssertEqual(CredentialEncryptionMode.systemPassword, mode)
 	}
 
 	func test_loadAll_returns_credentials_from_the_db() async throws {
@@ -65,7 +67,7 @@ final class CredentialsFacadeTest: XCTestCase {
 		given(credentialsDb.getCredentialEncryptionMode()).willReturn(CredentialEncryptionMode.deviceLock)
 		given(credentialsDb.getAll()).willReturn([encryptedCredentials1, encryptedCredentials2])
 		given(await keychainEncryption.decryptUsingKeychain(encCredentialsKey, .deviceLock)).willReturn(decCredentialsKey)
-		given(cryptoFns.aesDecryptKey(encryptedCredentials1.databaseKey!.data, withKey: decCredentialsKey)).willReturn(decryptedCredentials1.databaseKey!.data)
+		given(cryptoFns.aesDecryptData(encryptedCredentials1.databaseKey!.data, withKey: decCredentialsKey)).willReturn(decryptedCredentials1.databaseKey!.data)
 		given(cryptoFns.aesDecryptData(encryptedCredentials1.accessToken.data, withKey: decCredentialsKey))
 			.willReturn(decryptedCredentials1.accessToken.data(using: .utf8)!)
 		let loadedCredential = try await facade.loadByUserId("user1")
@@ -77,7 +79,7 @@ final class CredentialsFacadeTest: XCTestCase {
 		given(credentialsDb.getCredentialEncryptionMode()).willReturn(CredentialEncryptionMode.systemPassword)
 		given(credentialsDb.getAll()).willReturn([encryptedCredentials1])
 		given(await keychainEncryption.decryptUsingKeychain(encCredentialsKey, .systemPassword)).willReturn(decCredentialsKey)
-		given(cryptoFns.aesDecryptKey(encryptedCredentials1.databaseKey!.data, withKey: decCredentialsKey)).willReturn(decryptedCredentials1.databaseKey!.data)
+		given(cryptoFns.aesDecryptData(encryptedCredentials1.databaseKey!.data, withKey: decCredentialsKey)).willReturn(decryptedCredentials1.databaseKey!.data)
 		given(cryptoFns.aesDecryptData(encryptedCredentials1.accessToken.data, withKey: decCredentialsKey))
 			.willReturn(decryptedCredentials1.accessToken.data(using: .utf8)!)
 		given(await keychainEncryption.encryptUsingKeychain(decCredentialsKey, .deviceLock)).willReturn(reEncryptedCredentialsKey)
@@ -92,7 +94,8 @@ final class CredentialsFacadeTest: XCTestCase {
 		given(credentialsDb.getCredentialEncryptionMode()).willReturn(CredentialEncryptionMode.deviceLock)
 		given(credentialsDb.getAll()).willReturn([])
 		given(await keychainEncryption.encryptUsingKeychain(decCredentialsKey, .deviceLock)).willReturn(encCredentialsKey)
-		given(cryptoFns.aesEncryptKey(decryptedCredentials1.databaseKey!.data, withKey: decCredentialsKey)).willReturn(encryptedCredentials1.databaseKey!.data)
+		given(cryptoFns.aesEncryptData(decryptedCredentials1.databaseKey!.data, withKey: decCredentialsKey, withIV: any()))
+			.willReturn(encryptedCredentials1.databaseKey!.data)
 		given(cryptoFns.aesEncryptData(decryptedCredentials1.accessToken.data(using: .utf8)!, withKey: decCredentialsKey, withIV: any()))
 			.willReturn(encryptedCredentials1.accessToken.data)
 		try await facade.store(decryptedCredentials1)

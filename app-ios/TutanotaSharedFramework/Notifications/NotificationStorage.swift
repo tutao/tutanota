@@ -33,7 +33,7 @@ public class NotificationStorage {
 			self.put(sseInfo: sseInfo)
 		} else {
 			let sseInfo = SSEInfo(pushIdentifier: pushIdentifier, sseOrigin: sseOrigin, userIds: [userId])
-			try self.setExtendedNotificationConfig(userId, .sender_and_subject)
+			try self.setExtendedNotificationConfig(userId, .only_sender)
 			self.put(sseInfo: sseInfo)
 		}
 	}
