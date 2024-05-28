@@ -112,10 +112,11 @@ export async function showUpgradeWizard(logins: LoginController, acceptedPlans: 
 
 	const wizardPages = [
 		wizardPageWrapper(UpgradeSubscriptionPage, new UpgradeSubscriptionPageAttrs(upgradeData)),
+		wizardPageWrapper(InvoiceAndPaymentDataPage, new InvoiceAndPaymentDataPageAttrs(upgradeData)),
 		wizardPageWrapper(UpgradeConfirmSubscriptionPage, new InvoiceAndPaymentDataPageAttrs(upgradeData)),
 	]
-	if (!isIOSApp()) {
-		wizardPages.splice(1, 0, wizardPageWrapper(InvoiceAndPaymentDataPage, new InvoiceAndPaymentDataPageAttrs(upgradeData)))
+	if (isIOSApp()) {
+		wizardPages.splice(1, 1) // do not show this page on AppStore payment since we are only able to show this single payment method on iOS
 	}
 
 	const deferred = defer<void>()
@@ -199,11 +200,12 @@ export async function loadSignupWizard(
 	const wizardPages = [
 		wizardPageWrapper(UpgradeSubscriptionPage, new UpgradeSubscriptionPageAttrs(signupData)),
 		wizardPageWrapper(SignupPage, new SignupPageAttrs(signupData)),
+		wizardPageWrapper(InvoiceAndPaymentDataPage, invoiceAttrs),
 		wizardPageWrapper(UpgradeConfirmSubscriptionPage, invoiceAttrs),
 		wizardPageWrapper(UpgradeCongratulationsPage, new UpgradeCongratulationsPageAttrs(signupData)),
 	]
-	if (!isIOSApp()) {
-		wizardPages.splice(2, 0, wizardPageWrapper(InvoiceAndPaymentDataPage, invoiceAttrs))
+	if (isIOSApp()) {
+		wizardPages.splice(2, 1) // do not show this page on AppStore payment since we are only able to show this single payment method on iOS
 	}
 	const wizardBuilder = createWizardDialog(
 		signupData,

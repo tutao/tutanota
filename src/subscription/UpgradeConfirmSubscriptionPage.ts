@@ -38,14 +38,10 @@ export class UpgradeConfirmSubscriptionPage implements WizardPageN<UpgradeSubscr
 	}
 
 	private async upgrade(data: UpgradeSubscriptionData) {
+		// We return early because we do the upgrade after the user has submitted payment which is on the confirmation page
 		if (data.paymentData.paymentMethod === PaymentMethodType.AppStore) {
-			const customerIdBytes = base64ToUint8Array(base64ExtToBase64(data.customer!._id))
-			let result = await locator.mobilePaymentsFacade.requestSubscriptionToPlan(
-				PlanTypeToName[data.type].toLowerCase(),
-				data.options.paymentInterval(),
-				customerIdBytes,
-			)
-			if (result.result !== MobilePaymentResultType.Success) {
+			const success = await this.handleAppStorePayment(data)
+			if (!success) {
 				return
 			}
 		}
@@ -101,16 +97,14 @@ export class UpgradeConfirmSubscriptionPage implements WizardPageN<UpgradeSubscr
 	}
 
 	private async handleAppStorePayment(data: UpgradeSubscriptionData): Promise<boolean> {
-		let customerId
-
 		if (!locator.logins.isUserLoggedIn()) {
 			await locator.logins.createSession(neverNull(data.newAccountData).mailAddress, neverNull(data.newAccountData).password, SessionType.Temporary)
 		}
-		customerId = locator.logins.getUserController().user.customer!
 
+		const customerId = locator.logins.getUserController().user.customer!
 		const customerIdBytes = base64ToUint8Array(base64ExtToBase64(customerId))
 
-		let result = await showProgressDialog(
+		const result = await showProgressDialog(
 			"pleaseWait_msg",
 			locator.mobilePaymentsFacade.requestSubscriptionToPlan(PlanTypeToName[data.type].toLowerCase(), data.options.paymentInterval(), customerIdBytes),
 		)
