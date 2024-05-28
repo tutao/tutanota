@@ -74,7 +74,7 @@ public class IosNativeCredentialsFacade: NativeCredentialsFacade {
 			credentialInfo: unencryptedCredentials.credentialInfo,
 			accessToken: accessToken.wrap(),
 			databaseKey: unencryptedCredentials.databaseKey.map { dbKey in
-				try self.cryptoFns.aesEncryptKey(dbKey.data, withKey: credentialsEncryptionKey).wrap()
+				try self.cryptoFns.aesEncryptData(dbKey.data, withKey: credentialsEncryptionKey).wrap()
 			},
 			encryptedPassword: unencryptedCredentials.encryptedPassword
 		)
@@ -85,7 +85,7 @@ public class IosNativeCredentialsFacade: NativeCredentialsFacade {
 			return try UnencryptedCredentials(
 				credentialInfo: persistedCredentials.credentialInfo,
 				accessToken: String(bytes: self.cryptoFns.aesDecryptData(persistedCredentials.accessToken.data, withKey: credentialsKey), encoding: .utf8)!,
-				databaseKey: persistedCredentials.databaseKey.map({ dbKey in try self.cryptoFns.aesDecryptKey(dbKey.data, withKey: credentialsKey).wrap() }),
+				databaseKey: persistedCredentials.databaseKey.map({ dbKey in try self.cryptoFns.aesDecryptData(dbKey.data, withKey: credentialsKey).wrap() }),
 				encryptedPassword: persistedCredentials.encryptedPassword
 			)
 		} catch { throw KeyPermanentlyInvalidatedError(underlyingError: error) }

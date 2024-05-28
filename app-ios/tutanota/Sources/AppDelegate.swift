@@ -1,6 +1,5 @@
 import TutanotaSharedFramework
 import UIKit
-import CryptoKit
 
 @UIApplicationMain class AppDelegate: UIResponder, UIApplicationDelegate, UNUserNotificationCenterDelegate {
 	var window: UIWindow?
@@ -177,10 +176,8 @@ private func migrateOfflineDbToSharedStorage() throws {
 			let fileName = item.pathComponents.last!
 			let newFileUrl = makeDbPath(fileName: fileName)
 			do {
-				let offlineDbHashBefore =  SHA256.hash(data: try! Data(contentsOf: item)).description
 				try FileManager.default.moveItem(at: item, to: newFileUrl)
-				let offlineDbHashAfter =  SHA256.hash(data: try! Data(contentsOf: newFileUrl)).description
-				TUTSLog("Did move offline db \(fileName) to \(newFileUrl.relativePath) \(offlineDbHashBefore) \(offlineDbHashAfter)")
+				TUTSLog("Did move offline db \(fileName) to \(newFileUrl.relativePath)")
 			} catch {
 				TUTSLog("Could not move offline db \(fileName): \(error)")
 				do { try FileManager.default.removeItem(at: item) } catch { TUTSLog("Could not clean up offline db: \(error)") }
