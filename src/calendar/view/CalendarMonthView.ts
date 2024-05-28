@@ -174,17 +174,18 @@ export class CalendarMonthView implements Component<CalendarMonthAttrs>, ClassCo
 
 	private renderCalendar(attrs: CalendarMonthAttrs, month: CalendarMonth, currentlyVisibleMonth: CalendarMonth, zone: string): Children {
 		const { weeks } = month
+		const isVisible = month === currentlyVisibleMonth
 		return m(
 			".fill-absolute.flex.col.flex-grow",
 			{
 				oncreate: (vnode) => {
-					if (month === currentlyVisibleMonth) {
+					if (isVisible) {
 						this.monthDom = vnode.dom as HTMLElement
 						m.redraw()
 					}
 				},
 				onupdate: (vnode) => {
-					if (month === currentlyVisibleMonth) {
+					if (isVisible) {
 						this.monthDom = vnode.dom as HTMLElement
 					}
 				},
@@ -218,7 +219,10 @@ export class CalendarMonthView implements Component<CalendarMonthAttrs>, ClassCo
 					{
 						key: week[0].date.getTime(),
 					},
-					[week.map((day, i) => this.renderDay(attrs, day, i, weekIndex === 0)), this.monthDom ? this.renderWeekEvents(attrs, week, zone) : null],
+					[
+						week.map((day, i) => this.renderDay(attrs, day, i, weekIndex === 0)),
+						this.monthDom ? this.renderWeekEvents(attrs, week, zone, !isVisible) : null,
+					],
 				)
 			}),
 		)
@@ -318,7 +322,7 @@ export class CalendarMonthView implements Component<CalendarMonthAttrs>, ClassCo
 	}
 
 	/** render the events for the given week */
-	private renderWeekEvents(attrs: CalendarMonthAttrs, week: ReadonlyArray<CalendarDay>, zone: string): Children {
+	private renderWeekEvents(attrs: CalendarMonthAttrs, week: ReadonlyArray<CalendarDay>, zone: string, isDisabled: boolean): Children {
 		const eventsOnDays = attrs.getEventsOnDaysToRender(week.map((day) => day.date))
 		const events = new Set(eventsOnDays.longEvents.concat(eventsOnDays.shortEventsPerDay.flat()))
 		const firstDayOfWeek = week[0].date
@@ -358,7 +362,7 @@ export class CalendarMonthView implements Component<CalendarMonthAttrs>, ClassCo
 									dayHeight(),
 									columnIndex,
 								)
-								return this.renderEvent(event, position, eventStart, firstDayOfWeek, firstDayOfNextWeek, eventEnd, attrs)
+								return this.renderEvent(event, position, eventStart, firstDayOfWeek, firstDayOfNextWeek, eventEnd, attrs, isDisabled)
 							} else {
 								for (const [dayIndex, dayInWeek] of week.entries()) {
 									const eventsForDay = attrs.eventsForDays.get(dayInWeek.date.getTime())
@@ -416,6 +420,7 @@ export class CalendarMonthView implements Component<CalendarMonthAttrs>, ClassCo
 		firstDayOfNextWeek: Date,
 		eventEnd: Date,
 		attrs: CalendarMonthAttrs,
+		isDisabled: boolean,
 	): Children {
 		const isTemporary = attrs.temporaryEvents.includes(event)
 		return m(
@@ -453,7 +458,7 @@ export class CalendarMonthView implements Component<CalendarMonthAttrs>, ClassCo
 				},
 				fadeIn: !this.eventDragHandler.isDragging,
 				opacity: isTemporary ? TEMPORARY_EVENT_OPACITY : 1,
-				enablePointerEvents: !this.eventDragHandler.isDragging && !isTemporary && client.isDesktopDevice(),
+				enablePointerEvents: !this.eventDragHandler.isDragging && !isTemporary && client.isDesktopDevice() && !isDisabled,
 			}),
 		)
 	}
