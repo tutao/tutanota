@@ -13,7 +13,7 @@ export default {
 		"other"
 	],
 	"created_at": "2015-04-24T12:42:36Z",
-	"updated_at": "2024-05-23T10:10:23Z",
+	"updated_at": "2024-05-24T06:30:48Z",
 	"source_locale": null,
 	"fallback_locale": null,
 	"keys": {
@@ -977,6 +977,7 @@ export default {
 		"notificationsDisabled_label": "Vypnuto",
 		"notificationSettings_action": "Oznámení",
 		"notificationSync_msg": "Synchronizace oznámení",
+		"notificationTargets_label": "Cíl oznámení",
 		"notSigned_msg": "Nepodepsáno.",
 		"noUpdateAvailable_msg": "Není k dispozici žádná nová verze.",
 		"noValidMembersToAdd_msg": "Uživatele, kteří nejsou v této skupině, nelze spravovat.",

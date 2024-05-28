@@ -13,7 +13,7 @@ export default {
 		"other"
 	],
 	"created_at": "2015-01-27T13:15:23Z",
-	"updated_at": "2024-05-23T10:10:23Z",
+	"updated_at": "2024-05-25T18:09:23Z",
 	"source_locale": {
 		"id": "fcd7471b347c8e517663e194dcddf237",
 		"name": "en",
@@ -981,6 +981,7 @@ export default {
 		"notificationsDisabled_label": "Отключено",
 		"notificationSettings_action": "Уведомления",
 		"notificationSync_msg": "Синхронизация уведомлений",
+		"notificationTargets_label": "Цели уведомления",
 		"notSigned_msg": "Не подписано.",
 		"noUpdateAvailable_msg": "Обновления не найдены.",
 		"noValidMembersToAdd_msg": "Вы не администрируете пользователей, которые еще не являются членами этой группы.",

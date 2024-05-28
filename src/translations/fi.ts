@@ -11,7 +11,7 @@ export default {
 		"other"
 	],
 	"created_at": "2015-03-10T10:52:15Z",
-	"updated_at": "2024-05-23T10:10:23Z",
+	"updated_at": "2024-05-24T17:33:25Z",
 	"source_locale": null,
 	"fallback_locale": null,
 	"keys": {
@@ -975,6 +975,7 @@ export default {
 		"notificationsDisabled_label": "Poistettu käytöstä",
 		"notificationSettings_action": "Ilmoitukset",
 		"notificationSync_msg": "Ilmoituksia synkronoidaan",
+		"notificationTargets_label": "Ilmoituskohteet",
 		"notSigned_msg": "Et ole kirjautunut sisään.",
 		"noUpdateAvailable_msg": "Päivitystä ei löytynyt.",
 		"noValidMembersToAdd_msg": "Et hallinnoi käyttäjiä, jotka eivät olisi jo tässä ryhmässä.",
