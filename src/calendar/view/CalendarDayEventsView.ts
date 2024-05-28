@@ -35,6 +35,7 @@ export type Attrs = {
 	isTemporaryEvent: (event: CalendarEvent) => boolean
 	isDragging: boolean
 	fullViewWidth?: number
+	disabled?: boolean
 }
 export const calendarDayTimes: Array<Time> = numberRange(0, 23).map((number) => new Time(number, 0))
 const allHoursHeight = size.calendar_hour_height * calendarDayTimes.length
@@ -128,7 +129,7 @@ export class CalendarDayEventsView implements Component<Attrs> {
 				verticalPadding: size.calendar_day_event_padding,
 				fadeIn: !attrs.isTemporaryEvent(ev),
 				opacity: attrs.isTemporaryEvent(ev) ? TEMPORARY_EVENT_OPACITY : 1,
-				enablePointerEvents: !attrs.isTemporaryEvent(ev) && !attrs.isDragging,
+				enablePointerEvents: !attrs.isTemporaryEvent(ev) && !attrs.isDragging && !attrs.disabled,
 			}),
 		)
 	}

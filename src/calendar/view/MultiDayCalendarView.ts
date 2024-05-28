@@ -339,6 +339,7 @@ export class MultiDayCalendarView implements Component<MultiDayCalendarViewAttrs
 										isTemporaryEvent: (event) => attrs.temporaryEvents.includes(event),
 										isDragging: this.eventDragHandler.isDragging,
 										fullViewWidth: this.viewDom?.getBoundingClientRect().width,
+										disabled: !isMainView,
 									}),
 								)
 							}),
