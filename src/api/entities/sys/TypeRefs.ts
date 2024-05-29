@@ -1984,36 +1984,6 @@ export type PaymentErrorInfo = {
 	errorTime: Date;
 	thirdPartyErrorId: string;
 }
-export const PdfInvoiceServiceDataTypeRef: TypeRef<PdfInvoiceServiceData> = new TypeRef("sys", "PdfInvoiceServiceData")
-
-export function createPdfInvoiceServiceData(values: StrippedEntity<PdfInvoiceServiceData>): PdfInvoiceServiceData {
-	return Object.assign(create(typeModels.PdfInvoiceServiceData, PdfInvoiceServiceDataTypeRef), values)
-}
-
-export type PdfInvoiceServiceData = {
-	_type: TypeRef<PdfInvoiceServiceData>;
-
-	_format: NumberString;
-	invoiceNumber: string;
-
-	invoice:  null | IdTuple;
-}
-export const PdfInvoiceServiceReturnTypeRef: TypeRef<PdfInvoiceServiceReturn> = new TypeRef("sys", "PdfInvoiceServiceReturn")
-
-export function createPdfInvoiceServiceReturn(values: StrippedEntity<PdfInvoiceServiceReturn>): PdfInvoiceServiceReturn {
-	return Object.assign(create(typeModels.PdfInvoiceServiceReturn, PdfInvoiceServiceReturnTypeRef), values)
-}
-
-export type PdfInvoiceServiceReturn = {
-	_type: TypeRef<PdfInvoiceServiceReturn>;
-	_errors: Object;
-
-	_format: NumberString;
-	_ownerGroup: null | Id;
-	_ownerPublicEncSessionKey: null | Uint8Array;
-	_publicCryptoProtocolVersion: null | NumberString;
-	data: Uint8Array;
-}
 export const PermissionTypeRef: TypeRef<Permission> = new TypeRef("sys", "Permission")
 
 export function createPermission(values: StrippedEntity<Permission>): Permission {
