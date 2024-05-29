@@ -44,7 +44,7 @@ export class WebCommonNativeFacade implements CommonNativeFacade {
 				editor.show()
 			} else {
 				const files = await fileApp.getFilesMetaData(filesUris)
-				const allFilesAreVCards = files.every((file) => getAttachmentType(file.mimeType) === AttachmentType.CONTACT)
+				const allFilesAreVCards = files.length > 0 && files.every((file) => getAttachmentType(file.mimeType) === AttachmentType.CONTACT)
 
 				let willImport = false
 				if (allFilesAreVCards) {
