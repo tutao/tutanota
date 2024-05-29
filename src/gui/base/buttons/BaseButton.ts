@@ -33,7 +33,7 @@ export class BaseButton implements ClassComponent<BaseButtonAttrs> {
 		return m(
 			"button",
 			{
-				"aria-label": attrs.label,
+				title: attrs.label,
 				disabled,
 				"aria-disabled": disabled,
 				pressed,
