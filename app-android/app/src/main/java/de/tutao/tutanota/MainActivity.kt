@@ -244,10 +244,10 @@ class MainActivity : FragmentActivity() {
 					)
 				} else if (request.method == "GET" && url.toString().startsWith(BASE_WEB_VIEW_URL)) {
 					Log.v(TAG, "replacing asset GET response to ${url.path}")
-					val assetPath = File(BuildConfig.RES_ADDRESS + url.path!!).canonicalPath.run {
-						slice(1..lastIndex)
-					}
 					try {
+						val assetPath = File(BuildConfig.RES_ADDRESS + url.path!!).canonicalPath.run {
+							slice(1..lastIndex)
+						}
 						if (!assetPath.startsWith(BuildConfig.RES_ADDRESS)) throw IOException("can't find this")
 						val mimeType = getMimeTypeForUrl(url.toString())
 						WebResourceResponse(
