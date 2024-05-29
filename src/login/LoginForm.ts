@@ -12,6 +12,8 @@ import { BootstrapFeatureType } from "../api/common/TutanotaConstants.js"
 import { ACTIVATED_MIGRATION, isLegacyDomain } from "./LoginViewModel.js"
 import { LoginButton } from "../gui/base/buttons/LoginButton.js"
 import { PasswordField } from "../misc/passwords/PasswordField.js"
+import { Keys } from "../api/common/TutanotaConstants"
+import { useKeyHandler } from "../misc/KeyManager.js"
 
 export type LoginFormAttrs = {
 	onSubmit: (username: string, password: string) => unknown
@@ -90,6 +92,15 @@ export class LoginForm implements Component<LoginFormAttrs> {
 								dom.focus() // have email address auto-focus so the user can immediately type their username (unless on mobile)
 							}
 						},
+						keyHandler: (key) => {
+							if (key.key != null && key.key.toLowerCase() === Keys.RETURN.code) {
+								a.onSubmit(a.mailAddress(), a.password())
+								// this is so that when "Return" is pressed, the user is logged in
+								// and the password reveal button is not triggered
+								return false
+							}
+							return true
+						},
 					}),
 				),
 				m(
@@ -99,20 +110,48 @@ export class LoginForm implements Component<LoginFormAttrs> {
 						oninput: a.password,
 						autocompleteAs: Autocomplete.currentPassword,
 						onDomInputCreated: (dom) => (this.passwordTextField = dom),
+						keyHandler: (key) => {
+							if (key.key != null && key.key.toLowerCase() === Keys.RETURN.code) {
+								a.onSubmit(a.mailAddress(), a.password())
+								// this is so that when "Return" is pressed, the user is logged in
+								// and the password reveal button is not triggered
+								return false
+							}
+							return true
+						},
 					}),
 				),
 				a.savePassword && !this._passwordDisabled()
 					? isApp() || isDesktop()
 						? m("small.block.content-fg", lang.get("dataWillBeStored_msg"))
-						: m(Checkbox, {
-								label: () => lang.get("storePassword_action"),
-								checked: a.savePassword(),
-								onChecked: a.savePassword,
-								helpLabel: canSaveCredentials
-									? () => lang.get("onlyPrivateComputer_msg") + (isOfflineStorageAvailable() ? "\n" + lang.get("dataWillBeStored_msg") : "")
-									: "functionNotSupported_msg",
-								disabled: !canSaveCredentials,
-						  })
+						: m(
+								"",
+								{
+									onkeydown: (e: KeyboardEvent) => {
+										useKeyHandler(e, (key) => {
+											if (key.key != null && key.key.toLowerCase() === Keys.RETURN.code) {
+												a.onSubmit(a.mailAddress(), a.password())
+												// this is so that when "Return" is pressed, the user is logged in
+												// and the password reveal button is not triggered
+												e.preventDefault()
+												return false
+											}
+											return false
+										})
+									},
+								},
+								m(Checkbox, {
+									label: () => lang.get("storePassword_action"),
+									checked: a.savePassword(),
+									onChecked: a.savePassword,
+									helpLabel: canSaveCredentials
+										? () =>
+												lang.get("onlyPrivateComputer_msg") +
+												(isOfflineStorageAvailable() ? "\n" + lang.get("dataWillBeStored_msg") : "")
+										: "functionNotSupported_msg",
+									disabled: !canSaveCredentials,
+								}),
+						  )
 					: null,
 				m(
 					".pt",
