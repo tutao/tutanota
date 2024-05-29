@@ -310,7 +310,7 @@ export class CalendarEventEditView implements Component<CalendarEventEditViewAtt
 							oninput: (v) => {
 								const time = Number.parseInt(v)
 								const isEmpty = v === ""
-								if (!Number.isNaN(time) || isEmpty) timeReminderValue = isEmpty ? 0 : time
+								if (!Number.isNaN(time) || isEmpty) timeReminderValue = isEmpty ? 0 : Math.abs(time)
 							},
 							class: "flex-half no-appearance", //Removes the up/down arrow from input number. Pressing arrow up/down key still working
 						}),
