@@ -1,5 +1,4 @@
 import type { BaseThemeId, Theme } from "../gui/theme"
-import type { BootstrapFeatureType } from "../api/common/TutanotaConstants"
 import { assertMainOrNodeBoot } from "../api/common/Env"
 import type { WhitelabelConfig } from "../api/entities/sys/TypeRefs.js"
 
@@ -12,7 +11,6 @@ export type CustomizationKey = keyof ThemeCustomizations
 
 export type WhitelabelCustomizations = {
 	theme: ThemeCustomizations | null
-	bootstrapCustomizations: BootstrapFeatureType[]
 	germanLanguageCode: string
 	registrationDomains: string[] | null
 	imprintUrl: string | null

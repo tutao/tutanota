@@ -495,10 +495,6 @@ export enum FeatureType {
 	MultipleUsers = "17", // Multi-user support for new personal plans.
 }
 
-export const enum BootstrapFeatureType {
-	DisableSavePassword = "0",
-}
-
 export const FULL_INDEXED_TIMESTAMP: number = 0
 export const NOTHING_INDEXED_TIMESTAMP: number = Math.pow(2, 42) - 1 // maximum Timestamp is 42 bit long (see GeneratedIdData.java)
 

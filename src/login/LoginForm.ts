@@ -7,8 +7,6 @@ import { Autocomplete, TextField, TextFieldType } from "../gui/base/TextField.js
 import { Checkbox } from "../gui/base/Checkbox.js"
 import { client } from "../misc/ClientDetector"
 import { isApp, isDesktop, isOfflineStorageAvailable } from "../api/common/Env"
-import { getWhitelabelCustomizations } from "../misc/WhitelabelCustomizations.js"
-import { BootstrapFeatureType } from "../api/common/TutanotaConstants.js"
 import { ACTIVATED_MIGRATION, isLegacyDomain } from "./LoginViewModel.js"
 import { LoginButton } from "../gui/base/buttons/LoginButton.js"
 import { PasswordField } from "../misc/passwords/PasswordField.js"
@@ -55,18 +53,14 @@ export class LoginForm implements Component<LoginFormAttrs> {
 		this.passwordTextField.value = ""
 	}
 
-	_passwordDisabled(): boolean {
-		// some whitelabel customers have disabled password saving
-		const hasCustomDisabled = getWhitelabelCustomizations(window)?.bootstrapCustomizations?.includes(BootstrapFeatureType.DisableSavePassword) != null
-		// on the old domain, we don't want to save new credentials.
-		const noSaveLegacyDomain = ACTIVATED_MIGRATION() && isLegacyDomain()
-		return hasCustomDisabled || noSaveLegacyDomain
+	isSavePasswordDisabled(): boolean {
+		return ACTIVATED_MIGRATION() && isLegacyDomain()
 	}
 
 	view(vnode: Vnode<LoginFormAttrs>): Children {
 		const a = vnode.attrs
 		const canSaveCredentials = client.localStorage()
-		if (a.savePassword && (isApp() || isDesktop()) && !this._passwordDisabled()) {
+		if (a.savePassword && (isApp() || isDesktop()) && !this.isSavePasswordDisabled()) {
 			a.savePassword(true)
 		}
 		return m(
@@ -121,7 +115,7 @@ export class LoginForm implements Component<LoginFormAttrs> {
 						},
 					}),
 				),
-				a.savePassword && !this._passwordDisabled()
+				a.savePassword && !this.isSavePasswordDisabled()
 					? isApp() || isDesktop()
 						? m("small.block.content-fg", lang.get("dataWillBeStored_msg"))
 						: m(
