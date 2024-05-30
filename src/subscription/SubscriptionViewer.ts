@@ -71,6 +71,7 @@ import { EntityUpdateData, isUpdateForTypeRef } from "../api/common/utils/Entity
 import { showProgressDialog } from "../gui/dialogs/ProgressDialog"
 import { MobilePaymentsFacade } from "../native/common/generatedipc/MobilePaymentsFacade"
 import { MobilePaymentSubscriptionOwnership } from "../native/common/generatedipc/MobilePaymentSubscriptionOwnership"
+import { AppStorePaymentPicker } from "../misc/AppStorePaymentPicker.js"
 
 assertMainOrNode()
 const DAY = 1000 * 60 * 60 * 24
@@ -102,7 +103,11 @@ export class SubscriptionViewer implements UpdatableSettingsViewer {
 	private _giftCards: Map<Id, GiftCard>
 	private _giftCardsExpanded: Stream<boolean>
 
-	constructor(currentPlanType: PlanType, private readonly mobilePaymentsFacade: MobilePaymentsFacade | null) {
+	constructor(
+		currentPlanType: PlanType,
+		private readonly mobilePaymentsFacade: MobilePaymentsFacade | null,
+		private readonly appStorePaymentPicker: AppStorePaymentPicker,
+	) {
 		this.currentPlanType = currentPlanType
 		const isPremiumPredicate = () => locator.logins.getUserController().isPremiumAccount()
 
@@ -263,6 +268,13 @@ export class SubscriptionViewer implements UpdatableSettingsViewer {
 
 	private async handleUpgradeSubscription() {
 		if (isIOSApp()) {
+			const currentPaymentType = this._accountingInfo ? getPaymentMethodType(this._accountingInfo) : null
+			const shouldEnableiOSPayment = await this.appStorePaymentPicker.shouldEnableAppStorePayment(currentPaymentType)
+
+			if (!shouldEnableiOSPayment) {
+				return Dialog.message("notAvailableInApp_msg")
+			}
+
 			const hasOngoingAppStoreSubsciption = await hasAppStoreOngoingSubscription(null)
 
 			if (hasOngoingAppStoreSubsciption !== MobilePaymentSubscriptionOwnership.NoSubscription) {
@@ -274,7 +286,7 @@ export class SubscriptionViewer implements UpdatableSettingsViewer {
 			}
 		}
 
-		showUpgradeWizard(locator.logins)
+		return showUpgradeWizard(locator.logins)
 	}
 
 	private async handleAppStoreSubscriptionChange() {

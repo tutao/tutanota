@@ -7,18 +7,19 @@ import { PaymentMethodInput } from "./PaymentMethodInput"
 import { updatePaymentData } from "./InvoiceAndPaymentDataPage"
 import { px } from "../gui/size"
 import { showProgressDialog } from "../gui/dialogs/ProgressDialog"
-import { PaymentMethodType } from "../api/common/TutanotaConstants"
+import { getDefaultPaymentMethod, PaymentMethodType } from "../api/common/TutanotaConstants"
 import { assertNotNull, neverNull } from "@tutao/tutanota-utils"
 import type { AccountingInfo, Customer } from "../api/entities/sys/TypeRefs.js"
 import { DropDownSelector } from "../gui/base/DropDownSelector.js"
 import { asPaymentInterval } from "./PriceUtils.js"
 import { getLazyLoadedPayPalUrl } from "./SubscriptionUtils.js"
 import { formatNameAndAddress } from "../api/common/utils/CommonFormatter.js"
+import { locator } from "../api/main/MainLocator.js"
 
 /**
  * @returns {boolean} true if the payment data update was successful
  */
-export function show(customer: Customer, accountingInfo: AccountingInfo, price: number): Promise<boolean> {
+export async function show(customer: Customer, accountingInfo: AccountingInfo, price: number, defaultPaymentMethod: PaymentMethodType): Promise<boolean> {
 	const payPalRequestUrl = getLazyLoadedPayPalUrl()
 	const invoiceData = {
 		invoiceAddress: formatNameAndAddress(accountingInfo.invoiceName, accountingInfo.invoiceAddress),
@@ -29,7 +30,13 @@ export function show(customer: Customer, accountingInfo: AccountingInfo, price: 
 		businessUse: stream(assertNotNull(customer.businessUse)),
 		paymentInterval: stream(asPaymentInterval(accountingInfo.paymentInterval)),
 	}
-	const paymentMethodInput = new PaymentMethodInput(subscriptionOptions, stream(invoiceData.country), neverNull(accountingInfo), payPalRequestUrl)
+	const paymentMethodInput = new PaymentMethodInput(
+		subscriptionOptions,
+		stream(invoiceData.country),
+		neverNull(accountingInfo),
+		payPalRequestUrl,
+		defaultPaymentMethod,
+	)
 	const availablePaymentMethods = paymentMethodInput.getVisiblePaymentMethods()
 
 	let selectedPaymentMethod = accountingInfo.paymentMethod as PaymentMethodType

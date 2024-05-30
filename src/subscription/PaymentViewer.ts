@@ -11,7 +11,7 @@ import { Icons } from "../gui/base/icons/Icons"
 import { ColumnWidth, Table, TableLineAttrs } from "../gui/base/Table.js"
 import { ButtonType } from "../gui/base/Button.js"
 import { formatDate } from "../misc/Formatter"
-import { getPaymentMethodType, NewPaidPlans, PaymentMethodType, PostingType } from "../api/common/TutanotaConstants"
+import { getDefaultPaymentMethod, getPaymentMethodType, NewPaidPlans, PaymentMethodType, PostingType } from "../api/common/TutanotaConstants"
 import { BadGatewayError, LockedError, PreconditionFailedError, TooManyRequestsError } from "../api/common/error/RestError"
 import { Dialog, DialogType } from "../gui/base/Dialog"
 import { getByAbbreviation } from "../api/common/CountryList"
@@ -185,15 +185,21 @@ export class PaymentViewer implements UpdatableSettingsViewer {
 					Number(neverNull(priceServiceReturn.currentPriceNextPeriod).price),
 				)
 			}),
-		).then((price) => {
-			return PaymentDataDialog.show(neverNull(this._customer), neverNull(this._accountingInfo), price).then((success) => {
-				if (success) {
-					if (this._isPayButtonVisible()) {
-						return this._showPayDialog(this._amountOwed())
+		)
+			.then((price) =>
+				getDefaultPaymentMethod(locator.appStorePaymentPicker).then((paymentMethod) => {
+					return { price, paymentMethod }
+				}),
+			)
+			.then(({ price, paymentMethod }) => {
+				return PaymentDataDialog.show(neverNull(this._customer), neverNull(this._accountingInfo), price, paymentMethod).then((success) => {
+					if (success) {
+						if (this._isPayButtonVisible()) {
+							return this._showPayDialog(this._amountOwed())
+						}
 					}
-				}
+				})
 			})
-		})
 	}
 
 	_renderPostings(postingExpanded: Stream<boolean>): Children {

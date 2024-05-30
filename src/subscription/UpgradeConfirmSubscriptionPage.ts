@@ -113,7 +113,7 @@ export class UpgradeConfirmSubscriptionPage implements WizardPageN<UpgradeSubscr
 			return false
 		}
 
-		return updatePaymentData(
+		const success = await updatePaymentData(
 			data.options.paymentInterval(),
 			data.invoiceData,
 			data.paymentData,
@@ -122,6 +122,12 @@ export class UpgradeConfirmSubscriptionPage implements WizardPageN<UpgradeSubscr
 			null,
 			data.accountingInfo!,
 		)
+
+		if (success) {
+			await locator.appStorePaymentPicker.markSubscribedStageAsComplete()
+		}
+
+		return success
 	}
 
 	private renderConfirmSubscription(attrs: WizardPageAttrs<UpgradeSubscriptionData>) {

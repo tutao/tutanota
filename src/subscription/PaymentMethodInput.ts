@@ -3,7 +3,7 @@ import type { TranslationKey } from "../misc/LanguageViewModel"
 import { lang } from "../misc/LanguageViewModel"
 import type { Country } from "../api/common/CountryList"
 import { CountryType } from "../api/common/CountryList"
-import { defaultPaymentMethod, PaymentData, PaymentMethodType } from "../api/common/TutanotaConstants"
+import { PaymentData, PaymentMethodType } from "../api/common/TutanotaConstants"
 import { PayPalLogo } from "../gui/base/icons/Icons"
 import { LazyLoaded, noOp, promiseMap } from "@tutao/tutanota-utils"
 import { showProgressDialog } from "../gui/dialogs/ProgressDialog"
@@ -39,6 +39,7 @@ export class PaymentMethodInput {
 		selectedCountry: Stream<Country | null>,
 		accountingInfo: AccountingInfo,
 		payPalRequestUrl: LazyLoaded<string>,
+		defaultPaymentMethod: PaymentMethodType,
 	) {
 		this._selectedCountry = selectedCountry
 		this._subscriptionOptions = subscriptionOptions
@@ -63,7 +64,7 @@ export class PaymentMethodInput {
 			}).then(noOp)
 		}
 
-		this._selectedPaymentMethod = defaultPaymentMethod()
+		this._selectedPaymentMethod = defaultPaymentMethod
 	}
 
 	oncreate() {
