@@ -302,7 +302,7 @@
 			]
 		},
 		{
-			"version": 100,
+			"version": 101,
 			"changes": [
 				{
 					"name": "RenameAttribute",
