@@ -92,7 +92,7 @@ public class CredentialsDatabase: CredentialsStorage {
 		let databaseKey: TaggedSqlValue = if let databaseKey = credentials.databaseKey { .bytes(value: databaseKey) } else { .null }
 		try db.prepare(
 			query: """
-				INSERT INTO credentials (login, userId, type, accessToken, databaseKey, encryptedPassword) 
+				INSERT OR REPLACE INTO credentials (login, userId, type, accessToken, databaseKey, encryptedPassword)
 				VALUES (?, ?, ?, ?, ?, ?)
 				"""
 		)

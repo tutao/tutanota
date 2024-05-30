@@ -97,7 +97,7 @@ export class DesktopCredentialsStorage {
 	}
 
 	store(credentials: PersistedCredentials) {
-		const formattedQuery = usql`INSERT INTO credentials (login, userId, type, accessToken, databaseKey, encryptedPassword) VALUES (
+		const formattedQuery = usql`INSERT OR REPLACE INTO credentials (login, userId, type, accessToken, databaseKey, encryptedPassword) VALUES (
 ${credentials.credentialInfo.login}, ${credentials.credentialInfo.userId}, ${credentials.credentialInfo.type},
 ${credentials.accessToken}, ${credentials.databaseKey}, ${credentials.encryptedPassword})`
 		return this.run(formattedQuery)
