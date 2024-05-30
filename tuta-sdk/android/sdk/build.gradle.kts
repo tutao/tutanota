@@ -1,3 +1,6 @@
+import org.gradle.process.internal.ExecException
+import java.io.ByteArrayOutputStream
+
 plugins {
 	id("com.android.library")
 	id("org.jetbrains.kotlin.android")
@@ -18,7 +21,14 @@ fun getActiveBuildType(): String {
 	return buildType
 }
 fun getABITargets(): List<String> {
-	return listOf("arm", "arm64", "x86", "x86_64")
+	var abi = project.gradle.parent?.startParameter?.projectProperties?.get("targetABI")
+	if (abi.isNullOrBlank())
+		abi = findProperty("targetABI") as String?
+
+	return if (abi.isNullOrBlank())
+		listOf("arm", "arm64", "x86", "x86_64")
+	else
+		listOf(abi)
 }
 fun getJNILibsDirs(): List<String> {
 	val abiTargets = getABITargets()
@@ -32,6 +42,7 @@ fun getJNILibsDirs(): List<String> {
 		}
 	}
 }
+
 
 android {
 	namespace = "de.tutao.tutasdk"
@@ -100,12 +111,17 @@ tasks.register("generateBinding") {
 
 tasks.whenTaskAdded {
 	when (name) {
-		"mergeDebugJniLibFolders", "mergeReleaseJniLibFolders" -> dependsOn("cargoBuild")
-	}
-}
-
-tasks.whenTaskAdded {
-	when (name) {
-		"compileDebugKotlin", "compileReleaseKotlin" -> dependsOn("generateBinding")
+		"preDebugBuild", "preReleaseBuild" -> {
+			dependsOn("clean")
+			mustRunAfter("clean")
+		}
+		"compileDebugKotlin", "compileReleaseKotlin" -> {
+			dependsOn("generateBinding")
+			mustRunAfter("generateBinding")
+		}
+		"mergeDebugJniLibFolders", "mergeReleaseJniLibFolders" -> {
+			dependsOn("cargoBuild")
+			mustRunAfter("cargoBuild")
+		}
 	}
 }

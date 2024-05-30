@@ -3,7 +3,7 @@ dist
 node_modules
 .idea
 .gradle
-.run
+/.run
 test-ca
 **/.DS_STORE
 **/*.xcbkptlist
