@@ -4,7 +4,7 @@ import { AccountingInfo, Customer } from "../api/entities/sys/TypeRefs.js"
 import {
 	AvailablePlans,
 	AvailablePlanType,
-	defaultPaymentMethod,
+	getDefaultPaymentMethod,
 	getPaymentMethodType,
 	InvoiceData,
 	NewPaidPlans,
@@ -87,7 +87,7 @@ export async function showUpgradeWizard(logins: LoginController, acceptedPlans: 
 			vatNumber: accountingInfo.invoiceVatIdNo, // only for EU countries otherwise empty
 		},
 		paymentData: {
-			paymentMethod: getPaymentMethodType(accountingInfo) || defaultPaymentMethod(),
+			paymentMethod: getPaymentMethodType(accountingInfo) || (await getDefaultPaymentMethod(locator.appStorePaymentPicker)),
 			creditCardData: null,
 		},
 		price: "",
@@ -153,12 +153,13 @@ export async function loadSignupWizard(
 	const featureListProvider = await FeatureListProvider.getInitializedInstance(domainConfig)
 
 	let hasAppStoreSubscription = MobilePaymentSubscriptionOwnership.NoSubscription
-
+	let enableAppStoreSubscription = false
 	if (isIOSApp()) {
 		hasAppStoreSubscription = await hasAppStoreOngoingSubscription(null)
+		enableAppStoreSubscription = await locator.appStorePaymentPicker.shouldEnableAppStorePayment(null)
 	}
 
-	if (hasAppStoreSubscription !== MobilePaymentSubscriptionOwnership.NoSubscription) {
+	if (hasAppStoreSubscription !== MobilePaymentSubscriptionOwnership.NoSubscription || !enableAppStoreSubscription) {
 		acceptedPlans = acceptedPlans.filter((plan) => plan === PlanType.Free)
 	}
 
@@ -173,7 +174,7 @@ export async function loadSignupWizard(
 			vatNumber: "", // only for EU countries otherwise empty
 		},
 		paymentData: {
-			paymentMethod: defaultPaymentMethod(),
+			paymentMethod: await getDefaultPaymentMethod(locator.appStorePaymentPicker),
 			creditCardData: null,
 		},
 		price: "",

@@ -6,7 +6,7 @@ import { InvoiceDataInput, InvoiceDataInputLocation } from "./InvoiceDataInput"
 import { PaymentMethodInput } from "./PaymentMethodInput"
 import stream from "mithril/stream"
 import Stream from "mithril/stream"
-import type { InvoiceData, PaymentData, PlanType } from "../api/common/TutanotaConstants"
+import { getDefaultPaymentMethod, InvoiceData, PaymentData } from "../api/common/TutanotaConstants"
 import { getClientType, Keys, PaymentDataResultType, PaymentMethodType, PaymentMethodTypeToName } from "../api/common/TutanotaConstants"
 import { showProgressDialog } from "../gui/dialogs/ProgressDialog"
 import type { AccountingInfo, Braintree3ds2Request } from "../api/entities/sys/TypeRefs.js"
@@ -95,7 +95,8 @@ export class InvoiceAndPaymentDataPage implements WizardPageN<UpgradeSubscriptio
 						)
 				}
 			})
-			.then(() => {
+			.then(() => getDefaultPaymentMethod(locator.appStorePaymentPicker))
+			.then((defaultPaymentMethod: PaymentMethodType) => {
 				this._invoiceDataInput = new InvoiceDataInput(data.options.businessUse(), data.invoiceData, InvoiceDataInputLocation.InWizard)
 				let payPalRequestUrl = getLazyLoadedPayPalUrl()
 
@@ -108,6 +109,7 @@ export class InvoiceAndPaymentDataPage implements WizardPageN<UpgradeSubscriptio
 					this._invoiceDataInput.selectedCountry,
 					neverNull(data.accountingInfo),
 					payPalRequestUrl,
+					defaultPaymentMethod,
 				)
 				this._availablePaymentMethods = this._paymentMethodInput.getVisiblePaymentMethods()
 
