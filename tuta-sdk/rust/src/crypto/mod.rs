@@ -7,6 +7,7 @@ mod aes;
 mod sha;
 mod hkdf;
 mod argon2_id;
+mod ecc;
 
 #[cfg(test)]
 mod compatibility_test_utils;
