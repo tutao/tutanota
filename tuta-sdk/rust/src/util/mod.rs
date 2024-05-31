@@ -16,8 +16,73 @@ macro_rules! join_slices {
     }}
 }
 
+/// Error occurred from [`decode_byte_arrays`] and [`encode_byte_arrays].
+#[derive(thiserror::Error, Debug)]
+#[error("Byte array error: {reason}")]
+pub struct ByteArrayError {
+    reason: String
+}
+
+/// Decode the encoded byte arrays.
+///
+/// We encode multiple byte arrays into one by prefixing each byte array with the length as a 16-bit integer (in big endian byte order).
+///
+/// Returns `Err` if this is invalid.
+pub fn decode_byte_arrays<const SIZE: usize>(arrays: &[u8]) -> Result<[&[u8]; SIZE], ByteArrayError> {
+    let mut result = [[0u8; 0].as_slice(); SIZE];
+    let mut remaining = arrays;
+
+    for i in 0..SIZE {
+        if remaining.len() < 2 {
+            return Err(ByteArrayError { reason: format!("expected more byte arrays (only got {i}, expected {SIZE})") })
+        }
+        let (len_bytes, after) = remaining.split_at(2);
+
+        let length = u16::from_be_bytes(len_bytes.try_into().unwrap()) as usize;
+        if after.len() < length {
+            return Err(ByteArrayError { reason: format!("invalid encoded byte arrays (size {length} is too large)") })
+        }
+        let (arr, new_remaining) = after.split_at(length);
+
+        result[i] = arr;
+        remaining = new_remaining;
+    }
+
+    if !remaining.is_empty() {
+        return Err(ByteArrayError { reason: format!("extraneous {} byte(s) detected - incorrect size?", remaining.len()) })
+    }
+
+    Ok(result)
+}
+
+/// Encode the byte arrays into one.
+///
+/// We encode multiple byte arrays into one by prefixing each byte array with the length as a 16-bit integer (in big endian byte order).
+///
+/// Returns `Err` if anything is bigger than a 16-bit integer.
+pub fn encode_byte_arrays<const SIZE: usize>(arrays: &[&[u8]; SIZE]) -> Result<Vec<u8>, ByteArrayError> {
+    let mut expected_size = 0usize;
+    for &i in arrays {
+        let len = i.len();
+        if len > u16::MAX as usize {
+            return Err(ByteArrayError { reason: format!("byte array length {len} exceeds 16-bit limit") })
+        }
+        expected_size += 2 + i.len();
+    }
+
+    let mut v = Vec::with_capacity(expected_size);
+    for &i in arrays {
+        v.extend_from_slice(&(i.len() as u16).to_be_bytes());
+        v.extend_from_slice(i);
+    }
+
+    Ok(v)
+}
+
 #[cfg(test)]
 mod test {
+    use super::*;
+
     #[test]
     fn combine_slices() {
         let a = &[0u8, 1, 2, 3, 4, 5, 6, 7, 8, 9];
@@ -44,5 +109,23 @@ mod test {
         assert_eq!(b, abc_b);
         assert_eq!(c, abc_c);
         assert_eq!(a.len() + b.len() + c.len(), abc.len());
+    }
+
+    #[test]
+    fn test_encoded_byte_arrays() {
+        let encoded_byte_arrays = [
+            0, 5, 123, 45, 67, 89, 10,
+            0, 2, 22, 23
+        ];
+        let decoded_byte_arrays = [
+            [123, 45, 67, 89, 10].as_slice(),
+            [22, 23].as_slice()
+        ];
+
+        let decoded = decode_byte_arrays::<2>(&encoded_byte_arrays).unwrap();
+        assert_eq!(decoded_byte_arrays, decoded);
+
+        let encoded = encode_byte_arrays(&decoded_byte_arrays).unwrap();
+        assert_eq!(encoded_byte_arrays, encoded.as_slice());
     }
 }
