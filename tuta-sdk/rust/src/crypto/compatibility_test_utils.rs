@@ -61,12 +61,34 @@ pub struct Argon2Test {
 
 #[derive(Deserialize)]
 #[serde(rename_all = "camelCase")]
+pub struct X25519Test {
+    #[serde(with = "const_hex")]
+    pub alice_private_key_hex: Vec<u8>,
+    #[serde(with = "const_hex")]
+    pub alice_public_key_hex: Vec<u8>,
+    #[serde(with = "const_hex")]
+    pub ephemeral_private_key_hex: Vec<u8>,
+    #[serde(with = "const_hex")]
+    pub ephemeral_public_key_hex: Vec<u8>,
+    #[serde(with = "const_hex")]
+    pub bob_private_key_hex: Vec<u8>,
+    #[serde(with = "const_hex")]
+    pub bob_public_key_hex: Vec<u8>,
+    #[serde(with = "const_hex")]
+    pub ephemeral_shared_secret_hex: Vec<u8>,
+    #[serde(with = "const_hex")]
+    pub auth_shared_secret_hex: Vec<u8>,
+}
+
+#[derive(Deserialize)]
+#[serde(rename_all = "camelCase")]
 pub struct CompatibilityTestData {
     pub aes128_tests: Vec<AesTest>,
     pub aes128_mac_tests: Vec<Aes128MacTest>,
     pub aes256_tests: Vec<AesTest>,
     pub hkdf_tests: Vec<HkdfTest>,
     pub argon2id_tests: Vec<Argon2Test>,
+    pub x25519_tests: Vec<X25519Test>,
 }
 
 struct Base64;

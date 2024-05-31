@@ -21,6 +21,7 @@ hmac = "0.12.1"
 zeroize = { version = "1.8.1", features = ["zeroize_derive"] }
 hkdf = "0.12.4"
 argon2 = { version = "0.5.3", features = ["zeroize"] }
+curve25519-dalek = "4.1.2"
 
 [build-dependencies]
 uniffi = { git = "https://github.com/mozilla/uniffi-rs.git", rev = "13a1c559cb3708eeca40dcf95dc8b3ccccf3b88c", features = ["build"] }
