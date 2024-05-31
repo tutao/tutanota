@@ -111,9 +111,9 @@ class AndroidNativeCredentialsFacade(
 
 	private suspend fun getCredentialsEncryptionKey(): ByteArray? {
 		val encryptionMode = this.getCredentialEncryptionMode() ?: CredentialEncryptionMode.DEVICE_LOCK
-		val existingKey = db.keyBinaryDao().get(CREDENTIALS_ENCRYPTION_KEY_KEY)
-		return if (existingKey != null) {
-			this.keychainEncryption.decryptUsingKeychain(existingKey, encryptionMode)
+		val keychainEncCredentialsKey = db.keyBinaryDao().get(CREDENTIALS_ENCRYPTION_KEY_KEY)
+		return if (keychainEncCredentialsKey != null) {
+			this.keychainEncryption.decryptUsingKeychain(keychainEncCredentialsKey, encryptionMode)
 		} else {
 			null
 		}

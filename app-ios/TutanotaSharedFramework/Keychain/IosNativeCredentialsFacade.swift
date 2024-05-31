@@ -62,8 +62,8 @@ public class IosNativeCredentialsFacade: NativeCredentialsFacade {
 	}
 	private func getCredentialsEncryptionKey() async throws -> Data? {
 		let encryptionMode = (try await self.getCredentialEncryptionMode()) ?? CredentialEncryptionMode.deviceLock
-		let existingKey = try self.credentialsDb.getCredentialEncryptionKey()
-		if let existingKey { return try await self.keychainEncryption.decryptUsingKeychain(existingKey, encryptionMode) } else { return nil }
+		let keychainEncCredentialsKey = try self.credentialsDb.getCredentialEncryptionKey()
+		if let keychainEncCredentialsKey { return try await self.keychainEncryption.decryptUsingKeychain(keychainEncCredentialsKey, encryptionMode) } else { return nil }
 	}
 
 	public func getSupportedEncryptionModes() async -> [CredentialEncryptionMode] { [CredentialEncryptionMode.deviceLock] }
