@@ -2,8 +2,19 @@
 
 
 public struct MobilePlanPrice : Codable {
-	let name: String
-	let monthlyPerMonth: String
-	let yearlyPerYear: String
-	let yearlyPerMonth: String
+	public init(
+		name: String,
+		monthlyPerMonth: String,
+		yearlyPerYear: String,
+		yearlyPerMonth: String
+	) {
+		self.name = name
+		self.monthlyPerMonth = monthlyPerMonth
+		self.yearlyPerYear = yearlyPerYear
+		self.yearlyPerMonth = yearlyPerMonth
+	}
+	public let name: String
+	public let monthlyPerMonth: String
+	public let yearlyPerYear: String
+	public let yearlyPerMonth: String
 }

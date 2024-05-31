@@ -2,7 +2,16 @@
 
 
 public struct MobilePaymentResult : Codable {
-	let result: MobilePaymentResultType
-	let transactionID: String?
-	let transactionHash: String?
+	public init(
+		result: MobilePaymentResultType,
+		transactionID: String?,
+		transactionHash: String?
+	) {
+		self.result = result
+		self.transactionID = transactionID
+		self.transactionHash = transactionHash
+	}
+	public let result: MobilePaymentResultType
+	public let transactionID: String?
+	public let transactionHash: String?
 }
