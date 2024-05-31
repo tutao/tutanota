@@ -32,7 +32,7 @@ pub enum EnforceMac {
 pub struct Aes128Key([u8; 16]);
 
 impl Aes128Key {
-    fn bytes_ref(&self) -> &[u8; 16] {
+    fn as_bytes(&self) -> &[u8; 16] {
         &self.0
     }
 
@@ -66,6 +66,12 @@ impl TryFrom<Vec<u8>> for Aes128Key {
 
 #[derive(Clone, ZeroizeOnDrop)]
 pub struct Aes256Key([u8; 32]);
+
+impl Aes256Key {
+    pub fn as_bytes(&self) -> &[u8; 32] {
+        &self.0
+    }
+}
 
 impl Aes256Key {
     pub fn from_bytes(bytes: &[u8]) -> Result<Self, AesKeyError> {
@@ -242,17 +248,6 @@ fn arr_cast_size<const SIZE: usize, const ARR_SIZE: usize>(arr: [u8; ARR_SIZE]) 
     }
 }
 
-impl TryFrom<Vec<u8>> for GenericAesKey {
-    type Error = AesKeyError;
-    fn try_from(value: Vec<u8>) -> Result<Self, Self::Error> {
-        match value.len() {
-            16 => Ok(Self::Aes128Key(Aes128Key(value.try_into().unwrap()))),
-            32 => Ok(Self::Aes256Key(Aes256Key(value.try_into().unwrap()))),
-            _ => Err(AesKeyError { actual_size: value.len() }),
-        }
-    }
-}
-
 const AES_128_KEY_SIZE: usize = 16;
 const AES_256_KEY_SIZE: usize = 32;
 
@@ -420,72 +415,12 @@ fn aes_decrypt<Key: AesKey>(key: &Key, encrypted_bytes: &[u8], padding_mode: Pad
 
 #[cfg(test)]
 mod tests {
-    use base64::engine::{Engine, general_purpose::STANDARD as BASE64};
+    use base64::engine::{Engine};
     use base64::prelude::BASE64_STANDARD;
-    use serde::{Deserialize, Deserializer, Serializer};
+    use crate::crypto::compatibility_test_utils::*;
 
     use super::*;
 
-    #[derive(Deserialize)]
-    #[serde(rename_all = "camelCase")]
-    struct AesTest {
-        #[serde(with = "Base64")]
-        plain_text_base64: Vec<u8>,
-        #[serde(with = "Base64")]
-        iv_base64: Vec<u8>,
-        #[serde(with = "Base64")]
-        cipher_text_base64: Vec<u8>,
-        #[serde(with = "const_hex")]
-        hex_key: Vec<u8>,
-        #[serde(with = "const_hex")]
-        key_to_encrypt256: Vec<u8>,
-        #[serde(with = "const_hex")]
-        key_to_encrypt128: Vec<u8>,
-        #[serde(with = "Base64")]
-        encrypted_key256: Vec<u8>,
-        #[serde(with = "Base64")]
-        encrypted_key128: Vec<u8>,
-    }
-
-    #[derive(Deserialize)]
-    #[serde(rename_all = "camelCase")]
-    struct Aes128MacTest {
-        #[serde(with = "Base64")]
-        plain_text_base64: Vec<u8>,
-        #[serde(with = "Base64")]
-        iv_base64: Vec<u8>,
-        #[serde(with = "Base64")]
-        cipher_text_base64: Vec<u8>,
-        #[serde(with = "const_hex")]
-        hex_key: Vec<u8>,
-    }
-
-    #[derive(Deserialize)]
-    #[serde(rename_all = "camelCase")]
-    struct CompatibilityTestData {
-        aes128_tests: Vec<AesTest>,
-        aes128_mac_tests: Vec<Aes128MacTest>,
-        aes256_tests: Vec<AesTest>,
-    }
-
-
-    struct Base64;
-
-    impl Base64 {
-        fn serialize<S: Serializer>(data: &[u8], serializer: S) -> Result<S::Ok, S::Error> {
-            serializer.serialize_str(&BASE64.encode(data))
-        }
-
-        fn deserialize<'de, D: Deserializer<'de>>(deserializer: D) -> Result<Vec<u8>, D::Error> {
-            let base64_str = <&str>::deserialize(deserializer)?;
-            BASE64.decode(base64_str).map_err(serde::de::Error::custom)
-        }
-    }
-
-    fn get_test_data() -> CompatibilityTestData {
-        let data_json = include_str!("../../test_data/CompatibilityTestData.json");
-        serde_json::from_str(data_json).unwrap()
-    }
 
     #[test]
     fn test_aes_128_encrypt_with_padding_no_mac() {
