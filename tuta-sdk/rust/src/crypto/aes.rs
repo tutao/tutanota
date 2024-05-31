@@ -5,6 +5,7 @@ use aes::cipher::block_padding::Pkcs7;
 use cbc::cipher::{BlockDecrypt, BlockDecryptMut, BlockEncrypt, BlockEncryptMut, KeyIvInit};
 use cbc::cipher::block_padding::UnpadError;
 use zeroize::ZeroizeOnDrop;
+use crate::join_slices;
 
 /// Denotes whether a text is/should be padded
 pub enum PaddingMode {
@@ -320,10 +321,7 @@ fn aes_encrypt<Key: AesKey>(key: &Key, plaintext: &[u8], iv: &Iv, padding_mode: 
         // without HMAC it is just
         // - iv
         // - encrypted data
-        let vec: Vec<u8> = iv.0.as_slice().iter().chain(&encrypted_data)
-            .map(|b| *b)
-            .collect();
-        Ok(vec)
+        Ok(join_slices!(iv.0.as_slice(), &encrypted_data))
     }
 }
 
@@ -382,9 +380,8 @@ impl<'a> CiphertextWithAuthentication<'a> {
         // - iv
         // - encrypted data
         // - HMAC bytes
-        (&[1u8; 1]).iter().chain(self.iv).chain(self.ciphertext).chain(self.mac.as_ref())
-            .map(|b| *b)
-            .collect()
+
+        join_slices!(&[1u8; 1], self.iv, self.ciphertext, &self.mac)
     }
 }
 
