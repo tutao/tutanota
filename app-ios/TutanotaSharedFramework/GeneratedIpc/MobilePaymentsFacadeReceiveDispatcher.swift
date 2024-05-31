@@ -8,7 +8,7 @@ public class MobilePaymentsFacadeReceiveDispatcher {
 	init(facade: MobilePaymentsFacade) {
 		self.facade = facade
 	}
-	func dispatch(method: String, arg: [String]) async throws -> String {
+	public func dispatch(method: String, arg: [String]) async throws -> String {
 		switch method {
 		case "requestSubscriptionToPlan":
 			let plan = try! JSONDecoder().decode(String.self, from: arg[0].data(using: .utf8)!)
