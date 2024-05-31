@@ -11,7 +11,7 @@ export default {
 		"other"
 	],
 	"created_at": "2015-01-27T13:13:02Z",
-	"updated_at": "2024-05-23T17:22:27Z",
+	"updated_at": "2024-05-29T14:50:50Z",
 	"source_locale": {
 		"id": "fcd7471b347c8e517663e194dcddf237",
 		"name": "en",
@@ -113,6 +113,10 @@ export default {
 		"appInfoFDroidImageAlt_alt": "Aplicación de Android en F-Droid",
 		"appInfoIosImageAlt_alt": "Aplicación de iOS en Apple Store",
 		"apply_action": "Aplicar",
+		"appStoreRenewProblemBody_msg": "Hola,\n\nTu suscripción debía renovarse el {expirationDate}.\n\nLamentablemente, no pudimos recibir ningún pago de la App Store por tu suscripción, lo que puede deberse a un error de facturación. Verifica que tu configuración de pago en la App Store sea correcta.\n\nSi no recibimos ningún pago, tu cuenta se desactivará el {finalExpirationDate} por falta de pago. Alternativamente, puedes optar por cancelar tu suscripción o cambiar a otro método de pago.\n\nMantente seguro,\nTu equipo Tuta",
+		"appStoreRenewProblemSubject_msg": "Fallo en la facturación de la App Store",
+		"appStoreSubscriptionEndedBody_msg": "Hola,\n\nTu suscripción finalizó el {expirationDate}. Paga la tarifa de suscripción o cambia al plan gratuito; de lo contrario, tu cuenta se suspenderá por falta de pago.\n\nMantente seguro,\nTu equipo Tuta",
+		"appStoreSubscriptionEndedSubject_msg": "Su suscripción ha expirado",
 		"archive_action": "Archivo",
 		"archive_label": "Archivo",
 		"assignAdminRightsToLocallyAdministratedUserError_msg": "No puedes asignar derechos de administración global a un usuario administrador local.",

@@ -11,7 +11,7 @@ export default {
 		"other"
 	],
 	"created_at": "2015-01-27T13:14:10Z",
-	"updated_at": "2024-05-24T04:17:24Z",
+	"updated_at": "2024-05-30T07:55:52Z",
 	"source_locale": {
 		"id": "fcd7471b347c8e517663e194dcddf237",
 		"name": "en",
@@ -113,6 +113,10 @@ export default {
 		"appInfoFDroidImageAlt_alt": "App Android su F-Droid",
 		"appInfoIosImageAlt_alt": "App iOS sull'Apple store",
 		"apply_action": "Applica",
+		"appStoreRenewProblemBody_msg": "Ciao,\n    \nIl tuo abbonamento doveva essere rinnovato il {expirationDate}.\n     \nPurtroppo non abbiamo ricevuto alcun pagamento dall'App Store per il tuo abbonamento, il che potrebbe essere dovuto ad un errore di fatturazione. Ti preghiamo di verificare che le tue impostazioni di pagamento sull'App Store siano corrette.\n\nSe non riceviamo alcun pagamento, il tuo account verrà disattivato il {finalExpirationDate} per mancato pagamento. In alternativa, è possibile scegliere di annullare il tuo abbonamento o passare ad un altro metodo di pagamento.\n \nStay secure,\nIl tuo Team Tuta",
+		"appStoreRenewProblemSubject_msg": "Mancata fatturazione dell'App Store",
+		"appStoreSubscriptionEndedBody_msg": "Ciao,\n\nIl tuo abbonamento è terminato il {expirationDate}. Ti preghiamo di pagare la quota d'abbonamento o di passare al piano Free, altrimenti il tuo account verrà sospeso per mancato pagamento.\n\nStay secure,\nIl tuo Team Tuta",
+		"appStoreSubscriptionEndedSubject_msg": "Il tuo abbonamento è scaduto",
 		"archive_action": "Archivio",
 		"archive_label": "Archivio",
 		"assignAdminRightsToLocallyAdministratedUserError_msg": "Non puoi assegnare i diritti di amministratore globale a un utente locale amministrato.",

@@ -11,7 +11,7 @@ export default {
 		"other"
 	],
 	"created_at": "2015-03-23T11:36:16Z",
-	"updated_at": "2024-05-23T13:28:24Z",
+	"updated_at": "2024-05-29T14:27:22Z",
 	"source_locale": null,
 	"fallback_locale": null,
 	"keys": {
@@ -109,6 +109,10 @@ export default {
 		"appInfoFDroidImageAlt_alt": "Android app på F-Droid",
 		"appInfoIosImageAlt_alt": "iOS app på Apple Store",
 		"apply_action": "Tillämpa",
+		"appStoreRenewProblemBody_msg": "Hej!\n      \nDitt abonemang skulle förnyas {utgångsdatum}.\n       \nTyvärr kunde vi inte ta emot någon betalning från App Store för ditt abonnemang vilket kan bero på ett faktureringsfel. Kontrollera att dina betalningsinställningar i App Store är korrekta.\n\nOm vi inte får någon betalning kommer ditt konto att inaktiveras {finalExpirationDate} på grund av utebliven betalning. Alternativt kan du välja att säga upp ditt abonnemang eller byta till en annan betalningsmetod.\n   \nHåll dig säker\nTeam Tuta",
+		"appStoreRenewProblemSubject_msg": "Fel vid fakturering i App Store",
+		"appStoreSubscriptionEndedBody_msg": "Hej!\n       \nDitt abonnemang avslutades {utgångsdatum}. Betala abonnemangsavgiften eller byt till gratisplanen annars kommer ditt konto att stängas av på grund av utebliven betalning.\n   \nHåll dig säker\nTeam Tuta",
+		"appStoreSubscriptionEndedSubject_msg": "Ditt abonnemang har löpt ut",
 		"archive_action": "Arkiv",
 		"archive_label": "Arkiv",
 		"assignAdminRightsToLocallyAdministratedUserError_msg": "Du kan inte tilldela globala administratörsrättigheter till en lokalt administrerad användare.",

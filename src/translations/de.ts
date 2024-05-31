@@ -11,7 +11,7 @@ export default {
 		"other"
 	],
 	"created_at": "2015-01-13T20:40:31Z",
-	"updated_at": "2024-05-23T10:17:12Z",
+	"updated_at": "2024-05-29T10:39:18Z",
 	"source_locale": {
 		"id": "fcd7471b347c8e517663e194dcddf237",
 		"name": "en",
@@ -113,6 +113,10 @@ export default {
 		"appInfoFDroidImageAlt_alt": "Android App bei F-Droid",
 		"appInfoIosImageAlt_alt": "iOS App im Apple store",
 		"apply_action": "Übernehmen",
+		"appStoreRenewProblemBody_msg": "Hallo,\n    \ndein Abonnement sollte am {expirationDate} verlängert werden.\n     \nLeider haben wir keine Zahlung vom App Store für dein Abonnement erhalten, was möglicherweise auf einen Abrechnungsfehler zurückzuführen ist. Bitte überprüfe, ob deine Zahlungseinstellungen im App Store korrekt sind.\n\nWenn wir keine Zahlung erhalten, wird dein Konto am {finalExpirationDate} wegen Nichtbezahlung deaktiviert. Alternativ kannst du dein Abonnement kündigen oder zu einer anderen Zahlungsmethode wechseln.\n \nViele Grüße,\ndein Tuta-Team",
+		"appStoreRenewProblemSubject_msg": "App Store Abrechnungsfehler",
+		"appStoreSubscriptionEndedBody_msg": "Hallo,\n     \ndein Abonnement endete am {expirationDate}. Bitte bezahle dein Abonnement oder wechsel zum kostenlosen Abonnement, andernfalls wird dein Konto wegen Nichtbezahlung gesperrt.\n \nViele Grüße,\ndein Tuta-Team",
+		"appStoreSubscriptionEndedSubject_msg": "Dein Abonnement ist abgelaufen",
 		"archive_action": "Archivieren",
 		"archive_label": "Archiv",
 		"assignAdminRightsToLocallyAdministratedUserError_msg": "Du kannst lokal administrierte Benutzer nicht zum globalen Admin machen.",

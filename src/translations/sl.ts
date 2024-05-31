@@ -13,7 +13,7 @@ export default {
 		"other"
 	],
 	"created_at": "2015-06-09T09:37:05Z",
-	"updated_at": "2024-05-23T11:29:41Z",
+	"updated_at": "2024-05-30T09:06:09Z",
 	"source_locale": null,
 	"fallback_locale": null,
 	"keys": {
@@ -111,6 +111,10 @@ export default {
 		"appInfoFDroidImageAlt_alt": "Aplikacija za Android na F-Droid",
 		"appInfoIosImageAlt_alt": "iOS aplikacija v Applovi trgovini",
 		"apply_action": "Uporabi",
+		"appStoreRenewProblemBody_msg": "Pozdravljeni,\n    \nvaša naročnina bi se morala podaljšati dne {expirationDate}.\n     \nŽal iz trgovine z aplikacijami nismo mogli prejeti plačila za vašo naročnino, kar je lahko posledica napake pri zaračunavanju. Prosimo, preverite ali so vaše plačilne nastavitve v trgovine z aplikacijami pravilne.\n\nČe ne prejmemo nobenega plačila, bo vaš račun onemogočen dne {finalExpirationDate} zaradi neplačevanja. Lahko se odločite tudi za preklic naročnine ali prehod na drug način plačila.\n \nOstanite varni,\nVaša ekipa Tuta",
+		"appStoreRenewProblemSubject_msg": "Neuspešno zaračunavanje v trgovini z aplikacijami ",
+		"appStoreSubscriptionEndedBody_msg": "Pozdravljeni,\n     \nvaša naročnina se je končala dne {expirationDate}. Prosimo, plačajte naročnino ali preklopite na brezplačni načrt, sicer bo vaš račun zaradi neplačila začasno ukinjen.\n \nOstanite varni,\nVaša ekipa Tuta",
+		"appStoreSubscriptionEndedSubject_msg": "Vaša naročnina je potekla",
 		"archive_action": "Arhiv",
 		"archive_label": "Arhiv",
 		"assignAdminRightsToLocallyAdministratedUserError_msg": "Lokalnemu skrbniku ne morete dodeliti pravic globalnega skrbnika.",
