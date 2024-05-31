@@ -11,7 +11,7 @@ export default {
 		"other"
 	],
 	"created_at": "2015-03-10T10:52:15Z",
-	"updated_at": "2024-05-24T17:33:25Z",
+	"updated_at": "2024-05-29T14:12:55Z",
 	"source_locale": null,
 	"fallback_locale": null,
 	"keys": {
@@ -109,6 +109,10 @@ export default {
 		"appInfoFDroidImageAlt_alt": "Android-sovellus F-Droid-sisältöpalvelussa",
 		"appInfoIosImageAlt_alt": "iOS-sovellus App Storessa",
 		"apply_action": "Käytä",
+		"appStoreRenewProblemBody_msg": "Hei,\n\ntilauksesi oli määrä uusiutua {expirationDate}.\n\nValitettavasti emme vastaanottaneet tilausmaksua App Storen kautta. Tämä voi johtua laskutusvirheestä. Tarkista, että App Storeen on ilmoitettu oikeat laskutustiedot.\n\nMikäli emme saa maksua, tilisi poistetaan käytöstä {finalExpirationDate} maksamattomien laskujen takia. Voit tämän sijasta myös perua tilauksesi tai vaihtaa toiseen maksutapaan.\n\nPysy turvattuna,\nTuta-tiimisi\n\n",
+		"appStoreRenewProblemSubject_msg": "App Store -laskutusvirhe",
+		"appStoreSubscriptionEndedBody_msg": "Hei,\n\ntilauksesi vanheni {expirationDate}. Maksa tilausmaksu tai vaihda ilmaiseen tilaukseen. Mikäli näin ei tehdä, tilisi poistetaan käytöstä maksamattomien laskujen takia.\n\nPysy turvattuna,\nTuta-tiimisi\n\n",
+		"appStoreSubscriptionEndedSubject_msg": "Tilauksesi vanheni",
 		"archive_action": "Arkisto",
 		"archive_label": "Arkisto",
 		"assignAdminRightsToLocallyAdministratedUserError_msg": "Et voi antaa yleisen ylläpitäjän oikeuksia paikallisesti hallitulle käyttäjälle.",

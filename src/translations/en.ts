@@ -11,7 +11,7 @@ export default {
 		"other"
 	],
 	"created_at": "2015-01-13T20:10:13Z",
-	"updated_at": "2024-05-23T10:17:12Z",
+	"updated_at": "2024-05-29T10:39:18Z",
 	"source_locale": null,
 	"fallback_locale": null,
 	"keys": {
@@ -109,6 +109,10 @@ export default {
 		"appInfoFDroidImageAlt_alt": "Android app on F-Droid",
 		"appInfoIosImageAlt_alt": "iOS app on Apple store",
 		"apply_action": "Apply",
+		"appStoreRenewProblemBody_msg": "Hello,\n      \nYour subscription was due to renew on {expirationDate}.\n       \nUnfortunately, we were unable to receive any payment from the App Store for your subscription, which may be due to a billing failure. Please check that your payment settings on the App Store are correct.\n\nIf we do not receive any payment, your account will be disabled on {finalExpirationDate} for nonpayment. Alternatively, you may choose to cancel your subscription or switch to another payment method.\n   \nStay secure,\nYour Tuta Team",
+		"appStoreRenewProblemSubject_msg": "App Store billing failure",
+		"appStoreSubscriptionEndedBody_msg": "Hello,\n       \nYour subscription ended on {expirationDate}. Please pay the subscription fee or change to the Free plan, otherwise your account will be suspended for non-payment.\n   \nStay secure,\nYour Tuta Team",
+		"appStoreSubscriptionEndedSubject_msg": "Your subscription has expired",
 		"archive_action": "Archive",
 		"archive_label": "Archive",
 		"assignAdminRightsToLocallyAdministratedUserError_msg": "You can't assign global admin rights to a locally administrated user.",

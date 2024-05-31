@@ -10,7 +10,7 @@ export default {
 		"other"
 	],
 	"created_at": "2019-01-02T11:09:03Z",
-	"updated_at": "2024-05-23T16:02:18Z",
+	"updated_at": "2024-05-29T16:24:57Z",
 	"source_locale": null,
 	"fallback_locale": null,
 	"keys": {
@@ -108,6 +108,10 @@ export default {
 		"appInfoFDroidImageAlt_alt": "F-Droid上的Android版應用程式",
 		"appInfoIosImageAlt_alt": "Apple Store上的iOS版應用程式",
 		"apply_action": "套用",
+		"appStoreRenewProblemBody_msg": "您好，\n\n您的訂購計劃原定於{expirationDate}續訂。\n\n很遺憾，我們無法從App Store收到您的訂購付款，這可能由於賬務失敗。請檢查您在App Store上的付款設定是否正確。\n\n如果我們沒有收到任何付款，您的帳戶將因此在{finalExpirationDate}被停用。您也可以選擇取消您的訂購計劃或者轉用其他付款方式。\n\n保持安全，\n您的Tuta團隊",
+		"appStoreRenewProblemSubject_msg": "App Store帳務失敗",
+		"appStoreSubscriptionEndedBody_msg": "您好，\n\n您的訂購計劃已於{expirationDate}結束。請繳付訂購費用或者更改為免費計劃，否則您的帳戶將因為沒有付款而被停用。\n\n保持安全，\n您的Tuta團隊",
+		"appStoreSubscriptionEndedSubject_msg": "您的訂購計劃已過期",
 		"archive_action": "封存",
 		"archive_label": "封存",
 		"assignAdminRightsToLocallyAdministratedUserError_msg": "您無法將全域管理權限賦予區域管理的用戶。",

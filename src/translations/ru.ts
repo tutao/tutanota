@@ -13,7 +13,7 @@ export default {
 		"other"
 	],
 	"created_at": "2015-01-27T13:15:23Z",
-	"updated_at": "2024-05-25T18:09:23Z",
+	"updated_at": "2024-05-30T20:15:18Z",
 	"source_locale": {
 		"id": "fcd7471b347c8e517663e194dcddf237",
 		"name": "en",
@@ -115,6 +115,10 @@ export default {
 		"appInfoFDroidImageAlt_alt": "Приложение под «Android» в «F-Droid»",
 		"appInfoIosImageAlt_alt": "Приложение под «iOS» в магазине «Apple»",
 		"apply_action": "Применить",
+		"appStoreRenewProblemBody_msg": "Здравствуйте,\n      \nВаша подписка должна была быть продлена {expirationDate}.\n       \nК сожалению, мы не смогли получить платеж из App Store за вашу подписку, что может быть связано со сбоем в платежной системе. Пожалуйста, проверьте правильность настроек оплаты в App Store.\n\nЕсли мы не получим оплату, ваша учетная запись будет отключена {finalExpirationDate} за неуплату. В качестве альтернативы вы можете отменить подписку или перейти на другой способ оплаты.\n   \nОставайтесь в безопасности,\nВаша Команда Tuta",
+		"appStoreRenewProblemSubject_msg": "Сбой платежной системы App Store",
+		"appStoreSubscriptionEndedBody_msg": "Здравствуйте,\n       \nВаша подписка закончилась {expirationDate}. Пожалуйста, оплатите подписку или перейдите на бесплатный тарифный план, иначе ваша учетная запись будет приостановлена за неуплату.\n   \nОставайтесь в безопасности,\nВаша Команда Tuta",
+		"appStoreSubscriptionEndedSubject_msg": "Срок действия вашей подписки истек",
 		"archive_action": "Архив",
 		"archive_label": "Архив",
 		"assignAdminRightsToLocallyAdministratedUserError_msg": "Вы не можете назначить права глобального администратора локальному администратору.",
