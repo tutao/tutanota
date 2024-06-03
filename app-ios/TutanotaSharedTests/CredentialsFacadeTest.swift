@@ -11,6 +11,7 @@ final class CredentialsFacadeTest: XCTestCase {
 
 	override func setUpWithError() throws {
 		facade = IosNativeCredentialsFacade(keychainEncryption: keychainEncryption, credentialsDb: credentialsDb, cryptoFns: cryptoFns)
+		given(keychainEncryption.requiresKeyAccessMigration()).willReturn(false)
 	}
 
 	private let encryptedCredentials1 = PersistedCredentials(
@@ -79,6 +80,21 @@ final class CredentialsFacadeTest: XCTestCase {
 		given(credentialsDb.getCredentialEncryptionMode()).willReturn(CredentialEncryptionMode.systemPassword)
 		given(credentialsDb.getAll()).willReturn([encryptedCredentials1])
 		given(await keychainEncryption.decryptUsingKeychain(encCredentialsKey, .systemPassword)).willReturn(decCredentialsKey)
+		given(cryptoFns.aesDecryptData(encryptedCredentials1.databaseKey!.data, withKey: decCredentialsKey)).willReturn(decryptedCredentials1.databaseKey!.data)
+		given(cryptoFns.aesDecryptData(encryptedCredentials1.accessToken.data, withKey: decCredentialsKey))
+			.willReturn(decryptedCredentials1.accessToken.data(using: .utf8)!)
+		given(await keychainEncryption.encryptUsingKeychain(decCredentialsKey, .deviceLock)).willReturn(reEncryptedCredentialsKey)
+		let loadedCredential = try await facade.loadByUserId("user1")
+		XCTAssertEqual(decryptedCredentials1, loadedCredential)
+		verify(credentialsDb.setCredentialEncryptionKey(encryptionKey: reEncryptedCredentialsKey)).wasCalled()
+	}
+
+	func test_loadByUserId_$_when_key_access_migration_is_required_the_migration_is_done() async throws {
+		given(credentialsDb.getCredentialEncryptionKey()).willReturn(encCredentialsKey)
+		given(credentialsDb.getCredentialEncryptionMode()).willReturn(CredentialEncryptionMode.deviceLock)
+		given(keychainEncryption.requiresKeyAccessMigration()).willReturn(true)
+		given(credentialsDb.getAll()).willReturn([encryptedCredentials1])
+		given(await keychainEncryption.decryptUsingKeychain(encCredentialsKey, .deviceLock)).willReturn(decCredentialsKey)
 		given(cryptoFns.aesDecryptData(encryptedCredentials1.databaseKey!.data, withKey: decCredentialsKey)).willReturn(decryptedCredentials1.databaseKey!.data)
 		given(cryptoFns.aesDecryptData(encryptedCredentials1.accessToken.data, withKey: decCredentialsKey))
 			.willReturn(decryptedCredentials1.accessToken.data(using: .utf8)!)

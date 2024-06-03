@@ -38,12 +38,21 @@ public class IosNativeCredentialsFacade: NativeCredentialsFacade {
 		try self.credentialsDb.setCredentialEncryptionKey(encryptionKey: credentialsKey.data)
 		for persistedCredentials in credentials { try await self.storeEncrypted(persistedCredentials) }
 	}
-
 	public func loadByUserId(_ id: String) async throws -> UnencryptedCredentials? {
 		guard let credentialsKey = try await self.getCredentialsEncryptionKey() else {
 			throw KeyPermanentlyInvalidatedError(message: "Credentials key is missing, cannot decrypt credentials")
 		}
-		if let encryptionMode = try await self.getCredentialEncryptionMode(), encryptionMode != .deviceLock {
+		// We do two migrations here: one, from any other `CredentialEncryptionMode` to `.deviceLock`, another:
+		// from `.deviceLock` key that is only accessible in foreground to the one that's accessible after
+		// the first device unlock.
+		// There was a private version of the app where we migrated to device lock but didn't migrate to the
+		// background-accessible key. That's why we need another check for it.
+		// `encryptUsingKeychain` with `.deviceLock` will always try to use a new key so it will re-encrypt.
+		//
+		// There might be a rare case where we might store credentials with an old key, even now: if we add new
+		// credentials before we log in. It is not a problem as we will migrate on the first login.
+		let requiresKeyAccessMigration = try self.keychainEncryption.requiresKeyAccessMigration()
+		if let encryptionMode = try await self.getCredentialEncryptionMode(), encryptionMode != .deviceLock || requiresKeyAccessMigration {
 			TUTSLog("Migrating encryption mode to DEVICE_LOCK")
 			let encryptedKey = try await self.keychainEncryption.encryptUsingKeychain(credentialsKey, .deviceLock)
 			try self.credentialsDb.setCredentialEncryptionKey(encryptionKey: encryptedKey)
