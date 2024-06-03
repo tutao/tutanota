@@ -9,6 +9,7 @@ mod hkdf;
 mod argon2_id;
 mod ecc;
 mod kyber;
+mod rsa;
 
 #[cfg(test)]
 mod compatibility_test_utils;
