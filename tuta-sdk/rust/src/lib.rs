@@ -23,6 +23,7 @@ mod mail_facade;
 mod rest_error;
 mod crypto;
 mod util;
+mod entities;
 
 uniffi::setup_scaffolding!();
 
