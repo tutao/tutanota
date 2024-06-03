@@ -78,13 +78,11 @@ export class ViewColumn implements Component<Attrs> {
 	view() {
 		const zIndex = !this.isVisible && this.columnType === ColumnType.Foreground ? LayerType.ForegroundMenu + 1 : ""
 		const landmark = this.ariaRole ? landmarkAttrs(this.ariaRole, this.ariaLabel ? this.ariaLabel() : this.getTitle()) : {}
-		const isInteractable = this.isVisible || this.isInForeground
 		return m(
 			".view-column.fill-absolute",
 			{
 				...landmark,
-				class: isInteractable ? undefined : "hidden",
-				"aria-hidden": isInteractable ? "false" : "true",
+				"aria-hidden": this.isVisible || this.isInForeground ? "false" : "true",
 				oncreate: (vnode) => {
 					this.domColumn = vnode.dom as HTMLElement
 					this.domColumn.style.transform =
