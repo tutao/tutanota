@@ -162,20 +162,54 @@ pub struct KyberDecapsulationError {
     reason: String
 }
 
+/// Error occurred from trying to decapsulate with [`KyberPrivateKey::decapsulate`].
+#[derive(thiserror::Error, Debug)]
+#[error("Incorrect Kyber ciphertext size: {actual_size}")]
+pub struct KyberCiphertextError {
+    actual_size: usize
+}
+
 /// Can be used with [`KyberPrivateKey::decapsulate`] to get the shared secret.
 #[derive(Zeroize, ZeroizeOnDrop)]
 pub struct KyberCiphertext([u8; KYBER_CIPHERTEXT_LEN]);
 
+impl KyberCiphertext {
+    /// Get a reference to the underlying bytes.
+    pub fn as_bytes(&self) -> &[u8] {
+        self.0.as_slice()
+    }
+}
+
+impl TryFrom<&[u8]> for KyberCiphertext {
+    type Error = KyberCiphertextError;
+    fn try_from(value: &[u8]) -> Result<Self, Self::Error> {
+        match value.len() {
+            KYBER_CIPHERTEXT_LEN => Ok(Self(value.try_into().unwrap())),
+            actual_size => Err(KyberCiphertextError { actual_size })
+        }
+    }
+}
+
 /// Shared secret generated from either [`KyberPublicKey::encapsulate`] or [`KyberPrivateKey::decapsulate`].
 #[derive(Zeroize, ZeroizeOnDrop)]
 pub struct KyberSharedSecret([u8; KYBER_SHARED_SECRET_LEN]);
+impl KyberSharedSecret {
+    pub fn as_bytes(&self) -> &[u8] {
+        self.0.as_slice()
+    }
+}
 
 /// Denotes a ciphertext and shared secret from [`KyberPublicKey::encapsulate`].
 ///
 /// The ciphertext can be used with [`KyberPrivateKey::decapsulate`] to get the shared secret.
 pub struct KyberEncapsulation {
-    ciphertext: KyberCiphertext,
-    shared_secret: KyberSharedSecret
+    pub ciphertext: KyberCiphertext,
+    pub shared_secret: KyberSharedSecret
+}
+
+pub struct KyberKeyPair {
+    pub public_key: KyberPublicKey,
+    pub private_key: KyberPrivateKey
 }
 
 #[cfg(test)]

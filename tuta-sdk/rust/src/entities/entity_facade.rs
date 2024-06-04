@@ -253,7 +253,7 @@ mod tests {
     #[test]
     fn test_decrypt_mail() {
         let sk = GenericAesKey::Aes256(Aes256Key::from_bytes(&random::<[u8; 32]>()).unwrap());
-        let iv = Iv::from_bytes(random::<[u8; 16]>());
+        let iv = Iv::from_bytes(&random::<[u8; 16]>()).unwrap();
 
         let (encrypted_mail, original_mail) = generate_email_entity(
             None,
