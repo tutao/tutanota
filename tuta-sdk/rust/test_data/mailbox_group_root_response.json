@@ -1,0 +1,19 @@
+{
+	"_format": "0",
+	"_id": "LIopQQN--N-0",
+	"_ownerGroup": "LIopQQN--N-0",
+	"_permissions": "LIopQQN-0c-0",
+	"calendarEventUpdates": {
+		"_id": "mDUYtA",
+		"list": "MEMiZqz----0"
+	},
+	"mailbox": "LIopQQN-0J-0",
+	"mailboxProperties": "NHjEciz----0",
+	"outOfOfficeNotification": "MU8AYx0----0",
+	"outOfOfficeNotificationRecipientList": {
+		"_id": "phWMoA",
+		"list": "MU8AYxC----0"
+	},
+	"serverProperties": "LIopQQN-0B-0",
+	"whitelistRequests": "LIopQQN-0g-0"
+}
