@@ -69,10 +69,15 @@ public class IosMobilePaymentsFacade: MobilePaymentsFacade {
 		let uuid = customerIdToUUID(customerIdBytes.data)
 		let planType = formatPlanType(plan, withInterval: interval)
 
-		// FIXME: handle errors/no such product
-		let product = (try await Product.products(for: [planType]))[0]
-		TUTSLog("Attempting to purchase \(product.displayName) for \(product.displayPrice)")
-		let result = try await product.purchase(options: [Product.PurchaseOption.appAccountToken(uuid)])
+		let product: Product?
+		do { product = (try await Product.products(for: [planType]))[0] } catch let error as StoreKitError {
+			throw TUTErrorFactory.createError(withDomain: MOBILE_PAYMENT_DOMAIN, message: "Failed to retrieve plan \(planType). \(error.localizedDescription)")
+		}
+
+		if product == nil { throw TUTErrorFactory.createError(withDomain: MOBILE_PAYMENT_DOMAIN, message: "No such plan \(planType)") }
+
+		TUTSLog("Attempting to purchase \(product!.displayName) for \(product!.displayPrice)")
+		let result = try await product!.purchase(options: [Product.PurchaseOption.appAccountToken(uuid)])
 
 		switch result {
 		case .success(let verification):
