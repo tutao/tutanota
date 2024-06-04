@@ -121,6 +121,7 @@ export class WorkerImpl implements NativeInterface {
 		// Otherwise uncaught error handler might end up in an infinite loop for test cases.
 		if (workerScope && !isMainOrNode()) {
 			workerScope.addEventListener("unhandledrejection", (event: PromiseRejectionEvent) => {
+				console.error("workerImpl.unhandledrejection", event, event.reason)
 				this.sendError(event.reason)
 			})
 

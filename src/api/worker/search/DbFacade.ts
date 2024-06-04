@@ -47,7 +47,7 @@ export class DbFacade {
 	private _activeTransactions: number
 	indexingSupported: boolean = true
 
-	constructor(version: number, onupgrade: (event: any, db: IDBDatabase, dbFacade: DbFacade) => void) {
+	constructor(version: number, onupgrade: (event: any, db: IDBDatabase, dbFacade: DbFacade) => Promise<void> | void) {
 		this._activeTransactions = 0
 		this._db = new LazyLoaded(() => {
 			if (!this.indexingSupported) {
@@ -86,11 +86,11 @@ export class DbFacade {
 							}
 						}
 
-						DBOpenRequest.onupgradeneeded = (event: IDBVersionChangeEvent) => {
+						DBOpenRequest.onupgradeneeded = async (event: IDBVersionChangeEvent) => {
 							//console.log("upgrade db", event)
 							try {
 								// @ts-ignore
-								onupgrade(event, event.target.result, this)
+								await onupgrade(event, event.target.result, this)
 							} catch (e) {
 								reject(new DbError("could not create object store for DB " + this._id, e))
 							}
