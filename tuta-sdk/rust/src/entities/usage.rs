@@ -1,8 +1,8 @@
 #![allow(non_snake_case)]
 use super::*;
-use serde::{Deserialize};
+use serde::{Serialize, Deserialize};
 
-#[derive(Deserialize)]
+#[derive(Clone, Serialize, Deserialize)]
 pub struct UsageTestAssignment {
 	pub _id: Id,
 	pub name: String,
@@ -19,7 +19,7 @@ impl Entity for UsageTestAssignment {
 }
 
 
-#[derive(Deserialize)]
+#[derive(Clone, Serialize, Deserialize)]
 pub struct UsageTestAssignmentIn {
 	pub _format: i64,
 	pub testDeviceId: Option<Id>,
@@ -32,7 +32,7 @@ impl Entity for UsageTestAssignmentIn {
 }
 
 
-#[derive(Deserialize)]
+#[derive(Clone, Serialize, Deserialize)]
 pub struct UsageTestAssignmentOut {
 	pub _format: i64,
 	pub testDeviceId: Id,
@@ -46,7 +46,7 @@ impl Entity for UsageTestAssignmentOut {
 }
 
 
-#[derive(Deserialize)]
+#[derive(Clone, Serialize, Deserialize)]
 pub struct UsageTestMetricConfig {
 	pub _id: Id,
 	pub name: String,
@@ -62,7 +62,7 @@ impl Entity for UsageTestMetricConfig {
 }
 
 
-#[derive(Deserialize)]
+#[derive(Clone, Serialize, Deserialize)]
 pub struct UsageTestMetricConfigValue {
 	pub _id: Id,
 	pub key: String,
@@ -76,7 +76,7 @@ impl Entity for UsageTestMetricConfigValue {
 }
 
 
-#[derive(Deserialize)]
+#[derive(Clone, Serialize, Deserialize)]
 pub struct UsageTestMetricData {
 	pub _id: Id,
 	pub name: String,
@@ -90,7 +90,7 @@ impl Entity for UsageTestMetricData {
 }
 
 
-#[derive(Deserialize)]
+#[derive(Clone, Serialize, Deserialize)]
 pub struct UsageTestParticipationIn {
 	pub _format: i64,
 	pub stage: i64,
@@ -106,7 +106,7 @@ impl Entity for UsageTestParticipationIn {
 }
 
 
-#[derive(Deserialize)]
+#[derive(Clone, Serialize, Deserialize)]
 pub struct UsageTestStage {
 	pub _id: Id,
 	pub maxPings: i64,
