@@ -1,5 +1,6 @@
 use crate::crypto::aes::Aes256Key;
 use argon2::{Argon2, Algorithm, Version, Params};
+use zeroize::Zeroizing;
 
 const ARGON2ID_ITERATIONS: u32 = 4;
 const ARGON2ID_MEMORY_IN_KIB: u32 = 32 * 1024;
@@ -18,9 +19,9 @@ pub fn generate_key_from_passphrase(password: &str, salt: [u8; 16]) -> Aes256Key
         Some(ARGON2ID_KEY_LENGTH),
     ).unwrap();
     let argon2 = Argon2::new(Algorithm::Argon2id, Version::V0x13, params);
-    let mut output = [0u8; ARGON2ID_KEY_LENGTH];
-    argon2.hash_password_into(password.as_bytes(), salt.as_ref(), &mut output).unwrap();
-    Aes256Key::from_bytes(&output).unwrap()
+    let mut output = Zeroizing::new([0u8; ARGON2ID_KEY_LENGTH]);
+    argon2.hash_password_into(password.as_bytes(), salt.as_ref(), &mut *output).unwrap();
+    Aes256Key::from_bytes(&*output).unwrap()
 }
 
 #[cfg(test)]
