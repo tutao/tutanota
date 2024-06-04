@@ -98,7 +98,7 @@ export class DaySelectorPopup implements ModalComponent {
 			),
 			m(".flex.items-center", [
 				renderSwitchMonthArrowIcon(false, 24, () => this.onMonthChange(false)),
-				renderSwitchMonthArrowIcon(true, 24, () => this.onMonthChange(false)),
+				renderSwitchMonthArrowIcon(true, 24, () => this.onMonthChange(true)),
 			]),
 		])
 	}
