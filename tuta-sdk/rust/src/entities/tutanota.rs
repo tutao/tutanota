@@ -1,138 +1,236 @@
 #![allow(non_snake_case)]
 use super::*;
+use serde::{Deserialize};
 
+#[derive(Deserialize)]
 pub struct AttachmentKeyData {
 	pub _id: Id,
-	pub bucketEncFileSessionKey: Vec<u8>,
-	pub fileSessionKey: Vec<u8>,
+	pub bucketEncFileSessionKey: Option<Vec<u8>>,
+	pub fileSessionKey: Option<Vec<u8>>,
 	pub file: IdTuple,
 }
 
+impl Entity for AttachmentKeyData {
+	fn type_ref() -> TypeRef {
+		TypeRef { app: "tutanota".to_owned(), type_: "AttachmentKeyData".to_owned() }
+	}
+}
+
+
+#[derive(Deserialize)]
 pub struct Birthday {
 	pub _id: Id,
-	pub day: String,
-	pub month: String,
-	pub year: String,
+	pub day: i64,
+	pub month: i64,
+	pub year: Option<i64>,
 }
 
+impl Entity for Birthday {
+	fn type_ref() -> TypeRef {
+		TypeRef { app: "tutanota".to_owned(), type_: "Birthday".to_owned() }
+	}
+}
+
+
+#[derive(Deserialize)]
 pub struct Body {
 	pub _id: Id,
-	pub compressedText: Vec<u8>,
-	pub text: String,
+	pub compressedText: Option<Vec<u8>>,
+	pub text: Option<String>,
 }
 
+impl Entity for Body {
+	fn type_ref() -> TypeRef {
+		TypeRef { app: "tutanota".to_owned(), type_: "Body".to_owned() }
+	}
+}
+
+
+#[derive(Deserialize)]
 pub struct CalendarDeleteData {
-	pub _format: String,
+	pub _format: i64,
 	pub groupRootId: Id,
 }
 
+impl Entity for CalendarDeleteData {
+	fn type_ref() -> TypeRef {
+		TypeRef { app: "tutanota".to_owned(), type_: "CalendarDeleteData".to_owned() }
+	}
+}
+
+
+#[derive(Deserialize)]
 pub struct CalendarEvent {
-	pub _format: String,
+	pub _format: i64,
 	pub _id: IdTuple,
-	pub _ownerEncSessionKey: Vec<u8>,
-	pub _ownerGroup: Id,
-	pub _ownerKeyVersion: String,
+	pub _ownerEncSessionKey: Option<Vec<u8>>,
+	pub _ownerGroup: Option<Id>,
+	pub _ownerKeyVersion: Option<i64>,
 	pub _permissions: Id,
 	pub description: String,
 	pub endTime: Date,
-	pub hashedUid: Vec<u8>,
-	pub invitedConfidentially: bool,
+	pub hashedUid: Option<Vec<u8>>,
+	pub invitedConfidentially: Option<bool>,
 	pub location: String,
-	pub recurrenceId: Date,
-	pub sequence: String,
+	pub recurrenceId: Option<Date>,
+	pub sequence: i64,
 	pub startTime: Date,
 	pub summary: String,
-	pub uid: String,
+	pub uid: Option<String>,
 	pub alarmInfos: Vec<IdTuple>,
 	pub attendees: Vec<CalendarEventAttendee>,
 	pub organizer: Option<EncryptedMailAddress>,
 	pub repeatRule: Option<CalendarRepeatRule>,
 }
 
+impl Entity for CalendarEvent {
+	fn type_ref() -> TypeRef {
+		TypeRef { app: "tutanota".to_owned(), type_: "CalendarEvent".to_owned() }
+	}
+}
+
+
+#[derive(Deserialize)]
 pub struct CalendarEventAttendee {
 	pub _id: Id,
-	pub status: String,
+	pub status: i64,
 	pub address: EncryptedMailAddress,
 }
 
+impl Entity for CalendarEventAttendee {
+	fn type_ref() -> TypeRef {
+		TypeRef { app: "tutanota".to_owned(), type_: "CalendarEventAttendee".to_owned() }
+	}
+}
+
+
+#[derive(Deserialize)]
 pub struct CalendarEventIndexRef {
 	pub _id: Id,
 	pub list: Id,
 }
 
+impl Entity for CalendarEventIndexRef {
+	fn type_ref() -> TypeRef {
+		TypeRef { app: "tutanota".to_owned(), type_: "CalendarEventIndexRef".to_owned() }
+	}
+}
+
+
+#[derive(Deserialize)]
 pub struct CalendarEventUidIndex {
-	pub _format: String,
+	pub _format: i64,
 	pub _id: IdTuple,
-	pub _ownerGroup: Id,
+	pub _ownerGroup: Option<Id>,
 	pub _permissions: Id,
 	pub alteredInstances: Vec<IdTuple>,
 	pub progenitor: Option<IdTuple>,
 }
 
+impl Entity for CalendarEventUidIndex {
+	fn type_ref() -> TypeRef {
+		TypeRef { app: "tutanota".to_owned(), type_: "CalendarEventUidIndex".to_owned() }
+	}
+}
+
+
+#[derive(Deserialize)]
 pub struct CalendarEventUpdate {
-	pub _format: String,
+	pub _format: i64,
 	pub _id: IdTuple,
-	pub _ownerEncSessionKey: Vec<u8>,
-	pub _ownerGroup: Id,
-	pub _ownerKeyVersion: String,
+	pub _ownerEncSessionKey: Option<Vec<u8>>,
+	pub _ownerGroup: Option<Id>,
+	pub _ownerKeyVersion: Option<i64>,
 	pub _permissions: Id,
 	pub sender: String,
 	pub file: IdTuple,
 }
 
+impl Entity for CalendarEventUpdate {
+	fn type_ref() -> TypeRef {
+		TypeRef { app: "tutanota".to_owned(), type_: "CalendarEventUpdate".to_owned() }
+	}
+}
+
+
+#[derive(Deserialize)]
 pub struct CalendarEventUpdateList {
 	pub _id: Id,
 	pub list: Id,
 }
 
+impl Entity for CalendarEventUpdateList {
+	fn type_ref() -> TypeRef {
+		TypeRef { app: "tutanota".to_owned(), type_: "CalendarEventUpdateList".to_owned() }
+	}
+}
+
+
+#[derive(Deserialize)]
 pub struct CalendarGroupRoot {
-	pub _format: String,
+	pub _format: i64,
 	pub _id: Id,
-	pub _ownerEncSessionKey: Vec<u8>,
-	pub _ownerGroup: Id,
-	pub _ownerKeyVersion: String,
+	pub _ownerEncSessionKey: Option<Vec<u8>>,
+	pub _ownerGroup: Option<Id>,
+	pub _ownerKeyVersion: Option<i64>,
 	pub _permissions: Id,
 	pub index: Option<CalendarEventIndexRef>,
 	pub longEvents: Id,
 	pub shortEvents: Id,
 }
 
+impl Entity for CalendarGroupRoot {
+	fn type_ref() -> TypeRef {
+		TypeRef { app: "tutanota".to_owned(), type_: "CalendarGroupRoot".to_owned() }
+	}
+}
+
+
+#[derive(Deserialize)]
 pub struct CalendarRepeatRule {
 	pub _id: Id,
-	pub endType: String,
-	pub endValue: String,
-	pub frequency: String,
-	pub interval: String,
+	pub endType: i64,
+	pub endValue: Option<i64>,
+	pub frequency: i64,
+	pub interval: i64,
 	pub timeZone: String,
 	pub excludedDates: Vec<sys::DateWrapper>,
 }
 
+impl Entity for CalendarRepeatRule {
+	fn type_ref() -> TypeRef {
+		TypeRef { app: "tutanota".to_owned(), type_: "CalendarRepeatRule".to_owned() }
+	}
+}
+
+
+#[derive(Deserialize)]
 pub struct Contact {
-	pub _area: String,
-	pub _format: String,
+	pub _area: i64,
+	pub _format: i64,
 	pub _id: IdTuple,
 	pub _owner: Id,
-	pub _ownerEncSessionKey: Vec<u8>,
-	pub _ownerGroup: Id,
-	pub _ownerKeyVersion: String,
+	pub _ownerEncSessionKey: Option<Vec<u8>>,
+	pub _ownerGroup: Option<Id>,
+	pub _ownerKeyVersion: Option<i64>,
 	pub _permissions: Id,
 	pub autoTransmitPassword: String,
-	pub birthdayIso: String,
+	pub birthdayIso: Option<String>,
 	pub comment: String,
 	pub company: String,
-	pub department: String,
+	pub department: Option<String>,
 	pub firstName: String,
 	pub lastName: String,
-	pub middleName: String,
-	pub nameSuffix: String,
-	pub nickname: String,
-	pub oldBirthdayDate: Date,
-	pub phoneticFirst: String,
-	pub phoneticLast: String,
-	pub phoneticMiddle: String,
-	pub presharedPassword: String,
+	pub middleName: Option<String>,
+	pub nameSuffix: Option<String>,
+	pub nickname: Option<String>,
+	pub oldBirthdayDate: Option<Date>,
+	pub phoneticFirst: Option<String>,
+	pub phoneticLast: Option<String>,
+	pub phoneticMiddle: Option<String>,
+	pub presharedPassword: Option<String>,
 	pub role: String,
-	pub title: String,
+	pub title: Option<String>,
 	pub addresses: Vec<ContactAddress>,
 	pub customDate: Vec<ContactCustomDate>,
 	pub mailAddresses: Vec<ContactMailAddress>,
@@ -146,165 +244,317 @@ pub struct Contact {
 	pub websites: Vec<ContactWebsite>,
 }
 
+impl Entity for Contact {
+	fn type_ref() -> TypeRef {
+		TypeRef { app: "tutanota".to_owned(), type_: "Contact".to_owned() }
+	}
+}
+
+
+#[derive(Deserialize)]
 pub struct ContactAddress {
 	pub _id: Id,
 	pub address: String,
 	pub customTypeName: String,
 	#[serde(rename = "type")]
-	pub r#type: String,
+	pub r#type: i64,
 }
 
+impl Entity for ContactAddress {
+	fn type_ref() -> TypeRef {
+		TypeRef { app: "tutanota".to_owned(), type_: "ContactAddress".to_owned() }
+	}
+}
+
+
+#[derive(Deserialize)]
 pub struct ContactCustomDate {
 	pub _id: Id,
 	pub customTypeName: String,
 	pub dateIso: String,
 	#[serde(rename = "type")]
-	pub r#type: String,
+	pub r#type: i64,
 }
 
+impl Entity for ContactCustomDate {
+	fn type_ref() -> TypeRef {
+		TypeRef { app: "tutanota".to_owned(), type_: "ContactCustomDate".to_owned() }
+	}
+}
+
+
+#[derive(Deserialize)]
 pub struct ContactList {
-	pub _format: String,
+	pub _format: i64,
 	pub _id: Id,
-	pub _ownerEncSessionKey: Vec<u8>,
-	pub _ownerGroup: Id,
-	pub _ownerKeyVersion: String,
+	pub _ownerEncSessionKey: Option<Vec<u8>>,
+	pub _ownerGroup: Option<Id>,
+	pub _ownerKeyVersion: Option<i64>,
 	pub _permissions: Id,
 	pub contacts: Id,
 	pub photos: Option<PhotosRef>,
 }
 
+impl Entity for ContactList {
+	fn type_ref() -> TypeRef {
+		TypeRef { app: "tutanota".to_owned(), type_: "ContactList".to_owned() }
+	}
+}
+
+
+#[derive(Deserialize)]
 pub struct ContactListEntry {
-	pub _format: String,
+	pub _format: i64,
 	pub _id: IdTuple,
-	pub _ownerEncSessionKey: Vec<u8>,
-	pub _ownerGroup: Id,
-	pub _ownerKeyVersion: String,
+	pub _ownerEncSessionKey: Option<Vec<u8>>,
+	pub _ownerGroup: Option<Id>,
+	pub _ownerKeyVersion: Option<i64>,
 	pub _permissions: Id,
 	pub emailAddress: String,
 }
 
+impl Entity for ContactListEntry {
+	fn type_ref() -> TypeRef {
+		TypeRef { app: "tutanota".to_owned(), type_: "ContactListEntry".to_owned() }
+	}
+}
+
+
+#[derive(Deserialize)]
 pub struct ContactListGroupRoot {
-	pub _format: String,
+	pub _format: i64,
 	pub _id: Id,
-	pub _ownerEncSessionKey: Vec<u8>,
-	pub _ownerGroup: Id,
-	pub _ownerKeyVersion: String,
+	pub _ownerEncSessionKey: Option<Vec<u8>>,
+	pub _ownerGroup: Option<Id>,
+	pub _ownerKeyVersion: Option<i64>,
 	pub _permissions: Id,
 	pub entries: Id,
 }
 
+impl Entity for ContactListGroupRoot {
+	fn type_ref() -> TypeRef {
+		TypeRef { app: "tutanota".to_owned(), type_: "ContactListGroupRoot".to_owned() }
+	}
+}
+
+
+#[derive(Deserialize)]
 pub struct ContactMailAddress {
 	pub _id: Id,
 	pub address: String,
 	pub customTypeName: String,
 	#[serde(rename = "type")]
-	pub r#type: String,
+	pub r#type: i64,
 }
 
+impl Entity for ContactMailAddress {
+	fn type_ref() -> TypeRef {
+		TypeRef { app: "tutanota".to_owned(), type_: "ContactMailAddress".to_owned() }
+	}
+}
+
+
+#[derive(Deserialize)]
 pub struct ContactMessengerHandle {
 	pub _id: Id,
 	pub customTypeName: String,
 	pub handle: String,
 	#[serde(rename = "type")]
-	pub r#type: String,
+	pub r#type: i64,
 }
 
+impl Entity for ContactMessengerHandle {
+	fn type_ref() -> TypeRef {
+		TypeRef { app: "tutanota".to_owned(), type_: "ContactMessengerHandle".to_owned() }
+	}
+}
+
+
+#[derive(Deserialize)]
 pub struct ContactPhoneNumber {
 	pub _id: Id,
 	pub customTypeName: String,
 	pub number: String,
 	#[serde(rename = "type")]
-	pub r#type: String,
+	pub r#type: i64,
 }
 
+impl Entity for ContactPhoneNumber {
+	fn type_ref() -> TypeRef {
+		TypeRef { app: "tutanota".to_owned(), type_: "ContactPhoneNumber".to_owned() }
+	}
+}
+
+
+#[derive(Deserialize)]
 pub struct ContactPronouns {
 	pub _id: Id,
 	pub language: String,
 	pub pronouns: String,
 }
 
+impl Entity for ContactPronouns {
+	fn type_ref() -> TypeRef {
+		TypeRef { app: "tutanota".to_owned(), type_: "ContactPronouns".to_owned() }
+	}
+}
+
+
+#[derive(Deserialize)]
 pub struct ContactRelationship {
 	pub _id: Id,
 	pub customTypeName: String,
 	pub person: String,
 	#[serde(rename = "type")]
-	pub r#type: String,
+	pub r#type: i64,
 }
 
+impl Entity for ContactRelationship {
+	fn type_ref() -> TypeRef {
+		TypeRef { app: "tutanota".to_owned(), type_: "ContactRelationship".to_owned() }
+	}
+}
+
+
+#[derive(Deserialize)]
 pub struct ContactSocialId {
 	pub _id: Id,
 	pub customTypeName: String,
 	pub socialId: String,
 	#[serde(rename = "type")]
-	pub r#type: String,
+	pub r#type: i64,
 }
 
+impl Entity for ContactSocialId {
+	fn type_ref() -> TypeRef {
+		TypeRef { app: "tutanota".to_owned(), type_: "ContactSocialId".to_owned() }
+	}
+}
+
+
+#[derive(Deserialize)]
 pub struct ContactWebsite {
 	pub _id: Id,
 	pub customTypeName: String,
 	#[serde(rename = "type")]
-	pub r#type: String,
+	pub r#type: i64,
 	pub url: String,
 }
 
+impl Entity for ContactWebsite {
+	fn type_ref() -> TypeRef {
+		TypeRef { app: "tutanota".to_owned(), type_: "ContactWebsite".to_owned() }
+	}
+}
+
+
+#[derive(Deserialize)]
 pub struct ConversationEntry {
-	pub _format: String,
+	pub _format: i64,
 	pub _id: IdTuple,
-	pub _ownerGroup: Id,
+	pub _ownerGroup: Option<Id>,
 	pub _permissions: Id,
-	pub conversationType: String,
+	pub conversationType: i64,
 	pub messageId: String,
 	pub mail: Option<IdTuple>,
 	pub previous: Option<IdTuple>,
 }
 
+impl Entity for ConversationEntry {
+	fn type_ref() -> TypeRef {
+		TypeRef { app: "tutanota".to_owned(), type_: "ConversationEntry".to_owned() }
+	}
+}
+
+
+#[derive(Deserialize)]
 pub struct CreateExternalUserGroupData {
 	pub _id: Id,
 	pub externalPwEncUserGroupKey: Vec<u8>,
 	pub internalUserEncUserGroupKey: Vec<u8>,
-	pub internalUserGroupKeyVersion: String,
+	pub internalUserGroupKeyVersion: i64,
 	pub mailAddress: String,
 }
 
+impl Entity for CreateExternalUserGroupData {
+	fn type_ref() -> TypeRef {
+		TypeRef { app: "tutanota".to_owned(), type_: "CreateExternalUserGroupData".to_owned() }
+	}
+}
+
+
+#[derive(Deserialize)]
 pub struct CreateGroupPostReturn {
-	pub _format: String,
+	pub _format: i64,
 	pub group: Id,
 }
 
+impl Entity for CreateGroupPostReturn {
+	fn type_ref() -> TypeRef {
+		TypeRef { app: "tutanota".to_owned(), type_: "CreateGroupPostReturn".to_owned() }
+	}
+}
+
+
+#[derive(Deserialize)]
 pub struct CreateMailFolderData {
-	pub _format: String,
+	pub _format: i64,
 	pub folderName: String,
 	pub ownerEncSessionKey: Vec<u8>,
-	pub ownerGroup: Id,
-	pub ownerKeyVersion: String,
+	pub ownerGroup: Option<Id>,
+	pub ownerKeyVersion: i64,
 	pub parentFolder: Option<IdTuple>,
 }
 
+impl Entity for CreateMailFolderData {
+	fn type_ref() -> TypeRef {
+		TypeRef { app: "tutanota".to_owned(), type_: "CreateMailFolderData".to_owned() }
+	}
+}
+
+
+#[derive(Deserialize)]
 pub struct CreateMailFolderReturn {
-	pub _format: String,
+	pub _format: i64,
 	pub newFolder: IdTuple,
 }
 
+impl Entity for CreateMailFolderReturn {
+	fn type_ref() -> TypeRef {
+		TypeRef { app: "tutanota".to_owned(), type_: "CreateMailFolderReturn".to_owned() }
+	}
+}
+
+
+#[derive(Deserialize)]
 pub struct CreateMailGroupData {
-	pub _format: String,
+	pub _format: i64,
 	pub encryptedName: Vec<u8>,
 	pub mailAddress: String,
 	pub mailEncMailboxSessionKey: Vec<u8>,
 	pub groupData: InternalGroupData,
 }
 
+impl Entity for CreateMailGroupData {
+	fn type_ref() -> TypeRef {
+		TypeRef { app: "tutanota".to_owned(), type_: "CreateMailGroupData".to_owned() }
+	}
+}
+
+
+#[derive(Deserialize)]
 pub struct CustomerAccountCreateData {
-	pub _format: String,
-	pub accountGroupKeyVersion: String,
+	pub _format: i64,
+	pub accountGroupKeyVersion: i64,
 	pub adminEncAccountingInfoSessionKey: Vec<u8>,
 	pub adminEncCustomerServerPropertiesSessionKey: Vec<u8>,
 	pub authToken: String,
 	pub code: String,
-	pub date: Date,
+	pub date: Option<Date>,
 	pub lang: String,
 	pub systemAdminPubEncAccountingInfoSessionKey: Vec<u8>,
-	pub systemAdminPubKeyVersion: String,
-	pub systemAdminPublicProtocolVersion: String,
+	pub systemAdminPubKeyVersion: i64,
+	pub systemAdminPublicProtocolVersion: i64,
 	pub userEncAccountGroupKey: Vec<u8>,
 	pub userEncAdminGroupKey: Vec<u8>,
 	pub adminGroupData: InternalGroupData,
@@ -313,51 +563,107 @@ pub struct CustomerAccountCreateData {
 	pub userGroupData: InternalGroupData,
 }
 
+impl Entity for CustomerAccountCreateData {
+	fn type_ref() -> TypeRef {
+		TypeRef { app: "tutanota".to_owned(), type_: "CustomerAccountCreateData".to_owned() }
+	}
+}
+
+
+#[derive(Deserialize)]
 pub struct DeleteGroupData {
-	pub _format: String,
+	pub _format: i64,
 	pub restore: bool,
 	pub group: Id,
 }
 
+impl Entity for DeleteGroupData {
+	fn type_ref() -> TypeRef {
+		TypeRef { app: "tutanota".to_owned(), type_: "DeleteGroupData".to_owned() }
+	}
+}
+
+
+#[derive(Deserialize)]
 pub struct DeleteMailData {
-	pub _format: String,
+	pub _format: i64,
 	pub folder: Option<IdTuple>,
 	pub mails: Vec<IdTuple>,
 }
 
+impl Entity for DeleteMailData {
+	fn type_ref() -> TypeRef {
+		TypeRef { app: "tutanota".to_owned(), type_: "DeleteMailData".to_owned() }
+	}
+}
+
+
+#[derive(Deserialize)]
 pub struct DeleteMailFolderData {
-	pub _format: String,
+	pub _format: i64,
 	pub folders: Vec<IdTuple>,
 }
 
+impl Entity for DeleteMailFolderData {
+	fn type_ref() -> TypeRef {
+		TypeRef { app: "tutanota".to_owned(), type_: "DeleteMailFolderData".to_owned() }
+	}
+}
+
+
+#[derive(Deserialize)]
 pub struct DraftAttachment {
 	pub _id: Id,
 	pub ownerEncFileSessionKey: Vec<u8>,
-	pub ownerKeyVersion: String,
+	pub ownerKeyVersion: i64,
 	pub existingFile: Option<IdTuple>,
 	pub newFile: Option<NewDraftAttachment>,
 }
 
+impl Entity for DraftAttachment {
+	fn type_ref() -> TypeRef {
+		TypeRef { app: "tutanota".to_owned(), type_: "DraftAttachment".to_owned() }
+	}
+}
+
+
+#[derive(Deserialize)]
 pub struct DraftCreateData {
-	pub _format: String,
-	pub conversationType: String,
+	pub _format: i64,
+	pub conversationType: i64,
 	pub ownerEncSessionKey: Vec<u8>,
-	pub ownerKeyVersion: String,
-	pub previousMessageId: String,
+	pub ownerKeyVersion: i64,
+	pub previousMessageId: Option<String>,
 	pub draftData: DraftData,
 }
 
+impl Entity for DraftCreateData {
+	fn type_ref() -> TypeRef {
+		TypeRef { app: "tutanota".to_owned(), type_: "DraftCreateData".to_owned() }
+	}
+}
+
+
+#[derive(Deserialize)]
 pub struct DraftCreateReturn {
-	pub _format: String,
+	pub _format: i64,
 	pub draft: IdTuple,
 }
 
+impl Entity for DraftCreateReturn {
+	fn type_ref() -> TypeRef {
+		TypeRef { app: "tutanota".to_owned(), type_: "DraftCreateReturn".to_owned() }
+	}
+}
+
+
+#[derive(Deserialize)]
 pub struct DraftData {
 	pub _id: Id,
 	pub bodyText: String,
-	pub compressedBodyText: Vec<u8>,
+	pub compressedBodyText: Option<Vec<u8>>,
 	pub confidential: bool,
-	pub method: String,
+	pub method: i64,
 	pub senderMailAddress: String,
 	pub senderName: String,
 	pub subject: String,
@@ -369,62 +675,134 @@ pub struct DraftData {
 	pub toRecipients: Vec<DraftRecipient>,
 }
 
+impl Entity for DraftData {
+	fn type_ref() -> TypeRef {
+		TypeRef { app: "tutanota".to_owned(), type_: "DraftData".to_owned() }
+	}
+}
+
+
+#[derive(Deserialize)]
 pub struct DraftRecipient {
 	pub _id: Id,
 	pub mailAddress: String,
 	pub name: String,
 }
 
+impl Entity for DraftRecipient {
+	fn type_ref() -> TypeRef {
+		TypeRef { app: "tutanota".to_owned(), type_: "DraftRecipient".to_owned() }
+	}
+}
+
+
+#[derive(Deserialize)]
 pub struct DraftUpdateData {
-	pub _format: String,
+	pub _format: i64,
 	pub draft: IdTuple,
 	pub draftData: DraftData,
 }
 
+impl Entity for DraftUpdateData {
+	fn type_ref() -> TypeRef {
+		TypeRef { app: "tutanota".to_owned(), type_: "DraftUpdateData".to_owned() }
+	}
+}
+
+
+#[derive(Deserialize)]
 pub struct DraftUpdateReturn {
-	pub _format: String,
+	pub _format: i64,
 	pub attachments: Vec<IdTuple>,
 }
 
+impl Entity for DraftUpdateReturn {
+	fn type_ref() -> TypeRef {
+		TypeRef { app: "tutanota".to_owned(), type_: "DraftUpdateReturn".to_owned() }
+	}
+}
+
+
+#[derive(Deserialize)]
 pub struct EmailTemplate {
-	pub _format: String,
+	pub _format: i64,
 	pub _id: IdTuple,
-	pub _ownerEncSessionKey: Vec<u8>,
-	pub _ownerGroup: Id,
-	pub _ownerKeyVersion: String,
+	pub _ownerEncSessionKey: Option<Vec<u8>>,
+	pub _ownerGroup: Option<Id>,
+	pub _ownerKeyVersion: Option<i64>,
 	pub _permissions: Id,
 	pub tag: String,
 	pub title: String,
 	pub contents: Vec<EmailTemplateContent>,
 }
 
+impl Entity for EmailTemplate {
+	fn type_ref() -> TypeRef {
+		TypeRef { app: "tutanota".to_owned(), type_: "EmailTemplate".to_owned() }
+	}
+}
+
+
+#[derive(Deserialize)]
 pub struct EmailTemplateContent {
 	pub _id: Id,
 	pub languageCode: String,
 	pub text: String,
 }
 
+impl Entity for EmailTemplateContent {
+	fn type_ref() -> TypeRef {
+		TypeRef { app: "tutanota".to_owned(), type_: "EmailTemplateContent".to_owned() }
+	}
+}
+
+
+#[derive(Deserialize)]
 pub struct EncryptTutanotaPropertiesData {
-	pub _format: String,
+	pub _format: i64,
 	pub symEncSessionKey: Vec<u8>,
-	pub symKeyVersion: String,
+	pub symKeyVersion: i64,
 	pub properties: Id,
 }
 
+impl Entity for EncryptTutanotaPropertiesData {
+	fn type_ref() -> TypeRef {
+		TypeRef { app: "tutanota".to_owned(), type_: "EncryptTutanotaPropertiesData".to_owned() }
+	}
+}
+
+
+#[derive(Deserialize)]
 pub struct EncryptedMailAddress {
 	pub _id: Id,
 	pub address: String,
 	pub name: String,
 }
 
-pub struct EntropyData {
-	pub _format: String,
-	pub userEncEntropy: Vec<u8>,
-	pub userKeyVersion: String,
+impl Entity for EncryptedMailAddress {
+	fn type_ref() -> TypeRef {
+		TypeRef { app: "tutanota".to_owned(), type_: "EncryptedMailAddress".to_owned() }
+	}
 }
 
+
+#[derive(Deserialize)]
+pub struct EntropyData {
+	pub _format: i64,
+	pub userEncEntropy: Vec<u8>,
+	pub userKeyVersion: i64,
+}
+
+impl Entity for EntropyData {
+	fn type_ref() -> TypeRef {
+		TypeRef { app: "tutanota".to_owned(), type_: "EntropyData".to_owned() }
+	}
+}
+
+
+#[derive(Deserialize)]
 pub struct ExternalUserData {
-	pub _format: String,
+	pub _format: i64,
 	pub externalMailEncMailBoxSessionKey: Vec<u8>,
 	pub externalMailEncMailGroupInfoSessionKey: Vec<u8>,
 	pub externalUserEncEntropy: Vec<u8>,
@@ -433,80 +811,152 @@ pub struct ExternalUserData {
 	pub externalUserEncUserGroupInfoSessionKey: Vec<u8>,
 	pub internalMailEncMailGroupInfoSessionKey: Vec<u8>,
 	pub internalMailEncUserGroupInfoSessionKey: Vec<u8>,
-	pub internalMailGroupKeyVersion: String,
-	pub kdfVersion: String,
+	pub internalMailGroupKeyVersion: i64,
+	pub kdfVersion: i64,
 	pub verifier: Vec<u8>,
 	pub userGroupData: CreateExternalUserGroupData,
 }
 
+impl Entity for ExternalUserData {
+	fn type_ref() -> TypeRef {
+		TypeRef { app: "tutanota".to_owned(), type_: "ExternalUserData".to_owned() }
+	}
+}
+
+
+#[derive(Deserialize)]
 pub struct File {
-	pub _area: String,
-	pub _format: String,
+	pub _area: i64,
+	pub _format: i64,
 	pub _id: IdTuple,
 	pub _owner: Id,
-	pub _ownerEncSessionKey: Vec<u8>,
-	pub _ownerGroup: Id,
-	pub _ownerKeyVersion: String,
+	pub _ownerEncSessionKey: Option<Vec<u8>>,
+	pub _ownerGroup: Option<Id>,
+	pub _ownerKeyVersion: Option<i64>,
 	pub _permissions: Id,
-	pub cid: String,
-	pub mimeType: String,
+	pub cid: Option<String>,
+	pub mimeType: Option<String>,
 	pub name: String,
-	pub size: String,
+	pub size: i64,
 	pub blobs: Vec<sys::Blob>,
 	pub parent: Option<IdTuple>,
 	pub subFiles: Option<Subfiles>,
 }
 
+impl Entity for File {
+	fn type_ref() -> TypeRef {
+		TypeRef { app: "tutanota".to_owned(), type_: "File".to_owned() }
+	}
+}
+
+
+#[derive(Deserialize)]
 pub struct FileSystem {
-	pub _format: String,
+	pub _format: i64,
 	pub _id: Id,
-	pub _ownerEncSessionKey: Vec<u8>,
-	pub _ownerGroup: Id,
-	pub _ownerKeyVersion: String,
+	pub _ownerEncSessionKey: Option<Vec<u8>>,
+	pub _ownerGroup: Option<Id>,
+	pub _ownerKeyVersion: Option<i64>,
 	pub _permissions: Id,
 	pub files: Id,
 }
 
+impl Entity for FileSystem {
+	fn type_ref() -> TypeRef {
+		TypeRef { app: "tutanota".to_owned(), type_: "FileSystem".to_owned() }
+	}
+}
+
+
+#[derive(Deserialize)]
 pub struct GroupInvitationDeleteData {
-	pub _format: String,
+	pub _format: i64,
 	pub receivedInvitation: IdTuple,
 }
 
+impl Entity for GroupInvitationDeleteData {
+	fn type_ref() -> TypeRef {
+		TypeRef { app: "tutanota".to_owned(), type_: "GroupInvitationDeleteData".to_owned() }
+	}
+}
+
+
+#[derive(Deserialize)]
 pub struct GroupInvitationPostData {
-	pub _format: String,
+	pub _format: i64,
 	pub internalKeyData: Vec<InternalRecipientKeyData>,
 	pub sharedGroupData: SharedGroupData,
 }
 
+impl Entity for GroupInvitationPostData {
+	fn type_ref() -> TypeRef {
+		TypeRef { app: "tutanota".to_owned(), type_: "GroupInvitationPostData".to_owned() }
+	}
+}
+
+
+#[derive(Deserialize)]
 pub struct GroupInvitationPostReturn {
-	pub _format: String,
+	pub _format: i64,
 	pub existingMailAddresses: Vec<MailAddress>,
 	pub invalidMailAddresses: Vec<MailAddress>,
 	pub invitedMailAddresses: Vec<MailAddress>,
 }
 
+impl Entity for GroupInvitationPostReturn {
+	fn type_ref() -> TypeRef {
+		TypeRef { app: "tutanota".to_owned(), type_: "GroupInvitationPostReturn".to_owned() }
+	}
+}
+
+
+#[derive(Deserialize)]
 pub struct GroupInvitationPutData {
-	pub _format: String,
+	pub _format: i64,
 	pub sharedGroupEncInviteeGroupInfoKey: Vec<u8>,
-	pub sharedGroupKeyVersion: String,
+	pub sharedGroupKeyVersion: i64,
 	pub userGroupEncGroupKey: Vec<u8>,
-	pub userGroupKeyVersion: String,
+	pub userGroupKeyVersion: i64,
 	pub receivedInvitation: IdTuple,
 }
 
+impl Entity for GroupInvitationPutData {
+	fn type_ref() -> TypeRef {
+		TypeRef { app: "tutanota".to_owned(), type_: "GroupInvitationPutData".to_owned() }
+	}
+}
+
+
+#[derive(Deserialize)]
 pub struct GroupSettings {
 	pub _id: Id,
 	pub color: String,
-	pub name: String,
+	pub name: Option<String>,
 	pub group: Id,
 }
 
-pub struct Header {
-	pub _id: Id,
-	pub compressedHeaders: Vec<u8>,
-	pub headers: String,
+impl Entity for GroupSettings {
+	fn type_ref() -> TypeRef {
+		TypeRef { app: "tutanota".to_owned(), type_: "GroupSettings".to_owned() }
+	}
 }
 
+
+#[derive(Deserialize)]
+pub struct Header {
+	pub _id: Id,
+	pub compressedHeaders: Option<Vec<u8>>,
+	pub headers: Option<String>,
+}
+
+impl Entity for Header {
+	fn type_ref() -> TypeRef {
+		TypeRef { app: "tutanota".to_owned(), type_: "Header".to_owned() }
+	}
+}
+
+
+#[derive(Deserialize)]
 pub struct ImapFolder {
 	pub _id: Id,
 	pub lastseenuid: String,
@@ -515,23 +965,47 @@ pub struct ImapFolder {
 	pub syncInfo: Id,
 }
 
+impl Entity for ImapFolder {
+	fn type_ref() -> TypeRef {
+		TypeRef { app: "tutanota".to_owned(), type_: "ImapFolder".to_owned() }
+	}
+}
+
+
+#[derive(Deserialize)]
 pub struct ImapSyncConfiguration {
 	pub _id: Id,
 	pub host: String,
 	pub password: String,
-	pub port: String,
+	pub port: i64,
 	pub user: String,
 	pub imapSyncState: Option<Id>,
 }
 
+impl Entity for ImapSyncConfiguration {
+	fn type_ref() -> TypeRef {
+		TypeRef { app: "tutanota".to_owned(), type_: "ImapSyncConfiguration".to_owned() }
+	}
+}
+
+
+#[derive(Deserialize)]
 pub struct ImapSyncState {
-	pub _format: String,
+	pub _format: i64,
 	pub _id: Id,
-	pub _ownerGroup: Id,
+	pub _ownerGroup: Option<Id>,
 	pub _permissions: Id,
 	pub folders: Vec<ImapFolder>,
 }
 
+impl Entity for ImapSyncState {
+	fn type_ref() -> TypeRef {
+		TypeRef { app: "tutanota".to_owned(), type_: "ImapSyncState".to_owned() }
+	}
+}
+
+
+#[derive(Deserialize)]
 pub struct InboxRule {
 	pub _id: Id,
 	#[serde(rename = "type")]
@@ -540,74 +1014,122 @@ pub struct InboxRule {
 	pub targetFolder: IdTuple,
 }
 
+impl Entity for InboxRule {
+	fn type_ref() -> TypeRef {
+		TypeRef { app: "tutanota".to_owned(), type_: "InboxRule".to_owned() }
+	}
+}
+
+
+#[derive(Deserialize)]
 pub struct InternalGroupData {
 	pub _id: Id,
 	pub adminEncGroupKey: Vec<u8>,
-	pub adminKeyVersion: String,
-	pub groupEncPrivEccKey: Vec<u8>,
-	pub groupEncPrivKyberKey: Vec<u8>,
-	pub groupEncPrivRsaKey: Vec<u8>,
+	pub adminKeyVersion: i64,
+	pub groupEncPrivEccKey: Option<Vec<u8>>,
+	pub groupEncPrivKyberKey: Option<Vec<u8>>,
+	pub groupEncPrivRsaKey: Option<Vec<u8>>,
 	pub ownerEncGroupInfoSessionKey: Vec<u8>,
-	pub ownerKeyVersion: String,
-	pub pubEccKey: Vec<u8>,
-	pub pubKyberKey: Vec<u8>,
-	pub pubRsaKey: Vec<u8>,
+	pub ownerKeyVersion: i64,
+	pub pubEccKey: Option<Vec<u8>>,
+	pub pubKyberKey: Option<Vec<u8>>,
+	pub pubRsaKey: Option<Vec<u8>>,
 	pub adminGroup: Option<Id>,
 }
 
+impl Entity for InternalGroupData {
+	fn type_ref() -> TypeRef {
+		TypeRef { app: "tutanota".to_owned(), type_: "InternalGroupData".to_owned() }
+	}
+}
+
+
+#[derive(Deserialize)]
 pub struct InternalRecipientKeyData {
 	pub _id: Id,
 	pub mailAddress: String,
-	pub protocolVersion: String,
+	pub protocolVersion: i64,
 	pub pubEncBucketKey: Vec<u8>,
-	pub recipientKeyVersion: String,
-	pub senderKeyVersion: String,
+	pub recipientKeyVersion: i64,
+	pub senderKeyVersion: Option<i64>,
 }
 
+impl Entity for InternalRecipientKeyData {
+	fn type_ref() -> TypeRef {
+		TypeRef { app: "tutanota".to_owned(), type_: "InternalRecipientKeyData".to_owned() }
+	}
+}
+
+
+#[derive(Deserialize)]
 pub struct KnowledgeBaseEntry {
-	pub _format: String,
+	pub _format: i64,
 	pub _id: IdTuple,
-	pub _ownerEncSessionKey: Vec<u8>,
-	pub _ownerGroup: Id,
-	pub _ownerKeyVersion: String,
+	pub _ownerEncSessionKey: Option<Vec<u8>>,
+	pub _ownerGroup: Option<Id>,
+	pub _ownerKeyVersion: Option<i64>,
 	pub _permissions: Id,
 	pub description: String,
 	pub title: String,
 	pub keywords: Vec<KnowledgeBaseEntryKeyword>,
 }
 
+impl Entity for KnowledgeBaseEntry {
+	fn type_ref() -> TypeRef {
+		TypeRef { app: "tutanota".to_owned(), type_: "KnowledgeBaseEntry".to_owned() }
+	}
+}
+
+
+#[derive(Deserialize)]
 pub struct KnowledgeBaseEntryKeyword {
 	pub _id: Id,
 	pub keyword: String,
 }
 
+impl Entity for KnowledgeBaseEntryKeyword {
+	fn type_ref() -> TypeRef {
+		TypeRef { app: "tutanota".to_owned(), type_: "KnowledgeBaseEntryKeyword".to_owned() }
+	}
+}
+
+
+#[derive(Deserialize)]
 pub struct ListUnsubscribeData {
-	pub _format: String,
+	pub _format: i64,
 	pub headers: String,
 	pub recipient: String,
 	pub mail: IdTuple,
 }
 
+impl Entity for ListUnsubscribeData {
+	fn type_ref() -> TypeRef {
+		TypeRef { app: "tutanota".to_owned(), type_: "ListUnsubscribeData".to_owned() }
+	}
+}
+
+
+#[derive(Deserialize)]
 pub struct Mail {
-	pub _format: String,
+	pub _format: i64,
 	pub _id: IdTuple,
-	pub _ownerEncSessionKey: Vec<u8>,
-	pub _ownerGroup: Id,
-	pub _ownerKeyVersion: String,
+	pub _ownerEncSessionKey: Option<Vec<u8>>,
+	pub _ownerGroup: Option<Id>,
+	pub _ownerKeyVersion: Option<i64>,
 	pub _permissions: Id,
-	pub authStatus: String,
+	pub authStatus: Option<i64>,
 	pub confidential: bool,
-	pub differentEnvelopeSender: String,
-	pub encryptionAuthStatus: String,
+	pub differentEnvelopeSender: Option<String>,
+	pub encryptionAuthStatus: Option<i64>,
 	pub listUnsubscribe: bool,
-	pub method: String,
-	pub movedTime: Date,
-	pub phishingStatus: String,
+	pub method: i64,
+	pub movedTime: Option<Date>,
+	pub phishingStatus: i64,
 	pub receivedDate: Date,
-	pub recipientCount: String,
-	pub replyType: String,
-	pub sentDate: Date,
-	pub state: String,
+	pub recipientCount: i64,
+	pub replyType: i64,
+	pub sentDate: Option<Date>,
+	pub state: i64,
 	pub subject: String,
 	pub unread: bool,
 	pub attachments: Vec<IdTuple>,
@@ -625,6 +1147,14 @@ pub struct Mail {
 	pub toRecipients: Vec<MailAddress>,
 }
 
+impl Entity for Mail {
+	fn type_ref() -> TypeRef {
+		TypeRef { app: "tutanota".to_owned(), type_: "Mail".to_owned() }
+	}
+}
+
+
+#[derive(Deserialize)]
 pub struct MailAddress {
 	pub _id: Id,
 	pub address: String,
@@ -632,31 +1162,55 @@ pub struct MailAddress {
 	pub contact: Option<IdTuple>,
 }
 
+impl Entity for MailAddress {
+	fn type_ref() -> TypeRef {
+		TypeRef { app: "tutanota".to_owned(), type_: "MailAddress".to_owned() }
+	}
+}
+
+
+#[derive(Deserialize)]
 pub struct MailAddressProperties {
 	pub _id: Id,
 	pub mailAddress: String,
 	pub senderName: String,
 }
 
-pub struct MailBody {
-	pub _area: String,
-	pub _format: String,
-	pub _id: Id,
-	pub _owner: Id,
-	pub _ownerEncSessionKey: Vec<u8>,
-	pub _ownerGroup: Id,
-	pub _ownerKeyVersion: String,
-	pub _permissions: Id,
-	pub compressedText: Vec<u8>,
-	pub text: String,
+impl Entity for MailAddressProperties {
+	fn type_ref() -> TypeRef {
+		TypeRef { app: "tutanota".to_owned(), type_: "MailAddressProperties".to_owned() }
+	}
 }
 
-pub struct MailBox {
-	pub _format: String,
+
+#[derive(Deserialize)]
+pub struct MailBody {
+	pub _area: i64,
+	pub _format: i64,
 	pub _id: Id,
-	pub _ownerEncSessionKey: Vec<u8>,
-	pub _ownerGroup: Id,
-	pub _ownerKeyVersion: String,
+	pub _owner: Id,
+	pub _ownerEncSessionKey: Option<Vec<u8>>,
+	pub _ownerGroup: Option<Id>,
+	pub _ownerKeyVersion: Option<i64>,
+	pub _permissions: Id,
+	pub compressedText: Option<Vec<u8>>,
+	pub text: Option<String>,
+}
+
+impl Entity for MailBody {
+	fn type_ref() -> TypeRef {
+		TypeRef { app: "tutanota".to_owned(), type_: "MailBody".to_owned() }
+	}
+}
+
+
+#[derive(Deserialize)]
+pub struct MailBox {
+	pub _format: i64,
+	pub _id: Id,
+	pub _ownerEncSessionKey: Option<Vec<u8>>,
+	pub _ownerGroup: Option<Id>,
+	pub _ownerKeyVersion: Option<i64>,
 	pub _permissions: Id,
 	pub lastInfoDate: Date,
 	pub folders: Option<MailFolderRef>,
@@ -667,9 +1221,17 @@ pub struct MailBox {
 	pub spamResults: Option<SpamResults>,
 }
 
+impl Entity for MailBox {
+	fn type_ref() -> TypeRef {
+		TypeRef { app: "tutanota".to_owned(), type_: "MailBox".to_owned() }
+	}
+}
+
+
+#[derive(Deserialize)]
 pub struct MailDetails {
 	pub _id: Id,
-	pub authStatus: String,
+	pub authStatus: i64,
 	pub sentDate: Date,
 	pub body: Body,
 	pub headers: Option<Header>,
@@ -677,65 +1239,121 @@ pub struct MailDetails {
 	pub replyTos: Vec<EncryptedMailAddress>,
 }
 
+impl Entity for MailDetails {
+	fn type_ref() -> TypeRef {
+		TypeRef { app: "tutanota".to_owned(), type_: "MailDetails".to_owned() }
+	}
+}
+
+
+#[derive(Deserialize)]
 pub struct MailDetailsBlob {
-	pub _format: String,
+	pub _format: i64,
 	pub _id: IdTuple,
-	pub _ownerEncSessionKey: Vec<u8>,
-	pub _ownerGroup: Id,
-	pub _ownerKeyVersion: String,
+	pub _ownerEncSessionKey: Option<Vec<u8>>,
+	pub _ownerGroup: Option<Id>,
+	pub _ownerKeyVersion: Option<i64>,
 	pub _permissions: Id,
 	pub details: MailDetails,
 }
 
+impl Entity for MailDetailsBlob {
+	fn type_ref() -> TypeRef {
+		TypeRef { app: "tutanota".to_owned(), type_: "MailDetailsBlob".to_owned() }
+	}
+}
+
+
+#[derive(Deserialize)]
 pub struct MailDetailsDraft {
-	pub _format: String,
+	pub _format: i64,
 	pub _id: IdTuple,
-	pub _ownerEncSessionKey: Vec<u8>,
-	pub _ownerGroup: Id,
-	pub _ownerKeyVersion: String,
+	pub _ownerEncSessionKey: Option<Vec<u8>>,
+	pub _ownerGroup: Option<Id>,
+	pub _ownerKeyVersion: Option<i64>,
 	pub _permissions: Id,
 	pub details: MailDetails,
 }
 
+impl Entity for MailDetailsDraft {
+	fn type_ref() -> TypeRef {
+		TypeRef { app: "tutanota".to_owned(), type_: "MailDetailsDraft".to_owned() }
+	}
+}
+
+
+#[derive(Deserialize)]
 pub struct MailDetailsDraftsRef {
 	pub _id: Id,
 	pub list: Id,
 }
 
+impl Entity for MailDetailsDraftsRef {
+	fn type_ref() -> TypeRef {
+		TypeRef { app: "tutanota".to_owned(), type_: "MailDetailsDraftsRef".to_owned() }
+	}
+}
+
+
+#[derive(Deserialize)]
 pub struct MailFolder {
-	pub _format: String,
+	pub _format: i64,
 	pub _id: IdTuple,
-	pub _ownerEncSessionKey: Vec<u8>,
-	pub _ownerGroup: Id,
-	pub _ownerKeyVersion: String,
+	pub _ownerEncSessionKey: Option<Vec<u8>>,
+	pub _ownerGroup: Option<Id>,
+	pub _ownerKeyVersion: Option<i64>,
 	pub _permissions: Id,
-	pub folderType: String,
+	pub folderType: i64,
 	pub name: String,
 	pub mails: Id,
 	pub parentFolder: Option<IdTuple>,
 	pub subFolders: Id,
 }
 
+impl Entity for MailFolder {
+	fn type_ref() -> TypeRef {
+		TypeRef { app: "tutanota".to_owned(), type_: "MailFolder".to_owned() }
+	}
+}
+
+
+#[derive(Deserialize)]
 pub struct MailFolderRef {
 	pub _id: Id,
 	pub folders: Id,
 }
 
-pub struct MailHeaders {
-	pub _format: String,
-	pub _id: Id,
-	pub _ownerEncSessionKey: Vec<u8>,
-	pub _ownerGroup: Id,
-	pub _ownerKeyVersion: String,
-	pub _permissions: Id,
-	pub compressedHeaders: Vec<u8>,
-	pub headers: String,
+impl Entity for MailFolderRef {
+	fn type_ref() -> TypeRef {
+		TypeRef { app: "tutanota".to_owned(), type_: "MailFolderRef".to_owned() }
+	}
 }
 
-pub struct MailboxGroupRoot {
-	pub _format: String,
+
+#[derive(Deserialize)]
+pub struct MailHeaders {
+	pub _format: i64,
 	pub _id: Id,
-	pub _ownerGroup: Id,
+	pub _ownerEncSessionKey: Option<Vec<u8>>,
+	pub _ownerGroup: Option<Id>,
+	pub _ownerKeyVersion: Option<i64>,
+	pub _permissions: Id,
+	pub compressedHeaders: Option<Vec<u8>>,
+	pub headers: Option<String>,
+}
+
+impl Entity for MailHeaders {
+	fn type_ref() -> TypeRef {
+		TypeRef { app: "tutanota".to_owned(), type_: "MailHeaders".to_owned() }
+	}
+}
+
+
+#[derive(Deserialize)]
+pub struct MailboxGroupRoot {
+	pub _format: i64,
+	pub _id: Id,
+	pub _ownerGroup: Option<Id>,
 	pub _permissions: Id,
 	pub calendarEventUpdates: Option<CalendarEventUpdateList>,
 	pub mailbox: Id,
@@ -746,55 +1364,119 @@ pub struct MailboxGroupRoot {
 	pub whitelistRequests: Id,
 }
 
+impl Entity for MailboxGroupRoot {
+	fn type_ref() -> TypeRef {
+		TypeRef { app: "tutanota".to_owned(), type_: "MailboxGroupRoot".to_owned() }
+	}
+}
+
+
+#[derive(Deserialize)]
 pub struct MailboxProperties {
-	pub _format: String,
+	pub _format: i64,
 	pub _id: Id,
-	pub _ownerEncSessionKey: Vec<u8>,
-	pub _ownerGroup: Id,
-	pub _ownerKeyVersion: String,
+	pub _ownerEncSessionKey: Option<Vec<u8>>,
+	pub _ownerGroup: Option<Id>,
+	pub _ownerKeyVersion: Option<i64>,
 	pub _permissions: Id,
-	pub reportMovedMails: String,
+	pub reportMovedMails: i64,
 	pub mailAddressProperties: Vec<MailAddressProperties>,
 }
 
+impl Entity for MailboxProperties {
+	fn type_ref() -> TypeRef {
+		TypeRef { app: "tutanota".to_owned(), type_: "MailboxProperties".to_owned() }
+	}
+}
+
+
+#[derive(Deserialize)]
 pub struct MailboxServerProperties {
-	pub _format: String,
+	pub _format: i64,
 	pub _id: Id,
-	pub _ownerGroup: Id,
+	pub _ownerGroup: Option<Id>,
 	pub _permissions: Id,
 	pub whitelistProtectionEnabled: bool,
 }
 
+impl Entity for MailboxServerProperties {
+	fn type_ref() -> TypeRef {
+		TypeRef { app: "tutanota".to_owned(), type_: "MailboxServerProperties".to_owned() }
+	}
+}
+
+
+#[derive(Deserialize)]
 pub struct MoveMailData {
-	pub _format: String,
+	pub _format: i64,
 	pub mails: Vec<IdTuple>,
 	pub targetFolder: IdTuple,
 }
 
+impl Entity for MoveMailData {
+	fn type_ref() -> TypeRef {
+		TypeRef { app: "tutanota".to_owned(), type_: "MoveMailData".to_owned() }
+	}
+}
+
+
+#[derive(Deserialize)]
 pub struct NewDraftAttachment {
 	pub _id: Id,
-	pub encCid: Vec<u8>,
+	pub encCid: Option<Vec<u8>>,
 	pub encFileName: Vec<u8>,
 	pub encMimeType: Vec<u8>,
 	pub referenceTokens: Vec<sys::BlobReferenceTokenWrapper>,
 }
 
+impl Entity for NewDraftAttachment {
+	fn type_ref() -> TypeRef {
+		TypeRef { app: "tutanota".to_owned(), type_: "NewDraftAttachment".to_owned() }
+	}
+}
+
+
+#[derive(Deserialize)]
 pub struct NewsId {
 	pub _id: Id,
 	pub newsItemId: Id,
 	pub newsItemName: String,
 }
 
-pub struct NewsIn {
-	pub _format: String,
-	pub newsItemId: Id,
+impl Entity for NewsId {
+	fn type_ref() -> TypeRef {
+		TypeRef { app: "tutanota".to_owned(), type_: "NewsId".to_owned() }
+	}
 }
 
+
+#[derive(Deserialize)]
+pub struct NewsIn {
+	pub _format: i64,
+	pub newsItemId: Option<Id>,
+}
+
+impl Entity for NewsIn {
+	fn type_ref() -> TypeRef {
+		TypeRef { app: "tutanota".to_owned(), type_: "NewsIn".to_owned() }
+	}
+}
+
+
+#[derive(Deserialize)]
 pub struct NewsOut {
-	pub _format: String,
+	pub _format: i64,
 	pub newsItemIds: Vec<NewsId>,
 }
 
+impl Entity for NewsOut {
+	fn type_ref() -> TypeRef {
+		TypeRef { app: "tutanota".to_owned(), type_: "NewsOut".to_owned() }
+	}
+}
+
+
+#[derive(Deserialize)]
 pub struct NotificationMail {
 	pub _id: Id,
 	pub bodyText: String,
@@ -804,72 +1486,168 @@ pub struct NotificationMail {
 	pub subject: String,
 }
 
+impl Entity for NotificationMail {
+	fn type_ref() -> TypeRef {
+		TypeRef { app: "tutanota".to_owned(), type_: "NotificationMail".to_owned() }
+	}
+}
+
+
+#[derive(Deserialize)]
 pub struct OutOfOfficeNotification {
-	pub _format: String,
+	pub _format: i64,
 	pub _id: Id,
-	pub _ownerGroup: Id,
+	pub _ownerGroup: Option<Id>,
 	pub _permissions: Id,
 	pub enabled: bool,
-	pub endDate: Date,
-	pub startDate: Date,
+	pub endDate: Option<Date>,
+	pub startDate: Option<Date>,
 	pub notifications: Vec<OutOfOfficeNotificationMessage>,
 }
 
+impl Entity for OutOfOfficeNotification {
+	fn type_ref() -> TypeRef {
+		TypeRef { app: "tutanota".to_owned(), type_: "OutOfOfficeNotification".to_owned() }
+	}
+}
+
+
+#[derive(Deserialize)]
 pub struct OutOfOfficeNotificationMessage {
 	pub _id: Id,
 	pub message: String,
 	pub subject: String,
 	#[serde(rename = "type")]
-	pub r#type: String,
+	pub r#type: i64,
 }
 
+impl Entity for OutOfOfficeNotificationMessage {
+	fn type_ref() -> TypeRef {
+		TypeRef { app: "tutanota".to_owned(), type_: "OutOfOfficeNotificationMessage".to_owned() }
+	}
+}
+
+
+#[derive(Deserialize)]
 pub struct OutOfOfficeNotificationRecipientList {
 	pub _id: Id,
 	pub list: Id,
 }
 
-pub struct PasswordAutoAuthenticationReturn {
-	pub _format: String,
+impl Entity for OutOfOfficeNotificationRecipientList {
+	fn type_ref() -> TypeRef {
+		TypeRef { app: "tutanota".to_owned(), type_: "OutOfOfficeNotificationRecipientList".to_owned() }
+	}
 }
 
+
+#[derive(Deserialize)]
+pub struct PasswordAutoAuthenticationReturn {
+	pub _format: i64,
+}
+
+impl Entity for PasswordAutoAuthenticationReturn {
+	fn type_ref() -> TypeRef {
+		TypeRef { app: "tutanota".to_owned(), type_: "PasswordAutoAuthenticationReturn".to_owned() }
+	}
+}
+
+
+#[derive(Deserialize)]
 pub struct PasswordChannelPhoneNumber {
 	pub _id: Id,
 	pub number: String,
 }
 
+impl Entity for PasswordChannelPhoneNumber {
+	fn type_ref() -> TypeRef {
+		TypeRef { app: "tutanota".to_owned(), type_: "PasswordChannelPhoneNumber".to_owned() }
+	}
+}
+
+
+#[derive(Deserialize)]
 pub struct PasswordChannelReturn {
-	pub _format: String,
+	pub _format: i64,
 	pub phoneNumberChannels: Vec<PasswordChannelPhoneNumber>,
 }
 
+impl Entity for PasswordChannelReturn {
+	fn type_ref() -> TypeRef {
+		TypeRef { app: "tutanota".to_owned(), type_: "PasswordChannelReturn".to_owned() }
+	}
+}
+
+
+#[derive(Deserialize)]
 pub struct PasswordMessagingData {
-	pub _format: String,
+	pub _format: i64,
 	pub language: String,
 	pub numberId: Id,
 	pub symKeyForPasswordTransmission: Vec<u8>,
 }
 
+impl Entity for PasswordMessagingData {
+	fn type_ref() -> TypeRef {
+		TypeRef { app: "tutanota".to_owned(), type_: "PasswordMessagingData".to_owned() }
+	}
+}
+
+
+#[derive(Deserialize)]
 pub struct PasswordMessagingReturn {
-	pub _format: String,
+	pub _format: i64,
 	pub autoAuthenticationId: Id,
 }
 
+impl Entity for PasswordMessagingReturn {
+	fn type_ref() -> TypeRef {
+		TypeRef { app: "tutanota".to_owned(), type_: "PasswordMessagingReturn".to_owned() }
+	}
+}
+
+
+#[derive(Deserialize)]
 pub struct PhishingMarkerWebsocketData {
-	pub _format: String,
+	pub _format: i64,
 	pub lastId: Id,
 	pub markers: Vec<ReportedMailFieldMarker>,
 }
 
+impl Entity for PhishingMarkerWebsocketData {
+	fn type_ref() -> TypeRef {
+		TypeRef { app: "tutanota".to_owned(), type_: "PhishingMarkerWebsocketData".to_owned() }
+	}
+}
+
+
+#[derive(Deserialize)]
 pub struct PhotosRef {
 	pub _id: Id,
 	pub files: Id,
 }
 
+impl Entity for PhotosRef {
+	fn type_ref() -> TypeRef {
+		TypeRef { app: "tutanota".to_owned(), type_: "PhotosRef".to_owned() }
+	}
+}
+
+
+#[derive(Deserialize)]
 pub struct ReceiveInfoServiceData {
-	pub _format: String,
+	pub _format: i64,
 	pub language: String,
 }
 
+impl Entity for ReceiveInfoServiceData {
+	fn type_ref() -> TypeRef {
+		TypeRef { app: "tutanota".to_owned(), type_: "ReceiveInfoServiceData".to_owned() }
+	}
+}
+
+
+#[derive(Deserialize)]
 pub struct Recipients {
 	pub _id: Id,
 	pub bccRecipients: Vec<MailAddress>,
@@ -877,51 +1655,91 @@ pub struct Recipients {
 	pub toRecipients: Vec<MailAddress>,
 }
 
+impl Entity for Recipients {
+	fn type_ref() -> TypeRef {
+		TypeRef { app: "tutanota".to_owned(), type_: "Recipients".to_owned() }
+	}
+}
+
+
+#[derive(Deserialize)]
 pub struct RemoteImapSyncInfo {
-	pub _format: String,
+	pub _format: i64,
 	pub _id: IdTuple,
-	pub _ownerGroup: Id,
+	pub _ownerGroup: Option<Id>,
 	pub _permissions: Id,
 	pub seen: bool,
 	pub message: IdTuple,
 }
 
+impl Entity for RemoteImapSyncInfo {
+	fn type_ref() -> TypeRef {
+		TypeRef { app: "tutanota".to_owned(), type_: "RemoteImapSyncInfo".to_owned() }
+	}
+}
+
+
+#[derive(Deserialize)]
 pub struct ReportMailPostData {
-	pub _format: String,
+	pub _format: i64,
 	pub mailSessionKey: Vec<u8>,
-	pub reportType: String,
+	pub reportType: i64,
 	pub mailId: IdTuple,
 }
 
+impl Entity for ReportMailPostData {
+	fn type_ref() -> TypeRef {
+		TypeRef { app: "tutanota".to_owned(), type_: "ReportMailPostData".to_owned() }
+	}
+}
+
+
+#[derive(Deserialize)]
 pub struct ReportedMailFieldMarker {
 	pub _id: Id,
 	pub marker: String,
-	pub status: String,
+	pub status: i64,
 }
 
+impl Entity for ReportedMailFieldMarker {
+	fn type_ref() -> TypeRef {
+		TypeRef { app: "tutanota".to_owned(), type_: "ReportedMailFieldMarker".to_owned() }
+	}
+}
+
+
+#[derive(Deserialize)]
 pub struct SecureExternalRecipientKeyData {
 	pub _id: Id,
-	pub autoTransmitPassword: String,
-	pub kdfVersion: String,
+	pub autoTransmitPassword: Option<String>,
+	pub kdfVersion: i64,
 	pub mailAddress: String,
 	pub ownerEncBucketKey: Vec<u8>,
-	pub ownerKeyVersion: String,
+	pub ownerKeyVersion: i64,
 	pub passwordVerifier: Vec<u8>,
-	pub pwEncCommunicationKey: Vec<u8>,
-	pub salt: Vec<u8>,
-	pub saltHash: Vec<u8>,
+	pub pwEncCommunicationKey: Option<Vec<u8>>,
+	pub salt: Option<Vec<u8>>,
+	pub saltHash: Option<Vec<u8>>,
 	pub passwordChannelPhoneNumbers: Vec<PasswordChannelPhoneNumber>,
 }
 
+impl Entity for SecureExternalRecipientKeyData {
+	fn type_ref() -> TypeRef {
+		TypeRef { app: "tutanota".to_owned(), type_: "SecureExternalRecipientKeyData".to_owned() }
+	}
+}
+
+
+#[derive(Deserialize)]
 pub struct SendDraftData {
-	pub _format: String,
-	pub bucketEncMailSessionKey: Vec<u8>,
+	pub _format: i64,
+	pub bucketEncMailSessionKey: Option<Vec<u8>>,
 	pub calendarMethod: bool,
 	pub language: String,
-	pub mailSessionKey: Vec<u8>,
+	pub mailSessionKey: Option<Vec<u8>>,
 	pub plaintext: bool,
-	pub senderNameUnencrypted: String,
-	pub sessionEncEncryptionAuthStatus: Vec<u8>,
+	pub senderNameUnencrypted: Option<String>,
+	pub sessionEncEncryptionAuthStatus: Option<Vec<u8>>,
 	pub attachmentKeyData: Vec<AttachmentKeyData>,
 	pub internalRecipientKeyData: Vec<InternalRecipientKeyData>,
 	pub mail: IdTuple,
@@ -929,112 +1747,208 @@ pub struct SendDraftData {
 	pub symEncInternalRecipientKeyData: Vec<SymEncInternalRecipientKeyData>,
 }
 
+impl Entity for SendDraftData {
+	fn type_ref() -> TypeRef {
+		TypeRef { app: "tutanota".to_owned(), type_: "SendDraftData".to_owned() }
+	}
+}
+
+
+#[derive(Deserialize)]
 pub struct SendDraftReturn {
-	pub _format: String,
+	pub _format: i64,
 	pub messageId: String,
 	pub sentDate: Date,
 	pub notifications: Vec<NotificationMail>,
 	pub sentMail: IdTuple,
 }
 
+impl Entity for SendDraftReturn {
+	fn type_ref() -> TypeRef {
+		TypeRef { app: "tutanota".to_owned(), type_: "SendDraftReturn".to_owned() }
+	}
+}
+
+
+#[derive(Deserialize)]
 pub struct SharedGroupData {
 	pub _id: Id,
 	pub bucketEncInvitationSessionKey: Vec<u8>,
-	pub capability: String,
+	pub capability: i64,
 	pub sessionEncInviterName: Vec<u8>,
 	pub sessionEncSharedGroupKey: Vec<u8>,
 	pub sessionEncSharedGroupName: Vec<u8>,
 	pub sharedGroup: Id,
 	pub sharedGroupEncInviterGroupInfoKey: Vec<u8>,
 	pub sharedGroupEncSharedGroupInfoKey: Vec<u8>,
-	pub sharedGroupKeyVersion: String,
+	pub sharedGroupKeyVersion: i64,
 }
 
+impl Entity for SharedGroupData {
+	fn type_ref() -> TypeRef {
+		TypeRef { app: "tutanota".to_owned(), type_: "SharedGroupData".to_owned() }
+	}
+}
+
+
+#[derive(Deserialize)]
 pub struct SpamResults {
 	pub _id: Id,
 	pub list: Id,
 }
 
+impl Entity for SpamResults {
+	fn type_ref() -> TypeRef {
+		TypeRef { app: "tutanota".to_owned(), type_: "SpamResults".to_owned() }
+	}
+}
+
+
+#[derive(Deserialize)]
 pub struct Subfiles {
 	pub _id: Id,
 	pub files: Id,
 }
 
+impl Entity for Subfiles {
+	fn type_ref() -> TypeRef {
+		TypeRef { app: "tutanota".to_owned(), type_: "Subfiles".to_owned() }
+	}
+}
+
+
+#[derive(Deserialize)]
 pub struct SymEncInternalRecipientKeyData {
 	pub _id: Id,
 	pub mailAddress: String,
 	pub symEncBucketKey: Vec<u8>,
-	pub symKeyVersion: String,
+	pub symKeyVersion: i64,
 	pub keyGroup: Id,
 }
 
+impl Entity for SymEncInternalRecipientKeyData {
+	fn type_ref() -> TypeRef {
+		TypeRef { app: "tutanota".to_owned(), type_: "SymEncInternalRecipientKeyData".to_owned() }
+	}
+}
+
+
+#[derive(Deserialize)]
 pub struct TemplateGroupRoot {
-	pub _format: String,
+	pub _format: i64,
 	pub _id: Id,
-	pub _ownerEncSessionKey: Vec<u8>,
-	pub _ownerGroup: Id,
-	pub _ownerKeyVersion: String,
+	pub _ownerEncSessionKey: Option<Vec<u8>>,
+	pub _ownerGroup: Option<Id>,
+	pub _ownerKeyVersion: Option<i64>,
 	pub _permissions: Id,
 	pub knowledgeBase: Id,
 	pub templates: Id,
 }
 
+impl Entity for TemplateGroupRoot {
+	fn type_ref() -> TypeRef {
+		TypeRef { app: "tutanota".to_owned(), type_: "TemplateGroupRoot".to_owned() }
+	}
+}
+
+
+#[derive(Deserialize)]
 pub struct TranslationGetIn {
-	pub _format: String,
+	pub _format: i64,
 	pub lang: String,
 }
 
+impl Entity for TranslationGetIn {
+	fn type_ref() -> TypeRef {
+		TypeRef { app: "tutanota".to_owned(), type_: "TranslationGetIn".to_owned() }
+	}
+}
+
+
+#[derive(Deserialize)]
 pub struct TranslationGetOut {
-	pub _format: String,
+	pub _format: i64,
 	pub giftCardSubject: String,
 	pub invitationSubject: String,
 }
 
+impl Entity for TranslationGetOut {
+	fn type_ref() -> TypeRef {
+		TypeRef { app: "tutanota".to_owned(), type_: "TranslationGetOut".to_owned() }
+	}
+}
+
+
+#[derive(Deserialize)]
 pub struct TutanotaProperties {
-	pub _format: String,
+	pub _format: i64,
 	pub _id: Id,
-	pub _ownerEncSessionKey: Vec<u8>,
-	pub _ownerGroup: Id,
-	pub _ownerKeyVersion: String,
+	pub _ownerEncSessionKey: Option<Vec<u8>>,
+	pub _ownerGroup: Option<Id>,
+	pub _ownerKeyVersion: Option<i64>,
 	pub _permissions: Id,
 	pub customEmailSignature: String,
-	pub defaultSender: String,
+	pub defaultSender: Option<String>,
 	pub defaultUnconfidential: bool,
-	pub emailSignatureType: String,
-	pub lastSeenAnnouncement: String,
+	pub emailSignatureType: i64,
+	pub lastSeenAnnouncement: i64,
 	pub noAutomaticContacts: bool,
-	pub notificationMailLanguage: String,
+	pub notificationMailLanguage: Option<String>,
 	pub sendPlaintextOnly: bool,
-	pub userEncEntropy: Vec<u8>,
-	pub userKeyVersion: String,
+	pub userEncEntropy: Option<Vec<u8>>,
+	pub userKeyVersion: Option<i64>,
 	pub imapSyncConfig: Vec<ImapSyncConfiguration>,
 	pub inboxRules: Vec<InboxRule>,
 	pub lastPushedMail: Option<IdTuple>,
 }
 
+impl Entity for TutanotaProperties {
+	fn type_ref() -> TypeRef {
+		TypeRef { app: "tutanota".to_owned(), type_: "TutanotaProperties".to_owned() }
+	}
+}
+
+
+#[derive(Deserialize)]
 pub struct UpdateMailFolderData {
-	pub _format: String,
+	pub _format: i64,
 	pub folder: IdTuple,
 	pub newParent: Option<IdTuple>,
 }
 
+impl Entity for UpdateMailFolderData {
+	fn type_ref() -> TypeRef {
+		TypeRef { app: "tutanota".to_owned(), type_: "UpdateMailFolderData".to_owned() }
+	}
+}
+
+
+#[derive(Deserialize)]
 pub struct UserAccountCreateData {
-	pub _format: String,
-	pub date: Date,
+	pub _format: i64,
+	pub date: Option<Date>,
 	pub userData: UserAccountUserData,
 	pub userGroupData: InternalGroupData,
 }
 
+impl Entity for UserAccountCreateData {
+	fn type_ref() -> TypeRef {
+		TypeRef { app: "tutanota".to_owned(), type_: "UserAccountCreateData".to_owned() }
+	}
+}
+
+
+#[derive(Deserialize)]
 pub struct UserAccountUserData {
 	pub _id: Id,
 	pub contactEncContactListSessionKey: Vec<u8>,
 	pub customerEncContactGroupInfoSessionKey: Vec<u8>,
 	pub customerEncFileGroupInfoSessionKey: Vec<u8>,
 	pub customerEncMailGroupInfoSessionKey: Vec<u8>,
-	pub customerKeyVersion: String,
+	pub customerKeyVersion: i64,
 	pub encryptedName: Vec<u8>,
 	pub fileEncFileSystemSessionKey: Vec<u8>,
-	pub kdfVersion: String,
+	pub kdfVersion: i64,
 	pub mailAddress: String,
 	pub mailEncMailBoxSessionKey: Vec<u8>,
 	pub pwEncUserGroupKey: Vec<u8>,
@@ -1051,38 +1965,76 @@ pub struct UserAccountUserData {
 	pub verifier: Vec<u8>,
 }
 
+impl Entity for UserAccountUserData {
+	fn type_ref() -> TypeRef {
+		TypeRef { app: "tutanota".to_owned(), type_: "UserAccountUserData".to_owned() }
+	}
+}
+
+
+#[derive(Deserialize)]
 pub struct UserAreaGroupData {
 	pub _id: Id,
-	pub adminEncGroupKey: Vec<u8>,
-	pub adminKeyVersion: String,
+	pub adminEncGroupKey: Option<Vec<u8>>,
+	pub adminKeyVersion: Option<i64>,
 	pub customerEncGroupInfoSessionKey: Vec<u8>,
-	pub customerKeyVersion: String,
+	pub customerKeyVersion: i64,
 	pub groupEncGroupRootSessionKey: Vec<u8>,
 	pub groupInfoEncName: Vec<u8>,
 	pub userEncGroupKey: Vec<u8>,
-	pub userKeyVersion: String,
+	pub userKeyVersion: i64,
 	pub adminGroup: Option<Id>,
 }
 
+impl Entity for UserAreaGroupData {
+	fn type_ref() -> TypeRef {
+		TypeRef { app: "tutanota".to_owned(), type_: "UserAreaGroupData".to_owned() }
+	}
+}
+
+
+#[derive(Deserialize)]
 pub struct UserAreaGroupDeleteData {
-	pub _format: String,
+	pub _format: i64,
 	pub group: Id,
 }
 
+impl Entity for UserAreaGroupDeleteData {
+	fn type_ref() -> TypeRef {
+		TypeRef { app: "tutanota".to_owned(), type_: "UserAreaGroupDeleteData".to_owned() }
+	}
+}
+
+
+#[derive(Deserialize)]
 pub struct UserAreaGroupPostData {
-	pub _format: String,
+	pub _format: i64,
 	pub groupData: UserAreaGroupData,
 }
 
+impl Entity for UserAreaGroupPostData {
+	fn type_ref() -> TypeRef {
+		TypeRef { app: "tutanota".to_owned(), type_: "UserAreaGroupPostData".to_owned() }
+	}
+}
+
+
+#[derive(Deserialize)]
 pub struct UserSettingsGroupRoot {
-	pub _format: String,
+	pub _format: i64,
 	pub _id: Id,
-	pub _ownerEncSessionKey: Vec<u8>,
-	pub _ownerGroup: Id,
-	pub _ownerKeyVersion: String,
+	pub _ownerEncSessionKey: Option<Vec<u8>>,
+	pub _ownerGroup: Option<Id>,
+	pub _ownerKeyVersion: Option<i64>,
 	pub _permissions: Id,
-	pub startOfTheWeek: String,
-	pub timeFormat: String,
-	pub usageDataOptedIn: bool,
+	pub startOfTheWeek: i64,
+	pub timeFormat: i64,
+	pub usageDataOptedIn: Option<bool>,
 	pub groupSettings: Vec<GroupSettings>,
+}
+
+impl Entity for UserSettingsGroupRoot {
+	fn type_ref() -> TypeRef {
+		TypeRef { app: "tutanota".to_owned(), type_: "UserSettingsGroupRoot".to_owned() }
+	}
 }
