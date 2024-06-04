@@ -1,13 +1,80 @@
 use zeroize::*;
 
-#[derive(Zeroize, ZeroizeOnDrop)]
-pub struct EccPrivateKey([u8; 32]);
+const ECC_KEY_SIZE: usize = 32;
 
-#[derive(Zeroize, ZeroizeOnDrop)]
+#[derive(ZeroizeOnDrop, Clone)]
+pub struct EccPrivateKey([u8; ECC_KEY_SIZE]);
+
+impl EccPrivateKey {
+    /// Get a reference to the underlying bytes.
+    pub fn as_bytes(&self) -> &[u8] {
+        self.0.as_slice()
+    }
+
+    /// Calculate the public key for this private key.
+    pub fn calculate_public_key(&self) -> EccPublicKey {
+        use curve25519_dalek::Scalar;
+        use curve25519_dalek::montgomery::MontgomeryPoint;
+
+        // public key = private key * base point
+        let public_key = Zeroizing::new(
+            MontgomeryPoint::mul_base(&*Zeroizing::new(Scalar::from_bytes_mod_order(self.0)))
+        );
+
+        EccPublicKey(public_key.0)
+    }
+
+    /// Attempt to convert a slice of bytes into an ECC key.
+    ///
+    /// Returns `Err` on failure.
+    pub fn from_bytes(bytes: &[u8]) -> Result<Self, EccKeyError> {
+        match bytes.len() {
+            ECC_KEY_SIZE => Ok(Self(bytes.try_into().unwrap())),
+            actual_size => Err(EccKeyError { actual_size })
+        }
+    }
+}
+
+#[derive(ZeroizeOnDrop, Clone)]
 pub struct EccPublicKey([u8; 32]);
+
+pub struct EccKeyPair {
+    pub public_key: EccPublicKey,
+    pub private_key: EccPrivateKey,
+}
+
+impl EccPublicKey {
+    /// Get a reference to the underlying bytes.
+    pub fn as_bytes(&self) -> &[u8] {
+        self.0.as_slice()
+    }
+
+    /// Attempt to convert a slice of bytes into an ECC key.
+    ///
+    /// Returns `Err` on failure.
+    pub fn from_bytes(bytes: &[u8]) -> Result<Self, EccKeyError> {
+        match bytes.len() {
+            ECC_KEY_SIZE => Ok(Self(bytes.try_into().unwrap())),
+            actual_size => Err(EccKeyError { actual_size })
+        }
+    }
+}
 
 #[derive(Zeroize, ZeroizeOnDrop)]
 pub struct EccSharedSecret([u8; 32]);
+
+impl EccSharedSecret {
+    pub fn as_bytes(&self) -> &[u8] {
+        self.0.as_slice()
+    }
+}
+
+/// The possible errors that can occur while casting to a `EccSharedSecret`
+#[derive(thiserror::Error, Debug)]
+#[error("Invalid ECC key size: {actual_size}")]
+pub struct EccKeyError {
+    actual_size: usize,
+}
 
 /// Describes shared secrets for encrypting/decrypting a message and verifying authenticity.
 pub struct EccSharedSecrets {
@@ -57,6 +124,10 @@ mod tests {
             let ephemeral_public_key = EccPublicKey(i.ephemeral_public_key_hex.try_into().unwrap());
             let bob_private_key = EccPrivateKey(i.bob_private_key_hex.try_into().unwrap());
             let bob_public_key = EccPublicKey(i.bob_public_key_hex.try_into().unwrap());
+
+            assert_eq!(alice_public_key.0, alice_private_key.calculate_public_key().0);
+            assert_eq!(ephemeral_public_key.0, ephemeral_private_key.calculate_public_key().0);
+            assert_eq!(bob_public_key.0, bob_private_key.calculate_public_key().0);
 
             let ephemeral_secret = EccSharedSecret(i.ephemeral_shared_secret_hex.try_into().unwrap());
             let auth_secret = EccSharedSecret(i.auth_shared_secret_hex.try_into().unwrap());

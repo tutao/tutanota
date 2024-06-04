@@ -112,6 +112,29 @@ pub struct RSAEncryptionTest {
 
 #[derive(Deserialize)]
 #[serde(rename_all = "camelCase")]
+pub struct PQCryptEncryptionTest {
+    #[serde(with = "const_hex")]
+    pub private_kyber_key: Vec<u8>,
+    #[serde(with = "const_hex")]
+    pub public_kyber_key: Vec<u8>,
+    #[serde(with = "const_hex")]
+    pub public_x25519_key: Vec<u8>,
+    #[serde(with = "const_hex")]
+    pub private_x25519_key: Vec<u8>,
+    #[serde(with = "const_hex")]
+    pub epheremal_public_x25519_key: Vec<u8>, // note: misspelling of "ephemeral"
+    #[serde(with = "const_hex")]
+    pub epheremal_private_x25519_key: Vec<u8>, // note: misspelling of "ephemeral"
+    #[serde(with = "const_hex")]
+    pub pq_message: Vec<u8>,
+    #[serde(with = "const_hex")]
+    pub seed: Vec<u8>,
+    #[serde(with = "const_hex")]
+    pub bucket_key: Vec<u8>,
+}
+
+#[derive(Deserialize)]
+#[serde(rename_all = "camelCase")]
 pub struct CompatibilityTestData {
     pub aes128_tests: Vec<AesTest>,
     pub aes128_mac_tests: Vec<Aes128MacTest>,
@@ -120,7 +143,8 @@ pub struct CompatibilityTestData {
     pub argon2id_tests: Vec<Argon2Test>,
     pub x25519_tests: Vec<X25519Test>,
     pub kyber_encryption_tests: Vec<KyberEncryptionTest>,
-    pub rsa_encryption_tests: Vec<RSAEncryptionTest>
+    pub rsa_encryption_tests: Vec<RSAEncryptionTest>,
+    pub pqcrypt_encryption_tests: Vec<PQCryptEncryptionTest>
 }
 
 struct Base64;

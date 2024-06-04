@@ -10,6 +10,7 @@ mod argon2_id;
 mod ecc;
 mod kyber;
 mod rsa;
+mod tuta_crypt;
 
 #[cfg(test)]
 mod compatibility_test_utils;
