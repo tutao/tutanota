@@ -1,7 +1,7 @@
 //! Contains code to handle Kyber-1024 encapsulation and decapsulation.
 
 use pqcrypto_kyber::{kyber1024_decapsulate, kyber1024_encapsulate};
-use zeroize::{Zeroize, ZeroizeOnDrop};
+use zeroize::{Zeroize, ZeroizeOnDrop, Zeroizing};
 use crate::util::{decode_byte_arrays, encode_byte_arrays};
 use crate::join_slices;
 
@@ -46,10 +46,9 @@ impl KyberPublicKey {
             return Err(KyberKeyError { reason: "rho length is incorrect".to_owned() });
         }
 
-        let mut key_data = join_slices!(t, rho);
+        let key_data = Zeroizing::new(join_slices!(t, rho));
         let public_key = PQCryptoKyber1024PublicKey::from_bytes(key_data.as_slice()).
             map_err(|reason| KyberKeyError { reason: format!("kyber API error: {reason}") })?;
-        key_data.zeroize();
 
         Ok(Self { public_key })
     }
@@ -106,10 +105,9 @@ impl KyberPrivateKey {
         }
 
         // IMPORTANT: We have to reorder the components, since the byte array order is not the same as liboqs's order.
-        let mut key_data = join_slices!(s, t, rho, hpk, nonce);
+        let key_data = Zeroizing::new(join_slices!(s, t, rho, hpk, nonce));
         let private_key = PQCryptoKyber1024SecretKey::from_bytes(&key_data)
             .map_err(|reason| KyberKeyError { reason: format!("kyber API error: {reason}") })?;
-        key_data.zeroize();
 
         Ok(Self { private_key })
     }

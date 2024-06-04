@@ -2,7 +2,7 @@ use rsa::{BigUint, Oaep};
 use rsa::rand_core::CryptoRngCore;
 use rsa::traits::{PrivateKeyParts, PublicKeyParts};
 use sha2::Sha256;
-use zeroize::{Zeroize, ZeroizeOnDrop};
+use zeroize::Zeroizing;
 use crate::join_slices;
 
 pub struct RSAPublicKey(rsa::RsaPublicKey);
@@ -31,9 +31,8 @@ impl RSAPublicKey {
 
     /// Convert to encoded form.
     pub fn serialize(&self) -> Vec<u8> {
-        let mut modulus = self.0.n().to_bytes_be();
+        let modulus = Zeroizing::new(self.0.n().to_bytes_be());
         let encoded = encode_nibble_arrays(&[modulus.as_slice()]).unwrap();
-        modulus.zeroize();
         encoded
     }
 
@@ -70,15 +69,47 @@ impl RSAPrivateKey {
 
     /// Convert to encoded form.
     pub fn serialize(&self) -> Vec<u8> {
-        let calculated = RSAFields::calculate(&self.0);
+        let one = BigUint::new(vec![1]);
+        let crt_coefficient = self.0.crt_coefficient().unwrap();
+        let [prime_p, prime_q] = self.0.primes() else { unreachable!() };
+        let modulus = self.0.n();
+        let private_exponent = self.0.d();
+
+        // Note: We have to store p-1 and q-1 to ensure we zeroize them later
+        let p1 = Zeroizing::new(prime_p - &one);
+        let q1 = Zeroizing::new(prime_q - &one);
+        let exponent_p = Zeroizing::new(private_exponent % &*p1);
+        let exponent_q = Zeroizing::new(private_exponent % &*q1);
+
+        // For efficiently padding to 256 bytes
+        let mut zeroes = Vec::with_capacity(256);
+        let mut resize = |bytes: Vec<u8>| -> Vec<u8> {
+            if bytes.len() < 256 {
+                let bytes = Zeroizing::new(bytes);
+                zeroes.resize(256 - bytes.len(), 0); // resize the same byte array so we don't have to re-allocate
+                let new_val = join_slices!(&zeroes, bytes.as_slice());
+                new_val
+            } else {
+                bytes
+            }
+        };
+
+        let modulus_bytes = Zeroizing::new(modulus.to_bytes_be());
+        let private_exponent_bytes = Zeroizing::new(private_exponent.to_bytes_be());
+        let prime_p_bytes = Zeroizing::new(resize(prime_p.to_bytes_be()));
+        let prime_q_bytes = Zeroizing::new(resize(prime_q.to_bytes_be()));
+        let exponent_p_bytes = Zeroizing::new(resize(exponent_p.to_bytes_be()));
+        let exponent_q_bytes = Zeroizing::new(resize(exponent_q.to_bytes_be()));
+        let crt_coefficient_bytes = Zeroizing::new(resize(crt_coefficient.to_bytes_be()));
+
         encode_nibble_arrays(&[
-            calculated.modulus_bytes.as_slice(),
-            calculated.private_exponent_bytes.as_slice(),
-            calculated.prime_p_bytes.as_slice(),
-            calculated.prime_q_bytes.as_slice(),
-            calculated.exponent_p_bytes.as_slice(),
-            calculated.exponent_q_bytes.as_slice(),
-            calculated.crt_coefficient_bytes.as_slice()
+            modulus_bytes.as_slice(),
+            private_exponent_bytes.as_slice(),
+            prime_p_bytes.as_slice(),
+            prime_q_bytes.as_slice(),
+            exponent_p_bytes.as_slice(),
+            exponent_q_bytes.as_slice(),
+            crt_coefficient_bytes.as_slice()
         ]).unwrap()
     }
 
@@ -167,77 +198,6 @@ pub struct RSAKeyError {
 #[error("RSA error: {reason}")]
 pub struct RSAEncryptionError {
     reason: String
-}
-
-/// Required for serializing to maintain compatibility with tutanota's javascript RSA.
-///
-/// This contains all values to allow it to be zeroized on drop efficiently.
-#[derive(Zeroize, ZeroizeOnDrop)]
-struct RSAFields {
-    p1: BigUint,
-    q1: BigUint,
-    exponent_p: BigUint,
-    exponent_q: BigUint,
-    crt_coefficient: BigUint,
-
-    modulus_bytes: Vec<u8>,
-    private_exponent_bytes: Vec<u8>,
-    prime_p_bytes: Vec<u8>,
-    prime_q_bytes: Vec<u8>,
-    exponent_p_bytes: Vec<u8>,
-    exponent_q_bytes: Vec<u8>,
-    crt_coefficient_bytes: Vec<u8>,
-}
-impl RSAFields {
-    fn calculate(key: &rsa::RsaPrivateKey) -> Self {
-        let one = BigUint::new(vec![1]);
-        let crt_coefficient = key.crt_coefficient().unwrap();
-        let [prime_p, prime_q] = key.primes() else { unreachable!() };
-        let modulus = key.n();
-        let private_exponent = key.d();
-
-        // Note: We have to store p-1 and q-1 to ensure we zeroize them later
-        let p1 = prime_p - &one;
-        let q1 = prime_q - &one;
-        let exponent_p = private_exponent % &p1;
-        let exponent_q = private_exponent % &q1;
-
-        // For efficiently padding to 256 bytes
-        let mut zeroes = Vec::with_capacity(256);
-        let mut resize = |mut bytes: Vec<u8>| -> Vec<u8> {
-            if bytes.len() < 256 {
-                zeroes.resize(256 - bytes.len(), 0); // resize the same byte array so we don't have to re-allocate
-                let new_val = join_slices!(&zeroes, bytes.as_slice());
-                bytes.zeroize();
-                new_val
-            } else {
-                bytes
-            }
-        };
-
-        let modulus_bytes = modulus.to_bytes_be();
-        let private_exponent_bytes = private_exponent.to_bytes_be();
-        let prime_p_bytes = resize(prime_p.to_bytes_be());
-        let prime_q_bytes = resize(prime_q.to_bytes_be());
-        let exponent_p_bytes = resize(exponent_p.to_bytes_be());
-        let exponent_q_bytes = resize(exponent_q.to_bytes_be());
-        let crt_coefficient_bytes = resize(crt_coefficient.to_bytes_be());
-
-        Self {
-            p1,
-            q1,
-            exponent_p,
-            exponent_q,
-            crt_coefficient,
-            modulus_bytes,
-            private_exponent_bytes,
-            prime_p_bytes,
-            prime_q_bytes,
-            exponent_p_bytes,
-            exponent_q_bytes,
-            crt_coefficient_bytes,
-        }
-    }
 }
 
 #[cfg(test)]
