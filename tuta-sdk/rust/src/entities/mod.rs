@@ -12,6 +12,11 @@ pub(crate) mod usage;
 pub type Id = String;
 
 pub use crate::IdTuple;
+use crate::TypeRef;
 
 // TODO we should see if it's a good idea
 pub type Date = Duration;
+
+pub trait Entity {
+    fn type_ref() -> TypeRef;
+}
