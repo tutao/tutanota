@@ -158,12 +158,22 @@ pub struct AesKeyError {
     actual_size: usize,
 }
 
+/// The possible errors that can occur while casting to a `Iv`
+#[derive(thiserror::Error, Debug)]
+#[error("Invalid IV size: {actual_size}")]
+pub struct IvError {
+    actual_size: usize,
+}
+
 /// An initialisation vector for AES encryption
 pub struct Iv([u8; IV_BYTE_SIZE]);
 
 impl Iv {
-    pub fn from_bytes(bytes: [u8; IV_BYTE_SIZE]) -> Self {
-        Self(bytes)
+    pub fn from_bytes(bytes: &[u8]) -> Result<Self, IvError> {
+        match bytes.len() {
+            IV_BYTE_SIZE => Ok(Self(bytes.try_into().unwrap())),
+            actual_size => Err(IvError { actual_size })
+        }
     }
 
     fn from_slice(slice: &[u8]) -> Option<Self> {
