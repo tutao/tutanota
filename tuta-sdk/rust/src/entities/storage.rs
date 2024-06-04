@@ -1,8 +1,8 @@
 #![allow(non_snake_case)]
 use super::*;
-use serde::{Deserialize};
+use serde::{Serialize, Deserialize};
 
-#[derive(Deserialize)]
+#[derive(Clone, Serialize, Deserialize)]
 pub struct BlobAccessTokenPostIn {
 	pub _format: i64,
 	pub archiveDataType: Option<i64>,
@@ -17,7 +17,7 @@ impl Entity for BlobAccessTokenPostIn {
 }
 
 
-#[derive(Deserialize)]
+#[derive(Clone, Serialize, Deserialize)]
 pub struct BlobAccessTokenPostOut {
 	pub _format: i64,
 	pub blobAccessInfo: BlobServerAccessInfo,
@@ -30,7 +30,7 @@ impl Entity for BlobAccessTokenPostOut {
 }
 
 
-#[derive(Deserialize)]
+#[derive(Clone, Serialize, Deserialize)]
 pub struct BlobArchiveRef {
 	pub _format: i64,
 	pub _id: IdTuple,
@@ -46,7 +46,7 @@ impl Entity for BlobArchiveRef {
 }
 
 
-#[derive(Deserialize)]
+#[derive(Clone, Serialize, Deserialize)]
 pub struct BlobGetIn {
 	pub _format: i64,
 	pub archiveId: Id,
@@ -61,7 +61,7 @@ impl Entity for BlobGetIn {
 }
 
 
-#[derive(Deserialize)]
+#[derive(Clone, Serialize, Deserialize)]
 pub struct BlobId {
 	pub _id: Id,
 	pub blobId: Id,
@@ -74,7 +74,7 @@ impl Entity for BlobId {
 }
 
 
-#[derive(Deserialize)]
+#[derive(Clone, Serialize, Deserialize)]
 pub struct BlobPostOut {
 	pub _format: i64,
 	pub blobReferenceToken: String,
@@ -87,7 +87,7 @@ impl Entity for BlobPostOut {
 }
 
 
-#[derive(Deserialize)]
+#[derive(Clone, Serialize, Deserialize)]
 pub struct BlobReadData {
 	pub _id: Id,
 	pub archiveId: Id,
@@ -102,7 +102,7 @@ impl Entity for BlobReadData {
 }
 
 
-#[derive(Deserialize)]
+#[derive(Clone, Serialize, Deserialize)]
 pub struct BlobReferenceDeleteIn {
 	pub _format: i64,
 	pub archiveDataType: i64,
@@ -118,7 +118,7 @@ impl Entity for BlobReferenceDeleteIn {
 }
 
 
-#[derive(Deserialize)]
+#[derive(Clone, Serialize, Deserialize)]
 pub struct BlobReferencePutIn {
 	pub _format: i64,
 	pub archiveDataType: i64,
@@ -134,7 +134,7 @@ impl Entity for BlobReferencePutIn {
 }
 
 
-#[derive(Deserialize)]
+#[derive(Clone, Serialize, Deserialize)]
 pub struct BlobServerAccessInfo {
 	pub _id: Id,
 	pub blobAccessToken: String,
@@ -149,7 +149,7 @@ impl Entity for BlobServerAccessInfo {
 }
 
 
-#[derive(Deserialize)]
+#[derive(Clone, Serialize, Deserialize)]
 pub struct BlobServerUrl {
 	pub _id: Id,
 	pub url: String,
@@ -162,7 +162,7 @@ impl Entity for BlobServerUrl {
 }
 
 
-#[derive(Deserialize)]
+#[derive(Clone, Serialize, Deserialize)]
 pub struct BlobWriteData {
 	pub _id: Id,
 	pub archiveOwnerGroup: Id,
@@ -175,7 +175,7 @@ impl Entity for BlobWriteData {
 }
 
 
-#[derive(Deserialize)]
+#[derive(Clone, Serialize, Deserialize)]
 pub struct InstanceId {
 	pub _id: Id,
 	pub instanceId: Option<Id>,

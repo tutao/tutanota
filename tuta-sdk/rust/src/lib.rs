@@ -3,7 +3,7 @@ use std::fmt::{Debug, Display, Formatter};
 use std::ops::Deref;
 use std::sync::{Arc, RwLock};
 
-use serde::Deserialize;
+use serde::{Deserialize, Serialize};
 use thiserror::Error;
 
 use rest_client::{RestClient, RestClientError};
@@ -144,7 +144,7 @@ pub enum ListLoadDirection {
 }
 
 /// A set of keys used to identify an element within a List Element Type
-#[derive(uniffi::Record, Debug, PartialEq, Clone, Deserialize)]
+#[derive(uniffi::Record, Debug, PartialEq, Clone, Serialize, Deserialize)]
 pub struct IdTuple {
     pub list_id: String,
     pub element_id: String,

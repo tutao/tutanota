@@ -1,8 +1,8 @@
 #![allow(non_snake_case)]
 use super::*;
-use serde::{Deserialize};
+use serde::{Serialize, Deserialize};
 
-#[derive(Deserialize)]
+#[derive(Clone, Serialize, Deserialize)]
 pub struct CustomerAccountPosting {
 	pub _id: Id,
 	pub amount: i64,
@@ -19,7 +19,7 @@ impl Entity for CustomerAccountPosting {
 }
 
 
-#[derive(Deserialize)]
+#[derive(Clone, Serialize, Deserialize)]
 pub struct CustomerAccountReturn {
 	pub _format: i64,
 	pub _ownerGroup: Option<Id>,
