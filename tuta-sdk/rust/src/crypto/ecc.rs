@@ -35,17 +35,11 @@ fn generate_shared_secret(local_key: &EccPrivateKey, remote_key: &EccPublicKey) 
     use curve25519_dalek::Scalar;
     use curve25519_dalek::montgomery::MontgomeryPoint;
 
-    let mut point = MontgomeryPoint(remote_key.0);
-    let mut scalar = Scalar::from_bytes_mod_order(local_key.0);
-    let mut secret = (point * scalar).0;
+    let point = Zeroizing::new(MontgomeryPoint(remote_key.0));
+    let scalar = Zeroizing::new(Scalar::from_bytes_mod_order(local_key.0));
+    let secret = (&*point * &*scalar).0;
 
-    let result = EccSharedSecret(secret);
-
-    point.zeroize();
-    scalar.zeroize();
-    secret.zeroize();
-
-    result
+    EccSharedSecret(secret)
 }
 
 #[cfg(test)]
