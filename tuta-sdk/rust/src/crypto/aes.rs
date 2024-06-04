@@ -4,8 +4,7 @@ use aes::cipher::{BlockCipher, BlockSizeUser};
 use aes::cipher::block_padding::Pkcs7;
 use cbc::cipher::{BlockDecrypt, BlockDecryptMut, BlockEncrypt, BlockEncryptMut, KeyIvInit};
 use cbc::cipher::block_padding::UnpadError;
-use zeroize::ZeroizeOnDrop;
-
+use zeroize::{ZeroizeOnDrop, Zeroizing};
 use crate::join_slices;
 
 /// Denotes whether a text is/should be padded
@@ -102,7 +101,7 @@ impl TryFrom<Vec<u8>> for Aes256Key {
     type Error = AesKeyError;
     fn try_from(value: Vec<u8>) -> Result<Self, Self::Error> {
         match value.len() {
-            32 => Ok(Self(value.try_into().unwrap())),
+            32 => Ok(Self(Zeroizing::new(value).as_slice().try_into().unwrap())),
             _ => Err(AesKeyError { actual_size: value.len() }),
         }
     }
