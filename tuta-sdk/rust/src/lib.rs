@@ -3,17 +3,19 @@ use std::fmt::{Debug, Display, Formatter};
 use std::ops::Deref;
 use std::sync::{Arc, RwLock};
 
+use serde::Deserialize;
 use thiserror::Error;
 
 use rest_client::{RestClient, RestClientError};
+
 use crate::entity_client::EntityClient;
-use crate::instance_mapper::{InstanceMapper, InstanceMapperError};
+use crate::json_serializer::{InstanceMapperError, JsonSerializer};
 use crate::mail_facade::MailFacade;
 use crate::rest_error::{HttpError, ParseFailureError};
 use crate::type_model_provider::init_type_model_provider;
 
 mod entity_client;
-mod instance_mapper;
+mod json_serializer;
 mod json_element;
 mod rest_client;
 mod element_value;
@@ -24,6 +26,7 @@ mod rest_error;
 mod crypto;
 mod util;
 mod entities;
+mod instance_mapper;
 
 uniffi::setup_scaffolding!();
 
@@ -83,7 +86,7 @@ impl Sdk {
     pub fn new(base_url: String, rest_client: Arc<dyn RestClient>, client_version: &str) -> Sdk {
         let type_model_provider = Arc::new(init_type_model_provider());
         // TODO validate parameters
-        let instance_mapper = Arc::new(InstanceMapper::new(Arc::clone(&type_model_provider)));
+        let instance_mapper = Arc::new(JsonSerializer::new(Arc::clone(&type_model_provider)));
         let state = Arc::new(SdkState {
             login_state: RwLock::new(LoginState::NotLoggedIn),
             client_version: client_version.to_owned(),
@@ -141,7 +144,7 @@ pub enum ListLoadDirection {
 }
 
 /// A set of keys used to identify an element within a List Element Type
-#[derive(uniffi::Record, Debug, PartialEq, Clone)]
+#[derive(uniffi::Record, Debug, PartialEq, Clone, Deserialize)]
 pub struct IdTuple {
     pub list_id: String,
     pub element_id: String,

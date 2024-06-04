@@ -2,7 +2,7 @@ use std::sync::Arc;
 
 use crate::{ApiCallError, AuthHeadersProvider, IdTuple, RestClient, TypeRef};
 use crate::element_value::{ElementValue, ParsedEntity};
-use crate::instance_mapper::InstanceMapper;
+use crate::json_serializer::JsonSerializer;
 use crate::json_element::RawEntity;
 use crate::rest_client::{HttpMethod, RestClientOptions};
 use crate::rest_error::{HttpError};
@@ -19,14 +19,14 @@ pub struct EntityClient {
     rest_client: Arc<dyn RestClient>,
     base_url: String,
     auth_headers_provider: Arc<dyn AuthHeadersProvider + Send + Sync>,
-    instance_mapper: Arc<InstanceMapper>,
+    instance_mapper: Arc<JsonSerializer>,
     type_model_provider: Arc<TypeModelProvider>,
 }
 
 impl EntityClient {
     pub(crate) fn new(
         rest_client: Arc<dyn RestClient>,
-        instance_mapper: Arc<InstanceMapper>,
+        instance_mapper: Arc<JsonSerializer>,
         base_url: &str,
         auth_headers_provider: Arc<dyn AuthHeadersProvider + Send + Sync>,
         type_model_provider: Arc<TypeModelProvider>,
