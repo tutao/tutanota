@@ -10,6 +10,7 @@ use crate::element_value::ElementValue::IdTupleId;
 use crate::entities::Entity;
 use crate::IdTuple;
 
+/// Converter between untyped representations of API Entities and generated structures
 pub struct InstanceMapper {
 }
 
@@ -24,12 +25,22 @@ impl InstanceMapper {
 pub struct DeError(#[from] de::value::Error);
 
 impl InstanceMapper {
-    pub fn map_to_entity<'a, T: Entity + Deserialize<'a>>(&self, map: ParsedEntity) -> Result<T, DeError> {
+    pub fn parse_entity<'a, T: Entity + Deserialize<'a>>(&self, map: ParsedEntity) -> Result<T, DeError> {
         let de = ParsedEntityDeserializer::from_parsed_entity(map);
         T::deserialize(de).map_err(|e| e.into())
     }
 }
 
+/// (De)Serialization consist of two parts:
+///  - (De)Serialize (how to write this type to an arbitrary data format)
+///  - (De)Serializer (how to write arbitrary data to a specific data format)
+/// Serde generates (De)Serialize implementations for our generated Entity's.
+///
+/// We implement the other half, custom "data format",
+/// the same way as serde_json maps types to/from json we map them
+/// to/from ParsedEntity.
+///
+/// This is the "outer" serializer for the Entity itself.
 struct ParsedEntityDeserializer {
     input: ParsedEntity,
 }
@@ -54,15 +65,16 @@ impl<'de> Deserializer<'de> for ParsedEntityDeserializer {
     }
 
     fn deserialize_struct<V>(self, _: &'static str, _: &'static [&'static str], visitor: V) -> Result<V::Value, Self::Error> where V: Visitor<'de> {
-        visitor.visit_map(MapDeserializer::new(self.input.clone().into_iter()))
+        visitor.visit_map(MapDeserializer::new(self.input.into_iter()))
     }
 }
 
-pub struct FromElementValueDeserializer {
+/// "inner" serializer for a single ElementValue
+pub struct ElementValueDeserializer {
     value: ElementValue,
 }
 
-impl<'de> Deserializer<'de> for FromElementValueDeserializer {
+impl<'de> Deserializer<'de> for ElementValueDeserializer {
     type Error = de::value::Error;
 
     serde::forward_to_deserialize_any! {
@@ -93,6 +105,7 @@ impl<'de> Deserializer<'de> for FromElementValueDeserializer {
 
     fn deserialize_string<V>(self, visitor: V) -> Result<V::Value, Self::Error> where V: Visitor<'de> {
         return match self.value {
+            // Currently we just generate Id types as String but we could be more precise, then we would need to implement newtype
             ElementValue::String(str) | ElementValue::GeneratedId(str) | ElementValue::CustomId(str) => {
                 visitor.visit_string(str)
             }
@@ -105,6 +118,7 @@ impl<'de> Deserializer<'de> for FromElementValueDeserializer {
     fn deserialize_option<V>(self, visitor: V) -> Result<V::Value, Self::Error> where V: Visitor<'de> {
         match self.value {
             ElementValue::Null => visitor.visit_none(),
+            // We have the same value but the visitor who is driving us will proceed to inner type
             _ => visitor.visit_some(self)
         }
     }
@@ -114,6 +128,9 @@ impl<'de> Deserializer<'de> for FromElementValueDeserializer {
             ElementValue::Array(arr) => {
                 visitor.visit_seq(SeqDeserializer::new(arr.into_iter()))
             }
+            // Currently serde does not actually implement visit_bytes and friends, we would
+            // need to use serde_bytes for that.
+            // TODO: measure if this is very slow
             ElementValue::Bytes(vec) => {
                 visitor.visit_seq(SeqDeserializer::new(vec.into_iter()))
             }
@@ -123,7 +140,12 @@ impl<'de> Deserializer<'de> for FromElementValueDeserializer {
         }
     }
 
-    fn deserialize_struct<V>(self, name: &'static str, fields: &'static [&'static str], visitor: V) -> Result<V::Value, Self::Error> where V: Visitor<'de> {
+    fn deserialize_struct<V>(
+        self,
+        name: &'static str,
+        fields: &'static [&'static str],
+        visitor: V,
+    ) -> Result<V::Value, Self::Error> where V: Visitor<'de> {
         if name == "IdTuple" {
             struct IdTupleMapAccess<I: Iterator<Item=(&'static str, String)>> {
                 iter: I,
@@ -165,11 +187,12 @@ impl<'de> Deserializer<'de> for FromElementValueDeserializer {
     }
 }
 
+// This impl allows us to use blanket impl for SeqAccess/MapAccess
 impl<'de> IntoDeserializer<'de> for ElementValue {
-    type Deserializer = FromElementValueDeserializer;
+    type Deserializer = ElementValueDeserializer;
 
     fn into_deserializer(self) -> Self::Deserializer {
-        FromElementValueDeserializer { value: self }
+        ElementValueDeserializer { value: self }
     }
 }
 
@@ -188,7 +211,7 @@ mod tests {
         let email_string = include_str!("../test_data/group_response.json");
         let parsed_entity = get_parsed_entity::<Group>(email_string);
         let mapper = InstanceMapper::new();
-        let group: Group = mapper.map_to_entity(parsed_entity).unwrap();
+        let group: Group = mapper.parse_entity(parsed_entity).unwrap();
         assert_eq!(5_i64, group.r#type);
         assert_eq!(Some(0_i64), group.adminGroupKeyVersion);
         assert_eq!("LIopQQI--k-0", group.groupInfo.list_id);
@@ -199,7 +222,7 @@ mod tests {
         let email_string = include_str!("../test_data/mailbox_group_root_response.json");
         let parsed_entity = get_parsed_entity::<MailboxGroupRoot>(email_string);
         let mapper = InstanceMapper::new();
-        let _group_root: MailboxGroupRoot = mapper.map_to_entity(parsed_entity).unwrap();
+        let _group_root: MailboxGroupRoot = mapper.parse_entity(parsed_entity).unwrap();
     }
 
     fn get_parsed_entity<T: Entity>(email_string: &str) -> ParsedEntity {
