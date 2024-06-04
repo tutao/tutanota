@@ -1,8 +1,8 @@
 #![allow(non_snake_case)]
 use super::*;
-use serde::{Deserialize};
+use serde::{Serialize, Deserialize};
 
-#[derive(Deserialize)]
+#[derive(Clone, Serialize, Deserialize)]
 pub struct AttachmentKeyData {
 	pub _id: Id,
 	pub bucketEncFileSessionKey: Option<Vec<u8>>,
@@ -17,7 +17,7 @@ impl Entity for AttachmentKeyData {
 }
 
 
-#[derive(Deserialize)]
+#[derive(Clone, Serialize, Deserialize)]
 pub struct Birthday {
 	pub _id: Id,
 	pub day: i64,
@@ -32,7 +32,7 @@ impl Entity for Birthday {
 }
 
 
-#[derive(Deserialize)]
+#[derive(Clone, Serialize, Deserialize)]
 pub struct Body {
 	pub _id: Id,
 	pub compressedText: Option<Vec<u8>>,
@@ -46,7 +46,7 @@ impl Entity for Body {
 }
 
 
-#[derive(Deserialize)]
+#[derive(Clone, Serialize, Deserialize)]
 pub struct CalendarDeleteData {
 	pub _format: i64,
 	pub groupRootId: Id,
@@ -59,7 +59,7 @@ impl Entity for CalendarDeleteData {
 }
 
 
-#[derive(Deserialize)]
+#[derive(Clone, Serialize, Deserialize)]
 pub struct CalendarEvent {
 	pub _format: i64,
 	pub _id: IdTuple,
@@ -90,7 +90,7 @@ impl Entity for CalendarEvent {
 }
 
 
-#[derive(Deserialize)]
+#[derive(Clone, Serialize, Deserialize)]
 pub struct CalendarEventAttendee {
 	pub _id: Id,
 	pub status: i64,
@@ -104,7 +104,7 @@ impl Entity for CalendarEventAttendee {
 }
 
 
-#[derive(Deserialize)]
+#[derive(Clone, Serialize, Deserialize)]
 pub struct CalendarEventIndexRef {
 	pub _id: Id,
 	pub list: Id,
@@ -117,7 +117,7 @@ impl Entity for CalendarEventIndexRef {
 }
 
 
-#[derive(Deserialize)]
+#[derive(Clone, Serialize, Deserialize)]
 pub struct CalendarEventUidIndex {
 	pub _format: i64,
 	pub _id: IdTuple,
@@ -134,7 +134,7 @@ impl Entity for CalendarEventUidIndex {
 }
 
 
-#[derive(Deserialize)]
+#[derive(Clone, Serialize, Deserialize)]
 pub struct CalendarEventUpdate {
 	pub _format: i64,
 	pub _id: IdTuple,
@@ -153,7 +153,7 @@ impl Entity for CalendarEventUpdate {
 }
 
 
-#[derive(Deserialize)]
+#[derive(Clone, Serialize, Deserialize)]
 pub struct CalendarEventUpdateList {
 	pub _id: Id,
 	pub list: Id,
@@ -166,7 +166,7 @@ impl Entity for CalendarEventUpdateList {
 }
 
 
-#[derive(Deserialize)]
+#[derive(Clone, Serialize, Deserialize)]
 pub struct CalendarGroupRoot {
 	pub _format: i64,
 	pub _id: Id,
@@ -186,7 +186,7 @@ impl Entity for CalendarGroupRoot {
 }
 
 
-#[derive(Deserialize)]
+#[derive(Clone, Serialize, Deserialize)]
 pub struct CalendarRepeatRule {
 	pub _id: Id,
 	pub endType: i64,
@@ -204,7 +204,7 @@ impl Entity for CalendarRepeatRule {
 }
 
 
-#[derive(Deserialize)]
+#[derive(Clone, Serialize, Deserialize)]
 pub struct Contact {
 	pub _area: i64,
 	pub _format: i64,
@@ -251,7 +251,7 @@ impl Entity for Contact {
 }
 
 
-#[derive(Deserialize)]
+#[derive(Clone, Serialize, Deserialize)]
 pub struct ContactAddress {
 	pub _id: Id,
 	pub address: String,
@@ -267,7 +267,7 @@ impl Entity for ContactAddress {
 }
 
 
-#[derive(Deserialize)]
+#[derive(Clone, Serialize, Deserialize)]
 pub struct ContactCustomDate {
 	pub _id: Id,
 	pub customTypeName: String,
@@ -283,7 +283,7 @@ impl Entity for ContactCustomDate {
 }
 
 
-#[derive(Deserialize)]
+#[derive(Clone, Serialize, Deserialize)]
 pub struct ContactList {
 	pub _format: i64,
 	pub _id: Id,
@@ -302,7 +302,7 @@ impl Entity for ContactList {
 }
 
 
-#[derive(Deserialize)]
+#[derive(Clone, Serialize, Deserialize)]
 pub struct ContactListEntry {
 	pub _format: i64,
 	pub _id: IdTuple,
@@ -320,7 +320,7 @@ impl Entity for ContactListEntry {
 }
 
 
-#[derive(Deserialize)]
+#[derive(Clone, Serialize, Deserialize)]
 pub struct ContactListGroupRoot {
 	pub _format: i64,
 	pub _id: Id,
@@ -338,7 +338,7 @@ impl Entity for ContactListGroupRoot {
 }
 
 
-#[derive(Deserialize)]
+#[derive(Clone, Serialize, Deserialize)]
 pub struct ContactMailAddress {
 	pub _id: Id,
 	pub address: String,
@@ -354,7 +354,7 @@ impl Entity for ContactMailAddress {
 }
 
 
-#[derive(Deserialize)]
+#[derive(Clone, Serialize, Deserialize)]
 pub struct ContactMessengerHandle {
 	pub _id: Id,
 	pub customTypeName: String,
@@ -370,7 +370,7 @@ impl Entity for ContactMessengerHandle {
 }
 
 
-#[derive(Deserialize)]
+#[derive(Clone, Serialize, Deserialize)]
 pub struct ContactPhoneNumber {
 	pub _id: Id,
 	pub customTypeName: String,
@@ -386,7 +386,7 @@ impl Entity for ContactPhoneNumber {
 }
 
 
-#[derive(Deserialize)]
+#[derive(Clone, Serialize, Deserialize)]
 pub struct ContactPronouns {
 	pub _id: Id,
 	pub language: String,
@@ -400,7 +400,7 @@ impl Entity for ContactPronouns {
 }
 
 
-#[derive(Deserialize)]
+#[derive(Clone, Serialize, Deserialize)]
 pub struct ContactRelationship {
 	pub _id: Id,
 	pub customTypeName: String,
@@ -416,7 +416,7 @@ impl Entity for ContactRelationship {
 }
 
 
-#[derive(Deserialize)]
+#[derive(Clone, Serialize, Deserialize)]
 pub struct ContactSocialId {
 	pub _id: Id,
 	pub customTypeName: String,
@@ -432,7 +432,7 @@ impl Entity for ContactSocialId {
 }
 
 
-#[derive(Deserialize)]
+#[derive(Clone, Serialize, Deserialize)]
 pub struct ContactWebsite {
 	pub _id: Id,
 	pub customTypeName: String,
@@ -448,7 +448,7 @@ impl Entity for ContactWebsite {
 }
 
 
-#[derive(Deserialize)]
+#[derive(Clone, Serialize, Deserialize)]
 pub struct ConversationEntry {
 	pub _format: i64,
 	pub _id: IdTuple,
@@ -467,7 +467,7 @@ impl Entity for ConversationEntry {
 }
 
 
-#[derive(Deserialize)]
+#[derive(Clone, Serialize, Deserialize)]
 pub struct CreateExternalUserGroupData {
 	pub _id: Id,
 	pub externalPwEncUserGroupKey: Vec<u8>,
@@ -483,7 +483,7 @@ impl Entity for CreateExternalUserGroupData {
 }
 
 
-#[derive(Deserialize)]
+#[derive(Clone, Serialize, Deserialize)]
 pub struct CreateGroupPostReturn {
 	pub _format: i64,
 	pub group: Id,
@@ -496,7 +496,7 @@ impl Entity for CreateGroupPostReturn {
 }
 
 
-#[derive(Deserialize)]
+#[derive(Clone, Serialize, Deserialize)]
 pub struct CreateMailFolderData {
 	pub _format: i64,
 	pub folderName: String,
@@ -513,7 +513,7 @@ impl Entity for CreateMailFolderData {
 }
 
 
-#[derive(Deserialize)]
+#[derive(Clone, Serialize, Deserialize)]
 pub struct CreateMailFolderReturn {
 	pub _format: i64,
 	pub newFolder: IdTuple,
@@ -526,7 +526,7 @@ impl Entity for CreateMailFolderReturn {
 }
 
 
-#[derive(Deserialize)]
+#[derive(Clone, Serialize, Deserialize)]
 pub struct CreateMailGroupData {
 	pub _format: i64,
 	pub encryptedName: Vec<u8>,
@@ -542,7 +542,7 @@ impl Entity for CreateMailGroupData {
 }
 
 
-#[derive(Deserialize)]
+#[derive(Clone, Serialize, Deserialize)]
 pub struct CustomerAccountCreateData {
 	pub _format: i64,
 	pub accountGroupKeyVersion: i64,
@@ -570,7 +570,7 @@ impl Entity for CustomerAccountCreateData {
 }
 
 
-#[derive(Deserialize)]
+#[derive(Clone, Serialize, Deserialize)]
 pub struct DeleteGroupData {
 	pub _format: i64,
 	pub restore: bool,
@@ -584,7 +584,7 @@ impl Entity for DeleteGroupData {
 }
 
 
-#[derive(Deserialize)]
+#[derive(Clone, Serialize, Deserialize)]
 pub struct DeleteMailData {
 	pub _format: i64,
 	pub folder: Option<IdTuple>,
@@ -598,7 +598,7 @@ impl Entity for DeleteMailData {
 }
 
 
-#[derive(Deserialize)]
+#[derive(Clone, Serialize, Deserialize)]
 pub struct DeleteMailFolderData {
 	pub _format: i64,
 	pub folders: Vec<IdTuple>,
@@ -611,7 +611,7 @@ impl Entity for DeleteMailFolderData {
 }
 
 
-#[derive(Deserialize)]
+#[derive(Clone, Serialize, Deserialize)]
 pub struct DraftAttachment {
 	pub _id: Id,
 	pub ownerEncFileSessionKey: Vec<u8>,
@@ -627,7 +627,7 @@ impl Entity for DraftAttachment {
 }
 
 
-#[derive(Deserialize)]
+#[derive(Clone, Serialize, Deserialize)]
 pub struct DraftCreateData {
 	pub _format: i64,
 	pub conversationType: i64,
@@ -644,7 +644,7 @@ impl Entity for DraftCreateData {
 }
 
 
-#[derive(Deserialize)]
+#[derive(Clone, Serialize, Deserialize)]
 pub struct DraftCreateReturn {
 	pub _format: i64,
 	pub draft: IdTuple,
@@ -657,7 +657,7 @@ impl Entity for DraftCreateReturn {
 }
 
 
-#[derive(Deserialize)]
+#[derive(Clone, Serialize, Deserialize)]
 pub struct DraftData {
 	pub _id: Id,
 	pub bodyText: String,
@@ -682,7 +682,7 @@ impl Entity for DraftData {
 }
 
 
-#[derive(Deserialize)]
+#[derive(Clone, Serialize, Deserialize)]
 pub struct DraftRecipient {
 	pub _id: Id,
 	pub mailAddress: String,
@@ -696,7 +696,7 @@ impl Entity for DraftRecipient {
 }
 
 
-#[derive(Deserialize)]
+#[derive(Clone, Serialize, Deserialize)]
 pub struct DraftUpdateData {
 	pub _format: i64,
 	pub draft: IdTuple,
@@ -710,7 +710,7 @@ impl Entity for DraftUpdateData {
 }
 
 
-#[derive(Deserialize)]
+#[derive(Clone, Serialize, Deserialize)]
 pub struct DraftUpdateReturn {
 	pub _format: i64,
 	pub attachments: Vec<IdTuple>,
@@ -723,7 +723,7 @@ impl Entity for DraftUpdateReturn {
 }
 
 
-#[derive(Deserialize)]
+#[derive(Clone, Serialize, Deserialize)]
 pub struct EmailTemplate {
 	pub _format: i64,
 	pub _id: IdTuple,
@@ -743,7 +743,7 @@ impl Entity for EmailTemplate {
 }
 
 
-#[derive(Deserialize)]
+#[derive(Clone, Serialize, Deserialize)]
 pub struct EmailTemplateContent {
 	pub _id: Id,
 	pub languageCode: String,
@@ -757,7 +757,7 @@ impl Entity for EmailTemplateContent {
 }
 
 
-#[derive(Deserialize)]
+#[derive(Clone, Serialize, Deserialize)]
 pub struct EncryptTutanotaPropertiesData {
 	pub _format: i64,
 	pub symEncSessionKey: Vec<u8>,
@@ -772,7 +772,7 @@ impl Entity for EncryptTutanotaPropertiesData {
 }
 
 
-#[derive(Deserialize)]
+#[derive(Clone, Serialize, Deserialize)]
 pub struct EncryptedMailAddress {
 	pub _id: Id,
 	pub address: String,
@@ -786,7 +786,7 @@ impl Entity for EncryptedMailAddress {
 }
 
 
-#[derive(Deserialize)]
+#[derive(Clone, Serialize, Deserialize)]
 pub struct EntropyData {
 	pub _format: i64,
 	pub userEncEntropy: Vec<u8>,
@@ -800,7 +800,7 @@ impl Entity for EntropyData {
 }
 
 
-#[derive(Deserialize)]
+#[derive(Clone, Serialize, Deserialize)]
 pub struct ExternalUserData {
 	pub _format: i64,
 	pub externalMailEncMailBoxSessionKey: Vec<u8>,
@@ -824,7 +824,7 @@ impl Entity for ExternalUserData {
 }
 
 
-#[derive(Deserialize)]
+#[derive(Clone, Serialize, Deserialize)]
 pub struct File {
 	pub _area: i64,
 	pub _format: i64,
@@ -850,7 +850,7 @@ impl Entity for File {
 }
 
 
-#[derive(Deserialize)]
+#[derive(Clone, Serialize, Deserialize)]
 pub struct FileSystem {
 	pub _format: i64,
 	pub _id: Id,
@@ -868,7 +868,7 @@ impl Entity for FileSystem {
 }
 
 
-#[derive(Deserialize)]
+#[derive(Clone, Serialize, Deserialize)]
 pub struct GroupInvitationDeleteData {
 	pub _format: i64,
 	pub receivedInvitation: IdTuple,
@@ -881,7 +881,7 @@ impl Entity for GroupInvitationDeleteData {
 }
 
 
-#[derive(Deserialize)]
+#[derive(Clone, Serialize, Deserialize)]
 pub struct GroupInvitationPostData {
 	pub _format: i64,
 	pub internalKeyData: Vec<InternalRecipientKeyData>,
@@ -895,7 +895,7 @@ impl Entity for GroupInvitationPostData {
 }
 
 
-#[derive(Deserialize)]
+#[derive(Clone, Serialize, Deserialize)]
 pub struct GroupInvitationPostReturn {
 	pub _format: i64,
 	pub existingMailAddresses: Vec<MailAddress>,
@@ -910,7 +910,7 @@ impl Entity for GroupInvitationPostReturn {
 }
 
 
-#[derive(Deserialize)]
+#[derive(Clone, Serialize, Deserialize)]
 pub struct GroupInvitationPutData {
 	pub _format: i64,
 	pub sharedGroupEncInviteeGroupInfoKey: Vec<u8>,
@@ -927,7 +927,7 @@ impl Entity for GroupInvitationPutData {
 }
 
 
-#[derive(Deserialize)]
+#[derive(Clone, Serialize, Deserialize)]
 pub struct GroupSettings {
 	pub _id: Id,
 	pub color: String,
@@ -942,7 +942,7 @@ impl Entity for GroupSettings {
 }
 
 
-#[derive(Deserialize)]
+#[derive(Clone, Serialize, Deserialize)]
 pub struct Header {
 	pub _id: Id,
 	pub compressedHeaders: Option<Vec<u8>>,
@@ -956,7 +956,7 @@ impl Entity for Header {
 }
 
 
-#[derive(Deserialize)]
+#[derive(Clone, Serialize, Deserialize)]
 pub struct ImapFolder {
 	pub _id: Id,
 	pub lastseenuid: String,
@@ -972,7 +972,7 @@ impl Entity for ImapFolder {
 }
 
 
-#[derive(Deserialize)]
+#[derive(Clone, Serialize, Deserialize)]
 pub struct ImapSyncConfiguration {
 	pub _id: Id,
 	pub host: String,
@@ -989,7 +989,7 @@ impl Entity for ImapSyncConfiguration {
 }
 
 
-#[derive(Deserialize)]
+#[derive(Clone, Serialize, Deserialize)]
 pub struct ImapSyncState {
 	pub _format: i64,
 	pub _id: Id,
@@ -1005,7 +1005,7 @@ impl Entity for ImapSyncState {
 }
 
 
-#[derive(Deserialize)]
+#[derive(Clone, Serialize, Deserialize)]
 pub struct InboxRule {
 	pub _id: Id,
 	#[serde(rename = "type")]
@@ -1021,7 +1021,7 @@ impl Entity for InboxRule {
 }
 
 
-#[derive(Deserialize)]
+#[derive(Clone, Serialize, Deserialize)]
 pub struct InternalGroupData {
 	pub _id: Id,
 	pub adminEncGroupKey: Vec<u8>,
@@ -1044,7 +1044,7 @@ impl Entity for InternalGroupData {
 }
 
 
-#[derive(Deserialize)]
+#[derive(Clone, Serialize, Deserialize)]
 pub struct InternalRecipientKeyData {
 	pub _id: Id,
 	pub mailAddress: String,
@@ -1061,7 +1061,7 @@ impl Entity for InternalRecipientKeyData {
 }
 
 
-#[derive(Deserialize)]
+#[derive(Clone, Serialize, Deserialize)]
 pub struct KnowledgeBaseEntry {
 	pub _format: i64,
 	pub _id: IdTuple,
@@ -1081,7 +1081,7 @@ impl Entity for KnowledgeBaseEntry {
 }
 
 
-#[derive(Deserialize)]
+#[derive(Clone, Serialize, Deserialize)]
 pub struct KnowledgeBaseEntryKeyword {
 	pub _id: Id,
 	pub keyword: String,
@@ -1094,7 +1094,7 @@ impl Entity for KnowledgeBaseEntryKeyword {
 }
 
 
-#[derive(Deserialize)]
+#[derive(Clone, Serialize, Deserialize)]
 pub struct ListUnsubscribeData {
 	pub _format: i64,
 	pub headers: String,
@@ -1109,7 +1109,7 @@ impl Entity for ListUnsubscribeData {
 }
 
 
-#[derive(Deserialize)]
+#[derive(Clone, Serialize, Deserialize)]
 pub struct Mail {
 	pub _format: i64,
 	pub _id: IdTuple,
@@ -1154,7 +1154,7 @@ impl Entity for Mail {
 }
 
 
-#[derive(Deserialize)]
+#[derive(Clone, Serialize, Deserialize)]
 pub struct MailAddress {
 	pub _id: Id,
 	pub address: String,
@@ -1169,7 +1169,7 @@ impl Entity for MailAddress {
 }
 
 
-#[derive(Deserialize)]
+#[derive(Clone, Serialize, Deserialize)]
 pub struct MailAddressProperties {
 	pub _id: Id,
 	pub mailAddress: String,
@@ -1183,7 +1183,7 @@ impl Entity for MailAddressProperties {
 }
 
 
-#[derive(Deserialize)]
+#[derive(Clone, Serialize, Deserialize)]
 pub struct MailBody {
 	pub _area: i64,
 	pub _format: i64,
@@ -1204,7 +1204,7 @@ impl Entity for MailBody {
 }
 
 
-#[derive(Deserialize)]
+#[derive(Clone, Serialize, Deserialize)]
 pub struct MailBox {
 	pub _format: i64,
 	pub _id: Id,
@@ -1228,7 +1228,7 @@ impl Entity for MailBox {
 }
 
 
-#[derive(Deserialize)]
+#[derive(Clone, Serialize, Deserialize)]
 pub struct MailDetails {
 	pub _id: Id,
 	pub authStatus: i64,
@@ -1246,7 +1246,7 @@ impl Entity for MailDetails {
 }
 
 
-#[derive(Deserialize)]
+#[derive(Clone, Serialize, Deserialize)]
 pub struct MailDetailsBlob {
 	pub _format: i64,
 	pub _id: IdTuple,
@@ -1264,7 +1264,7 @@ impl Entity for MailDetailsBlob {
 }
 
 
-#[derive(Deserialize)]
+#[derive(Clone, Serialize, Deserialize)]
 pub struct MailDetailsDraft {
 	pub _format: i64,
 	pub _id: IdTuple,
@@ -1282,7 +1282,7 @@ impl Entity for MailDetailsDraft {
 }
 
 
-#[derive(Deserialize)]
+#[derive(Clone, Serialize, Deserialize)]
 pub struct MailDetailsDraftsRef {
 	pub _id: Id,
 	pub list: Id,
@@ -1295,7 +1295,7 @@ impl Entity for MailDetailsDraftsRef {
 }
 
 
-#[derive(Deserialize)]
+#[derive(Clone, Serialize, Deserialize)]
 pub struct MailFolder {
 	pub _format: i64,
 	pub _id: IdTuple,
@@ -1317,7 +1317,7 @@ impl Entity for MailFolder {
 }
 
 
-#[derive(Deserialize)]
+#[derive(Clone, Serialize, Deserialize)]
 pub struct MailFolderRef {
 	pub _id: Id,
 	pub folders: Id,
@@ -1330,7 +1330,7 @@ impl Entity for MailFolderRef {
 }
 
 
-#[derive(Deserialize)]
+#[derive(Clone, Serialize, Deserialize)]
 pub struct MailHeaders {
 	pub _format: i64,
 	pub _id: Id,
@@ -1349,7 +1349,7 @@ impl Entity for MailHeaders {
 }
 
 
-#[derive(Deserialize)]
+#[derive(Clone, Serialize, Deserialize)]
 pub struct MailboxGroupRoot {
 	pub _format: i64,
 	pub _id: Id,
@@ -1371,7 +1371,7 @@ impl Entity for MailboxGroupRoot {
 }
 
 
-#[derive(Deserialize)]
+#[derive(Clone, Serialize, Deserialize)]
 pub struct MailboxProperties {
 	pub _format: i64,
 	pub _id: Id,
@@ -1390,7 +1390,7 @@ impl Entity for MailboxProperties {
 }
 
 
-#[derive(Deserialize)]
+#[derive(Clone, Serialize, Deserialize)]
 pub struct MailboxServerProperties {
 	pub _format: i64,
 	pub _id: Id,
@@ -1406,7 +1406,7 @@ impl Entity for MailboxServerProperties {
 }
 
 
-#[derive(Deserialize)]
+#[derive(Clone, Serialize, Deserialize)]
 pub struct MoveMailData {
 	pub _format: i64,
 	pub mails: Vec<IdTuple>,
@@ -1420,7 +1420,7 @@ impl Entity for MoveMailData {
 }
 
 
-#[derive(Deserialize)]
+#[derive(Clone, Serialize, Deserialize)]
 pub struct NewDraftAttachment {
 	pub _id: Id,
 	pub encCid: Option<Vec<u8>>,
@@ -1436,7 +1436,7 @@ impl Entity for NewDraftAttachment {
 }
 
 
-#[derive(Deserialize)]
+#[derive(Clone, Serialize, Deserialize)]
 pub struct NewsId {
 	pub _id: Id,
 	pub newsItemId: Id,
@@ -1450,7 +1450,7 @@ impl Entity for NewsId {
 }
 
 
-#[derive(Deserialize)]
+#[derive(Clone, Serialize, Deserialize)]
 pub struct NewsIn {
 	pub _format: i64,
 	pub newsItemId: Option<Id>,
@@ -1463,7 +1463,7 @@ impl Entity for NewsIn {
 }
 
 
-#[derive(Deserialize)]
+#[derive(Clone, Serialize, Deserialize)]
 pub struct NewsOut {
 	pub _format: i64,
 	pub newsItemIds: Vec<NewsId>,
@@ -1476,7 +1476,7 @@ impl Entity for NewsOut {
 }
 
 
-#[derive(Deserialize)]
+#[derive(Clone, Serialize, Deserialize)]
 pub struct NotificationMail {
 	pub _id: Id,
 	pub bodyText: String,
@@ -1493,7 +1493,7 @@ impl Entity for NotificationMail {
 }
 
 
-#[derive(Deserialize)]
+#[derive(Clone, Serialize, Deserialize)]
 pub struct OutOfOfficeNotification {
 	pub _format: i64,
 	pub _id: Id,
@@ -1512,7 +1512,7 @@ impl Entity for OutOfOfficeNotification {
 }
 
 
-#[derive(Deserialize)]
+#[derive(Clone, Serialize, Deserialize)]
 pub struct OutOfOfficeNotificationMessage {
 	pub _id: Id,
 	pub message: String,
@@ -1528,7 +1528,7 @@ impl Entity for OutOfOfficeNotificationMessage {
 }
 
 
-#[derive(Deserialize)]
+#[derive(Clone, Serialize, Deserialize)]
 pub struct OutOfOfficeNotificationRecipientList {
 	pub _id: Id,
 	pub list: Id,
@@ -1541,7 +1541,7 @@ impl Entity for OutOfOfficeNotificationRecipientList {
 }
 
 
-#[derive(Deserialize)]
+#[derive(Clone, Serialize, Deserialize)]
 pub struct PasswordAutoAuthenticationReturn {
 	pub _format: i64,
 }
@@ -1553,7 +1553,7 @@ impl Entity for PasswordAutoAuthenticationReturn {
 }
 
 
-#[derive(Deserialize)]
+#[derive(Clone, Serialize, Deserialize)]
 pub struct PasswordChannelPhoneNumber {
 	pub _id: Id,
 	pub number: String,
@@ -1566,7 +1566,7 @@ impl Entity for PasswordChannelPhoneNumber {
 }
 
 
-#[derive(Deserialize)]
+#[derive(Clone, Serialize, Deserialize)]
 pub struct PasswordChannelReturn {
 	pub _format: i64,
 	pub phoneNumberChannels: Vec<PasswordChannelPhoneNumber>,
@@ -1579,7 +1579,7 @@ impl Entity for PasswordChannelReturn {
 }
 
 
-#[derive(Deserialize)]
+#[derive(Clone, Serialize, Deserialize)]
 pub struct PasswordMessagingData {
 	pub _format: i64,
 	pub language: String,
@@ -1594,7 +1594,7 @@ impl Entity for PasswordMessagingData {
 }
 
 
-#[derive(Deserialize)]
+#[derive(Clone, Serialize, Deserialize)]
 pub struct PasswordMessagingReturn {
 	pub _format: i64,
 	pub autoAuthenticationId: Id,
@@ -1607,7 +1607,7 @@ impl Entity for PasswordMessagingReturn {
 }
 
 
-#[derive(Deserialize)]
+#[derive(Clone, Serialize, Deserialize)]
 pub struct PhishingMarkerWebsocketData {
 	pub _format: i64,
 	pub lastId: Id,
@@ -1621,7 +1621,7 @@ impl Entity for PhishingMarkerWebsocketData {
 }
 
 
-#[derive(Deserialize)]
+#[derive(Clone, Serialize, Deserialize)]
 pub struct PhotosRef {
 	pub _id: Id,
 	pub files: Id,
@@ -1634,7 +1634,7 @@ impl Entity for PhotosRef {
 }
 
 
-#[derive(Deserialize)]
+#[derive(Clone, Serialize, Deserialize)]
 pub struct ReceiveInfoServiceData {
 	pub _format: i64,
 	pub language: String,
@@ -1647,7 +1647,7 @@ impl Entity for ReceiveInfoServiceData {
 }
 
 
-#[derive(Deserialize)]
+#[derive(Clone, Serialize, Deserialize)]
 pub struct Recipients {
 	pub _id: Id,
 	pub bccRecipients: Vec<MailAddress>,
@@ -1662,7 +1662,7 @@ impl Entity for Recipients {
 }
 
 
-#[derive(Deserialize)]
+#[derive(Clone, Serialize, Deserialize)]
 pub struct RemoteImapSyncInfo {
 	pub _format: i64,
 	pub _id: IdTuple,
@@ -1679,7 +1679,7 @@ impl Entity for RemoteImapSyncInfo {
 }
 
 
-#[derive(Deserialize)]
+#[derive(Clone, Serialize, Deserialize)]
 pub struct ReportMailPostData {
 	pub _format: i64,
 	pub mailSessionKey: Vec<u8>,
@@ -1694,7 +1694,7 @@ impl Entity for ReportMailPostData {
 }
 
 
-#[derive(Deserialize)]
+#[derive(Clone, Serialize, Deserialize)]
 pub struct ReportedMailFieldMarker {
 	pub _id: Id,
 	pub marker: String,
@@ -1708,7 +1708,7 @@ impl Entity for ReportedMailFieldMarker {
 }
 
 
-#[derive(Deserialize)]
+#[derive(Clone, Serialize, Deserialize)]
 pub struct SecureExternalRecipientKeyData {
 	pub _id: Id,
 	pub autoTransmitPassword: Option<String>,
@@ -1730,7 +1730,7 @@ impl Entity for SecureExternalRecipientKeyData {
 }
 
 
-#[derive(Deserialize)]
+#[derive(Clone, Serialize, Deserialize)]
 pub struct SendDraftData {
 	pub _format: i64,
 	pub bucketEncMailSessionKey: Option<Vec<u8>>,
@@ -1754,7 +1754,7 @@ impl Entity for SendDraftData {
 }
 
 
-#[derive(Deserialize)]
+#[derive(Clone, Serialize, Deserialize)]
 pub struct SendDraftReturn {
 	pub _format: i64,
 	pub messageId: String,
@@ -1770,7 +1770,7 @@ impl Entity for SendDraftReturn {
 }
 
 
-#[derive(Deserialize)]
+#[derive(Clone, Serialize, Deserialize)]
 pub struct SharedGroupData {
 	pub _id: Id,
 	pub bucketEncInvitationSessionKey: Vec<u8>,
@@ -1791,7 +1791,7 @@ impl Entity for SharedGroupData {
 }
 
 
-#[derive(Deserialize)]
+#[derive(Clone, Serialize, Deserialize)]
 pub struct SpamResults {
 	pub _id: Id,
 	pub list: Id,
@@ -1804,7 +1804,7 @@ impl Entity for SpamResults {
 }
 
 
-#[derive(Deserialize)]
+#[derive(Clone, Serialize, Deserialize)]
 pub struct Subfiles {
 	pub _id: Id,
 	pub files: Id,
@@ -1817,7 +1817,7 @@ impl Entity for Subfiles {
 }
 
 
-#[derive(Deserialize)]
+#[derive(Clone, Serialize, Deserialize)]
 pub struct SymEncInternalRecipientKeyData {
 	pub _id: Id,
 	pub mailAddress: String,
@@ -1833,7 +1833,7 @@ impl Entity for SymEncInternalRecipientKeyData {
 }
 
 
-#[derive(Deserialize)]
+#[derive(Clone, Serialize, Deserialize)]
 pub struct TemplateGroupRoot {
 	pub _format: i64,
 	pub _id: Id,
@@ -1852,7 +1852,7 @@ impl Entity for TemplateGroupRoot {
 }
 
 
-#[derive(Deserialize)]
+#[derive(Clone, Serialize, Deserialize)]
 pub struct TranslationGetIn {
 	pub _format: i64,
 	pub lang: String,
@@ -1865,7 +1865,7 @@ impl Entity for TranslationGetIn {
 }
 
 
-#[derive(Deserialize)]
+#[derive(Clone, Serialize, Deserialize)]
 pub struct TranslationGetOut {
 	pub _format: i64,
 	pub giftCardSubject: String,
@@ -1879,7 +1879,7 @@ impl Entity for TranslationGetOut {
 }
 
 
-#[derive(Deserialize)]
+#[derive(Clone, Serialize, Deserialize)]
 pub struct TutanotaProperties {
 	pub _format: i64,
 	pub _id: Id,
@@ -1909,7 +1909,7 @@ impl Entity for TutanotaProperties {
 }
 
 
-#[derive(Deserialize)]
+#[derive(Clone, Serialize, Deserialize)]
 pub struct UpdateMailFolderData {
 	pub _format: i64,
 	pub folder: IdTuple,
@@ -1923,7 +1923,7 @@ impl Entity for UpdateMailFolderData {
 }
 
 
-#[derive(Deserialize)]
+#[derive(Clone, Serialize, Deserialize)]
 pub struct UserAccountCreateData {
 	pub _format: i64,
 	pub date: Option<Date>,
@@ -1938,7 +1938,7 @@ impl Entity for UserAccountCreateData {
 }
 
 
-#[derive(Deserialize)]
+#[derive(Clone, Serialize, Deserialize)]
 pub struct UserAccountUserData {
 	pub _id: Id,
 	pub contactEncContactListSessionKey: Vec<u8>,
@@ -1972,7 +1972,7 @@ impl Entity for UserAccountUserData {
 }
 
 
-#[derive(Deserialize)]
+#[derive(Clone, Serialize, Deserialize)]
 pub struct UserAreaGroupData {
 	pub _id: Id,
 	pub adminEncGroupKey: Option<Vec<u8>>,
@@ -1993,7 +1993,7 @@ impl Entity for UserAreaGroupData {
 }
 
 
-#[derive(Deserialize)]
+#[derive(Clone, Serialize, Deserialize)]
 pub struct UserAreaGroupDeleteData {
 	pub _format: i64,
 	pub group: Id,
@@ -2006,7 +2006,7 @@ impl Entity for UserAreaGroupDeleteData {
 }
 
 
-#[derive(Deserialize)]
+#[derive(Clone, Serialize, Deserialize)]
 pub struct UserAreaGroupPostData {
 	pub _format: i64,
 	pub groupData: UserAreaGroupData,
@@ -2019,7 +2019,7 @@ impl Entity for UserAreaGroupPostData {
 }
 
 
-#[derive(Deserialize)]
+#[derive(Clone, Serialize, Deserialize)]
 pub struct UserSettingsGroupRoot {
 	pub _format: i64,
 	pub _id: Id,
