@@ -34,6 +34,7 @@ export type AccountingInfo = {
 	paypalBillingAgreement: null | string;
 	secondCountryInfo: NumberString;
 
+	appStoreSubscription:  null | IdTuple;
 	invoiceInfo:  null | Id;
 }
 export const AdminGroupKeyRotationPostInTypeRef: TypeRef<AdminGroupKeyRotationPostIn> = new TypeRef("sys", "AdminGroupKeyRotationPostIn")
