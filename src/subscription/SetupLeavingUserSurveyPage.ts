@@ -33,12 +33,12 @@ export class SetupLeavingUserSurveyPage implements Component<SetupLeavingUserSur
 								...vnode.attrs.imageStyle,
 							},
 						},
-						m("img.pb.block", {
-							src: vnode.attrs.image,
-							style: {
-								width: "100%",
-								height: "100%",
-							},
+						m("img.pb.block.full-width.height-100p", {
+							src: `${window.tutao.appState.prefixWithoutFile}/images/leaving-wizard/${vnode.attrs.image}.png`,
+							alt: "",
+							rel: "noreferrer",
+							loading: "lazy",
+							decoding: "async",
 						}),
 					),
 					m("h3.center.b", lang.get(vnode.attrs.mainMessage)),

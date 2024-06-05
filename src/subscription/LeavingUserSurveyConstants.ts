@@ -1,5 +1,4 @@
-import { lang, TranslationKey } from "../misc/LanguageViewModel.js"
-import { accountSurveyImage, featureSurveyImage, otherSurveyImage, priceSurveyImage, problemSurveyImage } from "../gui/base/icons/Icons.js"
+import { TranslationKey } from "../misc/LanguageViewModel.js"
 
 /**
  * File containing all types, enums, maps and helper functions for the 'leaving user survey' wizard.
@@ -32,11 +31,11 @@ export type CategoryImageInfo = {
  * Map from CategoryType to an object containing the image and info text that will be displayed on the second page of the wizard.
  */
 export const CATEGORY_TO_IMAGE: Map<CategoryType, CategoryImageInfo> = new Map([
-	[CategoryType.Price, { image: priceSurveyImage, translationKey: "surveyPrice_label" }],
-	[CategoryType.Account, { image: accountSurveyImage, translationKey: "surveyAccountProblems_label" }],
-	[CategoryType.Feature, { image: featureSurveyImage, translationKey: "surveyMissingFeature_label" }],
-	[CategoryType.Problem, { image: problemSurveyImage, translationKey: "surveyFeatureDesignProblems_label" }],
-	[CategoryType.Other, { image: otherSurveyImage, translationKey: "surveyOtherReason_label" }],
+	[CategoryType.Price, { image: "price", translationKey: "surveyPrice_label" }],
+	[CategoryType.Account, { image: "account", translationKey: "surveyAccountProblems_label" }],
+	[CategoryType.Feature, { image: "feature", translationKey: "surveyMissingFeature_label" }],
+	[CategoryType.Problem, { image: "problem", translationKey: "surveyFeatureDesignProblems_label" }],
+	[CategoryType.Other, { image: "other", translationKey: "surveyOtherReason_label" }],
 ])
 
 export type Reason = {
