@@ -8,7 +8,7 @@ use thiserror::Error;
 
 use rest_client::{RestClient, RestClientError};
 
-use crate::entity_client::EntityClient;
+use crate::entity_client::{EntityClient, IdType};
 use crate::json_serializer::{InstanceMapperError, JsonSerializer};
 use crate::mail_facade::MailFacade;
 use crate::rest_error::{HttpError, ParseFailureError};
@@ -25,6 +25,7 @@ mod mail_facade;
 mod rest_error;
 mod crypto;
 mod util;
+mod owner_enc_session_keys_update_queue;
 mod entities;
 mod instance_mapper;
 
@@ -153,6 +154,12 @@ pub struct IdTuple {
 impl IdTuple {
     pub fn new(list_id: String, element_id: String) -> Self {
         Self { list_id, element_id }
+    }
+}
+
+impl From<IdTuple> for IdType {
+    fn from(value: IdTuple) -> Self {
+        Self::Tuple(value)
     }
 }
 

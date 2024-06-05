@@ -1,6 +1,7 @@
+use rand_core::CryptoRngCore;
 use zeroize::{ZeroizeOnDrop, Zeroizing};
 use crate::crypto::aes::{Aes256Key, aes_256_decrypt, aes_256_encrypt, AesDecryptError, AesEncryptError, AesKeyError, Iv, IvError, PaddingMode};
-use crate::crypto::ecc::{ecc_decapsulate, ecc_encapsulate, EccKeyError, EccKeyPair, EccPrivateKey, EccPublicKey, EccSharedSecrets};
+use crate::crypto::ecc::{ecc_decapsulate, ecc_encapsulate, EccKeyError, EccKeyPair, EccPublicKey, EccSharedSecrets};
 use crate::crypto::hkdf::hkdf;
 use crate::crypto::kyber::{KyberCiphertext, KyberCiphertextError, KyberDecapsulationError, KyberKeyPair, KyberPublicKey, KyberSharedSecret};
 use crate::join_slices;
@@ -53,16 +54,16 @@ impl PQMessage {
 
     /// Decapsulate the PQ message with the given keys.
     pub fn decapsulate(&self, recipient_keys: &PQKeyPairs) -> Result<Aes256Key, PQError> {
-        let (recipient_ecc_key_pair, recipient_kyber_key_pair) = &recipient_keys.0;
+        let PQKeyPairs { ecc_keys, kyber_keys } = recipient_keys;
 
-        let ecc_shared_secret = ecc_decapsulate(&self.sender_identity_public_key, &self.ephemeral_public_key, &recipient_ecc_key_pair.private_key);
-        let kyber_shared_secret = recipient_kyber_key_pair.private_key.decapsulate(&self.encapsulation.kyber_ciphertext)?;
+        let ecc_shared_secret = ecc_decapsulate(&self.sender_identity_public_key, &self.ephemeral_public_key, &ecc_keys.private_key);
+        let kyber_shared_secret = kyber_keys.private_key.decapsulate(&self.encapsulation.kyber_ciphertext)?;
 
         let kek = derive_pq_kek(
             &self.sender_identity_public_key,
             &self.ephemeral_public_key,
-            &recipient_ecc_key_pair.public_key,
-            &recipient_kyber_key_pair.public_key,
+            &ecc_keys.public_key,
+            &kyber_keys.public_key,
             &self.encapsulation.kyber_ciphertext,
             &kyber_shared_secret,
             &ecc_shared_secret,
@@ -75,21 +76,19 @@ impl PQMessage {
 
     /// Construct a `PQMessage` containing an AES key from the given keys.
     pub fn encapsulate(
-        sender_ecc_private_key: &EccPrivateKey,
-        sender_ecc_public_key: &EccPublicKey,
-        ephemeral_ecc_private_key: &EccPrivateKey,
-        ephemeral_ecc_public_key: &EccPublicKey,
+        sender_ecc_keypair: &EccKeyPair,
+        ephemeral_ecc_keypair: &EccKeyPair,
         recipient_ecc_key: &EccPublicKey,
         recipient_kyber_key: &KyberPublicKey,
         bucket_key: &Aes256Key,
-        iv: &Iv
+        iv: Iv
     ) -> Result<Self, PQError>  {
-        let ecc_shared_secret = ecc_encapsulate(&sender_ecc_private_key, &ephemeral_ecc_private_key, &recipient_ecc_key);
+        let ecc_shared_secret = ecc_encapsulate(&sender_ecc_keypair.private_key, &ephemeral_ecc_keypair.private_key, &recipient_ecc_key);
         let encapsulation = recipient_kyber_key.encapsulate();
 
         let kek = derive_pq_kek(
-            sender_ecc_public_key,
-            ephemeral_ecc_public_key,
+            &sender_ecc_keypair.public_key,
+            &ephemeral_ecc_keypair.public_key,
             &recipient_ecc_key,
             &recipient_kyber_key,
             &encapsulation.ciphertext,
@@ -101,8 +100,8 @@ impl PQMessage {
         let kek_enc_bucket_key = aes_256_encrypt(&kek, bucket_key.as_bytes(), &iv, PaddingMode::WithPadding)?;
 
         Ok(Self {
-            sender_identity_public_key: sender_ecc_public_key.to_owned(),
-            ephemeral_public_key: ephemeral_ecc_public_key.to_owned(),
+            sender_identity_public_key: sender_ecc_keypair.public_key.to_owned(),
+            ephemeral_public_key: ephemeral_ecc_keypair.public_key.to_owned(),
             encapsulation: PQBucketKeyEncapsulation {
                 kyber_ciphertext: encapsulation.ciphertext,
                 kek_enc_bucket_key
@@ -148,7 +147,20 @@ fn derive_pq_kek(
     Aes256Key::try_from(kek_bytes).unwrap()
 }
 
-pub struct PQKeyPairs((EccKeyPair, KyberKeyPair));
+#[derive(Clone)]
+pub struct PQKeyPairs {
+    pub ecc_keys: EccKeyPair,
+    pub kyber_keys: KyberKeyPair
+}
+
+impl PQKeyPairs {
+    /// Generate a keypair with the given random number generator.
+    pub fn generate<R: CryptoRngCore + ?Sized>(rng: &mut R) -> Self {
+        let ecc_keys = EccKeyPair::generate(rng);
+        let kyber_keys = KyberKeyPair::generate();
+        Self { ecc_keys, kyber_keys }
+    }
+}
 
 #[derive(ZeroizeOnDrop)]
 pub struct PQBucketKeyEncapsulation {
@@ -210,24 +222,25 @@ mod tests {
         let tests = get_test_data();
         for i in tests.pqcrypt_encryption_tests {
             let recipient_keys = get_recipient_keys(&i);
+            let PQKeyPairs { ecc_keys, kyber_keys } = &recipient_keys;
 
             // Note that the test data uses sender keys as recipient keys, so we are basically just simulating sending mail to ourselves.
-            let sender_private_ecc_key = recipient_keys.0.0.private_key.clone();
-            let sender_public_ecc_key = recipient_keys.0.0.public_key.clone();
-            let ephemeral_private_ecc_key = EccPrivateKey::from_bytes(&i.epheremal_private_x25519_key).unwrap();
-            let ephemeral_public_ecc_key = EccPublicKey::from_bytes(&i.epheremal_public_x25519_key).unwrap();
+            let sender_ecc_keypair = ecc_keys;
+            let ephemeral_ecc_keypair = EccKeyPair {
+                private_key: EccPrivateKey::from_bytes(&i.epheremal_private_x25519_key).unwrap(),
+                public_key: EccPublicKey::from_bytes(&i.epheremal_public_x25519_key).unwrap()
+            };
+
             let bucket_key = Aes256Key::try_from(i.bucket_key).unwrap();
             let iv = Iv::from_bytes(&i.seed[i.seed.len() - 16..]).unwrap();
 
             let encapsulation = PQMessage::encapsulate(
-                &sender_private_ecc_key,
-                &sender_public_ecc_key,
-                &ephemeral_private_ecc_key,
-                &ephemeral_public_ecc_key,
-                &recipient_keys.0.0.public_key,
-                &recipient_keys.0.1.public_key,
+                &sender_ecc_keypair,
+                &ephemeral_ecc_keypair,
+                &ecc_keys.public_key,
+                &kyber_keys.public_key,
                 &bucket_key,
-                &iv
+                iv
             ).unwrap();
 
             // NOTE: This will generally not match the test data, because we cannot inject randomness into Kyber.
@@ -251,9 +264,9 @@ mod tests {
         let kyber_private = KyberPrivateKey::deserialize(test.private_kyber_key.as_slice()).unwrap();
         let kyber_public = KyberPublicKey::deserialize(test.public_kyber_key.as_slice()).unwrap();
 
-        PQKeyPairs((
-            EccKeyPair { public_key: ecc_public, private_key: ecc_private },
-            KyberKeyPair { public_key: kyber_public, private_key: kyber_private }
-        ))
+        PQKeyPairs {
+            ecc_keys: EccKeyPair { public_key: ecc_public, private_key: ecc_private },
+            kyber_keys: KyberKeyPair { public_key: kyber_public, private_key: kyber_private }
+        }
     }
 }

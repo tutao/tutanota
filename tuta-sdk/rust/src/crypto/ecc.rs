@@ -1,3 +1,4 @@
+use rand_core::CryptoRngCore;
 use zeroize::*;
 
 const ECC_KEY_SIZE: usize = 32;
@@ -12,7 +13,7 @@ impl EccPrivateKey {
     }
 
     /// Calculate the public key for this private key.
-    pub fn calculate_public_key(&self) -> EccPublicKey {
+    pub fn derive_public_key(&self) -> EccPublicKey {
         use curve25519_dalek::Scalar;
         use curve25519_dalek::montgomery::MontgomeryPoint;
 
@@ -33,14 +34,33 @@ impl EccPrivateKey {
             actual_size => Err(EccKeyError { actual_size })
         }
     }
+
+    fn from_bytes_clamped(bytes: [u8; 32]) -> Self {
+        let clamped = curve25519_dalek::scalar::clamp_integer(bytes);
+        Self(clamped)
+    }
 }
 
 #[derive(ZeroizeOnDrop, Clone)]
 pub struct EccPublicKey([u8; 32]);
 
+#[derive(Clone)]
 pub struct EccKeyPair {
     pub public_key: EccPublicKey,
     pub private_key: EccPrivateKey,
+}
+
+impl EccKeyPair {
+    /// Generate a keypair with the given random number generator.
+    pub fn generate<R: CryptoRngCore + ?Sized>(rng: &mut R) -> Self {
+        let mut private_key = [0u8; 32];
+        rng.try_fill_bytes(&mut private_key).unwrap();
+
+        let private_key = EccPrivateKey::from_bytes_clamped(private_key);
+        let public_key = private_key.derive_public_key();
+
+        Self { public_key, private_key }
+    }
 }
 
 impl EccPublicKey {
@@ -125,9 +145,9 @@ mod tests {
             let bob_private_key = EccPrivateKey(i.bob_private_key_hex.try_into().unwrap());
             let bob_public_key = EccPublicKey(i.bob_public_key_hex.try_into().unwrap());
 
-            assert_eq!(alice_public_key.0, alice_private_key.calculate_public_key().0);
-            assert_eq!(ephemeral_public_key.0, ephemeral_private_key.calculate_public_key().0);
-            assert_eq!(bob_public_key.0, bob_private_key.calculate_public_key().0);
+            assert_eq!(alice_public_key.0, alice_private_key.derive_public_key().0);
+            assert_eq!(ephemeral_public_key.0, ephemeral_private_key.derive_public_key().0);
+            assert_eq!(bob_public_key.0, bob_private_key.derive_public_key().0);
 
             let ephemeral_secret = EccSharedSecret(i.ephemeral_shared_secret_hex.try_into().unwrap());
             let auth_secret = EccSharedSecret(i.auth_shared_secret_hex.try_into().unwrap());
