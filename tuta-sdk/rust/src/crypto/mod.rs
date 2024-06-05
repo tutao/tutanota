@@ -11,6 +11,10 @@ mod ecc;
 mod kyber;
 mod rsa;
 mod tuta_crypt;
+mod key_loader_facade;
+mod crypto_facade;
+pub mod key;
 
 #[cfg(test)]
 mod compatibility_test_utils;
+mod randomizer_facade;
