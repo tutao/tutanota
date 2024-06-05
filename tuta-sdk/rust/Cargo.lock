@@ -1163,6 +1163,7 @@ dependencies = [
  "pqcrypto-kyber",
  "pqcrypto-traits",
  "rand",
+ "rand_core",
  "rsa",
  "serde",
  "serde_bytes",

@@ -1,6 +1,5 @@
 use std::collections::HashMap;
 use std::fmt::Display;
-use std::sync::Arc;
 
 use serde::{de, Deserialize, Deserializer, ser, Serialize, Serializer};
 use serde::de::{DeserializeSeed, IntoDeserializer, MapAccess, Unexpected, Visitor};
@@ -9,7 +8,6 @@ use serde::ser::{SerializeSeq, SerializeStruct};
 use thiserror::Error;
 
 use crate::element_value::{ElementValue, ParsedEntity};
-use crate::element_value::ElementValue::IdTupleId;
 use crate::entities::Entity;
 use crate::IdTuple;
 
@@ -187,7 +185,7 @@ impl<'de> Deserializer<'de> for ElementValueDeserializer {
                     }
                 }
             }
-            return if let IdTupleId(IdTuple { list_id, element_id }) = self.value {
+            return if let ElementValue::IdTupleId(IdTuple { list_id, element_id }) = self.value {
                 visitor.visit_map(IdTupleMapAccess { iter: [("list_id", list_id), ("element_id", element_id)].into_iter(), value: None })
             } else {
                 Err(de::Error::invalid_type(self.value.as_unexpected(), &"idTuple"))
@@ -394,7 +392,7 @@ impl ElementValue {
             ElementValue::Bool(v) => Unexpected::Bool(*v),
             ElementValue::GeneratedId(_) => Unexpected::Other("GeneratedId"),
             ElementValue::CustomId(_) => Unexpected::Other("CustomId"),
-            IdTupleId(_) => Unexpected::Other("IdTuple"),
+            ElementValue::IdTupleId(_) => Unexpected::Other("IdTuple"),
             ElementValue::Dict(_) => Unexpected::Map,
             ElementValue::Array(_) => Unexpected::Seq
         }
@@ -408,6 +406,7 @@ mod tests {
     use crate::json_element::RawEntity;
     use crate::json_serializer::JsonSerializer;
     use crate::type_model_provider::init_type_model_provider;
+    use std::sync::Arc;
 
     use super::*;
 

@@ -12,14 +12,17 @@ pub enum ElementValue {
     Bytes(Vec<u8>),
     Date(SystemTime),
     Bool(bool),
-    GeneratedId(String),
+    GeneratedId(GeneratedId),
     CustomId(String),
     IdTupleId(IdTuple),
     Dict(HashMap<String, ElementValue>),
-    Array(Vec<ElementValue>),
+    Array(Vec<ElementValue>)
 }
 
 pub type ParsedEntity = HashMap<String, ElementValue>;
+
+// FIXME: This should properly typed to avoid accidental copies from String to GeneratedId
+pub type GeneratedId = String;
 
 
 impl ElementValue {
