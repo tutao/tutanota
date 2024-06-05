@@ -5,6 +5,7 @@ use sha2::Sha256;
 use zeroize::Zeroizing;
 use crate::join_slices;
 
+#[derive(Clone)]
 pub struct RSAPublicKey(rsa::RsaPublicKey);
 
 const RSA_PUBLIC_EXPONENT: u32 = 65537;
@@ -47,7 +48,14 @@ impl RSAPublicKey {
     }
 }
 
+#[derive(Clone)]
 pub struct RSAPrivateKey(rsa::RsaPrivateKey);
+
+#[derive(Clone)]
+pub struct RSAKeyPair {
+    pub public_key: RSAPublicKey,
+    pub private_key: RSAPrivateKey
+}
 
 impl RSAPrivateKey {
     /// Instantiate an RSAPrivateKey from its components.
