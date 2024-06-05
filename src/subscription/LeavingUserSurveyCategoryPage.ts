@@ -3,7 +3,6 @@ import { LeavingUserSurveyData } from "./LeavingUserSurveyWizard.js"
 import m, { Vnode, VnodeDOM } from "mithril"
 import { DropDownSelector, type DropDownSelectorAttrs } from "../gui/base/DropDownSelector.js"
 import { lang } from "../misc/LanguageViewModel.js"
-import { mainSurveyImage } from "../gui/base/icons/Icons.js"
 import { theme } from "../gui/theme.js"
 import { SetupLeavingUserSurveyPage } from "./SetupLeavingUserSurveyPage.js"
 
@@ -21,7 +20,7 @@ export class LeavingUserSurveyCategoryPage implements WizardPageN<LeavingUserSur
 				closeAction: () => this.showNextPage(),
 				nextButtonLabel: "next_action",
 				nextButtonEnabled: !vnode.attrs.data.category,
-				image: mainSurveyImage,
+				image: "main",
 				mainMessage: "surveyMainMessageDelete_label",
 				secondaryMessage: vnode.attrs.data.showDowngradeMessage ? "surveySecondaryMessageDowngrade_label" : "surveySecondaryMessageDelete_label",
 			},
