@@ -11,3 +11,4 @@ TutaoCancelAction = "Batal";
 TutaoSettingsAction = "Pengaturan";
 TutaoCalendarAlarmTitle = "Pengingat";
 TutaoScheduleAlarmError = "Tidak bisa memasang alarm. Mohon perbarui aplikasi.";
+TutaoUnlockCredentialsAction = "Membuka kunci kredensial";

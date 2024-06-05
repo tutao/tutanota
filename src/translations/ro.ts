@@ -12,7 +12,7 @@ export default {
 		"other"
 	],
 	"created_at": "2015-02-18T09:07:31Z",
-	"updated_at": "2024-05-23T22:04:08Z",
+	"updated_at": "2024-05-31T14:44:02Z",
 	"source_locale": {
 		"id": "fcd7471b347c8e517663e194dcddf237",
 		"name": "en",
@@ -114,6 +114,10 @@ export default {
 		"appInfoFDroidImageAlt_alt": "Aplicație Android în F-Droid",
 		"appInfoIosImageAlt_alt": "Aplicație iOS în magazinul Apple",
 		"apply_action": "Aplică",
+		"appStoreRenewProblemBody_msg": "Bună,\n    \nAbonamentul tău trebuia să se reînnoiască pe {expirationDate}.\n     \nDin păcate, nu am primit nicio plată de la App Store pentru abonamentul tău, ceea ce se poate datora unei erori de facturare. Te rugăm să verifici dacă detaliile de plată din App Store sunt corecte.\n\nDacă nu primim nicio plată, contul tău va fi dezactivat pe {finalExpirationDate} pentru neplată. Alternativ, poți alege să-ți anulezi abonamentul sau să treci la o altă metodă de plată.\n \nRămâi în siguranță,\nEchipa Tuta",
+		"appStoreRenewProblemSubject_msg": "Eroare de facturare App Store",
+		"appStoreSubscriptionEndedBody_msg": "Bună,\n     \nAbonamentul tău a expirat pe {expirationDate}. Trebuie să plătești abonamentul sau să treci la contul gratuit, altfel contul tău va fi suspendat pentru neplată.\n \nRămâi în siguranță,\nEchipa Tuta",
+		"appStoreSubscriptionEndedSubject_msg": "Abonamentul tău a expirat",
 		"archive_action": "Arhivă",
 		"archive_label": "Arhivă",
 		"assignAdminRightsToLocallyAdministratedUserError_msg": "Nu poți atribui drepturi de administrator global unui utilizator administrat la nivel local.",

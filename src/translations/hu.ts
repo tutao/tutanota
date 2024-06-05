@@ -11,7 +11,7 @@ export default {
 		"other"
 	],
 	"created_at": "2015-04-02T12:56:44Z",
-	"updated_at": "2024-05-25T08:22:52Z",
+	"updated_at": "2024-05-31T10:04:18Z",
 	"source_locale": null,
 	"fallback_locale": null,
 	"keys": {
@@ -109,6 +109,10 @@ export default {
 		"appInfoFDroidImageAlt_alt": "Android-alkalmazás az F-Droidon",
 		"appInfoIosImageAlt_alt": "iOS alkalmazás az Apple Store-ban",
 		"apply_action": "Alkalmazni!",
+		"appStoreRenewProblemBody_msg": "Hello,\n    \nAz Ön előfizetésének megújítása a {expirationDate} oldalon esedékes volt.\n     \nSajnos nem tudtunk fizetést kapni az App Store-ból az Ön előfizetésére, ami számlázási hiba miatt lehet. Kérjük, ellenőrizze, hogy a fizetési beállításai az App Store-ban megfelelőek-e.\n\nHa nem kapunk fizetést, a fiókját a {finalExpirationDate} oldalon letiltjuk a fizetés elmaradása miatt. Alternatívaként választhat, hogy lemondja előfizetését, vagy másik fizetési módra vált.\n \nMaradjon biztonságban,\nAz Ön Tuta csapata.",
+		"appStoreRenewProblemSubject_msg": "App Store számlázási hiba",
+		"appStoreSubscriptionEndedBody_msg": "Hello,\n     \nAz Ön előfizetése a {expirationDate} oldalon ért véget. Kérjük, fizesse ki az előfizetési díjat, vagy váltson át az ingyenes csomagra, különben a fiókját felfüggesztjük a fizetés elmaradása miatt.\n \nMaradjon biztonságban,\nAz Ön Tuta csapata.",
+		"appStoreSubscriptionEndedSubject_msg": "Az Ön előfizetése lejárt",
 		"archive_action": "Archívum",
 		"archive_label": "Archívum",
 		"assignAdminRightsToLocallyAdministratedUserError_msg": "Globális adminisztrátori jogokat nem adhat át helyileg adminisztrált felhasználónak.",
