@@ -13,7 +13,7 @@ export default {
 		"other"
 	],
 	"created_at": "2015-04-24T12:42:36Z",
-	"updated_at": "2024-05-30T06:33:30Z",
+	"updated_at": "2024-06-03T08:57:09Z",
 	"source_locale": null,
 	"fallback_locale": null,
 	"keys": {
@@ -112,6 +112,9 @@ export default {
 		"appInfoIosImageAlt_alt": "Aplikace iOS na Apple store",
 		"apply_action": "Použít",
 		"appStoreRenewProblemBody_msg": "Dobrý den,\n\nvaše předplatné mělo být obnoveno dne {expirationDate}.\n\nBohužel jsme z App Storu neobdrželi žádnou platbu za vaše předplatné, což může být způsobeno chybnou fakturací. Zkontrolujte prosím, zda je nastavení plateb v App Storu správné.\n\nPokud neobdržíme platbu, váš účet bude bohužel deaktivován ke dni {finalExpirationDate}. Případně můžete vaše předplatné zrušit nebo přejít na jiný způsob platby.\n\nS pozdravem\nVáš tým Tuta",
+		"appStoreRenewProblemSubject_msg": "Problém s fakturací z App Storu",
+		"appStoreSubscriptionEndedBody_msg": "Dobrý den,\n\nplatnost vašeho předplatného skončila dne {expirationDate}. Uhraďte prosím částku za další obdbobí nebo přejděte na bezplatnou verzi, jinak bude váš účet zablokován pro neplacení.\n\nZůstaňte v bezpečí\nVáš tým Tuta",
+		"appStoreSubscriptionEndedSubject_msg": "Platnost vašeho předplatného skončila",
 		"archive_action": "Archiv",
 		"archive_label": "Archiv",
 		"assignAdminRightsToLocallyAdministratedUserError_msg": "Nemůžete přidělit globální administrátorská práva místně spravovanému uživateli.",

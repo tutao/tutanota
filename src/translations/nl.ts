@@ -11,7 +11,7 @@ export default {
 		"other"
 	],
 	"created_at": "2015-01-27T13:13:55Z",
-	"updated_at": "2024-05-23T10:10:23Z",
+	"updated_at": "2024-06-01T14:11:52Z",
 	"source_locale": {
 		"id": "fcd7471b347c8e517663e194dcddf237",
 		"name": "en",
@@ -113,6 +113,7 @@ export default {
 		"appInfoFDroidImageAlt_alt": "Android app op F-Droid",
 		"appInfoIosImageAlt_alt": "iOS app in de Apple Store",
 		"apply_action": "Toepassen",
+		"appStoreSubscriptionEndedSubject_msg": "Uw abonnement is verlopen",
 		"archive_action": "Archief",
 		"archive_label": "Archief",
 		"assignAdminRightsToLocallyAdministratedUserError_msg": "U kunt geen globale beheersrechten toekennen aan een lokaal aangemaakte gebruiker.",
@@ -972,6 +973,8 @@ export default {
 		"nothingFound_label": "Geen sjablonen gevonden",
 		"notificationMailLanguage_label": "Taal van notificatie e-mail",
 		"notificationMailTemplateTooLarge_msg": "Het sjabloon voor de notificatie e-mail is te groot.",
+		"notificationPreferenceNoSenderOrSubject_action": "Geen afzender of onderwerp",
+		"notificationPreferenceOnlySender_action": "Alleen afzender",
 		"notificationsDisabled_label": "Gedeactiveerd",
 		"notificationSettings_action": "Berichten",
 		"notificationSync_msg": "Notificaties synchroniseren",

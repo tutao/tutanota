@@ -13,7 +13,7 @@ export default {
 		"other"
 	],
 	"created_at": "2015-01-27T13:13:41Z",
-	"updated_at": "2024-05-23T10:10:23Z",
+	"updated_at": "2024-06-02T16:15:11Z",
 	"source_locale": {
 		"id": "fcd7471b347c8e517663e194dcddf237",
 		"name": "en",
@@ -115,6 +115,10 @@ export default {
 		"appInfoFDroidImageAlt_alt": "Aplikacja na Androida na F-Droid",
 		"appInfoIosImageAlt_alt": "Aplikacja na iOS w Apple store",
 		"apply_action": "Zastosuj",
+		"appStoreRenewProblemBody_msg": "Witaj,\n      \n\nTwoja subskrypcja miała zostać odnowiona w dniu {expirationDate}.\n       \nNiestety, nie otrzymaliśmy żadnej płatności ze Sklepu z aplikacjami za subskrypcję, co może być spowodowane błędem rozliczeniowym. Sprawdź, czy ustawienia płatności w sklepie są prawidłowe.\n\nJeśli nie otrzymamy żadnej płatności, konto zostanie wyłączone w dniu {finalExpirationDate} z powodu braku płatności. Alternatywnie możesz anulować subskrypcję lub zmienić metodę płatności.\n   \nPozdrawiamy,\nTwój zespół Tuta",
+		"appStoreRenewProblemSubject_msg": "Błąd rozliczeń w sklepie z aplikacjami",
+		"appStoreSubscriptionEndedBody_msg": "Witaj,\n       \nTwoja subskrypcja zakończyła się w dniu {expirationDate}. Opłać subskrypcję lub zmień ofertę na bezpłatną, w przeciwnym razie twoje konto zostanie zawieszone z powodu braku płatności.\n   \nPozdrawiamy,\nTwój zespół Tuta",
+		"appStoreSubscriptionEndedSubject_msg": "Twoja subskrypcja wygasła",
 		"archive_action": "Archiwum",
 		"archive_label": "Archiwum",
 		"assignAdminRightsToLocallyAdministratedUserError_msg": "Nie można przypisać globalnych uprawnień administratora do administrowanego lokalnie użytkownika.",
@@ -980,6 +984,7 @@ export default {
 		"notificationsDisabled_label": "Wyłączono",
 		"notificationSettings_action": "Powiadomienia",
 		"notificationSync_msg": "Synchronizowanie zawiadomień",
+		"notificationTargets_label": "Cele powiadomień",
 		"notSigned_msg": "Niepodpisany.",
 		"noUpdateAvailable_msg": "Nie znaleziono uaktualnienia.",
 		"noValidMembersToAdd_msg": "Nie administrujesz żadnymi użytkownikami, którzy nie są już członkami tej grupy.",
