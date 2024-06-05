@@ -101,8 +101,10 @@ export class KeyLoaderFacade {
 		currentGroupKey: VersionedKey,
 		targetKeyVersion: number,
 	): Promise<{ symmetricGroupKey: AesKey; groupKeyInstance: GroupKey }> {
-		const formerKeysList = assertNotNull(group.formerGroupKeys).list
-
+		const formerKeysList = assertNotNull(
+			group.formerGroupKeys,
+			`No former group keys, current key version from group ${group._id}: ${group.groupKeyVersion}, current version in group key: ${currentGroupKey.version}, target key version: ${targetKeyVersion}.`,
+		).list
 		// start id is not included in the result of the range request, so we need to start at current version.
 		const startId = stringToCustomId(String(currentGroupKey.version))
 		const amountOfKeysIncludingTarget = currentGroupKey.version - targetKeyVersion
