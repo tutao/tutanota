@@ -4,19 +4,14 @@ use aes::cipher::{BlockCipher, BlockSizeUser};
 use aes::cipher::block_padding::Pkcs7;
 use cbc::cipher::{BlockDecrypt, BlockDecryptMut, BlockEncrypt, BlockEncryptMut, KeyIvInit};
 use cbc::cipher::block_padding::UnpadError;
-use zeroize::{ZeroizeOnDrop, Zeroizing};
+use rand_core::CryptoRngCore;
+use zeroize::ZeroizeOnDrop;
 use crate::join_slices;
 
 /// Denotes whether a text is/should be padded
 pub enum PaddingMode {
     NoPadding,
     WithPadding,
-}
-
-/// Denotes which key size AES is using
-pub enum GenericAesKey {
-    Aes128(Aes128Key),
-    Aes256(Aes256Key),
 }
 
 /// Denotes whether a text should include a message authentication code
@@ -33,122 +28,94 @@ pub enum EnforceMac {
     EnforceMac,
 }
 
-#[derive(Clone, ZeroizeOnDrop)]
-pub struct Aes128Key([u8; 16]);
+macro_rules! aes_key {
+    ($name:tt, $size:expr, $cbc:ty, $subkey_digest:ty) => {
+        #[derive(Clone, ZeroizeOnDrop)]
+        pub struct $name([u8; $size]);
 
-impl Aes128Key {
-    fn as_bytes(&self) -> &[u8; 16] {
-        &self.0
-    }
+        impl $name {
+            /// Generate an AES key.
+            pub fn generate<R: CryptoRngCore + ?Sized>(rng: &mut R) -> Self {
+                let mut key = [0u8; $size];
+                rng.try_fill_bytes(&mut key).unwrap();
+                Self(key)
+            }
 
-    pub fn from_bytes(bytes: &[u8]) -> Result<Self, AesKeyError> {
-        match bytes.try_into() {
-            Ok(bytes) => { Ok(Self(bytes)) }
-            Err(_) => Err(AesKeyError { actual_size: bytes.len() })
+            /// Get the key represented as bytes.
+            pub fn as_bytes(&self) -> &[u8; $size] {
+                &self.0
+            }
+
+            /// Load the key from bytes.
+            ///
+            /// Returns Err if the key is not the correct size.
+            pub fn from_bytes(bytes: &[u8]) -> Result<Self, AesKeyError> {
+                match bytes.try_into() {
+                    Ok(bytes) => { Ok(Self(bytes)) }
+                    Err(_) => Err(AesKeyError { actual_size: bytes.len() })
+                }
+            }
         }
-    }
-}
 
-impl<const SIZE: usize> TryFrom<[u8; SIZE]> for Aes128Key {
-    type Error = AesKeyError;
-    fn try_from(value: [u8; SIZE]) -> Result<Self, Self::Error> {
-        match arr_cast_size(value) {
-            Ok(arr) => Ok(Self(arr)),
-            Err(_) => Err(AesKeyError { actual_size: value.len() })
+        impl<const SIZE: usize> TryFrom<[u8; SIZE]> for $name {
+            type Error = AesKeyError;
+            fn try_from(value: [u8; SIZE]) -> Result<Self, Self::Error> {
+                match arr_cast_size(value) {
+                    Ok(arr) => Ok(Self(arr)),
+                    Err(_) => Err(AesKeyError { actual_size: value.len() })
+                }
+            }
         }
-    }
-}
 
-impl TryFrom<Vec<u8>> for Aes128Key {
-    type Error = AesKeyError;
-    fn try_from(value: Vec<u8>) -> Result<Self, Self::Error> {
-        match value.len() {
-            16 => Ok(Self(value.try_into().unwrap())),
-            _ => Err(AesKeyError { actual_size: value.len() }),
+        impl TryFrom<Vec<u8>> for $name {
+            type Error = AesKeyError;
+            fn try_from(value: Vec<u8>) -> Result<Self, Self::Error> {
+                match value.len() {
+                    n if n == $size => Ok(Self(value.try_into().unwrap())),
+                    _ => Err(AesKeyError { actual_size: value.len() }),
+                }
+            }
         }
-    }
-}
 
-#[derive(Clone, ZeroizeOnDrop)]
-pub struct Aes256Key([u8; 32]);
+        impl AesKey for $name {
+            type CbcKeyType = $cbc;
+            fn get_bytes(&self) -> &[u8] {
+                &self.0
+            }
 
-impl Aes256Key {
-    pub fn as_bytes(&self) -> &[u8; 32] {
-        &self.0
-    }
-}
+            fn derive_subkeys(&self) -> AesSubKeys<Self> {
+                use sha2::Digest;
+                use cbc::cipher::KeySizeUser;
 
-impl Aes256Key {
-    pub fn from_bytes(bytes: &[u8]) -> Result<Self, AesKeyError> {
-        match bytes.try_into() {
-            Ok(bytes) => { Ok(Self(bytes)) }
-            Err(_) => Err(AesKeyError { actual_size: bytes.len() })
+                let mut hasher = <$subkey_digest>::new();
+                hasher.update(self.get_bytes());
+                let hashed_key = hasher.finalize();
+
+                let (c_key_slice, m_key_slice) = hashed_key.split_at(<Self as AesKey>::CbcKeyType::key_size());
+                AesSubKeys { c_key: Self::from_bytes(c_key_slice).unwrap(), m_key: Self::from_bytes(m_key_slice).unwrap() }
+            }
         }
-    }
+    };
 }
 
-impl<const SIZE: usize> TryFrom<[u8; SIZE]> for Aes256Key {
-    type Error = AesKeyError;
-    fn try_from(value: [u8; SIZE]) -> Result<Self, Self::Error> {
-        match arr_cast_size(value) {
-            Ok(arr) => Ok(Self(arr)),
-            Err(_) => Err(AesKeyError { actual_size: value.len() })
-        }
-    }
-}
+aes_key!(
+    Aes128Key,
+    AES_128_KEY_SIZE,
+    aes::Aes128,
+    sha2::Sha256
+);
 
-impl TryFrom<Vec<u8>> for Aes256Key {
-    type Error = AesKeyError;
-    fn try_from(value: Vec<u8>) -> Result<Self, Self::Error> {
-        match value.len() {
-            32 => Ok(Self(Zeroizing::new(value).as_slice().try_into().unwrap())),
-            _ => Err(AesKeyError { actual_size: value.len() }),
-        }
-    }
-}
+aes_key!(
+    Aes256Key,
+    AES_256_KEY_SIZE,
+    aes::Aes256,
+    sha2::Sha512
+);
 
 trait AesKey: Clone {
     type CbcKeyType: BlockEncryptMut + BlockDecryptMut + BlockEncrypt + BlockDecrypt + BlockCipher + cbc::cipher::KeyInit;
     fn get_bytes(&self) -> &[u8];
     fn derive_subkeys(&self) -> AesSubKeys<Self>;
-}
-
-impl AesKey for Aes128Key {
-    type CbcKeyType = aes::Aes128;
-    fn get_bytes(&self) -> &[u8] {
-        &self.0
-    }
-
-    fn derive_subkeys(&self) -> AesSubKeys<Self> {
-        use sha2::{Digest, Sha256};
-        use cbc::cipher::KeySizeUser;
-
-        let mut hasher = Sha256::new();
-        hasher.update(self.get_bytes());
-        let hashed_key = hasher.finalize();
-
-        let (c_key_slice, m_key_slice) = hashed_key.split_at(<Self as AesKey>::CbcKeyType::key_size());
-        AesSubKeys { c_key: Self::from_bytes(c_key_slice).unwrap(), m_key: Self::from_bytes(m_key_slice).unwrap() }
-    }
-}
-
-impl AesKey for Aes256Key {
-    type CbcKeyType = aes::Aes256;
-    fn get_bytes(&self) -> &[u8] {
-        &self.0
-    }
-
-    fn derive_subkeys(&self) -> AesSubKeys<Self> {
-        use sha2::{Digest, Sha512};
-        use cbc::cipher::KeySizeUser;
-
-        let mut hasher = Sha512::new();
-        hasher.update(self.get_bytes());
-        let hashed_key = hasher.finalize();
-
-        let (c_key_slice, m_key_slice) = hashed_key.split_at(<Self as AesKey>::CbcKeyType::key_size());
-        AesSubKeys { c_key: Self::from_bytes(c_key_slice).unwrap(), m_key: Self::from_bytes(m_key_slice).unwrap() }
-    }
 }
 
 /// The possible errors that can occur while casting to a `GenericAesKey`
@@ -169,6 +136,13 @@ pub struct IvError {
 pub struct Iv([u8; IV_BYTE_SIZE]);
 
 impl Iv {
+    /// Generate an initialisation vector.
+    pub fn generate<R: CryptoRngCore + ?Sized>(rng: &mut R) -> Self {
+        let mut iv = [0u8; 16];
+        rng.try_fill_bytes(&mut iv).unwrap();
+        Self(iv)
+    }
+
     pub fn from_bytes(bytes: &[u8]) -> Result<Self, IvError> {
         match bytes.len() {
             IV_BYTE_SIZE => Ok(Self(bytes.try_into().unwrap())),
@@ -263,8 +237,8 @@ fn arr_cast_size<const SIZE: usize, const ARR_SIZE: usize>(arr: [u8; ARR_SIZE]) 
     }
 }
 
-const AES_128_KEY_SIZE: usize = 16;
-const AES_256_KEY_SIZE: usize = 32;
+pub const AES_128_KEY_SIZE: usize = 16;
+pub const AES_256_KEY_SIZE: usize = 32;
 
 /// The size of an AES initialisation vector in bytes
 pub const IV_BYTE_SIZE: usize = 16;
@@ -282,17 +256,17 @@ fn encrypt_unpadded_vec_mut<C: BlockCipher + BlockEncryptMut>(encryptor: &mut cb
 }
 
 /// Keys derived for AES key to enable authentication
-struct AesSubKeys<KEY: AesKey> {
+struct AesSubKeys<Key: AesKey> {
     /// Key used for encrypting data
-    c_key: KEY,
+    c_key: Key,
     /// Key used for HMAC (authentication)
-    m_key: KEY,
+    m_key: Key,
 }
 
 type Aes128SubKeys = AesSubKeys<Aes128Key>;
 type Aes256SubKeys = AesSubKeys<Aes256Key>;
 
-impl<KEY: AesKey> AesSubKeys<KEY> {
+impl<Key: AesKey> AesSubKeys<Key> {
     fn compute_mac(&self, iv: &[u8], ciphertext: &[u8]) -> [u8; 32] {
         use sha2::Sha256;
         use hmac::Mac;
@@ -372,7 +346,7 @@ impl<'a> CiphertextWithAuthentication<'a> {
         }
     }
 
-    fn compute<KEY: AesKey>(ciphertext: &'a [u8], iv: &'a [u8], subkeys: &AesSubKeys<KEY>) -> CiphertextWithAuthentication<'a> {
+    fn compute<Key: AesKey>(ciphertext: &'a [u8], iv: &'a [u8], subkeys: &AesSubKeys<Key>) -> CiphertextWithAuthentication<'a> {
         CiphertextWithAuthentication {
             iv,
             ciphertext,
@@ -380,7 +354,7 @@ impl<'a> CiphertextWithAuthentication<'a> {
         }
     }
 
-    fn matches<KEY: AesKey>(&self, subkeys: &AesSubKeys<KEY>) -> bool {
+    fn matches<Key: AesKey>(&self, subkeys: &AesSubKeys<Key>) -> bool {
         self.mac == subkeys.compute_mac(self.iv, self.ciphertext)
     }
 
