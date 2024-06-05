@@ -1,6 +1,7 @@
 use std::collections::HashMap;
 
-use crate::crypto::aes::{aes_128_encrypt, aes_256_encrypt, GenericAesKey, Iv, MacMode, PaddingMode};
+use crate::crypto::aes::{aes_128_encrypt, aes_256_encrypt, Iv, MacMode, PaddingMode};
+use crate::crypto::key::GenericAesKey;
 use crate::element_value::{ElementValue, ParsedEntity};
 use crate::IdTuple;
 
