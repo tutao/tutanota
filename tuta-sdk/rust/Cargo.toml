@@ -25,6 +25,7 @@ curve25519-dalek = "4.1.2"
 pqcrypto-kyber = { version = "0.7.6", default-features = false, features = ["std"] }
 pqcrypto-traits = "0.3.4"
 rsa = "0.9.6"
+rand_core = "0.6.4"
 serde_bytes = "0.11.14"
 
 [build-dependencies]

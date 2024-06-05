@@ -24,6 +24,7 @@ const KYBER_PUBLIC_KEY_LEN: usize = KYBER_POLYVECBYTES + KYBER_SYMBYTES;
 const KYBER_SECRET_KEY_LEN: usize = 2 * KYBER_POLYVECBYTES + 3 * KYBER_SYMBYTES;
 
 /// Key used for performing encapsulation, owned by the recipient.
+#[derive(Clone)]
 pub struct KyberPublicKey {
     public_key: PQCryptoKyber1024PublicKey
 }
@@ -72,7 +73,14 @@ impl KyberPublicKey {
     }
 }
 
+impl From<PQCryptoKyber1024PublicKey> for KyberPublicKey {
+    fn from(value: PQCryptoKyber1024PublicKey) -> Self {
+        Self { public_key: value }
+    }
+}
+
 /// Key used for performing decapsulation, owned by the recipient.
+#[derive(Clone)]
 pub struct KyberPrivateKey {
     private_key: PQCryptoKyber1024SecretKey
 }
@@ -148,6 +156,12 @@ impl KyberPrivateKey {
     }
 }
 
+impl From<PQCryptoKyber1024SecretKey> for KyberPrivateKey {
+    fn from(value: PQCryptoKyber1024SecretKey) -> Self {
+        Self { private_key: value }
+    }
+}
+
 /// Error occurred from trying to read a Kyber public/private key.
 #[derive(thiserror::Error, Debug)]
 #[error("Invalid Kyber key: {reason}")]
@@ -207,9 +221,21 @@ pub struct KyberEncapsulation {
     pub shared_secret: KyberSharedSecret
 }
 
+#[derive(Clone)]
 pub struct KyberKeyPair {
     pub public_key: KyberPublicKey,
     pub private_key: KyberPrivateKey
+}
+
+impl KyberKeyPair {
+    /// Generate a keypair.
+    pub fn generate() -> Self {
+        use pqcrypto_kyber::kyber1024_keypair;
+        let (kyber_public_key, kyber_private_key) = kyber1024_keypair();
+        Self {
+            public_key: kyber_public_key.into(), private_key: kyber_private_key.into()
+        }
+    }
 }
 
 #[cfg(test)]
