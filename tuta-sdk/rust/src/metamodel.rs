@@ -1,5 +1,6 @@
-use serde::Deserialize;
 use std::collections::HashMap;
+
+use serde::Deserialize;
 
 /// A kind of element that can appear in the model
 #[derive(Deserialize, PartialEq)]
@@ -21,7 +22,7 @@ pub enum ElementType {
     BlobElement,
 }
 
-#[derive(Deserialize)]
+#[derive(Deserialize, Clone)]
 pub enum ValueType {
     String,
     Number,
@@ -35,7 +36,7 @@ pub enum ValueType {
 
 /// Associations (references and aggregations) have two dimensions: the type they reference and
 /// their cardinality.
-#[derive(Deserialize, PartialEq)]
+#[derive(Deserialize, PartialEq, Clone)]
 pub enum Cardinality {
     /// Optional
     ZeroOrOne,
@@ -46,7 +47,7 @@ pub enum Cardinality {
 }
 
 /// Relationships between elements are described as association
-#[derive(Deserialize)]
+#[derive(Deserialize, Clone)]
 pub enum AssociationType {
     /// References [ElementType] by id
     #[serde(rename = "ELEMENT_ASSOCIATION")]
@@ -79,7 +80,7 @@ pub struct ModelValue {
 }
 
 /// Description of the association (association field of Element)
-#[derive(Deserialize)]
+#[derive(Deserialize, Clone)]
 pub struct ModelAssociation {
     pub id: u64,
     #[serde(rename = "type")]

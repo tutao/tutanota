@@ -1,5 +1,6 @@
 use std::collections::HashMap;
 use std::time::SystemTime;
+
 use crate::IdTuple;
 
 /// Primitive value types used by entity/instance types
@@ -37,6 +38,13 @@ impl ElementValue {
         match self {
             ElementValue::Array(value) => value.to_vec(),
             _ => panic!("Invalid type"),
+        }
+    }
+
+    pub fn assert_bytes(&self) -> Vec<u8> {
+        match self {
+            ElementValue::Bytes(value) => value.to_vec(),
+            _ => panic!("Invalid type, is {:?}", self),
         }
     }
 
