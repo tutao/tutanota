@@ -5,8 +5,8 @@ own. If you prefer the auto-update feature, you can use the official [mail](http
 
 #### Pre-requisites:
 
-* An up-to-date version of Git is installed
-* Node.js (check package.json `engines` field for the version)
+* An up-to-date version of [Git](https://git-scm.com)
+* [Node.js](https://nodejs.org) (check `engines` field in `package.json` for the version)
 * [npm CLI](https://docs.npmjs.com)
 * [Emscripten compiler](https://emscripten.org/index.html)
 
