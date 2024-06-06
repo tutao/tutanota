@@ -32,7 +32,7 @@ uniffi::setup_scaffolding!();
 
 /// A type for an instance/entity from the backend
 /// Definitions for them can be found inside the type model JSON files under `/test_data`
-#[derive(Debug, Clone)]
+#[derive(uniffi::Record, Debug, PartialEq, Clone)]
 pub struct TypeRef {
     pub app: String,
     pub type_: String,
@@ -174,7 +174,6 @@ pub enum ApiCallError {
         error_message: String,
     },
 }
-
 
 impl From<InstanceMapperError> for ApiCallError {
     fn from(value: InstanceMapperError) -> Self {
