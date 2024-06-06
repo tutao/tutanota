@@ -5,6 +5,7 @@ use aes::cipher::block_padding::Pkcs7;
 use cbc::cipher::{BlockDecrypt, BlockDecryptMut, BlockEncrypt, BlockEncryptMut, KeyIvInit};
 use cbc::cipher::block_padding::UnpadError;
 use zeroize::ZeroizeOnDrop;
+
 use crate::join_slices;
 
 /// Denotes whether a text is/should be padded
@@ -26,7 +27,6 @@ pub enum EnforceMac {
     AllowNoMac,
     EnforceMac,
 }
-
 
 #[derive(Clone, ZeroizeOnDrop)]
 pub struct Aes128Key([u8; 16]);
@@ -157,7 +157,7 @@ pub struct AesKeyError {
 pub struct Iv([u8; IV_BYTE_SIZE]);
 
 impl Iv {
-    fn from_bytes(bytes: [u8; IV_BYTE_SIZE]) -> Self {
+    pub fn from_bytes(bytes: [u8; IV_BYTE_SIZE]) -> Self {
         Self(bytes)
     }
 
@@ -252,7 +252,7 @@ const AES_128_KEY_SIZE: usize = 16;
 const AES_256_KEY_SIZE: usize = 32;
 
 /// The size of an AES initialisation vector in bytes
-const IV_BYTE_SIZE: usize = 16;
+pub const IV_BYTE_SIZE: usize = 16;
 
 /// Size of HMAC authentication added to the ciphertext
 const MAC_SIZE: usize = 32;
@@ -415,12 +415,12 @@ fn aes_decrypt<Key: AesKey>(key: &Key, encrypted_bytes: &[u8], padding_mode: Pad
 
 #[cfg(test)]
 mod tests {
-    use base64::engine::{Engine};
+    use base64::engine::Engine;
     use base64::prelude::BASE64_STANDARD;
+
     use crate::crypto::compatibility_test_utils::*;
 
     use super::*;
-
 
     #[test]
     fn test_aes_128_encrypt_with_padding_no_mac() {
