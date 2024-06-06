@@ -10,7 +10,7 @@ own. If you prefer the auto-update feature, you can use the official [mail](http
 
 #### Build steps:
 
-1. Clone the repository: `git clone https://github.com/tutao/tutanota.git`
+1. Clone the repository: `git clone --recurse-submodules https://github.com/tutao/tutanota.git`
 2. Switch into the repository directory: `cd tutanota`
 3. Checkout the latest web release tag: `git checkout tutanota-release-xxx`
 4. run `npm ci` to install dependencies.
