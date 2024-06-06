@@ -1162,6 +1162,7 @@ dependencies = [
  "mockall",
  "pqcrypto-kyber",
  "pqcrypto-traits",
+ "rand",
  "rsa",
  "serde",
  "serde_bytes",
