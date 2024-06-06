@@ -30,14 +30,6 @@ if [[ "${BUILDVARIANT}" != debug* ]]; then
     RELFLAG=--release
 fi
 
-# if [[ -n "${SDK_DIR:-}" ]]; then
-#   # Assume we're in Xcode, which means we're probably cross-compiling.
-#   # In this case, we need to add an extra library search path for build scripts and proc-macros,
-#   # which run on the host instead of the target.
-#   # (macOS Big Sur does not have linkable libraries in /usr/lib/.)
-#   export LIBRARY_PATH="${SDK_DIR}/usr/lib:${LIBRARY_PATH:-}"
-# fi
-
 IS_SIMULATOR=0
 if [ "${LLVM_TARGET_TRIPLE_SUFFIX-}" = "-simulator" ]; then
   IS_SIMULATOR=1
@@ -53,16 +45,16 @@ for arch in $ARCHS; do
 
       # Intel iOS simulator
       export CFLAGS_x86_64_apple_ios="-target x86_64-apple-ios"
-      $HOME/.cargo/bin/cargo rustc --manifest-path="${SRC_ROOT}/Cargo.toml" -p "${FFI_TARGET}" --lib $RELFLAG --target x86_64-apple-ios -vv
+      cargo rustc --manifest-path="${SRC_ROOT}/Cargo.toml" -p "${FFI_TARGET}" --lib $RELFLAG --target x86_64-apple-ios -vv
       ;;
 
     arm64)
       if [ $IS_SIMULATOR -eq 0 ]; then
         # Hardware iOS targets
-        $HOME/.cargo/bin/cargo rustc --manifest-path="${SRC_ROOT}/Cargo.toml" -p "${FFI_TARGET}" --lib $RELFLAG --target aarch64-apple-ios -vv
+        cargo rustc --manifest-path="${SRC_ROOT}/Cargo.toml" -p "${FFI_TARGET}" --lib $RELFLAG --target aarch64-apple-ios -vv
       else
         # M1 iOS simulator
-        $HOME/.cargo/bin/cargo rustc --manifest-path="${SRC_ROOT}/Cargo.toml" -p "${FFI_TARGET}" --lib $RELFLAG --target aarch64-apple-ios-sim -vv
+        cargo rustc --manifest-path="${SRC_ROOT}/Cargo.toml" -p "${FFI_TARGET}" --lib $RELFLAG --target aarch64-apple-ios-sim -vv
       fi
   esac
 done
