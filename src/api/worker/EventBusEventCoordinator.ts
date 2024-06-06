@@ -9,7 +9,7 @@ import { MailFacade } from "./facades/lazy/MailFacade.js"
 import type { Indexer } from "./search/Indexer.js"
 import { UserFacade } from "./facades/UserFacade.js"
 import { EntityClient } from "../common/EntityClient.js"
-import { OperationType } from "../common/TutanotaConstants.js"
+import { AccountType, OperationType } from "../common/TutanotaConstants.js"
 import { isSameTypeRefByAttr, lazyAsync } from "@tutao/tutanota-utils"
 import { isSameId } from "../common/utils/EntityUtils.js"
 import { ExposedEventController } from "../main/EventController.js"
@@ -64,11 +64,9 @@ export class EventBusEventCoordinator implements EventBusListener {
 	onLeaderStatusChanged(leaderStatus: WebsocketLeaderStatus) {
 		this.connectivityListener.onLeaderStatusChanged(leaderStatus)
 		if (!isAdminClient()) {
-			if (leaderStatus.leaderStatus) {
-				const user = this.userFacade.getUser()
-				if (user) {
-					this.keyRotationFacade.loadAndProcessPendingKeyRotations(user)
-				}
+			const user = this.userFacade.getUser()
+			if (leaderStatus.leaderStatus && user && user.accountType !== AccountType.EXTERNAL) {
+				this.keyRotationFacade.loadAndProcessPendingKeyRotations(user)
 			} else {
 				this.keyRotationFacade.reset()
 			}

@@ -1,6 +1,6 @@
 import o from "@tutao/otest"
 import { EventBusEventCoordinator } from "../../../../src/api/worker/EventBusEventCoordinator.js"
-import { object, verify, when } from "testdouble"
+import { matchers, object, verify, when } from "testdouble"
 import {
 	EntityUpdate,
 	EntityUpdateTypeRef,
@@ -11,7 +11,7 @@ import {
 	WebsocketLeaderStatusTypeRef,
 } from "../../../../src/api/entities/sys/TypeRefs.js"
 import { createTestEntity } from "../../TestUtils.js"
-import { OperationType } from "../../../../src/api/common/TutanotaConstants.js"
+import { AccountType, OperationType } from "../../../../src/api/common/TutanotaConstants.js"
 
 import { UserFacade } from "../../../../src/api/worker/facades/UserFacade.js"
 import { EntityClient } from "../../../../src/api/common/EntityClient.js"
@@ -107,15 +107,27 @@ o.spec("EventBusEventCoordinatorTest", () => {
 			eventBusEventCoordinator.onLeaderStatusChanged(leaderStatus)
 
 			verify(keyRotationFacadeMock.reset())
+			verify(keyRotationFacadeMock.loadAndProcessPendingKeyRotations(matchers.anything()), { times: 0 })
 		})
 
-		o("If we are the leader client, execute key rotations", function () {
+		o("If we are the leader client of an internal user, execute key rotations", function () {
 			env.mode = "Desktop"
 			const leaderStatus = createTestEntity(WebsocketLeaderStatusTypeRef, { leaderStatus: true })
 
 			eventBusEventCoordinator.onLeaderStatusChanged(leaderStatus)
 
 			verify(keyRotationFacadeMock.loadAndProcessPendingKeyRotations(user))
+		})
+
+		o("If we are the leader client of an external user, delete the passphrase key", function () {
+			env.mode = "Desktop"
+			const leaderStatus = createTestEntity(WebsocketLeaderStatusTypeRef, { leaderStatus: true })
+			user.accountType = AccountType.EXTERNAL
+
+			eventBusEventCoordinator.onLeaderStatusChanged(leaderStatus)
+
+			verify(keyRotationFacadeMock.reset())
+			verify(keyRotationFacadeMock.loadAndProcessPendingKeyRotations(matchers.anything()), { times: 0 })
 		})
 	})
 })
