@@ -1,6 +1,3 @@
-import org.gradle.process.internal.ExecException
-import java.io.ByteArrayOutputStream
-
 plugins {
 	id("com.android.library")
 	id("org.jetbrains.kotlin.android")
@@ -20,6 +17,7 @@ fun getActiveBuildType(): String {
 	}
 	return buildType
 }
+
 fun getABITargets(): List<String> {
 	var abi = project.gradle.parent?.startParameter?.projectProperties?.get("targetABI")
 	if (abi.isNullOrBlank())
@@ -30,6 +28,7 @@ fun getABITargets(): List<String> {
 	else
 		listOf(abi)
 }
+
 fun getJNILibsDirs(): List<String> {
 	val abiTargets = getABITargets()
 	return abiTargets.map {
@@ -57,11 +56,14 @@ android {
 
 	buildTypes {
 		debug {
-			isJniDebuggable=true
+			isJniDebuggable = true
 		}
 		release {
-			isMinifyEnabled = false
+			isMinifyEnabled = true
 			proguardFiles(getDefaultProguardFile("proguard-android-optimize.txt"), "proguard-rules.pro")
+		}
+		create("releaseTest") {
+			initWith(getByName("release"))
 		}
 	}
 	compileOptions {
@@ -115,10 +117,12 @@ tasks.whenTaskAdded {
 			dependsOn("clean")
 			mustRunAfter("clean")
 		}
+
 		"compileDebugKotlin", "compileReleaseKotlin" -> {
 			dependsOn("generateBinding")
 			mustRunAfter("generateBinding")
 		}
+
 		"mergeDebugJniLibFolders", "mergeReleaseJniLibFolders" -> {
 			dependsOn("cargoBuild")
 			mustRunAfter("cargoBuild")
