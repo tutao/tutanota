@@ -1,14 +1,13 @@
 #!/usr/bin/env bash
 set -eEuvx
 
-SRC_ROOT=${1}
-BUILDVARIANT=$(echo "${2}" | tr '[:upper:]' '[:lower:]')
+SRC_ROOT=${1}; shift
+echo "SRC_ROOT: $SRC_ROOT"
+BUILDVARIANT=$(echo "${1}" | tr '[:upper:]' '[:lower:]')
 echo "BUILDVARIANT: ${BUILDVARIANT}"
 
-IS_SIMULATOR=0
-if [ "${LLVM_TARGET_TRIPLE_SUFFIX-}" = "-simulator" ]; then
-  IS_SIMULATOR=1
-fi
+IS_SIMULATOR="${2}"; shift 2
+echo "IS_SIMULATOR: $IS_SIMULATOR"
 
 RELFLAG=debug
 if [[ "${BUILDVARIANT}" != debug* ]]; then
@@ -50,27 +49,13 @@ generateLibrary() {
     mv $SRC_ROOT/bindings/*.h "${SRC_ROOT}/../ios/tutasdk/generated-src/headers/"
     mv $SRC_ROOT/bindings/*.modulemap "${SRC_ROOT}/../ios/tutasdk/generated-src/headers/"
     mv $SRC_ROOT/bindings/*.swift "${SRC_ROOT}/../ios/tutasdk/generated-src/Sources/"
-
-    # xcodebuild -create-xcframework \
-    # -library "${SRC_ROOT}/../ios/tutasdk/generated-src/tutasdk.a" \
-    # -headers "${SRC_ROOT}/../ios/tutasdk/generated-src/headers" \
-    # -output "${SRC_ROOT}/../ios/tutasdk/generated-src/tutasdk.xcframework"
 }
 
-
-# if [[ -n "${SDK_DIR:-}" ]]; then
-#   # Assume we're in Xcode, which means we're probably cross-compiling.
-#   # In this case, we need to add an extra library search path for build scripts and proc-macros,
-#   # which run on the host instead of the target.
-#   # (macOS Big Sur does not have linkable libraries in /usr/lib/.)
-#   export LIBRARY_PATH="${SDK_DIR}/usr/lib:${LIBRARY_PATH:-}"
-# fi
-
-export LIBRARY_PATH="/Library/Developer/CommandLineTools/SDKs/MacOSX.sdk/usr/lib:${LIBRARY_PATH:-}"
-
-echo "$LIBRARY_PATH"
-
 cd $SRC_ROOT
+
+ARCHS=( "$@" )
+
+echo "ARCHS: $ARCHS"
 
 for arch in $ARCHS; do
   case "$arch" in
@@ -81,18 +66,18 @@ for arch in $ARCHS; do
       fi
 
       # Intel iOS simulator
-    $HOME/.cargo/bin/cargo run --bin uniffi-bindgen generate --library "${SRC_ROOT}/target/x86_64-apple-ios-sim/${RELFLAG}/libtutasdk.dylib" --out-dir "$SRC_ROOT/bindings" --language=swift -vv
-    includeArch "${SRC_ROOT}/target/x86_64-apple-ios-sim/${RELFLAG}/libtutasdk.a";
+    cargo run --bin uniffi-bindgen generate --library "${SRC_ROOT}/target/x86_64-apple-ios/${RELFLAG}/libtutasdk.dylib" --out-dir "$SRC_ROOT/bindings" --language=swift
+    includeArch "${SRC_ROOT}/target/x86_64-apple-ios/${RELFLAG}/libtutasdk.a";
       ;;
 
     arm64)
       if [ $IS_SIMULATOR -eq 0 ]; then
         # Hardware iOS targets
-        $HOME/.cargo/bin/cargo run --bin uniffi-bindgen generate --library "${SRC_ROOT}/target/aarch64-apple-ios/${RELFLAG}/libtutasdk.dylib" --out-dir "$SRC_ROOT/bindings" --language=swift -vv
+        cargo run --bin uniffi-bindgen generate --library "${SRC_ROOT}/target/aarch64-apple-ios/${RELFLAG}/libtutasdk.dylib" --out-dir "$SRC_ROOT/bindings" --language=swift
         includeArch "${SRC_ROOT}/target/aarch64-apple-ios/${RELFLAG}/libtutasdk.a";
       else
         # M1 iOS simulator
-        $HOME/.cargo/bin/cargo run --bin uniffi-bindgen generate --library "${SRC_ROOT}/target/aarch64-apple-ios-sim/${RELFLAG}/libtutasdk.dylib" --out-dir "$SRC_ROOT/bindings" --language=swift -vv
+        cargo run --bin uniffi-bindgen generate --library "${SRC_ROOT}/target/aarch64-apple-ios-sim/${RELFLAG}/libtutasdk.dylib" --out-dir "$SRC_ROOT/bindings" --language=swift
         includeArch "${SRC_ROOT}/target/aarch64-apple-ios-sim/${RELFLAG}/libtutasdk.a";
       fi
   esac

@@ -73,6 +73,7 @@
 		3D4E3C9E28EC5B31001FA9D1 /* Security.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 3D4E3C9D28EC5B31001FA9D1 /* Security.framework */; };
 		3D4E3CA028EC5B43001FA9D1 /* Foundation.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 3D4E3C9F28EC5B43001FA9D1 /* Foundation.framework */; };
 		3D4E3CA228EC5C4F001FA9D1 /* IosSqlCipherFade.swift in Sources */ = {isa = PBXBuildFile; fileRef = 3D4E3CA128EC5C4F001FA9D1 /* IosSqlCipherFade.swift */; };
+		3D4F5EA52C11DD3900477585 /* Alamofire in Frameworks */ = {isa = PBXBuildFile; productRef = 3D4F5EA42C11DD3900477585 /* Alamofire */; };
 		3D51A08F2BE90A4F0036B966 /* CancelledError.swift in Sources */ = {isa = PBXBuildFile; fileRef = 3D7A107F29472A6000311B6B /* CancelledError.swift */; };
 		3D5C6FA12B7BC15D00342E8C /* PermissionError.swift in Sources */ = {isa = PBXBuildFile; fileRef = 3D5C6FA02B7BC15D00342E8C /* PermissionError.swift */; };
 		3D648B202AB98BEA00893C8D /* argon2.h in Headers */ = {isa = PBXBuildFile; fileRef = 3D648B0F2AB98BEA00893C8D /* argon2.h */; };
@@ -93,6 +94,8 @@
 		3D69DE002AD4427E00C6C900 /* Kyber.swift in Sources */ = {isa = PBXBuildFile; fileRef = 3D69DDFF2AD4427E00C6C900 /* Kyber.swift */; };
 		3D6A0AEA212C1701001CD791 /* CompatibilityTest.m in Sources */ = {isa = PBXBuildFile; fileRef = 3D6A0AE9212C1701001CD791 /* CompatibilityTest.m */; settings = {COMPILER_FLAGS = "-Itutanota/include"; }; };
 		3D73DA312731953E008E7A8A /* RemoteProtocol.swift in Sources */ = {isa = PBXBuildFile; fileRef = 3D73DA302731953E008E7A8A /* RemoteProtocol.swift */; };
+		3D7733C12C135002008F0715 /* tutasdk.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 3D7733C02C135002008F0715 /* tutasdk.framework */; };
+		3D7733C52C1353B4008F0715 /* tutasdk.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 3D7733C42C1353B4008F0715 /* tutasdk.framework */; };
 		3D84F56B2721B92C00858A58 /* MissedNotification.swift in Sources */ = {isa = PBXBuildFile; fileRef = 3D84F56A2721B92C00858A58 /* MissedNotification.swift */; };
 		3D84F5732722F35600858A58 /* IosNativeCryptoFacade.swift in Sources */ = {isa = PBXBuildFile; fileRef = 3D84F5722722F35600858A58 /* IosNativeCryptoFacade.swift */; };
 		3D84F5762723112400858A58 /* FileViewer.swift in Sources */ = {isa = PBXBuildFile; fileRef = 3D84F5752723112400858A58 /* FileViewer.swift */; };
@@ -102,7 +105,6 @@
 		3D87ECE6212D9EB000FD7315 /* TUTIcons.m in Sources */ = {isa = PBXBuildFile; fileRef = 3D87ECE5212D9EB000FD7315 /* TUTIcons.m */; };
 		3D881A9D2C04631300E629BE /* sdktest.swift in Sources */ = {isa = PBXBuildFile; fileRef = 3DF257DB2C00D14F00B5D993 /* sdktest.swift */; };
 		3D881B0D2C04B48800E629BE /* tutasdk.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 3D881B0C2C04B48800E629BE /* tutasdk.framework */; settings = {ATTRIBUTES = (Required, ); }; };
-		3D881B0E2C04B48800E629BE /* tutasdk.framework in Embed Frameworks */ = {isa = PBXBuildFile; fileRef = 3D881B0C2C04B48800E629BE /* tutasdk.framework */; settings = {ATTRIBUTES = (CodeSignOnCopy, RemoveHeadersOnCopy, ); }; };
 		3D9A1F0922031B99002C2455 /* InfoPlist.strings in Resources */ = {isa = PBXBuildFile; fileRef = 3D9A1E4222031B82002C2455 /* InfoPlist.strings */; };
 		3D9A1F0A22031B99002C2455 /* InfoPlist.strings in Resources */ = {isa = PBXBuildFile; fileRef = 3D9A1E4522031B82002C2455 /* InfoPlist.strings */; };
 		3D9A1F0B22031B99002C2455 /* InfoPlist.strings in Resources */ = {isa = PBXBuildFile; fileRef = 3D9A1E4822031B82002C2455 /* InfoPlist.strings */; };
@@ -396,7 +398,6 @@
 			dstSubfolderSpec = 10;
 			files = (
 				3DF973A52BB18ABB00AF3FDE /* TutanotaSharedFramework.framework in Embed Frameworks */,
-				3D881B0E2C04B48800E629BE /* tutasdk.framework in Embed Frameworks */,
 			);
 			name = "Embed Frameworks";
 			runOnlyForDeploymentPostprocessing = 0;
@@ -500,6 +501,8 @@
 		3D69DDFF2AD4427E00C6C900 /* Kyber.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Kyber.swift; sourceTree = "<group>"; };
 		3D6A0AE9212C1701001CD791 /* CompatibilityTest.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = CompatibilityTest.m; sourceTree = "<group>"; };
 		3D73DA302731953E008E7A8A /* RemoteProtocol.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = RemoteProtocol.swift; sourceTree = "<group>"; };
+		3D7733C02C135002008F0715 /* tutasdk.framework */ = {isa = PBXFileReference; explicitFileType = wrapper.framework; path = tutasdk.framework; sourceTree = BUILT_PRODUCTS_DIR; };
+		3D7733C42C1353B4008F0715 /* tutasdk.framework */ = {isa = PBXFileReference; explicitFileType = wrapper.framework; path = tutasdk.framework; sourceTree = BUILT_PRODUCTS_DIR; };
 		3D7A107F29472A6000311B6B /* CancelledError.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CancelledError.swift; sourceTree = "<group>"; };
 		3D84F56A2721B92C00858A58 /* MissedNotification.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MissedNotification.swift; sourceTree = "<group>"; };
 		3D84F56C2722CEF900858A58 /* FileUtils.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = FileUtils.swift; sourceTree = "<group>"; };
@@ -757,6 +760,7 @@
 			isa = PBXFrameworksBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
+				3D7733C52C1353B4008F0715 /* tutasdk.framework in Frameworks */,
 				3D2671E72BEA8A100022C12F /* Mockingbird in Frameworks */,
 				3D2671DA2BEA8A020022C12F /* TutanotaSharedFramework.framework in Frameworks */,
 			);
@@ -766,6 +770,7 @@
 			isa = PBXFrameworksBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
+				3D4F5EA52C11DD3900477585 /* Alamofire in Frameworks */,
 				3D36BCC2274E4A6100428878 /* CryptoTokenKit.framework in Frameworks */,
 				3DD4EA3B2726F41200D58207 /* DictionaryCoding in Frameworks */,
 				3D4E3C9E28EC5B31001FA9D1 /* Security.framework in Frameworks */,
@@ -781,6 +786,7 @@
 			isa = PBXFrameworksBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
+				3D7733C12C135002008F0715 /* tutasdk.framework in Frameworks */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -1114,6 +1120,8 @@
 		3D891EEC2105A5590031E528 /* Frameworks */ = {
 			isa = PBXGroup;
 			children = (
+				3D7733C42C1353B4008F0715 /* tutasdk.framework */,
+				3D7733C02C135002008F0715 /* tutasdk.framework */,
 				3D881B0C2C04B48800E629BE /* tutasdk.framework */,
 				3D881B092C04925400E629BE /* tutasdk.framework */,
 				3D881B062C04920700E629BE /* tutasdk.framework */,
@@ -2112,6 +2120,7 @@
 			packageProductDependencies = (
 				3DD4EA3A2726F41200D58207 /* DictionaryCoding */,
 				3D3B5168293797DC00C1B7DA /* Atomics */,
+				3D4F5EA42C11DD3900477585 /* Alamofire */,
 			);
 			productName = tutanota;
 			productReference = 3DD4A08320F8C6240086EB36 /* Tuta D.app */;
@@ -3468,6 +3477,10 @@
 				PRODUCT_BUNDLE_IDENTIFIER = de.tutao.tutanota.TutanotaSharedTests;
 				PRODUCT_NAME = "$(TARGET_NAME)";
 				SDKROOT = iphoneos;
+				SUPPORTED_PLATFORMS = "iphoneos iphonesimulator";
+				SUPPORTS_MACCATALYST = NO;
+				SUPPORTS_MAC_DESIGNED_FOR_IPHONE_IPAD = NO;
+				SUPPORTS_XR_DESIGNED_FOR_IPHONE_IPAD = NO;
 				SWIFT_ACTIVE_COMPILATION_CONDITIONS = "DEBUG $(inherited)";
 				SWIFT_EMIT_LOC_STRINGS = NO;
 				SWIFT_OPTIMIZATION_LEVEL = "-Onone";
@@ -3542,6 +3555,10 @@
 				PRODUCT_BUNDLE_IDENTIFIER = de.tutao.tutanota.TutanotaSharedTests;
 				PRODUCT_NAME = "$(TARGET_NAME)";
 				SDKROOT = iphoneos;
+				SUPPORTED_PLATFORMS = "iphoneos iphonesimulator";
+				SUPPORTS_MACCATALYST = NO;
+				SUPPORTS_MAC_DESIGNED_FOR_IPHONE_IPAD = NO;
+				SUPPORTS_XR_DESIGNED_FOR_IPHONE_IPAD = NO;
 				SWIFT_ACTIVE_COMPILATION_CONDITIONS = "DEBUG $(inherited)";
 				SWIFT_EMIT_LOC_STRINGS = NO;
 				SWIFT_OPTIMIZATION_LEVEL = "-Onone";
@@ -3616,6 +3633,10 @@
 				PRODUCT_BUNDLE_IDENTIFIER = de.tutao.tutanota.TutanotaSharedTests;
 				PRODUCT_NAME = "$(TARGET_NAME)";
 				SDKROOT = iphoneos;
+				SUPPORTED_PLATFORMS = "iphoneos iphonesimulator";
+				SUPPORTS_MACCATALYST = NO;
+				SUPPORTS_MAC_DESIGNED_FOR_IPHONE_IPAD = NO;
+				SUPPORTS_XR_DESIGNED_FOR_IPHONE_IPAD = NO;
 				SWIFT_ACTIVE_COMPILATION_CONDITIONS = "DEBUG $(inherited)";
 				SWIFT_EMIT_LOC_STRINGS = NO;
 				SWIFT_OPTIMIZATION_LEVEL = "-Onone";
@@ -3683,6 +3704,10 @@
 				PRODUCT_BUNDLE_IDENTIFIER = de.tutao.tutanota.TutanotaSharedTests;
 				PRODUCT_NAME = "$(TARGET_NAME)";
 				SDKROOT = iphoneos;
+				SUPPORTED_PLATFORMS = "iphoneos iphonesimulator";
+				SUPPORTS_MACCATALYST = NO;
+				SUPPORTS_MAC_DESIGNED_FOR_IPHONE_IPAD = NO;
+				SUPPORTS_XR_DESIGNED_FOR_IPHONE_IPAD = NO;
 				SWIFT_COMPILATION_MODE = wholemodule;
 				SWIFT_EMIT_LOC_STRINGS = NO;
 				SWIFT_VERSION = 5.0;
@@ -3750,6 +3775,10 @@
 				PRODUCT_BUNDLE_IDENTIFIER = de.tutao.tutanota.TutanotaSharedTests;
 				PRODUCT_NAME = "$(TARGET_NAME)";
 				SDKROOT = iphoneos;
+				SUPPORTED_PLATFORMS = "iphoneos iphonesimulator";
+				SUPPORTS_MACCATALYST = NO;
+				SUPPORTS_MAC_DESIGNED_FOR_IPHONE_IPAD = NO;
+				SUPPORTS_XR_DESIGNED_FOR_IPHONE_IPAD = NO;
 				SWIFT_COMPILATION_MODE = wholemodule;
 				SWIFT_EMIT_LOC_STRINGS = NO;
 				SWIFT_VERSION = 5.0;
@@ -3817,6 +3846,10 @@
 				PRODUCT_BUNDLE_IDENTIFIER = de.tutao.tutanota.TutanotaSharedTests;
 				PRODUCT_NAME = "$(TARGET_NAME)";
 				SDKROOT = iphoneos;
+				SUPPORTED_PLATFORMS = "iphoneos iphonesimulator";
+				SUPPORTS_MACCATALYST = NO;
+				SUPPORTS_MAC_DESIGNED_FOR_IPHONE_IPAD = NO;
+				SUPPORTS_XR_DESIGNED_FOR_IPHONE_IPAD = NO;
 				SWIFT_COMPILATION_MODE = wholemodule;
 				SWIFT_EMIT_LOC_STRINGS = NO;
 				SWIFT_VERSION = 5.0;
@@ -3993,7 +4026,6 @@
 		3DC5F5742B8900860020BD53 /* Debug Production */ = {
 			isa = XCBuildConfiguration;
 			buildSettings = {
-				ALWAYS_EMBED_SWIFT_STANDARD_LIBRARIES = YES;
 				BUNDLE_LOADER = "$(TEST_HOST)";
 				CLANG_ENABLE_MODULES = YES;
 				"CODE_SIGN_IDENTITY[sdk=macosx*]" = "Apple Development";
@@ -4008,6 +4040,10 @@
 				);
 				PRODUCT_BUNDLE_IDENTIFIER = de.tutao.tutanotaTests;
 				PRODUCT_NAME = "$(TARGET_NAME)";
+				SUPPORTED_PLATFORMS = "iphoneos iphonesimulator";
+				SUPPORTS_MACCATALYST = NO;
+				SUPPORTS_MAC_DESIGNED_FOR_IPHONE_IPAD = NO;
+				SUPPORTS_XR_DESIGNED_FOR_IPHONE_IPAD = NO;
 				SWIFT_OBJC_BRIDGING_HEADER = "tutanotaTests/tutanotaTests-Bridging-Header.h";
 				SWIFT_OPTIMIZATION_LEVEL = "-Onone";
 				SWIFT_VERSION = 5.0;
@@ -4201,7 +4237,6 @@
 		3DC5F5792B8900880020BD53 /* Debug Staging */ = {
 			isa = XCBuildConfiguration;
 			buildSettings = {
-				ALWAYS_EMBED_SWIFT_STANDARD_LIBRARIES = YES;
 				BUNDLE_LOADER = "$(TEST_HOST)";
 				CLANG_ENABLE_MODULES = YES;
 				"CODE_SIGN_IDENTITY[sdk=macosx*]" = "Apple Development";
@@ -4216,6 +4251,10 @@
 				);
 				PRODUCT_BUNDLE_IDENTIFIER = de.tutao.tutanotaTests;
 				PRODUCT_NAME = "$(TARGET_NAME)";
+				SUPPORTED_PLATFORMS = "iphoneos iphonesimulator";
+				SUPPORTS_MACCATALYST = NO;
+				SUPPORTS_MAC_DESIGNED_FOR_IPHONE_IPAD = NO;
+				SUPPORTS_XR_DESIGNED_FOR_IPHONE_IPAD = NO;
 				SWIFT_OBJC_BRIDGING_HEADER = "tutanotaTests/tutanotaTests-Bridging-Header.h";
 				SWIFT_OPTIMIZATION_LEVEL = "-Onone";
 				SWIFT_VERSION = 5.0;
@@ -4403,7 +4442,6 @@
 		3DC5F57E2B89008C0020BD53 /* Release Staging */ = {
 			isa = XCBuildConfiguration;
 			buildSettings = {
-				ALWAYS_EMBED_SWIFT_STANDARD_LIBRARIES = YES;
 				BUNDLE_LOADER = "$(TEST_HOST)";
 				CLANG_ENABLE_MODULES = YES;
 				"CODE_SIGN_IDENTITY[sdk=macosx*]" = "Apple Development";
@@ -4418,6 +4456,10 @@
 				);
 				PRODUCT_BUNDLE_IDENTIFIER = de.tutao.tutanotaTests;
 				PRODUCT_NAME = "$(TARGET_NAME)";
+				SUPPORTED_PLATFORMS = "iphoneos iphonesimulator";
+				SUPPORTS_MACCATALYST = NO;
+				SUPPORTS_MAC_DESIGNED_FOR_IPHONE_IPAD = NO;
+				SUPPORTS_XR_DESIGNED_FOR_IPHONE_IPAD = NO;
 				SWIFT_OBJC_BRIDGING_HEADER = "tutanotaTests/tutanotaTests-Bridging-Header.h";
 				SWIFT_VERSION = 5.0;
 				TARGETED_DEVICE_FAMILY = "1,2";
@@ -4599,7 +4641,6 @@
 		3DC5F5832B89008E0020BD53 /* Release Production */ = {
 			isa = XCBuildConfiguration;
 			buildSettings = {
-				ALWAYS_EMBED_SWIFT_STANDARD_LIBRARIES = YES;
 				BUNDLE_LOADER = "$(TEST_HOST)";
 				CLANG_ENABLE_MODULES = YES;
 				"CODE_SIGN_IDENTITY[sdk=macosx*]" = "Apple Development";
@@ -4614,6 +4655,10 @@
 				);
 				PRODUCT_BUNDLE_IDENTIFIER = de.tutao.tutanotaTests;
 				PRODUCT_NAME = "$(TARGET_NAME)";
+				SUPPORTED_PLATFORMS = "iphoneos iphonesimulator";
+				SUPPORTS_MACCATALYST = NO;
+				SUPPORTS_MAC_DESIGNED_FOR_IPHONE_IPAD = NO;
+				SUPPORTS_XR_DESIGNED_FOR_IPHONE_IPAD = NO;
 				SWIFT_OBJC_BRIDGING_HEADER = "tutanotaTests/tutanotaTests-Bridging-Header.h";
 				SWIFT_VERSION = 5.0;
 				TARGETED_DEVICE_FAMILY = "1,2";
@@ -4921,7 +4966,6 @@
 		3DD4A0A820F8C6260086EB36 /* Debug Development */ = {
 			isa = XCBuildConfiguration;
 			buildSettings = {
-				ALWAYS_EMBED_SWIFT_STANDARD_LIBRARIES = YES;
 				BUNDLE_LOADER = "$(TEST_HOST)";
 				CLANG_ENABLE_MODULES = YES;
 				"CODE_SIGN_IDENTITY[sdk=macosx*]" = "Apple Development";
@@ -4936,6 +4980,10 @@
 				);
 				PRODUCT_BUNDLE_IDENTIFIER = de.tutao.tutanotaTests;
 				PRODUCT_NAME = "$(TARGET_NAME)";
+				SUPPORTED_PLATFORMS = "iphoneos iphonesimulator";
+				SUPPORTS_MACCATALYST = NO;
+				SUPPORTS_MAC_DESIGNED_FOR_IPHONE_IPAD = NO;
+				SUPPORTS_XR_DESIGNED_FOR_IPHONE_IPAD = NO;
 				SWIFT_OBJC_BRIDGING_HEADER = "tutanotaTests/tutanotaTests-Bridging-Header.h";
 				SWIFT_OPTIMIZATION_LEVEL = "-Onone";
 				SWIFT_VERSION = 5.0;
@@ -4947,7 +4995,6 @@
 		3DD4A0A920F8C6260086EB36 /* Release Development */ = {
 			isa = XCBuildConfiguration;
 			buildSettings = {
-				ALWAYS_EMBED_SWIFT_STANDARD_LIBRARIES = YES;
 				BUNDLE_LOADER = "$(TEST_HOST)";
 				CLANG_ENABLE_MODULES = YES;
 				"CODE_SIGN_IDENTITY[sdk=macosx*]" = "Apple Development";
@@ -4962,6 +5009,10 @@
 				);
 				PRODUCT_BUNDLE_IDENTIFIER = de.tutao.tutanotaTests;
 				PRODUCT_NAME = "$(TARGET_NAME)";
+				SUPPORTED_PLATFORMS = "iphoneos iphonesimulator";
+				SUPPORTS_MACCATALYST = NO;
+				SUPPORTS_MAC_DESIGNED_FOR_IPHONE_IPAD = NO;
+				SUPPORTS_XR_DESIGNED_FOR_IPHONE_IPAD = NO;
 				SWIFT_OBJC_BRIDGING_HEADER = "tutanotaTests/tutanotaTests-Bridging-Header.h";
 				SWIFT_VERSION = 5.0;
 				TARGETED_DEVICE_FAMILY = "1,2";
@@ -6415,6 +6466,11 @@
 			isa = XCSwiftPackageProductDependency;
 			package = 3DD4EA392726F41200D58207 /* XCRemoteSwiftPackageReference "DictionaryCoding" */;
 			productName = DictionaryCoding;
+		};
+		3D4F5EA42C11DD3900477585 /* Alamofire */ = {
+			isa = XCSwiftPackageProductDependency;
+			package = 3DF2582B2C00DD6200B5D993 /* XCRemoteSwiftPackageReference "Alamofire" */;
+			productName = Alamofire;
 		};
 		3DD4EA3A2726F41200D58207 /* DictionaryCoding */ = {
 			isa = XCSwiftPackageProductDependency;

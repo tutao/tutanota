@@ -8,7 +8,7 @@ func runSdkExample() async {
 	let mailId = "NyuDsia--V-0/NyuDt95--3-0".toIdTuple()
 	let mailFacade = sdk.mailFacade()
 	do {
-		let result = try await mailFacade.loadEmailByIdEncrypted(idTuple: mailId, modelVersion: TUTANOTA_MODEL_VERSION)
+		let result = try await mailFacade.loadEmailByIdEncrypted(idTuple: mailId)
 		TUTSLog("Loaded result from TutaSDK: \(result)")
 		let sender = try getDictionary(dictionary: result, key: "sender")
 		guard let address = sender["address"] else {
