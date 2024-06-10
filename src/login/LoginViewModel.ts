@@ -10,7 +10,7 @@ import type { CredentialsProvider } from "../misc/credentials/CredentialsProvide
 import { CredentialAuthenticationError } from "../api/common/error/CredentialAuthenticationError"
 import { first, noOp } from "@tutao/tutanota-utils"
 import { KeyPermanentlyInvalidatedError } from "../api/common/error/KeyPermanentlyInvalidatedError"
-import { assertMainOrNode, isBrowser, isWebClient } from "../api/common/Env"
+import { assertMainOrNode, isBrowser } from "../api/common/Env"
 import { SessionType } from "../api/common/SessionType"
 import { DeviceStorageUnavailableError } from "../api/common/error/DeviceStorageUnavailableError"
 import { DeviceConfig } from "../misc/DeviceConfig"
@@ -212,7 +212,7 @@ export class LoginViewModel implements ILoginViewModel {
 		}
 	}
 
-	async deleteCredentials(encryptedCredentials: CredentialsInfo): Promise<void> {
+	async deleteCredentials(credentialsInfo: CredentialsInfo): Promise<void> {
 		let credentials
 
 		try {
@@ -223,7 +223,7 @@ export class LoginViewModel implements ILoginViewModel {
 			 * 2. It is used as a session ID
 			 * Since we want to also delete the session from the server, we need the (decrypted) accessToken in its function as a session id.
 			 */
-			credentials = await this.unlockAppAndGetCredentials(encryptedCredentials.userId)
+			credentials = await this.unlockAppAndGetCredentials(credentialsInfo.userId)
 		} catch (e) {
 			if (e instanceof KeyPermanentlyInvalidatedError) {
 				await this.credentialsProvider.clearCredentials(e)
@@ -237,6 +237,11 @@ export class LoginViewModel implements ILoginViewModel {
 			} else if (e instanceof CredentialAuthenticationError) {
 				this.helpText = getLoginErrorMessage(e, false)
 				return
+			} else if (e instanceof DeviceStorageUnavailableError) {
+				// We want to allow deleting credentials even if keychain fails
+				await this.credentialsProvider.deleteByUserId(credentialsInfo.userId)
+				await this.credentialRemovalHandler.onCredentialsRemoved(credentialsInfo)
+				await this.updateCachedCredentials()
 			} else {
 				throw e
 			}
@@ -245,7 +250,7 @@ export class LoginViewModel implements ILoginViewModel {
 		if (credentials) {
 			await this.loginController.deleteOldSession(credentials, (await this.pushServiceApp?.loadPushIdentifierFromNative()) ?? null)
 			await this.credentialsProvider.deleteByUserId(credentials.credentialInfo.userId)
-			await this.credentialRemovalHandler.onCredentialsRemoved(credentials)
+			await this.credentialRemovalHandler.onCredentialsRemoved(credentials.credentialInfo)
 			await this.updateCachedCredentials()
 		}
 	}
@@ -373,7 +378,7 @@ export class LoginViewModel implements ILoginViewModel {
 				const autoLoginCredentials = this.autoLoginCredentials
 				await this.credentialsProvider.deleteByUserId(autoLoginCredentials.userId)
 				if (credentials) {
-					await this.credentialRemovalHandler.onCredentialsRemoved(credentials)
+					await this.credentialRemovalHandler.onCredentialsRemoved(credentials.credentialInfo)
 				}
 				await this.updateCachedCredentials()
 				await this.onLoginFailed(e)
@@ -382,6 +387,11 @@ export class LoginViewModel implements ILoginViewModel {
 				await this.updateCachedCredentials()
 				this.state = LoginState.NotAuthenticated
 				this.helpText = "credentialsKeyInvalidated_msg"
+			} else if (e instanceof DeviceStorageUnavailableError) {
+				// The app already shows a dialog with FAQ link so we don't have to explain
+				// much here, just catching it to avoid unexpected error dialog
+				this.state = LoginState.NotAuthenticated
+				this.helpText = () => "Could not access secret storage"
 			} else {
 				await this.onLoginFailed(e)
 			}
