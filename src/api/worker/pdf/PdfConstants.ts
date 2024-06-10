@@ -72,12 +72,19 @@ export const PDF_DEFAULT_OBJECTS = Object.freeze([
 		refId: "RESOURCES",
 		dictionary: new Map<string, PdfDictValue>([
 			["ProcSet", "[/PDF/Text]"],
-			["XObject", new Map<string, PdfDictValue>([["Im1", { refId: "IMAGE" }]])],
+			[
+				"XObject",
+				new Map<string, PdfDictValue>([
+					["Im1", { refId: "IMG_TUTA_LOGO" }],
+					["Im2", { refId: "IMG_ADDRESS" }],
+				]),
+			],
 			[
 				"Font",
 				new Map<string, PdfObjectRef>([
 					["F1", { refId: "FONT_REGULAR" }],
 					["F2", { refId: "FONT_BOLD" }],
+					["F3", { refId: "FONT_INVISIBLE_CID" }],
 				]),
 			],
 		]),
@@ -128,6 +135,40 @@ export const PDF_DEFAULT_OBJECTS = Object.freeze([
 			["Type", "/FontDescriptor"],
 			["FontName", "/SourceSans3-Bold"],
 			["FontFile2", { refId: "FONT_BOLD_FILE" }],
+			["Subtype", "/TrueType"],
+			["Flags", "64"],
+		]),
+	}),
+	// Invisible font for the purpose of writing full UTF8, selectable ghost text.
+	// We use external Helvetica as a standard PDF font to try to get as much compatibility as possible since external fonts are very unsafe to use.
+	Object.freeze({
+		refId: "FONT_INVISIBLE_CID",
+		dictionary: new Map<string, PdfDictValue>([
+			["Type", "/Font"],
+			["BaseFont", "/Helvetica"],
+			["Subtype", "/Type0"],
+			["Encoding", "/Identity-H"],
+			["DescendantFonts", [{ refId: "FONT_INVISIBLE_CID_DESCENDANT" }]],
+			["ToUnicode", { refId: "CMAP" }],
+		]),
+	}),
+	Object.freeze({
+		refId: "FONT_INVISIBLE_CID_DESCENDANT",
+		dictionary: new Map<string, PdfDictValue>([
+			["Type", "/Font"],
+			["BaseFont", "/Helvetica"],
+			["Subtype", "/CIDFontType2"],
+			["CIDToGIDMap", "/Identity"],
+			["FontDescriptor", { refId: "FONT_INVISIBLE_CID_DESCRIPTOR" }],
+			["CIDSystemInfo", "<< /Registry (Adobe) /Ordering (Identity) /Supplement 0>>"],
+			["DW", "1000"],
+		]),
+	}),
+	Object.freeze({
+		refId: "FONT_INVISIBLE_CID_DESCRIPTOR",
+		dictionary: new Map<string, PdfDictValue>([
+			["Type", "/FontDescriptor"],
+			["FontName", "/Helvetica"],
 			["Subtype", "/TrueType"],
 			["Flags", "64"],
 		]),

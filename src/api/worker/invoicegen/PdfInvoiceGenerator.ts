@@ -81,7 +81,7 @@ export class PdfInvoiceGenerator {
 		await this.doc.addPage()
 		this.doc.addImage(PDF_IMAGES.TUTA_LOGO, [25, MARGIN_TOP + 15.7], [45, 15.7])
 		this.renderSideBarInfo()
-		this.renderAddressField()
+		await this.renderAddressField()
 		this.renderInvoiceInfo()
 		await this.renderInvoiceTable()
 		this.renderAdditional()
@@ -124,7 +124,7 @@ export class PdfInvoiceGenerator {
 	/**
 	 * The short address field of Tuta and the address field of the customer below the image
 	 */
-	renderAddressField() {
+	async renderAddressField() {
 		this.doc
 			.changeFontSize(9)
 			.addText(`${InvoiceTexts.universal.companyName} - ${InvoiceTexts.universal.addressStreet} - ${InvoiceTexts[this.languageCode].addressPostal}`, [
@@ -134,9 +134,7 @@ export class PdfInvoiceGenerator {
 			.addLineBreak()
 			.changeFontSize(11)
 			.addLineBreak()
-		for (const value of this.invoice.address.split("\n")) {
-			this.doc.addText(value).addLineBreak()
-		}
+		await this.doc.addAddressField([MARGIN_LEFT, MARGIN_TOP + 82], this.invoice.address)
 	}
 
 	/**

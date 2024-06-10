@@ -25,8 +25,8 @@ o.spec("PdfInvoiceGenerator", function () {
 
 	o("Gen", async function () {
 		const invoiceData = createTestEntity(InvoiceDataGetOutTypeRef, {
-			address: "Altschauerberg 8\n91448 Emskirchen\nDeutschland",
-			country: "DE",
+			address: "竜宮レナ\n白川村\n日本国",
+			country: "JP",
 			items: dataMock(2),
 		})
 
