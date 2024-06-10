@@ -215,7 +215,7 @@ export class SearchFacade {
 			)
 		}
 
-		return asyncFind(attributeNames, (attributeName) => {
+		return asyncFind(attributeNames, async (attributeName) => {
 			if (model.values[attributeName] && model.values[attributeName].type === ValueType.String && entity[attributeName]) {
 				if (matchWordOrder) {
 					return Promise.resolve(normalizeQuery(entity[attributeName]).indexOf(suggestionToken) !== -1)
@@ -225,11 +225,10 @@ export class SearchFacade {
 				}
 			} else if (model.associations[attributeName] && model.associations[attributeName].type === AssociationType.Aggregation && entity[attributeName]) {
 				let aggregates = model.associations[attributeName].cardinality === Cardinality.Any ? entity[attributeName] : [entity[attributeName]]
-				return resolveTypeReference(new TypeRef(model.app, model.associations[attributeName].refType)).then((refModel) => {
-					return asyncFind(aggregates, (aggregate) => {
-						return this._containsSuggestionToken(downcast<Record<string, any>>(aggregate), refModel, null, suggestionToken, matchWordOrder)
-					}).then((found) => found != null)
-				})
+				const refModel = await resolveTypeReference(new TypeRef(model.app, model.associations[attributeName].refType))
+				return asyncFind(aggregates, (aggregate) => {
+					return this._containsSuggestionToken(downcast<Record<string, any>>(aggregate), refModel, null, suggestionToken, matchWordOrder)
+				}).then((found) => found != null)
 			} else {
 				return Promise.resolve(false)
 			}

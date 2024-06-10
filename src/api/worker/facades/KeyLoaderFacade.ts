@@ -174,11 +174,4 @@ export class KeyLoaderFacade {
 		}
 		return decryptKeyPair(groupKey, group.currentKeys)
 	}
-
-	/**
-	 * visibleForTesting
-	 */
-	getKeyCache(): KeyCache {
-		return this.keyCache
-	}
 }

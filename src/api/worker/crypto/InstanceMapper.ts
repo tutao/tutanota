@@ -60,28 +60,27 @@ export class InstanceMapper {
 			}
 		}
 
-		return promiseMap(Object.keys(model.associations), (associationName) => {
+		return promiseMap(Object.keys(model.associations), async (associationName) => {
 			if (model.associations[associationName].type === AssociationType.Aggregation) {
 				const dependency = model.associations[associationName].dependency
-				return resolveTypeReference(new TypeRef(dependency || model.app, model.associations[associationName].refType)).then((aggregateTypeModel) => {
-					let aggregation = model.associations[associationName]
+				const aggregateTypeModel = await resolveTypeReference(new TypeRef(dependency || model.app, model.associations[associationName].refType))
+				let aggregation = model.associations[associationName]
 
-					if (aggregation.cardinality === Cardinality.ZeroOrOne && instance[associationName] == null) {
-						decrypted[associationName] = null
-					} else if (instance[associationName] == null) {
-						throw new ProgrammingError(`Undefined aggregation ${model.name}:${associationName}`)
-					} else if (aggregation.cardinality === Cardinality.Any) {
-						return promiseMap(instance[associationName], (aggregate) => {
-							return this.decryptAndMapToInstance(aggregateTypeModel, downcast<Record<string, any>>(aggregate), sk)
-						}).then((decryptedAggregates) => {
-							decrypted[associationName] = decryptedAggregates
-						})
-					} else {
-						return this.decryptAndMapToInstance(aggregateTypeModel, instance[associationName], sk).then((decryptedAggregate) => {
-							decrypted[associationName] = decryptedAggregate
-						})
-					}
-				})
+				if (aggregation.cardinality === Cardinality.ZeroOrOne && instance[associationName] == null) {
+					decrypted[associationName] = null
+				} else if (instance[associationName] == null) {
+					throw new ProgrammingError(`Undefined aggregation ${model.name}:${associationName}`)
+				} else if (aggregation.cardinality === Cardinality.Any) {
+					return promiseMap(instance[associationName], (aggregate) => {
+						return this.decryptAndMapToInstance(aggregateTypeModel, downcast<Record<string, any>>(aggregate), sk)
+					}).then((decryptedAggregates) => {
+						decrypted[associationName] = decryptedAggregates
+					})
+				} else {
+					return this.decryptAndMapToInstance(aggregateTypeModel, instance[associationName], sk).then((decryptedAggregate) => {
+						decrypted[associationName] = decryptedAggregate
+					})
+				}
 			} else {
 				decrypted[associationName] = instance[associationName]
 			}
@@ -113,28 +112,26 @@ export class InstanceMapper {
 			encrypted._id = base64ToBase64Url(uint8ArrayToBase64(random.generateRandomData(4)))
 		}
 
-		return promiseMap(Object.keys(model.associations), (associationName) => {
+		return promiseMap(Object.keys(model.associations), async (associationName) => {
 			if (model.associations[associationName].type === AssociationType.Aggregation) {
 				const dependency = model.associations[associationName].dependency
-				return resolveTypeReference(new TypeRef(dependency || model.app, model.associations[associationName].refType)).then((aggregateTypeModel) => {
-					let aggregation = model.associations[associationName]
-
-					if (aggregation.cardinality === Cardinality.ZeroOrOne && i[associationName] == null) {
-						encrypted[associationName] = null
-					} else if (i[associationName] == null) {
-						throw new ProgrammingError(`Undefined attribute ${model.name}:${associationName}`)
-					} else if (aggregation.cardinality === Cardinality.Any) {
-						return promiseMap(i[associationName], (aggregate) => {
-							return this.encryptAndMapToLiteral(aggregateTypeModel, aggregate, sk)
-						}).then((encryptedAggregates) => {
-							encrypted[associationName] = encryptedAggregates
-						})
-					} else {
-						return this.encryptAndMapToLiteral(aggregateTypeModel, i[associationName], sk).then((encryptedAggregate) => {
-							encrypted[associationName] = encryptedAggregate
-						})
-					}
-				})
+				const aggregateTypeModel = await resolveTypeReference(new TypeRef(dependency || model.app, model.associations[associationName].refType))
+				let aggregation = model.associations[associationName]
+				if (aggregation.cardinality === Cardinality.ZeroOrOne && i[associationName] == null) {
+					encrypted[associationName] = null
+				} else if (i[associationName] == null) {
+					throw new ProgrammingError(`Undefined attribute ${model.name}:${associationName}`)
+				} else if (aggregation.cardinality === Cardinality.Any) {
+					return promiseMap(i[associationName], (aggregate) => {
+						return this.encryptAndMapToLiteral(aggregateTypeModel, aggregate, sk)
+					}).then((encryptedAggregates) => {
+						encrypted[associationName] = encryptedAggregates
+					})
+				} else {
+					return this.encryptAndMapToLiteral(aggregateTypeModel, i[associationName], sk).then((encryptedAggregate) => {
+						encrypted[associationName] = encryptedAggregate
+					})
+				}
 			} else {
 				encrypted[associationName] = i[associationName]
 			}

@@ -1,11 +1,12 @@
 import { debounce } from "@tutao/tutanota-utils"
-import type { InstanceSessionKey } from "../../entities/sys/TypeRefs.js"
-import { createUpdateSessionKeysPostIn } from "../../entities/sys/TypeRefs.js"
+import { createUpdateSessionKeysPostIn, GroupKeyUpdateTypeRef, InstanceSessionKey } from "../../entities/sys/TypeRefs.js"
 import { LockedError } from "../../common/error/RestError"
 import { assertWorkerOrNode } from "../../common/Env"
 import { IServiceExecutor } from "../../common/ServiceRequest"
 import { UpdateSessionKeysService } from "../../entities/sys/Services"
 import { UserFacade } from "../facades/UserFacade"
+import { TypeModel } from "../../common/EntityTypes.js"
+import { resolveTypeReference } from "../../common/EntityFunctions.js"
 
 assertWorkerOrNode()
 
@@ -36,11 +37,15 @@ export class OwnerEncSessionKeysUpdateQueue {
 	 * Add the ownerEncSessionKey updates to the queue and debounce the update request.
 	 *
 	 * @param instanceSessionKeys all instanceSessionKeys from one bucketKey containing the ownerEncSessionKey as symEncSessionKey
+	 * @param typeModel of the main instance that we are updating session keys for
 	 */
-	updateInstanceSessionKeys(instanceSessionKeys: Array<InstanceSessionKey>) {
+	async updateInstanceSessionKeys(instanceSessionKeys: Array<InstanceSessionKey>, typeModel: TypeModel) {
 		if (this.userFacade.isLeader()) {
-			this.updateInstanceSessionKeyQueue.push(...instanceSessionKeys)
-			this.invokeUpdateSessionKeyService()
+			const groupKeyUpdateTypeModel = await resolveTypeReference(GroupKeyUpdateTypeRef)
+			if (groupKeyUpdateTypeModel.id !== typeModel.id) {
+				this.updateInstanceSessionKeyQueue.push(...instanceSessionKeys)
+				this.invokeUpdateSessionKeyService()
+			}
 		}
 	}
 

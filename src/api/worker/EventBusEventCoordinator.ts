@@ -1,6 +1,13 @@
 import { EventBusListener } from "./EventBusClient.js"
 import { WsConnectionState } from "../main/WorkerClient.js"
-import { EntityUpdate, UserGroupKeyDistributionTypeRef, UserTypeRef, WebsocketCounterData, WebsocketLeaderStatus } from "../entities/sys/TypeRefs.js"
+import {
+	EntityUpdate,
+	GroupKeyUpdateTypeRef,
+	UserGroupKeyDistributionTypeRef,
+	UserTypeRef,
+	WebsocketCounterData,
+	WebsocketLeaderStatus,
+} from "../entities/sys/TypeRefs.js"
 import { ReportedMailFieldMarker } from "../entities/tutanota/TypeRefs.js"
 import { WebsocketConnectivityListener } from "../../misc/WebsocketConnectivityModel.js"
 import { WorkerImpl } from "./WorkerImpl.js"
@@ -66,7 +73,7 @@ export class EventBusEventCoordinator implements EventBusListener {
 		if (!isAdminClient()) {
 			const user = this.userFacade.getUser()
 			if (leaderStatus.leaderStatus && user && user.accountType !== AccountType.EXTERNAL) {
-				this.keyRotationFacade.loadAndProcessPendingKeyRotations(user)
+				this.keyRotationFacade.processPendingKeyRotationsAndUpdates(user)
 			} else {
 				this.keyRotationFacade.reset()
 			}
@@ -79,17 +86,17 @@ export class EventBusEventCoordinator implements EventBusListener {
 
 	private async entityEventsReceived(data: EntityUpdate[]): Promise<void> {
 		// This is a compromise to not add entityClient to UserFacade which would introduce a circular dep.
+		const groupKeyUpdates: IdTuple[] = [] // GroupKeyUpdates all in the same list
+		const user = this.userFacade.getUser()
+		if (user == null) return
 		for (const update of data) {
-			const user = this.userFacade.getUser()
 			if (
-				user != null &&
 				update.operation === OperationType.UPDATE &&
 				isSameTypeRefByAttr(UserTypeRef, update.application, update.type) &&
 				isSameId(user._id, update.instanceId)
 			) {
 				await this.userFacade.updateUser(await this.entityClient.load(UserTypeRef, user._id))
 			} else if (
-				user != null &&
 				(update.operation === OperationType.CREATE || update.operation === OperationType.UPDATE) &&
 				isSameTypeRefByAttr(UserGroupKeyDistributionTypeRef, update.application, update.type) &&
 				isSameId(user.userGroup.group, update.instanceId)
@@ -104,7 +111,10 @@ export class EventBusEventCoordinator implements EventBusListener {
 					// in such case we should have set the correct user group key already during the regular login
 					console.log("Could not update user group key after entity update", e)
 				}
+			} else if (update.operation === OperationType.CREATE && isSameTypeRefByAttr(GroupKeyUpdateTypeRef, update.application, update.type)) {
+				groupKeyUpdates.push([update.instanceListId, update.instanceId])
 			}
 		}
+		await this.keyRotationFacade.updateGroupMemberships(groupKeyUpdates)
 	}
 }

@@ -9,7 +9,7 @@ import { OperationType, ShareCapability } from "../../api/common/TutanotaConstan
 import { NotFoundError } from "../../api/common/error/RestError"
 import { findAndRemove, noOp, ofClass, promiseMap } from "@tutao/tutanota-utils"
 import type { GroupMemberInfo } from "../GroupUtils"
-import { getSharedGroupName, hasCapabilityOnGroup, isSharedGroupOwner, loadGroupInfoForMember, loadGroupMembers } from "../GroupUtils"
+import { hasCapabilityOnGroup, isSharedGroupOwner, loadGroupInfoForMember, loadGroupMembers } from "../GroupUtils"
 import type { LoginController } from "../../api/main/LoginController"
 import { UserError } from "../../api/main/UserError"
 import type { MailAddress } from "../../api/entities/tutanota/TypeRefs.js"
@@ -137,7 +137,7 @@ export class GroupSharingModel {
 
 	cancelInvitation(invitation: SentGroupInvitation): Promise<void> {
 		return this.canCancelInvitation(invitation) && invitation.receivedInvitation
-			? this._shareFacade.rejectGroupInvitation(invitation.receivedInvitation)
+			? this._shareFacade.rejectOrCancelGroupInvitation(invitation.receivedInvitation)
 			: Promise.reject(new Error("User does not have permission to cancel this invitation")) // TODO error type
 	}
 
@@ -157,7 +157,6 @@ export class GroupSharingModel {
 		try {
 			groupInvitationReturn = await this._shareFacade.sendGroupInvitation(
 				sharedGroupInfo,
-				getSharedGroupName(sharedGroupInfo, this.logins.getUserController(), false),
 				recipients.map((r) => r.address),
 				capability,
 			)

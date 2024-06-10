@@ -170,14 +170,14 @@ export class EntityRestClientMock extends EntityRestClient {
 		}
 	}
 
-	erase<T extends SomeEntity>(instance: T): Promise<void> {
-		return resolveTypeReference(instance._type).then((typeModel) => {
-			_verifyType(typeModel)
+	async erase<T extends SomeEntity>(instance: T): Promise<void> {
+		const typeModel = await resolveTypeReference(instance._type)
+		_verifyType(typeModel)
 
-			const ids = getIds(instance, typeModel)
+		const ids = getIds(instance, typeModel)
 
-			this._handleDelete(ids.id, ids.listId)
-		})
+		this._handleDelete(ids.id, ids.listId)
+		return Promise.resolve()
 	}
 
 	setup<T extends SomeEntity>(listId: Id | null | undefined, instance: T, extraHeaders?: Dict): Promise<Id> {

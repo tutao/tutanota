@@ -13,7 +13,7 @@ import {
 	KyberPublicKey,
 	kyberPublicKeyToBytes,
 } from "@tutao/tutanota-crypto"
-import { encryptKeyWithVersionedKey, VersionedEncryptedKey, VersionedKey } from "./CryptoFacade.js"
+import { encryptBytes, encryptKeyWithVersionedKey, VersionedEncryptedKey, VersionedKey } from "./CryptoFacade.js"
 
 export interface CryptoWrapper {
 	aes256RandomKey(): Aes256Key
@@ -33,6 +33,8 @@ export interface CryptoWrapper {
 	encryptKyberKey(encryptionKey: AesKey, privateKey: KyberPrivateKey): Uint8Array
 
 	kyberPublicKeyToBytes(kyberPublicKey: KyberPublicKey): Uint8Array
+
+	encryptBytes(sk: AesKey, value: Uint8Array): Uint8Array
 }
 
 export const cryptoWrapper: CryptoWrapper = {
@@ -62,5 +64,9 @@ export const cryptoWrapper: CryptoWrapper = {
 	},
 	kyberPublicKeyToBytes(kyberPublicKey: KyberPublicKey): Uint8Array {
 		return kyberPublicKeyToBytes(kyberPublicKey)
+	},
+
+	encryptBytes(sk: AesKey, value: Uint8Array): Uint8Array {
+		return encryptBytes(sk, value)
 	},
 }

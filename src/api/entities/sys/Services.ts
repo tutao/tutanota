@@ -40,6 +40,7 @@ import {MailAddressAliasServiceReturnTypeRef} from "./TypeRefs.js"
 import {MailAddressAliasServiceDataTypeRef} from "./TypeRefs.js"
 import {MailAddressAliasServiceDataDeleteTypeRef} from "./TypeRefs.js"
 import {MembershipAddDataTypeRef} from "./TypeRefs.js"
+import {MembershipPutInTypeRef} from "./TypeRefs.js"
 import {MembershipRemoveDataTypeRef} from "./TypeRefs.js"
 import {MultipleMailAddressAvailabilityDataTypeRef} from "./TypeRefs.js"
 import {MultipleMailAddressAvailabilityReturnTypeRef} from "./TypeRefs.js"
@@ -296,7 +297,7 @@ export const MembershipService = Object.freeze({
 	name: "MembershipService",
 	get: null,
 	post: {data: MembershipAddDataTypeRef, return: null},
-	put: null,
+	put: {data: MembershipPutInTypeRef, return: null},
 	delete: {data: MembershipRemoveDataTypeRef, return: null},
 } as const)
 

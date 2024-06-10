@@ -59,6 +59,10 @@ export const modelInfos = {
 } as const
 export type ModelInfos = typeof modelInfos
 
+/**
+ * This function is async so that we can possibly load typeModels on demand instead of bundling them with the JS files.
+ * @param typeRef the typeRef for which we will return the typeModel.
+ */
 export async function resolveTypeReference(typeRef: TypeRef<any>): Promise<TypeModel> {
 	// @ts-ignore
 	const modelMap = typeModels[typeRef.app]

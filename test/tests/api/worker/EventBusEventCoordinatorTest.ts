@@ -4,6 +4,7 @@ import { matchers, object, verify, when } from "testdouble"
 import {
 	EntityUpdate,
 	EntityUpdateTypeRef,
+	GroupKeyUpdateTypeRef,
 	GroupMembershipTypeRef,
 	User,
 	UserGroupKeyDistributionTypeRef,
@@ -99,6 +100,28 @@ o.spec("EventBusEventCoordinatorTest", () => {
 		verify(mailFacade.entityEventsReceived(updates))
 	})
 
+	o("groupKeyUpdate", async function () {
+		const instanceListId = "updateListId"
+		const instanceId = "updateElementId"
+		const updates: Array<EntityUpdate> = [
+			createTestEntity(EntityUpdateTypeRef, {
+				application: GroupKeyUpdateTypeRef.app,
+				type: GroupKeyUpdateTypeRef.type,
+				instanceListId,
+				instanceId,
+				operation: OperationType.CREATE,
+			}),
+		]
+
+		await eventBusEventCoordinator.onEntityEventsReceived(updates, "batchId", "groupId")
+
+		verify(keyRotationFacadeMock.updateGroupMemberships([[instanceListId, instanceId]]))
+		verify(userFacade.updateUser(user), { times: 0 })
+		verify(userFacade.updateUserGroupKey(userGroupKeyDistribution), { times: 0 })
+		verify(eventController.onEntityUpdateReceived(updates, "groupId"))
+		verify(mailFacade.entityEventsReceived(updates))
+	})
+
 	o.spec("onLeaderStatusChanged", function () {
 		o("If we are not the leader client, delete the passphrase key", function () {
 			env.mode = "Desktop"
@@ -107,7 +130,7 @@ o.spec("EventBusEventCoordinatorTest", () => {
 			eventBusEventCoordinator.onLeaderStatusChanged(leaderStatus)
 
 			verify(keyRotationFacadeMock.reset())
-			verify(keyRotationFacadeMock.loadAndProcessPendingKeyRotations(matchers.anything()), { times: 0 })
+			verify(keyRotationFacadeMock.processPendingKeyRotationsAndUpdates(matchers.anything()), { times: 0 })
 		})
 
 		o("If we are the leader client of an internal user, execute key rotations", function () {
@@ -116,7 +139,7 @@ o.spec("EventBusEventCoordinatorTest", () => {
 
 			eventBusEventCoordinator.onLeaderStatusChanged(leaderStatus)
 
-			verify(keyRotationFacadeMock.loadAndProcessPendingKeyRotations(user))
+			verify(keyRotationFacadeMock.processPendingKeyRotationsAndUpdates(user))
 		})
 
 		o("If we are the leader client of an external user, delete the passphrase key", function () {
@@ -127,7 +150,7 @@ o.spec("EventBusEventCoordinatorTest", () => {
 			eventBusEventCoordinator.onLeaderStatusChanged(leaderStatus)
 
 			verify(keyRotationFacadeMock.reset())
-			verify(keyRotationFacadeMock.loadAndProcessPendingKeyRotations(matchers.anything()), { times: 0 })
+			verify(keyRotationFacadeMock.processPendingKeyRotationsAndUpdates(matchers.anything()), { times: 0 })
 		})
 	})
 })
