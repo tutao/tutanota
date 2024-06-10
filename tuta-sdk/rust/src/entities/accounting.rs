@@ -23,6 +23,7 @@ impl Entity for CustomerAccountPosting {
 pub struct CustomerAccountReturn {
 	pub _format: i64,
 	pub _ownerGroup: Option<Id>,
+	#[serde(with = "serde_bytes")]
 	pub _ownerPublicEncSessionKey: Option<Vec<u8>>,
 	pub _publicCryptoProtocolVersion: Option<i64>,
 	pub balance: i64,
