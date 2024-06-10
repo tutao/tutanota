@@ -95,7 +95,7 @@ impl<'de> Deserializer<'de> for ElementValueDeserializer {
 
     serde::forward_to_deserialize_any! {
         i8 i16 i32 u8 u16 u32 u64 f32 f64 char str bytes
-                byte_buf unit unit_struct newtype_struct tuple
+                unit unit_struct newtype_struct tuple
                 tuple_struct map enum identifier ignored_any
             }
 
@@ -201,6 +201,14 @@ impl<'de> Deserializer<'de> for ElementValueDeserializer {
             Err(de::Error::custom("Expecting Dict"))
         }
     }
+
+    fn deserialize_byte_buf<V>(self, visitor: V) -> Result<V::Value, Self::Error> where V: Visitor<'de> {
+        if let ElementValue::Bytes(bytes) = self.value {
+            visitor.visit_byte_buf(bytes)
+        } else {
+            Err(de::Error::custom("Expecting bytes"))
+        }
+    }
 }
 
 // This impl allows us to use blanket impl for SeqAccess/MapAccess
@@ -221,7 +229,7 @@ struct ElementValueStructSerializer {
 }
 
 struct ElementValueSeqSerializer {
-    vec: Vec<ElementValue>
+    vec: Vec<ElementValue>,
 }
 
 impl Serializer for ElementValueSerializer {
@@ -256,10 +264,7 @@ impl Serializer for ElementValueSerializer {
     }
 
     fn serialize_u8(self, v: u8) -> Result<Self::Ok, Self::Error> {
-        // FIXME: this is only called for binary data, we don't want to repack it into ElementValue,
-        //   we should do something about it
-        //   see serialize_bytes
-        Ok(ElementValue::Number(v.into()))
+        todo!()
     }
 
     fn serialize_u16(self, v: u16) -> Result<Self::Ok, Self::Error> {
@@ -291,7 +296,6 @@ impl Serializer for ElementValueSerializer {
     }
 
     fn serialize_bytes(self, v: &[u8]) -> Result<Self::Ok, Self::Error> {
-        // FIXME this is not getting called, should use serde_bytes in generated types
         Ok(ElementValue::Bytes(v.into()))
     }
 
