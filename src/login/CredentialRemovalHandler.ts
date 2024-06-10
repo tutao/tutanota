@@ -2,14 +2,14 @@ import { Indexer } from "../api/worker/search/Indexer.js"
 import { NativePushServiceApp } from "../native/main/NativePushServiceApp.js"
 import { ConfigurationDatabase } from "../api/worker/facades/lazy/ConfigurationDatabase.js"
 import { NativeContactsSyncManager } from "../contacts/model/NativeContactsSyncManager.js"
-import { UnencryptedCredentials } from "../native/common/generatedipc/UnencryptedCredentials.js"
+import { CredentialsInfo } from "../native/common/generatedipc/CredentialsInfo.js"
 
 export interface CredentialRemovalHandler {
-	onCredentialsRemoved(credentials: UnencryptedCredentials): Promise<void>
+	onCredentialsRemoved(credentialInfo: CredentialsInfo): Promise<void>
 }
 
 export class NoopCredentialRemovalHandler implements CredentialRemovalHandler {
-	async onCredentialsRemoved(_: UnencryptedCredentials): Promise<void> {}
+	async onCredentialsRemoved(_: CredentialsInfo): Promise<void> {}
 }
 
 export class AppsCredentialRemovalHandler implements CredentialRemovalHandler {
@@ -20,15 +20,12 @@ export class AppsCredentialRemovalHandler implements CredentialRemovalHandler {
 		private readonly mobileContactsManager: NativeContactsSyncManager | null,
 	) {}
 
-	async onCredentialsRemoved(credentials: UnencryptedCredentials) {
-		if (credentials.databaseKey != null) {
-			const { userId } = credentials.credentialInfo
-			await this.indexer.deleteIndex(userId)
-			await this.pushApp.invalidateAlarmsForUser(userId)
-			await this.pushApp.removeUserFromNotifications(userId)
-			await this.configFacade.delete(userId)
-		}
+	async onCredentialsRemoved({ login, userId }: CredentialsInfo) {
+		await this.indexer.deleteIndex(userId)
+		await this.pushApp.invalidateAlarmsForUser(userId)
+		await this.pushApp.removeUserFromNotifications(userId)
+		await this.configFacade.delete(userId)
 
-		await this.mobileContactsManager?.disableSync(credentials.credentialInfo.userId, credentials.credentialInfo.login)
+		await this.mobileContactsManager?.disableSync(userId, login)
 	}
 }
