@@ -3,9 +3,9 @@ use std::fmt::Display;
 use std::sync::Arc;
 
 use serde::{de, Deserialize, Deserializer, ser, Serialize, Serializer};
-use serde::de::{DeserializeSeed, IntoDeserializer, MapAccess, Visitor};
+use serde::de::{DeserializeSeed, IntoDeserializer, MapAccess, Unexpected, Visitor};
 use serde::de::value::{MapDeserializer, SeqDeserializer};
-use serde::ser::{SerializeMap, SerializeSeq, SerializeStruct, SerializeStructVariant, SerializeTuple, SerializeTupleStruct, SerializeTupleVariant};
+use serde::ser::{SerializeSeq, SerializeStruct};
 use thiserror::Error;
 
 use crate::element_value::{ElementValue, ParsedEntity};
@@ -107,7 +107,7 @@ impl<'de> Deserializer<'de> for ElementValueDeserializer {
         if let ElementValue::Bool(bool) = self.value {
             visitor.visit_bool(bool)
         } else {
-            Err(de::Error::custom("Expecting bool"))
+            Err(de::Error::invalid_type(self.value.as_unexpected(), &"bool"))
         }
     }
 
@@ -115,7 +115,7 @@ impl<'de> Deserializer<'de> for ElementValueDeserializer {
         if let ElementValue::Number(num) = self.value {
             visitor.visit_i64(num)
         } else {
-            Err(de::Error::custom("Expecting i64"))
+            Err(de::Error::invalid_type(self.value.as_unexpected(), &"i64"))
         }
     }
 
@@ -126,7 +126,7 @@ impl<'de> Deserializer<'de> for ElementValueDeserializer {
                 visitor.visit_string(str)
             }
             _ => {
-                Err(serde::de::Error::custom("Expecting string"))
+                Err(de::Error::invalid_type(self.value.as_unexpected(), &"string"))
             }
         };
     }
@@ -140,19 +140,10 @@ impl<'de> Deserializer<'de> for ElementValueDeserializer {
     }
 
     fn deserialize_seq<V>(self, visitor: V) -> Result<V::Value, Self::Error> where V: Visitor<'de> {
-        match self.value {
-            ElementValue::Array(arr) => {
-                visitor.visit_seq(SeqDeserializer::new(arr.into_iter()))
-            }
-            // Currently serde does not actually implement visit_bytes and friends, we would
-            // need to use serde_bytes for that.
-            // TODO: measure if this is very slow
-            ElementValue::Bytes(vec) => {
-                visitor.visit_seq(SeqDeserializer::new(vec.into_iter()))
-            }
-            _ => {
-                Err(serde::de::Error::custom("Expecting sequence"))
-            }
+        if let ElementValue::Array(arr) = self.value {
+            visitor.visit_seq(SeqDeserializer::new(arr.into_iter()))
+        } else {
+            Err(de::Error::invalid_type(self.value.as_unexpected(), &"sequence"))
         }
     }
 
@@ -191,14 +182,14 @@ impl<'de> Deserializer<'de> for ElementValueDeserializer {
             return if let IdTupleId(IdTuple { list_id, element_id }) = self.value {
                 visitor.visit_map(IdTupleMapAccess { iter: [("list_id", list_id), ("element_id", element_id)].into_iter(), value: None })
             } else {
-                Err(de::Error::custom("Expecting IdTuple"))
+                Err(de::Error::invalid_type(self.value.as_unexpected(), &"idTuple"))
             };
         }
         if let ElementValue::Dict(dict) = self.value {
             let deserializer = ParsedEntityDeserializer::from_parsed_entity(dict);
             deserializer.deserialize_struct(name, fields, visitor)
         } else {
-            Err(de::Error::custom("Expecting Dict"))
+            Err(de::Error::invalid_type(self.value.as_unexpected(), &"dict"))
         }
     }
 
@@ -206,7 +197,7 @@ impl<'de> Deserializer<'de> for ElementValueDeserializer {
         if let ElementValue::Bytes(bytes) = self.value {
             visitor.visit_byte_buf(bytes)
         } else {
-            Err(de::Error::custom("Expecting bytes"))
+            Err(de::Error::invalid_type(self.value.as_unexpected(), &"bytes"))
         }
     }
 }
@@ -247,48 +238,8 @@ impl Serializer for ElementValueSerializer {
         Ok(ElementValue::Bool(v))
     }
 
-    fn serialize_i8(self, v: i8) -> Result<Self::Ok, Self::Error> {
-        todo!()
-    }
-
-    fn serialize_i16(self, v: i16) -> Result<Self::Ok, Self::Error> {
-        todo!()
-    }
-
-    fn serialize_i32(self, v: i32) -> Result<Self::Ok, Self::Error> {
-        todo!()
-    }
-
     fn serialize_i64(self, v: i64) -> Result<Self::Ok, Self::Error> {
         Ok(ElementValue::Number(v))
-    }
-
-    fn serialize_u8(self, v: u8) -> Result<Self::Ok, Self::Error> {
-        todo!()
-    }
-
-    fn serialize_u16(self, v: u16) -> Result<Self::Ok, Self::Error> {
-        todo!()
-    }
-
-    fn serialize_u32(self, v: u32) -> Result<Self::Ok, Self::Error> {
-        todo!()
-    }
-
-    fn serialize_u64(self, v: u64) -> Result<Self::Ok, Self::Error> {
-        todo!()
-    }
-
-    fn serialize_f32(self, v: f32) -> Result<Self::Ok, Self::Error> {
-        todo!()
-    }
-
-    fn serialize_f64(self, v: f64) -> Result<Self::Ok, Self::Error> {
-        todo!()
-    }
-
-    fn serialize_char(self, v: char) -> Result<Self::Ok, Self::Error> {
-        todo!()
     }
 
     fn serialize_str(self, v: &str) -> Result<Self::Ok, Self::Error> {
@@ -307,26 +258,6 @@ impl Serializer for ElementValueSerializer {
         value.serialize(self)
     }
 
-    fn serialize_unit(self) -> Result<Self::Ok, Self::Error> {
-        todo!()
-    }
-
-    fn serialize_unit_struct(self, name: &'static str) -> Result<Self::Ok, Self::Error> {
-        todo!()
-    }
-
-    fn serialize_unit_variant(self, name: &'static str, variant_index: u32, variant: &'static str) -> Result<Self::Ok, Self::Error> {
-        todo!()
-    }
-
-    fn serialize_newtype_struct<T>(self, name: &'static str, value: &T) -> Result<Self::Ok, Self::Error> where T: ?Sized + Serialize {
-        todo!()
-    }
-
-    fn serialize_newtype_variant<T>(self, name: &'static str, variant_index: u32, variant: &'static str, value: &T) -> Result<Self::Ok, Self::Error> where T: ?Sized + Serialize {
-        todo!()
-    }
-
     fn serialize_seq(self, len: Option<usize>) -> Result<Self::SerializeSeq, Self::Error> {
         let vec = match len {
             None => Vec::new(),
@@ -335,29 +266,93 @@ impl Serializer for ElementValueSerializer {
         Ok(ElementValueSeqSerializer { vec })
     }
 
-    fn serialize_tuple(self, len: usize) -> Result<Self::SerializeTuple, Self::Error> {
-        todo!()
-    }
-
-    fn serialize_tuple_struct(self, name: &'static str, len: usize) -> Result<Self::SerializeTupleStruct, Self::Error> {
-        todo!()
-    }
-
-    fn serialize_tuple_variant(self, name: &'static str, variant_index: u32, variant: &'static str, len: usize) -> Result<Self::SerializeTupleVariant, Self::Error> {
-        todo!()
-    }
-
-    fn serialize_map(self, len: Option<usize>) -> Result<Self::SerializeMap, Self::Error> {
-        todo!()
-    }
-
-    fn serialize_struct(self, name: &'static str, len: usize) -> Result<Self::SerializeStruct, Self::Error> {
+    fn serialize_struct(self, _: &'static str, len: usize) -> Result<Self::SerializeStruct, Self::Error> {
         Ok(ElementValueStructSerializer { map: HashMap::with_capacity(len) })
     }
 
-    fn serialize_struct_variant(self, name: &'static str, variant_index: u32, variant: &'static str, len: usize) -> Result<Self::SerializeStructVariant, Self::Error> {
-        todo!()
+    fn serialize_unit(self) -> Result<Self::Ok, Self::Error> {
+        unsupported("unit")
     }
+
+    fn serialize_unit_struct(self, _: &'static str) -> Result<Self::Ok, Self::Error> {
+        unsupported("unit_struct")
+    }
+
+    fn serialize_unit_variant(self, _: &'static str, _: u32, _: &'static str) -> Result<Self::Ok, Self::Error> {
+        unsupported("serialize_unit_variant")
+    }
+
+    fn serialize_newtype_struct<T>(self, _: &'static str, _: &T) -> Result<Self::Ok, Self::Error> where T: ?Sized + Serialize {
+        unsupported("newtype_struct")
+    }
+
+    fn serialize_newtype_variant<T>(self, _: &'static str, _: u32, _: &'static str, _: &T) -> Result<Self::Ok, Self::Error> where T: ?Sized + Serialize {
+        unsupported("newtype_variant")
+    }
+
+    fn serialize_u8(self, _: u8) -> Result<Self::Ok, Self::Error> {
+        unsupported("u8")
+    }
+
+    fn serialize_u16(self, _: u16) -> Result<Self::Ok, Self::Error> {
+        unsupported("u16")
+    }
+
+    fn serialize_u32(self, _: u32) -> Result<Self::Ok, Self::Error> {
+        unsupported("u32")
+    }
+
+    fn serialize_u64(self, _: u64) -> Result<Self::Ok, Self::Error> {
+        unsupported("u64")
+    }
+
+    fn serialize_f32(self, _: f32) -> Result<Self::Ok, Self::Error> {
+        unsupported("f32")
+    }
+
+    fn serialize_f64(self, _: f64) -> Result<Self::Ok, Self::Error> {
+        unsupported("f64")
+    }
+
+    fn serialize_char(self, _: char) -> Result<Self::Ok, Self::Error> {
+        unsupported("char")
+    }
+
+    fn serialize_i8(self, _: i8) -> Result<Self::Ok, Self::Error> {
+        unsupported("i8")
+    }
+
+    fn serialize_i16(self, _: i16) -> Result<Self::Ok, Self::Error> {
+        unsupported("i16")
+    }
+
+    fn serialize_i32(self, _: i32) -> Result<Self::Ok, Self::Error> {
+        unsupported("i32")
+    }
+
+    fn serialize_tuple(self, _: usize) -> Result<Self::SerializeTuple, Self::Error> {
+        unsupported("len")
+    }
+
+    fn serialize_tuple_struct(self, _: &'static str, _: usize) -> Result<Self::SerializeTupleStruct, Self::Error> {
+        unsupported("tuple_struct")
+    }
+
+    fn serialize_tuple_variant(self, _: &'static str, _: u32, _: &'static str, _: usize) -> Result<Self::SerializeTupleVariant, Self::Error> {
+        unsupported("tuple_variant")
+    }
+
+    fn serialize_map(self, _: Option<usize>) -> Result<Self::SerializeMap, Self::Error> {
+        unsupported("map")
+    }
+
+    fn serialize_struct_variant(self, _: &'static str, _: u32, _: &'static str, _: usize) -> Result<Self::SerializeStructVariant, Self::Error> {
+        unsupported("struct_variant")
+    }
+}
+
+fn unsupported(data_type: &str) -> ! {
+    panic!("Unsupported dta type: {}", data_type)
 }
 
 impl SerializeSeq for ElementValueSeqSerializer {
@@ -388,6 +383,24 @@ impl SerializeStruct for ElementValueStructSerializer {
     }
 }
 
+impl ElementValue {
+    fn as_unexpected(&self) -> Unexpected {
+        match self {
+            ElementValue::Null => Unexpected::Other("null"),
+            ElementValue::String(v) => Unexpected::Str(v),
+            ElementValue::Number(v) => Unexpected::Signed(*v),
+            ElementValue::Bytes(v) => Unexpected::Bytes(v.as_slice()),
+            ElementValue::Date(_) => Unexpected::Other("Date"),
+            ElementValue::Bool(v) => Unexpected::Bool(*v),
+            ElementValue::GeneratedId(_) => Unexpected::Other("GeneratedId"),
+            ElementValue::CustomId(_) => Unexpected::Other("CustomId"),
+            IdTupleId(_) => Unexpected::Other("IdTuple"),
+            ElementValue::Dict(_) => Unexpected::Map,
+            ElementValue::Array(_) => Unexpected::Seq
+        }
+    }
+}
+
 #[cfg(test)]
 mod tests {
     use crate::entities::sys::{ArchiveRef, ArchiveType, Group, TypeInfo};
@@ -400,8 +413,8 @@ mod tests {
 
     #[test]
     fn test_de_group() {
-        let email_string = include_str!("../test_data/group_response.json");
-        let parsed_entity = get_parsed_entity::<Group>(email_string);
+        let json = include_str!("../test_data/group_response.json");
+        let parsed_entity = get_parsed_entity::<Group>(json);
         let mapper = InstanceMapper::new();
         let group: Group = mapper.parse_entity(parsed_entity).unwrap();
         assert_eq!(5_i64, group.r#type);
@@ -410,9 +423,17 @@ mod tests {
     }
 
     #[test]
+    fn test_de_error() {
+        let parsed_entity = [("_id".to_owned(), ElementValue::Number(2))].into();
+        let mapper = InstanceMapper::new();
+        let group = mapper.parse_entity::<Group>(parsed_entity);
+        assert_eq!(true, group.is_err());
+    }
+
+    #[test]
     fn test_de_mailbox_group_root() {
-        let email_string = include_str!("../test_data/mailbox_group_root_response.json");
-        let parsed_entity = get_parsed_entity::<MailboxGroupRoot>(email_string);
+        let json = include_str!("../test_data/mailbox_group_root_response.json");
+        let parsed_entity = get_parsed_entity::<MailboxGroupRoot>(json);
         let mapper = InstanceMapper::new();
         let _group_root: MailboxGroupRoot = mapper.parse_entity(parsed_entity).unwrap();
     }
