@@ -148,7 +148,7 @@ function acceptInvite(invitation: ReceivedGroupInvitation, texts: GroupSharingTe
 }
 
 function declineInvite(invitation: ReceivedGroupInvitation, texts: GroupSharingTexts): Promise<void> {
-	return locator.shareFacade.rejectGroupInvitation(invitation._id).then(() => {
+	return locator.shareFacade.rejectOrCancelGroupInvitation(invitation._id).then(() => {
 		sendRejectNotificationEmail(invitation, texts)
 	})
 }

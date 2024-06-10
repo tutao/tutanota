@@ -230,6 +230,26 @@ export async function initLocator(worker: WorkerImpl, browserData: BrowserData) 
 		const { RecoverCodeFacade } = await import("./facades/lazy/RecoverCodeFacade.js")
 		return new RecoverCodeFacade(locator.user, locator.cachingEntityClient, locator.login, locator.keyLoader)
 	})
+	locator.share = lazyMemoized(async () => {
+		const { ShareFacade } = await import("./facades/lazy/ShareFacade.js")
+		return new ShareFacade(locator.user, locator.crypto, locator.serviceExecutor, locator.cachingEntityClient, locator.keyLoader)
+	})
+	locator.counters = lazyMemoized(async () => {
+		const { CounterFacade } = await import("./facades/lazy/CounterFacade.js")
+		return new CounterFacade(locator.serviceExecutor)
+	})
+	locator.groupManagement = lazyMemoized(async () => {
+		const { GroupManagementFacade } = await import("./facades/lazy/GroupManagementFacade.js")
+		return new GroupManagementFacade(
+			locator.user,
+			await locator.counters(),
+			locator.cachingEntityClient,
+			locator.serviceExecutor,
+			assertNotNull(cache),
+			locator.pqFacade,
+			locator.keyLoader,
+		)
+	})
 	locator.keyRotation = new KeyRotationFacade(
 		locator.cachingEntityClient,
 		locator.keyLoader,
@@ -238,6 +258,9 @@ export async function initLocator(worker: WorkerImpl, browserData: BrowserData) 
 		cryptoWrapper,
 		locator.recoverCode,
 		locator.user,
+		locator.crypto,
+		locator.share,
+		locator.groupManagement,
 	)
 
 	const loginListener: LoginListener = {
@@ -297,22 +320,6 @@ export async function initLocator(worker: WorkerImpl, browserData: BrowserData) 
 		const indexer = await locator.indexer()
 		const suggestionFacades = [indexer._contact.suggestionFacade]
 		return new SearchFacade(locator.user, indexer.db, indexer._mail, suggestionFacades, browserData, locator.cachingEntityClient)
-	})
-	locator.counters = lazyMemoized(async () => {
-		const { CounterFacade } = await import("./facades/lazy/CounterFacade.js")
-		return new CounterFacade(locator.serviceExecutor)
-	})
-	locator.groupManagement = lazyMemoized(async () => {
-		const { GroupManagementFacade } = await import("./facades/lazy/GroupManagementFacade.js")
-		return new GroupManagementFacade(
-			locator.user,
-			await locator.counters(),
-			locator.cachingEntityClient,
-			locator.serviceExecutor,
-			assertNotNull(cache),
-			locator.pqFacade,
-			locator.keyLoader,
-		)
 	})
 	locator.userManagement = lazyMemoized(async () => {
 		const { UserManagementFacade } = await import("./facades/lazy/UserManagementFacade.js")
@@ -434,10 +441,6 @@ export async function initLocator(worker: WorkerImpl, browserData: BrowserData) 
 	)
 	locator.login.init(locator.eventBusClient)
 	locator.Const = Const
-	locator.share = lazyMemoized(async () => {
-		const { ShareFacade } = await import("./facades/lazy/ShareFacade.js")
-		return new ShareFacade(locator.user, locator.crypto, locator.serviceExecutor, locator.cachingEntityClient, locator.keyLoader)
-	})
 	locator.giftCards = lazyMemoized(async () => {
 		const { GiftCardFacade } = await import("./facades/lazy/GiftCardFacade.js")
 		return new GiftCardFacade(locator.user, await locator.customer(), locator.serviceExecutor, locator.crypto, locator.keyLoader)

@@ -236,10 +236,10 @@ o.spec("KeyLoaderFacadeTest", function () {
 				})
 				when(userFacade.getLoggedInUser()).thenReturn(user)
 				when(nonCachingEntityClient.load(UserTypeRef, user._id)).thenResolve(user)
-				keyLoaderFacade.getKeyCache().setCurrentUserGroupKey(userGroupKey)
+				keyCache.setCurrentUserGroupKey(userGroupKey)
 				when(userFacade.updateUser(user)).thenDo(async () => {
 					when(userFacade.getMembership(group._id)).thenReturn(membership)
-					await keyLoaderFacade.getKeyCache().removeOutdatedGroupKeys(user)
+					await keyCache.removeOutdatedGroupKeys(user)
 				})
 
 				await keyLoaderFacade.loadSymGroupKey(group._id, FORMER_KEYS)

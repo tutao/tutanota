@@ -353,7 +353,7 @@ export class CryptoFacade {
 			pqMessageSenderKey,
 		)
 
-		this.ownerEncSessionKeysUpdateQueue.updateInstanceSessionKeys(resolvedSessionKeys.instanceSessionKeys)
+		await this.ownerEncSessionKeysUpdateQueue.updateInstanceSessionKeys(resolvedSessionKeys.instanceSessionKeys, typeModel)
 
 		// for symmetrically encrypted instances _ownerEncSessionKey is sent from the server.
 		// in this case it is not yet and we need to set it because the rest of the app expects it.
@@ -814,7 +814,7 @@ export class CryptoFacade {
 		recipientMailAddress: string,
 		notFoundRecipients: Array<string>,
 	): Promise<InternalRecipientKeyData | SymEncInternalRecipientKeyData | null> {
-		let keyData = createPublicKeyGetIn({
+		const keyData = createPublicKeyGetIn({
 			mailAddress: recipientMailAddress,
 			version: null,
 		})

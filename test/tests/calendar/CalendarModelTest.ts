@@ -627,12 +627,6 @@ o.spec("CalendarModel", function () {
 				createDataFile("event.ics", "ical", stringToUtf8Uint8Array("UID: " + uid), "cid"),
 			)
 
-			const actuallyErase = restClientMock.erase
-			restClientMock.erase = func<EntityRestClientMock["erase"]>()
-			when(restClientMock.erase(matchers.anything())).thenDo((what) => {
-				return actuallyErase.apply(restClientMock, [what])
-			})
-
 			const actuallyLoad = restClientMock.load
 			restClientMock.load = func<EntityRestClientMock["load"]>()
 			when(restClientMock.load(matchers.anything(), matchers.anything()), { ignoreExtraArgs: true }).thenDo((...args) =>
@@ -659,7 +653,8 @@ o.spec("CalendarModel", function () {
 			})
 
 			o(model.getFileIdToSkippedCalendarEventUpdates().get(getElementId(calendarFile))!).deepEquals(eventUpdate)
-			verify(restClientMock.erase(eventUpdate), { times: 0 })
+
+			o(await restClientMock.load(CalendarEventUpdateTypeRef, eventUpdate._id)).deepEquals(eventUpdate)
 
 			restClientMock.load = actuallyLoad
 
@@ -675,7 +670,7 @@ o.spec("CalendarModel", function () {
 
 			o(model.getFileIdToSkippedCalendarEventUpdates().size).deepEquals(0)
 			verify(fileControllerMock.getAsDataFile(matchers.anything()), { times: 1 })
-			verify(restClientMock.erase(eventUpdate))
+			await o(async () => restClientMock.load(CalendarEventUpdateTypeRef, eventUpdate._id)).asyncThrows(NotFoundError)
 		})
 	})
 })

@@ -1,9 +1,9 @@
-import type { CryptoFacade } from "../../crypto/CryptoFacade.js"
+import type { CryptoFacade, VersionedKey } from "../../crypto/CryptoFacade.js"
 import { encryptBytes, encryptKeyWithVersionedKey, encryptString } from "../../crypto/CryptoFacade.js"
 import type { GroupInfo, ReceivedGroupInvitation } from "../../../entities/sys/TypeRefs.js"
 import { GroupInfoTypeRef } from "../../../entities/sys/TypeRefs.js"
 import type { ShareCapability } from "../../../common/TutanotaConstants.js"
-import type { GroupInvitationPostReturn, InternalRecipientKeyData } from "../../../entities/tutanota/TypeRefs.js"
+import type { GroupInvitationPostData, GroupInvitationPostReturn, InternalRecipientKeyData } from "../../../entities/tutanota/TypeRefs.js"
 import {
 	createGroupInvitationDeleteData,
 	createGroupInvitationPostData,
@@ -34,13 +34,25 @@ export class ShareFacade {
 
 	async sendGroupInvitation(
 		sharedGroupInfo: GroupInfo,
-		sharedGroupName: string,
 		recipientMailAddresses: Array<string>,
 		shareCapability: ShareCapability,
 	): Promise<GroupInvitationPostReturn> {
 		const sharedGroupKey = await this.keyLoaderFacade.getCurrentSymGroupKey(sharedGroupInfo.group)
-		const userGroupInfo = await this.entityClient.load(GroupInfoTypeRef, this.userFacade.getLoggedInUser().userGroup.groupInfo)
+		const invitationData = await this.prepareGroupInvitation(sharedGroupKey, sharedGroupInfo, recipientMailAddresses, shareCapability)
+		return this.sendGroupInvitationRequest(invitationData)
+	}
 
+	async sendGroupInvitationRequest(invitationData: GroupInvitationPostData): Promise<GroupInvitationPostReturn> {
+		return this.serviceExecutor.post(GroupInvitationService, invitationData)
+	}
+
+	async prepareGroupInvitation(
+		sharedGroupKey: VersionedKey,
+		sharedGroupInfo: GroupInfo,
+		recipientMailAddresses: Array<string>,
+		shareCapability: ShareCapability,
+	): Promise<GroupInvitationPostData> {
+		const userGroupInfo = await this.entityClient.load(GroupInfoTypeRef, this.userFacade.getLoggedInUser().userGroup.groupInfo)
 		const userGroupInfoSessionKey = await this.cryptoFacade.resolveSessionKeyForInstance(userGroupInfo)
 		const sharedGroupInfoSessionKey = await this.cryptoFacade.resolveSessionKeyForInstance(sharedGroupInfo)
 		const bucketKey = aes256RandomKey()
@@ -50,13 +62,13 @@ export class ShareFacade {
 		const sharedGroupData = createSharedGroupData({
 			sessionEncInviterName: encryptString(invitationSessionKey, userGroupInfo.name),
 			sessionEncSharedGroupKey: encryptBytes(invitationSessionKey, bitArrayToUint8Array(sharedGroupKey.object)),
-			sessionEncSharedGroupName: encryptString(invitationSessionKey, sharedGroupName),
+			sessionEncSharedGroupName: encryptString(invitationSessionKey, sharedGroupInfo.name),
 			bucketEncInvitationSessionKey: encryptKey(bucketKey, invitationSessionKey),
 			capability: shareCapability,
 			sharedGroup: sharedGroupInfo.group,
 			sharedGroupEncInviterGroupInfoKey: sharedGroupEncInviterGroupInfoKey.key,
 			sharedGroupEncSharedGroupInfoKey: sharedGroupEncSharedGroupInfoKey.key,
-			sharedGroupKeyVersion: sharedGroupEncSharedGroupInfoKey.encryptingKeyVersion.toString(),
+			sharedGroupKeyVersion: String(sharedGroupKey.version),
 		})
 		const invitationData = createGroupInvitationPostData({
 			sharedGroupData,
@@ -66,7 +78,6 @@ export class ShareFacade {
 
 		for (let mailAddress of recipientMailAddresses) {
 			const keyData = await this.cryptoFacade.encryptBucketKeyForInternalRecipient(userGroupInfo.group, bucketKey, mailAddress, notFoundRecipients)
-
 			if (keyData && isSameTypeRef(keyData._type, InternalRecipientKeyDataTypeRef)) {
 				invitationData.internalKeyData.push(keyData as InternalRecipientKeyData)
 			}
@@ -75,7 +86,7 @@ export class ShareFacade {
 		if (notFoundRecipients.length > 0) {
 			throw new RecipientsNotFoundError(notFoundRecipients.join("\n"))
 		}
-		return this.serviceExecutor.post(GroupInvitationService, invitationData)
+		return invitationData
 	}
 
 	async acceptGroupInvitation(invitation: ReceivedGroupInvitation): Promise<void> {
@@ -95,9 +106,9 @@ export class ShareFacade {
 		await this.serviceExecutor.put(GroupInvitationService, serviceData)
 	}
 
-	async rejectGroupInvitation(receivedGroupInvitaitonId: IdTuple): Promise<void> {
+	async rejectOrCancelGroupInvitation(receivedGroupInvitationId: IdTuple): Promise<void> {
 		const serviceData = createGroupInvitationDeleteData({
-			receivedInvitation: receivedGroupInvitaitonId,
+			receivedInvitation: receivedGroupInvitationId,
 		})
 		await this.serviceExecutor.delete(GroupInvitationService, serviceData)
 	}

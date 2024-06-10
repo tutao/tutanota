@@ -315,6 +315,21 @@
 					"info": "ChangeValueCardinality GroupKey/adminGroupKeyVersion/ZeroOrOne."
 				}
 			]
+		},
+		{
+			"version": 102,
+			"changes": [
+				{
+					"name": "AddAssociation",
+					"sourceType": "UserGroupRoot",
+					"info": "AddAssociation UserGroupRoot/groupKeyUpdates/AGGREGATION/2383."
+				},
+				{
+					"name": "AddAssociation",
+					"sourceType": "GroupKeyRotationData",
+					"info": "AddAssociation GroupKeyRotationData/groupKeyUpdatesForMembers/AGGREGATION/2397."
+				}
+			]
 		}
 	]
 }

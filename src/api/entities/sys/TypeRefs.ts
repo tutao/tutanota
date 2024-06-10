@@ -1360,6 +1360,7 @@ export type GroupKeyRotationData = {
 	userKeyVersion: NumberString;
 
 	group: Id;
+	groupKeyUpdatesForMembers: GroupKeyUpdateData[];
 	keyPair:  null | KeyPair;
 }
 export const GroupKeyRotationInfoGetOutTypeRef: TypeRef<GroupKeyRotationInfoGetOut> = new TypeRef("sys", "GroupKeyRotationInfoGetOut")
@@ -1373,6 +1374,8 @@ export type GroupKeyRotationInfoGetOut = {
 
 	_format: NumberString;
 	userOrAdminGroupKeyRotationScheduled: boolean;
+
+	groupKeyUpdates: IdTuple[];
 }
 export const GroupKeyRotationPostInTypeRef: TypeRef<GroupKeyRotationPostIn> = new TypeRef("sys", "GroupKeyRotationPostIn")
 
@@ -1386,6 +1389,56 @@ export type GroupKeyRotationPostIn = {
 	_format: NumberString;
 
 	groupKeyUpdates: GroupKeyRotationData[];
+}
+export const GroupKeyUpdateTypeRef: TypeRef<GroupKeyUpdate> = new TypeRef("sys", "GroupKeyUpdate")
+
+export function createGroupKeyUpdate(values: StrippedEntity<GroupKeyUpdate>): GroupKeyUpdate {
+	return Object.assign(create(typeModels.GroupKeyUpdate, GroupKeyUpdateTypeRef), values)
+}
+
+export type GroupKeyUpdate = {
+	_type: TypeRef<GroupKeyUpdate>;
+	_errors: Object;
+
+	_format: NumberString;
+	_id: IdTuple;
+	_ownerEncSessionKey: null | Uint8Array;
+	_ownerGroup: null | Id;
+	_ownerKeyVersion: null | NumberString;
+	_permissions: Id;
+	groupKey: Uint8Array;
+	groupKeyVersion: NumberString;
+
+	bucketKey: BucketKey;
+}
+export const GroupKeyUpdateDataTypeRef: TypeRef<GroupKeyUpdateData> = new TypeRef("sys", "GroupKeyUpdateData")
+
+export function createGroupKeyUpdateData(values: StrippedEntity<GroupKeyUpdateData>): GroupKeyUpdateData {
+	return Object.assign(create(typeModels.GroupKeyUpdateData, GroupKeyUpdateDataTypeRef), values)
+}
+
+export type GroupKeyUpdateData = {
+	_type: TypeRef<GroupKeyUpdateData>;
+
+	_id: Id;
+	bucketKeyEncSessionKey: Uint8Array;
+	sessionKeyEncGroupKey: Uint8Array;
+	sessionKeyEncGroupKeyVersion: NumberString;
+
+	pubEncBucketKeyData: PubEncKeyData;
+}
+export const GroupKeyUpdatesRefTypeRef: TypeRef<GroupKeyUpdatesRef> = new TypeRef("sys", "GroupKeyUpdatesRef")
+
+export function createGroupKeyUpdatesRef(values: StrippedEntity<GroupKeyUpdatesRef>): GroupKeyUpdatesRef {
+	return Object.assign(create(typeModels.GroupKeyUpdatesRef, GroupKeyUpdatesRefTypeRef), values)
+}
+
+export type GroupKeyUpdatesRef = {
+	_type: TypeRef<GroupKeyUpdatesRef>;
+
+	_id: Id;
+
+	list: Id;
 }
 export const GroupKeysRefTypeRef: TypeRef<GroupKeysRef> = new TypeRef("sys", "GroupKeysRef")
 
@@ -1439,6 +1492,22 @@ export type GroupMembership = {
 	group: Id;
 	groupInfo: IdTuple;
 	groupMember: IdTuple;
+}
+export const GroupMembershipKeyDataTypeRef: TypeRef<GroupMembershipKeyData> = new TypeRef("sys", "GroupMembershipKeyData")
+
+export function createGroupMembershipKeyData(values: StrippedEntity<GroupMembershipKeyData>): GroupMembershipKeyData {
+	return Object.assign(create(typeModels.GroupMembershipKeyData, GroupMembershipKeyDataTypeRef), values)
+}
+
+export type GroupMembershipKeyData = {
+	_type: TypeRef<GroupMembershipKeyData>;
+
+	_id: Id;
+	groupKeyVersion: NumberString;
+	symEncGKey: Uint8Array;
+	symKeyVersion: NumberString;
+
+	group: Id;
 }
 export const GroupRootTypeRef: TypeRef<GroupRoot> = new TypeRef("sys", "GroupRoot")
 
@@ -1812,6 +1881,19 @@ export type MembershipAddData = {
 
 	group: Id;
 	user: Id;
+}
+export const MembershipPutInTypeRef: TypeRef<MembershipPutIn> = new TypeRef("sys", "MembershipPutIn")
+
+export function createMembershipPutIn(values: StrippedEntity<MembershipPutIn>): MembershipPutIn {
+	return Object.assign(create(typeModels.MembershipPutIn, MembershipPutInTypeRef), values)
+}
+
+export type MembershipPutIn = {
+	_type: TypeRef<MembershipPutIn>;
+
+	_format: NumberString;
+
+	groupKeyUpdates: GroupMembershipKeyData[];
 }
 export const MembershipRemoveDataTypeRef: TypeRef<MembershipRemoveData> = new TypeRef("sys", "MembershipRemoveData")
 
@@ -2218,6 +2300,22 @@ export type PriceServiceReturn = {
 	currentPriceNextPeriod:  null | PriceData;
 	currentPriceThisPeriod:  null | PriceData;
 	futurePriceNextPeriod:  null | PriceData;
+}
+export const PubEncKeyDataTypeRef: TypeRef<PubEncKeyData> = new TypeRef("sys", "PubEncKeyData")
+
+export function createPubEncKeyData(values: StrippedEntity<PubEncKeyData>): PubEncKeyData {
+	return Object.assign(create(typeModels.PubEncKeyData, PubEncKeyDataTypeRef), values)
+}
+
+export type PubEncKeyData = {
+	_type: TypeRef<PubEncKeyData>;
+
+	_id: Id;
+	mailAddress: string;
+	protocolVersion: NumberString;
+	pubEncBucketKey: Uint8Array;
+	recipientKeyVersion: NumberString;
+	senderKeyVersion: null | NumberString;
 }
 export const PublicKeyGetInTypeRef: TypeRef<PublicKeyGetIn> = new TypeRef("sys", "PublicKeyGetIn")
 
@@ -3206,6 +3304,7 @@ export type UserGroupRoot = {
 	_ownerGroup: null | Id;
 	_permissions: Id;
 
+	groupKeyUpdates:  null | GroupKeyUpdatesRef;
 	invitations: Id;
 	keyRotations:  null | KeyRotationsRef;
 }
