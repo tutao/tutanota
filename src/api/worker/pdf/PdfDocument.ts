@@ -6,10 +6,17 @@ import { stringToUtf8Uint8Array } from "@tutao/tutanota-utils"
 export enum PDF_FONTS {
 	REGULAR = 1,
 	BOLD = 2,
+	INVISIBLE_CID = 3,
 }
 
 export enum PDF_IMAGES {
 	TUTA_LOGO = 1,
+	ADDRESS = 2,
+}
+
+export enum TEXT_RENDERING_MODE {
+	NORMAL = 0,
+	INVISIBLE = 3,
 }
 
 export type TableColumn = { headerName: string; columnWidth: number }
@@ -30,6 +37,9 @@ const ROWS_FIRST_PAGE_SINGLE = 4 // 2 InvoiceItems
 const ROWS_FIRST_PAGE_MULTIPLE = 24 // 12 InvoiceItems
 // Amount of table rows that can fit on any n-th page that isn't the first
 const ROWS_N_PAGE = 50
+
+const ADDRESS_FIELD_WIDTH = 800
+const ADDRESS_FIELD_HEIGHT = 320
 
 /**
  * Object which manages the high-level creation of a PDF document by parsing function instructions into PDF streams.
@@ -128,16 +138,19 @@ export class PdfDocument {
 	 * The coordinate field is in the fourth quadrant, i.e. the point of origin is top-left
 	 * @param text The text to place
 	 * @param position Coordinates [x,y] where to place the text, can be omitted to keep the current position
+	 * @param byteLength The byteLength of every character in the string. By default, this is 1 byte = 2 nibbles = "XX" e.g. "20" = "SPACE".
+	 * Do not change it to more than 1 byte unless you can verify any text printed this way will be displayed correctly on the PDF.
 	 */
-	addText(text: string, position: [x: number, y: number] = ORIGIN_POSITION): PdfDocument {
+	addText(text: string, position: [x: number, y: number] = ORIGIN_POSITION, byteLength: number = 1): PdfDocument {
 		if (text === "") return this
 		// If no position was specified, don't update the text cursor position
 		if (position !== ORIGIN_POSITION) {
-			this.textStream += `1 0 0 -1 ${mmToPSPoint(position[0])} ${mmToPSPoint(position[1]) + this.currentFontSize} Tm <${toUnicodePoint(text).join(
-				"",
-			)}> Tj `
+			this.textStream += `1 0 0 -1 ${mmToPSPoint(position[0])} ${mmToPSPoint(position[1]) + this.currentFontSize} Tm <${toUnicodePoint(
+				text,
+				byteLength,
+			).join("")}> Tj `
 		} else {
-			this.textStream += `<${toUnicodePoint(text).join("")}> Tj `
+			this.textStream += `<${toUnicodePoint(text, byteLength).join("")}> Tj `
 		}
 		return this
 	}
@@ -226,11 +239,20 @@ export class PdfDocument {
 
 	/**
 	 * Change the grayscale of the current text
-	 * @param grayScale Float between 0 and 1 by which the text lightness shall be adjusted. 0 = white, 1 = black
+	 * @param grayScale Float between 0 and 1 by which the text lightness shall be adjusted. 1 = white, 0 = black
 	 */
 	changeTextGrayscale(grayScale: number): PdfDocument {
 		grayScale = Math.max(Math.min(grayScale, 1), 0)
 		this.textStream += `${grayScale} g `
+		return this
+	}
+
+	/**
+	 * Change the rendering mode of the current text. The rendering mode values and their effect are the same as the PDF standard describes
+	 * @param renderingMode Rendering mode (number) to set
+	 */
+	changeTextRenderingMode(renderingMode: TEXT_RENDERING_MODE) {
+		this.textStream += `${renderingMode} Tr `
 		return this
 	}
 
@@ -311,24 +333,120 @@ export class PdfDocument {
 			previousWidthOffset += columnInfo[i].columnWidth
 		}
 	}
+
+	/**
+	 * Renders an address field, allowing the inclusion of any character inside text.
+	 * If any multibyte character outside the defined encoding is detected, the text will be written as an image via the canvas API.
+	 * The image will then be attached be inserted into the PDF. If the image generation fails (missing canvas support) fallback text will be rendered
+	 * @param position Coordinates [x,y] where to place the field's origin point
+	 * @param address String containing the address (expected to hold multiple newlines)
+	 */
+	async addAddressField(position: [x: number, y: number], address: string) {
+		const addressParts = address.split("\n")
+		let addressIncludesMultiByteChar = false
+		let imageBuffer = new ArrayBuffer(0)
+
+		// Check addressParts for any invalid characters
+		for (const addressPart of addressParts) {
+			for (let i = 0; i < addressPart.length; i++) {
+				const codePoint = addressPart.codePointAt(i)
+				if (codePoint && !isInsideValidCharRange(codePoint)) {
+					addressIncludesMultiByteChar = true
+					break
+				}
+			}
+		}
+
+		try {
+			if (addressIncludesMultiByteChar) {
+				const canvas = new OffscreenCanvas(ADDRESS_FIELD_WIDTH, ADDRESS_FIELD_HEIGHT)
+				const context = canvas.getContext("2d")
+				if (context) {
+					// 36px is arbitrarily chosen to align with the 12pt size of the actual PDF text
+					context.font = "36px serif"
+					context.fillStyle = "white"
+					context.fillRect(0, 0, canvas.width, canvas.height)
+					context.fillStyle = "black"
+
+					for (let i = 0; i < addressParts.length; i++) {
+						context.fillText(addressParts[i], 0, 40 * (i + 1))
+					}
+					const dataUrl = await canvas.convertToBlob({ type: "image/jpeg" })
+					imageBuffer = await dataUrl.arrayBuffer()
+
+					// For the rendered image, we take its dimension divided by 8. This gives a nice resolution for JPEG
+					this.addImage(PDF_IMAGES.ADDRESS, position, [ADDRESS_FIELD_WIDTH / 8, ADDRESS_FIELD_HEIGHT / 8])
+
+					// Prepare for rendering the address below the image invisibly
+					this.changeTextRenderingMode(TEXT_RENDERING_MODE.INVISIBLE)
+					this.changeFont(PDF_FONTS.INVISIBLE_CID, 12)
+				}
+			}
+		} catch (e) {
+			console.warn(`PDF Error - Cannot render canvas. This is likely because the browser does not support OffscreenCanvas. The error was:\n"${e}"`)
+		}
+
+		// Must create image object in any case since otherwise the reference cannot be resolved. We then just fill it with empty data, but never render it
+		this.pdfWriter.createStreamObject(
+			new Map([
+				["Name", "/Im2"],
+				["Type", "/XObject"],
+				["Subtype", "/Image"],
+				["Width", `${ADDRESS_FIELD_WIDTH}`],
+				["Height", `${ADDRESS_FIELD_HEIGHT}`],
+				["BitsPerComponent", "8"],
+				["ColorSpace", "/DeviceRGB"],
+			]),
+			new Uint8Array(imageBuffer),
+			PdfStreamEncoding.DCT,
+			"IMG_ADDRESS",
+		)
+
+		// Always render the address as text, Either directly or invisibly in case the canvas was called
+		for (const addressPart of addressParts) {
+			this.addText(addressPart, ORIGIN_POSITION, 2).addLineBreak()
+		}
+
+		// Undo any invisible-configuration in case it was set
+		this.changeFont(PDF_FONTS.REGULAR, 12)
+		this.changeTextRenderingMode(TEXT_RENDERING_MODE.NORMAL)
+	}
 }
 
 /**
- * Convert a text string into a string where each character is replaced by its 1-byte unicode point
+ * Convert a text string into a NumString array where each character is replaced by its byte unicode point with a length specified by "byteLength"
  */
-export function toUnicodePoint(input: string): string[] {
-	const out: string[] = []
-	for (let i = 0; i < input.length; i++) {
-		const codePoint = input.codePointAt(i)
-		if (codePoint && codePoint < 256) {
-			out.push(codePoint.toString(16))
-		} else {
-			console.warn("Tried printing a character longer than one byte! Ignoring it...")
+export function toUnicodePoint(input: string, byteLength: number = 1): string[] {
+	if (byteLength === 1) {
+		const out: string[] = []
+		for (let i = 0; i < input.length; i++) {
+			const codePoint = input.codePointAt(i)
+			if (codePoint && isInsideValidCharRange(codePoint)) {
+				out.push(codePoint.toString(16))
+			} else {
+				console.warn(`Attempted to render a character longer than one byte. Character was ${input[i]} with a code of ${codePoint}.`)
+			}
 		}
+		return out
+	} else {
+		return input.split("").map((c) => c.charCodeAt(0).toString(16).padStart(4, "0"))
 	}
-	return out
 }
 
+/**
+ * Returns whether a given char's codepoint is above one byte in size, making it not displayable by simple PDF fonts
+ * @param codePoint
+ */
+export function isInsideValidCharRange(codePoint: number): boolean {
+	return !!(codePoint && codePoint < 256)
+}
+
+/**
+ * Calculates the size of a word by considering the width of every glyph in the font
+ * @param codePoints Array of unicode points representing every character in the word
+ * @param font The font used for the processed word
+ * @param fontSize The font size used for the processed word
+ */
 export function getWordLengthInPoints(codePoints: string[], font: PDF_FONTS, fontSize: number): number {
 	const widthsArray = font === PDF_FONTS.REGULAR ? regularFontWidths : boldFontWidths
 	let total = 0
