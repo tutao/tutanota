@@ -2045,6 +2045,15 @@ export const typeModels = {
                 "cardinality": "One",
                 "encrypted": false
             },
+            "userGroupKeyVersion": {
+                "final": false,
+                "name": "userGroupKeyVersion",
+                "id": 2410,
+                "since": 102,
+                "type": "Number",
+                "cardinality": "One",
+                "encrypted": false
+            },
             "verifier": {
                 "final": false,
                 "name": "verifier",
@@ -2059,8 +2068,8 @@ export const typeModels = {
         "app": "sys",
         "version": "102"
     },
-    "ChangePasswordData": {
-        "name": "ChangePasswordData",
+    "ChangePasswordPostIn": {
+        "name": "ChangePasswordPostIn",
         "since": 1,
         "type": "DATA_TRANSFER_TYPE",
         "id": 534,
@@ -2128,6 +2137,15 @@ export const typeModels = {
                 "id": 537,
                 "since": 1,
                 "type": "Bytes",
+                "cardinality": "One",
+                "encrypted": false
+            },
+            "userGroupKeyVersion": {
+                "final": false,
+                "name": "userGroupKeyVersion",
+                "id": 2408,
+                "since": 102,
+                "type": "Number",
                 "cardinality": "One",
                 "encrypted": false
             },
@@ -10673,8 +10691,8 @@ export const typeModels = {
         "app": "sys",
         "version": "102"
     },
-    "ResetPasswordData": {
-        "name": "ResetPasswordData",
+    "ResetPasswordPostIn": {
+        "name": "ResetPasswordPostIn",
         "since": 1,
         "type": "DATA_TRANSFER_TYPE",
         "id": 584,
@@ -10715,6 +10733,15 @@ export const typeModels = {
                 "id": 587,
                 "since": 1,
                 "type": "Bytes",
+                "cardinality": "One",
+                "encrypted": false
+            },
+            "userGroupKeyVersion": {
+                "final": false,
+                "name": "userGroupKeyVersion",
+                "id": 2409,
+                "since": 102,
+                "type": "Number",
                 "cardinality": "One",
                 "encrypted": false
             },

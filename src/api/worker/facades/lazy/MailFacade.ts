@@ -87,8 +87,8 @@ import {
 	byteLength,
 	contains,
 	defer,
-	isEmpty,
 	freshVersioned,
+	isEmpty,
 	isNotNull,
 	isSameTypeRef,
 	isSameTypeRefByAttr,
@@ -704,6 +704,7 @@ export class MailFacade {
 					pwEncCommunicationKey: encryptKey(passwordKey, externalGroupKeys.currentExternalUserGroupKey.object),
 					autoTransmitPassword: null,
 					passwordChannelPhoneNumbers: [],
+					userGroupKeyVersion: String(externalGroupKeys.currentExternalUserGroupKey.version),
 				})
 				sendDraftData.secureExternalRecipientKeyData.push(data)
 			} else {

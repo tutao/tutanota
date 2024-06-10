@@ -365,6 +365,16 @@
 					"info": "RemoveValue MailBox/symEncShareBucketKey/131."
 				}
 			]
+		},
+		{
+			"version": 72,
+			"changes": [
+				{
+					"name": "AddValue",
+					"sourceType": "SecureExternalRecipientKeyData",
+					"info": "AddValue SecureExternalRecipientKeyData/userGroupKeyVersion/1445."
+				}
+			]
 		}
 	]
 }

@@ -8,7 +8,7 @@ import {BrandingDomainGetReturnTypeRef} from "./TypeRefs.js"
 import {BrandingDomainDataTypeRef} from "./TypeRefs.js"
 import {BrandingDomainDeleteDataTypeRef} from "./TypeRefs.js"
 import {ChangeKdfPostInTypeRef} from "./TypeRefs.js"
-import {ChangePasswordDataTypeRef} from "./TypeRefs.js"
+import {ChangePasswordPostInTypeRef} from "./TypeRefs.js"
 import {CloseSessionServicePostTypeRef} from "./TypeRefs.js"
 import {CreateCustomerServerPropertiesDataTypeRef} from "./TypeRefs.js"
 import {CreateCustomerServerPropertiesReturnTypeRef} from "./TypeRefs.js"
@@ -63,7 +63,7 @@ import {RegistrationCaptchaServiceDataTypeRef} from "./TypeRefs.js"
 import {RegistrationServiceDataTypeRef} from "./TypeRefs.js"
 import {RegistrationReturnTypeRef} from "./TypeRefs.js"
 import {ResetFactorsDeleteDataTypeRef} from "./TypeRefs.js"
-import {ResetPasswordDataTypeRef} from "./TypeRefs.js"
+import {ResetPasswordPostInTypeRef} from "./TypeRefs.js"
 import {SaltDataTypeRef} from "./TypeRefs.js"
 import {SaltReturnTypeRef} from "./TypeRefs.js"
 import {SecondFactorAuthAllowedReturnTypeRef} from "./TypeRefs.js"
@@ -134,7 +134,7 @@ export const ChangePasswordService = Object.freeze({
 	app: "sys",
 	name: "ChangePasswordService",
 	get: null,
-	post: {data: ChangePasswordDataTypeRef, return: null},
+	post: {data: ChangePasswordPostInTypeRef, return: null},
 	put: null,
 	delete: null,
 } as const)
@@ -386,7 +386,7 @@ export const ResetPasswordService = Object.freeze({
 	app: "sys",
 	name: "ResetPasswordService",
 	get: null,
-	post: {data: ResetPasswordDataTypeRef, return: null},
+	post: {data: ResetPasswordPostInTypeRef, return: null},
 	put: null,
 	delete: null,
 } as const)

@@ -28,7 +28,7 @@ import { AccountType, asKdfType, CloseEventBusOption, Const, DEFAULT_KDF_TYPE, K
 import {
 	Challenge,
 	createChangeKdfPostIn,
-	createChangePasswordData,
+	createChangePasswordPostIn,
 	createCreateSessionData,
 	createDeleteCustomerData,
 	createResetFactorsDeleteData,
@@ -317,7 +317,8 @@ export class LoginFacade {
 		}
 		const newUserPassphraseKey = await this.deriveUserPassphraseKey(newPassphraseKeyData)
 
-		const pwEncUserGroupKey = encryptKey(newUserPassphraseKey, this.userFacade.getCurrentUserGroupKey().object)
+		const currentUserGroupKey = this.userFacade.getCurrentUserGroupKey()
+		const pwEncUserGroupKey = encryptKey(newUserPassphraseKey, currentUserGroupKey.object)
 		const newAuthVerifier = createAuthVerifier(newUserPassphraseKey)
 
 		const changeKdfPostIn = createChangeKdfPostIn({
@@ -326,6 +327,7 @@ export class LoginFacade {
 			pwEncUserGroupKey,
 			verifier: newAuthVerifier,
 			oldVerifier: currentAuthVerifier,
+			userGroupKeyVersion: String(currentUserGroupKey.version),
 		})
 		console.log("Migrate KDF from:", user.kdfVersion, "to", targetKdfType)
 		await this.serviceExecutor.post(ChangeKdfService, changeKdfPostIn)
@@ -898,9 +900,10 @@ export class LoginFacade {
 		const newPasswordKeyData = { ...newPasswordKeyDataTemplate, salt: generateRandomSalt() }
 
 		const newUserPassphraseKey = await this.deriveUserPassphraseKey(newPasswordKeyData)
-		const pwEncUserGroupKey = encryptKey(newUserPassphraseKey, this.userFacade.getCurrentUserGroupKey().object)
+		const currentUserGroupKey = this.userFacade.getCurrentUserGroupKey()
+		const pwEncUserGroupKey = encryptKey(newUserPassphraseKey, currentUserGroupKey.object)
 		const authVerifier = createAuthVerifier(newUserPassphraseKey)
-		const service = createChangePasswordData({
+		const service = createChangePasswordPostIn({
 			code: null,
 			kdfVersion: newPasswordKeyDataTemplate.kdfType,
 			oldVerifier: currentAuthVerifier,
@@ -908,6 +911,7 @@ export class LoginFacade {
 			recoverCodeVerifier: null,
 			salt: newPasswordKeyData.salt,
 			verifier: authVerifier,
+			userGroupKeyVersion: String(currentUserGroupKey.version),
 		})
 
 		await this.serviceExecutor.post(ChangePasswordService, service)
@@ -1008,7 +1012,7 @@ export class LoginFacade {
 			const userPassphraseKey = await this.deriveUserPassphraseKey(newPassphraseKeyData)
 			const pwEncUserGroupKey = encryptKey(userPassphraseKey, groupKey)
 			const newPasswordVerifier = createAuthVerifier(userPassphraseKey)
-			const postData = createChangePasswordData({
+			const postData = createChangePasswordPostIn({
 				code: null,
 				kdfVersion: newKdfType,
 				oldVerifier: null,
@@ -1016,6 +1020,7 @@ export class LoginFacade {
 				pwEncUserGroupKey: pwEncUserGroupKey,
 				verifier: newPasswordVerifier,
 				recoverCodeVerifier: recoverCodeVerifier,
+				userGroupKeyVersion: recoverCodeData.userKeyVersion,
 			})
 
 			const extraHeaders = {
