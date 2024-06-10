@@ -1,6 +1,5 @@
 import { AccountType, Const, CounterType, DEFAULT_KDF_TYPE, GroupType } from "../../../common/TutanotaConstants.js"
-import type { User } from "../../../entities/sys/TypeRefs.js"
-import { createMembershipAddData, createResetPasswordData, createUserDataDelete, GroupTypeRef } from "../../../entities/sys/TypeRefs.js"
+import { createMembershipAddData, createResetPasswordPostIn, createUserDataDelete, GroupTypeRef, User } from "../../../entities/sys/TypeRefs.js"
 import { encryptBytes, encryptKeyWithVersionedKey, encryptString, VersionedKey } from "../../crypto/CryptoFacade.js"
 import { neverNull } from "@tutao/tutanota-utils"
 import type { UserAccountUserData } from "../../../entities/tutanota/TypeRefs.js"
@@ -44,12 +43,13 @@ export class UserManagementFacade {
 		const passwordKey = await this.loginFacade.deriveUserPassphraseKey({ kdfType, passphrase: newPassword, salt })
 		const pwEncUserGroupKey = encryptKey(passwordKey, userGroupKey.object)
 		const passwordVerifier = createAuthVerifier(passwordKey)
-		const data = createResetPasswordData({
+		const data = createResetPasswordPostIn({
 			user: user._id,
 			salt,
 			verifier: passwordVerifier,
 			pwEncUserGroupKey,
 			kdfVersion: kdfType,
+			userGroupKeyVersion: String(userGroupKey.version),
 		})
 		await this.serviceExecutor.post(ResetPasswordService, data)
 	}

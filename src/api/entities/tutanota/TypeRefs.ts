@@ -1713,6 +1713,7 @@ export type SecureExternalRecipientKeyData = {
 	pwEncCommunicationKey: null | Uint8Array;
 	salt: null | Uint8Array;
 	saltHash: null | Uint8Array;
+	userGroupKeyVersion: NumberString;
 
 	passwordChannelPhoneNumbers: PasswordChannelPhoneNumber[];
 }

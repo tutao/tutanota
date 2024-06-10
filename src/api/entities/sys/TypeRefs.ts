@@ -533,16 +533,17 @@ export type ChangeKdfPostIn = {
 	oldVerifier: Uint8Array;
 	pwEncUserGroupKey: Uint8Array;
 	salt: Uint8Array;
+	userGroupKeyVersion: NumberString;
 	verifier: Uint8Array;
 }
-export const ChangePasswordDataTypeRef: TypeRef<ChangePasswordData> = new TypeRef("sys", "ChangePasswordData")
+export const ChangePasswordPostInTypeRef: TypeRef<ChangePasswordPostIn> = new TypeRef("sys", "ChangePasswordPostIn")
 
-export function createChangePasswordData(values: StrippedEntity<ChangePasswordData>): ChangePasswordData {
-	return Object.assign(create(typeModels.ChangePasswordData, ChangePasswordDataTypeRef), values)
+export function createChangePasswordPostIn(values: StrippedEntity<ChangePasswordPostIn>): ChangePasswordPostIn {
+	return Object.assign(create(typeModels.ChangePasswordPostIn, ChangePasswordPostInTypeRef), values)
 }
 
-export type ChangePasswordData = {
-	_type: TypeRef<ChangePasswordData>;
+export type ChangePasswordPostIn = {
+	_type: TypeRef<ChangePasswordPostIn>;
 
 	_format: NumberString;
 	code: null | string;
@@ -551,6 +552,7 @@ export type ChangePasswordData = {
 	pwEncUserGroupKey: Uint8Array;
 	recoverCodeVerifier: null | Uint8Array;
 	salt: Uint8Array;
+	userGroupKeyVersion: NumberString;
 	verifier: Uint8Array;
 }
 export const ChatTypeRef: TypeRef<Chat> = new TypeRef("sys", "Chat")
@@ -2629,19 +2631,20 @@ export type ResetFactorsDeleteData = {
 	mailAddress: string;
 	recoverCodeVerifier: string;
 }
-export const ResetPasswordDataTypeRef: TypeRef<ResetPasswordData> = new TypeRef("sys", "ResetPasswordData")
+export const ResetPasswordPostInTypeRef: TypeRef<ResetPasswordPostIn> = new TypeRef("sys", "ResetPasswordPostIn")
 
-export function createResetPasswordData(values: StrippedEntity<ResetPasswordData>): ResetPasswordData {
-	return Object.assign(create(typeModels.ResetPasswordData, ResetPasswordDataTypeRef), values)
+export function createResetPasswordPostIn(values: StrippedEntity<ResetPasswordPostIn>): ResetPasswordPostIn {
+	return Object.assign(create(typeModels.ResetPasswordPostIn, ResetPasswordPostInTypeRef), values)
 }
 
-export type ResetPasswordData = {
-	_type: TypeRef<ResetPasswordData>;
+export type ResetPasswordPostIn = {
+	_type: TypeRef<ResetPasswordPostIn>;
 
 	_format: NumberString;
 	kdfVersion: NumberString;
 	pwEncUserGroupKey: Uint8Array;
 	salt: Uint8Array;
+	userGroupKeyVersion: NumberString;
 	verifier: Uint8Array;
 
 	user: Id;
