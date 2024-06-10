@@ -5,7 +5,9 @@ use serde::{Serialize, Deserialize};
 #[derive(Clone, Serialize, Deserialize)]
 pub struct AttachmentKeyData {
 	pub _id: Id,
+	#[serde(with = "serde_bytes")]
 	pub bucketEncFileSessionKey: Option<Vec<u8>>,
+	#[serde(with = "serde_bytes")]
 	pub fileSessionKey: Option<Vec<u8>>,
 	pub file: IdTuple,
 }
@@ -63,12 +65,14 @@ impl Entity for CalendarDeleteData {
 pub struct CalendarEvent {
 	pub _format: i64,
 	pub _id: IdTuple,
+	#[serde(with = "serde_bytes")]
 	pub _ownerEncSessionKey: Option<Vec<u8>>,
 	pub _ownerGroup: Option<Id>,
 	pub _ownerKeyVersion: Option<i64>,
 	pub _permissions: Id,
 	pub description: String,
 	pub endTime: Date,
+	#[serde(with = "serde_bytes")]
 	pub hashedUid: Option<Vec<u8>>,
 	pub invitedConfidentially: Option<bool>,
 	pub location: String,
@@ -138,6 +142,7 @@ impl Entity for CalendarEventUidIndex {
 pub struct CalendarEventUpdate {
 	pub _format: i64,
 	pub _id: IdTuple,
+	#[serde(with = "serde_bytes")]
 	pub _ownerEncSessionKey: Option<Vec<u8>>,
 	pub _ownerGroup: Option<Id>,
 	pub _ownerKeyVersion: Option<i64>,
@@ -170,6 +175,7 @@ impl Entity for CalendarEventUpdateList {
 pub struct CalendarGroupRoot {
 	pub _format: i64,
 	pub _id: Id,
+	#[serde(with = "serde_bytes")]
 	pub _ownerEncSessionKey: Option<Vec<u8>>,
 	pub _ownerGroup: Option<Id>,
 	pub _ownerKeyVersion: Option<i64>,
@@ -210,6 +216,7 @@ pub struct Contact {
 	pub _format: i64,
 	pub _id: IdTuple,
 	pub _owner: Id,
+	#[serde(with = "serde_bytes")]
 	pub _ownerEncSessionKey: Option<Vec<u8>>,
 	pub _ownerGroup: Option<Id>,
 	pub _ownerKeyVersion: Option<i64>,
@@ -287,6 +294,7 @@ impl Entity for ContactCustomDate {
 pub struct ContactList {
 	pub _format: i64,
 	pub _id: Id,
+	#[serde(with = "serde_bytes")]
 	pub _ownerEncSessionKey: Option<Vec<u8>>,
 	pub _ownerGroup: Option<Id>,
 	pub _ownerKeyVersion: Option<i64>,
@@ -306,6 +314,7 @@ impl Entity for ContactList {
 pub struct ContactListEntry {
 	pub _format: i64,
 	pub _id: IdTuple,
+	#[serde(with = "serde_bytes")]
 	pub _ownerEncSessionKey: Option<Vec<u8>>,
 	pub _ownerGroup: Option<Id>,
 	pub _ownerKeyVersion: Option<i64>,
@@ -324,6 +333,7 @@ impl Entity for ContactListEntry {
 pub struct ContactListGroupRoot {
 	pub _format: i64,
 	pub _id: Id,
+	#[serde(with = "serde_bytes")]
 	pub _ownerEncSessionKey: Option<Vec<u8>>,
 	pub _ownerGroup: Option<Id>,
 	pub _ownerKeyVersion: Option<i64>,
@@ -470,7 +480,9 @@ impl Entity for ConversationEntry {
 #[derive(Clone, Serialize, Deserialize)]
 pub struct CreateExternalUserGroupData {
 	pub _id: Id,
+	#[serde(with = "serde_bytes")]
 	pub externalPwEncUserGroupKey: Vec<u8>,
+	#[serde(with = "serde_bytes")]
 	pub internalUserEncUserGroupKey: Vec<u8>,
 	pub internalUserGroupKeyVersion: i64,
 	pub mailAddress: String,
@@ -500,6 +512,7 @@ impl Entity for CreateGroupPostReturn {
 pub struct CreateMailFolderData {
 	pub _format: i64,
 	pub folderName: String,
+	#[serde(with = "serde_bytes")]
 	pub ownerEncSessionKey: Vec<u8>,
 	pub ownerGroup: Option<Id>,
 	pub ownerKeyVersion: i64,
@@ -529,8 +542,10 @@ impl Entity for CreateMailFolderReturn {
 #[derive(Clone, Serialize, Deserialize)]
 pub struct CreateMailGroupData {
 	pub _format: i64,
+	#[serde(with = "serde_bytes")]
 	pub encryptedName: Vec<u8>,
 	pub mailAddress: String,
+	#[serde(with = "serde_bytes")]
 	pub mailEncMailboxSessionKey: Vec<u8>,
 	pub groupData: InternalGroupData,
 }
@@ -546,16 +561,21 @@ impl Entity for CreateMailGroupData {
 pub struct CustomerAccountCreateData {
 	pub _format: i64,
 	pub accountGroupKeyVersion: i64,
+	#[serde(with = "serde_bytes")]
 	pub adminEncAccountingInfoSessionKey: Vec<u8>,
+	#[serde(with = "serde_bytes")]
 	pub adminEncCustomerServerPropertiesSessionKey: Vec<u8>,
 	pub authToken: String,
 	pub code: String,
 	pub date: Option<Date>,
 	pub lang: String,
+	#[serde(with = "serde_bytes")]
 	pub systemAdminPubEncAccountingInfoSessionKey: Vec<u8>,
 	pub systemAdminPubKeyVersion: i64,
 	pub systemAdminPublicProtocolVersion: i64,
+	#[serde(with = "serde_bytes")]
 	pub userEncAccountGroupKey: Vec<u8>,
+	#[serde(with = "serde_bytes")]
 	pub userEncAdminGroupKey: Vec<u8>,
 	pub adminGroupData: InternalGroupData,
 	pub customerGroupData: InternalGroupData,
@@ -614,6 +634,7 @@ impl Entity for DeleteMailFolderData {
 #[derive(Clone, Serialize, Deserialize)]
 pub struct DraftAttachment {
 	pub _id: Id,
+	#[serde(with = "serde_bytes")]
 	pub ownerEncFileSessionKey: Vec<u8>,
 	pub ownerKeyVersion: i64,
 	pub existingFile: Option<IdTuple>,
@@ -631,6 +652,7 @@ impl Entity for DraftAttachment {
 pub struct DraftCreateData {
 	pub _format: i64,
 	pub conversationType: i64,
+	#[serde(with = "serde_bytes")]
 	pub ownerEncSessionKey: Vec<u8>,
 	pub ownerKeyVersion: i64,
 	pub previousMessageId: Option<String>,
@@ -727,6 +749,7 @@ impl Entity for DraftUpdateReturn {
 pub struct EmailTemplate {
 	pub _format: i64,
 	pub _id: IdTuple,
+	#[serde(with = "serde_bytes")]
 	pub _ownerEncSessionKey: Option<Vec<u8>>,
 	pub _ownerGroup: Option<Id>,
 	pub _ownerKeyVersion: Option<i64>,
@@ -760,6 +783,7 @@ impl Entity for EmailTemplateContent {
 #[derive(Clone, Serialize, Deserialize)]
 pub struct EncryptTutanotaPropertiesData {
 	pub _format: i64,
+	#[serde(with = "serde_bytes")]
 	pub symEncSessionKey: Vec<u8>,
 	pub symKeyVersion: i64,
 	pub properties: Id,
@@ -789,6 +813,7 @@ impl Entity for EncryptedMailAddress {
 #[derive(Clone, Serialize, Deserialize)]
 pub struct EntropyData {
 	pub _format: i64,
+	#[serde(with = "serde_bytes")]
 	pub userEncEntropy: Vec<u8>,
 	pub userKeyVersion: i64,
 }
@@ -803,16 +828,25 @@ impl Entity for EntropyData {
 #[derive(Clone, Serialize, Deserialize)]
 pub struct ExternalUserData {
 	pub _format: i64,
+	#[serde(with = "serde_bytes")]
 	pub externalMailEncMailBoxSessionKey: Vec<u8>,
+	#[serde(with = "serde_bytes")]
 	pub externalMailEncMailGroupInfoSessionKey: Vec<u8>,
+	#[serde(with = "serde_bytes")]
 	pub externalUserEncEntropy: Vec<u8>,
+	#[serde(with = "serde_bytes")]
 	pub externalUserEncMailGroupKey: Vec<u8>,
+	#[serde(with = "serde_bytes")]
 	pub externalUserEncTutanotaPropertiesSessionKey: Vec<u8>,
+	#[serde(with = "serde_bytes")]
 	pub externalUserEncUserGroupInfoSessionKey: Vec<u8>,
+	#[serde(with = "serde_bytes")]
 	pub internalMailEncMailGroupInfoSessionKey: Vec<u8>,
+	#[serde(with = "serde_bytes")]
 	pub internalMailEncUserGroupInfoSessionKey: Vec<u8>,
 	pub internalMailGroupKeyVersion: i64,
 	pub kdfVersion: i64,
+	#[serde(with = "serde_bytes")]
 	pub verifier: Vec<u8>,
 	pub userGroupData: CreateExternalUserGroupData,
 }
@@ -830,6 +864,7 @@ pub struct File {
 	pub _format: i64,
 	pub _id: IdTuple,
 	pub _owner: Id,
+	#[serde(with = "serde_bytes")]
 	pub _ownerEncSessionKey: Option<Vec<u8>>,
 	pub _ownerGroup: Option<Id>,
 	pub _ownerKeyVersion: Option<i64>,
@@ -854,6 +889,7 @@ impl Entity for File {
 pub struct FileSystem {
 	pub _format: i64,
 	pub _id: Id,
+	#[serde(with = "serde_bytes")]
 	pub _ownerEncSessionKey: Option<Vec<u8>>,
 	pub _ownerGroup: Option<Id>,
 	pub _ownerKeyVersion: Option<i64>,
@@ -913,8 +949,10 @@ impl Entity for GroupInvitationPostReturn {
 #[derive(Clone, Serialize, Deserialize)]
 pub struct GroupInvitationPutData {
 	pub _format: i64,
+	#[serde(with = "serde_bytes")]
 	pub sharedGroupEncInviteeGroupInfoKey: Vec<u8>,
 	pub sharedGroupKeyVersion: i64,
+	#[serde(with = "serde_bytes")]
 	pub userGroupEncGroupKey: Vec<u8>,
 	pub userGroupKeyVersion: i64,
 	pub receivedInvitation: IdTuple,
@@ -1024,15 +1062,23 @@ impl Entity for InboxRule {
 #[derive(Clone, Serialize, Deserialize)]
 pub struct InternalGroupData {
 	pub _id: Id,
+	#[serde(with = "serde_bytes")]
 	pub adminEncGroupKey: Vec<u8>,
 	pub adminKeyVersion: i64,
+	#[serde(with = "serde_bytes")]
 	pub groupEncPrivEccKey: Option<Vec<u8>>,
+	#[serde(with = "serde_bytes")]
 	pub groupEncPrivKyberKey: Option<Vec<u8>>,
+	#[serde(with = "serde_bytes")]
 	pub groupEncPrivRsaKey: Option<Vec<u8>>,
+	#[serde(with = "serde_bytes")]
 	pub ownerEncGroupInfoSessionKey: Vec<u8>,
 	pub ownerKeyVersion: i64,
+	#[serde(with = "serde_bytes")]
 	pub pubEccKey: Option<Vec<u8>>,
+	#[serde(with = "serde_bytes")]
 	pub pubKyberKey: Option<Vec<u8>>,
+	#[serde(with = "serde_bytes")]
 	pub pubRsaKey: Option<Vec<u8>>,
 	pub adminGroup: Option<Id>,
 }
@@ -1049,6 +1095,7 @@ pub struct InternalRecipientKeyData {
 	pub _id: Id,
 	pub mailAddress: String,
 	pub protocolVersion: i64,
+	#[serde(with = "serde_bytes")]
 	pub pubEncBucketKey: Vec<u8>,
 	pub recipientKeyVersion: i64,
 	pub senderKeyVersion: Option<i64>,
@@ -1065,6 +1112,7 @@ impl Entity for InternalRecipientKeyData {
 pub struct KnowledgeBaseEntry {
 	pub _format: i64,
 	pub _id: IdTuple,
+	#[serde(with = "serde_bytes")]
 	pub _ownerEncSessionKey: Option<Vec<u8>>,
 	pub _ownerGroup: Option<Id>,
 	pub _ownerKeyVersion: Option<i64>,
@@ -1113,6 +1161,7 @@ impl Entity for ListUnsubscribeData {
 pub struct Mail {
 	pub _format: i64,
 	pub _id: IdTuple,
+	#[serde(with = "serde_bytes")]
 	pub _ownerEncSessionKey: Option<Vec<u8>>,
 	pub _ownerGroup: Option<Id>,
 	pub _ownerKeyVersion: Option<i64>,
@@ -1189,6 +1238,7 @@ pub struct MailBody {
 	pub _format: i64,
 	pub _id: Id,
 	pub _owner: Id,
+	#[serde(with = "serde_bytes")]
 	pub _ownerEncSessionKey: Option<Vec<u8>>,
 	pub _ownerGroup: Option<Id>,
 	pub _ownerKeyVersion: Option<i64>,
@@ -1208,6 +1258,7 @@ impl Entity for MailBody {
 pub struct MailBox {
 	pub _format: i64,
 	pub _id: Id,
+	#[serde(with = "serde_bytes")]
 	pub _ownerEncSessionKey: Option<Vec<u8>>,
 	pub _ownerGroup: Option<Id>,
 	pub _ownerKeyVersion: Option<i64>,
@@ -1250,6 +1301,7 @@ impl Entity for MailDetails {
 pub struct MailDetailsBlob {
 	pub _format: i64,
 	pub _id: IdTuple,
+	#[serde(with = "serde_bytes")]
 	pub _ownerEncSessionKey: Option<Vec<u8>>,
 	pub _ownerGroup: Option<Id>,
 	pub _ownerKeyVersion: Option<i64>,
@@ -1268,6 +1320,7 @@ impl Entity for MailDetailsBlob {
 pub struct MailDetailsDraft {
 	pub _format: i64,
 	pub _id: IdTuple,
+	#[serde(with = "serde_bytes")]
 	pub _ownerEncSessionKey: Option<Vec<u8>>,
 	pub _ownerGroup: Option<Id>,
 	pub _ownerKeyVersion: Option<i64>,
@@ -1299,6 +1352,7 @@ impl Entity for MailDetailsDraftsRef {
 pub struct MailFolder {
 	pub _format: i64,
 	pub _id: IdTuple,
+	#[serde(with = "serde_bytes")]
 	pub _ownerEncSessionKey: Option<Vec<u8>>,
 	pub _ownerGroup: Option<Id>,
 	pub _ownerKeyVersion: Option<i64>,
@@ -1334,6 +1388,7 @@ impl Entity for MailFolderRef {
 pub struct MailHeaders {
 	pub _format: i64,
 	pub _id: Id,
+	#[serde(with = "serde_bytes")]
 	pub _ownerEncSessionKey: Option<Vec<u8>>,
 	pub _ownerGroup: Option<Id>,
 	pub _ownerKeyVersion: Option<i64>,
@@ -1375,6 +1430,7 @@ impl Entity for MailboxGroupRoot {
 pub struct MailboxProperties {
 	pub _format: i64,
 	pub _id: Id,
+	#[serde(with = "serde_bytes")]
 	pub _ownerEncSessionKey: Option<Vec<u8>>,
 	pub _ownerGroup: Option<Id>,
 	pub _ownerKeyVersion: Option<i64>,
@@ -1423,8 +1479,11 @@ impl Entity for MoveMailData {
 #[derive(Clone, Serialize, Deserialize)]
 pub struct NewDraftAttachment {
 	pub _id: Id,
+	#[serde(with = "serde_bytes")]
 	pub encCid: Option<Vec<u8>>,
+	#[serde(with = "serde_bytes")]
 	pub encFileName: Vec<u8>,
+	#[serde(with = "serde_bytes")]
 	pub encMimeType: Vec<u8>,
 	pub referenceTokens: Vec<sys::BlobReferenceTokenWrapper>,
 }
@@ -1584,6 +1643,7 @@ pub struct PasswordMessagingData {
 	pub _format: i64,
 	pub language: String,
 	pub numberId: Id,
+	#[serde(with = "serde_bytes")]
 	pub symKeyForPasswordTransmission: Vec<u8>,
 }
 
@@ -1682,6 +1742,7 @@ impl Entity for RemoteImapSyncInfo {
 #[derive(Clone, Serialize, Deserialize)]
 pub struct ReportMailPostData {
 	pub _format: i64,
+	#[serde(with = "serde_bytes")]
 	pub mailSessionKey: Vec<u8>,
 	pub reportType: i64,
 	pub mailId: IdTuple,
@@ -1714,11 +1775,16 @@ pub struct SecureExternalRecipientKeyData {
 	pub autoTransmitPassword: Option<String>,
 	pub kdfVersion: i64,
 	pub mailAddress: String,
+	#[serde(with = "serde_bytes")]
 	pub ownerEncBucketKey: Vec<u8>,
 	pub ownerKeyVersion: i64,
+	#[serde(with = "serde_bytes")]
 	pub passwordVerifier: Vec<u8>,
+	#[serde(with = "serde_bytes")]
 	pub pwEncCommunicationKey: Option<Vec<u8>>,
+	#[serde(with = "serde_bytes")]
 	pub salt: Option<Vec<u8>>,
+	#[serde(with = "serde_bytes")]
 	pub saltHash: Option<Vec<u8>>,
 	pub passwordChannelPhoneNumbers: Vec<PasswordChannelPhoneNumber>,
 }
@@ -1733,12 +1799,15 @@ impl Entity for SecureExternalRecipientKeyData {
 #[derive(Clone, Serialize, Deserialize)]
 pub struct SendDraftData {
 	pub _format: i64,
+	#[serde(with = "serde_bytes")]
 	pub bucketEncMailSessionKey: Option<Vec<u8>>,
 	pub calendarMethod: bool,
 	pub language: String,
+	#[serde(with = "serde_bytes")]
 	pub mailSessionKey: Option<Vec<u8>>,
 	pub plaintext: bool,
 	pub senderNameUnencrypted: Option<String>,
+	#[serde(with = "serde_bytes")]
 	pub sessionEncEncryptionAuthStatus: Option<Vec<u8>>,
 	pub attachmentKeyData: Vec<AttachmentKeyData>,
 	pub internalRecipientKeyData: Vec<InternalRecipientKeyData>,
@@ -1773,13 +1842,19 @@ impl Entity for SendDraftReturn {
 #[derive(Clone, Serialize, Deserialize)]
 pub struct SharedGroupData {
 	pub _id: Id,
+	#[serde(with = "serde_bytes")]
 	pub bucketEncInvitationSessionKey: Vec<u8>,
 	pub capability: i64,
+	#[serde(with = "serde_bytes")]
 	pub sessionEncInviterName: Vec<u8>,
+	#[serde(with = "serde_bytes")]
 	pub sessionEncSharedGroupKey: Vec<u8>,
+	#[serde(with = "serde_bytes")]
 	pub sessionEncSharedGroupName: Vec<u8>,
 	pub sharedGroup: Id,
+	#[serde(with = "serde_bytes")]
 	pub sharedGroupEncInviterGroupInfoKey: Vec<u8>,
+	#[serde(with = "serde_bytes")]
 	pub sharedGroupEncSharedGroupInfoKey: Vec<u8>,
 	pub sharedGroupKeyVersion: i64,
 }
@@ -1821,6 +1896,7 @@ impl Entity for Subfiles {
 pub struct SymEncInternalRecipientKeyData {
 	pub _id: Id,
 	pub mailAddress: String,
+	#[serde(with = "serde_bytes")]
 	pub symEncBucketKey: Vec<u8>,
 	pub symKeyVersion: i64,
 	pub keyGroup: Id,
@@ -1837,6 +1913,7 @@ impl Entity for SymEncInternalRecipientKeyData {
 pub struct TemplateGroupRoot {
 	pub _format: i64,
 	pub _id: Id,
+	#[serde(with = "serde_bytes")]
 	pub _ownerEncSessionKey: Option<Vec<u8>>,
 	pub _ownerGroup: Option<Id>,
 	pub _ownerKeyVersion: Option<i64>,
@@ -1883,6 +1960,7 @@ impl Entity for TranslationGetOut {
 pub struct TutanotaProperties {
 	pub _format: i64,
 	pub _id: Id,
+	#[serde(with = "serde_bytes")]
 	pub _ownerEncSessionKey: Option<Vec<u8>>,
 	pub _ownerGroup: Option<Id>,
 	pub _ownerKeyVersion: Option<i64>,
@@ -1895,6 +1973,7 @@ pub struct TutanotaProperties {
 	pub noAutomaticContacts: bool,
 	pub notificationMailLanguage: Option<String>,
 	pub sendPlaintextOnly: bool,
+	#[serde(with = "serde_bytes")]
 	pub userEncEntropy: Option<Vec<u8>>,
 	pub userKeyVersion: Option<i64>,
 	pub imapSyncConfig: Vec<ImapSyncConfiguration>,
@@ -1941,27 +2020,46 @@ impl Entity for UserAccountCreateData {
 #[derive(Clone, Serialize, Deserialize)]
 pub struct UserAccountUserData {
 	pub _id: Id,
+	#[serde(with = "serde_bytes")]
 	pub contactEncContactListSessionKey: Vec<u8>,
+	#[serde(with = "serde_bytes")]
 	pub customerEncContactGroupInfoSessionKey: Vec<u8>,
+	#[serde(with = "serde_bytes")]
 	pub customerEncFileGroupInfoSessionKey: Vec<u8>,
+	#[serde(with = "serde_bytes")]
 	pub customerEncMailGroupInfoSessionKey: Vec<u8>,
 	pub customerKeyVersion: i64,
+	#[serde(with = "serde_bytes")]
 	pub encryptedName: Vec<u8>,
+	#[serde(with = "serde_bytes")]
 	pub fileEncFileSystemSessionKey: Vec<u8>,
 	pub kdfVersion: i64,
 	pub mailAddress: String,
+	#[serde(with = "serde_bytes")]
 	pub mailEncMailBoxSessionKey: Vec<u8>,
+	#[serde(with = "serde_bytes")]
 	pub pwEncUserGroupKey: Vec<u8>,
+	#[serde(with = "serde_bytes")]
 	pub recoverCodeEncUserGroupKey: Vec<u8>,
+	#[serde(with = "serde_bytes")]
 	pub recoverCodeVerifier: Vec<u8>,
+	#[serde(with = "serde_bytes")]
 	pub salt: Vec<u8>,
+	#[serde(with = "serde_bytes")]
 	pub userEncContactGroupKey: Vec<u8>,
+	#[serde(with = "serde_bytes")]
 	pub userEncCustomerGroupKey: Vec<u8>,
+	#[serde(with = "serde_bytes")]
 	pub userEncEntropy: Vec<u8>,
+	#[serde(with = "serde_bytes")]
 	pub userEncFileGroupKey: Vec<u8>,
+	#[serde(with = "serde_bytes")]
 	pub userEncMailGroupKey: Vec<u8>,
+	#[serde(with = "serde_bytes")]
 	pub userEncRecoverCode: Vec<u8>,
+	#[serde(with = "serde_bytes")]
 	pub userEncTutanotaPropertiesSessionKey: Vec<u8>,
+	#[serde(with = "serde_bytes")]
 	pub verifier: Vec<u8>,
 }
 
@@ -1975,12 +2073,17 @@ impl Entity for UserAccountUserData {
 #[derive(Clone, Serialize, Deserialize)]
 pub struct UserAreaGroupData {
 	pub _id: Id,
+	#[serde(with = "serde_bytes")]
 	pub adminEncGroupKey: Option<Vec<u8>>,
 	pub adminKeyVersion: Option<i64>,
+	#[serde(with = "serde_bytes")]
 	pub customerEncGroupInfoSessionKey: Vec<u8>,
 	pub customerKeyVersion: i64,
+	#[serde(with = "serde_bytes")]
 	pub groupEncGroupRootSessionKey: Vec<u8>,
+	#[serde(with = "serde_bytes")]
 	pub groupInfoEncName: Vec<u8>,
+	#[serde(with = "serde_bytes")]
 	pub userEncGroupKey: Vec<u8>,
 	pub userKeyVersion: i64,
 	pub adminGroup: Option<Id>,
@@ -2023,6 +2126,7 @@ impl Entity for UserAreaGroupPostData {
 pub struct UserSettingsGroupRoot {
 	pub _format: i64,
 	pub _id: Id,
+	#[serde(with = "serde_bytes")]
 	pub _ownerEncSessionKey: Option<Vec<u8>>,
 	pub _ownerGroup: Option<Id>,
 	pub _ownerKeyVersion: Option<i64>,
