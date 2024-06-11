@@ -1,12 +1,23 @@
 import type { TranslationKey } from "../misc/LanguageViewModel"
-import { AccountType, AvailablePlanType, BookingItemFeatureType, getClientType, NewPaidPlans, PlanType } from "../api/common/TutanotaConstants"
-import type { Customer, CustomerInfo, PlanConfiguration } from "../api/entities/sys/TypeRefs.js"
+import {
+	AccountType,
+	AvailablePlanType,
+	BookingItemFeatureType,
+	getClientType,
+	getPaymentMethodType,
+	NewPaidPlans,
+	PaymentMethodType,
+	PlanType,
+	PlanTypeToName,
+} from "../api/common/TutanotaConstants"
+import type { AccountingInfo, Customer, CustomerInfo, PlanConfiguration } from "../api/entities/sys/TypeRefs.js"
 import { Booking, createPaymentDataServiceGetData } from "../api/entities/sys/TypeRefs.js"
 import { isEmpty, LazyLoaded } from "@tutao/tutanota-utils"
 import { locator } from "../api/main/MainLocator"
 import { PaymentDataService } from "../api/entities/sys/Services"
 import { ProgrammingError } from "../api/common/error/ProgrammingError.js"
 import { IServiceExecutor } from "../api/common/ServiceRequest.js"
+import { MobilePaymentSubscriptionOwnership } from "../native/common/generatedipc/MobilePaymentSubscriptionOwnership.js"
 
 export const enum UpgradeType {
 	Signup = "Signup",
@@ -241,4 +252,19 @@ export async function getAvailablePlansWithContactList(): Promise<Array<Availabl
 
 export async function getAvailablePlansWithCalendarInvites(): Promise<Array<AvailablePlanType>> {
 	return getAtLeastOneAvailableMatchingPlan((config) => config.eventInvites, "no available plan with the Calendar Invite feature")
+}
+
+/** name of the plan/product how it is expected by iOS AppStore */
+export function appStorePlanName(planType: PlanType): string {
+	return PlanTypeToName[planType].toLowerCase()
+}
+
+/** does current user has an active (non-expired) AppStore subscription? */
+export function hasRunningAppStoreSubscription(accountingInfo: AccountingInfo): boolean {
+	return getPaymentMethodType(accountingInfo) === PaymentMethodType.AppStore && accountingInfo.appStoreSubscription != null
+}
+
+/** Check if the latest transaction using the current Store Account belongs to the user */
+export async function queryAppStoreSubscriptionOwnership(userIdBytes: Uint8Array | null): Promise<MobilePaymentSubscriptionOwnership> {
+	return await locator.mobilePaymentsFacade.queryAppStoreSubscriptionOwnership(userIdBytes)
 }

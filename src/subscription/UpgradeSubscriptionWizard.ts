@@ -24,7 +24,7 @@ import { assertMainOrNode, isIOSApp } from "../api/common/Env"
 import { locator } from "../api/main/MainLocator"
 import { StorageBehavior } from "../misc/UsageTestModel"
 import { FeatureListProvider, SelectedSubscriptionOptions } from "./FeatureListProvider"
-import { UpgradeType } from "./SubscriptionUtils"
+import { queryAppStoreSubscriptionOwnership, UpgradeType } from "./SubscriptionUtils"
 import { UpgradeConfirmSubscriptionPage } from "./UpgradeConfirmSubscriptionPage.js"
 import { asPaymentInterval, PaymentInterval, PriceAndConfigProvider } from "./PriceUtils"
 import { formatNameAndAddress } from "../api/common/utils/CommonFormatter.js"
@@ -132,10 +132,6 @@ export async function showUpgradeWizard(logins: LoginController, acceptedPlans: 
 	return deferred.promise
 }
 
-export async function hasAppStoreOngoingSubscription(userIdBytes: Uint8Array | null) {
-	return await locator.mobilePaymentsFacade.hasOngoingAppStoreSubsciption(userIdBytes)
-}
-
 export async function loadSignupWizard(
 	subscriptionParameters: SubscriptionParameters | null,
 	registrationDataId: string | null,
@@ -152,14 +148,14 @@ export async function loadSignupWizard(
 	const domainConfig = locator.domainConfigProvider().getCurrentDomainConfig()
 	const featureListProvider = await FeatureListProvider.getInitializedInstance(domainConfig)
 
-	let hasAppStoreSubscription = MobilePaymentSubscriptionOwnership.NoSubscription
+	let appstoreSubscriptionOwnership = MobilePaymentSubscriptionOwnership.NoSubscription
 	let enableAppStoreSubscription = false
 	if (isIOSApp()) {
-		hasAppStoreSubscription = await hasAppStoreOngoingSubscription(null)
+		appstoreSubscriptionOwnership = await queryAppStoreSubscriptionOwnership(null)
 		enableAppStoreSubscription = await locator.appStorePaymentPicker.shouldEnableAppStorePayment(null)
 	}
 
-	if (hasAppStoreSubscription !== MobilePaymentSubscriptionOwnership.NoSubscription || !enableAppStoreSubscription) {
+	if (appstoreSubscriptionOwnership !== MobilePaymentSubscriptionOwnership.NoSubscription || !enableAppStoreSubscription) {
 		acceptedPlans = acceptedPlans.filter((plan) => plan === PlanType.Free)
 	}
 
@@ -193,7 +189,10 @@ export async function loadSignupWizard(
 		referralCode,
 		multipleUsersAllowed: false,
 		acceptedPlans,
-		msg: hasAppStoreSubscription ? () => lang.get("storeMultiSubscriptionError_msg", { "{AppStorePayment}": InfoLink.AppStorePayment }) : null,
+		msg:
+			appstoreSubscriptionOwnership != MobilePaymentSubscriptionOwnership.NoSubscription
+				? () => lang.get("storeMultiSubscriptionError_msg", { "{AppStorePayment}": InfoLink.AppStorePayment })
+				: null,
 	}
 
 	const invoiceAttrs = new InvoiceAndPaymentDataPageAttrs(signupData)

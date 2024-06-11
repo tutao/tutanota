@@ -52,6 +52,7 @@ import { CredentialAuthenticationError } from "../error/CredentialAuthentication
 import { KeyPermanentlyInvalidatedError } from "../error/KeyPermanentlyInvalidatedError.js"
 import { ParserError } from "../../../misc/parsing/ParserCombinator.js"
 import { ContactStoreError } from "../error/ContactStoreError.js"
+import { MobilePaymentError } from "../error/MobilePaymentError"
 
 /**
  * Checks if the given instance has an error in the _errors property which is usually written
@@ -154,6 +155,7 @@ const ErrorNameToType = {
 	"de.tutao.tutanota.Webauthn": WebauthnError,
 	"de.tutao.tutanota.PermissionError": PermissionError,
 	"de.tutao.ContactStoreError": ContactStoreError,
+	"de.tutao.tutanota.MobilePayment": MobilePaymentError,
 }
 
 export function isSecurityError(e: any): boolean {

@@ -30,19 +30,21 @@ import { InfoLink, lang, TranslationKey } from "../misc/LanguageViewModel"
 import { Icons } from "../gui/base/icons/Icons"
 import { asPaymentInterval, formatPrice, formatPriceDataWithInfo, PaymentInterval } from "./PriceUtils"
 import { formatDate, formatStorageSize } from "../misc/Formatter"
-import { hasAppStoreOngoingSubscription, showUpgradeWizard } from "./UpgradeSubscriptionWizard"
+import { showUpgradeWizard } from "./UpgradeSubscriptionWizard"
 import { showSwitchDialog } from "./SwitchSubscriptionDialog"
 import stream from "mithril/stream"
 import Stream from "mithril/stream"
 import * as SignOrderAgreementDialog from "./SignOrderProcessingAgreementDialog"
 import { NotFoundError } from "../api/common/error/RestError"
 import {
+	appStorePlanName,
 	getCurrentCount,
 	getTotalStorageCapacityPerCustomer,
 	isAutoResponderActive,
 	isEventInvitesActive,
 	isSharingActive,
 	isWhitelabelActive,
+	queryAppStoreSubscriptionOwnership,
 } from "./SubscriptionUtils"
 import { TextField } from "../gui/base/TextField.js"
 import { Dialog, DialogType } from "../gui/base/Dialog"
@@ -72,6 +74,8 @@ import { showProgressDialog } from "../gui/dialogs/ProgressDialog"
 import { MobilePaymentsFacade } from "../native/common/generatedipc/MobilePaymentsFacade"
 import { MobilePaymentSubscriptionOwnership } from "../native/common/generatedipc/MobilePaymentSubscriptionOwnership"
 import { AppStorePaymentPicker } from "../misc/AppStorePaymentPicker.js"
+import { MobilePaymentError } from "../api/common/error/MobilePaymentError"
+import { showManageThroughAppStoreDialog } from "./PaymentViewer.js"
 
 assertMainOrNode()
 const DAY = 1000 * 60 * 60 * 24
@@ -120,7 +124,6 @@ export class SubscriptionViewer implements UpdatableSettingsViewer {
 		this._giftCardsExpanded = stream<boolean>(false)
 
 		this.view = (): Children => {
-			const isAppStorePayment = this._accountingInfo && getPaymentMethodType(this._accountingInfo) === PaymentMethodType.AppStore
 			return m("#subscription-settings.fill-absolute.scroll.plr-l", [
 				m(".h4.mt-l", lang.get("currentlyBooked_label")),
 				m(TextField, {
@@ -139,21 +142,7 @@ export class SubscriptionViewer implements UpdatableSettingsViewer {
 							: !this._isCancelled
 							? m(IconButton, {
 									title: "subscription_label",
-									click: async () => {
-										if (isAppStorePayment) {
-											if (!isIOSApp()) {
-												return Dialog.message(() =>
-													lang.get("storeSubscription_msg", { "{AppStorePayment}": InfoLink.AppStorePayment }),
-												).then(() => {
-													window.open("https://apps.apple.com/account/subscriptions", "_blank")
-												})
-											}
-
-											this.handleAppStoreSubscriptionChange()
-										} else if (this._accountingInfo && this._customer && this._customerInfo && this._lastBooking) {
-											showSwitchDialog(this._customer, this._customerInfo, this._accountingInfo, this._lastBooking, AvailablePlans, null)
-										}
-									},
+									click: () => this.onSubscriptionClick(),
 									icon: Icons.Edit,
 									size: ButtonSize.Compact,
 							  })
@@ -266,6 +255,28 @@ export class SubscriptionViewer implements UpdatableSettingsViewer {
 		this.updateBookings()
 	}
 
+	private onSubscriptionClick() {
+		const paymentMethod = this._accountingInfo ? getPaymentMethodType(this._accountingInfo) : null
+
+		if (isIOSApp() && (paymentMethod == null || paymentMethod == PaymentMethodType.AppStore)) {
+			// case 1: we are in iOS app and we either are not paying or are already on AppStore
+			this.handleAppStoreSubscriptionChange()
+		} else if (paymentMethod == PaymentMethodType.AppStore && this._accountingInfo?.appStoreSubscription) {
+			// case 2: we have a running AppStore subscription but this is not an iOS app
+
+			// If there's a running App Store subscription it must be managed through Apple.
+			// This includes the case where renewal is already disabled, but it's not expired yet.
+			// Running subscription cannot be changed from other client, but it can still be managed through iOS app or when subscription expires.
+
+			return showManageThroughAppStoreDialog()
+		} else {
+			// other cases (not iOS app, not app store payment method, no running AppStore subscription, iOS but another payment method)
+			if (this._accountingInfo && this._customer && this._customerInfo && this._lastBooking) {
+				showSwitchDialog(this._customer, this._customerInfo, this._accountingInfo, this._lastBooking, AvailablePlans, null)
+			}
+		}
+	}
+
 	private async handleUpgradeSubscription() {
 		if (isIOSApp()) {
 			const currentPaymentType = this._accountingInfo ? getPaymentMethodType(this._accountingInfo) : null
@@ -275,9 +286,10 @@ export class SubscriptionViewer implements UpdatableSettingsViewer {
 				return Dialog.message("notAvailableInApp_msg")
 			}
 
-			const hasOngoingAppStoreSubsciption = await hasAppStoreOngoingSubscription(null)
+			// We pass `null` because we expect no subscription when upgrading
+			const appStoreSubscriptionOwnership = await queryAppStoreSubscriptionOwnership(null)
 
-			if (hasOngoingAppStoreSubsciption !== MobilePaymentSubscriptionOwnership.NoSubscription) {
+			if (appStoreSubscriptionOwnership !== MobilePaymentSubscriptionOwnership.NoSubscription) {
 				return Dialog.message(() =>
 					lang.get("storeMultiSubscriptionError_msg", {
 						"{AppStorePayment}": InfoLink.AppStorePayment,
@@ -294,13 +306,22 @@ export class SubscriptionViewer implements UpdatableSettingsViewer {
 			throw Error("Not allowed to change AppStore subscription from web client")
 		}
 
-		const hasOngoingAppStoreSubsciption = await hasAppStoreOngoingSubscription(base64ToUint8Array(base64ExtToBase64(this._customer!._id)))
-		const isAppStorePayment = this._accountingInfo && getPaymentMethodType(this._accountingInfo) === PaymentMethodType.AppStore
-		const userStatus = this._customer?.approvalStatus
+		let customer
+		let accountingInfo
+		if (this._customer && this._accountingInfo) {
+			customer = this._customer
+			// FIXME is it always there
+			accountingInfo = this._accountingInfo
+		} else {
+			return
+		}
+		const appStoreSubscriptionOwnership = await queryAppStoreSubscriptionOwnership(base64ToUint8Array(base64ExtToBase64(customer._id)))
+		const isAppStorePayment = getPaymentMethodType(accountingInfo) === PaymentMethodType.AppStore
+		const userStatus = customer.approvalStatus
 		// Show a dialog only if the user's Apple account's last transaction was with this customer ID
 		//
 		// This prevents the user from accidentally changing a subscription that they don't own
-		if (hasOngoingAppStoreSubsciption === MobilePaymentSubscriptionOwnership.NotOwner) {
+		if (appStoreSubscriptionOwnership === MobilePaymentSubscriptionOwnership.NotOwner) {
 			// There's a subscription with this apple account that doesn't belong to this user
 			return Dialog.message(() =>
 				lang.get("storeMultiSubscriptionError_msg", {
@@ -309,39 +330,57 @@ export class SubscriptionViewer implements UpdatableSettingsViewer {
 			)
 		} else if (
 			isAppStorePayment &&
-			hasOngoingAppStoreSubsciption === MobilePaymentSubscriptionOwnership.NoSubscription &&
+			appStoreSubscriptionOwnership === MobilePaymentSubscriptionOwnership.NoSubscription &&
 			userStatus === ApprovalStatus.REGISTRATION_APPROVED
 		) {
 			// User has an ongoing subscriptions but not on the current Apple Account, so we shouldn't allow them to change their plan with this account
 			// instead of the account owner of the subscriptions
 			return Dialog.message(() => lang.get("storeNoSubscription_msg", { "{AppStorePayment}": InfoLink.AppStorePayment }))
-		} else if (hasOngoingAppStoreSubsciption === MobilePaymentSubscriptionOwnership.NoSubscription) {
+		} else if (appStoreSubscriptionOwnership === MobilePaymentSubscriptionOwnership.NoSubscription) {
 			// User has no ongoing subscription and isn't approved. We should allow them to downgrade their accounts or resubscribe and
 			// restart an Apple Subscription flow
-			const isDowngrade = await Dialog.choice(
+			const isResubscribe = await Dialog.choice(
 				() => lang.get("storeDowngradeOrResubscribe_msg", { "{AppStoreDowngrade}": InfoLink.AppStoreDowngrade }),
 				[
 					{
-						text: "downgrade_action",
-						value: true,
+						text: "changePlan_action",
+						value: false,
 					},
 					{
 						text: "resubscribe_action",
-						value: false,
+						value: true,
 					},
 				],
 			)
 
-			if (isDowngrade) {
-				if (this._accountingInfo && this._customer && this._customerInfo && this._lastBooking) {
-					return showSwitchDialog(this._customer, this._customerInfo, this._accountingInfo, this._lastBooking, [PlanType.Free], null)
+			if (isResubscribe) {
+				const planType = await locator.logins.getUserController().getPlanType()
+				const customerId = locator.logins.getUserController().user.customer!
+				const customerIdBytes = base64ToUint8Array(base64ExtToBase64(customerId))
+				try {
+					await this.mobilePaymentsFacade.requestSubscriptionToPlan(
+						appStorePlanName(planType),
+						asPaymentInterval(accountingInfo.paymentInterval),
+						customerIdBytes,
+					)
+				} catch (e) {
+					if (e instanceof MobilePaymentError) {
+						// FIXME translate
+						Dialog.message(() => "Could not finish payment: " + e.message)
+					} else {
+						throw e
+					}
 				}
-
-				return
+			} else {
+				if (this._customerInfo && this._lastBooking) {
+					return showSwitchDialog(customer, this._customerInfo, accountingInfo, this._lastBooking, AvailablePlans, null)
+				}
+			}
+		} else {
+			if (this._customerInfo && this._lastBooking) {
+				return showSwitchDialog(customer, this._customerInfo, accountingInfo, this._lastBooking, AvailablePlans, null)
 			}
 		}
-
-		await this.mobilePaymentsFacade.showSubscriptionConfigView()
 	}
 
 	private showOrderAgreement(): boolean {

@@ -7,7 +7,7 @@ import { AccountType, Const, PaymentMethodType, PaymentMethodTypeToName, PlanTyp
 import { showProgressDialog } from "../gui/dialogs/ProgressDialog"
 import type { UpgradeSubscriptionData } from "./UpgradeSubscriptionWizard"
 import { BadGatewayError, PreconditionFailedError } from "../api/common/error/RestError"
-import { getPreconditionFailedPaymentMsg, UpgradeType } from "./SubscriptionUtils"
+import { appStorePlanName, getPreconditionFailedPaymentMsg, UpgradeType } from "./SubscriptionUtils"
 import type { WizardPageAttrs, WizardPageN } from "../gui/base/WizardDialog.js"
 import { emitWizardEvent, WizardEventType } from "../gui/base/WizardDialog.js"
 import { TextField } from "../gui/base/TextField.js"
@@ -106,7 +106,7 @@ export class UpgradeConfirmSubscriptionPage implements WizardPageN<UpgradeSubscr
 
 		const result = await showProgressDialog(
 			"pleaseWait_msg",
-			locator.mobilePaymentsFacade.requestSubscriptionToPlan(PlanTypeToName[data.type].toLowerCase(), data.options.paymentInterval(), customerIdBytes),
+			locator.mobilePaymentsFacade.requestSubscriptionToPlan(appStorePlanName(data.type), data.options.paymentInterval(), customerIdBytes),
 		)
 
 		if (result.result !== MobilePaymentResultType.Success) {

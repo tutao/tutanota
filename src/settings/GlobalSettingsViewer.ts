@@ -2,7 +2,7 @@ import m, { Children } from "mithril"
 import { DAY_IN_MILLIS, LazyLoaded, neverNull, noOp, ofClass, promiseMap } from "@tutao/tutanota-utils"
 import { InfoLink, lang } from "../misc/LanguageViewModel"
 import { getSpamRuleFieldToName, getSpamRuleTypeNameMapping, showAddSpamRuleDialog } from "./AddSpamRuleDialog"
-import { getSpamRuleField, GroupType, OperationType, PaymentMethodType, SpamRuleFieldType, SpamRuleType } from "../api/common/TutanotaConstants"
+import { getSpamRuleField, GroupType, OperationType, SpamRuleFieldType, SpamRuleType } from "../api/common/TutanotaConstants"
 import {
 	AuditLogEntry,
 	AuditLogEntryTypeRef,
@@ -55,6 +55,7 @@ import { EntityUpdateData, isUpdateForTypeRef } from "../api/common/utils/Entity
 import { LoginButton } from "../gui/base/buttons/LoginButton.js"
 import { showLeavingUserSurveyWizard } from "../subscription/LeavingUserSurveyWizard.js"
 import { SURVEY_VERSION_NUMBER } from "../subscription/LeavingUserSurveyConstants.js"
+import { hasRunningAppStoreSubscription } from "../subscription/SubscriptionUtils.js"
 
 assertMainOrNode()
 // Number of days for that we load rejected senders
@@ -310,7 +311,7 @@ export class GlobalSettingsViewer implements UpdatableSettingsViewer {
 										const isPremium = locator.logins.getUserController().isPremiumAccount()
 										if (isPremium) {
 											const accountingInfo = await locator.logins.getUserController().loadAccountingInfo()
-											if (accountingInfo.paymentMethod === PaymentMethodType.AppStore) {
+											if (hasRunningAppStoreSubscription(accountingInfo)) {
 												await Dialog.message("deleteAccountWithAppStoreSubscription_msg")
 												return
 											}
