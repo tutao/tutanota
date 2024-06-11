@@ -251,7 +251,7 @@ o.spec("LoginViewModelTest", () => {
 
 			await viewModel.deleteCredentials(encryptedTestCredentials.credentialInfo)
 
-			verify(credentialRemovalHandler.onCredentialsRemoved(credentialsAndKey))
+			verify(credentialRemovalHandler.onCredentialsRemoved(credentialsAndKey.credentialInfo))
 			verify(loginControllerMock.deleteOldSession(credentialsToUnencrypted(testCredentials, null), pushIdentifier))
 		})
 	})
@@ -296,7 +296,7 @@ o.spec("LoginViewModelTest", () => {
 			o(viewModel.state).equals(LoginState.InvalidCredentials)
 			o(viewModel.displayMode).equals(DisplayMode.Form)
 			verify(credentialsProviderMock.deleteByUserId(testCredentials.userId))
-			verify(credentialRemovalHandler.onCredentialsRemoved(credentialsAndKey))
+			verify(credentialRemovalHandler.onCredentialsRemoved(credentialsAndKey.credentialInfo))
 			o(viewModel.getSavedCredentials()).deepEquals([])
 			o(viewModel.autoLoginCredentials).equals(null)
 		})
