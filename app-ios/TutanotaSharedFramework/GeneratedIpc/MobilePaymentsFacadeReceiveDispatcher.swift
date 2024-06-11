@@ -28,10 +28,14 @@ public class MobilePaymentsFacadeReceiveDispatcher {
 			try await self.facade.showSubscriptionConfigView(
 			)
 			return "null"
-		case "hasOngoingAppStoreSubsciption":
+		case "queryAppStoreSubscriptionOwnership":
 			let customerIdBytes = try! JSONDecoder().decode(DataWrapper?.self, from: arg[0].data(using: .utf8)!)
-			let result = try await self.facade.hasOngoingAppStoreSubsciption(
+			let result = try await self.facade.queryAppStoreSubscriptionOwnership(
 				customerIdBytes
+			)
+			return toJson(result)
+		case "isAppStoreRenewalEnabled":
+			let result = try await self.facade.isAppStoreRenewalEnabled(
 			)
 			return toJson(result)
 		default:

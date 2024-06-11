@@ -2,8 +2,8 @@ import m, { Children } from "mithril"
 import { assertMainOrNode, isIOSApp } from "../api/common/Env"
 import { assertNotNull, neverNull, noOp, ofClass, promiseMap } from "@tutao/tutanota-utils"
 import { InfoLink, lang, TranslationKey } from "../misc/LanguageViewModel"
-import type { AccountingInfo, Booking, Customer, InvoiceInfo } from "../api/entities/sys/TypeRefs.js"
-import { AccountingInfoTypeRef, BookingTypeRef, createDebitServicePutData, CustomerTypeRef, InvoiceInfoTypeRef } from "../api/entities/sys/TypeRefs.js"
+import type { AccountingInfo, Customer, InvoiceInfo } from "../api/entities/sys/TypeRefs.js"
+import { AccountingInfoTypeRef, createDebitServicePutData, CustomerTypeRef, InvoiceInfoTypeRef } from "../api/entities/sys/TypeRefs.js"
 import { HtmlEditor, HtmlEditorMode } from "../gui/editor/HtmlEditor"
 import { formatPrice, getPaymentMethodInfoText, getPaymentMethodName } from "./PriceUtils"
 import * as InvoiceDataDialog from "./InvoiceDataDialog"
@@ -20,7 +20,7 @@ import { showProgressDialog } from "../gui/dialogs/ProgressDialog"
 
 import stream from "mithril/stream"
 import Stream from "mithril/stream"
-import { getPreconditionFailedPaymentMsg } from "./SubscriptionUtils"
+import { getPreconditionFailedPaymentMsg, hasRunningAppStoreSubscription } from "./SubscriptionUtils"
 import type { DialogHeaderBarAttrs } from "../gui/base/DialogHeaderBar"
 import { DialogHeaderBar } from "../gui/base/DialogHeaderBar"
 import { TextField } from "../gui/base/TextField.js"
@@ -39,6 +39,7 @@ import { client } from "../misc/ClientDetector.js"
 import { DeviceType } from "../misc/ClientConstants.js"
 import { EntityUpdateData, isUpdateForTypeRef } from "../api/common/utils/EntityUpdateUtils.js"
 import { LoginButton } from "../gui/base/buttons/LoginButton.js"
+import { ProgrammingError } from "../api/common/error/ProgrammingError.js"
 
 assertMainOrNode()
 
@@ -49,8 +50,6 @@ export class PaymentViewer implements UpdatableSettingsViewer {
 	private _postings: CustomerAccountPosting[]
 	private _outstandingBookingsPrice: number | null = null
 	private _balance: number
-	private _lastBooking: Booking | null
-	private _paymentBusy: boolean
 	private _invoiceInfo: InvoiceInfo | null = null
 	view: UpdatableSettingsViewer["view"]
 
@@ -65,8 +64,6 @@ export class PaymentViewer implements UpdatableSettingsViewer {
 		this._postings = []
 		this._outstandingBookingsPrice = null
 		this._balance = 0
-		this._lastBooking = null
-		this._paymentBusy = false
 		const postingExpanded = stream(false)
 
 		this.view = (): Children => {
@@ -95,7 +92,6 @@ export class PaymentViewer implements UpdatableSettingsViewer {
 				})
 			})
 			.then(() => this._loadPostings())
-			.then(() => this._loadBookings())
 	}
 
 	private renderPaymentMethod() {
@@ -119,28 +115,34 @@ export class PaymentViewer implements UpdatableSettingsViewer {
 			injectionsRight: () =>
 				m(IconButton, {
 					title: "paymentMethod_label",
-					click: (e, dom) => this.handlePlanChangeClick(e, dom),
+					click: (e, dom) => this.handlePaymentMethodClick(e, dom),
 					icon: Icons.Edit,
 					size: ButtonSize.Compact,
 				}),
 		})
 	}
 
-	private handlePlanChangeClick(e: MouseEvent, dom: HTMLElement) {
+	private async handlePaymentMethodClick(e: MouseEvent, dom: HTMLElement) {
+		if (this._accountingInfo == null) {
+			return
+		}
+		const currentPaymentMethod: PaymentMethodType | null = getPaymentMethodType(this._accountingInfo)
 		if (isIOSApp()) {
-			return Dialog.message("notAvailableInApp_msg")
-		} else if (this._accountingInfo && getPaymentMethodType(this._accountingInfo) === PaymentMethodType.AppStore) {
-			return Dialog.message(() =>
-				lang.get("storePaymentMethodChange_msg", {
-					"{AppStorePaymentChange}": InfoLink.AppStorePaymentChange,
-				}),
-			)
+			const shouldEnableiOSPayment = await locator.appStorePaymentPicker.shouldEnableAppStorePayment(currentPaymentMethod)
+			if (shouldEnableiOSPayment) {
+				locator.mobilePaymentsFacade.showSubscriptionConfigView()
+			} else {
+				return Dialog.message("notAvailableInApp_msg")
+			}
+		} else if (hasRunningAppStoreSubscription(this._accountingInfo)) {
+			return showManageThroughAppStoreDialog()
 		}
 
 		const showPaymentMethodDialog = createNotAvailableForFreeClickHandler(
 			NewPaidPlans,
 			() => this._accountingInfo && this.changePaymentMethod(),
-			() => !isIOSApp() && locator.logins.getUserController().isPremiumAccount(),
+			// iOS app is checked above
+			() => locator.logins.getUserController().isPremiumAccount(),
 		)
 
 		showPaymentMethodDialog(e, dom)
@@ -163,16 +165,8 @@ export class PaymentViewer implements UpdatableSettingsViewer {
 	}
 
 	private changePaymentMethod() {
-		const isAppStorePayment = this._accountingInfo && getPaymentMethodType(this._accountingInfo) === PaymentMethodType.AppStore
-
-		if (isAppStorePayment) {
-			return Dialog.message(() =>
-				lang.get("storeSubscription_msg", {
-					"{AppStorePayment}": InfoLink.AppStorePayment,
-				}),
-			).then(() => {
-				window.open("https://apps.apple.com/account/subscriptions", "_blank")
-			})
+		if (this._accountingInfo && hasRunningAppStoreSubscription(this._accountingInfo)) {
+			throw new ProgrammingError("Active AppStore subscription")
 		}
 
 		let nextPayment = this._amountOwed() * -1
@@ -339,17 +333,6 @@ export class PaymentViewer implements UpdatableSettingsViewer {
 		return this._amountOwed() < 0
 	}
 
-	_loadBookings(): Promise<void> {
-		return locator.logins
-			.getUserController()
-			.loadCustomerInfo()
-			.then((customerInfo) => (customerInfo.bookings ? locator.entityClient.loadAll(BookingTypeRef, customerInfo.bookings.items) : []))
-			.then((bookings) => {
-				this._lastBooking = bookings[bookings.length - 1]
-				m.redraw()
-			})
-	}
-
 	_loadPostings(): Promise<void> {
 		return locator.serviceExecutor.get(CustomerAccountService, null).then((result) => {
 			this._postings = result.postings
@@ -393,7 +376,6 @@ export class PaymentViewer implements UpdatableSettingsViewer {
 	}
 
 	_showPayDialog(openBalance: number): Promise<void> {
-		this._paymentBusy = true
 		return _showPayConfirmDialog(openBalance)
 			.then((confirmed) => {
 				if (confirmed) {
@@ -419,7 +401,6 @@ export class PaymentViewer implements UpdatableSettingsViewer {
 					return this._loadPostings()
 				}
 			})
-			.finally(() => (this._paymentBusy = false))
 	}
 
 	private renderInvoiceData(): Children {
@@ -519,5 +500,16 @@ function getPostingTypeText(posting: CustomerAccountPosting): string {
 		default:
 			return ""
 		// Generic, Dispute, Suspension, SuspensionCancel
+	}
+}
+
+export async function showManageThroughAppStoreDialog(): Promise<void> {
+	const confirmed = await Dialog.confirm(() =>
+		lang.get("storeSubscription_msg", {
+			"{AppStorePayment}": InfoLink.AppStorePayment,
+		}),
+	)
+	if (confirmed) {
+		window.open("https://apps.apple.com/account/subscriptions", "_blank", "noopener,noreferrer")
 	}
 }

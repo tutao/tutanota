@@ -28,7 +28,12 @@ public protocol MobilePaymentsFacade {
 	/**
 	 * Check if the latest transaction using the current Store Account belongs to the user
 	 */
-	func hasOngoingAppStoreSubsciption(
+	func queryAppStoreSubscriptionOwnership(
 		_ customerIdBytes: DataWrapper?
 	) async throws -> MobilePaymentSubscriptionOwnership
+	/**
+	 * Check if there's a subscription and if it has auto-renew enabled
+	 */
+	func isAppStoreRenewalEnabled(
+	) async throws -> Bool
 }

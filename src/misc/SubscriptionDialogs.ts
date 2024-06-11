@@ -109,7 +109,7 @@ export async function showUpgradeWizardOrSwitchSubscriptionDialog(userController
 	}
 }
 
-async function showSwitchPlanDialog(userController: UserController, acceptedPlans: AvailablePlanType[], reason?: TranslationText): Promise<PlanType> {
+async function showSwitchPlanDialog(userController: UserController, acceptedPlans: AvailablePlanType[], reason?: TranslationText): Promise<void> {
 	let customerInfo = await userController.loadCustomerInfo()
 	const bookings = await locator.entityClient.loadRange(BookingTypeRef, neverNull(customerInfo.bookings).items, GENERATED_MAX_ID, 1, true)
 	const { showSwitchDialog } = await import("../subscription/SwitchSubscriptionDialog")

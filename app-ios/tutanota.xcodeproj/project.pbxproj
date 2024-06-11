@@ -644,7 +644,6 @@
 		3DEF18F72924E1F1009C4B55 /* Info.plist */ = {isa = PBXFileReference; lastKnownFileType = text.plist.xml; path = Info.plist; sourceTree = "<group>"; };
 		3DEFA1C82BE8D99A009460AE /* AppLockMethod.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = AppLockMethod.swift; sourceTree = "<group>"; };
 		3DEFA1CA2BE8F1C8009460AE /* KeychainEncryption.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = KeychainEncryption.swift; sourceTree = "<group>"; };
-		3DF257DB2C00D14F00B5D993 /* sdktest.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = sdktest.swift; sourceTree = "<group>"; };
 		3DF7FA592AB2EE3B00DB08D1 /* Argon2.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Argon2.swift; sourceTree = "<group>"; };
 		3DF7FA5D2AB2FBE700DB08D1 /* CompatibilityTestSwift.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CompatibilityTestSwift.swift; sourceTree = "<group>"; };
 		3DF9739E2BB18ABA00AF3FDE /* TutanotaSharedFramework.framework */ = {isa = PBXFileReference; explicitFileType = wrapper.framework; includeInIndex = 0; path = TutanotaSharedFramework.framework; sourceTree = BUILT_PRODUCTS_DIR; };
@@ -798,7 +797,6 @@
 				3D4E3C9E28EC5B31001FA9D1 /* Security.framework in Frameworks */,
 				3DF973A42BB18ABB00AF3FDE /* TutanotaSharedFramework.framework in Frameworks */,
 				3D3B5169293797DC00C1B7DA /* Atomics in Frameworks */,
-				3D881B0D2C04B48800E629BE /* tutasdk.framework in Frameworks */,
 				3DDB5E6F28FDA59100E1E4BE /* libcrypto.xcframework in Frameworks */,
 				3D4E3CA028EC5B43001FA9D1 /* Foundation.framework in Frameworks */,
 			);
@@ -1062,7 +1060,6 @@
 			isa = PBXGroup;
 			children = (
 				3DF98F5E2C09C278001DF50F /* Payment */,
-				3DF257DB2C00D14F00B5D993 /* sdktest.swift */,
 				3D51A0902BE913AB0036B966 /* AppLockHandler.swift */,
 				3DAED2AD29A6266800806DEA /* Push */,
 				3D220203293F75B000366FD2 /* Webauthn */,
@@ -2713,9 +2710,6 @@
 				3D4A426729B6453700B10451 /* AlarmScheduler.swift in Sources */,
 				3D0E44A72B3C3CE500F933A1 /* poly.c in Sources */,
 				3D4A426329B63C0E00B10451 /* AlarmCryptor.swift in Sources */,
-				3D246DF32BA99A6000F5B3BE /* WebauthnKeyDescriptor.swift in Sources */,
-				3D246DEC2BA99A6000F5B3BE /* StructuredMailAddress.swift in Sources */,
-				3D881A9D2C04631300E629BE /* sdktest.swift in Sources */,
 				3D4D78272B62610200829803 /* IosMobileContactsFacade.swift in Sources */,
 				3DDE413B28F4665700837BE6 /* SqlCipherDb.swift in Sources */,
 				3DF7FA5A2AB2EE3B00DB08D1 /* Argon2.swift in Sources */,

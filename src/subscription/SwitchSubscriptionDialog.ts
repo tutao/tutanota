@@ -2,25 +2,18 @@ import m from "mithril"
 import { Dialog } from "../gui/base/Dialog"
 import { lang, TranslationText } from "../misc/LanguageViewModel"
 import { ButtonType } from "../gui/base/Button.js"
-import {
-	AccountingInfo,
-	Booking,
-	createSurveyData,
-	createSwitchAccountTypePostIn,
-	Customer,
-	CustomerInfo,
-	SurveyData,
-	SwitchAccountTypePostIn,
-} from "../api/entities/sys/TypeRefs.js"
+import { AccountingInfo, Booking, createSurveyData, createSwitchAccountTypePostIn, Customer, CustomerInfo, SurveyData, } from "../api/entities/sys/TypeRefs.js"
 import {
 	AccountType,
 	AvailablePlanType,
 	BookingFailureReason,
 	Const,
+	getPaymentMethodType,
 	InvoiceData,
 	Keys,
 	LegacyPlans,
 	NewBusinessPlans,
+	PaymentMethodType,
 	PlanType,
 	PlanTypeToName,
 	UnsubscribeFailureReason,
@@ -36,16 +29,21 @@ import { SwitchAccountTypeService } from "../api/entities/sys/Services.js"
 import { BadRequestError, InvalidDataError, PreconditionFailedError } from "../api/common/error/RestError.js"
 import { FeatureListProvider } from "./FeatureListProvider"
 import { PaymentInterval, PriceAndConfigProvider } from "./PriceUtils"
-import { defer, DeferredObject, downcast, lazy } from "@tutao/tutanota-utils"
+import { assertNotNull, base64ExtToBase64, base64ToUint8Array, delay, downcast, lazy } from "@tutao/tutanota-utils"
 import { showSwitchToBusinessInvoiceDataDialog } from "./SwitchToBusinessInvoiceDataDialog.js"
 import { getByAbbreviation } from "../api/common/CountryList.js"
 import { formatNameAndAddress } from "../api/common/utils/CommonFormatter.js"
 import { LoginButtonAttrs } from "../gui/base/buttons/LoginButton.js"
 import { showLeavingUserSurveyWizard } from "./LeavingUserSurveyWizard.js"
 import { SURVEY_VERSION_NUMBER } from "./LeavingUserSurveyConstants.js"
+import { isIOSApp } from "../api/common/Env.js"
+import { MobilePaymentSubscriptionOwnership } from "../native/common/generatedipc/MobilePaymentSubscriptionOwnership.js"
+import { showManageThroughAppStoreDialog } from "./PaymentViewer.js"
+import { appStorePlanName, hasRunningAppStoreSubscription } from "./SubscriptionUtils.js"
 
 /**
- * Only shown if the user is already a Premium user. Allows cancelling the subscription (only private use) and switching the subscription to a different paid subscription.
+ * Allows cancelling the subscription (only private use) and switching the subscription to a different paid subscription.
+ * Note: Only shown if the user is already a Premium user.
  */
 export async function showSwitchDialog(
 	customer: Customer,
@@ -54,8 +52,12 @@ export async function showSwitchDialog(
 	lastBooking: Booking,
 	acceptedPlans: AvailablePlanType[],
 	reason: TranslationText | null,
-): Promise<PlanType> {
-	const deferred = defer<PlanType>()
+): Promise<void> {
+	if (hasRunningAppStoreSubscription(accountingInfo) && !isIOSApp()) {
+		await showManageThroughAppStoreDialog()
+		return
+	}
+
 	const [featureListProvider, priceAndConfigProvider] = await showProgressDialog(
 		"pleaseWait_msg",
 		Promise.all([
@@ -66,7 +68,6 @@ export async function showSwitchDialog(
 	const model = new SwitchSubscriptionDialogModel(customer, accountingInfo, await locator.logins.getUserController().getPlanType(), lastBooking)
 	const cancelAction = () => {
 		dialog.close()
-		deferred.resolve(customerInfo.plan as PlanType)
 	}
 
 	const headerBarAttrs: DialogHeaderBarAttrs = {
@@ -118,51 +119,79 @@ export async function showSwitchDialog(
 		[PlanType.Free]: () =>
 			({
 				label: "pricing.select_action",
-				onclick: () =>
-					showLeavingUserSurveyWizard(true, true).then((reason) => {
-						if (reason.submitted && reason.category && reason.reason) {
-							const data = createSurveyData({
-								category: reason.category,
-								reason: reason.reason,
-								details: reason.details,
-								version: SURVEY_VERSION_NUMBER,
-							})
-							cancelSubscription(dialog, currentPlanInfo, deferred, customer, data)
-						} else {
-							cancelSubscription(dialog, currentPlanInfo, deferred, customer)
-						}
-					}),
-			} as LoginButtonAttrs),
-
-		[PlanType.Revolutionary]: createPlanButton(dialog, PlanType.Revolutionary, currentPlanInfo, deferred, paymentInterval, accountingInfo),
-		[PlanType.Legend]: createPlanButton(dialog, PlanType.Legend, currentPlanInfo, deferred, paymentInterval, accountingInfo),
-		[PlanType.Essential]: createPlanButton(dialog, PlanType.Essential, currentPlanInfo, deferred, paymentInterval, accountingInfo),
-		[PlanType.Advanced]: createPlanButton(dialog, PlanType.Advanced, currentPlanInfo, deferred, paymentInterval, accountingInfo),
-		[PlanType.Unlimited]: createPlanButton(dialog, PlanType.Unlimited, currentPlanInfo, deferred, paymentInterval, accountingInfo),
+				onclick: () => onSwitchToFree(customer, dialog, currentPlanInfo),
+			} satisfies LoginButtonAttrs),
+		[PlanType.Revolutionary]: createPlanButton(dialog, PlanType.Revolutionary, currentPlanInfo, paymentInterval, accountingInfo),
+		[PlanType.Legend]: createPlanButton(dialog, PlanType.Legend, currentPlanInfo, paymentInterval, accountingInfo),
+		[PlanType.Essential]: createPlanButton(dialog, PlanType.Essential, currentPlanInfo, paymentInterval, accountingInfo),
+		[PlanType.Advanced]: createPlanButton(dialog, PlanType.Advanced, currentPlanInfo, paymentInterval, accountingInfo),
+		[PlanType.Unlimited]: createPlanButton(dialog, PlanType.Unlimited, currentPlanInfo, paymentInterval, accountingInfo),
 	}
 	dialog.show()
-	return deferred.promise
+	return
 }
 
-async function doSwitchPlan(
+async function onSwitchToFree(customer: Customer, dialog: Dialog, currentPlanInfo: CurrentPlanInfo) {
+	if (isIOSApp()) {
+		// We want the user to disable renewal in AppStore before they try to downgrade on our side
+		const ownership = await locator.mobilePaymentsFacade.queryAppStoreSubscriptionOwnership(base64ToUint8Array(base64ExtToBase64(customer._id)))
+		if (ownership === MobilePaymentSubscriptionOwnership.Owner && (await locator.mobilePaymentsFacade.isAppStoreRenewalEnabled())) {
+			await locator.mobilePaymentsFacade.showSubscriptionConfigView()
+
+			await showProgressDialog("pleaseWait_msg", waitUntilRenewalDisabled())
+
+			if (await locator.mobilePaymentsFacade.isAppStoreRenewalEnabled()) {
+				console.log("AppStore renewal is still enabled, canceling downgrade")
+				// User probably did not disable the renewal still, cancel
+				return
+			}
+		}
+	}
+	const reason = await showLeavingUserSurveyWizard(true, true)
+	const data =
+		reason.submitted && reason.category && reason.reason
+			? createSurveyData({
+					category: reason.category,
+					reason: reason.reason,
+					details: reason.details,
+					version: SURVEY_VERSION_NUMBER,
+			  })
+			: null
+	cancelSubscription(dialog, currentPlanInfo, customer, data)
+}
+
+async function waitUntilRenewalDisabled() {
+	for (let i = 0; i < 3; i++) {
+		// Wait a bit before checking, it takes a bit to propagate
+		await delay(2000)
+		if (!(await locator.mobilePaymentsFacade.isAppStoreRenewalEnabled())) {
+			return
+		}
+	}
+}
+
+async function doSwitchToPaidPlan(
 	accountingInfo: AccountingInfo,
 	newPaymentInterval: PaymentInterval,
 	targetSubscription: PlanType,
 	dialog: Dialog,
 	currentPlanInfo: CurrentPlanInfo,
-	deferredPlan: DeferredObject<PlanType>,
 ) {
-	if (currentPlanInfo.paymentInterval !== newPaymentInterval) {
+	if (isIOSApp() && getPaymentMethodType(accountingInfo) === PaymentMethodType.AppStore) {
+		const customerIdBytes = base64ToUint8Array(base64ExtToBase64(assertNotNull(locator.logins.getUserController().user.customer)))
+		dialog.close()
+		await locator.mobilePaymentsFacade.requestSubscriptionToPlan(appStorePlanName(targetSubscription), newPaymentInterval, customerIdBytes)
+		return
+	} else if (currentPlanInfo.paymentInterval !== newPaymentInterval) {
 		await locator.customerFacade.changePaymentInterval(accountingInfo, newPaymentInterval)
 	}
-	await switchSubscription(targetSubscription, dialog, currentPlanInfo).then((newPlan) => deferredPlan.resolve(newPlan))
+	await switchSubscription(targetSubscription, dialog, currentPlanInfo)
 }
 
 function createPlanButton(
 	dialog: Dialog,
 	targetSubscription: PlanType,
 	currentPlanInfo: CurrentPlanInfo,
-	deferredPlan: DeferredObject<PlanType>,
 	newPaymentInterval: stream<PaymentInterval>,
 	accountingInfo: AccountingInfo,
 ): lazy<LoginButtonAttrs> {
@@ -176,10 +205,7 @@ function createPlanButton(
 			) {
 				return
 			}
-			await showProgressDialog(
-				"pleaseWait_msg",
-				doSwitchPlan(accountingInfo, newPaymentInterval(), targetSubscription, dialog, currentPlanInfo, deferredPlan),
-			)
+			await showProgressDialog("pleaseWait_msg", doSwitchToPaidPlan(accountingInfo, newPaymentInterval(), targetSubscription, dialog, currentPlanInfo))
 		},
 	})
 }
@@ -244,6 +270,13 @@ function handleSwitchAccountPreconditionFailed(e: PreconditionFailedError): Prom
 			case UnsubscribeFailureReason.INVOICE_NOT_PAID:
 				return Dialog.message("invoiceNotPaidSwitch_msg")
 
+			case UnsubscribeFailureReason.ACTIVE_APPSTORE_SUBSCRIPTION:
+				if (isIOSApp()) {
+					return locator.mobilePaymentsFacade.showSubscriptionConfigView()
+				} else {
+					return showManageThroughAppStoreDialog()
+				}
+
 			default:
 				throw e
 		}
@@ -256,7 +289,16 @@ function handleSwitchAccountPreconditionFailed(e: PreconditionFailedError): Prom
 	}
 }
 
-async function tryDowngradePremiumToFree(switchAccountTypeData: SwitchAccountTypePostIn, currentPlanInfo: CurrentPlanInfo): Promise<PlanType> {
+async function tryDowngradePremiumToFree(customer: Customer, currentPlanInfo: CurrentPlanInfo, surveyData: SurveyData | null): Promise<PlanType> {
+	const switchAccountTypeData = createSwitchAccountTypePostIn({
+		accountType: AccountType.FREE,
+		date: Const.CURRENT_DATE,
+		customer: customer._id,
+		specialPriceUserSingle: null,
+		referralCode: null,
+		plan: PlanType.Free,
+		surveyData: surveyData,
+	})
 	try {
 		await locator.serviceExecutor.post(SwitchAccountTypeService, switchAccountTypeData)
 		await locator.customerFacade.switchPremiumToFreeGroup()
@@ -275,31 +317,13 @@ async function tryDowngradePremiumToFree(switchAccountTypeData: SwitchAccountTyp
 	}
 }
 
-async function cancelSubscription(
-	dialog: Dialog,
-	currentPlanInfo: CurrentPlanInfo,
-	planPromise: DeferredObject<PlanType>,
-	customer: Customer,
-	surveyData: SurveyData | null = null,
-): Promise<void> {
+async function cancelSubscription(dialog: Dialog, currentPlanInfo: CurrentPlanInfo, customer: Customer, surveyData: SurveyData | null = null): Promise<void> {
 	if (!(await Dialog.confirm("unsubscribeConfirm_msg"))) {
 		return
 	}
 
-	const switchAccountTypeData = createSwitchAccountTypePostIn({
-		accountType: AccountType.FREE,
-		date: Const.CURRENT_DATE,
-		customer: customer._id,
-		specialPriceUserSingle: null,
-		referralCode: null,
-		plan: PlanType.Free,
-		surveyData: surveyData,
-	})
 	try {
-		await showProgressDialog(
-			"pleaseWait_msg",
-			tryDowngradePremiumToFree(switchAccountTypeData, currentPlanInfo).then((newPlan) => planPromise.resolve(newPlan)),
-		)
+		await showProgressDialog("pleaseWait_msg", tryDowngradePremiumToFree(customer, currentPlanInfo, surveyData))
 	} finally {
 		dialog.close()
 	}

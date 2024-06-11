@@ -5,11 +5,10 @@ public class IosMobilePaymentsFacade: MobilePaymentsFacade {
 	private let ALL_PURCHASEABLE_PLANS = ["revolutionary", "legend"]
 	private let MOBILE_PAYMENT_DOMAIN = "de.tutao.tutanota.MobilePayment"
 
-	public func hasOngoingAppStoreSubsciption(_ customerIdBytes: DataWrapper?) async throws -> MobilePaymentSubscriptionOwnership {
+	public func queryAppStoreSubscriptionOwnership(_ customerIdBytes: DataWrapper?) async throws -> MobilePaymentSubscriptionOwnership {
 		var currentResult = MobilePaymentSubscriptionOwnership.no_subscription
-		var entitlementIterator = Transaction.currentEntitlements.makeAsyncIterator()
 
-		if let transaction = await entitlementIterator.next() {
+		for await transaction in Transaction.currentEntitlements {
 			if let customerBytes = customerIdBytes {
 				let transactionInfo = try transaction.payloadValue
 				let uuid = customerIdToUUID(customerBytes.data)
@@ -70,7 +69,12 @@ public class IosMobilePaymentsFacade: MobilePaymentsFacade {
 		let planType = formatPlanType(plan, withInterval: interval)
 
 		let product: Product?
-		do { product = (try await Product.products(for: [planType]))[0] } catch let error as StoreKitError {
+		do {
+			guard let fetchedProduct = (try await Product.products(for: [planType])).first else {
+				throw TUTErrorFactory.createError(withDomain: MOBILE_PAYMENT_DOMAIN, message: "Failed to retrieve plan \(planType). (no matching plan)")
+			}
+			product = fetchedProduct
+		} catch let error as StoreKitError {
 			throw TUTErrorFactory.createError(withDomain: MOBILE_PAYMENT_DOMAIN, message: "Failed to retrieve plan \(planType). \(error.localizedDescription)")
 		}
 
@@ -100,6 +104,21 @@ public class IosMobilePaymentsFacade: MobilePaymentsFacade {
 		case .userCancelled: return MobilePaymentResult(result: MobilePaymentResultType.cancelled, transactionID: nil, transactionHash: nil)
 		case .pending: return MobilePaymentResult(result: MobilePaymentResultType.pending, transactionID: nil, transactionHash: nil)
 		default: fatalError("unknown purchase result")
+		}
+	}
+
+	public func isAppStoreRenewalEnabled() async throws -> Bool {
+		let plans: [String] = ALL_PURCHASEABLE_PLANS.flatMap { plan in
+			[self.formatPlanType(plan, withInterval: 1), self.formatPlanType(plan, withInterval: 12)]
+		}
+		guard let anyProduct = try await Product.products(for: plans).first else {
+			throw TUTErrorFactory.createError(withDomain: MOBILE_PAYMENT_DOMAIN, message: "No products found")
+		}
+		guard let status = try await anyProduct.subscription?.status.first else { return false }
+		if case let .verified(renewalInfo) = status.renewalInfo {
+			return renewalInfo.willAutoRenew
+		} else {
+			throw TUTErrorFactory.createError(withDomain: MOBILE_PAYMENT_DOMAIN, message: "No products found")
 		}
 	}
 
