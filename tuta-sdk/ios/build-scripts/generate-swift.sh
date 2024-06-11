@@ -81,18 +81,18 @@ for arch in $ARCHS; do
       fi
 
       # Intel iOS simulator
-    $HOME/.cargo/bin/cargo run --bin uniffi-bindgen generate --library "${SRC_ROOT}/target/x86_64-apple-ios-sim/${RELFLAG}/libtutasdk.dylib" --out-dir "$SRC_ROOT/bindings" --language=swift
+    $HOME/.cargo/bin/cargo run --bin uniffi-bindgen generate --library "${SRC_ROOT}/target/x86_64-apple-ios-sim/${RELFLAG}/libtutasdk.dylib" --out-dir "$SRC_ROOT/bindings" --language=swift -vv
     includeArch "${SRC_ROOT}/target/x86_64-apple-ios-sim/${RELFLAG}/libtutasdk.a";
       ;;
 
     arm64)
       if [ $IS_SIMULATOR -eq 0 ]; then
         # Hardware iOS targets
-        $HOME/.cargo/bin/cargo run --bin uniffi-bindgen generate --library "${SRC_ROOT}/target/aarch64-apple-ios/${RELFLAG}/libtutasdk.dylib" --out-dir "$SRC_ROOT/bindings" --language=swift
+        $HOME/.cargo/bin/cargo run --bin uniffi-bindgen generate --library "${SRC_ROOT}/target/aarch64-apple-ios/${RELFLAG}/libtutasdk.dylib" --out-dir "$SRC_ROOT/bindings" --language=swift -vv
         includeArch "${SRC_ROOT}/target/aarch64-apple-ios/${RELFLAG}/libtutasdk.a";
       else
         # M1 iOS simulator
-        $HOME/.cargo/bin/cargo run --bin uniffi-bindgen generate --library "${SRC_ROOT}/target/aarch64-apple-ios-sim/${RELFLAG}/libtutasdk.dylib" --out-dir "$SRC_ROOT/bindings" --language=swift
+        $HOME/.cargo/bin/cargo run --bin uniffi-bindgen generate --library "${SRC_ROOT}/target/aarch64-apple-ios-sim/${RELFLAG}/libtutasdk.dylib" --out-dir "$SRC_ROOT/bindings" --language=swift -vv
         includeArch "${SRC_ROOT}/target/aarch64-apple-ios-sim/${RELFLAG}/libtutasdk.a";
       fi
   esac

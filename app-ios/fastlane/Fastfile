@@ -21,7 +21,7 @@ platform :ios do
 		match(
 			app_identifier: ["de.tutao.tutanota", "de.tutao.tutanota.TutanotaShareExtension", "de.tutao.tutanota.TutanotaNotificationExtension"],
 			type: "appstore",
-			verbose: false,
+			verbose: true,
 			readonly: true,
 			generate_apple_certs: false,
 			keychain_password: ENV["FASTLANE_KEYCHAIN_PASSWORD"],
@@ -35,7 +35,7 @@ platform :ios do
 			output_directory: "releases",
 			output_name: "tutanota-" + get_version_number(target: "tutanota"),
 			include_symbols: true,
-			verbose: false
+			verbose: true
 		)
 		if options[:submit]
 			upload_to_app_store(
@@ -54,7 +54,7 @@ platform :ios do
 		match(
 			app_identifier: ["de.tutao.tutanota", "de.tutao.tutanota.TutanotaShareExtension", "de.tutao.tutanota.TutanotaNotificationExtension"],
 			type: "adhoc",
-			verbose: false,
+			verbose: true,
 			readonly: true,
 			generate_apple_certs: false,
 			keychain_password: ENV["FASTLANE_KEYCHAIN_PASSWORD"],
@@ -71,7 +71,7 @@ platform :ios do
 			export_options: {
 				method: "ad-hoc"
 			},
-			verbose: false
+			verbose: true
 		)
 	end
 
@@ -80,7 +80,7 @@ platform :ios do
 		match(
 			app_identifier: ["de.tutao.tutanota.test", "de.tutao.tutanota.test.TutanotaShareExtension", "de.tutao.tutanota.test.TutanotaNotificationExtension"],
 			type: "appstore",
-			verbose: false,
+			verbose: true,
 			readonly: true,
 			generate_apple_certs: false,
 			keychain_password: ENV["FASTLANE_KEYCHAIN_PASSWORD"],
@@ -93,7 +93,7 @@ platform :ios do
 			scheme: "tuta staging",
 			output_directory: "releases",
 			output_name: "tutanota-" + get_version_number(target: "tutanota") + "-test",
-			verbose: false
+			verbose: true
 		)
 
 		upload_to_testflight(
@@ -108,7 +108,7 @@ platform :ios do
 		match(
 			app_identifier: ["de.tutao.tutanota.test", "de.tutao.tutanota.test.TutanotaShareExtension", "de.tutao.tutanota.test.TutanotaNotificationExtension"],
 			type: "adhoc",
-			verbose: false,
+			verbose: true,
 			readonly: true,
 			generate_apple_certs: false,
 			keychain_password: ENV["FASTLANE_KEYCHAIN_PASSWORD"],
@@ -124,7 +124,7 @@ platform :ios do
 			export_options: {
 				method: "ad-hoc"
 			},
-			verbose: false
+			verbose: true
 		)
 	end
 
