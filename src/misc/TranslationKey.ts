@@ -1718,3 +1718,4 @@ export type TranslationKeyType =
 	| "resubscribe_action"
 	| "changePlan_action"
 	| "deleteAccountWithAppStoreSubscription_msg"
+	| "redeemGiftCardWithAppStoreSubscription_msg"

@@ -1733,6 +1733,7 @@ export default {
 		"resubscribe_action": "Resubscribe",
 		"changePlan_action": "Change plan",
 
+		"redeemGiftCardWithAppStoreSubscription_msg": "You cannot redeem a gift card while there is an App Store subscription.",
 		"deleteAccountWithAppStoreSubscription_msg": "You cannot delete your account while there is an App Store subscription. You will need to cancel it from the App Store first. See https://tuta.com/support/#appstore-payments"
 	}
 }

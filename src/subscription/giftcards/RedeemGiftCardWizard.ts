@@ -162,6 +162,10 @@ class RedeemGiftCardModel {
 		const customerInfo = await this.entityClient.load(CustomerInfoTypeRef, customer.customerInfo)
 		this.accountingInfo = await this.entityClient.load(AccountingInfoTypeRef, customerInfo.accountingInfo)
 
+		if (PaymentMethodType.AppStore === this.accountingInfo.paymentMethod) {
+			throw new UserError("redeemGiftCardWithAppStoreSubscription_msg")
+		}
+
 		if (customer.businessUse) {
 			throw new UserError("onlyPrivateAccountFeature_msg")
 		}
