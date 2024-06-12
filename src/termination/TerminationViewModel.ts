@@ -71,6 +71,9 @@ export class TerminationViewModel {
 					case "noActiveSubscription":
 						this.onTerminationRequestFailed("terminationNoActiveSubscription_msg")
 						break
+					case "hasAppStoreSubscription":
+						this.onTerminationRequestFailed("deleteAccountWithAppStoreSubscription_msg")
+						break
 					default:
 						throw e
 				}
