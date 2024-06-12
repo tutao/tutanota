@@ -1731,6 +1731,8 @@ export default {
 		"storePaymentMethodChange_msg": "You can't change you payment method while subscribed through AppStore.\nSee {AppStorePaymentChange}",
 		"storeDowngradeOrResubscribe_msg": "Your current AppStore subscription is expired. Do you want to downgrade your account or resubscribe to keep your paid features?\nSee {AppStoreDowngrade}",
 		"resubscribe_action": "Resubscribe",
-		"downgrade_action": "Downgrade"
+		"changePlan_action": "Change plan",
+
+		"deleteAccountWithAppStoreSubscription_msg": "You cannot delete your account while there is an App Store subscription. You will need to cancel it from the App Store first. See https://tuta.com/support/#appstore-payments"
 	}
 }

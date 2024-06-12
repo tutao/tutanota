@@ -1716,4 +1716,5 @@ export type TranslationKeyType =
 	| "storePaymentMethodChange_msg"
 	| "storeDowngradeOrResubscribe_msg"
 	| "resubscribe_action"
-	| "downgrade_action"
+	| "changePlan_action"
+	| "deleteAccountWithAppStoreSubscription_msg"

@@ -2,15 +2,21 @@ import m, { Children } from "mithril"
 import { DAY_IN_MILLIS, LazyLoaded, neverNull, noOp, ofClass, promiseMap } from "@tutao/tutanota-utils"
 import { InfoLink, lang } from "../misc/LanguageViewModel"
 import { getSpamRuleFieldToName, getSpamRuleTypeNameMapping, showAddSpamRuleDialog } from "./AddSpamRuleDialog"
-import { getSpamRuleField, GroupType, OperationType, SpamRuleFieldType, SpamRuleType } from "../api/common/TutanotaConstants"
-import { AuditLogEntry, createSurveyData, Customer, CustomerInfo, CustomerServerProperties, DomainInfo, GroupInfo } from "../api/entities/sys/TypeRefs.js"
+import { getSpamRuleField, GroupType, OperationType, PaymentMethodType, SpamRuleFieldType, SpamRuleType } from "../api/common/TutanotaConstants"
 import {
+	AuditLogEntry,
 	AuditLogEntryTypeRef,
 	createEmailSenderListElement,
+	createSurveyData,
+	Customer,
+	CustomerInfo,
 	CustomerInfoTypeRef,
 	CustomerPropertiesTypeRef,
+	CustomerServerProperties,
 	CustomerServerPropertiesTypeRef,
 	CustomerTypeRef,
+	DomainInfo,
+	GroupInfo,
 	GroupInfoTypeRef,
 	GroupTypeRef,
 	RejectedSenderTypeRef,
@@ -300,21 +306,28 @@ export class GlobalSettingsViewer implements UpdatableSettingsViewer {
 								},
 								m(LoginButton, {
 									label: "adminDeleteAccount_action",
-									onclick: () => {
+									onclick: async () => {
 										const isPremium = locator.logins.getUserController().isPremiumAccount()
-										showLeavingUserSurveyWizard(isPremium, false).then((reason) => {
-											if (reason.submitted && reason.category && reason.reason) {
-												const surveyData = createSurveyData({
-													category: reason.category,
-													details: reason.details,
-													reason: reason.reason,
-													version: SURVEY_VERSION_NUMBER,
-												})
-												showDeleteAccountDialog(surveyData)
-											} else {
-												showDeleteAccountDialog()
+										if (isPremium) {
+											const accountingInfo = await locator.logins.getUserController().loadAccountingInfo()
+											if (accountingInfo.paymentMethod === PaymentMethodType.AppStore) {
+												await Dialog.message("deleteAccountWithAppStoreSubscription_msg")
+												return
 											}
-										})
+										}
+
+										const reason = await showLeavingUserSurveyWizard(isPremium, false)
+										if (reason.submitted && reason.category && reason.reason) {
+											const surveyData = createSurveyData({
+												category: reason.category,
+												details: reason.details,
+												reason: reason.reason,
+												version: SURVEY_VERSION_NUMBER,
+											})
+											showDeleteAccountDialog(surveyData)
+										} else {
+											showDeleteAccountDialog()
+										}
 									},
 								}),
 							),
