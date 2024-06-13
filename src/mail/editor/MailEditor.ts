@@ -4,7 +4,7 @@ import Stream from "mithril/stream"
 import { Editor, ImagePasteEvent } from "../../gui/editor/Editor"
 import type { Attachment, InitAsResponseArgs, SendMailModel } from "./SendMailModel"
 import { Dialog } from "../../gui/base/Dialog"
-import { InfoLink, lang } from "../../misc/LanguageViewModel"
+import { InfoLink, lang, LanguageCode, LanguageNames } from "../../misc/LanguageViewModel"
 import type { MailboxDetail } from "../model/MailModel"
 import { checkApprovalStatus } from "../../misc/LoginUtils"
 import {
@@ -87,6 +87,7 @@ import { isCustomizationEnabledForCustomer } from "../../api/common/utils/Custom
 import { isOfflineError } from "../../api/common/utils/ErrorUtils.js"
 import { TranslationService } from "../../api/entities/tutanota/Services.js"
 import { PasswordField } from "../../misc/passwords/PasswordField.js"
+import { detectLanguage } from "./TemplateLanguage.js"
 
 export type MailEditorAttrs = {
 	model: SendMailModel
@@ -770,6 +771,11 @@ export class MailEditor implements Component<MailEditorAttrs> {
 	private openTemplates() {
 		if (this.templateModel) {
 			this.templateModel.init().then((templateModel) => {
+				let emailBody = this.sendMailModel.getBody()
+				let lang: LanguageCode | null = detectLanguage(emailBody)
+				if (lang) {
+					this.templateModel?.setSelectedContentLanguage(lang)
+				}
 				showTemplatePopupInEditor(templateModel, this.editor, null, this.editor.getSelectedText())
 			})
 		}
