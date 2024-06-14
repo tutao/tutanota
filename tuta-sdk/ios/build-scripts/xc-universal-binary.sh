@@ -45,16 +45,16 @@ for arch in $ARCHS; do
 
       # Intel iOS simulator
       export CFLAGS_x86_64_apple_ios="-target x86_64-apple-ios"
-      cargo rustc --manifest-path="${SRC_ROOT}/Cargo.toml" -p "${FFI_TARGET}" --lib $RELFLAG --target x86_64-apple-ios -vv
+      cargo rustc --manifest-path="${SRC_ROOT}/Cargo.toml" -p "${FFI_TARGET}" --lib $RELFLAG --target x86_64-apple-ios -v
       ;;
 
     arm64)
       if [ $IS_SIMULATOR -eq 0 ]; then
         # Hardware iOS targets
-        cargo rustc --manifest-path="${SRC_ROOT}/Cargo.toml" -p "${FFI_TARGET}" --lib $RELFLAG --target aarch64-apple-ios -vv
+        cargo rustc --manifest-path="${SRC_ROOT}/Cargo.toml" -p "${FFI_TARGET}" --lib $RELFLAG --target aarch64-apple-ios -v
       else
         # M1 iOS simulator
-        cargo rustc --manifest-path="${SRC_ROOT}/Cargo.toml" -p "${FFI_TARGET}" --lib $RELFLAG --target aarch64-apple-ios-sim -vv
+        cargo rustc --manifest-path="${SRC_ROOT}/Cargo.toml" -p "${FFI_TARGET}" --lib $RELFLAG --target aarch64-apple-ios-sim -v
       fi
   esac
 done

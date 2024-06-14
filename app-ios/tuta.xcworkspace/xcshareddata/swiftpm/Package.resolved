@@ -1,15 +1,6 @@
 {
   "pins" : [
     {
-      "identity" : "alamofire",
-      "kind" : "remoteSourceControl",
-      "location" : "https://github.com/Alamofire/Alamofire.git",
-      "state" : {
-        "revision" : "f455c2975872ccd2d9c81594c658af65716e9b9a",
-        "version" : "5.9.1"
-      }
-    },
-    {
       "identity" : "dictionarycoding",
       "kind" : "remoteSourceControl",
       "location" : "https://github.com/elegantchaos/DictionaryCoding.git",

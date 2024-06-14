@@ -1,0 +1,84 @@
+# Shared configuations for XCodeGen projects
+options:
+  minimumXCodeGenVersion: 2.41.0
+  createIntermediateGroups: true
+  developmentLanguage: "en"
+  usesTabs: true
+  tabWidth: 4 # Keep this in sync with the `.swift-format.json`
+  deploymentTarget:
+    iOS: "15.0"
+  bundleIdPrefix: "de.tutao.tutanota"
+  groupSortPosition: "top"
+  transitivelyLinkDependencies: false
+  localPackagesGroup: ""
+configs:
+  Debug Development: "debug"
+  Debug Staging: "debug"
+  Debug Production: "debug"
+  Release Development: "release"
+  Release Staging: "release"
+  Release Production: "release"
+settings:
+  base:
+    SUPPORTED_PLATFORMS: "iphoneos iphonesimulator"
+    TARGETED_DEVICE_FAMILY: "1,2"
+    SUPPORTS_XR_DESIGNED_FOR_IPHONE_IPAD: "NO"
+    SUPPORTS_MAC_DESIGNED_FOR_IPHONE_IPAD: "NO"
+    SUPPORTS_MACCATALYST: "NO"
+    SWIFT_VERSION: "5.0"
+    COPY_PHASE_STRIP: "NO"
+    ALWAYS_SEARCH_USER_PATHS: "NO"
+    GCC_DYNAMIC_NO_PIC: "NO"
+    GCC_C_LANGUAGE_STANDARD: "gnu17"
+    CLANG_ENABLE_MODULES: "YES"
+    CLANG_WARN_SUSPICIOUS_IMPLICIT_CONVERSION: "YES"
+    INFOPLIST_KEY_NSHumanReadableCopyright: "Copyright © 2024 Tutao GmbH. All rights reserved."
+  configs:
+    Debug Development:
+      CODE_SIGN_IDENTITY: "Apple Development"
+      CODE_SIGN_STYLE: "Automatic"
+      PRODUCT_BUNDLE_IDENTIFIER: "de.tutao.tutanota.debug"
+      SWIFT_OPTIMIZATION_LEVEL: "-Onone"
+      SWIFT_ACTIVE_COMPILATION_CONDITIONS: "DEBUG"
+      ONLY_ACTIVE_ARCH: "YES"
+      ENABLE_TESTABILITY: "YES"
+      GCC_OPTIMIZATION_LEVEL: 0
+      GCC_PREPROCESSOR_DEFINITIONS: "DEBUG=1 $(inherited)"
+    Debug Staging:
+      CODE_SIGN_IDENTITY: "Apple Development"
+      CODE_SIGN_STYLE: "Automatic"
+      PRODUCT_BUNDLE_IDENTIFIER: "de.tutao.tutanota.test"
+      SWIFT_OPTIMIZATION_LEVEL: "-Onone"
+      SWIFT_ACTIVE_COMPILATION_CONDITIONS: "DEBUG"
+      ONLY_ACTIVE_ARCH: "YES"
+      ENABLE_TESTABILITY: "YES"
+      GCC_OPTIMIZATION_LEVEL: 0
+      GCC_PREPROCESSOR_DEFINITIONS: "DEBUG=1 $(inherited)"
+    Debug Production:
+      CODE_SIGN_IDENTITY: "Apple Development"
+      CODE_SIGN_STYLE: "Automatic"
+      PRODUCT_BUNDLE_IDENTIFIER: "de.tutao.tutanota"
+      SWIFT_OPTIMIZATION_LEVEL: "-Onone"
+      SWIFT_ACTIVE_COMPILATION_CONDITIONS: "DEBUG"
+      ONLY_ACTIVE_ARCH: "YES"
+      ENABLE_TESTABILITY: "YES"
+      GCC_OPTIMIZATION_LEVEL: 0
+      GCC_PREPROCESSOR_DEFINITIONS: "DEBUG=1 $(inherited)"
+    Release Development:
+      CODE_SIGN_IDENTITY: "Apple Distribution"
+      CODE_SIGN_STYLE: "Manual"
+      PRODUCT_BUNDLE_IDENTIFIER: "de.tutao.tutanota.debug"
+      SWIFT_OPTIMIZATION_LEVEL: "-O"
+      VALIDATE_PRODUCT: "YES"
+    Release Staging:
+      CODE_SIGN_IDENTITY: "Apple Distribution"
+      CODE_SIGN_STYLE: "Manual"
+      PRODUCT_BUNDLE_IDENTIFIER: "de.tutao.tutanota.test"
+      SWIFT_OPTIMIZATION_LEVEL: "-O"
+      VALIDATE_PRODUCT: "YES"
+    Release Production:
+      CODE_SIGN_IDENTITY: "Apple Distribution"
+      CODE_SIGN_STYLE: "Manual"
+      PRODUCT_BUNDLE_IDENTIFIER: "de.tutao.tutanota"
+      SWIFT_OPTIMIZATION_LEVEL: "-O"
+      VALIDATE_PRODUCT: "YES"

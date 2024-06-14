@@ -50,6 +50,8 @@ pipeline {
 			}
 			steps {
 				script {
+					stubClientDirectory()
+					generateXCodeProjects()
 					dir('app-ios') {
 						sh 'fastlane test'
 					}
@@ -75,6 +77,7 @@ pipeline {
 					steps {
 						script {
 							buildWebapp("test")
+							generateXCodeProjects()
 							runFastlane("de.tutao.tutanota.test", "adhoc_staging")
 							if (params.RELEASE) {
 								runFastlane("de.tutao.tutanota.test", "testflight_staging")
@@ -90,6 +93,7 @@ pipeline {
 					steps {
 						script {
 							buildWebapp("prod")
+							generateXCodeProjects()
 							runFastlane("de.tutao.tutanota", "adhoc_prod")
 							if (params.RELEASE) {
 								writeReleaseNotesForAppStore()
@@ -163,6 +167,14 @@ pipeline {
 	}
 }
 
+void stubClientDirectory() {
+	script {
+		sh "pwd"
+		sh "echo $PATH"
+    	sh "mkdir build"
+	}
+}
+
 void buildWebapp(String stage) {
 	script {
 		sh "pwd"
@@ -173,6 +185,22 @@ void buildWebapp(String stage) {
     	sh "node buildSrc/prepareMobileBuild.js dist"
 	}
 }
+
+// Runs xcodegen on `projectPath`, a directory containing a `project.yml`
+void generateXCodeProject(String projectPath) {
+	// xcodegen ignores its --project and --project-roots flags
+	// so we need to change the directory manually
+	script {
+		sh "(cd ${projectPath}; xcodegen generate)"
+	}
+}
+
+// Runs xcodegen on all of our project specs
+void generateXCodeProjects() {
+	generateXCodeProject("app-ios")
+	generateXCodeProject("tuta-sdk/ios")
+}
+
 
 void writeReleaseNotesForAppStore() {
 	script {
