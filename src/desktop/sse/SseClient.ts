@@ -172,9 +172,11 @@ export class SseClient {
 			})
 			.on("information", () => log.debug("information"))
 			.on("connect", () => log.debug("connect:"))
-			.on("error", async (e) => {
+			.on("error", (e) => {
 				log.error("error:", e.message)
-				this.exponentialBackdownReconnect()
+				if (this.state.state === ConnectionState.connecting) {
+					this.exponentialBackoffReconnect()
+				}
 			})
 			.end()
 		this.state = { state: ConnectionState.connecting, connection, attempt, options }
@@ -209,10 +211,11 @@ export class SseClient {
 		this.onHeartbeat()
 	}
 
-	private exponentialBackdownReconnect() {
+	private exponentialBackoffReconnect() {
 		if (this.state.state != ConnectionState.connecting) {
 			throw new ProgrammingError("Invalid state: not connecting")
 		}
+		log.debug("Scheduling exponential reconnect")
 		const timeout = this.scheduler.scheduleAfter(() => this.retryConnect(), this.delay.reconnectDelay(this.state.attempt))
 		this.state = { state: ConnectionState.delayedReconnect, attempt: this.state.attempt + 1, options: this.state.options, timeout }
 	}
@@ -221,6 +224,7 @@ export class SseClient {
 		if (this.state.state != ConnectionState.connected) {
 			throw new ProgrammingError("Invalid state: not connected")
 		}
+		log.debug("Scheduling delayed reconnect")
 		const timeout = this.scheduler.scheduleAfter(() => this.retryConnect(), this.delay.initialConnectionDelay())
 		this.state = { state: ConnectionState.delayedReconnect, attempt: 0, options: this.state.options, timeout }
 	}
