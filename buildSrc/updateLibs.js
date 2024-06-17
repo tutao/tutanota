@@ -9,6 +9,7 @@ import { fileURLToPath } from "node:url"
 import { rollup } from "rollup"
 import { nodeResolve } from "@rollup/plugin-node-resolve"
 import commonjs from "@rollup/plugin-commonjs"
+import { $ } from "zx"
 
 const __dirname = dirname(fileURLToPath(import.meta.url))
 
@@ -39,6 +40,9 @@ const clientDependencies = [
 run()
 
 async function run() {
+	// Try to parse the list of dependencies first, if there's any unmet dependency we abort the operation, so it can be fixed
+	// before moving and replacing dependencies files.
+	await updateVendoredVersionsFile()
 	await copyToLibs(clientDependencies)
 }
 
@@ -61,6 +65,55 @@ async function copyToLibs(files) {
 		}
 		await fs.copy(path.join(__dirname, srcFile), path.join(__dirname, "../libs/", targetName))
 	}
+}
+
+/**
+ * Extract packages version and replace unmet dependencies files by the correct ones
+ * @return {Promise<void>}
+ */
+async function updateVendoredVersionsFile() {
+	const names = clientDependencies
+		.map((d) => (typeof d === "string" ? d : d.src))
+		.map(path.normalize)
+		.map((srcPath) => srcPath.split(path.sep)[2])
+
+	// It's safe to allow NPM to fail here, since zx captures the errors, so we can handle it better latter
+	// Also, if there's any mismatch file, NPM will return a non-zero exit code and add an error field to the response
+	const runner = $
+	runner.verbose = false
+
+	// Don't return if any command fails and continue piping
+	runner.prefix = "set -eu;"
+
+	const { stdout, stderr } = await runner`npm list --json | sed -e 's/^{/'$(printf "\x1e")'{/' | jq .`
+	const dependencyList = JSON.parse(stdout)
+
+	if (dependencyList.error || stderr) {
+		throw new Error(`[${dependencyList.error.code ?? "UNEXPECTED_ERROR"}] Failed to parse dependencies list. ${dependencyList.error.summary ?? stderr}`)
+	}
+
+	const result = {}
+	for (let i = 0; i < names.length; i++) {
+		const dependency = dependencyList.dependencies[names[i]]
+		const useGit = dependency.resolved.startsWith("git")
+		result[names[i]] = useGit ? convertGitSshToHttps(dependency.resolved) : dependency.version
+	}
+	fs.writeFileSync(path.join(__dirname, "../libs/", "vendored-versions.json"), JSON.stringify(result, null, 2))
+}
+
+/**
+ * Converts git's url with ssh schema to use the https schema
+ * @param sshUrl The url to have the schema changed
+ * @return {String} A string containing the url with the HTTPS schema
+ */
+function convertGitSshToHttps(sshUrl) {
+	// Remove the 'git@' prefix;
+	// Replace 'git+ssh' with 'git+';
+	// Replace '.git#' with "#"
+	return sshUrl
+		.replace(/git@/, "https://")
+		.replace(/git\+ssh:\/\//, "git+")
+		.replace(/(\.git#)/, "#")
 }
 
 /** Will bundle web app dependencies starting at {@param src} into a single file at {@param target}. */
