@@ -343,22 +343,11 @@ export class PdfDocument {
 	 */
 	async addAddressField(position: [x: number, y: number], address: string) {
 		const addressParts = address.split("\n")
-		let addressIncludesMultiByteChar = false
 		let imageBuffer = new ArrayBuffer(0)
-
-		// Check addressParts for any invalid characters
-		for (const addressPart of addressParts) {
-			for (let i = 0; i < addressPart.length; i++) {
-				const codePoint = addressPart.codePointAt(i)
-				if (codePoint && !isInsideValidCharRange(codePoint)) {
-					addressIncludesMultiByteChar = true
-					break
-				}
-			}
-		}
+		let byteLengthForAddress = 1
 
 		try {
-			if (addressIncludesMultiByteChar) {
+			if (!areStringPartsOneByteLength(addressParts)) {
 				const canvas = new OffscreenCanvas(ADDRESS_FIELD_WIDTH, ADDRESS_FIELD_HEIGHT)
 				const context = canvas.getContext("2d")
 				if (context) {
@@ -378,12 +367,15 @@ export class PdfDocument {
 					this.addImage(PDF_IMAGES.ADDRESS, position, [ADDRESS_FIELD_WIDTH / 8, ADDRESS_FIELD_HEIGHT / 8])
 
 					// Prepare for rendering the address below the image invisibly
+					byteLengthForAddress = 2
 					this.changeTextRenderingMode(TEXT_RENDERING_MODE.INVISIBLE)
 					this.changeFont(PDF_FONTS.INVISIBLE_CID, 12)
+				} else {
+					throw new Error("PDF Canvas Error - Could not access OffscreenCanvasContext2D.")
 				}
 			}
-		} catch (e) {
-			console.warn(`PDF Error - Cannot render canvas. This is likely because the browser does not support OffscreenCanvas. The error was:\n"${e}"`)
+		} catch (err) {
+			console.warn(`PDF Error - Cannot render canvas. This is likely because the browser does not support OffscreenCanvas. The error was:\n"${err}"`)
 		}
 
 		// Must create image object in any case since otherwise the reference cannot be resolved. We then just fill it with empty data, but never render it
@@ -404,7 +396,7 @@ export class PdfDocument {
 
 		// Always render the address as text, Either directly or invisibly in case the canvas was called
 		for (const addressPart of addressParts) {
-			this.addText(addressPart, ORIGIN_POSITION, 2).addLineBreak()
+			this.addText(addressPart, ORIGIN_POSITION, byteLengthForAddress).addLineBreak()
 		}
 
 		// Undo any invisible-configuration in case it was set
@@ -421,7 +413,7 @@ export function toUnicodePoint(input: string, byteLength: number = 1): string[] 
 		const out: string[] = []
 		for (let i = 0; i < input.length; i++) {
 			const codePoint = input.codePointAt(i)
-			if (codePoint && isInsideValidCharRange(codePoint)) {
+			if (codePoint && isCodePointOneByteLength(codePoint)) {
 				out.push(codePoint.toString(16))
 			} else {
 				console.warn(`Attempted to render a character longer than one byte. Character was ${input[i]} with a code of ${codePoint}.`)
@@ -437,8 +429,24 @@ export function toUnicodePoint(input: string, byteLength: number = 1): string[] 
  * Returns whether a given char's codepoint is above one byte in size, making it not displayable by simple PDF fonts
  * @param codePoint
  */
-export function isInsideValidCharRange(codePoint: number): boolean {
-	return !!(codePoint && codePoint < 256)
+export function isCodePointOneByteLength(codePoint: number): boolean {
+	return codePoint < 256
+}
+
+/**
+ * Returns whether a given string, split into its parts, includes any characters that are longer than one byte in size
+ * @param stringParts
+ */
+export function areStringPartsOneByteLength(stringParts: string[]): boolean {
+	for (const addressPart of stringParts) {
+		for (let i = 0; i < addressPart.length; i++) {
+			const codePoint = addressPart.codePointAt(i)
+			if (codePoint && !isCodePointOneByteLength(codePoint)) {
+				return false
+			}
+		}
+	}
+	return true
 }
 
 /**

@@ -32,6 +32,7 @@ o.spec("PdfInvoiceGenerator", function () {
 
 		const gen = new PdfInvoiceGenerator(pdfWriter, invoiceData, "1978197819801981931", "NiiNii")
 		const pdf = await gen.generate()
+		// fs.writeFileSync("/tmp/full_test.pdf", pdf, {flag:"w"})
 	})
 
 	o("Entries fit all on a single page but generate a new empty page", async function () {
@@ -42,6 +43,7 @@ o.spec("PdfInvoiceGenerator", function () {
 		})
 		const gen = new PdfInvoiceGenerator(pdfWriter, renderInvoice, "1978197819801981931", "NiiNii")
 		const pdf = await gen.generate()
+		// fs.writeFileSync("/tmp/normal_test.pdf", pdf, {flag:"w"})
 	})
 
 	o("VatId number is generated", async function () {
