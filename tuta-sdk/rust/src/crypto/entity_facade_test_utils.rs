@@ -34,7 +34,7 @@ pub fn generate_email_entity(owner_group_key: Option<&AesKey>, session_key: &Aes
         ("_owner".to_string(), ElementValue::String("ownerId".to_string())),
         ("_ownerGroup".to_string(), ElementValue::String("ownerGroupId".to_string())),
         ("_ownerEncSessionKey".to_string(), match owner_group_key {
-            Some(key) => ElementValue::Bytes(Default::default()),
+            Some(_) => ElementValue::Bytes(Default::default()),
             None => ElementValue::Null
         }),
         ("_id".to_string(), ElementValue::IdTupleId(IdTuple { list_id: "mail_list_id".to_string(), element_id: "mail_id".to_string() })),
@@ -79,7 +79,7 @@ pub fn generate_email_entity(owner_group_key: Option<&AesKey>, session_key: &Aes
         ("_owner".to_string(), ElementValue::String("ownerId".to_string())),
         ("_ownerGroup".to_string(), ElementValue::String("ownerGroupId".to_string())),
         ("_ownerEncSessionKey".to_string(), match owner_group_key {
-            Some(key) => ElementValue::Bytes(Default::default()),
+            Some(_) => ElementValue::Bytes(Default::default()),
             None => ElementValue::Null
         }),
         ("_id".to_string(), ElementValue::IdTupleId(IdTuple { list_id: "mail_list_id".to_string(), element_id: "mail_id".to_string() })),
