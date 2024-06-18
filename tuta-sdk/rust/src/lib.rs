@@ -9,10 +9,13 @@ use thiserror::Error;
 use rest_client::{RestClient, RestClientError};
 
 use crate::entity_client::EntityClient;
+use crate::instance_mapper::InstanceMapper;
 use crate::json_serializer::{InstanceMapperError, JsonSerializer};
 use crate::mail_facade::MailFacade;
 use crate::rest_error::{HttpError, ParseFailureError};
 use crate::type_model_provider::init_type_model_provider;
+use crate::typed_entity_client::TypedEntityClient;
+use crate::user_facade::UserFacade;
 
 mod entity_client;
 mod json_serializer;
@@ -22,11 +25,13 @@ mod element_value;
 mod metamodel;
 mod type_model_provider;
 mod mail_facade;
+mod user_facade;
 mod rest_error;
 mod crypto;
 mod util;
 mod entities;
 mod instance_mapper;
+mod typed_entity_client;
 
 uniffi::setup_scaffolding!();
 
@@ -78,6 +83,7 @@ struct SdkState {
 pub struct Sdk {
     state: Arc<SdkState>,
     entity_client: Arc<EntityClient>,
+    unencrypted_entity_client: Arc<TypedEntityClient>,
 }
 
 #[uniffi::export]
@@ -86,19 +92,25 @@ impl Sdk {
     pub fn new(base_url: String, rest_client: Arc<dyn RestClient>, client_version: &str) -> Sdk {
         let type_model_provider = Arc::new(init_type_model_provider());
         // TODO validate parameters
-        let instance_mapper = Arc::new(JsonSerializer::new(Arc::clone(&type_model_provider)));
+        let json_serializer = Arc::new(JsonSerializer::new(Arc::clone(&type_model_provider)));
+        let instance_mapper = Arc::new(InstanceMapper::new());
         let state = Arc::new(SdkState {
             login_state: RwLock::new(LoginState::NotLoggedIn),
             client_version: client_version.to_owned(),
         });
+        let entity_client = Arc::new(EntityClient::new(
+            rest_client,
+            json_serializer,
+            &base_url,
+            state.clone(),
+            Arc::clone(&type_model_provider),
+        ));
         Sdk {
             state: state.clone(),
-            entity_client: Arc::new(EntityClient::new(
-                rest_client,
+            entity_client: Arc::clone(&entity_client),
+            unencrypted_entity_client: Arc::new(TypedEntityClient::new(
+                entity_client,
                 instance_mapper,
-                &base_url,
-                state,
-                Arc::clone(&type_model_provider),
             )),
         }
     }
@@ -118,6 +130,10 @@ impl Sdk {
     /// Generates a new interface to operate on mail entities
     pub fn mail_facade(&self) -> MailFacade {
         MailFacade::new(self.entity_client.clone())
+    }
+
+    pub fn user_facade(&self) -> UserFacade {
+        UserFacade::new(self.unencrypted_entity_client.clone())
     }
 }
 
