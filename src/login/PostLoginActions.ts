@@ -209,6 +209,11 @@ export class PostLoginActions implements PostLoginAction {
 			// jsonTheme is stored on WhitelabelConfig as an empty json string ("{}", or whatever JSON.stringify({}) gives you)
 			// so we can't just check `!whitelabelConfig.jsonTheme`
 			if (Object.keys(customizations).length > 0) {
+				// Custom theme is missing themeId, so we update it with the whitelabel domain
+				if (!customizations.themeId) {
+					customizations.themeId = domainInfoAndConfig.domainInfo.domain
+				}
+
 				await themeController.storeCustomThemeForCustomizations(customizations)
 
 				// Update the already loaded custom themes to their latest version
