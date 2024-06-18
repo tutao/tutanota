@@ -1,7 +1,10 @@
 use std::sync::Arc;
+use serde::Deserialize;
 
 use crate::{ApiCallError, AuthHeadersProvider, IdTuple, RestClient, TypeRef};
 use crate::element_value::{ElementValue, ParsedEntity};
+use crate::entities::Entity;
+use crate::instance_mapper::InstanceMapper;
 use crate::json_serializer::JsonSerializer;
 use crate::json_element::RawEntity;
 use crate::metamodel::TypeModel;
@@ -48,6 +51,11 @@ impl EntityClient {
         id: &IdType,
     ) -> Result<ParsedEntity, ApiCallError> {
         let type_model = self.get_type_model(&type_ref)?;
+        if has_encrypted_fields(type_model) {
+            return Err(ApiCallError::InternalSdkError {
+                error_message: "This client shall not handle encrypted fields!".to_owned()
+            });
+        }
         let url;
         match id {
             IdType::Single(value) => {
@@ -163,4 +171,12 @@ impl EntityClient {
     // }
     //
     // pub async fn erase_list_element(&self, type_ref: &TypeRef, id: IdTuple) {}
+}
+
+fn has_encrypted_fields(type_model: &TypeModel) -> bool {
+    let mut has_encrypted = false;
+    for (_, model_value) in type_model.values.iter() {
+        has_encrypted = has_encrypted || model_value.encrypted;
+    }
+    return has_encrypted;
 }
