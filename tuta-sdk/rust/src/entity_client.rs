@@ -4,6 +4,7 @@ use crate::{ApiCallError, AuthHeadersProvider, IdTuple, RestClient, TypeRef};
 use crate::element_value::{ElementValue, ParsedEntity};
 use crate::json_serializer::JsonSerializer;
 use crate::json_element::RawEntity;
+use crate::metamodel::TypeModel;
 use crate::rest_client::{HttpMethod, RestClientOptions};
 use crate::rest_error::{HttpError};
 use crate::type_model_provider::{TypeModelProvider};
@@ -19,42 +20,34 @@ pub struct EntityClient {
     rest_client: Arc<dyn RestClient>,
     base_url: String,
     auth_headers_provider: Arc<dyn AuthHeadersProvider + Send + Sync>,
-    instance_mapper: Arc<JsonSerializer>,
+    json_serializer: Arc<JsonSerializer>,
     type_model_provider: Arc<TypeModelProvider>,
 }
 
 impl EntityClient {
     pub(crate) fn new(
         rest_client: Arc<dyn RestClient>,
-        instance_mapper: Arc<JsonSerializer>,
+        json_serializer: Arc<JsonSerializer>,
         base_url: &str,
         auth_headers_provider: Arc<dyn AuthHeadersProvider + Send + Sync>,
         type_model_provider: Arc<TypeModelProvider>,
     ) -> Self {
         EntityClient {
             rest_client,
-            instance_mapper,
+            json_serializer,
             base_url: base_url.to_owned(),
             auth_headers_provider,
             type_model_provider,
         }
     }
-}
 
-impl EntityClient {
     /// Gets an entity/instance of type `type_ref` from the backend
-    pub async fn load_element(
+    pub async fn load(
         &self,
         type_ref: &TypeRef,
         id: &IdType,
     ) -> Result<ParsedEntity, ApiCallError> {
-        let type_model = match self.type_model_provider.get_type_model(&type_ref.app, &type_ref.type_) {
-            Some(value) => value,
-            None => {
-                let message = format!("Model {} not found in app {}", type_ref.type_, type_ref.app);
-                return Err(ApiCallError::InternalSdkError { error_message: message });
-            }
-        };
+        let type_model = self.get_type_model(&type_ref)?;
         let url;
         match id {
             IdType::Single(value) => {
@@ -91,8 +84,19 @@ impl EntityClient {
         }
         let response_bytes = response.body.expect("no body");
         let response_entity = serde_json::from_slice::<RawEntity>(response_bytes.as_slice()).unwrap();
-        let parsed_entity = self.instance_mapper.parse(type_ref, response_entity)?;
+        let parsed_entity = self.json_serializer.parse(type_ref, response_entity)?;
         Ok(parsed_entity)
+    }
+
+    pub fn get_type_model(&self, type_ref: &TypeRef) -> Result<&TypeModel, ApiCallError> {
+        let type_model = match self.type_model_provider.get_type_model(&type_ref.app, &type_ref.type_) {
+            Some(value) => value,
+            None => {
+                let message = format!("Model {} not found in app {}", type_ref.type_, type_ref.app);
+                return Err(ApiCallError::InternalSdkError { error_message: message });
+            }
+        };
+        Ok(type_model)
     }
     //
     // pub async fn load_all(
@@ -137,7 +141,7 @@ impl EntityClient {
             }
             _ => panic!("id is not string or array"),
         };
-        let raw_entity = self.instance_mapper.serialize(type_ref, entity)?;
+        let raw_entity = self.json_serializer.serialize(type_ref, entity)?;
         let body = serde_json::to_vec(&raw_entity).unwrap();
         let options = RestClientOptions {
             body: Some(body),

@@ -2,7 +2,7 @@
 use super::*;
 use serde::{Serialize, Deserialize};
 
-#[derive(Clone, Serialize, Deserialize)]
+#[derive(uniffi::Record, Clone, Serialize, Deserialize)]
 pub struct PersistenceResourcePostReturn {
 	pub _format: i64,
 	pub generatedId: Option<Id>,

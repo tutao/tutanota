@@ -134,6 +134,14 @@ impl<'de> Deserializer<'de> for ElementValueDeserializer {
         };
     }
 
+    fn deserialize_byte_buf<V>(self, visitor: V) -> Result<V::Value, Self::Error> where V: Visitor<'de> {
+        if let ElementValue::Bytes(bytes) = self.value {
+            visitor.visit_byte_buf(bytes)
+        } else {
+            Err(de::Error::invalid_type(self.value.as_unexpected(), &"bytes"))
+        }
+    }
+
     fn deserialize_option<V>(self, visitor: V) -> Result<V::Value, Self::Error> where V: Visitor<'de> {
         match self.value {
             ElementValue::Null => visitor.visit_none(),
@@ -195,14 +203,6 @@ impl<'de> Deserializer<'de> for ElementValueDeserializer {
             Err(de::Error::invalid_type(self.value.as_unexpected(), &"dict"))
         }
     }
-
-    fn deserialize_byte_buf<V>(self, visitor: V) -> Result<V::Value, Self::Error> where V: Visitor<'de> {
-        if let ElementValue::Bytes(bytes) = self.value {
-            visitor.visit_byte_buf(bytes)
-        } else {
-            Err(de::Error::invalid_type(self.value.as_unexpected(), &"bytes"))
-        }
-    }
 }
 
 // This impl allows us to use blanket impl for SeqAccess/MapAccess
@@ -242,8 +242,48 @@ impl Serializer for ElementValueSerializer {
         Ok(ElementValue::Bool(v))
     }
 
+    fn serialize_i8(self, _: i8) -> Result<Self::Ok, Self::Error> {
+        unsupported("i8")
+    }
+
+    fn serialize_i16(self, _: i16) -> Result<Self::Ok, Self::Error> {
+        unsupported("i16")
+    }
+
+    fn serialize_i32(self, _: i32) -> Result<Self::Ok, Self::Error> {
+        unsupported("i32")
+    }
+
     fn serialize_i64(self, v: i64) -> Result<Self::Ok, Self::Error> {
         Ok(ElementValue::Number(v))
+    }
+
+    fn serialize_u8(self, _: u8) -> Result<Self::Ok, Self::Error> {
+        unsupported("u8")
+    }
+
+    fn serialize_u16(self, _: u16) -> Result<Self::Ok, Self::Error> {
+        unsupported("u16")
+    }
+
+    fn serialize_u32(self, _: u32) -> Result<Self::Ok, Self::Error> {
+        unsupported("u32")
+    }
+
+    fn serialize_u64(self, _: u64) -> Result<Self::Ok, Self::Error> {
+        unsupported("u64")
+    }
+
+    fn serialize_f32(self, _: f32) -> Result<Self::Ok, Self::Error> {
+        unsupported("f32")
+    }
+
+    fn serialize_f64(self, _: f64) -> Result<Self::Ok, Self::Error> {
+        unsupported("f64")
+    }
+
+    fn serialize_char(self, _: char) -> Result<Self::Ok, Self::Error> {
+        unsupported("char")
     }
 
     fn serialize_str(self, v: &str) -> Result<Self::Ok, Self::Error> {
@@ -367,6 +407,10 @@ impl Serializer for ElementValueSerializer {
 
     fn serialize_map(self, _: Option<usize>) -> Result<Self::SerializeMap, Self::Error> {
         unsupported("map")
+    }
+
+    fn serialize_struct(self, _: &'static str, len: usize) -> Result<Self::SerializeStruct, Self::Error> {
+        Ok(ElementValueStructSerializer { map: HashMap::with_capacity(len) })
     }
 
     fn serialize_struct_variant(self, _: &'static str, _: u32, _: &'static str, _: usize) -> Result<Self::SerializeStructVariant, Self::Error> {
