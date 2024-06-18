@@ -1,3 +1,4 @@
+use std::borrow::Borrow;
 use std::collections::HashMap;
 use std::sync::Arc;
 use std::time::{Duration, SystemTime};
@@ -25,136 +26,124 @@ impl EntityFacade {
 }
 
 impl EntityFacade {
-    pub fn decrypt_and_map(&self, type_model: &TypeModel, entity: ParsedEntity, session_key: &AesKey) -> Result<ParsedEntity, ApiCallError> {
+    pub fn decrypt_and_map(&self, type_model: &TypeModel, mut entity: ParsedEntity, session_key: &AesKey) -> Result<ParsedEntity, ApiCallError> {
         let mut mapped_decrypted: HashMap<String, ElementValue> = Default::default();
-        mapped_decrypted.insert("errors".to_string(), ElementValue::Dict(Default::default()));
-        mapped_decrypted.insert("final_ivs".to_string(), ElementValue::Dict(Default::default()));
-        for (key, model_value) in type_model.values.iter().clone().into_iter() {
-            let element_value = self.map_value(entity.clone(), session_key, key, model_value);
-            match element_value {
-                Ok((decrypted, ivs, errors)) => {
-                    mapped_decrypted.insert(key.to_string(), decrypted);
-                    mapped_decrypted.get("errors").unwrap().assert_dict().insert(key.to_string(), ElementValue::Dict(errors));
-                    mapped_decrypted.get("final_ivs").unwrap().assert_dict().insert(key.to_string(), ElementValue::Dict(ivs))
-                }
-                Err(err) => return Err(err)
-            };
-        }
+        let mut mapped_errors: HashMap<String, ElementValue> = Default::default();
+        let mut mapped_ivs: HashMap<String, ElementValue> = Default::default();
 
-        let model_name = &type_model.name;
-        for (association_name, association_model) in type_model.associations.clone().into_iter() {
-            let association = self.map_associations(type_model, entity.to_owned(), session_key, model_name, &association_name, association_model);
-            match association {
-                Ok((mapped_association, errors)) => {
-                    mapped_decrypted.insert(association_name.to_string(), mapped_association);
-                    mapped_decrypted.get("errors").unwrap().assert_dict().insert(association_name.to_string(), ElementValue::Dict(errors));
-                }
-                Err(err) => return Err(err)
+        for (key, model_value) in type_model.values.iter() {
+            let stored_element = entity.remove(key).unwrap_or_else(|| ElementValue::Null);
+            let (decrypted, ivs, errors) = self.map_value(stored_element, session_key, key, model_value)?;
+
+            mapped_decrypted.insert(key.to_string(), decrypted);
+            if errors.is_some() {
+                mapped_errors.insert(key.to_string(), ElementValue::Dict(errors.unwrap()));
+            }
+            if ivs.is_some() {
+                mapped_ivs.insert(key.to_string(), ElementValue::Bytes(ivs.unwrap().to_vec()));
             }
         }
 
+        for (association_name, association_model) in type_model.associations.iter() {
+            let association_entry = entity.remove(association_name).unwrap_or(ElementValue::Null);
+            let (mapped_association, errors) = self.map_associations(type_model, association_entry, session_key, &association_name, association_model)?;
+
+            mapped_decrypted.insert(association_name.to_string(), mapped_association);
+            mapped_errors.insert(association_name.to_string(), ElementValue::Dict(errors));
+        }
+
+        mapped_decrypted.insert("errors".to_string(), ElementValue::Dict(mapped_errors));
+        mapped_decrypted.insert("final_ivs".to_string(), ElementValue::Dict(mapped_ivs));
         Ok(mapped_decrypted)
     }
 
-    fn map_associations(&self, type_model: &TypeModel, entity: ParsedEntity, session_key: &AesKey, model_name: &String, association_name: &String, association_model: ModelAssociation) -> Result<(ElementValue, HashMap<String, ElementValue>), ApiCallError> {
+    fn map_associations(&self, type_model: &TypeModel, association_data: ElementValue, session_key: &AesKey, association_name: &str, association_model: &ModelAssociation) -> Result<(ElementValue, HashMap<String, ElementValue>), ApiCallError> {
         let mut errors: HashMap<String, ElementValue> = Default::default();
         let dependency = match association_model.dependency {
-            Some(dep) => dep,
-            None => type_model.app.clone()
+            Some(ref dep) => dep,
+            None => &type_model.app
         };
 
-        let aggregate_type_model = match self.type_model_provider.get_type_model(&dependency, association_model.ref_type.as_str()) {
+        let aggregate_type_model = match self.type_model_provider.get_type_model(dependency, association_model.ref_type.as_str()) {
             Some(type_model) => type_model,
             // Undefined type model or type ref should be treated as panic as the system isn't
             // capable of dealing with unknown types
-            None => return panic!("Undefined type_model {}", association_model.ref_type)
+            None => panic!("Undefined type_model {}", association_model.ref_type)
         };
 
         return if let AssociationType::Aggregation = association_model.association_type {
-            let association_data = entity.get(association_name);
-            if association_model.cardinality == Cardinality::ZeroOrOne && association_data.is_none() {
-                Ok((ElementValue::Null, errors))
-            } else if association_data.is_none() {
-                Err(ApiCallError::InternalSdkError { error_message: format!("Undefined aggregation {model_name}:{association_name}") })
-            } else if association_model.cardinality == Cardinality::Any {
-                let mut aggregate_vec: Vec<ElementValue> = Vec::new();
-                for aggregate in association_data.unwrap().assert_array().into_iter() {
-                    let aggregate_dict = aggregate.assert_dict();
-                    let mut decrypted_aggregate = match self.decrypt_and_map(aggregate_type_model, aggregate_dict, session_key) {
-                        Ok(dec_aggregate) => dec_aggregate,
-                        Err(_) => {
-                            // Decryption errors are tolerated, so instead of panicking, we just
-                            // collect them for further handling
-                            errors.insert(association_name.to_string(), ElementValue::String(format!("Failed to decrypt association {association_name}")));
-                            continue;
+            match (association_data, association_model.cardinality.borrow()) {
+                (ElementValue::Null, Cardinality::ZeroOrOne) => Ok((ElementValue::Null, errors)),
+                (ElementValue::Null, Cardinality::One) => Err(ApiCallError::InternalSdkError { error_message: format!("Value {association_name} with cardinality ONE can't be null") }),
+                (ElementValue::Array(arr), Cardinality::Any) => {
+                    let mut aggregate_vec: Vec<ElementValue> = Vec::with_capacity(arr.len());
+                    for (index, aggregate) in arr.into_iter().enumerate() {
+                        match aggregate {
+                            ElementValue::Dict(entity) => {
+                                let mut decrypted_aggregate = self.decrypt_and_map(aggregate_type_model, entity, session_key)?;
+
+                                // Errors should be grouped inside the top-most object, so they should be
+                                // extracted and removed from aggregates
+                                if decrypted_aggregate.get("errors").is_some() {
+                                    let error_key = &format!("{}_{}", association_name, index);
+                                    self.extract_errors(error_key, &mut errors, &mut decrypted_aggregate);
+                                }
+
+                                aggregate_vec.push(ElementValue::Dict(decrypted_aggregate));
+                            }
+                            _ => return Err(ApiCallError::InternalSdkError { error_message: format!("Invalid aggregate format. {} isn't a dict", association_name) })
                         }
                     };
 
-                    // Errors should be grouped inside the top-most object, so they should be
-                    // extracted and removed from aggregates
-                    if (decrypted_aggregate.get("errors").is_some()) {
-                        self.extract_errors(association_name, &mut errors, &mut decrypted_aggregate);
-                    }
-
-                    aggregate_vec.push(ElementValue::Dict(decrypted_aggregate));
+                    Ok((ElementValue::Array(aggregate_vec), errors))
                 }
-
-                Ok((ElementValue::Array(aggregate_vec), errors))
-            } else {
-                let decrypted_aggregate = match association_data {
-                    Some(association) => {
-                        if let ElementValue::Null = association {
-                            ElementValue::Null
-                        } else {
-                            let decrypted_aggregate = self.decrypt_and_map(aggregate_type_model, association.assert_dict(), session_key);
-                            match decrypted_aggregate {
-                                Ok(dec_aggregate) => {
-                                    let mut aggregate = dec_aggregate.clone();
-                                    self.extract_errors(association_name, &mut errors, &mut aggregate);
-                                    ElementValue::Dict(aggregate)
-                                }
-                                Err(_) => {
-                                    return Err(ApiCallError::InternalSdkError { error_message: format!("Failed to decrypt association {association_name}") });
-                                }
-                            }
+                (ElementValue::Dict(dict), Cardinality::One | Cardinality::ZeroOrOne) => {
+                    let decrypted_aggregate = self.decrypt_and_map(aggregate_type_model, dict, session_key);
+                    match decrypted_aggregate {
+                        Ok(mut dec_aggregate) => {
+                            self.extract_errors(association_name, &mut errors, &mut dec_aggregate);
+                            Ok((ElementValue::Dict(dec_aggregate), errors))
+                        }
+                        Err(_) => {
+                            return Err(ApiCallError::InternalSdkError { error_message: format!("Failed to decrypt association {association_name}") });
                         }
                     }
-                    None => ElementValue::Null
-                };
-
-                Ok((decrypted_aggregate, errors))
+                }
+                _ => Err(ApiCallError::InternalSdkError { error_message: format!("Invalid association {association_name}") })
             }
         } else {
-            let value = entity.get(association_name).unwrap_or(&ElementValue::Null);
-            Ok((value.clone(), errors))
+            Ok((association_data, errors))
         };
     }
 
-    fn extract_errors(&self, association_name: &String, errors: &mut HashMap<String, ElementValue>, dec_aggregate: &mut ParsedEntity) {
-        if dec_aggregate.get("errors").is_some() {
-            errors.insert(association_name.to_string(), ElementValue::Dict(dec_aggregate.get("errors").unwrap().assert_dict()));
-            dec_aggregate.remove("errors");
+    fn extract_errors(&self, association_name: &str, errors: &mut HashMap<String, ElementValue>, dec_aggregate: &mut ParsedEntity) {
+        match dec_aggregate.remove("errors") {
+            Some(ElementValue::Dict(err_dict)) => {
+                errors.insert(association_name.to_string(), ElementValue::Dict(err_dict));
+            }
+            _ => ()
         }
     }
 
-    fn map_value(&self, entity: ParsedEntity, session_key: &AesKey, key: &String, model_value: &ModelValue) -> Result<(ElementValue, HashMap<String, ElementValue>, HashMap<String, ElementValue>), ApiCallError> {
-        let mut final_ivs: HashMap<String, ElementValue> = Default::default();
-        let mut errors: HashMap<String, ElementValue> = Default::default();
+    fn map_value(&self, value: ElementValue, session_key: &AesKey, key: &String, model_value: &ModelValue) -> Result<(ElementValue, Option<[u8; IV_BYTE_SIZE]>, Option<HashMap<String, ElementValue>>), ApiCallError> {
+        let mut final_iv: Option<[u8; IV_BYTE_SIZE]> = None;
 
-        let value = entity.get(key.as_str()).unwrap_or_else(|| &ElementValue::Null);
-
-        if model_value.encrypted && model_value.is_final && value != &ElementValue::Null {
-            final_ivs.insert(key.to_string(), ElementValue::Bytes(self.extract_iv(value.assert_bytes().as_slice()).to_vec()));
+        if model_value.encrypted && model_value.is_final {
+            match &value {
+                ElementValue::Bytes(bytes) => final_iv = Some(self.extract_iv(bytes.as_slice())),
+                ElementValue::Null => (),
+                _ => return Err(ApiCallError::InternalSdkError { error_message: format!("Invalid encrypted data {key}. Not bytes") })
+            };
         }
 
-        if value == &ElementValue::Null {
+        if value == ElementValue::Null {
             if model_value.cardinality != Cardinality::ZeroOrOne {
                 return Err(ApiCallError::InternalSdkError { error_message: format!("Value {key} with cardinality ONE can't be null") });
             }
 
-            return Ok((ElementValue::Null, final_ivs, errors));
-        } else if model_value.cardinality == Cardinality::One && value == &ElementValue::String(String::new()) {
-            return Ok((self.resolve_default_value(model_value.value_type.to_owned()), final_ivs, errors));
+            return Ok((ElementValue::Null, final_iv, None));
+        } else if model_value.cardinality == Cardinality::One && value == ElementValue::String(String::new()) {
+            return Ok((self.resolve_default_value(model_value.value_type.to_owned()), final_iv, None));
         }
 
         if model_value.encrypted {
@@ -163,6 +152,7 @@ impl EntityFacade {
                 AesKey::Aes256(k) => aes_256_decrypt(k, value.assert_bytes().as_slice())
             };
 
+            let mut errors: HashMap<String, ElementValue> = Default::default();
             let element_value = match decrypted_value {
                 Ok(value) => {
                     let decrypted_value = self.parse_decrypted_value(model_value.value_type.to_owned(), value.as_slice());
@@ -170,7 +160,7 @@ impl EntityFacade {
                     match decrypted_value {
                         Ok(value) => {
                             if !model_value.is_final && value == ElementValue::String("".to_string()) {
-                                final_ivs.insert(key.to_string(), ElementValue::Bytes(self.extract_iv(value.assert_bytes().as_slice()).to_vec()));
+                                final_iv = Some(self.extract_iv(value.assert_bytes().as_slice()));
                             }
                             value
                         }
@@ -186,10 +176,10 @@ impl EntityFacade {
                 }
             };
 
-            return Ok((element_value, final_ivs, errors));
+            Ok((element_value, final_iv, Some(errors)))
+        } else {
+            Ok((value, final_iv, None))
         }
-
-        return Ok((value.clone(), final_ivs, errors));
     }
 
     fn extract_iv(&self, encrypted_data: &[u8]) -> [u8; IV_BYTE_SIZE] {
@@ -243,7 +233,7 @@ impl EntityFacade {
 
                 Ok(Bool(value))
             }
-            ValueType::CompressedString => Ok(ElementValue::String(String::from_utf8_lossy(bytes).to_string())),
+            ValueType::CompressedString => unimplemented!("compressed string"),
             _ => panic!("Failed to parse bytes into ElementValue")
         };
     }
