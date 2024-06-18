@@ -2,7 +2,7 @@
 use super::*;
 use serde::{Serialize, Deserialize};
 
-#[derive(Clone, Serialize, Deserialize)]
+#[derive(uniffi::Record, Clone, Serialize, Deserialize)]
 pub struct ApprovalMail {
 	pub _format: i64,
 	pub _id: IdTuple,
@@ -21,7 +21,7 @@ impl Entity for ApprovalMail {
 }
 
 
-#[derive(Clone, Serialize, Deserialize)]
+#[derive(uniffi::Record, Clone, Serialize, Deserialize)]
 pub struct CounterValue {
 	pub _id: Id,
 	pub counterId: Id,
@@ -35,7 +35,7 @@ impl Entity for CounterValue {
 }
 
 
-#[derive(Clone, Serialize, Deserialize)]
+#[derive(uniffi::Record, Clone, Serialize, Deserialize)]
 pub struct ErrorReportData {
 	pub _id: Id,
 	pub additionalInfo: String,
@@ -56,7 +56,7 @@ impl Entity for ErrorReportData {
 }
 
 
-#[derive(Clone, Serialize, Deserialize)]
+#[derive(uniffi::Record, Clone, Serialize, Deserialize)]
 pub struct ErrorReportFile {
 	pub _id: Id,
 	pub content: String,
@@ -70,7 +70,7 @@ impl Entity for ErrorReportFile {
 }
 
 
-#[derive(Clone, Serialize, Deserialize)]
+#[derive(uniffi::Record, Clone, Serialize, Deserialize)]
 pub struct ReadCounterData {
 	pub _format: i64,
 	pub columnName: Option<Id>,
@@ -85,7 +85,7 @@ impl Entity for ReadCounterData {
 }
 
 
-#[derive(Clone, Serialize, Deserialize)]
+#[derive(uniffi::Record, Clone, Serialize, Deserialize)]
 pub struct ReadCounterReturn {
 	pub _format: i64,
 	pub value: Option<i64>,
@@ -99,7 +99,7 @@ impl Entity for ReadCounterReturn {
 }
 
 
-#[derive(Clone, Serialize, Deserialize)]
+#[derive(uniffi::Record, Clone, Serialize, Deserialize)]
 pub struct ReportErrorIn {
 	pub _format: i64,
 	pub data: ErrorReportData,
@@ -113,7 +113,7 @@ impl Entity for ReportErrorIn {
 }
 
 
-#[derive(Clone, Serialize, Deserialize)]
+#[derive(uniffi::Record, Clone, Serialize, Deserialize)]
 pub struct WriteCounterData {
 	pub _format: i64,
 	pub column: Id,

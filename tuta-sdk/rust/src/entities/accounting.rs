@@ -2,7 +2,7 @@
 use super::*;
 use serde::{Serialize, Deserialize};
 
-#[derive(Clone, Serialize, Deserialize)]
+#[derive(uniffi::Record, Clone, Serialize, Deserialize)]
 pub struct CustomerAccountPosting {
 	pub _id: Id,
 	pub amount: i64,
@@ -19,7 +19,7 @@ impl Entity for CustomerAccountPosting {
 }
 
 
-#[derive(Clone, Serialize, Deserialize)]
+#[derive(uniffi::Record, Clone, Serialize, Deserialize)]
 pub struct CustomerAccountReturn {
 	pub _format: i64,
 	pub _ownerGroup: Option<Id>,

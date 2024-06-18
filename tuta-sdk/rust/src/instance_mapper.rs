@@ -17,7 +17,7 @@ use crate::IdTuple;
 pub struct InstanceMapper {}
 
 impl InstanceMapper {
-    fn new() -> Self {
+    pub fn new() -> Self {
         InstanceMapper {}
     }
 }
@@ -131,6 +131,14 @@ impl<'de> Deserializer<'de> for ElementValueDeserializer {
         };
     }
 
+    fn deserialize_byte_buf<V>(self, visitor: V) -> Result<V::Value, Self::Error> where V: Visitor<'de> {
+        if let ElementValue::Bytes(bytes) = self.value {
+            visitor.visit_byte_buf(bytes)
+        } else {
+            Err(de::Error::invalid_type(self.value.as_unexpected(), &"bytes"))
+        }
+    }
+
     fn deserialize_option<V>(self, visitor: V) -> Result<V::Value, Self::Error> where V: Visitor<'de> {
         match self.value {
             ElementValue::Null => visitor.visit_none(),
@@ -192,14 +200,6 @@ impl<'de> Deserializer<'de> for ElementValueDeserializer {
             Err(de::Error::invalid_type(self.value.as_unexpected(), &"dict"))
         }
     }
-
-    fn deserialize_byte_buf<V>(self, visitor: V) -> Result<V::Value, Self::Error> where V: Visitor<'de> {
-        if let ElementValue::Bytes(bytes) = self.value {
-            visitor.visit_byte_buf(bytes)
-        } else {
-            Err(de::Error::invalid_type(self.value.as_unexpected(), &"bytes"))
-        }
-    }
 }
 
 // This impl allows us to use blanket impl for SeqAccess/MapAccess
@@ -238,56 +238,20 @@ impl Serializer for ElementValueSerializer {
         Ok(ElementValue::Bool(v))
     }
 
+    fn serialize_i8(self, _: i8) -> Result<Self::Ok, Self::Error> {
+        unsupported("i8")
+    }
+
+    fn serialize_i16(self, _: i16) -> Result<Self::Ok, Self::Error> {
+        unsupported("i16")
+    }
+
+    fn serialize_i32(self, _: i32) -> Result<Self::Ok, Self::Error> {
+        unsupported("i32")
+    }
+
     fn serialize_i64(self, v: i64) -> Result<Self::Ok, Self::Error> {
         Ok(ElementValue::Number(v))
-    }
-
-    fn serialize_str(self, v: &str) -> Result<Self::Ok, Self::Error> {
-        Ok(ElementValue::String(v.to_string()))
-    }
-
-    fn serialize_bytes(self, v: &[u8]) -> Result<Self::Ok, Self::Error> {
-        Ok(ElementValue::Bytes(v.into()))
-    }
-
-    fn serialize_none(self) -> Result<Self::Ok, Self::Error> {
-        Ok(ElementValue::Null)
-    }
-
-    fn serialize_some<T>(self, value: &T) -> Result<Self::Ok, Self::Error> where T: ?Sized + Serialize {
-        value.serialize(self)
-    }
-
-    fn serialize_seq(self, len: Option<usize>) -> Result<Self::SerializeSeq, Self::Error> {
-        let vec = match len {
-            None => Vec::new(),
-            Some(l) => Vec::with_capacity(l),
-        };
-        Ok(ElementValueSeqSerializer { vec })
-    }
-
-    fn serialize_struct(self, _: &'static str, len: usize) -> Result<Self::SerializeStruct, Self::Error> {
-        Ok(ElementValueStructSerializer { map: HashMap::with_capacity(len) })
-    }
-
-    fn serialize_unit(self) -> Result<Self::Ok, Self::Error> {
-        unsupported("unit")
-    }
-
-    fn serialize_unit_struct(self, _: &'static str) -> Result<Self::Ok, Self::Error> {
-        unsupported("unit_struct")
-    }
-
-    fn serialize_unit_variant(self, _: &'static str, _: u32, _: &'static str) -> Result<Self::Ok, Self::Error> {
-        unsupported("serialize_unit_variant")
-    }
-
-    fn serialize_newtype_struct<T>(self, _: &'static str, _: &T) -> Result<Self::Ok, Self::Error> where T: ?Sized + Serialize {
-        unsupported("newtype_struct")
-    }
-
-    fn serialize_newtype_variant<T>(self, _: &'static str, _: u32, _: &'static str, _: &T) -> Result<Self::Ok, Self::Error> where T: ?Sized + Serialize {
-        unsupported("newtype_variant")
     }
 
     fn serialize_u8(self, _: u8) -> Result<Self::Ok, Self::Error> {
@@ -318,16 +282,48 @@ impl Serializer for ElementValueSerializer {
         unsupported("char")
     }
 
-    fn serialize_i8(self, _: i8) -> Result<Self::Ok, Self::Error> {
-        unsupported("i8")
+    fn serialize_str(self, v: &str) -> Result<Self::Ok, Self::Error> {
+        Ok(ElementValue::String(v.to_string()))
     }
 
-    fn serialize_i16(self, _: i16) -> Result<Self::Ok, Self::Error> {
-        unsupported("i16")
+    fn serialize_bytes(self, v: &[u8]) -> Result<Self::Ok, Self::Error> {
+        Ok(ElementValue::Bytes(v.into()))
     }
 
-    fn serialize_i32(self, _: i32) -> Result<Self::Ok, Self::Error> {
-        unsupported("i32")
+    fn serialize_none(self) -> Result<Self::Ok, Self::Error> {
+        Ok(ElementValue::Null)
+    }
+
+    fn serialize_some<T>(self, value: &T) -> Result<Self::Ok, Self::Error> where T: ?Sized + Serialize {
+        value.serialize(self)
+    }
+
+    fn serialize_unit(self) -> Result<Self::Ok, Self::Error> {
+        unsupported("unit")
+    }
+
+    fn serialize_unit_struct(self, _: &'static str) -> Result<Self::Ok, Self::Error> {
+        unsupported("unit_struct")
+    }
+
+    fn serialize_unit_variant(self, _: &'static str, _: u32, _: &'static str) -> Result<Self::Ok, Self::Error> {
+        unsupported("serialize_unit_variant")
+    }
+
+    fn serialize_newtype_struct<T>(self, _: &'static str, _: &T) -> Result<Self::Ok, Self::Error> where T: ?Sized + Serialize {
+        unsupported("newtype_struct")
+    }
+
+    fn serialize_newtype_variant<T>(self, _: &'static str, _: u32, _: &'static str, _: &T) -> Result<Self::Ok, Self::Error> where T: ?Sized + Serialize {
+        unsupported("newtype_variant")
+    }
+
+    fn serialize_seq(self, len: Option<usize>) -> Result<Self::SerializeSeq, Self::Error> {
+        let vec = match len {
+            None => Vec::new(),
+            Some(l) => Vec::with_capacity(l),
+        };
+        Ok(ElementValueSeqSerializer { vec })
     }
 
     fn serialize_tuple(self, _: usize) -> Result<Self::SerializeTuple, Self::Error> {
@@ -344,6 +340,10 @@ impl Serializer for ElementValueSerializer {
 
     fn serialize_map(self, _: Option<usize>) -> Result<Self::SerializeMap, Self::Error> {
         unsupported("map")
+    }
+
+    fn serialize_struct(self, _: &'static str, len: usize) -> Result<Self::SerializeStruct, Self::Error> {
+        Ok(ElementValueStructSerializer { map: HashMap::with_capacity(len) })
     }
 
     fn serialize_struct_variant(self, _: &'static str, _: u32, _: &'static str, _: usize) -> Result<Self::SerializeStructVariant, Self::Error> {
