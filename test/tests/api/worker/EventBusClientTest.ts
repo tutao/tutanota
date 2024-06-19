@@ -19,17 +19,17 @@ import { EntityClient } from "../../../../src/api/common/EntityClient.js"
 import { defer, noOp } from "@tutao/tutanota-utils"
 import { InstanceMapper } from "../../../../src/api/worker/crypto/InstanceMapper.js"
 import { DefaultEntityRestCache } from "../../../../src/api/worker/rest/DefaultEntityRestCache.js"
-import { QueuedBatch } from "../../../../src/api/worker/EventQueue.js"
+import { EventQueue, QueuedBatch } from "../../../../src/api/worker/EventQueue.js"
 import { OutOfSyncError } from "../../../../src/api/common/error/OutOfSyncError.js"
 import { matchers, object, verify, when } from "testdouble"
-import { getElementId } from "../../../../src/api/common/utils/EntityUtils.js"
+import { getElementId, timestampToGeneratedId } from "../../../../src/api/common/utils/EntityUtils.js"
 import { SleepDetector } from "../../../../src/api/worker/utils/SleepDetector.js"
 import { WsConnectionState } from "../../../../src/api/main/WorkerClient.js"
 import { UserFacade } from "../../../../src/api/worker/facades/UserFacade"
 import { ExposedProgressTracker } from "../../../../src/api/main/ProgressTracker.js"
 import { createTestEntity } from "../../TestUtils.js"
 
-o.spec("EventBusClient test", function () {
+o.spec("EventBusClientTest", function () {
 	let ebc: EventBusClient
 	let cacheMock: DefaultEntityRestCache
 	let restClient: EntityRestClientMock
@@ -216,6 +216,37 @@ o.spec("EventBusClient test", function () {
 
 		// Is waiting for cache to process the first event
 		verify(cacheMock.entityEventsReceived(matchers.anything()), { times: 1 })
+	})
+
+	o("missed entity events are processed in order", async function () {
+		const membershipGroupId = "membershipGroupId"
+		user.memberships = [
+			createTestEntity(GroupMembershipTypeRef, {
+				group: membershipGroupId,
+			}),
+		]
+		const now = Date.now()
+
+		const batchId1 = timestampToGeneratedId(now - 1)
+		const batchId2 = timestampToGeneratedId(now - 2)
+		const batchId3 = timestampToGeneratedId(now - 3)
+		const batchId4 = timestampToGeneratedId(now - 4)
+		const batches = [
+			createTestEntity(EntityEventBatchTypeRef, { _id: [membershipGroupId, batchId1] }),
+			createTestEntity(EntityEventBatchTypeRef, { _id: [user.userGroup.group, batchId3] }),
+			createTestEntity(EntityEventBatchTypeRef, { _id: [membershipGroupId, batchId4] }),
+			createTestEntity(EntityEventBatchTypeRef, { _id: [user.userGroup.group, batchId2] }),
+		]
+		restClient.addListInstances(...batches)
+		const eventQueue = object<EventQueue>()
+		const addedBatchIds: Id[] = []
+		when(eventQueue.add(matchers.anything(), matchers.anything(), matchers.anything())).thenDo(
+			(batchId: Id, groupId: Id, newEvents: ReadonlyArray<EntityUpdate>) => addedBatchIds.push(batchId),
+		)
+
+		await ebc.loadMissedEntityEvents(eventQueue)
+
+		o(addedBatchIds).deepEquals([batchId4, batchId3, batchId2, batchId1])
 	})
 
 	o("on counter update it send message to the main thread", async function () {
