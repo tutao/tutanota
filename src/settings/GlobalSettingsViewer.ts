@@ -312,7 +312,9 @@ export class GlobalSettingsViewer implements UpdatableSettingsViewer {
 										if (isPremium) {
 											const accountingInfo = await locator.logins.getUserController().loadAccountingInfo()
 											if (hasRunningAppStoreSubscription(accountingInfo)) {
-												await Dialog.message("deleteAccountWithAppStoreSubscription_msg")
+												await Dialog.message(() =>
+													lang.get("deleteAccountWithAppStoreSubscription_msg", { "{AppStorePayment}": InfoLink.AppStorePayment }),
+												)
 												return
 											}
 										}

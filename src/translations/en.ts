@@ -1734,6 +1734,8 @@ export default {
 		"changePlan_action": "Change plan",
 
 		"redeemGiftCardWithAppStoreSubscription_msg": "You cannot redeem a gift card while there is an App Store subscription.",
-		"deleteAccountWithAppStoreSubscription_msg": "You cannot delete your account while there is an App Store subscription. You will need to cancel it from the App Store first. See https://tuta.com/support/#appstore-payments"
+		"deleteAccountWithAppStoreSubscription_msg": "You cannot delete your account while there is an App Store subscription. You will need to cancel it from the App Store first. See {AppStorePayment}",
+		"appStoreNotAvailable_msg": "App Store subscriptions are not available at the moment",
+		"appStoreSubscriptionError_msg": "Sorry, the payment transaction failed. Please try again later or contact support."
 	}
 }
