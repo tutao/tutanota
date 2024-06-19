@@ -2,11 +2,12 @@ import { OperationType } from "../common/TutanotaConstants.js"
 import { assertNotNull, findAllAndRemove, isSameTypeRefByAttr, remove } from "@tutao/tutanota-utils"
 import { ConnectionError, ServiceUnavailableError } from "../common/error/RestError.js"
 import type { EntityUpdate } from "../entities/sys/TypeRefs.js"
+import { CustomerInfoTypeRef } from "../entities/sys/TypeRefs.js"
 import { ProgrammingError } from "../common/error/ProgrammingError.js"
 import { MailTypeRef } from "../entities/tutanota/TypeRefs.js"
 import { isSameId } from "../common/utils/EntityUtils.js"
-import { CustomerInfoTypeRef } from "../entities/sys/TypeRefs.js"
 import { containsEventOfType, EntityUpdateData, getEventOfType } from "../common/utils/EntityUpdateUtils.js"
+import { ProgressMonitorDelegate } from "./ProgressMonitorDelegate.js"
 
 export type QueuedBatch = {
 	events: EntityUpdate[]
@@ -75,6 +76,7 @@ export class EventQueue {
 	readonly _optimizationEnabled: boolean
 	_processingBatch: QueuedBatch | null
 	_paused: boolean
+	private progressMonitor: ProgressMonitorDelegate | null
 
 	/**
 	 * @param queueAction which is executed for each batch. Must *never* throw.
@@ -86,12 +88,18 @@ export class EventQueue {
 		this._optimizationEnabled = optimizationEnabled
 		this._processingBatch = null
 		this._paused = false
+		this.progressMonitor = null
 	}
 
 	addBatches(batches: ReadonlyArray<QueuedBatch>) {
 		for (const batch of batches) {
 			this.add(batch.batchId, batch.groupId, batch.events)
 		}
+	}
+
+	setProgressMonitor(progressMonitor: ProgressMonitorDelegate) {
+		this.progressMonitor?.completed() // make sure any old monitor does not have pending work
+		this.progressMonitor = progressMonitor
 	}
 
 	/**
@@ -116,6 +124,9 @@ export class EventQueue {
 			for (const update of newBatch.events) {
 				this._lastOperationForEntity.set(update.instanceId, newBatch)
 			}
+		} else {
+			// the batch will be ignored because all entity updates have been optimized.
+			this.progressMonitor?.workDone(1)
 		}
 
 		// ensures that events are processed when not paused
@@ -280,7 +291,7 @@ export class EventQueue {
 			this._queueAction(next)
 				.then(() => {
 					this._eventQueue.shift()
-
+					this.progressMonitor?.workDone(1)
 					this._processingBatch = null
 
 					// When we are done with the batch, we don't want to merge with it anymore

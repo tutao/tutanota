@@ -31,7 +31,7 @@ export class ProgressMonitor implements IProgressMonitor {
 	}
 
 	percentage(): number {
-		const result = Math.round((100 * this.workCompleted) / this.totalWork)
+		const result = (100 * this.workCompleted) / this.totalWork
 		return Math.min(100, result)
 	}
 

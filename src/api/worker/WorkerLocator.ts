@@ -211,7 +211,7 @@ export async function initLocator(worker: WorkerImpl, browserData: BrowserData) 
 
 	locator.pqFacade = new PQFacade(locator.kyberFacade)
 
-	locator.keyLoader = new KeyLoaderFacade(locator.keyCache, locator.user, locator.cachingEntityClient, noncachingEntityClient)
+	locator.keyLoader = new KeyLoaderFacade(locator.keyCache, locator.user, locator.cachingEntityClient)
 
 	locator.crypto = new CryptoFacade(
 		locator.user,

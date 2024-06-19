@@ -12,11 +12,11 @@ export type ExposedProgressTracker = Pick<ProgressTracker, "registerMonitor" | "
 export class ProgressTracker {
 	// Will stream a number between 0 and 1
 	onProgressUpdate: stream<number>
-	private monitors: Map<ProgressMonitorId, ProgressMonitor>
+	private readonly monitors: Map<ProgressMonitorId, ProgressMonitor>
 	private idCounter: ProgressMonitorId
 
 	constructor() {
-		// initially, there is no work so we are done by default.
+		// initially, there is no work, so we are done by default.
 		this.onProgressUpdate = stream(1)
 		this.monitors = new Map()
 		this.idCounter = 0
@@ -26,7 +26,7 @@ export class ProgressTracker {
 	 * Register a monitor with the tracker, so that it's progress can be displayed
 	 * Returns an ID as a handle, useful for making calls from the worker
 	 *
-	 * Make sure that monitor completes so it can be unregistered.
+	 * Make sure that monitor completes, so it can be unregistered.
 	 * @param work - total work to do
 	 */
 	registerMonitorSync(work: number): ProgressMonitorId {
