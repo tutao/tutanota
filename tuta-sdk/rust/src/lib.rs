@@ -33,6 +33,8 @@ mod owner_enc_session_keys_update_queue;
 mod entities;
 mod instance_mapper;
 mod typed_entity_client;
+mod key_loader_facade;
+mod key_cache;
 pub mod date;
 pub mod generated_id;
 mod custom_id;
@@ -67,11 +69,6 @@ impl Display for TypeRef {
     }
 }
 
-trait AuthHeadersProvider {
-    /// Gets the HTTP request headers used for authorizing REST requests
-    fn auth_headers(&self, model_version: u32) -> HashMap<String, String>;
-}
-
 /// The authorization status and credentials of the SDK
 enum LoginState {
     NotLoggedIn,
@@ -83,6 +80,7 @@ struct SdkState {
     login_state: RwLock<LoginState>,
     client_version: String,
 }
+
 
 /// The external facing interface used by the consuming code via FFI
 #[derive(uniffi::Object)]
@@ -142,11 +140,11 @@ impl Sdk {
     }
 
     pub fn user_facade(&self) -> UserFacade {
-        UserFacade::new(self.unencrypted_entity_client.clone())
+        todo!()
     }
 }
 
-impl AuthHeadersProvider for SdkState {
+impl SdkState {
     fn auth_headers(&self, model_version: u32) -> HashMap<String, String> {
         let g = self.login_state.read().unwrap();
         match g.deref() {

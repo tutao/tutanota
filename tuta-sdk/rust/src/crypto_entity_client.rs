@@ -40,6 +40,7 @@ impl CryptoEntityClient {
         if type_model.encrypted {
             let possible_session_key = self.crypto_facade
                 .resolve_session_key(&mut parsed_entity, type_model)
+                .await
                 .map_err(|error|
                     ApiCallError::InternalSdkError {
                         error_message: format!(
