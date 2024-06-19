@@ -1,6 +1,7 @@
+use std::collections::HashMap;
 use std::sync::Arc;
 
-use crate::{ApiCallError, AuthHeadersProvider, IdTuple, RestClient, TypeRef};
+use crate::{ApiCallError, IdTuple, RestClient, TypeRef};
 use crate::element_value::{ElementValue, ParsedEntity};
 use crate::json_serializer::JsonSerializer;
 use crate::json_element::RawEntity;
@@ -19,7 +20,7 @@ pub enum IdType {
 pub struct EntityClient {
     rest_client: Arc<dyn RestClient>,
     base_url: String,
-    auth_headers_provider: Arc<dyn AuthHeadersProvider + Send + Sync>,
+    auth_headers_provider: Arc<dyn Send + Sync>,
     json_serializer: Arc<JsonSerializer>,
     type_model_provider: Arc<TypeModelProvider>,
 }
@@ -29,7 +30,7 @@ impl EntityClient {
         rest_client: Arc<dyn RestClient>,
         json_serializer: Arc<JsonSerializer>,
         base_url: &str,
-        auth_headers_provider: Arc<dyn AuthHeadersProvider + Send + Sync>,
+        auth_headers_provider: Arc<dyn Send + Sync>,
         type_model_provider: Arc<TypeModelProvider>,
     ) -> Self {
         EntityClient {
@@ -74,7 +75,8 @@ impl EntityClient {
         })?;
         let options = RestClientOptions {
             body: None,
-            headers: self.auth_headers_provider.auth_headers(model_version),
+            headers: HashMap::new(),
+            // headers: self.auth_headers_provider.auth_headers(model_version),
         };
         let response = self
             .rest_client
@@ -150,7 +152,8 @@ impl EntityClient {
         let body = serde_json::to_vec(&raw_entity).unwrap();
         let options = RestClientOptions {
             body: Some(body),
-            headers: self.auth_headers_provider.auth_headers(model_version),
+            // headers: self.auth_headers_provider.auth_headers(model_version),
+            headers:  HashMap::new(),
         };
         // FIXME we should look at type model whether it is ET or LET
         let url = format!(

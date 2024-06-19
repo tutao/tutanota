@@ -33,6 +33,9 @@ mod owner_enc_session_keys_update_queue;
 mod entities;
 mod instance_mapper;
 mod typed_entity_client;
+mod key_loader_facade;
+mod key_cache;
+mod key_encryption;
 pub mod date;
 pub mod id;
 
@@ -62,11 +65,6 @@ impl Display for TypeRef {
     fn fmt(&self, f: &mut Formatter<'_>) -> std::fmt::Result {
         write!(f, "TypeRef({}, {})", self.app, self.type_)
     }
-}
-
-trait AuthHeadersProvider {
-    /// Gets the HTTP request headers used for authorizing REST requests
-    fn auth_headers(&self, model_version: u32) -> HashMap<String, String>;
 }
 
 /// The authorization status and credentials of the SDK
@@ -140,7 +138,7 @@ impl Sdk {
     }
 }
 
-impl AuthHeadersProvider for SdkState {
+impl SdkState {
     fn auth_headers(&self, model_version: u32) -> HashMap<String, String> {
         let g = self.login_state.read().unwrap();
         match g.deref() {

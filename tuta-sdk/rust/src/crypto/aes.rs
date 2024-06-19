@@ -112,7 +112,7 @@ aes_key!(
     sha2::Sha512
 );
 
-trait AesKey: Clone {
+pub trait AesKey: Clone {
     type CbcKeyType: BlockEncryptMut + BlockDecryptMut + BlockEncrypt + BlockDecrypt + BlockCipher + cbc::cipher::KeyInit;
     fn get_bytes(&self) -> &[u8];
     fn derive_subkeys(&self) -> AesSubKeys<Self>;

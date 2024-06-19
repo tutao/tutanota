@@ -3,13 +3,13 @@
 // TODO: Remove the above allowance when starting to implement higher level functions
 
 
-mod aes;
-mod sha;
-mod hkdf;
+pub mod aes;
+pub mod sha;
+pub mod hkdf;
 mod argon2_id;
 mod ecc;
 mod kyber;
-mod rsa;
+pub mod rsa;
 mod tuta_crypt;
 mod key_loader_facade;
 mod crypto_facade;
