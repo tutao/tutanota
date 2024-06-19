@@ -73,24 +73,20 @@ export class TerminationForm implements Component<TerminationFormAttrs> {
 						},
 					}),
 				),
-				m(
-					"",
-					{
-						oncreate: (vnode) => {
-							const childArray = assertNotNull(vnode.children) as ChildArray
-							const child = childArray[0] as Vnode<unknown, TextField>
-							this.passwordTextField = child.state
-						},
+				m(PasswordField, {
+					value: a.password,
+					autocompleteAs: Autocomplete.currentPassword,
+					oncreate: (vnode) => {
+						this.passwordTextField = { ...vnode.state }
 					},
-					m(PasswordField, {
-						value: a.password,
-						autocompleteAs: Autocomplete.currentPassword,
-						oninput: (value) => {
-							this.handleAutofill(a)
-							a.onPasswordChanged(value)
-						},
-					}),
-				),
+					onDomInputCreated: (domInput) => {
+						this.passwordTextField.domInput = domInput
+					},
+					oninput: (value) => {
+						this.handleAutofill(a)
+						a.onPasswordChanged(value)
+					},
+				}),
 				m(".list-border-bottom.pb-l", [
 					m(".h3.mt-l", lang.get("terminationDateRequest_title")),
 					m(".mt-s", lang.get("terminationDateRequest_msg")),
