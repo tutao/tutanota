@@ -1,6 +1,26 @@
 #[cfg(test)]
 pub mod test_utils;
 
+pub struct Versioned<T> {
+    pub object: T,
+    pub version: i64
+}
+
+impl<T> Clone for Versioned<T> where T: Clone {
+    fn clone(&self) -> Self {
+        Versioned { object: self.object.clone(), version: self.version }
+    }
+}
+
+impl<T> Versioned<T> {
+    pub fn new(object: T, version: i64) -> Versioned<T> {
+        Versioned {
+            object,
+            version
+        }
+    }
+}
+
 /// Combine multiple slices into one Vec.
 ///
 /// Each slice must have the same object type, and the object must implement Copy. This makes it suitable for byte arrays.

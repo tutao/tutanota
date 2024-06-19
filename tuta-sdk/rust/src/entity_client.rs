@@ -1,7 +1,8 @@
+use std::collections::HashMap;
 use std::fmt::Display;
 use std::sync::Arc;
 
-use crate::{ApiCallError, AuthHeadersProvider, IdTuple, RestClient, TypeRef};
+use crate::{ApiCallError, IdTuple, LoginState, RestClient, SdkState, TypeRef};
 use crate::element_value::{ElementValue, ParsedEntity};
 use crate::generated_id::GeneratedId;
 use crate::json_serializer::JsonSerializer;
@@ -10,6 +11,7 @@ use crate::metamodel::TypeModel;
 use crate::rest_client::{HttpMethod, RestClientOptions};
 use crate::rest_error::{HttpError};
 use crate::type_model_provider::{TypeModelProvider};
+use crate::user_facade::AuthHeadersProvider;
 
 /// Denotes an ID that can be serialised into a string
 pub trait IdType: Display {}
@@ -29,6 +31,42 @@ pub struct EntityClient {
     json_serializer: Arc<JsonSerializer>,
     type_model_provider: Arc<TypeModelProvider>,
 }
+
+// TODO: Fix architecture of `AuthHeadersProvider`
+impl AuthHeadersProvider for SdkState {
+    /// This version has client_version in header, unlike the LoginState version
+    fn create_auth_headers(&self, model_version: u32) -> HashMap<String, String> {
+        let auth_state = self.login_state.read().unwrap();
+        let mut headers = auth_state.create_auth_headers(model_version);
+        headers.insert("cv".to_owned(), self.client_version.to_owned());
+        headers.insert("v".to_owned(), model_version.to_string());
+        headers
+    }
+
+    fn is_fully_logged_in(&self) -> bool {
+        let auth_state = self.login_state.read().unwrap();
+        auth_state.is_fully_logged_in()
+    }
+}
+
+impl AuthHeadersProvider for LoginState {
+    fn create_auth_headers(&self, model_version: u32) -> HashMap<String, String> {
+        match self {
+            LoginState::NotLoggedIn => HashMap::new(),
+            LoginState::LoggedIn { access_token } => HashMap::from([
+                ("accessToken".to_string(), access_token.clone()),
+            ])
+        }
+    }
+
+    fn is_fully_logged_in(&self) -> bool {
+        return match self {
+            LoginState::NotLoggedIn => false,
+            LoginState::LoggedIn { .. } => true
+        };
+    }
+}
+
 
 impl EntityClient {
     pub(crate) fn new(
@@ -61,7 +99,7 @@ impl EntityClient {
         })?;
         let options = RestClientOptions {
             body: None,
-            headers: self.auth_headers_provider.auth_headers(model_version),
+            headers: self.auth_headers_provider.create_auth_headers(model_version),
         };
         let response = self
             .rest_client
@@ -135,7 +173,7 @@ impl EntityClient {
         let body = serde_json::to_vec(&raw_entity).unwrap();
         let options = RestClientOptions {
             body: Some(body),
-            headers: self.auth_headers_provider.auth_headers(model_version),
+            headers: self.auth_headers_provider.create_auth_headers(model_version),
         };
         // FIXME we should look at type model whether it is ET or LET
         let url = format!(
