@@ -15,6 +15,7 @@ import { theme } from "../../gui/theme.js"
 import { ClickHandler } from "../../gui/base/GuiUtils.js"
 import { TodayIconButton } from "./TodayIconButton.js"
 import { ExpanderButton } from "../../gui/base/Expander.js"
+import { isApp } from "../../api/common/Env.js"
 
 export interface CalendarMobileHeaderAttrs extends AppHeaderAttrs {
 	viewType: CalendarViewType
@@ -57,7 +58,9 @@ export class CalendarMobileHeader implements Component<CalendarMobileHeaderAttrs
 				onTap: attrs.onTap,
 			}),
 			right: [
-				...(styles.isDesktopLayout() || styles.isTwoColumnLayout() ? [attrs.navConfiguration.back, attrs.navConfiguration.forward] : []),
+				...(!isApp() && (styles.isSingleColumnLayout() || styles.isTwoColumnLayout())
+					? [attrs.navConfiguration.back, attrs.navConfiguration.forward]
+					: []),
 				m(TodayIconButton, {
 					click: attrs.onToday,
 				}),
