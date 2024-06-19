@@ -24,6 +24,7 @@ impl TypedEntityClient {
 
     pub async fn load<T: Entity + Deserialize<'static>>(
         &self,
+        type_ref: &TypeRef,
         id: &IdType,
     ) -> Result<T, ApiCallError> {
         let type_model = self.entity_client.get_type_model(&T::type_ref())?;
