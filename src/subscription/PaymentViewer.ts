@@ -130,7 +130,7 @@ export class PaymentViewer implements UpdatableSettingsViewer {
 		if (isIOSApp()) {
 			const shouldEnableiOSPayment = await locator.appStorePaymentPicker.shouldEnableAppStorePayment(currentPaymentMethod)
 			if (shouldEnableiOSPayment) {
-				locator.mobilePaymentsFacade.showSubscriptionConfigView()
+				return locator.mobilePaymentsFacade.showSubscriptionConfigView()
 			} else {
 				return Dialog.message("notAvailableInApp_msg")
 			}
