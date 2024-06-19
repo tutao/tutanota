@@ -3,7 +3,7 @@ use serde::{Deserialize, Deserializer, Serialize, Serializer};
 use serde::de::{Error, Visitor};
 
 /// A fixed nine byte length generated ID of an entity/instance
-#[derive(Clone, Default, PartialEq, PartialOrd)]
+#[derive(Clone, Default, PartialEq, PartialOrd, Eq, Hash)]
 #[repr(transparent)]
 pub struct GeneratedId(pub String);
 

@@ -4,14 +4,13 @@
 
 
 pub mod aes;
-mod sha;
-mod hkdf;
+pub mod sha;
+pub mod hkdf;
 mod argon2_id;
-mod ecc;
-mod kyber;
-mod rsa;
-mod tuta_crypt;
-mod key_loader_facade;
+pub mod ecc;
+pub mod kyber;
+pub mod rsa;
+pub mod tuta_crypt;
 pub mod crypto_facade;
 pub mod key;
 
