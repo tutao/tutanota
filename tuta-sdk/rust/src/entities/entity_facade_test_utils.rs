@@ -1,25 +1,20 @@
 use std::collections::HashMap;
 
-use crate::crypto::aes::{Aes128Key, Aes256Key, aes_128_encrypt, aes_256_encrypt, Iv, MacMode, PaddingMode};
+use crate::crypto::aes::{aes_128_encrypt, aes_256_encrypt, GenericAesKey, Iv, MacMode, PaddingMode};
 use crate::element_value::{ElementValue, ParsedEntity};
 use crate::IdTuple;
 
-pub(crate) enum AesKey {
-    Aes128(Aes128Key),
-    Aes256(Aes256Key),
-}
-
-pub fn encrypt_bytes(encryption_key: &AesKey, bytes: &[u8], iv: &Iv) -> Vec<u8> {
+pub fn encrypt_bytes(encryption_key: &GenericAesKey, bytes: &[u8], iv: &Iv) -> Vec<u8> {
     let encrypted_bytes = match encryption_key {
-        AesKey::Aes128(key) => aes_128_encrypt(key, bytes, iv, PaddingMode::WithPadding, MacMode::WithMac),
-        AesKey::Aes256(key) => aes_256_encrypt(key, bytes, iv, PaddingMode::WithPadding),
+        GenericAesKey::Aes128(key) => aes_128_encrypt(key, bytes, iv, PaddingMode::WithPadding, MacMode::WithMac),
+        GenericAesKey::Aes256(key) => aes_256_encrypt(key, bytes, iv, PaddingMode::WithPadding),
     };
 
     encrypted_bytes.unwrap()
 }
 
 /// Generates and returns an encrypted Mail entity. It also returns the decrypted Mail for comparison
-pub fn generate_email_entity(owner_group_key: Option<&AesKey>, session_key: &AesKey, iv: &Iv, confidential: bool, subject: String, sender_name: String, recipient_name: String) -> (ParsedEntity, ParsedEntity) {
+pub fn generate_email_entity(owner_group_key: Option<&GenericAesKey>, session_key: &GenericAesKey, iv: &Iv, confidential: bool, subject: String, sender_name: String, recipient_name: String) -> (ParsedEntity, ParsedEntity) {
     let confidential_bytes;
 
     if confidential {
