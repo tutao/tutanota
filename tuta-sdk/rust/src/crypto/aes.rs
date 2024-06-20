@@ -14,6 +14,12 @@ pub enum PaddingMode {
     WithPadding,
 }
 
+/// Denotes which key size AES is using
+pub enum GenericAesKey {
+    Aes128(Aes128Key),
+    Aes256(Aes256Key),
+}
+
 /// Denotes whether a text should include a message authentication code
 pub enum MacMode {
     NoMac,
