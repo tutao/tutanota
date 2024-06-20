@@ -1,105 +1,25 @@
 #  XCodeGen configuration file
 name: tutanota # Also known as tutanooota (while testing xcodegen)
+include:
+    - path: "../xcodegen_common.yml"
 options:
-  minimumXCodeGenVersion: 2.41.0
-  createIntermediateGroups: true
-  bundleIdPrefix: "de.tutao.tutanota"
-  developmentLanguage: "en"
-  usesTabs: true
-  tabWidth: 4 # Keep this in sync with the `.swift-format.json`
-  deploymentTarget:
-    iOS: "15.0"
-  groupSortPosition: "top"
-  transitivelyLinkDependencies: false
-  localPackagesGroup: ""
   useBaseInternationalization: true
-  schemePathPrefix: "../" # Recommended for workspaced based projects by XCodeGen devs
-configs:
-  Debug Development: "debug"
-  Debug Staging: "debug"
-  Debug Production: "debug"
-  Release Development: "release"
-  Release Staging: "release"
-  Release Production: "release"
-settings: 
+  schemePathPrefix: "../" # Recommended for workspace based projects by XCodeGen devs
+settings:
   base:
     PRODUCT_NAME: "tutanota"
     DEVELOPMENT_TEAM: "JKCH89Z3M9" # Tutao GmbH
-    SUPPORTED_PLATFORMS: "iphoneos iphonesimulator"
-    TARGETED_DEVICE_FAMILY: "1,2"
     CODE_SIGN_ENTITLEMENTS: "$(TARGET_NAME)/$(TARGET_NAME)$(CONFIGURATION).entitlements"
     ASSETCATALOG_COMPILER_APPICON_NAME: "AppIcon"
-    SUPPORTS_XR_DESIGNED_FOR_IPHONE_IPAD: "NO"      
-    SUPPORTS_MAC_DESIGNED_FOR_IPHONE_IPAD: "NO"   
-    SUPPORTS_MACCATALYST: "NO"
-    SWIFT_VERSION: "5.0"
-    COPY_PHASE_STRIP: "NO"
-    ALWAYS_SEARCH_USER_PATHS: "NO"
-    GCC_DYNAMIC_NO_PIC: "NO"
-    GCC_C_LANGUAGE_STANDARD: "gnu17"
-    CLANG_ENABLE_MODULES: "YES"
-    CLANG_WARN_SUSPICIOUS_IMPLICIT_CONVERSION: "YES"
-    INFOPLIST_KEY_NSHumanReadableCopyright: "Copyright © 2024 Tutao GmbH. All rights reserved."
-  configs:
-    Debug Development: 
-      CODE_SIGN_IDENTITY: "Apple Development"
-      CODE_SIGN_STYLE: "Automatic"
-      PRODUCT_BUNDLE_IDENTIFIER: "de.tutao.tutanota.debug"
-      SWIFT_OPTIMIZATION_LEVEL: "-Onone"
-      SWIFT_ACTIVE_COMPILATION_CONDITIONS: "DEBUG"
-      ONLY_ACTIVE_ARCH: "YES"
-      ENABLE_TESTABILITY: "YES"
-      GCC_OPTIMIZATION_LEVEL: 0
-      GCC_PREPROCESSOR_DEFINITIONS: "DEBUG=1 $(inherited)"
-    Debug Staging:
-      CODE_SIGN_IDENTITY: "Apple Development"
-      CODE_SIGN_STYLE: "Automatic"
-      PRODUCT_BUNDLE_IDENTIFIER: "de.tutao.tutanota.test"
-      SWIFT_OPTIMIZATION_LEVEL: "-Onone"
-      SWIFT_ACTIVE_COMPILATION_CONDITIONS: "DEBUG"
-      ONLY_ACTIVE_ARCH: "YES"
-      ENABLE_TESTABILITY: "YES"
-      GCC_OPTIMIZATION_LEVEL: 0
-      GCC_PREPROCESSOR_DEFINITIONS: "DEBUG=1 $(inherited)"
-    Debug Production:
-      CODE_SIGN_IDENTITY: "Apple Development"
-      CODE_SIGN_STYLE: "Automatic"
-      CODE_SIGN_ENTITLEMENTS: "$(TARGET_NAME)/$(TARGET_NAME).entitlements"
-      PRODUCT_BUNDLE_IDENTIFIER: "de.tutao.tutanota"
-      SWIFT_OPTIMIZATION_LEVEL: "-Onone"
-      SWIFT_ACTIVE_COMPILATION_CONDITIONS: "DEBUG"
-      ONLY_ACTIVE_ARCH: "YES"
-      ENABLE_TESTABILITY: "YES"
-      GCC_OPTIMIZATION_LEVEL: 0
-      GCC_PREPROCESSOR_DEFINITIONS: "DEBUG=1 $(inherited)"
-    Release Development: 
-      CODE_SIGN_IDENTITY: "iPhone Distribution"
-      CODE_SIGN_STYLE: "Manual"
-      PRODUCT_BUNDLE_IDENTIFIER: "de.tutao.tutanota.debug"
-      SWIFT_OPTIMIZATION_LEVEL: "-O"
-      VALIDATE_PRODUCT: "YES"
-    Release Staging:
-      CODE_SIGN_IDENTITY: "iPhone Distribution"
-      CODE_SIGN_STYLE: "Manual"
-      PRODUCT_BUNDLE_IDENTIFIER: "de.tutao.tutanota.test"
-      SWIFT_OPTIMIZATION_LEVEL: "-O"
-      VALIDATE_PRODUCT: "YES"
-    Release Production:
-      CODE_SIGN_IDENTITY: "iPhone Distribution"
-      CODE_SIGN_STYLE: "Manual"
-      CODE_SIGN_ENTITLEMENTS: "$(TARGET_NAME)/$(TARGET_NAME).entitlements"
-      PRODUCT_BUNDLE_IDENTIFIER: "de.tutao.tutanota"
-      SWIFT_OPTIMIZATION_LEVEL: "-O"
-      VALIDATE_PRODUCT: "YES"
 targets:
   tutanota:
     templates: ["formatAndLint"]
     type: "application"
-    sources: 
+    sources:
       - path: "tutanota"
         excludes: [
-          "tutanota-web", 
-          "Sources/Crypto/liboqs", 
+          "tutanota-web",
+          "Sources/Crypto/liboqs",
           "Sources/Crypto/phc-winner-argon2",
           "Sources/sdktest.swift"
         ]
@@ -141,23 +61,23 @@ targets:
             "-DOQS_DIST_BUILD=1",
             "-DOQS_ENABLE_KEM_KYBER=1"
         ]
-        SUPPORTS_XR_DESIGNED_FOR_IPHONE_IPAD: "NO"      
-        SUPPORTS_MAC_DESIGNED_FOR_IPHONE_IPAD: "NO"   
+        SUPPORTS_XR_DESIGNED_FOR_IPHONE_IPAD: "NO"
+        SUPPORTS_MAC_DESIGNED_FOR_IPHONE_IPAD: "NO"
       configs:
         Debug Development:
           PRODUCT_NAME: "Tuta D"
         Debug Staging:
           PRODUCT_NAME: "Tuta Test"
-        Debug Production: 
+        Debug Production:
           PRODUCT_NAME: "Tuta Mail"
-        Release Development: 
+        Release Development:
           PRODUCT_NAME: "Tuta D"
           PROVISIONING_PROFILE_SPECIFIER: "match AdHoc de.tutao.tutanota"
-        Release Staging: 
+        Release Staging:
           PRODUCT_NAME: "Tuta Test"
           PROVISIONING_PROFILE_SPECIFIER: "match AdHoc de.tutao.tutanota.test"
           PROVISIONING_PROFILE_SPECIFIER[sdk=iphoneos*]: "match AdHoc de.tutao.tutanota.test 1716556941"
-        Release Production: 
+        Release Production:
           PRODUCT_NAME: "Tuta Mail"
           PROVISIONING_PROFILE_SPECIFIER: "match AdHoc de.tutao.tutanota"
     dependencies:
@@ -258,10 +178,10 @@ targets:
       HEADER_SEARCH_PATHS: "${PROJECT_DIR}/tutanota/include\"/**"
       TEST_HOST: "$(BUILT_PRODUCTS_DIR)/Tuta D.app/$(BUNDLE_EXECUTABLE_FOLDER_PATH)/Tuta D"
       SWIFT_OBJC_BRIDGING_HEADER: "tutanotaTests/tutanotaTests-Bridging-Header.h"
-      SUPPORTS_XR_DESIGNED_FOR_IPHONE_IPAD: "NO"      
-      SUPPORTS_MAC_DESIGNED_FOR_IPHONE_IPAD: "NO"   
+      SUPPORTS_XR_DESIGNED_FOR_IPHONE_IPAD: "NO"
+      SUPPORTS_MAC_DESIGNED_FOR_IPHONE_IPAD: "NO"
       CLANG_CXX_LANGUAGE_STANDARD: "gnu++14"
-    dependencies: 
+    dependencies:
       - target: "tutanota"
       - framework: tutasdk.framework
         embed: false
@@ -284,21 +204,21 @@ targets:
         CURRENT_PROJECT_VERSION: "1"
         MARKETING_VERSION: "3.104.5"
         CLANG_CXX_LANGUAGE_STANDARD: "gnu++17"
-        SUPPORTS_XR_DESIGNED_FOR_IPHONE_IPAD: "NO"      
-        SUPPORTS_MAC_DESIGNED_FOR_IPHONE_IPAD: "NO"   
+        SUPPORTS_XR_DESIGNED_FOR_IPHONE_IPAD: "NO"
+        SUPPORTS_MAC_DESIGNED_FOR_IPHONE_IPAD: "NO"
       configs:
-        Release Production: 
+        Release Production:
           PROVISIONING_PROFILE_SPECIFIER[sdk=iphoneos*]: "match AdHoc de.tutao.tutanota.TutanotaShareExtension"
-        Release Development: 
+        Release Development:
           PROVISIONING_PROFILE_SPECIFIER[sdk=iphoneos*]: "match AdHoc de.tutao.tutanota.TutanotaShareExtension"
-    dependencies: 
+    dependencies:
       - target: "TutanotaSharedFramework"
       - framework: tutasdk.framework
         embed: false
   TutanotaSharedFramework:
     type: "framework"
     platform: "iOS"
-    sources: 
+    sources:
       - path: "TutanotaSharedFramework"
         headerVisibility: "public"
         # Exclude TUTBigNum.h so we change it's visiblity to 'project' in another source
@@ -322,7 +242,6 @@ targets:
       ]
       APPLICATION_EXTENSION_API_ONLY: "YES"
       ENABLE_USER_SCRIPT_SANDBOXING: "YES"
-      INSTALL_PATH: "$(LOCAL_LIBRARY_DIR)/Frameworks"
       SKIP_INSTALL: "YES"
       DYLIB_COMPATIBILITY_VERSION: "1"
       DYLIB_CURRENT_VERSION: "1"
@@ -342,8 +261,8 @@ targets:
       ENABLE_MODULE_VERIFIER: "YES"
       MODULE_VERIFIER_SUPPORTED_LANGUAGES: "objective-c objective-c++"
       MODULE_VERIFIER_SUPPORTED_LANGUAGE_STANDARDS: "$(GCC_C_LANGUAGE_STANDARD) $(CLANG_CXX_LANGUAGE_STANDARD)"
-      SUPPORTS_XR_DESIGNED_FOR_IPHONE_IPAD: "NO"      
-      SUPPORTS_MAC_DESIGNED_FOR_IPHONE_IPAD: "NO"  
+      SUPPORTS_XR_DESIGNED_FOR_IPHONE_IPAD: "NO"
+      SUPPORTS_MAC_DESIGNED_FOR_IPHONE_IPAD: "NO"
       ASSETCATALOG_COMPILER_GENERATE_SWIFT_ASSET_SYMBOL_EXTENSIONS: "YES"
     dependencies:
       - package: DictionaryCoding
@@ -353,12 +272,12 @@ targets:
   TutanotaNotificationExtension:
     type: "app-extension"
     platform: "iOS"
-    sources: 
+    sources:
       - path: "TutanotaNotificationExtension"
     settings:
       base:
         PRODUCT_NAME: "$(TARGET_NAME)"
-        SUPPORTS_XR_DESIGNED_FOR_IPHONE_IPAD: "NO"      
+        SUPPORTS_XR_DESIGNED_FOR_IPHONE_IPAD: "NO"
         SUPPORTS_MAC_DESIGNED_FOR_IPHONE_IPAD: "NO"
         GCC_NO_COMMON_BLOCKS: "YES"
         CLANG_CXX_LANGUAGE_STANDARD: "gnu++20"
@@ -375,11 +294,11 @@ targets:
         MARKETING_VERSION: "1.0"
         PRODUCT_BUNDLE_IDENTIFIER: "$(inherited).TutanotaNotificationExtension"
       configs:
-        Release Staging: 
+        Release Staging:
           PROVISIONING_PROFILE_SPECIFIER[sdk=iphoneos*]: "match AdHoc de.tutao.tutanota.test.TutanotaNotificationExtension"
-        Release Production: 
+        Release Production:
           PROVISIONING_PROFILE_SPECIFIER[sdk=iphoneos*]: "match AdHoc de.tutao.tutanota.TutanotaNotificationExtension"
-    dependencies: 
+    dependencies:
       - target: "TutanotaSharedFramework"
   TutanotaSharedTests:
     type: "bundle.unit-test"
@@ -398,7 +317,7 @@ targets:
       TEST_HOST: "$(BUILT_PRODUCTS_DIR)/Tuta D.app/$(BUNDLE_EXECUTABLE_FOLDER_PATH)/Tuta D"
       CURRENT_PROJECT_VERSION: "1"
       MARKETING_VERSION: "1.0"
-    dependencies: 
+    dependencies:
       - target: "tutanota"
       - target: "TutanotaSharedFramework"
       - package: "Mockingbird"
@@ -431,17 +350,17 @@ targetTemplates:
 schemes:
   tuta debug:
     build:
-      targets: 
+      targets:
         tutanota: ["analyze", "test", "run", "profile"]
         tutanotaTests: ["test"]
   tuta staging:
     build:
-      targets: 
+      targets:
         tutanota: "all"
         tutanotaTests: ["test"]
   tuta prod:
     build:
-      targets: 
+      targets:
         tutanota: "all"
         tutanotaTests: ["test"]
 packages:
@@ -454,6 +373,3 @@ packages:
   Atomics:
     url: https://github.com/apple/swift-atomics.git
     version: 1.0.2
-projectReferences:
-  tutasdk:
-    path: "../tuta-sdk/ios/tutasdk.xcodeproj"
