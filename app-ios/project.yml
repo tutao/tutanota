@@ -1,5 +1,5 @@
 #  XCodeGen configuration file
-name: tutanooota #FIXME switch this back to 'tutanota' when finished testing
+name: tutanota # Also known as tutanooota (while testing xcodegen)
 options:
   minimumXCodeGenVersion: 2.41.0
   createIntermediateGroups: true
@@ -9,11 +9,8 @@ options:
   tabWidth: 4 # Keep this in sync with the `.swift-format.json`
   deploymentTarget:
     iOS: "15.0"
-  # defaultConfig?
   groupSortPosition: "top"
-  # groupOrdering?
   transitivelyLinkDependencies: false
-  # generateEmptyDirectories?
   localPackagesGroup: ""
   useBaseInternationalization: true
   schemePathPrefix: "../" # Recommended for workspaced based projects by XCodeGen devs
@@ -94,7 +91,6 @@ settings:
       PRODUCT_BUNDLE_IDENTIFIER: "de.tutao.tutanota"
       SWIFT_OPTIMIZATION_LEVEL: "-O"
       VALIDATE_PRODUCT: "YES"
-# SettingsGroups?
 targets:
   tutanota:
     templates: ["formatAndLint"]
@@ -182,7 +178,7 @@ targets:
       - target: TutanotaSharedFramework
       - target: TutanotaShareExtension
         codeSign: false
-      # - target: tutasdk/tutasdk
+      - target: tutasdk/tutasdk
       - target: oqs
       - target: argon2
   oqs:
