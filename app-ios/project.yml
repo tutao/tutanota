@@ -162,7 +162,6 @@ targets:
           PROVISIONING_PROFILE_SPECIFIER: "match AdHoc de.tutao.tutanota"
     dependencies:
       - package: Atomics
-      - package: Alamofire
       - sdk: CryptoTokenKit.framework
         embed: false
         # FIXME make `CryptoTokenKit.framework` optional
@@ -178,7 +177,8 @@ targets:
       - target: TutanotaSharedFramework
       - target: TutanotaShareExtension
         codeSign: false
-      - target: tutasdk/tutasdk
+      - framework: tutasdk.framework
+        embed: false
       - target: oqs
       - target: argon2
   oqs:
@@ -263,6 +263,8 @@ targets:
       CLANG_CXX_LANGUAGE_STANDARD: "gnu++14"
     dependencies: 
       - target: "tutanota"
+      - framework: tutasdk.framework
+        embed: false
   TutanotaShareExtension:
     templates: ["formatAndLint"]
     type: "app-extension"
@@ -291,6 +293,8 @@ targets:
           PROVISIONING_PROFILE_SPECIFIER[sdk=iphoneos*]: "match AdHoc de.tutao.tutanota.TutanotaShareExtension"
     dependencies: 
       - target: "TutanotaSharedFramework"
+      - framework: tutasdk.framework
+        embed: false
   TutanotaSharedFramework:
     type: "framework"
     platform: "iOS"
@@ -398,6 +402,8 @@ targets:
       - target: "tutanota"
       - target: "TutanotaSharedFramework"
       - package: "Mockingbird"
+      - framework: tutasdk.framework
+        embed: false
     preBuildScripts:
       - path: "buildScripts/generate-mockingbird.sh"
         name: "Generate Mockingbird Mocks"
@@ -439,9 +445,6 @@ schemes:
         tutanota: "all"
         tutanotaTests: ["test"]
 packages:
-  Alamofire:
-    url: https://github.com/Alamofire/Alamofire.git
-    version: 5.9.1
   DictionaryCoding:
     url: https://github.com/elegantchaos/DictionaryCoding.git
     version: 1.0.9

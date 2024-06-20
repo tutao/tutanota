@@ -8,7 +8,6 @@
 
 /* Begin PBXBuildFile section */
 		3D881AD02C04891000E629BE /* tutasdk.h in Headers */ = {isa = PBXBuildFile; fileRef = 3D881ACF2C04891000E629BE /* tutasdk.h */; settings = {ATTRIBUTES = (Public, ); }; };
-		3D881AD82C0489CC00E629BE /* Alamofire in Frameworks */ = {isa = PBXBuildFile; productRef = 3D881AD72C0489CC00E629BE /* Alamofire */; };
 		3D881B032C0490CB00E629BE /* tutasdk.a in Frameworks */ = {isa = PBXBuildFile; fileRef = 3D881AFD2C0490CB00E629BE /* tutasdk.a */; };
 		3D881B042C0490CB00E629BE /* tutasdkFFI.h in Headers */ = {isa = PBXBuildFile; fileRef = 3D881AFF2C0490CB00E629BE /* tutasdkFFI.h */; settings = {ATTRIBUTES = (Public, ); }; };
 		3D881B052C0490CB00E629BE /* tutasdk.swift in Sources */ = {isa = PBXBuildFile; fileRef = 3D881B022C0490CB00E629BE /* tutasdk.swift */; };
@@ -32,7 +31,6 @@
 			buildActionMask = 2147483647;
 			files = (
 				3D881B032C0490CB00E629BE /* tutasdk.a in Frameworks */,
-				3D881AD82C0489CC00E629BE /* Alamofire in Frameworks */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -133,7 +131,6 @@
 			);
 			name = tutasdk;
 			packageProductDependencies = (
-				3D881AD72C0489CC00E629BE /* Alamofire */,
 			);
 			productName = tutasdk;
 			productReference = 3D881ACC2C04891000E629BE /* tutasdk.framework */;
@@ -163,7 +160,6 @@
 			);
 			mainGroup = 3D881AC22C04891000E629BE;
 			packageReferences = (
-				3D881AD62C0489CC00E629BE /* XCRemoteSwiftPackageReference "Alamofire" */,
 			);
 			productRefGroup = 3D881ACD2C04891000E629BE /* Products */;
 			projectDirPath = "";
@@ -883,25 +879,6 @@
 			defaultConfigurationName = "Release Development";
 		};
 /* End XCConfigurationList section */
-
-/* Begin XCRemoteSwiftPackageReference section */
-		3D881AD62C0489CC00E629BE /* XCRemoteSwiftPackageReference "Alamofire" */ = {
-			isa = XCRemoteSwiftPackageReference;
-			repositoryURL = "https://github.com/Alamofire/Alamofire.git";
-			requirement = {
-				kind = upToNextMajorVersion;
-				minimumVersion = 5.9.1;
-			};
-		};
-/* End XCRemoteSwiftPackageReference section */
-
-/* Begin XCSwiftPackageProductDependency section */
-		3D881AD72C0489CC00E629BE /* Alamofire */ = {
-			isa = XCSwiftPackageProductDependency;
-			package = 3D881AD62C0489CC00E629BE /* XCRemoteSwiftPackageReference "Alamofire" */;
-			productName = Alamofire;
-		};
-/* End XCSwiftPackageProductDependency section */
 	};
 	rootObject = 3D881AC32C04891000E629BE /* Project object */;
 }
