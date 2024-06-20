@@ -106,7 +106,7 @@ impl CryptoFacade {
             );
         }
 
-        entity.insert(ID_NAME.to_owned(), ElementValue::Bytes(sym_enc_session_key));
+        entity.insert(OWNER_ENC_SESSION_KEY_NAME.to_owned(), ElementValue::Bytes(sym_enc_session_key));
 
         Ok(session_key)
     }
@@ -179,20 +179,20 @@ impl<'a> EntityOwnerKeyData<'a> {
             ($entity:expr, $field:expr, $type:tt) => {
                 match $entity.get($field) {
                     Some(ElementValue::$type(q)) => Ok(Some(q)),
-                    None => Ok(None),
-                    _ => Err(SessionKeyResolutionError { reason: format!("field `{}` is not the expected type", $field) })
+                    None | Some(ElementValue::Null) => Ok(None), // none = not present on type, null = present on type but null
+                    Some(actual) => Err(SessionKeyResolutionError { reason: format!("field `{}` is not the expected type, got {} instead", $field, actual.get_type_variant_name()) })
                 }
             };
         }
 
         let owner_enc_session_key = get_nullable_field!(entity, OWNER_ENC_SESSION_KEY_NAME, Bytes)?;
         let owner_key_version = get_nullable_field!(entity, OWNER_KEY_VERSION_NAME, Number)?.map(|v| *v);
-        let owner_group = get_nullable_field!(entity, OWNER_GROUP_NAME, GeneratedId)?;
+        let owner_group = get_nullable_field!(entity, OWNER_GROUP_NAME, String)?;
         let (list_id, instance_id) = match entity.get(ID_NAME) {
             Some(ElementValue::GeneratedId(id)) => (None, id),
             Some(ElementValue::IdTupleId(IdTuple { list_id, element_id })) => (Some(list_id), element_id),
             None => return Err(SessionKeyResolutionError { reason: "no id present on instance".to_string() }),
-            _ => return Err(SessionKeyResolutionError { reason: "bad format id present on instance".to_string() }),
+            Some(actual) => return Err(SessionKeyResolutionError { reason: format!("unexpected {} type for id on instance", actual.get_type_variant_name()) }),
         };
 
         Ok(EntityOwnerKeyData {
@@ -237,6 +237,7 @@ mod test {
     use crate::crypto::tuta_crypt::{PQKeyPairs, PQMessage};
     use crate::element_value::{ElementValue, ParsedEntity};
     use crate::entities::sys::{BucketKey, InstanceSessionKey, TypeInfo};
+    use crate::entities::tutanota::{Mail, MailAddress};
     use crate::IdTuple;
     use crate::instance_mapper::InstanceMapper;
     use crate::metamodel::{ElementType, TypeModel};
@@ -303,7 +304,6 @@ mod test {
             instance_mapper: instance_mapper.clone()
         };
 
-        let mut mail_entity: ParsedEntity = HashMap::new();
         let mail_type_model = TypeModel {
             id: 0,
             since: 0,
@@ -320,9 +320,6 @@ mod test {
 
         let bucket_key_generic = GenericAesKey::from(bucket_key.clone());
         let bucket_enc_session_key = bucket_key_generic.encrypt_key(&mail_session_key, bucket_enc_session_key_iv);
-
-        mail_entity.insert(ID_NAME.to_owned(), ElementValue::IdTupleId(IdTuple::new("Mail List ID".to_owned(), "Mail ID".to_owned())));
-        mail_entity.insert(OWNER_GROUP_NAME.to_owned(), ElementValue::GeneratedId("Owner ID".to_owned()));
 
         let bucket_key_data = BucketKey {
             _id: "asdf".to_owned(),
@@ -349,9 +346,51 @@ mod test {
             keyGroup: Some("Owner ID".to_owned()),
         };
 
-        mail_entity.insert(BUCKET_KEY_NAME.to_owned(), ElementValue::Dict(instance_mapper.serialize_entity(bucket_key_data).unwrap()));
+        let mail = Mail {
+            _format: 0,
+            _id: IdTuple { list_id: "Mail List ID".to_owned(), element_id: "Mail ID".to_owned() },
+            _ownerEncSessionKey: None,
+            _ownerGroup: Some("Owner ID".to_owned()),
+            _ownerKeyVersion: None,
+            _permissions: "".to_string(),
+            authStatus: None,
+            confidential: false,
+            differentEnvelopeSender: None,
+            encryptionAuthStatus: None,
+            listUnsubscribe: false,
+            method: 0,
+            movedTime: None,
+            phishingStatus: 0,
+            receivedDate: Default::default(),
+            recipientCount: 0,
+            replyType: 0,
+            sentDate: None,
+            state: 0,
+            subject: "".to_string(),
+            unread: false,
+            attachments: vec![],
+            bccRecipients: vec![],
+            body: None,
+            bucketKey: Some(bucket_key_data),
+            ccRecipients: vec![],
+            conversationEntry: IdTuple { list_id: "".to_string(), element_id: "".to_string() },
+            firstRecipient: None,
+            headers: None,
+            mailDetails: None,
+            mailDetailsDraft: None,
+            replyTos: vec![],
+            sender: MailAddress {
+                _id: "".to_string(),
+                address: "".to_string(),
+                name: "".to_string(),
+                contact: None,
+            },
+            toRecipients: vec![],
+        };
 
-        let key = crypto_facade.resolve_session_key(&mut mail_entity, &mail_type_model)
+        let mut raw_mail = instance_mapper.serialize_entity(mail).unwrap();
+
+        let key = crypto_facade.resolve_session_key(&mut raw_mail, &mail_type_model)
             .expect("should not have errored")
             .expect("where is the key");
 
