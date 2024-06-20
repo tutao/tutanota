@@ -1,5 +1,8 @@
 use std::time::Duration;
 
+pub use crate::IdTuple;
+use crate::TypeRef;
+
 pub(crate) mod accounting;
 pub(crate) mod base;
 pub(crate) mod gossip;
@@ -8,11 +11,9 @@ pub(crate) mod storage;
 pub(crate) mod sys;
 pub(crate) mod tutanota;
 pub(crate) mod usage;
+mod entity_facade;
 
 pub type Id = String;
-
-pub use crate::IdTuple;
-use crate::TypeRef;
 
 // TODO we should see if it's a good idea
 pub type Date = Duration;
@@ -20,3 +21,6 @@ pub type Date = Duration;
 pub trait Entity {
     fn type_ref() -> TypeRef;
 }
+
+#[cfg(test)]
+mod entity_facade_test_utils;
