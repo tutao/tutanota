@@ -1,9 +1,17 @@
 import m, { Children } from "mithril"
 import { assertMainOrNode, isIOSApp } from "../api/common/Env"
-import { assertNotNull, neverNull, noOp, ofClass, promiseMap } from "@tutao/tutanota-utils"
+import { assertNotNull, last, neverNull, noOp, ofClass, promiseMap } from "@tutao/tutanota-utils"
 import { InfoLink, lang, TranslationKey } from "../misc/LanguageViewModel"
-import type { AccountingInfo, Customer, InvoiceInfo } from "../api/entities/sys/TypeRefs.js"
-import { AccountingInfoTypeRef, createDebitServicePutData, CustomerTypeRef, InvoiceInfoTypeRef } from "../api/entities/sys/TypeRefs.js"
+import {
+	AccountingInfo,
+	AccountingInfoTypeRef,
+	BookingTypeRef,
+	createDebitServicePutData,
+	Customer,
+	CustomerTypeRef,
+	InvoiceInfo,
+	InvoiceInfoTypeRef,
+} from "../api/entities/sys/TypeRefs.js"
 import { HtmlEditor, HtmlEditorMode } from "../gui/editor/HtmlEditor"
 import { formatPrice, getPaymentMethodInfoText, getPaymentMethodName } from "./PriceUtils"
 import * as InvoiceDataDialog from "./InvoiceDataDialog"
@@ -11,7 +19,15 @@ import { Icons } from "../gui/base/icons/Icons"
 import { ColumnWidth, Table, TableLineAttrs } from "../gui/base/Table.js"
 import { ButtonType } from "../gui/base/Button.js"
 import { formatDate } from "../misc/Formatter"
-import { getDefaultPaymentMethod, getPaymentMethodType, NewPaidPlans, PaymentMethodType, PostingType } from "../api/common/TutanotaConstants"
+import {
+	AccountType,
+	AvailablePlans,
+	getDefaultPaymentMethod,
+	getPaymentMethodType,
+	NewPaidPlans,
+	PaymentMethodType,
+	PostingType,
+} from "../api/common/TutanotaConstants"
 import { BadGatewayError, LockedError, PreconditionFailedError, TooManyRequestsError } from "../api/common/error/RestError"
 import { Dialog, DialogType } from "../gui/base/Dialog"
 import { getByAbbreviation } from "../api/common/CountryList"
@@ -40,6 +56,8 @@ import { DeviceType } from "../misc/ClientConstants.js"
 import { EntityUpdateData, isUpdateForTypeRef } from "../api/common/utils/EntityUpdateUtils.js"
 import { LoginButton } from "../gui/base/buttons/LoginButton.js"
 import { ProgrammingError } from "../api/common/error/ProgrammingError.js"
+import { showSwitchDialog } from "./SwitchSubscriptionDialog.js"
+import { GENERATED_MAX_ID } from "../api/common/utils/EntityUtils.js"
 
 assertMainOrNode()
 
@@ -136,16 +154,45 @@ export class PaymentViewer implements UpdatableSettingsViewer {
 			}
 		} else if (hasRunningAppStoreSubscription(this._accountingInfo)) {
 			return showManageThroughAppStoreDialog()
+		} else if (currentPaymentMethod == PaymentMethodType.AppStore && this._customer?.type === AccountType.PAID) {
+			// For now we do not allow changing payment method for Paid accounts that use AppStore,
+			// they must downgrade to Free first.
+
+			const isResubscribe = await Dialog.choice(
+				() => lang.get("storeDowngradeOrResubscribe_msg", { "{AppStoreDowngrade}": InfoLink.AppStoreDowngrade }),
+				[
+					{
+						text: "changePlan_action",
+						value: false,
+					},
+					{
+						text: "resubscribe_action",
+						value: true,
+					},
+				],
+			)
+			if (isResubscribe) {
+				return showManageThroughAppStoreDialog()
+			} else {
+				const customerInfo = await locator.logins.getUserController().loadCustomerInfo()
+				const bookings = await locator.entityClient.loadRange(BookingTypeRef, assertNotNull(customerInfo.bookings).items, GENERATED_MAX_ID, 1, true)
+				const lastBooking = last(bookings)
+				if (lastBooking == null) {
+					console.warn("No booking but payment method is AppStore?")
+					return
+				}
+				return showSwitchDialog(this._customer, customerInfo, this._accountingInfo, lastBooking, AvailablePlans, null)
+			}
+		} else {
+			const showPaymentMethodDialog = createNotAvailableForFreeClickHandler(
+				NewPaidPlans,
+				() => this._accountingInfo && this.changePaymentMethod(),
+				// iOS app is checked above
+				() => locator.logins.getUserController().isPremiumAccount(),
+			)
+
+			showPaymentMethodDialog(e, dom)
 		}
-
-		const showPaymentMethodDialog = createNotAvailableForFreeClickHandler(
-			NewPaidPlans,
-			() => this._accountingInfo && this.changePaymentMethod(),
-			// iOS app is checked above
-			() => locator.logins.getUserController().isPremiumAccount(),
-		)
-
-		showPaymentMethodDialog(e, dom)
 	}
 
 	private changeInvoiceData() {
