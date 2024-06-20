@@ -78,4 +78,20 @@ impl ElementValue {
             _ => panic!("Invalid type"),
         }
     }
+
+    pub(crate) fn get_type_variant_name(&self) -> &'static str {
+        match self {
+            Self::Null => "Null",
+            Self::String(_) => "String",
+            Self::Number(_) => "Number",
+            Self::Bytes(_) => "Bytes",
+            Self::Date(_) => "Date",
+            Self::Bool(_) => "Bool",
+            Self::GeneratedId(_) => "GeneratedId",
+            Self::CustomId(_) => "CustomId",
+            Self::IdTupleId(_) => "IdTupleId",
+            Self::Dict(_) => "Dict",
+            Self::Array(_) => "Array",
+        }
+    }
 }
