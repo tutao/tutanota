@@ -9,7 +9,7 @@ pub(crate) mod usage;
 
 use crate::date::Date;
 
-pub type Id = String;
+pub type Id = crate::id::Id;
 
 pub use crate::IdTuple;
 use crate::TypeRef;

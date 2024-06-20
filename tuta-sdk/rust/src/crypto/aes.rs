@@ -404,7 +404,7 @@ fn aes_decrypt<Key: AesKey>(key: &Key, encrypted_bytes: &[u8], padding_mode: Pad
 
 #[cfg(test)]
 mod tests {
-    use base64::engine::{Engine};
+    use base64::engine::Engine;
     use base64::prelude::BASE64_STANDARD;
     use crate::crypto::compatibility_test_utils::*;
 
