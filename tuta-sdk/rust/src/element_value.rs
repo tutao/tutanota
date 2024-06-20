@@ -1,6 +1,6 @@
 use std::collections::HashMap;
-use std::time::SystemTime;
-
+use crate::date::Date;
+use crate::id::Id;
 use crate::IdTuple;
 
 /// Primitive value types used by entity/instance types
@@ -10,9 +10,9 @@ pub enum ElementValue {
     String(String),
     Number(i64),
     Bytes(Vec<u8>),
-    Date(SystemTime),
+    Date(Date),
     Bool(bool),
-    GeneratedId(GeneratedId),
+    GeneratedId(Id),
     CustomId(String),
     IdTupleId(IdTuple),
     Dict(HashMap<String, ElementValue>),
@@ -20,10 +20,6 @@ pub enum ElementValue {
 }
 
 pub type ParsedEntity = HashMap<String, ElementValue>;
-
-// FIXME: This should properly typed to avoid accidental copies from String to GeneratedId
-pub type GeneratedId = String;
-
 
 impl ElementValue {
     pub fn assert_number(&self) -> i64 {
@@ -75,6 +71,20 @@ impl ElementValue {
     pub fn assert_str(&self) -> &str {
         match self {
             ElementValue::String(value) => value,
+            _ => panic!("Invalid type"),
+        }
+    }
+
+    pub fn assert_generated_id(&self) -> &Id {
+        match self {
+            ElementValue::GeneratedId(value) => value,
+            _ => panic!("Invalid type"),
+        }
+    }
+
+    pub fn assert_date(&self) -> &Date {
+        match self {
+            ElementValue::Date(value) => value,
             _ => panic!("Invalid type"),
         }
     }

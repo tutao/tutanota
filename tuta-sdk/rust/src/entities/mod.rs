@@ -13,7 +13,7 @@ mod entity_facade;
 
 use crate::date::Date;
 
-pub type Id = String;
+pub type Id = crate::id::Id;
 
 pub trait Entity {
     fn type_ref() -> TypeRef;

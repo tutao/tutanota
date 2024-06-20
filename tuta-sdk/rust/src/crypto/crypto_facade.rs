@@ -8,7 +8,8 @@ use crate::crypto::key_loader_facade::{KeyLoaderFacade, VersionedAesKey};
 use crate::crypto::randomizer_facade::{random, RandomizerFacade};
 use crate::crypto::rsa::RSAEncryptionError;
 use crate::crypto::tuta_crypt::{PQError, PQMessage};
-use crate::element_value::{ElementValue, GeneratedId, ParsedEntity};
+use crate::id::Id;
+use crate::element_value::{ElementValue, ParsedEntity};
 use crate::entities::sys::BucketKey;
 use crate::IdTuple;
 use crate::instance_mapper::InstanceMapper;
@@ -168,9 +169,9 @@ struct ResolvedBucketKey {
 struct EntityOwnerKeyData<'a> {
     owner_enc_session_key: Option<&'a Vec<u8>>,
     owner_key_version: Option<i64>,
-    owner_group: Option<&'a GeneratedId>,
-    instance_id: &'a GeneratedId,
-    list_id: Option<&'a GeneratedId>
+    owner_group: Option<&'a Id>,
+    instance_id: &'a Id,
+    list_id: Option<&'a Id>
 }
 
 impl<'a> EntityOwnerKeyData<'a> {
@@ -187,7 +188,7 @@ impl<'a> EntityOwnerKeyData<'a> {
 
         let owner_enc_session_key = get_nullable_field!(entity, OWNER_ENC_SESSION_KEY_NAME, Bytes)?;
         let owner_key_version = get_nullable_field!(entity, OWNER_KEY_VERSION_NAME, Number)?.map(|v| *v);
-        let owner_group = get_nullable_field!(entity, OWNER_GROUP_NAME, String)?;
+        let owner_group = get_nullable_field!(entity, OWNER_GROUP_NAME, GeneratedId)?;
         let (list_id, instance_id) = match entity.get(ID_NAME) {
             Some(ElementValue::GeneratedId(id)) => (None, id),
             Some(ElementValue::IdTupleId(IdTuple { list_id, element_id })) => (Some(list_id), element_id),
@@ -236,12 +237,15 @@ mod test {
     use crate::crypto::randomizer_facade::test_util::TestRandomizerFacade;
     use crate::crypto::tuta_crypt::{PQKeyPairs, PQMessage};
     use crate::element_value::{ElementValue, ParsedEntity};
+    use crate::element_value::ElementValue::GeneratedId;
+    use crate::entities::{Entity, Id};
     use crate::entities::sys::{BucketKey, InstanceSessionKey, TypeInfo};
     use crate::entities::tutanota::{Mail, MailAddress};
     use crate::IdTuple;
     use crate::instance_mapper::InstanceMapper;
     use crate::metamodel::{ElementType, TypeModel};
     use crate::owner_enc_session_keys_update_queue::MockOwnerEncSessionKeysUpdateQueue;
+    use crate::type_model_provider::init_type_model_provider;
 
     #[test]
     fn test_bucket_key_resolves() {
@@ -304,25 +308,15 @@ mod test {
             instance_mapper: instance_mapper.clone()
         };
 
-        let mail_type_model = TypeModel {
-            id: 0,
-            since: 0,
-            app: "idk".to_owned(),
-            version: "idk".to_owned(),
-            name: "idk".to_owned(),
-            element_type: ElementType::ListElement,
-            versioned: false,
-            encrypted: true,
-            root_id: "idk".to_owned(),
-            values: HashMap::new(),
-            associations: HashMap::new(),
-        };
-
         let bucket_key_generic = GenericAesKey::from(bucket_key.clone());
         let bucket_enc_session_key = bucket_key_generic.encrypt_key(&mail_session_key, bucket_enc_session_key_iv);
 
+        let instance_id = Id::test_random();
+        let instance_list = Id::test_random();
+        let key_group = Id::test_random();
+
         let bucket_key_data = BucketKey {
-            _id: "asdf".to_owned(),
+            _id: Id::test_random(),
             groupEncBucketKey: None,
             protocolVersion: 2,
             pubEncBucketKey: Some(encapsulation.serialize()),
@@ -330,29 +324,29 @@ mod test {
             senderKeyVersion: None,
             bucketEncSessionKeys: vec![
                 InstanceSessionKey {
-                    _id: String::new(),
+                    _id: Id::test_random(),
                     encryptionAuthStatus: None,
-                    instanceId: "Mail ID".to_owned(),
-                    instanceList: "Mail List ID".to_owned(),
+                    instanceId: instance_id.clone(),
+                    instanceList: instance_list.clone(),
                     symEncSessionKey: bucket_enc_session_key.clone(),
                     symKeyVersion: recipient_key_version,
                     typeInfo: TypeInfo {
-                        _id: String::new(),
+                        _id: Id::test_random(),
                         application: String::new(),
                         typeId: 0,
                     },
                 }
             ],
-            keyGroup: Some("Owner ID".to_owned()),
+            keyGroup: Some(key_group.clone()),
         };
 
         let mail = Mail {
             _format: 0,
-            _id: IdTuple { list_id: "Mail List ID".to_owned(), element_id: "Mail ID".to_owned() },
+            _id: IdTuple { list_id: instance_list, element_id: instance_id },
             _ownerEncSessionKey: None,
-            _ownerGroup: Some("Owner ID".to_owned()),
+            _ownerGroup: Some(key_group.clone()),
             _ownerKeyVersion: None,
-            _permissions: "".to_string(),
+            _permissions: Id::test_random(),
             authStatus: None,
             confidential: false,
             differentEnvelopeSender: None,
@@ -373,14 +367,14 @@ mod test {
             body: None,
             bucketKey: Some(bucket_key_data),
             ccRecipients: vec![],
-            conversationEntry: IdTuple { list_id: "".to_string(), element_id: "".to_string() },
+            conversationEntry: IdTuple { list_id: Id::test_random(), element_id: Id::test_random() },
             firstRecipient: None,
             headers: None,
             mailDetails: None,
             mailDetailsDraft: None,
             replyTos: vec![],
             sender: MailAddress {
-                _id: "".to_string(),
+                _id: Id::test_random(),
                 address: "".to_string(),
                 name: "".to_string(),
                 contact: None,
@@ -389,6 +383,10 @@ mod test {
         };
 
         let mut raw_mail = instance_mapper.serialize_entity(mail).unwrap();
+
+        let provider = init_type_model_provider();
+        let mail_type_ref = Mail::type_ref();
+        let mail_type_model = provider.get_type_model(&mail_type_ref.app, &mail_type_ref.type_).unwrap();
 
         let key = crypto_facade.resolve_session_key(&mut raw_mail, &mail_type_model)
             .expect("should not have errored")

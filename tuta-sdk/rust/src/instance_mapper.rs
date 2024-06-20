@@ -6,9 +6,11 @@ use serde::de::{DeserializeSeed, IntoDeserializer, MapAccess, Unexpected, Visito
 use serde::de::value::{MapDeserializer, SeqDeserializer};
 use serde::ser::{SerializeSeq, SerializeStruct};
 use thiserror::Error;
+use crate::date::Date;
 
 use crate::element_value::{ElementValue, ParsedEntity};
 use crate::entities::Entity;
+use crate::id::Id;
 use crate::IdTuple;
 
 /// Converter between untyped representations of API Entities and generated structures
@@ -120,8 +122,11 @@ impl<'de> Deserializer<'de> for ElementValueDeserializer {
     fn deserialize_string<V>(self, visitor: V) -> Result<V::Value, Self::Error> where V: Visitor<'de> {
         return match self.value {
             // Currently we just generate Id types as String but we could be more precise, then we would need to implement newtype
-            ElementValue::String(str) | ElementValue::GeneratedId(str) | ElementValue::CustomId(str) => {
+            ElementValue::String(str) | ElementValue::CustomId(str) => {
                 visitor.visit_string(str)
+            }
+            ElementValue::GeneratedId(id) => {
+                visitor.visit_string(id.into())
             }
             _ => {
                 Err(de::Error::invalid_type(self.value.as_unexpected(), &"string"))
@@ -160,12 +165,12 @@ impl<'de> Deserializer<'de> for ElementValueDeserializer {
         visitor: V,
     ) -> Result<V::Value, Self::Error> where V: Visitor<'de> {
         if name == "IdTuple" {
-            struct IdTupleMapAccess<I: Iterator<Item=(&'static str, String)>> {
+            struct IdTupleMapAccess<I: Iterator<Item=(&'static str, Id)>> {
                 iter: I,
-                value: Option<String>,
+                value: Option<Id>,
             }
 
-            impl<'a, I> MapAccess<'a> for IdTupleMapAccess<I> where I: Iterator<Item=(&'static str, String)> {
+            impl<'a, I> MapAccess<'a> for IdTupleMapAccess<I> where I: Iterator<Item=(&'static str, Id)> {
                 type Error = de::value::Error;
 
                 fn next_key_seed<K>(&mut self, seed: K) -> Result<Option<K::Value>, Self::Error> where K: DeserializeSeed<'a> {
@@ -181,7 +186,7 @@ impl<'de> Deserializer<'de> for ElementValueDeserializer {
                 fn next_value_seed<V>(&mut self, seed: V) -> Result<V::Value, Self::Error> where V: DeserializeSeed<'a> {
                     match self.value.take() {
                         None => unreachable!(),
-                        Some(v) => seed.deserialize(v.into_deserializer()),
+                        Some(v) => seed.deserialize(String::from(v).into_deserializer()),
                     }
                 }
             }
@@ -215,7 +220,7 @@ struct ElementValueSerializer;
 
 enum ElementValueStructSerializer {
     Struct { map: HashMap<String, ElementValue> },
-    IdTuple { list_id: Option<String>, element_id: Option<String> }
+    IdTuple { list_id: Option<Id>, element_id: Option<Id> }
 }
 
 struct ElementValueSeqSerializer {
@@ -309,8 +314,22 @@ impl Serializer for ElementValueSerializer {
         unsupported("serialize_unit_variant")
     }
 
-    fn serialize_newtype_struct<T>(self, _: &'static str, _: &T) -> Result<Self::Ok, Self::Error> where T: ?Sized + Serialize {
-        unsupported("newtype_struct")
+    fn serialize_newtype_struct<T>(self, name: &'static str, value: &T) -> Result<Self::Ok, Self::Error> where T: ?Sized + Serialize {
+        match name {
+            "Id" => {
+                let Ok(ElementValue::String(id_string)) = value.serialize(self) else {
+                    unreachable!();
+                };
+                Ok(ElementValue::GeneratedId(Id::new(id_string)))
+            },
+            "Date" => {
+                let Ok(ElementValue::Number(timestamp)) = value.serialize(self) else {
+                    unreachable!();
+                };
+                Ok(ElementValue::Date(Date::new(timestamp)))
+            },
+            other => unsupported(other)
+        }
     }
 
     fn serialize_newtype_variant<T>(self, _: &'static str, _: u32, _: &'static str, _: &T) -> Result<Self::Ok, Self::Error> where T: ?Sized + Serialize {
@@ -383,8 +402,8 @@ impl SerializeStruct for ElementValueStructSerializer {
                 map.insert(key.to_string(), value.serialize(ElementValueSerializer)?);
             },
             Self::IdTuple { list_id, element_id } => match key {
-                "list_id" => *list_id = Some(value.serialize(ElementValueSerializer)?.assert_str().to_owned()),
-                "element_id" => *element_id = Some(value.serialize(ElementValueSerializer)?.assert_str().to_owned()),
+                "list_id" => *list_id = Some(value.serialize(ElementValueSerializer)?.assert_generated_id().to_owned()),
+                "element_id" => *element_id = Some(value.serialize(ElementValueSerializer)?.assert_generated_id().to_owned()),
                 _ => unreachable!("unexpected key {key} for IdTuple", key=key)
             },
         };
@@ -427,6 +446,7 @@ mod tests {
     use crate::json_serializer::JsonSerializer;
     use crate::type_model_provider::init_type_model_provider;
     use std::sync::Arc;
+    use crate::id::Id;
 
     use super::*;
 
@@ -438,7 +458,7 @@ mod tests {
         let group: Group = mapper.parse_entity(parsed_entity).unwrap();
         assert_eq!(5_i64, group.r#type);
         assert_eq!(Some(0_i64), group.adminGroupKeyVersion);
-        assert_eq!("LIopQQI--k-0", group.groupInfo.list_id);
+        assert_eq!("LIopQQI--k-0", group.groupInfo.list_id.as_str());
     }
 
     #[test]
@@ -461,19 +481,19 @@ mod tests {
     fn test_ser_mailbox_group_root() {
         let group_root = MailboxGroupRoot {
             _format: 0,
-            _id: "".to_string(),
+            _id: Id::test_random(),
             _ownerGroup: None,
-            _permissions: "".to_string(),
+            _permissions: Id::test_random(),
             calendarEventUpdates: None,
-            mailbox: "mailboxId".to_string(),
+            mailbox: Id::test_random(),
             mailboxProperties: None,
             outOfOfficeNotification: None,
             outOfOfficeNotificationRecipientList: Some(OutOfOfficeNotificationRecipientList {
-                _id: "oof_id".to_string(),
-                list: "oof_list".to_string(),
+                _id: Id::test_random(),
+                list: Id::test_random(),
             }),
-            serverProperties: "serverPropertiesId".to_string(),
-            whitelistRequests: "whitelistRequests".to_string(),
+            serverProperties: Id::test_random(),
+            whitelistRequests: Id::test_random(),
         };
         let mapper = InstanceMapper::new();
         let result = mapper.serialize_entity(group_root.clone()).unwrap();
@@ -484,20 +504,20 @@ mod tests {
     fn test_ser_group() {
         let group_root = Group {
             _format: 0,
-            _id: "".to_string(),
+            _id: Id::test_random(),
             _ownerGroup: None,
-            _permissions: "".to_string(),
-            groupInfo: IdTuple::new("list_id".to_owned(), "element_id".to_owned()),
+            _permissions: Id::test_random(),
+            groupInfo: IdTuple::new(Id::test_random(), Id::test_random()),
             administratedGroups: None,
             archives: vec![ArchiveType {
-                _id: "archive_ref_id".to_string(),
+                _id: Id::test_random(),
                 active: ArchiveRef {
-                    _id: "_".to_string(),
-                    archiveId: "archive_id".to_string(),
+                    _id: Id::test_random(),
+                    archiveId: Id::test_random(),
                 },
                 inactive: vec![],
                 r#type: TypeInfo {
-                    _id: "_".to_string(),
+                    _id: Id::test_random(),
                     application: "app".to_string(),
                     typeId: 1,
                 },
@@ -505,8 +525,8 @@ mod tests {
             currentKeys: None,
             customer: None,
             formerGroupKeys: None,
-            invitations: "_".to_string(),
-            members: "_".to_string(),
+            invitations: Id::test_random(),
+            members: Id::test_random(),
             groupKeyVersion: 1,
             admin: None,
             r#type: 46,
