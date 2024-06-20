@@ -4,8 +4,7 @@ use std::sync::Arc;
 use std::time::{Duration, SystemTime};
 
 use crate::ApiCallError;
-use crate::crypto::aes::{aes_128_decrypt, aes_256_decrypt, IV_BYTE_SIZE};
-use crate::crypto::entity_facade_test_utils::AesKey;
+use crate::crypto::aes::{aes_128_decrypt, aes_256_decrypt, GenericAesKey, IV_BYTE_SIZE};
 use crate::element_value::{ElementValue, ParsedEntity};
 use crate::element_value::ElementValue::Bool;
 use crate::metamodel::{AssociationType, Cardinality, ModelAssociation, ModelValue, TypeModel, ValueType};
@@ -26,7 +25,7 @@ impl EntityFacade {
 }
 
 impl EntityFacade {
-    pub fn decrypt_and_map(&self, type_model: &TypeModel, mut entity: ParsedEntity, session_key: &AesKey) -> Result<ParsedEntity, ApiCallError> {
+    pub fn decrypt_and_map(&self, type_model: &TypeModel, mut entity: ParsedEntity, session_key: &GenericAesKey) -> Result<ParsedEntity, ApiCallError> {
         let mut mapped_decrypted: HashMap<String, ElementValue> = Default::default();
         let mut mapped_errors: HashMap<String, ElementValue> = Default::default();
         let mut mapped_ivs: HashMap<String, ElementValue> = Default::default();
@@ -57,7 +56,7 @@ impl EntityFacade {
         Ok(mapped_decrypted)
     }
 
-    fn map_associations(&self, type_model: &TypeModel, association_data: ElementValue, session_key: &AesKey, association_name: &str, association_model: &ModelAssociation) -> Result<(ElementValue, HashMap<String, ElementValue>), ApiCallError> {
+    fn map_associations(&self, type_model: &TypeModel, association_data: ElementValue, session_key: &GenericAesKey, association_name: &str, association_model: &ModelAssociation) -> Result<(ElementValue, HashMap<String, ElementValue>), ApiCallError> {
         let mut errors: HashMap<String, ElementValue> = Default::default();
         let dependency = match association_model.dependency {
             Some(ref dep) => dep,
@@ -125,7 +124,7 @@ impl EntityFacade {
         }
     }
 
-    fn map_value(&self, value: ElementValue, session_key: &AesKey, key: &String, model_value: &ModelValue) -> Result<(ElementValue, Option<[u8; IV_BYTE_SIZE]>, Option<HashMap<String, ElementValue>>), ApiCallError> {
+    fn map_value(&self, value: ElementValue, session_key: &GenericAesKey, key: &String, model_value: &ModelValue) -> Result<(ElementValue, Option<[u8; IV_BYTE_SIZE]>, Option<HashMap<String, ElementValue>>), ApiCallError> {
         let mut final_iv: Option<[u8; IV_BYTE_SIZE]> = None;
 
         if model_value.encrypted && model_value.is_final {
@@ -148,8 +147,8 @@ impl EntityFacade {
 
         if model_value.encrypted {
             let decrypted_value = match session_key {
-                AesKey::Aes128(k) => aes_128_decrypt(k, value.assert_bytes().as_slice()),
-                AesKey::Aes256(k) => aes_256_decrypt(k, value.assert_bytes().as_slice())
+                GenericAesKey::Aes128(k) => aes_128_decrypt(k, value.assert_bytes().as_slice()),
+                GenericAesKey::Aes256(k) => aes_256_decrypt(k, value.assert_bytes().as_slice())
             };
 
             let mut errors: HashMap<String, ElementValue> = Default::default();
@@ -245,15 +244,15 @@ mod tests {
 
     use rand::random;
 
-    use crate::crypto::aes::{Aes256Key, Iv};
-    use crate::crypto::entity_facade::{AesKey, EntityFacade};
-    use crate::crypto::entity_facade_test_utils::generate_email_entity;
+    use crate::crypto::aes::{Aes256Key, GenericAesKey, Iv};
+    use crate::entities::entity_facade::EntityFacade;
+    use crate::entities::entity_facade_test_utils::generate_email_entity;
     use crate::type_model_provider::init_type_model_provider;
     use crate::TypeRef;
 
     #[test]
     fn test_decrypt_mail() {
-        let sk = AesKey::Aes256(Aes256Key::from_bytes(&random::<[u8; 32]>()).unwrap());
+        let sk = GenericAesKey::Aes256(Aes256Key::from_bytes(&random::<[u8; 32]>()).unwrap());
         let iv = Iv::from_bytes(random::<[u8; 16]>());
 
         let (encrypted_mail, original_mail) = generate_email_entity(
