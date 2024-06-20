@@ -28,6 +28,7 @@ mod util;
 mod owner_enc_session_keys_update_queue;
 mod entities;
 mod instance_mapper;
+pub mod date;
 
 uniffi::setup_scaffolding!();
 
