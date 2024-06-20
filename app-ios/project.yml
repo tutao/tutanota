@@ -5,7 +5,6 @@ options:
   createIntermediateGroups: true
   bundleIdPrefix: "de.tutao.tutanota"
   developmentLanguage: "en"
-  # settingPresets?
   usesTabs: true
   tabWidth: 4 # Keep this in sync with the `.swift-format.json`
   deploymentTarget:
@@ -16,9 +15,6 @@ options:
   transitivelyLinkDependencies: false
   # generateEmptyDirectories?
   localPackagesGroup: ""
-  # fileTypes?
-  # preGenCommand?
-  # postGenCommand?
   useBaseInternationalization: true
   schemePathPrefix: "../" # Recommended for workspaced based projects by XCodeGen devs
 configs:
@@ -34,6 +30,7 @@ settings:
     DEVELOPMENT_TEAM: "JKCH89Z3M9" # Tutao GmbH
     SUPPORTED_PLATFORMS: "iphoneos iphonesimulator"
     TARGETED_DEVICE_FAMILY: "1,2"
+    CODE_SIGN_ENTITLEMENTS: "$(TARGET_NAME)/$(TARGET_NAME)$(CONFIGURATION).entitlements"
     ASSETCATALOG_COMPILER_APPICON_NAME: "AppIcon"
     SUPPORTS_XR_DESIGNED_FOR_IPHONE_IPAD: "NO"      
     SUPPORTS_MAC_DESIGNED_FOR_IPHONE_IPAD: "NO"   
@@ -46,10 +43,11 @@ settings:
     CLANG_ENABLE_MODULES: "YES"
     CLANG_WARN_SUSPICIOUS_IMPLICIT_CONVERSION: "YES"
     INFOPLIST_KEY_NSHumanReadableCopyright: "Copyright © 2024 Tutao GmbH. All rights reserved."
-
   configs:
     Debug Development: 
       CODE_SIGN_IDENTITY: "Apple Development"
+      CODE_SIGN_STYLE: "Automatic"
+      PRODUCT_BUNDLE_IDENTIFIER: "de.tutao.tutanota.debug"
       SWIFT_OPTIMIZATION_LEVEL: "-Onone"
       SWIFT_ACTIVE_COMPILATION_CONDITIONS: "DEBUG"
       ONLY_ACTIVE_ARCH: "YES"
@@ -58,6 +56,8 @@ settings:
       GCC_PREPROCESSOR_DEFINITIONS: "DEBUG=1 $(inherited)"
     Debug Staging:
       CODE_SIGN_IDENTITY: "Apple Development"
+      CODE_SIGN_STYLE: "Automatic"
+      PRODUCT_BUNDLE_IDENTIFIER: "de.tutao.tutanota.test"
       SWIFT_OPTIMIZATION_LEVEL: "-Onone"
       SWIFT_ACTIVE_COMPILATION_CONDITIONS: "DEBUG"
       ONLY_ACTIVE_ARCH: "YES"
@@ -66,6 +66,9 @@ settings:
       GCC_PREPROCESSOR_DEFINITIONS: "DEBUG=1 $(inherited)"
     Debug Production:
       CODE_SIGN_IDENTITY: "Apple Development"
+      CODE_SIGN_STYLE: "Automatic"
+      CODE_SIGN_ENTITLEMENTS: "$(TARGET_NAME)/$(TARGET_NAME).entitlements"
+      PRODUCT_BUNDLE_IDENTIFIER: "de.tutao.tutanota"
       SWIFT_OPTIMIZATION_LEVEL: "-Onone"
       SWIFT_ACTIVE_COMPILATION_CONDITIONS: "DEBUG"
       ONLY_ACTIVE_ARCH: "YES"
@@ -74,14 +77,21 @@ settings:
       GCC_PREPROCESSOR_DEFINITIONS: "DEBUG=1 $(inherited)"
     Release Development: 
       CODE_SIGN_IDENTITY: "iPhone Distribution"
+      CODE_SIGN_STYLE: "Manual"
+      PRODUCT_BUNDLE_IDENTIFIER: "de.tutao.tutanota.debug"
       SWIFT_OPTIMIZATION_LEVEL: "-O"
       VALIDATE_PRODUCT: "YES"
     Release Staging:
       CODE_SIGN_IDENTITY: "iPhone Distribution"
+      CODE_SIGN_STYLE: "Manual"
+      PRODUCT_BUNDLE_IDENTIFIER: "de.tutao.tutanota.test"
       SWIFT_OPTIMIZATION_LEVEL: "-O"
       VALIDATE_PRODUCT: "YES"
     Release Production:
       CODE_SIGN_IDENTITY: "iPhone Distribution"
+      CODE_SIGN_STYLE: "Manual"
+      CODE_SIGN_ENTITLEMENTS: "$(TARGET_NAME)/$(TARGET_NAME).entitlements"
+      PRODUCT_BUNDLE_IDENTIFIER: "de.tutao.tutanota"
       SWIFT_OPTIMIZATION_LEVEL: "-O"
       VALIDATE_PRODUCT: "YES"
 # SettingsGroups?
@@ -101,7 +111,7 @@ targets:
           "-I$(BUILD_DIR)/liboqs-include",
           "-Itutanota/Sources/Crypto/phc-winner-argon2/include"
         ]
-        # XCode will not resolve symbolic links when adding a folder refenence, so we will just use a relative path
+        # XCode will not resolve symbolic links when adding a folder reference, so we will just use a relative path
       - path: "../build"
         name: "build"
         type: "folder"
@@ -118,11 +128,6 @@ targets:
           "${PROJECT_DIR}/tutanota/include",
           "tutanota/Sources/Crypto/phc-winner-argon2/include"
         ]
-        # LIBRARY_SEARCH_PATHS: [
-        #   "$(BUILD_DIR)/liboqs-include",
-        #   "$(PROJECT_DIR)",
-        #   "$(PROJECT_DIR)/tutanota/frameworks"
-        # ]
         CLANG_CXX_LANGUAGE_STANDARD: "gnu++14"
         GCC_PREPROCESSOR_DEFINITIONS: [
             "SQLITE_HAS_CODEC=1",
@@ -145,37 +150,19 @@ targets:
       configs:
         Debug Development:
           PRODUCT_NAME: "Tuta D"
-          PRODUCT_BUNDLE_IDENTIFIER: "de.tutao.tutanota.debug"
-          CODE_SIGN_ENTITLEMENTS: "tutanota/tutanotaDebug Development.entitlements"
-          CODE_SIGN_STYLE: "Automatic"
         Debug Staging:
           PRODUCT_NAME: "Tuta Test"
-          PRODUCT_BUNDLE_IDENTIFIER: "de.tutao.tutanota.test"
-          CODE_SIGN_ENTITLEMENTS: "tutanota/tutanotaDebug Staging.entitlements"
-          CODE_SIGN_STYLE: "Automatic"
         Debug Production: 
           PRODUCT_NAME: "Tuta Mail"
-          PRODUCT_BUNDLE_IDENTIFIER: "de.tutao.tutanota"
-          CODE_SIGN_ENTITLEMENTS: "tutanota/tutanota.entitlements"
-          CODE_SIGN_STYLE: "Automatic"
         Release Development: 
           PRODUCT_NAME: "Tuta D"
-          PRODUCT_BUNDLE_IDENTIFIER: "de.tutao.tutanota.debug"
-          CODE_SIGN_ENTITLEMENTS: "tutanota/tutanotaRelease Development.entitlements"
-          CODE_SIGN_STYLE: "Manual"
           PROVISIONING_PROFILE_SPECIFIER: "match AdHoc de.tutao.tutanota"
         Release Staging: 
           PRODUCT_NAME: "Tuta Test"
-          PRODUCT_BUNDLE_IDENTIFIER: "de.tutao.tutanota.test"
-          CODE_SIGN_ENTITLEMENTS: "tutanota/tutanotaRelease Staging.entitlements"
-          CODE_SIGN_STYLE: "Manual"
           PROVISIONING_PROFILE_SPECIFIER: "match AdHoc de.tutao.tutanota.test"
           PROVISIONING_PROFILE_SPECIFIER[sdk=iphoneos*]: "match AdHoc de.tutao.tutanota.test 1716556941"
         Release Production: 
           PRODUCT_NAME: "Tuta Mail"
-          PRODUCT_BUNDLE_IDENTIFIER: "de.tutao.tutanota"
-          CODE_SIGN_ENTITLEMENTS: "tutanota/tutanota.entitlements"
-          CODE_SIGN_STYLE: "Manual"
           PROVISIONING_PROFILE_SPECIFIER: "match AdHoc de.tutao.tutanota"
     dependencies:
       - package: Atomics
@@ -287,6 +274,7 @@ targets:
     settings:
       base:
         PRODUCT_NAME: "TutanotaShareExtension"
+        PRODUCT_BUNDLE_IDENTIFIER: "$(inherited).TutanotaShareExtension"
         SKIP_INSTALL: "YES"
         IPHONEOS_DEPLOYMENT_TARGET: "15.5" # Why?
         INFOPLIST_KEY_CFBundleDisplayName: "TutanotaShareExtension"
@@ -301,31 +289,9 @@ targets:
         SUPPORTS_XR_DESIGNED_FOR_IPHONE_IPAD: "NO"      
         SUPPORTS_MAC_DESIGNED_FOR_IPHONE_IPAD: "NO"   
       configs:
-        Debug Staging: 
-          PRODUCT_BUNDLE_IDENTIFIER: "de.tutao.tutanota.test.TutanotaShareExtension"
-          CODE_SIGN_ENTITLEMENTS: "TutanotaShareExtension/TutanotaShareExtensionDebug Staging.entitlements"
-          CODE_SIGN_STYLE: "Automatic"
-        Release Staging: 
-          PRODUCT_BUNDLE_IDENTIFIER: "de.tutao.tutanota.test.TutanotaShareExtension"
-          CODE_SIGN_ENTITLEMENTS: "TutanotaShareExtension/TutanotaShareExtensionRelease Staging.entitlements"
-          CODE_SIGN_STYLE: "Manual"
-        Debug Development: 
-          PRODUCT_BUNDLE_IDENTIFIER: "de.tutao.tutanota.debug.TutanotaShareExtension"
-          CODE_SIGN_ENTITLEMENTS: "TutanotaShareExtension/TutanotaShareExtensionDebug Development.entitlements"
-          CODE_SIGN_STYLE: "Automatic"
-        Debug Production: 
-          PRODUCT_BUNDLE_IDENTIFIER: "de.tutao.tutanota.TutanotaShareExtension"
-          CODE_SIGN_ENTITLEMENTS: "TutanotaShareExtension/TutanotaShareExtension.entitlements"
-          CODE_SIGN_STYLE: "Automatic"
         Release Production: 
-          PRODUCT_BUNDLE_IDENTIFIER: "de.tutao.tutanota.TutanotaShareExtension"
-          CODE_SIGN_ENTITLEMENTS: "TutanotaShareExtension/TutanotaShareExtension.entitlements"
-          CODE_SIGN_STYLE: "Manual"
           PROVISIONING_PROFILE_SPECIFIER[sdk=iphoneos*]: "match AdHoc de.tutao.tutanota.TutanotaShareExtension"
         Release Development: 
-          PRODUCT_BUNDLE_IDENTIFIER: "de.tutao.tutanota.debug.TutanotaShareExtension"
-          CODE_SIGN_ENTITLEMENTS: "TutanotaShareExtension/TutanotaShareExtensionRelease Development.entitlements"
-          CODE_SIGN_STYLE: "Manual"
           PROVISIONING_PROFILE_SPECIFIER[sdk=iphoneos*]: "match AdHoc de.tutao.tutanota.TutanotaShareExtension"
     dependencies: 
       - target: "TutanotaSharedFramework"
@@ -341,66 +307,44 @@ targets:
         includes: ["TUTBigNum.h"]
         headerVisibility: "project"
     settings:
-      base:
-        PRODUCT_NAME: "TutanotaSharedFramework"
-        INSTALL_PATH: "$(LOCAL_LIBRARY_DIR)/Frameworks"
-        GCC_PREPROCESSOR_DEFINITIONS: [
-            "SQLITE_HAS_CODEC=1",
-             "$(inherited)"
-        ]
-        OTHER_CFLAGS: [
-          "-DSQLITE_HAS_CODEC",
-          "-DSQLITE_TEMP_STORE=3",
-          "-DNDEBUG",
-          "-DSQLCIPHER_CRYPTO_CC"
-        ]
-        APPLICATION_EXTENSION_API_ONLY: "YES"
-        ENABLE_USER_SCRIPT_SANDBOXING: "YES"
-        INSTALL_PATH: "$(LOCAL_LIBRARY_DIR)/Frameworks"
-        SKIP_INSTALL: "YES"
-        DYLIB_COMPATIBILITY_VERSION: "1"
-        DYLIB_CURRENT_VERSION: "1"
-        DYLIB_INSTALL_NAME_BASE: "@rpath"
-        LD_RUNPATH_SEARCH_PATHS: "$(inherited) @executable_path/Frameworks @loader_path/Frameworks"
-        LOCALIZATION_PREFERS_STRING_CATALOGS: "YES"
-        SWIFT_EMIT_LOC_STRINGS: "YES"
-        DEFINES_MODULE: "YES"
-        GENERATE_INFOPLIST_FILE: "YES"
-        CODE_SIGN_STYLE: "Manual"
-        PROVISIONING_PROFILE_SPECIFIER: ""
-        CURRENT_PROJECT_VERSION: "1"
-        MARKETING_VERSION: "1.0"
-        VERSIONING_SYSTEM: "apple-generic"
-        GCC_NO_COMMON_BLOCKS: "YES"
-        CLANG_CXX_LANGUAGE_STANDARD: "gnu++20"
-        ENABLE_MODULE_VERIFIER: "YES"
-        MODULE_VERIFIER_SUPPORTED_LANGUAGES: "objective-c objective-c++"
-        MODULE_VERIFIER_SUPPORTED_LANGUAGE_STANDARDS: "$(GCC_C_LANGUAGE_STANDARD) $(CLANG_CXX_LANGUAGE_STANDARD)"
-        SUPPORTS_XR_DESIGNED_FOR_IPHONE_IPAD: "NO"      
-        SUPPORTS_MAC_DESIGNED_FOR_IPHONE_IPAD: "NO"  
-        ASSETCATALOG_COMPILER_GENERATE_SWIFT_ASSET_SYMBOL_EXTENSIONS: "YES"
-      configs:
-        Debug Staging: 
-          PRODUCT_BUNDLE_IDENTIFIER: "de.tutao.tutanota.test.TutanotaSharedFramework"
-          CODE_SIGN_IDENTITY: "Apple Development"
-        Release Staging: 
-          PRODUCT_BUNDLE_IDENTIFIER: "de.tutao.tutanota.test.TutanotaSharedFramework"
-          CODE_SIGN_IDENTITY: "Apple Development"
-          CODE_SIGN_IDENTITY[sdk=iphoneos*]: "iPhone Distribution"
-        Debug Development: 
-          PRODUCT_BUNDLE_IDENTIFIER: "de.tutao.tutanota.debug.TutanotaSharedFramework"
-          CODE_SIGN_IDENTITY: "Apple Development"
-        Debug Production: 
-          PRODUCT_BUNDLE_IDENTIFIER: "de.tutao.tutanota.TutanotaSharedFramework"
-          CODE_SIGN_IDENTITY: "Apple Development"
-        Release Production: 
-          PRODUCT_BUNDLE_IDENTIFIER: "de.tutao.tutanota.TutanotaSharedFramework"
-          CODE_SIGN_IDENTITY: "Apple Development"
-          CODE_SIGN_IDENTITY[sdk=iphoneos*]: "iPhone Distribution"
-        Release Development: 
-          PRODUCT_BUNDLE_IDENTIFIER: "de.tutao.tutanota.debug.TutanotaSharedFramework"
-          CODE_SIGN_IDENTITY: "Apple Development"
-          CODE_SIGN_IDENTITY[sdk=iphoneos*]: "iPhone Distribution"
+      PRODUCT_NAME: "TutanotaSharedFramework"
+      PRODUCT_BUNDLE_IDENTIFIER: "$(inherited).TutanotaSharedFramework"
+      INSTALL_PATH: "$(LOCAL_LIBRARY_DIR)/Frameworks"
+      GCC_PREPROCESSOR_DEFINITIONS: [
+          "SQLITE_HAS_CODEC=1",
+            "$(inherited)"
+      ]
+      OTHER_CFLAGS: [
+        "-DSQLITE_HAS_CODEC",
+        "-DSQLITE_TEMP_STORE=3",
+        "-DNDEBUG",
+        "-DSQLCIPHER_CRYPTO_CC"
+      ]
+      APPLICATION_EXTENSION_API_ONLY: "YES"
+      ENABLE_USER_SCRIPT_SANDBOXING: "YES"
+      INSTALL_PATH: "$(LOCAL_LIBRARY_DIR)/Frameworks"
+      SKIP_INSTALL: "YES"
+      DYLIB_COMPATIBILITY_VERSION: "1"
+      DYLIB_CURRENT_VERSION: "1"
+      DYLIB_INSTALL_NAME_BASE: "@rpath"
+      LD_RUNPATH_SEARCH_PATHS: "$(inherited) @executable_path/Frameworks @loader_path/Frameworks"
+      LOCALIZATION_PREFERS_STRING_CATALOGS: "YES"
+      SWIFT_EMIT_LOC_STRINGS: "YES"
+      DEFINES_MODULE: "YES"
+      GENERATE_INFOPLIST_FILE: "YES"
+      CODE_SIGN_STYLE: "Manual"
+      PROVISIONING_PROFILE_SPECIFIER: ""
+      CURRENT_PROJECT_VERSION: "1"
+      MARKETING_VERSION: "1.0"
+      VERSIONING_SYSTEM: "apple-generic"
+      GCC_NO_COMMON_BLOCKS: "YES"
+      CLANG_CXX_LANGUAGE_STANDARD: "gnu++20"
+      ENABLE_MODULE_VERIFIER: "YES"
+      MODULE_VERIFIER_SUPPORTED_LANGUAGES: "objective-c objective-c++"
+      MODULE_VERIFIER_SUPPORTED_LANGUAGE_STANDARDS: "$(GCC_C_LANGUAGE_STANDARD) $(CLANG_CXX_LANGUAGE_STANDARD)"
+      SUPPORTS_XR_DESIGNED_FOR_IPHONE_IPAD: "NO"      
+      SUPPORTS_MAC_DESIGNED_FOR_IPHONE_IPAD: "NO"  
+      ASSETCATALOG_COMPILER_GENERATE_SWIFT_ASSET_SYMBOL_EXTENSIONS: "YES"
     dependencies:
       - package: DictionaryCoding
         product: "DictionaryCoding"
@@ -429,32 +373,12 @@ targets:
         INFOPLIST_FILE: "TutanotaNotificationExtension/Info.plist"
         CURRENT_PROJECT_VERSION: "1"
         MARKETING_VERSION: "1.0"
+        PRODUCT_BUNDLE_IDENTIFIER: "$(inherited).TutanotaNotificationExtension"
       configs:
-        Debug Staging: 
-          PRODUCT_BUNDLE_IDENTIFIER: "de.tutao.tutanota.test.TutanotaNotificationExtension"
-          CODE_SIGN_ENTITLEMENTS: "TutanotaNotificationExtension/TutanotaNotificationExtensionDebug Staging.entitlements"
-          CODE_SIGN_STYLE: "Automatic"
         Release Staging: 
-          PRODUCT_BUNDLE_IDENTIFIER: "de.tutao.tutanota.test.TutanotaNotificationExtension"
-          CODE_SIGN_ENTITLEMENTS:  "TutanotaNotificationExtension/TutanotaNotificationExtensionRelease Staging.entitlements"
-          CODE_SIGN_STYLE: "Manual"
           PROVISIONING_PROFILE_SPECIFIER[sdk=iphoneos*]: "match AdHoc de.tutao.tutanota.test.TutanotaNotificationExtension"
-        Debug Development: 
-          PRODUCT_BUNDLE_IDENTIFIER: "de.tutao.tutanota.debug.TutanotaNotificationExtension"
-          CODE_SIGN_ENTITLEMENTS: "TutanotaNotificationExtension/TutanotaNotificationExtension.entitlements"
-          CODE_SIGN_STYLE: "Automatic"
-        Debug Production: 
-          PRODUCT_BUNDLE_IDENTIFIER: "de.tutao.tutanota.TutanotaNotificationExtension"
-          CODE_SIGN_STYLE: "Automatic"
         Release Production: 
-          PRODUCT_BUNDLE_IDENTIFIER: "de.tutao.tutanota.TutanotaNotificationExtension"
-          CODE_SIGN_ENTITLEMENTS: "TutanotaNotificationExtension/TutanotaNotificationExtension.entitlements"
-          CODE_SIGN_STYLE: "Manual"
           PROVISIONING_PROFILE_SPECIFIER[sdk=iphoneos*]: "match AdHoc de.tutao.tutanota.TutanotaNotificationExtension"
-        Release Development: 
-          PRODUCT_BUNDLE_IDENTIFIER: "de.tutao.tutanota.debug.TutanotaNotificationExtension"
-          CODE_SIGN_ENTITLEMENTS: "TutanotaNotificationExtension/TutanotaNotificationExtensionRelease Development.entitlements"
-          CODE_SIGN_STYLE: "Manual"
     dependencies: 
       - target: "TutanotaSharedFramework"
   TutanotaSharedTests:
