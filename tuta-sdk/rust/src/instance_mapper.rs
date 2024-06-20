@@ -213,8 +213,9 @@ impl<'de> IntoDeserializer<'de> for ElementValue {
 // See serde_json::value::ser for an example.
 struct ElementValueSerializer;
 
-struct ElementValueStructSerializer {
-    map: HashMap<String, ElementValue>,
+enum ElementValueStructSerializer {
+    Struct { map: HashMap<String, ElementValue> },
+    IdTuple { list_id: Option<String>, element_id: Option<String> }
 }
 
 struct ElementValueSeqSerializer {
@@ -340,8 +341,13 @@ impl Serializer for ElementValueSerializer {
         unsupported("map")
     }
 
-    fn serialize_struct(self, _: &'static str, len: usize) -> Result<Self::SerializeStruct, Self::Error> {
-        Ok(ElementValueStructSerializer { map: HashMap::with_capacity(len) })
+    fn serialize_struct(self, name: &'static str, len: usize) -> Result<Self::SerializeStruct, Self::Error> {
+        if name == "IdTuple" {
+            Ok(ElementValueStructSerializer::IdTuple { list_id: None, element_id: None })
+        }
+        else {
+            Ok(ElementValueStructSerializer::Struct { map: HashMap::with_capacity(len) })
+        }
     }
 
     fn serialize_struct_variant(self, _: &'static str, _: u32, _: &'static str, _: usize) -> Result<Self::SerializeStructVariant, Self::Error> {
@@ -350,7 +356,7 @@ impl Serializer for ElementValueSerializer {
 }
 
 fn unsupported(data_type: &str) -> ! {
-    panic!("Unsupported dta type: {}", data_type)
+    panic!("Unsupported data type: {}", data_type)
 }
 
 impl SerializeSeq for ElementValueSeqSerializer {
@@ -372,12 +378,26 @@ impl SerializeStruct for ElementValueStructSerializer {
     type Error = SerError;
 
     fn serialize_field<T>(&mut self, key: &'static str, value: &T) -> Result<(), Self::Error> where T: ?Sized + Serialize {
-        self.map.insert(key.to_string(), value.serialize(ElementValueSerializer)?);
+        match self {
+            Self::Struct { map } => {
+                map.insert(key.to_string(), value.serialize(ElementValueSerializer)?);
+            },
+            Self::IdTuple { list_id, element_id } => match key {
+                "list_id" => *list_id = Some(value.serialize(ElementValueSerializer)?.assert_str().to_owned()),
+                "element_id" => *element_id = Some(value.serialize(ElementValueSerializer)?.assert_str().to_owned()),
+                _ => unreachable!("unexpected key {key} for IdTuple", key=key)
+            },
+        };
         Ok(())
     }
 
     fn end(self) -> Result<Self::Ok, Self::Error> {
-        Ok(ElementValue::Dict(self.map))
+        match self {
+            Self::Struct { map } => Ok(ElementValue::Dict(map)),
+            Self::IdTuple { list_id, element_id } => {
+                Ok(ElementValue::IdTupleId(IdTuple { list_id: list_id.unwrap(), element_id: element_id.unwrap() } ))
+            }
+        }
     }
 }
 
