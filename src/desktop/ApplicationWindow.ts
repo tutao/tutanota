@@ -100,6 +100,14 @@ export class ApplicationWindow {
 					help: "toggleDevTools_action",
 				},
 				{
+					key: Keys.I,
+					meta: isMac,
+					ctrl: !isMac,
+					shift: !isMac,
+					exec: () => this.toggleDevTools(),
+					help: "toggleDevTools_action",
+				},
+				{
 					key: Keys["0"],
 					meta: isMac,
 					ctrl: !isMac,
