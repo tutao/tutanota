@@ -3,6 +3,7 @@ use std::collections::HashMap;
 use crate::crypto::aes::{aes_128_encrypt, aes_256_encrypt, Iv, MacMode, PaddingMode};
 use crate::crypto::key::GenericAesKey;
 use crate::element_value::{ElementValue, ParsedEntity};
+use crate::id::Id;
 use crate::IdTuple;
 
 pub fn encrypt_bytes(encryption_key: &GenericAesKey, bytes: &[u8], iv: &Iv) -> Vec<u8> {
@@ -33,8 +34,8 @@ pub fn generate_email_entity(owner_group_key: Option<&GenericAesKey>, session_ke
             Some(_) => ElementValue::Bytes(Default::default()),
             None => ElementValue::Null
         }),
-        ("_id".to_string(), ElementValue::IdTupleId(IdTuple { list_id: "mail_list_id".to_string(), element_id: "mail_id".to_string() })),
-        ("_permissions".to_string(), ElementValue::GeneratedId("permissionListId".to_string())),
+        ("_id".to_string(), ElementValue::IdTupleId(IdTuple { list_id: Id::new("mail_list_id".to_owned()), element_id: Id::new("mail_id".to_owned()) })),
+        ("_permissions".to_string(), ElementValue::GeneratedId(Id::new("permissionListId".to_owned()))),
         ("receivedDate".to_string(), ElementValue::String("1470039025474".to_string())),
         ("sentDate".to_string(), ElementValue::String("1470039021474".to_string())),
         ("state".to_string(), ElementValue::String("".to_string())),
@@ -78,8 +79,8 @@ pub fn generate_email_entity(owner_group_key: Option<&GenericAesKey>, session_ke
             Some(_) => ElementValue::Bytes(Default::default()),
             None => ElementValue::Null
         }),
-        ("_id".to_string(), ElementValue::IdTupleId(IdTuple { list_id: "mail_list_id".to_string(), element_id: "mail_id".to_string() })),
-        ("_permissions".to_string(), ElementValue::GeneratedId("permissionListId".to_string())),
+        ("_id".to_string(), ElementValue::IdTupleId(IdTuple { list_id: Id::new("mail_list_id".to_owned()), element_id: Id::new("mail_id".to_owned()) })),
+        ("_permissions".to_string(), ElementValue::GeneratedId(Id::new("permissionListId".to_owned()))),
         ("receivedDate".to_string(), ElementValue::String("1470039025474".to_string())),
         ("sentDate".to_string(), ElementValue::String("1470039021474".to_string())),
         ("state".to_string(), ElementValue::String("".to_string())),

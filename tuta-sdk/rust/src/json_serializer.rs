@@ -1,12 +1,13 @@
 use std::collections::HashMap;
 use std::sync::Arc;
-use std::time::{Duration, SystemTime};
 
 use base64::{Engine as _, engine::general_purpose::STANDARD as BASE64_STANDARD};
 use thiserror::Error;
 
 use crate::{IdTuple, TypeRef};
+use crate::date::Date;
 use crate::element_value::{ElementValue, ParsedEntity};
+use crate::id::Id;
 use crate::json_serializer::InstanceMapperError::InvalidValue;
 use crate::json_element::{JsonElement, RawEntity};
 use crate::metamodel::{AssociationType, Cardinality, ElementType, ModelValue, TypeModel, ValueType};
@@ -118,7 +119,7 @@ impl JsonSerializer {
                     JsonElement::String(id),
                 ) => {
                     // FIXME it's not always generated id but it's fine probably
-                    mapped.insert(association_name, ElementValue::GeneratedId(id));
+                    mapped.insert(association_name, ElementValue::GeneratedId(Id::new(id)));
                 }
                 (
                     AssociationType::ListElementAssociation,
@@ -241,14 +242,14 @@ impl JsonSerializer {
                     ElementValue::GeneratedId(id),
                 ) => {
                     // FIXME it's not always generated id but it's fine probably
-                    mapped.insert(association_name, JsonElement::String(id));
+                    mapped.insert(association_name, JsonElement::String(id.into()));
                 }
                 (
                     AssociationType::ListElementAssociation,
                     Cardinality::One,
                     ElementValue::IdTupleId(id_tuple),
                 ) => {
-                    mapped.insert(association_name, JsonElement::Array(vec![JsonElement::String(id_tuple.list_id), JsonElement::String(id_tuple.element_id)]));
+                    mapped.insert(association_name, JsonElement::Array(vec![JsonElement::String(id_tuple.list_id.into()), JsonElement::String(id_tuple.element_id.into())]));
                 }
                 (AssociationType::BlobElementAssociation, _, ElementValue::Array(elements)) => {
                     // Blobs ate copied as-is for now
@@ -331,8 +332,8 @@ impl JsonSerializer {
                     ElementValue::IdTupleId(arr),
                     ElementType::ListElement,
                 ) => Ok(JsonElement::Array(vec![
-                    JsonElement::String(arr.list_id),
-                    JsonElement::String(arr.element_id),
+                    JsonElement::String(arr.list_id.into()),
+                    JsonElement::String(arr.element_id.into()),
                 ])),
                 _ => invalid_value(),
             };
@@ -346,16 +347,12 @@ impl JsonSerializer {
                 Ok(JsonElement::String(str))
             }
             (ValueType::Date, ElementValue::Date(v)) => {
-                let num = v
-                    .duration_since(SystemTime::UNIX_EPOCH)
-                    .unwrap()
-                    .as_millis();
-                Ok(JsonElement::String(num.to_string()))
+                Ok(JsonElement::String(v.get_time().to_string()))
             }
             (ValueType::Boolean, ElementValue::Bool(v)) => {
                 Ok(JsonElement::String(if v { "1" } else { "0" }.to_owned()))
             }
-            (ValueType::GeneratedId, ElementValue::GeneratedId(v)) => Ok(JsonElement::String(v)),
+            (ValueType::GeneratedId, ElementValue::GeneratedId(v)) => Ok(JsonElement::String(v.into())),
             (ValueType::CustomId, ElementValue::CustomId(v)) => Ok(JsonElement::String(v)),
             (ValueType::CompressedString, ElementValue::String(_)) => {
                 unimplemented!("compressed string")
@@ -370,7 +367,7 @@ impl JsonSerializer {
         match (it.next(), it.next(), it.next()) {
             (Some(JsonElement::String(list_id)), Some(JsonElement::String(element_id)), None) => {
                 // would like to consume the array here but oh well
-                Some(IdTuple::new(list_id, element_id))
+                Some(IdTuple::new(Id::new(list_id), Id::new(element_id)))
             }
             _ => None,
         }
@@ -439,19 +436,18 @@ impl JsonSerializer {
                 Ok(ElementValue::Bytes(vec))
             }
             (ValueType::Date, JsonElement::String(v)) => {
-                let num = v.parse::<u64>().map_err(|_| InvalidValue {
+                let system_time = v.parse::<i64>().map_err(|_| InvalidValue {
                     type_ref: type_model.into(),
                     field: value_name.to_owned(),
                 })?;
-                let system_time = SystemTime::UNIX_EPOCH + Duration::from_millis(num);
-                Ok(ElementValue::Date(system_time))
+                Ok(ElementValue::Date(Date::new(system_time)))
             }
             (ValueType::Boolean, JsonElement::String(v)) => match v.as_str() {
                 "0" => Ok(ElementValue::Bool(false)),
                 "1" => Ok(ElementValue::Bool(true)),
                 _ => invalid_value(),
             },
-            (ValueType::GeneratedId, JsonElement::String(v)) => Ok(ElementValue::GeneratedId(v)),
+            (ValueType::GeneratedId, JsonElement::String(v)) => Ok(ElementValue::GeneratedId(Id::new(v))),
             (ValueType::CustomId, JsonElement::String(v)) => Ok(ElementValue::CustomId(v)),
             (ValueType::CompressedString, JsonElement::String(_)) => {
                 unimplemented!("compressed string")

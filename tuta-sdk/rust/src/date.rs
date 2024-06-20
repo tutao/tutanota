@@ -1,11 +1,12 @@
 use std::fmt::Formatter;
+use std::time::{Duration, SystemTime};
 use serde::{Deserialize, Deserializer, Serialize, Serializer};
 use serde::de::{Error, Visitor};
-use crate::UniffiCustomTypeConverter;
 
-#[derive(Copy, Clone, Default, PartialEq, PartialOrd)]
-#[repr(transparent)]
+#[derive(Copy, Clone, Default, PartialEq, PartialOrd, Debug)]
 pub struct Date(i64);
+
+uniffi::custom_newtype!(Date, i64);
 
 impl Date {
     pub fn new(timestamp: i64) -> Self {
@@ -15,23 +16,15 @@ impl Date {
     pub fn get_time(self) -> i64 {
         self.0
     }
-}
 
-impl UniffiCustomTypeConverter for Date {
-    type Builtin = i64;
-
-    fn into_custom(val: Self::Builtin) -> uniffi::Result<Self> where Self: Sized {
-        Ok(Self(val))
-    }
-
-    fn from_custom(obj: Self) -> Self::Builtin {
-        obj.0
+    pub fn as_system_time(&self) -> SystemTime {
+        SystemTime::UNIX_EPOCH + Duration::from_millis(self.0 as u64)
     }
 }
 
 impl Serialize for Date {
     fn serialize<S>(&self, serializer: S) -> Result<S::Ok, S::Error> where S: Serializer {
-        serializer.serialize_i64(self.0)
+        serializer.serialize_newtype_struct("Date", &self.0)
     }
 }
 
@@ -53,4 +46,3 @@ impl Visitor<'_> for DateVisitor {
         Ok(Date(v))
     }
 }
-
