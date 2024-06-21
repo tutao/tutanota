@@ -1,6 +1,5 @@
-use std::cell::RefCell;
 use std::collections::HashMap;
-use std::sync::{Arc, Mutex, RwLock};
+use std::sync::{Arc, RwLock};
 use crate::crypto::aes::Aes256Key;
 use crate::entities::sys::User;
 use crate::key_loader_facade::VersionedKey;
@@ -11,14 +10,8 @@ pub struct KeyCache {
     user_group_key_distribution_key: RwLock<Option<Aes256Key>>
 }
 
-fn test_mut() -> impl Sync {
-    let key_cache: KeyCache = KeyCache::new();
-    let key_cache_ref: Arc<KeyCache> = Arc::new(key_cache);
-    key_cache_ref
-}
-
 impl KeyCache {
-    pub fn new () -> Self {
+    pub fn new() -> Self {
         KeyCache {
             current_group_keys: RwLock::new(HashMap::new()),
             current_user_group_key: RwLock::new(None),
@@ -44,12 +37,17 @@ impl KeyCache {
         *self.user_group_key_distribution_key.write().unwrap() = Some(user_group_key_distribution_key);
     }
 
-    pub fn get_current_group_key<F: FnOnce(&String) -> VersionedKey>(&self, group_id: String, key_loader: F) -> VersionedKey {
-        let mut lock = self.current_group_keys.write().unwrap();
-        lock.entry(group_id).or_insert_with_key(|key| key_loader(key)).clone()
+    pub fn get_current_group_key(&self, group_id: &str) -> Option<VersionedKey> {
+        let lock = self.current_group_keys.read().unwrap();
+        lock.get(group_id).cloned()
     }
 
-    pub async fn remove_outdated_group_keys(user: &User) {
+    pub fn put_group_key(&self, group_id: &str, key: &VersionedKey) {
+        let mut lock = self.current_group_keys.write().unwrap();
+        lock.insert(group_id.to_owned(), key.to_owned());
+    }
+
+    pub async fn remove_outdated_group_keys(&self, user: &User) {
         todo!()
     }
 }

@@ -24,7 +24,6 @@ impl TypedEntityClient {
 
     pub async fn load<T: Entity + Deserialize<'static>>(
         &self,
-        type_ref: &TypeRef,
         id: &IdType,
     ) -> Result<T, ApiCallError> {
         let type_model = self.entity_client.get_type_model(&T::type_ref())?;
@@ -39,6 +38,16 @@ impl TypedEntityClient {
             ApiCallError::InternalSdkError { error_message: message }
         })?;
         Ok(typed_entity)
+    }
+
+    pub async fn load_range<T: Entity + Deserialize<'static>>(
+        &self,
+        list_id: &str,
+        start_id: &str,
+        amount: usize,
+        reverse: bool
+    ) -> Result<Vec<T>, ApiCallError> {
+        todo!()
     }
 }
 

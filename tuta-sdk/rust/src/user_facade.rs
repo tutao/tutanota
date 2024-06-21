@@ -3,13 +3,12 @@ use std::collections::HashMap;
 use std::sync::{Arc, RwLock};
 use base64::Engine;
 use base64::prelude::BASE64_STANDARD;
-use crate::{ApiCallError, LoginState};
+use crate::ApiCallError;
 use crate::crypto::aes::{Aes256Key, AES_256_KEY_SIZE};
 use crate::crypto::hkdf::hkdf;
 use crate::crypto::sha::sha256;
 use crate::entities::sys::{GroupMembership, User};
 use crate::key_cache::KeyCache;
-use crate::key_encryption::KeyEncryption;
 use crate::key_loader_facade::{GenericAesKey, VersionedKey};
 use crate::util::Versioned;
 
@@ -31,7 +30,6 @@ pub struct UserFacade {
 
 impl UserFacade {
     pub fn new(key_cache: Arc<KeyCache>, user: User) -> Self {
-        key_cache.clone().reset();
         UserFacade {
             user: RwLock::new(Arc::new(user)),
             key_cache
@@ -46,11 +44,11 @@ impl UserFacade {
         let user = self.get_user();
         let user_group_membership = &user.userGroup;
         let current_user_group_key = Versioned::new(
-            KeyEncryption::decrypt_key(user_passphrase_key.as_ref(), user_group_membership.symEncGKey.clone())?,
+            user_passphrase_key.decrypt_key(user_group_membership.symEncGKey.as_slice())?,
             user_group_membership.groupKeyVersion
         );
         self.key_cache.set_current_user_group_key(current_user_group_key);
-        self.set_user_group_key_distribution_key(user_passphrase_key)?;
+        self.set_user_group_key_distribution_key(user_passphrase_key)
     }
 
     fn set_user_group_key_distribution_key(&mut self, user_passphrase_key: GenericAesKey) -> Result<(), ApiCallError> {
@@ -78,7 +76,7 @@ impl UserFacade {
         // the hkdf salt does not have to be secret but should be unique per user and carry some additional entropy which sha256 ensures
         let aes_key =
             hkdf(user_group_id_hash.as_slice(),
-                 BASE64_STANDARD.encode(user_passphrase_key).as_bytes(),
+                 BASE64_STANDARD.encode(user_passphrase_key.as_bytes()).as_bytes(),
                  USER_GROUP_KEY_DISTRIBUTION_KEY_INFO.as_bytes(), AES_256_KEY_SIZE);
         return match aes_key.len() {
             AES_256_KEY_SIZE => {
@@ -94,7 +92,7 @@ impl UserFacade {
     pub async fn update_user(&self, user: User) {
         let user = Arc::new(user);
         *self.user.write().unwrap() = user.clone();
-        self.key_cache.remove_outdated_group_keys(user).await;
+        self.key_cache.remove_outdated_group_keys(user.as_ref()).await;
     }
 
     pub fn get_user(&self) -> Arc<User> {
@@ -105,27 +103,22 @@ impl UserFacade {
         self.get_user().userGroup.group.clone()
     }
 
-    fn get_all_group_ids(&self) -> &[String] {
-        let mut groups = Vec::from_iter(
-            self.get_logged_in_user().memberships.iter().map(| membership | membership.group)
-        );
-        groups.push(self.get_logged_in_user().userGroup.group);
-        groups.as_slice()
+    fn get_all_group_ids(&self) -> Vec<String> {
+        let mut groups: Vec<String> = self.get_user().memberships.iter().map(| membership | membership.group.clone()).collect();
+        groups.push(self.get_user().userGroup.group.clone());
+        groups
     }
 
     pub fn get_current_user_group_key(&self) -> Result<VersionedKey, ApiCallError> {
-        let Some(current_user_group_key) = self.key_cache.get_current_user_group_key()
-        else {
-            Err(ApiCallError::InternalSdkError {error_message: "userGroupKey not available".to_owned()})
-        };
-        Ok((*current_user_group_key).clone())
+        self.key_cache.get_current_user_group_key()
+            .ok_or_else(|| ApiCallError::InternalSdkError {error_message: "userGroupKey not available".to_owned()})
     }
 
-    fn get_membership(&self, group_id: String) -> Result<GroupMembership, ApiCallError> {
-        let Some(membership) = self.get_logged_in_user().memberships.iter().find(| g | g.group == group_id)
-        else { Err(ApiCallError::InternalSdkError {error_message: format!("No group with groupId {} found!", group_id)}) };
-
-        Ok(membership.clone())
+    pub(crate) fn get_membership(&self, group_id: &str) -> Result<GroupMembership, ApiCallError> {
+        self.get_user()
+            .memberships.iter().find(| g | g.group == group_id)
+            .map(|m| m.to_owned())
+            .ok_or_else(|| ApiCallError::InternalSdkError { error_message: format!("No group with groupId {} found!", group_id) })
     }
 
 
@@ -133,10 +126,7 @@ impl UserFacade {
 
 impl AuthHeadersProvider for UserFacade {
     fn create_auth_headers(&self) -> HashMap<String, String> {
-        let Some(access_token) = self.access_token.to_owned() else { return HashMap::new() };
-        HashMap::from([
-            ("accessToken".to_owned(), access_token)
-        ])
+        todo!()
     }
 
     fn is_fully_logged_in(&self) -> bool {

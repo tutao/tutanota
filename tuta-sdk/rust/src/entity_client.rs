@@ -49,11 +49,6 @@ impl EntityClient {
         id: &IdType,
     ) -> Result<ParsedEntity, ApiCallError> {
         let type_model = self.get_type_model(&type_ref)?;
-        if has_encrypted_fields(type_model) {
-            return Err(ApiCallError::InternalSdkError {
-                error_message: "This client shall not handle encrypted fields!".to_owned()
-            });
-        }
         let url;
         match id {
             IdType::Single(value) => {

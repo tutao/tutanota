@@ -134,7 +134,7 @@ impl Sdk {
     }
 
     pub fn user_facade(&self) -> UserFacade {
-        UserFacade::new(self.unencrypted_entity_client.clone())
+        todo!()
     }
 }
 
