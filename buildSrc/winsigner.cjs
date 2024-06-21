@@ -70,7 +70,7 @@ function getHsmArgs(unsignedFileName, hash, signedFileOutPath) {
 		"sign",
 		"-in", unsignedFileName,
 		"-out", signedFileOutPath,
-		"-pkcs11engine", "/usr/lib/x86_64-linux-gnu/engines-1.1/pkcs11.so",
+		"-pkcs11engine", "/usr/lib/x86_64-linux-gnu/engines-3/pkcs11.so",
 		"-pkcs11module", "/usr/lib/x86_64-linux-gnu/opensc-pkcs11.so",
 		"-certs", certificateFile,
 		"-key", "11", // this is the key corresponding to the Windows authenticode codesigning certificate
