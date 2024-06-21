@@ -9,7 +9,6 @@ settings:
   base:
     PRODUCT_NAME: "tutanota"
     DEVELOPMENT_TEAM: "JKCH89Z3M9" # Tutao GmbH
-    CODE_SIGN_ENTITLEMENTS: "$(TARGET_NAME)/$(TARGET_NAME)$(CONFIGURATION).entitlements"
     ASSETCATALOG_COMPILER_APPICON_NAME: "AppIcon"
 targets:
   tutanota:
@@ -38,6 +37,7 @@ targets:
         ALWAYS_EMBED_SWIFT_STANDARD_LIBRARIES: "YES"
         LD_RUNPATH_SEARCH_PATHS: "@executable_path/Frameworks"
         INFOPLIST_FILE: "tutanota/Info.plist"
+        CODE_SIGN_ENTITLEMENTS: "$(TARGET_NAME)/$(TARGET_NAME)$(CONFIGURATION).entitlements"
         SWIFT_OBJC_BRIDGING_HEADER: "tutanota/Sources/tutanota-Bridging-Header.h"
         HEADER_SEARCH_PATHS: [
           "$(BUILD_DIR)/liboqs-include",
@@ -207,6 +207,7 @@ targets:
         SWIFT_EMIT_LOC_STRINGS: "YES"
         GENERATE_INFOPLIST_FILE: "YES"
         INFOPLIST_FILE: "TutanotaShareExtension/Info.plist"
+        CODE_SIGN_ENTITLEMENTS: "$(TARGET_NAME)/$(TARGET_NAME)$(CONFIGURATION).entitlements"
         HEADER_SEARCH_PATHS: "\"${PROJECT_DIR}/tutanota/include\"/**"
         CURRENT_PROJECT_VERSION: "1"
         MARKETING_VERSION: "3.104.5"
@@ -297,6 +298,7 @@ targets:
         SWIFT_EMIT_LOC_STRINGS: "YES"
         GENERATE_INFOPLIST_FILE: "YES"
         INFOPLIST_FILE: "TutanotaNotificationExtension/Info.plist"
+        CODE_SIGN_ENTITLEMENTS: "$(TARGET_NAME)/$(TARGET_NAME)$(CONFIGURATION).entitlements"
         CURRENT_PROJECT_VERSION: "1"
         MARKETING_VERSION: "1.0"
         PRODUCT_BUNDLE_IDENTIFIER: "$(inherited).TutanotaNotificationExtension"
