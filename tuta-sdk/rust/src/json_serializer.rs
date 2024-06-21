@@ -347,7 +347,7 @@ impl JsonSerializer {
                 Ok(JsonElement::String(str))
             }
             (ValueType::Date, ElementValue::Date(v)) => {
-                Ok(JsonElement::String(v.get_time().to_string()))
+                Ok(JsonElement::String(v.as_millis().to_string()))
             }
             (ValueType::Boolean, ElementValue::Bool(v)) => {
                 Ok(JsonElement::String(if v { "1" } else { "0" }.to_owned()))
@@ -440,7 +440,7 @@ impl JsonSerializer {
                     type_ref: type_model.into(),
                     field: value_name.to_owned(),
                 })?;
-                Ok(ElementValue::Date(Date::new(system_time)))
+                Ok(ElementValue::Date(Date::from_millis(system_time)))
             }
             (ValueType::Boolean, JsonElement::String(v)) => match v.as_str() {
                 "0" => Ok(ElementValue::Bool(false)),

@@ -303,7 +303,7 @@ impl Serializer for ElementValueSerializer {
                 let Ok(ElementValue::Number(timestamp)) = value.serialize(self) else {
                     unreachable!();
                 };
-                Ok(ElementValue::Date(Date::new(timestamp)))
+                Ok(ElementValue::Date(Date::from_millis(timestamp)))
             },
             other => unsupported(other)
         }
@@ -321,12 +321,12 @@ impl Serializer for ElementValueSerializer {
         unsupported("u16")
     }
 
-    fn serialize_u32(self, _: u32) -> Result<Self::Ok, Self::Error> {
-        unsupported("u32")
+    fn serialize_u32(self, v: u32) -> Result<Self::Ok, Self::Error> {
+        Ok(ElementValue::Number(v as i64))
     }
 
-    fn serialize_u64(self, _: u64) -> Result<Self::Ok, Self::Error> {
-        unsupported("u64")
+    fn serialize_u64(self, v: u64) -> Result<Self::Ok, Self::Error> {
+        Ok(ElementValue::Number(v as i64))
     }
 
     fn serialize_f32(self, _: f32) -> Result<Self::Ok, Self::Error> {

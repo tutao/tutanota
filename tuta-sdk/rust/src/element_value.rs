@@ -1,4 +1,5 @@
 use std::collections::HashMap;
+use std::time::SystemTime;
 use crate::date::Date;
 use crate::id::Id;
 use crate::IdTuple;
@@ -75,9 +76,9 @@ impl ElementValue {
         }
     }
 
-    pub fn assert_date(&self) -> &Date {
+    pub fn assert_date(&self) -> SystemTime {
         match self {
-            ElementValue::Date(value) => value,
+            ElementValue::Date(value) => value.get_time(),
             _ => panic!("Invalid type"),
         }
     }

@@ -7,9 +7,8 @@ pub(crate) mod sys;
 pub(crate) mod tutanota;
 pub(crate) mod usage;
 
-use crate::date::Date;
-
-pub type Id = crate::id::Id;
+use crate::date::Date as Date;
+use crate::id::Id as Id;
 
 pub use crate::IdTuple;
 use crate::TypeRef;
