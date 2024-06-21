@@ -238,9 +238,10 @@ mod test {
     use crate::crypto::tuta_crypt::{PQKeyPairs, PQMessage};
     use crate::element_value::{ElementValue, ParsedEntity};
     use crate::element_value::ElementValue::GeneratedId;
-    use crate::entities::{Entity, Id};
+    use crate::entities::Entity;
     use crate::entities::sys::{BucketKey, InstanceSessionKey, TypeInfo};
     use crate::entities::tutanota::{Mail, MailAddress};
+    use crate::id::Id;
     use crate::IdTuple;
     use crate::instance_mapper::InstanceMapper;
     use crate::metamodel::{ElementType, TypeModel};
@@ -382,7 +383,10 @@ mod test {
             toRecipients: vec![],
         };
 
+        println!("{}", serde_json::to_string(&mail).unwrap());
+
         let mut raw_mail = instance_mapper.serialize_entity(mail).unwrap();
+
 
         let provider = init_type_model_provider();
         let mail_type_ref = Mail::type_ref();

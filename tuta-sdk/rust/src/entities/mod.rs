@@ -11,9 +11,8 @@ pub(crate) mod tutanota;
 pub(crate) mod usage;
 mod entity_facade;
 
-use crate::date::Date;
-
-pub type Id = crate::id::Id;
+use crate::date::Date as Date;
+use crate::id::Id as Id;
 
 pub trait Entity {
     fn type_ref() -> TypeRef;
