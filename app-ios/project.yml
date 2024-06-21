@@ -166,7 +166,12 @@ targets:
   tutanotaTests:
     templates: ["formatAndLint"]
     type: "bundle.unit-test"
-    sources: "tutanotaTests"
+    sources: 
+      - path: "tutanotaTests"
+        excludes: ["CompatibilityTest.m"]
+      - path: "tutanotaTests"
+        includes: ["CompatibilityTest.m"]
+        compilerFlags: "-Itutanota/include"
     settings:
       ALWAYS_EMBED_SWIFT_STANDARD_LIBRARIES: "YES"
       CODE_SIGN_STYLE: "Automatic"
@@ -175,7 +180,11 @@ targets:
       INFOPLIST_FILE: "tutanotaTests/Info.plist"
       PRODUCT_BUNDLE_IDENTIFIER: "de.tutao.tutanotaTests"
       PRODUCT_NAME: "$(TARGET_NAME)"
-      HEADER_SEARCH_PATHS: "${PROJECT_DIR}/tutanota/include\"/**"
+      HEADER_SEARCH_PATHS: [
+          "$(BUILD_DIR)/liboqs-include",
+          "${PROJECT_DIR}/tutanota/include",
+          "tutanota/Sources/Crypto/phc-winner-argon2/include"
+        ]
       TEST_HOST: "$(BUILT_PRODUCTS_DIR)/Tuta D.app/$(BUNDLE_EXECUTABLE_FOLDER_PATH)/Tuta D"
       SWIFT_OBJC_BRIDGING_HEADER: "tutanotaTests/tutanotaTests-Bridging-Header.h"
       SUPPORTS_XR_DESIGNED_FOR_IPHONE_IPAD: "NO"
@@ -183,8 +192,6 @@ targets:
       CLANG_CXX_LANGUAGE_STANDARD: "gnu++14"
     dependencies:
       - target: "tutanota"
-      - framework: tutasdk.framework
-        embed: false
   TutanotaShareExtension:
     templates: ["formatAndLint"]
     type: "app-extension"
@@ -303,7 +310,10 @@ targets:
   TutanotaSharedTests:
     type: "bundle.unit-test"
     platform: "iOS"
-    sources: "TutanotaSharedTests"
+    sources: 
+      - path: "TutanotaSharedTests"
+      - path: "MockingbirdMocks/TutanotaSharedTests-TutanotaSharedFrameworkMocks.generated.swift"
+        optional: true # The file will be generated in the "Generate Mockingbird Mocks" stage
     settings:
       GCC_NO_COMMON_BLOCKS: "YES"
       CLANG_CXX_LANGUAGE_STANDARD: "gnu++20"
@@ -320,6 +330,7 @@ targets:
     dependencies:
       - target: "tutanota"
       - target: "TutanotaSharedFramework"
+        embed: false
       - package: "Mockingbird"
       - framework: tutasdk.framework
         embed: false
@@ -353,16 +364,22 @@ schemes:
       targets:
         tutanota: ["analyze", "test", "run", "profile"]
         tutanotaTests: ["test"]
+    test:
+      targets: ["tutanotaTests"]
   tuta staging:
     build:
       targets:
         tutanota: "all"
         tutanotaTests: ["test"]
+    test:
+      targets: ["tutanotaTests"]
   tuta prod:
     build:
       targets:
         tutanota: "all"
         tutanotaTests: ["test"]
+    test:
+      targets: ["tutanotaTests"]
 packages:
   DictionaryCoding:
     url: https://github.com/elegantchaos/DictionaryCoding.git
