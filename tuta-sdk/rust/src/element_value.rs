@@ -16,7 +16,7 @@ pub enum ElementValue {
     CustomId(String),
     IdTupleId(IdTuple),
     Dict(HashMap<String, ElementValue>),
-    Array(Vec<ElementValue>)
+    Array(Vec<ElementValue>),
 }
 
 pub type ParsedEntity = HashMap<String, ElementValue>;
