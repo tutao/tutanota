@@ -11,7 +11,7 @@ export default {
 		"other"
 	],
 	"created_at": "2018-01-12T10:51:54Z",
-	"updated_at": "2024-05-29T10:39:18Z",
+	"updated_at": "2024-06-20T07:29:28Z",
 	"source_locale": {
 		"id": "2001c6fdcc9cd338c1d600cb2636918b",
 		"name": "de",
@@ -1225,6 +1225,7 @@ export default {
 		"pricing.signIn_tooltip": "Admins können sich als Benutzer anmelden, wenn sie das Passwort kennen. Admins können das Passwort jederzeit zurücksetzen.",
 		"pricing.subscriptionPeriodInfoBusiness_msg": "Die Vertragslaufzeit beträgt einen Monat bei monatlicher Zahlung und ein Jahr bei jährlicher Zahlung. Die Vertragslaufzeit wird nach Ende der Laufzeit automatisch verlängert.",
 		"pricing.subscriptionPeriodInfoPrivate_msg": "Die Vertragslaufzeit beträgt einen Monat bei monatlicher Zahlung und ein Jahr bei jährlicher Zahlung. Anschließend wird der Vertrag auf unbestimmte Zeit verlängert und kann jederzeit gekündigt werden.",
+		"pricing.table_unlimitedDomain": "Unlimitiert",
 		"pricing.team_label": "Team-Administration",
 		"pricing.unlimitedAddresses_label": "Unbegrenzte Custom Domain-Adressen",
 		"pricing.upgradeLater_msg": "Benutzen Sie Tuta kostenfrei und upgraden Sie später. Nur für Privatnutzer.",

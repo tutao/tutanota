@@ -11,7 +11,7 @@ export default {
 		"other"
 	],
 	"created_at": "2015-01-27T13:13:02Z",
-	"updated_at": "2024-05-31T11:36:34Z",
+	"updated_at": "2024-06-19T18:20:00Z",
 	"source_locale": {
 		"id": "fcd7471b347c8e517663e194dcddf237",
 		"name": "en",
@@ -1225,6 +1225,7 @@ export default {
 		"pricing.signIn_tooltip": "Los administradores pueden iniciar sesión como el usuario si conocen su contraseña. Los administradores pueden restablecer la contraseña en cualquier momento.",
 		"pricing.subscriptionPeriodInfoBusiness_msg": "El período de suscripción es de un mes en caso de pago mensual y un año en caso de pago anual. La suscripción se renovará automáticamente después del final del período.",
 		"pricing.subscriptionPeriodInfoPrivate_msg": "El período de suscripción es de un mes en caso de pago mensual y un año en caso de pago anual. Tras el período inicial, se convertirá en un contrato de plazo no fijo y podrá cancelarse en cualquier momento.",
+		"pricing.table_unlimitedDomain": "Ilimitado",
 		"pricing.team_label": "Gestión de equipos",
 		"pricing.unlimitedAddresses_label": "Número ilimitado de direcciones de dominio personalizado",
 		"pricing.upgradeLater_msg": "Usa Tuta gratis y promuévala más tarde. Uso privado exclusivamente.",
