@@ -13,7 +13,7 @@ export default {
 		"other"
 	],
 	"created_at": "2015-01-27T13:15:23Z",
-	"updated_at": "2024-05-30T20:15:18Z",
+	"updated_at": "2024-06-10T08:19:58Z",
 	"source_locale": {
 		"id": "fcd7471b347c8e517663e194dcddf237",
 		"name": "en",
@@ -310,7 +310,7 @@ export default {
 		"copyLinkError_msg": "Не удалось скопировать ссылку",
 		"copyLink_action": "Скопировать адрес линка",
 		"copyToClipboard_action": "Копировать в буфер обмена",
-		"copy_action": "Копирование",
+		"copy_action": "Копировать",
 		"correctDNSValue_label": "OK",
 		"correctValues_msg": "Пожалуйста, исправьте значения в неверном формате.",
 		"corruptedValue_msg": "Значение не может быть отображено.",

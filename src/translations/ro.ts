@@ -12,7 +12,7 @@ export default {
 		"other"
 	],
 	"created_at": "2015-02-18T09:07:31Z",
-	"updated_at": "2024-05-31T14:44:02Z",
+	"updated_at": "2024-06-20T16:00:37Z",
 	"source_locale": {
 		"id": "fcd7471b347c8e517663e194dcddf237",
 		"name": "en",
@@ -1226,6 +1226,7 @@ export default {
 		"pricing.signIn_tooltip": "Administratorii se pot autentifica în calitate de utilizator dacă cunosc parola acestuia. Administratorii pot schimba parola oricând.",
 		"pricing.subscriptionPeriodInfoBusiness_msg": "Perioada abonamentului este de o lună în cazul plății lunare și de un an în cazul plății anuale. Abonamentul va fi reînnoit automat la sfârșitul perioadei de abonament.",
 		"pricing.subscriptionPeriodInfoPrivate_msg": "Perioada abonamentului este de o lună în cazul plății lunare și de un an în cazul plății anuale. După perioada inițială, abonamentul se va transforma într-un contract pe termen nedeterminat și poate fi anulat în orice moment.",
+		"pricing.table_unlimitedDomain": "Nelimitat",
 		"pricing.team_label": "Gestionarea echipei",
 		"pricing.unlimitedAddresses_label": "Adrese nelimitate de domenii personalizate",
 		"pricing.upgradeLater_msg": "Folosești Tuta gratis și poți face abonament ulterior. Numai pentru uz personal.",

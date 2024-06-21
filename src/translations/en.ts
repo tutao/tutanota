@@ -11,7 +11,7 @@ export default {
 		"other"
 	],
 	"created_at": "2015-01-13T20:10:13Z",
-	"updated_at": "2024-05-29T10:39:18Z",
+	"updated_at": "2024-06-20T07:27:01Z",
 	"source_locale": null,
 	"fallback_locale": null,
 	"keys": {
@@ -1625,7 +1625,6 @@ export default {
 		"unencryptedTransmission_msg": "The email(s) moved to the spam folder will be transmitted to the server in unencrypted form to improve spam protection.",
 		"unknownError_msg": "An unexpected error occurred. Please try again later.",
 		"unknownRepetition_msg": "The event is part of a series.",
-		"unlimited_label": "Unlimited",
 		"unlockCredentials_action": "Unlock credentials",
 		"unprocessedBookings_msg": "You have some unprocessed orders with a total value of {amount}. This amount will be deducted from your balance and/or chosen payment method upon the next invoice.",
 		"unrecognizedU2fDevice_msg": "Your security key has not been recognized.",

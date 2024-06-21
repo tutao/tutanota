@@ -11,7 +11,7 @@ export default {
 		"other"
 	],
 	"created_at": "2015-03-23T11:36:16Z",
-	"updated_at": "2024-05-29T14:27:22Z",
+	"updated_at": "2024-06-20T11:58:50Z",
 	"source_locale": null,
 	"fallback_locale": null,
 	"keys": {
@@ -1197,7 +1197,7 @@ export default {
 		"pricing.notSupportedByPersonalPlan_msg": "Den begärda funktionen stöds inte med en personlig plan. Välj en företagsplan.",
 		"pricing.offline_label": "Offline support",
 		"pricing.offline_tooltip": "Logga in och visa din e-post, dina kalendrar och kontakter när du vill och var du än befinner dig - även om du inte har någon internetanslutning - med alla våra appar (dator, Android och iOS).",
-		"pricing.perMonthPaidYearly_label": "per månad - betala årsvis",
+		"pricing.perMonthPaidYearly_label": "per månad - betalas årsvis",
 		"pricing.perMonth_label": "per månad",
 		"pricing.perUserMonthPaidYearly_label": "per användare/månad - betalas årligen",
 		"pricing.perUserMonth_label": "per användare/månad",
@@ -1221,6 +1221,7 @@ export default {
 		"pricing.signIn_tooltip": "Administratörer kan logga in som användaren om de känner till användarens lösenord. Administratörer kan återställa lösenordet när som helst.",
 		"pricing.subscriptionPeriodInfoBusiness_msg": "Abonnemangssperioden är en månad när du betalar månadsvis och ett år när du betalar årsvis. Abonnemanget förnyas automatiskt i slutet av prenumerationsperioden.",
 		"pricing.subscriptionPeriodInfoPrivate_msg": "Abonnemangsperioden är en månad när du betalar månadsvis och ett år när du betalar årsvis. Efter den första perioden omvandlas det till ett tillsvidarekontrakt som kan sägas upp när som helst.",
+		"pricing.table_unlimitedDomain": "Unlimited",
 		"pricing.team_label": "Hantering av team",
 		"pricing.unlimitedAddresses_label": "Obegränsat antal anpassade domänadresser",
 		"pricing.upgradeLater_msg": "Använd Tuta kostnadsfritt och uppgradera senare. Endast för personligt bruk.",

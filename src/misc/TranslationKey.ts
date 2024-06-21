@@ -1609,7 +1609,6 @@ export type TranslationKeyType =
 	| "unencryptedTransmission_msg"
 	| "unknownError_msg"
 	| "unknownRepetition_msg"
-	| "unlimited_label"
 	| "unlockCredentials_action"
 	| "unprocessedBookings_msg"
 	| "unrecognizedU2fDevice_msg"

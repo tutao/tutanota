@@ -13,7 +13,7 @@ export default {
 		"other"
 	],
 	"created_at": "2015-01-27T13:13:41Z",
-	"updated_at": "2024-06-02T16:15:11Z",
+	"updated_at": "2024-06-20T17:58:18Z",
 	"source_locale": {
 		"id": "fcd7471b347c8e517663e194dcddf237",
 		"name": "en",
@@ -1226,6 +1226,7 @@ export default {
 		"pricing.signIn_tooltip": "Administratorzy mogą zalogować się jako użytkownik, jeśli znają hasło. Administratorzy mogą w każdej chwili zresetować hasło.",
 		"pricing.subscriptionPeriodInfoBusiness_msg": "Okres subskrypcji to jeden miesiąc w przypadku płatności miesięcznej oraz jeden rok w przypadku płatności rocznej. Oferta zostanie odnowiona automatycznie po upłynięciu jej okresu.",
 		"pricing.subscriptionPeriodInfoPrivate_msg": "Okres subskrypcji to jeden miesiąc w przypadku płatności miesięcznej oraz jeden rok w przypadku płatności rocznej. Po upływie początkowego okresu umowa przekształci się w umowę na czas nieokreślony i będzie można ją wypowiedzieć w dowolnym momencie.",
+		"pricing.table_unlimitedDomain": "Bez ograniczeń",
 		"pricing.team_label": "Zarządzanie zespołem",
 		"pricing.unlimitedAddresses_label": "Adresy własnych domen bez ograniczeń",
 		"pricing.upgradeLater_msg": "Używaj Tuta nieodpłatnie i ulepsz później. Wyłącznie do użytku osobistego.",

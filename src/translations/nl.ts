@@ -11,7 +11,7 @@ export default {
 		"other"
 	],
 	"created_at": "2015-01-27T13:13:55Z",
-	"updated_at": "2024-06-01T14:11:52Z",
+	"updated_at": "2024-06-07T13:59:57Z",
 	"source_locale": {
 		"id": "fcd7471b347c8e517663e194dcddf237",
 		"name": "en",
@@ -975,6 +975,7 @@ export default {
 		"notificationMailTemplateTooLarge_msg": "Het sjabloon voor de notificatie e-mail is te groot.",
 		"notificationPreferenceNoSenderOrSubject_action": "Geen afzender of onderwerp",
 		"notificationPreferenceOnlySender_action": "Alleen afzender",
+		"notificationPreferenceSenderAndSubject_action": "Afzender en onderwerp",
 		"notificationsDisabled_label": "Gedeactiveerd",
 		"notificationSettings_action": "Berichten",
 		"notificationSync_msg": "Notificaties synchroniseren",
