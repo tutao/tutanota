@@ -50,6 +50,8 @@ pipeline {
 			}
 			steps {
 				script {
+					buildWebapp("local")
+					generateXCodeProjects()
 					dir('app-ios') {
 						sh 'fastlane test'
 					}
@@ -176,6 +178,7 @@ void buildWebapp(String stage) {
 	}
 }
 
+// Runs xcodegen on `projectPath`, a directory containing a `project.yml`
 void generateXCodeProject(String projectPath) {
 	// xcodegen ignores its --project and --project-roots flags
 	// so we need to change the directory manually
@@ -189,6 +192,7 @@ void generateXCodeProjects() {
 	generateXCodeProject("app-ios")
 	generateXCodeProject("tuta-sdk/ios")
 }
+
 
 void writeReleaseNotesForAppStore() {
 	script {
