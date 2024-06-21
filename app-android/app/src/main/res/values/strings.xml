@@ -1,5 +1,5 @@
 <resources>
-    <string name="app_name" translatable="false">Tuta</string>
+    <string name="app_name" translatable="false">Tutanota</string>
     <string name="reminder_label">Reminder</string>
     <string name="pushNewMail_msg">New email received.</string>
     <string name="notificationSync_msg">Synchronizing notifications</string>
