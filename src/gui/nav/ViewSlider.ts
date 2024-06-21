@@ -12,6 +12,8 @@ import { AriaLandmarks } from "../AriaUtils.js"
 import { LayerType } from "../../RootView.js"
 import { assertMainOrNode } from "../../api/common/Env.js"
 
+import { handleFocus } from "../base/GuiUtils"
+
 assertMainOrNode()
 export type GestureInfo = {
 	x: number
@@ -363,6 +365,9 @@ export class ViewSlider implements Component<ViewSliderAttrs> {
 			})
 			.finally(() => {
 				foregroundColumn.isInForeground = toForeground
+				if (foregroundColumn.domColumn && !toForeground) {
+					foregroundColumn.domColumn.style.visibility = "hidden"
+				}
 			})
 	}
 

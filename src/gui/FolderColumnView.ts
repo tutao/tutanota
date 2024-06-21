@@ -4,7 +4,7 @@ import m, { Children, Component, Vnode } from "mithril"
 import type { TranslationKey } from "../misc/LanguageViewModel.js"
 import { lang } from "../misc/LanguageViewModel.js"
 import { AriaLandmarks, landmarkAttrs } from "./AriaUtils.js"
-import type { ClickHandler } from "./base/GuiUtils.js"
+import { ClickHandler, handleFocus } from "./base/GuiUtils.js"
 import type { lazy } from "@tutao/tutanota-utils"
 import { BaseButton, BaseButtonAttrs } from "./base/buttons/BaseButton.js"
 import { px, size } from "./size.js"
@@ -19,26 +19,37 @@ export type Attrs = {
 
 export class FolderColumnView implements Component<Attrs> {
 	view({ attrs }: Vnode<Attrs>): Children {
-		return m(".flex.height-100p.nav-bg", [
-			m(DrawerMenu, attrs.drawer),
-			m(".folder-column.flex-grow.overflow-x-hidden.flex.col", landmarkAttrs(AriaLandmarks.Navigation, lang.getMaybeLazy(attrs.ariaLabel)), [
-				this.renderMainButton(attrs),
-				m(
-					".scroll.scrollbar-gutter-stable-or-fallback.visible-scrollbar.overflow-x-hidden.flex.col.flex-grow",
-					{
-						onscroll: (e: Event) => {
-							const target = e.target as HTMLElement
-							if (attrs.button == null || target.scrollTop === 0) {
-								target.style.borderTop = ""
-							} else {
-								target.style.borderTop = `1px solid ${theme.content_border}`
-							}
+		return m(
+			".flex.height-100p.nav-bg",
+			{
+				onupdate(vnode: m.VnodeDOM<Attrs>): any {
+					if (vnode.dom.parentElement) {
+						const trapFocus = vnode.dom.parentElement.style.visibility === "visible"
+						handleFocus(trapFocus, ["nav", ".view-columns"])
+					}
+				},
+			},
+			[
+				m(DrawerMenu, attrs.drawer),
+				m(".folder-column.flex-grow.overflow-x-hidden.flex.col", landmarkAttrs(AriaLandmarks.Navigation, lang.getMaybeLazy(attrs.ariaLabel)), [
+					this.renderMainButton(attrs),
+					m(
+						".scroll.scrollbar-gutter-stable-or-fallback.visible-scrollbar.overflow-x-hidden.flex.col.flex-grow",
+						{
+							onscroll: (e: Event) => {
+								const target = e.target as HTMLElement
+								if (attrs.button == null || target.scrollTop === 0) {
+									target.style.borderTop = ""
+								} else {
+									target.style.borderTop = `1px solid ${theme.content_border}`
+								}
+							},
 						},
-					},
-					attrs.content,
-				),
-			]),
-		])
+						attrs.content,
+					),
+				]),
+			],
+		)
 	}
 
 	private renderMainButton(attrs: Attrs): Children {

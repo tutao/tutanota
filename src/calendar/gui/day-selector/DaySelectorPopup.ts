@@ -11,6 +11,7 @@ import { formatMonthWithFullYear } from "../../../misc/Formatter.js"
 import { incrementMonth } from "@tutao/tutanota-utils"
 import { styles } from "../../../gui/styles.js"
 import renderSwitchMonthArrowIcon from "../../../gui/base/buttons/ArrowButton.js"
+import { handleFocus } from "../../../gui/base/GuiUtils"
 
 export interface DaySelectorPopupAttrs {
 	selectedDate: Date
@@ -107,31 +108,19 @@ export class DaySelectorPopup implements ModalComponent {
 		this.currentDate = incrementMonth(this.currentDate, forward ? 1 : -1)
 	}
 
-	// Sets the content div (.main-view) to inert, disabling the ability to be focused, this traps the
-	// focus to the popup, releasing it just when the popup is closed and the inert property removed.
-	private turnTrapFocus(on: boolean) {
-		const elementsQuery = document.getElementsByClassName("main-view")
-
-		if (elementsQuery.length > 0) {
-			const mainDiv = elementsQuery.item(0)
-			if (on) mainDiv?.setAttribute("inert", "true")
-			else mainDiv?.removeAttribute("inert")
-		}
-	}
-
 	show() {
 		this.focusedBeforeShown = document.activeElement as HTMLElement
-		this.turnTrapFocus(true)
+		handleFocus(true, [".main-view"])
 		modal.display(this, false)
 	}
 
 	close() {
-		this.turnTrapFocus(false)
+		handleFocus(false, [".main-view"])
 		modal.remove(this)
 	}
 
 	backgroundClick(e: MouseEvent): void {
-		this.turnTrapFocus(false)
+		handleFocus(false, [".main-view"])
 		modal.remove(this)
 	}
 
@@ -148,7 +137,7 @@ export class DaySelectorPopup implements ModalComponent {
 	}
 
 	popState(e: Event): boolean {
-		this.turnTrapFocus(false)
+		handleFocus(false, [".main-view"])
 		modal.remove(this)
 		return false
 	}
