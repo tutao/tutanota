@@ -220,7 +220,7 @@ struct ElementValueSerializer;
 
 enum ElementValueStructSerializer {
     Struct { map: HashMap<String, ElementValue> },
-    IdTuple { list_id: Option<Id>, element_id: Option<Id> }
+    IdTuple { list_id: Option<Id>, element_id: Option<Id> },
 }
 
 struct ElementValueSeqSerializer {
@@ -266,12 +266,12 @@ impl Serializer for ElementValueSerializer {
         unsupported("u16")
     }
 
-    fn serialize_u32(self, _: u32) -> Result<Self::Ok, Self::Error> {
-        unsupported("u32")
+    fn serialize_u32(self, v: u32) -> Result<Self::Ok, Self::Error> {
+        Ok(ElementValue::Number(v as i64))
     }
 
-    fn serialize_u64(self, _: u64) -> Result<Self::Ok, Self::Error> {
-        unsupported("u64")
+    fn serialize_u64(self, v: u64) -> Result<Self::Ok, Self::Error> {
+        Ok(ElementValue::Number(v as i64))
     }
 
     fn serialize_f32(self, _: f32) -> Result<Self::Ok, Self::Error> {
@@ -321,13 +321,13 @@ impl Serializer for ElementValueSerializer {
                     unreachable!();
                 };
                 Ok(ElementValue::GeneratedId(Id::new(id_string)))
-            },
+            }
             "Date" => {
                 let Ok(ElementValue::Number(timestamp)) = value.serialize(self) else {
                     unreachable!();
                 };
-                Ok(ElementValue::Date(Date::new(timestamp)))
-            },
+                Ok(ElementValue::Date(Date::from_millis(timestamp as u64)))
+            }
             other => unsupported(other)
         }
     }
@@ -363,8 +363,7 @@ impl Serializer for ElementValueSerializer {
     fn serialize_struct(self, name: &'static str, len: usize) -> Result<Self::SerializeStruct, Self::Error> {
         if name == "IdTuple" {
             Ok(ElementValueStructSerializer::IdTuple { list_id: None, element_id: None })
-        }
-        else {
+        } else {
             Ok(ElementValueStructSerializer::Struct { map: HashMap::with_capacity(len) })
         }
     }
@@ -400,11 +399,11 @@ impl SerializeStruct for ElementValueStructSerializer {
         match self {
             Self::Struct { map } => {
                 map.insert(key.to_string(), value.serialize(ElementValueSerializer)?);
-            },
+            }
             Self::IdTuple { list_id, element_id } => match key {
                 "list_id" => *list_id = Some(value.serialize(ElementValueSerializer)?.assert_generated_id().to_owned()),
                 "element_id" => *element_id = Some(value.serialize(ElementValueSerializer)?.assert_generated_id().to_owned()),
-                _ => unreachable!("unexpected key {key} for IdTuple", key=key)
+                _ => unreachable!("unexpected key {key} for IdTuple", key = key)
             },
         };
         Ok(())
@@ -414,7 +413,7 @@ impl SerializeStruct for ElementValueStructSerializer {
         match self {
             Self::Struct { map } => Ok(ElementValue::Dict(map)),
             Self::IdTuple { list_id, element_id } => {
-                Ok(ElementValue::IdTupleId(IdTuple { list_id: list_id.unwrap(), element_id: element_id.unwrap() } ))
+                Ok(ElementValue::IdTupleId(IdTuple { list_id: list_id.unwrap(), element_id: element_id.unwrap() }))
             }
         }
     }
