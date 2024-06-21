@@ -75,6 +75,7 @@ pipeline {
 					steps {
 						script {
 							buildWebapp("test")
+							generateXCodeProjects()
 							runFastlane("de.tutao.tutanota.test", "adhoc_staging")
 							if (params.RELEASE) {
 								runFastlane("de.tutao.tutanota.test", "testflight_staging")
@@ -90,6 +91,7 @@ pipeline {
 					steps {
 						script {
 							buildWebapp("prod")
+							generateXCodeProjects()
 							runFastlane("de.tutao.tutanota", "adhoc_prod")
 							if (params.RELEASE) {
 								writeReleaseNotesForAppStore()
@@ -172,6 +174,20 @@ void buildWebapp(String stage) {
     	sh "node --max-old-space-size=8192 webapp ${stage}"
     	sh "node buildSrc/prepareMobileBuild.js dist"
 	}
+}
+
+void generateXCodeProject(String projectPath) {
+	// xcodegen ignores its --project and --project-roots flags
+	// so we need to change the directory manually
+	script {
+		sh "(cd ${projectPath}; xcodegen generate)"
+	}
+}
+
+// Runs xcodegen on all of our project specs
+void generateXCodeProjects() {
+	generateXCodeProject("app-ios")
+	generateXCodeProject("tuta-sdk/ios")
 }
 
 void writeReleaseNotesForAppStore() {
