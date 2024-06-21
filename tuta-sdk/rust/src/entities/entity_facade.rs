@@ -1,10 +1,11 @@
 use std::borrow::Borrow;
 use std::collections::HashMap;
 use std::sync::Arc;
-use std::time::{Duration, SystemTime};
+use std::time::SystemTime;
 
 use crate::ApiCallError;
 use crate::crypto::aes::{aes_128_decrypt, aes_256_decrypt, IV_BYTE_SIZE};
+use crate::date::Date;
 use crate::crypto::key::GenericAesKey;
 use crate::element_value::{ElementValue, ParsedEntity};
 use crate::element_value::ElementValue::Bool;
@@ -193,7 +194,7 @@ impl EntityFacade {
             ValueType::String => ElementValue::String(String::new()),
             ValueType::Number => ElementValue::Number(0),
             ValueType::Bytes => ElementValue::Bytes(Vec::new()),
-            ValueType::Date => ElementValue::Date(SystemTime::UNIX_EPOCH),
+            ValueType::Date => ElementValue::Date(Date::new(SystemTime::UNIX_EPOCH)),
             ValueType::Boolean => Bool(false),
             ValueType::CompressedString => ElementValue::String(String::new()),
             _ => panic!("Invalid type")
@@ -220,7 +221,7 @@ impl EntityFacade {
                     Ok(bytes) => bytes,
                     Err(_) => return Err(ApiCallError::InternalSdkError { error_message: "Failed to parse bytes slice".to_string() })
                 };
-                Ok(ElementValue::Date(SystemTime::UNIX_EPOCH + Duration::from_millis(u64::from_be_bytes(bytes))))
+                Ok(ElementValue::Date(Date::from_millis(u64::from_be_bytes(bytes))))
             }
             ValueType::Boolean => {
                 let value = if bytes.eq(&[0x01]) {

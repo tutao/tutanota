@@ -56,11 +56,15 @@ impl Visitor<'_> for IdVisitor {
     type Value = Id;
 
     fn expecting(&self, formatter: &mut Formatter) -> std::fmt::Result {
-        formatter.write_str("expecting a string")
+        formatter.write_str("a string")
     }
 
     fn visit_string<E>(self, s: String) -> Result<Self::Value, E> where E: Error {
         Ok(Id(s))
+    }
+
+    fn visit_str<E>(self, s: &str) -> Result<Self::Value, E> where E: Error {
+        Ok(Id(s.to_owned()))
     }
 }
 
