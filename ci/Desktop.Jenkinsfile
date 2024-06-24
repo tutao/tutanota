@@ -83,11 +83,12 @@ pipeline {
 						// so they will be picked up by our rollup plugin
 						unstash 'native_modules'
 
+						// add DEBUG for electron-builder because it tends to not let us know about things failing
 						withCredentials([string(credentialsId: 'HSM_USER_PIN', variable: 'PW')]) {
 							sh '''
 							export HSM_USER_PIN=${PW};
 							export WIN_CSC_FILE="/opt/etc/codesign.crt";
-							node desktop --existing --platform win '''
+							DEBUG=electron-builder node desktop --existing --platform win '''
 						}
 
 						dir('artifacts') {
@@ -248,6 +249,8 @@ pipeline {
 } // pipeline
 
 void initBuildArea() {
+	sh 'node -v'
+	sh 'npm -v'
     sh 'npm ci'
     sh 'npm run build-packages'
     sh 'rm -rf ./build/*'
