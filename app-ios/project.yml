@@ -382,6 +382,17 @@ schemes:
         tutanotaTests: ["test"]
     test:
       targets: ["tutanotaTests"]
+  TutanotaShareExtension:
+    build:
+      targets:
+        TutanotaShareExtension: "all"
+  TutanotaSharedFramework:
+    build:
+      targets:
+        TutanotaSharedFramework: "all"
+        TutanotaSharedTests: ["test"]
+    test:
+      targets: ["TutanotaSharedTests"]
 packages:
   DictionaryCoding:
     url: https://github.com/elegantchaos/DictionaryCoding.git
