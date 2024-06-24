@@ -41,6 +41,12 @@ export interface EntityRestClientSetupOptions {
 	ownerKey?: VersionedKey
 }
 
+export interface EntityRestClientUpdateOptions {
+	baseUrl?: string
+	/** Use the key provided by this to decrypt the existing ownerEncSessionKey instead of trying to resolve the owner key based on the ownerGroup. */
+	ownerKeyProvider?: OwnerKeyProvider
+}
+
 export interface OwnerEncSessionKeyProvider {
 	(instanceElementId: Id): Promise<VersionedEncryptedKey>
 }
@@ -94,9 +100,9 @@ export interface EntityRestInterface {
 	/**
 	 * Modifies a single element on the server. Entities are encrypted before they are sent.
 	 * @param instance
-	 * @param ownerKeyProvider Use the key provided by this to decrypt the existing ownerEncSessionKey instead of trying to resolve the owner key based on the ownerGroup.
+	 * @param options
 	 */
-	update<T extends SomeEntity>(instance: T, ownerKeyProvider?: OwnerKeyProvider): Promise<void>
+	update<T extends SomeEntity>(instance: T, options?: EntityRestClientUpdateOptions): Promise<void>
 
 	/**
 	 * Deletes a single element on the server.
@@ -409,7 +415,7 @@ export class EntityRestClient implements EntityRestInterface {
 		}
 	}
 
-	async update<T extends SomeEntity>(instance: T, ownerKeyProvider?: OwnerKeyProvider): Promise<void> {
+	async update<T extends SomeEntity>(instance: T, options?: EntityRestClientUpdateOptions): Promise<void> {
 		if (!instance._id) throw new Error("Id must be defined")
 		const { listId, elementId } = expandId(instance._id)
 		const { path, queryParams, headers, typeModel } = await this._validateAndPrepareRestRequest(
@@ -418,11 +424,12 @@ export class EntityRestClient implements EntityRestInterface {
 			elementId,
 			undefined,
 			undefined,
-			ownerKeyProvider,
+			options?.ownerKeyProvider,
 		)
-		const sessionKey = await this.resolveSessionKey(ownerKeyProvider, instance, typeModel)
+		const sessionKey = await this.resolveSessionKey(options?.ownerKeyProvider, instance, typeModel)
 		const encryptedEntity = await this.instanceMapper.encryptAndMapToLiteral(typeModel, instance, sessionKey)
 		await this.restClient.request(path, HttpMethod.PUT, {
+			baseUrl: options?.baseUrl,
 			queryParams,
 			headers,
 			body: JSON.stringify(encryptedEntity),

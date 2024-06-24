@@ -1,4 +1,4 @@
-import type { EntityRestInterface, OwnerEncSessionKeyProvider, OwnerKeyProvider } from "../worker/rest/EntityRestClient"
+import type { EntityRestClientUpdateOptions, EntityRestInterface, OwnerEncSessionKeyProvider, OwnerKeyProvider } from "../worker/rest/EntityRestClient"
 import { EntityRestClientSetupOptions } from "../worker/rest/EntityRestClient"
 import type { RootInstance } from "../entities/sys/TypeRefs.js"
 import { RootInstanceTypeRef } from "../entities/sys/TypeRefs.js"
@@ -100,8 +100,8 @@ export class EntityClient {
 		return this._target.setupMultiple(listId, instances)
 	}
 
-	update<T extends SomeEntity>(instance: T, ownerKeyProvider?: OwnerKeyProvider): Promise<void> {
-		return this._target.update(instance, ownerKeyProvider)
+	update<T extends SomeEntity>(instance: T, options?: EntityRestClientUpdateOptions): Promise<void> {
+		return this._target.update(instance, options)
 	}
 
 	erase<T extends SomeEntity>(instance: T): Promise<void> {

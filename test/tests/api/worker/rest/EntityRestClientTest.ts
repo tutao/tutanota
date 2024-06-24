@@ -832,9 +832,11 @@ o.spec("EntityRestClient", function () {
 			const sessionKey = [3, 2, 1]
 			when(cryptoFacadeMock.resolveSessionKeyWithOwnerKey(anything(), ownerKey.object)).thenReturn(sessionKey)
 
-			await entityRestClient.update(newCustomerServerProperties, async (version) => {
-				o(version).equals(ownerKeyVersion)
-				return ownerKey.object
+			await entityRestClient.update(newCustomerServerProperties, {
+				ownerKeyProvider: async (version) => {
+					o(version).equals(ownerKeyVersion)
+					return ownerKey.object
+				},
 			})
 
 			verify(instanceMapperMock.encryptAndMapToLiteral(anything(), anything(), sessionKey))
