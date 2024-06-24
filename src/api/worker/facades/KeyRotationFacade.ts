@@ -66,7 +66,7 @@ type PendingKeyRotation = {
 	//If we rotate the admin group we always want to rotate the user group for the admin user.
 	// Therefore, we do not need to save two different key rotations for this case.
 	adminOrUserGroupKeyRotation: KeyRotation | null
-	userAreaGroupsKeyRotation: Array<KeyRotation>
+	otherKeyRotations: Array<KeyRotation>
 }
 
 type PreparedUserAreaGroupKeyRotation = {
@@ -122,7 +122,7 @@ export class KeyRotationFacade {
 		this.pendingKeyRotations = {
 			pwKey: null,
 			adminOrUserGroupKeyRotation: null,
-			userAreaGroupsKeyRotation: [],
+			otherKeyRotations: [],
 		}
 		this.facadeInitializedDeferredObject = defer<void>()
 		this.pendingGroupKeyUpdateIds = []
@@ -168,14 +168,14 @@ export class KeyRotationFacade {
 		const userGroupRoot = await this.entityClient.load(UserGroupRootTypeRef, user.userGroup.group)
 		if (userGroupRoot.keyRotations != null) {
 			const pendingKeyRotations = await this.entityClient.loadAll(KeyRotationTypeRef, userGroupRoot.keyRotations.list)
-			const adminOrUserGroupRotation = pendingKeyRotations.find(
-				(keyRotation) =>
-					keyRotation.groupKeyRotationType === GroupKeyRotationType.Admin || keyRotation.groupKeyRotationType === GroupKeyRotationType.User,
-			)
+			const isAdminOrUserKeyRotation = (keyRotation: KeyRotation) =>
+				keyRotation.groupKeyRotationType === GroupKeyRotationType.Admin || keyRotation.groupKeyRotationType === GroupKeyRotationType.User
+			const keyRotationsByType = groupBy(pendingKeyRotations, isAdminOrUserKeyRotation)
+			const adminOrUserGroupRotation = keyRotationsByType.get(true)
 			this.pendingKeyRotations = {
 				pwKey: this.pendingKeyRotations.pwKey,
-				adminOrUserGroupKeyRotation: adminOrUserGroupRotation || null,
-				userAreaGroupsKeyRotation: pendingKeyRotations.filter((keyRotation) => keyRotation.groupKeyRotationType === GroupKeyRotationType.UserArea),
+				adminOrUserGroupKeyRotation: adminOrUserGroupRotation?.[0] || null,
+				otherKeyRotations: keyRotationsByType.get(false) ?? [],
 			}
 		}
 	}
@@ -204,9 +204,18 @@ export class KeyRotationFacade {
 			this.pendingKeyRotations.pwKey = null
 		}
 
-		if (!isEmpty(this.pendingKeyRotations.userAreaGroupsKeyRotation)) {
-			await this.rotateUserAreaGroupKeys(user)
-			this.pendingKeyRotations.userAreaGroupsKeyRotation = []
+		const groupKeyUpdates: GroupKeyRotationData[] = []
+		if (!isEmpty(this.pendingKeyRotations.otherKeyRotations)) {
+			const data = await this.rotateOtherGroupKeys(user)
+			groupKeyUpdates.push(...data)
+			this.pendingKeyRotations.otherKeyRotations = []
+		}
+
+		const postIn = createGroupKeyRotationPostIn({
+			groupKeyUpdates: groupKeyUpdates,
+		})
+		if (!isEmpty(groupKeyUpdates)) {
+			await this.serviceExecutor.post(GroupKeyRotationService, postIn)
 		}
 	}
 
@@ -226,14 +235,14 @@ export class KeyRotationFacade {
 	}
 
 	//We assume that the logged-in user is an admin user and the only member of the group
-	private async rotateUserAreaGroupKeys(user: User) {
+	private async rotateOtherGroupKeys(user: User): Promise<GroupKeyRotationData[]> {
 		//group key rotation is skipped if
 		// * user is not an admin user
 		const adminGroupMembership = user.memberships.find((m) => m.groupType === GroupKeyRotationType.Admin)
 		if (adminGroupMembership == null) {
 			// group key rotations are currently only scheduled for single user customers, so this user must be an admin
 			console.log("Only admin user can rotate the group")
-			return
+			return []
 		}
 
 		// * the encrypting keys are 128-bit keys. (user group key, admin group key)
@@ -242,26 +251,24 @@ export class KeyRotationFacade {
 		if (hasNonQuantumSafeKeys(currentUserGroupKey.object, currentAdminGroupKey.object)) {
 			// admin group key rotation should be scheduled first on the server, so this should not happen
 			console.log("Keys cannot be rotated as the encrypting keys are not pq secure")
-			return
+			return []
 		}
 
-		const serviceData = createGroupKeyRotationPostIn({ groupKeyUpdates: [] })
+		const groupKeyUpdates: GroupKeyRotationData[] = []
 		let preparedReInvites: GroupInvitationPostData[] = []
-		for (const keyRotation of this.pendingKeyRotations.userAreaGroupsKeyRotation) {
+		for (const keyRotation of this.pendingKeyRotations.otherKeyRotation) {
 			const { groupKeyRotationData, preparedReInvitations } = await this.prepareKeyRotationForAreaGroup(
 				keyRotation,
 				currentUserGroupKey,
 				currentAdminGroupKey,
 			)
-			serviceData.groupKeyUpdates.push(groupKeyRotationData)
+			groupKeyUpdates.push(groupKeyRotationData)
 			preparedReInvites = preparedReInvites.concat(preparedReInvitations)
 		}
-		if (serviceData.groupKeyUpdates.length <= 0) {
-			return
-		}
-		await this.serviceExecutor.post(GroupKeyRotationService, serviceData)
+
 		const shareFacade = await this.shareFacade()
 		await promiseMap(preparedReInvites, (preparedInvite) => shareFacade.sendGroupInvitationRequest(preparedInvite))
+		return groupKeyUpdates
 	}
 
 	private async prepareKeyRotationForAdminGroup(
@@ -571,7 +578,7 @@ export class KeyRotationFacade {
 		this.pendingKeyRotations = {
 			pwKey: null,
 			adminOrUserGroupKeyRotation: null,
-			userAreaGroupsKeyRotation: [],
+			otherKeyRotations: [],
 		}
 	}
 
