@@ -1,7 +1,7 @@
 #  XCodeGen configuration file
 name: tutanota # Also known as tutanooota (while testing xcodegen)
 include:
-    - path: "../xcodegen_common.yml"
+  - path: "../xcodegen_common.yml"
 options:
   useBaseInternationalization: true
   schemePathPrefix: "../" # Recommended for workspace based projects by XCodeGen devs
@@ -12,7 +12,7 @@ settings:
     ASSETCATALOG_COMPILER_APPICON_NAME: "AppIcon"
 targets:
   tutanota:
-    templates: ["formatAndLint"]
+    templates: [ "formatAndLint" ]
     type: "application"
     sources:
       - path: "tutanota"
@@ -46,23 +46,24 @@ targets:
         ]
         CLANG_CXX_LANGUAGE_STANDARD: "gnu++14"
         GCC_PREPROCESSOR_DEFINITIONS: [
-            "SQLITE_HAS_CODEC=1",
-            "OQS_ENABLE_KEM_kyber_1024=1",
-             "$(inherited)"
+          "SQLITE_HAS_CODEC=1",
+          "OQS_ENABLE_KEM_kyber_1024=1",
+          "$(inherited)"
         ]
         OTHER_CFLAGS[arch=*]: [
-            "-DSQLITE_HAS_CODEC",
-            "-DSQLITE_TEMP_STORE=3",
-            "-DSQLCIPHER_CRYPTO_CC",
-            "-DNDEBUG",
-            "-DKYBER_K=4",
-            "-DOQS_VERSION_TEXT=\\\"whatever\\\"",
-            "-DOQS_ENABLE_KEM_kyber_1024=1",
-            "-DOQS_DIST_BUILD=1",
-            "-DOQS_ENABLE_KEM_KYBER=1"
+          "-DSQLITE_HAS_CODEC",
+          "-DSQLITE_TEMP_STORE=3",
+          "-DSQLCIPHER_CRYPTO_CC",
+          "-DNDEBUG",
+          "-DKYBER_K=4",
+          "-DOQS_VERSION_TEXT=\\\"whatever\\\"",
+          "-DOQS_ENABLE_KEM_kyber_1024=1",
+          "-DOQS_DIST_BUILD=1",
+          "-DOQS_ENABLE_KEM_KYBER=1"
         ]
         SUPPORTS_XR_DESIGNED_FOR_IPHONE_IPAD: "NO"
         SUPPORTS_MAC_DESIGNED_FOR_IPHONE_IPAD: "NO"
+        CODE_SIGN_IDENTITY: "$(inherited)"
       configs:
         Debug Development:
           PRODUCT_NAME: "Tuta D"
@@ -70,6 +71,7 @@ targets:
           PRODUCT_NAME: "Tuta Test"
         Debug Production:
           PRODUCT_NAME: "Tuta Mail"
+          CODE_SIGN_ENTITLEMENTS: "$(TARGET_NAME)/$(TARGET_NAME).entitlements"
         Release Development:
           PRODUCT_NAME: "Tuta D"
           PROVISIONING_PROFILE_SPECIFIER: "match AdHoc de.tutao.tutanota"
@@ -79,6 +81,7 @@ targets:
           PROVISIONING_PROFILE_SPECIFIER[sdk=iphoneos*]: "match AdHoc de.tutao.tutanota.test 1716556941"
         Release Production:
           PRODUCT_NAME: "Tuta Mail"
+          CODE_SIGN_ENTITLEMENTS: "$(TARGET_NAME)/$(TARGET_NAME).entitlements"
           PROVISIONING_PROFILE_SPECIFIER: "match AdHoc de.tutao.tutanota"
     dependencies:
       - package: Atomics
@@ -142,7 +145,7 @@ targets:
         shell: "/bin/sh"
         showEnvVars: true
         basedOnDependencyAnalysis: true
-        outputFiles: ["$(BUILD_DIR)/liboqs-include"]
+        outputFiles: [ "$(BUILD_DIR)/liboqs-include" ]
   argon2:
     type: "library.static"
     settings:
@@ -164,13 +167,13 @@ targets:
         ]
     platform: "iOS"
   tutanotaTests:
-    templates: ["formatAndLint"]
+    templates: [ "formatAndLint" ]
     type: "bundle.unit-test"
-    sources: 
+    sources:
       - path: "tutanotaTests"
-        excludes: ["CompatibilityTest.m"]
+        excludes: [ "CompatibilityTest.m" ]
       - path: "tutanotaTests"
-        includes: ["CompatibilityTest.m"]
+        includes: [ "CompatibilityTest.m" ]
         compilerFlags: "-Itutanota/include"
     settings:
       ALWAYS_EMBED_SWIFT_STANDARD_LIBRARIES: "YES"
@@ -181,10 +184,10 @@ targets:
       PRODUCT_BUNDLE_IDENTIFIER: "de.tutao.tutanotaTests"
       PRODUCT_NAME: "$(TARGET_NAME)"
       HEADER_SEARCH_PATHS: [
-          "$(BUILD_DIR)/liboqs-include",
-          "${PROJECT_DIR}/tutanota/include",
-          "tutanota/Sources/Crypto/phc-winner-argon2/include"
-        ]
+        "$(BUILD_DIR)/liboqs-include",
+        "${PROJECT_DIR}/tutanota/include",
+        "tutanota/Sources/Crypto/phc-winner-argon2/include"
+      ]
       TEST_HOST: "$(BUILT_PRODUCTS_DIR)/Tuta D.app/$(BUNDLE_EXECUTABLE_FOLDER_PATH)/Tuta D"
       SWIFT_OBJC_BRIDGING_HEADER: "tutanotaTests/tutanotaTests-Bridging-Header.h"
       SUPPORTS_XR_DESIGNED_FOR_IPHONE_IPAD: "NO"
@@ -193,7 +196,7 @@ targets:
     dependencies:
       - target: "tutanota"
   TutanotaShareExtension:
-    templates: ["formatAndLint"]
+    templates: [ "formatAndLint" ]
     type: "app-extension"
     sources: "TutanotaShareExtension"
     settings:
@@ -214,9 +217,15 @@ targets:
         CLANG_CXX_LANGUAGE_STANDARD: "gnu++17"
         SUPPORTS_XR_DESIGNED_FOR_IPHONE_IPAD: "NO"
         SUPPORTS_MAC_DESIGNED_FOR_IPHONE_IPAD: "NO"
+        CODE_SIGN_IDENTITY: "$(inherited)"
       configs:
+        Debug Production:
+          CODE_SIGN_ENTITLEMENTS: "$(TARGET_NAME)/$(TARGET_NAME).entitlements"
         Release Production:
           PROVISIONING_PROFILE_SPECIFIER[sdk=iphoneos*]: "match AdHoc de.tutao.tutanota.TutanotaShareExtension"
+          CODE_SIGN_ENTITLEMENTS: "$(TARGET_NAME)/$(TARGET_NAME).entitlements"
+        Release Staging:
+          PROVISIONING_PROFILE_SPECIFIER[sdk=iphoneos*]: "match AdHoc de.tutao.tutanota.test.TutanotaShareExtension"
         Release Development:
           PROVISIONING_PROFILE_SPECIFIER[sdk=iphoneos*]: "match AdHoc de.tutao.tutanota.TutanotaShareExtension"
     dependencies:
@@ -230,17 +239,17 @@ targets:
       - path: "TutanotaSharedFramework"
         headerVisibility: "public"
         # Exclude TUTBigNum.h so we change it's visiblity to 'project' in another source
-        excludes: ["Crypto/TUTBigNum.h", "*.md"]
+        excludes: [ "Crypto/TUTBigNum.h", "*.md" ]
       - path: "TutanotaSharedFramework/Crypto"
-        includes: ["TUTBigNum.h"]
+        includes: [ "TUTBigNum.h" ]
         headerVisibility: "project"
     settings:
       PRODUCT_NAME: "TutanotaSharedFramework"
       PRODUCT_BUNDLE_IDENTIFIER: "$(inherited).TutanotaSharedFramework"
       INSTALL_PATH: "$(LOCAL_LIBRARY_DIR)/Frameworks"
       GCC_PREPROCESSOR_DEFINITIONS: [
-          "SQLITE_HAS_CODEC=1",
-            "$(inherited)"
+        "SQLITE_HAS_CODEC=1",
+        "$(inherited)"
       ]
       OTHER_CFLAGS: [
         "-DSQLITE_HAS_CODEC",
@@ -260,6 +269,7 @@ targets:
       DEFINES_MODULE: "YES"
       GENERATE_INFOPLIST_FILE: "YES"
       CODE_SIGN_STYLE: "Manual"
+      CODE_SIGN_IDENTITY: "$(inherited)"
       PROVISIONING_PROFILE_SPECIFIER: ""
       CURRENT_PROJECT_VERSION: "1"
       MARKETING_VERSION: "1.0"
@@ -302,17 +312,23 @@ targets:
         CURRENT_PROJECT_VERSION: "1"
         MARKETING_VERSION: "1.0"
         PRODUCT_BUNDLE_IDENTIFIER: "$(inherited).TutanotaNotificationExtension"
+        CODE_SIGN_IDENTITY: "$(inherited)"
       configs:
+        Debug Production:
+          CODE_SIGN_ENTITLEMENTS: "$(TARGET_NAME)/$(TARGET_NAME).entitlements"
+        Release Development:
+          PROVISIONING_PROFILE_SPECIFIER[sdk=iphoneos*]: "match AdHoc de.tutao.tutanota.TutanotaNotificationExtension"
         Release Staging:
           PROVISIONING_PROFILE_SPECIFIER[sdk=iphoneos*]: "match AdHoc de.tutao.tutanota.test.TutanotaNotificationExtension"
         Release Production:
           PROVISIONING_PROFILE_SPECIFIER[sdk=iphoneos*]: "match AdHoc de.tutao.tutanota.TutanotaNotificationExtension"
+          CODE_SIGN_ENTITLEMENTS: "$(TARGET_NAME)/$(TARGET_NAME).entitlements"
     dependencies:
       - target: "TutanotaSharedFramework"
   TutanotaSharedTests:
     type: "bundle.unit-test"
     platform: "iOS"
-    sources: 
+    sources:
       - path: "TutanotaSharedTests"
       - path: "MockingbirdMocks/TutanotaSharedTests-TutanotaSharedFrameworkMocks.generated.swift"
         optional: true # The file will be generated in the "Generate Mockingbird Mocks" stage
@@ -342,12 +358,12 @@ targets:
         shell: "/bin/sh"
         showEnvVars: true
         basedOnDependencyAnalysis: false
-        outputFiles: ["$(SRCROOT)/MockingbirdMocks/TutanotaSharedTests-TutanotaSharedFrameworkMocks.generated.swift"]
+        outputFiles: [ "$(SRCROOT)/MockingbirdMocks/TutanotaSharedTests-TutanotaSharedFrameworkMocks.generated.swift" ]
 targetTemplates:
   formatAndLint:
     type: "application"
     platform: "iOS"
-    supportedDestinations: ["iOS"]
+    supportedDestinations: [ "iOS" ]
     preBuildScripts:
       - path: "buildScripts/format.sh"
         name: "Check formating with swift-format"
@@ -364,24 +380,39 @@ schemes:
   tuta debug:
     build:
       targets:
-        tutanota: ["analyze", "test", "run", "profile"]
-        tutanotaTests: ["test"]
+        tutanota: [ "analyze", "test", "run", "profile" ]
+        tutanotaTests: [ "test" ]
+    run:
+      config: "Debug Development"
     test:
-      targets: ["tutanotaTests"]
+      config: "Debug Development"
+      targets: [ "tutanotaTests" ]
+    archive:
+      config: "Release Development"
   tuta staging:
     build:
       targets:
         tutanota: "all"
-        tutanotaTests: ["test"]
+        tutanotaTests: [ "test" ]
+    run:
+      config: "Debug Staging"
     test:
-      targets: ["tutanotaTests"]
+      config: "Debug Staging"
+      targets: [ "tutanotaTests" ]
+    archive:
+      config: "Release Staging"
   tuta prod:
     build:
       targets:
         tutanota: "all"
-        tutanotaTests: ["test"]
+        tutanotaTests: [ "test" ]
+    run:
+      config: "Debug Production"
     test:
-      targets: ["tutanotaTests"]
+      config: "Debug Production"
+      targets: [ "tutanotaTests" ]
+    archive:
+      config: "Release Production"
   TutanotaShareExtension:
     build:
       targets:
@@ -390,9 +421,9 @@ schemes:
     build:
       targets:
         TutanotaSharedFramework: "all"
-        TutanotaSharedTests: ["test"]
+        TutanotaSharedTests: [ "test" ]
     test:
-      targets: ["TutanotaSharedTests"]
+      targets: [ "TutanotaSharedTests" ]
 packages:
   DictionaryCoding:
     url: https://github.com/elegantchaos/DictionaryCoding.git
