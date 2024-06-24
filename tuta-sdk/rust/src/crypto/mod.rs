@@ -18,9 +18,13 @@ mod hkdf;
 pub use hkdf::hkdf;
 
 mod argon2_id;
+
+pub use argon2_id::generate_key_from_passphrase;
+
 mod ecc;
 mod kyber;
 mod rsa;
+
 mod tuta_crypt;
 
 pub use tuta_crypt::PQKeyPairs;

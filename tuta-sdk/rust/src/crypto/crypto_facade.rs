@@ -130,6 +130,8 @@ impl CryptoFacade {
     /// Decrypts a bucket key, using `owner_group` in the case of secure external.
     ///
     /// `model` should be the type model of the instance being decrypted (e.g. `Mail`).
+    // Remove allowance after implementing secure external resolveWithGroupReference
+    #[allow(unused_variables, unused_assignments)]
     async fn decrypt_bucket_key(&self, bucket_key: &BucketKey, owner_group: &GeneratedId, model: &TypeModel) -> Result<ResolvedBucketKey, SessionKeyResolutionError> {
         let mut auth_status = None;
 
