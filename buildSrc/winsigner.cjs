@@ -2,6 +2,8 @@ const path = require('path')
 const fs = require("fs-extra")
 const spawn = require('child_process').spawn
 
+const TAG = "WINSIGN"
+
 /**
  * sign a given file either with a private key taken from a pkcs12 signing certificate
  * (if the path to the cert is given in the env var DEBUG_SIGN)
@@ -16,7 +18,7 @@ function signer({
 	const ext = path.extname(pathToSign)
 	// /thing/thong.AppImage -> /thing/thong-unsigned.AppImage
 	const unsignedFileName = pathToSign.slice(0, pathToSign.length - ext.length) + "-unsigned" + ext
-	console.log("signing", unsignedFileName, "as", pathToSign)
+	console.log(TAG, `signing ${unsignedFileName} as ${pathToSign}`)
 	const commandArguments = process.env.DEBUG_SIGN
 		? getSelfSignedArgs(unsignedFileName, hashAlgorithm, pathToSign)
 		: getHsmArgs(unsignedFileName, hashAlgorithm, pathToSign)
@@ -70,7 +72,8 @@ function getHsmArgs(unsignedFileName, hash, signedFileOutPath) {
 		"sign",
 		"-in", unsignedFileName,
 		"-out", signedFileOutPath,
-		"-pkcs11engine", "/usr/lib/x86_64-linux-gnu/engines-1.1/pkcs11.so",
+		// Let the library find the engine, it seems to be more reliable
+		// "-pkcs11engine", "/usr/lib/x86_64-linux-gnu/engines-3/pkcs11.so",
 		"-pkcs11module", "/usr/lib/x86_64-linux-gnu/opensc-pkcs11.so",
 		"-certs", certificateFile,
 		"-key", "11", // this is the key corresponding to the Windows authenticode codesigning certificate
@@ -85,14 +88,17 @@ function signWithArgs(commandArguments, signedFileOutPath, unsignedFileName) {
 	const command = "/usr/bin/osslsigncode"
 
 	if (!fs.existsSync(command)) {
-		console.log("ERROR: " + signedFileOutPath.split(path.sep).pop() + "\" not signed! The NSIS installer may not work.")
+		console.log(TAG, `ERROR: ${signedFileOutPath.split(path.sep).pop()}" not signed! The NSIS installer may not work.`)
 		console.log("\t• install osslsigncode")
 		return Promise.reject(new Error(signedFileOutPath))
 	}
+	console.log(TAG, `renaming ${signedFileOutPath} -> ${unsignedFileName}`)
+	console.log(TAG, "ir:", fs.readdirSync(path.dirname(signedFileOutPath)).join(", "))
 	fs.renameSync(signedFileOutPath, unsignedFileName)
+	console.log(TAG, `running ${command}`)
 	// only for testing, would print certificate password to logs, otherwise
 	//console.log(`spawning "${command} ${commandArguments.join(" ")}"`)
-	let child = spawn(command, commandArguments, {
+	const child = spawn(command, commandArguments, {
 		detached: false,
 		stdio: ['ignore', 'inherit', 'inherit'],
 	})
@@ -100,8 +106,10 @@ function signWithArgs(commandArguments, signedFileOutPath, unsignedFileName) {
 	return new Promise((resolve, reject) => {
 		child.on('close', (exitCode) => {
 			if (exitCode !== 0) {
+				console.log(TAG, `signing FAILED with ${exitCode} for ${unsignedFileName} as ${signedFileOutPath}`)
 				reject(exitCode)
 			} else {
+				console.log(TAG, `signing SUCCEDED for ${unsignedFileName} as ${signedFileOutPath}`)
 				fs.unlinkSync(unsignedFileName)
 				resolve(signedFileOutPath)
 			}
