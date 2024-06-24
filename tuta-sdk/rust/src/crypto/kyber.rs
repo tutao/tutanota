@@ -1,6 +1,6 @@
 //! Contains code to handle Kyber-1024 encapsulation and decapsulation.
 
-use std::fmt::{Debug, Formatter};
+use std::fmt::Debug;
 use pqcrypto_kyber::{kyber1024_decapsulate, kyber1024_encapsulate};
 use zeroize::{Zeroize, ZeroizeOnDrop, Zeroizing};
 use crate::util::{ArrayCastingError, decode_byte_arrays, encode_byte_arrays, array_cast_slice};
@@ -38,7 +38,7 @@ impl KyberPublicKey {
 
 #[cfg(test)] // only allow Debug in tests because this prints the key!
 impl Debug for KyberPublicKey {
-    fn fmt(&self, f: &mut Formatter<'_>) -> std::fmt::Result {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
         self.public_key.as_bytes().fmt(f)
     }
 }
@@ -108,7 +108,7 @@ impl KyberPrivateKey {
 
 #[cfg(test)] // only allow Debug in tests because this prints the key!
 impl Debug for KyberPrivateKey {
-    fn fmt(&self, f: &mut Formatter<'_>) -> std::fmt::Result {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
         self.private_key.as_bytes().fmt(f)
     }
 }

@@ -83,7 +83,7 @@ impl GenericAesKey {
         }
     }
 
-    pub(crate) fn as_bytes(&self) -> &[u8] {
+    pub fn as_bytes(&self) -> &[u8] {
         match self {
             Self::Aes128(n) => n.as_bytes(),
             Self::Aes256(n) => n.as_bytes()
