@@ -5,7 +5,7 @@ use std::sync::Arc;
 use std::time::SystemTime;
 
 use crate::ApiCallError;
-use crate::crypto::aes::{aes_128_decrypt, aes_256_decrypt, IV_BYTE_SIZE};
+use crate::crypto::IV_BYTE_SIZE;
 use crate::date::DateTime;
 use crate::crypto::key::GenericAesKey;
 use crate::element_value::{ElementValue, ParsedEntity};
@@ -149,10 +149,8 @@ impl EntityFacade {
         }
 
         if model_value.encrypted {
-            let decrypted_value = match session_key {
-                GenericAesKey::Aes128(k) => aes_128_decrypt(k, value.assert_bytes().as_slice()),
-                GenericAesKey::Aes256(k) => aes_256_decrypt(k, value.assert_bytes().as_slice())
-            };
+            let decrypted_value = session_key.decrypt_data(value.assert_bytes().as_slice())
+                .map_err(|e| ApiCallError::InternalSdkError { error_message: e.to_string() });
 
             let mut errors: HashMap<String, ElementValue> = Default::default();
             let element_value = match decrypted_value {
@@ -246,8 +244,8 @@ mod tests {
     use std::sync::Arc;
 
     use rand::random;
+    use crate::crypto::{Aes256Key, Iv};
 
-    use crate::crypto::aes::{Aes256Key, Iv};
     use crate::crypto::key::GenericAesKey;
     use crate::entities::entity_facade::EntityFacade;
     use crate::entities::entity_facade_test_utils::generate_email_entity;

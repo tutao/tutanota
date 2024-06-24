@@ -15,7 +15,9 @@ use crate::date::DateTime;
 use crate::generated_id::GeneratedId;
 use crate::custom_id::CustomId;
 
-pub trait Entity {
+/// `'static` on trait bound is fine here because Entity does not contain any non-static references.
+/// See https://doc.rust-lang.org/rust-by-example/scope/lifetime/static_lifetime.html#trait-bound
+pub trait Entity: 'static {
     fn type_ref() -> TypeRef;
 }
 

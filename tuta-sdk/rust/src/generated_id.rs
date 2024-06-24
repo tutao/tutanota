@@ -2,6 +2,8 @@ use std::fmt::{Debug, Display, Formatter};
 use serde::{Deserialize, Deserializer, Serialize, Serializer};
 use serde::de::{Error, Visitor};
 
+pub const GENERATED_ID_BYTES_LENGTH: usize = 9;
+
 /// A fixed nine byte length generated ID of an entity/instance
 #[derive(Clone, Default, PartialEq, PartialOrd)]
 #[repr(transparent)]

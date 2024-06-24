@@ -40,12 +40,32 @@ impl GenericAesKey {
         Self::from_bytes(decrypted.as_slice()).map_err(|error| error.into())
     }
 
+    /// Decrypts `ciphertext` with this key.
+    ///
+    /// The return decrypted data is not zeroized
+    pub fn decrypt_data(&self, ciphertext: &[u8]) -> Result<Vec<u8>, AesDecryptError> {
+        let decrypted = match self {
+            Self::Aes128(key) => aes_128_decrypt(&key, ciphertext)?,
+            Self::Aes256(key) => aes_256_decrypt(&key, ciphertext)?,
+        };
+        Ok(decrypted)
+    }
+
     /// Encrypts `key_to_encrypt` with this key.
     pub fn encrypt_key(&self, key_to_encrypt: &GenericAesKey, iv: Iv) -> Vec<u8> {
         match self {
             Self::Aes128(key) => aes_128_encrypt_no_padding_fixed_iv(key, key_to_encrypt.as_bytes()).unwrap(),
             Self::Aes256(key) => aes_256_encrypt(key, key_to_encrypt.as_bytes(), &iv, PaddingMode::NoPadding).unwrap(),
         }
+    }
+
+    /// Encrypts `ciphertext` with this key.
+    pub fn encrypt_data(&self, plaintext: &[u8], iv: &Iv) -> Result<Vec<u8>, AesEncryptError> {
+        let encrypted = match self {
+            Self::Aes128(key) => aes_128_encrypt(&key, plaintext, iv, PaddingMode::WithPadding, MacMode::WithMac)?,
+            Self::Aes256(key) => aes_256_encrypt(&key, plaintext, iv, PaddingMode::WithPadding)?,
+        };
+        Ok(encrypted)
     }
 
     pub fn from_bytes(bytes: &[u8]) -> Result<Self, ArrayCastingError> {
@@ -57,7 +77,7 @@ impl GenericAesKey {
         }
     }
 
-    pub(in crate::crypto) fn as_bytes(&self) -> &[u8] {
+    pub fn as_bytes(&self) -> &[u8] {
         match self {
             Self::Aes128(n) => n.as_bytes(),
             Self::Aes256(n) => n.as_bytes()

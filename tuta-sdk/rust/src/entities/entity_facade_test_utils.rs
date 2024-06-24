@@ -1,18 +1,13 @@
 use std::collections::HashMap;
+use crate::crypto::Iv;
 
-use crate::crypto::aes::{aes_128_encrypt, aes_256_encrypt, Iv, MacMode, PaddingMode};
 use crate::crypto::key::GenericAesKey;
 use crate::element_value::{ElementValue, ParsedEntity};
 use crate::generated_id::GeneratedId;
 use crate::IdTuple;
 
 pub fn encrypt_bytes(encryption_key: &GenericAesKey, bytes: &[u8], iv: &Iv) -> Vec<u8> {
-    let encrypted_bytes = match encryption_key {
-        GenericAesKey::Aes128(key) => aes_128_encrypt(key, bytes, iv, PaddingMode::WithPadding, MacMode::WithMac),
-        GenericAesKey::Aes256(key) => aes_256_encrypt(key, bytes, iv, PaddingMode::WithPadding),
-    };
-
-    encrypted_bytes.unwrap()
+    encryption_key.encrypt_data(bytes, iv).unwrap()
 }
 
 /// Generates and returns an encrypted Mail entity. It also returns the decrypted Mail for comparison

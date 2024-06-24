@@ -115,7 +115,7 @@ aes_key!(
 
 aes_key!(
     Aes256Key,
-    "Aes128Key",
+    "Aes256Key",
     AES_256_KEY_SIZE,
     aes::Aes256,
     sha2::Sha512
@@ -312,8 +312,13 @@ struct CiphertextWithAuthentication<'a> {
 
 impl<'a> CiphertextWithAuthentication<'a> {
     fn parse(bytes: &'a [u8]) -> Result<Option<CiphertextWithAuthentication<'a>>, AesDecryptError> {
+        // No mac
+        if !has_mac(bytes) {
+            return Ok(None)
+        }
+
         // Error if the bytes does not feature a MAC
-        if !has_mac(bytes) || bytes.len() <= IV_BYTE_SIZE + MAC_SIZE {
+        if bytes.len() <= IV_BYTE_SIZE + MAC_SIZE {
             return Err(AesDecryptError::HmacError);
         }
 
