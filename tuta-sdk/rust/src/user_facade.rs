@@ -1,5 +1,4 @@
 use std::borrow::ToOwned;
-use std::collections::HashMap;
 use std::sync::{Arc, RwLock};
 use base64::Engine;
 use base64::prelude::BASE64_STANDARD;
@@ -14,23 +13,17 @@ use crate::generated_id::GeneratedId;
 use crate::key_loader_facade::VersionedAesKey;
 use crate::util::Versioned;
 
-pub trait AuthHeadersProvider {
-    /// Gets the HTTP request headers used for authorizing REST requests
-    fn create_auth_headers(&self, model_version: u32) -> HashMap<String, String>;
-    fn is_fully_logged_in(&self) -> bool;
-}
 
 const USER_GROUP_KEY_DISTRIBUTION_KEY_INFO: &str = "userGroupKeyDistributionKey";
 
-/// FIXME: for testing unencrypted entity downloading. Remove after everything works together.
-#[derive(uniffi::Object)]
 pub struct UserFacade {
     user: RwLock<Arc<User>>,
     key_cache: Arc<KeyCache>,
 }
 
+/// UserFacade is tied to a logged in user.
+#[cfg_attr(test, mockall::automock)]
 impl UserFacade {
-    // FIXME: Do we pass in user or not
     pub fn new(key_cache: Arc<KeyCache>, user: User) -> Self {
         UserFacade {
             user: RwLock::new(Arc::new(user)),
@@ -42,7 +35,7 @@ impl UserFacade {
         *self.user.write().unwrap() = Arc::new(user);
     }
 
-    pub fn unlock_user_group_key(&mut self, user_passphrase_key: GenericAesKey) -> Result<(), ApiCallError> {
+    pub fn unlock_user_group_key(&self, user_passphrase_key: GenericAesKey) -> Result<(), ApiCallError> {
         let user = self.get_user();
         let user_group_membership = &user.userGroup;
         let current_user_group_key = Versioned::new(
@@ -55,7 +48,7 @@ impl UserFacade {
         self.set_user_group_key_distribution_key(user_passphrase_key)
     }
 
-    fn set_user_group_key_distribution_key(&mut self, user_passphrase_key: GenericAesKey) -> Result<(), ApiCallError> {
+    fn set_user_group_key_distribution_key(&self, user_passphrase_key: GenericAesKey) -> Result<(), ApiCallError> {
         let user = self.get_user();
         let user_group_membership = &user.userGroup;
         let user_group_key_distribution_key = self.derive_user_group_key_distribution_key(&user_group_membership.group, user_passphrase_key)?;
@@ -69,7 +62,7 @@ impl UserFacade {
         }
     }
 
-    // FIXME: Check uint8ArrayToBase64 is correct;
+    // TODO: Add a test to check uint8ArrayToBase64 is correct;
     // there is a max length in the ts version, it seems to be a js thing, can we forego it here?
     fn derive_user_group_key_distribution_key(&self, user_group_id: &GeneratedId, user_passphrase_key: GenericAesKey) -> Result<GenericAesKey, ApiCallError> {
         // we prepare a key to encrypt potential user group key rotations with
@@ -125,34 +118,3 @@ impl UserFacade {
             .ok_or_else(|| ApiCallError::InternalSdkError { error_message: format!("No group with groupId {} found!", group_id) })
     }
 }
-
-// TODO: Remove allowance after implementing
-#[allow(unused_variables)]
-impl AuthHeadersProvider for UserFacade {
-    fn create_auth_headers(&self, model_version: u32) -> HashMap<String, String> {
-        todo!()
-    }
-
-    fn is_fully_logged_in(&self) -> bool {
-        todo!()
-    }
-}
-
-#[cfg(test)]
-mockall::mock!(
-    pub UserFacade {
-        pub fn set_user(&mut self, user: User);
-        pub fn unlock_user_group_key(&mut self, user_passphrase_key: GenericAesKey)
-            -> Result<(), ApiCallError>;
-        pub async fn update_user(&self, user: User);
-        pub fn get_user(&self) -> Arc<User>;
-        pub fn get_user_group_id(&self) -> GeneratedId;
-        pub fn get_current_user_group_key(&self) -> Option<VersionedAesKey>;
-        pub(crate) fn get_membership(&self, group_id: &GeneratedId)
-        -> Result<GroupMembership, ApiCallError>;
-    }
-    impl AuthHeadersProvider for UserFacade {
-        fn create_auth_headers(&self, model_version: u32) -> HashMap<String, String>;
-        fn is_fully_logged_in(&self) -> bool;
-    }
-);

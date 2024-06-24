@@ -23,11 +23,12 @@ impl KeyCache {
 
     pub fn set_current_user_group_key(&self, new_user_group_key: VersionedAesKey) {
         let mut current_user_group_key_lock = self.current_user_group_key.write().unwrap();
-        if current_user_group_key_lock.as_ref().is_some_and(|k| k.version > new_user_group_key.version) {
-            // FIXME: add logging
-            return;
-        }
-        *current_user_group_key_lock = Some(new_user_group_key);
+        match current_user_group_key_lock.as_ref() {
+            Some(current_user_group_key) if current_user_group_key.version > new_user_group_key.version => {
+                log::warn!("Tried to set an outdated user group key with version {}; current user group key version: {}", new_user_group_key.version, current_user_group_key.version);
+            }
+            _ => *current_user_group_key_lock = Some(new_user_group_key)
+        };
     }
 
     pub fn get_current_user_group_key(&self) -> Option<VersionedAesKey> {
@@ -55,5 +56,3 @@ impl KeyCache {
         todo!()
     }
 }
-
-// FIXME: test Arc clone

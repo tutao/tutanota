@@ -1,8 +1,10 @@
 use std::sync::Arc;
 use serde::Deserialize;
-use crate::ApiCallError;
+use crate::{ApiCallError, IdTuple, ListLoadDirection};
 use crate::entities::Entity;
-use crate::entity_client::{EntityClient, IdType};
+#[mockall_double::double]
+use crate::entity_client::EntityClient;
+use crate::entity_client::IdType;
 use crate::generated_id::GeneratedId;
 use crate::instance_mapper::InstanceMapper;
 
@@ -34,12 +36,18 @@ impl TypedEntityClient {
                 error_message: "This client shall not handle encrypted fields!".to_owned()
             });
         }
-        let parsed_entity = self.entity_client.load(&T::type_ref(), id).await?;
+        let parsed_entity = self.entity_client.load::<Id>(&T::type_ref(), id).await?;
         let typed_entity = self.instance_mapper.parse_entity::<T>(parsed_entity).map_err(|e| {
             let message = format!("Failed to parse entity into proper types: {}", e.to_string());
             ApiCallError::InternalSdkError { error_message: message }
         })?;
         Ok(typed_entity)
+    }
+
+    // TODO: Remove allowance after implementing
+    #[allow(dead_code)]
+    async fn load_all<T: Entity + Deserialize<'static>>(&self, list_id: &IdTuple, start: Option<String>) -> Result<Vec<T>, ApiCallError> {
+        todo!()
     }
 
     // TODO: Remove allowance after implementing
@@ -49,10 +57,8 @@ impl TypedEntityClient {
         list_id: &GeneratedId,
         start_id: &GeneratedId,
         amount: usize,
-        reverse: bool,
+        list_load_direction: ListLoadDirection,
     ) -> Result<Vec<T>, ApiCallError> {
         todo!()
     }
 }
-
-

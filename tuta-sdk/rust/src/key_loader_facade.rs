@@ -7,6 +7,7 @@ use crate::entities::sys::{Group, GroupKey};
 use crate::generated_id::GeneratedId;
 #[mockall_double::double]
 use crate::key_cache::KeyCache;
+use crate::ListLoadDirection;
 #[mockall_double::double]
 use crate::typed_entity_client::TypedEntityClient;
 #[mockall_double::double]
@@ -60,7 +61,7 @@ impl KeyLoaderFacade {
         let start_id = GeneratedId(base64::prelude::BASE64_URL_SAFE_NO_PAD.encode(current_group_key.version.to_string()));
         let amount_of_keys_including_target = (current_group_key.version - target_key_version) as usize;
 
-        let former_keys: Vec<GroupKey> = self.entity_client.load_range(&list_id, &start_id, amount_of_keys_including_target, true).await?;
+        let former_keys: Vec<GroupKey> = self.entity_client.load_range(&list_id, &start_id, amount_of_keys_including_target, ListLoadDirection::DESC).await?;
 
         let VersionedAesKey {
             version: mut last_version,
@@ -207,7 +208,6 @@ mod tests {
         let PQKeyPairs { ecc_keys, kyber_keys } = current_key_pair;
         let group_key = &current_group_key.object;
         let sym_enc_priv_ecc_key = group_key.encrypt_data(ecc_keys.private_key.as_bytes(), Iv::generate(randomizer_facade)).unwrap();
-        println!("{:?} enc priv ecc key (ggwk) {:?} as {:?}", group_key, ecc_keys.private_key.as_bytes(), sym_enc_priv_ecc_key);
         let sync_enc_priv_kyber_key = group_key.encrypt_data(&kyber_keys.private_key.serialize(), Iv::generate(randomizer_facade)).unwrap();
         generate_random_group(
             Some(
@@ -353,7 +353,7 @@ mod tests {
                             base64::prelude::BASE64_URL_SAFE_NO_PAD.encode(current_group_key.version.to_string())
                         )),
                         predicate::eq(FORMER_KEYS - i),
-                        predicate::eq(true),
+                        predicate::eq(ListLoadDirection::DESC),
                     )
                     .returning(move |_, _, _, _| Ok(returned_keys.clone()))
                     .times(1);

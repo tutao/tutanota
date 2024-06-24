@@ -1,3 +1,6 @@
+use base64::alphabet::Alphabet;
+use base64::engine::GeneralPurpose;
+
 #[cfg(test)]
 pub mod test_utils;
 #[cfg(test)]
@@ -22,6 +25,19 @@ impl<T> Versioned<T> {
         }
     }
 }
+
+/// Alphabet for encoding/decoding a base64ext string.
+/// Base64ext uses another character set than base64 in order to make it sortable.
+///
+/// packages/tutanota-utils/lib/Encoding.ts
+const BASE64EXT_ALPHABET: Alphabet = match Alphabet::new("-0123456789ABCDEFGHIJKLMNOPQRSTUVWXYZ_abcdefghijklmnopqrstuvwxyz") {
+    Ok(x) => x,
+    Err(_) => panic!("creation of alphabet failed")
+};
+
+pub const BASE64_EXT: GeneralPurpose = GeneralPurpose::new(
+    &BASE64EXT_ALPHABET,
+    base64::engine::general_purpose::PAD);
 
 /// Combine multiple slices into one Vec.
 ///
