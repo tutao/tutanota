@@ -1,17 +1,16 @@
-use std::collections::HashMap;
 use std::fmt::Display;
 use std::sync::Arc;
 
-use crate::{ApiCallError, IdTuple, LoginState, ListLoadDirection, RestClient, SdkState, TypeRef};
+use crate::{ApiCallError, IdTuple, ListLoadDirection, RestClient, SdkState, TypeRef, AuthHeadersProvider};
 use crate::element_value::{ElementValue, ParsedEntity};
 use crate::generated_id::GeneratedId;
 use crate::json_serializer::JsonSerializer;
 use crate::json_element::RawEntity;
 use crate::metamodel::TypeModel;
 use crate::rest_client::{HttpMethod, RestClientOptions};
-use crate::rest_error::{HttpError};
-use crate::type_model_provider::{TypeModelProvider};
-use crate::user_facade::AuthHeadersProvider;
+use crate::rest_error::HttpError;
+use crate::type_model_provider::TypeModelProvider;
+
 
 /// Denotes an ID that can be serialised into a string
 pub trait IdType: Display + 'static {}
@@ -27,46 +26,10 @@ impl IdType for IdTuple {}
 pub struct EntityClient {
     rest_client: Arc<dyn RestClient>,
     base_url: String,
-    auth_headers_provider: Arc<dyn AuthHeadersProvider + Send + Sync>,
+    sdk_state: Arc<SdkState>,
     json_serializer: Arc<JsonSerializer>,
     type_model_provider: Arc<TypeModelProvider>,
 }
-
-// TODO: Fix architecture of `AuthHeadersProvider`
-impl AuthHeadersProvider for SdkState {
-    /// This version has client_version in header, unlike the LoginState version
-    fn create_auth_headers(&self, model_version: u32) -> HashMap<String, String> {
-        let auth_state = self.login_state.read().unwrap();
-        let mut headers = auth_state.create_auth_headers(model_version);
-        headers.insert("cv".to_owned(), self.client_version.to_owned());
-        headers.insert("v".to_owned(), model_version.to_string());
-        headers
-    }
-
-    fn is_fully_logged_in(&self) -> bool {
-        let auth_state = self.login_state.read().unwrap();
-        auth_state.is_fully_logged_in()
-    }
-}
-
-impl AuthHeadersProvider for LoginState {
-    fn create_auth_headers(&self, _model_version: u32) -> HashMap<String, String> {
-        match self {
-            LoginState::NotLoggedIn => HashMap::new(),
-            LoginState::LoggedIn { access_token } => HashMap::from([
-                ("accessToken".to_string(), access_token.clone()),
-            ])
-        }
-    }
-
-    fn is_fully_logged_in(&self) -> bool {
-        return match self {
-            LoginState::NotLoggedIn => false,
-            LoginState::LoggedIn { .. } => true
-        };
-    }
-}
-
 
 // TODO: remove this allowance after completing the implementation of `EntityClient`
 #[allow(unused_variables)]
@@ -75,23 +38,23 @@ impl EntityClient {
         rest_client: Arc<dyn RestClient>,
         json_serializer: Arc<JsonSerializer>,
         base_url: &str,
-        auth_headers_provider: Arc<dyn AuthHeadersProvider + Send + Sync>,
+        sdk_state: Arc<SdkState>,
         type_model_provider: Arc<TypeModelProvider>,
     ) -> Self {
         EntityClient {
             rest_client,
             json_serializer,
             base_url: base_url.to_owned(),
-            auth_headers_provider,
+            sdk_state,
             type_model_provider,
         }
     }
 
     /// Gets an entity/instance of type `type_ref` from the backend
-    pub async fn load<T: IdType>(
+    pub async fn load<Id: IdType>(
         &self,
         type_ref: &TypeRef,
-        id: &T,
+        id: &Id,
     ) -> Result<ParsedEntity, ApiCallError> {
         let type_model = self.get_type_model(&type_ref)?;
         let url = format!("{}/rest/{}/{}/{}", self.base_url, type_ref.app, type_ref.type_, id);
@@ -101,7 +64,7 @@ impl EntityClient {
         })?;
         let options = RestClientOptions {
             body: None,
-            headers: self.auth_headers_provider.create_auth_headers(model_version),
+            headers: self.sdk_state.create_auth_headers(model_version),
         };
         let response = self
             .rest_client
@@ -116,7 +79,7 @@ impl EntityClient {
         }
         let response_bytes = response.body.expect("no body");
         let response_entity = serde_json::from_slice::<RawEntity>(response_bytes.as_slice()).unwrap();
-        let parsed_entity = self.json_serializer.parse(type_ref, response_entity)?;
+        let parsed_entity = self.json_serializer.parse(&type_ref, response_entity)?;
         Ok(parsed_entity)
     }
 
@@ -181,7 +144,7 @@ impl EntityClient {
         let body = serde_json::to_vec(&raw_entity).unwrap();
         let options = RestClientOptions {
             body: Some(body),
-            headers: self.auth_headers_provider.create_auth_headers(model_version),
+            headers: self.sdk_state.create_auth_headers(model_version),
         };
         // FIXME we should look at type model whether it is ET or LET
         let url = format!(
@@ -208,6 +171,13 @@ impl EntityClient {
 #[cfg(test)]
 mockall::mock! {
     pub EntityClient {
+        pub fn new(
+            rest_client: Arc<dyn RestClient>,
+            json_serializer: Arc<JsonSerializer>,
+            base_url: &str,
+            sdk_state: Arc<SdkState>,
+            type_model_provider: Arc<TypeModelProvider>,
+        ) -> Self;
         pub async fn load<T: IdType  + 'static>(
             &self,
             type_ref: &TypeRef,
