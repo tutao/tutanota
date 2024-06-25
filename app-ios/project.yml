@@ -10,6 +10,21 @@ settings:
     PRODUCT_NAME: "tutanota"
     DEVELOPMENT_TEAM: "JKCH89Z3M9" # Tutao GmbH
     ASSETCATALOG_COMPILER_APPICON_NAME: "AppIcon"
+settingGroups:
+  codeSigning:
+    base:
+      CODE_SIGN_IDENTITY: "$(inherited)"
+      CODE_SIGN_ENTITLEMENTS: "$(TARGET_NAME)/$(TARGET_NAME)$(CONFIGURATION).entitlements"
+    configs:
+        Debug Production:
+          CODE_SIGN_ENTITLEMENTS: "$(TARGET_NAME)/$(TARGET_NAME).entitlements"
+        Release Development:
+          PROVISIONING_PROFILE_SPECIFIER[sdk=iphoneos*]: "match AdHoc de.tutao.tutanota.$(PRODUCT_NAME)"
+        Release Staging:
+          PROVISIONING_PROFILE_SPECIFIER[sdk=iphoneos*]: "match AdHoc $(PRODUCT_BUNDLE_IDENTIFIER)"
+        Release Production:
+          CODE_SIGN_ENTITLEMENTS: "$(TARGET_NAME)/$(TARGET_NAME).entitlements"
+          PROVISIONING_PROFILE_SPECIFIER[sdk=iphoneos*]: "match AdHoc $(PRODUCT_BUNDLE_IDENTIFIER)"
 targets:
   tutanota:
     templates: [ "formatAndLint" ]
@@ -37,7 +52,6 @@ targets:
         ALWAYS_EMBED_SWIFT_STANDARD_LIBRARIES: "YES"
         LD_RUNPATH_SEARCH_PATHS: "@executable_path/Frameworks"
         INFOPLIST_FILE: "tutanota/Info.plist"
-        CODE_SIGN_ENTITLEMENTS: "$(TARGET_NAME)/$(TARGET_NAME)$(CONFIGURATION).entitlements"
         SWIFT_OBJC_BRIDGING_HEADER: "tutanota/Sources/tutanota-Bridging-Header.h"
         HEADER_SEARCH_PATHS: [
           "$(BUILD_DIR)/liboqs-include",
@@ -63,7 +77,6 @@ targets:
         ]
         SUPPORTS_XR_DESIGNED_FOR_IPHONE_IPAD: "NO"
         SUPPORTS_MAC_DESIGNED_FOR_IPHONE_IPAD: "NO"
-        CODE_SIGN_IDENTITY: "$(inherited)"
       configs:
         Debug Development:
           PRODUCT_NAME: "Tuta D"
@@ -71,18 +84,16 @@ targets:
           PRODUCT_NAME: "Tuta Test"
         Debug Production:
           PRODUCT_NAME: "Tuta Mail"
-          CODE_SIGN_ENTITLEMENTS: "$(TARGET_NAME)/$(TARGET_NAME).entitlements"
         Release Development:
           PRODUCT_NAME: "Tuta D"
-          PROVISIONING_PROFILE_SPECIFIER: "match AdHoc de.tutao.tutanota"
         Release Staging:
           PRODUCT_NAME: "Tuta Test"
           PROVISIONING_PROFILE_SPECIFIER: "match AdHoc de.tutao.tutanota.test"
           PROVISIONING_PROFILE_SPECIFIER[sdk=iphoneos*]: "match AdHoc de.tutao.tutanota.test 1716556941"
         Release Production:
           PRODUCT_NAME: "Tuta Mail"
-          CODE_SIGN_ENTITLEMENTS: "$(TARGET_NAME)/$(TARGET_NAME).entitlements"
-          PROVISIONING_PROFILE_SPECIFIER: "match AdHoc de.tutao.tutanota"
+      groups:
+        - "codeSigning"
     dependencies:
       - package: Atomics
       - sdk: CryptoTokenKit.framework
@@ -210,24 +221,14 @@ targets:
         SWIFT_EMIT_LOC_STRINGS: "YES"
         GENERATE_INFOPLIST_FILE: "YES"
         INFOPLIST_FILE: "TutanotaShareExtension/Info.plist"
-        CODE_SIGN_ENTITLEMENTS: "$(TARGET_NAME)/$(TARGET_NAME)$(CONFIGURATION).entitlements"
         HEADER_SEARCH_PATHS: "\"${PROJECT_DIR}/tutanota/include\"/**"
         CURRENT_PROJECT_VERSION: "1"
         MARKETING_VERSION: "3.104.5"
         CLANG_CXX_LANGUAGE_STANDARD: "gnu++17"
         SUPPORTS_XR_DESIGNED_FOR_IPHONE_IPAD: "NO"
         SUPPORTS_MAC_DESIGNED_FOR_IPHONE_IPAD: "NO"
-        CODE_SIGN_IDENTITY: "$(inherited)"
-      configs:
-        Debug Production:
-          CODE_SIGN_ENTITLEMENTS: "$(TARGET_NAME)/$(TARGET_NAME).entitlements"
-        Release Production:
-          PROVISIONING_PROFILE_SPECIFIER[sdk=iphoneos*]: "match AdHoc de.tutao.tutanota.TutanotaShareExtension"
-          CODE_SIGN_ENTITLEMENTS: "$(TARGET_NAME)/$(TARGET_NAME).entitlements"
-        Release Staging:
-          PROVISIONING_PROFILE_SPECIFIER[sdk=iphoneos*]: "match AdHoc de.tutao.tutanota.test.TutanotaShareExtension"
-        Release Development:
-          PROVISIONING_PROFILE_SPECIFIER[sdk=iphoneos*]: "match AdHoc de.tutao.tutanota.TutanotaShareExtension"
+      groups:
+        - "codeSigning"
     dependencies:
       - target: "TutanotaSharedFramework"
       - framework: tutasdk.framework
@@ -308,21 +309,11 @@ targets:
         SWIFT_EMIT_LOC_STRINGS: "YES"
         GENERATE_INFOPLIST_FILE: "YES"
         INFOPLIST_FILE: "TutanotaNotificationExtension/Info.plist"
-        CODE_SIGN_ENTITLEMENTS: "$(TARGET_NAME)/$(TARGET_NAME)$(CONFIGURATION).entitlements"
         CURRENT_PROJECT_VERSION: "1"
         MARKETING_VERSION: "1.0"
         PRODUCT_BUNDLE_IDENTIFIER: "$(inherited).TutanotaNotificationExtension"
-        CODE_SIGN_IDENTITY: "$(inherited)"
-      configs:
-        Debug Production:
-          CODE_SIGN_ENTITLEMENTS: "$(TARGET_NAME)/$(TARGET_NAME).entitlements"
-        Release Development:
-          PROVISIONING_PROFILE_SPECIFIER[sdk=iphoneos*]: "match AdHoc de.tutao.tutanota.TutanotaNotificationExtension"
-        Release Staging:
-          PROVISIONING_PROFILE_SPECIFIER[sdk=iphoneos*]: "match AdHoc de.tutao.tutanota.test.TutanotaNotificationExtension"
-        Release Production:
-          PROVISIONING_PROFILE_SPECIFIER[sdk=iphoneos*]: "match AdHoc de.tutao.tutanota.TutanotaNotificationExtension"
-          CODE_SIGN_ENTITLEMENTS: "$(TARGET_NAME)/$(TARGET_NAME).entitlements"
+      groups:
+        - "codeSigning"
     dependencies:
       - target: "TutanotaSharedFramework"
   TutanotaSharedTests:
