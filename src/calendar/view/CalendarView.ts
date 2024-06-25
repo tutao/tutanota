@@ -56,7 +56,7 @@ import { BottomNav } from "../../gui/nav/BottomNav.js"
 import { DrawerMenuAttrs } from "../../gui/nav/DrawerMenu.js"
 import { BaseTopLevelView } from "../../gui/BaseTopLevelView.js"
 import { TopLevelAttrs, TopLevelView } from "../../TopLevelView.js"
-import { getEventWithDefaultTimes } from "../../api/common/utils/CommonCalendarUtils.js"
+import { getEventWithDefaultTimes, getNextHalfHour } from "../../api/common/utils/CommonCalendarUtils.js"
 import { BackgroundColumnLayout } from "../../gui/BackgroundColumnLayout.js"
 import { theme } from "../../gui/theme.js"
 import { CalendarMobileHeader } from "./CalendarMobileHeader.js"
@@ -106,7 +106,7 @@ export class CalendarView extends BaseTopLevelView implements TopLevelView<Calen
 						button: styles.isDesktopLayout()
 							? {
 									label: "newEvent_action",
-									click: () => this.createNewEventDialog(),
+									click: () => this.createNewEventDialog(getNextHalfHour()),
 							  }
 							: null,
 						content: [
@@ -190,7 +190,7 @@ export class CalendarView extends BaseTopLevelView implements TopLevelView<Calen
 									onEventClicked: (calendarEvent, domEvent) => this.onEventSelected(calendarEvent, domEvent, this.htmlSanitizer),
 									onEventKeyDown: this.handleEventKeyDown(),
 									onNewEvent: (date) => {
-										this.createNewEventDialog(date)
+										this.createNewEventDialog(getNextHalfHour())
 									},
 									selectedDate: this.viewModel.selectedDate(),
 									onDateSelected: (date, calendarViewType) => {
@@ -390,7 +390,7 @@ export class CalendarView extends BaseTopLevelView implements TopLevelView<Calen
 				"short",
 				(viewType, next) => this.viewPeriod(viewType, next),
 			),
-			onCreateEvent: () => this.createNewEventDialog(),
+			onCreateEvent: () => this.createNewEventDialog(getNextHalfHour()),
 			onToday: () => {
 				// in case it has been set, when onToday is called we definitely do not want the time to be ignored
 				this.viewModel.ignoreNextValidTimeSelection = false
