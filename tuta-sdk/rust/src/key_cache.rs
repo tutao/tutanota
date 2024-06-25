@@ -2,10 +2,11 @@ use std::collections::HashMap;
 use std::sync::{Arc, RwLock};
 use crate::crypto::aes::Aes256Key;
 use crate::entities::sys::User;
+use crate::id::Id;
 use crate::key_loader_facade::VersionedKey;
 
 pub struct KeyCache {
-    current_group_keys: RwLock<HashMap<String, VersionedKey>>,
+    current_group_keys: RwLock<HashMap<Id, VersionedKey>>,
     current_user_group_key: RwLock<Option<VersionedKey>>,
     user_group_key_distribution_key: RwLock<Option<Aes256Key>>
 }
@@ -37,12 +38,12 @@ impl KeyCache {
         *self.user_group_key_distribution_key.write().unwrap() = Some(user_group_key_distribution_key);
     }
 
-    pub fn get_current_group_key(&self, group_id: &str) -> Option<VersionedKey> {
+    pub fn get_current_group_key(&self, group_id: &Id) -> Option<VersionedKey> {
         let lock = self.current_group_keys.read().unwrap();
         lock.get(group_id).cloned()
     }
 
-    pub fn put_group_key(&self, group_id: &str, key: &VersionedKey) {
+    pub fn put_group_key(&self, group_id: &Id, key: &VersionedKey) {
         let mut lock = self.current_group_keys.write().unwrap();
         lock.insert(group_id.to_owned(), key.to_owned());
     }

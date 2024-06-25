@@ -7,6 +7,7 @@ use super::tuta_crypt::*;
 #[derive(Clone)]
 pub enum AsymmetricKeyPair {
     RSAKeyPair(RSAKeyPair),
+    RsaEccKeyPair(RSAEccKeyPair),
     PQKeyPairs(PQKeyPairs)
 }
 
@@ -54,7 +55,7 @@ impl GenericAesKey {
         }
     }
 
-    pub(in crate::crypto) fn as_bytes(&self) -> &[u8] {
+    pub fn as_bytes(&self) -> &[u8] {
         match self {
             Self::Aes128(n) => n.as_bytes(),
             Self::Aes256(n) => n.as_bytes()

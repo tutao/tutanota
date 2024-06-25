@@ -35,7 +35,6 @@ mod instance_mapper;
 mod typed_entity_client;
 mod key_loader_facade;
 mod key_cache;
-mod key_encryption;
 pub mod date;
 pub mod id;
 

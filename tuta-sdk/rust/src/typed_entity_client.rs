@@ -3,6 +3,7 @@ use serde::Deserialize;
 use crate::ApiCallError;
 use crate::entities::Entity;
 use crate::entity_client::{EntityClient, IdType};
+use crate::id::Id;
 use crate::instance_mapper::InstanceMapper;
 
 pub struct TypedEntityClient {
@@ -42,8 +43,8 @@ impl TypedEntityClient {
 
     pub async fn load_range<T: Entity + Deserialize<'static>>(
         &self,
-        list_id: &str,
-        start_id: &str,
+        list_id: &Id,
+        start_id: &Id,
         amount: usize,
         reverse: bool
     ) -> Result<Vec<T>, ApiCallError> {

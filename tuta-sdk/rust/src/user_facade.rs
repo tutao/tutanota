@@ -4,12 +4,15 @@ use std::sync::{Arc, RwLock};
 use base64::Engine;
 use base64::prelude::BASE64_STANDARD;
 use crate::ApiCallError;
+use crate::ApiCallError::InternalSdkError;
 use crate::crypto::aes::{Aes256Key, AES_256_KEY_SIZE};
 use crate::crypto::hkdf::hkdf;
 use crate::crypto::sha::sha256;
 use crate::entities::sys::{GroupMembership, User};
+use crate::id::Id;
 use crate::key_cache::KeyCache;
-use crate::key_loader_facade::{GenericAesKey, VersionedKey};
+use crate::crypto::key::GenericAesKey;
+use crate::key_loader_facade::VersionedKey;
 use crate::util::Versioned;
 
 pub trait AuthHeadersProvider {
@@ -44,7 +47,9 @@ impl UserFacade {
         let user = self.get_user();
         let user_group_membership = &user.userGroup;
         let current_user_group_key = Versioned::new(
-            user_passphrase_key.decrypt_key(user_group_membership.symEncGKey.as_slice())?,
+            user_passphrase_key.decrypt_key(&user_group_membership.symEncGKey).map_err(|e| {
+                InternalSdkError {error_message: e.to_string()}
+            })?,
             user_group_membership.groupKeyVersion
         );
         self.key_cache.set_current_user_group_key(current_user_group_key);
@@ -67,11 +72,11 @@ impl UserFacade {
 
     // FIXME: Check uint8ArrayToBase64 is correct;
     // there is a max length in the ts version, it seems to be a js thing, can we forego it here?
-    fn derive_user_group_key_distribution_key(&self, user_group_id: &str, user_passphrase_key: GenericAesKey) -> Result<GenericAesKey, ApiCallError> {
+    fn derive_user_group_key_distribution_key(&self, user_group_id: &Id, user_passphrase_key: GenericAesKey) -> Result<GenericAesKey, ApiCallError> {
         // we prepare a key to encrypt potential user group key rotations with
         // when passwords are changed clients are logged-out of other sessions
         // this key is only needed by the logged-in clients, so it should be reliable enough to assume that userPassphraseKey is in sync
-        let user_group_id_hash = sha256(user_group_id.as_bytes());
+        let user_group_id_hash = sha256(user_group_id.as_str().as_bytes());
         // we bind this to userGroupId and the domain separator USER_GROUP_KEY_DISTRIBUTION_KEY_INFO
         // the hkdf salt does not have to be secret but should be unique per user and carry some additional entropy which sha256 ensures
         let aes_key =
@@ -99,12 +104,12 @@ impl UserFacade {
         self.user.read().unwrap().clone()
     }
     
-    pub fn get_user_group_id(&self) -> String {
+    pub fn get_user_group_id(&self) -> Id {
         self.get_user().userGroup.group.clone()
     }
 
-    fn get_all_group_ids(&self) -> Vec<String> {
-        let mut groups: Vec<String> = self.get_user().memberships.iter().map(| membership | membership.group.clone()).collect();
+    fn get_all_group_ids(&self) -> Vec<Id> {
+        let mut groups: Vec<Id> = self.get_user().memberships.iter().map(| membership | membership.group.clone()).collect();
         groups.push(self.get_user().userGroup.group.clone());
         groups
     }
@@ -114,9 +119,9 @@ impl UserFacade {
             .ok_or_else(|| ApiCallError::InternalSdkError {error_message: "userGroupKey not available".to_owned()})
     }
 
-    pub(crate) fn get_membership(&self, group_id: &str) -> Result<GroupMembership, ApiCallError> {
+    pub(crate) fn get_membership(&self, group_id: &Id) -> Result<GroupMembership, ApiCallError> {
         self.get_user()
-            .memberships.iter().find(| g | g.group == group_id)
+            .memberships.iter().find(| g | g.group == *group_id)
             .map(|m| m.to_owned())
             .ok_or_else(|| ApiCallError::InternalSdkError { error_message: format!("No group with groupId {} found!", group_id) })
     }

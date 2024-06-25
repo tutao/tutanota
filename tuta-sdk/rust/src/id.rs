@@ -2,7 +2,7 @@ use std::fmt::{Display, Formatter};
 use serde::{Deserialize, Deserializer, Serialize, Serializer};
 use serde::de::{Error, Visitor};
 
-#[derive(Clone, Default, PartialEq, PartialOrd, Debug)]
+#[derive(Clone, Default, PartialEq, PartialOrd, Debug, Hash, Eq)]
 #[repr(transparent)]
 pub struct Id(String);
 

@@ -12,13 +12,14 @@ pub mod aes;
 pub mod sha;
 pub mod hkdf;
 mod argon2_id;
-mod ecc;
-mod kyber;
+pub mod ecc;
+pub mod kyber;
 pub mod rsa;
-mod tuta_crypt;
+pub mod tuta_crypt;
+pub mod key_encryption;
 mod key_loader_facade;
-mod crypto_facade;
-mod key;
+pub mod crypto_facade;
+pub mod key;
 
 #[cfg(test)]
 mod compatibility_test_utils;
