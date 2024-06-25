@@ -1,12 +1,48 @@
-use rsa::{BigUint, Oaep};
+use rsa::{BigUint, Oaep, RsaPrivateKey, RsaPublicKey};
 use rsa::rand_core::CryptoRngCore;
 use rsa::traits::{PrivateKeyParts, PublicKeyParts};
 use sha2::Sha256;
 use zeroize::Zeroizing;
+use crate::crypto::ecc::{EccPrivateKey, EccPublicKey};
+use crate::crypto::KeyPairType;
+use crate::crypto::kyber::{KyberPrivateKey, KyberPublicKey};
 use crate::join_slices;
 
 #[derive(Clone)]
 pub struct RSAPublicKey(rsa::RsaPublicKey);
+
+pub struct RsaKeyPair {
+    key_pair_type: KeyPairType,
+    public_key: RsaPublicKey,
+    private_key: RsaPrivateKey
+}
+
+pub struct RsaEccKeyPair {
+    rsa_key_pair: RsaKeyPair,
+    ecc_key_pair: EccKeyPair
+}
+
+pub struct EccKeyPair {
+    public_key: EccPublicKey,
+    private_key: EccPrivateKey
+}
+
+pub struct KyberKeyPair {
+    public_key: KyberPublicKey,
+    private_key: KyberPrivateKey
+}
+
+pub struct PQKeyPairs {
+    key_pair_type: KeyPairType,
+    ecc_key_pair: EccKeyPair,
+    kyber_key_pair: KyberKeyPair
+}
+
+pub enum AsymmetricKeyPair {
+    RsaKeyPair(RsaKeyPair),
+    RsaEccKeyPair(RsaEccKeyPair),
+    PQKeyPairs(PQKeyPairs),
+}
 
 const RSA_PUBLIC_EXPONENT: u32 = 65537;
 

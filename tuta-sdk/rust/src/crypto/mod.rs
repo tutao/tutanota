@@ -2,6 +2,11 @@
 //! Contains implementations of cryptographic algorithms and their primitives
 // TODO: Remove the above allowance when starting to implement higher level functions
 
+pub enum KeyPairType {
+    RSA,
+    RsaAndEcc,
+    TutaCrypt,
+}
 
 pub mod aes;
 pub mod sha;
