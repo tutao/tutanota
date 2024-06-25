@@ -190,7 +190,7 @@ export class CalendarView extends BaseTopLevelView implements TopLevelView<Calen
 									onEventClicked: (calendarEvent, domEvent) => this.onEventSelected(calendarEvent, domEvent, this.htmlSanitizer),
 									onEventKeyDown: this.handleEventKeyDown(),
 									onNewEvent: (date) => {
-										this.createNewEventDialog(date)
+										this.createNewEventDialog(getNextHalfHour())
 									},
 									selectedDate: this.viewModel.selectedDate(),
 									onDateSelected: (date, calendarViewType) => {
@@ -390,7 +390,7 @@ export class CalendarView extends BaseTopLevelView implements TopLevelView<Calen
 				"short",
 				(viewType, next) => this.viewPeriod(viewType, next),
 			),
-			onCreateEvent: () => this.createNewEventDialog(),
+			onCreateEvent: () => this.createNewEventDialog(getNextHalfHour()),
 			onToday: () => {
 				// in case it has been set, when onToday is called we definitely do not want the time to be ignored
 				this.viewModel.ignoreNextValidTimeSelection = false
