@@ -25,6 +25,15 @@ settingGroups:
         Release Production:
           CODE_SIGN_ENTITLEMENTS: "$(TARGET_NAME)/$(TARGET_NAME).entitlements"
           PROVISIONING_PROFILE_SPECIFIER[sdk=iphoneos*]: "match AdHoc $(PRODUCT_BUNDLE_IDENTIFIER)"
+  extension:
+    base:
+      SKIP_INSTALL: "YES"
+      INFOPLIST_KEY_CFBundleDisplayName: "$(TARGET_NAME)"
+      LD_RUNPATH_SEARCH_PATHS: "$(inherited) @executable_path/Frameworks @executable_path/../../Frameworks"
+      SWIFT_EMIT_LOC_STRINGS: "YES"
+      GENERATE_INFOPLIST_FILE: "YES"
+      CURRENT_PROJECT_VERSION: "1"
+      MARKETING_VERSION: "1.0"
 targets:
   tutanota:
     templates: [ "formatAndLint" ]
@@ -214,21 +223,16 @@ targets:
       base:
         PRODUCT_NAME: "TutanotaShareExtension"
         PRODUCT_BUNDLE_IDENTIFIER: "$(inherited).TutanotaShareExtension"
-        SKIP_INSTALL: "YES"
         IPHONEOS_DEPLOYMENT_TARGET: "15.5" # Why?
-        INFOPLIST_KEY_CFBundleDisplayName: "TutanotaShareExtension"
-        LD_RUNPATH_SEARCH_PATHS: "$(inherited) @executable_path/Frameworks @executable_path/../../Frameworks"
-        SWIFT_EMIT_LOC_STRINGS: "YES"
-        GENERATE_INFOPLIST_FILE: "YES"
         INFOPLIST_FILE: "TutanotaShareExtension/Info.plist"
         HEADER_SEARCH_PATHS: "\"${PROJECT_DIR}/tutanota/include\"/**"
-        CURRENT_PROJECT_VERSION: "1"
         MARKETING_VERSION: "3.104.5"
         CLANG_CXX_LANGUAGE_STANDARD: "gnu++17"
         SUPPORTS_XR_DESIGNED_FOR_IPHONE_IPAD: "NO"
         SUPPORTS_MAC_DESIGNED_FOR_IPHONE_IPAD: "NO"
       groups:
         - "codeSigning"
+        - "extension"
     dependencies:
       - target: "TutanotaSharedFramework"
       - framework: tutasdk.framework
@@ -302,18 +306,12 @@ targets:
         CLANG_CXX_LANGUAGE_STANDARD: "gnu++20"
         ASSETCATALOG_COMPILER_GENERATE_SWIFT_ASSET_SYMBOL_EXTENSIONS: "YES"
         ENABLE_USER_SCRIPT_SANDBOXING: "YES"
-        SKIP_INSTALL: "YES"
-        INFOPLIST_KEY_CFBundleDisplayName: "TutanotaNotificationExtension"
-        LD_RUNPATH_SEARCH_PATHS: "$(inherited) @executable_path/Frameworks @executable_path/../../Frameworks"
         LOCALIZATION_PREFERS_STRING_CATALOGS: "YES"
-        SWIFT_EMIT_LOC_STRINGS: "YES"
-        GENERATE_INFOPLIST_FILE: "YES"
         INFOPLIST_FILE: "TutanotaNotificationExtension/Info.plist"
-        CURRENT_PROJECT_VERSION: "1"
-        MARKETING_VERSION: "1.0"
         PRODUCT_BUNDLE_IDENTIFIER: "$(inherited).TutanotaNotificationExtension"
       groups:
         - "codeSigning"
+        - "extension"
     dependencies:
       - target: "TutanotaSharedFramework"
   TutanotaSharedTests:
