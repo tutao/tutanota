@@ -3,10 +3,11 @@ use rsa::{RsaPrivateKey, RsaPublicKey};
 use rsa::pkcs1::DecodeRsaPrivateKey;
 use crate::ApiCallError;
 use crate::ApiCallError::InternalSdkError;
-use crate::crypto::aes::{aes_128_decrypt, aes_256_decrypt};
+use crate::crypto::aes::{aes_128_decrypt, aes_128_encrypt, aes_256_decrypt, aes_256_encrypt, AesEncryptError, Iv, MacMode, PaddingMode};
 use crate::crypto::ecc::{EccKeyPair, EccPrivateKey, EccPublicKey};
 use crate::crypto::key::{AsymmetricKeyPair, GenericAesKey};
 use crate::crypto::kyber::{KyberKeyPair, KyberPrivateKey, KyberPublicKey};
+use crate::crypto::randomizer_facade::random;
 use crate::crypto::rsa::{RSAEccKeyPair, RSAKeyPair, RSAPrivateKey, RSAPublicKey};
 use crate::crypto::tuta_crypt::PQKeyPairs;
 use crate::entities::sys::KeyPair;
@@ -44,8 +45,15 @@ fn decrypt_pq_key_pair(encryption_key: &GenericAesKey, key_pair: &KeyPair) -> Re
     }
 }
 
+pub fn encrypt_rsa_priv_key(encryption_key: &GenericAesKey, key: RSAPrivateKey, iv: &Iv) -> Result<Vec<u8>, AesEncryptError> {
+    match encryption_key {
+        GenericAesKey::Aes256(aes_key) => aes_256_encrypt(aes_key, key.serialize().as_slice(), iv, PaddingMode::WithPadding),
+        GenericAesKey::Aes128(aes_key) => aes_128_encrypt(aes_key, key.serialize().as_slice(), iv, PaddingMode::WithPadding, MacMode::WithMac)
+    }
+}
+
 fn decrypt_rsa_or_rsa_ecc_key_pair(encryption_key: &GenericAesKey, key_pair: &KeyPair) -> Result<AsymmetricKeyPair, ApiCallError> {
-    let public_key = RSAPublicKey::new(RsaPublicKey::from_public_key_der(key_pair.pubRsaKey.as_ref().unwrap()).map_err(|e| {
+    let public_key = RSAPublicKey::new(RsaPublicKey::from_public_key_pem(String::from_utf8(key_pair.pubRsaKey.as_ref().unwrap().clone()).unwrap().as_str()).map_err(|e| {
         InternalSdkError {error_message: e.to_string()}
     })?);
     let private_key = RSAPrivateKey::new(RsaPrivateKey::from_pkcs1_der(aes_decrypt(encryption_key, key_pair.symEncPrivRsaKey.as_ref().unwrap())?.as_slice())

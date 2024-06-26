@@ -241,7 +241,7 @@ pub const AES_128_KEY_SIZE: usize = 16;
 pub const AES_256_KEY_SIZE: usize = 32;
 
 /// The size of an AES initialisation vector in bytes
-const IV_BYTE_SIZE: usize = 16;
+pub const IV_BYTE_SIZE: usize = 16;
 
 /// Size of HMAC authentication added to the ciphertext
 const MAC_SIZE: usize = 32;

@@ -48,7 +48,7 @@ impl TypedEntityClient {
         amount: usize,
         reverse: bool
     ) -> Result<Vec<T>, ApiCallError> {
-        todo!()
+        Ok(Vec::new())
     }
 }
 

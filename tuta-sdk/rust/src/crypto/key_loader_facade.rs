@@ -2,11 +2,6 @@
 use crate::crypto::key::{AsymmetricKeyPair, GenericAesKey, KeyLoadError};
 use crate::id::Id;
 
-pub struct VersionedAesKey {
-    pub key: GenericAesKey,
-    pub version: i64
-}
-
 #[cfg_attr(test, mockall::automock)]
 pub trait KeyLoaderFacade: Send + Sync {
     // fn get_current_group_key(&self, group: &Id) -> Result<VersionedAesKey, KeyLoadError>;

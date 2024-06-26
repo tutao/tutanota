@@ -1,0 +1,59 @@
+{
+	"_format": "0",
+	"_id": "O0IlmJn----0",
+	"_ownerGroup": "O0IlmJq----0",
+	"_permissions": "O0IlmJq--k-0",
+	"accountType": "1",
+	"enabled": "1",
+	"kdfVersion": "0",
+	"requirePasswordUpdate": "0",
+	"salt": "AAECAwQFBgcICQoLDA0ODw==",
+	"verifier": "vl8lWD9PaOR5z3qOd5SHQsbJEDWFVa7dMUtUSP9l9C0=",
+	"alarmInfoList": {
+		"_id": "h3I_yg",
+		"alarms": "O0IlmJq-0B-0"
+	},
+	"auth": {
+		"_id": "COxyWw",
+		"recoverCode": "O0IlmJq-0F-0",
+		"secondFactors": "O0IlmJq-07-0",
+		"sessions": "O0IlmJq-03-0"
+	},
+	"authenticatedDevices": [],
+	"customer": "O0IlmJn--7-0",
+	"externalAuthInfo": null,
+	"failedLogins": "O0IlmJq--s-0",
+	"memberships": [
+		{
+			"_id": "x6JM7w",
+			"admin": "0",
+			"capability": null,
+			"groupKeyVersion": "0",
+			"groupType": "3",
+			"symEncGKey": "AWahQP4tJIRsTaPw4WtwY9XndnIn55vO/hlntGe3/ot2+CR2WGhkHpWtUvbt9r4VEi9oNHvpPC1348Y+hn0qdzCevj5ORBU7ybOJEyikvunM",
+			"symKeyVersion": "0",
+			"group": "O0IlmJn--g-0",
+			"groupInfo": ["O0IlmJn--J-0", "O0IlmJp--B-0"],
+			"groupMember": ["O0IlmJp--7-0", "O0IlmJr--F-0"]
+		}
+	],
+	"phoneNumbers": [],
+	"pushIdentifierList": {
+		"_id": "63qUow",
+		"list": "O0IlmJq-0--0"
+	},
+	"secondFactorAuthentications": "O0IlmJq--w-0",
+	"successfulLogins": "O0IlmJq--o-0",
+	"userGroup": {
+		"_id": "4i5wHQ",
+		"admin": "0",
+		"capability": null,
+		"groupKeyVersion": "0",
+		"groupType": "0",
+		"symEncGKey": "3GMv8X6ItBoE9+ippSw0KXH5VqPvxD5UGwd/0QnuDqU=",
+		"symKeyVersion": "0",
+		"group": "O0IlmJq----0",
+		"groupInfo": ["O0IlmJn--N-0", "O0IlmJq--F-0"],
+		"groupMember": ["O0IlmJq--B-0", "O0IlmJq-0N-0"]
+	}
+}

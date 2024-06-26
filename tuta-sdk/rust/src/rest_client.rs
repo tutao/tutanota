@@ -1,7 +1,7 @@
 use std::collections::HashMap;
 use thiserror::Error;
 
-#[derive(uniffi::Enum)]
+#[derive(uniffi::Enum, Debug, PartialEq)]
 pub enum HttpMethod {
     GET,
     POST,
@@ -34,6 +34,7 @@ pub struct RestResponse {
 /// Provides a Rust SDK level interface for performing REST requests
 /// using the HTTP client injected by calling code (Kotlin/Swift/JavaScript)
 #[uniffi::export(with_foreign)]
+#[cfg_attr(test, mockall::automock)]
 #[async_trait::async_trait]
 pub trait RestClient: Send + Sync {
     /// Performs an HTTP request with binary data in its body using the injected HTTP client

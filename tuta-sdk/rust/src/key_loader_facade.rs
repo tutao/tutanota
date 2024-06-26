@@ -2,10 +2,9 @@ use std::sync::Arc;
 use base64::Engine;
 use futures::future::BoxFuture;
 use crate::ApiCallError;
-use crate::crypto::aes::{Aes128Key, Aes256Key, aes_128_decrypt_no_padding_fixed_iv, aes_256_decrypt_no_padding, AesKey};
 use crate::crypto::key::{AsymmetricKeyPair, GenericAesKey};
 use crate::crypto::key_encryption::decrypt_key_pair;
-use crate::entities::sys::{Group, GroupKey, KeyPair};
+use crate::entities::sys::{Group, GroupKey};
 use crate::entity_client::IdType;
 use crate::id::Id;
 use crate::key_cache::KeyCache;
@@ -14,14 +13,14 @@ use crate::user_facade::UserFacade;
 use crate::util::Versioned;
 
 pub struct KeyLoaderFacade {
-    key_cache: KeyCache,
+    key_cache: Arc<KeyCache>,
     user_facade: Arc<UserFacade>,
     entity_client: Arc<TypedEntityClient>
 }
 
 impl KeyLoaderFacade {
     pub fn new(
-        key_cache: KeyCache,
+        key_cache: Arc<KeyCache>,
         user_facade: Arc<UserFacade>,
         entity_client: Arc<TypedEntityClient>
     ) -> Self {
@@ -32,7 +31,7 @@ impl KeyLoaderFacade {
         }
     }
 
-    pub async fn load_sym_group_key(&self, group_id: &Id, version: i64, current_group_key: Option<VersionedKey>) -> Result<GenericAesKey, ApiCallError> {
+    pub async fn load_sym_group_key(&self, group_id: &Id, version: i64, current_group_key: Option<VersionedAesKey>) -> Result<GenericAesKey, ApiCallError> {
         let group_key = match current_group_key.clone() {
             Some(n) => n,
             None => self.get_current_sym_group_key(group_id).await?
@@ -47,7 +46,7 @@ impl KeyLoaderFacade {
         };
     }
 
-    async fn find_former_group_key(&self, group: &Group, current_group_key: &VersionedKey, target_key_version: i64) -> Result<FormerGroupKey, ApiCallError> {
+    async fn find_former_group_key(&self, group: &Group, current_group_key: &VersionedAesKey, target_key_version: i64) -> Result<FormerGroupKey, ApiCallError> {
         let list_id = group.formerGroupKeys.clone().unwrap().list;
 
         let start_id = Id::new(base64::prelude::BASE64_URL_SAFE_NO_PAD.encode(current_group_key.version.to_string().as_bytes()));
@@ -55,7 +54,7 @@ impl KeyLoaderFacade {
 
         let former_keys: Vec<GroupKey> = self.entity_client.load_range(&list_id, &start_id, amount_of_keys_including_target, true).await?;
 
-        let VersionedKey {
+        let VersionedAesKey {
             version: mut last_version,
             object: mut last_group_key
         } = current_group_key.to_owned();
@@ -94,7 +93,7 @@ impl KeyLoaderFacade {
         todo!()
     }
 
-    pub async fn get_current_sym_group_key(&self, group_id: &Id) -> Result<VersionedKey, ApiCallError> {
+    pub async fn get_current_sym_group_key(&self, group_id: &Id) -> Result<VersionedAesKey, ApiCallError> {
         if *group_id == self.user_facade.get_user_group_id() {
             return self.get_current_sym_user_group_key().ok_or_else(|| ApiCallError::InternalSdkError { error_message: "no current group key".to_owned() })
         }
@@ -104,7 +103,7 @@ impl KeyLoaderFacade {
         }
 
 		// The call leads to recursive calls down the chain, so BoxFuture is used to wrap the recursive async calls
-        fn get_key_for_version<'a>(facade: &'a KeyLoaderFacade, group_id: &'a Id) -> BoxFuture<'a, Result<VersionedKey, ApiCallError>> {
+        fn get_key_for_version<'a>(facade: &'a KeyLoaderFacade, group_id: &'a Id) -> BoxFuture<'a, Result<VersionedAesKey, ApiCallError>> {
             Box::pin(facade.load_and_decrypt_current_sym_group_key(&group_id))
         }
 
@@ -113,14 +112,14 @@ impl KeyLoaderFacade {
         Ok(key)
     }
 
-    async fn load_and_decrypt_current_sym_group_key(&self, group_id: &Id) -> Result<VersionedKey, ApiCallError> {
+    async fn load_and_decrypt_current_sym_group_key(&self, group_id: &Id) -> Result<VersionedAesKey, ApiCallError> {
         let group_membership = self.user_facade.get_membership(group_id)?;
         let required_user_group_key = self.load_sym_user_group_key(group_membership.symKeyVersion).await?;
         let version = group_membership.groupKeyVersion;
         let object = required_user_group_key.decrypt_key(&group_membership.symEncGKey).map_err(|e| {
             ApiCallError::InternalSdkError { error_message: e.to_string() }
         })?;
-        Ok(VersionedKey { version, object })
+        Ok(VersionedAesKey { version, object })
     }
 
     async fn load_sym_user_group_key(&self, user_group_key_version: i64) -> Result<GenericAesKey, ApiCallError> {
@@ -131,7 +130,7 @@ impl KeyLoaderFacade {
         ).await
     }
 
-    fn get_current_sym_user_group_key(&self) -> Option<VersionedKey> {
+    fn get_current_sym_user_group_key(&self) -> Option<VersionedAesKey> {
         self.user_facade.get_current_user_group_key().ok()
     }
 
@@ -158,7 +157,7 @@ impl KeyLoaderFacade {
     }
 }
 
-pub type VersionedKey = Versioned<GenericAesKey>;
+pub type VersionedAesKey = Versioned<GenericAesKey>;
 
 struct FormerGroupKey {
     symmetric_group_key: GenericAesKey,

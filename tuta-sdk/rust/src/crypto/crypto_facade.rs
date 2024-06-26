@@ -4,8 +4,7 @@ use zeroize::Zeroizing;
 use crate::crypto::aes::Iv;
 use crate::crypto::ecc::EccPublicKey;
 use crate::crypto::key::{AsymmetricKeyPair, GenericAesKey, KeyLoadError};
-use crate::crypto::key_loader_facade::{VersionedAesKey};
-use crate::key_loader_facade::KeyLoaderFacade;
+use crate::key_loader_facade::{KeyLoaderFacade, VersionedAesKey};
 use crate::crypto::randomizer_facade::{random, RandomizerFacade};
 use crate::crypto::rsa::RSAEncryptionError;
 use crate::crypto::tuta_crypt::{PQError, PQMessage};
@@ -73,6 +72,8 @@ impl CryptoFacade {
             return Err(SessionKeyResolutionError { reason: "entity has no ownerGroup".to_owned() });
         };
 
+        let VersionedAesKey { object: key, version } = self.key_loader_facade.get_current_sym_group_key(owner_group).await?;
+
         let ResolvedBucketKey {
             decrypted_bucket_key,
             sender_identity_key
@@ -99,14 +100,14 @@ impl CryptoFacade {
         // TODO: authenticate
 
         // TODO: Update owner and session keys
-        // let mut queue = self.update_queue.lock().unwrap();
-        // for (instance_data, sym_enc_key) in re_encrypted_session_keys {
-        //     queue.queue_update_instance_session_key(
-        //         IdTuple::new(instance_data.instanceList, instance_data.instanceId).into(),
-        //         sym_enc_key,
-        //         version
-        //     );
-        // }
+        let mut queue = self.update_queue.lock().unwrap();
+        for (instance_data, sym_enc_key) in re_encrypted_session_keys {
+            queue.queue_update_instance_session_key(
+                IdTuple::new(instance_data.instanceList, instance_data.instanceId).into(),
+                sym_enc_key,
+                version
+            );
+        }
 
         entity.insert(OWNER_ENC_SESSION_KEY_NAME.to_owned(), ElementValue::Bytes(sym_enc_session_key));
 
@@ -251,178 +252,264 @@ impl From<RSAEncryptionError> for SessionKeyResolutionError {
 // impl SessionKeyResolutionErrorSubtype for PQError {}
 // impl SessionKeyResolutionErrorSubtype for RSAEncryptionError {}
 
-// #[cfg(test)]
-// mod test {
-//     use std::collections::HashMap;
-//     use std::sync::{Arc, Mutex};
-//     use crate::crypto::aes::{Aes256Key, Iv};
-//     use crate::crypto::crypto_facade::{BUCKET_KEY_NAME, CryptoFacade, ID_NAME, OWNER_GROUP_NAME};
-//     use crate::crypto::ecc::EccKeyPair;
-//     use crate::crypto::key::GenericAesKey;
-//     use crate::crypto::key_loader_facade::{MockKeyLoaderFacade, VersionedAesKey};
-//     use crate::crypto::randomizer_facade::random;
-//     use crate::crypto::randomizer_facade::test_util::TestRandomizerFacade;
-//     use crate::crypto::tuta_crypt::{PQKeyPairs, PQMessage};
-//     use crate::element_value::{ElementValue, ParsedEntity};
-//     use crate::element_value::ElementValue::GeneratedId;
-//     use crate::entities::Entity;
-//     use crate::entities::sys::{BucketKey, InstanceSessionKey, TypeInfo};
-//     use crate::entities::tutanota::{Mail, MailAddress};
-//     use crate::id::Id;
-//     use crate::IdTuple;
-//     use crate::instance_mapper::InstanceMapper;
-//     use crate::metamodel::{ElementType, TypeModel};
-//     use crate::owner_enc_session_keys_update_queue::MockOwnerEncSessionKeysUpdateQueue;
-//     use crate::type_model_provider::init_type_model_provider;
-//
-//     #[test]
-//     fn test_bucket_key_resolves() {
-//         let randomizer_facade = Arc::new(TestRandomizerFacade::new());
-//         let mut update_queue = Box::new(MockOwnerEncSessionKeysUpdateQueue::new());
-//         update_queue.expect_queue_update_instance_session_key()
-//             .returning(|_,_,_| {})
-//             .once();
-//
-//         let (
-//             group_key,
-//             asymmetric_keypair,
-//             ephemeral_keys,
-//             encapsulation_iv,
-//             bucket_enc_session_key_iv,
-//             bucket_key,
-//             mail_session_key
-//         ) = random(randomizer_facade.as_ref(), |rng| (
-//             GenericAesKey::from(Aes256Key::generate(rng)),
-//             PQKeyPairs::generate(rng),
-//             EccKeyPair::generate(rng),
-//             Iv::generate(rng),
-//             Iv::generate(rng),
-//             Aes256Key::generate(rng),
-//             GenericAesKey::from(Aes256Key::generate(rng)),
-//         ));
-//
-//         let sender_key_version = 1;
-//         let recipient_key_version = sender_key_version;
-//
-//         let key_loader = {
-//             let group_key = group_key.clone();
-//             let asymmetric_keypair_versioned = asymmetric_keypair.clone();
-//
-//             let mut key_loader = MockKeyLoaderFacade::new();
-//             key_loader.expect_get_current_group_key()
-//                 .returning(move |_| Ok(VersionedAesKey { version: sender_key_version, key: group_key.clone().into() }))
-//                 .once();
-//             key_loader.expect_get_asymmetric_key_pair()
-//                 .returning(move |_,_| Ok(asymmetric_keypair_versioned.clone().into()))
-//                 .once();
-//             key_loader
-//         };
-//
-//         let encapsulation = PQMessage::encapsulate(
-//             &asymmetric_keypair.ecc_keys,
-//             &ephemeral_keys,
-//             &asymmetric_keypair.ecc_keys.public_key,
-//             &asymmetric_keypair.kyber_keys.public_key,
-//             &bucket_key,
-//             encapsulation_iv
-//         ).unwrap();
-//
-//         let instance_mapper = Arc::new(InstanceMapper::new());
-//
-//         let crypto_facade = CryptoFacade {
-//             key_loader_facade: Arc::new(key_loader),
-//             update_queue: Mutex::new(update_queue),
-//             randomizer_facade: randomizer_facade.clone(),
-//             instance_mapper: instance_mapper.clone()
-//         };
-//
-//         let bucket_key_generic = GenericAesKey::from(bucket_key.clone());
-//         let bucket_enc_session_key = bucket_key_generic.encrypt_key(&mail_session_key, bucket_enc_session_key_iv);
-//
-//         let instance_id = Id::test_random();
-//         let instance_list = Id::test_random();
-//         let key_group = Id::test_random();
-//
-//         let bucket_key_data = BucketKey {
-//             _id: Id::test_random(),
-//             groupEncBucketKey: None,
-//             protocolVersion: 2,
-//             pubEncBucketKey: Some(encapsulation.serialize()),
-//             recipientKeyVersion: recipient_key_version,
-//             senderKeyVersion: None,
-//             bucketEncSessionKeys: vec![
-//                 InstanceSessionKey {
-//                     _id: Id::test_random(),
-//                     encryptionAuthStatus: None,
-//                     instanceId: instance_id.clone(),
-//                     instanceList: instance_list.clone(),
-//                     symEncSessionKey: bucket_enc_session_key.clone(),
-//                     symKeyVersion: recipient_key_version,
-//                     typeInfo: TypeInfo {
-//                         _id: Id::test_random(),
-//                         application: String::new(),
-//                         typeId: 0,
-//                     },
-//                 }
-//             ],
-//             keyGroup: Some(key_group.clone()),
-//         };
-//
-//         let mail = Mail {
-//             _format: 0,
-//             _id: IdTuple { list_id: instance_list, element_id: instance_id },
-//             _ownerEncSessionKey: None,
-//             _ownerGroup: Some(key_group.clone()),
-//             _ownerKeyVersion: None,
-//             _permissions: Id::test_random(),
-//             authStatus: None,
-//             confidential: false,
-//             differentEnvelopeSender: None,
-//             encryptionAuthStatus: None,
-//             listUnsubscribe: false,
-//             method: 0,
-//             movedTime: None,
-//             phishingStatus: 0,
-//             receivedDate: Default::default(),
-//             recipientCount: 0,
-//             replyType: 0,
-//             sentDate: None,
-//             state: 0,
-//             subject: "".to_string(),
-//             unread: false,
-//             attachments: vec![],
-//             bccRecipients: vec![],
-//             body: None,
-//             bucketKey: Some(bucket_key_data),
-//             ccRecipients: vec![],
-//             conversationEntry: IdTuple { list_id: Id::test_random(), element_id: Id::test_random() },
-//             firstRecipient: None,
-//             headers: None,
-//             mailDetails: None,
-//             mailDetailsDraft: None,
-//             replyTos: vec![],
-//             sender: MailAddress {
-//                 _id: Id::test_random(),
-//                 address: "".to_string(),
-//                 name: "".to_string(),
-//                 contact: None,
-//             },
-//             toRecipients: vec![],
-//         };
-//
-//         println!("{}", serde_json::to_string(&mail).unwrap());
-//
-//         let mut raw_mail = instance_mapper.serialize_entity(mail).unwrap();
-//
-//
-//         let provider = init_type_model_provider();
-//         let mail_type_ref = Mail::type_ref();
-//         let mail_type_model = provider.get_type_model(&mail_type_ref.app, &mail_type_ref.type_).unwrap();
-//
-//         let key = crypto_facade.resolve_session_key(&mut raw_mail, &mail_type_model)
-//             .expect("should not have errored")
-//             .expect("where is the key");
-//
-//         assert_eq!(mail_session_key.as_bytes(), key.as_bytes());
-//     }
-// }
+#[cfg(test)]
+mod test {
+    use std::collections::HashMap;
+    use std::sync::{Arc, Mutex, RwLock};
+    use base64::Engine;
+    use base64::prelude::BASE64_STANDARD;
+    use futures::future::MaybeDone::Future;
+    use futures::FutureExt;
+    use mockall::predicate;
+    use rsa::{BigUint, RsaPrivateKey, RsaPublicKey};
+    use crate::crypto::aes::{Aes256Key, Iv};
+    use crate::crypto::crypto_facade::{BUCKET_KEY_NAME, CryptoFacade, ID_NAME, OWNER_GROUP_NAME};
+    use crate::crypto::ecc::EccKeyPair;
+    use crate::crypto::key::GenericAesKey;
+    use crate::crypto::randomizer_facade::random;
+    use crate::crypto::randomizer_facade::test_util::TestRandomizerFacade;
+    use crate::crypto::tuta_crypt::{PQKeyPairs, PQMessage};
+    use crate::element_value::{ElementValue, ParsedEntity};
+    use crate::element_value::ElementValue::GeneratedId;
+    use crate::entities::Entity;
+    use crate::entities::sys::{BucketKey, Group, InstanceSessionKey, TypeInfo, User};
+    use crate::entities::tutanota::{Mail, MailAddress};
+    use crate::entity_client::EntityClient;
+    use crate::id::Id;
+    use crate::{IdTuple, LoginState, SdkState};
+    use crate::crypto::key_encryption::encrypt_rsa_priv_key;
+    use crate::crypto::rsa::{RSAPrivateKey, RSAPublicKey};
+    use crate::instance_mapper::InstanceMapper;
+    use crate::json_element::RawEntity;
+    use crate::json_serializer::JsonSerializer;
+    use crate::key_cache::KeyCache;
+    use crate::key_loader_facade::{KeyLoaderFacade, VersionedAesKey};
+    use crate::metamodel::{ElementType, TypeModel};
+    use crate::owner_enc_session_keys_update_queue::MockOwnerEncSessionKeysUpdateQueue;
+    use crate::rest_client::{HttpMethod, MockRestClient, RestResponse};
+    use crate::type_model_provider::{init_type_model_provider, TypeModelProvider};
+    use crate::typed_entity_client::TypedEntityClient;
+    use crate::user_facade::UserFacade;
+
+    #[tokio::test]
+    async fn test_bucket_key_resolves() {
+        let randomizer_facade = Arc::new(TestRandomizerFacade::new());
+        let mut update_queue = Box::new(MockOwnerEncSessionKeysUpdateQueue::new());
+        update_queue.expect_queue_update_instance_session_key()
+            .returning(|_,_,_| {})
+            .once();
+
+        let (
+            group_key,
+            asymmetric_keypair,
+            ephemeral_keys,
+            encapsulation_iv,
+            bucket_enc_session_key_iv,
+            bucket_key,
+            mail_session_key
+        ) = random(randomizer_facade.as_ref(), |rng| (
+            GenericAesKey::from(Aes256Key::generate(rng)),
+            PQKeyPairs::generate(rng),
+            EccKeyPair::generate(rng),
+            Iv::generate(rng),
+            Iv::generate(rng),
+            Aes256Key::generate(rng),
+            GenericAesKey::from(Aes256Key::generate(rng)),
+        ));
+
+        let sender_key_version = 0;
+        let recipient_key_version = sender_key_version;
+
+        // let key_loader = {
+        //     let group_key = group_key.clone();
+        //     let asymmetric_keypair_versioned = asymmetric_keypair.clone();
+        //
+        //     let mut key_loader = MockKeyLoaderFacade::new();
+        //     key_loader.expect_get_current_group_key()
+        //         .returning(move |_| Ok(VersionedAesKey { version: sender_key_version, key: group_key.clone().into() }))
+        //         .once();
+        //     key_loader.expect_get_asymmetric_key_pair()
+        //         .returning(move |_,_| Ok(asymmetric_keypair_versioned.clone().into()))
+        //         .once();
+        //     key_loader
+        // };
+        let key_cache = Arc::new(KeyCache::new());
+        let user_raw = include_str!("../../test_data/user_response.json");
+        let type_model_provider = Arc::new(init_type_model_provider());
+        let json_serializer = Arc::new(JsonSerializer::new(type_model_provider.clone()));
+        let instance_mapper = Arc::new(InstanceMapper::new());
+        let parsed_json = serde_json::from_str(user_raw).unwrap();
+        let parsed_user = json_serializer.parse(&User::type_ref(), parsed_json).unwrap();
+        let mut user = instance_mapper.parse_entity::<User>(parsed_user).unwrap();
+
+        let test_key = GenericAesKey::Aes256(Aes256Key::from_bytes(&rand::random::<[u8; 32]>()).unwrap());
+        let group_test_key = GenericAesKey::Aes256(Aes256Key::from_bytes(&rand::random::<[u8; 32]>()).unwrap());
+        let membership_test_key = GenericAesKey::Aes256(Aes256Key::from_bytes(&rand::random::<[u8; 32]>()).unwrap());
+        let encrypted_group_key = test_key.encrypt_key(&group_test_key, Iv::from_bytes(&rand::random::<[u8; 16]>()).unwrap());
+        let encrypted_membership_key = group_test_key.encrypt_key(&membership_test_key, Iv::from_bytes(&rand::random::<[u8; 16]>()).unwrap());
+        let group_priv_key = RsaPrivateKey::from_p_q(BigUint::from(3_u8), BigUint::from(7_u8), BigUint::from(11_u8)).unwrap();
+        let encrypted_group_priv_key = encrypt_rsa_priv_key(&group_test_key, RSAPrivateKey::new(group_priv_key.clone()), &Iv::from_bytes(&rand::random::<[u8; 16]>()).unwrap()).unwrap();
+        let group_pub_key = RsaPublicKey::from(group_priv_key);
+
+        user.userGroup.symEncGKey = encrypted_group_key;
+        user.memberships[0].symEncGKey = encrypted_membership_key;
+
+        let group_response = include_str!("../../test_data/group_response.json");
+        let group_response_parsed_json: RawEntity = serde_json::from_str(group_response).unwrap();
+        let mut parsed_group_response = json_serializer.parse(&Group::type_ref(), group_response_parsed_json).unwrap();
+
+        let mut current_keys = parsed_group_response.remove("currentKeys").unwrap().assert_dict();
+        let pubrsakey = current_keys.get_mut("pubRsaKey").unwrap();
+        *pubrsakey = ElementValue::Bytes(RSAPublicKey::new(group_pub_key).serialize());
+
+        let privrsakey = current_keys.get_mut("symEncPrivRsaKey").unwrap();
+        *privrsakey = ElementValue::Bytes(encrypted_group_priv_key);
+
+        parsed_group_response.insert("currentKeys".to_string(), ElementValue::Dict(current_keys));
+
+        let str = serde_json::to_string::<RawEntity>(&json_serializer.serialize(&Group::type_ref(), parsed_group_response).unwrap()).unwrap();
+        let rest_client = {
+            let mut rest_client = MockRestClient::new();
+            rest_client.expect_request_binary()
+                .with(predicate::eq(String::from("/rest/sys/Group/O0IlmJn--g-0")), predicate::eq(HttpMethod::GET), predicate::always())
+                .returning(move |_, _, _| Ok(RestResponse {
+                    status: 200,
+                    headers: HashMap::new(),
+                    body: Some(str.as_bytes().to_vec()),
+                }))
+                .once();
+
+            rest_client
+        };
+
+        let state = Arc::new(SdkState {
+            login_state: RwLock::new(LoginState::NotLoggedIn),
+            client_version: "".to_owned(),
+        });
+
+        let mut user_facade = UserFacade::new(key_cache.clone(), user);
+        user_facade.unlock_user_group_key(test_key);
+
+        let key_loader = KeyLoaderFacade::new(
+            key_cache.clone(),
+            Arc::new(user_facade),
+            Arc::new(TypedEntityClient::new(
+                Arc::new(EntityClient::new(
+                        Arc::new(rest_client),
+                        json_serializer,
+                        "",
+                        state,
+                        type_model_provider.clone()
+                    )),
+                    instance_mapper.clone()
+                )
+            )
+        );
+
+        let encapsulation = PQMessage::encapsulate(
+            &asymmetric_keypair.ecc_keys,
+            &ephemeral_keys,
+            &asymmetric_keypair.ecc_keys.public_key,
+            &asymmetric_keypair.kyber_keys.public_key,
+            &bucket_key,
+            encapsulation_iv
+        ).unwrap();
+
+        let crypto_facade = CryptoFacade {
+            key_loader_facade: Arc::new(key_loader),
+            update_queue: Mutex::new(update_queue),
+            randomizer_facade: randomizer_facade.clone(),
+            instance_mapper: instance_mapper.clone()
+        };
+
+        let bucket_key_generic = GenericAesKey::from(bucket_key.clone());
+        let bucket_enc_session_key = bucket_key_generic.encrypt_key(&mail_session_key, bucket_enc_session_key_iv);
+
+        let instance_id = Id::test_random();
+        let instance_list = Id::test_random();
+        let key_group = Id::new("O0IlmJn--g-0".to_string());
+
+        let bucket_key_data = BucketKey {
+            _id: Id::test_random(),
+            groupEncBucketKey: None,
+            protocolVersion: 2,
+            pubEncBucketKey: Some(encapsulation.serialize()),
+            recipientKeyVersion: recipient_key_version,
+            senderKeyVersion: None,
+            bucketEncSessionKeys: vec![
+                InstanceSessionKey {
+                    _id: Id::test_random(),
+                    encryptionAuthStatus: None,
+                    instanceId: instance_id.clone(),
+                    instanceList: instance_list.clone(),
+                    symEncSessionKey: bucket_enc_session_key.clone(),
+                    symKeyVersion: recipient_key_version,
+                    typeInfo: TypeInfo {
+                        _id: Id::test_random(),
+                        application: String::new(),
+                        typeId: 0,
+                    },
+                }
+            ],
+            keyGroup: Some(key_group.clone()),
+        };
+
+        let mail = Mail {
+            _format: 0,
+            _id: IdTuple { list_id: instance_list, element_id: instance_id },
+            _ownerEncSessionKey: None,
+            _ownerGroup: Some(key_group.clone()),
+            _ownerKeyVersion: None,
+            _permissions: Id::test_random(),
+            authStatus: None,
+            confidential: false,
+            differentEnvelopeSender: None,
+            encryptionAuthStatus: None,
+            listUnsubscribe: false,
+            method: 0,
+            movedTime: None,
+            phishingStatus: 0,
+            receivedDate: Default::default(),
+            recipientCount: 0,
+            replyType: 0,
+            sentDate: None,
+            state: 0,
+            subject: "".to_string(),
+            unread: false,
+            attachments: vec![],
+            bccRecipients: vec![],
+            body: None,
+            bucketKey: Some(bucket_key_data),
+            ccRecipients: vec![],
+            conversationEntry: IdTuple { list_id: Id::test_random(), element_id: Id::test_random() },
+            firstRecipient: None,
+            headers: None,
+            mailDetails: None,
+            mailDetailsDraft: None,
+            replyTos: vec![],
+            sender: MailAddress {
+                _id: Id::test_random(),
+                address: "".to_string(),
+                name: "".to_string(),
+                contact: None,
+            },
+            toRecipients: vec![],
+        };
+
+        println!("{}", serde_json::to_string(&mail).unwrap());
+
+        let mut raw_mail = instance_mapper.serialize_entity(mail).unwrap();
+
+
+        let provider = init_type_model_provider();
+        let mail_type_ref = Mail::type_ref();
+        let mail_type_model = provider.get_type_model(&mail_type_ref.app, &mail_type_ref.type_).unwrap();
+
+        let key = crypto_facade.resolve_session_key(&mut raw_mail, &mail_type_model)
+            .await
+            .expect("should not have errored")
+            .expect("where is the key");
+        assert_eq!(mail_session_key.as_bytes(), key.as_bytes());
+
+    }
+}

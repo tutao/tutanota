@@ -12,7 +12,7 @@ use crate::entities::sys::{GroupMembership, User};
 use crate::id::Id;
 use crate::key_cache::KeyCache;
 use crate::crypto::key::GenericAesKey;
-use crate::key_loader_facade::VersionedKey;
+use crate::key_loader_facade::VersionedAesKey;
 use crate::util::Versioned;
 
 pub trait AuthHeadersProvider {
@@ -32,6 +32,7 @@ pub struct UserFacade {
 }
 
 impl UserFacade {
+    // FIXME: Do we pass in user or not
     pub fn new(key_cache: Arc<KeyCache>, user: User) -> Self {
         UserFacade {
             user: RwLock::new(Arc::new(user)),
@@ -114,14 +115,14 @@ impl UserFacade {
         groups
     }
 
-    pub fn get_current_user_group_key(&self) -> Result<VersionedKey, ApiCallError> {
+    pub fn get_current_user_group_key(&self) -> Result<VersionedAesKey, ApiCallError> {
         self.key_cache.get_current_user_group_key()
             .ok_or_else(|| ApiCallError::InternalSdkError {error_message: "userGroupKey not available".to_owned()})
     }
 
     pub(crate) fn get_membership(&self, group_id: &Id) -> Result<GroupMembership, ApiCallError> {
-        self.get_user()
-            .memberships.iter().find(| g | g.group == *group_id)
+        let memberships = &self.get_user().memberships;
+        memberships.iter().find(| g | g.group == *group_id)
             .map(|m| m.to_owned())
             .ok_or_else(|| ApiCallError::InternalSdkError { error_message: format!("No group with groupId {} found!", group_id) })
     }
