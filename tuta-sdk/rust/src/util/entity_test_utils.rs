@@ -1,10 +1,23 @@
 use std::collections::HashMap;
-
 use crate::crypto::aes::{aes_128_encrypt, aes_256_encrypt, Iv, MacMode, PaddingMode};
 use crate::crypto::key::GenericAesKey;
 use crate::element_value::{ElementValue, ParsedEntity};
 use crate::generated_id::GeneratedId;
 use crate::IdTuple;
+
+/// Asserts whether the encrypted fields in the mail entity `result` were decrypted
+pub fn assert_decrypted_mail(result: &ParsedEntity, plaintext_mail: &ParsedEntity) {
+    // Decrypting the mail generates extra fields, so we only compare the ones in the plaintext
+    // email. Some errors are tolerated in the decrypted fields.
+    assert_eq!(result.get("receivedDate").unwrap(), plaintext_mail.get("receivedDate").unwrap());
+    assert_eq!(result.get("sentDate").unwrap(), plaintext_mail.get("sentDate").unwrap());
+    assert_eq!(result.get("confidential").unwrap(), plaintext_mail.get("confidential").unwrap());
+    assert_eq!(result.get("subject").unwrap(), plaintext_mail.get("subject").unwrap());
+    assert_eq!(result.get("sender").unwrap().assert_dict().get("name").unwrap(), plaintext_mail.get("sender").unwrap().assert_dict().get("name").unwrap());
+    assert_eq!(result.get("sender").unwrap().assert_dict().get("address").unwrap(), plaintext_mail.get("sender").unwrap().assert_dict().get("address").unwrap());
+    assert_eq!(result.get("toRecipients").unwrap().assert_array()[0].assert_dict().get("name").unwrap(), plaintext_mail.get("toRecipients").unwrap().assert_array()[0].assert_dict().get("name").unwrap());
+    assert_eq!(result.get("toRecipients").unwrap().assert_array()[0].assert_dict().get("address").unwrap(), plaintext_mail.get("toRecipients").unwrap().assert_array()[0].assert_dict().get("address").unwrap());
+}
 
 pub fn encrypt_bytes(encryption_key: &GenericAesKey, bytes: &[u8], iv: &Iv) -> Vec<u8> {
     let encrypted_bytes = match encryption_key {
@@ -15,7 +28,7 @@ pub fn encrypt_bytes(encryption_key: &GenericAesKey, bytes: &[u8], iv: &Iv) -> V
     encrypted_bytes.unwrap()
 }
 
-/// Generates and returns an encrypted Mail entity. It also returns the decrypted Mail for comparison
+/// Generates and returns an encrypted Mail ParsedEntity. It also returns the decrypted Mail for comparison
 pub fn generate_email_entity(owner_group_key: Option<&GenericAesKey>, session_key: &GenericAesKey, iv: &Iv, confidential: bool, subject: String, sender_name: String, recipient_name: String) -> (ParsedEntity, ParsedEntity) {
     let confidential_bytes;
 

@@ -12,7 +12,7 @@ mod kyber;
 mod rsa;
 mod tuta_crypt;
 mod key_loader_facade;
-mod crypto_facade;
+pub mod crypto_facade;
 pub mod key;
 
 #[cfg(test)]

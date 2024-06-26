@@ -21,7 +21,24 @@ impl InstanceMapper {
     pub fn new() -> Self {
         InstanceMapper {}
     }
+    pub fn parse_entity<'a, T: Entity + Deserialize<'a>>(&self, map: ParsedEntity) -> Result<T, DeError> {
+        let de = ParsedEntityDeserializer::from_parsed_entity(map);
+        T::deserialize(de).map_err(|e| e.into())
+    }
+
+    #[allow(unused)] // TODO: Remove this when implementing mutations for entities
+    pub fn serialize_entity<T: Entity + Serialize>(&self, entity: T) -> Result<ParsedEntity, SerError> {
+        entity.serialize(ElementValueSerializer).map(|v| v.assert_dict())
+    }
 }
+
+#[cfg(test)]
+mockall::mock!(
+    pub InstanceMapper {
+        pub fn parse_entity<T: Entity + Deserialize<'static>>(&self, map: ParsedEntity) -> Result<T, DeError>;
+        pub fn serialize_entity<T: Entity + Serialize>(&self, entity: T) -> Result<ParsedEntity, SerError>;
+    }
+);
 
 #[derive(Error, Debug)]
 #[error("Error while deserializing entity, {0}")]
@@ -36,18 +53,6 @@ impl ser::Error for SerError {
 #[derive(Error, Debug)]
 #[error("Error while deserializing entity, {0}")]
 pub struct DeError(#[from] de::value::Error);
-
-impl InstanceMapper {
-    pub fn parse_entity<'a, T: Entity + Deserialize<'a>>(&self, map: ParsedEntity) -> Result<T, DeError> {
-        let de = ParsedEntityDeserializer::from_parsed_entity(map);
-        T::deserialize(de).map_err(|e| e.into())
-    }
-
-    #[allow(unused)] // TODO: Remove this when implementing mutations for entities
-    pub fn serialize_entity<'a, T: Entity + Serialize>(&self, entity: T) -> Result<ParsedEntity, SerError> {
-        entity.serialize(ElementValueSerializer).map(|v| v.assert_dict())
-    }
-}
 
 /// (De)Serialization consist of two parts:
 ///  - (De)Serialize (how to write this type to an arbitrary data format)
