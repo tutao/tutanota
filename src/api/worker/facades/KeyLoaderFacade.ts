@@ -67,8 +67,8 @@ export class KeyLoaderFacade {
 	async loadKeypair(keyPairGroupId: Id, groupKeyVersion: number): Promise<AsymmetricKeyPair> {
 		const group = await this.entityClient.load(GroupTypeRef, keyPairGroupId)
 		const groupKey = await this.getCurrentSymGroupKey(group._id)
-
-		if (groupKey.version === groupKeyVersion) {
+		console.log(`loadKeypair group: ${group.groupKeyVersion} currentGroupKey: ${groupKey.version} groupKeyVersion: ${groupKeyVersion}`)
+		if (Number(group.groupKeyVersion) === groupKey.version && groupKey.version === groupKeyVersion) {
 			return this.getAndDecryptKeyPair(group, groupKey.object)
 		}
 		const {
@@ -101,6 +101,9 @@ export class KeyLoaderFacade {
 		currentGroupKey: VersionedKey,
 		targetKeyVersion: number,
 	): Promise<{ symmetricGroupKey: AesKey; groupKeyInstance: GroupKey }> {
+		console.log(
+			`findFormerGroupKey currentGroupKey: ${currentGroupKey.version} targetKeyVersion: ${targetKeyVersion} group: ${group.groupKeyVersion} groupId: ${group._id}`,
+		)
 		const formerKeysList = assertNotNull(
 			group.formerGroupKeys,
 			`No former group keys, current key version from group ${group._id}: ${group.groupKeyVersion}, current version in group key: ${currentGroupKey.version}, target key version: ${targetKeyVersion}.`,
