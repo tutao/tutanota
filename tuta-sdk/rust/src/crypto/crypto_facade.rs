@@ -38,6 +38,7 @@ pub struct CryptoFacade {
     instance_mapper: Arc<InstanceMapper>,
 }
 
+#[cfg_attr(test, mockall::automock)]
 impl CryptoFacade {
     /// Returns the session key from `entity` and resolves the bucket key fields contained inside
     /// if present

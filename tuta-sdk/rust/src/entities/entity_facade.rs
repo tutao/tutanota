@@ -19,15 +19,13 @@ pub struct EntityFacade {
     type_model_provider: Arc<TypeModelProvider>,
 }
 
+#[cfg_attr(test, mockall::automock)]
 impl EntityFacade {
     pub fn new(type_model_provider: Arc<TypeModelProvider>) -> Self {
         EntityFacade {
             type_model_provider
         }
     }
-}
-
-impl EntityFacade {
     pub fn decrypt_and_map(&self, type_model: &TypeModel, mut entity: ParsedEntity, session_key: &GenericAesKey) -> Result<ParsedEntity, ApiCallError> {
         let mut mapped_decrypted: HashMap<String, ElementValue> = Default::default();
         let mut mapped_errors: HashMap<String, ElementValue> = Default::default();
@@ -250,7 +248,7 @@ mod tests {
     use crate::crypto::aes::{Aes256Key, Iv};
     use crate::crypto::key::GenericAesKey;
     use crate::entities::entity_facade::EntityFacade;
-    use crate::entities::entity_facade_test_utils::generate_email_entity;
+    use crate::util::entity_test_utils::{assert_decrypted_mail, generate_email_entity};
     use crate::type_model_provider::init_type_model_provider;
     use crate::TypeRef;
 
@@ -282,13 +280,6 @@ mod tests {
 
         let decrypted_mail = entity_facade.decrypt_and_map(type_model, encrypted_mail, &sk).unwrap();
 
-        assert_eq!(decrypted_mail.get("receivedDate").unwrap(), original_mail.get("receivedDate").unwrap());
-        assert_eq!(decrypted_mail.get("sentDate").unwrap(), original_mail.get("sentDate").unwrap());
-        assert_eq!(decrypted_mail.get("confidential").unwrap(), original_mail.get("confidential").unwrap());
-        assert_eq!(decrypted_mail.get("subject").unwrap(), original_mail.get("subject").unwrap());
-        assert_eq!(decrypted_mail.get("sender").unwrap().assert_dict().get("name").unwrap(), original_mail.get("sender").unwrap().assert_dict().get("name").unwrap());
-        assert_eq!(decrypted_mail.get("sender").unwrap().assert_dict().get("address").unwrap(), original_mail.get("sender").unwrap().assert_dict().get("address").unwrap());
-        assert_eq!(decrypted_mail.get("toRecipients").unwrap().assert_array()[0].assert_dict().get("name").unwrap(), original_mail.get("toRecipients").unwrap().assert_array()[0].assert_dict().get("name").unwrap());
-        assert_eq!(decrypted_mail.get("toRecipients").unwrap().assert_array()[0].assert_dict().get("address").unwrap(), original_mail.get("toRecipients").unwrap().assert_array()[0].assert_dict().get("address").unwrap());
+        assert_decrypted_mail(&decrypted_mail, &original_mail);
     }
 }
