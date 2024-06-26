@@ -3,7 +3,7 @@ use std::collections::HashMap;
 use serde::Deserialize;
 
 /// A kind of element that can appear in the model
-#[derive(Deserialize, PartialEq)]
+#[derive(Deserialize, PartialEq, Clone)]
 pub enum ElementType {
     /// Entity referenced by a single id
     #[serde(rename = "ELEMENT_TYPE")]
@@ -67,7 +67,7 @@ pub enum AssociationType {
 }
 
 /// Description of the value (value field of Element)
-#[derive(Deserialize)]
+#[derive(Deserialize, Clone)]
 pub struct ModelValue {
     pub id: u64,
     #[serde(rename = "type")]
@@ -98,7 +98,7 @@ pub struct ModelAssociation {
 }
 
 /// Description of a single Element type
-#[derive(Deserialize)]
+#[derive(Deserialize, Clone)]
 #[serde(rename_all = "camelCase")]
 pub struct TypeModel {
     pub id: u64,

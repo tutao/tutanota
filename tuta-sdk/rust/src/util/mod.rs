@@ -1,5 +1,6 @@
 #[cfg(test)]
 pub mod test_utils;
+pub mod entity_test_utils;
 
 /// Combine multiple slices into one Vec.
 ///
