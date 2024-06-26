@@ -13,7 +13,7 @@ mod rsa;
 mod tuta_crypt;
 mod key_loader_facade;
 mod crypto_facade;
-mod key;
+pub mod key;
 
 #[cfg(test)]
 mod compatibility_test_utils;
