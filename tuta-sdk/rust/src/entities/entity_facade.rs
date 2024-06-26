@@ -18,15 +18,13 @@ pub struct EntityFacade {
     type_model_provider: Arc<TypeModelProvider>,
 }
 
+#[cfg_attr(test, mockall::automock)]
 impl EntityFacade {
     pub fn new(type_model_provider: Arc<TypeModelProvider>) -> Self {
         EntityFacade {
             type_model_provider
         }
     }
-}
-
-impl EntityFacade {
     pub fn decrypt_and_map(&self, type_model: &TypeModel, mut entity: ParsedEntity, session_key: &GenericAesKey) -> Result<ParsedEntity, ApiCallError> {
         let mut mapped_decrypted: HashMap<String, ElementValue> = Default::default();
         let mut mapped_errors: HashMap<String, ElementValue> = Default::default();

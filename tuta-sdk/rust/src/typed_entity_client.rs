@@ -2,7 +2,7 @@ use std::sync::Arc;
 use serde::Deserialize;
 use crate::ApiCallError;
 use crate::entities::Entity;
-use crate::entity_client::{EntityClient, IdType};
+use crate::entity_client::{EntityClient, EntityClientHandlers, IdType};
 use crate::instance_mapper::InstanceMapper;
 
 pub struct TypedEntityClient {
