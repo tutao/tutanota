@@ -3,7 +3,9 @@ name: Node CI
 on:
   pull_request:
     types: [ opened, synchronize, edited ]
-  merge_group:
+  push:
+    branches:
+      - dev-*
 
 jobs:
   test:

@@ -1,9 +1,13 @@
 name: Swift CI
 
 on:
+  pull_request:
+    types: [ opened, synchronize, edited ]
+    paths:
+      - 'app-ios/**'
   push:
-    branches-ignore:
-      - master
+    branches:
+      - dev-*
     paths:
       - 'app-ios/**'
 
