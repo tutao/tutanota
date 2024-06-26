@@ -9,15 +9,13 @@ pub(crate) mod storage;
 pub(crate) mod sys;
 pub(crate) mod tutanota;
 pub(crate) mod usage;
-mod entity_facade;
+pub(crate) mod entity_facade;
 
 use crate::date::DateTime;
 use crate::generated_id::GeneratedId;
 use crate::custom_id::CustomId;
 
-pub trait Entity {
+pub trait Entity: 'static {
     fn type_ref() -> TypeRef;
 }
 
-#[cfg(test)]
-mod entity_facade_test_utils;

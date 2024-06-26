@@ -36,6 +36,7 @@ mod typed_entity_client;
 pub mod date;
 pub mod generated_id;
 mod custom_id;
+mod crypto_entity_client;
 
 uniffi::setup_scaffolding!();
 

@@ -83,6 +83,12 @@ impl ElementValue {
             _ => panic!("Invalid type"),
         }
     }
+    pub fn assert_tuple_id(&self) -> &IdTuple {
+        match self {
+            ElementValue::IdTupleId(value) => value,
+            _ => panic!("Invalid type"),
+        }
+    }
 
     pub fn assert_date(&self) -> &DateTime {
         match self {
