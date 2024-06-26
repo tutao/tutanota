@@ -13,6 +13,7 @@ import {
 	EntityEventBatch,
 	EntityEventBatchTypeRef,
 	EntityUpdate,
+	UserGroupKeyDistributionTypeRef,
 	WebsocketCounterData,
 	WebsocketCounterDataTypeRef,
 	WebsocketEntityData,
@@ -20,15 +21,15 @@ import {
 	WebsocketLeaderStatus,
 	WebsocketLeaderStatusTypeRef,
 } from "../entities/sys/TypeRefs.js"
-import { binarySearch, delay, identity, lastThrow, ofClass, randomIntFromInterval } from "@tutao/tutanota-utils"
+import { binarySearch, delay, identity, isSameTypeRefByAttr, lastThrow, ofClass, randomIntFromInterval } from "@tutao/tutanota-utils"
 import { OutOfSyncError } from "../common/error/OutOfSyncError"
-import { CloseEventBusOption, GroupType, SECOND_MS } from "../common/TutanotaConstants"
+import { CloseEventBusOption, GroupType, OperationType, SECOND_MS } from "../common/TutanotaConstants"
 import { CancelledError } from "../common/error/CancelledError"
 import { EntityClient } from "../common/EntityClient"
 import type { QueuedBatch } from "./EventQueue.js"
 import { EventQueue } from "./EventQueue.js"
 import { ProgressMonitorDelegate } from "./ProgressMonitorDelegate"
-import { compareOldestFirst, GENERATED_MAX_ID, GENERATED_MIN_ID, getElementId, getListId } from "../common/utils/EntityUtils"
+import { compareOldestFirst, GENERATED_MAX_ID, GENERATED_MIN_ID, getElementId, getListId, isSameId } from "../common/utils/EntityUtils"
 import { InstanceMapper } from "./crypto/InstanceMapper"
 import { WsConnectionState } from "../main/WorkerClient"
 import { EntityRestCache } from "./rest/DefaultEntityRestCache.js"
@@ -633,6 +634,7 @@ export class EventBusClient {
 	private async processEventBatch(batch: QueuedBatch): Promise<void> {
 		try {
 			if (this.isTerminated()) return
+			await this.checkAndProcessUserGroupKeyUpdate(batch)
 			const filteredEvents = await this.cache.entityEventsReceived(batch)
 			if (!this.isTerminated()) await this.listener.onEntityEventsReceived(filteredEvents, batch.batchId, batch.groupId)
 		} catch (e) {
@@ -651,6 +653,30 @@ export class EventBusClient {
 				return retryPromise
 			} else {
 				throw e
+			}
+		}
+	}
+
+	private async checkAndProcessUserGroupKeyUpdate(batch: QueuedBatch) {
+		const user = this.userFacade.getUser()
+		if (user != null && isSameId(this.userFacade.getUserGroupId(), batch.groupId)) {
+			for (const update of batch.events) {
+				if (
+					(update.operation === OperationType.CREATE || update.operation === OperationType.UPDATE) &&
+					isSameTypeRefByAttr(UserGroupKeyDistributionTypeRef, update.application, update.type) &&
+					isSameId(user.userGroup.group, update.instanceId)
+				) {
+					// this handles updates of the user group key which is also stored on the user as a membership
+					// we might not have access to the password to decrypt it, though. therefore we handle it here
+					try {
+						const userGroupKeyDistribution = await this.entity.load(UserGroupKeyDistributionTypeRef, update.instanceId)
+						this.userFacade.updateUserGroupKey(userGroupKeyDistribution)
+					} catch (e) {
+						// we do not want to fail here, as this update might be outdated in case we only process updates after a longer period of being offline
+						// in such case we should have set the correct user group key already during the regular login
+						console.log("Could not update user group key after entity update", e)
+					}
+				}
 			}
 		}
 	}
