@@ -42,6 +42,7 @@ import { WebWorkerTransport } from "../common/threading/Transport.js"
 import { CryptoError } from "@tutao/tutanota-crypto/error.js"
 import { ContactFacade } from "./facades/lazy/ContactFacade.js"
 import { RecoverCodeFacade } from "./facades/lazy/RecoverCodeFacade.js"
+import { CacheManagementFacade } from "./facades/lazy/CacheManagementFacade.js"
 
 assertWorkerOrNode()
 
@@ -64,6 +65,7 @@ export interface WorkerInterface {
 	readonly calendarFacade: CalendarFacade
 	readonly mailFacade: MailFacade
 	readonly shareFacade: ShareFacade
+	readonly cacheManagementFacade: CacheManagementFacade
 	readonly counterFacade: CounterFacade
 	readonly indexerFacade: Indexer
 	readonly searchFacade: SearchFacade
@@ -181,6 +183,10 @@ export class WorkerImpl implements NativeInterface {
 
 			async shareFacade() {
 				return locator.share()
+			},
+
+			async cacheManagementFacade() {
+				return locator.cacheManagement()
 			},
 
 			async counterFacade() {

@@ -14,6 +14,7 @@ import {
 	SecondFactorTypeRef,
 	SessionTypeRef,
 	User,
+	UserGroupKeyDistributionTypeRef,
 	UserGroupRootTypeRef,
 	UserTypeRef,
 } from "../../entities/sys/TypeRefs.js"
@@ -54,6 +55,7 @@ const IGNORED_TYPES = [
 	CalendarEventUidIndexTypeRef,
 	KeyRotationTypeRef,
 	UserGroupRootTypeRef,
+	UserGroupKeyDistributionTypeRef,
 ] as const
 
 export interface EntityRestCache extends EntityRestInterface {

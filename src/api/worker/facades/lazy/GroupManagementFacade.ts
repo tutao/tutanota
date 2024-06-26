@@ -20,21 +20,21 @@ import { CalendarService, ContactListGroupService, MailGroupService, TemplateGro
 import { MembershipService } from "../../../entities/sys/Services.js"
 import { UserFacade } from "../UserFacade.js"
 import { ProgrammingError } from "../../../common/error/ProgrammingError.js"
-import { DefaultEntityRestCache } from "../../rest/DefaultEntityRestCache.js"
 import { PQFacade } from "../PQFacade.js"
 import { KeyLoaderFacade } from "../KeyLoaderFacade.js"
+import { CacheManagementFacade } from "./CacheManagementFacade.js"
 
 assertWorkerOrNode()
 
 export class GroupManagementFacade {
 	constructor(
-		private readonly user: UserFacade,
+		private readonly userFacade: UserFacade,
 		private readonly counters: CounterFacade,
 		private readonly entityClient: EntityClient,
 		private readonly serviceExecutor: IServiceExecutor,
-		private readonly entityRestCache: DefaultEntityRestCache,
-		private readonly pqFacade: PQFacade = pqFacade,
+		private readonly pqFacade: PQFacade,
 		private readonly keyLoaderFacade: KeyLoaderFacade,
+		private readonly cacheManagementFacade: CacheManagementFacade,
 	) {}
 
 	async readUsedSharedMailGroupStorage(group: Group): Promise<number> {
@@ -42,14 +42,14 @@ export class GroupManagementFacade {
 	}
 
 	async createMailGroup(name: string, mailAddress: string): Promise<void> {
-		let adminGroupIds = this.user.getGroupIds(GroupType.Admin)
+		let adminGroupIds = this.userFacade.getGroupIds(GroupType.Admin)
 
 		if (adminGroupIds.length === 0) {
-			adminGroupIds = this.user.getGroupIds(GroupType.LocalAdmin)
+			adminGroupIds = this.userFacade.getGroupIds(GroupType.LocalAdmin)
 		}
 
 		let adminGroupKey = await this.keyLoaderFacade.getCurrentSymGroupKey(adminGroupIds[0])
-		let customerGroupKey = await this.keyLoaderFacade.getCurrentSymGroupKey(this.user.getGroupId(GroupType.Customer))
+		let customerGroupKey = await this.keyLoaderFacade.getCurrentSymGroupKey(this.userFacade.getGroupId(GroupType.Customer))
 		let mailGroupKey = freshVersioned(aes256RandomKey())
 
 		let mailGroupInfoSessionKey = aes256RandomKey()
@@ -83,19 +83,19 @@ export class GroupManagementFacade {
 	async generateUserAreaGroupData(name: string): Promise<UserAreaGroupData> {
 		// adminGroup Is not set when generating new customer, then the admin group will be the admin of the customer
 		// adminGroupKey Is not set when generating calendar as normal user
-		const userGroup = await this.entityClient.load(GroupTypeRef, this.user.getUserGroupId())
+		const userGroup = await this.entityClient.load(GroupTypeRef, this.userFacade.getUserGroupId())
 		const adminGroupId = neverNull(userGroup.admin) // user group has always admin group
 
 		let adminGroupKey: VersionedKey | null = null
 
-		if (this.user.getAllGroupIds().indexOf(adminGroupId) !== -1) {
+		if (this.userFacade.getAllGroupIds().indexOf(adminGroupId) !== -1) {
 			// getGroupKey throws an error if user is not member of that group - so check first
 			adminGroupKey = await this.keyLoaderFacade.getCurrentSymGroupKey(adminGroupId)
 		}
 
-		const customerGroupId = this.user.getGroupId(GroupType.Customer)
+		const customerGroupId = this.userFacade.getGroupId(GroupType.Customer)
 		const customerGroupKey = await this.keyLoaderFacade.getCurrentSymGroupKey(customerGroupId)
-		const userGroupKey = this.user.getCurrentUserGroupKey()
+		const userGroupKey = this.userFacade.getCurrentUserGroupKey()
 		const groupKey = freshVersioned(aes256RandomKey())
 
 		const groupRootSessionKey = aes256RandomKey()
@@ -126,7 +126,7 @@ export class GroupManagementFacade {
 		})
 		const postGroupData = await this.serviceExecutor.post(CalendarService, postData, { sessionKey: aes256RandomKey() }) // we expect a session key to be defined as the entity is marked encrypted
 		const group = await this.entityClient.load(GroupTypeRef, postGroupData.group)
-		const user = await this.reloadUser()
+		const user = await this.cacheManagementFacade.reloadUser()
 
 		return { user, group }
 	}
@@ -139,7 +139,7 @@ export class GroupManagementFacade {
 
 		const postGroupData = await this.serviceExecutor.post(TemplateGroupService, serviceData, { sessionKey: aes256RandomKey() }) // we expect a session key to be defined as the entity is marked encrypted
 
-		await this.reloadUser()
+		await this.cacheManagementFacade.reloadUser()
 
 		return postGroupData.group
 	}
@@ -151,7 +151,7 @@ export class GroupManagementFacade {
 		})
 		const postGroupData = await this.serviceExecutor.post(ContactListGroupService, serviceData, { sessionKey: aes256RandomKey() }) // we expect a session key to be defined as the entity is marked encrypted
 		const group = await this.entityClient.load(GroupTypeRef, postGroupData.group)
-		await this.reloadUser()
+		await this.cacheManagementFacade.reloadUser()
 
 		return group
 	}
@@ -255,7 +255,7 @@ export class GroupManagementFacade {
 	}
 
 	async getGroupKeyViaAdminEncGKey(groupId: Id, version: number): Promise<AesKey> {
-		if (this.user.hasGroup(groupId)) {
+		if (this.userFacade.hasGroup(groupId)) {
 			// e.g. I am a global admin and want to add another user to the global admin group
 			return this.keyLoaderFacade.loadSymGroupKey(groupId, version)
 		} else {
@@ -271,7 +271,7 @@ export class GroupManagementFacade {
 	 * decrypting userGroupKey of some member of that group.
 	 */
 	async getCurrentGroupKeyViaAdminEncGKey(groupId: Id): Promise<VersionedKey> {
-		if (this.user.hasGroup(groupId)) {
+		if (this.userFacade.hasGroup(groupId)) {
 			// e.g. I am a global admin and want to add another user to the global admin group
 			return this.keyLoaderFacade.getCurrentSymGroupKey(groupId)
 		} else {
@@ -279,7 +279,7 @@ export class GroupManagementFacade {
 			if (group.adminGroupEncGKey == null || group.adminGroupEncGKey.length === 0) {
 				throw new ProgrammingError("Group doesn't have adminGroupEncGKey, you can't get group key this way")
 			}
-			if (!(group.admin && this.user.hasGroup(group.admin))) {
+			if (!(group.admin && this.userFacade.hasGroup(group.admin))) {
 				throw new Error(`The user is not a member of the admin group ${group.admin} when trying to get the group key for group ${groupId}`)
 			}
 
@@ -289,20 +289,5 @@ export class GroupManagementFacade {
 			const decryptedKey = decryptKey(requiredAdminGroupKey, assertNotNull(group.adminGroupEncGKey))
 			return { object: decryptedKey, version: Number(group.groupKeyVersion) }
 		}
-	}
-
-	/*
-	 * Deletes the logged-in user from the cache, and reloads and returns the new user object.
-	 * Is used to ensure we have the latest version, there can be times when the object becomes a little outdated, resulting in errors.
-	 */
-	async reloadUser(): Promise<User> {
-		const userId = this.user.getLoggedInUser()._id
-
-		await this.entityRestCache.deleteFromCacheIfExists(UserTypeRef, null, userId)
-
-		const user = await this.entityClient.load(UserTypeRef, userId)
-		await this.user.updateUser(user)
-
-		return user
 	}
 }

@@ -118,6 +118,7 @@ import { SystemPermissionHandler } from "../../native/main/SystemPermissionHandl
 import { RecoverCodeFacade } from "../worker/facades/lazy/RecoverCodeFacade.js"
 import { MobilePaymentsFacade } from "../../native/common/generatedipc/MobilePaymentsFacade.js"
 import { AppStorePaymentPicker } from "../../misc/AppStorePaymentPicker.js"
+import { CacheManagementFacade } from "../worker/facades/lazy/CacheManagementFacade.js"
 
 assertMainOrNode()
 
@@ -144,6 +145,7 @@ class MainLocator {
 	calendarFacade!: CalendarFacade
 	mailFacade!: MailFacade
 	shareFacade!: ShareFacade
+	cacheManagementFacade!: CacheManagementFacade
 	counterFacade!: CounterFacade
 	indexerFacade!: Indexer
 	searchFacade!: SearchFacade
@@ -621,6 +623,7 @@ class MainLocator {
 			calendarFacade,
 			mailFacade,
 			shareFacade,
+			cacheManagementFacade,
 			counterFacade,
 			indexerFacade,
 			searchFacade,
@@ -648,6 +651,7 @@ class MainLocator {
 		this.calendarFacade = calendarFacade
 		this.mailFacade = mailFacade
 		this.shareFacade = shareFacade
+		this.cacheManagementFacade = cacheManagementFacade
 		this.counterFacade = counterFacade
 		this.indexerFacade = indexerFacade
 		this.searchFacade = searchFacade

@@ -20,6 +20,7 @@ import { lazyAsync, lazyMemoized } from "@tutao/tutanota-utils"
 import { MailFacade } from "../../../../src/api/worker/facades/lazy/MailFacade.js"
 import { EventController } from "../../../../src/api/main/EventController.js"
 import { KeyRotationFacade } from "../../../../src/api/worker/facades/KeyRotationFacade.js"
+import { CacheManagementFacade } from "../../../../src/api/worker/facades/lazy/CacheManagementFacade.js"
 
 o.spec("EventBusEventCoordinatorTest", () => {
 	let eventBusEventCoordinator: EventBusEventCoordinator
@@ -32,6 +33,7 @@ o.spec("EventBusEventCoordinatorTest", () => {
 	let mailFacade: MailFacade
 	let eventController: EventController
 	let keyRotationFacadeMock: KeyRotationFacade
+	let cacheManagementFacade: CacheManagementFacade
 
 	o.beforeEach(function () {
 		user = createTestEntity(UserTypeRef, { userGroup: createTestEntity(GroupMembershipTypeRef, { group: userGroupId }), _id: userId })
@@ -45,6 +47,7 @@ o.spec("EventBusEventCoordinatorTest", () => {
 		let lazyMailFacade: lazyAsync<MailFacade> = lazyMemoized(async () => mailFacade)
 		eventController = object()
 		keyRotationFacadeMock = object()
+		cacheManagementFacade = object()
 		eventBusEventCoordinator = new EventBusEventCoordinator(
 			object(),
 			object(),
@@ -55,6 +58,7 @@ o.spec("EventBusEventCoordinatorTest", () => {
 			eventController,
 			object(),
 			keyRotationFacadeMock,
+			async () => cacheManagementFacade,
 		)
 	})
 
@@ -77,7 +81,7 @@ o.spec("EventBusEventCoordinatorTest", () => {
 		await eventBusEventCoordinator.onEntityEventsReceived(updates, "batchId", "groupId")
 
 		verify(userFacade.updateUser(user))
-		verify(userFacade.updateUserGroupKey(userGroupKeyDistribution))
+		verify(cacheManagementFacade.tryUpdatingUserGroupKey())
 		verify(eventController.onEntityUpdateReceived(updates, "groupId"))
 		verify(mailFacade.entityEventsReceived(updates))
 	})
@@ -95,7 +99,7 @@ o.spec("EventBusEventCoordinatorTest", () => {
 		await eventBusEventCoordinator.onEntityEventsReceived(updates, "batchId", "groupId")
 
 		verify(userFacade.updateUser(user))
-		verify(userFacade.updateUserGroupKey(userGroupKeyDistribution), { times: 0 })
+		verify(cacheManagementFacade.tryUpdatingUserGroupKey(), { times: 0 })
 		verify(eventController.onEntityUpdateReceived(updates, "groupId"))
 		verify(mailFacade.entityEventsReceived(updates))
 	})
@@ -117,7 +121,7 @@ o.spec("EventBusEventCoordinatorTest", () => {
 
 		verify(keyRotationFacadeMock.updateGroupMemberships([[instanceListId, instanceId]]))
 		verify(userFacade.updateUser(user), { times: 0 })
-		verify(userFacade.updateUserGroupKey(userGroupKeyDistribution), { times: 0 })
+		verify(cacheManagementFacade.tryUpdatingUserGroupKey(), { times: 0 })
 		verify(eventController.onEntityUpdateReceived(updates, "groupId"))
 		verify(mailFacade.entityEventsReceived(updates))
 	})

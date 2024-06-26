@@ -72,6 +72,7 @@ import { KeyRotationFacade } from "./facades/KeyRotationFacade.js"
 import { KeyCache } from "./facades/KeyCache.js"
 import { cryptoWrapper } from "./crypto/CryptoWrapper.js"
 import { RecoverCodeFacade } from "./facades/lazy/RecoverCodeFacade.js"
+import { CacheManagementFacade } from "./facades/lazy/CacheManagementFacade.js"
 
 assertWorkerOrNode()
 
@@ -118,6 +119,7 @@ export type WorkerLocatorType = {
 	mailAddress: lazyAsync<MailAddressFacade>
 	booking: lazyAsync<BookingFacade>
 	share: lazyAsync<ShareFacade>
+	cacheManagement: lazyAsync<CacheManagementFacade>
 
 	// misc & native
 	configFacade: lazyAsync<ConfigurationDatabase>
@@ -196,7 +198,12 @@ export async function initLocator(worker: WorkerImpl, browserData: BrowserData) 
 	locator.cache = cache ?? entityRestClient
 
 	locator.cachingEntityClient = new EntityClient(locator.cache)
-	const noncachingEntityClient = new EntityClient(entityRestClient)
+	const nonCachingEntityClient = new EntityClient(entityRestClient)
+
+	locator.cacheManagement = lazyMemoized(async () => {
+		const { CacheManagementFacade } = await import("./facades/lazy/CacheManagementFacade.js")
+		return new CacheManagementFacade(locator.user, locator.cachingEntityClient, assertNotNull(cache))
+	})
 
 	locator.indexer = lazyMemoized(async () => {
 		const { Indexer } = await import("./search/Indexer.js")
@@ -211,7 +218,7 @@ export async function initLocator(worker: WorkerImpl, browserData: BrowserData) 
 
 	locator.pqFacade = new PQFacade(locator.kyberFacade)
 
-	locator.keyLoader = new KeyLoaderFacade(locator.keyCache, locator.user, locator.cachingEntityClient)
+	locator.keyLoader = new KeyLoaderFacade(locator.keyCache, locator.user, locator.cachingEntityClient, locator.cacheManagement)
 
 	locator.crypto = new CryptoFacade(
 		locator.user,
@@ -245,9 +252,9 @@ export async function initLocator(worker: WorkerImpl, browserData: BrowserData) 
 			await locator.counters(),
 			locator.cachingEntityClient,
 			locator.serviceExecutor,
-			assertNotNull(cache),
 			locator.pqFacade,
 			locator.keyLoader,
+			await locator.cacheManagement(),
 		)
 	})
 	locator.keyRotation = new KeyRotationFacade(
@@ -312,7 +319,7 @@ export async function initLocator(worker: WorkerImpl, browserData: BrowserData) 
 		locator.entropyFacade,
 		new DatabaseKeyFactory(locator.deviceEncryptionFacade),
 		argon2idFacade,
-		noncachingEntityClient,
+		nonCachingEntityClient,
 	)
 
 	locator.search = lazyMemoized(async () => {
@@ -391,7 +398,7 @@ export async function initLocator(worker: WorkerImpl, browserData: BrowserData) 
 			locator.user,
 			await locator.groupManagement(),
 			assertNotNull(cache),
-			noncachingEntityClient, // without cache
+			nonCachingEntityClient, // without cache
 			nativePushFacade,
 			mainInterface.operationProgressTracker,
 			locator.instanceMapper,
@@ -407,7 +414,7 @@ export async function initLocator(worker: WorkerImpl, browserData: BrowserData) 
 			locator.user,
 			await locator.groupManagement(),
 			locator.serviceExecutor,
-			noncachingEntityClient, // without cache
+			nonCachingEntityClient, // without cache
 		)
 	})
 	const scheduler = new SchedulerImpl(dateProvider, self, self)
@@ -427,6 +434,7 @@ export async function initLocator(worker: WorkerImpl, browserData: BrowserData) 
 		mainInterface.eventController,
 		locator.configFacade,
 		locator.keyRotation,
+		locator.cacheManagement,
 	)
 
 	locator.eventBusClient = new EventBusClient(
