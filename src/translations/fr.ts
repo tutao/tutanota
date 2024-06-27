@@ -11,7 +11,7 @@ export default {
 		"other"
 	],
 	"created_at": "2015-01-16T12:59:04Z",
-	"updated_at": "2024-06-21T10:16:09Z",
+	"updated_at": "2024-06-26T10:44:14Z",
 	"source_locale": {
 		"id": "fcd7471b347c8e517663e194dcddf237",
 		"name": "en",
@@ -1225,6 +1225,7 @@ export default {
 		"pricing.signIn_tooltip": "Les administrateurs peuvent se connecter en tant qu'utilisateur s'ils connaissent le mot de passe de l'utilisateur. Les administrateurs peuvent réinitialiser le mot de passe à tout moment.",
 		"pricing.subscriptionPeriodInfoBusiness_msg": "La durée de l'abonnement est d'un mois pour l'abonnement mensuel et d'un an pour l'abonnement annuel. Le renouvellemet est automatique à la fin de la période d'abonnement.",
 		"pricing.subscriptionPeriodInfoPrivate_msg": "La période d'abonnement est d'un mois en cas de paiement mensuel et d'un an en cas de paiement annuel. Après la période initiale, l'abonnement devient un contrat à durée indéterminée et peut être résilié à tout moment.",
+		"pricing.table_unlimitedDomain": "Illimité",
 		"pricing.team_label": "Gestion d'équipe",
 		"pricing.unlimitedAddresses_label": "Adresses de domaine personnalisées illimitées",
 		"pricing.upgradeLater_msg": "Utilisez Tuta gratuitement et souscrivez plus tard. Uniquement pour un usage personnel.",
@@ -1629,6 +1630,7 @@ export default {
 		"unencryptedTransmission_msg": "Le(s) e-mail(s) déplacé(s) vers le dossier spam sera(ont) transmis au serveur sous forme non cryptée afin d'améliorer la protection contre le spam.",
 		"unknownError_msg": "Une erreur inattendue est survenue. Veuillez réessayer ultérieurement.",
 		"unknownRepetition_msg": "Cet événement fait partie d'une série.",
+		"unlimited_label": "Illimité",
 		"unlockCredentials_action": "Déverrouillage des données ",
 		"unprocessedBookings_msg": "Vous avez des commandes non réglées d'une valeur totale de {amount}. Ce montant sera déduit de votre solde et/ou du mode de paiement choisi lors de la prochaine facturation.",
 		"unrecognizedU2fDevice_msg": "Votre clé de sécurité n'a pas pu être reconnue.",
