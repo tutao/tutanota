@@ -224,10 +224,10 @@ export class ThemeController {
 			return Object.assign({}, this.getBaseTheme(customizations.base), customizations)
 		} else {
 			const themeWithoutLogo = Object.assign({}, this.getBaseTheme(customizations.base), customizations)
-			const coloredTutanotaLogo = getLogoSvg(
-				themeWithoutLogo.content_accent,
-				customizations.base === "light" ? logo_text_dark_grey : logo_text_bright_grey,
-			)
+			// This is a whitelabel theme where logo has not been overwritten.
+			// Generate a logo with muted colors. We do not want to color our logo in
+			// some random color.
+			const coloredTutanotaLogo = getLogoSvg(themeWithoutLogo.navigation_menu_icon, themeWithoutLogo.navigation_menu_icon)
 			return { ...themeWithoutLogo, ...{ logo: coloredTutanotaLogo } }
 		}
 	}
