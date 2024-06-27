@@ -1,3 +1,4 @@
+use rand_core::CryptoRngCore;
 /// Combine multiple slices into one Vec.
 ///
 /// Each slice must have the same object type, and the object must implement Copy. This makes it suitable for byte arrays.
@@ -20,7 +21,7 @@ macro_rules! join_slices {
 #[derive(thiserror::Error, Debug)]
 #[error("Byte array error: {reason}")]
 pub struct ByteArrayError {
-    reason: String
+    reason: String,
 }
 
 /// Decode the encoded byte arrays.
@@ -34,13 +35,13 @@ pub fn decode_byte_arrays<const SIZE: usize>(arrays: &[u8]) -> Result<[&[u8]; SI
 
     for i in 0..SIZE {
         if remaining.len() < 2 {
-            return Err(ByteArrayError { reason: format!("expected more byte arrays (only got {i}, expected {SIZE})") })
+            return Err(ByteArrayError { reason: format!("expected more byte arrays (only got {i}, expected {SIZE})") });
         }
         let (len_bytes, after) = remaining.split_at(2);
 
         let length = u16::from_be_bytes(len_bytes.try_into().unwrap()) as usize;
         if after.len() < length {
-            return Err(ByteArrayError { reason: format!("invalid encoded byte arrays (size {length} is too large)") })
+            return Err(ByteArrayError { reason: format!("invalid encoded byte arrays (size {length} is too large)") });
         }
         let (arr, new_remaining) = after.split_at(length);
 
@@ -49,7 +50,7 @@ pub fn decode_byte_arrays<const SIZE: usize>(arrays: &[u8]) -> Result<[&[u8]; SI
     }
 
     if !remaining.is_empty() {
-        return Err(ByteArrayError { reason: format!("extraneous {} byte(s) detected - incorrect size?", remaining.len()) })
+        return Err(ByteArrayError { reason: format!("extraneous {} byte(s) detected - incorrect size?", remaining.len()) });
     }
 
     Ok(result)
@@ -65,7 +66,7 @@ pub fn encode_byte_arrays<const SIZE: usize>(arrays: &[&[u8]; SIZE]) -> Result<V
     for &i in arrays {
         let len = i.len();
         if len > u16::MAX as usize {
-            return Err(ByteArrayError { reason: format!("byte array length {len} exceeds 16-bit limit") })
+            return Err(ByteArrayError { reason: format!("byte array length {len} exceeds 16-bit limit") });
         }
         expected_size += 2 + i.len();
     }
@@ -77,6 +78,12 @@ pub fn encode_byte_arrays<const SIZE: usize>(arrays: &[&[u8]; SIZE]) -> Result<V
     }
 
     Ok(v)
+}
+
+pub fn generate_random_bytes<R: CryptoRngCore + ?Sized, const S: usize>(rng: &mut R) -> [u8; S] {
+    let mut result: [u8; S] = [0u8; S];
+    rng.fill_bytes(&mut result);
+    result
 }
 
 #[cfg(test)]
