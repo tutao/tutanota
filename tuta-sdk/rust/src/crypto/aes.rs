@@ -256,7 +256,7 @@ fn encrypt_unpadded_vec_mut<C: BlockCipher + BlockEncryptMut>(encryptor: &mut cb
 }
 
 /// Keys derived for AES key to enable authentication
-struct AesSubKeys<Key: AesKey> {
+pub struct AesSubKeys<Key: AesKey> {
     /// Key used for encrypting data
     c_key: Key,
     /// Key used for HMAC (authentication)

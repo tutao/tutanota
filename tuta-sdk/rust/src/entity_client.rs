@@ -1,7 +1,6 @@
-use std::collections::HashMap;
 use std::sync::Arc;
 
-use crate::{ApiCallError, IdTuple, RestClient, TypeRef};
+use crate::{ApiCallError, AuthHeadersProvider, IdTuple, RestClient, TypeRef};
 use crate::element_value::{ElementValue, ParsedEntity};
 use crate::json_serializer::JsonSerializer;
 use crate::json_element::RawEntity;
@@ -20,7 +19,7 @@ pub enum IdType {
 pub struct EntityClient {
     rest_client: Arc<dyn RestClient>,
     base_url: String,
-    auth_headers_provider: Arc<dyn Send + Sync>,
+    auth_headers_provider: Arc<dyn AuthHeadersProvider + Send + Sync>,
     json_serializer: Arc<JsonSerializer>,
     type_model_provider: Arc<TypeModelProvider>,
 }
@@ -30,7 +29,7 @@ impl EntityClient {
         rest_client: Arc<dyn RestClient>,
         json_serializer: Arc<JsonSerializer>,
         base_url: &str,
-        auth_headers_provider: Arc<dyn Send + Sync>,
+        auth_headers_provider: Arc<dyn AuthHeadersProvider + Send + Sync>,
         type_model_provider: Arc<TypeModelProvider>,
     ) -> Self {
         EntityClient {
@@ -68,10 +67,11 @@ impl EntityClient {
             let message = format!("Tried to parse invalid model_version {}", type_model.version);
             ApiCallError::InternalSdkError { error_message: message }
         })?;
+        let mut headers = self.auth_headers_provider.create_auth_headers();
+        headers.insert("v".to_string(), model_version.to_string());
         let options = RestClientOptions {
             body: None,
-            headers: HashMap::new(),
-            // headers: self.auth_headers_provider.auth_headers(model_version),
+            headers,
         };
         let response = self
             .rest_client
@@ -145,10 +145,11 @@ impl EntityClient {
         };
         let raw_entity = self.json_serializer.serialize(type_ref, entity)?;
         let body = serde_json::to_vec(&raw_entity).unwrap();
+        let mut headers = self.auth_headers_provider.create_auth_headers();
+        headers.insert("v".to_string(), model_version.to_string());
         let options = RestClientOptions {
             body: Some(body),
-            // headers: self.auth_headers_provider.auth_headers(model_version),
-            headers:  HashMap::new(),
+            headers
         };
         // FIXME we should look at type model whether it is ET or LET
         let url = format!(

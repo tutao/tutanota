@@ -1,7 +1,7 @@
 use rand_core::CryptoRngCore;
 use zeroize::*;
 
-const ECC_KEY_SIZE: usize = 32;
+pub const ECC_KEY_SIZE: usize = 32;
 
 #[derive(ZeroizeOnDrop, Clone)]
 pub struct EccPrivateKey([u8; ECC_KEY_SIZE]);

@@ -1,6 +1,5 @@
 use std::collections::HashMap;
 use std::fmt::{Debug, Display, Formatter};
-use std::ops::Deref;
 use std::sync::{Arc, RwLock};
 
 use serde::{Deserialize, Serialize};
@@ -66,10 +65,50 @@ impl Display for TypeRef {
     }
 }
 
+pub trait AuthHeadersProvider: Send + Sync {
+    /// Gets the HTTP request headers used for authorizing REST requests
+    fn create_auth_headers(&self) -> HashMap<String, String>;
+    fn is_fully_logged_in(&self) -> bool;
+}
+
+
+impl AuthHeadersProvider for SdkState {
+    /// This version has client_version in header, unlike the LoginState version
+    fn create_auth_headers(&self) -> HashMap<String, String> {
+        let auth_state = self.login_state.read().unwrap();
+        let mut headers = auth_state.create_auth_headers();
+        headers.insert("cv".to_owned(), self.client_version.to_owned());
+        headers
+    }
+
+    fn is_fully_logged_in(&self) -> bool {
+        let auth_state = self.login_state.read().unwrap();
+        auth_state.is_fully_logged_in()
+    }
+}
+
 /// The authorization status and credentials of the SDK
 enum LoginState {
     NotLoggedIn,
     LoggedIn { access_token: String },
+}
+
+impl AuthHeadersProvider for LoginState {
+    fn create_auth_headers(&self) -> HashMap<String, String> {
+        match self {
+            LoginState::NotLoggedIn => HashMap::new(),
+            LoginState::LoggedIn { access_token } => HashMap::from([
+                ("accessToken".to_string(), access_token.clone())
+            ])
+        }
+    }
+
+    fn is_fully_logged_in(&self) -> bool {
+        return match self {
+            LoginState::NotLoggedIn => false,
+            LoginState::LoggedIn { .. } => true
+        }
+    }
 }
 
 /// Contains all the high level mutable state of the SDK
@@ -134,22 +173,6 @@ impl Sdk {
 
     pub fn user_facade(&self) -> UserFacade {
         todo!()
-    }
-}
-
-impl SdkState {
-    fn auth_headers(&self, model_version: u32) -> HashMap<String, String> {
-        let g = self.login_state.read().unwrap();
-        match g.deref() {
-            LoginState::NotLoggedIn => HashMap::new(),
-            LoginState::LoggedIn { access_token } => {
-                HashMap::from([
-                    ("accessToken".to_owned(), access_token.as_str().to_owned()),
-                    ("cv".to_owned(), self.client_version.to_owned()),
-                    ("v".to_owned(), model_version.to_string())
-                ])
-            }
-        }
     }
 }
 

@@ -3,8 +3,7 @@ use rsa::rand_core::CryptoRngCore;
 use rsa::traits::{PrivateKeyParts, PublicKeyParts};
 use sha2::Sha256;
 use zeroize::Zeroizing;
-use crate::crypto::ecc::{EccKeyPair, EccPublicKey};
-use crate::crypto::KeyPairType;
+use crate::crypto::ecc::EccKeyPair;
 use crate::join_slices;
 
 #[derive(Clone)]
@@ -15,6 +14,12 @@ impl RSAPublicKey {
         RSAPublicKey {
             0: public_key,
         }
+    }
+}
+
+impl From<RSAPrivateKey> for RSAPublicKey {
+    fn from(value: RSAPrivateKey) -> Self {
+        RSAPublicKey::new(value.0.to_public_key())
     }
 }
 

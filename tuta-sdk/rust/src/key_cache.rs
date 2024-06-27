@@ -1,5 +1,5 @@
 use std::collections::HashMap;
-use std::sync::{Arc, RwLock};
+use std::sync::RwLock;
 use crate::crypto::aes::Aes256Key;
 use crate::entities::sys::User;
 use crate::id::Id;

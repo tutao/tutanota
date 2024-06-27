@@ -1,5 +1,4 @@
 use std::borrow::ToOwned;
-use std::collections::HashMap;
 use std::sync::{Arc, RwLock};
 use base64::Engine;
 use base64::prelude::BASE64_STANDARD;
@@ -15,24 +14,15 @@ use crate::crypto::key::GenericAesKey;
 use crate::key_loader_facade::VersionedAesKey;
 use crate::util::Versioned;
 
-pub trait AuthHeadersProvider {
-    /// Gets the HTTP request headers used for authorizing REST requests
-    fn create_auth_headers(&self) -> HashMap<String, String>;
-    fn is_fully_logged_in(&self) -> bool;
-}
-
 const USER_GROUP_KEY_DISTRIBUTION_KEY_INFO: &str = "userGroupKeyDistributionKey";
 
-/// FIXME: for testing unencrypted entity downloading. Remove after everything works together.
 #[derive(uniffi::Object)]
 pub struct UserFacade {
     user: RwLock<Arc<User>>,
     key_cache: Arc<KeyCache>,
-    // entity_client: Arc<TypedEntityClient>,
 }
 
 impl UserFacade {
-    // FIXME: Do we pass in user or not
     pub fn new(key_cache: Arc<KeyCache>, user: User) -> Self {
         UserFacade {
             user: RwLock::new(Arc::new(user)),
@@ -109,12 +99,6 @@ impl UserFacade {
         self.get_user().userGroup.group.clone()
     }
 
-    fn get_all_group_ids(&self) -> Vec<Id> {
-        let mut groups: Vec<Id> = self.get_user().memberships.iter().map(| membership | membership.group.clone()).collect();
-        groups.push(self.get_user().userGroup.group.clone());
-        groups
-    }
-
     pub fn get_current_user_group_key(&self) -> Result<VersionedAesKey, ApiCallError> {
         self.key_cache.get_current_user_group_key()
             .ok_or_else(|| ApiCallError::InternalSdkError {error_message: "userGroupKey not available".to_owned()})
@@ -128,14 +112,4 @@ impl UserFacade {
     }
 
 
-}
-
-impl AuthHeadersProvider for UserFacade {
-    fn create_auth_headers(&self) -> HashMap<String, String> {
-        todo!()
-    }
-
-    fn is_fully_logged_in(&self) -> bool {
-        todo!()
-    }
 }
