@@ -1,5 +1,6 @@
 use rand_core::CryptoRngCore;
 use zeroize::*;
+use crate::util::generate_random_bytes;
 
 const ECC_KEY_SIZE: usize = 32;
 
@@ -53,10 +54,9 @@ pub struct EccKeyPair {
 impl EccKeyPair {
     /// Generate a keypair with the given random number generator.
     pub fn generate<R: CryptoRngCore + ?Sized>(rng: &mut R) -> Self {
-        let mut private_key = [0u8; 32];
-        rng.try_fill_bytes(&mut private_key).unwrap();
+        let seed: [u8; 32] = generate_random_bytes(rng);
 
-        let private_key = EccPrivateKey::from_bytes_clamped(private_key);
+        let private_key = EccPrivateKey::from_bytes_clamped(seed);
         let public_key = private_key.derive_public_key();
 
         Self { public_key, private_key }
@@ -99,14 +99,14 @@ pub struct EccKeyError {
 /// Describes shared secrets for encrypting/decrypting a message and verifying authenticity.
 pub struct EccSharedSecrets {
     pub ephemeral_shared_secret: EccSharedSecret,
-    pub auth_shared_secret: EccSharedSecret
+    pub auth_shared_secret: EccSharedSecret,
 }
 
 /// Generate a shared secret using the sender's identity key, an ephemeral key, and the recipient's public key.
 pub fn ecc_encapsulate(sender_key: &EccPrivateKey, ephemeral_key: &EccPrivateKey, recipient_key: &EccPublicKey) -> EccSharedSecrets {
     EccSharedSecrets {
         ephemeral_shared_secret: generate_shared_secret(ephemeral_key, recipient_key),
-        auth_shared_secret: generate_shared_secret(sender_key, recipient_key)
+        auth_shared_secret: generate_shared_secret(sender_key, recipient_key),
     }
 }
 
@@ -114,7 +114,7 @@ pub fn ecc_encapsulate(sender_key: &EccPrivateKey, ephemeral_key: &EccPrivateKey
 pub fn ecc_decapsulate(sender_key: &EccPublicKey, ephemeral_key: &EccPublicKey, recipient_key: &EccPrivateKey) -> EccSharedSecrets {
     EccSharedSecrets {
         ephemeral_shared_secret: generate_shared_secret(recipient_key, ephemeral_key),
-        auth_shared_secret: generate_shared_secret(recipient_key, sender_key)
+        auth_shared_secret: generate_shared_secret(recipient_key, sender_key),
     }
 }
 
