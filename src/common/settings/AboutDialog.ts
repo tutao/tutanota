@@ -1,6 +1,6 @@
 import m, { Children, Component, Vnode } from "mithril"
 import { Button, ButtonType } from "../gui/base/Button.js"
-import { getColouredTutanotaLogo } from "../gui/theme.js"
+import { getLightOrDarkTutanotaLogo } from "../gui/theme.js"
 import { showUserError } from "../misc/ErrorHandlerImpl.js"
 import { locator } from "../api/main/CommonLocator.js"
 import { InfoLink, lang } from "../misc/LanguageViewModel.js"
@@ -9,6 +9,7 @@ import { UserError } from "../api/main/UserError.js"
 import { clientInfoString, getLogAttachments } from "../misc/ErrorReporter.js"
 import { ExternalLink } from "../gui/base/ExternalLink.js"
 import { isApp } from "../api/common/Env.js"
+import { px, size } from "../gui/size.js"
 
 interface AboutDialogAttrs {
 	onShowSetupWizard: () => unknown
@@ -18,7 +19,17 @@ export class AboutDialog implements Component<AboutDialogAttrs> {
 	view(vnode: Vnode<AboutDialogAttrs>): Children {
 		return m(".flex.col", [
 			m(".center.mt", "Powered by"),
-			m(".center.mt", m.trust(getColouredTutanotaLogo())),
+			m(
+				".center",
+				// Our logo must be padded but at least a certain amount.
+				// This might be a bit more than needed but it's safe.
+				{
+					style: {
+						margin: px(size.vpad_xl),
+					},
+				},
+				m.trust(getLightOrDarkTutanotaLogo()),
+			),
 			m(".flex.justify-center.mt-l.flex-wrap", [
 				m(ExternalLink, { href: InfoLink.HomePage, text: "Website", isCompanySite: true, specialType: "me", class: "mlr mt" }),
 				m(ExternalLink, {
