@@ -97,7 +97,8 @@ mod tests {
     use crate::entities::entity_facade::EntityFacade;
     use crate::entities::entity_facade_test_utils::generate_email_entity;
     use crate::entity_client::{MockEntityClient, EntityClientHandlers, IdType};
-    use crate::type_model_provider::init_type_model_provider;
+    use crate::metamodel::TypeModel;
+    use crate::type_model_provider::{init_type_model_provider, TypeModelProvider};
     use crate::TypeRef;
 
     #[tokio::test]
@@ -115,23 +116,29 @@ mod tests {
             "Recipient".to_owned(),
         );
 
-        // TODO: it would be nice to mock this
-        let type_model_provider = Arc::new(init_type_model_provider());
+        // We cause a deliberate memory leak to convert the mail type's lifetime to static because
+        // the callback to `returning` requires returned references to have a static lifetime
+        let my_favorite_leak: &'static TypeModelProvider = Box::leak(
+            Box::new(init_type_model_provider())
+        );
 
-        let mail_id = IdType::Single(encrypted_mail.get("_id").unwrap().assert_string());
+        let mail_id = IdType::Tuple(encrypted_mail.get("_id").unwrap().assert_tuple_id().clone());
         let mail_type_ref = TypeRef { app: "tutanota".to_owned(), type_: "Mail".to_owned() };
-        let mail_type_model = Arc::clone(&type_model_provider)
+        let mail_type_model: &'static TypeModel = my_favorite_leak
             .get_type_model(&mail_type_ref.app, &mail_type_ref.type_)
             .expect("Error in type_model_provider");
 
         // Set up the mock of the plain unencrypted entity client
         let mut mock_entity_client = MockEntityClient::default();
-        mock_entity_client.expect_get_type_model().returning(|_| Ok(&mail_type_model.clone()));
+        mock_entity_client.expect_get_type_model().returning(|_| Ok(mail_type_model));
         mock_entity_client.expect_load().returning(move |_, _| Ok(encrypted_mail.clone()));
 
         // Set up the mock of the crypto facade
         let mut mock_crypto_facade = MockCryptoFacade::default();
         mock_crypto_facade.expect_resolve_session_key().returning(move |_, _| Ok(Some(sk.clone())));
+
+        // TODO: it would be nice to mock this
+        let type_model_provider = Arc::new(init_type_model_provider());
 
         // Use the real `EntityFacade` as it contains the actual decryption logic
         let entity_facade = EntityFacade::new(Arc::clone(&type_model_provider));
@@ -143,7 +150,10 @@ mod tests {
         );
 
         // TODO: See if we need more for the async
-        let result = crypto_entity_client.load(&mail_type_ref, &mail_id).await;
-        assert_eq!(result.unwrap(), plaintext_mail);
+        let result = crypto_entity_client.load(&mail_type_ref, &mail_id)
+            .await
+            .unwrap();
+
+        assert_eq!(result, plaintext_mail);
     }
 }

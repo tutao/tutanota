@@ -17,7 +17,7 @@ pub enum ElementValue {
     CustomId(String),
     IdTupleId(IdTuple),
     Dict(HashMap<String, ElementValue>),
-    Array(Vec<ElementValue>)
+    Array(Vec<ElementValue>),
 }
 
 pub type ParsedEntity = HashMap<String, ElementValue>;
@@ -79,6 +79,12 @@ impl ElementValue {
     pub fn assert_generated_id(&self) -> &Id {
         match self {
             ElementValue::GeneratedId(value) => value,
+            _ => panic!("Invalid type"),
+        }
+    }
+    pub fn assert_tuple_id(&self) -> &IdTuple {
+        match self {
+            ElementValue::IdTupleId(value) => value,
             _ => panic!("Invalid type"),
         }
     }
