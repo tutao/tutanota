@@ -7,6 +7,7 @@ use cbc::cipher::block_padding::UnpadError;
 use rand_core::CryptoRngCore;
 use zeroize::ZeroizeOnDrop;
 use crate::join_slices;
+use crate::util::generate_random_bytes;
 
 /// Denotes whether a text is/should be padded
 pub enum PaddingMode {
@@ -36,8 +37,7 @@ macro_rules! aes_key {
         impl $name {
             /// Generate an AES key.
             pub fn generate<R: CryptoRngCore + ?Sized>(rng: &mut R) -> Self {
-                let mut key = [0u8; $size];
-                rng.try_fill_bytes(&mut key).unwrap();
+                let key: [u8; $size] = generate_random_bytes(rng);
                 Self(key)
             }
 
@@ -138,9 +138,7 @@ pub struct Iv([u8; IV_BYTE_SIZE]);
 impl Iv {
     /// Generate an initialisation vector.
     pub fn generate<R: CryptoRngCore + ?Sized>(rng: &mut R) -> Self {
-        let mut iv = [0u8; 16];
-        rng.try_fill_bytes(&mut iv).unwrap();
-        Self(iv)
+        Self(generate_random_bytes(rng))
     }
 
     pub fn from_bytes(bytes: &[u8]) -> Result<Self, IvError> {
