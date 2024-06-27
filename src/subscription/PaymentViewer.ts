@@ -1,6 +1,6 @@
 import m, { Children } from "mithril"
 import { assertMainOrNode, isIOSApp } from "../api/common/Env"
-import { assertNotNull, last, neverNull, noOp, ofClass, promiseMap } from "@tutao/tutanota-utils"
+import { assertNotNull, last, neverNull, ofClass } from "@tutao/tutanota-utils"
 import { InfoLink, lang, TranslationKey } from "../misc/LanguageViewModel"
 import {
 	AccountingInfo,
@@ -33,9 +33,6 @@ import { Dialog, DialogType } from "../gui/base/Dialog"
 import { getByAbbreviation } from "../api/common/CountryList"
 import * as PaymentDataDialog from "./PaymentDataDialog"
 import { showProgressDialog } from "../gui/dialogs/ProgressDialog"
-
-import stream from "mithril/stream"
-import Stream from "mithril/stream"
 import { getPreconditionFailedPaymentMsg, hasRunningAppStoreSubscription } from "./SubscriptionUtils"
 import type { DialogHeaderBarAttrs } from "../gui/base/DialogHeaderBar"
 import { DialogHeaderBar } from "../gui/base/DialogHeaderBar"
@@ -61,68 +58,63 @@ import { GENERATED_MAX_ID } from "../api/common/utils/EntityUtils.js"
 
 assertMainOrNode()
 
+/**
+ * Displays payment method/invoice data and allows changing them.
+ */
 export class PaymentViewer implements UpdatableSettingsViewer {
-	private readonly _invoiceAddressField: HtmlEditor
-	private _customer: Customer | null = null
-	private _accountingInfo: AccountingInfo | null = null
-	private _postings: CustomerAccountPosting[]
-	private _outstandingBookingsPrice: number | null = null
-	private _balance: number
-	private _invoiceInfo: InvoiceInfo | null = null
-	view: UpdatableSettingsViewer["view"]
+	private readonly invoiceAddressField: HtmlEditor
+	private customer: Customer | null = null
+	private accountingInfo: AccountingInfo | null = null
+	private postings: readonly CustomerAccountPosting[] = []
+	private outstandingBookingsPrice: number | null = null
+	private balance: number = 0
+	private invoiceInfo: InvoiceInfo | null = null
+	private postingsExpanded: boolean = false
 
 	constructor() {
-		this._invoiceAddressField = new HtmlEditor()
+		this.invoiceAddressField = new HtmlEditor()
 			.setMinHeight(140)
 			.showBorders()
 			.setMode(HtmlEditorMode.HTML)
 			.setHtmlMonospace(false)
 			.setReadOnly(true)
 			.setPlaceholderId("invoiceAddress_label")
-		this._postings = []
-		this._outstandingBookingsPrice = null
-		this._balance = 0
-		const postingExpanded = stream(false)
-
-		this.view = (): Children => {
-			return m(
-				"#invoicing-settings.fill-absolute.scroll.plr-l",
-				{
-					role: "group",
-				},
-				[this.renderInvoiceData(), this.renderPaymentMethod(), this._renderPostings(postingExpanded)],
-			)
-		}
-		locator.logins
-			.getUserController()
-			.loadCustomer()
-			.then((customer) => {
-				this._customer = customer
-				return locator.logins.getUserController().loadCustomerInfo()
-			})
-			.then((customerInfo) => locator.entityClient.load(AccountingInfoTypeRef, customerInfo.accountingInfo))
-			.then((accountingInfo) => {
-				this._updateAccountingInfoData(accountingInfo)
-
-				locator.entityClient.load(InvoiceInfoTypeRef, neverNull(accountingInfo.invoiceInfo)).then((invoiceInfo) => {
-					this._invoiceInfo = invoiceInfo
-					m.redraw()
-				})
-			})
-			.then(() => this._loadPostings())
+		this.loadData()
+		this.view = this.view.bind(this)
 	}
 
-	private renderPaymentMethod() {
+	view(): Children {
+		return m(
+			"#invoicing-settings.fill-absolute.scroll.plr-l",
+			{
+				role: "group",
+			},
+			[this.renderInvoiceData(), this.renderPaymentMethod(), this.renderPostings()],
+		)
+	}
+
+	private async loadData() {
+		this.customer = await locator.logins.getUserController().loadCustomer()
+		const customerInfo = await locator.logins.getUserController().loadCustomerInfo()
+
+		const accountingInfo = await locator.entityClient.load(AccountingInfoTypeRef, customerInfo.accountingInfo)
+		this.updateAccountingInfoData(accountingInfo)
+		this.invoiceInfo = await locator.entityClient.load(InvoiceInfoTypeRef, neverNull(accountingInfo.invoiceInfo))
+		m.redraw()
+		await this.loadPostings()
+	}
+
+	private renderPaymentMethod(): Children {
 		const paymentMethodHelpLabel = () => {
-			if (this._accountingInfo && getPaymentMethodType(this._accountingInfo) === PaymentMethodType.Invoice) {
+			if (this.accountingInfo && getPaymentMethodType(this.accountingInfo) === PaymentMethodType.Invoice) {
 				return lang.get("paymentProcessingTime_msg")
 			}
 
 			return ""
 		}
 
-		const paymentMethod = this._accountingInfo
-			? getPaymentMethodName(getPaymentMethodType(neverNull(this._accountingInfo))) + " " + getPaymentMethodInfoText(neverNull(this._accountingInfo))
+		const paymentMethod = this.accountingInfo
+			? getPaymentMethodName(getPaymentMethodType(neverNull(this.accountingInfo))) + " " + getPaymentMethodInfoText(neverNull(this.accountingInfo))
 			: lang.get("loading_msg")
 
 		return m(TextField, {
@@ -141,10 +133,10 @@ export class PaymentViewer implements UpdatableSettingsViewer {
 	}
 
 	private async handlePaymentMethodClick(e: MouseEvent, dom: HTMLElement) {
-		if (this._accountingInfo == null) {
+		if (this.accountingInfo == null) {
 			return
 		}
-		const currentPaymentMethod: PaymentMethodType | null = getPaymentMethodType(this._accountingInfo)
+		const currentPaymentMethod: PaymentMethodType | null = getPaymentMethodType(this.accountingInfo)
 		if (isIOSApp()) {
 			const shouldEnableiOSPayment = await locator.appStorePaymentPicker.shouldEnableAppStorePayment(currentPaymentMethod)
 			if (shouldEnableiOSPayment) {
@@ -152,9 +144,9 @@ export class PaymentViewer implements UpdatableSettingsViewer {
 			} else {
 				return Dialog.message("notAvailableInApp_msg")
 			}
-		} else if (hasRunningAppStoreSubscription(this._accountingInfo)) {
+		} else if (hasRunningAppStoreSubscription(this.accountingInfo)) {
 			return showManageThroughAppStoreDialog()
-		} else if (currentPaymentMethod == PaymentMethodType.AppStore && this._customer?.type === AccountType.PAID) {
+		} else if (currentPaymentMethod == PaymentMethodType.AppStore && this.customer?.type === AccountType.PAID) {
 			// For now we do not allow changing payment method for Paid accounts that use AppStore,
 			// they must downgrade to Free first.
 
@@ -181,12 +173,12 @@ export class PaymentViewer implements UpdatableSettingsViewer {
 					console.warn("No booking but payment method is AppStore?")
 					return
 				}
-				return showSwitchDialog(this._customer, customerInfo, this._accountingInfo, lastBooking, AvailablePlans, null)
+				return showSwitchDialog(this.customer, customerInfo, this.accountingInfo, lastBooking, AvailablePlans, null)
 			}
 		} else {
 			const showPaymentMethodDialog = createNotAvailableForFreeClickHandler(
 				NewPaidPlans,
-				() => this._accountingInfo && this.changePaymentMethod(),
+				() => this.accountingInfo && this.changePaymentMethod(),
 				// iOS app is checked above
 				() => locator.logins.getUserController().isPremiumAccount(),
 			)
@@ -196,11 +188,11 @@ export class PaymentViewer implements UpdatableSettingsViewer {
 	}
 
 	private changeInvoiceData() {
-		if (this._accountingInfo) {
-			const accountingInfo = neverNull(this._accountingInfo)
+		if (this.accountingInfo) {
+			const accountingInfo = neverNull(this.accountingInfo)
 			const invoiceCountry = accountingInfo.invoiceCountry ? getByAbbreviation(accountingInfo.invoiceCountry) : null
 			InvoiceDataDialog.show(
-				neverNull(neverNull(this._customer).businessUse),
+				neverNull(neverNull(this.customer).businessUse),
 				{
 					invoiceAddress: formatNameAndAddress(accountingInfo.invoiceName, accountingInfo.invoiceAddress),
 					country: invoiceCountry,
@@ -212,11 +204,11 @@ export class PaymentViewer implements UpdatableSettingsViewer {
 	}
 
 	private changePaymentMethod() {
-		if (this._accountingInfo && hasRunningAppStoreSubscription(this._accountingInfo)) {
+		if (this.accountingInfo && hasRunningAppStoreSubscription(this.accountingInfo)) {
 			throw new ProgrammingError("Active AppStore subscription")
 		}
 
-		let nextPayment = this._amountOwed() * -1
+		let nextPayment = this.amountOwed() * -1
 		showProgressDialog(
 			"pleaseWait_msg",
 			locator.bookingFacade.getCurrentPrice().then((priceServiceReturn) => {
@@ -233,37 +225,37 @@ export class PaymentViewer implements UpdatableSettingsViewer {
 				}),
 			)
 			.then(({ price, paymentMethod }) => {
-				return PaymentDataDialog.show(neverNull(this._customer), neverNull(this._accountingInfo), price, paymentMethod).then((success) => {
+				return PaymentDataDialog.show(neverNull(this.customer), neverNull(this.accountingInfo), price, paymentMethod).then((success) => {
 					if (success) {
-						if (this._isPayButtonVisible()) {
-							return this._showPayDialog(this._amountOwed())
+						if (this.isPayButtonVisible()) {
+							return this.showPayDialog(this.amountOwed())
 						}
 					}
 				})
 			})
 	}
 
-	_renderPostings(postingExpanded: Stream<boolean>): Children {
-		if (!this._postings || this._postings.length === 0) {
+	private renderPostings(): Children {
+		if (!this.postings || this.postings.length === 0) {
 			return null
 		} else {
-			const balance = this._balance
+			const balance = this.balance
 			return [
 				m(".h4.mt-l", lang.get("currentBalance_label")),
 				m(".flex.center-horizontally.center-vertically.col", [
 					m(
-						"div.h4.pt.pb" + (this._isAmountOwed() ? ".content-accent-fg" : ""),
-						formatPrice(balance, true) + (this._accountBalance() !== balance ? ` (${formatPrice(this._accountBalance(), true)})` : ""),
+						"div.h4.pt.pb" + (this.isAmountOwed() ? ".content-accent-fg" : ""),
+						formatPrice(balance, true) + (this.accountBalance() !== balance ? ` (${formatPrice(this.accountBalance(), true)})` : ""),
 					),
-					this._accountBalance() !== balance
+					this.accountBalance() !== balance
 						? m(
-								".small" + (this._accountBalance() < 0 ? ".content-accent-fg" : ""),
+								".small" + (this.accountBalance() < 0 ? ".content-accent-fg" : ""),
 								lang.get("unprocessedBookings_msg", {
-									"{amount}": formatPrice(assertNotNull(this._outstandingBookingsPrice), true),
+									"{amount}": formatPrice(assertNotNull(this.outstandingBookingsPrice), true),
 								}),
 						  )
 						: null,
-					this._isPayButtonVisible()
+					this.isPayButtonVisible()
 						? m(
 								".pb",
 								{
@@ -273,37 +265,37 @@ export class PaymentViewer implements UpdatableSettingsViewer {
 								},
 								m(LoginButton, {
 									label: "invoicePay_action",
-									onclick: () => this._showPayDialog(this._amountOwed()),
+									onclick: () => this.showPayDialog(this.amountOwed()),
 								}),
 						  )
 						: null,
 				]),
-				this._accountingInfo &&
-				this._accountingInfo.paymentMethod !== PaymentMethodType.Invoice &&
-				(this._isAmountOwed() || (this._invoiceInfo && this._invoiceInfo.paymentErrorInfo))
-					? this._invoiceInfo && this._invoiceInfo.paymentErrorInfo
-						? m(".small.underline.b", lang.get(getPreconditionFailedPaymentMsg(this._invoiceInfo.paymentErrorInfo.errorCode)))
+				this.accountingInfo &&
+				this.accountingInfo.paymentMethod !== PaymentMethodType.Invoice &&
+				(this.isAmountOwed() || (this.invoiceInfo && this.invoiceInfo.paymentErrorInfo))
+					? this.invoiceInfo && this.invoiceInfo.paymentErrorInfo
+						? m(".small.underline.b", lang.get(getPreconditionFailedPaymentMsg(this.invoiceInfo.paymentErrorInfo.errorCode)))
 						: m(".small.underline.b", lang.get("failedDebitAttempt_msg"))
 					: null,
 				m(".flex-space-between.items-center.mt-l.mb-s", [
 					m(".h4", lang.get("postings_label")),
 					m(ExpanderButton, {
 						label: "show_action",
-						expanded: postingExpanded(),
-						onExpandedChange: postingExpanded,
+						expanded: this.postingsExpanded,
+						onExpandedChange: (expanded) => (this.postingsExpanded = expanded),
 					}),
 				]),
 				m(
 					ExpanderPanel,
 					{
-						expanded: postingExpanded(),
+						expanded: this.postingsExpanded,
 					},
 					m(Table, {
 						columnHeading: ["type_label", "amount_label"],
 						columnWidths: [ColumnWidth.Largest, ColumnWidth.Small, ColumnWidth.Small],
 						columnAlignments: [false, true, false],
 						showActionButtonColumn: true,
-						lines: this._postings.map((posting: CustomerAccountPosting) => this.postingLineAttrs(posting)),
+						lines: this.postings.map((posting: CustomerAccountPosting) => this.postingLineAttrs(posting)),
 					}),
 				),
 				m(".small", lang.get("invoiceSettingDescription_msg") + " " + lang.get("laterInvoicingInfo_msg")),
@@ -350,23 +342,23 @@ export class PaymentViewer implements UpdatableSettingsViewer {
 		}
 	}
 
-	_updateAccountingInfoData(accountingInfo: AccountingInfo) {
-		this._accountingInfo = accountingInfo
+	private updateAccountingInfoData(accountingInfo: AccountingInfo) {
+		this.accountingInfo = accountingInfo
 
-		this._invoiceAddressField.setValue(
+		this.invoiceAddressField.setValue(
 			formatNameAndAddress(accountingInfo.invoiceName, accountingInfo.invoiceAddress, accountingInfo.invoiceCountry ?? undefined),
 		)
 
 		m.redraw()
 	}
 
-	_accountBalance(): number {
-		return this._balance - assertNotNull(this._outstandingBookingsPrice)
+	private accountBalance(): number {
+		return this.balance - assertNotNull(this.outstandingBookingsPrice)
 	}
 
-	_amountOwed(): number {
-		if (this._balance != null) {
-			let balance = this._balance
+	private amountOwed(): number {
+		if (this.balance != null) {
+			let balance = this.balance
 
 			if (balance < 0) {
 				return balance
@@ -376,54 +368,50 @@ export class PaymentViewer implements UpdatableSettingsViewer {
 		return 0
 	}
 
-	_isAmountOwed(): boolean {
-		return this._amountOwed() < 0
+	private isAmountOwed(): boolean {
+		return this.amountOwed() < 0
 	}
 
-	_loadPostings(): Promise<void> {
+	private loadPostings(): Promise<void> {
 		return locator.serviceExecutor.get(CustomerAccountService, null).then((result) => {
-			this._postings = result.postings
-			this._outstandingBookingsPrice = Number(result.outstandingBookingsPrice)
-			this._balance = Number(result.balance)
+			this.postings = result.postings
+			this.outstandingBookingsPrice = Number(result.outstandingBookingsPrice)
+			this.balance = Number(result.balance)
 			m.redraw()
 		})
 	}
 
-	entityEventsReceived(updates: ReadonlyArray<EntityUpdateData>): Promise<void> {
-		return promiseMap(updates, (update) => {
-			return this.processUpdate(update)
-		}).then(noOp)
-	}
-
-	processUpdate(update: EntityUpdateData): Promise<void> {
-		const { instanceId } = update
-
-		if (isUpdateForTypeRef(AccountingInfoTypeRef, update)) {
-			return locator.entityClient.load(AccountingInfoTypeRef, instanceId).then((accountingInfo) => this._updateAccountingInfoData(accountingInfo))
-		} else if (isUpdateForTypeRef(CustomerTypeRef, update)) {
-			return locator.entityClient.load(CustomerTypeRef, instanceId).then((customer) => {
-				this._customer = customer
-			})
-		} else if (isUpdateForTypeRef(InvoiceInfoTypeRef, update)) {
-			return locator.entityClient.load(InvoiceInfoTypeRef, instanceId).then((invoiceInfo) => {
-				this._invoiceInfo = invoiceInfo
-				m.redraw()
-			})
-		} else {
-			return Promise.resolve()
+	async entityEventsReceived(updates: ReadonlyArray<EntityUpdateData>): Promise<void> {
+		for (const update of updates) {
+			await this.processEntityUpdate(update)
 		}
 	}
 
-	_isPayButtonVisible(): boolean {
+	private async processEntityUpdate(update: EntityUpdateData): Promise<void> {
+		const { instanceId } = update
+
+		if (isUpdateForTypeRef(AccountingInfoTypeRef, update)) {
+			const accountingInfo = await locator.entityClient.load(AccountingInfoTypeRef, instanceId)
+			this.updateAccountingInfoData(accountingInfo)
+		} else if (isUpdateForTypeRef(CustomerTypeRef, update)) {
+			this.customer = await locator.logins.getUserController().loadCustomer()
+			m.redraw()
+		} else if (isUpdateForTypeRef(InvoiceInfoTypeRef, update)) {
+			this.invoiceInfo = await locator.entityClient.load(InvoiceInfoTypeRef, instanceId)
+			m.redraw()
+		}
+	}
+
+	private isPayButtonVisible(): boolean {
 		return (
-			this._accountingInfo != null &&
-			(this._accountingInfo.paymentMethod === PaymentMethodType.CreditCard || this._accountingInfo.paymentMethod === PaymentMethodType.Paypal) &&
-			this._isAmountOwed()
+			this.accountingInfo != null &&
+			(this.accountingInfo.paymentMethod === PaymentMethodType.CreditCard || this.accountingInfo.paymentMethod === PaymentMethodType.Paypal) &&
+			this.isAmountOwed()
 		)
 	}
 
-	_showPayDialog(openBalance: number): Promise<void> {
-		return _showPayConfirmDialog(openBalance)
+	private showPayDialog(openBalance: number): Promise<void> {
+		return showPayConfirmDialog(openBalance)
 			.then((confirmed) => {
 				if (confirmed) {
 					return showProgressDialog(
@@ -431,11 +419,7 @@ export class PaymentViewer implements UpdatableSettingsViewer {
 						locator.serviceExecutor
 							.put(DebitService, createDebitServicePutData({ invoice: null }))
 							.catch(ofClass(LockedError, () => "operationStillActive_msg" as TranslationKey))
-							.catch(
-								ofClass(PreconditionFailedError, (error) => {
-									return getPreconditionFailedPaymentMsg(error.data)
-								}),
-							)
+							.catch(ofClass(PreconditionFailedError, (error) => getPreconditionFailedPaymentMsg(error.data)))
 							.catch(ofClass(BadGatewayError, () => "paymentProviderNotAvailableError_msg" as TranslationKey))
 							.catch(ofClass(TooManyRequestsError, () => "tooManyAttempts_msg" as TranslationKey)),
 					)
@@ -445,7 +429,7 @@ export class PaymentViewer implements UpdatableSettingsViewer {
 				if (errorId) {
 					return Dialog.message(errorId)
 				} else {
-					return this._loadPostings()
+					return this.loadPostings()
 				}
 			})
 	}
@@ -465,11 +449,11 @@ export class PaymentViewer implements UpdatableSettingsViewer {
 					size: ButtonSize.Compact,
 				}),
 			]),
-			m(this._invoiceAddressField),
-			this._accountingInfo && this._accountingInfo.invoiceVatIdNo.trim().length > 0
+			m(this.invoiceAddressField),
+			this.accountingInfo && this.accountingInfo.invoiceVatIdNo.trim().length > 0
 				? m(TextField, {
 						label: "invoiceVatIdNo_label",
-						value: this._accountingInfo ? this._accountingInfo.invoiceVatIdNo : lang.get("loading_msg"),
+						value: this.accountingInfo ? this.accountingInfo.invoiceVatIdNo : lang.get("loading_msg"),
 						isReadOnly: true,
 				  })
 				: null,
@@ -477,7 +461,7 @@ export class PaymentViewer implements UpdatableSettingsViewer {
 	}
 }
 
-function _showPayConfirmDialog(price: number): Promise<boolean> {
+function showPayConfirmDialog(price: number): Promise<boolean> {
 	return new Promise((resolve) => {
 		let dialog: Dialog
 
