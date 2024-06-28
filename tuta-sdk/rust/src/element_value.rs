@@ -1,5 +1,5 @@
 use std::collections::HashMap;
-use crate::date::Date;
+use crate::date::DateTime;
 use crate::id::Id;
 use crate::IdTuple;
 
@@ -10,7 +10,7 @@ pub enum ElementValue {
     String(String),
     Number(i64),
     Bytes(Vec<u8>),
-    Date(Date),
+    Date(DateTime),
     Bool(bool),
     GeneratedId(Id),
     CustomId(String),
@@ -82,7 +82,7 @@ impl ElementValue {
         }
     }
 
-    pub fn assert_date(&self) -> &Date {
+    pub fn assert_date(&self) -> &DateTime {
         match self {
             ElementValue::Date(value) => value,
             _ => panic!("Invalid type"),
