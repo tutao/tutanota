@@ -6,7 +6,7 @@ use serde::de::{DeserializeSeed, IntoDeserializer, MapAccess, Unexpected, Visito
 use serde::de::value::{MapDeserializer, SeqDeserializer};
 use serde::ser::{SerializeSeq, SerializeStruct};
 use thiserror::Error;
-use crate::date::Date;
+use crate::date::DateTime;
 
 use crate::element_value::{ElementValue, ParsedEntity};
 use crate::entities::Entity;
@@ -94,13 +94,21 @@ impl<'de> Deserializer<'de> for ElementValueDeserializer {
     type Error = de::value::Error;
 
     serde::forward_to_deserialize_any! {
-        i8 i16 i32 u8 u16 u32 u64 f32 f64 char str bytes
+        i8 i16 i32 u8 u16 u32 f32 f64 char str bytes
                 unit unit_struct newtype_struct tuple
                 tuple_struct map enum identifier ignored_any
             }
 
     fn deserialize_any<V>(self, _: V) -> Result<V::Value, Self::Error> where V: Visitor<'de> {
         Err(de::Error::custom("deserialize_any is not supported!"))
+    }
+
+    fn deserialize_u64<V>(self, visitor: V) -> Result<V::Value, Self::Error> where V: Visitor<'de> {
+        if let ElementValue::Date(date) = self.value {
+            visitor.visit_u64(date.as_millis())
+        } else {
+            Err(de::Error::invalid_type(self.value.as_unexpected(), &"bool"))
+        }
     }
 
     fn deserialize_bool<V>(self, visitor: V) -> Result<V::Value, Self::Error> where V: Visitor<'de> {
@@ -326,7 +334,7 @@ impl Serializer for ElementValueSerializer {
                 let Ok(ElementValue::Number(timestamp)) = value.serialize(self) else {
                     unreachable!();
                 };
-                Ok(ElementValue::Date(Date::from_millis(timestamp as u64)))
+                Ok(ElementValue::Date(DateTime::from_millis(timestamp as u64)))
             }
             other => unsupported(other)
         }
@@ -439,7 +447,7 @@ impl ElementValue {
 
 #[cfg(test)]
 mod tests {
-    use crate::entities::sys::{ArchiveRef, ArchiveType, Group, TypeInfo};
+    use crate::entities::sys::{ArchiveRef, ArchiveType, Group, GroupInfo, TypeInfo};
     use crate::entities::tutanota::{MailboxGroupRoot, OutOfOfficeNotificationRecipientList};
     use crate::json_element::RawEntity;
     use crate::json_serializer::JsonSerializer;
@@ -458,6 +466,15 @@ mod tests {
         assert_eq!(5_i64, group.r#type);
         assert_eq!(Some(0_i64), group.adminGroupKeyVersion);
         assert_eq!("LIopQQI--k-0", group.groupInfo.list_id.as_str());
+    }
+
+    #[test]
+    fn test_de_group_info() {
+        let json = include_str!("../test_data/group_info_response.json");
+        let parsed_entity = get_parsed_entity::<GroupInfo>(json);
+        let mapper = InstanceMapper::new();
+        let group_info: GroupInfo = mapper.parse_entity(parsed_entity).unwrap();
+        assert_eq!(DateTime::from_millis(1533116004052), group_info.created);
     }
 
     #[test]
@@ -542,6 +559,31 @@ mod tests {
         let result = mapper.serialize_entity(group_root.clone()).unwrap();
         assert_eq!(&ElementValue::Number(0), result.get("_format").unwrap());
         assert_eq!(&ElementValue::Bytes(vec![1, 2, 3]), result.get("pubAdminGroupEncGKey").unwrap())
+    }
+
+    #[test]
+    fn test_ser_group_info() {
+        let group_info = GroupInfo {
+            _format: 0,
+            _id: IdTuple::new(Id::test_random(), Id::test_random()),
+            _ownerEncSessionKey: None,
+            _listEncSessionKey: None,
+            _ownerGroup: None,
+            _ownerKeyVersion: None,
+            _permissions: Id::test_random(),
+            created: DateTime::from_millis(1533116004052),
+            deleted: None,
+            groupType: None,
+            mailAddress: None,
+            name: "encName".to_owned(),
+            group: Id::test_random(),
+            localAdmin: None,
+            mailAddressAliases: vec![],
+        };
+        let mapper = InstanceMapper::new();
+        let parsed_entity = mapper.serialize_entity(group_info).unwrap();
+
+        assert_eq!(ElementValue::Date(DateTime::from_millis(1533116004052)), *parsed_entity.get("created").unwrap());
     }
 
     fn get_parsed_entity<T: Entity>(email_string: &str) -> ParsedEntity {

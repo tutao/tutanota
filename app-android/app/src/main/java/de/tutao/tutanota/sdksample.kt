@@ -44,7 +44,7 @@ suspend fun runSdkExample() {
 	val mailId = "".toIdTuple()
 	val mailFacade = sdk.mailFacade()
 	val result = try {
-		mailFacade.loadEmailByIdEncrypted(mailId, BuildConfig.TUTANOTA_MODEL_VERSION.toUInt())
+		mailFacade.loadEmailByIdEncrypted(mailId)
 	} catch (e: ApiCallException) {
 		Log.d(TAG, "request failed", e)
 		return
