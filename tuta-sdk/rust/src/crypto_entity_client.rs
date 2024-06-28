@@ -146,7 +146,7 @@ mod tests {
         let crypto_entity_client = CryptoEntityClient::new(
             Arc::new(mock_entity_client),
             Arc::new(entity_facade),
-            Arc::new(MockCryptoFacade::new()),
+            Arc::new(mock_crypto_facade),
         );
 
         // TODO: See if we need more for the async
