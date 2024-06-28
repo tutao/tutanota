@@ -68,10 +68,12 @@ export class CalendarDayEventsView implements Component<Attrs> {
 					m(".calendar-hour.flex.cursor-pointer", {
 						onclick: (e: MouseEvent) => {
 							e.stopPropagation()
-							attrs.onTimePressed(time.hour, time.minute)
+							const { hour, minute } = getTimeFromClickInteraction(e, time)
+							attrs.onTimePressed(hour, minute)
 						},
 						oncontextmenu: (e: MouseEvent) => {
-							attrs.onTimeContextPressed(time.hour, time.minute)
+							const { hour, minute } = getTimeFromClickInteraction(e, time)
+							attrs.onTimeContextPressed(hour, minute)
 							e.preventDefault()
 						},
 					}),
@@ -153,4 +155,11 @@ export class CalendarDayEventsView implements Component<Attrs> {
 function getTimeIndicatorPosition(now: Date): number {
 	const passedMillisInDay = (now.getHours() * 60 + now.getMinutes()) * 60 * 1000
 	return (passedMillisInDay / DAY_IN_MILLIS) * allHoursHeight
+}
+
+function getTimeFromClickInteraction(e: MouseEvent, time: Time): Time {
+	const rect = (e.target as HTMLElement).getBoundingClientRect()
+	const mousePositionRelativeToRectHeight = Math.abs(rect.top - e.clientY)
+	if (mousePositionRelativeToRectHeight > rect.height / 2) return new Time(time.hour, time.minute + 30)
+	return time
 }
