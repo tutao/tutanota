@@ -1,0 +1,28 @@
+{
+	"_format": "0",
+	"_id": ["LIopQQI--N-0", "LIopQQJ-17-0"],
+	"_listEncSessionKey": null,
+	"_ownerEncSessionKey": "thjkembZJUV8ukSC6xuCBg==",
+	"_ownerGroup": "LIopQQI--g-0",
+	"_ownerKeyVersion": "0",
+	"_permissions": "LIopQQJ-1B-0",
+	"created": "1533116004052",
+	"deleted": null,
+	"groupType": "0",
+	"mailAddress": "ivkfortest@tutanota.de",
+	"name": "Aar4kzSISop/7W/eTYxCxgbDRMiSf38TTE2TbH2NdJeI0K746xQf+1ItGL2GXZgrfzsLs6YccNHgFZI8VNGmC8fhTz0RaZAlUv8rDLtxfgn+",
+	"group": "LIopQQJ-0s-0",
+	"localAdmin": null,
+	"mailAddressAliases": [
+		{
+			"_id": "KCWfiQ",
+			"enabled": "1",
+			"mailAddress": "ivkfortest10_alias1@tutanota.de"
+		},
+		{
+			"_id": "Zd0RUw",
+			"enabled": "1",
+			"mailAddress": "ivkfortest10_alias2@tutanota.de"
+		}
+	]
+}

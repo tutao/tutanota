@@ -11,7 +11,7 @@ pub(crate) mod tutanota;
 pub(crate) mod usage;
 mod entity_facade;
 
-use crate::date::Date as Date;
+use crate::date::DateTime;
 use crate::id::Id as Id;
 
 pub trait Entity {
