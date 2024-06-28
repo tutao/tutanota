@@ -195,6 +195,10 @@ globalThis.buildOptions.sqliteNativePath = "./better-sqlite3.node";`,
 	await runStep("Desktop: assets", async () => {
 		const desktopIconsPath = "./resources/desktop-icons"
 		await fs.copy(desktopIconsPath, `./${buildDir}/desktop/resources/icons`, { overwrite: true })
+		await fs.move(`./${buildDir}/desktop/resources/icons/logo-solo-dev.png`, `./${buildDir}/desktop/resources/icons/logo-solo-red.png`, { overwrite: true })
+		await fs.move(`./${buildDir}/desktop/resources/icons/logo-solo-dev-small.png`, `./${buildDir}/desktop/resources/icons/logo-solo-red-small.png`, {
+			overwrite: true,
+		})
 		const templateGenerator = (await import("./electron-package-json-template.js")).default
 		const packageJSON = await templateGenerator({
 			nameSuffix: "-debug",
