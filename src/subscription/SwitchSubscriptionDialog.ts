@@ -2,7 +2,7 @@ import m from "mithril"
 import { Dialog } from "../gui/base/Dialog"
 import { lang, TranslationText } from "../misc/LanguageViewModel"
 import { ButtonType } from "../gui/base/Button.js"
-import { AccountingInfo, Booking, createSurveyData, createSwitchAccountTypePostIn, Customer, CustomerInfo, SurveyData, } from "../api/entities/sys/TypeRefs.js"
+import { AccountingInfo, Booking, createSurveyData, createSwitchAccountTypePostIn, Customer, CustomerInfo, SurveyData } from "../api/entities/sys/TypeRefs.js"
 import {
 	AccountType,
 	AvailablePlanType,
@@ -40,6 +40,7 @@ import { isIOSApp } from "../api/common/Env.js"
 import { MobilePaymentSubscriptionOwnership } from "../native/common/generatedipc/MobilePaymentSubscriptionOwnership.js"
 import { showManageThroughAppStoreDialog } from "./PaymentViewer.js"
 import { appStorePlanName, hasRunningAppStoreSubscription } from "./SubscriptionUtils.js"
+import { MobilePaymentError } from "../api/common/error/MobilePaymentError.js"
 
 /**
  * Allows cancelling the subscription (only private use) and switching the subscription to a different paid subscription.
@@ -180,12 +181,22 @@ async function doSwitchToPaidPlan(
 	if (isIOSApp() && getPaymentMethodType(accountingInfo) === PaymentMethodType.AppStore) {
 		const customerIdBytes = base64ToUint8Array(base64ExtToBase64(assertNotNull(locator.logins.getUserController().user.customer)))
 		dialog.close()
-		await locator.mobilePaymentsFacade.requestSubscriptionToPlan(appStorePlanName(targetSubscription), newPaymentInterval, customerIdBytes)
-		return
-	} else if (currentPlanInfo.paymentInterval !== newPaymentInterval) {
-		await locator.customerFacade.changePaymentInterval(accountingInfo, newPaymentInterval)
+		try {
+			await locator.mobilePaymentsFacade.requestSubscriptionToPlan(appStorePlanName(targetSubscription), newPaymentInterval, customerIdBytes)
+		} catch (e) {
+			if (e instanceof MobilePaymentError) {
+				console.error("AppStore subscription failed", e)
+				Dialog.message("appStoreSubscriptionError_msg", e.message)
+			} else {
+				throw e
+			}
+		}
+	} else {
+		if (currentPlanInfo.paymentInterval !== newPaymentInterval) {
+			await locator.customerFacade.changePaymentInterval(accountingInfo, newPaymentInterval)
+		}
+		await switchSubscription(targetSubscription, dialog, currentPlanInfo)
 	}
-	await switchSubscription(targetSubscription, dialog, currentPlanInfo)
 }
 
 function createPlanButton(
