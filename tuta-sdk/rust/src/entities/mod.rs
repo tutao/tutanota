@@ -18,5 +18,3 @@ pub trait Entity {
     fn type_ref() -> TypeRef;
 }
 
-#[cfg(test)]
-pub mod entity_facade_test_utils;

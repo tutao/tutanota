@@ -95,7 +95,7 @@ mod tests {
     use crate::crypto::key::GenericAesKey;
     use crate::crypto_entity_client::CryptoEntityClient;
     use crate::entities::entity_facade::EntityFacade;
-    use crate::entities::entity_facade_test_utils::generate_email_entity;
+    use crate::util::entity_test_utils::{generate_email_entity, assert_decrypted_mail};
     use crate::entity_client::{MockEntityClient, EntityClientHandlers, IdType};
     use crate::metamodel::TypeModel;
     use crate::type_model_provider::{init_type_model_provider, TypeModelProvider};
@@ -153,6 +153,6 @@ mod tests {
             .await
             .unwrap();
 
-        assert_eq!(result, plaintext_mail);
+        assert_decrypted_mail(&result, &plaintext_mail);
     }
 }
