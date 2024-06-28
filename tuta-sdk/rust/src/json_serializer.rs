@@ -5,7 +5,7 @@ use base64::{Engine as _, engine::general_purpose::STANDARD as BASE64_STANDARD};
 use thiserror::Error;
 
 use crate::{IdTuple, TypeRef};
-use crate::date::Date;
+use crate::date::DateTime;
 use crate::element_value::{ElementValue, ParsedEntity};
 use crate::id::Id;
 use crate::json_serializer::InstanceMapperError::InvalidValue;
@@ -440,7 +440,7 @@ impl JsonSerializer {
                     type_ref: type_model.into(),
                     field: value_name.to_owned(),
                 })?;
-                Ok(ElementValue::Date(Date::from_millis(system_time)))
+                Ok(ElementValue::Date(DateTime::from_millis(system_time)))
             }
             (ValueType::Boolean, JsonElement::String(v)) => match v.as_str() {
                 "0" => Ok(ElementValue::Bool(false)),
