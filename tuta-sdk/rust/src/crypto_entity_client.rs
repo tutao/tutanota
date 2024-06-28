@@ -149,7 +149,6 @@ mod tests {
             Arc::new(mock_crypto_facade),
         );
 
-        // TODO: See if we need more for the async
         let result = crypto_entity_client.load(&mail_type_ref, &mail_id)
             .await
             .unwrap();
