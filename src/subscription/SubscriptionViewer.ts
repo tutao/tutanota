@@ -310,7 +310,6 @@ export class SubscriptionViewer implements UpdatableSettingsViewer {
 		let accountingInfo
 		if (this._customer && this._accountingInfo) {
 			customer = this._customer
-			// FIXME is it always there
 			accountingInfo = this._accountingInfo
 		} else {
 			return
@@ -365,8 +364,8 @@ export class SubscriptionViewer implements UpdatableSettingsViewer {
 					)
 				} catch (e) {
 					if (e instanceof MobilePaymentError) {
-						// FIXME translate
-						Dialog.message(() => "Could not finish payment: " + e.message)
+						console.error("AppStore subscription failed", e)
+						Dialog.message("appStoreSubscriptionError_msg", e.message)
 					} else {
 						throw e
 					}

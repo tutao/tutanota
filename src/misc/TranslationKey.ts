@@ -1720,3 +1720,4 @@ export type TranslationKeyType =
 	| "deleteAccountWithAppStoreSubscription_msg"
 	| "redeemGiftCardWithAppStoreSubscription_msg"
 	| "appStoreNotAvailable_msg"
+	| "appStoreSubscriptionError_msg"
