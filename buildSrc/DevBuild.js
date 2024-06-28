@@ -74,7 +74,7 @@ export async function runDevBuild({ stage, host, desktop, clean, ignoreMigration
 	await buildWebPart({ stage, host, version, domainConfigs: extendedDomainConfigs })
 
 	if (desktop) {
-		await buildDesktopPart({ version })
+		await buildDesktopPart({ version, stage })
 	}
 }
 
@@ -145,7 +145,7 @@ importScripts("./worker.js")
 	})
 }
 
-async function buildDesktopPart({ version }) {
+async function buildDesktopPart({ version, stage }) {
 	await runStep("Desktop: Esbuild", async () => {
 		await esbuild({
 			entryPoints: ["src/desktop/DesktopMain.ts", "src/desktop/sqlworker.ts"],
@@ -179,6 +179,10 @@ globalThis.buildOptions.sqliteNativePath = "./better-sqlite3.node";`,
 	await runStep("Desktop: assets", async () => {
 		const desktopIconsPath = "./resources/desktop-icons"
 		await fs.copy(desktopIconsPath, "./build/desktop/resources/icons", { overwrite: true })
+		await fs.move("./build/desktop/resources/icons/logo-solo-dev.png", "./build/desktop/resources/icons/logo-solo-red.png", { overwrite: true })
+		await fs.move("./build/desktop/resources/icons/logo-solo-dev-small.png", "./build/desktop/resources/icons/logo-solo-red-small.png", {
+			overwrite: true,
+		})
 		const templateGenerator = (await import("./electron-package-json-template.js")).default
 		const packageJSON = await templateGenerator({
 			nameSuffix: "-debug",
