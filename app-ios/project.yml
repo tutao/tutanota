@@ -107,7 +107,6 @@ targets:
       - package: Atomics
       - sdk: CryptoTokenKit.framework
         embed: false
-        # FIXME make `CryptoTokenKit.framework` optional
       - package: DictionaryCoding
       - sdk: Foundation.framework
         embed: false
