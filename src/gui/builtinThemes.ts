@@ -126,7 +126,8 @@ export const themes: Themes = {
 	}),
 	blue: Object.freeze({
 		themeId: "blue",
-		logo: getLogoSvg(blue, dunkel),
+		// blue is not really our brand color, treat blue like whitelabel color
+		logo: getLogoSvg(grey, grey),
 		button_bubble_bg: grey_lighter_3,
 		button_bubble_fg: grey_darker_1,
 		content_fg: grey_darker_1,

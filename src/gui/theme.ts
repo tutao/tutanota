@@ -3,8 +3,7 @@ import { assertMainOrNodeBoot, isApp, isDesktop, isTest } from "../api/common/En
 import type { HtmlSanitizer } from "../misc/HtmlSanitizer"
 import { NativeThemeFacade, ThemeController, WebThemeFacade } from "./ThemeController"
 import { isColorLight } from "./base/Color"
-import { logo_text_bright_grey, logo_text_dark_grey } from "./builtinThemes"
-import { getLogoSvg } from "./base/Logo"
+import { themes } from "./builtinThemes"
 
 assertMainOrNodeBoot()
 
@@ -53,7 +52,7 @@ export type Theme = {
 	navigation_button_icon: string
 	navigation_button_icon_selected: string
 	navigation_menu_bg?: string
-	navigation_menu_icon?: string
+	navigation_menu_icon: string
 }
 const selectedThemeFacade = isApp() || isDesktop() ? new NativeThemeFacade() : new WebThemeFacade(deviceConfig)
 
@@ -133,6 +132,11 @@ export function getNavigationMenuIcon(): string {
 	return theme.navigation_menu_icon || theme.navigation_button_icon
 }
 
-export function getColouredTutanotaLogo(): string {
-	return getLogoSvg(theme.content_accent, isColorLight(theme.content_bg) ? logo_text_dark_grey : logo_text_bright_grey)
+export function getLightOrDarkTutanotaLogo(): string {
+	// Use tuta logo with our brand colors
+	if (isColorLight(theme.content_bg)) {
+		return themes.light.logo
+	} else {
+		return themes.dark.logo
+	}
 }
