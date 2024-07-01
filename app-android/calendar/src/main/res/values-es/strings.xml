@@ -1,0 +1,9 @@
+<resources>
+    <string name="reminder_label">Recordatorio</string>
+    <string name="pushNewMail_msg">Nuevo correo recibido.</string>
+    <string name="notificationSync_msg">Notificaciones de sincronización</string>
+    <string name="scheduleAlarmError_msg">No se pudo configurar una alarma. Actualiza la aplicación.</string>
+    <string name="wantToSendReport_msg">Algo inesperado salió mal. ¿Deseas enviar un informe de errores? Puedes añadir un mensaje que nos ayude a corregir este error.</string>
+    <string name="downloadCompleted_msg">Descarga completada</string>
+    <string name="unlockCredentials_action">Desbloquear credenciales</string>
+</resources>

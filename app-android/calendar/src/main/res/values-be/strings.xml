@@ -1,0 +1,9 @@
+<resources>
+    <string name="reminder_label">Напамін</string>
+    <string name="pushNewMail_msg">Прыйшоў новы ліст.</string>
+    <string name="notificationSync_msg">Сінхранаваць абвесткі</string>
+    <string name="scheduleAlarmError_msg">Не атрымалася паставіць напамін. Калі ласка, абнаві праграму.</string>
+    <string name="wantToSendReport_msg">Штосьці непрадказальна пайшло не туды. Ці хочаш ты даслаць справаздачу пра памылку? Ты можаш дадаць туды паведамленне, каб дапамагчы нам выправіць памылку.</string>
+    <string name="downloadCompleted_msg">Спампаванне скончана</string>
+    <string name="unlockCredentials_action">Разамкнуць даныя ўваходу</string>
+</resources>

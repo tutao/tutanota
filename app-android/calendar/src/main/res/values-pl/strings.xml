@@ -1,0 +1,9 @@
+<resources>
+    <string name="reminder_label">Przypomnienie</string>
+    <string name="pushNewMail_msg">Otrzymano nową wiadomość.</string>
+    <string name="notificationSync_msg">Synchronizowanie zawiadomień</string>
+    <string name="scheduleAlarmError_msg">Nie można ustawić alarmu. Zaktualizuj aplikację.</string>
+    <string name="wantToSendReport_msg">Coś poszło nie tak. Chcesz wysłać raport o błędzie? Możesz dodać wiadomość, która pomoże nam naprawić ten błąd.</string>
+    <string name="downloadCompleted_msg">Pobieranie zakończone</string>
+    <string name="unlockCredentials_action">Odblokuj poświadczenia</string>
+</resources>

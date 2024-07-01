@@ -1,0 +1,5 @@
+<resources>
+    <string name="reminder_label">Meeldetuletus</string>
+    <string name="pushNewMail_msg">Uus e-kiri saabunud.</string>
+    <string name="wantToSendReport_msg">Midagi ootamatut läks valesti. Kas soovite saata veateadet? Võite lisada sõnumi, et aidata meil seda viga parandada.</string>
+</resources>
