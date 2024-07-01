@@ -1,5 +1,5 @@
-
 use zeroize::Zeroizing;
+use crate::util::ArrayCastingError;
 use super::aes::*;
 use super::rsa::*;
 use super::tuta_crypt::*;
@@ -7,7 +7,7 @@ use super::tuta_crypt::*;
 #[derive(Clone)]
 pub enum AsymmetricKeyPair {
     RSAKeyPair(RSAKeyPair),
-    PQKeyPairs(PQKeyPairs)
+    PQKeyPairs(PQKeyPairs),
 }
 
 impl From<RSAKeyPair> for AsymmetricKeyPair {
@@ -36,7 +36,7 @@ impl GenericAesKey {
         };
 
         let decrypted = Zeroizing::new(decrypted);
-        Self::from_bytes(decrypted.as_slice())
+        Self::from_bytes(decrypted.as_slice()).map_err(|error| error.into())
     }
 
     pub fn encrypt_key(&self, key_to_encrypt: &GenericAesKey, iv: Iv) -> Vec<u8> {
@@ -46,11 +46,12 @@ impl GenericAesKey {
         }
     }
 
-    pub fn from_bytes(bytes: &[u8]) -> Result<Self, KeyLoadError> {
+    pub fn from_bytes(bytes: &[u8]) -> Result<Self, ArrayCastingError> {
         match bytes.len() {
+            // The unwraps here are optimised away
             AES_128_KEY_SIZE => Ok(Aes128Key::from_bytes(bytes).unwrap().into()),
             AES_256_KEY_SIZE => Ok(Aes256Key::from_bytes(bytes).unwrap().into()),
-            n => Err(KeyLoadError { reason: format!("key is wrong size {n}") })
+            n => Err(ArrayCastingError { type_name: "GenericAesKey", actual_size: n })
         }
     }
 
@@ -77,7 +78,7 @@ impl From<Aes256Key> for GenericAesKey {
 #[derive(thiserror::Error, Debug)]
 #[error("Failed to load key: {reason}")]
 pub struct KeyLoadError {
-    reason: String
+    reason: String,
 }
 
 trait KeyLoadErrorSubtype: ToString {}
@@ -89,3 +90,5 @@ impl<T: KeyLoadErrorSubtype> From<T> for KeyLoadError {
 }
 
 impl KeyLoadErrorSubtype for AesDecryptError {}
+
+impl KeyLoadErrorSubtype for ArrayCastingError {}

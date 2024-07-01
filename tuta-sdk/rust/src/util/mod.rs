@@ -80,6 +80,24 @@ pub fn encode_byte_arrays<const SIZE: usize>(arrays: &[&[u8]; SIZE]) -> Result<V
     Ok(v)
 }
 
+
+/// Denotes a failure to convert a slice of size `actual_size` into a newtype `type_name`
+/// containing a fixed size array
+#[derive(thiserror::Error, Debug)]
+#[error("Incorrect {type_name} size: {actual_size}")]
+pub struct ArrayCastingError {
+    pub type_name: &'static str,
+    pub actual_size: usize,
+}
+
+/// Converts a slice into a fixed size array
+pub fn array_cast_slice<T: Copy + Clone, const SIZE: usize>(from: &[T], type_name: &'static str) -> Result<[T; SIZE], ArrayCastingError> {
+    match <[T; SIZE]>::try_from(from) {
+        Ok(n) => Ok(n),
+        Err(_) => Err(ArrayCastingError { type_name, actual_size: from.len() })
+    }
+}
+
 pub fn generate_random_bytes<R: CryptoRngCore + ?Sized, const S: usize>(rng: &mut R) -> [u8; S] {
     let mut result: [u8; S] = [0u8; S];
     rng.fill_bytes(&mut result);
