@@ -1,5 +1,5 @@
 import o from "@tutao/otest"
-import { isMailAddress, isRegularExpression, isValidCreditCardNumber } from "../../../src/misc/FormatValidator.js"
+import { isMailAddress, isRegularExpression, isValidCreditCardNumber } from "../../../src/common/misc/FormatValidator.js"
 o.spec("FormatValidatorTest", function () {
 	o(" isRegularExpression", function () {
 		// no regular expressions

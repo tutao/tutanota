@@ -1,5 +1,5 @@
-import { AccountType, ContactAddressType, FeatureType, GroupType, ShareCapability, TimeFormat } from "../../../src/api/common/TutanotaConstants.js"
-import type { UserController } from "../../../src/api/main/UserController.js"
+import { AccountType, ContactAddressType, FeatureType, GroupType, ShareCapability, TimeFormat } from "../../../src/common/api/common/TutanotaConstants.js"
+import type { UserController } from "../../../src/common/api/main/UserController.js"
 import {
 	BookingsRefTypeRef,
 	CustomerInfoTypeRef,
@@ -13,10 +13,10 @@ import {
 	PlanConfigurationTypeRef,
 	User,
 	UserTypeRef,
-} from "../../../src/api/entities/sys/TypeRefs.js"
-import { GENERATED_MAX_ID } from "../../../src/api/common/utils/EntityUtils.js"
+} from "../../../src/common/api/entities/sys/TypeRefs.js"
+import { GENERATED_MAX_ID } from "../../../src/common/api/common/utils/EntityUtils.js"
 import { downcast, LazyLoaded } from "@tutao/tutanota-utils"
-import type { CalendarEvent } from "../../../src/api/entities/tutanota/TypeRefs.js"
+import type { CalendarEvent } from "../../../src/common/api/entities/tutanota/TypeRefs.js"
 import {
 	CalendarEventTypeRef,
 	CalendarGroupRootTypeRef,
@@ -27,14 +27,14 @@ import {
 	MailboxGroupRootTypeRef,
 	MailBoxTypeRef,
 	TutanotaPropertiesTypeRef,
-} from "../../../src/api/entities/tutanota/TypeRefs.js"
-import type { MailboxDetail } from "../../../src/mail/model/MailModel.js"
-import type { CalendarInfo } from "../../../src/calendar/model/CalendarModel"
-import { FolderSystem } from "../../../src/api/common/mail/FolderSystem.js"
-import { Recipient, RecipientType } from "../../../src/api/common/recipients/Recipient.js"
+} from "../../../src/common/api/entities/tutanota/TypeRefs.js"
+import type { MailboxDetail } from "../../../src/mail-app/model/MailModel.js"
+import type { CalendarInfo } from "../../../src/calendar-app/model/CalendarModel"
+import { FolderSystem } from "../../../src/common/api/common/mail/FolderSystem.js"
+import { Recipient, RecipientType } from "../../../src/common/api/common/recipients/Recipient.js"
 import { DateTime } from "luxon"
 import { createTestEntity } from "../TestUtils.js"
-import { AlarmScheduler } from "../../../src/calendar/date/AlarmScheduler.js"
+import { AlarmScheduler } from "../../../src/calendar-app/date/AlarmScheduler.js"
 import { matchers, object, when } from "testdouble"
 
 export const ownerMailAddress = "calendarowner@tutanota.de" as const

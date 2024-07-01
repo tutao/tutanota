@@ -1,13 +1,13 @@
 import o from "@tutao/otest"
-import { ArchiveDataType } from "../../../../../src/api/common/TutanotaConstants.js"
-import { ServiceExecutor } from "../../../../../src/api/worker/rest/ServiceExecutor.js"
+import { ArchiveDataType } from "../../../../../src/common/api/common/TutanotaConstants.js"
+import { ServiceExecutor } from "../../../../../src/common/api/worker/rest/ServiceExecutor.js"
 import { matchers, object, verify, when } from "testdouble"
-import { BlobAccessTokenService } from "../../../../../src/api/entities/storage/Services.js"
-import { getElementId, getEtId, getListId } from "../../../../../src/api/common/utils/EntityUtils.js"
-import { Mode } from "../../../../../src/api/common/Env.js"
-import { BlobAccessTokenFacade, BlobReferencingInstance } from "../../../../../src/api/worker/facades/BlobAccessTokenFacade.js"
+import { BlobAccessTokenService } from "../../../../../src/common/api/entities/storage/Services.js"
+import { getElementId, getEtId, getListId } from "../../../../../src/common/api/common/utils/EntityUtils.js"
+import { Mode } from "../../../../../src/common/api/common/Env.js"
+import { BlobAccessTokenFacade, BlobReferencingInstance } from "../../../../../src/common/api/worker/facades/BlobAccessTokenFacade.js"
 import { DateTime } from "luxon"
-import { AuthDataProvider } from "../../../../../src/api/worker/facades/UserFacade.js"
+import { AuthDataProvider } from "../../../../../src/common/api/worker/facades/UserFacade.js"
 import {
 	BlobAccessTokenPostInTypeRef,
 	BlobAccessTokenPostOutTypeRef,
@@ -15,10 +15,10 @@ import {
 	BlobServerAccessInfoTypeRef,
 	BlobWriteDataTypeRef,
 	InstanceIdTypeRef,
-} from "../../../../../src/api/entities/storage/TypeRefs.js"
+} from "../../../../../src/common/api/entities/storage/TypeRefs.js"
 import { createTestEntity } from "../../../TestUtils.js"
-import { FileTypeRef, MailBoxTypeRef } from "../../../../../src/api/entities/tutanota/TypeRefs.js"
-import { BlobTypeRef } from "../../../../../src/api/entities/sys/TypeRefs.js"
+import { FileTypeRef, MailBoxTypeRef } from "../../../../../src/common/api/entities/tutanota/TypeRefs.js"
+import { BlobTypeRef } from "../../../../../src/common/api/entities/sys/TypeRefs.js"
 
 const { anything, captor } = matchers
 

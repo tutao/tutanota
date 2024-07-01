@@ -1,8 +1,8 @@
 import o from "@tutao/otest"
-import { DesktopCredentialsStorage } from "../../../../src/desktop/db/DesktopCredentialsStorage.js"
+import { DesktopCredentialsStorage } from "../../../../src/common/desktop/db/DesktopCredentialsStorage.js"
 import { object } from "testdouble"
-import { CredentialEncryptionMode } from "../../../../src/misc/credentials/CredentialEncryptionMode.js"
-import { CredentialType } from "../../../../src/misc/credentials/CredentialType.js"
+import { CredentialEncryptionMode } from "../../../../src/common/misc/credentials/CredentialEncryptionMode.js"
+import { CredentialType } from "../../../../src/common/misc/credentials/CredentialType.js"
 
 const encryptedCredentials1 = {
 	credentialInfo: {
