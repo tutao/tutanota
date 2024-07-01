@@ -1,7 +1,7 @@
 import { matchers, object, when } from "testdouble"
-import { IServiceExecutor } from "../../../src/api/common/ServiceRequest.js"
-import { UpgradePriceService } from "../../../src/api/entities/sys/Services.js"
-import { PlanConfigurationTypeRef, PlanPricesTypeRef } from "../../../src/api/entities/sys/TypeRefs.js"
+import { IServiceExecutor } from "../../../src/common/api/common/ServiceRequest.js"
+import { UpgradePriceService } from "../../../src/common/api/entities/sys/Services.js"
+import { PlanConfigurationTypeRef, PlanPricesTypeRef } from "../../../src/common/api/entities/sys/TypeRefs.js"
 import { createTestEntity } from "../TestUtils.js"
 
 export const PLAN_PRICES = {

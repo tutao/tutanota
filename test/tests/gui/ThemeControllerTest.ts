@@ -1,12 +1,12 @@
 import o from "@tutao/otest"
-import { ThemeController } from "../../../src/gui/ThemeController.js"
-import type { ThemeCustomizations } from "../../../src/misc/WhitelabelCustomizations.js"
+import { ThemeController } from "../../../src/common/gui/ThemeController.js"
+import type { ThemeCustomizations } from "../../../src/common/misc/WhitelabelCustomizations.js"
 import { downcast } from "@tutao/tutanota-utils"
-import { ThemeFacade } from "../../../src/native/common/generatedipc/ThemeFacade"
-import { HtmlSanitizer } from "../../../src/misc/HtmlSanitizer.js"
+import { ThemeFacade } from "../../../src/common/native/common/generatedipc/ThemeFacade"
+import { HtmlSanitizer } from "../../../src/common/misc/HtmlSanitizer.js"
 import { matchers, object, when } from "testdouble"
 import { verify } from "@tutao/tutanota-test-utils"
-import { Theme } from "../../../src/gui/theme.js"
+import { Theme } from "../../../src/common/gui/theme.js"
 
 o.spec("ThemeController", function () {
 	let themeManager: ThemeController

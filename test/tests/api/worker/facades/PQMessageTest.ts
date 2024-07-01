@@ -1,5 +1,5 @@
 import o from "@tutao/otest"
-import { decodePQMessage, encodePQMessage, PQMessage } from "../../../../../src/api/worker/facades/PQMessage.js"
+import { decodePQMessage, encodePQMessage, PQMessage } from "../../../../../src/common/api/worker/facades/PQMessage.js"
 import { concat, stringToUtf8Uint8Array } from "@tutao/tutanota-utils"
 import { assertThrows } from "@tutao/tutanota-test-utils"
 

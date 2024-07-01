@@ -1,5 +1,5 @@
 import o from "@tutao/otest"
-import { applyScriptBuilder, removeScriptBuilder } from "../../../../src/desktop/integration/RegistryScriptGenerator.js"
+import { applyScriptBuilder, removeScriptBuilder } from "../../../../src/common/desktop/integration/RegistryScriptGenerator.js"
 
 o.spec("RegistryScriptGenerator Test", function () {
 	const templates = [

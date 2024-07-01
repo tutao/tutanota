@@ -1,9 +1,9 @@
 import o from "@tutao/otest"
-import { GroupMembershipTypeRef, UserTypeRef } from "../../../../../src/api/entities/sys/TypeRefs.js"
-import { KeyCache } from "../../../../../src/api/worker/facades/KeyCache.js"
+import { GroupMembershipTypeRef, UserTypeRef } from "../../../../../src/common/api/entities/sys/TypeRefs.js"
+import { KeyCache } from "../../../../../src/common/api/worker/facades/KeyCache.js"
 import { createTestEntity } from "../../../TestUtils.js"
 import { aes256RandomKey } from "@tutao/tutanota-crypto"
-import { NotAuthorizedError } from "../../../../../src/api/common/error/RestError.js"
+import { NotAuthorizedError } from "../../../../../src/common/api/common/error/RestError.js"
 
 o.spec("KeyCacheTest", function () {
 	let keyCache: KeyCache

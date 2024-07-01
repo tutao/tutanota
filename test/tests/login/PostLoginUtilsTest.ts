@@ -1,6 +1,6 @@
 import o from "@tutao/otest"
-import { UserController } from "../../../src/api/main/UserController.js"
-import { reminderCutoffDate, shouldShowUpgradeReminder } from "../../../src/login/PostLoginUtils.js"
+import { UserController } from "../../../src/common/api/main/UserController.js"
+import { reminderCutoffDate, shouldShowUpgradeReminder } from "../../../src/common/login/PostLoginUtils.js"
 import { object, when } from "testdouble"
 import {
 	Customer,
@@ -9,8 +9,8 @@ import {
 	CustomerProperties,
 	CustomerPropertiesTypeRef,
 	CustomerTypeRef,
-} from "../../../src/api/entities/sys/TypeRefs.js"
-import { Const } from "../../../src/api/common/TutanotaConstants.js"
+} from "../../../src/common/api/entities/sys/TypeRefs.js"
+import { Const } from "../../../src/common/api/common/TutanotaConstants.js"
 import { createTestEntity } from "../TestUtils.js"
 
 o.spec("PostLoginUtils", () => {

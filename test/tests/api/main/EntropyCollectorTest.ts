@@ -1,6 +1,6 @@
 import o from "@tutao/otest"
-import { EntropyCollector } from "../../../../src/api/main/EntropyCollector.js"
-import { EntropyDataChunk, EntropyFacade } from "../../../../src/api/worker/facades/EntropyFacade.js"
+import { EntropyCollector } from "../../../../src/common/api/main/EntropyCollector.js"
+import { EntropyDataChunk, EntropyFacade } from "../../../../src/common/api/worker/facades/EntropyFacade.js"
 import { matchers, object, when } from "testdouble"
 import { SchedulerMock } from "../../TestUtils.js"
 import { getFromMap, remove } from "@tutao/tutanota-utils"

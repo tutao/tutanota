@@ -1,13 +1,13 @@
 import o from "@tutao/otest"
-import { DateProvider } from "../../../../../src/api/common/DateProvider.js"
-import { NewsModel } from "../../../../../src/misc/news/NewsModel.js"
+import { DateProvider } from "../../../../../src/common/api/common/DateProvider.js"
+import { NewsModel } from "../../../../../src/common/misc/news/NewsModel.js"
 import { object, replace, when } from "testdouble"
-import { ReferralLinkViewer } from "../../../../../src/misc/news/items/ReferralLinkViewer.js"
+import { ReferralLinkViewer } from "../../../../../src/common/misc/news/items/ReferralLinkViewer.js"
 import { getDayShifted } from "@tutao/tutanota-utils"
-import { ReferralLinkNews } from "../../../../../src/misc/news/items/ReferralLinkNews.js"
-import { timestampToGeneratedId } from "../../../../../src/api/common/utils/EntityUtils.js"
-import { UserController } from "../../../../../src/api/main/UserController.js"
-import { Customer, User } from "../../../../../src/api/entities/sys/TypeRefs.js"
+import { ReferralLinkNews } from "../../../../../src/common/misc/news/items/ReferralLinkNews.js"
+import { timestampToGeneratedId } from "../../../../../src/common/api/common/utils/EntityUtils.js"
+import { UserController } from "../../../../../src/common/api/main/UserController.js"
+import { Customer, User } from "../../../../../src/common/api/entities/sys/TypeRefs.js"
 
 o.spec("ReferralLinkNews", function () {
 	let dateProvider: DateProvider

@@ -6,7 +6,7 @@ import {
 	StorageBehavior,
 	UsageTestModel,
 	UsageTestStorage,
-} from "../../../src/misc/UsageTestModel.js"
+} from "../../../src/common/misc/UsageTestModel.js"
 import {
 	createUsageTestAssignment,
 	createUsageTestAssignmentIn,
@@ -17,20 +17,20 @@ import {
 	UsageTestAssignmentOutTypeRef,
 	UsageTestAssignmentTypeRef,
 	UsageTestParticipationInTypeRef,
-} from "../../../src/api/entities/usage/TypeRefs.js"
+} from "../../../src/common/api/entities/usage/TypeRefs.js"
 import { matchers, object, replace, verify, when } from "testdouble"
 import { clone } from "@tutao/tutanota-utils"
 import { Stage, UsageTest, UsageTestController } from "@tutao/tutanota-usagetests"
-import { SuspensionBehavior } from "../../../src/api/worker/rest/RestClient.js"
-import { UsageTestAssignmentService, UsageTestParticipationService } from "../../../src/api/entities/usage/Services.js"
-import { IServiceExecutor } from "../../../src/api/common/ServiceRequest.js"
-import modelInfo from "../../../src/api/entities/usage/ModelInfo.js"
-import { EntityClient } from "../../../src/api/common/EntityClient.js"
-import { LoginController } from "../../../src/api/main/LoginController.js"
-import { createCustomerProperties, CustomerPropertiesTypeRef } from "../../../src/api/entities/sys/TypeRefs.js"
-import { UserController } from "../../../src/api/main/UserController.js"
-import { createUserSettingsGroupRoot, UserSettingsGroupRootTypeRef } from "../../../src/api/entities/tutanota/TypeRefs.js"
-import { EventController } from "../../../src/api/main/EventController.js"
+import { SuspensionBehavior } from "../../../src/common/api/worker/rest/RestClient.js"
+import { UsageTestAssignmentService, UsageTestParticipationService } from "../../../src/common/api/entities/usage/Services.js"
+import { IServiceExecutor } from "../../../src/common/api/common/ServiceRequest.js"
+import modelInfo from "../../../src/common/api/entities/usage/ModelInfo.js"
+import { EntityClient } from "../../../src/common/api/common/EntityClient.js"
+import { LoginController } from "../../../src/common/api/main/LoginController.js"
+import { createCustomerProperties, CustomerPropertiesTypeRef } from "../../../src/common/api/entities/sys/TypeRefs.js"
+import { UserController } from "../../../src/common/api/main/UserController.js"
+import { createUserSettingsGroupRoot, UserSettingsGroupRootTypeRef } from "../../../src/common/api/entities/tutanota/TypeRefs.js"
+import { EventController } from "../../../src/common/api/main/EventController.js"
 import { createTestEntity } from "../TestUtils.js"
 
 const { anything } = matchers

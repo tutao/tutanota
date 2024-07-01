@@ -1,7 +1,7 @@
 import o from "@tutao/otest"
-import { ConnectMode, EventBusClient, EventBusListener } from "../../../../src/api/worker/EventBusClient.js"
-import { GroupType, OperationType } from "../../../../src/api/common/TutanotaConstants.js"
-import type { EntityUpdate } from "../../../../src/api/entities/sys/TypeRefs.js"
+import { ConnectMode, EventBusClient, EventBusListener } from "../../../../src/common/api/worker/EventBusClient.js"
+import { GroupType, OperationType } from "../../../../src/common/api/common/TutanotaConstants.js"
+import type { EntityUpdate } from "../../../../src/common/api/entities/sys/TypeRefs.js"
 import {
 	EntityEventBatchTypeRef,
 	EntityUpdateTypeRef,
@@ -13,20 +13,20 @@ import {
 	WebsocketCounterValueTypeRef,
 	WebsocketEntityData,
 	WebsocketEntityDataTypeRef,
-} from "../../../../src/api/entities/sys/TypeRefs.js"
+} from "../../../../src/common/api/entities/sys/TypeRefs.js"
 import { EntityRestClientMock } from "./rest/EntityRestClientMock.js"
-import { EntityClient } from "../../../../src/api/common/EntityClient.js"
+import { EntityClient } from "../../../../src/common/api/common/EntityClient.js"
 import { defer, noOp } from "@tutao/tutanota-utils"
-import { InstanceMapper } from "../../../../src/api/worker/crypto/InstanceMapper.js"
-import { DefaultEntityRestCache } from "../../../../src/api/worker/rest/DefaultEntityRestCache.js"
-import { EventQueue, QueuedBatch } from "../../../../src/api/worker/EventQueue.js"
-import { OutOfSyncError } from "../../../../src/api/common/error/OutOfSyncError.js"
+import { InstanceMapper } from "../../../../src/common/api/worker/crypto/InstanceMapper.js"
+import { DefaultEntityRestCache } from "../../../../src/common/api/worker/rest/DefaultEntityRestCache.js"
+import { EventQueue, QueuedBatch } from "../../../../src/common/api/worker/EventQueue.js"
+import { OutOfSyncError } from "../../../../src/common/api/common/error/OutOfSyncError.js"
 import { matchers, object, verify, when } from "testdouble"
-import { getElementId, timestampToGeneratedId } from "../../../../src/api/common/utils/EntityUtils.js"
-import { SleepDetector } from "../../../../src/api/worker/utils/SleepDetector.js"
-import { WsConnectionState } from "../../../../src/api/main/WorkerClient.js"
-import { UserFacade } from "../../../../src/api/worker/facades/UserFacade"
-import { ExposedProgressTracker } from "../../../../src/api/main/ProgressTracker.js"
+import { getElementId, timestampToGeneratedId } from "../../../../src/common/api/common/utils/EntityUtils.js"
+import { SleepDetector } from "../../../../src/common/api/worker/utils/SleepDetector.js"
+import { WsConnectionState } from "../../../../src/common/api/main/WorkerClient.js"
+import { UserFacade } from "../../../../src/common/api/worker/facades/UserFacade"
+import { ExposedProgressTracker } from "../../../../src/common/api/main/ProgressTracker.js"
 import { createTestEntity } from "../../TestUtils.js"
 
 o.spec("EventBusClientTest", function () {

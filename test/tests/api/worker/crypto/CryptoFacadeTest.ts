@@ -1,13 +1,13 @@
 import o from "@tutao/otest"
 import { arrayEquals, hexToUint8Array, neverNull, stringToUtf8Uint8Array, uint8ArrayToBase64, utf8Uint8ArrayToString } from "@tutao/tutanota-utils"
-import { CryptoFacade } from "../../../../../src/api/worker/crypto/CryptoFacade.js"
+import { CryptoFacade } from "../../../../../src/common/api/worker/crypto/CryptoFacade.js"
 import {
 	BucketPermissionType,
 	CryptoProtocolVersion,
 	EncryptionAuthStatus,
 	GroupType,
 	PermissionType,
-} from "../../../../../src/api/common/TutanotaConstants.js"
+} from "../../../../../src/common/api/common/TutanotaConstants.js"
 import {
 	BirthdayTypeRef,
 	ContactTypeRef,
@@ -16,7 +16,7 @@ import {
 	Mail,
 	MailDetailsBlobTypeRef,
 	MailTypeRef,
-} from "../../../../../src/api/entities/tutanota/TypeRefs.js"
+} from "../../../../../src/common/api/entities/tutanota/TypeRefs.js"
 import {
 	BucketKey,
 	BucketKeyTypeRef,
@@ -45,10 +45,10 @@ import {
 	UpdatePermissionKeyData,
 	User,
 	UserTypeRef,
-} from "../../../../../src/api/entities/sys/TypeRefs.js"
+} from "../../../../../src/common/api/entities/sys/TypeRefs.js"
 import { spy } from "@tutao/tutanota-test-utils"
-import { RestClient } from "../../../../../src/api/worker/rest/RestClient.js"
-import { EntityClient } from "../../../../../src/api/common/EntityClient.js"
+import { RestClient } from "../../../../../src/common/api/worker/rest/RestClient.js"
+import { EntityClient } from "../../../../../src/common/api/common/EntityClient.js"
 import {
 	Aes256Key,
 	aes256RandomKey,
@@ -70,25 +70,25 @@ import {
 	rsaPrivateKeyToHex,
 	rsaPublicKeyToHex,
 } from "@tutao/tutanota-crypto"
-import { RsaWeb } from "../../../../../src/api/worker/crypto/RsaImplementation.js"
-import { InstanceMapper } from "../../../../../src/api/worker/crypto/InstanceMapper.js"
-import type { TypeModel } from "../../../../../src/api/common/EntityTypes.js"
-import { IServiceExecutor } from "../../../../../src/api/common/ServiceRequest.js"
+import { RsaWeb } from "../../../../../src/common/api/worker/crypto/RsaImplementation.js"
+import { InstanceMapper } from "../../../../../src/common/api/worker/crypto/InstanceMapper.js"
+import type { TypeModel } from "../../../../../src/common/api/common/EntityTypes.js"
+import { IServiceExecutor } from "../../../../../src/common/api/common/ServiceRequest.js"
 import { instance, matchers, object, verify, when } from "testdouble"
-import { PublicKeyService, UpdatePermissionKeyService } from "../../../../../src/api/entities/sys/Services.js"
-import { getListId, isSameId } from "../../../../../src/api/common/utils/EntityUtils.js"
-import { HttpMethod, resolveTypeReference, typeModels } from "../../../../../src/api/common/EntityFunctions.js"
-import { UserFacade } from "../../../../../src/api/worker/facades/UserFacade.js"
-import { SessionKeyNotFoundError } from "../../../../../src/api/common/error/SessionKeyNotFoundError.js"
-import { OwnerEncSessionKeysUpdateQueue } from "../../../../../src/api/worker/crypto/OwnerEncSessionKeysUpdateQueue.js"
-import { WASMKyberFacade } from "../../../../../src/api/worker/facades/KyberFacade.js"
-import { PQFacade } from "../../../../../src/api/worker/facades/PQFacade.js"
-import { encodePQMessage, PQBucketKeyEncapsulation, PQMessage } from "../../../../../src/api/worker/facades/PQMessage.js"
+import { PublicKeyService, UpdatePermissionKeyService } from "../../../../../src/common/api/entities/sys/Services.js"
+import { getListId, isSameId } from "../../../../../src/common/api/common/utils/EntityUtils.js"
+import { HttpMethod, resolveTypeReference, typeModels } from "../../../../../src/common/api/common/EntityFunctions.js"
+import { UserFacade } from "../../../../../src/common/api/worker/facades/UserFacade.js"
+import { SessionKeyNotFoundError } from "../../../../../src/common/api/common/error/SessionKeyNotFoundError.js"
+import { OwnerEncSessionKeysUpdateQueue } from "../../../../../src/common/api/worker/crypto/OwnerEncSessionKeysUpdateQueue.js"
+import { WASMKyberFacade } from "../../../../../src/common/api/worker/facades/KyberFacade.js"
+import { PQFacade } from "../../../../../src/common/api/worker/facades/PQFacade.js"
+import { encodePQMessage, PQBucketKeyEncapsulation, PQMessage } from "../../../../../src/common/api/worker/facades/PQMessage.js"
 import { createTestEntity } from "../../../TestUtils.js"
 import { RSA_TEST_KEYPAIR } from "../facades/RsaPqPerformanceTest.js"
-import { DefaultEntityRestCache } from "../../../../../src/api/worker/rest/DefaultEntityRestCache.js"
+import { DefaultEntityRestCache } from "../../../../../src/common/api/worker/rest/DefaultEntityRestCache.js"
 import { loadLibOQSWASM } from "../WASMTestUtils.js"
-import { KeyLoaderFacade } from "../../../../../src/api/worker/facades/KeyLoaderFacade.js"
+import { KeyLoaderFacade } from "../../../../../src/common/api/worker/facades/KeyLoaderFacade.js"
 
 const { captor, anything, argThat } = matchers
 

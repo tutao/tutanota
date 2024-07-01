@@ -1,8 +1,8 @@
 import o from "@tutao/otest"
-import type { ElectronNotificationFactory } from "../../../src/desktop/NotificatonFactory.js"
+import type { ElectronNotificationFactory } from "../../../src/common/desktop/NotificatonFactory.js"
 import { defer, delay, downcast } from "@tutao/tutanota-utils"
-import { DesktopNotifier } from "../../../src/desktop/DesktopNotifier.js"
-import type { DesktopTray } from "../../../src/desktop/tray/DesktopTray.js"
+import { DesktopNotifier } from "../../../src/common/desktop/DesktopNotifier.js"
+import type { DesktopTray } from "../../../src/common/desktop/tray/DesktopTray.js"
 import type { NativeImage } from "electron"
 import { spy } from "@tutao/tutanota-test-utils"
 

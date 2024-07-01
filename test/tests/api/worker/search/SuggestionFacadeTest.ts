@@ -2,11 +2,11 @@
  * Created by bdeterding on 13.12.17.
  */
 import o from "@tutao/otest"
-import { ContactTypeRef } from "../../../../../src/api/entities/tutanota/TypeRefs.js"
-import { SuggestionFacade } from "../../../../../src/api/worker/search/SuggestionFacade.js"
+import { ContactTypeRef } from "../../../../../src/common/api/entities/tutanota/TypeRefs.js"
+import { SuggestionFacade } from "../../../../../src/common/api/worker/search/SuggestionFacade.js"
 import { downcast } from "@tutao/tutanota-utils"
 import { aes256RandomKey, fixedIv } from "@tutao/tutanota-crypto"
-import { SearchTermSuggestionsOS } from "../../../../../src/api/worker/search/IndexTables.js"
+import { SearchTermSuggestionsOS } from "../../../../../src/common/api/worker/search/IndexTables.js"
 import { spy } from "@tutao/tutanota-test-utils"
 
 o.spec("SuggestionFacade test", () => {

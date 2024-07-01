@@ -1,7 +1,7 @@
 import n from "../nodemocker.js"
 import o from "@tutao/otest"
 import { makeTimeoutMock, spy } from "@tutao/tutanota-test-utils"
-import { Socketeer } from "../../../src/desktop/Socketeer.js"
+import { Socketeer } from "../../../src/common/desktop/Socketeer.js"
 o.spec("Socketeer Test", function () {
 	const electron = {
 		app: {

@@ -6,13 +6,13 @@ import {
 	removeTechnicalFields,
 	timestampToGeneratedId,
 	timestampToHexGeneratedId,
-} from "../../../../../src/api/common/utils/EntityUtils.js"
-import { MailTypeRef } from "../../../../../src/api/entities/tutanota/TypeRefs.js"
-import { typeModels } from "../../../../../src/api/entities/tutanota/TypeModels.js"
+} from "../../../../../src/common/api/common/utils/EntityUtils.js"
+import { MailTypeRef } from "../../../../../src/common/api/entities/tutanota/TypeRefs.js"
+import { typeModels } from "../../../../../src/common/api/entities/tutanota/TypeModels.js"
 
-import { ElementEntity } from "../../../../../src/api/common/EntityTypes.js"
+import { ElementEntity } from "../../../../../src/common/api/common/EntityTypes.js"
 import { clone, TypeRef } from "@tutao/tutanota-utils"
-import { hasError } from "../../../../../src/api/common/utils/ErrorUtils.js"
+import { hasError } from "../../../../../src/common/api/common/utils/ErrorUtils.js"
 
 o.spec("EntityUtils", function () {
 	o("TimestampToHexGeneratedId ", function () {

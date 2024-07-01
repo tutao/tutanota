@@ -1,23 +1,28 @@
 import o from "@tutao/otest"
-import { BLOB_SERVICE_REST_PATH, BlobFacade } from "../../../../../src/api/worker/facades/lazy/BlobFacade.js"
-import { RestClient } from "../../../../../src/api/worker/rest/RestClient.js"
-import { SuspensionHandler } from "../../../../../src/api/worker/SuspensionHandler.js"
-import { NativeFileApp } from "../../../../../src/native/common/FileApp.js"
-import { AesApp } from "../../../../../src/native/worker/AesApp.js"
-import { InstanceMapper } from "../../../../../src/api/worker/crypto/InstanceMapper.js"
-import { ArchiveDataType, MAX_BLOB_SIZE_BYTES } from "../../../../../src/api/common/TutanotaConstants.js"
-import { BlobReferenceTokenWrapperTypeRef, BlobTypeRef, createBlob, createBlobReferenceTokenWrapper } from "../../../../../src/api/entities/sys/TypeRefs.js"
-import { createFile, File as TutanotaFile, FileTypeRef } from "../../../../../src/api/entities/tutanota/TypeRefs.js"
-import { ServiceExecutor } from "../../../../../src/api/worker/rest/ServiceExecutor.js"
+import { BLOB_SERVICE_REST_PATH, BlobFacade } from "../../../../../src/common/api/worker/facades/lazy/BlobFacade.js"
+import { RestClient } from "../../../../../src/common/api/worker/rest/RestClient.js"
+import { SuspensionHandler } from "../../../../../src/common/api/worker/SuspensionHandler.js"
+import { NativeFileApp } from "../../../../../src/common/native/common/FileApp.js"
+import { AesApp } from "../../../../../src/common/native/worker/AesApp.js"
+import { InstanceMapper } from "../../../../../src/common/api/worker/crypto/InstanceMapper.js"
+import { ArchiveDataType, MAX_BLOB_SIZE_BYTES } from "../../../../../src/common/api/common/TutanotaConstants.js"
+import {
+	BlobReferenceTokenWrapperTypeRef,
+	BlobTypeRef,
+	createBlob,
+	createBlobReferenceTokenWrapper,
+} from "../../../../../src/common/api/entities/sys/TypeRefs.js"
+import { createFile, File as TutanotaFile, FileTypeRef } from "../../../../../src/common/api/entities/tutanota/TypeRefs.js"
+import { ServiceExecutor } from "../../../../../src/common/api/worker/rest/ServiceExecutor.js"
 import { instance, matchers, object, verify, when } from "testdouble"
-import { HttpMethod } from "../../../../../src/api/common/EntityFunctions.js"
+import { HttpMethod } from "../../../../../src/common/api/common/EntityFunctions.js"
 import { aes256RandomKey, aesDecrypt, aesEncrypt, generateIV } from "@tutao/tutanota-crypto"
 import { arrayEquals, neverNull, stringToUtf8Uint8Array } from "@tutao/tutanota-utils"
-import { Mode } from "../../../../../src/api/common/Env.js"
-import { CryptoFacade } from "../../../../../src/api/worker/crypto/CryptoFacade.js"
-import { FileReference } from "../../../../../src/api/common/utils/FileUtils.js"
+import { Mode } from "../../../../../src/common/api/common/Env.js"
+import { CryptoFacade } from "../../../../../src/common/api/worker/crypto/CryptoFacade.js"
+import { FileReference } from "../../../../../src/common/api/common/utils/FileUtils.js"
 import { assertThrows } from "@tutao/tutanota-test-utils"
-import { ProgrammingError } from "../../../../../src/api/common/error/ProgrammingError.js"
+import { ProgrammingError } from "../../../../../src/common/api/common/error/ProgrammingError.js"
 import {
 	BlobPostOutTypeRef,
 	BlobServerAccessInfoTypeRef,
@@ -25,13 +30,13 @@ import {
 	createBlobPostOut,
 	createBlobServerAccessInfo,
 	createBlobServerUrl,
-} from "../../../../../src/api/entities/storage/TypeRefs.js"
-import type { AuthDataProvider } from "../../../../../src/api/worker/facades/UserFacade.js"
-import { BlobAccessTokenFacade, BlobReferencingInstance } from "../../../../../src/api/worker/facades/BlobAccessTokenFacade.js"
-import { DateProvider } from "../../../../../src/api/common/DateProvider.js"
-import { elementIdPart, listIdPart } from "../../../../../src/api/common/utils/EntityUtils.js"
+} from "../../../../../src/common/api/entities/storage/TypeRefs.js"
+import type { AuthDataProvider } from "../../../../../src/common/api/worker/facades/UserFacade.js"
+import { BlobAccessTokenFacade, BlobReferencingInstance } from "../../../../../src/common/api/worker/facades/BlobAccessTokenFacade.js"
+import { DateProvider } from "../../../../../src/common/api/common/DateProvider.js"
+import { elementIdPart, listIdPart } from "../../../../../src/common/api/common/utils/EntityUtils.js"
 import { createTestEntity } from "../../../TestUtils.js"
-import { DefaultEntityRestCache } from "../../../../../src/api/worker/rest/DefaultEntityRestCache.js"
+import { DefaultEntityRestCache } from "../../../../../src/common/api/worker/rest/DefaultEntityRestCache.js"
 
 const { anything, captor } = matchers
 

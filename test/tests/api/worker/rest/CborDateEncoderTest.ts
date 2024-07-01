@@ -1,6 +1,6 @@
 import o from "@tutao/otest"
 import * as cborg from "cborg"
-import { customTypeDecoders, customTypeEncoders } from "../../../../../src/api/worker/offline/OfflineStorage.js"
+import { customTypeDecoders, customTypeEncoders } from "../../../../../src/common/api/worker/offline/OfflineStorage.js"
 
 o.spec("CborDateEncoder", function () {
 	o("encode and decode date", function () {

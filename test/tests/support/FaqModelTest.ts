@@ -1,7 +1,7 @@
 import o from "@tutao/otest"
-import { FaqModel } from "../../../src/support/FaqModel.js"
+import { FaqModel } from "../../../src/common/support/FaqModel.js"
 import { downcast } from "@tutao/tutanota-utils"
-import { lang } from "../../../src/misc/LanguageViewModel.js"
+import { lang } from "../../../src/common/misc/LanguageViewModel.js"
 import { spy } from "@tutao/tutanota-test-utils"
 
 async function collect(generator: AsyncGenerator): Promise<Array<unknown>> {

@@ -1,5 +1,5 @@
 import o from "@tutao/otest"
-import { getSubstitutedLanguageCode, getAvailableLanguageCode, lang } from "../../../src/misc/LanguageViewModel.js"
+import { getSubstitutedLanguageCode, getAvailableLanguageCode, lang } from "../../../src/common/misc/LanguageViewModel.js"
 // @ts-ignore[untyped-import]
 import en from "../../../src/translations/en.js"
 

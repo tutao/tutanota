@@ -1,5 +1,5 @@
 import o from "@tutao/otest"
-import { _findMatches, _search, search } from "../../../../../src/api/common/utils/PlainTextSearch.js"
+import { _findMatches, _search, search } from "../../../../../src/common/api/common/utils/PlainTextSearch.js"
 
 o.spec("PlainTextSearchTest", function () {
 	const entryWithNestedArray1 = {

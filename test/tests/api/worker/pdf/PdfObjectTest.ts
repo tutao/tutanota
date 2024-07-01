@@ -1,7 +1,7 @@
 import o from "@tutao/otest"
-import { PdfObject } from "../../../../../src/api/worker/pdf/PdfObject.js"
-import { PdfDictValue, PdfStreamEncoding } from "../../../../../src/api/worker/pdf/PdfConstants.js"
-import { PdfStreamObject } from "../../../../../src/api/worker/pdf/PdfStreamObject.js"
+import { PdfObject } from "../../../../../src/common/api/worker/pdf/PdfObject.js"
+import { PdfDictValue, PdfStreamEncoding } from "../../../../../src/common/api/worker/pdf/PdfConstants.js"
+import { PdfStreamObject } from "../../../../../src/common/api/worker/pdf/PdfStreamObject.js"
 
 o.spec("PdfObject", function () {
 	const emptyObject = new PdfObject(3, new Map<string, PdfDictValue>())

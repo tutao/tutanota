@@ -1,9 +1,9 @@
 import o from "@tutao/otest"
-import { DeviceConfig, DeviceConfigCredentials, ListAutoSelectBehavior, migrateConfig, migrateConfigV2to3 } from "../../../src/misc/DeviceConfig.js"
+import { DeviceConfig, DeviceConfigCredentials, ListAutoSelectBehavior, migrateConfig, migrateConfigV2to3 } from "../../../src/common/misc/DeviceConfig.js"
 import { matchers, object, when } from "testdouble"
 import { verify } from "@tutao/tutanota-test-utils"
-import { CredentialEncryptionMode } from "../../../src/misc/credentials/CredentialEncryptionMode.js"
-import { CredentialType } from "../../../src/misc/credentials/CredentialType.js"
+import { CredentialEncryptionMode } from "../../../src/common/misc/credentials/CredentialEncryptionMode.js"
+import { CredentialType } from "../../../src/common/misc/credentials/CredentialType.js"
 
 o.spec("DeviceConfig", function () {
 	o.spec("migrateConfig", function () {

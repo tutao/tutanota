@@ -1,10 +1,18 @@
 import o from "@tutao/otest"
-import { IServiceExecutor } from "../../../src/api/common/ServiceRequest.js"
+import { IServiceExecutor } from "../../../src/common/api/common/ServiceRequest.js"
 import { object, verify, when } from "testdouble"
-import { NewsItemStorage, NewsModel } from "../../../src/misc/news/NewsModel.js"
-import { NewsService } from "../../../src/api/entities/tutanota/Services.js"
-import { createNewsId, createNewsIn, createNewsOut, NewsId, NewsIdTypeRef, NewsInTypeRef, NewsOutTypeRef } from "../../../src/api/entities/tutanota/TypeRefs.js"
-import { NewsListItem } from "../../../src/misc/news/NewsListItem.js"
+import { NewsItemStorage, NewsModel } from "../../../src/common/misc/news/NewsModel.js"
+import { NewsService } from "../../../src/common/api/entities/tutanota/Services.js"
+import {
+	createNewsId,
+	createNewsIn,
+	createNewsOut,
+	NewsId,
+	NewsIdTypeRef,
+	NewsInTypeRef,
+	NewsOutTypeRef,
+} from "../../../src/common/api/entities/tutanota/TypeRefs.js"
+import { NewsListItem } from "../../../src/common/misc/news/NewsListItem.js"
 import { Children } from "mithril"
 import { createTestEntity } from "../TestUtils.js"
 

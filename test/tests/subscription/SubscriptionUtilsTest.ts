@@ -1,6 +1,6 @@
 import o from "@tutao/otest"
-import { NewPaidPlans, PlanType } from "../../../src/api/common/TutanotaConstants.js"
-import { IServiceExecutor } from "../../../src/api/common/ServiceRequest.js"
+import { NewPaidPlans, PlanType } from "../../../src/common/api/common/TutanotaConstants.js"
+import { IServiceExecutor } from "../../../src/common/api/common/ServiceRequest.js"
 import { createUpgradePriceServiceMock, PLAN_PRICES } from "./priceTestUtils.js"
 import { clone } from "@tutao/tutanota-utils"
 

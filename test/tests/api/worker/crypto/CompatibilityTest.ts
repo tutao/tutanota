@@ -41,10 +41,10 @@ import {
 	utf8Uint8ArrayToString,
 } from "@tutao/tutanota-utils"
 import testData from "./CompatibilityTestData.json"
-import { uncompress } from "../../../../../src/api/worker/Compression.js"
+import { uncompress } from "../../../../../src/common/api/worker/Compression.js"
 import { matchers, object, when } from "testdouble"
-import { PQFacade } from "../../../../../src/api/worker/facades/PQFacade.js"
-import { WASMKyberFacade } from "../../../../../src/api/worker/facades/KyberFacade.js"
+import { PQFacade } from "../../../../../src/common/api/worker/facades/PQFacade.js"
+import { WASMKyberFacade } from "../../../../../src/common/api/worker/facades/KyberFacade.js"
 import { loadArgon2WASM, loadLibOQSWASM } from "../WASMTestUtils.js"
 
 const originalRandom = random.generateRandomData

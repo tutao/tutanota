@@ -6,20 +6,20 @@ import {
 	ContactPhoneNumberTypeRef,
 	ContactSocialIdTypeRef,
 	ContactTypeRef,
-} from "../../../../../src/api/entities/tutanota/TypeRefs.js"
-import { ContactIndexer } from "../../../../../src/api/worker/search/ContactIndexer.js"
-import { NotAuthorizedError, NotFoundError } from "../../../../../src/api/common/error/RestError.js"
-import { DbTransaction } from "../../../../../src/api/worker/search/DbFacade.js"
-import { FULL_INDEXED_TIMESTAMP, NOTHING_INDEXED_TIMESTAMP, OperationType } from "../../../../../src/api/common/TutanotaConstants.js"
-import { _createNewIndexUpdate, encryptIndexKeyBase64, typeRefToTypeInfo } from "../../../../../src/api/worker/search/IndexUtils.js"
-import type { EntityUpdate } from "../../../../../src/api/entities/sys/TypeRefs.js"
-import { EntityUpdateTypeRef } from "../../../../../src/api/entities/sys/TypeRefs.js"
+} from "../../../../../src/common/api/entities/tutanota/TypeRefs.js"
+import { ContactIndexer } from "../../../../../src/common/api/worker/search/ContactIndexer.js"
+import { NotAuthorizedError, NotFoundError } from "../../../../../src/common/api/common/error/RestError.js"
+import { DbTransaction } from "../../../../../src/common/api/worker/search/DbFacade.js"
+import { FULL_INDEXED_TIMESTAMP, NOTHING_INDEXED_TIMESTAMP, OperationType } from "../../../../../src/common/api/common/TutanotaConstants.js"
+import { _createNewIndexUpdate, encryptIndexKeyBase64, typeRefToTypeInfo } from "../../../../../src/common/api/worker/search/IndexUtils.js"
+import type { EntityUpdate } from "../../../../../src/common/api/entities/sys/TypeRefs.js"
+import { EntityUpdateTypeRef } from "../../../../../src/common/api/entities/sys/TypeRefs.js"
 import { createTestEntity, makeCore } from "../../../TestUtils.js"
 import { downcast } from "@tutao/tutanota-utils"
-import { isSameId } from "../../../../../src/api/common/utils/EntityUtils.js"
+import { isSameId } from "../../../../../src/common/api/common/utils/EntityUtils.js"
 import { fixedIv } from "@tutao/tutanota-crypto"
-import { resolveTypeReference } from "../../../../../src/api/common/EntityFunctions.js"
-import { GroupDataOS } from "../../../../../src/api/worker/search/IndexTables.js"
+import { resolveTypeReference } from "../../../../../src/common/api/common/EntityFunctions.js"
+import { GroupDataOS } from "../../../../../src/common/api/worker/search/IndexTables.js"
 import { spy } from "@tutao/tutanota-test-utils"
 
 const dbMock: any = { iv: fixedIv }

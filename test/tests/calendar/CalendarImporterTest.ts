@@ -5,23 +5,23 @@ import {
 	serializeExcludedDates,
 	serializeRepeatRule,
 	serializeTrigger,
-} from "../../../src/calendar/export/CalendarExporter.js"
+} from "../../../src/calendar-app/export/CalendarExporter.js"
 import {
 	CalendarEvent,
 	CalendarEventAttendeeTypeRef,
 	CalendarEventTypeRef,
 	CalendarGroupRootTypeRef,
 	EncryptedMailAddressTypeRef,
-} from "../../../src/api/entities/tutanota/TypeRefs.js"
+} from "../../../src/common/api/entities/tutanota/TypeRefs.js"
 import { DateTime } from "luxon"
-import { AlarmInfo, AlarmInfoTypeRef, DateWrapperTypeRef, RepeatRuleTypeRef, UserAlarmInfoTypeRef } from "../../../src/api/entities/sys/TypeRefs.js"
-import { CalendarAttendeeStatus, EndType, RepeatPeriod } from "../../../src/api/common/TutanotaConstants.js"
-import { getAllDayDateUTC } from "../../../src/api/common/utils/CommonCalendarUtils.js"
-import { getAllDayDateUTCFromZone } from "../../../src/calendar/date/CalendarUtils.js"
-import { EventImportRejectionReason, sortOutParsedEvents } from "../../../src/calendar/export/CalendarImporterDialog.js"
+import { AlarmInfo, AlarmInfoTypeRef, DateWrapperTypeRef, RepeatRuleTypeRef, UserAlarmInfoTypeRef } from "../../../src/common/api/entities/sys/TypeRefs.js"
+import { CalendarAttendeeStatus, EndType, RepeatPeriod } from "../../../src/common/api/common/TutanotaConstants.js"
+import { getAllDayDateUTC } from "../../../src/common/api/common/utils/CommonCalendarUtils.js"
+import { getAllDayDateUTCFromZone } from "../../../src/calendar-app/date/CalendarUtils.js"
+import { EventImportRejectionReason, sortOutParsedEvents } from "../../../src/calendar-app/export/CalendarImporterDialog.js"
 import { getDateInZone } from "./CalendarTestUtils.js"
 import { Require } from "@tutao/tutanota-utils"
-import { parseCalendarStringData } from "../../../src/calendar/export/CalendarImporter.js"
+import { parseCalendarStringData } from "../../../src/calendar-app/export/CalendarImporter.js"
 import { createTestEntity } from "../TestUtils.js"
 
 const zone = "Europe/Berlin"

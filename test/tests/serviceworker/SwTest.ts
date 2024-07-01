@@ -1,5 +1,5 @@
 import o from "@tutao/otest"
-import { ServiceWorker } from "../../../src/serviceworker/sw.js"
+import { ServiceWorker } from "../../../src/common/serviceworker/sw.js"
 o.spec(
 	"ServiveWorkerTest ",
 	node(function () {

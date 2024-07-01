@@ -1,6 +1,6 @@
 import o from "@tutao/otest"
-import { GroupType } from "../../src/api/common/TutanotaConstants.js"
-import type { MailFolder } from "../../src/api/entities/tutanota/TypeRefs.js"
+import { GroupType } from "../../src/common/api/common/TutanotaConstants.js"
+import type { MailFolder } from "../../src/common/api/entities/tutanota/TypeRefs.js"
 import {
 	ContactAddressTypeRef,
 	ContactListTypeRef,
@@ -10,11 +10,11 @@ import {
 	MailBoxTypeRef,
 	MailFolderTypeRef,
 	MailTypeRef,
-} from "../../src/api/entities/tutanota/TypeRefs.js"
+} from "../../src/common/api/entities/tutanota/TypeRefs.js"
 import { neverNull } from "@tutao/tutanota-utils"
-import { initLocator, locator } from "../../src/api/worker/WorkerLocator.js"
+import { initLocator, locator } from "../../src/common/api/worker/WorkerLocator.js"
 import { browserDataStub, createTestEntity } from "./TestUtils.js"
-import { SessionType } from "../../src/api/common/SessionType.js"
+import { SessionType } from "../../src/common/api/common/SessionType.js"
 
 function loadFolders(folderListId: Id): Promise<MailFolder[]> {
 	return locator.cachingEntityClient.loadAll(MailFolderTypeRef, folderListId)

@@ -1,7 +1,7 @@
 import o from "@tutao/otest"
-import { createMailFolder, MailFolderTypeRef } from "../../../../src/api/entities/tutanota/TypeRefs.js"
-import { MailFolderType } from "../../../../src/api/common/TutanotaConstants.js"
-import { FolderSystem } from "../../../../src/api/common/mail/FolderSystem.js"
+import { createMailFolder, MailFolderTypeRef } from "../../../../src/common/api/entities/tutanota/TypeRefs.js"
+import { MailFolderType } from "../../../../src/common/api/common/TutanotaConstants.js"
+import { FolderSystem } from "../../../../src/common/api/common/mail/FolderSystem.js"
 import { createTestEntity } from "../../TestUtils.js"
 
 o.spec("FolderSystem", function () {

@@ -1,13 +1,19 @@
 import o from "@tutao/otest"
-import { NotAuthorizedError } from "../../../../../src/api/common/error/RestError.js"
-import type { Db, ElementDataDbRow, IndexUpdate } from "../../../../../src/api/worker/search/SearchTypes.js"
-import { _createNewIndexUpdate, encryptIndexKeyBase64, typeRefToTypeInfo } from "../../../../../src/api/worker/search/IndexUtils.js"
-import { FULL_INDEXED_TIMESTAMP, GroupType, MailState, NOTHING_INDEXED_TIMESTAMP, OperationType } from "../../../../../src/api/common/TutanotaConstants.js"
-import { IndexerCore } from "../../../../../src/api/worker/search/IndexerCore.js"
-import type { EntityUpdate } from "../../../../../src/api/entities/sys/TypeRefs.js"
-import { EntityUpdateTypeRef, GroupMembershipTypeRef, UserTypeRef } from "../../../../../src/api/entities/sys/TypeRefs.js"
-import { _getCurrentIndexTimestamp, INITIAL_MAIL_INDEX_INTERVAL_DAYS, MailIndexer } from "../../../../../src/api/worker/search/MailIndexer.js"
-import type { File as TutanotaFile, Mail, MailBox, MailDetailsBlob, MailFolder } from "../../../../../src/api/entities/tutanota/TypeRefs.js"
+import { NotAuthorizedError } from "../../../../../src/common/api/common/error/RestError.js"
+import type { Db, ElementDataDbRow, IndexUpdate } from "../../../../../src/common/api/worker/search/SearchTypes.js"
+import { _createNewIndexUpdate, encryptIndexKeyBase64, typeRefToTypeInfo } from "../../../../../src/common/api/worker/search/IndexUtils.js"
+import {
+	FULL_INDEXED_TIMESTAMP,
+	GroupType,
+	MailState,
+	NOTHING_INDEXED_TIMESTAMP,
+	OperationType,
+} from "../../../../../src/common/api/common/TutanotaConstants.js"
+import { IndexerCore } from "../../../../../src/common/api/worker/search/IndexerCore.js"
+import type { EntityUpdate } from "../../../../../src/common/api/entities/sys/TypeRefs.js"
+import { EntityUpdateTypeRef, GroupMembershipTypeRef, UserTypeRef } from "../../../../../src/common/api/entities/sys/TypeRefs.js"
+import { _getCurrentIndexTimestamp, INITIAL_MAIL_INDEX_INTERVAL_DAYS, MailIndexer } from "../../../../../src/common/api/worker/search/MailIndexer.js"
+import type { File as TutanotaFile, Mail, MailBox, MailDetailsBlob, MailFolder } from "../../../../../src/common/api/entities/tutanota/TypeRefs.js"
 import {
 	BodyTypeRef,
 	EncryptedMailAddressTypeRef,
@@ -21,24 +27,24 @@ import {
 	MailFolderTypeRef,
 	MailTypeRef,
 	RecipientsTypeRef,
-} from "../../../../../src/api/entities/tutanota/TypeRefs.js"
+} from "../../../../../src/common/api/entities/tutanota/TypeRefs.js"
 import { mock, spy } from "@tutao/tutanota-test-utils"
 import { browserDataStub, createTestEntity, makeCore } from "../../../TestUtils.js"
 import { downcast, getDayShifted, getStartOfDay, neverNull } from "@tutao/tutanota-utils"
-import { EventQueue } from "../../../../../src/api/worker/EventQueue.js"
+import { EventQueue } from "../../../../../src/common/api/worker/EventQueue.js"
 import { createSearchIndexDbStub } from "./DbStub.js"
-import { getElementId, getListId, timestampToGeneratedId } from "../../../../../src/api/common/utils/EntityUtils.js"
+import { getElementId, getListId, timestampToGeneratedId } from "../../../../../src/common/api/common/utils/EntityUtils.js"
 import { EntityRestClientMock } from "../rest/EntityRestClientMock.js"
-import type { DateProvider } from "../../../../../src/api/worker/DateProvider.js"
-import { LocalTimeDateProvider } from "../../../../../src/api/worker/DateProvider.js"
+import type { DateProvider } from "../../../../../src/common/api/worker/DateProvider.js"
+import { LocalTimeDateProvider } from "../../../../../src/common/api/worker/DateProvider.js"
 import { aes256RandomKey, fixedIv } from "@tutao/tutanota-crypto"
-import { DefaultEntityRestCache } from "../../../../../src/api/worker/rest/DefaultEntityRestCache.js"
-import { resolveTypeReference } from "../../../../../src/api/common/EntityFunctions.js"
-import { MailWrapper } from "../../../../../src/api/common/MailWrapper.js"
+import { DefaultEntityRestCache } from "../../../../../src/common/api/worker/rest/DefaultEntityRestCache.js"
+import { resolveTypeReference } from "../../../../../src/common/api/common/EntityFunctions.js"
+import { MailWrapper } from "../../../../../src/common/api/common/MailWrapper.js"
 import { object, when } from "testdouble"
-import { InfoMessageHandler } from "../../../../../src/gui/InfoMessageHandler.js"
-import { ElementDataOS, GroupDataOS, Metadata as MetaData, MetaDataOS } from "../../../../../src/api/worker/search/IndexTables.js"
-import { MailFacade } from "../../../../../src/api/worker/facades/lazy/MailFacade.js"
+import { InfoMessageHandler } from "../../../../../src/common/gui/InfoMessageHandler.js"
+import { ElementDataOS, GroupDataOS, Metadata as MetaData, MetaDataOS } from "../../../../../src/common/api/worker/search/IndexTables.js"
+import { MailFacade } from "../../../../../src/common/api/worker/facades/lazy/MailFacade.js"
 
 class FixedDateProvider implements DateProvider {
 	now: number

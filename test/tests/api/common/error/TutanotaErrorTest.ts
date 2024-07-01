@@ -1,5 +1,5 @@
 import o from "@tutao/otest"
-import { ProgrammingError } from "../../../../../src/api/common/error/ProgrammingError.js"
+import { ProgrammingError } from "../../../../../src/common/api/common/error/ProgrammingError.js"
 import { TutanotaError } from "@tutao/tutanota-error"
 
 o.spec("TutanotaErrorTest", function () {

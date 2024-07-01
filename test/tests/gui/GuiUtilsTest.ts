@@ -1,6 +1,6 @@
 import o from "@tutao/otest"
-import { Dialog } from "../../../src/gui/base/Dialog.js"
-import { getConfirmation } from "../../../src/gui/base/GuiUtils.js"
+import { Dialog } from "../../../src/common/gui/base/Dialog.js"
+import { getConfirmation } from "../../../src/common/gui/base/GuiUtils.js"
 import { downcast } from "@tutao/tutanota-utils"
 import { spy } from "@tutao/tutanota-test-utils"
 

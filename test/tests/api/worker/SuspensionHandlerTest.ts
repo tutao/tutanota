@@ -1,8 +1,8 @@
 import o from "@tutao/otest"
-import { SuspensionHandler } from "../../../../src/api/worker/SuspensionHandler.js"
+import { SuspensionHandler } from "../../../../src/common/api/worker/SuspensionHandler.js"
 import { deferWithHandler, downcast } from "@tutao/tutanota-utils"
-import type { SystemTimeout } from "../../../../src/api/common/utils/Scheduler.js"
-import { InfoMessageHandler } from "../../../../src/gui/InfoMessageHandler.js"
+import type { SystemTimeout } from "../../../../src/common/api/common/utils/Scheduler.js"
+import { InfoMessageHandler } from "../../../../src/common/gui/InfoMessageHandler.js"
 import { matchers, object } from "testdouble"
 import { spy, verify } from "@tutao/tutanota-test-utils"
 

@@ -68,7 +68,7 @@ export async function buildWebapp({ version, stage, host, measure, minify, proje
 
 	console.log("started bundling", measure())
 	const bundle = await rollup({
-		input: ["src/app.ts", "src/api/worker/worker.ts"],
+		input: ["src/app.ts", "src/common/api/worker/worker.ts"],
 		preserveEntrySignatures: false,
 		perf: true,
 		plugins: [
@@ -239,7 +239,7 @@ function analyzer(projectDir) {
 
 				console.log(fileName, "", info.code.length / 1024 + "K")
 				for (const module of Object.keys(info.modules)) {
-					if (module.includes("src/api/entities")) {
+					if (module.includes("src/common/api/entities")) {
 						continue
 					}
 					const moduleName = module.startsWith(prefix) ? module.substring(prefix.length) : module

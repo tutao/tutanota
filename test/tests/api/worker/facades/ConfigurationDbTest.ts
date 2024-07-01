@@ -6,19 +6,19 @@ import {
 	initializeDb,
 	loadEncryptionMetadata,
 	updateEncryptionMetadata,
-} from "../../../../../src/api/worker/facades/lazy/ConfigurationDatabase.js"
+} from "../../../../../src/common/api/worker/facades/lazy/ConfigurationDatabase.js"
 import { downcast } from "@tutao/tutanota-utils"
 import { DbStub } from "../search/DbStub.js"
-import { ExternalImageRule } from "../../../../../src/api/common/TutanotaConstants.js"
-import { UserTypeRef } from "../../../../../src/api/entities/sys/TypeRefs.js"
+import { ExternalImageRule } from "../../../../../src/common/api/common/TutanotaConstants.js"
+import { UserTypeRef } from "../../../../../src/common/api/entities/sys/TypeRefs.js"
 import { aes256RandomKey, aesDecrypt, aesEncrypt, AesKey, bitArrayToUint8Array, encryptKey, IV_BYTE_LENGTH, random } from "@tutao/tutanota-crypto"
 import { createTestEntity } from "../../../TestUtils.js"
-import { KeyLoaderFacade } from "../../../../../src/api/worker/facades/KeyLoaderFacade.js"
+import { KeyLoaderFacade } from "../../../../../src/common/api/worker/facades/KeyLoaderFacade.js"
 import { matchers, object, verify, when } from "testdouble"
-import { UserFacade } from "../../../../../src/api/worker/facades/UserFacade.js"
-import { DbFacade, DbTransaction } from "../../../../../src/api/worker/search/DbFacade.js"
-import { Metadata } from "../../../../../src/api/worker/search/IndexTables.js"
-import { VersionedKey } from "../../../../../src/api/worker/crypto/CryptoFacade.js"
+import { UserFacade } from "../../../../../src/common/api/worker/facades/UserFacade.js"
+import { DbFacade, DbTransaction } from "../../../../../src/common/api/worker/search/DbFacade.js"
+import { Metadata } from "../../../../../src/common/api/worker/search/IndexTables.js"
+import { VersionedKey } from "../../../../../src/common/api/worker/crypto/CryptoFacade.js"
 
 o.spec("ConfigurationDbTest", function () {
 	let keyLoaderFacade: KeyLoaderFacade

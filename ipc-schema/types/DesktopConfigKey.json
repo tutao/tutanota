@@ -2,6 +2,6 @@
 	"name": "DesktopConfigKey",
 	"type": "typeref",
 	"location": {
-		"typescript": "../src/desktop/config/ConfigKeys.js"
+		"typescript": "../src/common/desktop/config/ConfigKeys.js"
 	}
 }
