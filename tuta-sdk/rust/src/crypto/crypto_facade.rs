@@ -102,7 +102,7 @@ impl CryptoFacade {
         let mut queue = self.update_queue.lock().unwrap();
         for (instance_data, sym_enc_key) in re_encrypted_session_keys {
             queue.queue_update_instance_session_key(
-                IdTuple::new(instance_data.instanceList, instance_data.instanceId).into(),
+                &IdTuple::new(instance_data.instanceList, instance_data.instanceId),
                 sym_enc_key,
                 version,
             );

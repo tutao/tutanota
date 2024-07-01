@@ -1,8 +1,7 @@
-use std::borrow::ToOwned;
 use std::sync::Arc;
 use crate::ApiCallError;
 use crate::entities::sys::User;
-use crate::entity_client::IdType;
+use crate::id::Id;
 use crate::typed_entity_client::TypedEntityClient;
 
 
@@ -21,7 +20,7 @@ impl UserFacade {
 #[uniffi::export]
 impl UserFacade {
     /// Gets a user (an entity/instance of `User`) from the backend
-    pub async fn load_user_by_id(&self, id: &str) -> Result<User, ApiCallError> {
-        self.entity_client.load(&IdType::Single(id.to_owned())).await
+    pub async fn load_user_by_id(&self, id: &Id) -> Result<User, ApiCallError> {
+        self.entity_client.load(id).await
     }
 }
