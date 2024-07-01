@@ -7,7 +7,7 @@ use serde::{Deserialize, Serialize};
 use thiserror::Error;
 
 use rest_client::{RestClient, RestClientError};
-use crate::entity_client::{EntityClient, IdType};
+use crate::entity_client::EntityClient;
 use crate::id::Id;
 use crate::instance_mapper::InstanceMapper;
 use crate::json_serializer::{InstanceMapperError, JsonSerializer};
@@ -175,9 +175,9 @@ impl IdTuple {
     }
 }
 
-impl From<IdTuple> for IdType {
-    fn from(value: IdTuple) -> Self {
-        Self::Tuple(value)
+impl Display for IdTuple {
+    fn fmt(&self, f: &mut Formatter) -> std::fmt::Result {
+        write!(f, "{}/{}", self.list_id, self.element_id)
     }
 }
 
