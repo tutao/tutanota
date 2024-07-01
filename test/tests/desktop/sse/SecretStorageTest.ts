@@ -1,10 +1,10 @@
 import o from "@tutao/otest"
-import { SafeStorageSecretStorage } from "../../../../src/desktop/sse/SecretStorage.js"
-import type { ElectronExports, FsExports } from "../../../../src/desktop/ElectronExportTypes.js"
+import { SafeStorageSecretStorage } from "../../../../src/common/desktop/sse/SecretStorage.js"
+import type { ElectronExports, FsExports } from "../../../../src/common/desktop/ElectronExportTypes.js"
 import path from "node:path"
 import { matchers, object, when } from "testdouble"
 import { assertThrows } from "@tutao/tutanota-test-utils"
-import { DeviceStorageUnavailableError } from "../../../../src/api/common/error/DeviceStorageUnavailableError.js"
+import { DeviceStorageUnavailableError } from "../../../../src/common/api/common/error/DeviceStorageUnavailableError.js"
 
 o.spec("SecretStorage", function () {
 	o.spec("SafeStorageSecretStorage", function () {

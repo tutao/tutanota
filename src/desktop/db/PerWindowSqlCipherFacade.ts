@@ -1,8 +1,8 @@
-import { SqlCipherFacade } from "../../native/common/generatedipc/SqlCipherFacade.js"
-import { TaggedSqlValue } from "../../api/worker/offline/SqlValue.js"
-import { ProgrammingError } from "../../api/common/error/ProgrammingError.js"
+import { SqlCipherFacade } from "../../common/native/common/generatedipc/SqlCipherFacade.js"
+import { TaggedSqlValue } from "../../common/api/worker/offline/SqlValue.js"
+import { ProgrammingError } from "../../common/api/common/error/ProgrammingError.js"
 import { log } from "../DesktopLog.js"
-import { OfflineDbClosedError } from "../../api/common/error/OfflineDbClosedError.js"
+import { OfflineDbClosedError } from "../../common/api/common/error/OfflineDbClosedError.js"
 import { OfflineDbRefCounter } from "./OfflineDbRefCounter.js"
 
 const TAG = "[PerWindowSqlCipherFacade]"

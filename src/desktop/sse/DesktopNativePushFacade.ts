@@ -1,8 +1,8 @@
-import { NativePushFacade } from "../../native/common/generatedipc/NativePushFacade.js"
-import { EncryptedAlarmNotification } from "../../native/common/EncryptedAlarmNotification.js"
+import { NativePushFacade } from "../../common/native/common/generatedipc/NativePushFacade.js"
+import { EncryptedAlarmNotification } from "../../common/native/common/EncryptedAlarmNotification.js"
 import { NativeAlarmScheduler } from "./DesktopAlarmScheduler.js"
 import { DesktopAlarmStorage } from "./DesktopAlarmStorage.js"
-import { ExtendedNotificationMode } from "../../native/common/generatedipc/ExtendedNotificationMode.js"
+import { ExtendedNotificationMode } from "../../common/native/common/generatedipc/ExtendedNotificationMode.js"
 import { SseStorage } from "./SseStorage.js"
 import { TutaSseFacade } from "./TutaSseFacade.js"
 

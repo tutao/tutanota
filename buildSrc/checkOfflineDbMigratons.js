@@ -12,8 +12,8 @@ if (fileURLToPath(import.meta.url) === process.argv[1]) {
  * Check that there is a developer defined offline database migration for the most recent incompatible model version change
  */
 export async function checkOfflineDatabaseMigrations() {
-	const MIGRATIONS_DIRECTORY = "src/api/worker/offline/migrations"
-	const MIGRATOR_PATH = "src/api/worker/offline/OfflineStorageMigrator.ts"
+	const MIGRATIONS_DIRECTORY = "src/common/api/worker/offline/migrations"
+	const MIGRATOR_PATH = "src/common/api/worker/offline/OfflineStorageMigrator.ts"
 
 	const schemas = await globby("schemas/*.json")
 

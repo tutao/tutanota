@@ -1,4 +1,4 @@
-import { PostLoginAction, LoggedInEvent } from "../api/main/LoginController"
+import { PostLoginAction, LoggedInEvent } from "../common/api/main/LoginController"
 import { WindowManager } from "./DesktopWindowManager"
 import { DesktopErrorHandler } from "./DesktopErrorHandler.js"
 import { DesktopNotifier } from "./DesktopNotifier.js"

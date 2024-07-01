@@ -1,5 +1,5 @@
 import o from "@tutao/otest"
-import { urlify } from "../../../../src/api/worker/Urlifier.js"
+import { urlify } from "../../../../src/common/api/worker/Urlifier.js"
 o.spec("UrlifierTest", function () {
 	o(" validHtmlLinks", function () {
 		// html links

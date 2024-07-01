@@ -1,5 +1,5 @@
 import o from "@tutao/otest"
-import { areStringPartsOneByteLength } from "../../../../../src/api/worker/pdf/PdfDocument.js"
+import { areStringPartsOneByteLength } from "../../../../../src/common/api/worker/pdf/PdfDocument.js"
 
 o.spec("PdfDocument", function () {
 	o("Chars with over one byteLength are detected in StringParts", async function () {

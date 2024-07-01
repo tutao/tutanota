@@ -1,11 +1,11 @@
 import o from "@tutao/otest"
 import { instance, matchers, object, verify, when } from "testdouble"
-import { DesktopAlarmStorage } from "../../../../src/desktop/sse/DesktopAlarmStorage.js"
-import { DesktopConfig } from "../../../../src/desktop/config/DesktopConfig.js"
-import { DesktopNativeCryptoFacade } from "../../../../src/desktop/DesktopNativeCryptoFacade.js"
-import type { DesktopKeyStoreFacade } from "../../../../src/desktop/DesktopKeyStoreFacade.js"
+import { DesktopAlarmStorage } from "../../../../src/common/desktop/sse/DesktopAlarmStorage.js"
+import { DesktopConfig } from "../../../../src/common/desktop/config/DesktopConfig.js"
+import { DesktopNativeCryptoFacade } from "../../../../src/common/desktop/DesktopNativeCryptoFacade.js"
+import type { DesktopKeyStoreFacade } from "../../../../src/common/desktop/DesktopKeyStoreFacade.js"
 import { makeKeyStoreFacade } from "../../TestUtils.js"
-import { DesktopConfigKey } from "../../../../src/desktop/config/ConfigKeys.js"
+import { DesktopConfigKey } from "../../../../src/common/desktop/config/ConfigKeys.js"
 import { assertNotNull, uint8ArrayToBase64 } from "@tutao/tutanota-utils"
 
 o.spec("DesktopAlarmStorageTest", function () {

@@ -7,16 +7,16 @@ import {
 	createCalendarEvent,
 	createCalendarEventAttendee,
 	createContact,
-} from "../../../../src/api/entities/tutanota/TypeRefs.js"
-import { CalendarEventWhoModel } from "../../../../src/calendar/gui/eventeditor-model/CalendarEventWhoModel.js"
+} from "../../../../src/common/api/entities/tutanota/TypeRefs.js"
+import { CalendarEventWhoModel } from "../../../../src/calendar-app/gui/eventeditor-model/CalendarEventWhoModel.js"
 import { matchers, object, verify, when } from "testdouble"
-import { RecipientsModel } from "../../../../src/api/main/RecipientsModel.js"
-import { Recipient, RecipientType } from "../../../../src/api/common/recipients/Recipient.js"
-import { AccountType, CalendarAttendeeStatus, ShareCapability } from "../../../../src/api/common/TutanotaConstants.js"
-import { createUser, UserTypeRef } from "../../../../src/api/entities/sys/TypeRefs.js"
-import { SendMailModel } from "../../../../src/mail/editor/SendMailModel.js"
-import { UserController } from "../../../../src/api/main/UserController.js"
-import { CalendarOperation, EventType } from "../../../../src/calendar/gui/eventeditor-model/CalendarEventModel.js"
+import { RecipientsModel } from "../../../../src/common/api/main/RecipientsModel.js"
+import { Recipient, RecipientType } from "../../../../src/common/api/common/recipients/Recipient.js"
+import { AccountType, CalendarAttendeeStatus, ShareCapability } from "../../../../src/common/api/common/TutanotaConstants.js"
+import { createUser, UserTypeRef } from "../../../../src/common/api/entities/sys/TypeRefs.js"
+import { SendMailModel } from "../../../../src/mail-app/editor/SendMailModel.js"
+import { UserController } from "../../../../src/common/api/main/UserController.js"
+import { CalendarOperation, EventType } from "../../../../src/calendar-app/gui/eventeditor-model/CalendarEventModel.js"
 import {
 	addCapability,
 	calendars,
@@ -35,8 +35,8 @@ import {
 	thirdRecipient,
 } from "../CalendarTestUtils.js"
 import { assertNotNull, neverNull } from "@tutao/tutanota-utils"
-import { RecipientField } from "../../../../src/mail/model/MailUtils.js"
-import { ProgrammingError } from "../../../../src/api/common/error/ProgrammingError.js"
+import { RecipientField } from "../../../../src/mail-app/model/MailUtils.js"
+import { ProgrammingError } from "../../../../src/common/api/common/error/ProgrammingError.js"
 import { createTestEntity } from "../../TestUtils.js"
 
 o.spec("CalendarEventWhoModel", function () {

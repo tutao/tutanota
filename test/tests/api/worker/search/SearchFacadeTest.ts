@@ -1,16 +1,16 @@
 import o from "@tutao/otest"
-import { SearchFacade } from "../../../../../src/api/worker/search/SearchFacade.js"
-import { ContactTypeRef, MailTypeRef } from "../../../../../src/api/entities/tutanota/TypeRefs.js"
-import { UserTypeRef } from "../../../../../src/api/entities/sys/TypeRefs.js"
-import type { TypeInfo } from "../../../../../src/api/worker/search/IndexUtils.js"
+import { SearchFacade } from "../../../../../src/common/api/worker/search/SearchFacade.js"
+import { ContactTypeRef, MailTypeRef } from "../../../../../src/common/api/entities/tutanota/TypeRefs.js"
+import { UserTypeRef } from "../../../../../src/common/api/entities/sys/TypeRefs.js"
+import type { TypeInfo } from "../../../../../src/common/api/worker/search/IndexUtils.js"
 import {
 	encryptIndexKeyBase64,
 	encryptIndexKeyUint8Array,
 	encryptMetaData,
 	encryptSearchIndexEntry,
 	typeRefToTypeInfo,
-} from "../../../../../src/api/worker/search/IndexUtils.js"
-import type { ElementDataDbRow, SearchIndexEntry, SearchIndexMetaDataRow, SearchRestriction } from "../../../../../src/api/worker/search/SearchTypes.js"
+} from "../../../../../src/common/api/worker/search/IndexUtils.js"
+import type { ElementDataDbRow, SearchIndexEntry, SearchIndexMetaDataRow, SearchRestriction } from "../../../../../src/common/api/worker/search/SearchTypes.js"
 import {
 	compareOldestFirst,
 	elementIdPart,
@@ -18,15 +18,15 @@ import {
 	generatedIdToTimestamp,
 	listIdPart,
 	timestampToGeneratedId,
-} from "../../../../../src/api/common/utils/EntityUtils.js"
+} from "../../../../../src/common/api/common/utils/EntityUtils.js"
 import type { Base64 } from "@tutao/tutanota-utils"
 import { downcast, groupBy, numberRange, splitInChunks } from "@tutao/tutanota-utils"
-import { appendBinaryBlocks } from "../../../../../src/api/worker/search/SearchIndexEncoding.js"
+import { appendBinaryBlocks } from "../../../../../src/common/api/worker/search/SearchIndexEncoding.js"
 import { createSearchIndexDbStub, DbStub, DbStubTransaction } from "./DbStub.js"
-import type { BrowserData } from "../../../../../src/misc/ClientConstants.js"
+import type { BrowserData } from "../../../../../src/common/misc/ClientConstants.js"
 import { browserDataStub, createTestEntity } from "../../../TestUtils.js"
 import { aes256RandomKey, fixedIv } from "@tutao/tutanota-crypto"
-import { ElementDataOS, SearchIndexMetaDataOS, SearchIndexOS } from "../../../../../src/api/worker/search/IndexTables.js"
+import { ElementDataOS, SearchIndexMetaDataOS, SearchIndexOS } from "../../../../../src/common/api/worker/search/IndexTables.js"
 
 type SearchIndexEntryWithType = SearchIndexEntry & {
 	typeInfo: TypeInfo

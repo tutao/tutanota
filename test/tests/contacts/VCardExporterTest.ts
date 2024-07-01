@@ -11,8 +11,8 @@ import {
 	ContactSocialIdTypeRef,
 	ContactTypeRef,
 	ContactWebsiteTypeRef,
-} from "../../../src/api/entities/tutanota/TypeRefs.js"
-import { ContactAddressType, ContactPhoneNumberType, ContactSocialType, ContactWebsiteType } from "../../../src/api/common/TutanotaConstants.js"
+} from "../../../src/common/api/entities/tutanota/TypeRefs.js"
+import { ContactAddressType, ContactPhoneNumberType, ContactSocialType, ContactWebsiteType } from "../../../src/common/api/common/TutanotaConstants.js"
 import {
 	_addressesToVCardAddresses,
 	_phoneNumbersToVCardPhoneNumbers,

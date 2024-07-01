@@ -1,6 +1,6 @@
 import o from "@tutao/otest"
-import { EphemeralCacheStorage } from "../../../../../src/api/worker/rest/EphemeralCacheStorage.js"
-import { createMailDetailsBlob, MailDetailsBlobTypeRef, MailDetailsTypeRef } from "../../../../../src/api/entities/tutanota/TypeRefs.js"
+import { EphemeralCacheStorage } from "../../../../../src/common/api/worker/rest/EphemeralCacheStorage.js"
+import { createMailDetailsBlob, MailDetailsBlobTypeRef, MailDetailsTypeRef } from "../../../../../src/common/api/entities/tutanota/TypeRefs.js"
 import { createTestEntity } from "../../../TestUtils.js"
 
 o.spec("EphemeralCacheStorageTest", function () {

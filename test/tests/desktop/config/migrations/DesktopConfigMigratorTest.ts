@@ -1,9 +1,9 @@
 import o from "@tutao/otest"
-import { DesktopConfigMigrator } from "../../../../../src/desktop/config/migrations/DesktopConfigMigrator.js"
-import { DesktopNativeCryptoFacade } from "../../../../../src/desktop/DesktopNativeCryptoFacade.js"
+import { DesktopConfigMigrator } from "../../../../../src/common/desktop/config/migrations/DesktopConfigMigrator.js"
+import { DesktopNativeCryptoFacade } from "../../../../../src/common/desktop/DesktopNativeCryptoFacade.js"
 import { downcast } from "@tutao/tutanota-utils"
 import { makeKeyStoreFacade } from "../../../TestUtils.js"
-import { DesktopKeyStoreFacade } from "../../../../../src/desktop/DesktopKeyStoreFacade.js"
+import { DesktopKeyStoreFacade } from "../../../../../src/common/desktop/DesktopKeyStoreFacade.js"
 
 o.spec("DesktopConfigMigrator", function () {
 	let migrator

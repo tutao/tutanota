@@ -8,7 +8,7 @@ import {
 	iterateBinaryBlocks,
 	numberOfBytes,
 	removeBinaryBlockRanges,
-} from "../../../../../src/api/worker/search/SearchIndexEncoding.js"
+} from "../../../../../src/common/api/worker/search/SearchIndexEncoding.js"
 import { spy as makeSpy } from "@tutao/tutanota-test-utils"
 import { concat } from "@tutao/tutanota-utils"
 

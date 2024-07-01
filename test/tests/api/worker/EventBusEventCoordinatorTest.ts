@@ -1,5 +1,5 @@
 import o from "@tutao/otest"
-import { EventBusEventCoordinator } from "../../../../src/api/worker/EventBusEventCoordinator.js"
+import { EventBusEventCoordinator } from "../../../../src/common/api/worker/EventBusEventCoordinator.js"
 import { matchers, object, verify, when } from "testdouble"
 import {
 	EntityUpdate,
@@ -10,16 +10,16 @@ import {
 	UserGroupKeyDistributionTypeRef,
 	UserTypeRef,
 	WebsocketLeaderStatusTypeRef,
-} from "../../../../src/api/entities/sys/TypeRefs.js"
+} from "../../../../src/common/api/entities/sys/TypeRefs.js"
 import { createTestEntity } from "../../TestUtils.js"
-import { AccountType, OperationType } from "../../../../src/api/common/TutanotaConstants.js"
+import { AccountType, OperationType } from "../../../../src/common/api/common/TutanotaConstants.js"
 
-import { UserFacade } from "../../../../src/api/worker/facades/UserFacade.js"
-import { EntityClient } from "../../../../src/api/common/EntityClient.js"
+import { UserFacade } from "../../../../src/common/api/worker/facades/UserFacade.js"
+import { EntityClient } from "../../../../src/common/api/common/EntityClient.js"
 import { lazyAsync, lazyMemoized } from "@tutao/tutanota-utils"
-import { MailFacade } from "../../../../src/api/worker/facades/lazy/MailFacade.js"
-import { EventController } from "../../../../src/api/main/EventController.js"
-import { KeyRotationFacade } from "../../../../src/api/worker/facades/KeyRotationFacade.js"
+import { MailFacade } from "../../../../src/common/api/worker/facades/lazy/MailFacade.js"
+import { EventController } from "../../../../src/common/api/main/EventController.js"
+import { KeyRotationFacade } from "../../../../src/common/api/worker/facades/KeyRotationFacade.js"
 
 o.spec("EventBusEventCoordinatorTest", () => {
 	let eventBusEventCoordinator: EventBusEventCoordinator

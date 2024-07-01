@@ -2,6 +2,6 @@
 	"name": "DataFile",
 	"type": "typeref",
 	"location": {
-		"typescript": "../src/api/common/DataFile.js"
+		"typescript": "../src/common/api/common/DataFile.js"
 	}
 }

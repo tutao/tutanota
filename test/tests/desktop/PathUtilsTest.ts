@@ -1,5 +1,5 @@
 import o from "@tutao/otest"
-import { EXECUTABLE_EXTENSIONS, looksExecutable, nonClobberingFilename, swapFilename } from "../../../src/desktop/PathUtils.js"
+import { EXECUTABLE_EXTENSIONS, looksExecutable, nonClobberingFilename, swapFilename } from "../../../src/common/desktop/PathUtils.js"
 import path from "node:path"
 
 o.spec("PathUtils", function () {
