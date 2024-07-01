@@ -12,7 +12,7 @@ pub(crate) mod usage;
 mod entity_facade;
 
 use crate::date::DateTime;
-use crate::id::Id as Id;
+use crate::generated_id::GeneratedId;
 
 pub trait Entity {
     fn type_ref() -> TypeRef;

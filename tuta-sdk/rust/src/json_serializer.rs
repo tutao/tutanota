@@ -7,7 +7,7 @@ use thiserror::Error;
 use crate::{IdTuple, TypeRef};
 use crate::date::DateTime;
 use crate::element_value::{ElementValue, ParsedEntity};
-use crate::id::Id;
+use crate::generated_id::GeneratedId;
 use crate::json_serializer::InstanceMapperError::InvalidValue;
 use crate::json_element::{JsonElement, RawEntity};
 use crate::metamodel::{AssociationType, Cardinality, ElementType, ModelValue, TypeModel, ValueType};
@@ -119,7 +119,7 @@ impl JsonSerializer {
                     JsonElement::String(id),
                 ) => {
                     // FIXME it's not always generated id but it's fine probably
-                    mapped.insert(association_name, ElementValue::GeneratedId(Id::new(id)));
+                    mapped.insert(association_name, ElementValue::IdGeneratedId(GeneratedId::new(id)));
                 }
                 (
                     AssociationType::ListElementAssociation,
@@ -239,7 +239,7 @@ impl JsonSerializer {
                 (
                     AssociationType::ElementAssociation | AssociationType::ListAssociation,
                     Cardinality::One | Cardinality::ZeroOrOne,
-                    ElementValue::GeneratedId(id),
+                    ElementValue::IdGeneratedId(id),
                 ) => {
                     // FIXME it's not always generated id but it's fine probably
                     mapped.insert(association_name, JsonElement::String(id.into()));
@@ -352,8 +352,8 @@ impl JsonSerializer {
             (ValueType::Boolean, ElementValue::Bool(v)) => {
                 Ok(JsonElement::String(if v { "1" } else { "0" }.to_owned()))
             }
-            (ValueType::GeneratedId, ElementValue::GeneratedId(v)) => Ok(JsonElement::String(v.into())),
-            (ValueType::CustomId, ElementValue::CustomId(v)) => Ok(JsonElement::String(v)),
+            (ValueType::GeneratedId, ElementValue::IdGeneratedId(v)) => Ok(JsonElement::String(v.into())),
+            (ValueType::CustomId, ElementValue::IdCustomId(v)) => Ok(JsonElement::String(v)),
             (ValueType::CompressedString, ElementValue::String(_)) => {
                 unimplemented!("compressed string")
             }
@@ -367,7 +367,7 @@ impl JsonSerializer {
         match (it.next(), it.next(), it.next()) {
             (Some(JsonElement::String(list_id)), Some(JsonElement::String(element_id)), None) => {
                 // would like to consume the array here but oh well
-                Some(IdTuple::new(Id::new(list_id), Id::new(element_id)))
+                Some(IdTuple::new(GeneratedId::new(list_id), GeneratedId::new(element_id)))
             }
             _ => None,
         }
@@ -447,8 +447,8 @@ impl JsonSerializer {
                 "1" => Ok(ElementValue::Bool(true)),
                 _ => invalid_value(),
             },
-            (ValueType::GeneratedId, JsonElement::String(v)) => Ok(ElementValue::GeneratedId(Id::new(v))),
-            (ValueType::CustomId, JsonElement::String(v)) => Ok(ElementValue::CustomId(v)),
+            (ValueType::GeneratedId, JsonElement::String(v)) => Ok(ElementValue::IdGeneratedId(GeneratedId::new(v))),
+            (ValueType::CustomId, JsonElement::String(v)) => Ok(ElementValue::IdCustomId(v)),
             (ValueType::CompressedString, JsonElement::String(_)) => {
                 unimplemented!("compressed string")
             }

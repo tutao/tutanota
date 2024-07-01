@@ -8,7 +8,7 @@ use thiserror::Error;
 
 use rest_client::{RestClient, RestClientError};
 use crate::entity_client::EntityClient;
-use crate::id::Id;
+use crate::generated_id::GeneratedId;
 use crate::instance_mapper::InstanceMapper;
 use crate::json_serializer::{InstanceMapperError, JsonSerializer};
 use crate::mail_facade::MailFacade;
@@ -34,7 +34,7 @@ mod entities;
 mod instance_mapper;
 mod typed_entity_client;
 pub mod date;
-pub mod id;
+pub mod generated_id;
 
 uniffi::setup_scaffolding!();
 
@@ -165,12 +165,12 @@ pub enum ListLoadDirection {
 /// A set of keys used to identify an element within a List Element Type
 #[derive(uniffi::Record, Debug, PartialEq, Clone, Serialize, Deserialize)]
 pub struct IdTuple {
-    pub list_id: Id,
-    pub element_id: Id,
+    pub list_id: GeneratedId,
+    pub element_id: GeneratedId,
 }
 
 impl IdTuple {
-    pub fn new(list_id: Id, element_id: Id) -> Self {
+    pub fn new(list_id: GeneratedId, element_id: GeneratedId) -> Self {
         Self { list_id, element_id }
     }
 }
