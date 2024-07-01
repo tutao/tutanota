@@ -1,7 +1,7 @@
 import o from "@tutao/otest"
 import n from "../../nodemocker.js"
 import { delay, numberRange } from "@tutao/tutanota-utils"
-import { getConfigFile } from "../../../../src/desktop/config/ConfigFile.js"
+import { getConfigFile } from "../../../../src/common/desktop/config/ConfigFile.js"
 
 const MAX_LATENCY = 20
 const rndDelay = () => delay(Math.floor(Math.random() * MAX_LATENCY))

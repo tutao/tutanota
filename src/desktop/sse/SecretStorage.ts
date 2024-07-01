@@ -1,6 +1,6 @@
 import * as PathModule from "node:path"
 import * as FsModule from "node:fs"
-import { DeviceStorageUnavailableError } from "../../api/common/error/DeviceStorageUnavailableError.js"
+import { DeviceStorageUnavailableError } from "../../common/api/common/error/DeviceStorageUnavailableError.js"
 
 export function preselectGnomeLibsecret(electron: typeof Electron.CrossProcessExports) {
 	// this is how chromium selects a backend:

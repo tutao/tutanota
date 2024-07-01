@@ -2,8 +2,8 @@
  * This is a wrapper for commonly used crypto functions, easier to inject/swap implementations and test.
  */
 import crypto from "node:crypto"
-import { InstanceMapper } from "../api/worker/crypto/InstanceMapper"
-import type { TypeModel } from "../api/common/EntityTypes"
+import { InstanceMapper } from "../common/api/worker/crypto/InstanceMapper"
+import type { TypeModel } from "../common/api/common/EntityTypes"
 import type { Base64 } from "@tutao/tutanota-utils"
 import {
 	Aes256Key,

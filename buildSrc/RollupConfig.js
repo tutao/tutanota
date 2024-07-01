@@ -143,7 +143,7 @@ export function getChunkName(moduleId, { getModuleInfo }) {
 		// squire is most often used with mail editor and they are both not too big so we merge them
 		return "mail-editor"
 	} else if (
-		isIn("src/api/main") ||
+		isIn("src/common/api/main") ||
 		isIn("src/mail/model") ||
 		isIn("src/contacts/model") ||
 		isIn("src/search/model") ||
@@ -180,8 +180,8 @@ export function getChunkName(moduleId, { getModuleInfo }) {
 	} else if (isIn("src/login")) {
 		return "login"
 	} else if (
-		isIn("src/api/common") ||
-		isIn("src/api/entities") ||
+		isIn("src/common/api/common") ||
+		isIn("src/common/api/entities") ||
 		isIn("src/desktop/config/ConfigKeys") ||
 		moduleId.includes("cborg") ||
 		isIn("src/offline") ||
@@ -206,17 +206,17 @@ export function getChunkName(moduleId, { getModuleInfo }) {
 		return "settings"
 	} else if (isIn("src/sharing")) {
 		return "sharing"
-	} else if (isIn("src/api/worker/facades/lazy")) {
+	} else if (isIn("src/common/api/worker/facades/lazy")) {
 		// things that are not used for login and are generally accessed occasionally
 		return "worker-lazy"
-	} else if (isIn("src/api/worker/search")) {
+	} else if (isIn("src/common/api/worker/search")) {
 		// things related to indexer or search
 		return "worker-search"
-	} else if (isIn("src/api/worker/Urlifier") || isIn("libs/linkify") || isIn("libs/linkify-html")) {
+	} else if (isIn("src/common/api/worker/Urlifier") || isIn("libs/linkify") || isIn("libs/linkify-html")) {
 		return "linkify"
-	} else if (isIn("src/api/worker/pdf") || isIn("src/api/worker/invoicegen")) {
+	} else if (isIn("src/common/api/worker/pdf") || isIn("src/common/api/worker/invoicegen")) {
 		return "invoice"
-	} else if (isIn("src/api/worker") || isIn("packages/tutanota-crypto") || moduleId.includes("argon2")) {
+	} else if (isIn("src/common/api/worker") || isIn("packages/tutanota-crypto") || moduleId.includes("argon2")) {
 		return "worker" // avoid that crypto stuff is only put into native
 	} else if (isIn("libs/jszip")) {
 		return "jszip"

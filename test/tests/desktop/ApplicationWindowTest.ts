@@ -1,16 +1,16 @@
 import o from "@tutao/otest"
 import n from "../nodemocker.js"
 import { defer, DeferredObject, delay, downcast } from "@tutao/tutanota-utils"
-import { ApplicationWindow } from "../../../src/desktop/ApplicationWindow.js"
+import { ApplicationWindow } from "../../../src/common/desktop/ApplicationWindow.js"
 import type { NativeImage } from "electron"
-import type { Theme, ThemeId } from "../../../src/gui/theme.js"
-import { WindowManager } from "../../../src/desktop/DesktopWindowManager.js"
-import { LocalShortcutManager } from "../../../src/desktop/electron-localshortcut/LocalShortcut.js"
+import type { Theme, ThemeId } from "../../../src/common/gui/theme.js"
+import { WindowManager } from "../../../src/common/desktop/DesktopWindowManager.js"
+import { LocalShortcutManager } from "../../../src/common/desktop/electron-localshortcut/LocalShortcut.js"
 import { matchers, object, when } from "testdouble"
 import { spy, verify } from "@tutao/tutanota-test-utils"
-import { ThemeFacade } from "../../../src/native/common/generatedipc/ThemeFacade.js"
-import { DesktopThemeFacade } from "../../../src/desktop/DesktopThemeFacade.js"
-import { RemoteBridge, SendingFacades } from "../../../src/desktop/ipc/RemoteBridge.js"
+import { ThemeFacade } from "../../../src/common/native/common/generatedipc/ThemeFacade.js"
+import { DesktopThemeFacade } from "../../../src/common/desktop/DesktopThemeFacade.js"
+import { RemoteBridge, SendingFacades } from "../../../src/common/desktop/ipc/RemoteBridge.js"
 import Rectangle = Electron.Rectangle
 import BrowserWindow = Electron.BrowserWindow
 

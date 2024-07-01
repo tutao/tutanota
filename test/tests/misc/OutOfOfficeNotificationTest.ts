@@ -1,9 +1,9 @@
 import o from "@tutao/otest"
-import { OutOfOfficeNotificationTypeRef } from "../../../src/api/entities/tutanota/TypeRefs.js"
+import { OutOfOfficeNotificationTypeRef } from "../../../src/common/api/entities/tutanota/TypeRefs.js"
 import { mockAttribute, unmockAttribute } from "@tutao/tutanota-test-utils"
 import { getDayShifted, getStartOfDay, getStartOfNextDay } from "@tutao/tutanota-utils"
-import { lang } from "../../../src/misc/LanguageViewModel.js"
-import { formatActivateState, isNotificationCurrentlyActive } from "../../../src/misc/OutOfOfficeNotificationUtils.js"
+import { lang } from "../../../src/common/misc/LanguageViewModel.js"
+import { formatActivateState, isNotificationCurrentlyActive } from "../../../src/common/misc/OutOfOfficeNotificationUtils.js"
 import { createTestEntity } from "../TestUtils.js"
 
 o.spec("OutOfOfficeNotificationTest", function () {

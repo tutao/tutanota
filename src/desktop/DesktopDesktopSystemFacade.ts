@@ -1,4 +1,4 @@
-import { DesktopSystemFacade } from "../native/common/generatedipc/DesktopSystemFacade.js"
+import { DesktopSystemFacade } from "../common/native/common/generatedipc/DesktopSystemFacade.js"
 import { WindowManager } from "./DesktopWindowManager.js"
 import { ApplicationWindow } from "./ApplicationWindow.js"
 import { Socketeer } from "./Socketeer.js"
