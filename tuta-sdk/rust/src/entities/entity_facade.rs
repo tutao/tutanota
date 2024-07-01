@@ -1,3 +1,4 @@
+#![allow(unused)] // TODO: Remove this when implementing the crypto entity client
 use std::borrow::Borrow;
 use std::collections::HashMap;
 use std::sync::Arc;
