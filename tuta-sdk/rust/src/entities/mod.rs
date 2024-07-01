@@ -13,6 +13,7 @@ mod entity_facade;
 
 use crate::date::DateTime;
 use crate::generated_id::GeneratedId;
+use crate::custom_id::CustomId;
 
 pub trait Entity {
     fn type_ref() -> TypeRef;

@@ -246,6 +246,7 @@ mod test {
     use crate::entities::sys::{BucketKey, InstanceSessionKey, TypeInfo};
     use crate::entities::tutanota::{Mail, MailAddress};
     use crate::generated_id::GeneratedId;
+    use crate::custom_id::CustomId;
     use crate::IdTuple;
     use crate::instance_mapper::InstanceMapper;
     use crate::metamodel::{ElementType, TypeModel};
@@ -321,7 +322,7 @@ mod test {
         let key_group = GeneratedId::test_random();
 
         let bucket_key_data = BucketKey {
-            _id: GeneratedId::test_random().to_string(),
+            _id: CustomId::test_random(),
             groupEncBucketKey: None,
             protocolVersion: 2,
             pubEncBucketKey: Some(encapsulation.serialize()),
@@ -329,14 +330,14 @@ mod test {
             senderKeyVersion: None,
             bucketEncSessionKeys: vec![
                 InstanceSessionKey {
-                    _id: GeneratedId::test_random().to_string(),
+                    _id: CustomId::test_random(),
                     encryptionAuthStatus: None,
                     instanceId: instance_id.clone(),
                     instanceList: instance_list.clone(),
                     symEncSessionKey: bucket_enc_session_key.clone(),
                     symKeyVersion: recipient_key_version,
                     typeInfo: TypeInfo {
-                        _id: GeneratedId::test_random().to_string(),
+                        _id: CustomId::test_random(),
                         application: String::new(),
                         typeId: 0,
                     },
@@ -379,7 +380,7 @@ mod test {
             mailDetailsDraft: None,
             replyTos: vec![],
             sender: MailAddress {
-                _id: GeneratedId::test_random().to_string(),
+                _id: CustomId::test_random(),
                 address: "".to_string(),
                 name: "".to_string(),
                 contact: None,
