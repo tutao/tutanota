@@ -10,7 +10,6 @@ import {
 import { PartialRecipient, Recipient, RecipientType } from "../../../../common/api/common/recipients/Recipient.js"
 import { haveSameId, Stripped } from "../../../../common/api/common/utils/EntityUtils.js"
 import { cleanMailAddress, findRecipientWithAddress } from "../../../../common/api/common/utils/CommonCalendarUtils.js"
-import { getContactDisplayName } from "../../../../common/contactsFunctionality/ContactUtils.js"
 import { assertNotNull, clone, defer, DeferredObject, findAll, lazy, noOp, trisectingDiff } from "@tutao/tutanota-utils"
 import { CalendarAttendeeStatus, ConversationType, ShareCapability } from "../../../../common/api/common/TutanotaConstants.js"
 import { RecipientsModel, ResolveMode } from "../../../../common/api/main/RecipientsModel.js"
@@ -24,6 +23,7 @@ import { UserError } from "../../../../common/api/main/UserError.js"
 import { CalendarOperation, EventType } from "./CalendarEventModel.js"
 import { ProgrammingError } from "../../../../common/api/common/error/ProgrammingError.js"
 import { CalendarNotificationSendModels } from "./CalendarNotificationModel.js"
+import { getContactDisplayName } from "../../../../common/contactsFunctionality/ContactUtils.js"
 import { RecipientField } from "../../../../common/mailFunctionality/CommonMailUtils.js"
 
 /** there is no point in returning recipients, the SendMailModel will re-resolve them anyway. */
