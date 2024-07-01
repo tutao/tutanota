@@ -544,7 +544,6 @@ export class EventBusClient {
 			await this.processEventBatch(modification)
 		} catch (e) {
 			console.log("ws error while processing event batches", e)
-			this.listener.onError(e)
 			throw e
 		}
 	}
