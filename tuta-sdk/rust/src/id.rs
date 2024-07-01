@@ -1,8 +1,8 @@
-use std::fmt::{Display, Formatter};
+use std::fmt::{Debug, Display, Formatter};
 use serde::{Deserialize, Deserializer, Serialize, Serializer};
 use serde::de::{Error, Visitor};
 
-#[derive(Clone, Default, PartialEq, PartialOrd, Debug)]
+#[derive(Clone, Default, PartialEq, PartialOrd)]
 #[repr(transparent)]
 pub struct Id(String);
 
@@ -37,6 +37,12 @@ impl Display for Id {
     }
 }
 
+impl Debug for Id {
+    fn fmt(&self, f: &mut Formatter<'_>) -> std::fmt::Result {
+        write!(f, "ID: \"{self}\"")
+    }
+}
+
 uniffi::custom_newtype!(Id, String);
 
 impl Serialize for Id {
@@ -52,6 +58,7 @@ impl<'de> Deserialize<'de> for Id {
 }
 
 struct IdVisitor;
+
 impl Visitor<'_> for IdVisitor {
     type Value = Id;
 
