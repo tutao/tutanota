@@ -181,13 +181,7 @@ export class OfflineStorage implements CacheStorage, ExposedCacheStorage {
 	async deleteIfExists(typeRef: TypeRef<SomeEntity>, listId: Id | null, elementId: Id): Promise<void> {
 		const type = getTypeId(typeRef)
 		let typeModel: TypeModel
-		try {
-			typeModel = await resolveTypeReference(typeRef)
-		} catch (e) {
-			// prevent failed lookup for BlobToFileMapping - this catch block can be removed after May 2023
-			console.log("couldn't resolve typeRef ", typeRef)
-			return
-		}
+		typeModel = await resolveTypeReference(typeRef)
 		let formattedQuery
 		switch (typeModel.type) {
 			case TypeId.Element:
@@ -208,13 +202,7 @@ export class OfflineStorage implements CacheStorage, ExposedCacheStorage {
 	async deleteAllOfType(typeRef: TypeRef<SomeEntity>): Promise<void> {
 		const type = getTypeId(typeRef)
 		let typeModel: TypeModel
-		try {
-			typeModel = await resolveTypeReference(typeRef)
-		} catch (e) {
-			// prevent failed lookup for BlobToFileMapping - this catch block can be removed after May 2023
-			console.log("couldn't resolve typeRef ", typeRef)
-			return
-		}
+		typeModel = await resolveTypeReference(typeRef)
 		let formattedQuery
 		switch (typeModel.type) {
 			case TypeId.Element:
