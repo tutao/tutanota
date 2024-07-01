@@ -1,7 +1,9 @@
+use std::fmt::Display;
 use std::sync::Arc;
 
 use crate::{ApiCallError, AuthHeadersProvider, IdTuple, RestClient, TypeRef};
 use crate::element_value::{ElementValue, ParsedEntity};
+use crate::id::Id;
 use crate::json_serializer::JsonSerializer;
 use crate::json_element::RawEntity;
 use crate::metamodel::TypeModel;
@@ -9,11 +11,14 @@ use crate::rest_client::{HttpMethod, RestClientOptions};
 use crate::rest_error::{HttpError};
 use crate::type_model_provider::{TypeModelProvider};
 
-/// The value used to identify an entity/instance within the backend
-pub enum IdType {
-    Single(String),
-    Tuple(IdTuple),
-}
+pub trait IdType: Display {}
+
+impl IdType for String {}
+
+impl IdType for Id {}
+
+impl IdType for IdTuple {}
+
 
 /// A high level interface to manipulate entities/instances via the REST API
 pub struct EntityClient {
@@ -42,27 +47,13 @@ impl EntityClient {
     }
 
     /// Gets an entity/instance of type `type_ref` from the backend
-    pub async fn load(
+    pub async fn load<T: IdType>(
         &self,
         type_ref: &TypeRef,
-        id: &IdType,
+        id: &T,
     ) -> Result<ParsedEntity, ApiCallError> {
         let type_model = self.get_type_model(&type_ref)?;
-        let url;
-        match id {
-            IdType::Single(value) => {
-                url = format!(
-                    "{}/rest/{}/{}/{}",
-                    self.base_url, type_ref.app, type_ref.type_, value.to_owned()
-                );
-            }
-            IdType::Tuple(value) => {
-                url = format!(
-                    "{}/rest/{}/{}/{}/{}",
-                    self.base_url, type_ref.app, type_ref.type_, value.list_id, value.element_id
-                );
-            }
-        }
+        let url = format!("{}/rest/{}/{}/{}", self.base_url, type_ref.app, type_ref.type_, id);
         let model_version: u32 = type_model.version.parse().map_err(|_| {
             let message = format!("Tried to parse invalid model_version {}", type_model.version);
             ApiCallError::InternalSdkError { error_message: message }
@@ -136,9 +127,7 @@ impl EntityClient {
     pub async fn update(&self, type_ref: &TypeRef, entity: ParsedEntity,
                         model_version: u32) -> Result<(), ApiCallError> {
         let id = match &entity.get("_id").unwrap() {
-            ElementValue::IdTupleId(ref id_tuple) => {
-                format!("{}/{}", &id_tuple.list_id, &id_tuple.element_id)
-            }
+            ElementValue::IdTupleId(ref id_tuple) => id_tuple.to_string(),
             _ => panic!("id is not string or array"),
         };
         let raw_entity = self.json_serializer.serialize(type_ref, entity)?;
