@@ -42,6 +42,7 @@ impl InstanceMapper {
         T::deserialize(de).map_err(|e| e.into())
     }
 
+    #[allow(unused)] // TODO: Remove this when implementing mutations for entities
     pub fn serialize_entity<'a, T: Entity + Serialize>(&self, entity: T) -> Result<ParsedEntity, SerError> {
         entity.serialize(ElementValueSerializer).map(|v| v.assert_dict())
     }
