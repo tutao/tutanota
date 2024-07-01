@@ -1,6 +1,6 @@
 use std::collections::HashMap;
 use crate::date::DateTime;
-use crate::id::Id;
+use crate::generated_id::GeneratedId;
 use crate::IdTuple;
 
 /// Primitive value types used by entity/instance types
@@ -12,8 +12,9 @@ pub enum ElementValue {
     Bytes(Vec<u8>),
     Date(DateTime),
     Bool(bool),
-    GeneratedId(Id),
-    CustomId(String),
+    // Names are prefixed with 'Id' to avoid name collision in Kotlin
+    IdGeneratedId(GeneratedId),
+    IdCustomId(String),
     IdTupleId(IdTuple),
     Dict(HashMap<String, ElementValue>),
     Array(Vec<ElementValue>),
@@ -75,9 +76,9 @@ impl ElementValue {
         }
     }
 
-    pub fn assert_generated_id(&self) -> &Id {
+    pub fn assert_generated_id(&self) -> &GeneratedId {
         match self {
-            ElementValue::GeneratedId(value) => value,
+            ElementValue::IdGeneratedId(value) => value,
             _ => panic!("Invalid type"),
         }
     }
@@ -97,8 +98,8 @@ impl ElementValue {
             Self::Bytes(_) => "Bytes",
             Self::Date(_) => "Date",
             Self::Bool(_) => "Bool",
-            Self::GeneratedId(_) => "GeneratedId",
-            Self::CustomId(_) => "CustomId",
+            Self::IdGeneratedId(_) => "IdGeneratedId",
+            Self::IdCustomId(_) => "IdCustomId",
             Self::IdTupleId(_) => "IdTupleId",
             Self::Dict(_) => "Dict",
             Self::Array(_) => "Array",

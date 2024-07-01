@@ -5,7 +5,7 @@ use serde::{Serialize, Deserialize};
 
 #[derive(uniffi::Record, Clone, Serialize, Deserialize)]
 pub struct AttachmentKeyData {
-    pub _id: Id,
+    pub _id: GeneratedId,
     #[serde(with = "serde_bytes")]
     pub bucketEncFileSessionKey: Option<Vec<u8>>,
     #[serde(with = "serde_bytes")]
@@ -22,7 +22,7 @@ impl Entity for AttachmentKeyData {
 
 #[derive(uniffi::Record, Clone, Serialize, Deserialize)]
 pub struct Birthday {
-    pub _id: Id,
+    pub _id: GeneratedId,
     pub day: i64,
     pub month: i64,
     pub year: Option<i64>,
@@ -37,7 +37,7 @@ impl Entity for Birthday {
 
 #[derive(uniffi::Record, Clone, Serialize, Deserialize)]
 pub struct Body {
-    pub _id: Id,
+    pub _id: GeneratedId,
     pub compressedText: Option<Vec<u8>>,
     pub text: Option<String>,
 }
@@ -52,7 +52,7 @@ impl Entity for Body {
 #[derive(uniffi::Record, Clone, Serialize, Deserialize)]
 pub struct CalendarDeleteData {
     pub _format: i64,
-    pub groupRootId: Id,
+    pub groupRootId: GeneratedId,
 }
 
 impl Entity for CalendarDeleteData {
@@ -68,9 +68,9 @@ pub struct CalendarEvent {
     pub _id: IdTuple,
     #[serde(with = "serde_bytes")]
     pub _ownerEncSessionKey: Option<Vec<u8>>,
-    pub _ownerGroup: Option<Id>,
+    pub _ownerGroup: Option<GeneratedId>,
     pub _ownerKeyVersion: Option<i64>,
-    pub _permissions: Id,
+    pub _permissions: GeneratedId,
     pub description: String,
     pub endTime: DateTime,
     #[serde(with = "serde_bytes")]
@@ -97,7 +97,7 @@ impl Entity for CalendarEvent {
 
 #[derive(uniffi::Record, Clone, Serialize, Deserialize)]
 pub struct CalendarEventAttendee {
-    pub _id: Id,
+    pub _id: GeneratedId,
     pub status: i64,
     pub address: EncryptedMailAddress,
 }
@@ -111,8 +111,8 @@ impl Entity for CalendarEventAttendee {
 
 #[derive(uniffi::Record, Clone, Serialize, Deserialize)]
 pub struct CalendarEventIndexRef {
-    pub _id: Id,
-    pub list: Id,
+    pub _id: GeneratedId,
+    pub list: GeneratedId,
 }
 
 impl Entity for CalendarEventIndexRef {
@@ -126,8 +126,8 @@ impl Entity for CalendarEventIndexRef {
 pub struct CalendarEventUidIndex {
     pub _format: i64,
     pub _id: IdTuple,
-    pub _ownerGroup: Option<Id>,
-    pub _permissions: Id,
+    pub _ownerGroup: Option<GeneratedId>,
+    pub _permissions: GeneratedId,
     pub alteredInstances: Vec<IdTuple>,
     pub progenitor: Option<IdTuple>,
 }
@@ -145,9 +145,9 @@ pub struct CalendarEventUpdate {
     pub _id: IdTuple,
     #[serde(with = "serde_bytes")]
     pub _ownerEncSessionKey: Option<Vec<u8>>,
-    pub _ownerGroup: Option<Id>,
+    pub _ownerGroup: Option<GeneratedId>,
     pub _ownerKeyVersion: Option<i64>,
-    pub _permissions: Id,
+    pub _permissions: GeneratedId,
     pub sender: String,
     pub file: IdTuple,
 }
@@ -161,8 +161,8 @@ impl Entity for CalendarEventUpdate {
 
 #[derive(uniffi::Record, Clone, Serialize, Deserialize)]
 pub struct CalendarEventUpdateList {
-    pub _id: Id,
-    pub list: Id,
+    pub _id: GeneratedId,
+    pub list: GeneratedId,
 }
 
 impl Entity for CalendarEventUpdateList {
@@ -175,15 +175,15 @@ impl Entity for CalendarEventUpdateList {
 #[derive(uniffi::Record, Clone, Serialize, Deserialize)]
 pub struct CalendarGroupRoot {
     pub _format: i64,
-    pub _id: Id,
+    pub _id: GeneratedId,
     #[serde(with = "serde_bytes")]
     pub _ownerEncSessionKey: Option<Vec<u8>>,
-    pub _ownerGroup: Option<Id>,
+    pub _ownerGroup: Option<GeneratedId>,
     pub _ownerKeyVersion: Option<i64>,
-    pub _permissions: Id,
+    pub _permissions: GeneratedId,
     pub index: Option<CalendarEventIndexRef>,
-    pub longEvents: Id,
-    pub shortEvents: Id,
+    pub longEvents: GeneratedId,
+    pub shortEvents: GeneratedId,
 }
 
 impl Entity for CalendarGroupRoot {
@@ -195,7 +195,7 @@ impl Entity for CalendarGroupRoot {
 
 #[derive(uniffi::Record, Clone, Serialize, Deserialize)]
 pub struct CalendarRepeatRule {
-    pub _id: Id,
+    pub _id: GeneratedId,
     pub endType: i64,
     pub endValue: Option<i64>,
     pub frequency: i64,
@@ -216,12 +216,12 @@ pub struct Contact {
     pub _area: i64,
     pub _format: i64,
     pub _id: IdTuple,
-    pub _owner: Id,
+    pub _owner: GeneratedId,
     #[serde(with = "serde_bytes")]
     pub _ownerEncSessionKey: Option<Vec<u8>>,
-    pub _ownerGroup: Option<Id>,
+    pub _ownerGroup: Option<GeneratedId>,
     pub _ownerKeyVersion: Option<i64>,
-    pub _permissions: Id,
+    pub _permissions: GeneratedId,
     pub autoTransmitPassword: String,
     pub birthdayIso: Option<String>,
     pub comment: String,
@@ -261,7 +261,7 @@ impl Entity for Contact {
 
 #[derive(uniffi::Record, Clone, Serialize, Deserialize)]
 pub struct ContactAddress {
-    pub _id: Id,
+    pub _id: GeneratedId,
     pub address: String,
     pub customTypeName: String,
     #[serde(rename = "type")]
@@ -277,7 +277,7 @@ impl Entity for ContactAddress {
 
 #[derive(uniffi::Record, Clone, Serialize, Deserialize)]
 pub struct ContactCustomDate {
-    pub _id: Id,
+    pub _id: GeneratedId,
     pub customTypeName: String,
     pub dateIso: String,
     #[serde(rename = "type")]
@@ -294,13 +294,13 @@ impl Entity for ContactCustomDate {
 #[derive(uniffi::Record, Clone, Serialize, Deserialize)]
 pub struct ContactList {
     pub _format: i64,
-    pub _id: Id,
+    pub _id: GeneratedId,
     #[serde(with = "serde_bytes")]
     pub _ownerEncSessionKey: Option<Vec<u8>>,
-    pub _ownerGroup: Option<Id>,
+    pub _ownerGroup: Option<GeneratedId>,
     pub _ownerKeyVersion: Option<i64>,
-    pub _permissions: Id,
-    pub contacts: Id,
+    pub _permissions: GeneratedId,
+    pub contacts: GeneratedId,
     pub photos: Option<PhotosRef>,
 }
 
@@ -317,9 +317,9 @@ pub struct ContactListEntry {
     pub _id: IdTuple,
     #[serde(with = "serde_bytes")]
     pub _ownerEncSessionKey: Option<Vec<u8>>,
-    pub _ownerGroup: Option<Id>,
+    pub _ownerGroup: Option<GeneratedId>,
     pub _ownerKeyVersion: Option<i64>,
-    pub _permissions: Id,
+    pub _permissions: GeneratedId,
     pub emailAddress: String,
 }
 
@@ -333,13 +333,13 @@ impl Entity for ContactListEntry {
 #[derive(uniffi::Record, Clone, Serialize, Deserialize)]
 pub struct ContactListGroupRoot {
     pub _format: i64,
-    pub _id: Id,
+    pub _id: GeneratedId,
     #[serde(with = "serde_bytes")]
     pub _ownerEncSessionKey: Option<Vec<u8>>,
-    pub _ownerGroup: Option<Id>,
+    pub _ownerGroup: Option<GeneratedId>,
     pub _ownerKeyVersion: Option<i64>,
-    pub _permissions: Id,
-    pub entries: Id,
+    pub _permissions: GeneratedId,
+    pub entries: GeneratedId,
 }
 
 impl Entity for ContactListGroupRoot {
@@ -351,7 +351,7 @@ impl Entity for ContactListGroupRoot {
 
 #[derive(uniffi::Record, Clone, Serialize, Deserialize)]
 pub struct ContactMailAddress {
-    pub _id: Id,
+    pub _id: GeneratedId,
     pub address: String,
     pub customTypeName: String,
     #[serde(rename = "type")]
@@ -367,7 +367,7 @@ impl Entity for ContactMailAddress {
 
 #[derive(uniffi::Record, Clone, Serialize, Deserialize)]
 pub struct ContactMessengerHandle {
-    pub _id: Id,
+    pub _id: GeneratedId,
     pub customTypeName: String,
     pub handle: String,
     #[serde(rename = "type")]
@@ -383,7 +383,7 @@ impl Entity for ContactMessengerHandle {
 
 #[derive(uniffi::Record, Clone, Serialize, Deserialize)]
 pub struct ContactPhoneNumber {
-    pub _id: Id,
+    pub _id: GeneratedId,
     pub customTypeName: String,
     pub number: String,
     #[serde(rename = "type")]
@@ -399,7 +399,7 @@ impl Entity for ContactPhoneNumber {
 
 #[derive(uniffi::Record, Clone, Serialize, Deserialize)]
 pub struct ContactPronouns {
-    pub _id: Id,
+    pub _id: GeneratedId,
     pub language: String,
     pub pronouns: String,
 }
@@ -413,7 +413,7 @@ impl Entity for ContactPronouns {
 
 #[derive(uniffi::Record, Clone, Serialize, Deserialize)]
 pub struct ContactRelationship {
-    pub _id: Id,
+    pub _id: GeneratedId,
     pub customTypeName: String,
     pub person: String,
     #[serde(rename = "type")]
@@ -429,7 +429,7 @@ impl Entity for ContactRelationship {
 
 #[derive(uniffi::Record, Clone, Serialize, Deserialize)]
 pub struct ContactSocialId {
-    pub _id: Id,
+    pub _id: GeneratedId,
     pub customTypeName: String,
     pub socialId: String,
     #[serde(rename = "type")]
@@ -445,7 +445,7 @@ impl Entity for ContactSocialId {
 
 #[derive(uniffi::Record, Clone, Serialize, Deserialize)]
 pub struct ContactWebsite {
-    pub _id: Id,
+    pub _id: GeneratedId,
     pub customTypeName: String,
     #[serde(rename = "type")]
     pub r#type: i64,
@@ -463,8 +463,8 @@ impl Entity for ContactWebsite {
 pub struct ConversationEntry {
     pub _format: i64,
     pub _id: IdTuple,
-    pub _ownerGroup: Option<Id>,
-    pub _permissions: Id,
+    pub _ownerGroup: Option<GeneratedId>,
+    pub _permissions: GeneratedId,
     pub conversationType: i64,
     pub messageId: String,
     pub mail: Option<IdTuple>,
@@ -480,7 +480,7 @@ impl Entity for ConversationEntry {
 
 #[derive(uniffi::Record, Clone, Serialize, Deserialize)]
 pub struct CreateExternalUserGroupData {
-    pub _id: Id,
+    pub _id: GeneratedId,
     #[serde(with = "serde_bytes")]
     pub externalPwEncUserGroupKey: Vec<u8>,
     #[serde(with = "serde_bytes")]
@@ -499,7 +499,7 @@ impl Entity for CreateExternalUserGroupData {
 #[derive(uniffi::Record, Clone, Serialize, Deserialize)]
 pub struct CreateGroupPostReturn {
     pub _format: i64,
-    pub group: Id,
+    pub group: GeneratedId,
 }
 
 impl Entity for CreateGroupPostReturn {
@@ -515,7 +515,7 @@ pub struct CreateMailFolderData {
     pub folderName: String,
     #[serde(with = "serde_bytes")]
     pub ownerEncSessionKey: Vec<u8>,
-    pub ownerGroup: Option<Id>,
+    pub ownerGroup: Option<GeneratedId>,
     pub ownerKeyVersion: i64,
     pub parentFolder: Option<IdTuple>,
 }
@@ -595,7 +595,7 @@ impl Entity for CustomerAccountCreateData {
 pub struct DeleteGroupData {
     pub _format: i64,
     pub restore: bool,
-    pub group: Id,
+    pub group: GeneratedId,
 }
 
 impl Entity for DeleteGroupData {
@@ -634,7 +634,7 @@ impl Entity for DeleteMailFolderData {
 
 #[derive(uniffi::Record, Clone, Serialize, Deserialize)]
 pub struct DraftAttachment {
-    pub _id: Id,
+    pub _id: GeneratedId,
     #[serde(with = "serde_bytes")]
     pub ownerEncFileSessionKey: Vec<u8>,
     pub ownerKeyVersion: i64,
@@ -682,7 +682,7 @@ impl Entity for DraftCreateReturn {
 
 #[derive(uniffi::Record, Clone, Serialize, Deserialize)]
 pub struct DraftData {
-    pub _id: Id,
+    pub _id: GeneratedId,
     pub bodyText: String,
     pub compressedBodyText: Option<Vec<u8>>,
     pub confidential: bool,
@@ -707,7 +707,7 @@ impl Entity for DraftData {
 
 #[derive(uniffi::Record, Clone, Serialize, Deserialize)]
 pub struct DraftRecipient {
-    pub _id: Id,
+    pub _id: GeneratedId,
     pub mailAddress: String,
     pub name: String,
 }
@@ -752,9 +752,9 @@ pub struct EmailTemplate {
     pub _id: IdTuple,
     #[serde(with = "serde_bytes")]
     pub _ownerEncSessionKey: Option<Vec<u8>>,
-    pub _ownerGroup: Option<Id>,
+    pub _ownerGroup: Option<GeneratedId>,
     pub _ownerKeyVersion: Option<i64>,
-    pub _permissions: Id,
+    pub _permissions: GeneratedId,
     pub tag: String,
     pub title: String,
     pub contents: Vec<EmailTemplateContent>,
@@ -769,7 +769,7 @@ impl Entity for EmailTemplate {
 
 #[derive(uniffi::Record, Clone, Serialize, Deserialize)]
 pub struct EmailTemplateContent {
-    pub _id: Id,
+    pub _id: GeneratedId,
     pub languageCode: String,
     pub text: String,
 }
@@ -787,7 +787,7 @@ pub struct EncryptTutanotaPropertiesData {
     #[serde(with = "serde_bytes")]
     pub symEncSessionKey: Vec<u8>,
     pub symKeyVersion: i64,
-    pub properties: Id,
+    pub properties: GeneratedId,
 }
 
 impl Entity for EncryptTutanotaPropertiesData {
@@ -799,7 +799,7 @@ impl Entity for EncryptTutanotaPropertiesData {
 
 #[derive(uniffi::Record, Clone, Serialize, Deserialize)]
 pub struct EncryptedMailAddress {
-    pub _id: Id,
+    pub _id: GeneratedId,
     pub address: String,
     pub name: String,
 }
@@ -864,12 +864,12 @@ pub struct TutanotaFile {
     pub _area: i64,
     pub _format: i64,
     pub _id: IdTuple,
-    pub _owner: Id,
+    pub _owner: GeneratedId,
     #[serde(with = "serde_bytes")]
     pub _ownerEncSessionKey: Option<Vec<u8>>,
-    pub _ownerGroup: Option<Id>,
+    pub _ownerGroup: Option<GeneratedId>,
     pub _ownerKeyVersion: Option<i64>,
-    pub _permissions: Id,
+    pub _permissions: GeneratedId,
     pub cid: Option<String>,
     pub mimeType: Option<String>,
     pub name: String,
@@ -889,13 +889,13 @@ impl Entity for TutanotaFile {
 #[derive(uniffi::Record, Clone, Serialize, Deserialize)]
 pub struct FileSystem {
     pub _format: i64,
-    pub _id: Id,
+    pub _id: GeneratedId,
     #[serde(with = "serde_bytes")]
     pub _ownerEncSessionKey: Option<Vec<u8>>,
-    pub _ownerGroup: Option<Id>,
+    pub _ownerGroup: Option<GeneratedId>,
     pub _ownerKeyVersion: Option<i64>,
-    pub _permissions: Id,
-    pub files: Id,
+    pub _permissions: GeneratedId,
+    pub files: GeneratedId,
 }
 
 impl Entity for FileSystem {
@@ -968,10 +968,10 @@ impl Entity for GroupInvitationPutData {
 
 #[derive(uniffi::Record, Clone, Serialize, Deserialize)]
 pub struct GroupSettings {
-    pub _id: Id,
+    pub _id: GeneratedId,
     pub color: String,
     pub name: Option<String>,
-    pub group: Id,
+    pub group: GeneratedId,
 }
 
 impl Entity for GroupSettings {
@@ -983,7 +983,7 @@ impl Entity for GroupSettings {
 
 #[derive(uniffi::Record, Clone, Serialize, Deserialize)]
 pub struct Header {
-    pub _id: Id,
+    pub _id: GeneratedId,
     pub compressedHeaders: Option<Vec<u8>>,
     pub headers: Option<String>,
 }
@@ -997,11 +997,11 @@ impl Entity for Header {
 
 #[derive(uniffi::Record, Clone, Serialize, Deserialize)]
 pub struct ImapFolder {
-    pub _id: Id,
+    pub _id: GeneratedId,
     pub lastseenuid: String,
     pub name: String,
     pub uidvalidity: String,
-    pub syncInfo: Id,
+    pub syncInfo: GeneratedId,
 }
 
 impl Entity for ImapFolder {
@@ -1013,12 +1013,12 @@ impl Entity for ImapFolder {
 
 #[derive(uniffi::Record, Clone, Serialize, Deserialize)]
 pub struct ImapSyncConfiguration {
-    pub _id: Id,
+    pub _id: GeneratedId,
     pub host: String,
     pub password: String,
     pub port: i64,
     pub user: String,
-    pub imapSyncState: Option<Id>,
+    pub imapSyncState: Option<GeneratedId>,
 }
 
 impl Entity for ImapSyncConfiguration {
@@ -1031,9 +1031,9 @@ impl Entity for ImapSyncConfiguration {
 #[derive(uniffi::Record, Clone, Serialize, Deserialize)]
 pub struct ImapSyncState {
     pub _format: i64,
-    pub _id: Id,
-    pub _ownerGroup: Option<Id>,
-    pub _permissions: Id,
+    pub _id: GeneratedId,
+    pub _ownerGroup: Option<GeneratedId>,
+    pub _permissions: GeneratedId,
     pub folders: Vec<ImapFolder>,
 }
 
@@ -1046,7 +1046,7 @@ impl Entity for ImapSyncState {
 
 #[derive(uniffi::Record, Clone, Serialize, Deserialize)]
 pub struct InboxRule {
-    pub _id: Id,
+    pub _id: GeneratedId,
     #[serde(rename = "type")]
     pub r#type: String,
     pub value: String,
@@ -1062,7 +1062,7 @@ impl Entity for InboxRule {
 
 #[derive(uniffi::Record, Clone, Serialize, Deserialize)]
 pub struct InternalGroupData {
-    pub _id: Id,
+    pub _id: GeneratedId,
     #[serde(with = "serde_bytes")]
     pub adminEncGroupKey: Vec<u8>,
     pub adminKeyVersion: i64,
@@ -1081,7 +1081,7 @@ pub struct InternalGroupData {
     pub pubKyberKey: Option<Vec<u8>>,
     #[serde(with = "serde_bytes")]
     pub pubRsaKey: Option<Vec<u8>>,
-    pub adminGroup: Option<Id>,
+    pub adminGroup: Option<GeneratedId>,
 }
 
 impl Entity for InternalGroupData {
@@ -1093,7 +1093,7 @@ impl Entity for InternalGroupData {
 
 #[derive(uniffi::Record, Clone, Serialize, Deserialize)]
 pub struct InternalRecipientKeyData {
-    pub _id: Id,
+    pub _id: GeneratedId,
     pub mailAddress: String,
     pub protocolVersion: i64,
     #[serde(with = "serde_bytes")]
@@ -1115,9 +1115,9 @@ pub struct KnowledgeBaseEntry {
     pub _id: IdTuple,
     #[serde(with = "serde_bytes")]
     pub _ownerEncSessionKey: Option<Vec<u8>>,
-    pub _ownerGroup: Option<Id>,
+    pub _ownerGroup: Option<GeneratedId>,
     pub _ownerKeyVersion: Option<i64>,
-    pub _permissions: Id,
+    pub _permissions: GeneratedId,
     pub description: String,
     pub title: String,
     pub keywords: Vec<KnowledgeBaseEntryKeyword>,
@@ -1132,7 +1132,7 @@ impl Entity for KnowledgeBaseEntry {
 
 #[derive(uniffi::Record, Clone, Serialize, Deserialize)]
 pub struct KnowledgeBaseEntryKeyword {
-    pub _id: Id,
+    pub _id: GeneratedId,
     pub keyword: String,
 }
 
@@ -1164,9 +1164,9 @@ pub struct Mail {
     pub _id: IdTuple,
     #[serde(with = "serde_bytes")]
     pub _ownerEncSessionKey: Option<Vec<u8>>,
-    pub _ownerGroup: Option<Id>,
+    pub _ownerGroup: Option<GeneratedId>,
     pub _ownerKeyVersion: Option<i64>,
-    pub _permissions: Id,
+    pub _permissions: GeneratedId,
     pub authStatus: Option<i64>,
     pub confidential: bool,
     pub differentEnvelopeSender: Option<String>,
@@ -1184,12 +1184,12 @@ pub struct Mail {
     pub unread: bool,
     pub attachments: Vec<IdTuple>,
     pub bccRecipients: Vec<MailAddress>,
-    pub body: Option<Id>,
+    pub body: Option<GeneratedId>,
     pub bucketKey: Option<sys::BucketKey>,
     pub ccRecipients: Vec<MailAddress>,
     pub conversationEntry: IdTuple,
     pub firstRecipient: Option<MailAddress>,
-    pub headers: Option<Id>,
+    pub headers: Option<GeneratedId>,
     pub mailDetails: Option<IdTuple>,
     pub mailDetailsDraft: Option<IdTuple>,
     pub replyTos: Vec<EncryptedMailAddress>,
@@ -1206,7 +1206,7 @@ impl Entity for Mail {
 
 #[derive(uniffi::Record, Clone, Serialize, Deserialize)]
 pub struct MailAddress {
-    pub _id: Id,
+    pub _id: GeneratedId,
     pub address: String,
     pub name: String,
     pub contact: Option<IdTuple>,
@@ -1221,7 +1221,7 @@ impl Entity for MailAddress {
 
 #[derive(uniffi::Record, Clone, Serialize, Deserialize)]
 pub struct MailAddressProperties {
-    pub _id: Id,
+    pub _id: GeneratedId,
     pub mailAddress: String,
     pub senderName: String,
 }
@@ -1237,13 +1237,13 @@ impl Entity for MailAddressProperties {
 pub struct MailBody {
     pub _area: i64,
     pub _format: i64,
-    pub _id: Id,
-    pub _owner: Id,
+    pub _id: GeneratedId,
+    pub _owner: GeneratedId,
     #[serde(with = "serde_bytes")]
     pub _ownerEncSessionKey: Option<Vec<u8>>,
-    pub _ownerGroup: Option<Id>,
+    pub _ownerGroup: Option<GeneratedId>,
     pub _ownerKeyVersion: Option<i64>,
-    pub _permissions: Id,
+    pub _permissions: GeneratedId,
     pub compressedText: Option<Vec<u8>>,
     pub text: Option<String>,
 }
@@ -1258,18 +1258,18 @@ impl Entity for MailBody {
 #[derive(uniffi::Record, Clone, Serialize, Deserialize)]
 pub struct MailBox {
     pub _format: i64,
-    pub _id: Id,
+    pub _id: GeneratedId,
     #[serde(with = "serde_bytes")]
     pub _ownerEncSessionKey: Option<Vec<u8>>,
-    pub _ownerGroup: Option<Id>,
+    pub _ownerGroup: Option<GeneratedId>,
     pub _ownerKeyVersion: Option<i64>,
-    pub _permissions: Id,
+    pub _permissions: GeneratedId,
     pub lastInfoDate: DateTime,
     pub folders: Option<MailFolderRef>,
     pub mailDetailsDrafts: Option<MailDetailsDraftsRef>,
-    pub mails: Id,
-    pub receivedAttachments: Id,
-    pub sentAttachments: Id,
+    pub mails: GeneratedId,
+    pub receivedAttachments: GeneratedId,
+    pub sentAttachments: GeneratedId,
     pub spamResults: Option<SpamResults>,
 }
 
@@ -1282,7 +1282,7 @@ impl Entity for MailBox {
 
 #[derive(uniffi::Record, Clone, Serialize, Deserialize)]
 pub struct MailDetails {
-    pub _id: Id,
+    pub _id: GeneratedId,
     pub authStatus: i64,
     pub sentDate: DateTime,
     pub body: Body,
@@ -1304,9 +1304,9 @@ pub struct MailDetailsBlob {
     pub _id: IdTuple,
     #[serde(with = "serde_bytes")]
     pub _ownerEncSessionKey: Option<Vec<u8>>,
-    pub _ownerGroup: Option<Id>,
+    pub _ownerGroup: Option<GeneratedId>,
     pub _ownerKeyVersion: Option<i64>,
-    pub _permissions: Id,
+    pub _permissions: GeneratedId,
     pub details: MailDetails,
 }
 
@@ -1323,9 +1323,9 @@ pub struct MailDetailsDraft {
     pub _id: IdTuple,
     #[serde(with = "serde_bytes")]
     pub _ownerEncSessionKey: Option<Vec<u8>>,
-    pub _ownerGroup: Option<Id>,
+    pub _ownerGroup: Option<GeneratedId>,
     pub _ownerKeyVersion: Option<i64>,
-    pub _permissions: Id,
+    pub _permissions: GeneratedId,
     pub details: MailDetails,
 }
 
@@ -1338,8 +1338,8 @@ impl Entity for MailDetailsDraft {
 
 #[derive(uniffi::Record, Clone, Serialize, Deserialize)]
 pub struct MailDetailsDraftsRef {
-    pub _id: Id,
-    pub list: Id,
+    pub _id: GeneratedId,
+    pub list: GeneratedId,
 }
 
 impl Entity for MailDetailsDraftsRef {
@@ -1355,14 +1355,14 @@ pub struct MailFolder {
     pub _id: IdTuple,
     #[serde(with = "serde_bytes")]
     pub _ownerEncSessionKey: Option<Vec<u8>>,
-    pub _ownerGroup: Option<Id>,
+    pub _ownerGroup: Option<GeneratedId>,
     pub _ownerKeyVersion: Option<i64>,
-    pub _permissions: Id,
+    pub _permissions: GeneratedId,
     pub folderType: i64,
     pub name: String,
-    pub mails: Id,
+    pub mails: GeneratedId,
     pub parentFolder: Option<IdTuple>,
-    pub subFolders: Id,
+    pub subFolders: GeneratedId,
 }
 
 impl Entity for MailFolder {
@@ -1374,8 +1374,8 @@ impl Entity for MailFolder {
 
 #[derive(uniffi::Record, Clone, Serialize, Deserialize)]
 pub struct MailFolderRef {
-    pub _id: Id,
-    pub folders: Id,
+    pub _id: GeneratedId,
+    pub folders: GeneratedId,
 }
 
 impl Entity for MailFolderRef {
@@ -1388,12 +1388,12 @@ impl Entity for MailFolderRef {
 #[derive(uniffi::Record, Clone, Serialize, Deserialize)]
 pub struct MailHeaders {
     pub _format: i64,
-    pub _id: Id,
+    pub _id: GeneratedId,
     #[serde(with = "serde_bytes")]
     pub _ownerEncSessionKey: Option<Vec<u8>>,
-    pub _ownerGroup: Option<Id>,
+    pub _ownerGroup: Option<GeneratedId>,
     pub _ownerKeyVersion: Option<i64>,
-    pub _permissions: Id,
+    pub _permissions: GeneratedId,
     pub compressedHeaders: Option<Vec<u8>>,
     pub headers: Option<String>,
 }
@@ -1408,16 +1408,16 @@ impl Entity for MailHeaders {
 #[derive(uniffi::Record, Clone, Serialize, Deserialize)]
 pub struct MailboxGroupRoot {
     pub _format: i64,
-    pub _id: Id,
-    pub _ownerGroup: Option<Id>,
-    pub _permissions: Id,
+    pub _id: GeneratedId,
+    pub _ownerGroup: Option<GeneratedId>,
+    pub _permissions: GeneratedId,
     pub calendarEventUpdates: Option<CalendarEventUpdateList>,
-    pub mailbox: Id,
-    pub mailboxProperties: Option<Id>,
-    pub outOfOfficeNotification: Option<Id>,
+    pub mailbox: GeneratedId,
+    pub mailboxProperties: Option<GeneratedId>,
+    pub outOfOfficeNotification: Option<GeneratedId>,
     pub outOfOfficeNotificationRecipientList: Option<OutOfOfficeNotificationRecipientList>,
-    pub serverProperties: Id,
-    pub whitelistRequests: Id,
+    pub serverProperties: GeneratedId,
+    pub whitelistRequests: GeneratedId,
 }
 
 impl Entity for MailboxGroupRoot {
@@ -1430,12 +1430,12 @@ impl Entity for MailboxGroupRoot {
 #[derive(uniffi::Record, Clone, Serialize, Deserialize)]
 pub struct MailboxProperties {
     pub _format: i64,
-    pub _id: Id,
+    pub _id: GeneratedId,
     #[serde(with = "serde_bytes")]
     pub _ownerEncSessionKey: Option<Vec<u8>>,
-    pub _ownerGroup: Option<Id>,
+    pub _ownerGroup: Option<GeneratedId>,
     pub _ownerKeyVersion: Option<i64>,
-    pub _permissions: Id,
+    pub _permissions: GeneratedId,
     pub reportMovedMails: i64,
     pub mailAddressProperties: Vec<MailAddressProperties>,
 }
@@ -1450,9 +1450,9 @@ impl Entity for MailboxProperties {
 #[derive(uniffi::Record, Clone, Serialize, Deserialize)]
 pub struct MailboxServerProperties {
     pub _format: i64,
-    pub _id: Id,
-    pub _ownerGroup: Option<Id>,
-    pub _permissions: Id,
+    pub _id: GeneratedId,
+    pub _ownerGroup: Option<GeneratedId>,
+    pub _permissions: GeneratedId,
     pub whitelistProtectionEnabled: bool,
 }
 
@@ -1479,7 +1479,7 @@ impl Entity for MoveMailData {
 
 #[derive(uniffi::Record, Clone, Serialize, Deserialize)]
 pub struct NewDraftAttachment {
-    pub _id: Id,
+    pub _id: GeneratedId,
     #[serde(with = "serde_bytes")]
     pub encCid: Option<Vec<u8>>,
     #[serde(with = "serde_bytes")]
@@ -1498,8 +1498,8 @@ impl Entity for NewDraftAttachment {
 
 #[derive(uniffi::Record, Clone, Serialize, Deserialize)]
 pub struct NewsId {
-    pub _id: Id,
-    pub newsItemId: Id,
+    pub _id: GeneratedId,
+    pub newsItemId: GeneratedId,
     pub newsItemName: String,
 }
 
@@ -1513,7 +1513,7 @@ impl Entity for NewsId {
 #[derive(uniffi::Record, Clone, Serialize, Deserialize)]
 pub struct NewsIn {
     pub _format: i64,
-    pub newsItemId: Option<Id>,
+    pub newsItemId: Option<GeneratedId>,
 }
 
 impl Entity for NewsIn {
@@ -1538,7 +1538,7 @@ impl Entity for NewsOut {
 
 #[derive(uniffi::Record, Clone, Serialize, Deserialize)]
 pub struct NotificationMail {
-    pub _id: Id,
+    pub _id: GeneratedId,
     pub bodyText: String,
     pub mailboxLink: String,
     pub recipientMailAddress: String,
@@ -1556,9 +1556,9 @@ impl Entity for NotificationMail {
 #[derive(uniffi::Record, Clone, Serialize, Deserialize)]
 pub struct OutOfOfficeNotification {
     pub _format: i64,
-    pub _id: Id,
-    pub _ownerGroup: Option<Id>,
-    pub _permissions: Id,
+    pub _id: GeneratedId,
+    pub _ownerGroup: Option<GeneratedId>,
+    pub _permissions: GeneratedId,
     pub enabled: bool,
     pub endDate: Option<DateTime>,
     pub startDate: Option<DateTime>,
@@ -1574,7 +1574,7 @@ impl Entity for OutOfOfficeNotification {
 
 #[derive(uniffi::Record, Clone, Serialize, Deserialize)]
 pub struct OutOfOfficeNotificationMessage {
-    pub _id: Id,
+    pub _id: GeneratedId,
     pub message: String,
     pub subject: String,
     #[serde(rename = "type")]
@@ -1590,8 +1590,8 @@ impl Entity for OutOfOfficeNotificationMessage {
 
 #[derive(uniffi::Record, Clone, Serialize, Deserialize)]
 pub struct OutOfOfficeNotificationRecipientList {
-    pub _id: Id,
-    pub list: Id,
+    pub _id: GeneratedId,
+    pub list: GeneratedId,
 }
 
 impl Entity for OutOfOfficeNotificationRecipientList {
@@ -1615,7 +1615,7 @@ impl Entity for PasswordAutoAuthenticationReturn {
 
 #[derive(uniffi::Record, Clone, Serialize, Deserialize)]
 pub struct PasswordChannelPhoneNumber {
-    pub _id: Id,
+    pub _id: GeneratedId,
     pub number: String,
 }
 
@@ -1643,7 +1643,7 @@ impl Entity for PasswordChannelReturn {
 pub struct PasswordMessagingData {
     pub _format: i64,
     pub language: String,
-    pub numberId: Id,
+    pub numberId: GeneratedId,
     #[serde(with = "serde_bytes")]
     pub symKeyForPasswordTransmission: Vec<u8>,
 }
@@ -1658,7 +1658,7 @@ impl Entity for PasswordMessagingData {
 #[derive(uniffi::Record, Clone, Serialize, Deserialize)]
 pub struct PasswordMessagingReturn {
     pub _format: i64,
-    pub autoAuthenticationId: Id,
+    pub autoAuthenticationId: GeneratedId,
 }
 
 impl Entity for PasswordMessagingReturn {
@@ -1671,7 +1671,7 @@ impl Entity for PasswordMessagingReturn {
 #[derive(uniffi::Record, Clone, Serialize, Deserialize)]
 pub struct PhishingMarkerWebsocketData {
     pub _format: i64,
-    pub lastId: Id,
+    pub lastId: GeneratedId,
     pub markers: Vec<ReportedMailFieldMarker>,
 }
 
@@ -1684,8 +1684,8 @@ impl Entity for PhishingMarkerWebsocketData {
 
 #[derive(uniffi::Record, Clone, Serialize, Deserialize)]
 pub struct PhotosRef {
-    pub _id: Id,
-    pub files: Id,
+    pub _id: GeneratedId,
+    pub files: GeneratedId,
 }
 
 impl Entity for PhotosRef {
@@ -1710,7 +1710,7 @@ impl Entity for ReceiveInfoServiceData {
 
 #[derive(uniffi::Record, Clone, Serialize, Deserialize)]
 pub struct Recipients {
-    pub _id: Id,
+    pub _id: GeneratedId,
     pub bccRecipients: Vec<MailAddress>,
     pub ccRecipients: Vec<MailAddress>,
     pub toRecipients: Vec<MailAddress>,
@@ -1727,8 +1727,8 @@ impl Entity for Recipients {
 pub struct RemoteImapSyncInfo {
     pub _format: i64,
     pub _id: IdTuple,
-    pub _ownerGroup: Option<Id>,
-    pub _permissions: Id,
+    pub _ownerGroup: Option<GeneratedId>,
+    pub _permissions: GeneratedId,
     pub seen: bool,
     pub message: IdTuple,
 }
@@ -1758,7 +1758,7 @@ impl Entity for ReportMailPostData {
 
 #[derive(uniffi::Record, Clone, Serialize, Deserialize)]
 pub struct ReportedMailFieldMarker {
-    pub _id: Id,
+    pub _id: GeneratedId,
     pub marker: String,
     pub status: i64,
 }
@@ -1772,7 +1772,7 @@ impl Entity for ReportedMailFieldMarker {
 
 #[derive(uniffi::Record, Clone, Serialize, Deserialize)]
 pub struct SecureExternalRecipientKeyData {
-    pub _id: Id,
+    pub _id: GeneratedId,
     pub autoTransmitPassword: Option<String>,
     pub kdfVersion: i64,
     pub mailAddress: String,
@@ -1842,7 +1842,7 @@ impl Entity for SendDraftReturn {
 
 #[derive(uniffi::Record, Clone, Serialize, Deserialize)]
 pub struct SharedGroupData {
-    pub _id: Id,
+    pub _id: GeneratedId,
     #[serde(with = "serde_bytes")]
     pub bucketEncInvitationSessionKey: Vec<u8>,
     pub capability: i64,
@@ -1852,7 +1852,7 @@ pub struct SharedGroupData {
     pub sessionEncSharedGroupKey: Vec<u8>,
     #[serde(with = "serde_bytes")]
     pub sessionEncSharedGroupName: Vec<u8>,
-    pub sharedGroup: Id,
+    pub sharedGroup: GeneratedId,
     #[serde(with = "serde_bytes")]
     pub sharedGroupEncInviterGroupInfoKey: Vec<u8>,
     #[serde(with = "serde_bytes")]
@@ -1869,8 +1869,8 @@ impl Entity for SharedGroupData {
 
 #[derive(uniffi::Record, Clone, Serialize, Deserialize)]
 pub struct SpamResults {
-    pub _id: Id,
-    pub list: Id,
+    pub _id: GeneratedId,
+    pub list: GeneratedId,
 }
 
 impl Entity for SpamResults {
@@ -1882,8 +1882,8 @@ impl Entity for SpamResults {
 
 #[derive(uniffi::Record, Clone, Serialize, Deserialize)]
 pub struct Subfiles {
-    pub _id: Id,
-    pub files: Id,
+    pub _id: GeneratedId,
+    pub files: GeneratedId,
 }
 
 impl Entity for Subfiles {
@@ -1895,12 +1895,12 @@ impl Entity for Subfiles {
 
 #[derive(uniffi::Record, Clone, Serialize, Deserialize)]
 pub struct SymEncInternalRecipientKeyData {
-    pub _id: Id,
+    pub _id: GeneratedId,
     pub mailAddress: String,
     #[serde(with = "serde_bytes")]
     pub symEncBucketKey: Vec<u8>,
     pub symKeyVersion: i64,
-    pub keyGroup: Id,
+    pub keyGroup: GeneratedId,
 }
 
 impl Entity for SymEncInternalRecipientKeyData {
@@ -1913,14 +1913,14 @@ impl Entity for SymEncInternalRecipientKeyData {
 #[derive(uniffi::Record, Clone, Serialize, Deserialize)]
 pub struct TemplateGroupRoot {
     pub _format: i64,
-    pub _id: Id,
+    pub _id: GeneratedId,
     #[serde(with = "serde_bytes")]
     pub _ownerEncSessionKey: Option<Vec<u8>>,
-    pub _ownerGroup: Option<Id>,
+    pub _ownerGroup: Option<GeneratedId>,
     pub _ownerKeyVersion: Option<i64>,
-    pub _permissions: Id,
-    pub knowledgeBase: Id,
-    pub templates: Id,
+    pub _permissions: GeneratedId,
+    pub knowledgeBase: GeneratedId,
+    pub templates: GeneratedId,
 }
 
 impl Entity for TemplateGroupRoot {
@@ -1960,12 +1960,12 @@ impl Entity for TranslationGetOut {
 #[derive(uniffi::Record, Clone, Serialize, Deserialize)]
 pub struct TutanotaProperties {
     pub _format: i64,
-    pub _id: Id,
+    pub _id: GeneratedId,
     #[serde(with = "serde_bytes")]
     pub _ownerEncSessionKey: Option<Vec<u8>>,
-    pub _ownerGroup: Option<Id>,
+    pub _ownerGroup: Option<GeneratedId>,
     pub _ownerKeyVersion: Option<i64>,
-    pub _permissions: Id,
+    pub _permissions: GeneratedId,
     pub customEmailSignature: String,
     pub defaultSender: Option<String>,
     pub defaultUnconfidential: bool,
@@ -2020,7 +2020,7 @@ impl Entity for UserAccountCreateData {
 
 #[derive(uniffi::Record, Clone, Serialize, Deserialize)]
 pub struct UserAccountUserData {
-    pub _id: Id,
+    pub _id: GeneratedId,
     #[serde(with = "serde_bytes")]
     pub contactEncContactListSessionKey: Vec<u8>,
     #[serde(with = "serde_bytes")]
@@ -2073,7 +2073,7 @@ impl Entity for UserAccountUserData {
 
 #[derive(uniffi::Record, Clone, Serialize, Deserialize)]
 pub struct UserAreaGroupData {
-    pub _id: Id,
+    pub _id: GeneratedId,
     #[serde(with = "serde_bytes")]
     pub adminEncGroupKey: Option<Vec<u8>>,
     pub adminKeyVersion: Option<i64>,
@@ -2087,7 +2087,7 @@ pub struct UserAreaGroupData {
     #[serde(with = "serde_bytes")]
     pub userEncGroupKey: Vec<u8>,
     pub userKeyVersion: i64,
-    pub adminGroup: Option<Id>,
+    pub adminGroup: Option<GeneratedId>,
 }
 
 impl Entity for UserAreaGroupData {
@@ -2100,7 +2100,7 @@ impl Entity for UserAreaGroupData {
 #[derive(uniffi::Record, Clone, Serialize, Deserialize)]
 pub struct UserAreaGroupDeleteData {
     pub _format: i64,
-    pub group: Id,
+    pub group: GeneratedId,
 }
 
 impl Entity for UserAreaGroupDeleteData {
@@ -2126,12 +2126,12 @@ impl Entity for UserAreaGroupPostData {
 #[derive(uniffi::Record, Clone, Serialize, Deserialize)]
 pub struct UserSettingsGroupRoot {
     pub _format: i64,
-    pub _id: Id,
+    pub _id: GeneratedId,
     #[serde(with = "serde_bytes")]
     pub _ownerEncSessionKey: Option<Vec<u8>>,
-    pub _ownerGroup: Option<Id>,
+    pub _ownerGroup: Option<GeneratedId>,
     pub _ownerKeyVersion: Option<i64>,
-    pub _permissions: Id,
+    pub _permissions: GeneratedId,
     pub startOfTheWeek: i64,
     pub timeFormat: i64,
     pub usageDataOptedIn: Option<bool>,
