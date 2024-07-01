@@ -22,9 +22,9 @@ impl TypedEntityClient {
         }
     }
 
-    pub async fn load<T: Entity + Deserialize<'static>>(
+    pub async fn load<T: Entity + Deserialize<'static>, Id: IdType>(
         &self,
-        id: &IdType,
+        id: &Id,
     ) -> Result<T, ApiCallError> {
         let type_model = self.entity_client.get_type_model(&T::type_ref())?;
         if type_model.encrypted {
