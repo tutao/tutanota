@@ -2,8 +2,8 @@
 
 use pqcrypto_kyber::{kyber1024_decapsulate, kyber1024_encapsulate};
 use zeroize::{Zeroize, ZeroizeOnDrop, Zeroizing};
-use crate::util::{decode_byte_arrays, encode_byte_arrays};
-use crate::join_slices;
+use crate::util::{ArrayCastingError, decode_byte_arrays, encode_byte_arrays, array_cast_slice};
+use crate::{join_slices};
 
 use pqcrypto_kyber::kyber1024::PublicKey as PQCryptoKyber1024PublicKey;
 use pqcrypto_kyber::kyber1024::SecretKey as PQCryptoKyber1024SecretKey;
@@ -26,7 +26,7 @@ const KYBER_SECRET_KEY_LEN: usize = 2 * KYBER_POLYVECBYTES + 3 * KYBER_SYMBYTES;
 /// Key used for performing encapsulation, owned by the recipient.
 #[derive(Clone)]
 pub struct KyberPublicKey {
-    public_key: PQCryptoKyber1024PublicKey
+    public_key: PQCryptoKyber1024PublicKey,
 }
 
 impl KyberPublicKey {
@@ -68,7 +68,7 @@ impl KyberPublicKey {
 
         KyberEncapsulation {
             ciphertext: KyberCiphertext(ciphertext.as_bytes().try_into().unwrap()),
-            shared_secret: KyberSharedSecret(shared_secret.as_bytes().try_into().unwrap())
+            shared_secret: KyberSharedSecret(shared_secret.as_bytes().try_into().unwrap()),
         }
     }
 }
@@ -82,7 +82,7 @@ impl From<PQCryptoKyber1024PublicKey> for KyberPublicKey {
 /// Key used for performing decapsulation, owned by the recipient.
 #[derive(Clone)]
 pub struct KyberPrivateKey {
-    private_key: PQCryptoKyber1024SecretKey
+    private_key: PQCryptoKyber1024SecretKey,
 }
 
 impl KyberPrivateKey {
@@ -135,7 +135,7 @@ impl KyberPrivateKey {
     /// Derive the public key.
     pub fn get_public_key(&self) -> KyberPublicKey {
         let bytes = self.private_key.as_bytes();
-        let t_rho = &bytes[KYBER_POLYVECBYTES..KYBER_POLYVECBYTES*2 + KYBER_SYMBYTES];
+        let t_rho = &bytes[KYBER_POLYVECBYTES..KYBER_POLYVECBYTES * 2 + KYBER_SYMBYTES];
         let public_key = PQCryptoKyber1024PublicKey::from_bytes(t_rho).unwrap();
 
         KyberPublicKey { public_key }
@@ -166,21 +166,14 @@ impl From<PQCryptoKyber1024SecretKey> for KyberPrivateKey {
 #[derive(thiserror::Error, Debug)]
 #[error("Invalid Kyber key: {reason}")]
 pub struct KyberKeyError {
-    reason: String
+    reason: String,
 }
 
 /// Error occurred from trying to decapsulate with [`KyberPrivateKey::decapsulate`].
 #[derive(thiserror::Error, Debug)]
 #[error("Decapsulation failure: {reason}")]
 pub struct KyberDecapsulationError {
-    reason: String
-}
-
-/// Error occurred from trying to decapsulate with [`KyberPrivateKey::decapsulate`].
-#[derive(thiserror::Error, Debug)]
-#[error("Incorrect Kyber ciphertext size: {actual_size}")]
-pub struct KyberCiphertextError {
-    actual_size: usize
+    reason: String,
 }
 
 /// Can be used with [`KyberPrivateKey::decapsulate`] to get the shared secret.
@@ -195,18 +188,16 @@ impl KyberCiphertext {
 }
 
 impl TryFrom<&[u8]> for KyberCiphertext {
-    type Error = KyberCiphertextError;
+    type Error = ArrayCastingError;
     fn try_from(value: &[u8]) -> Result<Self, Self::Error> {
-        match value.len() {
-            KYBER_CIPHERTEXT_LEN => Ok(Self(value.try_into().unwrap())),
-            actual_size => Err(KyberCiphertextError { actual_size })
-        }
+        Ok(Self(array_cast_slice(value, "KyberCiphertext")?))
     }
 }
 
 /// Shared secret generated from either [`KyberPublicKey::encapsulate`] or [`KyberPrivateKey::decapsulate`].
 #[derive(Zeroize, ZeroizeOnDrop)]
 pub struct KyberSharedSecret([u8; KYBER_SHARED_SECRET_LEN]);
+
 impl KyberSharedSecret {
     pub fn as_bytes(&self) -> &[u8] {
         self.0.as_slice()
@@ -218,13 +209,13 @@ impl KyberSharedSecret {
 /// The ciphertext can be used with [`KyberPrivateKey::decapsulate`] to get the shared secret.
 pub struct KyberEncapsulation {
     pub ciphertext: KyberCiphertext,
-    pub shared_secret: KyberSharedSecret
+    pub shared_secret: KyberSharedSecret,
 }
 
 #[derive(Clone)]
 pub struct KyberKeyPair {
     pub public_key: KyberPublicKey,
-    pub private_key: KyberPrivateKey
+    pub private_key: KyberPrivateKey,
 }
 
 impl KyberKeyPair {
@@ -233,7 +224,8 @@ impl KyberKeyPair {
         use pqcrypto_kyber::kyber1024_keypair;
         let (kyber_public_key, kyber_private_key) = kyber1024_keypair();
         Self {
-            public_key: kyber_public_key.into(), private_key: kyber_private_key.into()
+            public_key: kyber_public_key.into(),
+            private_key: kyber_private_key.into(),
         }
     }
 }

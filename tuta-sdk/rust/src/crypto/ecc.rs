@@ -1,7 +1,7 @@
 use std::ops::Deref;
 use rand_core::CryptoRngCore;
 use zeroize::*;
-use crate::util::generate_random_bytes;
+use crate::util::{ArrayCastingError, generate_random_bytes, array_cast_slice};
 
 const ECC_KEY_SIZE: usize = 32;
 
@@ -30,11 +30,8 @@ impl EccPrivateKey {
     /// Attempt to convert a slice of bytes into an ECC key.
     ///
     /// Returns `Err` on failure.
-    pub fn from_bytes(bytes: &[u8]) -> Result<Self, EccKeyError> {
-        match bytes.len() {
-            ECC_KEY_SIZE => Ok(Self(bytes.try_into().unwrap())),
-            actual_size => Err(EccKeyError { actual_size })
-        }
+    pub fn from_bytes(bytes: &[u8]) -> Result<Self, ArrayCastingError> {
+        Ok(Self(array_cast_slice(bytes, "EccPrivateKey")?))
     }
 
     fn from_bytes_clamped(bytes: [u8; 32]) -> Self {
@@ -44,7 +41,7 @@ impl EccPrivateKey {
 }
 
 #[derive(ZeroizeOnDrop, Clone)]
-pub struct EccPublicKey([u8; 32]);
+pub struct EccPublicKey([u8; ECC_KEY_SIZE]);
 
 #[derive(Clone)]
 pub struct EccKeyPair {
@@ -73,11 +70,8 @@ impl EccPublicKey {
     /// Attempt to convert a slice of bytes into an ECC key.
     ///
     /// Returns `Err` on failure.
-    pub fn from_bytes(bytes: &[u8]) -> Result<Self, EccKeyError> {
-        match bytes.len() {
-            ECC_KEY_SIZE => Ok(Self(bytes.try_into().unwrap())),
-            actual_size => Err(EccKeyError { actual_size })
-        }
+    pub fn from_bytes(bytes: &[u8]) -> Result<Self, ArrayCastingError> {
+        Ok(Self(array_cast_slice(bytes, "EccPublicKey")?))
     }
 }
 
@@ -88,13 +82,6 @@ impl EccSharedSecret {
     pub fn as_bytes(&self) -> &[u8] {
         self.0.as_slice()
     }
-}
-
-/// The possible errors that can occur while casting to a `EccSharedSecret`
-#[derive(thiserror::Error, Debug)]
-#[error("Invalid ECC key size: {actual_size}")]
-pub struct EccKeyError {
-    actual_size: usize,
 }
 
 /// Describes shared secrets for encrypting/decrypting a message and verifying authenticity.
