@@ -1,0 +1,9 @@
+<resources>
+    <string name="reminder_label">Herinnering</string>
+    <string name="pushNewMail_msg">Nieuwe e-mail ontvangen</string>
+    <string name="notificationSync_msg">Notificaties synchroniseren</string>
+    <string name="scheduleAlarmError_msg">Kon geen alarm instellen. Graag het programma updaten.</string>
+    <string name="wantToSendReport_msg">Er is onverwachts iets verkeerd gegaan. Wilt u een foutrapport verzenden? U kunt een bericht toevoegen om ons te helpen de fout te repareren.</string>
+    <string name="downloadCompleted_msg">Download voltooid</string>
+    <string name="unlockCredentials_action">Gegevens deblokkeren</string>
+</resources>

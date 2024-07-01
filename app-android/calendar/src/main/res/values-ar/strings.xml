@@ -1,0 +1,9 @@
+<resources>
+    <string name="reminder_label">تذكير </string>
+    <string name="pushNewMail_msg">تم تلقي بريد إلكتروني جديد.</string>
+    <string name="notificationSync_msg">مزامنة الإشعارات</string>
+    <string name="scheduleAlarmError_msg">لا يمكن إعداد التنبيه. يرجى تحديث التطبيق.</string>
+    <string name="wantToSendReport_msg">لقد حدث شيء خطأ وغير متوقع. هل تريد إرسال تقرير عن الخطأ؟ يمكنك إضافة رسالة لمساعدتنا في إصلاح هذا الخطأ.</string>
+    <string name="downloadCompleted_msg">اكتملت عملية التنزيل</string>
+    <string name="unlockCredentials_action">إلغاء بيانات الاعتماد</string>
+</resources>

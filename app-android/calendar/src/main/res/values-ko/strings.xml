@@ -1,0 +1,9 @@
+<resources>
+    <string name="reminder_label">다시 알림</string>
+    <string name="pushNewMail_msg">새로운 메일을 받았습니다.</string>
+    <string name="notificationSync_msg">알림 동기화 중</string>
+    <string name="scheduleAlarmError_msg">알람을 설정할 수 없습니다. 애플리케이션을 업데이트 해주세요.</string>
+    <string name="wantToSendReport_msg">예상치 못한 문제가 발생했습니다. 오류 보고서를 보내시겠습니까? 이 오류를 해결하는 데 도움이 되는 메시지를 추가할 수 있습니다.</string>
+    <string name="downloadCompleted_msg">다운로드가 완료되었습니다</string>
+    <string name="unlockCredentials_action">자격 증명 잠금 해제</string>
+</resources>

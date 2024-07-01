@@ -1,0 +1,9 @@
+<resources>
+    <string name="reminder_label">hatırlatıcı</string>
+    <string name="pushNewMail_msg">Yeni e-posta alındı.</string>
+    <string name="notificationSync_msg">Bildirimler senkronize ediliyor</string>
+    <string name="scheduleAlarmError_msg">Alarm kurulamadı. Lütfen uygulamayı güncelleyin.</string>
+    <string name="wantToSendReport_msg">Beklenmedik bir durumla karşı karşıyayız. Hata raporu göndermek istiyor musunuz? Kısa bir açıklama ekleyerek bu hatayı düzeltmeye yardımcı olabilirsiniz. </string>
+    <string name="downloadCompleted_msg">İndirme tamamlandı</string>
+    <string name="unlockCredentials_action">Kimlik bilgilerini çöz</string>
+</resources>

@@ -1,0 +1,9 @@
+<resources>
+    <string name="reminder_label">Påminnelse</string>
+    <string name="pushNewMail_msg">Ny e-post mottatt.</string>
+    <string name="notificationSync_msg">Synkronisering av varsler</string>
+    <string name="scheduleAlarmError_msg">Kunne ikke stille inn en alarm. Oppdater applikasjonen.</string>
+    <string name="wantToSendReport_msg">En uventet feil oppstod. Vil du sende en feilmelding? Du kan legge ved en melding for å hjelpe oss løse denne feilen.</string>
+    <string name="downloadCompleted_msg">Nedlastingen er fullført</string>
+    <string name="unlockCredentials_action">Lås opp opplysninger</string>
+</resources>

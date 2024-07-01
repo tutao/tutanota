@@ -1,0 +1,12 @@
+<resources>
+
+	<!-- Base application dark theme. -->
+	<style name="SplashTheme" parent="Theme.AppCompat.Light.NoActionBar">
+		<item name="android:colorPrimary">@color/green</item>
+		<item name="android:colorPrimaryDark">@color/green</item>
+		<item name="android:windowBackground">@drawable/splash_background</item>
+		<item name="android:statusBarColor">@color/darkLighter</item>
+		<item name="android:windowLightStatusBar">false</item>
+	</style>
+
+</resources>
