@@ -1,5 +1,5 @@
 import o from "@tutao/otest"
-import { Deflater } from "../../../../../src/api/worker/pdf/Deflater.js"
+import { Deflater } from "../../../../../src/common/api/worker/pdf/Deflater.js"
 import pako from "pako"
 
 o.spec("Deflater", function () {

@@ -1,7 +1,7 @@
-import type { Theme, ThemeId, ThemePreference } from "../gui/theme"
+import type { Theme, ThemeId, ThemePreference } from "../common/gui/theme"
 import { DesktopConfig } from "./config/DesktopConfig"
 import { DesktopConfigKey } from "./config/ConfigKeys"
-import { ThemeFacade } from "../native/common/generatedipc/ThemeFacade"
+import { ThemeFacade } from "../common/native/common/generatedipc/ThemeFacade"
 import { WindowManager } from "./DesktopWindowManager"
 import electron from "electron"
 

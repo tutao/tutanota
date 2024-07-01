@@ -13,7 +13,7 @@ import {
 	getListId,
 	listIdPart,
 	stringToCustomId,
-} from "../../../../../src/api/common/utils/EntityUtils.js"
+} from "../../../../../src/common/api/common/utils/EntityUtils.js"
 import { arrayOf, clone, downcast, isSameTypeRef, last, neverNull, TypeRef } from "@tutao/tutanota-utils"
 import {
 	BucketKeyTypeRef,
@@ -26,10 +26,15 @@ import {
 	InstanceSessionKeyTypeRef,
 	PermissionTypeRef,
 	UserTypeRef,
-} from "../../../../../src/api/entities/sys/TypeRefs.js"
-import { EntityRestClient, typeRefToPath } from "../../../../../src/api/worker/rest/EntityRestClient.js"
-import { QueuedBatch } from "../../../../../src/api/worker/EventQueue.js"
-import { CacheStorage, DefaultEntityRestCache, expandId, EXTEND_RANGE_MIN_CHUNK_SIZE } from "../../../../../src/api/worker/rest/DefaultEntityRestCache.js"
+} from "../../../../../src/common/api/entities/sys/TypeRefs.js"
+import { EntityRestClient, typeRefToPath } from "../../../../../src/common/api/worker/rest/EntityRestClient.js"
+import { QueuedBatch } from "../../../../../src/common/api/worker/EventQueue.js"
+import {
+	CacheStorage,
+	DefaultEntityRestCache,
+	expandId,
+	EXTEND_RANGE_MIN_CHUNK_SIZE,
+} from "../../../../../src/common/api/worker/rest/DefaultEntityRestCache.js"
 import {
 	CalendarEventTypeRef,
 	ContactTypeRef,
@@ -38,19 +43,19 @@ import {
 	MailBodyTypeRef,
 	MailDetailsBlobTypeRef,
 	MailTypeRef,
-} from "../../../../../src/api/entities/tutanota/TypeRefs.js"
-import { OfflineStorage } from "../../../../../src/api/worker/offline/OfflineStorage.js"
+} from "../../../../../src/common/api/entities/tutanota/TypeRefs.js"
+import { OfflineStorage } from "../../../../../src/common/api/worker/offline/OfflineStorage.js"
 import { assertThrows, mockAttribute, spy, unmockAttribute, verify } from "@tutao/tutanota-test-utils"
-import { NoZoneDateProvider } from "../../../../../src/api/common/utils/NoZoneDateProvider.js"
-import { RestClient } from "../../../../../src/api/worker/rest/RestClient.js"
-import { NotAuthorizedError, NotFoundError } from "../../../../../src/api/common/error/RestError.js"
-import { EphemeralCacheStorage } from "../../../../../src/api/worker/rest/EphemeralCacheStorage.js"
-import { GroupType, OperationType } from "../../../../../src/api/common/TutanotaConstants.js"
-import { OfflineStorageMigrator } from "../../../../../src/api/worker/offline/OfflineStorageMigrator.js"
-import { createEventElementId } from "../../../../../src/api/common/utils/CommonCalendarUtils.js"
-import { InterWindowEventFacadeSendDispatcher } from "../../../../../src/native/common/generatedipc/InterWindowEventFacadeSendDispatcher.js"
+import { NoZoneDateProvider } from "../../../../../src/common/api/common/utils/NoZoneDateProvider.js"
+import { RestClient } from "../../../../../src/common/api/worker/rest/RestClient.js"
+import { NotAuthorizedError, NotFoundError } from "../../../../../src/common/api/common/error/RestError.js"
+import { EphemeralCacheStorage } from "../../../../../src/common/api/worker/rest/EphemeralCacheStorage.js"
+import { GroupType, OperationType } from "../../../../../src/common/api/common/TutanotaConstants.js"
+import { OfflineStorageMigrator } from "../../../../../src/common/api/worker/offline/OfflineStorageMigrator.js"
+import { createEventElementId } from "../../../../../src/common/api/common/utils/CommonCalendarUtils.js"
+import { InterWindowEventFacadeSendDispatcher } from "../../../../../src/common/native/common/generatedipc/InterWindowEventFacadeSendDispatcher.js"
 import { func, instance, matchers, object, replace, when } from "testdouble"
-import { SqlCipherFacade } from "../../../../../src/native/common/generatedipc/SqlCipherFacade.js"
+import { SqlCipherFacade } from "../../../../../src/common/native/common/generatedipc/SqlCipherFacade.js"
 import { createTestEntity } from "../../../TestUtils.js"
 
 const { anything } = matchers
@@ -58,9 +63,9 @@ const { anything } = matchers
 const offlineDatabaseTestKey = new Uint8Array([3957386659, 354339016, 3786337319, 3366334248])
 
 async function getOfflineStorage(userId: Id): Promise<CacheStorage> {
-	const { PerWindowSqlCipherFacade } = await import("../../../../../src/desktop/db/PerWindowSqlCipherFacade.js")
-	const { OfflineDbRefCounter } = await import("../../../../../src/desktop/db/OfflineDbRefCounter.js")
-	const { DesktopSqlCipher } = await import("../../../../../src/desktop/db/DesktopSqlCipher.js")
+	const { PerWindowSqlCipherFacade } = await import("../../../../../src/common/desktop/db/PerWindowSqlCipherFacade.js")
+	const { OfflineDbRefCounter } = await import("../../../../../src/common/desktop/db/OfflineDbRefCounter.js")
+	const { DesktopSqlCipher } = await import("../../../../../src/common/desktop/db/DesktopSqlCipher.js")
 
 	const odbRefCounter = new OfflineDbRefCounter({
 		async create(userid: string, key: Uint8Array, retry?: boolean): Promise<SqlCipherFacade> {

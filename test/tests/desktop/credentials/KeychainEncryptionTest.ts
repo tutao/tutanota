@@ -1,12 +1,12 @@
 import o from "@tutao/otest"
-import { KeychainEncryption } from "../../../../src/desktop/credentials/KeychainEncryption.js"
+import { KeychainEncryption } from "../../../../src/common/desktop/credentials/KeychainEncryption.js"
 import { object, when } from "testdouble"
-import { AppPassHandler } from "../../../../src/desktop/credentials/AppPassHandler.js"
-import { DesktopNativeCryptoFacade } from "../../../../src/desktop/DesktopNativeCryptoFacade.js"
-import { DesktopKeyStoreFacade } from "../../../../src/desktop/DesktopKeyStoreFacade.js"
-import { CredentialEncryptionMode } from "../../../../src/misc/credentials/CredentialEncryptionMode.js"
+import { AppPassHandler } from "../../../../src/common/desktop/credentials/AppPassHandler.js"
+import { DesktopNativeCryptoFacade } from "../../../../src/common/desktop/DesktopNativeCryptoFacade.js"
+import { DesktopKeyStoreFacade } from "../../../../src/common/desktop/DesktopKeyStoreFacade.js"
+import { CredentialEncryptionMode } from "../../../../src/common/misc/credentials/CredentialEncryptionMode.js"
 import { CryptoError } from "@tutao/tutanota-crypto/error.js"
-import { KeyPermanentlyInvalidatedError } from "../../../../src/api/common/error/KeyPermanentlyInvalidatedError.js"
+import { KeyPermanentlyInvalidatedError } from "../../../../src/common/api/common/error/KeyPermanentlyInvalidatedError.js"
 
 o.spec("KeychainEncryption", () => {
 	let encryption: KeychainEncryption

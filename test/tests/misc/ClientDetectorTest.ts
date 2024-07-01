@@ -1,7 +1,7 @@
 import o from "@tutao/otest"
-import { client } from "../../../src/misc/ClientDetector.js"
-import { Mode } from "../../../src/api/common/Env.js"
-import { BrowserType, DeviceType } from "../../../src/misc/ClientConstants.js"
+import { client } from "../../../src/common/misc/ClientDetector.js"
+import { Mode } from "../../../src/common/api/common/Env.js"
+import { BrowserType, DeviceType } from "../../../src/common/misc/ClientConstants.js"
 
 o.spec("ClientDetector test", function () {
 	o("ClientDetector detect chrome windows", () => {

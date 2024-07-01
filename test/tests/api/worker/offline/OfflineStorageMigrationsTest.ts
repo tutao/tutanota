@@ -1,8 +1,8 @@
 import o from "@tutao/otest"
-import { OfflineStorage } from "../../../../../src/api/worker/offline/OfflineStorage.js"
+import { OfflineStorage } from "../../../../../src/common/api/worker/offline/OfflineStorage.js"
 import { matchers, object, when } from "testdouble"
-import { GiftCard, GiftCardTypeRef } from "../../../../../src/api/entities/sys/TypeRefs.js"
-import { booleanToNumberValue, migrateAllListElements, renameAttribute } from "../../../../../src/api/worker/offline/StandardMigrations.js"
+import { GiftCard, GiftCardTypeRef } from "../../../../../src/common/api/entities/sys/TypeRefs.js"
+import { booleanToNumberValue, migrateAllListElements, renameAttribute } from "../../../../../src/common/api/worker/offline/StandardMigrations.js"
 import { verify } from "@tutao/tutanota-test-utils"
 
 const { anything } = matchers
