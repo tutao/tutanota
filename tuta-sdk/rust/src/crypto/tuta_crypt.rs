@@ -1,17 +1,17 @@
 use rand_core::CryptoRngCore;
 use zeroize::{ZeroizeOnDrop, Zeroizing};
-use crate::crypto::aes::{Aes256Key, aes_256_decrypt, aes_256_encrypt, AesDecryptError, AesEncryptError, AesKeyError, Iv, IvError, PaddingMode};
-use crate::crypto::ecc::{ecc_decapsulate, ecc_encapsulate, EccKeyError, EccKeyPair, EccPublicKey, EccSharedSecrets};
+use crate::crypto::aes::{Aes256Key, aes_256_decrypt, aes_256_encrypt, AesDecryptError, AesEncryptError, Iv, PaddingMode};
+use crate::crypto::ecc::{ecc_decapsulate, ecc_encapsulate, EccKeyPair, EccPublicKey, EccSharedSecrets};
 use crate::crypto::hkdf::hkdf;
-use crate::crypto::kyber::{KyberCiphertext, KyberCiphertextError, KyberDecapsulationError, KyberKeyPair, KyberPublicKey, KyberSharedSecret};
+use crate::crypto::kyber::{KyberCiphertext, KyberDecapsulationError, KyberKeyPair, KyberPublicKey, KyberSharedSecret};
 use crate::join_slices;
-use crate::util::{decode_byte_arrays, encode_byte_arrays};
+use crate::util::{ArrayCastingError, decode_byte_arrays, encode_byte_arrays};
 
 #[derive(ZeroizeOnDrop)]
 pub struct PQMessage {
     sender_identity_public_key: EccPublicKey,
     ephemeral_public_key: EccPublicKey,
-    encapsulation: PQBucketKeyEncapsulation
+    encapsulation: PQBucketKeyEncapsulation,
 }
 
 impl PQMessage {
@@ -20,10 +20,10 @@ impl PQMessage {
     /// Returns `Err` if invalid.
     pub fn deserialize(data: &[u8]) -> Result<PQMessage, PQError> {
         let [
-            sender_identity_pub_key_bytes,
-            ephemeral_pub_key_bytes,
-            kyber_cipher_text_bytes,
-            kek_enc_bucket_key_bytes
+        sender_identity_pub_key_bytes,
+        ephemeral_pub_key_bytes,
+        kyber_cipher_text_bytes,
+        kek_enc_bucket_key_bytes
         ] = decode_byte_arrays(data)
             .map_err(|reason| PQError { reason: format!("Can't deserialize PQBucketKey: {reason}") })?;
 
@@ -37,8 +37,8 @@ impl PQMessage {
             ephemeral_public_key,
             encapsulation: PQBucketKeyEncapsulation {
                 kyber_ciphertext,
-                kek_enc_bucket_key
-            }
+                kek_enc_bucket_key,
+            },
         })
     }
 
@@ -67,7 +67,7 @@ impl PQMessage {
             &self.encapsulation.kyber_ciphertext,
             &kyber_shared_secret,
             &ecc_shared_secret,
-            CryptoProtocolVersion::TutaCrypt
+            CryptoProtocolVersion::TutaCrypt,
         );
 
         let bucket_key = aes_256_decrypt(&kek, &self.encapsulation.kek_enc_bucket_key)?;
@@ -81,8 +81,8 @@ impl PQMessage {
         recipient_ecc_key: &EccPublicKey,
         recipient_kyber_key: &KyberPublicKey,
         bucket_key: &Aes256Key,
-        iv: Iv
-    ) -> Result<Self, PQError>  {
+        iv: Iv,
+    ) -> Result<Self, PQError> {
         let ecc_shared_secret = ecc_encapsulate(&sender_ecc_keypair.private_key, &ephemeral_ecc_keypair.private_key, &recipient_ecc_key);
         let encapsulation = recipient_kyber_key.encapsulate();
 
@@ -94,7 +94,7 @@ impl PQMessage {
             &encapsulation.ciphertext,
             &encapsulation.shared_secret,
             &ecc_shared_secret,
-            CryptoProtocolVersion::TutaCrypt
+            CryptoProtocolVersion::TutaCrypt,
         );
 
         let kek_enc_bucket_key = aes_256_encrypt(&kek, bucket_key.as_bytes(), &iv, PaddingMode::WithPadding)?;
@@ -104,8 +104,8 @@ impl PQMessage {
             ephemeral_public_key: ephemeral_ecc_keypair.public_key.to_owned(),
             encapsulation: PQBucketKeyEncapsulation {
                 kyber_ciphertext: encapsulation.ciphertext,
-                kek_enc_bucket_key
-            }
+                kek_enc_bucket_key,
+            },
         })
     }
 }
@@ -115,7 +115,7 @@ impl PQMessage {
 enum CryptoProtocolVersion {
     RSA = 0,
     SymmetricEncryption = 1,
-    TutaCrypt = 2
+    TutaCrypt = 2,
 }
 
 fn derive_pq_kek(
@@ -126,7 +126,7 @@ fn derive_pq_kek(
     kyber_ciphertext: &KyberCiphertext,
     kyber_shared_secret: &KyberSharedSecret,
     ecc_shared_secrets: &EccSharedSecrets,
-    crypto_protocol_version: CryptoProtocolVersion
+    crypto_protocol_version: CryptoProtocolVersion,
 ) -> Aes256Key {
     let context = Zeroizing::new(join_slices!(
         sender_identity_public_key.as_bytes(),
@@ -150,7 +150,7 @@ fn derive_pq_kek(
 #[derive(Clone)]
 pub struct PQKeyPairs {
     pub ecc_keys: EccKeyPair,
-    pub kyber_keys: KyberKeyPair
+    pub kyber_keys: KyberKeyPair,
 }
 
 impl PQKeyPairs {
@@ -165,29 +165,32 @@ impl PQKeyPairs {
 #[derive(ZeroizeOnDrop)]
 pub struct PQBucketKeyEncapsulation {
     kyber_ciphertext: KyberCiphertext,
-    kek_enc_bucket_key: Vec<u8>
+    kek_enc_bucket_key: Vec<u8>,
 }
 
 /// Error that occurs when parsing RSA keys.
 #[derive(thiserror::Error, Debug)]
 #[error("PQ error: {reason}")]
 pub struct PQError {
-    reason: String
+    reason: String,
 }
 
 trait PQErrorType: ToString {}
+
 impl<T: PQErrorType> From<T> for PQError {
     fn from(reason: T) -> Self {
         Self { reason: reason.to_string() }
     }
 }
-impl PQErrorType for EccKeyError {}
-impl PQErrorType for KyberCiphertextError {}
+
+impl PQErrorType for ArrayCastingError {}
+
 impl PQErrorType for KyberDecapsulationError {}
+
 impl PQErrorType for AesDecryptError {}
+
 impl PQErrorType for AesEncryptError {}
-impl PQErrorType for AesKeyError {}
-impl PQErrorType for IvError {}
+
 
 #[cfg(test)]
 mod tests {
@@ -228,7 +231,7 @@ mod tests {
             let sender_ecc_keypair = ecc_keys;
             let ephemeral_ecc_keypair = EccKeyPair {
                 private_key: EccPrivateKey::from_bytes(&i.epheremal_private_x25519_key).unwrap(),
-                public_key: EccPublicKey::from_bytes(&i.epheremal_public_x25519_key).unwrap()
+                public_key: EccPublicKey::from_bytes(&i.epheremal_public_x25519_key).unwrap(),
             };
 
             let bucket_key = Aes256Key::try_from(i.bucket_key).unwrap();
@@ -240,7 +243,7 @@ mod tests {
                 &ecc_keys.public_key,
                 &kyber_keys.public_key,
                 &bucket_key,
-                iv
+                iv,
             ).unwrap();
 
             // NOTE: This will generally not match the test data, because we cannot inject randomness into Kyber.
@@ -266,7 +269,7 @@ mod tests {
 
         PQKeyPairs {
             ecc_keys: EccKeyPair { public_key: ecc_public, private_key: ecc_private },
-            kyber_keys: KyberKeyPair { public_key: kyber_public, private_key: kyber_private }
+            kyber_keys: KyberKeyPair { public_key: kyber_public, private_key: kyber_private },
         }
     }
 }
