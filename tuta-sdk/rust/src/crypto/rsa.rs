@@ -1,3 +1,4 @@
+use std::ops::Deref;
 use rsa::{BigUint, Oaep};
 use rsa::rand_core::CryptoRngCore;
 use rsa::traits::{PrivateKeyParts, PublicKeyParts};
@@ -54,7 +55,7 @@ pub struct RSAPrivateKey(rsa::RsaPrivateKey);
 #[derive(Clone)]
 pub struct RSAKeyPair {
     pub public_key: RSAPublicKey,
-    pub private_key: RSAPrivateKey
+    pub private_key: RSAPrivateKey,
 }
 
 impl RSAPrivateKey {
@@ -66,7 +67,7 @@ impl RSAPrivateKey {
             BigUint::from_bytes_be(modulus),
             BigUint::new(vec![RSA_PUBLIC_EXPONENT]),
             BigUint::from_bytes_be(private_exponent),
-            vec![BigUint::from_bytes_be(prime_p), BigUint::from_bytes_be(prime_q)]
+            vec![BigUint::from_bytes_be(prime_p), BigUint::from_bytes_be(prime_q)],
         )
             .and_then(|v| {
                 v.validate()?;
@@ -86,8 +87,8 @@ impl RSAPrivateKey {
         // Note: We have to store p-1 and q-1 to ensure we zeroize them later
         let p1 = Zeroizing::new(prime_p - &one);
         let q1 = Zeroizing::new(prime_q - &one);
-        let exponent_p = Zeroizing::new(private_exponent % &*p1);
-        let exponent_q = Zeroizing::new(private_exponent % &*q1);
+        let exponent_p = Zeroizing::new(private_exponent % p1.deref());
+        let exponent_q = Zeroizing::new(private_exponent % q1.deref());
 
         // For efficiently padding to 256 bytes
         let mut zeroes = Vec::with_capacity(256);
@@ -149,13 +150,13 @@ fn decode_nibble_arrays<const SIZE: usize>(arrays: &[u8]) -> Result<[&[u8]; SIZE
 
     for i in 0..SIZE {
         if remaining.len() < 2 {
-            return Err(RSAKeyError { reason: format!("invalid encoded RSA key (only got {i} array(s), expected {SIZE})") })
+            return Err(RSAKeyError { reason: format!("invalid encoded RSA key (only got {i} array(s), expected {SIZE})") });
         }
         let (len_bytes, after) = remaining.split_at(2);
 
         let length = (u16::from_be_bytes(len_bytes.try_into().unwrap()) as usize) / 2;
         if after.len() < length {
-            return Err(RSAKeyError { reason: format!("invalid encoded RSA key (size {length} is too large)") })
+            return Err(RSAKeyError { reason: format!("invalid encoded RSA key (size {length} is too large)") });
         }
         let (arr, new_remaining) = after.split_at(length);
 
@@ -164,7 +165,7 @@ fn decode_nibble_arrays<const SIZE: usize>(arrays: &[u8]) -> Result<[&[u8]; SIZE
     }
 
     if !remaining.is_empty() {
-        return Err(RSAKeyError { reason: format!("extraneous {} byte(s) detected - incorrect size?", remaining.len()) })
+        return Err(RSAKeyError { reason: format!("extraneous {} byte(s) detected - incorrect size?", remaining.len()) });
     }
 
     Ok(result)
@@ -180,7 +181,7 @@ fn encode_nibble_arrays<const SIZE: usize>(arrays: &[&[u8]; SIZE]) -> Result<Vec
     for &i in arrays {
         let len = i.len() * 2;
         if len > u16::MAX as usize {
-            return Err(RSAKeyError { reason: format!("nibble array length {len} exceeds 16-bit limit") })
+            return Err(RSAKeyError { reason: format!("nibble array length {len} exceeds 16-bit limit") });
         }
         expected_size += 2 + i.len();
     }
@@ -198,14 +199,14 @@ fn encode_nibble_arrays<const SIZE: usize>(arrays: &[&[u8]; SIZE]) -> Result<Vec
 #[derive(thiserror::Error, Debug)]
 #[error("RSA error: {reason}")]
 pub struct RSAKeyError {
-    reason: String
+    reason: String,
 }
 
 /// Error that occurs when using rsa encrypt/decrypt.
 #[derive(thiserror::Error, Debug)]
 #[error("RSA error: {reason}")]
 pub struct RSAEncryptionError {
-    reason: String
+    reason: String,
 }
 
 #[cfg(test)]
@@ -254,7 +255,7 @@ mod tests {
     ///
     /// This will panic if not enough bytes have been passed into the random number generator.
     struct SeedBufferRng<'a> {
-        buff: &'a [u8]
+        buff: &'a [u8],
     }
 
     impl<'a> SeedBufferRng<'a> {
