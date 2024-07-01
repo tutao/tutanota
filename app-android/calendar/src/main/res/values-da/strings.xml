@@ -1,0 +1,9 @@
+<resources>
+    <string name="reminder_label">Påmindelse</string>
+    <string name="pushNewMail_msg">Ny e-mail modtaget.</string>
+    <string name="notificationSync_msg">Synkroniserer underretninger</string>
+    <string name="scheduleAlarmError_msg">Kunne ikke opsætte en alarm. Opdatér venligst programmet.</string>
+    <string name="wantToSendReport_msg">Noget uventet gik galt. Vil du sende en fejlrapport? Du kan tilføje en besked for at hjælpe os med at rette op på denne fejl.</string>
+    <string name="downloadCompleted_msg">Download afsluttet</string>
+    <string name="unlockCredentials_action">Lås legitimationsoplysninger op</string>
+</resources>
