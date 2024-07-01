@@ -1,22 +1,29 @@
-import type { Contact, ContactList } from "../api/entities/tutanota/TypeRefs.js"
-import { ContactListGroupRoot, ContactListGroupRootTypeRef, ContactListTypeRef, ContactTypeRef } from "../api/entities/tutanota/TypeRefs.js"
-import { createRestriction, SearchCategoryTypes } from "../../mail-app/search/model/SearchUtils.js"
-import { getFirstOrThrow, isNotNull, LazyLoaded, ofClass, promiseMap } from "@tutao/tutanota-utils"
-import { NotAuthorizedError, NotFoundError } from "../api/common/error/RestError.js"
-import { DbError } from "../api/common/error/DbError.js"
-import { EntityClient, loadMultipleFromLists } from "../api/common/EntityClient.js"
-import type { LoginController } from "../api/main/LoginController.js"
-import { compareOldestFirst, getEtId } from "../api/common/utils/EntityUtils.js"
-import type { SearchFacade } from "../api/worker/search/SearchFacade.js"
 import { assertMainOrNode } from "../api/common/Env.js"
-import { LoginIncompleteError } from "../api/common/error/LoginIncompleteError.js"
-import { cleanMailAddress } from "../api/common/utils/CommonCalendarUtils.js"
 import { Group, GroupInfo, GroupInfoTypeRef, GroupMembership, GroupTypeRef } from "../api/entities/sys/TypeRefs.js"
-import { EntityEventsListener, EventController } from "../api/main/EventController.js"
+import {
+	Contact,
+	ContactList,
+	ContactListGroupRoot,
+	ContactListGroupRootTypeRef,
+	ContactListTypeRef,
+	ContactTypeRef
+} from "../api/entities/tutanota/TypeRefs.js"
+import { getFirstOrThrow, isNotNull, LazyLoaded, ofClass, promiseMap } from "@tutao/tutanota-utils"
 import Stream from "mithril/stream"
 import stream from "mithril/stream"
+import { SearchFacade } from "../api/worker/search/SearchFacade.js"
+import { EntityClient, loadMultipleFromLists } from "../api/common/EntityClient.js"
+import { LoginController } from "../api/main/LoginController.js"
+import { EntityEventsListener, EventController } from "../api/main/EventController.js"
+import { LoginIncompleteError } from "../api/common/error/LoginIncompleteError.js"
+import { cleanMailAddress } from "../api/common/utils/CommonCalendarUtils.js"
+import { createRestriction, SearchCategoryTypes } from "../../mail-app/search/model/SearchUtils.js"
+import { DbError } from "../api/common/error/DbError.js"
+import { compareOldestFirst, getEtId } from "../api/common/utils/EntityUtils.js"
+import { NotAuthorizedError, NotFoundError } from "../api/common/error/RestError.js"
 import { ShareCapability } from "../api/common/TutanotaConstants.js"
 import { EntityUpdateData } from "../api/common/utils/EntityUpdateUtils.js"
+
 
 assertMainOrNode()
 

@@ -1,16 +1,12 @@
 import {
 	Contact,
-	EncryptedMailAddress,
-	InboxRule,
-	Mail,
-	MailDetails,
-	MailFolder,
-	TutanotaProperties,
 	createContact,
 	createContactMailAddress,
 	createEncryptedMailAddress,
-	Header
-} from "../api/entities/tutanota/TypeRefs.js"
+	EncryptedMailAddress, Header, InboxRule,
+	Mail,
+	MailFolder, TutanotaProperties, MailDetails
+} from "../api/entities/tutanota/TypeRefs"
 import {
 	ContactAddressType,
 	ConversationType,
@@ -18,33 +14,28 @@ import {
 	getMailFolderType,
 	GroupType,
 	MailFolderType,
-	MailState,
-	MAX_ATTACHMENT_SIZE,
-	ReplyType,
-	TUTANOTA_MAIL_ADDRESS_DOMAINS,
+	MailState, MAX_ATTACHMENT_SIZE,
+	ReplyType, TUTANOTA_MAIL_ADDRESS_DOMAINS
 } from "../api/common/TutanotaConstants.js"
+import { fullNameToFirstAndLastName, mailAddressToFirstAndLastName } from "../misc/parsing/MailAddressParser.js"
+import { CustomerPropertiesTypeRef, GroupInfo, User } from "../api/entities/sys/TypeRefs.js"
 import { assertNotNull, contains, first, neverNull } from "@tutao/tutanota-utils"
 import { assertMainOrNode, isDesktop } from "../api/common/Env.js"
-import type { LoginController } from "../api/main/LoginController.js"
-import type { Language, TranslationKey } from "../misc/LanguageViewModel.js"
-import { lang } from "../misc/LanguageViewModel.js"
-import { Icons } from "../gui/base/icons/Icons.js"
-import type { MailboxDetail } from "./MailModel.js"
-import { MailModel } from "./MailModel.js"
-import type { AllIcons } from "../gui/base/Icon.js"
-import type { GroupInfo, User } from "../api/entities/sys/TypeRefs.js"
-import { CustomerPropertiesTypeRef } from "../api/entities/sys/TypeRefs.js"
-import type { UserController } from "../api/main/UserController.js"
-import type { EntityClient } from "../api/common/EntityClient.js"
 import { getEnabledMailAddressesForGroupInfo, getGroupInfoDisplayName } from "../api/common/utils/GroupUtils.js"
-import { fullNameToFirstAndLastName, mailAddressToFirstAndLastName } from "../misc/parsing/MailAddressParser.js"
-import type { Attachment } from "./SendMailModel.js"
-import { getListId } from "../api/common/utils/EntityUtils.js"
+import { UserController } from "../api/main/UserController.js"
+import { lang, Language, TranslationKey } from "../misc/LanguageViewModel.js"
+import { AllIcons } from "../gui/base/Icon.js"
+import { Icons } from "../gui/base/icons/Icons.js"
+import { MailboxDetail, MailModel } from "./MailModel.js"
+import { LoginController } from "../api/main/LoginController.js"
+import { EntityClient } from "../api/common/EntityClient.js"
+import { Attachment } from "./SendMailModel.js"
 import { FolderSystem } from "../api/common/mail/FolderSystem.js"
-import { ListFilter } from "../misc/ListModel.js"
+import { getListId } from "../api/common/utils/EntityUtils.js"
 import { MailFacade } from "../api/worker/facades/lazy/MailFacade.js"
-import { ProgrammingError } from "../api/common/error/ProgrammingError.js"
 import { FontIcons } from "../gui/base/icons/FontIcons.js"
+import { ProgrammingError } from "../api/common/error/ProgrammingError.js"
+import { ListFilter } from "../misc/ListModel.js"
 import { isDraft, isSystemNotification } from "../../mail-app/mail/MailUtils.js"
 
 assertMainOrNode()

@@ -1,15 +1,3 @@
-import { ApprovalStatus, ConversationType, MailFolderType, MailMethod, MAX_ATTACHMENT_SIZE, OperationType, ReplyType } from "../api/common/TutanotaConstants.js"
-import {
-	AccessBlockedError,
-	LockedError,
-	NotAuthorizedError,
-	NotFoundError,
-	PayloadTooLargeError,
-	PreconditionFailedError,
-	TooManyRequestsError,
-} from "../api/common/error/RestError.js"
-import { UserError } from "../api/main/UserError.js"
-import { getPasswordStrengthForUser, isSecurePassword, PASSWORD_MIN_SECURE_VALUE } from "../misc/passwords/PasswordUtils.js"
 import {
 	assertNotNull,
 	cleanMatch,
@@ -27,8 +15,8 @@ import {
 	remove,
 	typedValues,
 } from "@tutao/tutanota-utils"
-import type { File as TutanotaFile, Mail, MailboxProperties, MailDetails } from "../api/entities/tutanota/TypeRefs.js"
-import { ContactTypeRef, ConversationEntryTypeRef, File, FileTypeRef, MailboxPropertiesTypeRef, MailTypeRef } from "../api/entities/tutanota/TypeRefs.js"
+import { ContactTypeRef, File as TutanotaFile, Mail, MailboxProperties, MailboxPropertiesTypeRef, MailDetails, FileTypeRef } from "../api/entities/tutanota/TypeRefs.js"
+import {  ConversationEntryTypeRef, MailTypeRef } from "../api/entities/tutanota/TypeRefs.js"
 import { FileNotFoundError } from "../api/common/error/FileNotFoundError.js"
 import type { LoginController } from "../api/main/LoginController.js"
 import type { MailboxDetail, MailModel } from "./MailModel.js"
@@ -36,18 +24,13 @@ import { RecipientNotResolvedError } from "../api/common/error/RecipientNotResol
 import stream from "mithril/stream"
 import Stream from "mithril/stream"
 import { EventController } from "../api/main/EventController.js"
-import { isMailAddress } from "../misc/FormatValidator.js"
-import type { ContactModel } from "../contactsFunctionality/ContactModel.js"
 import type { Language, TranslationKey, TranslationText } from "../misc/LanguageViewModel.js"
 import { getAvailableLanguageCode, getSubstitutedLanguageCode, lang, languages } from "../misc/LanguageViewModel.js"
 import type { UserController } from "../api/main/UserController.js"
 import { RecipientsNotFoundError } from "../api/common/error/RecipientsNotFoundError.js"
 import { checkApprovalStatus } from "../misc/LoginUtils.js"
 import { EntityClient } from "../api/common/EntityClient.js"
-import { getContactDisplayName } from "../contactsFunctionality/ContactUtils.js"
 import { getListId, isSameId, stringToCustomId } from "../api/common/utils/EntityUtils.js"
-import { CustomerPropertiesTypeRef } from "../api/entities/sys/TypeRefs.js"
-import { MailBodyTooLargeError } from "../api/common/error/MailBodyTooLargeError.js"
 import type { MailFacade } from "../api/worker/facades/lazy/MailFacade.js"
 import { assertMainOrNode } from "../api/common/Env.js"
 import { DataFile } from "../api/common/DataFile.js"
@@ -62,7 +45,23 @@ import { ProgrammingError } from "../api/common/error/ProgrammingError.js"
 import { EntityUpdateData, isUpdateForTypeRef } from "../api/common/utils/EntityUpdateUtils.js"
 import { cloneInlineImages, InlineImages, revokeInlineImages } from "./inlineImagesUtils.js"
 import { checkAttachmentSize, getDefaultSender, getTemplateLanguages, isUserEmail, RecipientField } from "./CommonMailUtils.js"
+import { ApprovalStatus, ConversationType, MailFolderType, MailMethod, MAX_ATTACHMENT_SIZE, OperationType, ReplyType } from "../api/common/TutanotaConstants.js"
+import { getPasswordStrengthForUser, isSecurePassword, PASSWORD_MIN_SECURE_VALUE } from "../misc/passwords/PasswordUtils.js"
+import {
+	AccessBlockedError,
+	LockedError, NotAuthorizedError,
+	NotFoundError,
+	PayloadTooLargeError,
+	PreconditionFailedError,
+	TooManyRequestsError
+} from "../api/common/error/RestError.js"
 import { getMailBodyText } from "../../mail-app/mail/MailUtils.js"
+import { UserError } from "../api/main/UserError.js"
+import { MailBodyTooLargeError } from "../api/common/error/MailBodyTooLargeError.js"
+import { CustomerPropertiesTypeRef } from "../api/entities/sys/TypeRefs.js"
+import { isMailAddress } from "../misc/FormatValidator.js"
+import { ContactModel } from "../contactsFunctionality/ContactModel.js"
+import { getContactDisplayName } from "../contactsFunctionality/ContactUtils.js"
 
 assertMainOrNode()
 
