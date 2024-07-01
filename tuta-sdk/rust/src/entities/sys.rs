@@ -1,3648 +1,3754 @@
 #![allow(non_snake_case, unused_imports)]
-
 use super::*;
 use serde::{Serialize, Deserialize};
 
 #[derive(uniffi::Record, Clone, Serialize, Deserialize)]
 pub struct AccountingInfo {
-    pub _format: i64,
-    pub _id: GeneratedId,
-    pub _modified: DateTime,
-    #[serde(with = "serde_bytes")]
-    pub _ownerEncSessionKey: Option<Vec<u8>>,
-    pub _ownerGroup: Option<GeneratedId>,
-    pub _ownerKeyVersion: Option<i64>,
-    pub _permissions: GeneratedId,
-    pub invoiceAddress: String,
-    pub invoiceCountry: Option<String>,
-    pub invoiceName: String,
-    pub invoiceVatIdNo: String,
-    pub lastInvoiceNbrOfSentSms: i64,
-    pub lastInvoiceTimestamp: Option<DateTime>,
-    pub paymentAccountIdentifier: Option<String>,
-    pub paymentInterval: i64,
-    pub paymentMethod: Option<i64>,
-    pub paymentMethodInfo: Option<String>,
-    pub paymentProviderCustomerId: Option<String>,
-    pub paypalBillingAgreement: Option<String>,
-    pub secondCountryInfo: i64,
-    pub invoiceInfo: Option<GeneratedId>,
+	pub _format: i64,
+	pub _id: GeneratedId,
+	pub _modified: DateTime,
+	#[serde(with = "serde_bytes")]
+	pub _ownerEncSessionKey: Option<Vec<u8>>,
+	pub _ownerGroup: Option<GeneratedId>,
+	pub _ownerKeyVersion: Option<i64>,
+	pub _permissions: GeneratedId,
+	pub invoiceAddress: String,
+	pub invoiceCountry: Option<String>,
+	pub invoiceName: String,
+	pub invoiceVatIdNo: String,
+	pub lastInvoiceNbrOfSentSms: i64,
+	pub lastInvoiceTimestamp: Option<DateTime>,
+	pub paymentAccountIdentifier: Option<String>,
+	pub paymentInterval: i64,
+	pub paymentMethod: Option<i64>,
+	pub paymentMethodInfo: Option<String>,
+	pub paymentProviderCustomerId: Option<String>,
+	pub paypalBillingAgreement: Option<String>,
+	pub secondCountryInfo: i64,
+	pub invoiceInfo: Option<GeneratedId>,
 }
 
 impl Entity for AccountingInfo {
-    fn type_ref() -> TypeRef {
-        TypeRef { app: "sys".to_owned(), type_: "AccountingInfo".to_owned() }
-    }
+	fn type_ref() -> TypeRef {
+		TypeRef { app: "sys", type_: "AccountingInfo" }
+	}
 }
 
 
 #[derive(uniffi::Record, Clone, Serialize, Deserialize)]
 pub struct AdminGroupKeyRotationPostIn {
-    pub _format: i64,
-    pub adminGroupKeyData: GroupKeyRotationData,
-    pub userGroupKeyData: UserGroupKeyRotationData,
+	pub _format: i64,
+	pub adminGroupKeyData: GroupKeyRotationData,
+	pub userGroupKeyData: UserGroupKeyRotationData,
 }
 
 impl Entity for AdminGroupKeyRotationPostIn {
-    fn type_ref() -> TypeRef {
-        TypeRef { app: "sys".to_owned(), type_: "AdminGroupKeyRotationPostIn".to_owned() }
-    }
+	fn type_ref() -> TypeRef {
+		TypeRef { app: "sys", type_: "AdminGroupKeyRotationPostIn" }
+	}
 }
 
 
 #[derive(uniffi::Record, Clone, Serialize, Deserialize)]
 pub struct AdministratedGroupsRef {
-    pub _id: GeneratedId,
-    pub items: GeneratedId,
+	pub _id: String,
+	pub items: GeneratedId,
 }
 
 impl Entity for AdministratedGroupsRef {
-    fn type_ref() -> TypeRef {
-        TypeRef { app: "sys".to_owned(), type_: "AdministratedGroupsRef".to_owned() }
-    }
+	fn type_ref() -> TypeRef {
+		TypeRef { app: "sys", type_: "AdministratedGroupsRef" }
+	}
 }
 
 
 #[derive(uniffi::Record, Clone, Serialize, Deserialize)]
 pub struct AlarmInfo {
-    pub _id: GeneratedId,
-    pub alarmIdentifier: String,
-    pub trigger: String,
-    pub calendarRef: CalendarEventRef,
+	pub _id: String,
+	pub alarmIdentifier: String,
+	pub trigger: String,
+	pub calendarRef: CalendarEventRef,
 }
 
 impl Entity for AlarmInfo {
-    fn type_ref() -> TypeRef {
-        TypeRef { app: "sys".to_owned(), type_: "AlarmInfo".to_owned() }
-    }
+	fn type_ref() -> TypeRef {
+		TypeRef { app: "sys", type_: "AlarmInfo" }
+	}
 }
 
 
 #[derive(uniffi::Record, Clone, Serialize, Deserialize)]
 pub struct AlarmNotification {
-    pub _id: GeneratedId,
-    pub eventEnd: DateTime,
-    pub eventStart: DateTime,
-    pub operation: i64,
-    pub summary: String,
-    pub alarmInfo: AlarmInfo,
-    pub notificationSessionKeys: Vec<NotificationSessionKey>,
-    pub repeatRule: Option<RepeatRule>,
-    pub user: GeneratedId,
+	pub _id: String,
+	pub eventEnd: DateTime,
+	pub eventStart: DateTime,
+	pub operation: i64,
+	pub summary: String,
+	pub alarmInfo: AlarmInfo,
+	pub notificationSessionKeys: Vec<NotificationSessionKey>,
+	pub repeatRule: Option<RepeatRule>,
+	pub user: GeneratedId,
 }
 
 impl Entity for AlarmNotification {
-    fn type_ref() -> TypeRef {
-        TypeRef { app: "sys".to_owned(), type_: "AlarmNotification".to_owned() }
-    }
+	fn type_ref() -> TypeRef {
+		TypeRef { app: "sys", type_: "AlarmNotification" }
+	}
 }
 
 
 #[derive(uniffi::Record, Clone, Serialize, Deserialize)]
 pub struct AlarmServicePost {
-    pub _format: i64,
-    pub alarmNotifications: Vec<AlarmNotification>,
+	pub _format: i64,
+	pub alarmNotifications: Vec<AlarmNotification>,
 }
 
 impl Entity for AlarmServicePost {
-    fn type_ref() -> TypeRef {
-        TypeRef { app: "sys".to_owned(), type_: "AlarmServicePost".to_owned() }
-    }
+	fn type_ref() -> TypeRef {
+		TypeRef { app: "sys", type_: "AlarmServicePost" }
+	}
 }
 
 
 #[derive(uniffi::Record, Clone, Serialize, Deserialize)]
 pub struct ArchiveRef {
-    pub _id: GeneratedId,
-    pub archiveId: GeneratedId,
+	pub _id: String,
+	pub archiveId: GeneratedId,
 }
 
 impl Entity for ArchiveRef {
-    fn type_ref() -> TypeRef {
-        TypeRef { app: "sys".to_owned(), type_: "ArchiveRef".to_owned() }
-    }
+	fn type_ref() -> TypeRef {
+		TypeRef { app: "sys", type_: "ArchiveRef" }
+	}
 }
 
 
 #[derive(uniffi::Record, Clone, Serialize, Deserialize)]
 pub struct ArchiveType {
-    pub _id: GeneratedId,
-    pub active: ArchiveRef,
-    pub inactive: Vec<ArchiveRef>,
-    #[serde(rename = "type")]
-    pub r#type: TypeInfo,
+	pub _id: String,
+	pub active: ArchiveRef,
+	pub inactive: Vec<ArchiveRef>,
+	#[serde(rename = "type")]
+	pub r#type: TypeInfo,
 }
 
 impl Entity for ArchiveType {
-    fn type_ref() -> TypeRef {
-        TypeRef { app: "sys".to_owned(), type_: "ArchiveType".to_owned() }
-    }
+	fn type_ref() -> TypeRef {
+		TypeRef { app: "sys", type_: "ArchiveType" }
+	}
 }
 
 
 #[derive(uniffi::Record, Clone, Serialize, Deserialize)]
 pub struct AuditLogEntry {
-    pub _format: i64,
-    pub _id: IdTuple,
-    #[serde(with = "serde_bytes")]
-    pub _ownerEncSessionKey: Option<Vec<u8>>,
-    pub _ownerGroup: Option<GeneratedId>,
-    pub _ownerKeyVersion: Option<i64>,
-    pub _permissions: GeneratedId,
-    pub action: String,
-    pub actorIpAddress: Option<String>,
-    pub actorMailAddress: String,
-    pub date: DateTime,
-    pub modifiedEntity: String,
-    pub groupInfo: Option<IdTuple>,
-    pub modifiedGroupInfo: Option<IdTuple>,
+	pub _format: i64,
+	pub _id: IdTuple,
+	#[serde(with = "serde_bytes")]
+	pub _ownerEncSessionKey: Option<Vec<u8>>,
+	pub _ownerGroup: Option<GeneratedId>,
+	pub _ownerKeyVersion: Option<i64>,
+	pub _permissions: GeneratedId,
+	pub action: String,
+	pub actorIpAddress: Option<String>,
+	pub actorMailAddress: String,
+	pub date: DateTime,
+	pub modifiedEntity: String,
+	pub groupInfo: Option<IdTuple>,
+	pub modifiedGroupInfo: Option<IdTuple>,
 }
 
 impl Entity for AuditLogEntry {
-    fn type_ref() -> TypeRef {
-        TypeRef { app: "sys".to_owned(), type_: "AuditLogEntry".to_owned() }
-    }
+	fn type_ref() -> TypeRef {
+		TypeRef { app: "sys", type_: "AuditLogEntry" }
+	}
 }
 
 
 #[derive(uniffi::Record, Clone, Serialize, Deserialize)]
 pub struct AuditLogRef {
-    pub _id: GeneratedId,
-    pub items: GeneratedId,
+	pub _id: String,
+	pub items: GeneratedId,
 }
 
 impl Entity for AuditLogRef {
-    fn type_ref() -> TypeRef {
-        TypeRef { app: "sys".to_owned(), type_: "AuditLogRef".to_owned() }
-    }
+	fn type_ref() -> TypeRef {
+		TypeRef { app: "sys", type_: "AuditLogRef" }
+	}
 }
 
 
 #[derive(uniffi::Record, Clone, Serialize, Deserialize)]
 pub struct AuthenticatedDevice {
-    pub _id: GeneratedId,
-    pub authType: i64,
-    #[serde(with = "serde_bytes")]
-    pub deviceKey: Vec<u8>,
-    pub deviceToken: String,
+	pub _id: String,
+	pub authType: i64,
+	#[serde(with = "serde_bytes")]
+	pub deviceKey: Vec<u8>,
+	pub deviceToken: String,
 }
 
 impl Entity for AuthenticatedDevice {
-    fn type_ref() -> TypeRef {
-        TypeRef { app: "sys".to_owned(), type_: "AuthenticatedDevice".to_owned() }
-    }
+	fn type_ref() -> TypeRef {
+		TypeRef { app: "sys", type_: "AuthenticatedDevice" }
+	}
 }
 
 
 #[derive(uniffi::Record, Clone, Serialize, Deserialize)]
 pub struct Authentication {
-    pub _id: GeneratedId,
-    pub accessToken: Option<String>,
-    pub authVerifier: Option<String>,
-    pub externalAuthToken: Option<String>,
-    pub userId: GeneratedId,
+	pub _id: String,
+	pub accessToken: Option<String>,
+	pub authVerifier: Option<String>,
+	pub externalAuthToken: Option<String>,
+	pub userId: GeneratedId,
 }
 
 impl Entity for Authentication {
-    fn type_ref() -> TypeRef {
-        TypeRef { app: "sys".to_owned(), type_: "Authentication".to_owned() }
-    }
+	fn type_ref() -> TypeRef {
+		TypeRef { app: "sys", type_: "Authentication" }
+	}
 }
 
 
 #[derive(uniffi::Record, Clone, Serialize, Deserialize)]
 pub struct AutoLoginDataDelete {
-    pub _format: i64,
-    pub deviceToken: String,
+	pub _format: i64,
+	pub deviceToken: String,
 }
 
 impl Entity for AutoLoginDataDelete {
-    fn type_ref() -> TypeRef {
-        TypeRef { app: "sys".to_owned(), type_: "AutoLoginDataDelete".to_owned() }
-    }
+	fn type_ref() -> TypeRef {
+		TypeRef { app: "sys", type_: "AutoLoginDataDelete" }
+	}
 }
 
 
 #[derive(uniffi::Record, Clone, Serialize, Deserialize)]
 pub struct AutoLoginDataGet {
-    pub _format: i64,
-    pub deviceToken: String,
-    pub userId: GeneratedId,
+	pub _format: i64,
+	pub deviceToken: String,
+	pub userId: GeneratedId,
 }
 
 impl Entity for AutoLoginDataGet {
-    fn type_ref() -> TypeRef {
-        TypeRef { app: "sys".to_owned(), type_: "AutoLoginDataGet".to_owned() }
-    }
+	fn type_ref() -> TypeRef {
+		TypeRef { app: "sys", type_: "AutoLoginDataGet" }
+	}
 }
 
 
 #[derive(uniffi::Record, Clone, Serialize, Deserialize)]
 pub struct AutoLoginDataReturn {
-    pub _format: i64,
-    #[serde(with = "serde_bytes")]
-    pub deviceKey: Vec<u8>,
+	pub _format: i64,
+	#[serde(with = "serde_bytes")]
+	pub deviceKey: Vec<u8>,
 }
 
 impl Entity for AutoLoginDataReturn {
-    fn type_ref() -> TypeRef {
-        TypeRef { app: "sys".to_owned(), type_: "AutoLoginDataReturn".to_owned() }
-    }
+	fn type_ref() -> TypeRef {
+		TypeRef { app: "sys", type_: "AutoLoginDataReturn" }
+	}
 }
 
 
 #[derive(uniffi::Record, Clone, Serialize, Deserialize)]
 pub struct AutoLoginPostReturn {
-    pub _format: i64,
-    pub deviceToken: String,
+	pub _format: i64,
+	pub deviceToken: String,
 }
 
 impl Entity for AutoLoginPostReturn {
-    fn type_ref() -> TypeRef {
-        TypeRef { app: "sys".to_owned(), type_: "AutoLoginPostReturn".to_owned() }
-    }
+	fn type_ref() -> TypeRef {
+		TypeRef { app: "sys", type_: "AutoLoginPostReturn" }
+	}
 }
 
 
 #[derive(uniffi::Record, Clone, Serialize, Deserialize)]
 pub struct Blob {
-    pub _id: GeneratedId,
-    pub archiveId: GeneratedId,
-    pub blobId: GeneratedId,
-    pub size: i64,
+	pub _id: String,
+	pub archiveId: GeneratedId,
+	pub blobId: GeneratedId,
+	pub size: i64,
 }
 
 impl Entity for Blob {
-    fn type_ref() -> TypeRef {
-        TypeRef { app: "sys".to_owned(), type_: "Blob".to_owned() }
-    }
+	fn type_ref() -> TypeRef {
+		TypeRef { app: "sys", type_: "Blob" }
+	}
 }
 
 
 #[derive(uniffi::Record, Clone, Serialize, Deserialize)]
 pub struct BlobReferenceTokenWrapper {
-    pub _id: GeneratedId,
-    pub blobReferenceToken: String,
+	pub _id: String,
+	pub blobReferenceToken: String,
 }
 
 impl Entity for BlobReferenceTokenWrapper {
-    fn type_ref() -> TypeRef {
-        TypeRef { app: "sys".to_owned(), type_: "BlobReferenceTokenWrapper".to_owned() }
-    }
+	fn type_ref() -> TypeRef {
+		TypeRef { app: "sys", type_: "BlobReferenceTokenWrapper" }
+	}
 }
 
 
 #[derive(uniffi::Record, Clone, Serialize, Deserialize)]
 pub struct Booking {
-    pub _area: i64,
-    pub _format: i64,
-    pub _id: IdTuple,
-    pub _owner: GeneratedId,
-    pub _ownerGroup: Option<GeneratedId>,
-    pub _permissions: GeneratedId,
-    pub bonusMonth: i64,
-    pub createDate: DateTime,
-    pub endDate: Option<DateTime>,
-    pub paymentInterval: i64,
-    pub paymentMonths: i64,
-    pub items: Vec<BookingItem>,
+	pub _area: i64,
+	pub _format: i64,
+	pub _id: IdTuple,
+	pub _owner: GeneratedId,
+	pub _ownerGroup: Option<GeneratedId>,
+	pub _permissions: GeneratedId,
+	pub bonusMonth: i64,
+	pub createDate: DateTime,
+	pub endDate: Option<DateTime>,
+	pub paymentInterval: i64,
+	pub paymentMonths: i64,
+	pub items: Vec<BookingItem>,
 }
 
 impl Entity for Booking {
-    fn type_ref() -> TypeRef {
-        TypeRef { app: "sys".to_owned(), type_: "Booking".to_owned() }
-    }
+	fn type_ref() -> TypeRef {
+		TypeRef { app: "sys", type_: "Booking" }
+	}
 }
 
 
 #[derive(uniffi::Record, Clone, Serialize, Deserialize)]
 pub struct BookingItem {
-    pub _id: GeneratedId,
-    pub currentCount: i64,
-    pub currentInvoicedCount: i64,
-    pub featureType: i64,
-    pub maxCount: i64,
-    pub price: i64,
-    pub priceType: i64,
-    pub totalInvoicedCount: i64,
+	pub _id: String,
+	pub currentCount: i64,
+	pub currentInvoicedCount: i64,
+	pub featureType: i64,
+	pub maxCount: i64,
+	pub price: i64,
+	pub priceType: i64,
+	pub totalInvoicedCount: i64,
 }
 
 impl Entity for BookingItem {
-    fn type_ref() -> TypeRef {
-        TypeRef { app: "sys".to_owned(), type_: "BookingItem".to_owned() }
-    }
+	fn type_ref() -> TypeRef {
+		TypeRef { app: "sys", type_: "BookingItem" }
+	}
 }
 
 
 #[derive(uniffi::Record, Clone, Serialize, Deserialize)]
 pub struct BookingsRef {
-    pub _id: GeneratedId,
-    pub items: GeneratedId,
+	pub _id: String,
+	pub items: GeneratedId,
 }
 
 impl Entity for BookingsRef {
-    fn type_ref() -> TypeRef {
-        TypeRef { app: "sys".to_owned(), type_: "BookingsRef".to_owned() }
-    }
+	fn type_ref() -> TypeRef {
+		TypeRef { app: "sys", type_: "BookingsRef" }
+	}
 }
 
 
 #[derive(uniffi::Record, Clone, Serialize, Deserialize)]
 pub struct BootstrapFeature {
-    pub _id: GeneratedId,
-    pub feature: i64,
+	pub _id: String,
+	pub feature: i64,
 }
 
 impl Entity for BootstrapFeature {
-    fn type_ref() -> TypeRef {
-        TypeRef { app: "sys".to_owned(), type_: "BootstrapFeature".to_owned() }
-    }
+	fn type_ref() -> TypeRef {
+		TypeRef { app: "sys", type_: "BootstrapFeature" }
+	}
 }
 
 
 #[derive(uniffi::Record, Clone, Serialize, Deserialize)]
 pub struct Braintree3ds2Request {
-    pub _id: GeneratedId,
-    pub bin: String,
-    pub clientToken: String,
-    pub nonce: String,
+	pub _id: String,
+	pub bin: String,
+	pub clientToken: String,
+	pub nonce: String,
 }
 
 impl Entity for Braintree3ds2Request {
-    fn type_ref() -> TypeRef {
-        TypeRef { app: "sys".to_owned(), type_: "Braintree3ds2Request".to_owned() }
-    }
+	fn type_ref() -> TypeRef {
+		TypeRef { app: "sys", type_: "Braintree3ds2Request" }
+	}
 }
 
 
 #[derive(uniffi::Record, Clone, Serialize, Deserialize)]
 pub struct Braintree3ds2Response {
-    pub _id: GeneratedId,
-    pub clientToken: String,
-    pub nonce: String,
+	pub _id: String,
+	pub clientToken: String,
+	pub nonce: String,
 }
 
 impl Entity for Braintree3ds2Response {
-    fn type_ref() -> TypeRef {
-        TypeRef { app: "sys".to_owned(), type_: "Braintree3ds2Response".to_owned() }
-    }
+	fn type_ref() -> TypeRef {
+		TypeRef { app: "sys", type_: "Braintree3ds2Response" }
+	}
 }
 
 
 #[derive(uniffi::Record, Clone, Serialize, Deserialize)]
 pub struct BrandingDomainData {
-    pub _format: i64,
-    pub domain: String,
-    #[serde(with = "serde_bytes")]
-    pub sessionEncPemCertificateChain: Option<Vec<u8>>,
-    #[serde(with = "serde_bytes")]
-    pub sessionEncPemPrivateKey: Option<Vec<u8>>,
-    #[serde(with = "serde_bytes")]
-    pub systemAdminPubEncSessionKey: Vec<u8>,
-    pub systemAdminPubKeyVersion: i64,
-    pub systemAdminPublicProtocolVersion: i64,
+	pub _format: i64,
+	pub domain: String,
+	#[serde(with = "serde_bytes")]
+	pub sessionEncPemCertificateChain: Option<Vec<u8>>,
+	#[serde(with = "serde_bytes")]
+	pub sessionEncPemPrivateKey: Option<Vec<u8>>,
+	#[serde(with = "serde_bytes")]
+	pub systemAdminPubEncSessionKey: Vec<u8>,
+	pub systemAdminPubKeyVersion: i64,
+	pub systemAdminPublicProtocolVersion: i64,
 }
 
 impl Entity for BrandingDomainData {
-    fn type_ref() -> TypeRef {
-        TypeRef { app: "sys".to_owned(), type_: "BrandingDomainData".to_owned() }
-    }
+	fn type_ref() -> TypeRef {
+		TypeRef { app: "sys", type_: "BrandingDomainData" }
+	}
 }
 
 
 #[derive(uniffi::Record, Clone, Serialize, Deserialize)]
 pub struct BrandingDomainDeleteData {
-    pub _format: i64,
-    pub domain: String,
+	pub _format: i64,
+	pub domain: String,
 }
 
 impl Entity for BrandingDomainDeleteData {
-    fn type_ref() -> TypeRef {
-        TypeRef { app: "sys".to_owned(), type_: "BrandingDomainDeleteData".to_owned() }
-    }
+	fn type_ref() -> TypeRef {
+		TypeRef { app: "sys", type_: "BrandingDomainDeleteData" }
+	}
 }
 
 
 #[derive(uniffi::Record, Clone, Serialize, Deserialize)]
 pub struct BrandingDomainGetReturn {
-    pub _format: i64,
-    pub certificateInfo: Option<CertificateInfo>,
+	pub _format: i64,
+	pub certificateInfo: Option<CertificateInfo>,
 }
 
 impl Entity for BrandingDomainGetReturn {
-    fn type_ref() -> TypeRef {
-        TypeRef { app: "sys".to_owned(), type_: "BrandingDomainGetReturn".to_owned() }
-    }
+	fn type_ref() -> TypeRef {
+		TypeRef { app: "sys", type_: "BrandingDomainGetReturn" }
+	}
 }
 
 
 #[derive(uniffi::Record, Clone, Serialize, Deserialize)]
 pub struct Bucket {
-    pub _id: GeneratedId,
-    pub bucketPermissions: GeneratedId,
+	pub _id: String,
+	pub bucketPermissions: GeneratedId,
 }
 
 impl Entity for Bucket {
-    fn type_ref() -> TypeRef {
-        TypeRef { app: "sys".to_owned(), type_: "Bucket".to_owned() }
-    }
+	fn type_ref() -> TypeRef {
+		TypeRef { app: "sys", type_: "Bucket" }
+	}
 }
 
 
 #[derive(uniffi::Record, Clone, Serialize, Deserialize)]
 pub struct BucketKey {
-    pub _id: GeneratedId,
-    #[serde(with = "serde_bytes")]
-    pub groupEncBucketKey: Option<Vec<u8>>,
-    pub protocolVersion: i64,
-    #[serde(with = "serde_bytes")]
-    pub pubEncBucketKey: Option<Vec<u8>>,
-    pub recipientKeyVersion: i64,
-    pub senderKeyVersion: Option<i64>,
-    pub bucketEncSessionKeys: Vec<InstanceSessionKey>,
-    pub keyGroup: Option<GeneratedId>,
+	pub _id: String,
+	#[serde(with = "serde_bytes")]
+	pub groupEncBucketKey: Option<Vec<u8>>,
+	pub protocolVersion: i64,
+	#[serde(with = "serde_bytes")]
+	pub pubEncBucketKey: Option<Vec<u8>>,
+	pub recipientKeyVersion: i64,
+	pub senderKeyVersion: Option<i64>,
+	pub bucketEncSessionKeys: Vec<InstanceSessionKey>,
+	pub keyGroup: Option<GeneratedId>,
 }
 
 impl Entity for BucketKey {
-    fn type_ref() -> TypeRef {
-        TypeRef { app: "sys".to_owned(), type_: "BucketKey".to_owned() }
-    }
+	fn type_ref() -> TypeRef {
+		TypeRef { app: "sys", type_: "BucketKey" }
+	}
 }
 
 
 #[derive(uniffi::Record, Clone, Serialize, Deserialize)]
 pub struct BucketPermission {
-    pub _format: i64,
-    pub _id: IdTuple,
-    pub _ownerGroup: Option<GeneratedId>,
-    pub _permissions: GeneratedId,
-    #[serde(with = "serde_bytes")]
-    pub ownerEncBucketKey: Option<Vec<u8>>,
-    pub ownerKeyVersion: Option<i64>,
-    pub protocolVersion: i64,
-    #[serde(with = "serde_bytes")]
-    pub pubEncBucketKey: Option<Vec<u8>>,
-    pub pubKeyVersion: Option<i64>,
-    pub senderKeyVersion: Option<i64>,
-    #[serde(with = "serde_bytes")]
-    pub symEncBucketKey: Option<Vec<u8>>,
-    pub symKeyVersion: Option<i64>,
-    #[serde(rename = "type")]
-    pub r#type: i64,
-    pub group: GeneratedId,
+	pub _format: i64,
+	pub _id: IdTuple,
+	pub _ownerGroup: Option<GeneratedId>,
+	pub _permissions: GeneratedId,
+	#[serde(with = "serde_bytes")]
+	pub ownerEncBucketKey: Option<Vec<u8>>,
+	pub ownerKeyVersion: Option<i64>,
+	pub protocolVersion: i64,
+	#[serde(with = "serde_bytes")]
+	pub pubEncBucketKey: Option<Vec<u8>>,
+	pub pubKeyVersion: Option<i64>,
+	pub senderKeyVersion: Option<i64>,
+	#[serde(with = "serde_bytes")]
+	pub symEncBucketKey: Option<Vec<u8>>,
+	pub symKeyVersion: Option<i64>,
+	#[serde(rename = "type")]
+	pub r#type: i64,
+	pub group: GeneratedId,
 }
 
 impl Entity for BucketPermission {
-    fn type_ref() -> TypeRef {
-        TypeRef { app: "sys".to_owned(), type_: "BucketPermission".to_owned() }
-    }
+	fn type_ref() -> TypeRef {
+		TypeRef { app: "sys", type_: "BucketPermission" }
+	}
 }
 
 
 #[derive(uniffi::Record, Clone, Serialize, Deserialize)]
 pub struct CalendarEventRef {
-    pub _id: GeneratedId,
-    pub elementId: GeneratedId,
-    pub listId: GeneratedId,
+	pub _id: String,
+	pub elementId: String,
+	pub listId: GeneratedId,
 }
 
 impl Entity for CalendarEventRef {
-    fn type_ref() -> TypeRef {
-        TypeRef { app: "sys".to_owned(), type_: "CalendarEventRef".to_owned() }
-    }
+	fn type_ref() -> TypeRef {
+		TypeRef { app: "sys", type_: "CalendarEventRef" }
+	}
 }
 
 
 #[derive(uniffi::Record, Clone, Serialize, Deserialize)]
 pub struct CertificateInfo {
-    pub _id: GeneratedId,
-    pub expiryDate: Option<DateTime>,
-    pub state: i64,
-    #[serde(rename = "type")]
-    pub r#type: i64,
-    pub certificate: Option<GeneratedId>,
+	pub _id: String,
+	pub expiryDate: Option<DateTime>,
+	pub state: i64,
+	#[serde(rename = "type")]
+	pub r#type: i64,
+	pub certificate: Option<GeneratedId>,
 }
 
 impl Entity for CertificateInfo {
-    fn type_ref() -> TypeRef {
-        TypeRef { app: "sys".to_owned(), type_: "CertificateInfo".to_owned() }
-    }
+	fn type_ref() -> TypeRef {
+		TypeRef { app: "sys", type_: "CertificateInfo" }
+	}
 }
 
 
 #[derive(uniffi::Record, Clone, Serialize, Deserialize)]
 pub struct Challenge {
-    pub _id: GeneratedId,
-    #[serde(rename = "type")]
-    pub r#type: i64,
-    pub otp: Option<OtpChallenge>,
-    pub u2f: Option<U2fChallenge>,
+	pub _id: String,
+	#[serde(rename = "type")]
+	pub r#type: i64,
+	pub otp: Option<OtpChallenge>,
+	pub u2f: Option<U2fChallenge>,
 }
 
 impl Entity for Challenge {
-    fn type_ref() -> TypeRef {
-        TypeRef { app: "sys".to_owned(), type_: "Challenge".to_owned() }
-    }
+	fn type_ref() -> TypeRef {
+		TypeRef { app: "sys", type_: "Challenge" }
+	}
 }
 
 
 #[derive(uniffi::Record, Clone, Serialize, Deserialize)]
 pub struct ChangeKdfPostIn {
-    pub _format: i64,
-    pub kdfVersion: i64,
-    #[serde(with = "serde_bytes")]
-    pub oldVerifier: Vec<u8>,
-    #[serde(with = "serde_bytes")]
-    pub pwEncUserGroupKey: Vec<u8>,
-    #[serde(with = "serde_bytes")]
-    pub salt: Vec<u8>,
-    #[serde(with = "serde_bytes")]
-    pub verifier: Vec<u8>,
+	pub _format: i64,
+	pub kdfVersion: i64,
+	#[serde(with = "serde_bytes")]
+	pub oldVerifier: Vec<u8>,
+	#[serde(with = "serde_bytes")]
+	pub pwEncUserGroupKey: Vec<u8>,
+	#[serde(with = "serde_bytes")]
+	pub salt: Vec<u8>,
+	pub userGroupKeyVersion: i64,
+	#[serde(with = "serde_bytes")]
+	pub verifier: Vec<u8>,
 }
 
 impl Entity for ChangeKdfPostIn {
-    fn type_ref() -> TypeRef {
-        TypeRef { app: "sys".to_owned(), type_: "ChangeKdfPostIn".to_owned() }
-    }
+	fn type_ref() -> TypeRef {
+		TypeRef { app: "sys", type_: "ChangeKdfPostIn" }
+	}
 }
 
 
 #[derive(uniffi::Record, Clone, Serialize, Deserialize)]
-pub struct ChangePasswordData {
-    pub _format: i64,
-    pub code: Option<String>,
-    pub kdfVersion: i64,
-    #[serde(with = "serde_bytes")]
-    pub oldVerifier: Option<Vec<u8>>,
-    #[serde(with = "serde_bytes")]
-    pub pwEncUserGroupKey: Vec<u8>,
-    #[serde(with = "serde_bytes")]
-    pub recoverCodeVerifier: Option<Vec<u8>>,
-    #[serde(with = "serde_bytes")]
-    pub salt: Vec<u8>,
-    #[serde(with = "serde_bytes")]
-    pub verifier: Vec<u8>,
+pub struct ChangePasswordPostIn {
+	pub _format: i64,
+	pub code: Option<String>,
+	pub kdfVersion: i64,
+	#[serde(with = "serde_bytes")]
+	pub oldVerifier: Option<Vec<u8>>,
+	#[serde(with = "serde_bytes")]
+	pub pwEncUserGroupKey: Vec<u8>,
+	#[serde(with = "serde_bytes")]
+	pub recoverCodeVerifier: Option<Vec<u8>>,
+	#[serde(with = "serde_bytes")]
+	pub salt: Vec<u8>,
+	pub userGroupKeyVersion: i64,
+	#[serde(with = "serde_bytes")]
+	pub verifier: Vec<u8>,
 }
 
-impl Entity for ChangePasswordData {
-    fn type_ref() -> TypeRef {
-        TypeRef { app: "sys".to_owned(), type_: "ChangePasswordData".to_owned() }
-    }
+impl Entity for ChangePasswordPostIn {
+	fn type_ref() -> TypeRef {
+		TypeRef { app: "sys", type_: "ChangePasswordPostIn" }
+	}
 }
 
 
 #[derive(uniffi::Record, Clone, Serialize, Deserialize)]
 pub struct Chat {
-    pub _id: GeneratedId,
-    pub recipient: GeneratedId,
-    pub sender: GeneratedId,
-    pub text: String,
+	pub _id: String,
+	pub recipient: GeneratedId,
+	pub sender: GeneratedId,
+	pub text: String,
 }
 
 impl Entity for Chat {
-    fn type_ref() -> TypeRef {
-        TypeRef { app: "sys".to_owned(), type_: "Chat".to_owned() }
-    }
+	fn type_ref() -> TypeRef {
+		TypeRef { app: "sys", type_: "Chat" }
+	}
 }
 
 
 #[derive(uniffi::Record, Clone, Serialize, Deserialize)]
 pub struct CloseSessionServicePost {
-    pub _format: i64,
-    pub accessToken: String,
-    pub sessionId: IdTuple,
+	pub _format: i64,
+	pub accessToken: String,
+	pub sessionId: IdTuple,
 }
 
 impl Entity for CloseSessionServicePost {
-    fn type_ref() -> TypeRef {
-        TypeRef { app: "sys".to_owned(), type_: "CloseSessionServicePost".to_owned() }
-    }
+	fn type_ref() -> TypeRef {
+		TypeRef { app: "sys", type_: "CloseSessionServicePost" }
+	}
 }
 
 
 #[derive(uniffi::Record, Clone, Serialize, Deserialize)]
 pub struct CreateCustomerServerPropertiesData {
-    pub _format: i64,
-    #[serde(with = "serde_bytes")]
-    pub adminGroupEncSessionKey: Vec<u8>,
-    pub adminGroupKeyVersion: i64,
+	pub _format: i64,
+	#[serde(with = "serde_bytes")]
+	pub adminGroupEncSessionKey: Vec<u8>,
+	pub adminGroupKeyVersion: i64,
 }
 
 impl Entity for CreateCustomerServerPropertiesData {
-    fn type_ref() -> TypeRef {
-        TypeRef { app: "sys".to_owned(), type_: "CreateCustomerServerPropertiesData".to_owned() }
-    }
+	fn type_ref() -> TypeRef {
+		TypeRef { app: "sys", type_: "CreateCustomerServerPropertiesData" }
+	}
 }
 
 
 #[derive(uniffi::Record, Clone, Serialize, Deserialize)]
 pub struct CreateCustomerServerPropertiesReturn {
-    pub _format: i64,
-    pub id: GeneratedId,
+	pub _format: i64,
+	pub id: GeneratedId,
 }
 
 impl Entity for CreateCustomerServerPropertiesReturn {
-    fn type_ref() -> TypeRef {
-        TypeRef { app: "sys".to_owned(), type_: "CreateCustomerServerPropertiesReturn".to_owned() }
-    }
+	fn type_ref() -> TypeRef {
+		TypeRef { app: "sys", type_: "CreateCustomerServerPropertiesReturn" }
+	}
 }
 
 
 #[derive(uniffi::Record, Clone, Serialize, Deserialize)]
 pub struct CreateSessionData {
-    pub _format: i64,
-    #[serde(with = "serde_bytes")]
-    pub accessKey: Option<Vec<u8>>,
-    pub authToken: Option<String>,
-    pub authVerifier: Option<String>,
-    pub clientIdentifier: String,
-    pub mailAddress: Option<String>,
-    pub recoverCodeVerifier: Option<String>,
-    pub user: Option<GeneratedId>,
+	pub _format: i64,
+	#[serde(with = "serde_bytes")]
+	pub accessKey: Option<Vec<u8>>,
+	pub authToken: Option<String>,
+	pub authVerifier: Option<String>,
+	pub clientIdentifier: String,
+	pub mailAddress: Option<String>,
+	pub recoverCodeVerifier: Option<String>,
+	pub user: Option<GeneratedId>,
 }
 
 impl Entity for CreateSessionData {
-    fn type_ref() -> TypeRef {
-        TypeRef { app: "sys".to_owned(), type_: "CreateSessionData".to_owned() }
-    }
+	fn type_ref() -> TypeRef {
+		TypeRef { app: "sys", type_: "CreateSessionData" }
+	}
 }
 
 
 #[derive(uniffi::Record, Clone, Serialize, Deserialize)]
 pub struct CreateSessionReturn {
-    pub _format: i64,
-    pub accessToken: String,
-    pub challenges: Vec<Challenge>,
-    pub user: GeneratedId,
+	pub _format: i64,
+	pub accessToken: String,
+	pub challenges: Vec<Challenge>,
+	pub user: GeneratedId,
 }
 
 impl Entity for CreateSessionReturn {
-    fn type_ref() -> TypeRef {
-        TypeRef { app: "sys".to_owned(), type_: "CreateSessionReturn".to_owned() }
-    }
+	fn type_ref() -> TypeRef {
+		TypeRef { app: "sys", type_: "CreateSessionReturn" }
+	}
 }
 
 
 #[derive(uniffi::Record, Clone, Serialize, Deserialize)]
 pub struct CreditCard {
-    pub _id: GeneratedId,
-    pub cardHolderName: String,
-    pub cvv: String,
-    pub expirationMonth: String,
-    pub expirationYear: String,
-    pub number: String,
+	pub _id: String,
+	pub cardHolderName: String,
+	pub cvv: String,
+	pub expirationMonth: String,
+	pub expirationYear: String,
+	pub number: String,
 }
 
 impl Entity for CreditCard {
-    fn type_ref() -> TypeRef {
-        TypeRef { app: "sys".to_owned(), type_: "CreditCard".to_owned() }
-    }
+	fn type_ref() -> TypeRef {
+		TypeRef { app: "sys", type_: "CreditCard" }
+	}
 }
 
 
 #[derive(uniffi::Record, Clone, Serialize, Deserialize)]
 pub struct CustomDomainCheckGetIn {
-    pub _format: i64,
-    pub domain: String,
-    pub customer: Option<GeneratedId>,
+	pub _format: i64,
+	pub domain: String,
+	pub customer: Option<GeneratedId>,
 }
 
 impl Entity for CustomDomainCheckGetIn {
-    fn type_ref() -> TypeRef {
-        TypeRef { app: "sys".to_owned(), type_: "CustomDomainCheckGetIn".to_owned() }
-    }
+	fn type_ref() -> TypeRef {
+		TypeRef { app: "sys", type_: "CustomDomainCheckGetIn" }
+	}
 }
 
 
 #[derive(uniffi::Record, Clone, Serialize, Deserialize)]
 pub struct CustomDomainCheckGetOut {
-    pub _format: i64,
-    pub checkResult: i64,
-    pub invalidRecords: Vec<DnsRecord>,
-    pub missingRecords: Vec<DnsRecord>,
-    pub requiredRecords: Vec<DnsRecord>,
+	pub _format: i64,
+	pub checkResult: i64,
+	pub invalidRecords: Vec<DnsRecord>,
+	pub missingRecords: Vec<DnsRecord>,
+	pub requiredRecords: Vec<DnsRecord>,
 }
 
 impl Entity for CustomDomainCheckGetOut {
-    fn type_ref() -> TypeRef {
-        TypeRef { app: "sys".to_owned(), type_: "CustomDomainCheckGetOut".to_owned() }
-    }
+	fn type_ref() -> TypeRef {
+		TypeRef { app: "sys", type_: "CustomDomainCheckGetOut" }
+	}
 }
 
 
 #[derive(uniffi::Record, Clone, Serialize, Deserialize)]
 pub struct CustomDomainData {
-    pub _format: i64,
-    pub domain: String,
-    pub catchAllMailGroup: Option<GeneratedId>,
+	pub _format: i64,
+	pub domain: String,
+	pub catchAllMailGroup: Option<GeneratedId>,
 }
 
 impl Entity for CustomDomainData {
-    fn type_ref() -> TypeRef {
-        TypeRef { app: "sys".to_owned(), type_: "CustomDomainData".to_owned() }
-    }
+	fn type_ref() -> TypeRef {
+		TypeRef { app: "sys", type_: "CustomDomainData" }
+	}
 }
 
 
 #[derive(uniffi::Record, Clone, Serialize, Deserialize)]
 pub struct CustomDomainReturn {
-    pub _format: i64,
-    pub validationResult: i64,
-    pub invalidDnsRecords: Vec<StringWrapper>,
+	pub _format: i64,
+	pub validationResult: i64,
+	pub invalidDnsRecords: Vec<StringWrapper>,
 }
 
 impl Entity for CustomDomainReturn {
-    fn type_ref() -> TypeRef {
-        TypeRef { app: "sys".to_owned(), type_: "CustomDomainReturn".to_owned() }
-    }
+	fn type_ref() -> TypeRef {
+		TypeRef { app: "sys", type_: "CustomDomainReturn" }
+	}
 }
 
 
 #[derive(uniffi::Record, Clone, Serialize, Deserialize)]
 pub struct Customer {
-    pub _format: i64,
-    pub _id: GeneratedId,
-    pub _ownerGroup: Option<GeneratedId>,
-    pub _permissions: GeneratedId,
-    pub approvalStatus: i64,
-    pub businessUse: bool,
-    pub orderProcessingAgreementNeeded: bool,
-    #[serde(rename = "type")]
-    pub r#type: i64,
-    pub adminGroup: GeneratedId,
-    pub adminGroups: GeneratedId,
-    pub auditLog: Option<AuditLogRef>,
-    pub customerGroup: GeneratedId,
-    pub customerGroups: GeneratedId,
-    pub customerInfo: IdTuple,
-    pub customizations: Vec<Feature>,
-    pub orderProcessingAgreement: Option<IdTuple>,
-    pub properties: Option<GeneratedId>,
-    pub referralCode: Option<GeneratedId>,
-    pub rejectedSenders: Option<RejectedSendersRef>,
-    pub serverProperties: Option<GeneratedId>,
-    pub teamGroups: GeneratedId,
-    pub userAreaGroups: Option<UserAreaGroups>,
-    pub userGroups: GeneratedId,
-    pub whitelabelChildren: Option<WhitelabelChildrenRef>,
-    pub whitelabelParent: Option<WhitelabelParent>,
+	pub _format: i64,
+	pub _id: GeneratedId,
+	pub _ownerGroup: Option<GeneratedId>,
+	pub _permissions: GeneratedId,
+	pub approvalStatus: i64,
+	pub businessUse: bool,
+	pub orderProcessingAgreementNeeded: bool,
+	#[serde(rename = "type")]
+	pub r#type: i64,
+	pub adminGroup: GeneratedId,
+	pub adminGroups: GeneratedId,
+	pub auditLog: Option<AuditLogRef>,
+	pub customerGroup: GeneratedId,
+	pub customerGroups: GeneratedId,
+	pub customerInfo: IdTuple,
+	pub customizations: Vec<Feature>,
+	pub orderProcessingAgreement: Option<IdTuple>,
+	pub properties: Option<GeneratedId>,
+	pub referralCode: Option<GeneratedId>,
+	pub rejectedSenders: Option<RejectedSendersRef>,
+	pub serverProperties: Option<GeneratedId>,
+	pub teamGroups: GeneratedId,
+	pub userAreaGroups: Option<UserAreaGroups>,
+	pub userGroups: GeneratedId,
+	pub whitelabelChildren: Option<WhitelabelChildrenRef>,
+	pub whitelabelParent: Option<WhitelabelParent>,
 }
 
 impl Entity for Customer {
-    fn type_ref() -> TypeRef {
-        TypeRef { app: "sys".to_owned(), type_: "Customer".to_owned() }
-    }
+	fn type_ref() -> TypeRef {
+		TypeRef { app: "sys", type_: "Customer" }
+	}
 }
 
 
 #[derive(uniffi::Record, Clone, Serialize, Deserialize)]
 pub struct CustomerAccountTerminationPostIn {
-    pub _format: i64,
-    pub terminationDate: Option<DateTime>,
-    pub surveyData: Option<SurveyData>,
+	pub _format: i64,
+	pub terminationDate: Option<DateTime>,
+	pub surveyData: Option<SurveyData>,
 }
 
 impl Entity for CustomerAccountTerminationPostIn {
-    fn type_ref() -> TypeRef {
-        TypeRef { app: "sys".to_owned(), type_: "CustomerAccountTerminationPostIn".to_owned() }
-    }
+	fn type_ref() -> TypeRef {
+		TypeRef { app: "sys", type_: "CustomerAccountTerminationPostIn" }
+	}
 }
 
 
 #[derive(uniffi::Record, Clone, Serialize, Deserialize)]
 pub struct CustomerAccountTerminationPostOut {
-    pub _format: i64,
-    pub terminationRequest: IdTuple,
+	pub _format: i64,
+	pub terminationRequest: IdTuple,
 }
 
 impl Entity for CustomerAccountTerminationPostOut {
-    fn type_ref() -> TypeRef {
-        TypeRef { app: "sys".to_owned(), type_: "CustomerAccountTerminationPostOut".to_owned() }
-    }
+	fn type_ref() -> TypeRef {
+		TypeRef { app: "sys", type_: "CustomerAccountTerminationPostOut" }
+	}
 }
 
 
 #[derive(uniffi::Record, Clone, Serialize, Deserialize)]
 pub struct CustomerAccountTerminationRequest {
-    pub _format: i64,
-    pub _id: IdTuple,
-    pub _ownerGroup: Option<GeneratedId>,
-    pub _permissions: GeneratedId,
-    pub terminationDate: DateTime,
-    pub terminationRequestDate: DateTime,
-    pub customer: GeneratedId,
+	pub _format: i64,
+	pub _id: IdTuple,
+	pub _ownerGroup: Option<GeneratedId>,
+	pub _permissions: GeneratedId,
+	pub terminationDate: DateTime,
+	pub terminationRequestDate: DateTime,
+	pub customer: GeneratedId,
 }
 
 impl Entity for CustomerAccountTerminationRequest {
-    fn type_ref() -> TypeRef {
-        TypeRef { app: "sys".to_owned(), type_: "CustomerAccountTerminationRequest".to_owned() }
-    }
+	fn type_ref() -> TypeRef {
+		TypeRef { app: "sys", type_: "CustomerAccountTerminationRequest" }
+	}
 }
 
 
 #[derive(uniffi::Record, Clone, Serialize, Deserialize)]
 pub struct CustomerInfo {
-    pub _format: i64,
-    pub _id: IdTuple,
-    pub _ownerGroup: Option<GeneratedId>,
-    pub _permissions: GeneratedId,
-    pub activationTime: Option<DateTime>,
-    pub company: Option<String>,
-    pub creationTime: DateTime,
-    pub deletionReason: Option<String>,
-    pub deletionTime: Option<DateTime>,
-    pub domain: String,
-    pub erased: bool,
-    pub includedEmailAliases: i64,
-    pub includedStorageCapacity: i64,
-    pub perUserAliasCount: i64,
-    pub perUserStorageCapacity: i64,
-    pub plan: i64,
-    pub promotionEmailAliases: i64,
-    pub promotionStorageCapacity: i64,
-    pub registrationMailAddress: String,
-    pub source: String,
-    pub testEndTime: Option<DateTime>,
-    pub usedSharedEmailAliases: i64,
-    pub accountingInfo: GeneratedId,
-    pub bookings: Option<BookingsRef>,
-    pub customPlan: Option<PlanConfiguration>,
-    pub customer: GeneratedId,
-    pub domainInfos: Vec<DomainInfo>,
-    pub giftCards: Option<GiftCardsRef>,
-    pub referredBy: Option<GeneratedId>,
-    pub supportInfo: Option<GeneratedId>,
-    pub takeoverCustomer: Option<GeneratedId>,
-    pub terminationRequest: Option<IdTuple>,
+	pub _format: i64,
+	pub _id: IdTuple,
+	pub _ownerGroup: Option<GeneratedId>,
+	pub _permissions: GeneratedId,
+	pub activationTime: Option<DateTime>,
+	pub company: Option<String>,
+	pub creationTime: DateTime,
+	pub deletionReason: Option<String>,
+	pub deletionTime: Option<DateTime>,
+	pub domain: String,
+	pub erased: bool,
+	pub includedEmailAliases: i64,
+	pub includedStorageCapacity: i64,
+	pub perUserAliasCount: i64,
+	pub perUserStorageCapacity: i64,
+	pub plan: i64,
+	pub promotionEmailAliases: i64,
+	pub promotionStorageCapacity: i64,
+	pub registrationMailAddress: String,
+	pub source: String,
+	pub testEndTime: Option<DateTime>,
+	pub usedSharedEmailAliases: i64,
+	pub accountingInfo: GeneratedId,
+	pub bookings: Option<BookingsRef>,
+	pub customPlan: Option<PlanConfiguration>,
+	pub customer: GeneratedId,
+	pub domainInfos: Vec<DomainInfo>,
+	pub giftCards: Option<GiftCardsRef>,
+	pub referredBy: Option<GeneratedId>,
+	pub supportInfo: Option<GeneratedId>,
+	pub takeoverCustomer: Option<GeneratedId>,
+	pub terminationRequest: Option<IdTuple>,
 }
 
 impl Entity for CustomerInfo {
-    fn type_ref() -> TypeRef {
-        TypeRef { app: "sys".to_owned(), type_: "CustomerInfo".to_owned() }
-    }
+	fn type_ref() -> TypeRef {
+		TypeRef { app: "sys", type_: "CustomerInfo" }
+	}
 }
 
 
 #[derive(uniffi::Record, Clone, Serialize, Deserialize)]
 pub struct CustomerProperties {
-    pub _format: i64,
-    pub _id: GeneratedId,
-    pub _ownerGroup: Option<GeneratedId>,
-    pub _permissions: GeneratedId,
-    pub externalUserWelcomeMessage: String,
-    pub lastUpgradeReminder: Option<DateTime>,
-    pub usageDataOptedOut: bool,
-    pub bigLogo: Option<File>,
-    pub notificationMailTemplates: Vec<NotificationMailTemplate>,
-    pub smallLogo: Option<File>,
+	pub _format: i64,
+	pub _id: GeneratedId,
+	pub _ownerGroup: Option<GeneratedId>,
+	pub _permissions: GeneratedId,
+	pub externalUserWelcomeMessage: String,
+	pub lastUpgradeReminder: Option<DateTime>,
+	pub usageDataOptedOut: bool,
+	pub bigLogo: Option<File>,
+	pub notificationMailTemplates: Vec<NotificationMailTemplate>,
+	pub smallLogo: Option<File>,
 }
 
 impl Entity for CustomerProperties {
-    fn type_ref() -> TypeRef {
-        TypeRef { app: "sys".to_owned(), type_: "CustomerProperties".to_owned() }
-    }
+	fn type_ref() -> TypeRef {
+		TypeRef { app: "sys", type_: "CustomerProperties" }
+	}
 }
 
 
 #[derive(uniffi::Record, Clone, Serialize, Deserialize)]
 pub struct CustomerServerProperties {
-    pub _format: i64,
-    pub _id: GeneratedId,
-    #[serde(with = "serde_bytes")]
-    pub _ownerEncSessionKey: Option<Vec<u8>>,
-    pub _ownerGroup: Option<GeneratedId>,
-    pub _ownerKeyVersion: Option<i64>,
-    pub _permissions: GeneratedId,
-    pub requirePasswordUpdateAfterReset: bool,
-    pub saveEncryptedIpAddressInSession: bool,
-    pub whitelabelCode: String,
-    pub emailSenderList: Vec<EmailSenderListElement>,
-    pub whitelabelRegistrationDomains: Vec<StringWrapper>,
-    pub whitelistedDomains: Option<DomainsRef>,
+	pub _format: i64,
+	pub _id: GeneratedId,
+	#[serde(with = "serde_bytes")]
+	pub _ownerEncSessionKey: Option<Vec<u8>>,
+	pub _ownerGroup: Option<GeneratedId>,
+	pub _ownerKeyVersion: Option<i64>,
+	pub _permissions: GeneratedId,
+	pub requirePasswordUpdateAfterReset: bool,
+	pub saveEncryptedIpAddressInSession: bool,
+	pub whitelabelCode: String,
+	pub emailSenderList: Vec<EmailSenderListElement>,
+	pub whitelabelRegistrationDomains: Vec<StringWrapper>,
+	pub whitelistedDomains: Option<DomainsRef>,
 }
 
 impl Entity for CustomerServerProperties {
-    fn type_ref() -> TypeRef {
-        TypeRef { app: "sys".to_owned(), type_: "CustomerServerProperties".to_owned() }
-    }
+	fn type_ref() -> TypeRef {
+		TypeRef { app: "sys", type_: "CustomerServerProperties" }
+	}
 }
 
 
 #[derive(uniffi::Record, Clone, Serialize, Deserialize)]
 pub struct DateWrapper {
-    pub _id: GeneratedId,
-    pub date: DateTime,
+	pub _id: String,
+	pub date: DateTime,
 }
 
 impl Entity for DateWrapper {
-    fn type_ref() -> TypeRef {
-        TypeRef { app: "sys".to_owned(), type_: "DateWrapper".to_owned() }
-    }
+	fn type_ref() -> TypeRef {
+		TypeRef { app: "sys", type_: "DateWrapper" }
+	}
 }
 
 
 #[derive(uniffi::Record, Clone, Serialize, Deserialize)]
 pub struct DebitServicePutData {
-    pub _format: i64,
-    pub invoice: Option<IdTuple>,
+	pub _format: i64,
+	pub invoice: Option<IdTuple>,
 }
 
 impl Entity for DebitServicePutData {
-    fn type_ref() -> TypeRef {
-        TypeRef { app: "sys".to_owned(), type_: "DebitServicePutData".to_owned() }
-    }
+	fn type_ref() -> TypeRef {
+		TypeRef { app: "sys", type_: "DebitServicePutData" }
+	}
 }
 
 
 #[derive(uniffi::Record, Clone, Serialize, Deserialize)]
 pub struct DeleteCustomerData {
-    pub _format: i64,
-    #[serde(with = "serde_bytes")]
-    pub authVerifier: Option<Vec<u8>>,
-    pub reason: Option<String>,
-    pub takeoverMailAddress: Option<String>,
-    pub undelete: bool,
-    pub customer: GeneratedId,
-    pub surveyData: Option<SurveyData>,
+	pub _format: i64,
+	#[serde(with = "serde_bytes")]
+	pub authVerifier: Option<Vec<u8>>,
+	pub reason: Option<String>,
+	pub takeoverMailAddress: Option<String>,
+	pub undelete: bool,
+	pub customer: GeneratedId,
+	pub surveyData: Option<SurveyData>,
 }
 
 impl Entity for DeleteCustomerData {
-    fn type_ref() -> TypeRef {
-        TypeRef { app: "sys".to_owned(), type_: "DeleteCustomerData".to_owned() }
-    }
+	fn type_ref() -> TypeRef {
+		TypeRef { app: "sys", type_: "DeleteCustomerData" }
+	}
 }
 
 
 #[derive(uniffi::Record, Clone, Serialize, Deserialize)]
 pub struct DnsRecord {
-    pub _id: GeneratedId,
-    pub subdomain: Option<String>,
-    #[serde(rename = "type")]
-    pub r#type: i64,
-    pub value: String,
+	pub _id: String,
+	pub subdomain: Option<String>,
+	#[serde(rename = "type")]
+	pub r#type: i64,
+	pub value: String,
 }
 
 impl Entity for DnsRecord {
-    fn type_ref() -> TypeRef {
-        TypeRef { app: "sys".to_owned(), type_: "DnsRecord".to_owned() }
-    }
+	fn type_ref() -> TypeRef {
+		TypeRef { app: "sys", type_: "DnsRecord" }
+	}
 }
 
 
 #[derive(uniffi::Record, Clone, Serialize, Deserialize)]
 pub struct DomainInfo {
-    pub _id: GeneratedId,
-    pub domain: String,
-    pub validatedMxRecord: bool,
-    pub catchAllMailGroup: Option<GeneratedId>,
-    pub whitelabelConfig: Option<GeneratedId>,
+	pub _id: String,
+	pub domain: String,
+	pub validatedMxRecord: bool,
+	pub catchAllMailGroup: Option<GeneratedId>,
+	pub whitelabelConfig: Option<GeneratedId>,
 }
 
 impl Entity for DomainInfo {
-    fn type_ref() -> TypeRef {
-        TypeRef { app: "sys".to_owned(), type_: "DomainInfo".to_owned() }
-    }
+	fn type_ref() -> TypeRef {
+		TypeRef { app: "sys", type_: "DomainInfo" }
+	}
 }
 
 
 #[derive(uniffi::Record, Clone, Serialize, Deserialize)]
 pub struct DomainMailAddressAvailabilityData {
-    pub _format: i64,
-    pub mailAddress: String,
+	pub _format: i64,
+	pub mailAddress: String,
 }
 
 impl Entity for DomainMailAddressAvailabilityData {
-    fn type_ref() -> TypeRef {
-        TypeRef { app: "sys".to_owned(), type_: "DomainMailAddressAvailabilityData".to_owned() }
-    }
+	fn type_ref() -> TypeRef {
+		TypeRef { app: "sys", type_: "DomainMailAddressAvailabilityData" }
+	}
 }
 
 
 #[derive(uniffi::Record, Clone, Serialize, Deserialize)]
 pub struct DomainMailAddressAvailabilityReturn {
-    pub _format: i64,
-    pub available: bool,
+	pub _format: i64,
+	pub available: bool,
 }
 
 impl Entity for DomainMailAddressAvailabilityReturn {
-    fn type_ref() -> TypeRef {
-        TypeRef { app: "sys".to_owned(), type_: "DomainMailAddressAvailabilityReturn".to_owned() }
-    }
+	fn type_ref() -> TypeRef {
+		TypeRef { app: "sys", type_: "DomainMailAddressAvailabilityReturn" }
+	}
 }
 
 
 #[derive(uniffi::Record, Clone, Serialize, Deserialize)]
 pub struct DomainsRef {
-    pub _id: GeneratedId,
-    pub items: GeneratedId,
+	pub _id: String,
+	pub items: GeneratedId,
 }
 
 impl Entity for DomainsRef {
-    fn type_ref() -> TypeRef {
-        TypeRef { app: "sys".to_owned(), type_: "DomainsRef".to_owned() }
-    }
+	fn type_ref() -> TypeRef {
+		TypeRef { app: "sys", type_: "DomainsRef" }
+	}
 }
 
 
 #[derive(uniffi::Record, Clone, Serialize, Deserialize)]
 pub struct EmailSenderListElement {
-    pub _id: GeneratedId,
-    pub field: i64,
-    pub hashedValue: String,
-    #[serde(rename = "type")]
-    pub r#type: i64,
-    pub value: String,
+	pub _id: String,
+	pub field: i64,
+	pub hashedValue: String,
+	#[serde(rename = "type")]
+	pub r#type: i64,
+	pub value: String,
 }
 
 impl Entity for EmailSenderListElement {
-    fn type_ref() -> TypeRef {
-        TypeRef { app: "sys".to_owned(), type_: "EmailSenderListElement".to_owned() }
-    }
+	fn type_ref() -> TypeRef {
+		TypeRef { app: "sys", type_: "EmailSenderListElement" }
+	}
 }
 
 
 #[derive(uniffi::Record, Clone, Serialize, Deserialize)]
 pub struct EntityEventBatch {
-    pub _format: i64,
-    pub _id: IdTuple,
-    pub _ownerGroup: Option<GeneratedId>,
-    pub _permissions: GeneratedId,
-    pub events: Vec<EntityUpdate>,
+	pub _format: i64,
+	pub _id: IdTuple,
+	pub _ownerGroup: Option<GeneratedId>,
+	pub _permissions: GeneratedId,
+	pub events: Vec<EntityUpdate>,
 }
 
 impl Entity for EntityEventBatch {
-    fn type_ref() -> TypeRef {
-        TypeRef { app: "sys".to_owned(), type_: "EntityEventBatch".to_owned() }
-    }
+	fn type_ref() -> TypeRef {
+		TypeRef { app: "sys", type_: "EntityEventBatch" }
+	}
 }
 
 
 #[derive(uniffi::Record, Clone, Serialize, Deserialize)]
 pub struct EntityUpdate {
-    pub _id: GeneratedId,
-    pub application: String,
-    pub instanceId: String,
-    pub instanceListId: String,
-    pub operation: i64,
-    #[serde(rename = "type")]
-    pub r#type: String,
+	pub _id: String,
+	pub application: String,
+	pub instanceId: String,
+	pub instanceListId: String,
+	pub operation: i64,
+	#[serde(rename = "type")]
+	pub r#type: String,
 }
 
 impl Entity for EntityUpdate {
-    fn type_ref() -> TypeRef {
-        TypeRef { app: "sys".to_owned(), type_: "EntityUpdate".to_owned() }
-    }
+	fn type_ref() -> TypeRef {
+		TypeRef { app: "sys", type_: "EntityUpdate" }
+	}
 }
 
 
 #[derive(uniffi::Record, Clone, Serialize, Deserialize)]
 pub struct SysException {
-    pub _id: GeneratedId,
-    pub msg: String,
-    #[serde(rename = "type")]
-    pub r#type: String,
+	pub _id: String,
+	pub msg: String,
+	#[serde(rename = "type")]
+	pub r#type: String,
 }
 
 impl Entity for SysException {
-    fn type_ref() -> TypeRef {
-        TypeRef { app: "sys".to_owned(), type_: "SysException".to_owned() }
-    }
+	fn type_ref() -> TypeRef {
+		TypeRef { app: "sys", type_: "SysException" }
+	}
 }
 
 
 #[derive(uniffi::Record, Clone, Serialize, Deserialize)]
 pub struct ExternalPropertiesReturn {
-    pub _format: i64,
-    pub accountType: i64,
-    pub message: String,
-    pub bigLogo: Option<File>,
-    pub smallLogo: Option<File>,
+	pub _format: i64,
+	pub accountType: i64,
+	pub message: String,
+	pub bigLogo: Option<File>,
+	pub smallLogo: Option<File>,
 }
 
 impl Entity for ExternalPropertiesReturn {
-    fn type_ref() -> TypeRef {
-        TypeRef { app: "sys".to_owned(), type_: "ExternalPropertiesReturn".to_owned() }
-    }
+	fn type_ref() -> TypeRef {
+		TypeRef { app: "sys", type_: "ExternalPropertiesReturn" }
+	}
 }
 
 
 #[derive(uniffi::Record, Clone, Serialize, Deserialize)]
 pub struct ExternalUserReference {
-    pub _format: i64,
-    pub _id: IdTuple,
-    pub _ownerGroup: Option<GeneratedId>,
-    pub _permissions: GeneratedId,
-    pub user: GeneratedId,
-    pub userGroup: GeneratedId,
+	pub _format: i64,
+	pub _id: IdTuple,
+	pub _ownerGroup: Option<GeneratedId>,
+	pub _permissions: GeneratedId,
+	pub user: GeneratedId,
+	pub userGroup: GeneratedId,
 }
 
 impl Entity for ExternalUserReference {
-    fn type_ref() -> TypeRef {
-        TypeRef { app: "sys".to_owned(), type_: "ExternalUserReference".to_owned() }
-    }
+	fn type_ref() -> TypeRef {
+		TypeRef { app: "sys", type_: "ExternalUserReference" }
+	}
 }
 
 
 #[derive(uniffi::Record, Clone, Serialize, Deserialize)]
 pub struct Feature {
-    pub _id: GeneratedId,
-    pub feature: i64,
+	pub _id: String,
+	pub feature: i64,
 }
 
 impl Entity for Feature {
-    fn type_ref() -> TypeRef {
-        TypeRef { app: "sys".to_owned(), type_: "Feature".to_owned() }
-    }
+	fn type_ref() -> TypeRef {
+		TypeRef { app: "sys", type_: "Feature" }
+	}
 }
 
 
 #[derive(uniffi::Record, Clone, Serialize, Deserialize)]
 pub struct File {
-    pub _id: GeneratedId,
-    #[serde(with = "serde_bytes")]
-    pub data: Vec<u8>,
-    pub mimeType: String,
-    pub name: String,
+	pub _id: String,
+	#[serde(with = "serde_bytes")]
+	pub data: Vec<u8>,
+	pub mimeType: String,
+	pub name: String,
 }
 
 impl Entity for File {
-    fn type_ref() -> TypeRef {
-        TypeRef { app: "sys".to_owned(), type_: "File".to_owned() }
-    }
+	fn type_ref() -> TypeRef {
+		TypeRef { app: "sys", type_: "File" }
+	}
 }
 
 
 #[derive(uniffi::Record, Clone, Serialize, Deserialize)]
 pub struct GeneratedIdWrapper {
-    pub _id: GeneratedId,
-    pub value: GeneratedId,
+	pub _id: String,
+	pub value: GeneratedId,
 }
 
 impl Entity for GeneratedIdWrapper {
-    fn type_ref() -> TypeRef {
-        TypeRef { app: "sys".to_owned(), type_: "GeneratedIdWrapper".to_owned() }
-    }
+	fn type_ref() -> TypeRef {
+		TypeRef { app: "sys", type_: "GeneratedIdWrapper" }
+	}
 }
 
 
 #[derive(uniffi::Record, Clone, Serialize, Deserialize)]
 pub struct GiftCard {
-    pub _format: i64,
-    pub _id: IdTuple,
-    #[serde(with = "serde_bytes")]
-    pub _ownerEncSessionKey: Option<Vec<u8>>,
-    pub _ownerGroup: Option<GeneratedId>,
-    pub _ownerKeyVersion: Option<i64>,
-    pub _permissions: GeneratedId,
-    pub message: String,
-    pub migrated: bool,
-    pub orderDate: DateTime,
-    pub status: i64,
-    pub value: i64,
+	pub _format: i64,
+	pub _id: IdTuple,
+	#[serde(with = "serde_bytes")]
+	pub _ownerEncSessionKey: Option<Vec<u8>>,
+	pub _ownerGroup: Option<GeneratedId>,
+	pub _ownerKeyVersion: Option<i64>,
+	pub _permissions: GeneratedId,
+	pub message: String,
+	pub migrated: bool,
+	pub orderDate: DateTime,
+	pub status: i64,
+	pub value: i64,
 }
 
 impl Entity for GiftCard {
-    fn type_ref() -> TypeRef {
-        TypeRef { app: "sys".to_owned(), type_: "GiftCard".to_owned() }
-    }
+	fn type_ref() -> TypeRef {
+		TypeRef { app: "sys", type_: "GiftCard" }
+	}
 }
 
 
 #[derive(uniffi::Record, Clone, Serialize, Deserialize)]
 pub struct GiftCardCreateData {
-    pub _format: i64,
-    #[serde(with = "serde_bytes")]
-    pub keyHash: Vec<u8>,
-    pub message: String,
-    #[serde(with = "serde_bytes")]
-    pub ownerEncSessionKey: Vec<u8>,
-    pub ownerKeyVersion: i64,
-    pub value: i64,
+	pub _format: i64,
+	#[serde(with = "serde_bytes")]
+	pub keyHash: Vec<u8>,
+	pub message: String,
+	#[serde(with = "serde_bytes")]
+	pub ownerEncSessionKey: Vec<u8>,
+	pub ownerKeyVersion: i64,
+	pub value: i64,
 }
 
 impl Entity for GiftCardCreateData {
-    fn type_ref() -> TypeRef {
-        TypeRef { app: "sys".to_owned(), type_: "GiftCardCreateData".to_owned() }
-    }
+	fn type_ref() -> TypeRef {
+		TypeRef { app: "sys", type_: "GiftCardCreateData" }
+	}
 }
 
 
 #[derive(uniffi::Record, Clone, Serialize, Deserialize)]
 pub struct GiftCardCreateReturn {
-    pub _format: i64,
-    pub giftCard: IdTuple,
+	pub _format: i64,
+	pub giftCard: IdTuple,
 }
 
 impl Entity for GiftCardCreateReturn {
-    fn type_ref() -> TypeRef {
-        TypeRef { app: "sys".to_owned(), type_: "GiftCardCreateReturn".to_owned() }
-    }
+	fn type_ref() -> TypeRef {
+		TypeRef { app: "sys", type_: "GiftCardCreateReturn" }
+	}
 }
 
 
 #[derive(uniffi::Record, Clone, Serialize, Deserialize)]
 pub struct GiftCardDeleteData {
-    pub _format: i64,
-    pub giftCard: IdTuple,
+	pub _format: i64,
+	pub giftCard: IdTuple,
 }
 
 impl Entity for GiftCardDeleteData {
-    fn type_ref() -> TypeRef {
-        TypeRef { app: "sys".to_owned(), type_: "GiftCardDeleteData".to_owned() }
-    }
+	fn type_ref() -> TypeRef {
+		TypeRef { app: "sys", type_: "GiftCardDeleteData" }
+	}
 }
 
 
 #[derive(uniffi::Record, Clone, Serialize, Deserialize)]
 pub struct GiftCardGetReturn {
-    pub _format: i64,
-    pub maxPerPeriod: i64,
-    pub period: i64,
-    pub options: Vec<GiftCardOption>,
+	pub _format: i64,
+	pub maxPerPeriod: i64,
+	pub period: i64,
+	pub options: Vec<GiftCardOption>,
 }
 
 impl Entity for GiftCardGetReturn {
-    fn type_ref() -> TypeRef {
-        TypeRef { app: "sys".to_owned(), type_: "GiftCardGetReturn".to_owned() }
-    }
+	fn type_ref() -> TypeRef {
+		TypeRef { app: "sys", type_: "GiftCardGetReturn" }
+	}
 }
 
 
 #[derive(uniffi::Record, Clone, Serialize, Deserialize)]
 pub struct GiftCardOption {
-    pub _id: GeneratedId,
-    pub value: i64,
+	pub _id: String,
+	pub value: i64,
 }
 
 impl Entity for GiftCardOption {
-    fn type_ref() -> TypeRef {
-        TypeRef { app: "sys".to_owned(), type_: "GiftCardOption".to_owned() }
-    }
+	fn type_ref() -> TypeRef {
+		TypeRef { app: "sys", type_: "GiftCardOption" }
+	}
 }
 
 
 #[derive(uniffi::Record, Clone, Serialize, Deserialize)]
 pub struct GiftCardRedeemData {
-    pub _format: i64,
-    pub countryCode: String,
-    #[serde(with = "serde_bytes")]
-    pub keyHash: Vec<u8>,
-    pub giftCardInfo: GeneratedId,
+	pub _format: i64,
+	pub countryCode: String,
+	#[serde(with = "serde_bytes")]
+	pub keyHash: Vec<u8>,
+	pub giftCardInfo: GeneratedId,
 }
 
 impl Entity for GiftCardRedeemData {
-    fn type_ref() -> TypeRef {
-        TypeRef { app: "sys".to_owned(), type_: "GiftCardRedeemData".to_owned() }
-    }
+	fn type_ref() -> TypeRef {
+		TypeRef { app: "sys", type_: "GiftCardRedeemData" }
+	}
 }
 
 
 #[derive(uniffi::Record, Clone, Serialize, Deserialize)]
 pub struct GiftCardRedeemGetReturn {
-    pub _format: i64,
-    pub message: String,
-    pub value: i64,
-    pub giftCard: IdTuple,
+	pub _format: i64,
+	pub message: String,
+	pub value: i64,
+	pub giftCard: IdTuple,
 }
 
 impl Entity for GiftCardRedeemGetReturn {
-    fn type_ref() -> TypeRef {
-        TypeRef { app: "sys".to_owned(), type_: "GiftCardRedeemGetReturn".to_owned() }
-    }
+	fn type_ref() -> TypeRef {
+		TypeRef { app: "sys", type_: "GiftCardRedeemGetReturn" }
+	}
 }
 
 
 #[derive(uniffi::Record, Clone, Serialize, Deserialize)]
 pub struct GiftCardsRef {
-    pub _id: GeneratedId,
-    pub items: GeneratedId,
+	pub _id: String,
+	pub items: GeneratedId,
 }
 
 impl Entity for GiftCardsRef {
-    fn type_ref() -> TypeRef {
-        TypeRef { app: "sys".to_owned(), type_: "GiftCardsRef".to_owned() }
-    }
+	fn type_ref() -> TypeRef {
+		TypeRef { app: "sys", type_: "GiftCardsRef" }
+	}
 }
 
 
 #[derive(uniffi::Record, Clone, Serialize, Deserialize)]
 pub struct Group {
-    pub _format: i64,
-    pub _id: GeneratedId,
-    pub _ownerGroup: Option<GeneratedId>,
-    pub _permissions: GeneratedId,
-    #[serde(with = "serde_bytes")]
-    pub adminGroupEncGKey: Option<Vec<u8>>,
-    pub adminGroupKeyVersion: Option<i64>,
-    pub enabled: bool,
-    pub external: bool,
-    pub groupKeyVersion: i64,
-    #[serde(with = "serde_bytes")]
-    pub pubAdminGroupEncGKey: Option<Vec<u8>>,
-    #[serde(rename = "type")]
-    pub r#type: i64,
-    pub admin: Option<GeneratedId>,
-    pub administratedGroups: Option<AdministratedGroupsRef>,
-    pub archives: Vec<ArchiveType>,
-    pub currentKeys: Option<KeyPair>,
-    pub customer: Option<GeneratedId>,
-    pub formerGroupKeys: Option<GroupKeysRef>,
-    pub groupInfo: IdTuple,
-    pub invitations: GeneratedId,
-    pub members: GeneratedId,
-    pub storageCounter: Option<GeneratedId>,
-    pub user: Option<GeneratedId>,
+	pub _format: i64,
+	pub _id: GeneratedId,
+	pub _ownerGroup: Option<GeneratedId>,
+	pub _permissions: GeneratedId,
+	#[serde(with = "serde_bytes")]
+	pub adminGroupEncGKey: Option<Vec<u8>>,
+	pub adminGroupKeyVersion: Option<i64>,
+	pub enabled: bool,
+	pub external: bool,
+	pub groupKeyVersion: i64,
+	#[serde(with = "serde_bytes")]
+	pub pubAdminGroupEncGKey: Option<Vec<u8>>,
+	#[serde(rename = "type")]
+	pub r#type: i64,
+	pub admin: Option<GeneratedId>,
+	pub administratedGroups: Option<AdministratedGroupsRef>,
+	pub archives: Vec<ArchiveType>,
+	pub currentKeys: Option<KeyPair>,
+	pub customer: Option<GeneratedId>,
+	pub formerGroupKeys: Option<GroupKeysRef>,
+	pub groupInfo: IdTuple,
+	pub invitations: GeneratedId,
+	pub members: GeneratedId,
+	pub storageCounter: Option<GeneratedId>,
+	pub user: Option<GeneratedId>,
 }
 
 impl Entity for Group {
-    fn type_ref() -> TypeRef {
-        TypeRef { app: "sys".to_owned(), type_: "Group".to_owned() }
-    }
+	fn type_ref() -> TypeRef {
+		TypeRef { app: "sys", type_: "Group" }
+	}
 }
 
 
 #[derive(uniffi::Record, Clone, Serialize, Deserialize)]
 pub struct GroupInfo {
-    pub _format: i64,
-    pub _id: IdTuple,
-    #[serde(with = "serde_bytes")]
-    pub _listEncSessionKey: Option<Vec<u8>>,
-    #[serde(with = "serde_bytes")]
-    pub _ownerEncSessionKey: Option<Vec<u8>>,
-    pub _ownerGroup: Option<GeneratedId>,
-    pub _ownerKeyVersion: Option<i64>,
-    pub _permissions: GeneratedId,
-    pub created: DateTime,
-    pub deleted: Option<DateTime>,
-    pub groupType: Option<i64>,
-    pub mailAddress: Option<String>,
-    pub name: String,
-    pub group: GeneratedId,
-    pub localAdmin: Option<GeneratedId>,
-    pub mailAddressAliases: Vec<MailAddressAlias>,
+	pub _format: i64,
+	pub _id: IdTuple,
+	#[serde(with = "serde_bytes")]
+	pub _listEncSessionKey: Option<Vec<u8>>,
+	#[serde(with = "serde_bytes")]
+	pub _ownerEncSessionKey: Option<Vec<u8>>,
+	pub _ownerGroup: Option<GeneratedId>,
+	pub _ownerKeyVersion: Option<i64>,
+	pub _permissions: GeneratedId,
+	pub created: DateTime,
+	pub deleted: Option<DateTime>,
+	pub groupType: Option<i64>,
+	pub mailAddress: Option<String>,
+	pub name: String,
+	pub group: GeneratedId,
+	pub localAdmin: Option<GeneratedId>,
+	pub mailAddressAliases: Vec<MailAddressAlias>,
 }
 
 impl Entity for GroupInfo {
-    fn type_ref() -> TypeRef {
-        TypeRef { app: "sys".to_owned(), type_: "GroupInfo".to_owned() }
-    }
+	fn type_ref() -> TypeRef {
+		TypeRef { app: "sys", type_: "GroupInfo" }
+	}
 }
 
 
 #[derive(uniffi::Record, Clone, Serialize, Deserialize)]
 pub struct GroupKey {
-    pub _format: i64,
-    pub _id: IdTuple,
-    pub _ownerGroup: Option<GeneratedId>,
-    pub _permissions: GeneratedId,
-    #[serde(with = "serde_bytes")]
-    pub adminGroupEncGKey: Option<Vec<u8>>,
-    pub adminGroupKeyVersion: Option<i64>,
-    #[serde(with = "serde_bytes")]
-    pub ownerEncGKey: Vec<u8>,
-    pub ownerKeyVersion: i64,
-    #[serde(with = "serde_bytes")]
-    pub pubAdminGroupEncGKey: Option<Vec<u8>>,
-    pub keyPair: Option<KeyPair>,
+	pub _format: i64,
+	pub _id: IdTuple,
+	pub _ownerGroup: Option<GeneratedId>,
+	pub _permissions: GeneratedId,
+	#[serde(with = "serde_bytes")]
+	pub adminGroupEncGKey: Option<Vec<u8>>,
+	pub adminGroupKeyVersion: Option<i64>,
+	#[serde(with = "serde_bytes")]
+	pub ownerEncGKey: Vec<u8>,
+	pub ownerKeyVersion: i64,
+	#[serde(with = "serde_bytes")]
+	pub pubAdminGroupEncGKey: Option<Vec<u8>>,
+	pub keyPair: Option<KeyPair>,
 }
 
 impl Entity for GroupKey {
-    fn type_ref() -> TypeRef {
-        TypeRef { app: "sys".to_owned(), type_: "GroupKey".to_owned() }
-    }
+	fn type_ref() -> TypeRef {
+		TypeRef { app: "sys", type_: "GroupKey" }
+	}
 }
 
 
 #[derive(uniffi::Record, Clone, Serialize, Deserialize)]
 pub struct GroupKeyRotationData {
-    pub _id: GeneratedId,
-    #[serde(with = "serde_bytes")]
-    pub adminGroupEncGroupKey: Option<Vec<u8>>,
-    pub adminGroupKeyVersion: Option<i64>,
-    #[serde(with = "serde_bytes")]
-    pub groupEncPreviousGroupKey: Vec<u8>,
-    pub groupKeyVersion: i64,
-    #[serde(with = "serde_bytes")]
-    pub userEncGroupKey: Vec<u8>,
-    pub userKeyVersion: i64,
-    pub group: GeneratedId,
-    pub keyPair: Option<KeyPair>,
+	pub _id: String,
+	#[serde(with = "serde_bytes")]
+	pub adminGroupEncGroupKey: Option<Vec<u8>>,
+	pub adminGroupKeyVersion: Option<i64>,
+	#[serde(with = "serde_bytes")]
+	pub groupEncPreviousGroupKey: Vec<u8>,
+	pub groupKeyVersion: i64,
+	#[serde(with = "serde_bytes")]
+	pub userEncGroupKey: Vec<u8>,
+	pub userKeyVersion: i64,
+	pub group: GeneratedId,
+	pub groupKeyUpdatesForMembers: Vec<GroupKeyUpdateData>,
+	pub keyPair: Option<KeyPair>,
 }
 
 impl Entity for GroupKeyRotationData {
-    fn type_ref() -> TypeRef {
-        TypeRef { app: "sys".to_owned(), type_: "GroupKeyRotationData".to_owned() }
-    }
+	fn type_ref() -> TypeRef {
+		TypeRef { app: "sys", type_: "GroupKeyRotationData" }
+	}
 }
 
 
 #[derive(uniffi::Record, Clone, Serialize, Deserialize)]
 pub struct GroupKeyRotationInfoGetOut {
-    pub _format: i64,
-    pub userOrAdminGroupKeyRotationScheduled: bool,
+	pub _format: i64,
+	pub userOrAdminGroupKeyRotationScheduled: bool,
+	pub groupKeyUpdates: Vec<IdTuple>,
 }
 
 impl Entity for GroupKeyRotationInfoGetOut {
-    fn type_ref() -> TypeRef {
-        TypeRef { app: "sys".to_owned(), type_: "GroupKeyRotationInfoGetOut".to_owned() }
-    }
+	fn type_ref() -> TypeRef {
+		TypeRef { app: "sys", type_: "GroupKeyRotationInfoGetOut" }
+	}
 }
 
 
 #[derive(uniffi::Record, Clone, Serialize, Deserialize)]
 pub struct GroupKeyRotationPostIn {
-    pub _format: i64,
-    pub groupKeyUpdates: Vec<GroupKeyRotationData>,
+	pub _format: i64,
+	pub groupKeyUpdates: Vec<GroupKeyRotationData>,
 }
 
 impl Entity for GroupKeyRotationPostIn {
-    fn type_ref() -> TypeRef {
-        TypeRef { app: "sys".to_owned(), type_: "GroupKeyRotationPostIn".to_owned() }
-    }
+	fn type_ref() -> TypeRef {
+		TypeRef { app: "sys", type_: "GroupKeyRotationPostIn" }
+	}
+}
+
+
+#[derive(uniffi::Record, Clone, Serialize, Deserialize)]
+pub struct GroupKeyUpdate {
+	pub _format: i64,
+	pub _id: IdTuple,
+	#[serde(with = "serde_bytes")]
+	pub _ownerEncSessionKey: Option<Vec<u8>>,
+	pub _ownerGroup: Option<GeneratedId>,
+	pub _ownerKeyVersion: Option<i64>,
+	pub _permissions: GeneratedId,
+	#[serde(with = "serde_bytes")]
+	pub groupKey: Vec<u8>,
+	pub groupKeyVersion: i64,
+	pub bucketKey: BucketKey,
+}
+
+impl Entity for GroupKeyUpdate {
+	fn type_ref() -> TypeRef {
+		TypeRef { app: "sys", type_: "GroupKeyUpdate" }
+	}
+}
+
+
+#[derive(uniffi::Record, Clone, Serialize, Deserialize)]
+pub struct GroupKeyUpdateData {
+	pub _id: String,
+	#[serde(with = "serde_bytes")]
+	pub bucketKeyEncSessionKey: Vec<u8>,
+	#[serde(with = "serde_bytes")]
+	pub sessionKeyEncGroupKey: Vec<u8>,
+	pub sessionKeyEncGroupKeyVersion: i64,
+	pub pubEncBucketKeyData: PubEncKeyData,
+}
+
+impl Entity for GroupKeyUpdateData {
+	fn type_ref() -> TypeRef {
+		TypeRef { app: "sys", type_: "GroupKeyUpdateData" }
+	}
+}
+
+
+#[derive(uniffi::Record, Clone, Serialize, Deserialize)]
+pub struct GroupKeyUpdatesRef {
+	pub _id: String,
+	pub list: GeneratedId,
+}
+
+impl Entity for GroupKeyUpdatesRef {
+	fn type_ref() -> TypeRef {
+		TypeRef { app: "sys", type_: "GroupKeyUpdatesRef" }
+	}
 }
 
 
 #[derive(uniffi::Record, Clone, Serialize, Deserialize)]
 pub struct GroupKeysRef {
-    pub _id: GeneratedId,
-    pub list: GeneratedId,
+	pub _id: String,
+	pub list: GeneratedId,
 }
 
 impl Entity for GroupKeysRef {
-    fn type_ref() -> TypeRef {
-        TypeRef { app: "sys".to_owned(), type_: "GroupKeysRef".to_owned() }
-    }
+	fn type_ref() -> TypeRef {
+		TypeRef { app: "sys", type_: "GroupKeysRef" }
+	}
 }
 
 
 #[derive(uniffi::Record, Clone, Serialize, Deserialize)]
 pub struct GroupMember {
-    pub _format: i64,
-    pub _id: IdTuple,
-    pub _ownerGroup: Option<GeneratedId>,
-    pub _permissions: GeneratedId,
-    pub capability: Option<i64>,
-    pub group: GeneratedId,
-    pub user: GeneratedId,
-    pub userGroupInfo: IdTuple,
+	pub _format: i64,
+	pub _id: IdTuple,
+	pub _ownerGroup: Option<GeneratedId>,
+	pub _permissions: GeneratedId,
+	pub capability: Option<i64>,
+	pub group: GeneratedId,
+	pub user: GeneratedId,
+	pub userGroupInfo: IdTuple,
 }
 
 impl Entity for GroupMember {
-    fn type_ref() -> TypeRef {
-        TypeRef { app: "sys".to_owned(), type_: "GroupMember".to_owned() }
-    }
+	fn type_ref() -> TypeRef {
+		TypeRef { app: "sys", type_: "GroupMember" }
+	}
 }
 
 
 #[derive(uniffi::Record, Clone, Serialize, Deserialize)]
 pub struct GroupMembership {
-    pub _id: GeneratedId,
-    pub admin: bool,
-    pub capability: Option<i64>,
-    pub groupKeyVersion: i64,
-    pub groupType: Option<i64>,
-    #[serde(with = "serde_bytes")]
-    pub symEncGKey: Vec<u8>,
-    pub symKeyVersion: i64,
-    pub group: GeneratedId,
-    pub groupInfo: IdTuple,
-    pub groupMember: IdTuple,
+	pub _id: String,
+	pub admin: bool,
+	pub capability: Option<i64>,
+	pub groupKeyVersion: i64,
+	pub groupType: Option<i64>,
+	#[serde(with = "serde_bytes")]
+	pub symEncGKey: Vec<u8>,
+	pub symKeyVersion: i64,
+	pub group: GeneratedId,
+	pub groupInfo: IdTuple,
+	pub groupMember: IdTuple,
 }
 
 impl Entity for GroupMembership {
-    fn type_ref() -> TypeRef {
-        TypeRef { app: "sys".to_owned(), type_: "GroupMembership".to_owned() }
-    }
+	fn type_ref() -> TypeRef {
+		TypeRef { app: "sys", type_: "GroupMembership" }
+	}
+}
+
+
+#[derive(uniffi::Record, Clone, Serialize, Deserialize)]
+pub struct GroupMembershipKeyData {
+	pub _id: String,
+	pub groupKeyVersion: i64,
+	#[serde(with = "serde_bytes")]
+	pub symEncGKey: Vec<u8>,
+	pub symKeyVersion: i64,
+	pub group: GeneratedId,
+}
+
+impl Entity for GroupMembershipKeyData {
+	fn type_ref() -> TypeRef {
+		TypeRef { app: "sys", type_: "GroupMembershipKeyData" }
+	}
 }
 
 
 #[derive(uniffi::Record, Clone, Serialize, Deserialize)]
 pub struct GroupRoot {
-    pub _format: i64,
-    pub _id: GeneratedId,
-    pub _ownerGroup: Option<GeneratedId>,
-    pub _permissions: GeneratedId,
-    pub externalGroupInfos: GeneratedId,
-    pub externalUserAreaGroupInfos: Option<UserAreaGroups>,
-    pub externalUserReferences: GeneratedId,
+	pub _format: i64,
+	pub _id: GeneratedId,
+	pub _ownerGroup: Option<GeneratedId>,
+	pub _permissions: GeneratedId,
+	pub externalGroupInfos: GeneratedId,
+	pub externalUserAreaGroupInfos: Option<UserAreaGroups>,
+	pub externalUserReferences: GeneratedId,
 }
 
 impl Entity for GroupRoot {
-    fn type_ref() -> TypeRef {
-        TypeRef { app: "sys".to_owned(), type_: "GroupRoot".to_owned() }
-    }
+	fn type_ref() -> TypeRef {
+		TypeRef { app: "sys", type_: "GroupRoot" }
+	}
 }
 
 
 #[derive(uniffi::Record, Clone, Serialize, Deserialize)]
 pub struct IdTupleWrapper {
-    pub _id: GeneratedId,
-    pub listElementId: GeneratedId,
-    pub listId: GeneratedId,
+	pub _id: String,
+	pub listElementId: GeneratedId,
+	pub listId: GeneratedId,
 }
 
 impl Entity for IdTupleWrapper {
-    fn type_ref() -> TypeRef {
-        TypeRef { app: "sys".to_owned(), type_: "IdTupleWrapper".to_owned() }
-    }
+	fn type_ref() -> TypeRef {
+		TypeRef { app: "sys", type_: "IdTupleWrapper" }
+	}
 }
 
 
 #[derive(uniffi::Record, Clone, Serialize, Deserialize)]
 pub struct InstanceSessionKey {
-    pub _id: GeneratedId,
-    #[serde(with = "serde_bytes")]
-    pub encryptionAuthStatus: Option<Vec<u8>>,
-    pub instanceId: GeneratedId,
-    pub instanceList: GeneratedId,
-    #[serde(with = "serde_bytes")]
-    pub symEncSessionKey: Vec<u8>,
-    pub symKeyVersion: i64,
-    pub typeInfo: TypeInfo,
+	pub _id: String,
+	#[serde(with = "serde_bytes")]
+	pub encryptionAuthStatus: Option<Vec<u8>>,
+	pub instanceId: GeneratedId,
+	pub instanceList: GeneratedId,
+	#[serde(with = "serde_bytes")]
+	pub symEncSessionKey: Vec<u8>,
+	pub symKeyVersion: i64,
+	pub typeInfo: TypeInfo,
 }
 
 impl Entity for InstanceSessionKey {
-    fn type_ref() -> TypeRef {
-        TypeRef { app: "sys".to_owned(), type_: "InstanceSessionKey".to_owned() }
-    }
+	fn type_ref() -> TypeRef {
+		TypeRef { app: "sys", type_: "InstanceSessionKey" }
+	}
 }
 
 
 #[derive(uniffi::Record, Clone, Serialize, Deserialize)]
 pub struct Invoice {
-    pub _format: i64,
-    pub _id: GeneratedId,
-    #[serde(with = "serde_bytes")]
-    pub _ownerEncSessionKey: Option<Vec<u8>>,
-    pub _ownerGroup: Option<GeneratedId>,
-    pub _ownerKeyVersion: Option<i64>,
-    pub _permissions: GeneratedId,
-    pub address: String,
-    pub adminUser: Option<String>,
-    pub business: bool,
-    pub country: String,
-    pub date: DateTime,
-    pub grandTotal: i64,
-    pub paymentMethod: i64,
-    pub reason: Option<String>,
-    pub subTotal: i64,
-    #[serde(rename = "type")]
-    pub r#type: i64,
-    pub vat: i64,
-    pub vatIdNumber: Option<String>,
-    pub vatRate: i64,
-    pub bookings: Vec<IdTuple>,
-    pub customer: GeneratedId,
-    pub items: Vec<InvoiceItem>,
+	pub _format: i64,
+	pub _id: GeneratedId,
+	#[serde(with = "serde_bytes")]
+	pub _ownerEncSessionKey: Option<Vec<u8>>,
+	pub _ownerGroup: Option<GeneratedId>,
+	pub _ownerKeyVersion: Option<i64>,
+	pub _permissions: GeneratedId,
+	pub address: String,
+	pub adminUser: Option<String>,
+	pub business: bool,
+	pub country: String,
+	pub date: DateTime,
+	pub grandTotal: i64,
+	pub paymentMethod: i64,
+	pub reason: Option<String>,
+	pub subTotal: i64,
+	#[serde(rename = "type")]
+	pub r#type: i64,
+	pub vat: i64,
+	pub vatIdNumber: Option<String>,
+	pub vatRate: i64,
+	pub bookings: Vec<IdTuple>,
+	pub customer: GeneratedId,
+	pub items: Vec<InvoiceItem>,
 }
 
 impl Entity for Invoice {
-    fn type_ref() -> TypeRef {
-        TypeRef { app: "sys".to_owned(), type_: "Invoice".to_owned() }
-    }
+	fn type_ref() -> TypeRef {
+		TypeRef { app: "sys", type_: "Invoice" }
+	}
 }
 
 
 #[derive(uniffi::Record, Clone, Serialize, Deserialize)]
 pub struct InvoiceDataGetIn {
-    pub _format: i64,
-    pub invoiceNumber: String,
+	pub _format: i64,
+	pub invoiceNumber: String,
 }
 
 impl Entity for InvoiceDataGetIn {
-    fn type_ref() -> TypeRef {
-        TypeRef { app: "sys".to_owned(), type_: "InvoiceDataGetIn".to_owned() }
-    }
+	fn type_ref() -> TypeRef {
+		TypeRef { app: "sys", type_: "InvoiceDataGetIn" }
+	}
 }
 
 
 #[derive(uniffi::Record, Clone, Serialize, Deserialize)]
 pub struct InvoiceDataGetOut {
-    pub _format: i64,
-    pub address: String,
-    pub country: String,
-    pub date: DateTime,
-    pub grandTotal: i64,
-    pub invoiceId: GeneratedId,
-    pub invoiceType: i64,
-    pub paymentMethod: i64,
-    pub subTotal: i64,
-    pub vat: i64,
-    pub vatIdNumber: Option<String>,
-    pub vatRate: i64,
-    pub vatType: i64,
-    pub items: Vec<InvoiceDataItem>,
+	pub _format: i64,
+	pub address: String,
+	pub country: String,
+	pub date: DateTime,
+	pub grandTotal: i64,
+	pub invoiceId: GeneratedId,
+	pub invoiceType: i64,
+	pub paymentMethod: i64,
+	pub subTotal: i64,
+	pub vat: i64,
+	pub vatIdNumber: Option<String>,
+	pub vatRate: i64,
+	pub vatType: i64,
+	pub items: Vec<InvoiceDataItem>,
 }
 
 impl Entity for InvoiceDataGetOut {
-    fn type_ref() -> TypeRef {
-        TypeRef { app: "sys".to_owned(), type_: "InvoiceDataGetOut".to_owned() }
-    }
+	fn type_ref() -> TypeRef {
+		TypeRef { app: "sys", type_: "InvoiceDataGetOut" }
+	}
 }
 
 
 #[derive(uniffi::Record, Clone, Serialize, Deserialize)]
 pub struct InvoiceDataItem {
-    pub _id: GeneratedId,
-    pub amount: i64,
-    pub endDate: Option<DateTime>,
-    pub itemType: i64,
-    pub singlePrice: Option<i64>,
-    pub startDate: Option<DateTime>,
-    pub totalPrice: i64,
+	pub _id: String,
+	pub amount: i64,
+	pub endDate: Option<DateTime>,
+	pub itemType: i64,
+	pub singlePrice: Option<i64>,
+	pub startDate: Option<DateTime>,
+	pub totalPrice: i64,
 }
 
 impl Entity for InvoiceDataItem {
-    fn type_ref() -> TypeRef {
-        TypeRef { app: "sys".to_owned(), type_: "InvoiceDataItem".to_owned() }
-    }
+	fn type_ref() -> TypeRef {
+		TypeRef { app: "sys", type_: "InvoiceDataItem" }
+	}
 }
 
 
 #[derive(uniffi::Record, Clone, Serialize, Deserialize)]
 pub struct InvoiceInfo {
-    pub _format: i64,
-    pub _id: GeneratedId,
-    pub _ownerGroup: Option<GeneratedId>,
-    pub _permissions: GeneratedId,
-    pub discountPercentage: Option<i64>,
-    pub extendedPeriodOfPaymentDays: i64,
-    pub persistentPaymentPeriodExtension: bool,
-    pub publishInvoices: bool,
-    pub reminderState: i64,
-    pub specialPriceBrandingPerUser: Option<i64>,
-    pub specialPriceBusinessPerUser: Option<i64>,
-    pub specialPriceContactFormSingle: Option<i64>,
-    pub specialPriceSharedGroupSingle: Option<i64>,
-    pub specialPriceSharingPerUser: Option<i64>,
-    pub specialPriceUserSingle: Option<i64>,
-    pub specialPriceUserTotal: Option<i64>,
-    pub invoices: GeneratedId,
-    pub paymentErrorInfo: Option<PaymentErrorInfo>,
+	pub _format: i64,
+	pub _id: GeneratedId,
+	pub _ownerGroup: Option<GeneratedId>,
+	pub _permissions: GeneratedId,
+	pub discountPercentage: Option<i64>,
+	pub extendedPeriodOfPaymentDays: i64,
+	pub persistentPaymentPeriodExtension: bool,
+	pub publishInvoices: bool,
+	pub reminderState: i64,
+	pub specialPriceBrandingPerUser: Option<i64>,
+	pub specialPriceBusinessPerUser: Option<i64>,
+	pub specialPriceContactFormSingle: Option<i64>,
+	pub specialPriceSharedGroupSingle: Option<i64>,
+	pub specialPriceSharingPerUser: Option<i64>,
+	pub specialPriceUserSingle: Option<i64>,
+	pub specialPriceUserTotal: Option<i64>,
+	pub invoices: GeneratedId,
+	pub paymentErrorInfo: Option<PaymentErrorInfo>,
 }
 
 impl Entity for InvoiceInfo {
-    fn type_ref() -> TypeRef {
-        TypeRef { app: "sys".to_owned(), type_: "InvoiceInfo".to_owned() }
-    }
+	fn type_ref() -> TypeRef {
+		TypeRef { app: "sys", type_: "InvoiceInfo" }
+	}
 }
 
 
 #[derive(uniffi::Record, Clone, Serialize, Deserialize)]
 pub struct InvoiceItem {
-    pub _id: GeneratedId,
-    pub amount: i64,
-    pub endDate: Option<DateTime>,
-    pub singlePrice: Option<i64>,
-    pub singleType: bool,
-    pub startDate: Option<DateTime>,
-    pub totalPrice: i64,
-    #[serde(rename = "type")]
-    pub r#type: i64,
+	pub _id: String,
+	pub amount: i64,
+	pub endDate: Option<DateTime>,
+	pub singlePrice: Option<i64>,
+	pub singleType: bool,
+	pub startDate: Option<DateTime>,
+	pub totalPrice: i64,
+	#[serde(rename = "type")]
+	pub r#type: i64,
 }
 
 impl Entity for InvoiceItem {
-    fn type_ref() -> TypeRef {
-        TypeRef { app: "sys".to_owned(), type_: "InvoiceItem".to_owned() }
-    }
+	fn type_ref() -> TypeRef {
+		TypeRef { app: "sys", type_: "InvoiceItem" }
+	}
 }
 
 
 #[derive(uniffi::Record, Clone, Serialize, Deserialize)]
 pub struct KeyPair {
-    pub _id: GeneratedId,
-    #[serde(with = "serde_bytes")]
-    pub pubEccKey: Option<Vec<u8>>,
-    #[serde(with = "serde_bytes")]
-    pub pubKyberKey: Option<Vec<u8>>,
-    #[serde(with = "serde_bytes")]
-    pub pubRsaKey: Option<Vec<u8>>,
-    #[serde(with = "serde_bytes")]
-    pub symEncPrivEccKey: Option<Vec<u8>>,
-    #[serde(with = "serde_bytes")]
-    pub symEncPrivKyberKey: Option<Vec<u8>>,
-    #[serde(with = "serde_bytes")]
-    pub symEncPrivRsaKey: Option<Vec<u8>>,
+	pub _id: String,
+	#[serde(with = "serde_bytes")]
+	pub pubEccKey: Option<Vec<u8>>,
+	#[serde(with = "serde_bytes")]
+	pub pubKyberKey: Option<Vec<u8>>,
+	#[serde(with = "serde_bytes")]
+	pub pubRsaKey: Option<Vec<u8>>,
+	#[serde(with = "serde_bytes")]
+	pub symEncPrivEccKey: Option<Vec<u8>>,
+	#[serde(with = "serde_bytes")]
+	pub symEncPrivKyberKey: Option<Vec<u8>>,
+	#[serde(with = "serde_bytes")]
+	pub symEncPrivRsaKey: Option<Vec<u8>>,
 }
 
 impl Entity for KeyPair {
-    fn type_ref() -> TypeRef {
-        TypeRef { app: "sys".to_owned(), type_: "KeyPair".to_owned() }
-    }
+	fn type_ref() -> TypeRef {
+		TypeRef { app: "sys", type_: "KeyPair" }
+	}
 }
 
 
 #[derive(uniffi::Record, Clone, Serialize, Deserialize)]
 pub struct KeyRotation {
-    pub _format: i64,
-    pub _id: IdTuple,
-    pub _ownerGroup: Option<GeneratedId>,
-    pub _permissions: GeneratedId,
-    pub groupKeyRotationType: i64,
-    pub targetKeyVersion: i64,
+	pub _format: i64,
+	pub _id: IdTuple,
+	pub _ownerGroup: Option<GeneratedId>,
+	pub _permissions: GeneratedId,
+	pub groupKeyRotationType: i64,
+	pub targetKeyVersion: i64,
 }
 
 impl Entity for KeyRotation {
-    fn type_ref() -> TypeRef {
-        TypeRef { app: "sys".to_owned(), type_: "KeyRotation".to_owned() }
-    }
+	fn type_ref() -> TypeRef {
+		TypeRef { app: "sys", type_: "KeyRotation" }
+	}
 }
 
 
 #[derive(uniffi::Record, Clone, Serialize, Deserialize)]
 pub struct KeyRotationsRef {
-    pub _id: GeneratedId,
-    pub list: GeneratedId,
+	pub _id: String,
+	pub list: GeneratedId,
 }
 
 impl Entity for KeyRotationsRef {
-    fn type_ref() -> TypeRef {
-        TypeRef { app: "sys".to_owned(), type_: "KeyRotationsRef".to_owned() }
-    }
+	fn type_ref() -> TypeRef {
+		TypeRef { app: "sys", type_: "KeyRotationsRef" }
+	}
 }
 
 
 #[derive(uniffi::Record, Clone, Serialize, Deserialize)]
 pub struct LocationServiceGetReturn {
-    pub _format: i64,
-    pub country: String,
+	pub _format: i64,
+	pub country: String,
 }
 
 impl Entity for LocationServiceGetReturn {
-    fn type_ref() -> TypeRef {
-        TypeRef { app: "sys".to_owned(), type_: "LocationServiceGetReturn".to_owned() }
-    }
+	fn type_ref() -> TypeRef {
+		TypeRef { app: "sys", type_: "LocationServiceGetReturn" }
+	}
 }
 
 
 #[derive(uniffi::Record, Clone, Serialize, Deserialize)]
 pub struct Login {
-    pub _format: i64,
-    pub _id: IdTuple,
-    pub _ownerGroup: Option<GeneratedId>,
-    pub _permissions: GeneratedId,
-    pub time: DateTime,
+	pub _format: i64,
+	pub _id: IdTuple,
+	pub _ownerGroup: Option<GeneratedId>,
+	pub _permissions: GeneratedId,
+	pub time: DateTime,
 }
 
 impl Entity for Login {
-    fn type_ref() -> TypeRef {
-        TypeRef { app: "sys".to_owned(), type_: "Login".to_owned() }
-    }
+	fn type_ref() -> TypeRef {
+		TypeRef { app: "sys", type_: "Login" }
+	}
 }
 
 
 #[derive(uniffi::Record, Clone, Serialize, Deserialize)]
 pub struct MailAddressAlias {
-    pub _id: GeneratedId,
-    pub enabled: bool,
-    pub mailAddress: String,
+	pub _id: String,
+	pub enabled: bool,
+	pub mailAddress: String,
 }
 
 impl Entity for MailAddressAlias {
-    fn type_ref() -> TypeRef {
-        TypeRef { app: "sys".to_owned(), type_: "MailAddressAlias".to_owned() }
-    }
+	fn type_ref() -> TypeRef {
+		TypeRef { app: "sys", type_: "MailAddressAlias" }
+	}
 }
 
 
 #[derive(uniffi::Record, Clone, Serialize, Deserialize)]
 pub struct MailAddressAliasGetIn {
-    pub _format: i64,
-    pub targetGroup: GeneratedId,
+	pub _format: i64,
+	pub targetGroup: GeneratedId,
 }
 
 impl Entity for MailAddressAliasGetIn {
-    fn type_ref() -> TypeRef {
-        TypeRef { app: "sys".to_owned(), type_: "MailAddressAliasGetIn".to_owned() }
-    }
+	fn type_ref() -> TypeRef {
+		TypeRef { app: "sys", type_: "MailAddressAliasGetIn" }
+	}
 }
 
 
 #[derive(uniffi::Record, Clone, Serialize, Deserialize)]
 pub struct MailAddressAliasServiceData {
-    pub _format: i64,
-    pub mailAddress: String,
-    pub group: GeneratedId,
+	pub _format: i64,
+	pub mailAddress: String,
+	pub group: GeneratedId,
 }
 
 impl Entity for MailAddressAliasServiceData {
-    fn type_ref() -> TypeRef {
-        TypeRef { app: "sys".to_owned(), type_: "MailAddressAliasServiceData".to_owned() }
-    }
+	fn type_ref() -> TypeRef {
+		TypeRef { app: "sys", type_: "MailAddressAliasServiceData" }
+	}
 }
 
 
 #[derive(uniffi::Record, Clone, Serialize, Deserialize)]
 pub struct MailAddressAliasServiceDataDelete {
-    pub _format: i64,
-    pub mailAddress: String,
-    pub restore: bool,
-    pub group: GeneratedId,
+	pub _format: i64,
+	pub mailAddress: String,
+	pub restore: bool,
+	pub group: GeneratedId,
 }
 
 impl Entity for MailAddressAliasServiceDataDelete {
-    fn type_ref() -> TypeRef {
-        TypeRef { app: "sys".to_owned(), type_: "MailAddressAliasServiceDataDelete".to_owned() }
-    }
+	fn type_ref() -> TypeRef {
+		TypeRef { app: "sys", type_: "MailAddressAliasServiceDataDelete" }
+	}
 }
 
 
 #[derive(uniffi::Record, Clone, Serialize, Deserialize)]
 pub struct MailAddressAliasServiceReturn {
-    pub _format: i64,
-    pub enabledAliases: i64,
-    pub nbrOfFreeAliases: i64,
-    pub totalAliases: i64,
-    pub usedAliases: i64,
+	pub _format: i64,
+	pub enabledAliases: i64,
+	pub nbrOfFreeAliases: i64,
+	pub totalAliases: i64,
+	pub usedAliases: i64,
 }
 
 impl Entity for MailAddressAliasServiceReturn {
-    fn type_ref() -> TypeRef {
-        TypeRef { app: "sys".to_owned(), type_: "MailAddressAliasServiceReturn".to_owned() }
-    }
+	fn type_ref() -> TypeRef {
+		TypeRef { app: "sys", type_: "MailAddressAliasServiceReturn" }
+	}
 }
 
 
 #[derive(uniffi::Record, Clone, Serialize, Deserialize)]
 pub struct MailAddressAvailability {
-    pub _id: GeneratedId,
-    pub available: bool,
-    pub mailAddress: String,
+	pub _id: String,
+	pub available: bool,
+	pub mailAddress: String,
 }
 
 impl Entity for MailAddressAvailability {
-    fn type_ref() -> TypeRef {
-        TypeRef { app: "sys".to_owned(), type_: "MailAddressAvailability".to_owned() }
-    }
+	fn type_ref() -> TypeRef {
+		TypeRef { app: "sys", type_: "MailAddressAvailability" }
+	}
 }
 
 
 #[derive(uniffi::Record, Clone, Serialize, Deserialize)]
 pub struct MailAddressToGroup {
-    pub _format: i64,
-    pub _id: GeneratedId,
-    pub _ownerGroup: Option<GeneratedId>,
-    pub _permissions: GeneratedId,
-    pub internalGroup: Option<GeneratedId>,
+	pub _format: i64,
+	pub _id: String,
+	pub _ownerGroup: Option<GeneratedId>,
+	pub _permissions: GeneratedId,
+	pub internalGroup: Option<GeneratedId>,
 }
 
 impl Entity for MailAddressToGroup {
-    fn type_ref() -> TypeRef {
-        TypeRef { app: "sys".to_owned(), type_: "MailAddressToGroup".to_owned() }
-    }
+	fn type_ref() -> TypeRef {
+		TypeRef { app: "sys", type_: "MailAddressToGroup" }
+	}
 }
 
 
 #[derive(uniffi::Record, Clone, Serialize, Deserialize)]
 pub struct MembershipAddData {
-    pub _format: i64,
-    pub groupKeyVersion: i64,
-    #[serde(with = "serde_bytes")]
-    pub symEncGKey: Vec<u8>,
-    pub symKeyVersion: i64,
-    pub group: GeneratedId,
-    pub user: GeneratedId,
+	pub _format: i64,
+	pub groupKeyVersion: i64,
+	#[serde(with = "serde_bytes")]
+	pub symEncGKey: Vec<u8>,
+	pub symKeyVersion: i64,
+	pub group: GeneratedId,
+	pub user: GeneratedId,
 }
 
 impl Entity for MembershipAddData {
-    fn type_ref() -> TypeRef {
-        TypeRef { app: "sys".to_owned(), type_: "MembershipAddData".to_owned() }
-    }
+	fn type_ref() -> TypeRef {
+		TypeRef { app: "sys", type_: "MembershipAddData" }
+	}
+}
+
+
+#[derive(uniffi::Record, Clone, Serialize, Deserialize)]
+pub struct MembershipPutIn {
+	pub _format: i64,
+	pub groupKeyUpdates: Vec<GroupMembershipKeyData>,
+}
+
+impl Entity for MembershipPutIn {
+	fn type_ref() -> TypeRef {
+		TypeRef { app: "sys", type_: "MembershipPutIn" }
+	}
 }
 
 
 #[derive(uniffi::Record, Clone, Serialize, Deserialize)]
 pub struct MembershipRemoveData {
-    pub _format: i64,
-    pub group: GeneratedId,
-    pub user: GeneratedId,
+	pub _format: i64,
+	pub group: GeneratedId,
+	pub user: GeneratedId,
 }
 
 impl Entity for MembershipRemoveData {
-    fn type_ref() -> TypeRef {
-        TypeRef { app: "sys".to_owned(), type_: "MembershipRemoveData".to_owned() }
-    }
+	fn type_ref() -> TypeRef {
+		TypeRef { app: "sys", type_: "MembershipRemoveData" }
+	}
 }
 
 
 #[derive(uniffi::Record, Clone, Serialize, Deserialize)]
 pub struct MissedNotification {
-    pub _format: i64,
-    pub _id: GeneratedId,
-    #[serde(with = "serde_bytes")]
-    pub _ownerEncSessionKey: Option<Vec<u8>>,
-    pub _ownerGroup: Option<GeneratedId>,
-    pub _ownerKeyVersion: Option<i64>,
-    pub _permissions: GeneratedId,
-    pub changeTime: DateTime,
-    pub confirmationId: GeneratedId,
-    pub lastProcessedNotificationId: Option<GeneratedId>,
-    pub alarmNotifications: Vec<AlarmNotification>,
-    pub notificationInfos: Vec<NotificationInfo>,
+	pub _format: i64,
+	pub _id: String,
+	#[serde(with = "serde_bytes")]
+	pub _ownerEncSessionKey: Option<Vec<u8>>,
+	pub _ownerGroup: Option<GeneratedId>,
+	pub _ownerKeyVersion: Option<i64>,
+	pub _permissions: GeneratedId,
+	pub changeTime: DateTime,
+	pub confirmationId: GeneratedId,
+	pub lastProcessedNotificationId: Option<GeneratedId>,
+	pub alarmNotifications: Vec<AlarmNotification>,
+	pub notificationInfos: Vec<NotificationInfo>,
 }
 
 impl Entity for MissedNotification {
-    fn type_ref() -> TypeRef {
-        TypeRef { app: "sys".to_owned(), type_: "MissedNotification".to_owned() }
-    }
+	fn type_ref() -> TypeRef {
+		TypeRef { app: "sys", type_: "MissedNotification" }
+	}
 }
 
 
 #[derive(uniffi::Record, Clone, Serialize, Deserialize)]
 pub struct MultipleMailAddressAvailabilityData {
-    pub _format: i64,
-    pub mailAddresses: Vec<StringWrapper>,
+	pub _format: i64,
+	pub mailAddresses: Vec<StringWrapper>,
 }
 
 impl Entity for MultipleMailAddressAvailabilityData {
-    fn type_ref() -> TypeRef {
-        TypeRef { app: "sys".to_owned(), type_: "MultipleMailAddressAvailabilityData".to_owned() }
-    }
+	fn type_ref() -> TypeRef {
+		TypeRef { app: "sys", type_: "MultipleMailAddressAvailabilityData" }
+	}
 }
 
 
 #[derive(uniffi::Record, Clone, Serialize, Deserialize)]
 pub struct MultipleMailAddressAvailabilityReturn {
-    pub _format: i64,
-    pub availabilities: Vec<MailAddressAvailability>,
+	pub _format: i64,
+	pub availabilities: Vec<MailAddressAvailability>,
 }
 
 impl Entity for MultipleMailAddressAvailabilityReturn {
-    fn type_ref() -> TypeRef {
-        TypeRef { app: "sys".to_owned(), type_: "MultipleMailAddressAvailabilityReturn".to_owned() }
-    }
+	fn type_ref() -> TypeRef {
+		TypeRef { app: "sys", type_: "MultipleMailAddressAvailabilityReturn" }
+	}
 }
 
 
 #[derive(uniffi::Record, Clone, Serialize, Deserialize)]
 pub struct NotificationInfo {
-    pub _id: GeneratedId,
-    pub mailAddress: String,
-    pub userId: GeneratedId,
-    pub mailId: Option<IdTupleWrapper>,
+	pub _id: String,
+	pub mailAddress: String,
+	pub userId: GeneratedId,
+	pub mailId: Option<IdTupleWrapper>,
 }
 
 impl Entity for NotificationInfo {
-    fn type_ref() -> TypeRef {
-        TypeRef { app: "sys".to_owned(), type_: "NotificationInfo".to_owned() }
-    }
+	fn type_ref() -> TypeRef {
+		TypeRef { app: "sys", type_: "NotificationInfo" }
+	}
 }
 
 
 #[derive(uniffi::Record, Clone, Serialize, Deserialize)]
 pub struct NotificationMailTemplate {
-    pub _id: GeneratedId,
-    pub body: String,
-    pub language: String,
-    pub subject: String,
+	pub _id: String,
+	pub body: String,
+	pub language: String,
+	pub subject: String,
 }
 
 impl Entity for NotificationMailTemplate {
-    fn type_ref() -> TypeRef {
-        TypeRef { app: "sys".to_owned(), type_: "NotificationMailTemplate".to_owned() }
-    }
+	fn type_ref() -> TypeRef {
+		TypeRef { app: "sys", type_: "NotificationMailTemplate" }
+	}
 }
 
 
 #[derive(uniffi::Record, Clone, Serialize, Deserialize)]
 pub struct NotificationSessionKey {
-    pub _id: GeneratedId,
-    #[serde(with = "serde_bytes")]
-    pub pushIdentifierSessionEncSessionKey: Vec<u8>,
-    pub pushIdentifier: IdTuple,
+	pub _id: String,
+	#[serde(with = "serde_bytes")]
+	pub pushIdentifierSessionEncSessionKey: Vec<u8>,
+	pub pushIdentifier: IdTuple,
 }
 
 impl Entity for NotificationSessionKey {
-    fn type_ref() -> TypeRef {
-        TypeRef { app: "sys".to_owned(), type_: "NotificationSessionKey".to_owned() }
-    }
+	fn type_ref() -> TypeRef {
+		TypeRef { app: "sys", type_: "NotificationSessionKey" }
+	}
 }
 
 
 #[derive(uniffi::Record, Clone, Serialize, Deserialize)]
 pub struct OrderProcessingAgreement {
-    pub _format: i64,
-    pub _id: IdTuple,
-    #[serde(with = "serde_bytes")]
-    pub _ownerEncSessionKey: Option<Vec<u8>>,
-    pub _ownerGroup: Option<GeneratedId>,
-    pub _ownerKeyVersion: Option<i64>,
-    pub _permissions: GeneratedId,
-    pub customerAddress: String,
-    pub signatureDate: DateTime,
-    pub version: String,
-    pub customer: GeneratedId,
-    pub signerUserGroupInfo: IdTuple,
+	pub _format: i64,
+	pub _id: IdTuple,
+	#[serde(with = "serde_bytes")]
+	pub _ownerEncSessionKey: Option<Vec<u8>>,
+	pub _ownerGroup: Option<GeneratedId>,
+	pub _ownerKeyVersion: Option<i64>,
+	pub _permissions: GeneratedId,
+	pub customerAddress: String,
+	pub signatureDate: DateTime,
+	pub version: String,
+	pub customer: GeneratedId,
+	pub signerUserGroupInfo: IdTuple,
 }
 
 impl Entity for OrderProcessingAgreement {
-    fn type_ref() -> TypeRef {
-        TypeRef { app: "sys".to_owned(), type_: "OrderProcessingAgreement".to_owned() }
-    }
+	fn type_ref() -> TypeRef {
+		TypeRef { app: "sys", type_: "OrderProcessingAgreement" }
+	}
 }
 
 
 #[derive(uniffi::Record, Clone, Serialize, Deserialize)]
 pub struct OtpChallenge {
-    pub _id: GeneratedId,
-    pub secondFactors: Vec<IdTuple>,
+	pub _id: String,
+	pub secondFactors: Vec<IdTuple>,
 }
 
 impl Entity for OtpChallenge {
-    fn type_ref() -> TypeRef {
-        TypeRef { app: "sys".to_owned(), type_: "OtpChallenge".to_owned() }
-    }
+	fn type_ref() -> TypeRef {
+		TypeRef { app: "sys", type_: "OtpChallenge" }
+	}
 }
 
 
 #[derive(uniffi::Record, Clone, Serialize, Deserialize)]
 pub struct PaymentDataServiceGetData {
-    pub _format: i64,
-    pub clientType: Option<i64>,
+	pub _format: i64,
+	pub clientType: Option<i64>,
 }
 
 impl Entity for PaymentDataServiceGetData {
-    fn type_ref() -> TypeRef {
-        TypeRef { app: "sys".to_owned(), type_: "PaymentDataServiceGetData".to_owned() }
-    }
+	fn type_ref() -> TypeRef {
+		TypeRef { app: "sys", type_: "PaymentDataServiceGetData" }
+	}
 }
 
 
 #[derive(uniffi::Record, Clone, Serialize, Deserialize)]
 pub struct PaymentDataServiceGetReturn {
-    pub _format: i64,
-    pub loginUrl: String,
+	pub _format: i64,
+	pub loginUrl: String,
 }
 
 impl Entity for PaymentDataServiceGetReturn {
-    fn type_ref() -> TypeRef {
-        TypeRef { app: "sys".to_owned(), type_: "PaymentDataServiceGetReturn".to_owned() }
-    }
+	fn type_ref() -> TypeRef {
+		TypeRef { app: "sys", type_: "PaymentDataServiceGetReturn" }
+	}
 }
 
 
 #[derive(uniffi::Record, Clone, Serialize, Deserialize)]
 pub struct PaymentDataServicePostData {
-    pub _format: i64,
-    pub braintree3dsResponse: Braintree3ds2Response,
+	pub _format: i64,
+	pub braintree3dsResponse: Braintree3ds2Response,
 }
 
 impl Entity for PaymentDataServicePostData {
-    fn type_ref() -> TypeRef {
-        TypeRef { app: "sys".to_owned(), type_: "PaymentDataServicePostData".to_owned() }
-    }
+	fn type_ref() -> TypeRef {
+		TypeRef { app: "sys", type_: "PaymentDataServicePostData" }
+	}
 }
 
 
 #[derive(uniffi::Record, Clone, Serialize, Deserialize)]
 pub struct PaymentDataServicePutData {
-    pub _format: i64,
-    pub confirmedCountry: Option<String>,
-    pub invoiceAddress: String,
-    pub invoiceCountry: String,
-    pub invoiceName: String,
-    pub invoiceVatIdNo: String,
-    pub paymentInterval: i64,
-    pub paymentMethod: i64,
-    pub paymentMethodInfo: Option<String>,
-    pub paymentToken: Option<String>,
-    pub creditCard: Option<CreditCard>,
+	pub _format: i64,
+	pub confirmedCountry: Option<String>,
+	pub invoiceAddress: String,
+	pub invoiceCountry: String,
+	pub invoiceName: String,
+	pub invoiceVatIdNo: String,
+	pub paymentInterval: i64,
+	pub paymentMethod: i64,
+	pub paymentMethodInfo: Option<String>,
+	pub paymentToken: Option<String>,
+	pub creditCard: Option<CreditCard>,
 }
 
 impl Entity for PaymentDataServicePutData {
-    fn type_ref() -> TypeRef {
-        TypeRef { app: "sys".to_owned(), type_: "PaymentDataServicePutData".to_owned() }
-    }
+	fn type_ref() -> TypeRef {
+		TypeRef { app: "sys", type_: "PaymentDataServicePutData" }
+	}
 }
 
 
 #[derive(uniffi::Record, Clone, Serialize, Deserialize)]
 pub struct PaymentDataServicePutReturn {
-    pub _format: i64,
-    pub result: i64,
-    pub braintree3dsRequest: Option<Braintree3ds2Request>,
+	pub _format: i64,
+	pub result: i64,
+	pub braintree3dsRequest: Option<Braintree3ds2Request>,
 }
 
 impl Entity for PaymentDataServicePutReturn {
-    fn type_ref() -> TypeRef {
-        TypeRef { app: "sys".to_owned(), type_: "PaymentDataServicePutReturn".to_owned() }
-    }
+	fn type_ref() -> TypeRef {
+		TypeRef { app: "sys", type_: "PaymentDataServicePutReturn" }
+	}
 }
 
 
 #[derive(uniffi::Record, Clone, Serialize, Deserialize)]
 pub struct PaymentErrorInfo {
-    pub _id: GeneratedId,
-    pub errorCode: String,
-    pub errorTime: DateTime,
-    pub thirdPartyErrorId: String,
+	pub _id: String,
+	pub errorCode: String,
+	pub errorTime: DateTime,
+	pub thirdPartyErrorId: String,
 }
 
 impl Entity for PaymentErrorInfo {
-    fn type_ref() -> TypeRef {
-        TypeRef { app: "sys".to_owned(), type_: "PaymentErrorInfo".to_owned() }
-    }
+	fn type_ref() -> TypeRef {
+		TypeRef { app: "sys", type_: "PaymentErrorInfo" }
+	}
 }
 
 
 #[derive(uniffi::Record, Clone, Serialize, Deserialize)]
 pub struct Permission {
-    pub _format: i64,
-    pub _id: IdTuple,
-    #[serde(with = "serde_bytes")]
-    pub _ownerEncSessionKey: Option<Vec<u8>>,
-    pub _ownerGroup: Option<GeneratedId>,
-    pub _ownerKeyVersion: Option<i64>,
-    pub _permissions: GeneratedId,
-    #[serde(with = "serde_bytes")]
-    pub bucketEncSessionKey: Option<Vec<u8>>,
-    pub listElementApplication: Option<String>,
-    pub listElementTypeId: Option<i64>,
-    pub ops: Option<String>,
-    #[serde(with = "serde_bytes")]
-    pub symEncSessionKey: Option<Vec<u8>>,
-    pub symKeyVersion: Option<i64>,
-    #[serde(rename = "type")]
-    pub r#type: i64,
-    pub bucket: Option<Bucket>,
-    pub group: Option<GeneratedId>,
+	pub _format: i64,
+	pub _id: IdTuple,
+	#[serde(with = "serde_bytes")]
+	pub _ownerEncSessionKey: Option<Vec<u8>>,
+	pub _ownerGroup: Option<GeneratedId>,
+	pub _ownerKeyVersion: Option<i64>,
+	pub _permissions: GeneratedId,
+	#[serde(with = "serde_bytes")]
+	pub bucketEncSessionKey: Option<Vec<u8>>,
+	pub listElementApplication: Option<String>,
+	pub listElementTypeId: Option<i64>,
+	pub ops: Option<String>,
+	#[serde(with = "serde_bytes")]
+	pub symEncSessionKey: Option<Vec<u8>>,
+	pub symKeyVersion: Option<i64>,
+	#[serde(rename = "type")]
+	pub r#type: i64,
+	pub bucket: Option<Bucket>,
+	pub group: Option<GeneratedId>,
 }
 
 impl Entity for Permission {
-    fn type_ref() -> TypeRef {
-        TypeRef { app: "sys".to_owned(), type_: "Permission".to_owned() }
-    }
+	fn type_ref() -> TypeRef {
+		TypeRef { app: "sys", type_: "Permission" }
+	}
 }
 
 
 #[derive(uniffi::Record, Clone, Serialize, Deserialize)]
 pub struct PhoneNumber {
-    pub _id: GeneratedId,
-    pub number: String,
+	pub _id: String,
+	pub number: String,
 }
 
 impl Entity for PhoneNumber {
-    fn type_ref() -> TypeRef {
-        TypeRef { app: "sys".to_owned(), type_: "PhoneNumber".to_owned() }
-    }
+	fn type_ref() -> TypeRef {
+		TypeRef { app: "sys", type_: "PhoneNumber" }
+	}
 }
 
 
 #[derive(uniffi::Record, Clone, Serialize, Deserialize)]
 pub struct PlanConfiguration {
-    pub _id: GeneratedId,
-    pub autoResponder: bool,
-    pub contactList: bool,
-    pub customDomainType: i64,
-    pub eventInvites: bool,
-    pub multiUser: bool,
-    pub nbrOfAliases: i64,
-    pub sharing: bool,
-    pub storageGb: i64,
-    pub templates: bool,
-    pub whitelabel: bool,
+	pub _id: String,
+	pub autoResponder: bool,
+	pub contactList: bool,
+	pub customDomainType: i64,
+	pub eventInvites: bool,
+	pub multiUser: bool,
+	pub nbrOfAliases: i64,
+	pub sharing: bool,
+	pub storageGb: i64,
+	pub templates: bool,
+	pub whitelabel: bool,
 }
 
 impl Entity for PlanConfiguration {
-    fn type_ref() -> TypeRef {
-        TypeRef { app: "sys".to_owned(), type_: "PlanConfiguration".to_owned() }
-    }
+	fn type_ref() -> TypeRef {
+		TypeRef { app: "sys", type_: "PlanConfiguration" }
+	}
 }
 
 
 #[derive(uniffi::Record, Clone, Serialize, Deserialize)]
 pub struct PlanPrices {
-    pub _id: GeneratedId,
-    pub additionalUserPriceMonthly: i64,
-    pub business: bool,
-    pub businessPlan: bool,
-    pub customDomains: i64,
-    pub firstYearDiscount: i64,
-    pub includedAliases: i64,
-    pub includedStorage: i64,
-    pub monthlyPrice: i64,
-    pub monthlyReferencePrice: i64,
-    pub planName: String,
-    pub sharing: bool,
-    pub whitelabel: bool,
-    pub planConfiguration: PlanConfiguration,
+	pub _id: String,
+	pub additionalUserPriceMonthly: i64,
+	pub business: bool,
+	pub businessPlan: bool,
+	pub customDomains: i64,
+	pub firstYearDiscount: i64,
+	pub includedAliases: i64,
+	pub includedStorage: i64,
+	pub monthlyPrice: i64,
+	pub monthlyReferencePrice: i64,
+	pub planName: String,
+	pub sharing: bool,
+	pub whitelabel: bool,
+	pub planConfiguration: PlanConfiguration,
 }
 
 impl Entity for PlanPrices {
-    fn type_ref() -> TypeRef {
-        TypeRef { app: "sys".to_owned(), type_: "PlanPrices".to_owned() }
-    }
+	fn type_ref() -> TypeRef {
+		TypeRef { app: "sys", type_: "PlanPrices" }
+	}
 }
 
 
 #[derive(uniffi::Record, Clone, Serialize, Deserialize)]
 pub struct PlanServiceGetOut {
-    pub _format: i64,
-    pub config: PlanConfiguration,
+	pub _format: i64,
+	pub config: PlanConfiguration,
 }
 
 impl Entity for PlanServiceGetOut {
-    fn type_ref() -> TypeRef {
-        TypeRef { app: "sys".to_owned(), type_: "PlanServiceGetOut".to_owned() }
-    }
+	fn type_ref() -> TypeRef {
+		TypeRef { app: "sys", type_: "PlanServiceGetOut" }
+	}
 }
 
 
 #[derive(uniffi::Record, Clone, Serialize, Deserialize)]
 pub struct PriceData {
-    pub _id: GeneratedId,
-    pub paymentInterval: i64,
-    pub price: i64,
-    pub taxIncluded: bool,
-    pub items: Vec<PriceItemData>,
+	pub _id: String,
+	pub paymentInterval: i64,
+	pub price: i64,
+	pub taxIncluded: bool,
+	pub items: Vec<PriceItemData>,
 }
 
 impl Entity for PriceData {
-    fn type_ref() -> TypeRef {
-        TypeRef { app: "sys".to_owned(), type_: "PriceData".to_owned() }
-    }
+	fn type_ref() -> TypeRef {
+		TypeRef { app: "sys", type_: "PriceData" }
+	}
 }
 
 
 #[derive(uniffi::Record, Clone, Serialize, Deserialize)]
 pub struct PriceItemData {
-    pub _id: GeneratedId,
-    pub count: i64,
-    pub featureType: i64,
-    pub price: i64,
-    pub singleType: bool,
+	pub _id: String,
+	pub count: i64,
+	pub featureType: i64,
+	pub price: i64,
+	pub singleType: bool,
 }
 
 impl Entity for PriceItemData {
-    fn type_ref() -> TypeRef {
-        TypeRef { app: "sys".to_owned(), type_: "PriceItemData".to_owned() }
-    }
+	fn type_ref() -> TypeRef {
+		TypeRef { app: "sys", type_: "PriceItemData" }
+	}
 }
 
 
 #[derive(uniffi::Record, Clone, Serialize, Deserialize)]
 pub struct PriceRequestData {
-    pub _id: GeneratedId,
-    pub accountType: Option<i64>,
-    pub business: Option<bool>,
-    pub count: i64,
-    pub featureType: i64,
-    pub paymentInterval: Option<i64>,
-    pub reactivate: bool,
+	pub _id: String,
+	pub accountType: Option<i64>,
+	pub business: Option<bool>,
+	pub count: i64,
+	pub featureType: i64,
+	pub paymentInterval: Option<i64>,
+	pub reactivate: bool,
 }
 
 impl Entity for PriceRequestData {
-    fn type_ref() -> TypeRef {
-        TypeRef { app: "sys".to_owned(), type_: "PriceRequestData".to_owned() }
-    }
+	fn type_ref() -> TypeRef {
+		TypeRef { app: "sys", type_: "PriceRequestData" }
+	}
 }
 
 
 #[derive(uniffi::Record, Clone, Serialize, Deserialize)]
 pub struct PriceServiceData {
-    pub _format: i64,
-    pub date: Option<DateTime>,
-    pub priceRequest: Option<PriceRequestData>,
+	pub _format: i64,
+	pub date: Option<DateTime>,
+	pub priceRequest: Option<PriceRequestData>,
 }
 
 impl Entity for PriceServiceData {
-    fn type_ref() -> TypeRef {
-        TypeRef { app: "sys".to_owned(), type_: "PriceServiceData".to_owned() }
-    }
+	fn type_ref() -> TypeRef {
+		TypeRef { app: "sys", type_: "PriceServiceData" }
+	}
 }
 
 
 #[derive(uniffi::Record, Clone, Serialize, Deserialize)]
 pub struct PriceServiceReturn {
-    pub _format: i64,
-    pub currentPeriodAddedPrice: Option<i64>,
-    pub periodEndDate: DateTime,
-    pub currentPriceNextPeriod: Option<PriceData>,
-    pub currentPriceThisPeriod: Option<PriceData>,
-    pub futurePriceNextPeriod: Option<PriceData>,
+	pub _format: i64,
+	pub currentPeriodAddedPrice: Option<i64>,
+	pub periodEndDate: DateTime,
+	pub currentPriceNextPeriod: Option<PriceData>,
+	pub currentPriceThisPeriod: Option<PriceData>,
+	pub futurePriceNextPeriod: Option<PriceData>,
 }
 
 impl Entity for PriceServiceReturn {
-    fn type_ref() -> TypeRef {
-        TypeRef { app: "sys".to_owned(), type_: "PriceServiceReturn".to_owned() }
-    }
+	fn type_ref() -> TypeRef {
+		TypeRef { app: "sys", type_: "PriceServiceReturn" }
+	}
+}
+
+
+#[derive(uniffi::Record, Clone, Serialize, Deserialize)]
+pub struct PubEncKeyData {
+	pub _id: String,
+	pub mailAddress: String,
+	pub protocolVersion: i64,
+	#[serde(with = "serde_bytes")]
+	pub pubEncBucketKey: Vec<u8>,
+	pub recipientKeyVersion: i64,
+	pub senderKeyVersion: Option<i64>,
+}
+
+impl Entity for PubEncKeyData {
+	fn type_ref() -> TypeRef {
+		TypeRef { app: "sys", type_: "PubEncKeyData" }
+	}
 }
 
 
 #[derive(uniffi::Record, Clone, Serialize, Deserialize)]
 pub struct PublicKeyGetIn {
-    pub _format: i64,
-    pub mailAddress: String,
-    pub version: Option<i64>,
+	pub _format: i64,
+	pub mailAddress: String,
+	pub version: Option<i64>,
 }
 
 impl Entity for PublicKeyGetIn {
-    fn type_ref() -> TypeRef {
-        TypeRef { app: "sys".to_owned(), type_: "PublicKeyGetIn".to_owned() }
-    }
+	fn type_ref() -> TypeRef {
+		TypeRef { app: "sys", type_: "PublicKeyGetIn" }
+	}
 }
 
 
 #[derive(uniffi::Record, Clone, Serialize, Deserialize)]
 pub struct PublicKeyGetOut {
-    pub _format: i64,
-    #[serde(with = "serde_bytes")]
-    pub pubEccKey: Option<Vec<u8>>,
-    pub pubKeyVersion: i64,
-    #[serde(with = "serde_bytes")]
-    pub pubKyberKey: Option<Vec<u8>>,
-    #[serde(with = "serde_bytes")]
-    pub pubRsaKey: Option<Vec<u8>>,
+	pub _format: i64,
+	#[serde(with = "serde_bytes")]
+	pub pubEccKey: Option<Vec<u8>>,
+	pub pubKeyVersion: i64,
+	#[serde(with = "serde_bytes")]
+	pub pubKyberKey: Option<Vec<u8>>,
+	#[serde(with = "serde_bytes")]
+	pub pubRsaKey: Option<Vec<u8>>,
 }
 
 impl Entity for PublicKeyGetOut {
-    fn type_ref() -> TypeRef {
-        TypeRef { app: "sys".to_owned(), type_: "PublicKeyGetOut".to_owned() }
-    }
+	fn type_ref() -> TypeRef {
+		TypeRef { app: "sys", type_: "PublicKeyGetOut" }
+	}
 }
 
 
 #[derive(uniffi::Record, Clone, Serialize, Deserialize)]
 pub struct PublicKeyPutIn {
-    pub _format: i64,
-    #[serde(with = "serde_bytes")]
-    pub pubEccKey: Vec<u8>,
-    #[serde(with = "serde_bytes")]
-    pub symEncPrivEccKey: Vec<u8>,
-    pub keyGroup: GeneratedId,
+	pub _format: i64,
+	#[serde(with = "serde_bytes")]
+	pub pubEccKey: Vec<u8>,
+	#[serde(with = "serde_bytes")]
+	pub symEncPrivEccKey: Vec<u8>,
+	pub keyGroup: GeneratedId,
 }
 
 impl Entity for PublicKeyPutIn {
-    fn type_ref() -> TypeRef {
-        TypeRef { app: "sys".to_owned(), type_: "PublicKeyPutIn".to_owned() }
-    }
+	fn type_ref() -> TypeRef {
+		TypeRef { app: "sys", type_: "PublicKeyPutIn" }
+	}
 }
 
 
 #[derive(uniffi::Record, Clone, Serialize, Deserialize)]
 pub struct PushIdentifier {
-    pub _area: i64,
-    pub _format: i64,
-    pub _id: IdTuple,
-    pub _owner: GeneratedId,
-    #[serde(with = "serde_bytes")]
-    pub _ownerEncSessionKey: Option<Vec<u8>>,
-    pub _ownerGroup: Option<GeneratedId>,
-    pub _ownerKeyVersion: Option<i64>,
-    pub _permissions: GeneratedId,
-    pub disabled: bool,
-    pub displayName: String,
-    pub identifier: String,
-    pub language: String,
-    pub lastNotificationDate: Option<DateTime>,
-    pub lastUsageTime: DateTime,
-    pub pushServiceType: i64,
+	pub _area: i64,
+	pub _format: i64,
+	pub _id: IdTuple,
+	pub _owner: GeneratedId,
+	#[serde(with = "serde_bytes")]
+	pub _ownerEncSessionKey: Option<Vec<u8>>,
+	pub _ownerGroup: Option<GeneratedId>,
+	pub _ownerKeyVersion: Option<i64>,
+	pub _permissions: GeneratedId,
+	pub disabled: bool,
+	pub displayName: String,
+	pub identifier: String,
+	pub language: String,
+	pub lastNotificationDate: Option<DateTime>,
+	pub lastUsageTime: DateTime,
+	pub pushServiceType: i64,
 }
 
 impl Entity for PushIdentifier {
-    fn type_ref() -> TypeRef {
-        TypeRef { app: "sys".to_owned(), type_: "PushIdentifier".to_owned() }
-    }
+	fn type_ref() -> TypeRef {
+		TypeRef { app: "sys", type_: "PushIdentifier" }
+	}
 }
 
 
 #[derive(uniffi::Record, Clone, Serialize, Deserialize)]
 pub struct PushIdentifierList {
-    pub _id: GeneratedId,
-    pub list: GeneratedId,
+	pub _id: String,
+	pub list: GeneratedId,
 }
 
 impl Entity for PushIdentifierList {
-    fn type_ref() -> TypeRef {
-        TypeRef { app: "sys".to_owned(), type_: "PushIdentifierList".to_owned() }
-    }
+	fn type_ref() -> TypeRef {
+		TypeRef { app: "sys", type_: "PushIdentifierList" }
+	}
 }
 
 
 #[derive(uniffi::Record, Clone, Serialize, Deserialize)]
 pub struct ReceivedGroupInvitation {
-    pub _format: i64,
-    pub _id: IdTuple,
-    #[serde(with = "serde_bytes")]
-    pub _ownerEncSessionKey: Option<Vec<u8>>,
-    pub _ownerGroup: Option<GeneratedId>,
-    pub _ownerKeyVersion: Option<i64>,
-    pub _permissions: GeneratedId,
-    pub capability: i64,
-    pub groupType: Option<i64>,
-    pub inviteeMailAddress: String,
-    pub inviterMailAddress: String,
-    pub inviterName: String,
-    #[serde(with = "serde_bytes")]
-    pub sharedGroupKey: Vec<u8>,
-    pub sharedGroupKeyVersion: i64,
-    pub sharedGroupName: String,
-    pub sentInvitation: IdTuple,
-    pub sharedGroup: GeneratedId,
+	pub _format: i64,
+	pub _id: IdTuple,
+	#[serde(with = "serde_bytes")]
+	pub _ownerEncSessionKey: Option<Vec<u8>>,
+	pub _ownerGroup: Option<GeneratedId>,
+	pub _ownerKeyVersion: Option<i64>,
+	pub _permissions: GeneratedId,
+	pub capability: i64,
+	pub groupType: Option<i64>,
+	pub inviteeMailAddress: String,
+	pub inviterMailAddress: String,
+	pub inviterName: String,
+	#[serde(with = "serde_bytes")]
+	pub sharedGroupKey: Vec<u8>,
+	pub sharedGroupKeyVersion: i64,
+	pub sharedGroupName: String,
+	pub sentInvitation: IdTuple,
+	pub sharedGroup: GeneratedId,
 }
 
 impl Entity for ReceivedGroupInvitation {
-    fn type_ref() -> TypeRef {
-        TypeRef { app: "sys".to_owned(), type_: "ReceivedGroupInvitation".to_owned() }
-    }
+	fn type_ref() -> TypeRef {
+		TypeRef { app: "sys", type_: "ReceivedGroupInvitation" }
+	}
 }
 
 
 #[derive(uniffi::Record, Clone, Serialize, Deserialize)]
 pub struct RecoverCode {
-    pub _format: i64,
-    pub _id: GeneratedId,
-    pub _ownerGroup: Option<GeneratedId>,
-    pub _permissions: GeneratedId,
-    #[serde(with = "serde_bytes")]
-    pub recoverCodeEncUserGroupKey: Vec<u8>,
-    #[serde(with = "serde_bytes")]
-    pub userEncRecoverCode: Vec<u8>,
-    pub userKeyVersion: i64,
-    #[serde(with = "serde_bytes")]
-    pub verifier: Vec<u8>,
+	pub _format: i64,
+	pub _id: GeneratedId,
+	pub _ownerGroup: Option<GeneratedId>,
+	pub _permissions: GeneratedId,
+	#[serde(with = "serde_bytes")]
+	pub recoverCodeEncUserGroupKey: Vec<u8>,
+	#[serde(with = "serde_bytes")]
+	pub userEncRecoverCode: Vec<u8>,
+	pub userKeyVersion: i64,
+	#[serde(with = "serde_bytes")]
+	pub verifier: Vec<u8>,
 }
 
 impl Entity for RecoverCode {
-    fn type_ref() -> TypeRef {
-        TypeRef { app: "sys".to_owned(), type_: "RecoverCode".to_owned() }
-    }
+	fn type_ref() -> TypeRef {
+		TypeRef { app: "sys", type_: "RecoverCode" }
+	}
 }
 
 
 #[derive(uniffi::Record, Clone, Serialize, Deserialize)]
 pub struct RecoverCodeData {
-    pub _id: GeneratedId,
-    #[serde(with = "serde_bytes")]
-    pub recoveryCodeEncUserGroupKey: Vec<u8>,
-    #[serde(with = "serde_bytes")]
-    pub recoveryCodeVerifier: Vec<u8>,
-    #[serde(with = "serde_bytes")]
-    pub userEncRecoveryCode: Vec<u8>,
-    pub userKeyVersion: i64,
+	pub _id: String,
+	#[serde(with = "serde_bytes")]
+	pub recoveryCodeEncUserGroupKey: Vec<u8>,
+	#[serde(with = "serde_bytes")]
+	pub recoveryCodeVerifier: Vec<u8>,
+	#[serde(with = "serde_bytes")]
+	pub userEncRecoveryCode: Vec<u8>,
+	pub userKeyVersion: i64,
 }
 
 impl Entity for RecoverCodeData {
-    fn type_ref() -> TypeRef {
-        TypeRef { app: "sys".to_owned(), type_: "RecoverCodeData".to_owned() }
-    }
+	fn type_ref() -> TypeRef {
+		TypeRef { app: "sys", type_: "RecoverCodeData" }
+	}
 }
 
 
 #[derive(uniffi::Record, Clone, Serialize, Deserialize)]
 pub struct ReferralCodeGetIn {
-    pub _format: i64,
-    pub referralCode: GeneratedId,
+	pub _format: i64,
+	pub referralCode: GeneratedId,
 }
 
 impl Entity for ReferralCodeGetIn {
-    fn type_ref() -> TypeRef {
-        TypeRef { app: "sys".to_owned(), type_: "ReferralCodeGetIn".to_owned() }
-    }
+	fn type_ref() -> TypeRef {
+		TypeRef { app: "sys", type_: "ReferralCodeGetIn" }
+	}
 }
 
 
 #[derive(uniffi::Record, Clone, Serialize, Deserialize)]
 pub struct ReferralCodePostIn {
-    pub _format: i64,
+	pub _format: i64,
 }
 
 impl Entity for ReferralCodePostIn {
-    fn type_ref() -> TypeRef {
-        TypeRef { app: "sys".to_owned(), type_: "ReferralCodePostIn".to_owned() }
-    }
+	fn type_ref() -> TypeRef {
+		TypeRef { app: "sys", type_: "ReferralCodePostIn" }
+	}
 }
 
 
 #[derive(uniffi::Record, Clone, Serialize, Deserialize)]
 pub struct ReferralCodePostOut {
-    pub _format: i64,
-    pub referralCode: GeneratedId,
+	pub _format: i64,
+	pub referralCode: GeneratedId,
 }
 
 impl Entity for ReferralCodePostOut {
-    fn type_ref() -> TypeRef {
-        TypeRef { app: "sys".to_owned(), type_: "ReferralCodePostOut".to_owned() }
-    }
+	fn type_ref() -> TypeRef {
+		TypeRef { app: "sys", type_: "ReferralCodePostOut" }
+	}
 }
 
 
 #[derive(uniffi::Record, Clone, Serialize, Deserialize)]
 pub struct RegistrationCaptchaServiceData {
-    pub _format: i64,
-    pub response: String,
-    pub token: String,
+	pub _format: i64,
+	pub response: String,
+	pub token: String,
 }
 
 impl Entity for RegistrationCaptchaServiceData {
-    fn type_ref() -> TypeRef {
-        TypeRef { app: "sys".to_owned(), type_: "RegistrationCaptchaServiceData".to_owned() }
-    }
+	fn type_ref() -> TypeRef {
+		TypeRef { app: "sys", type_: "RegistrationCaptchaServiceData" }
+	}
 }
 
 
 #[derive(uniffi::Record, Clone, Serialize, Deserialize)]
 pub struct RegistrationCaptchaServiceGetData {
-    pub _format: i64,
-    pub businessUseSelected: bool,
-    pub mailAddress: String,
-    pub paidSubscriptionSelected: bool,
-    pub signupToken: Option<String>,
-    pub token: Option<String>,
+	pub _format: i64,
+	pub businessUseSelected: bool,
+	pub mailAddress: String,
+	pub paidSubscriptionSelected: bool,
+	pub signupToken: Option<String>,
+	pub token: Option<String>,
 }
 
 impl Entity for RegistrationCaptchaServiceGetData {
-    fn type_ref() -> TypeRef {
-        TypeRef { app: "sys".to_owned(), type_: "RegistrationCaptchaServiceGetData".to_owned() }
-    }
+	fn type_ref() -> TypeRef {
+		TypeRef { app: "sys", type_: "RegistrationCaptchaServiceGetData" }
+	}
 }
 
 
 #[derive(uniffi::Record, Clone, Serialize, Deserialize)]
 pub struct RegistrationCaptchaServiceReturn {
-    pub _format: i64,
-    #[serde(with = "serde_bytes")]
-    pub challenge: Option<Vec<u8>>,
-    pub token: String,
+	pub _format: i64,
+	#[serde(with = "serde_bytes")]
+	pub challenge: Option<Vec<u8>>,
+	pub token: String,
 }
 
 impl Entity for RegistrationCaptchaServiceReturn {
-    fn type_ref() -> TypeRef {
-        TypeRef { app: "sys".to_owned(), type_: "RegistrationCaptchaServiceReturn".to_owned() }
-    }
+	fn type_ref() -> TypeRef {
+		TypeRef { app: "sys", type_: "RegistrationCaptchaServiceReturn" }
+	}
 }
 
 
 #[derive(uniffi::Record, Clone, Serialize, Deserialize)]
 pub struct RegistrationReturn {
-    pub _format: i64,
-    pub authToken: String,
+	pub _format: i64,
+	pub authToken: String,
 }
 
 impl Entity for RegistrationReturn {
-    fn type_ref() -> TypeRef {
-        TypeRef { app: "sys".to_owned(), type_: "RegistrationReturn".to_owned() }
-    }
+	fn type_ref() -> TypeRef {
+		TypeRef { app: "sys", type_: "RegistrationReturn" }
+	}
 }
 
 
 #[derive(uniffi::Record, Clone, Serialize, Deserialize)]
 pub struct RegistrationServiceData {
-    pub _format: i64,
-    pub source: Option<String>,
-    pub starterDomain: String,
-    pub state: i64,
+	pub _format: i64,
+	pub source: Option<String>,
+	pub starterDomain: String,
+	pub state: i64,
 }
 
 impl Entity for RegistrationServiceData {
-    fn type_ref() -> TypeRef {
-        TypeRef { app: "sys".to_owned(), type_: "RegistrationServiceData".to_owned() }
-    }
+	fn type_ref() -> TypeRef {
+		TypeRef { app: "sys", type_: "RegistrationServiceData" }
+	}
 }
 
 
 #[derive(uniffi::Record, Clone, Serialize, Deserialize)]
 pub struct RejectedSender {
-    pub _format: i64,
-    pub _id: IdTuple,
-    pub _ownerGroup: Option<GeneratedId>,
-    pub _permissions: GeneratedId,
-    pub reason: String,
-    pub recipientMailAddress: String,
-    pub senderHostname: String,
-    pub senderIp: String,
-    pub senderMailAddress: String,
+	pub _format: i64,
+	pub _id: IdTuple,
+	pub _ownerGroup: Option<GeneratedId>,
+	pub _permissions: GeneratedId,
+	pub reason: String,
+	pub recipientMailAddress: String,
+	pub senderHostname: String,
+	pub senderIp: String,
+	pub senderMailAddress: String,
 }
 
 impl Entity for RejectedSender {
-    fn type_ref() -> TypeRef {
-        TypeRef { app: "sys".to_owned(), type_: "RejectedSender".to_owned() }
-    }
+	fn type_ref() -> TypeRef {
+		TypeRef { app: "sys", type_: "RejectedSender" }
+	}
 }
 
 
 #[derive(uniffi::Record, Clone, Serialize, Deserialize)]
 pub struct RejectedSendersRef {
-    pub _id: GeneratedId,
-    pub items: GeneratedId,
+	pub _id: String,
+	pub items: GeneratedId,
 }
 
 impl Entity for RejectedSendersRef {
-    fn type_ref() -> TypeRef {
-        TypeRef { app: "sys".to_owned(), type_: "RejectedSendersRef".to_owned() }
-    }
+	fn type_ref() -> TypeRef {
+		TypeRef { app: "sys", type_: "RejectedSendersRef" }
+	}
 }
 
 
 #[derive(uniffi::Record, Clone, Serialize, Deserialize)]
 pub struct RepeatRule {
-    pub _id: GeneratedId,
-    pub endType: i64,
-    pub endValue: Option<i64>,
-    pub frequency: i64,
-    pub interval: i64,
-    pub timeZone: String,
-    pub excludedDates: Vec<DateWrapper>,
+	pub _id: String,
+	pub endType: i64,
+	pub endValue: Option<i64>,
+	pub frequency: i64,
+	pub interval: i64,
+	pub timeZone: String,
+	pub excludedDates: Vec<DateWrapper>,
 }
 
 impl Entity for RepeatRule {
-    fn type_ref() -> TypeRef {
-        TypeRef { app: "sys".to_owned(), type_: "RepeatRule".to_owned() }
-    }
+	fn type_ref() -> TypeRef {
+		TypeRef { app: "sys", type_: "RepeatRule" }
+	}
 }
 
 
 #[derive(uniffi::Record, Clone, Serialize, Deserialize)]
 pub struct ResetFactorsDeleteData {
-    pub _format: i64,
-    pub authVerifier: String,
-    pub mailAddress: String,
-    pub recoverCodeVerifier: String,
+	pub _format: i64,
+	pub authVerifier: String,
+	pub mailAddress: String,
+	pub recoverCodeVerifier: String,
 }
 
 impl Entity for ResetFactorsDeleteData {
-    fn type_ref() -> TypeRef {
-        TypeRef { app: "sys".to_owned(), type_: "ResetFactorsDeleteData".to_owned() }
-    }
+	fn type_ref() -> TypeRef {
+		TypeRef { app: "sys", type_: "ResetFactorsDeleteData" }
+	}
 }
 
 
 #[derive(uniffi::Record, Clone, Serialize, Deserialize)]
-pub struct ResetPasswordData {
-    pub _format: i64,
-    pub kdfVersion: i64,
-    #[serde(with = "serde_bytes")]
-    pub pwEncUserGroupKey: Vec<u8>,
-    #[serde(with = "serde_bytes")]
-    pub salt: Vec<u8>,
-    #[serde(with = "serde_bytes")]
-    pub verifier: Vec<u8>,
-    pub user: GeneratedId,
+pub struct ResetPasswordPostIn {
+	pub _format: i64,
+	pub kdfVersion: i64,
+	#[serde(with = "serde_bytes")]
+	pub pwEncUserGroupKey: Vec<u8>,
+	#[serde(with = "serde_bytes")]
+	pub salt: Vec<u8>,
+	pub userGroupKeyVersion: i64,
+	#[serde(with = "serde_bytes")]
+	pub verifier: Vec<u8>,
+	pub user: GeneratedId,
 }
 
-impl Entity for ResetPasswordData {
-    fn type_ref() -> TypeRef {
-        TypeRef { app: "sys".to_owned(), type_: "ResetPasswordData".to_owned() }
-    }
+impl Entity for ResetPasswordPostIn {
+	fn type_ref() -> TypeRef {
+		TypeRef { app: "sys", type_: "ResetPasswordPostIn" }
+	}
 }
 
 
 #[derive(uniffi::Record, Clone, Serialize, Deserialize)]
 pub struct RootInstance {
-    pub _format: i64,
-    pub _id: IdTuple,
-    pub _ownerGroup: Option<GeneratedId>,
-    pub _permissions: GeneratedId,
-    pub reference: GeneratedId,
+	pub _format: i64,
+	pub _id: IdTuple,
+	pub _ownerGroup: Option<GeneratedId>,
+	pub _permissions: GeneratedId,
+	pub reference: GeneratedId,
 }
 
 impl Entity for RootInstance {
-    fn type_ref() -> TypeRef {
-        TypeRef { app: "sys".to_owned(), type_: "RootInstance".to_owned() }
-    }
+	fn type_ref() -> TypeRef {
+		TypeRef { app: "sys", type_: "RootInstance" }
+	}
 }
 
 
 #[derive(uniffi::Record, Clone, Serialize, Deserialize)]
 pub struct SaltData {
-    pub _format: i64,
-    pub mailAddress: String,
+	pub _format: i64,
+	pub mailAddress: String,
 }
 
 impl Entity for SaltData {
-    fn type_ref() -> TypeRef {
-        TypeRef { app: "sys".to_owned(), type_: "SaltData".to_owned() }
-    }
+	fn type_ref() -> TypeRef {
+		TypeRef { app: "sys", type_: "SaltData" }
+	}
 }
 
 
 #[derive(uniffi::Record, Clone, Serialize, Deserialize)]
 pub struct SaltReturn {
-    pub _format: i64,
-    pub kdfVersion: i64,
-    #[serde(with = "serde_bytes")]
-    pub salt: Vec<u8>,
+	pub _format: i64,
+	pub kdfVersion: i64,
+	#[serde(with = "serde_bytes")]
+	pub salt: Vec<u8>,
 }
 
 impl Entity for SaltReturn {
-    fn type_ref() -> TypeRef {
-        TypeRef { app: "sys".to_owned(), type_: "SaltReturn".to_owned() }
-    }
+	fn type_ref() -> TypeRef {
+		TypeRef { app: "sys", type_: "SaltReturn" }
+	}
 }
 
 
 #[derive(uniffi::Record, Clone, Serialize, Deserialize)]
 pub struct SecondFactor {
-    pub _format: i64,
-    pub _id: IdTuple,
-    pub _ownerGroup: Option<GeneratedId>,
-    pub _permissions: GeneratedId,
-    pub name: String,
-    #[serde(with = "serde_bytes")]
-    pub otpSecret: Option<Vec<u8>>,
-    #[serde(rename = "type")]
-    pub r#type: i64,
-    pub u2f: Option<U2fRegisteredDevice>,
+	pub _format: i64,
+	pub _id: IdTuple,
+	pub _ownerGroup: Option<GeneratedId>,
+	pub _permissions: GeneratedId,
+	pub name: String,
+	#[serde(with = "serde_bytes")]
+	pub otpSecret: Option<Vec<u8>>,
+	#[serde(rename = "type")]
+	pub r#type: i64,
+	pub u2f: Option<U2fRegisteredDevice>,
 }
 
 impl Entity for SecondFactor {
-    fn type_ref() -> TypeRef {
-        TypeRef { app: "sys".to_owned(), type_: "SecondFactor".to_owned() }
-    }
+	fn type_ref() -> TypeRef {
+		TypeRef { app: "sys", type_: "SecondFactor" }
+	}
 }
 
 
 #[derive(uniffi::Record, Clone, Serialize, Deserialize)]
 pub struct SecondFactorAuthAllowedReturn {
-    pub _format: i64,
-    pub allowed: bool,
+	pub _format: i64,
+	pub allowed: bool,
 }
 
 impl Entity for SecondFactorAuthAllowedReturn {
-    fn type_ref() -> TypeRef {
-        TypeRef { app: "sys".to_owned(), type_: "SecondFactorAuthAllowedReturn".to_owned() }
-    }
+	fn type_ref() -> TypeRef {
+		TypeRef { app: "sys", type_: "SecondFactorAuthAllowedReturn" }
+	}
 }
 
 
 #[derive(uniffi::Record, Clone, Serialize, Deserialize)]
 pub struct SecondFactorAuthData {
-    pub _format: i64,
-    pub otpCode: Option<i64>,
-    #[serde(rename = "type")]
-    pub r#type: Option<i64>,
-    pub session: Option<IdTuple>,
-    pub u2f: Option<U2fResponseData>,
-    pub webauthn: Option<WebauthnResponseData>,
+	pub _format: i64,
+	pub otpCode: Option<i64>,
+	#[serde(rename = "type")]
+	pub r#type: Option<i64>,
+	pub session: Option<IdTuple>,
+	pub u2f: Option<U2fResponseData>,
+	pub webauthn: Option<WebauthnResponseData>,
 }
 
 impl Entity for SecondFactorAuthData {
-    fn type_ref() -> TypeRef {
-        TypeRef { app: "sys".to_owned(), type_: "SecondFactorAuthData".to_owned() }
-    }
+	fn type_ref() -> TypeRef {
+		TypeRef { app: "sys", type_: "SecondFactorAuthData" }
+	}
 }
 
 
 #[derive(uniffi::Record, Clone, Serialize, Deserialize)]
 pub struct SecondFactorAuthDeleteData {
-    pub _format: i64,
-    pub session: IdTuple,
+	pub _format: i64,
+	pub session: IdTuple,
 }
 
 impl Entity for SecondFactorAuthDeleteData {
-    fn type_ref() -> TypeRef {
-        TypeRef { app: "sys".to_owned(), type_: "SecondFactorAuthDeleteData".to_owned() }
-    }
+	fn type_ref() -> TypeRef {
+		TypeRef { app: "sys", type_: "SecondFactorAuthDeleteData" }
+	}
 }
 
 
 #[derive(uniffi::Record, Clone, Serialize, Deserialize)]
 pub struct SecondFactorAuthGetData {
-    pub _format: i64,
-    pub accessToken: String,
+	pub _format: i64,
+	pub accessToken: String,
 }
 
 impl Entity for SecondFactorAuthGetData {
-    fn type_ref() -> TypeRef {
-        TypeRef { app: "sys".to_owned(), type_: "SecondFactorAuthGetData".to_owned() }
-    }
+	fn type_ref() -> TypeRef {
+		TypeRef { app: "sys", type_: "SecondFactorAuthGetData" }
+	}
 }
 
 
 #[derive(uniffi::Record, Clone, Serialize, Deserialize)]
 pub struct SecondFactorAuthGetReturn {
-    pub _format: i64,
-    pub secondFactorPending: bool,
+	pub _format: i64,
+	pub secondFactorPending: bool,
 }
 
 impl Entity for SecondFactorAuthGetReturn {
-    fn type_ref() -> TypeRef {
-        TypeRef { app: "sys".to_owned(), type_: "SecondFactorAuthGetReturn".to_owned() }
-    }
+	fn type_ref() -> TypeRef {
+		TypeRef { app: "sys", type_: "SecondFactorAuthGetReturn" }
+	}
 }
 
 
 #[derive(uniffi::Record, Clone, Serialize, Deserialize)]
 pub struct SecondFactorAuthentication {
-    pub _format: i64,
-    pub _id: IdTuple,
-    pub _ownerGroup: Option<GeneratedId>,
-    pub _permissions: GeneratedId,
-    pub code: String,
-    pub finished: bool,
-    pub service: String,
-    pub verifyCount: i64,
+	pub _format: i64,
+	pub _id: IdTuple,
+	pub _ownerGroup: Option<GeneratedId>,
+	pub _permissions: GeneratedId,
+	pub code: String,
+	pub finished: bool,
+	pub service: String,
+	pub verifyCount: i64,
 }
 
 impl Entity for SecondFactorAuthentication {
-    fn type_ref() -> TypeRef {
-        TypeRef { app: "sys".to_owned(), type_: "SecondFactorAuthentication".to_owned() }
-    }
+	fn type_ref() -> TypeRef {
+		TypeRef { app: "sys", type_: "SecondFactorAuthentication" }
+	}
 }
 
 
 #[derive(uniffi::Record, Clone, Serialize, Deserialize)]
 pub struct SendRegistrationCodeData {
-    pub _format: i64,
-    pub accountType: i64,
-    pub authToken: String,
-    pub language: String,
-    pub mobilePhoneNumber: String,
+	pub _format: i64,
+	pub accountType: i64,
+	pub authToken: String,
+	pub language: String,
+	pub mobilePhoneNumber: String,
 }
 
 impl Entity for SendRegistrationCodeData {
-    fn type_ref() -> TypeRef {
-        TypeRef { app: "sys".to_owned(), type_: "SendRegistrationCodeData".to_owned() }
-    }
+	fn type_ref() -> TypeRef {
+		TypeRef { app: "sys", type_: "SendRegistrationCodeData" }
+	}
 }
 
 
 #[derive(uniffi::Record, Clone, Serialize, Deserialize)]
 pub struct SendRegistrationCodeReturn {
-    pub _format: i64,
-    pub authToken: String,
+	pub _format: i64,
+	pub authToken: String,
 }
 
 impl Entity for SendRegistrationCodeReturn {
-    fn type_ref() -> TypeRef {
-        TypeRef { app: "sys".to_owned(), type_: "SendRegistrationCodeReturn".to_owned() }
-    }
+	fn type_ref() -> TypeRef {
+		TypeRef { app: "sys", type_: "SendRegistrationCodeReturn" }
+	}
 }
 
 
 #[derive(uniffi::Record, Clone, Serialize, Deserialize)]
 pub struct SentGroupInvitation {
-    pub _format: i64,
-    pub _id: IdTuple,
-    pub _ownerGroup: Option<GeneratedId>,
-    pub _permissions: GeneratedId,
-    pub capability: i64,
-    pub inviteeMailAddress: String,
-    pub receivedInvitation: Option<IdTuple>,
-    pub sharedGroup: GeneratedId,
+	pub _format: i64,
+	pub _id: IdTuple,
+	pub _ownerGroup: Option<GeneratedId>,
+	pub _permissions: GeneratedId,
+	pub capability: i64,
+	pub inviteeMailAddress: String,
+	pub receivedInvitation: Option<IdTuple>,
+	pub sharedGroup: GeneratedId,
 }
 
 impl Entity for SentGroupInvitation {
-    fn type_ref() -> TypeRef {
-        TypeRef { app: "sys".to_owned(), type_: "SentGroupInvitation".to_owned() }
-    }
+	fn type_ref() -> TypeRef {
+		TypeRef { app: "sys", type_: "SentGroupInvitation" }
+	}
 }
 
 
 #[derive(uniffi::Record, Clone, Serialize, Deserialize)]
 pub struct Session {
-    pub _format: i64,
-    pub _id: IdTuple,
-    #[serde(with = "serde_bytes")]
-    pub _ownerEncSessionKey: Option<Vec<u8>>,
-    pub _ownerGroup: Option<GeneratedId>,
-    pub _ownerKeyVersion: Option<i64>,
-    pub _permissions: GeneratedId,
-    #[serde(with = "serde_bytes")]
-    pub accessKey: Option<Vec<u8>>,
-    pub clientIdentifier: String,
-    pub lastAccessTime: DateTime,
-    pub loginIpAddress: Option<String>,
-    pub loginTime: DateTime,
-    pub state: i64,
-    pub challenges: Vec<Challenge>,
-    pub user: GeneratedId,
+	pub _format: i64,
+	pub _id: IdTuple,
+	#[serde(with = "serde_bytes")]
+	pub _ownerEncSessionKey: Option<Vec<u8>>,
+	pub _ownerGroup: Option<GeneratedId>,
+	pub _ownerKeyVersion: Option<i64>,
+	pub _permissions: GeneratedId,
+	#[serde(with = "serde_bytes")]
+	pub accessKey: Option<Vec<u8>>,
+	pub clientIdentifier: String,
+	pub lastAccessTime: DateTime,
+	pub loginIpAddress: Option<String>,
+	pub loginTime: DateTime,
+	pub state: i64,
+	pub challenges: Vec<Challenge>,
+	pub user: GeneratedId,
 }
 
 impl Entity for Session {
-    fn type_ref() -> TypeRef {
-        TypeRef { app: "sys".to_owned(), type_: "Session".to_owned() }
-    }
+	fn type_ref() -> TypeRef {
+		TypeRef { app: "sys", type_: "Session" }
+	}
 }
 
 
 #[derive(uniffi::Record, Clone, Serialize, Deserialize)]
 pub struct SignOrderProcessingAgreementData {
-    pub _format: i64,
-    pub customerAddress: String,
-    pub version: String,
+	pub _format: i64,
+	pub customerAddress: String,
+	pub version: String,
 }
 
 impl Entity for SignOrderProcessingAgreementData {
-    fn type_ref() -> TypeRef {
-        TypeRef { app: "sys".to_owned(), type_: "SignOrderProcessingAgreementData".to_owned() }
-    }
+	fn type_ref() -> TypeRef {
+		TypeRef { app: "sys", type_: "SignOrderProcessingAgreementData" }
+	}
 }
 
 
 #[derive(uniffi::Record, Clone, Serialize, Deserialize)]
 pub struct SseConnectData {
-    pub _format: i64,
-    pub identifier: String,
-    pub userIds: Vec<GeneratedIdWrapper>,
+	pub _format: i64,
+	pub identifier: String,
+	pub userIds: Vec<GeneratedIdWrapper>,
 }
 
 impl Entity for SseConnectData {
-    fn type_ref() -> TypeRef {
-        TypeRef { app: "sys".to_owned(), type_: "SseConnectData".to_owned() }
-    }
+	fn type_ref() -> TypeRef {
+		TypeRef { app: "sys", type_: "SseConnectData" }
+	}
 }
 
 
 #[derive(uniffi::Record, Clone, Serialize, Deserialize)]
 pub struct StringConfigValue {
-    pub _id: GeneratedId,
-    pub name: String,
-    pub value: String,
+	pub _id: String,
+	pub name: String,
+	pub value: String,
 }
 
 impl Entity for StringConfigValue {
-    fn type_ref() -> TypeRef {
-        TypeRef { app: "sys".to_owned(), type_: "StringConfigValue".to_owned() }
-    }
+	fn type_ref() -> TypeRef {
+		TypeRef { app: "sys", type_: "StringConfigValue" }
+	}
 }
 
 
 #[derive(uniffi::Record, Clone, Serialize, Deserialize)]
 pub struct StringWrapper {
-    pub _id: GeneratedId,
-    pub value: String,
+	pub _id: String,
+	pub value: String,
 }
 
 impl Entity for StringWrapper {
-    fn type_ref() -> TypeRef {
-        TypeRef { app: "sys".to_owned(), type_: "StringWrapper".to_owned() }
-    }
+	fn type_ref() -> TypeRef {
+		TypeRef { app: "sys", type_: "StringWrapper" }
+	}
 }
 
 
 #[derive(uniffi::Record, Clone, Serialize, Deserialize)]
 pub struct SurveyData {
-    pub _id: GeneratedId,
-    pub category: i64,
-    pub details: Option<String>,
-    pub reason: i64,
-    pub version: i64,
+	pub _id: String,
+	pub category: i64,
+	pub details: Option<String>,
+	pub reason: i64,
+	pub version: i64,
 }
 
 impl Entity for SurveyData {
-    fn type_ref() -> TypeRef {
-        TypeRef { app: "sys".to_owned(), type_: "SurveyData".to_owned() }
-    }
+	fn type_ref() -> TypeRef {
+		TypeRef { app: "sys", type_: "SurveyData" }
+	}
 }
 
 
 #[derive(uniffi::Record, Clone, Serialize, Deserialize)]
 pub struct SwitchAccountTypePostIn {
-    pub _format: i64,
-    pub accountType: i64,
-    pub customer: Option<GeneratedId>,
-    pub date: Option<DateTime>,
-    pub plan: i64,
-    pub specialPriceUserSingle: Option<i64>,
-    pub referralCode: Option<GeneratedId>,
-    pub surveyData: Option<SurveyData>,
+	pub _format: i64,
+	pub accountType: i64,
+	pub customer: Option<GeneratedId>,
+	pub date: Option<DateTime>,
+	pub plan: i64,
+	pub specialPriceUserSingle: Option<i64>,
+	pub referralCode: Option<GeneratedId>,
+	pub surveyData: Option<SurveyData>,
 }
 
 impl Entity for SwitchAccountTypePostIn {
-    fn type_ref() -> TypeRef {
-        TypeRef { app: "sys".to_owned(), type_: "SwitchAccountTypePostIn".to_owned() }
-    }
+	fn type_ref() -> TypeRef {
+		TypeRef { app: "sys", type_: "SwitchAccountTypePostIn" }
+	}
 }
 
 
 #[derive(uniffi::Record, Clone, Serialize, Deserialize)]
 pub struct SystemKeysReturn {
-    pub _format: i64,
-    #[serde(with = "serde_bytes")]
-    pub freeGroupKey: Vec<u8>,
-    pub freeGroupKeyVersion: i64,
-    #[serde(with = "serde_bytes")]
-    pub premiumGroupKey: Vec<u8>,
-    pub premiumGroupKeyVersion: i64,
-    #[serde(with = "serde_bytes")]
-    pub systemAdminPubEccKey: Option<Vec<u8>>,
-    pub systemAdminPubKeyVersion: i64,
-    #[serde(with = "serde_bytes")]
-    pub systemAdminPubKyberKey: Option<Vec<u8>>,
-    #[serde(with = "serde_bytes")]
-    pub systemAdminPubRsaKey: Option<Vec<u8>>,
-    pub freeGroup: Option<GeneratedId>,
-    pub premiumGroup: Option<GeneratedId>,
+	pub _format: i64,
+	#[serde(with = "serde_bytes")]
+	pub freeGroupKey: Vec<u8>,
+	pub freeGroupKeyVersion: i64,
+	#[serde(with = "serde_bytes")]
+	pub premiumGroupKey: Vec<u8>,
+	pub premiumGroupKeyVersion: i64,
+	#[serde(with = "serde_bytes")]
+	pub systemAdminPubEccKey: Option<Vec<u8>>,
+	pub systemAdminPubKeyVersion: i64,
+	#[serde(with = "serde_bytes")]
+	pub systemAdminPubKyberKey: Option<Vec<u8>>,
+	#[serde(with = "serde_bytes")]
+	pub systemAdminPubRsaKey: Option<Vec<u8>>,
+	pub freeGroup: Option<GeneratedId>,
+	pub premiumGroup: Option<GeneratedId>,
 }
 
 impl Entity for SystemKeysReturn {
-    fn type_ref() -> TypeRef {
-        TypeRef { app: "sys".to_owned(), type_: "SystemKeysReturn".to_owned() }
-    }
+	fn type_ref() -> TypeRef {
+		TypeRef { app: "sys", type_: "SystemKeysReturn" }
+	}
 }
 
 
 #[derive(uniffi::Record, Clone, Serialize, Deserialize)]
 pub struct TakeOverDeletedAddressData {
-    pub _format: i64,
-    pub authVerifier: String,
-    pub mailAddress: String,
-    pub recoverCodeVerifier: Option<String>,
-    pub targetAccountMailAddress: String,
+	pub _format: i64,
+	pub authVerifier: String,
+	pub mailAddress: String,
+	pub recoverCodeVerifier: Option<String>,
+	pub targetAccountMailAddress: String,
 }
 
 impl Entity for TakeOverDeletedAddressData {
-    fn type_ref() -> TypeRef {
-        TypeRef { app: "sys".to_owned(), type_: "TakeOverDeletedAddressData".to_owned() }
-    }
+	fn type_ref() -> TypeRef {
+		TypeRef { app: "sys", type_: "TakeOverDeletedAddressData" }
+	}
 }
 
 
 #[derive(uniffi::Record, Clone, Serialize, Deserialize)]
 pub struct TypeInfo {
-    pub _id: GeneratedId,
-    pub application: String,
-    pub typeId: i64,
+	pub _id: String,
+	pub application: String,
+	pub typeId: i64,
 }
 
 impl Entity for TypeInfo {
-    fn type_ref() -> TypeRef {
-        TypeRef { app: "sys".to_owned(), type_: "TypeInfo".to_owned() }
-    }
+	fn type_ref() -> TypeRef {
+		TypeRef { app: "sys", type_: "TypeInfo" }
+	}
 }
 
 
 #[derive(uniffi::Record, Clone, Serialize, Deserialize)]
 pub struct U2fChallenge {
-    pub _id: GeneratedId,
-    #[serde(with = "serde_bytes")]
-    pub challenge: Vec<u8>,
-    pub keys: Vec<U2fKey>,
+	pub _id: String,
+	#[serde(with = "serde_bytes")]
+	pub challenge: Vec<u8>,
+	pub keys: Vec<U2fKey>,
 }
 
 impl Entity for U2fChallenge {
-    fn type_ref() -> TypeRef {
-        TypeRef { app: "sys".to_owned(), type_: "U2fChallenge".to_owned() }
-    }
+	fn type_ref() -> TypeRef {
+		TypeRef { app: "sys", type_: "U2fChallenge" }
+	}
 }
 
 
 #[derive(uniffi::Record, Clone, Serialize, Deserialize)]
 pub struct U2fKey {
-    pub _id: GeneratedId,
-    pub appId: String,
-    #[serde(with = "serde_bytes")]
-    pub keyHandle: Vec<u8>,
-    pub secondFactor: IdTuple,
+	pub _id: String,
+	pub appId: String,
+	#[serde(with = "serde_bytes")]
+	pub keyHandle: Vec<u8>,
+	pub secondFactor: IdTuple,
 }
 
 impl Entity for U2fKey {
-    fn type_ref() -> TypeRef {
-        TypeRef { app: "sys".to_owned(), type_: "U2fKey".to_owned() }
-    }
+	fn type_ref() -> TypeRef {
+		TypeRef { app: "sys", type_: "U2fKey" }
+	}
 }
 
 
 #[derive(uniffi::Record, Clone, Serialize, Deserialize)]
 pub struct U2fRegisteredDevice {
-    pub _id: GeneratedId,
-    pub appId: String,
-    pub compromised: bool,
-    pub counter: i64,
-    #[serde(with = "serde_bytes")]
-    pub keyHandle: Vec<u8>,
-    #[serde(with = "serde_bytes")]
-    pub publicKey: Vec<u8>,
+	pub _id: String,
+	pub appId: String,
+	pub compromised: bool,
+	pub counter: i64,
+	#[serde(with = "serde_bytes")]
+	pub keyHandle: Vec<u8>,
+	#[serde(with = "serde_bytes")]
+	pub publicKey: Vec<u8>,
 }
 
 impl Entity for U2fRegisteredDevice {
-    fn type_ref() -> TypeRef {
-        TypeRef { app: "sys".to_owned(), type_: "U2fRegisteredDevice".to_owned() }
-    }
+	fn type_ref() -> TypeRef {
+		TypeRef { app: "sys", type_: "U2fRegisteredDevice" }
+	}
 }
 
 
 #[derive(uniffi::Record, Clone, Serialize, Deserialize)]
 pub struct U2fResponseData {
-    pub _id: GeneratedId,
-    pub clientData: String,
-    pub keyHandle: String,
-    pub signatureData: String,
+	pub _id: String,
+	pub clientData: String,
+	pub keyHandle: String,
+	pub signatureData: String,
 }
 
 impl Entity for U2fResponseData {
-    fn type_ref() -> TypeRef {
-        TypeRef { app: "sys".to_owned(), type_: "U2fResponseData".to_owned() }
-    }
+	fn type_ref() -> TypeRef {
+		TypeRef { app: "sys", type_: "U2fResponseData" }
+	}
 }
 
 
 #[derive(uniffi::Record, Clone, Serialize, Deserialize)]
 pub struct UpdatePermissionKeyData {
-    pub _format: i64,
-    #[serde(with = "serde_bytes")]
-    pub ownerEncSessionKey: Vec<u8>,
-    pub ownerKeyVersion: i64,
-    pub bucketPermission: IdTuple,
-    pub permission: IdTuple,
+	pub _format: i64,
+	#[serde(with = "serde_bytes")]
+	pub ownerEncSessionKey: Vec<u8>,
+	pub ownerKeyVersion: i64,
+	pub bucketPermission: IdTuple,
+	pub permission: IdTuple,
 }
 
 impl Entity for UpdatePermissionKeyData {
-    fn type_ref() -> TypeRef {
-        TypeRef { app: "sys".to_owned(), type_: "UpdatePermissionKeyData".to_owned() }
-    }
+	fn type_ref() -> TypeRef {
+		TypeRef { app: "sys", type_: "UpdatePermissionKeyData" }
+	}
 }
 
 
 #[derive(uniffi::Record, Clone, Serialize, Deserialize)]
 pub struct UpdateSessionKeysPostIn {
-    pub _format: i64,
-    pub ownerEncSessionKeys: Vec<InstanceSessionKey>,
+	pub _format: i64,
+	pub ownerEncSessionKeys: Vec<InstanceSessionKey>,
 }
 
 impl Entity for UpdateSessionKeysPostIn {
-    fn type_ref() -> TypeRef {
-        TypeRef { app: "sys".to_owned(), type_: "UpdateSessionKeysPostIn".to_owned() }
-    }
+	fn type_ref() -> TypeRef {
+		TypeRef { app: "sys", type_: "UpdateSessionKeysPostIn" }
+	}
 }
 
 
 #[derive(uniffi::Record, Clone, Serialize, Deserialize)]
 pub struct UpgradePriceServiceData {
-    pub _format: i64,
-    pub campaign: Option<String>,
-    pub date: Option<DateTime>,
-    pub referralCode: Option<GeneratedId>,
+	pub _format: i64,
+	pub campaign: Option<String>,
+	pub date: Option<DateTime>,
+	pub referralCode: Option<GeneratedId>,
 }
 
 impl Entity for UpgradePriceServiceData {
-    fn type_ref() -> TypeRef {
-        TypeRef { app: "sys".to_owned(), type_: "UpgradePriceServiceData".to_owned() }
-    }
+	fn type_ref() -> TypeRef {
+		TypeRef { app: "sys", type_: "UpgradePriceServiceData" }
+	}
 }
 
 
 #[derive(uniffi::Record, Clone, Serialize, Deserialize)]
 pub struct UpgradePriceServiceReturn {
-    pub _format: i64,
-    pub bonusMonthsForYearlyPlan: i64,
-    pub business: bool,
-    pub messageTextId: Option<String>,
-    pub advancedPrices: PlanPrices,
-    pub essentialPrices: PlanPrices,
-    pub freePrices: PlanPrices,
-    pub legendaryPrices: PlanPrices,
-    pub plans: Vec<PlanPrices>,
-    pub premiumBusinessPrices: PlanPrices,
-    pub premiumPrices: PlanPrices,
-    pub proPrices: PlanPrices,
-    pub revolutionaryPrices: PlanPrices,
-    pub teamsBusinessPrices: PlanPrices,
-    pub teamsPrices: PlanPrices,
-    pub unlimitedPrices: PlanPrices,
+	pub _format: i64,
+	pub bonusMonthsForYearlyPlan: i64,
+	pub business: bool,
+	pub messageTextId: Option<String>,
+	pub advancedPrices: PlanPrices,
+	pub essentialPrices: PlanPrices,
+	pub freePrices: PlanPrices,
+	pub legendaryPrices: PlanPrices,
+	pub plans: Vec<PlanPrices>,
+	pub premiumBusinessPrices: PlanPrices,
+	pub premiumPrices: PlanPrices,
+	pub proPrices: PlanPrices,
+	pub revolutionaryPrices: PlanPrices,
+	pub teamsBusinessPrices: PlanPrices,
+	pub teamsPrices: PlanPrices,
+	pub unlimitedPrices: PlanPrices,
 }
 
 impl Entity for UpgradePriceServiceReturn {
-    fn type_ref() -> TypeRef {
-        TypeRef { app: "sys".to_owned(), type_: "UpgradePriceServiceReturn".to_owned() }
-    }
+	fn type_ref() -> TypeRef {
+		TypeRef { app: "sys", type_: "UpgradePriceServiceReturn" }
+	}
 }
 
 
 #[derive(uniffi::Record, Clone, Serialize, Deserialize)]
 pub struct User {
-    pub _format: i64,
-    pub _id: GeneratedId,
-    pub _ownerGroup: Option<GeneratedId>,
-    pub _permissions: GeneratedId,
-    pub accountType: i64,
-    pub enabled: bool,
-    pub kdfVersion: i64,
-    pub requirePasswordUpdate: bool,
-    #[serde(with = "serde_bytes")]
-    pub salt: Option<Vec<u8>>,
-    #[serde(with = "serde_bytes")]
-    pub verifier: Vec<u8>,
-    pub alarmInfoList: Option<UserAlarmInfoListType>,
-    pub auth: Option<UserAuthentication>,
-    pub authenticatedDevices: Vec<AuthenticatedDevice>,
-    pub customer: Option<GeneratedId>,
-    pub externalAuthInfo: Option<UserExternalAuthInfo>,
-    pub failedLogins: GeneratedId,
-    pub memberships: Vec<GroupMembership>,
-    pub phoneNumbers: Vec<PhoneNumber>,
-    pub pushIdentifierList: Option<PushIdentifierList>,
-    pub secondFactorAuthentications: GeneratedId,
-    pub successfulLogins: GeneratedId,
-    pub userGroup: GroupMembership,
+	pub _format: i64,
+	pub _id: GeneratedId,
+	pub _ownerGroup: Option<GeneratedId>,
+	pub _permissions: GeneratedId,
+	pub accountType: i64,
+	pub enabled: bool,
+	pub kdfVersion: i64,
+	pub requirePasswordUpdate: bool,
+	#[serde(with = "serde_bytes")]
+	pub salt: Option<Vec<u8>>,
+	#[serde(with = "serde_bytes")]
+	pub verifier: Vec<u8>,
+	pub alarmInfoList: Option<UserAlarmInfoListType>,
+	pub auth: Option<UserAuthentication>,
+	pub authenticatedDevices: Vec<AuthenticatedDevice>,
+	pub customer: Option<GeneratedId>,
+	pub externalAuthInfo: Option<UserExternalAuthInfo>,
+	pub failedLogins: GeneratedId,
+	pub memberships: Vec<GroupMembership>,
+	pub phoneNumbers: Vec<PhoneNumber>,
+	pub pushIdentifierList: Option<PushIdentifierList>,
+	pub secondFactorAuthentications: GeneratedId,
+	pub successfulLogins: GeneratedId,
+	pub userGroup: GroupMembership,
 }
 
 impl Entity for User {
-    fn type_ref() -> TypeRef {
-        TypeRef { app: "sys".to_owned(), type_: "User".to_owned() }
-    }
+	fn type_ref() -> TypeRef {
+		TypeRef { app: "sys", type_: "User" }
+	}
 }
 
 
 #[derive(uniffi::Record, Clone, Serialize, Deserialize)]
 pub struct UserAlarmInfo {
-    pub _format: i64,
-    pub _id: IdTuple,
-    #[serde(with = "serde_bytes")]
-    pub _ownerEncSessionKey: Option<Vec<u8>>,
-    pub _ownerGroup: Option<GeneratedId>,
-    pub _ownerKeyVersion: Option<i64>,
-    pub _permissions: GeneratedId,
-    pub alarmInfo: AlarmInfo,
+	pub _format: i64,
+	pub _id: IdTuple,
+	#[serde(with = "serde_bytes")]
+	pub _ownerEncSessionKey: Option<Vec<u8>>,
+	pub _ownerGroup: Option<GeneratedId>,
+	pub _ownerKeyVersion: Option<i64>,
+	pub _permissions: GeneratedId,
+	pub alarmInfo: AlarmInfo,
 }
 
 impl Entity for UserAlarmInfo {
-    fn type_ref() -> TypeRef {
-        TypeRef { app: "sys".to_owned(), type_: "UserAlarmInfo".to_owned() }
-    }
+	fn type_ref() -> TypeRef {
+		TypeRef { app: "sys", type_: "UserAlarmInfo" }
+	}
 }
 
 
 #[derive(uniffi::Record, Clone, Serialize, Deserialize)]
 pub struct UserAlarmInfoListType {
-    pub _id: GeneratedId,
-    pub alarms: GeneratedId,
+	pub _id: String,
+	pub alarms: GeneratedId,
 }
 
 impl Entity for UserAlarmInfoListType {
-    fn type_ref() -> TypeRef {
-        TypeRef { app: "sys".to_owned(), type_: "UserAlarmInfoListType".to_owned() }
-    }
+	fn type_ref() -> TypeRef {
+		TypeRef { app: "sys", type_: "UserAlarmInfoListType" }
+	}
 }
 
 
 #[derive(uniffi::Record, Clone, Serialize, Deserialize)]
 pub struct UserAreaGroups {
-    pub _id: GeneratedId,
-    pub list: GeneratedId,
+	pub _id: String,
+	pub list: GeneratedId,
 }
 
 impl Entity for UserAreaGroups {
-    fn type_ref() -> TypeRef {
-        TypeRef { app: "sys".to_owned(), type_: "UserAreaGroups".to_owned() }
-    }
+	fn type_ref() -> TypeRef {
+		TypeRef { app: "sys", type_: "UserAreaGroups" }
+	}
 }
 
 
 #[derive(uniffi::Record, Clone, Serialize, Deserialize)]
 pub struct UserAuthentication {
-    pub _id: GeneratedId,
-    pub recoverCode: Option<GeneratedId>,
-    pub secondFactors: GeneratedId,
-    pub sessions: GeneratedId,
+	pub _id: String,
+	pub recoverCode: Option<GeneratedId>,
+	pub secondFactors: GeneratedId,
+	pub sessions: GeneratedId,
 }
 
 impl Entity for UserAuthentication {
-    fn type_ref() -> TypeRef {
-        TypeRef { app: "sys".to_owned(), type_: "UserAuthentication".to_owned() }
-    }
+	fn type_ref() -> TypeRef {
+		TypeRef { app: "sys", type_: "UserAuthentication" }
+	}
 }
 
 
 #[derive(uniffi::Record, Clone, Serialize, Deserialize)]
 pub struct UserDataDelete {
-    pub _format: i64,
-    pub date: Option<DateTime>,
-    pub restore: bool,
-    pub user: GeneratedId,
+	pub _format: i64,
+	pub date: Option<DateTime>,
+	pub restore: bool,
+	pub user: GeneratedId,
 }
 
 impl Entity for UserDataDelete {
-    fn type_ref() -> TypeRef {
-        TypeRef { app: "sys".to_owned(), type_: "UserDataDelete".to_owned() }
-    }
+	fn type_ref() -> TypeRef {
+		TypeRef { app: "sys", type_: "UserDataDelete" }
+	}
 }
 
 
 #[derive(uniffi::Record, Clone, Serialize, Deserialize)]
 pub struct UserExternalAuthInfo {
-    pub _id: GeneratedId,
-    pub authUpdateCounter: i64,
-    pub autoAuthenticationId: GeneratedId,
-    pub autoTransmitPassword: Option<String>,
-    #[serde(with = "serde_bytes")]
-    pub latestSaltHash: Option<Vec<u8>>,
-    pub variableAuthInfo: GeneratedId,
+	pub _id: String,
+	pub authUpdateCounter: i64,
+	pub autoAuthenticationId: GeneratedId,
+	pub autoTransmitPassword: Option<String>,
+	#[serde(with = "serde_bytes")]
+	pub latestSaltHash: Option<Vec<u8>>,
+	pub variableAuthInfo: GeneratedId,
 }
 
 impl Entity for UserExternalAuthInfo {
-    fn type_ref() -> TypeRef {
-        TypeRef { app: "sys".to_owned(), type_: "UserExternalAuthInfo".to_owned() }
-    }
+	fn type_ref() -> TypeRef {
+		TypeRef { app: "sys", type_: "UserExternalAuthInfo" }
+	}
 }
 
 
 #[derive(uniffi::Record, Clone, Serialize, Deserialize)]
 pub struct UserGroupKeyDistribution {
-    pub _format: i64,
-    pub _id: GeneratedId,
-    pub _ownerGroup: Option<GeneratedId>,
-    pub _permissions: GeneratedId,
-    #[serde(with = "serde_bytes")]
-    pub distributionEncUserGroupKey: Vec<u8>,
-    pub userGroupKeyVersion: i64,
+	pub _format: i64,
+	pub _id: GeneratedId,
+	pub _ownerGroup: Option<GeneratedId>,
+	pub _permissions: GeneratedId,
+	#[serde(with = "serde_bytes")]
+	pub distributionEncUserGroupKey: Vec<u8>,
+	pub userGroupKeyVersion: i64,
 }
 
 impl Entity for UserGroupKeyDistribution {
-    fn type_ref() -> TypeRef {
-        TypeRef { app: "sys".to_owned(), type_: "UserGroupKeyDistribution".to_owned() }
-    }
+	fn type_ref() -> TypeRef {
+		TypeRef { app: "sys", type_: "UserGroupKeyDistribution" }
+	}
 }
 
 
 #[derive(uniffi::Record, Clone, Serialize, Deserialize)]
 pub struct UserGroupKeyRotationData {
-    pub _id: GeneratedId,
-    #[serde(with = "serde_bytes")]
-    pub adminGroupEncUserGroupKey: Vec<u8>,
-    pub adminGroupKeyVersion: i64,
-    #[serde(with = "serde_bytes")]
-    pub authVerifier: Vec<u8>,
-    #[serde(with = "serde_bytes")]
-    pub distributionKeyEncUserGroupKey: Vec<u8>,
-    #[serde(with = "serde_bytes")]
-    pub passphraseEncUserGroupKey: Vec<u8>,
-    #[serde(with = "serde_bytes")]
-    pub userGroupEncPreviousGroupKey: Vec<u8>,
-    pub userGroupKeyVersion: i64,
-    pub group: GeneratedId,
-    pub keyPair: KeyPair,
-    pub recoverCodeData: Option<RecoverCodeData>,
+	pub _id: String,
+	#[serde(with = "serde_bytes")]
+	pub adminGroupEncUserGroupKey: Vec<u8>,
+	pub adminGroupKeyVersion: i64,
+	#[serde(with = "serde_bytes")]
+	pub authVerifier: Vec<u8>,
+	#[serde(with = "serde_bytes")]
+	pub distributionKeyEncUserGroupKey: Vec<u8>,
+	#[serde(with = "serde_bytes")]
+	pub passphraseEncUserGroupKey: Vec<u8>,
+	#[serde(with = "serde_bytes")]
+	pub userGroupEncPreviousGroupKey: Vec<u8>,
+	pub userGroupKeyVersion: i64,
+	pub group: GeneratedId,
+	pub keyPair: KeyPair,
+	pub recoverCodeData: Option<RecoverCodeData>,
 }
 
 impl Entity for UserGroupKeyRotationData {
-    fn type_ref() -> TypeRef {
-        TypeRef { app: "sys".to_owned(), type_: "UserGroupKeyRotationData".to_owned() }
-    }
+	fn type_ref() -> TypeRef {
+		TypeRef { app: "sys", type_: "UserGroupKeyRotationData" }
+	}
 }
 
 
 #[derive(uniffi::Record, Clone, Serialize, Deserialize)]
 pub struct UserGroupRoot {
-    pub _format: i64,
-    pub _id: GeneratedId,
-    pub _ownerGroup: Option<GeneratedId>,
-    pub _permissions: GeneratedId,
-    pub invitations: GeneratedId,
-    pub keyRotations: Option<KeyRotationsRef>,
+	pub _format: i64,
+	pub _id: GeneratedId,
+	pub _ownerGroup: Option<GeneratedId>,
+	pub _permissions: GeneratedId,
+	pub groupKeyUpdates: Option<GroupKeyUpdatesRef>,
+	pub invitations: GeneratedId,
+	pub keyRotations: Option<KeyRotationsRef>,
 }
 
 impl Entity for UserGroupRoot {
-    fn type_ref() -> TypeRef {
-        TypeRef { app: "sys".to_owned(), type_: "UserGroupRoot".to_owned() }
-    }
+	fn type_ref() -> TypeRef {
+		TypeRef { app: "sys", type_: "UserGroupRoot" }
+	}
 }
 
 
 #[derive(uniffi::Record, Clone, Serialize, Deserialize)]
 pub struct VariableExternalAuthInfo {
-    pub _format: i64,
-    pub _id: GeneratedId,
-    pub _ownerGroup: Option<GeneratedId>,
-    pub _permissions: GeneratedId,
-    pub authUpdateCounter: i64,
-    pub lastSentTimestamp: DateTime,
-    #[serde(with = "serde_bytes")]
-    pub loggedInIpAddressHash: Option<Vec<u8>>,
-    pub loggedInTimestamp: Option<DateTime>,
-    #[serde(with = "serde_bytes")]
-    pub loggedInVerifier: Option<Vec<u8>>,
-    pub sentCount: i64,
+	pub _format: i64,
+	pub _id: GeneratedId,
+	pub _ownerGroup: Option<GeneratedId>,
+	pub _permissions: GeneratedId,
+	pub authUpdateCounter: i64,
+	pub lastSentTimestamp: DateTime,
+	#[serde(with = "serde_bytes")]
+	pub loggedInIpAddressHash: Option<Vec<u8>>,
+	pub loggedInTimestamp: Option<DateTime>,
+	#[serde(with = "serde_bytes")]
+	pub loggedInVerifier: Option<Vec<u8>>,
+	pub sentCount: i64,
 }
 
 impl Entity for VariableExternalAuthInfo {
-    fn type_ref() -> TypeRef {
-        TypeRef { app: "sys".to_owned(), type_: "VariableExternalAuthInfo".to_owned() }
-    }
+	fn type_ref() -> TypeRef {
+		TypeRef { app: "sys", type_: "VariableExternalAuthInfo" }
+	}
 }
 
 
 #[derive(uniffi::Record, Clone, Serialize, Deserialize)]
 pub struct VerifyRegistrationCodeData {
-    pub _format: i64,
-    pub authToken: String,
-    pub code: String,
+	pub _format: i64,
+	pub authToken: String,
+	pub code: String,
 }
 
 impl Entity for VerifyRegistrationCodeData {
-    fn type_ref() -> TypeRef {
-        TypeRef { app: "sys".to_owned(), type_: "VerifyRegistrationCodeData".to_owned() }
-    }
+	fn type_ref() -> TypeRef {
+		TypeRef { app: "sys", type_: "VerifyRegistrationCodeData" }
+	}
 }
 
 
 #[derive(uniffi::Record, Clone, Serialize, Deserialize)]
 pub struct Version {
-    pub _id: GeneratedId,
-    pub operation: String,
-    pub timestamp: DateTime,
-    pub version: GeneratedId,
-    pub author: GeneratedId,
-    pub authorGroupInfo: IdTuple,
+	pub _id: String,
+	pub operation: String,
+	pub timestamp: DateTime,
+	pub version: GeneratedId,
+	pub author: GeneratedId,
+	pub authorGroupInfo: IdTuple,
 }
 
 impl Entity for Version {
-    fn type_ref() -> TypeRef {
-        TypeRef { app: "sys".to_owned(), type_: "Version".to_owned() }
-    }
+	fn type_ref() -> TypeRef {
+		TypeRef { app: "sys", type_: "Version" }
+	}
 }
 
 
 #[derive(uniffi::Record, Clone, Serialize, Deserialize)]
 pub struct VersionData {
-    pub _format: i64,
-    pub application: String,
-    pub id: GeneratedId,
-    pub listId: Option<GeneratedId>,
-    pub typeId: i64,
+	pub _format: i64,
+	pub application: String,
+	pub id: GeneratedId,
+	pub listId: Option<GeneratedId>,
+	pub typeId: i64,
 }
 
 impl Entity for VersionData {
-    fn type_ref() -> TypeRef {
-        TypeRef { app: "sys".to_owned(), type_: "VersionData".to_owned() }
-    }
+	fn type_ref() -> TypeRef {
+		TypeRef { app: "sys", type_: "VersionData" }
+	}
 }
 
 
 #[derive(uniffi::Record, Clone, Serialize, Deserialize)]
 pub struct VersionInfo {
-    pub _format: i64,
-    pub _id: IdTuple,
-    pub _ownerGroup: Option<GeneratedId>,
-    pub _permissions: GeneratedId,
-    pub app: String,
-    pub operation: String,
-    pub referenceList: Option<GeneratedId>,
-    pub timestamp: DateTime,
-    #[serde(rename = "type")]
-    pub r#type: i64,
-    #[serde(with = "serde_bytes")]
-    pub versionData: Option<Vec<u8>>,
-    pub author: GeneratedId,
-    pub authorGroupInfo: IdTuple,
+	pub _format: i64,
+	pub _id: IdTuple,
+	pub _ownerGroup: Option<GeneratedId>,
+	pub _permissions: GeneratedId,
+	pub app: String,
+	pub operation: String,
+	pub referenceList: Option<GeneratedId>,
+	pub timestamp: DateTime,
+	#[serde(rename = "type")]
+	pub r#type: i64,
+	#[serde(with = "serde_bytes")]
+	pub versionData: Option<Vec<u8>>,
+	pub author: GeneratedId,
+	pub authorGroupInfo: IdTuple,
 }
 
 impl Entity for VersionInfo {
-    fn type_ref() -> TypeRef {
-        TypeRef { app: "sys".to_owned(), type_: "VersionInfo".to_owned() }
-    }
+	fn type_ref() -> TypeRef {
+		TypeRef { app: "sys", type_: "VersionInfo" }
+	}
 }
 
 
 #[derive(uniffi::Record, Clone, Serialize, Deserialize)]
 pub struct VersionReturn {
-    pub _format: i64,
-    pub versions: Vec<Version>,
+	pub _format: i64,
+	pub versions: Vec<Version>,
 }
 
 impl Entity for VersionReturn {
-    fn type_ref() -> TypeRef {
-        TypeRef { app: "sys".to_owned(), type_: "VersionReturn".to_owned() }
-    }
+	fn type_ref() -> TypeRef {
+		TypeRef { app: "sys", type_: "VersionReturn" }
+	}
 }
 
 
 #[derive(uniffi::Record, Clone, Serialize, Deserialize)]
 pub struct WebauthnResponseData {
-    pub _id: GeneratedId,
-    #[serde(with = "serde_bytes")]
-    pub authenticatorData: Vec<u8>,
-    #[serde(with = "serde_bytes")]
-    pub clientData: Vec<u8>,
-    #[serde(with = "serde_bytes")]
-    pub keyHandle: Vec<u8>,
-    #[serde(with = "serde_bytes")]
-    pub signature: Vec<u8>,
+	pub _id: String,
+	#[serde(with = "serde_bytes")]
+	pub authenticatorData: Vec<u8>,
+	#[serde(with = "serde_bytes")]
+	pub clientData: Vec<u8>,
+	#[serde(with = "serde_bytes")]
+	pub keyHandle: Vec<u8>,
+	#[serde(with = "serde_bytes")]
+	pub signature: Vec<u8>,
 }
 
 impl Entity for WebauthnResponseData {
-    fn type_ref() -> TypeRef {
-        TypeRef { app: "sys".to_owned(), type_: "WebauthnResponseData".to_owned() }
-    }
+	fn type_ref() -> TypeRef {
+		TypeRef { app: "sys", type_: "WebauthnResponseData" }
+	}
 }
 
 
 #[derive(uniffi::Record, Clone, Serialize, Deserialize)]
 pub struct WebsocketCounterData {
-    pub _format: i64,
-    pub mailGroup: GeneratedId,
-    pub counterValues: Vec<WebsocketCounterValue>,
+	pub _format: i64,
+	pub mailGroup: GeneratedId,
+	pub counterValues: Vec<WebsocketCounterValue>,
 }
 
 impl Entity for WebsocketCounterData {
-    fn type_ref() -> TypeRef {
-        TypeRef { app: "sys".to_owned(), type_: "WebsocketCounterData".to_owned() }
-    }
+	fn type_ref() -> TypeRef {
+		TypeRef { app: "sys", type_: "WebsocketCounterData" }
+	}
 }
 
 
 #[derive(uniffi::Record, Clone, Serialize, Deserialize)]
 pub struct WebsocketCounterValue {
-    pub _id: GeneratedId,
-    pub count: i64,
-    pub mailListId: GeneratedId,
+	pub _id: String,
+	pub count: i64,
+	pub mailListId: GeneratedId,
 }
 
 impl Entity for WebsocketCounterValue {
-    fn type_ref() -> TypeRef {
-        TypeRef { app: "sys".to_owned(), type_: "WebsocketCounterValue".to_owned() }
-    }
+	fn type_ref() -> TypeRef {
+		TypeRef { app: "sys", type_: "WebsocketCounterValue" }
+	}
 }
 
 
 #[derive(uniffi::Record, Clone, Serialize, Deserialize)]
 pub struct WebsocketEntityData {
-    pub _format: i64,
-    pub eventBatchId: GeneratedId,
-    pub eventBatchOwner: GeneratedId,
-    pub eventBatch: Vec<EntityUpdate>,
+	pub _format: i64,
+	pub eventBatchId: GeneratedId,
+	pub eventBatchOwner: GeneratedId,
+	pub eventBatch: Vec<EntityUpdate>,
 }
 
 impl Entity for WebsocketEntityData {
-    fn type_ref() -> TypeRef {
-        TypeRef { app: "sys".to_owned(), type_: "WebsocketEntityData".to_owned() }
-    }
+	fn type_ref() -> TypeRef {
+		TypeRef { app: "sys", type_: "WebsocketEntityData" }
+	}
 }
 
 
 #[derive(uniffi::Record, Clone, Serialize, Deserialize)]
 pub struct WebsocketLeaderStatus {
-    pub _format: i64,
-    pub leaderStatus: bool,
+	pub _format: i64,
+	pub leaderStatus: bool,
 }
 
 impl Entity for WebsocketLeaderStatus {
-    fn type_ref() -> TypeRef {
-        TypeRef { app: "sys".to_owned(), type_: "WebsocketLeaderStatus".to_owned() }
-    }
+	fn type_ref() -> TypeRef {
+		TypeRef { app: "sys", type_: "WebsocketLeaderStatus" }
+	}
 }
 
 
 #[derive(uniffi::Record, Clone, Serialize, Deserialize)]
 pub struct WhitelabelChild {
-    pub _format: i64,
-    pub _id: IdTuple,
-    #[serde(with = "serde_bytes")]
-    pub _ownerEncSessionKey: Option<Vec<u8>>,
-    pub _ownerGroup: Option<GeneratedId>,
-    pub _ownerKeyVersion: Option<i64>,
-    pub _permissions: GeneratedId,
-    pub comment: String,
-    pub createdDate: DateTime,
-    pub deletedDate: Option<DateTime>,
-    pub mailAddress: String,
-    pub customer: GeneratedId,
+	pub _format: i64,
+	pub _id: IdTuple,
+	#[serde(with = "serde_bytes")]
+	pub _ownerEncSessionKey: Option<Vec<u8>>,
+	pub _ownerGroup: Option<GeneratedId>,
+	pub _ownerKeyVersion: Option<i64>,
+	pub _permissions: GeneratedId,
+	pub comment: String,
+	pub createdDate: DateTime,
+	pub deletedDate: Option<DateTime>,
+	pub mailAddress: String,
+	pub customer: GeneratedId,
 }
 
 impl Entity for WhitelabelChild {
-    fn type_ref() -> TypeRef {
-        TypeRef { app: "sys".to_owned(), type_: "WhitelabelChild".to_owned() }
-    }
+	fn type_ref() -> TypeRef {
+		TypeRef { app: "sys", type_: "WhitelabelChild" }
+	}
 }
 
 
 #[derive(uniffi::Record, Clone, Serialize, Deserialize)]
 pub struct WhitelabelChildrenRef {
-    pub _id: GeneratedId,
-    pub items: GeneratedId,
+	pub _id: String,
+	pub items: GeneratedId,
 }
 
 impl Entity for WhitelabelChildrenRef {
-    fn type_ref() -> TypeRef {
-        TypeRef { app: "sys".to_owned(), type_: "WhitelabelChildrenRef".to_owned() }
-    }
+	fn type_ref() -> TypeRef {
+		TypeRef { app: "sys", type_: "WhitelabelChildrenRef" }
+	}
 }
 
 
 #[derive(uniffi::Record, Clone, Serialize, Deserialize)]
 pub struct WhitelabelConfig {
-    pub _format: i64,
-    pub _id: GeneratedId,
-    pub _ownerGroup: Option<GeneratedId>,
-    pub _permissions: GeneratedId,
-    pub germanLanguageCode: Option<String>,
-    pub imprintUrl: Option<String>,
-    pub jsonTheme: String,
-    pub metaTags: String,
-    pub privacyStatementUrl: Option<String>,
-    pub whitelabelCode: String,
-    pub bootstrapCustomizations: Vec<BootstrapFeature>,
-    pub certificateInfo: Option<CertificateInfo>,
-    pub whitelabelRegistrationDomains: Vec<StringWrapper>,
+	pub _format: i64,
+	pub _id: GeneratedId,
+	pub _ownerGroup: Option<GeneratedId>,
+	pub _permissions: GeneratedId,
+	pub germanLanguageCode: Option<String>,
+	pub imprintUrl: Option<String>,
+	pub jsonTheme: String,
+	pub metaTags: String,
+	pub privacyStatementUrl: Option<String>,
+	pub whitelabelCode: String,
+	pub bootstrapCustomizations: Vec<BootstrapFeature>,
+	pub certificateInfo: Option<CertificateInfo>,
+	pub whitelabelRegistrationDomains: Vec<StringWrapper>,
 }
 
 impl Entity for WhitelabelConfig {
-    fn type_ref() -> TypeRef {
-        TypeRef { app: "sys".to_owned(), type_: "WhitelabelConfig".to_owned() }
-    }
+	fn type_ref() -> TypeRef {
+		TypeRef { app: "sys", type_: "WhitelabelConfig" }
+	}
 }
 
 
 #[derive(uniffi::Record, Clone, Serialize, Deserialize)]
 pub struct WhitelabelParent {
-    pub _id: GeneratedId,
-    pub customer: GeneratedId,
-    pub whitelabelChildInParent: IdTuple,
+	pub _id: String,
+	pub customer: GeneratedId,
+	pub whitelabelChildInParent: IdTuple,
 }
 
 impl Entity for WhitelabelParent {
-    fn type_ref() -> TypeRef {
-        TypeRef { app: "sys".to_owned(), type_: "WhitelabelParent".to_owned() }
-    }
+	fn type_ref() -> TypeRef {
+		TypeRef { app: "sys", type_: "WhitelabelParent" }
+	}
 }
