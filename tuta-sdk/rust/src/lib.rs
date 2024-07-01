@@ -35,6 +35,7 @@ mod instance_mapper;
 mod typed_entity_client;
 pub mod date;
 pub mod generated_id;
+mod custom_id;
 
 uniffi::setup_scaffolding!();
 

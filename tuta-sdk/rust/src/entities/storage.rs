@@ -63,7 +63,7 @@ impl Entity for BlobGetIn {
 
 #[derive(uniffi::Record, Clone, Serialize, Deserialize)]
 pub struct BlobId {
-	pub _id: String,
+	pub _id: CustomId,
 	pub blobId: GeneratedId,
 }
 
@@ -89,7 +89,7 @@ impl Entity for BlobPostOut {
 
 #[derive(uniffi::Record, Clone, Serialize, Deserialize)]
 pub struct BlobReadData {
-	pub _id: String,
+	pub _id: CustomId,
 	pub archiveId: GeneratedId,
 	pub instanceListId: Option<GeneratedId>,
 	pub instanceIds: Vec<InstanceId>,
@@ -136,7 +136,7 @@ impl Entity for BlobReferencePutIn {
 
 #[derive(uniffi::Record, Clone, Serialize, Deserialize)]
 pub struct BlobServerAccessInfo {
-	pub _id: String,
+	pub _id: CustomId,
 	pub blobAccessToken: String,
 	pub expires: DateTime,
 	pub servers: Vec<BlobServerUrl>,
@@ -151,7 +151,7 @@ impl Entity for BlobServerAccessInfo {
 
 #[derive(uniffi::Record, Clone, Serialize, Deserialize)]
 pub struct BlobServerUrl {
-	pub _id: String,
+	pub _id: CustomId,
 	pub url: String,
 }
 
@@ -164,7 +164,7 @@ impl Entity for BlobServerUrl {
 
 #[derive(uniffi::Record, Clone, Serialize, Deserialize)]
 pub struct BlobWriteData {
-	pub _id: String,
+	pub _id: CustomId,
 	pub archiveOwnerGroup: GeneratedId,
 }
 
@@ -177,7 +177,7 @@ impl Entity for BlobWriteData {
 
 #[derive(uniffi::Record, Clone, Serialize, Deserialize)]
 pub struct InstanceId {
-	pub _id: String,
+	pub _id: CustomId,
 	pub instanceId: Option<GeneratedId>,
 }
 
