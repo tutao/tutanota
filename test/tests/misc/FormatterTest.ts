@@ -1,8 +1,8 @@
 import o from "@tutao/otest"
-import { lang, languageCodeToTag, languages } from "../../../src/misc/LanguageViewModel.js"
-import { formatDate } from "../../../src/misc/Formatter.js"
-import { BirthdayTypeRef } from "../../../src/api/entities/tutanota/TypeRefs.js"
-import { _getNumDaysInMonth, parseBirthday, parseDate } from "../../../src/misc/DateParser.js"
+import { lang, languageCodeToTag, languages } from "../../../src/common/misc/LanguageViewModel.js"
+import { formatDate } from "../../../src/common/misc/Formatter.js"
+import { BirthdayTypeRef } from "../../../src/common/api/entities/tutanota/TypeRefs.js"
+import { _getNumDaysInMonth, parseBirthday, parseDate } from "../../../src/common/misc/DateParser.js"
 import { createTestEntity } from "../TestUtils.js"
 
 const parseDateWithFormatter = (text: string) => parseDate(text, (refdate) => formatDate(refdate))

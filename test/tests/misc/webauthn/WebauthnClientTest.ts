@@ -1,11 +1,11 @@
 import o from "@tutao/otest"
 import { matchers, object, when } from "testdouble"
 import { stringToUtf8Uint8Array } from "@tutao/tutanota-utils"
-import { WebauthnClient } from "../../../../src/misc/2fa/webauthn/WebauthnClient.js"
-import { WebAuthnFacade } from "../../../../src/native/common/generatedipc/WebAuthnFacade.js"
-import { U2fChallengeTypeRef, U2fKeyTypeRef } from "../../../../src/api/entities/sys/TypeRefs.js"
+import { WebauthnClient } from "../../../../src/common/misc/2fa/webauthn/WebauthnClient.js"
+import { WebAuthnFacade } from "../../../../src/common/native/common/generatedipc/WebAuthnFacade.js"
+import { U2fChallengeTypeRef, U2fKeyTypeRef } from "../../../../src/common/api/entities/sys/TypeRefs.js"
 import { createTestEntity, domainConfigStub } from "../../TestUtils.js"
-import { DomainConfigProvider } from "../../../../src/api/common/DomainConfigProvider.js"
+import { DomainConfigProvider } from "../../../../src/common/api/common/DomainConfigProvider.js"
 
 o.spec("WebauthnClient", function () {
 	let webauthn: WebAuthnFacade

@@ -20,7 +20,7 @@ import {
 	ResourceError,
 	SessionExpiredError,
 	TooManyRequestsError,
-} from "../../../../../src/api/common/error/RestError.js"
+} from "../../../../../src/common/api/common/error/RestError.js"
 import { TutanotaError } from "@tutao/tutanota-error"
 
 o.spec("RestErrorTest", function () {

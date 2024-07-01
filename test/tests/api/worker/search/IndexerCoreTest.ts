@@ -9,7 +9,7 @@ import type {
 	IndexUpdate,
 	SearchIndexEntry,
 	SearchIndexMetaDataRow,
-} from "../../../../../src/api/worker/search/SearchTypes.js"
+} from "../../../../../src/common/api/worker/search/SearchTypes.js"
 import {
 	_createNewIndexUpdate,
 	decryptIndexKey,
@@ -20,22 +20,22 @@ import {
 	encryptMetaData,
 	getIdFromEncSearchIndexEntry,
 	typeRefToTypeInfo,
-} from "../../../../../src/api/worker/search/IndexUtils.js"
+} from "../../../../../src/common/api/worker/search/IndexUtils.js"
 import { base64ToUint8Array, concat, defer, downcast, neverNull, noOp, PromisableWrapper, uint8ArrayToBase64 } from "@tutao/tutanota-utils"
 import { spy } from "@tutao/tutanota-test-utils"
-import { ContactTypeRef, MailTypeRef } from "../../../../../src/api/entities/tutanota/TypeRefs.js"
-import { DbTransaction } from "../../../../../src/api/worker/search/DbFacade.js"
-import { appendBinaryBlocks } from "../../../../../src/api/worker/search/SearchIndexEncoding.js"
-import { EntityUpdateTypeRef } from "../../../../../src/api/entities/sys/TypeRefs.js"
-import { EventQueue } from "../../../../../src/api/worker/EventQueue.js"
-import { CancelledError } from "../../../../../src/api/common/error/CancelledError.js"
+import { ContactTypeRef, MailTypeRef } from "../../../../../src/common/api/entities/tutanota/TypeRefs.js"
+import { DbTransaction } from "../../../../../src/common/api/worker/search/DbFacade.js"
+import { appendBinaryBlocks } from "../../../../../src/common/api/worker/search/SearchIndexEncoding.js"
+import { EntityUpdateTypeRef } from "../../../../../src/common/api/entities/sys/TypeRefs.js"
+import { EventQueue } from "../../../../../src/common/api/worker/EventQueue.js"
+import { CancelledError } from "../../../../../src/common/api/common/error/CancelledError.js"
 import { createSearchIndexDbStub, DbStub, DbStubTransaction } from "./DbStub.js"
-import { IndexerCore } from "../../../../../src/api/worker/search/IndexerCore.js"
-import { elementIdPart, generatedIdToTimestamp, listIdPart, timestampToGeneratedId } from "../../../../../src/api/common/utils/EntityUtils.js"
+import { IndexerCore } from "../../../../../src/common/api/worker/search/IndexerCore.js"
+import { elementIdPart, generatedIdToTimestamp, listIdPart, timestampToGeneratedId } from "../../../../../src/common/api/common/utils/EntityUtils.js"
 import { createTestEntity, makeCore } from "../../../TestUtils.js"
 import { aes256RandomKey, aesEncrypt, fixedIv, IV_BYTE_LENGTH, random, unauthenticatedAesDecrypt } from "@tutao/tutanota-crypto"
-import { resolveTypeReference } from "../../../../../src/api/common/EntityFunctions.js"
-import { ElementDataOS, GroupDataOS, SearchIndexMetaDataOS, SearchIndexOS } from "../../../../../src/api/worker/search/IndexTables.js"
+import { resolveTypeReference } from "../../../../../src/common/api/common/EntityFunctions.js"
+import { ElementDataOS, GroupDataOS, SearchIndexMetaDataOS, SearchIndexOS } from "../../../../../src/common/api/worker/search/IndexTables.js"
 
 const mailTypeInfo = typeRefToTypeInfo(MailTypeRef)
 const contactTypeInfo = typeRefToTypeInfo(ContactTypeRef)

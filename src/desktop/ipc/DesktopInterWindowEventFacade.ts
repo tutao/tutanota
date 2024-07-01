@@ -1,4 +1,4 @@
-import { InterWindowEventFacade } from "../../native/common/generatedipc/InterWindowEventFacade.js"
+import { InterWindowEventFacade } from "../../common/native/common/generatedipc/InterWindowEventFacade.js"
 import { ApplicationWindow } from "../ApplicationWindow.js"
 import { WindowManager } from "../DesktopWindowManager.js"
 

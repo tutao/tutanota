@@ -1,12 +1,12 @@
 import o from "@tutao/otest"
-import { SseClient, SseConnectOptions, SseDelay, SseEventHandler } from "../../../../src/desktop/sse/SseClient.js"
-import { ClientRequestOptions, DesktopNetworkClient } from "../../../../src/desktop/net/DesktopNetworkClient.js"
+import { SseClient, SseConnectOptions, SseDelay, SseEventHandler } from "../../../../src/common/desktop/sse/SseClient.js"
+import { ClientRequestOptions, DesktopNetworkClient } from "../../../../src/common/desktop/net/DesktopNetworkClient.js"
 import { matchers, object, when } from "testdouble"
 import http from "node:http"
 import { verify } from "@tutao/tutanota-test-utils"
 import { assertNotNull, defer, getFirstOrThrow } from "@tutao/tutanota-utils"
 import { SchedulerMock } from "../../TestUtils.js"
-import { NotAuthenticatedError, NotAuthorizedError } from "../../../../src/api/common/error/RestError.js"
+import { NotAuthenticatedError, NotAuthorizedError } from "../../../../src/common/api/common/error/RestError.js"
 
 o.spec("SseClient", function () {
 	const defaultOptions: SseConnectOptions = Object.freeze({ url: new URL("http://example.com"), headers: { header: "headerValue" } })

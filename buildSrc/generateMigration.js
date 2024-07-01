@@ -32,7 +32,7 @@ export const ${app}${version}: OfflineMigration = {
 \t}
 }
 `.trimStart()
-	const outputName = path.resolve(`./src/api/worker/offline/migrations/${app}-v${version}.ts`)
+	const outputName = path.resolve(`./src/common/api/worker/offline/migrations/${app}-v${version}.ts`)
 
 	if (await fileExists(outputName)) {
 		console.error("That migration already exists!")

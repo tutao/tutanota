@@ -1,5 +1,5 @@
 import { Component } from "mithril"
-import { ViewSlider } from "./gui/nav/ViewSlider.js"
+import { ViewSlider } from "./common/gui/nav/ViewSlider.js"
 
 export interface TopLevelAttrs {
 	requestedPath: string

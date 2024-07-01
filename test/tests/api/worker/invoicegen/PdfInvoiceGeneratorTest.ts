@@ -1,8 +1,8 @@
 import o from "@tutao/otest"
-import { PdfWriter } from "../../../../../src/api/worker/pdf/PdfWriter.js"
+import { PdfWriter } from "../../../../../src/common/api/worker/pdf/PdfWriter.js"
 import { createTestEntity } from "../../../TestUtils.js"
-import { InvoiceDataGetOutTypeRef, InvoiceDataItemTypeRef } from "../../../../../src/api/entities/sys/TypeRefs.js"
-import { PdfInvoiceGenerator } from "../../../../../src/api/worker/invoicegen/PdfInvoiceGenerator.js"
+import { InvoiceDataGetOutTypeRef, InvoiceDataItemTypeRef } from "../../../../../src/common/api/entities/sys/TypeRefs.js"
+import { PdfInvoiceGenerator } from "../../../../../src/common/api/worker/invoicegen/PdfInvoiceGenerator.js"
 import { object, when } from "testdouble"
 
 async function fetchStub(input: RequestInfo | URL, init?: RequestInit): Promise<Response> {
