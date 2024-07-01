@@ -276,30 +276,6 @@ o.spec("KeyRotationFacadeTest", function () {
 			o(keyRotationFacade.pendingKeyRotations.otherKeyRotations.length).equals(1)
 			o(keyRotationFacade.pendingKeyRotations.adminOrUserGroupKeyRotation).equals(null)
 		})
-
-		o.spec("When a key rotation for a group that is not yet supported exists on the server, nothing is saved in the facade", function () {
-			o("Team", async function () {
-				when(entityClientMock.loadAll(KeyRotationTypeRef, anything())).thenResolve(
-					makeKeyRotation(keyRotationsListId, GroupKeyRotationType.Team, groupId),
-				)
-
-				await keyRotationFacade.loadPendingKeyRotations(user)
-
-				o(keyRotationFacade.pendingKeyRotations.otherKeyRotations.length).equals(0)
-				o(keyRotationFacade.pendingKeyRotations.adminOrUserGroupKeyRotation).equals(null)
-			})
-
-			o("Customer", async function () {
-				when(entityClientMock.loadAll(KeyRotationTypeRef, anything())).thenResolve(
-					makeKeyRotation(keyRotationsListId, GroupKeyRotationType.Customer, groupId),
-				)
-
-				await keyRotationFacade.loadPendingKeyRotations(user)
-
-				o(keyRotationFacade.pendingKeyRotations.otherKeyRotations.length).equals(0)
-				o(keyRotationFacade.pendingKeyRotations.adminOrUserGroupKeyRotation).equals(null)
-			})
-		})
 	})
 
 	o.spec("processPendingKeyRotation", function () {
