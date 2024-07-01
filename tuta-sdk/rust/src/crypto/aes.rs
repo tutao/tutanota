@@ -7,7 +7,7 @@ use cbc::cipher::block_padding::UnpadError;
 use rand_core::CryptoRngCore;
 use zeroize::ZeroizeOnDrop;
 use crate::join_slices;
-use crate::util::generate_random_bytes;
+use crate::util::{ArrayCastingError, generate_random_bytes, array_cast_slice};
 
 /// Denotes whether a text is/should be padded
 pub enum PaddingMode {
@@ -30,7 +30,7 @@ pub enum EnforceMac {
 }
 
 macro_rules! aes_key {
-    ($name:tt, $size:expr, $cbc:ty, $subkey_digest:ty) => {
+    ($name:tt, $type_name:literal, $size:expr, $cbc:ty, $subkey_digest:ty) => {
         #[derive(Clone, ZeroizeOnDrop)]
         pub struct $name([u8; $size]);
 
@@ -49,31 +49,25 @@ macro_rules! aes_key {
             /// Load the key from bytes.
             ///
             /// Returns Err if the key is not the correct size.
-            pub fn from_bytes(bytes: &[u8]) -> Result<Self, AesKeyError> {
-                match bytes.try_into() {
-                    Ok(bytes) => { Ok(Self(bytes)) }
-                    Err(_) => Err(AesKeyError { actual_size: bytes.len() })
-                }
+            pub fn from_bytes(bytes: &[u8]) -> Result<Self, ArrayCastingError> {
+                Ok(Self(array_cast_slice(bytes, $type_name)?))
             }
         }
 
         impl<const SIZE: usize> TryFrom<[u8; SIZE]> for $name {
-            type Error = AesKeyError;
+            type Error = ArrayCastingError;
             fn try_from(value: [u8; SIZE]) -> Result<Self, Self::Error> {
                 match arr_cast_size(value) {
                     Ok(arr) => Ok(Self(arr)),
-                    Err(_) => Err(AesKeyError { actual_size: value.len() })
+                    Err(_) => Err(ArrayCastingError { type_name: $type_name, actual_size: value.len() })
                 }
             }
         }
 
         impl TryFrom<Vec<u8>> for $name {
-            type Error = AesKeyError;
+            type Error = ArrayCastingError;
             fn try_from(value: Vec<u8>) -> Result<Self, Self::Error> {
-                match value.len() {
-                    n if n == $size => Ok(Self(value.try_into().unwrap())),
-                    _ => Err(AesKeyError { actual_size: value.len() }),
-                }
+                Ok(Self(array_cast_slice(value.as_slice(), $type_name)?))
             }
         }
 
@@ -100,6 +94,7 @@ macro_rules! aes_key {
 
 aes_key!(
     Aes128Key,
+    "Aes128Key",
     AES_128_KEY_SIZE,
     aes::Aes128,
     sha2::Sha256
@@ -107,6 +102,7 @@ aes_key!(
 
 aes_key!(
     Aes256Key,
+    "Aes128Key",
     AES_256_KEY_SIZE,
     aes::Aes256,
     sha2::Sha512
@@ -118,20 +114,6 @@ trait AesKey: Clone {
     fn derive_subkeys(&self) -> AesSubKeys<Self>;
 }
 
-/// The possible errors that can occur while casting to a `GenericAesKey`
-#[derive(thiserror::Error, Debug)]
-#[error("Invalid AES key size: {actual_size}")]
-pub struct AesKeyError {
-    actual_size: usize,
-}
-
-/// The possible errors that can occur while casting to a `Iv`
-#[derive(thiserror::Error, Debug)]
-#[error("Invalid IV size: {actual_size}")]
-pub struct IvError {
-    actual_size: usize,
-}
-
 /// An initialisation vector for AES encryption
 pub struct Iv([u8; IV_BYTE_SIZE]);
 
@@ -141,16 +123,12 @@ impl Iv {
         Self(generate_random_bytes(rng))
     }
 
-    pub fn from_bytes(bytes: &[u8]) -> Result<Self, IvError> {
-        match bytes.len() {
-            IV_BYTE_SIZE => Ok(Self(bytes.try_into().unwrap())),
-            actual_size => Err(IvError { actual_size })
-        }
+    pub fn from_bytes(bytes: &[u8]) -> Result<Self, ArrayCastingError> {
+        Ok(Self(array_cast_slice(bytes, "Iv")?))
     }
 
     fn from_slice(slice: &[u8]) -> Option<Self> {
-        let arr = slice.try_into().ok()?;
-        Some(Self(arr))
+        Self::from_bytes(slice).ok()
     }
 }
 
