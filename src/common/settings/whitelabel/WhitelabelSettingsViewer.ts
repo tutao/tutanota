@@ -1,5 +1,9 @@
 import m, { Children } from "mithril"
+<<<<<<<< HEAD:src/common/settings/whitelabel/WhitelabelSettingsViewer.ts
 import { assertMainOrNode } from "../../api/common/Env.js"
+========
+import { assertMainOrNode } from "../../../common/api/common/Env"
+>>>>>>>> 3349a964d (Move files to new folder structure):src/mail-app/settings/whitelabel/WhitelabelSettingsViewer.ts
 import { clear, downcast, LazyLoaded, neverNull, noOp, promiseMap } from "@tutao/tutanota-utils"
 import type {
 	Booking,
@@ -11,7 +15,7 @@ import type {
 	NotificationMailTemplate,
 	PlanConfiguration,
 	WhitelabelConfig,
-} from "../../api/entities/sys/TypeRefs.js"
+} from "../../../common/api/entities/sys/TypeRefs.js"
 import {
 	BookingTypeRef,
 	createStringWrapper,
@@ -19,6 +23,7 @@ import {
 	CustomerPropertiesTypeRef,
 	CustomerTypeRef,
 	WhitelabelConfigTypeRef,
+<<<<<<<< HEAD:src/common/settings/whitelabel/WhitelabelSettingsViewer.ts
 } from "../../api/entities/sys/TypeRefs.js"
 import { InfoLink, lang } from "../../misc/LanguageViewModel.js"
 import { FeatureType, OperationType } from "../../api/common/TutanotaConstants.js"
@@ -27,6 +32,16 @@ import { showProgressDialog } from "../../gui/dialogs/ProgressDialog.js"
 
 import * as EditNotificationEmailDialog from "../../settings/EditNotificationEmailDialog"
 import { showBuyOrSetNotificationEmailDialog } from "../../settings/EditNotificationEmailDialog"
+========
+} from "../../../common/api/entities/sys/TypeRefs.js"
+import { InfoLink, lang } from "../../../common/misc/LanguageViewModel"
+import { FeatureType, OperationType } from "../../../common/api/common/TutanotaConstants"
+import { progressIcon } from "../../../common/gui/base/Icon"
+import { showProgressDialog } from "../../../common/gui/dialogs/ProgressDialog"
+
+import * as EditNotificationEmailDialog from "../EditNotificationEmailDialog"
+import { showBuyOrSetNotificationEmailDialog } from "../EditNotificationEmailDialog"
+>>>>>>>> 3349a964d (Move files to new folder structure):src/mail-app/settings/whitelabel/WhitelabelSettingsViewer.ts
 import { isWhitelabelActive } from "../../../common/subscription/SubscriptionUtils"
 import { GENERATED_MAX_ID } from "../../../common/api/common/utils/EntityUtils"
 import { WhitelabelBrandingDomainSettings } from "./WhitelabelBrandingDomainSettings"
@@ -38,11 +53,19 @@ import { WhitelabelStatusSettings } from "./WhitelabelStatusSettings"
 import { WhitelabelNotificationEmailSettings } from "./WhitelabelNotificationEmailSettings"
 import type { GermanLanguageCode } from "./WhitelabelGermanLanguageFileSettings"
 import { WhitelabelGermanLanguageFileSettings } from "./WhitelabelGermanLanguageFileSettings"
+<<<<<<<< HEAD:src/common/settings/whitelabel/WhitelabelSettingsViewer.ts
 import type { UpdatableSettingsViewer } from "../Interfaces.js"
 import type { ThemeCustomizations } from "../../../common/misc/WhitelabelCustomizations"
 import { getThemeCustomizations } from "../../../common/misc/WhitelabelCustomizations"
 import { EntityClient } from "../../../common/api/common/EntityClient"
 import { locator } from "../../../common/api/main/CommonLocator"
+========
+import type { UpdatableSettingsViewer } from "../SettingsView"
+import type { ThemeCustomizations } from "../../../common/misc/WhitelabelCustomizations"
+import { getThemeCustomizations } from "../../../common/misc/WhitelabelCustomizations"
+import { EntityClient } from "../../../common/api/common/EntityClient"
+import { locator } from "../../../common/api/main/MainLocator"
+>>>>>>>> 3349a964d (Move files to new folder structure):src/mail-app/settings/whitelabel/WhitelabelSettingsViewer.ts
 import { SelectorItem, SelectorItemList } from "../../../common/gui/base/DropDownSelector.js"
 import { BrandingDomainService } from "../../../common/api/entities/sys/Services"
 import { LoginController } from "../../../common/api/main/LoginController.js"

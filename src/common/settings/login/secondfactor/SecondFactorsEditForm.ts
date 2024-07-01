@@ -1,7 +1,7 @@
 import m, { Children } from "mithril"
-import { assertMainOrNode } from "../../../api/common/Env.js"
-import type { SecondFactor, User } from "../../../api/entities/sys/TypeRefs.js"
-import { SecondFactorTypeRef } from "../../../api/entities/sys/TypeRefs.js"
+import { assertMainOrNode } from "../../../../common/api/common/Env.js"
+import type { SecondFactor, User } from "../../../../common/api/entities/sys/TypeRefs.js"
+import { SecondFactorTypeRef } from "../../../../common/api/entities/sys/TypeRefs.js"
 import { assertNotNull, LazyLoaded, neverNull, ofClass } from "@tutao/tutanota-utils"
 import { Icons } from "../../../../common/gui/base/icons/Icons.js"
 import { Dialog } from "../../../../common/gui/base/Dialog.js"
@@ -12,15 +12,19 @@ import type { TableAttrs, TableLineAttrs } from "../../../../common/gui/base/Tab
 import { ColumnWidth, Table } from "../../../../common/gui/base/Table.js"
 import { NotFoundError } from "../../../../common/api/common/error/RestError.js"
 import { ifAllowedTutaLinks } from "../../../../common/gui/base/GuiUtils.js"
+<<<<<<<< HEAD:src/common/settings/login/secondfactor/SecondFactorsEditForm.ts
 import { locator } from "../../../../common/api/main/CommonLocator.js"
+========
+import { locator } from "../../../../common/api/main/MainLocator.js"
+>>>>>>>> 3349a964d (Move files to new folder structure):src/mail-app/settings/login/secondfactor/SecondFactorsEditForm.ts
 import { SecondFactorEditDialog } from "./SecondFactorEditDialog.js"
 import { SecondFactorTypeToNameTextId } from "./SecondFactorEditModel.js"
-import { IconButtonAttrs } from "../../../gui/base/IconButton.js"
-import { ButtonSize } from "../../../gui/base/ButtonSize.js"
-import { appIdToLoginUrl } from "../../../misc/2fa/SecondFactorUtils.js"
-import { DomainConfigProvider } from "../../../api/common/DomainConfigProvider.js"
-import { EntityUpdateData, isUpdateForTypeRef } from "../../../api/common/utils/EntityUpdateUtils.js"
-import { MoreInfoLink } from "../../../misc/news/MoreInfoLink.js"
+import { IconButtonAttrs } from "../../../../common/gui/base/IconButton.js"
+import { ButtonSize } from "../../../../common/gui/base/ButtonSize.js"
+import { appIdToLoginUrl } from "../../../../common/misc/2fa/SecondFactorUtils.js"
+import { DomainConfigProvider } from "../../../../common/api/common/DomainConfigProvider.js"
+import { EntityUpdateData, isUpdateForTypeRef } from "../../../../common/api/common/utils/EntityUpdateUtils.js"
+import { MoreInfoLink } from "../../../../common/misc/news/MoreInfoLink.js"
 
 assertMainOrNode()
 

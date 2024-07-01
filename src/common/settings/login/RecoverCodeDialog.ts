@@ -1,12 +1,16 @@
-import { InfoLink, lang } from "../../misc/LanguageViewModel.js"
-import { Dialog, DialogType } from "../../gui/base/Dialog.js"
+import { InfoLink, lang } from "../../../common/misc/LanguageViewModel.js"
+import { Dialog, DialogType } from "../../../common/gui/base/Dialog.js"
 import type { Hex } from "@tutao/tutanota-utils"
 import { neverNull, noOp, ofClass } from "@tutao/tutanota-utils"
 import m, { Child, Children, Vnode } from "mithril"
 import { assertMainOrNode, isApp } from "../../../common/api/common/Env.js"
 import { copyToClipboard } from "../../../common/misc/ClipboardUtils.js"
 import { AccessBlockedError, NotAuthenticatedError } from "../../../common/api/common/error/RestError.js"
+<<<<<<<< HEAD:src/common/settings/login/RecoverCodeDialog.ts
 import { locator } from "../../../common/api/main/CommonLocator.js"
+========
+import { locator } from "../../../common/api/main/MainLocator.js"
+>>>>>>>> 3349a964d (Move files to new folder structure):src/mail-app/settings/login/RecoverCodeDialog.ts
 import { Icons } from "../../../common/gui/base/icons/Icons.js"
 import { User } from "../../../common/api/entities/sys/TypeRefs.js"
 import { getEtId, isSameId } from "../../../common/api/common/utils/EntityUtils.js"

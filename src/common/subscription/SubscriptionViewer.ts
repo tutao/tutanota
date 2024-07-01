@@ -50,7 +50,7 @@ import { locator } from "../api/main/CommonLocator"
 import { GiftCardMessageEditorField } from "./giftcards/GiftCardMessageEditorField"
 import { attachDropdown } from "../gui/base/Dropdown.js"
 import { createNotAvailableForFreeClickHandler } from "../misc/SubscriptionDialogs"
-import { SettingsExpander } from "../settings/SettingsExpander.js"
+import { SettingsExpander } from "../../mail-app/settings/SettingsExpander.js"
 import { elementIdPart, GENERATED_MAX_ID, getEtId } from "../api/common/utils/EntityUtils"
 import {
 	CURRENT_GIFT_CARD_TERMS_VERSION,

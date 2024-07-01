@@ -19,7 +19,7 @@ import { getTokenFromUrl, renderAcceptGiftCardTermsCheckbox, renderGiftCardSvg }
 import { CancelledError } from "../../api/common/error/CancelledError"
 import { lang } from "../../misc/LanguageViewModel"
 import { getLoginErrorMessage, handleExpectedLoginError } from "../../misc/LoginUtils"
-import { RecoverCodeField } from "../../settings/login/RecoverCodeDialog.js"
+import { RecoverCodeField } from "../../../mail-app/settings/login/RecoverCodeDialog.js"
 import { HabReminderImage } from "../../gui/base/icons/Icons"
 import { PaymentMethodType, PlanType } from "../../api/common/TutanotaConstants"
 import { formatPrice, getPaymentMethodName, PaymentInterval, PriceAndConfigProvider } from "../PriceUtils"

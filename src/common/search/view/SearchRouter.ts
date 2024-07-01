@@ -1,7 +1,12 @@
+<<<<<<<< HEAD:src/common/search/view/SearchRouter.ts
 import { SearchRestriction } from "../../api/worker/search/SearchTypes.js"
 import { getRestriction, getSearchUrl } from "../../../mail-app/search/model/SearchUtils.js"
+========
+import { SearchRestriction } from "../../../common/api/worker/search/SearchTypes.js"
+import { getRestriction, getSearchUrl } from "../model/SearchUtils.js"
+>>>>>>>> 3349a964d (Move files to new folder structure):src/mail-app/search/view/SearchRouter.ts
 import m from "mithril"
-import { Router } from "../../gui/ScopedRouter.js"
+import { Router } from "../../../common/gui/ScopedRouter.js"
 import { memoizedWithHiddenArgument } from "@tutao/tutanota-utils"
 
 export type SearchSelection = {

@@ -5,7 +5,11 @@ import { isMailAddress } from "../../common/misc/FormatValidator"
 import { AccessDeactivatedError } from "../../common/api/common/error/RestError"
 import { formatMailAddressFromParts } from "../../common/misc/Formatter"
 import { Icon } from "../../common/gui/base/Icon"
+<<<<<<<< HEAD:src/common/settings/SelectMailAddressForm.ts
 import { locator } from "../../common/api/main/CommonLocator"
+========
+import { locator } from "../../common/api/main/MainLocator"
+>>>>>>>> 3349a964d (Move files to new folder structure):src/mail-app/settings/SelectMailAddressForm.ts
 import { assertMainOrNode } from "../../common/api/common/Env"
 import { px, size } from "../../common/gui/size.js"
 import { Autocomplete, inputLineHeight, TextField } from "../../common/gui/base/TextField.js"
@@ -13,8 +17,14 @@ import { attachDropdown, DropdownButtonAttrs } from "../../common/gui/base/Dropd
 import { IconButton, IconButtonAttrs } from "../../common/gui/base/IconButton.js"
 import { ButtonSize } from "../../common/gui/base/ButtonSize.js"
 import { EmailDomainData } from "./mailaddress/MailAddressesUtils.js"
+<<<<<<<< HEAD:src/common/settings/SelectMailAddressForm.ts
 import { BootIcons } from "../gui/base/icons/BootIcons.js"
 import { isTutanotaMailAddress } from "../mailFunctionality/CommonMailUtils.js"
+========
+import { BootIcons } from "../../common/gui/base/icons/BootIcons.js"
+import { isTutanotaMailAddress } from "../../common/api/common/mail/CommonMailUtils.js"
+
+>>>>>>>> 3349a964d (Move files to new folder structure):src/mail-app/settings/SelectMailAddressForm.ts
 assertMainOrNode()
 
 const VALID_MESSAGE_ID = "mailAddressAvailable_msg"

@@ -1,4 +1,5 @@
 import m, { Children, Component, Vnode } from "mithril"
+<<<<<<<< HEAD:src/common/settings/PasswordForm.ts
 import { Autocomplete } from "../gui/base/TextField.js"
 import { getPasswordStrength, isSecurePassword } from "../misc/passwords/PasswordUtils.js"
 import type { TranslationKey } from "../misc/LanguageViewModel.js"
@@ -10,9 +11,22 @@ import { getEnabledMailAddressesForGroupInfo } from "../api/common/utils/GroupUt
 import { showPasswordGeneratorDialog } from "../misc/passwords/PasswordGeneratorDialog.js"
 import { theme } from "../gui/theme.js"
 import { px, size } from "../gui/size.js"
+========
+import { Autocomplete } from "../../common/gui/base/TextField.js"
+import { getPasswordStrength, isSecurePassword } from "../../common/misc/passwords/PasswordUtils"
+import type { TranslationKey } from "../../common/misc/LanguageViewModel"
+import { lang } from "../../common/misc/LanguageViewModel"
+import type { Status } from "../../common/gui/base/StatusField"
+import { LoginController } from "../../common/api/main/LoginController"
+import { assertMainOrNode } from "../../common/api/common/Env"
+import { getEnabledMailAddressesForGroupInfo } from "../../common/api/common/utils/GroupUtils.js"
+import { showPasswordGeneratorDialog } from "../../common/misc/passwords/PasswordGeneratorDialog"
+import { theme } from "../../common/gui/theme"
+import { px, size } from "../../common/gui/size.js"
+>>>>>>>> 3349a964d (Move files to new folder structure):src/mail-app/settings/PasswordForm.ts
 import { UsageTest, UsageTestController } from "@tutao/tutanota-usagetests"
 import Stream from "mithril/stream"
-import { PasswordField, PasswordFieldAttrs } from "../misc/passwords/PasswordField.js"
+import { PasswordField, PasswordFieldAttrs } from "../../common/misc/passwords/PasswordField.js"
 
 assertMainOrNode()
 
