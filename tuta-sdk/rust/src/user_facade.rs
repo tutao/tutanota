@@ -1,7 +1,7 @@
 use std::sync::Arc;
 use crate::ApiCallError;
 use crate::entities::sys::User;
-use crate::id::Id;
+use crate::generated_id::GeneratedId;
 use crate::typed_entity_client::TypedEntityClient;
 
 
@@ -20,7 +20,7 @@ impl UserFacade {
 #[uniffi::export]
 impl UserFacade {
     /// Gets a user (an entity/instance of `User`) from the backend
-    pub async fn load_user_by_id(&self, id: &Id) -> Result<User, ApiCallError> {
+    pub async fn load_user_by_id(&self, id: &GeneratedId) -> Result<User, ApiCallError> {
         self.entity_client.load(id).await
     }
 }

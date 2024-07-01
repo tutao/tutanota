@@ -8,7 +8,7 @@ use crate::crypto::key_loader_facade::{KeyLoaderFacade, VersionedAesKey};
 use crate::crypto::randomizer_facade::{random, RandomizerFacade};
 use crate::crypto::rsa::RSAEncryptionError;
 use crate::crypto::tuta_crypt::{PQError, PQMessage};
-use crate::id::Id;
+use crate::generated_id::GeneratedId;
 use crate::element_value::{ElementValue, ParsedEntity};
 use crate::entities::sys::BucketKey;
 use crate::IdTuple;
@@ -139,7 +139,7 @@ impl CryptoFacade {
             let key_group = match &bucket_key.keyGroup {
                 Some(n) => n,
                 None => match entity.get(OWNER_GROUP_NAME) {
-                    Some(ElementValue::GeneratedId(n)) => n,
+                    Some(ElementValue::IdGeneratedId(n)) => n,
                     _ => return Err(SessionKeyResolutionError { reason: "no owner group or key group information".to_owned() })
                 }
             };
@@ -170,9 +170,9 @@ struct ResolvedBucketKey {
 struct EntityOwnerKeyData<'a> {
     owner_enc_session_key: Option<&'a Vec<u8>>,
     owner_key_version: Option<i64>,
-    owner_group: Option<&'a Id>,
-    instance_id: &'a Id,
-    list_id: Option<&'a Id>,
+    owner_group: Option<&'a GeneratedId>,
+    instance_id: &'a GeneratedId,
+    list_id: Option<&'a GeneratedId>,
 }
 
 impl<'a> EntityOwnerKeyData<'a> {
@@ -189,9 +189,9 @@ impl<'a> EntityOwnerKeyData<'a> {
 
         let owner_enc_session_key = get_nullable_field!(entity, OWNER_ENC_SESSION_KEY_NAME, Bytes)?;
         let owner_key_version = get_nullable_field!(entity, OWNER_KEY_VERSION_NAME, Number)?.map(|v| *v);
-        let owner_group = get_nullable_field!(entity, OWNER_GROUP_NAME, GeneratedId)?;
+        let owner_group = get_nullable_field!(entity, OWNER_GROUP_NAME, IdGeneratedId)?;
         let (list_id, instance_id) = match entity.get(ID_NAME) {
-            Some(ElementValue::GeneratedId(id)) => (None, id),
+            Some(ElementValue::IdGeneratedId(id)) => (None, id),
             Some(ElementValue::IdTupleId(IdTuple { list_id, element_id })) => (Some(list_id), element_id),
             None => return Err(SessionKeyResolutionError { reason: "no id present on instance".to_string() }),
             Some(actual) => return Err(SessionKeyResolutionError { reason: format!("unexpected {} type for id on instance", actual.get_type_variant_name()) }),
@@ -242,11 +242,10 @@ mod test {
     use crate::crypto::randomizer_facade::test_util::TestRandomizerFacade;
     use crate::crypto::tuta_crypt::{PQKeyPairs, PQMessage};
     use crate::element_value::{ElementValue, ParsedEntity};
-    use crate::element_value::ElementValue::GeneratedId;
     use crate::entities::Entity;
     use crate::entities::sys::{BucketKey, InstanceSessionKey, TypeInfo};
     use crate::entities::tutanota::{Mail, MailAddress};
-    use crate::id::Id;
+    use crate::generated_id::GeneratedId;
     use crate::IdTuple;
     use crate::instance_mapper::InstanceMapper;
     use crate::metamodel::{ElementType, TypeModel};
@@ -317,12 +316,12 @@ mod test {
         let bucket_key_generic = GenericAesKey::from(bucket_key.clone());
         let bucket_enc_session_key = bucket_key_generic.encrypt_key(&mail_session_key, bucket_enc_session_key_iv);
 
-        let instance_id = Id::test_random();
-        let instance_list = Id::test_random();
-        let key_group = Id::test_random();
+        let instance_id = GeneratedId::test_random();
+        let instance_list = GeneratedId::test_random();
+        let key_group = GeneratedId::test_random();
 
         let bucket_key_data = BucketKey {
-            _id: Id::test_random(),
+            _id: GeneratedId::test_random(),
             groupEncBucketKey: None,
             protocolVersion: 2,
             pubEncBucketKey: Some(encapsulation.serialize()),
@@ -330,14 +329,14 @@ mod test {
             senderKeyVersion: None,
             bucketEncSessionKeys: vec![
                 InstanceSessionKey {
-                    _id: Id::test_random(),
+                    _id: GeneratedId::test_random(),
                     encryptionAuthStatus: None,
                     instanceId: instance_id.clone(),
                     instanceList: instance_list.clone(),
                     symEncSessionKey: bucket_enc_session_key.clone(),
                     symKeyVersion: recipient_key_version,
                     typeInfo: TypeInfo {
-                        _id: Id::test_random(),
+                        _id: GeneratedId::test_random(),
                         application: String::new(),
                         typeId: 0,
                     },
@@ -352,7 +351,7 @@ mod test {
             _ownerEncSessionKey: None,
             _ownerGroup: Some(key_group.clone()),
             _ownerKeyVersion: None,
-            _permissions: Id::test_random(),
+            _permissions: GeneratedId::test_random(),
             authStatus: None,
             confidential: false,
             differentEnvelopeSender: None,
@@ -373,14 +372,14 @@ mod test {
             body: None,
             bucketKey: Some(bucket_key_data),
             ccRecipients: vec![],
-            conversationEntry: IdTuple { list_id: Id::test_random(), element_id: Id::test_random() },
+            conversationEntry: IdTuple { list_id: GeneratedId::test_random(), element_id: GeneratedId::test_random() },
             firstRecipient: None,
             headers: None,
             mailDetails: None,
             mailDetailsDraft: None,
             replyTos: vec![],
             sender: MailAddress {
-                _id: Id::test_random(),
+                _id: GeneratedId::test_random(),
                 address: "".to_string(),
                 name: "".to_string(),
                 contact: None,
