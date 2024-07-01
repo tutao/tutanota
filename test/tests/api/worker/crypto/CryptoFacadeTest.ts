@@ -509,7 +509,7 @@ o.spec("CryptoFacadeTest", function () {
 		const files = [createTestEntity(FileTypeRef, { _ownerEncSessionKey: new Uint8Array() })]
 		await crypto.enforceSessionKeyUpdateIfNeeded({}, files)
 		verify(ownerEncSessionKeysUpdateQueue.postUpdateSessionKeysService(anything()), { times: 0 })
-		verify(cache.deleteFromCacheIfExists(anything(), anything(), anything()), { times: 0 })
+		verify(cache.deleteIfExists(anything(), anything(), anything()), { times: 0 })
 	})
 
 	o("enforceSessionKeyUpdateIfNeeded: _ownerEncSessionKey missing", async function () {
@@ -535,7 +535,7 @@ o.spec("CryptoFacadeTest", function () {
 		// const sessionKey = neverNull(await crypto.resolveSessionKey(testData.MailTypeModel, testData.mailLiteral))
 		const updatedFiles = await crypto.enforceSessionKeyUpdateIfNeeded(mail, files)
 		verify(ownerEncSessionKeysUpdateQueue.postUpdateSessionKeysService(anything()), { times: 1 })
-		verify(cache.deleteFromCacheIfExists(FileTypeRef, "listId", "2"))
+		verify(cache.deleteIfExists(FileTypeRef, "listId", "2"))
 	})
 
 	o("encryptBucketKeyForInternalRecipient with existing PQKeys for sender and recipient", async () => {

@@ -976,7 +976,7 @@ export class CryptoFacade {
 			console.warn("files are out of sync refreshing", outOfSyncInstances.map((f) => f._id).join(", "))
 		}
 		for (const childInstance of outOfSyncInstances) {
-			await this.cache?.deleteFromCacheIfExists(FileTypeRef, getListId(childInstance), getElementId(childInstance))
+			await this.cache?.deleteIfExists(FileTypeRef, getListId(childInstance), getElementId(childInstance))
 		}
 		// we have a caching entity client, so this re-inserts the deleted instances
 		return await this.entityClient.loadMultiple(

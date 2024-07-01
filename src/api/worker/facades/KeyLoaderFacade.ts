@@ -68,23 +68,35 @@ export class KeyLoaderFacade {
 		const group = await this.entityClient.load(GroupTypeRef, keyPairGroupId)
 		const groupKey = await this.getCurrentSymGroupKey(group._id)
 		console.log(`loadKeypair group: ${group.groupKeyVersion} currentGroupKey: ${groupKey.version} groupKeyVersion: ${groupKeyVersion}`)
-		if (Number(group.groupKeyVersion) === groupKey.version && groupKey.version === groupKeyVersion) {
-			return this.getAndDecryptKeyPair(group, groupKey.object)
-		}
-		const {
-			symmetricGroupKey,
-			groupKeyInstance: { keyPair },
-		} = await this.findFormerGroupKey(group, groupKey, groupKeyVersion)
-
-		if (keyPair == null) {
-			throw new Error(`key pair not found for group ${keyPairGroupId} and version ${groupKeyVersion}`)
-		}
-
-		try {
-			return decryptKeyPair(symmetricGroupKey, keyPair)
-		} catch (e) {
-			console.log("failed to decrypt keypair for group with id " + group._id)
-			throw e
+		if (groupKey.version === groupKeyVersion) {
+			if (Number(group.groupKeyVersion) === groupKey.version) {
+				return this.getAndDecryptKeyPair(group, groupKey.object)
+			} else {
+				// TODO remove duplicate code
+				const formerKeysList = assertNotNull(
+					group.formerGroupKeys,
+					`No former group keys, current key version from group ${group._id}: ${group.groupKeyVersion}, current version in group key: ${groupKey.version}, target key version: ${groupKeyVersion}.`,
+				).list
+				const formerGroupKey = await this.entityClient.load(GroupKeyTypeRef, [formerKeysList, stringToCustomId(String(groupKey.version))])
+				if (formerGroupKey.keyPair == null) {
+					throw new NotFoundError(`no key pair on group ${group._id}`)
+				}
+				return decryptKeyPair(groupKey.object, formerGroupKey.keyPair)
+			}
+		} else {
+			const {
+				symmetricGroupKey,
+				groupKeyInstance: { keyPair },
+			} = await this.findFormerGroupKey(group, groupKey, groupKeyVersion)
+			if (keyPair == null) {
+				throw new Error(`key pair not found for group ${keyPairGroupId} and version ${groupKeyVersion}`)
+			}
+			try {
+				return decryptKeyPair(symmetricGroupKey, keyPair)
+			} catch (e) {
+				console.log("failed to decrypt keypair for group with id " + group._id)
+				throw e
+			}
 		}
 	}
 

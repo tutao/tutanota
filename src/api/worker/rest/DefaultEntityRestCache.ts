@@ -14,6 +14,7 @@ import {
 	SecondFactorTypeRef,
 	SessionTypeRef,
 	User,
+	UserGroupKeyDistributionTypeRef,
 	UserGroupRootTypeRef,
 	UserTypeRef,
 } from "../../entities/sys/TypeRefs.js"
@@ -54,6 +55,7 @@ const IGNORED_TYPES = [
 	CalendarEventUidIndexTypeRef,
 	KeyRotationTypeRef,
 	UserGroupRootTypeRef,
+	UserGroupKeyDistributionTypeRef,
 ] as const
 
 export interface EntityRestCache extends EntityRestInterface {
@@ -89,6 +91,11 @@ export interface EntityRestCache extends EntityRestInterface {
 	 * Detect if out of sync based on stored "lastUpdateTime" and the current server time
 	 */
 	isOutOfSync(): Promise<boolean>
+
+	/**
+	 * Remove an ElementEntity from the cache by typeRef and Id.
+	 * */
+	deleteIfExists<T extends ElementEntity>(typeRef: TypeRef<T>, listId: null, id: Id): Promise<void>
 }
 
 export type Range = { lower: Id; upper: Id }
@@ -332,7 +339,7 @@ export class DefaultEntityRestCache implements EntityRestCache {
 	/**
 	 * Delete a cached entity. Sometimes this is necessary to do to ensure you always load the new version
 	 */
-	deleteFromCacheIfExists<T extends SomeEntity>(typeRef: TypeRef<T>, listId: Id | null, elementId: Id): Promise<void> {
+	deleteIfExists<T extends SomeEntity>(typeRef: TypeRef<T>, listId: Id | null, elementId: Id): Promise<void> {
 		return this.storage.deleteIfExists(typeRef, listId, elementId)
 	}
 

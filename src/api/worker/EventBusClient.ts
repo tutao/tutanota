@@ -13,7 +13,10 @@ import {
 	EntityEventBatch,
 	EntityEventBatchTypeRef,
 	EntityUpdate,
+	GroupTypeRef,
+	User,
 	UserGroupKeyDistributionTypeRef,
+	UserTypeRef,
 	WebsocketCounterData,
 	WebsocketCounterDataTypeRef,
 	WebsocketEntityData,
@@ -659,26 +662,51 @@ export class EventBusClient {
 
 	private async checkAndProcessUserGroupKeyUpdate(batch: QueuedBatch) {
 		const user = this.userFacade.getUser()
-		if (user != null && isSameId(this.userFacade.getUserGroupId(), batch.groupId)) {
+		if (user != null) {
+			const modifiedUserGroupKeyUpdateInstances = this.isUserGroupKeyUpdate(batch, user)
+			if (modifiedUserGroupKeyUpdateInstances != null) {
+				// this handles updates of the user group key which is also stored on the user as a membership
+				// we might not have access to the password to decrypt it, though. therefore we handle it here
+				try {
+					const userGroupKeyDistribution = await this.entity.load(
+						UserGroupKeyDistributionTypeRef,
+						modifiedUserGroupKeyUpdateInstances.userGroupKeyDistributionId,
+					)
+					// recover code is ignored
+					await this.cache.deleteIfExists(UserTypeRef, null, user._id)
+					for (const groupId of modifiedUserGroupKeyUpdateInstances.modifiedGroupIds) {
+						await this.cache.deleteIfExists(GroupTypeRef, null, groupId)
+					}
+					this.userFacade.updateUserGroupKey(userGroupKeyDistribution)
+				} catch (e) {
+					// we do not want to fail here, as this update might be outdated in case we only process updates after a longer period of being offline
+					// in such case we should have set the correct user group key already during the regular login
+					console.log("Could not update user group key after entity update", e)
+				}
+			}
+		}
+	}
+
+	private isUserGroupKeyUpdate(batch: QueuedBatch, user: User): { userGroupKeyDistributionId: Id; modifiedGroupIds: Array<Id> } | null {
+		let userGroupKeyDistributionId: Id | null = null
+		const modifiedGroupIds: Array<Id> = []
+		if (isSameId(user.userGroup.group, batch.groupId)) {
 			for (const update of batch.events) {
 				if (
 					(update.operation === OperationType.CREATE || update.operation === OperationType.UPDATE) &&
 					isSameTypeRefByAttr(UserGroupKeyDistributionTypeRef, update.application, update.type) &&
 					isSameId(user.userGroup.group, update.instanceId)
 				) {
-					// this handles updates of the user group key which is also stored on the user as a membership
-					// we might not have access to the password to decrypt it, though. therefore we handle it here
-					try {
-						const userGroupKeyDistribution = await this.entity.load(UserGroupKeyDistributionTypeRef, update.instanceId)
-						this.userFacade.updateUserGroupKey(userGroupKeyDistribution)
-					} catch (e) {
-						// we do not want to fail here, as this update might be outdated in case we only process updates after a longer period of being offline
-						// in such case we should have set the correct user group key already during the regular login
-						console.log("Could not update user group key after entity update", e)
-					}
+					userGroupKeyDistributionId = update.instanceId
+				} else if (isSameTypeRefByAttr(GroupTypeRef, update.application, update.type)) {
+					modifiedGroupIds.push(update.instanceId)
 				}
 			}
+			if (userGroupKeyDistributionId != null) {
+				return { userGroupKeyDistributionId, modifiedGroupIds }
+			}
 		}
+		return null
 	}
 
 	private getLastEventBatchIdOrMinIdForGroup(groupId: Id): Id {

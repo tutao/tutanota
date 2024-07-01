@@ -298,7 +298,7 @@ export class GroupManagementFacade {
 	async reloadUser(): Promise<User> {
 		const userId = this.user.getLoggedInUser()._id
 
-		await this.entityRestCache.deleteFromCacheIfExists(UserTypeRef, null, userId)
+		await this.entityRestCache.deleteIfExists(UserTypeRef, null, userId)
 
 		const user = await this.entityClient.load(UserTypeRef, userId)
 		await this.user.updateUser(user)

@@ -88,7 +88,7 @@ export class EventBusEventCoordinator implements EventBusListener {
 				isSameTypeRefByAttr(UserTypeRef, update.application, update.type) &&
 				isSameId(user._id, update.instanceId)
 			) {
-				await this.userFacade.updateUser(await this.entityClient.load(UserTypeRef, user._id))
+				// await this.userFacade.updateUser(await this.entityClient.load(UserTypeRef, user._id))
 				// } else if (
 				// 	(update.operation === OperationType.CREATE || update.operation === OperationType.UPDATE) &&
 				// 	isSameTypeRefByAttr(UserGroupKeyDistributionTypeRef, update.application, update.type) &&

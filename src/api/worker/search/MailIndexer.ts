@@ -735,7 +735,7 @@ class IndexLoader {
 
 	async removeFromCache(id: IdTuple): Promise<void> {
 		if (!this.isUsingOfflineCache) {
-			return this.entityCache.deleteFromCacheIfExists(MailTypeRef, listIdPart(id), elementIdPart(id))
+			return this.entityCache.deleteIfExists(MailTypeRef, listIdPart(id), elementIdPart(id))
 		}
 	}
 
