@@ -23,7 +23,7 @@ impl Entity for ApprovalMail {
 
 #[derive(uniffi::Record, Clone, Serialize, Deserialize)]
 pub struct CounterValue {
-	pub _id: String,
+	pub _id: CustomId,
 	pub counterId: GeneratedId,
 	pub value: i64,
 }
@@ -37,7 +37,7 @@ impl Entity for CounterValue {
 
 #[derive(uniffi::Record, Clone, Serialize, Deserialize)]
 pub struct ErrorReportData {
-	pub _id: String,
+	pub _id: CustomId,
 	pub additionalInfo: String,
 	pub appVersion: String,
 	pub clientType: i64,
@@ -58,7 +58,7 @@ impl Entity for ErrorReportData {
 
 #[derive(uniffi::Record, Clone, Serialize, Deserialize)]
 pub struct ErrorReportFile {
-	pub _id: String,
+	pub _id: CustomId,
 	pub content: String,
 	pub name: String,
 }

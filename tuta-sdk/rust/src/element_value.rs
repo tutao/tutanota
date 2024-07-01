@@ -1,4 +1,5 @@
 use std::collections::HashMap;
+use crate::custom_id::CustomId;
 use crate::date::DateTime;
 use crate::generated_id::GeneratedId;
 use crate::IdTuple;
@@ -14,7 +15,7 @@ pub enum ElementValue {
     Bool(bool),
     // Names are prefixed with 'Id' to avoid name collision in Kotlin
     IdGeneratedId(GeneratedId),
-    IdCustomId(String),
+    IdCustomId(CustomId),
     IdTupleId(IdTuple),
     Dict(HashMap<String, ElementValue>),
     Array(Vec<ElementValue>),
