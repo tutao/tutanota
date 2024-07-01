@@ -16,8 +16,8 @@ use crate::type_model_provider::TypeModelProvider;
 impl From<&TypeModel> for TypeRef {
     fn from(value: &TypeModel) -> Self {
         TypeRef {
-            app: value.app.clone(),
-            type_: value.name.clone(),
+            app: value.app,
+            type_: value.name,
         }
     }
 }
@@ -52,7 +52,7 @@ impl JsonSerializer {
     ) -> Result<ParsedEntity, InstanceMapperError> {
         let type_model = self.get_type_model(&type_ref)?;
         let mut mapped: HashMap<String, ElementValue> = HashMap::new();
-        for (value_name, value_type) in &type_model.values {
+        for (&value_name, value_type) in &type_model.values {
             // reuse the name
             let (value_name, value) =
                 raw_entity
@@ -80,7 +80,7 @@ impl JsonSerializer {
             }
         }
 
-        for (association_name, association_type) in &type_model.associations {
+        for (&association_name, association_type) in &type_model.associations {
             // reuse the name
             let (association_name, value) =
                 raw_entity
@@ -90,8 +90,8 @@ impl JsonSerializer {
                         field: association_name.to_owned(),
                     })?;
             let association_type_ref = TypeRef {
-                app: type_ref.app.to_owned(),
-                type_: association_type.ref_type.clone(),
+                app: type_ref.app,
+                type_: association_type.ref_type,
             };
             match (
                 &association_type.association_type,
@@ -180,7 +180,7 @@ impl JsonSerializer {
     ) -> Result<RawEntity, InstanceMapperError> {
         let type_model = self.get_type_model(&type_ref)?;
         let mut mapped: RawEntity = HashMap::new();
-        for (value_name, value_type) in &type_model.values {
+        for (&value_name, value_type) in &type_model.values {
             // we take out of the map to reuse the names/values
             let (value_name, value) =
                 entity
@@ -205,7 +205,7 @@ impl JsonSerializer {
             }
         }
 
-        for (association_name, association_type) in &type_model.associations {
+        for (&association_name, association_type) in &type_model.associations {
             let (association_name, value) =
                 entity.remove_entry(association_name)
                     .ok_or_else(|| InvalidValue {
@@ -213,8 +213,8 @@ impl JsonSerializer {
                         field: association_name.to_owned(),
                     })?;
             let association_type_ref = TypeRef {
-                app: type_ref.app.to_owned(),
-                type_: association_type.ref_type.clone(),
+                app: type_ref.app,
+                type_: association_type.ref_type,
             };
             match (
                 &association_type.association_type,
@@ -471,8 +471,8 @@ mod tests {
         let email_json = include_str!("../test_data/email_response.json");
         let raw_entity = serde_json::from_str::<RawEntity>(email_json).unwrap();
         let type_ref = TypeRef {
-            app: "tutanota".to_owned(),
-            type_: "Mail".to_owned(),
+            app: "tutanota",
+            type_: "Mail",
         };
         mapper.parse(&type_ref, raw_entity).unwrap();
     }
