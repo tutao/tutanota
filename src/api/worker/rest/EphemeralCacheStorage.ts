@@ -78,13 +78,7 @@ export class EphemeralCacheStorage implements CacheStorage {
 	async deleteIfExists<T>(typeRef: TypeRef<T>, listId: Id | null, id: Id): Promise<void> {
 		const path = typeRefToPath(typeRef)
 		let typeModel: TypeModel
-		try {
-			typeModel = await resolveTypeReference(typeRef)
-		} catch (e) {
-			// prevent failed lookup for BlobToFileMapping - this catch block can be removed after May 2023
-			console.log("couldn't resolve typeRef ", typeRef)
-			return
-		}
+		typeModel = await resolveTypeReference(typeRef)
 		switch (typeModel.type) {
 			case TypeId.Element:
 				this.entities.get(path)?.delete(id)
