@@ -20,8 +20,8 @@ pub fn generate_key_from_passphrase(password: &str, salt: [u8; 16]) -> Aes256Key
     ).unwrap();
     let argon2 = Argon2::new(Algorithm::Argon2id, Version::V0x13, params);
     let mut output = Zeroizing::new([0u8; ARGON2ID_KEY_LENGTH]);
-    argon2.hash_password_into(password.as_bytes(), salt.as_ref(), &mut *output).unwrap();
-    Aes256Key::from_bytes(&*output).unwrap()
+    argon2.hash_password_into(password.as_bytes(), salt.as_ref(), output.as_mut()).unwrap();
+    Aes256Key::from_bytes(output.as_ref()).unwrap()
 }
 
 #[cfg(test)]
