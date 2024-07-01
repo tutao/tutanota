@@ -393,7 +393,7 @@ o.spec("KeyRotationFacadeTest", function () {
 					keyRotationFacade.setPendingKeyRotations({
 						pwKey: null,
 						adminOrUserGroupKeyRotation: null,
-						userAreaGroupsKeyRotation: makeKeyRotation(keyRotationsListId, GroupKeyRotationType.UserArea, groupId),
+						otherKeyRotations: makeKeyRotation(keyRotationsListId, GroupKeyRotationType.UserArea, groupId),
 					})
 
 					const { userEncNewGroupKey, newGroupKeyEncPreviousGroupKey, adminEncNewGroupKey } = prepareKeyMocks(
@@ -434,7 +434,7 @@ o.spec("KeyRotationFacadeTest", function () {
 					keyRotationFacade.setPendingKeyRotations({
 						pwKey: null,
 						adminOrUserGroupKeyRotation: null,
-						userAreaGroupsKeyRotation: makeKeyRotation(keyRotationsListId, GroupKeyRotationType.UserArea, groupId),
+						otherKeyRotations: makeKeyRotation(keyRotationsListId, GroupKeyRotationType.UserArea, groupId),
 					})
 
 					const { userEncNewGroupKey, newGroupKeyEncPreviousGroupKey, adminEncNewGroupKey } = prepareKeyMocks(
@@ -476,7 +476,7 @@ o.spec("KeyRotationFacadeTest", function () {
 					keyRotationFacade.setPendingKeyRotations({
 						pwKey: null,
 						adminOrUserGroupKeyRotation: null,
-						userAreaGroupsKeyRotation: makeKeyRotation(keyRotationsListId, GroupKeyRotationType.UserArea, groupId),
+						otherKeyRotations: makeKeyRotation(keyRotationsListId, GroupKeyRotationType.UserArea, groupId),
 					})
 
 					const { userEncNewGroupKey, newGroupKeyEncPreviousGroupKey, adminEncNewGroupKey } = prepareKeyMocks(
@@ -553,7 +553,7 @@ o.spec("KeyRotationFacadeTest", function () {
 					keyRotationFacade.setPendingKeyRotations({
 						pwKey: null,
 						adminOrUserGroupKeyRotation: null,
-						userAreaGroupsKeyRotation: makeKeyRotation(keyRotationsListId, GroupKeyRotationType.UserArea, groupId),
+						otherKeyRotations: makeKeyRotation(keyRotationsListId, GroupKeyRotationType.UserArea, groupId),
 					})
 
 					const { userEncNewGroupKey, newGroupKeyEncPreviousGroupKey, adminEncNewGroupKey } = prepareKeyMocks(

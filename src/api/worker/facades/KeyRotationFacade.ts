@@ -256,7 +256,7 @@ export class KeyRotationFacade {
 
 		const groupKeyUpdates: GroupKeyRotationData[] = []
 		let preparedReInvites: GroupInvitationPostData[] = []
-		for (const keyRotation of this.pendingKeyRotations.otherKeyRotation) {
+		for (const keyRotation of this.pendingKeyRotations.otherKeyRotations) {
 			const { groupKeyRotationData, preparedReInvitations } = await this.prepareKeyRotationForAreaGroup(
 				keyRotation,
 				currentUserGroupKey,
@@ -382,9 +382,13 @@ export class KeyRotationFacade {
 
 		const newGroupKeys = await this.generateGroupKeys(targetGroup)
 		const encryptedGroupKeys = this.encryptGroupKeys(targetGroup, currentGroupKey, newGroupKeys, currentUserGroupKey, currentAdminGroupKey)
-		const preparedReInvitations = await this.handlePendingInvitations(targetGroup, newGroupKeys.symGroupKey)
-
-		const groupKeyUpdatesForMembers = await this.createGroupKeyUpdatesForMembers(targetGroup, newGroupKeys.symGroupKey)
+		const preparedReInvitations =
+			keyRotation.groupKeyRotationType == GroupKeyRotationType.UserArea ? await this.handlePendingInvitations(targetGroup, newGroupKeys.symGroupKey) : []
+		//Currently we only support updating a group with multiple members if it is of type user area
+		const groupKeyUpdatesForMembers =
+			keyRotation.groupKeyRotationType == GroupKeyRotationType.UserArea
+				? await this.createGroupKeyUpdatesForMembers(targetGroup, newGroupKeys.symGroupKey)
+				: []
 
 		const groupKeyRotationData = createGroupKeyRotationData({
 			userEncGroupKey: encryptedGroupKeys.membershipSymEncNewGroupKey.key,
