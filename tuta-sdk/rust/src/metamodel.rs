@@ -81,41 +81,41 @@ pub struct ModelValue {
 
 /// Description of the association (association field of Element)
 #[derive(Deserialize, Clone)]
+#[serde(rename_all = "camelCase")]
 pub struct ModelAssociation {
     pub id: u64,
     #[serde(rename = "type")]
     pub association_type: AssociationType,
     pub cardinality: Cardinality,
     /// Name of the type it is referencing
-    #[serde(rename = "refType")]
-    pub ref_type: String,
+    pub ref_type: &'static str,
     /// Can it be changed
     #[serde(rename = "final")]
     pub is_final: bool,
     /// From which model we import this association from. Currently the field only exists for aggregates because they are only ones
     /// which can be imported across models.
-    pub dependency: Option<String>,
+    pub dependency: Option<&'static str>,
 }
 
 /// Description of a single Element type
 #[derive(Deserialize)]
+#[serde(rename_all = "camelCase")]
 pub struct TypeModel {
     pub id: u64,
     /// Since which model version was it introduced
     pub since: u64,
     /// App/model it belongs to
-    pub app: String,
+    pub app: &'static str,
     /// Model version
-    pub version: String,
+    pub version: &'static str,
     /// Name of the element
-    pub name: String,
+    pub name: &'static str,
     /// Kind of the element
     #[serde(rename = "type")]
     pub element_type: ElementType,
     pub versioned: bool,
     pub encrypted: bool,
-    #[serde(rename = "rootId")]
-    pub root_id: String,
-    pub values: HashMap<String, ModelValue>,
-    pub associations: HashMap<String, ModelAssociation>,
+    pub root_id: &'static str,
+    pub values: HashMap<&'static str, ModelValue>,
+    pub associations: HashMap<&'static str, ModelAssociation>,
 }

@@ -13,7 +13,7 @@ use crate::instance_mapper::InstanceMapper;
 use crate::json_serializer::{InstanceMapperError, JsonSerializer};
 use crate::mail_facade::MailFacade;
 use crate::rest_error::{HttpError, ParseFailureError};
-use crate::type_model_provider::init_type_model_provider;
+use crate::type_model_provider::{AppName, init_type_model_provider, TypeName};
 use crate::typed_entity_client::TypedEntityClient;
 use crate::user_facade::UserFacade;
 
@@ -40,10 +40,10 @@ uniffi::setup_scaffolding!();
 
 /// A type for an instance/entity from the backend
 /// Definitions for them can be found inside the type model JSON files under `/test_data`
-#[derive(uniffi::Record, Debug, PartialEq, Clone)]
+#[derive(Debug, PartialEq, Clone)]
 pub struct TypeRef {
-    pub app: String,
-    pub type_: String,
+    pub app: AppName,
+    pub type_: TypeName,
 }
 
 // Option 1:
