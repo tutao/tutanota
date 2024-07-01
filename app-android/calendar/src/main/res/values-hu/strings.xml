@@ -1,0 +1,9 @@
+<resources>
+    <string name="reminder_label">Emlékeztető</string>
+    <string name="pushNewMail_msg">Új levél érkezett.</string>
+    <string name="notificationSync_msg">Szinkronizációs értesítések</string>
+    <string name="scheduleAlarmError_msg">Nem lehetett beállítani a riasztást. Frissítse az alkalmazást!</string>
+    <string name="wantToSendReport_msg">Váratlan hiba történt. Szeretne hibajelentést küldeni? Üzenetet írhat nekünk, amely segítségével orvosolni tudjuk a hibát.</string>
+    <string name="downloadCompleted_msg">A letöltés befejeződött.</string>
+    <string name="unlockCredentials_action">Hitelesítő adatok feloldása.</string>
+</resources>

@@ -1,0 +1,9 @@
+<resources>
+    <string name="reminder_label">Recordatori</string>
+    <string name="pushNewMail_msg">Heu rebut un nou correu.</string>
+    <string name="notificationSync_msg">Sincronitzar notificacions</string>
+    <string name="scheduleAlarmError_msg">No es pot configurar una alarma. Si us plau actualitzeu l\'aplicació.</string>
+    <string name="wantToSendReport_msg">Quelcom inesperat ha fallat. Voleu enviar un informe d\'error? Es pot afegir un missatge per ajudar-nos a solucionar-ho.</string>
+    <string name="downloadCompleted_msg">S\'ha completat la baixada</string>
+    <string name="unlockCredentials_action">Desbloquejar credencials</string>
+</resources>

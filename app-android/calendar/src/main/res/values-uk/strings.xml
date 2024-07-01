@@ -1,0 +1,9 @@
+<resources>
+    <string name="reminder_label">Нагадування</string>
+    <string name="pushNewMail_msg">Отримано новий лист.</string>
+    <string name="notificationSync_msg">Синхронізація сповіщень</string>
+    <string name="scheduleAlarmError_msg">Не вдалося налаштувати будильник. Оновіть програму.</string>
+    <string name="wantToSendReport_msg">Несподівано щось пішло не так. Бажаєте відправити звіт про помилку? Ви можете залишити повідомлення, щоб допомогти нам виправити цю помилку.</string>
+    <string name="downloadCompleted_msg">Завантаження завершено</string>
+    <string name="unlockCredentials_action">Розблокувати облікові дані</string>
+</resources>
