@@ -5,6 +5,7 @@ use base64::{Engine as _, engine::general_purpose::STANDARD as BASE64_STANDARD};
 use thiserror::Error;
 
 use crate::{IdTuple, TypeRef};
+use crate::custom_id::CustomId;
 use crate::date::DateTime;
 use crate::element_value::{ElementValue, ParsedEntity};
 use crate::generated_id::GeneratedId;
@@ -119,7 +120,7 @@ impl JsonSerializer {
                     JsonElement::String(id),
                 ) => {
                     // FIXME it's not always generated id but it's fine probably
-                    mapped.insert(association_name, ElementValue::IdGeneratedId(GeneratedId::new(id)));
+                    mapped.insert(association_name, ElementValue::IdGeneratedId(GeneratedId(id)));
                 }
                 (
                     AssociationType::ListElementAssociation,
@@ -353,7 +354,7 @@ impl JsonSerializer {
                 Ok(JsonElement::String(if v { "1" } else { "0" }.to_owned()))
             }
             (ValueType::GeneratedId, ElementValue::IdGeneratedId(v)) => Ok(JsonElement::String(v.into())),
-            (ValueType::CustomId, ElementValue::IdCustomId(v)) => Ok(JsonElement::String(v)),
+            (ValueType::CustomId, ElementValue::IdCustomId(v)) => Ok(JsonElement::String(v.into())),
             (ValueType::CompressedString, ElementValue::String(_)) => {
                 unimplemented!("compressed string")
             }
@@ -367,7 +368,7 @@ impl JsonSerializer {
         match (it.next(), it.next(), it.next()) {
             (Some(JsonElement::String(list_id)), Some(JsonElement::String(element_id)), None) => {
                 // would like to consume the array here but oh well
-                Some(IdTuple::new(GeneratedId::new(list_id), GeneratedId::new(element_id)))
+                Some(IdTuple::new(GeneratedId(list_id), GeneratedId(element_id)))
             }
             _ => None,
         }
@@ -447,8 +448,8 @@ impl JsonSerializer {
                 "1" => Ok(ElementValue::Bool(true)),
                 _ => invalid_value(),
             },
-            (ValueType::GeneratedId, JsonElement::String(v)) => Ok(ElementValue::IdGeneratedId(GeneratedId::new(v))),
-            (ValueType::CustomId, JsonElement::String(v)) => Ok(ElementValue::IdCustomId(v)),
+            (ValueType::GeneratedId, JsonElement::String(v)) => Ok(ElementValue::IdGeneratedId(GeneratedId(v))),
+            (ValueType::CustomId, JsonElement::String(v)) => Ok(ElementValue::IdCustomId(CustomId(v))),
             (ValueType::CompressedString, JsonElement::String(_)) => {
                 unimplemented!("compressed string")
             }

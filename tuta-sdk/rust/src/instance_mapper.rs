@@ -6,6 +6,7 @@ use serde::de::{DeserializeSeed, IntoDeserializer, MapAccess, Unexpected, Visito
 use serde::de::value::{MapDeserializer, SeqDeserializer};
 use serde::ser::{SerializeSeq, SerializeStruct};
 use thiserror::Error;
+use crate::custom_id::CustomId;
 use crate::date::DateTime;
 
 use crate::element_value::{ElementValue, ParsedEntity};
@@ -130,12 +131,11 @@ impl<'de> Deserializer<'de> for ElementValueDeserializer {
 
     fn deserialize_string<V>(self, visitor: V) -> Result<V::Value, Self::Error> where V: Visitor<'de> {
         return match self.value {
-            // Currently we just generate Id types as String but we could be more precise, then we would need to implement newtype
-            ElementValue::String(str) | ElementValue::IdCustomId(str) => {
+            ElementValue::String(str) => {
                 visitor.visit_string(str)
             }
-            ElementValue::IdGeneratedId(id) => {
-                visitor.visit_string(id.into())
+            ElementValue::IdGeneratedId(GeneratedId(id)) | ElementValue::IdCustomId(CustomId(id)) => {
+                visitor.visit_string(id)
             }
             _ => {
                 Err(de::Error::invalid_type(self.value.as_unexpected(), &"string"))
@@ -329,7 +329,13 @@ impl Serializer for ElementValueSerializer {
                 let Ok(ElementValue::String(id_string)) = value.serialize(self) else {
                     unreachable!();
                 };
-                Ok(ElementValue::IdGeneratedId(GeneratedId::new(id_string)))
+                Ok(ElementValue::IdGeneratedId(GeneratedId(id_string)))
+            }
+            "CustomId" => {
+                let Ok(ElementValue::String(id_string)) = value.serialize(self) else {
+                    unreachable!();
+                };
+                Ok(ElementValue::IdCustomId(CustomId(id_string)))
             }
             "Date" => {
                 let Ok(ElementValue::Number(timestamp)) = value.serialize(self) else {
@@ -506,7 +512,7 @@ mod tests {
             mailboxProperties: None,
             outOfOfficeNotification: None,
             outOfOfficeNotificationRecipientList: Some(OutOfOfficeNotificationRecipientList {
-                _id: GeneratedId::test_random().to_string(),
+                _id: CustomId::test_random(),
                 list: GeneratedId::test_random(),
             }),
             serverProperties: GeneratedId::test_random(),
@@ -527,14 +533,14 @@ mod tests {
             groupInfo: IdTuple::new(GeneratedId::test_random(), GeneratedId::test_random()),
             administratedGroups: None,
             archives: vec![ArchiveType {
-                _id: GeneratedId::test_random().to_string(),
+                _id: CustomId::test_random(),
                 active: ArchiveRef {
-                    _id: GeneratedId::test_random().to_string(),
+                    _id: CustomId::test_random(),
                     archiveId: GeneratedId::test_random(),
                 },
                 inactive: vec![],
                 r#type: TypeInfo {
-                    _id: GeneratedId::test_random().to_string(),
+                    _id: CustomId::test_random(),
                     application: "app".to_string(),
                     typeId: 1,
                 },
