@@ -1,3 +1,4 @@
+use std::ops::Deref;
 use rand_core::CryptoRngCore;
 use zeroize::*;
 use crate::util::generate_random_bytes;
@@ -20,7 +21,7 @@ impl EccPrivateKey {
 
         // public key = private key * base point
         let public_key = Zeroizing::new(
-            MontgomeryPoint::mul_base(&*Zeroizing::new(Scalar::from_bytes_mod_order(self.0)))
+            MontgomeryPoint::mul_base(Zeroizing::new(Scalar::from_bytes_mod_order(self.0)).deref())
         );
 
         EccPublicKey(public_key.0)
@@ -124,7 +125,7 @@ fn generate_shared_secret(local_key: &EccPrivateKey, remote_key: &EccPublicKey) 
 
     let point = Zeroizing::new(MontgomeryPoint(remote_key.0));
     let scalar = Zeroizing::new(Scalar::from_bytes_mod_order(local_key.0));
-    let secret = (&*point * &*scalar).0;
+    let secret = (point.deref() * scalar.deref()).0;
 
     EccSharedSecret(secret)
 }
