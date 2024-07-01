@@ -5,7 +5,7 @@ use serde::{Serialize, Deserialize};
 
 #[derive(uniffi::Record, Clone, Serialize, Deserialize)]
 pub struct CustomerAccountPosting {
-    pub _id: Id,
+    pub _id: GeneratedId,
     pub amount: i64,
     pub invoiceNumber: Option<String>,
     #[serde(rename = "type")]
@@ -23,7 +23,7 @@ impl Entity for CustomerAccountPosting {
 #[derive(uniffi::Record, Clone, Serialize, Deserialize)]
 pub struct CustomerAccountReturn {
     pub _format: i64,
-    pub _ownerGroup: Option<Id>,
+    pub _ownerGroup: Option<GeneratedId>,
     #[serde(with = "serde_bytes")]
     pub _ownerPublicEncSessionKey: Option<Vec<u8>>,
     pub _publicCryptoProtocolVersion: Option<i64>,

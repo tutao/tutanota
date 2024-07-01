@@ -3,7 +3,7 @@ use std::sync::Arc;
 
 use crate::{ApiCallError, AuthHeadersProvider, IdTuple, RestClient, TypeRef};
 use crate::element_value::{ElementValue, ParsedEntity};
-use crate::id::Id;
+use crate::generated_id::GeneratedId;
 use crate::json_serializer::JsonSerializer;
 use crate::json_element::RawEntity;
 use crate::metamodel::TypeModel;
@@ -15,7 +15,7 @@ pub trait IdType: Display {}
 
 impl IdType for String {}
 
-impl IdType for Id {}
+impl IdType for GeneratedId {}
 
 impl IdType for IdTuple {}
 
