@@ -3,8 +3,8 @@ import m from "mithril"
 import Mithril, { Children, ClassComponent, Component, RouteDefs, RouteResolver, Vnode, VnodeDOM } from "mithril"
 import { lang, languageCodeToTag, languages } from "../common/misc/LanguageViewModel.js"
 import { root } from "../RootView.js"
-import { disableErrorHandlingDuringLogout, handleUncaughtError } from "../common/misc/ErrorHandler.js"
-import { assertMainOrNodeBoot, bootFinished, isApp, isDesktop, isOfflineStorageAvailable } from "../common/api/common/Env.js"
+import { disableErrorHandlingDuringLogout, handleUncaughtError } from "../common/common/misc/ErrorHandler.js"
+import { assertMainOrNodeBoot, bootFinished, isApp, isDesktop, isOfflineStorageAvailable } from "../common/common/api/common/Env.js"
 import { assertNotNull, neverNull } from "@tutao/tutanota-utils"
 import { windowFacade } from "../common/misc/WindowFacade.js"
 import { styles } from "../common/gui/styles.js"
@@ -113,7 +113,7 @@ import("./translations/en.js")
 		locator.logins.addPostLoginAction(() => locator.postLoginActions())
 
 		if (isOfflineStorageAvailable()) {
-			const { CachePostLoginAction } = await import("../common/offline/CachePostLoginAction.js")
+			const { CachePostLoginAction } = await import("../common/common/offline/CachePostLoginAction.js")
 			locator.logins.addPostLoginAction(
 				async () =>
 					new CachePostLoginAction(
@@ -140,7 +140,7 @@ import("./translations/en.js")
 		>(
 			{
 				prepareRoute: async () => {
-					const { ContactView } = await import("./contacts/view/ContactView.js")
+					const { ContactView } = await import("./mail-app/contacts/view/ContactView.js")
 					const drawerAttrsFactory = await locator.drawerAttrsFactory()
 					return {
 						component: ContactView,
