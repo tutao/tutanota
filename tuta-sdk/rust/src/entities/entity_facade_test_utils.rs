@@ -34,8 +34,8 @@ pub fn generate_email_entity(owner_group_key: Option<&GenericAesKey>, session_ke
             Some(_) => ElementValue::Bytes(Default::default()),
             None => ElementValue::Null
         }),
-        ("_id".to_string(), ElementValue::IdTupleId(IdTuple { list_id: GeneratedId::new("mail_list_id".to_owned()), element_id: GeneratedId::new("mail_id".to_owned()) })),
-        ("_permissions".to_string(), ElementValue::IdGeneratedId(GeneratedId::new("permissionListId".to_owned()))),
+        ("_id".to_string(), ElementValue::IdTupleId(IdTuple { list_id: GeneratedId("mail_list_id".to_owned()), element_id: GeneratedId("mail_id".to_owned()) })),
+        ("_permissions".to_string(), ElementValue::IdGeneratedId(GeneratedId("permissionListId".to_owned()))),
         ("receivedDate".to_string(), ElementValue::String("1470039025474".to_string())),
         ("sentDate".to_string(), ElementValue::String("1470039021474".to_string())),
         ("state".to_string(), ElementValue::String("".to_string())),
@@ -79,8 +79,8 @@ pub fn generate_email_entity(owner_group_key: Option<&GenericAesKey>, session_ke
             Some(_) => ElementValue::Bytes(Default::default()),
             None => ElementValue::Null
         }),
-        ("_id".to_string(), ElementValue::IdTupleId(IdTuple { list_id: GeneratedId::new("mail_list_id".to_owned()), element_id: GeneratedId::new("mail_id".to_owned()) })),
-        ("_permissions".to_string(), ElementValue::IdGeneratedId(GeneratedId::new("permissionListId".to_owned()))),
+        ("_id".to_string(), ElementValue::IdTupleId(IdTuple { list_id: GeneratedId("mail_list_id".to_owned()), element_id: GeneratedId("mail_id".to_owned()) })),
+        ("_permissions".to_string(), ElementValue::IdGeneratedId(GeneratedId("permissionListId".to_owned()))),
         ("receivedDate".to_string(), ElementValue::String("1470039025474".to_string())),
         ("sentDate".to_string(), ElementValue::String("1470039021474".to_string())),
         ("state".to_string(), ElementValue::String("".to_string())),

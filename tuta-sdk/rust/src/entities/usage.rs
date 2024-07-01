@@ -4,7 +4,7 @@ use serde::{Serialize, Deserialize};
 
 #[derive(uniffi::Record, Clone, Serialize, Deserialize)]
 pub struct UsageTestAssignment {
-	pub _id: String,
+	pub _id: CustomId,
 	pub name: String,
 	pub sendPings: bool,
 	pub testId: GeneratedId,
@@ -48,7 +48,7 @@ impl Entity for UsageTestAssignmentOut {
 
 #[derive(uniffi::Record, Clone, Serialize, Deserialize)]
 pub struct UsageTestMetricConfig {
-	pub _id: String,
+	pub _id: CustomId,
 	pub name: String,
 	#[serde(rename = "type")]
 	pub r#type: i64,
@@ -64,7 +64,7 @@ impl Entity for UsageTestMetricConfig {
 
 #[derive(uniffi::Record, Clone, Serialize, Deserialize)]
 pub struct UsageTestMetricConfigValue {
-	pub _id: String,
+	pub _id: CustomId,
 	pub key: String,
 	pub value: String,
 }
@@ -78,7 +78,7 @@ impl Entity for UsageTestMetricConfigValue {
 
 #[derive(uniffi::Record, Clone, Serialize, Deserialize)]
 pub struct UsageTestMetricData {
-	pub _id: String,
+	pub _id: CustomId,
 	pub name: String,
 	pub value: String,
 }
@@ -108,7 +108,7 @@ impl Entity for UsageTestParticipationIn {
 
 #[derive(uniffi::Record, Clone, Serialize, Deserialize)]
 pub struct UsageTestStage {
-	pub _id: String,
+	pub _id: CustomId,
 	pub maxPings: i64,
 	pub minPings: i64,
 	pub name: String,

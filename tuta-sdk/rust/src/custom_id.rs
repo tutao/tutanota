@@ -2,12 +2,12 @@ use std::fmt::{Debug, Display, Formatter};
 use serde::{Deserialize, Deserializer, Serialize, Serializer};
 use serde::de::{Error, Visitor};
 
-/// A fixed nine byte length generated ID of an entity/instance
+/// An ID that uses arbitrary data encoded in base64
 #[derive(Clone, Default, PartialEq, PartialOrd)]
 #[repr(transparent)]
-pub struct GeneratedId(pub String);
+pub struct CustomId(pub String);
 
-impl GeneratedId {
+impl CustomId {
     pub fn as_str(&self) -> &str {
         &self.0
     }
@@ -22,33 +22,33 @@ impl GeneratedId {
     }
 }
 
-impl From<GeneratedId> for String {
-    fn from(value: GeneratedId) -> Self {
+impl From<CustomId> for String {
+    fn from(value: CustomId) -> Self {
         value.0
     }
 }
 
-impl Display for GeneratedId {
+impl Display for CustomId {
     fn fmt(&self, f: &mut Formatter<'_>) -> std::fmt::Result {
         f.write_str(self.as_str())
     }
 }
 
-impl Debug for GeneratedId {
+impl Debug for CustomId {
     fn fmt(&self, f: &mut Formatter<'_>) -> std::fmt::Result {
-        write!(f, "Generated ID: \"{self}\"")
+        write!(f, "Custom ID: \"{self}\"")
     }
 }
 
-uniffi::custom_newtype!(GeneratedId, String);
+uniffi::custom_newtype!(CustomId, String);
 
-impl Serialize for GeneratedId {
+impl Serialize for CustomId {
     fn serialize<S>(&self, serializer: S) -> Result<S::Ok, S::Error> where S: Serializer {
-        serializer.serialize_newtype_struct("GeneratedId", &self.0)
+        serializer.serialize_newtype_struct("CustomId", &self.0)
     }
 }
 
-impl<'de> Deserialize<'de> for GeneratedId {
+impl<'de> Deserialize<'de> for CustomId {
     fn deserialize<D>(deserializer: D) -> Result<Self, D::Error> where D: Deserializer<'de> {
         deserializer.deserialize_string(IdVisitor)
     }
@@ -57,18 +57,17 @@ impl<'de> Deserialize<'de> for GeneratedId {
 struct IdVisitor;
 
 impl Visitor<'_> for IdVisitor {
-    type Value = GeneratedId;
+    type Value = CustomId;
 
     fn expecting(&self, formatter: &mut Formatter) -> std::fmt::Result {
         formatter.write_str("a string")
     }
 
     fn visit_string<E>(self, s: String) -> Result<Self::Value, E> where E: Error {
-        Ok(GeneratedId(s))
+        Ok(CustomId(s))
     }
 
     fn visit_str<E>(self, s: &str) -> Result<Self::Value, E> where E: Error {
-        Ok(GeneratedId(s.to_owned()))
+        Ok(CustomId(s.to_owned()))
     }
 }
-
