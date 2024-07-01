@@ -1,6 +1,6 @@
 import type { MenuItemConstructorOptions } from "electron"
 import type { WindowManager } from "../DesktopWindowManager"
-import { lang } from "../../misc/LanguageViewModel"
+import { lang } from "../../common/misc/LanguageViewModel"
 import type { DesktopIntegrator } from "./DesktopIntegrator"
 import { ElectronExports } from "../ElectronExportTypes"
 

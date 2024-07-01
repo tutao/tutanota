@@ -1,6 +1,6 @@
 import o from "@tutao/otest"
 import { CalendarEvent, CalendarEventAttendeeTypeRef, CalendarEventTypeRef, ContactTypeRef } from "../../../../src/common/api/entities/tutanota/TypeRefs.js"
-import { CalendarEventWhoModel } from "../../../../src/calendar-app/calendar/gui/eventeditor-model/CalendarEventWhoModel.js"
+import { CalendarEventWhoModel } from "../../../../src/calendar-app/calendar-app/gui/eventeditor-model/CalendarEventWhoModel.js"
 import { matchers, object, verify, when } from "testdouble"
 import { RecipientsModel } from "../../../../src/common/api/main/RecipientsModel.js"
 import { Recipient, RecipientType } from "../../../../src/common/api/common/recipients/Recipient.js"

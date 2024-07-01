@@ -2,6 +2,7 @@ import m from "mithril"
 import stream from "mithril/stream"
 import Stream from "mithril/stream"
 import { assertNotNull, groupBy, lazyMemoized, neverNull, noOp, ofClass, promiseMap, splitInChunks } from "@tutao/tutanota-utils"
+<<<<<<<< HEAD:src/common/mailFunctionality/MailModel.ts
 import type { Group, GroupInfo, GroupMembership, WebsocketCounterData } from "../api/entities/sys/TypeRefs.js"
 import { GroupInfoTypeRef, GroupTypeRef } from "../api/entities/sys/TypeRefs.js"
 import type { MailReportType } from "../api/common/TutanotaConstants.js"
@@ -21,6 +22,9 @@ import { containsEventOfType, EntityUpdateData, isUpdateForTypeRef } from "../ap
 import { assertSystemFolderOfType, getEnabledMailAddressesWithUser, isSpamOrTrashFolder } from "./CommonMailUtils.js"
 import { WebsocketConnectivityModel } from "../misc/WebsocketConnectivityModel.js"
 import { InboxRuleHandler } from "../../mail-app/mail/model/InboxRuleHandler.js"
+========
+import type { Mail, MailBox, MailboxGroupRoot, MailboxProperties, MailFolder } from "../../../common/api/entities/tutanota/TypeRefs.js"
+>>>>>>>> 3349a964d (Move files to new folder structure):src/mail-app/mail/model/MailModel.ts
 import {
 	createMailAddressProperties,
 	createMailboxProperties,
@@ -30,9 +34,42 @@ import {
 	MailboxGroupRootTypeRef,
 	MailboxProperties, MailboxPropertiesTypeRef,
 	MailBoxTypeRef,
+<<<<<<<< HEAD:src/common/mailFunctionality/MailModel.ts
 	MailFolder,
 	MailFolderTypeRef, MailTypeRef
 } from "../api/entities/tutanota/TypeRefs.js"
+========
+	MailFolderTypeRef,
+	MailTypeRef,
+} from "../../../common/api/entities/tutanota/TypeRefs.js"
+import type { Group, GroupInfo, GroupMembership, WebsocketCounterData } from "../../../common/api/entities/sys/TypeRefs.js"
+import { GroupInfoTypeRef, GroupTypeRef } from "../../../common/api/entities/sys/TypeRefs.js"
+import type { MailReportType } from "../../../common/api/common/TutanotaConstants"
+import {
+	FeatureType,
+	MailFolderType,
+	MAX_NBR_MOVE_DELETE_MAIL_SERVICE,
+	OperationType,
+	ReportMovedMailsType,
+} from "../../../common/api/common/TutanotaConstants"
+
+import { EventController } from "../../../common/api/main/EventController"
+import { lang } from "../../../common/misc/LanguageViewModel"
+import { Notifications, NotificationType } from "../../../common/gui/Notifications"
+import { EntityClient } from "../../../common/api/common/EntityClient"
+import { elementIdPart, GENERATED_MAX_ID, getElementId, getListId, isSameId, listIdPart } from "../../../common/api/common/utils/EntityUtils"
+import { LockedError, NotFoundError, PreconditionFailedError } from "../../../common/api/common/error/RestError"
+import type { MailFacade } from "../../../common/api/worker/facades/lazy/MailFacade.js"
+import { LoginController } from "../../../common/api/main/LoginController.js"
+import { getEnabledMailAddressesWithUser } from "./MailUtils.js"
+import { ProgrammingError } from "../../../common/api/common/error/ProgrammingError.js"
+import { WebsocketConnectivityModel } from "../../../common/misc/WebsocketConnectivityModel.js"
+import { FolderSystem } from "../../../common/api/common/mail/FolderSystem.js"
+import { UserError } from "../../../common/api/main/UserError.js"
+import { assertSystemFolderOfType, isSpamOrTrashFolder } from "../../../common/api/common/mail/CommonMailUtils.js"
+import { InboxRuleHandler } from "./InboxRuleHandler.js"
+import { containsEventOfType, EntityUpdateData, isUpdateForTypeRef } from "../../../common/api/common/utils/EntityUpdateUtils.js"
+>>>>>>>> 3349a964d (Move files to new folder structure):src/mail-app/mail/model/MailModel.ts
 
 export type MailboxDetail = {
 	mailbox: MailBox

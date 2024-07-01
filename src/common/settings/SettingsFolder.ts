@@ -1,9 +1,18 @@
+<<<<<<<< HEAD:src/common/settings/SettingsFolder.ts
 import type { lazyIcon } from "../gui/base/Icon.js"
 import type { TranslationKey } from "../misc/LanguageViewModel.js"
 import { isSelectedPrefix } from "../gui/base/NavButton.js"
 import type { lazy } from "@tutao/tutanota-utils"
 import { assertMainOrNode } from "../api/common/Env.js"
 import { UpdatableSettingsViewer } from "./Interfaces.js"
+========
+import type { lazyIcon } from "../../common/gui/base/Icon"
+import type { TranslationKey } from "../../common/misc/LanguageViewModel"
+import { isSelectedPrefix } from "../../common/gui/base/NavButton.js"
+import type { UpdatableSettingsViewer } from "./SettingsView"
+import type { lazy } from "@tutao/tutanota-utils"
+import { assertMainOrNode } from "../../common/api/common/Env"
+>>>>>>>> 3349a964d (Move files to new folder structure):src/mail-app/settings/SettingsFolder.ts
 
 assertMainOrNode()
 

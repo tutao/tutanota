@@ -1,13 +1,17 @@
 import { User } from "../../../common/api/entities/sys/TypeRefs.js"
 import { Dialog } from "../../../common/gui/base/Dialog.js"
+<<<<<<<< HEAD:src/common/settings/login/ChangePasswordDialogs.ts
 import { locator } from "../../../common/api/main/CommonLocator.js"
+========
+import { locator } from "../../../common/api/main/MainLocator.js"
+>>>>>>>> 3349a964d (Move files to new folder structure):src/mail-app/settings/login/ChangePasswordDialogs.ts
 import { showProgressDialog } from "../../../common/gui/dialogs/ProgressDialog.js"
 import { lang } from "../../../common/misc/LanguageViewModel.js"
 import m from "mithril"
-import { NotAuthenticatedError } from "../../api/common/error/RestError.js"
+import { NotAuthenticatedError } from "../../../common/api/common/error/RestError.js"
 import { PasswordForm, PasswordModel } from "../PasswordForm.js"
 import { assertNotNull, ofClass } from "@tutao/tutanota-utils"
-import { asKdfType, DEFAULT_KDF_TYPE } from "../../api/common/TutanotaConstants.js"
+import { asKdfType, DEFAULT_KDF_TYPE } from "../../../common/api/common/TutanotaConstants.js"
 
 /**
  *The admin does not have to enter the old password in addition to the new password (twice). The password strength is not enforced.

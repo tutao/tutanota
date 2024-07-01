@@ -7,7 +7,7 @@ import { BuildConfigKey, DesktopConfigEncKey, DesktopConfigKey } from "./ConfigK
 import type { DesktopKeyStoreFacade } from "../DesktopKeyStoreFacade.js"
 import { DesktopNativeCryptoFacade } from "../DesktopNativeCryptoFacade"
 import { log } from "../DesktopLog"
-import { ProgrammingError } from "../../api/common/error/ProgrammingError"
+import { ProgrammingError } from "../../common/api/common/error/ProgrammingError"
 import type { ConfigFileType } from "./ConfigFile"
 import { ConfigFile } from "./ConfigFile"
 import { CryptoError } from "@tutao/tutanota-crypto/error.js"

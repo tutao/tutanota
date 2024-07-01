@@ -1,6 +1,6 @@
-import { SearchTextInAppFacade } from "../native/common/generatedipc/SearchTextInAppFacade.js"
+import { SearchTextInAppFacade } from "../common/native/common/generatedipc/SearchTextInAppFacade.js"
 import { ApplicationWindow } from "./ApplicationWindow.js"
-import { Result } from "../native/common/generatedipc/Result.js"
+import { Result } from "../common/native/common/generatedipc/Result.js"
 
 export class DesktopSearchTextInAppFacade implements SearchTextInAppFacade {
 	constructor(private readonly window: ApplicationWindow) {}

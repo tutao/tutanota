@@ -1,3 +1,4 @@
+<<<<<<<< HEAD:src/common/settings/EditNotificationEmailDialog.ts
 import type { Booking, CustomerInfo, CustomerProperties, NotificationMailTemplate } from "../api/entities/sys/TypeRefs.js"
 import { BookingTypeRef, createNotificationMailTemplate, CustomerInfoTypeRef, CustomerPropertiesTypeRef } from "../api/entities/sys/TypeRefs.js"
 import { HtmlEditor } from "../gui/editor/HtmlEditor.js"
@@ -10,17 +11,39 @@ import type { SelectorItemList } from "../gui/base/DropDownSelector.js"
 import { DropDownSelector } from "../gui/base/DropDownSelector.js"
 import { TextField } from "../gui/base/TextField.js"
 import { showProgressDialog } from "../gui/dialogs/ProgressDialog.js"
+========
+import type { Booking, CustomerInfo, CustomerProperties, NotificationMailTemplate } from "../../common/api/entities/sys/TypeRefs.js"
+import { BookingTypeRef, createNotificationMailTemplate, CustomerInfoTypeRef, CustomerPropertiesTypeRef } from "../../common/api/entities/sys/TypeRefs.js"
+import { HtmlEditor } from "../../common/gui/editor/HtmlEditor"
+import { InfoLink, lang, languages } from "../../common/misc/LanguageViewModel"
+import stream from "mithril/stream"
+import Stream from "mithril/stream"
+import { Dialog, DialogType } from "../../common/gui/base/Dialog"
+import m from "mithril"
+import type { SelectorItemList } from "../../common/gui/base/DropDownSelector.js"
+import { DropDownSelector } from "../../common/gui/base/DropDownSelector.js"
+import { TextField } from "../../common/gui/base/TextField.js"
+import { showProgressDialog } from "../../common/gui/dialogs/ProgressDialog"
+>>>>>>>> 3349a964d (Move files to new folder structure):src/mail-app/settings/EditNotificationEmailDialog.ts
 import { assertNotNull, LazyLoaded, memoized, neverNull, ofClass } from "@tutao/tutanota-utils"
 import { htmlSanitizer } from "../../common/misc/HtmlSanitizer"
 import { PayloadTooLargeError } from "../../common/api/common/error/RestError"
 import { SegmentControl } from "../../common/gui/base/SegmentControl"
+<<<<<<<< HEAD:src/common/settings/EditNotificationEmailDialog.ts
 import { insertInlineImageB64ClickHandler } from "../../mail-app/mail/view/MailViewerUtils"
+========
+import { insertInlineImageB64ClickHandler } from "../mail/view/MailViewerUtils"
+>>>>>>>> 3349a964d (Move files to new folder structure):src/mail-app/settings/EditNotificationEmailDialog.ts
 import { UserError } from "../../common/api/main/UserError"
 import { showNotAvailableForFreeDialog, showPlanUpgradeRequiredDialog } from "../../common/misc/SubscriptionDialogs"
 import { getAvailablePlansWithWhitelabel, isWhitelabelActive } from "../../common/subscription/SubscriptionUtils"
 import type { UserController } from "../../common/api/main/UserController"
 import { GENERATED_MAX_ID } from "../../common/api/common/utils/EntityUtils"
+<<<<<<<< HEAD:src/common/settings/EditNotificationEmailDialog.ts
 import { locator } from "../../common/api/main/CommonLocator"
+========
+import { locator } from "../../common/api/main/MainLocator"
+>>>>>>>> 3349a964d (Move files to new folder structure):src/mail-app/settings/EditNotificationEmailDialog.ts
 import { PlanType } from "../../common/api/common/TutanotaConstants.js"
 import { getWhitelabelDomainInfo } from "../../common/api/common/utils/CustomerUtils.js"
 
