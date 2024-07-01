@@ -15,7 +15,7 @@ import { LoginController } from "../../../src/common/api/main/LoginController.js
 import { matchers, object, when } from "testdouble"
 import { FolderSystem } from "../../../src/common/api/common/mail/FolderSystem.js"
 import { WebsocketConnectivityModel } from "../../../src/common/misc/WebsocketConnectivityModel.js"
-import { InboxRuleHandler } from "../../../src/mail-app/mail/model/InboxRuleHandler.js"
+import { InboxRuleHandler } from "../../../src/mail-app/mail-app/model/InboxRuleHandler.js"
 import { UserController } from "../../../src/common/api/main/UserController.js"
 import { createTestEntity } from "../TestUtils.js"
 import { EntityUpdateData } from "../../../src/common/api/common/utils/EntityUpdateUtils.js"

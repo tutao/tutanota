@@ -1,5 +1,5 @@
 import { app, dialog } from "electron"
-import { lang } from "../misc/LanguageViewModel"
+import { lang } from "../common/misc/LanguageViewModel"
 import fs from "node:fs"
 import path from "node:path"
 import os from "node:os"

@@ -1,4 +1,4 @@
-import { KeyPermanentlyInvalidatedError } from "../../api/common/error/KeyPermanentlyInvalidatedError.js"
+import { KeyPermanentlyInvalidatedError } from "../../common/api/common/error/KeyPermanentlyInvalidatedError.js"
 import { assertSupportedEncryptionMode, DesktopCredentialsMode } from "./CredentialCommons.js"
 import { DesktopKeyStoreFacade } from "../DesktopKeyStoreFacade.js"
 import { AppPassHandler } from "./AppPassHandler.js"

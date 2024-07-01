@@ -1,5 +1,5 @@
 import path from "node:path"
-import { lang } from "../../misc/LanguageViewModel"
+import { lang } from "../../common/misc/LanguageViewModel"
 import type { WindowManager } from "../DesktopWindowManager"
 import { log } from "../DesktopLog"
 import type { DesktopIntegrator } from "./DesktopIntegrator"
