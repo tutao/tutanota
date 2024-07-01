@@ -1,13 +1,100 @@
+use rand_core::CryptoRngCore;
 use zeroize::*;
 
-#[derive(Zeroize, ZeroizeOnDrop)]
-pub struct EccPrivateKey([u8; 32]);
+const ECC_KEY_SIZE: usize = 32;
 
-#[derive(Zeroize, ZeroizeOnDrop)]
+#[derive(ZeroizeOnDrop, Clone)]
+pub struct EccPrivateKey([u8; ECC_KEY_SIZE]);
+
+impl EccPrivateKey {
+    /// Get a reference to the underlying bytes.
+    pub fn as_bytes(&self) -> &[u8] {
+        self.0.as_slice()
+    }
+
+    /// Calculate the public key for this private key.
+    pub fn derive_public_key(&self) -> EccPublicKey {
+        use curve25519_dalek::Scalar;
+        use curve25519_dalek::montgomery::MontgomeryPoint;
+
+        // public key = private key * base point
+        let public_key = Zeroizing::new(
+            MontgomeryPoint::mul_base(&*Zeroizing::new(Scalar::from_bytes_mod_order(self.0)))
+        );
+
+        EccPublicKey(public_key.0)
+    }
+
+    /// Attempt to convert a slice of bytes into an ECC key.
+    ///
+    /// Returns `Err` on failure.
+    pub fn from_bytes(bytes: &[u8]) -> Result<Self, EccKeyError> {
+        match bytes.len() {
+            ECC_KEY_SIZE => Ok(Self(bytes.try_into().unwrap())),
+            actual_size => Err(EccKeyError { actual_size })
+        }
+    }
+
+    fn from_bytes_clamped(bytes: [u8; 32]) -> Self {
+        let clamped = curve25519_dalek::scalar::clamp_integer(bytes);
+        Self(clamped)
+    }
+}
+
+#[derive(ZeroizeOnDrop, Clone)]
 pub struct EccPublicKey([u8; 32]);
+
+#[derive(Clone)]
+pub struct EccKeyPair {
+    pub public_key: EccPublicKey,
+    pub private_key: EccPrivateKey,
+}
+
+impl EccKeyPair {
+    /// Generate a keypair with the given random number generator.
+    pub fn generate<R: CryptoRngCore + ?Sized>(rng: &mut R) -> Self {
+        let mut private_key = [0u8; 32];
+        rng.try_fill_bytes(&mut private_key).unwrap();
+
+        let private_key = EccPrivateKey::from_bytes_clamped(private_key);
+        let public_key = private_key.derive_public_key();
+
+        Self { public_key, private_key }
+    }
+}
+
+impl EccPublicKey {
+    /// Get a reference to the underlying bytes.
+    pub fn as_bytes(&self) -> &[u8] {
+        self.0.as_slice()
+    }
+
+    /// Attempt to convert a slice of bytes into an ECC key.
+    ///
+    /// Returns `Err` on failure.
+    pub fn from_bytes(bytes: &[u8]) -> Result<Self, EccKeyError> {
+        match bytes.len() {
+            ECC_KEY_SIZE => Ok(Self(bytes.try_into().unwrap())),
+            actual_size => Err(EccKeyError { actual_size })
+        }
+    }
+}
 
 #[derive(Zeroize, ZeroizeOnDrop)]
 pub struct EccSharedSecret([u8; 32]);
+
+impl EccSharedSecret {
+    pub fn as_bytes(&self) -> &[u8] {
+        self.0.as_slice()
+    }
+}
+
+/// The possible errors that can occur while casting to a `EccSharedSecret`
+#[derive(thiserror::Error, Debug)]
+#[error("Invalid ECC key size: {actual_size}")]
+pub struct EccKeyError {
+    actual_size: usize,
+}
 
 /// Describes shared secrets for encrypting/decrypting a message and verifying authenticity.
 pub struct EccSharedSecrets {
@@ -35,17 +122,11 @@ fn generate_shared_secret(local_key: &EccPrivateKey, remote_key: &EccPublicKey) 
     use curve25519_dalek::Scalar;
     use curve25519_dalek::montgomery::MontgomeryPoint;
 
-    let mut point = MontgomeryPoint(remote_key.0);
-    let mut scalar = Scalar::from_bytes_mod_order(local_key.0);
-    let mut secret = (point * scalar).0;
+    let point = Zeroizing::new(MontgomeryPoint(remote_key.0));
+    let scalar = Zeroizing::new(Scalar::from_bytes_mod_order(local_key.0));
+    let secret = (&*point * &*scalar).0;
 
-    let result = EccSharedSecret(secret);
-
-    point.zeroize();
-    scalar.zeroize();
-    secret.zeroize();
-
-    result
+    EccSharedSecret(secret)
 }
 
 #[cfg(test)]
@@ -63,6 +144,10 @@ mod tests {
             let ephemeral_public_key = EccPublicKey(i.ephemeral_public_key_hex.try_into().unwrap());
             let bob_private_key = EccPrivateKey(i.bob_private_key_hex.try_into().unwrap());
             let bob_public_key = EccPublicKey(i.bob_public_key_hex.try_into().unwrap());
+
+            assert_eq!(alice_public_key.0, alice_private_key.derive_public_key().0);
+            assert_eq!(ephemeral_public_key.0, ephemeral_private_key.derive_public_key().0);
+            assert_eq!(bob_public_key.0, bob_private_key.derive_public_key().0);
 
             let ephemeral_secret = EccSharedSecret(i.ephemeral_shared_secret_hex.try_into().unwrap());
             let auth_secret = EccSharedSecret(i.auth_shared_secret_hex.try_into().unwrap());

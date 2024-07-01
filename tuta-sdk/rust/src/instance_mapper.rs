@@ -1,16 +1,16 @@
 use std::collections::HashMap;
 use std::fmt::Display;
-use std::sync::Arc;
 
 use serde::{de, Deserialize, Deserializer, ser, Serialize, Serializer};
 use serde::de::{DeserializeSeed, IntoDeserializer, MapAccess, Unexpected, Visitor};
 use serde::de::value::{MapDeserializer, SeqDeserializer};
 use serde::ser::{SerializeSeq, SerializeStruct};
 use thiserror::Error;
+use crate::date::Date;
 
 use crate::element_value::{ElementValue, ParsedEntity};
-use crate::element_value::ElementValue::IdTupleId;
 use crate::entities::Entity;
+use crate::id::Id;
 use crate::IdTuple;
 
 /// Converter between untyped representations of API Entities and generated structures
@@ -122,8 +122,11 @@ impl<'de> Deserializer<'de> for ElementValueDeserializer {
     fn deserialize_string<V>(self, visitor: V) -> Result<V::Value, Self::Error> where V: Visitor<'de> {
         return match self.value {
             // Currently we just generate Id types as String but we could be more precise, then we would need to implement newtype
-            ElementValue::String(str) | ElementValue::GeneratedId(str) | ElementValue::CustomId(str) => {
+            ElementValue::String(str) | ElementValue::CustomId(str) => {
                 visitor.visit_string(str)
+            }
+            ElementValue::GeneratedId(id) => {
+                visitor.visit_string(id.into())
             }
             _ => {
                 Err(de::Error::invalid_type(self.value.as_unexpected(), &"string"))
@@ -162,12 +165,12 @@ impl<'de> Deserializer<'de> for ElementValueDeserializer {
         visitor: V,
     ) -> Result<V::Value, Self::Error> where V: Visitor<'de> {
         if name == "IdTuple" {
-            struct IdTupleMapAccess<I: Iterator<Item=(&'static str, String)>> {
+            struct IdTupleMapAccess<I: Iterator<Item=(&'static str, Id)>> {
                 iter: I,
-                value: Option<String>,
+                value: Option<Id>,
             }
 
-            impl<'a, I> MapAccess<'a> for IdTupleMapAccess<I> where I: Iterator<Item=(&'static str, String)> {
+            impl<'a, I> MapAccess<'a> for IdTupleMapAccess<I> where I: Iterator<Item=(&'static str, Id)> {
                 type Error = de::value::Error;
 
                 fn next_key_seed<K>(&mut self, seed: K) -> Result<Option<K::Value>, Self::Error> where K: DeserializeSeed<'a> {
@@ -183,11 +186,11 @@ impl<'de> Deserializer<'de> for ElementValueDeserializer {
                 fn next_value_seed<V>(&mut self, seed: V) -> Result<V::Value, Self::Error> where V: DeserializeSeed<'a> {
                     match self.value.take() {
                         None => unreachable!(),
-                        Some(v) => seed.deserialize(v.into_deserializer()),
+                        Some(v) => seed.deserialize(String::from(v).into_deserializer()),
                     }
                 }
             }
-            return if let IdTupleId(IdTuple { list_id, element_id }) = self.value {
+            return if let ElementValue::IdTupleId(IdTuple { list_id, element_id }) = self.value {
                 visitor.visit_map(IdTupleMapAccess { iter: [("list_id", list_id), ("element_id", element_id)].into_iter(), value: None })
             } else {
                 Err(de::Error::invalid_type(self.value.as_unexpected(), &"idTuple"))
@@ -215,8 +218,9 @@ impl<'de> IntoDeserializer<'de> for ElementValue {
 // See serde_json::value::ser for an example.
 struct ElementValueSerializer;
 
-struct ElementValueStructSerializer {
-    map: HashMap<String, ElementValue>,
+enum ElementValueStructSerializer {
+    Struct { map: HashMap<String, ElementValue> },
+    IdTuple { list_id: Option<Id>, element_id: Option<Id> },
 }
 
 struct ElementValueSeqSerializer {
@@ -262,12 +266,12 @@ impl Serializer for ElementValueSerializer {
         unsupported("u16")
     }
 
-    fn serialize_u32(self, _: u32) -> Result<Self::Ok, Self::Error> {
-        unsupported("u32")
+    fn serialize_u32(self, v: u32) -> Result<Self::Ok, Self::Error> {
+        Ok(ElementValue::Number(v as i64))
     }
 
-    fn serialize_u64(self, _: u64) -> Result<Self::Ok, Self::Error> {
-        unsupported("u64")
+    fn serialize_u64(self, v: u64) -> Result<Self::Ok, Self::Error> {
+        Ok(ElementValue::Number(v as i64))
     }
 
     fn serialize_f32(self, _: f32) -> Result<Self::Ok, Self::Error> {
@@ -310,8 +314,22 @@ impl Serializer for ElementValueSerializer {
         unsupported("serialize_unit_variant")
     }
 
-    fn serialize_newtype_struct<T>(self, _: &'static str, _: &T) -> Result<Self::Ok, Self::Error> where T: ?Sized + Serialize {
-        unsupported("newtype_struct")
+    fn serialize_newtype_struct<T>(self, name: &'static str, value: &T) -> Result<Self::Ok, Self::Error> where T: ?Sized + Serialize {
+        match name {
+            "Id" => {
+                let Ok(ElementValue::String(id_string)) = value.serialize(self) else {
+                    unreachable!();
+                };
+                Ok(ElementValue::GeneratedId(Id::new(id_string)))
+            }
+            "Date" => {
+                let Ok(ElementValue::Number(timestamp)) = value.serialize(self) else {
+                    unreachable!();
+                };
+                Ok(ElementValue::Date(Date::from_millis(timestamp as u64)))
+            }
+            other => unsupported(other)
+        }
     }
 
     fn serialize_newtype_variant<T>(self, _: &'static str, _: u32, _: &'static str, _: &T) -> Result<Self::Ok, Self::Error> where T: ?Sized + Serialize {
@@ -342,8 +360,12 @@ impl Serializer for ElementValueSerializer {
         unsupported("map")
     }
 
-    fn serialize_struct(self, _: &'static str, len: usize) -> Result<Self::SerializeStruct, Self::Error> {
-        Ok(ElementValueStructSerializer { map: HashMap::with_capacity(len) })
+    fn serialize_struct(self, name: &'static str, len: usize) -> Result<Self::SerializeStruct, Self::Error> {
+        if name == "IdTuple" {
+            Ok(ElementValueStructSerializer::IdTuple { list_id: None, element_id: None })
+        } else {
+            Ok(ElementValueStructSerializer::Struct { map: HashMap::with_capacity(len) })
+        }
     }
 
     fn serialize_struct_variant(self, _: &'static str, _: u32, _: &'static str, _: usize) -> Result<Self::SerializeStructVariant, Self::Error> {
@@ -352,7 +374,7 @@ impl Serializer for ElementValueSerializer {
 }
 
 fn unsupported(data_type: &str) -> ! {
-    panic!("Unsupported dta type: {}", data_type)
+    panic!("Unsupported data type: {}", data_type)
 }
 
 impl SerializeSeq for ElementValueSeqSerializer {
@@ -374,12 +396,26 @@ impl SerializeStruct for ElementValueStructSerializer {
     type Error = SerError;
 
     fn serialize_field<T>(&mut self, key: &'static str, value: &T) -> Result<(), Self::Error> where T: ?Sized + Serialize {
-        self.map.insert(key.to_string(), value.serialize(ElementValueSerializer)?);
+        match self {
+            Self::Struct { map } => {
+                map.insert(key.to_string(), value.serialize(ElementValueSerializer)?);
+            }
+            Self::IdTuple { list_id, element_id } => match key {
+                "list_id" => *list_id = Some(value.serialize(ElementValueSerializer)?.assert_generated_id().to_owned()),
+                "element_id" => *element_id = Some(value.serialize(ElementValueSerializer)?.assert_generated_id().to_owned()),
+                _ => unreachable!("unexpected key {key} for IdTuple", key = key)
+            },
+        };
         Ok(())
     }
 
     fn end(self) -> Result<Self::Ok, Self::Error> {
-        Ok(ElementValue::Dict(self.map))
+        match self {
+            Self::Struct { map } => Ok(ElementValue::Dict(map)),
+            Self::IdTuple { list_id, element_id } => {
+                Ok(ElementValue::IdTupleId(IdTuple { list_id: list_id.unwrap(), element_id: element_id.unwrap() }))
+            }
+        }
     }
 }
 
@@ -394,7 +430,7 @@ impl ElementValue {
             ElementValue::Bool(v) => Unexpected::Bool(*v),
             ElementValue::GeneratedId(_) => Unexpected::Other("GeneratedId"),
             ElementValue::CustomId(_) => Unexpected::Other("CustomId"),
-            IdTupleId(_) => Unexpected::Other("IdTuple"),
+            ElementValue::IdTupleId(_) => Unexpected::Other("IdTuple"),
             ElementValue::Dict(_) => Unexpected::Map,
             ElementValue::Array(_) => Unexpected::Seq
         }
@@ -408,6 +444,8 @@ mod tests {
     use crate::json_element::RawEntity;
     use crate::json_serializer::JsonSerializer;
     use crate::type_model_provider::init_type_model_provider;
+    use std::sync::Arc;
+    use crate::id::Id;
 
     use super::*;
 
@@ -419,7 +457,7 @@ mod tests {
         let group: Group = mapper.parse_entity(parsed_entity).unwrap();
         assert_eq!(5_i64, group.r#type);
         assert_eq!(Some(0_i64), group.adminGroupKeyVersion);
-        assert_eq!("LIopQQI--k-0", group.groupInfo.list_id);
+        assert_eq!("LIopQQI--k-0", group.groupInfo.list_id.as_str());
     }
 
     #[test]
@@ -442,19 +480,19 @@ mod tests {
     fn test_ser_mailbox_group_root() {
         let group_root = MailboxGroupRoot {
             _format: 0,
-            _id: "".to_string(),
+            _id: Id::test_random(),
             _ownerGroup: None,
-            _permissions: "".to_string(),
+            _permissions: Id::test_random(),
             calendarEventUpdates: None,
-            mailbox: "mailboxId".to_string(),
+            mailbox: Id::test_random(),
             mailboxProperties: None,
             outOfOfficeNotification: None,
             outOfOfficeNotificationRecipientList: Some(OutOfOfficeNotificationRecipientList {
-                _id: "oof_id".to_string(),
-                list: "oof_list".to_string(),
+                _id: Id::test_random(),
+                list: Id::test_random(),
             }),
-            serverProperties: "serverPropertiesId".to_string(),
-            whitelistRequests: "whitelistRequests".to_string(),
+            serverProperties: Id::test_random(),
+            whitelistRequests: Id::test_random(),
         };
         let mapper = InstanceMapper::new();
         let result = mapper.serialize_entity(group_root.clone()).unwrap();
@@ -465,20 +503,20 @@ mod tests {
     fn test_ser_group() {
         let group_root = Group {
             _format: 0,
-            _id: "".to_string(),
+            _id: Id::test_random(),
             _ownerGroup: None,
-            _permissions: "".to_string(),
-            groupInfo: IdTuple::new("list_id".to_owned(), "element_id".to_owned()),
+            _permissions: Id::test_random(),
+            groupInfo: IdTuple::new(Id::test_random(), Id::test_random()),
             administratedGroups: None,
             archives: vec![ArchiveType {
-                _id: "archive_ref_id".to_string(),
+                _id: Id::test_random(),
                 active: ArchiveRef {
-                    _id: "_".to_string(),
-                    archiveId: "archive_id".to_string(),
+                    _id: Id::test_random(),
+                    archiveId: Id::test_random(),
                 },
                 inactive: vec![],
                 r#type: TypeInfo {
-                    _id: "_".to_string(),
+                    _id: Id::test_random(),
                     application: "app".to_string(),
                     typeId: 1,
                 },
@@ -486,8 +524,8 @@ mod tests {
             currentKeys: None,
             customer: None,
             formerGroupKeys: None,
-            invitations: "_".to_string(),
-            members: "_".to_string(),
+            invitations: Id::test_random(),
+            members: Id::test_random(),
             groupKeyVersion: 1,
             admin: None,
             r#type: 46,

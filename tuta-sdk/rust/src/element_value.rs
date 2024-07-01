@@ -1,6 +1,7 @@
 use std::collections::HashMap;
 use std::time::SystemTime;
-
+use crate::date::Date;
+use crate::id::Id;
 use crate::IdTuple;
 
 /// Primitive value types used by entity/instance types
@@ -10,9 +11,9 @@ pub enum ElementValue {
     String(String),
     Number(i64),
     Bytes(Vec<u8>),
-    Date(SystemTime),
+    Date(Date),
     Bool(bool),
-    GeneratedId(String),
+    GeneratedId(Id),
     CustomId(String),
     IdTupleId(IdTuple),
     Dict(HashMap<String, ElementValue>),
@@ -20,7 +21,6 @@ pub enum ElementValue {
 }
 
 pub type ParsedEntity = HashMap<String, ElementValue>;
-
 
 impl ElementValue {
     pub fn assert_number(&self) -> i64 {
@@ -73,6 +73,42 @@ impl ElementValue {
         match self {
             ElementValue::String(value) => value,
             _ => panic!("Invalid type"),
+        }
+    }
+
+    pub fn assert_generated_id(&self) -> &Id {
+        match self {
+            ElementValue::GeneratedId(value) => value,
+            _ => panic!("Invalid type"),
+        }
+    }
+    pub fn assert_tuple_id(&self) -> &IdTuple {
+        match self {
+            ElementValue::IdTupleId(value) => value,
+            _ => panic!("Invalid type"),
+        }
+    }
+
+    pub fn assert_date(&self) -> SystemTime {
+        match self {
+            ElementValue::Date(value) => value.get_time(),
+            _ => panic!("Invalid type"),
+        }
+    }
+
+    pub(crate) fn get_type_variant_name(&self) -> &'static str {
+        match self {
+            Self::Null => "Null",
+            Self::String(_) => "String",
+            Self::Number(_) => "Number",
+            Self::Bytes(_) => "Bytes",
+            Self::Date(_) => "Date",
+            Self::Bool(_) => "Bool",
+            Self::GeneratedId(_) => "GeneratedId",
+            Self::CustomId(_) => "CustomId",
+            Self::IdTupleId(_) => "IdTupleId",
+            Self::Dict(_) => "Dict",
+            Self::Array(_) => "Array",
         }
     }
 }

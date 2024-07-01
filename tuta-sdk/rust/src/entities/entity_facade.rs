@@ -1,10 +1,12 @@
 use std::borrow::Borrow;
 use std::collections::HashMap;
 use std::sync::Arc;
-use std::time::{Duration, SystemTime};
+use std::time::SystemTime;
 
 use crate::ApiCallError;
-use crate::crypto::aes::{aes_128_decrypt, aes_256_decrypt, GenericAesKey, IV_BYTE_SIZE};
+use crate::crypto::aes::{aes_128_decrypt, aes_256_decrypt, IV_BYTE_SIZE};
+use crate::crypto::key::GenericAesKey;
+use crate::date::Date;
 use crate::element_value::{ElementValue, ParsedEntity};
 use crate::element_value::ElementValue::Bool;
 use crate::metamodel::{AssociationType, Cardinality, ModelAssociation, ModelValue, TypeModel, ValueType};
@@ -16,15 +18,13 @@ pub struct EntityFacade {
     type_model_provider: Arc<TypeModelProvider>,
 }
 
+#[cfg_attr(test, mockall::automock)]
 impl EntityFacade {
     pub fn new(type_model_provider: Arc<TypeModelProvider>) -> Self {
         EntityFacade {
             type_model_provider
         }
     }
-}
-
-impl EntityFacade {
     pub fn decrypt_and_map(&self, type_model: &TypeModel, mut entity: ParsedEntity, session_key: &GenericAesKey) -> Result<ParsedEntity, ApiCallError> {
         let mut mapped_decrypted: HashMap<String, ElementValue> = Default::default();
         let mut mapped_errors: HashMap<String, ElementValue> = Default::default();
@@ -192,7 +192,7 @@ impl EntityFacade {
             ValueType::String => ElementValue::String(String::new()),
             ValueType::Number => ElementValue::Number(0),
             ValueType::Bytes => ElementValue::Bytes(Vec::new()),
-            ValueType::Date => ElementValue::Date(SystemTime::UNIX_EPOCH),
+            ValueType::Date => ElementValue::Date(Date::new(SystemTime::UNIX_EPOCH)),
             ValueType::Boolean => Bool(false),
             ValueType::CompressedString => ElementValue::String(String::new()),
             _ => panic!("Invalid type")
@@ -219,7 +219,7 @@ impl EntityFacade {
                     Ok(bytes) => bytes,
                     Err(_) => return Err(ApiCallError::InternalSdkError { error_message: "Failed to parse bytes slice".to_string() })
                 };
-                Ok(ElementValue::Date(SystemTime::UNIX_EPOCH + Duration::from_millis(u64::from_be_bytes(bytes))))
+                Ok(ElementValue::Date(Date::from_millis(u64::from_be_bytes(bytes))))
             }
             ValueType::Boolean => {
                 let value = if bytes.eq(&[0x01]) {
@@ -244,16 +244,17 @@ mod tests {
 
     use rand::random;
 
-    use crate::crypto::aes::{Aes256Key, GenericAesKey, Iv};
+    use crate::crypto::aes::{Aes256Key, Iv};
+    use crate::crypto::key::GenericAesKey;
     use crate::entities::entity_facade::EntityFacade;
-    use crate::entities::entity_facade_test_utils::generate_email_entity;
+    use crate::util::entity_test_utils::{assert_decrypted_mail, generate_email_entity};
     use crate::type_model_provider::init_type_model_provider;
     use crate::TypeRef;
 
     #[test]
     fn test_decrypt_mail() {
         let sk = GenericAesKey::Aes256(Aes256Key::from_bytes(&random::<[u8; 32]>()).unwrap());
-        let iv = Iv::from_bytes(random::<[u8; 16]>());
+        let iv = Iv::from_bytes(&random::<[u8; 16]>()).unwrap();
 
         let (encrypted_mail, original_mail) = generate_email_entity(
             None,
@@ -278,13 +279,6 @@ mod tests {
 
         let decrypted_mail = entity_facade.decrypt_and_map(type_model, encrypted_mail, &sk).unwrap();
 
-        assert_eq!(decrypted_mail.get("receivedDate").unwrap(), original_mail.get("receivedDate").unwrap());
-        assert_eq!(decrypted_mail.get("sentDate").unwrap(), original_mail.get("sentDate").unwrap());
-        assert_eq!(decrypted_mail.get("confidential").unwrap(), original_mail.get("confidential").unwrap());
-        assert_eq!(decrypted_mail.get("subject").unwrap(), original_mail.get("subject").unwrap());
-        assert_eq!(decrypted_mail.get("sender").unwrap().assert_dict().get("name").unwrap(), original_mail.get("sender").unwrap().assert_dict().get("name").unwrap());
-        assert_eq!(decrypted_mail.get("sender").unwrap().assert_dict().get("address").unwrap(), original_mail.get("sender").unwrap().assert_dict().get("address").unwrap());
-        assert_eq!(decrypted_mail.get("toRecipients").unwrap().assert_array()[0].assert_dict().get("name").unwrap(), original_mail.get("toRecipients").unwrap().assert_array()[0].assert_dict().get("name").unwrap());
-        assert_eq!(decrypted_mail.get("toRecipients").unwrap().assert_array()[0].assert_dict().get("address").unwrap(), original_mail.get("toRecipients").unwrap().assert_array()[0].assert_dict().get("address").unwrap());
+        assert_decrypted_mail(&decrypted_mail, &original_mail);
     }
 }
