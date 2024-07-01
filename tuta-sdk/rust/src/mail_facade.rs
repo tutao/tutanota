@@ -1,4 +1,3 @@
-use std::borrow::ToOwned;
 use std::sync::Arc;
 use crate::{ApiCallError, IdTuple, TypeRef};
 use crate::element_value::ParsedEntity;
@@ -14,7 +13,7 @@ pub struct MailFacade {
 // should probably be static somewhere but TypeRef can't because it owns Strings and adding lifetime
 // to TypeRef makes it reaaally annoying. Make we can do something with From
 fn mail_type_ref() -> TypeRef {
-    TypeRef { app: "tutanota".to_owned(), type_: "Mail".to_owned() }
+    TypeRef { app: "tutanota", type_: "Mail" }
 }
 
 impl MailFacade {

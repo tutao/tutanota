@@ -321,7 +321,7 @@ mod test {
         let key_group = GeneratedId::test_random();
 
         let bucket_key_data = BucketKey {
-            _id: GeneratedId::test_random(),
+            _id: GeneratedId::test_random().to_string(),
             groupEncBucketKey: None,
             protocolVersion: 2,
             pubEncBucketKey: Some(encapsulation.serialize()),
@@ -329,14 +329,14 @@ mod test {
             senderKeyVersion: None,
             bucketEncSessionKeys: vec![
                 InstanceSessionKey {
-                    _id: GeneratedId::test_random(),
+                    _id: GeneratedId::test_random().to_string(),
                     encryptionAuthStatus: None,
                     instanceId: instance_id.clone(),
                     instanceList: instance_list.clone(),
                     symEncSessionKey: bucket_enc_session_key.clone(),
                     symKeyVersion: recipient_key_version,
                     typeInfo: TypeInfo {
-                        _id: GeneratedId::test_random(),
+                        _id: GeneratedId::test_random().to_string(),
                         application: String::new(),
                         typeId: 0,
                     },
@@ -379,7 +379,7 @@ mod test {
             mailDetailsDraft: None,
             replyTos: vec![],
             sender: MailAddress {
-                _id: GeneratedId::test_random(),
+                _id: GeneratedId::test_random().to_string(),
                 address: "".to_string(),
                 name: "".to_string(),
                 contact: None,

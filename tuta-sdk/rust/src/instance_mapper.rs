@@ -506,7 +506,7 @@ mod tests {
             mailboxProperties: None,
             outOfOfficeNotification: None,
             outOfOfficeNotificationRecipientList: Some(OutOfOfficeNotificationRecipientList {
-                _id: GeneratedId::test_random(),
+                _id: GeneratedId::test_random().to_string(),
                 list: GeneratedId::test_random(),
             }),
             serverProperties: GeneratedId::test_random(),
@@ -527,14 +527,14 @@ mod tests {
             groupInfo: IdTuple::new(GeneratedId::test_random(), GeneratedId::test_random()),
             administratedGroups: None,
             archives: vec![ArchiveType {
-                _id: GeneratedId::test_random(),
+                _id: GeneratedId::test_random().to_string(),
                 active: ArchiveRef {
-                    _id: GeneratedId::test_random(),
+                    _id: GeneratedId::test_random().to_string(),
                     archiveId: GeneratedId::test_random(),
                 },
                 inactive: vec![],
                 r#type: TypeInfo {
-                    _id: GeneratedId::test_random(),
+                    _id: GeneratedId::test_random().to_string(),
                     application: "app".to_string(),
                     typeId: 1,
                 },

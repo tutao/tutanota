@@ -33,7 +33,7 @@ impl EntityFacade {
         let mut mapped_errors: HashMap<String, ElementValue> = Default::default();
         let mut mapped_ivs: HashMap<String, ElementValue> = Default::default();
 
-        for (key, model_value) in type_model.values.iter() {
+        for (&key, model_value) in type_model.values.iter() {
             let stored_element = entity.remove(key).unwrap_or_else(|| ElementValue::Null);
             let (decrypted, ivs, errors) = self.map_value(stored_element, session_key, key, model_value)?;
 
@@ -46,7 +46,7 @@ impl EntityFacade {
             }
         }
 
-        for (association_name, association_model) in type_model.associations.iter() {
+        for (&association_name, association_model) in type_model.associations.iter() {
             let association_entry = entity.remove(association_name).unwrap_or(ElementValue::Null);
             let (mapped_association, errors) = self.map_associations(type_model, association_entry, session_key, &association_name, association_model)?;
 
@@ -63,10 +63,10 @@ impl EntityFacade {
         let mut errors: HashMap<String, ElementValue> = Default::default();
         let dependency = match association_model.dependency {
             Some(ref dep) => dep,
-            None => &type_model.app
+            None => type_model.app
         };
 
-        let aggregate_type_model = match self.type_model_provider.get_type_model(dependency, association_model.ref_type.as_str()) {
+        let aggregate_type_model = match self.type_model_provider.get_type_model(dependency, association_model.ref_type) {
             Some(type_model) => type_model,
             // Undefined type model or type ref should be treated as panic as the system isn't
             // capable of dealing with unknown types
@@ -127,7 +127,7 @@ impl EntityFacade {
         }
     }
 
-    fn map_value(&self, value: ElementValue, session_key: &GenericAesKey, key: &String, model_value: &ModelValue) -> Result<(ElementValue, Option<[u8; IV_BYTE_SIZE]>, Option<HashMap<String, ElementValue>>), ApiCallError> {
+    fn map_value(&self, value: ElementValue, session_key: &GenericAesKey, key: &str, model_value: &ModelValue) -> Result<(ElementValue, Option<[u8; IV_BYTE_SIZE]>, Option<HashMap<String, ElementValue>>), ApiCallError> {
         let mut final_iv: Option<[u8; IV_BYTE_SIZE]> = None;
 
         if model_value.encrypted && model_value.is_final {
@@ -273,8 +273,8 @@ mod tests {
         let entity_facade = EntityFacade::new(Arc::clone(&type_model_provider));
 
         let type_ref = TypeRef {
-            app: "tutanota".to_owned(),
-            type_: "Mail".to_owned(),
+            app: "tutanota",
+            type_: "Mail",
         };
 
         let type_model = type_model_provider.get_type_model(&type_ref.app, &type_ref.type_)
