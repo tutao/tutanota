@@ -15,6 +15,7 @@ use crate::IdTuple;
 use crate::instance_mapper::InstanceMapper;
 use crate::metamodel::TypeModel;
 use crate::owner_enc_session_keys_update_queue::OwnerEncSessionKeysUpdateQueue;
+use crate::util::ArrayCastingError;
 
 const OWNER_ENC_SESSION_KEY_NAME: &'static str = "_ownerEncSessionKey";
 const OWNER_KEY_VERSION_NAME: &'static str = "_ownerKeyVersion";
@@ -27,18 +28,18 @@ pub struct CryptoFacade {
     key_loader_facade: Arc<dyn KeyLoaderFacade>,
     randomizer_facade: Arc<dyn RandomizerFacade>,
     update_queue: Mutex<Box<dyn OwnerEncSessionKeysUpdateQueue>>,
-    instance_mapper: Arc<InstanceMapper>
+    instance_mapper: Arc<InstanceMapper>,
 }
 
 impl CryptoFacade {
     pub fn resolve_session_key(&self, entity: &mut ParsedEntity, model: &TypeModel) -> Result<Option<GenericAesKey>, SessionKeyResolutionError> {
         if !model.encrypted {
-            return Ok(None)
+            return Ok(None);
         }
 
         if let Some(bucket_key_data) = entity.get(BUCKET_KEY_NAME) {
             let resolved_key = self.resolve_bucket_key(entity, model)?;
-            return Ok(Some(resolved_key))
+            return Ok(Some(resolved_key));
         }
 
         let owner_key_data = EntityOwnerKeyData::extract_owner_key_data(entity)?;
@@ -49,7 +50,7 @@ impl CryptoFacade {
             owner_group: Some(owner_group),
             ..
         } = owner_key_data else {
-            return Err(SessionKeyResolutionError { reason: "instance missing owner key/group data".to_string() })
+            return Err(SessionKeyResolutionError { reason: "instance missing owner key/group data".to_string() });
         };
 
         let group_key = self.key_loader_facade.get_group_key(owner_group, owner_key_version)?;
@@ -58,7 +59,7 @@ impl CryptoFacade {
 
     fn resolve_bucket_key(&self, entity: &mut ParsedEntity, model: &TypeModel) -> Result<GenericAesKey, SessionKeyResolutionError> {
         let Some(ElementValue::Dict(bucket_key_map)) = entity.get(BUCKET_KEY_NAME) else {
-            return Err(SessionKeyResolutionError { reason: format!("{BUCKET_KEY_NAME} is not a dictionary type") })
+            return Err(SessionKeyResolutionError { reason: format!("{BUCKET_KEY_NAME} is not a dictionary type") });
         };
 
         let bucket_key: BucketKey = match self.instance_mapper.parse_entity(bucket_key_map.to_owned()) {
@@ -93,7 +94,7 @@ impl CryptoFacade {
         }
 
         let Some((session_key, sym_enc_session_key)) = session_key_for_this_instance else {
-            return Err(SessionKeyResolutionError { reason: "no session key found in bucket key for this instance".to_string() })
+            return Err(SessionKeyResolutionError { reason: "no session key found in bucket key for this instance".to_string() });
         };
 
         // TODO: authenticate
@@ -103,7 +104,7 @@ impl CryptoFacade {
             queue.queue_update_instance_session_key(
                 IdTuple::new(instance_data.instanceList, instance_data.instanceId).into(),
                 sym_enc_key,
-                version
+                version,
             );
         }
 
@@ -122,15 +123,15 @@ impl CryptoFacade {
                     let decrypted_bucket_key = PQMessage::deserialize(pub_enc_bucket_key)?.decapsulate(&k)?.into();
                     ResolvedBucketKey {
                         decrypted_bucket_key,
-                        sender_identity_key: Some(k.ecc_keys.public_key)
+                        sender_identity_key: Some(k.ecc_keys.public_key),
                     }
-                },
+                }
                 AsymmetricKeyPair::RSAKeyPair(k) => {
                     let bucket_key_bytes = Zeroizing::new(k.private_key.decrypt(pub_enc_bucket_key)?);
                     let decrypted_bucket_key = GenericAesKey::from_bytes(bucket_key_bytes.as_slice())?.into();
                     ResolvedBucketKey {
                         decrypted_bucket_key,
-                        sender_identity_key: None
+                        sender_identity_key: None,
                     }
                 }
             }
@@ -146,7 +147,7 @@ impl CryptoFacade {
             auth_status = Some(EncryptionAuthStatus::AESNoAuthentication);
             todo!("secure external resolveWithGroupReference")
         } else {
-            return Err(SessionKeyResolutionError { reason: format!("encrypted bucket key not set on instance {}/{}", model.app, model.name) })
+            return Err(SessionKeyResolutionError { reason: format!("encrypted bucket key not set on instance {}/{}", model.app, model.name) });
         };
 
         Ok(resolved_key)
@@ -163,7 +164,7 @@ pub enum EncryptionAuthStatus {
 
 struct ResolvedBucketKey {
     decrypted_bucket_key: GenericAesKey,
-    sender_identity_key: Option<EccPublicKey>
+    sender_identity_key: Option<EccPublicKey>,
 }
 
 struct EntityOwnerKeyData<'a> {
@@ -171,7 +172,7 @@ struct EntityOwnerKeyData<'a> {
     owner_key_version: Option<i64>,
     owner_group: Option<&'a Id>,
     instance_id: &'a Id,
-    list_id: Option<&'a Id>
+    list_id: Option<&'a Id>,
 }
 
 impl<'a> EntityOwnerKeyData<'a> {
@@ -201,7 +202,7 @@ impl<'a> EntityOwnerKeyData<'a> {
             owner_key_version,
             owner_group,
             instance_id,
-            list_id
+            list_id,
         })
     }
 }
@@ -209,7 +210,7 @@ impl<'a> EntityOwnerKeyData<'a> {
 #[derive(thiserror::Error, Debug)]
 #[error("Session key resolution failure: {reason}")]
 pub struct SessionKeyResolutionError {
-    reason: String
+    reason: String,
 }
 
 trait SessionKeyResolutionErrorSubtype: ToString {}
@@ -221,7 +222,11 @@ impl<T: SessionKeyResolutionErrorSubtype> From<T> for SessionKeyResolutionError 
 }
 
 impl SessionKeyResolutionErrorSubtype for KeyLoadError {}
+
+impl SessionKeyResolutionErrorSubtype for ArrayCastingError {}
+
 impl SessionKeyResolutionErrorSubtype for PQError {}
+
 impl SessionKeyResolutionErrorSubtype for RSAEncryptionError {}
 
 #[cfg(test)]
@@ -253,7 +258,7 @@ mod test {
         let randomizer_facade = Arc::new(TestRandomizerFacade::new());
         let mut update_queue = Box::new(MockOwnerEncSessionKeysUpdateQueue::new());
         update_queue.expect_queue_update_instance_session_key()
-            .returning(|_,_,_| {})
+            .returning(|_, _, _| {})
             .once();
 
         let (
@@ -286,7 +291,7 @@ mod test {
                 .returning(move |_| Ok(VersionedAesKey { version: sender_key_version, key: group_key.clone().into() }))
                 .once();
             key_loader.expect_get_asymmetric_key_pair()
-                .returning(move |_,_| Ok(asymmetric_keypair_versioned.clone().into()))
+                .returning(move |_, _| Ok(asymmetric_keypair_versioned.clone().into()))
                 .once();
             key_loader
         };
@@ -297,7 +302,7 @@ mod test {
             &asymmetric_keypair.ecc_keys.public_key,
             &asymmetric_keypair.kyber_keys.public_key,
             &bucket_key,
-            encapsulation_iv
+            encapsulation_iv,
         ).unwrap();
 
         let instance_mapper = Arc::new(InstanceMapper::new());
@@ -306,7 +311,7 @@ mod test {
             key_loader_facade: Arc::new(key_loader),
             update_queue: Mutex::new(update_queue),
             randomizer_facade: randomizer_facade.clone(),
-            instance_mapper: instance_mapper.clone()
+            instance_mapper: instance_mapper.clone(),
         };
 
         let bucket_key_generic = GenericAesKey::from(bucket_key.clone());
