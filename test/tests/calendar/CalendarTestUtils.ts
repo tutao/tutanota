@@ -34,7 +34,7 @@ import { FolderSystem } from "../../../src/common/api/common/mail/FolderSystem.j
 import { Recipient, RecipientType } from "../../../src/common/api/common/recipients/Recipient.js"
 import { DateTime } from "luxon"
 import { createTestEntity } from "../TestUtils.js"
-import { AlarmScheduler } from "../../../src/common/calendar/date/AlarmScheduler.js"
+import { AlarmScheduler } from "../../../src/common/calendar-app/date/AlarmScheduler.js"
 import { matchers, object, when } from "testdouble"
 
 export const ownerMailAddress = "calendarowner@tutanota.de" as const

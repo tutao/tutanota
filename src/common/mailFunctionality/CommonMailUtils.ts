@@ -1,12 +1,24 @@
+<<<<<<<< HEAD:src/common/mailFunctionality/CommonMailUtils.ts
+========
+import type { Contact, EncryptedMailAddress, InboxRule, Mail, MailFolder, TutanotaProperties } from "../../../common/api/entities/tutanota/TypeRefs.js"
+>>>>>>>> 3349a964d (Move files to new folder structure):src/mail-app/mail/model/MailUtils.ts
 import {
 	Contact,
 	createContact,
 	createContactMailAddress,
 	createEncryptedMailAddress,
+<<<<<<<< HEAD:src/common/mailFunctionality/CommonMailUtils.ts
 	EncryptedMailAddress, Header, InboxRule,
 	Mail, MailBodyTypeRef,
 	MailFolder, MailHeaders, MailHeadersTypeRef, TutanotaProperties
 } from "../api/entities/tutanota/TypeRefs"
+========
+	Header,
+	MailBodyTypeRef,
+	MailHeaders,
+	MailHeadersTypeRef,
+} from "../../../common/api/entities/tutanota/TypeRefs.js"
+>>>>>>>> 3349a964d (Move files to new folder structure):src/mail-app/mail/model/MailUtils.ts
 import {
 	ContactAddressType,
 	ConversationType,
@@ -14,6 +26,7 @@ import {
 	getMailFolderType,
 	GroupType,
 	MailFolderType,
+<<<<<<<< HEAD:src/common/mailFunctionality/CommonMailUtils.ts
 	MailState, MAX_ATTACHMENT_SIZE,
 	ReplyType, TUTANOTA_MAIL_ADDRESS_DOMAINS
 } from "../api/common/TutanotaConstants.js"
@@ -38,6 +51,36 @@ import { MailFacade } from "../api/worker/facades/lazy/MailFacade.js"
 import { FontIcons } from "../gui/base/icons/FontIcons.js"
 import { ProgrammingError } from "../api/common/error/ProgrammingError.js"
 import { ListFilter } from "../misc/ListModel.js"
+========
+	MailState,
+	MAX_ATTACHMENT_SIZE,
+	ReplyType,
+} from "../../../common/api/common/TutanotaConstants"
+import { assertNotNull, contains, first, neverNull } from "@tutao/tutanota-utils"
+import { assertMainOrNode, isDesktop } from "../../../common/api/common/Env"
+import type { LoginController } from "../../../common/api/main/LoginController"
+import type { Language, TranslationKey } from "../../../common/misc/LanguageViewModel"
+import { lang } from "../../../common/misc/LanguageViewModel"
+import { Icons } from "../../../common/gui/base/icons/Icons"
+import type { MailboxDetail } from "./MailModel"
+import { MailModel } from "./MailModel"
+import type { AllIcons } from "../../../common/gui/base/Icon"
+import type { GroupInfo, User } from "../../../common/api/entities/sys/TypeRefs.js"
+import { CustomerPropertiesTypeRef } from "../../../common/api/entities/sys/TypeRefs.js"
+import type { UserController } from "../../../common/api/main/UserController"
+import type { EntityClient } from "../../../common/api/common/EntityClient"
+import { getEnabledMailAddressesForGroupInfo, getGroupInfoDisplayName } from "../../../common/api/common/utils/GroupUtils"
+import { fullNameToFirstAndLastName, mailAddressToFirstAndLastName } from "../../../common/misc/parsing/MailAddressParser"
+import type { Attachment } from "../editor/SendMailModel"
+import { getListId } from "../../../common/api/common/utils/EntityUtils"
+import { isDetailsDraft, isLegacyMail, MailWrapper } from "../../../common/api/common/MailWrapper.js"
+import { FolderSystem } from "../../../common/api/common/mail/FolderSystem.js"
+import { ListFilter } from "../../../common/misc/ListModel.js"
+import { MailFacade } from "../../../common/api/worker/facades/lazy/MailFacade.js"
+import { getDisplayedSender, isSystemNotification } from "../../../common/api/common/mail/CommonMailUtils.js"
+import { ProgrammingError } from "../../../common/api/common/error/ProgrammingError.js"
+import { FontIcons } from "../../../common/gui/base/icons/FontIcons.js"
+>>>>>>>> 3349a964d (Move files to new folder structure):src/mail-app/mail/model/MailUtils.ts
 
 assertMainOrNode()
 export const LINE_BREAK = "<br>"

@@ -246,7 +246,7 @@ export class PostLoginActions implements PostLoginAction {
 
 	private async enforcePasswordChange(): Promise<void> {
 		if (this.logins.getUserController().user.requirePasswordUpdate) {
-			const { showChangeOwnPasswordDialog } = await import("../settings/login/ChangePasswordDialogs.js")
+			const { showChangeOwnPasswordDialog } = await import("../../mail-app/settings/login/ChangePasswordDialogs.js")
 			await showChangeOwnPasswordDialog(false)
 		}
 
