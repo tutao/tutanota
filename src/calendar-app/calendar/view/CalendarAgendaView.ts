@@ -26,6 +26,7 @@ import { PageView } from "../../../common/gui/base/PageView.js"
 import { getIfLargeScroll } from "../../../common/gui/base/GuiUtils.js"
 import { isKeyPressed } from "../../../common/misc/KeyManager.js"
 import { Keys } from "../../../common/api/common/TutanotaConstants.js"
+import { MainCreateButton } from "../../../common/gui/MainCreateButton.js"
 
 export type CalendarAgendaViewAttrs = {
 	selectedDate: Date
@@ -49,6 +50,7 @@ export type CalendarAgendaViewAttrs = {
 	scrollPosition: number
 	onScrollPositionChange: (newPosition: number) => unknown
 	onViewChanged: (vnode: VnodeDOM) => unknown
+	onCreateEvent?: () => unknown
 }
 
 export class CalendarAgendaView implements Component<CalendarAgendaViewAttrs> {
@@ -184,6 +186,11 @@ export class CalendarAgendaView implements Component<CalendarAgendaViewAttrs> {
 				icon: BootIcons.Calendar,
 				message: "noEntries_msg",
 				color: theme.list_message_bg,
+				bottomContent: MainCreateButton({
+					label: "newEvent_action",
+					click: () => attrs.onCreateEvent?.(),
+					class: "mt-s",
+				}),
 			})
 		} else {
 			return m(
