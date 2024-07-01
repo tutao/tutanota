@@ -1,0 +1,9 @@
+<resources>
+    <string name="reminder_label">Opomnik</string>
+    <string name="pushNewMail_msg">Prejeli ste novo e-pošto.</string>
+    <string name="notificationSync_msg">Sinhroniziranje obvestil</string>
+    <string name="scheduleAlarmError_msg">Alarma ni bilo mogoče nastaviti. Prosimo, posodobite aplikacijo.</string>
+    <string name="wantToSendReport_msg">Nekaj nepričakovanega se je zgodilo. Ali želite poslati poročilo? Lahko dodate sporočila, da nam pomagate popraviti to napako.</string>
+    <string name="downloadCompleted_msg">Prenos končan</string>
+    <string name="unlockCredentials_action">Odkleni poverilnice</string>
+</resources>
