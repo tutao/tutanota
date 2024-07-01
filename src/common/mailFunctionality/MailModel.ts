@@ -2,16 +2,6 @@ import m from "mithril"
 import stream from "mithril/stream"
 import Stream from "mithril/stream"
 import { assertNotNull, groupBy, lazyMemoized, neverNull, noOp, ofClass, promiseMap, splitInChunks } from "@tutao/tutanota-utils"
-import type { Mail, MailBox, MailboxGroupRoot, MailboxProperties, MailFolder } from "../api/entities/tutanota/TypeRefs.js"
-import {
-	createMailAddressProperties,
-	createMailboxProperties,
-	MailboxGroupRootTypeRef,
-	MailboxPropertiesTypeRef,
-	MailBoxTypeRef,
-	MailFolderTypeRef,
-	MailTypeRef,
-} from "../api/entities/tutanota/TypeRefs.js"
 import type { Group, GroupInfo, GroupMembership, WebsocketCounterData } from "../api/entities/sys/TypeRefs.js"
 import { GroupInfoTypeRef, GroupTypeRef } from "../api/entities/sys/TypeRefs.js"
 import type { MailReportType } from "../api/common/TutanotaConstants.js"
@@ -32,6 +22,18 @@ import { containsEventOfType, EntityUpdateData, isUpdateForTypeRef } from "../ap
 import { assertSystemFolderOfType, getEnabledMailAddressesWithUser, isSpamOrTrashFolder } from "./CommonMailUtils.js"
 import { WebsocketConnectivityModel } from "../misc/WebsocketConnectivityModel.js"
 import { InboxRuleHandler } from "../../mail-app/mail/model/InboxRuleHandler.js"
+import {
+	createMailAddressProperties,
+	createMailboxProperties,
+	Mail,
+	MailBox,
+	MailboxGroupRoot,
+	MailboxGroupRootTypeRef,
+	MailboxProperties, MailboxPropertiesTypeRef,
+	MailBoxTypeRef,
+	MailFolder,
+	MailFolderTypeRef, MailTypeRef
+} from "../api/entities/tutanota/TypeRefs.js"
 
 export type MailboxDetail = {
 	mailbox: MailBox
