@@ -17,6 +17,7 @@ export async function runDevBuild({ stage, host, desktop, clean, ignoreMigration
 	if (clean) {
 		await runStep("Clean", async () => {
 			await fs.emptyDir("build")
+			await fs.emptyDir("build-calendar-app")
 		})
 	}
 
@@ -36,6 +37,10 @@ export async function runDevBuild({ stage, host, desktop, clean, ignoreMigration
 
 	await runStep("Types", async () => {
 		await sh`npx tsc --incremental ${true} --noEmit true`
+	})
+
+	await runStep("Types calendar", async () => {
+		await sh`npx tsc --project tsconfig-calendar-app.json --incremental ${true} --noEmit true`
 	})
 
 	function updateDomainConfigForHostname(host) {
@@ -91,6 +96,12 @@ async function buildWebPart({ stage, host, version, domainConfigs }) {
 importScripts("./worker.js")
 `,
 		)
+		await fs.promises.writeFile(
+			"build-calendar-app/worker-bootstrap.js",
+			`importScripts("./polyfill.js")
+importScripts("./worker.js")
+`,
+		)
 	})
 
 	await runStep("Web: Esbuild", async () => {
@@ -132,6 +143,59 @@ importScripts("./worker.js")
 							workingDir: `${process.cwd()}/libs/webassembly/`,
 							env: {
 								WASM: `${process.cwd()}/build/wasm/argon2.wasm`,
+							},
+						},
+					],
+				}),
+			],
+		})
+	})
+
+	await runStep("Calendar App Web: Esbuild", async () => {
+		const { esbuildWasmLoader } = await import("@tutao/tuta-wasm-loader")
+		await esbuild({
+			// Using named entry points so that it outputs build/worker.js and not build/api/worker/worker.js
+			entryPoints: { app: "src/calendar-app.ts", worker: "src/common/api/worker/worker.ts" },
+			outdir: "./build-calendar-app/",
+			// Why bundle at the moment:
+			// - We need to include all the imports: everything in src + libs. We could use wildcard in the future.
+			// - We can't have imports or dynamic imports in the worker because we can't start it as a module because of Firefox.
+			//     (see https://bugzilla.mozilla.org/show_bug.cgi?id=1247687)
+			//     We can theoretically compile it separately but it will be slower and more confusing.
+			bundle: true,
+			format: "esm",
+			// "both" is the most reliable as in Worker or on Android linked source maps don't work
+			sourcemap: "both",
+			define: {
+				// See Env.ts for explanation
+				NO_THREAD_ASSERTIONS: "true",
+			},
+			plugins: [
+				libDeps(),
+				externalTranslationsPlugin(),
+				esbuildWasmLoader({
+					output: `${process.cwd()}/build-calendar-app/wasm`,
+					webassemblyLibraries: [
+						{
+							name: "liboqs.wasm",
+							command: "make -f Makefile_liboqs build",
+							options: {
+								workingDir: `${process.cwd()}/libs/webassembly/`,
+								env: {
+									WASM: `${process.cwd()}/build-calendar-app/wasm/liboqs.wasm`,
+								},
+								optimizationLevel: "O3",
+							},
+						},
+						{
+							name: "argon2.wasm",
+							command: "make -f Makefile_argon2 build",
+							options: {
+								workingDir: `${process.cwd()}/libs/webassembly/`,
+								env: {
+									WASM: `${process.cwd()}/build-calendar-app/wasm/argon2.wasm`,
+								},
+								optimizationLevel: "O3",
 							},
 						},
 					],
@@ -190,6 +254,9 @@ globalThis.buildOptions.sqliteNativePath = "./better-sqlite3.node";`,
 		await fs.createFile("./build/package.json")
 		await fs.writeFile("./build/package.json", content, "utf-8")
 
+		await fs.createFile("./build-calendar-app/package.json")
+		await fs.writeFile("./build-calendar-app/package.json", content, "utf-8")
+
 		await fs.mkdir("build/desktop", { recursive: true })
 		await fs.copyFile("src/desktop/preload.js", "build/desktop/preload.js")
 		await fs.copyFile("src/desktop/preload-webdialog.js", "build/desktop/preload-webdialog.js")
@@ -227,6 +294,17 @@ import('./app.js')`
 	await writeFile(`./build/${jsFileName}`, template)
 	const html = await LaunchHtml.renderHtml(imports, env)
 	await writeFile(`./build/${htmlFileName}`, html)
+
+	const templateCalendar = `window.whitelabelCustomizations = null
+window.env = ${JSON.stringify(env, null, 2)}
+if (env.staticUrl == null && window.tutaoDefaultApiUrl) {
+    // overriden by js dev server
+    window.env.staticUrl = window.tutaoDefaultApiUrl
+}
+import('./app.js')`
+	await writeFile(`./build-calendar-app/${jsFileName}`, templateCalendar)
+	const htmlCalendar = await LaunchHtml.renderHtml(imports, env)
+	await writeFile(`./build-calendar-app/${htmlFileName}`, htmlCalendar)
 }
 
 function getStaticUrl(stage, mode, host) {
@@ -266,8 +344,20 @@ export async function prepareAssets(stage, host, version, domainConfigs) {
 		fs.copy(path.join(root, "/src/braintree.html"), path.join(root, "build/braintree.html")),
 	])
 
+	await Promise.all([
+		await fs.emptyDir(path.join(root, "build-calendar-app/images")),
+		fs.copy(path.join(root, "/resources/favicon"), path.join(root, "/build-calendar-app/images")),
+		fs.copy(path.join(root, "/resources/images/"), path.join(root, "/build-calendar-app/images")),
+		fs.copy(path.join(root, "/resources/pdf/"), path.join(root, "/build-calendar-app/pdf")),
+		fs.copy(path.join(root, "/resources/desktop-icons"), path.join(root, "/build-calendar-app/icons")),
+		fs.copy(path.join(root, "/resources/wordlibrary.json"), path.join(root, "build-calendar-app/wordlibrary.json")),
+		fs.copy(path.join(root, "/src/braintree.html"), path.join(root, "build-calendar-app/braintree.html")),
+	])
+
 	// write empty file
 	await fs.writeFile("build/polyfill.js", "")
+
+	await fs.writeFile("build-calendar-app/polyfill.js", "")
 
 	for (const mode of ["Browser", "App", "Desktop"]) {
 		await createBootstrap(env.create({ staticUrl: getStaticUrl(stage, mode, host), version, mode, dist: false, domainConfigs }))
