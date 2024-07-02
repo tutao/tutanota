@@ -29,18 +29,20 @@ pub enum GenericAesKey {
 }
 
 impl GenericAesKey {
-    pub fn decrypt_key(&self, owner_enc_session_key: &Vec<u8>) -> Result<GenericAesKey, KeyLoadError> {
-        let decrypted = match &self {
-            Self::Aes128(key) => aes_128_decrypt_no_padding_fixed_iv(&key, owner_enc_session_key)?,
-            Self::Aes256(key) => aes_256_decrypt_no_padding(&key, owner_enc_session_key)?,
+    /// Decrypts `encrypted_key` with this key.
+    pub fn decrypt_key(&self, encrypted_key: &[u8]) -> Result<GenericAesKey, KeyLoadError> {
+        let decrypted = match self {
+            Self::Aes128(key) => aes_128_decrypt_no_padding_fixed_iv(&key, encrypted_key)?,
+            Self::Aes256(key) => aes_256_decrypt_no_padding(&key, encrypted_key)?,
         };
 
         let decrypted = Zeroizing::new(decrypted);
         Self::from_bytes(decrypted.as_slice()).map_err(|error| error.into())
     }
 
+    /// Encrypts `key_to_encrypt` with this key.
     pub fn encrypt_key(&self, key_to_encrypt: &GenericAesKey, iv: Iv) -> Vec<u8> {
-        match &self {
+        match self {
             Self::Aes128(key) => aes_128_encrypt_no_padding_fixed_iv(key, key_to_encrypt.as_bytes()).unwrap(),
             Self::Aes256(key) => aes_256_encrypt(key, key_to_encrypt.as_bytes(), &iv, PaddingMode::NoPadding).unwrap(),
         }
@@ -81,6 +83,7 @@ pub struct KeyLoadError {
     reason: String,
 }
 
+/// Used to convert key related error types to `KeyLoadError`
 trait KeyLoadErrorSubtype: ToString {}
 
 impl<T: KeyLoadErrorSubtype> From<T> for KeyLoadError {
