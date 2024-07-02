@@ -4,7 +4,9 @@ use zeroize::Zeroizing;
 use crate::crypto::aes::Iv;
 use crate::crypto::ecc::EccPublicKey;
 use crate::crypto::key::{AsymmetricKeyPair, GenericAesKey, KeyLoadError};
-use crate::crypto::key_loader_facade::{KeyLoaderFacade, VersionedAesKey};
+#[mockall_double::double]
+use crate::crypto::key_loader_facade::KeyLoaderFacade;
+use crate::crypto::key_loader_facade::VersionedAesKey;
 use crate::crypto::randomizer_facade::{random, RandomizerFacade};
 use crate::crypto::rsa::RSAEncryptionError;
 use crate::crypto::tuta_crypt::{PQError, PQMessage};
@@ -25,7 +27,7 @@ const BUCKET_KEY_NAME: &'static str = "bucketKey";
 
 #[derive(uniffi::Object)]
 pub struct CryptoFacade {
-    key_loader_facade: Arc<dyn KeyLoaderFacade>,
+    key_loader_facade: Arc<KeyLoaderFacade>,
     randomizer_facade: Arc<dyn RandomizerFacade>,
     update_queue: Mutex<Box<dyn OwnerEncSessionKeysUpdateQueue>>,
     instance_mapper: Arc<InstanceMapper>,
@@ -388,7 +390,6 @@ mod test {
             toRecipients: vec![],
         };
 
-        println!("{}", serde_json::to_string(&mail).unwrap());
 
         let mut raw_mail = instance_mapper.serialize_entity(mail).unwrap();
 
