@@ -3,6 +3,7 @@ use std::time::{Duration, SystemTime};
 use serde::{Deserialize, Deserializer, Serialize, Serializer};
 use serde::de::{Error, Visitor};
 
+/// A wrapper around `SystemTime` so we can change how it is serialised by serde.
 #[derive(Copy, Clone, PartialEq, PartialOrd, Debug)]
 pub struct DateTime(SystemTime);
 
