@@ -1,0 +1,28 @@
+{
+	"extends": "./tsconfig_common.json",
+	"compilerOptions": {
+		"removeComments": false,
+		"declaration": false,
+		"noEmit": true,
+		"outDir": "build-calendar-app",
+		"incremental": true
+	},
+	"include": ["src/", "libs/*.ts", "types/*.d.ts"],
+	"references": [
+		{
+			"path": "./packages/tutanota-utils"
+		},
+		{
+			"path": "./packages/tutanota-crypto"
+		},
+		{
+			"path": "./packages/tutanota-test-utils"
+		},
+		{
+			"path": "./packages/tutanota-error"
+		},
+		{
+			"path": "./packages/tuta-wasm-loader"
+		}
+	]
+}

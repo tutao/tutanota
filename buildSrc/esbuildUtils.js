@@ -85,7 +85,7 @@ export function externalTranslationsPlugin() {
 			})
 			build.onEnd(async () => {
 				// After the main build is done we go and compile all translations. Alternatively we could collect all imports from onResolve().
-				const translations = await globby("src/translations/*.ts")
+				const translations = await globby("src/mail-app/translations/*.ts")
 				await build.esbuild.build({
 					// Always esm, even though desktop is compiled to commonjs because translations do `export default` and esbuild doesn't pick the correct
 					// interop.
@@ -97,7 +97,7 @@ export function externalTranslationsPlugin() {
 					outExtension: { [".js"]: ".mjs" },
 					// So that it outputs build/translations/de.js instead of build/de.js
 					// (or build/desktop/translations/de.js instead of build/desktop/de.js)
-					outbase: "src",
+					outbase: "src/mail-app",
 				})
 			})
 		},
