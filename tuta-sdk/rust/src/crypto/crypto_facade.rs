@@ -7,7 +7,7 @@ use crate::crypto::key::{AsymmetricKeyPair, GenericAesKey, KeyLoadError};
 #[mockall_double::double]
 use crate::crypto::key_loader_facade::KeyLoaderFacade;
 use crate::crypto::key_loader_facade::VersionedAesKey;
-use crate::crypto::randomizer_facade::{random, RandomizerFacade};
+use crate::crypto::randomizer_facade::RandomizerFacade;
 use crate::crypto::rsa::RSAEncryptionError;
 use crate::crypto::tuta_crypt::{PQError, PQMessage};
 use crate::generated_id::GeneratedId;
@@ -19,27 +19,29 @@ use crate::metamodel::TypeModel;
 use crate::owner_enc_session_keys_update_queue::OwnerEncSessionKeysUpdateQueue;
 use crate::util::ArrayCastingError;
 
-const OWNER_ENC_SESSION_KEY_NAME: &'static str = "_ownerEncSessionKey";
-const OWNER_KEY_VERSION_NAME: &'static str = "_ownerKeyVersion";
-const OWNER_GROUP_NAME: &'static str = "_ownerGroup";
-const ID_NAME: &'static str = "_id";
-const BUCKET_KEY_NAME: &'static str = "bucketKey";
+/// The name of the `_ownerEncSessionKey` key in an entity
+const OWNER_ENC_SESSION_FIELD: &'static str = "_ownerEncSessionKey";
+const OWNER_KEY_VERSION_FIELD: &'static str = "_ownerKeyVersion";
+const OWNER_GROUP_FIELD: &'static str = "_ownerGroup";
+const ID_FIELD: &'static str = "_id";
+const BUCKET_KEY_FIELD: &'static str = "bucketKey";
 
 #[derive(uniffi::Object)]
 pub struct CryptoFacade {
     key_loader_facade: Arc<KeyLoaderFacade>,
-    randomizer_facade: Arc<dyn RandomizerFacade>,
+    randomizer_facade: Arc<RandomizerFacade>,
     update_queue: Mutex<Box<dyn OwnerEncSessionKeysUpdateQueue>>,
     instance_mapper: Arc<InstanceMapper>,
 }
 
 impl CryptoFacade {
+    ///
     pub fn resolve_session_key(&self, entity: &mut ParsedEntity, model: &TypeModel) -> Result<Option<GenericAesKey>, SessionKeyResolutionError> {
         if !model.encrypted {
             return Ok(None);
         }
 
-        if let Some(bucket_key_data) = entity.get(BUCKET_KEY_NAME) {
+        if let Some(bucket_key_data) = entity.get(BUCKET_KEY_FIELD) {
             let resolved_key = self.resolve_bucket_key(entity, model)?;
             return Ok(Some(resolved_key));
         }
@@ -60,13 +62,13 @@ impl CryptoFacade {
     }
 
     fn resolve_bucket_key(&self, entity: &mut ParsedEntity, model: &TypeModel) -> Result<GenericAesKey, SessionKeyResolutionError> {
-        let Some(ElementValue::Dict(bucket_key_map)) = entity.get(BUCKET_KEY_NAME) else {
-            return Err(SessionKeyResolutionError { reason: format!("{BUCKET_KEY_NAME} is not a dictionary type") });
+        let Some(ElementValue::Dict(bucket_key_map)) = entity.get(BUCKET_KEY_FIELD) else {
+            return Err(SessionKeyResolutionError { reason: format!("{BUCKET_KEY_FIELD} is not a dictionary type") });
         };
 
         let bucket_key: BucketKey = match self.instance_mapper.parse_entity(bucket_key_map.to_owned()) {
             Ok(n) => n,
-            Err(e) => return Err(SessionKeyResolutionError { reason: format!("{BUCKET_KEY_NAME} could not be deserialized: {e}") })
+            Err(e) => return Err(SessionKeyResolutionError { reason: format!("{BUCKET_KEY_FIELD} could not be deserialized: {e}") })
         };
 
         let owner_key_data = EntityOwnerKeyData::extract_owner_key_data(entity)?;
@@ -86,7 +88,7 @@ impl CryptoFacade {
 
         for instance_session_key in bucket_key.bucketEncSessionKeys {
             let decrypted_session_key = decrypted_bucket_key.decrypt_key(&instance_session_key.symEncSessionKey)?;
-            let iv = random(self.randomizer_facade.as_ref(), |rng| Iv::generate(rng));
+            let iv = Iv::generate(self.randomizer_facade.as_ref());
             let re_encrypted_session_key = decrypted_bucket_key.encrypt_key(&decrypted_session_key, iv);
 
             if &instance_session_key.instanceId == owner_key_data.instance_id {
@@ -110,7 +112,7 @@ impl CryptoFacade {
             );
         }
 
-        entity.insert(OWNER_ENC_SESSION_KEY_NAME.to_owned(), ElementValue::Bytes(sym_enc_session_key));
+        entity.insert(OWNER_ENC_SESSION_FIELD.to_owned(), ElementValue::Bytes(sym_enc_session_key));
 
         Ok(session_key)
     }
@@ -140,7 +142,7 @@ impl CryptoFacade {
         } else if let Some(group_enc_bucket_key) = &bucket_key.groupEncBucketKey {
             let key_group = match &bucket_key.keyGroup {
                 Some(n) => n,
-                None => match entity.get(OWNER_GROUP_NAME) {
+                None => match entity.get(OWNER_GROUP_FIELD) {
                     Some(ElementValue::IdGeneratedId(n)) => n,
                     _ => return Err(SessionKeyResolutionError { reason: "no owner group or key group information".to_owned() })
                 }
@@ -189,10 +191,10 @@ impl<'a> EntityOwnerKeyData<'a> {
             };
         }
 
-        let owner_enc_session_key = get_nullable_field!(entity, OWNER_ENC_SESSION_KEY_NAME, Bytes)?;
-        let owner_key_version = get_nullable_field!(entity, OWNER_KEY_VERSION_NAME, Number)?.map(|v| *v);
-        let owner_group = get_nullable_field!(entity, OWNER_GROUP_NAME, IdGeneratedId)?;
-        let (list_id, instance_id) = match entity.get(ID_NAME) {
+        let owner_enc_session_key = get_nullable_field!(entity, OWNER_ENC_SESSION_FIELD, Bytes)?;
+        let owner_key_version = get_nullable_field!(entity, OWNER_KEY_VERSION_FIELD, Number)?.map(|v| *v);
+        let owner_group = get_nullable_field!(entity, OWNER_GROUP_FIELD, IdGeneratedId)?;
+        let (list_id, instance_id) = match entity.get(ID_FIELD) {
             Some(ElementValue::IdGeneratedId(id)) => (None, id),
             Some(ElementValue::IdTupleId(IdTuple { list_id, element_id })) => (Some(list_id), element_id),
             None => return Err(SessionKeyResolutionError { reason: "no id present on instance".to_string() }),
@@ -236,14 +238,13 @@ mod test {
     use std::collections::HashMap;
     use std::sync::{Arc, Mutex};
     use crate::crypto::aes::{Aes256Key, Iv};
-    use crate::crypto::crypto_facade::{BUCKET_KEY_NAME, CryptoFacade, ID_NAME, OWNER_GROUP_NAME};
+    use crate::crypto::crypto_facade::CryptoFacade;
     use crate::crypto::ecc::EccKeyPair;
     use crate::crypto::key::GenericAesKey;
     use crate::crypto::key_loader_facade::{MockKeyLoaderFacade, VersionedAesKey};
-    use crate::crypto::randomizer_facade::random;
-    use crate::crypto::randomizer_facade::test_util::TestRandomizerFacade;
+    use crate::crypto::randomizer_facade::RandomizerFacade;
+    use crate::crypto::randomizer_facade::test_util::make_thread_rng_facade;
     use crate::crypto::tuta_crypt::{PQKeyPairs, PQMessage};
-    use crate::element_value::{ElementValue, ParsedEntity};
     use crate::entities::Entity;
     use crate::entities::sys::{BucketKey, InstanceSessionKey, TypeInfo};
     use crate::entities::tutanota::{Mail, MailAddress};
@@ -251,35 +252,24 @@ mod test {
     use crate::custom_id::CustomId;
     use crate::IdTuple;
     use crate::instance_mapper::InstanceMapper;
-    use crate::metamodel::{ElementType, TypeModel};
     use crate::owner_enc_session_keys_update_queue::MockOwnerEncSessionKeysUpdateQueue;
     use crate::type_model_provider::init_type_model_provider;
 
     #[test]
     fn test_bucket_key_resolves() {
-        let randomizer_facade = Arc::new(TestRandomizerFacade::new());
+        let randomizer_facade = Arc::new(make_thread_rng_facade());
         let mut update_queue = Box::new(MockOwnerEncSessionKeysUpdateQueue::new());
         update_queue.expect_queue_update_instance_session_key()
             .returning(|_, _, _| {})
             .once();
 
-        let (
-            group_key,
-            asymmetric_keypair,
-            ephemeral_keys,
-            encapsulation_iv,
-            bucket_enc_session_key_iv,
-            bucket_key,
-            mail_session_key
-        ) = random(randomizer_facade.as_ref(), |rng| (
-            GenericAesKey::from(Aes256Key::generate(rng)),
-            PQKeyPairs::generate(rng),
-            EccKeyPair::generate(rng),
-            Iv::generate(rng),
-            Iv::generate(rng),
-            Aes256Key::generate(rng),
-            GenericAesKey::from(Aes256Key::generate(rng)),
-        ));
+        let group_key = GenericAesKey::from(Aes256Key::generate(randomizer_facade.as_ref()));
+        let asymmetric_keypair = PQKeyPairs::generate(randomizer_facade.as_ref());
+        let ephemeral_keys = EccKeyPair::generate(randomizer_facade.as_ref());
+        let encapsulation_iv = Iv::generate(randomizer_facade.as_ref());
+        let bucket_enc_session_key_iv = Iv::generate(randomizer_facade.as_ref());
+        let bucket_key = Aes256Key::generate(randomizer_facade.as_ref());
+        let mail_session_key = GenericAesKey::from(Aes256Key::generate(randomizer_facade.as_ref()));
 
         let sender_key_version = 1;
         let recipient_key_version = sender_key_version;
