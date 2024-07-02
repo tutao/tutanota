@@ -1,27 +1,20 @@
-import m, { Children, Vnode } from "mithril"
-import { EntityUpdateData, isUpdateForTypeRef } from "../../common/api/common/utils/EntityUpdateUtils.js"
-import { ExtendedNotificationMode } from "../../common/native/common/generatedipc/ExtendedNotificationMode.js"
+import m, { Children } from "mithril"
 import Stream from "mithril/stream"
 import stream from "mithril/stream"
-import { PushIdentifier, PushIdentifierTypeRef, User } from "../../common/api/entities/sys/TypeRefs.js"
-import { locator } from "../../common/api/main/CommonLocator.js"
-import { lang } from "../../common/misc/LanguageViewModel.js"
-import { IconButton } from "../../common/gui/base/IconButton.js"
-import { Icons } from "../../common/gui/base/icons/Icons.js"
-import { ButtonSize } from "../../common/gui/base/ButtonSize.js"
-import { isApp, isDesktop } from "../../common/api/common/Env.js"
+import { UpdatableSettingsViewer } from "../../../common/settings/Interfaces.js"
+import { PushIdentifier, PushIdentifierTypeRef, User } from "../../../common/api/entities/sys/TypeRefs.js"
+import { locator } from "../../../common/api/main/MainLocator.js"
+import { isApp, isDesktop } from "../../../common/api/common/Env.js"
+import { lang } from "../../../common/misc/LanguageViewModel.js"
+import { IdentifierRow } from "../../../mail-app/settings/IdentifierRow.js"
 import { noOp, ofClass } from "@tutao/tutanota-utils"
-import { NotFoundError } from "../../common/api/common/error/RestError.js"
-import { PushServiceType } from "../../common/api/common/TutanotaConstants.js"
-import { IdentifierRow } from "./IdentifierRow.js"
-import { mailLocator } from "../mailLocator.js"
-import { UpdatableSettingsViewer } from "../../common/settings/Interfaces.js"
-import { SettingsNotificationContentPicker } from "./SettingsNotificationContentPicker.js"
-import { SettingsNotificationTargets, SettingsNotificationTargetsAttrs } from "../../common/settings/SettingsNotificationTargets.js"
+import { NotFoundError } from "../../../common/api/common/error/RestError.js"
+import { PushServiceType } from "../../../common/api/common/TutanotaConstants.js"
+import { SettingsNotificationTargets, SettingsNotificationTargetsAttrs } from "../../../common/settings/SettingsNotificationTargets.js"
+import { EntityUpdateData, isUpdateForTypeRef } from "../../../common/api/common/utils/EntityUpdateUtils.js"
 
 export class NotificationSettingsViewer implements UpdatableSettingsViewer {
 	private currentIdentifier: string | null = null
-	private extendedNotificationMode: ExtendedNotificationMode | null = null
 	private readonly expanded: Stream<boolean>
 	private readonly user: User
 	private identifiers: PushIdentifier[]
@@ -30,15 +23,6 @@ export class NotificationSettingsViewer implements UpdatableSettingsViewer {
 		this.expanded = stream<boolean>(false)
 		this.identifiers = []
 		this.user = locator.logins.getUserController().user
-
-		if (isApp() || isDesktop()) {
-			locator.pushService.getExtendedNotificationMode().then((e) => {
-				this.extendedNotificationMode = e
-
-				m.redraw()
-			})
-		}
-
 		this.loadPushIdentifiers()
 	}
 
@@ -48,16 +32,6 @@ export class NotificationSettingsViewer implements UpdatableSettingsViewer {
 	}
 
 	view(): Children {
-		const rowAdd = m(".full-width.flex-space-between.items-center.mb-s", [
-			lang.get("emailPushNotification_action"),
-			m(IconButton, {
-				title: "emailPushNotification_action",
-				click: () => this.showAddEmailNotificationDialog(),
-				icon: Icons.Add,
-				size: ButtonSize.Compact,
-			}),
-		])
-
 		const rows = this.identifiers
 			.map((identifier) => {
 				const isCurrentDevice = (isApp() || isDesktop()) && identifier.identifier === this.currentIdentifier
@@ -79,23 +53,9 @@ export class NotificationSettingsViewer implements UpdatableSettingsViewer {
 		return m(".fill-absolute.scroll.plr-l.pb-xl", [
 			m(".flex.col", [
 				m(".flex-space-between.items-center.mt-l.mb-s", [m(".h4", lang.get("notificationSettings_action"))]),
-				this.extendedNotificationMode
-					? m(SettingsNotificationContentPicker, {
-							extendedNotificationMode: this.extendedNotificationMode,
-							onChange: (value: ExtendedNotificationMode) => {
-								locator.pushService.setExtendedNotificationMode(value)
-								this.extendedNotificationMode = value
-							},
-					  })
-					: null,
-				m(SettingsNotificationTargets, { rows, rowAdd, onExpandedChange: this.expanded } satisfies SettingsNotificationTargetsAttrs),
+				m(SettingsNotificationTargets, { rowAdd: null, rows, onExpandedChange: this.expanded } satisfies SettingsNotificationTargetsAttrs),
 			]),
 		])
-	}
-
-	private async showAddEmailNotificationDialog() {
-		const dialog = await mailLocator.addNotificationEmailDialog()
-		dialog.show()
 	}
 
 	private identifierDisplayName(current: boolean, type: NumberString, displayName: string): string {

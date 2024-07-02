@@ -57,7 +57,6 @@ import { attachDropdown } from "../gui/base/Dropdown.js"
 import { createNotAvailableForFreeClickHandler } from "../misc/SubscriptionDialogs"
 import { SettingsExpander } from "../../mail-app/settings/SettingsExpander"
 import { elementIdPart, GENERATED_MAX_ID, getEtId } from "../api/common/utils/EntityUtils"
-import type { UpdatableSettingsViewer } from "../../mail-app/settings/SettingsView"
 import {
 	CURRENT_GIFT_CARD_TERMS_VERSION,
 	CURRENT_PRIVACY_VERSION,
@@ -76,6 +75,7 @@ import { MobilePaymentSubscriptionOwnership } from "../native/common/generatedip
 import { AppStorePaymentPicker } from "../misc/AppStorePaymentPicker.js"
 import { MobilePaymentError } from "../api/common/error/MobilePaymentError"
 import { showManageThroughAppStoreDialog } from "./PaymentViewer.js"
+import type { UpdatableSettingsViewer } from "../settings/Interfaces.js"
 
 assertMainOrNode()
 const DAY = 1000 * 60 * 60 * 24

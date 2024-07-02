@@ -12,7 +12,6 @@ import { deviceConfig } from "../common/misc/DeviceConfig.js"
 import { Logger, replaceNativeLogger } from "../common/api/common/Logger.js"
 import { applicationPaths } from "./calendar-applicationPaths.js"
 import { ProgrammingError } from "../common/api/common/error/ProgrammingError.js"
-import { NativeWebauthnView } from "../common/login/NativeWebauthnView.js"
 import type { LoginView, LoginViewAttrs } from "../common/login/LoginView.js"
 import type { LoginViewModel } from "../common/login/LoginViewModel.js"
 import { TerminationView, TerminationViewAttrs } from "../common/termination/TerminationView.js"
@@ -21,14 +20,15 @@ import { MobileWebauthnAttrs, MobileWebauthnView } from "../common/login/MobileW
 import { BrowserWebauthn } from "../common/misc/2fa/webauthn/BrowserWebauthn.js"
 import { CalendarView, CalendarViewAttrs } from "./calendar/view/CalendarView.js"
 import { DrawerMenuAttrs } from "../common/gui/nav/DrawerMenu.js"
-import { SettingsView, SettingsViewAttrs } from "../mail-app/settings/SettingsView.js"
-import { SearchView, SearchViewAttrs } from "../mail-app/search/view/SearchView.js"
 import { TopLevelAttrs, TopLevelView } from "../TopLevelView.js"
 import { AppHeaderAttrs } from "../common/gui/Header.js"
 import { CalendarViewModel } from "./calendar/view/CalendarViewModel.js"
 import { LoginController } from "../common/api/main/LoginController.js"
 import { SearchViewModel } from "../mail-app/search/view/SearchViewModel.js"
 import { initCommonLocator } from "../common/api/main/CommonLocator.js"
+import { SettingsViewAttrs } from "../common/settings/Interfaces.js"
+import { SettingsView } from "./calendar/view/SettingsView.js"
+import { SearchView, SearchViewAttrs } from "../mail-app/search/view/SearchView.js"
 
 assertMainOrNodeBoot()
 bootFinished()
@@ -169,7 +169,7 @@ import("../mail-app/translations/en.js")
 			settings: makeViewResolver<SettingsViewAttrs, SettingsView, { drawerAttrsFactory: () => DrawerMenuAttrs; header: AppHeaderAttrs }>(
 				{
 					prepareRoute: async () => {
-						const { SettingsView } = await import("../mail-app/settings/SettingsView.js")
+						const { SettingsView } = await import("../calendar-app/calendar/view/SettingsView.js")
 						const drawerAttrsFactory = await calendarLocator.drawerAttrsFactory()
 						return {
 							component: SettingsView,

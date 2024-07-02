@@ -4,10 +4,10 @@ import { locator } from "../../../common/api/main/CommonLocator.js"
 import { showProgressDialog } from "../../../common/gui/dialogs/ProgressDialog.js"
 import { lang } from "../../../common/misc/LanguageViewModel.js"
 import m from "mithril"
-import { NotAuthenticatedError } from "../../../common/api/common/error/RestError.js"
-import { PasswordForm, PasswordModel } from "../PasswordForm.js"
+import { NotAuthenticatedError } from "../../api/common/error/RestError.js"
+import { PasswordForm, PasswordModel } from "../../../mail-app/settings/PasswordForm.js"
 import { assertNotNull, ofClass } from "@tutao/tutanota-utils"
-import { asKdfType, DEFAULT_KDF_TYPE } from "../../../common/api/common/TutanotaConstants.js"
+import { asKdfType, DEFAULT_KDF_TYPE } from "../../api/common/TutanotaConstants.js"
 
 /**
  *The admin does not have to enter the old password in addition to the new password (twice). The password strength is not enforced.

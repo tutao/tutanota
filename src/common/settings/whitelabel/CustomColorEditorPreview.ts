@@ -1,14 +1,14 @@
 import m, { Children, Component } from "mithril"
-import { px, size } from "../../../common/gui/size"
-import { Button, ButtonType } from "../../../common/gui/base/Button.js"
-import { createMail, createMailAddress, Mail } from "../../../common/api/entities/tutanota/TypeRefs.js"
-import { MailRow } from "../../mail/view/MailRow"
+import { px, size } from "../../gui/size"
+import { Button, ButtonType } from "../../gui/base/Button.js"
+import { createMail, createMailAddress, Mail } from "../../api/entities/tutanota/TypeRefs.js"
+import { MailRow } from "../../../mail-app/mail/view/MailRow"
 import { noOp } from "@tutao/tutanota-utils"
-import { IconButton } from "../../../common/gui/base/IconButton.js"
-import { Icons } from "../../../common/gui/base/icons/Icons.js"
-import { ToggleButton } from "../../../common/gui/base/buttons/ToggleButton.js"
-import { isApp, isDesktop } from "../../../common/api/common/Env.js"
-import { LoginButton } from "../../../common/gui/base/buttons/LoginButton.js"
+import { IconButton } from "../../gui/base/IconButton.js"
+import { Icons } from "../../gui/base/icons/Icons.js"
+import { ToggleButton } from "../../gui/base/buttons/ToggleButton.js"
+import { isApp, isDesktop } from "../../api/common/Env.js"
+import { LoginButton } from "../../gui/base/buttons/LoginButton.js"
 
 export const BUTTON_WIDTH = 270
 

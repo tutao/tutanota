@@ -1,5 +1,4 @@
 import m, { Children } from "mithril"
-import type { UpdatableSettingsDetailsViewer, UpdatableSettingsViewer } from "./SettingsView"
 import type { KnowledgeBaseEntry, TemplateGroupRoot } from "../../common/api/entities/tutanota/TypeRefs.js"
 import { KnowledgeBaseEntryTypeRef } from "../../common/api/entities/tutanota/TypeRefs.js"
 import { lang } from "../../common/misc/LanguageViewModel"
@@ -30,6 +29,7 @@ import { showKnowledgeBaseEditor } from "./KnowledgeBaseEditor.js"
 import { keyManager } from "../../common/misc/KeyManager.js"
 import { EntityUpdateData, isUpdateForTypeRef } from "../../common/api/common/utils/EntityUpdateUtils.js"
 import { ListAutoSelectBehavior } from "../../common/misc/DeviceConfig.js"
+import { UpdatableSettingsDetailsViewer, UpdatableSettingsViewer } from "../../common/settings/Interfaces.js"
 
 assertMainOrNode()
 
