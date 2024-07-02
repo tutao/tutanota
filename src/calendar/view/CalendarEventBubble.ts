@@ -113,7 +113,19 @@ export class CalendarEventBubble implements Component<CalendarEventBubbleAttrs> 
 			const topSectionClass = topSectionMaxLines === 1 ? ".text-ellipsis" : ".text-ellipsis-multi-line"
 			return [
 				// The wrapper around `text` is needed to stop `-webkit-box` from changing the height
-				CalendarEventBubble.renderTextSection("", m(topSectionClass, text), topSectionMaxLines * lineHeight),
+				CalendarEventBubble.renderTextSection(
+					"",
+					m(
+						topSectionClass,
+						{
+							style: {
+								"-webkit-line-clamp": topSectionMaxLines, // This helps resizing the text to show as much as possible of its contents
+							},
+						},
+						text,
+					),
+					topSectionMaxLines * lineHeight,
+				),
 				secondLineText ? CalendarEventBubble.renderTextSection(".text-ellipsis", secondLineText, lineHeight) : null,
 			]
 		} else {

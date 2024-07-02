@@ -3,8 +3,7 @@ import type { TranslationKey } from "../misc/LanguageViewModel"
 import { lang } from "../misc/LanguageViewModel"
 import type { Country } from "../api/common/CountryList"
 import { CountryType } from "../api/common/CountryList"
-import type { PaymentData } from "../api/common/TutanotaConstants"
-import { PaymentMethodType } from "../api/common/TutanotaConstants"
+import { PaymentData, PaymentMethodType } from "../api/common/TutanotaConstants"
 import { PayPalLogo } from "../gui/base/icons/Icons"
 import { LazyLoaded, noOp, promiseMap } from "@tutao/tutanota-utils"
 import { showProgressDialog } from "../gui/dialogs/ProgressDialog"
@@ -40,6 +39,7 @@ export class PaymentMethodInput {
 		selectedCountry: Stream<Country | null>,
 		accountingInfo: AccountingInfo,
 		payPalRequestUrl: LazyLoaded<string>,
+		defaultPaymentMethod: PaymentMethodType,
 	) {
 		this._selectedCountry = selectedCountry
 		this._subscriptionOptions = subscriptionOptions
@@ -64,7 +64,7 @@ export class PaymentMethodInput {
 			}).then(noOp)
 		}
 
-		this._selectedPaymentMethod = PaymentMethodType.CreditCard
+		this._selectedPaymentMethod = defaultPaymentMethod
 	}
 
 	oncreate() {
@@ -76,38 +76,39 @@ export class PaymentMethodInput {
 	}
 
 	view(): Children {
-		if (this._selectedPaymentMethod === PaymentMethodType.Invoice) {
-			return m(
-				".flex-center",
-				m(
-					MessageBox,
-					{
-						style: {
-							marginTop: px(16),
+		switch (this._selectedPaymentMethod) {
+			case PaymentMethodType.Invoice:
+				return m(
+					".flex-center",
+					m(
+						MessageBox,
+						{
+							style: {
+								marginTop: px(16),
+							},
 						},
-					},
-					this.isOnAccountAllowed()
-						? lang.get("paymentMethodOnAccount_msg") + " " + lang.get("paymentProcessingTime_msg")
-						: lang.get("paymentMethodNotAvailable_msg"),
-				),
-			)
-		} else if (this._selectedPaymentMethod === PaymentMethodType.AccountBalance) {
-			return m(
-				".flex-center",
-				m(
-					MessageBox,
-					{
-						style: {
-							marginTop: px(16),
+						this.isOnAccountAllowed()
+							? lang.get("paymentMethodOnAccount_msg") + " " + lang.get("paymentProcessingTime_msg")
+							: lang.get("paymentMethodNotAvailable_msg"),
+					),
+				)
+			case PaymentMethodType.AccountBalance:
+				return m(
+					".flex-center",
+					m(
+						MessageBox,
+						{
+							style: {
+								marginTop: px(16),
+							},
 						},
-					},
-					lang.get("paymentMethodAccountBalance_msg"),
-				),
-			)
-		} else if (this._selectedPaymentMethod === PaymentMethodType.Paypal) {
-			return m(PaypalInput, this._payPalAttrs)
-		} else {
-			return m(SimplifiedCreditCardInput, { viewModel: this.ccViewModel as SimplifiedCreditCardViewModel })
+						lang.get("paymentMethodAccountBalance_msg"),
+					),
+				)
+			case PaymentMethodType.Paypal:
+				return m(PaypalInput, this._payPalAttrs)
+			default:
+				return m(SimplifiedCreditCardInput, { viewModel: this.ccViewModel as SimplifiedCreditCardViewModel })
 		}
 	}
 

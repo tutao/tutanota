@@ -5,9 +5,10 @@ import type { CertificateInfo, CreditCard, EmailSenderListElement, GroupMembersh
 import { AccountingInfo, Customer } from "../entities/sys/TypeRefs.js"
 import type { CalendarEventAttendee, ContactCustomDate, ContactRelationship, UserSettingsGroupRoot } from "../entities/tutanota/TypeRefs.js"
 import { ContactSocialId, MailFolder } from "../entities/tutanota/TypeRefs.js"
-import { isApp, isElectronClient } from "./Env"
+import { isApp, isElectronClient, isIOSApp } from "./Env"
 import type { Country } from "./CountryList"
 import { ProgrammingError } from "./error/ProgrammingError"
+import { AppStorePaymentPicker } from "../../misc/AppStorePaymentPicker.js"
 
 export const MAX_NBR_MOVE_DELETE_MAIL_SERVICE = 50
 
@@ -287,6 +288,15 @@ export enum PaymentMethodType {
 	Sepa = "2",
 	Paypal = "3",
 	AccountBalance = "4",
+	AppStore = "5",
+}
+
+export async function getDefaultPaymentMethod(appStorePaymentPicker: AppStorePaymentPicker): Promise<PaymentMethodType> {
+	if (isIOSApp() && (await appStorePaymentPicker.shouldEnableAppStorePayment(null))) {
+		return PaymentMethodType.AppStore
+	}
+
+	return PaymentMethodType.CreditCard
 }
 
 export const PaymentMethodTypeToName = reverse(PaymentMethodType)
@@ -659,6 +669,7 @@ export const enum UnsubscribeFailureReason {
 	NOT_ENOUGH_CREDIT = "unsubscribe.not_enough_credit",
 	INVOICE_NOT_PAID = "unsubscribe.invoice_not_paid",
 	HAS_CONTACT_LIST_GROUP = "unsubscribe.has_contact_list_group",
+	ACTIVE_APPSTORE_SUBSCRIPTION = "unsubscribe.active_appstore_subscription",
 }
 
 // legacy, should be deleted after clients older than 3.114 have been disabled.

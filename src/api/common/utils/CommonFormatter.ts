@@ -1,4 +1,3 @@
-import { neverNull } from "@tutao/tutanota-utils"
 import { getByAbbreviation } from "../CountryList.js"
 
 export function formatNameAndAddress(name: string, address: string, countryCode?: string): string {
@@ -16,12 +15,13 @@ export function formatNameAndAddress(name: string, address: string, countryCode?
 		result += address
 	}
 
-	if (countryCode) {
+	const country = countryCode && getByAbbreviation(countryCode)
+	if (country) {
 		if (result) {
 			result += "\n"
 		}
 
-		result += neverNull(getByAbbreviation(countryCode)).n
+		result += country.n
 	}
 
 	return result

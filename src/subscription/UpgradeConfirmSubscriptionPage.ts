@@ -3,20 +3,24 @@ import { Dialog } from "../gui/base/Dialog"
 import { lang } from "../misc/LanguageViewModel"
 import { formatPriceWithInfo, getPaymentMethodName, PaymentInterval } from "./PriceUtils"
 import { createSwitchAccountTypePostIn } from "../api/entities/sys/TypeRefs.js"
-import { AccountType, Const, PaymentMethodTypeToName } from "../api/common/TutanotaConstants"
+import { AccountType, Const, PaymentMethodType, PaymentMethodTypeToName } from "../api/common/TutanotaConstants"
 import { showProgressDialog } from "../gui/dialogs/ProgressDialog"
 import type { UpgradeSubscriptionData } from "./UpgradeSubscriptionWizard"
 import { BadGatewayError, PreconditionFailedError } from "../api/common/error/RestError"
-import { getPreconditionFailedPaymentMsg, UpgradeType } from "./SubscriptionUtils"
+import { appStorePlanName, getPreconditionFailedPaymentMsg, UpgradeType } from "./SubscriptionUtils"
 import type { WizardPageAttrs, WizardPageN } from "../gui/base/WizardDialog.js"
 import { emitWizardEvent, WizardEventType } from "../gui/base/WizardDialog.js"
 import { TextField } from "../gui/base/TextField.js"
-import { ofClass } from "@tutao/tutanota-utils"
+import { base64ExtToBase64, base64ToUint8Array, neverNull, ofClass } from "@tutao/tutanota-utils"
 import { locator } from "../api/main/MainLocator"
 import { SwitchAccountTypeService } from "../api/entities/sys/Services"
 import { UsageTest } from "@tutao/tutanota-usagetests"
 import { getDisplayNameOfPlanType, SelectedSubscriptionOptions } from "./FeatureListProvider"
 import { LoginButton } from "../gui/base/buttons/LoginButton.js"
+import { MobilePaymentResultType } from "../native/common/generatedipc/MobilePaymentResultType"
+import { updatePaymentData } from "./InvoiceAndPaymentDataPage"
+import { SessionType } from "../api/common/SessionType"
+import { MobilePaymentError } from "../api/common/error/MobilePaymentError.js"
 
 export class UpgradeConfirmSubscriptionPage implements WizardPageN<UpgradeSubscriptionData> {
 	private dom!: HTMLElement
@@ -34,7 +38,15 @@ export class UpgradeConfirmSubscriptionPage implements WizardPageN<UpgradeSubscr
 		return this.renderConfirmSubscription(attrs)
 	}
 
-	private upgrade(data: UpgradeSubscriptionData) {
+	private async upgrade(data: UpgradeSubscriptionData) {
+		// We return early because we do the upgrade after the user has submitted payment which is on the confirmation page
+		if (data.paymentData.paymentMethod === PaymentMethodType.AppStore) {
+			const success = await this.handleAppStorePayment(data)
+			if (!success) {
+				return
+			}
+		}
+
 		const serviceData = createSwitchAccountTypePostIn({
 			accountType: AccountType.PAID,
 			customer: null,
@@ -83,6 +95,50 @@ export class UpgradeConfirmSubscriptionPage implements WizardPageN<UpgradeSubscr
 					)
 				}),
 			)
+	}
+
+	/** @return whether subscribed successfully */
+	private async handleAppStorePayment(data: UpgradeSubscriptionData): Promise<boolean> {
+		if (!locator.logins.isUserLoggedIn()) {
+			await locator.logins.createSession(neverNull(data.newAccountData).mailAddress, neverNull(data.newAccountData).password, SessionType.Temporary)
+		}
+
+		const customerId = locator.logins.getUserController().user.customer!
+		const customerIdBytes = base64ToUint8Array(base64ExtToBase64(customerId))
+
+		try {
+			const result = await showProgressDialog(
+				"pleaseWait_msg",
+				locator.mobilePaymentsFacade.requestSubscriptionToPlan(appStorePlanName(data.type), data.options.paymentInterval(), customerIdBytes),
+			)
+			if (result.result !== MobilePaymentResultType.Success) {
+				return false
+			}
+		} catch (e) {
+			if (e instanceof MobilePaymentError) {
+				console.error("AppStore subscription failed", e)
+				Dialog.message("appStoreSubscriptionError_msg", e.message)
+				return false
+			} else {
+				throw e
+			}
+		}
+
+		const success = await updatePaymentData(
+			data.options.paymentInterval(),
+			data.invoiceData,
+			data.paymentData,
+			null,
+			data.newAccountData != null,
+			null,
+			data.accountingInfo!,
+		)
+
+		if (success) {
+			await locator.appStorePaymentPicker.markSubscribedStageAsComplete()
+		}
+
+		return success
 	}
 
 	private renderConfirmSubscription(attrs: WizardPageAttrs<UpgradeSubscriptionData>) {
@@ -161,6 +217,6 @@ export class UpgradeConfirmSubscriptionPage implements WizardPageN<UpgradeSubscr
 	}
 }
 
-function buildPriceString(price: NumberString, options: SelectedSubscriptionOptions): string {
-	return formatPriceWithInfo(Number(price), options.paymentInterval(), !options.businessUse())
+function buildPriceString(price: string, options: SelectedSubscriptionOptions): string {
+	return formatPriceWithInfo(price, options.paymentInterval(), !options.businessUse())
 }

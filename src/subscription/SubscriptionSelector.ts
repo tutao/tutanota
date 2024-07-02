@@ -17,10 +17,19 @@ import {
 } from "./FeatureListProvider"
 import { ProgrammingError } from "../api/common/error/ProgrammingError"
 import { Button, ButtonType } from "../gui/base/Button.js"
-import { downcast, lazy } from "@tutao/tutanota-utils"
-import { AvailablePlanType, HighlightedPlans, LegacyPlans, NewBusinessPlans, NewPersonalPlans, PlanType } from "../api/common/TutanotaConstants.js"
+import { downcast, lazy, NBSP } from "@tutao/tutanota-utils"
+import {
+	AvailablePlanType,
+	HighlightedPlans,
+	LegacyPlans,
+	NewBusinessPlans,
+	NewPersonalPlans,
+	PlanType,
+	PlanTypeToName,
+} from "../api/common/TutanotaConstants.js"
 import { px } from "../gui/size.js"
 import { LoginButton, LoginButtonAttrs } from "../gui/base/buttons/LoginButton.js"
+import { isIOSApp } from "../api/common/Env"
 
 const BusinessUseItems: SegmentControlItem<boolean>[] = [
 	{
@@ -97,7 +106,7 @@ export class SubscriptionSelector implements Component<SubscriptionSelectorAttr>
 		const onlyBusinessPlansAccepted = acceptedPlans.every((plan) => NewBusinessPlans.includes(plan))
 		const onlyPersonalPlansAccepted = acceptedPlans.every((plan) => NewPersonalPlans.includes(plan))
 		// Show the business segmentControl for signup, if both personal & business plans are allowed
-		const showBusinessSelector = !onlyBusinessPlansAccepted && !onlyPersonalPlansAccepted
+		const showBusinessSelector = !onlyBusinessPlansAccepted && !onlyPersonalPlansAccepted && !isIOSApp()
 
 		let subscriptionPeriodInfoMsg = !signup && currentPlan !== PlanType.Free ? lang.get("switchSubscriptionInfo_msg") + " " : ""
 		if (vnode.attrs.options.businessUse()) {
@@ -195,22 +204,39 @@ export class SubscriptionSelector implements Component<SubscriptionSelectorAttr>
 		const { priceAndConfigProvider } = selectorAttrs
 
 		// we highlight the center box if this is a signup or the current subscription type is Free
+		const interval = selectorAttrs.options.paymentInterval()
 		const upgradingToPaidAccount = !selectorAttrs.currentPlanType || selectorAttrs.currentPlanType === PlanType.Free
 		const highlighted = upgradingToPaidAccount && HighlightedPlans.includes(targetSubscription)
-		const subscriptionPrice = priceAndConfigProvider.getSubscriptionPrice(
-			selectorAttrs.options.paymentInterval(),
-			targetSubscription,
-			UpgradePriceType.PlanActualPrice,
-		)
+		const subscriptionPrice = priceAndConfigProvider.getSubscriptionPrice(interval, targetSubscription, UpgradePriceType.PlanActualPrice)
 		const multiuser = NewBusinessPlans.includes(targetSubscription) || LegacyPlans.includes(targetSubscription) || selectorAttrs.multipleUsersAllowed
+
+		let price: string
+		if (isIOSApp()) {
+			const prices = priceAndConfigProvider.getMobilePrices().get(PlanTypeToName[targetSubscription].toLowerCase())
+			if (prices != null) {
+				switch (interval) {
+					case PaymentInterval.Monthly:
+						price = prices.monthlyPerMonth
+						break
+					case PaymentInterval.Yearly:
+						price = prices.yearlyPerMonth
+						break
+				}
+			} else {
+				price = NBSP
+			}
+		} else {
+			price = formatMonthlyPrice(subscriptionPrice, interval)
+		}
+
 		return {
 			heading: getDisplayNameOfPlanType(targetSubscription),
 			actionButton:
 				selectorAttrs.currentPlanType === targetSubscription
 					? getActiveSubscriptionActionButtonReplacement()
 					: getActionButtonBySubscription(selectorAttrs.actionButtons, targetSubscription),
-			price: formatMonthlyPrice(subscriptionPrice, selectorAttrs.options.paymentInterval()),
-			priceHint: getPriceHint(subscriptionPrice, selectorAttrs.options.paymentInterval(), multiuser),
+			price,
+			priceHint: getPriceHint(subscriptionPrice, interval, multiuser),
 			helpLabel: getHelpLabel(targetSubscription, selectorAttrs.options.businessUse()),
 			width: selectorAttrs.boxWidth,
 			height: selectorAttrs.boxHeight,
@@ -219,7 +245,7 @@ export class SubscriptionSelector implements Component<SubscriptionSelectorAttr>
 			showReferenceDiscount: selectorAttrs.allowSwitchingPaymentInterval,
 			mobile,
 			bonusMonths:
-				targetSubscription !== PlanType.Free && selectorAttrs.options.paymentInterval() === PaymentInterval.Yearly
+				targetSubscription !== PlanType.Free && interval === PaymentInterval.Yearly
 					? Number(selectorAttrs.priceAndConfigProvider.getRawPricingData().bonusMonthsForYearlyPlan)
 					: 0,
 		}

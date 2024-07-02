@@ -192,9 +192,15 @@ export class UpgradeSubscriptionPage implements WizardPageN<UpgradeSubscriptionD
 		}
 		data.type = planType
 		const { planPrices, options } = data
-		data.price = String(planPrices.getSubscriptionPrice(options.paymentInterval(), data.type, UpgradePriceType.PlanActualPrice))
-		let nextYear = String(planPrices.getSubscriptionPrice(options.paymentInterval(), data.type, UpgradePriceType.PlanNextYearsPrice))
-		data.priceNextYear = data.price !== nextYear ? nextYear : null
+		try {
+			data.price = planPrices.getSubscriptionPriceWithCurrency(options.paymentInterval(), data.type, UpgradePriceType.PlanActualPrice)
+			const nextYear = planPrices.getSubscriptionPriceWithCurrency(options.paymentInterval(), data.type, UpgradePriceType.PlanNextYearsPrice)
+			data.priceNextYear = data.price !== nextYear ? nextYear : null
+		} catch (e) {
+			console.error(e)
+			Dialog.message("appStoreNotAvailable_msg")
+			return
+		}
 		this.showNextPage()
 	}
 
@@ -289,6 +295,6 @@ export class UpgradeSubscriptionPageAttrs implements WizardPageAttrs<UpgradeSubs
 	}
 
 	isEnabled(): boolean {
-		return !(isApp() && client.isIos())
+		return true
 	}
 }

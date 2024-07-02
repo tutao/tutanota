@@ -1724,6 +1724,18 @@ export default {
 		"yourCalendars_label": "Your calendars",
 		"yourFolders_action": "YOUR FOLDERS",
 		"yourMessage_label": "Your message",
-		"you_label": "You"
+		"you_label": "You",
+		"storeSubscription_msg": "Store made subscriptions should be directly managed in the AppStore.\nSee {AppStorePayment}",
+		"storeMultiSubscriptionError_msg": "You can't have multiple subscriptions with the same Apple ID.\nSee {AppStorePayment}",
+		"storeNoSubscription_msg": "There's no subscription able to be changed on the current Apple ID.\nSee {AppStorePayment}",
+		"storePaymentMethodChange_msg": "You can't change you payment method while subscribed through AppStore.\nSee {AppStorePaymentChange}",
+		"storeDowngradeOrResubscribe_msg": "Your current AppStore subscription is expired. Do you want to downgrade your account or resubscribe to keep your paid features?\nSee {AppStoreDowngrade}",
+		"resubscribe_action": "Resubscribe",
+		"changePlan_action": "Change plan",
+
+		"redeemGiftCardWithAppStoreSubscription_msg": "You cannot redeem a gift card while there is an App Store subscription.",
+		"deleteAccountWithAppStoreSubscription_msg": "You cannot delete your account while there is an App Store subscription. You will need to cancel it from the App Store first. See {AppStorePayment}",
+		"appStoreNotAvailable_msg": "App Store subscriptions are not available at the moment",
+		"appStoreSubscriptionError_msg": "Sorry, the payment transaction failed. Please try again later or contact support."
 	}
 }

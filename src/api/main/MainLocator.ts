@@ -116,6 +116,8 @@ import { MobileAppLock, NoOpAppLock } from "../../login/AppLock.js"
 import { PostLoginActions } from "../../login/PostLoginActions.js"
 import { SystemPermissionHandler } from "../../native/main/SystemPermissionHandler.js"
 import { RecoverCodeFacade } from "../worker/facades/lazy/RecoverCodeFacade.js"
+import { MobilePaymentsFacade } from "../../native/common/generatedipc/MobilePaymentsFacade.js"
+import { AppStorePaymentPicker } from "../../misc/AppStorePaymentPicker.js"
 
 assertMainOrNode()
 
@@ -170,6 +172,7 @@ class MainLocator {
 	operationProgressTracker!: OperationProgressTracker
 	infoMessageHandler!: InfoMessageHandler
 	Const!: Record<string, any>
+	appStorePaymentPicker!: AppStorePaymentPicker
 
 	private nativeInterfaces: NativeInterfaces | null = null
 	private entropyFacade!: EntropyFacade
@@ -486,6 +489,10 @@ class MainLocator {
 		return this.getNativeInterface("nativeCredentialsFacade")
 	}
 
+	get mobilePaymentsFacade(): MobilePaymentsFacade {
+		return this.getNativeInterface("mobilePaymentsFacade")
+	}
+
 	async mailAddressTableModelForOwnMailbox(): Promise<MailAddressTableModel> {
 		const { MailAddressTableModel } = await import("../../settings/mailaddress/MailAddressTableModel.js")
 		const nameChanger = await this.ownMailAddressNameChanger()
@@ -786,6 +793,7 @@ class MainLocator {
 		this.contactModel = new ContactModel(this.searchFacade, this.entityClient, this.logins, this.eventController)
 		this.minimizedMailModel = new MinimizedMailEditorViewModel()
 		this.usageTestController = new UsageTestController(this.usageTestModel)
+		this.appStorePaymentPicker = new AppStorePaymentPicker()
 	}
 
 	readonly calendarModel: () => Promise<CalendarModel> = lazyMemoized(async () => {

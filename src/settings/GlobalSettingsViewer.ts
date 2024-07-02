@@ -3,14 +3,20 @@ import { DAY_IN_MILLIS, LazyLoaded, neverNull, noOp, ofClass, promiseMap } from 
 import { InfoLink, lang } from "../misc/LanguageViewModel"
 import { getSpamRuleFieldToName, getSpamRuleTypeNameMapping, showAddSpamRuleDialog } from "./AddSpamRuleDialog"
 import { getSpamRuleField, GroupType, OperationType, SpamRuleFieldType, SpamRuleType } from "../api/common/TutanotaConstants"
-import { AuditLogEntry, createSurveyData, Customer, CustomerInfo, CustomerServerProperties, DomainInfo, GroupInfo } from "../api/entities/sys/TypeRefs.js"
 import {
+	AuditLogEntry,
 	AuditLogEntryTypeRef,
 	createEmailSenderListElement,
+	createSurveyData,
+	Customer,
+	CustomerInfo,
 	CustomerInfoTypeRef,
 	CustomerPropertiesTypeRef,
+	CustomerServerProperties,
 	CustomerServerPropertiesTypeRef,
 	CustomerTypeRef,
+	DomainInfo,
+	GroupInfo,
 	GroupInfoTypeRef,
 	GroupTypeRef,
 	RejectedSenderTypeRef,
@@ -49,6 +55,7 @@ import { EntityUpdateData, isUpdateForTypeRef } from "../api/common/utils/Entity
 import { LoginButton } from "../gui/base/buttons/LoginButton.js"
 import { showLeavingUserSurveyWizard } from "../subscription/LeavingUserSurveyWizard.js"
 import { SURVEY_VERSION_NUMBER } from "../subscription/LeavingUserSurveyConstants.js"
+import { hasRunningAppStoreSubscription } from "../subscription/SubscriptionUtils.js"
 
 assertMainOrNode()
 // Number of days for that we load rejected senders
@@ -300,21 +307,30 @@ export class GlobalSettingsViewer implements UpdatableSettingsViewer {
 								},
 								m(LoginButton, {
 									label: "adminDeleteAccount_action",
-									onclick: () => {
+									onclick: async () => {
 										const isPremium = locator.logins.getUserController().isPremiumAccount()
-										showLeavingUserSurveyWizard(isPremium, false).then((reason) => {
-											if (reason.submitted && reason.category && reason.reason) {
-												const surveyData = createSurveyData({
-													category: reason.category,
-													details: reason.details,
-													reason: reason.reason,
-													version: SURVEY_VERSION_NUMBER,
-												})
-												showDeleteAccountDialog(surveyData)
-											} else {
-												showDeleteAccountDialog()
+										if (isPremium) {
+											const accountingInfo = await locator.logins.getUserController().loadAccountingInfo()
+											if (hasRunningAppStoreSubscription(accountingInfo)) {
+												await Dialog.message(() =>
+													lang.get("deleteAccountWithAppStoreSubscription_msg", { "{AppStorePayment}": InfoLink.AppStorePayment }),
+												)
+												return
 											}
-										})
+										}
+
+										const reason = await showLeavingUserSurveyWizard(isPremium, false)
+										if (reason.submitted && reason.category && reason.reason) {
+											const surveyData = createSurveyData({
+												category: reason.category,
+												details: reason.details,
+												reason: reason.reason,
+												version: SURVEY_VERSION_NUMBER,
+											})
+											showDeleteAccountDialog(surveyData)
+										} else {
+											showDeleteAccountDialog()
+										}
 									},
 								}),
 							),

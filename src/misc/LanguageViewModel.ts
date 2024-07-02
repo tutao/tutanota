@@ -160,6 +160,9 @@ export const enum InfoLink {
 	Download = "https://tuta.com/#download",
 	SharedMailboxes = "https://tuta.com/support/#shared-mailboxes",
 	InactiveAccounts = "https://tuta.com/faq/#inactive-accounts",
+	AppStorePaymentChange = "https://tuta.com/support/#appstore-payment-change",
+	AppStorePayment = "https://tuta.com/support/#appstore-payments",
+	AppStoreDowngrade = "https://tuta.com/support/#appstore-subscription-downgrade",
 }
 
 /**

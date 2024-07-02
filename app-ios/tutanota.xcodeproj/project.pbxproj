@@ -74,6 +74,10 @@
 		3D4E3CA028EC5B43001FA9D1 /* Foundation.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 3D4E3C9F28EC5B43001FA9D1 /* Foundation.framework */; };
 		3D4E3CA228EC5C4F001FA9D1 /* IosSqlCipherFade.swift in Sources */ = {isa = PBXBuildFile; fileRef = 3D4E3CA128EC5C4F001FA9D1 /* IosSqlCipherFade.swift */; };
 		3D4F5EA52C11DD3900477585 /* Alamofire in Frameworks */ = {isa = PBXBuildFile; productRef = 3D4F5EA42C11DD3900477585 /* Alamofire */; };
+		3D4E3CA828EC63A6001FA9D1 /* sqlite3.c in Sources */ = {isa = PBXBuildFile; fileRef = 3D4E3C9C28EC5A3D001FA9D1 /* sqlite3.c */; settings = {COMPILER_FLAGS = "-Wno-everything"; }; };
+		3D4E3CAA28EC6787001FA9D1 /* sqlite3.h in Headers */ = {isa = PBXBuildFile; fileRef = 3D4E3C9B28EC5A3D001FA9D1 /* sqlite3.h */; };
+		3D4F1BFA26EBADE500E87BF5 /* TUTBigNum.m in Sources */ = {isa = PBXBuildFile; fileRef = 3D4F1BF926EBADE500E87BF5 /* TUTBigNum.m */; };
+		3D4F1BFB26EBADE500E87BF5 /* TUTBigNum.m in Sources */ = {isa = PBXBuildFile; fileRef = 3D4F1BF926EBADE500E87BF5 /* TUTBigNum.m */; };
 		3D51A08F2BE90A4F0036B966 /* CancelledError.swift in Sources */ = {isa = PBXBuildFile; fileRef = 3D7A107F29472A6000311B6B /* CancelledError.swift */; };
 		3D5C6FA12B7BC15D00342E8C /* PermissionError.swift in Sources */ = {isa = PBXBuildFile; fileRef = 3D5C6FA02B7BC15D00342E8C /* PermissionError.swift */; };
 		3D648B202AB98BEA00893C8D /* argon2.h in Headers */ = {isa = PBXBuildFile; fileRef = 3D648B0F2AB98BEA00893C8D /* argon2.h */; };
@@ -96,6 +100,10 @@
 		3D73DA312731953E008E7A8A /* RemoteProtocol.swift in Sources */ = {isa = PBXBuildFile; fileRef = 3D73DA302731953E008E7A8A /* RemoteProtocol.swift */; };
 		3D7733C12C135002008F0715 /* tutasdk.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 3D7733C02C135002008F0715 /* tutasdk.framework */; };
 		3D7733C52C1353B4008F0715 /* tutasdk.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 3D7733C42C1353B4008F0715 /* tutasdk.framework */; };
+		3D73DA3427319A91008E7A8A /* Operation.swift in Sources */ = {isa = PBXBuildFile; fileRef = 3D73DA3327319A91008E7A8A /* Operation.swift */; };
+		3D78ACB52B600FB6009C9EED /* StructuredContactTypes.swift in Sources */ = {isa = PBXBuildFile; fileRef = 3D78ACB42B600FB6009C9EED /* StructuredContactTypes.swift */; };
+		3D7A108029472A6000311B6B /* CancelledError.swift in Sources */ = {isa = PBXBuildFile; fileRef = 3D7A107F29472A6000311B6B /* CancelledError.swift */; };
+		3D828BF92BFCF6970096BD70 /* MobilePaymentSubscriptionOwnership.swift in Sources */ = {isa = PBXBuildFile; fileRef = 3D828BF82BFCF6970096BD70 /* MobilePaymentSubscriptionOwnership.swift */; };
 		3D84F56B2721B92C00858A58 /* MissedNotification.swift in Sources */ = {isa = PBXBuildFile; fileRef = 3D84F56A2721B92C00858A58 /* MissedNotification.swift */; };
 		3D84F5732722F35600858A58 /* IosNativeCryptoFacade.swift in Sources */ = {isa = PBXBuildFile; fileRef = 3D84F5722722F35600858A58 /* IosNativeCryptoFacade.swift */; };
 		3D84F5762723112400858A58 /* FileViewer.swift in Sources */ = {isa = PBXBuildFile; fileRef = 3D84F5752723112400858A58 /* FileViewer.swift */; };
@@ -321,6 +329,13 @@
 		3DF977112BB1A98600AF3FDE /* SharingStorage.swift in Sources */ = {isa = PBXBuildFile; fileRef = 3D448A8A292BB1D00030DB2F /* SharingStorage.swift */; };
 		3DF977122BB1A98B00AF3FDE /* SharingUtils.swift in Sources */ = {isa = PBXBuildFile; fileRef = 3D3B516129376C2200C1B7DA /* SharingUtils.swift */; };
 		3DF977142BB1AA1A00AF3FDE /* FileUtils.swift in Sources */ = {isa = PBXBuildFile; fileRef = 3D84F56C2722CEF900858A58 /* FileUtils.swift */; };
+		3DF98F572C09C23F001DF50F /* MobilePaymentResult.swift in Sources */ = {isa = PBXBuildFile; fileRef = 3DF98F512C09C23E001DF50F /* MobilePaymentResult.swift */; };
+		3DF98F582C09C23F001DF50F /* MobilePaymentsFacadeReceiveDispatcher.swift in Sources */ = {isa = PBXBuildFile; fileRef = 3DF98F522C09C23E001DF50F /* MobilePaymentsFacadeReceiveDispatcher.swift */; };
+		3DF98F592C09C23F001DF50F /* MobilePaymentsFacade.swift in Sources */ = {isa = PBXBuildFile; fileRef = 3DF98F532C09C23E001DF50F /* MobilePaymentsFacade.swift */; };
+		3DF98F5A2C09C23F001DF50F /* MobilePaymentResultType.swift in Sources */ = {isa = PBXBuildFile; fileRef = 3DF98F542C09C23E001DF50F /* MobilePaymentResultType.swift */; };
+		3DF98F5B2C09C23F001DF50F /* MobilePaymentSubscriptionOwnership.swift in Sources */ = {isa = PBXBuildFile; fileRef = 3DF98F552C09C23E001DF50F /* MobilePaymentSubscriptionOwnership.swift */; };
+		3DF98F5C2C09C23F001DF50F /* MobilePlanPrice.swift in Sources */ = {isa = PBXBuildFile; fileRef = 3DF98F562C09C23F001DF50F /* MobilePlanPrice.swift */; };
+		3DF98F612C09C278001DF50F /* IosMobilePaymentsFacade.swift in Sources */ = {isa = PBXBuildFile; fileRef = 3DF98F5F2C09C278001DF50F /* IosMobilePaymentsFacade.swift */; };
 		46C85EE24585B8E78AC80BCA /* TutanotaSharedTests-TutanotaSharedFrameworkMocks.generated.swift in Sources */ = {isa = PBXBuildFile; fileRef = 569F115EE0B682B51925D484 /* TutanotaSharedTests-TutanotaSharedFrameworkMocks.generated.swift */; };
 /* End PBXBuildFile section */
 
@@ -629,7 +644,6 @@
 		3DEF18F72924E1F1009C4B55 /* Info.plist */ = {isa = PBXFileReference; lastKnownFileType = text.plist.xml; path = Info.plist; sourceTree = "<group>"; };
 		3DEFA1C82BE8D99A009460AE /* AppLockMethod.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = AppLockMethod.swift; sourceTree = "<group>"; };
 		3DEFA1CA2BE8F1C8009460AE /* KeychainEncryption.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = KeychainEncryption.swift; sourceTree = "<group>"; };
-		3DF257DB2C00D14F00B5D993 /* sdktest.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = sdktest.swift; sourceTree = "<group>"; };
 		3DF7FA592AB2EE3B00DB08D1 /* Argon2.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Argon2.swift; sourceTree = "<group>"; };
 		3DF7FA5D2AB2FBE700DB08D1 /* CompatibilityTestSwift.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CompatibilityTestSwift.swift; sourceTree = "<group>"; };
 		3DF9739E2BB18ABA00AF3FDE /* TutanotaSharedFramework.framework */ = {isa = PBXFileReference; explicitFileType = wrapper.framework; includeInIndex = 0; path = TutanotaSharedFramework.framework; sourceTree = BUILT_PRODUCTS_DIR; };
@@ -752,6 +766,13 @@
 		3DF9770E2BB1A76100AF3FDE /* TutanotaShareExtensionDebug Staging.entitlements */ = {isa = PBXFileReference; lastKnownFileType = text.plist.entitlements; path = "TutanotaShareExtensionDebug Staging.entitlements"; sourceTree = "<group>"; };
 		3DF9770F2BB1A76A00AF3FDE /* TutanotaShareExtensionRelease Development.entitlements */ = {isa = PBXFileReference; lastKnownFileType = text.plist.entitlements; path = "TutanotaShareExtensionRelease Development.entitlements"; sourceTree = "<group>"; };
 		3DF977102BB1A79000AF3FDE /* TutanotaShareExtensionRelease Staging.entitlements */ = {isa = PBXFileReference; lastKnownFileType = text.plist.entitlements; path = "TutanotaShareExtensionRelease Staging.entitlements"; sourceTree = "<group>"; };
+		3DF98F512C09C23E001DF50F /* MobilePaymentResult.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = MobilePaymentResult.swift; sourceTree = "<group>"; };
+		3DF98F522C09C23E001DF50F /* MobilePaymentsFacadeReceiveDispatcher.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = MobilePaymentsFacadeReceiveDispatcher.swift; sourceTree = "<group>"; };
+		3DF98F532C09C23E001DF50F /* MobilePaymentsFacade.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = MobilePaymentsFacade.swift; sourceTree = "<group>"; };
+		3DF98F542C09C23E001DF50F /* MobilePaymentResultType.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = MobilePaymentResultType.swift; sourceTree = "<group>"; };
+		3DF98F552C09C23E001DF50F /* MobilePaymentSubscriptionOwnership.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = MobilePaymentSubscriptionOwnership.swift; sourceTree = "<group>"; };
+		3DF98F562C09C23F001DF50F /* MobilePlanPrice.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = MobilePlanPrice.swift; sourceTree = "<group>"; };
+		3DF98F5F2C09C278001DF50F /* IosMobilePaymentsFacade.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = IosMobilePaymentsFacade.swift; sourceTree = "<group>"; };
 		569F115EE0B682B51925D484 /* TutanotaSharedTests-TutanotaSharedFrameworkMocks.generated.swift */ = {isa = PBXFileReference; explicitFileType = sourcecode.swift; name = "TutanotaSharedTests-TutanotaSharedFrameworkMocks.generated.swift"; path = "MockingbirdMocks/TutanotaSharedTests-TutanotaSharedFrameworkMocks.generated.swift"; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
@@ -776,7 +797,6 @@
 				3D4E3C9E28EC5B31001FA9D1 /* Security.framework in Frameworks */,
 				3DF973A42BB18ABB00AF3FDE /* TutanotaSharedFramework.framework in Frameworks */,
 				3D3B5169293797DC00C1B7DA /* Atomics in Frameworks */,
-				3D881B0D2C04B48800E629BE /* tutasdk.framework in Frameworks */,
 				3DDB5E6F28FDA59100E1E4BE /* libcrypto.xcframework in Frameworks */,
 				3D4E3CA028EC5B43001FA9D1 /* Foundation.framework in Frameworks */,
 			);
@@ -1039,7 +1059,7 @@
 		3D74536121089D2200B16F2E /* Sources */ = {
 			isa = PBXGroup;
 			children = (
-				3DF257DB2C00D14F00B5D993 /* sdktest.swift */,
+				3DF98F5E2C09C278001DF50F /* Payment */,
 				3D51A0902BE913AB0036B966 /* AppLockHandler.swift */,
 				3DAED2AD29A6266800806DEA /* Push */,
 				3D220203293F75B000366FD2 /* Webauthn */,
@@ -1121,7 +1141,7 @@
 			isa = PBXGroup;
 			children = (
 				3D7733C42C1353B4008F0715 /* tutasdk.framework */,
-				3D7733C02C135002008F0715 /* tutasdk.framework */,
+				3D246D8F2BA883E400F5B3BE /* StoreKit.framework */,
 				3D881B0C2C04B48800E629BE /* tutasdk.framework */,
 				3D881B092C04925400E629BE /* tutasdk.framework */,
 				3D881B062C04920700E629BE /* tutasdk.framework */,
@@ -1916,6 +1936,12 @@
 		3DF976582BB1A2B900AF3FDE /* GeneratedIpc */ = {
 			isa = PBXGroup;
 			children = (
+				3DF98F512C09C23E001DF50F /* MobilePaymentResult.swift */,
+				3DF98F542C09C23E001DF50F /* MobilePaymentResultType.swift */,
+				3DF98F532C09C23E001DF50F /* MobilePaymentsFacade.swift */,
+				3DF98F522C09C23E001DF50F /* MobilePaymentsFacadeReceiveDispatcher.swift */,
+				3DF98F552C09C23E001DF50F /* MobilePaymentSubscriptionOwnership.swift */,
+				3DF98F562C09C23F001DF50F /* MobilePlanPrice.swift */,
 				3DEFA1C82BE8D99A009460AE /* AppLockMethod.swift */,
 				3D414C9B2BD7AFC70098F018 /* UnencryptedCredentials.swift */,
 				3DF976912BB1A2B900AF3FDE /* CommonNativeFacade.swift */,
@@ -1990,6 +2016,14 @@
 				3D84F56C2722CEF900858A58 /* FileUtils.swift */,
 			);
 			path = Files;
+			sourceTree = "<group>";
+		};
+		3DF98F5E2C09C278001DF50F /* Payment */ = {
+			isa = PBXGroup;
+			children = (
+				3DF98F5F2C09C278001DF50F /* IosMobilePaymentsFacade.swift */,
+			);
+			path = Payment;
 			sourceTree = "<group>";
 		};
 		CA9955A73D4B56D09B230F54 /* Generated Mocks */ = {
@@ -2665,6 +2699,7 @@
 				3DD10DB227EA148D0076C9A2 /* BlobUtil.swift in Sources */,
 				3D0E44A52B3C3CE500F933A1 /* cbd.c in Sources */,
 				3D3AFAF2285CB2CF0077F302 /* IosCommonSystemFacade.swift in Sources */,
+				3DF98F612C09C278001DF50F /* IosMobilePaymentsFacade.swift in Sources */,
 				3D84F57C27231F1F00858A58 /* Serialization.swift in Sources */,
 				3D0E44B92B3C3CE500F933A1 /* KeccakP-1600-opt64.c in Sources */,
 				3D4A426529B63E1E00B10451 /* AlarmPersistor.swift in Sources */,
@@ -2675,7 +2710,6 @@
 				3D4A426729B6453700B10451 /* AlarmScheduler.swift in Sources */,
 				3D0E44A72B3C3CE500F933A1 /* poly.c in Sources */,
 				3D4A426329B63C0E00B10451 /* AlarmCryptor.swift in Sources */,
-				3D881A9D2C04631300E629BE /* sdktest.swift in Sources */,
 				3D4D78272B62610200829803 /* IosMobileContactsFacade.swift in Sources */,
 				3DDE413B28F4665700837BE6 /* SqlCipherDb.swift in Sources */,
 				3DF7FA5A2AB2EE3B00DB08D1 /* Argon2.swift in Sources */,
@@ -2746,6 +2780,7 @@
 				3DF9769A2BB1A2B900AF3FDE /* EncryptedAlarmInfo.swift in Sources */,
 				3DF976EE2BB1A2B900AF3FDE /* ErrorInfo.swift in Sources */,
 				3DF976D12BB1A2B900AF3FDE /* DownloadTaskResponse.swift in Sources */,
+				3DF98F5A2C09C23F001DF50F /* MobilePaymentResultType.swift in Sources */,
 				3DF976EF2BB1A2B900AF3FDE /* ElectronResult.swift in Sources */,
 				3DF976B72BB1A2B900AF3FDE /* CredentialType.swift in Sources */,
 				3DF976BF2BB1A2B900AF3FDE /* WebAuthnFacadeReceiveDispatcher.swift in Sources */,
@@ -2769,6 +2804,7 @@
 				3DF976B82BB1A2B900AF3FDE /* SqliteStatement.swift in Sources */,
 				3DF976F22BB1A2B900AF3FDE /* KyberKeyPair.swift in Sources */,
 				3DF976E42BB1A2B900AF3FDE /* WebAuthnRegistrationResult.swift in Sources */,
+				3DF98F592C09C23F001DF50F /* MobilePaymentsFacade.swift in Sources */,
 				3DF976CD2BB1A2B900AF3FDE /* CredentialsInfo.swift in Sources */,
 				3DF976FB2BB1A2B900AF3FDE /* SqliteDb.swift in Sources */,
 				3DF976C82BB1A2B900AF3FDE /* WebauthnKeyDescriptor.swift in Sources */,
@@ -2786,6 +2822,7 @@
 				3DF976CB2BB1A2B900AF3FDE /* CommonSystemFacadeReceiveDispatcher.swift in Sources */,
 				3DF976CE2BB1A2B900AF3FDE /* RsaPublicKey.swift in Sources */,
 				3DF976F42BB1A2B900AF3FDE /* NativeKey.swift in Sources */,
+				3DF98F5B2C09C23F001DF50F /* MobilePaymentSubscriptionOwnership.swift in Sources */,
 				3DF976CF2BB1A2B900AF3FDE /* SqlCipherFacade.swift in Sources */,
 				3D51A08F2BE90A4F0036B966 /* CancelledError.swift in Sources */,
 				3DF976BC2BB1A2B900AF3FDE /* IosNativeCredentialsFacade.swift in Sources */,
@@ -2797,6 +2834,7 @@
 				3DF976E22BB1A2B900AF3FDE /* NativeInterface.swift in Sources */,
 				3DF976E32BB1A2B900AF3FDE /* KyberEncapsulation.swift in Sources */,
 				3DF976B92BB1A2B900AF3FDE /* DataFile.swift in Sources */,
+				3DF98F582C09C23F001DF50F /* MobilePaymentsFacadeReceiveDispatcher.swift in Sources */,
 				3DF976E12BB1A2B900AF3FDE /* SqlCipherFacadeReceiveDispatcher.swift in Sources */,
 				3DF976FA2BB1A2B900AF3FDE /* NativePushFacade.swift in Sources */,
 				3DF976DA2BB1A2B900AF3FDE /* ThemeFacadeReceiveDispatcher.swift in Sources */,
@@ -2810,6 +2848,7 @@
 				3DF976B52BB1A2B900AF3FDE /* IdTuple.swift in Sources */,
 				3DD4C44A2BEA77FD0069073A /* CryptoFunctions.swift in Sources */,
 				3DEFA1CB2BE8F1C8009460AE /* KeychainEncryption.swift in Sources */,
+				3DF98F572C09C23F001DF50F /* MobilePaymentResult.swift in Sources */,
 				3DF976C92BB1A2B900AF3FDE /* RsaKeyPair.swift in Sources */,
 				3DF976D72BB1A2B900AF3FDE /* MobileFacade.swift in Sources */,
 				3DF9769C2BB1A2B900AF3FDE /* ValueEncryption.swift in Sources */,
@@ -2828,6 +2867,7 @@
 				3DF976E02BB1A2B900AF3FDE /* IosGlobalDispatcher.swift in Sources */,
 				3DF976AB2BB1A2B900AF3FDE /* TUTEncodingConverter.m in Sources */,
 				3DF976E92BB1A2B900AF3FDE /* FileFacadeReceiveDispatcher.swift in Sources */,
+				3DF98F5C2C09C23F001DF50F /* MobilePlanPrice.swift in Sources */,
 				3DF976F82BB1A2B900AF3FDE /* NativeCredentialsFacadeReceiveDispatcher.swift in Sources */,
 				3DF976D62BB1A2B900AF3FDE /* ContactSyncResult.swift in Sources */,
 				3DF976C22BB1A2B900AF3FDE /* FileFacade.swift in Sources */,
