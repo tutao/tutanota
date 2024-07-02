@@ -14,11 +14,9 @@ impl GeneratedId {
 
     #[cfg(test)]
     pub fn test_random() -> Self {
-        use base64::engine::Engine;
-
+        use crate::util::test_utils::generate_random_string;
         // not the actual alphabet we use in real generated IDs, but we aren't dealing with parsing generated IDs yet, so it's fine
-        let random_bytes: [u8; 9] = rand::random();
-        Self(base64::engine::general_purpose::URL_SAFE.encode(random_bytes))
+        Self(generate_random_string::<9>())
     }
 }
 
