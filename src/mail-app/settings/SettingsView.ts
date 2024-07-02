@@ -3,10 +3,10 @@ import stream from "mithril/stream"
 import { assertMainOrNode, isApp, isDesktop, isIOSApp } from "../../common/api/common/Env"
 import { ColumnType, ViewColumn } from "../../common/gui/base/ViewColumn"
 import { ViewSlider } from "../../common/gui/nav/ViewSlider.js"
-import { SettingsFolder } from "./SettingsFolder"
+import { SettingsFolder } from "../../common/settings/SettingsFolder.js"
 import { lang } from "../../common/misc/LanguageViewModel"
-import { AppHeaderAttrs, Header } from "../../common/gui/Header.js"
-import { LoginSettingsViewer } from "./login/LoginSettingsViewer.js"
+import { Header } from "../../common/gui/Header.js"
+import { LoginSettingsViewer } from "../../common/settings/login/LoginSettingsViewer.js"
 import { GlobalSettingsViewer } from "./GlobalSettingsViewer"
 import { DesktopSettingsViewer } from "./DesktopSettingsViewer"
 import { MailSettingsViewer } from "./MailSettingsViewer"
@@ -14,7 +14,7 @@ import { UserListView } from "./UserListView"
 import type { ReceivedGroupInvitation, User } from "../../common/api/entities/sys/TypeRefs.js"
 import { CustomerInfoTypeRef, CustomerTypeRef } from "../../common/api/entities/sys/TypeRefs.js"
 import { GroupListView } from "./groups/GroupListView.js"
-import { WhitelabelSettingsViewer } from "./whitelabel/WhitelabelSettingsViewer"
+import { WhitelabelSettingsViewer } from "../../common/settings/whitelabel/WhitelabelSettingsViewer"
 import { Icons } from "../../common/gui/base/icons/Icons"
 import { theme } from "../../common/gui/theme"
 import { FeatureType, GroupType, LegacyPlans } from "../../common/api/common/TutanotaConstants"
@@ -24,7 +24,7 @@ import { SubscriptionViewer } from "../../common/subscription/SubscriptionViewer
 import { PaymentViewer } from "../../common/subscription/PaymentViewer"
 import { showUserImportDialog, UserViewer } from "./UserViewer"
 import { LazyLoaded, partition, promiseMap } from "@tutao/tutanota-utils"
-import { AppearanceSettingsViewer } from "./AppearanceSettingsViewer"
+import { AppearanceSettingsViewer } from "../../common/settings/AppearanceSettingsViewer.js"
 import type { NavButtonAttrs } from "../../common/gui/base/NavButton.js"
 import { NavButtonColor } from "../../common/gui/base/NavButton.js"
 import { SETTINGS_PREFIX } from "../../common/misc/RouteChange"
@@ -48,10 +48,9 @@ import { exportUserCsv } from "./UserDataExporter.js"
 import { IconButton } from "../../common/gui/base/IconButton.js"
 import { BottomNav } from "../../common/gui/nav/BottomNav.js"
 import { getAvailableDomains } from "./mailaddress/MailAddressesUtils.js"
-import { DrawerMenuAttrs } from "../../common/gui/nav/DrawerMenu.js"
 import { BaseTopLevelView } from "../../common/gui/BaseTopLevelView.js"
-import { TopLevelAttrs, TopLevelView } from "../../TopLevelView.js"
-import { ReferralSettingsViewer } from "./ReferralSettingsViewer.js"
+import { TopLevelView } from "../../TopLevelView.js"
+import { ReferralSettingsViewer } from "../../common/settings/ReferralSettingsViewer.js"
 import { LoginController } from "../../common/api/main/LoginController.js"
 import { BackgroundColumnLayout } from "../../common/gui/BackgroundColumnLayout.js"
 import { styles } from "../../common/gui/styles.js"
@@ -67,26 +66,9 @@ import { TemplateListView } from "./TemplateListView.js"
 import { TextField } from "../../common/gui/base/TextField.js"
 import { ContactsSettingsViewer } from "./ContactsSettingsViewer.js"
 import { NotificationSettingsViewer } from "./NotificationSettingsViewer.js"
+import { SettingsViewAttrs, UpdatableSettingsDetailsViewer, UpdatableSettingsViewer } from "../../common/settings/Interfaces.js"
 
 assertMainOrNode()
-
-/** UI component shown in the second column of settings. */
-export interface UpdatableSettingsViewer extends Component {
-	entityEventsReceived(updates: ReadonlyArray<EntityUpdateData>): Promise<unknown>
-}
-
-/** UI component shown in the third column of settings. Not actually a Mithril component. */
-export interface UpdatableSettingsDetailsViewer {
-	renderView(): Children
-
-	entityEventsReceived(updates: ReadonlyArray<EntityUpdateData>): Promise<unknown>
-}
-
-export interface SettingsViewAttrs extends TopLevelAttrs {
-	drawerAttrs: DrawerMenuAttrs
-	header: AppHeaderAttrs
-	logins: LoginController
-}
 
 export class SettingsView extends BaseTopLevelView implements TopLevelView<SettingsViewAttrs> {
 	viewSlider: ViewSlider
@@ -290,7 +272,7 @@ export class SettingsView extends BaseTopLevelView implements TopLevelView<Setti
 							{
 								class: styles.isUsingBottomNavigation() ? "" : "border-radius-top-left-big",
 							},
-							m(this._getCurrentViewer()),
+							m(this._getCurrentViewer()!),
 						),
 						mobileHeader: () =>
 							m(MobileHeader, {
@@ -573,7 +555,7 @@ export class SettingsView extends BaseTopLevelView implements TopLevelView<Setti
 		)
 	}
 
-	_getCurrentViewer(): Component {
+	_getCurrentViewer(): UpdatableSettingsViewer | null {
 		if (!this._currentViewer) {
 			this.detailsViewer = null
 			this._currentViewer = this._selectedFolder.viewerCreator()

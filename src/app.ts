@@ -12,7 +12,6 @@ import { deviceConfig } from "./common/misc/DeviceConfig"
 import { Logger, replaceNativeLogger } from "./common/api/common/Logger"
 import { applicationPaths } from "./ApplicationPaths"
 import { ProgrammingError } from "./common/api/common/error/ProgrammingError"
-import { NativeWebauthnView } from "./common/login/NativeWebauthnView"
 import type { LoginView, LoginViewAttrs } from "./common/login/LoginView.js"
 import type { LoginViewModel } from "./common/login/LoginViewModel.js"
 import { TerminationView, TerminationViewAttrs } from "./common/termination/TerminationView.js"
@@ -23,7 +22,8 @@ import { CalendarView, CalendarViewAttrs } from "./calendar-app/calendar/view/Ca
 import { DrawerMenuAttrs } from "./common/gui/nav/DrawerMenu.js"
 import { MailView, MailViewAttrs, MailViewCache } from "./mail-app/mail/view/MailView.js"
 import { ContactView, ContactViewAttrs } from "./mail-app/contacts/view/ContactView.js"
-import { SettingsView, SettingsViewAttrs } from "./mail-app/settings/SettingsView.js"
+// import { SettingsView } from "./mail-app/settings/SettingsView.js"
+import { SettingsView } from "./calendar-app/calendar/view/SettingsView.js"
 import { SearchView, SearchViewAttrs } from "./mail-app/search/view/SearchView.js"
 import { TopLevelAttrs, TopLevelView } from "./TopLevelView.js"
 import { AppHeaderAttrs } from "./common/gui/Header.js"
@@ -36,6 +36,7 @@ import { ContactViewModel } from "./mail-app/contacts/view/ContactViewModel.js"
 import { ContactListViewModel } from "./mail-app/contacts/view/ContactListViewModel.js"
 import type { CredentialsMigrationView, CredentialsMigrationViewAttrs } from "./common/login/CredentialsMigrationView.js"
 import type { CredentialsMigrationViewModel } from "./common/login/CredentialsMigrationViewModel.js"
+import { SettingsViewAttrs } from "./common/settings/Interfaces.js"
 
 assertMainOrNodeBoot()
 bootFinished()
@@ -255,7 +256,7 @@ import("./mail-app/translations/en")
 			settings: makeViewResolver<SettingsViewAttrs, SettingsView, { drawerAttrsFactory: () => DrawerMenuAttrs; header: AppHeaderAttrs }>(
 				{
 					prepareRoute: async () => {
-						const { SettingsView } = await import("./mail-app/settings/SettingsView.js")
+						const { SettingsView } = await import("./calendar-app/calendar/view/SettingsView.js")
 						const drawerAttrsFactory = await locator.drawerAttrsFactory()
 						return {
 							component: SettingsView,

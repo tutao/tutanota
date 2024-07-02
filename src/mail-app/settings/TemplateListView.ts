@@ -1,6 +1,5 @@
 import m, { Children } from "mithril"
 
-import type { UpdatableSettingsViewer } from "./SettingsView"
 import { showTemplateEditor } from "./TemplateEditor"
 import type { EmailTemplate } from "../../common/api/entities/tutanota/TypeRefs.js"
 import { EmailTemplateTypeRef } from "../../common/api/entities/tutanota/TypeRefs.js"
@@ -30,6 +29,7 @@ import { lang } from "../../common/misc/LanguageViewModel.js"
 import { keyManager } from "../../common/misc/KeyManager.js"
 import { EntityUpdateData, isUpdateForTypeRef } from "../../common/api/common/utils/EntityUpdateUtils.js"
 import { ListAutoSelectBehavior } from "../../common/misc/DeviceConfig.js"
+import { UpdatableSettingsViewer } from "../../common/settings/Interfaces.js"
 
 assertMainOrNode()
 

@@ -1,5 +1,5 @@
 import m, { Children } from "mithril"
-import { assertMainOrNode } from "../../../common/api/common/Env"
+import { assertMainOrNode } from "../../api/common/Env.js"
 import { clear, downcast, LazyLoaded, neverNull, noOp, promiseMap } from "@tutao/tutanota-utils"
 import type {
 	Booking,
@@ -11,7 +11,7 @@ import type {
 	NotificationMailTemplate,
 	PlanConfiguration,
 	WhitelabelConfig,
-} from "../../../common/api/entities/sys/TypeRefs.js"
+} from "../../api/entities/sys/TypeRefs.js"
 import {
 	BookingTypeRef,
 	createStringWrapper,
@@ -19,35 +19,35 @@ import {
 	CustomerPropertiesTypeRef,
 	CustomerTypeRef,
 	WhitelabelConfigTypeRef,
-} from "../../../common/api/entities/sys/TypeRefs.js"
-import { InfoLink, lang } from "../../../common/misc/LanguageViewModel"
-import { FeatureType, OperationType } from "../../../common/api/common/TutanotaConstants"
-import { progressIcon } from "../../../common/gui/base/Icon"
-import { showProgressDialog } from "../../../common/gui/dialogs/ProgressDialog"
+} from "../../api/entities/sys/TypeRefs.js"
+import { InfoLink, lang } from "../../misc/LanguageViewModel.js"
+import { FeatureType, OperationType } from "../../api/common/TutanotaConstants.js"
+import { progressIcon } from "../../gui/base/Icon.js"
+import { showProgressDialog } from "../../gui/dialogs/ProgressDialog.js"
 
-import * as EditNotificationEmailDialog from "../EditNotificationEmailDialog"
-import { showBuyOrSetNotificationEmailDialog } from "../EditNotificationEmailDialog"
-import { isWhitelabelActive } from "../../../common/subscription/SubscriptionUtils"
-import { GENERATED_MAX_ID } from "../../../common/api/common/utils/EntityUtils"
-import { WhitelabelBrandingDomainSettings } from "./WhitelabelBrandingDomainSettings"
-import { WhitelabelThemeSettings } from "./WhitelabelThemeSettings"
-import { WhitelabelImprintAndPrivacySettings } from "./WhitelabelImprintAndPrivacySettings"
-import { WhitelabelRegistrationSettings, WhitelabelRegistrationSettingsAttrs } from "./WhitelabelRegistrationSettings"
-import { WhitelabelCustomMetaTagsSettings, WhitelabelCustomMetaTagsSettingsAttrs } from "./WhitelabelCustomMetaTagsSettings"
-import { WhitelabelStatusSettings } from "./WhitelabelStatusSettings"
-import { WhitelabelNotificationEmailSettings } from "./WhitelabelNotificationEmailSettings"
-import type { GermanLanguageCode } from "./WhitelabelGermanLanguageFileSettings"
-import { WhitelabelGermanLanguageFileSettings } from "./WhitelabelGermanLanguageFileSettings"
-import type { UpdatableSettingsViewer } from "../SettingsView"
-import type { ThemeCustomizations } from "../../../common/misc/WhitelabelCustomizations"
-import { getThemeCustomizations } from "../../../common/misc/WhitelabelCustomizations"
-import { EntityClient } from "../../../common/api/common/EntityClient"
-import { locator } from "../../../common/api/main/MainLocator"
-import { SelectorItem, SelectorItemList } from "../../../common/gui/base/DropDownSelector.js"
-import { BrandingDomainService } from "../../../common/api/entities/sys/Services"
-import { LoginController } from "../../../common/api/main/LoginController.js"
-import { getCustomMailDomains, getWhitelabelDomainInfo } from "../../../common/api/common/utils/CustomerUtils.js"
-import { EntityUpdateData, isUpdateForTypeRef } from "../../../common/api/common/utils/EntityUpdateUtils.js"
+import * as EditNotificationEmailDialog from "../../../mail-app/settings/EditNotificationEmailDialog.js"
+import { showBuyOrSetNotificationEmailDialog } from "../../../mail-app/settings/EditNotificationEmailDialog.js"
+import { isWhitelabelActive } from "../../subscription/SubscriptionUtils.js"
+import { GENERATED_MAX_ID } from "../../api/common/utils/EntityUtils.js"
+import { WhitelabelBrandingDomainSettings } from "./WhitelabelBrandingDomainSettings.js"
+import { WhitelabelThemeSettings } from "./WhitelabelThemeSettings.js"
+import { WhitelabelImprintAndPrivacySettings } from "./WhitelabelImprintAndPrivacySettings.js"
+import { WhitelabelRegistrationSettings, WhitelabelRegistrationSettingsAttrs } from "./WhitelabelRegistrationSettings.js"
+import { WhitelabelCustomMetaTagsSettings, WhitelabelCustomMetaTagsSettingsAttrs } from "./WhitelabelCustomMetaTagsSettings.js"
+import { WhitelabelStatusSettings } from "./WhitelabelStatusSettings.js"
+import { WhitelabelNotificationEmailSettings } from "./WhitelabelNotificationEmailSettings.js"
+import type { GermanLanguageCode } from "./WhitelabelGermanLanguageFileSettings.js"
+import { WhitelabelGermanLanguageFileSettings } from "./WhitelabelGermanLanguageFileSettings.js"
+import type { ThemeCustomizations } from "../../misc/WhitelabelCustomizations.js"
+import { getThemeCustomizations } from "../../misc/WhitelabelCustomizations.js"
+import { EntityClient } from "../../api/common/EntityClient.js"
+import { locator } from "../../api/main/MainLocator.js"
+import { SelectorItem, SelectorItemList } from "../../gui/base/DropDownSelector.js"
+import { BrandingDomainService } from "../../api/entities/sys/Services.js"
+import { LoginController } from "../../api/main/LoginController.js"
+import { getCustomMailDomains, getWhitelabelDomainInfo } from "../../api/common/utils/CustomerUtils.js"
+import { EntityUpdateData, isUpdateForTypeRef } from "../../api/common/utils/EntityUpdateUtils.js"
+import { UpdatableSettingsViewer } from "../Interfaces.js"
 
 assertMainOrNode()
 

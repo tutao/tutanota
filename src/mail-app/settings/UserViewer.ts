@@ -11,7 +11,7 @@ import { BadRequestError, NotAuthorizedError, PreconditionFailedError } from "..
 import { ColumnWidth, Table, TableAttrs } from "../../common/gui/base/Table.js"
 import { getGroupTypeDisplayName } from "./groups/GroupDetailsView.js"
 import { Icons } from "../../common/gui/base/icons/Icons"
-import { SecondFactorsEditForm } from "./login/secondfactor/SecondFactorsEditForm.js"
+import { SecondFactorsEditForm } from "../../common/settings/login/secondfactor/SecondFactorsEditForm.js"
 import { showProgressDialog } from "../../common/gui/dialogs/ProgressDialog"
 
 import { HtmlEditor as Editor, HtmlEditorMode } from "../../common/gui/editor/HtmlEditor"
@@ -23,14 +23,14 @@ import { showBuyDialog } from "../../common/subscription/BuyDialog"
 import { TextField } from "../../common/gui/base/TextField.js"
 import { locator } from "../../common/api/main/MainLocator"
 import { DropDownSelector } from "../../common/gui/base/DropDownSelector.js"
-import { UpdatableSettingsDetailsViewer } from "./SettingsView"
-import { showChangeOwnPasswordDialog, showChangeUserPasswordAsAdminDialog } from "./login/ChangePasswordDialogs.js"
+import { showChangeOwnPasswordDialog, showChangeUserPasswordAsAdminDialog } from "../../common/settings/login/ChangePasswordDialogs.js"
 import { IconButton, IconButtonAttrs } from "../../common/gui/base/IconButton.js"
 import { ButtonSize } from "../../common/gui/base/ButtonSize.js"
 import { MailAddressTableModel } from "./mailaddress/MailAddressTableModel.js"
 import { progressIcon } from "../../common/gui/base/Icon.js"
 import { toFeatureType } from "../../common/subscription/SubscriptionUtils.js"
 import { EntityUpdateData, isUpdateForTypeRef } from "../../common/api/common/utils/EntityUpdateUtils.js"
+import { UpdatableSettingsDetailsViewer } from "../../common/settings/Interfaces.js"
 
 assertMainOrNode()
 
@@ -193,6 +193,7 @@ export class UserViewer implements UpdatableSettingsDetailsViewer {
 			},
 		})
 	}
+
 	private renderUserStatusSelector(): Children {
 		return m(DropDownSelector, {
 			label: "state_label",

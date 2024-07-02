@@ -35,7 +35,6 @@ import { LockedError } from "../../common/api/common/error/RestError"
 import { showEditOutOfOfficeNotificationDialog } from "./EditOutOfOfficeNotificationDialog"
 import { formatActivateState, loadOutOfOfficeNotification } from "../../common/misc/OutOfOfficeNotificationUtils"
 import { getSignatureType, show as showEditSignatureDialog } from "./EditSignatureDialog"
-import type { UpdatableSettingsViewer } from "./SettingsView"
 import { OfflineStorageSettingsModel } from "./OfflineStorageSettings"
 import { showNotAvailableForFreeDialog } from "../../common/misc/SubscriptionDialogs"
 import { deviceConfig, ListAutoSelectBehavior } from "../../common/misc/DeviceConfig"
@@ -47,6 +46,7 @@ import { getEnabledMailAddressesForGroupInfo } from "../../common/api/common/uti
 import { formatStorageSize } from "../../common/misc/Formatter.js"
 import { CustomerInfo } from "../../common/api/entities/sys/TypeRefs.js"
 import { EntityUpdateData, isUpdateForTypeRef } from "../../common/api/common/utils/EntityUpdateUtils.js"
+import { UpdatableSettingsViewer } from "../../common/settings/Interfaces.js"
 
 assertMainOrNode()
 
