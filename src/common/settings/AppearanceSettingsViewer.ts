@@ -1,5 +1,4 @@
 import m, { Children } from "mithril"
-<<<<<<<< HEAD:src/common/settings/AppearanceSettingsViewer.ts
 import type { LanguageCode } from "../misc/LanguageViewModel.js"
 import { getLanguage, lang, languageCodeToTag, languages } from "../misc/LanguageViewModel.js"
 import { styles } from "../gui/styles.js"
@@ -14,22 +13,6 @@ import { ThemeId, themeOptions, ThemePreference } from "../../common/gui/theme"
 import type { UpdatableSettingsViewer } from "./Interfaces.js"
 import { isDesktop } from "../../common/api/common/Env"
 import { locator } from "../../common/api/main/CommonLocator"
-========
-import type { LanguageCode } from "../../common/misc/LanguageViewModel"
-import { getLanguage, lang, languageCodeToTag, languages } from "../../common/misc/LanguageViewModel"
-import { styles } from "../../common/gui/styles"
-import type { DropDownSelectorAttrs } from "../../common/gui/base/DropDownSelector.js"
-import { DropDownSelector, SelectorItemList } from "../../common/gui/base/DropDownSelector.js"
-import { deviceConfig } from "../../common/misc/DeviceConfig"
-import { TimeFormat, WeekStart } from "../../common/api/common/TutanotaConstants"
-import { downcast, incrementDate, noOp, promiseMap } from "@tutao/tutanota-utils"
-import { UserSettingsGroupRootTypeRef } from "../../common/api/entities/tutanota/TypeRefs.js"
-import { getHourCycle } from "../../common/misc/Formatter"
-import { themeController, ThemeId, themeOptions, ThemePreference } from "../../common/gui/theme"
-import type { UpdatableSettingsViewer } from "./SettingsView"
-import { isDesktop } from "../../common/api/common/Env"
-import { locator } from "../../common/api/main/MainLocator"
->>>>>>>> 3349a964d (Move files to new folder structure):src/mail-app/settings/AppearanceSettingsViewer.ts
 import { EntityUpdateData, isUpdateForTypeRef } from "../../common/api/common/utils/EntityUpdateUtils.js"
 
 export class AppearanceSettingsViewer implements UpdatableSettingsViewer {
