@@ -21,7 +21,7 @@ import { RecoverCodeFacade } from "../../../api/worker/facades/lazy/RecoverCodeF
 export class RecoveryCodeNews implements NewsListItem {
 	private recoveryCode: string | null = null
 	private readonly recoverCodeField = new LazyLoaded(async () => {
-		const { RecoverCodeField } = await import("../../../../mail-app/settings/login/RecoverCodeDialog.js")
+		const { RecoverCodeField } = await import("../../../settings/login/RecoverCodeDialog.js")
 		m.redraw()
 		return RecoverCodeField
 	})
