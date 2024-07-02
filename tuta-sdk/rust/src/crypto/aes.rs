@@ -7,17 +7,25 @@ use cbc::cipher::block_padding::UnpadError;
 use rand_core::CryptoRngCore;
 use zeroize::ZeroizeOnDrop;
 use crate::join_slices;
-use crate::util::{ArrayCastingError, generate_random_bytes, array_cast_slice};
+use crate::util::{ArrayCastingError, generate_random_bytes, array_cast_slice, array_cast_size};
 
 /// Denotes whether a text is/should be padded
 pub enum PaddingMode {
+    /// Do not use padding; used for encrypting fixed-length values (i.e. keys).
     NoPadding,
+
+    /// Use padding; used for variable-length encrypted data.
     WithPadding,
 }
 
 /// Denotes whether a text should include a message authentication code
 pub enum MacMode {
+    /// No verification will be done on the ciphertext.
+    ///
+    /// This is only supported for legacy compatibility. You should not use this to encrypt new data.
     NoMac,
+
+    /// Perform verification on the ciphertext by deriving subkeys from the provided AES key.
     WithMac,
 }
 
@@ -29,6 +37,14 @@ pub enum EnforceMac {
     EnforceMac,
 }
 
+/// Generates a struct that implements the `AesKey` trait to represent an AES key.
+///
+/// Arguments:
+/// - $name: The name of the generated struct.
+/// - $type_name: The name of the generated struct in literal string form.
+/// - $size: The size of the AES key. It should be the same as in `$cbc`.
+/// - $cbc: The type from the `aes` dependency.
+/// - $subkey_digest: The type of SHA hasher from the `sha2` dependency to use.
 macro_rules! aes_key {
     ($name:tt, $type_name:literal, $size:expr, $cbc:ty, $subkey_digest:ty) => {
         #[derive(Clone, ZeroizeOnDrop)]
@@ -57,10 +73,7 @@ macro_rules! aes_key {
         impl<const SIZE: usize> TryFrom<[u8; SIZE]> for $name {
             type Error = ArrayCastingError;
             fn try_from(value: [u8; SIZE]) -> Result<Self, Self::Error> {
-                match arr_cast_size(value) {
-                    Ok(arr) => Ok(Self(arr)),
-                    Err(_) => Err(ArrayCastingError { type_name: $type_name, actual_size: value.len() })
-                }
+                Ok(Self(array_cast_size(value, $type_name)?))
             }
         }
 
@@ -109,8 +122,11 @@ aes_key!(
 );
 
 trait AesKey: Clone {
+    /// The equivalent type in the RustCrypto packages to this key type
     type CbcKeyType: BlockEncryptMut + BlockDecryptMut + BlockEncrypt + BlockDecrypt + BlockCipher + cbc::cipher::KeyInit;
+    /// Returns the key in raw byte form
     fn get_bytes(&self) -> &[u8];
+    /// Generates the AES (`c`) and HMAC (`m`) subkeys from the key
     fn derive_subkeys(&self) -> AesSubKeys<Self>;
 }
 
@@ -169,8 +185,6 @@ pub enum AesDecryptError {
     PaddingError(#[from] UnpadError),
     #[error("HmacError")]
     HmacError,
-    #[error("IvSizeError")]
-    IvSizeError,
 }
 
 /// Decrypt using AES-128-CBC using prepended IV with PKCS7 padding and optional HMAC-SHA-256
@@ -180,7 +194,7 @@ pub fn aes_128_decrypt(key: &Aes128Key, encrypted_bytes: &[u8]) -> Result<Vec<u8
 
 /// Decrypt an encryption key with AES-128 using fixed IV, without authentication
 pub fn aes_128_decrypt_no_padding_fixed_iv(key: &Aes128Key, encrypted_bytes: &[u8]) -> Result<Vec<u8>, AesDecryptError> {
-    if encrypted_bytes.len() % 2 != 0 {
+    if has_mac(encrypted_bytes) {
         return Err(AesDecryptError::InvalidDataSizeError);
     }
 
@@ -198,19 +212,6 @@ pub fn aes_256_decrypt(key: &Aes256Key, encrypted_bytes: &[u8]) -> Result<Vec<u8
 /// Decrypt an encryption key with AES-256-CBC using prepended IV without padding and HMAC-SHA-512
 pub fn aes_256_decrypt_no_padding(key: &Aes256Key, encrypted_bytes: &[u8]) -> Result<Vec<u8>, AesDecryptError> {
     aes_decrypt(key, encrypted_bytes, PaddingMode::NoPadding, EnforceMac::EnforceMac)
-}
-
-/// Resizes an array of size `ARR_SIZE` into another array of size `SIZE`
-fn arr_cast_size<const SIZE: usize, const ARR_SIZE: usize>(arr: [u8; ARR_SIZE]) -> Result<[u8; SIZE], ()> {
-    // Currently we copy because we could also swap it for unsafe pointer juggle if we feel bold.
-    // Ideally there will be something in std at some point to do this.
-    if arr.len() == SIZE {
-        let mut result: [u8; SIZE] = [0; SIZE];
-        result.copy_from_slice(&arr);
-        Ok(result)
-    } else {
-        Err(())
-    }
 }
 
 pub const AES_128_KEY_SIZE: usize = 16;
@@ -243,7 +244,7 @@ type Aes128SubKeys = AesSubKeys<Aes128Key>;
 type Aes256SubKeys = AesSubKeys<Aes256Key>;
 
 impl<Key: AesKey> AesSubKeys<Key> {
-    fn compute_mac(&self, iv: &[u8], ciphertext: &[u8]) -> [u8; 32] {
+    fn compute_mac(&self, iv: &[u8], ciphertext: &[u8]) -> [u8; MAC_SIZE] {
         use sha2::Sha256;
         use hmac::Mac;
 
@@ -256,6 +257,8 @@ impl<Key: AesKey> AesSubKeys<Key> {
 
 /// Generic AES-CBC function with optional PKCS7 padding and with optional HMAC-SHA support
 fn aes_encrypt<Key: AesKey>(key: &Key, plaintext: &[u8], iv: &Iv, padding_mode: PaddingMode, mac_mode: MacMode) -> Result<Vec<u8>, AesEncryptError> {
+    // Extract the correct key into an encryptor depending on
+    // whether `c` needs to be derived for MAC s (note that no mac means no sub keys)
     let (mut encryptor, sub_keys) = match mac_mode {
         MacMode::NoMac => (cbc::Encryptor::<Key::CbcKeyType>::new_from_slices(key.get_bytes(), &iv.0).unwrap(), None),
         MacMode::WithMac => {
@@ -263,6 +266,8 @@ fn aes_encrypt<Key: AesKey>(key: &Key, plaintext: &[u8], iv: &Iv, padding_mode: 
             (cbc::Encryptor::<Key::CbcKeyType>::new_from_slices(sub_keys.c_key.get_bytes(), &iv.0).unwrap(), Some(sub_keys))
         }
     };
+
+    // Pad/verify block size
     let block_size = <Key::CbcKeyType as BlockSizeUser>::block_size();
     let encrypted_data = match padding_mode {
         PaddingMode::NoPadding => {
@@ -275,8 +280,8 @@ fn aes_encrypt<Key: AesKey>(key: &Key, plaintext: &[u8], iv: &Iv, padding_mode: 
     };
 
     if let Some(subkeys) = sub_keys {
-        let with_auth = CiphertextWithAuthentication::compute(&encrypted_data, &iv.0, &subkeys);
-        Ok(with_auth.serialize())
+        let ciphertext_with_auth = CiphertextWithAuthentication::compute(&encrypted_data, &iv.0, &subkeys);
+        Ok(ciphertext_with_auth.serialize())
     } else {
         // without HMAC it is just
         // - iv
@@ -306,20 +311,27 @@ struct CiphertextWithAuthentication<'a> {
 }
 
 impl<'a> CiphertextWithAuthentication<'a> {
-    fn parse(bytes: &'a [u8]) -> Option<CiphertextWithAuthentication<'a>> {
-        if bytes.len() % 2 == 1 && bytes[0] == 1 {
-            let encrypted_bytes_without_marker = &bytes[1..];
-            let (ciphertext_without_mac, provided_mac_bytes) = encrypted_bytes_without_marker.split_at(encrypted_bytes_without_marker.len() - MAC_SIZE);
-            let (iv, ciphertext) = ciphertext_without_mac.split_at(IV_BYTE_SIZE);
-            Some(CiphertextWithAuthentication {
-                iv,
-                ciphertext,
-                mac: provided_mac_bytes.try_into().unwrap(),
-            }
-            )
-        } else {
-            None
+    fn parse(bytes: &'a [u8]) -> Result<Option<CiphertextWithAuthentication<'a>>, AesDecryptError> {
+        // Error if the bytes does not feature a MAC
+        if !has_mac(bytes) || bytes.len() <= IV_BYTE_SIZE + MAC_SIZE {
+            return Err(AesDecryptError::HmacError);
         }
+
+        // Split `bytes` into the MAC and combined ciphertext with iv
+        let encrypted_bytes_without_marker = &bytes[1..];
+        let end_of_ciphertext = encrypted_bytes_without_marker.len() - MAC_SIZE;
+        let (ciphertext_without_mac, provided_mac_bytes) =
+            encrypted_bytes_without_marker.split_at(end_of_ciphertext);
+
+        // Extract the iv from the ciphertext and return the extracted components
+        let (iv, ciphertext) = ciphertext_without_mac.split_at(IV_BYTE_SIZE);
+        let mac: [u8; MAC_SIZE] = array_cast_slice(provided_mac_bytes, "MAC")
+            .map_err(|_| { AesDecryptError::HmacError })?;
+        Ok(Some(CiphertextWithAuthentication {
+            iv,
+            ciphertext,
+            mac,
+        }))
     }
 
     fn compute<Key: AesKey>(ciphertext: &'a [u8], iv: &'a [u8], subkeys: &AesSubKeys<Key>) -> CiphertextWithAuthentication<'a> {
@@ -345,10 +357,20 @@ impl<'a> CiphertextWithAuthentication<'a> {
     }
 }
 
+/// Returns whether the raw ciphertext `bytes` has a MAC included.
+fn has_mac(bytes: &[u8]) -> bool {
+    bytes.len() % 2 == 1 && bytes[0] == 1
+}
+
 /// Decrypts the AES-encrypted raw string `encrypted_bytes` into a plain text raw string
 /// using AES using prepended IV with optional PKCS7 padding and optional HMAC-SHA
 fn aes_decrypt<Key: AesKey>(key: &Key, encrypted_bytes: &[u8], padding_mode: PaddingMode, enforce_mac: EnforceMac) -> Result<Vec<u8>, AesDecryptError> {
-    let (key, iv_bytes, encrypted_bytes) = if let Some(ciphertext_with_auth) = CiphertextWithAuthentication::parse(encrypted_bytes) {
+    if encrypted_bytes.len() < IV_BYTE_SIZE {
+        return Err(AesDecryptError::InvalidDataSizeError);
+    }
+
+    // Split `encrypted_bytes` into the key for the ciphertext, the iv and the ciphertext itself
+    let (key, iv_bytes, encrypted_bytes) = if let Some(ciphertext_with_auth) = CiphertextWithAuthentication::parse(encrypted_bytes)? {
         let subkeys = key.derive_subkeys();
         if !ciphertext_with_auth.matches(&subkeys) {
             return Err(AesDecryptError::HmacError);
@@ -612,6 +634,25 @@ mod tests {
 
             let expected_plain_key = td.key_to_encrypt128;
             assert_eq!(expected_plain_key, decrypted_bytes);
+        }
+    }
+
+    #[test]
+    fn test_aes_decrypt_does_not_panic_with_invalid_data() {
+        let key_128 = Aes128Key::generate(&mut rand::thread_rng());
+        let key_256 = Aes256Key::generate(&mut rand::thread_rng());
+
+        let mut v = Vec::with_capacity(256);
+        for length in 0..256 {
+            v.resize(length, 0);
+            let o = aes_decrypt(&key_128, v.as_slice(), PaddingMode::WithPadding, EnforceMac::EnforceMac).is_err();
+            assert!(o);
+            let o = aes_decrypt(&key_128, v.as_slice(), PaddingMode::NoPadding, EnforceMac::EnforceMac).is_err();
+            assert!(o);
+            let o = aes_decrypt(&key_256, v.as_slice(), PaddingMode::WithPadding, EnforceMac::EnforceMac).is_err();
+            assert!(o);
+            let o = aes_decrypt(&key_256, v.as_slice(), PaddingMode::NoPadding, EnforceMac::EnforceMac).is_err();
+            assert!(o);
         }
     }
 }
