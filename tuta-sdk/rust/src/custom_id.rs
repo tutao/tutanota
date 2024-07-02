@@ -12,6 +12,7 @@ impl CustomId {
         &self.0
     }
 
+    /// Generates and returns a random `CustomId`
     #[cfg(test)]
     pub fn test_random() -> Self {
         use crate::util::test_utils::generate_random_string;
