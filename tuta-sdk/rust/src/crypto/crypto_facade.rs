@@ -1,4 +1,3 @@
-#![allow(unused)] // TODO: remove this when done
 use std::sync::{Arc, Mutex};
 use zeroize::Zeroizing;
 use crate::crypto::aes::Iv;
@@ -19,11 +18,16 @@ use crate::metamodel::TypeModel;
 use crate::owner_enc_session_keys_update_queue::OwnerEncSessionKeysUpdateQueue;
 use crate::util::ArrayCastingError;
 
-/// The name of the `_ownerEncSessionKey` key in an entity
+/// The name of the field that contains the session key encrypted
+/// by the owner group's key in an entity
 const OWNER_ENC_SESSION_FIELD: &'static str = "_ownerEncSessionKey";
+/// The name of the owner-encrypted session key version field in an entity
 const OWNER_KEY_VERSION_FIELD: &'static str = "_ownerKeyVersion";
+/// The name of the owner group field in an entity
 const OWNER_GROUP_FIELD: &'static str = "_ownerGroup";
+/// The name of the ID field in an entity
 const ID_FIELD: &'static str = "_id";
+/// The name of the bucket key field in an entity
 const BUCKET_KEY_FIELD: &'static str = "bucketKey";
 
 #[derive(uniffi::Object)]
@@ -35,25 +39,25 @@ pub struct CryptoFacade {
 }
 
 impl CryptoFacade {
-    ///
+    /// Returns the session key from `entity` and resolves the bucket key fields contained inside
+    /// if present
     pub fn resolve_session_key(&self, entity: &mut ParsedEntity, model: &TypeModel) -> Result<Option<GenericAesKey>, SessionKeyResolutionError> {
         if !model.encrypted {
             return Ok(None);
         }
 
-        if let Some(bucket_key_data) = entity.get(BUCKET_KEY_FIELD) {
+        // Derive the session key from the bucket key
+        if entity.contains_key(BUCKET_KEY_FIELD) {
             let resolved_key = self.resolve_bucket_key(entity, model)?;
             return Ok(Some(resolved_key));
         }
 
-        let owner_key_data = EntityOwnerKeyData::extract_owner_key_data(entity)?;
-
+        // Extract the session key data from the owner group of the entity
         let EntityOwnerKeyData {
             owner_enc_session_key: Some(owner_enc_session_key),
             owner_key_version: Some(owner_key_version),
-            owner_group: Some(owner_group),
-            ..
-        } = owner_key_data else {
+            owner_group: Some(owner_group)
+        } = EntityOwnerKeyData::extract_owner_key_data(entity)? else {
             return Err(SessionKeyResolutionError { reason: "instance missing owner key/group data".to_string() });
         };
 
@@ -61,6 +65,7 @@ impl CryptoFacade {
         Ok(group_key.decrypt_key(owner_enc_session_key).map(|k| Some(k))?)
     }
 
+    /// Resolves the bucket key fields inside `entity` and returns the session key
     fn resolve_bucket_key(&self, entity: &mut ParsedEntity, model: &TypeModel) -> Result<GenericAesKey, SessionKeyResolutionError> {
         let Some(ElementValue::Dict(bucket_key_map)) = entity.get(BUCKET_KEY_FIELD) else {
             return Err(SessionKeyResolutionError { reason: format!("{BUCKET_KEY_FIELD} is not a dictionary type") });
@@ -76,22 +81,24 @@ impl CryptoFacade {
             return Err(SessionKeyResolutionError { reason: "entity has no ownerGroup".to_owned() });
         };
 
-        let VersionedAesKey { key, version } = self.key_loader_facade.get_current_group_key(owner_group)?;
+        let VersionedAesKey { key: _key, version } = self.key_loader_facade.get_current_group_key(owner_group)?;
 
         let ResolvedBucketKey {
             decrypted_bucket_key,
-            sender_identity_key
-        } = self.decrypt_bucket_key(&bucket_key, entity, model)?;
+            sender_identity_key: _sender_identity_key // TODO: Use when implementing authentication
+        } = self.decrypt_bucket_key(&bucket_key, owner_group, model)?;
 
         let mut session_key_for_this_instance = None;
         let mut re_encrypted_session_keys = Vec::with_capacity(bucket_key.bucketEncSessionKeys.len());
 
         for instance_session_key in bucket_key.bucketEncSessionKeys {
-            let decrypted_session_key = decrypted_bucket_key.decrypt_key(&instance_session_key.symEncSessionKey)?;
+            let decrypted_session_key = decrypted_bucket_key.decrypt_key(instance_session_key.symEncSessionKey.as_slice())?;
             let iv = Iv::generate(self.randomizer_facade.as_ref());
             let re_encrypted_session_key = decrypted_bucket_key.encrypt_key(&decrypted_session_key, iv);
 
-            if &instance_session_key.instanceId == owner_key_data.instance_id {
+            let instance_id = parse_id_field(entity.get(ID_FIELD))?;
+
+            if &instance_session_key.instanceId == instance_id {
                 session_key_for_this_instance = Some((decrypted_session_key.clone(), re_encrypted_session_key.clone()));
             }
             re_encrypted_session_keys.push((instance_session_key, re_encrypted_session_key));
@@ -117,7 +124,10 @@ impl CryptoFacade {
         Ok(session_key)
     }
 
-    fn decrypt_bucket_key(&self, bucket_key: &BucketKey, entity: &ParsedEntity, model: &TypeModel) -> Result<ResolvedBucketKey, SessionKeyResolutionError> {
+    /// Decrypts a bucket key, using `owner_group` in the case of secure external.
+    ///
+    /// `model` should be the type model of the instance being decrypted (e.g. `Mail`).
+    fn decrypt_bucket_key(&self, bucket_key: &BucketKey, owner_group: &GeneratedId, model: &TypeModel) -> Result<ResolvedBucketKey, SessionKeyResolutionError> {
         let mut auth_status = None;
 
         let resolved_key = if let (Some(key_group), Some(pub_enc_bucket_key)) = (&bucket_key.keyGroup, &bucket_key.pubEncBucketKey) {
@@ -139,15 +149,9 @@ impl CryptoFacade {
                     }
                 }
             }
-        } else if let Some(group_enc_bucket_key) = &bucket_key.groupEncBucketKey {
-            let key_group = match &bucket_key.keyGroup {
-                Some(n) => n,
-                None => match entity.get(OWNER_GROUP_FIELD) {
-                    Some(ElementValue::IdGeneratedId(n)) => n,
-                    _ => return Err(SessionKeyResolutionError { reason: "no owner group or key group information".to_owned() })
-                }
-            };
-
+        } else if let Some(_group_enc_bucket_key) = &bucket_key.groupEncBucketKey {
+            // TODO: to be used with secure external
+            let _key_group = bucket_key.keyGroup.as_ref().unwrap_or_else(|| owner_group);
             auth_status = Some(EncryptionAuthStatus::AESNoAuthentication);
             todo!("secure external resolveWithGroupReference")
         } else {
@@ -158,11 +162,37 @@ impl CryptoFacade {
     }
 }
 
+/// Resolves the id field of an entity into a generated id
+fn parse_id_field(id_field: Option<&ElementValue>) -> Result<&GeneratedId, SessionKeyResolutionError> {
+    match id_field {
+        Some(ElementValue::IdGeneratedId(id)) => Ok(id),
+        Some(ElementValue::IdTupleId(IdTuple { element_id, .. })) => Ok(element_id),
+        None => Err(SessionKeyResolutionError {
+            reason: "no id present on instance".to_string()
+        }),
+        Some(actual) => Err(SessionKeyResolutionError {
+            reason: format!("unexpected {} type for id on instance", actual.get_type_variant_name())
+        }),
+    }
+}
+
+/// Denotes if an entity was authenticated successfully.
+///
+/// Not all decryption methods use authentication.
 pub enum EncryptionAuthStatus {
+    /// The entity was decrypted with RSA which does not use authentication.
     RSANoAuthentication = 0,
+
+    /// The entity was decrypted with Tutacrypt (PQ) and successfully authenticated.
     TutacryptAuthenticationSucceeded = 1,
+
+    /// The entity was decrypted with Tutacrypt (PQ), but authentication failed.
     TutacryptAuthenticationFailed = 2,
+
+    /// The entity was decrypted symmetrically (i.e. secure external) which does not use authentication.
     AESNoAuthentication = 3,
+
+    /// The entity was sent by the user and doesn't need authenticated.
     TutacryptSender = 4,
 }
 
@@ -175,8 +205,6 @@ struct EntityOwnerKeyData<'a> {
     owner_enc_session_key: Option<&'a Vec<u8>>,
     owner_key_version: Option<i64>,
     owner_group: Option<&'a GeneratedId>,
-    instance_id: &'a GeneratedId,
-    list_id: Option<&'a GeneratedId>,
 }
 
 impl<'a> EntityOwnerKeyData<'a> {
@@ -194,19 +222,11 @@ impl<'a> EntityOwnerKeyData<'a> {
         let owner_enc_session_key = get_nullable_field!(entity, OWNER_ENC_SESSION_FIELD, Bytes)?;
         let owner_key_version = get_nullable_field!(entity, OWNER_KEY_VERSION_FIELD, Number)?.map(|v| *v);
         let owner_group = get_nullable_field!(entity, OWNER_GROUP_FIELD, IdGeneratedId)?;
-        let (list_id, instance_id) = match entity.get(ID_FIELD) {
-            Some(ElementValue::IdGeneratedId(id)) => (None, id),
-            Some(ElementValue::IdTupleId(IdTuple { list_id, element_id })) => (Some(list_id), element_id),
-            None => return Err(SessionKeyResolutionError { reason: "no id present on instance".to_string() }),
-            Some(actual) => return Err(SessionKeyResolutionError { reason: format!("unexpected {} type for id on instance", actual.get_type_variant_name()) }),
-        };
 
         Ok(EntityOwnerKeyData {
             owner_enc_session_key,
             owner_key_version,
             owner_group,
-            instance_id,
-            list_id,
         })
     }
 }
@@ -217,6 +237,7 @@ pub struct SessionKeyResolutionError {
     reason: String,
 }
 
+/// Used to map various errors to `SessionKeyResolutionError`
 trait SessionKeyResolutionErrorSubtype: ToString {}
 
 impl<T: SessionKeyResolutionErrorSubtype> From<T> for SessionKeyResolutionError {
@@ -235,14 +256,12 @@ impl SessionKeyResolutionErrorSubtype for RSAEncryptionError {}
 
 #[cfg(test)]
 mod test {
-    use std::collections::HashMap;
     use std::sync::{Arc, Mutex};
     use crate::crypto::aes::{Aes256Key, Iv};
     use crate::crypto::crypto_facade::CryptoFacade;
     use crate::crypto::ecc::EccKeyPair;
     use crate::crypto::key::GenericAesKey;
     use crate::crypto::key_loader_facade::{MockKeyLoaderFacade, VersionedAesKey};
-    use crate::crypto::randomizer_facade::RandomizerFacade;
     use crate::crypto::randomizer_facade::test_util::make_thread_rng_facade;
     use crate::crypto::tuta_crypt::{PQKeyPairs, PQMessage};
     use crate::entities::Entity;
