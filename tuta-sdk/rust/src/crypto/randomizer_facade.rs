@@ -1,40 +1,66 @@
 use std::sync::{Arc, Mutex};
-use rand_core::CryptoRngCore;
+use rand_core::{CryptoRng, CryptoRngCore, Error, RngCore};
 
-pub trait RandomizerFacade: Send + Sync {
-    fn get_rng_core(&self) -> Arc<Mutex<Box<dyn CryptoRngCore + Send + Sync>>>;
+/// Provides an interface for generating values from a `CryptoRngCore` in a thread-safe way.
+pub struct RandomizerFacade {
+    source: Arc<Mutex<Box<dyn CryptoRngCore + Send + Sync>>>,
 }
 
-/// Convenience function for getting a thread-safe randomizer and doing something with it.
-pub fn random<T, R: RandomizerFacade + ?Sized, F: FnMut(&mut dyn CryptoRngCore) -> T>(
-    randomizer_facade: &R,
-    mut what: F
-) -> T {
-    what(randomizer_facade.get_rng_core().lock().unwrap().as_mut())
+impl RandomizerFacade {
+    /// Instantiate this facade with the given core.
+    pub fn from_core<C: CryptoRngCore + Send + Sync + 'static>(core: C) -> Self {
+        Self { source: Arc::new(Mutex::new(Box::new(core))) }
+    }
+
+    /// Create a copy of this facade.
+    ///
+    /// The source will be shared between both instances.
+    ///
+    /// This is useful if you want to make a mutable version of this facade to use in functions that
+    /// directly require a CryptoRngCore.
+    pub(in crate::crypto) fn clone(&self) -> Self {
+        Self { source: self.source.clone() }
+    }
+    
+    /// Generate a random array of a given size.
+    pub fn generate_random_array<const S: usize>(&self) -> [u8; S] {
+        let mut output = [0u8; S];
+        self.fill_slice(&mut output);
+        output
+    }
+
+    fn fill_slice(&self, output: &mut [u8]) {
+        let mut source = self.source.lock().expect("how???");
+        source.fill_bytes(output)
+    }
+}
+
+impl CryptoRng for RandomizerFacade {}
+
+impl RngCore for RandomizerFacade {
+    fn next_u32(&mut self) -> u32 {
+        rand_core::impls::next_u32_via_fill(self)
+    }
+
+    fn next_u64(&mut self) -> u64 {
+        rand_core::impls::next_u64_via_fill(self)
+    }
+
+    fn fill_bytes(&mut self, dest: &mut [u8]) {
+        self.fill_slice(dest)
+    }
+
+    fn try_fill_bytes(&mut self, dest: &mut [u8]) -> Result<(), Error> {
+        Ok(self.fill_slice(dest))
+    }
 }
 
 #[cfg(test)]
 pub mod test_util {
-    use std::sync::{Arc, Mutex};
-    use rand_core::CryptoRngCore;
     use super::*;
 
     /// Used for internal testing using OsRng.
-    pub struct TestRandomizerFacade {
-        randomizer: Arc<Mutex<Box<dyn CryptoRngCore + Send + Sync>>>
-    }
-
-    impl TestRandomizerFacade {
-        pub fn new() -> Self {
-            Self {
-                randomizer: Arc::new(Mutex::new(Box::new(rand::rngs::OsRng {})))
-            }
-        }
-    }
-
-    impl RandomizerFacade for TestRandomizerFacade {
-        fn get_rng_core(&self) -> Arc<Mutex<Box<dyn CryptoRngCore + Send + Sync>>> {
-            self.randomizer.clone()
-        }
+    pub fn make_thread_rng_facade() -> RandomizerFacade {
+        RandomizerFacade::from_core(rand::rngs::OsRng {})
     }
 }

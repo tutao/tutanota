@@ -1,9 +1,9 @@
 use std::ops::Deref;
 use rsa::{BigUint, Oaep};
-use rsa::rand_core::CryptoRngCore;
 use rsa::traits::{PrivateKeyParts, PublicKeyParts};
 use sha2::Sha256;
 use zeroize::Zeroizing;
+use crate::crypto::randomizer_facade::RandomizerFacade;
 use crate::join_slices;
 
 #[derive(Clone)]
@@ -41,10 +41,12 @@ impl RSAPublicKey {
     /// Encrypt with the given RNG provider.
     ///
     /// Returns `Err` if an error occurs.
-    pub fn encrypt<R: CryptoRngCore>(&self, rng: &mut R, data: &[u8]) -> Result<Vec<u8>, RSAEncryptionError> {
+    pub fn encrypt(&self, randomizer_facade: &RandomizerFacade, data: &[u8]) -> Result<Vec<u8>, RSAEncryptionError> {
         let padding = Oaep::new::<Sha256>();
+        let mut rng = randomizer_facade.clone();
+
         self.0
-            .encrypt(rng, padding, data)
+            .encrypt(&mut rng, padding, data)
             .map_err(|e| RSAEncryptionError { reason: format!("encrypt error: {e}") })
     }
 }
@@ -223,7 +225,8 @@ mod tests {
         let test_data = get_test_data();
         for i in test_data.rsa_encryption_tests {
             let public_key = RSAPublicKey::deserialize(&i.public_key).unwrap();
-            let ciphertext = public_key.encrypt(&mut SeedBufferRng::new(&i.seed), &i.input).unwrap();
+            let randomizer = RandomizerFacade::from_core(SeedBufferRng::new(i.seed));
+            let ciphertext = public_key.encrypt(&randomizer, &i.input).unwrap();
             assert_eq!(i.result, ciphertext);
         }
     }
@@ -254,17 +257,17 @@ mod tests {
     /// # Panics
     ///
     /// This will panic if not enough bytes have been passed into the random number generator.
-    struct SeedBufferRng<'a> {
-        buff: &'a [u8],
+    struct SeedBufferRng {
+        buff: Vec<u8>,
     }
 
-    impl<'a> SeedBufferRng<'a> {
-        pub fn new(buff: &'a [u8]) -> SeedBufferRng<'a> {
+    impl SeedBufferRng {
+        pub fn new(buff: Vec<u8>) -> SeedBufferRng {
             SeedBufferRng { buff }
         }
     }
 
-    impl<'a> RngCore for SeedBufferRng<'a> {
+    impl RngCore for SeedBufferRng {
         fn next_u32(&mut self) -> u32 {
             next_u32_via_fill(self)
         }
@@ -276,7 +279,7 @@ mod tests {
         fn fill_bytes(&mut self, dest: &mut [u8]) {
             let (copied, remaining) = self.buff.split_at(dest.len());
             dest.copy_from_slice(copied);
-            self.buff = remaining;
+            self.buff = remaining.to_owned();
         }
 
         fn try_fill_bytes(&mut self, dest: &mut [u8]) -> Result<(), Error> {
@@ -284,5 +287,5 @@ mod tests {
         }
     }
 
-    impl<'a> CryptoRng for SeedBufferRng<'a> {}
+    impl CryptoRng for SeedBufferRng {}
 }

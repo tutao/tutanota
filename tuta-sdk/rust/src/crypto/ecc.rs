@@ -1,7 +1,7 @@
 use std::ops::Deref;
-use rand_core::CryptoRngCore;
 use zeroize::*;
-use crate::util::{ArrayCastingError, generate_random_bytes, array_cast_slice};
+use crate::crypto::randomizer_facade::RandomizerFacade;
+use crate::util::{ArrayCastingError, array_cast_slice};
 
 const ECC_KEY_SIZE: usize = 32;
 
@@ -51,8 +51,8 @@ pub struct EccKeyPair {
 
 impl EccKeyPair {
     /// Generate a keypair with the given random number generator.
-    pub fn generate<R: CryptoRngCore + ?Sized>(rng: &mut R) -> Self {
-        let seed: [u8; 32] = generate_random_bytes(rng);
+    pub fn generate(randomizer_facade: &RandomizerFacade) -> Self {
+        let seed: [u8; 32] = randomizer_facade.generate_random_array();
 
         let private_key = EccPrivateKey::from_bytes_clamped(seed);
         let public_key = private_key.derive_public_key();
@@ -76,7 +76,7 @@ impl EccPublicKey {
 }
 
 #[derive(Zeroize, ZeroizeOnDrop)]
-pub struct EccSharedSecret([u8; 32]);
+pub struct EccSharedSecret([u8; ECC_KEY_SIZE]);
 
 impl EccSharedSecret {
     pub fn as_bytes(&self) -> &[u8] {

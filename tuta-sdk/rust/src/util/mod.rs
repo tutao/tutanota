@@ -1,5 +1,3 @@
-use rand_core::CryptoRngCore;
-
 #[cfg(test)]
 pub mod test_utils;
 
@@ -118,12 +116,6 @@ pub fn array_cast_size<const SIZE: usize, const ARR_SIZE: usize>(arr: [u8; ARR_S
     } else {
         Err(ArrayCastingError { type_name, actual_size: ARR_SIZE })
     }
-}
-
-pub fn generate_random_bytes<R: CryptoRngCore + ?Sized, const S: usize>(rng: &mut R) -> [u8; S] {
-    let mut result: [u8; S] = [0u8; S];
-    rng.fill_bytes(&mut result);
-    result
 }
 
 #[cfg(test)]
