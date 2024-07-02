@@ -1,4 +1,8 @@
 use rand_core::CryptoRngCore;
+
+#[cfg(test)]
+pub mod test_utils;
+
 /// Combine multiple slices into one Vec.
 ///
 /// Each slice must have the same object type, and the object must implement Copy. This makes it suitable for byte arrays.
