@@ -28,7 +28,6 @@ import type { CustomerAccountPosting } from "../api/entities/accounting/TypeRefs
 import { ExpanderButton, ExpanderPanel } from "../gui/base/Expander"
 import { locator } from "../api/main/CommonLocator"
 import { createNotAvailableForFreeClickHandler } from "../misc/SubscriptionDialogs"
-import type { UpdatableSettingsViewer } from "../../mail-app/settings/SettingsView"
 import { TranslationKeyType } from "../misc/TranslationKey"
 import { CustomerAccountService } from "../api/entities/accounting/Services"
 import { DebitService } from "../api/entities/sys/Services"
@@ -39,6 +38,7 @@ import { client } from "../misc/ClientDetector.js"
 import { DeviceType } from "../misc/ClientConstants.js"
 import { EntityUpdateData, isUpdateForTypeRef } from "../api/common/utils/EntityUpdateUtils.js"
 import { LoginButton } from "../gui/base/buttons/LoginButton.js"
+import { UpdatableSettingsViewer } from "../settings/Interfaces.js"
 
 assertMainOrNode()
 

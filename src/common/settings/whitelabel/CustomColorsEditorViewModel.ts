@@ -1,14 +1,14 @@
-import { assertMainOrNode } from "../../../common/api/common/Env"
-import type { BaseThemeId, Theme } from "../../../common/gui/theme"
+import { assertMainOrNode } from "../../api/common/Env"
+import type { BaseThemeId, Theme } from "../../gui/theme"
 import { assertNotNull, clone, debounceStart, downcast } from "@tutao/tutanota-utils"
-import type { DomainInfo, WhitelabelConfig } from "../../../common/api/entities/sys/TypeRefs.js"
-import { isValidColorCode } from "../../../common/gui/base/Color"
+import type { DomainInfo, WhitelabelConfig } from "../../api/entities/sys/TypeRefs.js"
+import { isValidColorCode } from "../../gui/base/Color"
 import stream from "mithril/stream"
 import Stream from "mithril/stream"
-import type { CustomizationKey, ThemeCustomizations, ThemeKey } from "../../../common/misc/WhitelabelCustomizations"
-import { ThemeController } from "../../../common/gui/ThemeController"
-import { EntityClient } from "../../../common/api/common/EntityClient"
-import type { LoginController } from "../../../common/api/main/LoginController"
+import type { CustomizationKey, ThemeCustomizations, ThemeKey } from "../../misc/WhitelabelCustomizations"
+import { ThemeController } from "../../gui/ThemeController"
+import { EntityClient } from "../../api/common/EntityClient"
+import type { LoginController } from "../../api/main/LoginController"
 
 assertMainOrNode()
 export type CustomColor = {

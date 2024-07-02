@@ -12,10 +12,10 @@ import { TemplateGroupRootTypeRef } from "../../common/api/entities/tutanota/Typ
 import { locator } from "../../common/api/main/CommonLocator"
 import { EntityClient } from "../../common/api/common/EntityClient"
 import { TEMPLATE_SHORTCUT_PREFIX } from "../templates/model/TemplatePopupModel"
-import type { UpdatableSettingsDetailsViewer } from "./SettingsView"
 import { ActionBar } from "../../common/gui/base/ActionBar.js"
 import { htmlSanitizer } from "../../common/misc/HtmlSanitizer.js"
 import { EntityUpdateData } from "../../common/api/common/utils/EntityUpdateUtils.js"
+import { UpdatableSettingsDetailsViewer } from "../../common/settings/Interfaces.js"
 
 export class TemplateDetailsViewer implements UpdatableSettingsDetailsViewer {
 	// we're not memoizing the translated language name since this is not a proper mithril component and may stick around after a language
