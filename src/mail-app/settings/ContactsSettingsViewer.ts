@@ -3,7 +3,6 @@ import { assertMainOrNode, isApp } from "../../common/api/common/Env"
 import { lang } from "../../common/misc/LanguageViewModel"
 import type { DropDownSelectorAttrs } from "../../common/gui/base/DropDownSelector.js"
 import { DropDownSelector } from "../../common/gui/base/DropDownSelector.js"
-import type { UpdatableSettingsViewer } from "./SettingsView"
 import { EntityUpdateData, isUpdateForTypeRef } from "../../common/api/common/utils/EntityUpdateUtils.js"
 import { locator } from "../../common/api/main/CommonLocator.js"
 import { FeatureType, OperationType } from "../../common/api/common/TutanotaConstants.js"
@@ -11,6 +10,7 @@ import { TutanotaProperties, TutanotaPropertiesTypeRef } from "../../common/api/
 import { Button, ButtonType } from "../../common/gui/base/Button.js"
 import { Dialog } from "../../common/gui/base/Dialog.js"
 import { mailLocator } from "../mailLocator.js"
+import { UpdatableSettingsViewer } from "../../common/settings/Interfaces.js"
 
 assertMainOrNode()
 

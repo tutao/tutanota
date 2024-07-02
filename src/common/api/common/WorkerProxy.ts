@@ -1,5 +1,5 @@
 /**
- * @file Functions to automatically expose certain interfaces across the WorkerProtocol Queue.
+ * @file Functions to automatically expose certain Interfaces.ts across the WorkerProtocol Queue.
  */
 import { downcast } from "@tutao/tutanota-utils"
 import { Request } from "./threading/MessageDispatcher.js"
