@@ -52,7 +52,6 @@ import { attachDropdown } from "../gui/base/Dropdown.js"
 import { createNotAvailableForFreeClickHandler } from "../misc/SubscriptionDialogs"
 import { SettingsExpander } from "../../mail-app/settings/SettingsExpander"
 import { elementIdPart, GENERATED_MAX_ID, getEtId } from "../api/common/utils/EntityUtils"
-import type { UpdatableSettingsViewer } from "../../mail-app/settings/SettingsView"
 import {
 	CURRENT_GIFT_CARD_TERMS_VERSION,
 	CURRENT_PRIVACY_VERSION,
@@ -65,6 +64,7 @@ import { IconButton, IconButtonAttrs } from "../gui/base/IconButton.js"
 import { ButtonSize } from "../gui/base/ButtonSize.js"
 import { getDisplayNameOfPlanType } from "./FeatureListProvider"
 import { EntityUpdateData, isUpdateForTypeRef } from "../api/common/utils/EntityUpdateUtils.js"
+import { UpdatableSettingsViewer } from "../settings/Interfaces.js"
 
 assertMainOrNode()
 const DAY = 1000 * 60 * 60 * 24

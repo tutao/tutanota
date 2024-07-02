@@ -1,10 +1,10 @@
-import { Dialog } from "../../../common/gui/base/Dialog"
-import { lang } from "../../../common/misc/LanguageViewModel"
+import { Dialog } from "../../gui/base/Dialog"
+import { lang } from "../../misc/LanguageViewModel"
 import m, { Children, Component, Vnode } from "mithril"
-import { TextField, TextFieldType } from "../../../common/gui/base/TextField.js"
-import { Icons } from "../../../common/gui/base/icons/Icons"
-import { IconButton } from "../../../common/gui/base/IconButton.js"
-import { ButtonSize } from "../../../common/gui/base/ButtonSize.js"
+import { TextField, TextFieldType } from "../../gui/base/TextField.js"
+import { Icons } from "../../gui/base/icons/Icons"
+import { IconButton } from "../../gui/base/IconButton.js"
+import { ButtonSize } from "../../gui/base/ButtonSize.js"
 
 export type WhitelabelImprintAndPrivacySettingsAttrs = {
 	privacyStatementUrl: string

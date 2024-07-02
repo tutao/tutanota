@@ -1,11 +1,11 @@
-import { showPlanUpgradeRequiredDialog } from "../../../common/misc/SubscriptionDialogs"
-import { Icons } from "../../../common/gui/base/icons/Icons"
-import { lang } from "../../../common/misc/LanguageViewModel"
+import { showPlanUpgradeRequiredDialog } from "../../misc/SubscriptionDialogs"
+import { Icons } from "../../gui/base/icons/Icons"
+import { lang } from "../../misc/LanguageViewModel"
 import m, { Children, Component, Vnode } from "mithril"
-import { TextField } from "../../../common/gui/base/TextField.js"
-import { IconButton } from "../../../common/gui/base/IconButton.js"
-import { ButtonSize } from "../../../common/gui/base/ButtonSize.js"
-import { getAvailablePlansWithWhitelabel } from "../../../common/subscription/SubscriptionUtils.js"
+import { TextField } from "../../gui/base/TextField.js"
+import { IconButton } from "../../gui/base/IconButton.js"
+import { ButtonSize } from "../../gui/base/ButtonSize.js"
+import { getAvailablePlansWithWhitelabel } from "../../subscription/SubscriptionUtils.js"
 
 export type WhitelabelStatusSettingsAttrs = {
 	isWhitelabelActive: boolean

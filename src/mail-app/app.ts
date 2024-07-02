@@ -3,7 +3,6 @@ import m from "mithril"
 import Mithril, { Children, ClassComponent, Component, RouteDefs, RouteResolver, Vnode, VnodeDOM } from "mithril"
 import { lang, languageCodeToTag, languages } from "../common/misc/LanguageViewModel.js"
 import { root } from "../RootView.js"
-import { disableErrorHandlingDuringLogout, handleUncaughtError } from "../common/common/misc/ErrorHandler.js"
 import { assertMainOrNodeBoot, bootFinished, isApp, isDesktop, isOfflineStorageAvailable } from "../common/common/api/common/Env.js"
 import { assertNotNull, neverNull } from "@tutao/tutanota-utils"
 import { windowFacade } from "../common/misc/WindowFacade.js"
@@ -23,7 +22,7 @@ import { CalendarView, CalendarViewAttrs } from "../calendar-app/calendar/view/C
 import { DrawerMenuAttrs } from "../common/gui/nav/DrawerMenu.js"
 import { MailView, MailViewAttrs, MailViewCache } from "./mail/view/MailView.js"
 import { ContactView, ContactViewAttrs } from "./contacts/view/ContactView.js"
-import { SettingsView, SettingsViewAttrs } from "./settings/SettingsView.js"
+import { SettingsView } from "./settings/SettingsView.js"
 import { SearchView, SearchViewAttrs } from "./search/view/SearchView.js"
 import { TopLevelAttrs, TopLevelView } from "../TopLevelView.js"
 import { AppHeaderAttrs } from "../common/gui/Header.js"
@@ -36,6 +35,8 @@ import { ContactViewModel } from "./contacts/view/ContactViewModel.js"
 import { ContactListViewModel } from "./contacts/view/ContactListViewModel.js"
 import type { CredentialsMigrationView, CredentialsMigrationViewAttrs } from "../common/login/CredentialsMigrationView.js"
 import type { CredentialsMigrationViewModel } from "../common/login/CredentialsMigrationViewModel.js"
+import { SettingsViewAttrs } from "../common/settings/Interfaces.js"
+import { disableErrorHandlingDuringLogout, handleUncaughtError } from "../common/misc/ErrorHandler.js"
 
 assertMainOrNodeBoot()
 bootFinished()
@@ -113,7 +114,7 @@ import("./translations/en.js")
 		locator.logins.addPostLoginAction(() => locator.postLoginActions())
 
 		if (isOfflineStorageAvailable()) {
-			const { CachePostLoginAction } = await import("../common/common/offline/CachePostLoginAction.js")
+			const { CachePostLoginAction } = await import("../common/offline/CachePostLoginAction.js")
 			locator.logins.addPostLoginAction(
 				async () =>
 					new CachePostLoginAction(
@@ -140,7 +141,7 @@ import("./translations/en.js")
 		>(
 			{
 				prepareRoute: async () => {
-					const { ContactView } = await import("./mail-app/contacts/view/ContactView.js")
+					const { ContactView } = await import("./contacts/view/ContactView.js")
 					const drawerAttrsFactory = await locator.drawerAttrsFactory()
 					return {
 						component: ContactView,
