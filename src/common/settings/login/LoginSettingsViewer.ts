@@ -1,32 +1,27 @@
 import m, { Children } from "mithril"
 import stream from "mithril/stream"
-import type { TextFieldAttrs } from "../../../common/gui/base/TextField.js"
-import { TextField } from "../../../common/gui/base/TextField.js"
-import { InfoLink, lang } from "../../../common/misc/LanguageViewModel.js"
-import { Icons } from "../../../common/gui/base/icons/Icons.js"
-import { CustomerPropertiesTypeRef, Session, SessionTypeRef } from "../../../common/api/entities/sys/TypeRefs.js"
+import type { TextFieldAttrs } from "../../gui/base/TextField.js"
+import { TextField } from "../../gui/base/TextField.js"
+import { InfoLink, lang } from "../../misc/LanguageViewModel.js"
+import { Icons } from "../../gui/base/icons/Icons.js"
+import { CustomerPropertiesTypeRef, Session, SessionTypeRef } from "../../api/entities/sys/TypeRefs.js"
 import { assertNotNull, LazyLoaded, neverNull, ofClass } from "@tutao/tutanota-utils"
-import { formatDateTimeFromYesterdayOn } from "../../../common/misc/Formatter.js"
-import { SessionState } from "../../../common/api/common/TutanotaConstants.js"
+import { formatDateTimeFromYesterdayOn } from "../../misc/Formatter.js"
+import { SessionState } from "../../api/common/TutanotaConstants.js"
 import { SecondFactorsEditForm } from "./secondfactor/SecondFactorsEditForm.js"
 
-import { NotFoundError } from "../../../common/api/common/error/RestError.js"
+import { NotFoundError } from "../../api/common/error/RestError.js"
 import * as RecoverCodeDialog from "./RecoverCodeDialog.js"
-import { attachDropdown } from "../../../common/gui/base/Dropdown.js"
-import { ExpanderButton, ExpanderPanel } from "../../../common/gui/base/Expander.js"
-import { ColumnWidth, Table } from "../../../common/gui/base/Table.js"
-import { ifAllowedTutaLinks } from "../../../common/gui/base/GuiUtils.js"
-<<<<<<<< HEAD:src/common/settings/login/LoginSettingsViewer.ts
-========
-import type { UpdatableSettingsViewer } from "../SettingsView.js"
->>>>>>>> 3349a964d (Move files to new folder structure):src/mail-app/settings/login/LoginSettingsViewer.ts
-import { CredentialEncryptionMode } from "../../../common/misc/credentials/CredentialEncryptionMode.js"
-import { CredentialsProvider } from "../../../common/misc/credentials/CredentialsProvider.js"
-import { showCredentialsEncryptionModeDialog } from "../../../common/gui/dialogs/SelectCredentialsEncryptionModeDialog.js"
-import { assertMainOrNode, isDesktop } from "../../../common/api/common/Env.js"
-<<<<<<<< HEAD:src/common/settings/login/LoginSettingsViewer.ts
-import { locator } from "../../../common/api/main/CommonLocator.js"
-import { elementIdPart, getElementId } from "../../../common/api/common/utils/EntityUtils.js"
+import { attachDropdown } from "../../gui/base/Dropdown.js"
+import { ExpanderButton, ExpanderPanel } from "../../gui/base/Expander.js"
+import { ColumnWidth, Table } from "../../gui/base/Table.js"
+import { ifAllowedTutaLinks } from "../../gui/base/GuiUtils.js"
+import { CredentialEncryptionMode } from "../../misc/credentials/CredentialEncryptionMode.js"
+import { CredentialsProvider } from "../../misc/credentials/CredentialsProvider.js"
+import { showCredentialsEncryptionModeDialog } from "../../gui/dialogs/SelectCredentialsEncryptionModeDialog.js"
+import { assertMainOrNode, isDesktop } from "../../api/common/Env.js"
+import { locator } from "../../api/main/CommonLocator.js"
+import { elementIdPart, getElementId } from "../../api/common/utils/EntityUtils.js"
 import { showChangeOwnPasswordDialog } from "./ChangePasswordDialogs.js"
 import { IconButton, IconButtonAttrs } from "../../gui/base/IconButton.js"
 import { ButtonSize } from "../../gui/base/ButtonSize.js"
@@ -39,22 +34,6 @@ import { MoreInfoLink } from "../../misc/news/MoreInfoLink.js"
 import { AppLockMethod } from "../../native/common/generatedipc/AppLockMethod.js"
 import { MobileSystemFacade } from "../../native/common/generatedipc/MobileSystemFacade.js"
 import { UpdatableSettingsViewer } from "../Interfaces.js"
-========
-import { locator } from "../../../common/api/main/MainLocator.js"
-import { elementIdPart, getElementId } from "../../../common/api/common/utils/EntityUtils.js"
-import { showChangeOwnPasswordDialog } from "./ChangePasswordDialogs.js"
-import { IconButton, IconButtonAttrs } from "../../../common/gui/base/IconButton.js"
-import { ButtonSize } from "../../../common/gui/base/ButtonSize.js"
-import { DropDownSelector, DropDownSelectorAttrs } from "../../../common/gui/base/DropDownSelector.js"
-import { UsageTestModel } from "../../../common/misc/UsageTestModel.js"
-import { UserSettingsGroupRootTypeRef } from "../../../common/api/entities/tutanota/TypeRefs.js"
-import { EntityUpdateData, isUpdateForTypeRef } from "../../../common/api/common/utils/EntityUpdateUtils.js"
-import { Dialog } from "../../../common/gui/base/Dialog.js"
-import { MoreInfoLink } from "../../../common/misc/news/MoreInfoLink.js"
-import { AppLockMethod } from "../../../common/native/common/generatedipc/AppLockMethod.js"
-import { MobileSystemFacade } from "../../../common/native/common/generatedipc/MobileSystemFacade.js"
->>>>>>>> 3349a964d (Move files to new folder structure):src/mail-app/settings/login/LoginSettingsViewer.ts
-
 assertMainOrNode()
 
 export class LoginSettingsViewer implements UpdatableSettingsViewer {
@@ -214,7 +193,7 @@ export class LoginSettingsViewer implements UpdatableSettingsViewer {
 		// On mobile we display app lock dialog, on desktop credential encryption dialog. They are similar but different.
 		if (mobileSystemFacade) {
 			const onEdit = async () => {
-				const { showAppLockMethodDialog } = await import("../../../common/native/main/SelectAppLockMethodDialog.js")
+				const { showAppLockMethodDialog } = await import("../../native/main/SelectAppLockMethodDialog.js")
 				await showAppLockMethodDialog(mobileSystemFacade)
 				await this.updateAppLockData()
 			}
