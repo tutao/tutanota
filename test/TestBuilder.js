@@ -121,27 +121,22 @@ export async function runTestBuild({ clean, fast = false }) {
 				}),
 				esbuildWasmLoader({
 					output: `${process.cwd()}/build/wasm`,
+					fallback: true,
 					webassemblyLibraries: [
 						{
 							name: "liboqs.wasm",
 							command: "make -f Makefile_liboqs build",
-							options: {
-								workingDir: `${process.cwd()}/../libs/webassembly/`,
-								env: {
-									WASM: `${process.cwd()}/build/wasm/liboqs.wasm`,
-								},
-								optimizationLevel: "O3",
+							workingDir: `${process.cwd()}/../libs/webassembly/`,
+							env: {
+								WASM: `${process.cwd()}/build/wasm/liboqs.wasm`,
 							},
 						},
 						{
 							name: "argon2.wasm",
 							command: "make -f Makefile_argon2 build",
-							options: {
-								workingDir: `${process.cwd()}/../libs/webassembly/`,
-								env: {
-									WASM: `${process.cwd()}/build/wasm/argon2.wasm`,
-								},
-								optimizationLevel: "O3",
+							workingDir: `${process.cwd()}/../libs/webassembly/`,
+							env: {
+								WASM: `${process.cwd()}/build/wasm/argon2.wasm`,
 							},
 						},
 					],

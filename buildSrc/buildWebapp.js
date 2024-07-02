@@ -87,28 +87,25 @@ export async function buildWebapp({ version, stage, host, measure, minify, proje
 			}),
 			rollupWasmLoader({
 				output: "build/wasm",
+				fallback: true,
 				webassemblyLibraries: [
 					{
 						name: "liboqs.wasm",
 						command: "make -f Makefile_liboqs build",
-						options: {
-							workingDir: "libs/webassembly/",
-							env: {
-								WASM: "../../build/wasm/liboqs.wasm",
-							},
-							optimizationLevel: "O3",
+						workingDir: "libs/webassembly/",
+						env: {
+							WASM: "../../build/wasm/liboqs.wasm",
 						},
+						optimizationLevel: "O3",
 					},
 					{
 						name: "argon2.wasm",
 						command: "make -f Makefile_argon2 build",
-						options: {
-							workingDir: "libs/webassembly/",
-							env: {
-								WASM: "../../build/wasm/argon2.wasm",
-							},
-							optimizationLevel: "O3",
+						workingDir: "libs/webassembly/",
+						env: {
+							WASM: "../../build/wasm/argon2.wasm",
 						},
+						optimizationLevel: "O3",
 					},
 				],
 			}),
