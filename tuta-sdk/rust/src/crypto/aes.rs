@@ -135,8 +135,8 @@ pub struct Iv([u8; IV_BYTE_SIZE]);
 
 impl Iv {
     /// Generate an initialisation vector.
-    pub fn generate<R: CryptoRngCore + ?Sized>(rng: &mut R) -> Self {
-        Self(generate_random_bytes(rng))
+    pub fn generate(randomizer_facade: &RandomizerFacade) -> Self {
+        Self(randomizer_facade.generate_random_array())
     }
 
     pub fn from_bytes(bytes: &[u8]) -> Result<Self, ArrayCastingError> {
@@ -406,6 +406,7 @@ mod tests {
     use base64::prelude::BASE64_STANDARD;
 
     use crate::crypto::compatibility_test_utils::*;
+    use crate::crypto::randomizer_facade::test_util::make_thread_rng_facade;
 
     use super::*;
 
@@ -639,8 +640,9 @@ mod tests {
 
     #[test]
     fn test_aes_decrypt_does_not_panic_with_invalid_data() {
-        let key_128 = Aes128Key::generate(&mut rand::thread_rng());
-        let key_256 = Aes256Key::generate(&mut rand::thread_rng());
+        let randomizer = make_thread_rng_facade();
+        let key_128 = Aes128Key::generate(&randomizer);
+        let key_256 = Aes256Key::generate(&randomizer);
 
         let mut v = Vec::with_capacity(256);
         for length in 0..256 {
