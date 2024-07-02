@@ -3,7 +3,7 @@
 # If you run out of memory and it's not being caused by a memory leak, try increasing this.
 TOTAL_MEMORY=48MB
 
-.PHONY: build include clean
+.PHONY: build clean
 
 CC=emcc
 WASM2JS=wasm2js
@@ -33,6 +33,7 @@ LIBOQS_DIR=liboqs
 clean:
 	rm -f ${WASM}
 	rm -rf include
+
 include:
 	mkdir -p include/oqs
 	cp "${LIBOQS_DIR}/src/oqs.h" include/oqs
@@ -67,4 +68,3 @@ $(WASM): include
     	-s TOTAL_MEMORY=${TOTAL_MEMORY} \
     	-s EXPORTED_FUNCTIONS="['_OQS_KEM_new', '_OQS_KEM_free', '_OQS_KEM_keypair', '_OQS_KEM_encaps', '_OQS_KEM_decaps', '_TUTA_inject_entropy', '_malloc', '_free']" \
     	-o $(WASM)
-	rm -rf include
