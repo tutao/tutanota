@@ -37,7 +37,6 @@ import {
 	sortCompareByReverseId,
 	timestampToGeneratedId,
 } from "../../common/api/common/utils/EntityUtils"
-import { ExpandableTable } from "../../common/settings/ExpandableTable.js"
 import { showRejectedSendersInfoDialog } from "./RejectedSendersInfoDialog"
 import { showAddDomainWizard } from "./emaildomain/AddDomainWizard"
 import { getUserGroupMemberships } from "../../common/api/common/utils/GroupUtils"
@@ -48,9 +47,10 @@ import { assertMainOrNode } from "../../common/api/common/Env"
 import { ButtonSize } from "../../common/gui/base/ButtonSize.js"
 import { getCustomMailDomains } from "../../common/api/common/utils/CustomerUtils.js"
 import { EntityUpdateData, isUpdateForTypeRef } from "../../common/api/common/utils/EntityUpdateUtils.js"
-import { UpdatableSettingsViewer } from "../../common/settings/Interfaces.js"
 import { AccountMaintenanceSettings, AccountMaintenanceUpdateNotifier } from "../../common/settings/AccountMaintenanceSettings.js"
 import { hasRunningAppStoreSubscription } from "../../common/subscription/SubscriptionUtils.js"
+import type { UpdatableSettingsViewer } from "../../common/settings/Interfaces.js"
+import { ExpandableTable } from "../../common/settings/ExpandableTable.js"
 
 assertMainOrNode()
 // Number of days for that we load rejected senders
@@ -163,6 +163,7 @@ export class GlobalSettingsViewer implements UpdatableSettingsViewer {
 					},
 				}),
 			]),
+			m(AccountMaintenanceSettings),
 		]
 	}
 

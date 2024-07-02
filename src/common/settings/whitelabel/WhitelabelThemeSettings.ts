@@ -1,26 +1,18 @@
-import { lang } from "../../../common/misc/LanguageViewModel"
-import { Dialog } from "../../../common/gui/base/Dialog"
+import { lang } from "../../misc/LanguageViewModel"
+import { Dialog } from "../../gui/base/Dialog"
 import { assertNotNull, contains, downcast, uint8ArrayToBase64, utf8Uint8ArrayToString } from "@tutao/tutanota-utils"
-<<<<<<<< HEAD:src/common/settings/whitelabel/WhitelabelThemeSettings.ts
-========
-import { themeController } from "../../../common/gui/theme"
->>>>>>>> 3349a964d (Move files to new folder structure):src/mail-app/settings/whitelabel/WhitelabelThemeSettings.ts
-import { Icons } from "../../../common/gui/base/icons/Icons"
+import { Icons } from "../../gui/base/icons/Icons.js"
 import { ALLOWED_IMAGE_FORMATS, MAX_LOGO_SIZE } from "../../../common/api/common/TutanotaConstants"
 import m, { Children, Component, Vnode } from "mithril"
-import { TextField, TextFieldAttrs } from "../../../common/gui/base/TextField.js"
+import { TextField, TextFieldAttrs } from "../../gui/base/TextField.js"
 import * as EditCustomColorsDialog from "./EditCustomColorsDialog"
 import { CustomColorsEditorViewModel } from "./CustomColorsEditorViewModel"
 import type { DomainInfo, WhitelabelConfig } from "../../../common/api/entities/sys/TypeRefs.js"
-import type { ThemeCustomizations } from "../../../common/misc/WhitelabelCustomizations"
-<<<<<<<< HEAD:src/common/settings/whitelabel/WhitelabelThemeSettings.ts
-import { locator } from "../../../common/api/main/CommonLocator"
-========
-import { locator } from "../../../common/api/main/MainLocator"
->>>>>>>> 3349a964d (Move files to new folder structure):src/mail-app/settings/whitelabel/WhitelabelThemeSettings.ts
-import { showFileChooser } from "../../../common/file/FileController.js"
-import { IconButton } from "../../../common/gui/base/IconButton.js"
-import { ButtonSize } from "../../../common/gui/base/ButtonSize.js"
+import type { ThemeCustomizations } from "../../misc/WhitelabelCustomizations.js"
+import { locator } from "../../api/main/CommonLocator.js"
+import { showFileChooser } from "../../file/FileController.js"
+import { IconButton } from "../../gui/base/IconButton.js"
+import { ButtonSize } from "../../gui/base/ButtonSize.js"
 
 export type WhitelabelData = {
 	customTheme: ThemeCustomizations
