@@ -1,14 +1,8 @@
 import m, { Children } from "mithril"
-<<<<<<<< HEAD:src/common/settings/ReferralSettingsViewer.ts
 import type { UpdatableSettingsViewer } from "./Interfaces.js"
-import { getReferralLink, ReferralLinkViewer } from "../../common/misc/news/items/ReferralLinkViewer.js"
-import { locator } from "../../common/api/main/CommonLocator.js"
-========
-import type { UpdatableSettingsViewer } from "./SettingsView"
-import { getReferralLink, ReferralLinkViewer } from "../../common/misc/news/items/ReferralLinkViewer.js"
-import { locator } from "../../common/api/main/MainLocator.js"
->>>>>>>> 3349a964d (Move files to new folder structure):src/mail-app/settings/ReferralSettingsViewer.ts
-import { EntityUpdateData } from "../../common/api/common/utils/EntityUpdateUtils.js"
+import { getReferralLink, ReferralLinkViewer } from "../misc/news/items/ReferralLinkViewer.js"
+import { locator } from "../api/main/CommonLocator.js"
+import { EntityUpdateData } from "../api/common/utils/EntityUpdateUtils.js"
 
 /**
  * Section in user settings to display the referral link and let users share it.
