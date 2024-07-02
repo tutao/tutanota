@@ -94,11 +94,29 @@ pub struct ArrayCastingError {
     pub actual_size: usize,
 }
 
-/// Converts a slice into a fixed size array
+/// Converts a slice into a fixed size array.
+///
+/// If the size of the slice does not match, it will return an `Err`.
 pub fn array_cast_slice<T: Copy + Clone, const SIZE: usize>(from: &[T], type_name: &'static str) -> Result<[T; SIZE], ArrayCastingError> {
     match <[T; SIZE]>::try_from(from) {
         Ok(n) => Ok(n),
         Err(_) => Err(ArrayCastingError { type_name, actual_size: from.len() })
+    }
+}
+
+/// Cast the array into an array of a fixed size.
+///
+/// If the size is the same, it will be re-returned. Otherwise, returns `Err`.
+///
+/// This is used to prove to the compiler that the size is correct, and will generally be optimized
+/// by the compiler to have no runtime cost in release builds.
+pub fn array_cast_size<const SIZE: usize, const ARR_SIZE: usize>(arr: [u8; ARR_SIZE], type_name: &'static str) -> Result<[u8; SIZE], ArrayCastingError> {
+    if arr.len() == SIZE {
+        let mut result: [u8; SIZE] = [0; SIZE];
+        result.copy_from_slice(&arr);
+        Ok(result)
+    } else {
+        Err(ArrayCastingError { type_name, actual_size: ARR_SIZE })
     }
 }
 
