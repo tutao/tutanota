@@ -13,10 +13,10 @@ const encodedUtlds = 'ελ1υ2бг1ел3дети4ею2католик6ом3мкд
  * @return {A & B}
  */
 const assign = (target, properties) => {
-  for (const key in properties) {
-    target[key] = properties[key];
-  }
-  return target;
+	for (const key in properties) {
+		target[key] = properties[key];
+	}
+	return target;
 };
 
 /**
@@ -51,10 +51,10 @@ const whitespace = 'whitespace';
  * @returns {T[]} Current list of tokens in the given collection
  */
 function registerGroup(name, groups) {
-  if (!(name in groups)) {
-    groups[name] = [];
-  }
-  return groups[name];
+	if (!(name in groups)) {
+		groups[name] = [];
+	}
+	return groups[name];
 }
 
 /**
@@ -64,32 +64,32 @@ function registerGroup(name, groups) {
  * @param {Flags} flags
  */
 function addToGroups(t, flags, groups) {
-  if (flags[numeric]) {
-    flags[asciinumeric] = true;
-    flags[alphanumeric] = true;
-  }
-  if (flags[ascii]) {
-    flags[asciinumeric] = true;
-    flags[alpha] = true;
-  }
-  if (flags[asciinumeric]) {
-    flags[alphanumeric] = true;
-  }
-  if (flags[alpha]) {
-    flags[alphanumeric] = true;
-  }
-  if (flags[alphanumeric]) {
-    flags[domain] = true;
-  }
-  if (flags[emoji]) {
-    flags[domain] = true;
-  }
-  for (const k in flags) {
-    const group = registerGroup(k, groups);
-    if (group.indexOf(t) < 0) {
-      group.push(t);
-    }
-  }
+	if (flags[numeric]) {
+		flags[asciinumeric] = true;
+		flags[alphanumeric] = true;
+	}
+	if (flags[ascii]) {
+		flags[asciinumeric] = true;
+		flags[alpha] = true;
+	}
+	if (flags[asciinumeric]) {
+		flags[alphanumeric] = true;
+	}
+	if (flags[alpha]) {
+		flags[alphanumeric] = true;
+	}
+	if (flags[alphanumeric]) {
+		flags[domain] = true;
+	}
+	if (flags[emoji]) {
+		flags[domain] = true;
+	}
+	for (const k in flags) {
+		const group = registerGroup(k, groups);
+		if (group.indexOf(t) < 0) {
+			group.push(t);
+		}
+	}
 }
 
 /**
@@ -99,13 +99,13 @@ function addToGroups(t, flags, groups) {
  * @returns {Flags} group flags that contain this token
  */
 function flagsForToken(t, groups) {
-  const result = {};
-  for (const c in groups) {
-    if (groups[c].indexOf(t) >= 0) {
-      result[c] = true;
-    }
-  }
-  return result;
+	const result = {};
+	for (const c in groups) {
+		if (groups[c].indexOf(t) >= 0) {
+			result[c] = true;
+		}
+	}
+	return result;
 }
 
 /**
@@ -127,19 +127,19 @@ function flagsForToken(t, groups) {
  * @param {T} [token] Token that this state emits
  */
 function State(token) {
-  if (token === void 0) {
-    token = null;
-  }
-  // this.n = null; // DEBUG: State name
-  /** @type {{ [input: string]: State<T> }} j */
-  this.j = {}; // IMPLEMENTATION 1
-  // this.j = []; // IMPLEMENTATION 2
-  /** @type {[RegExp, State<T>][]} jr */
-  this.jr = [];
-  /** @type {?State<T>} jd */
-  this.jd = null;
-  /** @type {?T} t */
-  this.t = token;
+	if (token === void 0) {
+		token = null;
+	}
+	// this.n = null; // DEBUG: State name
+	/** @type {{ [input: string]: State<T> }} j */
+	this.j = {}; // IMPLEMENTATION 1
+	// this.j = []; // IMPLEMENTATION 2
+	/** @type {[RegExp, State<T>][]} jr */
+	this.jr = [];
+	/** @type {?State<T>} jd */
+	this.jd = null;
+	/** @type {?T} t */
+	this.t = token;
 }
 
 /**
@@ -148,168 +148,168 @@ function State(token) {
  */
 State.groups = {};
 State.prototype = {
-  accepts() {
-    return !!this.t;
-  },
-  /**
-   * Follow an existing transition from the given input to the next state.
-   * Does not mutate.
-   * @param {string} input character or token type to transition on
-   * @returns {?State<T>} the next state, if any
-   */
-  go(input) {
-    const state = this;
-    const nextState = state.j[input];
-    if (nextState) {
-      return nextState;
-    }
-    for (let i = 0; i < state.jr.length; i++) {
-      const regex = state.jr[i][0];
-      const nextState = state.jr[i][1]; // note: might be empty to prevent default jump
-      if (nextState && regex.test(input)) {
-        return nextState;
-      }
-    }
-    // Nowhere left to jump! Return default, if any
-    return state.jd;
-  },
-  /**
-   * Whether the state has a transition for the given input. Set the second
-   * argument to true to only look for an exact match (and not a default or
-   * regular-expression-based transition)
-   * @param {string} input
-   * @param {boolean} exactOnly
-   */
-  has(input, exactOnly) {
-    if (exactOnly === void 0) {
-      exactOnly = false;
-    }
-    return exactOnly ? input in this.j : !!this.go(input);
-  },
-  /**
-   * Short for "transition all"; create a transition from the array of items
-   * in the given list to the same final resulting state.
-   * @param {string | string[]} inputs Group of inputs to transition on
-   * @param {Transition<T> | State<T>} [next] Transition options
-   * @param {Flags} [flags] Collections flags to add token to
-   * @param {Collections<T>} [groups] Master list of token groups
-   */
-  ta(inputs, next, flags, groups) {
-    for (let i = 0; i < inputs.length; i++) {
-      this.tt(inputs[i], next, flags, groups);
-    }
-  },
-  /**
-   * Short for "take regexp transition"; defines a transition for this state
-   * when it encounters a token which matches the given regular expression
-   * @param {RegExp} regexp Regular expression transition (populate first)
-   * @param {T | State<T>} [next] Transition options
-   * @param {Flags} [flags] Collections flags to add token to
-   * @param {Collections<T>} [groups] Master list of token groups
-   * @returns {State<T>} taken after the given input
-   */
-  tr(regexp, next, flags, groups) {
-    groups = groups || State.groups;
-    let nextState;
-    if (next && next.j) {
-      nextState = next;
-    } else {
-      // Token with maybe token groups
-      nextState = new State(next);
-      if (flags && groups) {
-        addToGroups(next, flags, groups);
-      }
-    }
-    this.jr.push([regexp, nextState]);
-    return nextState;
-  },
-  /**
-   * Short for "take transitions", will take as many sequential transitions as
-   * the length of the given input and returns the
-   * resulting final state.
-   * @param {string | string[]} input
-   * @param {T | State<T>} [next] Transition options
-   * @param {Flags} [flags] Collections flags to add token to
-   * @param {Collections<T>} [groups] Master list of token groups
-   * @returns {State<T>} taken after the given input
-   */
-  ts(input, next, flags, groups) {
-    let state = this;
-    const len = input.length;
-    if (!len) {
-      return state;
-    }
-    for (let i = 0; i < len - 1; i++) {
-      state = state.tt(input[i]);
-    }
-    return state.tt(input[len - 1], next, flags, groups);
-  },
-  /**
-   * Short for "take transition", this is a method for building/working with
-   * state machines.
-   *
-   * If a state already exists for the given input, returns it.
-   *
-   * If a token is specified, that state will emit that token when reached by
-   * the linkify engine.
-   *
-   * If no state exists, it will be initialized with some default transitions
-   * that resemble existing default transitions.
-   *
-   * If a state is given for the second argument, that state will be
-   * transitioned to on the given input regardless of what that input
-   * previously did.
-   *
-   * Specify a token group flags to define groups that this token belongs to.
-   * The token will be added to corresponding entires in the given groups
-   * object.
-   *
-   * @param {string} input character, token type to transition on
-   * @param {T | State<T>} [next] Transition options
-   * @param {Flags} [flags] Collections flags to add token to
-   * @param {Collections<T>} [groups] Master list of groups
-   * @returns {State<T>} taken after the given input
-   */
-  tt(input, next, flags, groups) {
-    groups = groups || State.groups;
-    const state = this;
+	accepts() {
+		return !!this.t;
+	},
+	/**
+	 * Follow an existing transition from the given input to the next state.
+	 * Does not mutate.
+	 * @param {string} input character or token type to transition on
+	 * @returns {?State<T>} the next state, if any
+	 */
+	go(input) {
+		const state = this;
+		const nextState = state.j[input];
+		if (nextState) {
+			return nextState;
+		}
+		for (let i = 0; i < state.jr.length; i++) {
+			const regex = state.jr[i][0];
+			const nextState = state.jr[i][1]; // note: might be empty to prevent default jump
+			if (nextState && regex.test(input)) {
+				return nextState;
+			}
+		}
+		// Nowhere left to jump! Return default, if any
+		return state.jd;
+	},
+	/**
+	 * Whether the state has a transition for the given input. Set the second
+	 * argument to true to only look for an exact match (and not a default or
+	 * regular-expression-based transition)
+	 * @param {string} input
+	 * @param {boolean} exactOnly
+	 */
+	has(input, exactOnly) {
+		if (exactOnly === void 0) {
+			exactOnly = false;
+		}
+		return exactOnly ? input in this.j : !!this.go(input);
+	},
+	/**
+	 * Short for "transition all"; create a transition from the array of items
+	 * in the given list to the same final resulting state.
+	 * @param {string | string[]} inputs Group of inputs to transition on
+	 * @param {Transition<T> | State<T>} [next] Transition options
+	 * @param {Flags} [flags] Collections flags to add token to
+	 * @param {Collections<T>} [groups] Master list of token groups
+	 */
+	ta(inputs, next, flags, groups) {
+		for (let i = 0; i < inputs.length; i++) {
+			this.tt(inputs[i], next, flags, groups);
+		}
+	},
+	/**
+	 * Short for "take regexp transition"; defines a transition for this state
+	 * when it encounters a token which matches the given regular expression
+	 * @param {RegExp} regexp Regular expression transition (populate first)
+	 * @param {T | State<T>} [next] Transition options
+	 * @param {Flags} [flags] Collections flags to add token to
+	 * @param {Collections<T>} [groups] Master list of token groups
+	 * @returns {State<T>} taken after the given input
+	 */
+	tr(regexp, next, flags, groups) {
+		groups = groups || State.groups;
+		let nextState;
+		if (next && next.j) {
+			nextState = next;
+		} else {
+			// Token with maybe token groups
+			nextState = new State(next);
+			if (flags && groups) {
+				addToGroups(next, flags, groups);
+			}
+		}
+		this.jr.push([regexp, nextState]);
+		return nextState;
+	},
+	/**
+	 * Short for "take transitions", will take as many sequential transitions as
+	 * the length of the given input and returns the
+	 * resulting final state.
+	 * @param {string | string[]} input
+	 * @param {T | State<T>} [next] Transition options
+	 * @param {Flags} [flags] Collections flags to add token to
+	 * @param {Collections<T>} [groups] Master list of token groups
+	 * @returns {State<T>} taken after the given input
+	 */
+	ts(input, next, flags, groups) {
+		let state = this;
+		const len = input.length;
+		if (!len) {
+			return state;
+		}
+		for (let i = 0; i < len - 1; i++) {
+			state = state.tt(input[i]);
+		}
+		return state.tt(input[len - 1], next, flags, groups);
+	},
+	/**
+	 * Short for "take transition", this is a method for building/working with
+	 * state machines.
+	 *
+	 * If a state already exists for the given input, returns it.
+	 *
+	 * If a token is specified, that state will emit that token when reached by
+	 * the linkify engine.
+	 *
+	 * If no state exists, it will be initialized with some default transitions
+	 * that resemble existing default transitions.
+	 *
+	 * If a state is given for the second argument, that state will be
+	 * transitioned to on the given input regardless of what that input
+	 * previously did.
+	 *
+	 * Specify a token group flags to define groups that this token belongs to.
+	 * The token will be added to corresponding entires in the given groups
+	 * object.
+	 *
+	 * @param {string} input character, token type to transition on
+	 * @param {T | State<T>} [next] Transition options
+	 * @param {Flags} [flags] Collections flags to add token to
+	 * @param {Collections<T>} [groups] Master list of groups
+	 * @returns {State<T>} taken after the given input
+	 */
+	tt(input, next, flags, groups) {
+		groups = groups || State.groups;
+		const state = this;
 
-    // Check if existing state given, just a basic transition
-    if (next && next.j) {
-      state.j[input] = next;
-      return next;
-    }
-    const t = next;
+		// Check if existing state given, just a basic transition
+		if (next && next.j) {
+			state.j[input] = next;
+			return next;
+		}
+		const t = next;
 
-    // Take the transition with the usual default mechanisms and use that as
-    // a template for creating the next state
-    let nextState,
-      templateState = state.go(input);
-    if (templateState) {
-      nextState = new State();
-      assign(nextState.j, templateState.j);
-      nextState.jr.push.apply(nextState.jr, templateState.jr);
-      nextState.jd = templateState.jd;
-      nextState.t = templateState.t;
-    } else {
-      nextState = new State();
-    }
-    if (t) {
-      // Ensure newly token is in the same groups as the old token
-      if (groups) {
-        if (nextState.t && typeof nextState.t === 'string') {
-          const allFlags = assign(flagsForToken(nextState.t, groups), flags);
-          addToGroups(t, allFlags, groups);
-        } else if (flags) {
-          addToGroups(t, flags, groups);
-        }
-      }
-      nextState.t = t; // overwrite anything that was previously there
-    }
+		// Take the transition with the usual default mechanisms and use that as
+		// a template for creating the next state
+		let nextState,
+			templateState = state.go(input);
+		if (templateState) {
+			nextState = new State();
+			assign(nextState.j, templateState.j);
+			nextState.jr.push.apply(nextState.jr, templateState.jr);
+			nextState.jd = templateState.jd;
+			nextState.t = templateState.t;
+		} else {
+			nextState = new State();
+		}
+		if (t) {
+			// Ensure newly token is in the same groups as the old token
+			if (groups) {
+				if (nextState.t && typeof nextState.t === 'string') {
+					const allFlags = assign(flagsForToken(nextState.t, groups), flags);
+					addToGroups(t, allFlags, groups);
+				} else if (flags) {
+					addToGroups(t, flags, groups);
+				}
+			}
+			nextState.t = t; // overwrite anything that was previously there
+		}
 
-    state.j[input] = nextState;
-    return nextState;
-  }
+		state.j[input] = nextState;
+		return nextState;
+	}
 };
 
 // Helper functions to improve minification (not exported outside linkifyjs module)
@@ -356,7 +356,7 @@ const tt = (state, input, next, flags, groups) => state.tt(input, next, flags, g
 /******************************************************************************
 Text Tokens
 Identifiers for token outputs from the regexp scanner
-******************************************************************************/
+ ******************************************************************************/
 
 // A valid web domain token
 const WORD = 'WORD'; // only contains a-z
@@ -520,13 +520,13 @@ var regexp = /*#__PURE__*/Object.freeze({
 /**
 	The scanner provides an interface that takes a string of text as input, and
 	outputs an array of tokens instances that can be used for easy URL parsing.
-*/
+ */
 const NL = '\n'; // New line character
 const EMOJI_VARIATION = '\ufe0f'; // Variation selector, follows heart and others
 const EMOJI_JOINER = '\u200d'; // zero-width joiner
 
 let tlds = null,
-  utlds = null; // don't change so only have to be computed once
+	utlds = null; // don't change so only have to be computed once
 
 /**
  * Scanner output token:
@@ -550,178 +550,178 @@ let tlds = null,
  * the second element set to `true` if the `://` after the scheme is optional
  */
 function init$2(customSchemes) {
-  if (customSchemes === void 0) {
-    customSchemes = [];
-  }
-  // Frequently used states (name argument removed during minification)
-  /** @type Collections<string> */
-  const groups = {}; // of tokens
-  State.groups = groups;
-  /** @type State<string> */
-  const Start = new State();
-  if (tlds == null) {
-    tlds = decodeTlds(encodedTlds);
-  }
-  if (utlds == null) {
-    utlds = decodeTlds(encodedUtlds);
-  }
+	if (customSchemes === void 0) {
+		customSchemes = [];
+	}
+	// Frequently used states (name argument removed during minification)
+	/** @type Collections<string> */
+	const groups = {}; // of tokens
+	State.groups = groups;
+	/** @type State<string> */
+	const Start = new State();
+	if (tlds == null) {
+		tlds = decodeTlds(encodedTlds);
+	}
+	if (utlds == null) {
+		utlds = decodeTlds(encodedUtlds);
+	}
 
-  // States for special URL symbols that accept immediately after start
-  tt(Start, "'", APOSTROPHE);
-  tt(Start, '{', OPENBRACE);
-  tt(Start, '}', CLOSEBRACE);
-  tt(Start, '[', OPENBRACKET);
-  tt(Start, ']', CLOSEBRACKET);
-  tt(Start, '(', OPENPAREN);
-  tt(Start, ')', CLOSEPAREN);
-  tt(Start, '<', OPENANGLEBRACKET);
-  tt(Start, '>', CLOSEANGLEBRACKET);
-  tt(Start, '（', FULLWIDTHLEFTPAREN);
-  tt(Start, '）', FULLWIDTHRIGHTPAREN);
-  tt(Start, '「', LEFTCORNERBRACKET);
-  tt(Start, '」', RIGHTCORNERBRACKET);
-  tt(Start, '『', LEFTWHITECORNERBRACKET);
-  tt(Start, '』', RIGHTWHITECORNERBRACKET);
-  tt(Start, '＜', FULLWIDTHLESSTHAN);
-  tt(Start, '＞', FULLWIDTHGREATERTHAN);
-  tt(Start, '&', AMPERSAND);
-  tt(Start, '*', ASTERISK);
-  tt(Start, '@', AT);
-  tt(Start, '`', BACKTICK);
-  tt(Start, '^', CARET);
-  tt(Start, ':', COLON);
-  tt(Start, ',', COMMA);
-  tt(Start, '$', DOLLAR);
-  tt(Start, '.', DOT);
-  tt(Start, '=', EQUALS);
-  tt(Start, '!', EXCLAMATION);
-  tt(Start, '-', HYPHEN);
-  tt(Start, '%', PERCENT);
-  tt(Start, '|', PIPE);
-  tt(Start, '+', PLUS);
-  tt(Start, '#', POUND);
-  tt(Start, '?', QUERY);
-  tt(Start, '"', QUOTE);
-  tt(Start, '/', SLASH);
-  tt(Start, ';', SEMI);
-  tt(Start, '~', TILDE);
-  tt(Start, '_', UNDERSCORE);
-  tt(Start, '\\', BACKSLASH);
-  const Num = tr(Start, DIGIT, NUM, {
-    [numeric]: true
-  });
-  tr(Num, DIGIT, Num);
+	// States for special URL symbols that accept immediately after start
+	tt(Start, "'", APOSTROPHE);
+	tt(Start, '{', OPENBRACE);
+	tt(Start, '}', CLOSEBRACE);
+	tt(Start, '[', OPENBRACKET);
+	tt(Start, ']', CLOSEBRACKET);
+	tt(Start, '(', OPENPAREN);
+	tt(Start, ')', CLOSEPAREN);
+	tt(Start, '<', OPENANGLEBRACKET);
+	tt(Start, '>', CLOSEANGLEBRACKET);
+	tt(Start, '（', FULLWIDTHLEFTPAREN);
+	tt(Start, '）', FULLWIDTHRIGHTPAREN);
+	tt(Start, '「', LEFTCORNERBRACKET);
+	tt(Start, '」', RIGHTCORNERBRACKET);
+	tt(Start, '『', LEFTWHITECORNERBRACKET);
+	tt(Start, '』', RIGHTWHITECORNERBRACKET);
+	tt(Start, '＜', FULLWIDTHLESSTHAN);
+	tt(Start, '＞', FULLWIDTHGREATERTHAN);
+	tt(Start, '&', AMPERSAND);
+	tt(Start, '*', ASTERISK);
+	tt(Start, '@', AT);
+	tt(Start, '`', BACKTICK);
+	tt(Start, '^', CARET);
+	tt(Start, ':', COLON);
+	tt(Start, ',', COMMA);
+	tt(Start, '$', DOLLAR);
+	tt(Start, '.', DOT);
+	tt(Start, '=', EQUALS);
+	tt(Start, '!', EXCLAMATION);
+	tt(Start, '-', HYPHEN);
+	tt(Start, '%', PERCENT);
+	tt(Start, '|', PIPE);
+	tt(Start, '+', PLUS);
+	tt(Start, '#', POUND);
+	tt(Start, '?', QUERY);
+	tt(Start, '"', QUOTE);
+	tt(Start, '/', SLASH);
+	tt(Start, ';', SEMI);
+	tt(Start, '~', TILDE);
+	tt(Start, '_', UNDERSCORE);
+	tt(Start, '\\', BACKSLASH);
+	const Num = tr(Start, DIGIT, NUM, {
+		[numeric]: true
+	});
+	tr(Num, DIGIT, Num);
 
-  // State which emits a word token
-  const Word = tr(Start, ASCII_LETTER, WORD, {
-    [ascii]: true
-  });
-  tr(Word, ASCII_LETTER, Word);
+	// State which emits a word token
+	const Word = tr(Start, ASCII_LETTER, WORD, {
+		[ascii]: true
+	});
+	tr(Word, ASCII_LETTER, Word);
 
-  // Same as previous, but specific to non-fsm.ascii alphabet words
-  const UWord = tr(Start, LETTER, UWORD, {
-    [alpha]: true
-  });
-  tr(UWord, ASCII_LETTER); // Non-accepting
-  tr(UWord, LETTER, UWord);
+	// Same as previous, but specific to non-fsm.ascii alphabet words
+	const UWord = tr(Start, LETTER, UWORD, {
+		[alpha]: true
+	});
+	tr(UWord, ASCII_LETTER); // Non-accepting
+	tr(UWord, LETTER, UWord);
 
-  // Whitespace jumps
-  // Tokens of only non-newline whitespace are arbitrarily long
-  // If any whitespace except newline, more whitespace!
-  const Ws = tr(Start, SPACE, WS, {
-    [whitespace]: true
-  });
-  tt(Start, NL, NL$1, {
-    [whitespace]: true
-  });
-  tt(Ws, NL); // non-accepting state to avoid mixing whitespaces
-  tr(Ws, SPACE, Ws);
+	// Whitespace jumps
+	// Tokens of only non-newline whitespace are arbitrarily long
+	// If any whitespace except newline, more whitespace!
+	const Ws = tr(Start, SPACE, WS, {
+		[whitespace]: true
+	});
+	tt(Start, NL, NL$1, {
+		[whitespace]: true
+	});
+	tt(Ws, NL); // non-accepting state to avoid mixing whitespaces
+	tr(Ws, SPACE, Ws);
 
-  // Emoji tokens. They are not grouped by the scanner except in cases where a
-  // zero-width joiner is present
-  const Emoji = tr(Start, EMOJI, EMOJI$1, {
-    [emoji]: true
-  });
-  tr(Emoji, EMOJI, Emoji);
-  tt(Emoji, EMOJI_VARIATION, Emoji);
-  // tt(Start, EMOJI_VARIATION, Emoji); // This one is sketchy
+	// Emoji tokens. They are not grouped by the scanner except in cases where a
+	// zero-width joiner is present
+	const Emoji = tr(Start, EMOJI, EMOJI$1, {
+		[emoji]: true
+	});
+	tr(Emoji, EMOJI, Emoji);
+	tt(Emoji, EMOJI_VARIATION, Emoji);
+	// tt(Start, EMOJI_VARIATION, Emoji); // This one is sketchy
 
-  const EmojiJoiner = tt(Emoji, EMOJI_JOINER);
-  tr(EmojiJoiner, EMOJI, Emoji);
-  // tt(EmojiJoiner, EMOJI_VARIATION, Emoji); // also sketchy
+	const EmojiJoiner = tt(Emoji, EMOJI_JOINER);
+	tr(EmojiJoiner, EMOJI, Emoji);
+	// tt(EmojiJoiner, EMOJI_VARIATION, Emoji); // also sketchy
 
-  // Generates states for top-level domains
-  // Note that this is most accurate when tlds are in alphabetical order
-  const wordjr = [[ASCII_LETTER, Word]];
-  const uwordjr = [[ASCII_LETTER, null], [LETTER, UWord]];
-  for (let i = 0; i < tlds.length; i++) {
-    fastts(Start, tlds[i], TLD, WORD, wordjr);
-  }
-  for (let i = 0; i < utlds.length; i++) {
-    fastts(Start, utlds[i], UTLD, UWORD, uwordjr);
-  }
-  addToGroups(TLD, {
-    tld: true,
-    ascii: true
-  }, groups);
-  addToGroups(UTLD, {
-    utld: true,
-    alpha: true
-  }, groups);
+	// Generates states for top-level domains
+	// Note that this is most accurate when tlds are in alphabetical order
+	const wordjr = [[ASCII_LETTER, Word]];
+	const uwordjr = [[ASCII_LETTER, null], [LETTER, UWord]];
+	for (let i = 0; i < tlds.length; i++) {
+		fastts(Start, tlds[i], TLD, WORD, wordjr);
+	}
+	for (let i = 0; i < utlds.length; i++) {
+		fastts(Start, utlds[i], UTLD, UWORD, uwordjr);
+	}
+	addToGroups(TLD, {
+		tld: true,
+		ascii: true
+	}, groups);
+	addToGroups(UTLD, {
+		utld: true,
+		alpha: true
+	}, groups);
 
-  // Collect the states generated by different protocols. NOTE: If any new TLDs
-  // get added that are also protocols, set the token to be the same as the
-  // protocol to ensure parsing works as expected.
-  fastts(Start, 'file', SCHEME, WORD, wordjr);
-  fastts(Start, 'mailto', SCHEME, WORD, wordjr);
-  fastts(Start, 'http', SLASH_SCHEME, WORD, wordjr);
-  fastts(Start, 'https', SLASH_SCHEME, WORD, wordjr);
-  fastts(Start, 'ftp', SLASH_SCHEME, WORD, wordjr);
-  fastts(Start, 'ftps', SLASH_SCHEME, WORD, wordjr);
-  addToGroups(SCHEME, {
-    scheme: true,
-    ascii: true
-  }, groups);
-  addToGroups(SLASH_SCHEME, {
-    slashscheme: true,
-    ascii: true
-  }, groups);
+	// Collect the states generated by different protocols. NOTE: If any new TLDs
+	// get added that are also protocols, set the token to be the same as the
+	// protocol to ensure parsing works as expected.
+	fastts(Start, 'file', SCHEME, WORD, wordjr);
+	fastts(Start, 'mailto', SCHEME, WORD, wordjr);
+	fastts(Start, 'http', SLASH_SCHEME, WORD, wordjr);
+	fastts(Start, 'https', SLASH_SCHEME, WORD, wordjr);
+	fastts(Start, 'ftp', SLASH_SCHEME, WORD, wordjr);
+	fastts(Start, 'ftps', SLASH_SCHEME, WORD, wordjr);
+	addToGroups(SCHEME, {
+		scheme: true,
+		ascii: true
+	}, groups);
+	addToGroups(SLASH_SCHEME, {
+		slashscheme: true,
+		ascii: true
+	}, groups);
 
-  // Register custom schemes. Assumes each scheme is asciinumeric with hyphens
-  customSchemes = customSchemes.sort((a, b) => a[0] > b[0] ? 1 : -1);
-  for (let i = 0; i < customSchemes.length; i++) {
-    const sch = customSchemes[i][0];
-    const optionalSlashSlash = customSchemes[i][1];
-    const flags = optionalSlashSlash ? {
-      [scheme]: true
-    } : {
-      [slashscheme]: true
-    };
-    if (sch.indexOf('-') >= 0) {
-      flags[domain] = true;
-    } else if (!ASCII_LETTER.test(sch)) {
-      flags[numeric] = true; // numbers only
-    } else if (DIGIT.test(sch)) {
-      flags[asciinumeric] = true;
-    } else {
-      flags[ascii] = true;
-    }
-    ts(Start, sch, sch, flags);
-  }
+	// Register custom schemes. Assumes each scheme is asciinumeric with hyphens
+	customSchemes = customSchemes.sort((a, b) => a[0] > b[0] ? 1 : -1);
+	for (let i = 0; i < customSchemes.length; i++) {
+		const sch = customSchemes[i][0];
+		const optionalSlashSlash = customSchemes[i][1];
+		const flags = optionalSlashSlash ? {
+			[scheme]: true
+		} : {
+			[slashscheme]: true
+		};
+		if (sch.indexOf('-') >= 0) {
+			flags[domain] = true;
+		} else if (!ASCII_LETTER.test(sch)) {
+			flags[numeric] = true; // numbers only
+		} else if (DIGIT.test(sch)) {
+			flags[asciinumeric] = true;
+		} else {
+			flags[ascii] = true;
+		}
+		ts(Start, sch, sch, flags);
+	}
 
-  // Localhost token
-  ts(Start, 'localhost', LOCALHOST, {
-    ascii: true
-  });
+	// Localhost token
+	ts(Start, 'localhost', LOCALHOST, {
+		ascii: true
+	});
 
-  // Set default transition for start state (some symbol)
-  Start.jd = new State(SYM);
-  return {
-    start: Start,
-    tokens: assign({
-      groups
-    }, tk)
-  };
+	// Set default transition for start state (some symbol)
+	Start.jd = new State(SYM);
+	return {
+		start: Start,
+		tokens: assign({
+			groups
+		}, tk)
+	};
 }
 
 /**
@@ -732,66 +732,66 @@ function init$2(customSchemes) {
 	@param {State<string>} start scanner starting state
 	@param {string} str input string to scan
 	@return {Token[]} list of tokens, each with a type and value
-*/
+ */
 function run$1(start, str) {
-  // State machine is not case sensitive, so input is tokenized in lowercased
-  // form (still returns regular case). Uses selective `toLowerCase` because
-  // lowercasing the entire string causes the length and character position to
-  // vary in some non-English strings with V8-based runtimes.
-  const iterable = stringToArray(str.replace(/[A-Z]/g, c => c.toLowerCase()));
-  const charCount = iterable.length; // <= len if there are emojis, etc
-  const tokens = []; // return value
+	// State machine is not case sensitive, so input is tokenized in lowercased
+	// form (still returns regular case). Uses selective `toLowerCase` because
+	// lowercasing the entire string causes the length and character position to
+	// vary in some non-English strings with V8-based runtimes.
+	const iterable = stringToArray(str.replace(/[A-Z]/g, c => c.toLowerCase()));
+	const charCount = iterable.length; // <= len if there are emojis, etc
+	const tokens = []; // return value
 
-  // cursor through the string itself, accounting for characters that have
-  // width with length 2 such as emojis
-  let cursor = 0;
+	// cursor through the string itself, accounting for characters that have
+	// width with length 2 such as emojis
+	let cursor = 0;
 
-  // Cursor through the array-representation of the string
-  let charCursor = 0;
+	// Cursor through the array-representation of the string
+	let charCursor = 0;
 
-  // Tokenize the string
-  while (charCursor < charCount) {
-    let state = start;
-    let nextState = null;
-    let tokenLength = 0;
-    let latestAccepting = null;
-    let sinceAccepts = -1;
-    let charsSinceAccepts = -1;
-    while (charCursor < charCount && (nextState = state.go(iterable[charCursor]))) {
-      state = nextState;
+	// Tokenize the string
+	while (charCursor < charCount) {
+		let state = start;
+		let nextState = null;
+		let tokenLength = 0;
+		let latestAccepting = null;
+		let sinceAccepts = -1;
+		let charsSinceAccepts = -1;
+		while (charCursor < charCount && (nextState = state.go(iterable[charCursor]))) {
+			state = nextState;
 
-      // Keep track of the latest accepting state
-      if (state.accepts()) {
-        sinceAccepts = 0;
-        charsSinceAccepts = 0;
-        latestAccepting = state;
-      } else if (sinceAccepts >= 0) {
-        sinceAccepts += iterable[charCursor].length;
-        charsSinceAccepts++;
-      }
-      tokenLength += iterable[charCursor].length;
-      cursor += iterable[charCursor].length;
-      charCursor++;
-    }
+			// Keep track of the latest accepting state
+			if (state.accepts()) {
+				sinceAccepts = 0;
+				charsSinceAccepts = 0;
+				latestAccepting = state;
+			} else if (sinceAccepts >= 0) {
+				sinceAccepts += iterable[charCursor].length;
+				charsSinceAccepts++;
+			}
+			tokenLength += iterable[charCursor].length;
+			cursor += iterable[charCursor].length;
+			charCursor++;
+		}
 
-    // Roll back to the latest accepting state
-    cursor -= sinceAccepts;
-    charCursor -= charsSinceAccepts;
-    tokenLength -= sinceAccepts;
+		// Roll back to the latest accepting state
+		cursor -= sinceAccepts;
+		charCursor -= charsSinceAccepts;
+		tokenLength -= sinceAccepts;
 
-    // No more jumps, just make a new token from the last accepting one
-    tokens.push({
-      t: latestAccepting.t,
-      // token type/name
-      v: str.slice(cursor - tokenLength, cursor),
-      // string value
-      s: cursor - tokenLength,
-      // start index
-      e: cursor // end index (excluding)
-    });
-  }
+		// No more jumps, just make a new token from the last accepting one
+		tokens.push({
+			t: latestAccepting.t,
+			// token type/name
+			v: str.slice(cursor - tokenLength, cursor),
+			// string value
+			s: cursor - tokenLength,
+			// start index
+			e: cursor // end index (excluding)
+		});
+	}
 
-  return tokens;
+	return tokens;
 }
 
 /**
@@ -806,18 +806,18 @@ function run$1(start, str) {
  * @returns {string[]}
  */
 function stringToArray(str) {
-  const result = [];
-  const len = str.length;
-  let index = 0;
-  while (index < len) {
-    let first = str.charCodeAt(index);
-    let second;
-    let char = first < 0xd800 || first > 0xdbff || index + 1 === len || (second = str.charCodeAt(index + 1)) < 0xdc00 || second > 0xdfff ? str[index] // single character
-    : str.slice(index, index + 2); // two-index characters
-    result.push(char);
-    index += char.length;
-  }
-  return result;
+	const result = [];
+	const len = str.length;
+	let index = 0;
+	while (index < len) {
+		let first = str.charCodeAt(index);
+		let second;
+		let char = first < 0xd800 || first > 0xdbff || index + 1 === len || (second = str.charCodeAt(index + 1)) < 0xdc00 || second > 0xdfff ? str[index] // single character
+			: str.slice(index, index + 2); // two-index characters
+		result.push(char);
+		index += char.length;
+	}
+	return result;
 }
 
 /**
@@ -830,23 +830,23 @@ function stringToArray(str) {
  * @returns {State<string>}
  */
 function fastts(state, input, t, defaultt, jr) {
-  let next;
-  const len = input.length;
-  for (let i = 0; i < len - 1; i++) {
-    const char = input[i];
-    if (state.j[char]) {
-      next = state.j[char];
-    } else {
-      next = new State(defaultt);
-      next.jr = jr.slice();
-      state.j[char] = next;
-    }
-    state = next;
-  }
-  next = new State(t);
-  next.jr = jr.slice();
-  state.j[input[len - 1]] = next;
-  return next;
+	let next;
+	const len = input.length;
+	for (let i = 0; i < len - 1; i++) {
+		const char = input[i];
+		if (state.j[char]) {
+			next = state.j[char];
+		} else {
+			next = new State(defaultt);
+			next.jr = jr.slice();
+			state.j[char] = next;
+		}
+		state = next;
+	}
+	next = new State(t);
+	next.jr = jr.slice();
+	state.j[input[len - 1]] = next;
+	return next;
 }
 
 /**
@@ -856,28 +856,28 @@ function fastts(state, input, t, defaultt, jr) {
  * @returns {str[]} original TLDs list
  */
 function decodeTlds(encoded) {
-  const words = [];
-  const stack = [];
-  let i = 0;
-  let digits = '0123456789';
-  while (i < encoded.length) {
-    let popDigitCount = 0;
-    while (digits.indexOf(encoded[i + popDigitCount]) >= 0) {
-      popDigitCount++; // encountered some digits, have to pop to go one level up trie
-    }
+	const words = [];
+	const stack = [];
+	let i = 0;
+	let digits = '0123456789';
+	while (i < encoded.length) {
+		let popDigitCount = 0;
+		while (digits.indexOf(encoded[i + popDigitCount]) >= 0) {
+			popDigitCount++; // encountered some digits, have to pop to go one level up trie
+		}
 
-    if (popDigitCount > 0) {
-      words.push(stack.join('')); // whatever preceded the pop digits must be a word
-      for (let popCount = parseInt(encoded.substring(i, i + popDigitCount), 10); popCount > 0; popCount--) {
-        stack.pop();
-      }
-      i += popDigitCount;
-    } else {
-      stack.push(encoded[i]); // drop down a level into the trie
-      i++;
-    }
-  }
-  return words;
+		if (popDigitCount > 0) {
+			words.push(stack.join('')); // whatever preceded the pop digits must be a word
+			for (let popCount = parseInt(encoded.substring(i, i + popDigitCount), 10); popCount > 0; popCount--) {
+				stack.pop();
+			}
+			i += popDigitCount;
+		} else {
+			stack.push(encoded[i]); // drop down a level into the trie
+			i++;
+		}
+	}
+	return words;
 }
 
 /**
@@ -962,24 +962,24 @@ function decodeTlds(encoded) {
  * @type Required<Opts>
  */
 const defaults = {
-  defaultProtocol: 'http',
-  events: null,
-  format: noop,
-  formatHref: noop,
-  nl2br: false,
-  tagName: 'a',
-  target: null,
-  rel: null,
-  validate: true,
-  truncate: Infinity,
-  className: null,
-  attributes: null,
-  ignoreTags: [],
-  render: null
+	defaultProtocol: 'http',
+	events: null,
+	format: noop,
+	formatHref: noop,
+	nl2br: false,
+	tagName: 'a',
+	target: null,
+	rel: null,
+	validate: true,
+	truncate: Infinity,
+	className: null,
+	attributes: null,
+	ignoreTags: [],
+	render: null
 };
 
 /**
- * Utility class for linkify interfaces to apply specified
+ * Utility class for linkify Interfaces.ts to apply specified
  * {@link Opts formatting and rendering options}.
  *
  * @param {Opts | Options} [opts] Option value overrides.
@@ -989,107 +989,109 @@ const defaults = {
  *   Similar to render option
  */
 function Options(opts, defaultRender) {
-  if (defaultRender === void 0) {
-    defaultRender = null;
-  }
-  let o = assign({}, defaults);
-  if (opts) {
-    o = assign(o, opts instanceof Options ? opts.o : opts);
-  }
+	if (defaultRender === void 0) {
+		defaultRender = null;
+	}
+	let o = assign({}, defaults);
+	if (opts) {
+		o = assign(o, opts instanceof Options ? opts.o : opts);
+	}
 
-  // Ensure all ignored tags are uppercase
-  const ignoredTags = o.ignoreTags;
-  const uppercaseIgnoredTags = [];
-  for (let i = 0; i < ignoredTags.length; i++) {
-    uppercaseIgnoredTags.push(ignoredTags[i].toUpperCase());
-  }
-  /** @protected */
-  this.o = o;
-  if (defaultRender) {
-    this.defaultRender = defaultRender;
-  }
-  this.ignoreTags = uppercaseIgnoredTags;
+	// Ensure all ignored tags are uppercase
+	const ignoredTags = o.ignoreTags;
+	const uppercaseIgnoredTags = [];
+	for (let i = 0; i < ignoredTags.length; i++) {
+		uppercaseIgnoredTags.push(ignoredTags[i].toUpperCase());
+	}
+	/** @protected */
+	this.o = o;
+	if (defaultRender) {
+		this.defaultRender = defaultRender;
+	}
+	this.ignoreTags = uppercaseIgnoredTags;
 }
-Options.prototype = {
-  o: defaults,
-  /**
-   * @type string[]
-   */
-  ignoreTags: [],
-  /**
-   * @param {IntermediateRepresentation} ir
-   * @returns {any}
-   */
-  defaultRender(ir) {
-    return ir;
-  },
-  /**
-   * Returns true or false based on whether a token should be displayed as a
-   * link based on the user options.
-   * @param {MultiToken} token
-   * @returns {boolean}
-   */
-  check(token) {
-    return this.get('validate', token.toString(), token);
-  },
-  // Private methods
 
-  /**
-   * Resolve an option's value based on the value of the option and the given
-   * params. If operator and token are specified and the target option is
-   * callable, automatically calls the function with the given argument.
-   * @template {keyof Opts} K
-   * @param {K} key Name of option to use
-   * @param {string} [operator] will be passed to the target option if it's a
-   * function. If not specified, RAW function value gets returned
-   * @param {MultiToken} [token] The token from linkify.tokenize
-   * @returns {Opts[K] | any}
-   */
-  get(key, operator, token) {
-    const isCallable = operator != null;
-    let option = this.o[key];
-    if (!option) {
-      return option;
-    }
-    if (typeof option === 'object') {
-      option = token.t in option ? option[token.t] : defaults[key];
-      if (typeof option === 'function' && isCallable) {
-        option = option(operator, token);
-      }
-    } else if (typeof option === 'function' && isCallable) {
-      option = option(operator, token.t, token);
-    }
-    return option;
-  },
-  /**
-   * @template {keyof Opts} L
-   * @param {L} key Name of options object to use
-   * @param {string} [operator]
-   * @param {MultiToken} [token]
-   * @returns {Opts[L] | any}
-   */
-  getObj(key, operator, token) {
-    let obj = this.o[key];
-    if (typeof obj === 'function' && operator != null) {
-      obj = obj(operator, token.t, token);
-    }
-    return obj;
-  },
-  /**
-   * Convert the given token to a rendered element that may be added to the
-   * calling-interface's DOM
-   * @param {MultiToken} token Token to render to an HTML element
-   * @returns {any} Render result; e.g., HTML string, DOM element, React
-   *   Component, etc.
-   */
-  render(token) {
-    const ir = token.render(this); // intermediate representation
-    const renderFn = this.get('render', null, token) || this.defaultRender;
-    return renderFn(ir, token.t, token);
-  }
+Options.prototype = {
+	o: defaults,
+	/**
+	 * @type string[]
+	 */
+	ignoreTags: [],
+	/**
+	 * @param {IntermediateRepresentation} ir
+	 * @returns {any}
+	 */
+	defaultRender(ir) {
+		return ir;
+	},
+	/**
+	 * Returns true or false based on whether a token should be displayed as a
+	 * link based on the user options.
+	 * @param {MultiToken} token
+	 * @returns {boolean}
+	 */
+	check(token) {
+		return this.get('validate', token.toString(), token);
+	},
+	// Private methods
+
+	/**
+	 * Resolve an option's value based on the value of the option and the given
+	 * params. If operator and token are specified and the target option is
+	 * callable, automatically calls the function with the given argument.
+	 * @template {keyof Opts} K
+	 * @param {K} key Name of option to use
+	 * @param {string} [operator] will be passed to the target option if it's a
+	 * function. If not specified, RAW function value gets returned
+	 * @param {MultiToken} [token] The token from linkify.tokenize
+	 * @returns {Opts[K] | any}
+	 */
+	get(key, operator, token) {
+		const isCallable = operator != null;
+		let option = this.o[key];
+		if (!option) {
+			return option;
+		}
+		if (typeof option === 'object') {
+			option = token.t in option ? option[token.t] : defaults[key];
+			if (typeof option === 'function' && isCallable) {
+				option = option(operator, token);
+			}
+		} else if (typeof option === 'function' && isCallable) {
+			option = option(operator, token.t, token);
+		}
+		return option;
+	},
+	/**
+	 * @template {keyof Opts} L
+	 * @param {L} key Name of options object to use
+	 * @param {string} [operator]
+	 * @param {MultiToken} [token]
+	 * @returns {Opts[L] | any}
+	 */
+	getObj(key, operator, token) {
+		let obj = this.o[key];
+		if (typeof obj === 'function' && operator != null) {
+			obj = obj(operator, token.t, token);
+		}
+		return obj;
+	},
+	/**
+	 * Convert the given token to a rendered element that may be added to the
+	 * calling-interface's DOM
+	 * @param {MultiToken} token Token to render to an HTML element
+	 * @returns {any} Render result; e.g., HTML string, DOM element, React
+	 *   Component, etc.
+	 */
+	render(token) {
+		const ir = token.render(this); // intermediate representation
+		const renderFn = this.get('render', null, token) || this.defaultRender;
+		return renderFn(ir, token.t, token);
+	}
 };
+
 function noop(val) {
-  return val;
+	return val;
 }
 
 var options = /*#__PURE__*/Object.freeze({
@@ -1102,16 +1104,16 @@ var options = /*#__PURE__*/Object.freeze({
 /******************************************************************************
 	Multi-Tokens
 	Tokens composed of arrays of TextTokens
-******************************************************************************/
+ ******************************************************************************/
 
 /**
  * @param {string} value
  * @param {Token[]} tokens
  */
 function MultiToken(value, tokens) {
-  this.t = 'token';
-  this.v = value;
-  this.tk = tokens;
+	this.t = 'token';
+	this.v = value;
+	this.tk = tokens;
 }
 
 /**
@@ -1128,136 +1130,136 @@ function MultiToken(value, tokens) {
  * @abstract
  */
 MultiToken.prototype = {
-  isLink: false,
-  /**
-   * Return the string this token represents.
-   * @return {string}
-   */
-  toString() {
-    return this.v;
-  },
-  /**
-   * What should the value for this token be in the `href` HTML attribute?
-   * Returns the `.toString` value by default.
-   * @param {string} [scheme]
-   * @return {string}
-  */
-  toHref(scheme) {
-    return this.toString();
-  },
-  /**
-   * @param {Options} options Formatting options
-   * @returns {string}
-   */
-  toFormattedString(options) {
-    const val = this.toString();
-    const truncate = options.get('truncate', val, this);
-    const formatted = options.get('format', val, this);
-    return truncate && formatted.length > truncate ? formatted.substring(0, truncate) + '…' : formatted;
-  },
-  /**
-   *
-   * @param {Options} options
-   * @returns {string}
-   */
-  toFormattedHref(options) {
-    return options.get('formatHref', this.toHref(options.get('defaultProtocol')), this);
-  },
-  /**
-   * The start index of this token in the original input string
-   * @returns {number}
-   */
-  startIndex() {
-    return this.tk[0].s;
-  },
-  /**
-   * The end index of this token in the original input string (up to this
-   * index but not including it)
-   * @returns {number}
-   */
-  endIndex() {
-    return this.tk[this.tk.length - 1].e;
-  },
-  /**
+	isLink: false,
+	/**
+	 * Return the string this token represents.
+	 * @return {string}
+	 */
+	toString() {
+		return this.v;
+	},
+	/**
+	 * What should the value for this token be in the `href` HTML attribute?
+	 * Returns the `.toString` value by default.
+	 * @param {string} [scheme]
+	 * @return {string}
+	 */
+	toHref(scheme) {
+		return this.toString();
+	},
+	/**
+	 * @param {Options} options Formatting options
+	 * @returns {string}
+	 */
+	toFormattedString(options) {
+		const val = this.toString();
+		const truncate = options.get('truncate', val, this);
+		const formatted = options.get('format', val, this);
+		return truncate && formatted.length > truncate ? formatted.substring(0, truncate) + '…' : formatted;
+	},
+	/**
+	 *
+	 * @param {Options} options
+	 * @returns {string}
+	 */
+	toFormattedHref(options) {
+		return options.get('formatHref', this.toHref(options.get('defaultProtocol')), this);
+	},
+	/**
+	 * The start index of this token in the original input string
+	 * @returns {number}
+	 */
+	startIndex() {
+		return this.tk[0].s;
+	},
+	/**
+	 * The end index of this token in the original input string (up to this
+	 * index but not including it)
+	 * @returns {number}
+	 */
+	endIndex() {
+		return this.tk[this.tk.length - 1].e;
+	},
+	/**
   	Returns an object  of relevant values for this token, which includes keys
-  	* type - Kind of token ('url', 'email', etc.)
-  	* value - Original text
-  	* href - The value that should be added to the anchor tag's href
+	* type - Kind of token ('url', 'email', etc.)
+	* value - Original text
+	* href - The value that should be added to the anchor tag's href
   		attribute
   		@method toObject
   	@param {string} [protocol] `'http'` by default
-  */
-  toObject(protocol) {
-    if (protocol === void 0) {
-      protocol = defaults.defaultProtocol;
-    }
-    return {
-      type: this.t,
-      value: this.toString(),
-      isLink: this.isLink,
-      href: this.toHref(protocol),
-      start: this.startIndex(),
-      end: this.endIndex()
-    };
-  },
-  /**
-   *
-   * @param {Options} options Formatting option
-   */
-  toFormattedObject(options) {
-    return {
-      type: this.t,
-      value: this.toFormattedString(options),
-      isLink: this.isLink,
-      href: this.toFormattedHref(options),
-      start: this.startIndex(),
-      end: this.endIndex()
-    };
-  },
-  /**
-   * Whether this token should be rendered as a link according to the given options
-   * @param {Options} options
-   * @returns {boolean}
-   */
-  validate(options) {
-    return options.get('validate', this.toString(), this);
-  },
-  /**
-   * Return an object that represents how this link should be rendered.
-   * @param {Options} options Formattinng options
-   */
-  render(options) {
-    const token = this;
-    const href = this.toHref(options.get('defaultProtocol'));
-    const formattedHref = options.get('formatHref', href, this);
-    const tagName = options.get('tagName', href, token);
-    const content = this.toFormattedString(options);
-    const attributes = {};
-    const className = options.get('className', href, token);
-    const target = options.get('target', href, token);
-    const rel = options.get('rel', href, token);
-    const attrs = options.getObj('attributes', href, token);
-    const eventListeners = options.getObj('events', href, token);
-    attributes.href = formattedHref;
-    if (className) {
-      attributes.class = className;
-    }
-    if (target) {
-      attributes.target = target;
-    }
-    if (rel) {
-      attributes.rel = rel;
-    }
-    if (attrs) {
-      assign(attributes, attrs);
-    }
-    return {
-      tagName,
-      attributes,
-      content,
-      eventListeners
-    };
-  }
+	 */
+	toObject(protocol) {
+		if (protocol === void 0) {
+			protocol = defaults.defaultProtocol;
+		}
+		return {
+			type: this.t,
+			value: this.toString(),
+			isLink: this.isLink,
+			href: this.toHref(protocol),
+			start: this.startIndex(),
+			end: this.endIndex()
+		};
+	},
+	/**
+	 *
+	 * @param {Options} options Formatting option
+	 */
+	toFormattedObject(options) {
+		return {
+			type: this.t,
+			value: this.toFormattedString(options),
+			isLink: this.isLink,
+			href: this.toFormattedHref(options),
+			start: this.startIndex(),
+			end: this.endIndex()
+		};
+	},
+	/**
+	 * Whether this token should be rendered as a link according to the given options
+	 * @param {Options} options
+	 * @returns {boolean}
+	 */
+	validate(options) {
+		return options.get('validate', this.toString(), this);
+	},
+	/**
+	 * Return an object that represents how this link should be rendered.
+	 * @param {Options} options Formattinng options
+	 */
+	render(options) {
+		const token = this;
+		const href = this.toHref(options.get('defaultProtocol'));
+		const formattedHref = options.get('formatHref', href, this);
+		const tagName = options.get('tagName', href, token);
+		const content = this.toFormattedString(options);
+		const attributes = {};
+		const className = options.get('className', href, token);
+		const target = options.get('target', href, token);
+		const rel = options.get('rel', href, token);
+		const attrs = options.getObj('attributes', href, token);
+		const eventListeners = options.getObj('events', href, token);
+		attributes.href = formattedHref;
+		if (className) {
+			attributes.class = className;
+		}
+		if (target) {
+			attributes.target = target;
+		}
+		if (rel) {
+			attributes.rel = rel;
+		}
+		if (attrs) {
+			assign(attributes, attrs);
+		}
+		return {
+			tagName,
+			attributes,
+			content,
+			eventListeners
+		};
+	}
 };
 
 /**
@@ -1267,68 +1269,69 @@ MultiToken.prototype = {
  * @returns {new (value: string, tokens: Token[]) => MultiToken} new token class
  */
 function createTokenClass(type, props) {
-  class Token extends MultiToken {
-    constructor(value, tokens) {
-      super(value, tokens);
-      this.t = type;
-    }
-  }
-  for (const p in props) {
-    Token.prototype[p] = props[p];
-  }
-  Token.t = type;
-  return Token;
+	class Token extends MultiToken {
+		constructor(value, tokens) {
+			super(value, tokens);
+			this.t = type;
+		}
+	}
+
+	for (const p in props) {
+		Token.prototype[p] = props[p];
+	}
+	Token.t = type;
+	return Token;
 }
 
 /**
 	Represents a list of tokens making up a valid email address
-*/
+ */
 const Email = createTokenClass('email', {
-  isLink: true,
-  toHref() {
-    return 'mailto:' + this.toString();
-  }
+	isLink: true,
+	toHref() {
+		return 'mailto:' + this.toString();
+	}
 });
 
 /**
 	Represents some plain text
-*/
+ */
 const Text = createTokenClass('text');
 
 /**
 	Multi-linebreak token - represents a line break
 	@class Nl
-*/
+ */
 const Nl = createTokenClass('nl');
 
 /**
 	Represents a list of text tokens making up a valid URL
 	@class Url
-*/
+ */
 const Url = createTokenClass('url', {
-  isLink: true,
-  /**
+	isLink: true,
+	/**
   	Lowercases relevant parts of the domain and adds the protocol if
   	required. Note that this will not escape unsafe HTML characters in the
   	URL.
   		@param {string} [scheme] default scheme (e.g., 'https')
   	@return {string} the full href
-  */
-  toHref(scheme) {
-    if (scheme === void 0) {
-      scheme = defaults.defaultProtocol;
-    }
-    // Check if already has a prefix scheme
-    return this.hasProtocol() ? this.v : `${scheme}://${this.v}`;
-  },
-  /**
-   * Check whether this URL token has a protocol
-   * @return {boolean}
-   */
-  hasProtocol() {
-    const tokens = this.tk;
-    return tokens.length >= 2 && tokens[0].t !== LOCALHOST && tokens[1].t === COLON;
-  }
+	 */
+	toHref(scheme) {
+		if (scheme === void 0) {
+			scheme = defaults.defaultProtocol;
+		}
+		// Check if already has a prefix scheme
+		return this.hasProtocol() ? this.v : `${scheme}://${this.v}`;
+	},
+	/**
+	 * Check whether this URL token has a protocol
+	 * @return {boolean}
+	 */
+	hasProtocol() {
+		const tokens = this.tk;
+		return tokens.length >= 2 && tokens[0].t !== LOCALHOST && tokens[1].t === COLON;
+	}
 });
 
 var multi = /*#__PURE__*/Object.freeze({
@@ -1355,7 +1358,7 @@ var multi = /*#__PURE__*/Object.freeze({
 	@module linkify
 	@submodule parser
 	@main run
-*/
+ */
 const makeState = arg => new State(arg);
 
 /**
@@ -1363,179 +1366,189 @@ const makeState = arg => new State(arg);
  * @param {{ groups: Collections<string> }} tokens
  */
 function init$1(_ref) {
-  let {
-    groups
-  } = _ref;
-  // Types of characters the URL can definitely end in
-  const qsAccepting = groups.domain.concat([AMPERSAND, ASTERISK, AT, BACKSLASH, BACKTICK, CARET, DOLLAR, EQUALS, HYPHEN, NUM, PERCENT, PIPE, PLUS, POUND, SLASH, SYM, TILDE, UNDERSCORE]);
+	let {
+		groups
+	} = _ref;
+	// Types of characters the URL can definitely end in
+	const qsAccepting = groups.domain.concat([
+		AMPERSAND, ASTERISK, AT, BACKSLASH, BACKTICK, CARET, DOLLAR, EQUALS, HYPHEN, NUM, PERCENT, PIPE, PLUS, POUND, SLASH, SYM, TILDE, UNDERSCORE
+	]);
 
-  // Types of tokens that can follow a URL and be part of the query string
-  // but cannot be the very last characters
-  // Characters that cannot appear in the URL at all should be excluded
-  const qsNonAccepting = [APOSTROPHE, COLON, COMMA, DOT, EXCLAMATION, QUERY, QUOTE, SEMI, OPENANGLEBRACKET, CLOSEANGLEBRACKET, OPENBRACE, CLOSEBRACE, CLOSEBRACKET, OPENBRACKET, OPENPAREN, CLOSEPAREN, FULLWIDTHLEFTPAREN, FULLWIDTHRIGHTPAREN, LEFTCORNERBRACKET, RIGHTCORNERBRACKET, LEFTWHITECORNERBRACKET, RIGHTWHITECORNERBRACKET, FULLWIDTHLESSTHAN, FULLWIDTHGREATERTHAN];
+	// Types of tokens that can follow a URL and be part of the query string
+	// but cannot be the very last characters
+	// Characters that cannot appear in the URL at all should be excluded
+	const qsNonAccepting = [
+		APOSTROPHE, COLON, COMMA, DOT, EXCLAMATION, QUERY, QUOTE, SEMI, OPENANGLEBRACKET, CLOSEANGLEBRACKET, OPENBRACE, CLOSEBRACE, CLOSEBRACKET, OPENBRACKET,
+		OPENPAREN, CLOSEPAREN, FULLWIDTHLEFTPAREN, FULLWIDTHRIGHTPAREN, LEFTCORNERBRACKET, RIGHTCORNERBRACKET, LEFTWHITECORNERBRACKET, RIGHTWHITECORNERBRACKET,
+		FULLWIDTHLESSTHAN, FULLWIDTHGREATERTHAN
+	];
 
-  // For addresses without the mailto prefix
-  // Tokens allowed in the localpart of the email
-  const localpartAccepting = [AMPERSAND, APOSTROPHE, ASTERISK, BACKSLASH, BACKTICK, CARET, DOLLAR, EQUALS, HYPHEN, OPENBRACE, CLOSEBRACE, PERCENT, PIPE, PLUS, POUND, QUERY, SLASH, SYM, TILDE, UNDERSCORE];
+	// For addresses without the mailto prefix
+	// Tokens allowed in the localpart of the email
+	const localpartAccepting = [
+		AMPERSAND, APOSTROPHE, ASTERISK, BACKSLASH, BACKTICK, CARET, DOLLAR, EQUALS, HYPHEN, OPENBRACE, CLOSEBRACE, PERCENT, PIPE, PLUS, POUND, QUERY, SLASH,
+		SYM, TILDE, UNDERSCORE
+	];
 
-  // The universal starting state.
-  /**
-   * @type State<Token>
-   */
-  const Start = makeState();
-  const Localpart = tt(Start, TILDE); // Local part of the email address
-  ta(Localpart, localpartAccepting, Localpart);
-  ta(Localpart, groups.domain, Localpart);
-  const Domain = makeState(),
-    Scheme = makeState(),
-    SlashScheme = makeState();
-  ta(Start, groups.domain, Domain); // parsed string ends with a potential domain name (A)
-  ta(Start, groups.scheme, Scheme); // e.g., 'mailto'
-  ta(Start, groups.slashscheme, SlashScheme); // e.g., 'http'
+	// The universal starting state.
+	/**
+	 * @type State<Token>
+	 */
+	const Start = makeState();
+	const Localpart = tt(Start, TILDE); // Local part of the email address
+	ta(Localpart, localpartAccepting, Localpart);
+	ta(Localpart, groups.domain, Localpart);
+	const Domain = makeState(),
+		Scheme = makeState(),
+		SlashScheme = makeState();
+	ta(Start, groups.domain, Domain); // parsed string ends with a potential domain name (A)
+	ta(Start, groups.scheme, Scheme); // e.g., 'mailto'
+	ta(Start, groups.slashscheme, SlashScheme); // e.g., 'http'
 
-  ta(Domain, localpartAccepting, Localpart);
-  ta(Domain, groups.domain, Domain);
-  const LocalpartAt = tt(Domain, AT); // Local part of the email address plus @
+	ta(Domain, localpartAccepting, Localpart);
+	ta(Domain, groups.domain, Domain);
+	const LocalpartAt = tt(Domain, AT); // Local part of the email address plus @
 
-  tt(Localpart, AT, LocalpartAt); // close to an email address now
+	tt(Localpart, AT, LocalpartAt); // close to an email address now
 
-  // Local part of an email address can be e.g. 'http' or 'mailto'
-  tt(Scheme, AT, LocalpartAt);
-  tt(SlashScheme, AT, LocalpartAt);
-  const LocalpartDot = tt(Localpart, DOT); // Local part of the email address plus '.' (localpart cannot end in .)
-  ta(LocalpartDot, localpartAccepting, Localpart);
-  ta(LocalpartDot, groups.domain, Localpart);
-  const EmailDomain = makeState();
-  ta(LocalpartAt, groups.domain, EmailDomain); // parsed string starts with local email info + @ with a potential domain name
-  ta(EmailDomain, groups.domain, EmailDomain);
-  const EmailDomainDot = tt(EmailDomain, DOT); // domain followed by DOT
-  ta(EmailDomainDot, groups.domain, EmailDomain);
-  const Email$1 = makeState(Email); // Possible email address (could have more tlds)
-  ta(EmailDomainDot, groups.tld, Email$1);
-  ta(EmailDomainDot, groups.utld, Email$1);
-  tt(LocalpartAt, LOCALHOST, Email$1);
+	// Local part of an email address can be e.g. 'http' or 'mailto'
+	tt(Scheme, AT, LocalpartAt);
+	tt(SlashScheme, AT, LocalpartAt);
+	const LocalpartDot = tt(Localpart, DOT); // Local part of the email address plus '.' (localpart cannot end in .)
+	ta(LocalpartDot, localpartAccepting, Localpart);
+	ta(LocalpartDot, groups.domain, Localpart);
+	const EmailDomain = makeState();
+	ta(LocalpartAt, groups.domain, EmailDomain); // parsed string starts with local email info + @ with a potential domain name
+	ta(EmailDomain, groups.domain, EmailDomain);
+	const EmailDomainDot = tt(EmailDomain, DOT); // domain followed by DOT
+	ta(EmailDomainDot, groups.domain, EmailDomain);
+	const Email$1 = makeState(Email); // Possible email address (could have more tlds)
+	ta(EmailDomainDot, groups.tld, Email$1);
+	ta(EmailDomainDot, groups.utld, Email$1);
+	tt(LocalpartAt, LOCALHOST, Email$1);
 
-  // Hyphen can jump back to a domain name
-  const EmailDomainHyphen = tt(EmailDomain, HYPHEN); // parsed string starts with local email info + @ with a potential domain name
-  ta(EmailDomainHyphen, groups.domain, EmailDomain);
-  ta(Email$1, groups.domain, EmailDomain);
-  tt(Email$1, DOT, EmailDomainDot);
-  tt(Email$1, HYPHEN, EmailDomainHyphen);
+	// Hyphen can jump back to a domain name
+	const EmailDomainHyphen = tt(EmailDomain, HYPHEN); // parsed string starts with local email info + @ with a potential domain name
+	ta(EmailDomainHyphen, groups.domain, EmailDomain);
+	ta(Email$1, groups.domain, EmailDomain);
+	tt(Email$1, DOT, EmailDomainDot);
+	tt(Email$1, HYPHEN, EmailDomainHyphen);
 
-  // Final possible email states
-  const EmailColon = tt(Email$1, COLON); // URL followed by colon (potential port number here)
-  /*const EmailColonPort = */
-  ta(EmailColon, groups.numeric, Email); // URL followed by colon and port number
+	// Final possible email states
+	const EmailColon = tt(Email$1, COLON); // URL followed by colon (potential port number here)
+	/*const EmailColonPort = */
+	ta(EmailColon, groups.numeric, Email); // URL followed by colon and port number
 
-  // Account for dots and hyphens. Hyphens are usually parts of domain names
-  // (but not TLDs)
-  const DomainHyphen = tt(Domain, HYPHEN); // domain followed by hyphen
-  const DomainDot = tt(Domain, DOT); // domain followed by DOT
-  ta(DomainHyphen, groups.domain, Domain);
-  ta(DomainDot, localpartAccepting, Localpart);
-  ta(DomainDot, groups.domain, Domain);
-  const DomainDotTld = makeState(Url); // Simplest possible URL with no query string
-  ta(DomainDot, groups.tld, DomainDotTld);
-  ta(DomainDot, groups.utld, DomainDotTld);
-  ta(DomainDotTld, groups.domain, Domain);
-  ta(DomainDotTld, localpartAccepting, Localpart);
-  tt(DomainDotTld, DOT, DomainDot);
-  tt(DomainDotTld, HYPHEN, DomainHyphen);
-  tt(DomainDotTld, AT, LocalpartAt);
-  const DomainDotTldColon = tt(DomainDotTld, COLON); // URL followed by colon (potential port number here)
-  const DomainDotTldColonPort = makeState(Url); // TLD followed by a port number
-  ta(DomainDotTldColon, groups.numeric, DomainDotTldColonPort);
+	// Account for dots and hyphens. Hyphens are usually parts of domain names
+	// (but not TLDs)
+	const DomainHyphen = tt(Domain, HYPHEN); // domain followed by hyphen
+	const DomainDot = tt(Domain, DOT); // domain followed by DOT
+	ta(DomainHyphen, groups.domain, Domain);
+	ta(DomainDot, localpartAccepting, Localpart);
+	ta(DomainDot, groups.domain, Domain);
+	const DomainDotTld = makeState(Url); // Simplest possible URL with no query string
+	ta(DomainDot, groups.tld, DomainDotTld);
+	ta(DomainDot, groups.utld, DomainDotTld);
+	ta(DomainDotTld, groups.domain, Domain);
+	ta(DomainDotTld, localpartAccepting, Localpart);
+	tt(DomainDotTld, DOT, DomainDot);
+	tt(DomainDotTld, HYPHEN, DomainHyphen);
+	tt(DomainDotTld, AT, LocalpartAt);
+	const DomainDotTldColon = tt(DomainDotTld, COLON); // URL followed by colon (potential port number here)
+	const DomainDotTldColonPort = makeState(Url); // TLD followed by a port number
+	ta(DomainDotTldColon, groups.numeric, DomainDotTldColonPort);
 
-  // Long URL with optional port and maybe query string
-  const Url$1 = makeState(Url);
+	// Long URL with optional port and maybe query string
+	const Url$1 = makeState(Url);
 
-  // URL with extra symbols at the end, followed by an opening bracket
-  const UrlNonaccept = makeState(); // URL followed by some symbols (will not be part of the final URL)
+	// URL with extra symbols at the end, followed by an opening bracket
+	const UrlNonaccept = makeState(); // URL followed by some symbols (will not be part of the final URL)
 
-  // Query strings
-  ta(Url$1, qsAccepting, Url$1);
-  ta(Url$1, qsNonAccepting, UrlNonaccept);
-  ta(UrlNonaccept, qsAccepting, Url$1);
-  ta(UrlNonaccept, qsNonAccepting, UrlNonaccept);
+	// Query strings
+	ta(Url$1, qsAccepting, Url$1);
+	ta(Url$1, qsNonAccepting, UrlNonaccept);
+	ta(UrlNonaccept, qsAccepting, Url$1);
+	ta(UrlNonaccept, qsNonAccepting, UrlNonaccept);
 
-  // Become real URLs after `SLASH` or `COLON NUM SLASH`
-  // Here works with or without scheme:// prefix
-  tt(DomainDotTld, SLASH, Url$1);
-  tt(DomainDotTldColonPort, SLASH, Url$1);
+	// Become real URLs after `SLASH` or `COLON NUM SLASH`
+	// Here works with or without scheme:// prefix
+	tt(DomainDotTld, SLASH, Url$1);
+	tt(DomainDotTldColonPort, SLASH, Url$1);
 
-  // Note that domains that begin with schemes are treated slighly differently
-  const SchemeColon = tt(Scheme, COLON); // e.g., 'mailto:'
-  const SlashSchemeColon = tt(SlashScheme, COLON); // e.g., 'http:'
-  const SlashSchemeColonSlash = tt(SlashSchemeColon, SLASH); // e.g., 'http:/'
+	// Note that domains that begin with schemes are treated slighly differently
+	const SchemeColon = tt(Scheme, COLON); // e.g., 'mailto:'
+	const SlashSchemeColon = tt(SlashScheme, COLON); // e.g., 'http:'
+	const SlashSchemeColonSlash = tt(SlashSchemeColon, SLASH); // e.g., 'http:/'
 
-  const UriPrefix = tt(SlashSchemeColonSlash, SLASH); // e.g., 'http://'
+	const UriPrefix = tt(SlashSchemeColonSlash, SLASH); // e.g., 'http://'
 
-  // Scheme states can transition to domain states
-  ta(Scheme, groups.domain, Domain);
-  tt(Scheme, DOT, DomainDot);
-  tt(Scheme, HYPHEN, DomainHyphen);
-  ta(SlashScheme, groups.domain, Domain);
-  tt(SlashScheme, DOT, DomainDot);
-  tt(SlashScheme, HYPHEN, DomainHyphen);
+	// Scheme states can transition to domain states
+	ta(Scheme, groups.domain, Domain);
+	tt(Scheme, DOT, DomainDot);
+	tt(Scheme, HYPHEN, DomainHyphen);
+	ta(SlashScheme, groups.domain, Domain);
+	tt(SlashScheme, DOT, DomainDot);
+	tt(SlashScheme, HYPHEN, DomainHyphen);
 
-  // Force URL with scheme prefix followed by anything sane
-  ta(SchemeColon, groups.domain, Url$1);
-  tt(SchemeColon, SLASH, Url$1);
-  ta(UriPrefix, groups.domain, Url$1);
-  ta(UriPrefix, qsAccepting, Url$1);
-  tt(UriPrefix, SLASH, Url$1);
-  const bracketPairs = [[OPENBRACE, CLOSEBRACE],
-  // {}
-  [OPENBRACKET, CLOSEBRACKET],
-  // []
-  [OPENPAREN, CLOSEPAREN],
-  // ()
-  [OPENANGLEBRACKET, CLOSEANGLEBRACKET],
-  // <>
-  [FULLWIDTHLEFTPAREN, FULLWIDTHRIGHTPAREN],
-  // （）
-  [LEFTCORNERBRACKET, RIGHTCORNERBRACKET],
-  // 「」
-  [LEFTWHITECORNERBRACKET, RIGHTWHITECORNERBRACKET],
-  // 『』
-  [FULLWIDTHLESSTHAN, FULLWIDTHGREATERTHAN] // ＜＞
-  ];
+	// Force URL with scheme prefix followed by anything sane
+	ta(SchemeColon, groups.domain, Url$1);
+	tt(SchemeColon, SLASH, Url$1);
+	ta(UriPrefix, groups.domain, Url$1);
+	ta(UriPrefix, qsAccepting, Url$1);
+	tt(UriPrefix, SLASH, Url$1);
+	const bracketPairs = [
+		[OPENBRACE, CLOSEBRACE],
+		// {}
+		[OPENBRACKET, CLOSEBRACKET],
+		// []
+		[OPENPAREN, CLOSEPAREN],
+		// ()
+		[OPENANGLEBRACKET, CLOSEANGLEBRACKET],
+		// <>
+		[FULLWIDTHLEFTPAREN, FULLWIDTHRIGHTPAREN],
+		// （）
+		[LEFTCORNERBRACKET, RIGHTCORNERBRACKET],
+		// 「」
+		[LEFTWHITECORNERBRACKET, RIGHTWHITECORNERBRACKET],
+		// 『』
+		[FULLWIDTHLESSTHAN, FULLWIDTHGREATERTHAN] // ＜＞
+	];
 
-  for (let i = 0; i < bracketPairs.length; i++) {
-    const [OPEN, CLOSE] = bracketPairs[i];
-    const UrlOpen = tt(Url$1, OPEN); // URL followed by open bracket
+	for (let i = 0; i < bracketPairs.length; i++) {
+		const [OPEN, CLOSE] = bracketPairs[i];
+		const UrlOpen = tt(Url$1, OPEN); // URL followed by open bracket
 
-    // Continue not accepting for open brackets
-    tt(UrlNonaccept, OPEN, UrlOpen);
+		// Continue not accepting for open brackets
+		tt(UrlNonaccept, OPEN, UrlOpen);
 
-    // Closing bracket component. This character WILL be included in the URL
-    tt(UrlOpen, CLOSE, Url$1);
+		// Closing bracket component. This character WILL be included in the URL
+		tt(UrlOpen, CLOSE, Url$1);
 
-    // URL that beings with an opening bracket, followed by a symbols.
-    // Note that the final state can still be `UrlOpen` (if the URL has a
-    // single opening bracket for some reason).
-    const UrlOpenQ = makeState(Url);
-    ta(UrlOpen, qsAccepting, UrlOpenQ);
-    const UrlOpenSyms = makeState(); // UrlOpen followed by some symbols it cannot end it
-    ta(UrlOpen, qsNonAccepting);
+		// URL that beings with an opening bracket, followed by a symbols.
+		// Note that the final state can still be `UrlOpen` (if the URL has a
+		// single opening bracket for some reason).
+		const UrlOpenQ = makeState(Url);
+		ta(UrlOpen, qsAccepting, UrlOpenQ);
+		const UrlOpenSyms = makeState(); // UrlOpen followed by some symbols it cannot end it
+		ta(UrlOpen, qsNonAccepting);
 
-    // URL that begins with an opening bracket, followed by some symbols
-    ta(UrlOpenQ, qsAccepting, UrlOpenQ);
-    ta(UrlOpenQ, qsNonAccepting, UrlOpenSyms);
-    ta(UrlOpenSyms, qsAccepting, UrlOpenQ);
-    ta(UrlOpenSyms, qsNonAccepting, UrlOpenSyms);
+		// URL that begins with an opening bracket, followed by some symbols
+		ta(UrlOpenQ, qsAccepting, UrlOpenQ);
+		ta(UrlOpenQ, qsNonAccepting, UrlOpenSyms);
+		ta(UrlOpenSyms, qsAccepting, UrlOpenQ);
+		ta(UrlOpenSyms, qsNonAccepting, UrlOpenSyms);
 
-    // Close brace/bracket to become regular URL
-    tt(UrlOpenQ, CLOSE, Url$1);
-    tt(UrlOpenSyms, CLOSE, Url$1);
-  }
-  tt(Start, LOCALHOST, DomainDotTld); // localhost is a valid URL state
-  tt(Start, NL$1, Nl); // single new line
+		// Close brace/bracket to become regular URL
+		tt(UrlOpenQ, CLOSE, Url$1);
+		tt(UrlOpenSyms, CLOSE, Url$1);
+	}
+	tt(Start, LOCALHOST, DomainDotTld); // localhost is a valid URL state
+	tt(Start, NL$1, Nl); // single new line
 
-  return {
-    start: Start,
-    tokens: tk
-  };
+	return {
+		start: Start,
+		tokens: tk
+	};
 }
 
 /**
@@ -1549,70 +1562,70 @@ function init$1(_ref) {
  * @returns {MultiToken[]}
  */
 function run(start, input, tokens) {
-  let len = tokens.length;
-  let cursor = 0;
-  let multis = [];
-  let textTokens = [];
-  while (cursor < len) {
-    let state = start;
-    let secondState = null;
-    let nextState = null;
-    let multiLength = 0;
-    let latestAccepting = null;
-    let sinceAccepts = -1;
-    while (cursor < len && !(secondState = state.go(tokens[cursor].t))) {
-      // Starting tokens with nowhere to jump to.
-      // Consider these to be just plain text
-      textTokens.push(tokens[cursor++]);
-    }
-    while (cursor < len && (nextState = secondState || state.go(tokens[cursor].t))) {
-      // Get the next state
-      secondState = null;
-      state = nextState;
+	let len = tokens.length;
+	let cursor = 0;
+	let multis = [];
+	let textTokens = [];
+	while (cursor < len) {
+		let state = start;
+		let secondState = null;
+		let nextState = null;
+		let multiLength = 0;
+		let latestAccepting = null;
+		let sinceAccepts = -1;
+		while (cursor < len && !(secondState = state.go(tokens[cursor].t))) {
+			// Starting tokens with nowhere to jump to.
+			// Consider these to be just plain text
+			textTokens.push(tokens[cursor++]);
+		}
+		while (cursor < len && (nextState = secondState || state.go(tokens[cursor].t))) {
+			// Get the next state
+			secondState = null;
+			state = nextState;
 
-      // Keep track of the latest accepting state
-      if (state.accepts()) {
-        sinceAccepts = 0;
-        latestAccepting = state;
-      } else if (sinceAccepts >= 0) {
-        sinceAccepts++;
-      }
-      cursor++;
-      multiLength++;
-    }
-    if (sinceAccepts < 0) {
-      // No accepting state was found, part of a regular text token add
-      // the first text token to the text tokens array and try again from
-      // the next
-      cursor -= multiLength;
-      if (cursor < len) {
-        textTokens.push(tokens[cursor]);
-        cursor++;
-      }
-    } else {
-      // Accepting state!
-      // First close off the textTokens (if available)
-      if (textTokens.length > 0) {
-        multis.push(initMultiToken(Text, input, textTokens));
-        textTokens = [];
-      }
+			// Keep track of the latest accepting state
+			if (state.accepts()) {
+				sinceAccepts = 0;
+				latestAccepting = state;
+			} else if (sinceAccepts >= 0) {
+				sinceAccepts++;
+			}
+			cursor++;
+			multiLength++;
+		}
+		if (sinceAccepts < 0) {
+			// No accepting state was found, part of a regular text token add
+			// the first text token to the text tokens array and try again from
+			// the next
+			cursor -= multiLength;
+			if (cursor < len) {
+				textTokens.push(tokens[cursor]);
+				cursor++;
+			}
+		} else {
+			// Accepting state!
+			// First close off the textTokens (if available)
+			if (textTokens.length > 0) {
+				multis.push(initMultiToken(Text, input, textTokens));
+				textTokens = [];
+			}
 
-      // Roll back to the latest accepting state
-      cursor -= sinceAccepts;
-      multiLength -= sinceAccepts;
+			// Roll back to the latest accepting state
+			cursor -= sinceAccepts;
+			multiLength -= sinceAccepts;
 
-      // Create a new multitoken
-      const Multi = latestAccepting.t;
-      const subtokens = tokens.slice(cursor - multiLength, cursor);
-      multis.push(initMultiToken(Multi, input, subtokens));
-    }
-  }
+			// Create a new multitoken
+			const Multi = latestAccepting.t;
+			const subtokens = tokens.slice(cursor - multiLength, cursor);
+			multis.push(initMultiToken(Multi, input, subtokens));
+		}
+	}
 
-  // Finally close off the textTokens (if available)
-  if (textTokens.length > 0) {
-    multis.push(initMultiToken(Text, input, textTokens));
-  }
-  return multis;
+	// Finally close off the textTokens (if available)
+	if (textTokens.length > 0) {
+		multis.push(initMultiToken(Text, input, textTokens));
+	}
+	return multis;
 }
 
 /**
@@ -1624,10 +1637,10 @@ function run(start, input, tokens) {
  * @returns {MultiToken}
  */
 function initMultiToken(Multi, input, tokens) {
-  const startIdx = tokens[0].s;
-  const endIdx = tokens[tokens.length - 1].e;
-  const value = input.slice(startIdx, endIdx);
-  return new Multi(value, tokens);
+	const startIdx = tokens[0].s;
+	const endIdx = tokens[tokens.length - 1].e;
+	const value = input.slice(startIdx, endIdx);
+	return new Multi(value, tokens);
 }
 
 const warn = typeof console !== 'undefined' && console && console.warn || (() => {});
@@ -1635,12 +1648,12 @@ const warnAdvice = 'until manual call of linkify.init(). Register all schemes an
 
 // Side-effect initialization state
 const INIT = {
-  scanner: null,
-  parser: null,
-  tokenQueue: [],
-  pluginQueue: [],
-  customSchemes: [],
-  initialized: false
+	scanner: null,
+	parser: null,
+	tokenQueue: [],
+	pluginQueue: [],
+	customSchemes: [],
+	initialized: false
 };
 
 /**
@@ -1671,13 +1684,13 @@ const INIT = {
  * @private
  */
 function reset() {
-  State.groups = {};
-  INIT.scanner = null;
-  INIT.parser = null;
-  INIT.tokenQueue = [];
-  INIT.pluginQueue = [];
-  INIT.customSchemes = [];
-  INIT.initialized = false;
+	State.groups = {};
+	INIT.scanner = null;
+	INIT.parser = null;
+	INIT.tokenQueue = [];
+	INIT.pluginQueue = [];
+	INIT.customSchemes = [];
+	INIT.initialized = false;
 }
 
 /**
@@ -1689,20 +1702,20 @@ function reset() {
  * recognize additional tokens or groups.
  */
 function registerTokenPlugin(name, plugin) {
-  if (typeof plugin !== 'function') {
-    throw new Error(`linkifyjs: Invalid token plugin ${plugin} (expects function)`);
-  }
-  for (let i = 0; i < INIT.tokenQueue.length; i++) {
-    if (name === INIT.tokenQueue[i][0]) {
-      warn(`linkifyjs: token plugin "${name}" already registered - will be overwritten`);
-      INIT.tokenQueue[i] = [name, plugin];
-      return;
-    }
-  }
-  INIT.tokenQueue.push([name, plugin]);
-  if (INIT.initialized) {
-    warn(`linkifyjs: already initialized - will not register token plugin "${name}" ${warnAdvice}`);
-  }
+	if (typeof plugin !== 'function') {
+		throw new Error(`linkifyjs: Invalid token plugin ${plugin} (expects function)`);
+	}
+	for (let i = 0; i < INIT.tokenQueue.length; i++) {
+		if (name === INIT.tokenQueue[i][0]) {
+			warn(`linkifyjs: token plugin "${name}" already registered - will be overwritten`);
+			INIT.tokenQueue[i] = [name, plugin];
+			return;
+		}
+	}
+	INIT.tokenQueue.push([name, plugin]);
+	if (INIT.initialized) {
+		warn(`linkifyjs: already initialized - will not register token plugin "${name}" ${warnAdvice}`);
+	}
 }
 
 /**
@@ -1712,20 +1725,20 @@ function registerTokenPlugin(name, plugin) {
  * extends the parser to recognize additional link types
  */
 function registerPlugin(name, plugin) {
-  if (typeof plugin !== 'function') {
-    throw new Error(`linkifyjs: Invalid plugin ${plugin} (expects function)`);
-  }
-  for (let i = 0; i < INIT.pluginQueue.length; i++) {
-    if (name === INIT.pluginQueue[i][0]) {
-      warn(`linkifyjs: plugin "${name}" already registered - will be overwritten`);
-      INIT.pluginQueue[i] = [name, plugin];
-      return;
-    }
-  }
-  INIT.pluginQueue.push([name, plugin]);
-  if (INIT.initialized) {
-    warn(`linkifyjs: already initialized - will not register plugin "${name}" ${warnAdvice}`);
-  }
+	if (typeof plugin !== 'function') {
+		throw new Error(`linkifyjs: Invalid plugin ${plugin} (expects function)`);
+	}
+	for (let i = 0; i < INIT.pluginQueue.length; i++) {
+		if (name === INIT.pluginQueue[i][0]) {
+			warn(`linkifyjs: plugin "${name}" already registered - will be overwritten`);
+			INIT.pluginQueue[i] = [name, plugin];
+			return;
+		}
+	}
+	INIT.pluginQueue.push([name, plugin]);
+	if (INIT.initialized) {
+		warn(`linkifyjs: already initialized - will not register plugin "${name}" ${warnAdvice}`);
+	}
 }
 
 /**
@@ -1736,19 +1749,19 @@ function registerPlugin(name, plugin) {
  * @param {boolean} [optionalSlashSlash]
  */
 function registerCustomProtocol(scheme, optionalSlashSlash) {
-  if (optionalSlashSlash === void 0) {
-    optionalSlashSlash = false;
-  }
-  if (INIT.initialized) {
-    warn(`linkifyjs: already initialized - will not register custom scheme "${scheme}" ${warnAdvice}`);
-  }
-  if (!/^[0-9a-z]+(-[0-9a-z]+)*$/.test(scheme)) {
-    throw new Error(`linkifyjs: incorrect scheme format.
+	if (optionalSlashSlash === void 0) {
+		optionalSlashSlash = false;
+	}
+	if (INIT.initialized) {
+		warn(`linkifyjs: already initialized - will not register custom scheme "${scheme}" ${warnAdvice}`);
+	}
+	if (!/^[0-9a-z]+(-[0-9a-z]+)*$/.test(scheme)) {
+		throw new Error(`linkifyjs: incorrect scheme format.
 1. Must only contain digits, lowercase ASCII letters or "-"
 2. Cannot start or end with "-"
 3. "-" cannot repeat`);
-  }
-  INIT.customSchemes.push([scheme, optionalSlashSlash]);
+	}
+	INIT.customSchemes.push([scheme, optionalSlashSlash]);
 }
 
 /**
@@ -1756,23 +1769,23 @@ function registerCustomProtocol(scheme, optionalSlashSlash) {
  * linkify is called on a string, but may be called manually as well.
  */
 function init() {
-  // Initialize scanner state machine and plugins
-  INIT.scanner = init$2(INIT.customSchemes);
-  for (let i = 0; i < INIT.tokenQueue.length; i++) {
-    INIT.tokenQueue[i][1]({
-      scanner: INIT.scanner
-    });
-  }
+	// Initialize scanner state machine and plugins
+	INIT.scanner = init$2(INIT.customSchemes);
+	for (let i = 0; i < INIT.tokenQueue.length; i++) {
+		INIT.tokenQueue[i][1]({
+			scanner: INIT.scanner
+		});
+	}
 
-  // Initialize parser state machine and plugins
-  INIT.parser = init$1(INIT.scanner.tokens);
-  for (let i = 0; i < INIT.pluginQueue.length; i++) {
-    INIT.pluginQueue[i][1]({
-      scanner: INIT.scanner,
-      parser: INIT.parser
-    });
-  }
-  INIT.initialized = true;
+	// Initialize parser state machine and plugins
+	INIT.parser = init$1(INIT.scanner.tokens);
+	for (let i = 0; i < INIT.pluginQueue.length; i++) {
+		INIT.pluginQueue[i][1]({
+			scanner: INIT.scanner,
+			parser: INIT.parser
+		});
+	}
+	INIT.initialized = true;
 }
 
 /**
@@ -1781,10 +1794,10 @@ function init() {
  * @return {MultiToken[]} tokens
  */
 function tokenize(str) {
-  if (!INIT.initialized) {
-    init();
-  }
-  return run(INIT.parser.start, str, run$1(INIT.scanner.start, str));
+	if (!INIT.initialized) {
+		init();
+	}
+	return run(INIT.parser.start, str, run$1(INIT.scanner.start, str));
 }
 
 /**
@@ -1796,29 +1809,29 @@ function tokenize(str) {
  * if opts already provided in `type` argument
  */
 function find(str, type, opts) {
-  if (type === void 0) {
-    type = null;
-  }
-  if (opts === void 0) {
-    opts = null;
-  }
-  if (type && typeof type === 'object') {
-    if (opts) {
-      throw Error(`linkifyjs: Invalid link type ${type}; must be a string`);
-    }
-    opts = type;
-    type = null;
-  }
-  const options = new Options(opts);
-  const tokens = tokenize(str);
-  const filtered = [];
-  for (let i = 0; i < tokens.length; i++) {
-    const token = tokens[i];
-    if (token.isLink && (!type || token.t === type) && options.check(token)) {
-      filtered.push(token.toFormattedObject(options));
-    }
-  }
-  return filtered;
+	if (type === void 0) {
+		type = null;
+	}
+	if (opts === void 0) {
+		opts = null;
+	}
+	if (type && typeof type === 'object') {
+		if (opts) {
+			throw Error(`linkifyjs: Invalid link type ${type}; must be a string`);
+		}
+		opts = type;
+		type = null;
+	}
+	const options = new Options(opts);
+	const tokens = tokenize(str);
+	const filtered = [];
+	for (let i = 0; i < tokens.length; i++) {
+		const token = tokens[i];
+		if (token.isLink && (!type || token.t === type) && options.check(token)) {
+			filtered.push(token.toFormattedObject(options));
+		}
+	}
+	return filtered;
 }
 
 /**
@@ -1838,11 +1851,28 @@ function find(str, type, opts) {
  * @returns boolean true/false
  */
 function test(str, type) {
-  if (type === void 0) {
-    type = null;
-  }
-  const tokens = tokenize(str);
-  return tokens.length === 1 && tokens[0].isLink && (!type || tokens[0].t === type);
+	if (type === void 0) {
+		type = null;
+	}
+	const tokens = tokenize(str);
+	return tokens.length === 1 && tokens[0].isLink && (!type || tokens[0].t === type);
 }
 
-export { MultiToken, Options, State, createTokenClass, find, init, multi, options, regexp, registerCustomProtocol, registerPlugin, registerTokenPlugin, reset, stringToArray, test, tokenize };
+export {
+	MultiToken,
+	Options,
+	State,
+	createTokenClass,
+	find,
+	init,
+	multi,
+	options,
+	regexp,
+	registerCustomProtocol,
+	registerPlugin,
+	registerTokenPlugin,
+	reset,
+	stringToArray,
+	test,
+	tokenize
+};

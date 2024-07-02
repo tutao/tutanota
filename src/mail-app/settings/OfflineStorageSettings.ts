@@ -16,7 +16,7 @@ export class OfflineStorageSettingsModel {
 	// the default value will never actually be used
 	private timeRange = OFFLINE_STORAGE_DEFAULT_TIME_RANGE_DAYS
 
-	// Native interfaces are lazy to allow us to unconditionally construct the SettingsModel
+	// Native Interfaces.ts are lazy to allow us to unconditionally construct the SettingsModel
 	// If we are not in a native context, then they should never be accessed
 	constructor(private readonly userController: UserController, private readonly deviceConfig: DeviceConfig) {}
 

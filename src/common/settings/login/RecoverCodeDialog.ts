@@ -1,5 +1,5 @@
-import { InfoLink, lang } from "../../../common/misc/LanguageViewModel.js"
-import { Dialog, DialogType } from "../../../common/gui/base/Dialog.js"
+import { InfoLink, lang } from "../../misc/LanguageViewModel.js"
+import { Dialog, DialogType } from "../../gui/base/Dialog.js"
 import type { Hex } from "@tutao/tutanota-utils"
 import { neverNull, noOp, ofClass } from "@tutao/tutanota-utils"
 import m, { Child, Children, Vnode } from "mithril"
