@@ -11,6 +11,7 @@ use crate::rest_client::{HttpMethod, RestClientOptions};
 use crate::rest_error::{HttpError};
 use crate::type_model_provider::{TypeModelProvider};
 
+/// Denotes an ID that can be serialised into a string
 pub trait IdType: Display {}
 
 impl IdType for String {}

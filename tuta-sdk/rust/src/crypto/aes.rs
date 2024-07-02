@@ -4,10 +4,10 @@ use aes::cipher::{BlockCipher, BlockSizeUser};
 use aes::cipher::block_padding::Pkcs7;
 use cbc::cipher::{BlockDecrypt, BlockDecryptMut, BlockEncrypt, BlockEncryptMut, KeyIvInit};
 use cbc::cipher::block_padding::UnpadError;
-use rand_core::CryptoRngCore;
 use zeroize::ZeroizeOnDrop;
+use crate::crypto::randomizer_facade::RandomizerFacade;
 use crate::join_slices;
-use crate::util::{ArrayCastingError, generate_random_bytes, array_cast_slice, array_cast_size};
+use crate::util::{ArrayCastingError, array_cast_slice, array_cast_size};
 
 /// Denotes whether a text is/should be padded
 pub enum PaddingMode {
@@ -52,8 +52,8 @@ macro_rules! aes_key {
 
         impl $name {
             /// Generate an AES key.
-            pub fn generate<R: CryptoRngCore + ?Sized>(rng: &mut R) -> Self {
-                let key: [u8; $size] = generate_random_bytes(rng);
+            pub fn generate(randomizer_facade: &RandomizerFacade) -> Self {
+                let key: [u8; $size] = randomizer_facade.generate_random_array();
                 Self(key)
             }
 
