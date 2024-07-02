@@ -7,6 +7,7 @@ use crate::crypto::randomizer_facade::RandomizerFacade;
 use crate::join_slices;
 use crate::util::{ArrayCastingError, decode_byte_arrays, encode_byte_arrays};
 
+/// An encapsulated post quantum message using the Tuta Crypt protocol.
 #[derive(ZeroizeOnDrop)]
 pub struct PQMessage {
     sender_identity_public_key: EccPublicKey,
