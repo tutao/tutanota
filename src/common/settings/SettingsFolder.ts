@@ -1,9 +1,9 @@
-import type { lazyIcon } from "../../common/gui/base/Icon"
-import type { TranslationKey } from "../../common/misc/LanguageViewModel"
-import { isSelectedPrefix } from "../../common/gui/base/NavButton.js"
-import type { UpdatableSettingsViewer } from "./SettingsView"
+import type { lazyIcon } from "../gui/base/Icon.js"
+import type { TranslationKey } from "../misc/LanguageViewModel.js"
+import { isSelectedPrefix } from "../gui/base/NavButton.js"
 import type { lazy } from "@tutao/tutanota-utils"
-import { assertMainOrNode } from "../../common/api/common/Env"
+import { assertMainOrNode } from "../api/common/Env.js"
+import { UpdatableSettingsViewer } from "./Interfaces.js"
 
 assertMainOrNode()
 

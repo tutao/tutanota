@@ -10,10 +10,10 @@ import { downcast, incrementDate, noOp, promiseMap } from "@tutao/tutanota-utils
 import { UserSettingsGroupRootTypeRef } from "../../common/api/entities/tutanota/TypeRefs.js"
 import { getHourCycle } from "../../common/misc/Formatter"
 import { themeController, ThemeId, themeOptions, ThemePreference } from "../../common/gui/theme"
-import type { UpdatableSettingsViewer } from "./SettingsView"
 import { isDesktop } from "../../common/api/common/Env"
 import { locator } from "../../common/api/main/MainLocator"
 import { EntityUpdateData, isUpdateForTypeRef } from "../../common/api/common/utils/EntityUpdateUtils.js"
+import { UpdatableSettingsViewer } from "../../common/settings/Interfaces.js"
 
 export class AppearanceSettingsViewer implements UpdatableSettingsViewer {
 	private _customThemes: Array<ThemeId> | null = null

@@ -51,7 +51,6 @@ import { showAddDomainWizard } from "./emaildomain/AddDomainWizard"
 import { getUserGroupMemberships } from "../../common/api/common/utils/GroupUtils"
 import { showNotAvailableForFreeDialog } from "../../common/misc/SubscriptionDialogs"
 import { getDomainPart } from "../../common/misc/parsing/MailAddressParser"
-import type { UpdatableSettingsViewer } from "./SettingsView"
 import { locator } from "../../common/api/main/MainLocator"
 import { assertMainOrNode } from "../../common/api/common/Env"
 import { DropDownSelector } from "../../common/gui/base/DropDownSelector.js"
@@ -63,6 +62,7 @@ import { EntityUpdateData, isUpdateForTypeRef } from "../../common/api/common/ut
 import { LoginButton } from "../../common/gui/base/buttons/LoginButton.js"
 import { showLeavingUserSurveyWizard } from "../../common/subscription/LeavingUserSurveyWizard.js"
 import { SURVEY_VERSION_NUMBER } from "../../common/subscription/LeavingUserSurveyConstants.js"
+import { UpdatableSettingsViewer } from "../../common/settings/Interfaces.js"
 
 assertMainOrNode()
 // Number of days for that we load rejected senders

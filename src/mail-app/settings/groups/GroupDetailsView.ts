@@ -11,13 +11,13 @@ import { showProgressDialog } from "../../../common/gui/dialogs/ProgressDialog.j
 import { TextField } from "../../../common/gui/base/TextField.js"
 import type { DropDownSelectorAttrs } from "../../../common/gui/base/DropDownSelector.js"
 import { DropDownSelector } from "../../../common/gui/base/DropDownSelector.js"
-import type { UpdatableSettingsDetailsViewer } from "../SettingsView.js"
 import { assertMainOrNode } from "../../../common/api/common/Env.js"
 import { IconButton, IconButtonAttrs } from "../../../common/gui/base/IconButton.js"
 import { ButtonSize } from "../../../common/gui/base/ButtonSize.js"
 import { GroupDetailsModel } from "./GroupDetailsModel.js"
 import { showBuyDialog } from "../../../common/subscription/BuyDialog.js"
 import { EntityUpdateData } from "../../../common/api/common/utils/EntityUpdateUtils.js"
+import { UpdatableSettingsDetailsViewer } from "../../../common/settings/Interfaces.js"
 
 assertMainOrNode()
 
@@ -35,6 +35,7 @@ export class GroupDetailsView implements UpdatableSettingsDetailsViewer {
 	renderView(): Children {
 		return m("#user-viewer.fill-absolute.scroll.plr-l", [this.renderHeader(), this.renderCommonInfo(), this.renderMailGroupInfo()])
 	}
+
 	/**
 	 * render the fields that are common to all group types
 	 * @private
@@ -46,6 +47,7 @@ export class GroupDetailsView implements UpdatableSettingsDetailsViewer {
 	private renderCreatedTextField(): Children {
 		return m(TextField, { label: "created_label", value: formatDateWithMonth(this.model.getCreationDate()), isReadOnly: true })
 	}
+
 	/**
 	 * render the information that only shared mailboxes have
 	 * @private
@@ -73,6 +75,7 @@ export class GroupDetailsView implements UpdatableSettingsDetailsViewer {
 			}),
 		]
 	}
+
 	private renderStatusSelector(): Children {
 		const attrs: DropDownSelectorAttrs<boolean> = {
 			label: "state_label",

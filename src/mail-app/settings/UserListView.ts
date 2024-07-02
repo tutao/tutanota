@@ -5,7 +5,6 @@ import type { GroupInfo, User } from "../../common/api/entities/sys/TypeRefs.js"
 import { GroupInfoTypeRef, GroupMemberTypeRef } from "../../common/api/entities/sys/TypeRefs.js"
 import { contains, LazyLoaded, memoized, noOp } from "@tutao/tutanota-utils"
 import { UserViewer } from "./UserViewer.js"
-import type { UpdatableSettingsViewer } from "./SettingsView.js"
 import { FeatureType, GroupType } from "../../common/api/common/TutanotaConstants.js"
 import { Icon } from "../../common/gui/base/Icon.js"
 import { Icons } from "../../common/gui/base/icons/Icons.js"
@@ -31,6 +30,7 @@ import { lang } from "../../common/misc/LanguageViewModel.js"
 import { keyManager } from "../../common/misc/KeyManager.js"
 import { EntityUpdateData, isUpdateFor, isUpdateForTypeRef } from "../../common/api/common/utils/EntityUpdateUtils.js"
 import { ListAutoSelectBehavior } from "../../common/misc/DeviceConfig.js"
+import { UpdatableSettingsViewer } from "../../common/settings/Interfaces.js"
 
 assertMainOrNode()
 

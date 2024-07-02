@@ -16,7 +16,6 @@ import { attachDropdown } from "../../../common/gui/base/Dropdown.js"
 import { ExpanderButton, ExpanderPanel } from "../../../common/gui/base/Expander.js"
 import { ColumnWidth, Table } from "../../../common/gui/base/Table.js"
 import { ifAllowedTutaLinks } from "../../../common/gui/base/GuiUtils.js"
-import type { UpdatableSettingsViewer } from "../SettingsView.js"
 import { CredentialEncryptionMode } from "../../../common/misc/credentials/CredentialEncryptionMode.js"
 import { CredentialsProvider } from "../../../common/misc/credentials/CredentialsProvider.js"
 import { showCredentialsEncryptionModeDialog } from "../../../common/gui/dialogs/SelectCredentialsEncryptionModeDialog.js"
@@ -34,6 +33,7 @@ import { Dialog } from "../../../common/gui/base/Dialog.js"
 import { MoreInfoLink } from "../../../common/misc/news/MoreInfoLink.js"
 import { AppLockMethod } from "../../../common/native/common/generatedipc/AppLockMethod.js"
 import { MobileSystemFacade } from "../../../common/native/common/generatedipc/MobileSystemFacade.js"
+import { UpdatableSettingsViewer } from "../../../common/settings/Interfaces.js"
 
 assertMainOrNode()
 

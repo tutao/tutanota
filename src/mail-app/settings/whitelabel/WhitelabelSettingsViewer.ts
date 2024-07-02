@@ -38,7 +38,6 @@ import { WhitelabelStatusSettings } from "./WhitelabelStatusSettings"
 import { WhitelabelNotificationEmailSettings } from "./WhitelabelNotificationEmailSettings"
 import type { GermanLanguageCode } from "./WhitelabelGermanLanguageFileSettings"
 import { WhitelabelGermanLanguageFileSettings } from "./WhitelabelGermanLanguageFileSettings"
-import type { UpdatableSettingsViewer } from "../SettingsView"
 import type { ThemeCustomizations } from "../../../common/misc/WhitelabelCustomizations"
 import { getThemeCustomizations } from "../../../common/misc/WhitelabelCustomizations"
 import { EntityClient } from "../../../common/api/common/EntityClient"
@@ -48,6 +47,7 @@ import { BrandingDomainService } from "../../../common/api/entities/sys/Services
 import { LoginController } from "../../../common/api/main/LoginController.js"
 import { getCustomMailDomains, getWhitelabelDomainInfo } from "../../../common/api/common/utils/CustomerUtils.js"
 import { EntityUpdateData, isUpdateForTypeRef } from "../../../common/api/common/utils/EntityUpdateUtils.js"
+import { UpdatableSettingsViewer } from "../../../common/settings/Interfaces.js"
 
 assertMainOrNode()
 

@@ -1,6 +1,5 @@
 import m, { Children } from "mithril"
 import { EntityUpdateData, isUpdateForTypeRef } from "../../common/api/common/utils/EntityUpdateUtils.js"
-import type { UpdatableSettingsViewer } from "./SettingsView.js"
 import { ExtendedNotificationMode } from "../../common/native/common/generatedipc/ExtendedNotificationMode.js"
 import Stream from "mithril/stream"
 import stream from "mithril/stream"
@@ -14,9 +13,10 @@ import { isApp, isDesktop } from "../../common/api/common/Env.js"
 import { noOp, ofClass } from "@tutao/tutanota-utils"
 import { NotFoundError } from "../../common/api/common/error/RestError.js"
 import { PushServiceType } from "../../common/api/common/TutanotaConstants.js"
-import { DropDownSelector, DropDownSelectorAttrs } from "../../common/gui/base/DropDownSelector.js"
-import { ExpanderButton, ExpanderPanel } from "../../common/gui/base/Expander.js"
 import { IdentifierRow } from "./IdentifierRow.js"
+import { UpdatableSettingsViewer } from "../../common/settings/Interfaces.js"
+import { SettingsNotificationContentPicker } from "./SettingsNotificationContentPicker.js"
+import { SettingsNotificationTargets } from "../../common/settings/SettingsNotificationTargets.js"
 
 export class NotificationSettingsViewer implements UpdatableSettingsViewer {
 	private currentIdentifier: string | null = null
@@ -78,25 +78,18 @@ export class NotificationSettingsViewer implements UpdatableSettingsViewer {
 		return m(".fill-absolute.scroll.plr-l.pb-xl", [
 			m(".flex.col", [
 				m(".flex-space-between.items-center.mt-l.mb-s", [m(".h4", lang.get("notificationSettings_action"))]),
-				[
-					this.renderExtendedNotificationPref(),
-					m(".flex-space-between.items-center.mt-s.mb-s", [
-						m(".h5", lang.get("notificationTargets_label")),
-						m(ExpanderButton, {
-							label: "show_action",
-							expanded: this.expanded(),
-							onExpandedChange: this.expanded,
-						}),
-					]),
-					m(
-						ExpanderPanel,
-						{
-							expanded: this.expanded(),
-						},
-						m(".flex.flex-column.items-end.mb", [rowAdd].concat(rows)),
-					),
-				],
-				m(".small", lang.get("pushIdentifierInfoMessage_msg")),
+				this.extendedNotificationMode
+					? m(SettingsNotificationContentPicker, {
+							extendedNotificationMode: this.extendedNotificationMode,
+							onChange: (value: ExtendedNotificationMode) => {
+								locator.pushService.setExtendedNotificationMode(value)
+								this.extendedNotificationMode = value
+							},
+					  })
+					: null,
+				// FIXME fix this type error
+				// @ts-ignore
+				m(SettingsNotificationTargets, { rows, rowAdd, onExpandedChange: this.expanded }),
 			]),
 		])
 	}
@@ -104,35 +97,6 @@ export class NotificationSettingsViewer implements UpdatableSettingsViewer {
 	private async showAddEmailNotificationDialog() {
 		const dialog = await locator.addNotificationEmailDialog()
 		dialog.show()
-	}
-
-	private renderExtendedNotificationPref(): Children {
-		return this.extendedNotificationMode == null
-			? null
-			: m(DropDownSelector, {
-					label: "notificationContent_label",
-					items: [
-						{
-							name: lang.get("notificationPreferenceNoSenderOrSubject_action"),
-							value: ExtendedNotificationMode.NoSenderOrSubject,
-						},
-						{
-							name: lang.get("notificationPreferenceOnlySender_action"),
-							value: ExtendedNotificationMode.OnlySender,
-						},
-						// Uncomment when subject in notifications is available
-						// {
-						// 	name: lang.get("notificationPreferenceSenderAndSubject_action"),
-						// 	value: ExtendedNotificationMode.SenderAndSubject,
-						// },
-					],
-					selectedValue: this.extendedNotificationMode,
-					selectionChangedHandler: (v) => {
-						locator.pushService.setExtendedNotificationMode(v)
-						this.extendedNotificationMode = v
-					},
-					dropdownWidth: 250,
-			  } satisfies DropDownSelectorAttrs<ExtendedNotificationMode>)
 	}
 
 	private identifierDisplayName(current: boolean, type: NumberString, displayName: string): string {
