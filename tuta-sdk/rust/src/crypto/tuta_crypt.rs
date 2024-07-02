@@ -1,9 +1,9 @@
-use rand_core::CryptoRngCore;
 use zeroize::{ZeroizeOnDrop, Zeroizing};
 use crate::crypto::aes::{Aes256Key, aes_256_decrypt, aes_256_encrypt, AesDecryptError, AesEncryptError, Iv, PaddingMode};
 use crate::crypto::ecc::{ecc_decapsulate, ecc_encapsulate, EccKeyPair, EccPublicKey, EccSharedSecrets};
 use crate::crypto::hkdf::hkdf;
 use crate::crypto::kyber::{KyberCiphertext, KyberDecapsulationError, KyberKeyPair, KyberPublicKey, KyberSharedSecret};
+use crate::crypto::randomizer_facade::RandomizerFacade;
 use crate::join_slices;
 use crate::util::{ArrayCastingError, decode_byte_arrays, encode_byte_arrays};
 
@@ -155,8 +155,8 @@ pub struct PQKeyPairs {
 
 impl PQKeyPairs {
     /// Generate a keypair with the given random number generator.
-    pub fn generate<R: CryptoRngCore + ?Sized>(rng: &mut R) -> Self {
-        let ecc_keys = EccKeyPair::generate(rng);
+    pub fn generate(randomizer_facade: &RandomizerFacade) -> Self {
+        let ecc_keys = EccKeyPair::generate(randomizer_facade);
         let kyber_keys = KyberKeyPair::generate();
         Self { ecc_keys, kyber_keys }
     }

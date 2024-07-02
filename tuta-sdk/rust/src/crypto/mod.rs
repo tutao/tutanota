@@ -17,4 +17,4 @@ pub mod key;
 
 #[cfg(test)]
 mod compatibility_test_utils;
-mod randomizer_facade;
+pub mod randomizer_facade;
