@@ -1,6 +1,6 @@
 import type { App } from "electron"
 import type { WindowManager } from "./DesktopWindowManager"
-import { isMailAddress } from "../common/misc/FormatValidator"
+import { isMailAddress } from "../misc/FormatValidator"
 import { log } from "./DesktopLog"
 import type { TimeoutSetter } from "@tutao/tutanota-utils"
 import { NetExports } from "./ElectronExportTypes"

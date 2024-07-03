@@ -1,10 +1,10 @@
 import type { Thunk } from "@tutao/tutanota-utils"
 import { downcast } from "@tutao/tutanota-utils"
-import { EndType } from "../../../common/api/common/TutanotaConstants.js"
-import type { AlarmInfo, RepeatRule } from "../../../common/api/entities/sys/TypeRefs.js"
-import type { ScheduledTimeoutId, Scheduler } from "../../../common/api/common/utils/Scheduler.js"
+import { EndType } from "../../api/common/TutanotaConstants.js"
+import type { AlarmInfo, RepeatRule } from "../../api/entities/sys/TypeRefs.js"
+import type { ScheduledTimeoutId, Scheduler } from "../../api/common/utils/Scheduler.js"
 import { calculateAlarmTime, findNextAlarmOccurrence, getEventStartByTimes, getValidTimeZone, parseAlarmInterval } from "./CalendarUtils.js"
-import { DateProvider } from "../../../common/api/common/DateProvider.js"
+import { DateProvider } from "../../api/common/DateProvider.js"
 
 type NotificationSender = (eventTime: Date, summary: string) => void
 type EventInfo = {

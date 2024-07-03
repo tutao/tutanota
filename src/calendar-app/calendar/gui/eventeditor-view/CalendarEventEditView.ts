@@ -11,7 +11,7 @@ import { RecipientsSearchModel } from "../../../../common/misc/RecipientsSearchM
 import { DropDownSelector, DropDownSelectorAttrs } from "../../../../common/gui/base/DropDownSelector.js"
 import { BootIcons } from "../../../../common/gui/base/icons/BootIcons.js"
 import { CalendarInfo } from "../../model/CalendarModel.js"
-import { AlarmIntervalUnit } from "../../date/CalendarUtils.js"
+import { AlarmIntervalUnit } from "../../../../common/calendar/date/CalendarUtils.js"
 import { Icons } from "../../../../common/gui/base/icons/Icons.js"
 import { IconButton } from "../../../../common/gui/base/IconButton.js"
 import { ButtonSize } from "../../../../common/gui/base/ButtonSize.js"

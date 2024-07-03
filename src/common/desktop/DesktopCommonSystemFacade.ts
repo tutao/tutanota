@@ -1,7 +1,7 @@
-import { CommonSystemFacade } from "../common/native/common/generatedipc/CommonSystemFacade.js"
+import { CommonSystemFacade } from "../native/common/generatedipc/CommonSystemFacade.js"
 import { ApplicationWindow } from "./ApplicationWindow.js"
 import { defer, DeferredObject } from "@tutao/tutanota-utils"
-import { Logger } from "../common/api/common/Logger.js"
+import { Logger } from "../api/common/Logger.js"
 
 export class DesktopCommonSystemFacade implements CommonSystemFacade {
 	private initDefer: DeferredObject<void> = defer()

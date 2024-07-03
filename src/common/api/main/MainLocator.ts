@@ -81,7 +81,7 @@ import { ReceivedGroupInvitationsModel } from "../../sharing/model/ReceivedGroup
 import { Const, FeatureType, GroupType, KdfType } from "../common/TutanotaConstants.js"
 import type { ExternalLoginViewModel } from "../../login/ExternalLoginView.js"
 import type { ConversationViewModel, ConversationViewModelFactory } from "../../../mail-app/mail/view/ConversationViewModel.js"
-import type { AlarmScheduler } from "../../../calendar-app/calendar/date/AlarmScheduler.js"
+import type { AlarmScheduler } from "../../calendar/date/AlarmScheduler.js"
 import { CalendarEventModel, CalendarOperation } from "../../../calendar-app/calendar/gui/eventeditor-model/CalendarEventModel.js"
 import { showProgressDialog } from "../../gui/dialogs/ProgressDialog.js"
 import { SearchViewModel } from "../../../mail-app/search/view/SearchViewModel.js"
@@ -96,7 +96,7 @@ import { LoginViewModel } from "../../login/LoginViewModel.js"
 import type { CalendarEventPreviewViewModel } from "../../../calendar-app/calendar/gui/eventpopup/CalendarEventPreviewViewModel.js"
 
 import { isCustomizationEnabledForCustomer } from "../common/utils/CustomerUtils.js"
-import { CalendarEventsRepository } from "../../../calendar-app/calendar/date/CalendarEventsRepository.js"
+import { CalendarEventsRepository } from "../../calendar/date/CalendarEventsRepository.js"
 import { CalendarInviteHandler } from "../../../calendar-app/calendar/view/CalendarInvites.js"
 import { NativeContactsSyncManager } from "../../../mail-app/contacts/model/NativeContactsSyncManager.js"
 import { ContactFacade } from "../worker/facades/lazy/ContactFacade.js"
@@ -305,7 +305,7 @@ class MainLocator {
 
 	readonly calendarViewModel = lazyMemoized<Promise<CalendarViewModel>>(async () => {
 		const { CalendarViewModel } = await import("../../../calendar-app/calendar/view/CalendarViewModel.js")
-		const { DefaultDateProvider } = await import("../../../calendar-app/calendar/date/CalendarUtils")
+		const { DefaultDateProvider } = await import("../../calendar/date/CalendarUtils")
 		const timeZone = new DefaultDateProvider().timeZone()
 		return new CalendarViewModel(
 			this.logins,
@@ -328,8 +328,8 @@ class MainLocator {
 	})
 
 	readonly calendarEventsRepository: lazyAsync<CalendarEventsRepository> = lazyMemoized(async () => {
-		const { CalendarEventsRepository } = await import("../../../calendar-app/calendar/date/CalendarEventsRepository.js")
-		const { DefaultDateProvider } = await import("../../../calendar-app/calendar/date/CalendarUtils")
+		const { CalendarEventsRepository } = await import("../../calendar/date/CalendarEventsRepository.js")
+		const { DefaultDateProvider } = await import("../../calendar/date/CalendarUtils")
 		const timeZone = new DefaultDateProvider().timeZone()
 		return new CalendarEventsRepository(await this.calendarModel(), this.calendarFacade, timeZone, this.entityClient, this.eventController)
 	})
@@ -363,7 +363,7 @@ class MainLocator {
 	): Promise<CalendarEventModel | null> {
 		const [{ makeCalendarEventModel }, { getTimeZone }, { calendarNotificationSender }] = await Promise.all([
 			import("../../../calendar-app/calendar/gui/eventeditor-model/CalendarEventModel.js"),
-			import("../../../calendar-app/calendar/date/CalendarUtils.js"),
+			import("../../calendar/date/CalendarUtils.js"),
 			import("../../../calendar-app/calendar/view/CalendarNotificationSender.js"),
 		])
 		const sendMailModelFactory = await this.sendMailModelSyncFactory(mailboxDetail, mailboxProperties)
@@ -778,7 +778,7 @@ class MainLocator {
 	}
 
 	readonly calendarModel: () => Promise<CalendarModel> = lazyMemoized(async () => {
-		const { DefaultDateProvider } = await import("../../../calendar-app/calendar/date/CalendarUtils")
+		const { DefaultDateProvider } = await import("../../calendar/date/CalendarUtils")
 		const { CalendarModel } = await import("../../../calendar-app/calendar/model/CalendarModel")
 		const timeZone = new DefaultDateProvider().timeZone()
 		return new CalendarModel(
@@ -805,8 +805,8 @@ class MainLocator {
 	})
 
 	private alarmScheduler: () => Promise<AlarmScheduler> = lazyMemoized(async () => {
-		const { AlarmScheduler } = await import("../../../calendar-app/calendar/date/AlarmScheduler")
-		const { DefaultDateProvider } = await import("../../../calendar-app/calendar/date/CalendarUtils")
+		const { AlarmScheduler } = await import("../../calendar/date/AlarmScheduler")
+		const { DefaultDateProvider } = await import("../../calendar/date/CalendarUtils")
 		const dateProvider = new DefaultDateProvider()
 		return new AlarmScheduler(dateProvider, await this.scheduler())
 	})

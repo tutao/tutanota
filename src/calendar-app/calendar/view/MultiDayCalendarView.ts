@@ -13,7 +13,7 @@ import {
 	getStartOfWeek,
 	getTimeTextFormatForLongEvent,
 	getTimeZone,
-} from "../date/CalendarUtils"
+} from "../../../common/calendar/date/CalendarUtils"
 import { CalendarDayEventsView, calendarDayTimes } from "./CalendarDayEventsView"
 import { theme } from "../../../common/gui/theme"
 import { px, size } from "../../../common/gui/size"
@@ -42,7 +42,7 @@ import { ContinuingCalendarEventBubble } from "./ContinuingCalendarEventBubble"
 import { isAllDayEvent } from "../../../common/api/common/utils/CommonCalendarUtils"
 import { locator } from "../../../common/api/main/MainLocator.js"
 import { DateTime } from "luxon"
-import { Time } from "../date/Time.js"
+import { Time } from "../../../common/calendar/date/Time.js"
 import { DaySelector } from "../gui/day-selector/DaySelector.js"
 
 export type MultiDayCalendarViewAttrs = {

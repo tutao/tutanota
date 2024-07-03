@@ -1,5 +1,5 @@
 import { CalendarEvent, CalendarEventAttendee } from "../../../../common/api/entities/tutanota/TypeRefs.js"
-import { calendarEventHasMoreThanOneOccurrencesLeft } from "../../date/CalendarUtils.js"
+import { calendarEventHasMoreThanOneOccurrencesLeft } from "../../../../common/calendar/date/CalendarUtils.js"
 import { CalendarEventModel, CalendarOperation, EventSaveResult, EventType, getNonOrganizerAttendees } from "../eventeditor-model/CalendarEventModel.js"
 import { NotFoundError } from "../../../../common/api/common/error/RestError.js"
 import { CalendarModel } from "../../model/CalendarModel.js"

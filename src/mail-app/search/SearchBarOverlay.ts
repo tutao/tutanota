@@ -13,16 +13,16 @@ import { Icon } from "../../common/gui/base/Icon"
 import { client } from "../../common/misc/ClientDetector"
 import m, { Children, Component, Vnode } from "mithril"
 import { theme } from "../../common/gui/theme"
-import { getContactListName } from "../../common/contactsFunctionality/ContactUtils.js"
 import { getMailFolderIcon } from "../mail/view/MailGuiUtils"
 import { locator } from "../../common/api/main/MainLocator"
 import { IndexingErrorReason } from "../../common/api/worker/search/SearchTypes"
 import { companyTeamLabel } from "../../common/misc/ClientConstants.js"
-import { getTimeZone } from "../../calendar-app/calendar/date/CalendarUtils.js"
+import { getTimeZone } from "../../common/calendar/date/CalendarUtils.js"
 
 import { formatEventDuration } from "../../calendar-app/calendar/gui/CalendarGuiUtils.js"
 import { getSenderOrRecipientHeading } from "../../common/mailFunctionality/CommonMailUtils.js"
 import { isTutanotaTeamMail } from "../mail/MailUtils.js"
+import { getContactListName } from "../../common/contactsFunctionality/ContactUtils.js"
 
 type SearchBarOverlayAttrs = {
 	state: SearchBarState
