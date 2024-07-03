@@ -3,17 +3,28 @@
 // TODO: Remove the above allowance when starting to implement higher level functions
 
 
-pub mod aes;
-pub mod sha;
-pub mod hkdf;
-mod argon2_id;
-pub mod ecc;
-pub mod kyber;
-pub mod rsa;
-pub mod tuta_crypt;
-pub mod crypto_facade;
-pub mod key;
+mod aes;
 
 #[cfg(test)]
-mod compatibility_test_utils;
+pub use aes::Iv;
+pub use aes::{Aes256Key, Aes128Key, AES_256_KEY_SIZE, AES_128_KEY_SIZE, IV_BYTE_SIZE};
+
+mod sha;
+
+pub use sha::{sha256, sha512};
+
+mod hkdf;
+
+pub use hkdf::hkdf;
+
+mod argon2_id;
+mod ecc;
+mod kyber;
+mod rsa;
+mod tuta_crypt;
+pub mod key_encryption;
+pub mod crypto_facade;
+pub mod key;
 pub mod randomizer_facade;
+#[cfg(test)]
+mod compatibility_test_utils;
