@@ -1,6 +1,6 @@
 import http from "node:http"
 import https from "node:https"
-import { ConnectionError } from "../../common/api/common/error/RestError.js"
+import { ConnectionError } from "../../api/common/error/RestError.js"
 import { log } from "../DesktopLog.js"
 import type { ReadStream } from "node:fs"
 

@@ -3,8 +3,8 @@ import { DesktopNativeCryptoFacade } from "./DesktopNativeCryptoFacade"
 import { log } from "./DesktopLog"
 import { getFromMap } from "@tutao/tutanota-utils"
 import { base64ToKey, keyToBase64 } from "@tutao/tutanota-crypto"
-import { DeviceStorageUnavailableError } from "../common/api/common/error/DeviceStorageUnavailableError.js"
-import { CancelledError } from "../common/api/common/error/CancelledError"
+import { DeviceStorageUnavailableError } from "../api/common/error/DeviceStorageUnavailableError.js"
+import { CancelledError } from "../api/common/error/CancelledError"
 
 interface NativeKeySpec {
 	/**

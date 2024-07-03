@@ -9,7 +9,7 @@ import { DesktopConfig } from "./config/DesktopConfig.js"
 import { NativeImage } from "electron"
 import { ApplicationWindow } from "./ApplicationWindow.js"
 import { Attachment, Email, MessageEditorFormat } from "@tutao/oxmsg"
-import { sanitizeFilename } from "../common/api/common/utils/FileUtils.js"
+import { sanitizeFilename } from "../api/common/utils/FileUtils.js"
 import { promises as fs } from "node:fs"
 import { TempFs } from "./files/TempFs.js"
 
