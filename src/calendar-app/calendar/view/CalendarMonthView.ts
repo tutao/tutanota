@@ -1,7 +1,7 @@
 import m, { Children, ClassComponent, Component, Vnode, VnodeDOM } from "mithril"
 import { px, size } from "../../../common/gui/size"
 import { EventTextTimeOption, WeekStart } from "../../../common/api/common/TutanotaConstants"
-import type { CalendarDay, CalendarMonth } from "../date/CalendarUtils"
+import type { CalendarDay, CalendarMonth } from "../../../common/calendar/date/CalendarUtils"
 import {
 	getAllDayDateForTimezone,
 	getDiffIn24hIntervals,
@@ -11,7 +11,7 @@ import {
 	getStartOfTheWeekOffset,
 	getTimeZone,
 	getWeekNumber,
-} from "../date/CalendarUtils"
+} from "../../../common/calendar/date/CalendarUtils"
 import { incrementDate, incrementMonth, isToday, lastThrow, neverNull, ofClass } from "@tutao/tutanota-utils"
 import { ContinuingCalendarEventBubble } from "./ContinuingCalendarEventBubble"
 import { styles } from "../../../common/gui/styles"
@@ -37,11 +37,11 @@ import {
 	TEMPORARY_EVENT_OPACITY,
 } from "../gui/CalendarGuiUtils.js"
 import type { CalendarEventBubbleClickHandler, CalendarEventBubbleKeyDownHandler, EventsOnDays } from "./CalendarViewModel"
-import { Time } from "../date/Time.js"
+import { Time } from "../../../common/calendar/date/Time.js"
 import { client } from "../../../common/misc/ClientDetector"
 import { locator } from "../../../common/api/main/MainLocator.js"
 import { PageView } from "../../../common/gui/base/PageView.js"
-import { DaysToEvents } from "../date/CalendarEventsRepository.js"
+import { DaysToEvents } from "../../../common/calendar/date/CalendarEventsRepository.js"
 
 type CalendarMonthAttrs = {
 	selectedDate: Date

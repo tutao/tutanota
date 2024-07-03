@@ -33,7 +33,7 @@ import { NoopProgressMonitor } from "../../../common/api/common/utils/ProgressMo
 import { EntityClient } from "../../../common/api/common/EntityClient"
 import type { MailModel } from "../../../mail-app/mail/model/MailModel"
 import { elementIdPart, getElementId, isSameId, listIdPart, removeTechnicalFields } from "../../../common/api/common/utils/EntityUtils"
-import type { AlarmScheduler } from "../date/AlarmScheduler.js"
+import type { AlarmScheduler } from "../../../common/calendar/date/AlarmScheduler.js"
 import { Notifications, NotificationType } from "../../../common/gui/Notifications"
 import m from "mithril"
 import type { CalendarEventInstance, CalendarEventProgenitor, CalendarFacade } from "../../../common/api/worker/facades/lazy/CalendarFacade.js"
@@ -195,7 +195,7 @@ export class CalendarModel {
 	}
 
 	private async loadOrCreateCalendarInfo(progressMonitor: IProgressMonitor): Promise<ReadonlyMap<Id, CalendarInfo>> {
-		const { findPrivateCalendar } = await import("../date/CalendarUtils.js")
+		const { findPrivateCalendar } = await import("../../../common/calendar/date/CalendarUtils.js")
 		const calendarInfos = await this.loadCalendarInfos(progressMonitor)
 
 		if (!this.logins.isInternalUserLoggedIn() || findPrivateCalendar(calendarInfos)) {
@@ -235,7 +235,7 @@ export class CalendarModel {
 	): Promise<void> {
 		// If the event was copied it might still carry some fields for re-encryption. We can't reuse them.
 		removeTechnicalFields(event)
-		const { assignEventId } = await import("../date/CalendarUtils")
+		const { assignEventId } = await import("../../../common/calendar/date/CalendarUtils")
 		// if values of the existing events have changed that influence the alarm time then delete the old event and create a new
 		// one.
 		assignEventId(event, zone, groupRoot)
@@ -812,7 +812,7 @@ export class CalendarModel {
 /** return false when the given events (representing the new and old version of the same event) are both long events
  * or both short events, true otherwise */
 async function didLongStateChange(newEvent: CalendarEvent, existingEvent: CalendarEvent, zone: string): Promise<boolean> {
-	const { isLongEvent } = await import("../date/CalendarUtils.js")
+	const { isLongEvent } = await import("../../../common/calendar/date/CalendarUtils.js")
 	return isLongEvent(newEvent, zone) !== isLongEvent(existingEvent, zone)
 }
 

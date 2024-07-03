@@ -75,7 +75,7 @@ import {
 	getTimeZone,
 	incrementSequence,
 	parseAlarmInterval,
-} from "../../date/CalendarUtils.js"
+} from "../../../../common/calendar/date/CalendarUtils.js"
 import { arrayEqualsWithPredicate, assertNonNull, assertNotNull, getFirstOrThrow, identity, lazy, Require } from "@tutao/tutanota-utils"
 import { cleanMailAddress } from "../../../../common/api/common/utils/CommonCalendarUtils.js"
 import { CalendarInfo, CalendarModel } from "../../model/CalendarModel.js"

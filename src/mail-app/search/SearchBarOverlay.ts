@@ -20,7 +20,7 @@ import { locator } from "../../common/api/main/MainLocator"
 import { IndexingErrorReason } from "../../common/api/worker/search/SearchTypes"
 import { companyTeamLabel } from "../../common/misc/ClientConstants.js"
 import { isTutanotaTeamMail } from "../../common/api/common/mail/CommonMailUtils.js"
-import { getTimeZone } from "../../calendar-app/calendar/date/CalendarUtils.js"
+import { getTimeZone } from "../../common/calendar/date/CalendarUtils.js"
 
 import { formatEventDuration } from "../../calendar-app/calendar/gui/CalendarGuiUtils.js"
 

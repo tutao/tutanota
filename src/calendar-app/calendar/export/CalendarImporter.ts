@@ -1,7 +1,7 @@
 import { parseCalendarEvents, parseICalendar } from "./CalendarParser.js"
 import { DataFile } from "../../../common/api/common/DataFile.js"
 import { Require, utf8Uint8ArrayToString } from "@tutao/tutanota-utils"
-import { getTimeZone } from "../date/CalendarUtils.js"
+import { getTimeZone } from "../../../common/calendar/date/CalendarUtils.js"
 import { ParserError } from "../../../common/misc/parsing/ParserCombinator.js"
 import { CalendarEvent } from "../../../common/api/entities/tutanota/TypeRefs.js"
 import { AlarmInfoTemplate } from "../../../common/api/worker/facades/lazy/CalendarFacade.js"

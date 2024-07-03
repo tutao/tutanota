@@ -3,7 +3,7 @@ import type { TranslationKey } from "../../misc/LanguageViewModel"
 import { locator } from "../../api/main/MainLocator"
 
 export async function showSpellcheckLanguageDialog(): Promise<string> {
-	const { DesktopConfigKey } = await import("../../../desktop/config/ConfigKeys")
+	const { DesktopConfigKey } = await import("../../../common/desktop/config/ConfigKeys")
 	const current = await getCurrentSpellcheckLanguage()
 	const { Dialog } = await import("../base/Dialog.js")
 	const items = await getItems()
@@ -23,7 +23,7 @@ export async function getCurrentSpellcheckLanguageLabel(): Promise<string> {
 }
 
 async function getCurrentSpellcheckLanguage(): Promise<string> {
-	const { DesktopConfigKey } = await import("../../../desktop/config/ConfigKeys")
+	const { DesktopConfigKey } = await import("../../../common/desktop/config/ConfigKeys")
 	return (await locator.desktopSettingsFacade.getStringConfigValue(DesktopConfigKey.spellcheck)) ?? ""
 }
 

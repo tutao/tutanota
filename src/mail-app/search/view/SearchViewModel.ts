@@ -46,7 +46,7 @@ import {
 } from "../model/SearchUtils.js"
 import Stream from "mithril/stream"
 import { MailboxDetail, MailModel } from "../../mail/model/MailModel.js"
-import { getStartOfTheWeekOffsetForUser } from "../../../calendar-app/calendar/date/CalendarUtils.js"
+import { getStartOfTheWeekOffsetForUser } from "../../../common/calendar/date/CalendarUtils.js"
 import { SearchFacade } from "../../../common/api/worker/search/SearchFacade.js"
 import { LoginController } from "../../../common/api/main/LoginController.js"
 import { Indexer } from "../../../common/api/worker/search/Indexer.js"

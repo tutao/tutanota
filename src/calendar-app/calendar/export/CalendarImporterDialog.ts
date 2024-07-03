@@ -14,7 +14,7 @@ import { createDateWrapper, UserAlarmInfoTypeRef } from "../../../common/api/ent
 import { convertToDataFile } from "../../../common/api/common/DataFile"
 import { locator } from "../../../common/api/main/MainLocator"
 import { getFromMap, groupBy, insertIntoSortedArray, ofClass, promiseMap, stringToUtf8Uint8Array } from "@tutao/tutanota-utils"
-import { assignEventId, CalendarEventValidity, checkEventValidity, getTimeZone } from "../date/CalendarUtils"
+import { assignEventId, CalendarEventValidity, checkEventValidity, getTimeZone } from "../../../common/calendar/date/CalendarUtils"
 import { ImportError } from "../../../common/api/common/error/ImportError"
 import { TranslationKeyType } from "../../../common/misc/TranslationKey"
 import { AlarmInfoTemplate } from "../../../common/api/worker/facades/lazy/CalendarFacade.js"

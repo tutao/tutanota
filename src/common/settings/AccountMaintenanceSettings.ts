@@ -1,4 +1,4 @@
-import m from "mithril"
+import m, { Component, Vnode } from "mithril"
 import { lang } from "../misc/LanguageViewModel.js"
 import { DropDownSelector } from "../gui/base/DropDownSelector.js"
 import { locator } from "../api/main/MainLocator.js"
@@ -10,7 +10,6 @@ import {
 	CustomerInfo,
 	CustomerPropertiesTypeRef,
 	CustomerServerProperties,
-	CustomerServerPropertiesTypeRef,
 	CustomerTypeRef,
 	GroupInfo,
 	GroupInfoTypeRef,
@@ -23,6 +22,7 @@ import { showLeavingUserSurveyWizard } from "../subscription/LeavingUserSurveyWi
 import { SURVEY_VERSION_NUMBER } from "../subscription/LeavingUserSurveyConstants.js"
 import { showDeleteAccountDialog } from "../subscription/DeleteAccountDialog.js"
 import stream from "mithril/stream"
+import Stream from "mithril/stream"
 import { ColumnWidth, TableAttrs, TableLineAttrs } from "../gui/base/Table.js"
 import { LazyLoaded, neverNull, noOp, ofClass, promiseMap } from "@tutao/tutanota-utils"
 import { BootIcons } from "../gui/base/icons/BootIcons.js"
@@ -30,16 +30,18 @@ import { ButtonSize } from "../gui/base/ButtonSize.js"
 import { GENERATED_MAX_ID } from "../api/common/utils/EntityUtils.js"
 import { formatDateTime, formatDateTimeFromYesterdayOn } from "../misc/Formatter.js"
 import { Icons } from "../gui/base/icons/Icons.js"
-import Stream from "mithril/stream"
 import { NotAuthorizedError } from "../api/common/error/RestError.js"
 import { Dialog } from "../gui/base/Dialog.js"
-import { OperationType } from "../api/common/TutanotaConstants.js"
 import { EntityUpdateData, isUpdateForTypeRef } from "../api/common/utils/EntityUpdateUtils.js"
-import { UpdatableSettingsViewer } from "./Interfaces.js"
 
-export class AccountMaintenanceSettings implements UpdatableSettingsViewer {
-	private readonly props = stream<Readonly<CustomerServerProperties>>()
+export type AccountMaintenanceUpdateNotifier = (updates: ReadonlyArray<EntityUpdateData>) => void
 
+export interface AccountMaintenanceSettingsAttrs {
+	customerServerProperties: stream<Readonly<CustomerServerProperties>>
+	setOnUpdateHandler: (fn: AccountMaintenanceUpdateNotifier) => void
+}
+
+export class AccountMaintenanceSettings implements Component<AccountMaintenanceSettingsAttrs> {
 	private requirePasswordUpdateAfterReset = false
 	private saveIpAddress = false
 	private readonly usageDataExpanded = stream(false)
@@ -55,21 +57,19 @@ export class AccountMaintenanceSettings implements UpdatableSettingsViewer {
 			.then((customer) => locator.entityClient.load(CustomerPropertiesTypeRef, neverNull(customer.properties))),
 	)
 
-	constructor() {
-		this.props.map((props) => {
+	constructor(vnode: Vnode<AccountMaintenanceSettingsAttrs>) {
+		vnode.attrs.customerServerProperties.map((props) => {
 			this.requirePasswordUpdateAfterReset = props.requirePasswordUpdateAfterReset
 			this.saveIpAddress = props.saveEncryptedIpAddressInSession
 		})
 
 		this.customerProperties.getAsync().then(m.redraw)
-
+		vnode.attrs.setOnUpdateHandler((updates: EntityUpdateData[]) => this.handleEventUpdates(updates))
 		this.view = this.view.bind(this)
-
-		this.updateCustomerServerProperties()
 		this.updateAuditLog()
 	}
 
-	view() {
+	view({ attrs }: Vnode<AccountMaintenanceSettingsAttrs>) {
 		const auditLogTableAttrs: TableAttrs = {
 			columnHeading: ["action_label", "modified_label", "time_label"],
 			columnWidths: [ColumnWidth.Largest, ColumnWidth.Largest, ColumnWidth.Small],
@@ -91,7 +91,7 @@ export class AccountMaintenanceSettings implements UpdatableSettingsViewer {
 					helpLabel: () => lang.get("saveEncryptedIpAddress_label"),
 					selectedValue: this.saveIpAddress,
 					selectionChangedHandler: (value) => {
-						const newProps = Object.assign({}, this.props(), {
+						const newProps = Object.assign({}, attrs.customerServerProperties(), {
 							saveEncryptedIpAddressInSession: value,
 						})
 						locator.entityClient.update(newProps)
@@ -116,7 +116,7 @@ export class AccountMaintenanceSettings implements UpdatableSettingsViewer {
 										helpLabel: () => lang.get("enforcePasswordUpdate_msg"),
 										selectedValue: this.requirePasswordUpdateAfterReset,
 										selectionChangedHandler: (value) => {
-											const newProps: CustomerServerProperties = Object.assign({}, this.props(), {
+											const newProps: CustomerServerProperties = Object.assign({}, attrs.customerServerProperties(), {
 												requirePasswordUpdateAfterReset: value,
 											})
 											locator.entityClient.update(newProps)
@@ -253,6 +253,7 @@ export class AccountMaintenanceSettings implements UpdatableSettingsViewer {
 							}
 						})
 					})
+					.finally(m.redraw)
 			})
 	}
 
@@ -341,17 +342,9 @@ export class AccountMaintenanceSettings implements UpdatableSettingsViewer {
 		}
 	}
 
-	private updateCustomerServerProperties(): Promise<void> {
-		return locator.customerFacade.loadCustomerServerProperties().then((props) => {
-			this.props(props)
-		})
-	}
-
-	entityEventsReceived(updates: ReadonlyArray<EntityUpdateData>): Promise<void> {
+	handleEventUpdates(updates: ReadonlyArray<EntityUpdateData>): Promise<void> {
 		return promiseMap(updates, (update) => {
-			if (isUpdateForTypeRef(CustomerServerPropertiesTypeRef, update) && update.operation === OperationType.UPDATE) {
-				return this.updateCustomerServerProperties()
-			} else if (isUpdateForTypeRef(AuditLogEntryTypeRef, update)) {
+			if (isUpdateForTypeRef(AuditLogEntryTypeRef, update)) {
 				return this.updateAuditLog()
 			} else if (isUpdateForTypeRef(CustomerPropertiesTypeRef, update)) {
 				this.customerProperties.reset()

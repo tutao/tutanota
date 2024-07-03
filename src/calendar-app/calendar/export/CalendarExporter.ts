@@ -3,7 +3,7 @@ import { assertEnumValue, EndType, RepeatPeriod, SECOND_MS } from "../../../comm
 import { assertNotNull, downcast, incrementDate, mapAndFilterNull, neverNull, pad, stringToUtf8Uint8Array } from "@tutao/tutanota-utils"
 import { calendarAttendeeStatusToParstat, iCalReplacements, repeatPeriodToIcalFrequency } from "./CalendarParser"
 import { getAllDayDateLocal, isAllDayEvent } from "../../../common/api/common/utils/CommonCalendarUtils"
-import { AlarmIntervalUnit, generateUid, getTimeZone, parseAlarmInterval } from "../date/CalendarUtils"
+import { AlarmIntervalUnit, generateUid, getTimeZone, parseAlarmInterval } from "../../../common/calendar/date/CalendarUtils"
 import type { CalendarEvent } from "../../../common/api/entities/tutanota/TypeRefs.js"
 import { createFile } from "../../../common/api/entities/tutanota/TypeRefs.js"
 import { convertToDataFile, DataFile } from "../../../common/api/common/DataFile"

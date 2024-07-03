@@ -1,9 +1,9 @@
 import http from "node:http"
 import type { DesktopNetworkClient } from "../net/DesktopNetworkClient"
 import { makeTaggedLogger } from "../DesktopLog"
-import { Scheduler } from "../../common/api/common/utils/Scheduler.js"
-import { ProgrammingError } from "../../common/api/common/error/ProgrammingError.js"
-import { reverse } from "../../common/api/common/TutanotaConstants.js"
+import { Scheduler } from "../../api/common/utils/Scheduler.js"
+import { ProgrammingError } from "../../api/common/error/ProgrammingError.js"
+import { reverse } from "../../api/common/TutanotaConstants.js"
 
 const log = makeTaggedLogger("[SSE]")
 

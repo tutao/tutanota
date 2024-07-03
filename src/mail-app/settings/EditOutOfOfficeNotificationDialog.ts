@@ -1,6 +1,6 @@
 import m, { Children, Component, Vnode } from "mithril"
 import { Dialog } from "../../common/gui/base/Dialog"
-import { getStartOfTheWeekOffsetForUser } from "../../calendar-app/calendar/date/CalendarUtils"
+import { getStartOfTheWeekOffsetForUser } from "../../common/calendar/date/CalendarUtils"
 import type { OutOfOfficeNotification } from "../../common/api/entities/tutanota/TypeRefs.js"
 import { TextField } from "../../common/gui/base/TextField.js"
 import { lang } from "../../common/misc/LanguageViewModel"
