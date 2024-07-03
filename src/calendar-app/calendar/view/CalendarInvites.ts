@@ -3,7 +3,7 @@ import type { CalendarEvent, CalendarEventAttendee, File as TutanotaFile, Mail, 
 import { locator } from "../../../common/api/main/CommonLocator.js"
 import { CalendarAttendeeStatus, CalendarMethod, ConversationType, FeatureType, getAsEnumValue } from "../../../common/api/common/TutanotaConstants.js"
 import { assert, assertNotNull, clone, filterInt, noOp, Require } from "@tutao/tutanota-utils"
-import { findPrivateCalendar } from "../date/CalendarUtils.js"
+import { findPrivateCalendar } from "../../../common/calendar/date/CalendarUtils.js"
 import { CalendarNotificationSender } from "./CalendarNotificationSender.js"
 import { Dialog } from "../../../common/gui/base/Dialog.js"
 import { UserError } from "../../../common/api/main/UserError.js"

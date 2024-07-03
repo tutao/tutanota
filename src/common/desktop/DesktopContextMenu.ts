@@ -1,5 +1,5 @@
 import type { ContextMenuParams, Menu, WebContents } from "electron"
-import { lang } from "../common/misc/LanguageViewModel"
+import { lang } from "../misc/LanguageViewModel"
 import { WindowManager } from "./DesktopWindowManager.js"
 
 type Electron = typeof Electron.CrossProcessExports

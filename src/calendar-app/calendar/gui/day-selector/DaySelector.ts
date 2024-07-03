@@ -3,7 +3,7 @@ import { assertNotNull, getStartOfDay, incrementDate, isSameDayOfDate, isToday }
 import { DateTime } from "luxon"
 import { Carousel } from "../../../../common/gui/base/Carousel.js"
 import { changePeriodOnWheel, getCalendarMonth } from "../CalendarGuiUtils.js"
-import { CalendarDay, CalendarMonth } from "../../date/CalendarUtils.js"
+import { CalendarDay, CalendarMonth } from "../../../../common/calendar/date/CalendarUtils.js"
 import { DefaultAnimationTime } from "../../../../common/gui/animation/Animations.js"
 import { ExpanderPanel } from "../../../../common/gui/base/Expander.js"
 import { theme } from "../../../../common/gui/theme.js"

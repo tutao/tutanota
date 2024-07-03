@@ -5,7 +5,7 @@ import { ButtonType } from "../../../common/gui/base/Button.js"
 import { Icons } from "../../../common/gui/base/icons/Icons.js"
 import { Dialog } from "../../../common/gui/base/Dialog.js"
 import type { MousePosAndBounds } from "../../../common/gui/base/GuiUtils.js"
-import { Time } from "../date/Time.js"
+import { Time } from "../../../common/calendar/date/Time.js"
 import {
 	assert,
 	assertNotNull,
@@ -50,7 +50,7 @@ import {
 	getWeekNumber,
 	incrementByRepeatPeriod,
 	StandardAlarmInterval,
-} from "../date/CalendarUtils.js"
+} from "../../../common/calendar/date/CalendarUtils.js"
 import {
 	AccountType,
 	CalendarAttendeeStatus,
@@ -848,6 +848,7 @@ export async function showDeletePopup(model: CalendarEventPreviewViewModel, ev: 
 		confirmDeleteClose(model, onClose)
 	}
 }
+
 async function confirmDeleteClose(model: CalendarEventPreviewViewModel, onClose?: () => unknown): Promise<void> {
 	if (!(await Dialog.confirm("deleteEventConfirmation_msg"))) return
 	await model.deleteAll()

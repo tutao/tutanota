@@ -46,7 +46,6 @@ import {
 } from "../model/SearchUtils.js"
 import Stream from "mithril/stream"
 import { MailboxDetail, MailModel } from "../../../common/mailFunctionality/MailModel.js"
-import { getStartOfTheWeekOffsetForUser } from "../../../calendar-app/calendar/date/CalendarUtils.js"
 import { SearchFacade } from "../../../common/api/worker/search/SearchFacade.js"
 import { LoginController } from "../../../common/api/main/LoginController.js"
 import { Indexer } from "../../../common/api/worker/search/Indexer.js"
@@ -62,6 +61,7 @@ import { ProgrammingError } from "../../../common/api/common/error/ProgrammingEr
 import { ProgressTracker } from "../../../common/api/main/ProgressTracker.js"
 import { ListAutoSelectBehavior } from "../../../common/misc/DeviceConfig.js"
 import { getMailFilterForType, MailFilterType } from "../../../common/mailFunctionality/CommonMailUtils.js"
+import { getStartOfTheWeekOffsetForUser } from "../../../common/calendar/date/CalendarUtils.js"
 
 const SEARCH_PAGE_SIZE = 100
 
