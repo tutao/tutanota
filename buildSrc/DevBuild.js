@@ -108,7 +108,7 @@ importScripts("./worker.js")
 		const { esbuildWasmLoader } = await import("@tutao/tuta-wasm-loader")
 		await esbuild({
 			// Using named entry points so that it outputs build/worker.js and not build/api/worker/worker.js
-			entryPoints: { app: "src/app.ts", worker: "src/common/api/worker/worker.ts" },
+			entryPoints: { app: "src/mail-app/app.ts", worker: "src/common/api/worker/worker.ts" },
 			outdir: "./build/",
 			// Why bundle at the moment:
 			// - We need to include all the imports: everything in src + libs. We could use wildcard in the future.
@@ -161,7 +161,7 @@ importScripts("./worker.js")
 		const { esbuildWasmLoader } = await import("@tutao/tuta-wasm-loader")
 		await esbuild({
 			// Using named entry points so that it outputs build/worker.js and not build/api/worker/worker.js
-			entryPoints: { app: "src/calendar-app.ts", worker: "src/common/api/worker/worker.ts" },
+			entryPoints: { app: "src/calendar-app/calendar-app.ts", worker: "src/common/api/worker/worker.ts" },
 			outdir: "./build-calendar-app/",
 			// Why bundle at the moment:
 			// - We need to include all the imports: everything in src + libs. We could use wildcard in the future.
