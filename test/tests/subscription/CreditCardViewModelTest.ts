@@ -1,6 +1,11 @@
 import o from "@tutao/otest"
 import { object } from "testdouble"
-import { CardType, getCardTypeRange, inferExpirationDate, SimplifiedCreditCardViewModel } from "../../../src/subscription/SimplifiedCreditCardInputModel.js"
+import {
+	CardType,
+	getCardTypeRange,
+	inferExpirationDate,
+	SimplifiedCreditCardViewModel,
+} from "../../../src/common/subscription/SimplifiedCreditCardInputModel.js"
 
 o.spec("inferExpirationDate month", function () {
 	o("starting with invalid character returns empty string", function () {
