@@ -1,25 +1,16 @@
 import o from "@tutao/otest"
 // @ts-ignore[untyped-import]
-import en from "../../../src/translations/en.js"
+import en from "../../../src/mail-app/translations/en.js"
 import type { UserController } from "../../../src/common/api/main/UserController.js"
 import type { LoginController } from "../../../src/common/api/main/LoginController.js"
-import { MailboxDetail, MailModel } from "../../../src/mail-app/model/MailModel.js"
+import { MailboxDetail, MailModel } from "../../../src/mail-app/mail/model/MailModel.js"
 import {
 	BodyTypeRef,
 	Contact,
 	ContactListTypeRef,
 	ContactTypeRef,
 	ConversationEntryTypeRef,
-	createBody,
 	createContact,
-	createConversationEntry,
-	createMail,
-	createMailAddress,
-	createMailBox,
-	createMailboxGroupRoot,
-	createMailboxProperties,
-	createMailDetails,
-	createTutanotaProperties,
 	CustomerAccountCreateDataTypeRef,
 	MailAddressTypeRef,
 	MailboxGroupRootTypeRef,
@@ -30,17 +21,12 @@ import {
 	NotificationMailTypeRef,
 	TutanotaPropertiesTypeRef,
 } from "../../../src/common/api/entities/tutanota/TypeRefs.js"
-import { ContactModel } from "../../../src/contacts/model/ContactModel.js"
+import { ContactModel } from "../../../src/mail-app/contacts/model/ContactModel.js"
 import { assertThrows, verify } from "@tutao/tutanota-test-utils"
 import { downcast, isSameTypeRef } from "@tutao/tutanota-utils"
-import { SendMailModel, TOO_MANY_VISIBLE_RECIPIENTS } from "../../../src/mail-app/editor/SendMailModel.js"
+import { SendMailModel, TOO_MANY_VISIBLE_RECIPIENTS } from "../../../src/mail-app/mail/editor/SendMailModel.js"
 import {
 	ChallengeTypeRef,
-	createCustomer,
-	createGroup,
-	createGroupInfo,
-	createGroupMembership,
-	createUser,
 	CustomerTypeRef,
 	GroupInfoTypeRef,
 	GroupMembershipTypeRef,
@@ -52,17 +38,16 @@ import { lang, TranslationKey } from "../../../src/common/misc/LanguageViewModel
 import { EventController } from "../../../src/common/api/main/EventController.js"
 import { UserError } from "../../../src/common/api/main/UserError.js"
 import { EntityClient } from "../../../src/common/api/common/EntityClient.js"
-import { getContactDisplayName } from "../../../src/contacts/model/ContactUtils.js"
+import { getContactDisplayName } from "../../../src/mail-app/contacts/model/ContactUtils.js"
 import { isSameId } from "../../../src/common/api/common/utils/EntityUtils.js"
 import { MailFacade } from "../../../src/common/api/worker/facades/lazy/MailFacade.js"
-import { RecipientField } from "../../../src/mail-app/model/MailUtils.js"
+import { RecipientField } from "../../../src/mail-app/mail/model/MailUtils.js"
 import { func, instance, matchers, object, replace, when } from "testdouble"
 import { RecipientsModel, ResolveMode } from "../../../src/common/api/main/RecipientsModel"
 import { ResolvableRecipientMock } from "./ResolvableRecipientMock.js"
 import { NoZoneDateProvider } from "../../../src/common/api/common/utils/NoZoneDateProvider.js"
 import { MailWrapper } from "../../../src/common/api/common/MailWrapper.js"
 import { FolderSystem } from "../../../src/common/api/common/mail/FolderSystem.js"
-import { ConfigurationDatabase } from "../../../src/common/api/worker/facades/lazy/ConfigurationDatabase.js"
 import { createTestEntity } from "../TestUtils.js"
 
 const { anything, argThat } = matchers

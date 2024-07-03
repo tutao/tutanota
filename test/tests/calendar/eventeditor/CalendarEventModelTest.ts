@@ -8,9 +8,9 @@ import {
 	eventHasChanged,
 	EventSaveResult,
 	makeCalendarEventModel,
-} from "../../../../src/calendar-app/gui/eventeditor-model/CalendarEventModel.js"
-import { CalendarNotificationSender } from "../../../../src/calendar-app/view/CalendarNotificationSender.js"
-import { CalendarModel } from "../../../../src/calendar-app/model/CalendarModel.js"
+} from "../../../../src/calendar-app/calendar/gui/eventeditor-model/CalendarEventModel.js"
+import { CalendarNotificationSender } from "../../../../src/calendar-app/calendar/view/CalendarNotificationSender.js"
+import { CalendarModel } from "../../../../src/calendar-app/calendar/model/CalendarModel.js"
 import {
 	CalendarEventAttendeeTypeRef,
 	CalendarEventTypeRef,
@@ -35,11 +35,11 @@ import {
 import { clone, identity, noOp } from "@tutao/tutanota-utils"
 import { RecipientsModel, ResolvableRecipient, ResolveMode } from "../../../../src/common/api/main/RecipientsModel.js"
 import { LoginController } from "../../../../src/common/api/main/LoginController.js"
-import { MailboxDetail } from "../../../../src/mail-app/model/MailModel.js"
+import { MailboxDetail } from "../../../../src/mail-app/mail/model/MailModel.js"
 import { FolderSystem } from "../../../../src/common/api/common/mail/FolderSystem.js"
-import { SendMailModel } from "../../../../src/mail-app/editor/SendMailModel.js"
+import { SendMailModel } from "../../../../src/mail-app/mail/editor/SendMailModel.js"
 import { createTestEntity } from "../../TestUtils.js"
-import { areExcludedDatesEqual, areRepeatRulesEqual } from "../../../../src/calendar-app/date/CalendarUtils.js"
+import { areExcludedDatesEqual, areRepeatRulesEqual } from "../../../../src/common/calendar/date/CalendarUtils.js"
 
 o.spec("CalendarEventModelTest", function () {
 	let userController: UserController

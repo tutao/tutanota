@@ -4,7 +4,7 @@ import { IServiceExecutor } from "../../../src/common/api/common/ServiceRequest.
 import { createUpgradePriceServiceMock, PLAN_PRICES } from "./priceTestUtils.js"
 import { clone } from "@tutao/tutanota-utils"
 
-import { getAvailableMatchingPlans } from "../../../src/subscription/SubscriptionUtils.js"
+import { getAvailableMatchingPlans } from "../../../src/common/subscription/SubscriptionUtils.js"
 
 o.spec("SubscriptionUtilsTest", function () {
 	let serviceExecutor: IServiceExecutor

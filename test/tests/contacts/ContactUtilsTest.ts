@@ -11,9 +11,9 @@ import {
 	extractStructuredMailAddresses,
 	extractStructuredPhoneNumbers,
 	formatBirthdayNumeric,
-} from "../../../src/contacts/model/ContactUtils.js"
+} from "../../../src/mail-app/contacts/model/ContactUtils.js"
 import { lang } from "../../../src/common/misc/LanguageViewModel.js"
-import { compareContacts } from "../../../src/contacts/view/ContactGuiUtils.js"
+import { compareContacts } from "../../../src/mail-app/contacts/view/ContactGuiUtils.js"
 import { createTestEntity } from "../TestUtils.js"
 import { ContactAddressType, ContactPhoneNumberType } from "../../../src/common/api/common/TutanotaConstants.js"
 

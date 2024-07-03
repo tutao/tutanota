@@ -1,5 +1,5 @@
 import o from "@tutao/otest"
-import { MailViewerViewModel } from "../../../../src/mail-app/view/MailViewerViewModel.js"
+import { MailViewerViewModel } from "../../../../src/mail-app/mail/view/MailViewerViewModel.js"
 import {
 	HeaderTypeRef,
 	Mail,
@@ -11,22 +11,21 @@ import {
 } from "../../../../src/common/api/entities/tutanota/TypeRefs.js"
 import { matchers, object, verify, when } from "testdouble"
 import { EntityClient } from "../../../../src/common/api/common/EntityClient.js"
-import { MailboxDetail, MailModel } from "../../../../src/mail-app/model/MailModel.js"
-import { ContactModel } from "../../../../src/contacts/model/ContactModel.js"
+import { MailboxDetail, MailModel } from "../../../../src/mail-app/mail/model/MailModel.js"
+import { ContactModel } from "../../../../src/mail-app/contacts/model/ContactModel.js"
 import { ConfigurationDatabase } from "../../../../src/common/api/worker/facades/lazy/ConfigurationDatabase.js"
 import { LoginController } from "../../../../src/common/api/main/LoginController.js"
 import { EventController } from "../../../../src/common/api/main/EventController.js"
 import { WorkerFacade } from "../../../../src/common/api/worker/facades/WorkerFacade.js"
-import { SearchModel } from "../../../../src/search/model/SearchModel.js"
+import { SearchModel } from "../../../../src/mail-app/search/model/SearchModel.js"
 import { MailFacade } from "../../../../src/common/api/worker/facades/lazy/MailFacade.js"
-import { SendMailModel } from "../../../../src/mail-app/editor/SendMailModel.js"
+import { SendMailModel } from "../../../../src/mail-app/mail/editor/SendMailModel.js"
 import { FileController } from "../../../../src/common/file/FileController.js"
 import { createTestEntity } from "../../TestUtils.js"
 import { MailState } from "../../../../src/common/api/common/TutanotaConstants.js"
 import { GroupInfoTypeRef } from "../../../../src/common/api/entities/sys/TypeRefs.js"
 import { CryptoFacade } from "../../../../src/common/api/worker/crypto/CryptoFacade.js"
-import { lazyAsync } from "@tutao/tutanota-utils"
-import { ContactImporter } from "../../../../src/contacts/ContactImporter.js"
+import { ContactImporter } from "../../../../src/mail-app/contacts/ContactImporter.js"
 
 o.spec("MailViewerViewModel", function () {
 	let mail: Mail

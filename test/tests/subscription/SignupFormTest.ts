@@ -1,5 +1,5 @@
 import o from "@tutao/otest"
-import { parseCaptchaInput } from "../../../src/subscription/Captcha.js"
+import { parseCaptchaInput } from "../../../src/common/subscription/Captcha.js"
 
 o.spec("CaptchaInputParse", function () {
 	o("invalid input", function () {
