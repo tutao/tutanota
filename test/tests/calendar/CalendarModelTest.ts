@@ -8,9 +8,9 @@ import {
 	EncryptedMailAddressTypeRef,
 	FileTypeRef,
 } from "../../../src/common/api/entities/tutanota/TypeRefs.js"
-import { incrementByRepeatPeriod } from "../../../src/calendar-app/date/CalendarUtils.js"
+import { incrementByRepeatPeriod } from "../../../src/common/calendar/date/CalendarUtils.js"
 import { downcast, hexToUint8Array, neverNull, stringToUtf8Uint8Array } from "@tutao/tutanota-utils"
-import { CalendarModel } from "../../../src/calendar-app/model/CalendarModel.js"
+import { CalendarModel } from "../../../src/calendar-app/calendar/model/CalendarModel.js"
 import { CalendarAttendeeStatus, CalendarMethod, OperationType, RepeatPeriod } from "../../../src/common/api/common/TutanotaConstants.js"
 import { DateTime } from "luxon"
 import { EntityEventsListener, EventController } from "../../../src/common/api/main/EventController.js"
@@ -22,7 +22,7 @@ import { NotFoundError } from "../../../src/common/api/common/error/RestError.js
 import type { LoginController } from "../../../src/common/api/main/LoginController.js"
 import { ProgressTracker } from "../../../src/common/api/main/ProgressTracker.js"
 import { EntityClient } from "../../../src/common/api/common/EntityClient.js"
-import { MailModel } from "../../../src/mail-app/model/MailModel.js"
+import { MailModel } from "../../../src/mail-app/mail/model/MailModel.js"
 import { CalendarEventProgenitor, CalendarFacade } from "../../../src/common/api/worker/facades/lazy/CalendarFacade.js"
 import { verify } from "@tutao/tutanota-test-utils"
 import type { WorkerClient } from "../../../src/common/api/main/WorkerClient.js"

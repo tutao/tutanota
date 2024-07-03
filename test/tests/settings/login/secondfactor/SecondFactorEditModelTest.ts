@@ -5,7 +5,7 @@ import {
 	DEFAULT_U2F_NAME,
 	NameValidationStatus,
 	SecondFactorEditModel,
-} from "../../../../../src/settings/login/secondfactor/SecondFactorEditModel.js"
+} from "../../../../../src/common/settings/login/secondfactor/SecondFactorEditModel.js"
 import { EntityClient } from "../../../../../src/common/api/common/EntityClient.js"
 import { WebauthnClient } from "../../../../../src/common/misc/2fa/webauthn/WebauthnClient.js"
 import { GroupInfoTypeRef, User } from "../../../../../src/common/api/entities/sys/TypeRefs.js"

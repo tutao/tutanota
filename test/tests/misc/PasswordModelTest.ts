@@ -1,5 +1,5 @@
 import o from "@tutao/otest"
-import { PasswordModel } from "../../../src/settings/PasswordForm.js"
+import { PasswordModel } from "../../../src/mail-app/settings/PasswordForm.js"
 import { matchers, object, when } from "testdouble"
 import { LoginController } from "../../../src/common/api/main/LoginController.js"
 import { UsageTestController } from "@tutao/tutanota-usagetests"
