@@ -28,7 +28,7 @@ import { LayerType } from "../../RootView"
 import { BaseSearchBar, BaseSearchBarAttrs } from "../../common/gui/base/BaseSearchBar.js"
 import { SearchRouter } from "./view/SearchRouter.js"
 import { PageSize } from "../../common/gui/base/ListUtils.js"
-import { generateCalendarInstancesInRange } from "../../calendar-app/calendar/date/CalendarUtils.js"
+import { generateCalendarInstancesInRange } from "../../common/calendar/date/CalendarUtils.js"
 import { ListElementEntity } from "../../common/api/common/EntityTypes.js"
 
 import { loadMultipleFromLists } from "../../common/api/common/EntityClient.js"

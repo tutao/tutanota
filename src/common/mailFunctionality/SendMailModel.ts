@@ -1,7 +1,20 @@
+import { assertMainOrNode } from "../api/common/Env.js"
+import { DataFile } from "../api/common/DataFile.js"
+import { FileReference } from "../api/common/utils/FileUtils.js"
 import {
-	assertNotNull,
-	cleanMatch,
-	deduplicate,
+	ContactTypeRef,
+	ConversationEntryTypeRef,
+	EncryptedMailAddress,
+	FileTypeRef,
+	Mail,
+	File,
+	MailboxProperties, MailboxPropertiesTypeRef,
+	MailTypeRef, MailDetails
+} from "../api/entities/tutanota/TypeRefs.js"
+import { ApprovalStatus, ConversationType, MailFolderType, MailMethod, MAX_ATTACHMENT_SIZE, OperationType, ReplyType } from "../api/common/TutanotaConstants.js"
+import { PartialRecipient, Recipient, RecipientList, Recipients, RecipientType } from "../api/common/recipients/Recipient.js"
+import {
+	assertNotNull, cleanMatch, deduplicate,
 	defer,
 	DeferredObject,
 	downcast,
@@ -12,40 +25,25 @@ import {
 	noOp,
 	ofClass,
 	promiseMap,
-	remove,
-	typedValues,
+	remove, typedValues
 } from "@tutao/tutanota-utils"
-import { ContactTypeRef, File as TutanotaFile, Mail, MailboxProperties, MailboxPropertiesTypeRef, MailDetails, FileTypeRef } from "../api/entities/tutanota/TypeRefs.js"
-import {  ConversationEntryTypeRef, MailTypeRef } from "../api/entities/tutanota/TypeRefs.js"
-import { FileNotFoundError } from "../api/common/error/FileNotFoundError.js"
-import type { LoginController } from "../api/main/LoginController.js"
-import type { MailboxDetail, MailModel } from "./MailModel.js"
-import { RecipientNotResolvedError } from "../api/common/error/RecipientNotResolvedError.js"
-import stream from "mithril/stream"
 import Stream from "mithril/stream"
-import { EventController } from "../api/main/EventController.js"
-import type { Language, TranslationKey, TranslationText } from "../misc/LanguageViewModel.js"
-import { getAvailableLanguageCode, getSubstitutedLanguageCode, lang, languages } from "../misc/LanguageViewModel.js"
-import type { UserController } from "../api/main/UserController.js"
-import { RecipientsNotFoundError } from "../api/common/error/RecipientsNotFoundError.js"
-import { checkApprovalStatus } from "../misc/LoginUtils.js"
-import { EntityClient } from "../api/common/EntityClient.js"
-import { getListId, isSameId, stringToCustomId } from "../api/common/utils/EntityUtils.js"
-import type { MailFacade } from "../api/worker/facades/lazy/MailFacade.js"
-import { assertMainOrNode } from "../api/common/Env.js"
-import { DataFile } from "../api/common/DataFile.js"
-import { FileReference } from "../api/common/utils/FileUtils.js"
-import { PartialRecipient, Recipient, RecipientList, Recipients, RecipientType } from "../api/common/recipients/Recipient.js"
-import { RecipientsModel, ResolvableRecipient, ResolveMode } from "../api/main/RecipientsModel.js"
-import { createApprovalMail } from "../api/entities/monitor/TypeRefs.js"
-import { DateProvider } from "../api/common/DateProvider.js"
-import { getSenderName } from "../misc/MailboxPropertiesUtils.js"
-import { cleanMailAddress, findRecipientWithAddress } from "../api/common/utils/CommonCalendarUtils.js"
-import { ProgrammingError } from "../api/common/error/ProgrammingError.js"
-import { EntityUpdateData, isUpdateForTypeRef } from "../api/common/utils/EntityUpdateUtils.js"
+import stream from "mithril/stream"
+import type { File as TutanotaFile } from "../../common/api/entities/tutanota/TypeRefs.js"
+import { getTemplateLanguages, RecipientField, getDefaultSender, checkAttachmentSize, isUserEmail } from "./CommonMailUtils.js"
 import { cloneInlineImages, InlineImages, revokeInlineImages } from "./inlineImagesUtils.js"
-import { checkAttachmentSize, getDefaultSender, getTemplateLanguages, isUserEmail, RecipientField } from "./CommonMailUtils.js"
-import { ApprovalStatus, ConversationType, MailFolderType, MailMethod, MAX_ATTACHMENT_SIZE, OperationType, ReplyType } from "../api/common/TutanotaConstants.js"
+import { RecipientsModel, ResolvableRecipient, ResolveMode } from "../api/main/RecipientsModel.js"
+import { getAvailableLanguageCode, getSubstitutedLanguageCode, lang, Language, languages, TranslationKey, TranslationText } from "../misc/LanguageViewModel.js"
+import { MailFacade } from "../api/worker/facades/lazy/MailFacade.js"
+import { EntityClient } from "../api/common/EntityClient.js"
+import { LoginController } from "../api/main/LoginController.js"
+import { MailboxDetail, MailModel } from "./MailModel.js"
+import { ContactModel } from "../contactsFunctionality/ContactModel.js"
+import { EventController } from "../api/main/EventController.js"
+import { DateProvider } from "../api/common/DateProvider.js"
+import { EntityUpdateData, isUpdateForTypeRef } from "../api/common/utils/EntityUpdateUtils.js"
+import { UserController } from "../api/main/UserController.js"
+import { cleanMailAddress, findRecipientWithAddress } from "../api/common/utils/CommonCalendarUtils.js"
 import { getPasswordStrengthForUser, isSecurePassword, PASSWORD_MIN_SECURE_VALUE } from "../misc/passwords/PasswordUtils.js"
 import {
 	AccessBlockedError,
@@ -55,13 +53,21 @@ import {
 	PreconditionFailedError,
 	TooManyRequestsError
 } from "../api/common/error/RestError.js"
-import { getMailBodyText } from "../../mail-app/mail/MailUtils.js"
+import { ProgrammingError } from "../api/common/error/ProgrammingError.js"
 import { UserError } from "../api/main/UserError.js"
+import { getSenderName } from "../misc/MailboxPropertiesUtils.js"
+import { RecipientNotResolvedError } from "../api/common/error/RecipientNotResolvedError.js"
+import { RecipientsNotFoundError } from "../api/common/error/RecipientsNotFoundError.js"
+import { checkApprovalStatus } from "../misc/LoginUtils.js"
+import { FileNotFoundError } from "../api/common/error/FileNotFoundError.js"
 import { MailBodyTooLargeError } from "../api/common/error/MailBodyTooLargeError.js"
+import { getListId, isSameId, stringToCustomId } from "../api/common/utils/EntityUtils.js"
+import { createApprovalMail } from "../api/entities/monitor/TypeRefs.js"
+import { getContactDisplayName } from "../contactsFunctionality/ContactUtils.js"
 import { CustomerPropertiesTypeRef } from "../api/entities/sys/TypeRefs.js"
 import { isMailAddress } from "../misc/FormatValidator.js"
-import { ContactModel } from "../contactsFunctionality/ContactModel.js"
-import { getContactDisplayName } from "../contactsFunctionality/ContactUtils.js"
+import { getMailBodyText } from "../../mail-app/mail/MailUtils.js"
+
 
 assertMainOrNode()
 

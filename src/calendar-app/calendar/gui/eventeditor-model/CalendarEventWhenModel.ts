@@ -1,5 +1,5 @@
 import { CalendarEventTimes, getAllDayDateUTC, getEventWithDefaultTimes, isAllDayEvent } from "../../../../common/api/common/utils/CommonCalendarUtils.js"
-import { Time } from "../../date/Time.js"
+import { Time } from "../../../../common/calendar/date/Time.js"
 import { DateTime, DurationLikeObject } from "luxon"
 import {
 	areExcludedDatesEqual,
@@ -11,7 +11,7 @@ import {
 	getStartOfDayWithZone,
 	getStartOfNextDayWithZone,
 	incrementByRepeatPeriod,
-} from "../../date/CalendarUtils.js"
+} from "../../../../common/calendar/date/CalendarUtils.js"
 import { assertNotNull, clone, filterInt, incrementDate, noOp, TIMESTAMP_ZERO_YEAR } from "@tutao/tutanota-utils"
 import { CalendarEvent, CalendarRepeatRule } from "../../../../common/api/entities/tutanota/TypeRefs.js"
 import { Stripped } from "../../../../common/api/common/utils/EntityUtils.js"
