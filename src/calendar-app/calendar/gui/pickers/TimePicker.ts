@@ -4,7 +4,7 @@ import { theme } from "../../../../common/gui/theme.js"
 import { client } from "../../../../common/misc/ClientDetector.js"
 import { Keys, TimeFormat } from "../../../../common/api/common/TutanotaConstants.js"
 import { timeStringFromParts } from "../../../../common/misc/Formatter.js"
-import { Time } from "../../date/Time.js"
+import { Time } from "../../../../common/calendar/date/Time.js"
 import { isKeyPressed } from "../../../../common/misc/KeyManager.js"
 
 export type TimePickerAttrs = {

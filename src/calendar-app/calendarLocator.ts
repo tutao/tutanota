@@ -66,7 +66,7 @@ import { ShareableGroupType } from "../common/sharing/GroupUtils.js"
 import { ReceivedGroupInvitationsModel } from "../common/sharing/model/ReceivedGroupInvitationsModel.js"
 import { CalendarViewModel } from "./calendar/view/CalendarViewModel.js"
 import { CalendarEventModel, CalendarOperation } from "./calendar/gui/eventeditor-model/CalendarEventModel.js"
-import { CalendarEventsRepository } from "./calendar/date/CalendarEventsRepository.js"
+import { CalendarEventsRepository } from "../common/calendar/date/CalendarEventsRepository.js"
 import { showProgressDialog } from "../common/gui/dialogs/ProgressDialog.js"
 import { RecipientsSearchModel } from "../common/misc/RecipientsSearchModel.js"
 import { PermissionError } from "../common/api/common/error/PermissionError.js"
@@ -93,7 +93,7 @@ import { FileControllerBrowser } from "../common/file/FileControllerBrowser.js"
 import { FileControllerNative } from "../common/file/FileControllerNative.js"
 import { CalendarInfo, CalendarModel } from "./calendar/model/CalendarModel.js"
 import { CalendarInviteHandler } from "./calendar/view/CalendarInvites.js"
-import { AlarmScheduler } from "./calendar/date/AlarmScheduler.js"
+import { AlarmScheduler } from "../common/calendar/date/AlarmScheduler.js"
 import { SchedulerImpl } from "../common/api/common/utils/Scheduler.js"
 import { CalendarEventPreviewViewModel } from "./calendar/gui/eventpopup/CalendarEventPreviewViewModel.js"
 import { isCustomizationEnabledForCustomer } from "../common/api/common/utils/CustomerUtils.js"
@@ -245,7 +245,7 @@ class CalendarLocator {
 
 	readonly calendarViewModel = lazyMemoized<Promise<CalendarViewModel>>(async () => {
 		const { CalendarViewModel } = await import("./calendar/view/CalendarViewModel.js")
-		const { DefaultDateProvider } = await import("./calendar/date/CalendarUtils")
+		const { DefaultDateProvider } = await import("../common/calendar/date/CalendarUtils")
 		const timeZone = new DefaultDateProvider().timeZone()
 		return new CalendarViewModel(
 			this.logins,
@@ -268,8 +268,8 @@ class CalendarLocator {
 	})
 
 	readonly calendarEventsRepository: lazyAsync<CalendarEventsRepository> = lazyMemoized(async () => {
-		const { CalendarEventsRepository } = await import("./calendar/date/CalendarEventsRepository.js")
-		const { DefaultDateProvider } = await import("./calendar/date/CalendarUtils")
+		const { CalendarEventsRepository } = await import("../common/calendar/date/CalendarEventsRepository.js")
+		const { DefaultDateProvider } = await import("../common/calendar/date/CalendarUtils")
 		const timeZone = new DefaultDateProvider().timeZone()
 		return new CalendarEventsRepository(await this.calendarModel(), this.calendarFacade, timeZone, this.entityClient, this.eventController)
 	})
@@ -303,7 +303,7 @@ class CalendarLocator {
 	): Promise<CalendarEventModel | null> {
 		const [{ makeCalendarEventModel }, { getTimeZone }, { calendarNotificationSender }] = await Promise.all([
 			import("./calendar/gui/eventeditor-model/CalendarEventModel.js"),
-			import("./calendar/date/CalendarUtils.js"),
+			import("../common/calendar/date/CalendarUtils.js"),
 			import("./calendar/view/CalendarNotificationSender.js"),
 		])
 		const sendMailModelFactory = await this.sendMailModelSyncFactory(mailboxDetail, mailboxProperties)
@@ -705,7 +705,7 @@ class CalendarLocator {
 	}
 
 	readonly calendarModel: () => Promise<CalendarModel> = lazyMemoized(async () => {
-		const { DefaultDateProvider } = await import("./calendar/date/CalendarUtils")
+		const { DefaultDateProvider } = await import("../common/calendar/date/CalendarUtils")
 		const { CalendarModel } = await import("./calendar/model/CalendarModel")
 		const timeZone = new DefaultDateProvider().timeZone()
 		return new CalendarModel(
@@ -732,8 +732,8 @@ class CalendarLocator {
 	})
 
 	private alarmScheduler: () => Promise<AlarmScheduler> = lazyMemoized(async () => {
-		const { AlarmScheduler } = await import("./calendar/date/AlarmScheduler")
-		const { DefaultDateProvider } = await import("./calendar/date/CalendarUtils")
+		const { AlarmScheduler } = await import("../common/calendar/date/AlarmScheduler")
+		const { DefaultDateProvider } = await import("../common/calendar/date/CalendarUtils")
 		const dateProvider = new DefaultDateProvider()
 		return new AlarmScheduler(dateProvider, await this.scheduler())
 	})

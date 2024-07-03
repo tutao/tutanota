@@ -10,7 +10,7 @@ import { assertMainOrNode } from "../../../common/api/common/Env"
 import { listIdPart } from "../../../common/api/common/utils/EntityUtils.js"
 import { IProgressMonitor } from "../../../common/api/common/utils/ProgressMonitor.js"
 import { ProgressTracker } from "../../../common/api/main/ProgressTracker.js"
-import { CalendarEventsRepository } from "../../../calendar-app/calendar/date/CalendarEventsRepository.js"
+import { CalendarEventsRepository } from "../../../common/calendar/date/CalendarEventsRepository.js"
 
 assertMainOrNode()
 export type SearchQuery = {

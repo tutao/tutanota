@@ -1,13 +1,13 @@
-import { SettingsFacade } from "../../common/native/common/generatedipc/SettingsFacade.js"
+import { SettingsFacade } from "../../native/common/generatedipc/SettingsFacade.js"
 import { DesktopConfig } from "./DesktopConfig.js"
-import { IntegrationInfo } from "../../common/native/common/generatedipc/IntegrationInfo.js"
+import { IntegrationInfo } from "../../native/common/generatedipc/IntegrationInfo.js"
 import { DesktopConfigKey } from "./ConfigKeys.js"
 import { DesktopUtils } from "../DesktopUtils.js"
 import { DesktopIntegrator } from "../integration/DesktopIntegrator.js"
 import { ElectronUpdater } from "../ElectronUpdater.js"
 import * as electron from "electron"
 import { UpdateInfo } from "electron-updater"
-import { LanguageViewModel } from "../../common/misc/LanguageViewModel.js"
+import { LanguageViewModel } from "../../misc/LanguageViewModel.js"
 
 export class DesktopSettingsFacade implements SettingsFacade {
 	constructor(

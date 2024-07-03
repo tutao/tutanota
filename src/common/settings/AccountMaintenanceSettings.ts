@@ -1,7 +1,6 @@
-import m from "mithril"
+import m, { Component, Vnode } from "mithril"
 import { lang } from "../misc/LanguageViewModel.js"
 import { DropDownSelector } from "../gui/base/DropDownSelector.js"
-import { locator } from "../api/main/MainLocator.js"
 import {
 	AuditLogEntry,
 	AuditLogEntryTypeRef,
@@ -10,7 +9,6 @@ import {
 	CustomerInfo,
 	CustomerPropertiesTypeRef,
 	CustomerServerProperties,
-	CustomerServerPropertiesTypeRef,
 	CustomerTypeRef,
 	GroupInfo,
 	GroupInfoTypeRef,
@@ -23,6 +21,7 @@ import { showLeavingUserSurveyWizard } from "../subscription/LeavingUserSurveyWi
 import { SURVEY_VERSION_NUMBER } from "../subscription/LeavingUserSurveyConstants.js"
 import { showDeleteAccountDialog } from "../subscription/DeleteAccountDialog.js"
 import stream from "mithril/stream"
+import Stream from "mithril/stream"
 import { ColumnWidth, TableAttrs, TableLineAttrs } from "../gui/base/Table.js"
 import { LazyLoaded, neverNull, noOp, ofClass, promiseMap } from "@tutao/tutanota-utils"
 import { BootIcons } from "../gui/base/icons/BootIcons.js"
@@ -30,16 +29,19 @@ import { ButtonSize } from "../gui/base/ButtonSize.js"
 import { GENERATED_MAX_ID } from "../api/common/utils/EntityUtils.js"
 import { formatDateTime, formatDateTimeFromYesterdayOn } from "../misc/Formatter.js"
 import { Icons } from "../gui/base/icons/Icons.js"
-import Stream from "mithril/stream"
 import { NotAuthorizedError } from "../api/common/error/RestError.js"
 import { Dialog } from "../gui/base/Dialog.js"
-import { OperationType } from "../api/common/TutanotaConstants.js"
 import { EntityUpdateData, isUpdateForTypeRef } from "../api/common/utils/EntityUpdateUtils.js"
-import { UpdatableSettingsViewer } from "./Interfaces.js"
+import { locator } from "../api/main/CommonLocator.js"
 
-export class AccountMaintenanceSettings implements UpdatableSettingsViewer {
-	private readonly props = stream<Readonly<CustomerServerProperties>>()
+export type AccountMaintenanceUpdateNotifier = (updates: ReadonlyArray<EntityUpdateData>) => void
 
+export interface AccountMaintenanceSettingsAttrs {
+	customerServerProperties: stream<Readonly<CustomerServerProperties>>
+	setOnUpdateHandler: (fn: AccountMaintenanceUpdateNotifier) => void
+}
+
+export class AccountMaintenanceSettings implements Component<AccountMaintenanceSettingsAttrs> {
 	private requirePasswordUpdateAfterReset = false
 	private saveIpAddress = false
 	private readonly usageDataExpanded = stream(false)
@@ -51,25 +53,23 @@ export class AccountMaintenanceSettings implements UpdatableSettingsViewer {
 	private readonly customerInfo = new LazyLoaded<CustomerInfo>(() => locator.logins.getUserController().loadCustomerInfo())
 	private readonly customerProperties = new LazyLoaded(() =>
 		locator.entityClient
-			.load(CustomerTypeRef, neverNull(locator.logins.getUserController().user.customer))
-			.then((customer) => locator.entityClient.load(CustomerPropertiesTypeRef, neverNull(customer.properties))),
+			   .load(CustomerTypeRef, neverNull(locator.logins.getUserController().user.customer))
+			   .then((customer) => locator.entityClient.load(CustomerPropertiesTypeRef, neverNull(customer.properties))),
 	)
 
-	constructor() {
-		this.props.map((props) => {
+	constructor(vnode: Vnode<AccountMaintenanceSettingsAttrs>) {
+		vnode.attrs.customerServerProperties.map((props) => {
 			this.requirePasswordUpdateAfterReset = props.requirePasswordUpdateAfterReset
 			this.saveIpAddress = props.saveEncryptedIpAddressInSession
 		})
 
 		this.customerProperties.getAsync().then(m.redraw)
-
+		vnode.attrs.setOnUpdateHandler((updates: EntityUpdateData[]) => this.handleEventUpdates(updates))
 		this.view = this.view.bind(this)
-
-		this.updateCustomerServerProperties()
 		this.updateAuditLog()
 	}
 
-	view() {
+	view({ attrs }: Vnode<AccountMaintenanceSettingsAttrs>) {
 		const auditLogTableAttrs: TableAttrs = {
 			columnHeading: ["action_label", "modified_label", "time_label"],
 			columnWidths: [ColumnWidth.Largest, ColumnWidth.Largest, ColumnWidth.Small],
@@ -91,7 +91,7 @@ export class AccountMaintenanceSettings implements UpdatableSettingsViewer {
 					helpLabel: () => lang.get("saveEncryptedIpAddress_label"),
 					selectedValue: this.saveIpAddress,
 					selectionChangedHandler: (value) => {
-						const newProps = Object.assign({}, this.props(), {
+						const newProps = Object.assign({}, attrs.customerServerProperties(), {
 							saveEncryptedIpAddressInSession: value,
 						})
 						locator.entityClient.update(newProps)
@@ -110,81 +110,81 @@ export class AccountMaintenanceSettings implements UpdatableSettingsViewer {
 				}),
 				locator.logins.getUserController().isGlobalAdmin()
 					? m("", [
-							locator.logins.getUserController().isPremiumAccount()
-								? m(DropDownSelector, {
-										label: "enforcePasswordUpdate_title",
-										helpLabel: () => lang.get("enforcePasswordUpdate_msg"),
-										selectedValue: this.requirePasswordUpdateAfterReset,
-										selectionChangedHandler: (value) => {
-											const newProps: CustomerServerProperties = Object.assign({}, this.props(), {
-												requirePasswordUpdateAfterReset: value,
-											})
-											locator.entityClient.update(newProps)
-										},
-										items: [
-											{
-												name: lang.get("yes_label"),
-												value: true,
-											},
-											{
-												name: lang.get("no_label"),
-												value: false,
-											},
-										],
-										dropdownWidth: 250,
-								  })
-								: null,
-							this.customer
-								? m(
-										".mt-l",
-										m(ExpandableTable, {
-											title: "auditLog_title",
-											table: auditLogTableAttrs,
-											infoMsg: "auditLogInfo_msg",
-											onExpand: () => {
-												// if the user did not load this when the view was created (i.e. due to a lost connection), attempt to reload it
-												if (!this.auditLogLoaded) {
-													showProgressDialog("loading_msg", this.updateAuditLog()).then(() => m.redraw())
-												}
-											},
-										}),
-								  )
-								: null,
-					  ])
+						locator.logins.getUserController().isPremiumAccount()
+							? m(DropDownSelector, {
+								label: "enforcePasswordUpdate_title",
+								helpLabel: () => lang.get("enforcePasswordUpdate_msg"),
+								selectedValue: this.requirePasswordUpdateAfterReset,
+								selectionChangedHandler: (value) => {
+									const newProps: CustomerServerProperties = Object.assign({}, attrs.customerServerProperties(), {
+										requirePasswordUpdateAfterReset: value,
+									})
+									locator.entityClient.update(newProps)
+								},
+								items: [
+									{
+										name: lang.get("yes_label"),
+										value: true,
+									},
+									{
+										name: lang.get("no_label"),
+										value: false,
+									},
+								],
+								dropdownWidth: 250,
+							})
+							: null,
+						this.customer
+							? m(
+								".mt-l",
+								m(ExpandableTable, {
+									title: "auditLog_title",
+									table: auditLogTableAttrs,
+									infoMsg: "auditLogInfo_msg",
+									onExpand: () => {
+										// if the user did not load this when the view was created (i.e. due to a lost connection), attempt to reload it
+										if (!this.auditLogLoaded) {
+											showProgressDialog("loading_msg", this.updateAuditLog()).then(() => m.redraw())
+										}
+									},
+								}),
+							)
+							: null,
+					])
 					: null,
 			]),
 			locator.logins.getUserController().isPremiumAccount()
 				? m(
-						SettingsExpander,
-						{
-							title: "usageData_label",
-							expanded: this.usageDataExpanded,
-						},
-						this.customerProperties.isLoaded()
-							? m(DropDownSelector, {
-									label: "customerUsageDataOptOut_label",
-									items: [
-										{
-											name: lang.get("customerUsageDataGloballyDeactivated_label"),
-											value: true,
-										},
-										{
-											name: lang.get("customerUsageDataGloballyPossible_label"),
-											value: false,
-										},
-									],
-									selectedValue: this.customerProperties.getSync()!.usageDataOptedOut,
-									selectionChangedHandler: (v) => {
-										if (this.customerProperties.isLoaded()) {
-											const customerProps = this.customerProperties.getSync()!
-											customerProps.usageDataOptedOut = v as boolean
-											locator.entityClient.update(customerProps)
-										}
-									},
-									dropdownWidth: 250,
-							  })
-							: null,
-				  )
+					SettingsExpander,
+					{
+						title: "usageData_label",
+						expanded: this.usageDataExpanded,
+					},
+					this.customerProperties.isLoaded()
+						? m(DropDownSelector, {
+							label: "customerUsageDataOptOut_label",
+							items: [
+								{
+									name: lang.get("customerUsageDataGloballyDeactivated_label"),
+									value: true,
+								},
+								{
+									name: lang.get("customerUsageDataGloballyPossible_label"),
+									value: false,
+								},
+							],
+							selectedValue: this.customerProperties.getSync()!.usageDataOptedOut,
+							selectionChangedHandler: (v) => {
+								if (this.customerProperties.isLoaded()) {
+									const customerProps = this.customerProperties.getSync()!
+									customerProps.usageDataOptedOut = v as boolean
+									locator.entityClient.update(customerProps)
+								}
+							},
+							dropdownWidth: 250,
+						})
+						: null,
+				)
 				: null,
 			m(
 				".mb-l",
@@ -232,28 +232,29 @@ export class AccountMaintenanceSettings implements UpdatableSettingsViewer {
 
 	private updateAuditLog(): Promise<void> {
 		return locator.logins
-			.getUserController()
-			.loadCustomer()
-			.then((customer) => {
-				this.customer = customer
+					  .getUserController()
+					  .loadCustomer()
+					  .then((customer) => {
+						  this.customer = customer
 
-				return locator.entityClient
-					.loadRange(AuditLogEntryTypeRef, neverNull(customer.auditLog).items, GENERATED_MAX_ID, 200, true)
-					.then((auditLog) => {
-						this.auditLogLoaded = true // indicate that we do not need to reload the list again when we expand
-						this.auditLogLines = auditLog.map((auditLogEntry) => {
-							return {
-								cells: [auditLogEntry.action, auditLogEntry.modifiedEntity, formatDateTimeFromYesterdayOn(auditLogEntry.date)],
-								actionButtonAttrs: {
-									title: "showMore_action",
-									icon: Icons.More,
-									click: () => this.showAuditLogDetails(auditLogEntry, customer),
-									size: ButtonSize.Compact,
-								},
-							}
-						})
-					})
-			})
+						  return locator.entityClient
+										.loadRange(AuditLogEntryTypeRef, neverNull(customer.auditLog).items, GENERATED_MAX_ID, 200, true)
+										.then((auditLog) => {
+											this.auditLogLoaded = true // indicate that we do not need to reload the list again when we expand
+											this.auditLogLines = auditLog.map((auditLogEntry) => {
+												return {
+													cells: [auditLogEntry.action, auditLogEntry.modifiedEntity, formatDateTimeFromYesterdayOn(auditLogEntry.date)],
+													actionButtonAttrs: {
+														title: "showMore_action",
+														icon: Icons.More,
+														click: () => this.showAuditLogDetails(auditLogEntry, customer),
+														size: ButtonSize.Compact,
+													},
+												}
+											})
+										})
+										.finally(m.redraw)
+					  })
 	}
 
 	private showAuditLogDetails(entry: AuditLogEntry, customer: Customer) {
@@ -264,30 +265,30 @@ export class AccountMaintenanceSettings implements UpdatableSettingsViewer {
 		if (entry.modifiedGroupInfo) {
 			groupInfoLoadingPromises.push(
 				locator.entityClient
-					.load(GroupInfoTypeRef, entry.modifiedGroupInfo)
-					.then((gi) => {
-						modifiedGroupInfo(gi)
-					})
-					.catch(
-						ofClass(NotAuthorizedError, () => {
-							// If the admin is removed from the free group, he does not have the permission to access the groupinfo of that group anymore
-						}),
-					),
+					   .load(GroupInfoTypeRef, entry.modifiedGroupInfo)
+					   .then((gi) => {
+						   modifiedGroupInfo(gi)
+					   })
+					   .catch(
+						   ofClass(NotAuthorizedError, () => {
+							   // If the admin is removed from the free group, he does not have the permission to access the groupinfo of that group anymore
+						   }),
+					   ),
 			)
 		}
 
 		if (entry.groupInfo) {
 			groupInfoLoadingPromises.push(
 				locator.entityClient
-					.load(GroupInfoTypeRef, entry.groupInfo)
-					.then((gi) => {
-						groupInfo(gi)
-					})
-					.catch(
-						ofClass(NotAuthorizedError, () => {
-							// If the admin is removed from the free group, he does not have the permission to access the groupinfo of that group anymore
-						}),
-					),
+					   .load(GroupInfoTypeRef, entry.groupInfo)
+					   .then((gi) => {
+						   groupInfo(gi)
+					   })
+					   .catch(
+						   ofClass(NotAuthorizedError, () => {
+							   // If the admin is removed from the free group, he does not have the permission to access the groupinfo of that group anymore
+						   }),
+					   ),
 			)
 		}
 
@@ -312,14 +313,14 @@ export class AccountMaintenanceSettings implements UpdatableSettingsViewer {
 							]),
 							groupInfoValue
 								? m("tr", [
-										m("td", lang.get("group_label")),
-										m(
-											"td.pl",
-											customer.adminGroup === groupInfoValue.group
-												? lang.get("globalAdmin_label")
-												: this.getGroupInfoDisplayText(groupInfoValue),
-										),
-								  ])
+									m("td", lang.get("group_label")),
+									m(
+										"td.pl",
+										customer.adminGroup === groupInfoValue.group
+											? lang.get("globalAdmin_label")
+											: this.getGroupInfoDisplayText(groupInfoValue),
+									),
+								])
 								: null,
 							m("tr", [m("td", lang.get("time_label")), m("td.pl", formatDateTime(entry.date))]),
 						]),
@@ -341,17 +342,9 @@ export class AccountMaintenanceSettings implements UpdatableSettingsViewer {
 		}
 	}
 
-	private updateCustomerServerProperties(): Promise<void> {
-		return locator.customerFacade.loadCustomerServerProperties().then((props) => {
-			this.props(props)
-		})
-	}
-
-	entityEventsReceived(updates: ReadonlyArray<EntityUpdateData>): Promise<void> {
+	handleEventUpdates(updates: ReadonlyArray<EntityUpdateData>): Promise<void> {
 		return promiseMap(updates, (update) => {
-			if (isUpdateForTypeRef(CustomerServerPropertiesTypeRef, update) && update.operation === OperationType.UPDATE) {
-				return this.updateCustomerServerProperties()
-			} else if (isUpdateForTypeRef(AuditLogEntryTypeRef, update)) {
+			if (isUpdateForTypeRef(AuditLogEntryTypeRef, update)) {
 				return this.updateAuditLog()
 			} else if (isUpdateForTypeRef(CustomerPropertiesTypeRef, update)) {
 				this.customerProperties.reset()
