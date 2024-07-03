@@ -1,41 +1,33 @@
-import { client } from "./common/misc/ClientDetector"
+import { client } from "../common/misc/ClientDetector.js"
 import m from "mithril"
 import Mithril, { Children, ClassComponent, Component, RouteDefs, RouteResolver, Vnode, VnodeDOM } from "mithril"
-import { lang, languageCodeToTag, languages } from "./common/misc/LanguageViewModel"
-import { root } from "./RootView"
-import { disableErrorHandlingDuringLogout, handleUncaughtError } from "./common/misc/ErrorHandler"
-import { assertMainOrNodeBoot, bootFinished, isApp, isDesktop, isOfflineStorageAvailable } from "./common/api/common/Env"
+import { lang, languageCodeToTag, languages } from "../common/misc/LanguageViewModel.js"
+import { root } from "../RootView.js"
+import { disableErrorHandlingDuringLogout, handleUncaughtError } from "../common/misc/ErrorHandler.js"
+import { assertMainOrNodeBoot, bootFinished, isApp, isDesktop, isOfflineStorageAvailable } from "../common/api/common/Env.js"
 import { assertNotNull, neverNull } from "@tutao/tutanota-utils"
-import { windowFacade } from "./common/misc/WindowFacade"
-import { styles } from "./common/gui/styles"
-import { deviceConfig } from "./common/misc/DeviceConfig"
-import { Logger, replaceNativeLogger } from "./common/api/common/Logger"
-import { applicationPaths } from "./ApplicationPaths"
-import { ProgrammingError } from "./common/api/common/error/ProgrammingError"
-import { NativeWebauthnView } from "./common/login/NativeWebauthnView"
-import type { LoginView, LoginViewAttrs } from "./common/login/LoginView.js"
-import type { LoginViewModel } from "./common/login/LoginViewModel.js"
-import { TerminationView, TerminationViewAttrs } from "./common/termination/TerminationView.js"
-import { TerminationViewModel } from "./common/termination/TerminationViewModel.js"
-import { MobileWebauthnAttrs, MobileWebauthnView } from "./common/login/MobileWebauthnView.js"
-import { BrowserWebauthn } from "./common/misc/2fa/webauthn/BrowserWebauthn.js"
-import { CalendarView, CalendarViewAttrs } from "./calendar-app/calendar/view/CalendarView.js"
-import { DrawerMenuAttrs } from "./common/gui/nav/DrawerMenu.js"
-import { MailView, MailViewAttrs, MailViewCache } from "./mail-app/mail/view/MailView.js"
-import { ContactView, ContactViewAttrs } from "./mail-app/contacts/view/ContactView.js"
-import { SettingsView, SettingsViewAttrs } from "./mail-app/settings/SettingsView.js"
-import { SearchView, SearchViewAttrs } from "./mail-app/search/view/SearchView.js"
-import { TopLevelAttrs, TopLevelView } from "./TopLevelView.js"
-import { AppHeaderAttrs } from "./common/gui/Header.js"
-import { CalendarViewModel } from "./calendar-app/calendar/view/CalendarViewModel.js"
-import { ExternalLoginView, ExternalLoginViewAttrs, ExternalLoginViewModel } from "./common/login/ExternalLoginView.js"
-import { LoginController } from "./common/api/main/LoginController.js"
-import type { MailViewModel } from "./mail-app/mail/view/MailViewModel.js"
-import { SearchViewModel } from "./mail-app/search/view/SearchViewModel.js"
-import { ContactViewModel } from "./mail-app/contacts/view/ContactViewModel.js"
-import { ContactListViewModel } from "./mail-app/contacts/view/ContactListViewModel.js"
-import type { CredentialsMigrationView, CredentialsMigrationViewAttrs } from "./common/login/CredentialsMigrationView.js"
-import type { CredentialsMigrationViewModel } from "./common/login/CredentialsMigrationViewModel.js"
+import { windowFacade } from "../common/misc/WindowFacade.js"
+import { styles } from "../common/gui/styles.js"
+import { deviceConfig } from "../common/misc/DeviceConfig.js"
+import { Logger, replaceNativeLogger } from "../common/api/common/Logger.js"
+import { applicationPaths } from "./calendar-applicationPaths.js"
+import { ProgrammingError } from "../common/api/common/error/ProgrammingError.js"
+import { NativeWebauthnView } from "../common/login/NativeWebauthnView.js"
+import type { LoginView, LoginViewAttrs } from "../common/login/LoginView.js"
+import type { LoginViewModel } from "../common/login/LoginViewModel.js"
+import { TerminationView, TerminationViewAttrs } from "../common/termination/TerminationView.js"
+import { TerminationViewModel } from "../common/termination/TerminationViewModel.js"
+import { MobileWebauthnAttrs, MobileWebauthnView } from "../common/login/MobileWebauthnView.js"
+import { BrowserWebauthn } from "../common/misc/2fa/webauthn/BrowserWebauthn.js"
+import { CalendarView, CalendarViewAttrs } from "./calendar/view/CalendarView.js"
+import { DrawerMenuAttrs } from "../common/gui/nav/DrawerMenu.js"
+import { SettingsView, SettingsViewAttrs } from "../mail-app/settings/SettingsView.js"
+import { SearchView, SearchViewAttrs } from "../mail-app/search/view/SearchView.js"
+import { TopLevelAttrs, TopLevelView } from "../TopLevelView.js"
+import { AppHeaderAttrs } from "../common/gui/Header.js"
+import { CalendarViewModel } from "./calendar/view/CalendarViewModel.js"
+import { LoginController } from "../common/api/main/LoginController.js"
+import { SearchViewModel } from "../mail-app/search/view/SearchViewModel.js"
 
 assertMainOrNodeBoot()
 bootFinished()
@@ -74,25 +66,26 @@ window.tutao.appState = urlPrefixes
 const startRoute = getStartUrl(urlQueryParams)
 history.replaceState(null, "", urlPrefixes.prefix + startRoute)
 
-registerForMailto()
-
-import("./mail-app/translations/en")
+import("../mail-app/translations/en.js")
 	.then((en) => lang.init(en.default))
 	.then(async () => {
-		await import("./common/gui/main-styles")
+		await import("../common/gui/main-styles.js")
 
 		// do this after lang initialized
-		const { locator } = await import("./common/api/main/MainLocator")
+
+		// FIXME: need to split locator?
+		const { locator } = await import("../common/api/main/MainLocator.js")
 		await locator.init()
 
-		const { setupNavShortcuts } = await import("./common/misc/NavShortcuts.js")
+		// FIXME: need to split navShortcuts?
+		const { setupNavShortcuts } = await import("../common/misc/NavShortcuts.js")
 		setupNavShortcuts()
 
 		// this needs to stay after client.init
 		windowFacade.init(locator.logins)
-		if (isDesktop()) {
-			import("./common/native/main/UpdatePrompt.js").then(({ registerForUpdates }) => registerForUpdates(locator.desktopSettingsFacade))
-		}
+		// if (isDesktop()) {
+		// 	import("./common/native/main/UpdatePrompt.js").then(({ registerForUpdates }) => registerForUpdates(locator.desktopSettingsFacade))
+		// }
 
 		const userLanguage = deviceConfig.getLanguage() && languages.find((l) => l.code === deviceConfig.getLanguage())
 
@@ -105,15 +98,15 @@ import("./mail-app/translations/en")
 				console.error("Failed to fetch translation: " + userLanguage.code, e)
 			})
 
-			if (isDesktop()) {
-				locator.desktopSettingsFacade.changeLanguage(language.code, language.languageTag)
-			}
+			// if (isDesktop()) {
+			// 	locator.desktopSettingsFacade.changeLanguage(language.code, language.languageTag)
+			// }
 		}
 
 		locator.logins.addPostLoginAction(() => locator.postLoginActions())
 
 		if (isOfflineStorageAvailable()) {
-			const { CachePostLoginAction } = await import("./common/offline/CachePostLoginAction")
+			const { CachePostLoginAction } = await import("../common/offline/CachePostLoginAction.js")
 			locator.logins.addPostLoginAction(
 				async () =>
 					new CachePostLoginAction(
@@ -128,40 +121,6 @@ import("./mail-app/translations/en")
 
 		styles.init()
 
-		const contactViewResolver = makeViewResolver<
-			ContactViewAttrs,
-			ContactView,
-			{
-				drawerAttrsFactory: () => DrawerMenuAttrs
-				header: AppHeaderAttrs
-				contactViewModel: ContactViewModel
-				contactListViewModel: ContactListViewModel
-			}
-		>(
-			{
-				prepareRoute: async () => {
-					const { ContactView } = await import("./mail-app/contacts/view/ContactView.js")
-					const drawerAttrsFactory = await locator.drawerAttrsFactory()
-					return {
-						component: ContactView,
-						cache: {
-							drawerAttrsFactory,
-							header: await locator.appHeaderAttrs(),
-							contactViewModel: await locator.contactViewModel(),
-							contactListViewModel: await locator.contactListViewModel(),
-						},
-					}
-				},
-				prepareAttrs: (cache) => ({
-					drawerAttrs: cache.drawerAttrsFactory(),
-					header: cache.header,
-					contactViewModel: cache.contactViewModel,
-					contactListViewModel: cache.contactListViewModel,
-				}),
-			},
-			locator.logins,
-		)
-
 		const paths = applicationPaths({
 			login: makeViewResolver<LoginViewAttrs, LoginView, { makeViewModel: () => LoginViewModel }>(
 				{
@@ -169,7 +128,7 @@ import("./mail-app/translations/en")
 						const migrator = await locator.credentialFormatMigrator()
 						await migrator.migrate()
 
-						const { LoginView } = await import("./common/login/LoginView.js")
+						const { LoginView } = await import("../common/login/LoginView.js")
 						const makeViewModel = await locator.loginViewModelFactory()
 						return {
 							component: LoginView,
@@ -178,7 +137,7 @@ import("./mail-app/translations/en")
 							},
 						}
 					},
-					prepareAttrs: ({ makeViewModel }) => ({ targetPath: "/mail", makeViewModel }),
+					prepareAttrs: ({ makeViewModel }) => ({ targetPath: "/calendar", makeViewModel }),
 					requireLogin: false,
 				},
 				locator.logins,
@@ -186,8 +145,8 @@ import("./mail-app/translations/en")
 			termination: makeViewResolver<TerminationViewAttrs, TerminationView, { makeViewModel: () => TerminationViewModel; header: AppHeaderAttrs }>(
 				{
 					prepareRoute: async () => {
-						const { TerminationViewModel } = await import("./common/termination/TerminationViewModel.js")
-						const { TerminationView } = await import("./common/termination/TerminationView.js")
+						const { TerminationViewModel } = await import("../common/termination/TerminationViewModel.js")
+						const { TerminationView } = await import("../common/termination/TerminationView.js")
 						return {
 							component: TerminationView,
 							cache: {
@@ -202,60 +161,10 @@ import("./mail-app/translations/en")
 				},
 				locator.logins,
 			),
-			contact: contactViewResolver,
-			contactList: contactViewResolver,
-			externalLogin: makeViewResolver<ExternalLoginViewAttrs, ExternalLoginView, { header: AppHeaderAttrs; makeViewModel: () => ExternalLoginViewModel }>(
-				{
-					prepareRoute: async () => {
-						const { ExternalLoginView } = await import("./common/login/ExternalLoginView.js")
-						const makeViewModel = await locator.externalLoginViewModelFactory()
-						return {
-							component: ExternalLoginView,
-							cache: { header: await locator.appHeaderAttrs(), makeViewModel },
-						}
-					},
-					prepareAttrs: ({ header, makeViewModel }) => ({ header, viewModelFactory: makeViewModel }),
-					requireLogin: false,
-				},
-				locator.logins,
-			),
-			mail: makeViewResolver<
-				MailViewAttrs,
-				MailView,
-				{
-					drawerAttrsFactory: () => DrawerMenuAttrs
-					cache: MailViewCache
-					header: AppHeaderAttrs
-					mailViewModel: MailViewModel
-				}
-			>(
-				{
-					prepareRoute: async (previousCache) => {
-						const { MailView } = await import("./mail-app/mail/view/MailView.js")
-						return {
-							component: MailView,
-							cache: previousCache ?? {
-								drawerAttrsFactory: await locator.drawerAttrsFactory(),
-								cache: { mailList: null, selectedFolder: null, conversationViewModel: null, conversationViewPreference: null },
-								header: await locator.appHeaderAttrs(),
-								mailViewModel: await locator.mailViewModel(),
-							},
-						}
-					},
-					prepareAttrs: ({ drawerAttrsFactory, cache, header, mailViewModel }) => ({
-						drawerAttrs: drawerAttrsFactory(),
-						cache,
-						header,
-						desktopSystemFacade: locator.desktopSystemFacade,
-						mailViewModel,
-					}),
-				},
-				locator.logins,
-			),
 			settings: makeViewResolver<SettingsViewAttrs, SettingsView, { drawerAttrsFactory: () => DrawerMenuAttrs; header: AppHeaderAttrs }>(
 				{
 					prepareRoute: async () => {
-						const { SettingsView } = await import("./mail-app/settings/SettingsView.js")
+						const { SettingsView } = await import("../mail-app/settings/SettingsView.js")
 						const drawerAttrsFactory = await locator.drawerAttrsFactory()
 						return {
 							component: SettingsView,
@@ -277,7 +186,7 @@ import("./mail-app/translations/en")
 			>(
 				{
 					prepareRoute: async () => {
-						const { SearchView } = await import("./mail-app/search/view/SearchView.js")
+						const { SearchView } = await import("../mail-app/search/view/SearchView.js")
 						const drawerAttrsFactory = await locator.drawerAttrsFactory()
 						return {
 							component: SearchView,
@@ -299,7 +208,7 @@ import("./mail-app/translations/en")
 			>(
 				{
 					prepareRoute: async (cache) => {
-						const { CalendarView } = await import("./calendar-app/calendar/view/CalendarView.js")
+						const { CalendarView } = await import("./calendar/view/CalendarView.js")
 						const drawerAttrsFactory = await locator.drawerAttrsFactory()
 						return {
 							component: CalendarView,
@@ -326,8 +235,8 @@ import("./mail-app/translations/en")
 			 */
 			signup: {
 				async onmatch() {
-					const { showSignupDialog } = await import("./common/misc/LoginUtils")
-					const { isLegacyDomain } = await import("./common/login/LoginViewModel.js")
+					const { showSignupDialog } = await import("../common/misc/LoginUtils.js")
+					const { isLegacyDomain } = await import("../common/login/LoginViewModel.js")
 					if (isLegacyDomain()) {
 						const domainConfigProvider = locator.domainConfigProvider()
 						const target = new URL(
@@ -361,7 +270,7 @@ import("./mail-app/translations/en")
 			},
 			giftcard: {
 				async onmatch() {
-					const { showGiftCardDialog } = await import("./common/misc/LoginUtils")
+					const { showGiftCardDialog } = await import("../common/misc/LoginUtils.js")
 					showGiftCardDialog(location.hash)
 					m.route.set("/login", {
 						noAutoLogin: true,
@@ -372,7 +281,7 @@ import("./mail-app/translations/en")
 			},
 			recover: {
 				async onmatch(args: any) {
-					const { showRecoverDialog } = await import("./common/misc/LoginUtils")
+					const { showRecoverDialog } = await import("../common/misc/LoginUtils.js")
 					const resetAction = args.resetAction === "password" || args.resetAction === "secondFactor" ? args.resetAction : "password"
 					const mailAddress = typeof args.mailAddress === "string" ? args.mailAddress : ""
 					showRecoverDialog(mailAddress, resetAction)
@@ -384,9 +293,9 @@ import("./mail-app/translations/en")
 			},
 			webauthn: makeOldViewResolver(
 				async () => {
-					const { BrowserWebauthn } = await import("./common/misc/2fa/webauthn/BrowserWebauthn.js")
-					const { NativeWebauthnView } = await import("./common/login/NativeWebauthnView.js")
-					const { WebauthnNativeBridge } = await import("./common/native/main/WebauthnNativeBridge.js")
+					const { BrowserWebauthn } = await import("../common/misc/2fa/webauthn/BrowserWebauthn.js")
+					const { NativeWebauthnView } = await import("../common/login/NativeWebauthnView.js")
+					const { WebauthnNativeBridge } = await import("../common/native/main/WebauthnNativeBridge.js")
 					// getCurrentDomainConfig() takes env.staticUrl into account but we actually don't care about it in this case.
 					// Scenario when it can differ: local desktop client which opens webauthn window and that window is also built with the static URL because
 					// it is the same client build.
@@ -403,8 +312,8 @@ import("./mail-app/translations/en")
 			webauthnmobile: makeViewResolver<MobileWebauthnAttrs, MobileWebauthnView, { browserWebauthn: BrowserWebauthn }>(
 				{
 					prepareRoute: async () => {
-						const { MobileWebauthnView } = await import("./common/login/MobileWebauthnView.js")
-						const { BrowserWebauthn } = await import("./common/misc/2fa/webauthn/BrowserWebauthn.js")
+						const { MobileWebauthnView } = await import("../common/login/MobileWebauthnView.js")
+						const { BrowserWebauthn } = await import("../common/misc/2fa/webauthn/BrowserWebauthn.js")
 						// see /webauthn view resolver for the explanation
 						const domainConfig = locator.domainConfigProvider().getDomainConfigForHostname(location.hostname, location.protocol, location.port)
 						return {
@@ -412,31 +321,6 @@ import("./mail-app/translations/en")
 							cache: {
 								browserWebauthn: new BrowserWebauthn(navigator.credentials, domainConfig),
 							},
-						}
-					},
-					prepareAttrs: (cache) => cache,
-					requireLogin: false,
-				},
-				locator.logins,
-			),
-			migrate: makeViewResolver<
-				CredentialsMigrationViewAttrs,
-				CredentialsMigrationView,
-				{
-					credentialsMigrationViewModel: CredentialsMigrationViewModel
-				}
-			>(
-				{
-					prepareRoute: async () => {
-						const { CredentialsMigrationViewModel } = await import("./common/login/CredentialsMigrationViewModel.js")
-						const { CredentialsMigrationView } = await import("./common/login/CredentialsMigrationView.js")
-						const domainConfig = locator.domainConfigProvider().getDomainConfigForHostname(location.hostname, location.protocol, location.port)
-						const parentOrigin = domainConfig.partneredDomainTransitionUrl
-						const loginViewModelFactory = await locator.loginViewModelFactory()
-						const credentialsMigrationViewModel = new CredentialsMigrationViewModel(loginViewModelFactory(), parentOrigin)
-						return {
-							component: CredentialsMigrationView,
-							cache: { credentialsMigrationViewModel },
 						}
 					},
 					prepareAttrs: (cache) => cache,
@@ -464,7 +348,7 @@ import("./mail-app/translations/en")
 		// append catch all at the end because mithril will stop at the first match
 		resolvers["/:path..."] = {
 			onmatch: async () => {
-				const { NotFoundPage } = await import("./common/gui/base/NotFoundPage.js")
+				const { NotFoundPage } = await import("../common/gui/base/NotFoundPage.js")
 				return {
 					view: () => m(root, m(NotFoundPage)),
 				}
@@ -479,22 +363,20 @@ import("./mail-app/translations/en")
 		if (isApp() || isDesktop()) {
 			await locator.native.init()
 		}
-		if (isDesktop()) {
-			const { exposeNativeInterface } = await import("./common/api/common/ExposeNativeInterface")
-			locator.logins.addPostLoginAction(async () => exposeNativeInterface(locator.native).postLoginActions)
-		}
+		// if (isDesktop()) {
+		// 	const { exposeNativeInterface } = await import("../common/api/common/ExposeNativeInterface.js")
+		// 	locator.logins.addPostLoginAction(async () => exposeNativeInterface(locator.native).postLoginActions)
+		// }
 		// after we set up prefixWithoutFile
 		const domainConfig = locator.domainConfigProvider().getCurrentDomainConfig()
-		const serviceworker = await import("./common/serviceworker/ServiceWorkerClient.js")
+		const serviceworker = await import("../common/serviceworker/ServiceWorkerClient.js")
 		serviceworker.init(domainConfig)
 
 		printJobsMessage(domainConfig)
 	})
 
 function forceLogin(args: Record<string, Dict>, requestedPath: string) {
-	if (requestedPath.indexOf("#mail") !== -1) {
-		m.route.set(`/ext${location.hash}`)
-	} else if (requestedPath.startsWith("/#")) {
+	if (requestedPath.startsWith("/#")) {
 		// we do not allow any other hashes except "#mail". this prevents login loops.
 		m.route.set("/login")
 	} else {
@@ -726,20 +608,6 @@ function getStartUrl(urlQueryParams: Mithril.Params): string {
 		target += location.hash
 	}
 	return target
-}
-
-function registerForMailto() {
-	// don't do this if we're in an iframe, in an app or the navigator doesn't allow us to do this.
-	if (window.parent === window && !isDesktop() && typeof navigator.registerProtocolHandler === "function") {
-		let origin = location.origin
-		try {
-			// @ts-ignore third argument removed from spec, but use is still recommended
-			navigator.registerProtocolHandler("mailto", origin + "/mailto#url=%s", "Tuta Mail")
-		} catch (e) {
-			// Catch SecurityError's and some other cases when we are not allowed to register a handler
-			console.log("Failed to register a mailto: protocol handler ", e)
-		}
-	}
 }
 
 function printJobsMessage(domainConfig: DomainConfig) {

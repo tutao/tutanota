@@ -108,7 +108,7 @@ export function getChunkName(moduleId, { getModuleInfo }) {
 	} else if (code.includes("@bundleInto:common")) {
 		// if detecting this does not work even though the comment is there, add a blank line after the annotation.
 		return "common"
-	} else if (code.includes("assertMainOrNodeBoot") || isIn("libs/mithril") || isIn("src/app.ts") || code.includes("@bundleInto:boot")) {
+	} else if (code.includes("assertMainOrNodeBoot") || isIn("libs/mithril") || isIn("src/mail-app/app.ts") || code.includes("@bundleInto:boot")) {
 		// if detecting this does not work even though the comment is there, add a blank line after the annotation.
 		// everything marked as assertMainOrNodeBoot goes into boot bundle right now
 		// (which is getting merged into app.js)
