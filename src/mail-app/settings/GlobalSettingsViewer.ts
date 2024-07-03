@@ -162,7 +162,6 @@ export class GlobalSettingsViewer implements UpdatableSettingsViewer {
 					},
 				}),
 			]),
-			m(AccountMaintenanceSettings),
 		]
 	}
 
