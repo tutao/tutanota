@@ -1,6 +1,6 @@
 import o from "@tutao/otest"
 // @ts-ignore[untyped-import]
-import en from "../../../src/translations/en.js"
+import en from "../../../src/mail-app/translations/en.js"
 import type { UserController } from "../../../src/common/api/main/UserController.js"
 import type { LoginController } from "../../../src/common/api/main/LoginController.js"
 import {

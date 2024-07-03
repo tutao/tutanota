@@ -2,7 +2,7 @@ import { ResolvableRecipient, ResolveMode } from "../../../src/common/api/main/R
 import { Recipient, RecipientType } from "../../../src/common/api/common/recipients/Recipient.js"
 import { LazyLoaded } from "@tutao/tutanota-utils"
 import { Contact } from "../../../src/common/api/entities/tutanota/TypeRefs.js"
-import { createNewContact } from "../../../src/mail-app/model/MailUtils.js"
+import { createNewContact } from "../../../src/mail-app/mail/model/MailUtils.js"
 import { User } from "../../../src/common/api/entities/sys/TypeRefs.js"
 import { isTutanotaMailAddress } from "../../../src/common/api/common/mail/CommonMailUtils.js"
 

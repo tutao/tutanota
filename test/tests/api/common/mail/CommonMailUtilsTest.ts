@@ -8,7 +8,7 @@ import {
 	isTutanotaTeamMail,
 } from "../../../../../src/common/api/common/mail/CommonMailUtils.js"
 import { createTestEntity } from "../../../TestUtils.js"
-import { getConfidentialIcon } from "../../../../../src/mail-app/model/MailUtils.js"
+import { getConfidentialIcon } from "../../../../../src/mail-app/mail/model/MailUtils.js"
 import { Icons } from "../../../../../src/common/gui/base/icons/Icons.js"
 import { ProgrammingError } from "../../../../../src/common/api/common/error/ProgrammingError.js"
 

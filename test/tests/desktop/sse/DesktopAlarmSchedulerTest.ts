@@ -2,7 +2,7 @@ import o from "@tutao/otest"
 import n from "../../nodemocker.js"
 import { EndType, RepeatPeriod } from "../../../../src/common/api/common/TutanotaConstants.js"
 import { DesktopAlarmScheduler } from "../../../../src/common/desktop/sse/DesktopAlarmScheduler.js"
-import type { AlarmScheduler } from "../../../../src/calendar-app/date/AlarmScheduler.js"
+import type { AlarmScheduler } from "../../../../src/common/calendar/date/AlarmScheduler.js"
 import { downcast, lastThrow } from "@tutao/tutanota-utils"
 import { WindowManager } from "../../../../src/common/desktop/DesktopWindowManager.js"
 import { DesktopNotifier, NotificationResult } from "../../../../src/common/desktop/DesktopNotifier.js"
@@ -14,7 +14,7 @@ import { CryptoError } from "@tutao/tutanota-crypto/error.js"
 import { makeAlarmScheduler } from "../../calendar/CalendarTestUtils.js"
 import { matchers, object, verify, when } from "testdouble"
 import { AlarmInfoTypeRef, AlarmNotificationTypeRef, CalendarEventRefTypeRef, RepeatRuleTypeRef } from "../../../../src/common/api/entities/sys/TypeRefs.js"
-import { formatNotificationForDisplay } from "../../../../src/calendar-app/model/CalendarModel.js"
+import { formatNotificationForDisplay } from "../../../../src/calendar-app/calendar/model/CalendarModel.js"
 
 const oldTimezone = process.env.TZ
 

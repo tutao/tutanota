@@ -1,6 +1,6 @@
 import o from "@tutao/otest"
 import { AccountType, FeatureType } from "../../../../src/common/api/common/TutanotaConstants.js"
-import { hasPlanWithInvites } from "../../../../src/calendar-app/gui/eventeditor-model/CalendarNotificationModel.js"
+import { hasPlanWithInvites } from "../../../../src/calendar-app/calendar/gui/eventeditor-model/CalendarNotificationModel.js"
 import { LoginController } from "../../../../src/common/api/main/LoginController.js"
 import { object, replace, when } from "testdouble"
 import { Customer, PlanConfigurationTypeRef } from "../../../../src/common/api/entities/sys/TypeRefs.js"

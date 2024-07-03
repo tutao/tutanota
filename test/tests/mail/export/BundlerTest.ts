@@ -1,5 +1,5 @@
 import o from "@tutao/otest"
-import { makeMailBundle } from "../../../../src/mail-app/export/Bundler.js"
+import { makeMailBundle } from "../../../../src/mail-app/mail/export/Bundler.js"
 import {
 	BodyTypeRef,
 	FileTypeRef,
