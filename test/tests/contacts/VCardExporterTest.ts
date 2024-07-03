@@ -19,9 +19,9 @@ import {
 	_socialIdsToVCardSocialUrls,
 	_vCardFormatArrayToString,
 	contactsToVCard,
-} from "../../../src/contacts/VCardExporter.js"
+} from "../../../src/mail-app/contacts/VCardExporter.js"
 import { neverNull } from "@tutao/tutanota-utils"
-import { vCardFileToVCards, vCardListToContacts } from "../../../src/contacts/VCardImporter.js"
+import { vCardFileToVCards, vCardListToContacts } from "../../../src/mail-app/contacts/VCardImporter.js"
 import { createTestEntity } from "../TestUtils.js"
 
 let idCounter = 0

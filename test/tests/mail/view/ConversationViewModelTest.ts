@@ -1,22 +1,17 @@
 import o from "@tutao/otest"
-import { ConversationItem, ConversationPrefProvider, ConversationViewModel } from "../../../../src/mail-app/view/ConversationViewModel.js"
+import { ConversationItem, ConversationPrefProvider, ConversationViewModel } from "../../../../src/mail-app/mail/view/ConversationViewModel.js"
 import {
 	ConversationEntry,
 	ConversationEntryTypeRef,
-	createConversationEntry,
-	createMail,
-	createMailboxProperties,
-	createMailFolder,
 	Mail,
 	MailboxProperties,
 	MailboxPropertiesTypeRef,
 	MailFolderTypeRef,
 	MailTypeRef,
 } from "../../../../src/common/api/entities/tutanota/TypeRefs.js"
-import { ownerId } from "../../calendar/CalendarTestUtils.js"
-import { CreateMailViewerOptions } from "../../../../src/mail-app/view/MailViewer.js"
-import { MailboxDetail, MailModel } from "../../../../src/mail-app/model/MailModel.js"
-import { MailViewerViewModel } from "../../../../src/mail-app/view/MailViewerViewModel.js"
+import { CreateMailViewerOptions } from "../../../../src/mail-app/mail/view/MailViewer.js"
+import { MailboxDetail, MailModel } from "../../../../src/mail-app/mail/model/MailModel.js"
+import { MailViewerViewModel } from "../../../../src/mail-app/mail/view/MailViewerViewModel.js"
 import { EntityClient } from "../../../../src/common/api/common/EntityClient.js"
 import { EntityRestClientMock } from "../../api/worker/rest/EntityRestClientMock.js"
 import { EntityEventsListener, EventController } from "../../../../src/common/api/main/EventController.js"
