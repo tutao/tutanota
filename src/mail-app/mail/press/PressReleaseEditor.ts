@@ -6,9 +6,8 @@ import { ButtonType } from "../../../common/gui/base/Button.js"
 import { isMailAddress } from "../../../common/misc/FormatValidator"
 import { UserError } from "../../../common/api/main/UserError"
 import { showUserError } from "../../../common/misc/ErrorHandlerImpl"
-import type { MailboxDetail } from "../model/MailModel"
+import type { MailboxDetail } from "../../../common/mailFunctionality/MailModel.js"
 import { Keys, MailMethod, TabIndex } from "../../../common/api/common/TutanotaConstants"
-import { getDefaultSender } from "../model/MailUtils"
 import { progressIcon } from "../../../common/gui/base/Icon"
 import { Editor } from "../../../common/gui/editor/Editor"
 import { htmlSanitizer } from "../../../common/misc/HtmlSanitizer"
@@ -17,6 +16,7 @@ import { TextField } from "../../../common/gui/base/TextField.js"
 import { DialogHeaderBarAttrs } from "../../../common/gui/base/DialogHeaderBar"
 import { RichTextToolbar } from "../../../common/gui/base/RichTextToolbar.js"
 import { locator } from "../../../common/api/main/MainLocator.js"
+import { getDefaultSender } from "../../../common/mailFunctionality/CommonMailUtils.js"
 
 type PressContact = {
 	email: string

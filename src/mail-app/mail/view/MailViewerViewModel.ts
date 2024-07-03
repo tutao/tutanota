@@ -21,10 +21,9 @@ import {
 	OperationType,
 } from "../../../common/api/common/TutanotaConstants"
 import { EntityClient } from "../../../common/api/common/EntityClient"
-import { MailboxDetail, MailModel } from "../model/MailModel"
-import { ContactModel } from "../../contacts/model/ContactModel"
+import { MailboxDetail, MailModel } from "../../../common/mailFunctionality/MailModel.js"
+import { ContactModel } from "../../../common/contactsFunctionality/ContactModel.js"
 import { ConfigurationDatabase } from "../../../common/api/worker/facades/lazy/ConfigurationDatabase.js"
-import { InlineImages } from "./MailViewer"
 import stream from "mithril/stream"
 import {
 	addAll,
@@ -40,20 +39,11 @@ import {
 	utf8Uint8ArrayToString,
 } from "@tutao/tutanota-utils"
 import { lang } from "../../../common/misc/LanguageViewModel"
-import {
-	getDefaultSender,
-	getEnabledMailAddressesWithUser,
-	getFolderName,
-	getMailboxName,
-	getPathToFolderString,
-	loadMailDetails,
-	loadMailHeaders,
-} from "../model/MailUtils"
 import { LoginController } from "../../../common/api/main/LoginController"
 import m from "mithril"
 import { LockedError, NotAuthorizedError, NotFoundError } from "../../../common/api/common/error/RestError"
 import { getListId, haveSameId, isSameId } from "../../../common/api/common/utils/EntityUtils"
-import { getReferencedAttachments, loadInlineImages, moveMails, revokeInlineImages } from "./MailGuiUtils"
+import { getReferencedAttachments, loadInlineImages, moveMails } from "./MailGuiUtils"
 import { SanitizedFragment } from "../../../common/misc/HtmlSanitizer"
 import { CALENDAR_MIME_TYPE, FileController } from "../../../common/file/FileController"
 import { exportMails } from "../export/Exporter.js"
@@ -66,19 +56,10 @@ import { UserError } from "../../../common/api/main/UserError"
 import { showUserError } from "../../../common/misc/ErrorHandlerImpl"
 import { LoadingStateTracker } from "../../../common/offline/LoadingState"
 import { ProgrammingError } from "../../../common/api/common/error/ProgrammingError"
-import { InitAsResponseArgs, SendMailModel } from "../editor/SendMailModel"
+import { InitAsResponseArgs, SendMailModel } from "../../../common/mailFunctionality/SendMailModel.js"
 import { EventController } from "../../../common/api/main/EventController.js"
 import { WorkerFacade } from "../../../common/api/worker/facades/WorkerFacade.js"
 import { SearchModel } from "../../search/model/SearchModel.js"
-import {
-	assertSystemFolderOfType,
-	getDisplayedSender,
-	getMailBodyText,
-	isNoReplyTeamAddress,
-	isSystemNotification,
-	isTutanotaTeamMail,
-	MailAddressAndName,
-} from "../../../common/api/common/mail/CommonMailUtils.js"
 import { ParsedIcalFileContent } from "../../../calendar-app/calendar/view/CalendarInvites.js"
 import { MailFacade } from "../../../common/api/worker/facades/lazy/MailFacade.js"
 import { EntityUpdateData, isUpdateForTypeRef } from "../../../common/api/common/utils/EntityUpdateUtils.js"
@@ -86,6 +67,20 @@ import { isOfflineError } from "../../../common/api/common/utils/ErrorUtils.js"
 import { CryptoFacade } from "../../../common/api/worker/crypto/CryptoFacade.js"
 import { AttachmentType, getAttachmentType } from "../../../common/gui/AttachmentBubble.js"
 import type { ContactImporter } from "../../contacts/ContactImporter.js"
+import { InlineImages, revokeInlineImages } from "../../../common/mailFunctionality/inlineImagesUtils.js"
+import {
+	MailAddressAndName,
+	getDisplayedSender,
+	getPathToFolderString,
+	getEnabledMailAddressesWithUser,
+	getMailboxName,
+	getFolderName,
+	loadMailDetails,
+	loadMailHeaders,
+	getDefaultSender,
+	assertSystemFolderOfType,
+} from "../../../common/mailFunctionality/CommonMailUtils.js"
+import { isSystemNotification, isTutanotaTeamMail, isNoReplyTeamAddress, getMailBodyText } from "../MailUtils.js"
 
 export const enum ContentBlockingStatus {
 	Block = "0",

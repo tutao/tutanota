@@ -1,10 +1,16 @@
-import type { Contact, EncryptedMailAddress, InboxRule, Mail, MailDetails, MailFolder, TutanotaProperties } from "../../../common/api/entities/tutanota/TypeRefs.js"
 import {
-	Body, createContact,
+	Contact,
+	EncryptedMailAddress,
+	InboxRule,
+	Mail,
+	MailDetails,
+	MailFolder,
+	TutanotaProperties,
+	createContact,
 	createContactMailAddress,
 	createEncryptedMailAddress,
 	Header
-} from "../../../common/api/entities/tutanota/TypeRefs.js"
+} from "../api/entities/tutanota/TypeRefs.js"
 import {
 	ContactAddressType,
 	ConversationType,
@@ -15,30 +21,31 @@ import {
 	MailState,
 	MAX_ATTACHMENT_SIZE,
 	ReplyType,
-} from "../../../common/api/common/TutanotaConstants"
+	TUTANOTA_MAIL_ADDRESS_DOMAINS,
+} from "../api/common/TutanotaConstants.js"
 import { assertNotNull, contains, first, neverNull } from "@tutao/tutanota-utils"
-import { assertMainOrNode, isDesktop } from "../../../common/api/common/Env"
-import type { LoginController } from "../../../common/api/main/LoginController"
-import type { Language, TranslationKey } from "../../../common/misc/LanguageViewModel"
-import { lang } from "../../../common/misc/LanguageViewModel"
-import { Icons } from "../../../common/gui/base/icons/Icons"
-import type { MailboxDetail } from "./MailModel"
-import { MailModel } from "./MailModel"
-import type { AllIcons } from "../../../common/gui/base/Icon"
-import type { GroupInfo, User } from "../../../common/api/entities/sys/TypeRefs.js"
-import { CustomerPropertiesTypeRef } from "../../../common/api/entities/sys/TypeRefs.js"
-import type { UserController } from "../../../common/api/main/UserController"
-import type { EntityClient } from "../../../common/api/common/EntityClient"
-import { getEnabledMailAddressesForGroupInfo, getGroupInfoDisplayName } from "../../../common/api/common/utils/GroupUtils"
-import { fullNameToFirstAndLastName, mailAddressToFirstAndLastName } from "../../../common/misc/parsing/MailAddressParser"
-import type { Attachment } from "../editor/SendMailModel"
-import { getListId } from "../../../common/api/common/utils/EntityUtils"
-import { FolderSystem } from "../../../common/api/common/mail/FolderSystem.js"
-import { ListFilter } from "../../../common/misc/ListModel.js"
-import { MailFacade } from "../../../common/api/worker/facades/lazy/MailFacade.js"
-import { getDisplayedSender, isDraft, isSystemNotification } from "../../../common/api/common/mail/CommonMailUtils.js"
-import { ProgrammingError } from "../../../common/api/common/error/ProgrammingError.js"
-import { FontIcons } from "../../../common/gui/base/icons/FontIcons.js"
+import { assertMainOrNode, isDesktop } from "../api/common/Env.js"
+import type { LoginController } from "../api/main/LoginController.js"
+import type { Language, TranslationKey } from "../misc/LanguageViewModel.js"
+import { lang } from "../misc/LanguageViewModel.js"
+import { Icons } from "../gui/base/icons/Icons.js"
+import type { MailboxDetail } from "./MailModel.js"
+import { MailModel } from "./MailModel.js"
+import type { AllIcons } from "../gui/base/Icon.js"
+import type { GroupInfo, User } from "../api/entities/sys/TypeRefs.js"
+import { CustomerPropertiesTypeRef } from "../api/entities/sys/TypeRefs.js"
+import type { UserController } from "../api/main/UserController.js"
+import type { EntityClient } from "../api/common/EntityClient.js"
+import { getEnabledMailAddressesForGroupInfo, getGroupInfoDisplayName } from "../api/common/utils/GroupUtils.js"
+import { fullNameToFirstAndLastName, mailAddressToFirstAndLastName } from "../misc/parsing/MailAddressParser.js"
+import type { Attachment } from "./SendMailModel.js"
+import { getListId } from "../api/common/utils/EntityUtils.js"
+import { FolderSystem } from "../api/common/mail/FolderSystem.js"
+import { ListFilter } from "../misc/ListModel.js"
+import { MailFacade } from "../api/worker/facades/lazy/MailFacade.js"
+import { ProgrammingError } from "../api/common/error/ProgrammingError.js"
+import { FontIcons } from "../gui/base/icons/FontIcons.js"
+import { isDraft, isSystemNotification } from "../../mail-app/mail/MailUtils.js"
 
 assertMainOrNode()
 export const LINE_BREAK = "<br>"
@@ -442,4 +449,46 @@ export function getConfidentialIcon(mail: Mail): Icons {
 	} else {
 		return Icons.Lock
 	}
+}
+
+export interface MailAddressAndName {
+	name: string
+	address: string
+}
+
+export function getDisplayedSender(mail: Mail): MailAddressAndName {
+	const realSender = mail.sender
+	return { address: realSender.address, name: realSender.name }
+}
+
+export function isTutanotaMailAddress(mailAddress: string): boolean {
+	return TUTANOTA_MAIL_ADDRESS_DOMAINS.some((tutaDomain) => mailAddress.endsWith("@" + tutaDomain))
+}
+
+/**
+ * Gets a system folder of the specified type and unwraps it.
+ * Some system folders don't exist in some cases, e.g. spam or archive for external mailboxes!
+ *
+ * Use with caution.
+ */
+export function assertSystemFolderOfType(system: FolderSystem, type: Omit<MailFolderType, MailFolderType.CUSTOM>): MailFolder {
+	return assertNotNull(system.getSystemFolderByType(type), "System folder of type does not exist!")
+}
+
+/**
+ * Returns true if given folder is the {@link MailFolderType.SPAM} or {@link MailFolderType.TRASH} folder, or a descendant of those folders.
+ */
+export function isSpamOrTrashFolder(system: FolderSystem, folder: MailFolder): boolean {
+	// not using isOfTypeOrSubfolderOf because checking the type first is cheaper
+	return (
+		folder.folderType === MailFolderType.TRASH ||
+		folder.folderType === MailFolderType.SPAM ||
+		isSubfolderOfType(system, folder, MailFolderType.TRASH) ||
+		isSubfolderOfType(system, folder, MailFolderType.SPAM)
+	)
+}
+
+export function isSubfolderOfType(system: FolderSystem, folder: MailFolder, type: MailFolderType): boolean {
+	const systemFolder = system.getSystemFolderByType(type)
+	return systemFolder != null && system.checkFolderForAncestor(folder, systemFolder._id)
 }

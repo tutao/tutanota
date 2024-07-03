@@ -1,6 +1,6 @@
 import { PartialRecipient, Recipient } from "../api/common/recipients/Recipient.js"
 import { RecipientsModel, ResolveMode } from "../api/main/RecipientsModel.js"
-import { ContactListInfo, ContactModel } from "../../mail-app/contacts/model/ContactModel.js"
+import { ContactListInfo, ContactModel } from "../contactsFunctionality/ContactModel.js"
 import { isMailAddress } from "./FormatValidator.js"
 import { ofClass } from "@tutao/tutanota-utils"
 import { DbError } from "../api/common/error/DbError.js"

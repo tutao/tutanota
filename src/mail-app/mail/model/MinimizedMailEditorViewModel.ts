@@ -1,5 +1,5 @@
 import type { Dialog } from "../../../common/gui/base/Dialog"
-import type { SendMailModel } from "../editor/SendMailModel"
+import type { SendMailModel } from "../../../common/mailFunctionality/SendMailModel.js"
 import { lastThrow, remove } from "@tutao/tutanota-utils"
 import type { Mail } from "../../../common/api/entities/tutanota/TypeRefs.js"
 import { isSameId } from "../../../common/api/common/utils/EntityUtils"

@@ -6,7 +6,6 @@ import { ColumnWidth, Table } from "../../gui/base/Table.js"
 import { assert, assertNotNull, downcast, findAndRemove, neverNull, remove } from "@tutao/tutanota-utils"
 import { Icons } from "../../gui/base/icons/Icons"
 import { lang } from "../../misc/LanguageViewModel"
-import { getMailAddressDisplayText } from "../../../mail-app/mail/model/MailUtils"
 import { ButtonType } from "../../gui/base/Button.js"
 import { showProgressDialog } from "../../gui/dialogs/ProgressDialog"
 import { GroupType, ShareCapability } from "../../api/common/TutanotaConstants"
@@ -27,6 +26,7 @@ import { ResolvableRecipient, ResolveMode } from "../../api/main/RecipientsModel
 import { MailRecipientsTextField } from "../../gui/MailRecipientsTextField.js"
 import { cleanMailAddress, findRecipientWithAddress } from "../../api/common/utils/CommonCalendarUtils.js"
 import { showPlanUpgradeRequiredDialog } from "../../misc/SubscriptionDialogs.js"
+import { getMailAddressDisplayText } from "../../mailFunctionality/CommonMailUtils.js"
 
 export async function showGroupSharingDialog(groupInfo: GroupInfo, allowGroupNameOverride: boolean) {
 	const groupType = downcast(assertNotNull(groupInfo.groupType))

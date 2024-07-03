@@ -23,11 +23,11 @@ import {
 	extractStructuredPhoneNumbers,
 	extractStructuredRelationships,
 	extractStructuredWebsites,
-} from "./ContactUtils.js"
+} from "../../../common/contactsFunctionality/ContactUtils.js"
 import { LoginController } from "../../../common/api/main/LoginController.js"
 import { EntityClient } from "../../../common/api/common/EntityClient.js"
 import { EventController } from "../../../common/api/main/EventController.js"
-import { ContactModel } from "./ContactModel.js"
+import { ContactModel } from "../../../common/contactsFunctionality/ContactModel.js"
 import { DeviceConfig } from "../../../common/misc/DeviceConfig.js"
 import { PermissionError } from "../../../common/api/common/error/PermissionError.js"
 import { MobileContactsFacade } from "../../../common/native/common/generatedipc/MobileContactsFacade.js"

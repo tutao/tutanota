@@ -45,8 +45,9 @@ import { FormattedQuery, SqlValue, TaggedSqlValue, untagSqlObject } from "./SqlV
 import { FolderSystem } from "../../common/mail/FolderSystem.js"
 import { Type as TypeId } from "../../common/EntityConstants.js"
 import { OutOfSyncError } from "../../common/error/OutOfSyncError.js"
-import { isDraft, isSpamOrTrashFolder } from "../../common/mail/CommonMailUtils.js"
 import { sql, SqlFragment } from "./Sql.js"
+import { isSpamOrTrashFolder } from "../../../mailFunctionality/CommonMailUtils.js"
+import { isDraft } from "../../../../mail-app/mail/MailUtils.js"
 
 /**
  * this is the value of SQLITE_MAX_VARIABLE_NUMBER in sqlite3.c

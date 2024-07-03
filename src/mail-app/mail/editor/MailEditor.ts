@@ -2,20 +2,11 @@ import m, { Children, Component, Vnode } from "mithril"
 import stream from "mithril/stream"
 import Stream from "mithril/stream"
 import { Editor, ImagePasteEvent } from "../../../common/gui/editor/Editor"
-import type { Attachment, InitAsResponseArgs, SendMailModel } from "./SendMailModel"
+import type { Attachment, InitAsResponseArgs, SendMailModel } from "../../../common/mailFunctionality/SendMailModel.js"
 import { Dialog } from "../../../common/gui/base/Dialog"
 import { InfoLink, lang } from "../../../common/misc/LanguageViewModel"
-import type { MailboxDetail } from "../model/MailModel"
+import type { MailboxDetail } from "../../../common/mailFunctionality/MailModel.js"
 import { checkApprovalStatus } from "../../../common/misc/LoginUtils"
-import {
-	checkAttachmentSize,
-	conversationTypeString,
-	createNewContact,
-	getEnabledMailAddressesWithUser,
-	getMailAddressDisplayText,
-	LINE_BREAK,
-	RecipientField,
-} from "../model/MailUtils"
 import { locator } from "../../../common/api/main/MainLocator"
 import {
 	ALLOWED_IMAGE_FORMATS,
@@ -48,9 +39,9 @@ import {
 	Mail,
 	File as TutanotaFile,
 	MailboxProperties,
-	MailDetails
+	MailDetails,
+	Contact
 } from "../../../common/api/entities/tutanota/TypeRefs.js"
-import type { InlineImages } from "../view/MailViewer"
 import { FileOpenError } from "../../../common/api/common/error/FileOpenError"
 import type { lazy } from "@tutao/tutanota-utils"
 import { assertNotNull, cleanMatch, downcast, isNotNull, noOp, ofClass, typedValues } from "@tutao/tutanota-utils"
@@ -72,7 +63,7 @@ import { Shortcut } from "../../../common/misc/KeyManager"
 import { Recipients, RecipientType } from "../../../common/api/common/recipients/Recipient"
 import { showUserError } from "../../../common/misc/ErrorHandlerImpl"
 import { MailRecipientsTextField } from "../../../common/gui/MailRecipientsTextField.js"
-import { getContactDisplayName } from "../../contacts/model/ContactUtils"
+import { getContactDisplayName } from "../../../common/contactsFunctionality/ContactUtils.js"
 import { ResolvableRecipient } from "../../../common/api/main/RecipientsModel"
 
 import { animateToolbar, RichTextToolbar } from "../../../common/gui/base/RichTextToolbar.js"
@@ -93,6 +84,16 @@ import { isCustomizationEnabledForCustomer } from "../../../common/api/common/ut
 import { isOfflineError } from "../../../common/api/common/utils/ErrorUtils.js"
 import { TranslationService } from "../../../common/api/entities/tutanota/Services.js"
 import { PasswordField } from "../../../common/misc/passwords/PasswordField.js"
+import { InlineImages } from "../../../common/mailFunctionality/inlineImagesUtils.js"
+import {
+	checkAttachmentSize,
+	conversationTypeString,
+	createNewContact,
+	getEnabledMailAddressesWithUser,
+	getMailAddressDisplayText,
+	LINE_BREAK,
+	RecipientField,
+} from "../../../common/mailFunctionality/CommonMailUtils.js"
 
 export type MailEditorAttrs = {
 	model: SendMailModel
@@ -722,10 +723,10 @@ export class MailEditor implements Component<MailEditorAttrs> {
 		const createdContactReceiver = (contactElementId: Id) => {
 			const mailAddress = recipient.address
 
-			contactModel.getContactListId().then((contactListId) => {
+			contactModel.getContactListId().then((contactListId: string) => {
 				if (!contactListId) return
 				const id: IdTuple = [contactListId, contactElementId]
-				entity.load(ContactTypeRef, id).then((contact) => {
+				entity.load(ContactTypeRef, id).then((contact: Contact) => {
 					if (contact.mailAddresses.some((ma) => cleanMatch(ma.address, mailAddress))) {
 						recipient.setName(getContactDisplayName(contact))
 						recipient.setContact(contact)
@@ -751,7 +752,7 @@ export class MailEditor implements Component<MailEditorAttrs> {
 					label: () => lang.get("createContact_action"),
 					click: () => {
 						// contact list
-						contactModel.getContactListId().then((contactListId) => {
+						contactModel.getContactListId().then((contactListId: Id) => {
 							const newContact = createNewContact(locator.logins.getUserController().user, recipient.address, recipient.name)
 							import("../../contacts/ContactEditor").then(({ ContactEditor }) => {
 								// external users don't see edit buttons

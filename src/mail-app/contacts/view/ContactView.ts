@@ -42,7 +42,7 @@ import { SidebarSection } from "../../../common/gui/SidebarSection"
 import { attachDropdown, createDropdown, DropdownButtonAttrs } from "../../../common/gui/base/Dropdown.js"
 import { IconButton } from "../../../common/gui/base/IconButton.js"
 import { ButtonSize } from "../../../common/gui/base/ButtonSize.js"
-import { BottomNav } from "../../../common/gui/nav/BottomNav.js"
+import { BottomNav } from "../../gui/BottomNav.js"
 import { DrawerMenuAttrs } from "../../../common/gui/nav/DrawerMenu.js"
 import { BaseTopLevelView } from "../../../common/gui/BaseTopLevelView.js"
 import { TopLevelAttrs, TopLevelView } from "../../../TopLevelView.js"
@@ -73,10 +73,10 @@ import { showContactListEditor, showContactListNameEditor } from "../ContactList
 import { ContactListEntryViewer, getContactListEntriesSelectionMessage } from "./ContactListEntryViewer.js"
 import { showPlanUpgradeRequiredDialog } from "../../../common/misc/SubscriptionDialogs.js"
 import ColumnEmptyMessageBox from "../../../common/gui/base/ColumnEmptyMessageBox.js"
-import { ContactListInfo } from "../model/ContactModel.js"
+import { ContactListInfo } from "../../../common/contactsFunctionality/ContactModel.js"
 import { CONTACTLIST_PREFIX } from "../../../common/misc/RouteChange.js"
 import { StructuredContact } from "../../../common/native/common/generatedipc/StructuredContact.js"
-import { validateBirthdayOfContact } from "../model/ContactUtils.js"
+import { validateBirthdayOfContact } from "../../../common/contactsFunctionality/ContactUtils.js"
 
 assertMainOrNode()
 

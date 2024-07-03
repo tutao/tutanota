@@ -3,11 +3,11 @@ import { bootstrapWorker } from "./WorkerClient"
 import { EventController } from "./EventController"
 import { EntropyCollector } from "./EntropyCollector"
 import { SearchModel } from "../../../mail-app/search/model/SearchModel"
-import { MailboxDetail, MailModel } from "../../../mail-app/mail/model/MailModel"
+import { MailboxDetail, MailModel } from "../../mailFunctionality/MailModel.js"
 import { assertMainOrNode, isAndroidApp, isApp, isBrowser, isDesktop, isElectronClient, isIOSApp } from "../common/Env"
 import { notifications } from "../../gui/Notifications"
 import { LoginController } from "./LoginController"
-import type { ContactModel } from "../../../mail-app/contacts/model/ContactModel"
+import type { ContactModel } from "../../contactsFunctionality/ContactModel.js"
 import { EntityClient } from "../common/EntityClient"
 import type { CalendarInfo, CalendarModel } from "../../../calendar-app/calendar/model/CalendarModel"
 import { assert, assertNotNull, defer, DeferredObject, lazy, lazyAsync, lazyMemoized, noOp, ofClass } from "@tutao/tutanota-utils"
@@ -61,7 +61,7 @@ import { InterWindowEventFacadeSendDispatcher } from "../../native/common/genera
 import { NewsModel } from "../../misc/news/NewsModel.js"
 import type { MailAddressNameChanger, MailAddressTableModel } from "../../../mail-app/settings/mailaddress/MailAddressTableModel.js"
 import { GroupInfo } from "../entities/sys/TypeRefs.js"
-import type { SendMailModel } from "../../../mail-app/mail/editor/SendMailModel.js"
+import type { SendMailModel } from "../../mailFunctionality/SendMailModel.js"
 import type { CalendarEvent, Mail, MailboxProperties } from "../entities/tutanota/TypeRefs.js"
 import { CalendarEventAttendee } from "../entities/tutanota/TypeRefs.js"
 import type { CreateMailViewerOptions } from "../../../mail-app/mail/view/MailViewer.js"
@@ -93,10 +93,8 @@ import { ShareableGroupType } from "../../sharing/GroupUtils.js"
 import { DomainConfigProvider } from "../common/DomainConfigProvider.js"
 import type { AppsCredentialRemovalHandler, CredentialRemovalHandler, NoopCredentialRemovalHandler } from "../../login/CredentialRemovalHandler.js"
 import { LoginViewModel } from "../../login/LoginViewModel.js"
-import { getEnabledMailAddressesWithUser } from "../../../mail-app/mail/model/MailUtils.js"
 import type { CalendarEventPreviewViewModel } from "../../../calendar-app/calendar/gui/eventpopup/CalendarEventPreviewViewModel.js"
 
-import { getDisplayedSender } from "../common/mail/CommonMailUtils.js"
 import { isCustomizationEnabledForCustomer } from "../common/utils/CustomerUtils.js"
 import { CalendarEventsRepository } from "../../../calendar-app/calendar/date/CalendarEventsRepository.js"
 import { CalendarInviteHandler } from "../../../calendar-app/calendar/view/CalendarInvites.js"
@@ -114,6 +112,7 @@ import { MobileAppLock, NoOpAppLock } from "../../login/AppLock.js"
 import { PostLoginActions } from "../../login/PostLoginActions.js"
 import { SystemPermissionHandler } from "../../native/main/SystemPermissionHandler.js"
 import { RecoverCodeFacade } from "../worker/facades/lazy/RecoverCodeFacade.js"
+import { getDisplayedSender, getEnabledMailAddressesWithUser } from "../../mailFunctionality/CommonMailUtils.js"
 import { MobilePaymentsFacade } from "../../native/common/generatedipc/MobilePaymentsFacade.js"
 import { AppStorePaymentPicker } from "../../misc/AppStorePaymentPicker.js"
 import { CacheManagementFacade } from "../worker/facades/lazy/CacheManagementFacade.js"
@@ -342,7 +341,7 @@ class MainLocator {
 
 	/** This ugly bit exists because CalendarEventWhoModel wants a sync factory. */
 	private async sendMailModelSyncFactory(mailboxDetails: MailboxDetail, mailboxProperties: MailboxProperties): Promise<() => SendMailModel> {
-		const { SendMailModel } = await import("../../../mail-app/mail/editor/SendMailModel")
+		const { SendMailModel } = await import("../../mailFunctionality/SendMailModel.js")
 		const recipientsModel = await this.recipientsModel()
 		const dateProvider = await this.noZoneDateProvider()
 		return () =>
@@ -673,15 +672,7 @@ class MainLocator {
 		this.entropyFacade = entropyFacade
 		this.workerFacade = workerFacade
 		this.connectivityModel = new WebsocketConnectivityModel(eventBus)
-		this.mailModel = new MailModel(
-			notifications,
-			this.eventController,
-			this.connectivityModel,
-			this.mailFacade,
-			this.entityClient,
-			this.logins,
-			this.inboxRuleHanlder(),
-		)
+		this.mailModel = new MailModel(notifications, this.eventController, this.mailFacade, this.entityClient, this.logins)
 		this.operationProgressTracker = new OperationProgressTracker()
 		this.infoMessageHandler = new InfoMessageHandler(this.search)
 
@@ -791,7 +782,7 @@ class MainLocator {
 				? new FileControllerBrowser(blobFacade, guiDownload)
 				: new FileControllerNative(blobFacade, guiDownload, this.nativeInterfaces.fileApp)
 
-		const { ContactModel } = await import("../../../mail-app/contacts/model/ContactModel")
+		const { ContactModel } = await import("../../contactsFunctionality/ContactModel.js")
 		this.contactModel = new ContactModel(this.searchFacade, this.entityClient, this.logins, this.eventController)
 		this.minimizedMailModel = new MinimizedMailEditorViewModel()
 		this.usageTestController = new UsageTestController(this.usageTestModel)

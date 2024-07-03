@@ -3,7 +3,7 @@ import { utf8Uint8ArrayToString } from "@tutao/tutanota-utils"
 import { showProgressDialog } from "../../../common/gui/dialogs/ProgressDialog.js"
 import { locator } from "../../../common/api/main/MainLocator.js"
 import { Dialog } from "../../../common/gui/base/Dialog.js"
-import { ContactModel } from "../model/ContactModel.js"
+import { ContactModel } from "../../../common/contactsFunctionality/ContactModel.js"
 import { ContactTypeRef } from "../../../common/api/entities/tutanota/TypeRefs.js"
 import { exportContacts } from "../VCardExporter.js"
 

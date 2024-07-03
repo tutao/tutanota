@@ -7,10 +7,11 @@ import { CloseEventBusOption, MailFolderType, SECOND_MS } from "../../api/common
 import { MobileFacade } from "../common/generatedipc/MobileFacade.js"
 import { styles } from "../../gui/styles"
 import { WebsocketConnectivityModel } from "../../misc/WebsocketConnectivityModel.js"
-import { MailModel } from "../../../mail-app/mail/model/MailModel.js"
+import { MailModel } from "../../mailFunctionality/MailModel.js"
 import { TopLevelView } from "../../../TopLevelView.js"
-import { assertSystemFolderOfType } from "../../api/common/mail/CommonMailUtils.js"
 import stream from "mithril/stream"
+
+import { assertSystemFolderOfType } from "../../mailFunctionality/CommonMailUtils.js"
 
 assertMainOrNode()
 

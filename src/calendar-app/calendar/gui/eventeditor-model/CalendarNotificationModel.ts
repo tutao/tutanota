@@ -1,4 +1,4 @@
-import { SendMailModel } from "../../../../mail-app/mail/editor/SendMailModel.js"
+import { SendMailModel } from "../../../../common/mailFunctionality/SendMailModel.js"
 import { CalendarNotificationSender } from "../../view/CalendarNotificationSender.js"
 import { LoginController } from "../../../../common/api/main/LoginController.js"
 import { CalendarEvent } from "../../../../common/api/entities/tutanota/TypeRefs.js"

@@ -38,10 +38,11 @@ import { EphemeralCacheStorage } from "../rest/EphemeralCacheStorage"
 import { InfoMessageHandler } from "../../../gui/InfoMessageHandler.js"
 import { ElementDataOS, GroupDataOS, Metadata, MetaDataOS } from "./IndexTables.js"
 import { MailFacade } from "../facades/lazy/MailFacade.js"
-import { getDisplayedSender, getMailBodyText, isDraft, MailAddressAndName } from "../../common/mail/CommonMailUtils.js"
 import { containsEventOfType, EntityUpdateData } from "../../common/utils/EntityUpdateUtils.js"
 import { b64UserIdHash } from "./DbFacade.js"
 import { hasError } from "../../common/utils/ErrorUtils.js"
+import { getDisplayedSender, MailAddressAndName } from "../../../mailFunctionality/CommonMailUtils.js"
+import { getMailBodyText, isDraft } from "../../../../mail-app/mail/MailUtils.js"
 
 export const INITIAL_MAIL_INDEX_INTERVAL_DAYS = 28
 const ENTITY_INDEXER_CHUNK = 20

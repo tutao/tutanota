@@ -7,10 +7,10 @@ import type { HtmlSanitizer } from "../../../common/misc/HtmlSanitizer"
 import { promiseMap } from "@tutao/tutanota-utils"
 import { DataFile } from "../../../common/api/common/DataFile"
 import { FileController } from "../../../common/file/FileController"
-import { loadMailDetails, loadMailHeaders } from "../model/MailUtils.js"
 import { MailFacade } from "../../../common/api/worker/facades/lazy/MailFacade.js"
-import { getDisplayedSender, getMailBodyText, MailAddressAndName } from "../../../common/api/common/mail/CommonMailUtils.js"
 import { CryptoFacade } from "../../../common/api/worker/crypto/CryptoFacade.js"
+import { getDisplayedSender, loadMailDetails, loadMailHeaders, MailAddressAndName } from "../../../common/mailFunctionality/CommonMailUtils.js"
+import { getMailBodyText } from "../MailUtils.js"
 
 /**
  * Used to pass all downloaded mail stuff to the desktop side to be exported as a file

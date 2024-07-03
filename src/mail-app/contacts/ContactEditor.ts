@@ -3,7 +3,7 @@ import { Dialog } from "../../common/gui/base/Dialog"
 import type { TranslationKey } from "../../common/misc/LanguageViewModel"
 import { lang } from "../../common/misc/LanguageViewModel"
 import { isMailAddress } from "../../common/misc/FormatValidator"
-import { formatBirthdayNumeric, formatContactDate } from "./model/ContactUtils"
+import { formatBirthdayNumeric, formatContactDate } from "../../common/contactsFunctionality/ContactUtils.js"
 import {
 	ContactAddressType,
 	ContactCustomDateType,

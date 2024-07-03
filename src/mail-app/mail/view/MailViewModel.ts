@@ -1,5 +1,5 @@
 import { ListModel } from "../../../common/misc/ListModel.js"
-import { MailboxDetail, MailModel } from "../model/MailModel.js"
+import { MailboxDetail, MailModel } from "../../../common/mailFunctionality/MailModel.js"
 import { EntityClient } from "../../../common/api/common/EntityClient.js"
 import { Mail, MailFolder, MailTypeRef } from "../../../common/api/entities/tutanota/TypeRefs.js"
 import { firstBiggerThanSecond, GENERATED_MAX_ID, getElementId, isSameId, sortCompareByReverseId } from "../../../common/api/common/utils/EntityUtils.js"
@@ -9,20 +9,26 @@ import { ConversationPrefProvider, ConversationViewModel, ConversationViewModelF
 import { CreateMailViewerOptions } from "./MailViewer.js"
 import { isOfflineError } from "../../../common/api/common/utils/ErrorUtils.js"
 import { MailFolderType } from "../../../common/api/common/TutanotaConstants.js"
-import { assertSystemFolderOfType, isOfTypeOrSubfolderOf, isSpamOrTrashFolder, isSubfolderOfType } from "../../../common/api/common/mail/CommonMailUtils.js"
 import { WsConnectionState } from "../../../common/api/main/WorkerClient.js"
 import { WebsocketConnectivityModel } from "../../../common/misc/WebsocketConnectivityModel.js"
 import { ExposedCacheStorage } from "../../../common/api/worker/rest/DefaultEntityRestCache.js"
 import { PreconditionFailedError } from "../../../common/api/common/error/RestError.js"
 import { UserError } from "../../../common/api/main/UserError.js"
 import { ProgrammingError } from "../../../common/api/common/error/ProgrammingError.js"
-import { getMailFilterForType, MailFilterType } from "../model/MailUtils.js"
 import Stream from "mithril/stream"
 import { InboxRuleHandler } from "../model/InboxRuleHandler.js"
 import { Router } from "../../../common/gui/ScopedRouter.js"
 import { ListFetchResult } from "../../../common/gui/base/ListUtils.js"
 import { EntityUpdateData, isUpdateForTypeRef } from "../../../common/api/common/utils/EntityUpdateUtils.js"
 import { EventController } from "../../../common/api/main/EventController.js"
+import {
+	assertSystemFolderOfType,
+	getMailFilterForType,
+	isSpamOrTrashFolder,
+	isSubfolderOfType,
+	MailFilterType,
+} from "../../../common/mailFunctionality/CommonMailUtils.js"
+import { isOfTypeOrSubfolderOf } from "../MailUtils.js"
 
 export interface MailOpenedListener {
 	onEmailOpened(mail: Mail): unknown
@@ -279,8 +285,8 @@ export class MailViewModel {
 			const items = await this.entityClient.loadRange(MailTypeRef, listId, start, count, true)
 			const mailboxDetail = await this.mailModel.getMailboxDetailsForMailListId(listId)
 			// For inbox rules there are two points where we might want to apply them. The first one is MailModel which applied inbox rules as they are received
-			// in real time. The second one is here, when we load emails in inbox. If they are unread we want to apply inbox rules to them. If inbox rule is
-			// applies the email is moved out of inbox and we don't return it here.
+			// in real time. The second one is here, when we load emails in inbox. If they are unread we want to apply inbox rules to them. If inbox rule
+			// applies, the email is moved out of the inbox and we don't return it here.
 			if (mailboxDetail) {
 				const mailsToKeepInInbox = await promiseFilter(items, async (mail) => {
 					const wasMatched = await this.inboxRuleHandler.findAndApplyMatchingRule(mailboxDetail, mail, true)
