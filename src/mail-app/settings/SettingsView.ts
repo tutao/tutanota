@@ -46,7 +46,7 @@ import { GroupInvitationFolderRow } from "../../common/sharing/view/GroupInvitat
 import { TemplateGroupService } from "../../common/api/entities/tutanota/Services"
 import { exportUserCsv } from "./UserDataExporter.js"
 import { IconButton } from "../../common/gui/base/IconButton.js"
-import { BottomNav } from "../../common/gui/nav/BottomNav.js"
+import { BottomNav } from "../gui/BottomNav.js"
 import { getAvailableDomains } from "./mailaddress/MailAddressesUtils.js"
 import { DrawerMenuAttrs } from "../../common/gui/nav/DrawerMenu.js"
 import { BaseTopLevelView } from "../../common/gui/BaseTopLevelView.js"

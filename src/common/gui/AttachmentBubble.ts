@@ -1,5 +1,5 @@
 import m, { Children, Component, Vnode, VnodeDOM } from "mithril"
-import { Attachment } from "../../mail-app/mail/editor/SendMailModel.js"
+import { Attachment } from "../mailFunctionality/SendMailModel.js"
 import { Button, ButtonType } from "./base/Button.js"
 import { Icons } from "./base/icons/Icons.js"
 import { formatStorageSize } from "../misc/Formatter.js"

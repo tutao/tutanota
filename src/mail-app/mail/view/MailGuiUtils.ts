@@ -1,13 +1,11 @@
-import type { MailModel } from "../model/MailModel"
+import type { MailModel } from "../../../common/mailFunctionality/MailModel.js"
 import type { File as TutanotaFile, Mail, MailFolder } from "../../../common/api/entities/tutanota/TypeRefs.js"
 import { createMail } from "../../../common/api/entities/tutanota/TypeRefs.js"
 import { LockedError, PreconditionFailedError } from "../../../common/api/common/error/RestError"
 import { Dialog } from "../../../common/gui/base/Dialog"
 import { locator } from "../../../common/api/main/MainLocator"
-import { getFolderIcon, getFolderName, getIndentedFolderNameForDropdown, getMoveTargetFolderSystems } from "../model/MailUtils"
 import { AllIcons } from "../../../common/gui/base/Icon"
 import { Icons } from "../../../common/gui/base/icons/Icons"
-import type { InlineImages } from "./MailViewer"
 import { isApp, isDesktop } from "../../../common/api/common/Env"
 import { assertNotNull, neverNull, noOp, promiseMap } from "@tutao/tutanota-utils"
 import { MailFolderType, MailReportType } from "../../../common/api/common/TutanotaConstants"
@@ -18,10 +16,19 @@ import { lang, TranslationKey } from "../../../common/misc/LanguageViewModel"
 import { FileController } from "../../../common/file/FileController"
 import { DomRectReadOnlyPolyfilled, Dropdown, DropdownChildAttrs, PosRect } from "../../../common/gui/base/Dropdown.js"
 import { modal } from "../../../common/gui/base/Modal.js"
-import { assertSystemFolderOfType, isOfTypeOrSubfolderOf, isSpamOrTrashFolder } from "../../../common/api/common/mail/CommonMailUtils.js"
 import { ConversationViewModel } from "./ConversationViewModel.js"
 import { size } from "../../../common/gui/size.js"
 import { PinchZoom } from "../../../common/gui/PinchZoom.js"
+import { InlineImageReference, InlineImages } from "../../../common/mailFunctionality/inlineImagesUtils.js"
+import { isOfTypeOrSubfolderOf } from "../MailUtils.js"
+import {
+	assertSystemFolderOfType,
+	getFolderIcon,
+	getFolderName,
+	getIndentedFolderNameForDropdown,
+	getMoveTargetFolderSystems,
+	isSpamOrTrashFolder,
+} from "../../../common/mailFunctionality/CommonMailUtils.js"
 
 export async function showDeleteConfirmationDialog(mails: ReadonlyArray<Mail>): Promise<boolean> {
 	let trashMails: Mail[] = []
@@ -249,12 +256,6 @@ export function replaceInlineImagesWithCids(dom: HTMLElement): HTMLElement {
 	return domClone
 }
 
-export type InlineImageReference = {
-	cid: string
-	objectUrl: string
-	blob: Blob
-}
-
 export function createInlineImage(file: DataFile): InlineImageReference {
 	const cid = Math.random().toString(30).substring(2)
 	file.cid = cid
@@ -270,26 +271,6 @@ function createInlineImageReference(file: DataFile, cid: string): InlineImageRef
 		cid,
 		objectUrl,
 		blob,
-	}
-}
-
-export function cloneInlineImages(inlineImages: InlineImages): InlineImages {
-	const newMap = new Map()
-	for (const [k, v] of inlineImages.entries()) {
-		const blob = new Blob([v.blob])
-		const objectUrl = URL.createObjectURL(blob)
-		newMap.set(k, {
-			cid: v.cid,
-			objectUrl,
-			blob,
-		})
-	}
-	return newMap
-}
-
-export function revokeInlineImages(inlineImages: InlineImages): void {
-	for (const v of inlineImages.values()) {
-		URL.revokeObjectURL(v.objectUrl)
 	}
 }
 

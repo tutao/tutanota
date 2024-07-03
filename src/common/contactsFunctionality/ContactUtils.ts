@@ -1,4 +1,4 @@
-import { lang } from "../../../common/misc/LanguageViewModel"
+import { lang } from "../misc/LanguageViewModel.js"
 import {
 	Birthday,
 	Contact,
@@ -10,10 +10,10 @@ import {
 	ContactRelationship,
 	ContactSocialId,
 	ContactWebsite,
-} from "../../../common/api/entities/tutanota/TypeRefs.js"
-import { formatDate } from "../../../common/misc/Formatter"
-import { isoDateToBirthday } from "../../../common/api/common/utils/BirthdayUtils"
-import { assertMainOrNode } from "../../../common/api/common/Env"
+} from "../api/entities/tutanota/TypeRefs.js"
+import { formatDate } from "../misc/Formatter.js"
+import { isoDateToBirthday } from "../api/common/utils/BirthdayUtils.js"
+import { assertMainOrNode } from "../api/common/Env.js"
 import {
 	ContactAddressType,
 	ContactCustomDateType,
@@ -22,15 +22,15 @@ import {
 	ContactRelationshipType,
 	ContactSocialType,
 	ContactWebsiteType,
-} from "../../../common/api/common/TutanotaConstants"
-import { StructuredMailAddress } from "../../../common/native/common/generatedipc/StructuredMailAddress.js"
-import { StructuredPhoneNumber } from "../../../common/native/common/generatedipc/StructuredPhoneNumber.js"
-import { StructuredAddress } from "../../../common/native/common/generatedipc/StructuredAddress.js"
-import { StructuredContact } from "../../../common/native/common/generatedipc/StructuredContact.js"
-import { StructuredCustomDate } from "../../../common/native/common/generatedipc/StructuredCustomDate.js"
-import { StructuredWebsite } from "../../../common/native/common/generatedipc/StructuredWebsite.js"
-import { StructuredRelationship } from "../../../common/native/common/generatedipc/StructuredRelationship.js"
-import { StructuredMessengerHandle } from "../../../common/native/common/generatedipc/StructuredMessengerHandle.js"
+} from "../api/common/TutanotaConstants.js"
+import { StructuredMailAddress } from "../native/common/generatedipc/StructuredMailAddress.js"
+import { StructuredPhoneNumber } from "../native/common/generatedipc/StructuredPhoneNumber.js"
+import { StructuredAddress } from "../native/common/generatedipc/StructuredAddress.js"
+import { StructuredContact } from "../native/common/generatedipc/StructuredContact.js"
+import { StructuredCustomDate } from "../native/common/generatedipc/StructuredCustomDate.js"
+import { StructuredWebsite } from "../native/common/generatedipc/StructuredWebsite.js"
+import { StructuredRelationship } from "../native/common/generatedipc/StructuredRelationship.js"
+import { StructuredMessengerHandle } from "../native/common/generatedipc/StructuredMessengerHandle.js"
 
 assertMainOrNode()
 

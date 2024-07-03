@@ -207,33 +207,21 @@ function renderOrganizer(organizer: Guest, { model }: Pick<AttendeeListEditorAtt
 
 	const rightContent =
 		// this prevents us from setting our own attendance on a single instance that we're editing.
-		model.operation !== CalendarOperation.EditThis
-			? isMe
-				? m(
-						"",
-						{ style: { minWidth: "120px" } },
-						m(DropDownSelector, {
-							label: "attending_label",
-							items: createAttendingItems(),
-							selectedValue: status,
-							class: "",
-							selectionChangedHandler: (value: CalendarAttendeeStatus) => {
-								if (value == null) return
-								whoModel.setOwnAttendance(value)
-							},
-						}),
-				  )
-				: m(IconButton, {
-						title: "sendMail_alt",
-						click: async () =>
-							(await import("../../../../mail-app/contacts/view/ContactView.js")).writeMail(
-								organizer,
-								lang.get("repliedToEventInvite_msg", {
-									"{event}": model.editModels.summary.content,
-								}),
-							),
-						icon: Icons.PencilSquare,
-				  })
+		model.operation !== CalendarOperation.EditThis && isMe
+			? m(
+					"",
+					{ style: { minWidth: "120px" } },
+					m(DropDownSelector, {
+						label: "attending_label",
+						items: createAttendingItems(),
+						selectedValue: status,
+						class: "",
+						selectionChangedHandler: (value: CalendarAttendeeStatus) => {
+							if (value == null) return
+							whoModel.setOwnAttendance(value)
+						},
+					}),
+			  )
 			: null
 
 	return renderAttendee(nameAndAddress, statusLine, rightContent)

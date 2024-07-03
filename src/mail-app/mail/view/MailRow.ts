@@ -2,7 +2,6 @@ import { EncryptionAuthStatus, getMailFolderType, MailFolderType, MailState, Rep
 import { FontIcons } from "../../../common/gui/base/icons/FontIcons"
 import type { Mail } from "../../../common/api/entities/tutanota/TypeRefs.js"
 import { formatTimeOrDateOrYesterday } from "../../../common/misc/Formatter.js"
-import { getConfidentialFontIcon, getSenderOrRecipientHeading } from "../model/MailUtils.js"
 import { locator } from "../../../common/api/main/MainLocator"
 import m, { Children } from "mithril"
 import Badge from "../../../common/gui/base/Badge"
@@ -21,7 +20,8 @@ import { px, size } from "../../../common/gui/size.js"
 import { NBSP, noOp } from "@tutao/tutanota-utils"
 import { VirtualRow } from "../../../common/gui/base/ListUtils.js"
 import { companyTeamLabel } from "../../../common/misc/ClientConstants.js"
-import { isTutanotaTeamMail } from "../../../common/api/common/mail/CommonMailUtils.js"
+import { getConfidentialFontIcon, getSenderOrRecipientHeading } from "../../../common/mailFunctionality/CommonMailUtils.js"
+import { isTutanotaTeamMail } from "../MailUtils.js"
 
 const iconMap: Record<MailFolderType, string> = {
 	[MailFolderType.CUSTOM]: FontIcons.Folder,

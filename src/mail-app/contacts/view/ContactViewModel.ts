@@ -1,4 +1,4 @@
-import { ContactModel } from "../model/ContactModel.js"
+import { ContactModel } from "../../../common/contactsFunctionality/ContactModel.js"
 import { EntityClient } from "../../../common/api/common/EntityClient.js"
 import { EntityEventsListener, EventController } from "../../../common/api/main/EventController.js"
 import { ListModel } from "../../../common/misc/ListModel.js"

@@ -1,18 +1,22 @@
 import { MailFolder, MailTypeRef } from "../../../common/api/entities/tutanota/TypeRefs.js"
 import { DropDownSelector, SelectorItemList } from "../../../common/gui/base/DropDownSelector.js"
-import { getFolderName, getIndentedFolderNameForDropdown, getPathToFolderString } from "../model/MailUtils.js"
 import m from "mithril"
 import { TextField } from "../../../common/gui/base/TextField.js"
 import { Dialog } from "../../../common/gui/base/Dialog.js"
 import { locator } from "../../../common/api/main/MainLocator.js"
 import { LockedError } from "../../../common/api/common/error/RestError.js"
 import { lang, TranslationKey } from "../../../common/misc/LanguageViewModel.js"
-import { MailboxDetail } from "../model/MailModel.js"
+import { MailboxDetail } from "../../../common/mailFunctionality/MailModel.js"
 import { MailFolderType, MailReportType } from "../../../common/api/common/TutanotaConstants.js"
 import { isSameId } from "../../../common/api/common/utils/EntityUtils.js"
 import { reportMailsAutomatically } from "./MailReportDialog.js"
-import { isSpamOrTrashFolder } from "../../../common/api/common/mail/CommonMailUtils.js"
 import { isOfflineError } from "../../../common/api/common/utils/ErrorUtils.js"
+import {
+	getFolderName,
+	getIndentedFolderNameForDropdown,
+	getPathToFolderString,
+	isSpamOrTrashFolder,
+} from "../../../common/mailFunctionality/CommonMailUtils.js"
 
 /**
  * Dialog for Edit and Add folder are the same.

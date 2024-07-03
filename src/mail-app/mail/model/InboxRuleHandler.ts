@@ -4,7 +4,7 @@ import { InboxRuleType, MailFolderType, MAX_NBR_MOVE_DELETE_MAIL_SERVICE } from 
 import { isDomainName, isRegularExpression } from "../../../common/misc/FormatValidator"
 import { assertNotNull, asyncFind, debounce, ofClass, promiseMap, splitInChunks } from "@tutao/tutanota-utils"
 import { lang } from "../../../common/misc/LanguageViewModel"
-import type { MailboxDetail } from "./MailModel"
+import type { MailboxDetail } from "../../../common/mailFunctionality/MailModel.js"
 import { LockedError, NotFoundError, PreconditionFailedError } from "../../../common/api/common/error/RestError"
 import type { SelectorItemList } from "../../../common/gui/base/DropDownSelector.js"
 import { EntityClient } from "../../../common/api/common/EntityClient"
@@ -12,9 +12,8 @@ import { getElementId, getListId, isSameId } from "../../../common/api/common/ut
 import { assertMainOrNode } from "../../../common/api/common/Env"
 import { MailFacade } from "../../../common/api/worker/facades/lazy/MailFacade.js"
 import { isLegacyMail } from "../../../common/api/common/MailWrapper.js"
-import { assertSystemFolderOfType } from "../../../common/api/common/mail/CommonMailUtils.js"
 import { LoginController } from "../../../common/api/main/LoginController.js"
-import { getLegacyMailHeaders, getMailHeaders } from "./MailUtils.js"
+import { assertSystemFolderOfType, getLegacyMailHeaders, getMailHeaders } from "../../../common/mailFunctionality/CommonMailUtils.js"
 
 assertMainOrNode()
 const moveMailDataPerFolder: MoveMailData[] = []

@@ -1,10 +1,10 @@
 import m, { Children, Component, Vnode } from "mithril"
-import { NavButton } from "../base/NavButton.js"
-import { size } from "../size"
-import { CALENDAR_PREFIX, CONTACTS_PREFIX, MAIL_PREFIX, SEARCH_PREFIX } from "../../misc/RouteChange"
-import { FeatureType } from "../../api/common/TutanotaConstants"
-import { BootIcons } from "../base/icons/BootIcons"
-import { locator } from "../../api/main/MainLocator.js"
+import { NavButton } from "../../common/gui/base/NavButton.js"
+import { size } from "../../common/gui/size"
+import { CALENDAR_PREFIX, CONTACTS_PREFIX, MAIL_PREFIX, SEARCH_PREFIX } from "../../common/misc/RouteChange"
+import { FeatureType } from "../../common/api/common/TutanotaConstants"
+import { BootIcons } from "../../common/gui/base/icons/BootIcons"
+import { locator } from "../../common/api/main/MainLocator.js"
 
 type Attrs = void
 const fontSize = size.font_size_small

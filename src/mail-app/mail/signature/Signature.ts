@@ -1,10 +1,10 @@
 import { InfoLink, lang } from "../../../common/misc/LanguageViewModel"
 import type { TutanotaProperties } from "../../../common/api/entities/tutanota/TypeRefs.js"
 import { EmailSignatureType as TutanotaConstants } from "../../../common/api/common/TutanotaConstants"
-import { LINE_BREAK } from "../model/MailUtils"
 import { htmlSanitizer } from "../../../common/misc/HtmlSanitizer"
 import type { LoginController } from "../../../common/api/main/LoginController"
 import { assertMainOrNode } from "../../../common/api/common/Env"
+import { LINE_BREAK } from "../../../common/mailFunctionality/CommonMailUtils.js"
 
 assertMainOrNode()
 
