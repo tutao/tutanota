@@ -115,7 +115,7 @@ aes_key!(
 
 aes_key!(
     Aes256Key,
-    "Aes128Key",
+    "Aes256Key",
     AES_256_KEY_SIZE,
     aes::Aes256,
     sha2::Sha512
