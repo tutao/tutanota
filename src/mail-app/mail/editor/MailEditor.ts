@@ -2,20 +2,11 @@ import m, { Children, Component, Vnode } from "mithril"
 import stream from "mithril/stream"
 import Stream from "mithril/stream"
 import { Editor, ImagePasteEvent } from "../../../common/gui/editor/Editor"
-import type { Attachment, InitAsResponseArgs, SendMailModel } from "./SendMailModel"
+import type { Attachment, InitAsResponseArgs, SendMailModel } from "../../../common/mailFunctionality/SendMailModel.js"
 import { Dialog } from "../../../common/gui/base/Dialog"
 import { InfoLink, lang } from "../../../common/misc/LanguageViewModel"
-import type { MailboxDetail } from "../model/MailModel"
+import type { MailboxDetail } from "../../../common/mailFunctionality/MailModel.js"
 import { checkApprovalStatus } from "../../../common/misc/LoginUtils"
-import {
-	checkAttachmentSize,
-	conversationTypeString,
-	createNewContact,
-	getEnabledMailAddressesWithUser,
-	getMailAddressDisplayText,
-	LINE_BREAK,
-	RecipientField,
-} from "../model/MailUtils"
 import { locator } from "../../../common/api/main/MainLocator"
 import {
 	ALLOWED_IMAGE_FORMATS,
@@ -43,7 +34,6 @@ import { showProgressDialog } from "../../../common/gui/dialogs/ProgressDialog"
 import { htmlSanitizer } from "../../../common/misc/HtmlSanitizer"
 import { DropDownSelector } from "../../../common/gui/base/DropDownSelector.js"
 import { ContactTypeRef, createTranslationGetIn, File as TutanotaFile, MailboxProperties } from "../../../common/api/entities/tutanota/TypeRefs.js"
-import type { InlineImages } from "../view/MailViewer"
 import { FileOpenError } from "../../../common/api/common/error/FileOpenError"
 import type { lazy } from "@tutao/tutanota-utils"
 import { assertNotNull, cleanMatch, downcast, isNotNull, noOp, ofClass, typedValues } from "@tutao/tutanota-utils"
@@ -65,7 +55,7 @@ import { Shortcut } from "../../../common/misc/KeyManager"
 import { Recipients, RecipientType } from "../../../common/api/common/recipients/Recipient"
 import { showUserError } from "../../../common/misc/ErrorHandlerImpl"
 import { MailRecipientsTextField } from "../../../common/gui/MailRecipientsTextField.js"
-import { getContactDisplayName } from "../../contacts/model/ContactUtils"
+import { getContactDisplayName } from "../../../common/contactsFunctionality/ContactUtils.js"
 import { ResolvableRecipient } from "../../../common/api/main/RecipientsModel"
 
 import { animateToolbar, RichTextToolbar } from "../../../common/gui/base/RichTextToolbar.js"
@@ -87,6 +77,16 @@ import { isCustomizationEnabledForCustomer } from "../../../common/api/common/ut
 import { isOfflineError } from "../../../common/api/common/utils/ErrorUtils.js"
 import { TranslationService } from "../../../common/api/entities/tutanota/Services.js"
 import { PasswordField } from "../../../common/misc/passwords/PasswordField.js"
+import { InlineImages } from "../../../common/mailFunctionality/inlineImagesUtils.js"
+import {
+	checkAttachmentSize,
+	conversationTypeString,
+	createNewContact,
+	getEnabledMailAddressesWithUser,
+	getMailAddressDisplayText,
+	LINE_BREAK,
+	RecipientField,
+} from "../../../common/mailFunctionality/CommonMailUtils.js"
 
 export type MailEditorAttrs = {
 	model: SendMailModel

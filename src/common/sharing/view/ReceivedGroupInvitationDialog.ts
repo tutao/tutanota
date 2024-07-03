@@ -1,4 +1,3 @@
-import { getMailAddressDisplayText } from "../../../mail-app/mail/model/MailUtils"
 import { createGroupSettings } from "../../api/entities/tutanota/TypeRefs.js"
 import m, { Children } from "mithril"
 import { lang } from "../../misc/LanguageViewModel"
@@ -18,6 +17,7 @@ import { GroupType } from "../../api/common/TutanotaConstants"
 import { ColorPicker } from "../../gui/base/ColorPicker"
 import { locator } from "../../api/main/MainLocator"
 import { LoginButton } from "../../gui/base/buttons/LoginButton.js"
+import { getMailAddressDisplayText } from "../../mailFunctionality/CommonMailUtils.js"
 
 export function showGroupInvitationDialog(invitation: ReceivedGroupInvitation) {
 	const groupType = getInvitationGroupType(invitation)

@@ -65,7 +65,7 @@ import {
 	MailboxProperties,
 } from "../../../../common/api/entities/tutanota/TypeRefs.js"
 import { User } from "../../../../common/api/entities/sys/TypeRefs.js"
-import { MailboxDetail } from "../../../../mail-app/mail/model/MailModel.js"
+import { MailboxDetail } from "../../../../common/mailFunctionality/MailModel.js"
 import {
 	AlarmInterval,
 	areRepeatRulesEqual,
@@ -81,7 +81,7 @@ import { cleanMailAddress } from "../../../../common/api/common/utils/CommonCale
 import { CalendarInfo, CalendarModel } from "../../model/CalendarModel.js"
 import { NotFoundError, PayloadTooLargeError } from "../../../../common/api/common/error/RestError.js"
 import { CalendarNotificationSender } from "../../view/CalendarNotificationSender.js"
-import { SendMailModel } from "../../../../mail-app/mail/editor/SendMailModel.js"
+import { SendMailModel } from "../../../../common/mailFunctionality/SendMailModel.js"
 import { UserError } from "../../../../common/api/main/UserError.js"
 import { EntityClient } from "../../../../common/api/common/EntityClient.js"
 import { RecipientsModel } from "../../../../common/api/main/RecipientsModel.js"
@@ -98,10 +98,10 @@ import { UserController } from "../../../../common/api/main/UserController.js"
 import { CalendarNotificationModel, CalendarNotificationSendModels } from "./CalendarNotificationModel.js"
 import { CalendarEventApplyStrategies, CalendarEventModelStrategy } from "./CalendarEventModelStrategy.js"
 import { ProgrammingError } from "../../../../common/api/common/error/ProgrammingError.js"
-import { getDefaultSender } from "../../../../mail-app/mail/model/MailUtils.js"
 import { SimpleTextViewModel } from "../../../../common/misc/SimpleTextViewModel.js"
 import { AlarmInfoTemplate } from "../../../../common/api/worker/facades/lazy/CalendarFacade.js"
 import { getEventType } from "../CalendarGuiUtils.js"
+import { getDefaultSender } from "../../../../common/mailFunctionality/CommonMailUtils.js"
 
 /** the type of the event determines which edit operations are available to us. */
 export const enum EventType {

@@ -1,5 +1,5 @@
 import { AddressToName, MailAddressNameChanger } from "./MailAddressTableModel.js"
-import { MailModel } from "../../mail/model/MailModel.js"
+import { MailModel } from "../../../common/mailFunctionality/MailModel.js"
 import { createMailAddressProperties, MailboxProperties } from "../../../common/api/entities/tutanota/TypeRefs.js"
 import { EntityClient } from "../../../common/api/common/EntityClient.js"
 import { findAndRemove } from "@tutao/tutanota-utils"

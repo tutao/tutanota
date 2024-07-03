@@ -7,7 +7,7 @@ import {
 	SelectableRowContainer,
 	SelectableRowSelectedSetter,
 } from "../../../common/gui/SelectableRowContainer.js"
-import { getContactListName } from "../model/ContactUtils.js"
+import { getContactListName } from "../../../common/contactsFunctionality/ContactUtils.js"
 import { NBSP, noOp } from "@tutao/tutanota-utils"
 import m, { Children } from "mithril"
 import { px, size } from "../../../common/gui/size.js"

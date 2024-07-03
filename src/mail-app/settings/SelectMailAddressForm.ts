@@ -14,7 +14,7 @@ import { IconButton, IconButtonAttrs } from "../../common/gui/base/IconButton.js
 import { ButtonSize } from "../../common/gui/base/ButtonSize.js"
 import { EmailDomainData } from "./mailaddress/MailAddressesUtils.js"
 import { BootIcons } from "../../common/gui/base/icons/BootIcons.js"
-import { isTutanotaMailAddress } from "../../common/api/common/mail/CommonMailUtils.js"
+import { isTutanotaMailAddress } from "../../common/mailFunctionality/CommonMailUtils.js"
 
 assertMainOrNode()
 

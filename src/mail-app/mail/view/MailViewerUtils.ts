@@ -1,5 +1,3 @@
-import type { ImageHandler } from "../model/MailUtils"
-import { loadMailDetails } from "../model/MailUtils"
 import { ALLOWED_IMAGE_FORMATS, Keys, MailReportType, MAX_BASE64_IMAGE_SIZE } from "../../../common/api/common/TutanotaConstants"
 import { ofClass, uint8ArrayToBase64 } from "@tutao/tutanota-utils"
 import { InfoLink, lang } from "../../../common/misc/LanguageViewModel"
@@ -22,6 +20,7 @@ import { LockedError } from "../../../common/api/common/error/RestError.js"
 import { ifAllowedTutaLinks } from "../../../common/gui/base/GuiUtils.js"
 import { ExternalLink } from "../../../common/gui/base/ExternalLink.js"
 import { SourceCodeViewer } from "./SourceCodeViewer.js"
+import { ImageHandler, loadMailDetails } from "../../../common/mailFunctionality/CommonMailUtils.js"
 
 export function insertInlineImageB64ClickHandler(ev: Event, handler: ImageHandler) {
 	showFileChooser(true, ALLOWED_IMAGE_FORMATS).then((files) => {

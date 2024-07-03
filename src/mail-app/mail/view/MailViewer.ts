@@ -7,7 +7,6 @@ import { File as TutanotaFile, Mail } from "../../../common/api/entities/tutanot
 import { lang } from "../../../common/misc/LanguageViewModel"
 import { assertMainOrNode } from "../../../common/api/common/Env"
 import { assertNonNull, assertNotNull, defer, DeferredObject, noOp, ofClass } from "@tutao/tutanota-utils"
-import { createNewContact, getExistingRuleForType } from "../model/MailUtils"
 import { IconMessageBox } from "../../../common/gui/base/ColumnEmptyMessageBox"
 import type { Shortcut } from "../../../common/misc/KeyManager"
 import { keyManager } from "../../../common/misc/KeyManager"
@@ -17,7 +16,6 @@ import { theme } from "../../../common/gui/theme"
 import { client } from "../../../common/misc/ClientDetector"
 import { styles } from "../../../common/gui/styles"
 import { DropdownButtonAttrs, showDropdownAtPosition } from "../../../common/gui/base/Dropdown.js"
-import type { InlineImageReference } from "./MailGuiUtils"
 import { replaceCidsWithInlineImages } from "./MailGuiUtils"
 import { getCoordsOfMouseOrTouchEvent } from "../../../common/gui/base/GuiUtils"
 import { copyToClipboard } from "../../../common/misc/ClipboardUtils"
@@ -34,12 +32,11 @@ import { ToggleButton } from "../../../common/gui/base/buttons/ToggleButton.js"
 import { locator } from "../../../common/api/main/MainLocator.js"
 import { PinchZoom } from "../../../common/gui/PinchZoom.js"
 import { responsiveCardHMargin, responsiveCardHPadding } from "../../../common/gui/cards.js"
-import { isTutanotaTeamMail } from "../../../common/api/common/mail/CommonMailUtils.js"
 import { Dialog } from "../../../common/gui/base/Dialog.js"
+import { createNewContact, getExistingRuleForType } from "../../../common/mailFunctionality/CommonMailUtils.js"
+import { isTutanotaTeamMail } from "../MailUtils.js"
 
 assertMainOrNode()
-// map of inline image cid to InlineImageReference
-export type InlineImages = Map<string, InlineImageReference>
 
 type MailAddressAndName = {
 	name: string

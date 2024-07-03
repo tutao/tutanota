@@ -14,7 +14,6 @@ import { px, size } from "../../../common/gui/size"
 import { getFreeSearchStartDate, SEARCH_MAIL_FIELDS, SearchCategoryTypes } from "../model/SearchUtils"
 import { Dialog } from "../../../common/gui/base/Dialog"
 import { locator } from "../../../common/api/main/MainLocator"
-import { getIndentedFolderNameForDropdown } from "../../mail/model/MailUtils"
 import {
 	assertNotNull,
 	getFirstOrThrow,
@@ -43,7 +42,7 @@ import type { ClickHandler } from "../../../common/gui/base/GuiUtils"
 import { DropDownSelector, DropDownSelectorAttrs, SelectorItem } from "../../../common/gui/base/DropDownSelector.js"
 import { IconButton } from "../../../common/gui/base/IconButton.js"
 import { ButtonSize } from "../../../common/gui/base/ButtonSize.js"
-import { BottomNav } from "../../../common/gui/nav/BottomNav.js"
+import { BottomNav } from "../../gui/BottomNav.js"
 import { MobileMailActionBar } from "../../mail/view/MobileMailActionBar.js"
 import { DrawerMenuAttrs } from "../../../common/gui/nav/DrawerMenu.js"
 import { BaseTopLevelView } from "../../../common/gui/BaseTopLevelView.js"
@@ -103,6 +102,7 @@ import { getEventWithDefaultTimes } from "../../../common/api/common/utils/Commo
 import { showNewCalendarEventEditDialog } from "../../../calendar-app/calendar/gui/eventeditor-view/CalendarEventEditDialog.js"
 import { getSharedGroupName } from "../../../common/sharing/GroupUtils.js"
 import { YEAR_IN_MILLIS } from "@tutao/tutanota-utils/dist/DateUtils.js"
+import { getIndentedFolderNameForDropdown } from "../../../common/mailFunctionality/CommonMailUtils.js"
 
 assertMainOrNode()
 

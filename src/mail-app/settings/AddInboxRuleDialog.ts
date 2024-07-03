@@ -6,8 +6,7 @@ import { isDomainName, isMailAddress, isRegularExpression } from "../../common/m
 import { getInboxRuleTypeNameMapping } from "../mail/model/InboxRuleHandler"
 import type { InboxRule } from "../../common/api/entities/tutanota/TypeRefs.js"
 import { createInboxRule } from "../../common/api/entities/tutanota/TypeRefs.js"
-import { getExistingRuleForType, getFolderName, getIndentedFolderNameForDropdown, getPathToFolderString } from "../mail/model/MailUtils"
-import type { MailboxDetail } from "../mail/model/MailModel"
+import type { MailboxDetail } from "../../common/mailFunctionality/MailModel.js"
 import stream from "mithril/stream"
 import { DropDownSelector } from "../../common/gui/base/DropDownSelector.js"
 import { TextField } from "../../common/gui/base/TextField.js"
@@ -17,8 +16,14 @@ import { showNotAvailableForFreeDialog } from "../../common/misc/SubscriptionDia
 import { isSameId } from "../../common/api/common/utils/EntityUtils"
 import { assertMainOrNode } from "../../common/api/common/Env"
 import { locator } from "../../common/api/main/MainLocator"
-import { assertSystemFolderOfType } from "../../common/api/common/mail/CommonMailUtils.js"
 import { isOfflineError } from "../../common/api/common/utils/ErrorUtils.js"
+import {
+	assertSystemFolderOfType,
+	getExistingRuleForType,
+	getFolderName,
+	getIndentedFolderNameForDropdown,
+	getPathToFolderString,
+} from "../../common/mailFunctionality/CommonMailUtils.js"
 
 assertMainOrNode()
 

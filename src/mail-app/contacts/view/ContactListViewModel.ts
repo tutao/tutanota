@@ -17,7 +17,7 @@ import { EntityEventsListener, EventController } from "../../../common/api/main/
 import Stream from "mithril/stream"
 import stream from "mithril/stream"
 import { Router } from "../../../common/gui/ScopedRouter.js"
-import { ContactListInfo, ContactModel } from "../model/ContactModel.js"
+import { ContactListInfo, ContactModel } from "../../../common/contactsFunctionality/ContactModel.js"
 import { ReceivedGroupInvitation } from "../../../common/api/entities/sys/TypeRefs.js"
 import { ReceivedGroupInvitationsModel } from "../../../common/sharing/model/ReceivedGroupInvitationsModel.js"
 import { GroupType } from "../../../common/api/common/TutanotaConstants.js"

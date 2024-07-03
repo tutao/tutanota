@@ -4,13 +4,13 @@ import { lang } from "../../../common/misc/LanguageViewModel"
 import type { CalendarEvent, Mail } from "../../../common/api/entities/tutanota/TypeRefs.js"
 import { Dialog } from "../../../common/gui/base/Dialog"
 import { showProgressDialog } from "../../../common/gui/dialogs/ProgressDialog"
-import { isRepliedTo } from "../model/MailUtils"
 import { findAttendeeInAddresses } from "../../../common/api/common/utils/CommonCalendarUtils.js"
 import { BannerType, InfoBanner, InfoBannerAttrs } from "../../../common/gui/base/InfoBanner.js"
 import { Icons } from "../../../common/gui/base/icons/Icons.js"
 import { isNotNull, LazyLoaded } from "@tutao/tutanota-utils"
 import { ParsedIcalFileContent, ReplyResult } from "../../../calendar-app/calendar/view/CalendarInvites.js"
 import { locator } from "../../../common/api/main/MainLocator.js"
+import { isRepliedTo } from "../../../common/mailFunctionality/CommonMailUtils.js"
 
 export type EventBannerAttrs = {
 	contents: ParsedIcalFileContent

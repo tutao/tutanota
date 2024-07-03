@@ -6,11 +6,11 @@ import { formatDate } from "../misc/Formatter"
 import { HtmlEditor, HtmlEditorMode } from "../gui/editor/HtmlEditor"
 import type { AccountingInfo, Customer, GroupInfo, OrderProcessingAgreement } from "../api/entities/sys/TypeRefs.js"
 import { createSignOrderProcessingAgreementData } from "../api/entities/sys/TypeRefs.js"
-import { getMailAddressDisplayText } from "../../mail-app/mail/model/MailUtils"
 import { neverNull } from "@tutao/tutanota-utils"
 import { locator } from "../api/main/MainLocator"
 import { SignOrderProcessingAgreementService } from "../api/entities/sys/Services"
 import { formatNameAndAddress } from "../api/common/utils/CommonFormatter.js"
+import { getMailAddressDisplayText } from "../mailFunctionality/CommonMailUtils.js"
 
 assertMainOrNode()
 const PRINT_DIV_ID = "print-div"

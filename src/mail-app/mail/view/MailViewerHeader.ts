@@ -1,6 +1,5 @@
 import m, { Children, Component, Vnode } from "mithril"
 import { InfoLink, lang } from "../../../common/misc/LanguageViewModel.js"
-import { getConfidentialIcon, getFolderIconByType, getMailAddressDisplayText } from "../model/MailUtils.js"
 import { theme } from "../../../common/gui/theme.js"
 import { styles } from "../../../common/gui/styles.js"
 import { ExpanderButton, ExpanderPanel } from "../../../common/gui/base/Expander.js"
@@ -28,7 +27,8 @@ import { isKeyPressed } from "../../../common/misc/KeyManager.js"
 import { AttachmentBubble, getAttachmentType } from "../../../common/gui/AttachmentBubble.js"
 import { responsiveCardHMargin, responsiveCardHPadding } from "../../../common/gui/cards.js"
 import { companyTeamLabel } from "../../../common/misc/ClientConstants.js"
-import { isTutanotaTeamMail, MailAddressAndName } from "../../../common/api/common/mail/CommonMailUtils.js"
+import { getConfidentialIcon, getFolderIconByType, getMailAddressDisplayText, MailAddressAndName } from "../../../common/mailFunctionality/CommonMailUtils.js"
+import { isTutanotaTeamMail } from "../MailUtils.js"
 
 export type MailAddressDropdownCreator = (args: {
 	mailAddress: MailAddressAndName

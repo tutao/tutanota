@@ -1,4 +1,3 @@
-import { getDefaultSender, getEnabledMailAddressesWithUser, getSenderNameForUser } from "../../mail-app/mail/model/MailUtils"
 import type { GroupInfo, ReceivedGroupInvitation } from "../api/entities/sys/TypeRefs.js"
 import { locator } from "../api/main/MainLocator"
 import { MailMethod } from "../api/common/TutanotaConstants"
@@ -6,6 +5,7 @@ import { showProgressDialog } from "../gui/dialogs/ProgressDialog"
 import type { GroupSharingTexts } from "./GroupGuiUtils"
 import { getDefaultGroupName, getInvitationGroupType, getSharedGroupName } from "./GroupUtils"
 import { PartialRecipient, Recipients } from "../api/common/recipients/Recipient"
+import { getDefaultSender, getEnabledMailAddressesWithUser, getSenderNameForUser } from "../mailFunctionality/CommonMailUtils.js"
 
 export function sendShareNotificationEmail(sharedGroupInfo: GroupInfo, recipients: Array<PartialRecipient>, texts: GroupSharingTexts) {
 	locator.mailModel.getUserMailboxDetails().then((mailboxDetails) => {
