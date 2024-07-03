@@ -1,4 +1,3 @@
-<<<<<<<< HEAD:src/mail-app/mailLocator.ts
 import { assertMainOrNode, isAndroidApp, isApp, isBrowser, isDesktop, isElectronClient, isIOSApp, isTest } from "../common/api/common/Env.js"
 import { EventController } from "../common/api/main/EventController.js"
 import { SearchModel } from "./search/model/SearchModel.js"
@@ -114,125 +113,6 @@ import { NativeThemeFacade, ThemeController, WebThemeFacade } from "../common/gu
 import { HtmlSanitizer } from "../common/misc/HtmlSanitizer.js"
 import { theme } from "../common/gui/theme.js"
 import { SearchIndexStateInfo } from "../common/api/worker/search/SearchTypes.js"
-========
-import type { WorkerClient } from "./WorkerClient"
-import { bootstrapWorker } from "./WorkerClient"
-import { EventController } from "./EventController"
-import { EntropyCollector } from "./EntropyCollector"
-import { SearchModel } from "../../../mail-app/search/model/SearchModel"
-import { MailboxDetail, MailModel } from "../../../mail-app/mail/model/MailModel"
-import { assertMainOrNode, isAndroidApp, isApp, isBrowser, isDesktop, isElectronClient, isIOSApp } from "../common/Env"
-import { notifications } from "../../gui/Notifications"
-import { LoginController } from "./LoginController"
-import type { ContactModel } from "../../../mail-app/contacts/model/ContactModel"
-import { EntityClient } from "../common/EntityClient"
-import type { CalendarInfo, CalendarModel } from "../../../calendar-app/calendar/model/CalendarModel"
-import { assert, assertNotNull, defer, DeferredObject, lazy, lazyAsync, lazyMemoized, noOp, ofClass } from "@tutao/tutanota-utils"
-import { ProgressTracker } from "./ProgressTracker"
-import { MinimizedMailEditorViewModel } from "../../../mail-app/mail/model/MinimizedMailEditorViewModel"
-import { SchedulerImpl } from "../common/utils/Scheduler.js"
-import type { CredentialsProvider } from "../../misc/credentials/CredentialsProvider.js"
-import type { LoginFacade } from "../worker/facades/LoginFacade"
-import type { CustomerFacade } from "../worker/facades/lazy/CustomerFacade.js"
-import type { GiftCardFacade } from "../worker/facades/lazy/GiftCardFacade.js"
-import type { ConfigurationDatabase } from "../worker/facades/lazy/ConfigurationDatabase.js"
-import type { CalendarFacade } from "../worker/facades/lazy/CalendarFacade.js"
-import type { MailFacade } from "../worker/facades/lazy/MailFacade.js"
-import type { ShareFacade } from "../worker/facades/lazy/ShareFacade.js"
-import type { CounterFacade } from "../worker/facades/lazy/CounterFacade.js"
-import type { Indexer } from "../worker/search/Indexer"
-import type { SearchFacade } from "../worker/search/SearchFacade"
-import type { BookingFacade } from "../worker/facades/lazy/BookingFacade.js"
-import type { MailAddressFacade } from "../worker/facades/lazy/MailAddressFacade.js"
-import { FileController, guiDownload } from "../../file/FileController"
-import type { NativeFileApp } from "../../native/common/FileApp"
-import type { NativePushServiceApp } from "../../native/main/NativePushServiceApp"
-import type { NativeInterfaceMain } from "../../native/main/NativeInterfaceMain"
-import type { NativeInterfaces } from "../../native/main/NativeInterfaceFactory.js"
-import { ProgrammingError } from "../common/error/ProgrammingError"
-import { SecondFactorHandler } from "../../misc/2fa/SecondFactorHandler"
-import { WebauthnClient } from "../../misc/2fa/webauthn/WebauthnClient"
-import type { UserManagementFacade } from "../worker/facades/lazy/UserManagementFacade.js"
-import type { GroupManagementFacade } from "../worker/facades/lazy/GroupManagementFacade.js"
-import { WorkerRandomizer } from "../worker/WorkerImpl"
-import { BrowserWebauthn } from "../../misc/2fa/webauthn/BrowserWebauthn.js"
-import { UsageTestController } from "@tutao/tutanota-usagetests"
-import { EphemeralUsageTestStorage, StorageBehavior, UsageTestModel } from "../../misc/UsageTestModel"
-import { deviceConfig } from "../../misc/DeviceConfig"
-import { IServiceExecutor } from "../common/ServiceRequest.js"
-import type { BlobFacade } from "../worker/facades/lazy/BlobFacade.js"
-import { CryptoFacade } from "../worker/crypto/CryptoFacade"
-import { RecipientsModel } from "./RecipientsModel"
-import { ExposedCacheStorage } from "../worker/rest/DefaultEntityRestCache.js"
-import { PageContextLoginListener } from "./PageContextLoginListener.js"
-import { SearchTextInAppFacade } from "../../native/common/generatedipc/SearchTextInAppFacade.js"
-import { SettingsFacade } from "../../native/common/generatedipc/SettingsFacade.js"
-import { MobileSystemFacade } from "../../native/common/generatedipc/MobileSystemFacade.js"
-import { CommonSystemFacade } from "../../native/common/generatedipc/CommonSystemFacade.js"
-import { DesktopSystemFacade } from "../../native/common/generatedipc/DesktopSystemFacade.js"
-import { ThemeFacade } from "../../native/common/generatedipc/ThemeFacade.js"
-import { FileControllerBrowser } from "../../file/FileControllerBrowser.js"
-import { FileControllerNative } from "../../file/FileControllerNative.js"
-import { windowFacade } from "../../misc/WindowFacade.js"
-import { InterWindowEventFacadeSendDispatcher } from "../../native/common/generatedipc/InterWindowEventFacadeSendDispatcher.js"
-import { NewsModel } from "../../misc/news/NewsModel.js"
-import type { MailAddressNameChanger, MailAddressTableModel } from "../../../mail-app/settings/mailaddress/MailAddressTableModel.js"
-import { GroupInfo } from "../entities/sys/TypeRefs.js"
-import type { SendMailModel } from "../../../mail-app/mail/editor/SendMailModel.js"
-import type { CalendarEvent, Mail, MailboxProperties } from "../entities/tutanota/TypeRefs.js"
-import { CalendarEventAttendee } from "../entities/tutanota/TypeRefs.js"
-import type { CreateMailViewerOptions } from "../../../mail-app/mail/view/MailViewer.js"
-import type { RecipientsSearchModel } from "../../misc/RecipientsSearchModel.js"
-import type { MailViewerViewModel } from "../../../mail-app/mail/view/MailViewerViewModel.js"
-import { NoZoneDateProvider } from "../common/utils/NoZoneDateProvider.js"
-import { WebsocketConnectivityModel } from "../../misc/WebsocketConnectivityModel.js"
-import { DrawerMenuAttrs } from "../../gui/nav/DrawerMenu.js"
-import { EntropyFacade } from "../worker/facades/EntropyFacade.js"
-import { OperationProgressTracker } from "./OperationProgressTracker.js"
-import { WorkerFacade } from "../worker/facades/WorkerFacade.js"
-import { InfoMessageHandler } from "../../gui/InfoMessageHandler.js"
-import { OfflineIndicatorViewModel } from "../../gui/base/OfflineIndicatorViewModel.js"
-import { AppHeaderAttrs, Header } from "../../gui/Header.js"
-import { CalendarViewModel } from "../../../calendar-app/calendar/view/CalendarViewModel.js"
-import { ReceivedGroupInvitationsModel } from "../../sharing/model/ReceivedGroupInvitationsModel.js"
-import { Const, FeatureType, GroupType, KdfType } from "../common/TutanotaConstants.js"
-import type { ExternalLoginViewModel } from "../../login/ExternalLoginView.js"
-import type { ConversationViewModel, ConversationViewModelFactory } from "../../../mail-app/mail/view/ConversationViewModel.js"
-import type { AlarmScheduler } from "../../../calendar-app/calendar/date/AlarmScheduler.js"
-import { CalendarEventModel, CalendarOperation } from "../../../calendar-app/calendar/gui/eventeditor-model/CalendarEventModel.js"
-import { showProgressDialog } from "../../gui/dialogs/ProgressDialog.js"
-import { SearchViewModel } from "../../../mail-app/search/view/SearchViewModel.js"
-import { SearchRouter } from "../../../mail-app/search/view/SearchRouter.js"
-import { MailOpenedListener } from "../../../mail-app/mail/view/MailViewModel.js"
-import { InboxRuleHandler } from "../../../mail-app/mail/model/InboxRuleHandler.js"
-import { Router, ScopedRouter, ThrottledRouter } from "../../gui/ScopedRouter.js"
-import { ShareableGroupType } from "../../sharing/GroupUtils.js"
-import { DomainConfigProvider } from "../common/DomainConfigProvider.js"
-import type { AppsCredentialRemovalHandler, CredentialRemovalHandler, NoopCredentialRemovalHandler } from "../../login/CredentialRemovalHandler.js"
-import { LoginViewModel } from "../../login/LoginViewModel.js"
-import { getEnabledMailAddressesWithUser } from "../../../mail-app/mail/model/MailUtils.js"
-import type { CalendarEventPreviewViewModel } from "../../../calendar-app/calendar/gui/eventpopup/CalendarEventPreviewViewModel.js"
-
-import { getDisplayedSender } from "../common/mail/CommonMailUtils.js"
-import { isCustomizationEnabledForCustomer } from "../common/utils/CustomerUtils.js"
-import { CalendarEventsRepository } from "../../../calendar-app/calendar/date/CalendarEventsRepository.js"
-import { CalendarInviteHandler } from "../../../calendar-app/calendar/view/CalendarInvites.js"
-import { NativeContactsSyncManager } from "../../../mail-app/contacts/model/NativeContactsSyncManager.js"
-import { ContactFacade } from "../worker/facades/lazy/ContactFacade.js"
-import { ContactImporter } from "../../../mail-app/contacts/ContactImporter.js"
-import { MobileContactsFacade } from "../../native/common/generatedipc/MobileContactsFacade.js"
-import { PermissionError } from "../common/error/PermissionError.js"
-import { WebMobileFacade } from "../../native/main/WebMobileFacade.js"
-import { CredentialFormatMigrator } from "../../misc/credentials/CredentialFormatMigrator.js"
-import { NativeCredentialsFacade } from "../../native/common/generatedipc/NativeCredentialsFacade.js"
-import { SqlCipherFacade } from "../../native/common/generatedipc/SqlCipherFacade.js"
-import { AddNotificationEmailDialog } from "../../../mail-app/settings/AddNotificationEmailDialog.js"
-import { MobileAppLock, NoOpAppLock } from "../../login/AppLock.js"
-import { PostLoginActions } from "../../login/PostLoginActions.js"
-import { SystemPermissionHandler } from "../../native/main/SystemPermissionHandler.js"
-import { RecoverCodeFacade } from "../worker/facades/lazy/RecoverCodeFacade.js"
->>>>>>>> 3349a964d (Move files to new folder structure):src/common/api/main/MainLocator.ts
-
 assertMainOrNode()
 
 class MailLocator {
@@ -330,11 +210,7 @@ class MailLocator {
 	}
 
 	readonly mailViewModel = lazyMemoized(async () => {
-<<<<<<<< HEAD:src/mail-app/mailLocator.ts
 		const { MailViewModel } = await import("../mail-app/mail/view/MailViewModel.js")
-========
-		const { MailViewModel } = await import("../../../mail-app/mail/view/MailViewModel.js")
->>>>>>>> 3349a964d (Move files to new folder structure):src/common/api/main/MainLocator.ts
 		const conversationViewModelFactory = await this.conversationViewModelFactory()
 		const router = new ScopedRouter(this.throttledRouter(), "/mail")
 		return new MailViewModel(
@@ -357,11 +233,7 @@ class MailLocator {
 	}
 
 	async searchViewModelFactory(): Promise<() => SearchViewModel> {
-<<<<<<<< HEAD:src/mail-app/mailLocator.ts
 		const { SearchViewModel } = await import("../mail-app/search/view/SearchViewModel.js")
-========
-		const { SearchViewModel } = await import("../../../mail-app/search/view/SearchViewModel.js")
->>>>>>>> 3349a964d (Move files to new folder structure):src/common/api/main/MainLocator.ts
 		const conversationViewModelFactory = await this.conversationViewModelFactory()
 		const redraw = await this.redraw()
 		const searchRouter = await this.scopedSearchRouter()
@@ -388,20 +260,12 @@ class MailLocator {
 	readonly throttledRouter: lazy<Router> = lazyMemoized(() => new ThrottledRouter())
 
 	readonly scopedSearchRouter: lazyAsync<SearchRouter> = lazyMemoized(async () => {
-<<<<<<<< HEAD:src/mail-app/mailLocator.ts
 		const { SearchRouter } = await import("../common/search/view/SearchRouter.js")
-========
-		const { SearchRouter } = await import("../../../mail-app/search/view/SearchRouter.js")
->>>>>>>> 3349a964d (Move files to new folder structure):src/common/api/main/MainLocator.ts
 		return new SearchRouter(new ScopedRouter(this.throttledRouter(), "/search"))
 	})
 
 	readonly unscopedSearchRouter: lazyAsync<SearchRouter> = lazyMemoized(async () => {
-<<<<<<<< HEAD:src/mail-app/mailLocator.ts
 		const { SearchRouter } = await import("../common/search/view/SearchRouter.js")
-========
-		const { SearchRouter } = await import("../../../mail-app/search/view/SearchRouter.js")
->>>>>>>> 3349a964d (Move files to new folder structure):src/common/api/main/MainLocator.ts
 		return new SearchRouter(this.throttledRouter())
 	})
 
@@ -414,21 +278,13 @@ class MailLocator {
 	}
 
 	readonly contactViewModel = lazyMemoized(async () => {
-<<<<<<<< HEAD:src/mail-app/mailLocator.ts
 		const { ContactViewModel } = await import("../mail-app/contacts/view/ContactViewModel.js")
-========
-		const { ContactViewModel } = await import("../../../mail-app/contacts/view/ContactViewModel.js")
->>>>>>>> 3349a964d (Move files to new folder structure):src/common/api/main/MainLocator.ts
 		const router = new ScopedRouter(this.throttledRouter(), "/contact")
 		return new ContactViewModel(this.contactModel, this.entityClient, this.eventController, router, await this.redraw())
 	})
 
 	readonly contactListViewModel = lazyMemoized(async () => {
-<<<<<<<< HEAD:src/mail-app/mailLocator.ts
 		const { ContactListViewModel } = await import("../mail-app/contacts/view/ContactListViewModel.js")
-========
-		const { ContactListViewModel } = await import("../../../mail-app/contacts/view/ContactListViewModel.js")
->>>>>>>> 3349a964d (Move files to new folder structure):src/common/api/main/MainLocator.ts
 		const router = new ScopedRouter(this.throttledRouter(), "/contactlist")
 		return new ContactListViewModel(
 			this.entityClient,
@@ -448,13 +304,8 @@ class MailLocator {
 	}
 
 	readonly calendarViewModel = lazyMemoized<Promise<CalendarViewModel>>(async () => {
-<<<<<<<< HEAD:src/mail-app/mailLocator.ts
 		const { CalendarViewModel } = await import("../calendar-app/calendar/view/CalendarViewModel.js")
 		const { DefaultDateProvider } = await import("../common/calendar/date/CalendarUtils")
-========
-		const { CalendarViewModel } = await import("../../../calendar-app/calendar/view/CalendarViewModel.js")
-		const { DefaultDateProvider } = await import("../../../calendar-app/calendar/date/CalendarUtils")
->>>>>>>> 3349a964d (Move files to new folder structure):src/common/api/main/MainLocator.ts
 		const timeZone = new DefaultDateProvider().timeZone()
 		return new CalendarViewModel(
 			this.logins,
@@ -477,24 +328,15 @@ class MailLocator {
 	})
 
 	readonly calendarEventsRepository: lazyAsync<CalendarEventsRepository> = lazyMemoized(async () => {
-<<<<<<<< HEAD:src/mail-app/mailLocator.ts
 		const { CalendarEventsRepository } = await import("../common/calendar/date/CalendarEventsRepository.js")
 		const { DefaultDateProvider } = await import("../common/calendar/date/CalendarUtils")
-========
-		const { CalendarEventsRepository } = await import("../../../calendar-app/calendar/date/CalendarEventsRepository.js")
-		const { DefaultDateProvider } = await import("../../../calendar-app/calendar/date/CalendarUtils")
->>>>>>>> 3349a964d (Move files to new folder structure):src/common/api/main/MainLocator.ts
 		const timeZone = new DefaultDateProvider().timeZone()
 		return new CalendarEventsRepository(await this.calendarModel(), this.calendarFacade, timeZone, this.entityClient, this.eventController)
 	})
 
 	/** This ugly bit exists because CalendarEventWhoModel wants a sync factory. */
 	private async sendMailModelSyncFactory(mailboxDetails: MailboxDetail, mailboxProperties: MailboxProperties): Promise<() => SendMailModel> {
-<<<<<<<< HEAD:src/mail-app/mailLocator.ts
 		const { SendMailModel } = await import("../common/mailFunctionality/SendMailModel.js")
-========
-		const { SendMailModel } = await import("../../../mail-app/mail/editor/SendMailModel")
->>>>>>>> 3349a964d (Move files to new folder structure):src/common/api/main/MainLocator.ts
 		const recipientsModel = await this.recipientsModel()
 		const dateProvider = await this.noZoneDateProvider()
 		return () =>
@@ -520,15 +362,9 @@ class MailLocator {
 		responseTo: Mail | null,
 	): Promise<CalendarEventModel | null> {
 		const [{ makeCalendarEventModel }, { getTimeZone }, { calendarNotificationSender }] = await Promise.all([
-<<<<<<<< HEAD:src/mail-app/mailLocator.ts
 			import("../calendar-app/calendar/gui/eventeditor-model/CalendarEventModel.js"),
 			import("../common/calendar/date/CalendarUtils.js"),
 			import("../calendar-app/calendar/view/CalendarNotificationSender.js"),
-========
-			import("../../../calendar-app/calendar/gui/eventeditor-model/CalendarEventModel.js"),
-			import("../../../calendar-app/calendar/date/CalendarUtils.js"),
-			import("../../../calendar-app/calendar/view/CalendarNotificationSender.js"),
->>>>>>>> 3349a964d (Move files to new folder structure):src/common/api/main/MainLocator.ts
 		])
 		const sendMailModelFactory = await this.sendMailModelSyncFactory(mailboxDetail, mailboxProperties)
 		const showProgress = <T>(p: Promise<T>) => showProgressDialog("pleaseWait_msg", p)
@@ -559,11 +395,7 @@ class MailLocator {
 	}
 
 	readonly conversationViewModelFactory: lazyAsync<ConversationViewModelFactory> = async () => {
-<<<<<<<< HEAD:src/mail-app/mailLocator.ts
 		const { ConversationViewModel } = await import("../mail-app/mail/view/ConversationViewModel.js")
-========
-		const { ConversationViewModel } = await import("../../../mail-app/mail/view/ConversationViewModel.js")
->>>>>>>> 3349a964d (Move files to new folder structure):src/common/api/main/MainLocator.ts
 		const factory = await this.mailViewerViewModelFactory()
 		const m = await import("mithril")
 		return (options: CreateMailViewerOptions) => {
@@ -585,20 +417,12 @@ class MailLocator {
 	}
 
 	contactImporter = async (): Promise<ContactImporter> => {
-<<<<<<<< HEAD:src/mail-app/mailLocator.ts
 		const { ContactImporter } = await import("../mail-app/contacts/ContactImporter.js")
-========
-		const { ContactImporter } = await import("../../../mail-app/contacts/ContactImporter.js")
->>>>>>>> 3349a964d (Move files to new folder structure):src/common/api/main/MainLocator.ts
 		return new ContactImporter(this.contactFacade, this.systemPermissionHandler)
 	}
 
 	async mailViewerViewModelFactory(): Promise<(options: CreateMailViewerOptions) => MailViewerViewModel> {
-<<<<<<<< HEAD:src/mail-app/mailLocator.ts
 		const { MailViewerViewModel } = await import("../mail-app/mail/view/MailViewerViewModel.js")
-========
-		const { MailViewerViewModel } = await import("../../../mail-app/mail/view/MailViewerViewModel.js")
->>>>>>>> 3349a964d (Move files to new folder structure):src/common/api/main/MainLocator.ts
 		return ({ mail, showFolder }) =>
 			new MailViewerViewModel(
 				mail,
@@ -660,11 +484,7 @@ class MailLocator {
 	}
 
 	async mailAddressTableModelForOwnMailbox(): Promise<MailAddressTableModel> {
-<<<<<<<< HEAD:src/mail-app/mailLocator.ts
 		const { MailAddressTableModel } = await import("../mail-app/settings/mailaddress/MailAddressTableModel.js")
-========
-		const { MailAddressTableModel } = await import("../../../mail-app/settings/mailaddress/MailAddressTableModel.js")
->>>>>>>> 3349a964d (Move files to new folder structure):src/common/api/main/MainLocator.ts
 		const nameChanger = await this.ownMailAddressNameChanger()
 		return new MailAddressTableModel(
 			this.entityClient,
@@ -679,11 +499,7 @@ class MailLocator {
 	}
 
 	async mailAddressTableModelForAdmin(mailGroupId: Id, userId: Id, userGroupInfo: GroupInfo): Promise<MailAddressTableModel> {
-<<<<<<<< HEAD:src/mail-app/mailLocator.ts
 		const { MailAddressTableModel } = await import("../mail-app/settings/mailaddress/MailAddressTableModel.js")
-========
-		const { MailAddressTableModel } = await import("../../../mail-app/settings/mailaddress/MailAddressTableModel.js")
->>>>>>>> 3349a964d (Move files to new folder structure):src/common/api/main/MainLocator.ts
 		const nameChanger = await this.adminNameChanger(mailGroupId, userId)
 		return new MailAddressTableModel(
 			this.entityClient,
@@ -698,20 +514,12 @@ class MailLocator {
 	}
 
 	async ownMailAddressNameChanger(): Promise<MailAddressNameChanger> {
-<<<<<<<< HEAD:src/mail-app/mailLocator.ts
 		const { OwnMailAddressNameChanger } = await import("../mail-app/settings/mailaddress/OwnMailAddressNameChanger.js")
-========
-		const { OwnMailAddressNameChanger } = await import("../../../mail-app/settings/mailaddress/OwnMailAddressNameChanger.js")
->>>>>>>> 3349a964d (Move files to new folder structure):src/common/api/main/MainLocator.ts
 		return new OwnMailAddressNameChanger(this.mailModel, this.entityClient)
 	}
 
 	async adminNameChanger(mailGroupId: Id, userId: Id): Promise<MailAddressNameChanger> {
-<<<<<<<< HEAD:src/mail-app/mailLocator.ts
 		const { AnotherUserMailAddressNameChanger } = await import("../mail-app/settings/mailaddress/AnotherUserMailAddressNameChanger.js")
-========
-		const { AnotherUserMailAddressNameChanger } = await import("../../../mail-app/settings/mailaddress/AnotherUserMailAddressNameChanger.js")
->>>>>>>> 3349a964d (Move files to new folder structure):src/common/api/main/MainLocator.ts
 		return new AnotherUserMailAddressNameChanger(this.mailAddressFacade, mailGroupId, userId)
 	}
 
@@ -990,11 +798,7 @@ class MailLocator {
 				? new FileControllerBrowser(blobFacade, guiDownload)
 				: new FileControllerNative(blobFacade, guiDownload, this.nativeInterfaces.fileApp)
 
-<<<<<<<< HEAD:src/mail-app/mailLocator.ts
 		const { ContactModel } = await import("../common/contactsFunctionality/ContactModel.js")
-========
-		const { ContactModel } = await import("../../../mail-app/contacts/model/ContactModel")
->>>>>>>> 3349a964d (Move files to new folder structure):src/common/api/main/MainLocator.ts
 		this.contactModel = new ContactModel(this.searchFacade, this.entityClient, this.logins, this.eventController)
 		this.minimizedMailModel = new MinimizedMailEditorViewModel()
 		this.usageTestController = new UsageTestController(this.usageTestModel)
@@ -1032,13 +836,8 @@ class MailLocator {
 	}
 
 	readonly calendarModel: () => Promise<CalendarModel> = lazyMemoized(async () => {
-<<<<<<<< HEAD:src/mail-app/mailLocator.ts
 		const { DefaultDateProvider } = await import("../common/calendar/date/CalendarUtils")
 		const { CalendarModel } = await import("../calendar-app/calendar/model/CalendarModel")
-========
-		const { DefaultDateProvider } = await import("../../../calendar-app/calendar/date/CalendarUtils")
-		const { CalendarModel } = await import("../../../calendar-app/calendar/model/CalendarModel")
->>>>>>>> 3349a964d (Move files to new folder structure):src/common/api/main/MainLocator.ts
 		const timeZone = new DefaultDateProvider().timeZone()
 		return new CalendarModel(
 			notifications,
@@ -1056,26 +855,16 @@ class MailLocator {
 	})
 
 	readonly calendarInviteHandler: () => Promise<CalendarInviteHandler> = lazyMemoized(async () => {
-<<<<<<<< HEAD:src/mail-app/mailLocator.ts
 		const { CalendarInviteHandler } = await import("../calendar-app/calendar/view/CalendarInvites.js")
 		const { calendarNotificationSender } = await import("../calendar-app/calendar/view/CalendarNotificationSender.js")
-========
-		const { CalendarInviteHandler } = await import("../../../calendar-app/calendar/view/CalendarInvites.js")
-		const { calendarNotificationSender } = await import("../../../calendar-app/calendar/view/CalendarNotificationSender.js")
->>>>>>>> 3349a964d (Move files to new folder structure):src/common/api/main/MainLocator.ts
 		return new CalendarInviteHandler(this.mailModel, await this.calendarModel(), this.logins, calendarNotificationSender, (...arg) =>
 			this.sendMailModel(...arg),
 		)
 	})
 
 	private alarmScheduler: () => Promise<AlarmScheduler> = lazyMemoized(async () => {
-<<<<<<<< HEAD:src/mail-app/mailLocator.ts
 		const { AlarmScheduler } = await import("../common/calendar/date/AlarmScheduler")
 		const { DefaultDateProvider } = await import("../common/calendar/date/CalendarUtils")
-========
-		const { AlarmScheduler } = await import("../../../calendar-app/calendar/date/AlarmScheduler")
-		const { DefaultDateProvider } = await import("../../../calendar-app/calendar/date/CalendarUtils")
->>>>>>>> 3349a964d (Move files to new folder structure):src/common/api/main/MainLocator.ts
 		const dateProvider = new DefaultDateProvider()
 		return new AlarmScheduler(dateProvider, await this.scheduler())
 	})
@@ -1086,15 +875,9 @@ class MailLocator {
 	}
 
 	async calendarEventPreviewModel(selectedEvent: CalendarEvent, calendars: ReadonlyMap<string, CalendarInfo>): Promise<CalendarEventPreviewViewModel> {
-<<<<<<<< HEAD:src/mail-app/mailLocator.ts
 		const { findAttendeeInAddresses } = await import("../common/api/common/utils/CommonCalendarUtils.js")
 		const { getEventType } = await import("../calendar-app/calendar/gui/CalendarGuiUtils.js")
 		const { CalendarEventPreviewViewModel } = await import("../calendar-app/calendar/gui/eventpopup/CalendarEventPreviewViewModel.js")
-========
-		const { findAttendeeInAddresses } = await import("../common/utils/CommonCalendarUtils.js")
-		const { getEventType } = await import("../../../calendar-app/calendar/gui/CalendarGuiUtils.js")
-		const { CalendarEventPreviewViewModel } = await import("../../../calendar-app/calendar/gui/eventpopup/CalendarEventPreviewViewModel.js")
->>>>>>>> 3349a964d (Move files to new folder structure):src/common/api/main/MainLocator.ts
 
 		const mailboxDetails = await this.mailModel.getUserMailboxDetails()
 
@@ -1175,11 +958,7 @@ class MailLocator {
 	})
 
 	async addNotificationEmailDialog(): Promise<AddNotificationEmailDialog> {
-<<<<<<<< HEAD:src/mail-app/mailLocator.ts
 		const { AddNotificationEmailDialog } = await import("../mail-app/settings/AddNotificationEmailDialog.js")
-========
-		const { AddNotificationEmailDialog } = await import("../../../mail-app/settings/AddNotificationEmailDialog.js")
->>>>>>>> 3349a964d (Move files to new folder structure):src/common/api/main/MainLocator.ts
 		return new AddNotificationEmailDialog(this.logins, this.entityClient)
 	}
 

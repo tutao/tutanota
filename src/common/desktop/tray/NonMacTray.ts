@@ -1,7 +1,7 @@
 import type { NativeImage } from "electron"
 import { app, Menu, MenuItem, Tray } from "electron"
 import type { WindowManager } from "../DesktopWindowManager"
-import { lang } from "../../common/misc/LanguageViewModel"
+import { lang } from "../../misc/LanguageViewModel"
 import type { PlatformTray } from "./DesktopTray"
 import { getResourcePath } from "../resources"
 

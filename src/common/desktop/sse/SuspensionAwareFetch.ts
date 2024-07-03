@@ -1,5 +1,5 @@
 import { fetch, RequestInfo, RequestInit, Response } from "undici"
-import { ServiceUnavailableError, TooManyRequestsError } from "../../common/api/common/error/RestError.js"
+import { ServiceUnavailableError, TooManyRequestsError } from "../../api/common/error/RestError.js"
 import { filterInt } from "@tutao/tutanota-utils"
 import { log } from "../DesktopLog.js"
 

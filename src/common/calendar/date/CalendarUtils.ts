@@ -16,7 +16,7 @@ import {
 	neverNull,
 	TIMESTAMP_ZERO_YEAR,
 } from "@tutao/tutanota-utils"
-import { EndType, EventTextTimeOption, getWeekStart, RepeatPeriod, TimeFormat, WeekStart } from "../../../common/api/common/TutanotaConstants"
+import { EndType, EventTextTimeOption, getWeekStart, RepeatPeriod, TimeFormat, WeekStart } from "../../api/common/TutanotaConstants"
 import { DateTime, DurationLikeObject, FixedOffsetZone, IANAZone } from "luxon"
 import {
 	CalendarEvent,
@@ -25,31 +25,17 @@ import {
 	CalendarRepeatRule,
 	createCalendarRepeatRule,
 	UserSettingsGroupRoot,
-} from "../../../common/api/entities/tutanota/TypeRefs.js"
-import {
-	CalendarEventTimes,
-	DAYS_SHIFTED_MS,
-	generateEventElementId,
-	isAllDayEvent,
-	isAllDayEventByTimes,
-} from "../../../common/api/common/utils/CommonCalendarUtils"
-import type { RepeatRule } from "../../../common/api/entities/sys/TypeRefs.js"
-import { createDateWrapper, DateWrapper, User } from "../../../common/api/entities/sys/TypeRefs.js"
-import { isSameId } from "../../../common/api/common/utils/EntityUtils"
+} from "../../api/entities/tutanota/TypeRefs.js"
+import { CalendarEventTimes, DAYS_SHIFTED_MS, generateEventElementId, isAllDayEvent, isAllDayEventByTimes } from "../../api/common/utils/CommonCalendarUtils"
+import type { RepeatRule } from "../../api/entities/sys/TypeRefs.js"
+import { createDateWrapper, DateWrapper, User } from "../../api/entities/sys/TypeRefs.js"
+import { isSameId } from "../../api/common/utils/EntityUtils"
 import type { Time } from "./Time.js"
-<<<<<<<< HEAD:src/common/calendar/date/CalendarUtils.ts
 import type { CalendarInfo } from "../../../calendar-app/calendar/model/CalendarModel"
 import { DateProvider } from "../../api/common/DateProvider"
 import { EntityClient } from "../../api/common/EntityClient.js"
 import { CalendarEventUidIndexEntry } from "../../api/worker/facades/lazy/CalendarFacade.js"
 import { ParserError } from "../../misc/parsing/ParserCombinator.js"
-========
-import type { CalendarInfo } from "../model/CalendarModel"
-import { DateProvider } from "../../../common/api/common/DateProvider"
-import { EntityClient } from "../../../common/api/common/EntityClient.js"
-import { CalendarEventUidIndexEntry } from "../../../common/api/worker/facades/lazy/CalendarFacade.js"
-import { ParserError } from "../../../common/misc/parsing/ParserCombinator.js"
->>>>>>>> 3349a964d (Move files to new folder structure):src/calendar-app/calendar/date/CalendarUtils.ts
 
 export type CalendarTimeRange = {
 	start: number
