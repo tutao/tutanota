@@ -68,7 +68,7 @@ export async function buildWebapp({ version, stage, host, measure, minify, proje
 
 	console.log("started bundling", measure())
 	const bundle = await rollup({
-		input: ["src/app.ts", "src/common/api/worker/worker.ts"],
+		input: ["src/mail-app/app.ts", "src/common/api/worker/worker.ts"],
 		preserveEntrySignatures: false,
 		perf: true,
 		plugins: [

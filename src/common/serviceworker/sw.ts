@@ -1,5 +1,5 @@
 // set by the build script
-import { getPathBases } from "../../ApplicationPaths.js"
+import { getPathBases } from "../../mail-app/ApplicationPaths.js"
 
 declare var filesToCache: () => Array<string>
 declare var version: () => string
