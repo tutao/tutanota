@@ -5,14 +5,14 @@ import { getTimeZone } from "../date/CalendarUtils.js"
 import type { CalendarEvent, CalendarEventAttendee, EncryptedMailAddress } from "../../../common/api/entities/tutanota/TypeRefs.js"
 import { createCalendarEventAttendee } from "../../../common/api/entities/tutanota/TypeRefs.js"
 import { assertNotNull, noOp, ofClass } from "@tutao/tutanota-utils"
-import type { SendMailModel } from "../../../mail-app/mail/editor/SendMailModel.js"
+import type { SendMailModel } from "../../../common/mailFunctionality/SendMailModel.js"
 import { windowFacade } from "../../../common/misc/WindowFacade.js"
 import { RecipientsNotFoundError } from "../../../common/api/common/error/RecipientsNotFoundError.js"
-import { RecipientField } from "../../../mail-app/mail/model/MailUtils.js"
 import { cleanMailAddress, findAttendeeInAddresses, findRecipientWithAddress } from "../../../common/api/common/utils/CommonCalendarUtils.js"
 import { ProgrammingError } from "../../../common/api/common/error/ProgrammingError.js"
 
 import { calendarAttendeeStatusSymbol, formatEventDuration } from "../gui/CalendarGuiUtils.js"
+import { RecipientField } from "../../../common/mailFunctionality/CommonMailUtils.js"
 
 export class CalendarNotificationSender {
 	/** Used for knowing how many emails are in the process of being sent. */

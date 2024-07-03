@@ -1,5 +1,5 @@
 import m, { Children, Component, Vnode } from "mithril"
-import { MailModel } from "../model/MailModel.js"
+import { MailModel } from "../../../common/mailFunctionality/MailModel.js"
 import { Mail } from "../../../common/api/entities/tutanota/TypeRefs.js"
 import { IconButton } from "../../../common/gui/base/IconButton.js"
 import { promptAndDeleteMails, showMoveMailsDropdown } from "./MailGuiUtils.js"

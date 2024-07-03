@@ -1,7 +1,6 @@
 import m, { Children, ClassComponent, Vnode } from "mithril"
 import { BubbleTextField } from "./base/BubbleTextField.js"
 import { Recipient } from "../api/common/recipients/Recipient.js"
-import { getMailAddressDisplayText } from "../../mail-app/mail/model/MailUtils.js"
 import { px, size } from "./size.js"
 import { Icon, progressIcon } from "./base/Icon.js"
 import { lang, TranslationKey } from "../misc/LanguageViewModel.js"
@@ -15,6 +14,7 @@ import { SearchDropDown } from "./SearchDropDown.js"
 import { findRecipientWithAddress } from "../api/common/utils/CommonCalendarUtils.js"
 import { Icons } from "./base/icons/Icons.js"
 import { theme } from "./theme.js"
+import { getMailAddressDisplayText } from "../mailFunctionality/CommonMailUtils.js"
 
 export interface MailRecipientsTextFieldAttrs {
 	label: TranslationKey

@@ -2,12 +2,12 @@ import m, { Children, Component, Vnode } from "mithril"
 import { size } from "../../gui/size"
 import { getCapabilityText } from "../GroupUtils"
 import { downcast } from "@tutao/tutanota-utils"
-import { getMailAddressDisplayText } from "../../../mail-app/mail/model/MailUtils"
 import { showGroupInvitationDialog } from "./ReceivedGroupInvitationDialog"
 import { Icons } from "../../gui/base/icons/Icons"
 import type { ReceivedGroupInvitation } from "../../api/entities/sys/TypeRefs.js"
 import type { AllIcons } from "../../gui/base/Icon"
 import { IconButton } from "../../gui/base/IconButton.js"
+import { getMailAddressDisplayText } from "../../mailFunctionality/CommonMailUtils.js"
 
 export type GroupInvitationFolderRowAttrs = {
 	invitation: ReceivedGroupInvitation

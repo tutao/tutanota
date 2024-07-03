@@ -27,7 +27,7 @@ import {
 	getContactRelationshipTypeToLabel,
 	getContactSocialTypeLabel,
 } from "./ContactGuiUtils"
-import { formatContactDate, getMessengerHandleUrl, getSocialUrl, getWebsiteUrl } from "../model/ContactUtils"
+import { formatContactDate, getMessengerHandleUrl, getSocialUrl, getWebsiteUrl } from "../../../common/contactsFunctionality/ContactUtils.js"
 import { assertMainOrNode } from "../../../common/api/common/Env"
 import { IconButton } from "../../../common/gui/base/IconButton.js"
 import { ButtonSize } from "../../../common/gui/base/ButtonSize.js"

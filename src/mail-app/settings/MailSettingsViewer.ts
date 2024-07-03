@@ -13,10 +13,9 @@ import { capitalizeFirstLetter, defer, LazyLoaded, noOp, ofClass } from "@tutao/
 import { getInboxRuleTypeName } from "../mail/model/InboxRuleHandler"
 import { MailAddressTable } from "./mailaddress/MailAddressTable.js"
 import { Dialog } from "../../common/gui/base/Dialog"
-import { getDefaultSenderFromUser, getFolderName, getMailAddressDisplayText } from "../mail/model/MailUtils"
 import { Icons } from "../../common/gui/base/icons/Icons"
 import { showProgressDialog } from "../../common/gui/dialogs/ProgressDialog"
-import type { MailboxDetail } from "../mail/model/MailModel"
+import type { MailboxDetail } from "../../common/mailFunctionality/MailModel.js"
 import { locator } from "../../common/api/main/MainLocator"
 import stream from "mithril/stream"
 import Stream from "mithril/stream"
@@ -47,6 +46,7 @@ import { getEnabledMailAddressesForGroupInfo } from "../../common/api/common/uti
 import { formatStorageSize } from "../../common/misc/Formatter.js"
 import { CustomerInfo } from "../../common/api/entities/sys/TypeRefs.js"
 import { EntityUpdateData, isUpdateForTypeRef } from "../../common/api/common/utils/EntityUpdateUtils.js"
+import { getDefaultSenderFromUser, getFolderName, getMailAddressDisplayText } from "../../common/mailFunctionality/CommonMailUtils.js"
 
 assertMainOrNode()
 

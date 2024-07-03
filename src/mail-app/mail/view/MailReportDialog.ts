@@ -5,7 +5,7 @@ import m from "mithril"
 import { MailReportType, ReportMovedMailsType } from "../../../common/api/common/TutanotaConstants"
 import { ButtonAttrs, ButtonType } from "../../../common/gui/base/Button.js"
 import { Dialog } from "../../../common/gui/base/Dialog"
-import type { MailboxDetail, MailModel } from "../model/MailModel"
+import type { MailboxDetail, MailModel } from "../../../common/mailFunctionality/MailModel.js"
 import { showSnackBar } from "../../../common/gui/base/SnackBar"
 
 function confirmMailReportDialog(mailModel: MailModel, mailboxDetails: MailboxDetail): Promise<boolean> {

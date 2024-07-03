@@ -13,8 +13,8 @@ import { UpgradeRequiredError } from "../../../common/api/main/UpgradeRequiredEr
 import { IServiceExecutor } from "../../../common/api/common/ServiceRequest.js"
 
 import { getAvailableMatchingPlans } from "../../../common/subscription/SubscriptionUtils.js"
-import { isTutanotaMailAddress } from "../../../common/api/common/mail/CommonMailUtils.js"
 import { EntityUpdateData, isUpdateFor, isUpdateForTypeRef } from "../../../common/api/common/utils/EntityUpdateUtils.js"
+import { isTutanotaMailAddress } from "../../../common/mailFunctionality/CommonMailUtils.js"
 
 export enum AddressStatus {
 	Primary,

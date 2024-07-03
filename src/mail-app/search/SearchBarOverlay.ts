@@ -8,21 +8,21 @@ import { FULL_INDEXED_TIMESTAMP } from "../../common/api/common/TutanotaConstant
 import { formatDate, formatTimeOrDateOrYesterday } from "../../common/misc/Formatter"
 import type { CalendarEvent, Contact, Mail } from "../../common/api/entities/tutanota/TypeRefs.js"
 import { CalendarEventTypeRef, ContactTypeRef, MailTypeRef } from "../../common/api/entities/tutanota/TypeRefs.js"
-import { getSenderOrRecipientHeading } from "../mail/model/MailUtils"
 import Badge from "../../common/gui/base/Badge"
 import { Icon } from "../../common/gui/base/Icon"
 import { client } from "../../common/misc/ClientDetector"
 import m, { Children, Component, Vnode } from "mithril"
 import { theme } from "../../common/gui/theme"
-import { getContactListName } from "../contacts/model/ContactUtils"
+import { getContactListName } from "../../common/contactsFunctionality/ContactUtils.js"
 import { getMailFolderIcon } from "../mail/view/MailGuiUtils"
 import { locator } from "../../common/api/main/MainLocator"
 import { IndexingErrorReason } from "../../common/api/worker/search/SearchTypes"
 import { companyTeamLabel } from "../../common/misc/ClientConstants.js"
-import { isTutanotaTeamMail } from "../../common/api/common/mail/CommonMailUtils.js"
 import { getTimeZone } from "../../calendar-app/calendar/date/CalendarUtils.js"
 
 import { formatEventDuration } from "../../calendar-app/calendar/gui/CalendarGuiUtils.js"
+import { getSenderOrRecipientHeading } from "../../common/mailFunctionality/CommonMailUtils.js"
+import { isTutanotaTeamMail } from "../mail/MailUtils.js"
 
 type SearchBarOverlayAttrs = {
 	state: SearchBarState

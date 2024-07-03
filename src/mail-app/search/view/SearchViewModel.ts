@@ -45,13 +45,12 @@ import {
 	SearchCategoryTypes,
 } from "../model/SearchUtils.js"
 import Stream from "mithril/stream"
-import { MailboxDetail, MailModel } from "../../mail/model/MailModel.js"
+import { MailboxDetail, MailModel } from "../../../common/mailFunctionality/MailModel.js"
 import { getStartOfTheWeekOffsetForUser } from "../../../calendar-app/calendar/date/CalendarUtils.js"
 import { SearchFacade } from "../../../common/api/worker/search/SearchFacade.js"
 import { LoginController } from "../../../common/api/main/LoginController.js"
 import { Indexer } from "../../../common/api/worker/search/Indexer.js"
 import { EntityClient, loadMultipleFromLists } from "../../../common/api/common/EntityClient.js"
-import { getMailFilterForType, MailFilterType } from "../../mail/model/MailUtils.js"
 import { SearchRouter } from "./SearchRouter.js"
 import { MailOpenedListener } from "../../mail/view/MailViewModel.js"
 import { containsEventOfType, EntityUpdateData, getEventOfType, isUpdateForTypeRef } from "../../../common/api/common/utils/EntityUpdateUtils.js"
@@ -62,6 +61,7 @@ import { CalendarFacade } from "../../../common/api/worker/facades/lazy/Calendar
 import { ProgrammingError } from "../../../common/api/common/error/ProgrammingError.js"
 import { ProgressTracker } from "../../../common/api/main/ProgressTracker.js"
 import { ListAutoSelectBehavior } from "../../../common/misc/DeviceConfig.js"
+import { getMailFilterForType, MailFilterType } from "../../../common/mailFunctionality/CommonMailUtils.js"
 
 const SEARCH_PAGE_SIZE = 100
 

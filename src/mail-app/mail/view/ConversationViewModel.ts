@@ -16,10 +16,10 @@ import { LoadingStateTracker } from "../../../common/offline/LoadingState.js"
 import { EntityEventsListener, EventController } from "../../../common/api/main/EventController.js"
 import { ConversationType, MailFolderType, MailState, OperationType } from "../../../common/api/common/TutanotaConstants.js"
 import { NotAuthorizedError, NotFoundError } from "../../../common/api/common/error/RestError.js"
-import { isOfTypeOrSubfolderOf } from "../../../common/api/common/mail/CommonMailUtils.js"
-import { MailModel } from "../model/MailModel.js"
+import { MailModel } from "../../../common/mailFunctionality/MailModel.js"
 import { EntityUpdateData, isUpdateForTypeRef } from "../../../common/api/common/utils/EntityUpdateUtils.js"
 import { ListAutoSelectBehavior } from "../../../common/misc/DeviceConfig.js"
+import { isOfTypeOrSubfolderOf } from "../MailUtils.js"
 
 export type MailViewerViewModelFactory = (options: CreateMailViewerOptions) => MailViewerViewModel
 
