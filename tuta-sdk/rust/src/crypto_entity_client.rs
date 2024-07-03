@@ -88,7 +88,7 @@ impl CryptoEntityClient {
 mod tests {
     use std::sync::Arc;
     use rand::random;
-    use crate::crypto::aes::{Aes256Key, Iv};
+    use crate::crypto::{Aes256Key, Iv};
     use crate::crypto::crypto_facade::MockCryptoFacade;
     use crate::crypto::key::GenericAesKey;
     use crate::crypto_entity_client::CryptoEntityClient;
