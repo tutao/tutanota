@@ -4,31 +4,23 @@ import { InfoLink, lang } from "../../common/misc/LanguageViewModel"
 import { getSpamRuleFieldToName, getSpamRuleTypeNameMapping, showAddSpamRuleDialog } from "./AddSpamRuleDialog"
 import { getSpamRuleField, GroupType, OperationType, SpamRuleFieldType, SpamRuleType } from "../../common/api/common/TutanotaConstants"
 import {
-	AuditLogEntry,
-	createSurveyData,
+	createEmailSenderListElement,
 	Customer,
 	CustomerInfo,
-	CustomerServerProperties,
-	DomainInfo,
-	GroupInfo,
-} from "../../common/api/entities/sys/TypeRefs.js"
-import {
-	AuditLogEntryTypeRef,
-	createEmailSenderListElement,
 	CustomerInfoTypeRef,
 	CustomerPropertiesTypeRef,
+	CustomerServerProperties,
 	CustomerServerPropertiesTypeRef,
 	CustomerTypeRef,
-	GroupInfoTypeRef,
+	DomainInfo,
 	GroupTypeRef,
 	RejectedSenderTypeRef,
 	UserTypeRef,
 } from "../../common/api/entities/sys/TypeRefs.js"
 import stream from "mithril/stream"
-import Stream from "mithril/stream"
-import { formatDateTime, formatDateTimeFromYesterdayOn } from "../../common/misc/Formatter"
+import { formatDateTime } from "../../common/misc/Formatter"
 import { Dialog } from "../../common/gui/base/Dialog"
-import { LockedError, NotAuthorizedError, PreconditionFailedError } from "../../common/api/common/error/RestError"
+import { LockedError, PreconditionFailedError } from "../../common/api/common/error/RestError"
 import { GroupData, loadEnabledTeamMailGroups, loadEnabledUserMailGroups, loadGroupDisplayName } from "./LoadingUtils"
 import { Icons } from "../../common/gui/base/icons/Icons"
 import { showProgressDialog } from "../../common/gui/dialogs/ProgressDialog"
@@ -53,17 +45,11 @@ import { showNotAvailableForFreeDialog } from "../../common/misc/SubscriptionDia
 import { getDomainPart } from "../../common/misc/parsing/MailAddressParser"
 import { locator } from "../../common/api/main/CommonLocator"
 import { assertMainOrNode } from "../../common/api/common/Env"
-import { DropDownSelector } from "../../common/gui/base/DropDownSelector.js"
 import { ButtonSize } from "../../common/gui/base/ButtonSize.js"
-import { SettingsExpander } from "./SettingsExpander.js"
-import { showDeleteAccountDialog } from "../../common/subscription/DeleteAccountDialog.js"
 import { getCustomMailDomains } from "../../common/api/common/utils/CustomerUtils.js"
 import { EntityUpdateData, isUpdateForTypeRef } from "../../common/api/common/utils/EntityUpdateUtils.js"
-import { LoginButton } from "../../common/gui/base/buttons/LoginButton.js"
-import { showLeavingUserSurveyWizard } from "../../common/subscription/LeavingUserSurveyWizard.js"
-import { SURVEY_VERSION_NUMBER } from "../../common/subscription/LeavingUserSurveyConstants.js"
 import { UpdatableSettingsViewer } from "../../common/settings/Interfaces.js"
-import { AccountMaintenanceSettings } from "../../common/settings/AccountMaintenanceSettings.js"
+import { AccountMaintenanceSettings, AccountMaintenanceUpdateNotifier } from "../../common/settings/AccountMaintenanceSettings.js"
 
 assertMainOrNode()
 // Number of days for that we load rejected senders
@@ -75,6 +61,8 @@ export class GlobalSettingsViewer implements UpdatableSettingsViewer {
 	private readonly props = stream<Readonly<CustomerServerProperties>>()
 	private customer: Customer | null = null
 	private readonly customerInfo = new LazyLoaded<CustomerInfo>(() => locator.logins.getUserController().loadCustomerInfo())
+
+	private accountMaintenanceUpdateNotifier: AccountMaintenanceUpdateNotifier | null = null
 
 	private spamRuleLines: ReadonlyArray<TableLineAttrs> = []
 	private rejectedSenderLines: ReadonlyArray<TableLineAttrs> = []
@@ -93,6 +81,7 @@ export class GlobalSettingsViewer implements UpdatableSettingsViewer {
 
 	constructor() {
 		this.customerProperties.getAsync().then(m.redraw)
+		this.updateCustomerServerProperties()
 		this.view = this.view.bind(this)
 		this.updateDomains()
 	}
@@ -166,8 +155,13 @@ export class GlobalSettingsViewer implements UpdatableSettingsViewer {
 					infoMsg: "moreInfo_msg",
 					infoLinkId: InfoLink.DomainInfo,
 				}),
+				m(AccountMaintenanceSettings, {
+					customerServerProperties: this.props,
+					setOnUpdateHandler: (fn: AccountMaintenanceUpdateNotifier) => {
+						this.accountMaintenanceUpdateNotifier = fn
+					},
+				}),
 			]),
-			m(AccountMaintenanceSettings),
 		]
 	}
 
@@ -392,7 +386,10 @@ export class GlobalSettingsViewer implements UpdatableSettingsViewer {
 		return locator.customerFacade.setCatchAllGroup(domainInfo.domain, selectedMailGroupId)
 	}
 
-	private async loadMailboxGroupDataAndCatchAllId(domainInfo: DomainInfo): Promise<{ available: Array<GroupData>; selected: GroupData | null }> {
+	private async loadMailboxGroupDataAndCatchAllId(domainInfo: DomainInfo): Promise<{
+		available: Array<GroupData>
+		selected: GroupData | null
+	}> {
 		const customer = await locator.logins.getUserController().loadCustomer()
 		const teamMailGroups = await loadEnabledTeamMailGroups(customer)
 		const userMailGroups = await loadEnabledUserMailGroups(customer)
@@ -450,6 +447,8 @@ export class GlobalSettingsViewer implements UpdatableSettingsViewer {
 	}
 
 	entityEventsReceived(updates: ReadonlyArray<EntityUpdateData>): Promise<void> {
+		this.accountMaintenanceUpdateNotifier?.(updates)
+
 		return promiseMap(updates, (update) => {
 			if (isUpdateForTypeRef(CustomerServerPropertiesTypeRef, update) && update.operation === OperationType.UPDATE) {
 				return this.updateCustomerServerProperties()

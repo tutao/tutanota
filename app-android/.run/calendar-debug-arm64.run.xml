@@ -63,7 +63,7 @@
     <option name="SEARCH_ACTIVITY_IN_GLOBAL_SCOPE" value="false" />
     <option name="SKIP_ACTIVITY_VALIDATION" value="false" />
     <method v="2">
-      <option name="Gradle.BeforeRunTask" enabled="false" tasks=":app:assembleFdroidDebug :app:installFdroidDebug" externalProjectPath="$PROJECT_DIR$" vmOptions="" scriptParameters="-PtargetABI=arm64" />
+      <option name="Gradle.BeforeRunTask" enabled="false" tasks=":calendar:assembleFdroidDebug :calendar:installFdroidDebug" externalProjectPath="$PROJECT_DIR$" vmOptions="" scriptParameters="-PtargetABI=arm64" />
     </method>
   </configuration>
 </component>

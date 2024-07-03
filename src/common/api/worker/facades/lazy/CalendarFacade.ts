@@ -59,10 +59,10 @@ import {
 	addDaysForRecurringEvent,
 	CalendarTimeRange,
 	generateCalendarInstancesInRange,
-} from "../../../../../calendar-app/calendar/date/CalendarUtils.js"
+} from "../../../../calendar/date/CalendarUtils.js"
 import { CalendarInfo } from "../../../../../calendar-app/calendar/model/CalendarModel.js"
 import { geEventElementMaxId, getEventElementMinId } from "../../../common/utils/CommonCalendarUtils.js"
-import { DaysToEvents } from "../../../../../calendar-app/calendar/date/CalendarEventsRepository.js"
+import { DaysToEvents } from "../../../../calendar/date/CalendarEventsRepository.js"
 import { isOfflineError } from "../../../common/utils/ErrorUtils.js"
 
 assertWorkerOrNode()

@@ -2,12 +2,12 @@ import { app, BrowserWindow, WebContents } from "electron"
 import path from "node:path"
 import { defer } from "@tutao/tutanota-utils"
 import { ElectronWebContentsTransport } from "./ipc/ElectronWebContentsTransport.js"
-import { NativeToWebRequest, WebToNativeRequest } from "../common/native/main/WebauthnNativeBridge.js"
-import { MessageDispatcher } from "../common/api/common/threading/MessageDispatcher.js"
-import { exposeRemote } from "../common/api/common/WorkerProxy.js"
-import { CancelledError } from "../common/api/common/error/CancelledError.js"
+import { NativeToWebRequest, WebToNativeRequest } from "../native/main/WebauthnNativeBridge.js"
+import { MessageDispatcher } from "../api/common/threading/MessageDispatcher.js"
+import { exposeRemote } from "../api/common/WorkerProxy.js"
+import { CancelledError } from "../api/common/error/CancelledError.js"
 import { register } from "./electron-localshortcut/LocalShortcut.js"
-import { ProgrammingError } from "../common/api/common/error/ProgrammingError.js"
+import { ProgrammingError } from "../api/common/error/ProgrammingError.js"
 
 export const webauthnIpcConfig = Object.freeze({
 	renderToMainEvent: "to-main-webdialog",

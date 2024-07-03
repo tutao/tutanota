@@ -2,7 +2,7 @@ import m, { Children, Component, Vnode } from "mithril"
 import { formatMonthWithFullYear } from "../../../../common/misc/Formatter.js"
 import { incrementMonth } from "@tutao/tutanota-utils"
 import { DaySelector } from "./DaySelector.js"
-import { DaysToEvents } from "../../date/CalendarEventsRepository.js"
+import { DaysToEvents } from "../../../../common/calendar/date/CalendarEventsRepository.js"
 import renderSwitchMonthArrowIcon from "../../../../common/gui/base/buttons/ArrowButton.js"
 
 export interface DaySelectorSidebarAttrs {

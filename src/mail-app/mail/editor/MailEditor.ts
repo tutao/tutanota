@@ -1158,7 +1158,7 @@ export async function newMailEditorFromTemplate(
 }
 
 export function getSupportMailSignature(): Promise<string> {
-	return import("../../../calendar-app/calendar/date/CalendarUtils").then(({ getTimeZone }) => {
+	return import("../../../common/calendar/date/CalendarUtils").then(({ getTimeZone }) => {
 		return (
 			LINE_BREAK +
 			LINE_BREAK +
