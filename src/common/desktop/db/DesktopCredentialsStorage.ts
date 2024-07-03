@@ -1,13 +1,13 @@
 import { log } from "../DesktopLog.js"
 import { Database, default as Sqlite } from "better-sqlite3"
 import fs from "node:fs"
-import { OfflineDbClosedError } from "../../common/api/common/error/OfflineDbClosedError.js"
+import { OfflineDbClosedError } from "../../api/common/error/OfflineDbClosedError.js"
 import { CryptoError } from "@tutao/tutanota-crypto/error.js"
-import { SqlValue } from "../../common/api/worker/offline/SqlValue.js"
-import { PersistedCredentials } from "../../common/native/common/generatedipc/PersistedCredentials.js"
-import { UntaggedQuery, usql } from "../../common/api/worker/offline/Sql.js"
-import { CredentialType } from "../../common/misc/credentials/CredentialType.js"
-import { CredentialEncryptionMode } from "../../common/misc/credentials/CredentialEncryptionMode.js"
+import { SqlValue } from "../../api/worker/offline/SqlValue.js"
+import { PersistedCredentials } from "../../native/common/generatedipc/PersistedCredentials.js"
+import { UntaggedQuery, usql } from "../../api/worker/offline/Sql.js"
+import { CredentialType } from "../../misc/credentials/CredentialType.js"
+import { CredentialEncryptionMode } from "../../misc/credentials/CredentialEncryptionMode.js"
 
 const TableDefinitions = Object.freeze({
 	credentials:

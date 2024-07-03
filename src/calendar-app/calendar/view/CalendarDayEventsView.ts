@@ -1,10 +1,16 @@
 import m, { ChildArray, Children, Component, Vnode } from "mithril"
 import { px, size } from "../../../common/gui/size"
 import { DAY_IN_MILLIS, downcast, getEndOfDay, getStartOfDay, mapNullable, neverNull, numberRange } from "@tutao/tutanota-utils"
-import { eventEndsAfterDay, eventStartsBefore, getTimeTextFormatForLongEvent, getTimeZone, hasAlarmsForTheUser } from "../date/CalendarUtils"
+import {
+	eventEndsAfterDay,
+	eventStartsBefore,
+	getTimeTextFormatForLongEvent,
+	getTimeZone,
+	hasAlarmsForTheUser,
+} from "../../../common/calendar/date/CalendarUtils"
 import { CalendarEventBubble } from "./CalendarEventBubble"
 import type { CalendarEvent } from "../../../common/api/entities/tutanota/TypeRefs.js"
-import { Time } from "../date/Time.js"
+import { Time } from "../../../common/calendar/date/Time.js"
 import { getPosAndBoundsFromMouseEvent } from "../../../common/gui/base/GuiUtils"
 import {
 	EventLayoutMode,

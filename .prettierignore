@@ -2,6 +2,7 @@ entities/
 translations/
 node_modules/
 build/
+build-calendar-app/
 dist/
 libs/
 app-android/

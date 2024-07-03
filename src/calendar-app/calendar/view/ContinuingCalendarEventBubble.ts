@@ -1,5 +1,5 @@
 import m, { Children, Component, Vnode } from "mithril"
-import { hasAlarmsForTheUser } from "../date/CalendarUtils"
+import { hasAlarmsForTheUser } from "../../../common/calendar/date/CalendarUtils"
 import { CalendarEventBubble } from "./CalendarEventBubble"
 import type { CalendarEvent } from "../../../common/api/entities/tutanota/TypeRefs.js"
 import type { User } from "../../../common/api/entities/sys/TypeRefs.js"
