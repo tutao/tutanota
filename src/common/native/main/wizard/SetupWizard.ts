@@ -1,4 +1,4 @@
-import { createWizardDialog, wizardPageWrapper } from "../../../gui/base/WizardDialog.js"
+import { createWizardDialog, WizardPageWrapper, wizardPageWrapper } from "../../../gui/base/WizardDialog.js"
 import { defer } from "@tutao/tutanota-utils"
 import { SetupCongratulationsPage, SetupCongratulationsPageAttrs } from "./setupwizardpages/SetupCongraulationsPage.js"
 import { DeviceConfig } from "../../../misc/DeviceConfig.js"
@@ -54,7 +54,7 @@ export async function showSetupWizard(
 		PermissionType.IgnoreBatteryOptimization,
 	])
 
-	let wizardPages = []
+	let wizardPages: WizardPageWrapper<any>[] = []
 	wizardPages.push(wizardPageWrapper(SetupCongratulationsPage, new SetupCongratulationsPageAttrs()))
 	wizardPages.push(
 		wizardPageWrapper(
@@ -72,15 +72,7 @@ export async function showSetupWizard(
 	wizardPages.push(wizardPageWrapper(SetupThemePage, new SetupThemePageAttrs()))
 	if (allowContactSyncAndImport && contactSyncManager && contactImporter) {
 		wizardPages.push(
-			wizardPageWrapper(
-				SetupContactsPage,
-				new SetupContactsPageAttrs(
-					contactSyncManager,
-					contactImporter,
-					systemFacade,
-					allowContactSyncAndImport
-				)
-			),
+			wizardPageWrapper(SetupContactsPage, new SetupContactsPageAttrs(contactSyncManager, contactImporter, systemFacade, allowContactSyncAndImport)),
 		)
 	}
 	wizardPages.push(wizardPageWrapper(SetupLockPage, new SetupLockPageAttrs(locator.systemFacade)))

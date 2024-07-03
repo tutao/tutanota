@@ -17,7 +17,7 @@ import { DateTime } from "luxon"
 import { DateWrapperTypeRef } from "../../../src/common/api/entities/sys/TypeRefs.js"
 import { getDateInUTC, zone } from "./CalendarTestUtils.js"
 import { createTestEntity } from "../TestUtils.js"
-import { AlarmIntervalUnit } from "../../../src/common/calendar-app/date/CalendarUtils.js"
+import { AlarmIntervalUnit } from "../../../src/common/calendar/date/CalendarUtils.js"
 
 o.spec("CalendarParser", function () {
 	o.spec("propertySequenceParser", function () {

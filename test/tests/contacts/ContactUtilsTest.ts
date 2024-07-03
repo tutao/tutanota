@@ -6,16 +6,16 @@ import {
 	ContactPhoneNumberTypeRef,
 	ContactTypeRef,
 } from "../../../src/common/api/entities/tutanota/TypeRefs.js"
+import { lang } from "../../../src/common/misc/LanguageViewModel.js"
+import { compareContacts } from "../../../src/mail-app/contacts/view/ContactGuiUtils.js"
+import { createTestEntity } from "../TestUtils.js"
+import { ContactAddressType, ContactPhoneNumberType } from "../../../src/common/api/common/TutanotaConstants.js"
 import {
 	extractStructuredAddresses,
 	extractStructuredMailAddresses,
 	extractStructuredPhoneNumbers,
 	formatBirthdayNumeric,
-} from "../../../src/mail-app/contacts/model/ContactUtils.js"
-import { lang } from "../../../src/common/misc/LanguageViewModel.js"
-import { compareContacts } from "../../../src/mail-app/contacts/view/ContactGuiUtils.js"
-import { createTestEntity } from "../TestUtils.js"
-import { ContactAddressType, ContactPhoneNumberType } from "../../../src/common/api/common/TutanotaConstants.js"
+} from "../../../src/common/contactsFunctionality/ContactUtils.js"
 
 o.spec("ContactUtilsTest", function () {
 	let compare = function (c1Firstname, c1Lastname, c1MailAddress, c2Firstname, c2Lastname, c2MailAddress, byFirstName, expectedResult) {

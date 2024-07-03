@@ -1,3 +1,5 @@
+// @bundleInto:common-functionality
+
 import { assertMainOrNode } from "../api/common/Env.js"
 import { Group, GroupInfo, GroupInfoTypeRef, GroupMembership, GroupTypeRef } from "../api/entities/sys/TypeRefs.js"
 import {
@@ -6,7 +8,7 @@ import {
 	ContactListGroupRoot,
 	ContactListGroupRootTypeRef,
 	ContactListTypeRef,
-	ContactTypeRef
+	ContactTypeRef,
 } from "../api/entities/tutanota/TypeRefs.js"
 import { getFirstOrThrow, isNotNull, LazyLoaded, ofClass, promiseMap } from "@tutao/tutanota-utils"
 import Stream from "mithril/stream"
@@ -23,7 +25,6 @@ import { compareOldestFirst, getEtId } from "../api/common/utils/EntityUtils.js"
 import { NotAuthorizedError, NotFoundError } from "../api/common/error/RestError.js"
 import { ShareCapability } from "../api/common/TutanotaConstants.js"
 import { EntityUpdateData } from "../api/common/utils/EntityUpdateUtils.js"
-
 
 assertMainOrNode()
 

@@ -1,3 +1,5 @@
+// @bundleInto:common-functionality
+
 import {
 	createMailAddressProperties,
 	createMailboxProperties,
@@ -5,13 +7,15 @@ import {
 	MailBox,
 	MailboxGroupRoot,
 	MailboxGroupRootTypeRef,
-	MailboxProperties, MailboxPropertiesTypeRef,
+	MailboxProperties,
+	MailboxPropertiesTypeRef,
 	MailBoxTypeRef,
 	MailFolder,
-	MailFolderTypeRef, MailTypeRef
+	MailFolderTypeRef,
+	MailTypeRef,
 } from "../api/entities/tutanota/TypeRefs.js"
-import { FolderSystem } from "../api/common/mail/FolderSystem.js"
 import { Group, GroupInfo, GroupInfoTypeRef, GroupMembership, GroupTypeRef, WebsocketCounterData } from "../api/entities/sys/TypeRefs.js"
+import { FolderSystem } from "../api/common/mail/FolderSystem.js"
 import Stream from "mithril/stream"
 import stream from "mithril/stream"
 import { Notifications, NotificationType } from "../gui/Notifications.js"
@@ -28,7 +32,7 @@ import {
 	MailReportType,
 	MAX_NBR_MOVE_DELETE_MAIL_SERVICE,
 	OperationType,
-	ReportMovedMailsType
+	ReportMovedMailsType,
 } from "../api/common/TutanotaConstants.js"
 import { assertSystemFolderOfType, getEnabledMailAddressesWithUser, isSpamOrTrashFolder } from "./CommonMailUtils.js"
 import { LockedError, NotFoundError, PreconditionFailedError } from "../api/common/error/RestError.js"
@@ -38,7 +42,6 @@ import m from "mithril"
 import { lang } from "../misc/LanguageViewModel.js"
 import { ProgrammingError } from "../api/common/error/ProgrammingError.js"
 import { UserError } from "../api/main/UserError.js"
-
 
 export type MailboxDetail = {
 	mailbox: MailBox

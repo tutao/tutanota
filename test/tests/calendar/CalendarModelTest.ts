@@ -8,7 +8,6 @@ import {
 	EncryptedMailAddressTypeRef,
 	FileTypeRef,
 } from "../../../src/common/api/entities/tutanota/TypeRefs.js"
-import { incrementByRepeatPeriod } from "../../../src/common/calendar-app/date/CalendarUtils.js"
 import { downcast, hexToUint8Array, neverNull, stringToUtf8Uint8Array } from "@tutao/tutanota-utils"
 import { CalendarModel } from "../../../src/calendar-app/calendar/model/CalendarModel.js"
 import { CalendarAttendeeStatus, CalendarMethod, OperationType, RepeatPeriod } from "../../../src/common/api/common/TutanotaConstants.js"
@@ -35,6 +34,7 @@ import { NoopProgressMonitor } from "../../../src/common/api/common/utils/Progre
 import { makeAlarmScheduler } from "./CalendarTestUtils.js"
 import { EntityUpdateData } from "../../../src/common/api/common/utils/EntityUpdateUtils.js"
 import { MailModel } from "../../../src/common/mailFunctionality/MailModel.js"
+import { incrementByRepeatPeriod } from "../../../src/common/calendar/date/CalendarUtils.js"
 
 o.spec("CalendarModel", function () {
 	o.spec("incrementByRepeatPeriod", function () {

@@ -2,7 +2,7 @@ import m, { Children } from "mithril"
 import { DAY_IN_MILLIS, LazyLoaded, neverNull, noOp, ofClass, promiseMap } from "@tutao/tutanota-utils"
 import { InfoLink, lang } from "../../common/misc/LanguageViewModel"
 import { getSpamRuleFieldToName, getSpamRuleTypeNameMapping, showAddSpamRuleDialog } from "./AddSpamRuleDialog"
-import { getSpamRuleField, GroupType, OperationType, SpamRuleFieldType, SpamRuleType } from "../api/common/TutanotaConstants"
+import { getSpamRuleField, GroupType, OperationType, SpamRuleFieldType, SpamRuleType } from "../../common/api/common/TutanotaConstants"
 import {
 	createEmailSenderListElement,
 	Customer,
@@ -48,7 +48,6 @@ import { ButtonSize } from "../../common/gui/base/ButtonSize.js"
 import { getCustomMailDomains } from "../../common/api/common/utils/CustomerUtils.js"
 import { EntityUpdateData, isUpdateForTypeRef } from "../../common/api/common/utils/EntityUpdateUtils.js"
 import { AccountMaintenanceSettings, AccountMaintenanceUpdateNotifier } from "../../common/settings/AccountMaintenanceSettings.js"
-import { hasRunningAppStoreSubscription } from "../../common/subscription/SubscriptionUtils.js"
 import type { UpdatableSettingsViewer } from "../../common/settings/Interfaces.js"
 import { ExpandableTable } from "../../common/settings/ExpandableTable.js"
 
@@ -163,7 +162,6 @@ export class GlobalSettingsViewer implements UpdatableSettingsViewer {
 					},
 				}),
 			]),
-			m(AccountMaintenanceSettings),
 		]
 	}
 

@@ -44,6 +44,7 @@ import { NotificationSettingsViewer } from "../settings/NotificationSettingsView
 import { GlobalSettingsViewer } from "../settings/GlobalSettingsViewer.js"
 import { CalendarBottomNav } from "../../gui/CalendarBottomNav.js"
 import { calendarLocator } from "../../calendarLocator.js"
+import { locator } from "../../../common/api/main/CommonLocator.js"
 
 assertMainOrNode()
 
@@ -257,7 +258,7 @@ export class CalendarSettingsView extends BaseTopLevelView implements TopLevelVi
 						"adminSubscription_action",
 						() => BootIcons.Premium,
 						"subscription",
-						() => new SubscriptionViewer(currentPlanType),
+						() => new SubscriptionViewer(currentPlanType, isIOSApp() ? locator.mobilePaymentsFacade : null, locator.appStorePaymentPicker),
 						undefined,
 					).setIsVisibleHandler(() => !isIOSApp() || !this.logins.getUserController().isFreeAccount()),
 				)

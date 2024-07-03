@@ -53,8 +53,8 @@ export class AccountMaintenanceSettings implements Component<AccountMaintenanceS
 	private readonly customerInfo = new LazyLoaded<CustomerInfo>(() => locator.logins.getUserController().loadCustomerInfo())
 	private readonly customerProperties = new LazyLoaded(() =>
 		locator.entityClient
-			   .load(CustomerTypeRef, neverNull(locator.logins.getUserController().user.customer))
-			   .then((customer) => locator.entityClient.load(CustomerPropertiesTypeRef, neverNull(customer.properties))),
+			.load(CustomerTypeRef, neverNull(locator.logins.getUserController().user.customer))
+			.then((customer) => locator.entityClient.load(CustomerPropertiesTypeRef, neverNull(customer.properties))),
 	)
 
 	constructor(vnode: Vnode<AccountMaintenanceSettingsAttrs>) {
@@ -110,81 +110,81 @@ export class AccountMaintenanceSettings implements Component<AccountMaintenanceS
 				}),
 				locator.logins.getUserController().isGlobalAdmin()
 					? m("", [
-						locator.logins.getUserController().isPremiumAccount()
-							? m(DropDownSelector, {
-								label: "enforcePasswordUpdate_title",
-								helpLabel: () => lang.get("enforcePasswordUpdate_msg"),
-								selectedValue: this.requirePasswordUpdateAfterReset,
-								selectionChangedHandler: (value) => {
-									const newProps: CustomerServerProperties = Object.assign({}, attrs.customerServerProperties(), {
-										requirePasswordUpdateAfterReset: value,
-									})
-									locator.entityClient.update(newProps)
-								},
-								items: [
-									{
-										name: lang.get("yes_label"),
-										value: true,
-									},
-									{
-										name: lang.get("no_label"),
-										value: false,
-									},
-								],
-								dropdownWidth: 250,
-							})
-							: null,
-						this.customer
-							? m(
-								".mt-l",
-								m(ExpandableTable, {
-									title: "auditLog_title",
-									table: auditLogTableAttrs,
-									infoMsg: "auditLogInfo_msg",
-									onExpand: () => {
-										// if the user did not load this when the view was created (i.e. due to a lost connection), attempt to reload it
-										if (!this.auditLogLoaded) {
-											showProgressDialog("loading_msg", this.updateAuditLog()).then(() => m.redraw())
-										}
-									},
-								}),
-							)
-							: null,
-					])
+							locator.logins.getUserController().isPremiumAccount()
+								? m(DropDownSelector, {
+										label: "enforcePasswordUpdate_title",
+										helpLabel: () => lang.get("enforcePasswordUpdate_msg"),
+										selectedValue: this.requirePasswordUpdateAfterReset,
+										selectionChangedHandler: (value) => {
+											const newProps: CustomerServerProperties = Object.assign({}, attrs.customerServerProperties(), {
+												requirePasswordUpdateAfterReset: value,
+											})
+											locator.entityClient.update(newProps)
+										},
+										items: [
+											{
+												name: lang.get("yes_label"),
+												value: true,
+											},
+											{
+												name: lang.get("no_label"),
+												value: false,
+											},
+										],
+										dropdownWidth: 250,
+								  })
+								: null,
+							this.customer
+								? m(
+										".mt-l",
+										m(ExpandableTable, {
+											title: "auditLog_title",
+											table: auditLogTableAttrs,
+											infoMsg: "auditLogInfo_msg",
+											onExpand: () => {
+												// if the user did not load this when the view was created (i.e. due to a lost connection), attempt to reload it
+												if (!this.auditLogLoaded) {
+													showProgressDialog("loading_msg", this.updateAuditLog()).then(() => m.redraw())
+												}
+											},
+										}),
+								  )
+								: null,
+					  ])
 					: null,
 			]),
 			locator.logins.getUserController().isPremiumAccount()
 				? m(
-					SettingsExpander,
-					{
-						title: "usageData_label",
-						expanded: this.usageDataExpanded,
-					},
-					this.customerProperties.isLoaded()
-						? m(DropDownSelector, {
-							label: "customerUsageDataOptOut_label",
-							items: [
-								{
-									name: lang.get("customerUsageDataGloballyDeactivated_label"),
-									value: true,
-								},
-								{
-									name: lang.get("customerUsageDataGloballyPossible_label"),
-									value: false,
-								},
-							],
-							selectedValue: this.customerProperties.getSync()!.usageDataOptedOut,
-							selectionChangedHandler: (v) => {
-								if (this.customerProperties.isLoaded()) {
-									const customerProps = this.customerProperties.getSync()!
-									customerProps.usageDataOptedOut = v as boolean
-									locator.entityClient.update(customerProps)
-								}
-							},
-							dropdownWidth: 250,
-						})
-						: null,
-				)
+						SettingsExpander,
+						{
+							title: "usageData_label",
+							expanded: this.usageDataExpanded,
+						},
+						this.customerProperties.isLoaded()
+							? m(DropDownSelector, {
+									label: "customerUsageDataOptOut_label",
+									items: [
+										{
+											name: lang.get("customerUsageDataGloballyDeactivated_label"),
+											value: true,
+										},
+										{
+											name: lang.get("customerUsageDataGloballyPossible_label"),
+											value: false,
+										},
+									],
+									selectedValue: this.customerProperties.getSync()!.usageDataOptedOut,
+									selectionChangedHandler: (v) => {
+										if (this.customerProperties.isLoaded()) {
+											const customerProps = this.customerProperties.getSync()!
+											customerProps.usageDataOptedOut = v as boolean
+											locator.entityClient.update(customerProps)
+										}
+									},
+									dropdownWidth: 250,
+							  })
+							: null,
+				  )
 				: null,
 			m(
 				".mb-l",
@@ -232,29 +232,29 @@ export class AccountMaintenanceSettings implements Component<AccountMaintenanceS
 
 	private updateAuditLog(): Promise<void> {
 		return locator.logins
-					  .getUserController()
-					  .loadCustomer()
-					  .then((customer) => {
-						  this.customer = customer
+			.getUserController()
+			.loadCustomer()
+			.then((customer) => {
+				this.customer = customer
 
-						  return locator.entityClient
-										.loadRange(AuditLogEntryTypeRef, neverNull(customer.auditLog).items, GENERATED_MAX_ID, 200, true)
-										.then((auditLog) => {
-											this.auditLogLoaded = true // indicate that we do not need to reload the list again when we expand
-											this.auditLogLines = auditLog.map((auditLogEntry) => {
-												return {
-													cells: [auditLogEntry.action, auditLogEntry.modifiedEntity, formatDateTimeFromYesterdayOn(auditLogEntry.date)],
-													actionButtonAttrs: {
-														title: "showMore_action",
-														icon: Icons.More,
-														click: () => this.showAuditLogDetails(auditLogEntry, customer),
-														size: ButtonSize.Compact,
-													},
-												}
-											})
-										})
-										.finally(m.redraw)
-					  })
+				return locator.entityClient
+					.loadRange(AuditLogEntryTypeRef, neverNull(customer.auditLog).items, GENERATED_MAX_ID, 200, true)
+					.then((auditLog) => {
+						this.auditLogLoaded = true // indicate that we do not need to reload the list again when we expand
+						this.auditLogLines = auditLog.map((auditLogEntry) => {
+							return {
+								cells: [auditLogEntry.action, auditLogEntry.modifiedEntity, formatDateTimeFromYesterdayOn(auditLogEntry.date)],
+								actionButtonAttrs: {
+									title: "showMore_action",
+									icon: Icons.More,
+									click: () => this.showAuditLogDetails(auditLogEntry, customer),
+									size: ButtonSize.Compact,
+								},
+							}
+						})
+					})
+					.finally(m.redraw)
+			})
 	}
 
 	private showAuditLogDetails(entry: AuditLogEntry, customer: Customer) {
@@ -265,30 +265,30 @@ export class AccountMaintenanceSettings implements Component<AccountMaintenanceS
 		if (entry.modifiedGroupInfo) {
 			groupInfoLoadingPromises.push(
 				locator.entityClient
-					   .load(GroupInfoTypeRef, entry.modifiedGroupInfo)
-					   .then((gi) => {
-						   modifiedGroupInfo(gi)
-					   })
-					   .catch(
-						   ofClass(NotAuthorizedError, () => {
-							   // If the admin is removed from the free group, he does not have the permission to access the groupinfo of that group anymore
-						   }),
-					   ),
+					.load(GroupInfoTypeRef, entry.modifiedGroupInfo)
+					.then((gi) => {
+						modifiedGroupInfo(gi)
+					})
+					.catch(
+						ofClass(NotAuthorizedError, () => {
+							// If the admin is removed from the free group, he does not have the permission to access the groupinfo of that group anymore
+						}),
+					),
 			)
 		}
 
 		if (entry.groupInfo) {
 			groupInfoLoadingPromises.push(
 				locator.entityClient
-					   .load(GroupInfoTypeRef, entry.groupInfo)
-					   .then((gi) => {
-						   groupInfo(gi)
-					   })
-					   .catch(
-						   ofClass(NotAuthorizedError, () => {
-							   // If the admin is removed from the free group, he does not have the permission to access the groupinfo of that group anymore
-						   }),
-					   ),
+					.load(GroupInfoTypeRef, entry.groupInfo)
+					.then((gi) => {
+						groupInfo(gi)
+					})
+					.catch(
+						ofClass(NotAuthorizedError, () => {
+							// If the admin is removed from the free group, he does not have the permission to access the groupinfo of that group anymore
+						}),
+					),
 			)
 		}
 
@@ -313,14 +313,14 @@ export class AccountMaintenanceSettings implements Component<AccountMaintenanceS
 							]),
 							groupInfoValue
 								? m("tr", [
-									m("td", lang.get("group_label")),
-									m(
-										"td.pl",
-										customer.adminGroup === groupInfoValue.group
-											? lang.get("globalAdmin_label")
-											: this.getGroupInfoDisplayText(groupInfoValue),
-									),
-								])
+										m("td", lang.get("group_label")),
+										m(
+											"td.pl",
+											customer.adminGroup === groupInfoValue.group
+												? lang.get("globalAdmin_label")
+												: this.getGroupInfoDisplayText(groupInfoValue),
+										),
+								  ])
 								: null,
 							m("tr", [m("td", lang.get("time_label")), m("td.pl", formatDateTime(entry.date))]),
 						]),

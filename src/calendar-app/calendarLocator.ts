@@ -60,7 +60,7 @@ import { deviceConfig } from "../common/misc/DeviceConfig.js"
 import { CalendarSearchViewModel } from "./calendar/search/view/CalendarSearchViewModel.js"
 import { SearchRouter } from "../common/search/view/SearchRouter.js"
 import { getEnabledMailAddressesWithUser } from "../common/mailFunctionality/CommonMailUtils.js"
-import { Const, FeatureType, GroupType, KdfType } from "../common/api/common/TutanotaConstants.js"
+import { AppType, Const, FeatureType, GroupType, KdfType } from "../common/api/common/TutanotaConstants.js"
 import { ShareableGroupType } from "../common/sharing/GroupUtils.js"
 import { ReceivedGroupInvitationsModel } from "../common/sharing/model/ReceivedGroupInvitationsModel.js"
 import { CalendarViewModel } from "./calendar/view/CalendarViewModel.js"
@@ -98,7 +98,6 @@ import { CalendarEventPreviewViewModel } from "./calendar/gui/eventpopup/Calenda
 import { isCustomizationEnabledForCustomer } from "../common/api/common/utils/CustomerUtils.js"
 import { PostLoginActions } from "../common/login/PostLoginActions.js"
 import { CredentialFormatMigrator } from "../common/misc/credentials/CredentialFormatMigrator.js"
-import { locator } from "../common/api/main/CommonLocator.js"
 import { MobilePaymentsFacade } from "../common/native/common/generatedipc/MobilePaymentsFacade.js"
 import { AppStorePaymentPicker } from "../common/misc/AppStorePaymentPicker.js"
 import { NativeThemeFacade, ThemeController, WebThemeFacade } from "../common/gui/ThemeController.js"
@@ -595,6 +594,7 @@ class CalendarLocator {
 				calendarFacade,
 				this.entityClient,
 				this.logins,
+				AppType.Calendar,
 			)
 
 			if (isElectronClient()) {

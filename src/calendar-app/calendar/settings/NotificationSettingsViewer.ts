@@ -8,11 +8,10 @@ import { lang } from "../../../common/misc/LanguageViewModel.js"
 import { IdentifierRow } from "../../../mail-app/settings/IdentifierRow.js"
 import { noOp, ofClass } from "@tutao/tutanota-utils"
 import { NotFoundError } from "../../../common/api/common/error/RestError.js"
-import { PushServiceType } from "../../../common/api/common/TutanotaConstants.js"
+import { AppType, PushServiceType } from "../../../common/api/common/TutanotaConstants.js"
 import { SettingsNotificationTargets, SettingsNotificationTargetsAttrs } from "../../../common/settings/SettingsNotificationTargets.js"
 import { EntityUpdateData, isUpdateForTypeRef } from "../../../common/api/common/utils/EntityUpdateUtils.js"
 import { calendarLocator } from "../../calendarLocator.js"
-import { PushIdentifierAppType } from "../../../common/native/main/NativePushServiceApp.js"
 
 export class NotificationSettingsViewer implements UpdatableSettingsViewer {
 	private currentIdentifier: string | null = null
@@ -75,7 +74,7 @@ export class NotificationSettingsViewer implements UpdatableSettingsViewer {
 
 		if (list) {
 			this.identifiers = (await calendarLocator.entityClient.loadAll(PushIdentifierTypeRef, list.list)).filter(
-				(identifier) => identifier.app === PushIdentifierAppType.Calendar,
+				(identifier) => identifier.app === AppType.Calendar,
 			) // Filter out mail targets
 
 			m.redraw()

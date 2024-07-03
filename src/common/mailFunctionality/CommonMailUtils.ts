@@ -1,3 +1,5 @@
+// @bundleInto:common-functionality
+
 import { assertMainOrNode, isDesktop } from "../api/common/Env.js"
 import { CustomerPropertiesTypeRef, GroupInfo, User } from "../api/entities/sys/TypeRefs.js"
 import {
@@ -5,10 +7,12 @@ import {
 	createContact,
 	createContactMailAddress,
 	createEncryptedMailAddress,
-	EncryptedMailAddress, InboxRule,
+	EncryptedMailAddress,
+	Header,
+	InboxRule,
 	Mail, MailDetails,
-	MailFolder, TutanotaProperties,
-	Header
+	MailFolder,
+	TutanotaProperties,
 } from "../api/entities/tutanota/TypeRefs.js"
 import { fullNameToFirstAndLastName, mailAddressToFirstAndLastName } from "../misc/parsing/MailAddressParser.js"
 import { assertNotNull, contains, first, neverNull } from "@tutao/tutanota-utils"
@@ -19,7 +23,9 @@ import {
 	GroupType,
 	MailFolderType,
 	MailState,
-	MAX_ATTACHMENT_SIZE, ReplyType, TUTANOTA_MAIL_ADDRESS_DOMAINS
+	MAX_ATTACHMENT_SIZE,
+	ReplyType,
+	TUTANOTA_MAIL_ADDRESS_DOMAINS,
 } from "../api/common/TutanotaConstants.js"
 import { isDraft, isSystemNotification } from "../../mail-app/mail/MailUtils.js"
 import { UserController } from "../api/main/UserController.js"
@@ -31,13 +37,12 @@ import { MailboxDetail, MailModel } from "./MailModel.js"
 import { LoginController } from "../api/main/LoginController.js"
 import { EntityClient } from "../api/common/EntityClient.js"
 import { getListId } from "../api/common/utils/EntityUtils.js"
-import { FolderSystem } from "../api/common/mail/FolderSystem.js"
+import type { FolderSystem, IndentedFolder } from "../api/common/mail/FolderSystem.js"
 import { MailFacade } from "../api/worker/facades/lazy/MailFacade.js"
 import { ListFilter } from "../misc/ListModel.js"
 import { FontIcons } from "../gui/base/icons/FontIcons.js"
 import { ProgrammingError } from "../api/common/error/ProgrammingError.js"
 import { Attachment } from "./SendMailModel.js"
-
 
 assertMainOrNode()
 export const LINE_BREAK = "<br>"
@@ -362,7 +367,7 @@ export async function getMoveTargetFolderSystems(model: MailModel, mails: readon
 		return []
 	}
 	const folderSystem = mailboxDetails.folders
-	return folderSystem.getIndentedList().filter((f) => f.folder.mails !== getListId(firstMail))
+	return folderSystem.getIndentedList().filter((f: IndentedFolder) => f.folder.mails !== getListId(firstMail))
 }
 
 export const MAX_FOLDER_INDENT_LEVEL = 10

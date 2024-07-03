@@ -10,7 +10,6 @@ import {
 	MailTypeRef,
 } from "../../../../src/common/api/entities/tutanota/TypeRefs.js"
 import { CreateMailViewerOptions } from "../../../../src/mail-app/mail/view/MailViewer.js"
-import { MailboxDetail, MailModel } from "../../../../src/mail-app/mail/model/MailModel.js"
 import { MailViewerViewModel } from "../../../../src/mail-app/mail/view/MailViewerViewModel.js"
 import { EntityClient } from "../../../../src/common/api/common/EntityClient.js"
 import { EntityRestClientMock } from "../../api/worker/rest/EntityRestClientMock.js"
@@ -20,6 +19,7 @@ import { matchers, object, when } from "testdouble"
 import { MailFolderType, MailState, OperationType } from "../../../../src/common/api/common/TutanotaConstants.js"
 import { isSameId } from "../../../../src/common/api/common/utils/EntityUtils.js"
 import { createTestEntity } from "../../TestUtils.js"
+import { MailboxDetail, MailModel } from "../../../../src/common/mailFunctionality/MailModel.js"
 
 o.spec("ConversationViewModel", function () {
 	let conversation: ConversationEntry[]

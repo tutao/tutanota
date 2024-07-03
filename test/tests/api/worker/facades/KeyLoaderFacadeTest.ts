@@ -32,10 +32,11 @@ import { matchers, object, reset, verify, when } from "testdouble"
 import { KeyLoaderFacade } from "../../../../../src/common/api/worker/facades/KeyLoaderFacade.js"
 import { stringToCustomId } from "../../../../../src/common/api/common/utils/EntityUtils.js"
 import { VersionedKey } from "../../../../../src/common/api/worker/crypto/CryptoFacade.js"
-import { assertNotNull, freshVersioned } from "@tutao/tutanota-utils"
+import { assertNotNull, freshVersioned, lazyAsync, lazyMemoized } from "@tutao/tutanota-utils"
 import { KeyCache } from "../../../../../src/common/api/worker/facades/KeyCache.js"
 import { assertThrows } from "@tutao/tutanota-test-utils"
 import { CacheManagementFacade } from "../../../../../src/common/api/worker/facades/lazy/CacheManagementFacade.js"
+import { DefaultEntityRestCache } from "../../../../../src/common/api/worker/rest/DefaultEntityRestCache.js"
 
 o.spec("KeyLoaderFacadeTest", function () {
 	let keyCache: KeyCache
@@ -57,14 +58,18 @@ o.spec("KeyLoaderFacadeTest", function () {
 	const FORMER_KEYS = 2
 	let currentKeyPair: PQKeyPairs
 	let membership: GroupMembership
+	let cacheFacade: lazyAsync<CacheManagementFacade>
+	let entityRestCache: DefaultEntityRestCache
 
 	o.beforeEach(async () => {
 		keyCache = new KeyCache()
 		userFacade = object()
 		entityClient = object()
 		nonCachingEntityClient = object()
+		entityRestCache = object()
+		cacheFacade = lazyMemoized(async () => new CacheManagementFacade(userFacade, nonCachingEntityClient, entityRestCache))
 		pqFacade = new PQFacade(new WASMKyberFacade(await loadLibOQSWASM()))
-		keyLoaderFacade = new KeyLoaderFacade(keyCache, userFacade, entityClient)
+		keyLoaderFacade = new KeyLoaderFacade(keyCache, userFacade, entityClient, cacheFacade)
 
 		formerKeys = []
 		formerKeyPairsDecrypted = []
@@ -164,7 +169,6 @@ o.spec("KeyLoaderFacadeTest", function () {
 			}
 			verify(nonCachingEntityClient.load(matchers.anything(), matchers.anything()), { times: 0 })
 		})
-
 	})
 
 	o.spec("loadCurrentKeyPair", function () {

@@ -1,12 +1,17 @@
+// @bundleInto:common-functionality
+
 import { assertMainOrNode } from "../api/common/Env.js"
 import {
 	Birthday,
 	Contact,
-	ContactAddress, ContactCustomDate,
+	ContactAddress,
+	ContactCustomDate,
 	ContactMailAddress,
 	ContactMessengerHandle,
-	ContactPhoneNumber, ContactRelationship,
-	ContactSocialId, ContactWebsite
+	ContactPhoneNumber,
+	ContactRelationship,
+	ContactSocialId,
+	ContactWebsite,
 } from "../api/entities/tutanota/TypeRefs.js"
 import { formatDate } from "../misc/Formatter.js"
 import { lang } from "../misc/LanguageViewModel.js"
@@ -15,8 +20,10 @@ import {
 	ContactAddressType,
 	ContactCustomDateType,
 	ContactMessengerHandleType,
-	ContactPhoneNumberType, ContactRelationshipType,
-	ContactSocialType, ContactWebsiteType
+	ContactPhoneNumberType,
+	ContactRelationshipType,
+	ContactSocialType,
+	ContactWebsiteType,
 } from "../api/common/TutanotaConstants.js"
 import { StructuredMailAddress } from "../native/common/generatedipc/StructuredMailAddress.js"
 import { StructuredAddress } from "../native/common/generatedipc/StructuredAddress.js"
@@ -26,7 +33,6 @@ import { StructuredWebsite } from "../native/common/generatedipc/StructuredWebsi
 import { StructuredRelationship } from "../native/common/generatedipc/StructuredRelationship.js"
 import { StructuredMessengerHandle } from "../native/common/generatedipc/StructuredMessengerHandle.js"
 import { StructuredContact } from "../native/common/generatedipc/StructuredContact.js"
-
 
 assertMainOrNode()
 
