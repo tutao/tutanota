@@ -4,7 +4,7 @@ import { getDesktopIntegratorForPlatform } from "../../../../src/common/desktop/
 import { downcast } from "@tutao/tutanota-utils"
 import type { WindowManager } from "../../../../src/common/desktop/DesktopWindowManager.js"
 import { lang } from "../../../../src/common/misc/LanguageViewModel.js"
-import en from "../../../../src/translations/en.js"
+import en from "../../../../src/mail-app/translations/en.js"
 import { DesktopIntegratorLinux } from "../../../../src/common/desktop/integration/DesktopIntegratorLinux.js"
 import { DesktopIntegratorDarwin } from "../../../../src/common/desktop/integration/DesktopIntegratorDarwin.js"
 import { DesktopIntegratorWin32 } from "../../../../src/common/desktop/integration/DesktopIntegratorWin32.js"

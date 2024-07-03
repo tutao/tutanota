@@ -1,4 +1,4 @@
-import { AlarmScheduler } from "../../../src/calendar-app/date/AlarmScheduler.js"
+import { AlarmScheduler } from "../../../src/common/calendar/date/AlarmScheduler.js"
 import o from "@tutao/otest"
 import { DateTime } from "luxon"
 import { AlarmInfoTypeRef, DateWrapperTypeRef, RepeatRuleTypeRef } from "../../../src/common/api/entities/sys/TypeRefs.js"
