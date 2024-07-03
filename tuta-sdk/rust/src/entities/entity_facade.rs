@@ -5,7 +5,7 @@ use std::sync::Arc;
 use std::time::SystemTime;
 
 use crate::ApiCallError;
-use crate::crypto::aes::IV_BYTE_SIZE;
+use crate::crypto::IV_BYTE_SIZE;
 use crate::date::DateTime;
 use crate::crypto::key::GenericAesKey;
 use crate::element_value::{ElementValue, ParsedEntity};
@@ -244,7 +244,7 @@ mod tests {
 
     use rand::random;
 
-    use crate::crypto::aes::{Aes256Key, Iv};
+    use crate::crypto::{Aes256Key, Iv};
     use crate::crypto::key::GenericAesKey;
     use crate::entities::entity_facade::EntityFacade;
     use crate::entities::entity_facade_test_utils::generate_email_entity;

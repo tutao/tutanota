@@ -133,6 +133,17 @@ trait AesKey: Clone {
 /// An initialisation vector for AES encryption
 pub struct Iv([u8; IV_BYTE_SIZE]);
 
+#[cfg(test)]
+impl Clone for Iv {
+    /// Clone the initialization vector
+    ///
+    /// This is implemented so that entity_facade_test_utils will work. You should never, ever, ever
+    /// re-use an IV, as this can lead to information leakage.
+    fn clone(&self) -> Self {
+        Iv(self.0.clone())
+    }
+}
+
 impl Iv {
     /// Generate an initialisation vector.
     pub fn generate(randomizer_facade: &RandomizerFacade) -> Self {

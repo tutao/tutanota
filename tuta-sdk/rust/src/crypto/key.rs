@@ -63,6 +63,15 @@ impl GenericAesKey {
         }
     }
 
+    /// Encrypts `text` with this key.
+    pub fn encrypt_data(&self, text: &[u8], iv: Iv) -> Result<Vec<u8>, AesEncryptError> {
+        let ciphertext = match self {
+            Self::Aes128(key) => aes_128_encrypt(&key, text, &iv, PaddingMode::WithPadding, MacMode::WithMac)?,
+            Self::Aes256(key) => aes_256_encrypt(&key, text, &iv, PaddingMode::WithPadding)?,
+        };
+        Ok(ciphertext)
+    }
+
     pub fn from_bytes(bytes: &[u8]) -> Result<Self, ArrayCastingError> {
         match bytes.len() {
             // The unwraps here are optimised away
