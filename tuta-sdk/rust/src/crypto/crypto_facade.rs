@@ -266,14 +266,14 @@ mod test {
     use crate::crypto::randomizer_facade::test_util::make_thread_rng_facade;
     use crate::crypto::tuta_crypt::{PQKeyPairs, PQMessage};
     use crate::entities::Entity;
-    use crate::entities::sys::{BucketKey, InstanceSessionKey, TypeInfo};
-    use crate::entities::tutanota::{Mail, MailAddress};
+    use crate::entities::sys::{BucketKey, InstanceSessionKey};
+    use crate::entities::tutanota::Mail;
     use crate::generated_id::GeneratedId;
-    use crate::custom_id::CustomId;
     use crate::IdTuple;
     use crate::instance_mapper::InstanceMapper;
     use crate::owner_enc_session_keys_update_queue::MockOwnerEncSessionKeysUpdateQueue;
     use crate::type_model_provider::init_type_model_provider;
+    use crate::util::test_utils::create_test_entity;
 
     #[test]
     fn test_bucket_key_resolves() {
@@ -334,7 +334,6 @@ mod test {
         let key_group = GeneratedId::test_random();
 
         let bucket_key_data = BucketKey {
-            _id: CustomId::test_random(),
             groupEncBucketKey: None,
             protocolVersion: 2,
             pubEncBucketKey: Some(encapsulation.serialize()),
@@ -342,67 +341,26 @@ mod test {
             senderKeyVersion: None,
             bucketEncSessionKeys: vec![
                 InstanceSessionKey {
-                    _id: CustomId::test_random(),
                     encryptionAuthStatus: None,
                     instanceId: instance_id.clone(),
                     instanceList: instance_list.clone(),
                     symEncSessionKey: bucket_enc_session_key.clone(),
                     symKeyVersion: recipient_key_version,
-                    typeInfo: TypeInfo {
-                        _id: CustomId::test_random(),
-                        application: String::new(),
-                        typeId: 0,
-                    },
+                    ..create_test_entity()
                 }
             ],
             keyGroup: Some(key_group.clone()),
+            ..create_test_entity()
         };
 
         let mail = Mail {
-            _format: 0,
             _id: IdTuple { list_id: instance_list, element_id: instance_id },
-            _ownerEncSessionKey: None,
             _ownerGroup: Some(key_group.clone()),
-            _ownerKeyVersion: None,
-            _permissions: GeneratedId::test_random(),
-            authStatus: None,
-            confidential: false,
-            differentEnvelopeSender: None,
-            encryptionAuthStatus: None,
-            listUnsubscribe: false,
-            method: 0,
-            movedTime: None,
-            phishingStatus: 0,
-            receivedDate: Default::default(),
-            recipientCount: 0,
-            replyType: 0,
-            sentDate: None,
-            state: 0,
-            subject: "".to_string(),
-            unread: false,
-            attachments: vec![],
-            bccRecipients: vec![],
-            body: None,
             bucketKey: Some(bucket_key_data),
-            ccRecipients: vec![],
-            conversationEntry: IdTuple { list_id: GeneratedId::test_random(), element_id: GeneratedId::test_random() },
-            firstRecipient: None,
-            headers: None,
-            mailDetails: None,
-            mailDetailsDraft: None,
-            replyTos: vec![],
-            sender: MailAddress {
-                _id: CustomId::test_random(),
-                address: "".to_string(),
-                name: "".to_string(),
-                contact: None,
-            },
-            toRecipients: vec![],
+            ..create_test_entity()
         };
 
-
         let mut raw_mail = instance_mapper.serialize_entity(mail).unwrap();
-
 
         let provider = init_type_model_provider();
         let mail_type_ref = Mail::type_ref();
