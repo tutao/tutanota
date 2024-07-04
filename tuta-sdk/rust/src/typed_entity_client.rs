@@ -12,6 +12,7 @@ pub struct TypedEntityClient {
 }
 
 /// Similar to EntityClient, but return a typed object instead of a generic Map
+#[cfg_attr(test, mockall::automock)]
 impl TypedEntityClient {
     pub(crate) fn new(
         entity_client: Arc<EntityClient>,

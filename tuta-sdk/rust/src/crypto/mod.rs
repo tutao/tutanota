@@ -22,6 +22,9 @@ mod ecc;
 mod kyber;
 mod rsa;
 mod tuta_crypt;
+
+pub use tuta_crypt::PQKeyPairs;
+
 pub mod key_encryption;
 pub mod crypto_facade;
 pub mod key;
