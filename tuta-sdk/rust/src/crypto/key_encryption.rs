@@ -81,3 +81,41 @@ fn decrypt_rsa_or_rsa_ecc_key_pair(encryption_key: &GenericAesKey, key_pair: &Ke
         Ok(AsymmetricKeyPair::RSAKeyPair(rsa_key_pair))
     }
 }
+
+#[cfg(test)]
+mod tests {
+    use crate::crypto::{Aes256Key, Iv, PQKeyPairs};
+    use crate::crypto::ecc::EccKeyPair;
+    use crate::crypto::key::{AsymmetricKeyPair, GenericAesKey};
+    use crate::crypto::key_encryption::decrypt_pq_key_pair;
+    use crate::crypto::randomizer_facade::test_util::make_thread_rng_facade;
+    use crate::entities::sys::KeyPair;
+    use crate::util::test_utils::generate_random_string;
+
+    #[test]
+    fn roundtrip() {
+        let randomizer = make_thread_rng_facade();
+        let pq_key_pair = PQKeyPairs::generate(&randomizer);
+        let parent_key: GenericAesKey = Aes256Key::generate(&randomizer).into();
+
+        let junk_ecc_pair = EccKeyPair::generate(&randomizer);
+        let encrypted_key_pair = KeyPair {
+            _id: Default::default(),
+            pubEccKey: Some(pq_key_pair.ecc_keys.public_key.as_bytes().to_vec()),
+            pubKyberKey: Some(pq_key_pair.kyber_keys.public_key.serialize()),
+            pubRsaKey: Some(generate_random_string::<17>().as_bytes().to_vec()),
+            symEncPrivEccKey: Some(parent_key.encrypt_data(junk_ecc_pair.private_key.as_bytes(), Iv::generate(&randomizer)).unwrap()),
+            symEncPrivKyberKey: Some(parent_key.encrypt_data(&pq_key_pair.kyber_keys.private_key.serialize(), Iv::generate(&randomizer)).unwrap()),
+            symEncPrivRsaKey: Some(generate_random_string::<17>().as_bytes().to_vec()),
+        };
+
+        let decrypted_kyber_key = decrypt_pq_key_pair(&parent_key, &encrypted_key_pair).unwrap();
+
+        match decrypted_kyber_key {
+            AsymmetricKeyPair::PQKeyPairs(decrypted_key_pair) => {
+                assert_eq!(pq_key_pair.kyber_keys.public_key, decrypted_key_pair.kyber_keys.public_key)
+            }
+            _ => panic!()
+        }
+    }
+}
