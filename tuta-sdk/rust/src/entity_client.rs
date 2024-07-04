@@ -14,7 +14,7 @@ use crate::type_model_provider::{TypeModelProvider};
 use crate::user_facade::AuthHeadersProvider;
 
 /// Denotes an ID that can be serialised into a string
-pub trait IdType: Display {}
+pub trait IdType: Display + 'static {}
 
 impl IdType for String {}
 

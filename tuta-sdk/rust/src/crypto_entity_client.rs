@@ -103,6 +103,7 @@ mod tests {
     use crate::{IdTuple, TypeRef};
     use crate::custom_id::CustomId;
     use crate::generated_id::GeneratedId;
+    use crate::util::test_utils::leak;
 
     #[tokio::test]
     async fn can_load_mail() {
@@ -126,9 +127,7 @@ mod tests {
 
         // We cause a deliberate memory leak to convert the mail type's lifetime to static because
         // the callback to `returning` requires returned references to have a static lifetime
-        let my_favorite_leak: &'static TypeModelProvider = Box::leak(
-            Box::new(init_type_model_provider())
-        );
+        let my_favorite_leak: &'static TypeModelProvider = leak(init_type_model_provider());
 
         let raw_mail_id = encrypted_mail.get("_id").unwrap().assert_tuple_id();
         let mail_id = IdTuple::new(

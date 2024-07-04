@@ -5,7 +5,8 @@ use super::aes::*;
 use super::rsa::*;
 use super::tuta_crypt::*;
 
-#[derive(Clone)]
+#[derive(Clone, PartialEq)]
+#[cfg_attr(test, derive(Debug))] // only allow Debug in tests because this prints the key!
 pub enum AsymmetricKeyPair {
     RSAKeyPair(RSAKeyPair),
     RsaEccKeyPair(RSAEccKeyPair),
@@ -24,7 +25,8 @@ impl From<PQKeyPairs> for AsymmetricKeyPair {
     }
 }
 
-#[derive(Clone)]
+#[derive(Clone, PartialEq)]
+#[cfg_attr(test, derive(Debug))] // only allow Debug in tests because this prints the key!
 pub enum GenericAesKey {
     Aes128(Aes128Key),
     Aes256(Aes256Key),
@@ -124,3 +126,42 @@ impl KeyLoadErrorSubtype for RSAKeyError {}
 
 /// Used to handle errors from the entity client
 impl KeyLoadErrorSubtype for ApiCallError {}
+
+
+#[cfg(test)]
+mod tests {
+    use crate::crypto::Aes128Key;
+    use super::*;
+    use crate::crypto::randomizer_facade::test_util::make_thread_rng_facade;
+    use crate::util::test_utils::generate_random_string;
+
+    #[test]
+    fn encrypt_data_aes128_roundtrip() {
+        let randomizer = make_thread_rng_facade();
+
+        let random_string = generate_random_string::<10>();
+        let raw_text = random_string.as_bytes();
+        let iv = Iv::generate(&randomizer);
+        let key: GenericAesKey = Aes128Key::generate(&randomizer).into();
+
+        let ciphertext = key.encrypt_data(raw_text, iv).unwrap();
+        let text = key.decrypt_data(ciphertext.as_slice()).unwrap();
+
+        assert_eq!(raw_text, text.as_slice());
+    }
+
+    #[test]
+    fn encrypt_data_aes256_roundtrip() {
+        let randomizer = make_thread_rng_facade();
+
+        let random_string = generate_random_string::<10>();
+        let raw_text = random_string.as_bytes();
+        let iv = Iv::generate(&randomizer);
+        let key: GenericAesKey = Aes256Key::generate(&randomizer).into();
+
+        let ciphertext = key.encrypt_data(raw_text, iv).unwrap();
+        let text = key.decrypt_data(ciphertext.as_slice()).unwrap();
+
+        assert_eq!(raw_text, text.as_slice());
+    }
+}
