@@ -3,6 +3,7 @@ use std::collections::HashMap;
 use std::sync::{Arc, RwLock};
 use base64::Engine;
 use base64::prelude::BASE64_STANDARD;
+use mockall::mock;
 use crate::ApiCallError;
 use crate::crypto::{Aes256Key, AES_256_KEY_SIZE};
 use crate::crypto::hkdf;
@@ -113,9 +114,8 @@ impl UserFacade {
         groups
     }
 
-    pub fn get_current_user_group_key(&self) -> Result<VersionedAesKey, ApiCallError> {
+    pub fn get_current_user_group_key(&self) -> Option<VersionedAesKey> {
         self.key_cache.get_current_user_group_key()
-            .ok_or_else(|| ApiCallError::InternalSdkError { error_message: "userGroupKey not available".to_owned() })
     }
 
     pub(crate) fn get_membership(&self, group_id: &GeneratedId) -> Result<GroupMembership, ApiCallError> {
@@ -137,3 +137,22 @@ impl AuthHeadersProvider for UserFacade {
         todo!()
     }
 }
+
+
+mock!(
+    pub UserFacade {
+        pub fn set_user(&mut self, user: User);
+        pub fn unlock_user_group_key(&mut self, user_passphrase_key: GenericAesKey)
+            -> Result<(), ApiCallError>;
+        pub async fn update_user(&self, user: User);
+        pub fn get_user(&self) -> Arc<User>;
+        pub fn get_user_group_id(&self) -> GeneratedId;
+        pub fn get_current_user_group_key(&self) -> Option<VersionedAesKey>;
+        pub(crate) fn get_membership(&self, group_id: &GeneratedId)
+        -> Result<GroupMembership, ApiCallError>;
+    }
+    impl AuthHeadersProvider for UserFacade {
+        fn create_auth_headers(&self, model_version: u32) -> HashMap<String, String>;
+        fn is_fully_logged_in(&self) -> bool;
+    }
+);

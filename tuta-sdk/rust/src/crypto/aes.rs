@@ -47,7 +47,8 @@ pub enum EnforceMac {
 /// - $subkey_digest: The type of SHA hasher from the `sha2` dependency to use.
 macro_rules! aes_key {
     ($name:tt, $type_name:literal, $size:expr, $cbc:ty, $subkey_digest:ty) => {
-        #[derive(Clone, ZeroizeOnDrop)]
+        #[derive(Clone, ZeroizeOnDrop, PartialEq)]
+        #[cfg_attr(test, derive(Debug))] // only allow Debug in tests because this prints the key!
         pub struct $name([u8; $size]);
 
         impl $name {

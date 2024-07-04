@@ -5,7 +5,8 @@ use super::aes::*;
 use super::rsa::*;
 use super::tuta_crypt::*;
 
-#[derive(Clone)]
+#[derive(Clone, PartialEq)]
+#[cfg_attr(test, derive(Debug))] // only allow Debug in tests because this prints the key!
 pub enum AsymmetricKeyPair {
     RSAKeyPair(RSAKeyPair),
     RsaEccKeyPair(RSAEccKeyPair),
@@ -24,7 +25,8 @@ impl From<PQKeyPairs> for AsymmetricKeyPair {
     }
 }
 
-#[derive(Clone)]
+#[derive(Clone, PartialEq)]
+#[cfg_attr(test, derive(Debug))] // only allow Debug in tests because this prints the key!
 pub enum GenericAesKey {
     Aes128(Aes128Key),
     Aes256(Aes256Key),

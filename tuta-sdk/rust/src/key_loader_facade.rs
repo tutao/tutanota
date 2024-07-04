@@ -5,8 +5,11 @@ use crate::crypto::key::{AsymmetricKeyPair, GenericAesKey, KeyLoadError};
 use crate::crypto::key_encryption::decrypt_key_pair;
 use crate::entities::sys::{Group, GroupKey};
 use crate::generated_id::GeneratedId;
+#[mockall_double::double]
 use crate::key_cache::KeyCache;
+#[mockall_double::double]
 use crate::typed_entity_client::TypedEntityClient;
+#[mockall_double::double]
 use crate::user_facade::UserFacade;
 use crate::util::Versioned;
 
@@ -127,16 +130,16 @@ impl KeyLoaderFacade {
         self.load_sym_group_key(
             &self.user_facade.get_user_group_id(),
             user_group_key_version,
-            Some(self.user_facade.get_current_user_group_key()?),
+            Some(self.user_facade.get_current_user_group_key().ok_or_else(|| KeyLoadError { reason: "No use group key loaded".to_string() })?),
         ).await
     }
 
     fn get_current_sym_user_group_key(&self) -> Option<VersionedAesKey> {
-        self.user_facade.get_current_user_group_key().ok()
+        self.user_facade.get_current_user_group_key()
     }
 
     pub async fn load_key_pair(&self, key_pair_group_id: &GeneratedId, group_key_version: i64) -> Result<AsymmetricKeyPair, KeyLoadError> {
-        let group: Group = self.entity_client.load(&key_pair_group_id.to_string()).await?;
+        let group: Group = self.entity_client.load(key_pair_group_id).await?;
         let group_key = self.get_current_sym_group_key(&group._id).await?;
 
         if group_key.version == group_key_version {
@@ -162,4 +165,171 @@ pub type VersionedAesKey = Versioned<GenericAesKey>;
 struct FormerGroupKey {
     symmetric_group_key: GenericAesKey,
     group_key_instance: GroupKey,
+}
+
+#[cfg(test)]
+mod tests {
+    use crate::crypto;
+    use crate::crypto::key::AsymmetricKeyPair::PQKeyPairs;
+    use crate::crypto::randomizer_facade::RandomizerFacade;
+    use crate::crypto::randomizer_facade::test_util::make_thread_rng_facade;
+    use crate::key_cache::MockKeyCache;
+    use crate::typed_entity_client::MockTypedEntityClient;
+    use crate::user_facade::MockUserFacade;
+    use super::*;
+    use crate::util::test_utils::{generate_random_group, random_aes256_key};
+
+    #[tokio::test]
+    async fn get_user_group_key() {
+        let user_group_key = VersionedAesKey { object: random_aes256_key().into(), version: 1 };
+        let user_group = generate_random_group();
+
+        let mut key_cache_mock = MockKeyCache::default();
+        {
+            let user_group_key = user_group_key.clone();
+            key_cache_mock.expect_get_current_user_group_key().returning(move || Some(user_group_key.clone()));
+        }
+        key_cache_mock.expect_put_group_key().return_const(());
+
+        let mut user_facade_mock = MockUserFacade::default();
+        {
+            let user_group = user_group.clone();
+            user_facade_mock.expect_get_user_group_id().returning(move || user_group._id.clone());
+        }
+        {
+            let user_group_key = user_group_key.clone();
+            user_facade_mock.expect_get_current_user_group_key()
+                .returning(move || Some(user_group_key.clone()))
+                .times(2);
+        }
+
+        let typed_entity_client_mock = MockTypedEntityClient::default();
+
+        let key_loader_facade = KeyLoaderFacade::new(Arc::new(key_cache_mock), Arc::new(user_facade_mock), Arc::new(typed_entity_client_mock));
+
+        let current_user_group_key = key_loader_facade.get_current_sym_group_key(&user_group._id).await.unwrap();
+        assert_eq!(current_user_group_key.version, user_group.groupKeyVersion);
+        assert_eq!(current_user_group_key.object, user_group_key.object);
+
+        let _ = key_loader_facade.get_current_sym_group_key(&user_group._id).await;// should not be cached
+    }
+
+    #[tokio::test]
+    async fn get_non_user_group_key() {
+        let current_group_key = VersionedAesKey { object: random_aes256_key().into(), version: 1 };
+        let group = generate_random_group();
+
+        let mut key_cache_mock = MockKeyCache::default();
+        {
+            let user_group_key = current_group_key.clone();
+            key_cache_mock.expect_get_current_user_group_key().returning(move || Some(user_group_key.clone()));
+        }
+        key_cache_mock.expect_put_group_key().return_const(());
+
+        let mut user_facade_mock = MockUserFacade::default();
+        {
+            let user_group = group.clone();
+            user_facade_mock.expect_get_user_group_id().returning(move || user_group._id.clone());
+        }
+        {
+            let user_group_key = current_group_key.clone();
+            user_facade_mock.expect_get_current_user_group_key()
+                .returning(move || Some(user_group_key.clone()));
+        }
+
+        let typed_entity_client_mock = MockTypedEntityClient::default();
+
+        let key_loader_facade = KeyLoaderFacade::new(Arc::new(key_cache_mock), Arc::new(user_facade_mock), Arc::new(typed_entity_client_mock));
+
+        let group_key = key_loader_facade.get_current_sym_group_key(&group._id).await.unwrap();
+        assert_eq!(group_key.version, group.groupKeyVersion);
+        assert_eq!(group_key.object, current_group_key.object)
+    }
+
+    // #[tokio::test]
+    // async fn load_former_key_pairs() {
+    //     let group = generate_random_group();
+    //     // const FORMER_KEYS: usize = 2;
+    //
+    //     let mut key_cache_mock = MockKeyCache::default();
+    //     {
+    //         let current_group_key = VersionedAesKey { object: random_aes256_key().into(), version: 0 };
+    //         key_cache_mock.expect_get_current_group_key().returning(move |_| Some(current_group_key.clone()));
+    //     }
+    //     let mut user_facade_mock = MockUserFacade::default();
+    //     {
+    //         user_facade_mock.expect_get_user_group_id().returning(|| GeneratedId::test_random());
+    //     }
+    //     let mut typed_entity_client_mock = MockTypedEntityClient::default();
+    //     {
+    //         let group = group.clone();
+    //         let former_keys = vec![
+    //             GroupKey {
+    //                 _format: 0,
+    //                 _id: IdTuple { },
+    //                 _ownerGroup: None,
+    //                 _permissions: Default::default(),
+    //                 adminGroupEncGKey: None,
+    //                 adminGroupKeyVersion: None,
+    //                 ownerEncGKey: vec![],
+    //                 ownerKeyVersion: 0,
+    //                 pubAdminGroupEncGKey: None,
+    //                 keyPair: None,
+    //             },
+    //             GroupKey {
+    //                 _format: 0,
+    //                 _id: IdTuple {},
+    //                 _ownerGroup: None,
+    //                 _permissions: Default::default(),
+    //                 adminGroupEncGKey: None,
+    //                 adminGroupKeyVersion: None,
+    //                 ownerEncGKey: vec![],
+    //                 ownerKeyVersion: 0,
+    //                 pubAdminGroupEncGKey: None,
+    //                 keyPair: None,
+    //             },
+    //         ];
+    //         typed_entity_client_mock.expect_load::<Group, GeneratedId>().returning(move |_| Ok(group.clone()));
+    //         typed_entity_client_mock.expect_load_range().returning(|| Ok(former_keys)).times(1);
+    //     }
+    //
+    //     let key_loader_facade = KeyLoaderFacade::new(Arc::new(key_cache_mock), Arc::new(user_facade_mock), Arc::new(typed_entity_client_mock));
+    //
+    //     let key_pair = key_loader_facade.load_key_pair(&group._id, group.groupKeyVersion).await.unwrap();
+    // }
+
+    // #[tokio::test]
+    // async fn load_current_key_pair() {
+    //     let user_group = generate_random_group();
+    //
+    //     let mut key_cache_mock = MockKeyCache::default();
+    //     {
+    //         let user_group_key = user_group_key.clone();
+    //         key_cache_mock.expect_get_current_user_group_key().returning(move || Some(user_group_key.clone()));
+    //     }
+    //     key_cache_mock.expect_put_group_key().return_const(());
+    //
+    //     let mut user_facade_mock = MockUserFacade::default();
+    //     {
+    //         let user_group = user_group.clone();
+    //         user_facade_mock.expect_get_user_group_id().returning(move || user_group._id.clone());
+    //     }
+    //     {
+    //         let user_group_key = user_group_key.clone();
+    //         user_facade_mock.expect_get_current_user_group_key()
+    //             .returning(move || Some(user_group_key.clone()))
+    //     }
+    //
+    //     let typed_entity_client_mock = MockTypedEntityClient::default();
+    //
+    //     let key_loader_facade = KeyLoaderFacade::new(Arc::new(key_cache_mock), Arc::new(user_facade_mock), Arc::new(typed_entity_client_mock));
+    //
+    //     let loaded_current_key_pair = key_loader_facade.load_key_pair(user_group._id, user_group.groupKeyVersion)
+    //         .await
+    //         .unwrap();
+    //
+    //     let current_key_pair = AsymmetricKeyPair::from(PQKeyPairs::generate());
+    //     assert_eq!(loaded_current_key_pair, current_key_pair);
+    //     assert_eq!(loaded_current_key_pair, current_key_pair)
+    // }
 }

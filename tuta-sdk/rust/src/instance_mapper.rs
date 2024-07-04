@@ -461,6 +461,7 @@ mod tests {
     use crate::type_model_provider::init_type_model_provider;
     use std::sync::Arc;
     use crate::generated_id::GeneratedId;
+    use crate::util::test_utils::generate_random_group;
 
     use super::*;
 
@@ -525,43 +526,7 @@ mod tests {
 
     #[test]
     fn test_ser_group() {
-        let group_root = Group {
-            _format: 0,
-            _id: GeneratedId::test_random(),
-            _ownerGroup: None,
-            _permissions: GeneratedId::test_random(),
-            groupInfo: IdTuple::new(GeneratedId::test_random(), GeneratedId::test_random()),
-            administratedGroups: None,
-            archives: vec![ArchiveType {
-                _id: CustomId::test_random(),
-                active: ArchiveRef {
-                    _id: CustomId::test_random(),
-                    archiveId: GeneratedId::test_random(),
-                },
-                inactive: vec![],
-                r#type: TypeInfo {
-                    _id: CustomId::test_random(),
-                    application: "app".to_string(),
-                    typeId: 1,
-                },
-            }],
-            currentKeys: None,
-            customer: None,
-            formerGroupKeys: None,
-            invitations: GeneratedId::test_random(),
-            members: GeneratedId::test_random(),
-            groupKeyVersion: 1,
-            admin: None,
-            r#type: 46,
-            adminGroupEncGKey: None,
-            adminGroupKeyVersion: None,
-            enabled: true,
-            external: false,
-            pubAdminGroupEncGKey: Some(vec![1, 2, 3]),
-            storageCounter: None,
-            user: None,
-
-        };
+        let group_root = generate_random_group();
         let mapper = InstanceMapper::new();
         let result = mapper.serialize_entity(group_root.clone()).unwrap();
         assert_eq!(&ElementValue::Number(0), result.get("_format").unwrap());

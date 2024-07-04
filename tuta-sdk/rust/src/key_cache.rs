@@ -11,6 +11,7 @@ pub struct KeyCache {
     user_group_key_distribution_key: RwLock<Option<Aes256Key>>,
 }
 
+#[cfg_attr(test, mockall::automock)]
 impl KeyCache {
     pub fn new() -> Self {
         KeyCache {

@@ -15,7 +15,7 @@ use crate::date::DateTime;
 use crate::generated_id::GeneratedId;
 use crate::custom_id::CustomId;
 
-pub trait Entity {
+pub trait Entity: 'static {
     fn type_ref() -> TypeRef;
 }
 
