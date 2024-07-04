@@ -1,4 +1,5 @@
 use std::fmt::{Debug, Display, Formatter};
+use base64::Engine;
 use serde::{Deserialize, Deserializer, Serialize, Serializer};
 use serde::de::{Error, Visitor};
 
@@ -10,6 +11,11 @@ pub struct CustomId(pub String);
 impl CustomId {
     pub fn as_str(&self) -> &str {
         &self.0
+    }
+
+    /// Create a CustomId from an arbitrary (unencoded) string
+    pub fn from_custom_string(custom_string: &str) -> Self {
+        Self(base64::prelude::BASE64_URL_SAFE_NO_PAD.encode(custom_string))
     }
 
     /// Generates and returns a random `CustomId`

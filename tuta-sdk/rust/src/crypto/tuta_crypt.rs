@@ -148,7 +148,8 @@ fn derive_pq_kek(
     Aes256Key::try_from(kek_bytes).unwrap()
 }
 
-#[derive(Clone)]
+#[derive(Clone, PartialEq)]
+#[cfg_attr(test, derive(Debug))] // only allow Debug in tests because this prints the key!
 pub struct PQKeyPairs {
     pub ecc_keys: EccKeyPair,
     pub kyber_keys: KyberKeyPair,
