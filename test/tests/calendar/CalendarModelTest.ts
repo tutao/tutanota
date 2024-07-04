@@ -11,11 +11,19 @@ import {
 import { incrementByRepeatPeriod } from "../../../src/calendar/date/CalendarUtils.js"
 import { downcast, hexToUint8Array, neverNull, stringToUtf8Uint8Array } from "@tutao/tutanota-utils"
 import { CalendarModel } from "../../../src/calendar/model/CalendarModel.js"
-import { CalendarAttendeeStatus, CalendarMethod, OperationType, RepeatPeriod } from "../../../src/api/common/TutanotaConstants.js"
+import { CalendarAttendeeStatus, CalendarMethod, GroupType, OperationType, RepeatPeriod } from "../../../src/api/common/TutanotaConstants.js"
 import { DateTime } from "luxon"
 import { EntityEventsListener, EventController } from "../../../src/api/main/EventController.js"
 import { Notifications } from "../../../src/gui/Notifications.js"
-import { AlarmInfo, AlarmInfoTypeRef, UserAlarmInfoListTypeTypeRef, UserAlarmInfoTypeRef, UserTypeRef } from "../../../src/api/entities/sys/TypeRefs.js"
+import {
+	AlarmInfo,
+	AlarmInfoTypeRef,
+	GroupMembershipTypeRef,
+	GroupTypeRef,
+	UserAlarmInfoListTypeTypeRef,
+	UserAlarmInfoTypeRef,
+	UserTypeRef,
+} from "../../../src/api/entities/sys/TypeRefs.js"
 import { EntityRestClientMock } from "../api/worker/rest/EntityRestClientMock.js"
 import type { UserController } from "../../../src/api/main/UserController.js"
 import { NotFoundError } from "../../../src/api/common/error/RestError.js"
@@ -35,6 +43,9 @@ import { createTestEntity } from "../TestUtils.js"
 import { NoopProgressMonitor } from "../../../src/api/common/utils/ProgressMonitor.js"
 import { makeAlarmScheduler } from "./CalendarTestUtils.js"
 import { EntityUpdateData } from "../../../src/api/common/utils/EntityUpdateUtils.js"
+import { CalendarService } from "../../../src/api/entities/tutanota/Services.js"
+import { IServiceExecutor } from "../../../src/api/common/ServiceRequest.js"
+import { MembershipService } from "../../../src/api/entities/sys/Services.js"
 
 o.spec("CalendarModel", function () {
 	o.spec("incrementByRepeatPeriod", function () {
@@ -671,6 +682,127 @@ o.spec("CalendarModel", function () {
 			o(model.getFileIdToSkippedCalendarEventUpdates().size).deepEquals(0)
 			verify(fileControllerMock.getAsDataFile(matchers.anything()), { times: 1 })
 			await o(async () => restClientMock.load(CalendarEventUpdateTypeRef, eventUpdate._id)).asyncThrows(NotFoundError)
+		})
+	})
+	o.spec("Cleanup inconsistent calendar group ", () => {
+		o("No group root, user is owner - delete own calendar", async function () {
+			const serviceExecutorMock: IServiceExecutor = object()
+			const restClientMock: EntityClient = object()
+			const groupId = "id"
+
+			const userControllerMock: UserController = object()
+			userControllerMock.user = createTestEntity(UserTypeRef, {
+				_id: "user-id",
+				memberships: [
+					createTestEntity(GroupMembershipTypeRef, {
+						groupType: GroupType.Calendar,
+						group: groupId,
+					}),
+				],
+			})
+
+			const loginControllerMock: LoginController = object()
+			when(loginControllerMock.getUserController()).thenReturn(userControllerMock)
+			const group = createTestEntity(GroupTypeRef, {
+				_id: groupId,
+				user: userControllerMock.user._id,
+			})
+			when(restClientMock.load(CalendarGroupRootTypeRef, groupId, matchers.anything(), matchers.anything(), matchers.anything())).thenReject(
+				new NotFoundError("test"),
+			)
+			when(restClientMock.load(GroupTypeRef, groupId, matchers.anything(), matchers.anything(), matchers.anything())).thenResolve(group)
+
+			const model = init({
+				workerClient: serviceExecutorMock,
+				restClientMock,
+				loginController: loginControllerMock,
+				fileFacade: object(),
+				eventController: object(),
+			})
+
+			await model.loadCalendarInfos(new NoopProgressMonitor())
+
+			verify(serviceExecutorMock.delete(CalendarService, matchers.anything()))
+		})
+
+		o("No group root, user is member - delete membership", async function () {
+			const serviceExecutorMock: IServiceExecutor = object()
+			const restClientMock: EntityClient = object()
+			const groupId = "id"
+
+			const userControllerMock: UserController = object()
+			userControllerMock.user = createTestEntity(UserTypeRef, {
+				_id: "user-id",
+				memberships: [
+					createTestEntity(GroupMembershipTypeRef, {
+						groupType: GroupType.Calendar,
+						group: groupId,
+					}),
+				],
+			})
+
+			const loginControllerMock: LoginController = object()
+			when(loginControllerMock.getUserController()).thenReturn(userControllerMock)
+			const group = createTestEntity(GroupTypeRef, {
+				_id: groupId,
+				user: "other-user-id",
+			})
+
+			when(restClientMock.load(CalendarGroupRootTypeRef, groupId, matchers.anything(), matchers.anything(), matchers.anything())).thenReject(
+				new NotFoundError("test"),
+			)
+			when(restClientMock.load(GroupTypeRef, groupId, matchers.anything(), matchers.anything(), matchers.anything())).thenResolve(group)
+
+			const model = init({
+				workerClient: serviceExecutorMock,
+				restClientMock,
+				loginController: loginControllerMock,
+				fileFacade: object(),
+				eventController: object(),
+			})
+
+			await model.loadCalendarInfos(new NoopProgressMonitor())
+
+			verify(serviceExecutorMock.delete(MembershipService, matchers.anything()))
+		})
+
+		o("No group and group root, user has membership - delete membership", async function () {
+			const serviceExecutorMock: IServiceExecutor = object()
+			const restClientMock: EntityClient = object()
+			const groupId = "id"
+
+			const userControllerMock: UserController = object()
+			userControllerMock.user = createTestEntity(UserTypeRef, {
+				_id: "user-id",
+				memberships: [
+					createTestEntity(GroupMembershipTypeRef, {
+						groupType: GroupType.Calendar,
+						group: groupId,
+					}),
+				],
+			})
+
+			const loginControllerMock: LoginController = object()
+			when(loginControllerMock.getUserController()).thenReturn(userControllerMock)
+
+			when(restClientMock.load(CalendarGroupRootTypeRef, groupId, matchers.anything(), matchers.anything(), matchers.anything())).thenReject(
+				new NotFoundError("test"),
+			)
+			when(restClientMock.load(GroupTypeRef, groupId, matchers.anything(), matchers.anything(), matchers.anything())).thenReject(
+				new NotFoundError("no group"),
+			)
+
+			const model = init({
+				workerClient: serviceExecutorMock,
+				restClientMock,
+				loginController: loginControllerMock,
+				fileFacade: object(),
+				eventController: object(),
+			})
+
+			await model.loadCalendarInfos(new NoopProgressMonitor())
+
+			verify(serviceExecutorMock.delete(MembershipService, matchers.anything()))
 		})
 	})
 })
