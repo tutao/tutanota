@@ -154,11 +154,16 @@ export class KeyRotationFacade {
 	 */
 	async processPendingKeyRotationsAndUpdates(user: User): Promise<void> {
 		try {
-			await this.loadPendingKeyRotations(user)
-			await this.processPendingKeyRotation(user)
-		} finally {
-			// we still try updating memberships if there was an error with rotations
-			await this.updateGroupMemberships(this.pendingGroupKeyUpdateIds)
+			try {
+				await this.loadPendingKeyRotations(user)
+				await this.processPendingKeyRotation(user)
+			} finally {
+				// we still try updating memberships if there was an error with rotations
+				await this.updateGroupMemberships(this.pendingGroupKeyUpdateIds)
+			}
+		} catch (e) {
+			// we catch here so that we also catch errors in the finally block
+			console.log("error when processing key rotation or group key update", e)
 		}
 	}
 
@@ -167,8 +172,9 @@ export class KeyRotationFacade {
 	 *
 	 * Note that this function currently makes 2 server requests to load the key rotation list and check if a key rotation is needed.
 	 * This routine should be optimized in the future by saving a flag on the user to determine whether a key rotation is required or not.
+	 * @VisibleForTesting
 	 */
-	public async loadPendingKeyRotations(user: User) {
+	async loadPendingKeyRotations(user: User) {
 		const userGroupRoot = await this.entityClient.load(UserGroupRootTypeRef, user.userGroup.group)
 		if (userGroupRoot.keyRotations != null) {
 			const pendingKeyRotations = await this.entityClient.loadAll(KeyRotationTypeRef, userGroupRoot.keyRotations.list)
@@ -186,8 +192,9 @@ export class KeyRotationFacade {
 
 	/**
 	 * Processes the internal list of @PendingKeyRotation. Key rotations and (if existent) password keys are deleted after processing.
+	 * @VisibleForTesting
 	 */
-	public async processPendingKeyRotation(user: User) {
+	async processPendingKeyRotation(user: User) {
 		await this.facadeInitializedDeferredObject.promise
 		// first admin, then user and then user area
 		try {
@@ -683,15 +690,15 @@ export class KeyRotationFacade {
 	}
 
 	/**
-	 * visible for testing
+	 * @VisibleForTesting
 	 * @private
 	 */
-	public setPendingKeyRotations(pendingKeyRotations: PendingKeyRotation) {
+	setPendingKeyRotations(pendingKeyRotations: PendingKeyRotation) {
 		this.pendingKeyRotations = pendingKeyRotations
 		this.facadeInitializedDeferredObject.resolve()
 	}
 
-	public async reset() {
+	async reset() {
 		await this.facadeInitializedDeferredObject.promise
 		this.pendingKeyRotations = {
 			pwKey: null,
