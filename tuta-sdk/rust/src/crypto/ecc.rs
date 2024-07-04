@@ -5,7 +5,8 @@ use crate::util::{ArrayCastingError, array_cast_slice};
 
 const ECC_KEY_SIZE: usize = 32;
 
-#[derive(ZeroizeOnDrop, Clone)]
+#[derive(ZeroizeOnDrop, Clone, PartialEq)]
+#[cfg_attr(test, derive(Debug))] // only allow Debug in tests because this prints the key!
 pub struct EccPrivateKey([u8; ECC_KEY_SIZE]);
 
 impl EccPrivateKey {
@@ -40,10 +41,12 @@ impl EccPrivateKey {
     }
 }
 
-#[derive(ZeroizeOnDrop, Clone)]
+#[derive(ZeroizeOnDrop, Clone, PartialEq)]
+#[cfg_attr(test, derive(Debug))] // only allow Debug in tests because this prints the key!
 pub struct EccPublicKey([u8; ECC_KEY_SIZE]);
 
-#[derive(Clone)]
+#[derive(Clone, PartialEq)]
+#[cfg_attr(test, derive(Debug))] // only allow Debug in tests because this prints the key!
 pub struct EccKeyPair {
     pub public_key: EccPublicKey,
     pub private_key: EccPrivateKey,

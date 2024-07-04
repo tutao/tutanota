@@ -7,7 +7,8 @@ use crate::crypto::randomizer_facade::RandomizerFacade;
 use crate::crypto::ecc::EccKeyPair;
 use crate::join_slices;
 
-#[derive(Clone)]
+#[derive(Clone, PartialEq)]
+#[cfg_attr(test, derive(Debug))] // only allow Debug in tests because this prints the key!
 pub struct RSAPublicKey(rsa::RsaPublicKey);
 
 impl RSAPublicKey {
@@ -68,7 +69,8 @@ impl RSAPublicKey {
     }
 }
 
-#[derive(Clone, ZeroizeOnDrop)]
+#[derive(Clone, ZeroizeOnDrop, PartialEq)]
+#[cfg_attr(test, derive(Debug))] // only allow Debug in tests because this prints the key!
 pub struct RSAPrivateKey(rsa::RsaPrivateKey);
 
 impl RSAPrivateKey {
@@ -88,13 +90,15 @@ impl RSAPrivateKey {
     }
 }
 
-#[derive(Clone)]
+#[derive(Clone, PartialEq)]
+#[cfg_attr(test, derive(Debug))] // only allow Debug in tests because this prints the key!
 pub struct RSAKeyPair {
     pub public_key: RSAPublicKey,
     pub private_key: RSAPrivateKey,
 }
 
-#[derive(Clone)]
+#[derive(Clone, PartialEq)]
+#[cfg_attr(test, derive(Debug))] // only allow Debug in tests because this prints the key!
 pub struct RSAEccKeyPair {
     pub rsa_key_pair: RSAKeyPair,
     pub ecc_key_pair: EccKeyPair,
