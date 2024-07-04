@@ -19,6 +19,7 @@ import {
 	CalendarEventUpdateTypeRef,
 	CalendarGroupRoot,
 	CalendarGroupRootTypeRef,
+	createCalendarDeleteData,
 	createGroupSettings,
 	FileTypeRef,
 } from "../../api/entities/tutanota/TypeRefs.js"
@@ -49,6 +50,7 @@ import { ObservableLazyLoaded } from "../../api/common/utils/ObservableLazyLoade
 import { UserController } from "../../api/main/UserController.js"
 import { formatDateWithWeekdayAndTime, formatTime } from "../../misc/Formatter.js"
 import { EntityUpdateData, isUpdateFor, isUpdateForTypeRef } from "../../api/common/utils/EntityUpdateUtils.js"
+import { CalendarService } from "../../api/entities/tutanota/Services.js"
 
 const TAG = "[CalendarModel]"
 export type CalendarInfo = {
@@ -154,16 +156,19 @@ export class CalendarModel {
 		const notFoundMemberships: GroupMembership[] = []
 		const groupInstances: Array<[CalendarGroupRoot, GroupInfo, Group]> = []
 		for (const membership of calendarMemberships) {
+			let groupRoot, group, groupInfo
 			try {
-				const result = await Promise.all([
-					this.entityClient.load(CalendarGroupRootTypeRef, membership.group),
-					this.entityClient.load(GroupInfoTypeRef, membership.groupInfo),
-					this.entityClient.load(GroupTypeRef, membership.group),
-				])
-				groupInstances.push(result)
+				groupRoot = await this.entityClient.load(CalendarGroupRootTypeRef, membership.group)
+				group = await this.entityClient.load(GroupTypeRef, membership.group)
+				groupInfo = await this.entityClient.load(GroupInfoTypeRef, membership.groupInfo)
+				groupInstances.push([groupRoot, groupInfo, group])
 			} catch (e) {
 				if (e instanceof NotFoundError) {
-					notFoundMemberships.push(membership)
+					if (group && isSameId(group.user, user._id)) {
+						this.serviceExecutor.delete(CalendarService, createCalendarDeleteData({ groupRootId: group._id }))
+					} else {
+						this.serviceExecutor.delete(MembershipService, createMembershipRemoveData({ user: user._id, group: membership.group }))
+					}
 				} else {
 					throw e
 				}
@@ -184,7 +189,17 @@ export class CalendarModel {
 		// cleanup inconsistent memberships
 		for (const mship of notFoundMemberships) {
 			// noinspection ES6MissingAwait
-			this.serviceExecutor.delete(MembershipService, createMembershipRemoveData({ user: user._id, group: mship.group }))
+			try {
+				var group = await this.entityClient.load(GroupTypeRef, mship.group)
+				if (isSameId(group.user, user._id)) {
+					this.serviceExecutor.delete(CalendarService, createCalendarDeleteData())
+				}
+			} catch (e) {
+				if (e instanceof NotFoundError) {
+				} else {
+					throw e
+				}
+			}
 		}
 		return calendarInfos
 	}
