@@ -5,11 +5,13 @@ on:
     types: [ opened, synchronize, edited ]
     paths:
       - 'app-android/**'
+      - '.github/workflows/kotlin-test.yml'
   push:
     branches:
       - dev-*
     paths:
       - 'app-android/**'
+  workflow_dispatch:
 
 jobs:
   test-kotlin:
