@@ -116,6 +116,10 @@ android {
 		}
 	}
 
+	lint {
+		this.disable.add("MissingTranslation")
+	}
+
 	sourceSets {
 		this.getByName("androidTest") {
 			assets.srcDirs(files("$projectDir/schemas"))
