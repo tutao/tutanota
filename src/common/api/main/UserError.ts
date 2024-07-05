@@ -1,8 +1,8 @@
-import { TutanotaError } from "../../../../packages/tutanota-error/lib/index.js"
 import type { TranslationKeyType } from "../../misc/TranslationKey"
 import { lang } from "../../misc/LanguageViewModel"
 import type { lazy } from "@tutao/tutanota-utils"
 import { assertMainOrNode } from "../common/Env"
+import { TutanotaError } from "@tutao/tutanota-error"
 
 assertMainOrNode()
 

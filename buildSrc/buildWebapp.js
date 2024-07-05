@@ -187,7 +187,7 @@ async function bundleServiceWorker(bundles, version, minify) {
 		)
 		.concat(["images/logo-favicon.png", "images/logo-favicon-152.png", "images/logo-favicon-196.png", "images/font.ttf"])
 	const swBundle = await rollup({
-		input: ["src/serviceworker/sw.ts"],
+		input: ["src/common/serviceworker/sw.ts"],
 		plugins: [
 			typescript(),
 			minify && terser(),

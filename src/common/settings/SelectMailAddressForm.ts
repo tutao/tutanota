@@ -13,9 +13,8 @@ import { attachDropdown, DropdownButtonAttrs } from "../../common/gui/base/Dropd
 import { IconButton, IconButtonAttrs } from "../../common/gui/base/IconButton.js"
 import { ButtonSize } from "../../common/gui/base/ButtonSize.js"
 import { EmailDomainData } from "./mailaddress/MailAddressesUtils.js"
-import { BootIcons } from "../../common/gui/base/icons/BootIcons.js"
-import { isTutanotaMailAddress } from "../../common/mailFunctionality/CommonMailUtils.js"
-
+import { BootIcons } from "../gui/base/icons/BootIcons.js"
+import { isTutanotaMailAddress } from "../mailFunctionality/CommonMailUtils.js"
 assertMainOrNode()
 
 const VALID_MESSAGE_ID = "mailAddressAvailable_msg"

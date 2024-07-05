@@ -47,7 +47,7 @@ import { TemplateGroupService } from "../../common/api/entities/tutanota/Service
 import { exportUserCsv } from "./UserDataExporter.js"
 import { IconButton } from "../../common/gui/base/IconButton.js"
 import { BottomNav } from "../gui/BottomNav.js"
-import { getAvailableDomains } from "./mailaddress/MailAddressesUtils.js"
+import { getAvailableDomains } from "../../common/settings/mailaddress/MailAddressesUtils.js"
 import { BaseTopLevelView } from "../../common/gui/BaseTopLevelView.js"
 import { TopLevelView } from "../../TopLevelView.js"
 import { ReferralSettingsViewer } from "../../common/settings/ReferralSettingsViewer.js"

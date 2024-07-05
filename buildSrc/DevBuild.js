@@ -208,7 +208,7 @@ importScripts("./worker.js")
 async function buildDesktopPart({ version }) {
 	await runStep("Desktop: Esbuild", async () => {
 		await esbuild({
-			entryPoints: ["src/desktop/DesktopMain.ts", "src/desktop/sqlworker.ts"],
+			entryPoints: ["src/common/desktop/DesktopMain.ts", "src/common/desktop/sqlworker.ts"],
 			outdir: "./build/desktop",
 			// Why we bundle at the moment:
 			// - We need to include all the imports: we currently use some node_modules directly, without pre-bundling them like rest of libs we can't avoid it
@@ -258,8 +258,8 @@ globalThis.buildOptions.sqliteNativePath = "./better-sqlite3.node";`,
 		await fs.writeFile("./build-calendar-app/package.json", content, "utf-8")
 
 		await fs.mkdir("build/desktop", { recursive: true })
-		await fs.copyFile("src/desktop/preload.js", "build/desktop/preload.js")
-		await fs.copyFile("src/desktop/preload-webdialog.js", "build/desktop/preload-webdialog.js")
+		await fs.copyFile("src/common/desktop/preload.js", "build/desktop/preload.js")
+		await fs.copyFile("src/common/desktop/preload-webdialog.js", "build/desktop/preload-webdialog.js")
 	})
 }
 
