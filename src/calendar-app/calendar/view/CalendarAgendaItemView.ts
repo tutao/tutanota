@@ -6,6 +6,8 @@ import { styles } from "../../../common/gui/styles.js"
 import { DefaultAnimationTime } from "../../../common/gui/animation/Animations.js"
 import { px } from "../../../common/gui/size.js"
 import { TabIndex } from "../../../common/api/common/TutanotaConstants.js"
+import { lang } from "../../../common/misc/LanguageViewModel.js"
+import { getDisplayEventTitle } from "../gui/CalendarGuiUtils.js"
 
 export interface CalendarAgendaItemViewAttrs {
 	day: Date
@@ -23,6 +25,8 @@ export class CalendarAgendaItemView implements Component<CalendarAgendaItemViewA
 	private isFocused: boolean = false
 
 	view({ attrs }: Vnode<CalendarAgendaItemViewAttrs>): Children {
+		const eventTitle = getDisplayEventTitle(attrs.event.summary)
+
 		return m(
 			".flex.items-center.click.plr.border-radius.pt-s.pb-s.rel.limit-width.full-width",
 			{
@@ -45,7 +49,7 @@ export class CalendarAgendaItemView implements Component<CalendarAgendaItemViewA
 						backgroundColor: `#${attrs.color}`,
 					},
 				}),
-				m(".flex.col.min-width-0.pl-vpad-l", [m("p.b.m-0.text-ellipsis", attrs.event.summary), m("", attrs.timeText)]),
+				m(".flex.col.min-width-0.pl-vpad-l", [m("p.b.m-0.text-ellipsis", eventTitle), m("", attrs.timeText)]),
 			],
 		)
 	}

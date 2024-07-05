@@ -1004,6 +1004,7 @@ export default {
 		"notificationSync_msg": "Synchronizing notifications",
 		"notificationTargets_label": "Notification targets",
 		"notSigned_msg": "Not signed.",
+		"noTitle_label": "<No title>",
 		"noUpdateAvailable_msg": "No Update found.",
 		"noValidMembersToAdd_msg": "You are not administrating any users that are not already a member of this group.",
 		"no_label": "No",

@@ -987,6 +987,7 @@ export type TranslationKeyType =
 	| "notificationSettings_action"
 	| "notificationSync_msg"
 	| "notificationTargets_label"
+	| "noTitle_label"
 	| "notSigned_msg"
 	| "noUpdateAvailable_msg"
 	| "noValidMembersToAdd_msg"
