@@ -19,7 +19,7 @@ import { UpgradeRequiredError } from "../../../../common/api/main/UpgradeRequire
 import { showPlanUpgradeRequiredDialog } from "../../../../common/misc/SubscriptionDialogs.js"
 import { ExternalLink } from "../../../../common/gui/base/ExternalLink.js"
 
-import { createRepeatRuleFrequencyValues, formatEventDuration, iconForAttendeeStatus } from "../CalendarGuiUtils.js"
+import { createRepeatRuleFrequencyValues, formatEventDuration, getDisplayEventTitle, iconForAttendeeStatus } from "../CalendarGuiUtils.js"
 import { hasError } from "../../../../common/api/common/utils/ErrorUtils.js"
 
 export type EventPreviewViewAttrs = {
@@ -84,9 +84,10 @@ export class EventPreviewView implements Component<EventPreviewViewAttrs> {
 	view(vnode: Vnode<EventPreviewViewAttrs>): Children {
 		const { event, sanitizedDescription, participation } = vnode.attrs
 		const attendees = prepareAttendees(event.attendees, event.organizer)
+		const eventTitle = getDisplayEventTitle(event.summary)
 
 		return m(".flex.col.smaller.scroll.visible-scrollbar", [
-			this.renderRow(BootIcons.Calendar, [m("span.h3", event.summary)]),
+			this.renderRow(BootIcons.Calendar, [m("span.h3", eventTitle)]),
 			this.renderRow(Icons.Time, [formatEventDuration(event, getTimeZone(), false), this.renderRepeatRule(event.repeatRule, isAllDayEvent(event))]),
 			this.renderLocation(event.location),
 			this.renderAttendeesSection(attendees, participation),

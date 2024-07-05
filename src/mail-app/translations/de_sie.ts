@@ -1008,6 +1008,7 @@ export default {
 		"notificationSync_msg": "Synchronisiere Benachrichtigungen",
 		"notificationTargets_label": "Ziele für Benachrichtigungen",
 		"notSigned_msg": "Nicht unterschrieben.",
+		"noTitle_label": "<Kein titel>",
 		"noUpdateAvailable_msg": "Kein Update gefunden.",
 		"noValidMembersToAdd_msg": "Sie administrieren keine Benutzer, welche noch nicht in dieser Gruppe sind.",
 		"no_label": "Nein",
