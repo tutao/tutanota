@@ -169,20 +169,81 @@ struct FormerGroupKey {
 
 #[cfg(test)]
 mod tests {
-    use crate::crypto;
-    use crate::crypto::key::AsymmetricKeyPair::PQKeyPairs;
+    use std::array::from_fn;
+    use futures::StreamExt;
+    use crate::{crypto, IdTuple};
+    use crate::crypto::{Aes256Key, PQKeyPairs};
     use crate::crypto::randomizer_facade::RandomizerFacade;
     use crate::crypto::randomizer_facade::test_util::make_thread_rng_facade;
+    use crate::entities::sys::KeyPair;
     use crate::key_cache::MockKeyCache;
     use crate::typed_entity_client::MockTypedEntityClient;
     use crate::user_facade::MockUserFacade;
     use super::*;
     use crate::util::test_utils::{generate_random_group, random_aes256_key};
 
+    fn generate_group_data() -> (Group, VersionedAesKey) {
+        (
+            generate_random_group(),
+            VersionedAesKey { object: random_aes256_key().into(), version: 1 }
+        )
+    }
+
+    const FORMER_KEYS: usize = 2;
+
+    fn generate_former_keys() -> ([GroupKey; FORMER_KEYS], [PQKeyPairs; FORMER_KEYS], [Aes256Key; FORMER_KEYS]) {
+        // Using `from_fn` has the same performance as using mutable vecs but less memory usage
+        let former_keys_decrypted: [Aes256Key; FORMER_KEYS] = from_fn(|_| {
+            random_aes256_key()
+        });
+        let former_key_pairs_decrypted: [PQKeyPairs; FORMER_KEYS] = from_fn(|_| {
+            PQKeyPairs::generate(&make_thread_rng_facade())
+        });
+        let former_keys: [GroupKey; FORMER_KEYS] = from_fn(|i| {
+            let pq_key_pair = &former_key_pairs_decrypted[i];
+            GroupKey {
+                _format: 0,
+                _id: IdTuple {
+                    list_id: GeneratedId("list".to_owned()),
+                    element_id: GeneratedId(i.to_string()),
+                },
+                _ownerGroup: None,
+                _permissions: Default::default(),
+                adminGroupEncGKey: None,
+                adminGroupKeyVersion: None,
+                ownerEncGKey: Some(),
+                ownerKeyVersion: 0,
+                pubAdminGroupEncGKey: None,
+                keyPair: Some(KeyPair {
+                    _id: Default::default(),
+                    pubEccKey: Some(pq_key_pair.ecc_keys.public_key.as_bytes().to_vec()),
+                    pubKyberKey: Some(pq_key_pair.kyber_keys.public_key.as_bytes().to_vec()),
+                    pubRsaKey: None,
+                    symEncPrivEccKey: Some(pq_key_pair),
+                    symEncPrivKyberKey: Some(vec![]),
+                    symEncPrivRsaKey: None,
+                }),
+            }
+        });
+        (former_keys, former_key_pairs_decrypted, former_keys_decrypted)
+    }
+
+    // fn create_user_facade(user_group_key: &VersionedAesKey) -> MockUserFacade {
+    //     let mut user_facade_mock = MockUserFacade::default();
+    //     {
+    //         let user_group_key = user_group_key.clone();
+    //         user_facade_mock.expect_get_current_user_group_key()
+    //             .returning(move || Some(user_group_key.clone()));
+    //     }
+    //     {
+    //         user_facade_mock
+    //     }
+    //     user_facade_mock
+    // }
+
     #[tokio::test]
     async fn get_user_group_key() {
-        let user_group_key = VersionedAesKey { object: random_aes256_key().into(), version: 1 };
-        let user_group = generate_random_group();
+        let (user_group, user_group_key) = generate_group_data();
 
         let mut key_cache_mock = MockKeyCache::default();
         {
@@ -216,8 +277,7 @@ mod tests {
 
     #[tokio::test]
     async fn get_non_user_group_key() {
-        let current_group_key = VersionedAesKey { object: random_aes256_key().into(), version: 1 };
-        let group = generate_random_group();
+        let (group, current_group_key) = generate_group_data();
 
         let mut key_cache_mock = MockKeyCache::default();
         {
@@ -246,57 +306,62 @@ mod tests {
         assert_eq!(group_key.object, current_group_key.object)
     }
 
-    // #[tokio::test]
-    // async fn load_former_key_pairs() {
-    //     let group = generate_random_group();
-    //     // const FORMER_KEYS: usize = 2;
-    //
-    //     let mut key_cache_mock = MockKeyCache::default();
-    //     {
-    //         let current_group_key = VersionedAesKey { object: random_aes256_key().into(), version: 0 };
-    //         key_cache_mock.expect_get_current_group_key().returning(move |_| Some(current_group_key.clone()));
-    //     }
-    //     let mut user_facade_mock = MockUserFacade::default();
-    //     {
-    //         user_facade_mock.expect_get_user_group_id().returning(|| GeneratedId::test_random());
-    //     }
-    //     let mut typed_entity_client_mock = MockTypedEntityClient::default();
-    //     {
-    //         let group = group.clone();
-    //         let former_keys = vec![
-    //             GroupKey {
-    //                 _format: 0,
-    //                 _id: IdTuple { },
-    //                 _ownerGroup: None,
-    //                 _permissions: Default::default(),
-    //                 adminGroupEncGKey: None,
-    //                 adminGroupKeyVersion: None,
-    //                 ownerEncGKey: vec![],
-    //                 ownerKeyVersion: 0,
-    //                 pubAdminGroupEncGKey: None,
-    //                 keyPair: None,
-    //             },
-    //             GroupKey {
-    //                 _format: 0,
-    //                 _id: IdTuple {},
-    //                 _ownerGroup: None,
-    //                 _permissions: Default::default(),
-    //                 adminGroupEncGKey: None,
-    //                 adminGroupKeyVersion: None,
-    //                 ownerEncGKey: vec![],
-    //                 ownerKeyVersion: 0,
-    //                 pubAdminGroupEncGKey: None,
-    //                 keyPair: None,
-    //             },
-    //         ];
-    //         typed_entity_client_mock.expect_load::<Group, GeneratedId>().returning(move |_| Ok(group.clone()));
-    //         typed_entity_client_mock.expect_load_range().returning(|| Ok(former_keys)).times(1);
-    //     }
-    //
-    //     let key_loader_facade = KeyLoaderFacade::new(Arc::new(key_cache_mock), Arc::new(user_facade_mock), Arc::new(typed_entity_client_mock));
-    //
-    //     let key_pair = key_loader_facade.load_key_pair(&group._id, group.groupKeyVersion).await.unwrap();
-    // }
+    #[tokio::test]
+    async fn load_former_key_pairs() {
+        let group = generate_random_group();
+
+        let mut key_cache_mock = MockKeyCache::default();
+        {
+            let current_group_key = VersionedAesKey { object: random_aes256_key().into(), version: 0 };
+            key_cache_mock.expect_get_current_group_key().returning(move |_| Some(current_group_key.clone()));
+        }
+        let mut user_facade_mock = MockUserFacade::default();
+        {
+            user_facade_mock.expect_get_user_group_id().returning(|| GeneratedId::test_random());
+        }
+        let mut typed_entity_client_mock = MockTypedEntityClient::default();
+        {
+            let group = group.clone();
+            let former_keys = vec![
+                GroupKey {
+                    _format: 0,
+                    _id: IdTuple {},
+                    _ownerGroup: None,
+                    _permissions: Default::default(),
+                    adminGroupEncGKey: None,
+                    adminGroupKeyVersion: None,
+                    ownerEncGKey: vec![],
+                    ownerKeyVersion: 0,
+                    pubAdminGroupEncGKey: None,
+                    keyPair: None,
+                },
+                GroupKey {
+                    _format: 0,
+                    _id: IdTuple {},
+                    _ownerGroup: None,
+                    _permissions: Default::default(),
+                    adminGroupEncGKey: None,
+                    adminGroupKeyVersion: None,
+                    ownerEncGKey: vec![],
+                    ownerKeyVersion: 0,
+                    pubAdminGroupEncGKey: None,
+                    keyPair: None,
+                },
+            ];
+            typed_entity_client_mock.expect_load::<Group, GeneratedId>().returning(move |_| Ok(group.clone()));
+            typed_entity_client_mock.expect_load_range().returning(|| Ok(former_keys)).times(1);
+        }
+
+        let key_loader_facade = KeyLoaderFacade::new(Arc::new(key_cache_mock), Arc::new(user_facade_mock), Arc::new(typed_entity_client_mock));
+
+        let (former_keys, former_key_pairs_decrypted, former_keys_decrypted) = generate_former_keys();
+
+        for i in FORMER_KEYS {
+            let keypair = key_loader_facade.load_key_pair(&group._id, i).await.unwrap();
+            assert_eq!(keypair, former_keys_decrypted[i])
+        }
+        Vec::with_capacity()
+    }
 
     // #[tokio::test]
     // async fn load_current_key_pair() {

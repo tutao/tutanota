@@ -30,6 +30,12 @@ pub struct KyberPublicKey {
     public_key: PQCryptoKyber1024PublicKey,
 }
 
+impl KyberPublicKey {
+    pub fn as_bytes(&self) -> &[u8] {
+        self.public_key.as_bytes()
+    }
+}
+
 #[cfg(test)] // only allow Debug in tests because this prints the key!
 impl Debug for KyberPublicKey {
     fn fmt(&self, f: &mut Formatter<'_>) -> std::fmt::Result {
