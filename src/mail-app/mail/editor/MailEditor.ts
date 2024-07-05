@@ -375,7 +375,7 @@ export class MailEditor implements Component<MailEditorAttrs> {
 					{
 						label: "add_action",
 						click: () => {
-							import("../../settings/EditNotificationEmailDialog").then(({ showAddOrEditNotificationEmailDialog }) =>
+							import("../../../common/settings/EditNotificationEmailDialog.js").then(({ showAddOrEditNotificationEmailDialog }) =>
 								showAddOrEditNotificationEmailDialog(locator.logins.getUserController()),
 							)
 						},
@@ -383,7 +383,7 @@ export class MailEditor implements Component<MailEditorAttrs> {
 					{
 						label: "edit_action",
 						click: () => {
-							import("../../settings/EditNotificationEmailDialog").then(({ showAddOrEditNotificationEmailDialog }) =>
+							import("../../../common/settings/EditNotificationEmailDialog.js").then(({ showAddOrEditNotificationEmailDialog }) =>
 								showAddOrEditNotificationEmailDialog(locator.logins.getUserController(), model.getSelectedNotificationLanguageCode()),
 							)
 						},

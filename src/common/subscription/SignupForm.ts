@@ -5,14 +5,14 @@ import { Dialog } from "../gui/base/Dialog"
 import { Autocomplete, TextField } from "../gui/base/TextField.js"
 import { getWhitelabelRegistrationDomains } from "../login/LoginView.js"
 import type { NewAccountData } from "./UpgradeSubscriptionWizard"
-import { SelectMailAddressForm, SelectMailAddressFormAttrs } from "../../mail-app/settings/SelectMailAddressForm"
+import { SelectMailAddressForm, SelectMailAddressFormAttrs } from "../settings/SelectMailAddressForm.js"
 import {
 	AccountType,
 	DEFAULT_FREE_MAIL_ADDRESS_SIGNUP_DOMAIN,
 	DEFAULT_PAID_MAIL_ADDRESS_SIGNUP_DOMAIN,
 	TUTANOTA_MAIL_ADDRESS_SIGNUP_DOMAINS,
 } from "../api/common/TutanotaConstants"
-import { PasswordForm, PasswordModel } from "../../mail-app/settings/PasswordForm"
+import { PasswordForm, PasswordModel } from "../settings/PasswordForm.js"
 import type { CheckboxAttrs } from "../gui/base/Checkbox.js"
 import { Checkbox } from "../gui/base/Checkbox.js"
 import type { lazy } from "@tutao/tutanota-utils"
@@ -25,7 +25,7 @@ import { locator } from "../api/main/CommonLocator"
 import { CURRENT_PRIVACY_VERSION, CURRENT_TERMS_VERSION, renderTermsAndConditionsButton, TermsSection } from "./TermsAndConditions"
 import { UsageTest } from "@tutao/tutanota-usagetests"
 import { runCaptchaFlow } from "./Captcha.js"
-import { EmailDomainData, isPaidPlanDomain } from "../../mail-app/settings/mailaddress/MailAddressesUtils.js"
+import { EmailDomainData, isPaidPlanDomain } from "../settings/mailaddress/MailAddressesUtils.js"
 import { isIOSApp } from "../api/common/Env.js"
 import { LoginButton } from "../gui/base/buttons/LoginButton.js"
 import { ExternalLink } from "../gui/base/ExternalLink.js"

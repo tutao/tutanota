@@ -1,4 +1,4 @@
-import { Type } from "./EntityConstants"
+import { Type } from "./EntityConstants.js"
 import { TypeRef } from "@tutao/tutanota-utils"
 import type { TypeModel } from "./EntityTypes"
 import { typeModels as baseTypeModels } from "../entities/base/TypeModels.js"

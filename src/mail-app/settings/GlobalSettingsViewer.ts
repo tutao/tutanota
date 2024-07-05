@@ -37,7 +37,7 @@ import {
 	sortCompareByReverseId,
 	timestampToGeneratedId,
 } from "../../common/api/common/utils/EntityUtils"
-import { ExpandableTable } from "./ExpandableTable"
+import { ExpandableTable } from "../../common/settings/ExpandableTable.js"
 import { showRejectedSendersInfoDialog } from "./RejectedSendersInfoDialog"
 import { showAddDomainWizard } from "./emaildomain/AddDomainWizard"
 import { getUserGroupMemberships } from "../../common/api/common/utils/GroupUtils"
