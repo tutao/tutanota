@@ -123,10 +123,7 @@ export class WebCommonNativeFacade implements CommonNativeFacade {
 	 * don't support bcrypt for this one.
 	 */
 	async promptForNewPassword(title: string, oldPassword: string | null): Promise<string> {
-		const [{ Dialog }, { PasswordForm, PasswordModel }] = await Promise.all([
-			import("../../gui/base/Dialog.js"),
-			import("../../../mail-app/settings/PasswordForm.js"),
-		])
+		const [{ Dialog }, { PasswordForm, PasswordModel }] = await Promise.all([import("../../gui/base/Dialog.js"), import("../../settings/PasswordForm.js")])
 		const locator = await WebCommonNativeFacade.getInitializedLocator()
 		const model = new PasswordModel(locator.usageTestController, locator.logins, { checkOldPassword: false, enforceStrength: false })
 

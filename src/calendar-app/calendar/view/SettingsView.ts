@@ -25,7 +25,7 @@ import { BackgroundColumnLayout } from "../../../common/gui/BackgroundColumnLayo
 import { theme } from "../../../common/gui/theme.js"
 import { styles } from "../../../common/gui/styles.js"
 import { MobileHeader } from "../../../common/gui/MobileHeader.js"
-import { getAvailableDomains } from "../../../mail-app/settings/mailaddress/MailAddressesUtils.js"
+import { getAvailableDomains } from "../../../common/settings/mailaddress/MailAddressesUtils.js"
 import { UserListView } from "../../../mail-app/settings/UserListView.js"
 import { showUserImportDialog, UserViewer } from "../../../mail-app/settings/UserViewer.js"
 import { exportUserCsv } from "../../../mail-app/settings/UserDataExporter.js"

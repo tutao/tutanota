@@ -25,8 +25,8 @@ import { FeatureType, OperationType } from "../../api/common/TutanotaConstants.j
 import { progressIcon } from "../../gui/base/Icon.js"
 import { showProgressDialog } from "../../gui/dialogs/ProgressDialog.js"
 
-import * as EditNotificationEmailDialog from "../../../mail-app/settings/EditNotificationEmailDialog.js"
-import { showBuyOrSetNotificationEmailDialog } from "../../../mail-app/settings/EditNotificationEmailDialog.js"
+import * as EditNotificationEmailDialog from "../EditNotificationEmailDialog.js"
+import { showBuyOrSetNotificationEmailDialog } from "../EditNotificationEmailDialog.js"
 import { isWhitelabelActive } from "../../subscription/SubscriptionUtils.js"
 import { GENERATED_MAX_ID } from "../../api/common/utils/EntityUtils.js"
 import { WhitelabelBrandingDomainSettings } from "./WhitelabelBrandingDomainSettings.js"

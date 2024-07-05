@@ -4,7 +4,7 @@ import { MailAddressFacade } from "../../../common/api/worker/facades/lazy/MailA
 import { LoginController } from "../../../common/api/main/LoginController.js"
 import { EventController } from "../../../common/api/main/EventController.js"
 import { OperationType } from "../../../common/api/common/TutanotaConstants.js"
-import { EmailDomainData, getAvailableDomains } from "./MailAddressesUtils.js"
+import { EmailDomainData, getAvailableDomains } from "../../../common/settings/mailaddress/MailAddressesUtils.js"
 import { GroupInfo, GroupInfoTypeRef, MailAddressAliasServiceReturn } from "../../../common/api/entities/sys/TypeRefs.js"
 import { assertNotNull, lazyMemoized } from "@tutao/tutanota-utils"
 import { LimitReachedError } from "../../../common/api/common/error/RestError.js"

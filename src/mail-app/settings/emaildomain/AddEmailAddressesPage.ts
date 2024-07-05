@@ -1,4 +1,4 @@
-import { SelectMailAddressForm, SelectMailAddressFormAttrs } from "../SelectMailAddressForm"
+import { SelectMailAddressForm, SelectMailAddressFormAttrs } from "../../../common/settings/SelectMailAddressForm.js"
 import m, { Children, Component, Vnode, VnodeDOM } from "mithril"
 import { getAliasLineAttrs } from "../mailaddress/MailAddressTable.js"
 import type { AddDomainData } from "./AddDomainWizard"
