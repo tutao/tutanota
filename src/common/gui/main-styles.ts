@@ -2247,6 +2247,17 @@ styles.registerStyle("main", () => {
 			top: "8px",
 			left: "6px",
 		},
+		".calendar-month-week-number:after": {
+			// Used to expand the clickable area
+			content: "''",
+			width: "100%",
+			height: "100%",
+			position: "absolute",
+			top: "0",
+			left: "0",
+			padding: "35%",
+			margin: "-35% -35%",
+		},
 		".color-picker": {
 			height: px(30),
 			width: px(100),
