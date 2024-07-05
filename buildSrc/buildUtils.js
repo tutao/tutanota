@@ -13,7 +13,7 @@ var measureStartTime
 
 /**
  * Returns tutanota app version (as in package.json).
- * @returns {string}
+ * @returns {Promise<string>}
  */
 export async function getTutanotaAppVersion() {
 	const packageJson = JSON.parse(await fs.readFile(path.join(__dirname, "..", "package.json"), "utf8"))
@@ -79,7 +79,7 @@ export async function fileExists(filePath) {
 /**
  * There are various possibilities for how a given platform could be identified
  * We need to make sure to be consistent at certain points, such as when caching files or processing CLI args
- * @param platformName {"mac"|"darwin"|"win"|"win32"|"linux"}
+ * @param platformName {string}
  * @returns {"darwin"|"win32"|"linux"}
  */
 export function getCanonicalPlatformName(platformName) {

@@ -18,10 +18,9 @@ if (process.argv[1] === fileURLToPath(import.meta.url)) {
 		.option("--publish", "Build and publish .deb package for dictionaries.")
 		.action(async (options) => {
 			const outDir = typeof options.outDir !== "undefined" ? options.outDir : getDefaultDistDirectory()
-			const local = typeof options.local !== "undefined" ? options.local : false
 			const publishDictionaries = typeof options.publish !== "undefined" ? options.publish : false
 
-			await getDictionaries(outDir, local)
+			await getDictionaries(outDir)
 				.then(async (v) => {
 					console.log("Dictionaries updated successfully")
 					if (publishDictionaries) {
