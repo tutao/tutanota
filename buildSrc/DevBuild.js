@@ -44,6 +44,10 @@ export async function runDevBuild({ stage, host, desktop, clean, ignoreMigration
 		await sh`npx tsc --project ${tsConfig} --incremental ${true} --noEmit true`
 	})
 
+	/**
+	 * @param host {string|null}
+	 * @return {DomainConfigMap}
+	 */
 	function updateDomainConfigForHostname(host) {
 		if (host == null) {
 			return { ...domainConfigs }
@@ -73,8 +77,7 @@ export async function runDevBuild({ stage, host, desktop, clean, ignoreMigration
 
 	const extendedDomainConfigs = updateDomainConfigForHostname(host)
 
-	const mode = desktop ? "Desktop" : "Browser"
-	await buildWebPart({ stage, host, version, mode, domainConfigs: extendedDomainConfigs, app })
+	await buildWebPart({ stage, host, version, domainConfigs: extendedDomainConfigs, app })
 
 	if (desktop) {
 		await buildDesktopPart({ version, app })
@@ -82,10 +85,12 @@ export async function runDevBuild({ stage, host, desktop, clean, ignoreMigration
 }
 
 /**
- * @param stage {string}
- * @param host {string|null}
- * @param version {string}
- * @param domainConfigs {DomainConfigMap}
+ * @param p {object}
+ * @param p.stage {string}
+ * @param p.host {string|null}
+ * @param p.version {string}
+ * @param p.domainConfigs {DomainConfigMap}
+ * @param p.app {string}
  * @return {Promise<void>}
  */
 async function buildWebPart({ stage, host, version, domainConfigs, app }) {
@@ -197,7 +202,6 @@ globalThis.buildOptions.sqliteNativePath = "./better-sqlite3.node";`,
 			updateUrl: `http://localhost:9000/client/${buildDir}`,
 			iconPath: path.join(desktopIconsPath, "logo-solo-red.png"),
 			sign: false,
-			linux: process.platform === "linux",
 			architecture: "x64",
 		})
 		const content = JSON.stringify(packageJSON, null, 2)
@@ -285,7 +289,9 @@ export async function prepareAssets(stage, host, version, domainConfigs, buildDi
 	// write empty file
 	await fs.writeFile(`${buildDir}/polyfill.js`, "")
 
-	for (const mode of ["Browser", "App", "Desktop"]) {
+	/** @type {EnvMode[]} */
+	const modes = ["Browser", "App", "Desktop"]
+	for (const mode of modes) {
 		await createBootstrap(env.create({ staticUrl: getStaticUrl(stage, mode, host), version, mode, dist: false, domainConfigs }), buildDir)
 	}
 }

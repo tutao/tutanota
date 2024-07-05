@@ -62,7 +62,6 @@ export async function buildDesktop({ dirname, version, platform, architecture, u
 		notarize,
 		unpacked,
 		sign: (process.env.DEBUG_SIGN && updateUrl !== "") || !!process.env.JENKINS_HOME,
-		linux: platform === "linux",
 		architecture,
 	})
 	console.log("updateUrl is", updateUrl)
@@ -93,6 +92,7 @@ export async function buildDesktop({ dirname, version, platform, architecture, u
 
 	// package for linux, win, mac
 	await electronBuilder.build({
+		// @ts-ignore this is the argument to the cli but it's not in ts types?
 		_: ["build"],
 		win: platform === "win32" ? [] : undefined,
 		mac: platform === "darwin" ? [] : undefined,
@@ -199,16 +199,16 @@ async function downloadLatestMapirs(dllName, dllTrg) {
 		console.log("latest mapirs release", res.url)
 		const asset_id = res.data.assets.find((a) => a.name.startsWith(dllName)).id
 		console.log("Downloading mapirs asset", asset_id)
-		const asset = await octokit.repos.getReleaseAsset(
-			Object.assign(opts, {
-				asset_id,
-				headers: {
-					Accept: "application/octet-stream",
-				},
-			}),
-		)
+		const assetResponse = await octokit.repos.getReleaseAsset({
+			...opts,
+			asset_id,
+			headers: {
+				Accept: "application/octet-stream",
+			},
+		})
 		console.log("Writing mapirs asset")
-		await fs.promises.writeFile(dllTrg, Buffer.from(asset.data))
+		// @ts-ignore not clear how to check for response status so that ts is happy
+		await fs.promises.writeFile(dllTrg, Buffer.from(assetResponse.data))
 		console.log("Mapirs downloaded")
 	} catch (e) {
 		console.error("Failed to download mapirs!", e)

@@ -14,6 +14,7 @@ export function create(params) {
 		mode: mode ?? "Browser",
 		timeout: 20000,
 		domainConfigs,
+		platformId: null,
 	}
 }
 
