@@ -7,4 +7,5 @@
 	<color name="darkLighter">#232323</color>
 	<color name="bright_red">#FF0A0A</color>
 	<color name="white_alternative">#FFDFCC</color>
+	<color name="logo_text_bright_grey">#c5c7c7</color>
 </resources>
