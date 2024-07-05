@@ -37,6 +37,7 @@ pub mod date;
 pub mod generated_id;
 mod custom_id;
 mod crypto_entity_client;
+mod logging;
 
 uniffi::setup_scaffolding!();
 
@@ -95,6 +96,9 @@ pub struct Sdk {
 impl Sdk {
     #[uniffi::constructor]
     pub fn new(base_url: String, rest_client: Arc<dyn RestClient>, client_version: &str) -> Sdk {
+        logging::init_logger();
+        log::debug!("Initializing SDK...");
+
         let type_model_provider = Arc::new(init_type_model_provider());
         // TODO validate parameters
         let json_serializer = Arc::new(JsonSerializer::new(Arc::clone(&type_model_provider)));
