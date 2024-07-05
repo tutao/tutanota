@@ -17,7 +17,7 @@ import { isSameTypeRef, Mapper, ofClass, promiseMap, splitInChunks, TypeRef } fr
 import { assertWorkerOrNode } from "../../common/Env"
 import type { ListElementEntity, SomeEntity, TypeModel } from "../../common/EntityTypes"
 import { getElementId, LOAD_MULTIPLE_LIMIT, POST_MULTIPLE_LIMIT } from "../../common/utils/EntityUtils"
-import { Type } from "../../common/EntityConstants"
+import { Type } from "../../common/EntityConstants.js"
 import { SetupMultipleError } from "../../common/error/SetupMultipleError"
 import { expandId } from "./DefaultEntityRestCache.js"
 import { InstanceMapper } from "../crypto/InstanceMapper"

@@ -1,4 +1,4 @@
-import { AssociationType, Cardinality, Type, ValueType } from "./EntityConstants"
+import { AssociationType, Cardinality, Type, ValueType } from "./EntityConstants.js"
 import { TypeRef } from "@tutao/tutanota-utils"
 import type { BlobElement, Element, ListElement } from "./utils/EntityUtils.js"
 

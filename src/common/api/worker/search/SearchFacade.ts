@@ -50,7 +50,7 @@ import { FULL_INDEXED_TIMESTAMP, NOTHING_INDEXED_TIMESTAMP } from "../../common/
 import { compareNewestFirst, firstBiggerThanSecond, timestampToGeneratedId } from "../../common/utils/EntityUtils"
 import { INITIAL_MAIL_INDEX_INTERVAL_DAYS, MailIndexer } from "./MailIndexer"
 import { SuggestionFacade } from "./SuggestionFacade"
-import { AssociationType, Cardinality, ValueType } from "../../common/EntityConstants"
+import { AssociationType, Cardinality, ValueType } from "../../common/EntityConstants.js"
 import { NotAuthorizedError, NotFoundError } from "../../common/error/RestError"
 import { iterateBinaryBlocks } from "./SearchIndexEncoding"
 import type { BrowserData } from "../../../misc/ClientConstants"
