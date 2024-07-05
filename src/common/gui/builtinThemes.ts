@@ -22,7 +22,6 @@ const grey_darker_1 = "#303030"
 const red = "#850122"
 const dunkel = "#410002"
 const blue = "#005885"
-export const logo_text_dark_grey = "#4a4a4a"
 
 /**
  *      dark theme background
@@ -43,7 +42,7 @@ const dark_lighter_0 = "#232323"
 const dark = "#222222"
 const dark_darker_0 = "#111111"
 const green = "#00d2a7"
-export const logo_text_bright_grey = "#c5c7c7"
+const logo_text_bright_grey = "#c5c7c7"
 
 // These are constants that have been chosen because they work across themes
 // This is even lighter than hover, for special cases like inactive search bar background
@@ -90,7 +89,7 @@ export const themes: Themes = {
 	}),
 	dark: Object.freeze({
 		themeId: "dark",
-		logo: getLogoSvg(green, logo_text_bright_grey),
+		logo: getLogoSvg(logo_text_bright_grey, logo_text_bright_grey),
 		button_bubble_bg: dark_lighter_2,
 		button_bubble_fg: light_lighter_1,
 		content_fg: light_lighter_1,
