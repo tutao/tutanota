@@ -45,6 +45,14 @@ import "zx/globals"
 	}
 })()
 
+/**
+ * @param params {object}
+ * @param params.version {string}
+ * @param params.fpmRootMapping {string}
+ * @param params.name {string}
+ * @param [params.fpmAfterInstallScript] {string}
+ * @param params.destinationDir {string}
+ */
 async function packageAndPublishDeb({ version, fpmRootMapping, name, fpmAfterInstallScript, destinationDir }) {
 	const fpmFlags = [
 		`--force`,

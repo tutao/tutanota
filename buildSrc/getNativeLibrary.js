@@ -35,7 +35,7 @@ function validateOpts(opts) {
 	}
 }
 
-async function cli(nodeModule, { environment, rootDir, forceRebuild, useExisting, copyTarget }) {
+async function cli(nodeModule, { environment, rootDir, forceRebuild, copyTarget }) {
 	const platform = getCanonicalPlatformName(process.platform)
 	const architecture = process.arch
 	const path = await getCachedLibPath({ rootDir, nodeModule, environment, platform, architecture }, console.log.bind(console))
@@ -49,7 +49,6 @@ async function cli(nodeModule, { environment, rootDir, forceRebuild, useExisting
 		rootDir,
 		nodeModule,
 		log: console.log.bind(console),
-		useExisting,
 		platform,
 		copyTarget,
 		architecture,

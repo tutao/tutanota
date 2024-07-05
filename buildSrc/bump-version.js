@@ -18,8 +18,8 @@ await program
  */
 
 /**
- * @param which {Which}
- * @param platform {undefined | "webdesktop" | "android" | "ios"}
+ * @param params {object}
+ * @param params.platform {undefined | "webdesktop" | "android" | "ios" | "all"}
  * @return {Promise<void>}
  */
 async function run({ platform }) {
@@ -186,9 +186,7 @@ async function updateDependencyForWorkspaces(version, dependency, workspaces) {
 }
 
 /**
- * @param version {string}
- * @param dependency {string}
- * @param directory {string}
+ * @param {{version: string, dependency: string, directory: string}} params
  * @return {Promise<void>}
  */
 async function updateDependency({ version, dependency, directory }) {

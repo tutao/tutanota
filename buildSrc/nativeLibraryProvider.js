@@ -6,22 +6,25 @@ import { spawn } from "node:child_process"
 import { getElectronVersion, getInstalledModuleVersion } from "./getInstalledModuleVersion.js"
 
 /**
+ * @typedef {(...args: string[]) => void} Logger
+ */
+
+/**
  * Rebuild native lib for either current node version or for electron version and
  * cache in the "native-cache" directory.
  * ABI for nodejs and for electron differs and we need to build it differently for each. We do caching
  * to avoid rebuilding between different invocations (e.g. running desktop and running tests).
- * @param environment {"electron"|"node"}
- * @param platform {"win32"|"linux"|"darwin"} platform to compile for in case of cross compilation
- * @param architecture: {"arm64"|"x64"|"universal"} the instruction set used in the built desktop binary
- * @param rootDir {string} path to the root of the project
- * @param nodeModule {string} name of the npm module to rebuild
- * @param log {(...string) => void}
- * @param noBuild {boolean} Don't build, just copy the existing built version from node_modules. Will throw if there is none there
- * @param copyTarget {string | undefined} Which node-gyp target (specified in binding.gyp) to copy the output of. Defaults to the same name as the module
- * @param prebuildTarget: {{ runtime: string, version: number} | undefined} Target parameters to use when getting a prebuild
+ * @param params {object}
+ * @param params.environment {"electron"|"node"}
+ * @param params.platform {"win32"|"linux"|"darwin"} platform to compile for in case of cross compilation
+ * @param params.architecture: {"arm64"|"x64"|"universal"} the instruction set used in the built desktop binary
+ * @param params.rootDir {string} path to the root of the project
+ * @param params.nodeModule {string} name of the npm module to rebuild
+ * @param params.log {Logger}
+ * @param params.copyTarget {string | undefined} Which node-gyp target (specified in binding.gyp) to copy the output of. Defaults to the same name as the module
  * @returns {Promise<string>} path to cached native module
  */
-export async function getNativeLibModulePath({ environment, platform, architecture, rootDir, nodeModule, log, noBuild, copyTarget }) {
+export async function getNativeLibModulePath({ environment, platform, architecture, rootDir, nodeModule, log, copyTarget }) {
 	const libPath = await getCachedLibPath({ rootDir, nodeModule, environment, platform, architecture }, log)
 
 	if (await fileExists(libPath)) {
@@ -44,6 +47,7 @@ export async function getNativeLibModulePath({ environment, platform, architectu
 			await getPrebuiltNativeModuleForWindows({
 				nodeModule,
 				rootDir,
+				platform,
 				log,
 			})
 		} else {
@@ -68,11 +72,13 @@ export async function getNativeLibModulePath({ environment, platform, architectu
 /**
  * Build a native module using node-gyp
  * Runs `node-gyp rebuild ...` from within `node_modules/<nodeModule>/`
- * @param nodeModule {string} the node module being built. Must be installed, and must be a native module project with a `binding.gyp` at the root
- * @param environment {"node"|"electron"} Used to determine which node version to use
- * @param rootDir {string} the root dir of the project
- * @param architecture the architecture to build for: "x64" | "arm64" | "universal"
- * @param log {(string) => void} a logger
+ * @param params {object}
+ * @param params.nodeModule {string} the node module being built. Must be installed, and must be a native module project with a `binding.gyp` at the root
+ * @param params.copyTarget {string}
+ * @param params.environment {"node"|"electron"} Used to determine which node version to use
+ * @param params.rootDir {string} the root dir of the project
+ * @param params.log {Logger}
+ * @param params.architecture the architecture to build for: "x64" | "arm64" | "universal"
  * @returns {Promise<void>}
  */
 export async function buildNativeModule({ nodeModule, copyTarget, environment, rootDir, log, architecture }) {
@@ -118,20 +124,20 @@ export async function buildNativeModule({ nodeModule, copyTarget, environment, r
  *
  * we can't cross-compile with node-gyp, so we need to use the prebuilt version when building a desktop client for windows on linux
  *
- * @param nodeModule {string}
- * @param rootDir
- * @param platform: {"win32" | "darwin" | "linux"}
- * @param target {{ runtime: "napi"|"electron", version: number }}
- * @param log
+ * @param params {object}
+ * @param params.nodeModule {string}
+ * @param params.rootDir {string}
+ * @param params.platform: {"win32" | "darwin" | "linux"}
+ * @param params.log {Logger}
  * @returns {Promise<void>}
  */
-export async function getPrebuiltNativeModuleForWindows({ nodeModule, rootDir, log }) {
+export async function getPrebuiltNativeModuleForWindows({ nodeModule, rootDir, platform, log }) {
 	// We never want to use prebuilt native modules when building on jenkins, so it is considered an error as a safeguard
 	if (process.env.JENKINS_HOME) {
 		throw new Error("Should not be getting prebuilt native modules in CI")
 	}
 
-	const target = await getPrebuildConfiguration(nodeModule, log)
+	const target = await getPrebuildConfiguration(nodeModule, platform, log)
 
 	await callProgram({
 		command: "npm exec",
@@ -151,11 +157,14 @@ export async function getPrebuiltNativeModuleForWindows({ nodeModule, rootDir, l
 /**
  * prebuild-install {runtime, target} configurations are a pain to maintain because they are specific for whichever native module you want to get a prebuild for,
  * So we just define them here and throw an error if we try to obtain a configuration for an unknown module
- * @return {{ runtime: string, version: number} | null}
+ * @param nodeModule {string}
+ * @param platform {"electron"|"node"}
+ * @param log {Logger}
+ * @return {Promise<{ runtime: string, version: number} | null>}
  */
-async function getPrebuildConfiguration(nodeModule, environment, log) {
+async function getPrebuildConfiguration(nodeModule, platform, log) {
 	if (nodeModule === "better-sqlite3") {
-		return environment === "electron"
+		return platform === "electron"
 			? {
 					runtime: "electron",
 					version: await getElectronVersion(log),
