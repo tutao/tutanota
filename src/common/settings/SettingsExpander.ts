@@ -1,11 +1,11 @@
-import type { InfoLink, TranslationKey } from "../../common/misc/LanguageViewModel"
-import { lang } from "../../common/misc/LanguageViewModel"
+import type { InfoLink, TranslationKey } from "../misc/LanguageViewModel.js"
+import { lang } from "../misc/LanguageViewModel.js"
 import m, { Children, Component, Vnode } from "mithril"
-import { ExpanderButton, ExpanderPanel } from "../../common/gui/base/Expander"
-import { ifAllowedTutaLinks } from "../../common/gui/base/GuiUtils"
+import { ExpanderButton, ExpanderPanel } from "../gui/base/Expander.js"
+import { ifAllowedTutaLinks } from "../gui/base/GuiUtils.js"
 import type { lazy, Thunk } from "@tutao/tutanota-utils"
 import Stream from "mithril/stream"
-import { locator } from "../../common/api/main/MainLocator.js"
+import { locator } from "../api/main/MainLocator.js"
 
 export type SettingsExpanderAttrs = {
 	title: TranslationKey | lazy<string>
