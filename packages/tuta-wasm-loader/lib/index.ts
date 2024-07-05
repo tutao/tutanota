@@ -1,19 +1,19 @@
 import { OnLoadResult, OnResolveResult, PluginBuild } from "esbuild"
 import path from "node:path"
-import { FallbackOptions, generateImportCode, generateWasm, generateWasmFallback, WasmGeneratorOptions } from "./WasmHandler.js"
+import { FallbackOptions, generateImportCode, generateWasm, generateWasmFallback } from "./WasmHandler.js"
 import * as fs from "node:fs"
 
-export interface Library extends WasmGeneratorOptions {
-	/**
-	 * Name of the module, how it is imported in JS.
-	 */
+export interface Library {
+	/** Name of the module, how it is imported in JS */
 	name: string
-	/**
-	 * Command to run to generate WASM.
-	 */
+	/** Command to run to generate WASM */
 	command: string
 	/** Optimization level for the JavaScript fallback */
 	optimizationLevel?: string
+	/** Where to run the command */
+	workingDir?: string
+	/** Environment variables to be set for compilation */
+	env?: Record<string, any>
 }
 
 /**

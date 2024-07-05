@@ -1,0 +1,15 @@
+{
+	"include": ["./*.js", "../src/types.d.ts"],
+	"exclude": ["../node_modules/**"],
+	"compilerOptions": {
+		"allowJs": true,
+		"checkJs": true,
+		"noEmit": true,
+		"module": "ESNext",
+		"target": "ESNext",
+		"lib": ["ES2020", "webworker", "dom", "es2015.proxy", "esnext"],
+		"skipLibCheck": true,
+		// moduleResolution set to nodenext breaks default exports of some Rollup plugins
+		"moduleResolution": "Bundler"
+	}
+}
