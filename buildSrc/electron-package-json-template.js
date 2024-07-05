@@ -1,14 +1,23 @@
 import path from "node:path"
 import { readFileSync } from "node:fs"
-import { getElectronVersion, getInstalledModuleVersion } from "./getInstalledModuleVersion.js"
+import { getElectronVersion } from "./getInstalledModuleVersion.js"
 
 /**
  * This is used for launching electron:
  * 1. copied to app-desktop/build from make.js
  * 2. copied to app-desktop/build from dist.js (DesktopBuilder)
+ *
+ * @param p {object}
+ * @param p.nameSuffix {string}
+ * @param p.version {string}
+ * @param p.updateUrl {string}
+ * @param p.iconPath {string}
+ * @param p.sign {boolean}
+ * @param [p.notarize] {boolean}
+ * @param [p.unpacked] {boolean}
+ * @param p.architecture
  */
-
-export default async function generateTemplate({ nameSuffix, version, updateUrl, iconPath, sign, notarize, unpacked, linux, architecture }) {
+export default async function generateTemplate({ nameSuffix, version, updateUrl, iconPath, sign, notarize, unpacked, architecture }) {
 	const appName = "tutanota-desktop" + nameSuffix
 	const appId = "de.tutao.tutanota" + nameSuffix
 	if (process.env.JENKINS_HOME && process.env.DEBUG_SIGN) throw new Error("Tried to DEBUG_SIGN in CI!")

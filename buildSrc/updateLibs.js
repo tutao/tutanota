@@ -102,6 +102,7 @@ async function rollDesktopDep(src, target) {
 		],
 		plugins: [
 			nodeResolve({ preferBuiltins: true }),
+			// @ts-ignore it's a weird default import/export issue
 			commonjs({
 				// better-sqlite3 uses dynamic require to load the binary.
 				// if there is ever another dependency that uses dynamic require
