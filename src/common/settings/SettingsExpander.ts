@@ -1,4 +1,3 @@
-<<<<<<<< HEAD:src/common/settings/SettingsExpander.ts
 import type { InfoLink, TranslationKey } from "../misc/LanguageViewModel.js"
 import { lang } from "../misc/LanguageViewModel.js"
 import m, { Children, Component, Vnode } from "mithril"
@@ -6,17 +5,7 @@ import { ExpanderButton, ExpanderPanel } from "../gui/base/Expander.js"
 import { ifAllowedTutaLinks } from "../gui/base/GuiUtils.js"
 import type { lazy, Thunk } from "@tutao/tutanota-utils"
 import Stream from "mithril/stream"
-import { locator } from "../../common/api/main/CommonLocator.js"
-========
-import type { InfoLink, TranslationKey } from "../../common/misc/LanguageViewModel"
-import { lang } from "../../common/misc/LanguageViewModel"
-import m, { Children, Component, Vnode } from "mithril"
-import { ExpanderButton, ExpanderPanel } from "../../common/gui/base/Expander"
-import { ifAllowedTutaLinks } from "../../common/gui/base/GuiUtils"
-import type { lazy, Thunk } from "@tutao/tutanota-utils"
-import Stream from "mithril/stream"
-import { locator } from "../../common/api/main/MainLocator.js"
->>>>>>>> 3349a964d (Move files to new folder structure):src/mail-app/settings/SettingsExpander.ts
+import { locator } from "../api/main/CommonLocator.js"
 
 export type SettingsExpanderAttrs = {
 	title: TranslationKey | lazy<string>
