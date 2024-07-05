@@ -15,7 +15,7 @@ import { downcast, TypeRef } from "@tutao/tutanota-utils"
 import type { BlobElementEntity, ElementEntity, ListElementEntity, SomeEntity } from "../../../../../src/common/api/common/EntityTypes.js"
 import { InstanceMapper } from "../../../../../src/common/api/worker/crypto/InstanceMapper.js"
 import { AuthDataProvider } from "../../../../../src/common/api/worker/facades/UserFacade.js"
-import { Type } from "../../../../../src/common/api/common/EntityConstants"
+import { Type } from "../../../../../src/common/api/common/EntityConstants.js"
 
 const authDataProvider: AuthDataProvider = {
 	createAuthHeaders(): Dict {

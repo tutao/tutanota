@@ -1,9 +1,9 @@
 import m, { Children, Component, Vnode } from "mithril"
 import stream from "mithril/stream"
-import type { InfoLink, TranslationKey } from "../../common/misc/LanguageViewModel"
-import type { TableAttrs } from "../../common/gui/base/Table.js"
-import { Table } from "../../common/gui/base/Table.js"
-import { SettingsExpander } from "./SettingsExpander"
+import type { InfoLink, TranslationKey } from "../misc/LanguageViewModel.js"
+import type { TableAttrs } from "../gui/base/Table.js"
+import { Table } from "../gui/base/Table.js"
+import { SettingsExpander } from "./SettingsExpander.js"
 import type { lazy } from "@tutao/tutanota-utils"
 import Stream from "mithril/stream"
 

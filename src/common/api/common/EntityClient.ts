@@ -12,7 +12,7 @@ import {
 	listIdPart,
 	RANGE_ITEM_LIMIT,
 } from "./utils/EntityUtils"
-import { Type, ValueType } from "./EntityConstants"
+import { Type, ValueType } from "./EntityConstants.js"
 import { downcast, groupByAndMap, last, promiseMap, TypeRef } from "@tutao/tutanota-utils"
 import { resolveTypeReference } from "./EntityFunctions"
 import type { ElementEntity, ListElementEntity, SomeEntity } from "./EntityTypes"

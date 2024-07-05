@@ -13,9 +13,9 @@ import {
 	GroupInfo,
 	GroupInfoTypeRef,
 } from "../api/entities/sys/TypeRefs.js"
-import { ExpandableTable } from "../../mail-app/settings/ExpandableTable.js"
+import { ExpandableTable } from "./ExpandableTable.js"
 import { showProgressDialog } from "../gui/dialogs/ProgressDialog.js"
-import { SettingsExpander } from "../../mail-app/settings/SettingsExpander.js"
+import { SettingsExpander } from "./SettingsExpander.js"
 import { LoginButton } from "../gui/base/buttons/LoginButton.js"
 import { showLeavingUserSurveyWizard } from "../subscription/LeavingUserSurveyWizard.js"
 import { SURVEY_VERSION_NUMBER } from "../subscription/LeavingUserSurveyConstants.js"
