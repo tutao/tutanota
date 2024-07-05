@@ -137,7 +137,7 @@ export class WebCommonNativeFacade implements CommonNativeFacade {
 	async promptForNewPassword(title: string, oldPassword: string | null): Promise<string> {
 		const [{ Dialog }, { PasswordForm, PasswordModel }] = await Promise.all([
 			import("../../gui/base/Dialog.js"),
-			import("../../../mail-app/settings/PasswordForm.js"),
+			import("../../settings/PasswordForm.js"),
 		])
 		const model = new PasswordModel(this.usageTestController, this.logins, { checkOldPassword: false, enforceStrength: false })
 

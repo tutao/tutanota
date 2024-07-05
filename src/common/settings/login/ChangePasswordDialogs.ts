@@ -5,7 +5,7 @@ import { showProgressDialog } from "../../../common/gui/dialogs/ProgressDialog.j
 import { lang } from "../../../common/misc/LanguageViewModel.js"
 import m from "mithril"
 import { NotAuthenticatedError } from "../../api/common/error/RestError.js"
-import { PasswordForm, PasswordModel } from "../../../mail-app/settings/PasswordForm.js"
+import { PasswordForm, PasswordModel } from "../PasswordForm.js"
 import { assertNotNull, ofClass } from "@tutao/tutanota-utils"
 import { asKdfType, DEFAULT_KDF_TYPE } from "../../api/common/TutanotaConstants.js"
 
