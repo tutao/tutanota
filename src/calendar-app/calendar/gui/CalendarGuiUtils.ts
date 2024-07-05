@@ -854,3 +854,7 @@ async function confirmDeleteClose(model: CalendarEventPreviewViewModel, onClose?
 	await model.deleteAll()
 	onClose?.()
 }
+
+export function getDisplayEventTitle(title: string): string {
+	return title ?? title !== "" ? title : lang.get("noTitle_label")
+}

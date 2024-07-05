@@ -17,6 +17,7 @@ import {
 	expandEvent,
 	formatEventTime,
 	getEventColor,
+	getDisplayEventTitle,
 	getTimeFromMousePos,
 	layOutEvents,
 	TEMPORARY_EVENT_OPACITY,
@@ -26,6 +27,7 @@ import type { GroupColors } from "./CalendarView"
 import { styles } from "../../../common/gui/styles"
 import { locator } from "../../../common/api/main/CommonLocator.js"
 import { CalendarTimeIndicator } from "./CalendarTimeIndicator.js"
+import { lang } from "../../../common/misc/LanguageViewModel.js"
 
 export type Attrs = {
 	onEventClicked: CalendarEventBubbleClickHandler
@@ -109,6 +111,8 @@ export class CalendarDayEventsView implements Component<Attrs> {
 		const fullViewWidth = attrs.fullViewWidth
 		const maxWidth = fullViewWidth != null ? px(styles.isDesktopLayout() ? fullViewWidth / 2 : fullViewWidth) : "none"
 		const colSpan = expandEvent(ev, columnIndex, columns)
+		const eventTitle = getDisplayEventTitle(ev.summary)
+
 		return m(
 			".abs.darker-hover",
 			{
@@ -126,7 +130,7 @@ export class CalendarDayEventsView implements Component<Attrs> {
 				},
 			},
 			m(CalendarEventBubble, {
-				text: ev.summary,
+				text: eventTitle,
 				secondLineText: mapNullable(getTimeTextFormatForLongEvent(ev, attrs.day, attrs.day, zone), (option) => formatEventTime(ev, option)),
 				color: getEventColor(ev, attrs.groupColors),
 				click: (domEvent) => attrs.onEventClicked(ev, domEvent),

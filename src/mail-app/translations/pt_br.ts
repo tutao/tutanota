@@ -999,6 +999,7 @@ export default {
 		"notificationSettings_action": "Notificações",
 		"notificationSync_msg": "Sincronizando notificações",
 		"notSigned_msg": "Não assinado.",
+		"noTitle_label": "<Sem título>",
 		"noUpdateAvailable_msg": "Sem atualizações",
 		"noValidMembersToAdd_msg": "Você não está administrando qualquer usuário que já não seja um membro deste grupo.",
 		"no_label": "Não",

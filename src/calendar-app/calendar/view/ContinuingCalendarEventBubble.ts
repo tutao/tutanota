@@ -5,7 +5,8 @@ import type { CalendarEvent } from "../../../common/api/entities/tutanota/TypeRe
 import type { User } from "../../../common/api/entities/sys/TypeRefs.js"
 import type { EventTextTimeOption } from "../../../common/api/common/TutanotaConstants"
 import type { CalendarEventBubbleClickHandler, CalendarEventBubbleKeyDownHandler } from "./CalendarViewModel"
-import { formatEventTime } from "../gui/CalendarGuiUtils.js"
+import { formatEventTime, getDisplayEventTitle } from "../gui/CalendarGuiUtils.js"
+import { lang } from "../../../common/misc/LanguageViewModel.js"
 
 type ContinuingCalendarEventBubbleAttrs = {
 	event: CalendarEvent
@@ -23,6 +24,8 @@ type ContinuingCalendarEventBubbleAttrs = {
 
 export class ContinuingCalendarEventBubble implements Component<ContinuingCalendarEventBubbleAttrs> {
 	view({ attrs }: Vnode<ContinuingCalendarEventBubbleAttrs>): Children {
+		const eventTitle = getDisplayEventTitle(attrs.event.summary)
+
 		return m(".flex.calendar-event-container.darker-hover", [
 			attrs.startsBefore
 				? m(".event-continues-right-arrow", {
@@ -37,7 +40,7 @@ export class ContinuingCalendarEventBubble implements Component<ContinuingCalend
 			m(
 				".flex-grow.overflow-hidden",
 				m(CalendarEventBubble, {
-					text: (attrs.showTime != null ? formatEventTime(attrs.event, attrs.showTime) + " " : "") + attrs.event.summary,
+					text: (attrs.showTime != null ? formatEventTime(attrs.event, attrs.showTime) + " " : "") + eventTitle,
 					color: attrs.color,
 					click: (e) => attrs.onEventClicked(attrs.event, e),
 					keyDown: (e) => attrs.onEventKeyDown(attrs.event, e),
