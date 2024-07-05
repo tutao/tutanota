@@ -135,10 +135,7 @@ export class WebCommonNativeFacade implements CommonNativeFacade {
 	 * don't support bcrypt for this one.
 	 */
 	async promptForNewPassword(title: string, oldPassword: string | null): Promise<string> {
-		const [{ Dialog }, { PasswordForm, PasswordModel }] = await Promise.all([
-			import("../../gui/base/Dialog.js"),
-			import("../../settings/PasswordForm.js"),
-		])
+		const [{ Dialog }, { PasswordForm, PasswordModel }] = await Promise.all([import("../../gui/base/Dialog.js"), import("../../settings/PasswordForm.js")])
 		const model = new PasswordModel(this.usageTestController, this.logins, { checkOldPassword: false, enforceStrength: false })
 
 		return new Promise((resolve, reject) => {

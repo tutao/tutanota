@@ -47,7 +47,7 @@ import { LoginController } from "../../api/main/LoginController.js"
 import { getCustomMailDomains, getWhitelabelDomainInfo } from "../../api/common/utils/CustomerUtils.js"
 import { EntityUpdateData, isUpdateForTypeRef } from "../../api/common/utils/EntityUpdateUtils.js"
 import { locator } from "../../api/main/CommonLocator.js"
-import { showBuyOrSetNotificationEmailDialog } from "../../settings/EditNotificationEmailDialog"
+import { showBuyOrSetNotificationEmailDialog } from "../EditNotificationEmailDialog.js"
 
 assertMainOrNode()
 
