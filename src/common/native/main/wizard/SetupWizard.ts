@@ -16,9 +16,8 @@ import { SystemPermissionHandler } from "../SystemPermissionHandler.js"
 import { WebMobileFacade } from "../WebMobileFacade.js"
 import { ContactImporter } from "../../../../mail-app/contacts/ContactImporter.js"
 import { MobileSystemFacade } from "../../common/generatedipc/MobileSystemFacade.js"
-import { CredentialsProvider } from "../../../misc/credentials/CredentialsProvider.js"
 import { NativeContactsSyncManager } from "../../../../mail-app/contacts/model/NativeContactsSyncManager.js"
-import { locator } from "../../../api/main/MainLocator.js"
+import { PermissionType } from "../../common/generatedipc/PermissionType.js"
 
 export function renderPermissionButton(permissionName: TranslationKey, isPermissionGranted: boolean, onclick: ClickHandler) {
 	return renderBannerButton(isPermissionGranted ? "granted_msg" : permissionName, onclick, isPermissionGranted)
@@ -42,19 +41,42 @@ export async function showSetupWizard(
 	webMobileFacade: WebMobileFacade,
 	contactImporter: ContactImporter,
 	systemFacade: MobileSystemFacade,
-	credentialsProvider: CredentialsProvider,
 	contactSyncManager: NativeContactsSyncManager,
 	deviceConfig: DeviceConfig,
+	allowContactSyncAndImport: boolean,
 ): Promise<void> {
+	const permissionStatus = await systemPermissionHandler.queryPermissionsState([
+		PermissionType.Contacts,
+		PermissionType.Notification,
+		PermissionType.IgnoreBatteryOptimization,
+	])
+
 	const wizardPages = [
 		wizardPageWrapper(SetupCongratulationsPage, new SetupCongratulationsPageAttrs()),
 		wizardPageWrapper(
 			SetupNotificationsPage,
-			new SetupNotificationsPageAttrs(await systemPermissionHandler.queryPermissionsState(), webMobileFacade.getIsAppVisible(), systemPermissionHandler),
+			new SetupNotificationsPageAttrs(
+				{
+					isNotificationPermissionGranted: permissionStatus.get(PermissionType.Notification) ?? false,
+					isBatteryPermissionGranted: permissionStatus.get(PermissionType.IgnoreBatteryOptimization) ?? false,
+				},
+				webMobileFacade.getIsAppVisible(),
+				systemPermissionHandler,
+			),
 		),
 		wizardPageWrapper(SetupThemePage, new SetupThemePageAttrs()),
-		wizardPageWrapper(SetupContactsPage, new SetupContactsPageAttrs(contactSyncManager, contactImporter, systemFacade)),
-		wizardPageWrapper(SetupLockPage, new SetupLockPageAttrs(locator.systemFacade)),
+		wizardPageWrapper(
+			SetupContactsPage,
+			new SetupContactsPageAttrs(
+				contactSyncManager,
+				contactImporter,
+				systemFacade,
+				systemPermissionHandler,
+				permissionStatus.get(PermissionType.Contacts) ?? false,
+				allowContactSyncAndImport,
+			),
+		),
+		wizardPageWrapper(SetupLockPage, new SetupLockPageAttrs(systemFacade)),
 	]
 	const deferred = defer<void>()
 

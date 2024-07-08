@@ -886,9 +886,9 @@ class MainLocator {
 				this.webMobileFacade,
 				await this.contactImporter(),
 				this.systemFacade,
-				this.credentialsProvider,
 				await this.nativeContactsSyncManager(),
 				deviceConfig,
+				false, //FIXME: We should check which app is creating it and allow accordingly
 			)
 		}
 	}
