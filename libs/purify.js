@@ -1,4 +1,4 @@
-/*! @license DOMPurify 3.1.3 | (c) Cure53 and other contributors | Released under the Apache license 2.0 and Mozilla Public License 2.0 | github.com/cure53/DOMPurify/blob/3.1.3/LICENSE */
+/*! @license DOMPurify 3.1.6 | (c) Cure53 and other contributors | Released under the Apache license 2.0 and Mozilla Public License 2.0 | github.com/cure53/DOMPurify/blob/3.1.6/LICENSE */
 
 (function (global, factory) {
   typeof exports === 'object' && typeof module !== 'undefined' ? module.exports = factory() :
@@ -54,7 +54,6 @@
   const objectHasOwnProperty = unapply(Object.prototype.hasOwnProperty);
   const regExpTest = unapply(RegExp.prototype.test);
   const typeErrorCreate = unconstruct(TypeError);
-  const numberIsNaN = unapply(Number.isNaN);
 
   /**
    * Creates a new function that calls the given function with a specified thisArg and arguments.
@@ -203,7 +202,7 @@
   const mathMlDisallowed = freeze(['maction', 'maligngroup', 'malignmark', 'mlongdiv', 'mscarries', 'mscarry', 'msgroup', 'mstack', 'msline', 'msrow', 'semantics', 'annotation', 'annotation-xml', 'mprescripts', 'none']);
   const text = freeze(['#text']);
 
-  const html = freeze(['accept', 'action', 'align', 'alt', 'autocapitalize', 'autocomplete', 'autopictureinpicture', 'autoplay', 'background', 'bgcolor', 'border', 'capture', 'cellpadding', 'cellspacing', 'checked', 'cite', 'class', 'clear', 'color', 'cols', 'colspan', 'controls', 'controlslist', 'coords', 'crossorigin', 'datetime', 'decoding', 'default', 'dir', 'disabled', 'disablepictureinpicture', 'disableremoteplayback', 'download', 'draggable', 'enctype', 'enterkeyhint', 'face', 'for', 'headers', 'height', 'hidden', 'high', 'href', 'hreflang', 'id', 'inputmode', 'integrity', 'ismap', 'kind', 'label', 'lang', 'list', 'loading', 'loop', 'low', 'max', 'maxlength', 'media', 'method', 'min', 'minlength', 'multiple', 'muted', 'name', 'nonce', 'noshade', 'novalidate', 'nowrap', 'open', 'optimum', 'pattern', 'placeholder', 'playsinline', 'poster', 'preload', 'pubdate', 'radiogroup', 'readonly', 'rel', 'required', 'rev', 'reversed', 'role', 'rows', 'rowspan', 'spellcheck', 'scope', 'selected', 'shape', 'size', 'sizes', 'span', 'srclang', 'start', 'src', 'srcset', 'step', 'style', 'summary', 'tabindex', 'title', 'translate', 'type', 'usemap', 'valign', 'value', 'width', 'wrap', 'xmlns', 'slot']);
+  const html = freeze(['accept', 'action', 'align', 'alt', 'autocapitalize', 'autocomplete', 'autopictureinpicture', 'autoplay', 'background', 'bgcolor', 'border', 'capture', 'cellpadding', 'cellspacing', 'checked', 'cite', 'class', 'clear', 'color', 'cols', 'colspan', 'controls', 'controlslist', 'coords', 'crossorigin', 'datetime', 'decoding', 'default', 'dir', 'disabled', 'disablepictureinpicture', 'disableremoteplayback', 'download', 'draggable', 'enctype', 'enterkeyhint', 'face', 'for', 'headers', 'height', 'hidden', 'high', 'href', 'hreflang', 'id', 'inputmode', 'integrity', 'ismap', 'kind', 'label', 'lang', 'list', 'loading', 'loop', 'low', 'max', 'maxlength', 'media', 'method', 'min', 'minlength', 'multiple', 'muted', 'name', 'nonce', 'noshade', 'novalidate', 'nowrap', 'open', 'optimum', 'pattern', 'placeholder', 'playsinline', 'popover', 'popovertarget', 'popovertargetaction', 'poster', 'preload', 'pubdate', 'radiogroup', 'readonly', 'rel', 'required', 'rev', 'reversed', 'role', 'rows', 'rowspan', 'spellcheck', 'scope', 'selected', 'shape', 'size', 'sizes', 'span', 'srclang', 'start', 'src', 'srcset', 'step', 'style', 'summary', 'tabindex', 'title', 'translate', 'type', 'usemap', 'valign', 'value', 'width', 'wrap', 'xmlns', 'slot']);
   const svg = freeze(['accent-height', 'accumulate', 'additive', 'alignment-baseline', 'ascent', 'attributename', 'attributetype', 'azimuth', 'basefrequency', 'baseline-shift', 'begin', 'bias', 'by', 'class', 'clip', 'clippathunits', 'clip-path', 'clip-rule', 'color', 'color-interpolation', 'color-interpolation-filters', 'color-profile', 'color-rendering', 'cx', 'cy', 'd', 'dx', 'dy', 'diffuseconstant', 'direction', 'display', 'divisor', 'dur', 'edgemode', 'elevation', 'end', 'fill', 'fill-opacity', 'fill-rule', 'filter', 'filterunits', 'flood-color', 'flood-opacity', 'font-family', 'font-size', 'font-size-adjust', 'font-stretch', 'font-style', 'font-variant', 'font-weight', 'fx', 'fy', 'g1', 'g2', 'glyph-name', 'glyphref', 'gradientunits', 'gradienttransform', 'height', 'href', 'id', 'image-rendering', 'in', 'in2', 'k', 'k1', 'k2', 'k3', 'k4', 'kerning', 'keypoints', 'keysplines', 'keytimes', 'lang', 'lengthadjust', 'letter-spacing', 'kernelmatrix', 'kernelunitlength', 'lighting-color', 'local', 'marker-end', 'marker-mid', 'marker-start', 'markerheight', 'markerunits', 'markerwidth', 'maskcontentunits', 'maskunits', 'max', 'mask', 'media', 'method', 'mode', 'min', 'name', 'numoctaves', 'offset', 'operator', 'opacity', 'order', 'orient', 'orientation', 'origin', 'overflow', 'paint-order', 'path', 'pathlength', 'patterncontentunits', 'patterntransform', 'patternunits', 'points', 'preservealpha', 'preserveaspectratio', 'primitiveunits', 'r', 'rx', 'ry', 'radius', 'refx', 'refy', 'repeatcount', 'repeatdur', 'restart', 'result', 'rotate', 'scale', 'seed', 'shape-rendering', 'specularconstant', 'specularexponent', 'spreadmethod', 'startoffset', 'stddeviation', 'stitchtiles', 'stop-color', 'stop-opacity', 'stroke-dasharray', 'stroke-dashoffset', 'stroke-linecap', 'stroke-linejoin', 'stroke-miterlimit', 'stroke-opacity', 'stroke', 'stroke-width', 'style', 'surfacescale', 'systemlanguage', 'tabindex', 'targetx', 'targety', 'transform', 'transform-origin', 'text-anchor', 'text-decoration', 'text-rendering', 'textlength', 'type', 'u1', 'u2', 'unicode', 'values', 'viewbox', 'visibility', 'version', 'vert-adv-y', 'vert-origin-x', 'vert-origin-y', 'width', 'word-spacing', 'wrap', 'writing-mode', 'xchannelselector', 'ychannelselector', 'x', 'x1', 'x2', 'xmlns', 'y', 'y1', 'y2', 'z', 'zoomandpan']);
   const mathMl = freeze(['accent', 'accentunder', 'align', 'bevelled', 'close', 'columnsalign', 'columnlines', 'columnspan', 'denomalign', 'depth', 'dir', 'display', 'displaystyle', 'encoding', 'fence', 'frame', 'height', 'href', 'id', 'largeop', 'length', 'linethickness', 'lspace', 'lquote', 'mathbackground', 'mathcolor', 'mathsize', 'mathvariant', 'maxsize', 'minsize', 'movablelimits', 'notation', 'numalign', 'open', 'rowalign', 'rowlines', 'rowspacing', 'rowspan', 'rspace', 'rquote', 'scriptlevel', 'scriptminsize', 'scriptsizemultiplier', 'selection', 'separator', 'separators', 'stretchy', 'subscriptshift', 'supscriptshift', 'symmetric', 'voffset', 'width', 'xmlns']);
   const xml = freeze(['xlink:href', 'xml:id', 'xlink:title', 'xml:space', 'xmlns:xlink']);
@@ -216,11 +215,9 @@
   const ARIA_ATTR = seal(/^aria-[\-\w]+$/); // eslint-disable-line no-useless-escape
   const IS_ALLOWED_URI = seal(/^(?:(?:(?:f|ht)tps?|mailto|tel|callto|sms|cid|xmpp):|[^a-z]|[a-z+.\-]+(?:[^a-z+.\-:]|$))/i // eslint-disable-line no-useless-escape
   );
-
   const IS_SCRIPT_OR_DATA = seal(/^(?:\w+script|data):/i);
   const ATTR_WHITESPACE = seal(/[\u0000-\u0020\u00A0\u1680\u180E\u2000-\u2029\u205F\u3000]/g // eslint-disable-line no-control-regex
   );
-
   const DOCTYPE_NAME = seal(/^html$/i);
   const CUSTOM_ELEMENT = seal(/^[a-z][.\w]*(-[.\w]+)+$/i);
 
@@ -255,7 +252,6 @@
     documentFragment: 11,
     notation: 12 // Deprecated
   };
-
   const getGlobal = function getGlobal() {
     return typeof window === 'undefined' ? null : window;
   };
@@ -307,7 +303,7 @@
      * Version label, exposed for easier checks
      * if DOMPurify is up to date or not
      */
-    DOMPurify.version = '3.1.3';
+    DOMPurify.version = '3.1.6';
 
     /**
      * Array of elements that DOMPurify removed during sanitation.
@@ -338,6 +334,7 @@
     } = window;
     const ElementPrototype = Element.prototype;
     const cloneNode = lookupGetter(ElementPrototype, 'cloneNode');
+    const remove = lookupGetter(ElementPrototype, 'remove');
     const getNextSibling = lookupGetter(ElementPrototype, 'nextSibling');
     const getChildNodes = lookupGetter(ElementPrototype, 'childNodes');
     const getParentNode = lookupGetter(ElementPrototype, 'parentNode');
@@ -539,9 +536,6 @@
 
     /* Keep a reference to config to pass to hooks */
     let CONFIG = null;
-
-    /* Specify the maximum element nesting depth to prevent mXSS */
-    const MAX_NESTING_DEPTH = 255;
 
     /* Ideally, do not touch anything below this line */
     /* ______________________________________________ */
@@ -841,9 +835,9 @@
       });
       try {
         // eslint-disable-next-line unicorn/prefer-dom-node-remove
-        node.parentNode.removeChild(node);
+        getParentNode(node).removeChild(node);
       } catch (_) {
-        node.remove();
+        remove(node);
       }
     };
 
@@ -953,11 +947,7 @@
      * @return {Boolean} true if clobbered, false if safe
      */
     const _isClobbered = function _isClobbered(elm) {
-      return elm instanceof HTMLFormElement && (
-      // eslint-disable-next-line unicorn/no-typeof-undefined
-      typeof elm.__depth !== 'undefined' && typeof elm.__depth !== 'number' ||
-      // eslint-disable-next-line unicorn/no-typeof-undefined
-      typeof elm.__removalCount !== 'undefined' && typeof elm.__removalCount !== 'number' || typeof elm.nodeName !== 'string' || typeof elm.textContent !== 'string' || typeof elm.removeChild !== 'function' || !(elm.attributes instanceof NamedNodeMap) || typeof elm.removeAttribute !== 'function' || typeof elm.setAttribute !== 'function' || typeof elm.namespaceURI !== 'string' || typeof elm.insertBefore !== 'function' || typeof elm.hasChildNodes !== 'function');
+      return elm instanceof HTMLFormElement && (typeof elm.nodeName !== 'string' || typeof elm.textContent !== 'string' || typeof elm.removeChild !== 'function' || !(elm.attributes instanceof NamedNodeMap) || typeof elm.removeAttribute !== 'function' || typeof elm.setAttribute !== 'function' || typeof elm.namespaceURI !== 'string' || typeof elm.insertBefore !== 'function' || typeof elm.hasChildNodes !== 'function');
     };
 
     /**
@@ -1024,7 +1014,7 @@
         return true;
       }
 
-      /* Remove any ocurrence of processing instructions */
+      /* Remove any occurrence of processing instructions */
       if (currentNode.nodeType === NODE_TYPE.progressingInstruction) {
         _forceRemove(currentNode);
         return true;
@@ -1108,7 +1098,7 @@
     // eslint-disable-next-line complexity
     const _isValidAttribute = function _isValidAttribute(lcTag, lcName, value) {
       /* Make sure attribute cannot clobber */
-      if (SANITIZE_DOM && (lcName === 'id' || lcName === 'name') && (value in document || value in formElement || value === '__depth' || value === '__removalCount')) {
+      if (SANITIZE_DOM && (lcName === 'id' || lcName === 'name') && (value in document || value in formElement)) {
         return false;
       }
 
@@ -1193,6 +1183,13 @@
         hookEvent.forceKeepAttr = undefined; // Allows developers to see this is a property they can set
         _executeHook('uponSanitizeAttribute', currentNode, hookEvent);
         value = hookEvent.attrValue;
+
+        /* Work around a security issue with comments inside attributes */
+        if (SAFE_FOR_XML && regExpTest(/((--!?|])>)|<\/(style|title)/i, value)) {
+          _removeAttribute(name, currentNode);
+          continue;
+        }
+
         /* Did the hooks approve of the attribute? */
         if (hookEvent.forceKeepAttr) {
           continue;
@@ -1208,12 +1205,6 @@
 
         /* Work around a security issue in jQuery 3.0 */
         if (!ALLOW_SELF_CLOSE_IN_ATTR && regExpTest(/\/>/i, value)) {
-          _removeAttribute(name, currentNode);
-          continue;
-        }
-
-        /* Work around a security issue with comments inside attributes */
-        if (SAFE_FOR_XML && regExpTest(/((--!?|])>)|<\/(style|title)/i, value)) {
           _removeAttribute(name, currentNode);
           continue;
         }
@@ -1299,32 +1290,9 @@
         if (_sanitizeElements(shadowNode)) {
           continue;
         }
-        const parentNode = getParentNode(shadowNode);
-
-        /* Set the nesting depth of an element */
-        if (shadowNode.nodeType === NODE_TYPE.element) {
-          if (parentNode && parentNode.__depth) {
-            /*
-              We want the depth of the node in the original tree, which can
-              change when it's removed from its parent.
-            */
-            shadowNode.__depth = (shadowNode.__removalCount || 0) + parentNode.__depth + 1;
-          } else {
-            shadowNode.__depth = 1;
-          }
-        }
-
-        /*
-         * Remove an element if nested too deeply to avoid mXSS
-         * or if the __depth might have been tampered with
-         */
-        if (shadowNode.__depth >= MAX_NESTING_DEPTH || shadowNode.__depth < 0 || numberIsNaN(shadowNode.__depth)) {
-          _forceRemove(shadowNode);
-        }
 
         /* Deep shadow DOM detected */
         if (shadowNode.content instanceof DocumentFragment) {
-          shadowNode.content.__depth = shadowNode.__depth;
           _sanitizeShadowDOM(shadowNode.content);
         }
 
@@ -1440,32 +1408,9 @@
         if (_sanitizeElements(currentNode)) {
           continue;
         }
-        const parentNode = getParentNode(currentNode);
-
-        /* Set the nesting depth of an element */
-        if (currentNode.nodeType === NODE_TYPE.element) {
-          if (parentNode && parentNode.__depth) {
-            /*
-              We want the depth of the node in the original tree, which can
-              change when it's removed from its parent.
-            */
-            currentNode.__depth = (currentNode.__removalCount || 0) + parentNode.__depth + 1;
-          } else {
-            currentNode.__depth = 1;
-          }
-        }
-
-        /*
-         * Remove an element if nested too deeply to avoid mXSS
-         * or if the __depth might have been tampered with
-         */
-        if (currentNode.__depth >= MAX_NESTING_DEPTH || currentNode.__depth < 0 || numberIsNaN(currentNode.__depth)) {
-          _forceRemove(currentNode);
-        }
 
         /* Shadow DOM detected, sanitize it */
         if (currentNode.content instanceof DocumentFragment) {
-          currentNode.content.__depth = currentNode.__depth;
           _sanitizeShadowDOM(currentNode.content);
         }
 
