@@ -315,6 +315,7 @@ fn decrypt_unpadded_vec_mut<C: BlockCipher + BlockDecrypt>(decryptor: &mut cbc::
 /// The initialisation vector used when encrypting keys
 const FIXED_IV: [u8; IV_BYTE_SIZE] = [0x88; IV_BYTE_SIZE];
 
+#[derive(Debug)]
 struct CiphertextWithAuthentication<'a> {
     iv: &'a [u8],
     ciphertext: &'a [u8],

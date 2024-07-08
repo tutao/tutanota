@@ -60,4 +60,3 @@ pub fn init_type_model_provider() -> TypeModelProvider {
     let type_model_provider = TypeModelProvider::new(type_model_map);
     type_model_provider
 }
-

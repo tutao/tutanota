@@ -1,28 +1,40 @@
 use std::collections::HashMap;
 use std::error::Error;
 use std::fmt::{Debug, Display, Formatter};
-use std::sync::{Arc, RwLock};
+use std::sync::Arc;
 
 use serde::{Deserialize, Serialize};
 use thiserror::Error;
 
 use rest_client::{RestClient, RestClientError};
 #[mockall_double::double]
+use crate::crypto::crypto_facade::CryptoFacade;
+#[mockall_double::double]
+use crate::crypto_entity_client::CryptoEntityClient;
+use crate::entities::entity_facade::EntityFacade;
+#[mockall_double::double]
 use crate::entity_client::EntityClient;
+use crate::entity_client::IdType;
 use crate::generated_id::GeneratedId;
 use crate::instance_mapper::InstanceMapper;
 use crate::json_serializer::{InstanceMapperError, JsonSerializer};
+#[mockall_double::double]
+use crate::key_cache::KeyCache;
+#[mockall_double::double]
+use crate::key_loader_facade::KeyLoaderFacade;
+use crate::login::{Credentials, LoginError, LoginFacade};
 use crate::mail_facade::MailFacade;
 use crate::rest_error::{HttpError, ParseFailureError};
-use crate::type_model_provider::{AppName, init_type_model_provider, TypeName};
+use crate::type_model_provider::{AppName, init_type_model_provider, TypeModelProvider, TypeName};
 #[mockall_double::double]
 use crate::typed_entity_client::TypedEntityClient;
+#[mockall_double::double]
 use crate::user_facade::UserFacade;
 
 mod entity_client;
 mod json_serializer;
 mod json_element;
-mod rest_client;
+pub mod rest_client;
 mod element_value;
 mod metamodel;
 mod type_model_provider;
@@ -40,7 +52,7 @@ mod key_cache;
 pub mod date;
 pub mod generated_id;
 mod custom_id;
-mod login;
+pub mod login;
 mod crypto_entity_client;
 mod logging;
 
@@ -80,60 +92,44 @@ pub trait AuthHeadersProvider: Send + Sync {
 impl AuthHeadersProvider for SdkState {
     /// This version has client_version in header, unlike the LoginState version
     fn create_auth_headers(&self, model_version: u32) -> HashMap<String, String> {
-        let auth_state = self.login_state.read().unwrap();
-        let mut headers = auth_state.create_auth_headers(model_version);
+        let mut headers = HashMap::from([
+            ("accessToken".to_string(), self.credentials.access_token.to_owned()),
+        ]);
         headers.insert("cv".to_owned(), self.client_version.to_owned());
         headers.insert("v".to_owned(), model_version.to_string());
         headers
     }
 }
 
-impl AuthHeadersProvider for LoginState {
-    fn create_auth_headers(&self, _: u32) -> HashMap<String, String> {
-        match self {
-            LoginState::NotLoggedIn => HashMap::new(),
-            LoginState::LoggedIn { access_token } => HashMap::from([
-                ("accessToken".to_string(), access_token.clone()),
-            ])
-        }
-    }
-}
-
-/// The authorization status and credentials of the SDK
-enum LoginState {
-    NotLoggedIn,
-    LoggedIn { access_token: String },
-}
-
 /// Contains all the high level mutable state of the SDK
 struct SdkState {
-    login_state: RwLock<LoginState>,
+    credentials: Credentials,
     client_version: String,
 }
 
-
 /// The external facing interface used by the consuming code via FFI
 #[derive(uniffi::Object)]
-#[allow(unused_attributes)] // Avoid warnings about `unencrypted_entity_client` being unused
 pub struct Sdk {
     state: Arc<SdkState>,
+    type_model_provider: Arc<TypeModelProvider>,
     entity_client: Arc<EntityClient>,
-    unencrypted_entity_client: Arc<TypedEntityClient>,
+    typed_entity_client: Arc<TypedEntityClient>,
+    instance_mapper: Arc<InstanceMapper>,
 }
 
 #[uniffi::export]
 impl Sdk {
     #[uniffi::constructor]
-    pub fn new(base_url: String, rest_client: Arc<dyn RestClient>, client_version: &str) -> Sdk {
+    pub fn new(base_url: String, rest_client: Arc<dyn RestClient>, credentials: Credentials, client_version: &str) -> Sdk {
         logging::init_logger();
         log::debug!("Initializing SDK...");
 
         let type_model_provider = Arc::new(init_type_model_provider());
         // TODO validate parameters
-        let json_serializer = Arc::new(JsonSerializer::new(Arc::clone(&type_model_provider)));
+        let json_serializer = Arc::new(JsonSerializer::new(type_model_provider.clone()));
         let instance_mapper = Arc::new(InstanceMapper::new());
         let state = Arc::new(SdkState {
-            login_state: RwLock::new(LoginState::NotLoggedIn),
+            credentials,
             client_version: client_version.to_owned(),
         });
         let entity_client = Arc::new(EntityClient::new(
@@ -141,36 +137,70 @@ impl Sdk {
             json_serializer,
             &base_url,
             state.clone(),
-            Arc::clone(&type_model_provider),
+            type_model_provider.clone(),
         ));
+        let typed_entity_client: Arc<TypedEntityClient> = Arc::new(TypedEntityClient::new(
+            entity_client.clone(),
+            instance_mapper.clone()
+        ));
+
         Sdk {
-            state: state.clone(),
-            entity_client: Arc::clone(&entity_client),
-            unencrypted_entity_client: Arc::new(TypedEntityClient::new(
-                entity_client,
-                instance_mapper,
-            )),
+            state,
+            type_model_provider,
+            entity_client,
+            typed_entity_client,
+            instance_mapper
         }
     }
 
     /// Authorizes the SDK's REST requests via inserting `access_token` into the HTTP headers
-    pub fn login(&self, access_token: &str) {
-        let mut login_state = self.state.login_state.write().unwrap();
-        if let LoginState::LoggedIn { .. } = *login_state {
-            panic!("Already logged in!")
-        }
-        *login_state = LoginState::LoggedIn {
-            access_token: access_token.to_owned(),
-        }
-    }
+    pub async fn login(&self) -> Result<Arc<LoggedInSdk>, LoginError> {
+        // Try to resume session
+        let login_facade = LoginFacade::new(
+            self.entity_client.clone(),
+            self.typed_entity_client.clone(),
+            |user| UserFacade::new(Arc::new(KeyCache::new()), user)
+        );
+        let user_facade = Arc::new(login_facade.resume_session(&self.state.credentials).await?);
 
+        let key_loader = Arc::new(KeyLoaderFacade::new(
+            user_facade.clone(),
+            self.typed_entity_client.clone()
+        ));
+        let crypto_facade = Arc::new(CryptoFacade::new(
+            key_loader.clone(),
+            self.instance_mapper.clone(),
+        ));
+        let entity_facade = Arc::new(EntityFacade::new(self.type_model_provider.clone()));
+        let crypto_entity_client: Arc<CryptoEntityClient> = Arc::new(CryptoEntityClient::new(
+            self.entity_client.clone(),
+            entity_facade,
+            crypto_facade,
+            self.instance_mapper.clone()
+        ));
 
-    /// Generates a new interface to operate on mail entities
-    pub fn mail_facade(&self) -> MailFacade {
-        MailFacade::new(self.entity_client.clone())
+        Ok(Arc::new(LoggedInSdk {
+            user_facade,
+            typed_entity_client: self.typed_entity_client.clone(),
+            crypto_entity_client,
+        }))
     }
 }
 
+#[derive(uniffi::Object)]
+pub struct LoggedInSdk {
+    user_facade: Arc<UserFacade>,
+    typed_entity_client: Arc<TypedEntityClient>,
+    crypto_entity_client: Arc<CryptoEntityClient>
+}
+
+#[uniffi::export]
+impl LoggedInSdk {
+    /// Generates a new interface to operate on mail entities
+    pub fn mail_facade(&self) -> MailFacade {
+        MailFacade::new(self.crypto_entity_client.clone())
+    }
+}
 
 #[derive(uniffi::Enum, Debug, PartialEq)]
 pub enum ListLoadDirection {
@@ -191,6 +221,8 @@ impl IdTuple {
         Self { list_id, element_id }
     }
 }
+
+impl IdType for IdTuple {}
 
 impl Display for IdTuple {
     fn fmt(&self, f: &mut Formatter) -> std::fmt::Result {
