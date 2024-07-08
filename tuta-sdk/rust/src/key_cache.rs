@@ -55,5 +55,3 @@ impl KeyCache {
         todo!()
     }
 }
-
-// FIXME: test Arc clone

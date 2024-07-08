@@ -8,10 +8,17 @@ use crate::{ApiCallError, IdTuple};
 use crate::ApiCallError::InternalSdkError;
 use crate::crypto::{Aes256Key, generate_key_from_passphrase, sha256};
 use crate::crypto::key::GenericAesKey;
+use crate::element_value::ParsedEntity;
+use crate::entities::Entity;
 use crate::entities::sys::{Session, User};
+#[mockall_double::double]
+use crate::entity_client::EntityClient;
 #[mockall_double::double]
 use crate::typed_entity_client::TypedEntityClient;
 use crate::generated_id::{GENERATED_ID_BYTES_LENGTH, GeneratedId};
+#[mockall_double::double]
+use crate::instance_mapper::InstanceMapper;
+#[mockall_double::double]
 use crate::key_cache::KeyCache;
 use crate::login::credentials::Credentials;
 use crate::user_facade::UserFacade;
@@ -47,32 +54,41 @@ pub enum KdfType {
 /// Simple LoginFacade that take in an existing credential
 /// and returns a UserFacade after resuming the session.
 pub struct LoginFacade {
-    entity_client: Arc<TypedEntityClient>,
+    entity_client: Arc<EntityClient>,
+    typed_entity_client: Arc<TypedEntityClient>,
+    instance_mapper: Arc<InstanceMapper>
 }
 
 impl LoginFacade {
     pub fn new(
-        entity_client: Arc<TypedEntityClient>,
+        entity_client: Arc<EntityClient>,
+        typed_entity_client: Arc<TypedEntityClient>,
+        instance_mapper: Arc<InstanceMapper>
     ) -> Self {
         LoginFacade {
             entity_client,
+            typed_entity_client,
+            instance_mapper
         }
     }
 
     /// Resumes previously created session (using persisted credentials).
-    pub async fn resume_session(&self, credentials: &Credentials) -> Result<UserFacade, LoginError> {
+    pub async fn resume_session(&self, credentials: &Credentials, key_cache: Arc<KeyCache>) -> Result<UserFacade, LoginError> {
         let session_id = parse_session_id(credentials.access_token.as_str())
             .map_err(|e| LoginError::InvalidSessionId { error_message: format!("Could not decode session id: {}", e) })?;
-        let session: Session = self.entity_client.load(&session_id).await?;
+        // Cannot use typed client because session is encrypted, and we haven't init crypto client yet
+        let session_raw: ParsedEntity = self.entity_client.load(&Session::type_ref(), &session_id).await?;
+        let session: Session = self.instance_mapper.parse_entity(session_raw)
+            .map_err(|e| LoginError::ApiCall { source: ApiCallError::internal_with_err(e, "Failed to parse session data") })?;
 
         let access_key = self.get_access_key(&session)?;
         let passphrase = self.decrypt_passphrase(&credentials, access_key)?;
 
-        let user: User = self.entity_client.load(&session.user).await?;
+        let user: User = self.typed_entity_client.load(&session.user).await?;
 
         let user_passphrase_key = self.load_user_passphrase_key(&user, passphrase.as_str()).await?;
 
-        let user_facade = self.init_session(user, user_passphrase_key).await?;
+        let user_facade = self.init_session(user, user_passphrase_key, key_cache).await?;
 
         Ok(user_facade)
     }
@@ -100,8 +116,7 @@ impl LoginFacade {
     }
 
     /// Initialize a session with given user id and return a new UserFacade
-    async fn init_session(&self, user: User, user_passphrase_key: Aes256Key) -> Result<UserFacade, LoginError> {
-        let key_cache = Arc::new(KeyCache::new());
+    async fn init_session(&self, user: User, user_passphrase_key: Aes256Key, key_cache: Arc<KeyCache>) -> Result<UserFacade, LoginError> {
         let user_facade = UserFacade::new(key_cache, user);
 
         user_facade.unlock_user_group_key(user_passphrase_key)
@@ -167,7 +182,10 @@ mod tests {
     use crate::crypto::key::GenericAesKey;
     use crate::crypto::randomizer_facade::RandomizerFacade;
     use crate::entities::sys::{GroupMembership, Session, User, UserExternalAuthInfo};
+    use crate::entity_client::MockEntityClient;
     use crate::generated_id::GeneratedId;
+    use crate::instance_mapper::MockInstanceMapper;
+    use crate::key_cache::MockKeyCache;
 
     use crate::typed_entity_client::MockTypedEntityClient;
 
@@ -186,18 +204,24 @@ mod tests {
             list_id: GeneratedId("O0yKEOU-1B-0".to_owned()),
             element_id: GeneratedId("jlv3AEmnv8rvtZe38u2dk-U1kzxpkMXWNusNz-NhnMI".to_owned()),
         };
-        let mut mock_entity_client = MockTypedEntityClient::default();
+        let mut mock_entity_client = MockEntityClient::default();
+        let mut mock_typed_entity_client = MockTypedEntityClient::default();
+        let mut mock_instance_mapper = MockInstanceMapper::default();
 
-        mock_entity_client.expect_load::<User, GeneratedId>()
+        mock_typed_entity_client.expect_load::<User, GeneratedId>()
             .with(eq(GeneratedId(user_id.clone())))
             .returning(move |_| { Ok(user.clone()) });
 
-        mock_entity_client.expect_load::<Session, IdTuple>()
+        mock_typed_entity_client.expect_load::<Session, IdTuple>()
             .with(eq(session_id.clone()))
             .returning(move |_| { Ok(session.clone()) });
 
-        let entity_client = Arc::new(mock_entity_client);
-        let login_facade = LoginFacade::new(entity_client.clone());
+        let login_facade = LoginFacade::new(
+            Arc::new(mock_entity_client),
+            Arc::new(mock_typed_entity_client),
+            Arc::new(mock_instance_mapper),
+        );
+        let key_cache = Arc::new(MockKeyCache::default());
 
         let user_facade = login_facade.resume_session(&Credentials {
             login: "login@tuta.io".to_string(),
@@ -205,7 +229,7 @@ mod tests {
             access_token: access_token.clone(),
             encrypted_password: access_key.encrypt_data(passphrase.as_bytes(), iv).unwrap(),
             credential_type: CredentialType::Internal,
-        }).await.unwrap();
+        }, key_cache).await.unwrap();
 
         // assert!(matches!(user_facade.get_user(), ))
     }

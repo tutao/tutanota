@@ -3,6 +3,7 @@ use base64::engine::GeneralPurpose;
 
 #[cfg(test)]
 pub mod test_utils;
+#[cfg(test)]
 pub mod entity_test_utils;
 
 pub struct Versioned<T> {

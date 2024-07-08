@@ -35,7 +35,7 @@ impl TypedEntityClient {
         let type_model = self.entity_client.get_type_model(&T::type_ref())?;
         if type_model.encrypted {
             return Err(ApiCallError::InternalSdkError {
-                error_message: "This client shall not handle encrypted fields!".to_owned()
+                error_message: format!("This client shall not handle encrypted fields! Entity: app: {}, name: {}", &T::type_ref().app, &T::type_ref().type_)
             });
         }
         let parsed_entity = self.entity_client.load::<Id>(& T::type_ref(), id).await?;

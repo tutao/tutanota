@@ -4,6 +4,8 @@ package de.tutao.tutanota
 
 import android.util.Log
 import de.tutao.tutasdk.ApiCallException
+import de.tutao.tutasdk.CredentialType
+import de.tutao.tutasdk.Credentials
 import de.tutao.tutasdk.ElementValue
 import de.tutao.tutasdk.HttpMethod
 import de.tutao.tutasdk.JsonElement
@@ -31,27 +33,35 @@ import okio.BufferedSink
 import java.io.IOException
 import java.util.concurrent.TimeUnit
 
-private const val TAG = "SDKSAMPLE"
+private const val TAG = "MailDownload"
 
-suspend fun runSdkExample() {
+suspend fun download_mail() {
 	val restClient = OkHttpRestClient()
+	val credentials: Credentials = Credentials(
+		"bed-free@tutanota.de",
+		"O1HuI5_----0",
+		"ZCS6TGoABsABtfyiU3IXAQIoH_i60sg3dQ",
+		"Aa1bVFTGnGe8GeEkAJHhYpqnAnjBRWw6Go3L/doHNdmFekZPnfFCi+d/thK6RzUE1ZLuCxeipXnhocMAt7V2Yj8=".encodeToByteArray(),
+		CredentialType.INTERNAL
+	)
 	val sdk = Sdk(
-			"",
+			"http://wec:9000",
 			restClient,
+			credentials,
 			BuildConfig.VERSION_NAME
 	)
-	sdk.login("")
-	val mailId = "".toIdTuple()
-	val mailFacade = sdk.mailFacade()
-	val result = try {
+	val loggedInSdk = sdk.login()
+	val mailId = "O1HuI5g--k-0/O1HuIga----0".toIdTuple()
+	val mailFacade = loggedInSdk.mailFacade()
+	val mail = try {
 		mailFacade.loadEmailByIdEncrypted(mailId)
 	} catch (e: ApiCallException) {
 		Log.d(TAG, "request failed", e)
 		return
 	}
-	Log.d(TAG, "LOADED RESULT FROM TUTASDK $result ")
-	val sender = result.get("sender")!!.dict().get("address")!!.string()
-	Log.d(TAG, "LOADED SENDER FROM TUTASDK $sender")
+	Log.d(TAG, "LOADED RESULT FROM TUTASDK $mail ")
+	Log.d(TAG, "LOADED SENDER FROM TUTASDK ${mail.sender.name}, ${mail.sender.address}")
+	Log.d(TAG, "LOADED SUBJECT FROM TUTASDK ${mail.subject}")
 
 //	val parsedMail = EntitySerialFormat(SerializersModule { }).decodeFromRawEntity(MailEntity.serializer(), result)
 //	Log.d(TAG, "parsed mail")

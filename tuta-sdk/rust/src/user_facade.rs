@@ -2,12 +2,12 @@ use std::borrow::ToOwned;
 use std::sync::{Arc, RwLock};
 use base64::Engine;
 use base64::prelude::BASE64_STANDARD;
-use mockall::mock;
 use crate::ApiCallError;
 use crate::crypto::{Aes256Key, AES_256_KEY_SIZE};
 use crate::crypto::hkdf;
 use crate::crypto::sha256;
 use crate::entities::sys::{GroupMembership, User};
+#[mockall_double::double]
 use crate::key_cache::KeyCache;
 use crate::crypto::key::GenericAesKey;
 use crate::generated_id::GeneratedId;
@@ -23,6 +23,7 @@ pub struct UserFacade {
     key_cache: Arc<KeyCache>,
 }
 
+#[cfg_attr(test, mockall::automock)]
 impl UserFacade {
     // FIXME: Do we pass in user or not
     pub fn new(key_cache: Arc<KeyCache>, user: User) -> Self {
@@ -118,18 +119,3 @@ impl UserFacade {
             .ok_or_else(|| ApiCallError::InternalSdkError { error_message: format!("No group with groupId {} found!", group_id) })
     }
 }
-
-
-mock!(
-    pub UserFacade {
-        pub fn set_user(&self, user: User);
-        pub fn unlock_user_group_key(&self, user_passphrase_key: GenericAesKey)
-            -> Result<(), ApiCallError>;
-        pub async fn update_user(&self, user: User);
-        pub fn get_user(&self) -> Arc<User>;
-        pub fn get_user_group_id(&self) -> GeneratedId;
-        pub fn get_current_user_group_key(&self) -> Option<VersionedAesKey>;
-        pub(crate) fn get_membership(&self, group_id: &GeneratedId)
-        -> Result<GroupMembership, ApiCallError>;
-    }
-);

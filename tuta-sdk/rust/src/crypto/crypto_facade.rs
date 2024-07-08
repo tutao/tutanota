@@ -99,7 +99,7 @@ impl CryptoFacade {
         let mut session_key_for_this_instance = None;
 
         for instance_session_key in bucket_key.bucketEncSessionKeys {
-            let decrypted_session_key = decrypted_bucket_key.decrypt_key(instance_session_key.symEncSessionKey.as_slice())?;
+            let decrypted_session_key = decrypted_bucket_key.decrypt_aes_key(instance_session_key.symEncSessionKey.as_slice())?;
 
             let instance_id = parse_id_field(entity.get(ID_FIELD))?;
 

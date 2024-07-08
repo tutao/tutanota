@@ -18,6 +18,8 @@ use crate::generated_id::GeneratedId;
 use crate::instance_mapper::InstanceMapper;
 use crate::json_serializer::{InstanceMapperError, JsonSerializer};
 #[mockall_double::double]
+use crate::key_cache::KeyCache;
+#[mockall_double::double]
 use crate::key_loader_facade::KeyLoaderFacade;
 use crate::login::{Credentials, LoginError, LoginFacade};
 use crate::mail_facade::MailFacade;
@@ -25,6 +27,7 @@ use crate::rest_error::{HttpError, ParseFailureError};
 use crate::type_model_provider::{AppName, init_type_model_provider, TypeModelProvider, TypeName};
 #[mockall_double::double]
 use crate::typed_entity_client::TypedEntityClient;
+#[mockall_double::double]
 use crate::user_facade::UserFacade;
 
 mod entity_client;
@@ -112,6 +115,7 @@ pub struct Sdk {
     instance_mapper: Arc<InstanceMapper>,
 }
 
+#[cfg(not(test))]
 #[uniffi::export]
 impl Sdk {
     #[uniffi::constructor]
@@ -146,12 +150,18 @@ impl Sdk {
     }
 
     /// Authorizes the SDK's REST requests via inserting `access_token` into the HTTP headers
-    pub async fn login(&self) -> Result<(), LoginError> {
+    pub async fn login(&self) -> Result<Arc<LoggedInSdk>, LoginError> {
         // Try to resume session
-        let login_facade = LoginFacade::new(self.typed_entity_client.clone());
-        let user_facade = Arc::new(login_facade.resume_session(&self.state.credentials).await?);
+        let login_facade = LoginFacade::new(
+            self.entity_client.clone(),
+            self.typed_entity_client.clone(),
+            self.instance_mapper.clone()
+        );
+        let key_cache = Arc::new(KeyCache::new());
+        let user_facade = Arc::new(login_facade.resume_session(&self.state.credentials, key_cache.clone()).await?);
 
         let key_loader = Arc::new(KeyLoaderFacade::new(
+            key_cache,
             user_facade.clone(),
             self.typed_entity_client.clone()
         ));
@@ -167,22 +177,27 @@ impl Sdk {
             self.instance_mapper.clone()
         ));
 
-        Ok(())
+        Ok(Arc::new(LoggedInSdk {
+            user_facade,
+            typed_entity_client: self.typed_entity_client.clone(),
+            crypto_entity_client,
+        }))
     }
 
 }
 
 #[derive(uniffi::Object)]
-struct LoggedInSdk {
-    sdk: Arc<Sdk>,
+pub struct LoggedInSdk {
     user_facade: Arc<UserFacade>,
+    typed_entity_client: Arc<TypedEntityClient>,
     crypto_entity_client: Arc<CryptoEntityClient>
 }
 
+#[uniffi::export]
 impl LoggedInSdk {
     /// Generates a new interface to operate on mail entities
     pub fn mail_facade(&self) -> MailFacade {
-        MailFacade::new(self.sdk.entity_client.clone())
+        MailFacade::new(self.crypto_entity_client.clone())
     }
 }
 
