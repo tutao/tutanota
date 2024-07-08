@@ -17,6 +17,12 @@ import { CalendarFacade } from "../../api/worker/facades/lazy/CalendarFacade.js"
 import modelInfo from "../../api/entities/sys/ModelInfo.js"
 import { ExtendedNotificationMode } from "../common/generatedipc/ExtendedNotificationMode.js"
 
+export enum PushIdentifierAppType {
+	Integrated = "0",
+	Mail = "1",
+	Calendar = "2"
+}
+
 // keep in sync with SYS_MODEL_VERSION in app-android/app/build.gradle
 // keep in sync with app-ios/TutanotaSharedFramework/Utils/Utils.swift
 const MOBILE_SYS_MODEL_VERSION = 99
@@ -37,16 +43,19 @@ export class NativePushServiceApp {
 		private readonly entityClient: EntityClient,
 		private readonly deviceConfig: DeviceConfig,
 		private readonly calendarFacade: CalendarFacade,
-	) {}
+		private readonly app: PushIdentifierAppType,
+	) {
+	}
 
 	async register(): Promise<void> {
-		console.log("Registering for push notifications")
+		console.log("Registering for push notifications for app", this.app)
 		if (isAndroidApp() || isDesktop()) {
 			try {
 				const identifier = (await this.loadPushIdentifierFromNative()) ?? (await locator.workerFacade.generateSsePushIdentifer())
 				this._currentIdentifier = identifier
 				const pushIdentifier = (await this.loadPushIdentifier(identifier)) ?? (await this.createPushIdentifierInstance(identifier, PushServiceType.SSE))
 				await this.storePushIdentifierLocally(pushIdentifier)
+
 				await this.scheduleAlarmsIfNeeded(pushIdentifier)
 				await this.initPushNotifications()
 			} catch (e) {
@@ -127,6 +136,7 @@ export class NativePushServiceApp {
 			disabled: false,
 			lastUsageTime: new Date(),
 			lastNotificationDate: null,
+			app: this.app,
 		})
 		const id = await this.entityClient.setup(list, pushIdentifier)
 		return this.entityClient.load(PushIdentifierTypeRef, [list, id])
