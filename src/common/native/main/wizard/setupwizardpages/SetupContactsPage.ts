@@ -7,12 +7,18 @@ import { ContactImporter } from "../../../../../mail-app/contacts/ContactImporte
 import { Dialog } from "../../../../gui/base/Dialog.js"
 import { MobileSystemFacade } from "../../../common/generatedipc/MobileSystemFacade.js"
 import { renderBannerButton } from "../SetupWizard.js"
+import { SystemPermissionHandler } from "../../SystemPermissionHandler.js"
+import { PermissionType } from "../../../common/generatedipc/PermissionType.js"
 
 export class SetupContactsPage implements Component<SetupContactsPageAttrs> {
 	view({ attrs }: Vnode<SetupContactsPageAttrs>): Children {
+		return m(SetupPageLayout, { image: "contacts" }, this.renderImportAndSyncButtons(attrs))
+	}
+
+	private renderImportAndSyncButtons(attrs: SetupContactsPageAttrs) {
 		const isContactSyncEnabled = attrs.syncManager.isEnabled()
 
-		return m(SetupPageLayout, { image: "contacts" }, [
+		return [
 			m("p.mb-s", lang.get("importContacts_msg")),
 			renderBannerButton("import_action", () => {
 				attrs.contactImporter.importContactsFromDeviceSafely()
@@ -26,7 +32,7 @@ export class SetupContactsPage implements Component<SetupContactsPageAttrs> {
 				isContactSyncEnabled,
 				"mb-l",
 			),
-		])
+		]
 	}
 
 	private async enableSync(attrs: SetupContactsPageAttrs) {
@@ -42,13 +48,21 @@ export class SetupContactsPage implements Component<SetupContactsPageAttrs> {
 
 export class SetupContactsPageAttrs implements WizardPageAttrs<null> {
 	hidePagingButtonForPage = false
+	hasContactPermission = false
+	private readonly isPageVisible: boolean
 	data: null = null
 
 	constructor(
 		public readonly syncManager: NativeContactsSyncManager,
 		public readonly contactImporter: ContactImporter,
 		public readonly mobileSystemFacade: MobileSystemFacade,
-	) {}
+		public readonly systemPermissionHandler: SystemPermissionHandler,
+		hasContactPermission: boolean,
+		public readonly enableSyncAndImport: boolean = true,
+	) {
+		this.hasContactPermission = hasContactPermission
+		this.isPageVisible = this.enableSyncAndImport
+	}
 
 	headerTitle(): string {
 		return lang.get("contacts_label")
@@ -64,6 +78,6 @@ export class SetupContactsPageAttrs implements WizardPageAttrs<null> {
 	}
 
 	isEnabled(): boolean {
-		return true
+		return this.isPageVisible
 	}
 }
