@@ -1,12 +1,13 @@
 use std::collections::HashMap;
+use std::error::Error;
 use std::fmt::{Debug, Display, Formatter};
-use std::ops::Deref;
 use std::sync::{Arc, RwLock};
 
 use serde::{Deserialize, Serialize};
 use thiserror::Error;
 
 use rest_client::{RestClient, RestClientError};
+#[mockall_double::double]
 use crate::entity_client::EntityClient;
 use crate::generated_id::GeneratedId;
 use crate::instance_mapper::InstanceMapper;
@@ -14,8 +15,8 @@ use crate::json_serializer::{InstanceMapperError, JsonSerializer};
 use crate::mail_facade::MailFacade;
 use crate::rest_error::{HttpError, ParseFailureError};
 use crate::type_model_provider::{AppName, init_type_model_provider, TypeName};
+#[mockall_double::double]
 use crate::typed_entity_client::TypedEntityClient;
-use crate::user_facade::UserFacade;
 
 mod entity_client;
 mod json_serializer;
@@ -39,6 +40,7 @@ pub mod date;
 pub mod generated_id;
 mod custom_id;
 mod crypto_entity_client;
+mod login;
 
 uniffi::setup_scaffolding!();
 
@@ -68,6 +70,33 @@ impl Display for TypeRef {
     }
 }
 
+pub trait AuthHeadersProvider: Send + Sync {
+    /// Gets the HTTP request headers used for authorizing REST requests
+    fn create_auth_headers(&self, model_version: u32) -> HashMap<String, String>;
+}
+
+impl AuthHeadersProvider for SdkState {
+    /// This version has client_version in header, unlike the LoginState version
+    fn create_auth_headers(&self, model_version: u32) -> HashMap<String, String> {
+        let auth_state = self.login_state.read().unwrap();
+        let mut headers = auth_state.create_auth_headers(model_version);
+        headers.insert("cv".to_owned(), self.client_version.to_owned());
+        headers.insert("v".to_owned(), model_version.to_string());
+        headers
+    }
+}
+
+impl AuthHeadersProvider for LoginState {
+    fn create_auth_headers(&self, _: u32) -> HashMap<String, String> {
+        match self {
+            LoginState::NotLoggedIn => HashMap::new(),
+            LoginState::LoggedIn { access_token } => HashMap::from([
+                ("accessToken".to_string(), access_token.clone()),
+            ])
+        }
+    }
+}
+
 /// The authorization status and credentials of the SDK
 enum LoginState {
     NotLoggedIn,
@@ -79,7 +108,6 @@ struct SdkState {
     login_state: RwLock<LoginState>,
     client_version: String,
 }
-
 
 /// The external facing interface used by the consuming code via FFI
 #[derive(uniffi::Object)]
@@ -134,26 +162,6 @@ impl Sdk {
     pub fn mail_facade(&self) -> MailFacade {
         MailFacade::new(self.entity_client.clone())
     }
-
-    pub fn user_facade(&self) -> UserFacade {
-        todo!()
-    }
-}
-
-impl SdkState {
-    fn auth_headers(&self, model_version: u32) -> HashMap<String, String> {
-        let g = self.login_state.read().unwrap();
-        match g.deref() {
-            LoginState::NotLoggedIn => HashMap::new(),
-            LoginState::LoggedIn { access_token } => {
-                HashMap::from([
-                    ("accessToken".to_owned(), access_token.as_str().to_owned()),
-                    ("cv".to_owned(), self.client_version.to_owned()),
-                    ("v".to_owned(), model_version.to_string())
-                ])
-            }
-        }
-    }
 }
 
 #[derive(uniffi::Enum)]
@@ -198,6 +206,12 @@ pub enum ApiCallError {
     InternalSdkError {
         error_message: String,
     },
+}
+
+impl ApiCallError {
+    fn internal_with_err<E: Error>(error: E, message: &str) -> ApiCallError {
+        ApiCallError::InternalSdkError { error_message: format!("{}: {}", error, message)}
+    }
 }
 
 impl From<InstanceMapperError> for ApiCallError {

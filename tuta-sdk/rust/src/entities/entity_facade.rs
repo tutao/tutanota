@@ -147,7 +147,8 @@ impl EntityFacade {
         }
 
         if model_value.encrypted {
-            let decrypted_value = session_key.decrypt_data(value.assert_bytes().as_slice());
+            let decrypted_value = session_key.decrypt_data(value.assert_bytes().as_slice())
+                .map_err(|e| ApiCallError::InternalSdkError { error_message: e.to_string() });
 
             let mut errors: HashMap<String, ElementValue> = Default::default();
             let element_value = match decrypted_value {
@@ -241,6 +242,7 @@ mod tests {
     use std::sync::Arc;
 
     use rand::random;
+    use crate::crypto::{Aes256Key, Iv};
 
     use crate::crypto::{Aes256Key, Iv};
     use crate::crypto::key::GenericAesKey;
@@ -277,6 +279,13 @@ mod tests {
 
         let decrypted_mail = entity_facade.decrypt_and_map(type_model, encrypted_mail, &sk).unwrap();
 
-        assert_decrypted_mail(&decrypted_mail, &original_mail);
+        assert_eq!(decrypted_mail.get("receivedDate").unwrap(), original_mail.get("receivedDate").unwrap());
+        assert_eq!(decrypted_mail.get("sentDate").unwrap(), original_mail.get("sentDate").unwrap());
+        assert_eq!(decrypted_mail.get("confidential").unwrap(), original_mail.get("confidential").unwrap());
+        assert_eq!(decrypted_mail.get("subject").unwrap(), original_mail.get("subject").unwrap());
+        assert_eq!(decrypted_mail.get("sender").unwrap().assert_dict().get("name").unwrap(), original_mail.get("sender").unwrap().assert_dict().get("name").unwrap());
+        assert_eq!(decrypted_mail.get("sender").unwrap().assert_dict().get("address").unwrap(), original_mail.get("sender").unwrap().assert_dict().get("address").unwrap());
+        assert_eq!(decrypted_mail.get("toRecipients").unwrap().assert_array()[0].assert_dict().get("name").unwrap(), original_mail.get("toRecipients").unwrap().assert_array()[0].assert_dict().get("name").unwrap());
+        assert_eq!(decrypted_mail.get("toRecipients").unwrap().assert_array()[0].assert_dict().get("address").unwrap(), original_mail.get("toRecipients").unwrap().assert_array()[0].assert_dict().get("address").unwrap());
     }
 }

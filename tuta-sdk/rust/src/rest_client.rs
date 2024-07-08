@@ -1,4 +1,5 @@
 use std::collections::HashMap;
+
 use thiserror::Error;
 
 #[derive(uniffi::Enum, Debug, PartialEq)]
