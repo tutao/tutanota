@@ -22,7 +22,7 @@ pub enum ElementType {
     BlobElement,
 }
 
-#[derive(Deserialize, Clone)]
+#[derive(Deserialize, Clone, Debug)]
 pub enum ValueType {
     String,
     Number,

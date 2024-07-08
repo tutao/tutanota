@@ -1,8 +1,9 @@
 #![allow(non_snake_case, unused_imports)]
 use super::*;
 use serde::{Serialize, Deserialize};
+use crate::entities::entity_facade::Errors;
 
-#[derive(uniffi::Record, Clone, Serialize, Deserialize)]
+#[derive(uniffi::Record, Clone, Serialize, Deserialize, Debug)]
 pub struct BlobAccessTokenPostIn {
 	pub _format: i64,
 	pub archiveDataType: Option<i64>,
@@ -17,7 +18,7 @@ impl Entity for BlobAccessTokenPostIn {
 }
 
 
-#[derive(uniffi::Record, Clone, Serialize, Deserialize)]
+#[derive(uniffi::Record, Clone, Serialize, Deserialize, Debug)]
 pub struct BlobAccessTokenPostOut {
 	pub _format: i64,
 	pub blobAccessInfo: BlobServerAccessInfo,
@@ -30,7 +31,7 @@ impl Entity for BlobAccessTokenPostOut {
 }
 
 
-#[derive(uniffi::Record, Clone, Serialize, Deserialize)]
+#[derive(uniffi::Record, Clone, Serialize, Deserialize, Debug)]
 pub struct BlobArchiveRef {
 	pub _format: i64,
 	pub _id: IdTuple,
@@ -46,7 +47,7 @@ impl Entity for BlobArchiveRef {
 }
 
 
-#[derive(uniffi::Record, Clone, Serialize, Deserialize)]
+#[derive(uniffi::Record, Clone, Serialize, Deserialize, Debug)]
 pub struct BlobGetIn {
 	pub _format: i64,
 	pub archiveId: GeneratedId,
@@ -61,7 +62,7 @@ impl Entity for BlobGetIn {
 }
 
 
-#[derive(uniffi::Record, Clone, Serialize, Deserialize)]
+#[derive(uniffi::Record, Clone, Serialize, Deserialize, Debug)]
 pub struct BlobId {
 	pub _id: CustomId,
 	pub blobId: GeneratedId,
@@ -74,7 +75,7 @@ impl Entity for BlobId {
 }
 
 
-#[derive(uniffi::Record, Clone, Serialize, Deserialize)]
+#[derive(uniffi::Record, Clone, Serialize, Deserialize, Debug)]
 pub struct BlobPostOut {
 	pub _format: i64,
 	pub blobReferenceToken: String,
@@ -87,7 +88,7 @@ impl Entity for BlobPostOut {
 }
 
 
-#[derive(uniffi::Record, Clone, Serialize, Deserialize)]
+#[derive(uniffi::Record, Clone, Serialize, Deserialize, Debug)]
 pub struct BlobReadData {
 	pub _id: CustomId,
 	pub archiveId: GeneratedId,
@@ -102,7 +103,7 @@ impl Entity for BlobReadData {
 }
 
 
-#[derive(uniffi::Record, Clone, Serialize, Deserialize)]
+#[derive(uniffi::Record, Clone, Serialize, Deserialize, Debug)]
 pub struct BlobReferenceDeleteIn {
 	pub _format: i64,
 	pub archiveDataType: i64,
@@ -118,7 +119,7 @@ impl Entity for BlobReferenceDeleteIn {
 }
 
 
-#[derive(uniffi::Record, Clone, Serialize, Deserialize)]
+#[derive(uniffi::Record, Clone, Serialize, Deserialize, Debug)]
 pub struct BlobReferencePutIn {
 	pub _format: i64,
 	pub archiveDataType: i64,
@@ -134,7 +135,7 @@ impl Entity for BlobReferencePutIn {
 }
 
 
-#[derive(uniffi::Record, Clone, Serialize, Deserialize)]
+#[derive(uniffi::Record, Clone, Serialize, Deserialize, Debug)]
 pub struct BlobServerAccessInfo {
 	pub _id: CustomId,
 	pub blobAccessToken: String,
@@ -149,7 +150,7 @@ impl Entity for BlobServerAccessInfo {
 }
 
 
-#[derive(uniffi::Record, Clone, Serialize, Deserialize)]
+#[derive(uniffi::Record, Clone, Serialize, Deserialize, Debug)]
 pub struct BlobServerUrl {
 	pub _id: CustomId,
 	pub url: String,
@@ -162,7 +163,7 @@ impl Entity for BlobServerUrl {
 }
 
 
-#[derive(uniffi::Record, Clone, Serialize, Deserialize)]
+#[derive(uniffi::Record, Clone, Serialize, Deserialize, Debug)]
 pub struct BlobWriteData {
 	pub _id: CustomId,
 	pub archiveOwnerGroup: GeneratedId,
@@ -175,7 +176,7 @@ impl Entity for BlobWriteData {
 }
 
 
-#[derive(uniffi::Record, Clone, Serialize, Deserialize)]
+#[derive(uniffi::Record, Clone, Serialize, Deserialize, Debug)]
 pub struct InstanceId {
 	pub _id: CustomId,
 	pub instanceId: Option<GeneratedId>,

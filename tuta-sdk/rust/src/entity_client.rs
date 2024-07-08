@@ -1,26 +1,19 @@
 use std::fmt::Display;
 use std::sync::Arc;
 
-use crate::{ApiCallError, IdTuple, ListLoadDirection, RestClient, SdkState, TypeRef, AuthHeadersProvider};
 use crate::element_value::{ElementValue, ParsedEntity};
 use crate::generated_id::GeneratedId;
+use crate::{ApiCallError, AuthHeadersProvider, IdTuple, ListLoadDirection, SdkState, TypeRef};
 use crate::json_serializer::JsonSerializer;
 use crate::json_element::RawEntity;
 use crate::metamodel::TypeModel;
-use crate::rest_client::{HttpMethod, RestClientOptions};
+use crate::rest_client::{HttpMethod, RestClient, RestClientOptions};
 use crate::rest_error::HttpError;
 use crate::type_model_provider::TypeModelProvider;
 
 
-/// Denotes an ID that can be serialised into a string
+/// Denotes an ID that can be serialised into a string and used to access resources
 pub trait IdType: Display + 'static {}
-
-impl IdType for String {}
-
-impl IdType for GeneratedId {}
-
-impl IdType for IdTuple {}
-
 
 /// A high level interface to manipulate unencrypted entities/instances via the REST API
 pub struct EntityClient {
@@ -31,8 +24,6 @@ pub struct EntityClient {
     type_model_provider: Arc<TypeModelProvider>,
 }
 
-// TODO: remove this allowance after completing the implementation of `EntityClient`
-#[allow(unused_variables)]
 impl EntityClient {
     pub(crate) fn new(
         rest_client: Arc<dyn RestClient>,
@@ -110,10 +101,10 @@ impl EntityClient {
     pub async fn load_range(
         &self,
         type_ref: &TypeRef,
-        list_id: &IdTuple,
-        start_id: &str,
-        count: &str,
-        list_load_direction: ListLoadDirection,
+        list_id: &GeneratedId,
+        start_id: &GeneratedId,
+        count: usize,
+        list_load_direction: ListLoadDirection
     ) -> Result<Vec<ParsedEntity>, ApiCallError> {
         todo!()
     }
@@ -178,36 +169,36 @@ mockall::mock! {
             sdk_state: Arc<SdkState>,
             type_model_provider: Arc<TypeModelProvider>,
         ) -> Self;
-        pub async fn load<T: IdType  + 'static>(
+        pub fn get_type_model(&self, type_ref: &TypeRef) -> Result<&'static TypeModel, ApiCallError>;
+        pub async fn load<Id: IdType>(
             &self,
             type_ref: &TypeRef,
-            id: &T,
-        ) -> Result<ParsedEntity, ApiCallError>;
-        pub fn get_type_model(&self, type_ref: &TypeRef) -> Result<&'static TypeModel, ApiCallError>;
-        pub async fn load_all(
+            id: &Id,
+         ) -> Result<ParsedEntity, ApiCallError>;
+        async fn load_all(
             &self,
             type_ref: &TypeRef,
             list_id: &IdTuple,
             start: Option<String>,
         ) -> Result<Vec<ParsedEntity>, ApiCallError>;
-        pub async fn load_range(
+        async fn load_range(
             &self,
             type_ref: &TypeRef,
-            list_id: &IdTuple,
-            start_id: &str,
-            count: &str,
+            list_id: &GeneratedId,
+            start_id: &GeneratedId,
+            count: usize,
             list_load_direction: ListLoadDirection,
         ) -> Result<Vec<ParsedEntity>, ApiCallError>;
-        pub async fn setup_element(&self, type_ref: &TypeRef, entity: RawEntity) -> Vec<String>;
-        pub async fn setup_list_element(
+        async fn setup_element(&self, type_ref: &TypeRef, entity: RawEntity) -> Vec<String>;
+        async fn setup_list_element(
             &self,
             type_ref: &TypeRef,
             list_id: &IdTuple,
             entity: RawEntity,
         ) -> Vec<String>;
-        pub async fn update(&self, type_ref: &TypeRef, entity: ParsedEntity, model_version: u32)
+        async fn update(&self, type_ref: &TypeRef, entity: ParsedEntity, model_version: u32)
                         -> Result<(), ApiCallError>;
-        pub async fn erase_element(&self, type_ref: &TypeRef, id: &GeneratedId) -> Result<(), ApiCallError>;
-        pub async fn erase_list_element(&self, type_ref: &TypeRef, id: IdTuple) -> Result<(), ApiCallError>;
+        async fn erase_element(&self, type_ref: &TypeRef, id: &GeneratedId) -> Result<(), ApiCallError>;
+        async fn erase_list_element(&self, type_ref: &TypeRef, id: IdTuple) -> Result<(), ApiCallError>;
     }
 }

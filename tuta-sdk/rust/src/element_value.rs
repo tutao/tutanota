@@ -1,11 +1,12 @@
 use std::collections::HashMap;
+use serde::{Deserialize, Serialize};
 use crate::custom_id::CustomId;
 use crate::date::DateTime;
 use crate::generated_id::GeneratedId;
 use crate::IdTuple;
 
 /// Primitive value types used by entity/instance types
-#[derive(uniffi::Enum, Debug, PartialEq, Clone)]
+#[derive(uniffi::Enum, Debug, Serialize, Deserialize, PartialEq, Clone)]
 pub enum ElementValue {
     Null,
     String(String),
@@ -45,7 +46,7 @@ impl ElementValue {
     pub fn assert_bytes(&self) -> Vec<u8> {
         match self {
             ElementValue::Bytes(value) => value.to_vec(),
-            _ => panic!("Invalid type, is {:?}", self),
+            _ => panic!("Invalid type"),
         }
     }
 
@@ -93,6 +94,13 @@ impl ElementValue {
     pub fn assert_date(&self) -> &DateTime {
         match self {
             ElementValue::Date(value) => value,
+            _ => panic!("Invalid type"),
+        }
+    }
+
+    pub fn assert_bool(&self) -> bool {
+        match self {
+            ElementValue::Bool(value) => *value,
             _ => panic!("Invalid type"),
         }
     }

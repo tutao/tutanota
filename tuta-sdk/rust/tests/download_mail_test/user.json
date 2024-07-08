@@ -1,0 +1,131 @@
+{
+	"_format": "0",
+	"_id": "O1qC700----0",
+	"_ownerGroup": "O1qC702-03-0",
+	"_permissions": "O1qC702-1--0",
+	"accountType": "1",
+	"enabled": "1",
+	"kdfVersion": "1",
+	"requirePasswordUpdate": "0",
+	"salt": "j+SNzu9A23zDp4UFmwzfVw==",
+	"verifier": "RQzhVUlLrMs8/Ls0yAy4xr545p8Lte15/dZn3yPAOmM=",
+	"alarmInfoList": {
+		"_id": "XEDkhA",
+		"alarms": "O1qC702-1R-0"
+	},
+	"auth": {
+		"_id": "uDESxQ",
+		"recoverCode": "O1qC702-1V-0",
+		"secondFactors": "O1qC702-1N-0",
+		"sessions": "O1qC702-1J-0"
+	},
+	"authenticatedDevices": [],
+	"customer": "O1qC700--7-0",
+	"externalAuthInfo": null,
+	"failedLogins": "O1qC702-17-0",
+	"memberships": [
+		{
+			"_id": "lEjHAg",
+			"admin": "0",
+			"capability": null,
+			"groupKeyVersion": "0",
+			"groupType": "3",
+			"symEncGKey": "Aa1rPuhPHiPjJDMNiL7qk2e4QqHfiVlPEgE0o1w6d/UGI9KCOQBlC+AFwZiWHsuyHT28SWLl5zSO1vJURkfvrWZBDKKTjA0Hs9QKbcG5MND2",
+			"symKeyVersion": "0",
+			"group": "O1qC700--g-0",
+			"groupInfo": ["O1qC700--J-0", "O1qC701--k-0"],
+			"groupMember": ["O1qC701--V-0", "O1qC703--7-0"]
+		},
+		{
+			"_id": "44RC-w",
+			"admin": "0",
+			"capability": null,
+			"groupKeyVersion": "0",
+			"groupType": "7",
+			"symEncGKey": "AQomB0WKxgjcmDsFX+JyauwaLUF4+/mDf6hg/stfl1l/joM5tXcAUviWot5KiG2Mt0vO+HrWjC1aNYBTieqCpPMbK5piGqh4K5bL9rvZAu5q",
+			"symKeyVersion": "0",
+			"group": "O1qC703--s-0",
+			"groupInfo": ["O1qC700--k-0", "O1qC703-0J-0"],
+			"groupMember": ["O1qC703-03-0", "O1qC703-0g-0"]
+		},
+		{
+			"_id": "X-h54Q",
+			"admin": "0",
+			"capability": null,
+			"groupKeyVersion": "0",
+			"groupType": "6",
+			"symEncGKey": "AZvirH4TxflFRAz0sIk7K198YRJyc5ShoUuMA/fv55hB3kmNOC/PzPJjRRPPFuXRwJnGiwIo5hxzdlRphsAGBN93yabavx+kf/gOWvqJ6Y1b",
+			"symKeyVersion": "0",
+			"group": "O1qC703-0o-0",
+			"groupInfo": ["O1qC700--k-0", "O1qC703-1F-0"],
+			"groupMember": ["O1qC703-1--0", "O1qC703-1c-0"]
+		},
+		{
+			"_id": "Yh9Wdw",
+			"admin": "0",
+			"capability": null,
+			"groupKeyVersion": "0",
+			"groupType": "5",
+			"symEncGKey": "AYPTkUJLWOb+4uE/T85dk40ITpqQVS+J7RiVxW8PC3S7aEaZlOYhK63diEzpT1N54IGOxF+Mb8LLxIfL5izFSOF/F9D7i+aBB+usRwQjt6B6",
+			"symKeyVersion": "0",
+			"group": "O1qC704----0",
+			"groupInfo": ["O1qC700--k-0", "O1qC704--R-0"],
+			"groupMember": ["O1qC704--B-0", "O1qC704--o-0"]
+		},
+		{
+			"_id": "ksLK-Q",
+			"admin": "1",
+			"capability": null,
+			"groupKeyVersion": "0",
+			"groupType": "1",
+			"symEncGKey": "ARLwPctqfM7dMFWSa4PPrj9WiNe6j4EC8BQRQk4kXQ48I8cSO2frwD+03lalNGttbOhqiA0nB3oiLG2nlV1biz2DIC/UNENSNPzy0MUlM5ND",
+			"symKeyVersion": "0",
+			"group": "O1qC700--c-0",
+			"groupInfo": ["O1qC700--F-0", "O1qC701-0V-0"],
+			"groupMember": ["O1qC701-0F-0", "O1qC707--F-0"]
+		},
+		{
+			"_id": "aCe3cw",
+			"admin": "0",
+			"capability": null,
+			"groupKeyVersion": "0",
+			"groupType": "2",
+			"symEncGKey": "AWhvkJcZvSNgOHPu6ydbh2j+8m/lAGRu3EMg+KSIEERxlWjnIggrhuh48/ll7dzeFYZ3t1mcbHid9TSx4d2e3KI=",
+			"symKeyVersion": "0",
+			"group": "O1qC6bK----0",
+			"groupInfo": ["O1qC6b6--R-0", "O1qC6bK--R-0"],
+			"groupMember": ["O1qC6bK--B-0", "O1qC709--Z-0"]
+		},
+		{
+			"_id": "EbN_kw",
+			"admin": "0",
+			"capability": null,
+			"groupKeyVersion": "0",
+			"groupType": "9",
+			"symEncGKey": "Ae+GMVbuAZWQyOqxmalcKi7y5YBbCg7lXv1LF4hEPQAGkUssM6lRxbsql7zo6yDOKauZPIx//GgvBivLWnJaqJHU5yiRYSOgMW2MNY+UNCsj",
+			"symKeyVersion": "0",
+			"group": "O1qCA8y----0",
+			"groupInfo": ["O1qC700--k-0", "O1qCA8y--R-0"],
+			"groupMember": ["O1qCA8y--B-0", "O1qCA8y--o-0"]
+		}
+	],
+	"phoneNumbers": [],
+	"pushIdentifierList": {
+		"_id": "B2CoEw",
+		"list": "O1qC702-1F-0"
+	},
+	"secondFactorAuthentications": "O1qC702-1B-0",
+	"successfulLogins": "O1qC702-13-0",
+	"userGroup": {
+		"_id": "Z6QVZw",
+		"admin": "0",
+		"capability": null,
+		"groupKeyVersion": "0",
+		"groupType": "0",
+		"symEncGKey": "Aaz83xb4qI1zFsnlHkFQ5sDSgbiqQMTFi6HH2cr+5x+2KSC2EffR9y0xAK26RtXy7i6aGK82d5mDMdn/kk39GeQTLbCF5l5RA6qQYXtze2U7",
+		"symKeyVersion": "0",
+		"group": "O1qC702-03-0",
+		"groupInfo": ["O1qC700--N-0", "O1qC702-0V-0"],
+		"groupMember": ["O1qC702-0F-0", "O1qC702-1c-0"]
+	}
+}

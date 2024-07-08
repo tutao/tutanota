@@ -63,22 +63,19 @@ impl JsonSerializer {
                         field: value_name.to_owned(),
                     })?;
 
-            if !value_type.encrypted {
-                let parsed_value =
-                    self.parse_value(&type_model, &value_name, &value_type, value)?;
-                mapped.insert(value_name, parsed_value);
-            } else if let JsonElement::String(v) = value {
-                // Copying encrypted fields as is
-                // FIXME we should check cardinality
-                mapped.insert(value_name, ElementValue::String(v));
-                continue;
-            } else if let JsonElement::Null = value {
-                // FIXME we should check cardinality
-                mapped.insert(value_name, ElementValue::Null);
-                continue;
-            } else {
-                panic!("It's not a string!! {}", value_name)
-            }
+            let mapped_value = match (&value_type.cardinality, value) {
+                (Cardinality::ZeroOrOne, JsonElement::Null) => ElementValue::Null,
+                (Cardinality::One, JsonElement::String(v)) if v == "" => ElementValue::String(String::new()),
+                (Cardinality::One | Cardinality::ZeroOrOne, JsonElement::String(s)) if value_type.encrypted => {
+                    ElementValue::Bytes(BASE64_STANDARD.decode(s).map_err(|_| InvalidValue {
+                        type_ref: type_ref.clone(),
+                        field: value_name.clone(),
+                    })?)
+                },
+                (_, value) if !value_type.encrypted => self.parse_value(&type_model, &value_name, &value_type, value)?,
+                _ => return Err(InvalidValue { type_ref: type_ref.clone(), field: value_name.clone()}),
+            };
+            mapped.insert(value_name, mapped_value);
         }
 
         for (&association_name, association_type) in &type_model.associations {
@@ -138,10 +135,17 @@ impl JsonSerializer {
                     };
                     mapped.insert(association_name, ElementValue::IdTupleId(id_tuple));
                 }
-                (AssociationType::BlobElementAssociation, _, JsonElement::Array(elements)) => {
-                    // Blobs ate copied as-is for now
-                    let parsed_aggregates = self.make_parsed_aggregated_array(&association_name, &association_type_ref, elements)?;
-                    mapped.insert(association_name, ElementValue::Array(parsed_aggregates));
+                (AssociationType::BlobElementAssociation, _, JsonElement::Array(vec)) => {
+                    let id_tuple = match Self::parse_id_tuple(vec) {
+                        None => {
+                            return Err(InvalidValue {
+                                type_ref: association_type_ref,
+                                field: association_name,
+                            });
+                        }
+                        Some(id_tuple) => id_tuple,
+                    };
+                    mapped.insert(association_name, ElementValue::IdTupleId(id_tuple));
                 }
                 _ => {}
             }
