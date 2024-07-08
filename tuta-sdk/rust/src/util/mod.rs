@@ -5,7 +5,7 @@ pub mod entity_test_utils;
 
 pub struct Versioned<T> {
     pub object: T,
-    pub version: i64
+    pub version: i64,
 }
 
 impl<T> Clone for Versioned<T> where T: Clone {
@@ -18,7 +18,7 @@ impl<T> Versioned<T> {
     pub fn new(object: T, version: i64) -> Versioned<T> {
         Versioned {
             object,
-            version
+            version,
         }
     }
 }
@@ -144,6 +144,19 @@ pub fn array_cast_size<const SIZE: usize, const ARR_SIZE: usize>(arr: [u8; ARR_S
 mod test {
     use super::*;
 
+    /// Returns a handwritten encoded byte array and its decoded equivalent
+    const fn get_test_byte_arrays<'a>() -> ([u8; 11], [&'a [u8]; 2]) {
+        let encoded_byte_arrays = [
+            0, 5, 123, 45, 67, 89, 10,
+            0, 2, 22, 23
+        ];
+        let decoded_byte_arrays = [
+            [123, 45, 67, 89, 10].as_slice(),
+            [22, 23].as_slice()
+        ];
+        (encoded_byte_arrays, decoded_byte_arrays)
+    }
+
     #[test]
     fn combine_slices() {
         let a = &[0u8, 1, 2, 3, 4, 5, 6, 7, 8, 9];
@@ -173,20 +186,24 @@ mod test {
     }
 
     #[test]
-    fn test_encoded_byte_arrays() {
-        let encoded_byte_arrays = [
-            0, 5, 123, 45, 67, 89, 10,
-            0, 2, 22, 23
-        ];
-        let decoded_byte_arrays = [
-            [123, 45, 67, 89, 10].as_slice(),
-            [22, 23].as_slice()
-        ];
-
-        let decoded = decode_byte_arrays::<2>(&encoded_byte_arrays).unwrap();
-        assert_eq!(decoded_byte_arrays, decoded);
-
+    fn test_encode_byte_arrays() {
+        let (encoded_byte_arrays, decoded_byte_arrays) = get_test_byte_arrays();
         let encoded = encode_byte_arrays(&decoded_byte_arrays).unwrap();
         assert_eq!(encoded_byte_arrays, encoded.as_slice());
+    }
+
+    #[test]
+    fn test_decode_byte_arrays() {
+        let (encoded_byte_arrays, decoded_byte_arrays) = get_test_byte_arrays();
+        let decoded = decode_byte_arrays::<2>(&encoded_byte_arrays).unwrap();
+        assert_eq!(decoded_byte_arrays, decoded);
+    }
+
+    #[test]
+    fn test_byte_arrays_encoding_roundtrip() {
+        let (_, decoded_byte_arrays) = get_test_byte_arrays();
+        let encoded = encode_byte_arrays(&decoded_byte_arrays).unwrap();
+        let decoded = decode_byte_arrays::<2>(&encoded).unwrap();
+        assert_eq!(decoded_byte_arrays, decoded);
     }
 }
