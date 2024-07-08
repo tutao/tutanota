@@ -10,9 +10,11 @@ import { PushServiceType } from "../../common/api/common/TutanotaConstants.js"
 import { showProgressDialog } from "../../common/gui/dialogs/ProgressDialog.js"
 import { LoginController } from "../../common/api/main/LoginController.js"
 import { EntityClient } from "../../common/api/common/EntityClient.js"
+import { PushIdentifierAppType } from "../../common/native/main/NativePushServiceApp.js"
 
 export class AddNotificationEmailDialog {
 	constructor(private readonly logins: LoginController, private readonly entityClient: EntityClient) {}
+
 	show() {
 		if (this.logins.getUserController().isFreeAccount()) {
 			showNotAvailableForFreeDialog()
@@ -54,6 +56,7 @@ export class AddNotificationEmailDialog {
 			lastUsageTime: new Date(),
 			lastNotificationDate: null,
 			disabled: false,
+			app: PushIdentifierAppType.Mail, // Calendar app doesn't receive mail notifications
 		})
 
 		showProgressDialog("pleaseWait_msg", this.entityClient.setup(assertNotNull(user.pushIdentifierList).list, pushIdentifier))

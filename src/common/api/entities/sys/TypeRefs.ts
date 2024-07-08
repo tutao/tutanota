@@ -2369,6 +2369,7 @@ export type PushIdentifier = {
 	_ownerGroup: null | Id;
 	_ownerKeyVersion: null | NumberString;
 	_permissions: Id;
+	app: NumberString;
 	disabled: boolean;
 	displayName: string;
 	identifier: string;

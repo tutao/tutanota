@@ -81,7 +81,7 @@ import { MailViewerViewModel } from "./mail/view/MailViewerViewModel.js"
 import { ExternalLoginViewModel } from "../common/login/ExternalLoginView.js"
 import { NativeInterfaceMain } from "../common/native/main/NativeInterfaceMain.js"
 import { NativeFileApp } from "../common/native/common/FileApp.js"
-import { NativePushServiceApp } from "../common/native/main/NativePushServiceApp.js"
+import { NativePushServiceApp, PushIdentifierAppType } from "../common/native/main/NativePushServiceApp.js"
 import { CommonSystemFacade } from "../common/native/common/generatedipc/CommonSystemFacade.js"
 import { ThemeFacade } from "../common/native/common/generatedipc/ThemeFacade.js"
 import { MobileSystemFacade } from "../common/native/common/generatedipc/MobileSystemFacade.js"
@@ -902,6 +902,7 @@ class MailLocator {
 				calendarFacade,
 				this.entityClient,
 				this.logins,
+				(isBrowser() || isDesktop()) ? PushIdentifierAppType.Integrated : PushIdentifierAppType.Calendar, //TODO: Each locator will have a nativeInterface and must provide this. Desktop, browser and mail (temporally) should use integrated.
 			)
 
 			if (isElectronClient()) {
