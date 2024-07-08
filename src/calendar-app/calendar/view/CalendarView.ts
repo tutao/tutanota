@@ -629,53 +629,55 @@ export class CalendarView extends BaseTopLevelView implements TopLevelView<Calen
 			viewModel.setHiddenCalendars(newHiddenCalendars)
 		}
 		const calendarInfos = this.viewModel.calendarInfos
-		return calendarInfos.size > 0
-			? Array.from(calendarInfos.values())
-					.filter((calendarInfo) => calendarInfo.shared === shared)
-					.map((calendarInfo) => {
-						const { userSettingsGroupRoot } = locator.logins.getUserController()
-						const existingGroupSettings = userSettingsGroupRoot.groupSettings.find((gc) => gc.group === calendarInfo.groupInfo.group) ?? null
-						const colorValue = "#" + (existingGroupSettings ? existingGroupSettings.color : defaultCalendarColor)
-						const groupRootId = calendarInfo.groupRoot._id
-						const groupName = getSharedGroupName(calendarInfo.groupInfo, locator.logins.getUserController(), shared)
-						const isHidden = this.viewModel.hiddenCalendars.has(groupRootId)
-						return m(".folder-row.flex-start.plr-button", [
-							m(".flex.flex-grow.center-vertically.button-height", [
-								m(".calendar-checkbox", {
-									role: "checkbox",
-									title: groupName,
-									tabindex: TabIndex.Default,
-									"aria-checked": (!isHidden).toString(),
-									"aria-label": groupName,
-									onclick: () => setHidden(this.viewModel, groupRootId),
-									onkeydown: (e: KeyboardEvent) => {
-										if (isKeyPressed(e.key, Keys.SPACE, Keys.RETURN)) {
-											setHidden(this.viewModel, groupRootId)
-											e.preventDefault()
-										}
-									},
-									style: {
-										"border-color": colorValue,
-										background: isHidden ? "" : colorValue,
-										transition: "all 0.3s",
-										cursor: "pointer",
-										marginLeft: px(size.hpad_button),
-									},
-								}),
-								m(
-									".pl-m.b.flex-grow.text-ellipsis",
-									{
-										style: {
-											width: 0,
-										},
-									},
-									groupName,
-								),
-							]),
-							this.createCalendarActionDropdown(calendarInfo, colorValue, existingGroupSettings, userSettingsGroupRoot, shared),
-						])
-					})
-			: null
+		return Array.from(calendarInfos.values())
+			.filter((calendarInfo) => calendarInfo.shared === shared)
+			.map((calendarInfo) => {
+				return this.renderCalendarItem(calendarInfo, shared, setHidden)
+			})
+	}
+
+	private renderCalendarItem(calendarInfo: CalendarInfo, shared: boolean, setHidden: (viewModel: CalendarViewModel, groupRootId: string) => void) {
+		const { userSettingsGroupRoot } = locator.logins.getUserController()
+		const existingGroupSettings = userSettingsGroupRoot.groupSettings.find((gc) => gc.group === calendarInfo.groupInfo.group) ?? null
+		const colorValue = "#" + (existingGroupSettings ? existingGroupSettings.color : defaultCalendarColor)
+		const groupRootId = calendarInfo.groupRoot._id
+		const groupName = getSharedGroupName(calendarInfo.groupInfo, locator.logins.getUserController(), shared)
+		const isHidden = this.viewModel.hiddenCalendars.has(groupRootId)
+		return m(".folder-row.flex-start.plr-button", [
+			m(".flex.flex-grow.center-vertically.button-height", [
+				m(".calendar-checkbox", {
+					role: "checkbox",
+					title: groupName,
+					tabindex: TabIndex.Default,
+					"aria-checked": (!isHidden).toString(),
+					"aria-label": groupName,
+					onclick: () => setHidden(this.viewModel, groupRootId),
+					onkeydown: (e: KeyboardEvent) => {
+						if (isKeyPressed(e.key, Keys.SPACE, Keys.RETURN)) {
+							setHidden(this.viewModel, groupRootId)
+							e.preventDefault()
+						}
+					},
+					style: {
+						"border-color": colorValue,
+						background: isHidden ? "" : colorValue,
+						transition: "all 0.3s",
+						cursor: "pointer",
+						marginLeft: px(size.hpad_button),
+					},
+				}),
+				m(
+					".pl-m.b.flex-grow.text-ellipsis",
+					{
+						style: {
+							width: 0,
+						},
+					},
+					groupName,
+				),
+			]),
+			this.createCalendarActionDropdown(calendarInfo, colorValue, existingGroupSettings, userSettingsGroupRoot, shared),
+		])
 	}
 
 	private createCalendarActionDropdown(
