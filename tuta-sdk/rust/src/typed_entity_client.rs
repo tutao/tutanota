@@ -3,6 +3,7 @@ use serde::Deserialize;
 use crate::ApiCallError;
 use crate::entities::Entity;
 use crate::entity_client::{EntityClient, IdType};
+use crate::generated_id::GeneratedId;
 use crate::instance_mapper::InstanceMapper;
 
 pub struct TypedEntityClient {
@@ -11,6 +12,7 @@ pub struct TypedEntityClient {
 }
 
 /// Similar to EntityClient, but return a typed object instead of a generic Map
+#[cfg_attr(test, mockall::automock)]
 impl TypedEntityClient {
     pub(crate) fn new(
         entity_client: Arc<EntityClient>,
@@ -38,6 +40,18 @@ impl TypedEntityClient {
             ApiCallError::InternalSdkError { error_message: message }
         })?;
         Ok(typed_entity)
+    }
+
+    // TODO: Remove allowance after implementing
+    #[allow(unused_variables)]
+    pub async fn load_range<T: Entity + Deserialize<'static>>(
+        &self,
+        list_id: &GeneratedId,
+        start_id: &GeneratedId,
+        amount: usize,
+        reverse: bool,
+    ) -> Result<Vec<T>, ApiCallError> {
+        todo!()
     }
 }
 

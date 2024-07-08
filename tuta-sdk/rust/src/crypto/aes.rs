@@ -47,7 +47,8 @@ pub enum EnforceMac {
 /// - $subkey_digest: The type of SHA hasher from the `sha2` dependency to use.
 macro_rules! aes_key {
     ($name:tt, $type_name:literal, $size:expr, $cbc:ty, $subkey_digest:ty) => {
-        #[derive(Clone, ZeroizeOnDrop)]
+        #[derive(Clone, ZeroizeOnDrop, PartialEq)]
+        #[cfg_attr(test, derive(Debug))] // only allow Debug in tests because this prints the key!
         pub struct $name([u8; $size]);
 
         impl $name {
@@ -115,7 +116,7 @@ aes_key!(
 
 aes_key!(
     Aes256Key,
-    "Aes128Key",
+    "Aes256Key",
     AES_256_KEY_SIZE,
     aes::Aes256,
     sha2::Sha512
@@ -132,6 +133,17 @@ trait AesKey: Clone {
 
 /// An initialisation vector for AES encryption
 pub struct Iv([u8; IV_BYTE_SIZE]);
+
+#[cfg(test)]
+impl Clone for Iv {
+    /// Clone the initialization vector
+    ///
+    /// This is implemented so that entity_facade_test_utils will work. You should never, ever, ever
+    /// re-use an IV, as this can lead to information leakage.
+    fn clone(&self) -> Self {
+        Iv(self.0.clone())
+    }
+}
 
 impl Iv {
     /// Generate an initialisation vector.
@@ -312,8 +324,13 @@ struct CiphertextWithAuthentication<'a> {
 
 impl<'a> CiphertextWithAuthentication<'a> {
     fn parse(bytes: &'a [u8]) -> Result<Option<CiphertextWithAuthentication<'a>>, AesDecryptError> {
-        // Error if the bytes does not feature a MAC
-        if !has_mac(bytes) || bytes.len() <= IV_BYTE_SIZE + MAC_SIZE {
+        // No MAC
+        if !has_mac(bytes) {
+            return Ok(None);
+        }
+
+        // Incorrect size for Hmac
+        if bytes.len() <= IV_BYTE_SIZE + MAC_SIZE {
             return Err(AesDecryptError::HmacError);
         }
 

@@ -2,12 +2,30 @@ use std::ops::Deref;
 use rsa::{BigUint, Oaep};
 use rsa::traits::{PrivateKeyParts, PublicKeyParts};
 use sha2::Sha256;
-use zeroize::Zeroizing;
+use zeroize::{ZeroizeOnDrop, Zeroizing};
 use crate::crypto::randomizer_facade::RandomizerFacade;
+use crate::crypto::ecc::EccKeyPair;
 use crate::join_slices;
 
-#[derive(Clone)]
+#[derive(Clone, PartialEq)]
+#[cfg_attr(test, derive(Debug))] // only allow Debug in tests because this prints the key!
 pub struct RSAPublicKey(rsa::RsaPublicKey);
+
+impl RSAPublicKey {
+    pub fn new(public_key: rsa::RsaPublicKey) -> Self {
+        RSAPublicKey {
+            0: public_key,
+        }
+    }
+
+    /// Create a key from a PEM-encoded ASN.1 SPKI
+    pub fn from_public_key_pem(s: &str) -> Result<Self, RSAKeyError> {
+        use rsa as rsa_package;
+        use rsa_package::pkcs8::DecodePublicKey;
+        let new_key = rsa_package::RsaPublicKey::from_public_key_pem(s).map_err(|error| RSAKeyError { reason: error.to_string() })?;
+        Ok(Self(new_key))
+    }
+}
 
 const RSA_PUBLIC_EXPONENT: u32 = 65537;
 
@@ -51,13 +69,39 @@ impl RSAPublicKey {
     }
 }
 
-#[derive(Clone)]
+#[derive(Clone, ZeroizeOnDrop, PartialEq)]
+#[cfg_attr(test, derive(Debug))] // only allow Debug in tests because this prints the key!
 pub struct RSAPrivateKey(rsa::RsaPrivateKey);
 
-#[derive(Clone)]
+impl RSAPrivateKey {
+    pub fn new(private_key: rsa::RsaPrivateKey) -> Self {
+        RSAPrivateKey {
+            0: private_key,
+        }
+    }
+    /// Derives an PKCS1 RSA private key from an ASN.1-DER encoded private key
+    pub fn from_pkcs1_der(private_key: &[u8]) -> Result<Self, RSAKeyError> {
+        use rsa as rsa_package;
+        use rsa_package::pkcs1::DecodeRsaPrivateKey;
+
+        let derived_key = rsa_package::RsaPrivateKey::from_pkcs1_der(private_key)
+            .map_err(|error| RSAKeyError { reason: error.to_string() })?;
+        Ok(Self(derived_key))
+    }
+}
+
+#[derive(Clone, PartialEq)]
+#[cfg_attr(test, derive(Debug))] // only allow Debug in tests because this prints the key!
 pub struct RSAKeyPair {
     pub public_key: RSAPublicKey,
     pub private_key: RSAPrivateKey,
+}
+
+#[derive(Clone, PartialEq)]
+#[cfg_attr(test, derive(Debug))] // only allow Debug in tests because this prints the key!
+pub struct RSAEccKeyPair {
+    pub rsa_key_pair: RSAKeyPair,
+    pub ecc_key_pair: EccKeyPair,
 }
 
 impl RSAPrivateKey {

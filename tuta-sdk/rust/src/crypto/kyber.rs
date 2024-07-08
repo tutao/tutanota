@@ -1,5 +1,6 @@
 //! Contains code to handle Kyber-1024 encapsulation and decapsulation.
 
+use std::fmt::{Debug, Formatter};
 use pqcrypto_kyber::{kyber1024_decapsulate, kyber1024_encapsulate};
 use zeroize::{Zeroize, ZeroizeOnDrop, Zeroizing};
 use crate::util::{ArrayCastingError, decode_byte_arrays, encode_byte_arrays, array_cast_slice};
@@ -24,9 +25,22 @@ const KYBER_PUBLIC_KEY_LEN: usize = KYBER_POLYVECBYTES + KYBER_SYMBYTES;
 const KYBER_SECRET_KEY_LEN: usize = 2 * KYBER_POLYVECBYTES + 3 * KYBER_SYMBYTES;
 
 /// Key used for performing encapsulation, owned by the recipient.
-#[derive(Clone)]
+#[derive(Clone, PartialEq)]
 pub struct KyberPublicKey {
     public_key: PQCryptoKyber1024PublicKey,
+}
+
+impl KyberPublicKey {
+    pub fn as_bytes(&self) -> &[u8] {
+        self.public_key.as_bytes()
+    }
+}
+
+#[cfg(test)] // only allow Debug in tests because this prints the key!
+impl Debug for KyberPublicKey {
+    fn fmt(&self, f: &mut Formatter<'_>) -> std::fmt::Result {
+        self.public_key.as_bytes().fmt(f)
+    }
 }
 
 impl KyberPublicKey {
@@ -80,9 +94,16 @@ impl From<PQCryptoKyber1024PublicKey> for KyberPublicKey {
 }
 
 /// Key used for performing decapsulation, owned by the recipient.
-#[derive(Clone)]
+#[derive(Clone, PartialEq)]
 pub struct KyberPrivateKey {
     private_key: PQCryptoKyber1024SecretKey,
+}
+
+#[cfg(test)] // only allow Debug in tests because this prints the key!
+impl Debug for KyberPrivateKey {
+    fn fmt(&self, f: &mut Formatter<'_>) -> std::fmt::Result {
+        self.private_key.as_bytes().fmt(f)
+    }
 }
 
 impl KyberPrivateKey {
@@ -212,7 +233,8 @@ pub struct KyberEncapsulation {
     pub shared_secret: KyberSharedSecret,
 }
 
-#[derive(Clone)]
+#[derive(Clone, PartialEq)]
+#[cfg_attr(test, derive(Debug))] // only allow Debug in tests because this prints the key!
 pub struct KyberKeyPair {
     pub public_key: KyberPublicKey,
     pub private_key: KyberPrivateKey,

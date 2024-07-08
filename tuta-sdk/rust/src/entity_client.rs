@@ -1,7 +1,8 @@
+use std::collections::HashMap;
 use std::fmt::Display;
 use std::sync::Arc;
 
-use crate::{ApiCallError, AuthHeadersProvider, IdTuple, ListLoadDirection, RestClient, TypeRef};
+use crate::{ApiCallError, IdTuple, LoginState, RestClient, SdkState, TypeRef};
 use crate::element_value::{ElementValue, ParsedEntity};
 use crate::generated_id::GeneratedId;
 use crate::json_serializer::JsonSerializer;
@@ -10,9 +11,10 @@ use crate::metamodel::TypeModel;
 use crate::rest_client::{HttpMethod, RestClientOptions};
 use crate::rest_error::{HttpError};
 use crate::type_model_provider::{TypeModelProvider};
+use crate::user_facade::AuthHeadersProvider;
 
 /// Denotes an ID that can be serialised into a string
-pub trait IdType: Display {}
+pub trait IdType: Display + 'static {}
 
 impl IdType for String {}
 
@@ -63,7 +65,7 @@ impl EntityClient {
         })?;
         let options = RestClientOptions {
             body: None,
-            headers: self.auth_headers_provider.auth_headers(model_version),
+            headers: self.auth_headers_provider.create_auth_headers(model_version),
         };
         let response = self
             .rest_client
@@ -143,7 +145,7 @@ impl EntityClient {
         let body = serde_json::to_vec(&raw_entity).unwrap();
         let options = RestClientOptions {
             body: Some(body),
-            headers: self.auth_headers_provider.auth_headers(model_version),
+            headers: self.auth_headers_provider.create_auth_headers(model_version),
         };
         // FIXME we should look at type model whether it is ET or LET
         let url = format!(
