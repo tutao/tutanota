@@ -26,7 +26,8 @@ export class FolderColumnView implements Component<Attrs> {
 				m(
 					".scroll.scrollbar-gutter-stable-or-fallback.visible-scrollbar.overflow-x-hidden.flex.col.flex-grow",
 					{
-						onscroll: (e: Event) => {
+						onscroll: (e: EventRedraw<Event>) => {
+							e.redraw = false
 							const target = e.target as HTMLElement
 							if (attrs.button == null || target.scrollTop === 0) {
 								target.style.borderTop = ""
