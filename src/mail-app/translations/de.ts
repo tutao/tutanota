@@ -1768,6 +1768,7 @@ export default {
 		"yourCalendars_label": "Deine Kalender",
 		"yourFolders_action": "DEINE ORDNER",
 		"yourMessage_label": "Deine Nachricht",
-		"you_label": "Du"
+		"you_label": "Du",
+		"allowContactRead_msg": "Um Kontakte für Veranstaltungseinladungen vorzuschlagen, benötigen Sie die Berechtigung, Ihr Adressbuch zu lesen. Sie können dies jederzeit in den Systemeinstellungen ändern."
 	}
 }
