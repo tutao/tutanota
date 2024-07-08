@@ -1,8 +1,9 @@
 #![allow(non_snake_case, unused_imports)]
 use super::*;
 use serde::{Serialize, Deserialize};
+use crate::entities::entity_facade::Errors;
 
-#[derive(uniffi::Record, Clone, Serialize, Deserialize)]
+#[derive(uniffi::Record, Clone, Serialize, Deserialize, Debug)]
 pub struct UsageTestAssignment {
 	pub _id: CustomId,
 	pub name: String,
@@ -19,7 +20,7 @@ impl Entity for UsageTestAssignment {
 }
 
 
-#[derive(uniffi::Record, Clone, Serialize, Deserialize)]
+#[derive(uniffi::Record, Clone, Serialize, Deserialize, Debug)]
 pub struct UsageTestAssignmentIn {
 	pub _format: i64,
 	pub testDeviceId: Option<GeneratedId>,
@@ -32,7 +33,7 @@ impl Entity for UsageTestAssignmentIn {
 }
 
 
-#[derive(uniffi::Record, Clone, Serialize, Deserialize)]
+#[derive(uniffi::Record, Clone, Serialize, Deserialize, Debug)]
 pub struct UsageTestAssignmentOut {
 	pub _format: i64,
 	pub testDeviceId: GeneratedId,
@@ -46,7 +47,7 @@ impl Entity for UsageTestAssignmentOut {
 }
 
 
-#[derive(uniffi::Record, Clone, Serialize, Deserialize)]
+#[derive(uniffi::Record, Clone, Serialize, Deserialize, Debug)]
 pub struct UsageTestMetricConfig {
 	pub _id: CustomId,
 	pub name: String,
@@ -62,7 +63,7 @@ impl Entity for UsageTestMetricConfig {
 }
 
 
-#[derive(uniffi::Record, Clone, Serialize, Deserialize)]
+#[derive(uniffi::Record, Clone, Serialize, Deserialize, Debug)]
 pub struct UsageTestMetricConfigValue {
 	pub _id: CustomId,
 	pub key: String,
@@ -76,7 +77,7 @@ impl Entity for UsageTestMetricConfigValue {
 }
 
 
-#[derive(uniffi::Record, Clone, Serialize, Deserialize)]
+#[derive(uniffi::Record, Clone, Serialize, Deserialize, Debug)]
 pub struct UsageTestMetricData {
 	pub _id: CustomId,
 	pub name: String,
@@ -90,7 +91,7 @@ impl Entity for UsageTestMetricData {
 }
 
 
-#[derive(uniffi::Record, Clone, Serialize, Deserialize)]
+#[derive(uniffi::Record, Clone, Serialize, Deserialize, Debug)]
 pub struct UsageTestParticipationIn {
 	pub _format: i64,
 	pub stage: i64,
@@ -106,7 +107,7 @@ impl Entity for UsageTestParticipationIn {
 }
 
 
-#[derive(uniffi::Record, Clone, Serialize, Deserialize)]
+#[derive(uniffi::Record, Clone, Serialize, Deserialize, Debug)]
 pub struct UsageTestStage {
 	pub _id: CustomId,
 	pub maxPings: i64,

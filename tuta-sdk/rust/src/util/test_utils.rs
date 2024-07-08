@@ -1,13 +1,14 @@
 //! General purpose functions for testing various objects
 
 use rand::random;
-use crate::crypto::Aes256Key;
+use crate::crypto::{Aes256Key, Iv};
+use crate::crypto::key::GenericAesKey;
 use crate::crypto::randomizer_facade::test_util::make_thread_rng_facade;
 use crate::custom_id::CustomId;
 use crate::element_value::{ElementValue, ParsedEntity};
 use crate::entities::Entity;
 use crate::generated_id::GeneratedId;
-use crate::IdTuple;
+use crate::{IdTuple, TypeRef};
 use crate::instance_mapper::InstanceMapper;
 use crate::metamodel::{AssociationType, Cardinality, ElementType, ValueType};
 use crate::type_model_provider::{init_type_model_provider, TypeModelProvider};
@@ -92,17 +93,46 @@ pub fn leak<T>(what: T) -> &'static T {
 /// ```
 #[must_use]
 pub fn create_test_entity<'a, T: Entity + serde::Deserialize<'a>>() -> T {
-    let provider = init_type_model_provider();
-    let type_ref = T::type_ref();
     let mapper = InstanceMapper::new();
-    let entity = create_test_entity_dict(&provider, type_ref.app, type_ref.type_);
+    let entity = create_test_entity_dict::<T>();
+    let type_ref = T::type_ref();
     match mapper.parse_entity(entity) {
         Ok(n) => n,
         Err(e) => panic!("Failed to create test entity {app}/{type_}: parse error {e}", app = type_ref.app, type_ = type_ref.type_)
     }
 }
 
-fn create_test_entity_dict(provider: &TypeModelProvider, app: &str, type_: &str) -> ParsedEntity {
+/// Generate a test entity as a raw `ParsedEntity` dictionary type.
+///
+/// The values will be set to these defaults:
+/// * All ZeroOrOne values will be null
+/// * All Any values will be empty
+/// * All One values will use default values, or random values if an ID type
+///
+/// **NOTE:** The resulting dictionary is unencrypted.
+#[must_use]
+pub fn create_test_entity_dict<'a, T: Entity + serde::Deserialize<'a>>() -> ParsedEntity {
+    let provider = init_type_model_provider();
+    let type_ref = T::type_ref();
+    let entity = create_test_entity_dict_with_provider(&provider, type_ref.app, type_ref.type_);
+    entity
+}
+
+/// Convert a typed entity into a raw `ParsedEntity` dictionary type.
+///
+/// # Panics
+///
+/// Panics if the resulting entity is invalid and unable to be serialized.
+#[must_use]
+pub fn typed_entity_to_parsed_entity<T: Entity + serde::Serialize>(entity: T) -> ParsedEntity {
+    let mapper = InstanceMapper::new();
+    match mapper.serialize_entity(entity) {
+        Ok(n) => n,
+        Err(e) => panic!("Failed to serialize {}/{}: {:?}", T::type_ref().app, T::type_ref().type_, e)
+    }
+}
+
+fn create_test_entity_dict_with_provider(provider: &TypeModelProvider, app: &str, type_: &str) -> ParsedEntity {
     let Some(model) = provider.get_type_model(app, type_) else {
         panic!("Failed to create test entity {app}/{type_}: not in model")
     };
@@ -126,7 +156,14 @@ fn create_test_entity_dict(provider: &TypeModelProvider, app: &str, type_: &str)
                             ElementValue::IdGeneratedId(GeneratedId::test_random())
                         }
                     }
-                    ValueType::CustomId => ElementValue::IdCustomId(CustomId::test_random()),
+                    ValueType::CustomId => {
+                        if name == "_id" && (model.element_type == ElementType::ListElement || model.element_type == ElementType::BlobElement) {
+                            // TODO: adapt this when Custom Id tuples are supported
+                            ElementValue::IdTupleId(IdTuple::new(GeneratedId::test_random(), GeneratedId::test_random()))
+                        } else {
+                            ElementValue::IdCustomId(CustomId::test_random())
+                        }
+                    }
                     ValueType::CompressedString => todo!("Failed to create test entity {app}/{type_}: Compressed strings ({name}) are not yet supported!"),
                 }
             }
@@ -144,7 +181,7 @@ fn create_test_entity_dict(provider: &TypeModelProvider, app: &str, type_: &str)
                     AssociationType::ElementAssociation => ElementValue::IdGeneratedId(GeneratedId::test_random()),
                     AssociationType::ListAssociation => ElementValue::IdGeneratedId(GeneratedId::test_random()),
                     AssociationType::ListElementAssociation => ElementValue::IdTupleId(IdTuple::new(GeneratedId::test_random(), GeneratedId::test_random())),
-                    AssociationType::Aggregation => ElementValue::Dict(create_test_entity_dict(provider, value.dependency.unwrap_or(app), value.ref_type)),
+                    AssociationType::Aggregation => ElementValue::Dict(create_test_entity_dict_with_provider(provider, value.dependency.unwrap_or(app), value.ref_type)),
                     AssociationType::BlobElementAssociation => ElementValue::IdTupleId(IdTuple::new(GeneratedId::test_random(), GeneratedId::test_random())),
                 }
             }
@@ -154,3 +191,15 @@ fn create_test_entity_dict(provider: &TypeModelProvider, app: &str, type_: &str)
 
     object
 }
+
+#[macro_export]
+macro_rules! collection {
+        // map-like
+        ($($k:expr => $v:expr),* $(,)?) => {{
+            core::convert::From::from([$(($k.to_string(), $v),)*])
+        }};
+        // set-like
+        ($($v:expr),* $(,)?) => {{
+            core::convert::From::from([$($v,)*])
+        }};
+    }

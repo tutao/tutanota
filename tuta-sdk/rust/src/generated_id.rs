@@ -1,6 +1,7 @@
 use std::fmt::{Debug, Display, Formatter};
 use serde::{Deserialize, Deserializer, Serialize, Serializer};
 use serde::de::{Error, Visitor};
+use crate::entity_client::IdType;
 
 pub const GENERATED_ID_BYTES_LENGTH: usize = 9;
 
@@ -40,6 +41,8 @@ impl Debug for GeneratedId {
         write!(f, "Generated ID: \"{self}\"")
     }
 }
+
+impl IdType for GeneratedId {}
 
 uniffi::custom_newtype!(GeneratedId, String);
 

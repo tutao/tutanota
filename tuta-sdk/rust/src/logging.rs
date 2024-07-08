@@ -6,7 +6,7 @@ static LOG_INIT: AtomicBool = AtomicBool::new(false);
 /// Initialize the logger.
 ///
 /// This is a no-op if it is called multiple times.
-#[allow(unreachable_code)]
+#[allow(unreachable_code)] // android/ios implementations return before simple_logger code
 pub(crate) fn init_logger() {
     if !LOG_INIT.swap(true, Ordering::Relaxed) {
         // We need to use android_log so our logs show up in logcat, as standard output isn't so trivial to access.
