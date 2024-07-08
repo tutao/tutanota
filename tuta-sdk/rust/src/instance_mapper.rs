@@ -2,7 +2,7 @@ use std::collections::HashMap;
 use std::fmt::Display;
 
 use serde::{de, Deserialize, Deserializer, ser, Serialize, Serializer};
-use serde::de::{DeserializeSeed, IntoDeserializer, MapAccess, Unexpected, Visitor};
+use serde::de::{DeserializeSeed, EnumAccess, IntoDeserializer, MapAccess, Unexpected, VariantAccess, Visitor};
 use serde::de::value::{MapDeserializer, SeqDeserializer};
 use serde::ser::{SerializeSeq, SerializeStruct};
 use thiserror::Error;
@@ -31,14 +31,6 @@ impl InstanceMapper {
         entity.serialize(ElementValueSerializer).map(|v| v.assert_dict())
     }
 }
-
-#[cfg(test)]
-mockall::mock!(
-    pub InstanceMapper {
-        pub fn parse_entity<T: Entity + Deserialize<'static>>(&self, map: ParsedEntity) -> Result<T, DeError>;
-        pub fn serialize_entity<T: Entity + Serialize>(&self, entity: T) -> Result<ParsedEntity, SerError>;
-    }
-);
 
 #[derive(Error, Debug)]
 #[error("Error while deserializing entity, {0}")]
@@ -103,7 +95,7 @@ impl<'de> Deserializer<'de> for ElementValueDeserializer {
     serde::forward_to_deserialize_any! {
         i8 i16 i32 u8 u16 u32 f32 f64 char str bytes
                 unit unit_struct newtype_struct tuple
-                tuple_struct map enum identifier ignored_any
+                tuple_struct ignored_any
             }
 
     fn deserialize_any<V>(self, _: V) -> Result<V::Value, Self::Error> where V: Visitor<'de> {
@@ -217,7 +209,77 @@ impl<'de> Deserializer<'de> for ElementValueDeserializer {
             Err(de::Error::invalid_type(self.value.as_unexpected(), &"dict"))
         }
     }
+
+    fn deserialize_map<V>(self, visitor: V) -> Result<V::Value, Self::Error>
+    where
+        V: Visitor<'de>
+    {
+        if let ElementValue::Dict(dict) = self.value {
+            let deserializer = MapDeserializer::new(dict.into_iter());
+            visitor.visit_map(deserializer)
+        } else {
+            Err(de::Error::invalid_type(self.value.as_unexpected(), &"dict"))
+        }
+    }
+
+    fn deserialize_enum<V>(self, _: &'static str, _: &'static [&'static str], visitor: V) -> Result<V::Value, Self::Error>
+    where
+        V: Visitor<'de>
+    {
+        visitor.visit_enum(self.value)
+    }
+
+    fn deserialize_identifier<V>(self, visitor: V) -> Result<V::Value, Self::Error>
+    where
+        V: Visitor<'de>
+    {
+        visitor.visit_string(self.value.get_type_variant_name().to_owned())
+    }
 }
+
+
+impl<'de> EnumAccess<'de> for ElementValue {
+    type Error = de::value::Error;
+    type Variant = Self;
+
+    fn variant_seed<V>(self, seed: V) -> Result<(V::Value, Self::Variant), Self::Error>
+    where
+        V: DeserializeSeed<'de>
+    {
+        let val = seed.deserialize(ElementValueDeserializer { value: self.clone() })?;
+        Ok((val, self))
+    }
+}
+
+impl<'de> VariantAccess<'de> for ElementValue {
+    type Error = de::value::Error;
+
+    fn unit_variant(self) -> Result<(), Self::Error> {
+        panic!()
+    }
+
+    fn newtype_variant_seed<T>(self, seed: T) -> Result<T::Value, Self::Error>
+    where
+        T: DeserializeSeed<'de>
+    {
+        seed.deserialize(ElementValueDeserializer { value: self })
+    }
+
+    fn tuple_variant<V>(self, _: usize, _: V) -> Result<V::Value, Self::Error>
+    where
+        V: Visitor<'de>
+    {
+        panic!()
+    }
+
+    fn struct_variant<V>(self, _: &'static [&'static str], _: V) -> Result<V::Value, Self::Error>
+    where
+        V: Visitor<'de>
+    {
+        panic!()
+    }
+}
+
 
 // This impl allows us to use blanket impl for SeqAccess/MapAccess
 impl<'de> IntoDeserializer<'de> for ElementValue {
@@ -418,6 +480,10 @@ impl SerializeStruct for ElementValueStructSerializer {
     fn serialize_field<T>(&mut self, key: &'static str, value: &T) -> Result<(), Self::Error> where T: ?Sized + Serialize {
         match self {
             Self::Struct { map } => {
+                if key == "errors" {
+                    // Throw decryption errors away since they are not part of the actual type.
+                    return Ok(())
+                }
                 map.insert(key.to_string(), value.serialize(ElementValueSerializer)?);
             }
             Self::IdTuple { list_id, element_id } => match key {
@@ -484,7 +550,9 @@ mod tests {
     #[test]
     fn test_de_group_info() {
         let json = include_str!("../test_data/group_info_response.json");
-        let parsed_entity = get_parsed_entity::<GroupInfo>(json);
+        let mut parsed_entity = get_parsed_entity::<GroupInfo>(json);
+        // this is encrypted, so we can't actually deserialize it without replacing it with a decrypted version
+        parsed_entity.insert("name".to_owned(), ElementValue::String("some string".to_owned()));
         let mapper = InstanceMapper::new();
         let group_info: GroupInfo = mapper.parse_entity(parsed_entity).unwrap();
         assert_eq!(DateTime::from_millis(1533116004052), group_info.created);
@@ -556,6 +624,7 @@ mod tests {
             group: GeneratedId::test_random(),
             localAdmin: None,
             mailAddressAliases: vec![],
+            errors: Default::default(),
         };
         let mapper = InstanceMapper::new();
         let parsed_entity = mapper.serialize_entity(group_info).unwrap();

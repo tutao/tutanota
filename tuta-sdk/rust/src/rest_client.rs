@@ -1,7 +1,7 @@
 use std::collections::HashMap;
 use thiserror::Error;
 
-#[derive(uniffi::Enum, Debug, PartialEq)]
+#[derive(uniffi::Enum, Debug, PartialEq, Hash, Eq)]
 pub enum HttpMethod {
     GET,
     POST,
@@ -24,7 +24,7 @@ pub enum RestClientError {
 }
 
 /// HTTP(S) data contained within a response from the backend
-#[derive(uniffi::Record)]
+#[derive(uniffi::Record, Clone)]
 pub struct RestResponse {
     pub status: u32,
     pub headers: HashMap<String, String>,
@@ -36,7 +36,7 @@ pub struct RestResponse {
 #[uniffi::export(with_foreign)]
 #[cfg_attr(test, mockall::automock)]
 #[async_trait::async_trait]
-pub trait RestClient: Send + Sync {
+pub trait RestClient: Send + Sync + 'static {
     /// Performs an HTTP request with binary data in its body using the injected HTTP client
     async fn request_binary(
         &self,

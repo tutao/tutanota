@@ -50,8 +50,6 @@ impl KeyCache {
         lock.insert(group_id.to_owned(), key.to_owned());
     }
 
-    // TODO: Remove allowance after implementing
-    #[allow(unused_variables)]
     pub async fn remove_outdated_group_keys(&self, user: &User) {
         todo!()
     }
