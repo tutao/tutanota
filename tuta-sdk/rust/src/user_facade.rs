@@ -1,5 +1,4 @@
 use std::borrow::ToOwned;
-use std::collections::HashMap;
 use std::sync::{Arc, RwLock};
 use base64::Engine;
 use base64::prelude::BASE64_STANDARD;
@@ -14,12 +13,6 @@ use crate::crypto::key::GenericAesKey;
 use crate::generated_id::GeneratedId;
 use crate::key_loader_facade::VersionedAesKey;
 use crate::util::Versioned;
-
-pub trait AuthHeadersProvider {
-    /// Gets the HTTP request headers used for authorizing REST requests
-    fn create_auth_headers(&self, model_version: u32) -> HashMap<String, String>;
-    fn is_fully_logged_in(&self) -> bool;
-}
 
 const USER_GROUP_KEY_DISTRIBUTION_KEY_INFO: &str = "userGroupKeyDistributionKey";
 
@@ -39,15 +32,15 @@ impl UserFacade {
         }
     }
 
-    pub fn set_user(&mut self, user: User) {
+    pub fn set_user(&self, user: User) {
         *self.user.write().unwrap() = Arc::new(user);
     }
 
-    pub fn unlock_user_group_key(&mut self, user_passphrase_key: GenericAesKey) -> Result<(), ApiCallError> {
+    pub fn unlock_user_group_key(&self, user_passphrase_key: Aes256Key) -> Result<(), ApiCallError> {
         let user = self.get_user();
         let user_group_membership = &user.userGroup;
         let current_user_group_key = Versioned::new(
-            user_passphrase_key.decrypt_aes_key(&user_group_membership.symEncGKey).map_err(|e| {
+            GenericAesKey::Aes256(user_passphrase_key.clone()).decrypt_aes_key(&user_group_membership.symEncGKey).map_err(|e| {
                 ApiCallError::InternalSdkError { error_message: e.to_string() }
             })?,
             user_group_membership.groupKeyVersion,
@@ -56,7 +49,7 @@ impl UserFacade {
         self.set_user_group_key_distribution_key(user_passphrase_key)
     }
 
-    fn set_user_group_key_distribution_key(&mut self, user_passphrase_key: GenericAesKey) -> Result<(), ApiCallError> {
+    fn set_user_group_key_distribution_key(&self, user_passphrase_key: Aes256Key) -> Result<(), ApiCallError> {
         let user = self.get_user();
         let user_group_membership = &user.userGroup;
         let user_group_key_distribution_key = self.derive_user_group_key_distribution_key(&user_group_membership.group, user_passphrase_key)?;
@@ -72,7 +65,7 @@ impl UserFacade {
 
     // FIXME: Check uint8ArrayToBase64 is correct;
     // there is a max length in the ts version, it seems to be a js thing, can we forego it here?
-    fn derive_user_group_key_distribution_key(&self, user_group_id: &GeneratedId, user_passphrase_key: GenericAesKey) -> Result<GenericAesKey, ApiCallError> {
+    fn derive_user_group_key_distribution_key(&self, user_group_id: &GeneratedId, user_passphrase_key: Aes256Key) -> Result<GenericAesKey, ApiCallError> {
         // we prepare a key to encrypt potential user group key rotations with
         // when passwords are changed clients are logged-out of other sessions
         // this key is only needed by the logged-in clients, so it should be reliable enough to assume that userPassphraseKey is in sync
@@ -126,23 +119,11 @@ impl UserFacade {
     }
 }
 
-// TODO: Remove allowance after implementing
-#[allow(unused_variables)]
-impl AuthHeadersProvider for UserFacade {
-    fn create_auth_headers(&self, model_version: u32) -> HashMap<String, String> {
-        todo!()
-    }
-
-    fn is_fully_logged_in(&self) -> bool {
-        todo!()
-    }
-}
-
 
 mock!(
     pub UserFacade {
-        pub fn set_user(&mut self, user: User);
-        pub fn unlock_user_group_key(&mut self, user_passphrase_key: GenericAesKey)
+        pub fn set_user(&self, user: User);
+        pub fn unlock_user_group_key(&self, user_passphrase_key: GenericAesKey)
             -> Result<(), ApiCallError>;
         pub async fn update_user(&self, user: User);
         pub fn get_user(&self) -> Arc<User>;
@@ -150,9 +131,5 @@ mock!(
         pub fn get_current_user_group_key(&self) -> Option<VersionedAesKey>;
         pub(crate) fn get_membership(&self, group_id: &GeneratedId)
         -> Result<GroupMembership, ApiCallError>;
-    }
-    impl AuthHeadersProvider for UserFacade {
-        fn create_auth_headers(&self, model_version: u32) -> HashMap<String, String>;
-        fn is_fully_logged_in(&self) -> bool;
     }
 );

@@ -1,8 +1,6 @@
-use std::collections::HashMap;
 use std::fmt::Display;
 use std::sync::Arc;
 
-use crate::{ApiCallError, IdTuple, LoginState, RestClient, SdkState, TypeRef};
 use crate::{ApiCallError, AuthHeadersProvider, IdTuple, ListLoadDirection, RestClient, SdkState, TypeRef};
 use crate::element_value::{ElementValue, ParsedEntity};
 use crate::generated_id::GeneratedId;
@@ -12,7 +10,6 @@ use crate::metamodel::TypeModel;
 use crate::rest_client::{HttpMethod, RestClientOptions};
 use crate::rest_error::HttpError;
 use crate::type_model_provider::TypeModelProvider;
-use crate::user_facade::AuthHeadersProvider;
 
 /// Denotes an ID that can be serialised into a string
 pub trait IdType: Display + 'static {}
@@ -101,9 +98,9 @@ impl EntityClient {
     async fn load_range(
         &self,
         type_ref: &TypeRef,
-        list_id: &IdTuple,
-        start_id: &str,
-        count: &str,
+        list_id: &GeneratedId,
+        start_id: &GeneratedId,
+        count: usize,
         list_load_direction: ListLoadDirection
     ) -> Result<Vec<ParsedEntity>, ApiCallError> {
         todo!()
@@ -157,7 +154,7 @@ mockall::mock! {
             rest_client: Arc<dyn RestClient>,
             json_serializer: Arc<JsonSerializer>,
             base_url: &str,
-            auth_headers_provider: Arc<dyn AuthHeadersProvider + Send + Sync>,
+            auth_headers_provider: Arc<dyn AuthHeadersProvider>,
             type_model_provider: Arc<TypeModelProvider>,
         ) -> Self;
         // FIXME: Don't use static
@@ -176,9 +173,9 @@ mockall::mock! {
         async fn load_range(
             &self,
             type_ref: &TypeRef,
-            list_id: &IdTuple,
-            start_id: &str,
-            count: &str,
+            list_id: &GeneratedId,
+            start_id: &GeneratedId,
+            count: usize,
             list_load_direction: ListLoadDirection,
         ) -> Result<Vec<ParsedEntity>, ApiCallError>;
         async fn setup_element(&self, type_ref: &TypeRef, entity: RawEntity) -> Vec<String>;

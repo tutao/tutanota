@@ -1,21 +1,19 @@
-use std::sync::{Arc, Mutex};
+use std::sync::Arc;
 use zeroize::Zeroizing;
-use crate::crypto::aes::Iv;
 use crate::crypto::ecc::EccPublicKey;
 use crate::crypto::key::{AsymmetricKeyPair, GenericAesKey, KeyLoadError};
-#[mockall_double::double]
-use crate::key_loader_facade::KeyLoaderFacade;
-use crate::key_loader_facade::VersionedAesKey;
-use crate::crypto::randomizer_facade::RandomizerFacade;
 use crate::crypto::rsa::RSAEncryptionError;
 use crate::crypto::tuta_crypt::{PQError, PQMessage};
 use crate::generated_id::GeneratedId;
 use crate::element_value::{ElementValue, ParsedEntity};
 use crate::entities::sys::BucketKey;
 use crate::IdTuple;
+#[mockall_double::double]
 use crate::instance_mapper::InstanceMapper;
+#[mockall_double::double]
+use crate::key_loader_facade::KeyLoaderFacade;
+use crate::key_loader_facade::VersionedAesKey;
 use crate::metamodel::TypeModel;
-use crate::owner_enc_session_keys_update_queue::OwnerEncSessionKeysUpdateQueue;
 use crate::util::ArrayCastingError;
 
 /// The name of the field that contains the session key encrypted
@@ -33,13 +31,21 @@ const BUCKET_KEY_FIELD: &'static str = "bucketKey";
 #[derive(uniffi::Object)]
 pub struct CryptoFacade {
     key_loader_facade: Arc<KeyLoaderFacade>,
-    randomizer_facade: Arc<RandomizerFacade>,
-    update_queue: Mutex<Box<dyn OwnerEncSessionKeysUpdateQueue>>,
     instance_mapper: Arc<InstanceMapper>,
 }
 
 #[cfg_attr(test, mockall::automock)]
 impl CryptoFacade {
+    pub fn new(
+        key_loader_facade: Arc<KeyLoaderFacade>,
+        instance_mapper: Arc<InstanceMapper>
+    ) -> Self {
+        Self {
+            key_loader_facade,
+            instance_mapper,
+        }
+    }
+
     /// Returns the session key from `entity` and resolves the bucket key fields contained inside
     /// if present
     pub async fn resolve_session_key(&self, entity: &mut ParsedEntity, model: &TypeModel) -> Result<Option<GenericAesKey>, SessionKeyResolutionError> {
@@ -91,38 +97,22 @@ impl CryptoFacade {
         } = self.decrypt_bucket_key(&bucket_key, owner_group, model).await?;
 
         let mut session_key_for_this_instance = None;
-        let mut re_encrypted_session_keys = Vec::with_capacity(bucket_key.bucketEncSessionKeys.len());
 
         for instance_session_key in bucket_key.bucketEncSessionKeys {
-            let decrypted_session_key = decrypted_bucket_key.decrypt_aes_key(instance_session_key.symEncSessionKey.as_slice())?;
-            let iv = Iv::generate(self.randomizer_facade.as_ref());
-            let re_encrypted_session_key = decrypted_bucket_key.encrypt_key(&decrypted_session_key, iv);
+            let decrypted_session_key = decrypted_bucket_key.decrypt_key(instance_session_key.symEncSessionKey.as_slice())?;
 
             let instance_id = parse_id_field(entity.get(ID_FIELD))?;
 
             if &instance_session_key.instanceId == instance_id {
-                session_key_for_this_instance = Some((decrypted_session_key.clone(), re_encrypted_session_key.clone()));
+                session_key_for_this_instance = Some(decrypted_session_key.clone());
             }
-            re_encrypted_session_keys.push((instance_session_key, re_encrypted_session_key));
         }
 
-        let Some((session_key, sym_enc_session_key)) = session_key_for_this_instance else {
+        let Some(session_key) = session_key_for_this_instance else {
             return Err(SessionKeyResolutionError { reason: "no session key found in bucket key for this instance".to_string() });
         };
 
         // TODO: authenticate
-
-        // TODO: Update owner and session keys
-        let mut queue = self.update_queue.lock().unwrap();
-        for (instance_data, sym_enc_key) in re_encrypted_session_keys {
-            queue.queue_update_instance_session_key(
-                &IdTuple::new(instance_data.instanceList, instance_data.instanceId),
-                sym_enc_key,
-                version,
-            );
-        }
-
-        entity.insert(OWNER_ENC_SESSION_FIELD.to_owned(), ElementValue::Bytes(sym_enc_session_key));
 
         Ok(session_key)
     }
@@ -265,7 +255,6 @@ impl SessionKeyResolutionErrorSubtype for RSAEncryptionError {}
 //     use crate::crypto::crypto_facade::CryptoFacade;
 //     use crate::crypto::ecc::EccKeyPair;
 //     use crate::crypto::key::GenericAesKey;
-//     use crate::key_loader_facade::{MockKeyLoaderFacade, VersionedAesKey};
 //     use crate::crypto::randomizer_facade::test_util::make_thread_rng_facade;
 //     use crate::crypto::tuta_crypt::{PQKeyPairs, PQMessage};
 //     use crate::entities::Entity;
@@ -275,16 +264,13 @@ impl SessionKeyResolutionErrorSubtype for RSAEncryptionError {}
 //     use crate::custom_id::CustomId;
 //     use crate::IdTuple;
 //     use crate::instance_mapper::InstanceMapper;
+//     use crate::key_loader_facade::MockKeyLoaderFacade;
 //     use crate::owner_enc_session_keys_update_queue::MockOwnerEncSessionKeysUpdateQueue;
 //     use crate::type_model_provider::init_type_model_provider;
 //
-//     #[tokio::test]
-//     async fn test_bucket_key_resolves() {
+//     #[test]
+//     fn test_bucket_key_resolves() {
 //         let randomizer_facade = Arc::new(make_thread_rng_facade());
-//         let mut update_queue = Box::new(MockOwnerEncSessionKeysUpdateQueue::new());
-//         update_queue.expect_queue_update_instance_session_key()
-//             .returning(|_, _, _| {})
-//             .once();
 //
 //         let group_key = GenericAesKey::from(Aes256Key::generate(randomizer_facade.as_ref()));
 //         let asymmetric_keypair = PQKeyPairs::generate(randomizer_facade.as_ref());
@@ -301,7 +287,7 @@ impl SessionKeyResolutionErrorSubtype for RSAEncryptionError {}
 //             let group_key = group_key.clone();
 //             let asymmetric_keypair_versioned = asymmetric_keypair.clone();
 //
-//             let mut key_loader = MockKeyLoaderFacade::new();
+//             let mut key_loader = MockKeyLoaderFacade::new(Arc::new(()), Arc::new(()));
 //             key_loader.expect_get_current_group_key()
 //                 .returning(move |_| Ok(VersionedAesKey { version: sender_key_version, key: group_key.clone().into() }))
 //                 .once();
@@ -324,8 +310,6 @@ impl SessionKeyResolutionErrorSubtype for RSAEncryptionError {}
 //
 //         let crypto_facade = CryptoFacade {
 //             key_loader_facade: Arc::new(key_loader),
-//             update_queue: Mutex::new(update_queue),
-//             randomizer_facade: randomizer_facade.clone(),
 //             instance_mapper: instance_mapper.clone(),
 //         };
 //
@@ -403,9 +387,7 @@ impl SessionKeyResolutionErrorSubtype for RSAEncryptionError {}
 //             toRecipients: vec![],
 //         };
 //
-//
 //         let mut raw_mail = instance_mapper.serialize_entity(mail).unwrap();
-//
 //
 //         let provider = init_type_model_provider();
 //         let mail_type_ref = Mail::type_ref();

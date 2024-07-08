@@ -29,7 +29,7 @@ impl CryptoEntityClient {
     ) -> Self {
         CryptoEntityClient { entity_client, entity_facade, crypto_facade, instance_mapper }
     }
-    pub async fn load<T: Entity + Deserialize<'static>, ID: IdType + 'static>(
+    pub async fn load<T: Entity + Deserialize<'static>, ID: IdType>(
         &self,
         id: &ID,
     ) -> Result<T, ApiCallError> {
@@ -39,7 +39,7 @@ impl CryptoEntityClient {
 
         if type_model.encrypted {
             let possible_session_key = self.crypto_facade
-                .resolve_session_key(&mut parsed_entity, type_model)
+                .resolve_session_key(&mut parsed_entity, type_model).await
                 .map_err(|error|
                     ApiCallError::InternalSdkError {
                         error_message: format!(
@@ -87,7 +87,7 @@ impl CryptoEntityClient {
 mod tests {
     use std::sync::Arc;
     use rand::random;
-    use crate::crypto::aes::{Aes256Key, Iv};
+    use crate::crypto::{Aes256Key, Iv};
     use crate::crypto::crypto_facade::MockCryptoFacade;
     use crate::crypto::key::GenericAesKey;
     use crate::crypto_entity_client::CryptoEntityClient;

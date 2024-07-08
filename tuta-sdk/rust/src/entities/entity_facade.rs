@@ -244,7 +244,6 @@ mod tests {
     use rand::random;
     use crate::crypto::{Aes256Key, Iv};
 
-    use crate::crypto::{Aes256Key, Iv};
     use crate::crypto::key::GenericAesKey;
     use crate::entities::entity_facade::EntityFacade;
     use crate::util::entity_test_utils::{assert_decrypted_mail, generate_email_entity};

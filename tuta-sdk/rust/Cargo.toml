@@ -22,7 +22,7 @@ zeroize = { version = "1.8.1", features = ["zeroize_derive"] }
 hkdf = "0.12.4"
 argon2 = { version = "0.5.3", features = ["zeroize"] }
 curve25519-dalek = "4.1.2"
-pqcrypto-kyber = { version = "0.7.6", default-features = false, features = ["std"] }
+pqcrypto-kyber = { version = "0.8.1", default-features = false, features = ["std"] }
 pqcrypto-traits = "0.3.4"
 rsa = "0.9.6"
 rand_core = "0.6.4"
@@ -37,7 +37,6 @@ uniffi = { git = "https://github.com/mozilla/uniffi-rs.git", rev = "13a1c559cb37
 mockall = "0.12.1"
 tokio = { version = "1.38.0", features = ["rt", "macros"] }
 rand = "0.8.5"
-tokio = { version = "1.38.0", features = ["rt", "macros"] }
 
 [lib]
 crate-type = ["cdylib", "staticlib", "lib"]

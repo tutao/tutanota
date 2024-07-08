@@ -12,6 +12,7 @@ use crate::entities::sys::{Session, User};
 #[mockall_double::double]
 use crate::typed_entity_client::TypedEntityClient;
 use crate::generated_id::{GENERATED_ID_BYTES_LENGTH, GeneratedId};
+use crate::key_cache::KeyCache;
 use crate::login::credentials::Credentials;
 use crate::user_facade::UserFacade;
 use crate::util::{array_cast_slice, BASE64_EXT};
@@ -100,7 +101,8 @@ impl LoginFacade {
 
     /// Initialize a session with given user id and return a new UserFacade
     async fn init_session(&self, user: User, user_passphrase_key: Aes256Key) -> Result<UserFacade, LoginError> {
-        let user_facade = UserFacade::new(user);
+        let key_cache = Arc::new(KeyCache::new());
+        let user_facade = UserFacade::new(key_cache, user);
 
         user_facade.unlock_user_group_key(user_passphrase_key)
             .map_err(|e| LoginError::InvalidKey { error_message: format!("Failed to unlock user group key: {}", e.to_string()) })?;
@@ -201,7 +203,7 @@ mod tests {
             login: "login@tuta.io".to_string(),
             user_id: user_id.clone(),
             access_token: access_token.clone(),
-            encrypted_password: access_key.encrypt_data(passphrase.as_bytes(), &iv).unwrap(),
+            encrypted_password: access_key.encrypt_data(passphrase.as_bytes(), iv).unwrap(),
             credential_type: CredentialType::Internal,
         }).await.unwrap();
 

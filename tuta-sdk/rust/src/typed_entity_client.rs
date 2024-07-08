@@ -7,6 +7,7 @@ use crate::entities::Entity;
 use crate::entity_client::EntityClient;
 use crate::entity_client::IdType;
 use crate::generated_id::GeneratedId;
+#[mockall_double::double]
 use crate::instance_mapper::InstanceMapper;
 use crate::metamodel::TypeModel;
 
@@ -16,7 +17,6 @@ pub struct TypedEntityClient {
 }
 
 /// Similar to EntityClient, but return a typed object instead of a generic Map
-#[cfg_attr(test, mockall::automock)]
 impl TypedEntityClient {
     pub(crate) fn new(
         entity_client: Arc<EntityClient>,
@@ -54,7 +54,7 @@ impl TypedEntityClient {
         todo!()
     }
 
-    async fn load_range<T: Entity + Deserialize<'static>>(&self, list_id: &IdTuple, start_id: &str, count: &str, list_load_direction: ListLoadDirection) -> Result<Vec<T>, ApiCallError> {
+    pub async fn load_range<T: Entity + Deserialize<'static>>(&self, list_id: &GeneratedId, start_id: &GeneratedId, count: usize, list_load_direction: ListLoadDirection) -> Result<Vec<T>, ApiCallError> {
         todo!()
     }
 }
@@ -78,11 +78,11 @@ mockall::mock! {
             list_id: &IdTuple,
             start: Option<String>,
         ) -> Result<Vec<T>, ApiCallError>;
-        async fn load_range<T: Entity + Deserialize<'static>>(
+        pub async fn load_range<T: Entity + Deserialize<'static>>(
             &self,
-            list_id: &IdTuple,
-            start_id: &str,
-            count: &str,
+            list_id: &GeneratedId,
+            start_id: &GeneratedId,
+            count: usize,
             list_load_direction: ListLoadDirection,
         ) -> Result<Vec<T>, ApiCallError>;
     }

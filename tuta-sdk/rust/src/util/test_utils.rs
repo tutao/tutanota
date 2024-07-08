@@ -2,7 +2,6 @@
 
 use rand::random;
 use crate::crypto::Aes256Key;
-use crate::crypto::key::GenericAesKey;
 use crate::crypto::randomizer_facade::test_util::make_thread_rng_facade;
 use crate::custom_id::CustomId;
 use crate::entities::sys::{ArchiveRef, ArchiveType, Group, TypeInfo};
