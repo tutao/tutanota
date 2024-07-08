@@ -1,6 +1,6 @@
 import { MobileSystemFacade } from "../common/generatedipc/MobileSystemFacade.js"
 import { PermissionType } from "../common/generatedipc/PermissionType.js"
-import { isAndroidApp } from "../../api/common/Env.js"
+import { isIOSApp } from "../../api/common/Env.js"
 import { TranslationKey } from "../../misc/LanguageViewModel.js"
 import { PermissionError } from "../../api/common/error/PermissionError.js"
 import { Dialog } from "../../gui/base/Dialog.js"
@@ -8,14 +8,21 @@ import { Dialog } from "../../gui/base/Dialog.js"
 export class SystemPermissionHandler {
 	constructor(private readonly systemFacade: MobileSystemFacade) {}
 
-	async queryPermissionsState() {
-		return {
-			isNotificationPermissionGranted: await this.hasPermission(PermissionType.Notification),
-			isBatteryPermissionGranted: isAndroidApp() ? await this.hasPermission(PermissionType.IgnoreBatteryOptimization) : true,
+	async queryPermissionsState(permissions: PermissionType[]) {
+		const permissionsStatus: Map<PermissionType, boolean> = new Map()
+
+		for (const permission of permissions) {
+			permissionsStatus.set(permission, await this.hasPermission(permission))
 		}
+
+		return permissionsStatus
 	}
 
 	async hasPermission(permission: PermissionType): Promise<boolean> {
+		if (permission === PermissionType.IgnoreBatteryOptimization && isIOSApp()) {
+			return true
+		}
+
 		return await this.systemFacade.hasPermission(permission)
 	}
 
