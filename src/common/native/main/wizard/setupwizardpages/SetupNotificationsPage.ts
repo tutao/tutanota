@@ -50,10 +50,15 @@ export class SetupNotificationsPageAttrs implements WizardPageAttrs<Notification
 		visiblityStream.map((isVisible) => {
 			// Redraw the page when the user resumes the app to check for changes in permissions
 			if (isVisible) {
-				this.systemPermissionHandler.queryPermissionsState().then((permissionState) => {
-					this.data = permissionState
-					m.redraw()
-				})
+				this.systemPermissionHandler
+					.queryPermissionsState([PermissionType.Notification, PermissionType.IgnoreBatteryOptimization])
+					.then((permissionState) => {
+						this.data = {
+							isNotificationPermissionGranted: permissionState.get(PermissionType.Notification) ?? false,
+							isBatteryPermissionGranted: permissionState.get(PermissionType.IgnoreBatteryOptimization) ?? false,
+						}
+						m.redraw()
+					})
 			}
 		})
 	}
