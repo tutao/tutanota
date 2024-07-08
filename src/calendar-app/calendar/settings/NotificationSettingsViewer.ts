@@ -12,6 +12,7 @@ import { PushServiceType } from "../../../common/api/common/TutanotaConstants.js
 import { SettingsNotificationTargets, SettingsNotificationTargetsAttrs } from "../../../common/settings/SettingsNotificationTargets.js"
 import { EntityUpdateData, isUpdateForTypeRef } from "../../../common/api/common/utils/EntityUpdateUtils.js"
 import { calendarLocator } from "../../calendarLocator.js"
+import { PushIdentifierAppType } from "../../../common/native/main/NativePushServiceApp.js"
 
 export class NotificationSettingsViewer implements UpdatableSettingsViewer {
 	private currentIdentifier: string | null = null
@@ -73,7 +74,9 @@ export class NotificationSettingsViewer implements UpdatableSettingsViewer {
 		const list = this.user.pushIdentifierList
 
 		if (list) {
-			this.identifiers = await calendarLocator.entityClient.loadAll(PushIdentifierTypeRef, list.list)
+			this.identifiers = (await calendarLocator.entityClient.loadAll(PushIdentifierTypeRef, list.list)).filter(
+				(identifier) => identifier.app === PushIdentifierAppType.Calendar,
+			) // Filter out mail targets
 
 			m.redraw()
 		}

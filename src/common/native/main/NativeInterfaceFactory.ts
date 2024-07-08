@@ -1,5 +1,5 @@
 import { NativeInterfaceMain } from "./NativeInterfaceMain.js"
-import { NativePushServiceApp } from "./NativePushServiceApp.js"
+import { NativePushServiceApp, PushIdentifierAppType } from "./NativePushServiceApp.js"
 import { NativeFileApp } from "../common/FileApp.js"
 import { isBrowser, isElectronClient } from "../../api/common/Env.js"
 import { ProgrammingError } from "../../api/common/error/ProgrammingError.js"
@@ -67,6 +67,7 @@ export function createNativeInterfaces(
 	calendarFacade: CalendarFacade,
 	entityClient: EntityClient,
 	logins: LoginController,
+	app: PushIdentifierAppType,
 ): NativeInterfaces {
 	if (isBrowser()) {
 		throw new ProgrammingError("Tried to make native Interfaces.ts in non-native")
@@ -75,7 +76,7 @@ export function createNativeInterfaces(
 	const dispatcher = new WebGlobalDispatcher(commonNativeFacade, desktopFacade, interWindowEventFacade, mobileFacade)
 	const native = new NativeInterfaceMain(dispatcher)
 	const nativePushFacadeSendDispatcher = new NativePushFacadeSendDispatcher(native)
-	const pushService = new NativePushServiceApp(nativePushFacadeSendDispatcher, logins, cryptoFacade, entityClient, deviceConfig, calendarFacade)
+	const pushService = new NativePushServiceApp(nativePushFacadeSendDispatcher, logins, cryptoFacade, entityClient, deviceConfig, calendarFacade, app)
 	const fileApp = new NativeFileApp(new FileFacadeSendDispatcher(native), new ExportFacadeSendDispatcher(native))
 	const commonSystemFacade = new CommonSystemFacadeSendDispatcher(native)
 	const mobileSystemFacade = new MobileSystemFacadeSendDispatcher(native)
