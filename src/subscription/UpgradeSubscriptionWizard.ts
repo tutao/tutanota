@@ -30,7 +30,8 @@ import { asPaymentInterval, PaymentInterval, PriceAndConfigProvider } from "./Pr
 import { formatNameAndAddress } from "../api/common/utils/CommonFormatter.js"
 import { LoginController } from "../api/main/LoginController.js"
 import { MobilePaymentSubscriptionOwnership } from "../native/common/generatedipc/MobilePaymentSubscriptionOwnership.js"
-import { DialogType } from "../gui/base/Dialog.js"
+import { Dialog, DialogType } from "../gui/base/Dialog.js"
+import { showNotAvailableForFreeDialog } from "../misc/SubscriptionDialogs.js"
 
 assertMainOrNode()
 export type SubscriptionParameters = {
@@ -71,6 +72,12 @@ export type UpgradeSubscriptionData = {
 
 export async function showUpgradeWizard(logins: LoginController, acceptedPlans: AvailablePlanType[] = NewPaidPlans, msg?: TranslationText): Promise<void> {
 	const [customer, accountingInfo] = await Promise.all([logins.getUserController().loadCustomer(), logins.getUserController().loadAccountingInfo()])
+
+	if (!(await locator.appStorePaymentPicker.shouldEnableAppStorePayment(getPaymentMethodType(accountingInfo)))) {
+		Dialog.message("notAvailableInApp_msg")
+		return
+	}
+
 	const priceDataProvider = await PriceAndConfigProvider.getInitializedInstance(null, locator.serviceExecutor, null)
 
 	const prices = priceDataProvider.getRawPricingData()
