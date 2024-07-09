@@ -753,8 +753,8 @@ function registerForMailto() {
 
 function printJobsMessage(domainConfig: DomainConfig) {
 	env.dist &&
-		domainConfig.firstPartyDomain &&
-		console.log(`
+	domainConfig.firstPartyDomain &&
+	console.log(`
 
 ........................................
 ........................................
