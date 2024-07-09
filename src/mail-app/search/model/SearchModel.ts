@@ -141,8 +141,8 @@ export class SearchModel {
 				// we're iterating by event first to only have to sanitize the description once.
 				// that's a smaller savings than one might think because for the vast majority of
 				// events we're probably not matching and looking into the description anyway.
-				eventLoop: for (const [startOfDay, eventsOnDay] of eventsForDays) {
-					for (const event of eventsOnDay) {
+				for (const [startOfDay, eventsOnDay] of eventsForDays) {
+					eventLoop: for (const event of eventsOnDay) {
 						if (!(startOfDay >= restriction.start && startOfDay <= restriction.end)) {
 							continue
 						}
@@ -194,23 +194,17 @@ export class SearchModel {
 			this._lastSearchPromise = Promise.resolve(calendarResult)
 		} else {
 			this._lastSearchPromise = this._searchFacade
-				.search(query, restriction, minSuggestionCount, maxResults ?? undefined)
-				.then((result) => {
-					this.result(result)
-					return result
-				})
-				.catch(
-					ofClass(DbError, (e) => {
-						console.log("DBError while search", e)
-
-						if (isSameTypeRef(MailTypeRef, restriction.type) && !this.indexState().mailIndexEnabled) {
-							console.log("Mail indexing was disabled, ignoring DBError")
-							this.result(null)
-						} else {
-							throw e
-						}
-					}),
-				)
+										  .search(query, restriction, minSuggestionCount, maxResults ?? undefined)
+										  .then((result) => {
+											  this.result(result)
+											  return result
+										  })
+										  .catch(
+											  ofClass(DbError, (e) => {
+												  console.log("DBError while search", e)
+												  throw e
+											  }),
+										  )
 		}
 
 		return this._lastSearchPromise

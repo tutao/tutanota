@@ -1,6 +1,5 @@
 import { assertMainOrNode, isAndroidApp, isApp, isBrowser, isDesktop, isElectronClient, isIOSApp, isTest } from "../common/api/common/Env.js"
 import { EventController } from "../common/api/main/EventController.js"
-import { SearchModel } from "../mail-app/search/model/SearchModel.js"
 import { MailboxDetail, MailModel } from "../common/mailFunctionality/MailModel.js"
 import { ContactModel } from "../common/contactsFunctionality/ContactModel.js"
 import { EntityClient } from "../common/api/common/EntityClient.js"
@@ -58,8 +57,8 @@ import { SendMailModel } from "../common/mailFunctionality/SendMailModel.js"
 import { OfflineIndicatorViewModel } from "../common/gui/base/OfflineIndicatorViewModel.js"
 import { Router, ScopedRouter, ThrottledRouter } from "../common/gui/ScopedRouter.js"
 import { deviceConfig } from "../common/misc/DeviceConfig.js"
-import { SearchViewModel } from "../mail-app/search/view/SearchViewModel.js"
-import { SearchRouter } from "../mail-app/search/view/SearchRouter.js"
+import { CalendarSearchViewModel } from "./calendar/search/view/CalendarSearchViewModel.js"
+import { SearchRouter } from "../common/search/view/SearchRouter.js"
 import { getEnabledMailAddressesWithUser } from "../common/mailFunctionality/CommonMailUtils.js"
 import { Const, FeatureType, GroupType, KdfType } from "../common/api/common/TutanotaConstants.js"
 import { ShareableGroupType } from "../common/sharing/GroupUtils.js"
@@ -105,12 +104,14 @@ import { AppStorePaymentPicker } from "../common/misc/AppStorePaymentPicker.js"
 import { NativeThemeFacade, ThemeController, WebThemeFacade } from "../common/gui/ThemeController.js"
 import type { HtmlSanitizer } from "../common/misc/HtmlSanitizer.js"
 import { theme } from "../common/gui/theme.js"
+import { CalendarSearchModel } from "./calendar/search/model/CalendarSearchModel.js"
+import { SearchIndexStateInfo } from "../common/api/worker/search/SearchTypes.js"
 
 assertMainOrNode()
 
 class CalendarLocator {
 	eventController!: EventController
-	search!: SearchModel
+	calendarSearch!: CalendarSearchModel
 	mailModel!: MailModel
 	contactModel!: ContactModel
 	entityClient!: EntityClient
@@ -202,26 +203,40 @@ class CalendarLocator {
 		}
 	}
 
-	async searchViewModelFactory(): Promise<() => SearchViewModel> {
-		const { SearchViewModel } = await import("../mail-app/search/view/SearchViewModel.js")
+	async searchViewModelFactory(): Promise<() => CalendarSearchViewModel> {
+		const { CalendarSearchViewModel } = await import("./calendar/search/view/CalendarSearchViewModel.js")
 		const redraw = await this.redraw()
 		const searchRouter = await this.scopedSearchRouter()
 		return () => {
-			return new SearchViewModel(
+			return new CalendarSearchViewModel(
 				searchRouter,
-				this.search,
+				this.calendarSearch,
 				this.searchFacade,
-				this.mailModel,
 				this.logins,
-				this.indexerFacade,
 				this.entityClient,
 				this.eventController,
-				null,
 				this.calendarFacade,
 				this.progressTracker,
-				null,
 				redraw,
-				deviceConfig.getMailAutoSelectBehavior(),
+			)
+		}
+	}
+
+	async calendarSearchViewModelFactory(): Promise<() => CalendarSearchViewModel> {
+		const { CalendarSearchViewModel } = await import("./calendar/search/view/CalendarSearchViewModel.js")
+		const redraw = await this.redraw()
+		const searchRouter = await this.scopedSearchRouter()
+		return () => {
+			return new CalendarSearchViewModel(
+				searchRouter,
+				this.calendarSearch,
+				this.searchFacade,
+				this.logins,
+				this.entityClient,
+				this.eventController,
+				this.calendarFacade,
+				this.progressTracker,
+				redraw,
 			)
 		}
 	}
@@ -229,12 +244,12 @@ class CalendarLocator {
 	readonly throttledRouter: lazy<Router> = lazyMemoized(() => new ThrottledRouter())
 
 	readonly scopedSearchRouter: lazyAsync<SearchRouter> = lazyMemoized(async () => {
-		const { SearchRouter } = await import("../mail-app/search/view/SearchRouter.js")
+		const { SearchRouter } = await import("../common/search/view/SearchRouter.js")
 		return new SearchRouter(new ScopedRouter(this.throttledRouter(), "/search"))
 	})
 
 	readonly unscopedSearchRouter: lazyAsync<SearchRouter> = lazyMemoized(async () => {
-		const { SearchRouter } = await import("../mail-app/search/view/SearchRouter.js")
+		const { SearchRouter } = await import("../common/search/view/SearchRouter.js")
 		return new SearchRouter(this.throttledRouter())
 	})
 
@@ -541,7 +556,7 @@ class CalendarLocator {
 		this.logins.init()
 		this.eventController = new EventController(calendarLocator.logins)
 		this.progressTracker = new ProgressTracker()
-		this.search = new SearchModel(this.searchFacade, () => this.calendarEventsRepository())
+		this.calendarSearch = new CalendarSearchModel(this.searchFacade, () => this.calendarEventsRepository())
 		this.entityClient = new EntityClient(restInterface)
 		this.cryptoFacade = cryptoFacade
 		this.cacheStorage = cacheStorage
@@ -550,7 +565,10 @@ class CalendarLocator {
 		this.connectivityModel = new WebsocketConnectivityModel(eventBus)
 		this.mailModel = new MailModel(notifications, this.eventController, this.mailFacade, this.entityClient, this.logins, null, null)
 		this.operationProgressTracker = new OperationProgressTracker()
-		this.infoMessageHandler = new InfoMessageHandler(this.search)
+		this.infoMessageHandler = new InfoMessageHandler((state: SearchIndexStateInfo) => {
+			// calendar does not have index, so nothing needs to be handled here
+			noOp()
+		})
 
 		this.Const = Const
 		if (!isBrowser()) {
