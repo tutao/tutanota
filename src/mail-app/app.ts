@@ -285,7 +285,7 @@ import("./translations/en.js")
 							cache: {
 								drawerAttrsFactory,
 								header: await locator.appHeaderAttrs(),
-								searchViewModelFactory: await locator.searchViewModelFactory(),
+								searchViewModelFactory: await locator.calendarSearchViewModelFactory(),
 							},
 						}
 					},
@@ -745,8 +745,8 @@ function registerForMailto() {
 
 function printJobsMessage(domainConfig: DomainConfig) {
 	env.dist &&
-		domainConfig.firstPartyDomain &&
-		console.log(`
+	domainConfig.firstPartyDomain &&
+	console.log(`
 
 ........................................
 ........................................
