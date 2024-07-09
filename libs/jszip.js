@@ -1,19 +1,18 @@
 /*!
 
-JSZip v3.5.0 - A JavaScript class for generating and reading zip files
+JSZip v3.10.1 - A JavaScript class for generating and reading zip files
 <http://stuartk.com/jszip>
 
 (c) 2009-2016 Stuart Knightley <stuart [at] stuartk.com>
-Dual licenced under the MIT license or GPLv3. See https://raw.github.com/Stuk/jszip/master/LICENSE.markdown.
+Dual licenced under the MIT license or GPLv3. See https://raw.github.com/Stuk/jszip/main/LICENSE.markdown.
 
 JSZip uses the library pako released under the MIT license :
-https://github.com/nodeca/pako/blob/master/LICENSE
+https://github.com/nodeca/pako/blob/main/LICENSE
 */
 
-(function(f){if(typeof exports==="object"&&typeof module!=="undefined"){module.exports=f()}else if(typeof define==="function"&&define.amd){define([],f)}else{var g;if(typeof window!=="undefined"){g=window}else if(typeof global!=="undefined"){g=global}else if(typeof self!=="undefined"){g=self}else{g=this}g.JSZip = f()}})(function(){var define,module,exports;return (function e(t,n,r){function s(o,u){if(!n[o]){if(!t[o]){var a=typeof require=="function"&&require;if(!u&&a)return a(o,!0);if(i)return i(o,!0);var f=new Error("Cannot find module '"+o+"'");throw f.code="MODULE_NOT_FOUND",f}var l=n[o]={exports:{}};t[o][0].call(l.exports,function(e){var n=t[o][1][e];return s(n?n:e)},l,l.exports,e,t,n,r)}return n[o].exports}var i=typeof require=="function"&&require;for(var o=0;o<r.length;o++)s(r[o]);return s})({1:[function(require,module,exports){
-'use strict';
-var utils = require('./utils');
-var support = require('./support');
+(function(f){if(typeof exports==="object"&&typeof module!=="undefined"){module.exports=f();}else if(typeof define==="function"&&define.amd){define([],f);}else {var g;if(typeof window!=="undefined"){g=window;}else if(typeof global!=="undefined"){g=global;}else if(typeof self!=="undefined"){g=self;}else {g=this;}g.JSZip = f();}})(function(){return (function e(t,n,r){function s(o,u){if(!n[o]){if(!t[o]){var a=typeof require=="function"&&require;if(!u&&a)return a(o,!0);if(i)return i(o,!0);var f=new Error("Cannot find module '"+o+"'");throw f.code="MODULE_NOT_FOUND",f}var l=n[o]={exports:{}};t[o][0].call(l.exports,function(e){var n=t[o][1][e];return s(n?n:e)},l,l.exports,e,t,n,r);}return n[o].exports}var i=typeof require=="function"&&require;for(var o=0;o<r.length;o++)s(r[o]);return s})({1:[function(require,module,exports){
+var utils = require("./utils");
+var support = require("./support");
 // private property
 var _keyStr = "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789+/=";
 
@@ -68,7 +67,7 @@ exports.decode = function(input) {
         throw new Error("Invalid base64 input, it looks like a data url.");
     }
 
-    input = input.replace(/[^A-Za-z0-9\+\/\=]/g, "");
+    input = input.replace(/[^A-Za-z0-9+/=]/g, "");
 
     var totalLength = input.length * 3 / 4;
     if(input.charAt(input.length - 1) === _keyStr.charAt(64)) {
@@ -119,13 +118,11 @@ exports.decode = function(input) {
 };
 
 },{"./support":30,"./utils":32}],2:[function(require,module,exports){
-'use strict';
 
 var external = require("./external");
-var DataWorker = require('./stream/DataWorker');
-var DataLengthProbe = require('./stream/DataLengthProbe');
-var Crc32Probe = require('./stream/Crc32Probe');
-var DataLengthProbe = require('./stream/DataLengthProbe');
+var DataWorker = require("./stream/DataWorker");
+var Crc32Probe = require("./stream/Crc32Probe");
+var DataLengthProbe = require("./stream/DataLengthProbe");
 
 /**
  * Represent a compressed object, with everything needed to decompress it.
@@ -149,14 +146,14 @@ CompressedObject.prototype = {
      * Create a worker to get the uncompressed content.
      * @return {GenericWorker} the worker.
      */
-    getContentWorker : function () {
+    getContentWorker: function () {
         var worker = new DataWorker(external.Promise.resolve(this.compressedContent))
-        .pipe(this.compression.uncompressWorker())
-        .pipe(new DataLengthProbe("data_length"));
+            .pipe(this.compression.uncompressWorker())
+            .pipe(new DataLengthProbe("data_length"));
 
         var that = this;
         worker.on("end", function () {
-            if(this.streamInfo['data_length'] !== that.uncompressedSize) {
+            if (this.streamInfo["data_length"] !== that.uncompressedSize) {
                 throw new Error("Bug : uncompressed data size mismatch");
             }
         });
@@ -166,12 +163,12 @@ CompressedObject.prototype = {
      * Create a worker to get the compressed content.
      * @return {GenericWorker} the worker.
      */
-    getCompressedWorker : function () {
+    getCompressedWorker: function () {
         return new DataWorker(external.Promise.resolve(this.compressedContent))
-        .withStreamInfo("compressedSize", this.compressedSize)
-        .withStreamInfo("uncompressedSize", this.uncompressedSize)
-        .withStreamInfo("crc32", this.crc32)
-        .withStreamInfo("compression", this.compression)
+            .withStreamInfo("compressedSize", this.compressedSize)
+            .withStreamInfo("uncompressedSize", this.uncompressedSize)
+            .withStreamInfo("crc32", this.crc32)
+            .withStreamInfo("compression", this.compression)
         ;
     }
 };
@@ -186,35 +183,33 @@ CompressedObject.prototype = {
  */
 CompressedObject.createWorkerFrom = function (uncompressedWorker, compression, compressionOptions) {
     return uncompressedWorker
-    .pipe(new Crc32Probe())
-    .pipe(new DataLengthProbe("uncompressedSize"))
-    .pipe(compression.compressWorker(compressionOptions))
-    .pipe(new DataLengthProbe("compressedSize"))
-    .withStreamInfo("compression", compression);
+        .pipe(new Crc32Probe())
+        .pipe(new DataLengthProbe("uncompressedSize"))
+        .pipe(compression.compressWorker(compressionOptions))
+        .pipe(new DataLengthProbe("compressedSize"))
+        .withStreamInfo("compression", compression);
 };
 
 module.exports = CompressedObject;
 
 },{"./external":6,"./stream/Crc32Probe":25,"./stream/DataLengthProbe":26,"./stream/DataWorker":27}],3:[function(require,module,exports){
-'use strict';
 
 var GenericWorker = require("./stream/GenericWorker");
 
 exports.STORE = {
     magic: "\x00\x00",
-    compressWorker : function (compressionOptions) {
+    compressWorker : function () {
         return new GenericWorker("STORE compression");
     },
     uncompressWorker : function () {
         return new GenericWorker("STORE decompression");
     }
 };
-exports.DEFLATE = require('./flate');
+exports.DEFLATE = require("./flate");
 
 },{"./flate":7,"./stream/GenericWorker":28}],4:[function(require,module,exports){
-'use strict';
 
-var utils = require('./utils');
+var utils = require("./utils");
 
 /**
  * The following functions come from pako, from pako/lib/zlib/crc32.js
@@ -291,7 +286,6 @@ module.exports = function crc32wrapper(input, crc) {
 };
 
 },{"./utils":32}],5:[function(require,module,exports){
-'use strict';
 exports.base64 = false;
 exports.binary = false;
 exports.dir = false;
@@ -304,8 +298,6 @@ exports.unixPermissions = null;
 exports.dosPermissions = null;
 
 },{}],6:[function(require,module,exports){
-/* global Promise */
-'use strict';
 
 // load the global object first:
 // - it should be better integrated in the system (unhandledRejection in node)
@@ -325,8 +317,7 @@ module.exports = {
 };
 
 },{"lie":37}],7:[function(require,module,exports){
-'use strict';
-var USE_TYPEDARRAY = (typeof Uint8Array !== 'undefined') && (typeof Uint16Array !== 'undefined') && (typeof Uint32Array !== 'undefined');
+var USE_TYPEDARRAY = (typeof Uint8Array !== "undefined") && (typeof Uint16Array !== "undefined") && (typeof Uint32Array !== "undefined");
 
 var pako = require("pako");
 var utils = require("./utils");
@@ -412,13 +403,12 @@ exports.uncompressWorker = function () {
 };
 
 },{"./stream/GenericWorker":28,"./utils":32,"pako":38}],8:[function(require,module,exports){
-'use strict';
 
-var utils = require('../utils');
-var GenericWorker = require('../stream/GenericWorker');
-var utf8 = require('../utf8');
-var crc32 = require('../crc32');
-var signature = require('../signature');
+var utils = require("../utils");
+var GenericWorker = require("../stream/GenericWorker");
+var utf8 = require("../utf8");
+var crc32 = require("../crc32");
+var signature = require("../signature");
 
 /**
  * Transform an integer into a string in hexadecimal.
@@ -476,8 +466,7 @@ var generateUnixExternalFileAttr = function (unixPermissions, isDir) {
  * Bit 4     Directory
  * Bit 5     Archive
  */
-var generateDosExternalFileAttr = function (dosPermissions, isDir) {
-
+var generateDosExternalFileAttr = function (dosPermissions) {
     // the dir flag is already set for compatibility
     return (dosPermissions || 0)  & 0x3F;
 };
@@ -493,23 +482,23 @@ var generateDosExternalFileAttr = function (dosPermissions, isDir) {
  * @return {Object} the zip parts.
  */
 var generateZipParts = function(streamInfo, streamedContent, streamingEnded, offset, platform, encodeFileName) {
-    var file = streamInfo['file'],
-    compression = streamInfo['compression'],
-    useCustomEncoding = encodeFileName !== utf8.utf8encode,
-    encodedFileName = utils.transformTo("string", encodeFileName(file.name)),
-    utfEncodedFileName = utils.transformTo("string", utf8.utf8encode(file.name)),
-    comment = file.comment,
-    encodedComment = utils.transformTo("string", encodeFileName(comment)),
-    utfEncodedComment = utils.transformTo("string", utf8.utf8encode(comment)),
-    useUTF8ForFileName = utfEncodedFileName.length !== file.name.length,
-    useUTF8ForComment = utfEncodedComment.length !== comment.length,
-    dosTime,
-    dosDate,
-    extraFields = "",
-    unicodePathExtraField = "",
-    unicodeCommentExtraField = "",
-    dir = file.dir,
-    date = file.date;
+    var file = streamInfo["file"],
+        compression = streamInfo["compression"],
+        useCustomEncoding = encodeFileName !== utf8.utf8encode,
+        encodedFileName = utils.transformTo("string", encodeFileName(file.name)),
+        utfEncodedFileName = utils.transformTo("string", utf8.utf8encode(file.name)),
+        comment = file.comment,
+        encodedComment = utils.transformTo("string", encodeFileName(comment)),
+        utfEncodedComment = utils.transformTo("string", utf8.utf8encode(comment)),
+        useUTF8ForFileName = utfEncodedFileName.length !== file.name.length,
+        useUTF8ForComment = utfEncodedComment.length !== comment.length,
+        dosTime,
+        dosDate,
+        extraFields = "",
+        unicodePathExtraField = "",
+        unicodeCommentExtraField = "",
+        dir = file.dir,
+        date = file.date;
 
 
     var dataInfo = {
@@ -521,9 +510,9 @@ var generateZipParts = function(streamInfo, streamedContent, streamingEnded, off
     // if the content is streamed, the sizes/crc32 are only available AFTER
     // the end of the stream.
     if (!streamedContent || streamingEnded) {
-        dataInfo.crc32 = streamInfo['crc32'];
-        dataInfo.compressedSize = streamInfo['compressedSize'];
-        dataInfo.uncompressedSize = streamInfo['uncompressedSize'];
+        dataInfo.crc32 = streamInfo["crc32"];
+        dataInfo.compressedSize = streamInfo["compressedSize"];
+        dataInfo.uncompressedSize = streamInfo["uncompressedSize"];
     }
 
     var bitflag = 0;
@@ -550,7 +539,7 @@ var generateZipParts = function(streamInfo, streamedContent, streamingEnded, off
         extFileAttr |= generateUnixExternalFileAttr(file.unixPermissions, dir);
     } else { // DOS or other, fallback to DOS
         versionMadeBy = 0x0014; // DOS, version 2.0
-        extFileAttr |= generateDosExternalFileAttr(file.dosPermissions, dir);
+        extFileAttr |= generateDosExternalFileAttr(file.dosPermissions);
     }
 
     // date
@@ -715,11 +704,11 @@ var generateDataDescriptors = function (streamInfo) {
     var descriptor = "";
     descriptor = signature.DATA_DESCRIPTOR +
         // crc-32                          4 bytes
-        decToHex(streamInfo['crc32'], 4) +
+        decToHex(streamInfo["crc32"], 4) +
         // compressed size                 4 bytes
-        decToHex(streamInfo['compressedSize'], 4) +
+        decToHex(streamInfo["compressedSize"], 4) +
         // uncompressed size               4 bytes
-        decToHex(streamInfo['uncompressedSize'], 4);
+        decToHex(streamInfo["uncompressedSize"], 4);
 
     return descriptor;
 };
@@ -798,9 +787,9 @@ ZipFileWorker.prototype.push = function (chunk) {
  */
 ZipFileWorker.prototype.openedSource = function (streamInfo) {
     this.currentSourceOffset = this.bytesWritten;
-    this.currentFile = streamInfo['file'].name;
+    this.currentFile = streamInfo["file"].name;
 
-    var streamedContent = this.streamFiles && !streamInfo['file'].dir;
+    var streamedContent = this.streamFiles && !streamInfo["file"].dir;
 
     // don't stream folders (because they don't have any content)
     if(streamedContent) {
@@ -821,7 +810,7 @@ ZipFileWorker.prototype.openedSource = function (streamInfo) {
  */
 ZipFileWorker.prototype.closedSource = function (streamInfo) {
     this.accumulate = false;
-    var streamedContent = this.streamFiles && !streamInfo['file'].dir;
+    var streamedContent = this.streamFiles && !streamInfo["file"].dir;
     var record = generateZipParts(streamInfo, streamedContent, true, this.currentSourceOffset, this.zipPlatform, this.encodeFileName);
 
     this.dirRecords.push(record.dirRecord);
@@ -887,10 +876,10 @@ ZipFileWorker.prototype.registerPrevious = function (previous) {
     this._sources.push(previous);
     var self = this;
 
-    previous.on('data', function (chunk) {
+    previous.on("data", function (chunk) {
         self.processChunk(chunk);
     });
-    previous.on('end', function () {
+    previous.on("end", function () {
         self.closedSource(self.previous.streamInfo);
         if(self._sources.length) {
             self.prepareNextSource();
@@ -898,7 +887,7 @@ ZipFileWorker.prototype.registerPrevious = function (previous) {
             self.end();
         }
     });
-    previous.on('error', function (e) {
+    previous.on("error", function (e) {
         self.error(e);
     });
     return this;
@@ -954,10 +943,9 @@ ZipFileWorker.prototype.lock = function () {
 module.exports = ZipFileWorker;
 
 },{"../crc32":4,"../signature":23,"../stream/GenericWorker":28,"../utf8":31,"../utils":32}],9:[function(require,module,exports){
-'use strict';
 
-var compressions = require('../compressions');
-var ZipFileWorker = require('./ZipFileWorker');
+var compressions = require("../compressions");
+var ZipFileWorker = require("./ZipFileWorker");
 
 /**
  * Find the compression to use.
@@ -994,15 +982,15 @@ exports.generateWorker = function (zip, options, comment) {
             var dir = file.dir, date = file.date;
 
             file._compressWorker(compression, compressionOptions)
-            .withStreamInfo("file", {
-                name : relativePath,
-                dir : dir,
-                date : date,
-                comment : file.comment || "",
-                unixPermissions : file.unixPermissions,
-                dosPermissions : file.dosPermissions
-            })
-            .pipe(zipFileWorker);
+                .withStreamInfo("file", {
+                    name : relativePath,
+                    dir : dir,
+                    date : date,
+                    comment : file.comment || "",
+                    unixPermissions : file.unixPermissions,
+                    dosPermissions : file.dosPermissions
+                })
+                .pipe(zipFileWorker);
         });
         zipFileWorker.entriesCount = entriesCount;
     } catch (e) {
@@ -1013,14 +1001,13 @@ exports.generateWorker = function (zip, options, comment) {
 };
 
 },{"../compressions":3,"./ZipFileWorker":8}],10:[function(require,module,exports){
-'use strict';
 
 /**
  * Representation a of zip file in js
  * @constructor
  */
 function JSZip() {
-    // if this constructor is used without `new`, it adds `new` before itself:
+    // if this constructor is used without `new`, it adds `new` before itself:
     if(!(this instanceof JSZip)) {
         return new JSZip();
     }
@@ -1034,7 +1021,10 @@ function JSZip() {
     //   "folder/" : {...},
     //   "folder/data.txt" : {...}
     // }
-    this.files = {};
+    // NOTE: we use a null prototype because we do not
+    // want filenames like "toString" coming from a zip file
+    // to overwrite methods and attributes in a normal Object.
+    this.files = Object.create(null);
 
     this.comment = null;
 
@@ -1050,14 +1040,14 @@ function JSZip() {
         return newObj;
     };
 }
-JSZip.prototype = require('./object');
-JSZip.prototype.loadAsync = require('./load');
-JSZip.support = require('./support');
-JSZip.defaults = require('./defaults');
+JSZip.prototype = require("./object");
+JSZip.prototype.loadAsync = require("./load");
+JSZip.support = require("./support");
+JSZip.defaults = require("./defaults");
 
 // TODO find a better way to handle this version,
 // a require('package.json').version doesn't work with webpack, see #327
-JSZip.version = "3.5.0";
+JSZip.version = "3.10.1";
 
 JSZip.loadAsync = function (content, options) {
     return new JSZip().loadAsync(content, options);
@@ -1067,13 +1057,11 @@ JSZip.external = require("./external");
 module.exports = JSZip;
 
 },{"./defaults":5,"./external":6,"./load":11,"./object":15,"./support":30}],11:[function(require,module,exports){
-'use strict';
-var utils = require('./utils');
+var utils = require("./utils");
 var external = require("./external");
-var utf8 = require('./utf8');
-var utils = require('./utils');
-var ZipEntries = require('./zipEntries');
-var Crc32Probe = require('./stream/Crc32Probe');
+var utf8 = require("./utf8");
+var ZipEntries = require("./zipEntries");
+var Crc32Probe = require("./stream/Crc32Probe");
 var nodejsUtils = require("./nodejsUtils");
 
 /**
@@ -1087,18 +1075,18 @@ function checkEntryCRC32(zipEntry) {
         worker.on("error", function (e) {
             reject(e);
         })
-        .on("end", function () {
-            if (worker.streamInfo.crc32 !== zipEntry.decompressed.crc32) {
-                reject(new Error("Corrupted zip : CRC32 mismatch"));
-            } else {
-                resolve();
-            }
-        })
-        .resume();
+            .on("end", function () {
+                if (worker.streamInfo.crc32 !== zipEntry.decompressed.crc32) {
+                    reject(new Error("Corrupted zip : CRC32 mismatch"));
+                } else {
+                    resolve();
+                }
+            })
+            .resume();
     });
 }
 
-module.exports = function(data, options) {
+module.exports = function (data, options) {
     var zip = this;
     options = utils.extend(options || {}, {
         base64: false,
@@ -1113,48 +1101,54 @@ module.exports = function(data, options) {
     }
 
     return utils.prepareContent("the loaded zip file", data, true, options.optimizedBinaryString, options.base64)
-    .then(function(data) {
-        var zipEntries = new ZipEntries(options);
-        zipEntries.load(data);
-        return zipEntries;
-    }).then(function checkCRC32(zipEntries) {
-        var promises = [external.Promise.resolve(zipEntries)];
-        var files = zipEntries.files;
-        if (options.checkCRC32) {
-            for (var i = 0; i < files.length; i++) {
-                promises.push(checkEntryCRC32(files[i]));
+        .then(function (data) {
+            var zipEntries = new ZipEntries(options);
+            zipEntries.load(data);
+            return zipEntries;
+        }).then(function checkCRC32(zipEntries) {
+            var promises = [external.Promise.resolve(zipEntries)];
+            var files = zipEntries.files;
+            if (options.checkCRC32) {
+                for (var i = 0; i < files.length; i++) {
+                    promises.push(checkEntryCRC32(files[i]));
+                }
             }
-        }
-        return external.Promise.all(promises);
-    }).then(function addFiles(results) {
-        var zipEntries = results.shift();
-        var files = zipEntries.files;
-        for (var i = 0; i < files.length; i++) {
-            var input = files[i];
-            zip.file(input.fileNameStr, input.decompressed, {
-                binary: true,
-                optimizedBinaryString: true,
-                date: input.date,
-                dir: input.dir,
-                comment : input.fileCommentStr.length ? input.fileCommentStr : null,
-                unixPermissions : input.unixPermissions,
-                dosPermissions : input.dosPermissions,
-                createFolders: options.createFolders
-            });
-        }
-        if (zipEntries.zipComment.length) {
-            zip.comment = zipEntries.zipComment;
-        }
+            return external.Promise.all(promises);
+        }).then(function addFiles(results) {
+            var zipEntries = results.shift();
+            var files = zipEntries.files;
+            for (var i = 0; i < files.length; i++) {
+                var input = files[i];
 
-        return zip;
-    });
+                var unsafeName = input.fileNameStr;
+                var safeName = utils.resolve(input.fileNameStr);
+
+                zip.file(safeName, input.decompressed, {
+                    binary: true,
+                    optimizedBinaryString: true,
+                    date: input.date,
+                    dir: input.dir,
+                    comment: input.fileCommentStr.length ? input.fileCommentStr : null,
+                    unixPermissions: input.unixPermissions,
+                    dosPermissions: input.dosPermissions,
+                    createFolders: options.createFolders
+                });
+                if (!input.dir) {
+                    zip.file(safeName).unsafeOriginalName = unsafeName;
+                }
+            }
+            if (zipEntries.zipComment.length) {
+                zip.comment = zipEntries.zipComment;
+            }
+
+            return zip;
+        });
 };
 
 },{"./external":6,"./nodejsUtils":14,"./stream/Crc32Probe":25,"./utf8":31,"./utils":32,"./zipEntries":33}],12:[function(require,module,exports){
-"use strict";
 
-var utils = require('../utils');
-var GenericWorker = require('../stream/GenericWorker');
+var utils = require("../utils");
+var GenericWorker = require("../stream/GenericWorker");
 
 /**
  * A worker that use a nodejs stream as source.
@@ -1180,28 +1174,28 @@ NodejsStreamInputAdapter.prototype._bindStream = function (stream) {
     this._stream = stream;
     stream.pause();
     stream
-    .on("data", function (chunk) {
-        self.push({
-            data: chunk,
-            meta : {
-                percent : 0
+        .on("data", function (chunk) {
+            self.push({
+                data: chunk,
+                meta : {
+                    percent : 0
+                }
+            });
+        })
+        .on("error", function (e) {
+            if(self.isPaused) {
+                this.generatedError = e;
+            } else {
+                self.error(e);
+            }
+        })
+        .on("end", function () {
+            if(self.isPaused) {
+                self._upstreamEnded = true;
+            } else {
+                self.end();
             }
         });
-    })
-    .on("error", function (e) {
-        if(self.isPaused) {
-            this.generatedError = e;
-        } else {
-            self.error(e);
-        }
-    })
-    .on("end", function () {
-        if(self.isPaused) {
-            self._upstreamEnded = true;
-        } else {
-            self.end();
-        }
-    });
 };
 NodejsStreamInputAdapter.prototype.pause = function () {
     if(!GenericWorker.prototype.pause.call(this)) {
@@ -1227,11 +1221,10 @@ NodejsStreamInputAdapter.prototype.resume = function () {
 module.exports = NodejsStreamInputAdapter;
 
 },{"../stream/GenericWorker":28,"../utils":32}],13:[function(require,module,exports){
-'use strict';
 
-var Readable = require('readable-stream').Readable;
+var Readable = require("readable-stream").Readable;
 
-var utils = require('../utils');
+var utils = require("../utils");
 utils.inherits(NodejsStreamOutputAdapter, Readable);
 
 /**
@@ -1255,12 +1248,12 @@ function NodejsStreamOutputAdapter(helper, options, updateCb) {
             updateCb(meta);
         }
     })
-    .on("error", function(e) {
-        self.emit('error', e);
-    })
-    .on("end", function () {
-        self.push(null);
-    });
+        .on("error", function(e) {
+            self.emit("error", e);
+        })
+        .on("end", function () {
+            self.push(null);
+        });
 }
 
 
@@ -1271,7 +1264,6 @@ NodejsStreamOutputAdapter.prototype._read = function() {
 module.exports = NodejsStreamOutputAdapter;
 
 },{"../utils":32,"readable-stream":16}],14:[function(require,module,exports){
-'use strict';
 
 module.exports = {
     /**
@@ -1330,14 +1322,13 @@ module.exports = {
 };
 
 },{}],15:[function(require,module,exports){
-'use strict';
-var utf8 = require('./utf8');
-var utils = require('./utils');
-var GenericWorker = require('./stream/GenericWorker');
-var StreamHelper = require('./stream/StreamHelper');
-var defaults = require('./defaults');
-var CompressedObject = require('./compressedObject');
-var ZipObject = require('./zipObject');
+var utf8 = require("./utf8");
+var utils = require("./utils");
+var GenericWorker = require("./stream/GenericWorker");
+var StreamHelper = require("./stream/StreamHelper");
+var defaults = require("./defaults");
+var CompressedObject = require("./compressedObject");
+var ZipObject = require("./zipObject");
 var generate = require("./generate");
 var nodejsUtils = require("./nodejsUtils");
 var NodejsStreamInputAdapter = require("./nodejs/NodejsStreamInputAdapter");
@@ -1439,10 +1430,10 @@ var fileAdd = function(name, data, originalOptions) {
  * @return {string} the parent folder, or ""
  */
 var parentFolder = function (path) {
-    if (path.slice(-1) === '/') {
+    if (path.slice(-1) === "/") {
         path = path.substring(0, path.length - 1);
     }
-    var lastSlash = path.lastIndexOf('/');
+    var lastSlash = path.lastIndexOf("/");
     return (lastSlash > 0) ? path.substring(0, lastSlash) : "";
 };
 
@@ -1469,7 +1460,7 @@ var forceTrailingSlash = function(path) {
  * @return {Object} the new folder.
  */
 var folderAdd = function(name, createFolders) {
-    createFolders = (typeof createFolders !== 'undefined') ? createFolders : defaults.createFolders;
+    createFolders = (typeof createFolders !== "undefined") ? createFolders : defaults.createFolders;
 
     name = forceTrailingSlash(name);
 
@@ -1511,10 +1502,9 @@ var out = {
      */
     forEach: function(cb) {
         var filename, relativePath, file;
+        // ignore warning about unwanted properties because this.files is a null prototype object
+        /* eslint-disable-next-line guard-for-in */
         for (filename in this.files) {
-            if (!this.files.hasOwnProperty(filename)) {
-                continue;
-            }
             file = this.files[filename];
             relativePath = filename.slice(this.root.length, filename.length);
             if (relativePath && filename.slice(0, this.root.length) === this.root) { // the file is in the current root
@@ -1633,13 +1623,9 @@ var out = {
     },
 
     /**
-     * Generate the complete zip file
-     * @param {Object} options the options to generate the zip file :
-     * - compression, "STORE" by default.
-     * - type, "base64" by default. Values are : string, base64, uint8array, arraybuffer, blob.
-     * @return {String|Uint8Array|ArrayBuffer|Buffer|Blob} the zip file
+     * @deprecated This method has been removed in JSZip 3.0, please check the upgrade guide.
      */
-    generate: function(options) {
+    generate: function() {
         throw new Error("This method has been removed in JSZip 3.0, please check the upgrade guide.");
     },
 
@@ -1651,53 +1637,53 @@ var out = {
      * @return {StreamHelper} the streamed zip file.
      */
     generateInternalStream: function(options) {
-      var worker, opts = {};
-      try {
-          opts = utils.extend(options || {}, {
-              streamFiles: false,
-              compression: "STORE",
-              compressionOptions : null,
-              type: "",
-              platform: "DOS",
-              comment: null,
-              mimeType: 'application/zip',
-              encodeFileName: utf8.utf8encode
-          });
+        var worker, opts = {};
+        try {
+            opts = utils.extend(options || {}, {
+                streamFiles: false,
+                compression: "STORE",
+                compressionOptions : null,
+                type: "",
+                platform: "DOS",
+                comment: null,
+                mimeType: "application/zip",
+                encodeFileName: utf8.utf8encode
+            });
 
-          opts.type = opts.type.toLowerCase();
-          opts.compression = opts.compression.toUpperCase();
+            opts.type = opts.type.toLowerCase();
+            opts.compression = opts.compression.toUpperCase();
 
-          // "binarystring" is preferred but the internals use "string".
-          if(opts.type === "binarystring") {
-            opts.type = "string";
-          }
+            // "binarystring" is preferred but the internals use "string".
+            if(opts.type === "binarystring") {
+                opts.type = "string";
+            }
 
-          if (!opts.type) {
-            throw new Error("No output type specified.");
-          }
+            if (!opts.type) {
+                throw new Error("No output type specified.");
+            }
 
-          utils.checkSupport(opts.type);
+            utils.checkSupport(opts.type);
 
-          // accept nodejs `process.platform`
-          if(
-              opts.platform === 'darwin' ||
-              opts.platform === 'freebsd' ||
-              opts.platform === 'linux' ||
-              opts.platform === 'sunos'
-          ) {
-              opts.platform = "UNIX";
-          }
-          if (opts.platform === 'win32') {
-              opts.platform = "DOS";
-          }
+            // accept nodejs `process.platform`
+            if(
+                opts.platform === "darwin" ||
+                opts.platform === "freebsd" ||
+                opts.platform === "linux" ||
+                opts.platform === "sunos"
+            ) {
+                opts.platform = "UNIX";
+            }
+            if (opts.platform === "win32") {
+                opts.platform = "DOS";
+            }
 
-          var comment = opts.comment || this.comment || "";
-          worker = generate.generateWorker(this, opts, comment);
-      } catch (e) {
-        worker = new GenericWorker("error");
-        worker.error(e);
-      }
-      return new StreamHelper(worker, opts.type || "string", opts.mimeType);
+            var comment = opts.comment || this.comment || "";
+            worker = generate.generateWorker(this, opts, comment);
+        } catch (e) {
+            worker = new GenericWorker("error");
+            worker.error(e);
+        }
+        return new StreamHelper(worker, opts.type || "string", opts.mimeType);
     },
     /**
      * Generate the complete zip file asynchronously.
@@ -1732,15 +1718,14 @@ module.exports = out;
 module.exports = require("stream");
 
 },{"stream":undefined}],17:[function(require,module,exports){
-'use strict';
-var DataReader = require('./DataReader');
-var utils = require('../utils');
+var DataReader = require("./DataReader");
+var utils = require("../utils");
 
 function ArrayReader(data) {
     DataReader.call(this, data);
-	for(var i = 0; i < this.data.length; i++) {
-		data[i] = data[i] & 0xFF;
-	}
+    for(var i = 0; i < this.data.length; i++) {
+        data[i] = data[i] & 0xFF;
+    }
 }
 utils.inherits(ArrayReader, DataReader);
 /**
@@ -1791,8 +1776,7 @@ ArrayReader.prototype.readData = function(size) {
 module.exports = ArrayReader;
 
 },{"../utils":32,"./DataReader":18}],18:[function(require,module,exports){
-'use strict';
-var utils = require('../utils');
+var utils = require("../utils");
 
 function DataReader(data) {
     this.data = data; // type : see implementation
@@ -1841,7 +1825,7 @@ DataReader.prototype = {
      * @param {number} i the index to use.
      * @return {number} a byte.
      */
-    byteAt: function(i) {
+    byteAt: function() {
         // see implementations
     },
     /**
@@ -1872,7 +1856,7 @@ DataReader.prototype = {
      * @param {number} size the number of bytes to read.
      * @return {Object} the raw data, implementation specific.
      */
-    readData: function(size) {
+    readData: function() {
         // see implementations
     },
     /**
@@ -1880,7 +1864,7 @@ DataReader.prototype = {
      * @param {string} sig the signature to find.
      * @return {number} the index of the last occurrence, -1 if not found.
      */
-    lastIndexOfSignature: function(sig) {
+    lastIndexOfSignature: function() {
         // see implementations
     },
     /**
@@ -1888,7 +1872,7 @@ DataReader.prototype = {
      * @param {string} sig the expected signature
      * @return {boolean} true if the signature matches, false otherwise.
      */
-    readAndCheckSignature: function(sig) {
+    readAndCheckSignature: function() {
         // see implementations
     },
     /**
@@ -1898,20 +1882,19 @@ DataReader.prototype = {
     readDate: function() {
         var dostime = this.readInt(4);
         return new Date(Date.UTC(
-        ((dostime >> 25) & 0x7f) + 1980, // year
-        ((dostime >> 21) & 0x0f) - 1, // month
-        (dostime >> 16) & 0x1f, // day
-        (dostime >> 11) & 0x1f, // hour
-        (dostime >> 5) & 0x3f, // minute
-        (dostime & 0x1f) << 1)); // second
+            ((dostime >> 25) & 0x7f) + 1980, // year
+            ((dostime >> 21) & 0x0f) - 1, // month
+            (dostime >> 16) & 0x1f, // day
+            (dostime >> 11) & 0x1f, // hour
+            (dostime >> 5) & 0x3f, // minute
+            (dostime & 0x1f) << 1)); // second
     }
 };
 module.exports = DataReader;
 
 },{"../utils":32}],19:[function(require,module,exports){
-'use strict';
-var Uint8ArrayReader = require('./Uint8ArrayReader');
-var utils = require('../utils');
+var Uint8ArrayReader = require("./Uint8ArrayReader");
+var utils = require("../utils");
 
 function NodeBufferReader(data) {
     Uint8ArrayReader.call(this, data);
@@ -1930,9 +1913,8 @@ NodeBufferReader.prototype.readData = function(size) {
 module.exports = NodeBufferReader;
 
 },{"../utils":32,"./Uint8ArrayReader":21}],20:[function(require,module,exports){
-'use strict';
-var DataReader = require('./DataReader');
-var utils = require('../utils');
+var DataReader = require("./DataReader");
+var utils = require("../utils");
 
 function StringReader(data) {
     DataReader.call(this, data);
@@ -1970,9 +1952,8 @@ StringReader.prototype.readData = function(size) {
 module.exports = StringReader;
 
 },{"../utils":32,"./DataReader":18}],21:[function(require,module,exports){
-'use strict';
-var ArrayReader = require('./ArrayReader');
-var utils = require('../utils');
+var ArrayReader = require("./ArrayReader");
+var utils = require("../utils");
 
 function Uint8ArrayReader(data) {
     ArrayReader.call(this, data);
@@ -1994,14 +1975,13 @@ Uint8ArrayReader.prototype.readData = function(size) {
 module.exports = Uint8ArrayReader;
 
 },{"../utils":32,"./ArrayReader":17}],22:[function(require,module,exports){
-'use strict';
 
-var utils = require('../utils');
-var support = require('../support');
-var ArrayReader = require('./ArrayReader');
-var StringReader = require('./StringReader');
-var NodeBufferReader = require('./NodeBufferReader');
-var Uint8ArrayReader = require('./Uint8ArrayReader');
+var utils = require("../utils");
+var support = require("../support");
+var ArrayReader = require("./ArrayReader");
+var StringReader = require("./StringReader");
+var NodeBufferReader = require("./NodeBufferReader");
+var Uint8ArrayReader = require("./Uint8ArrayReader");
 
 /**
  * Create a reader adapted to the data.
@@ -2024,7 +2004,6 @@ module.exports = function (data) {
 };
 
 },{"../support":30,"../utils":32,"./ArrayReader":17,"./NodeBufferReader":19,"./StringReader":20,"./Uint8ArrayReader":21}],23:[function(require,module,exports){
-'use strict';
 exports.LOCAL_FILE_HEADER = "PK\x03\x04";
 exports.CENTRAL_FILE_HEADER = "PK\x01\x02";
 exports.CENTRAL_DIRECTORY_END = "PK\x05\x06";
@@ -2033,10 +2012,9 @@ exports.ZIP64_CENTRAL_DIRECTORY_END = "PK\x06\x06";
 exports.DATA_DESCRIPTOR = "PK\x07\x08";
 
 },{}],24:[function(require,module,exports){
-'use strict';
 
-var GenericWorker = require('./GenericWorker');
-var utils = require('../utils');
+var GenericWorker = require("./GenericWorker");
+var utils = require("../utils");
 
 /**
  * A worker which convert chunks to a specified type.
@@ -2061,11 +2039,10 @@ ConvertWorker.prototype.processChunk = function (chunk) {
 module.exports = ConvertWorker;
 
 },{"../utils":32,"./GenericWorker":28}],25:[function(require,module,exports){
-'use strict';
 
-var GenericWorker = require('./GenericWorker');
-var crc32 = require('../crc32');
-var utils = require('../utils');
+var GenericWorker = require("./GenericWorker");
+var crc32 = require("../crc32");
+var utils = require("../utils");
 
 /**
  * A worker which calculate the crc32 of the data flowing through.
@@ -2087,10 +2064,9 @@ Crc32Probe.prototype.processChunk = function (chunk) {
 module.exports = Crc32Probe;
 
 },{"../crc32":4,"../utils":32,"./GenericWorker":28}],26:[function(require,module,exports){
-'use strict';
 
-var utils = require('../utils');
-var GenericWorker = require('./GenericWorker');
+var utils = require("../utils");
+var GenericWorker = require("./GenericWorker");
 
 /**
  * A worker which calculate the total length of the data flowing through.
@@ -2118,10 +2094,9 @@ module.exports = DataLengthProbe;
 
 
 },{"../utils":32,"./GenericWorker":28}],27:[function(require,module,exports){
-'use strict';
 
-var utils = require('../utils');
-var GenericWorker = require('./GenericWorker');
+var utils = require("../utils");
+var GenericWorker = require("./GenericWorker");
 
 // the size of the generated chunks
 // TODO expose this as a public variable
@@ -2212,15 +2187,15 @@ DataWorker.prototype._tick = function() {
         return this.end();
     } else {
         switch(this.type) {
-            case "string":
-                data = this.data.substring(this.index, nextIndex);
+        case "string":
+            data = this.data.substring(this.index, nextIndex);
             break;
-            case "uint8array":
-                data = this.data.subarray(this.index, nextIndex);
+        case "uint8array":
+            data = this.data.subarray(this.index, nextIndex);
             break;
-            case "array":
-            case "nodebuffer":
-                data = this.data.slice(this.index, nextIndex);
+        case "array":
+        case "nodebuffer":
+            data = this.data.slice(this.index, nextIndex);
             break;
         }
         this.index = nextIndex;
@@ -2236,7 +2211,6 @@ DataWorker.prototype._tick = function() {
 module.exports = DataWorker;
 
 },{"../utils":32,"./GenericWorker":28}],28:[function(require,module,exports){
-'use strict';
 
 /**
  * A worker that does nothing but passing chunks to the next one. This is like
@@ -2269,9 +2243,9 @@ function GenericWorker(name) {
     this.isLocked = false;
     // the event listeners
     this._listeners = {
-        'data':[],
-        'end':[],
-        'error':[]
+        "data":[],
+        "end":[],
+        "error":[]
     };
     // the previous worker, if any
     this.previous = null;
@@ -2388,13 +2362,13 @@ GenericWorker.prototype = {
         this.mergeStreamInfo();
         this.previous =  previous;
         var self = this;
-        previous.on('data', function (chunk) {
+        previous.on("data", function (chunk) {
             self.processChunk(chunk);
         });
-        previous.on('end', function () {
+        previous.on("end", function () {
             self.end();
         });
-        previous.on('error', function (e) {
+        previous.on("error", function (e) {
             self.error(e);
         });
         return this;
@@ -2463,7 +2437,7 @@ GenericWorker.prototype = {
      */
     mergeStreamInfo : function () {
         for(var key in this.extraStreamInfo) {
-            if (!this.extraStreamInfo.hasOwnProperty(key)) {
+            if (!Object.prototype.hasOwnProperty.call(this.extraStreamInfo, key)) {
                 continue;
             }
             this.streamInfo[key] = this.extraStreamInfo[key];
@@ -2501,20 +2475,21 @@ GenericWorker.prototype = {
 module.exports = GenericWorker;
 
 },{}],29:[function(require,module,exports){
-'use strict';
 
-var utils = require('../utils');
-var ConvertWorker = require('./ConvertWorker');
-var GenericWorker = require('./GenericWorker');
-var base64 = require('../base64');
+var utils = require("../utils");
+var ConvertWorker = require("./ConvertWorker");
+var GenericWorker = require("./GenericWorker");
+var base64 = require("../base64");
 var support = require("../support");
 var external = require("../external");
 
 var NodejsStreamOutputAdapter = null;
 if (support.nodestream) {
     try {
-        NodejsStreamOutputAdapter = require('../nodejs/NodejsStreamOutputAdapter');
-    } catch(e) {}
+        NodejsStreamOutputAdapter = require("../nodejs/NodejsStreamOutputAdapter");
+    } catch(e) {
+        // ignore
+    }
 }
 
 /**
@@ -2528,12 +2503,12 @@ if (support.nodestream) {
  */
 function transformZipOutput(type, content, mimeType) {
     switch(type) {
-        case "blob" :
-            return utils.newBlob(utils.transformTo("arraybuffer", content), mimeType);
-        case "base64" :
-            return base64.encode(content);
-        default :
-            return utils.transformTo(type, content);
+    case "blob" :
+        return utils.newBlob(utils.transformTo("arraybuffer", content), mimeType);
+    case "base64" :
+        return base64.encode(content);
+    default :
+        return utils.transformTo(type, content);
     }
 }
 
@@ -2550,21 +2525,21 @@ function concat (type, dataArray) {
         totalLength += dataArray[i].length;
     }
     switch(type) {
-        case "string":
-            return dataArray.join("");
-          case "array":
-            return Array.prototype.concat.apply([], dataArray);
-        case "uint8array":
-            res = new Uint8Array(totalLength);
-            for(i = 0; i < dataArray.length; i++) {
-                res.set(dataArray[i], index);
-                index += dataArray[i].length;
-            }
-            return res;
-        case "nodebuffer":
-            return Buffer.concat(dataArray);
-        default:
-            throw new Error("concat : unsupported type '"  + type + "'");
+    case "string":
+        return dataArray.join("");
+    case "array":
+        return Array.prototype.concat.apply([], dataArray);
+    case "uint8array":
+        res = new Uint8Array(totalLength);
+        for(i = 0; i < dataArray.length; i++) {
+            res.set(dataArray[i], index);
+            index += dataArray[i].length;
+        }
+        return res;
+    case "nodebuffer":
+        return Buffer.concat(dataArray);
+    default:
+        throw new Error("concat : unsupported type '"  + type + "'");
     }
 }
 
@@ -2584,26 +2559,26 @@ function accumulate(helper, updateCallback) {
             resultType = helper._outputType,
             mimeType = helper._mimeType;
         helper
-        .on('data', function (data, meta) {
-            dataArray.push(data);
-            if(updateCallback) {
-                updateCallback(meta);
-            }
-        })
-        .on('error', function(err) {
-            dataArray = [];
-            reject(err);
-        })
-        .on('end', function (){
-            try {
-                var result = transformZipOutput(resultType, concat(chunkType, dataArray), mimeType);
-                resolve(result);
-            } catch (e) {
-                reject(e);
-            }
-            dataArray = [];
-        })
-        .resume();
+            .on("data", function (data, meta) {
+                dataArray.push(data);
+                if(updateCallback) {
+                    updateCallback(meta);
+                }
+            })
+            .on("error", function(err) {
+                dataArray = [];
+                reject(err);
+            })
+            .on("end", function (){
+                try {
+                    var result = transformZipOutput(resultType, concat(chunkType, dataArray), mimeType);
+                    resolve(result);
+                } catch (e) {
+                    reject(e);
+                }
+                dataArray = [];
+            })
+            .resume();
     });
 }
 
@@ -2617,12 +2592,12 @@ function accumulate(helper, updateCallback) {
 function StreamHelper(worker, outputType, mimeType) {
     var internalType = outputType;
     switch(outputType) {
-        case "blob":
-        case "arraybuffer":
-            internalType = "uint8array";
+    case "blob":
+    case "arraybuffer":
+        internalType = "uint8array";
         break;
-        case "base64":
-            internalType = "string";
+    case "base64":
+        internalType = "string";
         break;
     }
 
@@ -2715,7 +2690,6 @@ StreamHelper.prototype = {
 module.exports = StreamHelper;
 
 },{"../base64":1,"../external":6,"../nodejs/NodejsStreamOutputAdapter":13,"../support":30,"../utils":32,"./ConvertWorker":24,"./GenericWorker":28}],30:[function(require,module,exports){
-'use strict';
 
 exports.base64 = true;
 exports.array = true;
@@ -2740,7 +2714,7 @@ else {
             var Builder = self.BlobBuilder || self.WebKitBlobBuilder || self.MozBlobBuilder || self.MSBlobBuilder;
             var builder = new Builder();
             builder.append(buffer);
-            exports.blob = builder.getBlob('application/zip').size === 0;
+            exports.blob = builder.getBlob("application/zip").size === 0;
         }
         catch (e) {
             exports.blob = false;
@@ -2749,18 +2723,17 @@ else {
 }
 
 try {
-    exports.nodestream = !!require('readable-stream').Readable;
+    exports.nodestream = !!require("readable-stream").Readable;
 } catch(e) {
     exports.nodestream = false;
 }
 
 },{"readable-stream":16}],31:[function(require,module,exports){
-'use strict';
 
-var utils = require('./utils');
-var support = require('./support');
-var nodejsUtils = require('./nodejsUtils');
-var GenericWorker = require('./stream/GenericWorker');
+var utils = require("./utils");
+var support = require("./support");
+var nodejsUtils = require("./nodejsUtils");
+var GenericWorker = require("./stream/GenericWorker");
 
 /**
  * The following functions come from pako, from pako/lib/utils/strings
@@ -2772,7 +2745,7 @@ var GenericWorker = require('./stream/GenericWorker');
 // because max possible codepoint is 0x10ffff
 var _utf8len = new Array(256);
 for (var i=0; i<256; i++) {
-  _utf8len[i] = (i >= 252 ? 6 : i >= 248 ? 5 : i >= 240 ? 4 : i >= 224 ? 3 : i >= 192 ? 2 : 1);
+    _utf8len[i] = (i >= 252 ? 6 : i >= 248 ? 5 : i >= 240 ? 4 : i >= 224 ? 3 : i >= 192 ? 2 : 1);
 }
 _utf8len[254]=_utf8len[254]=1; // Invalid sequence start
 
@@ -2863,7 +2836,7 @@ var utf8border = function(buf, max) {
 
 // convert array to string
 var buf2string = function (buf) {
-    var str, i, out, c, c_len;
+    var i, out, c, c_len;
     var len = buf.length;
 
     // Reserve max possible length (2 words per char)
@@ -3032,13 +3005,12 @@ Utf8EncodeWorker.prototype.processChunk = function (chunk) {
 exports.Utf8EncodeWorker = Utf8EncodeWorker;
 
 },{"./nodejsUtils":14,"./stream/GenericWorker":28,"./support":30,"./utils":32}],32:[function(require,module,exports){
-'use strict';
 
-var support = require('./support');
-var base64 = require('./base64');
-var nodejsUtils = require('./nodejsUtils');
-var setImmediate = require('set-immediate-shim');
+var support = require("./support");
+var base64 = require("./base64");
+var nodejsUtils = require("./nodejsUtils");
 var external = require("./external");
+require("setimmediate");
 
 
 /**
@@ -3051,9 +3023,9 @@ var external = require("./external");
 function string2binary(str) {
     var result = null;
     if (support.uint8array) {
-      result = new Uint8Array(str.length);
+        result = new Uint8Array(str.length);
     } else {
-      result = new Array(str.length);
+        result = new Array(str.length);
     }
     return stringToArrayLike(str, result);
 }
@@ -3352,6 +3324,31 @@ exports.transformTo = function(outputType, input) {
 };
 
 /**
+ * Resolve all relative path components, "." and "..", in a path. If these relative components
+ * traverse above the root then the resulting path will only contain the final path component.
+ *
+ * All empty components, e.g. "//", are removed.
+ * @param {string} path A path with / or \ separators
+ * @returns {string} The path with all relative path components resolved.
+ */
+exports.resolve = function(path) {
+    var parts = path.split("/");
+    var result = [];
+    for (var index = 0; index < parts.length; index++) {
+        var part = parts[index];
+        // Allow the first and last component to be empty for trailing slashes.
+        if (part === "." || (part === "" && index !== 0 && index !== parts.length - 1)) {
+            continue;
+        } else if (part === "..") {
+            result.pop();
+        } else {
+            result.push(part);
+        }
+    }
+    return result.join("/");
+};
+
+/**
  * Return the type of the input.
  * The type will be in a format valid for JSZip.utils.transformTo : string, array, uint8array, arraybuffer.
  * @param {Object} input the input to identify.
@@ -3396,11 +3393,11 @@ exports.MAX_VALUE_32BITS = -1; // well, "\xFF\xFF\xFF\xFF\xFF\xFF\xFF\xFF" is pa
  * @return {string} a pretty string.
  */
 exports.pretty = function(str) {
-    var res = '',
+    var res = "",
         code, i;
     for (i = 0; i < (str || "").length; i++) {
         code = str.charCodeAt(i);
-        res += '\\x' + (code < 16 ? "0" : "") + code.toString(16).toUpperCase();
+        res += "\\x" + (code < 16 ? "0" : "") + code.toString(16).toUpperCase();
     }
     return res;
 };
@@ -3438,7 +3435,7 @@ exports.extend = function() {
     var result = {}, i, attr;
     for (i = 0; i < arguments.length; i++) { // arguments is not enumerable in some browsers
         for (attr in arguments[i]) {
-            if (arguments[i].hasOwnProperty(attr) && typeof result[attr] === "undefined") {
+            if (Object.prototype.hasOwnProperty.call(arguments[i], attr) && typeof result[attr] === "undefined") {
                 result[attr] = arguments[i][attr];
             }
         }
@@ -3459,9 +3456,9 @@ exports.prepareContent = function(name, inputData, isBinary, isOptimizedBinarySt
 
     // if inputData is already a promise, this flatten it.
     var promise = external.Promise.resolve(inputData).then(function(data) {
-        
-        
-        var isBlob = support.blob && (data instanceof Blob || ['[object File]', '[object Blob]'].indexOf(Object.prototype.toString.call(data)) !== -1);
+
+
+        var isBlob = support.blob && (data instanceof Blob || ["[object File]", "[object Blob]"].indexOf(Object.prototype.toString.call(data)) !== -1);
 
         if (isBlob && typeof FileReader !== "undefined") {
             return new external.Promise(function (resolve, reject) {
@@ -3509,14 +3506,12 @@ exports.prepareContent = function(name, inputData, isBinary, isOptimizedBinarySt
     });
 };
 
-},{"./base64":1,"./external":6,"./nodejsUtils":14,"./support":30,"set-immediate-shim":54}],33:[function(require,module,exports){
-'use strict';
-var readerFor = require('./reader/readerFor');
-var utils = require('./utils');
-var sig = require('./signature');
-var ZipEntry = require('./zipEntry');
-var utf8 = require('./utf8');
-var support = require('./support');
+},{"./base64":1,"./external":6,"./nodejsUtils":14,"./support":30,"setimmediate":54}],33:[function(require,module,exports){
+var readerFor = require("./reader/readerFor");
+var utils = require("./utils");
+var sig = require("./signature");
+var ZipEntry = require("./zipEntry");
+var support = require("./support");
 //  class ZipEntries {{{
 /**
  * All the entries in the zip file.
@@ -3656,10 +3651,6 @@ ZipEntries.prototype = {
                 // We expected some records but couldn't find ANY.
                 // This is really suspicious, as if something went wrong.
                 throw new Error("Corrupted zip or bug: expected " + this.centralDirRecords + " records in central dir, got " + this.files.length);
-            } else {
-                // We found some records but not all.
-                // Something is wrong but we got something for the user: no error here.
-                // console.warn("expected", this.centralDirRecords, "records in central dir, got", this.files.length);
             }
         }
     },
@@ -3744,10 +3735,7 @@ ZipEntries.prototype = {
 
         if (extraBytes > 0) {
             // console.warn(extraBytes, "extra bytes at beginning or within zipfile");
-            if (this.isSignature(endOfCentralDirOffset, sig.CENTRAL_FILE_HEADER)) {
-                // The offsets seem wrong, but we have something at the specified offset.
-                // So… we keep it.
-            } else {
+            if (this.isSignature(endOfCentralDirOffset, sig.CENTRAL_FILE_HEADER)) ; else {
                 // the offset is wrong, update the "zero" of the reader
                 // this happens if data has been prepended (crx files for example)
                 this.reader.zero = extraBytes;
@@ -3773,15 +3761,14 @@ ZipEntries.prototype = {
 // }}} end of ZipEntries
 module.exports = ZipEntries;
 
-},{"./reader/readerFor":22,"./signature":23,"./support":30,"./utf8":31,"./utils":32,"./zipEntry":34}],34:[function(require,module,exports){
-'use strict';
-var readerFor = require('./reader/readerFor');
-var utils = require('./utils');
-var CompressedObject = require('./compressedObject');
-var crc32fn = require('./crc32');
-var utf8 = require('./utf8');
-var compressions = require('./compressions');
-var support = require('./support');
+},{"./reader/readerFor":22,"./signature":23,"./support":30,"./utils":32,"./zipEntry":34}],34:[function(require,module,exports){
+var readerFor = require("./reader/readerFor");
+var utils = require("./utils");
+var CompressedObject = require("./compressedObject");
+var crc32fn = require("./crc32");
+var utf8 = require("./utf8");
+var compressions = require("./compressions");
+var support = require("./support");
 
 var MADE_BY_DOS = 0x00;
 var MADE_BY_UNIX = 0x03;
@@ -3793,7 +3780,7 @@ var MADE_BY_UNIX = 0x03;
  */
 var findCompression = function(compressionMethod) {
     for (var method in compressions) {
-        if (!compressions.hasOwnProperty(method)) {
+        if (!Object.prototype.hasOwnProperty.call(compressions, method)) {
             continue;
         }
         if (compressions[method].magic === compressionMethod) {
@@ -3929,7 +3916,7 @@ ZipEntry.prototype = {
         }
 
         // fail safe : if the name ends with a / it probably means a folder
-        if (!this.dir && this.fileNameStr.slice(-1) === '/') {
+        if (!this.dir && this.fileNameStr.slice(-1) === "/") {
             this.dir = true;
         }
     },
@@ -3938,8 +3925,7 @@ ZipEntry.prototype = {
      * Parse the ZIP64 extra field and merge the info in the current ZipEntry.
      * @param {DataReader} reader the reader to use.
      */
-    parseZIP64ExtraField: function(reader) {
-
+    parseZIP64ExtraField: function() {
         if (!this.extraFields[0x0001]) {
             return;
         }
@@ -4070,13 +4056,12 @@ ZipEntry.prototype = {
 module.exports = ZipEntry;
 
 },{"./compressedObject":2,"./compressions":3,"./crc32":4,"./reader/readerFor":22,"./support":30,"./utf8":31,"./utils":32}],35:[function(require,module,exports){
-'use strict';
 
-var StreamHelper = require('./stream/StreamHelper');
-var DataWorker = require('./stream/DataWorker');
-var utf8 = require('./utf8');
-var CompressedObject = require('./compressedObject');
-var GenericWorker = require('./stream/GenericWorker');
+var StreamHelper = require("./stream/StreamHelper");
+var DataWorker = require("./stream/DataWorker");
+var utf8 = require("./utf8");
+var CompressedObject = require("./compressedObject");
+var GenericWorker = require("./stream/GenericWorker");
 
 /**
  * A simple object representing a file in the zip file.
@@ -4206,7 +4191,6 @@ module.exports = ZipObject;
 
 },{"./compressedObject":2,"./stream/DataWorker":27,"./stream/GenericWorker":28,"./stream/StreamHelper":29,"./utf8":31}],36:[function(require,module,exports){
 (function (global){
-'use strict';
 var Mutation = global.MutationObserver || global.WebKitMutationObserver;
 
 var scheduleDrain;
@@ -4276,9 +4260,8 @@ function immediate(task) {
   }
 }
 
-}).call(this,typeof global !== "undefined" ? global : typeof self !== "undefined" ? self : typeof window !== "undefined" ? window : {})
+}).call(this,typeof global !== "undefined" ? global : typeof self !== "undefined" ? self : typeof window !== "undefined" ? window : {});
 },{}],37:[function(require,module,exports){
-'use strict';
 var immediate = require('immediate');
 
 /* istanbul ignore next */
@@ -4553,8 +4536,6 @@ function race(iterable) {
 }
 
 },{"immediate":36}],38:[function(require,module,exports){
-// Top level file is just a mixin of submodules & constants
-'use strict';
 
 var assign    = require('./lib/utils/common').assign;
 
@@ -4569,7 +4550,6 @@ assign(pako, deflate, inflate, constants);
 module.exports = pako;
 
 },{"./lib/deflate":39,"./lib/inflate":40,"./lib/utils/common":41,"./lib/zlib/constants":44}],39:[function(require,module,exports){
-'use strict';
 
 
 var zlib_deflate = require('./zlib/deflate');
@@ -4971,7 +4951,6 @@ exports.deflateRaw = deflateRaw;
 exports.gzip = gzip;
 
 },{"./utils/common":41,"./utils/strings":42,"./zlib/deflate":46,"./zlib/messages":51,"./zlib/zstream":53}],40:[function(require,module,exports){
-'use strict';
 
 
 var zlib_inflate = require('./zlib/inflate');
@@ -5391,7 +5370,6 @@ exports.inflateRaw = inflateRaw;
 exports.ungzip  = inflate;
 
 },{"./utils/common":41,"./utils/strings":42,"./zlib/constants":44,"./zlib/gzheader":47,"./zlib/inflate":49,"./zlib/messages":51,"./zlib/zstream":53}],41:[function(require,module,exports){
-'use strict';
 
 
 var TYPED_OK =  (typeof Uint8Array !== 'undefined') &&
@@ -5495,8 +5473,6 @@ exports.setTyped = function (on) {
 exports.setTyped(TYPED_OK);
 
 },{}],42:[function(require,module,exports){
-// String encode/decode helpers
-'use strict';
 
 
 var utils = require('./common');
@@ -5682,7 +5658,6 @@ exports.utf8border = function (buf, max) {
 };
 
 },{"./common":41}],43:[function(require,module,exports){
-'use strict';
 
 // Note: adler32 takes 12% for level 0 and 2% for level 6.
 // It doesn't worth to make additional optimizationa as in original.
@@ -5735,7 +5710,6 @@ function adler32(adler, buf, len, pos) {
 module.exports = adler32;
 
 },{}],44:[function(require,module,exports){
-'use strict';
 
 // (C) 1995-2013 Jean-loup Gailly and Mark Adler
 // (C) 2014-2017 Vitaly Puzrin and Andrey Tupitsin
@@ -5805,7 +5779,6 @@ module.exports = {
 };
 
 },{}],45:[function(require,module,exports){
-'use strict';
 
 // Note: we can't get significant speed boost here.
 // So write code to minimize size - no pregenerated tables
@@ -5866,7 +5839,6 @@ function crc32(crc, buf, len, pos) {
 module.exports = crc32;
 
 },{}],46:[function(require,module,exports){
-'use strict';
 
 // (C) 1995-2013 Jean-loup Gailly and Mark Adler
 // (C) 2014-2017 Vitaly Puzrin and Andrey Tupitsin
@@ -7742,7 +7714,6 @@ exports.deflateTune = deflateTune;
 */
 
 },{"../utils/common":41,"./adler32":43,"./crc32":45,"./messages":51,"./trees":52}],47:[function(require,module,exports){
-'use strict';
 
 // (C) 1995-2013 Jean-loup Gailly and Mark Adler
 // (C) 2014-2017 Vitaly Puzrin and Andrey Tupitsin
@@ -7802,7 +7773,6 @@ function GZheader() {
 module.exports = GZheader;
 
 },{}],48:[function(require,module,exports){
-'use strict';
 
 // (C) 1995-2013 Jean-loup Gailly and Mark Adler
 // (C) 2014-2017 Vitaly Puzrin and Andrey Tupitsin
@@ -8149,7 +8119,6 @@ module.exports = function inflate_fast(strm, start) {
 };
 
 },{}],49:[function(require,module,exports){
-'use strict';
 
 // (C) 1995-2013 Jean-loup Gailly and Mark Adler
 // (C) 2014-2017 Vitaly Puzrin and Andrey Tupitsin
@@ -9598,10 +9567,7 @@ function inflate(strm, flush) {
 
   if (state.wsize || (_out !== strm.avail_out && state.mode < BAD &&
                       (state.mode < CHECK || flush !== Z_FINISH))) {
-    if (updatewindow(strm, strm.output, strm.next_out, _out - strm.avail_out)) {
-      state.mode = MEM;
-      return Z_MEM_ERROR;
-    }
+    if (updatewindow(strm, strm.output, strm.next_out, _out - strm.avail_out)) ;
   }
   _in -= strm.avail_in;
   _out -= strm.avail_out;
@@ -9707,7 +9673,6 @@ exports.inflateUndermine = inflateUndermine;
 */
 
 },{"../utils/common":41,"./adler32":43,"./crc32":45,"./inffast":48,"./inftrees":50}],50:[function(require,module,exports){
-'use strict';
 
 // (C) 1995-2013 Jean-loup Gailly and Mark Adler
 // (C) 2014-2017 Vitaly Puzrin and Andrey Tupitsin
@@ -10052,7 +10017,6 @@ module.exports = function inflate_table(type, lens, lens_index, codes, table, ta
 };
 
 },{"../utils/common":41}],51:[function(require,module,exports){
-'use strict';
 
 // (C) 1995-2013 Jean-loup Gailly and Mark Adler
 // (C) 2014-2017 Vitaly Puzrin and Andrey Tupitsin
@@ -10086,7 +10050,6 @@ module.exports = {
 };
 
 },{}],52:[function(require,module,exports){
-'use strict';
 
 // (C) 1995-2013 Jean-loup Gailly and Mark Adler
 // (C) 2014-2017 Vitaly Puzrin and Andrey Tupitsin
@@ -10639,7 +10602,7 @@ function copy_block(s, buf, len, header)
 {
   bi_windup(s);        /* align on byte boundary */
 
-  if (header) {
+  {
     put_short(s, len);
     put_short(s, ~len);
   }
@@ -11137,7 +11100,7 @@ function _tr_stored_block(s, buf, stored_len, last)
 //int last;         /* one if this is the last block for a file */
 {
   send_bits(s, (STORED_BLOCK << 1) + (last ? 1 : 0), 3);    /* send block type */
-  copy_block(s, buf, stored_len, true); /* with header */
+  copy_block(s, buf, stored_len); /* with header */
 }
 
 
@@ -11308,7 +11271,6 @@ exports._tr_tally = _tr_tally;
 exports._tr_align = _tr_align;
 
 },{"../utils/common":41}],53:[function(require,module,exports){
-'use strict';
 
 // (C) 1995-2013 Jean-loup Gailly and Mark Adler
 // (C) 2014-2017 Vitaly Puzrin and Andrey Tupitsin
@@ -11357,13 +11319,193 @@ function ZStream() {
 module.exports = ZStream;
 
 },{}],54:[function(require,module,exports){
-'use strict';
-module.exports = typeof setImmediate === 'function' ? setImmediate :
-	function setImmediate() {
-		var args = [].slice.apply(arguments);
-		args.splice(1, 0, 0);
-		setTimeout.apply(null, args);
-	};
+(function (global){
+(function (global, undefined$1) {
 
+    if (global.setImmediate) {
+        return;
+    }
+
+    var nextHandle = 1; // Spec says greater than zero
+    var tasksByHandle = {};
+    var currentlyRunningATask = false;
+    var doc = global.document;
+    var registerImmediate;
+
+    function setImmediate(callback) {
+      // Callback can either be a function or a string
+      if (typeof callback !== "function") {
+        callback = new Function("" + callback);
+      }
+      // Copy function arguments
+      var args = new Array(arguments.length - 1);
+      for (var i = 0; i < args.length; i++) {
+          args[i] = arguments[i + 1];
+      }
+      // Store and register the task
+      var task = { callback: callback, args: args };
+      tasksByHandle[nextHandle] = task;
+      registerImmediate(nextHandle);
+      return nextHandle++;
+    }
+
+    function clearImmediate(handle) {
+        delete tasksByHandle[handle];
+    }
+
+    function run(task) {
+        var callback = task.callback;
+        var args = task.args;
+        switch (args.length) {
+        case 0:
+            callback();
+            break;
+        case 1:
+            callback(args[0]);
+            break;
+        case 2:
+            callback(args[0], args[1]);
+            break;
+        case 3:
+            callback(args[0], args[1], args[2]);
+            break;
+        default:
+            callback.apply(undefined$1, args);
+            break;
+        }
+    }
+
+    function runIfPresent(handle) {
+        // From the spec: "Wait until any invocations of this algorithm started before this one have completed."
+        // So if we're currently running a task, we'll need to delay this invocation.
+        if (currentlyRunningATask) {
+            // Delay by doing a setTimeout. setImmediate was tried instead, but in Firefox 7 it generated a
+            // "too much recursion" error.
+            setTimeout(runIfPresent, 0, handle);
+        } else {
+            var task = tasksByHandle[handle];
+            if (task) {
+                currentlyRunningATask = true;
+                try {
+                    run(task);
+                } finally {
+                    clearImmediate(handle);
+                    currentlyRunningATask = false;
+                }
+            }
+        }
+    }
+
+    function installNextTickImplementation() {
+        registerImmediate = function(handle) {
+            process.nextTick(function () { runIfPresent(handle); });
+        };
+    }
+
+    function canUsePostMessage() {
+        // The test against `importScripts` prevents this implementation from being installed inside a web worker,
+        // where `global.postMessage` means something completely different and can't be used for this purpose.
+        if (global.postMessage && !global.importScripts) {
+            var postMessageIsAsynchronous = true;
+            var oldOnMessage = global.onmessage;
+            global.onmessage = function() {
+                postMessageIsAsynchronous = false;
+            };
+            global.postMessage("", "*");
+            global.onmessage = oldOnMessage;
+            return postMessageIsAsynchronous;
+        }
+    }
+
+    function installPostMessageImplementation() {
+        // Installs an event handler on `global` for the `message` event: see
+        // * https://developer.mozilla.org/en/DOM/window.postMessage
+        // * http://www.whatwg.org/specs/web-apps/current-work/multipage/comms.html#crossDocumentMessages
+
+        var messagePrefix = "setImmediate$" + Math.random() + "$";
+        var onGlobalMessage = function(event) {
+            if (event.source === global &&
+                typeof event.data === "string" &&
+                event.data.indexOf(messagePrefix) === 0) {
+                runIfPresent(+event.data.slice(messagePrefix.length));
+            }
+        };
+
+        if (global.addEventListener) {
+            global.addEventListener("message", onGlobalMessage, false);
+        } else {
+            global.attachEvent("onmessage", onGlobalMessage);
+        }
+
+        registerImmediate = function(handle) {
+            global.postMessage(messagePrefix + handle, "*");
+        };
+    }
+
+    function installMessageChannelImplementation() {
+        var channel = new MessageChannel();
+        channel.port1.onmessage = function(event) {
+            var handle = event.data;
+            runIfPresent(handle);
+        };
+
+        registerImmediate = function(handle) {
+            channel.port2.postMessage(handle);
+        };
+    }
+
+    function installReadyStateChangeImplementation() {
+        var html = doc.documentElement;
+        registerImmediate = function(handle) {
+            // Create a <script> element; its readystatechange event will be fired asynchronously once it is inserted
+            // into the document. Do so, thus queuing up the task. Remember to clean up once it's been called.
+            var script = doc.createElement("script");
+            script.onreadystatechange = function () {
+                runIfPresent(handle);
+                script.onreadystatechange = null;
+                html.removeChild(script);
+                script = null;
+            };
+            html.appendChild(script);
+        };
+    }
+
+    function installSetTimeoutImplementation() {
+        registerImmediate = function(handle) {
+            setTimeout(runIfPresent, 0, handle);
+        };
+    }
+
+    // If supported, we should attach to the prototype of global, since that is where setTimeout et al. live.
+    var attachTo = Object.getPrototypeOf && Object.getPrototypeOf(global);
+    attachTo = attachTo && attachTo.setTimeout ? attachTo : global;
+
+    // Don't get fooled by e.g. browserify environments.
+    if ({}.toString.call(global.process) === "[object process]") {
+        // For Node.js before 0.9
+        installNextTickImplementation();
+
+    } else if (canUsePostMessage()) {
+        // For non-IE10 modern browsers
+        installPostMessageImplementation();
+
+    } else if (global.MessageChannel) {
+        // For web workers, where supported
+        installMessageChannelImplementation();
+
+    } else if (doc && "onreadystatechange" in doc.createElement("script")) {
+        // For IE 6–8
+        installReadyStateChangeImplementation();
+
+    } else {
+        // For older browsers
+        installSetTimeoutImplementation();
+    }
+
+    attachTo.setImmediate = setImmediate;
+    attachTo.clearImmediate = clearImmediate;
+}(typeof self === "undefined" ? typeof global === "undefined" ? this : global : self));
+
+}).call(this,typeof global !== "undefined" ? global : typeof self !== "undefined" ? self : typeof window !== "undefined" ? window : {});
 },{}]},{},[10])(10)
 });
