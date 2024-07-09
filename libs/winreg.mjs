@@ -299,7 +299,7 @@ function Registry (options) {
    * @readonly
    * @member {string} Registry#path
    */
-  this.__defineGetter__('path', function () { return (_host.length == 0 ? '' : '\\\\' + _host + '\\') + _hive + _key; });
+  this.__defineGetter__('path', function () { return '"' + (_host.length == 0 ? '' : '\\\\' + _host + '\\') + _hive + _key + '"'; });
 
   /**
    * The registry hive architecture ('x86' or 'x64').
@@ -448,6 +448,8 @@ Registry.prototype.values = function values (cb) {
   var proc = spawn(getRegExePath(), args, {
         cwd: undefined,
         env: process.env,
+        shell: true,
+        windowsHide: true,
         stdio: [ 'ignore', 'pipe', 'pipe' ]
       })
   ,   buffer = ''
@@ -528,6 +530,8 @@ Registry.prototype.keys = function keys (cb) {
   var proc = spawn(getRegExePath(), args, {
         cwd: undefined,
         env: process.env,
+        shell: true,
+        windowsHide: true,
         stdio: [ 'ignore', 'pipe', 'pipe' ]
       })
   ,   buffer = ''
@@ -616,6 +620,8 @@ Registry.prototype.get = function get (name, cb) {
   var proc = spawn(getRegExePath(), args, {
         cwd: undefined,
         env: process.env,
+        shell: true,
+        windowsHide: true,
         stdio: [ 'ignore', 'pipe', 'pipe' ]
       })
   ,   buffer = ''
@@ -705,6 +711,8 @@ Registry.prototype.set = function set (name, type, value, cb) {
   var proc = spawn(getRegExePath(), args, {
         cwd: undefined,
         env: process.env,
+        shell: true,
+        windowsHide: true,
         stdio: [ 'ignore', 'pipe', 'pipe' ]
       })
   ,   error = null; // null means no error previously reported.
@@ -752,6 +760,8 @@ Registry.prototype.remove = function remove (name, cb) {
   var proc = spawn(getRegExePath(), args, {
         cwd: undefined,
         env: process.env,
+        shell: true,
+        windowsHide: true,
         stdio: [ 'ignore', 'pipe', 'pipe' ]
       })
   ,   error = null; // null means no error previously reported.
@@ -797,6 +807,8 @@ Registry.prototype.clear = function clear (cb) {
   var proc = spawn(getRegExePath(), args, {
         cwd: undefined,
         env: process.env,
+        shell: true,
+        windowsHide: true,
         stdio: [ 'ignore', 'pipe', 'pipe' ]
       })
   ,   error = null; // null means no error previously reported.
@@ -852,6 +864,8 @@ Registry.prototype.destroy = function destroy (cb) {
   var proc = spawn(getRegExePath(), args, {
         cwd: undefined,
         env: process.env,
+        shell: true,
+        windowsHide: true,
         stdio: [ 'ignore', 'pipe', 'pipe' ]
       })
   ,   error = null; // null means no error previously reported.
@@ -897,6 +911,8 @@ Registry.prototype.create = function create (cb) {
   var proc = spawn(getRegExePath(), args, {
         cwd: undefined,
         env: process.env,
+        shell: true,
+        windowsHide: true,
         stdio: [ 'ignore', 'pipe', 'pipe' ]
       })
   ,   error = null; // null means no error previously reported.

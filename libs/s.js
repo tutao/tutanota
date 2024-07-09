@@ -1,11 +1,10 @@
-/*
-* SJS 6.10.2
-* Minimal SystemJS Build
-*/
+/*!
+ * SJS 6.15.1
+ */
 (function () {
 
   function errMsg(errCode, msg) {
-    return (msg || "") + " (SystemJS https://git.io/JvFET#" + errCode + ")";
+    return (msg || "") + " (SystemJS https://github.com/systemjs/systemjs/blob/main/docs/errors.md#" + errCode + ")";
   }
 
   var hasSymbol = typeof Symbol !== 'undefined';
@@ -180,7 +179,7 @@
   }
 
   function targetWarning (code, match, target, msg) {
-    console.warn(errMsg(code,  [target, match].join(', ') ));
+    console.warn(errMsg(code, [target, match].join(', ') ));
   }
 
   function resolveImportMap (importMap, resolvedOrPlain, parentUrl) {
@@ -197,7 +196,7 @@
 
   /*
    * SystemJS Core
-   * 
+   *
    * Provides
    * - System.import
    * - System.register support for
@@ -207,7 +206,7 @@
    * - Symbol.toStringTag support in Module objects
    * - Hookable System.createContext to customize import.meta
    * - System.onload(err, id, deps) handler for tracing / hot-reloading
-   * 
+   *
    * Core comes with no System.prototype.resolve or
    * System.prototype.instantiate implementations
    */
@@ -221,14 +220,15 @@
 
   var systemJSPrototype = SystemJS.prototype;
 
-  systemJSPrototype.import = function (id, parentUrl) {
+  systemJSPrototype.import = function (id, parentUrl, meta) {
     var loader = this;
+    (parentUrl && typeof parentUrl === 'object') && (meta = parentUrl, parentUrl = undefined);
     return Promise.resolve(loader.prepareImport())
     .then(function() {
-      return loader.resolve(id, parentUrl);
+      return loader.resolve(id, parentUrl, meta);
     })
     .then(function (id) {
-      var load = getOrCreateLoad(loader, id);
+      var load = getOrCreateLoad(loader, id, undefined, meta);
       return load.C || topLevelLoad(loader, load);
     });
   };
@@ -253,8 +253,8 @@
   }
 
   var lastRegister;
-  systemJSPrototype.register = function (deps, declare) {
-    lastRegister = [deps, declare];
+  systemJSPrototype.register = function (deps, declare, metas) {
+    lastRegister = [deps, declare, metas];
   };
 
   /*
@@ -266,7 +266,7 @@
     return _lastRegister;
   };
 
-  function getOrCreateLoad (loader, id, firstParentUrl) {
+  function getOrCreateLoad (loader, id, firstParentUrl, meta) {
     var load = loader[REGISTRY][id];
     if (load)
       return load;
@@ -275,14 +275,14 @@
     var ns = Object.create(null);
     if (toStringTag)
       Object.defineProperty(ns, toStringTag, { value: 'Module' });
-    
+
     var instantiatePromise = Promise.resolve()
     .then(function () {
-      return loader.instantiate(id, firstParentUrl);
+      return loader.instantiate(id, firstParentUrl, meta);
     })
     .then(function (registration) {
       if (!registration)
-        throw Error(errMsg(2,  id ));
+        throw Error(errMsg(2, id ));
       function _export (name, value) {
         // note if we have hoisted exports (including reexports)
         load.h = true;
@@ -314,13 +314,13 @@
         return value;
       }
       var declared = registration[1](_export, registration[1].length === 2 ? {
-        import: function (importId) {
-          return loader.import(importId, id);
+        import: function (importId, meta) {
+          return loader.import(importId, id, meta);
         },
         meta: loader.createContext(id)
       } : undefined);
       load.e = declared.execute || function () {};
-      return [registration[0], declared.setters || []];
+      return [registration[0], declared.setters || [], registration[2] || []];
     }, function (err) {
       load.e = null;
       load.er = err;
@@ -331,9 +331,10 @@
     .then(function (instantiation) {
       return Promise.all(instantiation[0].map(function (dep, i) {
         var setter = instantiation[1][i];
+        var meta = instantiation[2][i];
         return Promise.resolve(loader.resolve(dep, id))
         .then(function (depId) {
-          var depLoad = getOrCreateLoad(loader, depId, id);
+          var depLoad = getOrCreateLoad(loader, depId, id, meta);
           // depLoad.I may be undefined for already-evaluated
           return Promise.resolve(depLoad.I)
           .then(function () {
@@ -361,6 +362,9 @@
       i: importerSetters,
       // module namespace object
       n: ns,
+      // extra module information for import assertion
+      // shape like: { assert: { type: 'xyz' } }
+      m: meta,
 
       // instantiate
       I: instantiatePromise,
@@ -440,16 +444,25 @@
       return;
     }
 
+    // From here we're about to execute the load.
+    // Because the execution may be async, we pop the `load.e` first.
+    // So `load.e === null` always means the load has been executed or is executing.
+    // To inspect the state:
+    // - If `load.er` is truthy, the execution has threw or has been rejected;
+    // - otherwise, either the `load.E` is a promise, means it's under async execution, or
+    // - the `load.E` is null, means the load has completed the execution or has been async resolved.
+    var exec = load.e;
+    load.e = null;
+
     // deps execute first, unless circular
     var depLoadPromises;
     load.d.forEach(function (depLoad) {
       try {
         var depLoadPromise = postOrderExec(loader, depLoad, seen);
-        if (depLoadPromise) 
+        if (depLoadPromise)
           (depLoadPromises = depLoadPromises || []).push(depLoadPromise);
       }
       catch (err) {
-        load.e = null;
         load.er = err;
         throw err;
       }
@@ -461,7 +474,7 @@
 
     function doExec () {
       try {
-        var execPromise = load.e.call(nullContext);
+        var execPromise = exec.call(nullContext);
         if (execPromise) {
           execPromise = execPromise.then(function () {
             load.C = load.n;
@@ -484,7 +497,6 @@
         throw err;
       }
       finally {
-        load.e = null;
       }
     }
   }
@@ -509,10 +521,18 @@
     }
     return importMapPromise;
   };
+
+  systemJSPrototype.getImportMap = function () {
+    return JSON.parse(JSON.stringify(importMap));
+  };
+
   if (hasDocument) {
     processScripts();
     window.addEventListener('DOMContentLoaded', processScripts);
   }
+  systemJSPrototype.addImportMap = function (newMap, mapBase) {
+    resolveAndComposeImportMap(newMap, mapBase || baseUrl, importMap);
+  };
 
   function processScripts () {
     [].forEach.call(document.querySelectorAll('script'), function (script) {
@@ -526,7 +546,7 @@
         System.import(script.src.slice(0, 7) === 'import:' ? script.src.slice(7) : resolveUrl(script.src, baseUrl)).catch(function (e) {
           // if there is a script load error, dispatch an "error" event
           // on the script tag.
-          if (e.message.indexOf('https://git.io/JvFET#3') > -1) {
+          if (e.message.indexOf('https://github.com/systemjs/systemjs/blob/main/docs/errors.md#3') > -1) {
             var event = document.createEvent('Event');
             event.initEvent('error', false, false);
             script.dispatchEvent(event);
@@ -536,12 +556,13 @@
       }
       else if (script.type === 'systemjs-importmap') {
         script.sp = true;
-        var fetchPromise = script.src ? fetch(script.src, { integrity: script.integrity }).then(function (res) {
+        // The passThrough property is for letting the module types fetch implementation know that this is not a SystemJS module.
+        var fetchPromise = script.src ? (System.fetch || fetch)(script.src, { integrity: script.integrity, priority: script.fetchPriority, passThrough: true }).then(function (res) {
           if (!res.ok)
-            throw Error( res.status );
+            throw Error(res.status );
           return res.text();
         }).catch(function (err) {
-          err.message = errMsg('W4',  script.src ) + '\n' + err.message;
+          err.message = errMsg('W4', script.src ) + '\n' + err.message;
           console.warn(err);
           if (typeof script.onerror === 'function') {
               script.onerror();
@@ -562,7 +583,7 @@
     try {
       newMap = JSON.parse(newMapText);
     } catch (err) {
-      console.warn(Error(( errMsg('W5')  )));
+      console.warn(Error((errMsg('W5')  )));
     }
     resolveAndComposeImportMap(newMap, newMapUrl, importMap);
   }
@@ -595,7 +616,7 @@
   };
 
   // Auto imports -> script tags can be inlined directly for load phase
-  var lastAutoImportUrl, lastAutoImportDeps, lastAutoImportTimeout;
+  var lastAutoImportDeps, lastAutoImportTimeout;
   var autoImportCandidates = {};
   var systemRegister = systemJSPrototype.register;
   systemJSPrototype.register = function (deps, declare) {
@@ -603,7 +624,7 @@
       var scripts = document.querySelectorAll('script[src]');
       var lastScript = scripts[scripts.length - 1];
       if (lastScript) {
-        lastAutoImportUrl = lastScript.src;
+        lastScript.src;
         lastAutoImportDeps = deps;
         // if this is already a System load, then the instantiate has already begun
         // so this re-import has no consequence
@@ -628,27 +649,28 @@
       return autoImportRegistration;
     }
     var loader = this;
-    return new Promise(function (resolve, reject) {
-      var script = systemJSPrototype.createScript(url);
-      script.addEventListener('error', function () {
-        reject(Error(errMsg(3,  [url, firstParentUrl].join(', ') )));
+    return Promise.resolve(systemJSPrototype.createScript(url)).then(function (script) {
+      return new Promise(function (resolve, reject) {
+        script.addEventListener('error', function () {
+          reject(Error(errMsg(3, [url, firstParentUrl].join(', ') )));
+        });
+        script.addEventListener('load', function () {
+          document.head.removeChild(script);
+          // Note that if an error occurs that isn't caught by this if statement,
+          // that getRegister will return null and a "did not instantiate" error will be thrown.
+          if (lastWindowErrorUrl === url) {
+            reject(lastWindowError);
+          }
+          else {
+            var register = loader.getRegister(url);
+            // Clear any auto import registration for dynamic import scripts during load
+            if (register && register[0] === lastAutoImportDeps)
+              clearTimeout(lastAutoImportTimeout);
+            resolve(register);
+          }
+        });
+        document.head.appendChild(script);
       });
-      script.addEventListener('load', function () {
-        document.head.removeChild(script);
-        // Note that if an error occurs that isn't caught by this if statement,
-        // that getRegister will return null and a "did not instantiate" error will be thrown.
-        if (lastWindowErrorUrl === url) {
-          reject(lastWindowError);
-        }
-        else {
-          var register = loader.getRegister();
-          // Clear any auto import registration for dynamic import scripts during load
-          if (register && register[0] === lastAutoImportDeps)
-            clearTimeout(lastAutoImportTimeout);
-          resolve(register);
-        }
-      });
-      document.head.appendChild(script);
     });
   };
 
@@ -663,46 +685,47 @@
 
   var instantiate = systemJSPrototype.instantiate;
   var jsContentTypeRegEx = /^(text|application)\/(x-)?javascript(;|$)/;
-  systemJSPrototype.instantiate = function (url, parent) {
+  systemJSPrototype.instantiate = function (url, parent, meta) {
     var loader = this;
-    if (!this.shouldFetch(url))
+    if (!this.shouldFetch(url, parent, meta))
       return instantiate.apply(this, arguments);
     return this.fetch(url, {
       credentials: 'same-origin',
-      integrity: importMap.integrity[url]
+      integrity: importMap.integrity[url],
+      meta: meta,
     })
     .then(function (res) {
       if (!res.ok)
-        throw Error(errMsg(7,  [res.status, res.statusText, url, parent].join(', ') ));
+        throw Error(errMsg(7, [res.status, res.statusText, url, parent].join(', ') ));
       var contentType = res.headers.get('content-type');
       if (!contentType || !jsContentTypeRegEx.test(contentType))
-        throw Error(errMsg(4,  contentType ));
+        throw Error(errMsg(4, contentType ));
       return res.text().then(function (source) {
         if (source.indexOf('//# sourceURL=') < 0)
           source += '\n//# sourceURL=' + url;
         (0, eval)(source);
-        return loader.getRegister();
+        return loader.getRegister(url);
       });
     });
   };
 
   systemJSPrototype.resolve = function (id, parentUrl) {
     parentUrl = parentUrl || !true  || baseUrl;
-    return resolveImportMap(( importMap), resolveIfNotPlainOrUrl(id, parentUrl) || id, parentUrl) || throwUnresolved(id, parentUrl);
+    return resolveImportMap((importMap), resolveIfNotPlainOrUrl(id, parentUrl) || id, parentUrl) || throwUnresolved(id, parentUrl);
   };
 
   function throwUnresolved (id, parentUrl) {
-    throw Error(errMsg(8,  [id, parentUrl].join(', ') ));
+    throw Error(errMsg(8, [id, parentUrl].join(', ') ));
   }
 
   var systemInstantiate = systemJSPrototype.instantiate;
-  systemJSPrototype.instantiate = function (url, firstParentUrl) {
-    var preloads = ( importMap).depcache[url];
+  systemJSPrototype.instantiate = function (url, firstParentUrl, meta) {
+    var preloads = (importMap).depcache[url];
     if (preloads) {
       for (var i = 0; i < preloads.length; i++)
         getOrCreateLoad(this, this.resolve(preloads[i], url), url);
     }
-    return systemInstantiate.call(this, url, firstParentUrl);
+    return systemInstantiate.call(this, url, firstParentUrl, meta);
   };
 
   /*
@@ -714,8 +737,8 @@
       var loader = this;
       return Promise.resolve().then(function () {
         importScripts(url);
-        return loader.getRegister();
+        return loader.getRegister(url);
       });
     };
 
-}());
+})();

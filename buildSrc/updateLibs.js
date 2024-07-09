@@ -36,6 +36,8 @@ const clientDependencies = [
 	{ src: "../node_modules/linkify-html/dist/linkify-html.es.js", target: "linkify-html.js" },
 	"../node_modules/luxon/build/es6/luxon.js",
 	{ src: "../node_modules/cborg/cborg.js", target: "cborg.js", rollup: true },
+	{ src: "../node_modules/qrcode-svg/lib/qrcode.js", target: "qrcode.js", rollup: true },
+	{ src: "../node_modules/jszip/dist/jszip.js", target: "jszip.js", rollup: true },
 	{ src: "../node_modules/electron-updater/out/main.js", target: "electron-updater.mjs", rollup: rollDesktopDep },
 	{ src: "../node_modules/better-sqlite3/lib/index.js", target: "better-sqlite3.mjs", rollup: rollDesktopDep },
 	{ src: "../node_modules/winreg/lib/registry.js", target: "winreg.mjs", rollup: rollDesktopDep },
