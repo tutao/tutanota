@@ -61,7 +61,7 @@ import { Router, ScopedRouter, ThrottledRouter } from "../common/gui/ScopedRoute
 import { deviceConfig } from "../common/misc/DeviceConfig.js"
 import { InboxRuleHandler } from "./mail/model/InboxRuleHandler.js"
 import { SearchViewModel } from "./search/view/SearchViewModel.js"
-import { SearchRouter } from "./search/view/SearchRouter.js"
+import { SearchRouter } from "../common/search/view/SearchRouter.js"
 import { MailOpenedListener } from "./mail/view/MailViewModel.js"
 import { getDisplayedSender, getEnabledMailAddressesWithUser } from "../common/mailFunctionality/CommonMailUtils.js"
 import { Const, FeatureType, GroupType, KdfType } from "../common/api/common/TutanotaConstants.js"
@@ -69,7 +69,7 @@ import { ShareableGroupType } from "../common/sharing/GroupUtils.js"
 import { ReceivedGroupInvitationsModel } from "../common/sharing/model/ReceivedGroupInvitationsModel.js"
 import { CalendarViewModel } from "../calendar-app/calendar/view/CalendarViewModel.js"
 import { CalendarEventModel, CalendarOperation } from "../calendar-app/calendar/gui/eventeditor-model/CalendarEventModel.js"
-import { CalendarEventsRepository } from "../calendar-app/calendar/date/CalendarEventsRepository.js"
+import { CalendarEventsRepository } from "../common/calendar/date/CalendarEventsRepository.js"
 import { showProgressDialog } from "../common/gui/dialogs/ProgressDialog.js"
 import { RecipientsSearchModel } from "../common/misc/RecipientsSearchModel.js"
 import { PermissionError } from "../common/api/common/error/PermissionError.js"
@@ -101,7 +101,7 @@ import { FileControllerBrowser } from "../common/file/FileControllerBrowser.js"
 import { FileControllerNative } from "../common/file/FileControllerNative.js"
 import { CalendarInfo, CalendarModel } from "../calendar-app/calendar/model/CalendarModel.js"
 import { CalendarInviteHandler } from "../calendar-app/calendar/view/CalendarInvites.js"
-import { AlarmScheduler } from "../calendar-app/calendar/date/AlarmScheduler.js"
+import { AlarmScheduler } from "../common/calendar/date/AlarmScheduler.js"
 import { SchedulerImpl } from "../common/api/common/utils/Scheduler.js"
 import { CalendarEventPreviewViewModel } from "../calendar-app/calendar/gui/eventpopup/CalendarEventPreviewViewModel.js"
 import { isCustomizationEnabledForCustomer } from "../common/api/common/utils/CustomerUtils.js"
@@ -112,6 +112,7 @@ import { AddNotificationEmailDialog } from "./settings/AddNotificationEmailDialo
 import { NativeThemeFacade, ThemeController, WebThemeFacade } from "../common/gui/ThemeController.js"
 import { HtmlSanitizer } from "../common/misc/HtmlSanitizer.js"
 import { theme } from "../common/gui/theme.js"
+import { SearchIndexStateInfo } from "../common/api/worker/search/SearchTypes.js"
 
 assertMainOrNode()
 
@@ -260,20 +261,20 @@ class MailLocator {
 	readonly throttledRouter: lazy<Router> = lazyMemoized(() => new ThrottledRouter())
 
 	readonly scopedSearchRouter: lazyAsync<SearchRouter> = lazyMemoized(async () => {
-		const { SearchRouter } = await import("../mail-app/search/view/SearchRouter.js")
+		const { SearchRouter } = await import("../common/search/view/SearchRouter.js")
 		return new SearchRouter(new ScopedRouter(this.throttledRouter(), "/search"))
 	})
 
 	readonly unscopedSearchRouter: lazyAsync<SearchRouter> = lazyMemoized(async () => {
-		const { SearchRouter } = await import("../mail-app/search/view/SearchRouter.js")
+		const { SearchRouter } = await import("../common/search/view/SearchRouter.js")
 		return new SearchRouter(this.throttledRouter())
 	})
 
 	readonly mailOpenedListener: MailOpenedListener = {
 		onEmailOpened: isDesktop()
 			? (mail) => {
-					this.desktopSystemFacade.sendSocketMessage(getDisplayedSender(mail).address)
-			  }
+				this.desktopSystemFacade.sendSocketMessage(getDisplayedSender(mail).address)
+			}
 			: noOp,
 	}
 
@@ -305,7 +306,7 @@ class MailLocator {
 
 	readonly calendarViewModel = lazyMemoized<Promise<CalendarViewModel>>(async () => {
 		const { CalendarViewModel } = await import("../calendar-app/calendar/view/CalendarViewModel.js")
-		const { DefaultDateProvider } = await import("../calendar-app/calendar/date/CalendarUtils")
+		const { DefaultDateProvider } = await import("../common/calendar/date/CalendarUtils")
 		const timeZone = new DefaultDateProvider().timeZone()
 		return new CalendarViewModel(
 			this.logins,
@@ -328,8 +329,8 @@ class MailLocator {
 	})
 
 	readonly calendarEventsRepository: lazyAsync<CalendarEventsRepository> = lazyMemoized(async () => {
-		const { CalendarEventsRepository } = await import("../calendar-app/calendar/date/CalendarEventsRepository.js")
-		const { DefaultDateProvider } = await import("../calendar-app/calendar/date/CalendarUtils")
+		const { CalendarEventsRepository } = await import("../common/calendar/date/CalendarEventsRepository.js")
+		const { DefaultDateProvider } = await import("../common/calendar/date/CalendarUtils")
 		const timeZone = new DefaultDateProvider().timeZone()
 		return new CalendarEventsRepository(await this.calendarModel(), this.calendarFacade, timeZone, this.entityClient, this.eventController)
 	})
@@ -363,7 +364,7 @@ class MailLocator {
 	): Promise<CalendarEventModel | null> {
 		const [{ makeCalendarEventModel }, { getTimeZone }, { calendarNotificationSender }] = await Promise.all([
 			import("../calendar-app/calendar/gui/eventeditor-model/CalendarEventModel.js"),
-			import("../calendar-app/calendar/date/CalendarUtils.js"),
+			import("../common/calendar/date/CalendarUtils.js"),
 			import("../calendar-app/calendar/view/CalendarNotificationSender.js"),
 		])
 		const sendMailModelFactory = await this.sendMailModelSyncFactory(mailboxDetail, mailboxProperties)
@@ -553,7 +554,7 @@ class MailLocator {
 			const domainConfig = isBrowser()
 				? mailLocator.domainConfigProvider().getDomainConfigForHostname(location.hostname, location.protocol, location.port)
 				: // in this case, we know that we have a staticUrl set that we need to use
-				  mailLocator.domainConfigProvider().getCurrentDomainConfig()
+				mailLocator.domainConfigProvider().getCurrentDomainConfig()
 
 			return new LoginViewModel(
 				mailLocator.logins,
@@ -671,7 +672,9 @@ class MailLocator {
 			this.inboxRuleHanlder(),
 		)
 		this.operationProgressTracker = new OperationProgressTracker()
-		this.infoMessageHandler = new InfoMessageHandler(this.search)
+		this.infoMessageHandler = new InfoMessageHandler((state: SearchIndexStateInfo) => {
+			mailLocator.search.indexState(state)
+		})
 
 		this.Const = Const
 		if (!isBrowser()) {
@@ -834,7 +837,7 @@ class MailLocator {
 	}
 
 	readonly calendarModel: () => Promise<CalendarModel> = lazyMemoized(async () => {
-		const { DefaultDateProvider } = await import("../calendar-app/calendar/date/CalendarUtils")
+		const { DefaultDateProvider } = await import("../common/calendar/date/CalendarUtils")
 		const { CalendarModel } = await import("../calendar-app/calendar/model/CalendarModel")
 		const timeZone = new DefaultDateProvider().timeZone()
 		return new CalendarModel(
@@ -861,8 +864,8 @@ class MailLocator {
 	})
 
 	private alarmScheduler: () => Promise<AlarmScheduler> = lazyMemoized(async () => {
-		const { AlarmScheduler } = await import("../calendar-app/calendar/date/AlarmScheduler")
-		const { DefaultDateProvider } = await import("../calendar-app/calendar/date/CalendarUtils")
+		const { AlarmScheduler } = await import("../common/calendar/date/AlarmScheduler")
+		const { DefaultDateProvider } = await import("../common/calendar/date/CalendarUtils")
 		const dateProvider = new DefaultDateProvider()
 		return new AlarmScheduler(dateProvider, await this.scheduler())
 	})

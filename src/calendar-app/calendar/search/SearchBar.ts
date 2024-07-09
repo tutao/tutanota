@@ -1,37 +1,32 @@
 import m, { Component, Vnode } from "mithril"
-import { px, size } from "../../common/gui/size"
+import { px, size } from "../../../common/gui/size"
 import stream from "mithril/stream"
 import Stream from "mithril/stream"
-import type { PositionRect } from "../../common/gui/base/Overlay"
-import { displayOverlay } from "../../common/gui/base/Overlay"
-import type { CalendarEvent, Contact, Mail } from "../../common/api/entities/tutanota/TypeRefs.js"
-import { CalendarEventTypeRef, ContactTypeRef, MailTypeRef } from "../../common/api/entities/tutanota/TypeRefs.js"
-import type { Shortcut } from "../../common/misc/KeyManager"
-import { isKeyPressed, keyManager } from "../../common/misc/KeyManager"
+import type { PositionRect } from "../../../common/gui/base/Overlay"
+import { displayOverlay } from "../../../common/gui/base/Overlay"
+import type { CalendarEvent, Contact, Mail } from "../../../common/api/entities/tutanota/TypeRefs.js"
+import { MailTypeRef } from "../../../common/api/entities/tutanota/TypeRefs.js"
+import type { Shortcut } from "../../../common/misc/KeyManager"
+import { isKeyPressed, keyManager } from "../../../common/misc/KeyManager"
 import { encodeCalendarSearchKey, getRestriction } from "./model/SearchUtils"
-import { locator } from "../../common/api/main/CommonLocator"
-import { Dialog } from "../../common/gui/base/Dialog"
-import type { WhitelabelChild } from "../../common/api/entities/sys/TypeRefs.js"
-import { FULL_INDEXED_TIMESTAMP, Keys } from "../../common/api/common/TutanotaConstants"
-import { assertMainOrNode, isApp } from "../../common/api/common/Env"
-import { styles } from "../../common/gui/styles"
-import { client } from "../../common/misc/ClientDetector"
-import { debounce, downcast, isSameTypeRef, memoized, mod, ofClass, TypeRef } from "@tutao/tutanota-utils"
-import { BrowserType } from "../../common/misc/ClientConstants"
-import { hasMoreResults } from "./model/SearchModel"
-import { SearchBarOverlay } from "./SearchBarOverlay"
-import { IndexingNotSupportedError } from "../../common/api/common/error/IndexingNotSupportedError"
-import type { SearchIndexStateInfo, SearchRestriction, SearchResult } from "../../common/api/worker/search/SearchTypes"
-import { assertIsEntity, getElementId } from "../../common/api/common/utils/EntityUtils"
-import { compareContacts } from "../contacts/view/ContactGuiUtils"
-import { LayerType } from "../../RootView"
-import { BaseSearchBar, BaseSearchBarAttrs } from "../../common/gui/base/BaseSearchBar.js"
-import { SearchRouter } from "../../common/search/view/SearchRouter.js"
-import { PageSize } from "../../common/gui/base/ListUtils.js"
-import { generateCalendarInstancesInRange } from "../../common/calendar/date/CalendarUtils.js"
-import { ListElementEntity } from "../../common/api/common/EntityTypes.js"
+import { locator } from "../../../common/api/main/MainLocator"
+import type { WhitelabelChild } from "../../../common/api/entities/sys/TypeRefs.js"
+import { FULL_INDEXED_TIMESTAMP, Keys } from "../../../common/api/common/TutanotaConstants"
+import { assertMainOrNode } from "../../../common/api/common/Env"
+import { styles } from "../../../common/gui/styles"
+import { client } from "../../../common/misc/ClientDetector"
+import { debounce, downcast, isSameTypeRef, memoized, mod, TypeRef } from "@tutao/tutanota-utils"
+import { BrowserType } from "../../../common/misc/ClientConstants"
+import { hasMoreResults } from "./model/CalendarSearchModel.js"
+import type { SearchIndexStateInfo, SearchRestriction, SearchResult } from "../../../common/api/worker/search/SearchTypes"
+import { LayerType } from "../../../RootView"
+import { BaseSearchBar, BaseSearchBarAttrs } from "../../../common/gui/base/BaseSearchBar.js"
+import { PageSize } from "../../../common/gui/base/ListUtils.js"
+import { generateCalendarInstancesInRange } from "../../../common/calendar/date/CalendarUtils.js"
 
-import { loadMultipleFromLists } from "../../common/api/common/EntityClient.js"
+import { loadMultipleFromLists } from "../../../common/api/common/EntityClient.js"
+import { SearchRouter } from "../../../common/search/view/SearchRouter.js"
+import { SearchBarOverlay } from "../../../mail-app/search/SearchBarOverlay.js"
 
 assertMainOrNode()
 export type ShowMoreAction = {
@@ -66,10 +61,8 @@ export class SearchBar implements Component<SearchBarAttrs> {
 	focused: boolean = false
 	private readonly state: Stream<SearchBarState>
 	busy: boolean = false
-	private lastSelectedWhitelabelChildrenInfoResult: Stream<WhitelabelChild> = stream()
 	private closeOverlayFunction: (() => void) | null = null
 	private readonly overlayContentComponent: Component
-	private confirmDialogShown: boolean = false
 	private domWrapper!: HTMLElement
 	private domInput!: HTMLElement
 	private indexStateStream: Stream<unknown> | null = null
@@ -201,26 +194,6 @@ export class SearchBar implements Component<SearchBarAttrs> {
 
 	oncreate() {
 		keyManager.registerShortcuts(this.shortcuts)
-		this.indexStateStream = locator.search.indexState.map((indexState) => {
-			// When we finished indexing, search again forcibly to not confuse anyone with old results
-			const currentResult = this.state().searchResult
-
-			if (
-				!indexState.failedIndexingUpTo &&
-				currentResult &&
-				this.state().indexState.progress !== 0 &&
-				indexState.progress === 0 &&
-				//if period is changed from search view a new search is triggered there,  and we do not want to overwrite its result
-				!this.timePeriodHasChanged(currentResult.restriction.end, indexState.aimedMailIndexTimestamp)
-			) {
-				this.doSearch(this.state().query, currentResult.restriction, m.redraw)
-			}
-
-			this.updateState({
-				indexState,
-			})
-		})
-
 		this.stateStream = this.state.map((state) => m.redraw())
 		this.lastQueryStream = locator.search.lastQueryString.map((value) => {
 			// Set value from the model when it's set from the URL e.g. reloading the page on the search screen
@@ -331,11 +304,7 @@ export class SearchBar implements Component<SearchBarAttrs> {
 				if ((result as ShowMoreAction).allowShowMore) {
 					this.updateSearchUrl(query)
 				}
-			} else if (isSameTypeRef(MailTypeRef, type)) {
-				this.updateSearchUrl(query, downcast(result))
-			} else if (isSameTypeRef(ContactTypeRef, type)) {
-				this.updateSearchUrl(query, downcast(result))
-			} else if (isSameTypeRef(CalendarEventTypeRef, type)) {
+			} else {
 				this.updateSearchUrl(query, downcast(result))
 			}
 		}
@@ -353,12 +322,8 @@ export class SearchBar implements Component<SearchBarAttrs> {
 		return getRestriction(m.route.get())
 	}
 
-	private updateSearchUrl(query: string, selected?: ListElementEntity) {
-		if (selected && assertIsEntity(selected, CalendarEventTypeRef)) {
-			searchRouter.routeTo(query, this.getRestriction(), selected && encodeCalendarSearchKey(selected))
-		} else {
-			searchRouter.routeTo(query, this.getRestriction(), selected && getElementId(selected))
-		}
+	private updateSearchUrl(query: string, selected?: CalendarEvent) {
+		searchRouter.routeTo(query, this.getRestriction(), selected && encodeCalendarSearchKey(selected))
 	}
 
 	private search(query?: string) {
@@ -374,50 +339,23 @@ export class SearchBar implements Component<SearchBarAttrs> {
 
 		let restriction = this.getRestriction()
 
-		if (!locator.search.indexState().mailIndexEnabled && restriction && isSameTypeRef(restriction.type, MailTypeRef) && !this.confirmDialogShown) {
-			this.focused = false
-			this.confirmDialogShown = true
-			Dialog.confirm("enableSearchMailbox_msg", "search_label")
-				.then((confirmed) => {
-					if (confirmed) {
-						locator.indexerFacade
-							.enableMailIndexing()
-							.then(() => {
-								this.search()
-								this.onFocus()
-							})
-							.catch(
-								ofClass(IndexingNotSupportedError, () => {
-									Dialog.message(isApp() ? "searchDisabledApp_msg" : "searchDisabled_msg")
-								}),
-							)
-					}
-				})
-				.finally(() => (this.confirmDialogShown = false))
+		if (!locator.search.isNewSearch(query, restriction) && oldQuery === query) {
+			const result = locator.search.result()
+
+			if (this.isQuickSearch() && result) {
+				this.showResultsInOverlay(result)
+			}
+
+			this.busy = false
 		} else {
-			// Skip the search if the user is trying to bypass the search dialog
-			if (!locator.search.indexState().mailIndexEnabled && isSameTypeRef(restriction.type, MailTypeRef)) {
-				return
+			if (query.trim() !== "") {
+				this.busy = true
 			}
 
-			if (!locator.search.isNewSearch(query, restriction) && oldQuery === query) {
-				const result = locator.search.result()
-
-				if (this.isQuickSearch() && result) {
-					this.showResultsInOverlay(result)
-				}
-
+			this.doSearch(query, restriction, () => {
 				this.busy = false
-			} else {
-				if (query.trim() !== "") {
-					this.busy = true
-				}
-
-				this.doSearch(query, restriction, () => {
-					this.busy = false
-					m.redraw()
-				})
-			}
+				m.redraw()
+			})
 		}
 	}
 
@@ -434,17 +372,17 @@ export class SearchBar implements Component<SearchBarAttrs> {
 		const limit = isSameTypeRef(MailTypeRef, restriction.type) ? (this.isQuickSearch() ? MAX_SEARCH_PREVIEW_RESULTS : PageSize) : null
 
 		locator.search
-			.search(
-				{
-					query: query ?? "",
-					restriction,
-					minSuggestionCount: useSuggestions ? 10 : 0,
-					maxResults: limit,
-				},
-				locator.progressTracker,
-			)
-			.then((result) => this.loadAndDisplayResult(query, result ? result : null, limit))
-			.finally(() => cb())
+			   .search(
+				   {
+					   query: query ?? "",
+					   restriction,
+					   minSuggestionCount: useSuggestions ? 10 : 0,
+					   maxResults: limit,
+				   },
+				   locator.progressTracker,
+			   )
+			   .then((result) => this.loadAndDisplayResult(query, result ? result : null, limit))
+			   .finally(() => cb())
 	})
 
 	/** Given the result from the search load additional results if needed and then display them or set URL. */
@@ -524,31 +462,20 @@ export class SearchBar implements Component<SearchBarAttrs> {
 		return !m.route.get().startsWith("/search")
 	}
 
-	private filterResults(instances: Array<Entry>, restriction: SearchRestriction): { filteredEntries: Entries; couldShowMore: boolean } {
-		if (isSameTypeRef(restriction.type, ContactTypeRef)) {
-			// Sort contacts by name
-			return {
-				filteredEntries: instances
-					.slice() // we can't modify the given array
-					.sort((o1, o2) => compareContacts(o1 as any, o2 as any))
-					.slice(0, MAX_SEARCH_PREVIEW_RESULTS),
-				couldShowMore: instances.length > MAX_SEARCH_PREVIEW_RESULTS,
-			}
-		} else if (isSameTypeRef(restriction.type, CalendarEventTypeRef)) {
-			const range = { start: restriction.start ?? 0, end: restriction.end ?? 0 }
-			const generatedInstances = generateCalendarInstancesInRange(downcast(instances), range, MAX_SEARCH_PREVIEW_RESULTS + 1)
-			return {
-				filteredEntries: generatedInstances.slice(0, MAX_SEARCH_PREVIEW_RESULTS),
-				couldShowMore: generatedInstances.length > MAX_SEARCH_PREVIEW_RESULTS,
-			}
+	private filterResults(instances: Array<Entry>, restriction: SearchRestriction): {
+		filteredEntries: Entries;
+		couldShowMore: boolean
+	} {
+		const range = { start: restriction.start ?? 0, end: restriction.end ?? 0 }
+		const generatedInstances = generateCalendarInstancesInRange(downcast(instances), range, MAX_SEARCH_PREVIEW_RESULTS + 1)
+		return {
+			filteredEntries: generatedInstances.slice(0, MAX_SEARCH_PREVIEW_RESULTS),
+			couldShowMore: generatedInstances.length > MAX_SEARCH_PREVIEW_RESULTS,
 		}
-		return { filteredEntries: instances.slice(0, MAX_SEARCH_PREVIEW_RESULTS), couldShowMore: instances.length > MAX_SEARCH_PREVIEW_RESULTS }
 	}
 
 	private onFocus() {
-		if (!locator.search.indexingSupported) {
-			Dialog.message(isApp() ? "searchDisabledApp_msg" : "searchDisabled_msg")
-		} else if (!this.focused) {
+		if (!this.focused) {
 			this.focused = true
 			// setTimeout to fix bug in current Safari with losing focus
 			setTimeout(
