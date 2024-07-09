@@ -23,20 +23,20 @@ import { CalendarView, CalendarViewAttrs } from "./calendar-app/calendar/view/Ca
 import { DrawerMenuAttrs } from "./common/gui/nav/DrawerMenu.js"
 import { MailView, MailViewAttrs, MailViewCache } from "./mail-app/mail/view/MailView.js"
 import { ContactView, ContactViewAttrs } from "./mail-app/contacts/view/ContactView.js"
-import { SearchView, SearchViewAttrs } from "./mail-app/search/view/SearchView.js"
 import { TopLevelAttrs, TopLevelView } from "./TopLevelView.js"
 import { AppHeaderAttrs } from "./common/gui/Header.js"
 import { CalendarViewModel } from "./calendar-app/calendar/view/CalendarViewModel.js"
 import { ExternalLoginView, ExternalLoginViewAttrs, ExternalLoginViewModel } from "./common/login/ExternalLoginView.js"
 import { LoginController } from "./common/api/main/LoginController.js"
 import type { MailViewModel } from "./mail-app/mail/view/MailViewModel.js"
-import { SearchViewModel } from "./mail-app/search/view/SearchViewModel.js"
 import { ContactViewModel } from "./mail-app/contacts/view/ContactViewModel.js"
 import { ContactListViewModel } from "./mail-app/contacts/view/ContactListViewModel.js"
 import type { CredentialsMigrationView, CredentialsMigrationViewAttrs } from "./common/login/CredentialsMigrationView.js"
 import type { CredentialsMigrationViewModel } from "./common/login/CredentialsMigrationViewModel.js"
 import { SettingsViewAttrs } from "./common/settings/Interfaces.js"
 import { SettingsView } from "./calendar-app/calendar/view/SettingsView.js"
+import { SearchView, SearchViewAttrs } from "./calendar-app/calendar/search/view/SearchView.js"
+import { SearchViewModel } from "./calendar-app/calendar/search/view/SearchViewModel.js"
 
 assertMainOrNodeBoot()
 bootFinished()
@@ -278,14 +278,14 @@ import("./mail-app/translations/en")
 			>(
 				{
 					prepareRoute: async () => {
-						const { SearchView } = await import("./mail-app/search/view/SearchView.js")
+						const { SearchView } = await import("./calendar-app/calendar/search/view/SearchView.js")
 						const drawerAttrsFactory = await locator.drawerAttrsFactory()
 						return {
 							component: SearchView,
 							cache: {
 								drawerAttrsFactory,
 								header: await locator.appHeaderAttrs(),
-								searchViewModelFactory: await locator.searchViewModelFactory(),
+								searchViewModelFactory: await locator.calendarSearchViewModelFactory(),
 							},
 						}
 					},
@@ -745,8 +745,8 @@ function registerForMailto() {
 
 function printJobsMessage(domainConfig: DomainConfig) {
 	env.dist &&
-		domainConfig.firstPartyDomain &&
-		console.log(`
+	domainConfig.firstPartyDomain &&
+	console.log(`
 
 ........................................
 ........................................

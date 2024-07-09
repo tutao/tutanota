@@ -3,6 +3,7 @@ import { bootstrapWorker } from "./WorkerClient"
 import { EventController } from "./EventController"
 import { EntropyCollector } from "./EntropyCollector"
 import { SearchModel } from "../../../mail-app/search/model/SearchModel"
+import { SearchModel as CalendarSearchModel } from "../../../calendar-app/calendar/search/model/SearchModel"
 import { MailboxDetail, MailModel } from "../../../mail-app/mail/model/MailModel"
 import { assertMainOrNode, isAndroidApp, isApp, isBrowser, isDesktop, isElectronClient, isIOSApp } from "../common/Env"
 import { notifications } from "../../gui/Notifications"
@@ -85,7 +86,8 @@ import type { AlarmScheduler } from "../../calendar/date/AlarmScheduler.js"
 import { CalendarEventModel, CalendarOperation } from "../../../calendar-app/calendar/gui/eventeditor-model/CalendarEventModel.js"
 import { showProgressDialog } from "../../gui/dialogs/ProgressDialog.js"
 import { SearchViewModel } from "../../../mail-app/search/view/SearchViewModel.js"
-import { SearchRouter } from "../../../mail-app/search/view/SearchRouter.js"
+import { SearchViewModel as CalendarSearchViewModel } from "../../../calendar-app/calendar/search/view/SearchViewModel.js"
+import { SearchRouter } from "../../search/view/SearchRouter.js"
 import { MailOpenedListener } from "../../../mail-app/mail/view/MailViewModel.js"
 import { InboxRuleHandler } from "../../../mail-app/mail/model/InboxRuleHandler.js"
 import { Router, ScopedRouter, ThrottledRouter } from "../../gui/ScopedRouter.js"
@@ -120,6 +122,7 @@ assertMainOrNode()
 class MainLocator {
 	eventController!: EventController
 	search!: SearchModel
+	calendarSearch!: CalendarSearchModel
 	mailModel!: MailModel
 	minimizedMailModel!: MinimizedMailEditorViewModel
 	contactModel!: ContactModel
@@ -258,23 +261,42 @@ class MainLocator {
 		}
 	}
 
+	async calendarSearchViewModelFactory(): Promise<() => CalendarSearchViewModel> {
+		const { SearchViewModel } = await import("../../../calendar-app/calendar/search/view/SearchViewModel.js")
+		const redraw = await this.redraw()
+		const searchRouter = await this.scopedSearchRouter()
+		return () => {
+			return new SearchViewModel(
+				searchRouter,
+				this.calendarSearch,
+				this.searchFacade,
+				this.logins,
+				this.entityClient,
+				this.eventController,
+				this.calendarFacade,
+				this.progressTracker,
+				redraw,
+			)
+		}
+	}
+
 	readonly throttledRouter: lazy<Router> = lazyMemoized(() => new ThrottledRouter())
 
 	readonly scopedSearchRouter: lazyAsync<SearchRouter> = lazyMemoized(async () => {
-		const { SearchRouter } = await import("../../../mail-app/search/view/SearchRouter.js")
+		const { SearchRouter } = await import("../../search/view/SearchRouter.js")
 		return new SearchRouter(new ScopedRouter(this.throttledRouter(), "/search"))
 	})
 
 	readonly unscopedSearchRouter: lazyAsync<SearchRouter> = lazyMemoized(async () => {
-		const { SearchRouter } = await import("../../../mail-app/search/view/SearchRouter.js")
+		const { SearchRouter } = await import("../../search/view/SearchRouter.js")
 		return new SearchRouter(this.throttledRouter())
 	})
 
 	readonly mailOpenedListener: MailOpenedListener = {
 		onEmailOpened: isDesktop()
 			? (mail) => {
-					this.desktopSystemFacade.sendSocketMessage(getDisplayedSender(mail).address)
-			  }
+				this.desktopSystemFacade.sendSocketMessage(getDisplayedSender(mail).address)
+			}
 			: noOp,
 	}
 
@@ -554,7 +576,7 @@ class MainLocator {
 			const domainConfig = isBrowser()
 				? locator.domainConfigProvider().getDomainConfigForHostname(location.hostname, location.protocol, location.port)
 				: // in this case, we know that we have a staticUrl set that we need to use
-				  locator.domainConfigProvider().getCurrentDomainConfig()
+				locator.domainConfigProvider().getCurrentDomainConfig()
 
 			return new LoginViewModel(
 				locator.logins,
@@ -656,6 +678,7 @@ class MainLocator {
 		this.eventController = new EventController(locator.logins)
 		this.progressTracker = new ProgressTracker()
 		this.search = new SearchModel(this.searchFacade, () => this.calendarEventsRepository())
+		this.calendarSearch = new CalendarSearchModel(this.searchFacade, () => this.calendarEventsRepository())
 		this.entityClient = new EntityClient(restInterface)
 		this.cryptoFacade = cryptoFacade
 		this.cacheStorage = cacheStorage
