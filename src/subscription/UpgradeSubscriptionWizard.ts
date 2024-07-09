@@ -148,15 +148,20 @@ export async function loadSignupWizard(
 	const domainConfig = locator.domainConfigProvider().getCurrentDomainConfig()
 	const featureListProvider = await FeatureListProvider.getInitializedInstance(domainConfig)
 
-	let appstoreSubscriptionOwnership = MobilePaymentSubscriptionOwnership.NoSubscription
-	let enableAppStoreSubscription = false
+	let message: TranslationText | null
 	if (isIOSApp()) {
-		appstoreSubscriptionOwnership = await queryAppStoreSubscriptionOwnership(null)
-		enableAppStoreSubscription = await locator.appStorePaymentPicker.shouldEnableAppStorePayment(null)
-	}
-
-	if (appstoreSubscriptionOwnership !== MobilePaymentSubscriptionOwnership.NoSubscription || !enableAppStoreSubscription) {
-		acceptedPlans = acceptedPlans.filter((plan) => plan === PlanType.Free)
+		const appstoreSubscriptionOwnership = await queryAppStoreSubscriptionOwnership(null)
+		const enableAppStoreSubscription = await locator.appStorePaymentPicker.shouldEnableAppStorePayment(null)
+		// if we are on iOS app we only show other plans if AppStore payments are enabled and there's no subscription for this Apple ID.
+		if (appstoreSubscriptionOwnership !== MobilePaymentSubscriptionOwnership.NoSubscription || !enableAppStoreSubscription) {
+			acceptedPlans = acceptedPlans.filter((plan) => plan === PlanType.Free)
+		}
+		message =
+			appstoreSubscriptionOwnership != MobilePaymentSubscriptionOwnership.NoSubscription
+				? () => lang.get("storeMultiSubscriptionError_msg", { "{AppStorePayment}": InfoLink.AppStorePayment })
+				: null
+	} else {
+		message = null
 	}
 
 	const signupData: UpgradeSubscriptionData = {
@@ -189,10 +194,7 @@ export async function loadSignupWizard(
 		referralCode,
 		multipleUsersAllowed: false,
 		acceptedPlans,
-		msg:
-			appstoreSubscriptionOwnership != MobilePaymentSubscriptionOwnership.NoSubscription
-				? () => lang.get("storeMultiSubscriptionError_msg", { "{AppStorePayment}": InfoLink.AppStorePayment })
-				: null,
+		msg: message,
 	}
 
 	const invoiceAttrs = new InvoiceAndPaymentDataPageAttrs(signupData)
