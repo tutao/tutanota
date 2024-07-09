@@ -4,6 +4,7 @@ import { lang, TranslationKey } from "../misc/LanguageViewModel"
 import { assertMainOrNode } from "../api/common/Env"
 import { SearchModel } from "../../mail-app/search/model/SearchModel.js"
 import { SearchIndexStateInfo } from "../api/worker/search/SearchTypes.js"
+import { CalendarSearchModel } from "../../calendar-app/calendar/search/model/CalendarSearchModel.js"
 
 assertMainOrNode()
 
@@ -13,7 +14,7 @@ export interface InfoMessage {
 }
 
 export class InfoMessageHandler {
-	constructor(private readonly searchModel: SearchModel) {}
+	constructor(private readonly handleIndexStateUpdate: (state: SearchIndexStateInfo) => void) {}
 
 	async onInfoMessage(message: InfoMessage): Promise<void> {
 		showNotificationOverlay(
@@ -28,6 +29,6 @@ export class InfoMessageHandler {
 	}
 
 	async onSearchIndexStateUpdate(state: SearchIndexStateInfo): Promise<void> {
-		this.searchModel.indexState(state)
+		this.handleIndexStateUpdate(state)
 	}
 }

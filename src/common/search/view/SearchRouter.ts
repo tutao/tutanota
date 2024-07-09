@@ -1,7 +1,7 @@
-import { SearchRestriction } from "../../../common/api/worker/search/SearchTypes.js"
-import { getRestriction, getSearchUrl } from "../model/SearchUtils.js"
+import { SearchRestriction } from "../../api/worker/search/SearchTypes.js"
+import { getRestriction, getSearchUrl } from "../../../mail-app/search/model/SearchUtils.js"
 import m from "mithril"
-import { Router } from "../../../common/gui/ScopedRouter.js"
+import { Router } from "../../gui/ScopedRouter.js"
 import { memoizedWithHiddenArgument } from "@tutao/tutanota-utils"
 
 export type SearchSelection = {
