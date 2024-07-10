@@ -315,6 +315,7 @@ fn decrypt_unpadded_vec_mut<C: BlockCipher + BlockDecrypt>(decryptor: &mut cbc::
 /// The initialisation vector used when encrypting keys
 const FIXED_IV: [u8; IV_BYTE_SIZE] = [0x88; IV_BYTE_SIZE];
 
+#[derive(Debug)]
 struct CiphertextWithAuthentication<'a> {
     iv: &'a [u8],
     ciphertext: &'a [u8],
@@ -326,6 +327,7 @@ impl<'a> CiphertextWithAuthentication<'a> {
     fn parse(bytes: &'a [u8]) -> Result<Option<CiphertextWithAuthentication<'a>>, AesDecryptError> {
         // No MAC
         if !has_mac(bytes) {
+            log::debug!("aes: CiphertextWithAuthentication::parse: bytes: {:?}", bytes);
             return Ok(None);
         }
 
@@ -390,11 +392,13 @@ fn aes_decrypt<Key: AesKey>(key: &Key, encrypted_bytes: &[u8], padding_mode: Pad
     let (key, iv_bytes, encrypted_bytes) = if let Some(ciphertext_with_auth) = CiphertextWithAuthentication::parse(encrypted_bytes)? {
         let subkeys = key.derive_subkeys();
         if !ciphertext_with_auth.matches(&subkeys) {
+            log::debug!("aes: aes_decrypt: ciphertext_with_auth: {:#?}", ciphertext_with_auth);
             return Err(AesDecryptError::HmacError);
         }
 
         (subkeys.c_key, ciphertext_with_auth.iv, ciphertext_with_auth.ciphertext)
     } else if enforce_mac == EnforceMac::EnforceMac {
+        log::debug!("aes: aes_decrypt: enforce_mac == EnforceMac::EnforceMac");
         return Err(AesDecryptError::HmacError);
     } else {
         // Separate and check both the initialisation vector

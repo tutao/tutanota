@@ -1,4 +1,5 @@
 use std::collections::HashMap;
+
 use std::error::Error;
 use std::fmt::{Debug, Display, Formatter};
 use std::sync::Arc;
@@ -9,6 +10,7 @@ use thiserror::Error;
 use rest_client::{RestClient, RestClientError};
 #[mockall_double::double]
 use crate::crypto::crypto_facade::CryptoFacade;
+#[mockall_double::double]
 use crate::crypto_entity_client::CryptoEntityClient;
 use crate::entities::entity_facade::EntityFacade;
 #[mockall_double::double]
@@ -120,6 +122,11 @@ pub struct Sdk {
 impl Sdk {
     #[uniffi::constructor]
     pub fn new(base_url: String, rest_client: Arc<dyn RestClient>, credentials: Credentials, client_version: &str) -> Sdk {
+        #[cfg(target_os = "android")]
+        {
+            android_log::init("Test1").unwrap();
+        }
+
         let type_model_provider = Arc::new(init_type_model_provider());
         // TODO validate parameters
         let json_serializer = Arc::new(JsonSerializer::new(type_model_provider.clone()));
@@ -155,7 +162,6 @@ impl Sdk {
         let login_facade = LoginFacade::new(
             self.entity_client.clone(),
             self.typed_entity_client.clone(),
-            self.instance_mapper.clone()
         );
         let key_cache = Arc::new(KeyCache::new());
         let user_facade = Arc::new(login_facade.resume_session(&self.state.credentials, key_cache.clone()).await?);

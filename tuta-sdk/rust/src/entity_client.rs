@@ -75,6 +75,7 @@ impl EntityClient {
         }
         let response_bytes = response.body.expect("no body");
         let response_entity = serde_json::from_slice::<RawEntity>(response_bytes.as_slice()).unwrap();
+        log::debug!("EntityClient: load: response_entity: {:#?}", response_entity);
         let parsed_entity = self.json_serializer.parse(&type_ref, response_entity)?;
         Ok(parsed_entity)
     }

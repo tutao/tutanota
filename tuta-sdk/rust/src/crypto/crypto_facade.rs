@@ -54,9 +54,15 @@ impl CryptoFacade {
         }
 
         // Derive the session key from the bucket key
-        if entity.contains_key(BUCKET_KEY_FIELD) {
-            let resolved_key = self.resolve_bucket_key(entity, model).await?;
-            return Ok(Some(resolved_key));
+        if let Some(bucket_key_value) = entity.get(BUCKET_KEY_FIELD) {
+            match bucket_key_value {
+                ElementValue::Dict(_) =>  {
+                    let resolved_key = self.resolve_bucket_key(entity, model).await?;
+                    return Ok(Some(resolved_key));
+                },
+                ElementValue::Null => {},
+                _ => return Err(SessionKeyResolutionError { reason: "bucketKey is invalid!".to_string() })
+            }
         }
 
         // Extract the session key data from the owner group of the entity

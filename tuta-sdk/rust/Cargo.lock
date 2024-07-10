@@ -30,6 +30,25 @@ dependencies = [
 ]
 
 [[package]]
+name = "android_liblog-sys"
+version = "0.1.4"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "aaf82c031178ca72b38595a54d16df8a257df9deea7d97a8992870e5c6a738e7"
+dependencies = [
+ "libc",
+]
+
+[[package]]
+name = "android_log"
+version = "0.1.3"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "cc00e0d3a060cce3fa338f9644ce9a93901c79f5405330891aeca69c9957009a"
+dependencies = [
+ "android_liblog-sys",
+ "log 0.3.9",
+]
+
+[[package]]
 name = "anstream"
 version = "0.6.14"
 source = "registry+https://github.com/rust-lang/crates.io-index"
@@ -615,7 +634,7 @@ version = "0.8.2"
 source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "1b363a30c165f666402fe6a3024d3bec7ebc898f96a4a23bd1c99f8dbf3f4f47"
 dependencies = [
- "log",
+ "log 0.4.22",
  "plain",
  "scroll",
 ]
@@ -716,9 +735,18 @@ checksum = "4ec2a862134d2a7d32d7983ddcdd1c4923530833c9f2ea1a44fc5fa473989058"
 
 [[package]]
 name = "log"
-version = "0.4.21"
+version = "0.3.9"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "90ed8c1e510134f979dbc4f070f87d4313098b704861a105fe34231c70a3901c"
+checksum = "e19e8d5c34a3e0e2223db8e060f9e8264aeeb5c5fc64a4ee9965c062211c024b"
+dependencies = [
+ "log 0.4.22",
+]
+
+[[package]]
+name = "log"
+version = "0.4.22"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "a7a70ba024b9dc04c27ea2f0c0548feb474ec5c54bba33a7f72f873a39d07b24"
 
 [[package]]
 name = "memchr"
@@ -1355,6 +1383,7 @@ name = "tuta-sdk"
 version = "0.1.0"
 dependencies = [
  "aes",
+ "android_log",
  "argon2",
  "async-trait",
  "base64",
@@ -1364,6 +1393,7 @@ dependencies = [
  "futures",
  "hkdf",
  "hmac",
+ "log 0.4.22",
  "mockall",
  "mockall_double",
  "pqcrypto-kyber",
@@ -1474,7 +1504,7 @@ dependencies = [
  "anyhow",
  "bytes",
  "camino",
- "log",
+ "log 0.4.22",
  "once_cell",
  "paste",
  "static_assertions",
@@ -1567,7 +1597,7 @@ source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "614d787b966d3989fa7bb98a654e369c762374fd3213d212cfc0251257e747da"
 dependencies = [
  "bumpalo",
- "log",
+ "log 0.4.22",
  "once_cell",
  "proc-macro2",
  "quote",

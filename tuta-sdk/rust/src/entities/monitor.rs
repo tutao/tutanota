@@ -2,7 +2,7 @@
 use super::*;
 use serde::{Serialize, Deserialize};
 
-#[derive(uniffi::Record, Clone, Serialize, Deserialize)]
+#[derive(uniffi::Record, Clone, Serialize, Deserialize, Debug)]
 pub struct ApprovalMail {
 	pub _format: i64,
 	pub _id: IdTuple,
@@ -21,7 +21,7 @@ impl Entity for ApprovalMail {
 }
 
 
-#[derive(uniffi::Record, Clone, Serialize, Deserialize)]
+#[derive(uniffi::Record, Clone, Serialize, Deserialize, Debug)]
 pub struct CounterValue {
 	pub _id: CustomId,
 	pub counterId: GeneratedId,
@@ -35,7 +35,7 @@ impl Entity for CounterValue {
 }
 
 
-#[derive(uniffi::Record, Clone, Serialize, Deserialize)]
+#[derive(uniffi::Record, Clone, Serialize, Deserialize, Debug)]
 pub struct ErrorReportData {
 	pub _id: CustomId,
 	pub additionalInfo: String,
@@ -56,7 +56,7 @@ impl Entity for ErrorReportData {
 }
 
 
-#[derive(uniffi::Record, Clone, Serialize, Deserialize)]
+#[derive(uniffi::Record, Clone, Serialize, Deserialize, Debug)]
 pub struct ErrorReportFile {
 	pub _id: CustomId,
 	pub content: String,
@@ -70,7 +70,7 @@ impl Entity for ErrorReportFile {
 }
 
 
-#[derive(uniffi::Record, Clone, Serialize, Deserialize)]
+#[derive(uniffi::Record, Clone, Serialize, Deserialize, Debug)]
 pub struct ReadCounterData {
 	pub _format: i64,
 	pub columnName: Option<GeneratedId>,
@@ -85,7 +85,7 @@ impl Entity for ReadCounterData {
 }
 
 
-#[derive(uniffi::Record, Clone, Serialize, Deserialize)]
+#[derive(uniffi::Record, Clone, Serialize, Deserialize, Debug)]
 pub struct ReadCounterReturn {
 	pub _format: i64,
 	pub value: Option<i64>,
@@ -99,7 +99,7 @@ impl Entity for ReadCounterReturn {
 }
 
 
-#[derive(uniffi::Record, Clone, Serialize, Deserialize)]
+#[derive(uniffi::Record, Clone, Serialize, Deserialize, Debug)]
 pub struct ReportErrorIn {
 	pub _format: i64,
 	pub data: ErrorReportData,
@@ -113,7 +113,7 @@ impl Entity for ReportErrorIn {
 }
 
 
-#[derive(uniffi::Record, Clone, Serialize, Deserialize)]
+#[derive(uniffi::Record, Clone, Serialize, Deserialize, Debug)]
 pub struct WriteCounterData {
 	pub _format: i64,
 	pub column: GeneratedId,

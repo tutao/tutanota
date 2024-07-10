@@ -35,13 +35,13 @@ import java.util.concurrent.TimeUnit
 
 private const val TAG = "MailDownload"
 
-suspend fun download_mail() {
+suspend fun downloadMail() {
 	val restClient = OkHttpRestClient()
-	val credentials: Credentials = Credentials(
+	val credentials = Credentials(
 		"bed-free@tutanota.de",
-		"O1HuI5_----0",
-		"ZCS6TGoABsABtfyiU3IXAQIoH_i60sg3dQ",
-		"Aa1bVFTGnGe8GeEkAJHhYpqnAnjBRWw6Go3L/doHNdmFekZPnfFCi+d/thK6RzUE1ZLuCxeipXnhocMAt7V2Yj8=".encodeToByteArray(),
+		"O1RT1m0----0",
+		"ZCceCyEAAsABnVdE_tu5jF6V0hLPo2RVtA",
+		"AfLJsXyhCBFCNjXmMgduOvg/fOOq8pva6PUC2sfkAJRjakVvXSur7mtNLQneqCBbw831BweL5nj/Kva/kA7/1zo=".base64ToBytes(),
 		CredentialType.INTERNAL
 	)
 	val sdk = Sdk(
@@ -51,7 +51,7 @@ suspend fun download_mail() {
 			BuildConfig.VERSION_NAME
 	)
 	val loggedInSdk = sdk.login()
-	val mailId = "O1HuI5g--k-0/O1HuIga----0".toIdTuple()
+	val mailId = "O1RT1m6-0R-0/O1RT2Dj----0".toIdTuple()
 	val mailFacade = loggedInSdk.mailFacade()
 	val mail = try {
 		mailFacade.loadEmailByIdEncrypted(mailId)

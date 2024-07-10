@@ -1,4 +1,5 @@
 use std::sync::Arc;
+use futures::future::err;
 use serde::Deserialize;
 use crate::entity_client::IdType;
 #[mockall_double::double]
@@ -20,6 +21,7 @@ pub struct CryptoEntityClient {
     instance_mapper: Arc<InstanceMapper>,
 }
 
+#[cfg_attr(test, mockall::automock)]
 impl CryptoEntityClient {
     pub fn new(
         entity_client: Arc<EntityClient>,
@@ -52,7 +54,13 @@ impl CryptoEntityClient {
                 )?;
             match possible_session_key {
                 Some(session_key) => {
-                    let decrypted_entity = self.entity_facade.decrypt_and_map(type_model, parsed_entity, &session_key)?;
+                    let mut decrypted_entity = self.entity_facade.decrypt_and_map(type_model, parsed_entity, &session_key)?;
+                    let errors = decrypted_entity.remove("errors");
+                    let final_ivs = decrypted_entity.remove("final_ivs");
+                    log::debug!("CryptoEntityClient: load: decrypted_entity: {:#?}", decrypted_entity);
+                    if errors.is_some() {
+                        decrypted_entity.insert("errors".to_string(), errors.unwrap());
+                    }
                     let typed_entity = self.instance_mapper.parse_entity::<T>(decrypted_entity)
                         .map_err(|e|
                             ApiCallError::InternalSdkError {

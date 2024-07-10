@@ -87,7 +87,8 @@ impl<'de> Deserializer<'de> for ParsedEntityDeserializer {
         Err(de::Error::custom("deserialize_any is not supported!"))
     }
 
-    fn deserialize_struct<V>(self, _: &'static str, _: &'static [&'static str], visitor: V) -> Result<V::Value, Self::Error> where V: Visitor<'de> {
+    fn deserialize_struct<V>(self, name: &'static str, _: &'static [&'static str], visitor: V) -> Result<V::Value, Self::Error> where V: Visitor<'de> {
+        println!("ParsedEntityDeserializer: deserialize_struct name: {}", name);
         visitor.visit_map(MapDeserializer::new(self.input.into_iter()))
     }
 }
@@ -178,6 +179,7 @@ impl<'de> Deserializer<'de> for ElementValueDeserializer {
         fields: &'static [&'static str],
         visitor: V,
     ) -> Result<V::Value, Self::Error> where V: Visitor<'de> {
+        println!("ElementValueDeserializer: deserialize_struct name: {}", name);
         if name == "IdTuple" {
             struct IdTupleMapAccess<I: Iterator<Item=(&'static str, GeneratedId)>> {
                 iter: I,

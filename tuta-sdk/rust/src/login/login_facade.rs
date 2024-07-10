@@ -17,8 +17,6 @@ use crate::entity_client::EntityClient;
 use crate::typed_entity_client::TypedEntityClient;
 use crate::generated_id::{GENERATED_ID_BYTES_LENGTH, GeneratedId};
 #[mockall_double::double]
-use crate::instance_mapper::InstanceMapper;
-#[mockall_double::double]
 use crate::key_cache::KeyCache;
 use crate::login::credentials::Credentials;
 use crate::user_facade::UserFacade;
@@ -51,24 +49,31 @@ pub enum KdfType {
     Argon2id,
 }
 
+impl KdfType {
+    pub fn parse(i: i64) -> Option<Self> {
+        match i {
+            0 => Some(KdfType::Bcrypt),
+            1 => Some(KdfType::Argon2id),
+            _ => None
+        }
+    }
+}
+
 /// Simple LoginFacade that take in an existing credential
 /// and returns a UserFacade after resuming the session.
 pub struct LoginFacade {
     entity_client: Arc<EntityClient>,
     typed_entity_client: Arc<TypedEntityClient>,
-    instance_mapper: Arc<InstanceMapper>
 }
 
 impl LoginFacade {
     pub fn new(
         entity_client: Arc<EntityClient>,
         typed_entity_client: Arc<TypedEntityClient>,
-        instance_mapper: Arc<InstanceMapper>
     ) -> Self {
         LoginFacade {
             entity_client,
             typed_entity_client,
-            instance_mapper
         }
     }
 
@@ -77,14 +82,12 @@ impl LoginFacade {
         let session_id = parse_session_id(credentials.access_token.as_str())
             .map_err(|e| LoginError::InvalidSessionId { error_message: format!("Could not decode session id: {}", e) })?;
         // Cannot use typed client because session is encrypted, and we haven't init crypto client yet
-        let session_raw: ParsedEntity = self.entity_client.load(&Session::type_ref(), &session_id).await?;
-        let session: Session = self.instance_mapper.parse_entity(session_raw)
-            .map_err(|e| LoginError::ApiCall { source: ApiCallError::internal_with_err(e, "Failed to parse session data") })?;
+        let session: ParsedEntity = self.entity_client.load(&Session::type_ref(), &session_id).await?;
 
         let access_key = self.get_access_key(&session)?;
         let passphrase = self.decrypt_passphrase(&credentials, access_key)?;
 
-        let user: User = self.typed_entity_client.load(&session.user).await?;
+        let user: User = self.typed_entity_client.load(&credentials.user_id).await?;
 
         let user_passphrase_key = self.load_user_passphrase_key(&user, passphrase.as_str()).await?;
 
@@ -107,8 +110,12 @@ impl LoginFacade {
         let Some(salt) = user.salt.as_ref() else {
             return Err(InternalSdkError { error_message: "Salt is missing from User!".to_string() });
         };
+        let kdf_type = KdfType::parse(user.kdfVersion)
+            .ok_or_else(|| InternalSdkError {
+                error_message: format!("Unknown KDF type: {}", user.kdfVersion)
+            })?;
         Ok(self.derive_user_passphrase_key(
-            KdfType::Argon2id,
+            kdf_type,
             passphrase,
             array_cast_slice(salt, "Vec").map_err(|e|
             ApiCallError::internal_with_err(e, "Invalid salt")
@@ -129,7 +136,7 @@ impl LoginFacade {
         String::from_utf8(
             access_key.decrypt_data(credentials.encrypted_password.as_slice())
                 .map_err(|e| LoginError::InvalidPassphrase {
-                    error_message: format!("Failed to decrypt user passphrase: {}", e.to_string())
+                    error_message: format!("Failed to decrypt user passphrase: {}, key: {}, enc_pwd: {}", e.to_string(), BASE64_STANDARD.encode(access_key.as_bytes()), String::from_utf8_lossy(credentials.encrypted_password.as_slice()))
                 })?)
             .map_err(|e| LoginError::InvalidPassphrase {
                 error_message: format!("Failed to decode user passphrase into plaintext: {}", e.to_string())
@@ -137,17 +144,12 @@ impl LoginFacade {
     }
 
     /// Get access key from session
-    fn get_access_key(&self, session: &Session) -> Result<GenericAesKey, LoginError> {
-        let Some(access_key_raw) = &session.accessKey else {
-            return Err(LoginError::ApiCall { source: InternalSdkError { error_message: "no access key on session!".to_owned() } })
-        };
-        let access_key = GenericAesKey::from_bytes(
-            BASE64_STANDARD.decode(access_key_raw)
-                .map_err(|e| LoginError::ApiCall {
-                    source: InternalSdkError {
-                        error_message: format!("Failed to decode access key from base64: {}", e.to_string())
-                    }
-                })?.as_slice())
+    fn get_access_key(&self, session: &ParsedEntity) -> Result<GenericAesKey, LoginError> {
+        let access_key_raw = session.get("accessKey")
+            .ok_or_else(|| LoginError::ApiCall {
+                source: InternalSdkError{ error_message: "no access key on session!".to_owned() }
+        })?.assert_bytes();
+        let access_key = GenericAesKey::from_bytes(access_key_raw.as_slice())
             .map_err(|e| LoginError::ApiCall {
                 source: InternalSdkError {
                     error_message: format!("Failed to create AES key from access key string: {}", e.to_string())
@@ -184,7 +186,6 @@ mod tests {
     use crate::entities::sys::{GroupMembership, Session, User, UserExternalAuthInfo};
     use crate::entity_client::MockEntityClient;
     use crate::generated_id::GeneratedId;
-    use crate::instance_mapper::MockInstanceMapper;
     use crate::key_cache::MockKeyCache;
 
     use crate::typed_entity_client::MockTypedEntityClient;
@@ -206,7 +207,6 @@ mod tests {
         };
         let mut mock_entity_client = MockEntityClient::default();
         let mut mock_typed_entity_client = MockTypedEntityClient::default();
-        let mut mock_instance_mapper = MockInstanceMapper::default();
 
         mock_typed_entity_client.expect_load::<User, GeneratedId>()
             .with(eq(GeneratedId(user_id.clone())))
@@ -219,7 +219,6 @@ mod tests {
         let login_facade = LoginFacade::new(
             Arc::new(mock_entity_client),
             Arc::new(mock_typed_entity_client),
-            Arc::new(mock_instance_mapper),
         );
         let key_cache = Arc::new(MockKeyCache::default());
 

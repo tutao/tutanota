@@ -304,6 +304,8 @@ class MainActivity : FragmentActivity() {
 				}
 			}
 
+			downloadMail()
+
 			startWebApp(queryParameters)
 		}
 

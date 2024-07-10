@@ -1,3 +1,4 @@
+use std::backtrace::Backtrace;
 use std::collections::HashMap;
 use crate::custom_id::CustomId;
 use crate::date::DateTime;
@@ -45,7 +46,7 @@ impl ElementValue {
     pub fn assert_bytes(&self) -> Vec<u8> {
         match self {
             ElementValue::Bytes(value) => value.to_vec(),
-            _ => panic!("Invalid type, is {:?}", self),
+            _ => panic!("Invalid type, is {:?}, backtrace {:#?}", self, Backtrace::force_capture()),
         }
     }
 
