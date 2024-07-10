@@ -179,7 +179,7 @@ import("./mail-app/translations/en")
 							},
 						}
 					},
-					prepareAttrs: ({ makeViewModel }) => ({ targetPath: "/mail", makeViewModel }),
+					prepareAttrs: ({ makeViewModel }) => ({ targetPath: "/calendar", makeViewModel }),
 					requireLogin: false,
 				},
 				locator.logins,
@@ -745,8 +745,8 @@ function registerForMailto() {
 
 function printJobsMessage(domainConfig: DomainConfig) {
 	env.dist &&
-	domainConfig.firstPartyDomain &&
-	console.log(`
+		domainConfig.firstPartyDomain &&
+		console.log(`
 
 ........................................
 ........................................

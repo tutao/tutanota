@@ -372,17 +372,17 @@ export class SearchBar implements Component<SearchBarAttrs> {
 		const limit = isSameTypeRef(MailTypeRef, restriction.type) ? (this.isQuickSearch() ? MAX_SEARCH_PREVIEW_RESULTS : PageSize) : null
 
 		locator.search
-			   .search(
-				   {
-					   query: query ?? "",
-					   restriction,
-					   minSuggestionCount: useSuggestions ? 10 : 0,
-					   maxResults: limit,
-				   },
-				   locator.progressTracker,
-			   )
-			   .then((result) => this.loadAndDisplayResult(query, result ? result : null, limit))
-			   .finally(() => cb())
+			.search(
+				{
+					query: query ?? "",
+					restriction,
+					minSuggestionCount: useSuggestions ? 10 : 0,
+					maxResults: limit,
+				},
+				locator.progressTracker,
+			)
+			.then((result) => this.loadAndDisplayResult(query, result ? result : null, limit))
+			.finally(() => cb())
 	})
 
 	/** Given the result from the search load additional results if needed and then display them or set URL. */
@@ -462,8 +462,11 @@ export class SearchBar implements Component<SearchBarAttrs> {
 		return !m.route.get().startsWith("/search")
 	}
 
-	private filterResults(instances: Array<Entry>, restriction: SearchRestriction): {
-		filteredEntries: Entries;
+	private filterResults(
+		instances: Array<Entry>,
+		restriction: SearchRestriction,
+	): {
+		filteredEntries: Entries
 		couldShowMore: boolean
 	} {
 		const range = { start: restriction.start ?? 0, end: restriction.end ?? 0 }
