@@ -2,7 +2,7 @@ import m from "mithril"
 import type { GroupInfo } from "../../common/api/entities/sys/TypeRefs.js"
 import { GroupInfoTypeRef } from "../../common/api/entities/sys/TypeRefs.js"
 import { GroupType } from "../../common/api/common/TutanotaConstants"
-import { locator } from "../../common/api/main/MainLocator"
+import { locator } from "../../common/api/main/CommonLocator"
 
 import { noOp, promiseMap } from "@tutao/tutanota-utils"
 import { EntityUpdateData, isUpdateForTypeRef } from "../../common/api/common/utils/EntityUpdateUtils.js"

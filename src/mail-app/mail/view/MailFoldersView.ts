@@ -1,6 +1,6 @@
 import m, { Child, Children, Component, Vnode } from "mithril"
 import { MailboxDetail } from "../../../common/mailFunctionality/MailModel.js"
-import { locator } from "../../../common/api/main/MainLocator.js"
+import { locator } from "../../../common/api/main/CommonLocator.js"
 import { SidebarSection } from "../../../common/gui/SidebarSection.js"
 import { IconButton, IconButtonAttrs } from "../../../common/gui/base/IconButton.js"
 import { FolderSubtree } from "../../../common/api/common/mail/FolderSystem.js"

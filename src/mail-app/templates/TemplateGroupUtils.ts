@@ -1,7 +1,7 @@
 import type { TemplateGroupRoot } from "../../common/api/entities/tutanota/TypeRefs.js"
 import { TemplateGroupRootTypeRef } from "../../common/api/entities/tutanota/TypeRefs.js"
 import { showPlanUpgradeRequiredDialog } from "../../common/misc/SubscriptionDialogs"
-import { locator } from "../../common/api/main/MainLocator"
+import { locator } from "../../common/api/main/CommonLocator"
 import { FeatureType } from "../../common/api/common/TutanotaConstants"
 import { Dialog } from "../../common/gui/base/Dialog.js"
 import { lang } from "../../common/misc/LanguageViewModel.js"

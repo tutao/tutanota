@@ -1,6 +1,6 @@
 import type { SelectorItem } from "../base/DropDownSelector.js"
 import type { TranslationKey } from "../../misc/LanguageViewModel"
-import { locator } from "../../api/main/MainLocator"
+import { locator } from "../../api/main/CommonLocator"
 
 export async function showSpellcheckLanguageDialog(): Promise<string> {
 	const { DesktopConfigKey } = await import("../../../desktop/config/ConfigKeys")

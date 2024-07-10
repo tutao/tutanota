@@ -16,7 +16,7 @@ import { Dialog } from "../../common/gui/base/Dialog"
 import { Icons } from "../../common/gui/base/icons/Icons"
 import { showProgressDialog } from "../../common/gui/dialogs/ProgressDialog"
 import type { MailboxDetail } from "../../common/mailFunctionality/MailModel.js"
-import { locator } from "../../common/api/main/MainLocator"
+import { locator } from "../../common/api/main/CommonLocator"
 import stream from "mithril/stream"
 import Stream from "mithril/stream"
 

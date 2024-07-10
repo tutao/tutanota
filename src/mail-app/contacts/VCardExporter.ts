@@ -4,7 +4,7 @@ import { createFile } from "../../common/api/entities/tutanota/TypeRefs.js"
 import { stringToUtf8Uint8Array } from "@tutao/tutanota-utils"
 import { ContactAddressType, ContactPhoneNumberType } from "../../common/api/common/TutanotaConstants"
 import { assertMainOrNode } from "../../common/api/common/Env"
-import { locator } from "../../common/api/main/MainLocator"
+import { locator } from "../../common/api/main/CommonLocator"
 import { getSocialUrl, getWebsiteUrl } from "../../common/contactsFunctionality/ContactUtils.js"
 
 assertMainOrNode()

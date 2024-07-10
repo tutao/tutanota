@@ -6,7 +6,7 @@ import { lang } from "../../../../misc/LanguageViewModel.js"
 import { renderPermissionButton } from "../SetupWizard.js"
 import Stream from "mithril/stream"
 import { SetupPageLayout } from "./SetupPageLayout.js"
-import { locator } from "../../../../api/main/MainLocator.js"
+import { locator } from "../../../../api/main/CommonLocator.js"
 import { SystemPermissionHandler } from "../../SystemPermissionHandler.js"
 
 export interface NotificationPermissionsData {

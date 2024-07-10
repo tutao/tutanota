@@ -2,7 +2,7 @@ import type { OutOfOfficeNotification } from "../api/entities/tutanota/TypeRefs.
 import { OutOfOfficeNotificationTypeRef } from "../api/entities/tutanota/TypeRefs.js"
 import { formatDate } from "./Formatter"
 import { lang } from "./LanguageViewModel"
-import { locator } from "../api/main/MainLocator"
+import { locator } from "../api/main/CommonLocator"
 import { MailboxGroupRootTypeRef } from "../api/entities/tutanota/TypeRefs.js"
 import { getDayShifted } from "@tutao/tutanota-utils"
 

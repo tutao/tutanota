@@ -29,7 +29,7 @@ import { LockedError, NotFoundError } from "../../../common/api/common/error/Res
 import { getContactSelectionMessage, MultiContactViewer } from "./MultiContactViewer"
 import { BootIcons } from "../../../common/gui/base/icons/BootIcons"
 import { showProgressDialog } from "../../../common/gui/dialogs/ProgressDialog"
-import { locator } from "../../../common/api/main/MainLocator"
+import { locator } from "../../../common/api/main/CommonLocator"
 import { ContactMergeView } from "./ContactMergeView"
 import { getMergeableContacts, mergeContacts } from "../ContactMergeUtils"
 import { exportContacts } from "../VCardExporter"
@@ -77,6 +77,7 @@ import { ContactListInfo } from "../../../common/contactsFunctionality/ContactMo
 import { CONTACTLIST_PREFIX } from "../../../common/misc/RouteChange.js"
 import { StructuredContact } from "../../../common/native/common/generatedipc/StructuredContact.js"
 import { validateBirthdayOfContact } from "../../../common/contactsFunctionality/ContactUtils.js"
+import { mailLocator } from "../../mailLocator.js"
 
 assertMainOrNode()
 
@@ -965,7 +966,7 @@ export function confirmMerge(keptContact: Contact, goodbyeContact: Contact): Pro
 }
 
 export async function importContacts() {
-	const importer = await locator.contactImporter()
+	const importer = await mailLocator.contactImporter()
 	await importer.importContactsFromDeviceSafely()
 }
 

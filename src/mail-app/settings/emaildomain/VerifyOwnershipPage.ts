@@ -9,7 +9,7 @@ import { emitWizardEvent, WizardEventType } from "../../../common/gui/base/Wizar
 import { PreconditionFailedError } from "../../../common/api/common/error/RestError.js"
 import { showPlanUpgradeRequiredDialog } from "../../../common/misc/SubscriptionDialogs.js"
 import { isEmpty, ofClass } from "@tutao/tutanota-utils"
-import { locator } from "../../../common/api/main/MainLocator"
+import { locator } from "../../../common/api/main/CommonLocator"
 import { assertMainOrNode } from "../../../common/api/common/Env"
 import { createDnsRecordTable } from "./DnsRecordTable.js"
 import { getAvailableMatchingPlans } from "../../../common/subscription/SubscriptionUtils.js"

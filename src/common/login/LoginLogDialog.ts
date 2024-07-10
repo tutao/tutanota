@@ -1,4 +1,4 @@
-import { locator } from "../api/main/MainLocator.js"
+import { locator } from "../api/main/CommonLocator.js"
 import { isApp, isDesktop } from "../api/common/Env.js"
 import { clientInfoString } from "../misc/ErrorReporter.js"
 import { Dialog } from "../gui/base/Dialog.js"

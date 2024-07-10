@@ -6,7 +6,7 @@ import { BookingItemFeatureType } from "../../common/api/common/TutanotaConstant
 import { contains, delay, ofClass, promiseMap } from "@tutao/tutanota-utils"
 import { PreconditionFailedError } from "../../common/api/common/error/RestError"
 import { showBuyDialog } from "../../common/subscription/BuyDialog"
-import { locator } from "../../common/api/main/MainLocator"
+import { locator } from "../../common/api/main/CommonLocator"
 import { showProgressDialog } from "../../common/gui/dialogs/ProgressDialog.js"
 import { OperationId } from "../../common/api/main/OperationProgressTracker.js"
 import { toFeatureType } from "../../common/subscription/SubscriptionUtils.js"

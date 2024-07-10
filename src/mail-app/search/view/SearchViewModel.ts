@@ -55,7 +55,7 @@ import { SearchRouter } from "./SearchRouter.js"
 import { MailOpenedListener } from "../../mail/view/MailViewModel.js"
 import { containsEventOfType, EntityUpdateData, getEventOfType, isUpdateForTypeRef } from "../../../common/api/common/utils/EntityUpdateUtils.js"
 import { CalendarInfo } from "../../../calendar-app/calendar/model/CalendarModel.js"
-import { locator } from "../../../common/api/main/MainLocator.js"
+import { locator } from "../../../common/api/main/CommonLocator.js"
 import m from "mithril"
 import { CalendarFacade } from "../../../common/api/worker/facades/lazy/CalendarFacade.js"
 import { ProgrammingError } from "../../../common/api/common/error/ProgrammingError.js"
@@ -127,10 +127,10 @@ export class SearchViewModel {
 		private readonly indexerFacade: Indexer,
 		private readonly entityClient: EntityClient,
 		private readonly eventController: EventController,
-		private readonly mailOpenedListener: MailOpenedListener,
+		private readonly mailOpenedListener: MailOpenedListener | null,
 		private readonly calendarFacade: CalendarFacade,
 		private readonly progressTracker: ProgressTracker,
-		private readonly conversationViewModelFactory: ConversationViewModelFactory,
+		private readonly conversationViewModelFactory: ConversationViewModelFactory | null,
 		private readonly updateUi: () => unknown,
 		private readonly selectionBehavior: ListAutoSelectBehavior,
 	) {
@@ -650,9 +650,11 @@ export class SearchViewModel {
 	}
 
 	private updateDisplayedConversation(mail: Mail): void {
-		this.conversationViewModel = this.conversationViewModelFactory({ mail, showFolder: true })
-		// Notify the admin client about the mail being selected
-		this.mailOpenedListener.onEmailOpened(mail)
+		if (this.conversationViewModelFactory && this.mailOpenedListener) {
+			this.conversationViewModel = this.conversationViewModelFactory({ mail, showFolder: true })
+			// Notify the admin client about the mail being selected
+			this.mailOpenedListener.onEmailOpened(mail)
+		}
 	}
 
 	private createList(): ListModel<SearchResultListEntry> {

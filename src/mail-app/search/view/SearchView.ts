@@ -13,7 +13,7 @@ import { SearchListView, SearchListViewAttrs } from "./SearchListView"
 import { px, size } from "../../../common/gui/size"
 import { getFreeSearchStartDate, SEARCH_MAIL_FIELDS, SearchCategoryTypes } from "../model/SearchUtils"
 import { Dialog } from "../../../common/gui/base/Dialog"
-import { locator } from "../../../common/api/main/MainLocator"
+import { locator } from "../../../common/api/main/CommonLocator"
 import {
 	assertNotNull,
 	getFirstOrThrow,

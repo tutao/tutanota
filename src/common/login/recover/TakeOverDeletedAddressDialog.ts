@@ -7,7 +7,7 @@ import { InfoLink, lang } from "../../misc/LanguageViewModel.js"
 import { Autocomplete, TextField, TextFieldType } from "../../gui/base/TextField.js"
 import { Dialog, DialogType } from "../../gui/base/Dialog"
 import { HtmlEditor, HtmlEditorMode } from "../../gui/editor/HtmlEditor"
-import { locator } from "../../api/main/MainLocator"
+import { locator } from "../../api/main/CommonLocator"
 import { assertMainOrNode } from "../../api/common/Env"
 import { MoreInfoLink } from "../../misc/news/MoreInfoLink.js"
 

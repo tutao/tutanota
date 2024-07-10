@@ -73,7 +73,7 @@ import { ProgrammingError } from "../../common/api/common/error/ProgrammingError
 import { ToggleButton } from "../../common/gui/base/buttons/ToggleButton.js"
 import { Icons } from "../../common/gui/base/icons/Icons.js"
 import { ButtonSize } from "../../common/gui/base/ButtonSize.js"
-import { locator } from "../../common/api/main/MainLocator.js"
+import { locator } from "../../common/api/main/CommonLocator.js"
 import { formatDate } from "../../common/misc/Formatter.js"
 import { PasswordField } from "../../common/misc/passwords/PasswordField.js"
 

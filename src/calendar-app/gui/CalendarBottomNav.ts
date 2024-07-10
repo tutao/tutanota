@@ -4,7 +4,7 @@ import { size } from "../../common/gui/size"
 import { CALENDAR_PREFIX, SEARCH_PREFIX } from "../../common/misc/RouteChange"
 import { FeatureType } from "../../common/api/common/TutanotaConstants"
 import { BootIcons } from "../../common/gui/base/icons/BootIcons"
-import { locator } from "../../common/api/main/MainLocator.js"
+import { locator } from "../../common/api/main/CommonLocator.js"
 
 type Attrs = void
 const fontSize = size.font_size_small

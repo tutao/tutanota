@@ -18,7 +18,7 @@ import {
 import type { CalendarEventBubbleClickHandler, CalendarEventBubbleKeyDownHandler } from "./CalendarViewModel"
 import type { GroupColors } from "./CalendarView"
 import { styles } from "../../../common/gui/styles"
-import { locator } from "../../../common/api/main/MainLocator.js"
+import { locator } from "../../../common/api/main/CommonLocator.js"
 import { CalendarTimeIndicator } from "./CalendarTimeIndicator.js"
 
 export type Attrs = {

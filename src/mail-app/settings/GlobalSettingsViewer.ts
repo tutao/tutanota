@@ -50,7 +50,7 @@ import { getUserGroupMemberships } from "../../common/api/common/utils/GroupUtil
 import { showNotAvailableForFreeDialog } from "../../common/misc/SubscriptionDialogs"
 import { getDomainPart } from "../../common/misc/parsing/MailAddressParser"
 import type { UpdatableSettingsViewer } from "./SettingsView"
-import { locator } from "../../common/api/main/MainLocator"
+import { locator } from "../../common/api/main/CommonLocator"
 import { assertMainOrNode } from "../../common/api/common/Env"
 import { DropDownSelector } from "../../common/gui/base/DropDownSelector.js"
 import { ButtonSize } from "../../common/gui/base/ButtonSize.js"

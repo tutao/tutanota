@@ -1,5 +1,5 @@
 import { CommonNativeFacade } from "../common/generatedipc/CommonNativeFacade.js"
-import { IMainLocator, locator } from "../../api/main/MainLocator.js"
+import { ICommonLocator, locator } from "../../api/main/CommonLocator.js"
 import { TranslationKey } from "../../misc/LanguageViewModel.js"
 import { assertNotNull, noOp, ofClass } from "@tutao/tutanota-utils"
 import { CancelledError } from "../../api/common/error/CancelledError.js"
@@ -172,8 +172,8 @@ export class WebCommonNativeFacade implements CommonNativeFacade {
 		})
 	}
 
-	private static async getInitializedLocator(): Promise<IMainLocator> {
-		const { locator } = await import("../../api/main/MainLocator")
+	private static async getInitializedLocator(): Promise<ICommonLocator> {
+		const { locator } = await import("../../api/main/CommonLocator")
 		await locator.initialized
 		return locator
 	}

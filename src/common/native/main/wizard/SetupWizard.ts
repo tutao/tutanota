@@ -18,7 +18,7 @@ import { ContactImporter } from "../../../../mail-app/contacts/ContactImporter.j
 import { MobileSystemFacade } from "../../common/generatedipc/MobileSystemFacade.js"
 import { CredentialsProvider } from "../../../misc/credentials/CredentialsProvider.js"
 import { NativeContactsSyncManager } from "../../../../mail-app/contacts/model/NativeContactsSyncManager.js"
-import { locator } from "../../../api/main/MainLocator.js"
+import { locator } from "../../../api/main/CommonLocator.js"
 
 export function renderPermissionButton(permissionName: TranslationKey, isPermissionGranted: boolean, onclick: ClickHandler) {
 	return renderBannerButton(isPermissionGranted ? "granted_msg" : permissionName, onclick, isPermissionGranted)
@@ -40,22 +40,27 @@ export function renderBannerButton(text: TranslationKey, onclick: ClickHandler, 
 export async function showSetupWizard(
 	systemPermissionHandler: SystemPermissionHandler,
 	webMobileFacade: WebMobileFacade,
-	contactImporter: ContactImporter,
+	contactImporter: ContactImporter | null,
 	systemFacade: MobileSystemFacade,
 	credentialsProvider: CredentialsProvider,
-	contactSyncManager: NativeContactsSyncManager,
+	contactSyncManager: NativeContactsSyncManager | null,
 	deviceConfig: DeviceConfig,
+	allowContactSyncAndImport: boolean,
 ): Promise<void> {
-	const wizardPages = [
-		wizardPageWrapper(SetupCongratulationsPage, new SetupCongratulationsPageAttrs()),
+	let wizardPages = []
+	wizardPages.push(wizardPageWrapper(SetupCongratulationsPage, new SetupCongratulationsPageAttrs()))
+	wizardPages.push(
 		wizardPageWrapper(
 			SetupNotificationsPage,
 			new SetupNotificationsPageAttrs(await systemPermissionHandler.queryPermissionsState(), webMobileFacade.getIsAppVisible(), systemPermissionHandler),
 		),
-		wizardPageWrapper(SetupThemePage, new SetupThemePageAttrs()),
-		wizardPageWrapper(SetupContactsPage, new SetupContactsPageAttrs(contactSyncManager, contactImporter, systemFacade)),
-		wizardPageWrapper(SetupLockPage, new SetupLockPageAttrs(locator.systemFacade)),
-	]
+	)
+	wizardPages.push(wizardPageWrapper(SetupThemePage, new SetupThemePageAttrs()))
+	if (allowContactSyncAndImport && contactSyncManager && contactImporter) {
+		wizardPageWrapper(SetupContactsPage, new SetupContactsPageAttrs(contactSyncManager, contactImporter, systemFacade, allowContactSyncAndImport))
+	}
+	wizardPages.push(wizardPageWrapper(SetupLockPage, new SetupLockPageAttrs(locator.systemFacade)))
+
 	const deferred = defer<void>()
 
 	const wizardBuilder = createWizardDialog(
