@@ -5,7 +5,7 @@ import { ExpanderButton, ExpanderPanel } from "../../common/gui/base/Expander"
 import { ifAllowedTutaLinks } from "../../common/gui/base/GuiUtils"
 import type { lazy, Thunk } from "@tutao/tutanota-utils"
 import Stream from "mithril/stream"
-import { locator } from "../../common/api/main/MainLocator.js"
+import { locator } from "../../common/api/main/CommonLocator.js"
 
 export type SettingsExpanderAttrs = {
 	title: TranslationKey | lazy<string>

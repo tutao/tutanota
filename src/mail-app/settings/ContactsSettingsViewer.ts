@@ -5,11 +5,12 @@ import type { DropDownSelectorAttrs } from "../../common/gui/base/DropDownSelect
 import { DropDownSelector } from "../../common/gui/base/DropDownSelector.js"
 import type { UpdatableSettingsViewer } from "./SettingsView"
 import { EntityUpdateData, isUpdateForTypeRef } from "../../common/api/common/utils/EntityUpdateUtils.js"
-import { locator } from "../../common/api/main/MainLocator.js"
+import { locator } from "../../common/api/main/CommonLocator.js"
 import { FeatureType, OperationType } from "../../common/api/common/TutanotaConstants.js"
 import { TutanotaProperties, TutanotaPropertiesTypeRef } from "../../common/api/entities/tutanota/TypeRefs.js"
 import { Button, ButtonType } from "../../common/gui/base/Button.js"
 import { Dialog } from "../../common/gui/base/Dialog.js"
+import { mailLocator } from "../mailLocator.js"
 
 assertMainOrNode()
 
@@ -90,15 +91,15 @@ export class ContactsSettingsViewer implements UpdatableSettingsViewer {
 					value: false,
 				},
 			],
-			selectedValue: locator.nativeContactsSyncManager()?.isEnabled(),
+			selectedValue: mailLocator.nativeContactsSyncManager()?.isEnabled(),
 			selectionChangedHandler: (contactSyncEnabled: boolean) => {
 				if (isApp()) {
 					if (!contactSyncEnabled) {
-						locator.nativeContactsSyncManager()?.disableSync()
+						mailLocator.nativeContactsSyncManager()?.disableSync()
 					} else {
-						locator.nativeContactsSyncManager()?.enableSync()
+						mailLocator.nativeContactsSyncManager()?.enableSync()
 						// We just enable if the synchronization started successfully
-						locator
+						mailLocator
 							.nativeContactsSyncManager()
 							?.syncContacts()
 							.then((allowed) => {
@@ -129,7 +130,7 @@ export class ContactsSettingsViewer implements UpdatableSettingsViewer {
 	}
 
 	private handleContactsSynchronizationFail() {
-		locator.nativeContactsSyncManager()?.disableSync()
+		mailLocator.nativeContactsSyncManager()?.disableSync()
 		this.showContactsPermissionDialog()
 	}
 
@@ -139,7 +140,7 @@ export class ContactsSettingsViewer implements UpdatableSettingsViewer {
 	}
 
 	private async importContactsFromDevice() {
-		const importer = await locator.contactImporter()
+		const importer = await mailLocator.contactImporter()
 		await importer.importContactsFromDeviceSafely()
 	}
 }

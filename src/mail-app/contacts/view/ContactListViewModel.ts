@@ -21,7 +21,7 @@ import { ContactListInfo, ContactModel } from "../../../common/contactsFunctiona
 import { ReceivedGroupInvitation } from "../../../common/api/entities/sys/TypeRefs.js"
 import { ReceivedGroupInvitationsModel } from "../../../common/sharing/model/ReceivedGroupInvitationsModel.js"
 import { GroupType } from "../../../common/api/common/TutanotaConstants.js"
-import { locator } from "../../../common/api/main/MainLocator.js"
+import { locator } from "../../../common/api/main/CommonLocator.js"
 import { EntityUpdateData, isUpdateForTypeRef } from "../../../common/api/common/utils/EntityUpdateUtils.js"
 import { ListAutoSelectBehavior } from "../../../common/misc/DeviceConfig.js"
 

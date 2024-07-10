@@ -5,7 +5,7 @@ import { MediaType } from "../common/EntityFunctions"
 import { assertMainOrNode, getApiBaseUrl, isDesktop } from "../common/Env"
 
 import { NotFoundError } from "../common/error/RestError"
-import { locator } from "./MainLocator"
+import { locator } from "./CommonLocator"
 import { elementIdPart, isSameId, listIdPart } from "../common/utils/EntityUtils"
 import { getWhitelabelCustomizations } from "../../misc/WhitelabelCustomizations"
 import { EntityClient } from "../common/EntityClient"

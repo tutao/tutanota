@@ -12,7 +12,7 @@ import type { TableAttrs, TableLineAttrs } from "../../../../common/gui/base/Tab
 import { ColumnWidth, Table } from "../../../../common/gui/base/Table.js"
 import { NotFoundError } from "../../../../common/api/common/error/RestError.js"
 import { ifAllowedTutaLinks } from "../../../../common/gui/base/GuiUtils.js"
-import { locator } from "../../../../common/api/main/MainLocator.js"
+import { locator } from "../../../../common/api/main/CommonLocator.js"
 import { SecondFactorEditDialog } from "./SecondFactorEditDialog.js"
 import { SecondFactorTypeToNameTextId } from "./SecondFactorEditModel.js"
 import { IconButtonAttrs } from "../../../../common/gui/base/IconButton.js"

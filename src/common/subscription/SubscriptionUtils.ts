@@ -3,7 +3,7 @@ import { AccountType, AvailablePlanType, BookingItemFeatureType, getClientType, 
 import type { Customer, CustomerInfo, PlanConfiguration } from "../api/entities/sys/TypeRefs.js"
 import { Booking, createPaymentDataServiceGetData } from "../api/entities/sys/TypeRefs.js"
 import { isEmpty, LazyLoaded } from "@tutao/tutanota-utils"
-import { locator } from "../api/main/MainLocator"
+import { locator } from "../api/main/CommonLocator"
 import { PaymentDataService } from "../api/entities/sys/Services"
 import { ProgrammingError } from "../api/common/error/ProgrammingError.js"
 import { IServiceExecutor } from "../api/common/ServiceRequest.js"

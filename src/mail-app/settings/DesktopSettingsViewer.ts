@@ -18,7 +18,7 @@ import { getCurrentSpellcheckLanguageLabel, showSpellcheckLanguageDialog } from 
 import { ifAllowedTutaLinks } from "../../common/gui/base/GuiUtils"
 import type { UpdatableSettingsViewer } from "./SettingsView"
 import { assertMainOrNode } from "../../common/api/common/Env"
-import { locator } from "../../common/api/main/MainLocator"
+import { locator } from "../../common/api/main/CommonLocator"
 import { IconButton, IconButtonAttrs } from "../../common/gui/base/IconButton.js"
 import { ButtonSize } from "../../common/gui/base/ButtonSize.js"
 import { MoreInfoLink } from "../../common/misc/news/MoreInfoLink.js"

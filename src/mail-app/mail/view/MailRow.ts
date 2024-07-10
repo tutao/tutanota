@@ -2,7 +2,7 @@ import { EncryptionAuthStatus, getMailFolderType, MailFolderType, MailState, Rep
 import { FontIcons } from "../../../common/gui/base/icons/FontIcons"
 import type { Mail } from "../../../common/api/entities/tutanota/TypeRefs.js"
 import { formatTimeOrDateOrYesterday } from "../../../common/misc/Formatter.js"
-import { locator } from "../../../common/api/main/MainLocator"
+import { locator } from "../../../common/api/main/CommonLocator"
 import m, { Children } from "mithril"
 import Badge from "../../../common/gui/base/Badge"
 

@@ -40,7 +40,7 @@ import {
 import type { CalendarEventBubbleClickHandler, CalendarEventBubbleKeyDownHandler, EventsOnDays } from "./CalendarViewModel"
 import { ContinuingCalendarEventBubble } from "./ContinuingCalendarEventBubble"
 import { isAllDayEvent } from "../../../common/api/common/utils/CommonCalendarUtils"
-import { locator } from "../../../common/api/main/MainLocator.js"
+import { locator } from "../../../common/api/main/CommonLocator.js"
 import { DateTime } from "luxon"
 import { Time } from "../date/Time.js"
 import { DaySelector } from "../gui/day-selector/DaySelector.js"

@@ -4,7 +4,7 @@ import { TemplateGroupRootTypeRef } from "../../../common/api/entities/tutanota/
 import { memoized, neverNull, noOp, ofClass, startsWith } from "@tutao/tutanota-utils"
 import { htmlSanitizer } from "../../../common/misc/HtmlSanitizer.js"
 import { Icons } from "../../../common/gui/base/icons/Icons.js"
-import { locator } from "../../../common/api/main/MainLocator.js"
+import { locator } from "../../../common/api/main/CommonLocator.js"
 import { getConfirmation } from "../../../common/gui/base/GuiUtils.js"
 import { NotFoundError } from "../../../common/api/common/error/RestError.js"
 import { IconButton } from "../../../common/gui/base/IconButton.js"

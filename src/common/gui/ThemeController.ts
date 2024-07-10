@@ -244,7 +244,7 @@ export class NativeThemeFacade implements ThemeFacade {
 
 	constructor() {
 		this.themeFacade = new LazyLoaded<ThemeFacade>(async () => {
-			const { locator } = await import("../api/main/MainLocator")
+			const { locator } = await import("../api/main/CommonLocator")
 			// Theme initialization happens concurrently with locator initialization,
 			// so we have to wait or native may not yet be defined when we first get here.
 			// It would be nice to move all the global theme handling onto the locator as

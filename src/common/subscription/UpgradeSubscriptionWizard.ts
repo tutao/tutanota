@@ -20,7 +20,7 @@ import { InvoiceAndPaymentDataPage, InvoiceAndPaymentDataPageAttrs } from "./Inv
 import { UpgradeCongratulationsPage, UpgradeCongratulationsPageAttrs } from "./UpgradeCongratulationsPage.js"
 import { SignupPage, SignupPageAttrs } from "./SignupPage"
 import { assertMainOrNode } from "../api/common/Env"
-import { locator } from "../api/main/MainLocator"
+import { locator } from "../api/main/CommonLocator"
 import { StorageBehavior } from "../misc/UsageTestModel"
 import { FeatureListProvider, SelectedSubscriptionOptions } from "./FeatureListProvider"
 import { UpgradeType } from "./SubscriptionUtils"

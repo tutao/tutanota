@@ -15,7 +15,7 @@ import { replaceInlineImagesWithCids } from "../view/MailGuiUtils"
 import { TextField } from "../../../common/gui/base/TextField.js"
 import { DialogHeaderBarAttrs } from "../../../common/gui/base/DialogHeaderBar"
 import { RichTextToolbar } from "../../../common/gui/base/RichTextToolbar.js"
-import { locator } from "../../../common/api/main/MainLocator.js"
+import { locator } from "../../../common/api/main/CommonLocator.js"
 import { getDefaultSender } from "../../../common/mailFunctionality/CommonMailUtils.js"
 
 type PressContact = {

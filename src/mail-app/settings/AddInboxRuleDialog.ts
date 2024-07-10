@@ -15,7 +15,7 @@ import { LockedError } from "../../common/api/common/error/RestError"
 import { showNotAvailableForFreeDialog } from "../../common/misc/SubscriptionDialogs"
 import { isSameId } from "../../common/api/common/utils/EntityUtils"
 import { assertMainOrNode } from "../../common/api/common/Env"
-import { locator } from "../../common/api/main/MainLocator"
+import { locator } from "../../common/api/main/CommonLocator"
 import { isOfflineError } from "../../common/api/common/utils/ErrorUtils.js"
 import {
 	assertSystemFolderOfType,

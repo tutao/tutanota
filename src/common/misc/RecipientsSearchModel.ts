@@ -4,7 +4,7 @@ import { ContactListInfo, ContactModel } from "../contactsFunctionality/ContactM
 import { isMailAddress } from "./FormatValidator.js"
 import { ofClass } from "@tutao/tutanota-utils"
 import { DbError } from "../api/common/error/DbError.js"
-import { locator } from "../api/main/MainLocator.js"
+import { locator } from "../api/main/CommonLocator.js"
 import { ContactListEntryTypeRef, ContactTypeRef } from "../api/entities/tutanota/TypeRefs.js"
 import { LoginIncompleteError } from "../api/common/error/LoginIncompleteError.js"
 import { findRecipientWithAddress } from "../api/common/utils/CommonCalendarUtils.js"

@@ -7,7 +7,7 @@ import { Dialog } from "../../../common/gui/base/Dialog"
 import { InfoLink, lang } from "../../../common/misc/LanguageViewModel"
 import type { MailboxDetail } from "../../../common/mailFunctionality/MailModel.js"
 import { checkApprovalStatus } from "../../../common/misc/LoginUtils"
-import { locator } from "../../../common/api/main/MainLocator"
+import { locator } from "../../../common/api/main/CommonLocator"
 import {
 	ALLOWED_IMAGE_FORMATS,
 	ConversationType,
@@ -87,6 +87,7 @@ import {
 	LINE_BREAK,
 	RecipientField,
 } from "../../../common/mailFunctionality/CommonMailUtils.js"
+import { mailLocator } from "../../mailLocator.js"
 
 export type MailEditorAttrs = {
 	model: SendMailModel
@@ -866,7 +867,7 @@ async function createMailEditorDialog(model: SendMailModel, blockExternalContent
 		}
 		// If the mail is unchanged and there /is/ a preexisting draft, there was no change and the mail is already saved
 		else saveStatus = stream<SaveStatus>({ status: SaveStatusEnum.Saved })
-		showMinimizedMailEditor(dialog, model, locator.minimizedMailModel, locator.eventController, dispose, saveStatus)
+		showMinimizedMailEditor(dialog, model, mailLocator.minimizedMailModel, locator.eventController, dispose, saveStatus)
 	}
 
 	let windowCloseUnsubscribe = () => {}

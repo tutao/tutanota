@@ -10,7 +10,6 @@ import { ResumeSessionErrorReason } from "../worker/facades/LoginFacade"
 import type { Credentials } from "../../misc/credentials/Credentials"
 import { FeatureType, KdfType } from "../common/TutanotaConstants"
 import { SessionType } from "../common/SessionType"
-import { IMainLocator } from "./MainLocator"
 import { ExternalUserKeyDeriver } from "../../misc/LoginUtils.js"
 import { UnencryptedCredentials } from "../../native/common/generatedipc/UnencryptedCredentials.js"
 
@@ -54,14 +53,14 @@ export class LoginController {
 		})
 	}
 
-	private async getMainLocator(): Promise<IMainLocator> {
-		const { locator } = await import("./MainLocator")
+	private async getCommonLocator(): Promise<ICommonLocator> {
+		const { locator } = await import("./CommonLocator")
 		await locator.initialized
 		return locator
 	}
 
 	private async getLoginFacade(): Promise<LoginFacade> {
-		const locator = await this.getMainLocator()
+		const locator = await this.getCommonLocator()
 		const worker = locator.worker
 		await worker.initialized
 		return locator.loginFacade
@@ -202,7 +201,7 @@ export class LoginController {
 	}
 
 	async waitForFullLogin(): Promise<void> {
-		const locator = await this.getMainLocator()
+		const locator = await this.getCommonLocator()
 		// Full login event might be received before we finish userLogin on the client side because they are done in parallel.
 		// So we make sure to wait for userLogin first.
 		await this.waitForPartialLogin()
@@ -243,7 +242,7 @@ export class LoginController {
 			this.userController = null
 			this.partialLogin = defer()
 			this.fullyLoggedIn = false
-			const locator = await this.getMainLocator()
+			const locator = await this.getCommonLocator()
 			locator.loginListener.reset()
 			this.init()
 		} else {
@@ -280,7 +279,7 @@ export class LoginController {
 
 	async retryAsyncLogin() {
 		const loginFacade = await this.getLoginFacade()
-		const locator = await this.getMainLocator()
+		const locator = await this.getCommonLocator()
 		locator.loginListener.onRetryLogin()
 		await loginFacade.retryAsyncLogin()
 	}

@@ -20,7 +20,7 @@ import { showNotAvailableForFreeDialog, showPlanUpgradeRequiredDialog } from "..
 import { getAvailablePlansWithWhitelabel, isWhitelabelActive } from "../../common/subscription/SubscriptionUtils"
 import type { UserController } from "../../common/api/main/UserController"
 import { GENERATED_MAX_ID } from "../../common/api/common/utils/EntityUtils"
-import { locator } from "../../common/api/main/MainLocator"
+import { locator } from "../../common/api/main/CommonLocator"
 import { PlanType } from "../../common/api/common/TutanotaConstants.js"
 import { getWhitelabelDomainInfo } from "../../common/api/common/utils/CustomerUtils.js"
 

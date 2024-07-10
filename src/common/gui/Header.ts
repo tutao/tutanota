@@ -8,7 +8,7 @@ import { assertMainOrNode } from "../api/common/Env.js"
 import { OfflineIndicator } from "./base/OfflineIndicator.js"
 import { OfflineIndicatorViewModel } from "./base/OfflineIndicatorViewModel.js"
 import { NewsModel } from "../misc/news/NewsModel.js"
-import { locator } from "../api/main/MainLocator.js"
+import { locator } from "../api/main/CommonLocator.js"
 import { ProgressBar } from "./base/ProgressBar.js"
 import { DesktopBaseHeader } from "./base/DesktopBaseHeader.js"
 
