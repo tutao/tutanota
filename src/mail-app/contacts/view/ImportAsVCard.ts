@@ -1,11 +1,12 @@
 import { showFileChooser } from "../../../common/file/FileController.js"
 import { utf8Uint8ArrayToString } from "@tutao/tutanota-utils"
 import { showProgressDialog } from "../../../common/gui/dialogs/ProgressDialog.js"
-import { locator } from "../../../common/api/main/MainLocator.js"
+import { locator } from "../../../common/api/main/CommonLocator.js"
 import { Dialog } from "../../../common/gui/base/Dialog.js"
 import { ContactModel } from "../../../common/contactsFunctionality/ContactModel.js"
 import { ContactTypeRef } from "../../../common/api/entities/tutanota/TypeRefs.js"
 import { exportContacts } from "../VCardExporter.js"
+import { mailLocator } from "../../mailLocator.js"
 
 export function importAsVCard() {
 	showFileChooser(true, ["vcf"]).then(async (contactFiles) => {
@@ -13,7 +14,7 @@ export function importAsVCard() {
 		return showProgressDialog(
 			"pleaseWait_msg",
 			(async () => {
-				const contactImporter = await locator.contactImporter()
+				const contactImporter = await mailLocator.contactImporter()
 				const contactListId = await locator.contactModel.getContactListId()
 				// If multiple vCard files where selected, combine the data within them
 				const vCardList = contactFiles.flatMap((contactFile) => {

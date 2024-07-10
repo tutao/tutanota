@@ -2,7 +2,6 @@ import type { Commands } from "../common/threading/MessageDispatcher.js"
 import { MessageDispatcher, Request } from "../common/threading/MessageDispatcher.js"
 import { Transport, WebWorkerTransport } from "../common/threading/Transport.js"
 import { assertMainOrNode } from "../common/Env"
-import type { IMainLocator } from "./MainLocator"
 import { client } from "../../misc/ClientDetector"
 import type { DeferredObject } from "@tutao/tutanota-utils"
 import { defer, downcast } from "@tutao/tutanota-utils"
@@ -12,6 +11,8 @@ import { DelayedImpls, exposeLocalDelayed, exposeRemote } from "../common/Worker
 import type { RestClient } from "../worker/rest/RestClient"
 import { EntropyDataChunk } from "../worker/facades/EntropyFacade.js"
 import { objToError } from "../common/utils/ErrorUtils.js"
+import { IMailLocator } from "../../../mail-app/mailLocator.js"
+import { ICalendarLocator } from "../../../calendar-app/calendarLocator.js"
 
 assertMainOrNode()
 
@@ -40,7 +41,7 @@ export class WorkerClient {
 		return this._deferredInitialized.promise
 	}
 
-	async init(locator: IMainLocator): Promise<void> {
+	async init(locator: IMailLocator | ICalendarLocator): Promise<void> {
 		if (env.mode !== "Test") {
 			const { prefixWithoutFile } = window.tutao.appState
 			// In apps/desktop we load HTML file and url ends on path/index.html so we want to load path/WorkerBootstrap.js.
@@ -79,7 +80,7 @@ export class WorkerClient {
 		this._deferredInitialized.resolve()
 	}
 
-	queueCommands(locator: IMainLocator): Commands<MainRequestType> {
+	queueCommands(locator: IMailLocator | ICalendarLocator): Commands<MainRequestType> {
 		return {
 			execNative: (message: MainRequest) => locator.native.invokeNative(downcast(message.args[0]), downcast(message.args[1])),
 			error: (message: MainRequest) => {
@@ -148,7 +149,7 @@ export class WorkerClient {
 	}
 }
 
-export function bootstrapWorker(locator: IMainLocator): WorkerClient {
+export function bootstrapWorker(locator: IMailLocator | ICalendarLocator): WorkerClient {
 	const worker = new WorkerClient()
 	const start = Date.now()
 	worker.init(locator).then(() => console.log("worker init time (ms):", Date.now() - start))

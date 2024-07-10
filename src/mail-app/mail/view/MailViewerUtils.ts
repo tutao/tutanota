@@ -8,7 +8,7 @@ import m from "mithril"
 import { Button, ButtonType } from "../../../common/gui/base/Button.js"
 import { progressIcon } from "../../../common/gui/base/Icon.js"
 import { checkApprovalStatus } from "../../../common/misc/LoginUtils.js"
-import { locator } from "../../../common/api/main/MainLocator.js"
+import { locator } from "../../../common/api/main/CommonLocator.js"
 import { UserError } from "../../../common/api/main/UserError.js"
 import { showUserError } from "../../../common/misc/ErrorHandlerImpl.js"
 import { ContentBlockingStatus, MailViewerViewModel } from "./MailViewerViewModel.js"
@@ -21,6 +21,7 @@ import { ifAllowedTutaLinks } from "../../../common/gui/base/GuiUtils.js"
 import { ExternalLink } from "../../../common/gui/base/ExternalLink.js"
 import { SourceCodeViewer } from "./SourceCodeViewer.js"
 import { ImageHandler, loadMailDetails } from "../../../common/mailFunctionality/CommonMailUtils.js"
+import { mailLocator } from "../../mailLocator.js"
 
 export function insertInlineImageB64ClickHandler(ev: Event, handler: ImageHandler) {
 	showFileChooser(true, ALLOWED_IMAGE_FORMATS).then((files) => {
@@ -93,10 +94,10 @@ export async function editDraft(viewModel: MailViewerViewModel): Promise<void> {
 	const sendAllowed = await checkApprovalStatus(locator.logins, false)
 	if (sendAllowed) {
 		// check if to be opened draft has already been minimized, iff that is the case, re-open it
-		const minimizedEditor = locator.minimizedMailModel.getEditorForDraft(viewModel.mail)
+		const minimizedEditor = mailLocator.minimizedMailModel.getEditorForDraft(viewModel.mail)
 
 		if (minimizedEditor) {
-			locator.minimizedMailModel.reopenMinimizedEditor(minimizedEditor)
+			mailLocator.minimizedMailModel.reopenMinimizedEditor(minimizedEditor)
 		} else {
 			try {
 				const [mailboxDetails, { newMailEditorFromDraft }] = await Promise.all([

@@ -9,8 +9,9 @@ import { BannerType, InfoBanner, InfoBannerAttrs } from "../../../common/gui/bas
 import { Icons } from "../../../common/gui/base/icons/Icons.js"
 import { isNotNull, LazyLoaded } from "@tutao/tutanota-utils"
 import { ParsedIcalFileContent, ReplyResult } from "../../../calendar-app/calendar/view/CalendarInvites.js"
-import { locator } from "../../../common/api/main/MainLocator.js"
+import { locator } from "../../../common/api/main/CommonLocator.js"
 import { isRepliedTo } from "../../../common/mailFunctionality/CommonMailUtils.js"
+import { mailLocator } from "../../mailLocator.js"
 
 export type EventBannerAttrs = {
 	contents: ParsedIcalFileContent
@@ -92,7 +93,7 @@ export function sendResponse(event: CalendarEvent, recipient: string, status: Ca
 		import("../../../calendar-app/calendar/view/CalendarInvites.js").then(async ({ getLatestEvent }) => {
 			const latestEvent = await getLatestEvent(event)
 			const ownAttendee = findAttendeeInAddresses(latestEvent.attendees, [recipient])
-			const calendarInviteHandler = await locator.calendarInviteHandler()
+			const calendarInviteHandler = await mailLocator.calendarInviteHandler()
 
 			if (ownAttendee == null) {
 				Dialog.message("attendeeNotFound_msg")

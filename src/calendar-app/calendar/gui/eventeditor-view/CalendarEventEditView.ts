@@ -1,7 +1,7 @@
 import m, { Children, Component, Vnode } from "mithril"
 import { ExpanderButton, ExpanderPanel } from "../../../../common/gui/base/Expander.js"
 import { AttendeeListEditor, AttendeeListEditorAttrs } from "./AttendeeListEditor.js"
-import { locator } from "../../../../common/api/main/MainLocator.js"
+import { locator } from "../../../../common/api/main/CommonLocator.js"
 import { EventTimeEditor, EventTimeEditorAttrs } from "./EventTimeEditor.js"
 import { RepeatRuleEditor, RepeatRuleEditorAttrs } from "./RepeatRuleEditor.js"
 import { TextField, TextFieldAttrs, TextFieldType } from "../../../../common/gui/base/TextField.js"

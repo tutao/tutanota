@@ -5,7 +5,7 @@ import { isAdminClient, isApp, isDesktop, LOGIN_TITLE } from "../api/common/Env"
 import { assertNotNull, neverNull, noOp, ofClass } from "@tutao/tutanota-utils"
 import { windowFacade } from "../misc/WindowFacade.js"
 import { checkApprovalStatus } from "../misc/LoginUtils.js"
-import { locator } from "../api/main/MainLocator"
+import { locator } from "../api/main/CommonLocator"
 import { ReceiveInfoService } from "../api/entities/tutanota/Services"
 import { lang } from "../misc/LanguageViewModel.js"
 import { getHourCycle } from "../misc/Formatter.js"
@@ -50,6 +50,7 @@ export class PostLoginActions implements PostLoginAction {
 		private readonly userManagementFacade: UserManagementFacade,
 		private readonly customerFacade: CustomerFacade,
 		private readonly showSetupWizard: () => unknown,
+		private readonly appPartialLoginSuccessActions: () => unknown,
 	) {}
 
 	async onPartialLoginSuccess(loggedInEvent: LoggedInEvent): Promise<void> {
@@ -98,9 +99,7 @@ export class PostLoginActions implements PostLoginAction {
 		})
 
 		if (isApp()) {
-			// don't wait for it, just invoke
-			locator.fileApp.clearFileData().catch((e) => console.log("Failed to clean file data", e))
-			locator.nativeContactsSyncManager()?.syncContacts()
+			this.appPartialLoginSuccessActions()
 		}
 
 		// We already have user data to load themes

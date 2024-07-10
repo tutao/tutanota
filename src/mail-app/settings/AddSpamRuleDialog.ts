@@ -11,7 +11,7 @@ import stream from "mithril/stream"
 import type { SelectorItemList } from "../../common/gui/base/DropDownSelector.js"
 import { DropDownSelector } from "../../common/gui/base/DropDownSelector.js"
 import { TextField } from "../../common/gui/base/TextField.js"
-import { locator } from "../../common/api/main/MainLocator"
+import { locator } from "../../common/api/main/CommonLocator"
 import { assertMainOrNode } from "../../common/api/common/Env"
 import { isOfflineError } from "../../common/api/common/utils/ErrorUtils.js"
 

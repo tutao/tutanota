@@ -1,5 +1,5 @@
 import type { GroupInfo, ReceivedGroupInvitation } from "../api/entities/sys/TypeRefs.js"
-import { locator } from "../api/main/MainLocator"
+import { locator } from "../api/main/CommonLocator"
 import { MailMethod } from "../api/common/TutanotaConstants"
 import { showProgressDialog } from "../gui/dialogs/ProgressDialog"
 import type { GroupSharingTexts } from "./GroupGuiUtils"

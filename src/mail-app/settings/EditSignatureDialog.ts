@@ -8,7 +8,7 @@ import { insertInlineImageB64ClickHandler } from "../mail/view/MailViewerUtils"
 import { PayloadTooLargeError } from "../../common/api/common/error/RestError"
 import { showProgressDialog } from "../../common/gui/dialogs/ProgressDialog"
 import { neverNull, ofClass } from "@tutao/tutanota-utils"
-import { locator } from "../../common/api/main/MainLocator"
+import { locator } from "../../common/api/main/CommonLocator"
 import { assertMainOrNode } from "../../common/api/common/Env"
 import { DropDownSelector } from "../../common/gui/base/DropDownSelector.js"
 

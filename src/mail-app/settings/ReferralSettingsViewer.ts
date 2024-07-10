@@ -1,7 +1,7 @@
 import m, { Children } from "mithril"
 import type { UpdatableSettingsViewer } from "./SettingsView"
 import { getReferralLink, ReferralLinkViewer } from "../../common/misc/news/items/ReferralLinkViewer.js"
-import { locator } from "../../common/api/main/MainLocator.js"
+import { locator } from "../../common/api/main/CommonLocator.js"
 import { EntityUpdateData } from "../../common/api/common/utils/EntityUpdateUtils.js"
 
 /**

@@ -5,7 +5,7 @@ import { ExtendedNotificationMode } from "../../common/native/common/generatedip
 import Stream from "mithril/stream"
 import stream from "mithril/stream"
 import { PushIdentifier, PushIdentifierTypeRef, User } from "../../common/api/entities/sys/TypeRefs.js"
-import { locator } from "../../common/api/main/MainLocator.js"
+import { locator } from "../../common/api/main/CommonLocator.js"
 import { lang } from "../../common/misc/LanguageViewModel.js"
 import { IconButton } from "../../common/gui/base/IconButton.js"
 import { Icons } from "../../common/gui/base/icons/Icons.js"
@@ -17,6 +17,7 @@ import { PushServiceType } from "../../common/api/common/TutanotaConstants.js"
 import { DropDownSelector, DropDownSelectorAttrs } from "../../common/gui/base/DropDownSelector.js"
 import { ExpanderButton, ExpanderPanel } from "../../common/gui/base/Expander.js"
 import { IdentifierRow } from "./IdentifierRow.js"
+import { mailLocator } from "../mailLocator.js"
 
 export class NotificationSettingsViewer implements UpdatableSettingsViewer {
 	private currentIdentifier: string | null = null
@@ -102,7 +103,7 @@ export class NotificationSettingsViewer implements UpdatableSettingsViewer {
 	}
 
 	private async showAddEmailNotificationDialog() {
-		const dialog = await locator.addNotificationEmailDialog()
+		const dialog = await mailLocator.addNotificationEmailDialog()
 		dialog.show()
 	}
 

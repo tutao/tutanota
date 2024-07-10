@@ -48,6 +48,7 @@ export class SetupContactsPageAttrs implements WizardPageAttrs<null> {
 		public readonly syncManager: NativeContactsSyncManager,
 		public readonly contactImporter: ContactImporter,
 		public readonly mobileSystemFacade: MobileSystemFacade,
+		public readonly allowContactSyncAndImport: boolean,
 	) {}
 
 	headerTitle(): string {
@@ -64,6 +65,6 @@ export class SetupContactsPageAttrs implements WizardPageAttrs<null> {
 	}
 
 	isEnabled(): boolean {
-		return true
+		return this.allowContactSyncAndImport
 	}
 }

@@ -10,7 +10,7 @@ import { AccountingInfoTypeRef, PriceItemData } from "../api/entities/sys/TypeRe
 import { NotAuthorizedError } from "../api/common/error/RestError.js"
 import { asPaymentInterval, formatPrice, getPriceItem, PaymentInterval } from "./PriceUtils.js"
 import { showProgressDialog } from "../gui/dialogs/ProgressDialog.js"
-import { locator } from "../api/main/MainLocator.js"
+import { locator } from "../api/main/CommonLocator.js"
 import { assertMainOrNode } from "../api/common/Env.js"
 
 assertMainOrNode()

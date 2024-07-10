@@ -8,7 +8,7 @@ import stream from "mithril/stream"
 import type { CustomerInfo } from "../../common/api/entities/sys/TypeRefs.js"
 import { TextField } from "../../common/gui/base/TextField.js"
 import { ofClass } from "@tutao/tutanota-utils"
-import { locator } from "../../common/api/main/MainLocator"
+import { locator } from "../../common/api/main/CommonLocator"
 import { assertMainOrNode } from "../../common/api/common/Env"
 import { getWhitelabelDomainInfo } from "../../common/api/common/utils/CustomerUtils.js"
 

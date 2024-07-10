@@ -19,7 +19,7 @@ import { assertMainOrNode } from "../../../common/api/common/Env"
 import { TranslationKey } from "../../../common/misc/LanguageViewModel"
 import { CalendarEvent, CalendarEventTypeRef, Contact, ContactTypeRef, Mail, MailTypeRef } from "../../../common/api/entities/tutanota/TypeRefs"
 import { typeModels } from "../../../common/api/entities/tutanota/TypeModels.js"
-import { locator } from "../../../common/api/main/MainLocator.js"
+import { locator } from "../../../common/api/main/CommonLocator.js"
 import {
 	getElementId,
 	LEGACY_BCC_RECIPIENTS_ID,

@@ -21,7 +21,7 @@ import { compareGroupInfos, getGroupInfoDisplayName } from "../../common/api/com
 import { isSameId } from "../../common/api/common/utils/EntityUtils"
 import { showBuyDialog } from "../../common/subscription/BuyDialog"
 import { TextField } from "../../common/gui/base/TextField.js"
-import { locator } from "../../common/api/main/MainLocator"
+import { locator } from "../../common/api/main/CommonLocator"
 import { DropDownSelector } from "../../common/gui/base/DropDownSelector.js"
 import { UpdatableSettingsDetailsViewer } from "./SettingsView"
 import { showChangeOwnPasswordDialog, showChangeUserPasswordAsAdminDialog } from "./login/ChangePasswordDialogs.js"

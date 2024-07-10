@@ -70,7 +70,7 @@ import { AggregateEditorAttrs, ContactAggregateEditor } from "./ContactAggregate
 import { DefaultAnimationTime } from "../../common/gui/animation/Animations"
 import { DialogHeaderBarAttrs } from "../../common/gui/base/DialogHeaderBar"
 import { ProgrammingError } from "../../common/api/common/error/ProgrammingError.js"
-import { locator } from "../../common/api/main/MainLocator.js"
+import { locator } from "../../common/api/main/CommonLocator.js"
 import { formatDate } from "../../common/misc/Formatter.js"
 import { PasswordField } from "../../common/misc/passwords/PasswordField.js"
 
