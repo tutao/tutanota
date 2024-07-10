@@ -5,10 +5,11 @@ import { EntityEventsListener, EventController } from "../../../../common/api/ma
 import { CalendarEvent, CalendarEventTypeRef, Contact, Mail, MailTypeRef } from "../../../../common/api/entities/tutanota/TypeRefs.js"
 import { SomeEntity } from "../../../../common/api/common/EntityTypes.js"
 import { OperationType } from "../../../../common/api/common/TutanotaConstants.js"
-import { assertIsEntity2, elementIdPart, GENERATED_MAX_ID, getElementId, isSameId, ListElement, } from "../../../../common/api/common/utils/EntityUtils.js"
+import { assertIsEntity2, elementIdPart, GENERATED_MAX_ID, getElementId, isSameId, ListElement } from "../../../../common/api/common/utils/EntityUtils.js"
 import { ListLoadingState, ListState } from "../../../../common/gui/base/List.js"
 import {
 	assertNotNull,
+	deepEqual,
 	downcast,
 	getEndOfDay,
 	getStartOfDay,
@@ -22,8 +23,9 @@ import {
 } from "@tutao/tutanota-utils"
 import { areResultsForTheSameQuery, hasMoreResults, isSameSearchRestriction, CalendarSearchModel } from "../model/CalendarSearchModel.js"
 import { NotFoundError } from "../../../../common/api/common/error/RestError.js"
-import { createRestriction, decodeCalendarSearchKey, encodeCalendarSearchKey, getRestriction, } from "../model/SearchUtils.js"
+import { createRestriction, decodeCalendarSearchKey, encodeCalendarSearchKey, getRestriction } from "../model/SearchUtils.js"
 import Stream from "mithril/stream"
+import stream from "mithril/stream"
 import { getStartOfTheWeekOffsetForUser } from "../../../../common/calendar/date/CalendarUtils.js"
 import { SearchFacade } from "../../../../common/api/worker/search/SearchFacade.js"
 import { LoginController } from "../../../../common/api/main/LoginController.js"
@@ -34,7 +36,7 @@ import m from "mithril"
 import { CalendarFacade } from "../../../../common/api/worker/facades/lazy/CalendarFacade.js"
 import { ProgressTracker } from "../../../../common/api/main/ProgressTracker.js"
 import { ListAutoSelectBehavior } from "../../../../common/misc/DeviceConfig.js"
-import { ProgrammingError } from "../../../../common/api/common/error/ProgrammingError.js";
+import { ProgrammingError } from "../../../../common/api/common/error/ProgrammingError.js"
 import { SearchRouter } from "../../../../common/search/view/SearchRouter.js"
 import { locator } from "../../../../common/api/main/CommonLocator.js"
 
@@ -243,10 +245,27 @@ export class CalendarSearchViewModel {
 		}
 
 		if (!this.listModel.isItemSelected(id)) {
-			// the mail list is visible already, just the selected mail is changed
-			const listModel = this.listModel
-			this.listModel.loadAndSelect(id, () => this.listModel !== listModel, finder)
+			this.handleLoadAndSelection(id, finder)
 		}
+	}
+
+	private handleLoadAndSelection(id: string, finder: ((a: ListElement) => boolean) | undefined) {
+		if (this.listModel.isLoadedCompletely()) {
+			return this.selectItem(id, finder)
+		}
+
+		const listStateStream = stream.combine((a) => a(), [this.listModel.stateStream])
+		listStateStream.map((state) => {
+			if (state.loadingStatus === ListLoadingState.Done) {
+				this.selectItem(id, finder)
+				listStateStream.end(true)
+			}
+		})
+	}
+
+	private selectItem(id: string, finder: ((a: ListElement) => boolean) | undefined) {
+		const listModel = this.listModel
+		this.listModel.loadAndSelect(id, () => !deepEqual(this.listModel, listModel), finder)
 	}
 
 	async loadAll() {
@@ -259,7 +278,7 @@ export class CalendarSearchViewModel {
 				this.loadingAllForSearchResult &&
 				isSameSearchRestriction(this._searchResult?.restriction, this.loadingAllForSearchResult.restriction) &&
 				!this.listModel.isLoadedCompletely()
-				) {
+			) {
 				await this.listModel.loadMore()
 				if (
 					this._searchResult.restriction &&
@@ -361,9 +380,9 @@ export class CalendarSearchViewModel {
 
 	getSelectedEvents(): CalendarEvent[] {
 		return this.listModel
-				   .getSelectedAsArray()
-				   .map((e) => e.entry)
-				   .filter(assertIsEntity2(CalendarEventTypeRef))
+			.getSelectedAsArray()
+			.map((e) => e.entry)
+			.filter(assertIsEntity2(CalendarEventTypeRef))
 	}
 
 	private onListStateChange(newState: ListState<SearchResultListEntry>) {
@@ -405,18 +424,19 @@ export class CalendarSearchViewModel {
 				const id = lastResult.results.find((r) => r[1] === elementId)
 				if (id) {
 					return this.entityClient
-							   .load(lastResult.restriction.type, id)
-							   .then((entity) => new SearchResultListEntry(entity))
-							   .catch(
-								   ofClass(NotFoundError, (_) => {
-									   return null
-								   }),
-							   )
+						.load(lastResult.restriction.type, id)
+						.then((entity) => new SearchResultListEntry(entity))
+						.catch(
+							ofClass(NotFoundError, (_) => {
+								return null
+							}),
+						)
 				} else {
 					return null
 				}
 			},
-			sortCompare: (o1: SearchResultListEntry, o2: SearchResultListEntry) => downcast(o1.entry).startTime.getTime() - downcast(o2.entry).startTime.getTime(),
+			sortCompare: (o1: SearchResultListEntry, o2: SearchResultListEntry) =>
+				downcast(o1.entry).startTime.getTime() - downcast(o2.entry).startTime.getTime(),
 			autoSelectBehavior: () => ListAutoSelectBehavior.OLDER,
 		})
 	}

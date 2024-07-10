@@ -20,7 +20,7 @@ assertMainOrNode()
 const FIXED_FREE_SEARCH_DAYS = 28
 
 export const enum SearchCategoryTypes {
-	calendar = "calendar"
+	calendar = "calendar",
 }
 
 const routeSetThrottled: RouteSetFn = throttleRoute()
@@ -67,12 +67,7 @@ export function getSearchUrl(
 /**
  * Adjusts the restriction according to the account type if necessary
  */
-export function createRestriction(
-	start: number | null,
-	end: number | null,
-	listIds: Array<string>,
-	eventSeries: boolean,
-): SearchRestriction {
+export function createRestriction(start: number | null, end: number | null, listIds: Array<string>, eventSeries: boolean): SearchRestriction {
 	return {
 		type: CalendarEventTypeRef,
 		start: start,
@@ -91,7 +86,7 @@ export function getRestriction(route: string): SearchRestriction {
 	let start: number | null = null
 	let end: number | null = null
 	let listIds: Array<string> = []
-	let eventSeries: boolean = false
+	let eventSeries: boolean = true
 
 	if (route.startsWith("/calendar") || route.startsWith("/search/calendar")) {
 		const { params } = m.parsePathname(route)

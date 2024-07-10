@@ -1,6 +1,6 @@
 import m, { Children, Component, Vnode } from "mithril"
-import { IconButton, IconButtonAttrs } from "../../../common/gui/base/IconButton.js"
-import { ClickHandler } from "../../../common/gui/base/GuiUtils.js"
+import { IconButton, IconButtonAttrs } from "./base/IconButton.js"
+import { ClickHandler } from "./base/GuiUtils.js"
 
 export interface MobileActionAttrs {
 	icon: IconButtonAttrs["icon"]
