@@ -19,6 +19,7 @@ import {
 import { ListLoadingState, ListState } from "../../../common/gui/base/List.js"
 import {
 	assertNotNull,
+	deepEqual,
 	defer,
 	downcast,
 	getEndOfDay,
@@ -312,10 +313,29 @@ export class SearchViewModel {
 		}
 
 		if (!this.listModel.isItemSelected(id)) {
-			// the mail list is visible already, just the selected mail is changed
-			const listModel = this.listModel
-			this.listModel.loadAndSelect(id, () => this.listModel !== listModel, finder)
+			if (!this.listModel.isItemSelected(id)) {
+				this.handleLoadAndSelection(id, finder)
+			}
 		}
+	}
+
+	private handleLoadAndSelection(id: string, finder: ((a: ListElement) => boolean) | undefined) {
+		if (this.listModel.isLoadedCompletely()) {
+			return this.selectItem(id, finder)
+		}
+
+		const listStateStream = Stream.combine((a) => a(), [this.listModel.stateStream])
+		listStateStream.map((state) => {
+			if (state.loadingStatus === ListLoadingState.Done) {
+				this.selectItem(id, finder)
+				listStateStream.end(true)
+			}
+		})
+	}
+
+	private selectItem(id: string, finder: ((a: ListElement) => boolean) | undefined) {
+		const listModel = this.listModel
+		this.listModel.loadAndSelect(id, () => !deepEqual(this.listModel, listModel), finder)
 	}
 
 	async loadAll() {
@@ -328,7 +348,7 @@ export class SearchViewModel {
 				this.loadingAllForSearchResult &&
 				isSameSearchRestriction(this._searchResult?.restriction, this.loadingAllForSearchResult.restriction) &&
 				!this.listModel.isLoadedCompletely()
-			) {
+				) {
 				await this.listModel.loadMore()
 				if (
 					this._searchResult.restriction &&
@@ -601,23 +621,23 @@ export class SearchViewModel {
 
 	getSelectedMails(): Mail[] {
 		return this.listModel
-			.getSelectedAsArray()
-			.map((e) => e.entry)
-			.filter(assertIsEntity2(MailTypeRef))
+				   .getSelectedAsArray()
+				   .map((e) => e.entry)
+				   .filter(assertIsEntity2(MailTypeRef))
 	}
 
 	getSelectedContacts(): Contact[] {
 		return this.listModel
-			.getSelectedAsArray()
-			.map((e) => e.entry)
-			.filter(assertIsEntity2(ContactTypeRef))
+				   .getSelectedAsArray()
+				   .map((e) => e.entry)
+				   .filter(assertIsEntity2(ContactTypeRef))
 	}
 
 	getSelectedEvents(): CalendarEvent[] {
 		return this.listModel
-			.getSelectedAsArray()
-			.map((e) => e.entry)
-			.filter(assertIsEntity2(CalendarEventTypeRef))
+				   .getSelectedAsArray()
+				   .map((e) => e.entry)
+				   .filter(assertIsEntity2(CalendarEventTypeRef))
 	}
 
 	private onListStateChange(newState: ListState<SearchResultListEntry>) {
@@ -692,13 +712,13 @@ export class SearchViewModel {
 				const id = lastResult.results.find((r) => r[1] === elementId)
 				if (id) {
 					return this.entityClient
-						.load(lastResult.restriction.type, id)
-						.then((entity) => new SearchResultListEntry(entity))
-						.catch(
-							ofClass(NotFoundError, (_) => {
-								return null
-							}),
-						)
+							   .load(lastResult.restriction.type, id)
+							   .then((entity) => new SearchResultListEntry(entity))
+							   .catch(
+								   ofClass(NotFoundError, (_) => {
+									   return null
+								   }),
+							   )
 				} else {
 					return null
 				}
