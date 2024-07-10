@@ -65,7 +65,7 @@ import { BaseMobileHeader } from "../../../common/gui/BaseMobileHeader.js"
 import { ProgressBar } from "../../../common/gui/base/ProgressBar.js"
 import { EnterMultiselectIconButton } from "../../../common/gui/EnterMultiselectIconButton.js"
 import { MobileHeader, MobileHeaderMenuButton } from "../../../common/gui/MobileHeader.js"
-import { MobileActionAttrs, MobileActionBar } from "../../contacts/view/MobileActionBar.js"
+import { MobileActionAttrs, MobileActionBar } from "../../../common/gui/MobileActionBar.js"
 import { MobileBottomActionBar } from "../../../common/gui/MobileBottomActionBar.js"
 import {
 	archiveMails,

@@ -194,17 +194,17 @@ export class SearchModel {
 			this._lastSearchPromise = Promise.resolve(calendarResult)
 		} else {
 			this._lastSearchPromise = this._searchFacade
-										  .search(query, restriction, minSuggestionCount, maxResults ?? undefined)
-										  .then((result) => {
-											  this.result(result)
-											  return result
-										  })
-										  .catch(
-											  ofClass(DbError, (e) => {
-												  console.log("DBError while search", e)
-												  throw e
-											  }),
-										  )
+				.search(query, restriction, minSuggestionCount, maxResults ?? undefined)
+				.then((result) => {
+					this.result(result)
+					return result
+				})
+				.catch(
+					ofClass(DbError, (e) => {
+						console.log("DBError while search", e)
+						throw e
+					}),
+				)
 		}
 
 		return this._lastSearchPromise
