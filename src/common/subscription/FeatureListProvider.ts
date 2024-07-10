@@ -2,10 +2,13 @@ import Stream from "mithril/stream"
 import { PlanPrices } from "../api/entities/sys/TypeRefs"
 import { TranslationKey } from "../misc/LanguageViewModel"
 import { PaymentInterval } from "./PriceUtils.js"
-import { PlanName, PlanType, PlanTypeToName } from "../api/common/TutanotaConstants.js"
+import { AvailablePlans, PlanName, PlanType, PlanTypeToName } from "../api/common/TutanotaConstants.js"
 import { downcast, getFromMap } from "@tutao/tutanota-utils"
+import { isIOSApp } from "../api/common/Env.js"
 
 let dataProvider: FeatureListProvider | null = null
+
+const IOS_EXCLUDED_FEATURES: TranslationKey[] = ["pricing.family_label"]
 
 export class FeatureListProvider {
 	private featureList: FeatureLists | null = null
@@ -17,6 +20,9 @@ export class FeatureListProvider {
 		const listResourceUrl = `${this.domainConfig.websiteBaseUrl}/resources/data/features.json`
 		try {
 			const featureList = await fetch(listResourceUrl).then((r) => r.json())
+			if (isIOSApp()) {
+				this.stripUnsupportedIosFeatures(featureList)
+			}
 			this.countFeatures([...featureList.Free.categories, ...featureList.Revolutionary.categories, ...featureList.Legend.categories])
 			this.countFeatures([...featureList.Essential.categories, ...featureList.Advanced.categories, ...featureList.Unlimited.categories])
 			this.featureList = featureList
@@ -59,6 +65,22 @@ export class FeatureListProvider {
 
 	featureLoadingDone(): boolean {
 		return this.featureList != null
+	}
+
+	/**
+	 * Remove features from the feature list that are unsupported for iOS and shouldn't be displayed to iOS users.
+	 * @param featureList feature list obtained from the server
+	 * @private
+	 */
+	private stripUnsupportedIosFeatures(featureList: any) {
+		for (const plan of AvailablePlans) {
+			const features: { categories: FeatureCategory[] } = featureList[PlanTypeToName[plan]]
+			for (const category of features.categories) {
+				category.features = category.features.filter(({ text }) => {
+					return !IOS_EXCLUDED_FEATURES.includes(text)
+				})
+			}
+		}
 	}
 }
 
