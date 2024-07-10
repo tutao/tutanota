@@ -1,6 +1,6 @@
 import { InfoLink, lang } from "../../LanguageViewModel.js"
 import { isApp } from "../../../api/common/Env.js"
-import { locator } from "../../../api/main/MainLocator.js"
+import { locator } from "../../../api/main/CommonLocator.js"
 import { copyToClipboard } from "../../ClipboardUtils.js"
 import { showSnackBar } from "../../../gui/base/SnackBar.js"
 import { createReferralCodePostIn } from "../../../api/entities/sys/TypeRefs.js"

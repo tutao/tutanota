@@ -3,7 +3,7 @@ import { GroupInfoTypeRef, GroupTypeRef, UserTypeRef } from "../../common/api/en
 import { neverNull, promiseMap } from "@tutao/tutanota-utils"
 import { GroupType } from "../../common/api/common/TutanotaConstants"
 import { getGroupInfoDisplayName, getUserGroupMemberships } from "../../common/api/common/utils/GroupUtils"
-import { locator } from "../../common/api/main/MainLocator"
+import { locator } from "../../common/api/main/CommonLocator"
 
 /**
  * As users personal mail group infos do not contain name and mail address we use this wrapper to store group ids together with name and mail address.

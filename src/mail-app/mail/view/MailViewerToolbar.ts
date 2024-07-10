@@ -12,7 +12,7 @@ import { createDropdown, DropdownButtonAttrs } from "../../../common/gui/base/Dr
 import { editDraft, mailViewerMoreActions } from "./MailViewerUtils.js"
 import { ButtonType } from "../../../common/gui/base/Button.js"
 import { isApp } from "../../../common/api/common/Env.js"
-import { locator } from "../../../common/api/main/MainLocator.js"
+import { locator } from "../../../common/api/main/CommonLocator.js"
 import { showProgressDialog } from "../../../common/gui/dialogs/ProgressDialog.js"
 import { lang } from "../../../common/misc/LanguageViewModel.js"
 import { DialogHeaderBarAttrs } from "../../../common/gui/base/DialogHeaderBar.js"

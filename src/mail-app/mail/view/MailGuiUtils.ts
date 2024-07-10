@@ -3,7 +3,7 @@ import type { File as TutanotaFile, Mail, MailFolder } from "../../../common/api
 import { createMail } from "../../../common/api/entities/tutanota/TypeRefs.js"
 import { LockedError, PreconditionFailedError } from "../../../common/api/common/error/RestError"
 import { Dialog } from "../../../common/gui/base/Dialog"
-import { locator } from "../../../common/api/main/MainLocator"
+import { locator } from "../../../common/api/main/CommonLocator"
 import { AllIcons } from "../../../common/gui/base/Icon"
 import { Icons } from "../../../common/gui/base/icons/Icons"
 import { isApp, isDesktop } from "../../../common/api/common/Env"

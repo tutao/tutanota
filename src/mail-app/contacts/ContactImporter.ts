@@ -1,6 +1,6 @@
 import { Dialog, DialogType } from "../../common/gui/base/Dialog.js"
 import { assert, assertNotNull, getFirstOrThrow, ofClass, promiseMap } from "@tutao/tutanota-utils"
-import { locator } from "../../common/api/main/MainLocator.js"
+import { locator } from "../../common/api/main/CommonLocator.js"
 import { vCardFileToVCards, vCardListToContacts } from "./VCardImporter.js"
 import { ImportError } from "../../common/api/common/error/ImportError.js"
 import { lang, TranslationText } from "../../common/misc/LanguageViewModel.js"
@@ -32,6 +32,7 @@ import { PermissionType } from "../../common/native/common/generatedipc/Permissi
 import { SystemPermissionHandler } from "../../common/native/main/SystemPermissionHandler.js"
 import { KindaContactRow } from "./view/ContactListView.js"
 import { SelectAllCheckbox } from "../../common/gui/SelectAllCheckbox.js"
+import { mailLocator } from "../mailLocator.js"
 
 export class ContactImporter {
 	constructor(private readonly contactFacade: ContactFacade, private readonly systemPermissionHandler: SystemPermissionHandler) {}
@@ -118,7 +119,7 @@ export class ContactImporter {
 			})
 		).flat()
 
-		const importer = await locator.contactImporter()
+		const importer = await mailLocator.contactImporter()
 
 		showContactImportDialog(
 			contactsToImport,

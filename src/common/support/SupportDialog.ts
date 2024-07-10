@@ -12,7 +12,7 @@ import { clear, debounce } from "@tutao/tutanota-utils"
 import { writeSupportMail } from "../../mail-app/mail/editor/MailEditor"
 import { assertMainOrNode } from "../api/common/Env"
 import { LoginController } from "../api/main/LoginController.js"
-import { locator } from "../api/main/MainLocator.js"
+import { locator } from "../api/main/CommonLocator.js"
 import { LoginButton } from "../gui/base/buttons/LoginButton.js"
 
 assertMainOrNode()

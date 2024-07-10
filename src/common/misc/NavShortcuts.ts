@@ -1,6 +1,6 @@
 import { keyManager } from "./KeyManager.js"
 import { FeatureType, Keys } from "../api/common/TutanotaConstants.js"
-import { locator } from "../api/main/MainLocator.js"
+import { locator } from "../api/main/CommonLocator.js"
 import m from "mithril"
 import { CALENDAR_PREFIX, CONTACTS_PREFIX, LogoutUrl, MAIL_PREFIX, SETTINGS_PREFIX } from "./RouteChange.js"
 

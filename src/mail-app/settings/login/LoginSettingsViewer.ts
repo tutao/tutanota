@@ -21,7 +21,7 @@ import { CredentialEncryptionMode } from "../../../common/misc/credentials/Crede
 import { CredentialsProvider } from "../../../common/misc/credentials/CredentialsProvider.js"
 import { showCredentialsEncryptionModeDialog } from "../../../common/gui/dialogs/SelectCredentialsEncryptionModeDialog.js"
 import { assertMainOrNode, isDesktop } from "../../../common/api/common/Env.js"
-import { locator } from "../../../common/api/main/MainLocator.js"
+import { locator } from "../../../common/api/main/CommonLocator.js"
 import { elementIdPart, getElementId } from "../../../common/api/common/utils/EntityUtils.js"
 import { showChangeOwnPasswordDialog } from "./ChangePasswordDialogs.js"
 import { IconButton, IconButtonAttrs } from "../../../common/gui/base/IconButton.js"

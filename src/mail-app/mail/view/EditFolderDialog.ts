@@ -3,7 +3,7 @@ import { DropDownSelector, SelectorItemList } from "../../../common/gui/base/Dro
 import m from "mithril"
 import { TextField } from "../../../common/gui/base/TextField.js"
 import { Dialog } from "../../../common/gui/base/Dialog.js"
-import { locator } from "../../../common/api/main/MainLocator.js"
+import { locator } from "../../../common/api/main/CommonLocator.js"
 import { LockedError } from "../../../common/api/common/error/RestError.js"
 import { lang, TranslationKey } from "../../../common/misc/LanguageViewModel.js"
 import { MailboxDetail } from "../../../common/mailFunctionality/MailModel.js"

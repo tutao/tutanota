@@ -31,7 +31,7 @@ export class WindowFacade {
 		this.windowCloseConfirmation = false
 		this._windowCloseListeners = new Set()
 		// load async to reduce size of boot bundle
-		import("../api/main/MainLocator").then(async ({ locator }) => {
+		import("../api/main/CommonLocator").then(async ({ locator }) => {
 			// We need to wait til the locator has finished initializing before we read from it
 			// because it is happening concurrently
 			await locator.initialized
@@ -240,7 +240,7 @@ export class WindowFacade {
 				args.noAutoLogin = true
 			}
 
-			const { locator } = await import("../api/main/MainLocator")
+			const { locator } = await import("../api/main/CommonLocator")
 
 			const stringifiedArgs: Record<string, string> = {}
 			for (const [k, v] of Object.entries(args)) {

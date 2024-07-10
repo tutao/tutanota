@@ -12,7 +12,7 @@ import { elementIdPart, isSameId, listIdPart } from "../../../common/api/common/
 import type { UserAlarmInfo } from "../../../common/api/entities/sys/TypeRefs.js"
 import { createDateWrapper, UserAlarmInfoTypeRef } from "../../../common/api/entities/sys/TypeRefs.js"
 import { convertToDataFile } from "../../../common/api/common/DataFile"
-import { locator } from "../../../common/api/main/MainLocator"
+import { locator } from "../../../common/api/main/CommonLocator"
 import { getFromMap, groupBy, insertIntoSortedArray, ofClass, promiseMap, stringToUtf8Uint8Array } from "@tutao/tutanota-utils"
 import { assignEventId, CalendarEventValidity, checkEventValidity, getTimeZone } from "../date/CalendarUtils"
 import { ImportError } from "../../../common/api/common/error/ImportError"

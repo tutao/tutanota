@@ -21,7 +21,7 @@ import { InvoiceAndPaymentDataPage, InvoiceAndPaymentDataPageAttrs } from "./Inv
 import { UpgradeCongratulationsPage, UpgradeCongratulationsPageAttrs } from "./UpgradeCongratulationsPage.js"
 import { SignupPage, SignupPageAttrs } from "./SignupPage"
 import { assertMainOrNode, isIOSApp } from "../api/common/Env"
-import { locator } from "../api/main/MainLocator"
+import { locator } from "../api/main/CommonLocator"
 import { StorageBehavior } from "../misc/UsageTestModel"
 import { FeatureListProvider, SelectedSubscriptionOptions } from "./FeatureListProvider"
 import { queryAppStoreSubscriptionOwnership, UpgradeType } from "./SubscriptionUtils"
@@ -204,9 +204,11 @@ export async function loadSignupWizard(
 		wizardPageWrapper(UpgradeConfirmSubscriptionPage, invoiceAttrs),
 		wizardPageWrapper(UpgradeCongratulationsPage, new UpgradeCongratulationsPageAttrs(signupData)),
 	]
+
 	if (isIOSApp()) {
 		wizardPages.splice(2, 1) // do not show this page on AppStore payment since we are only able to show this single payment method on iOS
 	}
+
 	const wizardBuilder = createWizardDialog(
 		signupData,
 		wizardPages,

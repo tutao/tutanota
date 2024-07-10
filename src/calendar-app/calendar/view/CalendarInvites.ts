@@ -1,6 +1,6 @@
 import { parseCalendarFile } from "../export/CalendarImporter.js"
 import type { CalendarEvent, CalendarEventAttendee, File as TutanotaFile, Mail, MailboxProperties } from "../../../common/api/entities/tutanota/TypeRefs.js"
-import { locator } from "../../../common/api/main/MainLocator.js"
+import { locator } from "../../../common/api/main/CommonLocator.js"
 import { CalendarAttendeeStatus, CalendarMethod, ConversationType, FeatureType, getAsEnumValue } from "../../../common/api/common/TutanotaConstants.js"
 import { assert, assertNotNull, clone, filterInt, noOp, Require } from "@tutao/tutanota-utils"
 import { findPrivateCalendar } from "../date/CalendarUtils.js"

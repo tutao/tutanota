@@ -14,7 +14,7 @@ import { GENERATED_MIN_ID, isSameId } from "../../../common/api/common/utils/Ent
 import { BookingItemFeatureType, GroupType, OperationType } from "../../../common/api/common/TutanotaConstants.js"
 import { lang, TranslationKey } from "../../../common/misc/LanguageViewModel.js"
 import { stringValidator } from "../../../common/gui/base/Dialog.js"
-import { locator } from "../../../common/api/main/MainLocator.js"
+import { locator } from "../../../common/api/main/CommonLocator.js"
 import { BadRequestError, NotAuthorizedError, PreconditionFailedError } from "../../../common/api/common/error/RestError.js"
 import { compareGroupInfos, getGroupInfoDisplayName } from "../../../common/api/common/utils/GroupUtils.js"
 import { MailboxPropertiesTypeRef } from "../../../common/api/entities/tutanota/TypeRefs.js"

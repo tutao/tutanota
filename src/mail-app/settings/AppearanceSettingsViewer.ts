@@ -12,7 +12,7 @@ import { getHourCycle } from "../../common/misc/Formatter"
 import { themeController, ThemeId, themeOptions, ThemePreference } from "../../common/gui/theme"
 import type { UpdatableSettingsViewer } from "./SettingsView"
 import { isDesktop } from "../../common/api/common/Env"
-import { locator } from "../../common/api/main/MainLocator"
+import { locator } from "../../common/api/main/CommonLocator"
 import { EntityUpdateData, isUpdateForTypeRef } from "../../common/api/common/utils/EntityUpdateUtils.js"
 
 export class AppearanceSettingsViewer implements UpdatableSettingsViewer {

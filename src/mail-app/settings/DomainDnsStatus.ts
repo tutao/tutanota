@@ -4,7 +4,7 @@ import { CustomDomainCheckResult, DnsRecordType, DnsRecordValidation } from "../
 import { LazyLoaded, noOp } from "@tutao/tutanota-utils"
 import { lang } from "../../common/misc/LanguageViewModel"
 import { assertMainOrNode } from "../../common/api/common/Env"
-import { locator } from "../../common/api/main/MainLocator"
+import { locator } from "../../common/api/main/CommonLocator"
 import { CustomDomainCheckService } from "../../common/api/entities/sys/Services"
 
 assertMainOrNode()

@@ -21,7 +21,7 @@ import { Button, ButtonColor, ButtonType } from "../../../common/gui/base/Button
 import { SELECT_NEXT_TEMPLATE, SELECT_PREV_TEMPLATE, TEMPLATE_SHORTCUT_PREFIX, TemplatePopupModel } from "../model/TemplatePopupModel.js"
 import { attachDropdown, DomRectReadOnlyPolyfilled, PosRect } from "../../../common/gui/base/Dropdown.js"
 import { debounce, downcast, neverNull } from "@tutao/tutanota-utils"
-import { locator } from "../../../common/api/main/MainLocator"
+import { locator } from "../../../common/api/main/CommonLocator"
 import { TemplateSearchBar } from "./TemplateSearchBar.js"
 import { Editor } from "../../../common/gui/editor/Editor"
 import { getSharedGroupName, hasCapabilityOnGroup } from "../../../common/sharing/GroupUtils"

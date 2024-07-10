@@ -12,7 +12,7 @@ import { getDefaultNotificationLabel } from "../../common/misc/OutOfOfficeNotifi
 import { showPlanUpgradeRequiredDialog } from "../../common/misc/SubscriptionDialogs"
 import { DropDownSelector } from "../../common/gui/base/DropDownSelector.js"
 import { showUserError } from "../../common/misc/ErrorHandlerImpl"
-import { locator } from "../../common/api/main/MainLocator"
+import { locator } from "../../common/api/main/CommonLocator"
 import { EditOutOfOfficeNotificationDialogModel, RecipientMessageType } from "./EditOutOfOfficeNotificationDialogModel"
 import { HtmlEditor } from "../../common/gui/editor/HtmlEditor"
 import { UserError } from "../../common/api/main/UserError"

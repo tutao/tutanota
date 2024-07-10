@@ -1,4 +1,4 @@
-import { locator } from "../api/main/MainLocator.js"
+import { locator } from "../api/main/CommonLocator.js"
 import { RegistrationCaptchaService } from "../api/entities/sys/Services.js"
 import { createRegistrationCaptchaServiceData, createRegistrationCaptchaServiceGetData } from "../api/entities/sys/TypeRefs.js"
 import { deviceConfig } from "../misc/DeviceConfig.js"

@@ -5,7 +5,7 @@ import { InvalidDataError, LockedError, PreconditionFailedError } from "../api/c
 import { Autocomplete, TextField, TextFieldType } from "../gui/base/TextField.js"
 import { neverNull } from "@tutao/tutanota-utils"
 import { getCleanedMailAddress } from "../misc/parsing/MailAddressParser"
-import { locator } from "../api/main/MainLocator"
+import { locator } from "../api/main/CommonLocator"
 import { getEtId } from "../api/common/utils/EntityUtils"
 import { CloseEventBusOption } from "../api/common/TutanotaConstants.js"
 import { SurveyData } from "../api/entities/sys/TypeRefs.js"

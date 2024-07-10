@@ -39,7 +39,7 @@ import {
 import type { CalendarEventBubbleClickHandler, CalendarEventBubbleKeyDownHandler, EventsOnDays } from "./CalendarViewModel"
 import { Time } from "../date/Time.js"
 import { client } from "../../../common/misc/ClientDetector"
-import { locator } from "../../../common/api/main/MainLocator.js"
+import { locator } from "../../../common/api/main/CommonLocator.js"
 import { PageView } from "../../../common/gui/base/PageView.js"
 import { DaysToEvents } from "../date/CalendarEventsRepository.js"
 

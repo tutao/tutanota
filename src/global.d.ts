@@ -7,7 +7,7 @@ import Mithril from "mithril"
 import { LanguageViewModel } from "./misc/LanguageViewModel"
 import { ClientDetector } from "./misc/ClientDetector"
 import { RootView } from "./RootView"
-import { IMainLocator } from "./api/main/MainLocator"
+import { ICommonLocator } from "./api/main/CommonLocator"
 import { WhitelabelCustomizations } from "./misc/WhitelabelCustomizations"
 import { WorkerLocatorType } from "./api/worker/WorkerLocator"
 import { TopLevelView } from "./TopLevelView.js"
@@ -28,7 +28,7 @@ type Tutao = {
 	lang: LanguageViewModel
 	client: ClientDetector
 	root: RootView
-	locator: IMainLocator | null
+	locator: ICommonLocator | null
 	nativeApp? // Will either be IosNativeTransport or null
 	appState?
 }

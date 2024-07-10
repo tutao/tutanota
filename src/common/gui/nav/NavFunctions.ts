@@ -1,5 +1,5 @@
 import { FeatureType } from "../../api/common/TutanotaConstants"
-import { locator } from "../../api/main/MainLocator.js"
+import { locator } from "../../api/main/CommonLocator.js"
 import { LoginController } from "../../api/main/LoginController.js"
 
 export function showUpgradeDialog() {
