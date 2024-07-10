@@ -8,7 +8,7 @@
 		<item name="android:statusBarColor">@color/darkLighter</item>
 		<item name="android:windowLightStatusBar">false</item>
 		<item name="android:windowSplashScreenAnimatedIcon">
-			@drawable/ic_logo_dark
+			@drawable/ic_launcher_foreground_dark
 		</item>
 
 	</style>
