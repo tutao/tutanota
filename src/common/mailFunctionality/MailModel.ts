@@ -6,7 +6,6 @@ import type { Group, GroupInfo, GroupMembership, WebsocketCounterData } from "..
 import { GroupInfoTypeRef, GroupTypeRef } from "../api/entities/sys/TypeRefs.js"
 import type { MailReportType } from "../api/common/TutanotaConstants.js"
 import { FeatureType, MailFolderType, MAX_NBR_MOVE_DELETE_MAIL_SERVICE, OperationType, ReportMovedMailsType } from "../api/common/TutanotaConstants.js"
-
 import { EventController } from "../api/main/EventController.js"
 import { lang } from "../misc/LanguageViewModel.js"
 import { Notifications, NotificationType } from "../gui/Notifications.js"
