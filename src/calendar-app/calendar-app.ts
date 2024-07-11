@@ -24,8 +24,10 @@ import { TopLevelAttrs, TopLevelView } from "../TopLevelView.js"
 import { AppHeaderAttrs } from "../common/gui/Header.js"
 import { CalendarViewModel } from "./calendar/view/CalendarViewModel.js"
 import { LoginController } from "../common/api/main/LoginController.js"
-import { SettingsViewAttrs } from "../common/settings/Interfaces.js"
+import { AppType, SettingsViewAttrs } from "../common/settings/Interfaces.js"
 import { SettingsView } from "./calendar/view/SettingsView.js"
+import { SearchViewModel } from "./calendar/search/view/SearchViewModel.js"
+import { SearchView, SearchViewAttrs } from "./calendar/search/view/SearchView.js"
 
 assertMainOrNodeBoot()
 bootFinished()
@@ -73,7 +75,7 @@ import("../mail-app/translations/en.js")
 
 		// FIXME: need to split locator?
 		const { locator } = await import("../common/api/main/MainLocator.js")
-		await locator.init()
+		await locator.init(AppType.Calendar)
 
 		// FIXME: need to split navShortcuts?
 		const { setupNavShortcuts } = await import("../common/misc/NavShortcuts.js")
@@ -184,14 +186,14 @@ import("../mail-app/translations/en.js")
 			>(
 				{
 					prepareRoute: async () => {
-						const { SearchView } = await import("../mail-app/search/view/SearchView.js")
+						const { SearchView } = await import("./calendar/search/view/SearchView.js")
 						const drawerAttrsFactory = await locator.drawerAttrsFactory()
 						return {
 							component: SearchView,
 							cache: {
 								drawerAttrsFactory,
 								header: await locator.appHeaderAttrs(),
-								searchViewModelFactory: await locator.searchViewModelFactory(),
+								searchViewModelFactory: await locator.calendarSearchViewModelFactory(),
 							},
 						}
 					},

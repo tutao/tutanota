@@ -115,6 +115,7 @@ import { PostLoginActions } from "../../login/PostLoginActions.js"
 import { SystemPermissionHandler } from "../../native/main/SystemPermissionHandler.js"
 import { RecoverCodeFacade } from "../worker/facades/lazy/RecoverCodeFacade.js"
 import { getDisplayedSender, getEnabledMailAddressesWithUser } from "../../mailFunctionality/CommonMailUtils.js"
+import { AppType } from "../../settings/Interfaces.js"
 
 assertMainOrNode()
 
@@ -171,6 +172,7 @@ class MainLocator {
 	infoMessageHandler!: InfoMessageHandler
 	Const!: Record<string, any>
 
+	private app: AppType | null = null
 	private nativeInterfaces: NativeInterfaces | null = null
 	private entropyFacade!: EntropyFacade
 	private sqlCipherFacade!: SqlCipherFacade
@@ -610,10 +612,11 @@ class MainLocator {
 		this._workerDeferred = defer()
 	}
 
-	async init(): Promise<void> {
+	async init(app: AppType = AppType.Mail): Promise<void> {
 		// Split init in two separate parts: creating modules and causing side effects.
 		// We would like to do both on normal init but on HMR we just want to replace modules without a new worker. If we create a new
 		// worker we end up losing state on the worker side (including our session).
+		this.app = app
 		this.worker = bootstrapWorker(this)
 		await this._createInstances()
 		this._entropyCollector = new EntropyCollector(this.entropyFacade, await this.scheduler(), window)
@@ -902,7 +905,7 @@ class MainLocator {
 				this.systemFacade,
 				await this.nativeContactsSyncManager(),
 				deviceConfig,
-				false, //FIXME: We should check which app is creating it and allow accordingly
+				this.app !== AppType.Calendar,
 			)
 		}
 	}

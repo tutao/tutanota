@@ -222,7 +222,6 @@ export class SearchViewModel {
 		this.lazyCalendarInfos.load()
 		this.latestCalendarRestriction = restriction
 
-		//FIXME: Why isn't selecting?
 		if (args.id != null) {
 			const { start, id } = decodeCalendarSearchKey(args.id)
 			this.loadAndSelectIfNeeded(id, ({ entry }: SearchResultListEntry) => {

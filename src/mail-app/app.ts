@@ -285,7 +285,7 @@ import("./translations/en.js")
 							cache: {
 								drawerAttrsFactory,
 								header: await locator.appHeaderAttrs(),
-								searchViewModelFactory: await locator.calendarSearchViewModelFactory(),
+								searchViewModelFactory: await locator.searchViewModelFactory(),
 							},
 						}
 					},

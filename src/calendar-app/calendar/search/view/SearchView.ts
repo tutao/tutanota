@@ -36,7 +36,6 @@ import {
 	handleEventEditButtonClick,
 	handleSendUpdatesClick,
 } from "../../view/EventDetailsView.js"
-import { BottomNav } from "../../../../common/gui/nav/BottomNav.js"
 import { Icons } from "../../../../common/gui/base/icons/Icons.js"
 import { DropDownSelector, DropDownSelectorAttrs } from "../../../../common/gui/base/DropDownSelector.js"
 import { FeatureType, Keys } from "../../../../common/api/common/TutanotaConstants.js"
@@ -59,6 +58,7 @@ import { CalendarInfo } from "../../model/CalendarModel.js"
 import { Checkbox, CheckboxAttrs } from "../../../../common/gui/base/Checkbox.js"
 import { MobileActionAttrs, MobileActionBar } from "../../../../common/gui/MobileActionBar.js"
 import { assertMainOrNode } from "../../../../common/api/common/Env.js"
+import { CalendarBottomNav } from "../../../gui/CalendarBottomNav.js"
 
 assertMainOrNode()
 
@@ -282,7 +282,7 @@ export class SearchView extends BaseTopLevelView implements TopLevelView<SearchV
 	}
 
 	private renderBottomNav() {
-		if (!styles.isSingleColumnLayout()) return m(BottomNav)
+		if (!styles.isSingleColumnLayout()) return m(CalendarBottomNav)
 
 		const isInMultiselect = this.searchViewModel.listModel?.state.inMultiselect ?? false
 
@@ -322,7 +322,7 @@ export class SearchView extends BaseTopLevelView implements TopLevelView<SearchV
 			return m(MobileActionBar, { actions })
 		}
 
-		return m(BottomNav)
+		return m(CalendarBottomNav)
 	}
 
 	private searchBarPlaceholder() {
