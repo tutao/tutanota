@@ -20,13 +20,13 @@ import type { HtmlEditor } from "../../../../common/gui/editor/HtmlEditor.js"
 import { locator } from "../../../../common/api/main/CommonLocator.js"
 import { CalendarEventEditView } from "./CalendarEventEditView.js"
 import { askIfShouldSendCalendarUpdatesToAttendees } from "../CalendarGuiUtils.js"
-import { UserError } from "../../../../common/api/main/UserError.js"
-import { showUserError } from "../../../../common/misc/ErrorHandlerImpl.js"
 import { CalendarEventIdentity, CalendarEventModel, EventSaveResult } from "../eventeditor-model/CalendarEventModel.js"
 import { ProgrammingError } from "../../../../common/api/common/error/ProgrammingError.js"
 import { UpgradeRequiredError } from "../../../../common/api/main/UpgradeRequiredError.js"
 import { showPlanUpgradeRequiredDialog } from "../../../../common/misc/SubscriptionDialogs.js"
 import { convertTextToHtml } from "../../../../common/misc/Formatter.js"
+import { UserError } from "../../../../common/api/main/UserError.js"
+import { showUserError } from "../../../../common/misc/ErrorHandlerImpl.js"
 
 const enum ConfirmationResult {
 	Cancel,

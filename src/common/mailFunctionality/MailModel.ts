@@ -1,27 +1,3 @@
-import m from "mithril"
-import stream from "mithril/stream"
-import Stream from "mithril/stream"
-import { assertNotNull, groupBy, lazyMemoized, neverNull, noOp, ofClass, promiseMap, splitInChunks } from "@tutao/tutanota-utils"
-import type { Group, GroupInfo, GroupMembership, WebsocketCounterData } from "../api/entities/sys/TypeRefs.js"
-import { GroupInfoTypeRef, GroupTypeRef } from "../api/entities/sys/TypeRefs.js"
-import type { MailReportType } from "../api/common/TutanotaConstants.js"
-import { FeatureType, MailFolderType, MAX_NBR_MOVE_DELETE_MAIL_SERVICE, OperationType, ReportMovedMailsType } from "../api/common/TutanotaConstants.js"
-
-import { EventController } from "../api/main/EventController.js"
-import { lang } from "../misc/LanguageViewModel.js"
-import { Notifications, NotificationType } from "../gui/Notifications.js"
-import { EntityClient } from "../api/common/EntityClient.js"
-import { elementIdPart, GENERATED_MAX_ID, getElementId, getListId, isSameId, listIdPart } from "../api/common/utils/EntityUtils.js"
-import { LockedError, NotFoundError, PreconditionFailedError } from "../api/common/error/RestError.js"
-import type { MailFacade } from "../api/worker/facades/lazy/MailFacade.js"
-import { LoginController } from "../api/main/LoginController.js"
-import { ProgrammingError } from "../api/common/error/ProgrammingError.js"
-import { FolderSystem } from "../api/common/mail/FolderSystem.js"
-import { UserError } from "../api/main/UserError.js"
-import { containsEventOfType, EntityUpdateData, isUpdateForTypeRef } from "../api/common/utils/EntityUpdateUtils.js"
-import { assertSystemFolderOfType, getEnabledMailAddressesWithUser, isSpamOrTrashFolder } from "./CommonMailUtils.js"
-import { WebsocketConnectivityModel } from "../misc/WebsocketConnectivityModel.js"
-import { InboxRuleHandler } from "../../mail-app/mail/model/InboxRuleHandler.js"
 import {
 	createMailAddressProperties,
 	createMailboxProperties,
@@ -34,6 +10,35 @@ import {
 	MailFolder,
 	MailFolderTypeRef, MailTypeRef
 } from "../api/entities/tutanota/TypeRefs.js"
+import { FolderSystem } from "../api/common/mail/FolderSystem.js"
+import { Group, GroupInfo, GroupInfoTypeRef, GroupMembership, GroupTypeRef, WebsocketCounterData } from "../api/entities/sys/TypeRefs.js"
+import Stream from "mithril/stream"
+import stream from "mithril/stream"
+import { Notifications, NotificationType } from "../gui/Notifications.js"
+import { EventController } from "../api/main/EventController.js"
+import { MailFacade } from "../api/worker/facades/lazy/MailFacade.js"
+import { EntityClient } from "../api/common/EntityClient.js"
+import { LoginController } from "../api/main/LoginController.js"
+import { WebsocketConnectivityModel } from "../misc/WebsocketConnectivityModel.js"
+import { InboxRuleHandler } from "../../mail-app/mail/model/InboxRuleHandler.js"
+import { assertNotNull, groupBy, lazyMemoized, neverNull, noOp, ofClass, promiseMap, splitInChunks } from "@tutao/tutanota-utils"
+import {
+	FeatureType,
+	MailFolderType,
+	MailReportType,
+	MAX_NBR_MOVE_DELETE_MAIL_SERVICE,
+	OperationType,
+	ReportMovedMailsType
+} from "../api/common/TutanotaConstants.js"
+import { assertSystemFolderOfType, getEnabledMailAddressesWithUser, isSpamOrTrashFolder } from "./CommonMailUtils.js"
+import { LockedError, NotFoundError, PreconditionFailedError } from "../api/common/error/RestError.js"
+import { elementIdPart, GENERATED_MAX_ID, getElementId, getListId, isSameId, listIdPart } from "../api/common/utils/EntityUtils.js"
+import { containsEventOfType, EntityUpdateData, isUpdateForTypeRef } from "../api/common/utils/EntityUpdateUtils.js"
+import m from "mithril"
+import { lang } from "../misc/LanguageViewModel.js"
+import { ProgrammingError } from "../api/common/error/ProgrammingError.js"
+import { UserError } from "../api/main/UserError.js"
+
 
 export type MailboxDetail = {
 	mailbox: MailBox

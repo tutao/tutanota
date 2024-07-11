@@ -172,7 +172,6 @@ export class ContactModel {
 		const group = await this.entityClient.load(GroupTypeRef, groupInfo.group)
 		const groupRoot = await this.entityClient.load(ContactListGroupRootTypeRef, groupInfo.group)
 		const userController = this.loginController.getUserController()
-
 		const { getSharedGroupName } = await import("../sharing/GroupUtils.js")
 		const { hasCapabilityOnGroup, isSharedGroupOwner } = await import("../sharing/GroupUtils.js")
 

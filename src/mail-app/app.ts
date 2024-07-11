@@ -10,7 +10,6 @@ import { deviceConfig } from "../common/misc/DeviceConfig.js"
 import { Logger, replaceNativeLogger } from "../common/api/common/Logger.js"
 import { applicationPaths } from "./ApplicationPaths.js"
 import { ProgrammingError } from "../common/api/common/error/ProgrammingError.js"
-import { NativeWebauthnView } from "../common/login/NativeWebauthnView.js"
 import type { LoginView, LoginViewAttrs } from "../common/login/LoginView.js"
 import type { LoginViewModel } from "../common/login/LoginViewModel.js"
 import { TerminationView, TerminationViewAttrs } from "../common/termination/TerminationView.js"
@@ -38,6 +37,7 @@ import { initCommonLocator } from "../common/api/main/CommonLocator.js"
 import { assertMainOrNodeBoot, bootFinished, isApp, isDesktop, isOfflineStorageAvailable } from "../common/api/common/Env.js"
 import { SettingsViewAttrs } from "../common/settings/Interfaces.js"
 import { disableErrorHandlingDuringLogout, handleUncaughtError } from "../common/misc/ErrorHandler.js"
+import { BottomNav } from "./gui/BottomNav.js"
 
 assertMainOrNodeBoot()
 bootFinished()
@@ -182,7 +182,7 @@ import("./translations/en.js")
 							},
 						}
 					},
-					prepareAttrs: ({ makeViewModel }) => ({ targetPath: "/calendar", makeViewModel }),
+					prepareAttrs: ({ makeViewModel }) => ({ targetPath: "/mail", makeViewModel }),
 					requireLogin: false,
 				},
 				mailLocator.logins,
@@ -304,7 +304,7 @@ import("./translations/en.js")
 			calendar: makeViewResolver<
 				CalendarViewAttrs,
 				CalendarView,
-				{ drawerAttrsFactory: () => DrawerMenuAttrs; header: AppHeaderAttrs; calendarViewModel: CalendarViewModel }
+				{ drawerAttrsFactory: () => DrawerMenuAttrs; header: AppHeaderAttrs; calendarViewModel: CalendarViewModel; bottomNav: Children }
 			>(
 				{
 					prepareRoute: async (cache) => {
@@ -316,13 +316,15 @@ import("./translations/en.js")
 								drawerAttrsFactory,
 								header: await mailLocator.appHeaderAttrs(),
 								calendarViewModel: await mailLocator.calendarViewModel(),
+								bottomNav: m(BottomNav),
 							},
 						}
 					},
-					prepareAttrs: ({ header, calendarViewModel, drawerAttrsFactory }) => ({
+					prepareAttrs: ({ header, calendarViewModel, drawerAttrsFactory, bottomNav }) => ({
 						drawerAttrs: drawerAttrsFactory(),
 						header,
 						calendarViewModel,
+						bottomNav,
 					}),
 				},
 				mailLocator.logins,

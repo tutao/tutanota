@@ -1,6 +1,6 @@
 import type { DesktopNotifier } from "./DesktopNotifier"
 import { NotificationResult } from "./DesktopNotifier"
-import { lang } from "../misc/LanguageViewModel"
+import { lang } from "../common/misc/LanguageViewModel"
 import type { DesktopConfig } from "./config/DesktopConfig"
 import { assertNotNull, delay, downcast, neverNull } from "@tutao/tutanota-utils"
 import { DesktopNativeCryptoFacade } from "./DesktopNativeCryptoFacade"

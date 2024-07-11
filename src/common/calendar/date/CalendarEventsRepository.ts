@@ -1,18 +1,23 @@
 import Stream from "mithril/stream"
 import stream from "mithril/stream"
+<<<<<<<< HEAD:src/common/calendar/date/CalendarEventsRepository.ts
 import { CalendarInfo, CalendarModel } from "../../../calendar-app/calendar/model/CalendarModel.js"
 import { IProgressMonitor } from "../../api/common/utils/ProgressMonitor.js"
+========
+import { CalendarInfo, CalendarModel } from "../model/CalendarModel.js"
+import { IProgressMonitor } from "../../../common/api/common/utils/ProgressMonitor.js"
+>>>>>>>> 3349a964d (Move files to new folder structure):src/calendar-app/calendar/date/CalendarEventsRepository.ts
 import { addDaysForRecurringEvent, CalendarTimeRange, getEventEnd, getEventStart, getMonthRange } from "./CalendarUtils.js"
-import { CalendarEvent, CalendarEventTypeRef } from "../../api/entities/tutanota/TypeRefs.js"
-import { getListId, isSameId } from "../../api/common/utils/EntityUtils.js"
+import { CalendarEvent, CalendarEventTypeRef } from "../../../common/api/entities/tutanota/TypeRefs.js"
+import { getListId, isSameId } from "../../../common/api/common/utils/EntityUtils.js"
 import { DateTime } from "luxon"
-import { CalendarFacade } from "../../api/worker/facades/lazy/CalendarFacade.js"
-import { EntityClient } from "../../api/common/EntityClient.js"
+import { CalendarFacade } from "../../../common/api/worker/facades/lazy/CalendarFacade.js"
+import { EntityClient } from "../../../common/api/common/EntityClient.js"
 import { findAllAndRemove } from "@tutao/tutanota-utils"
-import { OperationType } from "../../api/common/TutanotaConstants.js"
-import { NotAuthorizedError, NotFoundError } from "../../api/common/error/RestError.js"
-import { EventController } from "../../api/main/EventController.js"
-import { EntityUpdateData, isUpdateForTypeRef } from "../../api/common/utils/EntityUpdateUtils.js"
+import { OperationType } from "../../../common/api/common/TutanotaConstants.js"
+import { NotAuthorizedError, NotFoundError } from "../../../common/api/common/error/RestError.js"
+import { EventController } from "../../../common/api/main/EventController.js"
+import { EntityUpdateData, isUpdateForTypeRef } from "../../../common/api/common/utils/EntityUpdateUtils.js"
 
 const LIMIT_PAST_EVENTS_YEARS = 100
 

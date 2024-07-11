@@ -14,7 +14,7 @@ import {
 } from "../../../src/common/api/entities/tutanota/TypeRefs.js"
 import { CalendarAttendeeStatus } from "../../../src/common/api/common/TutanotaConstants.js"
 import { findAttendeeInAddresses } from "../../../src/common/api/common/utils/CommonCalendarUtils.js"
-import { MailboxDetail, MailModel } from "../../../src/mail-app/mail/model/MailModel.js"
+import { MailboxDetail, MailModel } from "../../../src/mail-app/mail-app/model/MailModel.js"
 import { instance, matchers, when } from "testdouble"
 import { CalendarModel } from "../../../src/calendar-app/calendar/model/CalendarModel.js"
 import { LoginController } from "../../../src/common/api/main/LoginController.js"

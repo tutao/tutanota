@@ -12,7 +12,7 @@ import {
 } from "../../../common/api/entities/sys/TypeRefs.js"
 import { OperationType } from "../../../common/api/common/TutanotaConstants.js"
 import stream from "mithril/stream"
-import { locator } from "../../../common/api/main/MainLocator.js"
+import { calendarLocator } from "../../calendarLocator.js"
 
 assertMainOrNode()
 
@@ -21,9 +21,9 @@ export class GlobalSettingsViewer implements UpdatableSettingsViewer {
 	private accountMaintenanceUpdateNotifier: AccountMaintenanceUpdateNotifier | null = null
 
 	private readonly customerProperties = new LazyLoaded(() =>
-		locator.entityClient
-			.load(CustomerTypeRef, neverNull(locator.logins.getUserController().user.customer))
-			.then((customer) => locator.entityClient.load(CustomerPropertiesTypeRef, neverNull(customer.properties))),
+		calendarLocator.entityClient
+			.load(CustomerTypeRef, neverNull(calendarLocator.logins.getUserController().user.customer))
+			.then((customer) => calendarLocator.entityClient.load(CustomerPropertiesTypeRef, neverNull(customer.properties))),
 	)
 
 	constructor() {
@@ -44,7 +44,7 @@ export class GlobalSettingsViewer implements UpdatableSettingsViewer {
 	}
 
 	private updateCustomerServerProperties(): Promise<void> {
-		return locator.customerFacade.loadCustomerServerProperties().then((props) => {
+		return calendarLocator.customerFacade.loadCustomerServerProperties().then((props) => {
 			this.props(props)
 			m.redraw()
 		})

@@ -8,7 +8,7 @@ import {
 	EncryptedMailAddressTypeRef,
 	FileTypeRef,
 } from "../../../src/common/api/entities/tutanota/TypeRefs.js"
-import { incrementByRepeatPeriod } from "../../../src/common/calendar/date/CalendarUtils.js"
+import { incrementByRepeatPeriod } from "../../../src/common/calendar-app/date/CalendarUtils.js"
 import { downcast, hexToUint8Array, neverNull, stringToUtf8Uint8Array } from "@tutao/tutanota-utils"
 import { CalendarModel } from "../../../src/calendar-app/calendar/model/CalendarModel.js"
 import { CalendarAttendeeStatus, CalendarMethod, OperationType, RepeatPeriod } from "../../../src/common/api/common/TutanotaConstants.js"

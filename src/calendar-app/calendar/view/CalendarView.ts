@@ -52,7 +52,7 @@ import type Stream from "mithril/stream"
 import { IconButton } from "../../../common/gui/base/IconButton.js"
 import { createDropdown, PosRect } from "../../../common/gui/base/Dropdown.js"
 import { ButtonSize } from "../../../common/gui/base/ButtonSize.js"
-import { CalendarBottomNav } from "../../gui/CalendarBottomNav.js"
+import { CalendarBottomNav } from "../../../common/gui/CalendarBottomNav.js"
 import { DrawerMenuAttrs } from "../../../common/gui/nav/DrawerMenu.js"
 import { BaseTopLevelView } from "../../../common/gui/BaseTopLevelView.js"
 import { TopLevelAttrs, TopLevelView } from "../../../TopLevelView.js"
@@ -74,6 +74,7 @@ export interface CalendarViewAttrs extends TopLevelAttrs {
 	drawerAttrs: DrawerMenuAttrs
 	header: AppHeaderAttrs
 	calendarViewModel: CalendarViewModel
+	bottomNav: Children
 }
 
 const CalendarViewTypeByValue = reverse(CalendarViewType)
@@ -823,7 +824,7 @@ export class CalendarView extends BaseTopLevelView implements TopLevelView<Calen
 						}),
 					...attrs.header,
 				}),
-				bottomNav: m(CalendarBottomNav),
+				bottomNav: attrs.bottomNav,
 			}),
 		)
 	}

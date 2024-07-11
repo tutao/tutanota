@@ -1,33 +1,33 @@
-import {TopLevelAttrs, TopLevelView} from "../../../../TopLevelView.js";
-import {DrawerMenuAttrs} from "../../../../common/gui/nav/DrawerMenu.js";
-import {AppHeaderAttrs, Header} from "../../../../common/gui/Header.js";
-import {CalendarSearchViewModel} from "./CalendarSearchViewModel.js";
-import {BaseTopLevelView} from "../../../../common/gui/BaseTopLevelView.js";
-import {ColumnType, ViewColumn} from "../../../../common/gui/base/ViewColumn.js";
-import {ViewSlider} from "../../../../common/gui/nav/ViewSlider.js";
-import {CalendarEvent} from "../../../../common/api/entities/tutanota/TypeRefs.js";
-import {assertNotNull, incrementMonth, LazyLoaded, lazyMemoized, memoized, TypeRef} from "@tutao/tutanota-utils";
-import {CalendarEventPreviewViewModel} from "../../gui/eventpopup/CalendarEventPreviewViewModel.js";
-import m, {Children, Vnode} from "mithril";
-import {FolderColumnView} from "../../../../common/gui/FolderColumnView.js";
-import {SidebarSection} from "../../../../common/gui/SidebarSection.js";
-import {NavButton, NavButtonColor} from "../../../../common/gui/base/NavButton.js";
-import {BootIcons} from "../../../../common/gui/base/icons/BootIcons.js";
-import {px, size} from "../../../../common/gui/size.js";
-import {lang, TranslationKey} from "../../../../common/misc/LanguageViewModel.js";
-import {BackgroundColumnLayout} from "../../../../common/gui/BackgroundColumnLayout.js";
-import {theme} from "../../../../common/gui/theme.js";
-import {DesktopListToolbar, DesktopViewerToolbar} from "../../../../common/gui/DesktopToolbars.js";
-import {SearchListView, SearchListViewAttrs} from "./SearchListView.js";
-import {isSameId} from "../../../../common/api/common/utils/EntityUtils.js";
-import {keyManager, Shortcut} from "../../../../common/misc/KeyManager.js";
-import {EnterMultiselectIconButton} from "../../../../common/gui/EnterMultiselectIconButton.js";
-import {styles} from "../../../../common/gui/styles.js";
-import {BaseMobileHeader} from "../../../../common/gui/BaseMobileHeader.js";
-import {MobileHeader, MobileHeaderMenuButton} from "../../../../common/gui/MobileHeader.js";
-import {searchBar} from "../SearchBar.js";
-import {ProgressBar} from "../../../../common/gui/base/ProgressBar.js";
-import ColumnEmptyMessageBox from "../../../../common/gui/base/ColumnEmptyMessageBox.js";
+import { TopLevelAttrs, TopLevelView } from "../../../../TopLevelView.js"
+import { DrawerMenuAttrs } from "../../../../common/gui/nav/DrawerMenu.js"
+import { AppHeaderAttrs, Header } from "../../../../common/gui/Header.js"
+import { CalendarSearchViewModel } from "./CalendarSearchViewModel.js"
+import { BaseTopLevelView } from "../../../../common/gui/BaseTopLevelView.js"
+import { ColumnType, ViewColumn } from "../../../../common/gui/base/ViewColumn.js"
+import { ViewSlider } from "../../../../common/gui/nav/ViewSlider.js"
+import { CalendarEvent } from "../../../../common/api/entities/tutanota/TypeRefs.js"
+import { assertNotNull, incrementMonth, LazyLoaded, lazyMemoized, memoized, TypeRef } from "@tutao/tutanota-utils"
+import { CalendarEventPreviewViewModel } from "../../gui/eventpopup/CalendarEventPreviewViewModel.js"
+import m, { Children, Vnode } from "mithril"
+import { FolderColumnView } from "../../../../common/gui/FolderColumnView.js"
+import { SidebarSection } from "../../../../common/gui/SidebarSection.js"
+import { NavButton, NavButtonColor } from "../../../../common/gui/base/NavButton.js"
+import { BootIcons } from "../../../../common/gui/base/icons/BootIcons.js"
+import { px, size } from "../../../../common/gui/size.js"
+import { lang, TranslationKey } from "../../../../common/misc/LanguageViewModel.js"
+import { BackgroundColumnLayout } from "../../../../common/gui/BackgroundColumnLayout.js"
+import { theme } from "../../../../common/gui/theme.js"
+import { DesktopListToolbar, DesktopViewerToolbar } from "../../../../common/gui/DesktopToolbars.js"
+import { SearchListView, CalendarSearchListViewAttrs } from "./SearchListView.js"
+import { isSameId } from "../../../../common/api/common/utils/EntityUtils.js"
+import { keyManager, Shortcut } from "../../../../common/misc/KeyManager.js"
+import { EnterMultiselectIconButton } from "../../../../common/gui/EnterMultiselectIconButton.js"
+import { styles } from "../../../../common/gui/styles.js"
+import { BaseMobileHeader } from "../../../../common/gui/BaseMobileHeader.js"
+import { MobileHeader, MobileHeaderMenuButton } from "../../../../common/gui/MobileHeader.js"
+import { searchBar } from "../CalendarSearchBar.js"
+import { ProgressBar } from "../../../../common/gui/base/ProgressBar.js"
+import ColumnEmptyMessageBox from "../../../../common/gui/base/ColumnEmptyMessageBox.js"
 import {
 	EventDetailsView,
 	EventDetailsViewAttrs,
@@ -57,34 +57,34 @@ import { CalendarInfo } from "../../model/CalendarModel.js"
 import { Checkbox, CheckboxAttrs } from "../../../../common/gui/base/Checkbox.js"
 import { MobileActionAttrs, MobileActionBar } from "../../../../common/gui/MobileActionBar.js"
 import { assertMainOrNode } from "../../../../common/api/common/Env.js"
-import { locator } from "../../../../common/api/main/CommonLocator.js"
-import { BottomNav } from "../../../../mail-app/gui/BottomNav.js"
+import { CalendarBottomNav } from "../../../gui/CalendarBottomNav.js"
+import { calendarLocator } from "../../../calendarLocator.js"
 
 assertMainOrNode()
 
-export interface SearchViewAttrs extends TopLevelAttrs {
+export interface CalendarSearchViewAttrs extends TopLevelAttrs {
 	drawerAttrs: DrawerMenuAttrs
 	header: AppHeaderAttrs
-    makeViewModel: () => CalendarSearchViewModel
+	makeViewModel: () => CalendarSearchViewModel
 }
 
-export class SearchView extends BaseTopLevelView implements TopLevelView<SearchViewAttrs> {
+export class CalendarSearchView extends BaseTopLevelView implements TopLevelView<CalendarSearchViewAttrs> {
 	private readonly resultListColumn: ViewColumn
 	private readonly resultDetailsColumn: ViewColumn
 	private readonly folderColumn: ViewColumn
 	private readonly viewSlider: ViewSlider
-    private readonly searchViewModel: CalendarSearchViewModel
+	private readonly searchViewModel: CalendarSearchViewModel
 
 	private getSanitizedPreviewData: (event: CalendarEvent) => LazyLoaded<CalendarEventPreviewViewModel> = memoized((event: CalendarEvent) =>
 		new LazyLoaded(async () => {
 			const calendars = await this.searchViewModel.getLazyCalendarInfos().getAsync()
-			const eventPreviewModel = await locator.calendarEventPreviewModel(event, calendars)
+			const eventPreviewModel = await calendarLocator.calendarEventPreviewModel(event, calendars)
 			eventPreviewModel.sanitizeDescription().then(() => m.redraw())
 			return eventPreviewModel
 		}).load(),
 	)
 
-	constructor(vnode: Vnode<SearchViewAttrs>) {
+	constructor(vnode: Vnode<CalendarSearchViewAttrs>) {
 		super()
 		this.searchViewModel = vnode.attrs.makeViewModel()
 
@@ -169,8 +169,8 @@ export class SearchView extends BaseTopLevelView implements TopLevelView<SearchV
 			cancelCallback: () => {
 				this.searchViewModel.sendStopLoadingSignal()
 			},
-			isFreeAccount: locator.logins.getUserController().isFreeAccount(),
-		} satisfies SearchListViewAttrs)
+			isFreeAccount: calendarLocator.logins.getUserController().isFreeAccount(),
+		} satisfies CalendarSearchListViewAttrs)
 	}
 
 	private renderFilterSection(): Children {
@@ -282,7 +282,7 @@ export class SearchView extends BaseTopLevelView implements TopLevelView<SearchV
 	}
 
 	private renderBottomNav() {
-		if (!styles.isSingleColumnLayout()) return m(BottomNav)
+		if (!styles.isSingleColumnLayout()) return m(CalendarBottomNav)
 
 		const isInMultiselect = this.searchViewModel.listModel?.state.inMultiselect ?? false
 
@@ -322,7 +322,7 @@ export class SearchView extends BaseTopLevelView implements TopLevelView<SearchV
 			return m(MobileActionBar, { actions })
 		}
 
-		return m(BottomNav)
+		return m(CalendarBottomNav)
 	}
 
 	private searchBarPlaceholder() {
@@ -402,7 +402,7 @@ export class SearchView extends BaseTopLevelView implements TopLevelView<SearchV
 			exec: () => {
 				this.createNewEventDialog()
 			},
-			enabled: () => locator.logins.isInternalUserLoggedIn() && !locator.logins.isEnabled(FeatureType.ReplyOnly),
+			enabled: () => calendarLocator.logins.isInternalUserLoggedIn() && !calendarLocator.logins.isEnabled(FeatureType.ReplyOnly),
 			help: "newMail_action",
 		},
 	])
@@ -444,9 +444,15 @@ export class SearchView extends BaseTopLevelView implements TopLevelView<SearchV
 			await showProgressDialog("pleaseWait_msg", calendarInfos)
 		}
 
-		const mailboxDetails = await locator.mailModel.getUserMailboxDetails()
-		const mailboxProperties = await locator.mailModel.getMailboxProperties(mailboxDetails.mailboxGroupRoot)
-		const model = await locator.calendarEventModel(CalendarOperation.Create, getEventWithDefaultTimes(dateToUse), mailboxDetails, mailboxProperties, null)
+		const mailboxDetails = await calendarLocator.mailModel.getUserMailboxDetails()
+		const mailboxProperties = await calendarLocator.mailModel.getMailboxProperties(mailboxDetails.mailboxGroupRoot)
+		const model = await calendarLocator.calendarEventModel(
+			CalendarOperation.Create,
+			getEventWithDefaultTimes(dateToUse),
+			mailboxDetails,
+			mailboxProperties,
+			null,
+		)
 
 		if (model) {
 			await showNewCalendarEventEditDialog(model)
@@ -459,7 +465,7 @@ export class SearchView extends BaseTopLevelView implements TopLevelView<SearchV
 
 			// Load user's calendar list
 			const items = Array.from(calendarInfos.values()).map((ci) => ({
-				name: getSharedGroupName(ci.groupInfo, locator.logins.getUserController(), true),
+				name: getSharedGroupName(ci.groupInfo, calendarLocator.logins.getUserController(), true),
 				value: ci,
 			}))
 
@@ -502,7 +508,7 @@ export class SearchView extends BaseTopLevelView implements TopLevelView<SearchV
 		)
 	}
 
-	view({ attrs }: Vnode<SearchViewAttrs>): Children {
+	view({ attrs }: Vnode<CalendarSearchViewAttrs>): Children {
 		return m(
 			"#search.main-view",
 			m(this.viewSlider, {

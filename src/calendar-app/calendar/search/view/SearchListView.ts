@@ -23,21 +23,21 @@ export class SearchResultListEntry {
 	}
 }
 
-export interface SearchListViewAttrs {
+export interface CalendarSearchListViewAttrs {
 	listModel: ListModel<SearchResultListEntry>
 	onSingleSelection: (item: SearchResultListEntry) => unknown
 	isFreeAccount: boolean
 	cancelCallback: () => unknown | null
 }
 
-export class SearchListView implements Component<SearchListViewAttrs> {
+export class SearchListView implements Component<CalendarSearchListViewAttrs> {
 	private listModel: ListModel<SearchResultListEntry>
 
-	constructor({ attrs }: Vnode<SearchListViewAttrs>) {
+	constructor({ attrs }: Vnode<CalendarSearchListViewAttrs>) {
 		this.listModel = attrs.listModel
 	}
 
-	view({ attrs }: Vnode<SearchListViewAttrs>): Children {
+	view({ attrs }: Vnode<CalendarSearchListViewAttrs>): Children {
 		this.listModel = attrs.listModel
 		const icon = BootIcons.Calendar
 		const renderConfig = this.calendarRenderConfig

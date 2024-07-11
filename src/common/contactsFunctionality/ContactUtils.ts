@@ -27,6 +27,7 @@ import { StructuredRelationship } from "../native/common/generatedipc/Structured
 import { StructuredMessengerHandle } from "../native/common/generatedipc/StructuredMessengerHandle.js"
 import { StructuredContact } from "../native/common/generatedipc/StructuredContact.js"
 
+
 assertMainOrNode()
 
 export type ContactNames = Pick<Contact, "nickname" | "firstName" | "lastName">

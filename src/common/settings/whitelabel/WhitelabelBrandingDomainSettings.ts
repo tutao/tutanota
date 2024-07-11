@@ -1,17 +1,29 @@
-import { TextField } from "../../gui/base/TextField.js"
-import { Dialog } from "../../gui/base/Dialog"
-import { showProgressDialog } from "../../gui/dialogs/ProgressDialog"
+import { TextField } from "../../../common/gui/base/TextField.js"
+import { Dialog } from "../../../common/gui/base/Dialog"
+import { showProgressDialog } from "../../../common/gui/dialogs/ProgressDialog"
 import { neverNull } from "@tutao/tutanota-utils"
+<<<<<<<< HEAD:src/common/settings/whitelabel/WhitelabelBrandingDomainSettings.ts
 import { PreconditionFailedError } from "../../api/common/error/RestError"
 import { Icons } from "../../gui/base/icons/Icons"
 import { showNotAvailableForFreeDialog, showPlanUpgradeRequiredDialog } from "../../misc/SubscriptionDialogs"
 import * as SetCustomDomainCertificateDialog from "../SetDomainCertificateDialog.js"
 import { lang } from "../../misc/LanguageViewModel"
+========
+import { PreconditionFailedError } from "../../../common/api/common/error/RestError"
+import { Icons } from "../../../common/gui/base/icons/Icons"
+import { showNotAvailableForFreeDialog, showPlanUpgradeRequiredDialog } from "../../../common/misc/SubscriptionDialogs"
+import * as SetCustomDomainCertificateDialog from "../SetDomainCertificateDialog"
+import { lang } from "../../../common/misc/LanguageViewModel"
+>>>>>>>> 3349a964d (Move files to new folder structure):src/mail-app/settings/whitelabel/WhitelabelBrandingDomainSettings.ts
 import m, { Children, Component, Vnode } from "mithril"
 import type { CertificateInfo, CustomerInfo } from "../../../common/api/entities/sys/TypeRefs.js"
 import { CertificateState, CertificateType, PlanType } from "../../../common/api/common/TutanotaConstants"
 import { formatDateTime } from "../../../common/misc/Formatter"
+<<<<<<<< HEAD:src/common/settings/whitelabel/WhitelabelBrandingDomainSettings.ts
 import { locator } from "../../../common/api/main/CommonLocator"
+========
+import { locator } from "../../../common/api/main/MainLocator"
+>>>>>>>> 3349a964d (Move files to new folder structure):src/mail-app/settings/whitelabel/WhitelabelBrandingDomainSettings.ts
 import { IconButton } from "../../../common/gui/base/IconButton.js"
 import { ButtonSize } from "../../../common/gui/base/ButtonSize.js"
 import { ProgrammingError } from "../../../common/api/common/error/ProgrammingError.js"

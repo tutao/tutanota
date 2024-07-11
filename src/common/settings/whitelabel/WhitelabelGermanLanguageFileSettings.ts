@@ -1,6 +1,6 @@
 import stream from "mithril/stream"
 import m, { Children, Component, Vnode } from "mithril"
-import { DropDownSelectorAttrs, DropDownSelector, SelectorItemList } from "../../gui/base/DropDownSelector.js"
+import { DropDownSelectorAttrs, DropDownSelector, SelectorItemList } from "../../../common/gui/base/DropDownSelector.js"
 
 export type GermanLanguageCode = "de" | "de_sie"
 export type WhitelabelGermanLanguageFileSettingsAttrs = {

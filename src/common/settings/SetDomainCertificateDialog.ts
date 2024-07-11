@@ -1,14 +1,26 @@
 import m from "mithril"
+<<<<<<<< HEAD:src/common/settings/SetDomainCertificateDialog.ts
 import { lang } from "../misc/LanguageViewModel.js"
 import { Dialog } from "../gui/base/Dialog.js"
 import { InvalidDataError, LockedError, PreconditionFailedError } from "../api/common/error/RestError.js"
 import { showProgressDialog } from "../gui/dialogs/ProgressDialog.js"
 import { isDomainName } from "../misc/FormatValidator.js"
+========
+import { lang } from "../../common/misc/LanguageViewModel"
+import { Dialog } from "../../common/gui/base/Dialog"
+import { InvalidDataError, LockedError, PreconditionFailedError } from "../../common/api/common/error/RestError"
+import { showProgressDialog } from "../../common/gui/dialogs/ProgressDialog"
+import { isDomainName } from "../../common/misc/FormatValidator"
+>>>>>>>> 3349a964d (Move files to new folder structure):src/mail-app/settings/SetDomainCertificateDialog.ts
 import stream from "mithril/stream"
-import type { CustomerInfo } from "../api/entities/sys/TypeRefs.js"
-import { TextField } from "../gui/base/TextField.js"
+import type { CustomerInfo } from "../../common/api/entities/sys/TypeRefs.js"
+import { TextField } from "../../common/gui/base/TextField.js"
 import { ofClass } from "@tutao/tutanota-utils"
+<<<<<<<< HEAD:src/common/settings/SetDomainCertificateDialog.ts
 import { locator } from "../../common/api/main/CommonLocator"
+========
+import { locator } from "../../common/api/main/MainLocator"
+>>>>>>>> 3349a964d (Move files to new folder structure):src/mail-app/settings/SetDomainCertificateDialog.ts
 import { assertMainOrNode } from "../../common/api/common/Env"
 import { getWhitelabelDomainInfo } from "../../common/api/common/utils/CustomerUtils.js"
 

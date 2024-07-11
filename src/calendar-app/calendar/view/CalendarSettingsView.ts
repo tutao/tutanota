@@ -13,7 +13,6 @@ import { LazyLoaded } from "@tutao/tutanota-utils"
 import { FeatureType, GroupType, LegacyPlans } from "../../../common/api/common/TutanotaConstants.js"
 import { BootIcons } from "../../../common/gui/base/icons/BootIcons.js"
 import { LoginSettingsViewer } from "../../../common/settings/login/LoginSettingsViewer.js"
-import { locator } from "../../../common/api/main/MainLocator.js"
 import { Icons } from "../../../common/gui/base/icons/Icons.js"
 import { AppearanceSettingsViewer } from "../../../common/settings/AppearanceSettingsViewer.js"
 import { FolderColumnView } from "../../../common/gui/FolderColumnView.js"
@@ -29,7 +28,6 @@ import { getAvailableDomains } from "../../../common/settings/mailaddress/MailAd
 import { UserListView } from "../../../mail-app/settings/UserListView.js"
 import { showUserImportDialog, UserViewer } from "../../../mail-app/settings/UserViewer.js"
 import { exportUserCsv } from "../../../mail-app/settings/UserDataExporter.js"
-import { GroupListView } from "../../../mail-app/settings/groups/GroupListView.js"
 import { WhitelabelSettingsViewer } from "../../../common/settings/whitelabel/WhitelabelSettingsViewer.js"
 import { SubscriptionViewer } from "../../../common/subscription/SubscriptionViewer.js"
 import { PaymentViewer } from "../../../common/subscription/PaymentViewer.js"
@@ -37,7 +35,6 @@ import { ReferralSettingsViewer } from "../../../common/settings/ReferralSetting
 import { GroupDetailsView } from "../../../mail-app/settings/groups/GroupDetailsView.js"
 import { TemplateDetailsViewer } from "../../../mail-app/settings/TemplateDetailsViewer.js"
 import { KnowledgeBaseSettingsDetailsViewer } from "../../../mail-app/settings/KnowledgeBaseListView.js"
-import { BottomNav } from "../../../common/gui/nav/BottomNav.js"
 import { NavButtonAttrs, NavButtonColor } from "../../../common/gui/base/NavButton.js"
 import { CustomerInfoTypeRef, CustomerTypeRef, User } from "../../../common/api/entities/sys/TypeRefs.js"
 import { Dialog } from "../../../common/gui/base/Dialog.js"
@@ -45,10 +42,12 @@ import { AboutDialog } from "../../../mail-app/settings/AboutDialog.js"
 import { SettingsViewAttrs, UpdatableSettingsDetailsViewer, UpdatableSettingsViewer } from "../../../common/settings/Interfaces.js"
 import { NotificationSettingsViewer } from "../settings/NotificationSettingsViewer.js"
 import { GlobalSettingsViewer } from "../settings/GlobalSettingsViewer.js"
+import { CalendarBottomNav } from "../../gui/CalendarBottomNav.js"
+import { calendarLocator } from "../../calendarLocator.js"
 
 assertMainOrNode()
 
-export class SettingsView extends BaseTopLevelView implements TopLevelView<SettingsViewAttrs> {
+export class CalendarSettingsView extends BaseTopLevelView implements TopLevelView<SettingsViewAttrs> {
 	viewSlider: ViewSlider
 	private readonly _settingsFoldersColumn: ViewColumn
 	private readonly _settingsColumn: ViewColumn
@@ -73,7 +72,7 @@ export class SettingsView extends BaseTopLevelView implements TopLevelView<Setti
 				"login_label",
 				() => BootIcons.Contacts,
 				"login",
-				() => new LoginSettingsViewer(locator.credentialsProvider, isApp() ? locator.systemFacade : null),
+				() => new LoginSettingsViewer(calendarLocator.credentialsProvider, isApp() ? calendarLocator.systemFacade : null),
 				undefined,
 			),
 			new SettingsFolder(
@@ -119,7 +118,7 @@ export class SettingsView extends BaseTopLevelView implements TopLevelView<Setti
 										this._renderSidebarSectionChildren(this._adminFolders),
 								  )
 								: null,
-							locator.domainConfigProvider().getCurrentDomainConfig().firstPartyDomain ? this._aboutThisSoftwareLink() : null,
+							calendarLocator.domainConfigProvider().getCurrentDomainConfig().firstPartyDomain ? this._aboutThisSoftwareLink() : null,
 						]),
 						ariaLabel: "settings_label",
 					})
@@ -220,26 +219,11 @@ export class SettingsView extends BaseTopLevelView implements TopLevelView<Setti
 							() => this.focusSettingsDetailsColumn(),
 							() => !isApp() && this._customDomains.isLoaded() && this._customDomains.getLoaded().length > 0,
 							() => showUserImportDialog(this._customDomains.getLoaded()),
-							() => exportUserCsv(locator.entityClient, this.logins, locator.fileController, locator.counterFacade),
+							() => exportUserCsv(calendarLocator.entityClient, this.logins, calendarLocator.fileController, calendarLocator.counterFacade),
 						),
 					undefined,
 				),
 			)
-			if (!this.logins.isEnabled(FeatureType.WhitelabelChild)) {
-				this._adminFolders.push(
-					new SettingsFolder(
-						"sharedMailboxes_label",
-						() => Icons.People,
-						"groups",
-						() =>
-							new GroupListView(
-								(viewer) => this.replaceDetailsViewer(viewer),
-								() => this.focusSettingsDetailsColumn(),
-							),
-						undefined,
-					),
-				)
-			}
 		}
 
 		if (this.logins.getUserController().isGlobalAdmin()) {
@@ -259,7 +243,7 @@ export class SettingsView extends BaseTopLevelView implements TopLevelView<Setti
 						"whitelabel_label",
 						() => Icons.Wand,
 						"whitelabel",
-						() => new WhitelabelSettingsViewer(locator.entityClient, this.logins),
+						() => new WhitelabelSettingsViewer(calendarLocator.entityClient, this.logins),
 						undefined,
 					),
 				)
@@ -307,7 +291,7 @@ export class SettingsView extends BaseTopLevelView implements TopLevelView<Setti
 	}
 
 	oncreate(vnode: Vnode<SettingsViewAttrs>) {
-		locator.eventController.addEntityListener(this.entityListener)
+		calendarLocator.eventController.addEntityListener(this.entityListener)
 		this.populateAdminFolders().then(() => {
 			// We have to wait for the folders to be initialized before setting the URL,
 			// otherwise we won't find the requested folder and will just pick the default folder
@@ -319,7 +303,7 @@ export class SettingsView extends BaseTopLevelView implements TopLevelView<Setti
 	}
 
 	onremove(vnode: VnodeDOM<SettingsViewAttrs>) {
-		locator.eventController.removeEntityListener(this.entityListener)
+		calendarLocator.eventController.removeEntityListener(this.entityListener)
 	}
 
 	private entityListener = (updates: EntityUpdateData[], eventOwnerGroupId: Id) => {
@@ -333,7 +317,7 @@ export class SettingsView extends BaseTopLevelView implements TopLevelView<Setti
 				header: m(Header, {
 					...attrs.header,
 				}),
-				bottomNav: m(BottomNav),
+				bottomNav: m(CalendarBottomNav),
 			}),
 		)
 	}
@@ -482,7 +466,7 @@ export class SettingsView extends BaseTopLevelView implements TopLevelView<Setti
 									m(AboutDialog, {
 										onShowSetupWizard: () => {
 											dialog.close()
-											locator.showSetupWizard()
+											calendarLocator.showSetupWizard()
 										},
 									}),
 								allowOkWithReturn: true,

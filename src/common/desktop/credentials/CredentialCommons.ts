@@ -1,5 +1,5 @@
 import { assert } from "@tutao/tutanota-utils"
-import { CredentialEncryptionMode } from "../../misc/credentials/CredentialEncryptionMode.js"
+import { CredentialEncryptionMode } from "../../common/misc/credentials/CredentialEncryptionMode.js"
 
 /** the single source of truth for this configuration */
 export const SUPPORTED_MODES = Object.freeze([CredentialEncryptionMode.DEVICE_LOCK, CredentialEncryptionMode.APP_PASSWORD] as const)

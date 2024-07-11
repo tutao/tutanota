@@ -35,11 +35,11 @@ import {
 import { clone, identity, noOp } from "@tutao/tutanota-utils"
 import { RecipientsModel, ResolvableRecipient, ResolveMode } from "../../../../src/common/api/main/RecipientsModel.js"
 import { LoginController } from "../../../../src/common/api/main/LoginController.js"
-import { MailboxDetail } from "../../../../src/mail-app/mail/model/MailModel.js"
-import { FolderSystem } from "../../../../src/common/api/common/mail/FolderSystem.js"
-import { SendMailModel } from "../../../../src/mail-app/mail/editor/SendMailModel.js"
 import { createTestEntity } from "../../TestUtils.js"
 import { areExcludedDatesEqual, areRepeatRulesEqual } from "../../../../src/common/calendar/date/CalendarUtils.js"
+import { SendMailModel } from "../../../../src/common/mailFunctionality/SendMailModel.js"
+import { FolderSystem } from "../../../../src/common/api/common/mail/FolderSystem.js"
+import { MailboxDetail } from "../../../../src/common/mailFunctionality/MailModel.js"
 
 o.spec("CalendarEventModelTest", function () {
 	let userController: UserController
