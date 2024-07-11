@@ -106,8 +106,8 @@ type InitArgs = {
  */
 export class SendMailModel {
 	private initialized: DeferredObject<void> | null = null
-	onMailChanged: Stream<null> = stream(null)
-	onRecipientDeleted: Stream<{ field: RecipientField; recipient: Recipient } | null> = stream(null)
+	onMailChanged: Stream<null> = Stream(null)
+	onRecipientDeleted: Stream<{ field: RecipientField; recipient: Recipient } | null> = Stream(null)
 	onBeforeSend: () => void = noOp
 	loadedInlineImages: InlineImages = new Map()
 
@@ -337,7 +337,7 @@ export class SendMailModel {
 		})
 	}
 
-	async initWithDraft(attachments: File[], mailWrapper: MailWrapper, inlineImages: InlineImages): Promise<SendMailModel> {
+	async initWithDraft(attachments: TutanotaFile[], mailWrapper: MailWrapper, inlineImages: InlineImages): Promise<SendMailModel> {
 		this.startInit()
 
 		let previousMessageId: string | null = null
