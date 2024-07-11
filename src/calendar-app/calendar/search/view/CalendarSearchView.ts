@@ -18,7 +18,7 @@ import {lang, TranslationKey} from "../../../../common/misc/LanguageViewModel.js
 import {BackgroundColumnLayout} from "../../../../common/gui/BackgroundColumnLayout.js";
 import {theme} from "../../../../common/gui/theme.js";
 import {DesktopListToolbar, DesktopViewerToolbar} from "../../../../common/gui/DesktopToolbars.js";
-import {SearchListView, SearchListViewAttrs} from "./SearchListView.js";
+import {SearchListView, CalendarSearchListViewAttrs} from "./SearchListView.js";
 import {isSameId} from "../../../../common/api/common/utils/EntityUtils.js";
 import {keyManager, Shortcut} from "../../../../common/misc/KeyManager.js";
 import {EnterMultiselectIconButton} from "../../../../common/gui/EnterMultiselectIconButton.js";
@@ -58,17 +58,17 @@ import { Checkbox, CheckboxAttrs } from "../../../../common/gui/base/Checkbox.js
 import { MobileActionAttrs, MobileActionBar } from "../../../../common/gui/MobileActionBar.js"
 import { assertMainOrNode } from "../../../../common/api/common/Env.js"
 import { locator } from "../../../../common/api/main/CommonLocator.js"
-import { BottomNav } from "../../../../mail-app/gui/BottomNav.js"
+import { CalendarBottomNav } from "../../../gui/CalendarBottomNav.js"
 
 assertMainOrNode()
 
-export interface SearchViewAttrs extends TopLevelAttrs {
+export interface CalendarSearchViewAttrs extends TopLevelAttrs {
 	drawerAttrs: DrawerMenuAttrs
 	header: AppHeaderAttrs
     makeViewModel: () => CalendarSearchViewModel
 }
 
-export class SearchView extends BaseTopLevelView implements TopLevelView<SearchViewAttrs> {
+export class CalendarSearchView extends BaseTopLevelView implements TopLevelView<CalendarSearchViewAttrs> {
 	private readonly resultListColumn: ViewColumn
 	private readonly resultDetailsColumn: ViewColumn
 	private readonly folderColumn: ViewColumn
@@ -84,7 +84,7 @@ export class SearchView extends BaseTopLevelView implements TopLevelView<SearchV
 		}).load(),
 	)
 
-	constructor(vnode: Vnode<SearchViewAttrs>) {
+	constructor(vnode: Vnode<CalendarSearchViewAttrs>) {
 		super()
 		this.searchViewModel = vnode.attrs.makeViewModel()
 
@@ -170,7 +170,7 @@ export class SearchView extends BaseTopLevelView implements TopLevelView<SearchV
 				this.searchViewModel.sendStopLoadingSignal()
 			},
 			isFreeAccount: locator.logins.getUserController().isFreeAccount(),
-		} satisfies SearchListViewAttrs)
+		} satisfies CalendarSearchListViewAttrs)
 	}
 
 	private renderFilterSection(): Children {
@@ -282,7 +282,7 @@ export class SearchView extends BaseTopLevelView implements TopLevelView<SearchV
 	}
 
 	private renderBottomNav() {
-		if (!styles.isSingleColumnLayout()) return m(BottomNav)
+		if (!styles.isSingleColumnLayout()) return m(CalendarBottomNav)
 
 		const isInMultiselect = this.searchViewModel.listModel?.state.inMultiselect ?? false
 
@@ -322,7 +322,7 @@ export class SearchView extends BaseTopLevelView implements TopLevelView<SearchV
 			return m(MobileActionBar, { actions })
 		}
 
-		return m(BottomNav)
+		return m(CalendarBottomNav)
 	}
 
 	private searchBarPlaceholder() {
@@ -502,7 +502,7 @@ export class SearchView extends BaseTopLevelView implements TopLevelView<SearchV
 		)
 	}
 
-	view({ attrs }: Vnode<SearchViewAttrs>): Children {
+	view({ attrs }: Vnode<CalendarSearchViewAttrs>): Children {
 		return m(
 			"#search.main-view",
 			m(this.viewSlider, {
