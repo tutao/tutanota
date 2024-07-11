@@ -348,7 +348,7 @@ export class SearchViewModel {
 				this.loadingAllForSearchResult &&
 				isSameSearchRestriction(this._searchResult?.restriction, this.loadingAllForSearchResult.restriction) &&
 				!this.listModel.isLoadedCompletely()
-				) {
+			) {
 				await this.listModel.loadMore()
 				if (
 					this._searchResult.restriction &&
@@ -621,23 +621,23 @@ export class SearchViewModel {
 
 	getSelectedMails(): Mail[] {
 		return this.listModel
-				   .getSelectedAsArray()
-				   .map((e) => e.entry)
-				   .filter(assertIsEntity2(MailTypeRef))
+			.getSelectedAsArray()
+			.map((e) => e.entry)
+			.filter(assertIsEntity2(MailTypeRef))
 	}
 
 	getSelectedContacts(): Contact[] {
 		return this.listModel
-				   .getSelectedAsArray()
-				   .map((e) => e.entry)
-				   .filter(assertIsEntity2(ContactTypeRef))
+			.getSelectedAsArray()
+			.map((e) => e.entry)
+			.filter(assertIsEntity2(ContactTypeRef))
 	}
 
 	getSelectedEvents(): CalendarEvent[] {
 		return this.listModel
-				   .getSelectedAsArray()
-				   .map((e) => e.entry)
-				   .filter(assertIsEntity2(CalendarEventTypeRef))
+			.getSelectedAsArray()
+			.map((e) => e.entry)
+			.filter(assertIsEntity2(CalendarEventTypeRef))
 	}
 
 	private onListStateChange(newState: ListState<SearchResultListEntry>) {
@@ -710,13 +710,13 @@ export class SearchViewModel {
 				const id = lastResult.results.find((r) => r[1] === elementId)
 				if (id) {
 					return this.entityClient
-							   .load(lastResult.restriction.type, id)
-							   .then((entity) => new SearchResultListEntry(entity))
-							   .catch(
-								   ofClass(NotFoundError, (_) => {
-									   return null
-								   }),
-							   )
+						.load(lastResult.restriction.type, id)
+						.then((entity) => new SearchResultListEntry(entity))
+						.catch(
+							ofClass(NotFoundError, (_) => {
+								return null
+							}),
+						)
 				} else {
 					return null
 				}
