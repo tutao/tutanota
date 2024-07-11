@@ -213,9 +213,9 @@ export class SearchView extends BaseTopLevelView implements TopLevelView<SearchV
 							m(DesktopListToolbar, [
 								this.searchViewModel.listModel && getCurrentSearchMode() !== SearchCategoryTypes.calendar
 									? [
-										m(SelectAllCheckbox, selectionAttrsForList(this.searchViewModel.listModel)),
-										isSameTypeRef(this.searchViewModel.searchedType, MailTypeRef) ? this.renderFilterButton() : null,
-									]
+											m(SelectAllCheckbox, selectionAttrsForList(this.searchViewModel.listModel)),
+											isSameTypeRef(this.searchViewModel.searchedType, MailTypeRef) ? this.renderFilterButton() : null,
+									  ]
 									: m(".button-height"),
 							]),
 						mobileHeader: () => this.renderMobileListHeader(vnode.attrs.header),
@@ -389,14 +389,14 @@ export class SearchView extends BaseTopLevelView implements TopLevelView<SearchV
 						primaryAction: () => this.renderHeaderRightView(),
 					}),
 				columnLayout:
-				// see comment for .scrollbar-gutter-stable-or-fallback
+					// see comment for .scrollbar-gutter-stable-or-fallback
 					m(
 						".fill-absolute.flex.col.overflow-y-scroll",
 						isMultiselect
 							? m(MultiContactViewer, {
-								selectedEntities: selectedContacts,
-								selectNone: () => this.searchViewModel.listModel.selectNone(),
-							})
+									selectedEntities: selectedContacts,
+									selectNone: () => this.searchViewModel.listModel.selectNone(),
+							  })
 							: m(ContactCardViewer, { contact: selectedContacts[0], onWriteMail: writeMail }),
 					),
 			})
@@ -432,8 +432,8 @@ export class SearchView extends BaseTopLevelView implements TopLevelView<SearchV
 							this.searchViewModel.loadingAllForSearchResult != null
 								? "loading"
 								: this.searchViewModel.listModel?.isLoadedCompletely()
-									? "loaded"
-									: "can_load",
+								? "loaded"
+								: "can_load",
 						getSelectionMessage: (selected: ReadonlyArray<Mail>) => getMailSelectionMessage(selected),
 					}),
 				})
@@ -482,14 +482,14 @@ export class SearchView extends BaseTopLevelView implements TopLevelView<SearchV
 				columnLayout:
 					selectedEvent == null
 						? m(ColumnEmptyMessageBox, {
-							message: "noEventSelect_msg",
-							icon: BootIcons.Calendar,
-							color: theme.content_message_bg,
-							backgroundColor: theme.navigation_bg,
-						})
+								message: "noEventSelect_msg",
+								icon: BootIcons.Calendar,
+								color: theme.content_message_bg,
+								backgroundColor: theme.navigation_bg,
+						  })
 						: !this.getSanitizedPreviewData(selectedEvent).isLoaded()
-							? null
-							: this.renderEventDetails(selectedEvent),
+						? null
+						: this.renderEventDetails(selectedEvent),
 			})
 		} else {
 			return m(
@@ -686,19 +686,19 @@ export class SearchView extends BaseTopLevelView implements TopLevelView<SearchV
 				}),
 				availableMailFolders.length > 0
 					? m(DropDownSelector, {
-						label: "mailFolder_label",
-						items: availableMailFolders,
-						selectedValue: this.searchViewModel.selectedMailFolder[0] ?? null,
-						selectionChangedHandler: (newValue: string | null) => {
-							const result = this.searchViewModel.selectMailFolder(newValue ? [newValue] : [])
-							if (result === PaidFunctionResult.PaidSubscriptionNeeded) {
-								showNotAvailableForFreeDialog()
-							} else {
-								this.searchAgain()
-							}
-						},
-						dropdownWidth: 250,
-					})
+							label: "mailFolder_label",
+							items: availableMailFolders,
+							selectedValue: this.searchViewModel.selectedMailFolder[0] ?? null,
+							selectionChangedHandler: (newValue: string | null) => {
+								const result = this.searchViewModel.selectMailFolder(newValue ? [newValue] : [])
+								if (result === PaidFunctionResult.PaidSubscriptionNeeded) {
+									showNotAvailableForFreeDialog()
+								} else {
+									this.searchAgain()
+								}
+							},
+							dropdownWidth: 250,
+					  })
 					: null,
 			]),
 		].map((row) => m(".folder-row.plr-button.content-fg", row))
