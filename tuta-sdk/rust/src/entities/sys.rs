@@ -1,6 +1,7 @@
 #![allow(non_snake_case, unused_imports)]
 use super::*;
 use serde::{Serialize, Deserialize};
+use crate::entities::entity_facade::Errors;
 
 #[derive(uniffi::Record, Clone, Serialize, Deserialize, Debug)]
 pub struct AccountingInfo {
@@ -26,6 +27,7 @@ pub struct AccountingInfo {
 	pub paypalBillingAgreement: Option<String>,
 	pub secondCountryInfo: i64,
 	pub invoiceInfo: Option<GeneratedId>,
+	pub errors: Errors,
 }
 
 impl Entity for AccountingInfo {
@@ -101,6 +103,7 @@ impl Entity for AlarmNotification {
 pub struct AlarmServicePost {
 	pub _format: i64,
 	pub alarmNotifications: Vec<AlarmNotification>,
+	pub errors: Errors,
 }
 
 impl Entity for AlarmServicePost {
@@ -155,6 +158,7 @@ pub struct AuditLogEntry {
 	pub modifiedEntity: String,
 	pub groupInfo: Option<IdTuple>,
 	pub modifiedGroupInfo: Option<IdTuple>,
+	pub errors: Errors,
 }
 
 impl Entity for AuditLogEntry {
@@ -918,6 +922,7 @@ pub struct CustomerServerProperties {
 	pub emailSenderList: Vec<EmailSenderListElement>,
 	pub whitelabelRegistrationDomains: Vec<StringWrapper>,
 	pub whitelistedDomains: Option<DomainsRef>,
+	pub errors: Errors,
 }
 
 impl Entity for CustomerServerProperties {
@@ -1198,6 +1203,7 @@ pub struct GiftCard {
 	pub orderDate: DateTime,
 	pub status: i64,
 	pub value: i64,
+	pub errors: Errors,
 }
 
 impl Entity for GiftCard {
@@ -1217,6 +1223,7 @@ pub struct GiftCardCreateData {
 	pub ownerEncSessionKey: Vec<u8>,
 	pub ownerKeyVersion: i64,
 	pub value: i64,
+	pub errors: Errors,
 }
 
 impl Entity for GiftCardCreateData {
@@ -1302,6 +1309,7 @@ pub struct GiftCardRedeemGetReturn {
 	pub message: String,
 	pub value: i64,
 	pub giftCard: IdTuple,
+	pub errors: Errors,
 }
 
 impl Entity for GiftCardRedeemGetReturn {
@@ -1379,6 +1387,7 @@ pub struct GroupInfo {
 	pub group: GeneratedId,
 	pub localAdmin: Option<GeneratedId>,
 	pub mailAddressAliases: Vec<MailAddressAlias>,
+	pub errors: Errors,
 }
 
 impl Entity for GroupInfo {
@@ -1593,6 +1602,7 @@ pub struct Invoice {
 	pub bookings: Vec<IdTuple>,
 	pub customer: GeneratedId,
 	pub items: Vec<InvoiceItem>,
+	pub errors: Errors,
 }
 
 impl Entity for Invoice {
@@ -1938,6 +1948,7 @@ pub struct MissedNotification {
 	pub lastProcessedNotificationId: Option<GeneratedId>,
 	pub alarmNotifications: Vec<AlarmNotification>,
 	pub notificationInfos: Vec<NotificationInfo>,
+	pub errors: Errors,
 }
 
 impl Entity for MissedNotification {
@@ -2032,6 +2043,7 @@ pub struct OrderProcessingAgreement {
 	pub version: String,
 	pub customer: GeneratedId,
 	pub signerUserGroupInfo: IdTuple,
+	pub errors: Errors,
 }
 
 impl Entity for OrderProcessingAgreement {
@@ -2106,6 +2118,7 @@ pub struct PaymentDataServicePutData {
 	pub paymentMethodInfo: Option<String>,
 	pub paymentToken: Option<String>,
 	pub creditCard: Option<CreditCard>,
+	pub errors: Errors,
 }
 
 impl Entity for PaymentDataServicePutData {
@@ -2396,6 +2409,7 @@ pub struct PushIdentifier {
 	pub lastNotificationDate: Option<DateTime>,
 	pub lastUsageTime: DateTime,
 	pub pushServiceType: i64,
+	pub errors: Errors,
 }
 
 impl Entity for PushIdentifier {
@@ -2438,6 +2452,7 @@ pub struct ReceivedGroupInvitation {
 	pub sharedGroupName: String,
 	pub sentInvitation: IdTuple,
 	pub sharedGroup: GeneratedId,
+	pub errors: Errors,
 }
 
 impl Entity for ReceivedGroupInvitation {
@@ -2906,6 +2921,7 @@ pub struct Session {
 	pub state: i64,
 	pub challenges: Vec<Challenge>,
 	pub user: GeneratedId,
+	pub errors: Errors,
 }
 
 impl Entity for Session {
@@ -3244,6 +3260,7 @@ pub struct UserAlarmInfo {
 	pub _ownerKeyVersion: Option<i64>,
 	pub _permissions: GeneratedId,
 	pub alarmInfo: AlarmInfo,
+	pub errors: Errors,
 }
 
 impl Entity for UserAlarmInfo {
@@ -3587,6 +3604,7 @@ pub struct WhitelabelChild {
 	pub deletedDate: Option<DateTime>,
 	pub mailAddress: String,
 	pub customer: GeneratedId,
+	pub errors: Errors,
 }
 
 impl Entity for WhitelabelChild {

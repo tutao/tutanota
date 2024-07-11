@@ -39,9 +39,9 @@ suspend fun downloadMail() {
 	val restClient = OkHttpRestClient()
 	val credentials = Credentials(
 		"bed-free@tutanota.de",
-		"O1RT1m0----0",
-		"ZCceCyEAAsABnVdE_tu5jF6V0hLPo2RVtA",
-		"AfLJsXyhCBFCNjXmMgduOvg/fOOq8pva6PUC2sfkAJRjakVvXSur7mtNLQneqCBbw831BweL5nj/Kva/kA7/1zo=".base64ToBytes(),
+		"O1Vz-yp----0",
+		"ZCg_A-4AAsABlM5fVDtL3BE4ykOQYc2NtA",
+		"AbUPsXcEW/vMhA8+QC87vwmODJEEsYnemel63koHJeaASshncUZKrvd4zXlRM5A2Dzz0CYiGIcJax0ZmnqlWPnI=".base64ToBytes(),
 		CredentialType.INTERNAL
 	)
 	val sdk = Sdk(
@@ -51,7 +51,7 @@ suspend fun downloadMail() {
 			BuildConfig.VERSION_NAME
 	)
 	val loggedInSdk = sdk.login()
-	val mailId = "O1RT1m6-0R-0/O1RT2Dj----0".toIdTuple()
+	val mailId = "O1Vz-yv--s-0/O1Vz0Nu--3-0".toIdTuple()
 	val mailFacade = loggedInSdk.mailFacade()
 	val mail = try {
 		mailFacade.loadEmailByIdEncrypted(mailId)

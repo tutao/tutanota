@@ -19,6 +19,8 @@ pub struct EntityFacade {
     type_model_provider: Arc<TypeModelProvider>,
 }
 
+pub type Errors = HashMap<String, ElementValue>;
+
 #[cfg_attr(test, mockall::automock)]
 impl EntityFacade {
     pub fn new(type_model_provider: Arc<TypeModelProvider>) -> Self {
@@ -31,16 +33,16 @@ impl EntityFacade {
         log::debug!("EntityFacade: decrypt_and_map: session_key: {:?}", session_key.as_bytes());
 
         let mut mapped_decrypted: HashMap<String, ElementValue> = Default::default();
-        let mut mapped_errors: HashMap<String, ElementValue> = Default::default();
+        let mut mapped_errors: Errors = Default::default();
         let mut mapped_ivs: HashMap<String, ElementValue> = Default::default();
 
         for (&key, model_value) in type_model.values.iter() {
             let stored_element = entity.remove(key).unwrap_or_else(|| ElementValue::Null);
-            let (decrypted, ivs, errors) = self.map_value(stored_element, session_key, key, model_value)?;
+            let (decrypted, ivs, error) = self.map_value(stored_element, session_key, key, model_value)?;
 
             mapped_decrypted.insert(key.to_string(), decrypted);
-            if errors.is_some() {
-                mapped_errors.insert(key.to_string(), ElementValue::Dict(errors.unwrap()));
+            if let Some(error) = error {
+                mapped_errors.insert(key.to_string(), ElementValue::String(error));
             }
             if ivs.is_some() {
                 mapped_ivs.insert(key.to_string(), ElementValue::Bytes(ivs.unwrap().to_vec()));
@@ -52,19 +54,20 @@ impl EntityFacade {
             let (mapped_association, errors) = self.map_associations(type_model, association_entry, session_key, &association_name, association_model)?;
 
             mapped_decrypted.insert(association_name.to_string(), mapped_association);
-            mapped_errors.insert(association_name.to_string(), ElementValue::Dict(errors));
+            if !errors.is_empty() {
+                mapped_errors.insert(association_name.to_string(), ElementValue::Dict(errors));
+            }
         }
 
-        // Why?!?!?!
-        // mapped_decrypted.insert("errors".to_string(), ElementValue::Dict(mapped_errors));
+        mapped_decrypted.insert("errors".to_string(), ElementValue::Dict(mapped_errors));
         // mapped_decrypted.insert("final_ivs".to_string(), ElementValue::Dict(mapped_ivs));
         Ok(mapped_decrypted)
     }
 
-    fn map_associations(&self, type_model: &TypeModel, association_data: ElementValue, session_key: &GenericAesKey, association_name: &str, association_model: &ModelAssociation) -> Result<(ElementValue, HashMap<String, ElementValue>), ApiCallError> {
+    fn map_associations(&self, type_model: &TypeModel, association_data: ElementValue, session_key: &GenericAesKey, association_name: &str, association_model: &ModelAssociation) -> Result<(ElementValue, Errors), ApiCallError> {
         log::debug!("EntityFacade: map_associations 0: name: {}", association_name);
         println!("EntityFacade: map_associations 0: name: {}", association_name);
-        let mut errors: HashMap<String, ElementValue> = Default::default();
+        let mut errors: Errors = Default::default();
         let dependency = match association_model.dependency {
             Some(ref dep) => dep,
             None => type_model.app
@@ -122,29 +125,31 @@ impl EntityFacade {
         };
     }
 
-    fn extract_errors(&self, association_name: &str, errors: &mut HashMap<String, ElementValue>, dec_aggregate: &mut ParsedEntity) {
+    fn extract_errors(&self, association_name: &str, errors: &mut Errors, dec_aggregate: &mut ParsedEntity) {
         match dec_aggregate.remove("errors") {
             Some(ElementValue::Dict(err_dict)) => {
-                errors.insert(association_name.to_string(), ElementValue::Dict(err_dict));
+                if !err_dict.is_empty() {
+                    errors.insert(association_name.to_string(), ElementValue::Dict(err_dict));
+                }
             }
             _ => ()
         }
     }
 
-    fn map_value(&self, value: ElementValue, session_key: &GenericAesKey, key: &str, model_value: &ModelValue) -> Result<(ElementValue, Option<[u8; IV_BYTE_SIZE]>, Option<HashMap<String, ElementValue>>), ApiCallError> {
+    fn map_value(&self, value: ElementValue, session_key: &GenericAesKey, key: &str, model_value: &ModelValue) -> Result<(ElementValue, Option<[u8; IV_BYTE_SIZE]>, Option<String>), ApiCallError> {
         log::debug!("EntityFacade: map_value 0: name: {}", key);
         println!("EntityFacade: map_value 0: name: {}", key);
 
-        let mut final_iv: Option<[u8; IV_BYTE_SIZE]> = None;
-
-        if model_value.encrypted && model_value.is_final {
+        let final_iv: Option<[u8; IV_BYTE_SIZE]> = if model_value.encrypted && model_value.is_final {
             match &value {
-                ElementValue::Bytes(bytes) => final_iv = Some(self.extract_iv(bytes.as_slice())),
-                ElementValue::Null => (),
-                ElementValue::String(s) if s == "" => return Ok((self.resolve_default_value(model_value.value_type.to_owned()), final_iv, None)),
+                ElementValue::Bytes(bytes) => Some(self.extract_iv(bytes.as_slice())),
+                ElementValue::Null => None,
+                ElementValue::String(s) if s == "" => return Ok((self.resolve_default_value(&model_value.value_type), None, None)),
                 _ => return Err(ApiCallError::InternalSdkError { error_message: format!("Invalid encrypted data {key}. Not bytes, value: {:?}", value) })
-            };
-        }
+            }
+        } else {
+            None
+        };
 
         if value == ElementValue::Null {
             if model_value.cardinality != Cardinality::ZeroOrOne {
@@ -153,36 +158,31 @@ impl EntityFacade {
 
             return Ok((ElementValue::Null, final_iv, None));
         } else if model_value.cardinality == Cardinality::One && value == ElementValue::String(String::new()) {
-            return Ok((self.resolve_default_value(model_value.value_type.to_owned()), final_iv, None));
+            return Ok((self.resolve_default_value(&model_value.value_type), final_iv, None));
         }
 
         if model_value.encrypted {
             let decrypted_value = session_key.decrypt_data(value.assert_bytes().as_slice())
                 .map_err(|e| ApiCallError::InternalSdkError { error_message: e.to_string() });
 
-            let mut errors: HashMap<String, ElementValue> = Default::default();
-            let element_value = match decrypted_value {
+            match decrypted_value {
                 Ok(dec_value) => {
-                    match self.parse_decrypted_value(model_value.value_type.to_owned(), dec_value.as_slice()) {
+                    match self.parse_decrypted_value(model_value.value_type.to_owned(), dec_value) {
                         Ok(p_dec_value) => {
-                            if !model_value.is_final && p_dec_value != ElementValue::String(String::new()) {
-                                final_iv = Some(self.extract_iv(p_dec_value.assert_bytes().as_slice()));
-                            }
-                            p_dec_value
+                            let final_iv = if !model_value.is_final && p_dec_value != ElementValue::String(String::new()) {
+                                Some(self.extract_iv(p_dec_value.assert_bytes().as_slice()))
+                            } else { None };
+                            Ok((p_dec_value, final_iv, None))
                         }
                         Err(err) => {
-                            errors.insert(key.to_string(), ElementValue::String(format!("Failed to decrypt {key}. {err}")));
-                            self.resolve_default_value(model_value.value_type.to_owned())
+                            Ok((self.resolve_default_value(&model_value.value_type), None, Some(format!("Failed to decrypt {key}. {err}"))))
                         }
                     }
                 }
                 Err(err) => {
-                    errors.insert(key.to_string(), ElementValue::String(format!("Failed to decrypt {key}. {err}")));
-                    self.resolve_default_value(model_value.value_type.to_owned())
+                    Ok((self.resolve_default_value(&model_value.value_type), None, Some(format!("Failed to decrypt {key}. {err}"))))
                 }
-            };
-
-            Ok((element_value, final_iv, Some(errors)))
+            }
         } else {
             Ok((value, final_iv, None))
         }
@@ -194,7 +194,7 @@ impl EntityFacade {
         iv_bytes
     }
 
-    fn resolve_default_value(&self, value_type: ValueType) -> ElementValue {
+    fn resolve_default_value(&self, value_type: &ValueType) -> ElementValue {
         return match value_type {
             ValueType::String => ElementValue::String(String::new()),
             ValueType::Number => ElementValue::Number(0),
@@ -206,18 +206,24 @@ impl EntityFacade {
         };
     }
 
-    fn parse_decrypted_value(&self, value_type: ValueType, bytes: &[u8]) -> Result<ElementValue, ApiCallError> {
+    fn parse_decrypted_value(&self, value_type: ValueType, bytes: Vec<u8>) -> Result<ElementValue, ApiCallError> {
         return match value_type {
-            ValueType::String => Ok(ElementValue::String(String::from_utf8_lossy(bytes).to_string())),
+            ValueType::String => {
+                let string = String::from_utf8(bytes)
+                    .map_err(|e| ApiCallError::internal_with_err(e, "Invalid string"))?;
+                Ok(ElementValue::String(string))
+            },
             ValueType::Number => {
                 if bytes.len().eq(&0) {
                     return Ok(ElementValue::Null);
                 } else {
-                    let bytes = match bytes.try_into() {
-                        Ok(bytes) => bytes,
-                        Err(_) => return Err(ApiCallError::InternalSdkError { error_message: "Failed to parse bytes slice".to_string() })
-                    };
-                    Ok(ElementValue::Number(i64::from_be_bytes(bytes)))
+                    // Encrypted numbers are encrypted strings.
+                    let string = String::from_utf8(bytes)
+                        .map_err(|e| ApiCallError::internal_with_err(e, "Invalid string"))?;
+                    let number = string.parse()
+                        .map_err(|e| ApiCallError::internal_with_err(e, "Invalid number"))?;
+
+                    Ok(ElementValue::Number(number))
                 }
             }
             ValueType::Bytes => Ok(ElementValue::Bytes(bytes.to_vec())),
@@ -229,9 +235,9 @@ impl EntityFacade {
                 Ok(ElementValue::Date(DateTime::from_millis(u64::from_be_bytes(bytes))))
             }
             ValueType::Boolean => {
-                let value = if bytes.eq(&[0x01]) {
+                let value = if bytes.eq("1".as_bytes()) {
                     true
-                } else if bytes.eq(&[0x00]) {
+                } else if bytes.eq("0".as_bytes()) {
                     false
                 } else {
                     return Err(ApiCallError::InternalSdkError { error_message: "Failed to parse boolean bytes".to_string() });

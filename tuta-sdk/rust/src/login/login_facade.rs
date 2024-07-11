@@ -249,6 +249,7 @@ mod tests {
             state: 0,
             challenges: vec![],
             user: GeneratedId(user_id.clone()),
+            errors: Default::default(),
         }
     }
 

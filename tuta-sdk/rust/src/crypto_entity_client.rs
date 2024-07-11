@@ -1,5 +1,4 @@
 use std::sync::Arc;
-use futures::future::err;
 use serde::Deserialize;
 use crate::entity_client::IdType;
 #[mockall_double::double]
@@ -213,6 +212,7 @@ mod tests {
                         name: RECIPIENT_NAME.to_string(),
                         contact: None, // Missing in `generate_email_entity()`
                     }],
+                    errors: Default::default(),
                 })
             });
         }

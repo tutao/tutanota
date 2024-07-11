@@ -1,12 +1,14 @@
 use std::backtrace::Backtrace;
 use std::collections::HashMap;
+use serde::{de, Deserialize, Serialize};
+use serde::de::{DeserializeSeed, EnumAccess};
 use crate::custom_id::CustomId;
 use crate::date::DateTime;
 use crate::generated_id::GeneratedId;
 use crate::IdTuple;
 
 /// Primitive value types used by entity/instance types
-#[derive(uniffi::Enum, Debug, PartialEq, Clone)]
+#[derive(uniffi::Enum, Debug, Serialize, Deserialize, PartialEq, Clone)]
 pub enum ElementValue {
     Null,
     String(String),

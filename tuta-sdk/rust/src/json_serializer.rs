@@ -136,24 +136,17 @@ impl JsonSerializer {
                     };
                     mapped.insert(association_name, ElementValue::IdTupleId(id_tuple));
                 }
-                (AssociationType::BlobElementAssociation, _, JsonElement::Array(elements)) => {
-                    // Blobs are copied as-is for now
-                    let parsed_aggregates = self.make_parsed_aggregated_array(&association_name, &association_type_ref, elements)?;
-                    match parsed_aggregates.len() {
-                        2 => {
-                            let ids = parsed_aggregates;
-                            mapped.insert(association_name, ElementValue::IdTupleId(IdTuple{
-                                list_id: GeneratedId(ids[0].assert_string()),
-                                element_id: GeneratedId(ids[1].assert_string())
-                            }));
-                        },
-                        _ => {
+                (AssociationType::BlobElementAssociation, _, JsonElement::Array(vec)) => {
+                    let id_tuple = match Self::parse_id_tuple(vec) {
+                        None => {
                             return Err(InvalidValue {
                                 type_ref: association_type_ref,
                                 field: association_name,
                             });
                         }
-                    }
+                        Some(id_tuple) => id_tuple,
+                    };
+                    mapped.insert(association_name, ElementValue::IdTupleId(id_tuple));
                 }
                 _ => {}
             }
