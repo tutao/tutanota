@@ -29,7 +29,6 @@ import { getAvailableDomains } from "../../../common/settings/mailaddress/MailAd
 import { UserListView } from "../../../mail-app/settings/UserListView.js"
 import { showUserImportDialog, UserViewer } from "../../../mail-app/settings/UserViewer.js"
 import { exportUserCsv } from "../../../mail-app/settings/UserDataExporter.js"
-import { GroupListView } from "../../../mail-app/settings/groups/GroupListView.js"
 import { WhitelabelSettingsViewer } from "../../../common/settings/whitelabel/WhitelabelSettingsViewer.js"
 import { SubscriptionViewer } from "../../../common/subscription/SubscriptionViewer.js"
 import { PaymentViewer } from "../../../common/subscription/PaymentViewer.js"
@@ -37,7 +36,6 @@ import { ReferralSettingsViewer } from "../../../common/settings/ReferralSetting
 import { GroupDetailsView } from "../../../mail-app/settings/groups/GroupDetailsView.js"
 import { TemplateDetailsViewer } from "../../../mail-app/settings/TemplateDetailsViewer.js"
 import { KnowledgeBaseSettingsDetailsViewer } from "../../../mail-app/settings/KnowledgeBaseListView.js"
-import { BottomNav } from "../../../common/gui/nav/BottomNav.js"
 import { NavButtonAttrs, NavButtonColor } from "../../../common/gui/base/NavButton.js"
 import { CustomerInfoTypeRef, CustomerTypeRef, User } from "../../../common/api/entities/sys/TypeRefs.js"
 import { Dialog } from "../../../common/gui/base/Dialog.js"
@@ -45,6 +43,7 @@ import { AboutDialog } from "../../../mail-app/settings/AboutDialog.js"
 import { SettingsViewAttrs, UpdatableSettingsDetailsViewer, UpdatableSettingsViewer } from "../../../common/settings/Interfaces.js"
 import { NotificationSettingsViewer } from "../settings/NotificationSettingsViewer.js"
 import { GlobalSettingsViewer } from "../settings/GlobalSettingsViewer.js"
+import { CalendarBottomNav } from "../../gui/CalendarBottomNav.js"
 
 assertMainOrNode()
 
@@ -225,21 +224,6 @@ export class SettingsView extends BaseTopLevelView implements TopLevelView<Setti
 					undefined,
 				),
 			)
-			if (!this.logins.isEnabled(FeatureType.WhitelabelChild)) {
-				this._adminFolders.push(
-					new SettingsFolder(
-						"sharedMailboxes_label",
-						() => Icons.People,
-						"groups",
-						() =>
-							new GroupListView(
-								(viewer) => this.replaceDetailsViewer(viewer),
-								() => this.focusSettingsDetailsColumn(),
-							),
-						undefined,
-					),
-				)
-			}
 		}
 
 		if (this.logins.getUserController().isGlobalAdmin()) {
@@ -333,7 +317,7 @@ export class SettingsView extends BaseTopLevelView implements TopLevelView<Setti
 				header: m(Header, {
 					...attrs.header,
 				}),
-				bottomNav: m(BottomNav),
+				bottomNav: m(CalendarBottomNav),
 			}),
 		)
 	}

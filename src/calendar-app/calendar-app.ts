@@ -24,11 +24,12 @@ import { TopLevelAttrs, TopLevelView } from "../TopLevelView.js"
 import { AppHeaderAttrs } from "../common/gui/Header.js"
 import { CalendarViewModel } from "./calendar/view/CalendarViewModel.js"
 import { LoginController } from "../common/api/main/LoginController.js"
-import { SearchViewModel } from "../mail-app/search/view/SearchViewModel.js"
-import { initCommonLocator } from "../common/api/main/CommonLocator.js"
 import { SettingsViewAttrs } from "../common/settings/Interfaces.js"
+import { CalendarSearchView, CalendarSearchViewAttrs } from "./calendar/search/view/CalendarSearchView.js"
+import { initCommonLocator } from "../common/api/main/CommonLocator.js"
 import { SettingsView } from "./calendar/view/SettingsView.js"
-import { SearchView, SearchViewAttrs } from "../mail-app/search/view/SearchView.js"
+import { SearchViewModel } from "../mail-app/search/view/SearchViewModel.js"
+import { CalendarSearchViewModel } from "./calendar/search/view/CalendarSearchViewModel.js"
 
 assertMainOrNodeBoot()
 bootFinished()
@@ -181,20 +182,20 @@ import("../mail-app/translations/en.js")
 				calendarLocator.logins,
 			),
 			search: makeViewResolver<
-				SearchViewAttrs,
-				SearchView,
+				CalendarSearchViewAttrs,
+				CalendarSearchView,
 				{
 					drawerAttrsFactory: () => DrawerMenuAttrs
 					header: AppHeaderAttrs
-					searchViewModelFactory: () => SearchViewModel
+					searchViewModelFactory: () => CalendarSearchViewModel
 				}
 			>(
 				{
 					prepareRoute: async () => {
-						const { SearchView } = await import("../mail-app/search/view/SearchView.js")
+						const { CalendarSearchView } = await import("./calendar/search/view/CalendarSearchView.js")
 						const drawerAttrsFactory = await calendarLocator.drawerAttrsFactory()
 						return {
-							component: SearchView,
+							component: CalendarSearchView,
 							cache: {
 								drawerAttrsFactory,
 								header: await calendarLocator.appHeaderAttrs(),
