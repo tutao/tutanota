@@ -1,23 +1,27 @@
-import { createGroupSettings } from "../../api/entities/tutanota/TypeRefs.js"
+// @bundleInto:common-functionality
+
+import { createGroupSettings } from "../api/entities/tutanota/TypeRefs.js"
 import m, { Children } from "mithril"
-import { lang } from "../../misc/LanguageViewModel"
-import { TextField } from "../../gui/base/TextField.js"
+import { lang } from "../misc/LanguageViewModel.js"
+import { TextField } from "./base/TextField.js"
 import stream from "mithril/stream"
 import Stream from "mithril/stream"
-import { downcast } from "@tutao/tutanota-utils"
-import { Dialog } from "../../gui/base/Dialog"
-import type { ReceivedGroupInvitation } from "../../api/entities/sys/TypeRefs.js"
-import { isSameId } from "../../api/common/utils/EntityUtils"
-import { sendAcceptNotificationEmail, sendRejectNotificationEmail } from "../GroupSharingUtils"
-import { getCapabilityText, getDefaultGroupName, getInvitationGroupType, isTemplateGroup } from "../GroupUtils"
-import { showPlanUpgradeRequiredDialog } from "../../misc/SubscriptionDialogs"
-import type { GroupSharingTexts } from "../GroupGuiUtils"
-import { getTextsForGroupType } from "../GroupGuiUtils"
-import { GroupType } from "../../api/common/TutanotaConstants"
-import { ColorPicker } from "../../gui/base/ColorPicker"
-import { locator } from "../../api/main/CommonLocator"
-import { LoginButton } from "../../gui/base/buttons/LoginButton.js"
-import { getMailAddressDisplayText } from "../../mailFunctionality/CommonMailUtils.js"
+import { deepEqual, downcast } from "@tutao/tutanota-utils"
+import { Dialog } from "./base/Dialog.js"
+import { createDefaultAlarmInfo, ReceivedGroupInvitation } from "../api/entities/sys/TypeRefs.js"
+import { isSameId } from "../api/common/utils/EntityUtils.js"
+import { sendAcceptNotificationEmail, sendRejectNotificationEmail } from "../sharing/GroupSharingUtils.js"
+import { getCapabilityText, getDefaultGroupName, getInvitationGroupType, isTemplateGroup } from "../sharing/GroupUtils.js"
+import { showPlanUpgradeRequiredDialog } from "../misc/SubscriptionDialogs.js"
+import type { GroupSharingTexts } from "../sharing/GroupGuiUtils.js"
+import { getTextsForGroupType } from "../sharing/GroupGuiUtils.js"
+import { GroupType } from "../api/common/TutanotaConstants.js"
+import { ColorPicker } from "./base/ColorPicker.js"
+import { locator } from "../api/main/CommonLocator.js"
+import { LoginButton } from "./base/buttons/LoginButton.js"
+import { getMailAddressDisplayText } from "../mailFunctionality/CommonMailUtils.js"
+import { RemindersEditor } from "../../calendar-app/calendar/gui/RemindersEditor.js"
+import { AlarmInterval, serializeAlarmInterval } from "../calendar/date/CalendarUtils.js"
 
 export function showGroupInvitationDialog(invitation: ReceivedGroupInvitation) {
 	const groupType = getInvitationGroupType(invitation)
@@ -28,6 +32,8 @@ export function showGroupInvitationDialog(invitation: ReceivedGroupInvitation) {
 	const colorStream = stream("#" + color)
 	const isDefaultGroupName = invitation.sharedGroupName === getDefaultGroupName(downcast(invitation.groupType))
 	const nameStream = stream(isDefaultGroupName ? texts.sharedGroupDefaultCustomName(invitation) : invitation.sharedGroupName)
+	const alarmsStream: stream<AlarmInterval[]> = stream([])
+
 	const isMember = locator.logins
 		.getUserController()
 		.getCalendarMemberships()
@@ -51,6 +57,7 @@ export function showGroupInvitationDialog(invitation: ReceivedGroupInvitation) {
 							group: invitation.sharedGroup,
 							color: newColor,
 							name: newName,
+							defaultAlarmsList: alarmsStream().map((alarm) => createDefaultAlarmInfo({ trigger: serializeAlarmInterval(alarm) })),
 						})
 						userSettingsGroupRoot.groupSettings.push(groupSettings)
 					}
@@ -88,7 +95,7 @@ export function showGroupInvitationDialog(invitation: ReceivedGroupInvitation) {
 							label: "permissions_label",
 							isReadOnly: true,
 						}),
-						groupType === GroupType.Calendar ? renderCalendarGroupInvitationFields(invitation, colorStream) : null,
+						groupType === GroupType.Calendar ? renderCalendarGroupInvitationFields(invitation, colorStream, alarmsStream) : null,
 					]),
 					isMember
 						? null
@@ -116,14 +123,14 @@ export function showGroupInvitationDialog(invitation: ReceivedGroupInvitation) {
  * @param invitation
  */
 async function checkCanAcceptGroupInvitation(invitation: ReceivedGroupInvitation): Promise<boolean> {
-	const SubscriptionDialogUtils = await import("../../misc/SubscriptionDialogs")
+	const SubscriptionDialogUtils = await import("../misc/SubscriptionDialogs.js")
 	const allowed = await SubscriptionDialogUtils.checkPaidSubscription()
 	if (!allowed) {
 		return false
 	}
 	const planConfig = await locator.logins.getUserController().getPlanConfig()
 	if (isTemplateGroup(getInvitationGroupType(invitation)) && !planConfig.templates) {
-		const { getAvailablePlansWithTemplates } = await import("../../subscription/SubscriptionUtils.js")
+		const { getAvailablePlansWithTemplates } = await import("../subscription/SubscriptionUtils.js")
 		const plans = await getAvailablePlansWithTemplates()
 		return showPlanUpgradeRequiredDialog(plans)
 	} else {
@@ -131,12 +138,31 @@ async function checkCanAcceptGroupInvitation(invitation: ReceivedGroupInvitation
 	}
 }
 
-function renderCalendarGroupInvitationFields(invitation: ReceivedGroupInvitation, selectedColourValue: Stream<string>): Children {
+function renderCalendarGroupInvitationFields(
+	invitation: ReceivedGroupInvitation,
+	selectedColourValue: Stream<string>,
+	alarmsStream: Stream<AlarmInterval[]>,
+): Children {
+	let alarms = alarmsStream()
 	return [
 		m(".small.mt.mb-xs", lang.get("color_label")),
 		m(ColorPicker, {
 			value: selectedColourValue(),
 			onValueChange: selectedColourValue,
+		}),
+		m(RemindersEditor, {
+			alarms: alarmsStream(),
+			addAlarm: (alarm: AlarmInterval) => {
+				alarmsStream([...alarms, alarm])
+			},
+			removeAlarm: (alarm: AlarmInterval) => {
+				const index = alarms.findIndex((a: AlarmInterval) => deepEqual(a, alarm))
+				if (index !== -1) {
+					alarms?.splice(index, 1)
+					alarmsStream(alarms)
+				}
+			},
+			label: "calendarDefaultReminder_label",
 		}),
 	]
 }

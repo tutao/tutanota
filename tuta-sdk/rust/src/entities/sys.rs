@@ -957,6 +957,19 @@ impl Entity for DebitServicePutData {
 
 
 #[derive(uniffi::Record, Clone, Serialize, Deserialize)]
+pub struct DefaultAlarmInfo {
+	pub _id: Id,
+	pub trigger: String,
+}
+
+impl Entity for DefaultAlarmInfo {
+	fn type_ref() -> TypeRef {
+		TypeRef { app: "sys".to_owned(), type_: "DefaultAlarmInfo".to_owned() }
+	}
+}
+
+
+#[derive(uniffi::Record, Clone, Serialize, Deserialize)]
 pub struct DeleteCustomerData {
 	pub _format: i64,
 	#[serde(with = "serde_bytes")]

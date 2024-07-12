@@ -970,6 +970,7 @@ pub struct GroupSettings {
 	pub _id: Id,
 	pub color: String,
 	pub name: Option<String>,
+	pub defaultAlarmsList: Vec<sys::DefaultAlarmInfo>,
 	pub group: Id,
 }
 

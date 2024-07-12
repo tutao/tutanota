@@ -1770,6 +1770,6 @@ export default {
 		"yourFolders_action": "Ihre ORDNER",
 		"yourMessage_label": "Ihre Nachricht",
 		"you_label": "Sie",
-		"allowContactRead_msg": "Um Kontakte für Veranstaltungseinladungen vorzuschlagen, benötigen Sie die Berechtigung, Ihr Adressbuch zu lesen. Sie können dies jederzeit in den Systemeinstellungen ändern."
+		"calendarDefaultReminder_label": "Standard-Terminerinnerung"
 	}
 }

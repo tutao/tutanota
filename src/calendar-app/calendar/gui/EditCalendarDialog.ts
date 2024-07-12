@@ -4,15 +4,18 @@ import stream from "mithril/stream"
 import { TextField } from "../../../common/gui/base/TextField.js"
 import { lang } from "../../../common/misc/LanguageViewModel.js"
 import type { TranslationKeyType } from "../../../common/misc/TranslationKey.js"
-import { downcast } from "@tutao/tutanota-utils"
+import { deepEqual, downcast } from "@tutao/tutanota-utils"
+import { AlarmInterval } from "../../../common/calendar/date/CalendarUtils.js"
+import { RemindersEditor } from "./RemindersEditor.js"
 
 type CalendarProperties = {
 	name: string
 	color: string
+	alarms: AlarmInterval[]
 }
 
 export function showEditCalendarDialog(
-	{ name, color }: CalendarProperties,
+	{ name, color, alarms }: CalendarProperties,
 	titleTextId: TranslationKeyType,
 	shared: boolean,
 	okAction: (arg0: Dialog, arg1: CalendarProperties) => unknown,
@@ -22,6 +25,7 @@ export function showEditCalendarDialog(
 	const nameStream = stream(name)
 	let colorPickerDom: HTMLInputElement | null
 	const colorStream = stream("#" + color)
+
 	Dialog.showActionDialog({
 		title: () => lang.get(titleTextId),
 		allowOkWithReturn: true,
@@ -44,6 +48,17 @@ export function showEditCalendarDialog(
 							colorStream(target.value)
 						},
 					}),
+					m(RemindersEditor, {
+						alarms,
+						addAlarm: (alarm: AlarmInterval) => {
+							alarms?.push(alarm)
+						},
+						removeAlarm: (alarm: AlarmInterval) => {
+							const index = alarms?.findIndex((a: AlarmInterval) => deepEqual(a, alarm))
+							if (index !== -1) alarms?.splice(index, 1)
+						},
+						label: "calendarDefaultReminder_label",
+					}),
 				]),
 		},
 		okActionTextId: okTextId,
@@ -51,6 +66,7 @@ export function showEditCalendarDialog(
 			okAction(dialog, {
 				name: nameStream(),
 				color: colorStream().substring(1),
+				alarms,
 			})
 		},
 	})

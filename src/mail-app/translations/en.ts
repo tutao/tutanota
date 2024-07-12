@@ -1766,6 +1766,6 @@ export default {
 		"yourFolders_action": "YOUR FOLDERS",
 		"yourMessage_label": "Your message",
 		"you_label": "You",
-		"allowContactRead_msg": "To suggest contacts for event invitations, the permission to read your address book is needed. You can change this anytime in the system settings."
+		"calendarDefaultReminder_label": "Default reminder before event"
 	}
 }

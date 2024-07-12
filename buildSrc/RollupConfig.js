@@ -126,7 +126,7 @@ export const allowedImports = {
 		"mail-editor",
 		"common-functionality",
 	],
-	"common-functionality": ["polyfill-helpers", "common-min", "common", "boot", "main", "contacts", "gui-base"],
+	"common-functionality": ["polyfill-helpers", "common-min", "common", "boot", "main", "contacts", "gui-base", "sharing", "date", "date-gui"],
 	sharing: ["polyfill-helpers", "common-min", "common", "boot", "gui-base", "main", "common-functionality"],
 	"native-common": ["polyfill-helpers", "common-min", "common"],
 	"native-main": ["polyfill-helpers", "common-min", "common", "boot", "gui-base", "main", "native-common", "login", "common-functionality"],
