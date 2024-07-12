@@ -375,6 +375,16 @@
 					"info": "AddValue SecureExternalRecipientKeyData/userGroupKeyVersion/1445."
 				}
 			]
+		},
+		{
+			"version": 73,
+			"changes": [
+				{
+					"name": "AddAssociation",
+					"sourceType": "GroupSettings",
+					"info": "AddAssociation GroupSettings/defaultAlarmsList/AGGREGATION/1446."
+				}
+			]
 		}
 	]
 }

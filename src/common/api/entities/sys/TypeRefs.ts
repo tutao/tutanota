@@ -34,6 +34,7 @@ export type AccountingInfo = {
 	paypalBillingAgreement: null | string;
 	secondCountryInfo: NumberString;
 
+	appStoreSubscription:  null | IdTuple;
 	invoiceInfo:  null | Id;
 }
 export const AdminGroupKeyRotationPostInTypeRef: TypeRef<AdminGroupKeyRotationPostIn> = new TypeRef("sys", "AdminGroupKeyRotationPostIn")
@@ -910,6 +911,18 @@ export type DebitServicePutData = {
 	_format: NumberString;
 
 	invoice:  null | IdTuple;
+}
+export const DefaultAlarmInfoTypeRef: TypeRef<DefaultAlarmInfo> = new TypeRef("sys", "DefaultAlarmInfo")
+
+export function createDefaultAlarmInfo(values: StrippedEntity<DefaultAlarmInfo>): DefaultAlarmInfo {
+	return Object.assign(create(typeModels.DefaultAlarmInfo, DefaultAlarmInfoTypeRef), values)
+}
+
+export type DefaultAlarmInfo = {
+	_type: TypeRef<DefaultAlarmInfo>;
+
+	_id: Id;
+	trigger: string;
 }
 export const DeleteCustomerDataTypeRef: TypeRef<DeleteCustomerData> = new TypeRef("sys", "DeleteCustomerData")
 

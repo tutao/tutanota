@@ -3,6 +3,7 @@ import {TypeRef} from "@tutao/tutanota-utils"
 import {typeModels} from "./TypeModels.js"
 import {DateWrapper} from '../sys/TypeRefs.js'
 import {Blob} from '../sys/TypeRefs.js'
+import {DefaultAlarmInfo} from '../sys/TypeRefs.js'
 import {BucketKey} from '../sys/TypeRefs.js'
 import {BlobReferenceTokenWrapper} from '../sys/TypeRefs.js'
 
@@ -936,6 +937,7 @@ export type GroupSettings = {
 	color: string;
 	name: null | string;
 
+	defaultAlarmsList: DefaultAlarmInfo[];
 	group: Id;
 }
 export const HeaderTypeRef: TypeRef<Header> = new TypeRef("tutanota", "Header")

@@ -3,9 +3,15 @@ import {
 	createContact,
 	createContactMailAddress,
 	createEncryptedMailAddress,
-	EncryptedMailAddress, Header, InboxRule,
-	Mail, MailBodyTypeRef,
-	MailFolder, MailHeaders, MailHeadersTypeRef, TutanotaProperties
+	EncryptedMailAddress,
+	Header,
+	InboxRule,
+	Mail,
+	MailBodyTypeRef,
+	MailFolder,
+	MailHeaders,
+	MailHeadersTypeRef,
+	TutanotaProperties,
 } from "../api/entities/tutanota/TypeRefs"
 import {
 	ContactAddressType,
@@ -14,8 +20,10 @@ import {
 	getMailFolderType,
 	GroupType,
 	MailFolderType,
-	MailState, MAX_ATTACHMENT_SIZE,
-	ReplyType, TUTANOTA_MAIL_ADDRESS_DOMAINS
+	MailState,
+	MAX_ATTACHMENT_SIZE,
+	ReplyType,
+	TUTANOTA_MAIL_ADDRESS_DOMAINS,
 } from "../api/common/TutanotaConstants.js"
 import { fullNameToFirstAndLastName, mailAddressToFirstAndLastName } from "../misc/parsing/MailAddressParser.js"
 import { CustomerPropertiesTypeRef, GroupInfo, User } from "../api/entities/sys/TypeRefs.js"
