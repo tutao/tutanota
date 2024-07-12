@@ -73,7 +73,7 @@ export type UpgradeSubscriptionData = {
 export async function showUpgradeWizard(logins: LoginController, acceptedPlans: AvailablePlanType[] = NewPaidPlans, msg?: TranslationText): Promise<void> {
 	const [customer, accountingInfo] = await Promise.all([logins.getUserController().loadCustomer(), logins.getUserController().loadAccountingInfo()])
 
-	if (!(await locator.appStorePaymentPicker.shouldEnableAppStorePayment(getPaymentMethodType(accountingInfo)))) {
+	if (isIOSApp() && !(await locator.appStorePaymentPicker.shouldEnableAppStorePayment(getPaymentMethodType(accountingInfo)))) {
 		Dialog.message("notAvailableInApp_msg")
 		return
 	}
