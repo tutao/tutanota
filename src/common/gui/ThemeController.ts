@@ -11,6 +11,8 @@ import type { ThemeCustomizations } from "../misc/WhitelabelCustomizations"
 import { getWhitelabelCustomizations } from "../misc/WhitelabelCustomizations"
 import { getLogoSvg } from "./base/Logo"
 import { ThemeFacade } from "../native/common/generatedipc/ThemeFacade"
+import { IMailLocator } from "../../mail-app/mailLocator.js"
+import { ICalendarLocator } from "../../calendar-app/calendarLocator.js"
 
 assertMainOrNodeBoot()
 
@@ -240,19 +242,7 @@ export class ThemeController {
 }
 
 export class NativeThemeFacade implements ThemeFacade {
-	private readonly themeFacade: LazyLoaded<ThemeFacade>
-
-	constructor() {
-		this.themeFacade = new LazyLoaded<ThemeFacade>(async () => {
-			const { locator } = await import("../api/main/CommonLocator")
-			// Theme initialization happens concurrently with locator initialization,
-			// so we have to wait or native may not yet be defined when we first get here.
-			// It would be nice to move all the global theme handling onto the locator as
-			// well, so we can have more control over this.
-			await locator.initialized
-			return locator.themeFacade
-		})
-	}
+	constructor(private readonly themeFacade: LazyLoaded<ThemeFacade>) {}
 
 	async getThemePreference(): Promise<ThemeId | null> {
 		const dispatcher = await this.themeFacade.getAsync()

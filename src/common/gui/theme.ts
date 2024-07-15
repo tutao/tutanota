@@ -55,37 +55,8 @@ export type Theme = {
 	navigation_menu_bg?: string
 	navigation_menu_icon?: string
 }
-const selectedThemeFacade = isApp() || isDesktop() ? new NativeThemeFacade() : new WebThemeFacade(deviceConfig)
-
-// We need it because we want to run tests in node and real HTMLSanitizer does not work there.
-const sanitizerStub: Partial<HtmlSanitizer> = {
-	sanitizeHTML: () => {
-		return {
-			html: "",
-			blockedExternalContent: 0,
-			inlineImageCids: [],
-			links: [],
-		}
-	},
-	sanitizeSVG(svg, configExtra?) {
-		throw new Error("stub!")
-	},
-	sanitizeFragment(html, configExtra?) {
-		throw new Error("stub!")
-	},
-}
 
 const themeSingleton = {}
-const lazySanitizer = isTest()
-	? () => Promise.resolve(sanitizerStub as HtmlSanitizer)
-	: () => import("../misc/HtmlSanitizer").then(({ htmlSanitizer }) => htmlSanitizer)
-
-export const themeController: ThemeController = new ThemeController(themeSingleton, selectedThemeFacade, lazySanitizer)
-
-// For native targets WebCommonNativeFacade notifies themeController because Android and Desktop do not seem to work reliably via media queries
-if (selectedThemeFacade instanceof WebThemeFacade) {
-	selectedThemeFacade.addDarkListener(() => themeController.reloadTheme())
-}
 
 // ThemeController.updateTheme updates the object in place, so this will always be current.
 // There are few alternative ways this could have been implemented:

@@ -1,4 +1,4 @@
-import { assertMainOrNode, isAndroidApp, isApp, isBrowser, isDesktop, isElectronClient, isIOSApp } from "../common/api/common/Env.js"
+import { assertMainOrNode, isAndroidApp, isApp, isBrowser, isDesktop, isElectronClient, isIOSApp, isTest } from "../common/api/common/Env.js"
 import { EventController } from "../common/api/main/EventController.js"
 import { SearchModel } from "../mail-app/search/model/SearchModel.js"
 import { MailboxDetail, MailModel } from "../common/mailFunctionality/MailModel.js"
@@ -50,7 +50,7 @@ import { InfoMessageHandler } from "../common/gui/InfoMessageHandler.js"
 import { NativeInterfaces } from "../common/native/main/NativeInterfaceFactory.js"
 import { EntropyFacade } from "../common/api/worker/facades/EntropyFacade.js"
 import { SqlCipherFacade } from "../common/native/common/generatedipc/SqlCipherFacade.js"
-import { assertNotNull, defer, DeferredObject, lazy, lazyAsync, lazyMemoized, noOp, ofClass } from "@tutao/tutanota-utils"
+import { assertNotNull, defer, DeferredObject, lazy, lazyAsync, LazyLoaded, lazyMemoized, noOp, ofClass } from "@tutao/tutanota-utils"
 import { RecipientsModel } from "../common/api/main/RecipientsModel.js"
 import { NoZoneDateProvider } from "../common/api/common/utils/NoZoneDateProvider.js"
 import { CalendarEvent, CalendarEventAttendee, Mail, MailboxProperties } from "../common/api/entities/tutanota/TypeRefs.js"
@@ -102,6 +102,9 @@ import { CredentialFormatMigrator } from "../common/misc/credentials/CredentialF
 import { locator } from "../common/api/main/CommonLocator.js"
 import { MobilePaymentsFacade } from "../common/native/common/generatedipc/MobilePaymentsFacade.js"
 import { AppStorePaymentPicker } from "../common/misc/AppStorePaymentPicker.js"
+import { NativeThemeFacade, ThemeController, WebThemeFacade } from "../common/gui/ThemeController.js"
+import type { HtmlSanitizer } from "../common/misc/HtmlSanitizer.js"
+import { theme } from "../common/gui/theme.js"
 
 assertMainOrNode()
 
@@ -154,6 +157,7 @@ class CalendarLocator {
 	connectivityModel!: WebsocketConnectivityModel
 	operationProgressTracker!: OperationProgressTracker
 	infoMessageHandler!: InfoMessageHandler
+	themeController!: ThemeController
 	Const!: Record<string, any>
 	appStorePaymentPicker!: AppStorePaymentPicker
 
@@ -532,7 +536,7 @@ class CalendarLocator {
 		this.contactFacade = contactFacade
 		this.serviceExecutor = serviceExecutor
 		this.sqlCipherFacade = sqlCipherFacade
-		this.logins = new LoginController()
+		this.logins = new LoginController(this.loginFacade, async () => this.loginListener)
 		// Should be called elsewhere later e.g. in CommonLocator
 		this.logins.init()
 		this.eventController = new EventController(calendarLocator.logins)
@@ -544,7 +548,7 @@ class CalendarLocator {
 		this.entropyFacade = entropyFacade
 		this.workerFacade = workerFacade
 		this.connectivityModel = new WebsocketConnectivityModel(eventBus)
-		this.mailModel = new MailModel(notifications, this.eventController, this.mailFacade, this.entityClient, this.logins)
+		this.mailModel = new MailModel(notifications, this.eventController, this.mailFacade, this.entityClient, this.logins, null, null)
 		this.operationProgressTracker = new OperationProgressTracker()
 		this.infoMessageHandler = new InfoMessageHandler(this.search)
 
@@ -559,9 +563,16 @@ class CalendarLocator {
 			this.webMobileFacade = new WebMobileFacade(this.connectivityModel, this.mailModel)
 			this.nativeInterfaces = createNativeInterfaces(
 				this.webMobileFacade,
-				new WebDesktopFacade(),
+				new WebDesktopFacade(this.logins, async () => this.native),
 				new WebInterWindowEventFacade(this.logins, windowFacade, deviceConfig),
-				new WebCommonNativeFacade(),
+				new WebCommonNativeFacade(
+					this.logins,
+					this.mailModel,
+					this.usageTestController,
+					async () => this.fileApp,
+					async () => this.pushService,
+					async (filesUris: ReadonlyArray<string>) => noOp(),
+				),
 				cryptoFacade,
 				calendarFacade,
 				this.entityClient,
@@ -658,6 +669,39 @@ class CalendarLocator {
 		this.contactModel = new ContactModel(this.searchFacade, this.entityClient, this.logins, this.eventController)
 		this.usageTestController = new UsageTestController(this.usageTestModel)
 		this.appStorePaymentPicker = new AppStorePaymentPicker()
+
+		// THEME
+		// We need it because we want to run tests in node and real HTMLSanitizer does not work there.
+		const sanitizerStub: Partial<HtmlSanitizer> = {
+			sanitizeHTML: () => {
+				return {
+					html: "",
+					blockedExternalContent: 0,
+					inlineImageCids: [],
+					links: [],
+				}
+			},
+			sanitizeSVG(svg, configExtra?) {
+				throw new Error("stub!")
+			},
+			sanitizeFragment(html, configExtra?) {
+				throw new Error("stub!")
+			},
+		}
+		const selectedThemeFacade =
+			isApp() || isDesktop()
+				? new NativeThemeFacade(new LazyLoaded<ThemeFacade>(async () => calendarLocator.themeFacade))
+				: new WebThemeFacade(deviceConfig)
+		const lazySanitizer = isTest()
+			? () => Promise.resolve(sanitizerStub as HtmlSanitizer)
+			: () => import("../common/misc/HtmlSanitizer").then(({ htmlSanitizer }) => htmlSanitizer)
+
+		this.themeController = new ThemeController(theme, selectedThemeFacade, lazySanitizer)
+
+		// For native targets WebCommonNativeFacade notifies themeController because Android and Desktop do not seem to work reliably via media queries
+		if (selectedThemeFacade instanceof WebThemeFacade) {
+			selectedThemeFacade.addDarkListener(() => calendarLocator.themeController.reloadTheme())
+		}
 	}
 
 	readonly calendarModel: () => Promise<CalendarModel> = lazyMemoized(async () => {

@@ -13,7 +13,6 @@ import { ACTIVATED_MIGRATION, DisplayMode, isLegacyDomain, LoginState, LoginView
 import { LoginForm } from "./LoginForm.js"
 import { CredentialsSelector } from "./CredentialsSelector.js"
 import { getWhitelabelCustomizations } from "../misc/WhitelabelCustomizations.js"
-import { themeController } from "../gui/theme"
 import { createAsyncDropdown, createDropdown, DropdownButtonAttrs } from "../gui/base/Dropdown.js"
 import type { ClickHandler } from "../gui/base/GuiUtils"
 import { IconButton } from "../gui/base/IconButton.js"
@@ -25,6 +24,7 @@ import { LoginScreenHeader } from "../gui/LoginScreenHeader.js"
 import { styles } from "../gui/styles.js"
 import { MigratingCredentialsBanner } from "./MigratingCredentialsBanner.js"
 import { ExternalLink } from "../gui/base/ExternalLink.js"
+import { locator } from "../api/main/CommonLocator.js"
 
 assertMainOrNode()
 
@@ -198,25 +198,25 @@ export class LoginView extends BaseTopLevelView implements TopLevelView<LoginVie
 				const defaultButtons: ReadonlyArray<DropdownButtonAttrs> = [
 					{
 						label: "systemThemePref_label",
-						click: () => themeController.setThemePreference("auto:light|dark"),
+						click: () => locator.themeController.setThemePreference("auto:light|dark"),
 					},
 					{
 						label: "light_label",
-						click: () => themeController.setThemePreference("light"),
+						click: () => locator.themeController.setThemePreference("light"),
 					},
 					{
 						label: "dark_label",
-						click: () => themeController.setThemePreference("dark"),
+						click: () => locator.themeController.setThemePreference("dark"),
 					},
 					{
 						label: "blue_label",
-						click: () => themeController.setThemePreference("blue"),
+						click: () => locator.themeController.setThemePreference("blue"),
 					},
 				]
-				const customButtons = (await themeController.getCustomThemes()).map((themeId) => {
+				const customButtons = (await locator.themeController.getCustomThemes()).map((themeId) => {
 					return {
 						label: () => themeId,
-						click: () => themeController.setThemePreference(themeId),
+						click: () => locator.themeController.setThemePreference(themeId),
 					}
 				})
 				return defaultButtons.concat(customButtons)
@@ -242,7 +242,7 @@ export class LoginView extends BaseTopLevelView implements TopLevelView<LoginVie
 	}
 
 	_switchThemeLinkVisible(): boolean {
-		return themeController.shouldAllowChangingTheme()
+		return locator.themeController.shouldAllowChangingTheme()
 	}
 
 	_recoverLoginVisible(): boolean {

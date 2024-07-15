@@ -78,15 +78,14 @@ import("../mail-app/translations/en.js")
 
 		initCommonLocator(calendarLocator)
 
-		// FIXME: need to split navShortcuts?
 		const { setupNavShortcuts } = await import("../common/misc/NavShortcuts.js")
 		setupNavShortcuts()
 
 		// this needs to stay after client.init
-		windowFacade.init(calendarLocator.logins)
-		// if (isDesktop()) {
-		// 	import("./common/native/main/UpdatePrompt.js").then(({ registerForUpdates }) => registerForUpdates(calendarLocator.desktopSettingsFacade))
-		// }
+		windowFacade.init(calendarLocator.logins, calendarLocator.indexerFacade, calendarLocator.connectivityModel)
+		if (isDesktop()) {
+			import("../common/native/main/UpdatePrompt.js").then(({ registerForUpdates }) => registerForUpdates(calendarLocator.desktopSettingsFacade))
+		}
 
 		const userLanguage = deviceConfig.getLanguage() && languages.find((l) => l.code === deviceConfig.getLanguage())
 
@@ -120,7 +119,7 @@ import("../mail-app/translations/en.js")
 			)
 		}
 
-		styles.init()
+		styles.init(calendarLocator.themeController)
 
 		const paths = applicationPaths({
 			login: makeViewResolver<LoginViewAttrs, LoginView, { makeViewModel: () => LoginViewModel }>(

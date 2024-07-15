@@ -28,8 +28,10 @@ import { LoginController } from "../api/main/LoginController.js"
 import { ProgrammingError } from "../api/common/error/ProgrammingError.js"
 import { FolderSystem } from "../api/common/mail/FolderSystem.js"
 import { UserError } from "../api/main/UserError.js"
-import { EntityUpdateData, isUpdateForTypeRef } from "../api/common/utils/EntityUpdateUtils.js"
+import { containsEventOfType, EntityUpdateData, isUpdateForTypeRef } from "../api/common/utils/EntityUpdateUtils.js"
 import { assertSystemFolderOfType, getEnabledMailAddressesWithUser, isSpamOrTrashFolder } from "./CommonMailUtils.js"
+import { WebsocketConnectivityModel } from "../misc/WebsocketConnectivityModel.js"
+import { InboxRuleHandler } from "../../mail-app/mail/model/InboxRuleHandler.js"
 
 export type MailboxDetail = {
 	mailbox: MailBox
@@ -59,6 +61,8 @@ export class MailModel {
 		private readonly mailFacade: MailFacade,
 		private readonly entityClient: EntityClient,
 		private readonly logins: LoginController,
+		private readonly connectivityModel: WebsocketConnectivityModel | null,
+		private readonly inboxRuleHandler: InboxRuleHandler | null,
 	) {}
 
 	// only init listeners once
@@ -343,25 +347,32 @@ export class MailModel {
 					await this._init()
 					m.redraw()
 				}
+			} else if (isUpdateForTypeRef(MailTypeRef, update) && update.operation === OperationType.CREATE) {
+				if (this.inboxRuleHandler && this.connectivityModel) {
+					const folder = this.getMailFolder(update.instanceListId)
+
+					if (folder && folder.folderType === MailFolderType.INBOX && !containsEventOfType(updates, OperationType.DELETE, update.instanceId)) {
+						// If we don't find another delete operation on this email in the batch, then it should be a create operation,
+						// otherwise it's a move
+						const mailId: IdTuple = [update.instanceListId, update.instanceId]
+						const mail = await this.entityClient.load(MailTypeRef, mailId)
+						await this.getMailboxDetailsForMailListId(update.instanceListId)
+							.then((mailboxDetail) => {
+								// We only apply rules on server if we are the leader in case of incoming messages
+								return (
+									mailboxDetail &&
+									this.inboxRuleHandler?.findAndApplyMatchingRule(
+										mailboxDetail,
+										mail,
+										this.connectivityModel ? this.connectivityModel.isLeader() : false,
+									)
+								)
+							})
+							.then((newId) => this._showNotification(newId || mailId))
+							.catch(noOp)
+					}
+				}
 			}
-			// FIXME: inbox rules are also applied in MailViewModel, can we get away with just doing it there?
-			// else if (isUpdateForTypeRef(MailTypeRef, update) && update.operation === OperationType.CREATE) {
-			// 	const folder = this.getMailFolder(update.instanceListId)
-			//
-			// 	if (folder && folder.folderType === MailFolderType.INBOX && !containsEventOfType(updates, OperationType.DELETE, update.instanceId)) {
-			// 		// If we don't find another delete operation on this email in the batch, then it should be a create operation,
-			// 		// otherwise it's a move
-			// 		const mailId: IdTuple = [update.instanceListId, update.instanceId]
-			// 		const mail = await this.entityClient.load(MailTypeRef, mailId)
-			// 		await this.getMailboxDetailsForMailListId(update.instanceListId)
-			// 			.then((mailboxDetail) => {
-			// 				// We only apply rules on server if we are the leader in case of incoming messages
-			// 				return mailboxDetail && this.inboxRuleHandler.findAndApplyMatchingRule(mailboxDetail, mail, this.connectivityModel.isLeader())
-			// 			})
-			// 			.then((newId) => this._showNotification(newId || mailId))
-			// 			.catch(noOp)
-			// 	}
-			// }
 		}
 	}
 
