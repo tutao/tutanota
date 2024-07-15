@@ -2,9 +2,10 @@ import { Cat, log, timer } from "../misc/Log"
 import { size } from "./size"
 import { assertMainOrNodeBoot, isAdminClient, isTest } from "../api/common/Env"
 import { windowFacade } from "../misc/WindowFacade"
-import { theme, themeController } from "./theme"
+import { theme } from "./theme"
 import { assertNotNull, neverNull } from "@tutao/tutanota-utils"
 import { client } from "../misc/ClientDetector"
+import { ThemeController } from "./ThemeController.js"
 
 assertMainOrNodeBoot()
 
@@ -31,16 +32,17 @@ class Styles {
 			this.bodyWidth = width
 			this.bodyHeight = height
 		})
-		themeController.observableThemeId.map(() => {
-			this.updateDomStyles()
-		})
 	}
 
-	init() {
+	init(themeController: ThemeController) {
 		if (this.initialized) return
 		this.initialized = true
 
 		this.updateDomStyles()
+
+		themeController.observableThemeId.map(() => {
+			this.updateDomStyles()
+		})
 	}
 
 	getStyleSheetElement(id: StyleSheetId): Node {

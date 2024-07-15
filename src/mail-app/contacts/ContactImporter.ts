@@ -33,6 +33,9 @@ import { SystemPermissionHandler } from "../../common/native/main/SystemPermissi
 import { KindaContactRow } from "./view/ContactListView.js"
 import { SelectAllCheckbox } from "../../common/gui/SelectAllCheckbox.js"
 import { mailLocator } from "../mailLocator.js"
+import { FileReference } from "../../common/api/common/utils/FileUtils.js"
+import { AttachmentType, getAttachmentType } from "../../common/gui/AttachmentBubble.js"
+import { NativeFileApp } from "../../common/native/common/FileApp.js"
 
 export class ContactImporter {
 	constructor(private readonly contactFacade: ContactFacade, private readonly systemPermissionHandler: SystemPermissionHandler) {}
@@ -329,4 +332,21 @@ class ContactImportDialogViewModel {
 			this.selectedContacts.add(contact)
 		}
 	}
+}
+
+export async function parseContacts(fileList: FileReference[], fileApp: NativeFileApp) {
+	const rawContacts: string[] = []
+	for (const file of fileList) {
+		if (getAttachmentType(file.mimeType) === AttachmentType.CONTACT) {
+			const dataFile = await fileApp.readDataFile(file.location)
+			if (dataFile == null) continue
+
+			const decoder = new TextDecoder("utf-8")
+			const vCardData = decoder.decode(dataFile.data)
+
+			rawContacts.push(vCardData)
+		}
+	}
+
+	return rawContacts
 }

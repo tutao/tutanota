@@ -17,7 +17,7 @@ export class WindowFacade {
 	windowCloseConfirmation: boolean
 	private _windowCloseListeners: Set<(e: Event) => unknown>
 	private _historyStateEventListeners: Array<(e: Event) => boolean> = []
-	private _indexerFacade: Indexer | null = null
+	private indexerFacade: Indexer | null = null
 	// following two properties are for the iOS
 	private _keyboardSize: number = 0
 	private _keyboardSizeListeners: KeyboardSizeListener[] = []
@@ -30,18 +30,6 @@ export class WindowFacade {
 		this.resizeTimeout = null
 		this.windowCloseConfirmation = false
 		this._windowCloseListeners = new Set()
-		// load async to reduce size of boot bundle
-		import("../api/main/CommonLocator").then(async ({ locator }) => {
-			// We need to wait til the locator has finished initializing before we read from it
-			// because it is happening concurrently
-			await locator.initialized
-			this._indexerFacade = locator.indexerFacade
-			this.connectivityModel = locator.connectivityModel
-
-			if (env.mode === Mode.App || env.mode === Mode.Desktop || env.mode === Mode.Admin) {
-				this.addPageInBackgroundListener()
-			}
-		})
 
 		const onresize = () => {
 			// see https://developer.mozilla.org/en-US/docs/Web/Events/resize
@@ -111,13 +99,20 @@ export class WindowFacade {
 		}
 	}
 
-	init(logins: LoginController) {
+	init(logins: LoginController, indexerFacade: Indexer, connectivityModel: WebsocketConnectivityModel) {
 		this.logins = logins
 
 		if (window.addEventListener && !isApp()) {
 			window.addEventListener("beforeunload", (e) => this._beforeUnload(e))
 			window.addEventListener("popstate", (e) => this._popState(e))
 			window.addEventListener("unload", (e) => this._onUnload())
+		}
+
+		this.indexerFacade = indexerFacade
+		this.connectivityModel = connectivityModel
+
+		if (env.mode === Mode.App || env.mode === Mode.Desktop || env.mode === Mode.Admin) {
+			this.addPageInBackgroundListener()
 		}
 
 		// needed to help the MacOs desktop client to distinguish between Cmd+Arrow to navigate the history
@@ -262,7 +257,7 @@ export class WindowFacade {
 			document.addEventListener("visibilitychange", () => {
 				console.log("Visibility change, hidden: ", document.hidden)
 
-				this._indexerFacade?.onVisibilityChanged(!document.hidden)
+				this.indexerFacade?.onVisibilityChanged(!document.hidden)
 
 				if (!document.hidden) {
 					// On iOS devices the WebSocket close event fires when the app comes back to foreground

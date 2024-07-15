@@ -1,7 +1,6 @@
 import { lang } from "../../../common/misc/LanguageViewModel"
 import { Dialog } from "../../../common/gui/base/Dialog"
 import { assertNotNull, contains, downcast, uint8ArrayToBase64, utf8Uint8ArrayToString } from "@tutao/tutanota-utils"
-import { themeController } from "../../../common/gui/theme"
 import { Icons } from "../../../common/gui/base/icons/Icons"
 import { ALLOWED_IMAGE_FORMATS, MAX_LOGO_SIZE } from "../../../common/api/common/TutanotaConstants"
 import m, { Children, Component, Vnode } from "mithril"
@@ -70,7 +69,7 @@ export class WhitelabelThemeSettings implements Component<WhitelabelThemeSetting
 			this.saveCustomTheme(customTheme, whitelabelConfig, whitelabelDomainInfo)
 
 			if (locator.logins.isWhitelabel()) {
-				await themeController.applyCustomizations(customTheme)
+				await locator.themeController.applyCustomizations(customTheme)
 			}
 		}
 	}
@@ -128,7 +127,7 @@ export class WhitelabelThemeSettings implements Component<WhitelabelThemeSetting
 			this.saveCustomTheme(customTheme, whitelabelConfig, whitelabelDomainInfo)
 
 			if (locator.logins.isWhitelabel()) {
-				await themeController.applyCustomizations(customTheme)
+				await locator.themeController.applyCustomizations(customTheme)
 			}
 		}
 	}
@@ -141,19 +140,19 @@ export class WhitelabelThemeSettings implements Component<WhitelabelThemeSetting
 			this.saveCustomTheme(customTheme, whitelabelConfig, whitelabelDomainInfo)
 
 			if (locator.logins.isWhitelabel()) {
-				await themeController.applyCustomizations(customTheme)
+				await locator.themeController.applyCustomizations(customTheme)
 			}
 		}
 	}
 
 	private async showCustomColorsDialog({ customTheme, whitelabelConfig, whitelabelDomainInfo }: WhitelabelData) {
-		const currentTheme = themeController.getCurrentTheme()
+		const currentTheme = locator.themeController.getCurrentTheme()
 		const viewModel = new CustomColorsEditorViewModel(
 			currentTheme,
 			customTheme,
 			whitelabelConfig,
 			assertNotNull(whitelabelDomainInfo),
-			themeController,
+			locator.themeController,
 			locator.entityClient,
 			locator.logins,
 		)

@@ -1,4 +1,4 @@
-import type { DeferredObject, lazy } from "@tutao/tutanota-utils"
+import type { DeferredObject, lazy, lazyAsync } from "@tutao/tutanota-utils"
 import { assertNotNull, defer } from "@tutao/tutanota-utils"
 import { assertMainOrNodeBoot } from "../common/Env"
 import type { UserController, UserControllerInitData } from "./UserController"
@@ -12,6 +12,7 @@ import { FeatureType, KdfType } from "../common/TutanotaConstants"
 import { SessionType } from "../common/SessionType"
 import { ExternalUserKeyDeriver } from "../../misc/LoginUtils.js"
 import { UnencryptedCredentials } from "../../native/common/generatedipc/UnencryptedCredentials.js"
+import { PageContextLoginListener } from "./PageContextLoginListener.js"
 
 assertMainOrNodeBoot()
 
@@ -39,6 +40,8 @@ export class LoginController {
 	private fullyLoggedIn: boolean = false
 	private atLeastPartiallyLoggedIn: boolean = false
 
+	constructor(private readonly loginFacade: LoginFacade, private readonly loginListener: lazyAsync<PageContextLoginListener>) {}
+
 	init() {
 		this.waitForFullLogin().then(async () => {
 			this.fullyLoggedIn = true
@@ -53,19 +56,6 @@ export class LoginController {
 		})
 	}
 
-	private async getCommonLocator(): Promise<ICommonLocator> {
-		const { locator } = await import("./CommonLocator")
-		await locator.initialized
-		return locator
-	}
-
-	private async getLoginFacade(): Promise<LoginFacade> {
-		const locator = await this.getCommonLocator()
-		const worker = locator.worker
-		await worker.initialized
-		return locator.loginFacade
-	}
-
 	/**
 	 * create a new session and set up stored credentials and offline database, if applicable.
 	 * @param username the mail address being used to log in
@@ -74,8 +64,7 @@ export class LoginController {
 	 * @param databaseKey if given, will use this key for the offline database. if not, will force a new database to be created and generate a key.
 	 */
 	async createSession(username: string, password: string, sessionType: SessionType, databaseKey: Uint8Array | null = null): Promise<NewSessionData> {
-		const loginFacade = await this.getLoginFacade()
-		const newSessionData = await loginFacade.createSession(username, password, client.getIdentifier(), sessionType, databaseKey)
+		const newSessionData = await this.loginFacade.createSession(username, password, client.getIdentifier(), sessionType, databaseKey)
 		const { user, credentials, sessionId, userGroupInfo } = newSessionData
 		await this.onPartialLoginSuccess(
 			{
@@ -121,9 +110,8 @@ export class LoginController {
 		clientIdentifier: string,
 		sessionType: SessionType,
 	): Promise<Credentials> {
-		const loginFacade = await this.getLoginFacade()
 		const persistentSession = sessionType === SessionType.Persistent
-		const { user, credentials, sessionId, userGroupInfo } = await loginFacade.createExternalSession(
+		const { user, credentials, sessionId, userGroupInfo } = await this.loginFacade.createExternalSession(
 			userId,
 			password,
 			salt,
@@ -156,10 +144,9 @@ export class LoginController {
 		externalUserKeyDeriver?: ExternalUserKeyDeriver | null,
 		offlineTimeRangeDays?: number | null,
 	): Promise<ResumeSessionResult> {
-		const loginFacade = await this.getLoginFacade()
 		const { unencryptedToCredentials } = await import("../../misc/credentials/Credentials.js")
 		const credentials = unencryptedToCredentials(unencryptedCredentials)
-		const resumeResult = await loginFacade.resumeSession(
+		const resumeResult = await this.loginFacade.resumeSession(
 			credentials,
 			externalUserKeyDeriver ?? null,
 			unencryptedCredentials.databaseKey ?? null,
@@ -201,11 +188,11 @@ export class LoginController {
 	}
 
 	async waitForFullLogin(): Promise<void> {
-		const locator = await this.getCommonLocator()
 		// Full login event might be received before we finish userLogin on the client side because they are done in parallel.
 		// So we make sure to wait for userLogin first.
 		await this.waitForPartialLogin()
-		return locator.loginListener.waitForFullLogin()
+		const loginListener = await this.loginListener()
+		return loginListener.waitForFullLogin()
 	}
 
 	isInternalUserLoggedIn(): boolean {
@@ -242,8 +229,8 @@ export class LoginController {
 			this.userController = null
 			this.partialLogin = defer()
 			this.fullyLoggedIn = false
-			const locator = await this.getCommonLocator()
-			locator.loginListener.reset()
+			const loginListener = await this.loginListener()
+			loginListener.reset()
 			this.init()
 		} else {
 			console.log("No session to delete")
@@ -264,10 +251,8 @@ export class LoginController {
 	 * @param pushIdentifier identifier associated with this device, if any, to delete PushIdentifier on the server
 	 */
 	async deleteOldSession(credentials: UnencryptedCredentials, pushIdentifier: string | null = null): Promise<void> {
-		const loginFacade = await this.getLoginFacade()
-
 		try {
-			await loginFacade.deleteSession(credentials.accessToken, pushIdentifier)
+			await this.loginFacade.deleteSession(credentials.accessToken, pushIdentifier)
 		} catch (e) {
 			if (e instanceof NotFoundError) {
 				console.log("session already deleted")
@@ -278,9 +263,8 @@ export class LoginController {
 	}
 
 	async retryAsyncLogin() {
-		const loginFacade = await this.getLoginFacade()
-		const locator = await this.getCommonLocator()
-		locator.loginListener.onRetryLogin()
-		await loginFacade.retryAsyncLogin()
+		const loginListener = await this.loginListener()
+		loginListener.onRetryLogin()
+		await this.loginFacade.retryAsyncLogin()
 	}
 }
