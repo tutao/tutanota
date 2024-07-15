@@ -9,7 +9,7 @@ import { TimeFormat, WeekStart } from "../../common/api/common/TutanotaConstants
 import { downcast, incrementDate, noOp, promiseMap } from "@tutao/tutanota-utils"
 import { UserSettingsGroupRootTypeRef } from "../../common/api/entities/tutanota/TypeRefs.js"
 import { getHourCycle } from "../../common/misc/Formatter"
-import { themeController, ThemeId, themeOptions, ThemePreference } from "../../common/gui/theme"
+import { ThemeId, themeOptions, ThemePreference } from "../../common/gui/theme"
 import type { UpdatableSettingsViewer } from "./SettingsView"
 import { isDesktop } from "../../common/api/common/Env"
 import { locator } from "../../common/api/main/CommonLocator"
@@ -19,7 +19,7 @@ export class AppearanceSettingsViewer implements UpdatableSettingsViewer {
 	private _customThemes: Array<ThemeId> | null = null
 
 	oncreate() {
-		themeController.getCustomThemes().then((themes) => {
+		locator.themeController.getCustomThemes().then((themes) => {
 			this._customThemes = themes
 			m.redraw()
 		})
@@ -124,7 +124,7 @@ export class AppearanceSettingsViewer implements UpdatableSettingsViewer {
 	}
 
 	_renderThemeSelector(): Children {
-		if (!themeController.shouldAllowChangingTheme() || this._customThemes == null) {
+		if (!locator.themeController.shouldAllowChangingTheme() || this._customThemes == null) {
 			return null
 		}
 
@@ -138,8 +138,8 @@ export class AppearanceSettingsViewer implements UpdatableSettingsViewer {
 		const themeDropDownAttrs: DropDownSelectorAttrs<ThemePreference> = {
 			label: "switchColorTheme_action",
 			items: [...themeOptions.map(({ name, value }) => ({ name: lang.get(name), value: value })), ...customOptions],
-			selectedValue: themeController.themePreference,
-			selectionChangedHandler: (value) => themeController.setThemePreference(value),
+			selectedValue: locator.themeController.themePreference,
+			selectionChangedHandler: (value) => locator.themeController.setThemePreference(value),
 			dropdownWidth: 300,
 		}
 		return m(DropDownSelector, themeDropDownAttrs)

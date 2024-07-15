@@ -57,7 +57,9 @@ export async function showSetupWizard(
 	)
 	wizardPages.push(wizardPageWrapper(SetupThemePage, new SetupThemePageAttrs()))
 	if (allowContactSyncAndImport && contactSyncManager && contactImporter) {
-		wizardPageWrapper(SetupContactsPage, new SetupContactsPageAttrs(contactSyncManager, contactImporter, systemFacade, allowContactSyncAndImport))
+		wizardPages.push(
+			wizardPageWrapper(SetupContactsPage, new SetupContactsPageAttrs(contactSyncManager, contactImporter, systemFacade, allowContactSyncAndImport)),
+		)
 	}
 	wizardPages.push(wizardPageWrapper(SetupLockPage, new SetupLockPageAttrs(locator.systemFacade)))
 

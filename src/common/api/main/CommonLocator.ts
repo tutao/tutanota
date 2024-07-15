@@ -68,6 +68,7 @@ import { CalendarInfo, CalendarModel } from "../../../calendar-app/calendar/mode
 import { CalendarEventModel, CalendarOperation } from "../../../calendar-app/calendar/gui/eventeditor-model/CalendarEventModel.js"
 import { CalendarEventPreviewViewModel } from "../../../calendar-app/calendar/gui/eventpopup/CalendarEventPreviewViewModel.js"
 import { RecipientsModel } from "./RecipientsModel.js"
+import { ThemeController } from "../../gui/ThemeController.js"
 
 export interface CommonLocator {
 	worker: WorkerClient
@@ -84,6 +85,7 @@ export interface CommonLocator {
 	infoMessageHandler: InfoMessageHandler
 	desktopSettingsFacade: SettingsFacade
 	desktopSystemFacade: DesktopSystemFacade
+	themeController: ThemeController
 
 	entityClient: EntityClient
 	loginFacade: LoginFacade
