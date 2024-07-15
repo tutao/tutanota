@@ -2,8 +2,9 @@ import m, { Children } from "mithril"
 import { WizardPageAttrs, WizardPageN } from "../../../../gui/base/WizardDialog.js"
 import { lang } from "../../../../misc/LanguageViewModel.js"
 import { RadioSelector, RadioSelectorAttrs, RadioSelectorOption } from "../../../../gui/base/RadioSelector.js"
-import { themeController, themeOptions, ThemePreference } from "../../../../gui/theme.js"
+import { themeOptions, ThemePreference } from "../../../../gui/theme.js"
 import { SetupPageLayout } from "./SetupPageLayout.js"
+import { locator } from "../../../../api/main/CommonLocator.js"
 
 export class SetupThemePage implements WizardPageN<SetupThemePageAttrs> {
 	// The whitelabel themes formatted as `RadioSelectorOption`s.
@@ -11,7 +12,7 @@ export class SetupThemePage implements WizardPageN<SetupThemePageAttrs> {
 
 	oninit() {
 		// Get the whitelabel themes from the theme controller and map them to `RadioSelector` options.
-		themeController.getCustomThemes().then((customThemes) => {
+		locator.themeController.getCustomThemes().then((customThemes) => {
 			this.customThemes = customThemes.map((themeId) => {
 				return { name: () => themeId, value: themeId }
 			})
@@ -33,9 +34,9 @@ export class SetupThemePage implements WizardPageN<SetupThemePageAttrs> {
 						name: "theme_label",
 						options: [...themeOptions, ...this.customThemes],
 						class: "mb-s",
-						selectedOption: themeController.themePreference,
+						selectedOption: locator.themeController.themePreference,
 						onOptionSelected: (option) => {
-							themeController.setThemePreference(option, true)
+							locator.themeController.setThemePreference(option, true)
 						},
 				  } satisfies RadioSelectorAttrs<ThemePreference>),
 		)

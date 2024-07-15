@@ -1,17 +1,29 @@
 import { CommonNativeFacade } from "../common/generatedipc/CommonNativeFacade.js"
-import { ICommonLocator, locator } from "../../api/main/CommonLocator.js"
 import { TranslationKey } from "../../misc/LanguageViewModel.js"
-import { assertNotNull, noOp, ofClass } from "@tutao/tutanota-utils"
+import { lazyAsync, noOp, ofClass } from "@tutao/tutanota-utils"
 import { CancelledError } from "../../api/common/error/CancelledError.js"
 import { UserError } from "../../api/main/UserError.js"
-import { themeController } from "../../gui/theme.js"
 import m from "mithril"
 import { Dialog } from "../../gui/base/Dialog.js"
-import { FileReference } from "../../api/common/utils/FileUtils.js"
 import { AttachmentType, getAttachmentType } from "../../gui/AttachmentBubble.js"
 import { showRequestPasswordDialog } from "../../misc/passwords/PasswordRequestDialog.js"
+import { LoginController } from "../../api/main/LoginController.js"
+import { MailModel } from "../../mailFunctionality/MailModel.js"
+import { UsageTestController } from "@tutao/tutanota-usagetests"
+import { NativeFileApp } from "../common/FileApp.js"
+import { NativePushServiceApp } from "./NativePushServiceApp.js"
+import { locator } from "../../api/main/CommonLocator.js"
 
 export class WebCommonNativeFacade implements CommonNativeFacade {
+	constructor(
+		private readonly logins: LoginController,
+		private readonly mailModel: MailModel,
+		private readonly usageTestController: UsageTestController,
+		private readonly fileApp: lazyAsync<NativeFileApp>,
+		private readonly pushService: lazyAsync<NativePushServiceApp>,
+		private readonly fileImportHandler: (filesUris: ReadonlyArray<string>) => unknown,
+	) {}
+
 	/**
 	 * create a mail editor as requested from the native side, ie because a
 	 * mailto-link was clicked or the "Send as mail" option
@@ -29,11 +41,10 @@ export class WebCommonNativeFacade implements CommonNativeFacade {
 		subject: string,
 		mailToUrlString: string,
 	): Promise<void> {
-		const { fileApp, mailModel, logins } = await WebCommonNativeFacade.getInitializedLocator()
 		const { newMailEditorFromTemplate, newMailtoUrlMailEditor } = await import("../../../mail-app/mail/editor/MailEditor.js")
 		const signatureModule = await import("../../../mail-app/mail/signature/Signature")
-		await logins.waitForPartialLogin()
-		const mailboxDetails = await mailModel.getUserMailboxDetails()
+		await this.logins.waitForPartialLogin()
+		const mailboxDetails = await this.mailModel.getUserMailboxDetails()
 		let editor
 
 		try {
@@ -43,6 +54,7 @@ export class WebCommonNativeFacade implements CommonNativeFacade {
 
 				editor.show()
 			} else {
+				const fileApp = await this.fileApp()
 				const files = await fileApp.getFilesMetaData(filesUris)
 				const allFilesAreVCards = files.length > 0 && files.every((file) => getAttachmentType(file.mimeType) === AttachmentType.CONTACT)
 
@@ -75,7 +87,7 @@ export class WebCommonNativeFacade implements CommonNativeFacade {
 						mailboxDetails,
 						recipients,
 						subject || (files.length > 0 ? files[0].name : ""),
-						signatureModule.appendEmailSignature(text || "", logins.getUserController().props),
+						signatureModule.appendEmailSignature(text || "", this.logins.getUserController().props),
 						files,
 						undefined,
 						undefined,
@@ -95,8 +107,8 @@ export class WebCommonNativeFacade implements CommonNativeFacade {
 	}
 
 	async invalidateAlarms(): Promise<void> {
-		const locator = await WebCommonNativeFacade.getInitializedLocator()
-		await locator.pushService.reRegister()
+		const pushService = await this.pushService()
+		await pushService.reRegister()
 	}
 
 	async openCalendar(userId: string): Promise<void> {
@@ -115,7 +127,7 @@ export class WebCommonNativeFacade implements CommonNativeFacade {
 	}
 
 	async updateTheme(): Promise<void> {
-		await themeController.reloadTheme()
+		await locator.themeController.reloadTheme()
 	}
 
 	/**
@@ -127,8 +139,7 @@ export class WebCommonNativeFacade implements CommonNativeFacade {
 			import("../../gui/base/Dialog.js"),
 			import("../../../mail-app/settings/PasswordForm.js"),
 		])
-		const locator = await WebCommonNativeFacade.getInitializedLocator()
-		const model = new PasswordModel(locator.usageTestController, locator.logins, { checkOldPassword: false, enforceStrength: false })
+		const model = new PasswordModel(this.usageTestController, this.logins, { checkOldPassword: false, enforceStrength: false })
 
 		return new Promise((resolve, reject) => {
 			const changePasswordOkAction = async (dialog: Dialog) => {
@@ -172,47 +183,11 @@ export class WebCommonNativeFacade implements CommonNativeFacade {
 		})
 	}
 
-	private static async getInitializedLocator(): Promise<ICommonLocator> {
-		const { locator } = await import("../../api/main/CommonLocator")
-		await locator.initialized
-		return locator
-	}
-
-	private async parseContacts(fileList: FileReference[]) {
-		const { fileApp, logins, fileController } = await WebCommonNativeFacade.getInitializedLocator()
-
-		await logins.waitForPartialLogin()
-
-		const rawContacts: string[] = []
-		for (const file of fileList) {
-			if (getAttachmentType(file.mimeType) === AttachmentType.CONTACT) {
-				const dataFile = await fileApp.readDataFile(file.location)
-				if (dataFile == null) continue
-
-				const decoder = new TextDecoder("utf-8")
-				const vCardData = decoder.decode(dataFile.data)
-
-				rawContacts.push(vCardData)
-			}
-		}
-
-		return rawContacts
-	}
-
 	/**
-	 * Parse and handle files given a list of files URI. For now, it just supports .vcf files
+	 * Parse and handle files given a list of files URI.
 	 * @param filesUris List of files URI to be parsed
 	 */
 	async handleFileImport(filesUris: ReadonlyArray<string>): Promise<void> {
-		const { fileApp, contactModel, contactImporter } = await WebCommonNativeFacade.getInitializedLocator()
-		const importer = await contactImporter()
-
-		// For now, we just handle .vcf files, so we don't need to care about the file type
-		const files = await fileApp.getFilesMetaData(filesUris)
-		const contacts = await this.parseContacts(files)
-		const vCardData = contacts.join("\n")
-		const contactListId = assertNotNull(await contactModel.getContactListId())
-
-		await importer.importContactsFromFile(vCardData, contactListId)
+		await this.fileImportHandler(filesUris)
 	}
 }

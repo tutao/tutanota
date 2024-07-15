@@ -13,7 +13,6 @@ import { createReceiveInfoServiceData, OutOfOfficeNotification } from "../api/en
 import { isNotificationCurrentlyActive, loadOutOfOfficeNotification } from "../misc/OutOfOfficeNotificationUtils.js"
 import * as notificationOverlay from "../gui/base/NotificationOverlay"
 import { ButtonType } from "../gui/base/Button.js"
-import { themeController } from "../gui/theme"
 import { Dialog } from "../gui/base/Dialog"
 import { CloseEventBusOption, Const, SecondFactorType } from "../api/common/TutanotaConstants"
 import { showMoreStorageNeededOrderDialog } from "../misc/SubscriptionDialogs.js"
@@ -213,13 +212,13 @@ export class PostLoginActions implements PostLoginAction {
 					customizations.themeId = domainInfoAndConfig.domainInfo.domain
 				}
 
-				await themeController.storeCustomThemeForCustomizations(customizations)
+				await locator.themeController.storeCustomThemeForCustomizations(customizations)
 
 				// Update the already loaded custom themes to their latest version
-				const previouslySavedThemes = await themeController.getCustomThemes()
+				const previouslySavedThemes = await locator.themeController.getCustomThemes()
 				const isExistingTheme = previouslySavedThemes.includes(domainInfoAndConfig.domainInfo.domain)
 				if (isExistingTheme) {
-					await themeController.reloadTheme()
+					await locator.themeController.reloadTheme()
 				}
 			}
 		}

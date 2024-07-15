@@ -5,9 +5,13 @@ import { ErrorInfo } from "../common/generatedipc/ErrorInfo.js"
 import { NativeShortcut } from "../common/generatedipc/NativeShortcut.js"
 import { Shortcut } from "../../misc/KeyManager.js"
 import { Keys } from "../../api/common/TutanotaConstants.js"
-import { ICommonLocator } from "../../api/main/CommonLocator.js"
+import { LoginController } from "../../api/main/LoginController.js"
+import { lazyAsync } from "@tutao/tutanota-utils"
+import { NativeInterfaceMain } from "./NativeInterfaceMain.js"
 
 export class WebDesktopFacade implements DesktopFacade {
+	constructor(private logins: LoginController, private nativeInterface: lazyAsync<NativeInterfaceMain>) {}
+
 	print(): Promise<void> {
 		window.print()
 		return Promise.resolve()
@@ -31,8 +35,7 @@ export class WebDesktopFacade implements DesktopFacade {
 
 	async reportError(errorInfo: ErrorInfo): Promise<void> {
 		const { showErrorNotification } = await import("../../misc/ErrorReporter.js")
-		const { logins } = await WebDesktopFacade.getInitializedLocator()
-		await logins.waitForPartialLogin()
+		await this.logins.waitForPartialLogin()
 		await showErrorNotification(errorInfo)
 	}
 
@@ -86,13 +89,7 @@ export class WebDesktopFacade implements DesktopFacade {
 	}
 
 	async appUpdateDownloaded(): Promise<void> {
-		const locator = await WebDesktopFacade.getInitializedLocator()
-		locator.native.handleUpdateDownload()
-	}
-
-	private static async getInitializedLocator(): Promise<ICommonLocator> {
-		const { locator } = await import("../../api/main/CommonLocator")
-		await locator.initialized
-		return locator
+		const native = await this.nativeInterface()
+		native.handleUpdateDownload()
 	}
 }

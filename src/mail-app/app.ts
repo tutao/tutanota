@@ -36,6 +36,7 @@ import { ContactViewModel } from "./contacts/view/ContactViewModel.js"
 import { ContactListViewModel } from "./contacts/view/ContactListViewModel.js"
 import type { CredentialsMigrationView, CredentialsMigrationViewAttrs } from "../common/login/CredentialsMigrationView.js"
 import type { CredentialsMigrationViewModel } from "../common/login/CredentialsMigrationViewModel.js"
+import { initCommonLocator } from "../common/api/main/CommonLocator.js"
 
 assertMainOrNodeBoot()
 bootFinished()
@@ -85,11 +86,13 @@ import("./translations/en.js")
 		const { mailLocator } = await import("./mailLocator.js")
 		await mailLocator.init()
 
+		initCommonLocator(mailLocator)
+
 		const { setupNavShortcuts } = await import("../common/misc/NavShortcuts.js")
 		setupNavShortcuts()
 
 		// this needs to stay after client.init
-		windowFacade.init(mailLocator.logins)
+		windowFacade.init(mailLocator.logins, mailLocator.indexerFacade, mailLocator.connectivityModel)
 		if (isDesktop()) {
 			import("../common/native/main/UpdatePrompt.js").then(({ registerForUpdates }) => registerForUpdates(mailLocator.desktopSettingsFacade))
 		}
@@ -126,7 +129,7 @@ import("./translations/en.js")
 			)
 		}
 
-		styles.init()
+		styles.init(mailLocator.themeController)
 
 		const contactViewResolver = makeViewResolver<
 			ContactViewAttrs,
