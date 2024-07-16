@@ -5,8 +5,10 @@ import android.net.Uri
 import androidx.annotation.Keep
 import androidx.annotation.VisibleForTesting
 import de.tutao.tutanota.ipc.*
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.withContext
 import org.apache.commons.io.IOUtils
-import org.apache.commons.io.input.CountingInputStream
+import org.apache.commons.io.input.BoundedInputStream
 import java.io.*
 import java.math.BigInteger
 import java.security.*
@@ -254,10 +256,14 @@ class AndroidNativeCryptoFacade(
 	override suspend fun aesEncryptFile(key: DataWrapper, fileUri: String, iv: DataWrapper): EncryptedFileInfo {
 		val parsedFileUri = Uri.parse(fileUri)
 		val outputFile = File(tempDir.encrypt, getFileInfo(context, parsedFileUri).name)
-		val inputStream = CountingInputStream(context.contentResolver.openInputStream(parsedFileUri))
-		val out: OutputStream = FileOutputStream(outputFile)
+		val inputStream = BoundedInputStream.builder()
+			.setInputStream(context.contentResolver.openInputStream(parsedFileUri))
+			.get()
+		val out: OutputStream = withContext(Dispatchers.IO) {
+			FileOutputStream(outputFile)
+		}
 		aesEncrypt(key.data, inputStream, out, iv.data, usePadding = true, useMac = true)
-		return EncryptedFileInfo(outputFile.toUri(), inputStream.byteCount.toInt())
+		return EncryptedFileInfo(outputFile.toUri(), inputStream.count.toInt())
 	}
 
 	@Throws(IOException::class, CryptoError::class)
