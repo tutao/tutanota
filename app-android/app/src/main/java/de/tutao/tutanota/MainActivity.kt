@@ -195,12 +195,10 @@ class MainActivity : FragmentActivity() {
 			cacheMode = WebSettings.LOAD_NO_CACHE
 			// needed for external content in mail
 			mixedContentMode = WebSettings.MIXED_CONTENT_ALWAYS_ALLOW
-			if (atLeastOreo()) {
 				// Safe browsing is not needed because we are loading our own resources only.
 				// Also we don't want to report every URL that we load to Google.
 				// Also it causes random lag in loading resources, see https://github.com/tutao/tutanota/issues/5830
-				safeBrowsingEnabled = false
-			}
+			safeBrowsingEnabled = false
 		}
 
 		webView.clearCache(true)
@@ -549,13 +547,13 @@ class MainActivity : FragmentActivity() {
 				val requestCode = getNextRequestCode()
 				activityRequests[requestCode] = continuation
 				// we need requestCode to identify the request which is not possible with new API
-				@Suppress("DEPRECATION")
-				super.startActivityForResult(intent, requestCode)
+				if (intent != null) {
+					super.startActivityForResult(intent, requestCode)
+				}
 			}
 
 	@Deprecated("Deprecated in Java")
 	override fun onActivityResult(requestCode: Int, resultCode: Int, data: Intent?) {
-		@Suppress("DEPRECATION")
 		super.onActivityResult(requestCode, resultCode, data)
 		val continuation = activityRequests.remove(requestCode)
 		if (continuation != null) {
@@ -645,7 +643,7 @@ class MainActivity : FragmentActivity() {
 			)
 		} catch (e: RemoteExecutionException) {
 			val name = if (e.message != null) {
-				val element = Json.parseToJsonElement(e.message)
+				val element = Json.parseToJsonElement(e.message!!)
 				element.jsonObject["name"]?.jsonPrimitive?.content
 			} else {
 				null

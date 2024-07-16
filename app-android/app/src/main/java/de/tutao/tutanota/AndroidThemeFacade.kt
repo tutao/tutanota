@@ -111,11 +111,9 @@ class AndroidThemeFacade(
 		@ColorInt val navColor = parseColor(navBg)
 		val isNavBarLight = navBg.isLightHexColor()
 		var visibilityFlags = 0
-		if (atLeastOreo()) {
-			activity.window.navigationBarColor = navColor
-			if (isNavBarLight) {
-				visibilityFlags = visibilityFlags or View.SYSTEM_UI_FLAG_LIGHT_NAVIGATION_BAR
-			}
+		activity.window.navigationBarColor = navColor
+		if (isNavBarLight) {
+			visibilityFlags = visibilityFlags or View.SYSTEM_UI_FLAG_LIGHT_NAVIGATION_BAR
 		}
 
 		val headerBg = getColor(theme, "navigation_bg")
