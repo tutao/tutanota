@@ -111,7 +111,7 @@ assertMainOrNode()
 
 class CalendarLocator {
 	eventController!: EventController
-	calendarSearch!: CalendarSearchModel
+	search!: CalendarSearchModel
 	mailModel!: MailModel
 	contactModel!: ContactModel
 	entityClient!: EntityClient
@@ -210,7 +210,7 @@ class CalendarLocator {
 		return () => {
 			return new CalendarSearchViewModel(
 				searchRouter,
-				this.calendarSearch,
+				this.search,
 				this.searchFacade,
 				this.logins,
 				this.entityClient,
@@ -229,7 +229,7 @@ class CalendarLocator {
 		return () => {
 			return new CalendarSearchViewModel(
 				searchRouter,
-				this.calendarSearch,
+				this.search,
 				this.searchFacade,
 				this.logins,
 				this.entityClient,
@@ -556,7 +556,7 @@ class CalendarLocator {
 		this.logins.init()
 		this.eventController = new EventController(calendarLocator.logins)
 		this.progressTracker = new ProgressTracker()
-		this.calendarSearch = new CalendarSearchModel(this.searchFacade, () => this.calendarEventsRepository())
+		this.search = new CalendarSearchModel(this.searchFacade, () => this.calendarEventsRepository())
 		this.entityClient = new EntityClient(restInterface)
 		this.cryptoFacade = cryptoFacade
 		this.cacheStorage = cacheStorage

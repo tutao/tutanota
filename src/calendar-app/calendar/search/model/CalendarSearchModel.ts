@@ -1,7 +1,6 @@
 import stream from "mithril/stream"
 import Stream from "mithril/stream"
-import { NOTHING_INDEXED_TIMESTAMP } from "../../../../common/api/common/TutanotaConstants"
-import type { SearchIndexStateInfo, SearchRestriction, SearchResult } from "../../../../common/api/worker/search/SearchTypes"
+import type { SearchRestriction, SearchResult } from "../../../../common/api/worker/search/SearchTypes"
 import { arrayEquals, assertNonNull, assertNotNull, incrementMonth, isSameTypeRef, lazyAsync, tokenize } from "@tutao/tutanota-utils"
 import type { SearchFacade } from "../../../../common/api/worker/search/SearchFacade"
 import { assertMainOrNode } from "../../../../common/api/common/Env"

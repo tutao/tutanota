@@ -9,7 +9,6 @@ import { MailTypeRef } from "../../../common/api/entities/tutanota/TypeRefs.js"
 import type { Shortcut } from "../../../common/misc/KeyManager"
 import { isKeyPressed, keyManager } from "../../../common/misc/KeyManager"
 import { encodeCalendarSearchKey, getRestriction } from "./model/SearchUtils"
-import { locator } from "../../../common/api/main/MainLocator"
 import type { WhitelabelChild } from "../../../common/api/entities/sys/TypeRefs.js"
 import { FULL_INDEXED_TIMESTAMP, Keys } from "../../../common/api/common/TutanotaConstants"
 import { assertMainOrNode } from "../../../common/api/common/Env"
@@ -27,6 +26,8 @@ import { generateCalendarInstancesInRange } from "../../../common/calendar/date/
 import { loadMultipleFromLists } from "../../../common/api/common/EntityClient.js"
 import { SearchRouter } from "../../../common/search/view/SearchRouter.js"
 import { SearchBarOverlay } from "../../../mail-app/search/SearchBarOverlay.js"
+import { calendarLocator } from "../../calendarLocator.js"
+import { CalendarSearchBarOverlay } from "./CalendarSearchBarOverlay.js"
 
 assertMainOrNode()
 export type ShowMoreAction = {
@@ -35,7 +36,7 @@ export type ShowMoreAction = {
 	indexTimestamp: number
 	allowShowMore: boolean
 }
-export type SearchBarAttrs = {
+export type CalendarSearchBarAttrs = {
 	placeholder?: string | null
 	returnListener?: (() => unknown) | null
 	disabled?: boolean
@@ -44,10 +45,9 @@ export type SearchBarAttrs = {
 const MAX_SEARCH_PREVIEW_RESULTS = 10
 export type Entry = Mail | Contact | CalendarEvent | WhitelabelChild | ShowMoreAction
 type Entries = Array<Entry>
-export type SearchBarState = {
+export type CalendarSearchBarState = {
 	query: string
 	searchResult: SearchResult | null
-	indexState: SearchIndexStateInfo
 	entities: Entries
 	selected: Entry | null
 }
@@ -55,11 +55,11 @@ export type SearchBarState = {
 // create our own copy which is not perfect because we don't benefit from the shared cache but currently there's no way to get async dependencies into
 // singletons like this (without top-level await at least)
 // once SearchBar is rewritten this should be removed
-const searchRouter = new SearchRouter(locator.throttledRouter())
+const searchRouter = new SearchRouter(calendarLocator.throttledRouter())
 
-export class SearchBar implements Component<SearchBarAttrs> {
+export class CalendarSearchBar implements Component<CalendarSearchBarAttrs> {
 	focused: boolean = false
-	private readonly state: Stream<SearchBarState>
+	private readonly state: Stream<CalendarSearchBarState>
 	busy: boolean = false
 	private closeOverlayFunction: (() => void) | null = null
 	private readonly overlayContentComponent: Component
@@ -70,16 +70,15 @@ export class SearchBar implements Component<SearchBarAttrs> {
 	private lastQueryStream: Stream<unknown> | null = null
 
 	constructor() {
-		this.state = stream<SearchBarState>({
+		this.state = stream<CalendarSearchBarState>({
 			query: "",
 			searchResult: null,
-			indexState: locator.search.indexState(),
 			entities: [] as Entries,
 			selected: null,
 		})
 		this.overlayContentComponent = {
 			view: () => {
-				return m(SearchBarOverlay, {
+				return m(CalendarSearchBarOverlay, {
 					state: this.state(),
 					isQuickSearch: this.isQuickSearch(),
 					isFocused: this.focused,
@@ -98,7 +97,7 @@ export class SearchBar implements Component<SearchBarAttrs> {
 	 * that shouldn't clear our current state, but if the URL changed in a way that makes the previous state outdated, we clear it.
 	 */
 	private readonly onPathChange = memoized((newPath: string) => {
-		if (locator.search.isNewSearch(this.state().query, getRestriction(newPath))) {
+		if (calendarLocator.search.isNewSearch(this.state().query, getRestriction(newPath))) {
 			this.updateState({
 				searchResult: null,
 				selected: null,
@@ -107,7 +106,7 @@ export class SearchBar implements Component<SearchBarAttrs> {
 		}
 	})
 
-	view(vnode: Vnode<SearchBarAttrs>) {
+	view(vnode: Vnode<CalendarSearchBarAttrs>) {
 		this.onPathChange(m.route.get())
 
 		return m(BaseSearchBar, {
@@ -195,7 +194,7 @@ export class SearchBar implements Component<SearchBarAttrs> {
 	oncreate() {
 		keyManager.registerShortcuts(this.shortcuts)
 		this.stateStream = this.state.map((state) => m.redraw())
-		this.lastQueryStream = locator.search.lastQueryString.map((value) => {
+		this.lastQueryStream = calendarLocator.search.lastQueryString.map((value) => {
 			// Set value from the model when it's set from the URL e.g. reloading the page on the search screen
 			if (value) {
 				this.updateState({
@@ -339,8 +338,8 @@ export class SearchBar implements Component<SearchBarAttrs> {
 
 		let restriction = this.getRestriction()
 
-		if (!locator.search.isNewSearch(query, restriction) && oldQuery === query) {
-			const result = locator.search.result()
+		if (!calendarLocator.search.isNewSearch(query, restriction) && oldQuery === query) {
+			const result = calendarLocator.search.result()
 
 			if (this.isQuickSearch() && result) {
 				this.showResultsInOverlay(result)
@@ -371,7 +370,7 @@ export class SearchBar implements Component<SearchBarAttrs> {
 		// We don't limit contacts because we need to download all of them to sort them. They should be cached anyway.
 		const limit = isSameTypeRef(MailTypeRef, restriction.type) ? (this.isQuickSearch() ? MAX_SEARCH_PREVIEW_RESULTS : PageSize) : null
 
-		locator.search
+		calendarLocator.search
 			.search(
 				{
 					query: query ?? "",
@@ -379,7 +378,7 @@ export class SearchBar implements Component<SearchBarAttrs> {
 					minSuggestionCount: useSuggestions ? 10 : 0,
 					maxResults: limit,
 				},
-				locator.progressTracker,
+				calendarLocator.progressTracker,
 			)
 			.then((result) => this.loadAndDisplayResult(query, result ? result : null, limit))
 			.finally(() => cb())
@@ -394,14 +393,14 @@ export class SearchBar implements Component<SearchBarAttrs> {
 			searchResult: safeResult,
 		})
 
-		if (!safeResult || locator.search.isNewSearch(query, safeResult.restriction)) {
+		if (!safeResult || calendarLocator.search.isNewSearch(query, safeResult.restriction)) {
 			return
 		}
 
 		if (this.isQuickSearch()) {
 			if (safeLimit && hasMoreResults(safeResult) && safeResult.results.length < safeLimit) {
-				locator.searchFacade.getMoreSearchResults(safeResult, safeLimit - safeResult.results.length).then((moreResults) => {
-					if (locator.search.isNewSearch(query, moreResults.restriction)) {
+				calendarLocator.searchFacade.getMoreSearchResults(safeResult, safeLimit - safeResult.results.length).then((moreResults) => {
+					if (calendarLocator.search.isNewSearch(query, moreResults.restriction)) {
 						return
 					} else {
 						this.loadAndDisplayResult(query, moreResults, limit)
@@ -421,7 +420,7 @@ export class SearchBar implements Component<SearchBarAttrs> {
 			// this needs to happen in this order, otherwise the list's result subscription will override our
 			// routing.
 			this.updateSearchUrl("")
-			locator.search.result(null)
+			calendarLocator.search.result(null)
 		}
 
 		this.updateState({
@@ -433,9 +432,9 @@ export class SearchBar implements Component<SearchBarAttrs> {
 	}
 
 	private async showResultsInOverlay(result: SearchResult): Promise<void> {
-		const entries = await loadMultipleFromLists(result.restriction.type, locator.entityClient, result.results)
+		const entries = await loadMultipleFromLists(result.restriction.type, calendarLocator.entityClient, result.results)
 		// If there was no new search while we've been downloading the result
-		if (!locator.search.isNewSearch(result.query, result.restriction)) {
+		if (!calendarLocator.search.isNewSearch(result.query, result.restriction)) {
 			const { filteredEntries, couldShowMore } = this.filterResults(entries, result.restriction)
 
 			if (
@@ -504,7 +503,7 @@ export class SearchBar implements Component<SearchBarAttrs> {
 		m.redraw()
 	}
 
-	private updateState(update: Partial<SearchBarState>): SearchBarState {
+	private updateState(update: Partial<CalendarSearchBarState>): CalendarSearchBarState {
 		const newState = Object.assign({}, this.state(), update)
 
 		this.state(newState)
@@ -515,4 +514,4 @@ export class SearchBar implements Component<SearchBarAttrs> {
 
 // Should be changed to not be a singleton and be proper component (instantiated by mithril).
 // We need to extract some state of it into some kind of viewModel, pluggable depending on the current view but this requires complete rewrite of SearchBar.
-export const searchBar = new SearchBar()
+export const searchBar = new CalendarSearchBar()

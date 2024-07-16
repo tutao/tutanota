@@ -74,6 +74,7 @@ export interface CalendarViewAttrs extends TopLevelAttrs {
 	drawerAttrs: DrawerMenuAttrs
 	header: AppHeaderAttrs
 	calendarViewModel: CalendarViewModel
+	bottomNav: Children
 }
 
 const CalendarViewTypeByValue = reverse(CalendarViewType)
@@ -823,7 +824,7 @@ export class CalendarView extends BaseTopLevelView implements TopLevelView<Calen
 						}),
 					...attrs.header,
 				}),
-				bottomNav: m(CalendarBottomNav),
+				bottomNav: attrs.bottomNav,
 			}),
 		)
 	}
