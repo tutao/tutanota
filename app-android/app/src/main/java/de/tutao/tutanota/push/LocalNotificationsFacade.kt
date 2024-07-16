@@ -1,5 +1,6 @@
 package de.tutao.tutanota.push
 
+import android.Manifest
 import android.annotation.TargetApi
 import android.app.DownloadManager
 import android.app.Notification
@@ -9,6 +10,7 @@ import android.app.PendingIntent
 import android.content.ClipData
 import android.content.Context
 import android.content.Intent
+import android.content.pm.PackageManager
 import android.graphics.Color
 import android.media.AudioAttributes
 import android.media.RingtoneManager
@@ -19,6 +21,7 @@ import android.util.Log
 import androidx.annotation.ColorInt
 import androidx.annotation.RequiresApi
 import androidx.annotation.StringRes
+import androidx.core.app.ActivityCompat
 import androidx.core.app.NotificationCompat
 import androidx.core.app.NotificationManagerCompat
 import androidx.core.content.ContextCompat
@@ -27,7 +30,6 @@ import androidx.core.net.toUri
 import de.tutao.tutanota.BuildConfig
 import de.tutao.tutanota.MainActivity
 import de.tutao.tutanota.R
-import de.tutao.tutanota.atLeastNougat
 import de.tutao.tutanota.getMimeType
 import de.tutao.tutanota.ipc.ExtendedNotificationMode
 import java.io.File
@@ -116,7 +118,7 @@ class LocalNotificationsFacade(private val context: Context, private val sseStor
 				.setContentIntent(intentOpenMailbox(notificationInfo, false))
 				.setGroup(groupIdFor(notificationInfo))
 				.setAutoCancel(true)
-				.setGroupAlertBehavior(if (atLeastNougat()) NotificationCompat.GROUP_ALERT_CHILDREN else NotificationCompat.GROUP_ALERT_SUMMARY)
+				.setGroupAlertBehavior(NotificationCompat.GROUP_ALERT_CHILDREN)
 				.setDefaults(Notification.DEFAULT_ALL)
 				.setExtras(Bundle().apply {
 					putString(EMAIL_ADDRESS_EXTRA, notificationInfo.mailAddress)
@@ -153,6 +155,19 @@ class LocalNotificationsFacade(private val context: Context, private val sseStor
 			.setSmallIcon(R.drawable.ic_download)
 			.setAutoCancel(true)
 			.build()
+		if (ActivityCompat.checkSelfPermission(
+				context,
+				Manifest.permission.POST_NOTIFICATIONS
+			) != PackageManager.PERMISSION_GRANTED
+		) {
+			// FIXME: Do we want to ask permission here?
+			// here to request the missing permissions, and then overriding
+			//   public void onRequestPermissionsResult(int requestCode, String[] permissions,
+			//                                          int[] grantResults)
+			// to handle the case where the user grants the permission. See the documentation
+			// for ActivityCompat#requestPermissions for more details.
+			return
+		}
 		notificationManager.notify(mailNotificationId("downloads"), notification)
 	}
 
@@ -182,7 +197,7 @@ class LocalNotificationsFacade(private val context: Context, private val sseStor
 			// work with sound there (perhaps summary consumes it somehow?) and we must do
 			// summary with sound instead on the old versions.
 			.setDefaults(NotificationCompat.DEFAULT_SOUND)
-			.setGroupAlertBehavior(if (atLeastNougat()) NotificationCompat.GROUP_ALERT_CHILDREN else NotificationCompat.GROUP_ALERT_SUMMARY)
+			.setGroupAlertBehavior(NotificationCompat.GROUP_ALERT_CHILDREN)
 			.build()
 		notificationManager.notify(abs(SUMMARY_NOTIFICATION_ID + notificationInfo.userId.hashCode()), notification)
 	}

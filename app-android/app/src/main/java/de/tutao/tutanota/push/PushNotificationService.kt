@@ -3,18 +3,18 @@ package de.tutao.tutanota.push
 import android.app.job.JobParameters
 import android.content.Context
 import android.content.Intent
+import android.content.pm.ServiceInfo
 import android.util.Log
+import androidx.lifecycle.Lifecycle
 import androidx.lifecycle.lifecycleScope
 import de.tutao.tutanota.AndroidNativeCryptoFacade
 import de.tutao.tutanota.LifecycleJobService
-import de.tutao.tutanota.MainActivity
 import de.tutao.tutanota.NetworkUtils
 import de.tutao.tutanota.alarms.AlarmNotificationsManager
 import de.tutao.tutanota.alarms.SystemAlarmFacade
-import de.tutao.tutanota.atLeastOreo
+import de.tutao.tutanota.atLeastQuinceTart
 import de.tutao.tutanota.atLeastTiramisu
 import de.tutao.tutanota.createAndroidKeyStoreFacade
-import de.tutao.tutanota.credentials.AndroidNativeCredentialsFacade
 import de.tutao.tutanota.credentials.CredentialsEncryptionFactory
 import de.tutao.tutanota.data.AppDatabase
 import de.tutao.tutanota.data.SseInfo
@@ -58,7 +58,7 @@ private enum class State {
  *
  * SSE has its own event loop, we are just listening for events here and mediating between it and SSE storage.
  */
-class PushNotificationService : LifecycleJobService() {
+class PushNotificationService(override val lifecycle: Lifecycle) : LifecycleJobService() {
 	@Volatile
 	private var jobParameters: JobParameters? = null
 	private lateinit var localNotificationsFacade: LocalNotificationsFacade
@@ -127,9 +127,7 @@ class PushNotificationService : LifecycleJobService() {
 			}
 		}
 
-		if (atLeastOreo()) {
-			localNotificationsFacade.createNotificationChannels()
-		}
+		localNotificationsFacade.createNotificationChannels()
 	}
 
 
@@ -159,10 +157,10 @@ class PushNotificationService : LifecycleJobService() {
 		// We don't even want to try `startForeground` if we are launched from a context where it isn't allowed so we
 		// pass it as a parameter.
 		// see https://developer.android.com/guide/components/foreground-services#background-start-restrictions
-		if (atLeastOreo() && this.state == State.STARTED && attemptForeground) {
+		if (atLeastQuinceTart() && this.state == State.STARTED && attemptForeground) {
 			Log.d(TAG, "Starting foreground")
 			try {
-				startForeground(1, localNotificationsFacade.makeConnectionNotification())
+				startForeground(1, localNotificationsFacade.makeConnectionNotification(), ServiceInfo.FOREGROUND_SERVICE_TYPE_DATA_SYNC)
 			} catch (e: IllegalStateException) {
 				// probably ForegroundServiceStartNotAllowedException
 				Log.w(TAG, "Could not start the service in foreground", e)
