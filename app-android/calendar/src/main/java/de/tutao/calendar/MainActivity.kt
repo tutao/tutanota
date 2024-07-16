@@ -123,8 +123,8 @@ class MainActivity : FragmentActivity() {
 
 		val db = AppDatabase.getDatabase(this, false)
 		sseStorage = SseStorage(
-			db,
-			createAndroidKeyStoreFacade()
+				db,
+				createAndroidKeyStoreFacade()
 		)
 		val localNotificationsFacade = LocalNotificationsFacade(this, sseStorage)
 		val fileFacade =
@@ -134,16 +134,16 @@ class MainActivity : FragmentActivity() {
 
 
 		val alarmNotificationsManager = AlarmNotificationsManager(
-			sseStorage,
-			cryptoFacade,
-			SystemAlarmFacade(this),
-			localNotificationsFacade
+				sseStorage,
+				cryptoFacade,
+				SystemAlarmFacade(this),
+				localNotificationsFacade
 		)
 		val nativePushFacade = AndroidNativePushFacade(
-			this,
-			sseStorage,
-			alarmNotificationsManager,
-			localNotificationsFacade,
+				this,
+				sseStorage,
+				alarmNotificationsManager,
+				localNotificationsFacade,
 		)
 
 		val ipcJson = Json { ignoreUnknownKeys = true }
@@ -170,10 +170,10 @@ class MainActivity : FragmentActivity() {
 			webauthnFacade,
 		)
 		remoteBridge = RemoteBridge(
-			ipcJson,
-			this,
-			globalDispatcher,
-			commonSystemFacade,
+				ipcJson,
+				this,
+				globalDispatcher,
+				commonSystemFacade,
 		)
 
 		themeFacade.applyCurrentTheme()
@@ -228,7 +228,7 @@ class MainActivity : FragmentActivity() {
 					startActivity(intent)
 				} catch (e: ActivityNotFoundException) {
 					Toast.makeText(this@MainActivity, "Could not open link: $url", Toast.LENGTH_SHORT)
-						.show()
+							.show()
 				}
 				return true
 			}
@@ -238,16 +238,16 @@ class MainActivity : FragmentActivity() {
 				return if (request.method == "OPTIONS") {
 					Log.v(TAG, "replacing OPTIONS response to $url")
 					WebResourceResponse(
-						"text/html",
-						"UTF-8",
-						200,
-						"OK",
-						mutableMapOf(
-							"Access-Control-Allow-Origin" to "*",
-							"Access-Control-Allow-Methods" to "POST, GET, PUT, DELETE",
-							"Access-Control-Allow-Headers" to "*"
-						),
-						null
+							"text/html",
+							"UTF-8",
+							200,
+							"OK",
+							mutableMapOf(
+									"Access-Control-Allow-Origin" to "*",
+									"Access-Control-Allow-Methods" to "POST, GET, PUT, DELETE",
+									"Access-Control-Allow-Headers" to "*"
+							),
+							null
 					)
 				} else if (request.method == "GET" && url.toString().startsWith(BASE_WEB_VIEW_URL)) {
 					Log.v(TAG, "replacing asset GET response to ${url.path}")
@@ -258,22 +258,22 @@ class MainActivity : FragmentActivity() {
 						if (!assetPath.startsWith(BuildConfig.RES_ADDRESS)) throw IOException("can't find this")
 						val mimeType = getMimeTypeForUrl(url.toString())
 						WebResourceResponse(
-							mimeType,
-							null,
-							200,
-							"OK",
-							null,
-							assets.open(assetPath)
+								mimeType,
+								null,
+								200,
+								"OK",
+								null,
+								assets.open(assetPath)
 						)
 					} catch (e: IOException) {
 						Log.w(TAG, "Resource not found ${url.path}")
 						WebResourceResponse(
-							null,
-							null,
-							404,
-							"Not Found",
-							null,
-							null
+								null,
+								null,
+								404,
+								"Not Found",
+								null,
+								null
 						)
 					}
 				} else {
@@ -313,7 +313,7 @@ class MainActivity : FragmentActivity() {
 					.flowWithLifecycle(lifecycle, Lifecycle.State.STARTED)
 					.collect { userInfos ->
 						if (userInfos.isEmpty()) {
-						Log.d(TAG, "invalidateAlarms")
+							Log.d(TAG, "invalidateAlarms")
 							commonNativeFacade.invalidateAlarms()
 						}
 					}
