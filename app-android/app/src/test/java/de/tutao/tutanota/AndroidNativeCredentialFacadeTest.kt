@@ -291,7 +291,7 @@ class AndroidNativeCredentialFacadeTest {
 
 	private fun sayHadCredentials(credentials: List<PersistedCredentialsEntity>) {
 		credentialsDao.stub {
-			on { allPersistedCredentials } doReturn credentials
+			on { allPersistedCredentials() } doReturn credentials
 		}
 	}
 }
