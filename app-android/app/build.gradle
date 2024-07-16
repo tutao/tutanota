@@ -20,6 +20,7 @@ android {
 		// https://issuetracker.google.com/issues/181593646
 		ksp {
 			arg("room.schemaLocation", "$projectDir/schemas".toString())
+			arg("room.generateKotlin", "true")
 		}
 		externalNativeBuild {
 			cmake {
@@ -138,8 +139,6 @@ dependencies {
 
 	implementation "de.tutao:tutasdk"
 
-	// Important: cannot be updated without additional measures as Android 6 and 7 do not have Java 9
-	//noinspection GradleDependency
 	implementation 'commons-io:commons-io:2.16.1'
 
 	implementation 'androidx.core:core-ktx:1.13.1'
@@ -156,7 +155,7 @@ dependencies {
 	}
 	implementation 'androidx.sqlite:sqlite-ktx:2.4.0'
 
-	implementation "androidx.room:room-runtime:$room_version"
+	implementation "androidx.room:room-ktx:$room_version"
 	ksp "androidx.room:room-compiler:$room_version"
 
 	if (file("../libs/android-database-sqlcipher-4.5.0.aar").exists()) {
@@ -167,7 +166,6 @@ dependencies {
 	implementation 'androidx.sqlite:sqlite-ktx:2.4.0'
 
 	implementation 'androidx.lifecycle:lifecycle-runtime-ktx:2.8.3'
-	implementation "androidx.lifecycle:lifecycle-livedata-ktx:$lifecycle_version"
 
 	implementation 'org.jetbrains.kotlinx:kotlinx-serialization-json:1.7.1'
 	implementation "org.jetbrains.kotlin:kotlin-stdlib:$kotlin_version"

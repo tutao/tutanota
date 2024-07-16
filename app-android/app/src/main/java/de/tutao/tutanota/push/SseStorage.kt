@@ -9,6 +9,7 @@ import de.tutao.tutanota.data.AppDatabase
 import de.tutao.tutanota.data.PushIdentifierKey
 import de.tutao.tutanota.data.User
 import de.tutao.tutanota.ipc.ExtendedNotificationMode
+import kotlinx.coroutines.flow.Flow
 import java.security.KeyStoreException
 import java.security.UnrecoverableEntryException
 import java.util.Date
@@ -54,12 +55,12 @@ class SseStorage(
 		return keyStoreFacade.decryptKey(userInfo.deviceEncPushIdentifierKey!!)
 	}
 
-	fun observeUsers(): LiveData<List<User>> {
+	fun observeUsers(): Flow<List<User>> {
 		return db.userInfoDao().observeUsers()
 	}
 
 	fun readAlarmNotifications(): List<AlarmNotificationEntity> {
-		return db.alarmInfoDao().alarmNotifications
+		return db.alarmInfoDao().alarmNotifications()
 	}
 
 	fun insertAlarmNotification(alarmNotification: AlarmNotificationEntity) {
@@ -109,7 +110,7 @@ class SseStorage(
 			?: DEFAULT_EXTENDED_NOTIFCATION_MODE
 	}
 
-	fun getUsers(): List<User> = db.userInfoDao().users
+	fun getUsers(): List<User> = db.userInfoDao().users()
 
 	companion object {
 		private const val LAST_PROCESSED_NOTIFICATION_ID = "lastProcessedNotificationId"

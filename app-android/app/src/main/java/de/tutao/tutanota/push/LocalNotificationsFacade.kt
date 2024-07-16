@@ -160,12 +160,6 @@ class LocalNotificationsFacade(private val context: Context, private val sseStor
 				Manifest.permission.POST_NOTIFICATIONS
 			) != PackageManager.PERMISSION_GRANTED
 		) {
-			// FIXME: Do we want to ask permission here?
-			// here to request the missing permissions, and then overriding
-			//   public void onRequestPermissionsResult(int requestCode, String[] permissions,
-			//                                          int[] grantResults)
-			// to handle the case where the user grants the permission. See the documentation
-			// for ActivityCompat#requestPermissions for more details.
 			return
 		}
 		notificationManager.notify(mailNotificationId("downloads"), notification)

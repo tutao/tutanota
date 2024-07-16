@@ -644,11 +644,9 @@ class MainActivity : FragmentActivity() {
 				mailToUrlString
 			)
 		} catch (e: RemoteExecutionException) {
-			val name = if (e.message != null) {
-				val element = Json.parseToJsonElement(e.message)
+			val name = e.message?.let { message ->
+				val element = Json.parseToJsonElement(message)
 				element.jsonObject["name"]?.jsonPrimitive?.content
-			} else {
-				null
 			}
 			Log.d(TAG, "failed to create a mail editor because of a ${name ?: "unknown error"}")
 		}
