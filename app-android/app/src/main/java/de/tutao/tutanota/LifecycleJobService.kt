@@ -25,4 +25,7 @@ abstract class LifecycleJobService : JobService(), LifecycleOwner {
 		lifecycleRegistry.handleLifecycleEvent(Lifecycle.Event.ON_DESTROY)
 		super.onDestroy()
 	}
+
+	override val lifecycle: Lifecycle
+		get() = lifecycleRegistry
 }

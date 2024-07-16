@@ -22,6 +22,7 @@ import de.tutao.tutanota.ipc.NativeCredentialsFacade
 import de.tutao.tutanota.push.SseClient.SseListener
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
+import kotlinx.coroutines.withContext
 import okhttp3.OkHttpClient
 import java.util.concurrent.TimeUnit
 
@@ -58,7 +59,7 @@ private enum class State {
  *
  * SSE has its own event loop, we are just listening for events here and mediating between it and SSE storage.
  */
-class PushNotificationService(override val lifecycle: Lifecycle) : LifecycleJobService() {
+class PushNotificationService : LifecycleJobService() {
 	@Volatile
 	private var jobParameters: JobParameters? = null
 	private lateinit var localNotificationsFacade: LocalNotificationsFacade
@@ -104,25 +105,27 @@ class PushNotificationService(override val lifecycle: Lifecycle) : LifecycleJobS
 			),
 			NetworkUtils.defaultClient
 		)
-		sseStorage.observeUsers().observeForever { userInfos ->
-			Log.d(TAG, "sse storage updated " + userInfos.size)
-			// Closing the connection sends RST packets over network and it triggers StrictMode
-			// violations so we dispatch it to another thread.
-			lifecycleScope.launch(Dispatchers.IO) {
-				val userIds = userInfos.mapTo(HashSet()) { it.userId }
+		lifecycleScope.launch {
+			sseStorage.observeUsers().collect { userInfos ->
+				Log.d(TAG, "sse storage updated " + userInfos.size)
+				// Closing the connection sends RST packets over network and it triggers StrictMode
+				// violations so we dispatch it to another thread.
+				withContext(Dispatchers.IO) {
+					val userIds = userInfos.mapTo(HashSet()) { it.userId }
 
-				if (userIds.isEmpty()) {
-					sseClient.stopConnection()
-					removeForegroundNotification()
-					finishJobIfNeeded()
-				} else {
-					sseClient.restartConnectionIfNeeded(
-						SseInfo(
-							sseStorage.getPushIdentifier()!!,
-							userIds,
-							sseStorage.getSseOrigin()!!
+					if (userIds.isEmpty()) {
+						sseClient.stopConnection()
+						removeForegroundNotification()
+						finishJobIfNeeded()
+					} else {
+						sseClient.restartConnectionIfNeeded(
+							SseInfo(
+								sseStorage.getPushIdentifier()!!,
+								userIds,
+								sseStorage.getSseOrigin()!!
+							)
 						)
-					)
+					}
 				}
 			}
 		}
@@ -131,6 +134,7 @@ class PushNotificationService(override val lifecycle: Lifecycle) : LifecycleJobS
 	}
 
 
+	@Suppress("DEPRECATION")
 	private fun removeForegroundNotification() {
 		Log.d(TAG, "removeForegroundNotification")
 		if (atLeastTiramisu()) {
