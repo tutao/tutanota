@@ -5,19 +5,37 @@ import android.content.Context
 import android.content.Intent
 import android.content.IntentFilter
 import android.net.ConnectivityManager
+import android.net.ConnectivityManager.NetworkCallback
+import android.net.Network
 import android.util.Log
+import androidx.core.content.getSystemService
 import androidx.lifecycle.DefaultLifecycleObserver
+import androidx.lifecycle.Lifecycle
 import androidx.lifecycle.LifecycleOwner
+import androidx.lifecycle.lifecycleScope
+import androidx.lifecycle.repeatOnLifecycle
+import kotlinx.coroutines.launch
 
 class NetworkObserver internal constructor(private val context: Context, lifecycleOwner: LifecycleOwner) :
-		BroadcastReceiver(), DefaultLifecycleObserver {
-	private val connectivityManager: ConnectivityManager =
-			context.getSystemService(Context.CONNECTIVITY_SERVICE) as ConnectivityManager
+	BroadcastReceiver(), DefaultLifecycleObserver {
+	private val connectivityManager: ConnectivityManager = context.getSystemService<ConnectivityManager>()!!
 	private var networkConnectivityListener: NetworkConnectivityListener? = null
+	private val networkObserverCallback = object : NetworkCallback() {
+		override fun onAvailable(network: Network) {
+			networkConnectivityListener?.onNetworkConnectivityChange(true)
+		}
+
+		override fun onLost(network: Network) {
+			networkConnectivityListener?.onNetworkConnectivityChange(false)
+		}
+	}
 
 	init {
-		context.registerReceiver(this, IntentFilter(ConnectivityManager.CONNECTIVITY_ACTION))
-		lifecycleOwner.lifecycle.addObserver(this)
+		lifecycleOwner.lifecycleScope.launch {
+			lifecycleOwner.lifecycle.repeatOnLifecycle(Lifecycle.State.CREATED) {
+				connectivityManager.registerDefaultNetworkCallback(networkObserverCallback)
+			}
+		}
 	}
 
 	override fun onReceive(context: Context, intent: Intent) {
@@ -33,8 +51,7 @@ class NetworkObserver internal constructor(private val context: Context, lifecyc
 	}
 
 	fun hasNetworkConnection(): Boolean {
-		val networkInfo = connectivityManager.activeNetworkInfo
-		return networkInfo != null && networkInfo.isConnectedOrConnecting
+		return connectivityManager.activeNetwork != null
 	}
 
 	fun setNetworkConnectivityListener(networkConnectivityListener: NetworkConnectivityListener) {
@@ -46,7 +63,7 @@ class NetworkObserver internal constructor(private val context: Context, lifecyc
 	}
 
 	override fun onDestroy(owner: LifecycleOwner) {
-		context.unregisterReceiver(this)
+		connectivityManager.unregisterNetworkCallback(this.networkObserverCallback)
 	}
 
 	companion object {

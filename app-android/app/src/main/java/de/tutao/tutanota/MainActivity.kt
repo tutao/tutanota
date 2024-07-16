@@ -31,6 +31,7 @@ import android.webkit.WebView
 import android.webkit.WebView.HitTestResult
 import android.webkit.WebViewClient
 import android.widget.Toast
+import androidx.activity.addCallback
 import androidx.annotation.MainThread
 import androidx.annotation.RequiresPermission
 import androidx.browser.customtabs.CustomTabsIntent
@@ -39,6 +40,8 @@ import androidx.core.splashscreen.SplashScreen.Companion.installSplashScreen
 import androidx.core.view.ViewCompat.setSystemGestureExclusionRects
 import androidx.core.view.doOnLayout
 import androidx.fragment.app.FragmentActivity
+import androidx.lifecycle.Lifecycle
+import androidx.lifecycle.flowWithLifecycle
 import androidx.lifecycle.lifecycleScope
 import de.tutao.tutanota.alarms.AlarmNotificationsManager
 import de.tutao.tutanota.alarms.SystemAlarmFacade
@@ -87,7 +90,6 @@ interface WebauthnHandler {
 }
 
 
-
 class MainActivity : FragmentActivity() {
 	lateinit var webView: WebView
 		private set
@@ -116,8 +118,8 @@ class MainActivity : FragmentActivity() {
 
 		val db = AppDatabase.getDatabase(this, false)
 		sseStorage = SseStorage(
-				db,
-				createAndroidKeyStoreFacade()
+			db,
+			createAndroidKeyStoreFacade()
 		)
 		val localNotificationsFacade = LocalNotificationsFacade(this, sseStorage)
 		val fileFacade =
@@ -283,6 +285,11 @@ class MainActivity : FragmentActivity() {
 
 		setContentView(webView)
 
+		// Set callback for back press
+		onBackPressedDispatcher.addCallback(this) {
+			onBackPressedCallback()
+		}
+
 		lifecycleScope.launch {
 			val queryParameters = mutableMapOf<String, String>()
 			// If opened from notifications, tell Web app to not login automatically, we will pass
@@ -291,15 +298,18 @@ class MainActivity : FragmentActivity() {
 				queryParameters["noAutoLogin"] = "true"
 			}
 
-			webView.post { // use webView.post to switch to main thread again to be able to observe sseStorage
-				sseStorage.observeUsers().observe(this@MainActivity) { userInfos ->
-					if (userInfos!!.isEmpty()) {
-						Log.d(TAG, "invalidateAlarms")
-						lifecycleScope.launchWhenCreated {
+
+			// Start observing SSE users in the background.
+			// If there are no users we need to tell web part to invalidate alarms.
+			launch {
+				sseStorage.observeUsers()
+					.flowWithLifecycle(lifecycle, Lifecycle.State.STARTED)
+					.collect { userInfos ->
+						if (userInfos.isEmpty()) {
+							Log.d(TAG, "invalidateAlarms")
 							commonNativeFacade.invalidateAlarms()
 						}
 					}
-				}
 			}
 
 			startWebApp(queryParameters)
@@ -375,7 +385,7 @@ class MainActivity : FragmentActivity() {
 	override fun onStart() {
 		super.onStart()
 		Log.d(TAG, "onStart")
-		lifecycleScope.launchWhenCreated {
+		lifecycleScope.launch {
 			mobileFacade.visibilityChange(true)
 		}
 	}
@@ -421,35 +431,35 @@ class MainActivity : FragmentActivity() {
 		handleIntent(intent)
 	}
 
-	private fun handleIntent(intent: Intent) = lifecycleScope.launchWhenCreated {
-		// When we redirect to the app from outside, for example after doing payment verification,
-		// we don't want to do any kind of intent handling
-		val data = intent.data
+	private fun handleIntent(intent: Intent) = lifecycleScope.launch {
+			// When we redirect to the app from outside, for example after doing payment verification,
+			// we don't want to do any kind of intent handling
+			val data = intent.data
 
-		if (data != null && data.scheme == "tutanota" && data.host == "webauthn") {
-			handleWebauthn(intent, data)
-		}
+			if (data != null && data.scheme == "tutanota" && data.host == "webauthn") {
+				handleWebauthn(intent, data)
+			}
 
-		if (data != null && data.toString().startsWith("tutanota://")) {
-			return@launchWhenCreated
-		}
+			if (data != null && data.toString().startsWith("tutanota://")) {
+				return@launch
+			}
 
-		if (intent.action != null && !intent.getBooleanExtra(ALREADY_HANDLED_INTENT, false)) {
-			when (intent.action) {
-				Intent.ACTION_SEND, Intent.ACTION_SEND_MULTIPLE, Intent.ACTION_SENDTO -> share(
+			if (intent.action != null && !intent.getBooleanExtra(ALREADY_HANDLED_INTENT, false)) {
+				when (intent.action) {
+					Intent.ACTION_SEND, Intent.ACTION_SEND_MULTIPLE, Intent.ACTION_SENDTO -> share(
 						intent
-				)
+					)
 
-				OPEN_USER_MAILBOX_ACTION -> openMailbox(intent)
-				OPEN_CALENDAR_ACTION -> openCalendar(intent)
-				Intent.ACTION_VIEW -> {
-					when (intent.scheme) {
-						"mailto" -> share(intent)
-						"file" -> view(intent)
-						"content" -> view(intent)
+					OPEN_USER_MAILBOX_ACTION -> openMailbox(intent)
+					OPEN_CALENDAR_ACTION -> openCalendar(intent)
+					Intent.ACTION_VIEW -> {
+						when (intent.scheme) {
+							"mailto" -> share(intent)
+							"file" -> view(intent)
+							"content" -> view(intent)
+						}
 					}
 				}
-			}
 		}
 	}
 
@@ -552,7 +562,6 @@ class MainActivity : FragmentActivity() {
 				}
 			}
 
-	@Deprecated("Deprecated in Java")
 	override fun onActivityResult(requestCode: Int, resultCode: Int, data: Intent?) {
 		super.onActivityResult(requestCode, resultCode, data)
 		val continuation = activityRequests.remove(requestCode)
@@ -642,11 +651,9 @@ class MainActivity : FragmentActivity() {
 					mailToUrlString
 			)
 		} catch (e: RemoteExecutionException) {
-			val name = if (e.message != null) {
-				val element = Json.parseToJsonElement(e.message!!)
+			val name = e.message?.let { message ->
+				val element = Json.parseToJsonElement(message)
 				element.jsonObject["name"]?.jsonPrimitive?.content
-			} else {
-				null
 			}
 			Log.d(TAG, "failed to create a mail editor because of a ${name ?: "unknown error"}")
 		}
@@ -715,13 +722,9 @@ class MainActivity : FragmentActivity() {
 		commonNativeFacade.openCalendar(userId)
 	}
 
-	// this still works, but there's onBackPressedDispatcher.addCallback
-	// it should work on all API levels we support:
-	// https://stackoverflow.com/questions/72634225/onbackpressed-is-deprecated-what-is-the-alternative
-	@Deprecated("Deprecated in Java")
-	override fun onBackPressed() {
+	private fun onBackPressedCallback() {
 		if (commonSystemFacade.initialized) {
-			lifecycleScope.launchWhenCreated {
+			lifecycleScope.launch {
 				val result = mobileFacade.handleBackPress()
 				try {
 					if (!result) {

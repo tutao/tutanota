@@ -29,7 +29,6 @@ class IdTuple(
 ) {
 
 	@OptIn(ExperimentalSerializationApi::class)
-	@Serializer(forClass = IdTuple::class)
 	companion object IdTupleSerializer : KSerializer<IdTuple> {
 		override val descriptor: SerialDescriptor = listSerialDescriptor<String>()
 
