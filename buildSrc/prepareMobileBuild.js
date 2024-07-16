@@ -11,11 +11,11 @@ if (process.argv[1] === fileURLToPath(import.meta.url)) {
 /**
  * Removes source maps, icons, HTML files which are not needed for mobile apps.
  */
-export async function prepareMobileBuild(buildType) {
+export async function prepareMobileBuild(buildType, app) {
 	console.log("prepare mobile build for build type", buildType)
 	let prefix
 	if (["dist", "make"].includes(buildType)) {
-		prefix = "build/"
+		prefix = app === "mail" ? "build/" : "build-calendar-app/"
 	} else {
 		throw new Error("Unknown build type " + buildType)
 	}

@@ -58,7 +58,7 @@ android {
 
 	buildTypes {
 		debug {
-			resValue("string", "package_name", "de.tutao.tutanota.debug")
+			resValue("string", "package_name", "de.tutao.calendar.debug")
 			manifestPlaceholders.clear()
 			manifestPlaceholders["contentProviderAuthority"] = "de.tutao.fileprovider.debug"
 			applicationIdSuffix = ".debug"
@@ -66,7 +66,7 @@ android {
 		}
 		release {
 			isMinifyEnabled = true
-			resValue("string", "package_name", "de.tutao.tutanota")
+			resValue("string", "package_name", "de.tutao.calendar")
 			setProguardFiles(listOf(getDefaultProguardFile("proguard-android.txt"), "proguard-rules.pro"))
 			manifestPlaceholders["contentProviderAuthority"] = "de.tutao.fileprovider"
 
@@ -74,7 +74,7 @@ android {
 		create("releaseTest") {
 			initWith(getByName("release"))
 			isMinifyEnabled = true
-			resValue("string", "package_name", "de.tutao.tutanota.test")
+			resValue("string", "package_name", "de.tutao.calendar.test")
 			setProguardFiles(listOf(getDefaultProguardFile("proguard-android.txt"), "proguard-rules.pro"))
 			manifestPlaceholders["contentProviderAuthority"] = "de.tutao.fileprovider.test"
 			applicationIdSuffix = ".test"
@@ -89,7 +89,7 @@ android {
 		val variant = this
 		variant.outputs.configureEach {
 			val flavor = variant.productFlavors[0].name
-			this.outputFile.renameTo(File(this.outputFile.toPath().parent.toString() + "tutanota-$flavor-${variant.buildType.name}-${variant.versionName}.apk"))
+			(this as com.android.build.gradle.internal.api.BaseVariantOutputImpl).outputFileName = "tutanota-calendar-$flavor-${variant.buildType.name}-${variant.versionName}.apk"
 		}
 	}
 
