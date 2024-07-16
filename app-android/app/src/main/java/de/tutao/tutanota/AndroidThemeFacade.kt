@@ -15,7 +15,7 @@ import de.tutao.tutashared.parseColor
 import de.tutao.tutashared.toMap
 import org.json.JSONException
 import org.json.JSONObject
-import java.util.Objects
+import java.util.*
 
 typealias Theme = Map<String, String>
 typealias ThemeId = String
@@ -117,18 +117,28 @@ class AndroidThemeFacade(
 
 		val windowInsetController = WindowInsetsControllerCompat(activity.window, activity.window.decorView)
 
-		windowInsetController.isAppearanceLightNavigationBars = isNavBarLight
+		if (isNavBarLight) {
+			windowInsetController.isAppearanceLightNavigationBars = true
+		}
 
 		val headerBg = getColor(theme, "navigation_bg")
 		@ColorInt val statusBarColor = parseColor(headerBg)
 		val isStatusBarLight = headerBg.isLightHexColor()
 
+		// Changing status bar color
+		// Before Android M there was no flag to use lightStatusBar (so that text is white or
+		// black). As our primary color is red, Android thinks that the status bar color text
+		// should be white. So we cannot use white status bar color.
+		// So for Android M and above we alternate between white and dark status bar colors and
+		// we change lightStatusBar flag accordingly.
 		activity.window.statusBarColor = statusBarColor
-		windowInsetController.isAppearanceLightStatusBars = isStatusBarLight
+		if (isStatusBarLight) {
+			windowInsetController.isAppearanceLightStatusBars = true
+		}
 	}
 
 	private fun getColor(theme: Map<String, String>, key: String): String =
-		theme[key] ?: LIGHT_FALLBACK_THEME[key] ?: "#FFFFFF"
+			theme[key] ?: LIGHT_FALLBACK_THEME[key] ?: "#FFFFFF"
 
 	override suspend fun getThemes(): List<Map<String, String>> {
 		return this.themes
