@@ -69,6 +69,7 @@ import { CalendarEventModel, CalendarOperation } from "../../../calendar-app/cal
 import { CalendarEventPreviewViewModel } from "../../../calendar-app/calendar/gui/eventpopup/CalendarEventPreviewViewModel.js"
 import { RecipientsModel } from "./RecipientsModel.js"
 import { ThemeController } from "../../gui/ThemeController.js"
+import { CalendarSearchModel } from "../../../calendar-app/calendar/search/model/CalendarSearchModel.js"
 
 export interface CommonLocator {
 	worker: WorkerClient
@@ -81,7 +82,7 @@ export interface CommonLocator {
 	secondFactorHandler: SecondFactorHandler
 	loginListener: PageContextLoginListener
 	newsModel: NewsModel
-	search: SearchModel
+	search: SearchModel | CalendarSearchModel
 	infoMessageHandler: InfoMessageHandler
 	desktopSettingsFacade: SettingsFacade
 	desktopSystemFacade: DesktopSystemFacade

@@ -47,6 +47,7 @@ import { CustomerInfo } from "../../common/api/entities/sys/TypeRefs.js"
 import { EntityUpdateData, isUpdateForTypeRef } from "../../common/api/common/utils/EntityUpdateUtils.js"
 import { getDefaultSenderFromUser, getFolderName, getMailAddressDisplayText } from "../../common/mailFunctionality/CommonMailUtils.js"
 import { UpdatableSettingsViewer } from "../../common/settings/Interfaces.js"
+import { mailLocator } from "../mailLocator.js"
 
 assertMainOrNode()
 
@@ -69,34 +70,34 @@ export class MailSettingsViewer implements UpdatableSettingsViewer {
 	private mailAddressTableModel: MailAddressTableModel | null = null
 	private mailAddressTableExpanded: boolean
 
-	private offlineStorageSettings = new OfflineStorageSettingsModel(locator.logins.getUserController(), deviceConfig)
+	private offlineStorageSettings = new OfflineStorageSettingsModel(mailLocator.logins.getUserController(), deviceConfig)
 
 	constructor() {
-		this._defaultSender = getDefaultSenderFromUser(locator.logins.getUserController())
-		this._signature = stream(getSignatureType(locator.logins.getUserController().props).name)
+		this._defaultSender = getDefaultSenderFromUser(mailLocator.logins.getUserController())
+		this._signature = stream(getSignatureType(mailLocator.logins.getUserController().props).name)
 		this._reportMovedMails = getReportMovedMailsType(null) // loaded later
 
-		this._defaultUnconfidential = locator.logins.getUserController().props.defaultUnconfidential
-		this._sendPlaintext = locator.logins.getUserController().props.sendPlaintextOnly
-		this._noAutomaticContacts = locator.logins.getUserController().props.noAutomaticContacts
-		this._enableMailIndexing = locator.search.indexState().mailIndexEnabled
+		this._defaultUnconfidential = mailLocator.logins.getUserController().props.defaultUnconfidential
+		this._sendPlaintext = mailLocator.logins.getUserController().props.sendPlaintextOnly
+		this._noAutomaticContacts = mailLocator.logins.getUserController().props.noAutomaticContacts
+		this._enableMailIndexing = mailLocator.search.indexState().mailIndexEnabled
 		this._inboxRulesExpanded = stream<boolean>(false)
 		this.mailAddressTableExpanded = false
 		this._inboxRulesTableLines = stream<Array<TableLineAttrs>>([])
 		this._outOfOfficeStatus = stream(lang.get("deactivated_label"))
 		this._indexStateWatch = null
 		// normally we would maybe like to get it as an argument but these viewers are created in an odd way
-		locator.mailAddressTableModelForOwnMailbox().then((model) => {
+		mailLocator.mailAddressTableModelForOwnMailbox().then((model) => {
 			this.mailAddressTableModel = model
 			m.redraw()
 		})
 		m.redraw()
 
-		this._updateInboxRules(locator.logins.getUserController().props)
+		this._updateInboxRules(mailLocator.logins.getUserController().props)
 
 		this._mailboxProperties = new LazyLoaded(async () => {
 			const mailboxGroupRoot = await this.getMailboxGroupRoot()
-			return locator.mailModel.getMailboxProperties(mailboxGroupRoot)
+			return mailLocator.mailModel.getMailboxProperties(mailboxGroupRoot)
 		})
 
 		this._updateMailboxPropertiesSettings()
@@ -112,19 +113,19 @@ export class MailSettingsViewer implements UpdatableSettingsViewer {
 	}
 
 	async oninit(): Promise<void> {
-		this.customerInfo = await locator.logins.getUserController().loadCustomerInfo()
+		this.customerInfo = await mailLocator.logins.getUserController().loadCustomerInfo()
 		this.updateStorageField(this.customerInfo).then(() => m.redraw())
 	}
 
 	private async getMailboxGroupRoot(): Promise<MailboxGroupRoot> {
 		// For now we assume user mailbox, in the future we should specify which mailbox we are configuring
-		const { mailboxGroupRoot } = await locator.mailModel.getUserMailboxDetails()
+		const { mailboxGroupRoot } = await mailLocator.mailModel.getUserMailboxDetails()
 		return mailboxGroupRoot
 	}
 
 	private async updateStorageField(customerInfo: CustomerInfo): Promise<void> {
-		const user = locator.logins.getUserController().user
-		const usedStorage = formatStorageSize(Number(await locator.userManagementFacade.readUsedUserStorage(user)))
+		const user = mailLocator.logins.getUserController().user
+		const usedStorage = formatStorageSize(Number(await mailLocator.userManagementFacade.readUsedUserStorage(user)))
 		const totalStorage = formatStorageSize(Number(customerInfo.perUserStorageCapacity) * Const.MEMORY_GB_FACTOR)
 		this._storageFieldValue(
 			lang.get("amountUsedOf_label", {
@@ -135,10 +136,10 @@ export class MailSettingsViewer implements UpdatableSettingsViewer {
 	}
 
 	view(): Children {
-		this._defaultSender = getDefaultSenderFromUser(locator.logins.getUserController())
+		this._defaultSender = getDefaultSenderFromUser(mailLocator.logins.getUserController())
 		const defaultSenderAttrs: DropDownSelectorAttrs<string> = {
 			label: "defaultSenderMailAddress_label",
-			items: getEnabledMailAddressesForGroupInfo(locator.logins.getUserController().userGroupInfo)
+			items: getEnabledMailAddressesForGroupInfo(mailLocator.logins.getUserController().userGroupInfo)
 				.sort()
 				.map((a) => ({
 					name: a,
@@ -151,8 +152,8 @@ export class MailSettingsViewer implements UpdatableSettingsViewer {
 				false,
 			),
 			selectionChangedHandler: (defaultSenderAddress) => {
-				locator.logins.getUserController().props.defaultSender = defaultSenderAddress
-				locator.entityClient.update(locator.logins.getUserController().props)
+				mailLocator.logins.getUserController().props.defaultSender = defaultSenderAddress
+				mailLocator.entityClient.update(mailLocator.logins.getUserController().props)
 			},
 			helpLabel: () => lang.get("defaultSenderMailAddressInfo_msg"),
 			dropdownWidth: 300,
@@ -160,7 +161,7 @@ export class MailSettingsViewer implements UpdatableSettingsViewer {
 
 		const changeSignatureButtonAttrs: IconButtonAttrs = {
 			title: "userEmailSignature_label",
-			click: () => showEditSignatureDialog(locator.logins.getUserController().props),
+			click: () => showEditSignatureDialog(mailLocator.logins.getUserController().props),
 			icon: Icons.Edit,
 			size: ButtonSize.Compact,
 		}
@@ -203,8 +204,8 @@ export class MailSettingsViewer implements UpdatableSettingsViewer {
 			],
 			selectedValue: this._defaultUnconfidential,
 			selectionChangedHandler: (v) => {
-				locator.logins.getUserController().props.defaultUnconfidential = v
-				locator.entityClient.update(locator.logins.getUserController().props)
+				mailLocator.logins.getUserController().props.defaultUnconfidential = v
+				mailLocator.entityClient.update(mailLocator.logins.getUserController().props)
 			},
 			helpLabel: () => lang.get("defaultExternalDeliveryInfo_msg"),
 			dropdownWidth: 250,
@@ -224,8 +225,8 @@ export class MailSettingsViewer implements UpdatableSettingsViewer {
 			],
 			selectedValue: this._sendPlaintext,
 			selectionChangedHandler: (v) => {
-				locator.logins.getUserController().props.sendPlaintextOnly = v
-				locator.entityClient.update(locator.logins.getUserController().props)
+				mailLocator.logins.getUserController().props.sendPlaintextOnly = v
+				mailLocator.entityClient.update(mailLocator.logins.getUserController().props)
 			},
 			dropdownWidth: 250,
 		}
@@ -245,13 +246,13 @@ export class MailSettingsViewer implements UpdatableSettingsViewer {
 			selectedValue: this._enableMailIndexing,
 			selectionChangedHandler: (mailIndexEnabled) => {
 				if (mailIndexEnabled) {
-					showProgressDialog("pleaseWait_msg", locator.indexerFacade.enableMailIndexing()).catch(
+					showProgressDialog("pleaseWait_msg", mailLocator.indexerFacade.enableMailIndexing()).catch(
 						ofClass(IndexingNotSupportedError, () => {
 							Dialog.message(isApp() ? "searchDisabledApp_msg" : "searchDisabled_msg")
 						}),
 					)
 				} else {
-					showProgressDialog("pleaseWait_msg", locator.indexerFacade.disableMailIndexing())
+					showProgressDialog("pleaseWait_msg", mailLocator.indexerFacade.disableMailIndexing())
 				}
 			},
 			dropdownWidth: 250,
@@ -281,7 +282,7 @@ export class MailSettingsViewer implements UpdatableSettingsViewer {
 		const templateRule = createInboxRuleTemplate(InboxRuleType.RECIPIENT_TO_EQUALS, "")
 		const addInboxRuleButtonAttrs: IconButtonAttrs = {
 			title: "addInboxRule_action",
-			click: () => locator.mailModel.getUserMailboxDetails().then((mailboxDetails) => AddInboxRuleDialog.show(mailboxDetails, templateRule)),
+			click: () => mailLocator.mailModel.getUserMailboxDetails().then((mailboxDetails) => AddInboxRuleDialog.show(mailboxDetails, templateRule)),
 			icon: Icons.Add,
 			size: ButtonSize.Compact,
 		}
@@ -312,7 +313,7 @@ export class MailSettingsViewer implements UpdatableSettingsViewer {
 				{
 					role: "group",
 					oncreate: () => {
-						this._indexStateWatch = locator.search.indexState.map((newValue) => {
+						this._indexStateWatch = mailLocator.search.indexState.map((newValue) => {
 							this._enableMailIndexing = newValue.mailIndexEnabled
 
 							m.redraw()
@@ -343,8 +344,8 @@ export class MailSettingsViewer implements UpdatableSettingsViewer {
 					m(".h4.mt-l", lang.get("emailSending_label")),
 					m(DropDownSelector, defaultSenderAttrs),
 					m(TextField, signatureAttrs),
-					locator.logins.isEnabled(FeatureType.InternalCommunication) ? null : m(DropDownSelector, defaultUnconfidentialAttrs),
-					locator.logins.isEnabled(FeatureType.InternalCommunication) ? null : m(DropDownSelector, sendPlaintextAttrs),
+					mailLocator.logins.isEnabled(FeatureType.InternalCommunication) ? null : m(DropDownSelector, defaultUnconfidentialAttrs),
+					mailLocator.logins.isEnabled(FeatureType.InternalCommunication) ? null : m(DropDownSelector, sendPlaintextAttrs),
 					m(DropDownSelector, reportMovedMailsAttrs),
 					m(TextField, outOfOfficeAttrs),
 					this.renderLocalDataSection(),
@@ -355,7 +356,7 @@ export class MailSettingsViewer implements UpdatableSettingsViewer {
 								onExpanded: (newExpanded) => (this.mailAddressTableExpanded = newExpanded),
 						  })
 						: null,
-					locator.logins.isEnabled(FeatureType.InternalCommunication)
+					mailLocator.logins.isEnabled(FeatureType.InternalCommunication)
 						? null
 						: [
 								m(".flex-space-between.items-center.mt-l.mb-s", [
@@ -376,7 +377,7 @@ export class MailSettingsViewer implements UpdatableSettingsViewer {
 								m(
 									".small",
 									lang.get("nbrOfInboxRules_msg", {
-										"{1}": locator.logins.getUserController().props.inboxRules.length,
+										"{1}": mailLocator.logins.getUserController().props.inboxRules.length,
 									}),
 								),
 						  ],
@@ -411,7 +412,7 @@ export class MailSettingsViewer implements UpdatableSettingsViewer {
 	}
 
 	private async onEditStoredDataTimeRangeClicked() {
-		if (locator.logins.getUserController().isFreeAccount()) {
+		if (mailLocator.logins.getUserController().isFreeAccount()) {
 			showNotAvailableForFreeDialog()
 		} else {
 			await showEditStoredDataTimeRangeDialog(this.offlineStorageSettings)
@@ -442,7 +443,7 @@ export class MailSettingsViewer implements UpdatableSettingsViewer {
 	}
 
 	_updateInboxRules(props: TutanotaProperties): void {
-		locator.mailModel.getUserMailboxDetails().then((mailboxDetails) => {
+		mailLocator.mailModel.getUserMailboxDetails().then((mailboxDetails) => {
 			this._inboxRulesTableLines(
 				props.inboxRules.map((rule, index) => {
 					return {
@@ -450,7 +451,7 @@ export class MailSettingsViewer implements UpdatableSettingsViewer {
 						actionButtonAttrs: createRowActions(
 							{
 								getArray: () => props.inboxRules,
-								updateInstance: () => locator.entityClient.update(props).catch(ofClass(LockedError, noOp)),
+								updateInstance: () => mailLocator.entityClient.update(props).catch(ofClass(LockedError, noOp)),
 							},
 							rule,
 							index,
@@ -491,11 +492,11 @@ export class MailSettingsViewer implements UpdatableSettingsViewer {
 		for (const update of updates) {
 			const { operation } = update
 			if (isUpdateForTypeRef(TutanotaPropertiesTypeRef, update) && operation === OperationType.UPDATE) {
-				const props = await locator.entityClient.load(TutanotaPropertiesTypeRef, locator.logins.getUserController().props._id)
+				const props = await mailLocator.entityClient.load(TutanotaPropertiesTypeRef, mailLocator.logins.getUserController().props._id)
 				this._updateTutanotaPropertiesSettings(props)
 				this._updateInboxRules(props)
 			} else if (isUpdateForTypeRef(MailFolderTypeRef, update)) {
-				this._updateInboxRules(locator.logins.getUserController().props)
+				this._updateInboxRules(mailLocator.logins.getUserController().props)
 			} else if (isUpdateForTypeRef(OutOfOfficeNotificationTypeRef, update)) {
 				this._outOfOfficeNotification.reload().then(() => this._updateOutOfOfficeNotification())
 			} else if (isUpdateForTypeRef(MailboxPropertiesTypeRef, update)) {
@@ -526,7 +527,7 @@ export class MailSettingsViewer implements UpdatableSettingsViewer {
 			selectedValue: this._reportMovedMails,
 			selectionChangedHandler: async (reportMovedMails) => {
 				const mailboxGroupRoot = await this.getMailboxGroupRoot()
-				await locator.mailModel.saveReportMovedMails(mailboxGroupRoot, reportMovedMails)
+				await mailLocator.mailModel.saveReportMovedMails(mailboxGroupRoot, reportMovedMails)
 			},
 			dropdownWidth: 250,
 		}

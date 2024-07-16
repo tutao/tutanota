@@ -32,6 +32,7 @@ import { generateCalendarInstancesInRange } from "../../common/calendar/date/Cal
 import { ListElementEntity } from "../../common/api/common/EntityTypes.js"
 
 import { loadMultipleFromLists } from "../../common/api/common/EntityClient.js"
+import { mailLocator } from "../mailLocator.js"
 
 assertMainOrNode()
 export type ShowMoreAction = {
@@ -60,7 +61,7 @@ export type SearchBarState = {
 // create our own copy which is not perfect because we don't benefit from the shared cache but currently there's no way to get async dependencies into
 // singletons like this (without top-level await at least)
 // once SearchBar is rewritten this should be removed
-const searchRouter = new SearchRouter(locator.throttledRouter())
+const searchRouter = new SearchRouter(mailLocator.throttledRouter())
 
 export class SearchBar implements Component<SearchBarAttrs> {
 	focused: boolean = false
@@ -80,7 +81,7 @@ export class SearchBar implements Component<SearchBarAttrs> {
 		this.state = stream<SearchBarState>({
 			query: "",
 			searchResult: null,
-			indexState: locator.search.indexState(),
+			indexState: mailLocator.search.indexState(),
 			entities: [] as Entries,
 			selected: null,
 		})
@@ -105,7 +106,7 @@ export class SearchBar implements Component<SearchBarAttrs> {
 	 * that shouldn't clear our current state, but if the URL changed in a way that makes the previous state outdated, we clear it.
 	 */
 	private readonly onPathChange = memoized((newPath: string) => {
-		if (locator.search.isNewSearch(this.state().query, getRestriction(newPath))) {
+		if (mailLocator.search.isNewSearch(this.state().query, getRestriction(newPath))) {
 			this.updateState({
 				searchResult: null,
 				selected: null,
@@ -201,7 +202,7 @@ export class SearchBar implements Component<SearchBarAttrs> {
 
 	oncreate() {
 		keyManager.registerShortcuts(this.shortcuts)
-		this.indexStateStream = locator.search.indexState.map((indexState) => {
+		this.indexStateStream = mailLocator.search.indexState.map((indexState) => {
 			// When we finished indexing, search again forcibly to not confuse anyone with old results
 			const currentResult = this.state().searchResult
 
@@ -222,7 +223,7 @@ export class SearchBar implements Component<SearchBarAttrs> {
 		})
 
 		this.stateStream = this.state.map((state) => m.redraw())
-		this.lastQueryStream = locator.search.lastQueryString.map((value) => {
+		this.lastQueryStream = mailLocator.search.lastQueryString.map((value) => {
 			// Set value from the model when it's set from the URL e.g. reloading the page on the search screen
 			if (value) {
 				this.updateState({
@@ -374,13 +375,13 @@ export class SearchBar implements Component<SearchBarAttrs> {
 
 		let restriction = this.getRestriction()
 
-		if (!locator.search.indexState().mailIndexEnabled && restriction && isSameTypeRef(restriction.type, MailTypeRef) && !this.confirmDialogShown) {
+		if (!mailLocator.search.indexState().mailIndexEnabled && restriction && isSameTypeRef(restriction.type, MailTypeRef) && !this.confirmDialogShown) {
 			this.focused = false
 			this.confirmDialogShown = true
 			Dialog.confirm("enableSearchMailbox_msg", "search_label")
 				.then((confirmed) => {
 					if (confirmed) {
-						locator.indexerFacade
+						mailLocator.indexerFacade
 							.enableMailIndexing()
 							.then(() => {
 								this.search()
@@ -396,12 +397,12 @@ export class SearchBar implements Component<SearchBarAttrs> {
 				.finally(() => (this.confirmDialogShown = false))
 		} else {
 			// Skip the search if the user is trying to bypass the search dialog
-			if (!locator.search.indexState().mailIndexEnabled && isSameTypeRef(restriction.type, MailTypeRef)) {
+			if (!mailLocator.search.indexState().mailIndexEnabled && isSameTypeRef(restriction.type, MailTypeRef)) {
 				return
 			}
 
-			if (!locator.search.isNewSearch(query, restriction) && oldQuery === query) {
-				const result = locator.search.result()
+			if (!mailLocator.search.isNewSearch(query, restriction) && oldQuery === query) {
+				const result = mailLocator.search.result()
 
 				if (this.isQuickSearch() && result) {
 					this.showResultsInOverlay(result)
@@ -433,7 +434,7 @@ export class SearchBar implements Component<SearchBarAttrs> {
 		// We don't limit contacts because we need to download all of them to sort them. They should be cached anyway.
 		const limit = isSameTypeRef(MailTypeRef, restriction.type) ? (this.isQuickSearch() ? MAX_SEARCH_PREVIEW_RESULTS : PageSize) : null
 
-		locator.search
+		mailLocator.search
 			.search(
 				{
 					query: query ?? "",
@@ -441,7 +442,7 @@ export class SearchBar implements Component<SearchBarAttrs> {
 					minSuggestionCount: useSuggestions ? 10 : 0,
 					maxResults: limit,
 				},
-				locator.progressTracker,
+				mailLocator.progressTracker,
 			)
 			.then((result) => this.loadAndDisplayResult(query, result ? result : null, limit))
 			.finally(() => cb())
@@ -456,14 +457,14 @@ export class SearchBar implements Component<SearchBarAttrs> {
 			searchResult: safeResult,
 		})
 
-		if (!safeResult || locator.search.isNewSearch(query, safeResult.restriction)) {
+		if (!safeResult || mailLocator.search.isNewSearch(query, safeResult.restriction)) {
 			return
 		}
 
 		if (this.isQuickSearch()) {
 			if (safeLimit && hasMoreResults(safeResult) && safeResult.results.length < safeLimit) {
-				locator.searchFacade.getMoreSearchResults(safeResult, safeLimit - safeResult.results.length).then((moreResults) => {
-					if (locator.search.isNewSearch(query, moreResults.restriction)) {
+				mailLocator.searchFacade.getMoreSearchResults(safeResult, safeLimit - safeResult.results.length).then((moreResults) => {
+					if (mailLocator.search.isNewSearch(query, moreResults.restriction)) {
 						return
 					} else {
 						this.loadAndDisplayResult(query, moreResults, limit)
@@ -483,7 +484,7 @@ export class SearchBar implements Component<SearchBarAttrs> {
 			// this needs to happen in this order, otherwise the list's result subscription will override our
 			// routing.
 			this.updateSearchUrl("")
-			locator.search.result(null)
+			mailLocator.search.result(null)
 		}
 
 		this.updateState({
@@ -495,9 +496,9 @@ export class SearchBar implements Component<SearchBarAttrs> {
 	}
 
 	private async showResultsInOverlay(result: SearchResult): Promise<void> {
-		const entries = await loadMultipleFromLists(result.restriction.type, locator.entityClient, result.results)
+		const entries = await loadMultipleFromLists(result.restriction.type, mailLocator.entityClient, result.results)
 		// If there was no new search while we've been downloading the result
-		if (!locator.search.isNewSearch(result.query, result.restriction)) {
+		if (!mailLocator.search.isNewSearch(result.query, result.restriction)) {
 			const { filteredEntries, couldShowMore } = this.filterResults(entries, result.restriction)
 
 			if (
@@ -546,7 +547,7 @@ export class SearchBar implements Component<SearchBarAttrs> {
 	}
 
 	private onFocus() {
-		if (!locator.search.indexingSupported) {
+		if (!mailLocator.search.indexingSupported) {
 			Dialog.message(isApp() ? "searchDisabledApp_msg" : "searchDisabled_msg")
 		} else if (!this.focused) {
 			this.focused = true
