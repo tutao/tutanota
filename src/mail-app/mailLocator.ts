@@ -273,8 +273,8 @@ class MailLocator {
 	readonly mailOpenedListener: MailOpenedListener = {
 		onEmailOpened: isDesktop()
 			? (mail) => {
-				this.desktopSystemFacade.sendSocketMessage(getDisplayedSender(mail).address)
-			}
+					this.desktopSystemFacade.sendSocketMessage(getDisplayedSender(mail).address)
+			  }
 			: noOp,
 	}
 
@@ -554,7 +554,7 @@ class MailLocator {
 			const domainConfig = isBrowser()
 				? mailLocator.domainConfigProvider().getDomainConfigForHostname(location.hostname, location.protocol, location.port)
 				: // in this case, we know that we have a staticUrl set that we need to use
-				mailLocator.domainConfigProvider().getCurrentDomainConfig()
+				  mailLocator.domainConfigProvider().getCurrentDomainConfig()
 
 			return new LoginViewModel(
 				mailLocator.logins,

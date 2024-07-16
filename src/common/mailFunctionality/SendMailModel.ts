@@ -8,13 +8,16 @@ import {
 	FileTypeRef,
 	Mail,
 	File,
-	MailboxProperties, MailboxPropertiesTypeRef,
-	MailTypeRef
+	MailboxProperties,
+	MailboxPropertiesTypeRef,
+	MailTypeRef,
 } from "../api/entities/tutanota/TypeRefs.js"
 import { ApprovalStatus, ConversationType, MailFolderType, MailMethod, MAX_ATTACHMENT_SIZE, OperationType, ReplyType } from "../api/common/TutanotaConstants.js"
 import { PartialRecipient, Recipient, RecipientList, Recipients, RecipientType } from "../api/common/recipients/Recipient.js"
 import {
-	assertNotNull, cleanMatch, deduplicate,
+	assertNotNull,
+	cleanMatch,
+	deduplicate,
 	defer,
 	DeferredObject,
 	downcast,
@@ -25,7 +28,8 @@ import {
 	noOp,
 	ofClass,
 	promiseMap,
-	remove, typedValues
+	remove,
+	typedValues,
 } from "@tutao/tutanota-utils"
 import Stream from "mithril/stream"
 import stream from "mithril/stream"
@@ -47,11 +51,12 @@ import { cleanMailAddress, findRecipientWithAddress } from "../api/common/utils/
 import { getPasswordStrengthForUser, isSecurePassword, PASSWORD_MIN_SECURE_VALUE } from "../misc/passwords/PasswordUtils.js"
 import {
 	AccessBlockedError,
-	LockedError, NotAuthorizedError,
+	LockedError,
+	NotAuthorizedError,
 	NotFoundError,
 	PayloadTooLargeError,
 	PreconditionFailedError,
-	TooManyRequestsError
+	TooManyRequestsError,
 } from "../api/common/error/RestError.js"
 import { isLegacyMail, MailWrapper } from "../api/common/MailWrapper.js"
 import { ProgrammingError } from "../api/common/error/ProgrammingError.js"
@@ -67,7 +72,6 @@ import { createApprovalMail } from "../api/entities/monitor/TypeRefs.js"
 import { getContactDisplayName } from "../contactsFunctionality/ContactUtils.js"
 import { CustomerPropertiesTypeRef } from "../api/entities/sys/TypeRefs.js"
 import { isMailAddress } from "../misc/FormatValidator.js"
-
 
 assertMainOrNode()
 

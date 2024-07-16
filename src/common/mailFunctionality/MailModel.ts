@@ -28,10 +28,12 @@ import {
 	MailBox,
 	MailboxGroupRoot,
 	MailboxGroupRootTypeRef,
-	MailboxProperties, MailboxPropertiesTypeRef,
+	MailboxProperties,
+	MailboxPropertiesTypeRef,
 	MailBoxTypeRef,
 	MailFolder,
-	MailFolderTypeRef, MailTypeRef
+	MailFolderTypeRef,
+	MailTypeRef,
 } from "../api/entities/tutanota/TypeRefs.js"
 
 export type MailboxDetail = {
