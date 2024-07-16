@@ -27,9 +27,9 @@ import { LoginController } from "../common/api/main/LoginController.js"
 import { SettingsViewAttrs } from "../common/settings/Interfaces.js"
 import { CalendarSearchView, CalendarSearchViewAttrs } from "./calendar/search/view/CalendarSearchView.js"
 import { initCommonLocator } from "../common/api/main/CommonLocator.js"
-import { SettingsView } from "./calendar/view/SettingsView.js"
-import { SearchViewModel } from "../mail-app/search/view/SearchViewModel.js"
+import { CalendarSettingsView } from "./calendar/view/CalendarSettingsView.js"
 import { CalendarSearchViewModel } from "./calendar/search/view/CalendarSearchViewModel.js"
+import { CalendarBottomNav } from "./gui/CalendarBottomNav.js"
 
 assertMainOrNodeBoot()
 bootFinished()
@@ -167,13 +167,13 @@ import("../mail-app/translations/en.js")
 				},
 				calendarLocator.logins,
 			),
-			settings: makeViewResolver<SettingsViewAttrs, SettingsView, { drawerAttrsFactory: () => DrawerMenuAttrs; header: AppHeaderAttrs }>(
+			settings: makeViewResolver<SettingsViewAttrs, CalendarSettingsView, { drawerAttrsFactory: () => DrawerMenuAttrs; header: AppHeaderAttrs }>(
 				{
 					prepareRoute: async () => {
-						const { SettingsView } = await import("../calendar-app/calendar/view/SettingsView.js")
+						const { CalendarSettingsView } = await import("./calendar/view/CalendarSettingsView.js")
 						const drawerAttrsFactory = await calendarLocator.drawerAttrsFactory()
 						return {
-							component: SettingsView,
+							component: CalendarSettingsView,
 							cache: { drawerAttrsFactory, header: await calendarLocator.appHeaderAttrs() },
 						}
 					},
@@ -210,7 +210,7 @@ import("../mail-app/translations/en.js")
 			calendar: makeViewResolver<
 				CalendarViewAttrs,
 				CalendarView,
-				{ drawerAttrsFactory: () => DrawerMenuAttrs; header: AppHeaderAttrs; calendarViewModel: CalendarViewModel }
+				{ drawerAttrsFactory: () => DrawerMenuAttrs; header: AppHeaderAttrs; calendarViewModel: CalendarViewModel; bottomNav: Children }
 			>(
 				{
 					prepareRoute: async (cache) => {
@@ -222,13 +222,15 @@ import("../mail-app/translations/en.js")
 								drawerAttrsFactory,
 								header: await calendarLocator.appHeaderAttrs(),
 								calendarViewModel: await calendarLocator.calendarViewModel(),
+								bottomNav: m(CalendarBottomNav),
 							},
 						}
 					},
-					prepareAttrs: ({ header, calendarViewModel, drawerAttrsFactory }) => ({
+					prepareAttrs: ({ header, calendarViewModel, drawerAttrsFactory, bottomNav }) => ({
 						drawerAttrs: drawerAttrsFactory(),
 						header,
 						calendarViewModel,
+						bottomNav,
 					}),
 				},
 				calendarLocator.logins,

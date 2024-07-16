@@ -1,7 +1,6 @@
 import m, { Component, Vnode } from "mithril"
 import { lang } from "../misc/LanguageViewModel.js"
 import { DropDownSelector } from "../gui/base/DropDownSelector.js"
-import { locator } from "../api/main/MainLocator.js"
 import {
 	AuditLogEntry,
 	AuditLogEntryTypeRef,
@@ -33,6 +32,7 @@ import { Icons } from "../gui/base/icons/Icons.js"
 import { NotAuthorizedError } from "../api/common/error/RestError.js"
 import { Dialog } from "../gui/base/Dialog.js"
 import { EntityUpdateData, isUpdateForTypeRef } from "../api/common/utils/EntityUpdateUtils.js"
+import { locator } from "../api/main/CommonLocator.js"
 
 export type AccountMaintenanceUpdateNotifier = (updates: ReadonlyArray<EntityUpdateData>) => void
 

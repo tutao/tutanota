@@ -33,6 +33,7 @@ import { OfflineDbClosedError } from "../api/common/error/OfflineDbClosedError.j
 import { UserTypeRef } from "../api/entities/sys/TypeRefs.js"
 import { isOfflineError } from "../api/common/utils/ErrorUtils.js"
 import { showRequestPasswordDialog } from "./passwords/PasswordRequestDialog.js"
+import { SearchModel } from "../../mail-app/search/model/SearchModel.js"
 
 assertMainOrNode()
 
@@ -123,7 +124,9 @@ export async function handleUncaughtErrorImpl(e: Error) {
 		}
 	} else if (e instanceof IndexingNotSupportedError) {
 		console.log("Indexing not supported", e)
-		search.indexingSupported = false
+		if (search instanceof SearchModel) {
+			search.indexingSupported = false
+		}
 	} else if (e instanceof QuotaExceededError) {
 		if (!shownQuotaError) {
 			shownQuotaError = true
