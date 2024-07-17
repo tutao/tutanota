@@ -71,7 +71,7 @@ import { RecipientsSearchModel } from "../common/misc/RecipientsSearchModel.js"
 import { PermissionError } from "../common/api/common/error/PermissionError.js"
 import { NativeInterfaceMain } from "../common/native/main/NativeInterfaceMain.js"
 import { NativeFileApp } from "../common/native/common/FileApp.js"
-import { NativePushServiceApp } from "../common/native/main/NativePushServiceApp.js"
+import { NativePushServiceApp, PushIdentifierAppType } from "../common/native/main/NativePushServiceApp.js"
 import { CommonSystemFacade } from "../common/native/common/generatedipc/CommonSystemFacade.js"
 import { ThemeFacade } from "../common/native/common/generatedipc/ThemeFacade.js"
 import { MobileSystemFacade } from "../common/native/common/generatedipc/MobileSystemFacade.js"
@@ -587,6 +587,7 @@ class CalendarLocator {
 				calendarFacade,
 				this.entityClient,
 				this.logins,
+				PushIdentifierAppType.Calendar,
 			)
 
 			if (isElectronClient()) {

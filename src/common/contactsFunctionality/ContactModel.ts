@@ -1,4 +1,3 @@
-<<<<<<<< HEAD:src/common/contactsFunctionality/ContactModel.ts
 import { assertMainOrNode } from "../api/common/Env.js"
 import { Group, GroupInfo, GroupInfoTypeRef, GroupMembership, GroupTypeRef } from "../api/entities/sys/TypeRefs.js"
 import {
@@ -7,7 +6,7 @@ import {
 	ContactListGroupRoot,
 	ContactListGroupRootTypeRef,
 	ContactListTypeRef,
-	ContactTypeRef
+	ContactTypeRef,
 } from "../api/entities/tutanota/TypeRefs.js"
 import { getFirstOrThrow, isNotNull, LazyLoaded, ofClass, promiseMap } from "@tutao/tutanota-utils"
 import Stream from "mithril/stream"
@@ -24,28 +23,6 @@ import { compareOldestFirst, getEtId } from "../api/common/utils/EntityUtils.js"
 import { NotAuthorizedError, NotFoundError } from "../api/common/error/RestError.js"
 import { ShareCapability } from "../api/common/TutanotaConstants.js"
 import { EntityUpdateData } from "../api/common/utils/EntityUpdateUtils.js"
-
-========
-import type { Contact, ContactList } from "../../../common/api/entities/tutanota/TypeRefs.js"
-import { ContactListGroupRoot, ContactListGroupRootTypeRef, ContactListTypeRef, ContactTypeRef } from "../../../common/api/entities/tutanota/TypeRefs.js"
-import { createRestriction, SearchCategoryTypes } from "../../search/model/SearchUtils"
-import { getFirstOrThrow, isNotNull, LazyLoaded, ofClass, promiseMap } from "@tutao/tutanota-utils"
-import { NotAuthorizedError, NotFoundError } from "../../../common/api/common/error/RestError"
-import { DbError } from "../../../common/api/common/error/DbError"
-import { EntityClient, loadMultipleFromLists } from "../../../common/api/common/EntityClient"
-import type { LoginController } from "../../../common/api/main/LoginController"
-import { compareOldestFirst, getEtId } from "../../../common/api/common/utils/EntityUtils"
-import type { SearchFacade } from "../../../common/api/worker/search/SearchFacade"
-import { assertMainOrNode } from "../../../common/api/common/Env"
-import { LoginIncompleteError } from "../../../common/api/common/error/LoginIncompleteError"
-import { cleanMailAddress } from "../../../common/api/common/utils/CommonCalendarUtils.js"
-import { Group, GroupInfo, GroupInfoTypeRef, GroupMembership, GroupTypeRef } from "../../../common/api/entities/sys/TypeRefs.js"
-import { EntityEventsListener, EventController } from "../../../common/api/main/EventController.js"
-import Stream from "mithril/stream"
-import stream from "mithril/stream"
-import { ShareCapability } from "../../../common/api/common/TutanotaConstants.js"
-import { EntityUpdateData } from "../../../common/api/common/utils/EntityUpdateUtils.js"
->>>>>>>> 3349a964d (Move files to new folder structure):src/mail-app/contacts/model/ContactModel.ts
 
 assertMainOrNode()
 
@@ -194,14 +171,8 @@ export class ContactModel {
 		const group = await this.entityClient.load(GroupTypeRef, groupInfo.group)
 		const groupRoot = await this.entityClient.load(ContactListGroupRootTypeRef, groupInfo.group)
 		const userController = this.loginController.getUserController()
-<<<<<<<< HEAD:src/common/contactsFunctionality/ContactModel.ts
 		const { getSharedGroupName } = await import("../sharing/GroupUtils.js")
 		const { hasCapabilityOnGroup, isSharedGroupOwner } = await import("../sharing/GroupUtils.js")
-========
-
-		const { getSharedGroupName } = await import("../../../common/sharing/GroupUtils.js")
-		const { hasCapabilityOnGroup, isSharedGroupOwner } = await import("../../../common/sharing/GroupUtils.js")
->>>>>>>> 3349a964d (Move files to new folder structure):src/mail-app/contacts/model/ContactModel.ts
 
 		return {
 			name: getSharedGroupName(groupInfo, userController, true),
