@@ -64,7 +64,7 @@ import { SearchViewModel } from "./search/view/SearchViewModel.js"
 import { SearchRouter } from "../common/search/view/SearchRouter.js"
 import { MailOpenedListener } from "./mail/view/MailViewModel.js"
 import { getDisplayedSender, getEnabledMailAddressesWithUser } from "../common/mailFunctionality/CommonMailUtils.js"
-import { Const, FeatureType, GroupType, KdfType } from "../common/api/common/TutanotaConstants.js"
+import { AppType, Const, FeatureType, GroupType, KdfType } from "../common/api/common/TutanotaConstants.js"
 import { ShareableGroupType } from "../common/sharing/GroupUtils.js"
 import { ReceivedGroupInvitationsModel } from "../common/sharing/model/ReceivedGroupInvitationsModel.js"
 import { CalendarViewModel } from "../calendar-app/calendar/view/CalendarViewModel.js"
@@ -75,12 +75,12 @@ import { RecipientsSearchModel } from "../common/misc/RecipientsSearchModel.js"
 import { PermissionError } from "../common/api/common/error/PermissionError.js"
 import { ConversationViewModel, ConversationViewModelFactory } from "./mail/view/ConversationViewModel.js"
 import { CreateMailViewerOptions } from "./mail/view/MailViewer.js"
-import { ContactImporter, parseContacts } from "./contacts/ContactImporter.js"
+import type { ContactImporter } from "./contacts/ContactImporter.js"
 import { MailViewerViewModel } from "./mail/view/MailViewerViewModel.js"
 import { ExternalLoginViewModel } from "../common/login/ExternalLoginView.js"
 import { NativeInterfaceMain } from "../common/native/main/NativeInterfaceMain.js"
 import { NativeFileApp } from "../common/native/common/FileApp.js"
-import { NativePushServiceApp, PushIdentifierAppType } from "../common/native/main/NativePushServiceApp.js"
+import type { NativePushServiceApp } from "../common/native/main/NativePushServiceApp.js"
 import { CommonSystemFacade } from "../common/native/common/generatedipc/CommonSystemFacade.js"
 import { ThemeFacade } from "../common/native/common/generatedipc/ThemeFacade.js"
 import { MobileSystemFacade } from "../common/native/common/generatedipc/MobileSystemFacade.js"
@@ -113,6 +113,9 @@ import { NativeThemeFacade, ThemeController, WebThemeFacade } from "../common/gu
 import { HtmlSanitizer } from "../common/misc/HtmlSanitizer.js"
 import { theme } from "../common/gui/theme.js"
 import { SearchIndexStateInfo } from "../common/api/worker/search/SearchTypes.js"
+import { MobilePaymentsFacade } from "../common/native/common/generatedipc/MobilePaymentsFacade.js"
+import { AppStorePaymentPicker } from "../common/misc/AppStorePaymentPicker.js"
+
 assertMainOrNode()
 
 class MailLocator {
@@ -167,6 +170,7 @@ class MailLocator {
 	infoMessageHandler!: InfoMessageHandler
 	themeController!: ThemeController
 	Const!: Record<string, any>
+	appStorePaymentPicker!: AppStorePaymentPicker
 
 	private nativeInterfaces: NativeInterfaces | null = null
 	private entropyFacade!: EntropyFacade
@@ -272,8 +276,8 @@ class MailLocator {
 	readonly mailOpenedListener: MailOpenedListener = {
 		onEmailOpened: isDesktop()
 			? (mail) => {
-				this.desktopSystemFacade.sendSocketMessage(getDisplayedSender(mail).address)
-			}
+					this.desktopSystemFacade.sendSocketMessage(getDisplayedSender(mail).address)
+			  }
 			: noOp,
 	}
 
@@ -483,6 +487,10 @@ class MailLocator {
 		return this.getNativeInterface("nativeCredentialsFacade")
 	}
 
+	get mobilePaymentsFacade(): MobilePaymentsFacade {
+		return this.getNativeInterface("mobilePaymentsFacade")
+	}
+
 	async mailAddressTableModelForOwnMailbox(): Promise<MailAddressTableModel> {
 		const { MailAddressTableModel } = await import("../mail-app/settings/mailaddress/MailAddressTableModel.js")
 		const nameChanger = await this.ownMailAddressNameChanger()
@@ -553,7 +561,7 @@ class MailLocator {
 			const domainConfig = isBrowser()
 				? mailLocator.domainConfigProvider().getDomainConfigForHostname(location.hostname, location.protocol, location.port)
 				: // in this case, we know that we have a staticUrl set that we need to use
-				mailLocator.domainConfigProvider().getCurrentDomainConfig()
+				  mailLocator.domainConfigProvider().getCurrentDomainConfig()
 
 			return new LoginViewModel(
 				mailLocator.logins,
@@ -683,6 +691,8 @@ class MailLocator {
 			const { WebInterWindowEventFacade } = await import("../common/native/main/WebInterWindowEventFacade.js")
 			const { WebAuthnFacadeSendDispatcher } = await import("../common/native/common/generatedipc/WebAuthnFacadeSendDispatcher.js")
 			const { createNativeInterfaces, createDesktopInterfaces } = await import("../common/native/main/NativeInterfaceFactory.js")
+			const { parseContacts } = await import("./contacts/ContactImporter.js")
+
 			this.webMobileFacade = new WebMobileFacade(this.connectivityModel, this.mailModel)
 			this.nativeInterfaces = createNativeInterfaces(
 				this.webMobileFacade,
@@ -710,7 +720,7 @@ class MailLocator {
 				calendarFacade,
 				this.entityClient,
 				this.logins,
-				(isBrowser() || isDesktop()) ? PushIdentifierAppType.Integrated : PushIdentifierAppType.Calendar, //TODO: Each locator will have a nativeInterface and must provide this. Desktop, browser and mail (temporally) should use integrated.
+				AppType.Integrated,
 			)
 
 			if (isElectronClient()) {
@@ -803,6 +813,7 @@ class MailLocator {
 		this.contactModel = new ContactModel(this.searchFacade, this.entityClient, this.logins, this.eventController)
 		this.minimizedMailModel = new MinimizedMailEditorViewModel()
 		this.usageTestController = new UsageTestController(this.usageTestModel)
+		this.appStorePaymentPicker = new AppStorePaymentPicker()
 
 		// THEME
 		// We need it because we want to run tests in node and real HTMLSanitizer does not work there.

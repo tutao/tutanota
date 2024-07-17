@@ -1198,3 +1198,9 @@ export enum GroupKeyRotationType {
 }
 
 export const GroupKeyRotationTypeNameByCode = reverse(GroupKeyRotationType)
+
+export enum AppType {
+	Integrated = "0",
+	Mail = "1",
+	Calendar = "2",
+}
