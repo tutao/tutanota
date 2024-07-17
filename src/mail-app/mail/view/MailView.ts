@@ -27,7 +27,6 @@ import { isNewMailActionAvailable } from "../../../common/gui/nav/NavFunctions"
 import { CancelledError } from "../../../common/api/common/error/CancelledError"
 import Stream from "mithril/stream"
 import { readLocalFiles } from "../../../common/file/FileController.js"
-import { BottomNav } from "../../../common/gui/BottomNav.js"
 import { MobileMailActionBar } from "./MobileMailActionBar.js"
 import { deviceConfig } from "../../../common/misc/DeviceConfig.js"
 import { DrawerMenuAttrs } from "../../../common/gui/nav/DrawerMenu.js"
@@ -58,6 +57,7 @@ import { EnterMultiselectIconButton } from "../../../common/gui/EnterMultiselect
 import { MailFilterButton } from "./MailFilterButton.js"
 import { listSelectionKeyboardShortcuts } from "../../../common/gui/base/ListUtils.js"
 import { canDoDragAndDropExport, getFolderName, getMailboxName, isSpamOrTrashFolder } from "../../../common/mailFunctionality/CommonMailUtils.js"
+import { BottomNav } from "../../gui/BottomNav.js"
 
 assertMainOrNode()
 

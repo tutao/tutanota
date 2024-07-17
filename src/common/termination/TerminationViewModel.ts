@@ -1,6 +1,6 @@
 import { SessionType } from "../api/common/SessionType.js"
 import { LoginState } from "../login/LoginViewModel.js"
-import { lang, TranslationText } from "../misc/LanguageViewModel.js"
+import { InfoLink, lang, TranslationText } from "../misc/LanguageViewModel.js"
 import { LoginController } from "../api/main/LoginController.js"
 import { getLoginErrorStateAndMessage } from "../misc/LoginUtils.js"
 import { SecondFactorHandler } from "../misc/2fa/SecondFactorHandler.js"

@@ -12,13 +12,12 @@ import { ButtonSize } from "../../common/gui/base/ButtonSize.js"
 import { isApp, isDesktop } from "../../common/api/common/Env.js"
 import { noOp, ofClass } from "@tutao/tutanota-utils"
 import { NotFoundError } from "../../common/api/common/error/RestError.js"
-import { PushServiceType } from "../../common/api/common/TutanotaConstants.js"
+import { AppType, PushServiceType } from "../../common/api/common/TutanotaConstants.js"
 import { IdentifierRow } from "./IdentifierRow.js"
 import { mailLocator } from "../mailLocator.js"
 import { UpdatableSettingsViewer } from "../../common/settings/Interfaces.js"
 import { SettingsNotificationContentPicker } from "./SettingsNotificationContentPicker.js"
 import { SettingsNotificationTargets, SettingsNotificationTargetsAttrs } from "../../common/settings/SettingsNotificationTargets.js"
-import { PushIdentifierAppType } from "../../common/native/main/NativePushServiceApp.js"
 
 export class NotificationSettingsViewer implements UpdatableSettingsViewer {
 	private currentIdentifier: string | null = null
@@ -60,34 +59,34 @@ export class NotificationSettingsViewer implements UpdatableSettingsViewer {
 		])
 
 		const rows = this.identifiers
-						 .map((identifier) => {
-							 const isCurrentDevice = (isApp() || isDesktop()) && identifier.identifier === this.currentIdentifier
+			.map((identifier) => {
+				const isCurrentDevice = (isApp() || isDesktop()) && identifier.identifier === this.currentIdentifier
 
-							 return m(IdentifierRow, {
-								 name: this.identifierDisplayName(isCurrentDevice, identifier.pushServiceType, identifier.displayName),
-								 disabled: identifier.disabled,
-								 identifier: identifier.identifier,
-								 current: isCurrentDevice,
-								 removeClicked: () => {
-									 locator.entityClient.erase(identifier).catch(ofClass(NotFoundError, noOp))
-								 },
-								 formatIdentifier: identifier.pushServiceType !== PushServiceType.EMAIL,
-								 disableClicked: () => this.disableIdentifier(identifier),
-							 })
-						 })
-						 .sort((l, r) => +r.attrs.current - +l.attrs.current)
+				return m(IdentifierRow, {
+					name: this.identifierDisplayName(isCurrentDevice, identifier.pushServiceType, identifier.displayName),
+					disabled: identifier.disabled,
+					identifier: identifier.identifier,
+					current: isCurrentDevice,
+					removeClicked: () => {
+						locator.entityClient.erase(identifier).catch(ofClass(NotFoundError, noOp))
+					},
+					formatIdentifier: identifier.pushServiceType !== PushServiceType.EMAIL,
+					disableClicked: () => this.disableIdentifier(identifier),
+				})
+			})
+			.sort((l, r) => +r.attrs.current - +l.attrs.current)
 
 		return m(".fill-absolute.scroll.plr-l.pb-xl", [
 			m(".flex.col", [
 				m(".flex-space-between.items-center.mt-l.mb-s", [m(".h4", lang.get("notificationSettings_action"))]),
 				this.extendedNotificationMode
 					? m(SettingsNotificationContentPicker, {
-						extendedNotificationMode: this.extendedNotificationMode,
-						onChange: (value: ExtendedNotificationMode) => {
-							locator.pushService.setExtendedNotificationMode(value)
-							this.extendedNotificationMode = value
-						},
-					})
+							extendedNotificationMode: this.extendedNotificationMode,
+							onChange: (value: ExtendedNotificationMode) => {
+								locator.pushService.setExtendedNotificationMode(value)
+								this.extendedNotificationMode = value
+							},
+					  })
 					: null,
 				m(SettingsNotificationTargets, { rows, rowAdd, onExpandedChange: this.expanded } satisfies SettingsNotificationTargetsAttrs),
 			]),
@@ -115,7 +114,7 @@ export class NotificationSettingsViewer implements UpdatableSettingsViewer {
 
 		if (list) {
 			this.identifiers = (await locator.entityClient.loadAll(PushIdentifierTypeRef, list.list)).filter(
-				(identifier) => (identifier.app === PushIdentifierAppType.Mail || identifier.app === PushIdentifierAppType.Integrated),
+				(identifier) => identifier.app === AppType.Mail || identifier.app === AppType.Integrated,
 			) // Filter out calendar targets
 
 			m.redraw()

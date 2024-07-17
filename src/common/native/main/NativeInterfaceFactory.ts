@@ -1,5 +1,5 @@
 import { NativeInterfaceMain } from "./NativeInterfaceMain.js"
-import { NativePushServiceApp, PushIdentifierAppType } from "./NativePushServiceApp.js"
+import { NativePushServiceApp } from "./NativePushServiceApp.js"
 import { NativeFileApp } from "../common/FileApp.js"
 import { isBrowser, isElectronClient } from "../../api/common/Env.js"
 import { ProgrammingError } from "../../api/common/error/ProgrammingError.js"
@@ -35,6 +35,8 @@ import { NativeCredentialsFacadeSendDispatcher } from "../common/generatedipc/Na
 import { MobilePaymentsFacade } from "../common/generatedipc/MobilePaymentsFacade.js"
 import { MobilePaymentsFacadeSendDispatcher } from "../common/generatedipc/MobilePaymentsFacadeSendDispatcher.js"
 
+import { AppType } from "../../api/common/TutanotaConstants.js"
+
 export type NativeInterfaces = {
 	native: NativeInterfaceMain
 	fileApp: NativeFileApp
@@ -67,7 +69,7 @@ export function createNativeInterfaces(
 	calendarFacade: CalendarFacade,
 	entityClient: EntityClient,
 	logins: LoginController,
-	app: PushIdentifierAppType,
+	app: AppType,
 ): NativeInterfaces {
 	if (isBrowser()) {
 		throw new ProgrammingError("Tried to make native Interfaces.ts in non-native")

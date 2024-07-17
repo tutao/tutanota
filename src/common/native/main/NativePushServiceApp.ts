@@ -1,7 +1,7 @@
 import type { PushIdentifier } from "../../api/entities/sys/TypeRefs.js"
 import { createPushIdentifier, PushIdentifierTypeRef } from "../../api/entities/sys/TypeRefs.js"
 import { assertNotNull } from "@tutao/tutanota-utils"
-import { PushServiceType } from "../../api/common/TutanotaConstants"
+import { AppType, PushServiceType } from "../../api/common/TutanotaConstants"
 import { lang } from "../../misc/LanguageViewModel"
 import { isAndroidApp, isDesktop, isIOSApp } from "../../api/common/Env"
 import { LoginController } from "../../api/main/LoginController"
@@ -16,12 +16,6 @@ import { EntityClient } from "../../api/common/EntityClient.js"
 import { CalendarFacade } from "../../api/worker/facades/lazy/CalendarFacade.js"
 import modelInfo from "../../api/entities/sys/ModelInfo.js"
 import { ExtendedNotificationMode } from "../common/generatedipc/ExtendedNotificationMode.js"
-
-export enum PushIdentifierAppType {
-	Integrated = "0",
-	Mail = "1",
-	Calendar = "2"
-}
 
 // keep in sync with SYS_MODEL_VERSION in app-android/app/build.gradle
 // keep in sync with app-ios/TutanotaSharedFramework/Utils/Utils.swift
@@ -43,9 +37,8 @@ export class NativePushServiceApp {
 		private readonly entityClient: EntityClient,
 		private readonly deviceConfig: DeviceConfig,
 		private readonly calendarFacade: CalendarFacade,
-		private readonly app: PushIdentifierAppType,
-	) {
-	}
+		private readonly app: AppType,
+	) {}
 
 	async register(): Promise<void> {
 		console.log("Registering for push notifications for app", this.app)

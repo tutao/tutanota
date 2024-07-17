@@ -164,7 +164,6 @@ o.spec("KeyLoaderFacadeTest", function () {
 			}
 			verify(nonCachingEntityClient.load(matchers.anything(), matchers.anything()), { times: 0 })
 		})
-
 	})
 
 	o.spec("loadCurrentKeyPair", function () {

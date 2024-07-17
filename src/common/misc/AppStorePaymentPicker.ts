@@ -1,8 +1,7 @@
 import { UsageTest, UsageTestController } from "@tutao/tutanota-usagetests"
 import { PaymentMethodType } from "../api/common/TutanotaConstants.js"
-import { StorageBehavior, UsageTestModel } from "./UsageTestModel.js"
-import { locator } from "../api/main/MainLocator.js"
-import { LazyLoaded, lazy } from "@tutao/tutanota-utils"
+import { lazy } from "@tutao/tutanota-utils"
+import { locator } from "../api/main/CommonLocator.js"
 
 export class AppStorePaymentPicker {
 	private appStorePaymentUsageTest: lazy<UsageTest> = () => {

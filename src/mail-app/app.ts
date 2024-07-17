@@ -33,11 +33,9 @@ import { ContactViewModel } from "./contacts/view/ContactViewModel.js"
 import { ContactListViewModel } from "./contacts/view/ContactListViewModel.js"
 import type { CredentialsMigrationView, CredentialsMigrationViewAttrs } from "../common/login/CredentialsMigrationView.js"
 import type { CredentialsMigrationViewModel } from "../common/login/CredentialsMigrationViewModel.js"
-import { initCommonLocator } from "../common/api/main/CommonLocator.js"
 import { assertMainOrNodeBoot, bootFinished, isApp, isDesktop, isOfflineStorageAvailable } from "../common/api/common/Env.js"
 import { SettingsViewAttrs } from "../common/settings/Interfaces.js"
 import { disableErrorHandlingDuringLogout, handleUncaughtError } from "../common/misc/ErrorHandler.js"
-import { BottomNav } from "./gui/BottomNav.js"
 
 assertMainOrNodeBoot()
 bootFinished()
@@ -84,6 +82,7 @@ import("./translations/en.js")
 		await import("../common/gui/main-styles.js")
 
 		// do this after lang initialized
+		const { initCommonLocator } = await import("../common/api/main/CommonLocator.js")
 		const { mailLocator } = await import("./mailLocator.js")
 		await mailLocator.init()
 
@@ -91,6 +90,8 @@ import("./translations/en.js")
 
 		const { setupNavShortcuts } = await import("../common/misc/NavShortcuts.js")
 		setupNavShortcuts()
+
+		const { BottomNav } = await import("./gui/BottomNav.js")
 
 		// this needs to stay after client.init
 		windowFacade.init(mailLocator.logins, mailLocator.indexerFacade, mailLocator.connectivityModel)

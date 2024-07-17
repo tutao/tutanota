@@ -9,8 +9,8 @@ import { IServiceExecutor } from "../api/common/ServiceRequest"
 import { ProgrammingError } from "../api/common/error/ProgrammingError.js"
 import { UserError } from "../api/main/UserError.js"
 import { isIOSApp } from "../api/common/Env"
-import { locator } from "../api/main/MainLocator"
 import { MobilePlanPrice } from "../native/common/generatedipc/MobilePlanPrice"
+import { locator } from "../api/main/CommonLocator.js"
 
 export const enum PaymentInterval {
 	Monthly = 1,

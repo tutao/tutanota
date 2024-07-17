@@ -101,7 +101,7 @@ import { ProgrammingError } from "../../../../common/api/common/error/Programmin
 import { SimpleTextViewModel } from "../../../../common/misc/SimpleTextViewModel.js"
 import { AlarmInfoTemplate } from "../../../../common/api/worker/facades/lazy/CalendarFacade.js"
 import { getEventType } from "../CalendarGuiUtils.js"
-import { getDefaultSender } from "../../../../mail-app/mail/model/MailUtils.js"
+import { getDefaultSender } from "../../../../common/mailFunctionality/CommonMailUtils.js"
 
 /** the type of the event determines which edit operations are available to us. */
 export const enum EventType {

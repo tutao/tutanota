@@ -22,8 +22,3 @@ export interface SettingsViewAttrs extends TopLevelAttrs {
 	header: AppHeaderAttrs
 	logins: LoginController
 }
-
-export enum AppType {
-	Mail,
-	Calendar,
-}
