@@ -6,11 +6,10 @@ import m from "mithril"
 import { TextField, TextFieldType } from "../../common/gui/base/TextField.js"
 import { assertNotNull } from "@tutao/tutanota-utils"
 import { getCleanedMailAddress } from "../../common/misc/parsing/MailAddressParser.js"
-import { PushServiceType } from "../../common/api/common/TutanotaConstants.js"
+import { AppType, PushServiceType } from "../../common/api/common/TutanotaConstants.js"
 import { showProgressDialog } from "../../common/gui/dialogs/ProgressDialog.js"
 import { LoginController } from "../../common/api/main/LoginController.js"
 import { EntityClient } from "../../common/api/common/EntityClient.js"
-import { PushIdentifierAppType } from "../../common/native/main/NativePushServiceApp.js"
 
 export class AddNotificationEmailDialog {
 	constructor(private readonly logins: LoginController, private readonly entityClient: EntityClient) {}
@@ -56,7 +55,7 @@ export class AddNotificationEmailDialog {
 			lastUsageTime: new Date(),
 			lastNotificationDate: null,
 			disabled: false,
-			app: PushIdentifierAppType.Mail, // Calendar app doesn't receive mail notifications
+			app: AppType.Mail, // Calendar app doesn't receive mail notifications
 		})
 
 		showProgressDialog("pleaseWait_msg", this.entityClient.setup(assertNotNull(user.pushIdentifierList).list, pushIdentifier))

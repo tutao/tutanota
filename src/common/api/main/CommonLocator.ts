@@ -70,6 +70,8 @@ import { CalendarEventPreviewViewModel } from "../../../calendar-app/calendar/gu
 import { RecipientsModel } from "./RecipientsModel.js"
 import { ThemeController } from "../../gui/ThemeController.js"
 import { CalendarSearchModel } from "../../../calendar-app/calendar/search/model/CalendarSearchModel.js"
+import { MobilePaymentsFacade } from "../../native/common/generatedipc/MobilePaymentsFacade.js"
+import { AppStorePaymentPicker } from "../../misc/AppStorePaymentPicker.js"
 
 export interface CommonLocator {
 	worker: WorkerClient
@@ -165,6 +167,8 @@ export interface CommonLocator {
 	systemFacade: MobileSystemFacade
 	mobileContactsFacade: MobileContactsFacade
 	nativeCredentialsFacade: NativeCredentialsFacade
+	mobilePaymentsFacade: MobilePaymentsFacade
+	appStorePaymentPicker: AppStorePaymentPicker
 }
 
 export let locator: CommonLocator = new Proxy<CommonLocator>({} as unknown as CommonLocator, {

@@ -42,7 +42,6 @@ import { SidebarSection } from "../../../common/gui/SidebarSection"
 import { attachDropdown, createDropdown, DropdownButtonAttrs } from "../../../common/gui/base/Dropdown.js"
 import { IconButton } from "../../../common/gui/base/IconButton.js"
 import { ButtonSize } from "../../../common/gui/base/ButtonSize.js"
-import { BottomNav } from "../../../common/gui/BottomNav.js"
 import { DrawerMenuAttrs } from "../../../common/gui/nav/DrawerMenu.js"
 import { BaseTopLevelView } from "../../../common/gui/BaseTopLevelView.js"
 import { TopLevelAttrs, TopLevelView } from "../../../TopLevelView.js"
@@ -78,6 +77,7 @@ import { CONTACTLIST_PREFIX } from "../../../common/misc/RouteChange.js"
 import { StructuredContact } from "../../../common/native/common/generatedipc/StructuredContact.js"
 import { validateBirthdayOfContact } from "../../../common/contactsFunctionality/ContactUtils.js"
 import { mailLocator } from "../../mailLocator.js"
+import { BottomNav } from "../../gui/BottomNav.js"
 
 assertMainOrNode()
 

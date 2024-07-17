@@ -1,9 +1,9 @@
-import { assertNotNull, groupBy, partition } from "@tutao/tutanota-utils"
+import { groupBy, partition } from "@tutao/tutanota-utils"
 import { MailFolder } from "../../entities/tutanota/TypeRefs.js"
 import { MailFolderType } from "../TutanotaConstants.js"
 import { elementIdPart, getElementId, isSameId } from "../utils/EntityUtils.js"
 
-interface IndentedFolder {
+export interface IndentedFolder {
 	level: number
 	folder: MailFolder
 }

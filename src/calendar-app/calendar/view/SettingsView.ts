@@ -13,7 +13,6 @@ import { LazyLoaded } from "@tutao/tutanota-utils"
 import { FeatureType, GroupType, LegacyPlans } from "../../../common/api/common/TutanotaConstants.js"
 import { BootIcons } from "../../../common/gui/base/icons/BootIcons.js"
 import { LoginSettingsViewer } from "../../../common/settings/login/LoginSettingsViewer.js"
-import { locator } from "../../../common/api/main/MainLocator.js"
 import { Icons } from "../../../common/gui/base/icons/Icons.js"
 import { AppearanceSettingsViewer } from "../../../common/settings/AppearanceSettingsViewer.js"
 import { FolderColumnView } from "../../../common/gui/FolderColumnView.js"
@@ -37,7 +36,6 @@ import { ReferralSettingsViewer } from "../../../common/settings/ReferralSetting
 import { GroupDetailsView } from "../../../mail-app/settings/groups/GroupDetailsView.js"
 import { TemplateDetailsViewer } from "../../../mail-app/settings/TemplateDetailsViewer.js"
 import { KnowledgeBaseSettingsDetailsViewer } from "../../../mail-app/settings/KnowledgeBaseListView.js"
-import { BottomNav } from "../../../common/gui/nav/BottomNav.js"
 import { NavButtonAttrs, NavButtonColor } from "../../../common/gui/base/NavButton.js"
 import { CustomerInfoTypeRef, CustomerTypeRef, User } from "../../../common/api/entities/sys/TypeRefs.js"
 import { Dialog } from "../../../common/gui/base/Dialog.js"
@@ -45,6 +43,8 @@ import { AboutDialog } from "../../../mail-app/settings/AboutDialog.js"
 import { SettingsViewAttrs, UpdatableSettingsDetailsViewer, UpdatableSettingsViewer } from "../../../common/settings/Interfaces.js"
 import { NotificationSettingsViewer } from "../settings/NotificationSettingsViewer.js"
 import { GlobalSettingsViewer } from "../settings/GlobalSettingsViewer.js"
+import { BottomNav } from "../../../mail-app/gui/BottomNav.js"
+import { locator } from "../../../common/api/main/CommonLocator.js"
 
 assertMainOrNode()
 
@@ -273,7 +273,7 @@ export class SettingsView extends BaseTopLevelView implements TopLevelView<Setti
 						"adminSubscription_action",
 						() => BootIcons.Premium,
 						"subscription",
-						() => new SubscriptionViewer(currentPlanType),
+						() => new SubscriptionViewer(currentPlanType, isIOSApp() ? locator.mobilePaymentsFacade : null, locator.appStorePaymentPicker),
 						undefined,
 					).setIsVisibleHandler(() => !isIOSApp() || !this.logins.getUserController().isFreeAccount()),
 				)
