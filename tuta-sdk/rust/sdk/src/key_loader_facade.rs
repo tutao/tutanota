@@ -436,7 +436,7 @@ mod tests {
             let keypair = key_loader_facade.load_key_pair(&group._id, i as i64).await.unwrap();
             match keypair {
                 AsymmetricKeyPair::RSAKeyPair(_) => panic!("key_loader_facade.load_key_pair() returned an RSAKeyPair! Expected PQKeyPairs."),
-                AsymmetricKeyPair::RsaEccKeyPair(_) => panic!("key_loader_facade.load_key_pair() returned an RSAEccKeyPair! Expected PQKeyPairs."),
+                AsymmetricKeyPair::RSAEccKeyPair(_) => panic!("key_loader_facade.load_key_pair() returned an RSAEccKeyPair! Expected PQKeyPairs."),
                 AsymmetricKeyPair::PQKeyPairs(pq_key_pair) => {
                     assert_eq!(pq_key_pair, former_key_pairs_decrypted[i])
                 }
@@ -483,7 +483,7 @@ mod tests {
 
         match loaded_current_key_pair {
             AsymmetricKeyPair::RSAKeyPair(_) => panic!("Expected PQ key pair!"),
-            AsymmetricKeyPair::RsaEccKeyPair(_) => panic!("Expected PQ key pair!"),
+            AsymmetricKeyPair::RSAEccKeyPair(_) => panic!("Expected PQ key pair!"),
             AsymmetricKeyPair::PQKeyPairs(loaded_current_key_pair) => {
                 assert_eq!(loaded_current_key_pair, current_key_pair);
             }
