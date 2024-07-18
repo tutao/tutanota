@@ -115,6 +115,7 @@ import { theme } from "../common/gui/theme.js"
 import { SearchIndexStateInfo } from "../common/api/worker/search/SearchTypes.js"
 import { MobilePaymentsFacade } from "../common/native/common/generatedipc/MobilePaymentsFacade.js"
 import { AppStorePaymentPicker } from "../common/misc/AppStorePaymentPicker.js"
+import { MAIL_PREFIX } from "../common/misc/RouteChange.js"
 
 assertMainOrNode()
 
@@ -693,7 +694,7 @@ class MailLocator {
 			const { createNativeInterfaces, createDesktopInterfaces } = await import("../common/native/main/NativeInterfaceFactory.js")
 			const { parseContacts } = await import("./contacts/ContactImporter.js")
 
-			this.webMobileFacade = new WebMobileFacade(this.connectivityModel, this.mailModel)
+			this.webMobileFacade = new WebMobileFacade(this.connectivityModel, this.mailModel, MAIL_PREFIX)
 			this.nativeInterfaces = createNativeInterfaces(
 				this.webMobileFacade,
 				new WebDesktopFacade(this.logins, async () => this.native),

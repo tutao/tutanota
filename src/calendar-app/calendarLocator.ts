@@ -105,6 +105,7 @@ import type { HtmlSanitizer } from "../common/misc/HtmlSanitizer.js"
 import { theme } from "../common/gui/theme.js"
 import { CalendarSearchModel } from "./calendar/search/model/CalendarSearchModel.js"
 import { SearchIndexStateInfo } from "../common/api/worker/search/SearchTypes.js"
+import { CALENDAR_PREFIX } from "../common/misc/RouteChange.js"
 
 assertMainOrNode()
 
@@ -577,7 +578,7 @@ class CalendarLocator {
 			const { WebInterWindowEventFacade } = await import("../common/native/main/WebInterWindowEventFacade.js")
 			const { WebAuthnFacadeSendDispatcher } = await import("../common/native/common/generatedipc/WebAuthnFacadeSendDispatcher.js")
 			const { createNativeInterfaces, createDesktopInterfaces } = await import("../common/native/main/NativeInterfaceFactory.js")
-			this.webMobileFacade = new WebMobileFacade(this.connectivityModel, this.mailModel)
+			this.webMobileFacade = new WebMobileFacade(this.connectivityModel, this.mailModel, CALENDAR_PREFIX)
 			this.nativeInterfaces = createNativeInterfaces(
 				this.webMobileFacade,
 				new WebDesktopFacade(this.logins, async () => this.native),

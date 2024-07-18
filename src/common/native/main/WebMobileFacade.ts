@@ -24,7 +24,11 @@ export class WebMobileFacade implements MobileFacade {
 
 	private isAppVisible: stream<boolean> = stream(false)
 
-	constructor(private readonly connectivityModel: WebsocketConnectivityModel, private readonly mailModel: MailModel) {}
+	constructor(
+		private readonly connectivityModel: WebsocketConnectivityModel,
+		private readonly mailModel: MailModel,
+		private readonly baseViewPrefix: string,
+	) {}
 
 	public getIsAppVisible(): stream<boolean> {
 		return this.isAppVisible
@@ -59,14 +63,17 @@ export class WebMobileFacade implements MobileFacade {
 				// current view can navigate back, a region column is focused (not main) and is in singleColumnLayout
 				viewSlider.focusPreviousColumn()
 				return true
-			} else if (
-				currentRoute.startsWith(CONTACTS_PREFIX) ||
-				currentRoute.startsWith(SETTINGS_PREFIX) ||
-				currentRoute.startsWith(SEARCH_PREFIX) ||
-				currentRoute.startsWith(CALENDAR_PREFIX)
-			) {
+			} else if (currentRoute.startsWith(CALENDAR_PREFIX)) {
+				if (this.baseViewPrefix === CALENDAR_PREFIX) {
+					// we are at the main view and want to exit the app
+					return false
+				} else {
+					m.route.set(this.baseViewPrefix)
+					return true
+				}
+			} else if (currentRoute.startsWith(CONTACTS_PREFIX) || currentRoute.startsWith(SETTINGS_PREFIX) || currentRoute.startsWith(SEARCH_PREFIX)) {
 				// go back to mail from other paths
-				m.route.set(MAIL_PREFIX)
+				m.route.set(this.baseViewPrefix)
 				return true
 			} else if (viewSlider && viewSlider.isFirstBackgroundColumnFocused()) {
 				// If the first background column is focused in mail view (showing a folder), move to inbox.
