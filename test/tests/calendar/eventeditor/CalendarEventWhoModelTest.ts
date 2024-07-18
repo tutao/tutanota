@@ -1,12 +1,10 @@
 import o from "@tutao/otest"
 import { CalendarEvent, CalendarEventAttendeeTypeRef, CalendarEventTypeRef, ContactTypeRef } from "../../../../src/common/api/entities/tutanota/TypeRefs.js"
-import { CalendarEventWhoModel } from "../../../../src/calendar-app/calendar-app/gui/eventeditor-model/CalendarEventWhoModel.js"
 import { matchers, object, verify, when } from "testdouble"
 import { RecipientsModel } from "../../../../src/common/api/main/RecipientsModel.js"
 import { Recipient, RecipientType } from "../../../../src/common/api/common/recipients/Recipient.js"
 import { AccountType, CalendarAttendeeStatus, ShareCapability } from "../../../../src/common/api/common/TutanotaConstants.js"
 import { UserTypeRef } from "../../../../src/common/api/entities/sys/TypeRefs.js"
-import { SendMailModel } from "../../../../src/mail-app/mail/editor/SendMailModel.js"
 import { UserController } from "../../../../src/common/api/main/UserController.js"
 import { CalendarOperation, EventType } from "../../../../src/calendar-app/calendar/gui/eventeditor-model/CalendarEventModel.js"
 import {
@@ -27,9 +25,11 @@ import {
 	thirdRecipient,
 } from "../CalendarTestUtils.js"
 import { assertNotNull, neverNull } from "@tutao/tutanota-utils"
-import { RecipientField } from "../../../../src/mail-app/mail/model/MailUtils.js"
+import { RecipientField } from "../../../../src/common/mailFunctionality/CommonMailUtils.js"
 import { ProgrammingError } from "../../../../src/common/api/common/error/ProgrammingError.js"
 import { createTestEntity } from "../../TestUtils.js"
+import { SendMailModel } from "../../../../src/common/mailFunctionality/SendMailModel.js"
+import { CalendarEventWhoModel } from "../../../../src/calendar-app/calendar/gui/eventeditor-model/CalendarEventWhoModel.js"
 
 o.spec("CalendarEventWhoModel", function () {
 	const passwordStrengthModel = () => 1
