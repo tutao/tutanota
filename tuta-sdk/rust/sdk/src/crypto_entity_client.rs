@@ -46,7 +46,7 @@ impl CryptoEntityClient {
                         error_message: format!(
                             "Failed to resolve session key for entity '{}' with ID: {}; {}",
                             type_model.name,
-                            type_model.id,
+                            id,
                             error
                         )
                     }
