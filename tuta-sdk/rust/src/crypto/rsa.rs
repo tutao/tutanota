@@ -7,6 +7,9 @@ use crate::crypto::randomizer_facade::RandomizerFacade;
 use crate::crypto::ecc::EccKeyPair;
 use crate::join_slices;
 
+#[cfg(test)]
+const RSA_KEY_BIT_SIZE: usize = 2048;
+
 #[derive(Clone, PartialEq)]
 #[cfg_attr(test, derive(Debug))] // only allow Debug in tests because this prints the key!
 pub struct RSAPublicKey(rsa::RsaPublicKey);
@@ -97,11 +100,39 @@ pub struct RSAKeyPair {
     pub private_key: RSAPrivateKey,
 }
 
+impl RSAKeyPair {
+    /// Generate an RSA keypair.
+    ///
+    /// We do not generate RSA keys anymore, so this is only visible in test code.
+    #[cfg(test)]
+    pub fn generate(randomizer_facade: &RandomizerFacade) -> Self {
+        let private_key = rsa::RsaPrivateKey::new(&mut randomizer_facade.clone(), RSA_KEY_BIT_SIZE).unwrap();
+        let public_key = private_key.to_public_key();
+        Self {
+            public_key: RSAPublicKey::new(public_key),
+            private_key: RSAPrivateKey::new(private_key),
+        }
+    }
+}
+
 #[derive(Clone, PartialEq)]
 #[cfg_attr(test, derive(Debug))] // only allow Debug in tests because this prints the key!
 pub struct RSAEccKeyPair {
     pub rsa_key_pair: RSAKeyPair,
     pub ecc_key_pair: EccKeyPair,
+}
+
+impl RSAEccKeyPair {
+    /// Generate an RSA-ECC keypair.
+    ///
+    /// This is only intended to be used for testing, as new RSA keys should not be generated.
+    #[cfg(test)]
+    pub fn generate(randomizer_facade: &RandomizerFacade) -> Self {
+        Self {
+            rsa_key_pair: RSAKeyPair::generate(randomizer_facade),
+            ecc_key_pair: EccKeyPair::generate(randomizer_facade),
+        }
+    }
 }
 
 impl RSAPrivateKey {
