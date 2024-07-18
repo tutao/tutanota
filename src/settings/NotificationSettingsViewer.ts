@@ -120,11 +120,10 @@ export class NotificationSettingsViewer implements UpdatableSettingsViewer {
 							name: lang.get("notificationPreferenceOnlySender_action"),
 							value: ExtendedNotificationMode.OnlySender,
 						},
-						// Uncomment when subject in notifications is available
-						// {
-						// 	name: lang.get("notificationPreferenceSenderAndSubject_action"),
-						// 	value: ExtendedNotificationMode.SenderAndSubject,
-						// },
+						{
+							name: lang.get("notificationPreferenceSenderAndSubject_action"),
+							value: ExtendedNotificationMode.SenderAndSubject,
+						},
 					],
 					selectedValue: this.extendedNotificationMode,
 					selectionChangedHandler: (v) => {
