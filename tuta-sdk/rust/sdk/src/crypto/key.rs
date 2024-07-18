@@ -9,13 +9,19 @@ use super::tuta_crypt::*;
 #[cfg_attr(test, derive(Debug))] // only allow Debug in tests because this prints the key!
 pub enum AsymmetricKeyPair {
     RSAKeyPair(RSAKeyPair),
-    RsaEccKeyPair(RSAEccKeyPair),
+    RSAEccKeyPair(RSAEccKeyPair),
     PQKeyPairs(PQKeyPairs),
 }
 
 impl From<RSAKeyPair> for AsymmetricKeyPair {
     fn from(value: RSAKeyPair) -> Self {
         Self::RSAKeyPair(value)
+    }
+}
+
+impl From<RSAEccKeyPair> for AsymmetricKeyPair {
+    fn from(value: RSAEccKeyPair) -> Self {
+        Self::RSAEccKeyPair(value)
     }
 }
 

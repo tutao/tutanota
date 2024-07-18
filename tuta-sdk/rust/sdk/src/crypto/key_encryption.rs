@@ -67,7 +67,7 @@ fn decrypt_rsa_or_rsa_ecc_key_pair(encryption_key: &GenericAesKey, key_pair: &Ke
     if let Some(ecc_key) = key_pair.symEncPrivEccKey.as_ref() {
         let public_ecc_key = require_field!(key_pair.pubEccKey)?;
         let private_ecc_key = Zeroizing::new(encryption_key.decrypt_data(ecc_key)?);
-        Ok(AsymmetricKeyPair::RsaEccKeyPair(RSAEccKeyPair {
+        Ok(AsymmetricKeyPair::RSAEccKeyPair(RSAEccKeyPair {
             rsa_key_pair,
             ecc_key_pair: EccKeyPair {
                 public_key: EccPublicKey::from_bytes(public_ecc_key)?,
