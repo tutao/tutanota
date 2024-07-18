@@ -2,7 +2,7 @@ use std::sync::Arc;
 use zeroize::Zeroizing;
 use crate::crypto::ecc::EccPublicKey;
 use crate::crypto::key::{AsymmetricKeyPair, GenericAesKey, KeyLoadError};
-use crate::crypto::rsa::RSAEncryptionError;
+use crate::crypto::rsa::{RSAEccKeyPair, RSAEncryptionError};
 use crate::crypto::tuta_crypt::{PQError, PQMessage};
 use crate::generated_id::GeneratedId;
 use crate::element_value::{ElementValue, ParsedEntity};
@@ -37,7 +37,7 @@ pub struct CryptoFacade {
 impl CryptoFacade {
     pub fn new(
         key_loader_facade: Arc<KeyLoaderFacade>,
-        instance_mapper: Arc<InstanceMapper>
+        instance_mapper: Arc<InstanceMapper>,
     ) -> Self {
         Self {
             key_loader_facade,
@@ -55,11 +55,11 @@ impl CryptoFacade {
         // Derive the session key from the bucket key
         if let Some(bucket_key_value) = entity.get(BUCKET_KEY_FIELD) {
             match bucket_key_value {
-                ElementValue::Dict(_) =>  {
+                ElementValue::Dict(_) => {
                     let resolved_key = self.resolve_bucket_key(entity, model).await?;
                     return Ok(Some(resolved_key));
-                },
-                ElementValue::Null => {},
+                }
+                ElementValue::Null => {}
                 _ => return Err(SessionKeyResolutionError { reason: "bucketKey is invalid!".to_string() })
             }
         }
@@ -140,7 +140,7 @@ impl CryptoFacade {
                         sender_identity_key: Some(k.ecc_keys.public_key),
                     }
                 }
-                AsymmetricKeyPair::RSAKeyPair(k) => {
+                AsymmetricKeyPair::RsaEccKeyPair(RSAEccKeyPair { rsa_key_pair: k, .. }) | AsymmetricKeyPair::RSAKeyPair(k) => {
                     let bucket_key_bytes = Zeroizing::new(k.private_key.decrypt(pub_enc_bucket_key)?);
                     let decrypted_bucket_key = GenericAesKey::from_bytes(bucket_key_bytes.as_slice())?.into();
                     ResolvedBucketKey {
@@ -148,7 +148,6 @@ impl CryptoFacade {
                         sender_identity_key: None,
                     }
                 }
-                AsymmetricKeyPair::RsaEccKeyPair(_) => { todo!() }
             }
         } else if let Some(_group_enc_bucket_key) = &bucket_key.groupEncBucketKey {
             // TODO: to be used with secure external
