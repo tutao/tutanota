@@ -11,13 +11,13 @@ import { Icons } from "../../common/gui/base/icons/Icons.js"
 import { ButtonSize } from "../../common/gui/base/ButtonSize.js"
 import { isApp, isDesktop } from "../../common/api/common/Env.js"
 import { noOp, ofClass } from "@tutao/tutanota-utils"
-import { NotFoundError } from "../../common/api/common/error/RestError.js"
 import { AppType, PushServiceType } from "../../common/api/common/TutanotaConstants.js"
-import { IdentifierRow } from "../../common/settings/IdentifierRow.js"
 import { mailLocator } from "../mailLocator.js"
 import { UpdatableSettingsViewer } from "../../common/settings/Interfaces.js"
 import { NotificationContentSelector } from "./NotificationContentSelector.js"
 import { NotificationTargetsList, NotificationTargetsListAttrs } from "../../common/settings/NotificationTargetsList.js"
+import { NotFoundError } from "../../common/api/common/error/RestError.js"
+import { IdentifierRow } from "../../common/settings/IdentifierRow.js"
 
 export class NotificationSettingsViewer implements UpdatableSettingsViewer {
 	private currentIdentifier: string | null = null
@@ -59,34 +59,34 @@ export class NotificationSettingsViewer implements UpdatableSettingsViewer {
 		])
 
 		const rows = this.identifiers
-			.map((identifier) => {
-				const isCurrentDevice = (isApp() || isDesktop()) && identifier.identifier === this.currentIdentifier
+						 .map((identifier) => {
+							 const isCurrentDevice = (isApp() || isDesktop()) && identifier.identifier === this.currentIdentifier
 
-				return m(IdentifierRow, {
-					name: this.identifierDisplayName(isCurrentDevice, identifier.pushServiceType, identifier.displayName),
-					disabled: identifier.disabled,
-					identifier: identifier.identifier,
-					current: isCurrentDevice,
-					removeClicked: () => {
-						locator.entityClient.erase(identifier).catch(ofClass(NotFoundError, noOp))
-					},
-					formatIdentifier: identifier.pushServiceType !== PushServiceType.EMAIL,
-					disableClicked: () => this.disableIdentifier(identifier),
-				})
-			})
-			.sort((l, r) => +r.attrs.current - +l.attrs.current)
+							 return m(IdentifierRow, {
+								 name: this.identifierDisplayName(isCurrentDevice, identifier.pushServiceType, identifier.displayName),
+								 disabled: identifier.disabled,
+								 identifier: identifier.identifier,
+								 current: isCurrentDevice,
+								 removeClicked: () => {
+									 locator.entityClient.erase(identifier).catch(ofClass(NotFoundError, noOp))
+								 },
+								 formatIdentifier: identifier.pushServiceType !== PushServiceType.EMAIL,
+								 disableClicked: () => this.disableIdentifier(identifier),
+							 })
+						 })
+						 .sort((l, r) => +r.attrs.current - +l.attrs.current)
 
 		return m(".fill-absolute.scroll.plr-l.pb-xl", [
 			m(".flex.col", [
 				m(".flex-space-between.items-center.mt-l.mb-s", [m(".h4", lang.get("notificationSettings_action"))]),
 				this.extendedNotificationMode
 					? m(NotificationContentSelector, {
-							extendedNotificationMode: this.extendedNotificationMode,
-							onChange: (value: ExtendedNotificationMode) => {
-								locator.pushService.setExtendedNotificationMode(value)
-								this.extendedNotificationMode = value
-							},
-					  })
+						extendedNotificationMode: this.extendedNotificationMode,
+						onChange: (value: ExtendedNotificationMode) => {
+							locator.pushService.setExtendedNotificationMode(value)
+							this.extendedNotificationMode = value
+						},
+					})
 					: null,
 				m(NotificationTargetsList, { rows, rowAdd, onExpandedChange: this.expanded } satisfies NotificationTargetsListAttrs),
 			]),
