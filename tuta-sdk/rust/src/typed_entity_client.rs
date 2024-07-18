@@ -44,11 +44,11 @@ impl TypedEntityClient {
     }
 
     async fn load_all<T: Entity + Deserialize<'static>>(&self, list_id: &IdTuple, start: Option<String>) -> Result<Vec<T>, ApiCallError> {
-        todo!()
+        todo!("typed entity client load_all")
     }
 
     pub async fn load_range<T: Entity + Deserialize<'static>>(&self, list_id: &GeneratedId, start_id: &GeneratedId, count: usize, list_load_direction: ListLoadDirection) -> Result<Vec<T>, ApiCallError> {
-        todo!()
+        todo!("typed entity client load_range")
     }
 }
 

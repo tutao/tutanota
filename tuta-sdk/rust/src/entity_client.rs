@@ -93,7 +93,7 @@ impl EntityClient {
         list_id: &IdTuple,
         start: Option<String>,
     ) -> Result<Vec<ParsedEntity>, ApiCallError> {
-        todo!()
+        todo!("entity client load_all")
     }
 
     /// Fetches and returns a specified number (`count`) of entities/instances
@@ -104,14 +104,14 @@ impl EntityClient {
         list_id: &GeneratedId,
         start_id: &GeneratedId,
         count: usize,
-        list_load_direction: ListLoadDirection
+        list_load_direction: ListLoadDirection,
     ) -> Result<Vec<ParsedEntity>, ApiCallError> {
-        todo!()
+        todo!("entity client load_range")
     }
 
     /// Stores a newly created entity/instance as a single element on the backend
     pub async fn setup_element(&self, type_ref: &TypeRef, entity: RawEntity) -> Vec<String> {
-        todo!()
+        todo!("entity client setup_element")
     }
 
     /// Stores a newly created entity/instance as a part of a list element on the backend
@@ -121,7 +121,7 @@ impl EntityClient {
         list_id: &IdTuple,
         entity: RawEntity,
     ) -> Vec<String> {
-        todo!()
+        todo!("entity client setup_list_element")
     }
 
     /// Updates an entity/instance in the backend
@@ -150,12 +150,12 @@ impl EntityClient {
 
     /// Deletes an existing single entity/instance on the backend
     pub async fn erase_element(&self, type_ref: &TypeRef, id: &GeneratedId) -> Result<(), ApiCallError> {
-        todo!()
+        todo!("entity client erase_element")
     }
 
     /// Deletes an existing entity/instance of a list element type on the backend
     pub async fn erase_list_element(&self, type_ref: &TypeRef, id: IdTuple) -> Result<(), ApiCallError> {
-        todo!()
+        todo!("entity client erase_list_element")
     }
 }
 
