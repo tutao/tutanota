@@ -71,9 +71,9 @@ impl JsonSerializer {
                         type_ref: type_ref.clone(),
                         field: value_name.clone(),
                     })?)
-                },
+                }
                 (_, value) if !value_type.encrypted => self.parse_value(&type_model, &value_name, &value_type, value)?,
-                _ => return Err(InvalidValue { type_ref: type_ref.clone(), field: value_name.clone()}),
+                _ => return Err(InvalidValue { type_ref: type_ref.clone(), field: value_name.clone() }),
             };
             mapped.insert(value_name, mapped_value);
         }
@@ -88,7 +88,7 @@ impl JsonSerializer {
                         field: association_name.to_owned(),
                     })?;
             let association_type_ref = TypeRef {
-                app: type_ref.app,
+                app: association_type.dependency.unwrap_or(type_ref.app),
                 type_: association_type.ref_type,
             };
             match (
@@ -473,6 +473,7 @@ mod tests {
         let mapper = JsonSerializer {
             type_model_provider,
         };
+        // TODO: Expand this test to cover bucket keys in mail
         let email_json = include_str!("../test_data/email_response.json");
         let raw_entity = serde_json::from_str::<RawEntity>(email_json).unwrap();
         let type_ref = TypeRef {
