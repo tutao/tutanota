@@ -190,7 +190,7 @@ export class CalendarView extends BaseTopLevelView implements TopLevelView<Calen
 									onEventClicked: (calendarEvent, domEvent) => this.onEventSelected(calendarEvent, domEvent, this.htmlSanitizer),
 									onEventKeyDown: this.handleEventKeyDown(),
 									onNewEvent: (date) => {
-										this.createNewEventDialog(getNextHalfHour())
+										this.createNewEventDialog(date)
 									},
 									selectedDate: this.viewModel.selectedDate(),
 									onDateSelected: (date, calendarViewType) => {
