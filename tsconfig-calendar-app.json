@@ -8,8 +8,7 @@
 		"incremental": true,
 		"rootDir": "."
 	},
-	"include": ["src/", "libs/*.ts", "types/*.d.ts"],
-	"exclude": ["src/app.ts"],
+	"include": ["src/calendar-app/", "src/common/", "src/*.ts", "libs/*.ts", "types/*.d.ts"],
 	"references": [
 		{
 			"path": "./packages/tutanota-utils"
