@@ -51,6 +51,6 @@ impl KeyCache {
     }
 
     pub async fn remove_outdated_group_keys(&self, _user: &User) {
-        todo!()
+        todo!("key cache remove_outdated_group_keys")
     }
 }
