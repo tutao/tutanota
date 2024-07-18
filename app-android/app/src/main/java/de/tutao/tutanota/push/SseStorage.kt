@@ -41,7 +41,7 @@ class SseStorage(
 		//  - If notifications were not used before, enable extended notifications
 		val users = this.getUsers()
 		if (!users.any { it.userId == userId }) {
-			this.setExtendedNotificationConfig(userId, ExtendedNotificationMode.ONLY_SENDER)
+			this.setExtendedNotificationConfig(userId, ExtendedNotificationMode.SENDER_AND_SUBJECT)
 		}
 		val deviceEncSessionKey = keyStoreFacade.encryptKey(pushIdentifierSessionKey)
 		db.userInfoDao().insertPushIdentifierKey(PushIdentifierKey(pushIdentifierId, deviceEncSessionKey))
@@ -118,6 +118,7 @@ class SseStorage(
 		private const val SSE_ORIGIN = "sseOrigin"
 		private const val EXTENDED_NOTIFICATION_MODE = "extendedNotificationMode"
 		private const val CONNECT_TIMEOUT_SEC = "connectTimeoutSec"
+		// This default is overwritten by another default in `storePushIdentifierSessionKey()`
 		private val DEFAULT_EXTENDED_NOTIFCATION_MODE = ExtendedNotificationMode.NO_SENDER_OR_SUBJECT
 	}
 }
