@@ -1,11 +1,13 @@
 import o from "@tutao/otest"
-import type { AlarmInterval, AlarmOccurrence, CalendarMonth } from "../../../src/common/calendar-app/date/CalendarUtils.js"
 import {
 	addDaysForEventInstance,
 	addDaysForRecurringEvent,
+	AlarmInterval,
 	AlarmIntervalUnit,
+	AlarmOccurrence,
 	calendarEventHasMoreThanOneOccurrencesLeft,
 	CalendarEventValidity,
+	CalendarMonth,
 	checkEventValidity,
 	createRepeatRuleWithValues,
 	eventEndsBefore,
@@ -25,7 +27,7 @@ import {
 	prepareCalendarDescription,
 	serializeAlarmInterval,
 	StandardAlarmInterval,
-} from "../../../src/common/calendar-app/date/CalendarUtils.js"
+} from "../../../src/common/calendar/date/CalendarUtils.js"
 import { lang } from "../../../src/common/misc/LanguageViewModel.js"
 import { DateWrapperTypeRef, GroupMembershipTypeRef, GroupTypeRef, User, UserTypeRef } from "../../../src/common/api/entities/sys/TypeRefs.js"
 import { AccountType, EndType, GroupType, RepeatPeriod, ShareCapability } from "../../../src/common/api/common/TutanotaConstants.js"
@@ -42,9 +44,6 @@ import {
 	EncryptedMailAddressTypeRef,
 } from "../../../src/common/api/entities/tutanota/TypeRefs.js"
 import { clone, getStartOfDay, identity, lastThrow, neverNull } from "@tutao/tutanota-utils"
-import { Time } from "../../../src/common/calendar-app/date/Time.js"
-import { EventType } from "../../../src/calendar-app/calendar-app/gui/eventeditor-model/CalendarEventModel.js"
-import { CalendarInfo } from "../../../src/calendar-app/calendar-app/model/CalendarModel.js"
 import { object, replace } from "testdouble"
 import { CalendarEventAlteredInstance, CalendarEventProgenitor } from "../../../src/common/api/worker/facades/lazy/CalendarFacade.js"
 import { getDateInUTC, getDateInZone } from "./CalendarTestUtils.js"
@@ -52,6 +51,9 @@ import { ParserError } from "../../../src/common/misc/parsing/ParserCombinator.j
 import { createTestEntity } from "../TestUtils.js"
 
 import { getCalendarMonth, getEventType } from "../../../src/calendar-app/calendar/gui/CalendarGuiUtils.js"
+import { EventType } from "../../../src/calendar-app/calendar/gui/eventeditor-model/CalendarEventModel.js"
+import { CalendarInfo } from "../../../src/calendar-app/calendar/model/CalendarModel.js"
+import { Time } from "../../../src/common/calendar/date/Time.js"
 
 const zone = "Europe/Berlin"
 

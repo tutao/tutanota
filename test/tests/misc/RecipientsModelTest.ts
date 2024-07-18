@@ -1,6 +1,5 @@
 import o from "@tutao/otest"
 import { RecipientsModel, ResolveMode } from "../../../src/common/api/main/RecipientsModel.js"
-import { ContactModel } from "../../../src/mail-app/contacts/model/ContactModel.js"
 import { LoginController } from "../../../src/common/api/main/LoginController.js"
 import { MailFacade } from "../../../src/common/api/worker/facades/lazy/MailFacade.js"
 import { EntityClient } from "../../../src/common/api/common/EntityClient.js"
@@ -13,6 +12,7 @@ import { GroupType } from "../../../src/common/api/common/TutanotaConstants.js"
 import { verify } from "@tutao/tutanota-test-utils"
 import { defer, delay } from "@tutao/tutanota-utils"
 import { createTestEntity } from "../TestUtils.js"
+import { ContactModel } from "../../../src/common/contactsFunctionality/ContactModel.js"
 
 o.spec("RecipientsModel", function () {
 	const contactListId = "contactListId"
