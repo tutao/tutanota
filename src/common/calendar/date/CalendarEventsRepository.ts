@@ -6,13 +6,19 @@ import { addDaysForRecurringEvent, CalendarTimeRange, getEventEnd, getEventStart
 import { CalendarEvent, CalendarEventTypeRef } from "../../api/entities/tutanota/TypeRefs.js"
 import { getListId, isSameId } from "../../api/common/utils/EntityUtils.js"
 import { DateTime } from "luxon"
-import { CalendarFacade } from "../../api/worker/facades/lazy/CalendarFacade.js"
+import { AlarmInfoTemplate, CalendarFacade } from "../../api/worker/facades/lazy/CalendarFacade.js"
 import { EntityClient } from "../../api/common/EntityClient.js"
 import { findAllAndRemove } from "@tutao/tutanota-utils"
 import { OperationType } from "../../api/common/TutanotaConstants.js"
 import { NotAuthorizedError, NotFoundError } from "../../api/common/error/RestError.js"
 import { EventController } from "../../api/main/EventController.js"
 import { EntityUpdateData, isUpdateForTypeRef } from "../../api/common/utils/EntityUpdateUtils.js"
+import { locator } from "../../api/main/MainLocator.js"
+import { getEventType } from "../../../calendar-app/calendar/gui/CalendarGuiUtils.js"
+import { getEnabledMailAddressesForGroupInfo } from "../../api/common/utils/GroupUtils.js"
+import { GroupInfoTypeRef } from "../../api/entities/sys/TypeRefs.js"
+import { CalendarOperation, EventType } from "../../../calendar-app/calendar/gui/eventeditor-model/CalendarEventModel.js"
+import { generateEventElementId } from "../../api/common/utils/CommonCalendarUtils.js"
 
 const LIMIT_PAST_EVENTS_YEARS = 100
 
@@ -168,8 +174,36 @@ export class CalendarEventsRepository {
 			if (isUpdateForTypeRef(CalendarEventTypeRef, update)) {
 				if (update.operation === OperationType.CREATE || update.operation === OperationType.UPDATE) {
 					try {
-						const event = await this.entityClient.load(CalendarEventTypeRef, [update.instanceListId, update.instanceId])
-						await this.addOrUpdateEvent(calendarInfos.get(eventOwnerGroupId) ?? null, event)
+						let event = await this.entityClient.load(CalendarEventTypeRef, [update.instanceListId, update.instanceId])
+						const { userSettingsGroupRoot, user } = locator.logins.getUserController()
+
+						const userGroupInfo = await this.entityClient.load(GroupInfoTypeRef, user.userGroup.groupInfo)
+						const mailAddresses = getEnabledMailAddressesForGroupInfo(userGroupInfo)
+						const eventType = getEventType(event, calendarInfos, mailAddresses, user)
+
+						if (eventType === EventType.INVITE) {
+							// TODO Use user default calendar
+						}
+
+						const calendarInfo = calendarInfos.get(eventOwnerGroupId) ?? null
+						const calendarGroupSettings = userSettingsGroupRoot.groupSettings.find((gc) => gc.group === calendarInfo?.groupInfo.group)
+						if (eventType !== EventType.OWN && calendarInfo && calendarGroupSettings) {
+							const alarmInfos: AlarmInfoTemplate[] =
+								calendarGroupSettings.defaultAlarmsList.map((defaultAlarm) => ({
+									alarmIdentifier: generateEventElementId(event.startTime.valueOf()),
+									trigger: defaultAlarm.trigger,
+								})) ?? []
+
+							// TODO Save this event with the new alarms
+							//event = await this.entityClient.load(CalendarEventTypeRef, [update.instanceListId, update.instanceId])
+							const mailboxDetails = await locator.mailModel.getUserMailboxDetails()
+							const mailboxProperties = await locator.mailModel.getMailboxProperties(mailboxDetails.mailboxGroupRoot)
+							//const model = await locator.calendarEventModel(CalendarOperation.EditThis, event, mailboxDetails, mailboxProperties, null)
+
+							this.calendarFacade.updateCalendarEvent(event, alarmInfos, event)
+						}
+
+						await this.addOrUpdateEvent(calendarInfo, event)
 					} catch (e) {
 						if (e instanceof NotFoundError || e instanceof NotAuthorizedError) {
 							console.log(TAG, e.name, "updated event is not accessible anymore")
