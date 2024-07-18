@@ -81,16 +81,16 @@ fn decrypt_rsa_or_rsa_ecc_key_pair(encryption_key: &GenericAesKey, key_pair: &Ke
 
 #[cfg(test)]
 mod tests {
+    use super::*;
     use crate::crypto::{Aes256Key, Iv, PQKeyPairs};
     use crate::crypto::ecc::EccKeyPair;
     use crate::crypto::key::{AsymmetricKeyPair, GenericAesKey};
-    use crate::crypto::key_encryption::decrypt_pq_key_pair;
     use crate::crypto::randomizer_facade::test_util::make_thread_rng_facade;
     use crate::entities::sys::KeyPair;
     use crate::util::test_utils::generate_random_string;
 
     #[test]
-    fn roundtrip() {
+    fn pq_roundtrip() {
         let randomizer = make_thread_rng_facade();
         let pq_key_pair = PQKeyPairs::generate(&randomizer);
         let parent_key: GenericAesKey = Aes256Key::generate(&randomizer).into();
@@ -106,11 +106,68 @@ mod tests {
             symEncPrivRsaKey: Some(generate_random_string::<17>().as_bytes().to_vec()),
         };
 
-        let decrypted_kyber_key = decrypt_pq_key_pair(&parent_key, &encrypted_key_pair).unwrap();
+        let decrypted_key_pair = decrypt_pq_key_pair(&parent_key, &encrypted_key_pair).unwrap();
 
-        match decrypted_kyber_key {
+        match decrypted_key_pair {
             AsymmetricKeyPair::PQKeyPairs(decrypted_key_pair) => {
-                assert_eq!(pq_key_pair.kyber_keys.public_key, decrypted_key_pair.kyber_keys.public_key)
+                assert_eq!(pq_key_pair.kyber_keys.public_key, decrypted_key_pair.kyber_keys.public_key);
+                assert_eq!(pq_key_pair.kyber_keys.private_key, decrypted_key_pair.kyber_keys.private_key);
+            }
+            _ => panic!()
+        }
+    }
+
+    #[test]
+    fn rsa_roundtrip() {
+        let randomizer = make_thread_rng_facade();
+        let rsa_key_pair = RSAKeyPair::generate(&randomizer);
+        let parent_key: GenericAesKey = Aes256Key::generate(&randomizer).into();
+
+        let encrypted_key_pair = KeyPair {
+            _id: Default::default(),
+            pubEccKey: None,
+            pubKyberKey: None,
+            pubRsaKey: Some(rsa_key_pair.public_key.serialize()),
+            symEncPrivEccKey: None,
+            symEncPrivKyberKey: None,
+            symEncPrivRsaKey: Some(parent_key.encrypt_data(rsa_key_pair.private_key.serialize().as_slice(), Iv::generate(&randomizer)).unwrap()),
+        };
+
+        let decrypted_key_pair = decrypt_rsa_or_rsa_ecc_key_pair(&parent_key, &encrypted_key_pair).unwrap();
+
+        match decrypted_key_pair {
+            AsymmetricKeyPair::RSAKeyPair(decrypted_key_pair) => {
+                assert_eq!(rsa_key_pair.public_key, decrypted_key_pair.public_key);
+                assert_eq!(rsa_key_pair.private_key, decrypted_key_pair.private_key);
+            }
+            _ => panic!()
+        }
+    }
+
+    #[test]
+    fn rsa_ecc_roundtrip() {
+        let randomizer = make_thread_rng_facade();
+        let rsa_ecc_key_pair = RSAEccKeyPair::generate(&randomizer);
+        let parent_key: GenericAesKey = Aes256Key::generate(&randomizer).into();
+
+        let encrypted_key_pair = KeyPair {
+            _id: Default::default(),
+            pubEccKey: Some(rsa_ecc_key_pair.ecc_key_pair.public_key.as_bytes().to_vec()),
+            pubKyberKey: None,
+            pubRsaKey: Some(rsa_ecc_key_pair.rsa_key_pair.public_key.serialize()),
+            symEncPrivEccKey: Some(parent_key.encrypt_data(rsa_ecc_key_pair.ecc_key_pair.private_key.as_bytes(), Iv::generate(&randomizer)).unwrap()),
+            symEncPrivKyberKey: None,
+            symEncPrivRsaKey: Some(parent_key.encrypt_data(rsa_ecc_key_pair.rsa_key_pair.private_key.serialize().as_slice(), Iv::generate(&randomizer)).unwrap()),
+        };
+
+        let decrypted_key_pair = decrypt_rsa_or_rsa_ecc_key_pair(&parent_key, &encrypted_key_pair).unwrap();
+
+        match decrypted_key_pair {
+            AsymmetricKeyPair::RSAEccKeyPair(decrypted_key_pair) => {
+                assert_eq!(rsa_ecc_key_pair.rsa_key_pair.public_key, decrypted_key_pair.rsa_key_pair.public_key);
+                assert_eq!(rsa_ecc_key_pair.rsa_key_pair.private_key, decrypted_key_pair.rsa_key_pair.private_key);
+                assert_eq!(rsa_ecc_key_pair.ecc_key_pair.public_key, decrypted_key_pair.ecc_key_pair.public_key);
+                assert_eq!(rsa_ecc_key_pair.ecc_key_pair.private_key, decrypted_key_pair.ecc_key_pair.private_key);
             }
             _ => panic!()
         }
