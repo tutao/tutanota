@@ -14,7 +14,7 @@ import { isApp, isDesktop } from "../api/common/Env.js"
 import { noOp, ofClass } from "@tutao/tutanota-utils"
 import { NotFoundError } from "../api/common/error/RestError.js"
 import { PushServiceType } from "../api/common/TutanotaConstants.js"
-import { DropDownSelector, DropDownSelectorAttrs } from "../gui/base/DropDownSelector.js"
+import { DropDownSelector, DropDownSelectorAttrs, SelectorItemList } from "../gui/base/DropDownSelector.js"
 import { ExpanderButton, ExpanderPanel } from "../gui/base/Expander.js"
 import { IdentifierRow } from "./IdentifierRow.js"
 
@@ -107,11 +107,12 @@ export class NotificationSettingsViewer implements UpdatableSettingsViewer {
 	}
 
 	private renderExtendedNotificationPref(): Children {
-		return this.extendedNotificationMode == null
-			? null
-			: m(DropDownSelector, {
-					label: "notificationContent_label",
-					items: [
+		if (this.extendedNotificationMode == null) {
+			return null
+		} else {
+			// Subject is not available on desktop at the moment.
+			const options: SelectorItemList<ExtendedNotificationMode> = isDesktop()
+				? [
 						{
 							name: lang.get("notificationPreferenceNoSenderOrSubject_action"),
 							value: ExtendedNotificationMode.NoSenderOrSubject,
@@ -120,19 +121,32 @@ export class NotificationSettingsViewer implements UpdatableSettingsViewer {
 							name: lang.get("notificationPreferenceOnlySender_action"),
 							value: ExtendedNotificationMode.OnlySender,
 						},
-						// Uncomment when subject in notifications is available
-						// {
-						// 	name: lang.get("notificationPreferenceSenderAndSubject_action"),
-						// 	value: ExtendedNotificationMode.SenderAndSubject,
-						// },
-					],
-					selectedValue: this.extendedNotificationMode,
-					selectionChangedHandler: (v) => {
-						locator.pushService.setExtendedNotificationMode(v)
-						this.extendedNotificationMode = v
-					},
-					dropdownWidth: 250,
-			  } satisfies DropDownSelectorAttrs<ExtendedNotificationMode>)
+				  ]
+				: [
+						{
+							name: lang.get("notificationPreferenceNoSenderOrSubject_action"),
+							value: ExtendedNotificationMode.NoSenderOrSubject,
+						},
+						{
+							name: lang.get("notificationPreferenceOnlySender_action"),
+							value: ExtendedNotificationMode.OnlySender,
+						},
+						{
+							name: lang.get("notificationPreferenceSenderAndSubject_action"),
+							value: ExtendedNotificationMode.SenderAndSubject,
+						},
+				  ]
+			return m(DropDownSelector, {
+				label: "notificationContent_label",
+				items: options,
+				selectedValue: this.extendedNotificationMode,
+				selectionChangedHandler: (v) => {
+					locator.pushService.setExtendedNotificationMode(v)
+					this.extendedNotificationMode = v
+				},
+				dropdownWidth: 250,
+			} satisfies DropDownSelectorAttrs<ExtendedNotificationMode>)
+		}
 	}
 
 	private identifierDisplayName(current: boolean, type: NumberString, displayName: string): string {
