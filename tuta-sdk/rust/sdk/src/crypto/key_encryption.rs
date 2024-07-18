@@ -55,12 +55,9 @@ fn decrypt_pq_key_pair(encryption_key: &GenericAesKey, key_pair: &KeyPair) -> Re
 }
 
 fn decrypt_rsa_or_rsa_ecc_key_pair(encryption_key: &GenericAesKey, key_pair: &KeyPair) -> Result<AsymmetricKeyPair, KeyLoadError> {
-    let public_key_pem = String::from_utf8(require_field!(key_pair.pubRsaKey)?.to_owned())
-        .map_err(|error| KeyLoadError { reason: format!("Failed to decode pubRsaKey: {error}") })?;
-    let public_key = RSAPublicKey::from_public_key_pem(public_key_pem.as_str())?;
-
+    let public_key = RSAPublicKey::deserialize(require_field!(key_pair.pubRsaKey)?)?;
     let sym_enc_priv_rsa_key = require_field!(key_pair.symEncPrivRsaKey)?;
-    let private_key = RSAPrivateKey::from_pkcs1_der(encryption_key.decrypt_data(sym_enc_priv_rsa_key)?.as_slice())?;
+    let private_key = RSAPrivateKey::deserialize(encryption_key.decrypt_data(sym_enc_priv_rsa_key)?.as_slice())?;
 
     let rsa_key_pair = RSAKeyPair {
         public_key,
