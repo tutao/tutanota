@@ -9,7 +9,7 @@
 		"rootDir": "."
 	},
 	"include": ["src/", "libs/*.ts", "types/*.d.ts"],
-	"exclude": ["src/calendar-app.ts"],
+	"exclude": ["src/calendar-app/*.ts"],
 	"references": [
 		{
 			"path": "./packages/tutanota-utils"
