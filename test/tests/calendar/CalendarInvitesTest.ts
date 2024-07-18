@@ -14,7 +14,6 @@ import {
 } from "../../../src/common/api/entities/tutanota/TypeRefs.js"
 import { CalendarAttendeeStatus } from "../../../src/common/api/common/TutanotaConstants.js"
 import { findAttendeeInAddresses } from "../../../src/common/api/common/utils/CommonCalendarUtils.js"
-import { MailboxDetail, MailModel } from "../../../src/mail-app/mail-app/model/MailModel.js"
 import { instance, matchers, when } from "testdouble"
 import { CalendarModel } from "../../../src/calendar-app/calendar/model/CalendarModel.js"
 import { LoginController } from "../../../src/common/api/main/LoginController.js"
@@ -22,9 +21,10 @@ import { FolderSystem } from "../../../src/common/api/common/mail/FolderSystem.j
 import { GroupInfoTypeRef, GroupTypeRef, User } from "../../../src/common/api/entities/sys/TypeRefs.js"
 import { calendars } from "./CalendarTestUtils.js"
 import { UserController } from "../../../src/common/api/main/UserController.js"
-import { SendMailModel } from "../../../src/mail-app/mail/editor/SendMailModel.js"
 import { CalendarNotificationSender } from "../../../src/calendar-app/calendar/view/CalendarNotificationSender.js"
 import { mockAttribute } from "@tutao/tutanota-test-utils"
+import { SendMailModel } from "../../../src/common/mailFunctionality/SendMailModel.js"
+import { MailboxDetail, MailModel } from "../../../src/common/mailFunctionality/MailModel.js"
 
 const { anything, argThat } = matchers
 

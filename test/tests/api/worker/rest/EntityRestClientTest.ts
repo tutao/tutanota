@@ -32,8 +32,8 @@ import {
 	MailDetailsBlobTypeRef,
 } from "../../../../../src/common/api/entities/tutanota/TypeRefs.js"
 import { DateProvider } from "../../../../../src/common/api/common/DateProvider.js"
-import { DefaultDateProvider } from "../../../../../src/common/calendar-app/date/CalendarUtils.js"
 import { createTestEntity } from "../../../TestUtils.js"
+import { DefaultDateProvider } from "../../../../../src/common/calendar/date/CalendarUtils.js"
 
 const { anything, argThat } = matchers
 

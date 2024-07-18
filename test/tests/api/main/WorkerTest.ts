@@ -3,17 +3,20 @@ import type { WorkerClient } from "../../../../src/common/api/main/WorkerClient.
 import { NotAuthenticatedError } from "../../../../src/common/api/common/error/RestError.js"
 import { Request } from "../../../../src/common/api/common/threading/MessageDispatcher.js"
 import { ProgrammingError } from "../../../../src/common/api/common/error/ProgrammingError.js"
-import { locator } from "../../../../src/common/api/main/CommonLocator.js"
+import { initCommonLocator, locator } from "../../../../src/common/api/main/CommonLocator.js"
 import { assertThrows } from "@tutao/tutanota-test-utils"
 import { SessionType } from "../../../../src/common/api/common/SessionType.js"
 import { CryptoError } from "@tutao/tutanota-crypto/error.js"
+import { mailLocator } from "../../../../src/mail-app/mailLocator.js"
 
 o.spec(
 	"WorkerTest request / response",
 	node(function () {
 		let worker: WorkerClient
 		o.before(async function () {
-			locator.init()
+			await mailLocator.init()
+			initCommonLocator(mailLocator)
+
 			worker = locator.worker
 			await worker.initialized
 		})

@@ -4,15 +4,6 @@ import type { LoginController } from "../../../src/common/api/main/LoginControll
 import { assertThrows, spy } from "@tutao/tutanota-test-utils"
 import { assertNotNull, downcast, getStartOfDay, neverNull, noOp } from "@tutao/tutanota-utils"
 import { CalendarEvent } from "../../../src/common/api/entities/tutanota/TypeRefs.js"
-import { addDaysForEventInstance, getMonthRange } from "../../../src/common/calendar-app/date/CalendarUtils.js"
-import type { CalendarModel } from "../../../src/calendar-app/calendar-app/model/CalendarModel.js"
-import { CalendarInfo } from "../../../src/calendar-app/calendar-app/model/CalendarModel.js"
-import {
-	CalendarEventEditModelsFactory,
-	CalendarEventPreviewModelFactory,
-	CalendarViewModel,
-} from "../../../src/calendar-app/calendar-app/view/CalendarViewModel.js"
-import { CalendarEventModel, CalendarOperation, EventSaveResult } from "../../../src/calendar-app/calendar-app/gui/eventeditor-model/CalendarEventModel.js"
 import { EntityClient } from "../../../src/common/api/common/EntityClient.js"
 import { EventController } from "../../../src/common/api/main/EventController.js"
 import { ProgressTracker } from "../../../src/common/api/main/ProgressTracker.js"
@@ -26,8 +17,16 @@ import { object, when } from "testdouble"
 import { EntityUpdateData } from "../../../src/common/api/common/utils/EntityUpdateUtils.js"
 import stream from "mithril/stream"
 import Stream from "mithril/stream"
-import { CalendarEventsRepository, DaysToEvents } from "../../../src/common/calendar-app/date/CalendarEventsRepository.js"
-import { MailModel } from "../../../src/mail-app/mail-app/model/MailModel.js"
+import {
+	CalendarEventEditModelsFactory,
+	CalendarEventPreviewModelFactory,
+	CalendarViewModel,
+} from "../../../src/calendar-app/calendar/view/CalendarViewModel.js"
+import { CalendarInfo, CalendarModel } from "../../../src/calendar-app/calendar/model/CalendarModel.js"
+import { CalendarEventsRepository, DaysToEvents } from "../../../src/common/calendar/date/CalendarEventsRepository.js"
+import { MailModel } from "../../../src/common/mailFunctionality/MailModel.js"
+import { addDaysForEventInstance, getMonthRange } from "../../../src/common/calendar/date/CalendarUtils.js"
+import { CalendarEventModel, CalendarOperation, EventSaveResult } from "../../../src/calendar-app/calendar/gui/eventeditor-model/CalendarEventModel.js"
 
 let saveAndSendMock
 let rescheduleEventMock
