@@ -6808,7 +6808,7 @@ function requireFormdataParser () {
 	    while (lead < buf.length && predicate(buf[lead])) lead++;
 	  }
 
-	  if (trailing) {
+	  {
 	    while (trail > 0 && predicate(buf[trail])) trail--;
 	  }
 
