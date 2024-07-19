@@ -72,6 +72,7 @@ function deviceConfigCredentialsToPersisted(deviceConfigCredentials: DeviceConfi
 	return {
 		credentialInfo: deviceConfigCredentials.credentialInfo,
 		encryptedPassword: deviceConfigCredentials.encryptedPassword,
+		encryptedPassphraseKey: mapNullable(deviceConfigCredentials.encryptedPassphraseKey, base64ToUint8Array),
 		accessToken: base64ToUint8Array(deviceConfigCredentials.accessToken),
 		databaseKey: mapNullable(deviceConfigCredentials.databaseKey, base64ToUint8Array),
 	}

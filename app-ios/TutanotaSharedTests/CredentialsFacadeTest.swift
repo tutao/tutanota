@@ -18,21 +18,32 @@ final class CredentialsFacadeTest: XCTestCase {
 		credentialInfo: CredentialsInfo(login: "login1@test.com", userId: "user1", type: CredentialType._internal),
 		accessToken: Data([0x01, 0x0a, 0x0e]).wrap(),
 		databaseKey: Data([0x01, 0x0d, 0x0e]).wrap(),
-		encryptedPassword: "pw1"
+		encryptedPassword: "pw1",
+		encryptedPassphraseKey: nil
 	)
 
 	private let decryptedCredentials1 = UnencryptedCredentials(
 		credentialInfo: CredentialsInfo(login: "login1@test.com", userId: "user1", type: CredentialType._internal),
 		accessToken: "decAccessToken1",
 		databaseKey: Data([0x01, 0x0d, 0x0d]).wrap(),
-		encryptedPassword: "pw1"
+		encryptedPassword: "pw1",
+		encryptedPassphraseKey: nil
 	)
 
 	private let encryptedCredentials2 = PersistedCredentials(
 		credentialInfo: CredentialsInfo(login: "login2@test.com", userId: "user2", type: CredentialType._internal),
 		accessToken: Data([0x02, 0x0a, 0x0e]).wrap(),
 		databaseKey: Data([0x02, 0x0d, 0x0e]).wrap(),
-		encryptedPassword: "pw2"
+		encryptedPassword: "pw2",
+		encryptedPassphraseKey: Data([0x02, 0x0b, 0x0e]).wrap()
+	)
+
+	private let decryptedCredentials2 = UnencryptedCredentials(
+		credentialInfo: CredentialsInfo(login: "login2@test.com", userId: "user2", type: CredentialType._internal),
+		accessToken: "decAccessToken2",
+		databaseKey: Data([0x02, 0x0d, 0x0d]).wrap(),
+		encryptedPassword: "pw2",
+		encryptedPassphraseKey: Data([0x02, 0x0b, 0x0e]).wrap()
 	)
 
 	private let encCredentialsKey = Data([0x0e])
@@ -63,7 +74,7 @@ final class CredentialsFacadeTest: XCTestCase {
 		XCTAssertEqual([encryptedCredentials1, encryptedCredentials2], loadedCredentials)
 	}
 
-	func test_loadByUserId_$_when_there_is_a_key_it_is_used_to_decrypt_credentials() async throws {
+	func test_loadByUserId_$_when_there_is_a_key_it_is_used_to_decrypt_credentials_wo_passphraseKey() async throws {
 		given(credentialsDb.getCredentialEncryptionKey()).willReturn(encCredentialsKey)
 		given(credentialsDb.getCredentialEncryptionMode()).willReturn(CredentialEncryptionMode.deviceLock)
 		given(credentialsDb.getAll()).willReturn([encryptedCredentials1, encryptedCredentials2])
@@ -73,6 +84,18 @@ final class CredentialsFacadeTest: XCTestCase {
 			.willReturn(decryptedCredentials1.accessToken.data(using: .utf8)!)
 		let loadedCredential = try await facade.loadByUserId("user1")
 		XCTAssertEqual(decryptedCredentials1, loadedCredential)
+	}
+
+	func test_loadByUserId_$_when_there_is_a_key_it_is_used_to_decrypt_credentials_w_passphraseKey() async throws {
+		given(credentialsDb.getCredentialEncryptionKey()).willReturn(encCredentialsKey)
+		given(credentialsDb.getCredentialEncryptionMode()).willReturn(CredentialEncryptionMode.deviceLock)
+		given(credentialsDb.getAll()).willReturn([encryptedCredentials1, encryptedCredentials2])
+		given(await keychainEncryption.decryptUsingKeychain(encCredentialsKey, .deviceLock)).willReturn(decCredentialsKey)
+		given(cryptoFns.aesDecryptData(encryptedCredentials2.databaseKey!.data, withKey: decCredentialsKey)).willReturn(decryptedCredentials2.databaseKey!.data)
+		given(cryptoFns.aesDecryptData(encryptedCredentials2.accessToken.data, withKey: decCredentialsKey))
+			.willReturn(decryptedCredentials2.accessToken.data(using: .utf8)!)
+		let loadedCredential = try await facade.loadByUserId("user2")
+		XCTAssertEqual(decryptedCredentials2, loadedCredential)
 	}
 
 	func test_loadByUserId_$_when_another_mode_is_selected_the_migration_is_done() async throws {

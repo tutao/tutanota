@@ -39,6 +39,7 @@ export class WebCredentialsFacade implements NativeCredentialsFacade {
 		return {
 			credentialInfo: deviceConfigCredentials.credentialInfo,
 			encryptedPassword: deviceConfigCredentials.encryptedPassword,
+			encryptedPassphraseKey: mapNullable(deviceConfigCredentials.encryptedPassphraseKey, base64ToUint8Array),
 			accessToken: deviceConfigCredentials.accessToken,
 			databaseKey: null,
 		}
@@ -49,9 +50,10 @@ export class WebCredentialsFacade implements NativeCredentialsFacade {
 	async store(credentials: UnencryptedCredentials): Promise<void> {
 		const deviceConfigCredentials: DeviceConfigCredentials = {
 			credentialInfo: credentials.credentialInfo,
-			encryptedPassword: credentials.encryptedPassword,
+			encryptedPassphraseKey: mapNullable(credentials.encryptedPassphraseKey, uint8ArrayToBase64),
 			accessToken: credentials.accessToken,
 			databaseKey: null,
+			encryptedPassword: credentials.encryptedPassword,
 		}
 		this.deviceConfig.storeCredentials(deviceConfigCredentials)
 	}
@@ -77,6 +79,7 @@ function persistedCredentialsToDeviceConfig(persistentCredentials: PersistedCred
 	return {
 		credentialInfo: persistentCredentials.credentialInfo,
 		encryptedPassword: persistentCredentials.encryptedPassword,
+		encryptedPassphraseKey: mapNullable(persistentCredentials.encryptedPassphraseKey, uint8ArrayToBase64),
 		accessToken: utf8Uint8ArrayToString(persistentCredentials.accessToken),
 		databaseKey: mapNullable(persistentCredentials.databaseKey, uint8ArrayToBase64),
 	}
@@ -86,6 +89,7 @@ function deviceConfigCredentialsToPersisted(deviceConfigCredentials: DeviceConfi
 	return {
 		credentialInfo: deviceConfigCredentials.credentialInfo,
 		encryptedPassword: deviceConfigCredentials.encryptedPassword,
+		encryptedPassphraseKey: mapNullable(deviceConfigCredentials.encryptedPassphraseKey, base64ToUint8Array),
 		accessToken: stringToUtf8Uint8Array(deviceConfigCredentials.accessToken),
 		databaseKey: mapNullable(deviceConfigCredentials.databaseKey, base64ToUint8Array),
 	}

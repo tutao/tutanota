@@ -10,7 +10,7 @@ import de.tutao.tutanota.credentials.CredentialsDao
 import de.tutao.tutanota.credentials.PersistedCredentialsEntity
 
 @Database(
-	version = 3, entities = [
+	version = 4, entities = [
 		KeyValue::class,
 		KeyBinary::class,
 		PushIdentifierKey::class,
@@ -19,7 +19,8 @@ import de.tutao.tutanota.credentials.PersistedCredentialsEntity
 		User::class
 	], autoMigrations = [
 		AutoMigration(from = 1, to = 2),
-		AutoMigration(from = 2, to = 3)
+		AutoMigration(from = 2, to = 3),
+		AutoMigration(from = 3, to = 4)
 	]
 )
 abstract class AppDatabase : RoomDatabase() {

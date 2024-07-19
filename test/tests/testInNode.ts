@@ -27,7 +27,7 @@ dom.reconfigure({ url: "http://tutanota.com" })
 globalThis.window.getElementsByTagName = function () {} // for styles.js
 globalThis.window.document.addEventListener = function () {}
 globalThis.document = globalThis.window.document
-globalThis.navigator = globalThis.window.navigator
+// globalThis.navigator = globalThis.window.navigator
 const local = {}
 globalThis.localStorage = {
 	getItem: (key) => local[key],
