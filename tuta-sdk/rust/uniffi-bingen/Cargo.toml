@@ -1,0 +1,11 @@
+[package]
+name = "uniffi-bindgen"
+version = "0.28.0"
+edition = "2021"
+
+[dependencies]
+uniffi = { git = "https://github.com/mozilla/uniffi-rs.git", rev = "13a1c559cb3708eeca40dcf95dc8b3ccccf3b88c", features = ["cli"] }
+
+[[bin]]
+name = "uniffi-bindgen"
+path = "uniffi-bindgen.rs"
