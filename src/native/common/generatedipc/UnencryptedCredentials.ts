@@ -9,4 +9,5 @@ export interface UnencryptedCredentials {
 	readonly accessToken: string
 	readonly databaseKey: Uint8Array | null
 	readonly encryptedPassword: string
+	readonly encryptedPassphraseKey: Uint8Array | null
 }

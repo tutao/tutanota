@@ -9,4 +9,5 @@ export interface PersistedCredentials {
 	readonly accessToken: Uint8Array
 	readonly databaseKey: Uint8Array | null
 	readonly encryptedPassword: string
+	readonly encryptedPassphraseKey: Uint8Array | null
 }

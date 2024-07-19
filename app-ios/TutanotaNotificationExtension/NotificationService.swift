@@ -1,5 +1,29 @@
 import TutanotaSharedFramework
 import UserNotifications
+import tutasdk
+
+class SdkRestClient: RestClient {
+	func requestBinary(url: String, method: tutasdk.HttpMethod, options: tutasdk.RestClientOptions) async throws -> tutasdk.RestResponse {
+		let configuration = URLSessionConfiguration.ephemeral
+		configuration.httpAdditionalHeaders = options.headers
+		let urlSession = URLSession(configuration: configuration)
+		var request = URLRequest(url: URL(string: url)!)
+		request.httpMethod =
+			switch method {
+			case .get: "get"
+			case .post: "post"
+			case .delete: "delete"
+			case .put: "put"
+			}
+		request.httpBody = options.body
+		let (data, urlResponse) = try await urlSession.data(for: request)
+		let httpUrlResponse = urlResponse as! HTTPURLResponse  // We should only ever receive HTTP URLs
+		guard let headers = httpUrlResponse.allHeaderFields as? [String: String] else {
+			throw TUTErrorFactory.createError("Response headers were not a [String:String]")
+		}
+		return tutasdk.RestResponse(status: UInt32(httpUrlResponse.statusCode), headers: headers, body: data)
+	}
+}
 
 class NotificationService: UNNotificationServiceExtension {
 
@@ -9,7 +33,6 @@ class NotificationService: UNNotificationServiceExtension {
 	override func didReceive(_ request: UNNotificationRequest, withContentHandler contentHandler: @escaping (UNNotificationContent) -> Void) {
 		self.contentHandler = contentHandler
 		bestAttemptContent = (request.content.mutableCopy() as? UNMutableNotificationContent)
-
 		if let bestAttemptContent {
 			Task {
 				try await populateNotification(content: bestAttemptContent)
@@ -17,8 +40,28 @@ class NotificationService: UNNotificationServiceExtension {
 			}
 		}
 	}
+	private func getMail(_ credentials: UnencryptedCredentials, _ notificationStorage: NotificationStorage, _ mailId: [String], _ userId: String) async throws
+		-> tutasdk.Mail?
+	{
+		guard let origin = notificationStorage.sseInfo?.sseOrigin else { return nil }
+		let clientVersion = Bundle.main.infoDictionary!["CFBundleShortVersionString"] as! String
+		guard let encryptedPassphraseKey = credentials.encryptedPassphraseKey else { return nil }
+		let credentials = tutasdk.Credentials(
+			login: credentials.credentialInfo.login,
+			userId: userId,
+			accessToken: credentials.accessToken,
+			encryptedPassphraseKey: encryptedPassphraseKey.data,
+			credentialType: tutasdk.CredentialType.internal
+		)
+		let sdk = try await Sdk(baseUrl: origin, restClient: SdkRestClient(), credentials: credentials, clientVersion: clientVersion).login()
+		return try await sdk.mailFacade().loadEmailByIdEncrypted(idTuple: tutasdk.IdTuple(listId: mailId[0], elementId: mailId[1]))
+	}
+	private func getSenderOfMail(_ mail: tutasdk.Mail) -> String {
+		if mail.sender.name.trimmingCharacters(in: CharacterSet.whitespacesAndNewlines).isEmpty { return mail.sender.address } else { return mail.sender.name }
+	}
 
 	/// try to download email and populate notification content with it
+	///
 	private func populateNotification(content: UNMutableNotificationContent) async throws {
 		// Init
 		let credentialsDb = try! CredentialsDatabase(dbPath: credentialsDatabasePath().absoluteString)
@@ -31,53 +74,31 @@ class NotificationService: UNNotificationServiceExtension {
 		let userId = content.userInfo["userId"] as? String
 
 		guard let userId else { return }
+		guard let mailId else { return }
 
 		let notificationMode = try notificationStorage.getExtendedNotificationConfig(userId)
 
 		do {
 			guard let credentials = try await credentialsFacade.loadByUserId(userId) else { return }
-
+			guard let mail = try await getMail(credentials, notificationStorage, mailId, userId) else { return }
 			// Modify the notification content here...
 			// We use recipient's address as default value for body. It will be overwritten once
 			// we download email metadata
 			content.body = try await credentialsFacade.loadByUserId(userId)?.credentialInfo.login ?? ""
-
-			if notificationMode != .no_sender_or_subject && mailId != nil {
-				var additionalHeaders = [String: String]()
-				addTutanotaModelHeaders(to: &additionalHeaders)
-
-				additionalHeaders["accessToken"] = credentials.accessToken
-
-				let configuration = URLSessionConfiguration.ephemeral
-				configuration.httpAdditionalHeaders = additionalHeaders
-
-				let urlSession = URLSession(configuration: configuration)
-				guard let origin = notificationStorage.sseInfo?.sseOrigin else {
-					TUTSLog("No SSE origin")
-					return
-				}
-				let urlString = self.mailUrl(origin: origin, mailId: mailId!)
-
-				let responseTuple = try? urlSession.synchronousDataTask(with: URL(string: urlString)!)
-				if responseTuple != nil {
-					let httpResponse = responseTuple!.1 as! HTTPURLResponse
-					TUTSLog("Fetched mail with status code \(httpResponse.statusCode)")
-
-					switch HttpStatusCode(rawValue: httpResponse.statusCode) {
-					case .serviceUnavailable, .tooManyRequests: TUTSLog("ServiceUnavailable when downloading mail")
-					case .notFound: return
-					case .ok:
-						do {
-							let mail = try JSONDecoder().decode(MailMetadata.self, from: responseTuple!.0)
-							content.title = mail.sender.address
-							content.body = mail.firstRecipient.address
-						} catch { TUTSLog("Failed to parse response for the mail, \(error)") }
-					default:
-						let errorId = httpResponse.allHeaderFields["Error-Id"]
-						TUTSLog("Failed to fetch mail, error id: \(errorId ?? "")")
-					}
-				}
+			switch notificationMode {
+			case .no_sender_or_subject:
+				content.title = mail.firstRecipient?.address ?? ""
+				content.body = translate("TutaoPushNewMail", default: "New email received.")
+			case .only_sender:
+				content.title = getSenderOfMail(mail)
+				content.body = translate("TutaoPushNewMail", default: "New email received.")
+			case .sender_and_subject:
+				content.title = getSenderOfMail(mail)
+				content.body = mail.subject
 			}
+			content.subtitle = mail.firstRecipient?.address ?? userId
+			content.threadIdentifier = "\(mail.firstRecipient?.address ?? userId):\(content.title)"
+
 		} catch { TUTSLog("Failed! \(error)") }
 	}
 

@@ -24,15 +24,19 @@ public class CredentialsDatabase: CredentialsStorage {
 	private func createTables() throws {
 		try db.prepare(
 			query: """
+				CREATE TABLE IF NOT EXISTS meta (key TEXT NOT NULL, value TEXT)
+				"""
+		)
+		.run()
+		try db.prepare(
+			query: """
 				CREATE TABLE IF NOT EXISTS credentials
-				(login TEXT NOT NULL,
-				userId TEXT NOT NULL,
+				(login TEXT NOT NULL UNIQUE,
+				userId TEXT NOT NULL PRIMARY KEY,
 				type TEXT NOT NULL,
 				accessToken BLOB NOT NULL,
 				databaseKey BLOB,
-				encryptedPassword TEXT NOT NULL,
-				PRIMARY KEY (userId),
-				UNIQUE(login))
+				encryptedPassword TEXT NOT NULL)
 				"""
 		)
 		.run()
@@ -62,6 +66,16 @@ public class CredentialsDatabase: CredentialsStorage {
 				"""
 		)
 		.run()
+		let version = try db.prepare(query: "SELECT value FROM meta WHERE key = 'version'").get()?["value"]
+		switch version {
+		case .some(.null), .none:
+			// v1 adds encryptedPassphraseKey and version field
+			try db.transaction {
+				try self.db.prepare(query: "ALTER TABLE credentials ADD COLUMN encryptedPassphraseKey BLOB").run()
+				try self.db.prepare(query: "INSERT INTO meta VALUES ('version', '1')").run()
+			}
+		default: break
+		}
 	}
 
 	public func getAll() throws -> [PersistedCredentials] {
@@ -70,36 +84,38 @@ public class CredentialsDatabase: CredentialsStorage {
 				SELECT * FROM credentials
 				"""
 		)
-		.all()
-		.map { sqlRow in
-			let credentialsInfo = CredentialsInfo(
-				login: try sqlRow["login"]!.unwrapString(),
-				userId: try sqlRow["userId"]!.unwrapString(),
-				type: CredentialType(rawValue: try sqlRow["type"]!.unwrapString())!
-			)
+		.all().map { sqlRow in try readCredentials(sqlRow: sqlRow) }
+	}
+	private func readCredentials(sqlRow: [String: TaggedSqlValue]) throws -> PersistedCredentials {
+		let credentialsInfo = CredentialsInfo(
+			login: try sqlRow["login"]!.unwrapString(),
+			userId: try sqlRow["userId"]!.unwrapString(),
+			type: CredentialType(rawValue: try sqlRow["type"]!.unwrapString())!
+		)
 
-			let databaseKey: DataWrapper? = if case let .bytes(value) = sqlRow["databaseKey"] { value } else { nil }
-			return PersistedCredentials(
-				credentialInfo: credentialsInfo,
-				accessToken: try sqlRow["accessToken"]!.unwrapBytes().wrap(),
-				databaseKey: databaseKey,
-				encryptedPassword: try sqlRow["encryptedPassword"]!.unwrapString()
-			)
-		}
+		return PersistedCredentials(
+			credentialInfo: credentialsInfo,
+			accessToken: try sqlRow["accessToken"]!.unwrapBytes().wrap(),
+			databaseKey: try sqlRow["databaseKey"]!.unwrapOptionalBytes().map { $0.wrap() },
+			encryptedPassword: try sqlRow["encryptedPassword"]!.unwrapString(),
+			encryptedPassphraseKey: try sqlRow["encryptedPassphraseKey"]!.unwrapOptionalBytes().map { $0.wrap() }
+		)
 	}
 
 	public func store(credentials: PersistedCredentials) throws {
 		let databaseKey: TaggedSqlValue = if let databaseKey = credentials.databaseKey { .bytes(value: databaseKey) } else { .null }
+		let encryptedPassword: TaggedSqlValue = .string(value: credentials.encryptedPassword)
+		let encryptedPassphraseKey: TaggedSqlValue = if let key = credentials.encryptedPassphraseKey { .bytes(value: key) } else { .null }
 		try db.prepare(
 			query: """
-				INSERT OR REPLACE INTO credentials (login, userId, type, accessToken, databaseKey, encryptedPassword)
-				VALUES (?, ?, ?, ?, ?, ?)
+				INSERT OR REPLACE INTO credentials (login, userId, type, accessToken, databaseKey, encryptedPassword, encryptedPassphraseKey)
+				VALUES (?, ?, ?, ?, ?, ?, ?)
 				"""
 		)
 		.bindParams([
 			.string(value: credentials.credentialInfo.login), .string(value: credentials.credentialInfo.userId),
-			.string(value: credentials.credentialInfo.type.rawValue), .bytes(value: credentials.accessToken), databaseKey,
-			.string(value: credentials.encryptedPassword),
+			.string(value: credentials.credentialInfo.type.rawValue), .bytes(value: credentials.accessToken), databaseKey, encryptedPassword,
+			encryptedPassphraseKey,
 		])
 		.run()
 	}
@@ -186,4 +202,18 @@ private extension TaggedSqlValue {
 
 	func unwrapString() throws -> String { if case let .string(value) = self { return value } else { throw InvalidSqlType() } }
 	func unwrapBytes() throws -> Data { if case let .bytes(value) = self { return value.data } else { throw InvalidSqlType() } }
+	func unwrapOptionalString() throws -> String? {
+		switch self {
+		case .null: nil
+		case let .string(s): s
+		default: throw TaggedSqlValue.InvalidSqlType()
+		}
+	}
+	func unwrapOptionalBytes() throws -> Data? {
+		switch self {
+		case .null: nil
+		case let .bytes(b): b.data
+		default: throw TaggedSqlValue.InvalidSqlType()
+		}
+	}
 }

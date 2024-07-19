@@ -9,6 +9,7 @@ import { PersistedCredentials } from "../../../../src/native/common/generatedipc
 import { CredentialType } from "../../../../src/misc/credentials/CredentialType.js"
 import { uint8ArrayToBitArray } from "@tutao/tutanota-crypto"
 import { stringToUtf8Uint8Array } from "@tutao/tutanota-utils"
+import { UnencryptedCredentials } from "../../../../src/native/common/generatedipc/UnencryptedCredentials.js"
 
 o.spec("DesktopNativeCredentialsFacade", () => {
 	const crypto: DesktopNativeCryptoFacade = object()
@@ -16,37 +17,52 @@ o.spec("DesktopNativeCredentialsFacade", () => {
 	const keychainEncryption: KeychainEncryption = object()
 	let facade: DesktopNativeCredentialsFacade
 
-	const encryptedCredentials1 = {
+	const encryptedCredentials1: PersistedCredentials = {
 		credentialInfo: {
 			login: "login1@test.com",
 			type: CredentialType.Internal,
 			userId: "user1",
 		},
 		encryptedPassword: "pw1",
+		encryptedPassphraseKey: null,
 		databaseKey: new Uint8Array([0x01, 0x0d, 0x0e]),
 		accessToken: new Uint8Array([0x01, 0x0a, 0x0e]),
 	}
 
-	const decryptedCredentials1 = {
+	const decryptedCredentials1: UnencryptedCredentials = {
 		credentialInfo: {
 			login: "login1@test.com",
 			type: CredentialType.Internal,
 			userId: "user1",
 		},
 		encryptedPassword: "pw1",
+		encryptedPassphraseKey: null,
 		databaseKey: new Uint8Array([0x01, 0x0d, 0x0d]),
 		accessToken: "decAccessToken1",
 	}
 
-	const encryptedCredentials2 = {
+	const encryptedCredentials2: PersistedCredentials = {
 		credentialInfo: {
 			login: "login2@test.com",
 			type: CredentialType.Internal,
 			userId: "user2",
 		},
 		encryptedPassword: "pw2",
+		encryptedPassphraseKey: new Uint8Array([0x02, 0x0b, 0x0e]),
 		databaseKey: new Uint8Array([0x02, 0x0d, 0x0e]),
 		accessToken: new Uint8Array([0x02, 0x0a, 0x0e]),
+	}
+
+	const decryptedCredentials2: UnencryptedCredentials = {
+		credentialInfo: {
+			login: "login2@test.com",
+			type: CredentialType.Internal,
+			userId: "user2",
+		},
+		encryptedPassword: "pw2",
+		encryptedPassphraseKey: new Uint8Array([0x02, 0x0b, 0x0e]),
+		databaseKey: new Uint8Array([0x02, 0x0d, 0x0d]),
+		accessToken: "decAccessToken2",
 	}
 
 	const encCredentialsKey = new Uint8Array([0x0e])
@@ -79,13 +95,13 @@ o.spec("DesktopNativeCredentialsFacade", () => {
 	})
 
 	o.spec("loadByUserId", () => {
-		o.test("when there is a key it is used to decrypt credentials", async () => {
+		o.test("when there is a key it is used to decrypt credentials w/o passphrase key", async () => {
 			when(credentialsDb.getCredentialEncryptionKey()).thenReturn(encCredentialsKey)
 			when(credentialsDb.getCredentialEncryptionMode()).thenReturn(CredentialEncryptionMode.DEVICE_LOCK)
 			when(credentialsDb.getCredentialsByUserId("user1")).thenReturn(encryptedCredentials1)
 			when(keychainEncryption.decryptUsingKeychain(encCredentialsKey, CredentialEncryptionMode.DEVICE_LOCK)).thenResolve(decCredentialsKey)
-			when(crypto.aesDecryptBytes(uint8ArrayToBitArray(decCredentialsKey), encryptedCredentials1.databaseKey)).thenReturn(
-				decryptedCredentials1.databaseKey,
+			when(crypto.aesDecryptBytes(uint8ArrayToBitArray(decCredentialsKey), encryptedCredentials1.databaseKey!)).thenReturn(
+				decryptedCredentials1.databaseKey!,
 			)
 			when(crypto.aesDecryptBytes(uint8ArrayToBitArray(decCredentialsKey), encryptedCredentials1.accessToken)).thenReturn(
 				stringToUtf8Uint8Array(decryptedCredentials1.accessToken),
@@ -95,13 +111,29 @@ o.spec("DesktopNativeCredentialsFacade", () => {
 			o(decryptedCredentials).deepEquals(decryptedCredentials1)
 		})
 
+		o.test("when there is a key it is used to decrypt credentials w/ passphrase key", async () => {
+			when(credentialsDb.getCredentialEncryptionKey()).thenReturn(encCredentialsKey)
+			when(credentialsDb.getCredentialEncryptionMode()).thenReturn(CredentialEncryptionMode.DEVICE_LOCK)
+			when(credentialsDb.getCredentialsByUserId("user2")).thenReturn(encryptedCredentials2)
+			when(keychainEncryption.decryptUsingKeychain(encCredentialsKey, CredentialEncryptionMode.DEVICE_LOCK)).thenResolve(decCredentialsKey)
+			when(crypto.aesDecryptBytes(uint8ArrayToBitArray(decCredentialsKey), encryptedCredentials2.databaseKey!)).thenReturn(
+				decryptedCredentials2.databaseKey!,
+			)
+			when(crypto.aesDecryptBytes(uint8ArrayToBitArray(decCredentialsKey), encryptedCredentials2.accessToken)).thenReturn(
+				stringToUtf8Uint8Array(decryptedCredentials2.accessToken),
+			)
+
+			const decryptedCredentials = await facade.loadByUserId("user2")
+			o(decryptedCredentials).deepEquals(decryptedCredentials2)
+		})
+
 		o.test("when another mode is selected it is used", async () => {
 			when(credentialsDb.getCredentialEncryptionKey()).thenReturn(encCredentialsKey)
 			when(credentialsDb.getCredentialEncryptionMode()).thenReturn(CredentialEncryptionMode.APP_PASSWORD)
 			when(credentialsDb.getCredentialsByUserId("user1")).thenReturn(encryptedCredentials1)
 			when(keychainEncryption.decryptUsingKeychain(encCredentialsKey, CredentialEncryptionMode.APP_PASSWORD)).thenResolve(decCredentialsKey)
-			when(crypto.aesDecryptBytes(uint8ArrayToBitArray(decCredentialsKey), encryptedCredentials1.databaseKey)).thenReturn(
-				decryptedCredentials1.databaseKey,
+			when(crypto.aesDecryptBytes(uint8ArrayToBitArray(decCredentialsKey), encryptedCredentials1.databaseKey!)).thenReturn(
+				decryptedCredentials1.databaseKey!,
 			)
 			when(crypto.aesDecryptBytes(uint8ArrayToBitArray(decCredentialsKey), encryptedCredentials1.accessToken)).thenReturn(
 				stringToUtf8Uint8Array(decryptedCredentials1.accessToken),
@@ -117,8 +149,8 @@ o.spec("DesktopNativeCredentialsFacade", () => {
 				when(credentialsDb.getCredentialEncryptionMode()).thenReturn(CredentialEncryptionMode.DEVICE_LOCK)
 				when(credentialsDb.getCredentialsByUserId("user1")).thenReturn(encryptedCredentials1)
 				when(keychainEncryption.decryptUsingKeychain(encCredentialsKey, CredentialEncryptionMode.DEVICE_LOCK)).thenResolve(decCredentialsKey)
-				when(crypto.aesEncryptBytes(uint8ArrayToBitArray(decCredentialsKey), decryptedCredentials1.databaseKey)).thenReturn(
-					encryptedCredentials1.databaseKey,
+				when(crypto.aesEncryptBytes(uint8ArrayToBitArray(decCredentialsKey), decryptedCredentials1.databaseKey!)).thenReturn(
+					encryptedCredentials1.databaseKey!,
 				)
 				when(crypto.aesEncryptBytes(uint8ArrayToBitArray(decCredentialsKey), stringToUtf8Uint8Array(decryptedCredentials1.accessToken))).thenReturn(
 					encryptedCredentials1.accessToken,
@@ -133,8 +165,8 @@ o.spec("DesktopNativeCredentialsFacade", () => {
 				when(crypto.generateDeviceKey()).thenReturn(uint8ArrayToBitArray(decCredentialsKey))
 				when(credentialsDb.getCredentialEncryptionMode()).thenReturn(CredentialEncryptionMode.DEVICE_LOCK)
 				when(credentialsDb.getCredentialsByUserId("user1")).thenReturn(encryptedCredentials1)
-				when(crypto.aesEncryptBytes(uint8ArrayToBitArray(decCredentialsKey), decryptedCredentials1.databaseKey)).thenReturn(
-					encryptedCredentials1.databaseKey,
+				when(crypto.aesEncryptBytes(uint8ArrayToBitArray(decCredentialsKey), decryptedCredentials1.databaseKey!)).thenReturn(
+					encryptedCredentials1.databaseKey!,
 				)
 				when(crypto.aesEncryptBytes(uint8ArrayToBitArray(decCredentialsKey), stringToUtf8Uint8Array(decryptedCredentials1.accessToken))).thenReturn(
 					encryptedCredentials1.accessToken,

@@ -10,6 +10,8 @@ import { CredentialType } from "../../misc/credentials/CredentialType.js"
 import { CredentialEncryptionMode } from "../../misc/credentials/CredentialEncryptionMode.js"
 
 const TableDefinitions = Object.freeze({
+	meta: "key TEXT NOT NULL, value",
+	// v1: add encryptedPassphraseKey BLOB
 	credentials:
 		"login TEXT NOT NULL, userId TEXT NOT NULL, type TEXT NOT NULL, accessToken BLOB NOT NULL, databaseKey BLOB," +
 		" encryptedPassword TEXT NOT NULL, PRIMARY KEY (userId), UNIQUE(login)",
@@ -90,16 +92,29 @@ export class DesktopCredentialsStorage {
 	}
 
 	private createTables() {
+		log.debug(`Creating tables...`)
 		this.createEnumTable()
 		for (let [name, definition] of Object.entries(TableDefinitions)) {
 			this.run({ query: `CREATE TABLE IF NOT EXISTS ${name} (${definition})`, params: [] })
 		}
+
+		const version = this.get(usql`SELECT value FROM meta WHERE key = 'version'`)?.value
+		log.debug(`Current credentials version: ${version}`)
+		if (version == null) {
+			log.debug(`Migrating to v1`)
+			this.db.transaction(() => {
+				this.run({ query: `ALTER TABLE credentials ADD COLUMN encryptedPassphraseKey BLOB`, params: [] })
+				this.run({ query: `INSERT INTO meta VALUES ('version', 1)`, params: [] })
+			})()
+		}
+
+		log.debug(`Tables created successfully!`)
 	}
 
 	store(credentials: PersistedCredentials) {
-		const formattedQuery = usql`INSERT OR REPLACE INTO credentials (login, userId, type, accessToken, databaseKey, encryptedPassword) VALUES (
+		const formattedQuery = usql`INSERT OR REPLACE INTO credentials (login, userId, type, accessToken, databaseKey, encryptedPassword, encryptedPassphraseKey) VALUES (
 ${credentials.credentialInfo.login}, ${credentials.credentialInfo.userId}, ${credentials.credentialInfo.type},
-${credentials.accessToken}, ${credentials.databaseKey}, ${credentials.encryptedPassword})`
+${credentials.accessToken}, ${credentials.databaseKey}, ${credentials.encryptedPassword}, ${credentials.encryptedPassphraseKey})`
 		return this.run(formattedQuery)
 	}
 
@@ -139,6 +154,7 @@ ${credentials.accessToken}, ${credentials.databaseKey}, ${credentials.encryptedP
 				type: credentialType,
 			},
 			encryptedPassword: row.encryptedPassword as string,
+			encryptedPassphraseKey: row.encryptedPassphraseKey as Uint8Array | null,
 			accessToken: row.accessToken as Uint8Array,
 			databaseKey: row.databaseKey as Uint8Array,
 		}

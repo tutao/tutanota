@@ -416,6 +416,7 @@ export function migrateConfigV2to3(loadedConfig: any) {
 			},
 			encryptedPassword: credential.encryptedPassword,
 			accessToken: credential.accessToken,
+			encryptedPassphraseKey: null, // should not be present
 		}
 	}
 }
@@ -429,6 +430,7 @@ export interface DeviceConfigCredentials {
 	readonly accessToken: string
 	readonly databaseKey: Base64 | null
 	readonly encryptedPassword: string
+	readonly encryptedPassphraseKey: Base64 | null
 }
 
 export const deviceConfig: DeviceConfig = new DeviceConfig(DeviceConfig.Version, client.localStorage() ? localStorage : null)

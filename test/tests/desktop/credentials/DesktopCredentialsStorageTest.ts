@@ -3,25 +3,28 @@ import { DesktopCredentialsStorage } from "../../../../src/desktop/db/DesktopCre
 import { object } from "testdouble"
 import { CredentialEncryptionMode } from "../../../../src/misc/credentials/CredentialEncryptionMode.js"
 import { CredentialType } from "../../../../src/misc/credentials/CredentialType.js"
+import { PersistedCredentials } from "../../../../src/native/common/generatedipc/PersistedCredentials.js"
 
-const encryptedCredentials1 = {
+const encryptedCredentials1: PersistedCredentials = {
 	credentialInfo: {
 		login: "login1@test.com",
 		type: CredentialType.Internal,
 		userId: "user1",
 	},
 	encryptedPassword: "pw1",
+	encryptedPassphraseKey: null,
 	databaseKey: new Uint8Array([0x01, 0x0d, 0x0e]),
 	accessToken: new Uint8Array([0x01, 0x0a, 0x0e]),
 }
 
-const encryptedCredentials2 = {
+const encryptedCredentials2: PersistedCredentials = {
 	credentialInfo: {
 		login: "login2@test.com",
 		type: CredentialType.Internal,
 		userId: "user2",
 	},
 	encryptedPassword: "pw2",
+	encryptedPassphraseKey: new Uint8Array([0x02, 0x0b, 0x0e]),
 	databaseKey: new Uint8Array([0x02, 0x0d, 0x0e]),
 	accessToken: new Uint8Array([0x02, 0x0a, 0x0e]),
 }

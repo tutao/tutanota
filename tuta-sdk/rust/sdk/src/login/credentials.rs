@@ -5,7 +5,7 @@ pub struct Credentials {
     pub login: String,
     pub user_id: GeneratedId,
     pub access_token: String,
-    pub encrypted_password: Vec<u8>,
+    pub encrypted_passphrase_key: Vec<u8>,
     pub credential_type: CredentialType,
 }
 

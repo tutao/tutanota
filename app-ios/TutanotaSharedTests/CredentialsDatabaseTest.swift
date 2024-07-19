@@ -8,14 +8,16 @@ final class CredentialsDatabaseTest: XCTestCase {
 		credentialInfo: CredentialsInfo(login: "login1@test.com", userId: "user1", type: CredentialType._internal),
 		accessToken: Data([0x01, 0x0a, 0x0e]).wrap(),
 		databaseKey: Data([0x01, 0x0d, 0x0e]).wrap(),
-		encryptedPassword: "pw1"
+		encryptedPassword: "pw1",
+		encryptedPassphraseKey: nil
 	)
 
 	private let encryptedCredentials2 = PersistedCredentials(
 		credentialInfo: CredentialsInfo(login: "login2@test.com", userId: "user2", type: CredentialType._internal),
 		accessToken: Data([0x02, 0x0a, 0x0e]).wrap(),
 		databaseKey: Data([0x02, 0x0d, 0x0e]).wrap(),
-		encryptedPassword: "pw2"
+		encryptedPassword: "pw1",
+		encryptedPassphraseKey: Data([0x02, 0x0b, 0x0e]).wrap()
 	)
 	private let key1 = Data([0x04, 0x0e, 0x04, 0x01])
 	private let key2 = Data([0x04, 0x0e, 0x04, 0x02])
