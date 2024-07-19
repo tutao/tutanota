@@ -1,0 +1,48 @@
+[package]
+name = "tuta-sdk"
+version = "0.1.0"
+edition = "2021"
+
+[dependencies]
+async-trait = "0.1.77"
+serde = "1.0.201"
+serde_json = "1.0.117"
+thiserror = "1.0.60"
+base64 = "0.22.1"
+aes = { version = "0.8.4", features = ["zeroize"] }
+cbc = { version = "0.1.2", features = ["std", "zeroize"] }
+sha2 = "0.10.8"
+const-hex = { version = "1.12.0", features = ["serde"] }
+hmac = "0.12.1"
+zeroize = { version = "1.8.1", features = ["zeroize_derive"] }
+hkdf = "0.12.4"
+argon2 = { version = "0.5.3", features = ["zeroize"] }
+curve25519-dalek = "4.1.2"
+pqcrypto-kyber = { version = "0.7.9", default-features = false, features = ["std"] }
+pqcrypto-traits = "0.3.4"
+rsa = "0.9.6"
+rand_core = "0.6.4"
+serde_bytes = "0.11.14"
+futures = "0.3.30"
+mockall_double = "0.3.1"
+log = "0.4.22"
+simple_logger = "5.0.0"
+uniffi = { git = "https://github.com/mozilla/uniffi-rs.git", rev = "13a1c559cb3708eeca40dcf95dc8b3ccccf3b88c" }
+
+[target.'cfg(target_os = "android")'.dependencies]
+android_log = "0.1.3"
+
+[target.'cfg(target_os = "ios")'.dependencies]
+oslog = "0.2.0"
+
+[build-dependencies]
+uniffi = { git = "https://github.com/mozilla/uniffi-rs.git", rev = "13a1c559cb3708eeca40dcf95dc8b3ccccf3b88c", features = ["build"] }
+
+[dev-dependencies]
+mockall = "0.12.1"
+rand = "0.8.5"
+tokio = { version = "1.38.0", features = ["rt", "macros"] }
+
+[lib]
+crate-type = ["cdylib", "staticlib", "lib"]
+name = "tutasdk"

@@ -246,7 +246,6 @@ mod tests {
     use std::time::SystemTime;
 
     use rand::random;
-    use wasm_bindgen_futures::js_sys::Array;
     use crate::crypto::{Aes256Key, Iv};
 
     use crate::crypto::key::GenericAesKey;
