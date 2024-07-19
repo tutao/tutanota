@@ -98,7 +98,7 @@ class LocalNotificationsFacade(private val context: Context, private val sseStor
 					.setColor(redColor)
 					.apply {
 						val genericTitle = context.getString(R.string.pushNewMail_msg)
-						val sender = metadata?.sender?.address ?: "";
+						val sender = metadata?.sender?.name?.ifBlank { metadata.sender.address } ?: ""
 
 						when (notificationMode) {
 							ExtendedNotificationMode.NO_SENDER_OR_SUBJECT -> {
@@ -111,7 +111,7 @@ class LocalNotificationsFacade(private val context: Context, private val sseStor
 							}
 
 							ExtendedNotificationMode.SENDER_AND_SUBJECT -> {
-								val subject = metadata?.subject ?: "";
+								val subject = metadata?.subject ?: ""
 								setContentTitle(sender)
 								setContentText(subject)
 							}
