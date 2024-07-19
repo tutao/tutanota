@@ -242,11 +242,13 @@ class TutanotaNotificationsHandler(
 			)
 		}
 
+		val encryptedPassword: ByteArray = unencryptedCredentials.encryptedPassword.decodeBase64()?.toByteArray()
+				?: throw Exception("Failed to decode encrypted password")
 		val credentials = Credentials(
 				unencryptedCredentials.credentialInfo.login,
 				unencryptedCredentials.credentialInfo.userId,
 				unencryptedCredentials.accessToken,
-				unencryptedCredentials.encryptedPassword.decodeBase64()!!.toByteArray(),
+				encryptedPassword,
 				CredentialType.INTERNAL
 		)
 
@@ -261,7 +263,7 @@ class TutanotaNotificationsHandler(
 		val senderName = mail.sender.name
 		val sender = SenderRecipient(senderAddress, senderName, null)
 
-		val recipientMailAddress = mail.firstRecipient!!
+		val recipientMailAddress = mail.firstRecipient ?: throw Exception("Missing firstRecipient from ${mail.id}")
 		val recipientAddress = recipientMailAddress.address
 		val recipientName = recipientMailAddress.name
 
