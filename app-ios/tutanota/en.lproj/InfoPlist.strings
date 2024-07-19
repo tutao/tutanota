@@ -12,3 +12,4 @@ TutaoSettingsAction = "Settings";
 TutaoCalendarAlarmTitle = "Reminder";
 TutaoScheduleAlarmError = "Could not set up an alarm. Please update the application.";
 TutaoUnlockCredentialsAction = "Unlock credentials";
+TutaoPushNewMail = "New email received.";

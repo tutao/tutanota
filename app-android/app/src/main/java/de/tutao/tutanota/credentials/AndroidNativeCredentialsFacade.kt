@@ -150,6 +150,7 @@ class AndroidNativeCredentialsFacade(
 					credentialsKey, persistedCredentials.accessToken.data
 				).decodeToString(),
 				databaseKey = databaseKey,
+				encryptedPassphraseKey = persistedCredentials.encryptedPassphraseKey
 			)
 		} catch (e: KeyPermanentlyInvalidatedException) {
 			throw CryptoError(e)
@@ -175,6 +176,7 @@ class AndroidNativeCredentialsFacade(
 			accessToken = accessToken.wrap(),
 			encryptedPassword = unencryptedCredentials.encryptedPassword,
 			databaseKey = databaseKey,
+			encryptedPassphraseKey = unencryptedCredentials.encryptedPassphraseKey
 		)
 	}
 }

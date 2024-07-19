@@ -18,6 +18,22 @@ open class SqliteDb {
 		close()
 		self.db = nil
 	}
+	public func transaction(actions: () throws -> Void) throws {
+		try self.exec(sql: "BEGIN")
+		do { try actions() } catch {
+			try self.exec(sql: "ROLLBACK TRANSACTION")
+			throw error
+		}
+		try self.exec(sql: "COMMIT")
+	}
+	private func exec(sql: String) throws {
+		let rc = sqlite3_exec(self.db, sql, nil, nil, nil)
+		if rc != SQLITE_OK {
+			let errmsg = self.getLastErrorMessage()
+
+			throw TUTErrorFactory.createError("Could not exec: \(errmsg). sql: \(sql)")
+		}
+	}
 
 	public func prepare(query: String) throws -> SqliteStatement {
 		var stmt: OpaquePointer?

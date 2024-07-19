@@ -1,4 +1,4 @@
-import type { Base64Url, DeferredObject, Hex } from "@tutao/tutanota-utils"
+import { Base64Url, DeferredObject, Hex, uint8ArrayToString, utf8Uint8ArrayToString } from "@tutao/tutanota-utils"
 import {
 	arrayEquals,
 	assertNotNull,
@@ -12,7 +12,6 @@ import {
 	neverNull,
 	ofClass,
 	uint8ArrayToBase64,
-	utf8Uint8ArrayToString,
 } from "@tutao/tutanota-utils"
 import {
 	ChangeKdfService,
@@ -68,6 +67,7 @@ import {
 	base64ToKey,
 	createAuthVerifier,
 	createAuthVerifierAsBase64Url,
+	decryptKey,
 	encryptKey,
 	generateKeyFromPassphraseBcrypt,
 	generateRandomSalt,
@@ -281,6 +281,7 @@ export class LoginFacade {
 				login: mailAddress,
 				accessToken,
 				encryptedPassword: sessionType === SessionType.Persistent ? uint8ArrayToBase64(encryptString(neverNull(accessKey), passphrase)) : null,
+				encryptedPassphraseKey: sessionType === SessionType.Persistent ? encryptKey(neverNull(accessKey), userPassphraseKey) : null,
 				userId: sessionData.userId,
 				type: CredentialType.Internal,
 			},
@@ -459,6 +460,7 @@ export class LoginFacade {
 				login: userId,
 				accessToken,
 				encryptedPassword: accessKey ? uint8ArrayToBase64(encryptString(accessKey, passphrase)) : null,
+				encryptedPassphraseKey: accessKey ? encryptKey(accessKey, userPassphraseKey) : null,
 				userId,
 				type: CredentialType.External,
 			},
@@ -642,21 +644,32 @@ export class LoginFacade {
 	): Promise<ResumeSessionSuccess> {
 		const sessionId = this.getSessionId(credentials)
 		const sessionData = await this.loadSessionData(credentials.accessToken)
-		const encryptedPassword = base64ToUint8Array(assertNotNull(credentials.encryptedPassword, "encryptedPassword was null!"))
-		const passphrase = utf8Uint8ArrayToString(aesDecrypt(assertNotNull(sessionData.accessKey, "no access key on session data!"), encryptedPassword))
-		let userPassphraseKey: AesKey
-		let kdfType: KdfType | null
 
+		const accessKey = assertNotNull(sessionData.accessKey, "no access key on session data!")
 		const isExternalUser = externalUserKeyDeriver != null
 
-		if (isExternalUser) {
-			await this.checkOutdatedExternalSalt(credentials, sessionData, externalUserKeyDeriver.salt)
-			userPassphraseKey = await this.deriveUserPassphraseKey({ ...externalUserKeyDeriver, passphrase })
-			kdfType = null
+		let kdfType: KdfType | null = null
+		let passphrase: string | null = null
+		let userPassphraseKey: AesKey
+
+		// Previously only the encryptedPassword was stored, now we prefer to use the key if it's already there
+		// and keep passphrase for migrating KDF for now.
+		if (credentials.encryptedPassphraseKey != null) {
+			userPassphraseKey = decryptKey(accessKey, credentials.encryptedPassphraseKey)
+		} else if (credentials.encryptedPassword) {
+			passphrase = utf8Uint8ArrayToString(aesDecrypt(accessKey, base64ToUint8Array(credentials.encryptedPassword)))
+			const isExternalUser = externalUserKeyDeriver != null
+			if (isExternalUser) {
+				await this.checkOutdatedExternalSalt(credentials, sessionData, externalUserKeyDeriver.salt)
+				userPassphraseKey = await this.deriveUserPassphraseKey({ ...externalUserKeyDeriver, passphrase })
+				kdfType = null
+			} else {
+				const passphraseData = await this.loadUserPassphraseKey(credentials.login, passphrase)
+				userPassphraseKey = passphraseData.userPassphraseKey
+				kdfType = passphraseData.kdfType
+			}
 		} else {
-			const passphraseData = await this.loadUserPassphraseKey(credentials.login, passphrase)
-			userPassphraseKey = passphraseData.userPassphraseKey
-			kdfType = passphraseData.kdfType
+			throw new ProgrammingError("no key or password stored in credentials!")
 		}
 
 		const { user, userGroupInfo } = await this.initSession(
@@ -677,7 +690,7 @@ export class LoginFacade {
 
 		// We only need to migrate the kdf in case an internal user resumes the session.
 		const modernKdfType = !!kdfType && this.isModernKdfType(kdfType)
-		if (!modernKdfType) {
+		if (passphrase != null && !modernKdfType) {
 			await this.migrateKdfType(KdfType.Argon2id, passphrase, user)
 		}
 		if (!isExternalUser && !isAdminClient()) {

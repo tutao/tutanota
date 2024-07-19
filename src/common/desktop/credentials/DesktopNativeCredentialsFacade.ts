@@ -57,6 +57,7 @@ export class DesktopNativeCredentialsFacade implements NativeCredentialsFacade {
 				encryptedPassword: persistedCredentials.encryptedPassword,
 				accessToken: utf8Uint8ArrayToString(this.crypto.aesDecryptBytes(credentialsKey, persistedCredentials.accessToken)),
 				databaseKey: persistedCredentials.databaseKey ? this.crypto.aesDecryptBytes(credentialsKey, persistedCredentials.databaseKey) : null,
+				encryptedPassphraseKey: persistedCredentials.encryptedPassphraseKey,
 			}
 		} catch (e) {
 			throw new KeyPermanentlyInvalidatedError("Failed AES decrypt: " + e)
@@ -67,8 +68,9 @@ export class DesktopNativeCredentialsFacade implements NativeCredentialsFacade {
 		return {
 			credentialInfo: unencryptedCredentials.credentialInfo,
 			accessToken: this.crypto.aesEncryptBytes(credentialsEncryptionKey, stringToUtf8Uint8Array(unencryptedCredentials.accessToken)),
-			encryptedPassword: unencryptedCredentials.encryptedPassword,
 			databaseKey: unencryptedCredentials.databaseKey ? this.crypto.aesEncryptBytes(credentialsEncryptionKey, unencryptedCredentials.databaseKey) : null,
+			encryptedPassphraseKey: unencryptedCredentials.encryptedPassphraseKey,
+			encryptedPassword: unencryptedCredentials.encryptedPassword,
 		}
 	}
 

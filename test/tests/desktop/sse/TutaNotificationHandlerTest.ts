@@ -159,6 +159,7 @@ o.spec("TutaNotificationHandler", () => {
 				},
 				accessToken: "accessToken",
 				databaseKey: null,
+				encryptedPassphraseKey: null,
 				encryptedPassword: "",
 			}
 			when(nativeCredentialsFacade.loadByUserId("user1")).thenResolve(credentials)

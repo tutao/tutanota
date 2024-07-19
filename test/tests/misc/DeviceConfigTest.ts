@@ -37,6 +37,7 @@ o.spec("DeviceConfig", function () {
 					},
 					accessToken: "internalAccessToken",
 					encryptedPassword: "internalEncPassword",
+					encryptedPassphraseKey: null,
 				},
 				externalUserId: {
 					credentialInfo: {
@@ -46,6 +47,7 @@ o.spec("DeviceConfig", function () {
 					},
 					accessToken: "externalAccessToken",
 					encryptedPassword: "externalEncPassword",
+					encryptedPassphraseKey: null,
 				},
 			}
 
@@ -125,6 +127,7 @@ o.spec("DeviceConfig", function () {
 						},
 						accessToken: "internalAccessToken",
 						encryptedPassword: "internalEncPassword",
+						encryptedPassphraseKey: null,
 					},
 				},
 				hasParticipatedInCredentialsMigration: false,
