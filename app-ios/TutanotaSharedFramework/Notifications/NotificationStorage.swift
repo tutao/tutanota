@@ -92,7 +92,7 @@ public class NotificationStorage {
 
 	public func getExtendedNotificationConfig(_ userId: String) throws -> TutanotaSharedFramework.ExtendedNotificationMode {
 		self.userPreferencesProvider.getObject(forKey: "\(EXTENDED_NOTIFICATION_MODE):\(userId)")
-			.map { mode in ExtendedNotificationMode(rawValue: mode as! String)! } ?? .no_sender_or_subject
+			.map { mode in ExtendedNotificationMode(rawValue: mode as! String)! } ?? .sender_and_subject
 	}
 
 	private func put(sseInfo: SSEInfo?) {

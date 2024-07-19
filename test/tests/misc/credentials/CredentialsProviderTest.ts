@@ -31,6 +31,7 @@ o.spec("CredentialsProvider", function () {
 				type: CredentialType.Internal,
 			},
 			encryptedPassword: "123",
+			encryptedPassphraseKey: null,
 			accessToken: "456",
 			databaseKey: null,
 		}
@@ -41,6 +42,7 @@ o.spec("CredentialsProvider", function () {
 				type: CredentialType.Internal,
 			},
 			encryptedPassword: "123456",
+			encryptedPassphraseKey: null,
 			accessToken: "456789",
 			databaseKey: null,
 		}
@@ -51,6 +53,7 @@ o.spec("CredentialsProvider", function () {
 				type: CredentialType.External,
 			},
 			encryptedPassword: "1232",
+			encryptedPassphraseKey: null,
 			accessToken: "4562",
 			databaseKey: null,
 		}
@@ -61,6 +64,7 @@ o.spec("CredentialsProvider", function () {
 				type: internalCredentials.credentialInfo.type,
 			},
 			encryptedPassword: assertNotNull(internalCredentials.encryptedPassword),
+			encryptedPassphraseKey: null,
 			accessToken: stringToUtf8Uint8Array(internalCredentials.accessToken),
 			databaseKey: new Uint8Array([1, 2, 3]),
 		}
@@ -71,6 +75,7 @@ o.spec("CredentialsProvider", function () {
 				type: externalCredentials.credentialInfo.type,
 			},
 			encryptedPassword: assertNotNull(externalCredentials.encryptedPassword),
+			encryptedPassphraseKey: null,
 			accessToken: stringToUtf8Uint8Array(externalCredentials.accessToken),
 			databaseKey: new Uint8Array([1, 2, 3]),
 		}
@@ -81,6 +86,7 @@ o.spec("CredentialsProvider", function () {
 				type: internalCredentials.credentialInfo.type,
 			},
 			encryptedPassword: assertNotNull(internalCredentials2.encryptedPassword),
+			encryptedPassphraseKey: null,
 			accessToken: stringToUtf8Uint8Array(internalCredentials2.accessToken),
 		}
 		sqlCipherFacadeMock = object()
@@ -174,6 +180,7 @@ o.spec("CredentialsProvider", function () {
 			accessToken: stringToUtf8Uint8Array("accessToken"),
 			databaseKey: new Uint8Array([1, 2, 3]),
 			encryptedPassword: "old encrypted password",
+			encryptedPassphraseKey: null,
 		}
 		const newEncryptedPassword = "uhagre2"
 		o.beforeEach(function () {
@@ -189,6 +196,7 @@ o.spec("CredentialsProvider", function () {
 					accessToken: stringToUtf8Uint8Array("accessToken"),
 					databaseKey: new Uint8Array([1, 2, 3]),
 					encryptedPassword: newEncryptedPassword,
+					encryptedPassphraseKey: null,
 				}),
 			)
 		})

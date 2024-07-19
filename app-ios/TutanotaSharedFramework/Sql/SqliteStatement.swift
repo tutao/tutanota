@@ -53,7 +53,7 @@ public class SqliteStatement {
 			)
 		}
 
-		if rc_bind != SQLITE_OK { fatalError("couldn't bind param \(i)") }
+		if rc_bind != SQLITE_OK { fatalError("couldn't bind param \(i) \(self.db.getLastErrorMessage()) in \(self.originalQuery)") }
 	}
 
 	/// execute a query, don't return anything
@@ -108,6 +108,7 @@ public class SqliteStatement {
 		case SQLITE_TEXT: return self.getColumnText(i)
 		case SQLITE_BLOB: return self.getColumnBlob(i)
 		case SQLITE_INTEGER: return self.getColumnInteger(i)
+		case SQLITE_NULL: return .null
 		default: fatalError("unexpected type id in column \(i): \(type_id)")
 		}
 	}

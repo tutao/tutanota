@@ -93,11 +93,12 @@ impl LoginFacade {
         let session: ParsedEntity = self.entity_client.load(&Session::type_ref(), &session_id).await?;
 
         let access_key = self.get_access_key(&session)?;
-        let passphrase = self.decrypt_passphrase(&credentials, access_key)?;
+        let passphrase_key = access_key.decrypt_aes_key(&credentials.encrypted_passphrase_key)
+            .map_err(|e| LoginError::InvalidPassphrase { error_message: format!("Failed to decrypt key: {e}") })?;
 
         let user: User = self.typed_entity_client.load(&credentials.user_id).await?;
 
-        let user_passphrase_key = self.load_user_passphrase_key(&user, passphrase.as_str()).await?;
+        let GenericAesKey::Aes256(user_passphrase_key) = passphrase_key else { return Err(LoginError::InvalidPassphrase { error_message: "Wrong key type!".to_owned() }) }; // self.load_user_passphrase_key(&user, passphrase.as_str()).await?;
 
         let user_facade = self.init_session(user, user_passphrase_key).await?;
 
@@ -124,18 +125,6 @@ impl LoginFacade {
         user_facade.unlock_user_group_key(user_passphrase_key.into())
             .map_err(|e| LoginError::InvalidKey { error_message: format!("Failed to unlock user group key: {}", e.to_string()) })?;
         Ok(user_facade)
-    }
-
-    /// Decrypt user passphrase with given credentials
-    fn decrypt_passphrase(&self, credentials: &Credentials, access_key: GenericAesKey) -> Result<String, LoginError> {
-        String::from_utf8(
-            access_key.decrypt_data(credentials.encrypted_password.as_slice())
-                .map_err(|e| LoginError::InvalidPassphrase {
-                    error_message: format!("Failed to decrypt user passphrase: {}", e.to_string())
-                })?)
-            .map_err(|e| LoginError::InvalidPassphrase {
-                error_message: format!("Failed to decode user passphrase into plaintext: {}", e.to_string())
-            })
     }
 
     /// Get access key from session
@@ -179,6 +168,7 @@ fn derive_user_passphrase_key(kdf_type: KdfType, passphrase: &str, salt: [u8; 16
 mod tests {
     use std::sync::Arc;
 
+    use futures::TryFutureExt;
     use mockall::predicate::eq;
 
     use crate::crypto::{Aes128Key, Aes256Key, Iv};
@@ -202,11 +192,11 @@ mod tests {
         let randomizer = RandomizerFacade::from_core(rand::rngs::OsRng {});
         let user_id = GeneratedId::test_random();
         let access_token = "ZB-VPZfACMABhx-jUBZ91wyBWLlaJ6AIzg".to_string();
-        let passphrase = "passphrase2";
+        let passphrase_key = Aes256Key::generate(&randomizer);
         let salt: Vec<u8> = vec![0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15];
         let iv = Iv::generate(&randomizer);
         let access_key = GenericAesKey::from(Aes256Key::generate(&randomizer));
-        let user = make_user(&user_id, salt, &passphrase, &randomizer);
+        let user = make_user(&user_id, salt, passphrase_key.clone(), &randomizer);
         let session = make_session(&user_id, &access_key);
         let parsed_session = typed_entity_to_parsed_entity(session.clone());
 
@@ -241,7 +231,7 @@ mod tests {
             login: "login@tuta.io".to_string(),
             user_id: user_id.clone(),
             access_token: access_token.clone(),
-            encrypted_password: access_key.encrypt_data(passphrase.as_bytes(), iv).unwrap(),
+            encrypted_passphrase_key: access_key.encrypt_key( &passphrase_key.into(), iv),
             credential_type: CredentialType::Internal,
         }).await.unwrap();
 
@@ -256,8 +246,7 @@ mod tests {
         }
     }
 
-    fn make_user(user_id: &GeneratedId, salt: Vec<u8>, passphrase: &str, randomizer: &RandomizerFacade) -> User {
-        let passphrase_key = derive_user_passphrase_key(KdfType::Argon2id, passphrase, array_cast_slice(salt.as_slice(), "Vec").unwrap());
+    fn make_user(user_id: &GeneratedId, salt: Vec<u8>, passphrase_key: Aes256Key, randomizer: &RandomizerFacade) -> User {
         let user_group_key = Aes128Key::generate(randomizer);
         User {
             _format: 0,

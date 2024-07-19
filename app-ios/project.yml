@@ -329,6 +329,8 @@ targets:
         - "extension"
     dependencies:
       - target: "TutanotaSharedFramework"
+      - framework: tutasdk.framework
+        embed: false
   TutanotaSharedTests:
     type: "bundle.unit-test"
     platform: "iOS"

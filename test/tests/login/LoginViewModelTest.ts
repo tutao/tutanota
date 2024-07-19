@@ -57,6 +57,7 @@ function getCredentialsProviderStub(): CredentialsProvider {
 			},
 			accessToken: utf8Uint8ArrayToString(storedCredentials.accessToken),
 			encryptedPassword: storedCredentials.encryptedPassword,
+			encryptedPassphraseKey: storedCredentials.encryptedPassphraseKey,
 			databaseKey: storedCredentials.databaseKey,
 		}
 	}) satisfies CredentialsProvider["getDecryptedCredentialsByUserId"])
@@ -70,6 +71,7 @@ function getCredentialsProviderStub(): CredentialsProvider {
 			},
 			accessToken: stringToUtf8Uint8Array(credential.accessToken),
 			encryptedPassword: credential.encryptedPassword,
+			encryptedPassphraseKey: credential.encryptedPassphraseKey,
 			databaseKey: credential.databaseKey,
 		})
 	}) satisfies CredentialsProvider["store"])
@@ -99,6 +101,7 @@ o.spec("LoginViewModelTest", () => {
 			type: CredentialType.Internal,
 		},
 		encryptedPassword: "encryptedPassword",
+		encryptedPassphraseKey: null,
 		accessToken: stringToUtf8Uint8Array("accessToken"),
 		databaseKey: null,
 	} as const)
@@ -107,6 +110,7 @@ o.spec("LoginViewModelTest", () => {
 		userId: "user-id-1",
 		login: "test@example.com",
 		encryptedPassword: "encryptedPassword",
+		encryptedPassphraseKey: null,
 		accessToken: "accessToken",
 		type: CredentialType.Internal,
 	})
@@ -353,6 +357,7 @@ o.spec("LoginViewModelTest", () => {
 		const credentialsWithoutPassword: Credentials = {
 			login: testCredentials.login,
 			encryptedPassword: null,
+			encryptedPassphraseKey: null,
 			accessToken: testCredentials.accessToken,
 			userId: testCredentials.userId,
 			type: CredentialType.Internal,
@@ -399,6 +404,7 @@ o.spec("LoginViewModelTest", () => {
 				},
 				encryptedPassword: "encPw",
 				accessToken: "oldAccessToken",
+				encryptedPassphraseKey: null,
 				databaseKey: null,
 			}
 			await credentialsProviderMock.store(oldCredentials)
