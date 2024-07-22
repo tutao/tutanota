@@ -15,7 +15,7 @@ import {
 import { incrementDate, incrementMonth, isToday, lastThrow, neverNull, ofClass } from "@tutao/tutanota-utils"
 import { ContinuingCalendarEventBubble } from "./ContinuingCalendarEventBubble"
 import { styles } from "../../../common/gui/styles"
-import { isAllDayEvent, isAllDayEventByTimes } from "../../../common/api/common/utils/CommonCalendarUtils"
+import { isAllDayEvent, isAllDayEventByTimes, setNextHalfHour } from "../../../common/api/common/utils/CommonCalendarUtils"
 import { windowFacade } from "../../../common/misc/WindowFacade"
 import type { CalendarEvent } from "../../../common/api/entities/tutanota/TypeRefs.js"
 import type { GroupColors } from "./CalendarView"
@@ -251,14 +251,8 @@ export class CalendarMonthView implements Component<CalendarMonthAttrs>, ClassCo
 				key: day.date.getTime(),
 				onclick: (e: MouseEvent) => {
 					if (client.isDesktopDevice()) {
-						const newDate = new Date(day.date)
-						let hour = new Date().getHours()
+						const newDate = setNextHalfHour(new Date(day.date))
 
-						if (hour < 23) {
-							hour++
-						}
-
-						newDate.setHours(hour, 0)
 						attrs.onDateSelected(new Date(day.date), CalendarViewType.MONTH)
 						attrs.onNewEvent(newDate)
 					} else {
