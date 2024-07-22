@@ -55,8 +55,15 @@ async function run({ platform }) {
  */
 async function bumpIosVersion(newVersionString) {
 	const infoPlistName = "app-ios/tutanota/Info.plist"
-	const infoPlistContents = await fs.promises.readFile(infoPlistName, "utf8")
+	await replaceCfBundleVersion(infoPlistName, newVersionString)
+	await replaceCfBundleVersion("app-ios/TutanotaNotificationExtension/Info.plist", newVersionString)
+}
 
+/**
+ * @param {string} filePath
+ */
+async function replaceCfBundleVersion(filePath, newVersionString) {
+	const infoPlistContents = await fs.promises.readFile(filePath, "utf8")
 	let found = 0
 	const newInfoPlistContents = infoPlistContents.replaceAll(
 		/<key>CFBundle(Short)?Version(String)?<\/key>\s+<string>(\d+\.\d+\.\d+)<\/string>/g,
@@ -67,10 +74,10 @@ async function bumpIosVersion(newVersionString) {
 	)
 
 	if (found !== 2) {
-		console.warn("app-ios/tutanota/Info.plist had an unexpected format and couldn't be updated. Is it corrupted?")
+		console.warn(`${filePath} had an unexpected format and couldn't be updated. Is it corrupted?`)
 	} else {
-		console.log(`iOS: Updated app-ios/tutanota/Info.plist to ${newVersionString}`)
-		await fs.promises.writeFile(infoPlistName, newInfoPlistContents)
+		console.log(`iOS: Updated ${filePath} to ${newVersionString}`)
+		await fs.promises.writeFile(filePath, newInfoPlistContents)
 	}
 }
 
