@@ -76,11 +76,12 @@ pipeline {
 					}
 					steps {
 						script {
+							def util = load "ci/jenkins-lib/util.groovy"
 							buildWebapp("test")
 							generateXCodeProjects()
-							runFastlane("de.tutao.tutanota.test", "adhoc_staging")
+							util.runFastlane("de.tutao.tutanota.test", "adhoc_staging")
 							if (params.RELEASE) {
-								runFastlane("de.tutao.tutanota.test", "testflight_staging")
+								util.runFastlane("de.tutao.tutanota.test", "testflight_staging")
 							}
 							stash includes: "app-ios/releases/tutanota-${VERSION}-adhoc-test.ipa", name: 'ipa-testing'
 						}
@@ -92,12 +93,13 @@ pipeline {
 					}
 					steps {
 						script {
+							def util = load "ci/jenkins-lib/util.groovy"
 							buildWebapp("prod")
 							generateXCodeProjects()
-							runFastlane("de.tutao.tutanota", "adhoc_prod")
+							util.runFastlane("de.tutao.tutanota", "adhoc_prod")
 							if (params.RELEASE) {
 								writeReleaseNotesForAppStore()
-								runFastlane("de.tutao.tutanota", "appstore_prod submit:true")
+								util.runFastlane("de.tutao.tutanota", "appstore_prod submit:true")
 							}
 							stash includes: "app-ios/releases/tutanota-${VERSION}-adhoc.ipa", name: 'ipa-production'
 						}
@@ -219,43 +221,6 @@ void writeReleaseNotesForAppStore() {
 	}
 
 	sh "echo Created release notes for fastlane ${RELEASE_NOTES_PATH}"
-}
-
-void runFastlane(String app_identifier, String  lane) {
-	// Prepare the fastlane Appfile which defines the required ids for the ios app build.
-	script {
-		def appfile = './app-ios/fastlane/Appfile'
-
-		sh "echo \"app_identifier('${app_identifier}')\" > ${appfile}"
-
-		withCredentials([string(credentialsId: 'apple-id', variable: 'apple_id')]) {
-			sh "echo \"apple_id('${apple_id}')\" >> ${appfile}"
-		}
-		withCredentials([string(credentialsId: 'itc-team-id', variable: 'itc_team_id')]) {
-			sh "echo \"itc_team_id('${itc_team_id}')\" >> ${appfile}"
-		}
-		withCredentials([string(credentialsId: 'team-id', variable: 'team_id')]) {
-			sh "echo \"team_id('${team_id}')\" >> ${appfile}"
-		}
-	}
-
-	withCredentials([
-			file(credentialsId: 'appstore-api-key-json', variable: "API_KEY_JSON_FILE_PATH"),
-			string(credentialsId: 'match-password', variable: 'MATCH_PASSWORD'),
-			string(credentialsId: 'team-id', variable: 'FASTLANE_TEAM_ID'),
-			sshUserPrivateKey(credentialsId: 'jenkins', keyFileVariable: 'MATCH_GIT_PRIVATE_KEY'),
-			string(credentialsId: 'fastlane-keychain-password', variable: 'FASTLANE_KEYCHAIN_PASSWORD')
-	]) {
-		dir('app-ios') {
-			sh "security unlock-keychain -p ${FASTLANE_KEYCHAIN_PASSWORD}"
-
-			script {
-				// Set git ssh command to avoid ssh prompting to confirm an unknown host
-				// (since we don't have console access we can't confirm and it gets stuck)
-				sh "GIT_SSH_COMMAND=\"ssh -o UserKnownHostsFile=/dev/null -o StrictHostKeyChecking=no\" fastlane ${lane}"
-			}
-		}
-	}
 }
 
 void publishToNexus(String artifactId, String ipaFileName) {
