@@ -117,17 +117,27 @@ export function findRecipientWithAddress<T extends { address: string }>(recipien
 	return recipients.find((r) => cleanMailAddress(r.address) === cleanAddress) ?? null
 }
 
-/** get the start of the next full half hour from the time this is called at */
+/**
+ * get a date with the time set to the start of the next full half hour from the time this is called at
+ * */
 export function getNextHalfHour(): Date {
 	let date: Date = new Date()
 
-	if (date.getMinutes() > 30) {
-		date.setHours(date.getHours() + 1, 0)
+	return setNextHalfHour(date)
+}
+
+/**
+ * set the given date to the start of the next full half hour from the time this is called at
+ * */
+export function setNextHalfHour(date: Date): Date {
+	const timeNow = new Date()
+
+	if (timeNow.getMinutes() > 30) {
+		date.setHours(timeNow.getHours() + 1, 0)
 	} else {
-		date.setMinutes(30)
+		date.setHours(timeNow.getHours(), 30)
 	}
 
-	date.setMilliseconds(0)
 	return date
 }
 
