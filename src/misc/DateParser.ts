@@ -108,10 +108,16 @@ export function parseDate(dateString: string, referenceDateRenderer: (refdate: D
  * @private
  */
 export function _getNumDaysInMonth(month: number, year: number): number {
-	return DateTime.fromObject({
+	const { daysInMonth } = DateTime.fromObject({
 		month,
 		year,
-	}).daysInMonth
+	})
+
+	if (!daysInMonth) {
+		throw new ProgrammingError(`could not get daysInMonth for month-year ${month}-${year}`)
+	}
+
+	return daysInMonth
 }
 
 /**

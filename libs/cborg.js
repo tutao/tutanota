@@ -2651,4 +2651,4 @@ function decode (data, options) {
   return decoded
 }
 
-export { Token, Type, decode, decodeFirst, encode };
+export { Token, Tokeniser as Tokenizer, Type, decode, decodeFirst, encode, tokensToObject };
