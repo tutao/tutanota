@@ -5,7 +5,7 @@ import { showProgressDialog } from "../gui/dialogs/ProgressDialog"
 import type { GroupSharingTexts } from "./GroupGuiUtils"
 import { getDefaultGroupName, getInvitationGroupType, getSharedGroupName } from "./GroupUtils"
 import { PartialRecipient, Recipients } from "../api/common/recipients/Recipient"
-import { getDefaultSender, getEnabledMailAddressesWithUser, getSenderNameForUser } from "../mailFunctionality/CommonMailUtils.js"
+import { getDefaultSender, getEnabledMailAddressesWithUser, getMailAddressDisplayText, getSenderNameForUser } from "../mailFunctionality/CommonMailUtils.js"
 
 export function sendShareNotificationEmail(sharedGroupInfo: GroupInfo, recipients: Array<PartialRecipient>, texts: GroupSharingTexts) {
 	locator.mailModel.getUserMailboxDetails().then((mailboxDetails) => {
@@ -17,12 +17,21 @@ export function sendShareNotificationEmail(sharedGroupInfo: GroupInfo, recipient
 			address,
 		}))
 
+		let senderDisplayName
+
+		if (!userName) {
+			senderDisplayName = senderMailAddress
+		} else {
+			// use html code for < > so that they (and the enclosed email address) do not get sanitized away
+			senderDisplayName = `${userName} &lt;${senderMailAddress}&gt;`
+		}
+
 		_sendNotificationEmail(
 			{
 				bcc,
 			},
 			texts.shareEmailSubject,
-			texts.shareEmailBody(userName, getSharedGroupName(sharedGroupInfo, locator.logins.getUserController(), true)),
+			texts.shareEmailBody(senderDisplayName, getSharedGroupName(sharedGroupInfo, locator.logins.getUserController(), true)),
 			senderMailAddress,
 		)
 	})
