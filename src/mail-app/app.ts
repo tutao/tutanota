@@ -25,7 +25,7 @@ import { SearchView, SearchViewAttrs } from "./search/view/SearchView.js"
 import { TopLevelAttrs, TopLevelView } from "../TopLevelView.js"
 import { AppHeaderAttrs } from "../common/gui/Header.js"
 import { CalendarViewModel } from "../calendar-app/calendar/view/CalendarViewModel.js"
-import { ExternalLoginView, ExternalLoginViewAttrs, ExternalLoginViewModel } from "../common/login/ExternalLoginView.js"
+import { ExternalLoginView, ExternalLoginViewAttrs, ExternalLoginViewModel } from "./mail/view/ExternalLoginView.js"
 import { LoginController } from "../common/api/main/LoginController.js"
 import type { MailViewModel } from "./mail/view/MailViewModel.js"
 import { SearchViewModel } from "./search/view/SearchViewModel.js"
@@ -217,7 +217,7 @@ import("./translations/en.js")
 			externalLogin: makeViewResolver<ExternalLoginViewAttrs, ExternalLoginView, { header: AppHeaderAttrs; makeViewModel: () => ExternalLoginViewModel }>(
 				{
 					prepareRoute: async () => {
-						const { ExternalLoginView } = await import("../common/login/ExternalLoginView.js")
+						const { ExternalLoginView } = await import("./mail/view/ExternalLoginView.js")
 						const makeViewModel = await mailLocator.externalLoginViewModelFactory()
 						return {
 							component: ExternalLoginView,
