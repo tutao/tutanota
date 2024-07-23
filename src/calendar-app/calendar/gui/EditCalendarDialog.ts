@@ -48,17 +48,18 @@ export function showEditCalendarDialog(
 							colorStream(target.value)
 						},
 					}),
-					m(RemindersEditor, {
-						alarms,
-						addAlarm: (alarm: AlarmInterval) => {
-							alarms?.push(alarm)
-						},
-						removeAlarm: (alarm: AlarmInterval) => {
-							const index = alarms?.findIndex((a: AlarmInterval) => deepEqual(a, alarm))
-							if (index !== -1) alarms?.splice(index, 1)
-						},
-						label: "calendarDefaultReminder_label",
-					}),
+					!shared &&
+						m(RemindersEditor, {
+							alarms,
+							addAlarm: (alarm: AlarmInterval) => {
+								alarms?.push(alarm)
+							},
+							removeAlarm: (alarm: AlarmInterval) => {
+								const index = alarms?.findIndex((a: AlarmInterval) => deepEqual(a, alarm))
+								if (index !== -1) alarms?.splice(index, 1)
+							},
+							label: "calendarDefaultReminder_label",
+						}),
 				]),
 		},
 		okActionTextId: okTextId,
