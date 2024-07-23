@@ -13,7 +13,10 @@ console.log("Sign Desktop Clients")
 
 signDesktopClients()
 	.then(() => process.exit())
-	.catch(() => process.exit(1))
+	.catch((error) => {
+		console.error(error)
+		process.exit(1)
+	})
 
 if (process.env.DEBUG_SIGN) {
 	const certPath = path.join(process.env.DEBUG_SIGN, "test.p12")
