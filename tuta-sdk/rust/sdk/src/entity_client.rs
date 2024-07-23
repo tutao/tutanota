@@ -89,9 +89,9 @@ impl EntityClient {
     /// Fetches and returns all entities/instances in a list element type
     pub async fn load_all(
         &self,
-        type_ref: &TypeRef,
-        list_id: &IdTuple,
-        start: Option<String>,
+        _type_ref: &TypeRef,
+        _list_id: &IdTuple,
+        _start: Option<String>,
     ) -> Result<Vec<ParsedEntity>, ApiCallError> {
         todo!()
     }
@@ -100,26 +100,26 @@ impl EntityClient {
     /// in a list element type starting at the index `start_id`
     pub async fn load_range(
         &self,
-        type_ref: &TypeRef,
-        list_id: &GeneratedId,
-        start_id: &GeneratedId,
-        count: usize,
-        list_load_direction: ListLoadDirection
+        _type_ref: &TypeRef,
+        _list_id: &GeneratedId,
+        _start_id: &GeneratedId,
+        _count: usize,
+        _list_load_direction: ListLoadDirection
     ) -> Result<Vec<ParsedEntity>, ApiCallError> {
         todo!()
     }
 
     /// Stores a newly created entity/instance as a single element on the backend
-    pub async fn setup_element(&self, type_ref: &TypeRef, entity: RawEntity) -> Vec<String> {
+    pub async fn setup_element(&self, _type_ref: &TypeRef, _entity: RawEntity) -> Vec<String> {
         todo!()
     }
 
     /// Stores a newly created entity/instance as a part of a list element on the backend
     pub async fn setup_list_element(
         &self,
-        type_ref: &TypeRef,
-        list_id: &IdTuple,
-        entity: RawEntity,
+        _type_ref: &TypeRef,
+        _list_id: &IdTuple,
+        _entity: RawEntity,
     ) -> Vec<String> {
         todo!()
     }
@@ -149,12 +149,12 @@ impl EntityClient {
     }
 
     /// Deletes an existing single entity/instance on the backend
-    pub async fn erase_element(&self, type_ref: &TypeRef, id: &GeneratedId) -> Result<(), ApiCallError> {
+    pub async fn erase_element(&self, _type_ref: &TypeRef, _id: &GeneratedId) -> Result<(), ApiCallError> {
         todo!()
     }
 
     /// Deletes an existing entity/instance of a list element type on the backend
-    pub async fn erase_list_element(&self, type_ref: &TypeRef, id: IdTuple) -> Result<(), ApiCallError> {
+    pub async fn erase_list_element(&self, _type_ref: &TypeRef, _id: IdTuple) -> Result<(), ApiCallError> {
         todo!()
     }
 }

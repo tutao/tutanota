@@ -7,7 +7,9 @@ mod aes;
 
 #[cfg(test)]
 pub use aes::Iv;
-pub use aes::{Aes256Key, Aes128Key, AES_256_KEY_SIZE, IV_BYTE_SIZE};
+#[allow(unused_imports)]
+pub use aes::Aes128Key;
+pub use aes::{Aes256Key, AES_256_KEY_SIZE, IV_BYTE_SIZE};
 
 mod sha;
 
@@ -27,6 +29,7 @@ mod rsa;
 
 mod tuta_crypt;
 
+#[allow(unused_imports)]
 pub use tuta_crypt::PQKeyPairs;
 
 pub mod key_encryption;
