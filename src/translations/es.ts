@@ -1209,7 +1209,7 @@ export default {
 		"pricing.extEmailProtection_tooltip": "Todos los correos entre los usuarios de Tuta se cifran automáticamente. Puedes enviar correos cifrados con cualquier persona a través de una contraseña compartida.",
 		"pricing.familyLegend_tooltip": "Después de elegir «Legend», ponte en contacto con nuestro soporte a través del signo de interrogación a la izquierda de tu buzón de correo para que podamos activar el soporte multiusuario para tu familia. Cada miembro de la familia recibirá un buzón separado con 500 GB y 30 direcciones de correo electrónico alias (8 € por usuario / mes). Un buzón compartido (8 € por mes) también obtiene 500 GB.",
 		"pricing.familyRevolutionary_tooltip": "Después de elegir «Revolutionary», ponte en contacto con nuestro soporte a través del signo de interrogación a la izquierda de tu buzón de correo para que podamos activar el soporte multiusuario para tu familia. Cada miembro de la familia recibirá un buzón separado con 20 GB y 15 direcciones de correo electrónico alias (3 € por usuario / mes). Un buzón compartido (3 € por mes) también obtiene 20 GB.",
-		"pricing.family_label": "Ofción Familia",
+		"pricing.family_label": "Opción Familia",
 		"pricing.folders_label": "Carpetas ilimitadas",
 		"pricing.gdprDataProcessing_label": "Acuerdo de procesamiento de datos RGPD",
 		"pricing.gdpr_label": "Cumple con el RGPD",
