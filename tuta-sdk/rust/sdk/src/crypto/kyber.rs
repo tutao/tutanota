@@ -21,8 +21,8 @@ const KYBER_POLYBYTES: usize = 384;
 const KYBER_SYMBYTES: usize = 32;
 const KYBER_POLYVECBYTES: usize = KYBER_K * KYBER_POLYBYTES;
 
-const KYBER_PUBLIC_KEY_LEN: usize = KYBER_POLYVECBYTES + KYBER_SYMBYTES;
-const KYBER_SECRET_KEY_LEN: usize = 2 * KYBER_POLYVECBYTES + 3 * KYBER_SYMBYTES;
+pub(crate) const KYBER_PUBLIC_KEY_LEN: usize = KYBER_POLYVECBYTES + KYBER_SYMBYTES;
+pub(crate) const KYBER_SECRET_KEY_LEN: usize = 2 * KYBER_POLYVECBYTES + 3 * KYBER_SYMBYTES;
 
 /// Key used for performing encapsulation, owned by the recipient.
 #[derive(Clone, PartialEq)]
@@ -44,7 +44,14 @@ impl Debug for KyberPublicKey {
 }
 
 impl KyberPublicKey {
-    /// Instantiate a public key from encoded byte arrays.
+    /// Instantiate a public key from bytes
+    pub fn from_bytes(bytes: &[u8]) -> Result<Self, KyberKeyError> {
+        let public_key = PQCryptoKyber1024PublicKey::from_bytes(bytes).
+            map_err(|reason| KyberKeyError { reason: format!("kyber API error: {reason}") })?;
+        Ok(Self { public_key })
+    }
+
+    /// Instantiate a public key from encoded (length + content) byte arrays.
     ///
     /// Returns `Err` if the key is invalid.
     pub fn deserialize(arrays: &[u8]) -> Result<Self, KyberKeyError> {
@@ -114,7 +121,15 @@ impl Debug for KyberPrivateKey {
 }
 
 impl KyberPrivateKey {
-    /// Instantiate a private key from encoded byte arrays.
+    /// Instantiate a private key from bytes
+    pub fn from_bytes(bytes: &[u8]) -> Result<Self, KyberKeyError> {
+        let private_key = PQCryptoKyber1024SecretKey::from_bytes(&bytes)
+            .map_err(|reason| KyberKeyError { reason: format!("kyber API error: {reason}") })?;
+
+        Ok(Self { private_key })
+    }
+
+    /// Instantiate a private key from encoded (length + content)  byte arrays.
     ///
     /// Returns `Err` if the key is invalid.
     pub fn deserialize(bytes: &[u8]) -> Result<Self, KyberKeyError> {
@@ -194,14 +209,14 @@ impl From<PQCryptoKyber1024SecretKey> for KyberPrivateKey {
 #[derive(thiserror::Error, Debug)]
 #[error("Invalid Kyber key: {reason}")]
 pub struct KyberKeyError {
-    reason: String,
+    pub reason: String,
 }
 
 /// Error occurred from trying to decapsulate with [`KyberPrivateKey::decapsulate`].
 #[derive(thiserror::Error, Debug)]
 #[error("Decapsulation failure: {reason}")]
 pub struct KyberDecapsulationError {
-    reason: String,
+    pub reason: String,
 }
 
 /// Can be used with [`KyberPrivateKey::decapsulate`] to get the shared secret.
@@ -209,6 +224,10 @@ pub struct KyberDecapsulationError {
 pub struct KyberCiphertext([u8; KYBER_CIPHERTEXT_LEN]);
 
 impl KyberCiphertext {
+    pub fn into_bytes(self) -> [u8; KYBER_CIPHERTEXT_LEN] {
+        self.0
+    }
+
     /// Get a reference to the underlying bytes.
     pub fn as_bytes(&self) -> &[u8] {
         self.0.as_slice()
@@ -228,6 +247,10 @@ impl TryFrom<&[u8]> for KyberCiphertext {
 pub struct KyberSharedSecret([u8; KYBER_SHARED_SECRET_LEN]);
 
 impl KyberSharedSecret {
+    pub fn into_bytes(self) -> [u8; KYBER_SHARED_SECRET_LEN] {
+        self.0
+    }
+
     pub fn as_bytes(&self) -> &[u8] {
         self.0.as_slice()
     }

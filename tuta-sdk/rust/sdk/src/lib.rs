@@ -54,6 +54,7 @@ mod custom_id;
 pub mod login;
 mod crypto_entity_client;
 mod logging;
+mod simple_crypto;
 
 uniffi::setup_scaffolding!();
 

@@ -22,10 +22,3 @@ jbyte *ByteArrayAccessor::getBytes() const noexcept {
 jbyteArray ByteArrayAccessor::getByteArray() const noexcept {
     return this->byteArray;
 }
-
-jobject ByteArrayAccessor::createDataWrapper() const noexcept {
-    auto dataWrapperClass = this->env->FindClass("de/tutao/tutanota/ipc/DataWrapper");
-    return env->NewObject(dataWrapperClass,
-                   env->GetMethodID(dataWrapperClass, "<init>", "([B)V"),
-                   this->getByteArray());
-}
