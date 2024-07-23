@@ -156,13 +156,6 @@ pub fn array_cast_size<const SIZE: usize, const ARR_SIZE: usize>(arr: [u8; ARR_S
     }
 }
 
-/// A functional style wrapper around `vec.reverse()`
-pub fn get_vec_reversed<T: Clone>(vec: Vec<T>) -> Vec<T> {
-    let mut copy = vec.clone();
-    copy.reverse();
-    copy
-}
-
 #[cfg(test)]
 mod test {
     use super::*;
