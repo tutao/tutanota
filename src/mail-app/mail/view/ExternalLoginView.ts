@@ -11,7 +11,6 @@ import { progressIcon } from "../../../common/gui/base/Icon.js"
 import { Autocomplete } from "../../../common/gui/base/TextField.js"
 import { Checkbox } from "../../../common/gui/base/Checkbox.js"
 import { MessageBox } from "../../../common/gui/base/MessageBox.js"
-import { renderInfoLinks } from "../../../common/login/LoginView.js"
 import { GENERATED_MIN_ID } from "../../../common/api/common/utils/EntityUtils.js"
 import { getLoginErrorMessage, handleExpectedLoginError } from "../../../common/misc/LoginUtils.js"
 import type { CredentialsProvider } from "../../../common/misc/credentials/CredentialsProvider.js"
@@ -26,6 +25,7 @@ import { LoginScreenHeader } from "../../../common/gui/LoginScreenHeader.js"
 import { LoginButton } from "../../../common/gui/base/buttons/LoginButton.js"
 import { UnencryptedCredentials } from "../../../common/native/common/generatedipc/UnencryptedCredentials.js"
 import { PasswordField } from "../../../common/misc/passwords/PasswordField.js"
+import { renderInfoLinks } from "../../../common/gui/RenderLoginInfoLinks.js"
 
 assertMainOrNode()
 

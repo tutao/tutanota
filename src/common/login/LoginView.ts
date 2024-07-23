@@ -1,7 +1,7 @@
 import m, { Children, Vnode } from "mithril"
 import { client } from "../misc/ClientDetector.js"
 import { assertMainOrNode, isApp, isDesktop } from "../api/common/Env"
-import { InfoLink, lang, TranslationKey } from "../misc/LanguageViewModel.js"
+import { lang, TranslationKey } from "../misc/LanguageViewModel.js"
 import { defer, DeferredObject, mapNullable } from "@tutao/tutanota-utils"
 import { BootIcons } from "../gui/base/icons/BootIcons"
 import { showProgressDialog } from "../gui/dialogs/ProgressDialog"
@@ -13,18 +13,17 @@ import { ACTIVATED_MIGRATION, DisplayMode, isLegacyDomain, LoginState, LoginView
 import { LoginForm } from "./LoginForm.js"
 import { CredentialsSelector } from "./CredentialsSelector.js"
 import { getWhitelabelCustomizations } from "../misc/WhitelabelCustomizations.js"
-import { createAsyncDropdown, createDropdown, DropdownButtonAttrs } from "../gui/base/Dropdown.js"
+import { createAsyncDropdown, DropdownButtonAttrs } from "../gui/base/Dropdown.js"
 import type { ClickHandler } from "../gui/base/GuiUtils"
 import { IconButton } from "../gui/base/IconButton.js"
-import { showLogsDialog } from "./LoginLogDialog.js"
 import { BaseTopLevelView } from "../gui/BaseTopLevelView.js"
 import { TopLevelAttrs, TopLevelView } from "../../TopLevelView.js"
 import { px } from "../gui/size.js"
 import { LoginScreenHeader } from "../gui/LoginScreenHeader.js"
 import { styles } from "../gui/styles.js"
 import { MigratingCredentialsBanner } from "./MigratingCredentialsBanner.js"
-import { ExternalLink } from "../gui/base/ExternalLink.js"
 import { locator } from "../api/main/CommonLocator.js"
+import { renderInfoLinks } from "../gui/RenderLoginInfoLinks.js"
 
 assertMainOrNode()
 
@@ -417,60 +416,4 @@ export class LoginView extends BaseTopLevelView implements TopLevelView<LoginVie
 
 export function getWhitelabelRegistrationDomains(): string[] {
 	return mapNullable(getWhitelabelCustomizations(window), (c) => c.registrationDomains) || []
-}
-
-export function getImprintLink(): string | null {
-	return mapNullable(getWhitelabelCustomizations(window), (c) => c.imprintUrl) || InfoLink.About
-}
-
-export function getPrivacyStatementLink(): string | null {
-	return mapNullable(getWhitelabelCustomizations(window), (c) => c.privacyStatementUrl) || InfoLink.Privacy
-}
-
-export function renderInfoLinks(): Children {
-	const privacyPolicyLink = getPrivacyStatementLink()
-	const imprintLink = getImprintLink()
-	return m(
-		".flex.col.mt-l",
-		m(
-			".flex.wrap.justify-center",
-			!isApp() && privacyPolicyLink
-				? m(ExternalLink, {
-						href: privacyPolicyLink,
-						text: lang.get("privacyLink_label"),
-						class: "plr",
-						isCompanySite: true,
-						specialType: "privacy-policy",
-				  })
-				: null,
-			!isApp() && imprintLink
-				? m(ExternalLink, {
-						href: imprintLink,
-						text: lang.get("imprint_label"),
-						class: "plr",
-						isCompanySite: true,
-						specialType: "license",
-				  })
-				: null,
-		),
-		m(
-			".mt.mb.center.small.full-width",
-			{
-				onclick: (e: MouseEvent) => showVersionDropdown(e),
-			},
-			`v${env.versionNumber}`,
-		),
-	)
-}
-
-function showVersionDropdown(e: MouseEvent) {
-	// A semi-hidden option to get the logs before logging in, in a text form
-	createDropdown({
-		lazyButtons: () => [
-			{
-				label: () => "Get logs",
-				click: () => showLogsDialog(),
-			},
-		],
-	})(e, e.target as HTMLElement)
 }
