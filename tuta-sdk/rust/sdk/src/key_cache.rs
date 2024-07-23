@@ -50,7 +50,7 @@ impl KeyCache {
         lock.insert(group_id.to_owned(), key.to_owned());
     }
 
-    pub async fn remove_outdated_group_keys(&self, user: &User) {
+    pub async fn remove_outdated_group_keys(&self, _user: &User) {
         todo!()
     }
 }
