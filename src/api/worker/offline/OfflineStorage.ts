@@ -30,11 +30,9 @@ import { TokenOrNestedTokens } from "cborg/interface"
 import {
 	CalendarEventTypeRef,
 	FileTypeRef,
-	MailBodyTypeRef,
 	MailDetailsBlobTypeRef,
 	MailDetailsDraftTypeRef,
 	MailFolderTypeRef,
-	MailHeadersTypeRef,
 	MailTypeRef,
 } from "../../entities/tutanota/TypeRefs.js"
 import { UserTypeRef } from "../../entities/sys/TypeRefs.js"
@@ -45,11 +43,11 @@ import { InterWindowEventFacadeSendDispatcher } from "../../../native/common/gen
 import { SqlCipherFacade } from "../../../native/common/generatedipc/SqlCipherFacade.js"
 import { FormattedQuery, SqlValue, TaggedSqlValue, untagSqlObject } from "./SqlValue.js"
 import { FolderSystem } from "../../common/mail/FolderSystem.js"
-import { isDetailsDraft, isLegacyMail } from "../../common/MailWrapper.js"
 import { Type as TypeId } from "../../common/EntityConstants.js"
 import { OutOfSyncError } from "../../common/error/OutOfSyncError.js"
 import { isSpamOrTrashFolder } from "../../common/mail/CommonMailUtils.js"
 import { sql, SqlFragment } from "./Sql.js"
+import { isDraft } from "../../../mail/model/MailUtils.js"
 
 /**
  * this is the value of SQLITE_MAX_VARIABLE_NUMBER in sqlite3.c
@@ -565,9 +563,8 @@ AND NOT(${firstIdBigger("elementId", upper)})`
 				for (const id of mail.attachments) {
 					attachmentsTodelete.push(id)
 				}
-				if (isLegacyMail(mail)) {
-					mailbodiesToDelete.push(assertNotNull(mail.body))
-				} else if (isDetailsDraft(mail)) {
+
+				if (isDraft(mail)) {
 					const mailDetailsId = assertNotNull(mail.mailDetailsDraft)
 					mailDetailsDraftToDelete.push(mailDetailsId)
 				} else {
@@ -575,19 +572,14 @@ AND NOT(${firstIdBigger("elementId", upper)})`
 					const mailDetailsId = assertNotNull(mail.mailDetails)
 					mailDetailsBlobToDelete.push(mailDetailsId)
 				}
-				if (mail.headers) {
-					headersToDelete.push(mail.headers)
-				}
 			}
 		}
-		await this.deleteIn(MailBodyTypeRef, null, mailbodiesToDelete)
 		for (let [listId, elementIds] of groupByAndMap(mailDetailsBlobToDelete, listIdPart, elementIdPart).entries()) {
 			await this.deleteIn(MailDetailsBlobTypeRef, listId, elementIds)
 		}
 		for (let [listId, elementIds] of groupByAndMap(mailDetailsDraftToDelete, listIdPart, elementIdPart).entries()) {
 			await this.deleteIn(MailDetailsDraftTypeRef, listId, elementIds)
 		}
-		await this.deleteIn(MailHeadersTypeRef, null, headersToDelete)
 		for (let [listId, elementIds] of groupByAndMap(attachmentsTodelete, listIdPart, elementIdPart).entries()) {
 			await this.deleteIn(FileTypeRef, listId, elementIds)
 			await this.deleteRange(FileTypeRef, listId)

@@ -64,7 +64,6 @@ export class ContactListEntryViewer implements Component<ContactListEntryViewerA
 											}),
 										],
 										oldBirthdayAggregate: null,
-										autoTransmitPassword: "",
 										addresses: [],
 										birthdayIso: null,
 										comment: "",

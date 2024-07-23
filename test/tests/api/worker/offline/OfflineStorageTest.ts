@@ -7,10 +7,10 @@ import { GENERATED_MIN_ID, generatedIdToTimestamp, getElementId, timestampToGene
 import { getDayShifted, getFirstOrThrow, getTypeId, lastThrow, mapNullable, promiseMap, TypeRef } from "@tutao/tutanota-utils"
 import { DateProvider } from "../../../../../src/api/common/DateProvider.js"
 import {
+	BodyTypeRef,
 	FileTypeRef,
 	Mail,
-	MailBody,
-	MailBodyTypeRef,
+	MailDetailsBlob,
 	MailDetailsBlobTypeRef,
 	MailDetailsTypeRef,
 	MailFolderTypeRef,
@@ -246,8 +246,6 @@ o.spec("OfflineStorage", function () {
 			const trashListId = "trashList"
 			const listId = "listId"
 			const mailType = getTypeId(MailTypeRef)
-			const mailFolderType = getTypeId(MailFolderTypeRef)
-			const mailBodyType = getTypeId(MailBodyTypeRef)
 
 			o.beforeEach(async function () {
 				await storage.init({ userId, databaseKey, timeRangeDays, forceNewDatabase: false })
@@ -328,44 +326,23 @@ o.spec("OfflineStorage", function () {
 				o(allMailIds).deepEquals([getElementId(mail)])
 			})
 
-			o("legacy trash and spam are cleared", async function () {
-				const spamMailBodyId = "spamMailBodyId"
-				const trashMailBodyId = "trashMailBodyId"
-
-				const spamMailId = offsetId(2)
-				const spamMail = createTestEntity(MailTypeRef, { _id: [spamListId, spamMailId], body: spamMailBodyId })
-				const trashMailId = offsetId(2)
-				const trashMail = createTestEntity(MailTypeRef, { _id: [trashListId, trashMailId], body: trashMailBodyId })
-
-				await insertEntity(spamMail)
-				await insertEntity(trashMail)
-				await insertEntity(createTestEntity(MailBodyTypeRef, { _id: spamMailBodyId }))
-				await insertEntity(createTestEntity(MailBodyTypeRef, { _id: trashMailBodyId }))
-
-				// Here we clear the excluded data
-				await storage.clearExcludedData(timeRangeDays, userId)
-
-				const allEntities = await dbFacade.all("select * from list_entities", [])
-				o(allEntities.map((r) => r.elementId.value)).deepEquals([spamFolderId, trashFolderId])
-
-				o(await getAllIdsForType(MailFolderTypeRef)).deepEquals([spamFolderId, trashFolderId])
-				o(await getAllIdsForType(MailTypeRef)).deepEquals([])
-				o(await getAllIdsForType(MailBodyTypeRef)).deepEquals([])
-			})
-
 			o("trash and spam descendants are cleared", async function () {
+				const spamDetailsId: IdTuple = ["detailsListId", "spamDetailsId"]
+				const trashDetailsId: IdTuple = ["detailsListId", "trashDetailsId"]
+				const trashSubfolderDetailsId: IdTuple = ["detailsListId", "trashSubFolderDetailsId"]
+
 				const trashSubfolderId = "trashSubfolderId"
 				const trashSubfolderListId = "trashSubfolderListId"
-				const spamMailBodyId = "spamMailBodyId"
-				const trashMailBodyId = "trashMailBodyId"
-				const trashSubfolderMailBodyId = "trashSubfolderMailBodyId"
 
 				const spamMailId = offsetId(2)
-				const spamMail = createTestEntity(MailTypeRef, { _id: [spamListId, spamMailId], body: spamMailBodyId })
+				const spamMail = createTestEntity(MailTypeRef, { _id: [spamListId, spamMailId], mailDetails: spamDetailsId })
 				const trashMailId = offsetId(2)
-				const trashMail = createTestEntity(MailTypeRef, { _id: [trashListId, trashMailId], body: trashMailBodyId })
+				const trashMail = createTestEntity(MailTypeRef, { _id: [trashListId, trashMailId], mailDetails: trashDetailsId })
 				const trashSubfolderMailId = offsetId(2)
-				const trashSubfolderMail = createTestEntity(MailTypeRef, { _id: [trashSubfolderListId, trashSubfolderMailId], body: trashSubfolderMailBodyId })
+				const trashSubfolderMail = createTestEntity(MailTypeRef, {
+					_id: [trashSubfolderListId, trashSubfolderMailId],
+					mailDetails: trashSubfolderDetailsId,
+				})
 
 				await insertEntity(
 					createTestEntity(MailFolderTypeRef, {
@@ -378,9 +355,9 @@ o.spec("OfflineStorage", function () {
 				await insertEntity(spamMail)
 				await insertEntity(trashMail)
 				await insertEntity(trashSubfolderMail)
-				await insertEntity(createTestEntity(MailBodyTypeRef, { _id: spamMailBodyId }))
-				await insertEntity(createTestEntity(MailBodyTypeRef, { _id: trashMailBodyId }))
-				await insertEntity(createTestEntity(MailBodyTypeRef, { _id: trashSubfolderMailBodyId }))
+				await insertEntity(createTestEntity(MailDetailsBlobTypeRef, { _id: spamDetailsId, details: createTestEntity(MailDetailsTypeRef) }))
+				await insertEntity(createTestEntity(MailDetailsBlobTypeRef, { _id: trashDetailsId, details: createTestEntity(MailDetailsTypeRef) }))
+				await insertEntity(createTestEntity(MailDetailsBlobTypeRef, { _id: trashSubfolderDetailsId, details: createTestEntity(MailDetailsTypeRef) }))
 
 				// Here we clear the excluded data
 				await storage.clearExcludedData(timeRangeDays, userId)
@@ -390,7 +367,7 @@ o.spec("OfflineStorage", function () {
 
 				o(await getAllIdsForType(MailFolderTypeRef)).deepEquals([spamFolderId, trashFolderId, trashSubfolderId])
 				o(await getAllIdsForType(MailTypeRef)).deepEquals([])
-				o(await getAllIdsForType(MailBodyTypeRef)).deepEquals([])
+				o(await getAllIdsForType(MailDetailsBlobTypeRef)).deepEquals([])
 			})
 
 			o("trash and spam are cleared", async function () {
@@ -421,63 +398,75 @@ o.spec("OfflineStorage", function () {
 			})
 
 			o("normal folder is partially cleared", async function () {
-				const inboxMailList = "inboxMailList"
-				const beforeMailBodyId = "beforeMailBodyId"
-				const afterMailBodyId = "afterMailBodyId"
+				const beforeMailDetailsId: IdTuple = ["detailsListId", "beforeDetailsId"]
+				const afterMailDetailsId: IdTuple = ["detailsListId", "afterDetailsId"]
 
-				const mailBefore = createTestEntity(MailTypeRef, { _id: [inboxMailList, offsetId(-2)], body: beforeMailBodyId })
-				const mailAfter = createTestEntity(MailTypeRef, { _id: [inboxMailList, offsetId(2)], body: afterMailBodyId })
+				const inboxMailList = "inboxMailList"
+
+				const mailBefore = createTestEntity(MailTypeRef, { _id: [inboxMailList, offsetId(-2)], mailDetails: beforeMailDetailsId })
+				const mailAfter = createTestEntity(MailTypeRef, { _id: [inboxMailList, offsetId(2)], mailDetails: afterMailDetailsId })
+				const beforeMailDetails = createTestEntity(MailDetailsBlobTypeRef, { _id: beforeMailDetailsId, details: createTestEntity(MailDetailsTypeRef) })
+				const afterMailDetails = createTestEntity(MailDetailsBlobTypeRef, { _id: afterMailDetailsId, details: createTestEntity(MailDetailsTypeRef) })
 
 				await insertEntity(
 					createTestEntity(MailFolderTypeRef, { _id: ["mailFolderList", "folderId"], mails: inboxMailList, folderType: MailFolderType.INBOX }),
 				)
 				await insertEntity(mailBefore)
 				await insertEntity(mailAfter)
-				await insertEntity(createTestEntity(MailBodyTypeRef, { _id: beforeMailBodyId }))
-				await insertEntity(createTestEntity(MailBodyTypeRef, { _id: afterMailBodyId }))
+				await insertEntity(beforeMailDetails)
+				await insertEntity(afterMailDetails)
 
 				// Here we clear the excluded data
 				await storage.clearExcludedData(timeRangeDays, userId)
 
 				const allMailIds = await getAllIdsForType(MailTypeRef)
 				o(allMailIds).deepEquals([getElementId(mailAfter)])
-				const allMailBodyIds = await getAllIdsForType(MailBodyTypeRef)
-				o(allMailBodyIds).deepEquals([afterMailBodyId])
+				const allMailDetailsIds = await getAllIdsForType(MailDetailsBlobTypeRef)
+				o(allMailDetailsIds).deepEquals([getElementId(afterMailDetails)])
 			})
 
 			o("normal folder is completely cleared", async function () {
-				const inboxMailList = "inboxMailList"
-				const mailBodyId1 = "mailBodyId1"
-				const mailBodyId2 = "afterMailBodyId"
+				const mailDetailsId1: IdTuple = ["detailsListId", "mailDetailsId1"]
+				const mailDetailsId2: IdTuple = ["detailsListId", "mailDetailsId2"]
 
-				const mail1 = createTestEntity(MailTypeRef, { _id: [inboxMailList, offsetId(-2)], body: mailBodyId1 })
-				const mail2 = createTestEntity(MailTypeRef, { _id: [inboxMailList, offsetId(-3)], body: mailBodyId2 })
+				const inboxMailList = "inboxMailList"
+
+				const mail1 = createTestEntity(MailTypeRef, { _id: [inboxMailList, offsetId(-2)], mailDetails: mailDetailsId1 })
+				const mail2 = createTestEntity(MailTypeRef, { _id: [inboxMailList, offsetId(-3)], mailDetails: mailDetailsId2 })
 
 				await insertEntity(
 					createTestEntity(MailFolderTypeRef, { _id: ["mailFolderList", "folderId"], mails: inboxMailList, folderType: MailFolderType.INBOX }),
 				)
 				await insertEntity(mail1)
 				await insertEntity(mail2)
-				await insertEntity(createTestEntity(MailBodyTypeRef, { _id: mailBodyId1 }))
-				await insertEntity(createTestEntity(MailBodyTypeRef, { _id: mailBodyId2 }))
+				await insertEntity(createTestEntity(MailDetailsBlobTypeRef, { _id: mailDetailsId1, details: createTestEntity(MailDetailsTypeRef) }))
+				await insertEntity(createTestEntity(MailDetailsBlobTypeRef, { _id: mailDetailsId2, details: createTestEntity(MailDetailsTypeRef) }))
 
 				// Here we clear the excluded data
 				await storage.clearExcludedData(timeRangeDays, userId)
 
 				o(await getAllIdsForType(MailTypeRef)).deepEquals([])
-				o(await getAllIdsForType(MailBodyTypeRef)).deepEquals([])
+				o(await getAllIdsForType(MailDetailsBlobTypeRef)).deepEquals([])
 			})
 
 			o("when mail is deleted, attachment is also deleted", async function () {
 				const inboxMailList = "inboxMailList"
-				const beforeMailBodyId = "beforeMailBodyId"
-				const afterMailBodyId = "afterMailBodyId"
+				const beforeMailDetailsId: IdTuple = ["detailsListId", "beforeDetailsId"]
+				const afterMailDetailsId: IdTuple = ["detailsListId", "afterDetailsId"]
 				const fileListId = "fileListId"
 
 				const fileBefore = createTestEntity(FileTypeRef, { _id: [fileListId, "fileBefore"] })
 				const fileAfter = createTestEntity(FileTypeRef, { _id: [fileListId, "fileAfter"] })
-				const mailBefore = createTestEntity(MailTypeRef, { _id: [inboxMailList, offsetId(-2)], body: beforeMailBodyId, attachments: [fileBefore._id] })
-				const mailAfter = createTestEntity(MailTypeRef, { _id: [inboxMailList, offsetId(2)], body: afterMailBodyId, attachments: [fileAfter._id] })
+				const mailBefore = createTestEntity(MailTypeRef, {
+					_id: [inboxMailList, offsetId(-2)],
+					mailDetails: beforeMailDetailsId,
+					attachments: [fileBefore._id],
+				})
+				const mailAfter = createTestEntity(MailTypeRef, {
+					_id: [inboxMailList, offsetId(2)],
+					mailDetails: afterMailDetailsId,
+					attachments: [fileAfter._id],
+				})
 
 				await insertEntity(
 					createTestEntity(MailFolderTypeRef, { _id: ["mailFolderList", "folderId"], mails: inboxMailList, folderType: MailFolderType.INBOX }),
@@ -486,8 +475,8 @@ o.spec("OfflineStorage", function () {
 				await insertEntity(mailAfter)
 				await insertEntity(fileBefore)
 				await insertEntity(fileAfter)
-				await insertEntity(createTestEntity(MailBodyTypeRef, { _id: beforeMailBodyId }))
-				await insertEntity(createTestEntity(MailBodyTypeRef, { _id: afterMailBodyId }))
+				await insertEntity(createTestEntity(MailDetailsBlobTypeRef, { _id: beforeMailDetailsId }))
+				await insertEntity(createTestEntity(MailDetailsBlobTypeRef, { _id: afterMailDetailsId }))
 
 				// Here we clear the excluded data
 				await storage.clearExcludedData(timeRangeDays, userId)
@@ -499,27 +488,30 @@ o.spec("OfflineStorage", function () {
 	})
 
 	o.spec("Integration test", function () {
-		function createMailList(numMails, listId, idGenerator, getSubject, getBody): { mails: Array<Mail>; mailBodies: Array<MailBody> } {
+		function createMailList(numMails, listId, idGenerator, getSubject, getBody): { mails: Array<Mail>; mailDetailsBlobs: Array<MailDetailsBlob> } {
 			const mails: Array<Mail> = []
-			const mailBodies: Array<MailBody> = []
+			const mailDetailsBlobs: Array<MailDetailsBlob> = []
 			for (let i = 0; i < numMails; ++i) {
 				const mailId = idGenerator.getNext()
-				const bodyId = idGenerator.getNext()
+				const mailDetailsId = idGenerator.getNext()
 				mails.push(
 					createTestEntity(MailTypeRef, {
 						_id: [listId, mailId],
 						subject: getSubject(i),
-						body: bodyId,
+						mailDetails: ["detailsListId", mailDetailsId],
 					}),
 				)
-				mailBodies.push(
-					createTestEntity(MailBodyTypeRef, {
-						_id: bodyId,
-						text: getBody(i),
+				mailDetailsBlobs.push(
+					createTestEntity(MailDetailsBlobTypeRef, {
+						_id: ["detailsListId", mailDetailsId],
+						details: createTestEntity(MailDetailsTypeRef, {
+							_id: mailDetailsId,
+							body: createTestEntity(BodyTypeRef, { text: getBody(i) }),
+						}),
 					}),
 				)
 			}
-			return { mails, mailBodies }
+			return { mails, mailDetailsBlobs: mailDetailsBlobs }
 		}
 
 		o("cleanup works as expected", async function () {
@@ -533,7 +525,7 @@ o.spec("OfflineStorage", function () {
 				mails: inboxListId,
 				folderType: MailFolderType.INBOX,
 			})
-			const { mails: oldInboxMails, mailBodies: oldInboxMailBodies } = createMailList(
+			const { mails: oldInboxMails, mailDetailsBlobs: oldInboxMailDetailsBlobs } = createMailList(
 				3,
 				inboxListId,
 				oldIds,
@@ -541,7 +533,7 @@ o.spec("OfflineStorage", function () {
 				(i) => `old body ${i}`,
 			)
 
-			const { mails: newInboxMails, mailBodies: newInboxMailBodies } = createMailList(
+			const { mails: newInboxMails, mailDetailsBlobs: newInboxMailDetailsBlobs } = createMailList(
 				3,
 				inboxListId,
 				newIds,
@@ -555,7 +547,7 @@ o.spec("OfflineStorage", function () {
 				mails: trashListId,
 				folderType: MailFolderType.TRASH,
 			})
-			const { mails: trashMails, mailBodies: trashMailBodies } = createMailList(
+			const { mails: trashMails, mailDetailsBlobs: trashMailDetailsBlobs } = createMailList(
 				3,
 				trashListId,
 				newIds,
@@ -575,11 +567,11 @@ o.spec("OfflineStorage", function () {
 				trashFolder,
 				spamFolder,
 				...oldInboxMails,
-				...oldInboxMailBodies,
+				...oldInboxMailDetailsBlobs,
 				...newInboxMails,
-				...newInboxMailBodies,
+				...newInboxMailDetailsBlobs,
 				...trashMails,
-				...trashMailBodies,
+				...trashMailDetailsBlobs,
 			]
 
 			await storage.init({ userId, databaseKey: offlineDatabaseTestKey, timeRangeDays, forceNewDatabase: false })
@@ -600,14 +592,14 @@ o.spec("OfflineStorage", function () {
 			}
 
 			await promiseMap(oldInboxMails, (mail) => assertContents(mail, null, `old mail ${mail._id} was deleted`))
-			await promiseMap(oldInboxMailBodies, (body) => assertContents(body, null, `old mailBody ${body._id} was deleted`))
+			await promiseMap(oldInboxMailDetailsBlobs, (body) => assertContents(body, null, `old mailBody ${body._id} was deleted`))
 
 			await promiseMap(newInboxMails, (mail) => assertContents(mail, mail, `new mail ${mail._id} was not deleted`))
-			await promiseMap(newInboxMailBodies, (body) => assertContents(body, body, `new mailBody ${body._id} was not deleted`))
+			await promiseMap(newInboxMailDetailsBlobs, (body) => assertContents(body, body, `new mailBody ${body._id} was not deleted`))
 
 			// All of trash should be cleared, even though the ids are old
 			await promiseMap(trashMails, (mail) => assertContents(mail, null, `trash mail ${mail._id} was deleted`))
-			await promiseMap(trashMailBodies, (body) => assertContents(body, null, `trash mailBody ${body._id} was deleted`))
+			await promiseMap(trashMailDetailsBlobs, (body) => assertContents(body, null, `trash mailBody ${body._id} was deleted`))
 
 			await assertContents(inboxFolder, inboxFolder, `inbox folder was not deleted`)
 			await assertContents(trashFolder, trashFolder, `trash folder was not deleted`)

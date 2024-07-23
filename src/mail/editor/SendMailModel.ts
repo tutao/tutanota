@@ -27,8 +27,8 @@ import {
 	remove,
 	typedValues,
 } from "@tutao/tutanota-utils"
-import { checkAttachmentSize, getDefaultSender, getTemplateLanguages, isUserEmail, RecipientField } from "../model/MailUtils"
-import type { EncryptedMailAddress, File as TutanotaFile, Mail, MailboxProperties } from "../../api/entities/tutanota/TypeRefs.js"
+import { checkAttachmentSize, getDefaultSender, getMailBodyText, getTemplateLanguages, isUserEmail, RecipientField } from "../model/MailUtils"
+import type { File as TutanotaFile, Mail, MailboxProperties, MailDetails } from "../../api/entities/tutanota/TypeRefs.js"
 import { ContactTypeRef, ConversationEntryTypeRef, File, FileTypeRef, MailboxPropertiesTypeRef, MailTypeRef } from "../../api/entities/tutanota/TypeRefs.js"
 import { FileNotFoundError } from "../../api/common/error/FileNotFoundError"
 import type { LoginController } from "../../api/main/LoginController"
@@ -60,7 +60,6 @@ import { RecipientsModel, ResolvableRecipient, ResolveMode } from "../../api/mai
 import { createApprovalMail } from "../../api/entities/monitor/TypeRefs"
 import { DateProvider } from "../../api/common/DateProvider.js"
 import { getSenderName } from "../../misc/MailboxPropertiesUtils.js"
-import { isLegacyMail, MailWrapper } from "../../api/common/MailWrapper.js"
 import { cleanMailAddress, findRecipientWithAddress } from "../../api/common/utils/CommonCalendarUtils.js"
 import { ProgrammingError } from "../../api/common/error/ProgrammingError.js"
 import { EntityUpdateData, isUpdateForTypeRef } from "../../api/common/utils/EntityUpdateUtils.js"
@@ -333,13 +332,12 @@ export class SendMailModel {
 		})
 	}
 
-	async initWithDraft(attachments: File[], mailWrapper: MailWrapper, inlineImages: InlineImages): Promise<SendMailModel> {
+	async initWithDraft(draft: Mail, draftDetails: MailDetails, attachments: TutanotaFile[], inlineImages: InlineImages): Promise<SendMailModel> {
 		this.startInit()
 
 		let previousMessageId: string | null = null
 		let previousMail: Mail | null = null
 
-		const draft = mailWrapper.getMail()
 		const conversationEntry = await this.entity.load(ConversationEntryTypeRef, draft.conversationEntry)
 		const conversationType = downcast<ConversationType>(conversationEntry.conversationType)
 
@@ -363,36 +361,24 @@ export class SendMailModel {
 		// that reference, because it will be revoked
 		this.loadedInlineImages = cloneInlineImages(inlineImages)
 		const { confidential, sender, subject } = draft
-		let recipients: Recipients
-		let replyTos: EncryptedMailAddress[]
-		if (!isLegacyMail(draft) && mailWrapper) {
-			const { toRecipients, ccRecipients, bccRecipients } = mailWrapper.getDetails().recipients
-			recipients = {
-				to: toRecipients,
-				cc: ccRecipients,
-				bcc: bccRecipients,
-			}
-			replyTos = mailWrapper.getReplyTos()
-		} else {
-			const { toRecipients, ccRecipients, bccRecipients } = draft
-			recipients = {
-				to: toRecipients,
-				cc: ccRecipients,
-				bcc: bccRecipients,
-			}
-			replyTos = draft.replyTos
+		const { toRecipients, ccRecipients, bccRecipients } = draftDetails.recipients
+		let recipients: Recipients = {
+			to: toRecipients,
+			cc: ccRecipients,
+			bcc: bccRecipients,
 		}
-		const bodyText = mailWrapper.getMailBodyText()
+
+		const bodyText = getMailBodyText(draftDetails.body)
 		return this.init({
 			conversationType: conversationType,
 			subject,
 			bodyText,
 			recipients,
-			draft,
+			draft: draft,
 			senderMailAddress: sender.address,
 			confidential,
 			attachments,
-			replyTos,
+			replyTos: draftDetails.replyTos,
 			previousMail,
 			previousMessageId,
 			initialChangedState: false,

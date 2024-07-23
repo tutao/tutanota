@@ -17,7 +17,7 @@ import {
 	InstanceIdTypeRef,
 } from "../../../../../src/api/entities/storage/TypeRefs.js"
 import { createTestEntity } from "../../../TestUtils.js"
-import { FileTypeRef, MailBodyTypeRef } from "../../../../../src/api/entities/tutanota/TypeRefs.js"
+import { FileTypeRef, MailBoxTypeRef } from "../../../../../src/api/entities/tutanota/TypeRefs.js"
 import { BlobTypeRef } from "../../../../../src/api/entities/sys/TypeRefs.js"
 
 const { anything, captor } = matchers
@@ -142,7 +142,7 @@ o.spec("BlobAccessTokenFacade test", function () {
 			})
 
 			o("read token ET", async function () {
-				const mailBody = createTestEntity(MailBodyTypeRef, { _id: "elementId" })
+				const mailBox = createTestEntity(MailBoxTypeRef, { _id: "elementId" })
 				const expectedToken = createTestEntity(BlobAccessTokenPostOutTypeRef, {
 					blobAccessInfo: createTestEntity(BlobServerAccessInfoTypeRef, { blobAccessToken: "123" }),
 				})
@@ -150,15 +150,15 @@ o.spec("BlobAccessTokenFacade test", function () {
 
 				const referencingInstance: BlobReferencingInstance = {
 					blobs,
-					entity: mailBody,
+					entity: mailBox,
 					listId: null,
-					elementId: mailBody._id,
+					elementId: mailBox._id,
 				}
 				const readToken = await blobAccessTokenFacade.requestReadTokenBlobs(archiveDataType, referencingInstance)
 
 				const tokenRequest = captor()
 				verify(serviceMock.post(BlobAccessTokenService, tokenRequest.capture()))
-				let instanceId = createTestEntity(InstanceIdTypeRef, { instanceId: getEtId(mailBody) })
+				let instanceId = createTestEntity(InstanceIdTypeRef, { instanceId: getEtId(mailBox) })
 				o(tokenRequest.value).deepEquals(
 					createTestEntity(BlobAccessTokenPostInTypeRef, {
 						archiveDataType,

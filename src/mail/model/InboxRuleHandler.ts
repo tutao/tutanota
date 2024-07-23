@@ -1,20 +1,18 @@
 import type { InboxRule, Mail, MoveMailData } from "../../api/entities/tutanota/TypeRefs.js"
-import { createMoveMailData, MailHeadersTypeRef } from "../../api/entities/tutanota/TypeRefs.js"
+import { createMoveMailData } from "../../api/entities/tutanota/TypeRefs.js"
 import { InboxRuleType, MailFolderType, MAX_NBR_MOVE_DELETE_MAIL_SERVICE } from "../../api/common/TutanotaConstants"
 import { isDomainName, isRegularExpression } from "../../misc/FormatValidator"
 import { assertNotNull, asyncFind, debounce, ofClass, promiseMap, splitInChunks } from "@tutao/tutanota-utils"
 import { lang } from "../../misc/LanguageViewModel"
 import type { MailboxDetail } from "./MailModel"
-import { LockedError, NotFoundError, PreconditionFailedError } from "../../api/common/error/RestError"
+import { LockedError, PreconditionFailedError } from "../../api/common/error/RestError"
 import type { SelectorItemList } from "../../gui/base/DropDownSelector.js"
-import { EntityClient } from "../../api/common/EntityClient"
 import { getElementId, getListId, isSameId } from "../../api/common/utils/EntityUtils"
 import { assertMainOrNode } from "../../api/common/Env"
 import { MailFacade } from "../../api/worker/facades/lazy/MailFacade.js"
-import { isLegacyMail } from "../../api/common/MailWrapper.js"
 import { assertSystemFolderOfType } from "../../api/common/mail/CommonMailUtils.js"
 import { LoginController } from "../../api/main/LoginController.js"
-import { getLegacyMailHeaders, getMailHeaders } from "./MailUtils.js"
+import { getMailHeaders } from "./MailUtils.js"
 
 assertMainOrNode()
 const moveMailDataPerFolder: MoveMailData[] = []
@@ -93,7 +91,7 @@ export function getInboxRuleTypeName(type: string): string {
 }
 
 export class InboxRuleHandler {
-	constructor(private readonly mailFacade: MailFacade, private readonly entityClient: EntityClient, private readonly logins: LoginController) {}
+	constructor(private readonly mailFacade: MailFacade, private readonly logins: LoginController) {}
 
 	/**
 	 * Checks the mail for an existing inbox rule and moves the mail to the target folder of the rule.
@@ -104,7 +102,7 @@ export class InboxRuleHandler {
 			return null
 		}
 
-		const inboxRule = await _findMatchingRule(this.mailFacade, this.entityClient, mail, this.logins.getUserController().props.inboxRules)
+		const inboxRule = await _findMatchingRule(this.mailFacade, mail, this.logins.getUserController().props.inboxRules)
 		if (inboxRule) {
 			let targetFolder = mailboxDetail.folders.getFolderById(inboxRule.targetFolder)
 
@@ -139,11 +137,11 @@ export class InboxRuleHandler {
  * Finds the first matching inbox rule for the mail and returns it.
  * export only for testing
  */
-export async function _findMatchingRule(mailFacade: MailFacade, entityClient: EntityClient, mail: Mail, rules: InboxRule[]): Promise<InboxRule | null> {
-	return asyncFind(rules, (rule) => checkInboxRule(mailFacade, entityClient, mail, rule)).then((v) => v ?? null)
+export async function _findMatchingRule(mailFacade: MailFacade, mail: Mail, rules: InboxRule[]): Promise<InboxRule | null> {
+	return asyncFind(rules, (rule) => checkInboxRule(mailFacade, mail, rule)).then((v) => v ?? null)
 }
 
-async function checkInboxRule(mailFacade: MailFacade, entityClient: EntityClient, mail: Mail, inboxRule: InboxRule): Promise<boolean> {
+async function checkInboxRule(mailFacade: MailFacade, mail: Mail, inboxRule: InboxRule): Promise<boolean> {
 	const ruleType = inboxRule.type
 	try {
 		if (ruleType === InboxRuleType.FROM_EQUALS) {
@@ -155,19 +153,19 @@ async function checkInboxRule(mailFacade: MailFacade, entityClient: EntityClient
 
 			return _checkEmailAddresses(mailAddresses, inboxRule)
 		} else if (ruleType === InboxRuleType.RECIPIENT_TO_EQUALS) {
-			const toRecipients = !isLegacyMail(mail) ? (await mailFacade.loadMailDetailsBlob(mail)).recipients.toRecipients : mail.toRecipients
+			const toRecipients = (await mailFacade.loadMailDetailsBlob(mail)).recipients.toRecipients
 			return _checkEmailAddresses(
 				toRecipients.map((m) => m.address),
 				inboxRule,
 			)
 		} else if (ruleType === InboxRuleType.RECIPIENT_CC_EQUALS) {
-			const ccRecipients = !isLegacyMail(mail) ? (await mailFacade.loadMailDetailsBlob(mail)).recipients.ccRecipients : mail.ccRecipients
+			const ccRecipients = (await mailFacade.loadMailDetailsBlob(mail)).recipients.ccRecipients
 			return _checkEmailAddresses(
 				ccRecipients.map((m) => m.address),
 				inboxRule,
 			)
 		} else if (ruleType === InboxRuleType.RECIPIENT_BCC_EQUALS) {
-			const bccRecipients = !isLegacyMail(mail) ? (await mailFacade.loadMailDetailsBlob(mail)).recipients.bccRecipients : mail.bccRecipients
+			const bccRecipients = (await mailFacade.loadMailDetailsBlob(mail)).recipients.bccRecipients
 			return _checkEmailAddresses(
 				bccRecipients.map((m) => m.address),
 				inboxRule,
@@ -175,27 +173,9 @@ async function checkInboxRule(mailFacade: MailFacade, entityClient: EntityClient
 		} else if (ruleType === InboxRuleType.SUBJECT_CONTAINS) {
 			return _checkContainsRule(mail.subject, inboxRule)
 		} else if (ruleType === InboxRuleType.MAIL_HEADER_CONTAINS) {
-			if (isLegacyMail(mail) && mail.headers) {
-				return entityClient
-					.load(MailHeadersTypeRef, mail.headers)
-					.then((mailHeaders) => {
-						return _checkContainsRule(getLegacyMailHeaders(mailHeaders), inboxRule)
-					})
-					.catch((e) => {
-						if (!(e instanceof NotFoundError)) {
-							// Does the outer catch already handle this case?
-							console.error("Error processing inbox rule:", e.message)
-						}
-
-						return false
-					})
-			} else if (!isLegacyMail(mail)) {
-				const details = await mailFacade.loadMailDetailsBlob(mail)
-				if (details.headers != null) {
-					return _checkContainsRule(getMailHeaders(details.headers), inboxRule)
-				} else {
-					return false
-				}
+			const details = await mailFacade.loadMailDetailsBlob(mail)
+			if (details.headers != null) {
+				return _checkContainsRule(getMailHeaders(details.headers), inboxRule)
 			} else {
 				return false
 			}

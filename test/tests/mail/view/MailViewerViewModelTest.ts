@@ -25,7 +25,6 @@ import { createTestEntity } from "../../TestUtils.js"
 import { MailState } from "../../../../src/api/common/TutanotaConstants.js"
 import { GroupInfoTypeRef } from "../../../../src/api/entities/sys/TypeRefs.js"
 import { CryptoFacade } from "../../../../src/api/worker/crypto/CryptoFacade.js"
-import { lazyAsync } from "@tutao/tutanota-utils"
 import { ContactImporter } from "../../../../src/contacts/ContactImporter.js"
 
 o.spec("MailViewerViewModel", function () {
@@ -92,7 +91,6 @@ o.spec("MailViewerViewModel", function () {
 		const mail = createTestEntity(MailTypeRef, {
 			_id: ["mailListId", "mailId"],
 			listUnsubscribe: true,
-			toRecipients,
 			mailDetails: ["mailDetailsListId", "mailDetailsId"],
 			state: MailState.RECEIVED,
 			sender: createTestEntity(MailAddressTypeRef, {

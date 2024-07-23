@@ -1,13 +1,5 @@
-import type { Contact, EncryptedMailAddress, InboxRule, Mail, MailFolder, TutanotaProperties } from "../../api/entities/tutanota/TypeRefs.js"
-import {
-	createContact,
-	createContactMailAddress,
-	createEncryptedMailAddress,
-	Header,
-	MailBodyTypeRef,
-	MailHeaders,
-	MailHeadersTypeRef,
-} from "../../api/entities/tutanota/TypeRefs.js"
+import type { Contact, EncryptedMailAddress, InboxRule, Mail, MailDetails, MailFolder, TutanotaProperties } from "../../api/entities/tutanota/TypeRefs.js"
+import { Body, createContact, createContactMailAddress, createEncryptedMailAddress, Header } from "../../api/entities/tutanota/TypeRefs.js"
 import {
 	ContactAddressType,
 	ConversationType,
@@ -36,7 +28,6 @@ import { getEnabledMailAddressesForGroupInfo, getGroupInfoDisplayName } from "..
 import { fullNameToFirstAndLastName, mailAddressToFirstAndLastName } from "../../misc/parsing/MailAddressParser"
 import type { Attachment } from "../editor/SendMailModel"
 import { getListId } from "../../api/common/utils/EntityUtils"
-import { isDetailsDraft, isLegacyMail, MailWrapper } from "../../api/common/MailWrapper.js"
 import { FolderSystem } from "../../api/common/mail/FolderSystem.js"
 import { ListFilter } from "../../misc/ListModel.js"
 import { MailFacade } from "../../api/worker/facades/lazy/MailFacade.js"
@@ -62,7 +53,6 @@ export function createNewContact(user: User, mailAddress: string, name: string):
 			user.memberships.find((m) => m.groupType === GroupType.Contact),
 			"called createNewContact as user without contact group mship",
 		).group,
-		_owner: user._id,
 		firstName: firstAndLastName.firstName,
 		lastName: firstAndLastName.lastName,
 		mailAddresses: [
@@ -72,7 +62,6 @@ export function createNewContact(user: User, mailAddress: string, name: string):
 				customTypeName: "",
 			}),
 		],
-		autoTransmitPassword: "",
 		birthdayIso: null,
 		comment: "",
 		company: "",
@@ -112,22 +101,12 @@ export function getMailAddressDisplayText(name: string | null, mailAddress: stri
 }
 
 export function getRecipientHeading(mail: Mail, preferNameOnly: boolean) {
-	if (isLegacyMail(mail)) {
-		const allRecipients = mail.toRecipients.concat(mail.ccRecipients).concat(mail.bccRecipients)
-
-		if (allRecipients.length > 0) {
-			return getMailAddressDisplayText(allRecipients[0].name, allRecipients[0].address, preferNameOnly) + (allRecipients.length > 1 ? ", ..." : "")
-		} else {
-			return ""
-		}
+	let recipientCount = parseInt(mail.recipientCount)
+	if (recipientCount > 0) {
+		let recipient = neverNull(mail.firstRecipient)
+		return getMailAddressDisplayText(recipient.name, recipient.address, preferNameOnly) + (recipientCount > 1 ? ", ..." : "")
 	} else {
-		let recipientCount = parseInt(mail.recipientCount)
-		if (recipientCount > 0) {
-			let recipient = neverNull(mail.firstRecipient)
-			return getMailAddressDisplayText(recipient.name, recipient.address, preferNameOnly) + (recipientCount > 1 ? ", ..." : "")
-		} else {
-			return ""
-		}
+		return ""
 	}
 }
 
@@ -397,34 +376,30 @@ export function getPathToFolderString(folderSystem: FolderSystem, folder: MailFo
 	return folderPath.map(getFolderName).join(" · ")
 }
 
-export async function loadMailDetails(mailFacade: MailFacade, entityClient: EntityClient, mail: Mail): Promise<MailWrapper> {
-	if (isLegacyMail(mail)) {
-		return entityClient.load(MailBodyTypeRef, neverNull(mail.body)).then((b) => MailWrapper.body(mail, b))
-	} else if (isDetailsDraft(mail)) {
+export function isDraft(mail: Mail): boolean {
+	return mail.mailDetailsDraft != null
+}
+
+export async function loadMailDetails(mailFacade: MailFacade, mail: Mail): Promise<MailDetails> {
+	if (isDraft(mail)) {
 		const detailsDraftId = assertNotNull(mail.mailDetailsDraft)
-		return mailFacade.loadMailDetailsDraft(mail).then((d) => MailWrapper.details(mail, d))
+		return mailFacade.loadMailDetailsDraft(mail)
 	} else {
 		const mailDetailsId = neverNull(mail.mailDetails)
-		return mailFacade.loadMailDetailsBlob(mail).then((d) => MailWrapper.details(mail, d))
+		return mailFacade.loadMailDetailsBlob(mail)
 	}
 }
 
-export function getLegacyMailHeaders(headers: MailHeaders): string {
-	return headers.compressedHeaders ?? headers.headers ?? ""
+export function getMailBodyText(body: Body): string {
+	return body.compressedText ?? body.text ?? ""
 }
 
 export function getMailHeaders(headers: Header): string {
 	return headers.compressedHeaders ?? headers.headers ?? ""
 }
 
-export async function loadMailHeaders(entityClient: EntityClient, mailWrapper: MailWrapper): Promise<string | null> {
-	if (mailWrapper.isLegacy()) {
-		const headersId = mailWrapper.getMail().headers
-		return headersId != null ? getLegacyMailHeaders(await entityClient.load(MailHeadersTypeRef, headersId)) : null
-	} else {
-		const details = mailWrapper.getDetails()
-		return details.headers != null ? getMailHeaders(details.headers) : null
-	}
+export async function loadMailHeaders(mailDetails: MailDetails): Promise<string | null> {
+	return mailDetails.headers != null ? getMailHeaders(mailDetails.headers) : null
 }
 
 export enum MailFilterType {

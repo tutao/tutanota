@@ -219,15 +219,12 @@ export type Contact = {
 	_type: TypeRef<Contact>;
 	_errors: Object;
 
-	_area: NumberString;
 	_format: NumberString;
 	_id: IdTuple;
-	_owner: Id;
 	_ownerEncSessionKey: null | Uint8Array;
 	_ownerGroup: null | Id;
 	_ownerKeyVersion: null | NumberString;
 	_permissions: Id;
-	autoTransmitPassword: string;
 	birthdayIso: null | string;
 	comment: string;
 	company: string;
@@ -828,10 +825,8 @@ export type File = {
 	_type: TypeRef<File>;
 	_errors: Object;
 
-	_area: NumberString;
 	_format: NumberString;
 	_id: IdTuple;
-	_owner: Id;
 	_ownerEncSessionKey: null | Uint8Array;
 	_ownerGroup: null | Id;
 	_ownerKeyVersion: null | NumberString;
@@ -1129,24 +1124,17 @@ export type Mail = {
 	receivedDate: Date;
 	recipientCount: NumberString;
 	replyType: NumberString;
-	sentDate: null | Date;
 	state: NumberString;
 	subject: string;
 	unread: boolean;
 
 	attachments: IdTuple[];
-	bccRecipients: MailAddress[];
-	body:  null | Id;
 	bucketKey:  null | BucketKey;
-	ccRecipients: MailAddress[];
 	conversationEntry: IdTuple;
 	firstRecipient:  null | MailAddress;
-	headers:  null | Id;
 	mailDetails:  null | IdTuple;
 	mailDetailsDraft:  null | IdTuple;
-	replyTos: EncryptedMailAddress[];
 	sender: MailAddress;
-	toRecipients: MailAddress[];
 }
 export const MailAddressTypeRef: TypeRef<MailAddress> = new TypeRef("tutanota", "MailAddress")
 
@@ -1176,27 +1164,6 @@ export type MailAddressProperties = {
 	mailAddress: string;
 	senderName: string;
 }
-export const MailBodyTypeRef: TypeRef<MailBody> = new TypeRef("tutanota", "MailBody")
-
-export function createMailBody(values: StrippedEntity<MailBody>): MailBody {
-	return Object.assign(create(typeModels.MailBody, MailBodyTypeRef), values)
-}
-
-export type MailBody = {
-	_type: TypeRef<MailBody>;
-	_errors: Object;
-
-	_area: NumberString;
-	_format: NumberString;
-	_id: Id;
-	_owner: Id;
-	_ownerEncSessionKey: null | Uint8Array;
-	_ownerGroup: null | Id;
-	_ownerKeyVersion: null | NumberString;
-	_permissions: Id;
-	compressedText: null | string;
-	text: null | string;
-}
 export const MailBoxTypeRef: TypeRef<MailBox> = new TypeRef("tutanota", "MailBox")
 
 export function createMailBox(values: StrippedEntity<MailBox>): MailBox {
@@ -1217,7 +1184,6 @@ export type MailBox = {
 
 	folders:  null | MailFolderRef;
 	mailDetailsDrafts:  null | MailDetailsDraftsRef;
-	mails: Id;
 	receivedAttachments: Id;
 	sentAttachments: Id;
 	spamResults:  null | SpamResults;
@@ -1312,7 +1278,6 @@ export type MailFolder = {
 
 	mails: Id;
 	parentFolder:  null | IdTuple;
-	subFolders: Id;
 }
 export const MailFolderRefTypeRef: TypeRef<MailFolderRef> = new TypeRef("tutanota", "MailFolderRef")
 
@@ -1326,25 +1291,6 @@ export type MailFolderRef = {
 	_id: Id;
 
 	folders: Id;
-}
-export const MailHeadersTypeRef: TypeRef<MailHeaders> = new TypeRef("tutanota", "MailHeaders")
-
-export function createMailHeaders(values: StrippedEntity<MailHeaders>): MailHeaders {
-	return Object.assign(create(typeModels.MailHeaders, MailHeadersTypeRef), values)
-}
-
-export type MailHeaders = {
-	_type: TypeRef<MailHeaders>;
-	_errors: Object;
-
-	_format: NumberString;
-	_id: Id;
-	_ownerEncSessionKey: null | Uint8Array;
-	_ownerGroup: null | Id;
-	_ownerKeyVersion: null | NumberString;
-	_permissions: Id;
-	compressedHeaders: null | string;
-	headers: null | string;
 }
 export const MailboxGroupRootTypeRef: TypeRef<MailboxGroupRoot> = new TypeRef("tutanota", "MailboxGroupRoot")
 
@@ -1533,68 +1479,6 @@ export type OutOfOfficeNotificationRecipientList = {
 
 	list: Id;
 }
-export const PasswordAutoAuthenticationReturnTypeRef: TypeRef<PasswordAutoAuthenticationReturn> = new TypeRef("tutanota", "PasswordAutoAuthenticationReturn")
-
-export function createPasswordAutoAuthenticationReturn(values: StrippedEntity<PasswordAutoAuthenticationReturn>): PasswordAutoAuthenticationReturn {
-	return Object.assign(create(typeModels.PasswordAutoAuthenticationReturn, PasswordAutoAuthenticationReturnTypeRef), values)
-}
-
-export type PasswordAutoAuthenticationReturn = {
-	_type: TypeRef<PasswordAutoAuthenticationReturn>;
-
-	_format: NumberString;
-}
-export const PasswordChannelPhoneNumberTypeRef: TypeRef<PasswordChannelPhoneNumber> = new TypeRef("tutanota", "PasswordChannelPhoneNumber")
-
-export function createPasswordChannelPhoneNumber(values: StrippedEntity<PasswordChannelPhoneNumber>): PasswordChannelPhoneNumber {
-	return Object.assign(create(typeModels.PasswordChannelPhoneNumber, PasswordChannelPhoneNumberTypeRef), values)
-}
-
-export type PasswordChannelPhoneNumber = {
-	_type: TypeRef<PasswordChannelPhoneNumber>;
-
-	_id: Id;
-	number: string;
-}
-export const PasswordChannelReturnTypeRef: TypeRef<PasswordChannelReturn> = new TypeRef("tutanota", "PasswordChannelReturn")
-
-export function createPasswordChannelReturn(values: StrippedEntity<PasswordChannelReturn>): PasswordChannelReturn {
-	return Object.assign(create(typeModels.PasswordChannelReturn, PasswordChannelReturnTypeRef), values)
-}
-
-export type PasswordChannelReturn = {
-	_type: TypeRef<PasswordChannelReturn>;
-
-	_format: NumberString;
-
-	phoneNumberChannels: PasswordChannelPhoneNumber[];
-}
-export const PasswordMessagingDataTypeRef: TypeRef<PasswordMessagingData> = new TypeRef("tutanota", "PasswordMessagingData")
-
-export function createPasswordMessagingData(values: StrippedEntity<PasswordMessagingData>): PasswordMessagingData {
-	return Object.assign(create(typeModels.PasswordMessagingData, PasswordMessagingDataTypeRef), values)
-}
-
-export type PasswordMessagingData = {
-	_type: TypeRef<PasswordMessagingData>;
-
-	_format: NumberString;
-	language: string;
-	numberId: Id;
-	symKeyForPasswordTransmission: Uint8Array;
-}
-export const PasswordMessagingReturnTypeRef: TypeRef<PasswordMessagingReturn> = new TypeRef("tutanota", "PasswordMessagingReturn")
-
-export function createPasswordMessagingReturn(values: StrippedEntity<PasswordMessagingReturn>): PasswordMessagingReturn {
-	return Object.assign(create(typeModels.PasswordMessagingReturn, PasswordMessagingReturnTypeRef), values)
-}
-
-export type PasswordMessagingReturn = {
-	_type: TypeRef<PasswordMessagingReturn>;
-
-	_format: NumberString;
-	autoAuthenticationId: Id;
-}
 export const PhishingMarkerWebsocketDataTypeRef: TypeRef<PhishingMarkerWebsocketData> = new TypeRef("tutanota", "PhishingMarkerWebsocketData")
 
 export function createPhishingMarkerWebsocketData(values: StrippedEntity<PhishingMarkerWebsocketData>): PhishingMarkerWebsocketData {
@@ -1704,7 +1588,6 @@ export type SecureExternalRecipientKeyData = {
 	_type: TypeRef<SecureExternalRecipientKeyData>;
 
 	_id: Id;
-	autoTransmitPassword: null | string;
 	kdfVersion: NumberString;
 	mailAddress: string;
 	ownerEncBucketKey: Uint8Array;
@@ -1714,8 +1597,6 @@ export type SecureExternalRecipientKeyData = {
 	salt: null | Uint8Array;
 	saltHash: null | Uint8Array;
 	userGroupKeyVersion: NumberString;
-
-	passwordChannelPhoneNumbers: PasswordChannelPhoneNumber[];
 }
 export const SendDraftDataTypeRef: TypeRef<SendDraftData> = new TypeRef("tutanota", "SendDraftData")
 

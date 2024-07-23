@@ -347,7 +347,6 @@ o.spec("InstanceMapper", function () {
 		return instanceMapper.decryptAndMapToInstance<Mail>(MailTypeModel, mail, sk).then((decrypted) => {
 			o(isSameTypeRef(decrypted._type, MailTypeRef)).equals(true)
 			o(decrypted.receivedDate.getTime()).equals(1470039025474)
-			o(neverNull(decrypted.sentDate).getTime()).equals(1470039021474)
 			o(decrypted.confidential).equals(confidential)
 			o(decrypted.subject).equals(subject)
 			o(decrypted.replyType).equals("0")
@@ -355,8 +354,6 @@ o.spec("InstanceMapper", function () {
 			o(isSameTypeRef(decrypted.sender._type, MailAddressTypeRef)).equals(true)
 			o(decrypted.sender.name).equals(senderName)
 			o(decrypted.sender.address).equals("hello@tutao.de")
-			o(decrypted.toRecipients[0].name).equals(user.name)
-			o(decrypted.toRecipients[0].address).equals("support@yahoo.com")
 		})
 	})
 
@@ -367,14 +364,11 @@ o.spec("InstanceMapper", function () {
 		address.address = "Entenhausen"
 		address.customTypeName = "0"
 		let contact = createTestEntity(ContactTypeRef)
-		contact._area = "0"
-		contact._owner = "123"
 		contact.title = "Dr."
 		contact.firstName = "Max"
 		contact.lastName = "Meier"
 		contact.comment = "what?"
 		contact.company = "WIW"
-		contact.autoTransmitPassword = "stop bugging me!"
 		contact.addresses = [address]
 		const ContactTypeModel = await resolveTypeReference(ContactTypeRef)
 		const result: any = await instanceMapper.encryptAndMapToLiteral(ContactTypeModel, contact, sk)
@@ -389,7 +383,6 @@ o.spec("InstanceMapper", function () {
 		o(utf8Uint8ArrayToString(aesDecrypt(sk, base64ToUint8Array(result.lastName)))).equals(contact.lastName)
 		o(utf8Uint8ArrayToString(aesDecrypt(sk, base64ToUint8Array(result.comment)))).equals(contact.comment)
 		o(utf8Uint8ArrayToString(aesDecrypt(sk, base64ToUint8Array(result.company)))).equals(contact.company)
-		o(utf8Uint8ArrayToString(aesDecrypt(sk, base64ToUint8Array(result.autoTransmitPassword)))).equals(contact.autoTransmitPassword)
 	})
 
 	o("map unencrypted to instance", async function () {

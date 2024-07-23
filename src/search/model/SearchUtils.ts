@@ -72,7 +72,7 @@ export const SEARCH_MAIL_FIELDS: ReadonlyArray<SearchMailField> = [
 	{
 		textId: "mailBody_label",
 		field: "body",
-		attributeIds: [typeModels.Mail.associations["body"].id as number],
+		attributeIds: [typeModels.MailDetails.associations["body"].id as number],
 	},
 	{
 		textId: "from_label",
@@ -83,9 +83,9 @@ export const SEARCH_MAIL_FIELDS: ReadonlyArray<SearchMailField> = [
 		textId: "to_label",
 		field: "to",
 		attributeIds: [
-			typeModels.Mail.associations["toRecipients"].id as number,
-			typeModels.Mail.associations["ccRecipients"].id as number,
-			typeModels.Mail.associations["bccRecipients"].id as number,
+			typeModels.Recipients.associations["toRecipients"].id as number,
+			typeModels.Recipients.associations["ccRecipients"].id as number,
+			typeModels.Recipients.associations["bccRecipients"].id as number,
 		],
 	},
 	{
@@ -120,7 +120,7 @@ export function getSearchUrl(
 		query: query ?? "",
 		category,
 	}
-	// a bit annoying but avoids putting unnecessary things into the url (if we woudl put undefined into it)
+	// a bit annoying but avoids putting unnecessary things into the url (if we would put undefined into it)
 	if (restriction.start) {
 		params.start = restriction.start
 	}

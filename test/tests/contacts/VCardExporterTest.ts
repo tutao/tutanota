@@ -454,7 +454,6 @@ END:VCARD
 		let b = createTestEntity(ContactTypeRef)
 		let bday = createTestEntity(BirthdayTypeRef)
 		let contacts = [b]
-		b._owner = ""
 		b._ownerGroup = ""
 		b.addresses[0] = {
 			_type: ContactAddressTypeRef,

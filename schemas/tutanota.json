@@ -186,11 +186,6 @@
 				},
 				{
 					"name": "AddValue",
-					"sourceType": "MailBody",
-					"info": "AddValue MailBody/_ownerKeyVersion/1393."
-				},
-				{
-					"name": "AddValue",
 					"sourceType": "Contact",
 					"info": "AddValue Contact/_ownerKeyVersion/1394."
 				},
@@ -218,11 +213,6 @@
 					"name": "AddValue",
 					"sourceType": "MailFolder",
 					"info": "AddValue MailFolder/_ownerKeyVersion/1399."
-				},
-				{
-					"name": "AddValue",
-					"sourceType": "MailHeaders",
-					"info": "AddValue MailHeaders/_ownerKeyVersion/1400."
 				},
 				{
 					"name": "AddValue",
@@ -373,6 +363,91 @@
 					"name": "AddValue",
 					"sourceType": "SecureExternalRecipientKeyData",
 					"info": "AddValue SecureExternalRecipientKeyData/userGroupKeyVersion/1445."
+				}
+			]
+		},
+		{
+			"version": 73,
+			"changes": [
+				{
+					"name": "RemoveValue",
+					"sourceType": "Mail",
+					"info": "RemoveValue Mail/sentDate/106."
+				},
+				{
+					"name": "RemoveAssociation",
+					"sourceType": "Mail",
+					"info": "RemoveAssociation Mail/body."
+				},
+				{
+					"name": "RemoveAssociation",
+					"sourceType": "Mail",
+					"info": "RemoveAssociation Mail/toRecipients."
+				},
+				{
+					"name": "RemoveAssociation",
+					"sourceType": "Mail",
+					"info": "RemoveAssociation Mail/ccRecipients."
+				},
+				{
+					"name": "RemoveAssociation",
+					"sourceType": "Mail",
+					"info": "RemoveAssociation Mail/bccRecipients."
+				},
+				{
+					"name": "RemoveAssociation",
+					"sourceType": "Mail",
+					"info": "RemoveAssociation Mail/replyTos."
+				},
+				{
+					"name": "RemoveAssociation",
+					"sourceType": "Mail",
+					"info": "RemoveAssociation Mail/headers."
+				},
+				{
+					"name": "RemoveAssociation",
+					"sourceType": "MailBox",
+					"info": "RemoveAssociation MailBox/mails."
+				},
+				{
+					"name": "RemoveAssociation",
+					"sourceType": "MailFolder",
+					"info": "RemoveAssociation MailFolder/subFolders."
+				},
+				{
+					"name": "RemoveValue",
+					"sourceType": "SecureExternalRecipientKeyData",
+					"info": "RemoveValue SecureExternalRecipientKeyData/autoTransmitPassword/537."
+				},
+				{
+					"name": "RemoveAssociation",
+					"sourceType": "SecureExternalRecipientKeyData",
+					"info": "RemoveAssociation SecureExternalRecipientKeyData/passwordChannelPhoneNumbers."
+				},
+				{
+					"name": "RemoveValue",
+					"sourceType": "File",
+					"info": "RemoveValue File/_owner/19."
+				},
+				{
+					"name": "RemoveValue",
+					"sourceType": "File",
+					"info": "RemoveValue File/_area/20."
+				},
+				{
+					"name": "RemoveValue",
+					"sourceType": "Contact",
+					"info": "RemoveValue Contact/_owner/70."
+				},
+				{
+					"name": "RemoveValue",
+					"sourceType": "Contact",
+					"info": "RemoveValue Contact/_area/71."
+				},
+				{
+					"name": "RemoveValue",
+					"sourceType": "Contact",
+					"info": "RemoveValue Contact/autoTransmitPassword/78."
 				}
 			]
 		}

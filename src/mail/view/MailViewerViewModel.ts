@@ -5,6 +5,7 @@ import {
 	File as TutanotaFile,
 	Mail,
 	MailAddress,
+	MailDetails,
 	MailTypeRef,
 } from "../../api/entities/tutanota/TypeRefs.js"
 import {
@@ -43,6 +44,7 @@ import {
 	getDefaultSender,
 	getEnabledMailAddressesWithUser,
 	getFolderName,
+	getMailBodyText,
 	getMailboxName,
 	getPathToFolderString,
 	loadMailDetails,
@@ -66,7 +68,6 @@ import { showUserError } from "../../misc/ErrorHandlerImpl"
 import { LoadingStateTracker } from "../../offline/LoadingState"
 import { ProgrammingError } from "../../api/common/error/ProgrammingError"
 import { InitAsResponseArgs, SendMailModel } from "../editor/SendMailModel"
-import { isLegacyMail, MailWrapper } from "../../api/common/MailWrapper.js"
 import { EventController } from "../../api/main/EventController.js"
 import { WorkerFacade } from "../../api/worker/facades/WorkerFacade.js"
 import { SearchModel } from "../../search/model/SearchModel.js"
@@ -95,24 +96,22 @@ export const enum ContentBlockingStatus {
 }
 
 export class MailViewerViewModel {
-	private mailWrapper: MailWrapper | null = null
 	private contrastFixNeeded: boolean = false
-
 	// always sanitized in this.sanitizeMailBody
+
 	private sanitizeResult: SanitizedFragment | null = null
 	private loadingAttachments: boolean = false
-
 	private attachments: TutanotaFile[] = []
 
 	private contentBlockingStatus: ContentBlockingStatus | null = null
+
 	private errorOccurred: boolean = false
 	private loadedInlineImages: InlineImages | null = null
-
 	/** only loaded when showFolder is set to true */
 	private folderMailboxText: string | null
+
 	/** @see getRelevantRecipient */
 	private relevantRecipient: MailAddress | null = null
-
 	private warningDismissed: boolean = false
 
 	private calendarEventAttachment: {
@@ -125,8 +124,8 @@ export class MailViewerViewModel {
 	private renderIsDelayed: boolean = true
 
 	readonly loadCompleteNotification = stream<null>()
-	private renderedMail: Mail | null = null
 
+	private renderedMail: Mail | null = null
 	private loading: Promise<void> | null = null
 
 	private collapsed: boolean = true
@@ -134,6 +133,8 @@ export class MailViewerViewModel {
 	get mail(): Mail {
 		return this._mail
 	}
+
+	private mailDetails: MailDetails | null = null
 
 	constructor(
 		private _mail: Mail,
@@ -187,18 +188,17 @@ export class MailViewerViewModel {
 			return
 		}
 		const enabledMailAddresses = new Set(getEnabledMailAddressesWithUser(mailboxDetails, this.logins.getUserController().userGroupInfo))
-		const mailWrapper = this.mailWrapper
-		if (mailWrapper == null) {
-			// we could not load the mail body for some reason
+		if (this.mailDetails == null) {
+			// we could not load the mailDetails for some reason
 			return
 		}
 		this.relevantRecipient =
-			mailWrapper.getToRecipients().find((r) => enabledMailAddresses.has(r.address)) ??
-			mailWrapper.getCcRecipients().find((r) => enabledMailAddresses.has(r.address)) ??
-			mailWrapper.getBccRecipients().find((r) => enabledMailAddresses.has(r.address)) ??
-			first(mailWrapper.getToRecipients()) ??
-			first(mailWrapper.getCcRecipients()) ??
-			first(mailWrapper.getBccRecipients())
+			this.mailDetails.recipients.toRecipients.find((r) => enabledMailAddresses.has(r.address)) ??
+			this.mailDetails.recipients.ccRecipients.find((r) => enabledMailAddresses.has(r.address)) ??
+			this.mailDetails.recipients.bccRecipients.find((r) => enabledMailAddresses.has(r.address)) ??
+			first(this.mailDetails.recipients.toRecipients) ??
+			first(this.mailDetails.recipients.ccRecipients) ??
+			first(this.mailDetails.recipients.bccRecipients)
 		m.redraw()
 	}
 
@@ -343,8 +343,8 @@ export class MailViewerViewModel {
 	}
 
 	getMailBody(): string {
-		if (this.mailWrapper) {
-			return this.mailWrapper.getMailBodyText()
+		if (this.mailDetails) {
+			return getMailBodyText(this.mailDetails.body)
 		} else {
 			return ""
 		}
@@ -355,24 +355,24 @@ export class MailViewerViewModel {
 	}
 
 	getToRecipients(): Array<MailAddress> {
-		if (this.mailWrapper === null) {
+		if (this.mailDetails === null) {
 			return []
 		}
-		return this.mailWrapper.getToRecipients()
+		return this.mailDetails.recipients.toRecipients
 	}
 
 	getCcRecipients(): Array<MailAddress> {
-		if (this.mailWrapper === null) {
+		if (this.mailDetails === null) {
 			return []
 		}
-		return this.mailWrapper.getCcRecipients()
+		return this.mailDetails.recipients.ccRecipients
 	}
 
 	getBccRecipients(): Array<MailAddress> {
-		if (this.mailWrapper === null) {
+		if (this.mailDetails === null) {
 			return []
 		}
-		return this.mailWrapper.getBccRecipients()
+		return this.mailDetails.recipients.bccRecipients
 	}
 
 	/** Get the recipient which is relevant the most for the current mailboxes. */
@@ -381,18 +381,14 @@ export class MailViewerViewModel {
 	}
 
 	getNumberOfRecipients(): number {
-		if (isLegacyMail(this.mail)) {
-			return this.mail.toRecipients.length + this.mail.ccRecipients.length + this.mail.bccRecipients.length
-		} else {
-			return filterInt(this.mail.recipientCount)
-		}
+		return filterInt(this.mail.recipientCount)
 	}
 
 	getReplyTos(): Array<EncryptedMailAddress> {
-		if (this.mailWrapper === null) {
+		if (this.mailDetails === null) {
 			return []
 		}
-		return this.mailWrapper.getReplyTos()
+		return this.mailDetails.replyTos
 	}
 
 	getSender(): MailAddress {
@@ -419,14 +415,12 @@ export class MailViewerViewModel {
 	}
 
 	checkMailAuthenticationStatus(status: MailAuthenticationStatus): boolean {
-		// all legacy mail should have authStatus set, non-legacy mail can have it set to null. then the wrapper should have
-		// the value. if the wrapper is not loaded yet, this returns false.
 		if (this.mail.authStatus != null) {
 			return this.mail.authStatus === status
-		} else if (this.mailWrapper?.isLegacy() === false) {
-			return this.mailWrapper.getDetails().authStatus === status
+		} else if (this.mailDetails) {
+			return this.mailDetails.authStatus === status
 		} else {
-			// mailWrapper not loaded yet or it's a legacy mail without authStatus
+			// mailDetails not loaded yet
 			return false
 		}
 	}
@@ -437,13 +431,8 @@ export class MailViewerViewModel {
 
 	didErrorsOccur(): boolean {
 		let bodyErrors = false
-		if (this.mailWrapper) {
-			const mailWrapper = this.mailWrapper
-			if (mailWrapper.isLegacy()) {
-				bodyErrors = typeof mailWrapper.getBody()._errors !== "undefined"
-			} else {
-				bodyErrors = typeof downcast(mailWrapper.getDetails().body)._errors !== "undefined"
-			}
+		if (this.mailDetails) {
+			bodyErrors = typeof downcast(this.mailDetails.body)._errors !== "undefined"
 		}
 		return this.errorOccurred || typeof this.mail._errors !== "undefined" || bodyErrors
 	}
@@ -566,13 +555,9 @@ export class MailViewerViewModel {
 	}
 
 	async getHeaders(): Promise<string | null> {
-		// make sure that the wrapper is loaded
-		const wrapper = await this.loadMailWrapper()
-		return loadMailHeaders(this.entityClient, wrapper)
-	}
-
-	private loadMailWrapper() {
-		return loadMailDetails(this.mailFacade, this.entityClient, this.mail)
+		// make sure that the mailDetails are loaded
+		const mailDetails = await loadMailDetails(this.mailFacade, this.mail)
+		return loadMailHeaders(mailDetails)
 	}
 
 	isUnread(): boolean {
@@ -595,7 +580,7 @@ export class MailViewerViewModel {
 	}
 
 	isAnnouncement(): boolean {
-		const replyTos = this.mailWrapper?.getReplyTos()
+		const replyTos = this.mailDetails?.replyTos
 		return (
 			isSystemNotification(this.mail) &&
 			// hide the actions until mailDetails are loaded rather than showing them quickly and then hiding them
@@ -640,7 +625,7 @@ export class MailViewerViewModel {
 		}
 
 		try {
-			this.mailWrapper = await this.loadMailWrapper()
+			this.mailDetails = await loadMailDetails(this.mailFacade, this.mail)
 		} catch (e) {
 			if (e instanceof NotFoundError) {
 				console.log("could load mail body as it has been moved/deleted already", e)
@@ -773,10 +758,10 @@ export class MailViewerViewModel {
 			assertNonNull(mailboxDetails, "Mail list does not exist anymore")
 			const myMailAddresses = getEnabledMailAddressesWithUser(mailboxDetails, this.logins.getUserController().userGroupInfo)
 			const addressesInMail: MailAddress[] = []
-			const mailWrapper = await this.loadMailWrapper()
-			addressesInMail.push(...mailWrapper.getToRecipients())
-			addressesInMail.push(...mailWrapper.getCcRecipients())
-			addressesInMail.push(...mailWrapper.getBccRecipients())
+			const mailDetails = await loadMailDetails(this.mailFacade, this.mail)
+			addressesInMail.push(...mailDetails.recipients.toRecipients)
+			addressesInMail.push(...mailDetails.recipients.ccRecipients)
+			addressesInMail.push(...mailDetails.recipients.bccRecipients)
 
 			const mailAddressAndName = this.getDisplayedSender()
 			if (mailAddressAndName) {

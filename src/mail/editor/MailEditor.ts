@@ -42,7 +42,7 @@ import { UserError } from "../../api/main/UserError"
 import { showProgressDialog } from "../../gui/dialogs/ProgressDialog"
 import { htmlSanitizer } from "../../misc/HtmlSanitizer"
 import { DropDownSelector } from "../../gui/base/DropDownSelector.js"
-import { ContactTypeRef, createTranslationGetIn, File as TutanotaFile, MailboxProperties } from "../../api/entities/tutanota/TypeRefs.js"
+import { ContactTypeRef, createTranslationGetIn, Mail, File as TutanotaFile, MailboxProperties, MailDetails } from "../../api/entities/tutanota/TypeRefs.js"
 import type { InlineImages } from "../view/MailViewer"
 import { FileOpenError } from "../../api/common/error/FileOpenError"
 import type { lazy } from "@tutao/tutanota-utils"
@@ -76,7 +76,6 @@ import { BootIcons } from "../../gui/base/icons/BootIcons.js"
 import { ButtonSize } from "../../gui/base/ButtonSize.js"
 import { DialogInjectionRightAttrs } from "../../gui/base/DialogInjectionRight.js"
 import { KnowledgebaseDialogContentAttrs } from "../../knowledgebase/view/KnowledgeBaseDialogContent.js"
-import { isLegacyMail, MailWrapper } from "../../api/common/MailWrapper.js"
 import { RecipientsSearchModel } from "../../misc/RecipientsSearchModel.js"
 import { createDataFile, DataFile } from "../../api/common/DataFile.js"
 import { AttachmentBubble } from "../../gui/AttachmentBubble.js"
@@ -1027,11 +1026,9 @@ async function getExternalContentRulesForEditor(model: SendMailModel, currentSta
 		let isAuthenticatedMail
 		if (previousMail.authStatus !== null) {
 			isAuthenticatedMail = previousMail.authStatus === MailAuthenticationStatus.AUTHENTICATED
-		} else if (!isLegacyMail(previousMail)) {
+		} else {
 			const mailDetails = await locator.mailFacade.loadMailDetailsBlob(previousMail)
 			isAuthenticatedMail = mailDetails.authStatus === MailAuthenticationStatus.AUTHENTICATED
-		} else {
-			isAuthenticatedMail = false
 		}
 
 		if (externalImageRule === ExternalImageRule.Block || (externalImageRule === ExternalImageRule.None && model.isUserPreviousSender())) {
@@ -1072,15 +1069,16 @@ export async function newMailEditorAsResponse(
 }
 
 export async function newMailEditorFromDraft(
+	mail: Mail,
+	mailDetails: MailDetails,
 	attachments: TutanotaFile[],
-	mailWrapper: MailWrapper,
-	blockExternalContent: boolean,
 	inlineImages: InlineImages,
+	blockExternalContent: boolean,
 	mailboxDetails?: MailboxDetail,
 ): Promise<Dialog> {
 	const detailsProperties = await getMailboxDetailsAndProperties(mailboxDetails)
 	const model = await locator.sendMailModel(detailsProperties.mailboxDetails, detailsProperties.mailboxProperties)
-	await model.initWithDraft(attachments, mailWrapper, inlineImages)
+	await model.initWithDraft(mail, mailDetails, attachments, inlineImages)
 	const externalImageRules = await getExternalContentRulesForEditor(model, blockExternalContent)
 	return createMailEditorDialog(model, externalImageRules?.blockExternalContent, externalImageRules?.alwaysBlockExternalContent)
 }

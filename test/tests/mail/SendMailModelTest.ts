@@ -10,16 +10,7 @@ import {
 	ContactListTypeRef,
 	ContactTypeRef,
 	ConversationEntryTypeRef,
-	createBody,
 	createContact,
-	createConversationEntry,
-	createMail,
-	createMailAddress,
-	createMailBox,
-	createMailboxGroupRoot,
-	createMailboxProperties,
-	createMailDetails,
-	createTutanotaProperties,
 	CustomerAccountCreateDataTypeRef,
 	MailAddressTypeRef,
 	MailboxGroupRootTypeRef,
@@ -28,6 +19,7 @@ import {
 	MailDetailsTypeRef,
 	MailTypeRef,
 	NotificationMailTypeRef,
+	RecipientsTypeRef,
 	TutanotaPropertiesTypeRef,
 } from "../../../src/api/entities/tutanota/TypeRefs.js"
 import { ContactModel } from "../../../src/contacts/model/ContactModel.js"
@@ -36,11 +28,6 @@ import { downcast, isSameTypeRef } from "@tutao/tutanota-utils"
 import { SendMailModel, TOO_MANY_VISIBLE_RECIPIENTS } from "../../../src/mail/editor/SendMailModel.js"
 import {
 	ChallengeTypeRef,
-	createCustomer,
-	createGroup,
-	createGroupInfo,
-	createGroupMembership,
-	createUser,
 	CustomerTypeRef,
 	GroupInfoTypeRef,
 	GroupMembershipTypeRef,
@@ -60,9 +47,7 @@ import { func, instance, matchers, object, replace, when } from "testdouble"
 import { RecipientsModel, ResolveMode } from "../../../src/api/main/RecipientsModel"
 import { ResolvableRecipientMock } from "./ResolvableRecipientMock.js"
 import { NoZoneDateProvider } from "../../../src/api/common/utils/NoZoneDateProvider.js"
-import { MailWrapper } from "../../../src/api/common/MailWrapper.js"
 import { FolderSystem } from "../../../src/api/common/mail/FolderSystem.js"
-import { ConfigurationDatabase } from "../../../src/api/worker/facades/lazy/ConfigurationDatabase.js"
 import { createTestEntity } from "../TestUtils.js"
 
 const { anything, argThat } = matchers
@@ -271,32 +256,26 @@ o.spec("SendMailModel", function () {
 			o(initializedModel.hasMailChanged()).equals(false)("initialization should not flag mail changed")
 		})
 		o("initWithDraft with blank data", async function () {
-			const draftMail = createTestEntity(MailTypeRef, {
+			const draft = createTestEntity(MailTypeRef, {
 				confidential: false,
 				sender: createTestEntity(MailAddressTypeRef),
-				toRecipients: [],
-				ccRecipients: [],
-				bccRecipients: [],
 				subject: "",
-				replyTos: [],
 				conversationEntry: testIdGenerator.newIdTuple(),
 			})
-			const mailWrapper = MailWrapper.details(
-				draftMail,
-				createTestEntity(MailDetailsTypeRef, {
-					body: createTestEntity(BodyTypeRef, {
-						text: BODY_TEXT_1,
-					}),
+			const draftDetails = createTestEntity(MailDetailsTypeRef, {
+				recipients: createTestEntity(RecipientsTypeRef),
+				body: createTestEntity(BodyTypeRef, {
+					text: BODY_TEXT_1,
 				}),
-			)
-			when(entity.load(ConversationEntryTypeRef, draftMail.conversationEntry)).thenResolve(
+			})
+			when(entity.load(ConversationEntryTypeRef, draft.conversationEntry)).thenResolve(
 				createTestEntity(ConversationEntryTypeRef, { conversationType: ConversationType.REPLY }),
 			)
-			const initializedModel = await model.initWithDraft([], mailWrapper, new Map())
+			const initializedModel = await model.initWithDraft(draft, draftDetails, [], new Map())
 			o(initializedModel.getConversationType()).equals(ConversationType.REPLY)
-			o(initializedModel.getSubject()).equals(draftMail.subject)
+			o(initializedModel.getSubject()).equals(draft.subject)
 			o(initializedModel.getBody()).equals(BODY_TEXT_1)
-			o(initializedModel.getDraft()).equals(draftMail)
+			o(initializedModel.getDraft()).equals(draft)
 			o(initializedModel.allRecipients().length).equals(0)
 			o(initializedModel.getSender()).equals(DEFAULT_SENDER_FOR_TESTING)
 			o(model.isConfidential()).equals(true)
@@ -305,9 +284,13 @@ o.spec("SendMailModel", function () {
 			o(initializedModel.hasMailChanged()).equals(false)("initialization should not flag mail changed")
 		})
 		o("initWithDraft with some data", async function () {
-			const draftMail = createTestEntity(MailTypeRef, {
+			const draft = createTestEntity(MailTypeRef, {
 				confidential: true,
 				sender: createTestEntity(MailAddressTypeRef),
+				subject: SUBJECT_LINE_1,
+				conversationEntry: testIdGenerator.newIdTuple(),
+			})
+			const recipients = createTestEntity(RecipientsTypeRef, {
 				toRecipients: [
 					createTestEntity(MailAddressTypeRef, {
 						address: "",
@@ -321,25 +304,21 @@ o.spec("SendMailModel", function () {
 						address: EXTERNAL_ADDRESS_2,
 					}),
 				],
-				bccRecipients: [],
-				subject: SUBJECT_LINE_1,
-				replyTos: [],
-				conversationEntry: testIdGenerator.newIdTuple(),
 			})
-			const mailWrapper = MailWrapper.details(
-				draftMail,
-				createTestEntity(MailDetailsTypeRef, { body: createTestEntity(BodyTypeRef, { text: BODY_TEXT_1 }) }),
-			)
+			const draftDetails = createTestEntity(MailDetailsTypeRef, {
+				recipients,
+				body: createTestEntity(BodyTypeRef, { text: BODY_TEXT_1 }),
+			})
 
-			when(entity.load(ConversationEntryTypeRef, draftMail.conversationEntry)).thenResolve(
+			when(entity.load(ConversationEntryTypeRef, draft.conversationEntry)).thenResolve(
 				createTestEntity(ConversationEntryTypeRef, { conversationType: ConversationType.FORWARD }),
 			)
 
-			const initializedModel = await model.initWithDraft([], mailWrapper, new Map())
+			const initializedModel = await model.initWithDraft(draft, draftDetails, [], new Map())
 			o(initializedModel.getConversationType()).equals(ConversationType.FORWARD)
-			o(initializedModel.getSubject()).equals(draftMail.subject)
+			o(initializedModel.getSubject()).equals(draft.subject)
 			o(initializedModel.getBody()).equals(BODY_TEXT_1)
-			o(initializedModel.getDraft()).equals(draftMail)
+			o(initializedModel.getDraft()).equals(draft)
 			o(initializedModel.allRecipients().length).equals(2)("Only MailAddresses with a valid address will be accepted as recipients")
 			o(initializedModel.toRecipients().length).equals(1)
 			o(initializedModel.ccRecipients().length).equals(1)

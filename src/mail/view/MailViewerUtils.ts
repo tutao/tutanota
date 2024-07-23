@@ -108,10 +108,11 @@ export async function editDraft(viewModel: MailViewerViewModel): Promise<void> {
 					return
 				}
 				const editorDialog = await newMailEditorFromDraft(
+					viewModel.mail,
+					await loadMailDetails(locator.mailFacade, viewModel.mail),
 					viewModel.getAttachments(),
-					await loadMailDetails(locator.mailFacade, locator.entityClient, viewModel.mail),
-					viewModel.isBlockingExternalImages(),
 					viewModel.getLoadedInlineImages(),
+					viewModel.isBlockingExternalImages(),
 					mailboxDetails,
 				)
 				editorDialog.show()

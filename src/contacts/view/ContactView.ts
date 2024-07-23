@@ -1007,7 +1007,6 @@ export function contactFromStructuredContact(ownerGroupId: Id, contact: Structur
 				customTypeName: website.customTypeName,
 			}),
 		),
-		_owner: userId,
 		_ownerGroup: ownerGroupId,
 		nickname: contact.nickname,
 		firstName: contact.firstName,
@@ -1041,7 +1040,6 @@ export function contactFromStructuredContact(ownerGroupId: Id, contact: Structur
 		presharedPassword: null,
 		socialIds: [],
 		birthdayIso: validateBirthdayOfContact(contact),
-		autoTransmitPassword: "",
 		title: contact.title,
 		comment: contact.notes,
 	})

@@ -40,7 +40,6 @@ o.spec("MailUtilsTest", function () {
 				receivedDate: new Date(),
 				recipientCount: "",
 				replyType: "",
-				sentDate: null,
 				subject: "",
 				toRecipients: [],
 				unread: false,

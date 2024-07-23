@@ -340,6 +340,16 @@
 					"info": "AddAssociation AccountingInfo/appStoreSubscription/LIST_ELEMENT_ASSOCIATION/2424."
 				}
 			]
+		},
+		{
+			"version": 104,
+			"changes": [
+				{
+					"name": "RemoveAssociation",
+					"sourceType": "User",
+					"info": "RemoveAssociation User/phoneNumbers."
+				}
+			]
 		}
 	]
 }

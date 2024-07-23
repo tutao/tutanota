@@ -155,7 +155,6 @@ ADR;TYPE=HOME,PREF:;;Humboldstrasse 5;\\nBerlin;;12345;Deutschland`,
 		let a = ["N:Public\\\\;John\\;Quinlan;Lange;Mr.;Esq.\nBDAY:2016-09-09\nADR:Die Heide 81\\nBasche\nNOTE:Hello World\\nHier ist ein Umbruch"]
 		let contacts = vCardListToContacts(a, "")
 		let b = createTestEntity(ContactTypeRef)
-		b._owner = ""
 		b._ownerGroup = ""
 		b.addresses[0] = {
 			_type: ContactAddressTypeRef,
@@ -181,7 +180,6 @@ ADR;TYPE=HOME,PREF:;;Humboldstrasse 5;\\nBerlin;;12345;Deutschland`,
 		let a = ["N:Public\\\\;John\\;Quinlan;;Mr.;Esq.\nBDAY:2016-09-09\nADR:Die Heide 81;; ;;Basche"]
 		let contacts = vCardListToContacts(a, "")
 		let b = createTestEntity(ContactTypeRef)
-		b._owner = ""
 		b._ownerGroup = ""
 		b.addresses[0] = {
 			_type: ContactAddressTypeRef,
@@ -207,7 +205,6 @@ ADR;TYPE=HOME,PREF:;;Humboldstrasse 5;\\nBerlin;;12345;Deutschland`,
 		let a = ["N:Public\\\\; John\\; Quinlan;;Mr.    ;Esq.\nBDAY: 2016-09-09\nADR: Die Heide 81;;;; Basche"]
 		let contacts = vCardListToContacts(a, "")
 		let b = createTestEntity(ContactTypeRef)
-		b._owner = ""
 		b._ownerGroup = ""
 		b.addresses[0] = {
 			_type: ContactAddressTypeRef,
@@ -240,7 +237,6 @@ ADR;TYPE=HOME,PREF:;;Humboldstrasse 5;\\nBerlin;;12345;Deutschland`,
 		let a = ["EMAIL;TYPE=WORK:HOME@mvrht.net\nADR;TYPE=WORK:Street;HOME;;\nTEL;TYPE=WORK:HOME01923825434"]
 		let contacts = vCardListToContacts(a, "")
 		let b = createTestEntity(ContactTypeRef)
-		b._owner = ""
 		b._ownerGroup = ""
 		b.middleName = ""
 		b.department = ""

@@ -133,7 +133,6 @@ export class ContactImporter {
 	private contactFromStructuredContact(ownerGroupId: Id, contact: StructuredContact): Contact {
 		const userId = locator.logins.getUserController().userId
 		return createContact({
-			_owner: userId,
 			_ownerGroup: ownerGroupId,
 			nickname: contact.nickname,
 			firstName: contact.firstName,
@@ -166,7 +165,6 @@ export class ContactImporter {
 			presharedPassword: null,
 			socialIds: [],
 			birthdayIso: this.validateBirthdayOfContact(contact),
-			autoTransmitPassword: "",
 			pronouns: [],
 			customDate: contact.customDate.map((date) => createContactCustomDate(date)),
 			department: contact.department,
