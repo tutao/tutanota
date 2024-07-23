@@ -1,5 +1,5 @@
-import type { EncryptedMailAddress, Mail } from "../../api/entities/tutanota/TypeRefs.js"
-import { FileTypeRef, MailAddress } from "../../api/entities/tutanota/TypeRefs.js"
+import type { Mail } from "../../api/entities/tutanota/TypeRefs.js"
+import { FileTypeRef } from "../../api/entities/tutanota/TypeRefs.js"
 import type { EntityClient } from "../../api/common/EntityClient"
 import { MailState } from "../../api/common/TutanotaConstants"
 import { getLetId } from "../../api/common/utils/EntityUtils"
@@ -7,15 +7,15 @@ import type { HtmlSanitizer } from "../../misc/HtmlSanitizer"
 import { promiseMap } from "@tutao/tutanota-utils"
 import { DataFile } from "../../api/common/DataFile"
 import { FileController } from "../../file/FileController"
-import { loadMailDetails, loadMailHeaders } from "../model/MailUtils.js"
+import { getMailBodyText, loadMailDetails, loadMailHeaders } from "../model/MailUtils.js"
 import { MailFacade } from "../../api/worker/facades/lazy/MailFacade.js"
 import { getDisplayedSender, MailAddressAndName } from "../../api/common/mail/CommonMailUtils.js"
 import { CryptoFacade } from "../../api/worker/crypto/CryptoFacade.js"
 
 /**
  * Used to pass all downloaded mail stuff to the desktop side to be exported as a file
- * Ideally this would just be {Mail, MailHeaders, MailBody, FileReference[]}
- * but we can't send Dates over to the native side so we may as well just extract everything here
+ * Ideally this would just be {Mail, Headers, Body, FileReference[]}
+ * but we can't send Dates over to the native side, so we may as well just extract everything here
  */
 export type MailBundleRecipient = {
 	address: string
@@ -50,8 +50,8 @@ export async function makeMailBundle(
 	sanitizer: HtmlSanitizer,
 	cryptoFacade: CryptoFacade,
 ): Promise<MailBundle> {
-	const mailWrapper = await loadMailDetails(mailFacade, entityClient, mail)
-	const body = sanitizer.sanitizeHTML(mailWrapper.getMailBodyText(), {
+	const mailDetails = await loadMailDetails(mailFacade, mail)
+	const body = sanitizer.sanitizeHTML(getMailBodyText(mailDetails.body), {
 		blockExternalContent: false,
 		allowRelativeLinks: false,
 		usePlaceholderForInlineImages: false,
@@ -63,7 +63,7 @@ export async function makeMailBundle(
 		async (file) => await fileController.getAsDataFile(file),
 	)
 
-	const headers = await loadMailHeaders(entityClient, mailWrapper)
+	const headers = await loadMailHeaders(mailDetails)
 	const recipientMapper = ({ address, name }: MailAddressAndName) => ({ address, name })
 
 	return {
@@ -71,13 +71,13 @@ export async function makeMailBundle(
 		subject: mail.subject,
 		body,
 		sender: recipientMapper(getDisplayedSender(mail)),
-		to: mailWrapper.getToRecipients().map(recipientMapper),
-		cc: mailWrapper.getCcRecipients().map(recipientMapper),
-		bcc: mailWrapper.getBccRecipients().map(recipientMapper),
-		replyTo: mailWrapper.getReplyTos().map(recipientMapper),
+		to: mailDetails.recipients.toRecipients.map(recipientMapper),
+		cc: mailDetails.recipients.ccRecipients.map(recipientMapper),
+		bcc: mailDetails.recipients.bccRecipients.map(recipientMapper),
+		replyTo: mailDetails.replyTos.map(recipientMapper),
 		isDraft: mail.state === MailState.DRAFT,
 		isRead: !mail.unread,
-		sentOn: mailWrapper.getSentDate().getTime(),
+		sentOn: mailDetails.sentDate.getTime(),
 		receivedOn: mail.receivedDate.getTime(),
 		headers,
 		attachments,

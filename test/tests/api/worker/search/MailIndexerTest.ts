@@ -7,16 +7,20 @@ import { IndexerCore } from "../../../../../src/api/worker/search/IndexerCore.js
 import type { EntityUpdate } from "../../../../../src/api/entities/sys/TypeRefs.js"
 import { EntityUpdateTypeRef, GroupMembershipTypeRef, UserTypeRef } from "../../../../../src/api/entities/sys/TypeRefs.js"
 import { _getCurrentIndexTimestamp, INITIAL_MAIL_INDEX_INTERVAL_DAYS, MailIndexer } from "../../../../../src/api/worker/search/MailIndexer.js"
-import type { File as TutanotaFile, Mail, MailBox, MailDetailsBlob, MailFolder } from "../../../../../src/api/entities/tutanota/TypeRefs.js"
 import {
 	BodyTypeRef,
 	EncryptedMailAddressTypeRef,
+	File as TutanotaFile,
 	FileTypeRef,
+	Mail,
 	MailAddressTypeRef,
+	MailBox,
 	MailboxGroupRootTypeRef,
 	MailBoxTypeRef,
+	MailDetailsBlob,
 	MailDetailsBlobTypeRef,
 	MailDetailsTypeRef,
+	MailFolder,
 	MailFolderRefTypeRef,
 	MailFolderTypeRef,
 	MailTypeRef,
@@ -34,7 +38,6 @@ import { LocalTimeDateProvider } from "../../../../../src/api/worker/DateProvide
 import { aes256RandomKey, fixedIv } from "@tutao/tutanota-crypto"
 import { DefaultEntityRestCache } from "../../../../../src/api/worker/rest/DefaultEntityRestCache.js"
 import { resolveTypeReference } from "../../../../../src/api/common/EntityFunctions.js"
-import { MailWrapper } from "../../../../../src/api/common/MailWrapper.js"
 import { object, when } from "testdouble"
 import { InfoMessageHandler } from "../../../../../src/gui/InfoMessageHandler.js"
 import { ElementDataOS, GroupDataOS, Metadata as MetaData, MetaDataOS } from "../../../../../src/api/worker/search/IndexTables.js"
@@ -74,11 +77,10 @@ o.spec("MailIndexer test", () => {
 	})
 	o("createMailIndexEntries without entries", function () {
 		let mail = createTestEntity(MailTypeRef)
-		mail.mailDetails = ["details-list-id", "details-id"]
-		let details = MailWrapper.details(
-			mail,
-			createTestEntity(MailDetailsTypeRef, { body: createTestEntity(BodyTypeRef), recipients: createTestEntity(RecipientsTypeRef) }),
-		)
+		let mailDetails = createTestEntity(MailDetailsTypeRef, {
+			body: createTestEntity(BodyTypeRef),
+			recipients: createTestEntity(RecipientsTypeRef),
+		})
 		let files = [createTestEntity(FileTypeRef)]
 		let indexer = new MailIndexer(
 			new IndexerCore(dbMock, null as any, browserDataStub),
@@ -89,17 +91,16 @@ o.spec("MailIndexer test", () => {
 			dateProvider,
 			mailFacade,
 		)
-		let keyToIndexEntries = indexer.createMailIndexEntries(details, files)
+		let keyToIndexEntries = indexer.createMailIndexEntries(mail, mailDetails, files)
 		o(keyToIndexEntries.size).equals(0)
 	})
 	o("createMailIndexEntries with one entry", function () {
 		let mail = createTestEntity(MailTypeRef)
 		mail.subject = "Hello"
-		mail.mailDetails = ["details-list-id", "details-id"]
-		let details = MailWrapper.details(
-			mail,
-			createTestEntity(MailDetailsTypeRef, { body: createTestEntity(BodyTypeRef), recipients: createTestEntity(RecipientsTypeRef) }),
-		)
+		let mailDetails = createTestEntity(MailDetailsTypeRef, {
+			body: createTestEntity(BodyTypeRef),
+			recipients: createTestEntity(RecipientsTypeRef),
+		})
 		let files = [createTestEntity(FileTypeRef)]
 		let indexer = new MailIndexer(
 			new IndexerCore(dbMock, null as any, browserDataStub),
@@ -110,7 +111,7 @@ o.spec("MailIndexer test", () => {
 			dateProvider,
 			mailFacade,
 		)
-		let keyToIndexEntries = indexer.createMailIndexEntries(details, files)
+		let keyToIndexEntries = indexer.createMailIndexEntries(mail, mailDetails, files)
 		o(keyToIndexEntries.size).equals(1)
 	})
 	o("createMailIndexEntries", async function () {
@@ -148,17 +149,20 @@ o.spec("MailIndexer test", () => {
 		recipients.bccRecipients = bccRecipients
 		recipients.ccRecipients = ccRecipients
 		recipients.toRecipients = toRecipients
-		mail.replyTos = [replyTo] // not indexed
 
 		mail.sender = sender
 		mail.mailDetails = ["details-list-id", "details-id"]
-		let details = MailWrapper.details(mail, createTestEntity(MailDetailsTypeRef, { body: createTestEntity(BodyTypeRef), recipients }))
-		details.getDetails().body.text = "BT"
+		let mailDetails = createTestEntity(MailDetailsTypeRef, {
+			_id: "details-id",
+			body: createTestEntity(BodyTypeRef, { text: "BT" }),
+			recipients,
+			replyTos: [replyTo],
+		})
 		let files = [createTestEntity(FileTypeRef)]
 		files[0].mimeType = "binary" // not indexed
 
 		files[0].name = "FN"
-		indexer.createMailIndexEntries(details, files)
+		indexer.createMailIndexEntries(mail, mailDetails, files)
 		let args = core.createIndexEntriesForAttributes.args
 		o(args[0]).equals(mail)
 		let attributeHandlers = core.createIndexEntriesForAttributes.args[1]
@@ -169,6 +173,8 @@ o.spec("MailIndexer test", () => {
 			}
 		})
 		const MailModel = await resolveTypeReference(MailTypeRef)
+		const DetailsMailModel = await resolveTypeReference(MailDetailsTypeRef)
+		const RecipientModel = await resolveTypeReference(RecipientsTypeRef)
 		o(JSON.stringify(attributes)).equals(
 			JSON.stringify([
 				{
@@ -176,15 +182,15 @@ o.spec("MailIndexer test", () => {
 					value: "Su",
 				},
 				{
-					attribute: MailModel.associations["toRecipients"].id,
+					attribute: RecipientModel.associations["toRecipients"].id,
 					value: "tr0N <tr0A>,tr1N <tr1A>",
 				},
 				{
-					attribute: MailModel.associations["ccRecipients"].id,
+					attribute: RecipientModel.associations["ccRecipients"].id,
 					value: "ccr0N <ccr0A>,ccr1N <ccr1A>",
 				},
 				{
-					attribute: MailModel.associations["bccRecipients"].id,
+					attribute: RecipientModel.associations["bccRecipients"].id,
 					value: "bccr0N <bccr0A>,bccr1N <bccr1A>",
 				},
 				{
@@ -192,7 +198,7 @@ o.spec("MailIndexer test", () => {
 					value: "SN <SA>",
 				},
 				{
-					attribute: MailModel.associations["body"].id,
+					attribute: DetailsMailModel.associations["body"].id,
 					value: "BT",
 				},
 				{
@@ -218,9 +224,9 @@ o.spec("MailIndexer test", () => {
 		entityMock.addListInstances(mail, ...files)
 		entityMock.addBlobInstances(mailDetailsBlob)
 		let indexer = mock(new MailIndexer(null as any, dbMock, null as any, entityMock, entityCache, dateProvider, mailFacade), (mocked) => {
-			mocked.createMailIndexEntries = spy((detailsParam, filesParam) => {
-				o(detailsParam.getMail()).deepEquals(mail)
-				o(detailsParam.getDetails()).deepEquals(mailDetailsBlob.details)
+			mocked.createMailIndexEntries = spy((mailParam, detailsParam, filesParam) => {
+				o(mailParam).deepEquals(mail)
+				o(detailsParam).deepEquals(mailDetailsBlob.details)
 				o(filesParam).deepEquals(files)
 				return keyToIndexEntries
 			})
@@ -453,7 +459,6 @@ o.spec("MailIndexer test", () => {
 		const folder = createTestEntity(MailFolderTypeRef)
 		folder._id = [neverNull(mailbox.folders).folders, entityMock.getNextId()]
 		folder.mails = entityMock.getNextId()
-		folder.subFolders = entityMock.getNextId()
 		return folder
 	}
 

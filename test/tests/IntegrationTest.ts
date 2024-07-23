@@ -48,15 +48,12 @@ o.spec("integration test", function () {
 		address.address = "Entenhausen"
 		address.customTypeName = "0"
 		let contact = createTestEntity(ContactTypeRef)
-		contact._area = "0"
-		contact._owner = locator.user.getLoggedInUser()._id
 		contact._ownerGroup = locator.user.getGroupId(GroupType.Contact)
 		contact.title = "Dr."
 		contact.firstName = "Max"
 		contact.lastName = "Meier"
 		contact.comment = "what?"
 		contact.company = "WIW"
-		contact.autoTransmitPassword = "stop bugging me!"
 		contact.addresses = [address]
 		await locator.cachingEntityClient.setup(contactList.contacts, contact)
 		const contacts = await locator.cachingEntityClient.loadAll(ContactTypeRef, contactList.contacts)

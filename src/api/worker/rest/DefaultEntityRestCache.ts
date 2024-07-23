@@ -30,7 +30,6 @@ import { QueuedBatch } from "../EventQueue.js"
 import { ENTITY_EVENT_BATCH_EXPIRE_MS } from "../EventBusClient"
 import { CustomCacheHandlerMap } from "./CustomCacheHandler.js"
 import { containsEventOfType, EntityUpdateData, getEventOfType } from "../../common/utils/EntityUpdateUtils.js"
-import { isLegacyMail } from "../../common/MailWrapper.js"
 
 assertWorkerOrNode()
 
@@ -248,14 +247,6 @@ export class DefaultEntityRestCache implements EntityRestCache {
 			return entity
 		}
 
-		// we do NOT want to keep legacy mails (without mailDetails or without mailDetailsDraft) in the cache
-		// and therefore reload the already migrated mail from the server
-		if (isSameTypeRef(MailTypeRef, typeRef) && isLegacyMail(cachedEntity as Mail)) {
-			const entity = await this.entityRestClient.load(typeRef, id, queryParameters, extraHeaders, ownerKeyProvider)
-			await this.storage.put(entity)
-			return entity
-		}
-
 		return cachedEntity
 	}
 
@@ -349,13 +340,7 @@ export class DefaultEntityRestCache implements EntityRestCache {
 		for (let id of ids) {
 			const cachedEntity = await this.storage.get(typeRef, listId, id)
 			if (cachedEntity != null) {
-				if (isSameTypeRef(MailTypeRef, typeRef) && isLegacyMail(cachedEntity as Mail)) {
-					// we do NOT want to keep legacy mails (without mailDetails or without mailDetailsDraft) in the cache
-					// and therefore reload the already migrated mail from the server
-					idsToLoad.push(id)
-				} else {
-					entitiesInCache.push(cachedEntity)
-				}
+				entitiesInCache.push(cachedEntity)
 			} else {
 				idsToLoad.push(id)
 			}
@@ -398,34 +383,11 @@ export class DefaultEntityRestCache implements EntityRestCache {
 				await this.extendTowardsRange(typeRef, listId, start, count, reverse)
 			}
 
-			const cachedEntities = await this.storage.provideFromRange(typeRef, listId, start, count, reverse)
-			if (isSameTypeRef(MailTypeRef, typeRef)) {
-				return this.reloadLegacyMailsIfNeeded(cachedEntities)
-			} else {
-				return cachedEntities
-			}
+			return this.storage.provideFromRange(typeRef, listId, start, count, reverse)
 		} finally {
 			// We unlock access to the "ranges" db here. We lock it in order to prevent race conditions when accessing the "ranges" database.
 			await this.storage.unlockRangesDbAccess(listId)
 		}
-	}
-
-	/**
-	 * take a list of mail entities and replace the legacy mail it contains with freshly loaded
-	 * versions from the server, updating them in the storage.
-	 *
-	 */
-	private reloadLegacyMailsIfNeeded<T>(cachedEntities: T[]) {
-		return Promise.all(
-			cachedEntities.map(async (entity) => {
-				const mail = entity as Mail
-				if (isLegacyMail(mail)) {
-					return (await this.load(MailTypeRef, mail._id)) as T
-				} else {
-					return mail as T
-				}
-			}),
-		)
 	}
 
 	/**

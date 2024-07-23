@@ -70,9 +70,6 @@ import { AggregateEditorAttrs, ContactAggregateEditor } from "./ContactAggregate
 import { DefaultAnimationTime } from "../gui/animation/Animations"
 import { DialogHeaderBarAttrs } from "../gui/base/DialogHeaderBar"
 import { ProgrammingError } from "../api/common/error/ProgrammingError.js"
-import { ToggleButton } from "../gui/base/buttons/ToggleButton.js"
-import { Icons } from "../gui/base/icons/Icons.js"
-import { ButtonSize } from "../gui/base/ButtonSize.js"
 import { locator } from "../api/main/MainLocator.js"
 import { formatDate } from "../misc/Formatter.js"
 import { PasswordField } from "../misc/passwords/PasswordField.js"
@@ -137,7 +134,6 @@ export class ContactEditor {
 					comment: "",
 					birthdayIso: null,
 					addresses: [],
-					autoTransmitPassword: "",
 					oldBirthdayAggregate: null,
 					department: null,
 					middleName: null,
@@ -367,9 +363,6 @@ export class ContactEditor {
 	}
 
 	private async saveNewContact(): Promise<void> {
-		this.contact._area = "0" // legacy
-		this.contact.autoTransmitPassword = "" // legacy
-		this.contact._owner = locator.logins.getUserController().user._id
 		this.contact._ownerGroup = assertNotNull(
 			locator.logins.getUserController().user.memberships.find((m) => m.groupType === GroupType.Contact),
 			"did not find contact group membership",

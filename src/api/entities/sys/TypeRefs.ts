@@ -2154,18 +2154,6 @@ export type Permission = {
 	bucket:  null | Bucket;
 	group:  null | Id;
 }
-export const PhoneNumberTypeRef: TypeRef<PhoneNumber> = new TypeRef("sys", "PhoneNumber")
-
-export function createPhoneNumber(values: StrippedEntity<PhoneNumber>): PhoneNumber {
-	return Object.assign(create(typeModels.PhoneNumber, PhoneNumberTypeRef), values)
-}
-
-export type PhoneNumber = {
-	_type: TypeRef<PhoneNumber>;
-
-	_id: Id;
-	number: string;
-}
 export const PlanConfigurationTypeRef: TypeRef<PlanConfiguration> = new TypeRef("sys", "PlanConfiguration")
 
 export function createPlanConfiguration(values: StrippedEntity<PlanConfiguration>): PlanConfiguration {
@@ -3158,7 +3146,6 @@ export type User = {
 	externalAuthInfo:  null | UserExternalAuthInfo;
 	failedLogins: Id;
 	memberships: GroupMembership[];
-	phoneNumbers: PhoneNumber[];
 	pushIdentifierList:  null | PushIdentifierList;
 	secondFactorAuthentications: Id;
 	successfulLogins: Id;

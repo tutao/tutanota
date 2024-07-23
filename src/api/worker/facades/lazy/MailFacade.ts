@@ -127,12 +127,12 @@ import { createWriteCounterData } from "../../../entities/monitor/TypeRefs.js"
 import { UserFacade } from "../UserFacade.js"
 import { PartialRecipient, Recipient, RecipientList, RecipientType } from "../../../common/recipients/Recipient.js"
 import { NativeFileApp } from "../../../../native/common/FileApp.js"
-import { isDetailsDraft, isLegacyMail } from "../../../common/MailWrapper.js"
 import { LoginFacade } from "../LoginFacade.js"
 import { ProgrammingError } from "../../../common/error/ProgrammingError.js"
 import { OwnerEncSessionKeyProvider } from "../../rest/EntityRestClient.js"
 import { resolveTypeReference } from "../../../common/EntityFunctions.js"
 import { KeyLoaderFacade } from "../KeyLoaderFacade.js"
+import { isDraft } from "../../../../mail/model/MailUtils.js"
 
 assertWorkerOrNode()
 type Attachments = ReadonlyArray<TutanotaFile | DataFile | FileReference>
@@ -550,22 +550,18 @@ export class MailFacade {
 	}
 
 	async getReplyTos(draft: Mail): Promise<EncryptedMailAddress[]> {
-		if (isLegacyMail(draft)) {
-			return draft.replyTos
-		} else {
-			const ownerEncSessionKeyProvider: OwnerEncSessionKeyProvider = this.keyProviderFromInstance(draft)
-			const mailDetailsDraftId = assertNotNull(draft.mailDetailsDraft, "draft without mailDetailsDraft")
-			const mailDetails = await this.entityClient.loadMultiple(
-				MailDetailsDraftTypeRef,
-				listIdPart(mailDetailsDraftId),
-				[elementIdPart(mailDetailsDraftId)],
-				ownerEncSessionKeyProvider,
-			)
-			if (mailDetails.length === 0) {
-				throw new NotFoundError(`MailDetailsDraft ${draft.mailDetailsDraft}`)
-			}
-			return mailDetails[0].details.replyTos
+		const ownerEncSessionKeyProvider: OwnerEncSessionKeyProvider = this.keyProviderFromInstance(draft)
+		const mailDetailsDraftId = assertNotNull(draft.mailDetailsDraft, "draft without mailDetailsDraft")
+		const mailDetails = await this.entityClient.loadMultiple(
+			MailDetailsDraftTypeRef,
+			listIdPart(mailDetailsDraftId),
+			[elementIdPart(mailDetailsDraftId)],
+			ownerEncSessionKeyProvider,
+		)
+		if (mailDetails.length === 0) {
+			throw new NotFoundError(`MailDetailsDraft ${draft.mailDetailsDraft}`)
 		}
+		return mailDetails[0].details.replyTos
 	}
 
 	async checkMailForPhishing(
@@ -581,11 +577,9 @@ export class MailFacade {
 		let senderAuthenticated
 		if (mail.authStatus !== null) {
 			senderAuthenticated = mail.authStatus === MailAuthenticationStatus.AUTHENTICATED
-		} else if (!isLegacyMail(mail)) {
+		} else {
 			const mailDetails = await this.loadMailDetailsBlob(mail)
 			senderAuthenticated = mailDetails.authStatus === MailAuthenticationStatus.AUTHENTICATED
-		} else {
-			senderAuthenticated = false
 		}
 
 		if (senderAuthenticated) {
@@ -702,8 +696,6 @@ export class MailFacade {
 					salt: salt,
 					saltHash: sha256Hash(salt),
 					pwEncCommunicationKey: encryptKey(passwordKey, externalGroupKeys.currentExternalUserGroupKey.object),
-					autoTransmitPassword: null,
-					passwordChannelPhoneNumbers: [],
 					userGroupKeyVersion: String(externalGroupKeys.currentExternalUserGroupKey.version),
 				})
 				sendDraftData.secureExternalRecipientKeyData.push(data)
@@ -747,7 +739,7 @@ export class MailFacade {
 	}
 
 	private getContactPassword(contact: Contact | null): string | null {
-		return contact?.presharedPassword ?? contact?.autoTransmitPassword ?? null
+		return contact?.presharedPassword ?? null
 	}
 
 	/**
@@ -980,7 +972,7 @@ export class MailFacade {
 	 * @param mail in case it is a mailDetailsBlob
 	 */
 	async loadMailDetailsBlob(mail: Mail): Promise<MailDetails> {
-		if (isLegacyMail(mail) || isDetailsDraft(mail)) {
+		if (isDraft(mail)) {
 			throw new ProgrammingError("not supported, must be mail details blob")
 		} else {
 			const mailDetailsBlobId = assertNotNull(mail.mailDetails)
@@ -1009,7 +1001,7 @@ export class MailFacade {
 	 * @param mail in case it is a mailDetailsDraft
 	 */
 	async loadMailDetailsDraft(mail: Mail): Promise<MailDetails> {
-		if (isLegacyMail(mail) || !isDetailsDraft(mail)) {
+		if (!isDraft(mail)) {
 			throw new ProgrammingError("not supported, must be mail details draft")
 		} else {
 			const detailsDraftId = assertNotNull(mail.mailDetailsDraft)

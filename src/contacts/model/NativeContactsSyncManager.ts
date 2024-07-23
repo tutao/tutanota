@@ -268,8 +268,6 @@ export class NativeContactsSyncManager {
 			_ownerGroup: getFirstOrThrow(
 				this.loginController.getUserController().user.memberships.filter((membership) => membership.groupType === GroupType.Contact),
 			).group,
-			_owner: this.loginController.getUserController().user._id,
-			autoTransmitPassword: "",
 			oldBirthdayDate: null,
 			presharedPassword: null,
 			oldBirthdayAggregate: null,

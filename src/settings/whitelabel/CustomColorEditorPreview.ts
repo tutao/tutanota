@@ -79,14 +79,10 @@ export class CustomColorEditorPreview implements Component {
 			attachments: [],
 			state: "2",
 			mailDetails: null,
-			body: null,
 			authStatus: null,
 			encryptionAuthStatus: null,
 			method: "0",
-			bccRecipients: [],
 			bucketKey: null,
-			ccRecipients: [],
-			headers: null,
 			conversationEntry: ["listId", "conversationId"],
 			differentEnvelopeSender: null,
 			firstRecipient: null,
@@ -95,9 +91,6 @@ export class CustomColorEditorPreview implements Component {
 			movedTime: null,
 			phishingStatus: "0",
 			recipientCount: "0",
-			replyTos: [],
-			sentDate: null,
-			toRecipients: [],
 		} satisfies Partial<Mail>
 		const mail = createMail({
 			sender: createMailAddress({

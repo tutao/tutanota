@@ -1,9 +1,7 @@
 import { FULL_INDEXED_TIMESTAMP, MailFolderType, MailState, NOTHING_INDEXED_TIMESTAMP, OperationType } from "../../common/TutanotaConstants"
-import type { File as TutanotaFile, Mail, MailBox, MailFolder } from "../../entities/tutanota/TypeRefs.js"
+import type { File as TutanotaFile, Mail, MailBox, MailDetails, MailFolder } from "../../entities/tutanota/TypeRefs.js"
 import {
-	File,
 	FileTypeRef,
-	MailBodyTypeRef,
 	MailboxGroupRootTypeRef,
 	MailBoxTypeRef,
 	MailDetailsBlobTypeRef,
@@ -28,7 +26,6 @@ import { EntityRestClient, OwnerEncSessionKeyProvider } from "../rest/EntityRest
 import { EntityClient } from "../../common/EntityClient"
 import { ProgressMonitor } from "../../common/utils/ProgressMonitor"
 import type { SomeEntity } from "../../common/EntityTypes"
-import { isDetailsDraft, isLegacyMail, MailWrapper } from "../../common/MailWrapper.js"
 import { EphemeralCacheStorage } from "../rest/EphemeralCacheStorage"
 import { InfoMessageHandler } from "../../../gui/InfoMessageHandler.js"
 import { ElementDataOS, GroupDataOS, Metadata, MetaDataOS } from "./IndexTables.js"
@@ -37,6 +34,7 @@ import { getDisplayedSender, MailAddressAndName } from "../../common/mail/Common
 import { containsEventOfType, EntityUpdateData } from "../../common/utils/EntityUpdateUtils.js"
 import { b64UserIdHash } from "./DbFacade.js"
 import { hasError } from "../../common/utils/ErrorUtils.js"
+import { getMailBodyText, isDraft } from "../../../mail/model/MailUtils.js"
 
 export const INITIAL_MAIL_INDEX_INTERVAL_DAYS = 28
 const ENTITY_INDEXER_CHUNK = 20
@@ -86,9 +84,8 @@ export class MailIndexer {
 		this.isUsingOfflineCache = isUsing
 	}
 
-	createMailIndexEntries(mailWrapper: MailWrapper, files: File[]): Map<string, SearchIndexEntry[]> {
+	createMailIndexEntries(mail: Mail, mailDetails: MailDetails, files: TutanotaFile[]): Map<string, SearchIndexEntry[]> {
 		let startTimeIndex = getPerformanceTimestamp()
-		const mail = mailWrapper.getMail()
 
 		// avoid caching system@tutanota.de since the user wouldn't be searching for this
 		let senderToIndex: MailAddressAndName
@@ -97,43 +94,33 @@ export class MailIndexer {
 		if (hasSender) senderToIndex = getDisplayedSender(mail)
 
 		const MailModel = typeModels.Mail
+		const MailDetailsModel = typeModels.MailDetails
+		const RecipientModel = typeModels.Recipients
 		let keyToIndexEntries = this._core.createIndexEntriesForAttributes(mail, [
 			{
 				attribute: MailModel.values["subject"],
 				value: () => mail.subject,
 			},
 			{
-				attribute: MailModel.associations["toRecipients"],
-				value: () =>
-					mailWrapper
-						.getToRecipients()
-						.map((r) => r.name + " <" + r.address + ">")
-						.join(","),
+				attribute: RecipientModel.associations["toRecipients"],
+				value: () => mailDetails.recipients.toRecipients.map((r) => r.name + " <" + r.address + ">").join(","),
 			},
 			{
-				attribute: MailModel.associations["ccRecipients"],
-				value: () =>
-					mailWrapper
-						.getCcRecipients()
-						.map((r) => r.name + " <" + r.address + ">")
-						.join(","),
+				attribute: RecipientModel.associations["ccRecipients"],
+				value: () => mailDetails.recipients.ccRecipients.map((r) => r.name + " <" + r.address + ">").join(","),
 			},
 			{
-				attribute: MailModel.associations["bccRecipients"],
-				value: () =>
-					mailWrapper
-						.getBccRecipients()
-						.map((r) => r.name + " <" + r.address + ">")
-						.join(","),
+				attribute: RecipientModel.associations["bccRecipients"],
+				value: () => mailDetails.recipients.bccRecipients.map((r) => r.name + " <" + r.address + ">").join(","),
 			},
 			{
 				attribute: MailModel.associations["sender"],
 				value: () => (hasSender ? senderToIndex.name + " <" + senderToIndex.address + ">" : ""),
 			},
 			{
-				attribute: MailModel.associations["body"],
+				attribute: MailDetailsModel.associations["body"],
 				// Sometimes we encounter inconsistencies such as when deleted emails appear again
-				value: () => htmlToText(mailWrapper.getMailBodyText()),
+				value: () => htmlToText(getMailBodyText(mailDetails.body)),
 			},
 			{
 				attribute: MailModel.associations["attachments"],
@@ -156,14 +143,12 @@ export class MailIndexer {
 		return this._defaultCachingEntity
 			.load(MailTypeRef, [event.instanceListId, event.instanceId])
 			.then(async (mail) => {
-				let mailWrapper: MailWrapper
-				if (isLegacyMail(mail)) {
-					mailWrapper = await this._defaultCachingEntity.load(MailBodyTypeRef, neverNull(mail.body)).then((b) => MailWrapper.body(mail, b))
-				} else if (isDetailsDraft(mail)) {
+				let mailDetails: MailDetails
+				if (isDraft(mail)) {
 					// Will be always there, if it was not updated yet, it will still be set by CryptoFacade
 					const mailOwnerEncSessionKey = assertNotNull(mail._ownerEncSessionKey)
 					const mailDetailsDraftId = assertNotNull(mail.mailDetailsDraft)
-					mailWrapper = await this._defaultCachingEntity
+					mailDetails = await this._defaultCachingEntity
 						.loadMultiple(MailDetailsDraftTypeRef, listIdPart(mailDetailsDraftId), [elementIdPart(mailDetailsDraftId)], async () => ({
 							key: mailOwnerEncSessionKey,
 							encryptingKeyVersion: Number(mail._ownerKeyVersion ?? 0),
@@ -173,13 +158,13 @@ export class MailIndexer {
 							if (draft == null) {
 								throw new NotFoundError(`MailDetailsDraft ${mailDetailsDraftId}`)
 							}
-							return MailWrapper.details(mail, draft.details)
+							return draft.details
 						})
 				} else {
 					// Will be always there, if it was not updated yet it will still be set by CryptoFacade
 					const mailOwnerEncSessionKey = assertNotNull(mail._ownerEncSessionKey)
 					const mailDetailsBlobId = neverNull(mail.mailDetails)
-					mailWrapper = await this._defaultCachingEntity
+					mailDetails = await this._defaultCachingEntity
 						.loadMultiple(MailDetailsBlobTypeRef, listIdPart(mailDetailsBlobId), [elementIdPart(mailDetailsBlobId)], async () => ({
 							key: mailOwnerEncSessionKey,
 							encryptingKeyVersion: Number(mail._ownerKeyVersion ?? 0),
@@ -189,11 +174,11 @@ export class MailIndexer {
 							if (blob == null) {
 								throw new NotFoundError(`MailDetailsBlob ${mailDetailsBlobId}`)
 							}
-							return MailWrapper.details(mail, blob.details)
+							return blob.details
 						})
 				}
 				const files = await this.mailFacade.loadAttachments(mail)
-				let keyToIndexEntries = this.createMailIndexEntries(mailWrapper, files)
+				let keyToIndexEntries = this.createMailIndexEntries(mail, mailDetails, files)
 				return {
 					mail,
 					keyToIndexEntries,
@@ -530,24 +515,24 @@ export class MailIndexer {
 
 	async _processIndexMails(mails: Array<Mail>, indexUpdate: IndexUpdate, indexLoader: IndexLoader): Promise<number> {
 		if (this._indexingCancelled) throw new CancelledError("cancelled indexing in processing index mails")
-		const detailsList = await indexLoader.loadMailDetails(mails)
-		const files = await indexLoader.loadAttachments(detailsList)
-		const mailWithBodyAndFiles = detailsList
-			.map((mailWrapper) => {
-				const mail = mailWrapper.getMail()
+		let mailsWithoutErros = mails.filter((m) => !hasError(m))
+		const mailsWithMailDetails = await indexLoader.loadMailDetails(mailsWithoutErros)
+		const files = await indexLoader.loadAttachments(mailsWithoutErros)
+		const mailsWithMailDetailsAndFiles = mailsWithMailDetails
+			.map((mailTuples) => {
 				return {
-					mail: mail,
-					mailWrapper: mailWrapper,
-					files: files.filter((file) => mail.attachments.find((a) => isSameId(a, file._id))),
+					mail: mailTuples.mail,
+					mailDetails: mailTuples.mailDetails,
+					files: files.filter((file) => mailTuples.mail.attachments.find((a) => isSameId(a, file._id))),
 				}
 			})
 			.filter(isNotNull)
-		for (const element of mailWithBodyAndFiles) {
-			let keyToIndexEntries = this.createMailIndexEntries(element.mailWrapper, element.files)
+		for (const element of mailsWithMailDetailsAndFiles) {
+			let keyToIndexEntries = this.createMailIndexEntries(element.mail, element.mailDetails, element.files)
 
 			this._core.encryptSearchIndexEntries(element.mail._id, neverNull(element.mail._ownerGroup), keyToIndexEntries, indexUpdate)
 		}
-		return mailWithBodyAndFiles.length
+		return mailsWithMailDetailsAndFiles.length
 	}
 
 	_writeIndexUpdate(
@@ -699,6 +684,11 @@ type MboxIndexData = {
 	ownerGroup: Id
 }
 
+type MailWithMailDetails = {
+	mail: Mail
+	mailDetails: MailDetails
+}
+
 class IndexLoader {
 	private readonly entityCache: DefaultEntityRestCache
 	// modified in tests
@@ -739,20 +729,10 @@ class IndexLoader {
 		}
 	}
 
-	async loadMailDetails(mails: Mail[]): Promise<MailWrapper[]> {
-		const result: Array<MailWrapper> = []
-		let mailsWithoutErros = mails.filter((m) => !hasError(m))
-		//legacy mails
-		const legacyMails = mailsWithoutErros.filter((m) => isLegacyMail(m))
-		const bodyIds = legacyMails.map((m) => assertNotNull(m.body))
-		result.push(
-			...(await this.loadInChunks(MailBodyTypeRef, null, bodyIds)).map((body) => {
-				const mail = assertNotNull(legacyMails.find((m) => m.body === body._id))
-				return MailWrapper.body(mail, body)
-			}),
-		)
+	async loadMailDetails(mails: Mail[]): Promise<MailWithMailDetails[]> {
+		const result: Array<MailWithMailDetails> = []
 		// mailDetails stored as blob
-		let mailDetailsBlobMails = mailsWithoutErros.filter((m) => !isLegacyMail(m) && !isDetailsDraft(m))
+		let mailDetailsBlobMails = mails.filter((m) => !isDraft(m))
 		const listIdToMailDetailsBlobIds: Map<Id, Array<Id>> = groupByAndMap(
 			mailDetailsBlobMails,
 			(m) => assertNotNull(m.mailDetails)[0],
@@ -770,12 +750,12 @@ class IndexLoader {
 			result.push(
 				...mailDetailsBlobs.map((mailDetailsBlob) => {
 					const mail = assertNotNull(mailDetailsBlobMails.find((m) => isSameId(m.mailDetails, mailDetailsBlob._id)))
-					return MailWrapper.details(mail, mailDetailsBlob.details)
+					return { mail, mailDetails: mailDetailsBlob.details }
 				}),
 			)
 		}
 		// mailDetails stored in db (draft)
-		let mailDetailsDraftMails = mailsWithoutErros.filter((m) => isDetailsDraft(m))
+		let mailDetailsDraftMails = mails.filter((m) => isDraft(m))
 		const listIdToMailDetailsDraftIds: Map<Id, Array<Id>> = groupByAndMap(
 			mailDetailsDraftMails,
 			(m) => assertNotNull(m.mailDetailsDraft)[0],
@@ -793,17 +773,17 @@ class IndexLoader {
 			result.push(
 				...mailDetailsDrafts.map((draftDetails) => {
 					const mail = assertNotNull(mailDetailsDraftMails.find((m) => isSameId(m.mailDetailsDraft, draftDetails._id)))
-					return MailWrapper.details(mail, draftDetails.details)
+					return { mail, mailDetails: draftDetails.details }
 				}),
 			)
 		}
 		return result
 	}
 
-	loadAttachments(detailsList: MailWrapper[]): Promise<TutanotaFile[]> {
+	async loadAttachments(mails: Mail[]): Promise<TutanotaFile[]> {
 		const attachmentIds: IdTuple[] = []
-		for (const d of detailsList) {
-			attachmentIds.push(...d.getAttachmentIds())
+		for (const mail of mails) {
+			attachmentIds.push(...mail.attachments)
 		}
 		const filesByList = groupBy(attachmentIds, (a) => a[0])
 		const fileLoadingPromises: Array<Promise<Array<TutanotaFile>>> = []
@@ -817,17 +797,18 @@ class IndexLoader {
 			)
 		}
 		// if (this._indexingCancelled) throw new CancelledError("cancelled indexing in loading attachments")
-		return Promise.all(fileLoadingPromises).then((filesResults: TutanotaFile[][]) => filesResults.flat())
+		const filesResults = await Promise.all(fileLoadingPromises)
+		return filesResults.flat()
 	}
 
-	private loadInChunks<T extends SomeEntity>(
+	private async loadInChunks<T extends SomeEntity>(
 		typeRef: TypeRef<T>,
 		listId: Id | null,
 		ids: Id[],
 		ownerEncSessionKeyProvider?: OwnerEncSessionKeyProvider,
 	): Promise<T[]> {
 		const byChunk = splitInChunks(ENTITY_INDEXER_CHUNK, ids)
-		return promiseMap(
+		const entityResults = await promiseMap(
 			byChunk,
 			(chunk) => {
 				return chunk.length > 0 ? this._entity.loadMultiple(typeRef, listId, chunk, ownerEncSessionKeyProvider) : Promise.resolve([])
@@ -835,6 +816,7 @@ class IndexLoader {
 			{
 				concurrency: 2,
 			},
-		).then((entityResults) => entityResults.flat())
+		)
+		return entityResults.flat()
 	}
 }

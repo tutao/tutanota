@@ -367,9 +367,6 @@ export function vCardListToContacts(vCardList: string[], ownerGroupId: Id): Cont
 			}
 		}
 		contacts[i] = createContact({
-			_area: "0", // legacy
-			_owner: ownerGroupId, // legacy
-			autoTransmitPassword: "",
 			_ownerGroup: ownerGroupId,
 			lastName,
 			firstName,
