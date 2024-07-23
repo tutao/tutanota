@@ -52,7 +52,8 @@ export function show(props: TutanotaProperties) {
 
 							selectedType = type
 							editor.setValue(getSignature(type, defaultSignature, currentCustomSignature))
-							editor.setEnabled(type === EmailSignatureType.EMAIL_SIGNATURE_TYPE_CUSTOM)
+							editor.setEnabled(type !== EmailSignatureType.EMAIL_SIGNATURE_TYPE_NONE)
+							editor.setReadOnly(type !== EmailSignatureType.EMAIL_SIGNATURE_TYPE_CUSTOM)
 						},
 					}),
 					m(editor),
