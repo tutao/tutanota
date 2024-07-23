@@ -43,7 +43,6 @@ mod user_facade;
 mod rest_error;
 mod crypto;
 mod util;
-mod owner_enc_session_keys_update_queue;
 mod entities;
 mod instance_mapper;
 mod typed_entity_client;
@@ -187,6 +186,7 @@ impl Sdk {
     }
 }
 
+#[allow(dead_code)]
 #[derive(uniffi::Object)]
 pub struct LoggedInSdk {
     user_facade: Arc<UserFacade>,
