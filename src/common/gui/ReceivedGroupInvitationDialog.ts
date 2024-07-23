@@ -6,7 +6,7 @@ import { lang } from "../misc/LanguageViewModel.js"
 import { TextField } from "./base/TextField.js"
 import stream from "mithril/stream"
 import Stream from "mithril/stream"
-import { deepEqual, downcast } from "@tutao/tutanota-utils"
+import { downcast } from "@tutao/tutanota-utils"
 import { Dialog } from "./base/Dialog.js"
 import { createDefaultAlarmInfo, ReceivedGroupInvitation } from "../api/entities/sys/TypeRefs.js"
 import { isSameId } from "../api/common/utils/EntityUtils.js"
@@ -20,7 +20,6 @@ import { ColorPicker } from "./base/ColorPicker.js"
 import { locator } from "../api/main/CommonLocator.js"
 import { LoginButton } from "./base/buttons/LoginButton.js"
 import { getMailAddressDisplayText } from "../mailFunctionality/CommonMailUtils.js"
-import { RemindersEditor } from "../../calendar-app/calendar/gui/RemindersEditor.js"
 import { AlarmInterval, serializeAlarmInterval } from "../calendar/date/CalendarUtils.js"
 
 export function showGroupInvitationDialog(invitation: ReceivedGroupInvitation) {
@@ -149,20 +148,6 @@ function renderCalendarGroupInvitationFields(
 		m(ColorPicker, {
 			value: selectedColourValue(),
 			onValueChange: selectedColourValue,
-		}),
-		m(RemindersEditor, {
-			alarms: alarmsStream(),
-			addAlarm: (alarm: AlarmInterval) => {
-				alarmsStream([...alarms, alarm])
-			},
-			removeAlarm: (alarm: AlarmInterval) => {
-				const index = alarms.findIndex((a: AlarmInterval) => deepEqual(a, alarm))
-				if (index !== -1) {
-					alarms?.splice(index, 1)
-					alarmsStream(alarms)
-				}
-			},
-			label: "calendarDefaultReminder_label",
 		}),
 	]
 }

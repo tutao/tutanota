@@ -638,12 +638,13 @@ export class CalendarView extends BaseTopLevelView implements TopLevelView<Calen
 
 			viewModel.setHiddenCalendars(newHiddenCalendars)
 		}
+
 		const calendarInfos = this.viewModel.calendarInfos
-		return Array.from(calendarInfos.values())
-			.filter((calendarInfo) => calendarInfo.shared === shared)
-			.map((calendarInfo) => {
-				return this.renderCalendarItem(calendarInfo, shared, setHidden)
-			})
+		const calendarInfosList = Array.from(calendarInfos.values())
+		const filtered = calendarInfosList.filter((calendarInfo) => calendarInfo.userIsOwner === !shared)
+		return filtered.map((calendarInfo) => {
+			return this.renderCalendarItem(calendarInfo, calendarInfo.shared, setHidden)
+		})
 	}
 
 	private renderCalendarItem(calendarInfo: CalendarInfo, shared: boolean, setHidden: (viewModel: CalendarViewModel, groupRootId: string) => void) {
@@ -747,7 +748,7 @@ export class CalendarView extends BaseTopLevelView implements TopLevelView<Calen
 								},
 						  }
 						: null,
-					!sharedCalendar
+					calendarInfo.userIsOwner
 						? {
 								label: "delete_action",
 								icon: Icons.Trash,

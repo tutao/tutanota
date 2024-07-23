@@ -544,20 +544,24 @@ o.spec("CalendarEventWhoModel", function () {
 	})
 	o.spec("calendar selection", function () {
 		o.spec("getAvailableCalendars", function () {
-			o("it returns the shared calendars we have write access to when there are no attendees", function () {
+			o("it returns the owned calendars and shared calendars we have write access to when there are no attendees", function () {
 				userController.user = createTestEntity(UserTypeRef, { _id: "ownerId" })
 				// add it as a writable calendar so that we see that it's filtered out
 				addCapability(userController.user, "sharedCalendar", ShareCapability.Write)
 				const model = getNewModel({})
-				o(model.getAvailableCalendars()).deepEquals([calendars.get("ownCalendar")!, calendars.get("sharedCalendar")!])
+				o(model.getAvailableCalendars()).deepEquals([
+					calendars.get("ownCalendar")!,
+					calendars.get("ownSharedCalendar")!,
+					calendars.get("sharedCalendar")!,
+				])
 			})
 
 			o("it returns only the calendars we have write access to", function () {
 				userController.user = createTestEntity(UserTypeRef, { _id: "ownerId" })
-				// add it as a writable calendar so that we see that it's filtered out
+				// add it as a read only calendar so that we see that it's filtered out
 				addCapability(userController.user, "sharedCalendar", ShareCapability.Read)
 				const model = getNewModel({})
-				o(model.getAvailableCalendars()).deepEquals([calendars.get("ownCalendar")!])
+				o(model.getAvailableCalendars()).deepEquals([calendars.get("ownCalendar")!, calendars.get("ownSharedCalendar")!])
 			})
 
 			o("it returns only own calendars after adding attendees to an existing event", function () {
@@ -566,7 +570,7 @@ o.spec("CalendarEventWhoModel", function () {
 				addCapability(userController.user, "sharedCalendar", ShareCapability.Write)
 				const model = getOldModel({})
 				model.addAttendee(otherAddress.address)
-				o(model.getAvailableCalendars()).deepEquals([calendars.get("ownCalendar")!])
+				o(model.getAvailableCalendars()).deepEquals([calendars.get("ownCalendar")!, calendars.get("ownSharedCalendar")!])
 			})
 
 			o("it returns only own calendars for existing own event with attendees ", function () {
@@ -576,10 +580,10 @@ o.spec("CalendarEventWhoModel", function () {
 				const model = getOldModel({
 					attendees: [createTestEntity(CalendarEventAttendeeTypeRef, { address: otherAddress, status: CalendarAttendeeStatus.NEEDS_ACTION })],
 				})
-				o(model.getAvailableCalendars()).deepEquals([calendars.get("ownCalendar")!])
+				o(model.getAvailableCalendars()).deepEquals([calendars.get("ownCalendar")!, calendars.get("ownSharedCalendar")!])
 			})
 
-			o("it returns only own calendars for invite", function () {
+			o("it returns only own private calendars for invite", function () {
 				userController.user = createTestEntity(UserTypeRef, { _id: "ownerId" })
 				// add it as a writable calendar so that we see that it's filtered out
 				addCapability(userController.user, "sharedCalendar", ShareCapability.Write)

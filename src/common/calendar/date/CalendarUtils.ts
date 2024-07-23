@@ -799,9 +799,9 @@ export function incrementSequence(sequence: string): string {
 	return String(current + 1)
 }
 
-export function findPrivateCalendar(calendarInfo: ReadonlyMap<Id, CalendarInfo>): CalendarInfo | null {
+export function findFirstPrivateCalendar(calendarInfo: ReadonlyMap<Id, CalendarInfo>): CalendarInfo | null {
 	for (const calendar of calendarInfo.values()) {
-		if (!calendar.shared) {
+		if (calendar.userIsOwner) {
 			return calendar
 		}
 	}
