@@ -40,11 +40,6 @@ public:
      */
     jbyteArray getByteArray() const noexcept;
 
-    /**
-     * @return new IPC data wrapper
-     */
-    jobject createDataWrapper() const noexcept;
-
     ~ByteArrayAccessor() noexcept;
 
 private:
