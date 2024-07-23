@@ -46,7 +46,7 @@ import {
 import { IServiceExecutor } from "../../../common/api/common/ServiceRequest"
 import { MembershipService } from "../../../common/api/entities/sys/Services"
 import { FileController } from "../../../common/file/FileController"
-import { findAttendeeInAddresses } from "../../../common/api/common/utils/CommonCalendarUtils.js"
+import { findAttendeeInAddresses, serializeAlarmInterval } from "../../../common/api/common/utils/CommonCalendarUtils.js"
 import { TutanotaError } from "@tutao/tutanota-error"
 import { SessionKeyNotFoundError } from "../../../common/api/common/error/SessionKeyNotFoundError.js"
 import Stream from "mithril/stream"
@@ -54,7 +54,8 @@ import { ObservableLazyLoaded } from "../../../common/api/common/utils/Observabl
 import { UserController } from "../../../common/api/main/UserController.js"
 import { formatDateWithWeekdayAndTime, formatTime } from "../../../common/misc/Formatter.js"
 import { EntityUpdateData, isUpdateFor, isUpdateForTypeRef } from "../../../common/api/common/utils/EntityUpdateUtils.js"
-import { AlarmInterval, parseAlarmInterval, serializeAlarmInterval } from "../../../common/calendar/date/CalendarUtils.js"
+import { AlarmInterval } from "../../../common/calendar/date/CalendarUtils.js"
+import { isSharedGroupOwner, loadGroupMembers } from "../../../common/sharing/GroupUtils.js"
 
 const TAG = "[CalendarModel]"
 export type CalendarInfo = {
@@ -62,6 +63,7 @@ export type CalendarInfo = {
 	groupInfo: GroupInfo
 	group: Group
 	shared: boolean
+	userIsOwner: boolean
 }
 
 export class CalendarModel {
@@ -154,12 +156,11 @@ export class CalendarModel {
 
 	/** Load map from group/groupRoot ID to the calendar info */
 	private async loadCalendarInfos(progressMonitor: IProgressMonitor): Promise<ReadonlyMap<Id, CalendarInfo>> {
-		const { user, userSettingsGroupRoot } = this.logins.getUserController()
+		const userController = this.logins.getUserController()
 
-		const calendarMemberships = user.memberships.filter((m) => m.groupType === GroupType.Calendar)
 		const notFoundMemberships: GroupMembership[] = []
 		const groupInstances: Array<[CalendarGroupRoot, GroupInfo, Group]> = []
-		for (const membership of calendarMemberships) {
+		for (const membership of userController.getCalendarMemberships()) {
 			try {
 				const result = await Promise.all([
 					this.entityClient.load(CalendarGroupRootTypeRef, membership.group),
@@ -179,27 +180,31 @@ export class CalendarModel {
 
 		const calendarInfos: Map<Id, CalendarInfo> = new Map()
 		for (const [groupRoot, groupInfo, group] of groupInstances) {
+			const groupMembers = await loadGroupMembers(group, this.entityClient)
+			const shared = groupMembers.length > 1
+
 			calendarInfos.set(groupRoot._id, {
 				groupRoot,
 				groupInfo,
 				group: group,
-				shared: !isSameId(group.user, user._id),
+				shared,
+				userIsOwner: !shared || isSharedGroupOwner(group, userController.userId),
 			})
 		}
 
 		// cleanup inconsistent memberships
-		for (const mship of notFoundMemberships) {
+		for (const membership of notFoundMemberships) {
 			// noinspection ES6MissingAwait
-			this.serviceExecutor.delete(MembershipService, createMembershipRemoveData({ user: user._id, group: mship.group }))
+			this.serviceExecutor.delete(MembershipService, createMembershipRemoveData({ user: userController.userId, group: membership.group }))
 		}
 		return calendarInfos
 	}
 
 	private async loadOrCreateCalendarInfo(progressMonitor: IProgressMonitor): Promise<ReadonlyMap<Id, CalendarInfo>> {
-		const { findPrivateCalendar } = await import("../../../common/calendar/date/CalendarUtils.js")
+		const { findFirstPrivateCalendar } = await import("../../../common/calendar/date/CalendarUtils.js")
 		const calendarInfos = await this.loadCalendarInfos(progressMonitor)
 
-		if (!this.logins.isInternalUserLoggedIn() || findPrivateCalendar(calendarInfos)) {
+		if (!this.logins.isInternalUserLoggedIn() || findFirstPrivateCalendar(calendarInfos)) {
 			return calendarInfos
 		} else {
 			await this.createCalendar("", null, [])
