@@ -5,6 +5,9 @@ import android.net.Uri
 import androidx.annotation.Keep
 import androidx.annotation.VisibleForTesting
 import de.tutao.tutanota.ipc.*
+import de.tutao.tutasdk.KyberException
+import de.tutao.tutasdk.kyberDecapsulateWithPrivKey
+import de.tutao.tutasdk.kyberEncapsulateWithPubKey
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.withContext
 import org.apache.commons.io.IOUtils
@@ -127,29 +130,32 @@ class AndroidNativeCryptoFacade(
 		}
 	}
 
-	@Throws(CryptoError::class)
 	override suspend fun generateKyberKeypair(seed: DataWrapper): KyberKeyPair {
-		return generateKyberKeypairImpl(seed.data)
+		val (publicKey, privateKey) = de.tutao.tutasdk.generateKyberKeypair()
+		return KyberKeyPair(KyberPublicKey(publicKey.wrap()), KyberPrivateKey(privateKey.wrap()))
 	}
 
-	@Throws(CryptoError::class)
-	private external fun generateKyberKeypairImpl(seed: ByteArray): KyberKeyPair
 
 	@Throws(CryptoError::class)
 	override suspend fun kyberEncapsulate(publicKey: KyberPublicKey, seed: DataWrapper): KyberEncapsulation {
-		return this.kyberEncapsulateImpl(publicKey.raw.data, seed.data)
-	}
+		val sdkEncapsulation = try {
+			kyberEncapsulateWithPubKey(publicKey.raw.data)
+		} catch (e: KyberException) {
+			throw CryptoError(e)
+		}
 
-	@Throws(CryptoError::class)
-	private external fun kyberEncapsulateImpl(publicKey: ByteArray, seed: ByteArray): KyberEncapsulation
+		return KyberEncapsulation(sdkEncapsulation.ciphertext.wrap(), sdkEncapsulation.sharedSecret.wrap())
+	}
 
 	@Throws(CryptoError::class)
 	override suspend fun kyberDecapsulate(privateKey: KyberPrivateKey, ciphertext: DataWrapper): DataWrapper {
-		return DataWrapper(this.kyberDecapsulateImpl(ciphertext.data, privateKey.raw.data))
-	}
+		return try {
+			kyberDecapsulateWithPrivKey(privateKey.raw.data, ciphertext.data).wrap()
+		} catch (e: KyberException) {
+			throw CryptoError(e)
+		}
 
-	@Throws(CryptoError::class)
-	private external fun kyberDecapsulateImpl(ciphertext: ByteArray, privateKey: ByteArray): ByteArray
+	}
 
 	@Throws(CryptoError::class)
 	override suspend fun argon2idHashRaw(
@@ -297,20 +303,20 @@ class AndroidNativeCryptoFacade(
 			}
 			val params = IvParameterSpec(iv)
 			val subKeys = getSubKeys(bytesToKey(key), useMac)
-				cipher.init(Cipher.ENCRYPT_MODE, subKeys.cKey, params)
-				encrypted = CipherInputStream(input, cipher)
-				val tempOut = ByteArrayOutputStream()
-				tempOut.write(iv)
-				IOUtils.copy(encrypted, tempOut)
-				if (useMac) {
-					val data = tempOut.toByteArray()
-					out.write(byteArrayOf(1))
-					out.write(data)
-					val macBytes = hmac256(subKeys.mKey!!, data)
-					out.write(macBytes)
-				} else {
-					out.write(tempOut.toByteArray())
-				}
+			cipher.init(Cipher.ENCRYPT_MODE, subKeys.cKey, params)
+			encrypted = CipherInputStream(input, cipher)
+			val tempOut = ByteArrayOutputStream()
+			tempOut.write(iv)
+			IOUtils.copy(encrypted, tempOut)
+			if (useMac) {
+				val data = tempOut.toByteArray()
+				out.write(byteArrayOf(1))
+				out.write(data)
+				val macBytes = hmac256(subKeys.mKey!!, data)
+				out.write(macBytes)
+			} else {
+				out.write(tempOut.toByteArray())
+			}
 		} catch (e: InvalidKeyException) {
 			throw CryptoError(e)
 		} finally {
@@ -463,17 +469,17 @@ class AndroidNativeCryptoFacade(
 			if (hasMac) {
 				val subKeys = getSubKeys(bytesToKey(key), hasMac)
 				cKey = subKeys.cKey.encoded
-					val tempOut = ByteArrayOutputStream()
-					IOUtils.copyLarge(inputWithoutMac, tempOut)
-					val cipherText = tempOut.toByteArray()
-					val cipherTextWithoutMac = cipherText.copyOfRange(1, cipherText.size - 32)
-					val providedMacBytes = cipherText.copyOfRange(cipherText.size - 32, cipherText.size)
-					val computedMacBytes = hmac256(subKeys.mKey!!, cipherTextWithoutMac)
-					if (!Arrays.equals(computedMacBytes, providedMacBytes)) {
-						throw CryptoError("invalid mac")
-					}
-					inputWithoutMac = ByteArrayInputStream(cipherTextWithoutMac)
+				val tempOut = ByteArrayOutputStream()
+				IOUtils.copyLarge(inputWithoutMac, tempOut)
+				val cipherText = tempOut.toByteArray()
+				val cipherTextWithoutMac = cipherText.copyOfRange(1, cipherText.size - 32)
+				val providedMacBytes = cipherText.copyOfRange(cipherText.size - 32, cipherText.size)
+				val computedMacBytes = hmac256(subKeys.mKey!!, cipherTextWithoutMac)
+				if (!Arrays.equals(computedMacBytes, providedMacBytes)) {
+					throw CryptoError("invalid mac")
 				}
+				inputWithoutMac = ByteArrayInputStream(cipherTextWithoutMac)
+			}
 			val iv = ByteArray(AES_BLOCK_SIZE_BYTES)
 			IOUtils.read(inputWithoutMac, iv)
 			val aesMode = if (padding) {
