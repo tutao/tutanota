@@ -32,17 +32,16 @@ import { matchers, object, reset, verify, when } from "testdouble"
 import { KeyLoaderFacade } from "../../../../../src/common/api/worker/facades/KeyLoaderFacade.js"
 import { stringToCustomId } from "../../../../../src/common/api/common/utils/EntityUtils.js"
 import { VersionedKey } from "../../../../../src/common/api/worker/crypto/CryptoFacade.js"
-import { assertNotNull, freshVersioned, lazyAsync, lazyMemoized } from "@tutao/tutanota-utils"
+import { assertNotNull, freshVersioned } from "@tutao/tutanota-utils"
 import { KeyCache } from "../../../../../src/common/api/worker/facades/KeyCache.js"
 import { assertThrows } from "@tutao/tutanota-test-utils"
 import { CacheManagementFacade } from "../../../../../src/common/api/worker/facades/lazy/CacheManagementFacade.js"
-import { DefaultEntityRestCache } from "../../../../../src/common/api/worker/rest/DefaultEntityRestCache.js"
 
 o.spec("KeyLoaderFacadeTest", function () {
 	let keyCache: KeyCache
 	let userFacade: UserFacade
 	let entityClient: EntityClient
-	let nonCachingEntityClient: EntityClient
+	let cacheManagementFacade: CacheManagementFacade
 	let pqFacade: PQFacade
 	let keyLoaderFacade: KeyLoaderFacade
 
@@ -58,18 +57,14 @@ o.spec("KeyLoaderFacadeTest", function () {
 	const FORMER_KEYS = 2
 	let currentKeyPair: PQKeyPairs
 	let membership: GroupMembership
-	let cacheFacade: lazyAsync<CacheManagementFacade>
-	let entityRestCache: DefaultEntityRestCache
 
 	o.beforeEach(async () => {
 		keyCache = new KeyCache()
 		userFacade = object()
 		entityClient = object()
-		nonCachingEntityClient = object()
-		entityRestCache = object()
-		cacheFacade = lazyMemoized(async () => new CacheManagementFacade(userFacade, nonCachingEntityClient, entityRestCache))
+		cacheManagementFacade = object()
 		pqFacade = new PQFacade(new WASMKyberFacade(await loadLibOQSWASM()))
-		keyLoaderFacade = new KeyLoaderFacade(keyCache, userFacade, entityClient, cacheFacade)
+		keyLoaderFacade = new KeyLoaderFacade(keyCache, userFacade, entityClient, async () => cacheManagementFacade)
 
 		formerKeys = []
 		formerKeyPairsDecrypted = []
@@ -162,12 +157,31 @@ o.spec("KeyLoaderFacadeTest", function () {
 	})
 
 	o.spec("loadKeyPair", function () {
+		o("loads current key.", async function (): Promise<void> {
+			for (let i = 0; i < FORMER_KEYS; i++) {
+				const keypair = (await keyLoaderFacade.loadKeypair(group._id, currentGroupKeyVersion)) as PQKeyPairs
+				o(keypair).deepEquals(currentKeyPair)
+			}
+			verify(cacheManagementFacade.refreshKeyCache(matchers.anything()), { times: 0 })
+		})
+
 		o("loads former key.", async function (): Promise<void> {
 			for (let i = 0; i < FORMER_KEYS; i++) {
 				const keypair = (await keyLoaderFacade.loadKeypair(group._id, i)) as PQKeyPairs
 				o(keypair).deepEquals(formerKeyPairsDecrypted[i])
 			}
-			verify(nonCachingEntityClient.load(matchers.anything(), matchers.anything()), { times: 0 })
+			verify(cacheManagementFacade.refreshKeyCache(matchers.anything()), { times: 0 })
+		})
+
+		o("load key pair when group is updated in cache but key cache still has the old sym key", async function () {
+			const requestedVersion = currentGroupKeyVersion - 1
+			when(entityClient.load(GroupKeyTypeRef, [assertNotNull(group.formerGroupKeys).list, stringToCustomId(String(requestedVersion))])).thenResolve(
+				formerKeys[requestedVersion],
+			)
+			await keyCache.getCurrentGroupKey(group._id, () => Promise.resolve({ version: requestedVersion, object: formerKeysDecrypted[requestedVersion] }))
+			const keypair = (await keyLoaderFacade.loadKeypair(group._id, requestedVersion)) as PQKeyPairs
+			o(keypair).deepEquals(formerKeyPairsDecrypted[requestedVersion])
+			verify(cacheManagementFacade.refreshKeyCache(matchers.anything()), { times: 0 })
 		})
 	})
 
@@ -185,12 +199,122 @@ o.spec("KeyLoaderFacadeTest", function () {
 				const loadedGroupKey = await keyLoaderFacade.loadSymGroupKey(group._id, i)
 				o(loadedGroupKey).deepEquals(formerKeysDecrypted[i])
 			}
-			verify(nonCachingEntityClient.load(matchers.anything(), matchers.anything()), { times: 0 })
+			verify(cacheManagementFacade.refreshKeyCache(matchers.anything()), { times: 0 })
 		})
 
 		o("loads and decrypts the current key", async function () {
 			const loadedGroupKey = await keyLoaderFacade.loadSymGroupKey(group._id, currentGroupKeyVersion)
 			o(loadedGroupKey).deepEquals(currentGroupKey.object)
+		})
+
+		o("outdated currentGroupKey throws", async function () {
+			const outdatedCurrentGroupKeyVersion = currentGroupKeyVersion - 1
+			await assertThrows(Error, () =>
+				keyLoaderFacade.loadSymGroupKey(group._id, currentGroupKeyVersion, {
+					object: formerKeysDecrypted[outdatedCurrentGroupKeyVersion],
+					version: outdatedCurrentGroupKeyVersion,
+				}),
+			)
+			verify(cacheManagementFacade.refreshKeyCache(matchers.anything()), { times: 0 })
+		})
+	})
+
+	o.spec("loadSymUserGroupKey", function () {
+		o("key cache is outdated and refreshes", async function () {
+			const requestedGroupKeyVersion = Number(userGroup.groupKeyVersion) + 1
+			const refreshedUserGroupKey = { version: requestedGroupKeyVersion, object: aes256RandomKey() }
+			when(cacheManagementFacade.refreshKeyCache(userGroup._id)).thenDo(() => {
+				// cached key version is less than the requested one, but we can refresh successfully
+				when(userFacade.getCurrentUserGroupKey()).thenReturn(refreshedUserGroupKey)
+				return { user: object(), group }
+			})
+
+			const loadedUserGroupKey = await keyLoaderFacade.loadSymUserGroupKey(requestedGroupKeyVersion)
+
+			o(loadedUserGroupKey).deepEquals(refreshedUserGroupKey.object)
+			verify(cacheManagementFacade.refreshKeyCache(matchers.anything()), { times: 1 })
+		})
+	})
+
+	o.spec("retries recursively", function () {
+		let outOfDateMembership: GroupMembership
+
+		o.beforeEach(function () {
+			outOfDateMembership = createTestEntity(GroupMembershipTypeRef, {
+				group: group._id,
+				symKeyVersion: String(userGroupKey.version),
+				symEncGKey: encryptKey(userGroupKey.object, formerKeysDecrypted[currentGroupKeyVersion - 1]),
+				groupKeyVersion: String(currentGroupKeyVersion - 1),
+			})
+		})
+
+		o.spec("updates the user if out-of-date", function () {
+			let user: User
+			o.beforeEach(function () {
+				when(userFacade.getMembership(group._id)).thenReturn(outOfDateMembership)
+				const userGroupMembership = createTestEntity(GroupMembershipTypeRef)
+				user = createTestEntity(UserTypeRef, {
+					_id: "userId",
+					memberships: [membership],
+					userGroup: userGroupMembership,
+				})
+				when(cacheManagementFacade.refreshKeyCache(group._id)).thenDo(async () => {
+					when(userFacade.getMembership(group._id)).thenReturn(membership)
+					await keyCache.removeOutdatedGroupKeys(user)
+					return { user, group }
+				})
+				keyCache.setCurrentUserGroupKey(userGroupKey)
+			})
+
+			o("loadSymGroupKey", async function () {
+				const loadedKey = await keyLoaderFacade.loadSymGroupKey(group._id, currentGroupKeyVersion)
+
+				o(loadedKey).deepEquals(currentGroupKey.object)
+				verify(cacheManagementFacade.refreshKeyCache(group._id), { times: 1 })
+			})
+
+			o("loadCurrentKeyPair", async function () {
+				const loadedKeyPair = await keyLoaderFacade.loadCurrentKeyPair(group._id)
+
+				o(loadedKeyPair.object).deepEquals(currentKeyPair)
+				verify(cacheManagementFacade.refreshKeyCache(group._id), { times: 1 })
+			})
+
+			o("loadKeyPair", async function () {
+				const loadedKeyPair = await keyLoaderFacade.loadKeypair(group._id, Number(membership.groupKeyVersion))
+
+				o(loadedKeyPair).deepEquals(currentKeyPair)
+				verify(cacheManagementFacade.refreshKeyCache(group._id), { times: 1 })
+			})
+		})
+
+		o.spec("does not recurse infinitely", function () {
+			let user: User
+			o.beforeEach(function () {
+				when(userFacade.getMembership(group._id)).thenReturn(outOfDateMembership)
+				user = createTestEntity(UserTypeRef, {
+					_id: "userId",
+					memberships: [outOfDateMembership],
+				})
+			})
+
+			o("loadSymGroupKey", async function () {
+				await assertThrows(Error, () => keyLoaderFacade.loadSymGroupKey(group._id, currentGroupKeyVersion))
+
+				verify(cacheManagementFacade.refreshKeyCache(matchers.anything()), { times: 1 })
+			})
+
+			o("loadCurrentKeyPair", async function () {
+				await assertThrows(Error, () => keyLoaderFacade.loadCurrentKeyPair(group._id))
+
+				verify(cacheManagementFacade.refreshKeyCache(matchers.anything()), { times: 1 })
+			})
+
+			o("loadKeyPair", async function () {
+				await assertThrows(Error, () => keyLoaderFacade.loadKeypair(group._id, Number(membership.groupKeyVersion)))
+
+				verify(cacheManagementFacade.refreshKeyCache(group._id), { times: 1 })
+			})
 		})
 	})
 })
