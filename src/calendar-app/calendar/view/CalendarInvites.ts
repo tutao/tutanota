@@ -3,7 +3,7 @@ import type { CalendarEvent, CalendarEventAttendee, File as TutanotaFile, Mail, 
 import { locator } from "../../../common/api/main/CommonLocator.js"
 import { CalendarAttendeeStatus, CalendarMethod, ConversationType, FeatureType, getAsEnumValue } from "../../../common/api/common/TutanotaConstants.js"
 import { assert, assertNotNull, clone, filterInt, noOp, Require } from "@tutao/tutanota-utils"
-import { findPrivateCalendar } from "../../../common/calendar/date/CalendarUtils.js"
+import { findFirstPrivateCalendar } from "../../../common/calendar/date/CalendarUtils.js"
 import { CalendarNotificationSender } from "./CalendarNotificationSender.js"
 import { Dialog } from "../../../common/gui/base/Dialog.js"
 import { UserError } from "../../../common/api/main/UserError.js"
@@ -183,7 +183,7 @@ export class CalendarInviteHandler {
 			// since there is no write permission. (Same issue can happen with locked, no write permission)
 			return ReplyResult.ReplySent
 		}
-		const calendar = findPrivateCalendar(calendars)
+		const calendar = findFirstPrivateCalendar(calendars)
 		if (calendar == null) return ReplyResult.ReplyNotSent
 		if (decision !== CalendarAttendeeStatus.DECLINED && eventClone.uid != null) {
 			const dbEvents = await this.calendarModel.getEventsByUid(eventClone.uid)

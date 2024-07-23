@@ -2,6 +2,7 @@ import { DAY_IN_MILLIS } from "@tutao/tutanota-utils"
 import type { CalendarEvent } from "../../entities/tutanota/TypeRefs.js"
 import { EncryptedMailAddress } from "../../entities/tutanota/TypeRefs.js"
 import { stringToCustomId } from "./EntityUtils"
+import type { AlarmInterval } from "../../../calendar/date/CalendarUtils.js"
 
 export type CalendarEventTimes = Pick<CalendarEvent, "startTime" | "endTime">
 
@@ -153,4 +154,11 @@ export function getEventWithDefaultTimes(startDate: Date = getNextHalfHour()): C
 		startTime: new Date(startDate),
 		endTime: new Date(endDate.setMinutes(endDate.getMinutes() + 30)),
 	}
+}
+
+/**
+ * Converts runtime representation of an alarm into a db one.
+ */
+export function serializeAlarmInterval(interval: AlarmInterval): string {
+	return `${interval.value}${interval.unit}`
 }

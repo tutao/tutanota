@@ -4,7 +4,6 @@ import {
 	downcast,
 	filterInt,
 	findAllAndRemove,
-	findAndRemove,
 	getFirstOrThrow,
 	getFromMap,
 	getStartOfDay,
@@ -799,9 +798,9 @@ export function incrementSequence(sequence: string): string {
 	return String(current + 1)
 }
 
-export function findPrivateCalendar(calendarInfo: ReadonlyMap<Id, CalendarInfo>): CalendarInfo | null {
+export function findFirstPrivateCalendar(calendarInfo: ReadonlyMap<Id, CalendarInfo>): CalendarInfo | null {
 	for (const calendar of calendarInfo.values()) {
-		if (!calendar.shared) {
+		if (calendar.userIsOwner) {
 			return calendar
 		}
 	}
@@ -937,13 +936,6 @@ export type AlarmInterval = Readonly<{
 	unit: AlarmIntervalUnit
 	value: number
 }>
-
-/**
- * Converts runtime representation of an alarm into a db one.
- */
-export function serializeAlarmInterval(interval: AlarmInterval): string {
-	return `${interval.value}${interval.unit}`
-}
 
 export function alarmIntervalToLuxonDurationLikeObject(alarmInterval: AlarmInterval): DurationLikeObject {
 	switch (alarmInterval.unit) {
