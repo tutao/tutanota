@@ -77,7 +77,7 @@ import { ConversationViewModel, ConversationViewModelFactory } from "./mail/view
 import { CreateMailViewerOptions } from "./mail/view/MailViewer.js"
 import type { ContactImporter } from "./contacts/ContactImporter.js"
 import { MailViewerViewModel } from "./mail/view/MailViewerViewModel.js"
-import { ExternalLoginViewModel } from "../common/login/ExternalLoginView.js"
+import { ExternalLoginViewModel } from "./mail/view/ExternalLoginView.js"
 import { NativeInterfaceMain } from "../common/native/main/NativeInterfaceMain.js"
 import { NativeFileApp } from "../common/native/common/FileApp.js"
 import type { NativePushServiceApp } from "../common/native/main/NativePushServiceApp.js"
@@ -452,7 +452,7 @@ class MailLocator {
 	}
 
 	async externalLoginViewModelFactory(): Promise<() => ExternalLoginViewModel> {
-		const { ExternalLoginViewModel } = await import("../common/login/ExternalLoginView.js")
+		const { ExternalLoginViewModel } = await import("./mail/view/ExternalLoginView.js")
 		return () => new ExternalLoginViewModel(this.credentialsProvider)
 	}
 
