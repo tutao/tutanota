@@ -25,7 +25,6 @@ import {
 	isEventBetweenDays,
 	parseAlarmInterval,
 	prepareCalendarDescription,
-	serializeAlarmInterval,
 	StandardAlarmInterval,
 } from "../../../src/common/calendar/date/CalendarUtils.js"
 import { lang } from "../../../src/common/misc/LanguageViewModel.js"
@@ -33,7 +32,7 @@ import { DateWrapperTypeRef, GroupMembershipTypeRef, GroupTypeRef, User, UserTyp
 import { AccountType, EndType, GroupType, RepeatPeriod, ShareCapability } from "../../../src/common/api/common/TutanotaConstants.js"
 import { timeStringFromParts } from "../../../src/common/misc/Formatter.js"
 import { DateTime } from "luxon"
-import { generateEventElementId, getAllDayDateUTC } from "../../../src/common/api/common/utils/CommonCalendarUtils.js"
+import { generateEventElementId, getAllDayDateUTC, serializeAlarmInterval } from "../../../src/common/api/common/utils/CommonCalendarUtils.js"
 import { hasCapabilityOnGroup } from "../../../src/common/sharing/GroupUtils.js"
 import type { CalendarEvent } from "../../../src/common/api/entities/tutanota/TypeRefs.js"
 import {

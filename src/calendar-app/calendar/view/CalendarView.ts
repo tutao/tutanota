@@ -18,7 +18,6 @@ import {
 	getTimeZone,
 	getWeekNumber,
 	parseAlarmInterval,
-	serializeAlarmInterval,
 } from "../../../common/calendar/date/CalendarUtils"
 import { ButtonColor } from "../../../common/gui/base/Button.js"
 import { CalendarMonthView } from "./CalendarMonthView"
@@ -63,7 +62,7 @@ import { ButtonSize } from "../../../common/gui/base/ButtonSize.js"
 import { DrawerMenuAttrs } from "../../../common/gui/nav/DrawerMenu.js"
 import { BaseTopLevelView } from "../../../common/gui/BaseTopLevelView.js"
 import { TopLevelAttrs, TopLevelView } from "../../../TopLevelView.js"
-import { getEventWithDefaultTimes, getNextHalfHour } from "../../../common/api/common/utils/CommonCalendarUtils.js"
+import { getEventWithDefaultTimes, getNextHalfHour, serializeAlarmInterval } from "../../../common/api/common/utils/CommonCalendarUtils.js"
 import { BackgroundColumnLayout } from "../../../common/gui/BackgroundColumnLayout.js"
 import { theme } from "../../../common/gui/theme.js"
 import { CalendarMobileHeader } from "./CalendarMobileHeader.js"
@@ -638,12 +637,13 @@ export class CalendarView extends BaseTopLevelView implements TopLevelView<Calen
 
 			viewModel.setHiddenCalendars(newHiddenCalendars)
 		}
+
 		const calendarInfos = this.viewModel.calendarInfos
-		return Array.from(calendarInfos.values())
-			.filter((calendarInfo) => calendarInfo.shared === shared)
-			.map((calendarInfo) => {
-				return this.renderCalendarItem(calendarInfo, shared, setHidden)
-			})
+		const calendarInfosList = Array.from(calendarInfos.values())
+		const filtered = calendarInfosList.filter((calendarInfo) => calendarInfo.userIsOwner === !shared)
+		return filtered.map((calendarInfo) => {
+			return this.renderCalendarItem(calendarInfo, calendarInfo.shared, setHidden)
+		})
 	}
 
 	private renderCalendarItem(calendarInfo: CalendarInfo, shared: boolean, setHidden: (viewModel: CalendarViewModel, groupRootId: string) => void) {
@@ -747,7 +747,7 @@ export class CalendarView extends BaseTopLevelView implements TopLevelView<Calen
 								},
 						  }
 						: null,
-					!sharedCalendar
+					calendarInfo.userIsOwner
 						? {
 								label: "delete_action",
 								icon: Icons.Trash,
