@@ -5,10 +5,10 @@ import { LoginScreenHeader } from "../gui/LoginScreenHeader.js"
 import { styles } from "../gui/styles.js"
 import { AriaLandmarks, landmarkAttrs } from "../gui/AriaUtils.js"
 import { lang } from "../misc/LanguageViewModel.js"
-import { renderInfoLinks } from "./LoginView.js"
 import { BaseTopLevelView } from "../gui/BaseTopLevelView.js"
 import { ColumnWidth, Table, TableAttrs } from "../gui/base/Table.js"
 import { LoginButton } from "../gui/base/buttons/LoginButton.js"
+import { renderInfoLinks } from "../gui/RenderLoginInfoLinks.js"
 
 export const TAG = "[CredentialsMigrationView]"
 
