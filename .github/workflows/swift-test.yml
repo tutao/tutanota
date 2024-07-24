@@ -69,6 +69,8 @@ jobs:
         working-directory: app-ios
         run: |
           mkdir -p ../build
-          xcodegen
+          mkdir -p ../build-calendar-app
+          xcodegen --spec mail-project.yml
+          xcodegen --spec calendar-project.yml
           fastlane test_github
 

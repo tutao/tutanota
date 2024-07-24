@@ -1,13 +1,13 @@
 {
   "images" : [
     {
-      "filename" : "tuta_switch_light_640.png",
+      "filename" : "1024.png",
       "idiom" : "universal",
       "platform" : "ios",
       "size" : "1024x1024"
     },
     {
-      "filename" : "tuta_switch_light_640 1.png",
+      "filename" : "1024 1.png",
       "idiom" : "universal",
       "platform" : "watchos",
       "size" : "1024x1024"
