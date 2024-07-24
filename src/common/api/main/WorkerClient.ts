@@ -11,8 +11,7 @@ import { DelayedImpls, exposeLocalDelayed, exposeRemote } from "../common/Worker
 import type { RestClient } from "../worker/rest/RestClient"
 import { EntropyDataChunk } from "../worker/facades/EntropyFacade.js"
 import { objToError } from "../common/utils/ErrorUtils.js"
-import { IMailLocator } from "../../../mail-app/mailLocator.js"
-import { ICalendarLocator } from "../../../calendar-app/calendarLocator.js"
+import { CommonLocator } from "./CommonLocator.js"
 
 assertMainOrNode()
 
@@ -41,7 +40,7 @@ export class WorkerClient {
 		return this._deferredInitialized.promise
 	}
 
-	async init(locator: IMailLocator | ICalendarLocator): Promise<void> {
+	async init(locator: CommonLocator): Promise<void> {
 		if (env.mode !== "Test") {
 			const { prefixWithoutFile } = window.tutao.appState
 			// In apps/desktop we load HTML file and url ends on path/index.html so we want to load path/WorkerBootstrap.js.
@@ -80,7 +79,7 @@ export class WorkerClient {
 		this._deferredInitialized.resolve()
 	}
 
-	queueCommands(locator: IMailLocator | ICalendarLocator): Commands<MainRequestType> {
+	queueCommands(locator: CommonLocator): Commands<MainRequestType> {
 		return {
 			execNative: (message: MainRequest) => locator.native.invokeNative(downcast(message.args[0]), downcast(message.args[1])),
 			error: (message: MainRequest) => {
@@ -149,7 +148,7 @@ export class WorkerClient {
 	}
 }
 
-export function bootstrapWorker(locator: IMailLocator | ICalendarLocator): WorkerClient {
+export function bootstrapWorker(locator: CommonLocator): WorkerClient {
 	const worker = new WorkerClient()
 	const start = Date.now()
 	worker.init(locator).then(() => console.log("worker init time (ms):", Date.now() - start))

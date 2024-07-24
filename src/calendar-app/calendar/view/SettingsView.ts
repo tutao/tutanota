@@ -43,8 +43,8 @@ import { AboutDialog } from "../../../mail-app/settings/AboutDialog.js"
 import { SettingsViewAttrs, UpdatableSettingsDetailsViewer, UpdatableSettingsViewer } from "../../../common/settings/Interfaces.js"
 import { NotificationSettingsViewer } from "../settings/NotificationSettingsViewer.js"
 import { GlobalSettingsViewer } from "../settings/GlobalSettingsViewer.js"
-import { BottomNav } from "../../../mail-app/gui/BottomNav.js"
 import { locator } from "../../../common/api/main/CommonLocator.js"
+import { CalendarBottomNav } from "../../gui/CalendarBottomNav.js"
 
 assertMainOrNode()
 
@@ -144,7 +144,7 @@ export class SettingsView extends BaseTopLevelView implements TopLevelView<Setti
 							{
 								class: styles.isUsingBottomNavigation() ? "" : "border-radius-top-left-big",
 							},
-							m(this._getCurrentViewer()!),
+							m(this.getCurrentViewer()),
 						),
 						mobileHeader: () =>
 							m(MobileHeader, {
@@ -333,7 +333,7 @@ export class SettingsView extends BaseTopLevelView implements TopLevelView<Setti
 				header: m(Header, {
 					...attrs.header,
 				}),
-				bottomNav: m(BottomNav),
+				bottomNav: m(CalendarBottomNav),
 			}),
 		)
 	}
@@ -364,7 +364,7 @@ export class SettingsView extends BaseTopLevelView implements TopLevelView<Setti
 		)
 	}
 
-	_getCurrentViewer(): UpdatableSettingsViewer | null {
+	private getCurrentViewer(): UpdatableSettingsViewer {
 		if (!this._currentViewer) {
 			this.detailsViewer = null
 			this._currentViewer = this._selectedFolder.viewerCreator()
@@ -400,7 +400,7 @@ export class SettingsView extends BaseTopLevelView implements TopLevelView<Setti
 				this.detailsViewer = null
 
 				// make sure the currentViewer is available
-				this._getCurrentViewer()
+				this.getCurrentViewer()
 
 				m.redraw()
 			}

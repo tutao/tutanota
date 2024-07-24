@@ -22,13 +22,11 @@ export class CalendarSearchModel {
 	// we store this as a reference to the currently running search. if we don't, we only have the last result's query info
 	// to compare against incoming new queries
 	lastQueryString: Stream<string | null>
-	_searchFacade: SearchFacade
 	private _lastQuery: SearchQuery | null
 	_lastSearchPromise: Promise<SearchResult | void>
 	cancelSignal: Stream<boolean>
 
-	constructor(searchFacade: SearchFacade, private readonly calendarModel: lazyAsync<CalendarEventsRepository>) {
-		this._searchFacade = searchFacade
+	constructor(private readonly calendarModel: lazyAsync<CalendarEventsRepository>) {
 		this.result = stream()
 		this.lastQueryString = stream<string | null>("")
 		this._lastQuery = null

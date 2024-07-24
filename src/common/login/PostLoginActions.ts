@@ -33,6 +33,7 @@ import { shouldShowStorageWarning, shouldShowUpgradeReminder } from "./PostLogin
 import { UserManagementFacade } from "../api/worker/facades/lazy/UserManagementFacade.js"
 import { CustomerFacade } from "../api/worker/facades/lazy/CustomerFacade.js"
 import { deviceConfig } from "../misc/DeviceConfig.js"
+import { ThemeController } from "../gui/ThemeController.js"
 
 /**
  * This is a collection of all things that need to be initialized/global state to be set after a user has logged in successfully.
@@ -48,8 +49,8 @@ export class PostLoginActions implements PostLoginAction {
 		private readonly entityClient: EntityClient,
 		private readonly userManagementFacade: UserManagementFacade,
 		private readonly customerFacade: CustomerFacade,
+		private readonly themeController: ThemeController,
 		private readonly showSetupWizard: () => unknown,
-		private readonly appPartialLoginSuccessActions: () => unknown,
 	) {}
 
 	async onPartialLoginSuccess(loggedInEvent: LoggedInEvent): Promise<void> {
@@ -96,10 +97,6 @@ export class PostLoginActions implements PostLoginAction {
 			// partial
 			hourCycle: getHourCycle(this.logins.getUserController().userSettingsGroupRoot),
 		})
-
-		if (isApp()) {
-			this.appPartialLoginSuccessActions()
-		}
 
 		// We already have user data to load themes
 		if (isApp() || isDesktop()) {
@@ -212,13 +209,13 @@ export class PostLoginActions implements PostLoginAction {
 					customizations.themeId = domainInfoAndConfig.domainInfo.domain
 				}
 
-				await locator.themeController.storeCustomThemeForCustomizations(customizations)
+				await this.themeController.storeCustomThemeForCustomizations(customizations)
 
 				// Update the already loaded custom themes to their latest version
-				const previouslySavedThemes = await locator.themeController.getCustomThemes()
+				const previouslySavedThemes = await this.themeController.getCustomThemes()
 				const isExistingTheme = previouslySavedThemes.includes(domainInfoAndConfig.domainInfo.domain)
 				if (isExistingTheme) {
-					await locator.themeController.reloadTheme()
+					await this.themeController.reloadTheme()
 				}
 			}
 		}

@@ -3,14 +3,17 @@ import { ExpanderButton, ExpanderPanel } from "../gui/base/Expander.js"
 import m, { Child, ChildArray, Children, ClassComponent, Component, Vnode } from "mithril"
 import Stream from "mithril/stream"
 
-export interface SettingsNotificationTargetsAttrs {
+export interface NotificationTargetsListAttrs {
 	rowAdd: Child
 	rows: ChildArray
 	onExpandedChange: Stream<boolean>
 }
 
-export class SettingsNotificationTargets implements Component<SettingsNotificationTargetsAttrs> {
-	view(vnode: Vnode<SettingsNotificationTargetsAttrs>) {
+/**
+ * Lists notification device targets
+ */
+export class NotificationTargetsList implements Component<NotificationTargetsListAttrs> {
+	view(vnode: Vnode<NotificationTargetsListAttrs>) {
 		return m("", [
 			m(".flex-space-between.items-center.mt-s.mb-s", [
 				m(".h5", lang.get("notificationTargets_label")),

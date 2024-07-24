@@ -21,7 +21,6 @@ import {
 import { SecureRandom } from "../lib/random/SecureRandom.js"
 import { CryptoError } from "../lib/error.js"
 import { parseBigInt } from "../lib/internal/crypto-jsbn-2012-08-09_1.js"
-import crypto from "node:crypto"
 
 const originalRandom = random.generateRandomData
 

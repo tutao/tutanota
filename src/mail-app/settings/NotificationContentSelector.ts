@@ -3,13 +3,13 @@ import { DropDownSelector, DropDownSelectorAttrs } from "../../common/gui/base/D
 import { lang } from "../../common/misc/LanguageViewModel.js"
 import { ExtendedNotificationMode } from "../../common/native/common/generatedipc/ExtendedNotificationMode.js"
 
-export interface SettingsNotificationContentPickerAttrs {
+export interface NotificationContentSelectorAttrs {
 	extendedNotificationMode: ExtendedNotificationMode
 	onChange: (value: ExtendedNotificationMode) => void
 }
 
-export class SettingsNotificationContentPicker implements Component<SettingsNotificationContentPickerAttrs> {
-	view(vnode: Vnode<SettingsNotificationContentPickerAttrs>) {
+export class NotificationContentSelector implements Component<NotificationContentSelectorAttrs> {
+	view(vnode: Vnode<NotificationContentSelectorAttrs>) {
 		return m(DropDownSelector, {
 			label: "notificationContent_label",
 			items: [

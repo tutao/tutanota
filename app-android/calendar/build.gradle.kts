@@ -89,12 +89,20 @@ android {
 		val variant = this
 		variant.outputs.configureEach {
 			val flavor = variant.productFlavors[0].name
-			(this as com.android.build.gradle.internal.api.BaseVariantOutputImpl).outputFileName = "tutanota-calendar-$flavor-${variant.buildType.name}-${variant.versionName}.apk"
+			// The cast is needed because outputFileName isn't directly accessible in .kts files
+			// And the outputFile.renameTo function runs at the beginning of the build process
+			// which will make the build script try to move a file that doesn't exist (yet)
+			(this as com.android.build.gradle.internal.api.BaseVariantOutputImpl).outputFileName =
+				"calendar-$flavor-${variant.buildType.name}-${variant.versionName}.apk"
 		}
 	}
 
 	buildTypes.map {
-		it.buildConfigField("String", "FILE_PROVIDER_AUTHORITY", "\"" + it.manifestPlaceholders["contentProviderAuthority"] + "\"")
+		it.buildConfigField(
+			"String",
+			"FILE_PROVIDER_AUTHORITY",
+			"\"" + it.manifestPlaceholders["contentProviderAuthority"] + "\""
+		)
 		// keep in sync with src/native/main/NativePushServiceApp.ts
 		it.buildConfigField("String", "SYS_MODEL_VERSION", "\"99\"")
 		it.buildConfigField("String", "TUTANOTA_MODEL_VERSION", "\"71\"")

@@ -4,28 +4,24 @@ import stream from "mithril/stream"
 import Stream from "mithril/stream"
 import type { PositionRect } from "../../../common/gui/base/Overlay"
 import { displayOverlay } from "../../../common/gui/base/Overlay"
-import type { CalendarEvent, Contact, Mail } from "../../../common/api/entities/tutanota/TypeRefs.js"
-import { MailTypeRef } from "../../../common/api/entities/tutanota/TypeRefs.js"
+import type { CalendarEvent } from "../../../common/api/entities/tutanota/TypeRefs.js"
 import type { Shortcut } from "../../../common/misc/KeyManager"
 import { isKeyPressed, keyManager } from "../../../common/misc/KeyManager"
 import { encodeCalendarSearchKey, getRestriction } from "./model/SearchUtils"
-import type { WhitelabelChild } from "../../../common/api/entities/sys/TypeRefs.js"
 import { FULL_INDEXED_TIMESTAMP, Keys } from "../../../common/api/common/TutanotaConstants"
 import { assertMainOrNode } from "../../../common/api/common/Env"
 import { styles } from "../../../common/gui/styles"
 import { client } from "../../../common/misc/ClientDetector"
-import { debounce, downcast, isSameTypeRef, memoized, mod, TypeRef } from "@tutao/tutanota-utils"
+import { debounce, downcast, memoized, mod, TypeRef } from "@tutao/tutanota-utils"
 import { BrowserType } from "../../../common/misc/ClientConstants"
 import { hasMoreResults } from "./model/CalendarSearchModel.js"
-import type { SearchIndexStateInfo, SearchRestriction, SearchResult } from "../../../common/api/worker/search/SearchTypes"
+import type { SearchRestriction, SearchResult } from "../../../common/api/worker/search/SearchTypes"
 import { LayerType } from "../../../RootView"
 import { BaseSearchBar, BaseSearchBarAttrs } from "../../../common/gui/base/BaseSearchBar.js"
-import { PageSize } from "../../../common/gui/base/ListUtils.js"
 import { generateCalendarInstancesInRange } from "../../../common/calendar/date/CalendarUtils.js"
 
 import { loadMultipleFromLists } from "../../../common/api/common/EntityClient.js"
 import { SearchRouter } from "../../../common/search/view/SearchRouter.js"
-import { SearchBarOverlay } from "../../../mail-app/search/SearchBarOverlay.js"
 import { calendarLocator } from "../../calendarLocator.js"
 import { CalendarSearchBarOverlay } from "./CalendarSearchBarOverlay.js"
 
@@ -43,7 +39,7 @@ export type CalendarSearchBarAttrs = {
 }
 
 const MAX_SEARCH_PREVIEW_RESULTS = 10
-export type Entry = Mail | Contact | CalendarEvent | WhitelabelChild | ShowMoreAction
+export type Entry = CalendarEvent | ShowMoreAction
 type Entries = Array<Entry>
 export type CalendarSearchBarState = {
 	query: string
@@ -93,7 +89,7 @@ export class CalendarSearchBar implements Component<CalendarSearchBarAttrs> {
 	}
 
 	/**
-	 * this reacts to URL changes by clearing the suggestions - the selected item may have changed (in the mail view maybe)
+	 * this reacts to URL changes by clearing the suggestions - the selected item may have changed
 	 * that shouldn't clear our current state, but if the URL changed in a way that makes the previous state outdated, we clear it.
 	 */
 	private readonly onPathChange = memoized((newPath: string) => {
@@ -292,7 +288,7 @@ export class CalendarSearchBar implements Component<CalendarSearchBarAttrs> {
 		},
 	]
 
-	private selectResult(result: (Mail | null) | Contact | WhitelabelChild | CalendarEvent | ShowMoreAction) {
+	private selectResult(result: CalendarEvent | ShowMoreAction | null) {
 		const { query } = this.state()
 
 		if (result != null) {
@@ -367,8 +363,9 @@ export class CalendarSearchBar implements Component<CalendarSearchBarAttrs> {
 		}
 
 		let useSuggestions = m.route.get().startsWith("/settings")
-		// We don't limit contacts because we need to download all of them to sort them. They should be cached anyway.
-		const limit = isSameTypeRef(MailTypeRef, restriction.type) ? (this.isQuickSearch() ? MAX_SEARCH_PREVIEW_RESULTS : PageSize) : null
+		// This is a vestige of the searchbar for mail, keeping just in case
+		// we do not need to limit calendar events since they are local
+		const limit = null
 
 		calendarLocator.search
 			.search(

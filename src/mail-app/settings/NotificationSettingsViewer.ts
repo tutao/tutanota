@@ -16,8 +16,8 @@ import { AppType, PushServiceType } from "../../common/api/common/TutanotaConsta
 import { IdentifierRow } from "./IdentifierRow.js"
 import { mailLocator } from "../mailLocator.js"
 import { UpdatableSettingsViewer } from "../../common/settings/Interfaces.js"
-import { SettingsNotificationContentPicker } from "./SettingsNotificationContentPicker.js"
-import { SettingsNotificationTargets, SettingsNotificationTargetsAttrs } from "../../common/settings/SettingsNotificationTargets.js"
+import { NotificationContentSelector } from "./NotificationContentSelector.js"
+import { NotificationTargetsList, NotificationTargetsListAttrs } from "../../common/settings/NotificationTargetsList.js"
 
 export class NotificationSettingsViewer implements UpdatableSettingsViewer {
 	private currentIdentifier: string | null = null
@@ -80,7 +80,7 @@ export class NotificationSettingsViewer implements UpdatableSettingsViewer {
 			m(".flex.col", [
 				m(".flex-space-between.items-center.mt-l.mb-s", [m(".h4", lang.get("notificationSettings_action"))]),
 				this.extendedNotificationMode
-					? m(SettingsNotificationContentPicker, {
+					? m(NotificationContentSelector, {
 							extendedNotificationMode: this.extendedNotificationMode,
 							onChange: (value: ExtendedNotificationMode) => {
 								locator.pushService.setExtendedNotificationMode(value)
@@ -88,7 +88,7 @@ export class NotificationSettingsViewer implements UpdatableSettingsViewer {
 							},
 					  })
 					: null,
-				m(SettingsNotificationTargets, { rows, rowAdd, onExpandedChange: this.expanded } satisfies SettingsNotificationTargetsAttrs),
+				m(NotificationTargetsList, { rows, rowAdd, onExpandedChange: this.expanded } satisfies NotificationTargetsListAttrs),
 			]),
 		])
 	}

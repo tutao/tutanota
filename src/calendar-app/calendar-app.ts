@@ -105,6 +105,16 @@ import("../mail-app/translations/en.js")
 		}
 
 		calendarLocator.logins.addPostLoginAction(() => calendarLocator.postLoginActions())
+		calendarLocator.logins.addPostLoginAction(async () => {
+			return {
+				async onPartialLoginSuccess() {
+					if (isApp()) {
+						calendarLocator.fileApp.clearFileData().catch((e) => console.log("Failed to clean file data", e))
+					}
+				},
+				async onFullLoginSuccess() {},
+			}
+		})
 
 		if (isOfflineStorageAvailable()) {
 			const { CachePostLoginAction } = await import("../common/offline/CachePostLoginAction.js")
@@ -210,7 +220,7 @@ import("../mail-app/translations/en.js")
 			calendar: makeViewResolver<
 				CalendarViewAttrs,
 				CalendarView,
-				{ drawerAttrsFactory: () => DrawerMenuAttrs; header: AppHeaderAttrs; calendarViewModel: CalendarViewModel; bottomNav: Children }
+				{ drawerAttrsFactory: () => DrawerMenuAttrs; header: AppHeaderAttrs; calendarViewModel: CalendarViewModel; bottomNav: () => Children }
 			>(
 				{
 					prepareRoute: async (cache) => {
@@ -222,7 +232,7 @@ import("../mail-app/translations/en.js")
 								drawerAttrsFactory,
 								header: await calendarLocator.appHeaderAttrs(),
 								calendarViewModel: await calendarLocator.calendarViewModel(),
-								bottomNav: m(CalendarBottomNav),
+								bottomNav: () => m(CalendarBottomNav),
 							},
 						}
 					},
@@ -513,6 +523,7 @@ function makeViewResolver<FullAttrs extends TopLevelAttrs = never, ComponentType
 	}
 }
 
+// This is only used for non-mobile webauthn, so this may need to be removed if we do not have a separate calendar web/desktop app
 function makeOldViewResolver(
 	makeView: (args: {}, requestedPath: string) => Promise<TopLevelView>,
 	{ requireLogin, cacheView }: { requireLogin?: boolean; cacheView?: boolean } = {},

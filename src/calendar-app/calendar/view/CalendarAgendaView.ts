@@ -186,7 +186,7 @@ export class CalendarAgendaView implements Component<CalendarAgendaViewAttrs> {
 				icon: BootIcons.Calendar,
 				message: "noEntries_msg",
 				color: theme.list_message_bg,
-				bottomContent: MainCreateButton({
+				bottomContent: m(MainCreateButton, {
 					label: "newEvent_action",
 					click: () => attrs.onCreateEvent?.(),
 					class: "mt-s",

@@ -116,6 +116,17 @@ import("./translations/en.js")
 		}
 
 		mailLocator.logins.addPostLoginAction(() => mailLocator.postLoginActions())
+		mailLocator.logins.addPostLoginAction(async () => {
+			return {
+				async onPartialLoginSuccess() {
+					if (isApp()) {
+						mailLocator.fileApp.clearFileData().catch((e) => console.log("Failed to clean file data", e))
+						mailLocator.nativeContactsSyncManager()?.syncContacts()
+					}
+				},
+				async onFullLoginSuccess() {},
+			}
+		})
 
 		if (isOfflineStorageAvailable()) {
 			const { CachePostLoginAction } = await import("../common/offline/CachePostLoginAction.js")
@@ -305,7 +316,7 @@ import("./translations/en.js")
 			calendar: makeViewResolver<
 				CalendarViewAttrs,
 				CalendarView,
-				{ drawerAttrsFactory: () => DrawerMenuAttrs; header: AppHeaderAttrs; calendarViewModel: CalendarViewModel; bottomNav: Children }
+				{ drawerAttrsFactory: () => DrawerMenuAttrs; header: AppHeaderAttrs; calendarViewModel: CalendarViewModel; bottomNav: () => Children }
 			>(
 				{
 					prepareRoute: async (cache) => {
@@ -317,7 +328,7 @@ import("./translations/en.js")
 								drawerAttrsFactory,
 								header: await mailLocator.appHeaderAttrs(),
 								calendarViewModel: await mailLocator.calendarViewModel(),
-								bottomNav: m(BottomNav),
+								bottomNav: () => m(BottomNav),
 							},
 						}
 					},
