@@ -1,5 +1,5 @@
+import TutanotaSharedFramework
 import XCTest
-import tutanota
 
 class UIColorExtensionsTest: XCTestCase {
 	func testIsColorLightPinkDark() throws { XCTAssertEqual(UIColor.init(hex: "#B73A9A")?.isLight(), false) }

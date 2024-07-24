@@ -1,7 +1,7 @@
 import Foundation
 import XCTest
 
-@testable import tutanota
+@testable import TutanotaSharedFramework
 
 class AlarmModelTest: XCTestCase {
 	private let perAlarmLimit = 5
