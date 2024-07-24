@@ -1,7 +1,7 @@
 import Foundation
 import XCTest
 
-@testable import tutanota
+@testable import TutanotaSharedFramework
 
 class AlarmManagerTest: XCTestCase {
 	private var persistor: AlarmPersistorStub!
