@@ -55,10 +55,10 @@ pipeline {
 						} // docker
 					} // agent
 					steps {
-						sh 'echo $PATH'
-						sh 'npm ci'
-						sh 'npm run build-packages'
-						sh 'node webapp.js release'
+						sh '#!/bin/bash echo $PATH'
+						sh '#!/bin/bash npm ci'
+						sh '#!/bin/bash npm run build-packages'
+						sh '#!/bin/bash node webapp.js release'
 
 						// excluding web-specific and mobile specific parts which we don't need in desktop
 						stash includes: 'build/**', excludes: '**/braintree.html, **/index.html, **/app.html, **/desktop.html, **/index-index.js, **/index-app.js, **/index-desktop.js, **/sw.js', name: 'web_base'
