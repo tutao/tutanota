@@ -141,6 +141,10 @@ platform :ios do
 				devices: ["iphone-15-ios-17-4"]
 		)
 		run_tests(
+				scheme: "calendar debug",
+				devices: ["iphone-15-ios-17-4"]
+		)
+		run_tests(
 				scheme: "TutanotaSharedFramework",
 				devices: ["iphone-15-ios-17-4"]
 		)
@@ -150,6 +154,9 @@ platform :ios do
  	lane :test_github do
 		run_tests(
 				scheme: "tuta debug",
+		)
+		run_tests(
+				scheme: "calendar debug",
 		)
 		run_tests(
 				scheme: "TutanotaSharedFramework",

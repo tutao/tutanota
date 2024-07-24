@@ -1,6 +1,6 @@
 import XCTest
 
-@testable import tutanota
+@testable import TutanotaSharedFramework
 
 class AlarmEntitiesTest: XCTestCase {
 	func testParsingAlarmInterval() {
