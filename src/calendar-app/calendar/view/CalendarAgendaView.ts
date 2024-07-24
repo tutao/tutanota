@@ -16,7 +16,7 @@ import { DaySelector } from "../gui/day-selector/DaySelector.js"
 import { CalendarEventPreviewViewModel } from "../gui/eventpopup/CalendarEventPreviewViewModel.js"
 import { EventDetailsView } from "./EventDetailsView.js"
 import { getElementId, getListId } from "../../../common/api/common/utils/EntityUtils.js"
-import { isAllDayEvent } from "../../../common/api/common/utils/CommonCalendarUtils.js"
+import { isAllDayEvent, setNextHalfHour } from "../../../common/api/common/utils/CommonCalendarUtils.js"
 import { CalendarTimeIndicator } from "./CalendarTimeIndicator.js"
 import { Time } from "../../../common/calendar/date/Time.js"
 import { DaysToEvents } from "../../../common/calendar/date/CalendarEventsRepository.js"
@@ -50,7 +50,7 @@ export type CalendarAgendaViewAttrs = {
 	scrollPosition: number
 	onScrollPositionChange: (newPosition: number) => unknown
 	onViewChanged: (vnode: VnodeDOM) => unknown
-	onCreateEvent?: () => unknown
+	onNewEvent: (date: Date | null) => unknown
 }
 
 export class CalendarAgendaView implements Component<CalendarAgendaViewAttrs> {
@@ -188,7 +188,12 @@ export class CalendarAgendaView implements Component<CalendarAgendaViewAttrs> {
 				color: theme.list_message_bg,
 				bottomContent: MainCreateButton({
 					label: "newEvent_action",
-					click: () => attrs.onCreateEvent?.(),
+					click: (e: MouseEvent) => {
+						let newDate = new Date(attrs.selectedDate)
+						attrs.onNewEvent(setNextHalfHour(newDate))
+
+						e.preventDefault()
+					},
 					class: "mt-s",
 				}),
 			})
