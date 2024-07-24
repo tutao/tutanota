@@ -306,7 +306,7 @@ export class CalendarView extends BaseTopLevelView implements TopLevelView<Calen
 									scrollPosition: this.viewModel.getScrollPosition(),
 									onScrollPositionChange: (newPosition: number) => this.viewModel.setScrollPosition(newPosition),
 									onViewChanged: (vnode) => this.viewModel.setViewParameters(vnode.dom as HTMLElement),
-									onCreateEvent: () => this.createNewEventDialog(),
+									onNewEvent: (date) => this.createNewEventDialog(date),
 								} satisfies CalendarAgendaViewAttrs),
 							})
 
