@@ -42,9 +42,9 @@ pipeline {
 		stage('Build dependencies') {
 			parallel {
 				stage('Build webapp') {
-					environment {
-						PATH = "${env.NODE_PATH}:${env.PATH}:/home/jenkins/emsdk/upstream/bin/:/home/jenkins/emsdk/:/home/jenkins/emsdk/upstream/emscripten"
-					}
+					// environment {
+					// 	PATH = "${env.NODE_PATH}:${env.PATH}:/home/jenkins/emsdk/upstream/bin/:/home/jenkins/emsdk/:/home/jenkins/emsdk/upstream/emscripten"
+					// }
 					agent {
 						dockerfile {
 							filename 'Desktop.dockerfile'
