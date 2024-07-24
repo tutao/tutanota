@@ -56,7 +56,7 @@ import UIKit
 		)
 
 		self.viewController = ViewController(
-			crypto: IosNativeCryptoFacade(),
+			crypto: TutanotaSharedFramework.IosNativeCryptoFacade(),
 			themeManager: ThemeManager(userProferencesProvider: userPreferencesProvider),
 			keychainManager: keychainManager,
 			notificationStorage: notificationStorage,

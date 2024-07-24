@@ -1,6 +1,7 @@
 # Generated
 *.generated.swift
 tutanota.xcodeproj
+calendar.xcodeproj
 
 # Caches
 **/*.xcodeproj/MockingbirdCache/

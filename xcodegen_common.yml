@@ -7,7 +7,6 @@ options:
   tabWidth: 4 # Keep this in sync with the `.swift-format.json`
   deploymentTarget:
     iOS: "15.0"
-  bundleIdPrefix: "de.tutao.tutanota"
   groupSortPosition: "top"
   transitivelyLinkDependencies: false
   localPackagesGroup: ""
@@ -37,7 +36,7 @@ settings:
     Debug Development:
       CODE_SIGN_IDENTITY: "Apple Development"
       CODE_SIGN_STYLE: "Automatic"
-      PRODUCT_BUNDLE_IDENTIFIER: "de.tutao.tutanota.debug"
+      PRODUCT_BUNDLE_IDENTIFIER: "${bundleIdPrefix}.debug"
       SWIFT_OPTIMIZATION_LEVEL: "-Onone"
       SWIFT_ACTIVE_COMPILATION_CONDITIONS: "DEBUG"
       ONLY_ACTIVE_ARCH: "YES"
@@ -47,7 +46,7 @@ settings:
     Debug Staging:
       CODE_SIGN_IDENTITY: "Apple Development"
       CODE_SIGN_STYLE: "Automatic"
-      PRODUCT_BUNDLE_IDENTIFIER: "de.tutao.tutanota.test"
+      PRODUCT_BUNDLE_IDENTIFIER: "${bundleIdPrefix}.test"
       SWIFT_OPTIMIZATION_LEVEL: "-Onone"
       SWIFT_ACTIVE_COMPILATION_CONDITIONS: "DEBUG"
       ONLY_ACTIVE_ARCH: "YES"
@@ -57,7 +56,7 @@ settings:
     Debug Production:
       CODE_SIGN_IDENTITY: "Apple Development"
       CODE_SIGN_STYLE: "Automatic"
-      PRODUCT_BUNDLE_IDENTIFIER: "de.tutao.tutanota"
+      PRODUCT_BUNDLE_IDENTIFIER: "${bundleIdPrefix}"
       SWIFT_OPTIMIZATION_LEVEL: "-Onone"
       SWIFT_ACTIVE_COMPILATION_CONDITIONS: "DEBUG"
       ONLY_ACTIVE_ARCH: "YES"
@@ -67,18 +66,18 @@ settings:
     Release Development:
       CODE_SIGN_IDENTITY: "Apple Distribution"
       CODE_SIGN_STYLE: "Manual"
-      PRODUCT_BUNDLE_IDENTIFIER: "de.tutao.tutanota.debug"
+      PRODUCT_BUNDLE_IDENTIFIER: "${bundleIdPrefix}.debug"
       SWIFT_OPTIMIZATION_LEVEL: "-O"
       VALIDATE_PRODUCT: "YES"
     Release Staging:
       CODE_SIGN_IDENTITY: "Apple Distribution"
       CODE_SIGN_STYLE: "Manual"
-      PRODUCT_BUNDLE_IDENTIFIER: "de.tutao.tutanota.test"
+      PRODUCT_BUNDLE_IDENTIFIER: "${bundleIdPrefix}.test"
       SWIFT_OPTIMIZATION_LEVEL: "-O"
       VALIDATE_PRODUCT: "YES"
     Release Production:
       CODE_SIGN_IDENTITY: "Apple Distribution"
       CODE_SIGN_STYLE: "Manual"
-      PRODUCT_BUNDLE_IDENTIFIER: "de.tutao.tutanota"
+      PRODUCT_BUNDLE_IDENTIFIER: "${bundleIdPrefix}"
       SWIFT_OPTIMIZATION_LEVEL: "-O"
       VALIDATE_PRODUCT: "YES"

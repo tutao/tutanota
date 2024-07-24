@@ -9,6 +9,8 @@
 #import <TutanotaSharedFramework/TUTEncodingConverter.h>
 #import <TutanotaSharedFramework/rsa_oaep_sha256.h>
 #import <TutanotaSharedFramework/PSPDFFastEnumeration.h>
+#import <TutanotaSharedFramework/argon2.h>
+#include <TutanotaSharedFramework/rand_entropy.h>
 
 //! Project version number for TutanotaSharedFramework.
 FOUNDATION_EXPORT double TutanotaSharedFrameworkVersionNumber;

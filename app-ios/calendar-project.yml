@@ -1,15 +1,17 @@
 #  XCodeGen configuration file
-name: tutanota # Also known as tutanooota (while testing xcodegen)
-include:
-  - path: "../xcodegen_common.yml"
+name: calendar # Also known as tutanooota (while testing xcodegen)
 options:
   useBaseInternationalization: true
   schemePathPrefix: "../" # Recommended for workspace based projects by XCodeGen devs
 settings:
   base:
-    PRODUCT_NAME: "tutanota"
+    PRODUCT_NAME: "calendar"
     DEVELOPMENT_TEAM: "JKCH89Z3M9" # Tutao GmbH
     ASSETCATALOG_COMPILER_APPICON_NAME: "AppIcon"
+    bundleIdPrefix: "de.tutao.calendar"
+# Include MUST come after settings because it depends on bundleIdPrefix
+include:
+  - path: "../xcodegen_common.yml"
 settingGroups:
   codeSigning:
     base:
@@ -19,7 +21,7 @@ settingGroups:
       Debug Production:
         CODE_SIGN_ENTITLEMENTS: "$(TARGET_NAME)/$(TARGET_NAME).entitlements"
       Release Development:
-        PROVISIONING_PROFILE_SPECIFIER[sdk=iphoneos*]: "match AdHoc de.tutao.tutanota.$(PRODUCT_NAME)"
+        PROVISIONING_PROFILE_SPECIFIER[sdk=iphoneos*]: "match AdHoc ${bundleIdPrefix}.$(PRODUCT_NAME)"
       Release Staging:
         PROVISIONING_PROFILE_SPECIFIER[sdk=iphoneos*]: "match AdHoc $(PRODUCT_BUNDLE_IDENTIFIER)"
       Release Production:
@@ -35,7 +37,7 @@ settingGroups:
       CURRENT_PROJECT_VERSION: "1"
       MARKETING_VERSION: "1.0"
 targets:
-  tutanota:
+  calendar:
     templates: ["formatAndLint"]
     type: "application"
     sources:
@@ -43,30 +45,37 @@ targets:
         excludes:
           [
             "tutanota-web",
-            "Sources/Crypto/phc-winner-argon2",
             "Sources/sdktest.swift",
+            "Assets.xcassets",
+            "Base.lproj",
+            "Info.plist",
+            "PrivacyInfo.xcprivacy"
           ]
-        compilerFlags: ["-Itutanota/Sources/Crypto/phc-winner-argon2/include"]
+        compilerFlags:
+          [
+            "-ITutanotaSharedFramework/Crypto/phc-winner-argon2/include",
+          ]
         # XCode will not resolve symbolic links when adding a folder reference, so we will just use a relative path
-      - path: "../build"
-        name: "build"
+      - path: "../build-calendar-app"
+        name: "build-calendar-app"
         type: "folder"
         buildPhase: "resources"
       - path: "Plans.storekit"
     settings:
       base:
-        PRODUCT_MODULE_NAME: "tutanota"
+        PRODUCT_MODULE_NAME: "calendar"
         ALWAYS_EMBED_SWIFT_STANDARD_LIBRARIES: "YES"
         LD_RUNPATH_SEARCH_PATHS: "@executable_path/Frameworks"
-        INFOPLIST_FILE: "tutanota/Info.plist"
+        INFOPLIST_FILE: "calendar/Info.plist"
         SWIFT_OBJC_BRIDGING_HEADER: "tutanota/Sources/tutanota-Bridging-Header.h"
         HEADER_SEARCH_PATHS:
           [
-            "${PROJECT_DIR}/tutanota/include",
-            "tutanota/Sources/Crypto/phc-winner-argon2/include",
+            "${PROJECT_DIR}/TutanotaSharedFramework/Crypto/include",
+            "TutanotaSharedFramework/Crypto/phc-winner-argon2/include",
           ]
         CLANG_CXX_LANGUAGE_STANDARD: "gnu++14"
-        GCC_PREPROCESSOR_DEFINITIONS: ["SQLITE_HAS_CODEC=1", "$(inherited)"]
+        GCC_PREPROCESSOR_DEFINITIONS:
+          ["SQLITE_HAS_CODEC=1", "$(inherited)"]
         OTHER_CFLAGS[arch=*]:
           [
             "-DSQLITE_HAS_CODEC",
@@ -78,19 +87,19 @@ targets:
         SUPPORTS_MAC_DESIGNED_FOR_IPHONE_IPAD: "NO"
       configs:
         Debug Development:
-          PRODUCT_NAME: "Tuta D"
+          PRODUCT_NAME: "Tuta CD"
         Debug Staging:
-          PRODUCT_NAME: "Tuta Test"
+          PRODUCT_NAME: "Tuta C Test"
         Debug Production:
-          PRODUCT_NAME: "Tuta Mail"
+          PRODUCT_NAME: "Tuta Calendar"
         Release Development:
-          PRODUCT_NAME: "Tuta D"
+          PRODUCT_NAME: "Tuta CD"
         Release Staging:
           PRODUCT_NAME: "Tuta Test"
-          PROVISIONING_PROFILE_SPECIFIER: "match AdHoc de.tutao.tutanota.test"
-          PROVISIONING_PROFILE_SPECIFIER[sdk=iphoneos*]: "match AdHoc de.tutao.tutanota.test 1716556941"
+          PROVISIONING_PROFILE_SPECIFIER: "match AdHoc de.tutao.calendar.test"
+          PROVISIONING_PROFILE_SPECIFIER[sdk=iphoneos*]: "match AdHoc de.tutao.calendar.test 1716556941"
         Release Production:
-          PRODUCT_NAME: "Tuta Mail"
+          PRODUCT_NAME: "Tuta Calendar"
       groups:
         - "codeSigning"
     dependencies:
@@ -121,7 +130,7 @@ targets:
       # Don't show warnings for vendored code
       WARNING_CFLAGS: "-w"
     sources:
-      - path: "tutanota/Sources/Crypto/phc-winner-argon2"
+      - path: "TutanotaSharedFramework/Crypto/phc-winner-argon2"
         includes:
           [
             "src/argon2.c",
@@ -133,7 +142,7 @@ targets:
           ]
         compilerFlags:
           [
-            "-Itutanota/Sources/Crypto/phc-winner-argon2/include",
+            "-ITutanotaSharedFramework/Crypto/phc-winner-argon2/include",
             "-DARGON2_NO_THREADS",
             "-O3",
           ]
@@ -157,16 +166,16 @@ targets:
       PRODUCT_NAME: "$(TARGET_NAME)"
       HEADER_SEARCH_PATHS:
         [
-          "${PROJECT_DIR}/tutanota/include",
-          "tutanota/Sources/Crypto/phc-winner-argon2/include",
+          "${PROJECT_DIR}/TutanotaSharedFramework/Crypto/include",
+          "TutanotaSharedFramework/Crypto/phc-winner-argon2/include",
         ]
-      TEST_HOST: "$(BUILT_PRODUCTS_DIR)/Tuta D.app/$(BUNDLE_EXECUTABLE_FOLDER_PATH)/Tuta D"
+      TEST_HOST: "$(BUILT_PRODUCTS_DIR)/Tuta CD.app/$(BUNDLE_EXECUTABLE_FOLDER_PATH)/Tuta CD"
       SWIFT_OBJC_BRIDGING_HEADER: "tutanotaTests/tutanotaTests-Bridging-Header.h"
       SUPPORTS_XR_DESIGNED_FOR_IPHONE_IPAD: "NO"
       SUPPORTS_MAC_DESIGNED_FOR_IPHONE_IPAD: "NO"
       CLANG_CXX_LANGUAGE_STANDARD: "gnu++14"
     dependencies:
-      - target: "tutanota"
+      - target: "calendar"
   TutanotaShareExtension:
     templates: ["formatAndLint"]
     type: "app-extension"
@@ -177,7 +186,11 @@ targets:
         PRODUCT_BUNDLE_IDENTIFIER: "$(inherited).TutanotaShareExtension"
         IPHONEOS_DEPLOYMENT_TARGET: "15.5" # Why?
         INFOPLIST_FILE: "TutanotaShareExtension/Info.plist"
-        HEADER_SEARCH_PATHS: '"${PROJECT_DIR}/tutanota/include"/**'
+        HEADER_SEARCH_PATHS:           
+          [
+            "-I$(PROJECT_DIR)/TutanotaSharedFramework/Crypto/include",
+            "-I$(PROJECT_DIR)/TutanotaSharedFramework/Crypto/phc-winner-argon2/include",
+          ]
         MARKETING_VERSION: "3.104.5"
         CLANG_CXX_LANGUAGE_STANDARD: "gnu++17"
         SUPPORTS_XR_DESIGNED_FOR_IPHONE_IPAD: "NO"
@@ -196,10 +209,23 @@ targets:
       - path: "TutanotaSharedFramework"
         headerVisibility: "public"
         # Exclude TUTBigNum.h so we change it's visiblity to 'project' in another source
-        excludes: ["Crypto/TUTBigNum.h", "*.md", "Sql/sqlite3.c"]
+        excludes: [
+            "Crypto/TUTBigNum.h", 
+            "*.md", 
+            "Sql/sqlite3.c", 
+            "Crypto/phc-winner-argon2",
+          ]
+        compilerFlags:
+          [
+            "-I$(PROJECT_DIR)/TutanotaSharedFramework/Crypto/include",
+            "-I$(PROJECT_DIR)/TutanotaSharedFramework/Crypto/phc-winner-argon2/include",
+          ]
       - path: "TutanotaSharedFramework/Crypto"
         includes: ["TUTBigNum.h"]
         headerVisibility: "project"
+      - path: "TutanotaSharedFramework/Crypto/phc-winner-argon2/include/"
+        includes: ["argon2.h"]
+        headerVisibility: "public"
       - path: "TutanotaSharedFramework/Sql"
         # Don't show warnings for vendored code
         includes: ["sqlite3.c"]
@@ -208,14 +234,22 @@ targets:
       PRODUCT_NAME: "TutanotaSharedFramework"
       PRODUCT_BUNDLE_IDENTIFIER: "$(inherited).TutanotaSharedFramework"
       INSTALL_PATH: "$(LOCAL_LIBRARY_DIR)/Frameworks"
-      GCC_PREPROCESSOR_DEFINITIONS: ["SQLITE_HAS_CODEC=1", "$(inherited)"]
-      OTHER_CFLAGS:
+      HEADER_SEARCH_PATHS:
+        [
+          "$(PROJECT_DIR)/TutanotaSharedFramework/Crypto/include",
+          "TutanotaSharedFramework/Crypto/phc-winner-argon2/include",
+        ]   
+      OTHER_CFLAGS[arch=*]:
         [
           "-DSQLITE_HAS_CODEC",
           "-DSQLITE_TEMP_STORE=3",
-          "-DNDEBUG",
           "-DSQLCIPHER_CRYPTO_CC",
+          "-DNDEBUG"
         ]
+      GCC_PREPROCESSOR_DEFINITIONS: [
+        "SQLITE_HAS_CODEC=1",
+        "$(inherited)"
+      ]
       APPLICATION_EXTENSION_API_ONLY: "YES"
       ENABLE_USER_SCRIPT_SANDBOXING: "YES"
       SKIP_INSTALL: "YES"
@@ -246,6 +280,10 @@ targets:
         product: "DictionaryCoding"
       - framework: libcrypto.xcframework
         embed: false
+      - framework: tutasdk.framework
+        embed: false
+      - target: argon2
+        link: true
   TutanotaNotificationExtension:
     type: "app-extension"
     platform: "iOS"
@@ -262,15 +300,12 @@ targets:
         ENABLE_USER_SCRIPT_SANDBOXING: "YES"
         LOCALIZATION_PREFERS_STRING_CATALOGS: "YES"
         INFOPLIST_FILE: "TutanotaNotificationExtension/Info.plist"
-        GENERATE_INFOPLIST_FILE: "NO"
         PRODUCT_BUNDLE_IDENTIFIER: "$(inherited).TutanotaNotificationExtension"
       groups:
         - "codeSigning"
         - "extension"
     dependencies:
       - target: "TutanotaSharedFramework"
-      - framework: tutasdk.framework
-        embed: false
   TutanotaSharedTests:
     type: "bundle.unit-test"
     platform: "iOS"
@@ -282,17 +317,17 @@ targets:
       GCC_NO_COMMON_BLOCKS: "YES"
       CLANG_CXX_LANGUAGE_STANDARD: "gnu++20"
       ASSETCATALOG_COMPILER_GENERATE_SWIFT_ASSET_SYMBOL_EXTENSIONS: "YES"
-      IPHONEOS_DEPLOYMENT_TARGET: "15.5"
+      IPHONEOS_DEPLOYMENT_TARGET: "17.2"
       LOCALIZATION_PREFERS_STRING_CATALOGS: "YES"
       SWIFT_EMIT_LOC_STRINGS: "YES"
       GENERATE_INFOPLIST_FILE: "YES"
       PRODUCT_NAME: "$(TARGET_NAME)"
       CODE_SIGN_STYLE: "Automatic"
-      TEST_HOST: "$(BUILT_PRODUCTS_DIR)/Tuta D.app/$(BUNDLE_EXECUTABLE_FOLDER_PATH)/Tuta D"
+      TEST_HOST: "$(BUILT_PRODUCTS_DIR)/Tuta CD.app/$(BUNDLE_EXECUTABLE_FOLDER_PATH)/Tuta CD"
       CURRENT_PROJECT_VERSION: "1"
       MARKETING_VERSION: "1.0"
     dependencies:
-      - target: "tutanota"
+      - target: "calendar"
       - target: "TutanotaSharedFramework"
         embed: false
       - package: "Mockingbird"
@@ -326,10 +361,10 @@ targetTemplates:
         showEnvVars: true
         basedOnDependencyAnalysis: false
 schemes:
-  tuta debug:
+  calendar debug:
     build:
       targets:
-        tutanota: ["analyze", "test", "run", "profile"]
+        calendar: ["analyze", "test", "run", "profile"]
         tutanotaTests: ["test"]
     run:
       config: "Debug Development"
@@ -339,10 +374,10 @@ schemes:
       targets: ["tutanotaTests"]
     archive:
       config: "Release Development"
-  tuta staging:
+  calendar staging:
     build:
       targets:
-        tutanota: "all"
+        calendar: "all"
         tutanotaTests: ["test"]
     run:
       config: "Debug Staging"
@@ -351,10 +386,10 @@ schemes:
       targets: ["tutanotaTests"]
     archive:
       config: "Release Staging"
-  tuta prod:
+  calendar prod:
     build:
       targets:
-        tutanota: "all"
+        calendar: "all"
         tutanotaTests: ["test"]
     run:
       config: "Debug Production"
