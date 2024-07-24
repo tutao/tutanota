@@ -55,7 +55,7 @@ pipeline {
 						} // docker
 					} // agent
 					steps {
-						dir('/opt/jenkins/jobs/debian-11-container/workspace/tutanota-3') {
+						dir('/tutanota-3') {
 							sh 'npm ci'
 							sh 'npm run build-packages'
 							sh 'node webapp.js release'
