@@ -55,6 +55,8 @@ pipeline {
 						} // docker
 					} // agent
 					steps {
+						sh 'printenv'
+						sh 'bash -c "printenv"'
 						sh 'bash -c "echo $PATH"'
 						sh 'bash -c "cat /home/node/.bashrc"'
 						sh 'bash -c "npm ci"'
