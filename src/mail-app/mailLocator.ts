@@ -936,6 +936,7 @@ class MailLocator {
 			this.entityClient,
 			this.userManagementFacade,
 			this.customerFacade,
+			this.themeController,
 			() => this.showSetupWizard(),
 			() => {
 				mailLocator.fileApp.clearFileData().catch((e) => console.log("Failed to clean file data", e))

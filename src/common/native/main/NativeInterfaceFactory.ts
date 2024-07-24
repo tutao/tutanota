@@ -72,7 +72,7 @@ export function createNativeInterfaces(
 	app: AppType,
 ): NativeInterfaces {
 	if (isBrowser()) {
-		throw new ProgrammingError("Tried to make native Interfaces.ts in non-native")
+		throw new ProgrammingError("Tried to make native interfaces in non-native")
 	}
 
 	const dispatcher = new WebGlobalDispatcher(commonNativeFacade, desktopFacade, interWindowEventFacade, mobileFacade)
@@ -101,7 +101,7 @@ export function createNativeInterfaces(
 
 export function createDesktopInterfaces(native: NativeInterfaceMain): DesktopInterfaces {
 	if (!isElectronClient()) {
-		throw new ProgrammingError("tried to create desktop Interfaces.ts in non-electron client")
+		throw new ProgrammingError("tried to create desktop interfaces in non-electron client")
 	}
 	return {
 		searchTextFacade: new SearchTextInAppFacadeSendDispatcher(native),

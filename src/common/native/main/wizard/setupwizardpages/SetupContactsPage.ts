@@ -15,7 +15,7 @@ export class SetupContactsPage implements Component<SetupContactsPageAttrs> {
 		return m(SetupPageLayout, { image: "contacts" }, this.renderImportAndSyncButtons(attrs))
 	}
 
-	private renderImportAndSyncButtons(attrs: SetupContactsPageAttrs) {
+	private renderImportAndSyncButtons(attrs: SetupContactsPageAttrs): Children {
 		const isContactSyncEnabled = attrs.syncManager.isEnabled()
 
 		return [
@@ -35,7 +35,7 @@ export class SetupContactsPage implements Component<SetupContactsPageAttrs> {
 		]
 	}
 
-	private async enableSync(attrs: SetupContactsPageAttrs) {
+	private async enableSync(attrs: SetupContactsPageAttrs): Promise<void> {
 		attrs.syncManager.enableSync()
 		const success = await attrs.syncManager.syncContacts()
 		if (!success) {

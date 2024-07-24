@@ -9,7 +9,7 @@ import { IdentifierRow } from "../../../mail-app/settings/IdentifierRow.js"
 import { noOp, ofClass } from "@tutao/tutanota-utils"
 import { NotFoundError } from "../../../common/api/common/error/RestError.js"
 import { AppType, PushServiceType } from "../../../common/api/common/TutanotaConstants.js"
-import { SettingsNotificationTargets, SettingsNotificationTargetsAttrs } from "../../../common/settings/SettingsNotificationTargets.js"
+import { NotificationTargetsList, NotificationTargetsListAttrs } from "../../../common/settings/NotificationTargetsList.js"
 import { EntityUpdateData, isUpdateForTypeRef } from "../../../common/api/common/utils/EntityUpdateUtils.js"
 import { calendarLocator } from "../../calendarLocator.js"
 
@@ -53,7 +53,7 @@ export class NotificationSettingsViewer implements UpdatableSettingsViewer {
 		return m(".fill-absolute.scroll.plr-l.pb-xl", [
 			m(".flex.col", [
 				m(".flex-space-between.items-center.mt-l.mb-s", [m(".h4", lang.get("notificationSettings_action"))]),
-				m(SettingsNotificationTargets, { rowAdd: null, rows, onExpandedChange: this.expanded } satisfies SettingsNotificationTargetsAttrs),
+				m(NotificationTargetsList, { rowAdd: null, rows, onExpandedChange: this.expanded } satisfies NotificationTargetsListAttrs),
 			]),
 		])
 	}

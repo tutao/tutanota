@@ -144,7 +144,7 @@ export class SettingsView extends BaseTopLevelView implements TopLevelView<Setti
 							{
 								class: styles.isUsingBottomNavigation() ? "" : "border-radius-top-left-big",
 							},
-							m(this._getCurrentViewer()!),
+							m(this.getCurrentViewer()),
 						),
 						mobileHeader: () =>
 							m(MobileHeader, {
@@ -364,7 +364,7 @@ export class SettingsView extends BaseTopLevelView implements TopLevelView<Setti
 		)
 	}
 
-	_getCurrentViewer(): UpdatableSettingsViewer | null {
+	private getCurrentViewer(): UpdatableSettingsViewer {
 		if (!this._currentViewer) {
 			this.detailsViewer = null
 			this._currentViewer = this._selectedFolder.viewerCreator()
@@ -400,7 +400,7 @@ export class SettingsView extends BaseTopLevelView implements TopLevelView<Setti
 				this.detailsViewer = null
 
 				// make sure the currentViewer is available
-				this._getCurrentViewer()
+				this.getCurrentViewer()
 
 				m.redraw()
 			}

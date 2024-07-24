@@ -556,7 +556,7 @@ class CalendarLocator {
 		this.logins.init()
 		this.eventController = new EventController(calendarLocator.logins)
 		this.progressTracker = new ProgressTracker()
-		this.search = new CalendarSearchModel(this.searchFacade, () => this.calendarEventsRepository())
+		this.search = new CalendarSearchModel(() => this.calendarEventsRepository())
 		this.entityClient = new EntityClient(restInterface)
 		this.cryptoFacade = cryptoFacade
 		this.cacheStorage = cacheStorage
@@ -806,6 +806,7 @@ class CalendarLocator {
 			this.entityClient,
 			this.userManagementFacade,
 			this.customerFacade,
+			this.themeController,
 			() => this.showSetupWizard(),
 			() => {
 				calendarLocator.fileApp.clearFileData().catch((e) => console.log("Failed to clean file data", e))

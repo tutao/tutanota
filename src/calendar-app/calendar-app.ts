@@ -513,6 +513,7 @@ function makeViewResolver<FullAttrs extends TopLevelAttrs = never, ComponentType
 	}
 }
 
+// This is only used for non-mobile webauthn, so this may need to be removed if we do not have a separate calendar web/desktop app
 function makeOldViewResolver(
 	makeView: (args: {}, requestedPath: string) => Promise<TopLevelView>,
 	{ requireLogin, cacheView }: { requireLogin?: boolean; cacheView?: boolean } = {},

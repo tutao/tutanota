@@ -31,7 +31,7 @@ import { SearchFacade } from "../../../../common/api/worker/search/SearchFacade.
 import { LoginController } from "../../../../common/api/main/LoginController.js"
 import { EntityClient } from "../../../../common/api/common/EntityClient.js"
 import { containsEventOfType, EntityUpdateData, getEventOfType, isUpdateForTypeRef } from "../../../../common/api/common/utils/EntityUpdateUtils.js"
-import { CalendarInfo } from "../../../../calendar-app/calendar/model/CalendarModel.js"
+import { CalendarInfo } from "../../model/CalendarModel.js"
 import m from "mithril"
 import { CalendarFacade } from "../../../../common/api/worker/facades/lazy/CalendarFacade.js"
 import { ProgressTracker } from "../../../../common/api/main/ProgressTracker.js"
