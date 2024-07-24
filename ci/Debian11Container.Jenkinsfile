@@ -55,20 +55,9 @@ pipeline {
 						} // docker
 					} // agent
 					steps {
-						sh 'printenv'
-						sh 'bash -c "printenv"'
-						sh 'bash -c "echo $PATH"'
-						sh 'bash -c "ls -l /emsdk/upstream/bin"'
-						sh 'bash -c "cat /etc/profile"'
-						sh 'bash -c "ls -l /usr/local/sbin"'
-						sh 'bash -c "ls -l /usr/local/bin"'
-						sh 'bash -c "ls -l /usr/sbin"'
-						sh 'bash -c "ls -l /usr/bin"'
-						sh 'bash -c "ls -l /sbin"'
-						sh 'bash -c "ls -l /bin"'
-						sh 'bash -c "npm ci"'
-						sh 'bash -c "npm run build-packages"'
-						sh 'bash -c "node webapp.js release"'
+						sh 'npm ci'
+						sh 'npm run build-packages'
+						sh 'node webapp.js release'
 
 						// excluding web-specific and mobile specific parts which we don't need in desktop
 						stash includes: 'build/**', excludes: '**/braintree.html, **/index.html, **/app.html, **/desktop.html, **/index-index.js, **/index-app.js, **/index-desktop.js, **/sw.js', name: 'web_base'
@@ -76,5 +65,145 @@ pipeline {
 				}
 			}
 		}
+
+		stage('Build desktop clients') {
+			parallel {
+				stage('Linux') {
+					agent {
+						dockerfile {
+							filename 'Desktop.dockerfile'
+							label 'master'
+							dir 'ci'
+							additionalBuildArgs "--format docker"
+							args '--network host'
+						} // docker
+					}
+					environment {
+						PATH = "${env.PATH}"
+					}
+					steps {
+						initBuildArea()
+
+						sh 'node desktop --existing --platform linux'
+
+						dir('artifacts') {
+							stash includes: 'desktop-test/*', name:'linux_installer_test'
+							stash includes: 'desktop/*', name:'linux_installer'
+						}
+					}
+				}
+			}
+		}
+
+		stage('Build deb and publish') {
+			when { expression { params.RELEASE } }
+			agent {
+			 dockerfile {
+				filename 'Desktop.dockerfile'
+				label 'master'
+				dir 'ci'
+				additionalBuildArgs "--format docker"
+				args '--network host'
+			} // docker
+		    }
+			environment { PATH = "${env.PATH}" }
+			steps {
+				sh 'npm ci'
+				sh 'npm run build-packages'
+				sh 'rm -rf ./build/*'
+
+				dir('build') {
+					unstash 'linux_installer'
+					unstash 'mac_installer'
+					unstash 'win_installer'
+					unstash 'linux_installer_test'
+					unstash 'mac_installer_test'
+					unstash 'win_installer_test'
+				}
+
+				withCredentials([string(credentialsId: 'HSM_USER_PIN', variable: 'PW')]) {
+					sh '''export HSM_USER_PIN=${PW}; node buildSrc/signDesktopClients.js'''
+				}
+
+				sh 'node buildSrc/publish.js desktop'
+
+// 				script { // create release draft
+// 					def desktopLinux = "build/desktop/tutanota-desktop-linux.AppImage"
+// 					def desktopWin = "build/desktop/tutanota-desktop-win.exe"
+// 					def desktopMac = "build/desktop/tutanota-desktop-mac.dmg"
+//
+// 					writeFile file: "notes.txt", text: params.releaseNotes
+// 					catchError(stageResult: 'UNSTABLE', buildResult: 'SUCCESS', message: 'Failed to create github release page for desktop') {
+// 						withCredentials([string(credentialsId: 'github-access-token', variable: 'GITHUB_TOKEN')]) {
+// 							sh """node buildSrc/createReleaseDraft.js --name '${VERSION} (Desktop)' \
+// 																   --tag 'tutanota-desktop-release-${VERSION}' \
+// 																   --uploadFile '${WORKSPACE}/${desktopLinux}' \
+// 																   --uploadFile '${WORKSPACE}/${desktopWin}' \
+// 																   --uploadFile '${WORKSPACE}/${desktopMac}' \
+// 																   --notes notes.txt"""
+// 						} // withCredentials
+// 					} // catchError
+// 					sh "rm notes.txt"
+// 				} // script release draft
+
+// 				script { // upload to nexus
+// 					def util = load "ci/jenkins-lib/util.groovy"
+//
+// 					util.publishToNexus(
+// 							groupId: "app",
+// 							artifactId: "desktop-linux-test",
+// 							version: "${VERSION}",
+// 							assetFilePath: "${WORKSPACE}/build/desktop-test/tutanota-desktop-test-linux.AppImage",
+// 							fileExtension: 'AppImage'
+// 					)
+// 					util.publishToNexus(
+// 							groupId: "app",
+// 							artifactId: "desktop-win-test",
+// 							version: "${VERSION}",
+// 							assetFilePath: "${WORKSPACE}/build/desktop-test/tutanota-desktop-test-win.exe",
+// 							fileExtension: 'exe'
+// 					)
+// 					util.publishToNexus(
+// 							groupId: "app",
+// 							artifactId: "desktop-mac-test",
+// 							version: "${VERSION}",
+// 							assetFilePath: "${WORKSPACE}/build/desktop-test/tutanota-desktop-test-mac.dmg",
+// 							fileExtension: 'dmg'
+// 					)
+// 					util.publishToNexus(
+// 							groupId: "app",
+// 							artifactId: "desktop-linux",
+// 							version: "${VERSION}",
+// 							assetFilePath: "${WORKSPACE}/build/desktop/tutanota-desktop-linux.AppImage",
+// 							fileExtension: 'AppImage'
+// 					)
+// 					util.publishToNexus(
+// 							groupId: "app",
+// 							artifactId: "desktop-win",
+// 							version: "${VERSION}",
+// 							assetFilePath: "${WORKSPACE}/build/desktop/tutanota-desktop-win.exe",
+// 							fileExtension: 'exe'
+// 					)
+// 					util.publishToNexus(
+// 							groupId: "app",
+// 							artifactId: "desktop-mac",
+// 							version: "${VERSION}",
+// 							assetFilePath: "${WORKSPACE}/build/desktop/tutanota-desktop-mac.dmg",
+// 							fileExtension: 'dmg'
+// 					)
+// 				} // script upload to nexus
+
+			} // steps
+		} // stage build deb & publish
 	} // stages
 } // pipeline
+
+void initBuildArea() {
+	sh 'node -v'
+	sh 'npm -v'
+    sh 'npm ci'
+    sh 'npm run build-packages'
+    sh 'rm -rf ./build/*'
+    sh 'rm -rf ./native-cache/*'
+    unstash 'web_base'
+}
