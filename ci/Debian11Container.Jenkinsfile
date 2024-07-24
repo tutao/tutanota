@@ -56,7 +56,7 @@ pipeline {
 					} // agent
 					steps {
 						sh 'bash -c "echo $PATH"'
-						sh 'bash -c "cat ~/.bashrc"'
+						sh 'bash -c "cat /home/7009/.bashrc"'
 						sh 'bash -c "npm ci"'
 						sh 'bash -c "npm run build-packages"'
 						sh 'bash -c "node webapp.js release"'
