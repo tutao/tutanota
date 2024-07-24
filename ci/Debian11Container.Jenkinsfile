@@ -59,7 +59,7 @@ pipeline {
 						sh 'bash -c "printenv"'
 						sh 'bash -c "echo $PATH"'
 						sh 'bash -c "ls -l /emsdk/upstream/bin"'
-						sh 'bash -c "cat /etc/environment"'
+						sh 'bash -c "cat /etc/profile"'
 						sh 'bash -c "ls -l /usr/local/sbin"'
 						sh 'bash -c "ls -l /usr/local/bin"'
 						sh 'bash -c "ls -l /usr/sbin"'
