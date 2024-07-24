@@ -7,6 +7,8 @@
 #import <TutanotaSharedFramework/TUTLog.h>
 #import <TutanotaSharedFramework/TUTEncodingConverter.h>
 #import <TutanotaSharedFramework/PSPDFFastEnumeration.h>
+#import <TutanotaSharedFramework/argon2.h>
+#include <TutanotaSharedFramework/rand_entropy.h>
 
 //! Project version number for TutanotaSharedFramework.
 FOUNDATION_EXPORT double TutanotaSharedFrameworkVersionNumber;
