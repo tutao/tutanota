@@ -29,6 +29,7 @@ pipeline {
 				dir 'ci'
 				additionalBuildArgs "--format docker"
 				args '--network host'
+				reuseNode true
 			} // docker
 		} // agent
 			steps {
@@ -52,6 +53,7 @@ pipeline {
 							dir 'ci'
 							additionalBuildArgs "--format docker"
 							args '--network host'
+							reuseNode true
 						} // docker
 					} // agent
 					steps {
@@ -63,6 +65,24 @@ pipeline {
 							// excluding web-specific and mobile specific parts which we don't need in desktop
 							stash includes: 'build/**', excludes: '**/braintree.html, **/index.html, **/app.html, **/desktop.html, **/index-index.js, **/index-app.js, **/index-desktop.js, **/sw.js', name: 'web_base'
 						}
+					}
+				}
+				stage('Native modules') {
+					agent {
+						dockerfile {
+							filename 'Desktop.dockerfile'
+							label 'master'
+							dir 'ci'
+							additionalBuildArgs "--format docker"
+							args '--network host'
+							reuseNode true
+						} // docker
+					} // agent
+					steps {
+						bat "npm ci"
+
+						bat "node buildSrc\\getNativeLibrary.js better-sqlite3 --copy-target better_sqlite3 --force-rebuild --root-dir ${WORKSPACE}"
+						stash includes: 'native-cache/**/*', name: 'native_modules'
 					}
 				}
 			}
