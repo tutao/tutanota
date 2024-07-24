@@ -42,9 +42,9 @@ pipeline {
 		stage('Build dependencies') {
 			parallel {
 				stage('Build webapp') {
-					// environment {
-					// 	PATH = "${env.NODE_PATH}:${env.PATH}:/emsdk/upstream/bin/:/emsdk/:/emsdk/upstream/emscripten"
-					// }
+					environment {
+						PATH = "${env.NODE_PATH}:${env.PATH}:/emsdk/upstream/bin/:/emsdk/:/emsdk/upstream/emscripten"
+					}
 					agent {
 						dockerfile {
 							filename 'Desktop.dockerfile'
@@ -55,10 +55,10 @@ pipeline {
 						} // docker
 					} // agent
 					steps {
-						sh 'bash -c echo $PATH'
-						sh 'bash -c npm ci'
-						sh 'bash -c npm run build-packages'
-						sh 'bash -c node webapp.js release'
+						sh 'bash -c "echo $PATH"'
+						sh 'bash -c "npm ci"'
+						sh 'bash -c "npm run build-packages"'
+						sh 'bash -c "node webapp.js release"'
 
 						// excluding web-specific and mobile specific parts which we don't need in desktop
 						stash includes: 'build/**', excludes: '**/braintree.html, **/index.html, **/app.html, **/desktop.html, **/index-index.js, **/index-app.js, **/index-desktop.js, **/sw.js', name: 'web_base'
