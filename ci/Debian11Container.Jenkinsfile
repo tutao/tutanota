@@ -55,6 +55,7 @@ pipeline {
 						} // docker
 					} // agent
 					steps {
+						sh 'echo $PATH'
 						sh 'npm ci'
 						sh 'npm run build-packages'
 						sh 'node webapp.js release'
