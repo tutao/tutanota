@@ -4,13 +4,10 @@
 <dict>
 	<key>NSExtension</key>
 	<dict>
-		<key>NSExtensionPrincipalClass</key>
-		<string>TutanotaShareExtension.ShareViewController</string>
 		<key>NSExtensionAttributes</key>
 		<dict>
 			<key>NSExtensionActivationRule</key>
-      <!-- the initial example was stolen from wireapp/wire-ios -->
-      <string>
+			<string>
           (SUBQUERY(extensionItems, $extensionItem, SUBQUERY($extensionItem.attachments, $attachment, ANY $attachment.registeredTypeIdentifiers UTI-CONFORMS-TO "public.plain-text").@count &gt;= 1).@count &gt;= 1
           
           OR SUBQUERY(extensionItems, $extensionItem, SUBQUERY($extensionItem.attachments, $attachment, SUBQUERY($attachment.registeredTypeIdentifiers, $uti, $uti UTI-CONFORMS-TO "public.url").@count &gt;= 1).@count &gt;= 1).@count &gt;= 1
@@ -24,6 +21,8 @@
 		</dict>
 		<key>NSExtensionPointIdentifier</key>
 		<string>com.apple.share-services</string>
+		<key>NSExtensionPrincipalClass</key>
+		<string>TutanotaShareExtension.ShareViewController</string>
 	</dict>
 </dict>
 </plist>

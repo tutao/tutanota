@@ -18,7 +18,7 @@ class ViewController: UIViewController, WKNavigationDelegate, UIScrollViewDelega
 	private var isDarkTheme = false
 
 	init(
-		crypto: IosNativeCryptoFacade,
+		crypto: TutanotaSharedFramework.IosNativeCryptoFacade,
 		themeManager: ThemeManager,
 		keychainManager: KeychainManager,
 		notificationStorage: NotificationStorage,
