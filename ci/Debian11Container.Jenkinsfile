@@ -29,7 +29,6 @@ pipeline {
 				dir 'ci'
 				additionalBuildArgs "--format docker"
 				args '--network host'
-				reuseNode true
 			} // docker
 		} // agent
 			steps {
@@ -53,11 +52,9 @@ pipeline {
 							dir 'ci'
 							additionalBuildArgs "--format docker"
 							args '--network host'
-							reuseNode true
 						} // docker
 					} // agent
 					steps {
-						sh 'ls -a'
 						sh 'npm ci'
 						sh 'npm run build-packages'
 						sh 'node webapp.js release'

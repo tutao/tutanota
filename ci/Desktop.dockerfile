@@ -12,4 +12,3 @@ RUN git clone https://github.com/emscripten-core/emsdk.git \
 # Install Rust
 COPY download-rust.sh download-rust.sh
 RUN ./download-rust.sh
-
