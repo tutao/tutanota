@@ -9,9 +9,13 @@ RUN git clone https://github.com/emscripten-core/emsdk.git \
     && source emsdk/emsdk_env.sh
 ENV PATH="$PATH:/emsdk/upstream/bin:/emsdk/upstream/emscripten"
 
+# Install FPM
+RUN apt-get update && apt-get install -y ruby && gem install fpm:1.15.1
+
+# Install pkcs11-tool from OpenSC
+RUN apt-get install -y --no-install-recommends opensc
+
+
 # Install Rust
 COPY download-rust.sh download-rust.sh
 RUN ./download-rust.sh
-
-# Install FPM
-RUN apt update && apt install -y ruby && gem install fpm
