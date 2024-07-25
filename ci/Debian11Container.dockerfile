@@ -13,7 +13,7 @@ ENV PATH="$PATH:/emsdk/upstream/bin:/emsdk/upstream/emscripten"
 RUN apt-get update && apt-get install -y ruby && gem install fpm:1.15.1
 
 # Install pkcs11-tool from OpenSC
-RUN apt-get install -y --no-install-recommends opensc
+RUN apt-get install -y opensc
 
 
 # Install Rust
