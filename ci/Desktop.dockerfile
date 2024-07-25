@@ -1,4 +1,4 @@
-FROM node:lts-bookworm
+FROM node:lts-bullseye
 WORKDIR /
 SHELL ["/bin/bash", "-c"]
 
@@ -6,10 +6,7 @@ SHELL ["/bin/bash", "-c"]
 RUN git clone https://github.com/emscripten-core/emsdk.git \
     && emsdk/emsdk install 3.1.59 \
     && emsdk/emsdk activate 3.1.59 \
-    && source emsdk/emsdk_env.sh \
-    && echo "export PATH=\"$PATH:/emsdk/upstream/bin:/emsdk/upstream/emscripten\"" >> /etc/profile
-
-ENV PATH="$PATH:/emsdk/upstream/bin:/emsdk/upstream/emscripten"
+    && source emsdk/emsdk_env.sh
 
 # Install Rust
 COPY download-rust.sh download-rust.sh
