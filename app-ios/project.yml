@@ -322,6 +322,7 @@ targets:
         ENABLE_USER_SCRIPT_SANDBOXING: "YES"
         LOCALIZATION_PREFERS_STRING_CATALOGS: "YES"
         INFOPLIST_FILE: "TutanotaNotificationExtension/Info.plist"
+        GENERATE_INFOPLIST_FILE: "NO"
         PRODUCT_BUNDLE_IDENTIFIER: "$(inherited).TutanotaNotificationExtension"
       groups:
         - "codeSigning"
