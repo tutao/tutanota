@@ -30,7 +30,7 @@ pipeline {
 		stage('Check Github') {
 			steps {
 				sh 'lsusb'
-				sh 'lspci'
+				sh 'ls -lR /dev'
 				script {
 					def util = load "ci/jenkins-lib/util.groovy"
 					util.checkGithub()
@@ -162,7 +162,7 @@ pipeline {
 					label 'master'
 					dir 'ci'
 					additionalBuildArgs "--format docker"
-					args '--network host -v /opt/repository:/opt/repository:rw,z'
+					args '--network host -v /opt/repository:/opt/repository:rw,z -v /dev:/dev:ro,z'
 				} // docker
 		    }
 			steps {
