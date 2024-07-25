@@ -75,6 +75,17 @@ pipeline {
 						stash includes: 'build/**', excludes: '**/braintree.html, **/index.html, **/app.html, **/desktop.html, **/index-index.js, **/index-app.js, **/index-desktop.js, **/sw.js', name: 'web_base'
 					}
 				}
+				stage('Native modules') {
+					agent {
+						label 'win-native'
+					}
+					steps {
+						bat "npm ci"
+
+						bat "node buildSrc\\getNativeLibrary.js better-sqlite3 --copy-target better_sqlite3 --force-rebuild --root-dir ${WORKSPACE}"
+						stash includes: 'native-cache/**/*', name: 'native_modules'
+					}
+				}
 			}
 		}
 
