@@ -29,7 +29,8 @@ pipeline {
     stages {
 		stage('Check Github') {
 			steps {
-				sh 'pcscd -f -i;systemctl status pcscd'
+				sh 'lsusb'
+				sh 'lspci'
 				script {
 					def util = load "ci/jenkins-lib/util.groovy"
 					util.checkGithub()
