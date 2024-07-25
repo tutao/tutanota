@@ -132,7 +132,7 @@ import { ProgrammingError } from "../../../common/error/ProgrammingError.js"
 import { OwnerEncSessionKeyProvider } from "../../rest/EntityRestClient.js"
 import { resolveTypeReference } from "../../../common/EntityFunctions.js"
 import { KeyLoaderFacade } from "../KeyLoaderFacade.js"
-import { isDraft } from "../../../../mail/model/MailUtils.js"
+import { isDraft } from "../../../common/mail/CommonMailUtils.js"
 
 assertWorkerOrNode()
 type Attachments = ReadonlyArray<TutanotaFile | DataFile | FileReference>

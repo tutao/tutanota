@@ -27,7 +27,7 @@ import {
 	remove,
 	typedValues,
 } from "@tutao/tutanota-utils"
-import { checkAttachmentSize, getDefaultSender, getMailBodyText, getTemplateLanguages, isUserEmail, RecipientField } from "../model/MailUtils"
+import { checkAttachmentSize, getDefaultSender, getTemplateLanguages, isUserEmail, RecipientField } from "../model/MailUtils"
 import type { File as TutanotaFile, Mail, MailboxProperties, MailDetails } from "../../api/entities/tutanota/TypeRefs.js"
 import { ContactTypeRef, ConversationEntryTypeRef, File, FileTypeRef, MailboxPropertiesTypeRef, MailTypeRef } from "../../api/entities/tutanota/TypeRefs.js"
 import { FileNotFoundError } from "../../api/common/error/FileNotFoundError"
@@ -63,6 +63,7 @@ import { getSenderName } from "../../misc/MailboxPropertiesUtils.js"
 import { cleanMailAddress, findRecipientWithAddress } from "../../api/common/utils/CommonCalendarUtils.js"
 import { ProgrammingError } from "../../api/common/error/ProgrammingError.js"
 import { EntityUpdateData, isUpdateForTypeRef } from "../../api/common/utils/EntityUpdateUtils.js"
+import { getMailBodyText } from "../../api/common/mail/CommonMailUtils.js"
 
 assertMainOrNode()
 
