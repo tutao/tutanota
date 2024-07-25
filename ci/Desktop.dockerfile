@@ -12,3 +12,6 @@ ENV PATH="$PATH:/emsdk/upstream/bin:/emsdk/upstream/emscripten"
 # Install Rust
 COPY download-rust.sh download-rust.sh
 RUN ./download-rust.sh
+
+# Install FPM
+RUN apt update && apt install -y ruby && gem install fpm
