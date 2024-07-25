@@ -73,6 +73,7 @@ import { KeyCache } from "./facades/KeyCache.js"
 import { cryptoWrapper } from "./crypto/CryptoWrapper.js"
 import { RecoverCodeFacade } from "./facades/lazy/RecoverCodeFacade.js"
 import { CacheManagementFacade } from "./facades/lazy/CacheManagementFacade.js"
+import type { Credentials } from "../../misc/credentials/Credentials.js"
 
 assertWorkerOrNode()
 
@@ -271,7 +272,7 @@ export async function initLocator(worker: WorkerImpl, browserData: BrowserData) 
 	)
 
 	const loginListener: LoginListener = {
-		onFullLoginSuccess(sessionType: SessionType, cacheInfo: CacheInfo): Promise<void> {
+		onFullLoginSuccess(sessionType: SessionType, cacheInfo: CacheInfo, credentials: Credentials): Promise<void> {
 			if (!isTest() && sessionType !== SessionType.Temporary && !isAdminClient()) {
 				// index new items in background
 				console.log("initIndexer after log in")
@@ -279,7 +280,7 @@ export async function initLocator(worker: WorkerImpl, browserData: BrowserData) 
 				initIndexer(worker, cacheInfo, locator.keyLoader)
 			}
 
-			return mainInterface.loginListener.onFullLoginSuccess(sessionType, cacheInfo)
+			return mainInterface.loginListener.onFullLoginSuccess(sessionType, cacheInfo, credentials)
 		},
 
 		onLoginFailure(reason: LoginFailReason): Promise<void> {
