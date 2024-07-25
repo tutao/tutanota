@@ -72,6 +72,7 @@ async function packageAndPublishDeb({ version, fpmRootMapping, name, fpmAfterIns
 	const debName = `${name}_${version}_amd64.deb`
 	const destination = path.join(destinationDir, debName)
 
+	await $`/bin/mkdir -p ${destinationDir}`
 	await $`/bin/cp -f ./${debName} ${destination}`
 
 	// user puppet needs to read the deb file from jetty
