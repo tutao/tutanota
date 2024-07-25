@@ -343,7 +343,7 @@ o.spec("LoginFacadeTest", function () {
 				when(userFacade.isPartiallyLoggedIn()).thenDo(() => calls.includes("setUser"))
 
 				fullLoginDeferred = defer()
-				when(loginListener.onFullLoginSuccess(matchers.anything(), matchers.anything())).thenDo(() => fullLoginDeferred.resolve())
+				when(loginListener.onFullLoginSuccess(matchers.anything(), matchers.anything(), matchers.anything())).thenDo(() => fullLoginDeferred.resolve())
 			})
 
 			o("When using offline as a free user and with stable connection, login sync", async function () {
@@ -377,7 +377,7 @@ o.spec("LoginFacadeTest", function () {
 				})
 
 				const deferred = defer()
-				when(loginListener.onFullLoginSuccess(matchers.anything(), matchers.anything())).thenDo(() => deferred.resolve(null))
+				when(loginListener.onFullLoginSuccess(matchers.anything(), matchers.anything(), matchers.anything())).thenDo(() => deferred.resolve(null))
 
 				const result = await facade.resumeSession(credentials, { salt: user.salt!, kdfType: DEFAULT_KDF_TYPE }, dbKey, timeRangeDays)
 
@@ -509,7 +509,7 @@ o.spec("LoginFacadeTest", function () {
 				when(userFacade.isPartiallyLoggedIn()).thenDo(() => calls.includes("setUser"))
 
 				fullLoginDeferred = defer()
-				when(loginListener.onFullLoginSuccess(matchers.anything(), matchers.anything())).thenDo(() => fullLoginDeferred.resolve())
+				when(loginListener.onFullLoginSuccess(matchers.anything(), matchers.anything(), matchers.anything())).thenDo(() => fullLoginDeferred.resolve())
 			})
 
 			o("When successfully logged in, userFacade is initialised", async function () {
@@ -613,7 +613,7 @@ o.spec("LoginFacadeTest", function () {
 				when(userFacade.isPartiallyLoggedIn()).thenDo(() => calls.includes("setUser"))
 
 				fullLoginDeferred = defer()
-				when(loginListener.onFullLoginSuccess(matchers.anything(), matchers.anything())).thenDo(() => fullLoginDeferred.resolve())
+				when(loginListener.onFullLoginSuccess(matchers.anything(), matchers.anything(), matchers.anything())).thenDo(() => fullLoginDeferred.resolve())
 			})
 
 			o("When successfully logged in, userFacade is initialised", async function () {
