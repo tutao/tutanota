@@ -56,9 +56,6 @@ pipeline {
 		stage('Build dependencies') {
 			parallel {
 				stage('Build webapp') {
-					environment {
-						PATH = "${env.PATH}:/emsdk/upstream/bin/:/emsdk:/emsdk/upstream/emscripten"
-					}
 					agent {
 						dockerfile {
 							filename 'Desktop.dockerfile'
@@ -92,9 +89,6 @@ pipeline {
 							args '--network host'
 						} // docker
 					}
-					environment {
-						PATH = "${env.PATH}"
-					}
 					steps {
 						initBuildArea()
 
@@ -109,18 +103,26 @@ pipeline {
 			}
 		}
 
+		stage('Preparation for build deb and publish') {
+			when { expression { params.RELEASE } }
+			agent {
+				label 'linux'
+			}
+			steps {
+				sh 'ls -lah /opt'
+			}
+		}
 		stage('Build deb and publish') {
 			when { expression { params.RELEASE } }
 			agent {
-			 dockerfile {
-				filename 'Desktop.dockerfile'
-				label 'master'
-				dir 'ci'
-				additionalBuildArgs "--format docker"
-				args '--network host'
-			} // docker
+					dockerfile {
+					filename 'Desktop.dockerfile'
+					label 'master'
+					dir 'ci'
+					additionalBuildArgs "--format docker"
+					args '--network host -v /opt/repository:/opt/repository:rw,z'
+				} // docker
 		    }
-			environment { PATH = "${env.PATH}" }
 			steps {
 				sh 'npm ci'
 				sh 'npm run build-packages'
