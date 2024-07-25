@@ -7,9 +7,9 @@ import type { HtmlSanitizer } from "../../misc/HtmlSanitizer"
 import { promiseMap } from "@tutao/tutanota-utils"
 import { DataFile } from "../../api/common/DataFile"
 import { FileController } from "../../file/FileController"
-import { getMailBodyText, loadMailDetails, loadMailHeaders } from "../model/MailUtils.js"
+import { loadMailDetails, loadMailHeaders } from "../model/MailUtils.js"
 import { MailFacade } from "../../api/worker/facades/lazy/MailFacade.js"
-import { getDisplayedSender, MailAddressAndName } from "../../api/common/mail/CommonMailUtils.js"
+import { getDisplayedSender, getMailBodyText, MailAddressAndName } from "../../api/common/mail/CommonMailUtils.js"
 import { CryptoFacade } from "../../api/worker/crypto/CryptoFacade.js"
 
 /**

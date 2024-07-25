@@ -31,7 +31,7 @@ import { getListId } from "../../api/common/utils/EntityUtils"
 import { FolderSystem } from "../../api/common/mail/FolderSystem.js"
 import { ListFilter } from "../../misc/ListModel.js"
 import { MailFacade } from "../../api/worker/facades/lazy/MailFacade.js"
-import { getDisplayedSender, isSystemNotification } from "../../api/common/mail/CommonMailUtils.js"
+import { getDisplayedSender, isDraft, isSystemNotification } from "../../api/common/mail/CommonMailUtils.js"
 import { ProgrammingError } from "../../api/common/error/ProgrammingError.js"
 import { FontIcons } from "../../gui/base/icons/FontIcons.js"
 
@@ -376,10 +376,6 @@ export function getPathToFolderString(folderSystem: FolderSystem, folder: MailFo
 	return folderPath.map(getFolderName).join(" · ")
 }
 
-export function isDraft(mail: Mail): boolean {
-	return mail.mailDetailsDraft != null
-}
-
 export async function loadMailDetails(mailFacade: MailFacade, mail: Mail): Promise<MailDetails> {
 	if (isDraft(mail)) {
 		const detailsDraftId = assertNotNull(mail.mailDetailsDraft)
@@ -388,10 +384,6 @@ export async function loadMailDetails(mailFacade: MailFacade, mail: Mail): Promi
 		const mailDetailsId = neverNull(mail.mailDetails)
 		return mailFacade.loadMailDetailsBlob(mail)
 	}
-}
-
-export function getMailBodyText(body: Body): string {
-	return body.compressedText ?? body.text ?? ""
 }
 
 export function getMailHeaders(headers: Header): string {

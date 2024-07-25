@@ -44,7 +44,6 @@ import {
 	getDefaultSender,
 	getEnabledMailAddressesWithUser,
 	getFolderName,
-	getMailBodyText,
 	getMailboxName,
 	getPathToFolderString,
 	loadMailDetails,
@@ -74,6 +73,7 @@ import { SearchModel } from "../../search/model/SearchModel.js"
 import {
 	assertSystemFolderOfType,
 	getDisplayedSender,
+	getMailBodyText,
 	isNoReplyTeamAddress,
 	isSystemNotification,
 	isTutanotaTeamMail,
