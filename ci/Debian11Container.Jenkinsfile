@@ -1,7 +1,8 @@
 pipeline {
     environment {
     	// on m1 macs, this is a symlink that must be updated. see wiki.
-        VERSION = sh(returnStdout: true, script: "${env.NODE_PATH}/node -p -e \"require('./package.json').version\" | tr -d \"\n\"")
+//         VERSION = sh(returnStdout: true, script: "${env.NODE_PATH}/node -p -e \"require('./package.json').version\" | tr -d \"\n\"")
+        VERSION = '235.240718.1'
         TMPDIR='/tmp'
     }
     options {
@@ -154,8 +155,6 @@ pipeline {
 							sh """node buildSrc/createReleaseDraft.js --name '${VERSION} (Desktop)' \
 																   --tag 'tutanota-desktop-release-${VERSION}' \
 																   --uploadFile '${WORKSPACE}/${desktopLinux}' \
-// 																   --uploadFile '${WORKSPACE}/${desktopWin}' \
-// 																   --uploadFile '${WORKSPACE}/${desktopMac}' \
 																   --notes notes.txt"""
 						} // withCredentials
 					} // catchError
