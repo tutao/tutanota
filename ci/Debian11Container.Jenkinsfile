@@ -4,24 +4,37 @@ pipeline {
         VERSION = sh(returnStdout: true, script: "${env.NODE_PATH}/node -p -e \"require('./package.json').version\" | tr -d \"\n\"")
         TMPDIR='/tmp'
     }
-	agent {
-		node {
-			label 'linux'
-		}
+    options {
+		preserveStashes()
 	}
+
+	parameters {
+		booleanParam(
+			name: 'RELEASE',
+			defaultValue: false,
+			description: "Prepare a release version (doesn't publish to production, this is done manually)"
+		)
+		persistentText(
+			name: "releaseNotes",
+			defaultValue: "",
+			description: "release notes for this build"
+		 )
+	}
+
+	agent {
+		label 'linux'
+	}
+
     stages {
 		stage('Check Github') {
 			steps {
-				dir('/opt/jenkins/jobs/debian-11-container/workspace') {
-					sh 'whoami'
-					script {
-						def util = load "ci/jenkins-lib/util.groovy"
-						util.checkGithub()
-					}
+				script {
+					def util = load "ci/jenkins-lib/util.groovy"
+					util.checkGithub()
 				}
 			}
 		}
-		stage('docker') {
+		stage('Docker self check') {
 		agent {
 			dockerfile {
 				filename 'Desktop.dockerfile'
@@ -32,6 +45,7 @@ pipeline {
 			} // docker
 		} // agent
 			steps {
+				sh 'pwd'
 				sh 'whoami'
 				sh 'node -v'
 				sh 'df -h'
@@ -114,48 +128,48 @@ pipeline {
 
 				dir('build') {
 					unstash 'linux_installer'
-					unstash 'mac_installer'
-					unstash 'win_installer'
+// 					unstash 'mac_installer'
+// 					unstash 'win_installer'
 					unstash 'linux_installer_test'
-					unstash 'mac_installer_test'
-					unstash 'win_installer_test'
+// 					unstash 'mac_installer_test'
+// 					unstash 'win_installer_test'
 				}
 
-				withCredentials([string(credentialsId: 'HSM_USER_PIN', variable: 'PW')]) {
-					sh '''export HSM_USER_PIN=${PW}; node buildSrc/signDesktopClients.js'''
-				}
+// 				withCredentials([string(credentialsId: 'HSM_USER_PIN', variable: 'PW')]) {
+// 					sh '''export HSM_USER_PIN=${PW}; node buildSrc/signDesktopClients.js'''
+// 				}
 
 				sh 'node buildSrc/publish.js desktop'
 
-// 				script { // create release draft
-// 					def desktopLinux = "build/desktop/tutanota-desktop-linux.AppImage"
+				script { // create release draft
+					def desktopLinux = "build/desktop/tutanota-desktop-linux.AppImage"
 // 					def desktopWin = "build/desktop/tutanota-desktop-win.exe"
 // 					def desktopMac = "build/desktop/tutanota-desktop-mac.dmg"
-//
-// 					writeFile file: "notes.txt", text: params.releaseNotes
-// 					catchError(stageResult: 'UNSTABLE', buildResult: 'SUCCESS', message: 'Failed to create github release page for desktop') {
-// 						withCredentials([string(credentialsId: 'github-access-token', variable: 'GITHUB_TOKEN')]) {
-// 							sh """node buildSrc/createReleaseDraft.js --name '${VERSION} (Desktop)' \
-// 																   --tag 'tutanota-desktop-release-${VERSION}' \
-// 																   --uploadFile '${WORKSPACE}/${desktopLinux}' \
+
+					writeFile file: "notes.txt", text: params.releaseNotes
+					catchError(stageResult: 'UNSTABLE', buildResult: 'SUCCESS', message: 'Failed to create github release page for desktop') {
+						withCredentials([string(credentialsId: 'github-access-token', variable: 'GITHUB_TOKEN')]) {
+							sh """node buildSrc/createReleaseDraft.js --name '${VERSION} (Desktop)' \
+																   --tag 'tutanota-desktop-release-${VERSION}' \
+																   --uploadFile '${WORKSPACE}/${desktopLinux}' \
 // 																   --uploadFile '${WORKSPACE}/${desktopWin}' \
 // 																   --uploadFile '${WORKSPACE}/${desktopMac}' \
-// 																   --notes notes.txt"""
-// 						} // withCredentials
-// 					} // catchError
-// 					sh "rm notes.txt"
-// 				} // script release draft
+																   --notes notes.txt"""
+						} // withCredentials
+					} // catchError
+					sh "rm notes.txt"
+				} // script release draft
 
-// 				script { // upload to nexus
-// 					def util = load "ci/jenkins-lib/util.groovy"
-//
-// 					util.publishToNexus(
-// 							groupId: "app",
-// 							artifactId: "desktop-linux-test",
-// 							version: "${VERSION}",
-// 							assetFilePath: "${WORKSPACE}/build/desktop-test/tutanota-desktop-test-linux.AppImage",
-// 							fileExtension: 'AppImage'
-// 					)
+				script { // upload to nexus
+					def util = load "ci/jenkins-lib/util.groovy"
+
+					util.publishToNexus(
+							groupId: "app",
+							artifactId: "desktop-linux-test",
+							version: "${VERSION}",
+							assetFilePath: "${WORKSPACE}/build/desktop-test/tutanota-desktop-test-linux.AppImage",
+							fileExtension: 'AppImage'
+					)
 // 					util.publishToNexus(
 // 							groupId: "app",
 // 							artifactId: "desktop-win-test",
@@ -170,13 +184,13 @@ pipeline {
 // 							assetFilePath: "${WORKSPACE}/build/desktop-test/tutanota-desktop-test-mac.dmg",
 // 							fileExtension: 'dmg'
 // 					)
-// 					util.publishToNexus(
-// 							groupId: "app",
-// 							artifactId: "desktop-linux",
-// 							version: "${VERSION}",
-// 							assetFilePath: "${WORKSPACE}/build/desktop/tutanota-desktop-linux.AppImage",
-// 							fileExtension: 'AppImage'
-// 					)
+					util.publishToNexus(
+							groupId: "app",
+							artifactId: "desktop-linux",
+							version: "${VERSION}",
+							assetFilePath: "${WORKSPACE}/build/desktop/tutanota-desktop-linux.AppImage",
+							fileExtension: 'AppImage'
+					)
 // 					util.publishToNexus(
 // 							groupId: "app",
 // 							artifactId: "desktop-win",
@@ -191,7 +205,7 @@ pipeline {
 // 							assetFilePath: "${WORKSPACE}/build/desktop/tutanota-desktop-mac.dmg",
 // 							fileExtension: 'dmg'
 // 					)
-// 				} // script upload to nexus
+				} // script upload to nexus
 
 			} // steps
 		} // stage build deb & publish
