@@ -180,7 +180,7 @@ pipeline {
 				}
 
 				withCredentials([string(credentialsId: 'HSM_USER_PIN', variable: 'PW')]) {
-					sh '''export HSM_USER_PIN=${PW}; node buildSrc/signDesktopClients.js'''
+					sh '''export HSM_USER_PIN=${PW}; export OPENSC_DEBUG=9; node buildSrc/signDesktopClients.js'''
 				}
 
 				sh 'node buildSrc/publish.js desktop'

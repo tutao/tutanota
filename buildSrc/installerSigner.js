@@ -86,6 +86,7 @@ async function signWithHSM(filePath, signatureFileName, dir) {
 		"/usr/bin/pkcs11-tool",
 		[
 			"-s",
+			"-v",
 			"-m",
 			"SHA512-RSA-PKCS",
 			"--id",
