@@ -1,7 +1,10 @@
 import { SecondFactorHandler } from "../../misc/2fa/SecondFactorHandler.js"
 import { defer, DeferredObject } from "@tutao/tutanota-utils"
 import { Challenge } from "../entities/sys/TypeRefs.js"
-import { LoginListener } from "../worker/facades/LoginFacade.js"
+import { CacheInfo, LoginListener } from "../worker/facades/LoginFacade.js"
+import { SessionType } from "../common/SessionType.js"
+import { CredentialsProvider } from "../../misc/credentials/CredentialsProvider.js"
+import { Credentials, credentialsToUnencrypted } from "../../misc/credentials/Credentials.js"
 
 export const enum LoginFailReason {
 	SessionExpired,
@@ -13,7 +16,7 @@ export class PageContextLoginListener implements LoginListener {
 	private loginPromise: DeferredObject<void> = defer()
 	private fullLoginFailed: boolean = false
 
-	constructor(private readonly secondFactorHandler: SecondFactorHandler) {}
+	constructor(private readonly secondFactorHandler: SecondFactorHandler, private readonly credentialsProvider: CredentialsProvider) {}
 
 	/** e.g. after temp logout */
 	reset() {
@@ -28,8 +31,17 @@ export class PageContextLoginListener implements LoginListener {
 	/**
 	 * Full login reached: any network requests can be made
 	 */
-	async onFullLoginSuccess(): Promise<void> {
+	async onFullLoginSuccess(_sessionType: SessionType, _cacheInfo: CacheInfo, credentials: Credentials): Promise<void> {
 		this.fullLoginFailed = false
+		// Update the credentials after the full login.
+		// It is needed because we added encryptedPassphraseKey to credentials which is only
+		// available after the full login which happens async.
+		const storedCredentials = await this.credentialsProvider.getDecryptedCredentialsByUserId(credentials.userId)
+		if (storedCredentials != null) {
+			const updatedCredentials = credentialsToUnencrypted(credentials, storedCredentials.databaseKey)
+			await this.credentialsProvider.store(updatedCredentials)
+		}
+
 		this.loginPromise.resolve()
 	}
 

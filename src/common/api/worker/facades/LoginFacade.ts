@@ -1,4 +1,3 @@
-import { Base64Url, DeferredObject, Hex, uint8ArrayToString, utf8Uint8ArrayToString } from "@tutao/tutanota-utils"
 import {
 	arrayEquals,
 	assertNotNull,
@@ -6,12 +5,16 @@ import {
 	base64ToBase64Ext,
 	base64ToBase64Url,
 	base64ToUint8Array,
+	Base64Url,
 	base64UrlToBase64,
 	defer,
+	DeferredObject,
+	Hex,
 	hexToUint8Array,
 	neverNull,
 	ofClass,
 	uint8ArrayToBase64,
+	utf8Uint8ArrayToString,
 } from "@tutao/tutanota-utils"
 import {
 	ChangeKdfService,
@@ -146,7 +149,7 @@ export interface LoginListener {
 	/**
 	 * Full login reached: any network requests can be made
 	 */
-	onFullLoginSuccess(sessionType: SessionType, cacheInfo: CacheInfo): Promise<void>
+	onFullLoginSuccess(sessionType: SessionType, cacheInfo: CacheInfo, credentials: Credentials): Promise<void>
 
 	/**
 	 * call when the login fails for invalid session or other reasons
@@ -257,18 +260,23 @@ export class LoginFacade {
 			timeRangeDays: null,
 			forceNewDatabase,
 		})
-		const { user, userGroupInfo, accessToken } = await this.initSession(
-			sessionData.userId,
-			sessionData.accessToken,
-			userPassphraseKey,
-			sessionType,
-			cacheInfo,
-		)
+		const { user, userGroupInfo, accessToken } = await this.initSession(sessionData.userId, sessionData.accessToken, userPassphraseKey)
 
 		const modernKdfType = this.isModernKdfType(kdfType)
 		if (!modernKdfType) {
 			await this.migrateKdfType(KdfType.Argon2id, passphrase, user)
 		}
+
+		const credentials = {
+			login: mailAddress,
+			accessToken,
+			encryptedPassword: sessionType === SessionType.Persistent ? uint8ArrayToBase64(encryptString(neverNull(accessKey), passphrase)) : null,
+			encryptedPassphraseKey: sessionType === SessionType.Persistent ? encryptKey(neverNull(accessKey), userPassphraseKey) : null,
+			userId: sessionData.userId,
+			type: CredentialType.Internal,
+		}
+		this.loginListener.onFullLoginSuccess(sessionType, cacheInfo, credentials)
+
 		if (!isAdminClient()) {
 			await this.keyRotationFacade.initialize(userPassphraseKey, modernKdfType)
 		}
@@ -277,14 +285,7 @@ export class LoginFacade {
 			user,
 			userGroupInfo,
 			sessionId: sessionData.sessionId,
-			credentials: {
-				login: mailAddress,
-				accessToken,
-				encryptedPassword: sessionType === SessionType.Persistent ? uint8ArrayToBase64(encryptString(neverNull(accessKey), passphrase)) : null,
-				encryptedPassphraseKey: sessionType === SessionType.Persistent ? encryptKey(neverNull(accessKey), userPassphraseKey) : null,
-				userId: sessionData.userId,
-				type: CredentialType.Internal,
-			},
+			credentials: credentials,
 			// we always try to make a persistent cache with a key for persistent session, but this
 			// falls back to ephemeral cache in browsers. no point storing the key then.
 			databaseKey: cacheInfo.isPersistent ? databaseKey : null,
@@ -445,25 +446,21 @@ export class LoginFacade {
 			timeRangeDays: null,
 			forceNewDatabase: true,
 		})
-		const { user, userGroupInfo, accessToken } = await this.initSession(
-			createSessionReturn.user,
-			createSessionReturn.accessToken,
-			userPassphraseKey,
-			SessionType.Login,
-			cacheInfo,
-		)
+		const { user, userGroupInfo, accessToken } = await this.initSession(createSessionReturn.user, createSessionReturn.accessToken, userPassphraseKey)
+		const credentials = {
+			login: userId,
+			accessToken,
+			encryptedPassword: accessKey ? uint8ArrayToBase64(encryptString(accessKey, passphrase)) : null,
+			encryptedPassphraseKey: accessKey ? encryptKey(accessKey, userPassphraseKey) : null,
+			userId,
+			type: CredentialType.External,
+		}
+		this.loginListener.onFullLoginSuccess(SessionType.Login, cacheInfo, credentials)
 		return {
 			user,
 			userGroupInfo,
 			sessionId,
-			credentials: {
-				login: userId,
-				accessToken,
-				encryptedPassword: accessKey ? uint8ArrayToBase64(encryptString(accessKey, passphrase)) : null,
-				encryptedPassphraseKey: accessKey ? encryptKey(accessKey, userPassphraseKey) : null,
-				userId,
-				type: CredentialType.External,
-			},
+			credentials: credentials,
 			databaseKey: null,
 		}
 	}
@@ -672,13 +669,8 @@ export class LoginFacade {
 			throw new ProgrammingError("no key or password stored in credentials!")
 		}
 
-		const { user, userGroupInfo } = await this.initSession(
-			sessionData.userId,
-			credentials.accessToken,
-			userPassphraseKey,
-			SessionType.Persistent,
-			cacheInfo,
-		)
+		const { user, userGroupInfo } = await this.initSession(sessionData.userId, credentials.accessToken, userPassphraseKey)
+		this.loginListener.onFullLoginSuccess(SessionType.Persistent, cacheInfo, credentials)
 
 		this.asyncLoginState = { state: "idle" }
 
@@ -707,8 +699,6 @@ export class LoginFacade {
 		userId: Id,
 		accessToken: Base64Url,
 		userPassphraseKey: AesKey,
-		sessionType: SessionType,
-		cacheInfo: CacheInfo,
 	): Promise<{ user: User; accessToken: string; userGroupInfo: GroupInfo }> {
 		// We might have userId already if:
 		// - session has expired and a new one was created
@@ -746,7 +736,6 @@ export class LoginFacade {
 			}
 
 			await this.entropyFacade.storeEntropy()
-			this.loginListener.onFullLoginSuccess(sessionType, cacheInfo)
 			return { user, accessToken, userGroupInfo }
 		} catch (e) {
 			this.resetSession()

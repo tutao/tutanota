@@ -628,8 +628,8 @@ class CalendarLocator {
 			this.loginFacade,
 			this.domainConfigProvider(),
 		)
-		this.loginListener = new PageContextLoginListener(this.secondFactorHandler)
 		this.credentialsProvider = await this.createCredentialsProvider()
+		this.loginListener = new PageContextLoginListener(this.secondFactorHandler, this.credentialsProvider)
 		this.random = random
 
 		this.usageTestModel = new UsageTestModel(
