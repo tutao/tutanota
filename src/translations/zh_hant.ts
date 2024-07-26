@@ -826,7 +826,7 @@ export default {
 		"languageVietnamese_label": "越南語",
 		"languageWelsh_label": "威爾斯語",
 		"language_label": "語言",
-		"largeSignature_msg": "您定義的簽名大小超過{1} kB。它將預設附加到每封電郵。您仍然想使用它嗎？",
+		"largeSignature_msg": "您定義的簽名大小超過{1} KB。它將預設附加到每封電郵。您仍然想使用它嗎？",
 		"lastAccessWithTime_label": "最後訪問：{time}",
 		"lastAccess_label": "最後訪問",
 		"lastName_placeholder": "姓氏",
