@@ -825,7 +825,7 @@ export default {
 		"languageVietnamese_label": "vietnamščina",
 		"languageWelsh_label": "valižanščina",
 		"language_label": "Jezik",
-		"largeSignature_msg": "Podpis, ki ste ga določili, je večji od {1} kB. Privzeto bo pripet k vsakemu sporočilu. Ga vseeno želite uporabiti?",
+		"largeSignature_msg": "Podpis, ki ste ga določili, je večji od {1} KB. Privzeto bo pripet k vsakemu sporočilu. Ga vseeno želite uporabiti?",
 		"lastAccessWithTime_label": "Zadnji dostop: {time}",
 		"lastAccess_label": "Zadnji dostop",
 		"lastName_placeholder": "Priimek",
