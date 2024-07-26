@@ -825,7 +825,7 @@ export default {
 		"languageVietnamese_label": "Vietnamština",
 		"languageWelsh_label": "Velština",
 		"language_label": "Jazyk",
-		"largeSignature_msg": "Vámi definovaný podpis má velikost více než {1} kB. Ve výchozím nastavení se připojí ke každému e-mailu. Chcete přesto tento podpis použít?",
+		"largeSignature_msg": "Vámi definovaný podpis má velikost více než {1} KB. Ve výchozím nastavení se připojí ke každému e-mailu. Chcete přesto tento podpis použít?",
 		"lastAccessWithTime_label": "Poslední přístup: {time}",
 		"lastAccess_label": "Poslední přístup",
 		"lastName_placeholder": "Příjmení",
