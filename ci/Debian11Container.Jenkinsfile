@@ -151,7 +151,7 @@ pipeline {
 				label 'linux'
 			}
 			steps {
-				devicePath =  sh (script: 'lsusb | grep Nitro | sed -nr 's|Bus (.*) Device ([^:]*):.*|/dev/bus/usb/\1/\2|p'', returnStdout: true).trim()
+				devicePath =  sh (script: 'lsusb | grep Nitro | sed -nr \'s|Bus (.*) Device ([^:]*):.*|/dev/bus/usb/\1/\2|p\'', returnStdout: true).trim()
 					env.DEVICE_PATH = devicePath
 			}
 		}
