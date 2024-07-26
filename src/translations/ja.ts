@@ -766,7 +766,7 @@ export default {
 		"languageVietnamese_label": "ベトナム語",
 		"languageWelsh_label": "ウェールズ語",
 		"language_label": "言語",
-		"largeSignature_msg": "設定された署名が{1}kBを超えています。デフォルトですべてのメールに添付されます。それでも署名を使用しますか？",
+		"largeSignature_msg": "設定された署名が{1}KBを超えています。デフォルトですべてのメールに添付されます。それでも署名を使用しますか？",
 		"lastAccessWithTime_label": "最終アクセス: {time}",
 		"lastAccess_label": "最終アクセス",
 		"lastName_placeholder": "姓",
