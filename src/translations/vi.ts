@@ -758,7 +758,7 @@ export default {
 		"languageVietnamese_label": "Tiếng Việt",
 		"languageWelsh_label": "Tiếng Wales",
 		"language_label": "Ngôn ngữ",
-		"largeSignature_msg": "Chữ kí mà bạn tạo lớn hơn {1}kB. Mặc định nó sẽ được nối vào mọi thư. Bạn vẫn muốn dùng nó chứ?",
+		"largeSignature_msg": "Chữ kí mà bạn tạo lớn hơn {1}KB. Mặc định nó sẽ được nối vào mọi thư. Bạn vẫn muốn dùng nó chứ?",
 		"lastAccess_label": "Truy cập cuối",
 		"lastName_placeholder": "Họ",
 		"lastSync_label": "Lần đồng bộ hoá cuối: {date}",
