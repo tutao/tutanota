@@ -184,6 +184,7 @@ pipeline {
 				}
 
 				sh 'node buildSrc/publish.js desktop'
+				sh 'ps -xj'
 
 				script { // create release draft
 					def desktopLinux = "build/desktop/tutanota-desktop-linux.AppImage"
