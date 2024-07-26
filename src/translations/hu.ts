@@ -823,7 +823,7 @@ export default {
 		"languageVietnamese_label": "Vietnámi",
 		"languageWelsh_label": "velszi",
 		"language_label": "Nyelv",
-		"largeSignature_msg": "A megadott aláírása több, mint {1}kB méretű. Alapértelmezés szerint minden e-mailhez hozzá lesz fűzve. Mindenképpen használni akarja?",
+		"largeSignature_msg": "A megadott aláírása több, mint {1}KB méretű. Alapértelmezés szerint minden e-mailhez hozzá lesz fűzve. Mindenképpen használni akarja?",
 		"lastAccessWithTime_label": "Utolsó hozzáférés: {time}",
 		"lastAccess_label": "Utolsó hozzáférés",
 		"lastName_placeholder": "Vezetéknév",
