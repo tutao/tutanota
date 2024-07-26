@@ -30,7 +30,6 @@ pipeline {
 		stage('Check Github') {
 			steps {
 				sh 'lsusb'
-				sh 'ls -lR /dev'
 				script {
 					def util = load "ci/jenkins-lib/util.groovy"
 					util.checkGithub()
@@ -152,7 +151,7 @@ pipeline {
 			}
 			steps {
 				script {
-					def devicePath =  sh(script: 'lsusb | grep Nitro | sed -nr \'s|Bus (.*) Device ([^:]*):.*|/dev/bus/usb/\1/\2|p\'', returnStdout: true).trim()
+					def devicePath =  sh(script: 'lsusb | grep Nitro | sed -nr \'s|Bus (.*) Device ([^:]*):.*|/dev/bus/usb/\\1/\\2|p\'', returnStdout: true).trim()
 					env.DEVICE_PATH = devicePath
 				}
 			}
