@@ -825,7 +825,7 @@ export default {
 		"languageVietnamese_label": "Vietnamees",
 		"languageWelsh_label": "Welsh",
 		"language_label": "Taal",
-		"largeSignature_msg": "De ingestelde handtekening is groter dan {1} kB. Het wordt standaard aan elke e-mail toegevoegd. Wilt u de handtekening toch gebruiken?",
+		"largeSignature_msg": "De ingestelde handtekening is groter dan {1} KB. Het wordt standaard aan elke e-mail toegevoegd. Wilt u de handtekening toch gebruiken?",
 		"lastAccessWithTime_label": "Laatste toegang: {time}",
 		"lastAccess_label": "Laatste toegang",
 		"lastName_placeholder": "Achternaam",
