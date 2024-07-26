@@ -363,7 +363,7 @@ export class SendMailModel {
 		this.loadedInlineImages = cloneInlineImages(inlineImages)
 		const { confidential, sender, subject } = draft
 		const { toRecipients, ccRecipients, bccRecipients } = draftDetails.recipients
-		let recipients: Recipients = {
+		const recipients: Recipients = {
 			to: toRecipients,
 			cc: ccRecipients,
 			bcc: bccRecipients,
@@ -375,7 +375,7 @@ export class SendMailModel {
 			subject,
 			bodyText,
 			recipients,
-			draft: draft,
+			draft,
 			senderMailAddress: sender.address,
 			confidential,
 			attachments,
