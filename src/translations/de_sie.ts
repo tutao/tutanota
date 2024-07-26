@@ -831,7 +831,7 @@ export default {
 		"languageVietnamese_label": "Vietnamesisch",
 		"languageWelsh_label": "Walisisch",
 		"language_label": "Sprache",
-		"largeSignature_msg": "Die eingestellte Signatur ist größer als {1}kB. Sie wird standardmäßig an jede E-Mail angehängt. Möchten Sie die Signatur trotzdem verwenden?",
+		"largeSignature_msg": "Die eingestellte Signatur ist größer als {1}KB. Sie wird standardmäßig an jede E-Mail angehängt. Möchten Sie die Signatur trotzdem verwenden?",
 		"lastAccessWithTime_label": "Letzter Zugriff: {time}",
 		"lastAccess_label": "Letzter Zugriff",
 		"lastName_placeholder": "Nachname",
