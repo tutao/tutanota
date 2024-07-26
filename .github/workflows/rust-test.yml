@@ -1,0 +1,36 @@
+name: Rust CI
+
+on:
+  pull_request:
+    types: [ opened, synchronize, edited ]
+    paths:
+      - 'tuta-sdk/**'
+      - '.github/workflows/rust-test.yml'
+  push:
+    branches:
+      - dev-*
+
+jobs:
+  test:
+    runs-on: ubuntu-latest
+
+    permissions:
+      actions: none
+      checks: none
+      contents: read
+      deployments: none
+      id-token: none
+      issues: none
+      discussions: none
+      packages: none
+      pages: none
+      pull-requests: none
+      repository-projects: none
+      security-events: none
+      statuses: none
+
+    steps:
+      - uses: actions/checkout@b4ffde65f46336ab88eb53be808477a3936bae11 #v4.1.1
+      - name: sdk tests
+        working-directory: tuta-sdk/rust
+        run: cargo test
