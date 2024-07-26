@@ -7,7 +7,6 @@
 #import <openssl/bn.h>
 #import <openssl/rand.h>
 #import "rsa_oaep_sha256.h"
-#import "JFBCrypt.h"
 
 #import "TUTCrypto.h"
 #import "TUTEncodingConverter.h"

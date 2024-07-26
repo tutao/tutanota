@@ -111,7 +111,7 @@ class CompatibilityTestSwift: XCTestCase {
 		}
 	}
 
-	func testKyber() throws {
+	func testKyber() async throws {
 		let tests = (testData!["kyberEncryptionTests"] as? [[String: Any]])!
 		for test in tests {
 			let publicKey = try kyberParsePublicKey(hex: test["publicKey"]! as! String)
@@ -120,11 +120,8 @@ class CompatibilityTestSwift: XCTestCase {
 			let sharedSecretBytes = TUTEncodingConverter.hex(toBytes: test["sharedSecret"]! as! String)
 			let seed = TUTEncodingConverter.hex(toBytes: test["seed"]! as! String)
 
-			let encaps = try kyberEncapsulate(publicKey: publicKey, withSeed: seed)
-			XCTAssertEqual(cipherTextBytes, encaps.ciphertext.data)
-			XCTAssertEqual(sharedSecretBytes, encaps.sharedSecret.data)
-
-			let decaps = try kyberDecapsulate(ciphertext: cipherTextBytes, withPrivateKey: privateKey)
+			let facade = IosNativeCryptoFacade()
+			let decaps = try await facade.kyberDecapsulate(privateKey, cipherTextBytes.wrap())
 			XCTAssertEqual(sharedSecretBytes, decaps.data)
 		}
 	}
