@@ -822,7 +822,7 @@ export default {
 		"languageVietnamese_label": "Vietnam",
 		"languageWelsh_label": "Wales",
 		"language_label": "Bahasa",
-		"largeSignature_msg": "Tanda tangan yang Anda tentukan berukuran lebih dari {1}kB. Tanda tangan ini akan ditambahkan ke setiap email secara default. Apakah Anda tetap ingin menggunakannya?",
+		"largeSignature_msg": "Tanda tangan yang Anda tentukan berukuran lebih dari {1}KB. Tanda tangan ini akan ditambahkan ke setiap email secara default. Apakah Anda tetap ingin menggunakannya?",
 		"lastAccessWithTime_label": "Akses terakhir: {time}",
 		"lastAccess_label": "Akses terakhir",
 		"lastName_placeholder": "Nama belakang",
