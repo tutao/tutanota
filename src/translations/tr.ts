@@ -813,7 +813,7 @@ export default {
 		"languageVietnamese_label": "Vietnamca",
 		"languageWelsh_label": "Galce",
 		"language_label": "Dil",
-		"largeSignature_msg": "Belirlediğiniz imza {1}kB'tan büyük. Gönderdiğiniz tüm e-postalara varsayılan olarak eklenecektir. Yine de kullanmak istiyor musunuz?",
+		"largeSignature_msg": "Belirlediğiniz imza {1}KB'tan büyük. Gönderdiğiniz tüm e-postalara varsayılan olarak eklenecektir. Yine de kullanmak istiyor musunuz?",
 		"lastAccessWithTime_label": "Son erişim: {time}",
 		"lastAccess_label": "Son giriş",
 		"lastName_placeholder": "Soyad",
