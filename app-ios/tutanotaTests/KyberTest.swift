@@ -4,10 +4,12 @@ import XCTest
 @testable import tutanota
 
 class KyberTest: XCTestCase {
-	func testRoundTrip() throws {
-		let keypair = generateKyberKeypair(withSeed: generateRandomNumbers(count: 64))
-		let encaps = try kyberEncapsulate(publicKey: keypair.publicKey, withSeed: generateRandomNumbers(count: 64))
-		let decaps = try kyberDecapsulate(ciphertext: encaps.ciphertext.data, withPrivateKey: keypair.privateKey)
+	func testRoundTrip() async throws {
+		let facade = IosNativeCryptoFacade()
+		let ignoredSeed = generateRandomNumbers(count: 64).wrap()
+		let keypair = try await facade.generateKyberKeypair(ignoredSeed)
+		let encaps = try await facade.kyberEncapsulate(keypair.publicKey, ignoredSeed)
+		let decaps = try await facade.kyberDecapsulate(keypair.privateKey, encaps.ciphertext)
 		XCTAssertEqual(decaps.data, encaps.sharedSecret.data)
 	}
 

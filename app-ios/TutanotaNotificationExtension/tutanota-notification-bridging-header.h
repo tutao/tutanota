@@ -9,6 +9,5 @@
 #import "Crypto/TUTCrypto.h"
 #include "Offline/sqlite3.h"
 #import "argon2.h"
-#include "rand_entropy.h"
 
 #endif /* tutanota_notification_bridging_header_h */
