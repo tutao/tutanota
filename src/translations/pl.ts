@@ -832,7 +832,7 @@ export default {
 		"languageVietnamese_label": "wietnamski",
 		"languageWelsh_label": "walijski",
 		"language_label": "Język",
-		"largeSignature_msg": "Zdefiniowany przez Ciebie podpis ma rozmiar ponad ‪{1}‬kB. Będzie on domyślnie dołączany do każdego e-maila. Czy mimo to chcesz go używać?",
+		"largeSignature_msg": "Zdefiniowany przez Ciebie podpis ma rozmiar ponad ‪{1}‬KB. Będzie on domyślnie dołączany do każdego e-maila. Czy mimo to chcesz go używać?",
 		"lastAccessWithTime_label": "Ostatni dostęp: {time}",
 		"lastAccess_label": "Ostatni dostęp",
 		"lastName_placeholder": "Nazwisko",
