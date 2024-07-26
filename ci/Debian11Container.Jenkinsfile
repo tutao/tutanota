@@ -150,10 +150,11 @@ pipeline {
 				label 'linux'
 			}
 			steps {
-				script {
-					def devicePath =  sh(script: 'lsusb | grep Nitro | sed -nr \'s|Bus (.*) Device ([^:]*):.*|/dev/bus/usb/\\1/\\2|p\'', returnStdout: true).trim()
-					env.DEVICE_PATH = devicePath
-				}
+				// script {
+				// 	def devicePath =  sh(script: 'lsusb | grep Nitro | sed -nr \'s|Bus (.*) Device ([^:]*):.*|/dev/bus/usb/\\1/\\2|p\'', returnStdout: true).trim()
+				// 	env.DEVICE_PATH = devicePath
+				// }
+				sh 'ls -lah /opt'
 			}
 		}
 		stage('Build deb and publish') {
