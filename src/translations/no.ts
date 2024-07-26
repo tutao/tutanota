@@ -809,7 +809,7 @@ export default {
 		"languageVietnamese_label": "Vietnamesisk",
 		"languageWelsh_label": "Walisisk",
 		"language_label": "Språk",
-		"largeSignature_msg": "Signaturen du har definert er større enn {1}kB. Den vil bli lagt til i hver e-post som standard. Vil du fortsatt bruke den?",
+		"largeSignature_msg": "Signaturen du har definert er større enn {1}KB. Den vil bli lagt til i hver e-post som standard. Vil du fortsatt bruke den?",
 		"lastAccessWithTime_label": "Siste tilgang: {time}",
 		"lastAccess_label": "Siste adgang",
 		"lastName_placeholder": "Etternavn",
