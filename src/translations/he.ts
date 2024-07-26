@@ -738,7 +738,7 @@ export default {
 		"languageVietnamese_label": "וייטנאמית",
 		"languageWelsh_label": "Welsh",
 		"language_label": "שפה",
-		"largeSignature_msg": "גודל החתימה שהגדרת הוא מעל {1}kB. היא תתווסף לכל אימייל כברירת מחדל. האם ברצונך להשתמש בה בכל זאת?",
+		"largeSignature_msg": "גודל החתימה שהגדרת הוא מעל {1}KB. היא תתווסף לכל אימייל כברירת מחדל. האם ברצונך להשתמש בה בכל זאת?",
 		"lastAccess_label": "גישה אחרונה",
 		"lastName_placeholder": "שם משפחה",
 		"lastSync_label": "סנכרון אחרון: {date}",
