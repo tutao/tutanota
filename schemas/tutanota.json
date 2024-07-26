@@ -385,6 +385,16 @@
 					"info": "AddAssociation GroupSettings/defaultAlarmsList/AGGREGATION/1446."
 				}
 			]
+		},
+		{
+			"version": 74,
+			"changes": [
+				{
+					"name": "AddValue",
+					"sourceType": "GroupSettings",
+					"info": "AddValue GroupSettings/sourceUrl/1447."
+				}
+			]
 		}
 	]
 }

@@ -1,30 +1,46 @@
 import { Dialog } from "../../../common/gui/base/Dialog.js"
 import m, { Children } from "mithril"
 import stream from "mithril/stream"
-import { TextField } from "../../../common/gui/base/TextField.js"
+import { TextField, TextFieldType } from "../../../common/gui/base/TextField.js"
 import { lang } from "../../../common/misc/LanguageViewModel.js"
 import type { TranslationKeyType } from "../../../common/misc/TranslationKey.js"
 import { deepEqual, downcast } from "@tutao/tutanota-utils"
 import { AlarmInterval } from "../../../common/calendar/date/CalendarUtils.js"
 import { RemindersEditor } from "./RemindersEditor.js"
+import { generateRandomColor } from "./CalendarGuiUtils.js"
+import { CalendarType } from "../view/CalendarView.js"
+import { assertValidURL } from "@tutao/tutanota-utils/dist/Utils.js"
 
-type CalendarProperties = {
+export type CalendarProperties = {
 	name: string
 	color: string
 	alarms: AlarmInterval[]
+	sourceUrl: string | null
 }
 
-export function showEditCalendarDialog(
-	{ name, color, alarms }: CalendarProperties,
+const defaultCalendarProperties: CalendarProperties = {
+	name: "",
+	color: "",
+	alarms: [],
+	sourceUrl: "",
+}
+
+export function showCreateEditCalendarDialog(
+	calendarType: CalendarType,
 	titleTextId: TranslationKeyType,
 	shared: boolean,
 	okAction: (arg0: Dialog, arg1: CalendarProperties) => unknown,
 	okTextId: TranslationKeyType,
 	warningMessage?: () => Children,
+	{ name, color, alarms, sourceUrl }: CalendarProperties = defaultCalendarProperties,
 ) {
+	if (color === "") color = generateRandomColor()
+
 	const nameStream = stream(name)
-	let colorPickerDom: HTMLInputElement | null
 	const colorStream = stream("#" + color)
+	const urlStream = stream(sourceUrl ?? "")
+	const disableUrlInput = urlStream() !== ""
+	let colorPickerDom: HTMLInputElement | null
 
 	Dialog.showActionDialog({
 		title: () => lang.get(titleTextId),
@@ -60,14 +76,36 @@ export function showEditCalendarDialog(
 							},
 							label: "calendarDefaultReminder_label",
 						}),
+					calendarType === CalendarType.URL &&
+						m.fragment({}, [
+							m(TextField, {
+								value: urlStream(),
+								oninput: urlStream,
+								label: "url_label",
+								disabled: disableUrlInput,
+								// FIXME add translation label
+								type: TextFieldType.Url,
+								helpLabel: () => "To change the URL remove this calendar and create another subscription.",
+							}),
+						]),
 				]),
 		},
 		okActionTextId: okTextId,
 		okAction: (dialog: Dialog) => {
+			let url: string | null = null
+
+			if (calendarType === CalendarType.URL) {
+				const assertResult = assertValidURL(urlStream())
+				// FIXME Add translation for url error
+				if (!assertResult) return Dialog.message(() => "Erro")
+				url = assertResult.toString()
+			}
+
 			okAction(dialog, {
 				name: nameStream(),
 				color: colorStream().substring(1),
 				alarms,
+				sourceUrl: url,
 			})
 		},
 	})

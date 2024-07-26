@@ -7,18 +7,18 @@ import type { Key, Shortcut } from "../../../common/misc/KeyManager"
 import { isKeyPressed, keyManager } from "../../../common/misc/KeyManager"
 import { Icons } from "../../../common/gui/base/icons/Icons"
 import { downcast, getStartOfDay, isSameDayOfDate, ofClass } from "@tutao/tutanota-utils"
-import type { CalendarEvent, GroupSettings, UserSettingsGroupRoot } from "../../../common/api/entities/tutanota/TypeRefs.js"
+import type { CalendarEvent, CalendarGroupRoot, GroupSettings, UserSettingsGroupRoot } from "../../../common/api/entities/tutanota/TypeRefs.js"
 import { createGroupSettings } from "../../../common/api/entities/tutanota/TypeRefs.js"
 import { defaultCalendarColor, GroupType, Keys, reverse, ShareCapability, TabIndex, TimeFormat, WeekStart } from "../../../common/api/common/TutanotaConstants"
 import { locator } from "../../../common/api/main/CommonLocator"
 import {
-	AlarmInterval,
+	parseAlarmInterval,
+	serializeAlarmInterval,
 	getStartOfTheWeekOffset,
 	getStartOfTheWeekOffsetForUser,
 	getTimeZone,
 	getWeekNumber,
-	parseAlarmInterval,
-	serializeAlarmInterval,
+	findFirstPrivateCalendar,
 } from "../../../common/calendar/date/CalendarUtils"
 import { ButtonColor } from "../../../common/gui/base/Button.js"
 import { CalendarMonthView } from "./CalendarMonthView"
@@ -26,7 +26,7 @@ import { DateTime } from "luxon"
 import { NotFoundError } from "../../../common/api/common/error/RestError"
 import { CalendarAgendaView, CalendarAgendaViewAttrs } from "./CalendarAgendaView"
 import { createDefaultAlarmInfo, GroupInfo } from "../../../common/api/entities/sys/TypeRefs.js"
-import { showEditCalendarDialog } from "../gui/EditCalendarDialog.js"
+import { CalendarProperties, showCreateEditCalendarDialog } from "../gui/EditCalendarDialog.js"
 import { styles } from "../../../common/gui/styles"
 import { MultiDayCalendarView } from "./MultiDayCalendarView"
 import { Dialog } from "../../../common/gui/base/Dialog"
@@ -82,6 +82,11 @@ export interface CalendarViewAttrs extends TopLevelAttrs {
 	header: AppHeaderAttrs
 	calendarViewModel: CalendarViewModel
 	bottomNav: Children
+}
+
+export enum CalendarType {
+	NORMAL,
+	URL,
 }
 
 const CalendarViewTypeByValue = reverse(CalendarViewType)
@@ -141,7 +146,26 @@ export class CalendarView extends BaseTopLevelView implements TopLevelView<Calen
 									button: m(IconButton, {
 										title: "addCalendar_action",
 										colors: ButtonColor.Nav,
-										click: () => this.onPressedAddCalendar(),
+										click: findFirstPrivateCalendar(attrs.calendarViewModel.calendarInfos)
+											? createDropdown({
+													lazyButtons: () => [
+														{
+															label: "addCalendar_action",
+															colors: ButtonColor.Nav,
+															click: () => this.onPressedAddCalendar(CalendarType.NORMAL),
+															icon: Icons.Add,
+															size: ButtonSize.Compact,
+														},
+														{
+															// FIXME setup label, and action "From URL"
+															label: "edit_action",
+															icon: Icons.Link,
+															size: ButtonSize.Compact,
+															click: () => this.onPressedAddCalendar(CalendarType.URL),
+														},
+													],
+											  })
+											: () => this.onPressedAddCalendar(CalendarType.NORMAL),
 										icon: Icons.Add,
 										size: ButtonSize.Compact,
 									}),
@@ -599,36 +623,47 @@ export class CalendarView extends BaseTopLevelView implements TopLevelView<Calen
 		m.redraw()
 	}
 
-	private onPressedAddCalendar() {
-		if (locator.logins.getUserController().getCalendarMemberships().length === 0) {
-			this.showCreateCalendarDialog()
-		} else {
-			import("../../../common/misc/SubscriptionDialogs")
-				.then((SubscriptionDialogUtils) => SubscriptionDialogUtils.checkPaidSubscription())
-				.then((ok) => {
-					if (ok) {
-						this.showCreateCalendarDialog()
-					}
-				})
-		}
+	private onPressedAddCalendar(calendarType: CalendarType) {
+		import("../../../common/misc/SubscriptionDialogs")
+			.then((SubscriptionDialogUtils) => SubscriptionDialogUtils.checkPaidSubscription())
+			.then((ok) => {
+				if (ok) {
+					this.showCreateCalendarDialog(calendarType)
+				}
+			})
 	}
 
-	private showCreateCalendarDialog() {
-		showEditCalendarDialog(
-			{
-				name: "",
-				color: Math.random().toString(16).slice(-6),
-				alarms: [],
-			},
-			"add_action",
-			false,
-			async (dialog, properties) => {
-				const calendarModel = await locator.calendarModel()
-				await calendarModel.createCalendar(properties.name, properties.color, properties.alarms)
-				dialog.close()
-			},
-			"save_action",
-		)
+	private showCreateCalendarDialog(calendarType: CalendarType) {
+		switch (calendarType) {
+			case CalendarType.NORMAL:
+				showCreateEditCalendarDialog(
+					calendarType,
+					"add_action",
+					false,
+					async (dialog, properties) => {
+						const calendarModel = await locator.calendarModel()
+						await calendarModel.createCalendar(properties.name, properties.color, properties.alarms, null)
+						dialog.close()
+					},
+					"save_action",
+				)
+				break
+			case CalendarType.URL:
+				console.log("URL Motherfucker")
+				showCreateEditCalendarDialog(
+					// FIXME add more descriptive label nad handle the new url field
+					calendarType,
+					"add_action",
+					false,
+					async (dialog, properties) => {
+						const calendarModel = await locator.calendarModel()
+						await calendarModel.createCalendar(properties.name, properties.color, properties.alarms, properties.sourceUrl)
+						dialog.close()
+					},
+					"save_action",
+				)
+				break
+		}
 	}
 
 	private renderCalendars(shared: boolean): Children {
@@ -790,42 +825,55 @@ export class CalendarView extends BaseTopLevelView implements TopLevelView<Calen
 		userSettingsGroupRoot: UserSettingsGroupRoot,
 		shared: boolean,
 	) {
-		const { groupInfo } = calendarInfo
-		showEditCalendarDialog(
+		const { groupInfo, groupRoot } = calendarInfo
+		showCreateEditCalendarDialog(
+			existingGroupSettings?.sourceUrl ? CalendarType.URL : CalendarType.NORMAL,
+			"edit_action",
+			shared,
+			(dialog, properties) => this.handleModifiedCalendar(dialog, properties, shared, groupInfo, existingGroupSettings, userSettingsGroupRoot),
+			"save_action",
+			undefined,
 			{
 				name: getSharedGroupName(groupInfo, locator.logins.getUserController(), shared),
 				color: colorValue.substring(1),
 				alarms: existingGroupSettings?.defaultAlarmsList.map((alarm) => parseAlarmInterval(alarm.trigger)) ?? [],
+				sourceUrl: existingGroupSettings?.sourceUrl ?? null,
 			},
-			"edit_action",
-			shared,
-			(dialog, properties) => {
-				if (!shared) {
-					groupInfo.name = properties.name
-					locator.entityClient.update(groupInfo)
-				}
-
-				// color always set for existing calendar
-				const alarms = properties.alarms.map((alarm) => createDefaultAlarmInfo({ trigger: serializeAlarmInterval(alarm) }))
-				if (existingGroupSettings) {
-					existingGroupSettings.color = properties.color
-					existingGroupSettings.name = shared && properties.name !== groupInfo.name ? properties.name : null
-					existingGroupSettings.defaultAlarmsList = alarms
-				} else {
-					const newGroupSettings = createGroupSettings({
-						group: groupInfo.group,
-						color: properties.color,
-						name: shared && properties.name !== groupInfo.name ? properties.name : null,
-						defaultAlarmsList: alarms,
-					})
-					userSettingsGroupRoot.groupSettings.push(newGroupSettings)
-				}
-
-				locator.entityClient.update(userSettingsGroupRoot)
-				dialog.close()
-			},
-			"save_action",
 		)
+	}
+
+	private handleModifiedCalendar(
+		dialog: Dialog,
+		properties: CalendarProperties,
+		shared: boolean,
+		groupInfo: GroupInfo,
+		existingGroupSettings: GroupSettings | null,
+		userSettingsGroupRoot: UserSettingsGroupRoot,
+	) {
+		if (!shared) {
+			groupInfo.name = properties.name
+			locator.entityClient.update(groupInfo)
+		}
+
+		// color always set for existing calendar
+		const alarms = properties.alarms.map((alarm) => createDefaultAlarmInfo({ trigger: serializeAlarmInterval(alarm) }))
+		if (existingGroupSettings) {
+			existingGroupSettings.color = properties.color
+			existingGroupSettings.name = shared && properties.name !== groupInfo.name ? properties.name : null
+			existingGroupSettings.defaultAlarmsList = alarms
+		} else {
+			const newGroupSettings = createGroupSettings({
+				group: groupInfo.group,
+				color: properties.color,
+				name: shared && properties.name !== groupInfo.name ? properties.name : null,
+				defaultAlarmsList: alarms,
+				sourceUrl: properties.sourceUrl,
+			})
+			userSettingsGroupRoot.groupSettings.push(newGroupSettings)
+		}
+
+		locator.entityClient.update(userSettingsGroupRoot)
+		dialog.close()
 	}
 
 	view({ attrs }: Vnode<CalendarViewAttrs>): Children {

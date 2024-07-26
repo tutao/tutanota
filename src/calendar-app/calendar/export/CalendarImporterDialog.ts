@@ -47,8 +47,8 @@ async function partialImportConfirmation(skippedEvents: CalendarEvent[], confirm
 	)
 }
 
-export async function showCalendarImportDialog(calendarGroupRoot: CalendarGroupRoot): Promise<void> {
-	const parsedEvents: ParsedEvent[] = await selectAndParseIcalFile()
+export async function showCalendarImportDialog(calendarGroupRoot: CalendarGroupRoot, importedParsedEvents: ParsedEvent[] | null = null): Promise<void> {
+	const parsedEvents: ParsedEvent[] = importedParsedEvents ?? (await selectAndParseIcalFile())
 	if (parsedEvents.length === 0) return
 	const zone = getTimeZone()
 	const existingEvents = await showProgressDialog("loading_msg", loadAllEvents(calendarGroupRoot))

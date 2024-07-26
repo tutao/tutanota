@@ -57,6 +57,7 @@ export function showGroupInvitationDialog(invitation: ReceivedGroupInvitation) {
 							color: newColor,
 							name: newName,
 							defaultAlarmsList: alarmsStream().map((alarm) => createDefaultAlarmInfo({ trigger: serializeAlarmInterval(alarm) })),
+							sourceUrl: null,
 						})
 						userSettingsGroupRoot.groupSettings.push(groupSettings)
 					}

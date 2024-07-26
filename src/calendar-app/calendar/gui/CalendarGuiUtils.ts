@@ -866,3 +866,9 @@ async function confirmDeleteClose(model: CalendarEventPreviewViewModel, onClose?
 export function getDisplayEventTitle(title: string): string {
 	return title ?? title !== "" ? title : lang.get("noTitle_label")
 }
+
+export type ColorString = string
+
+export function generateRandomColor(withHashtag: boolean = false): ColorString {
+	return (withHashtag ? "#" : "") + Math.random().toString(16).slice(-6)
+}

@@ -25,7 +25,7 @@ import {
 import { isApp, isDesktop } from "../../../common/api/common/Env"
 import type { LoginController } from "../../../common/api/main/LoginController"
 import { LockedError, NotAuthorizedError, NotFoundError, PreconditionFailedError } from "../../../common/api/common/error/RestError"
-import type { ParsedCalendarData } from "../export/CalendarImporter"
+import { parseCalendarStringData, ParsedCalendarData, ParsedEvent } from "../export/CalendarImporter"
 import { ParserError } from "../../../common/misc/parsing/ParserCombinator"
 import { ProgressTracker } from "../../../common/api/main/ProgressTracker"
 import type { IProgressMonitor } from "../../../common/api/common/utils/ProgressMonitor"
@@ -54,8 +54,9 @@ import { ObservableLazyLoaded } from "../../../common/api/common/utils/Observabl
 import { UserController } from "../../../common/api/main/UserController.js"
 import { formatDateWithWeekdayAndTime, formatTime } from "../../../common/misc/Formatter.js"
 import { EntityUpdateData, isUpdateFor, isUpdateForTypeRef } from "../../../common/api/common/utils/EntityUpdateUtils.js"
-import { AlarmInterval, serializeAlarmInterval } from "../../../common/calendar/date/CalendarUtils.js"
+import { AlarmInterval, getTimeZone, serializeAlarmInterval } from "../../../common/calendar/date/CalendarUtils.js"
 import { isSharedGroupOwner, loadGroupMembers } from "../../../common/sharing/GroupUtils.js"
+import { showCalendarImportDialog } from "../export/CalendarImporterDialog.js"
 
 const TAG = "[CalendarModel]"
 export type CalendarInfo = {
@@ -207,12 +208,12 @@ export class CalendarModel {
 		if (!this.logins.isInternalUserLoggedIn() || findFirstPrivateCalendar(calendarInfos)) {
 			return calendarInfos
 		} else {
-			await this.createCalendar("", null, [])
+			await this.createCalendar("", null, [], null)
 			return await this.loadCalendarInfos(progressMonitor)
 		}
 	}
 
-	async createCalendar(name: string, color: string | null, alarms: AlarmInterval[]): Promise<void> {
+	async createCalendar(name: string, color: string | null, alarms: AlarmInterval[], sourceUrl: string | null): Promise<void> {
 		// when a calendar group is added, a group membership is added to the user. we might miss this websocket event
 		// during startup if the websocket is not connected fast enough. Therefore, we explicitly update the user
 		// this should be removed once we handle missed events during startup
@@ -227,9 +228,38 @@ export class CalendarModel {
 				color: color,
 				name: null,
 				defaultAlarmsList: serializedAlarms,
+				sourceUrl,
 			})
+
 			userSettingsGroupRoot.groupSettings.push(newGroupSettings)
 			await this.entityClient.update(userSettingsGroupRoot)
+
+			const calendarGroupRoot = await this.entityClient.load(CalendarGroupRootTypeRef, newGroupSettings.group)
+			this.handleUrlSubscription(sourceUrl, calendarGroupRoot)
+		}
+	}
+
+	private async handleUrlSubscription(url: string | null, calendarGroupRoot: CalendarGroupRoot) {
+		if (!url) return
+		try {
+			const response = await fetch(url)
+
+			if (!response.ok) throw new Error(`Response status: ${response.status}`)
+			if (!response.body) throw new Error(`Failed to get response.body: ${response}`)
+
+			const reader = response.body.pipeThrough(new TextDecoderStream()).getReader()
+			while (true) {
+				let { value, done } = await reader.read()
+				if (done) break
+
+				console.log(value)
+				console.log(value?.length)
+				const { contents } = parseCalendarStringData(value!, getTimeZone())
+				console.log(contents)
+				showCalendarImportDialog(calendarGroupRoot, contents)
+			}
+		} catch (e) {
+			console.error(e)
 		}
 	}
 
@@ -297,7 +327,7 @@ export class CalendarModel {
 			if (calendars.size > 0) {
 				return calendars
 			} else {
-				await this.createCalendar("", null, [])
+				await this.createCalendar("", null, [], null)
 				return this.calendarInfos.reload()
 			}
 		})
