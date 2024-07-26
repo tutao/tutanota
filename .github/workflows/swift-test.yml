@@ -5,6 +5,7 @@ on:
     types: [ opened, synchronize, edited ]
     paths:
       - 'app-ios/**'
+      - '.github/workflows/swift-test.yml'
   push:
     branches:
       - dev-*
@@ -17,7 +18,7 @@ env:
 
 jobs:
   test-swift:
-    runs-on: macos-latest
+    runs-on: macos-13 # macos 14 is ARM only and our tests don't run on ARM simulators due to libcrypto
 
     permissions:
       actions: none
@@ -36,17 +37,38 @@ jobs:
 
     steps:
       - uses: actions/checkout@b4ffde65f46336ab88eb53be808477a3936bae11 #v4.1.1
+        with:
+          submodules: 'true'
       - name: Setup Swift
         uses: swift-actions/setup-swift@cdbe0f7f4c77929b6580e71983e8606e55ffe7e4 # v1.26.2
         with:
           swift-version: ${{ env.swift-version }}
       - name: Install Homebrew
         uses: Homebrew/actions/setup-homebrew@d54a6744d5fcdff54b45a9659f3e17f769389952
-      - name: Install Code Quality Tools
-        run: brew install swiftlint swift-format
+      - name: Install Homebrew dependencies
+        run: |
+          brew install swiftlint swift-format xcodegen
+          brew upgrade rustup
+      - name: Versions
+        run: |
+          rustup --version
+          cargo --version
+          rustc --version
+      - name: Add rust target
+        run: rustup target add x86_64-apple-ios # aarch64-apple-ios-sim
       - name: Lint
         working-directory: ./app-ios
         run: ./lint.sh lint:check
       - name: Format
         working-directory: ./app-ios
         run: ./lint.sh style:check
+      - name: Xcodegen sdk
+        working-directory: tuta-sdk/ios
+        run: xcodegen
+      - name: Test
+        working-directory: app-ios
+        run: |
+          mkdir -p ../build
+          xcodegen
+          fastlane test_github
+

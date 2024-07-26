@@ -128,7 +128,7 @@ platform :ios do
 		)
 	end
 
-	desc "Run iOS test cases"
+	desc "Run iOS test cases (Jenkins version)"
 	lane :test do
 		# Create tutanota-3/build if it's not there because we try to copy it during build
 		sh "mkdir -p ../../build"
@@ -139,6 +139,20 @@ platform :ios do
 		run_tests(
 				scheme: "tuta debug",
 				devices: ["iphone-15-ios-17-4"]
+		)
+		run_tests(
+				scheme: "TutanotaSharedFramework",
+				devices: ["iphone-15-ios-17-4"]
+		)
+ 	end
+
+ 	desc "Run iOS test cases (Github actions version)"
+ 	lane :test_github do
+		run_tests(
+				scheme: "tuta debug",
+		)
+		run_tests(
+				scheme: "TutanotaSharedFramework",
 		)
  	end
 
