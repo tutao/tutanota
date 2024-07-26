@@ -823,7 +823,7 @@ export default {
 		"languageVietnamese_label": "Vietnamita",
 		"languageWelsh_label": "Galês",
 		"language_label": "Língua ",
-		"largeSignature_msg": "A assinatura que definiu tem mais de {1}kB de tamanho. Por predefinição, será anexada a todas as mensagens de email. Pretende utilizá-la na mesma?",
+		"largeSignature_msg": "A assinatura que definiu tem mais de {1}KB de tamanho. Por predefinição, será anexada a todas as mensagens de email. Pretende utilizá-la na mesma?",
 		"lastAccessWithTime_label": "Último acesso: {time}",
 		"lastAccess_label": "Último aceso",
 		"lastName_placeholder": "Apelido",
