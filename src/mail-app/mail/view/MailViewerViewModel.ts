@@ -79,8 +79,9 @@ import {
 	loadMailHeaders,
 	getDefaultSender,
 	assertSystemFolderOfType,
+	getMailBodyText,
 } from "../../../common/mailFunctionality/CommonMailUtils.js"
-import { isSystemNotification, isTutanotaTeamMail, isNoReplyTeamAddress, getMailBodyText } from "../MailUtils.js"
+import { isSystemNotification, isTutanotaTeamMail, isNoReplyTeamAddress } from "../MailUtils.js"
 
 export const enum ContentBlockingStatus {
 	Block = "0",

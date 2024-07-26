@@ -7,7 +7,7 @@ import {
 	GroupType,
 	MailState,
 	NOTHING_INDEXED_TIMESTAMP,
-	OperationType
+	OperationType,
 } from "../../../../../src/common/api/common/TutanotaConstants.js"
 import { IndexerCore } from "../../../../../src/common/api/worker/search/IndexerCore.js"
 import type { EntityUpdate } from "../../../../../src/common/api/entities/sys/TypeRefs.js"
@@ -37,13 +37,15 @@ import { browserDataStub, createTestEntity, makeCore } from "../../../TestUtils.
 import { downcast, getDayShifted, getStartOfDay, neverNull } from "@tutao/tutanota-utils"
 import { EventQueue } from "../../../../../src/common/api/worker/EventQueue.js"
 import { createSearchIndexDbStub } from "./DbStub.js"
-import { getElementId,
+import {
+	getElementId,
 	getListId,
 	LEGACY_BCC_RECIPIENTS_ID,
 	LEGACY_BODY_ID,
 	LEGACY_CC_RECIPIENTS_ID,
 	LEGACY_TO_RECIPIENTS_ID,
-	timestampToGeneratedId } from "../../../../../src/common/api/common/utils/EntityUtils.js"
+	timestampToGeneratedId,
+} from "../../../../../src/common/api/common/utils/EntityUtils.js"
 import { EntityRestClientMock } from "../rest/EntityRestClientMock.js"
 import type { DateProvider } from "../../../../../src/common/api/worker/DateProvider.js"
 import { LocalTimeDateProvider } from "../../../../../src/common/api/worker/DateProvider.js"

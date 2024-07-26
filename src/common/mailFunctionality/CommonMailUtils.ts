@@ -3,6 +3,7 @@
 import { assertMainOrNode, isDesktop } from "../api/common/Env.js"
 import { CustomerPropertiesTypeRef, GroupInfo, User } from "../api/entities/sys/TypeRefs.js"
 import {
+	Body,
 	Contact,
 	createContact,
 	createContactMailAddress,
@@ -10,7 +11,8 @@ import {
 	EncryptedMailAddress,
 	Header,
 	InboxRule,
-	Mail, MailDetails,
+	Mail,
+	MailDetails,
 	MailFolder,
 	TutanotaProperties,
 } from "../api/entities/tutanota/TypeRefs.js"
@@ -18,7 +20,8 @@ import { fullNameToFirstAndLastName, mailAddressToFirstAndLastName } from "../mi
 import { assertNotNull, contains, first, neverNull } from "@tutao/tutanota-utils"
 import {
 	ContactAddressType,
-	ConversationType, EncryptionAuthStatus,
+	ConversationType,
+	EncryptionAuthStatus,
 	getMailFolderType,
 	GroupType,
 	MailFolderType,
@@ -27,7 +30,7 @@ import {
 	ReplyType,
 	TUTANOTA_MAIL_ADDRESS_DOMAINS,
 } from "../api/common/TutanotaConstants.js"
-import { isDraft, isSystemNotification } from "../../mail-app/mail/MailUtils.js"
+import { isSystemNotification } from "../../mail-app/mail/MailUtils.js"
 import { UserController } from "../api/main/UserController.js"
 import { getEnabledMailAddressesForGroupInfo, getGroupInfoDisplayName } from "../api/common/utils/GroupUtils.js"
 import { lang, Language, TranslationKey } from "../misc/LanguageViewModel.js"
@@ -385,6 +388,10 @@ export function getPathToFolderString(folderSystem: FolderSystem, folder: MailFo
 	return folderPath.map(getFolderName).join(" · ")
 }
 
+export function isDraft(mail: Mail): boolean {
+	return mail.mailDetailsDraft != null
+}
+
 export async function loadMailDetails(mailFacade: MailFacade, mail: Mail): Promise<MailDetails> {
 	if (isDraft(mail)) {
 		const detailsDraftId = assertNotNull(mail.mailDetailsDraft)
@@ -488,4 +495,8 @@ export function isSpamOrTrashFolder(system: FolderSystem, folder: MailFolder): b
 export function isSubfolderOfType(system: FolderSystem, folder: MailFolder, type: MailFolderType): boolean {
 	const systemFolder = system.getSystemFolderByType(type)
 	return systemFolder != null && system.checkFolderForAncestor(folder, systemFolder._id)
+}
+
+export function getMailBodyText(body: Body): string {
+	return body.compressedText ?? body.text ?? ""
 }

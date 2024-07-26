@@ -9,7 +9,7 @@ import {
 	MailDetailsBlobTypeRef,
 	MailDetailsTypeRef,
 	MailTypeRef,
-	RecipientsTypeRef
+	RecipientsTypeRef,
 } from "../../../../src/common/api/entities/tutanota/TypeRefs.js"
 import { MailState } from "../../../../src/common/api/common/TutanotaConstants.js"
 import { DataFile } from "../../../../src/common/api/common/DataFile.js"

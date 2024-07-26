@@ -1,6 +1,6 @@
 import { EncryptionAuthStatus, MailFolderType, MailState, SYSTEM_GROUP_MAIL_ADDRESS } from "../../common/api/common/TutanotaConstants.js"
 import { FolderSystem } from "../../common/api/common/mail/FolderSystem.js"
-import { Mail, Body, MailFolder } from "../../common/api/entities/tutanota/TypeRefs.js"
+import { Mail, MailFolder } from "../../common/api/entities/tutanota/TypeRefs.js"
 import { endsWith } from "@tutao/tutanota-utils"
 import { isSubfolderOfType } from "../../common/mailFunctionality/CommonMailUtils.js"
 
@@ -60,14 +60,6 @@ export function isSystemNotification(mail: Mail): boolean {
 			// but we should keep displaying old emails correctly.
 			isNoReplyTeamAddress(sender.address))
 	)
-}
-
-export function isDraft(mail: Mail): boolean {
-	return mail.mailDetailsDraft != null
-}
-
-export function getMailBodyText(body: Body): string {
-	return body.compressedText ?? body.text ?? ""
 }
 
 export function isNoReplyTeamAddress(address: string): boolean {

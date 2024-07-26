@@ -132,7 +132,6 @@ import { ProgrammingError } from "../../../common/error/ProgrammingError.js"
 import { OwnerEncSessionKeyProvider } from "../../rest/EntityRestClient.js"
 import { resolveTypeReference } from "../../../common/EntityFunctions.js"
 import { KeyLoaderFacade } from "../KeyLoaderFacade.js"
-import { isDraft } from "../../../common/mail/CommonMailUtils.js"
 
 assertWorkerOrNode()
 type Attachments = ReadonlyArray<TutanotaFile | DataFile | FileReference>
@@ -972,7 +971,8 @@ export class MailFacade {
 	 * @param mail in case it is a mailDetailsBlob
 	 */
 	async loadMailDetailsBlob(mail: Mail): Promise<MailDetails> {
-		if (isDraft(mail)) {
+		// if isDraft
+		if (mail.mailDetailsDraft != null) {
 			throw new ProgrammingError("not supported, must be mail details blob")
 		} else {
 			const mailDetailsBlobId = assertNotNull(mail.mailDetails)
@@ -1001,7 +1001,8 @@ export class MailFacade {
 	 * @param mail in case it is a mailDetailsDraft
 	 */
 	async loadMailDetailsDraft(mail: Mail): Promise<MailDetails> {
-		if (!isDraft(mail)) {
+		// if not isDraft
+		if (mail.mailDetailsDraft == null) {
 			throw new ProgrammingError("not supported, must be mail details draft")
 		} else {
 			const detailsDraftId = assertNotNull(mail.mailDetailsDraft)

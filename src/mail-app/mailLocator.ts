@@ -234,7 +234,7 @@ class MailLocator {
 	})
 
 	inboxRuleHanlder(): InboxRuleHandler {
-		return new InboxRuleHandler(this.mailFacade, this.entityClient, this.logins)
+		return new InboxRuleHandler(this.mailFacade, this.logins)
 	}
 
 	async searchViewModelFactory(): Promise<() => SearchViewModel> {

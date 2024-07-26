@@ -212,16 +212,13 @@ impl Entity for CalendarRepeatRule {
 
 #[derive(uniffi::Record, Clone, Serialize, Deserialize)]
 pub struct Contact {
-	pub _area: i64,
 	pub _format: i64,
 	pub _id: IdTuple,
-	pub _owner: Id,
 	#[serde(with = "serde_bytes")]
 	pub _ownerEncSessionKey: Option<Vec<u8>>,
 	pub _ownerGroup: Option<Id>,
 	pub _ownerKeyVersion: Option<i64>,
 	pub _permissions: Id,
-	pub autoTransmitPassword: String,
 	pub birthdayIso: Option<String>,
 	pub comment: String,
 	pub company: String,
@@ -860,10 +857,8 @@ impl Entity for ExternalUserData {
 
 #[derive(uniffi::Record, Clone, Serialize, Deserialize)]
 pub struct TutanotaFile {
-	pub _area: i64,
 	pub _format: i64,
 	pub _id: IdTuple,
-	pub _owner: Id,
 	#[serde(with = "serde_bytes")]
 	pub _ownerEncSessionKey: Option<Vec<u8>>,
 	pub _ownerGroup: Option<Id>,
@@ -1177,23 +1172,16 @@ pub struct Mail {
 	pub receivedDate: Date,
 	pub recipientCount: i64,
 	pub replyType: i64,
-	pub sentDate: Option<Date>,
 	pub state: i64,
 	pub subject: String,
 	pub unread: bool,
 	pub attachments: Vec<IdTuple>,
-	pub bccRecipients: Vec<MailAddress>,
-	pub body: Option<Id>,
 	pub bucketKey: Option<sys::BucketKey>,
-	pub ccRecipients: Vec<MailAddress>,
 	pub conversationEntry: IdTuple,
 	pub firstRecipient: Option<MailAddress>,
-	pub headers: Option<Id>,
 	pub mailDetails: Option<IdTuple>,
 	pub mailDetailsDraft: Option<IdTuple>,
-	pub replyTos: Vec<EncryptedMailAddress>,
 	pub sender: MailAddress,
-	pub toRecipients: Vec<MailAddress>,
 }
 
 impl Entity for Mail {
@@ -1233,28 +1221,6 @@ impl Entity for MailAddressProperties {
 
 
 #[derive(uniffi::Record, Clone, Serialize, Deserialize)]
-pub struct MailBody {
-	pub _area: i64,
-	pub _format: i64,
-	pub _id: Id,
-	pub _owner: Id,
-	#[serde(with = "serde_bytes")]
-	pub _ownerEncSessionKey: Option<Vec<u8>>,
-	pub _ownerGroup: Option<Id>,
-	pub _ownerKeyVersion: Option<i64>,
-	pub _permissions: Id,
-	pub compressedText: Option<Vec<u8>>,
-	pub text: Option<String>,
-}
-
-impl Entity for MailBody {
-	fn type_ref() -> TypeRef {
-		TypeRef { app: "tutanota".to_owned(), type_: "MailBody".to_owned() }
-	}
-}
-
-
-#[derive(uniffi::Record, Clone, Serialize, Deserialize)]
 pub struct MailBox {
 	pub _format: i64,
 	pub _id: Id,
@@ -1266,7 +1232,6 @@ pub struct MailBox {
 	pub lastInfoDate: Date,
 	pub folders: Option<MailFolderRef>,
 	pub mailDetailsDrafts: Option<MailDetailsDraftsRef>,
-	pub mails: Id,
 	pub receivedAttachments: Id,
 	pub sentAttachments: Id,
 	pub spamResults: Option<SpamResults>,
@@ -1361,7 +1326,6 @@ pub struct MailFolder {
 	pub name: String,
 	pub mails: Id,
 	pub parentFolder: Option<IdTuple>,
-	pub subFolders: Id,
 }
 
 impl Entity for MailFolder {
@@ -1380,26 +1344,6 @@ pub struct MailFolderRef {
 impl Entity for MailFolderRef {
 	fn type_ref() -> TypeRef {
 		TypeRef { app: "tutanota".to_owned(), type_: "MailFolderRef".to_owned() }
-	}
-}
-
-
-#[derive(uniffi::Record, Clone, Serialize, Deserialize)]
-pub struct MailHeaders {
-	pub _format: i64,
-	pub _id: Id,
-	#[serde(with = "serde_bytes")]
-	pub _ownerEncSessionKey: Option<Vec<u8>>,
-	pub _ownerGroup: Option<Id>,
-	pub _ownerKeyVersion: Option<i64>,
-	pub _permissions: Id,
-	pub compressedHeaders: Option<Vec<u8>>,
-	pub headers: Option<String>,
-}
-
-impl Entity for MailHeaders {
-	fn type_ref() -> TypeRef {
-		TypeRef { app: "tutanota".to_owned(), type_: "MailHeaders".to_owned() }
 	}
 }
 
@@ -1601,73 +1545,6 @@ impl Entity for OutOfOfficeNotificationRecipientList {
 
 
 #[derive(uniffi::Record, Clone, Serialize, Deserialize)]
-pub struct PasswordAutoAuthenticationReturn {
-	pub _format: i64,
-}
-
-impl Entity for PasswordAutoAuthenticationReturn {
-	fn type_ref() -> TypeRef {
-		TypeRef { app: "tutanota".to_owned(), type_: "PasswordAutoAuthenticationReturn".to_owned() }
-	}
-}
-
-
-#[derive(uniffi::Record, Clone, Serialize, Deserialize)]
-pub struct PasswordChannelPhoneNumber {
-	pub _id: Id,
-	pub number: String,
-}
-
-impl Entity for PasswordChannelPhoneNumber {
-	fn type_ref() -> TypeRef {
-		TypeRef { app: "tutanota".to_owned(), type_: "PasswordChannelPhoneNumber".to_owned() }
-	}
-}
-
-
-#[derive(uniffi::Record, Clone, Serialize, Deserialize)]
-pub struct PasswordChannelReturn {
-	pub _format: i64,
-	pub phoneNumberChannels: Vec<PasswordChannelPhoneNumber>,
-}
-
-impl Entity for PasswordChannelReturn {
-	fn type_ref() -> TypeRef {
-		TypeRef { app: "tutanota".to_owned(), type_: "PasswordChannelReturn".to_owned() }
-	}
-}
-
-
-#[derive(uniffi::Record, Clone, Serialize, Deserialize)]
-pub struct PasswordMessagingData {
-	pub _format: i64,
-	pub language: String,
-	pub numberId: Id,
-	#[serde(with = "serde_bytes")]
-	pub symKeyForPasswordTransmission: Vec<u8>,
-}
-
-impl Entity for PasswordMessagingData {
-	fn type_ref() -> TypeRef {
-		TypeRef { app: "tutanota".to_owned(), type_: "PasswordMessagingData".to_owned() }
-	}
-}
-
-
-#[derive(uniffi::Record, Clone, Serialize, Deserialize)]
-pub struct PasswordMessagingReturn {
-	pub _format: i64,
-	pub autoAuthenticationId: Id,
-}
-
-impl Entity for PasswordMessagingReturn {
-	fn type_ref() -> TypeRef {
-		TypeRef { app: "tutanota".to_owned(), type_: "PasswordMessagingReturn".to_owned() }
-	}
-}
-
-
-#[derive(uniffi::Record, Clone, Serialize, Deserialize)]
 pub struct PhishingMarkerWebsocketData {
 	pub _format: i64,
 	pub lastId: Id,
@@ -1772,7 +1649,6 @@ impl Entity for ReportedMailFieldMarker {
 #[derive(uniffi::Record, Clone, Serialize, Deserialize)]
 pub struct SecureExternalRecipientKeyData {
 	pub _id: Id,
-	pub autoTransmitPassword: Option<String>,
 	pub kdfVersion: i64,
 	pub mailAddress: String,
 	#[serde(with = "serde_bytes")]
@@ -1787,7 +1663,6 @@ pub struct SecureExternalRecipientKeyData {
 	#[serde(with = "serde_bytes")]
 	pub saltHash: Option<Vec<u8>>,
 	pub userGroupKeyVersion: i64,
-	pub passwordChannelPhoneNumbers: Vec<PasswordChannelPhoneNumber>,
 }
 
 impl Entity for SecureExternalRecipientKeyData {

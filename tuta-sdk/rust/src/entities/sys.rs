@@ -2263,19 +2263,6 @@ impl Entity for Permission {
 
 
 #[derive(uniffi::Record, Clone, Serialize, Deserialize)]
-pub struct PhoneNumber {
-	pub _id: Id,
-	pub number: String,
-}
-
-impl Entity for PhoneNumber {
-	fn type_ref() -> TypeRef {
-		TypeRef { app: "sys".to_owned(), type_: "PhoneNumber".to_owned() }
-	}
-}
-
-
-#[derive(uniffi::Record, Clone, Serialize, Deserialize)]
 pub struct PlanConfiguration {
 	pub _id: Id,
 	pub autoResponder: bool,
@@ -3328,7 +3315,6 @@ pub struct User {
 	pub externalAuthInfo: Option<UserExternalAuthInfo>,
 	pub failedLogins: Id,
 	pub memberships: Vec<GroupMembership>,
-	pub phoneNumbers: Vec<PhoneNumber>,
 	pub pushIdentifierList: Option<PushIdentifierList>,
 	pub secondFactorAuthentications: Id,
 	pub successfulLogins: Id,

@@ -34,13 +34,13 @@ import { showProgressDialog } from "../../../common/gui/dialogs/ProgressDialog"
 import { htmlSanitizer } from "../../../common/misc/HtmlSanitizer"
 import { DropDownSelector } from "../../../common/gui/base/DropDownSelector.js"
 import {
+	Contact,
 	ContactTypeRef,
 	createTranslationGetIn,
-	Mail,
 	File as TutanotaFile,
+	Mail,
 	MailboxProperties,
 	MailDetails,
-	Contact
 } from "../../../common/api/entities/tutanota/TypeRefs.js"
 import { FileOpenError } from "../../../common/api/common/error/FileOpenError"
 import type { lazy } from "@tutao/tutanota-utils"

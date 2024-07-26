@@ -6,11 +6,11 @@ import { FileReference } from "../api/common/utils/FileUtils.js"
 import {
 	ContactTypeRef,
 	ConversationEntryTypeRef,
-	EncryptedMailAddress,
 	FileTypeRef,
 	Mail,
 	MailboxProperties,
-	MailboxPropertiesTypeRef, MailDetails,
+	MailboxPropertiesTypeRef,
+	MailDetails,
 	MailTypeRef,
 } from "../api/entities/tutanota/TypeRefs.js"
 import { ApprovalStatus, ConversationType, MailFolderType, MailMethod, MAX_ATTACHMENT_SIZE, OperationType, ReplyType } from "../api/common/TutanotaConstants.js"
@@ -32,11 +32,10 @@ import {
 	remove,
 	typedValues,
 } from "@tutao/tutanota-utils"
-
 import Stream from "mithril/stream"
 import stream from "mithril/stream"
 import type { File as TutanotaFile } from "../../common/api/entities/tutanota/TypeRefs.js"
-import { checkAttachmentSize, getDefaultSender, getTemplateLanguages, isUserEmail, RecipientField } from "./CommonMailUtils.js"
+import { checkAttachmentSize, getDefaultSender, getMailBodyText, getTemplateLanguages, isUserEmail, RecipientField } from "./CommonMailUtils.js"
 import { cloneInlineImages, InlineImages, revokeInlineImages } from "./inlineImagesUtils.js"
 import { RecipientsModel, ResolvableRecipient, ResolveMode } from "../api/main/RecipientsModel.js"
 import { getAvailableLanguageCode, getSubstitutedLanguageCode, lang, Language, languages, TranslationKey, TranslationText } from "../misc/LanguageViewModel.js"
@@ -73,8 +72,6 @@ import { isMailAddress } from "../misc/FormatValidator.js"
 import { MailboxDetail, MailModel } from "./MailModel.js"
 import { ContactModel } from "../contactsFunctionality/ContactModel.js"
 import { getContactDisplayName } from "../contactsFunctionality/ContactUtils.js"
-import stream from "mithril/stream"
-import { getMailBodyText } from "../../mail-app/mail/MailUtils.js"
 
 assertMainOrNode()
 

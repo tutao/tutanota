@@ -25,7 +25,7 @@ import {
 	LEGACY_BCC_RECIPIENTS_ID,
 	LEGACY_BODY_ID,
 	LEGACY_CC_RECIPIENTS_ID,
-	LEGACY_TO_RECIPIENTS_ID
+	LEGACY_TO_RECIPIENTS_ID,
 } from "../../../common/api/common/utils/EntityUtils.js"
 
 assertMainOrNode()
