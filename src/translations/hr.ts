@@ -792,7 +792,7 @@ export default {
 		"languageVietnamese_label": "Vijetnamski",
 		"languageWelsh_label": "Velški",
 		"language_label": "Jezik",
-		"largeSignature_msg": "Potpis koji ste definirali veći je od {1}kB. Prema zadanim postavkama bit će pridodan svakoj e-pošti. Želite li ga ipak koristiti?",
+		"largeSignature_msg": "Potpis koji ste definirali veći je od {1}KB. Prema zadanim postavkama bit će pridodan svakoj e-pošti. Želite li ga ipak koristiti?",
 		"lastAccessWithTime_label": "Posljednji pristup: {time}",
 		"lastAccess_label": "Posljednji pristup",
 		"lastName_placeholder": "Prezime",
