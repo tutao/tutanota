@@ -831,7 +831,7 @@ export default {
 		"languageVietnamese_label": "Vietnameză",
 		"languageWelsh_label": "Galeză",
 		"language_label": "Limba",
-		"largeSignature_msg": "Semnătura pe care ai stabilit-o are peste {1}kB. Aceasta va fi adăugată la fiecare e-mail. Vrei oricum să o folosești?",
+		"largeSignature_msg": "Semnătura pe care ai stabilit-o are peste {1}KB. Aceasta va fi adăugată la fiecare e-mail. Vrei oricum să o folosești?",
 		"lastAccessWithTime_label": "Ultima accesare: {time}",
 		"lastAccess_label": "Ultima accesare",
 		"lastName_placeholder": "Nume de familie",
