@@ -25,6 +25,7 @@ pub struct EntityClient {
 }
 
 impl EntityClient {
+    #[allow(dead_code)]
     pub(crate) fn new(
         rest_client: Arc<dyn RestClient>,
         json_serializer: Arc<JsonSerializer>,

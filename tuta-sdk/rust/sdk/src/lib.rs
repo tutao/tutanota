@@ -130,7 +130,7 @@ impl Sdk {
         let state = Arc::new(SdkState {
             credentials,
             client_version: client_version.to_owned(),
-        });;
+        });
         let entity_client = Arc::new(EntityClient::new(
             rest_client,
             json_serializer,
