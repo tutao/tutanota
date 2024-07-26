@@ -827,7 +827,7 @@ export default {
 		"languageVietnamese_label": "Vietnamesiska",
 		"languageWelsh_label": "Walesiska",
 		"language_label": "Språk",
-		"largeSignature_msg": "Signaturen du definierade är över {1}kB  i storlek. Den kommer att läggas till i varje mejl som standard. Vill du använda den ändå?",
+		"largeSignature_msg": "Signaturen du definierade är över {1}KB  i storlek. Den kommer att läggas till i varje mejl som standard. Vill du använda den ändå?",
 		"lastAccessWithTime_label": "Senast besökt: {time}",
 		"lastAccess_label": "Senaste åtkomst",
 		"lastName_placeholder": "Efternamn",
