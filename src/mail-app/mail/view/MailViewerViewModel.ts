@@ -81,7 +81,7 @@ import {
 	assertSystemFolderOfType,
 	getMailBodyText,
 } from "../../../common/mailFunctionality/CommonMailUtils.js"
-import { isSystemNotification, isTutanotaTeamMail, isNoReplyTeamAddress } from "../MailUtils.js"
+import { isSystemNotification, isTutanotaTeamMail, isNoReplyTeamAddress } from "../../../common/mailFunctionality/CommonMailUtils.js"
 
 export const enum ContentBlockingStatus {
 	Block = "0",

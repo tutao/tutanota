@@ -1,9 +1,9 @@
 import m, { Children, Component, Vnode } from "mithril"
 import { NavButton } from "../../common/gui/base/NavButton.js"
-import { size } from "../../common/gui/size"
-import { CALENDAR_PREFIX, SEARCH_PREFIX } from "../../common/misc/RouteChange"
-import { FeatureType } from "../../common/api/common/TutanotaConstants"
-import { BootIcons } from "../../common/gui/base/icons/BootIcons"
+import { size } from "../../common/gui/size.js"
+import { CALENDAR_PREFIX, SEARCH_PREFIX } from "../../common/misc/RouteChange.js"
+import { FeatureType } from "../../common/api/common/TutanotaConstants.js"
+import { BootIcons } from "../../common/gui/base/icons/BootIcons.js"
 import { locator } from "../../common/api/main/CommonLocator.js"
 
 type Attrs = void

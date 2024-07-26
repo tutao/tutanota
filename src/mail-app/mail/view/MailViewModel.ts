@@ -28,7 +28,7 @@ import {
 	isSubfolderOfType,
 	MailFilterType,
 } from "../../../common/mailFunctionality/CommonMailUtils.js"
-import { isOfTypeOrSubfolderOf } from "../MailUtils.js"
+import { isOfTypeOrSubfolderOf } from "../../../common/mailFunctionality/CommonMailUtils.js"
 
 export interface MailOpenedListener {
 	onEmailOpened(mail: Mail): unknown

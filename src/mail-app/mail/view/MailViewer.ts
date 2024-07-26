@@ -34,7 +34,7 @@ import { PinchZoom } from "../../../common/gui/PinchZoom.js"
 import { responsiveCardHMargin, responsiveCardHPadding } from "../../../common/gui/cards.js"
 import { Dialog } from "../../../common/gui/base/Dialog.js"
 import { createNewContact, getExistingRuleForType } from "../../../common/mailFunctionality/CommonMailUtils.js"
-import { isTutanotaTeamMail } from "../MailUtils.js"
+import { isTutanotaTeamMail } from "../../../common/mailFunctionality/CommonMailUtils.js"
 
 assertMainOrNode()
 

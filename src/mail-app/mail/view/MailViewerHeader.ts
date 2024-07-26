@@ -28,7 +28,7 @@ import { AttachmentBubble, getAttachmentType } from "../../../common/gui/Attachm
 import { responsiveCardHMargin, responsiveCardHPadding } from "../../../common/gui/cards.js"
 import { companyTeamLabel } from "../../../common/misc/ClientConstants.js"
 import { getConfidentialIcon, getFolderIconByType, getMailAddressDisplayText, MailAddressAndName } from "../../../common/mailFunctionality/CommonMailUtils.js"
-import { isTutanotaTeamMail } from "../MailUtils.js"
+import { isTutanotaTeamMail } from "../../../common/mailFunctionality/CommonMailUtils.js"
 
 export type MailAddressDropdownCreator = (args: {
 	mailAddress: MailAddressAndName

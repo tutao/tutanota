@@ -1,5 +1,5 @@
 import o from "@tutao/otest"
-import { MailAddressNameChanger, MailAddressTableModel } from "../../../../src/mail-app/settings/mailaddress/MailAddressTableModel.js"
+import { MailAddressNameChanger, MailAddressTableModel } from "../../../../src/common/settings/mailaddress/MailAddressTableModel.js"
 import { EntityClient } from "../../../../src/common/api/common/EntityClient.js"
 import { matchers, object, when } from "testdouble"
 import { MailAddressFacade } from "../../../../src/common/api/worker/facades/lazy/MailAddressFacade.js"

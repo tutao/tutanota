@@ -1,5 +1,5 @@
 import o from "@tutao/otest"
-import { loadUserExportData } from "../../../src/mail-app/settings/UserDataExporter.js"
+import { loadUserExportData } from "../../../src/common/settings/UserDataExporter.js"
 import { EntityClient } from "../../../src/common/api/common/EntityClient.js"
 import { LoginController } from "../../../src/common/api/main/LoginController.js"
 import { FileController } from "../../../src/common/file/FileController.js"

@@ -1,6 +1,6 @@
 import m, { Child, Children, Component, Vnode } from "mithril"
-import type { NavButtonAttrs } from "../../common/gui/base/NavButton.js"
-import { isNavButtonSelected, NavButton } from "../../common/gui/base/NavButton.js"
+import type { NavButtonAttrs } from "../gui/base/NavButton.js"
+import { isNavButtonSelected, NavButton } from "../gui/base/NavButton.js"
 
 export type SettingsFolderRowAttrs = {
 	mainButtonAttrs: NavButtonAttrs

@@ -1,4 +1,4 @@
-import { AddressToName, MailAddressNameChanger } from "./MailAddressTableModel.js"
+import { AddressToName, MailAddressNameChanger } from "../../../common/settings/mailaddress/MailAddressTableModel.js"
 import { MailModel } from "../../../common/mailFunctionality/MailModel.js"
 import { createMailAddressProperties, MailboxProperties } from "../../../common/api/entities/tutanota/TypeRefs.js"
 import { EntityClient } from "../../../common/api/common/EntityClient.js"

@@ -86,7 +86,7 @@ import { ThemeFacade } from "../common/native/common/generatedipc/ThemeFacade.js
 import { MobileSystemFacade } from "../common/native/common/generatedipc/MobileSystemFacade.js"
 import { MobileContactsFacade } from "../common/native/common/generatedipc/MobileContactsFacade.js"
 import { NativeCredentialsFacade } from "../common/native/common/generatedipc/NativeCredentialsFacade.js"
-import { MailAddressNameChanger, MailAddressTableModel } from "./settings/mailaddress/MailAddressTableModel.js"
+import { MailAddressNameChanger, MailAddressTableModel } from "../common/settings/mailaddress/MailAddressTableModel.js"
 import { GroupInfo } from "../common/api/entities/sys/TypeRefs.js"
 import { DrawerMenuAttrs } from "../common/gui/nav/DrawerMenu.js"
 import { DomainConfigProvider } from "../common/api/common/DomainConfigProvider.js"
@@ -493,7 +493,7 @@ class MailLocator {
 	}
 
 	async mailAddressTableModelForOwnMailbox(): Promise<MailAddressTableModel> {
-		const { MailAddressTableModel } = await import("../mail-app/settings/mailaddress/MailAddressTableModel.js")
+		const { MailAddressTableModel } = await import("../common/settings/mailaddress/MailAddressTableModel.js")
 		const nameChanger = await this.ownMailAddressNameChanger()
 		return new MailAddressTableModel(
 			this.entityClient,
@@ -508,7 +508,7 @@ class MailLocator {
 	}
 
 	async mailAddressTableModelForAdmin(mailGroupId: Id, userId: Id, userGroupInfo: GroupInfo): Promise<MailAddressTableModel> {
-		const { MailAddressTableModel } = await import("../mail-app/settings/mailaddress/MailAddressTableModel.js")
+		const { MailAddressTableModel } = await import("../common/settings/mailaddress/MailAddressTableModel.js")
 		const nameChanger = await this.adminNameChanger(mailGroupId, userId)
 		return new MailAddressTableModel(
 			this.entityClient,

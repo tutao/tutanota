@@ -3,7 +3,7 @@ import Stream from "mithril/stream"
 import type { CustomerInfo, DnsRecord } from "../../../common/api/entities/sys/TypeRefs.js"
 import { createDnsRecord } from "../../../common/api/entities/sys/TypeRefs.js"
 import { DnsRecordType } from "../../../common/api/common/TutanotaConstants"
-import type { MailAddressTableAttrs } from "../mailaddress/MailAddressTable.js"
+import type { MailAddressTableAttrs } from "../../../common/settings/mailaddress/MailAddressTable.js"
 import { AddEmailAddressesPage, AddEmailAddressesPageAttrs } from "./AddEmailAddressesPage"
 import { DomainDnsStatus } from "../DomainDnsStatus"
 import { VerifyOwnershipPage, VerifyOwnershipPageAttrs } from "./VerifyOwnershipPage"
@@ -11,7 +11,7 @@ import { VerifyDnsRecordsPage, VerifyDnsRecordsPageAttrs } from "./VerifyDnsReco
 import { EnterDomainPage, EnterDomainPageAttrs } from "./EnterDomainPage"
 import { createWizardDialog, wizardPageWrapper } from "../../../common/gui/base/WizardDialog.js"
 import { assertMainOrNode } from "../../../common/api/common/Env"
-import { MailAddressTableModel } from "../mailaddress/MailAddressTableModel.js"
+import { MailAddressTableModel } from "../../../common/settings/mailaddress/MailAddressTableModel.js"
 import { DialogType } from "../../../common/gui/base/Dialog.js"
 
 assertMainOrNode()

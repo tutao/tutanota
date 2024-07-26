@@ -8,13 +8,13 @@
  *  'APK_SIGN_STORE'
  *  'ANDROID_HOME'
  */
-import { Argument, Option, program } from "commander"
-import { runDevBuild } from "./buildSrc/DevBuild.js"
-import { prepareMobileBuild } from "./buildSrc/prepareMobileBuild.js"
-import { buildWebapp } from "./buildSrc/buildWebapp.js"
-import { getTutanotaAppVersion, measure } from "./buildSrc/buildUtils.js"
+import {Argument, Option, program} from "commander"
+import {runDevBuild} from "./buildSrc/DevBuild.js"
+import {prepareMobileBuild} from "./buildSrc/prepareMobileBuild.js"
+import {buildWebapp} from "./buildSrc/buildWebapp.js"
+import {getTutanotaAppVersion, measure} from "./buildSrc/buildUtils.js"
 import path from "node:path"
-import { $, cd } from "zx"
+import {$, cd} from "zx"
 
 const log = (...messages) => console.log(chalk.green("\nBUILD:"), ...messages, "\n")
 
@@ -27,7 +27,7 @@ await program
 	.addOption(new Option("-i, --install", "call adb install after build"))
 	.addOption(new Option("-w --webclient <client>", "choose web client build").choices(["make", "dist"]).default("dist"))
 	.option("-e, --existing", "Use existing prebuilt web client files")
-	.action(async (stage, host, { webclient, buildtype, install, existing, app }) => {
+	.action(async (stage, host, {webclient, buildtype, install, existing, app}) => {
 		if ((stage === "host" && host == null) || (stage !== "host" && host != null)) {
 			program.outputHelp()
 			process.exit(1)
@@ -50,7 +50,7 @@ await program
 	})
 	.parseAsync(process.argv)
 
-async function buildAndroid({ stage, host, buildType, existing, webClient, app }) {
+async function buildAndroid({stage, host, buildType, existing, webClient, app}) {
 	log(`Starting ${stage} build with build type: ${buildType}, webclient: ${webClient}, host: ${host}`)
 	if (!existing) {
 		if (webClient === "make") {
@@ -71,6 +71,7 @@ async function buildAndroid({ stage, host, buildType, existing, webClient, app }
 				minify: true,
 				projectDir: path.resolve("."),
 				measure,
+				app
 			})
 		}
 	} else {
@@ -86,7 +87,7 @@ async function buildAndroid({ stage, host, buildType, existing, webClient, app }
 	}
 
 	const appTarget = app === "mail" ? "app" : "calendar"
-	const { version } = JSON.parse(await $`cat package.json`.quiet())
+	const {version} = JSON.parse(await $`cat package.json`.quiet())
 	const apkName = `tutanota-${app}-tutao-${buildType}-${version}.apk`
 	const apkPath = `app-android/${appTarget}/build/outputs/apk/tutao/${buildType}/${apkName}`
 	const outPath = `./build/app-android/${apkName}`

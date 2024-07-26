@@ -3,7 +3,7 @@ import { BookingItemFeatureType, FeatureType, GroupType } from "../../../common/
 import { Dialog } from "../../../common/gui/base/Dialog.js"
 import type { ValidationResult } from "../../../common/settings/SelectMailAddressForm.js"
 import { SelectMailAddressForm } from "../../../common/settings/SelectMailAddressForm.js"
-import { getGroupTypeDisplayName } from "./GroupDetailsView.js"
+import { getGroupTypeDisplayName } from "../../../common/settings/groups/GroupDetailsView.js"
 import { showProgressDialog } from "../../../common/gui/dialogs/ProgressDialog.js"
 import { InfoLink, lang, TranslationKey } from "../../../common/misc/LanguageViewModel.js"
 import { showBuyDialog } from "../../../common/subscription/BuyDialog.js"

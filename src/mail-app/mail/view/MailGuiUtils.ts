@@ -20,7 +20,7 @@ import { ConversationViewModel } from "./ConversationViewModel.js"
 import { size } from "../../../common/gui/size.js"
 import { PinchZoom } from "../../../common/gui/PinchZoom.js"
 import { InlineImageReference, InlineImages } from "../../../common/mailFunctionality/inlineImagesUtils.js"
-import { isOfTypeOrSubfolderOf } from "../MailUtils.js"
+import { isOfTypeOrSubfolderOf } from "../../../common/mailFunctionality/CommonMailUtils.js"
 import {
 	assertSystemFolderOfType,
 	getFolderIcon,

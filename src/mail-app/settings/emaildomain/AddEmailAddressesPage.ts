@@ -1,6 +1,6 @@
 import { SelectMailAddressForm, SelectMailAddressFormAttrs } from "../../../common/settings/SelectMailAddressForm.js"
 import m, { Children, Component, Vnode, VnodeDOM } from "mithril"
-import { getAliasLineAttrs } from "../mailaddress/MailAddressTable.js"
+import { getAliasLineAttrs } from "../../../common/settings/mailaddress/MailAddressTable.js"
 import type { AddDomainData } from "./AddDomainWizard"
 import { CustomerTypeRef, GroupInfoTypeRef } from "../../../common/api/entities/sys/TypeRefs.js"
 import { neverNull } from "@tutao/tutanota-utils"

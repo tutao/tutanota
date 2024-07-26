@@ -29,7 +29,7 @@ import { BootIcons } from "../../../common/gui/base/icons/BootIcons.js"
 import { theme } from "../../../common/gui/theme.js"
 import { VirtualRow } from "../../../common/gui/base/ListUtils.js"
 import { isKeyPressed } from "../../../common/misc/KeyManager.js"
-import { isOfTypeOrSubfolderOf } from "../MailUtils.js"
+import { isOfTypeOrSubfolderOf } from "../../../common/mailFunctionality/CommonMailUtils.js"
 import { assertSystemFolderOfType, canDoDragAndDropExport } from "../../../common/mailFunctionality/CommonMailUtils.js"
 
 assertMainOrNode()

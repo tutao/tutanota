@@ -26,10 +26,8 @@ import { CalendarViewModel } from "./calendar/view/CalendarViewModel.js"
 import { LoginController } from "../common/api/main/LoginController.js"
 import { SettingsViewAttrs } from "../common/settings/Interfaces.js"
 import { CalendarSearchView, CalendarSearchViewAttrs } from "./calendar/search/view/CalendarSearchView.js"
-import { initCommonLocator } from "../common/api/main/CommonLocator.js"
-import { CalendarSettingsView } from "./calendar/view/CalendarSettingsView.js"
+import { CalendarSettingsView } from "./calendar/settings/CalendarSettingsView.js"
 import { CalendarSearchViewModel } from "./calendar/search/view/CalendarSearchViewModel.js"
-import { CalendarBottomNav } from "./gui/CalendarBottomNav.js"
 
 assertMainOrNodeBoot()
 bootFinished()
@@ -74,6 +72,7 @@ import("../mail-app/translations/en.js")
 		await import("../common/gui/main-styles.js")
 
 		// do this after lang initialized
+		const { initCommonLocator } = await import("../common/api/main/CommonLocator.js")
 		const { calendarLocator } = await import("./calendarLocator.js")
 		await calendarLocator.init()
 
@@ -112,7 +111,8 @@ import("../mail-app/translations/en.js")
 						calendarLocator.fileApp.clearFileData().catch((e) => console.log("Failed to clean file data", e))
 					}
 				},
-				async onFullLoginSuccess() {},
+				async onFullLoginSuccess() {
+				},
 			}
 		})
 
@@ -131,7 +131,7 @@ import("../mail-app/translations/en.js")
 		}
 
 		styles.init(calendarLocator.themeController)
-
+		const { CalendarBottomNav } = await import("./gui/CalendarBottomNav.js")
 		const paths = applicationPaths({
 			login: makeViewResolver<LoginViewAttrs, LoginView, { makeViewModel: () => LoginViewModel }>(
 				{
@@ -180,7 +180,7 @@ import("../mail-app/translations/en.js")
 			settings: makeViewResolver<SettingsViewAttrs, CalendarSettingsView, { drawerAttrsFactory: () => DrawerMenuAttrs; header: AppHeaderAttrs }>(
 				{
 					prepareRoute: async () => {
-						const { CalendarSettingsView } = await import("./calendar/view/CalendarSettingsView.js")
+						const { CalendarSettingsView } = await import("./calendar/settings/CalendarSettingsView.js")
 						const drawerAttrsFactory = await calendarLocator.drawerAttrsFactory()
 						return {
 							component: CalendarSettingsView,
@@ -633,8 +633,8 @@ function getStartUrl(urlQueryParams: Mithril.Params): string {
 
 function printJobsMessage(domainConfig: DomainConfig) {
 	env.dist &&
-		domainConfig.firstPartyDomain &&
-		console.log(`
+	domainConfig.firstPartyDomain &&
+	console.log(`
 
 ........................................
 ........................................

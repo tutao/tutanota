@@ -21,7 +21,7 @@ import { getTimeZone } from "../../common/calendar/date/CalendarUtils.js"
 
 import { formatEventDuration } from "../../calendar-app/calendar/gui/CalendarGuiUtils.js"
 import { getSenderOrRecipientHeading } from "../../common/mailFunctionality/CommonMailUtils.js"
-import { isTutanotaTeamMail } from "../mail/MailUtils.js"
+import { isTutanotaTeamMail } from "../../common/mailFunctionality/CommonMailUtils.js"
 import { getContactListName } from "../../common/contactsFunctionality/ContactUtils.js"
 
 type SearchBarOverlayAttrs = {

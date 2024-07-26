@@ -5,7 +5,7 @@ import { createTestEntity } from "../../../TestUtils.js"
 import { Icons } from "../../../../../src/common/gui/base/icons/Icons.js"
 import { ProgrammingError } from "../../../../../src/common/api/common/error/ProgrammingError.js"
 import { getConfidentialIcon, getDisplayedSender } from "../../../../../src/common/mailFunctionality/CommonMailUtils.js"
-import { isSystemNotification, isTutanotaTeamAddress, isTutanotaTeamMail } from "../../../../../src/mail-app/mail/MailUtils.js"
+import { isSystemNotification, isTutanotaTeamAddress, isTutanotaTeamMail } from "../../../../../src/common/mailFunctionality/CommonMailUtils.js"
 
 o.spec("MailUtilsTest", function () {
 	function createSystemMail(overrides: Partial<Mail> = {}): Mail {
