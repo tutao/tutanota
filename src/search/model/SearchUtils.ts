@@ -14,13 +14,13 @@ import {
 	TypeRef,
 } from "@tutao/tutanota-utils"
 import { RouteSetFn, throttleRoute } from "../../misc/RouteChange"
-import type { SearchRestriction } from "../../api/worker/search/SearchTypes"
+import { SearchRestriction } from "../../api/worker/search/SearchTypes"
 import { assertMainOrNode } from "../../api/common/Env"
 import { TranslationKey } from "../../misc/LanguageViewModel"
 import { CalendarEvent, CalendarEventTypeRef, Contact, ContactTypeRef, Mail, MailTypeRef } from "../../api/entities/tutanota/TypeRefs"
 import { typeModels } from "../../api/entities/tutanota/TypeModels.js"
 import { locator } from "../../api/main/MainLocator.js"
-import { getElementId } from "../../api/common/utils/EntityUtils.js"
+import { getElementId, LEGACY_BCC_RECIPIENTS_ID, LEGACY_BODY_ID, LEGACY_CC_RECIPIENTS_ID, LEGACY_TO_RECIPIENTS_ID } from "../../api/common/utils/EntityUtils.js"
 
 assertMainOrNode()
 
@@ -72,7 +72,7 @@ export const SEARCH_MAIL_FIELDS: ReadonlyArray<SearchMailField> = [
 	{
 		textId: "mailBody_label",
 		field: "body",
-		attributeIds: [typeModels.MailDetails.associations["body"].id as number],
+		attributeIds: [LEGACY_BODY_ID /** id of the legacy typeModels.Mail.associations["body"] */],
 	},
 	{
 		textId: "from_label",
@@ -83,9 +83,9 @@ export const SEARCH_MAIL_FIELDS: ReadonlyArray<SearchMailField> = [
 		textId: "to_label",
 		field: "to",
 		attributeIds: [
-			typeModels.Recipients.associations["toRecipients"].id as number,
-			typeModels.Recipients.associations["ccRecipients"].id as number,
-			typeModels.Recipients.associations["bccRecipients"].id as number,
+			LEGACY_TO_RECIPIENTS_ID /** id of the legacy Mail.toRecipients */,
+			LEGACY_CC_RECIPIENTS_ID /** id of the legacy Mail.ccRecipients */,
+			LEGACY_BCC_RECIPIENTS_ID /** id of the legacy Mail.bccRecipients */,
 		],
 	},
 	{

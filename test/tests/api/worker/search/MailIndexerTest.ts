@@ -1,6 +1,6 @@
 import o from "@tutao/otest"
 import { NotAuthorizedError } from "../../../../../src/api/common/error/RestError.js"
-import type { Db, ElementDataDbRow, IndexUpdate } from "../../../../../src/api/worker/search/SearchTypes.js"
+import { Db, ElementDataDbRow, IndexUpdate } from "../../../../../src/api/worker/search/SearchTypes.js"
 import { _createNewIndexUpdate, encryptIndexKeyBase64, typeRefToTypeInfo } from "../../../../../src/api/worker/search/IndexUtils.js"
 import { FULL_INDEXED_TIMESTAMP, GroupType, MailState, NOTHING_INDEXED_TIMESTAMP, OperationType } from "../../../../../src/api/common/TutanotaConstants.js"
 import { IndexerCore } from "../../../../../src/api/worker/search/IndexerCore.js"
@@ -31,7 +31,15 @@ import { browserDataStub, createTestEntity, makeCore } from "../../../TestUtils.
 import { downcast, getDayShifted, getStartOfDay, neverNull } from "@tutao/tutanota-utils"
 import { EventQueue } from "../../../../../src/api/worker/EventQueue.js"
 import { createSearchIndexDbStub } from "./DbStub.js"
-import { getElementId, getListId, timestampToGeneratedId } from "../../../../../src/api/common/utils/EntityUtils.js"
+import {
+	getElementId,
+	getListId,
+	LEGACY_BCC_RECIPIENTS_ID,
+	LEGACY_BODY_ID,
+	LEGACY_CC_RECIPIENTS_ID,
+	LEGACY_TO_RECIPIENTS_ID,
+	timestampToGeneratedId,
+} from "../../../../../src/api/common/utils/EntityUtils.js"
 import { EntityRestClientMock } from "../rest/EntityRestClientMock.js"
 import type { DateProvider } from "../../../../../src/api/worker/DateProvider.js"
 import { LocalTimeDateProvider } from "../../../../../src/api/worker/DateProvider.js"
@@ -42,6 +50,7 @@ import { object, when } from "testdouble"
 import { InfoMessageHandler } from "../../../../../src/gui/InfoMessageHandler.js"
 import { ElementDataOS, GroupDataOS, Metadata as MetaData, MetaDataOS } from "../../../../../src/api/worker/search/IndexTables.js"
 import { MailFacade } from "../../../../../src/api/worker/facades/lazy/MailFacade.js"
+import { typeModels } from "../../../../../src/api/entities/tutanota/TypeModels.js"
 
 class FixedDateProvider implements DateProvider {
 	now: number
@@ -182,15 +191,15 @@ o.spec("MailIndexer test", () => {
 					value: "Su",
 				},
 				{
-					attribute: RecipientModel.associations["toRecipients"].id,
+					attribute: LEGACY_TO_RECIPIENTS_ID,
 					value: "tr0N <tr0A>,tr1N <tr1A>",
 				},
 				{
-					attribute: RecipientModel.associations["ccRecipients"].id,
+					attribute: LEGACY_CC_RECIPIENTS_ID,
 					value: "ccr0N <ccr0A>,ccr1N <ccr1A>",
 				},
 				{
-					attribute: RecipientModel.associations["bccRecipients"].id,
+					attribute: LEGACY_BCC_RECIPIENTS_ID,
 					value: "bccr0N <bccr0A>,bccr1N <bccr1A>",
 				},
 				{
@@ -198,7 +207,7 @@ o.spec("MailIndexer test", () => {
 					value: "SN <SA>",
 				},
 				{
-					attribute: DetailsMailModel.associations["body"].id,
+					attribute: LEGACY_BODY_ID,
 					value: "BT",
 				},
 				{
@@ -775,6 +784,35 @@ o.spec("MailIndexer test", () => {
 				// Start of the day
 				[user, beforeNowInterval],
 			])
+		})
+	})
+
+	o.spec("check mail index compatibility with models", function () {
+		// if this test fails, you need to think about migrating (or dropping)
+		// so old mail indexes use the new attribute ids.
+		o("mail does not have an attribute with id LEGACY_TO_RECIPIENTS_ID", function () {
+			o(Object.values(typeModels.Mail.associations).filter((v: any) => v.id === LEGACY_TO_RECIPIENTS_ID).length).equals(0)
+		})
+		o("recipients does not have an attribute with id LEGACY_TO_RECIPIENTS_ID", function () {
+			o(Object.values(typeModels.Recipients.associations).filter((v: any) => v.id === LEGACY_TO_RECIPIENTS_ID).length).equals(0)
+		})
+		o("mail does not have an attribute with id LEGACY_BODY_ID", function () {
+			o(Object.values(typeModels.Mail.associations).filter((v: any) => v.id === LEGACY_BODY_ID).length).equals(0)
+		})
+		o("maildetails does not have an attribute with id LEGACY_BODY_ID", function () {
+			o(Object.values(typeModels.MailDetails.associations).filter((v: any) => v.id === LEGACY_BODY_ID).length).equals(0)
+		})
+		o("mail does not have an attribute with id LEGACY_CC_RECIPIENTS_ID", function () {
+			o(Object.values(typeModels.Mail.associations).filter((v: any) => v.id === LEGACY_CC_RECIPIENTS_ID).length).equals(0)
+		})
+		o("maildetails does not have an attribute with id LEGACY_CC_RECIPIENTS_ID", function () {
+			o(Object.values(typeModels.MailDetails.associations).filter((v: any) => v.id === LEGACY_CC_RECIPIENTS_ID).length).equals(0)
+		})
+		o("mail does not have an attribute with id LEGACY_BCC_RECIPIENTS_ID", function () {
+			o(Object.values(typeModels.Mail.associations).filter((v: any) => v.id === LEGACY_BCC_RECIPIENTS_ID).length).equals(0)
+		})
+		o("maildetails does not have an attribute with id LEGACY_BCC_RECIPIENTS_ID", function () {
+			o(Object.values(typeModels.MailDetails.associations).filter((v: any) => v.id === LEGACY_BCC_RECIPIENTS_ID).length).equals(0)
 		})
 	})
 })

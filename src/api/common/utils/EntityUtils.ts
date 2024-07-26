@@ -430,3 +430,8 @@ function removeIdentityFields<E extends Partial<SomeEntity>>(entity: E) {
 
 	_removeIdentityFields(entity)
 }
+
+export const LEGACY_TO_RECIPIENTS_ID = 112
+export const LEGACY_CC_RECIPIENTS_ID = 113
+export const LEGACY_BCC_RECIPIENTS_ID = 114
+export const LEGACY_BODY_ID = 116

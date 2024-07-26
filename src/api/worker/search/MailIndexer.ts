@@ -12,10 +12,18 @@ import {
 import { ConnectionError, NotAuthorizedError, NotFoundError } from "../../common/error/RestError"
 import { typeModels } from "../../entities/tutanota/TypeModels"
 import { assertNotNull, first, groupBy, groupByAndMap, isNotNull, neverNull, noOp, ofClass, promiseMap, splitInChunks, TypeRef } from "@tutao/tutanota-utils"
-import { elementIdPart, isSameId, listIdPart, timestampToGeneratedId } from "../../common/utils/EntityUtils"
+import {
+	elementIdPart,
+	isSameId,
+	LEGACY_BCC_RECIPIENTS_ID,
+	LEGACY_BODY_ID,
+	LEGACY_CC_RECIPIENTS_ID,
+	LEGACY_TO_RECIPIENTS_ID,
+	listIdPart,
+	timestampToGeneratedId,
+} from "../../common/utils/EntityUtils"
 import { _createNewIndexUpdate, encryptIndexKeyBase64, filterMailMemberships, getPerformanceTimestamp, htmlToText, typeRefToTypeInfo } from "./IndexUtils"
-import type { Db, GroupData, IndexUpdate, SearchIndexEntry } from "./SearchTypes"
-import { IndexingErrorReason } from "./SearchTypes"
+import { Db, GroupData, IndexingErrorReason, IndexUpdate, SearchIndexEntry } from "./SearchTypes"
 import { CancelledError } from "../../common/error/CancelledError"
 import { IndexerCore } from "./IndexerCore"
 import { DbError } from "../../common/error/DbError"
@@ -101,15 +109,18 @@ export class MailIndexer {
 				value: () => mail.subject,
 			},
 			{
-				attribute: RecipientModel.associations["toRecipients"],
+				// allows old index entries (pre-maildetails) to be used with new clients.
+				attribute: Object.assign({}, RecipientModel.associations["toRecipients"], { id: LEGACY_TO_RECIPIENTS_ID }),
 				value: () => mailDetails.recipients.toRecipients.map((r) => r.name + " <" + r.address + ">").join(","),
 			},
 			{
-				attribute: RecipientModel.associations["ccRecipients"],
+				// allows old index entries (pre-maildetails) to be used with new clients.
+				attribute: Object.assign({}, RecipientModel.associations["ccRecipients"], { id: LEGACY_CC_RECIPIENTS_ID }),
 				value: () => mailDetails.recipients.ccRecipients.map((r) => r.name + " <" + r.address + ">").join(","),
 			},
 			{
-				attribute: RecipientModel.associations["bccRecipients"],
+				// allows old index entries (pre-maildetails) to be used with new clients.
+				attribute: Object.assign({}, RecipientModel.associations["bccRecipients"], { id: LEGACY_BCC_RECIPIENTS_ID }),
 				value: () => mailDetails.recipients.bccRecipients.map((r) => r.name + " <" + r.address + ">").join(","),
 			},
 			{
@@ -117,8 +128,8 @@ export class MailIndexer {
 				value: () => (hasSender ? senderToIndex.name + " <" + senderToIndex.address + ">" : ""),
 			},
 			{
-				attribute: MailDetailsModel.associations["body"],
-				// Sometimes we encounter inconsistencies such as when deleted emails appear again
+				// allows old index entries (pre-maildetails) to be used with new clients.
+				attribute: Object.assign({}, MailDetailsModel.associations["body"], { id: LEGACY_BODY_ID }),
 				value: () => htmlToText(getMailBodyText(mailDetails.body)),
 			},
 			{
