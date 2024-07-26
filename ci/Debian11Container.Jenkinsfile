@@ -166,6 +166,10 @@ pipeline {
 				} // docker
 		    }
 			steps {
+				sh 'ps -xj'
+				sh 'systemctl status pcscd.socket'
+				sh 'systemctl status pcscd.service'
+
 				sh 'npm ci'
 				sh 'npm run build-packages'
 				sh 'rm -rf ./build/*'
@@ -184,7 +188,7 @@ pipeline {
 				}
 
 				sh 'node buildSrc/publish.js desktop'
-				sh 'ps -xj'
+				
 
 				script { // create release draft
 					def desktopLinux = "build/desktop/tutanota-desktop-linux.AppImage"
