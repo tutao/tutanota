@@ -827,7 +827,7 @@ export default {
 		"languageVietnamese_label": "Vietnamese",
 		"languageWelsh_label": "Welsh",
 		"language_label": "Language",
-		"largeSignature_msg": "The signature you defined is over {1}kB in size. It will be appended to every email by default. Do you want to use it anyway?",
+		"largeSignature_msg": "The signature you defined is over {1}KB in size. It will be appended to every email by default. Do you want to use it anyway?",
 		"lastAccessWithTime_label": "Last access: {time}",
 		"lastAccess_label": "Last access",
 		"lastName_placeholder": "Last name",
