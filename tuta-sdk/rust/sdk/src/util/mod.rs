@@ -6,6 +6,14 @@ pub mod test_utils;
 #[cfg(test)]
 pub mod entity_test_utils;
 
+/// A functional style wrapper around `vec.reverse()`
+#[cfg(test)]
+pub fn get_vec_reversed<T: Clone>(vec: Vec<T>) -> Vec<T> {
+    let mut copy = vec.clone();
+    copy.reverse();
+    copy
+}
+
 pub struct Versioned<T> {
     pub object: T,
     pub version: i64,

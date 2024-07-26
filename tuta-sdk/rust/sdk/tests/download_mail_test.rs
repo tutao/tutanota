@@ -15,11 +15,15 @@ mod test_rest_client;
 #[tokio::test]
 async fn test_download_mail() {
     let rest_client = make_rest_client();
+
+    // password is qawsedrftgyh
+    let encrypted_passphrase_key = BASE64_STANDARD.decode("AZWEA/KTrHu0bW52CsctsBTTV4U3jrU51TadSxf6Nqs3xbEs3WfoOpPtxUDCNjHNppt6LHCfgTioejjGUJ2cCsXosZAysUiau5Nvyi8mtjLz").unwrap();
+
     let credentials = Credentials {
         login: "bed-free@tutanota.de".to_string(),
         user_id: GeneratedId("O1qC700----0".to_owned()),
         access_token: "ZC2NIBDACUABAdJhibIwclzaPU3fEu-NzQ".to_string(),
-        encrypted_password: BASE64_STANDARD.decode("ARTvYqYWKqSzV7dOTIQF3WKEAvsNfq7XPS1t/81BpDkL3C1yL4C0c9iBILKItwaHD0x/ZuVXYxxzJm7RrZolTok=").unwrap(),
+        encrypted_passphrase_key,
         credential_type: CredentialType::Internal,
     };
     let sdk = Sdk::new("http://localhost:9000".to_string(), rest_client, credentials, "");
