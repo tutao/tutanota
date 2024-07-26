@@ -726,7 +726,7 @@ export default {
 		"languageVietnamese_label": "Vietnamčina",
 		"languageWelsh_label": "Waleština",
 		"language_label": "Jazyk",
-		"largeSignature_msg": "Veľkosť podpisu, ktorý ste definovali, prekračuje {1}kB. Predvolene sa pripojí ku každému e-mailu. Chcete ho použiť aj tak?",
+		"largeSignature_msg": "Veľkosť podpisu, ktorý ste definovali, prekračuje {1}KB. Predvolene sa pripojí ku každému e-mailu. Chcete ho použiť aj tak?",
 		"lastAccess_label": "Posledný prístup",
 		"lastName_placeholder": "Priezvisko",
 		"lastSync_label": "Posledná synchronizácia: {date}",
