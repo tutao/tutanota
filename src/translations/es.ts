@@ -831,7 +831,7 @@ export default {
 		"languageVietnamese_label": "Vietnamita",
 		"languageWelsh_label": "Galés",
 		"language_label": "Idioma",
-		"largeSignature_msg": "La firma que has definido tiene un tamaño superior a {1}kB. Se añadirá a cada correo de forma predeterminada. ¿Quieres usarla de todos modos?",
+		"largeSignature_msg": "La firma que has definido tiene un tamaño superior a {1}KB. Se añadirá a cada correo de forma predeterminada. ¿Quieres usarla de todos modos?",
 		"lastAccessWithTime_label": "Último acceso: {time}",
 		"lastAccess_label": "Último acceso",
 		"lastName_placeholder": "Apellido",
