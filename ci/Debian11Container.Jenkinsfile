@@ -151,7 +151,8 @@ pipeline {
 				label 'linux'
 			}
 			steps {
-				sh 'ls -lah /opt'
+				devicePath =  sh (script: 'lsusb | grep Nitro | sed -nr 's|Bus (.*) Device ([^:]*):.*|/dev/bus/usb/\1/\2|p'', returnStdout: true).trim()
+					env.DEVICE_PATH = devicePath
 			}
 		}
 		stage('Build deb and publish') {
@@ -161,8 +162,8 @@ pipeline {
 					filename 'Debian11Container.dockerfile'
 					label 'master'
 					dir 'ci'
-					additionalBuildArgs "--format docker"
-					args '--network host -v /opt/repository:/opt/repository:rw,z -v /dev:/dev:ro,z'
+					additionalBuildArgs '--format docker'
+					args "--network host -v /opt/repository:/opt/repository:rw,z --device=${env.DEVICE_PATH}"
 				} // docker
 		    }
 			steps {
@@ -188,7 +189,7 @@ pipeline {
 				}
 
 				sh 'node buildSrc/publish.js desktop'
-				
+
 
 				script { // create release draft
 					def desktopLinux = "build/desktop/tutanota-desktop-linux.AppImage"
