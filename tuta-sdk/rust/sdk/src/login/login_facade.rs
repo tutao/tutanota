@@ -98,14 +98,13 @@ impl LoginFacade {
 
         let user: User = self.typed_entity_client.load(&credentials.user_id).await?;
 
-        let GenericAesKey::Aes256(user_passphrase_key) = passphrase_key else { return Err(LoginError::InvalidPassphrase { error_message: "Wrong key type!".to_owned() }) }; // self.load_user_passphrase_key(&user, passphrase.as_str()).await?;
-
-        let user_facade = self.init_session(user, user_passphrase_key).await?;
+        let user_facade = self.init_session(user, passphrase_key).await?;
 
         Ok(user_facade)
     }
 
     /// Derive a key given a KDF type, passphrase, and salt
+    #[allow(dead_code)]
     async fn load_user_passphrase_key(&self, user: &User, passphrase: &str) -> Result<Aes256Key, ApiCallError> {
         let Some(salt) = user.salt.as_ref() else {
             return Err(InternalSdkError { error_message: "Salt is missing from User!".to_string() });
@@ -119,10 +118,10 @@ impl LoginFacade {
     }
 
     /// Initialize a session with given user id and return a new UserFacade
-    async fn init_session(&self, user: User, user_passphrase_key: Aes256Key) -> Result<UserFacade, LoginError> {
+    async fn init_session(&self, user: User, user_passphrase_key: GenericAesKey) -> Result<UserFacade, LoginError> {
         let user_facade = (self.user_facade_factory)(user);
 
-        user_facade.unlock_user_group_key(user_passphrase_key.into())
+        user_facade.unlock_user_group_key(user_passphrase_key)
             .map_err(|e| LoginError::InvalidKey { error_message: format!("Failed to unlock user group key: {}", e.to_string()) })?;
         Ok(user_facade)
     }
@@ -155,7 +154,8 @@ fn parse_session_id(access_token: &str) -> Result<IdTuple, DecodeError> {
     Ok(IdTuple { list_id, element_id })
 }
 
-fn derive_user_passphrase_key(kdf_type: KdfType, passphrase: &str, salt: [u8; 16]) -> Aes256Key {
+#[allow(dead_code)]
+pub fn derive_user_passphrase_key(kdf_type: KdfType, passphrase: &str, salt: [u8; 16]) -> Aes256Key {
     match kdf_type {
         KdfType::Argon2id => {
             generate_key_from_passphrase(passphrase, salt)
@@ -168,23 +168,20 @@ fn derive_user_passphrase_key(kdf_type: KdfType, passphrase: &str, salt: [u8; 16
 mod tests {
     use std::sync::Arc;
 
-    use futures::TryFutureExt;
     use mockall::predicate::eq;
 
     use crate::crypto::{Aes128Key, Aes256Key, Iv};
     use crate::crypto::key::GenericAesKey;
     use crate::crypto::randomizer_facade::RandomizerFacade;
+    use crate::entities::Entity;
     use crate::entities::sys::{GroupMembership, Session, User, UserExternalAuthInfo};
     use crate::entity_client::MockEntityClient;
     use crate::generated_id::GeneratedId;
     use crate::IdTuple;
-    use crate::entities::Entity;
     use crate::login::credentials::{Credentials, CredentialType};
-    use crate::login::login_facade::{derive_user_passphrase_key, KdfType, LoginFacade};
-
+    use crate::login::login_facade::LoginFacade;
     use crate::typed_entity_client::MockTypedEntityClient;
     use crate::user_facade::MockUserFacade;
-    use crate::util::array_cast_slice;
     use crate::util::test_utils::{create_test_entity, typed_entity_to_parsed_entity};
 
     #[tokio::test]

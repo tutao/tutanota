@@ -35,40 +35,34 @@ impl UserFacade {
         *self.user.write().unwrap() = Arc::new(user);
     }
 
-    pub fn unlock_user_group_key(&self, user_passphrase_key: Aes256Key) -> Result<(), ApiCallError> {
+    pub fn unlock_user_group_key(&self, user_passphrase_key: GenericAesKey) -> Result<(), ApiCallError> {
         let user = self.get_user();
         let user_group_membership = &user.userGroup;
         let current_user_group_key = Versioned::new(
-            GenericAesKey::Aes256(user_passphrase_key.clone()).decrypt_aes_key(&user_group_membership.symEncGKey).map_err(|e| {
+            user_passphrase_key.decrypt_aes_key(&user_group_membership.symEncGKey).map_err(|e| {
                 ApiCallError::InternalSdkError { error_message: e.to_string() }
             })?,
             user_group_membership.groupKeyVersion,
         );
         self.key_cache.set_current_user_group_key(current_user_group_key);
-        self.set_user_group_key_distribution_key(user_passphrase_key)
+        self.set_user_group_key_distribution_key(user_passphrase_key);
+        Ok(())
     }
 
     pub fn key_cache(&self) -> Arc<KeyCache> {
         self.key_cache.clone()
     }
 
-    fn set_user_group_key_distribution_key(&self, user_passphrase_key: Aes256Key) -> Result<(), ApiCallError> {
+    fn set_user_group_key_distribution_key(&self, user_passphrase_key: GenericAesKey) {
         let user = self.get_user();
         let user_group_membership = &user.userGroup;
-        let user_group_key_distribution_key = self.derive_user_group_key_distribution_key(&user_group_membership.group, user_passphrase_key)?;
-        match user_group_key_distribution_key {
-            GenericAesKey::Aes128(_) => {
-                Err(ApiCallError::InternalSdkError { error_message: "invalid derived key size".to_owned() })
-            }
-            GenericAesKey::Aes256(key) => {
-                Ok(self.key_cache.set_user_group_key_distribution_key(key))
-            }
-        }
+        let user_group_key_distribution_key = self.derive_user_group_key_distribution_key(&user_group_membership.group, user_passphrase_key);
+        self.key_cache.set_user_group_key_distribution_key(user_group_key_distribution_key)
     }
 
     // TODO: Add a test to check uint8ArrayToBase64 is correct;
     // there is a max length in the ts version, it seems to be a js thing, can we forego it here?
-    fn derive_user_group_key_distribution_key(&self, user_group_id: &GeneratedId, user_passphrase_key: Aes256Key) -> Result<GenericAesKey, ApiCallError> {
+    fn derive_user_group_key_distribution_key(&self, user_group_id: &GeneratedId, user_passphrase_key: GenericAesKey) -> Aes256Key {
         // we prepare a key to encrypt potential user group key rotations with
         // when passwords are changed clients are logged-out of other sessions
         // this key is only needed by the logged-in clients, so it should be reliable enough to assume that userPassphraseKey is in sync
@@ -79,14 +73,8 @@ impl UserFacade {
             hkdf(user_group_id_hash.as_slice(),
                  BASE64_STANDARD.encode(user_passphrase_key.as_bytes()).as_bytes(),
                  USER_GROUP_KEY_DISTRIBUTION_KEY_INFO.as_bytes(), AES_256_KEY_SIZE);
-        return match aes_key.len() {
-            AES_256_KEY_SIZE => {
-                Ok(GenericAesKey::Aes256(Aes256Key::from_bytes(aes_key.as_slice()).expect("invalid derived key size")))
-            }
-            _ => {
-                Err(ApiCallError::InternalSdkError { error_message: "invalid derived key size".to_owned() })
-            }
-        };
+
+        Aes256Key::from_bytes(aes_key.as_slice()).expect("invalid derived key size")
     }
 
 
@@ -115,6 +103,7 @@ impl UserFacade {
         self.key_cache.get_current_user_group_key()
     }
 
+    #[allow(unused)]
     pub(crate) fn get_membership(&self, group_id: &GeneratedId) -> Result<GroupMembership, ApiCallError> {
         let memberships = &self.get_user().memberships;
         memberships.iter().find(|g| g.group == *group_id)

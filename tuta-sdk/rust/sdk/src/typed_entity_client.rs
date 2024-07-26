@@ -15,6 +15,7 @@ pub struct TypedEntityClient {
 
 /// Similar to EntityClient, but return a typed object instead of a generic Map
 impl TypedEntityClient {
+    #[allow(unused)]
     pub(crate) fn new(
         entity_client: Arc<EntityClient>,
         instance_mapper: Arc<InstanceMapper>,
