@@ -1,21 +1,11 @@
-# Add project specific ProGuard rules here.
-# You can control the set of applied configuration files using the
-# proguardFiles setting in build.gradle.
-#
-# For more details, see
-#   http://developer.android.com/guide/developing/tools/proguard.html
+# These rules will be applied when the library is imported as a module.
+# See https://developer.android.com/studio/projects/android-library#Considerations
 
-# If your project uses WebView with JS, uncomment the following
-# and specify the fully qualified class name to the JavaScript interface
-# class:
-#-keepclassmembers class fqcn.of.javascript.interface.for.webview {
-#   public *;
-#}
-
-# Uncomment this to preserve the line number information for
-# debugging stack traces.
-#-keepattributes SourceFile,LineNumberTable
-
-# If you keep the line number information, uncomment this to
-# hide the original source file name.
-#-renamesourcefileattribute SourceFile
+# Keep generated SDK types. A lot of them are accessed using JNA or are part of generated entities.
+-keep class de.tutao.tutasdk.**
+# Some AWT things are referenced by JNA for some reason. But we really, really don't use AWT.
+-dontwarn java.awt.*
+# JNA is needed for uniffi and some things are resolved dynamically when called from native.
+-keep class com.sun.jna.**
+-keep class * extends com.sun.jna.**
+-keep class * implements com.sun.jna.**

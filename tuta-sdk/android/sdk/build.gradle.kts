@@ -53,6 +53,8 @@ android {
 		minSdk = 26
 
 		testInstrumentationRunner = "androidx.test.runner.AndroidJUnitRunner"
+		// Proguard rules that are passed on to the users of the library
+		// See https://developer.android.com/studio/projects/android-library#Considerations
 		consumerProguardFiles("consumer-rules.pro")
 	}
 
