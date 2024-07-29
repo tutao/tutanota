@@ -63,8 +63,10 @@ android {
 			isJniDebuggable = true
 		}
 		release {
-			isMinifyEnabled = true
-			proguardFiles(getDefaultProguardFile("proguard-android-optimize.txt"), "proguard-rules.pro")
+			// Do not apply minification to the library artifact itself, without the application code that references
+			// the specific classes we cannot know what we need to keep so we would have to effectively disable
+			// minification anyway.
+			isMinifyEnabled = false
 		}
 		create("releaseTest") {
 			initWith(getByName("release"))
