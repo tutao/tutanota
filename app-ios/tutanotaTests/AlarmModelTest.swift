@@ -163,9 +163,9 @@ class AlarmModelTest: XCTestCase {
 		dateProvider.now = date(2019, 4, 20, 0, timeZone)
 
 		let repeatRuleTimeZone = "Asia/Anadyr"
-		let eventStart = allDayUTCDate(fromLocalDate: date(2019, 5, 1, 0, timeZone))
-		let eventEnd = allDayUTCDate(fromLocalDate: date(2019, 5, 2, 0, timeZone))
-		let repeatEnd = allDayUTCDate(fromLocalDate: date(2019, 5, 3, 0, timeZone))
+		let eventStart = allDayUTCDate(fromLocalDate: date(2019, 5, 1, 0, timeZone), inTimeZone: timeZone)
+		let eventEnd = allDayUTCDate(fromLocalDate: date(2019, 5, 2, 0, timeZone), inTimeZone: timeZone)
+		let repeatEnd = allDayUTCDate(fromLocalDate: date(2019, 5, 3, 0, timeZone), inTimeZone: timeZone)
 		let repeatRule = RepeatRule(frequency: .daily, interval: 1, timeZone: repeatRuleTimeZone, endCondition: .untilDate(date: repeatEnd), excludedDates: [])
 
 		let seq: any Sequence<AlarmOccurence> = alarmModel.futureOccurrences(

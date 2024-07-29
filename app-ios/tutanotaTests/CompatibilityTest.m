@@ -16,6 +16,7 @@
 @end
 
 static unsigned char *randValueMock;
+static size_t randValueMockLen;
 
 // These don't need to do anything.
 static void mock_rand_cleanup(void) {}
@@ -27,7 +28,7 @@ static int mock_rand_bytes(unsigned char *buf, int num)
 {
         for( int index = 0; index < num; ++index )
         {
-                buf[index] = randValueMock[index];
+                buf[index] = randValueMock[index % randValueMockLen];
         }
         return 1;
 }
@@ -82,13 +83,14 @@ static int mock_rand_bytes(unsigned char *buf, int num)
 		let seed = [TUTEncodingConverter hexToBytes:testCase[@"seed"]];
 
 		randValueMock = (unsigned char *)seed.bytes;
+		randValueMockLen = [seed length];
 
-    NSError *error;
-    let encrypted = [crypto rsaEncryptWithPublicKey:publicKey data:plainText seed:seed error:&error];
-    XCTAssertEqualObjects(encrypted, encResult);
-    let privateKey = [CompatibilityTest hexToPrivateKey:testCase[@"privateKey"]];
-    let decryptedBase64 = [crypto rsaDecryptWithPrivateKey:privateKey data:encrypted error:&error];
-    XCTAssertEqualObjects(decryptedBase64, plainText);
+		NSError *error;
+		let encrypted = [crypto rsaEncryptWithPublicKey:publicKey data:plainText seed:seed error:&error];
+		XCTAssertEqualObjects(encrypted, encResult);
+		let privateKey = [CompatibilityTest hexToPrivateKey:testCase[@"privateKey"]];
+		let decryptedBase64 = [crypto rsaDecryptWithPrivateKey:privateKey data:encrypted error:&error];
+		XCTAssertEqualObjects(decryptedBase64, plainText);
 	}
 }
 
