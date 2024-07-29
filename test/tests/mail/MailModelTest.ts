@@ -1,24 +1,23 @@
 import o from "@tutao/otest"
-import { Notifications } from "../../../src/gui/Notifications.js"
+import { Notifications } from "../../../src/common/gui/Notifications.js"
 import type { Spy } from "@tutao/tutanota-test-utils"
 import { spy } from "@tutao/tutanota-test-utils"
-import type { MailboxDetail } from "../../../src/mail/model/MailModel.js"
-import { MailModel } from "../../../src/mail/model/MailModel.js"
-import { MailFolderType, OperationType } from "../../../src/api/common/TutanotaConstants.js"
-import { MailFolderTypeRef, MailTypeRef } from "../../../src/api/entities/tutanota/TypeRefs.js"
-import { EntityClient } from "../../../src/api/common/EntityClient.js"
+import { MailFolderType, OperationType } from "../../../src/common/api/common/TutanotaConstants.js"
+import { MailFolderTypeRef, MailTypeRef } from "../../../src/common/api/entities/tutanota/TypeRefs.js"
+import { EntityClient } from "../../../src/common/api/common/EntityClient.js"
 import { EntityRestClientMock } from "../api/worker/rest/EntityRestClientMock.js"
 import nodemocker from "../nodemocker.js"
 import { downcast } from "@tutao/tutanota-utils"
-import { MailFacade } from "../../../src/api/worker/facades/lazy/MailFacade.js"
-import { LoginController } from "../../../src/api/main/LoginController.js"
+import { MailFacade } from "../../../src/common/api/worker/facades/lazy/MailFacade.js"
+import { LoginController } from "../../../src/common/api/main/LoginController.js"
 import { matchers, object, when } from "testdouble"
-import { FolderSystem } from "../../../src/api/common/mail/FolderSystem.js"
-import { WebsocketConnectivityModel } from "../../../src/misc/WebsocketConnectivityModel.js"
-import { InboxRuleHandler } from "../../../src/mail/model/InboxRuleHandler.js"
-import { UserController } from "../../../src/api/main/UserController.js"
+import { FolderSystem } from "../../../src/common/api/common/mail/FolderSystem.js"
+import { WebsocketConnectivityModel } from "../../../src/common/misc/WebsocketConnectivityModel.js"
+import { UserController } from "../../../src/common/api/main/UserController.js"
 import { createTestEntity } from "../TestUtils.js"
-import { EntityUpdateData } from "../../../src/api/common/utils/EntityUpdateUtils.js"
+import { EntityUpdateData } from "../../../src/common/api/common/utils/EntityUpdateUtils.js"
+import { MailboxDetail, MailModel } from "../../../src/common/mailFunctionality/MailModel.js"
+import { InboxRuleHandler } from "../../../src/mail-app/mail/model/InboxRuleHandler.js"
 
 o.spec("MailModelTest", function () {
 	let notifications: Partial<Notifications>
@@ -51,7 +50,7 @@ o.spec("MailModelTest", function () {
 		when(logins.getUserController()).thenReturn(userController)
 
 		inboxRuleHandler = object()
-		model = new MailModel(downcast(notifications), downcast({}), connectivityModel, mailFacade, new EntityClient(restClient), logins, inboxRuleHandler)
+		model = new MailModel(downcast(notifications), downcast({}), mailFacade, new EntityClient(restClient), logins, connectivityModel, inboxRuleHandler)
 		// not pretty, but works
 		model.mailboxDetails(mailboxDetails as MailboxDetail[])
 	})

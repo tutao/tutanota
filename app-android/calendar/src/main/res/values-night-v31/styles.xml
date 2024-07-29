@@ -1,0 +1,15 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+
+	<style name="SplashTheme" parent="Theme.AppCompat.Light.NoActionBar">
+		<item name="android:colorPrimary">@color/green</item>
+		<item name="android:colorPrimaryDark">@color/green</item>
+		<item name="android:windowBackground">@color/darkLighter</item>
+		<item name="android:statusBarColor">@color/darkLighter</item>
+		<item name="android:windowLightStatusBar">false</item>
+		<item name="android:windowSplashScreenAnimatedIcon">
+			@drawable/ic_launcher_foreground_dark
+		</item>
+
+	</style>
+</resources>

@@ -1,7 +1,7 @@
 import o from "@tutao/otest"
-import { UserFacade } from "../../../../../src/api/worker/facades/UserFacade.js"
-import { PQFacade } from "../../../../../src/api/worker/facades/PQFacade.js"
-import { WASMKyberFacade } from "../../../../../src/api/worker/facades/KyberFacade.js"
+import { UserFacade } from "../../../../../src/common/api/worker/facades/UserFacade.js"
+import { PQFacade } from "../../../../../src/common/api/worker/facades/PQFacade.js"
+import { WASMKyberFacade } from "../../../../../src/common/api/worker/facades/KyberFacade.js"
 import { loadLibOQSWASM } from "../WASMTestUtils.js"
 import {
 	aes256RandomKey,
@@ -25,17 +25,17 @@ import {
 	KeyPairTypeRef,
 	User,
 	UserTypeRef,
-} from "../../../../../src/api/entities/sys/TypeRefs.js"
+} from "../../../../../src/common/api/entities/sys/TypeRefs.js"
 import { createTestEntity } from "../../../TestUtils.js"
-import { EntityClient } from "../../../../../src/api/common/EntityClient.js"
+import { EntityClient } from "../../../../../src/common/api/common/EntityClient.js"
 import { matchers, object, reset, verify, when } from "testdouble"
-import { KeyLoaderFacade } from "../../../../../src/api/worker/facades/KeyLoaderFacade.js"
-import { stringToCustomId } from "../../../../../src/api/common/utils/EntityUtils.js"
-import { VersionedKey } from "../../../../../src/api/worker/crypto/CryptoFacade.js"
+import { KeyLoaderFacade } from "../../../../../src/common/api/worker/facades/KeyLoaderFacade.js"
+import { stringToCustomId } from "../../../../../src/common/api/common/utils/EntityUtils.js"
+import { VersionedKey } from "../../../../../src/common/api/worker/crypto/CryptoFacade.js"
 import { assertNotNull, freshVersioned } from "@tutao/tutanota-utils"
-import { KeyCache } from "../../../../../src/api/worker/facades/KeyCache.js"
+import { KeyCache } from "../../../../../src/common/api/worker/facades/KeyCache.js"
 import { assertThrows } from "@tutao/tutanota-test-utils"
-import { CacheManagementFacade } from "../../../../../src/api/worker/facades/lazy/CacheManagementFacade.js"
+import { CacheManagementFacade } from "../../../../../src/common/api/worker/facades/lazy/CacheManagementFacade.js"
 
 o.spec("KeyLoaderFacadeTest", function () {
 	let keyCache: KeyCache

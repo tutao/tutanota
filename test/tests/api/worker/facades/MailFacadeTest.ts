@@ -1,5 +1,5 @@
 import o from "@tutao/otest"
-import { MailFacade, phishingMarkerValue, validateMimeTypesForAttachments } from "../../../../../src/api/worker/facades/lazy/MailFacade.js"
+import { MailFacade, phishingMarkerValue, validateMimeTypesForAttachments } from "../../../../../src/common/api/worker/facades/lazy/MailFacade.js"
 import {
 	InternalRecipientKeyDataTypeRef,
 	MailAddressTypeRef,
@@ -8,21 +8,21 @@ import {
 	SecureExternalRecipientKeyDataTypeRef,
 	SendDraftDataTypeRef,
 	SymEncInternalRecipientKeyDataTypeRef,
-} from "../../../../../src/api/entities/tutanota/TypeRefs.js"
-import { CryptoProtocolVersion, MailAuthenticationStatus, ReportedMailFieldType } from "../../../../../src/api/common/TutanotaConstants.js"
+} from "../../../../../src/common/api/entities/tutanota/TypeRefs.js"
+import { CryptoProtocolVersion, MailAuthenticationStatus, ReportedMailFieldType } from "../../../../../src/common/api/common/TutanotaConstants.js"
 import { object } from "testdouble"
-import { CryptoFacade } from "../../../../../src/api/worker/crypto/CryptoFacade.js"
-import { IServiceExecutor } from "../../../../../src/api/common/ServiceRequest.js"
-import { EntityClient } from "../../../../../src/api/common/EntityClient.js"
-import { BlobFacade } from "../../../../../src/api/worker/facades/lazy/BlobFacade.js"
-import { UserFacade } from "../../../../../src/api/worker/facades/UserFacade"
-import { NativeFileApp } from "../../../../../src/native/common/FileApp.js"
-import { LoginFacade } from "../../../../../src/api/worker/facades/LoginFacade.js"
-import { DataFile } from "../../../../../src/api/common/DataFile.js"
+import { CryptoFacade } from "../../../../../src/common/api/worker/crypto/CryptoFacade.js"
+import { IServiceExecutor } from "../../../../../src/common/api/common/ServiceRequest.js"
+import { EntityClient } from "../../../../../src/common/api/common/EntityClient.js"
+import { BlobFacade } from "../../../../../src/common/api/worker/facades/lazy/BlobFacade.js"
+import { UserFacade } from "../../../../../src/common/api/worker/facades/UserFacade"
+import { NativeFileApp } from "../../../../../src/common/native/common/FileApp.js"
+import { LoginFacade } from "../../../../../src/common/api/worker/facades/LoginFacade.js"
+import { DataFile } from "../../../../../src/common/api/common/DataFile.js"
 import { downcast } from "@tutao/tutanota-utils"
-import { ProgrammingError } from "../../../../../src/api/common/error/ProgrammingError.js"
+import { ProgrammingError } from "../../../../../src/common/api/common/error/ProgrammingError.js"
 import { createTestEntity } from "../../../TestUtils.js"
-import { KeyLoaderFacade } from "../../../../../src/api/worker/facades/KeyLoaderFacade.js"
+import { KeyLoaderFacade } from "../../../../../src/common/api/worker/facades/KeyLoaderFacade.js"
 
 o.spec("MailFacade test", function () {
 	let facade: MailFacade

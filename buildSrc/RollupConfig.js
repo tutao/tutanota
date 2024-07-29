@@ -30,18 +30,32 @@ export const allowedImports = {
 	boot: ["polyfill-helpers", "common-min"],
 	common: ["polyfill-helpers", "common-min"],
 	"gui-base": ["polyfill-helpers", "common-min", "common", "boot"],
-	main: ["polyfill-helpers", "common-min", "common", "boot", "gui-base"],
+	main: ["polyfill-helpers", "common-min", "common", "boot", "gui-base", "common-functionality"],
 	sanitizer: ["polyfill-helpers", "common-min", "common", "boot", "gui-base"],
 	date: ["polyfill-helpers", "common-min", "common", "boot", "sharing"],
-	"date-gui": ["polyfill-helpers", "common-min", "common", "boot", "gui-base", "main", "sharing", "date"],
-	"mail-view": ["polyfill-helpers", "common-min", "common", "boot", "gui-base", "main"],
-	"mail-editor": ["polyfill-helpers", "common-min", "common", "boot", "gui-base", "main", "mail-view", "sanitizer", "sharing"],
-	search: ["polyfill-helpers", "common-min", "common", "boot", "gui-base", "main", "mail-view", "calendar-view", "contacts", "date", "date-gui", "sharing"],
+	"date-gui": ["polyfill-helpers", "common-min", "common", "boot", "gui-base", "main", "sharing", "date", "common-functionality"],
+	"mail-view": ["polyfill-helpers", "common-min", "common", "boot", "gui-base", "main", "common-functionality"],
+	"mail-editor": ["polyfill-helpers", "common-min", "common", "boot", "gui-base", "main", "mail-view", "sanitizer", "sharing", "common-functionality"],
+	search: [
+		"polyfill-helpers",
+		"common-min",
+		"common",
+		"boot",
+		"gui-base",
+		"main",
+		"mail-view",
+		"calendar-view",
+		"contacts",
+		"date",
+		"date-gui",
+		"sharing",
+		"common-functionality",
+	],
 	// ContactMergeView needs HtmlEditor even though ContactEditor doesn't?
-	contacts: ["polyfill-helpers", "common-min", "common", "boot", "gui-base", "main", "mail-view", "date", "date-gui", "mail-editor"],
-	"calendar-view": ["polyfill-helpers", "common-min", "common", "boot", "gui-base", "main", "date", "date-gui", "sharing"],
+	contacts: ["polyfill-helpers", "common-min", "common", "boot", "gui-base", "main", "mail-view", "date", "date-gui", "mail-editor", "common-functionality"],
+	"calendar-view": ["polyfill-helpers", "common-min", "common", "boot", "gui-base", "main", "date", "date-gui", "sharing", "common-functionality"],
 	login: ["polyfill-helpers", "common-min", "common", "boot", "gui-base", "main"],
-	worker: ["polyfill-helpers", "common-min", "common", "native-common", "native-worker", "wasm", "wasm-fallback"],
+	worker: ["polyfill-helpers", "common-min", "common", "native-common", "native-worker", "wasm", "wasm-fallback", "common-functionality"],
 	settings: [
 		"polyfill-helpers",
 		"common-min",
@@ -57,16 +71,70 @@ export const allowedImports = {
 		"date-gui",
 		"login",
 		"sharing",
+		"common-functionality",
 	],
-	"ui-extra": ["polyfill-helpers", "common-min", "common", "boot", "gui-base", "main", "settings", "contacts", "sanitizer", "login", "mail-editor"],
-	sharing: ["polyfill-helpers", "common-min", "common", "boot", "gui-base", "main"],
+	"mail-settings": [
+		"polyfill-helpers",
+		"common-min",
+		"common",
+		"boot",
+		"gui-base",
+		"main",
+		"contacts",
+		"sanitizer",
+		"mail-editor",
+		"mail-view",
+		"date",
+		"date-gui",
+		"login",
+		"sharing",
+		"settings",
+		"native-main",
+		"common-functionality",
+	],
+	"calendar-settings": [
+		"polyfill-helpers",
+		"common-min",
+		"common",
+		"boot",
+		"gui-base",
+		"main",
+		"contacts",
+		"sanitizer",
+		"mail-editor",
+		"mail-view",
+		"date",
+		"date-gui",
+		"login",
+		"sharing",
+		"settings",
+		"common-functionality",
+	],
+	"ui-extra": [
+		"polyfill-helpers",
+		"common-min",
+		"common",
+		"boot",
+		"gui-base",
+		"main",
+		"settings",
+		"mail-settings",
+		"calendar-settings",
+		"contacts",
+		"sanitizer",
+		"login",
+		"mail-editor",
+		"common-functionality",
+	],
+	"common-functionality": ["polyfill-helpers", "common-min", "common", "boot", "main", "contacts", "gui-base"],
+	sharing: ["polyfill-helpers", "common-min", "common", "boot", "gui-base", "main", "common-functionality"],
 	"native-common": ["polyfill-helpers", "common-min", "common"],
-	"native-main": ["polyfill-helpers", "common-min", "common", "boot", "gui-base", "main", "native-common", "login"],
+	"native-main": ["polyfill-helpers", "common-min", "common", "boot", "gui-base", "main", "native-common", "login", "common-functionality"],
 	"native-worker": ["polyfill-helpers", "common-min", "common"],
-	"setup-wizard": ["boot", "common-min", "gui-base", "main", "native-common", "native-main", "settings", "ui-extra"],
+	"setup-wizard": ["boot", "common-min", "gui-base", "main", "native-common", "native-main", "settings", "mail-settings", "calendar-settings", "ui-extra"],
 	jszip: ["polyfill-helpers"],
 	"worker-lazy": ["common-min", "common", "worker", "worker-search", "date"],
-	"worker-search": ["common-min", "common", "worker", "worker-lazy"],
+	"worker-search": ["common-min", "common", "worker", "worker-lazy", "common-functionality"],
 	linkify: [],
 	invoice: ["common-min"],
 }
@@ -105,86 +173,100 @@ export function getChunkName(moduleId, { getModuleInfo }) {
 	if (code.includes("@bundleInto:common-min") || isIn("libs/stream") || isIn("packages/tutanota-utils") || isIn("packages/tutanota-error")) {
 		// if detecting this does not work even though the comment is there, add a blank line after the annotation.
 		return "common-min"
+	} else if (code.includes("@bundleInto:common-functionality")) {
+		return "common-functionality"
 	} else if (code.includes("@bundleInto:common")) {
 		// if detecting this does not work even though the comment is there, add a blank line after the annotation.
 		return "common"
-	} else if (code.includes("assertMainOrNodeBoot") || isIn("libs/mithril") || isIn("src/app.ts") || code.includes("@bundleInto:boot")) {
+	} else if (
+		code.includes("assertMainOrNodeBoot") ||
+		isIn("libs/mithril") ||
+		isIn("src/mail-app/app.ts") ||
+		isIn("src/calendar-app/calendar-app.ts") ||
+		code.includes("@bundleInto:boot")
+	) {
 		// if detecting this does not work even though the comment is there, add a blank line after the annotation.
 		// everything marked as assertMainOrNodeBoot goes into boot bundle right now
 		// (which is getting merged into app.js)
 		return "boot"
-	} else if (isIn("src/calendar/export") || isIn("src/misc/DateParser") || isIn("src/calendar/model") || isIn("src/calendar/gui")) {
+	} else if (
+		isIn("src/calendar-app/calendar/export") ||
+		isIn("src/common/misc/DateParser") ||
+		isIn("src/calendar-app/calendar/model") ||
+		isIn("src/calendar-app/calendar/gui")
+	) {
 		// this contains code that is important to the calendar view but might be used by other parts of the app on the main thread
 		// like time-based input components and formatting code.
 		return "date-gui"
-	} else if (moduleId.includes("luxon") || isIn("src/calendar/date")) {
+	} else if (moduleId.includes("luxon") || isIn("src/common/calendar/date")) {
 		// common calendar/time code that might be used in main or worker threads
 		// primarily luxon and utility functions based on it, but no display code
 		// (formatting, UI components)
 		return "date"
-	} else if (isIn("src/misc/HtmlSanitizer") || isIn("libs/purify")) {
+	} else if (isIn("src/common/misc/HtmlSanitizer") || isIn("libs/purify")) {
 		return "sanitizer"
-	} else if (isIn("src/gui/base")) {
+	} else if (isIn("src/common/gui/base")) {
 		// these gui elements are used from everywhere
 		return "gui-base"
-	} else if (isIn("src/native/main/wizard")) {
+	} else if (isIn("src/common/native/main/wizard")) {
 		return "setup-wizard"
-	} else if (isIn("src/native/main") || moduleId.includes("SearchInPageOverlay")) {
+	} else if (isIn("src/common/native/main") || moduleId.includes("SearchInPageOverlay")) {
 		return "native-main"
 	} else if (
-		isIn("src/mail/editor") ||
+		isIn("src/mail-app/mail/editor") ||
 		moduleId.includes("squire") ||
-		isIn("src/gui/editor") ||
-		isIn("src/mail/signature") ||
-		isIn("src/templates") ||
-		isIn("src/knowledgebase") ||
-		isIn("src/mail/press")
+		isIn("src/common/gui/editor") ||
+		isIn("src/mail-app/mail/signature") ||
+		isIn("src/mail-app/templates") ||
+		isIn("src/mail-app/knowledgebase") ||
+		isIn("src/mail-app/mail/press")
 	) {
 		// squire is most often used with mail editor and they are both not too big so we merge them
 		return "mail-editor"
 	} else if (
-		isIn("src/api/main") ||
-		isIn("src/mail/model") ||
-		isIn("src/contacts/model") ||
-		isIn("src/search/model") ||
-		isIn("src/misc/ErrorHandlerImpl") ||
-		isIn("src/misc") ||
-		isIn("src/file") ||
-		isIn("src/gui") ||
-		isIn("src/serviceworker") ||
+		isIn("src/common/api/main") ||
+		isIn("src/mail-app/mail/model") ||
+		isIn("src/mail-app/contacts/model") ||
+		isIn("src/mail-app/search/model") ||
+		isIn("src/calendar-app/calendar/search/model") ||
+		isIn("src/common/misc/ErrorHandlerImpl") ||
+		isIn("src/common/misc") ||
+		isIn("src/common/file") ||
+		isIn("src/common/gui") ||
+		isIn("src/common/serviceworker") ||
 		moduleId.includes(path.normalize("packages/tutanota-usagetests"))
 	) {
 		// Things which we always need for main thread anyway, at least currently
 		return "main"
-	} else if (isIn("src/mail/view") || isIn("src/mail/export")) {
+	} else if (isIn("src/mail-app/mail/view") || isIn("src/mail-app/mail/export")) {
 		return "mail-view"
 	} else if (moduleId.includes("wasm-loader")) {
 		return "wasm"
 	} else if (moduleId.includes("wasm-fallback")) {
 		return "wasm-fallback"
-	} else if (isIn("src/native/worker")) {
+	} else if (isIn("src/common/native/worker")) {
 		return "worker"
-	} else if (isIn("src/native/common")) {
+	} else if (isIn("src/common/native/common")) {
 		return "native-common"
-	} else if (isIn("src/search")) {
+	} else if (isIn(`src/mail-app/search`) || isIn(`src/calendar-app/calendar/search`) || isIn("src/common/search")) {
 		return "search"
-	} else if (isIn("src/calendar/view")) {
+	} else if (isIn("src/calendar-app/calendar/view")) {
 		return "calendar-view"
-	} else if (isIn("src/contacts")) {
+	} else if (isIn("src/mail-app/contacts")) {
 		return "contacts"
-	} else if (isIn("src/login/recover") || isIn("src/support") || isIn("src/login/contactform")) {
+	} else if (isIn("src/common/login/recover") || isIn("src/common/support") || isIn("src/common/login/contactform")) {
 		// Collection of small UI components which are used not too often
 		// Perhaps contact form should be separate
 		// Recover things depends on HtmlEditor which we don't want to load on each login
 		return "ui-extra"
-	} else if (isIn("src/login")) {
+	} else if (isIn("src/common/login")) {
 		return "login"
 	} else if (
-		isIn("src/api/common") ||
-		isIn("src/api/entities") ||
+		isIn("src/common/api/common") ||
+		isIn("src/common/api/entities") ||
 		isIn("src/desktop/config/ConfigKeys") ||
 		moduleId.includes("cborg") ||
-		isIn("src/offline") ||
+		isIn("src/common/offline") ||
 		// CryptoError is needed on the main thread in order to check errors
 		// We have to define both the entry point and the files referenced from it which is annoying
 		isIn("packages/tutanota-crypto/dist/error") ||
@@ -200,23 +282,27 @@ export function getChunkName(moduleId, { getModuleInfo }) {
 		moduleId.includes("commonjs-dynamic-modules")
 	) {
 		return "polyfill-helpers"
-	} else if (isIn("src/settings") || isIn("src/subscription") || isIn("libs/qrcode") || isIn("src/termination")) {
+	} else if (isIn("src/common/settings") || isIn("src/common/subscription") || isIn("libs/qrcode") || isIn("src/common/termination")) {
 		// subscription and settings depend on each other right now.
 		// subscription is also a kitchen sink with signup, utils and views, we should break it up
 		return "settings"
-	} else if (isIn("src/sharing")) {
+	} else if (isIn("src/mail-app/settings")) {
+		return "mail-settings"
+	} else if (isIn("src/calendar-app/calendar/settings")) {
+		return "calendar-settings"
+	} else if (isIn("src/common/sharing")) {
 		return "sharing"
-	} else if (isIn("src/api/worker/facades/lazy")) {
+	} else if (isIn("src/common/api/worker/facades/lazy")) {
 		// things that are not used for login and are generally accessed occasionally
 		return "worker-lazy"
-	} else if (isIn("src/api/worker/search")) {
+	} else if (isIn("src/common/api/worker/search")) {
 		// things related to indexer or search
 		return "worker-search"
-	} else if (isIn("src/api/worker/Urlifier") || isIn("libs/linkify") || isIn("libs/linkify-html")) {
+	} else if (isIn("src/common/api/worker/Urlifier") || isIn("libs/linkify") || isIn("libs/linkify-html")) {
 		return "linkify"
-	} else if (isIn("src/api/worker/pdf") || isIn("src/api/worker/invoicegen")) {
+	} else if (isIn("src/common/api/worker/pdf") || isIn("src/common/api/worker/invoicegen")) {
 		return "invoice"
-	} else if (isIn("src/api/worker") || isIn("packages/tutanota-crypto") || moduleId.includes("argon2")) {
+	} else if (isIn("src/common/api/worker") || isIn("packages/tutanota-crypto") || moduleId.includes("argon2")) {
 		return "worker" // avoid that crypto stuff is only put into native
 	} else if (isIn("libs/jszip")) {
 		return "jszip"
@@ -228,6 +314,8 @@ export function getChunkName(moduleId, { getModuleInfo }) {
 		if (match) {
 			const language = match[1]
 			return "translation-" + language
+		} else if (isIn(`src/mail-app`) || isIn(`src/calendar-app`)) {
+			return "main"
 		}
 	}
 }
@@ -298,7 +386,7 @@ export function bundleDependencyCheckPlugin() {
 				}
 				for (const moduleId of Object.keys(chunk.modules)) {
 					// Its a translation file and they are in their own chunks. We can skip further checks.
-					if (moduleId.includes(path.normalize("src/translations"))) {
+					if (moduleId.includes(path.normalize("src/mail-app/translations"))) {
 						continue
 					}
 					const ownChunk = getChunkName(moduleId, { getModuleInfo })
@@ -308,7 +396,7 @@ export function bundleDependencyCheckPlugin() {
 
 					for (const importedId of getModuleInfo(moduleId).importedIds) {
 						// static dependencies on translation files are not allowed
-						if (importedId.includes(path.normalize("src/translations"))) {
+						if (importedId.includes(path.normalize("src/mail-app/translations"))) {
 							pushToMapEntry(staticLangImports, moduleId, importedId)
 						}
 						const importedChunk = getChunkName(importedId, { getModuleInfo })

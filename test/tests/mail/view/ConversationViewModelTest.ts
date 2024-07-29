@@ -1,30 +1,25 @@
 import o from "@tutao/otest"
-import { ConversationItem, ConversationPrefProvider, ConversationViewModel } from "../../../../src/mail/view/ConversationViewModel.js"
+import { ConversationItem, ConversationPrefProvider, ConversationViewModel } from "../../../../src/mail-app/mail/view/ConversationViewModel.js"
 import {
 	ConversationEntry,
 	ConversationEntryTypeRef,
-	createConversationEntry,
-	createMail,
-	createMailboxProperties,
-	createMailFolder,
 	Mail,
 	MailboxProperties,
 	MailboxPropertiesTypeRef,
 	MailFolderTypeRef,
 	MailTypeRef,
-} from "../../../../src/api/entities/tutanota/TypeRefs.js"
-import { ownerId } from "../../calendar/CalendarTestUtils.js"
-import { CreateMailViewerOptions } from "../../../../src/mail/view/MailViewer.js"
-import { MailboxDetail, MailModel } from "../../../../src/mail/model/MailModel.js"
-import { MailViewerViewModel } from "../../../../src/mail/view/MailViewerViewModel.js"
-import { EntityClient } from "../../../../src/api/common/EntityClient.js"
+} from "../../../../src/common/api/entities/tutanota/TypeRefs.js"
+import { CreateMailViewerOptions } from "../../../../src/mail-app/mail/view/MailViewer.js"
+import { MailViewerViewModel } from "../../../../src/mail-app/mail/view/MailViewerViewModel.js"
+import { EntityClient } from "../../../../src/common/api/common/EntityClient.js"
 import { EntityRestClientMock } from "../../api/worker/rest/EntityRestClientMock.js"
-import { EntityEventsListener, EventController } from "../../../../src/api/main/EventController.js"
+import { EntityEventsListener, EventController } from "../../../../src/common/api/main/EventController.js"
 import { defer, DeferredObject, delay, noOp } from "@tutao/tutanota-utils"
 import { matchers, object, when } from "testdouble"
-import { MailFolderType, MailState, OperationType } from "../../../../src/api/common/TutanotaConstants.js"
-import { isSameId } from "../../../../src/api/common/utils/EntityUtils.js"
+import { MailFolderType, MailState, OperationType } from "../../../../src/common/api/common/TutanotaConstants.js"
+import { isSameId } from "../../../../src/common/api/common/utils/EntityUtils.js"
 import { createTestEntity } from "../../TestUtils.js"
+import { MailboxDetail, MailModel } from "../../../../src/common/mailFunctionality/MailModel.js"
 
 o.spec("ConversationViewModel", function () {
 	let conversation: ConversationEntry[]

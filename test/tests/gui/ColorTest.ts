@@ -1,5 +1,5 @@
 import o from "@tutao/otest"
-import { hexToRgb, isColorLight, isValidColorCode, rgbToHex } from "../../../src/gui/base/Color.js"
+import { hexToRgb, isColorLight, isValidColorCode, rgbToHex } from "../../../src/common/gui/base/Color.js"
 o.spec("color", function () {
 	o("hexToRGB 6digit", function () {
 		o(hexToRgb("#b73a9a")).deepEquals({

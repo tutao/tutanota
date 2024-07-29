@@ -5,7 +5,7 @@ import {
 	getPasswordStrength,
 	isSecurePassword,
 	scaleToVisualPasswordStrength,
-} from "../../../src/misc/passwords/PasswordUtils.js"
+} from "../../../src/common/misc/passwords/PasswordUtils.js"
 
 o.spec("PasswordUtilsTest", function () {
 	function checkStrength(pw, min, max) {

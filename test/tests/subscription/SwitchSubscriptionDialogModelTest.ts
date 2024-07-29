@@ -1,8 +1,8 @@
-import { AccountingInfoTypeRef, BookingItemTypeRef, BookingTypeRef, CustomerTypeRef, FeatureTypeRef } from "../../../src/api/entities/sys/TypeRefs.js"
-import { AccountType, BookingItemFeatureType, FeatureType, PlanType } from "../../../src/api/common/TutanotaConstants.js"
+import { AccountingInfoTypeRef, BookingItemTypeRef, BookingTypeRef, CustomerTypeRef, FeatureTypeRef } from "../../../src/common/api/entities/sys/TypeRefs.js"
+import { AccountType, BookingItemFeatureType, FeatureType, PlanType } from "../../../src/common/api/common/TutanotaConstants.js"
 import o from "@tutao/otest"
-import { SwitchSubscriptionDialogModel } from "../../../src/subscription/SwitchSubscriptionDialogModel.js"
-import { PaymentInterval } from "../../../src/subscription/PriceUtils.js"
+import { SwitchSubscriptionDialogModel } from "../../../src/common/subscription/SwitchSubscriptionDialogModel.js"
+import { PaymentInterval } from "../../../src/common/subscription/PriceUtils.js"
 import { createTestEntity } from "../TestUtils.js"
 
 o.spec("SwitchSubscriptionDialogModelTest", function () {

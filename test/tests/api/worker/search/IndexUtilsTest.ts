@@ -13,16 +13,16 @@ import {
 	typeRefToTypeInfo,
 	userIsGlobalAdmin,
 	userIsLocalOrGlobalAdmin,
-} from "../../../../../src/api/worker/search/IndexUtils.js"
+} from "../../../../../src/common/api/worker/search/IndexUtils.js"
 import { base64ToUint8Array, byteLength, concat, utf8Uint8ArrayToString } from "@tutao/tutanota-utils"
-import type { SearchIndexEntry, SearchIndexMetaDataRow } from "../../../../../src/api/worker/search/SearchTypes.js"
-import { EntityUpdateTypeRef, GroupMembershipTypeRef, UserTypeRef } from "../../../../../src/api/entities/sys/TypeRefs.js"
-import { ContactTypeRef, MailTypeRef } from "../../../../../src/api/entities/tutanota/TypeRefs.js"
-import { GroupType, OperationType } from "../../../../../src/api/common/TutanotaConstants.js"
+import type { SearchIndexEntry, SearchIndexMetaDataRow } from "../../../../../src/common/api/worker/search/SearchTypes.js"
+import { EntityUpdateTypeRef, GroupMembershipTypeRef, UserTypeRef } from "../../../../../src/common/api/entities/sys/TypeRefs.js"
+import { ContactTypeRef, MailTypeRef } from "../../../../../src/common/api/entities/tutanota/TypeRefs.js"
+import { GroupType, OperationType } from "../../../../../src/common/api/common/TutanotaConstants.js"
 import { aes256RandomKey, fixedIv, unauthenticatedAesDecrypt } from "@tutao/tutanota-crypto"
-import { resolveTypeReference } from "../../../../../src/api/common/EntityFunctions.js"
+import { resolveTypeReference } from "../../../../../src/common/api/common/EntityFunctions.js"
 import { createTestEntity } from "../../../TestUtils.js"
-import { containsEventOfType, EntityUpdateData } from "../../../../../src/api/common/utils/EntityUpdateUtils.js"
+import { containsEventOfType, EntityUpdateData } from "../../../../../src/common/api/common/utils/EntityUpdateUtils.js"
 
 o.spec("Index Utils", () => {
 	o("encryptIndexKey", function () {

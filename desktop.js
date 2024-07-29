@@ -8,7 +8,7 @@ import { checkArchitectureIsSupported, getCanonicalPlatformName, getTutanotaAppV
 import { dirname } from "node:path"
 import { fileURLToPath } from "node:url"
 import { createHtml } from "./buildSrc/createHtml.js"
-import { Argument, program } from "commander"
+import { Argument, Option, program } from "commander"
 import { checkOfflineDatabaseMigrations } from "./buildSrc/checkOfflineDbMigratons.js"
 import { domainConfigs } from "./buildSrc/DomainConfigs.js"
 import { BlockList } from "node:net"
@@ -22,6 +22,7 @@ await program
 	.description("Main build tool for distributable tuta desktop artifacts.")
 	.addArgument(new Argument("stage").choices(["test", "prod", "local", "host", "release"]).default("release").argOptional())
 	.addArgument(new Argument("host").argOptional())
+	.addOption(new Option("-A, --app <type>", "app to build").choices(["mail", "calendar"]).default("mail"))
 	.option("-e, --existing", "Use existing prebuilt Webapp files in /build/")
 	.option("-p, --platform <platform>", "For which platform to build: linux|win|mac", process.platform)
 	.option("-a, --architecture <architecture>", "For which CPU architecture to build: x64|arm_64|universal", process.arch)
@@ -78,6 +79,7 @@ async function doBuild(opts) {
 				measure,
 				minify: !opts.disableMinify,
 				projectDir: __dirname,
+				app: opts.app,
 			})
 		}
 

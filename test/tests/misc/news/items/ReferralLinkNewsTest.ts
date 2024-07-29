@@ -1,13 +1,15 @@
 import o from "@tutao/otest"
-import { DateProvider } from "../../../../../src/api/common/DateProvider.js"
-import { NewsModel } from "../../../../../src/misc/news/NewsModel.js"
+import { DateProvider } from "../../../../../src/common/api/common/DateProvider.js"
+import { NewsModel } from "../../../../../src/common/misc/news/NewsModel.js"
 import { object, replace, when } from "testdouble"
-import { ReferralLinkViewer } from "../../../../../src/misc/news/items/ReferralLinkViewer.js"
+import { ReferralLinkViewer } from "../../../../../src/common/misc/news/items/ReferralLinkViewer.js"
 import { getDayShifted } from "@tutao/tutanota-utils"
-import { ReferralLinkNews } from "../../../../../src/misc/news/items/ReferralLinkNews.js"
-import { timestampToGeneratedId } from "../../../../../src/api/common/utils/EntityUtils.js"
-import { UserController } from "../../../../../src/api/main/UserController.js"
-import { Customer, User } from "../../../../../src/api/entities/sys/TypeRefs.js"
+import { ReferralLinkNews } from "../../../../../src/common/misc/news/items/ReferralLinkNews.js"
+import { timestampToGeneratedId } from "../../../../../src/common/api/common/utils/EntityUtils.js"
+import { UserController } from "../../../../../src/common/api/main/UserController.js"
+import { Customer, User } from "../../../../../src/common/api/entities/sys/TypeRefs.js"
+import { initCommonLocator } from "../../../../../src/common/api/main/CommonLocator.js"
+import { IMailLocator } from "../../../../../src/mail-app/mailLocator.js"
 
 o.spec("ReferralLinkNews", function () {
 	let dateProvider: DateProvider
@@ -15,8 +17,25 @@ o.spec("ReferralLinkNews", function () {
 	let referralViewModel: ReferralLinkViewer
 	let referralLinkNews: ReferralLinkNews
 	let userController: UserController
+	let locator: IMailLocator = object()
+	let domainConfig: DomainConfig = {
+		firstPartyDomain: true,
+		partneredDomainTransitionUrl: "https://test.tutanota.com",
+		apiUrl: "https://app.test.tuta.com",
+		paymentUrl: "https://pay.test.tutanota.com/braintree.html",
+		webauthnUrl: "https://app.test.tuta.com/webauthn",
+		legacyWebauthnUrl: "https://test.tutanota.com/webauthn",
+		webauthnMobileUrl: "https://app.test.tuta.com/webauthnmobile",
+		legacyWebauthnMobileUrl: "https://test.tutanota.com/webauthnmobile",
+		webauthnRpId: "tuta.com",
+		u2fAppId: "https://app.test.tuta.com/u2f-appid.json",
+		giftCardBaseUrl: "https://app.test.tuta.com/giftcard",
+		referralBaseUrl: "https://app.test.tuta.com/signup",
+		websiteBaseUrl: "https://tuta.com",
+	}
 
 	o.beforeEach(function () {
+		initCommonLocator(locator)
 		dateProvider = object()
 		newsModel = object()
 		referralViewModel = object()
@@ -33,18 +52,30 @@ o.spec("ReferralLinkNews", function () {
 	})
 
 	o("ReferralLinkNews not shown if account is not old enough", async function () {
+		when(locator.domainConfigProvider()).thenReturn({
+			getCurrentDomainConfig: () => domainConfig,
+		})
+
 		when(userController.isGlobalAdmin()).thenReturn(true)
 		when(dateProvider.now()).thenReturn(getDayShifted(new Date(0), 6).getTime())
 		o(await referralLinkNews.isShown()).equals(false)
 	})
 
 	o("ReferralLinkNews shown if account is old enough", async function () {
+		when(locator.domainConfigProvider()).thenReturn({
+			getCurrentDomainConfig: () => domainConfig,
+		})
+
 		when(userController.isGlobalAdmin()).thenReturn(true)
 		when(dateProvider.now()).thenReturn(getDayShifted(new Date(0), 7).getTime())
 		o(await referralLinkNews.isShown()).equals(true)
 	})
 
 	o("ReferralLinkNews not shown if account is not old admin", async function () {
+		when(locator.domainConfigProvider()).thenReturn({
+			getCurrentDomainConfig: () => domainConfig,
+		})
+
 		when(userController.isGlobalAdmin()).thenReturn(false)
 		when(dateProvider.now()).thenReturn(getDayShifted(new Date(0), 7).getTime())
 		o(await referralLinkNews.isShown()).equals(false)

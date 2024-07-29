@@ -11,13 +11,13 @@ import {
 	parseUntilRruleTime,
 	propertySequenceParser,
 	triggerToAlarmInterval,
-} from "../../../src/calendar/export/CalendarParser.js"
-import { ParserError, StringIterator } from "../../../src/misc/parsing/ParserCombinator.js"
+} from "../../../src/calendar-app/calendar/export/CalendarParser.js"
+import { ParserError, StringIterator } from "../../../src/common/misc/parsing/ParserCombinator.js"
 import { DateTime } from "luxon"
-import { DateWrapperTypeRef } from "../../../src/api/entities/sys/TypeRefs.js"
+import { DateWrapperTypeRef } from "../../../src/common/api/entities/sys/TypeRefs.js"
 import { getDateInUTC, zone } from "./CalendarTestUtils.js"
 import { createTestEntity } from "../TestUtils.js"
-import { AlarmIntervalUnit } from "../../../src/calendar/date/CalendarUtils.js"
+import { AlarmIntervalUnit } from "../../../src/common/calendar/date/CalendarUtils.js"
 
 o.spec("CalendarParser", function () {
 	o.spec("propertySequenceParser", function () {

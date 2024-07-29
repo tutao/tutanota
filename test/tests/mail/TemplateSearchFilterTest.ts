@@ -1,12 +1,12 @@
 import o from "@tutao/otest"
-import type { EmailTemplate } from "../../../src/api/entities/tutanota/TypeRefs.js"
+import type { EmailTemplate } from "../../../src/common/api/entities/tutanota/TypeRefs.js"
 import {
 	createEmailTemplate,
 	createEmailTemplateContent,
 	EmailTemplateContentTypeRef,
 	EmailTemplateTypeRef,
-} from "../../../src/api/entities/tutanota/TypeRefs.js"
-import { searchInTemplates } from "../../../src/templates/model/TemplatePopupModel.js"
+} from "../../../src/common/api/entities/tutanota/TypeRefs.js"
+import { searchInTemplates } from "../../../src/mail-app/templates/model/TemplatePopupModel.js"
 import { createTestEntity } from "../TestUtils.js"
 
 o.spec("TemplateSearchFilter", function () {

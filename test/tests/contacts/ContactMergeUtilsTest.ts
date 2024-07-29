@@ -1,5 +1,5 @@
 import o from "@tutao/otest"
-import type { Contact } from "../../../src/api/entities/tutanota/TypeRefs.js"
+import type { Contact } from "../../../src/common/api/entities/tutanota/TypeRefs.js"
 import {
 	BirthdayTypeRef,
 	ContactAddressTypeRef,
@@ -7,7 +7,7 @@ import {
 	ContactPhoneNumberTypeRef,
 	ContactSocialIdTypeRef,
 	ContactTypeRef,
-} from "../../../src/api/entities/tutanota/TypeRefs.js"
+} from "../../../src/common/api/entities/tutanota/TypeRefs.js"
 import {
 	_areResidualContactFieldsEqual,
 	_compareBirthdays,
@@ -23,18 +23,18 @@ import {
 	_getMergedSocialIds,
 	getMergeableContacts,
 	mergeContacts,
-} from "../../../src/contacts/ContactMergeUtils.js"
+} from "../../../src/mail-app/contacts/ContactMergeUtils.js"
 import {
 	ContactAddressType,
 	ContactComparisonResult,
 	ContactPhoneNumberType,
 	ContactSocialType,
 	IndifferentContactComparisonResult,
-} from "../../../src/api/common/TutanotaConstants.js"
+} from "../../../src/common/api/common/TutanotaConstants.js"
 import { createFilledContact } from "./VCardExporterTest.js"
 import { downcast, neverNull } from "@tutao/tutanota-utils"
-import { _contactToVCard } from "../../../src/contacts/VCardExporter.js"
-import { birthdayToIsoDate } from "../../../src/api/common/utils/BirthdayUtils.js"
+import { _contactToVCard } from "../../../src/mail-app/contacts/VCardExporter.js"
+import { birthdayToIsoDate } from "../../../src/common/api/common/utils/BirthdayUtils.js"
 import { createTestEntity } from "../TestUtils.js"
 
 o.spec("ContactMergeUtilsTest", function () {

@@ -1,12 +1,12 @@
 import o from "@tutao/otest"
-import { EventDragHandler, EventDragHandlerCallbacks } from "../../../src/calendar/view/EventDragHandler.js"
+import { EventDragHandler, EventDragHandlerCallbacks } from "../../../src/calendar-app/calendar/view/EventDragHandler.js"
 import { DAY_IN_MILLIS, defer, downcast } from "@tutao/tutanota-utils"
-import type { DraggedEvent } from "../../../src/calendar/view/CalendarViewModel.js"
+import type { DraggedEvent } from "../../../src/calendar-app/calendar/view/CalendarViewModel.js"
 import { makeEvent } from "./CalendarTestUtils.js"
-import { getAllDayDateUTCFromZone, getStartOfDayWithZone, getStartOfNextDayWithZone } from "../../../src/calendar/date/CalendarUtils.js"
-import { isAllDayEvent } from "../../../src/api/common/utils/CommonCalendarUtils.js"
+import { isAllDayEvent } from "../../../src/common/api/common/utils/CommonCalendarUtils.js"
 import { DateTime } from "luxon"
 import { spy } from "@tutao/tutanota-test-utils"
+import { getAllDayDateUTCFromZone, getStartOfDayWithZone, getStartOfNextDayWithZone } from "../../../src/common/calendar/date/CalendarUtils.js"
 
 const INIT_MOUSE_POS = {
 	x: 0,

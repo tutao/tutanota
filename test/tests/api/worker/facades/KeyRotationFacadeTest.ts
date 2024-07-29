@@ -1,6 +1,6 @@
 import o from "@tutao/otest"
-import { KeyRotationFacade } from "../../../../../src/api/worker/facades/KeyRotationFacade.js"
-import { EntityClient } from "../../../../../src/api/common/EntityClient.js"
+import { KeyRotationFacade } from "../../../../../src/common/api/worker/facades/KeyRotationFacade.js"
+import { EntityClient } from "../../../../../src/common/api/common/EntityClient.js"
 import { instance, matchers, object, verify, when } from "testdouble"
 import { createTestEntity } from "../../../TestUtils.js"
 import {
@@ -26,7 +26,7 @@ import {
 	UserGroupRoot,
 	UserGroupRootTypeRef,
 	UserTypeRef,
-} from "../../../../../src/api/entities/sys/TypeRefs.js"
+} from "../../../../../src/common/api/entities/sys/TypeRefs.js"
 import {
 	Aes256Key,
 	AesKey,
@@ -39,21 +39,21 @@ import {
 	PQKeyPairs,
 	uint8ArrayToBitArray,
 } from "@tutao/tutanota-crypto"
-import type { KeyLoaderFacade } from "../../../../../src/api/worker/facades/KeyLoaderFacade.js"
-import type { PQFacade } from "../../../../../src/api/worker/facades/PQFacade.js"
-import { IServiceExecutor } from "../../../../../src/api/common/ServiceRequest.js"
-import { ServiceExecutor } from "../../../../../src/api/worker/rest/ServiceExecutor.js"
-import { CryptoProtocolVersion, GroupKeyRotationType, GroupType, ShareCapability } from "../../../../../src/api/common/TutanotaConstants.js"
-import { AdminGroupKeyRotationService, GroupKeyRotationInfoService, GroupKeyRotationService } from "../../../../../src/api/entities/sys/Services.js"
-import { CryptoFacade, VersionedEncryptedKey, VersionedKey } from "../../../../../src/api/worker/crypto/CryptoFacade.js"
+import type { KeyLoaderFacade } from "../../../../../src/common/api/worker/facades/KeyLoaderFacade.js"
+import type { PQFacade } from "../../../../../src/common/api/worker/facades/PQFacade.js"
+import { IServiceExecutor } from "../../../../../src/common/api/common/ServiceRequest.js"
+import { ServiceExecutor } from "../../../../../src/common/api/worker/rest/ServiceExecutor.js"
+import { CryptoProtocolVersion, GroupKeyRotationType, GroupType, ShareCapability } from "../../../../../src/common/api/common/TutanotaConstants.js"
+import { AdminGroupKeyRotationService, GroupKeyRotationInfoService, GroupKeyRotationService } from "../../../../../src/common/api/entities/sys/Services.js"
+import { CryptoFacade, VersionedEncryptedKey, VersionedKey } from "../../../../../src/common/api/worker/crypto/CryptoFacade.js"
 import { assertNotNull, findAllAndRemove, lazyAsync, lazyMemoized } from "@tutao/tutanota-utils"
-import type { CryptoWrapper } from "../../../../../src/api/worker/crypto/CryptoWrapper.js"
-import { RecoverCodeFacade, RecoverData } from "../../../../../src/api/worker/facades/lazy/RecoverCodeFacade.js"
-import { UserFacade } from "../../../../../src/api/worker/facades/UserFacade.js"
-import { ShareFacade } from "../../../../../src/api/worker/facades/lazy/ShareFacade.js"
-import { GroupManagementFacade } from "../../../../../src/api/worker/facades/lazy/GroupManagementFacade.js"
-import { GroupInvitationPostData, InternalRecipientKeyDataTypeRef } from "../../../../../src/api/entities/tutanota/TypeRefs.js"
-import { RecipientsNotFoundError } from "../../../../../src/api/common/error/RecipientsNotFoundError.js"
+import type { CryptoWrapper } from "../../../../../src/common/api/worker/crypto/CryptoWrapper.js"
+import { RecoverCodeFacade, RecoverData } from "../../../../../src/common/api/worker/facades/lazy/RecoverCodeFacade.js"
+import { UserFacade } from "../../../../../src/common/api/worker/facades/UserFacade.js"
+import { ShareFacade } from "../../../../../src/common/api/worker/facades/lazy/ShareFacade.js"
+import { GroupManagementFacade } from "../../../../../src/common/api/worker/facades/lazy/GroupManagementFacade.js"
+import { GroupInvitationPostData, InternalRecipientKeyDataTypeRef } from "../../../../../src/common/api/entities/tutanota/TypeRefs.js"
+import { RecipientsNotFoundError } from "../../../../../src/common/api/common/error/RecipientsNotFoundError.js"
 
 const { anything } = matchers
 const PQ_SAFE_BITARRAY_KEY_LENGTH = KEY_LENGTH_BYTES_AES_256 / 4

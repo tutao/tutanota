@@ -12,7 +12,7 @@ public protocol SimpleStringDecodable: AesDecryptable { init?(string: String) }
 
 extension SimpleStringDecodable {
 	public static func aesDecrypt(base64: Base64, key: Key) throws -> Self {
-		let decoded = base64.data(using: .utf8)!
+		let decoded = TUTEncodingConverter.base64(toBytes: base64)
 		let decrypted = try aesDecryptData(decoded, withKey: key)
 		let decValue = TUTEncodingConverter.bytes(toString: decrypted)
 		if let value = Self.init(string: decValue) { return value } else { throw TUTErrorFactory.createError("Invalid string representation: \(decValue)") }

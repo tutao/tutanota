@@ -1,5 +1,5 @@
-import type { DbKey } from "../../../../../src/api/worker/search/DbFacade.js"
-import { DbTransaction, osName } from "../../../../../src/api/worker/search/DbFacade.js"
+import type { DbKey } from "../../../../../src/common/api/worker/search/DbFacade.js"
+import { DbTransaction, osName } from "../../../../../src/common/api/worker/search/DbFacade.js"
 import { downcast, neverNull } from "@tutao/tutanota-utils"
 import {
 	ElementDataOS,
@@ -9,7 +9,7 @@ import {
 	SearchIndexMetaDataOS,
 	SearchIndexOS,
 	SearchIndexWordsIndex,
-} from "../../../../../src/api/worker/search/IndexTables.js"
+} from "../../../../../src/common/api/worker/search/IndexTables.js"
 
 export type Index = { [indexName: string]: string }
 

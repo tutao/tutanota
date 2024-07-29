@@ -2,7 +2,7 @@ import o from "@tutao/otest"
 import path from "node:path"
 import { OutgoingHttpHeader } from "node:http"
 import { func, matchers, object, verify, when } from "testdouble"
-import { doHandleProtocols, handleProtocols } from "../../../../src/desktop/net/ProtocolProxy.js"
+import { doHandleProtocols, handleProtocols } from "../../../../src/common/desktop/net/ProtocolProxy.js"
 
 o.spec("ProtocolProxy", function () {
 	let fetchMock

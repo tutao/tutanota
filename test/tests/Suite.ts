@@ -132,7 +132,7 @@ import "./api/worker/facades/KeyCacheTest.js"
 
 import * as td from "testdouble"
 import { random } from "@tutao/tutanota-crypto"
-import { Mode } from "../../src/api/common/Env.js"
+import { Mode } from "../../src/common/api/common/Env.js"
 
 export async function run({ integration, filter }: { integration?: boolean; filter?: string } = {}) {
 	await setupSuite({ integration })
@@ -144,7 +144,7 @@ export async function run({ integration, filter }: { integration?: boolean; filt
 }
 
 async function setupSuite({ integration }: { integration?: boolean }) {
-	const { WorkerImpl } = await import("../../src/api/worker/WorkerImpl.js")
+	const { WorkerImpl } = await import("../../src/common/api/worker/WorkerImpl.js")
 	globalThis.testWorker = WorkerImpl
 
 	if (typeof process != "undefined") {

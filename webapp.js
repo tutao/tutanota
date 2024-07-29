@@ -27,6 +27,7 @@ await program
 	.description("Utility to build the web part of tuta")
 	.addArgument(new Argument("stage").choices(["test", "prod", "local", "host", "release"]).default("prod").argOptional())
 	.addArgument(new Argument("host").argOptional())
+	.option("--app <app>", "app to build", "mail")
 	.option("--disable-minify", "disable minification")
 	.option("--out-dir <outDir>", "where to copy the client")
 	.action(async (stage, host, options) => {
@@ -64,6 +65,7 @@ async function doBuild(options) {
 			measure,
 			minify,
 			projectDir: __dirname,
+			app: options.app,
 		})
 
 		const now = new Date(Date.now()).toTimeString().substr(0, 5)
