@@ -16,8 +16,12 @@ o.spec("CredentialsProvider", function () {
 	let credentialsProvider: CredentialsProvider
 	let internalCredentials: UnencryptedCredentials
 	let internalCredentials2: UnencryptedCredentials
+	let internalCredentialsBob: UnencryptedCredentials
+	let internalCredentialsAlice: UnencryptedCredentials
 	let externalCredentials: UnencryptedCredentials
 	let encryptedInternalCredentials: PersistedCredentials
+	let encryptedInternalCredentialsBob: PersistedCredentials
+	let encryptedInternalCredentialsAlice: PersistedCredentials
 	let encryptedExternalCredentials: PersistedCredentials
 	let encryptedInternalCredentialsWithoutDatabaseKey: Omit<PersistedCredentials, "databaseKey">
 	let sqlCipherFacadeMock: SqlCipherFacade
@@ -46,6 +50,28 @@ o.spec("CredentialsProvider", function () {
 			accessToken: "456789",
 			databaseKey: null,
 		}
+		internalCredentialsAlice = {
+			credentialInfo: {
+				login: "alice@example.com",
+				userId: "789012",
+				type: CredentialType.Internal,
+			},
+			encryptedPassword: "123456",
+			encryptedPassphraseKey: null,
+			accessToken: "456789",
+			databaseKey: null,
+		}
+		internalCredentialsBob = {
+			credentialInfo: {
+				login: "bob@example.com",
+				userId: "789012",
+				type: CredentialType.Internal,
+			},
+			encryptedPassword: "123456",
+			encryptedPassphraseKey: null,
+			accessToken: "456789",
+			databaseKey: null,
+		}
 		externalCredentials = {
 			credentialInfo: {
 				login: "test2@example.com",
@@ -66,6 +92,28 @@ o.spec("CredentialsProvider", function () {
 			encryptedPassword: assertNotNull(internalCredentials.encryptedPassword),
 			encryptedPassphraseKey: null,
 			accessToken: stringToUtf8Uint8Array(internalCredentials.accessToken),
+			databaseKey: new Uint8Array([1, 2, 3]),
+		}
+		encryptedInternalCredentialsAlice = {
+			credentialInfo: {
+				login: internalCredentialsAlice.credentialInfo.login,
+				userId: internalCredentialsAlice.credentialInfo.userId,
+				type: internalCredentialsAlice.credentialInfo.type,
+			},
+			encryptedPassword: assertNotNull(internalCredentialsAlice.encryptedPassword),
+			encryptedPassphraseKey: null,
+			accessToken: stringToUtf8Uint8Array(internalCredentialsAlice.accessToken),
+			databaseKey: new Uint8Array([1, 2, 3]),
+		}
+		encryptedInternalCredentialsBob = {
+			credentialInfo: {
+				login: internalCredentialsBob.credentialInfo.login,
+				userId: internalCredentialsBob.credentialInfo.userId,
+				type: internalCredentialsBob.credentialInfo.type,
+			},
+			encryptedPassword: assertNotNull(internalCredentialsBob.encryptedPassword),
+			encryptedPassphraseKey: null,
+			accessToken: stringToUtf8Uint8Array(internalCredentialsBob.accessToken),
 			databaseKey: new Uint8Array([1, 2, 3]),
 		}
 		encryptedExternalCredentials = {
@@ -118,6 +166,26 @@ o.spec("CredentialsProvider", function () {
 			const retrievedCredentials = await credentialsProvider.getInternalCredentialsInfos()
 
 			o(retrievedCredentials).deepEquals([encryptedInternalCredentials.credentialInfo])
+		})
+
+		o("Should return sorted internal credentials regardless of internal ordering", async function () {
+			const alice = encryptedInternalCredentialsAlice
+			const bob = encryptedInternalCredentialsBob
+			const test = encryptedInternalCredentials
+			const sorted = [alice.credentialInfo, bob.credentialInfo, test.credentialInfo]
+
+			async function testSorted(list: readonly PersistedCredentials[]) {
+				when(nativeCredentialFacadeMock.loadAll()).thenResolve(list)
+				const retrieved = await credentialsProvider.getInternalCredentialsInfos()
+				o(retrieved).deepEquals(sorted)
+			}
+
+			await testSorted([alice, bob, test])
+			await testSorted([alice, test, bob])
+			await testSorted([bob, alice, test])
+			await testSorted([bob, test, alice])
+			await testSorted([test, alice, bob])
+			await testSorted([test, bob, alice])
 		})
 	})
 
