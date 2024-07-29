@@ -89,7 +89,7 @@ async function buildAndroid({ stage, host, buildType, existing, webClient, app }
 
 	const appTarget = app === "mail" ? "app" : "calendar"
 	const { version } = JSON.parse(await $`cat package.json`.quiet())
-	const apkName = `tutanota-${app}-tutao-${buildType}-${version}.apk`
+	const apkName = `${app === "mail" ? "tutanota-app" : "calendar"}-tutao-${buildType}-${version}.apk`
 	const apkPath = `app-android/${appTarget}/build/outputs/apk/tutao/${buildType}/${apkName}`
 	const outPath = `./build/app-android/${apkName}`
 	cd("./app-android")
