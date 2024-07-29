@@ -64,7 +64,7 @@ class AlarmModel: AlarmCalculator {
 			eventStart: alarm.eventStart,
 			eventEnd: alarm.eventEnd,
 			repeatRule: withRepeatRule,
-			localTimeZone: TimeZone.current
+			localTimeZone: dateProvider.timeZone
 		)
 		.lazy  // trying to optimize it: do not calculate alarm occurence if event occurence itself is in the past
 		.filter { self.shouldScheduleAlarmAt(ocurrenceTime: $0.occurenceDate) }
@@ -81,10 +81,11 @@ class AlarmModel: AlarmCalculator {
 		let calendarUnit = calendarUnit(for: repeatRule.frequency)
 
 		let isAllDayEvent = isAllDayEvent(startTime: eventStart, endTime: eventEnd)
-		let calcEventStart = isAllDayEvent ? allDayLocalDate(fromUTCDate: eventStart) : eventStart
+		let calcEventStart = isAllDayEvent ? allDayLocalDate(fromUTCDate: eventStart, inZone: localTimeZone) : eventStart
 		let endDate: Date?
 		switch repeatRule.endCondition {
-		case let .untilDate(valueDate): if isAllDayEvent { endDate = allDayLocalDate(fromUTCDate: valueDate) } else { endDate = valueDate }
+		case let .untilDate(valueDate):
+			if isAllDayEvent { endDate = allDayLocalDate(fromUTCDate: valueDate, inZone: localTimeZone) } else { endDate = valueDate }
 		default: endDate = nil
 		}
 
@@ -132,8 +133,9 @@ private struct LazyEventSequence: Sequence, IteratorProtocol {
 
 /// Takes local date and makes a UTC date with year, month, day from it.
 /// This is how we indicate days without attachment to a time zone or time.
-func allDayUTCDate(fromLocalDate localDate: Date) -> Date {
-	let calendar = Calendar.current
+func allDayUTCDate(fromLocalDate localDate: Date, inTimeZone dateTimeZone: String) -> Date {
+	var calendar = Calendar.current
+	calendar.timeZone = TimeZone(identifier: dateTimeZone)!
 	var localComponents = calendar.dateComponents([.year, .month, .day], from: localDate)
 	let timeZone = TimeZone(identifier: "UTC")!
 	localComponents.timeZone = timeZone
@@ -142,12 +144,12 @@ func allDayUTCDate(fromLocalDate localDate: Date) -> Date {
 
 /// Takes UTC date and makes a local date with year, month, day from it.
 /// This is how we indicate days without attachment to a time zone or time.
-func allDayLocalDate(fromUTCDate utcDate: Date) -> Date {
+func allDayLocalDate(fromUTCDate utcDate: Date, inZone localTimeZone: TimeZone) -> Date {
 	var calendar = Calendar.current
 	let timeZone = TimeZone(identifier: "UTC")!
 	calendar.timeZone = timeZone
 	let components = calendar.dateComponents([.year, .month, .day], from: utcDate)
-	calendar.timeZone = TimeZone.current
+	calendar.timeZone = localTimeZone
 	return calendar.date(from: components)!
 }
 
