@@ -1,20 +1,20 @@
 /**
 	Exports the buildWebapp function that can be used for production builds.
  */
-import {rollup} from "rollup"
+import { rollup } from "rollup"
 import typescript from "@rollup/plugin-typescript"
 import terser from "@rollup/plugin-terser"
 import path from "node:path"
-import {nodeResolve} from "@rollup/plugin-node-resolve"
+import { nodeResolve } from "@rollup/plugin-node-resolve"
 import commonjs from "@rollup/plugin-commonjs"
 import fs from "fs-extra"
-import {bundleDependencyCheckPlugin, getChunkName, resolveLibs} from "./RollupConfig.js"
+import { bundleDependencyCheckPlugin, getChunkName, resolveLibs } from "./RollupConfig.js"
 import os from "node:os"
 import * as env from "./env.js"
-import {createHtml} from "./createHtml.js"
-import {domainConfigs} from "./DomainConfigs.js"
-import {visualizer} from "rollup-plugin-visualizer"
-import {rollupWasmLoader} from "@tutao/tuta-wasm-loader"
+import { createHtml } from "./createHtml.js"
+import { domainConfigs } from "./DomainConfigs.js"
+import { visualizer } from "rollup-plugin-visualizer"
+import { rollupWasmLoader } from "@tutao/tuta-wasm-loader"
 
 /**
  * Builds the web app for production.
@@ -28,7 +28,7 @@ import {rollupWasmLoader} from "@tutao/tuta-wasm-loader"
  * @returns Nothing meaningful.
  */
 
-export async function buildWebapp({version, stage, host, measure, minify, projectDir, app}) {
+export async function buildWebapp({ version, stage, host, measure, minify, projectDir, app }) {
 	const isCalendarApp = app === "calendar"
 	const tsConfig = isCalendarApp ? "tsconfig-calendar-app.json" : "tsconfig.json"
 	const buildDir = isCalendarApp ? "build-calendar-app" : "build"
@@ -81,7 +81,7 @@ export async function buildWebapp({version, stage, host, measure, minify, projec
 		perf: true,
 		plugins: [
 			typescript({
-				tsconfig: tsConfig
+				tsconfig: tsConfig,
 			}),
 			resolveLibs(),
 			commonjs({
@@ -89,8 +89,8 @@ export async function buildWebapp({version, stage, host, measure, minify, projec
 			}),
 			minify && terser(),
 			analyzer(projectDir, buildDir),
-			visualizer({filename: `${buildDir}/stats.html`, gzipSize: true}),
-			bundleDependencyCheckPlugin({app}),
+			visualizer({ filename: `${buildDir}/stats.html`, gzipSize: true }),
+			bundleDependencyCheckPlugin({ app }),
 			nodeResolve({
 				preferBuiltins: true,
 				resolveOnly: [/^@tutao\/.*$/],
@@ -131,8 +131,8 @@ export async function buildWebapp({version, stage, host, measure, minify, projec
 		sourcemap: true,
 		format: "system",
 		dir: buildDir,
-		manualChunks(id, {getModuleInfo, getModuleIds}) {
-			return getChunkName(id, {getModuleInfo})
+		manualChunks(id, { getModuleInfo, getModuleIds }) {
+			return getChunkName(id, { getModuleInfo })
 		},
 		chunkFileNames: (chunkInfo) => {
 			return "[name]-[hash].js"
@@ -177,7 +177,7 @@ self.onmessage = function (msg) {
 		}),
 	)
 	if (stage !== "release") {
-		await createHtml(env.create({staticUrl: restUrl, version, mode: "App", dist: true, domainConfigs}))
+		await createHtml(env.create({ staticUrl: restUrl, version, mode: "App", dist: true, domainConfigs }))
 	}
 
 	await bundleServiceWorker(chunks, version, minify, buildDir)

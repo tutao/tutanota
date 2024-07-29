@@ -111,8 +111,7 @@ import("../mail-app/translations/en.js")
 						calendarLocator.fileApp.clearFileData().catch((e) => console.log("Failed to clean file data", e))
 					}
 				},
-				async onFullLoginSuccess() {
-				},
+				async onFullLoginSuccess() {},
 			}
 		})
 
@@ -633,8 +632,8 @@ function getStartUrl(urlQueryParams: Mithril.Params): string {
 
 function printJobsMessage(domainConfig: DomainConfig) {
 	env.dist &&
-	domainConfig.firstPartyDomain &&
-	console.log(`
+		domainConfig.firstPartyDomain &&
+		console.log(`
 
 ........................................
 ........................................

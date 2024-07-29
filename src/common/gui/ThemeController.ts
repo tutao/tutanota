@@ -11,8 +11,6 @@ import type { ThemeCustomizations } from "../misc/WhitelabelCustomizations"
 import { getWhitelabelCustomizations } from "../misc/WhitelabelCustomizations"
 import { getLogoSvg } from "./base/Logo"
 import { ThemeFacade } from "../native/common/generatedipc/ThemeFacade"
-import { IMailLocator } from "../../mail-app/mailLocator.js"
-import { ICalendarLocator } from "../../calendar-app/calendarLocator.js"
 
 assertMainOrNodeBoot()
 

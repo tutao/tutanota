@@ -9,12 +9,12 @@
  * Unfortunately manual bundling is "infectious" in a sense that if you manually put module in a chunk all its dependencies will also be
  * put in that chunk unless they are sorted into another manual chunk. Ideally this would be semi-automatic with directory-based chunks.
  */
-import {Argument, program} from "commander"
+import { Argument, program } from "commander"
 import fs from "fs-extra"
-import path, {dirname} from "node:path"
-import {buildWebapp} from "./buildSrc/buildWebapp.js"
-import {getTutanotaAppVersion, measure} from "./buildSrc/buildUtils.js"
-import {fileURLToPath} from "node:url"
+import path, { dirname } from "node:path"
+import { buildWebapp } from "./buildSrc/buildWebapp.js"
+import { getTutanotaAppVersion, measure } from "./buildSrc/buildUtils.js"
+import { fileURLToPath } from "node:url"
 
 const __dirname = dirname(fileURLToPath(import.meta.url))
 
@@ -65,7 +65,7 @@ async function doBuild(options) {
 			measure,
 			minify,
 			projectDir: __dirname,
-			app: options.app
+			app: options.app,
 		})
 
 		const now = new Date(Date.now()).toTimeString().substr(0, 5)

@@ -147,7 +147,7 @@ export function resolveLibs(baseDir = ".") {
 			const value = dependencyMap[source]
 			if (!value) return null
 			const id = path.join(baseDir, value)
-			return {id, resolvedBy: this.name}
+			return { id, resolvedBy: this.name }
 		},
 	}
 }
@@ -158,7 +158,7 @@ export function resolveLibs(baseDir = ".") {
  * @param getModuleInfo Helper function to get information about the ES module.
  * @returns {string} Chunk name
  */
-export function getChunkName(moduleId, {getModuleInfo}) {
+export function getChunkName(moduleId, { getModuleInfo }) {
 	// See HACKING.md for rules
 	const moduleInfo = getModuleInfo(moduleId)
 	const code = moduleInfo.code
@@ -178,8 +178,13 @@ export function getChunkName(moduleId, {getModuleInfo}) {
 	} else if (code.includes("@bundleInto:common")) {
 		// if detecting this does not work even though the comment is there, add a blank line after the annotation.
 		return "common"
-	} else if (code.includes("assertMainOrNodeBoot") || isIn("libs/mithril") || isIn("src/mail-app/app.ts") || isIn("src/calendar-app/calendar-app.ts")
-		|| code.includes("@bundleInto:boot")) {
+	} else if (
+		code.includes("assertMainOrNodeBoot") ||
+		isIn("libs/mithril") ||
+		isIn("src/mail-app/app.ts") ||
+		isIn("src/calendar-app/calendar-app.ts") ||
+		code.includes("@bundleInto:boot")
+	) {
 		// if detecting this does not work even though the comment is there, add a blank line after the annotation.
 		// everything marked as assertMainOrNodeBoot goes into boot bundle right now
 		// (which is getting merged into app.js)
@@ -384,7 +389,7 @@ export function bundleDependencyCheckPlugin() {
 					if (moduleId.includes(path.normalize("src/mail-app/translations"))) {
 						continue
 					}
-					const ownChunk = getChunkName(moduleId, {getModuleInfo})
+					const ownChunk = getChunkName(moduleId, { getModuleInfo })
 					if (!allowedImports[ownChunk]) {
 						unknownChunks.push(`${ownChunk} of ${moduleId}`)
 					}
@@ -394,7 +399,7 @@ export function bundleDependencyCheckPlugin() {
 						if (importedId.includes(path.normalize("src/mail-app/translations"))) {
 							pushToMapEntry(staticLangImports, moduleId, importedId)
 						}
-						const importedChunk = getChunkName(importedId, {getModuleInfo})
+						const importedChunk = getChunkName(importedId, { getModuleInfo })
 						if (!allowedImports[importedChunk]) {
 							unknownChunks.push(`${importedChunk} of ${importedId}`)
 						}
