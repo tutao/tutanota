@@ -85,6 +85,7 @@ o.spec("Bundler", function () {
 			headers: createTestEntity(HeaderTypeRef, { headers: headersText }),
 			body: body,
 			recipients,
+			sentDate: new Date(sentOn),
 			replyTos: [createTestEntity(MailAddressTypeRef, replyToValues)],
 		})
 		const mailDetailsBlob = createTestEntity(MailDetailsBlobTypeRef, { _id: ["archiveId", mailDetails._id], details: mailDetails })
@@ -95,7 +96,7 @@ o.spec("Bundler", function () {
 			sender: createTestEntity(MailAddressTypeRef, sender),
 			state: MailState.RECEIVED,
 			unread: false,
-			receivedDate: receivedOn,
+			receivedDate: new Date(receivedOn),
 			attachments: attachmentIds.map((id) => [attachmentListId, id] as IdTuple),
 			mailDetails: mailDetailsBlob._id,
 		})
