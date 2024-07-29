@@ -1,8 +1,46 @@
 #!/usr/bin/env bash
 set -euxo pipefail
 
+# Set the version of rust to install
+RUST_VERSION="1.78.0"
+# Set the platform of our machine (the one we are running this script on)
+HOST_TARGET="x86_64-unknown-linux-gnu"
+
 tmp=$(mktemp -d)
 export GNUPGHOME="$tmp"
+
+# Delete if present and (re)download the file `$1` from URL `$2` via `curl`
+download() {
+    local file=$1
+    local url=$2
+    rm -rf "${file}"
+    curl --retry 3 -o "${file}" "${url}"
+}
+
+# Download the file `$1` and it's signature from the Rust distrubution
+download_with_signature() {
+    local file=$1
+    local file_url="https://static.rust-lang.org/dist/${file}"
+    local signature="${file}.asc"
+    local signature_url="https://static.rust-lang.org/dist/${signature}"
+
+    download "${signature}" "${signature_url}"
+    download "${file}" "${file_url}"
+}
+
+# Verify the file `$1` with the signature `$2` using GPG
+verify() {
+    local file=$1
+    local signature=$2
+    if ! gpgv --homedir "${tmp}" --keyring "${tmp}/pubring.kbx" "${signature}" "${file}"; then
+        echo "Signature verification failed for ${file}!"
+        exit 2
+    fi
+}
+
+
+# Import the Rust singing key to verify the rust packages we will download
+# Note: available from https://static.rust-lang.org/rust-key.gpg.ascii and https://keybase.io/rust
 gpg --import <<EOF
 -----BEGIN PGP PUBLIC KEY BLOCK-----
 Version: GnuPG v1
@@ -98,81 +136,56 @@ if ! gpg --homedir "${tmp}" --no-default-keyring --keyring "${tmp}/pubring.kbx" 
     echo "Wrong fingerprint on imported public key!"
 fi
 
-# Get standalone installers
-STABLE_INSTALLER_URL="https://static.rust-lang.org/dist/rust-1.78.0-x86_64-unknown-linux-gnu.tar.gz"
-STABLE_INSTALLER_SIGNATURE_URL="https://static.rust-lang.org/dist/rust-1.78.0-x86_64-unknown-linux-gnu.tar.gz.asc"
+# Download the Rust installer with the target for the host machine
+# verifying it using the Rust signing key
+STABLE_INSTALLER=rust-${RUST_VERSION}-${HOST_TARGET}.tar.gz
+STABLE_INSTALLER_SIGNATURE="${STABLE_INSTALLER}.asc"
+download_with_signature "${STABLE_INSTALLER}"
+verify "${STABLE_INSTALLER}" "${STABLE_INSTALLER_SIGNATURE}"
 
-# Verify signature
-rm -rf rust-1.78.0-x86_64-unknown-linux-gnu.tar.gz
-curl --retry 3 -o rust-1.78.0-x86_64-unknown-linux-gnu.tar.gz "${STABLE_INSTALLER_URL}"
-curl --retry 3 -o rust-1.78.0-x86_64-unknown-linux-gnu.tar.gz.asc "${STABLE_INSTALLER_SIGNATURE_URL}"
-if ! gpgv --homedir "${tmp}" --keyring "${tmp}/pubring.kbx" rust-1.78.0-x86_64-unknown-linux-gnu.tar.gz.asc rust-1.78.0-x86_64-unknown-linux-gnu.tar.gz; then
-    echo "Signature verification failed for rust installer!"
-    exit 1
-fi
+# Download and verify the Rust stable channel TOML
+STABLE_TOML="channel-rust-stable.toml"
+STABLE_TOML_SIGNATURE="${STABLE_TOML}.asc"
+download_with_signature "${STABLE_TOML}"
+verify "${STABLE_TOML}" "${STABLE_TOML_SIGNATURE}"
 
-STABLE_TOML_URL="https://static.rust-lang.org/dist/channel-rust-stable.toml"
-STABLE_TOML_SIGNATURE_URL="https://static.rust-lang.org/dist/channel-rust-stable.toml.asc"
-
-# Download signature and toml file
-rm -rf channel-rust-stable.toml.asc channel-rust-stable.toml
-curl --retry 3 -o channel-rust-stable.toml.asc "${STABLE_TOML_SIGNATURE_URL}"
-curl --retry 3 -o channel-rust-stable.toml "${STABLE_TOML_URL}"
-
-# Verify signature
-if ! gpgv --homedir "${tmp}" --keyring "${tmp}/pubring.kbx" channel-rust-stable.toml.asc channel-rust-stable.toml; then
-    echo "Signature verification failed for toml file!"
-    exit 2
-fi
-
-# Get urls and hashes
+# The additional targets we want for cross-compilation
 targets=(
-    [pkg.rust-std.target.aarch64-linux-android]
-    [pkg.rust-std.target.armv7-linux-androideabi]
-    [pkg.rust-std.target.i686-linux-android]
-    [pkg.rust-std.target.x86_64-linux-android]
+    "pkg.rust-std.target.aarch64-linux-android"
+    "pkg.rust-std.target.armv7-linux-androideabi"
+    "pkg.rust-std.target.i686-linux-android"
+    "pkg.rust-std.target.x86_64-linux-android"
 )
-target_filenames=()
-
+# Keep track of the downloaded installers so we can extract and run them later
+target_filenames=("${STABLE_INSTALLER}")
+# Download the additional targets for cross-compilation from the Rust stable channel
+# and verify them using the hashes in the Rust stable channel
 for target in "${targets[@]}"
 do
-    url=$(grep -A 2 -F "${target}" channel-rust-stable.toml | sed -n 3p | awk -F' = ' '{print $2}' | sed 's/\"//g')
+    # Parse the url, filename and hash of the target installer from the Rust stable channel TOML
+    url=$(grep -A 2 -F "${target}" ${STABLE_TOML} | sed -n 3p | awk -F' = ' '{print $2}' | sed 's/\"//g')
     filename=$(echo "${url}" | awk -F'/' '{print $NF}')
-    hash=$(grep -A 3 -F "${target}" channel-rust-stable.toml | sed -n 4p | awk -F' = ' '{print $2}' | sed 's/\"//g')
-    rm -rf "${filename}"
-    curl -o "${filename}" --retry 3 "${url}"
+    hash=$(grep -A 3 -F "${target}" ${STABLE_TOML} | sed -n 4p | awk -F' = ' '{print $2}' | sed 's/\"//g')
+    # Download and verify the target installer using the extracted data from the Rust stable channel TOML
+    download "${filename}" "${url}"
     if ! echo "${hash} ${filename}" | sha256sum -c; then
         echo "Checksum verification failed!"
         exit 3
     fi
+
     target_filenames+=("${filename}")
 done
 
-# Extract everything
-extract_tmp=installers
-rm -rf "${extract_tmp}"
-mkdir -p "${extract_tmp}"
-tar zxf rust-1.78.0-x86_64-unknown-linux-gnu.tar.gz -C "${extract_tmp}"
+
+# Extract and run the installers for all the targets (including host) we downloaded
+EXTRACT_TMP="installers"
+rm -rf "${EXTRACT_TMP}"
+mkdir -p "${EXTRACT_TMP}"
 for target_file in "${target_filenames[@]}"
 do
-    tar zxf "${target_file}" -C "${extract_tmp}"
-done
-
-for target_file in "${target_filenames[@]}"
-do
-    tar zxf "${target_file}" -C "${extract_tmp}"
-done
-
-# Run installer
-pushd "${extract_tmp}/rust-1.78.0-x86_64-unknown-linux-gnu"
-./install.sh
-popd
-
-for target_file in "${target_filenames[@]}"
-do
-    tar zxf "${target_file}" -C "${extract_tmp}"
+    tar zxf "${target_file}" -C "${EXTRACT_TMP}"
     extracted_folder=$(echo "${target_file}" | awk -F'.tar' '{print $1}')
-    pushd "${extract_tmp}/${extracted_folder}"
+    pushd "${EXTRACT_TMP}/${extracted_folder}"
        ./install.sh
     popd
 done
