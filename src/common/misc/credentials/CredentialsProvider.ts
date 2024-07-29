@@ -65,11 +65,14 @@ export class CredentialsProvider {
 
 	/**
 	 * Returns the stored credentials infos of all internal users, i.e. users that have a "real" tutanota account and not the ones that
-	 * have a secure external mailbox.
+	 * have a secure external mailbox. The returned array will be sorted by login.
 	 */
 	async getInternalCredentialsInfos(): Promise<ReadonlyArray<CredentialsInfo>> {
 		const allCredentials = await this.credentialsFacade.loadAll()
-		return allCredentials.filter((credential) => credential.credentialInfo.type === CredentialType.Internal).map((credential) => credential.credentialInfo)
+		return allCredentials
+			.filter((credential) => credential.credentialInfo.type === CredentialType.Internal)
+			.map((credential) => credential.credentialInfo)
+			.sort((a, b) => a.login.localeCompare(b.login))
 	}
 
 	/**
