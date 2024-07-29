@@ -1,29 +1,29 @@
 pipeline {
     environment {
     	// on m1 macs, this is a symlink that must be updated. see wiki.
-        NODE_MAC_PATH = '/usr/local/opt/node@20/bin/'
         VERSION = sh(returnStdout: true, script: "${env.NODE_PATH}/node -p -e \"require('./package.json').version\" | tr -d \"\n\"")
+        TMPDIR='/tmp'
     }
     options {
-        preserveStashes()
-    }
+		preserveStashes()
+	}
 
-    parameters {
-        booleanParam(
-            name: 'RELEASE',
-            defaultValue: false,
-            description: "Prepare a release version (doesn't publish to production, this is done manually)"
-        )
+	parameters {
+		booleanParam(
+			name: 'RELEASE',
+			defaultValue: false,
+			description: "Prepare a release version (doesn't publish to production, this is done manually)"
+		)
 		persistentText(
 			name: "releaseNotes",
 			defaultValue: "",
 			description: "release notes for this build"
 		 )
-    }
+	}
 
-    agent {
-        label 'master'
-    }
+	agent {
+		label 'master'
+	}
 
     stages {
 		stage('Check Github') {
@@ -34,15 +34,18 @@ pipeline {
 				}
 			}
 		}
-    	stage('Build dependencies') {
-    		parallel {
+		stage('Build dependencies') {
+			parallel {
 				stage('Build webapp') {
-					environment {
-						PATH = "${env.NODE_PATH}:${env.PATH}:/home/jenkins/emsdk/upstream/bin/:/home/jenkins/emsdk/:/home/jenkins/emsdk/upstream/emscripten"
-					}
 					agent {
-						label 'linux'
-					}
+						dockerfile {
+							filename 'linux-build.dockerfile'
+							label 'master'
+							dir 'ci/containers'
+							additionalBuildArgs "--format docker"
+							args '--network host'
+						} // docker
+					} // agent
 					steps {
 						sh 'npm ci'
 						sh 'npm run build-packages'
@@ -64,12 +67,12 @@ pipeline {
 						stash includes: 'native-cache/**/*', name: 'native_modules'
 					}
 				}
-    		}
-    	}
+			}
+		}
 
-        stage('Build desktop clients') {
-            parallel {
-                stage('Windows') {
+		stage('Build desktop clients') {
+			parallel {
+				stage('Windows') {
 					environment {
 						PATH = "${env.NODE_PATH}:${env.PATH}"
 					}
@@ -99,13 +102,13 @@ pipeline {
                 }
 
                 stage('Mac') {
-                    environment {
-                        PATH = "${env.NODE_MAC_PATH}:${env.PATH}"
-                    }
-                    agent {
-                        label 'mac-m1'
-                    }
-                    steps {
+					environment {
+						PATH = "${env.NODE_MAC_PATH}:${env.PATH}"
+					}
+					agent {
+						label 'mac-m1'
+					}
+					steps {
 						initBuildArea()
 
 						withCredentials([
@@ -130,33 +133,56 @@ pipeline {
 							}
 						}
 					}
-                }
+				}
 
-                stage('Linux') {
-                    agent {
-                        label 'linux'
-                    }
-                    environment {
-                        PATH = "${env.NODE_PATH}:${env.PATH}"
-                    }
-                    steps {
+				stage('Linux') {
+					agent {
+						dockerfile {
+							filename 'linux-build.dockerfile'
+							label 'master'
+							dir 'ci/containers'
+							additionalBuildArgs "--format docker"
+							args '--network host'
+						} // docker
+					}
+					steps {
 						initBuildArea()
 
-                        sh 'node desktop --existing --platform linux'
+						sh 'node desktop --existing --platform linux'
 
-                        dir('artifacts') {
-                        	stash includes: 'desktop-test/*', name:'linux_installer_test'
-                        	stash includes: 'desktop/*', name:'linux_installer'
-                        }
-                    }
-                }
-            }
-        }
+						dir('artifacts') {
+							stash includes: 'desktop-test/*', name:'linux_installer_test'
+							stash includes: 'desktop/*', name:'linux_installer'
+						}
+					}
+				}
+			}
+		}
 
+		stage('Preparation for build deb and publish') {
+			when { expression { params.RELEASE } }
+			agent {
+				label 'master'
+			}
+			steps {
+				script {
+					def devicePath =  sh(script: 'lsusb | grep Nitro | sed -nr \'s|Bus (.*) Device ([^:]*):.*|/dev/bus/usb/\\1/\\2|p\'', returnStdout: true).trim()
+					env.DEVICE_PATH = devicePath
+				}
+			}
+		}
 		stage('Build deb and publish') {
 			when { expression { params.RELEASE } }
-			agent { label 'linux' }
-			environment { PATH = "${env.NODE_PATH}:${env.PATH}" }
+			agent {
+				dockerfile {
+					filename 'linux-build.dockerfile'
+					label 'master'
+					dir 'ci/containers'
+					additionalBuildArgs '--format docker'
+					args "--network host -v /run:/run:rw,z -v /opt/repository:/opt/repository:rw,z --device=${env.DEVICE_PATH}"
+				} // docker
+		    }
+		    environment { PATH = "${env.NODE_PATH}:${env.PATH}" }
 			steps {
 				sh 'npm ci'
 				sh 'npm run build-packages'
@@ -245,7 +271,7 @@ pipeline {
 
 			} // steps
 		} // stage build deb & publish
-    } // stages
+	} // stages
 } // pipeline
 
 void initBuildArea() {
