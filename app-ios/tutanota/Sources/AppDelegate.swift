@@ -75,6 +75,9 @@ import UIKit
 	}
 
 	func application(_ application: UIApplication, didFinishLaunchingWithOptions launchOptions: [UIApplication.LaunchOptionsKey: Any]?) -> Bool {
+		#if DEBUG
+			if ProcessInfo.processInfo.environment["XCTestConfigurationFilePath"] != nil { return true }
+		#endif
 		TUTSLog("Start Tutanota with launch options: \(String(describing: launchOptions))")
 		try! migrateToSharedstorage()
 		self.start()
