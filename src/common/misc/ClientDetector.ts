@@ -1,5 +1,5 @@
 import { assertMainOrNodeBoot, Mode } from "../api/common/Env"
-import { BrowserData, BrowserType, DeviceType } from "./ClientConstants"
+import { AppType, BrowserData, BrowserType, DeviceType } from "./ClientConstants"
 
 assertMainOrNodeBoot()
 
@@ -10,14 +10,16 @@ export class ClientDetector {
 	device!: DeviceType
 	overflowAuto!: string
 	isMacOS!: boolean
+	appType!: AppType
 
 	constructor() {}
 
-	init(userAgent: string, platform: string) {
+	init(userAgent: string, platform: string, appType: AppType = AppType.Integrated) {
 		this.userAgent = userAgent
 		this.browser = BrowserType.OTHER
 		this.browserVersion = 0
 		this.device = DeviceType.DESKTOP
+		this.appType = appType
 
 		this._setBrowserAndVersion()
 
@@ -334,7 +336,9 @@ export class ClientDetector {
 
 	getIdentifier(): string {
 		if (env.mode === Mode.App) {
-			return client.device + " App"
+			if (this.appType === AppType.Integrated) throw new Error("AppType.Integrated is not allowed for mobile apps")
+			const appType = this.appType === AppType.Mail ? "Mail" : "Calendar"
+			return `${client.device} ${appType} App`
 		} else if (env.mode === Mode.Browser) {
 			return client.browser + " Browser"
 		} else if (env.platformId === "linux") {
