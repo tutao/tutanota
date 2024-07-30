@@ -16,8 +16,6 @@ import { styles } from "../../../common/gui/styles.js"
 /** ViewModel for the overall contact view. */
 export class ContactViewModel {
 	contactListId!: Id
-	/** id of the contact we are trying to load based on the url */
-	private targetContactId: Id | null = null
 	sortByFirstName: boolean = true
 	private listModelStateStream: Stream<unknown> | null = null
 
@@ -50,20 +48,15 @@ export class ContactViewModel {
 
 		// If we have already initialized the view model with the user's contact list, then select the contact within it
 		if (this.contactListId && typeof contactId === "string") {
-			this.loadAndSelect(contactId).finally(() => {
-				this.targetContactId = null
-			})
+			await this.loadAndSelect(contactId)
 			return
 		}
 
 		this.contactListId = assertNotNull(await this.contactModel.getContactListId(), "not available for external users")
 
-		this.listModel.loadInitial().then(() => {
+		this.listModel.loadInitial().then(async () => {
 			// we are loading all contacts at once anyway so we are not worried about starting parallel loads for target
-			typeof contactId === "string" &&
-				this.loadAndSelect(contactId).finally(() => {
-					this.targetContactId = null
-				})
+			typeof contactId === "string" && (await this.loadAndSelect(contactId))
 		})
 
 		this.initOnce()
@@ -79,9 +72,7 @@ export class ContactViewModel {
 
 	private updateUrl() {
 		const contactId =
-			this.targetContactId != null
-				? this.targetContactId
-				: !this.listModel.state.inMultiselect && this.listModel.getSelectedAsArray().length === 1
+			!this.listModel.state.inMultiselect && this.listModel.getSelectedAsArray().length === 1
 				? getElementId(this.listModel.getSelectedAsArray()[0])
 				: null
 		if (contactId && !styles.isSingleColumnLayout()) {
