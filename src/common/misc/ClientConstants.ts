@@ -47,3 +47,9 @@ export type BrowserData = {
 }
 
 export const companyTeamLabel = "Tuta Team"
+
+export enum AppType {
+	Integrated = "0",
+	Mail = "1",
+	Calendar = "2",
+}
