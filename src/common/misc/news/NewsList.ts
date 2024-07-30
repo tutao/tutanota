@@ -5,14 +5,14 @@ import ColumnEmptyMessageBox from "../../gui/base/ColumnEmptyMessageBox.js"
 import { theme } from "../../gui/theme.js"
 import { Icons } from "../../gui/base/icons/Icons.js"
 
-/**
- * Renders the user's list of unacknowledged news.
- */
 export interface NewsListAttrs {
 	liveNewsListItems: Record<string, NewsListItem>
 	liveNewsIds: NewsId[]
 }
 
+/**
+ * Renders the user's list of unacknowledged news.
+ */
 export class NewsList implements Component<NewsListAttrs> {
 	view(vnode: Vnode<NewsListAttrs>): Children {
 		if (vnode.attrs.liveNewsIds.length === 0) {

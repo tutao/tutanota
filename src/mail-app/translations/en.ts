@@ -1743,6 +1743,8 @@ export default {
 		"yourCalendars_label": "Your calendars",
 		"yourFolders_action": "YOUR FOLDERS",
 		"yourMessage_label": "Your message",
-		"you_label": "You"
+		"you_label": "You",
+		"richNotifications_title": "Rich notifications",
+		"richNotificationsNewsItem_msg": "Your favorite mail app can now display subject & sender in notifications! Enable it now:"
 	}
 }

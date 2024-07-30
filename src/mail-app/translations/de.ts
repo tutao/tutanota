@@ -1747,6 +1747,8 @@ export default {
 		"yourCalendars_label": "Deine Kalender",
 		"yourFolders_action": "DEINE ORDNER",
 		"yourMessage_label": "Deine Nachricht",
-		"you_label": "Du"
+		"you_label": "Du",
+		"richNotifications_title": "Umfangreiche Benachrichtigungen",
+		"richNotificationsNewsItem_msg": "Deine Lieblings-Mail-App kann jetzt Betreff und Absender in den Benachrichtigungen anzeigen! Aktiviere es jetzt:"
 	}
 }
