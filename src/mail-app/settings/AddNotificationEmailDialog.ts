@@ -6,10 +6,11 @@ import m from "mithril"
 import { TextField, TextFieldType } from "../../common/gui/base/TextField.js"
 import { assertNotNull } from "@tutao/tutanota-utils"
 import { getCleanedMailAddress } from "../../common/misc/parsing/MailAddressParser.js"
-import { AppType, PushServiceType } from "../../common/api/common/TutanotaConstants.js"
+import { PushServiceType } from "../../common/api/common/TutanotaConstants.js"
 import { showProgressDialog } from "../../common/gui/dialogs/ProgressDialog.js"
 import { LoginController } from "../../common/api/main/LoginController.js"
 import { EntityClient } from "../../common/api/common/EntityClient.js"
+import { AppType } from "../../common/misc/ClientConstants.js"
 
 export class AddNotificationEmailDialog {
 	constructor(private readonly logins: LoginController, private readonly entityClient: EntityClient) {}

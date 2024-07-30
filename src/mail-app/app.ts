@@ -37,6 +37,8 @@ import { assertMainOrNodeBoot, bootFinished, isApp, isDesktop, isOfflineStorageA
 import { SettingsViewAttrs } from "../common/settings/Interfaces.js"
 import { disableErrorHandlingDuringLogout, handleUncaughtError } from "../common/misc/ErrorHandler.js"
 
+import { AppType } from "../common/misc/ClientConstants.js"
+
 assertMainOrNodeBoot()
 bootFinished()
 
@@ -55,7 +57,7 @@ window.tutao = {
 	locator: null,
 }
 
-client.init(navigator.userAgent, navigator.platform)
+client.init(navigator.userAgent, navigator.platform, AppType.Mail)
 
 if (!client.isSupported()) {
 	throw new Error("Unsupported")
