@@ -92,7 +92,7 @@ export const typeModels = {
             }
         },
         "app": "monitor",
-        "version": "27"
+        "version": "28"
     },
     "CounterValue": {
         "name": "CounterValue",
@@ -133,7 +133,7 @@ export const typeModels = {
         },
         "associations": {},
         "app": "monitor",
-        "version": "27"
+        "version": "28"
     },
     "ErrorReportData": {
         "name": "ErrorReportData",
@@ -237,7 +237,7 @@ export const typeModels = {
         },
         "associations": {},
         "app": "monitor",
-        "version": "27"
+        "version": "28"
     },
     "ErrorReportFile": {
         "name": "ErrorReportFile",
@@ -278,7 +278,7 @@ export const typeModels = {
         },
         "associations": {},
         "app": "monitor",
-        "version": "27"
+        "version": "28"
     },
     "ReadCounterData": {
         "name": "ReadCounterData",
@@ -328,7 +328,7 @@ export const typeModels = {
         },
         "associations": {},
         "app": "monitor",
-        "version": "27"
+        "version": "28"
     },
     "ReadCounterReturn": {
         "name": "ReadCounterReturn",
@@ -371,7 +371,7 @@ export const typeModels = {
             }
         },
         "app": "monitor",
-        "version": "27"
+        "version": "28"
     },
     "ReportErrorIn": {
         "name": "ReportErrorIn",
@@ -415,7 +415,7 @@ export const typeModels = {
             }
         },
         "app": "monitor",
-        "version": "27"
+        "version": "28"
     },
     "WriteCounterData": {
         "name": "WriteCounterData",
@@ -474,6 +474,6 @@ export const typeModels = {
         },
         "associations": {},
         "app": "monitor",
-        "version": "27"
+        "version": "28"
     }
 }
