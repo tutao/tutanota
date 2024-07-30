@@ -13,7 +13,7 @@ ENV PATH="$PATH:/emsdk/upstream/bin:/emsdk/upstream/emscripten"
 RUN apt-get update && apt-get install -y ruby && gem install fpm:1.15.1
 
 # Install pkcs11-tool from OpenSC to sign desktop clients and deb packages
-# Note: `osslsigncode` is used on Windows instead
+# Note: `osslsigncode` is used on Windows as well
 RUN apt-get install -y opensc usbutils pcsc-tools osslsigncode libengine-pkcs11-openssl
 
 # Install Rust to build the Tuta SDK
