@@ -35,6 +35,7 @@ import { DatabaseKeyFactory } from "../../../../../src/misc/credentials/Database
 import { Argon2idFacade } from "../../../../../src/api/worker/facades/Argon2idFacade.js"
 import { createTestEntity } from "../../../TestUtils.js"
 import { KeyRotationFacade } from "../../../../../src/api/worker/facades/KeyRotationFacade.js"
+import { CredentialType } from "../../../../../src/misc/credentials/CredentialType.js"
 
 const { anything, argThat } = matchers
 
@@ -99,6 +100,7 @@ o.spec("LoginFacadeTest", function () {
 	let argon2idFacade: Argon2idFacade
 
 	const timeRangeDays = 42
+	const login = "born.slippy@tuta.io"
 
 	o.beforeEach(function () {
 		workerMock = instance(WorkerImpl)
@@ -168,30 +170,42 @@ o.spec("LoginFacadeTest", function () {
 			const dbKey = new Uint8Array([1, 2, 3, 4, 1, 2, 3, 4])
 			const passphrase = "hunter2"
 			const userId = "userId"
+			const accessToken = "accessToken"
 
 			o.beforeEach(async function () {
 				when(serviceExecutor.post(SessionService, anything()), { ignoreExtraArgs: true }).thenResolve(
-					createTestEntity(CreateSessionReturnTypeRef, { user: userId, accessToken: "accessToken", challenges: [] }),
+					createTestEntity(CreateSessionReturnTypeRef, { user: userId, accessToken: accessToken, challenges: [] }),
 				)
 				when(entityClientMock.load(UserTypeRef, userId)).thenResolve(await makeUser(userId))
 			})
 
-			o("When a database key is provided and session is persistent it is passed to the offline storage initializer", async function () {
-				await facade.createSession("born.slippy@tuta.io", passphrase, "client", SessionType.Persistent, dbKey)
+			o.test("When a database key is provided and session is persistent it is passed to the offline storage initializer", async function () {
+				await facade.createSession(login, passphrase, "client", SessionType.Persistent, dbKey)
 				verify(cacheStorageInitializerMock.initialize({ type: "offline", databaseKey: dbKey, userId, timeRangeDays: null, forceNewDatabase: false }))
 				verify(databaseKeyFactoryMock.generateKey(), { times: 0 })
 			})
-			o("When no database key is provided and session is persistent, a key is generated and we attempt offline db init", async function () {
+			o.test("When no database key is provided and session is persistent, a key is generated and we attempt offline db init", async function () {
 				const databaseKey = Uint8Array.from([1, 2, 3, 4])
 				when(databaseKeyFactoryMock.generateKey()).thenResolve(databaseKey)
-				await facade.createSession("born.slippy@tuta.io", passphrase, "client", SessionType.Persistent, null)
+				await facade.createSession(login, passphrase, "client", SessionType.Persistent, null)
 				verify(cacheStorageInitializerMock.initialize({ type: "offline", userId, databaseKey, timeRangeDays: null, forceNewDatabase: true }))
 				verify(databaseKeyFactoryMock.generateKey(), { times: 1 })
 			})
-			o("When no database key is provided and session is Login, nothing is passed to the offline storage initialzier", async function () {
-				await facade.createSession("born.slippy@tuta.io", passphrase, "client", SessionType.Login, null)
+			o.test("When no database key is provided and session is Login, nothing is passed to the offline storage initialzier", async function () {
+				await facade.createSession(login, passphrase, "client", SessionType.Login, null)
 				verify(cacheStorageInitializerMock.initialize({ type: "ephemeral", userId }))
 				verify(databaseKeyFactoryMock.generateKey(), { times: 0 })
+			})
+			o.test("When no database key is provided and session is persistent, valid credentials are returned", async () => {
+				const result = await facade.createSession(login, passphrase, "client", SessionType.Persistent, null)
+				const credentials = result.credentials
+				o(credentials.encryptedPassphraseKey).notEquals(null) // TODO: Verify the value (maybe via size?)
+				o(credentials.login).equals(login)
+				o(credentials.userId).equals(userId)
+				o(credentials.encryptedPassword?.length).notEquals(null) // TODO: Verify the value (maybe via size?)
+				o(credentials.encryptedPassword).notEquals(null)
+				o(credentials.type).equals(CredentialType.Internal)
+				o(credentials.accessToken).equals(accessToken)
 			})
 		})
 	})
@@ -215,14 +229,15 @@ o.spec("LoginFacadeTest", function () {
 					 * Identifier which we use for logging in.
 					 * Email address used to log in for internal users, userId for external users.
 					 * */
-					login: "born.slippy@tuta.io",
+					login: login,
 
 					/** Session#accessKey encrypted password. Is set when session is persisted. */
 					encryptedPassword: uint8ArrayToBase64(encryptString(accessKey, passphrase)), // We can't call encryptString in the top level of spec because `random` isn't initialized yet
+					encryptedPassphraseKey: null,
 					accessToken,
 					userId,
-					type: "internal",
-				} as Credentials
+					type: CredentialType.Internal,
+				}
 
 				when(entityClientMock.load(UserTypeRef, userId)).thenResolve(user)
 
@@ -236,17 +251,19 @@ o.spec("LoginFacadeTest", function () {
 				).thenResolve(JSON.stringify({ user: userId, accessKey: keyToBase64(accessKey) }))
 			})
 
-			o("When resuming a session and there is a database key, it is passed to offline storage initialization", async function () {
+			o.test("When resuming a session and there is a database key, it is passed to offline storage initialization", async function () {
 				usingOfflineStorage = true
 				await facade.resumeSession(credentials, null, dbKey, timeRangeDays)
 				verify(cacheStorageInitializerMock.initialize({ type: "offline", databaseKey: dbKey, userId, timeRangeDays, forceNewDatabase: false }))
 			})
-			o("When resuming a session and there is no database key, nothing is passed to offline storage initialization", async function () {
+
+			o.test("When resuming a session and there is no database key, nothing is passed to offline storage initialization", async function () {
 				usingOfflineStorage = true
 				await facade.resumeSession(credentials, null, null, timeRangeDays)
 				verify(cacheStorageInitializerMock.initialize({ type: "ephemeral", userId }))
 			})
-			o("when resuming a session and the offline initialization has created a new database, we do synchronous login", async function () {
+
+			o.test("when resuming a session and the offline initialization has created a new database, we do synchronous login", async function () {
 				usingOfflineStorage = true
 				user.accountType = AccountType.PAID
 				when(
@@ -260,7 +277,8 @@ o.spec("LoginFacadeTest", function () {
 
 				o(facade.asyncLoginState).deepEquals({ state: "idle" })("Synchronous login occured, so once resume returns we have already logged in")
 			})
-			o("when resuming a session and the offline initialization has an existing database, we do async login", async function () {
+
+			o.test("when resuming a session and the offline initialization has an existing database, we do async login", async function () {
 				usingOfflineStorage = true
 				user.accountType = AccountType.PAID
 
@@ -275,7 +293,8 @@ o.spec("LoginFacadeTest", function () {
 
 				o(facade.asyncLoginState).deepEquals({ state: "running" })("Async login occurred so it is still running")
 			})
-			o("when resuming a session and a notauthenticatedError is thrown, the offline db is deleted", async function () {
+
+			o.test("when resuming a session and a notauthenticatedError is thrown, the offline db is deleted", async function () {
 				usingOfflineStorage = true
 				user.accountType = AccountType.FREE
 				when(
@@ -299,6 +318,19 @@ o.spec("LoginFacadeTest", function () {
 				).asyncThrows(NotAuthenticatedError)
 				verify(cacheStorageInitializerMock.deInitialize())
 			})
+
+			o.test("when resuming a session with credentials that don't have encryptedPassphraseKey it is assigned", async () => {
+				usingOfflineStorage = true
+				await facade.resumeSession(credentials, null, null, timeRangeDays)
+
+				verify(
+					loginListener.onFullLoginSuccess(
+						SessionType.Persistent,
+						anything(),
+						argThat((credentials: Credentials) => credentials.encryptedPassphraseKey != null),
+					),
+				)
+			})
 		})
 
 		o.spec("account type combinations", function () {
@@ -320,7 +352,7 @@ o.spec("LoginFacadeTest", function () {
 					 * Identifier which we use for logging in.
 					 * Email address used to log in for internal users, userId for external users.
 					 * */
-					login: "born.slippy@tuta.io",
+					login: login,
 
 					/** Session#accessKey encrypted password. Is set when session is persisted. */
 					encryptedPassword: uint8ArrayToBase64(encryptString(accessKey, passphrase)), // We can't call encryptString in the top level of spec because `random` isn't initialized yet
@@ -486,7 +518,7 @@ o.spec("LoginFacadeTest", function () {
 					 * Identifier which we use for logging in.
 					 * Email address used to log in for internal users, userId for external users.
 					 * */
-					login: "born.slippy@tuta.io",
+					login: login,
 
 					/** Session#accessKey encrypted password. Is set when session is persisted. */
 					encryptedPassword: uint8ArrayToBase64(encryptString(accessKey, passphrase)), // We can't call encryptString in the top level of spec because `random` isn't initialized yet
@@ -586,7 +618,7 @@ o.spec("LoginFacadeTest", function () {
 					 * Identifier which we use for logging in.
 					 * Email address used to log in for internal users, userId for external users.
 					 * */
-					login: "born.slippy@tuta.io",
+					login: login,
 
 					/** Session#accessKey encrypted password. Is set when session is persisted. */
 					encryptedPassword: uint8ArrayToBase64(encryptString(accessKey, passphrase)), // We can't call encryptString in the top level of spec because `random` isn't initialized yet

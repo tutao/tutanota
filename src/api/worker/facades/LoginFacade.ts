@@ -648,11 +648,13 @@ export class LoginFacade {
 		let kdfType: KdfType | null = null
 		let passphrase: string | null = null
 		let userPassphraseKey: AesKey
+		let credentialsWithPassphraseKey: Credentials
 
 		// Previously only the encryptedPassword was stored, now we prefer to use the key if it's already there
 		// and keep passphrase for migrating KDF for now.
 		if (credentials.encryptedPassphraseKey != null) {
 			userPassphraseKey = decryptKey(accessKey, credentials.encryptedPassphraseKey)
+			credentialsWithPassphraseKey = credentials
 		} else if (credentials.encryptedPassword) {
 			passphrase = utf8Uint8ArrayToString(aesDecrypt(accessKey, base64ToUint8Array(credentials.encryptedPassword)))
 			const isExternalUser = externalUserKeyDeriver != null
@@ -665,12 +667,14 @@ export class LoginFacade {
 				userPassphraseKey = passphraseData.userPassphraseKey
 				kdfType = passphraseData.kdfType
 			}
+			const encryptedPassphraseKey = encryptKey(accessKey, userPassphraseKey)
+			credentialsWithPassphraseKey = { ...credentials, encryptedPassphraseKey }
 		} else {
 			throw new ProgrammingError("no key or password stored in credentials!")
 		}
 
 		const { user, userGroupInfo } = await this.initSession(sessionData.userId, credentials.accessToken, userPassphraseKey)
-		this.loginListener.onFullLoginSuccess(SessionType.Persistent, cacheInfo, credentials)
+		this.loginListener.onFullLoginSuccess(SessionType.Persistent, cacheInfo, credentialsWithPassphraseKey)
 
 		this.asyncLoginState = { state: "idle" }
 
