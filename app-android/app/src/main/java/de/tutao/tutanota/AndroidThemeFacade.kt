@@ -113,24 +113,14 @@ class AndroidThemeFacade(
 
 		val windowInsetController = WindowInsetsControllerCompat(activity.window, activity.window.decorView)
 
-		if (isNavBarLight) {
-			windowInsetController.isAppearanceLightNavigationBars = true
-		}
+		windowInsetController.isAppearanceLightNavigationBars = isNavBarLight
 
 		val headerBg = getColor(theme, "navigation_bg")
 		@ColorInt val statusBarColor = parseColor(headerBg)
 		val isStatusBarLight = headerBg.isLightHexColor()
 
-		// Changing status bar color
-		// Before Android M there was no flag to use lightStatusBar (so that text is white or
-		// black). As our primary color is red, Android thinks that the status bar color text
-		// should be white. So we cannot use white status bar color.
-		// So for Android M and above we alternate between white and dark status bar colors and
-		// we change lightStatusBar flag accordingly.
 		activity.window.statusBarColor = statusBarColor
-		if (isStatusBarLight) {
-			windowInsetController.isAppearanceLightStatusBars = true
-		}
+		windowInsetController.isAppearanceLightStatusBars = isStatusBarLight
 	}
 
 	private fun getColor(theme: Map<String, String>, key: String): String =
