@@ -78,7 +78,7 @@ android {
 	applicationVariants.configureEach { variant ->
 		variant.outputs.configureEach { output ->
 			def flavor = variant.productFlavors[0].name
-			outputFileName = "tutanota-app-$flavor-${variant.buildType.name}-${variant.versionName}.apk"
+			outputFileName = "mail-$flavor-${variant.buildType.name}-${variant.versionName}.apk"
 		}
 	}
 
