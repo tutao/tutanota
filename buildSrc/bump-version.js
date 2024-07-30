@@ -98,7 +98,8 @@ async function bumpAndroidVersion(currentVersion, newVersionString, buildGradleP
 	}
 	const newVersionCode = oldVersionCode + 1
 	const newVersionCodeString = String(newVersionCode)
-	const versionCodeToWrite = `versionCode ${buildGradleString.endsWith("kts") ? "= " : ""}${newVersionCodeString}`
+
+	const versionCodeToWrite = `versionCode ${buildGradlePath.endsWith("kts") ? "= " : ""}${newVersionCodeString}`
 	const newBuildGradleString = buildGradleString
 		.replace(new RegExp(currentVersion.join("\\.")), newVersionString)
 		.replace(new RegExp(versionRegex), versionCodeToWrite)
