@@ -24,7 +24,7 @@ import { CalendarOperation, EventType } from "./CalendarEventModel.js"
 import { ProgrammingError } from "../../../../common/api/common/error/ProgrammingError.js"
 import { CalendarNotificationSendModels } from "./CalendarNotificationModel.js"
 import { getContactDisplayName } from "../../../../common/contactsFunctionality/ContactUtils.js"
-import { RecipientField } from "../../../../common/mailFunctionality/CommonMailUtils.js"
+import { RecipientField } from "../../../../common/mailFunctionality/SharedMailUtils.js"
 
 /** there is no point in returning recipients, the SendMailModel will re-resolve them anyway. */
 type AttendanceModelResult = {

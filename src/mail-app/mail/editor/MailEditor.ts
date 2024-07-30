@@ -93,7 +93,7 @@ import {
 	getMailAddressDisplayText,
 	LINE_BREAK,
 	RecipientField,
-} from "../../../common/mailFunctionality/CommonMailUtils.js"
+} from "../../../common/mailFunctionality/SharedMailUtils.js"
 import { mailLocator } from "../../mailLocator.js"
 
 export type MailEditorAttrs = {

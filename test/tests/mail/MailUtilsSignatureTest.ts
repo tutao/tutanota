@@ -6,7 +6,7 @@ import { lang } from "../../../src/common/misc/LanguageViewModel.js"
 import { htmlSanitizer } from "../../../src/common/misc/HtmlSanitizer.js"
 import type { LoginController } from "../../../src/common/api/main/LoginController.js"
 import { appendEmailSignature, prependEmailSignature } from "../../../src/mail-app/mail/signature/Signature.js"
-import { LINE_BREAK } from "../../../src/common/mailFunctionality/CommonMailUtils.js"
+import { LINE_BREAK } from "../../../src/common/mailFunctionality/SharedMailUtils.js"
 
 const TEST_DEFAULT_SIGNATURE = "--\nDefault signature"
 o.spec("MailUtilsSignatureTest", function () {

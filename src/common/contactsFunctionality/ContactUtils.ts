@@ -1,5 +1,3 @@
-// @bundleInto:common-functionality
-
 import { assertMainOrNode } from "../api/common/Env.js"
 import {
 	Birthday,

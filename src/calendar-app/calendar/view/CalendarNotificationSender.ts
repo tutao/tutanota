@@ -12,7 +12,7 @@ import { cleanMailAddress, findAttendeeInAddresses, findRecipientWithAddress } f
 import { ProgrammingError } from "../../../common/api/common/error/ProgrammingError.js"
 
 import { calendarAttendeeStatusSymbol, formatEventDuration } from "../gui/CalendarGuiUtils.js"
-import { RecipientField } from "../../../common/mailFunctionality/CommonMailUtils.js"
+import { RecipientField } from "../../../common/mailFunctionality/SharedMailUtils.js"
 
 export class CalendarNotificationSender {
 	/** Used for knowing how many emails are in the process of being sent. */

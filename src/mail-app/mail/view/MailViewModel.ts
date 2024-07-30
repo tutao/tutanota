@@ -21,14 +21,9 @@ import { Router } from "../../../common/gui/ScopedRouter.js"
 import { ListFetchResult } from "../../../common/gui/base/ListUtils.js"
 import { EntityUpdateData, isUpdateForTypeRef } from "../../../common/api/common/utils/EntityUpdateUtils.js"
 import { EventController } from "../../../common/api/main/EventController.js"
-import {
-	assertSystemFolderOfType,
-	getMailFilterForType,
-	isSpamOrTrashFolder,
-	isSubfolderOfType,
-	MailFilterType,
-} from "../../../common/mailFunctionality/CommonMailUtils.js"
-import { isOfTypeOrSubfolderOf } from "../../../common/mailFunctionality/CommonMailUtils.js"
+import { assertSystemFolderOfType, getMailFilterForType, MailFilterType } from "../../../common/mailFunctionality/SharedMailUtils.js"
+import { isOfTypeOrSubfolderOf } from "../../../common/mailFunctionality/SharedMailUtils.js"
+import { isSpamOrTrashFolder, isSubfolderOfType } from "../../../common/api/common/CommonMailUtils.js"
 
 export interface MailOpenedListener {
 	onEmailOpened(mail: Mail): unknown

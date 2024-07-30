@@ -33,8 +33,8 @@ import { locator } from "../../../common/api/main/CommonLocator.js"
 import { PinchZoom } from "../../../common/gui/PinchZoom.js"
 import { responsiveCardHMargin, responsiveCardHPadding } from "../../../common/gui/cards.js"
 import { Dialog } from "../../../common/gui/base/Dialog.js"
-import { createNewContact, getExistingRuleForType } from "../../../common/mailFunctionality/CommonMailUtils.js"
-import { isTutanotaTeamMail } from "../../../common/mailFunctionality/CommonMailUtils.js"
+import { createNewContact, getExistingRuleForType } from "../../../common/mailFunctionality/SharedMailUtils.js"
+import { isTutanotaTeamMail } from "../../../common/mailFunctionality/SharedMailUtils.js"
 
 assertMainOrNode()
 

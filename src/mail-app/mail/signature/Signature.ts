@@ -4,7 +4,7 @@ import { EmailSignatureType as TutanotaConstants } from "../../../common/api/com
 import { htmlSanitizer } from "../../../common/misc/HtmlSanitizer"
 import type { LoginController } from "../../../common/api/main/LoginController"
 import { assertMainOrNode } from "../../../common/api/common/Env"
-import { LINE_BREAK } from "../../../common/mailFunctionality/CommonMailUtils.js"
+import { LINE_BREAK } from "../../../common/mailFunctionality/SharedMailUtils.js"
 
 assertMainOrNode()
 

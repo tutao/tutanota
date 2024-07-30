@@ -19,7 +19,7 @@ import { NotAuthorizedError, NotFoundError } from "../../../common/api/common/er
 import { MailModel } from "../../../common/mailFunctionality/MailModel.js"
 import { EntityUpdateData, isUpdateForTypeRef } from "../../../common/api/common/utils/EntityUpdateUtils.js"
 import { ListAutoSelectBehavior } from "../../../common/misc/DeviceConfig.js"
-import { isOfTypeOrSubfolderOf } from "../../../common/mailFunctionality/CommonMailUtils.js"
+import { isOfTypeOrSubfolderOf } from "../../../common/mailFunctionality/SharedMailUtils.js"
 
 export type MailViewerViewModelFactory = (options: CreateMailViewerOptions) => MailViewerViewModel
 

@@ -11,7 +11,7 @@ import { MailModel } from "../../mailFunctionality/MailModel.js"
 import { TopLevelView } from "../../../TopLevelView.js"
 import stream from "mithril/stream"
 
-import { assertSystemFolderOfType } from "../../mailFunctionality/CommonMailUtils.js"
+import { assertSystemFolderOfType } from "../../mailFunctionality/SharedMailUtils.js"
 
 assertMainOrNode()
 

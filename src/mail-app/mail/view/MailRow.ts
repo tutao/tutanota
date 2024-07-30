@@ -20,8 +20,8 @@ import { px, size } from "../../../common/gui/size.js"
 import { NBSP, noOp } from "@tutao/tutanota-utils"
 import { VirtualRow } from "../../../common/gui/base/ListUtils.js"
 import { companyTeamLabel } from "../../../common/misc/ClientConstants.js"
-import { getConfidentialFontIcon, getSenderOrRecipientHeading } from "../../../common/mailFunctionality/CommonMailUtils.js"
-import { isTutanotaTeamMail } from "../../../common/mailFunctionality/CommonMailUtils.js"
+import { getConfidentialFontIcon, getSenderOrRecipientHeading } from "../../../common/mailFunctionality/SharedMailUtils.js"
+import { isTutanotaTeamMail } from "../../../common/mailFunctionality/SharedMailUtils.js"
 
 const iconMap: Record<MailFolderType, string> = {
 	[MailFolderType.CUSTOM]: FontIcons.Folder,

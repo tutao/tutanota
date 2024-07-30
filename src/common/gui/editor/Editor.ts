@@ -7,7 +7,7 @@ import { isMailAddress } from "../../misc/FormatValidator"
 import { TabIndex } from "../../api/common/TutanotaConstants"
 import { TextFieldType } from "../base/TextField.js"
 import { HTML_EDITOR_LINE_HEIGHT } from "./HtmlEditor.js"
-import type { ImageHandler } from "../../mailFunctionality/CommonMailUtils.js"
+import type { ImageHandler } from "../../mailFunctionality/SharedMailUtils.js"
 
 type SanitizerFn = (html: string, isPaste: boolean) => DocumentFragment
 export type ImagePasteEvent = CustomEvent<{ clipboardData: DataTransfer }>

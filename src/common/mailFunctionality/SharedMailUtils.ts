@@ -1,9 +1,6 @@
-// @bundleInto:common-functionality
-
 import { assertMainOrNode, isDesktop } from "../api/common/Env.js"
 import { CustomerPropertiesTypeRef, GroupInfo, User } from "../api/entities/sys/TypeRefs.js"
 import {
-	Body,
 	Contact,
 	createContact,
 	createContactMailAddress,
@@ -46,6 +43,7 @@ import { ListFilter } from "../misc/ListModel.js"
 import { FontIcons } from "../gui/base/icons/FontIcons.js"
 import { ProgrammingError } from "../api/common/error/ProgrammingError.js"
 import { Attachment } from "./SendMailModel.js"
+import { getDisplayedSender, isDraft, isSubfolderOfType } from "../api/common/CommonMailUtils.js"
 
 assertMainOrNode()
 export const LINE_BREAK = "<br>"
@@ -388,10 +386,6 @@ export function getPathToFolderString(folderSystem: FolderSystem, folder: MailFo
 	return folderPath.map(getFolderName).join(" · ")
 }
 
-export function isDraft(mail: Mail): boolean {
-	return mail.mailDetailsDraft != null
-}
-
 export async function loadMailDetails(mailFacade: MailFacade, mail: Mail): Promise<MailDetails> {
 	if (isDraft(mail)) {
 		const detailsDraftId = assertNotNull(mail.mailDetailsDraft)
@@ -455,16 +449,6 @@ export function getConfidentialIcon(mail: Mail): Icons {
 	}
 }
 
-export interface MailAddressAndName {
-	name: string
-	address: string
-}
-
-export function getDisplayedSender(mail: Mail): MailAddressAndName {
-	const realSender = mail.sender
-	return { address: realSender.address, name: realSender.name }
-}
-
 export function isTutanotaMailAddress(mailAddress: string): boolean {
 	return TUTANOTA_MAIL_ADDRESS_DOMAINS.some((tutaDomain) => mailAddress.endsWith("@" + tutaDomain))
 }
@@ -477,28 +461,6 @@ export function isTutanotaMailAddress(mailAddress: string): boolean {
  */
 export function assertSystemFolderOfType(system: FolderSystem, type: Omit<MailFolderType, MailFolderType.CUSTOM>): MailFolder {
 	return assertNotNull(system.getSystemFolderByType(type), "System folder of type does not exist!")
-}
-
-/**
- * Returns true if given folder is the {@link MailFolderType.SPAM} or {@link MailFolderType.TRASH} folder, or a descendant of those folders.
- */
-export function isSpamOrTrashFolder(system: FolderSystem, folder: MailFolder): boolean {
-	// not using isOfTypeOrSubfolderOf because checking the type first is cheaper
-	return (
-		folder.folderType === MailFolderType.TRASH ||
-		folder.folderType === MailFolderType.SPAM ||
-		isSubfolderOfType(system, folder, MailFolderType.TRASH) ||
-		isSubfolderOfType(system, folder, MailFolderType.SPAM)
-	)
-}
-
-export function isSubfolderOfType(system: FolderSystem, folder: MailFolder, type: MailFolderType): boolean {
-	const systemFolder = system.getSystemFolderByType(type)
-	return systemFolder != null && system.checkFolderForAncestor(folder, systemFolder._id)
-}
-
-export function getMailBodyText(body: Body): string {
-	return body.compressedText ?? body.text ?? ""
 }
 
 export function isOfTypeOrSubfolderOf(system: FolderSystem, folder: MailFolder, type: MailFolderType): boolean {

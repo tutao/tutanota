@@ -10,7 +10,7 @@ import { neverNull } from "@tutao/tutanota-utils"
 import { locator } from "../api/main/CommonLocator"
 import { SignOrderProcessingAgreementService } from "../api/entities/sys/Services"
 import { formatNameAndAddress } from "../api/common/utils/CommonFormatter.js"
-import { getMailAddressDisplayText } from "../mailFunctionality/CommonMailUtils.js"
+import { getMailAddressDisplayText } from "../mailFunctionality/SharedMailUtils.js"
 
 assertMainOrNode()
 const PRINT_DIV_ID = "print-div"

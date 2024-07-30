@@ -20,7 +20,7 @@ import { LockedError } from "../../../common/api/common/error/RestError.js"
 import { ifAllowedTutaLinks } from "../../../common/gui/base/GuiUtils.js"
 import { ExternalLink } from "../../../common/gui/base/ExternalLink.js"
 import { SourceCodeViewer } from "./SourceCodeViewer.js"
-import { ImageHandler, loadMailDetails } from "../../../common/mailFunctionality/CommonMailUtils.js"
+import { ImageHandler, loadMailDetails } from "../../../common/mailFunctionality/SharedMailUtils.js"
 import { mailLocator } from "../../mailLocator.js"
 
 export function insertInlineImageB64ClickHandler(ev: Event, handler: ImageHandler) {

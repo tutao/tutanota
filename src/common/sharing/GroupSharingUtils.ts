@@ -5,7 +5,7 @@ import { showProgressDialog } from "../gui/dialogs/ProgressDialog"
 import type { GroupSharingTexts } from "./GroupGuiUtils"
 import { getDefaultGroupName, getInvitationGroupType, getSharedGroupName } from "./GroupUtils"
 import { PartialRecipient, Recipients } from "../api/common/recipients/Recipient"
-import { getDefaultSender, getEnabledMailAddressesWithUser, getMailAddressDisplayText, getSenderNameForUser } from "../mailFunctionality/CommonMailUtils.js"
+import { getDefaultSender, getEnabledMailAddressesWithUser, getMailAddressDisplayText, getSenderNameForUser } from "../mailFunctionality/SharedMailUtils.js"
 
 export function sendShareNotificationEmail(sharedGroupInfo: GroupInfo, recipients: Array<PartialRecipient>, texts: GroupSharingTexts) {
 	locator.mailModel.getUserMailboxDetails().then((mailboxDetails) => {

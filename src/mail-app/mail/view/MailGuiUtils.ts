@@ -20,15 +20,15 @@ import { ConversationViewModel } from "./ConversationViewModel.js"
 import { size } from "../../../common/gui/size.js"
 import { PinchZoom } from "../../../common/gui/PinchZoom.js"
 import { InlineImageReference, InlineImages } from "../../../common/mailFunctionality/inlineImagesUtils.js"
-import { isOfTypeOrSubfolderOf } from "../../../common/mailFunctionality/CommonMailUtils.js"
+import { isOfTypeOrSubfolderOf } from "../../../common/mailFunctionality/SharedMailUtils.js"
 import {
 	assertSystemFolderOfType,
 	getFolderIcon,
 	getFolderName,
 	getIndentedFolderNameForDropdown,
 	getMoveTargetFolderSystems,
-	isSpamOrTrashFolder,
-} from "../../../common/mailFunctionality/CommonMailUtils.js"
+} from "../../../common/mailFunctionality/SharedMailUtils.js"
+import { isSpamOrTrashFolder } from "../../../common/api/common/CommonMailUtils.js"
 
 export async function showDeleteConfirmationDialog(mails: ReadonlyArray<Mail>): Promise<boolean> {
 	let trashMails: Mail[] = []

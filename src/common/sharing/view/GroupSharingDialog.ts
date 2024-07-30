@@ -26,7 +26,7 @@ import { ResolvableRecipient, ResolveMode } from "../../api/main/RecipientsModel
 import { MailRecipientsTextField } from "../../gui/MailRecipientsTextField.js"
 import { cleanMailAddress, findRecipientWithAddress } from "../../api/common/utils/CommonCalendarUtils.js"
 import { showPlanUpgradeRequiredDialog } from "../../misc/SubscriptionDialogs.js"
-import { getMailAddressDisplayText } from "../../mailFunctionality/CommonMailUtils.js"
+import { getMailAddressDisplayText } from "../../mailFunctionality/SharedMailUtils.js"
 
 export async function showGroupSharingDialog(groupInfo: GroupInfo, allowGroupNameOverride: boolean) {
 	const groupType = downcast(assertNotNull(groupInfo.groupType))

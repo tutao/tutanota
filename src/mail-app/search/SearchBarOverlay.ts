@@ -20,8 +20,8 @@ import { companyTeamLabel } from "../../common/misc/ClientConstants.js"
 import { getTimeZone } from "../../common/calendar/date/CalendarUtils.js"
 
 import { formatEventDuration } from "../../calendar-app/calendar/gui/CalendarGuiUtils.js"
-import { getSenderOrRecipientHeading } from "../../common/mailFunctionality/CommonMailUtils.js"
-import { isTutanotaTeamMail } from "../../common/mailFunctionality/CommonMailUtils.js"
+import { getSenderOrRecipientHeading } from "../../common/mailFunctionality/SharedMailUtils.js"
+import { isTutanotaTeamMail } from "../../common/mailFunctionality/SharedMailUtils.js"
 import { getContactListName } from "../../common/contactsFunctionality/ContactUtils.js"
 
 type SearchBarOverlayAttrs = {

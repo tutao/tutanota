@@ -14,7 +14,7 @@ import { IServiceExecutor } from "../../api/common/ServiceRequest.js"
 
 import { getAvailableMatchingPlans } from "../../subscription/SubscriptionUtils.js"
 import { EntityUpdateData, isUpdateFor, isUpdateForTypeRef } from "../../api/common/utils/EntityUpdateUtils.js"
-import { isTutanotaMailAddress } from "../../mailFunctionality/CommonMailUtils.js"
+import { isTutanotaMailAddress } from "../../mailFunctionality/SharedMailUtils.js"
 
 export enum AddressStatus {
 	Primary,

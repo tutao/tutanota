@@ -7,7 +7,7 @@ import { Icons } from "../../gui/base/icons/Icons"
 import type { ReceivedGroupInvitation } from "../../api/entities/sys/TypeRefs.js"
 import type { AllIcons } from "../../gui/base/Icon"
 import { IconButton } from "../../gui/base/IconButton.js"
-import { getMailAddressDisplayText } from "../../mailFunctionality/CommonMailUtils.js"
+import { getMailAddressDisplayText } from "../../mailFunctionality/SharedMailUtils.js"
 
 export type GroupInvitationFolderRowAttrs = {
 	invitation: ReceivedGroupInvitation

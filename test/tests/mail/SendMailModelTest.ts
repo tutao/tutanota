@@ -47,7 +47,7 @@ import { createTestEntity } from "../TestUtils.js"
 import { ContactModel } from "../../../src/common/contactsFunctionality/ContactModel.js"
 import { MailboxDetail, MailModel } from "../../../src/common/mailFunctionality/MailModel.js"
 import { SendMailModel, TOO_MANY_VISIBLE_RECIPIENTS } from "../../../src/common/mailFunctionality/SendMailModel.js"
-import { RecipientField } from "../../../src/common/mailFunctionality/CommonMailUtils.js"
+import { RecipientField } from "../../../src/common/mailFunctionality/SharedMailUtils.js"
 import { getContactDisplayName } from "../../../src/common/contactsFunctionality/ContactUtils.js"
 
 const { anything, argThat } = matchers
