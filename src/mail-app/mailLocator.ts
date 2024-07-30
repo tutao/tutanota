@@ -794,12 +794,9 @@ class MailLocator {
 					const { ReferralLinkNews } = await import("../common/misc/news/items/ReferralLinkNews.js")
 					const dateProvider = await this.noZoneDateProvider()
 					return new ReferralLinkNews(this.newsModel, dateProvider, this.logins.getUserController())
-				case "newPlans":
-					const { NewPlansNews } = await import("../common/misc/news/items/NewPlansNews.js")
-					return new NewPlansNews(this.newsModel, this.logins.getUserController())
-				case "newPlansOfferEnding":
-					const { NewPlansOfferEndingNews } = await import("../common/misc/news/items/NewPlansOfferEndingNews.js")
-					return new NewPlansOfferEndingNews(this.newsModel, this.logins.getUserController())
+				case "richNotifications":
+					const { RichNotificationsNews } = await import("../common/misc/news/items/RichNotificationsNews.js")
+					return new RichNotificationsNews(this.newsModel, isApp() || isDesktop() ? this.pushService : null)
 				default:
 					console.log(`No implementation for news named '${name}'`)
 					return null

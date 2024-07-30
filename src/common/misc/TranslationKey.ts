@@ -1729,3 +1729,5 @@ export type TranslationKeyType =
 	| "yourMessage_label"
 	| "you_label"
 	| "emptyString_msg"
+	| "richNotifications_title"
+	| "richNotificationsNewsItem_msg"
