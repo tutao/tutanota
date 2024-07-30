@@ -378,6 +378,7 @@ class MainActivity : FragmentActivity() {
 			"ttf" -> "font/ttf"
 			"wasm" -> "application/wasm"
 			"icc" -> "application/vnd.iccprofile"
+			"cmap" -> "text/plain" // used for invoices; no good mime type for cmap, so just use plain text
 			else -> error("Unknown extension $ext for url $url")
 		}
 	}
