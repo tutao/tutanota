@@ -29,6 +29,8 @@ import { CalendarSearchView, CalendarSearchViewAttrs } from "./calendar/search/v
 import { CalendarSettingsView } from "./calendar/settings/CalendarSettingsView.js"
 import { CalendarSearchViewModel } from "./calendar/search/view/CalendarSearchViewModel.js"
 
+import { AppType } from "../common/misc/ClientConstants.js"
+
 assertMainOrNodeBoot()
 bootFinished()
 
@@ -47,7 +49,7 @@ window.tutao = {
 	locator: null,
 }
 
-client.init(navigator.userAgent, navigator.platform)
+client.init(navigator.userAgent, navigator.platform, AppType.Calendar)
 
 if (!client.isSupported()) {
 	throw new Error("Unsupported")

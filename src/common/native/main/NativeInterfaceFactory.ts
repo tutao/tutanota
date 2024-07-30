@@ -35,7 +35,7 @@ import { NativeCredentialsFacadeSendDispatcher } from "../common/generatedipc/Na
 import { MobilePaymentsFacade } from "../common/generatedipc/MobilePaymentsFacade.js"
 import { MobilePaymentsFacadeSendDispatcher } from "../common/generatedipc/MobilePaymentsFacadeSendDispatcher.js"
 
-import { AppType } from "../../api/common/TutanotaConstants.js"
+import { AppType } from "../../misc/ClientConstants.js"
 
 export type NativeInterfaces = {
 	native: NativeInterfaceMain
