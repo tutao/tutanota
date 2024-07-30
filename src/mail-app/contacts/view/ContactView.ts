@@ -817,6 +817,10 @@ export class ContactView extends BaseTopLevelView implements TopLevelView<Contac
 		} else {
 			this.contactViewModel.init(args.listId, args.contactId)
 		}
+
+		// Show the details of the contact on mobile instead of just all contacts
+		const isWithContact = !(args.Id == null && args.contactId == null)
+		if (styles.isSingleColumnLayout() && isWithContact) this.viewSlider.focus(this.detailsColumn)
 	}
 
 	private deleteSelectedContacts(): Promise<void> {

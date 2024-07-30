@@ -11,6 +11,7 @@ import Stream from "mithril/stream"
 import { Router } from "../../../common/gui/ScopedRouter.js"
 import { isUpdateForTypeRef } from "../../../common/api/common/utils/EntityUpdateUtils.js"
 import { ListAutoSelectBehavior } from "../../../common/misc/DeviceConfig.js"
+import { styles } from "../../../common/gui/styles.js"
 
 /** ViewModel for the overall contact view. */
 export class ContactViewModel {
@@ -46,10 +47,16 @@ export class ContactViewModel {
 	async init(contactListId?: Id, contactId?: Id) {
 		// update url if the view was just opened
 		if (contactListId == null && contactId == null) this.updateUrl()
-		if (this.contactListId) return
+
+		// If we have already initialized the view model with the user's contact list, then select the contact within it
+		if (this.contactListId && typeof contactId === "string") {
+			this.loadAndSelect(contactId).finally(() => {
+				this.targetContactId = null
+			})
+			return
+		}
 
 		this.contactListId = assertNotNull(await this.contactModel.getContactListId(), "not available for external users")
-		this.targetContactId = contactId ?? null
 
 		this.listModel.loadInitial().then(() => {
 			// we are loading all contacts at once anyway so we are not worried about starting parallel loads for target
@@ -77,7 +84,7 @@ export class ContactViewModel {
 				: !this.listModel.state.inMultiselect && this.listModel.getSelectedAsArray().length === 1
 				? getElementId(this.listModel.getSelectedAsArray()[0])
 				: null
-		if (contactId) {
+		if (contactId && !styles.isSingleColumnLayout()) {
 			this.router.routeTo(`/contact/:listId/:contactId`, { listId: this.contactListId, contactId: contactId })
 		} else {
 			this.router.routeTo(`/contact/:listId`, { listId: this.contactListId })
