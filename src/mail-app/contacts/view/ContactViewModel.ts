@@ -5,13 +5,12 @@ import { ListModel } from "../../../common/misc/ListModel.js"
 import { Contact, ContactTypeRef } from "../../../common/api/entities/tutanota/TypeRefs.js"
 import { compareContacts } from "./ContactGuiUtils.js"
 import { ListState } from "../../../common/gui/base/List.js"
-import { assertNotNull, lazyMemoized } from "@tutao/tutanota-utils"
+import { assertNotNull, memoized } from "@tutao/tutanota-utils"
 import { GENERATED_MAX_ID, getElementId } from "../../../common/api/common/utils/EntityUtils.js"
 import Stream from "mithril/stream"
 import { Router } from "../../../common/gui/ScopedRouter.js"
 import { isUpdateForTypeRef } from "../../../common/api/common/utils/EntityUpdateUtils.js"
 import { ListAutoSelectBehavior } from "../../../common/misc/DeviceConfig.js"
-import { styles } from "../../../common/gui/styles.js"
 
 /** ViewModel for the overall contact view. */
 export class ContactViewModel {
@@ -42,44 +41,42 @@ export class ContactViewModel {
 		autoSelectBehavior: () => ListAutoSelectBehavior.NONE,
 	})
 
-	async init(contactListId?: Id, contactId?: Id) {
-		// update url if the view was just opened
-		if (contactListId == null && contactId == null) this.updateUrl()
-
-		// If we have already initialized the view model with the user's contact list, then select the contact within it
-		if (this.contactListId && typeof contactId === "string") {
-			await this.loadAndSelect(contactId)
-			return
-		}
-
-		this.contactListId = assertNotNull(await this.contactModel.getContactListId(), "not available for external users")
+	async init(isSingleColumnLayout: boolean, contactListId?: Id, contactId?: Id) {
+		this.contactListId = contactListId ? contactListId : await this.getContactListId()
 
 		this.listModel.loadInitial().then(async () => {
 			// we are loading all contacts at once anyway so we are not worried about starting parallel loads for target
 			typeof contactId === "string" && (await this.loadAndSelect(contactId))
 		})
 
-		this.initOnce()
+		this.initOnce(isSingleColumnLayout)
 	}
 
-	private readonly initOnce = lazyMemoized(() => {
+	private readonly initOnce = memoized((isSingleColumnLayout: boolean) => {
 		this.eventController.addEntityListener(this.entityListener)
 		this.listModelStateStream = this.listModel.stateStream.map(() => {
 			this.updateUi()
-			this.updateUrl()
+			this.updateUrl(!isSingleColumnLayout) // Avoid keyboard up and down opening the details column in single column layout
 		})
 	})
 
-	private updateUrl() {
+	// Redirects the browser to the contact route with the currently selected contact list and contact as parameters
+	async updateUrl(willLoadContact: boolean) {
 		const contactId =
 			!this.listModel.state.inMultiselect && this.listModel.getSelectedAsArray().length === 1
 				? getElementId(this.listModel.getSelectedAsArray()[0])
 				: null
-		if (contactId && !styles.isSingleColumnLayout()) {
-			this.router.routeTo(`/contact/:listId/:contactId`, { listId: this.contactListId, contactId: contactId })
+		const listId = this.contactListId ? this.contactListId : await this.getContactListId()
+		if (contactId && willLoadContact) {
+			this.router.routeTo(`/contact/:listId/:contactId`, { listId, contactId })
 		} else {
-			this.router.routeTo(`/contact/:listId`, { listId: this.contactListId })
+			this.router.routeTo(`/contact/:listId`, { listId })
 		}
+	}
+
+	// Gets the ContactListId from the contact model
+	private async getContactListId(): Promise<Id> {
+		return assertNotNull(await this.contactModel.getContactListId(), "not available for external users")
 	}
 
 	private readonly entityListener: EntityEventsListener = async (updates) => {
