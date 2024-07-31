@@ -42,6 +42,7 @@ import {
 	decodeCalendarSearchKey,
 	encodeCalendarSearchKey,
 	getRestriction,
+	getSearchUrl,
 	searchCategoryForRestriction,
 	SearchCategoryTypes,
 } from "../model/SearchUtils.js"
@@ -448,7 +449,7 @@ export class SearchViewModel {
 		}
 	}
 
-	switchSearchCategory(category: SearchCategoryTypes) {
+	getUrlFromSearchCategory(category: SearchCategoryTypes): string {
 		if (this.currentQuery) {
 			let latestRestriction: SearchRestriction | null = null
 			switch (category) {
@@ -464,12 +465,12 @@ export class SearchViewModel {
 			}
 
 			if (latestRestriction) {
-				this.router.routeTo(this.currentQuery, latestRestriction)
+				return getSearchUrl(this.currentQuery, latestRestriction)
 			} else {
-				this.router.routeTo(this.currentQuery, createRestriction(category, null, null, null, [], null))
+				return getSearchUrl(this.currentQuery, createRestriction(category, null, null, null, [], null))
 			}
 		} else {
-			this.router.routeTo("", createRestriction(category, null, null, null, [], null))
+			return getSearchUrl("", createRestriction(category, null, null, null, [], null))
 		}
 	}
 

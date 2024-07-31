@@ -113,7 +113,13 @@ export function searchCategoryForRestriction(restriction: SearchRestriction): Se
 	return assertNotNull(SEARCH_CATEGORIES.find((c) => isSameTypeRef(c.typeRef, restriction.type))).name
 }
 
-export function getSearchUrl(
+// Gets the resulting URL if the output of `getSearchParameters()` was routed to
+export function getSearchUrl(query: string | null, restriction: SearchRestriction, selectionKey: string | null = null): string {
+	const { path, params } = getSearchParameters(query, restriction, selectionKey)
+	return m.buildPathname(path, params as m.Params)
+}
+
+export function getSearchParameters(
 	query: string | null,
 	restriction: SearchRestriction,
 	selectionKey: string | null,
