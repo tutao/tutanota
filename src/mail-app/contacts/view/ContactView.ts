@@ -812,15 +812,19 @@ export class ContactView extends BaseTopLevelView implements TopLevelView<Contac
 	}
 
 	onNewUrl(args: Record<string, any>) {
+		const isSingleColumnLayout = styles.isSingleColumnLayout()
 		if (this.inContactListView()) {
 			this.contactListViewModel.showListAndEntry(args.listId, args.Id).then(m.redraw)
+		} else if (args.listId == null && args.contactId == null) {
+			// Redirect to the contacts view with the selected contact stored in the models if no arguments are given
+			this.contactViewModel.updateUrl(!isSingleColumnLayout)
 		} else {
-			this.contactViewModel.init(args.listId, args.contactId)
+			this.contactViewModel.init(isSingleColumnLayout, args.listId, args.contactId)
 		}
 
 		// Show the details of the contact on mobile instead of just all contacts
 		const isWithContact = !(args.Id == null && args.contactId == null)
-		if (styles.isSingleColumnLayout() && isWithContact) this.viewSlider.focus(this.detailsColumn)
+		if (isWithContact) this.viewSlider.focus(this.detailsColumn)
 	}
 
 	private deleteSelectedContacts(): Promise<void> {
