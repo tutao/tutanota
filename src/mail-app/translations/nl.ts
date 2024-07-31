@@ -11,7 +11,7 @@ export default {
 		"other"
 	],
 	"created_at": "2015-01-27T13:13:55Z",
-	"updated_at": "2024-07-30T12:23:41Z",
+	"updated_at": "2024-07-31T12:04:30Z",
 	"source_locale": {
 		"id": "fcd7471b347c8e517663e194dcddf237",
 		"name": "en",
@@ -988,6 +988,7 @@ export default {
 		"notificationSettings_action": "Berichten",
 		"notificationSync_msg": "Notificaties synchroniseren",
 		"notificationTargets_label": "Notificatiedoelen",
+		"noTitle_label": "<Geen titel>",
 		"notSigned_msg": "Niet getekend.",
 		"noUpdateAvailable_msg": "Geen nieuwe versie beschikbaar.",
 		"noValidMembersToAdd_msg": "U beheert geen gebruikers die nog geen lid zijn van deze groep.",

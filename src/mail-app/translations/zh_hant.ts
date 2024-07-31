@@ -10,7 +10,7 @@ export default {
 		"other"
 	],
 	"created_at": "2019-01-02T11:09:03Z",
-	"updated_at": "2024-07-12T15:57:41Z",
+	"updated_at": "2024-07-30T15:38:57Z",
 	"source_locale": null,
 	"fallback_locale": null,
 	"keys": {
@@ -722,7 +722,7 @@ export default {
 		"invalidTimePeriod_msg": "輸入的時間不正確。",
 		"invalidVatIdNumber_msg": "增值稅識別號碼（VAT-ID）不正確。",
 		"invalidVatIdValidationFailed_msg": "驗證增值稅識別號碼失敗。請稍後再試。",
-		"invitationMailBody_msg": "嗨！<br><br>我已轉用Tuta，它是世界上最安全的電郵服務，使用容易，原始碼開放，而且將私隱概念融入設計之中。它無廣告，百分百由可再生電力驅動。<br><br>現在，我想邀請您也使用Tuta！如果您使用我的個人邀請連結註冊，您將在任何年繳訂購計劃中獲得額外一個月免費：<br>{registrationLink}<br><br><br>謹此祝福，<br>{username}<br><br>附註：您也可以先註冊為免費會員，日後再升級。",
+		"invitationMailBody_msg": "您好！<br><br>我已轉用Tuta，它是世界上最安全的電郵服務，使用容易，原始碼開放，而且將私隱概念融入設計之中。它無廣告，百分百由可再生電力驅動。<br><br>現在，我想邀請您也使用Tuta！如果您使用我的個人邀請連結註冊，您將在任何年繳訂購計劃中獲得額外一個月免費：<br>{registrationLink}<br><br><br>謹此祝福，<br>{username}<br><br>附註：您也可以先註冊為免費會員，日後再升級。",
 		"invitation_label": "邀請",
 		"invitedToEvent_msg": "您被邀請參與此活動。您想出席嗎？",
 		"invited_label": "已邀請",
@@ -983,6 +983,7 @@ export default {
 		"notificationSettings_action": "通知",
 		"notificationSync_msg": "同步通知",
 		"notificationTargets_label": "通知目標",
+		"noTitle_label": "<無標題>",
 		"notSigned_msg": "尚未簽署。",
 		"noUpdateAvailable_msg": "沒有更新。",
 		"noValidMembersToAdd_msg": "您沒有管理任何不已是此群組成員的用戶。",
