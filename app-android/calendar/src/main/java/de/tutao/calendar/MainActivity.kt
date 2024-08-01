@@ -42,22 +42,29 @@ import androidx.fragment.app.FragmentActivity
 import androidx.lifecycle.lifecycleScope
 import de.tutao.calendar.alarms.AlarmNotificationsManager
 import de.tutao.calendar.alarms.SystemAlarmFacade
-import de.tutao.calendar.credentials.CredentialsEncryptionFactory
-import de.tutao.calendar.data.AppDatabase
-import de.tutao.calendar.data.User
-import de.tutao.calendar.ipc.AndroidGlobalDispatcher
-import de.tutao.calendar.ipc.CommonNativeFacade
-import de.tutao.calendar.ipc.CommonNativeFacadeSendDispatcher
-import de.tutao.calendar.ipc.MobileFacade
-import de.tutao.calendar.ipc.MobileFacadeSendDispatcher
-import de.tutao.calendar.ipc.SqlCipherFacade
-import de.tutao.calendar.offline.AndroidSqlCipherFacade
 import de.tutao.calendar.push.AndroidNativePushFacade
 import de.tutao.calendar.push.LocalNotificationsFacade
 import de.tutao.calendar.push.PushNotificationService
-import de.tutao.calendar.push.SseStorage
 import de.tutao.calendar.push.notificationDismissedIntent
 import de.tutao.calendar.webauthn.AndroidWebauthnFacade
+import de.tutao.tutashared.AndroidNativeCryptoFacade
+import de.tutao.tutashared.CancelledError
+import de.tutao.tutashared.ModuleBuildConfig
+import de.tutao.tutashared.NetworkUtils
+import de.tutao.tutashared.atLeastOreo
+import de.tutao.tutashared.createAndroidKeyStoreFacade
+import de.tutao.tutashared.credentials.CredentialsEncryptionFactory
+import de.tutao.tutashared.data.AppDatabase
+import de.tutao.tutashared.data.User
+import de.tutao.tutashared.ipc.AndroidGlobalDispatcher
+import de.tutao.tutashared.ipc.CommonNativeFacade
+import de.tutao.tutashared.ipc.CommonNativeFacadeSendDispatcher
+import de.tutao.tutashared.ipc.MobileFacade
+import de.tutao.tutashared.ipc.MobileFacadeSendDispatcher
+import de.tutao.tutashared.ipc.SqlCipherFacade
+import de.tutao.tutashared.offline.AndroidSqlCipherFacade
+import de.tutao.tutashared.push.SseStorage
+import de.tutao.tutashared.toPx
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.runBlocking
@@ -109,6 +116,13 @@ class MainActivity : FragmentActivity() {
 	override fun onCreate(savedInstanceState: Bundle?) {
 		Log.d(TAG, "App started")
 
+		ModuleBuildConfig.init(
+			BuildConfig.SYS_MODEL_VERSION,
+			BuildConfig.VERSION_NAME,
+			BuildConfig.TUTANOTA_MODEL_VERSION,
+			BuildConfig.DEBUG
+		)
+
 		// App is handling a redelivered intent, ignoring as we probably already handled it
 		if (savedInstanceState != null && (intent.action == OPEN_USER_MAILBOX_ACTION || intent.action == OPEN_CALENDAR_ACTION)) {
 			intent.putExtra(ALREADY_HANDLED_INTENT, true)
@@ -128,8 +142,7 @@ class MainActivity : FragmentActivity() {
 		val alarmNotificationsManager = AlarmNotificationsManager(
 			sseStorage,
 			cryptoFacade,
-			SystemAlarmFacade(this),
-			localNotificationsFacade
+			SystemAlarmFacade(this)
 		)
 		val nativePushFacade = AndroidNativePushFacade(
 			this,
