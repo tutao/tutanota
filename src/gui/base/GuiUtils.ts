@@ -233,3 +233,12 @@ export function getIfLargeScroll(oldPosition: number | null, newPosition: number
 	const difference = Math.abs(oldPosition - newPosition)
 	return difference > 10
 }
+
+export function handleFocus(trapFocus: boolean, selectors: string[]) {
+	const domElements: HTMLElement[] = Array.from(document.querySelectorAll(selectors.join(","))!)
+
+	for (const element of domElements) {
+		if (trapFocus) element.setAttribute("inert", "true")
+		else element.removeAttribute("inert")
+	}
+}
