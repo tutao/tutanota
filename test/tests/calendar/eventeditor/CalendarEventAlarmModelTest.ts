@@ -1,11 +1,11 @@
 import o from "@tutao/otest"
-import { CalendarEventAlarmModel } from "../../../../src/calendar/gui/eventeditor-model/CalendarEventAlarmModel.js"
-import { lang } from "../../../../src/misc/LanguageViewModel.js"
-import en from "../../../../src/translations/en.js"
-import { EventType } from "../../../../src/calendar/gui/eventeditor-model/CalendarEventModel.js"
+import { CalendarEventAlarmModel } from "../../../../src/calendar-app/calendar/gui/eventeditor-model/CalendarEventAlarmModel.js"
+import { lang } from "../../../../src/common/misc/LanguageViewModel.js"
+import en from "../../../../src/mail-app/translations/en.js"
+import { EventType } from "../../../../src/calendar-app/calendar/gui/eventeditor-model/CalendarEventModel.js"
 import { object, when } from "testdouble"
-import { DateProvider } from "../../../../src/api/common/DateProvider.js"
-import { AlarmIntervalUnit, StandardAlarmInterval } from "../../../../src/calendar/date/CalendarUtils.js"
+import { DateProvider } from "../../../../src/common/api/common/DateProvider.js"
+import { AlarmIntervalUnit, StandardAlarmInterval } from "../../../../src/common/calendar/date/CalendarUtils.js"
 
 const dateProvider: DateProvider = object()
 when(dateProvider.now()).thenReturn(42)

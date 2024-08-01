@@ -5,15 +5,15 @@ import {
 	DEFAULT_U2F_NAME,
 	NameValidationStatus,
 	SecondFactorEditModel,
-} from "../../../../../src/settings/login/secondfactor/SecondFactorEditModel.js"
-import { EntityClient } from "../../../../../src/api/common/EntityClient.js"
-import { WebauthnClient } from "../../../../../src/misc/2fa/webauthn/WebauthnClient.js"
-import { GroupInfoTypeRef, User } from "../../../../../src/api/entities/sys/TypeRefs.js"
+} from "../../../../../src/common/settings/login/secondfactor/SecondFactorEditModel.js"
+import { EntityClient } from "../../../../../src/common/api/common/EntityClient.js"
+import { WebauthnClient } from "../../../../../src/common/misc/2fa/webauthn/WebauthnClient.js"
+import { GroupInfoTypeRef, User } from "../../../../../src/common/api/entities/sys/TypeRefs.js"
 import { TotpSecret, TotpVerifier } from "@tutao/tutanota-crypto"
 import { noOp } from "@tutao/tutanota-utils"
-import { LanguageViewModel } from "../../../../../src/misc/LanguageViewModel.js"
-import { LoginFacade } from "../../../../../src/api/worker/facades/LoginFacade.js"
-import { SecondFactorType } from "../../../../../src/api/common/TutanotaConstants.js"
+import { LanguageViewModel } from "../../../../../src/common/misc/LanguageViewModel.js"
+import { LoginFacade } from "../../../../../src/common/api/worker/facades/LoginFacade.js"
+import { SecondFactorType } from "../../../../../src/common/api/common/TutanotaConstants.js"
 import { createTestEntity, domainConfigStub } from "../../../TestUtils.js"
 
 function createTotpKeys(): TotpSecret {

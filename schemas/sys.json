@@ -350,6 +350,36 @@
 					"info": "RemoveAssociation User/phoneNumbers."
 				}
 			]
+		},
+		{
+			"version": 105,
+			"changes": [
+				{
+					"name": "AddValue",
+					"sourceType": "PushIdentifier",
+					"info": "AddValue PushIdentifier/app/2426."
+				}
+			]
+		},
+		{
+			"version": 106,
+			"changes": [
+				{
+					"name": "RemoveValue",
+					"sourceType": "GroupKeyRotationData",
+					"info": "RemoveValue GroupKeyRotationData/userEncGroupKey/2330."
+				},
+				{
+					"name": "RemoveValue",
+					"sourceType": "GroupKeyRotationData",
+					"info": "RemoveValue GroupKeyRotationData/userKeyVersion/2331."
+				},
+				{
+					"name": "AddAssociation",
+					"sourceType": "GroupKeyRotationData",
+					"info": "AddAssociation GroupKeyRotationData/groupMembershipUpdateData/AGGREGATION/2432."
+				}
+			]
 		}
 	]
 }

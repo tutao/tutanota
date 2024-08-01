@@ -1,11 +1,12 @@
 import o from "@tutao/otest"
-import { createMail, createMailAddress, Mail, MailAddressTypeRef, MailTypeRef } from "../../../../../src/api/entities/tutanota/TypeRefs.js"
-import { EncryptionAuthStatus, MailState } from "../../../../../src/api/common/TutanotaConstants.js"
-import { getDisplayedSender, isSystemNotification, isTutanotaTeamAddress, isTutanotaTeamMail } from "../../../../../src/api/common/mail/CommonMailUtils.js"
+import { createMail, createMailAddress, Mail, MailAddressTypeRef, MailTypeRef } from "../../../../../src/common/api/entities/tutanota/TypeRefs.js"
+import { EncryptionAuthStatus, MailState } from "../../../../../src/common/api/common/TutanotaConstants.js"
 import { createTestEntity } from "../../../TestUtils.js"
-import { getConfidentialIcon } from "../../../../../src/mail/model/MailUtils.js"
-import { Icons } from "../../../../../src/gui/base/icons/Icons.js"
-import { ProgrammingError } from "../../../../../src/api/common/error/ProgrammingError.js"
+import { Icons } from "../../../../../src/common/gui/base/icons/Icons.js"
+import { ProgrammingError } from "../../../../../src/common/api/common/error/ProgrammingError.js"
+import { getConfidentialIcon } from "../../../../../src/common/mailFunctionality/SharedMailUtils.js"
+import { isSystemNotification, isTutanotaTeamAddress, isTutanotaTeamMail } from "../../../../../src/common/mailFunctionality/SharedMailUtils.js"
+import { getDisplayedSender } from "../../../../../src/common/api/common/CommonMailUtils.js"
 
 o.spec("MailUtilsTest", function () {
 	function createSystemMail(overrides: Partial<Mail> = {}): Mail {

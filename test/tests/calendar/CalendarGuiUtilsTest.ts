@@ -1,5 +1,6 @@
 import o from "@tutao/otest"
-import { getDateFromMousePos, getTimeFromMousePos } from "../../../src/calendar/gui/CalendarGuiUtils.js"
+import { getDateFromMousePos, getTimeFromMousePos } from "../../../src/calendar-app/calendar/gui/CalendarGuiUtils.js"
+
 o.spec("CalendarGuiUtils", function () {
 	o("getDateFromMouseClick", function () {
 		function input(x, y, targetWidth, targetHeight) {

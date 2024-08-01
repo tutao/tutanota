@@ -2,7 +2,7 @@
 	"name": "ContactMessengerHandleType",
 	"type": "typeref",
 	"location": {
-		"typescript": "../src/api/common/TutanotaConstants.js",
+		"typescript": "../src/common/api/common/TutanotaConstants.js",
 		"kotlin": "de.tutao.tutanota.contacts.ContactMessengerHandleType"
 	}
 }

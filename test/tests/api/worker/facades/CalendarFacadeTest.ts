@@ -1,10 +1,10 @@
 import o from "@tutao/otest"
-import type { CalendarEventAlteredInstance, EventWithUserAlarmInfos } from "../../../../../src/api/worker/facades/lazy/CalendarFacade.js"
-import { CalendarFacade, sortByRecurrenceId } from "../../../../../src/api/worker/facades/lazy/CalendarFacade.js"
+import type { CalendarEventAlteredInstance, EventWithUserAlarmInfos } from "../../../../../src/common/api/worker/facades/lazy/CalendarFacade.js"
+import { CalendarFacade, sortByRecurrenceId } from "../../../../../src/common/api/worker/facades/lazy/CalendarFacade.js"
 import { EntityRestClientMock } from "../rest/EntityRestClientMock.js"
-import { DefaultEntityRestCache } from "../../../../../src/api/worker/rest/DefaultEntityRestCache.js"
+import { DefaultEntityRestCache } from "../../../../../src/common/api/worker/rest/DefaultEntityRestCache.js"
 import { clone, downcast, isSameTypeRef, neverNull, noOp } from "@tutao/tutanota-utils"
-import type { AlarmInfo, User, UserAlarmInfo } from "../../../../../src/api/entities/sys/TypeRefs.js"
+import type { AlarmInfo, User, UserAlarmInfo } from "../../../../../src/common/api/entities/sys/TypeRefs.js"
 import {
 	AlarmInfoTypeRef,
 	CalendarEventRefTypeRef,
@@ -13,23 +13,23 @@ import {
 	UserAlarmInfoListTypeTypeRef,
 	UserAlarmInfoTypeRef,
 	UserTypeRef,
-} from "../../../../../src/api/entities/sys/TypeRefs.js"
-import { getElementId, getLetId, getListId } from "../../../../../src/api/common/utils/EntityUtils.js"
-import type { CalendarEvent } from "../../../../../src/api/entities/tutanota/TypeRefs.js"
-import { CalendarEventTypeRef } from "../../../../../src/api/entities/tutanota/TypeRefs.js"
-import { ProgressMonitor } from "../../../../../src/api/common/utils/ProgressMonitor.js"
+} from "../../../../../src/common/api/entities/sys/TypeRefs.js"
+import { getElementId, getLetId, getListId } from "../../../../../src/common/api/common/utils/EntityUtils.js"
+import type { CalendarEvent } from "../../../../../src/common/api/entities/tutanota/TypeRefs.js"
+import { CalendarEventTypeRef } from "../../../../../src/common/api/entities/tutanota/TypeRefs.js"
+import { ProgressMonitor } from "../../../../../src/common/api/common/utils/ProgressMonitor.js"
 import { assertThrows, mockAttribute, spy, unmockAttribute } from "@tutao/tutanota-test-utils"
-import { ImportError } from "../../../../../src/api/common/error/ImportError.js"
-import { SetupMultipleError } from "../../../../../src/api/common/error/SetupMultipleError.js"
-import { InstanceMapper } from "../../../../../src/api/worker/crypto/InstanceMapper.js"
-import { GroupManagementFacade } from "../../../../../src/api/worker/facades/lazy/GroupManagementFacade.js"
+import { ImportError } from "../../../../../src/common/api/common/error/ImportError.js"
+import { SetupMultipleError } from "../../../../../src/common/api/common/error/SetupMultipleError.js"
+import { InstanceMapper } from "../../../../../src/common/api/worker/crypto/InstanceMapper.js"
+import { GroupManagementFacade } from "../../../../../src/common/api/worker/facades/lazy/GroupManagementFacade.js"
 import { object } from "testdouble"
-import { IServiceExecutor } from "../../../../../src/api/common/ServiceRequest"
-import { CryptoFacade } from "../../../../../src/api/worker/crypto/CryptoFacade"
-import { UserFacade } from "../../../../../src/api/worker/facades/UserFacade"
-import { InfoMessageHandler } from "../../../../../src/gui/InfoMessageHandler.js"
-import { ConnectionError } from "../../../../../src/api/common/error/RestError.js"
-import { EntityClient } from "../../../../../src/api/common/EntityClient.js"
+import { IServiceExecutor } from "../../../../../src/common/api/common/ServiceRequest"
+import { CryptoFacade } from "../../../../../src/common/api/worker/crypto/CryptoFacade"
+import { UserFacade } from "../../../../../src/common/api/worker/facades/UserFacade"
+import { InfoMessageHandler } from "../../../../../src/common/gui/InfoMessageHandler.js"
+import { ConnectionError } from "../../../../../src/common/api/common/error/RestError.js"
+import { EntityClient } from "../../../../../src/common/api/common/EntityClient.js"
 import { createTestEntity } from "../../../TestUtils.js"
 
 o.spec("CalendarFacadeTest", function () {

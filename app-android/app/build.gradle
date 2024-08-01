@@ -13,8 +13,8 @@ android {
 		applicationId "de.tutao.tutanota"
 		minSdkVersion 26
 		targetSdkVersion 33
-		versionCode 396362
-		versionName "235.240718.0"
+		versionCode 396366
+		versionName "240.240731.0"
 		testInstrumentationRunner "androidx.test.runner.AndroidJUnitRunner"
 
 		javaCompileOptions {
@@ -78,7 +78,7 @@ android {
 	applicationVariants.configureEach { variant ->
 		variant.outputs.configureEach { output ->
 			def flavor = variant.productFlavors[0].name
-			outputFileName = "tutanota-$flavor-${variant.buildType.name}-${variant.versionName}.apk"
+			outputFileName = "tutanota-app-$flavor-${variant.buildType.name}-${variant.versionName}.apk"
 		}
 	}
 
@@ -135,7 +135,7 @@ dependencies {
 	def room_version = "2.4.2"
 	def lifecycle_version = "2.4.1"
 	def activity_version = "1.4.0"
-    def coroutines_version = "1.8.0"
+	def coroutines_version = "1.8.0"
 
 	implementation "de.tutao:tutasdk"
 
@@ -145,10 +145,10 @@ dependencies {
 
 	implementation "androidx.core:core-ktx:1.8.0"
 	implementation "androidx.activity:activity-ktx:$activity_version"
-  implementation "androidx.browser:browser:1.8.0"
+	implementation "androidx.browser:browser:1.8.0"
 	implementation "androidx.biometric:biometric:1.1.0"
-  implementation "androidx.core:core-splashscreen:1.0.1"
-  implementation "androidx.datastore:datastore-preferences:1.1.1"
+	implementation "androidx.core:core-splashscreen:1.0.1"
+	implementation "androidx.datastore:datastore-preferences:1.1.1"
 
 	if (file("../libs/android-database-sqlcipher-4.5.0.aar").exists()) {
 		implementation fileTree(include: ['*.aar'], dir: '../libs')
@@ -173,7 +173,7 @@ dependencies {
 
 	implementation "org.jetbrains.kotlinx:kotlinx-serialization-json:1.6.2"
 	implementation "org.jetbrains.kotlin:kotlin-stdlib:$kotlin_version"
-  implementation "org.jetbrains.kotlinx:kotlinx-coroutines-android:$coroutines_version"
+	implementation "org.jetbrains.kotlinx:kotlinx-coroutines-android:$coroutines_version"
 
 	// TLS1.3 backwards compatibility for Android < 10
 	implementation 'org.conscrypt:conscrypt-android:2.5.2'
@@ -186,8 +186,8 @@ dependencies {
 	testImplementation 'junit:junit:4.13.2'
 	testImplementation "org.robolectric:robolectric:4.11.1"
 	testImplementation "org.mockito.kotlin:mockito-kotlin:5.2.1"
-  // JVM-based unit tests (that don't need a real device or emulator)
-  testImplementation "org.jetbrains.kotlinx:kotlinx-coroutines-test:$coroutines_version"
+	// JVM-based unit tests (that don't need a real device or emulator)
+	testImplementation "org.jetbrains.kotlinx:kotlinx-coroutines-test:$coroutines_version"
 
 	androidTestImplementation 'androidx.test.espresso:espresso-core:3.4.0'
 	androidTestImplementation 'androidx.test:runner:1.4.0'

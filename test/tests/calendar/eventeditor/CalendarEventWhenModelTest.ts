@@ -1,13 +1,13 @@
 import o from "@tutao/otest"
 import { noOp } from "@tutao/tutanota-utils"
-import { getEventWithDefaultTimes, isAllDayEvent } from "../../../../src/api/common/utils/CommonCalendarUtils.js"
-import { Time } from "../../../../src/calendar/date/Time.js"
-import { CalendarEventWhenModel, getDefaultEndCountValue } from "../../../../src/calendar/gui/eventeditor-model/CalendarEventWhenModel.js"
-import { EndType, RepeatPeriod } from "../../../../src/api/common/TutanotaConstants.js"
-import { DateWrapperTypeRef, RepeatRuleTypeRef } from "../../../../src/api/entities/sys/TypeRefs.js"
-import { CalendarEvent, CalendarEventTypeRef } from "../../../../src/api/entities/tutanota/TypeRefs.js"
+import { getEventWithDefaultTimes, isAllDayEvent } from "../../../../src/common/api/common/utils/CommonCalendarUtils.js"
+import { EndType, RepeatPeriod } from "../../../../src/common/api/common/TutanotaConstants.js"
+import { DateWrapperTypeRef, RepeatRuleTypeRef } from "../../../../src/common/api/entities/sys/TypeRefs.js"
+import { CalendarEvent, CalendarEventTypeRef } from "../../../../src/common/api/entities/tutanota/TypeRefs.js"
 import { DateTime } from "luxon"
 import { createTestEntity } from "../../TestUtils.js"
+import { CalendarEventWhenModel, getDefaultEndCountValue } from "../../../../src/calendar-app/calendar/gui/eventeditor-model/CalendarEventWhenModel.js"
+import { Time } from "../../../../src/common/calendar/date/Time.js"
 
 o.spec("CalendarEventWhenModel", function () {
 	const getModelBerlin = (initialValues: Partial<CalendarEvent>) => new CalendarEventWhenModel(initialValues, "Europe/Berlin", noOp)

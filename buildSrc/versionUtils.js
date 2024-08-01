@@ -63,9 +63,9 @@ function makeNewVersion(currentVersion) {
  * @returns {number[]}
  */
 function readModelVersions() {
-	const appNames = fs.readdirSync("./src/api/entities/")
+	const appNames = fs.readdirSync("./src/common/api/entities/")
 	return appNames.map((appName) => {
-		const modelInfoString = fs.readFileSync(`./src/api/entities/${appName}/ModelInfo.ts`, { encoding: "utf8" })
+		const modelInfoString = fs.readFileSync(`./src/common/api/entities/${appName}/ModelInfo.ts`, { encoding: "utf8" })
 		const versionPrefix = "version:"
 		const versionNumberStart = modelInfoString.indexOf(versionPrefix) + versionPrefix.length
 		const version = modelInfoString.substring(versionNumberStart, modelInfoString.indexOf(",", versionNumberStart))

@@ -1,11 +1,13 @@
 import o from "@tutao/otest"
-import type { AlarmInterval, AlarmOccurrence, CalendarMonth } from "../../../src/calendar/date/CalendarUtils.js"
 import {
 	addDaysForEventInstance,
 	addDaysForRecurringEvent,
+	AlarmInterval,
 	AlarmIntervalUnit,
+	AlarmOccurrence,
 	calendarEventHasMoreThanOneOccurrencesLeft,
 	CalendarEventValidity,
+	CalendarMonth,
 	checkEventValidity,
 	createRepeatRuleWithValues,
 	eventEndsBefore,
@@ -25,33 +27,33 @@ import {
 	prepareCalendarDescription,
 	serializeAlarmInterval,
 	StandardAlarmInterval,
-} from "../../../src/calendar/date/CalendarUtils.js"
-import { lang } from "../../../src/misc/LanguageViewModel.js"
-import { DateWrapperTypeRef, GroupMembershipTypeRef, GroupTypeRef, User, UserTypeRef } from "../../../src/api/entities/sys/TypeRefs.js"
-import { AccountType, EndType, GroupType, RepeatPeriod, ShareCapability } from "../../../src/api/common/TutanotaConstants.js"
-import { timeStringFromParts } from "../../../src/misc/Formatter.js"
+} from "../../../src/common/calendar/date/CalendarUtils.js"
+import { lang } from "../../../src/common/misc/LanguageViewModel.js"
+import { DateWrapperTypeRef, GroupMembershipTypeRef, GroupTypeRef, User, UserTypeRef } from "../../../src/common/api/entities/sys/TypeRefs.js"
+import { AccountType, EndType, GroupType, RepeatPeriod, ShareCapability } from "../../../src/common/api/common/TutanotaConstants.js"
+import { timeStringFromParts } from "../../../src/common/misc/Formatter.js"
 import { DateTime } from "luxon"
-import { generateEventElementId, getAllDayDateUTC } from "../../../src/api/common/utils/CommonCalendarUtils.js"
-import { hasCapabilityOnGroup } from "../../../src/sharing/GroupUtils.js"
-import type { CalendarEvent } from "../../../src/api/entities/tutanota/TypeRefs.js"
+import { generateEventElementId, getAllDayDateUTC } from "../../../src/common/api/common/utils/CommonCalendarUtils.js"
+import { hasCapabilityOnGroup } from "../../../src/common/sharing/GroupUtils.js"
+import type { CalendarEvent } from "../../../src/common/api/entities/tutanota/TypeRefs.js"
 import {
 	CalendarEventAttendeeTypeRef,
 	CalendarEventTypeRef,
 	CalendarRepeatRuleTypeRef,
 	createCalendarRepeatRule,
 	EncryptedMailAddressTypeRef,
-} from "../../../src/api/entities/tutanota/TypeRefs.js"
+} from "../../../src/common/api/entities/tutanota/TypeRefs.js"
 import { clone, getStartOfDay, identity, lastThrow, neverNull } from "@tutao/tutanota-utils"
-import { Time } from "../../../src/calendar/date/Time.js"
-import { EventType } from "../../../src/calendar/gui/eventeditor-model/CalendarEventModel.js"
-import { CalendarInfo } from "../../../src/calendar/model/CalendarModel.js"
 import { object, replace } from "testdouble"
-import { CalendarEventAlteredInstance, CalendarEventProgenitor } from "../../../src/api/worker/facades/lazy/CalendarFacade.js"
+import { CalendarEventAlteredInstance, CalendarEventProgenitor } from "../../../src/common/api/worker/facades/lazy/CalendarFacade.js"
 import { getDateInUTC, getDateInZone } from "./CalendarTestUtils.js"
-import { ParserError } from "../../../src/misc/parsing/ParserCombinator.js"
+import { ParserError } from "../../../src/common/misc/parsing/ParserCombinator.js"
 import { createTestEntity } from "../TestUtils.js"
 
-import { getCalendarMonth, getEventType } from "../../../src/calendar/gui/CalendarGuiUtils.js"
+import { getCalendarMonth, getEventType } from "../../../src/calendar-app/calendar/gui/CalendarGuiUtils.js"
+import { EventType } from "../../../src/calendar-app/calendar/gui/eventeditor-model/CalendarEventModel.js"
+import { CalendarInfo } from "../../../src/calendar-app/calendar/model/CalendarModel.js"
+import { Time } from "../../../src/common/calendar/date/Time.js"
 
 const zone = "Europe/Berlin"
 

@@ -1,0 +1,22 @@
+<resources>
+
+	<!-- Base application theme. -->
+	<style name="AppTheme" parent="Theme.AppCompat.DayNight.NoActionBar">
+		<item name="android:colorPrimary">@color/red</item>
+		<item name="android:colorPrimaryDark">@color/red</item>
+		<item name="android:statusBarColor">@color/white</item>
+		<item name="android:windowLightStatusBar">true</item>
+	</style>
+
+	<style name="SplashTheme" parent="Theme.AppCompat.Light.NoActionBar">
+		<item name="android:colorPrimary">@color/red</item>
+		<item name="android:colorPrimaryDark">@color/red</item>
+		<item name="android:windowBackground">@drawable/splash_background</item>
+		<item name="android:statusBarColor">@color/white</item>
+		<item name="android:windowLightStatusBar">true</item>
+		<item name="android:windowSplashScreenAnimatedIcon">
+			@drawable/ic_launcher_foreground
+		</item>
+	</style>
+
+</resources>

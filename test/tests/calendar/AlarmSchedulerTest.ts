@@ -1,9 +1,9 @@
-import { AlarmScheduler } from "../../../src/calendar/date/AlarmScheduler.js"
+import { AlarmScheduler } from "../../../src/common/calendar/date/AlarmScheduler.js"
 import o from "@tutao/otest"
 import { DateTime } from "luxon"
-import { AlarmInfoTypeRef, DateWrapperTypeRef, RepeatRuleTypeRef } from "../../../src/api/entities/sys/TypeRefs.js"
-import { EndType, RepeatPeriod } from "../../../src/api/common/TutanotaConstants.js"
-import { DateProvider } from "../../../src/api/common/DateProvider.js"
+import { AlarmInfoTypeRef, DateWrapperTypeRef, RepeatRuleTypeRef } from "../../../src/common/api/entities/sys/TypeRefs.js"
+import { EndType, RepeatPeriod } from "../../../src/common/api/common/TutanotaConstants.js"
+import { DateProvider } from "../../../src/common/api/common/DateProvider.js"
 import { createTestEntity, SchedulerMock } from "../TestUtils.js"
 import { spy } from "@tutao/tutanota-test-utils"
 

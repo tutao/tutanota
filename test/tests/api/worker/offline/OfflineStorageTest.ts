@@ -1,11 +1,11 @@
 import o from "@tutao/otest"
 import { verify } from "@tutao/tutanota-test-utils"
-import { customTypeEncoders, OfflineStorage } from "../../../../../src/api/worker/offline/OfflineStorage.js"
+import { customTypeEncoders, OfflineStorage } from "../../../../../src/common/api/worker/offline/OfflineStorage.js"
 import { instance, object, when } from "testdouble"
 import * as cborg from "cborg"
-import { GENERATED_MIN_ID, generatedIdToTimestamp, getElementId, timestampToGeneratedId } from "../../../../../src/api/common/utils/EntityUtils.js"
+import { GENERATED_MIN_ID, generatedIdToTimestamp, getElementId, timestampToGeneratedId } from "../../../../../src/common/api/common/utils/EntityUtils.js"
 import { getDayShifted, getFirstOrThrow, getTypeId, lastThrow, mapNullable, promiseMap, TypeRef } from "@tutao/tutanota-utils"
-import { DateProvider } from "../../../../../src/api/common/DateProvider.js"
+import { DateProvider } from "../../../../../src/common/api/common/DateProvider.js"
 import {
 	BodyTypeRef,
 	FileTypeRef,
@@ -15,21 +15,21 @@ import {
 	MailDetailsTypeRef,
 	MailFolderTypeRef,
 	MailTypeRef,
-} from "../../../../../src/api/entities/tutanota/TypeRefs.js"
-import { OfflineStorageMigrator } from "../../../../../src/api/worker/offline/OfflineStorageMigrator.js"
-import { InterWindowEventFacadeSendDispatcher } from "../../../../../src/native/common/generatedipc/InterWindowEventFacadeSendDispatcher.js"
+} from "../../../../../src/common/api/entities/tutanota/TypeRefs.js"
+import { OfflineStorageMigrator } from "../../../../../src/common/api/worker/offline/OfflineStorageMigrator.js"
+import { InterWindowEventFacadeSendDispatcher } from "../../../../../src/common/native/common/generatedipc/InterWindowEventFacadeSendDispatcher.js"
 import * as fs from "node:fs"
-import { untagSqlObject } from "../../../../../src/api/worker/offline/SqlValue.js"
-import { MailFolderType } from "../../../../../src/api/common/TutanotaConstants.js"
-import { BlobElementEntity, ElementEntity, ListElementEntity, SomeEntity } from "../../../../../src/api/common/EntityTypes.js"
-import { resolveTypeReference } from "../../../../../src/api/common/EntityFunctions.js"
-import { Type as TypeId } from "../../../../../src/api/common/EntityConstants.js"
-import { expandId } from "../../../../../src/api/worker/rest/DefaultEntityRestCache.js"
-import { WorkerImpl } from "../../../../../src/api/worker/WorkerImpl.js"
-import { UserTypeRef } from "../../../../../src/api/entities/sys/TypeRefs.js"
-import { DesktopSqlCipher } from "../../../../../src/desktop/db/DesktopSqlCipher.js"
+import { untagSqlObject } from "../../../../../src/common/api/worker/offline/SqlValue.js"
+import { MailFolderType } from "../../../../../src/common/api/common/TutanotaConstants.js"
+import { BlobElementEntity, ElementEntity, ListElementEntity, SomeEntity } from "../../../../../src/common/api/common/EntityTypes.js"
+import { resolveTypeReference } from "../../../../../src/common/api/common/EntityFunctions.js"
+import { Type as TypeId } from "../../../../../src/common/api/common/EntityConstants.js"
+import { expandId } from "../../../../../src/common/api/worker/rest/DefaultEntityRestCache.js"
+import { WorkerImpl } from "../../../../../src/common/api/worker/WorkerImpl.js"
+import { UserTypeRef } from "../../../../../src/common/api/entities/sys/TypeRefs.js"
+import { DesktopSqlCipher } from "../../../../../src/common/desktop/db/DesktopSqlCipher.js"
 import { createTestEntity } from "../../../TestUtils.js"
-import { sql } from "../../../../../src/api/worker/offline/Sql.js"
+import { sql } from "../../../../../src/common/api/worker/offline/Sql.js"
 
 function incrementId(id: Id, ms: number) {
 	const timestamp = generatedIdToTimestamp(id)

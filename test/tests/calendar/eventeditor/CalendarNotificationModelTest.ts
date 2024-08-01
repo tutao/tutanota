@@ -1,10 +1,10 @@
 import o from "@tutao/otest"
-import { AccountType, FeatureType } from "../../../../src/api/common/TutanotaConstants.js"
-import { hasPlanWithInvites } from "../../../../src/calendar/gui/eventeditor-model/CalendarNotificationModel.js"
-import { LoginController } from "../../../../src/api/main/LoginController.js"
+import { AccountType, FeatureType } from "../../../../src/common/api/common/TutanotaConstants.js"
+import { hasPlanWithInvites } from "../../../../src/calendar-app/calendar/gui/eventeditor-model/CalendarNotificationModel.js"
+import { LoginController } from "../../../../src/common/api/main/LoginController.js"
 import { object, replace, when } from "testdouble"
-import { Customer, PlanConfigurationTypeRef } from "../../../../src/api/entities/sys/TypeRefs.js"
-import { UserController } from "../../../../src/api/main/UserController.js"
+import { Customer, PlanConfigurationTypeRef } from "../../../../src/common/api/entities/sys/TypeRefs.js"
+import { UserController } from "../../../../src/common/api/main/UserController.js"
 import { createTestEntity } from "../../TestUtils.js"
 
 o.spec("CalendarNotificationModel", function () {

@@ -44,11 +44,11 @@ contains most of the logic for server communication, encryption, indexing etc.
 ### Communication
 
 Worker, main thread & apps communicate through the messages. Protocol is described in the
-[RemoteMessageDispatcher](../src/api/common/MessageDispatcher.js). See [WorkerClient](../src/api/main/WorkerClient.js)
+[RemoteMessageDispatcher](../src/common/api/common/MessageDispatcher.js). See [WorkerClient](../src/common/api/main/WorkerClient.js)
 and
-[WorkerImpl](../src/api/worker/WorkerImpl.js) for the client and server part.
+[WorkerImpl](../src/common/api/worker/WorkerImpl.js) for the client and server part.
 
-Native code communicates through the [NativeInterface](../src/native/common/NativeInterface.js).
+Native code communicates through the [NativeInterface](../src/common/native/common/NativeInterface.js).
 
 ### UI code
 
@@ -92,11 +92,11 @@ One level below `EntityWorker` lays `EntityRestInterface` which is either `Entit
 currently. Caches saves requested entities is the memory and updates them with WebSocket events.
 
 If you're listening for WebSocket updates in the worker part (and you should justify doing that) then you should change
-[EventBus](../src/api/worker/EventBusClient.js) to do that. For the main thread you can subscribe to the
-[EventController](../src/api/main/EventController.js).
+[EventBus](../src/common/api/worker/EventBusClient.js) to do that. For the main thread you can subscribe to the
+[EventController](../src/common/api/main/EventController.js).
 
 `EventBus` and `EntityRestClient` make sure that entities are automatically encrypted/decrypted when needed. See
-[decryptAndMapToInstance()](../src/api/worker/crypto/CryptoFacade.js).
+[decryptAndMapToInstance()](../src/common/api/worker/crypto/CryptoFacade.js).
 
 #### Entity updates
 

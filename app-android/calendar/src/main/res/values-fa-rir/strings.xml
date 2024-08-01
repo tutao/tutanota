@@ -1,0 +1,9 @@
+<resources>
+    <string name="reminder_label">یادآور</string>
+    <string name="pushNewMail_msg">ایمیل جدیدی رسید.</string>
+    <string name="notificationSync_msg">هماهنگی اطلاعیه ها</string>
+    <string name="scheduleAlarmError_msg">تنظیم کردن زنگ هشدار موفقیت‌آمیز نبود. لطفا اپلیکیشن را به روز کنید.</string>
+    <string name="wantToSendReport_msg">اشکال غیر منتظره رخ داده است. آیا شما می خواهید ریزگان اشکال ارسال کنید؟ برای کمک به حل این اشکال شما می توانید یک پیام اضافه کنید.</string>
+    <string name="downloadCompleted_msg">دریافت اطلاعات کامل شد</string>
+    <string name="unlockCredentials_action">باز کردن قفل داده‌های هویتی</string>
+</resources>

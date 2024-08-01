@@ -22,11 +22,12 @@ await program
 	.usage("[options] [test|prod|local|host <url>] ")
 	.addArgument(new Argument("stage").choices(["test", "prod", "local", "host"]).default("prod").argOptional())
 	.addArgument(new Argument("host").argOptional())
+	.addOption(new Option("-a, --app <type>", "app to build").choices(["mail", "calendar"]).default("mail"))
 	.addOption(new Option("-b, --buildtype <type>", "gradle build type").choices(["debugDist", "debug", "release", "releaseTest"]).default("release"))
 	.addOption(new Option("-i, --install", "call adb install after build"))
 	.addOption(new Option("-w --webclient <client>", "choose web client build").choices(["make", "dist"]).default("dist"))
 	.option("-e, --existing", "Use existing prebuilt web client files")
-	.action(async (stage, host, { webclient, buildtype, install, existing }) => {
+	.action(async (stage, host, { webclient, buildtype, install, existing, app }) => {
 		if ((stage === "host" && host == null) || (stage !== "host" && host != null)) {
 			program.outputHelp()
 			process.exit(1)
@@ -38,6 +39,7 @@ await program
 			webClient: webclient,
 			existing,
 			buildType: buildtype,
+			app,
 		})
 
 		if (install) {
@@ -48,7 +50,7 @@ await program
 	})
 	.parseAsync(process.argv)
 
-async function buildAndroid({ stage, host, buildType, existing, webClient }) {
+async function buildAndroid({ stage, host, buildType, existing, webClient, app }) {
 	log(`Starting ${stage} build with build type: ${buildType}, webclient: ${webClient}, host: ${host}`)
 	if (!existing) {
 		if (webClient === "make") {
@@ -59,6 +61,7 @@ async function buildAndroid({ stage, host, buildType, existing, webClient }) {
 				clean: false,
 				watch: false,
 				serve: false,
+				app,
 			})
 		} else {
 			const version = await getTutanotaAppVersion()
@@ -69,28 +72,30 @@ async function buildAndroid({ stage, host, buildType, existing, webClient }) {
 				minify: true,
 				projectDir: path.resolve("."),
 				measure,
+				app,
 			})
 		}
 	} else {
 		console.log("skipped webapp build")
 	}
 
-	await prepareMobileBuild(webClient)
-
+	await prepareMobileBuild(webClient, app)
+	const buildDir = app === "mail" ? "build" : "build-calendar-app"
 	try {
-		await $`rm -r build/app-android`
+		await $`rm -r ${buildDir}/app-android`
 	} catch (e) {
 		// Ignoring the error if the folder is not there
 	}
 
+	const appTarget = app === "mail" ? "app" : "calendar"
 	const { version } = JSON.parse(await $`cat package.json`.quiet())
-	const apkName = `tutanota-tutao-${buildType}-${version}.apk`
-	const apkPath = `app-android/app/build/outputs/apk/tutao/${buildType}/${apkName}`
-	const outPath = `./build/app-android/${apkName}`
+	const apkName = `${app === "mail" ? "tutanota-app" : "calendar"}-tutao-${buildType}-${version}.apk`
+	const apkPath = `app-android/${appTarget}/build/outputs/apk/tutao/${buildType}/${apkName}`
+	const outPath = `./${buildDir}/app-android/${apkName}`
 	cd("./app-android")
-	await $`./gradlew assembleTutao${buildType}`
+	await $`./gradlew :${appTarget}:assembleTutao${buildType}`
 	cd("..")
-	await $`mkdir -p build/app-android`
+	await $`mkdir -p ${buildDir}/app-android`
 	await $`mv ${apkPath} ${outPath}`
 
 	log(`Build complete. The APK is located at: ${outPath}`)
