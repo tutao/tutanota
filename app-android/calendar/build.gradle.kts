@@ -59,9 +59,9 @@ android {
 			isJniDebuggable = true
 		}
 		release {
+			manifestPlaceholders += mapOf()
 			isMinifyEnabled = true
 			resValue("string", "package_name", "de.tutao.calendar")
-			setProguardFiles(listOf(getDefaultProguardFile("proguard-android.txt"), "proguard-rules.pro"))
 			manifestPlaceholders["contentProviderAuthority"] = "de.tutao.fileprovider"
 
 		}
@@ -130,6 +130,7 @@ android {
 }
 
 dependencies {
+	implementation(project(":tutashared"))
 	val room_version = "2.4.2"
 	val lifecycle_version = "2.4.1"
 	val activity_version = "1.4.0"
