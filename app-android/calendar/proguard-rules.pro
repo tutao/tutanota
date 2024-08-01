@@ -64,7 +64,7 @@
 # If you have any, uncomment and replace classes with those containing named companion objects.
 -keepattributes InnerClasses # Needed for `getDeclaredClasses`.
 -if @kotlinx.serialization.Serializable class
-de.tutao.calendar.IdTuple # <-- List serializable classes with named companions.
+de.tutao.tutashared.IdTuple # <-- List serializable classes with named companions.
 {
     static **$* *;
 }
