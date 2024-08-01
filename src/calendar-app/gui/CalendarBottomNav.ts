@@ -9,15 +9,6 @@ import { locator } from "../../common/api/main/CommonLocator.js"
 type Attrs = void
 const fontSize = size.font_size_small
 
-function getHrefForSearch(): string {
-	const route = m.route.get()
-	if (route.startsWith(SEARCH_PREFIX)) {
-		return route
-	} else {
-		return "/search/calendar"
-	}
-}
-
 export class CalendarBottomNav implements Component<Attrs> {
 	view(vnode: Vnode<Attrs>): Children {
 		// Using bottom-nav class too to match it inside media queries like @print, otherwise it's not matched
@@ -26,7 +17,7 @@ export class CalendarBottomNav implements Component<Attrs> {
 				? m(NavButton, {
 						label: "search_label",
 						icon: () => BootIcons.Search,
-						href: () => getHrefForSearch(),
+						href: "/search/calendar",
 						isSelectedPrefix: SEARCH_PREFIX,
 						vertical: true,
 						fontSize,
