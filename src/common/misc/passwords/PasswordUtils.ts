@@ -2,7 +2,7 @@ import type { MailboxDetail } from "../../mailFunctionality/MailModel.js"
 import type { LoginController } from "../../api/main/LoginController"
 import { assertMainOrNode } from "../../api/common/Env"
 import { PartialRecipient } from "../../api/common/recipients/Recipient"
-import { getEnabledMailAddressesWithUser, getMailboxName } from "../../mailFunctionality/CommonMailUtils.js"
+import { getEnabledMailAddressesWithUser, getMailboxName } from "../../mailFunctionality/SharedMailUtils.js"
 
 assertMainOrNode()
 /** password strength resulting in a full bar */

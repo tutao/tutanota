@@ -56,8 +56,9 @@ import { ListLoadingState, MultiselectMode } from "../../../common/gui/base/List
 import { EnterMultiselectIconButton } from "../../../common/gui/EnterMultiselectIconButton.js"
 import { MailFilterButton } from "./MailFilterButton.js"
 import { listSelectionKeyboardShortcuts } from "../../../common/gui/base/ListUtils.js"
-import { canDoDragAndDropExport, getFolderName, getMailboxName, isSpamOrTrashFolder } from "../../../common/mailFunctionality/CommonMailUtils.js"
+import { canDoDragAndDropExport, getFolderName, getMailboxName } from "../../../common/mailFunctionality/SharedMailUtils.js"
 import { BottomNav } from "../../gui/BottomNav.js"
+import { isSpamOrTrashFolder } from "../../../common/api/common/CommonMailUtils.js"
 
 assertMainOrNode()
 

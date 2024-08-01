@@ -61,7 +61,7 @@ import { CalendarFacade } from "../../../common/api/worker/facades/lazy/Calendar
 import { ProgrammingError } from "../../../common/api/common/error/ProgrammingError.js"
 import { ProgressTracker } from "../../../common/api/main/ProgressTracker.js"
 import { ListAutoSelectBehavior } from "../../../common/misc/DeviceConfig.js"
-import { getMailFilterForType, MailFilterType } from "../../../common/mailFunctionality/CommonMailUtils.js"
+import { getMailFilterForType, MailFilterType } from "../../../common/mailFunctionality/SharedMailUtils.js"
 import { getStartOfTheWeekOffsetForUser } from "../../../common/calendar/date/CalendarUtils.js"
 
 const SEARCH_PAGE_SIZE = 100

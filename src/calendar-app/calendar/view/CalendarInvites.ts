@@ -19,7 +19,7 @@ import { CalendarModel } from "../model/CalendarModel.js"
 import { LoginController } from "../../../common/api/main/LoginController.js"
 import { MailboxDetail, MailModel } from "../../../common/mailFunctionality/MailModel.js"
 import { SendMailModel } from "../../../common/mailFunctionality/SendMailModel.js"
-import { RecipientField } from "../../../common/mailFunctionality/CommonMailUtils.js"
+import { RecipientField } from "../../../common/mailFunctionality/SharedMailUtils.js"
 
 // not picking the status directly from CalendarEventAttendee because it's a NumberString
 export type Guest = Recipient & { status: CalendarAttendeeStatus }

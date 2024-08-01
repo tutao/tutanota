@@ -1,5 +1,3 @@
-// @bundleInto:common-functionality
-
 import {
 	createMailAddressProperties,
 	createMailboxProperties,
@@ -34,7 +32,7 @@ import {
 	OperationType,
 	ReportMovedMailsType,
 } from "../api/common/TutanotaConstants.js"
-import { assertSystemFolderOfType, getEnabledMailAddressesWithUser, isSpamOrTrashFolder } from "./CommonMailUtils.js"
+import { assertSystemFolderOfType, getEnabledMailAddressesWithUser } from "./SharedMailUtils.js"
 import { LockedError, NotFoundError, PreconditionFailedError } from "../api/common/error/RestError.js"
 import { elementIdPart, GENERATED_MAX_ID, getElementId, getListId, isSameId, listIdPart } from "../api/common/utils/EntityUtils.js"
 import { containsEventOfType, EntityUpdateData, isUpdateForTypeRef } from "../api/common/utils/EntityUpdateUtils.js"
@@ -42,6 +40,7 @@ import m from "mithril"
 import { lang } from "../misc/LanguageViewModel.js"
 import { ProgrammingError } from "../api/common/error/ProgrammingError.js"
 import { UserError } from "../api/main/UserError.js"
+import { isSpamOrTrashFolder } from "../api/common/CommonMailUtils.js"
 
 export type MailboxDetail = {
 	mailbox: MailBox

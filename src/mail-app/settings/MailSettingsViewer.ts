@@ -45,7 +45,7 @@ import { getEnabledMailAddressesForGroupInfo } from "../../common/api/common/uti
 import { formatStorageSize } from "../../common/misc/Formatter.js"
 import { CustomerInfo } from "../../common/api/entities/sys/TypeRefs.js"
 import { EntityUpdateData, isUpdateForTypeRef } from "../../common/api/common/utils/EntityUpdateUtils.js"
-import { getDefaultSenderFromUser, getFolderName, getMailAddressDisplayText } from "../../common/mailFunctionality/CommonMailUtils.js"
+import { getDefaultSenderFromUser, getFolderName, getMailAddressDisplayText } from "../../common/mailFunctionality/SharedMailUtils.js"
 import { UpdatableSettingsViewer } from "../../common/settings/Interfaces.js"
 import { mailLocator } from "../mailLocator.js"
 

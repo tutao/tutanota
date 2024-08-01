@@ -25,7 +25,7 @@ import { CalendarEventsRepository, DaysToEvents } from "../../../common/calendar
 import { CalendarEventPreviewViewModel } from "../gui/eventpopup/CalendarEventPreviewViewModel.js"
 import { EntityUpdateData, isUpdateFor, isUpdateForTypeRef } from "../../../common/api/common/utils/EntityUpdateUtils.js"
 import { MailModel } from "../../../common/mailFunctionality/MailModel.js"
-import { getEnabledMailAddressesWithUser } from "../../../common/mailFunctionality/CommonMailUtils.js"
+import { getEnabledMailAddressesWithUser } from "../../../common/mailFunctionality/SharedMailUtils.js"
 
 export type EventsOnDays = {
 	days: Array<Date>

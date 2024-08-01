@@ -69,8 +69,6 @@ import { AttachmentType, getAttachmentType } from "../../../common/gui/Attachmen
 import type { ContactImporter } from "../../contacts/ContactImporter.js"
 import { InlineImages, revokeInlineImages } from "../../../common/mailFunctionality/inlineImagesUtils.js"
 import {
-	MailAddressAndName,
-	getDisplayedSender,
 	getPathToFolderString,
 	getEnabledMailAddressesWithUser,
 	getMailboxName,
@@ -79,9 +77,9 @@ import {
 	loadMailHeaders,
 	getDefaultSender,
 	assertSystemFolderOfType,
-	getMailBodyText,
-} from "../../../common/mailFunctionality/CommonMailUtils.js"
-import { isSystemNotification, isTutanotaTeamMail, isNoReplyTeamAddress } from "../../../common/mailFunctionality/CommonMailUtils.js"
+} from "../../../common/mailFunctionality/SharedMailUtils.js"
+import { isSystemNotification, isTutanotaTeamMail, isNoReplyTeamAddress } from "../../../common/mailFunctionality/SharedMailUtils.js"
+import { getDisplayedSender, getMailBodyText, MailAddressAndName } from "../../../common/api/common/CommonMailUtils.js"
 
 export const enum ContentBlockingStatus {
 	Block = "0",

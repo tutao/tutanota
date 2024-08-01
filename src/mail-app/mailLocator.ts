@@ -63,7 +63,7 @@ import { InboxRuleHandler } from "./mail/model/InboxRuleHandler.js"
 import { SearchViewModel } from "./search/view/SearchViewModel.js"
 import { SearchRouter } from "../common/search/view/SearchRouter.js"
 import { MailOpenedListener } from "./mail/view/MailViewModel.js"
-import { getDisplayedSender, getEnabledMailAddressesWithUser } from "../common/mailFunctionality/CommonMailUtils.js"
+import { getEnabledMailAddressesWithUser } from "../common/mailFunctionality/SharedMailUtils.js"
 import { AppType, Const, FeatureType, GroupType, KdfType } from "../common/api/common/TutanotaConstants.js"
 import { ShareableGroupType } from "../common/sharing/GroupUtils.js"
 import { ReceivedGroupInvitationsModel } from "../common/sharing/model/ReceivedGroupInvitationsModel.js"
@@ -116,6 +116,7 @@ import { SearchIndexStateInfo } from "../common/api/worker/search/SearchTypes.js
 import { MobilePaymentsFacade } from "../common/native/common/generatedipc/MobilePaymentsFacade.js"
 import { AppStorePaymentPicker } from "../common/misc/AppStorePaymentPicker.js"
 import { MAIL_PREFIX } from "../common/misc/RouteChange.js"
+import { getDisplayedSender } from "../common/api/common/CommonMailUtils.js"
 
 assertMainOrNode()
 

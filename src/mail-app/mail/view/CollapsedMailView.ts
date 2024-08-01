@@ -7,7 +7,7 @@ import { Icons } from "../../../common/gui/base/icons/Icons.js"
 import { responsiveCardHPadding } from "../../../common/gui/cards.js"
 import { Keys, TabIndex } from "../../../common/api/common/TutanotaConstants.js"
 import { isKeyPressed } from "../../../common/misc/KeyManager.js"
-import { getConfidentialIcon, getFolderIconByType, getMailAddressDisplayText } from "../../../common/mailFunctionality/CommonMailUtils.js"
+import { getConfidentialIcon, getFolderIconByType, getMailAddressDisplayText } from "../../../common/mailFunctionality/SharedMailUtils.js"
 
 export interface CollapsedMailViewAttrs {
 	viewModel: MailViewerViewModel

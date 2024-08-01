@@ -11,7 +11,7 @@ import { getElementId, getListId, isSameId } from "../../../common/api/common/ut
 import { assertMainOrNode } from "../../../common/api/common/Env"
 import { MailFacade } from "../../../common/api/worker/facades/lazy/MailFacade.js"
 import { LoginController } from "../../../common/api/main/LoginController.js"
-import { assertSystemFolderOfType, getMailHeaders } from "../../../common/mailFunctionality/CommonMailUtils.js"
+import { assertSystemFolderOfType, getMailHeaders } from "../../../common/mailFunctionality/SharedMailUtils.js"
 
 assertMainOrNode()
 const moveMailDataPerFolder: MoveMailData[] = []

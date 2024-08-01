@@ -19,7 +19,7 @@ import {
 } from "./CalendarEventModel.js"
 import { LoginController } from "../../../../common/api/main/LoginController.js"
 import { DateTime } from "luxon"
-import { RecipientField } from "../../../../common/mailFunctionality/CommonMailUtils.js"
+import { RecipientField } from "../../../../common/mailFunctionality/SharedMailUtils.js"
 
 /** when starting an edit or delete operation of an event, we
  * need to know how to apply it and whether to send updates. */

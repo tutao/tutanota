@@ -3,7 +3,7 @@ import { Recipient, RecipientType } from "../../../src/common/api/common/recipie
 import { LazyLoaded } from "@tutao/tutanota-utils"
 import { Contact } from "../../../src/common/api/entities/tutanota/TypeRefs.js"
 import { User } from "../../../src/common/api/entities/sys/TypeRefs.js"
-import { createNewContact, isTutanotaMailAddress } from "../../../src/common/mailFunctionality/CommonMailUtils.js"
+import { createNewContact, isTutanotaMailAddress } from "../../../src/common/mailFunctionality/SharedMailUtils.js"
 
 /**
  * Creating actual ResolvableRecipients is annoying because you have to mock a bunch of stuff in other model classes

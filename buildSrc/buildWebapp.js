@@ -90,7 +90,7 @@ export async function buildWebapp({ version, stage, host, measure, minify, proje
 			minify && terser(),
 			analyzer(projectDir, buildDir),
 			visualizer({ filename: `${buildDir}/stats.html`, gzipSize: true }),
-			bundleDependencyCheckPlugin({ app }),
+			bundleDependencyCheckPlugin(),
 			nodeResolve({
 				preferBuiltins: true,
 				resolveOnly: [/^@tutao\/.*$/],
@@ -175,9 +175,10 @@ self.onmessage = function (msg) {
 			dist: true,
 			domainConfigs,
 		}),
+		app,
 	)
 	if (stage !== "release") {
-		await createHtml(env.create({ staticUrl: restUrl, version, mode: "App", dist: true, domainConfigs }))
+		await createHtml(env.create({ staticUrl: restUrl, version, mode: "App", dist: true, domainConfigs }), app)
 	}
 
 	await bundleServiceWorker(chunks, version, minify, buildDir)

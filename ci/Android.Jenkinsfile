@@ -72,7 +72,7 @@ pipeline {
 						]) {
 							sh 'node android.js -b releaseTest test'
 						}
-						stash includes: "build/app-android/tutanota-tutao-releaseTest-${VERSION}.apk", name: 'apk-testing'
+						stash includes: "build/app-android/tutanota-app-tutao-releaseTest-${VERSION}.apk", name: 'apk-testing'
 					}
 				} // stage testing
 				stage('Production') {
@@ -100,7 +100,7 @@ pipeline {
 						]) {
 							sh 'node android.js -b release prod'
 						}
-						stash includes: "build/app-android/tutanota-tutao-release-${VERSION}.apk", name: 'apk-production'
+						stash includes: "build/app-android/tutanota-app-tutao-release-${VERSION}.apk", name: 'apk-production'
 					}
 				} // stage production
 			}
@@ -121,7 +121,7 @@ pipeline {
 									groupId: "app",
 									artifactId: "android-test",
 									version: "${VERSION}",
-									assetFilePath: "${WORKSPACE}/build/app-android/tutanota-tutao-releaseTest-${VERSION}.apk",
+									assetFilePath: "${WORKSPACE}/build/app-android/tutanota-app-tutao-releaseTest-${VERSION}.apk",
 									fileExtension: 'apk'
 							)
 
@@ -132,7 +132,7 @@ pipeline {
 								// and play store knows which app to publish just based on the id
 								androidApkUpload(
 										googleCredentialsId: 'android-app-publisher-credentials',
-										apkFilesPattern: "build/app-android/tutanota-tutao-releaseTest-${VERSION}.apk",
+										apkFilesPattern: "build/app-android/tutanota-app-tutao-releaseTest-${VERSION}.apk",
 										trackName: 'internal',
 										rolloutPercentage: '100%',
 										recentChangeList: [
@@ -153,7 +153,7 @@ pipeline {
 						unstash 'apk-production'
 
 						script {
-							def filePath = "build/app-android/tutanota-tutao-release-${VERSION}.apk"
+							def filePath = "build/app-android/tutanota-app-tutao-release-${VERSION}.apk"
 							def util = load "ci/jenkins-lib/util.groovy"
 
 							util.publishToNexus(
@@ -192,7 +192,7 @@ pipeline {
 				unstash 'apk-production'
 
 				script {
-					def filePath = "build/app-android/tutanota-tutao-release-${VERSION}.apk"
+					def filePath = "build/app-android/tutanota-app-tutao-release-${VERSION}.apk"
 
 					writeFile file: "notes.txt", text: params.releaseNotes
 					catchError(stageResult: 'UNSTABLE', buildResult: 'SUCCESS', message: 'Failed to create github release page for android') {

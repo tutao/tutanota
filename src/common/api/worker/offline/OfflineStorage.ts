@@ -46,7 +46,7 @@ import { FolderSystem } from "../../common/mail/FolderSystem.js"
 import { Type as TypeId } from "../../common/EntityConstants.js"
 import { OutOfSyncError } from "../../common/error/OutOfSyncError.js"
 import { sql, SqlFragment } from "./Sql.js"
-import { isDraft, isSpamOrTrashFolder } from "../../../mailFunctionality/CommonMailUtils.js"
+import { isDraft, isSpamOrTrashFolder } from "../../common/CommonMailUtils.js"
 
 /**
  * this is the value of SQLITE_MAX_VARIABLE_NUMBER in sqlite3.c
@@ -181,13 +181,7 @@ export class OfflineStorage implements CacheStorage, ExposedCacheStorage {
 	async deleteIfExists(typeRef: TypeRef<SomeEntity>, listId: Id | null, elementId: Id): Promise<void> {
 		const type = getTypeId(typeRef)
 		let typeModel: TypeModel
-		try {
-			typeModel = await resolveTypeReference(typeRef)
-		} catch (e) {
-			// prevent failed lookup for BlobToFileMapping - this catch block can be removed after May 2023
-			console.log("couldn't resolve typeRef ", typeRef)
-			return
-		}
+		typeModel = await resolveTypeReference(typeRef)
 		let formattedQuery
 		switch (typeModel.type) {
 			case TypeId.Element:
@@ -208,13 +202,7 @@ export class OfflineStorage implements CacheStorage, ExposedCacheStorage {
 	async deleteAllOfType(typeRef: TypeRef<SomeEntity>): Promise<void> {
 		const type = getTypeId(typeRef)
 		let typeModel: TypeModel
-		try {
-			typeModel = await resolveTypeReference(typeRef)
-		} catch (e) {
-			// prevent failed lookup for BlobToFileMapping - this catch block can be removed after May 2023
-			console.log("couldn't resolve typeRef ", typeRef)
-			return
-		}
+		typeModel = await resolveTypeReference(typeRef)
 		let formattedQuery
 		switch (typeModel.type) {
 			case TypeId.Element:

@@ -27,8 +27,9 @@ import { isKeyPressed } from "../../../common/misc/KeyManager.js"
 import { AttachmentBubble, getAttachmentType } from "../../../common/gui/AttachmentBubble.js"
 import { responsiveCardHMargin, responsiveCardHPadding } from "../../../common/gui/cards.js"
 import { companyTeamLabel } from "../../../common/misc/ClientConstants.js"
-import { getConfidentialIcon, getFolderIconByType, getMailAddressDisplayText, MailAddressAndName } from "../../../common/mailFunctionality/CommonMailUtils.js"
-import { isTutanotaTeamMail } from "../../../common/mailFunctionality/CommonMailUtils.js"
+import { getConfidentialIcon, getFolderIconByType, getMailAddressDisplayText } from "../../../common/mailFunctionality/SharedMailUtils.js"
+import { isTutanotaTeamMail } from "../../../common/mailFunctionality/SharedMailUtils.js"
+import { MailAddressAndName } from "../../../common/api/common/CommonMailUtils.js"
 
 export type MailAddressDropdownCreator = (args: {
 	mailAddress: MailAddressAndName

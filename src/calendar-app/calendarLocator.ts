@@ -59,7 +59,7 @@ import { Router, ScopedRouter, ThrottledRouter } from "../common/gui/ScopedRoute
 import { deviceConfig } from "../common/misc/DeviceConfig.js"
 import { CalendarSearchViewModel } from "./calendar/search/view/CalendarSearchViewModel.js"
 import { SearchRouter } from "../common/search/view/SearchRouter.js"
-import { getEnabledMailAddressesWithUser } from "../common/mailFunctionality/CommonMailUtils.js"
+import { getEnabledMailAddressesWithUser } from "../common/mailFunctionality/SharedMailUtils.js"
 import { AppType, Const, FeatureType, GroupType, KdfType } from "../common/api/common/TutanotaConstants.js"
 import { ShareableGroupType } from "../common/sharing/GroupUtils.js"
 import { ReceivedGroupInvitationsModel } from "../common/sharing/model/ReceivedGroupInvitationsModel.js"

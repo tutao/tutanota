@@ -11,12 +11,8 @@ import { MailFolderType, MailReportType } from "../../../common/api/common/Tutan
 import { isSameId } from "../../../common/api/common/utils/EntityUtils.js"
 import { reportMailsAutomatically } from "./MailReportDialog.js"
 import { isOfflineError } from "../../../common/api/common/utils/ErrorUtils.js"
-import {
-	getFolderName,
-	getIndentedFolderNameForDropdown,
-	getPathToFolderString,
-	isSpamOrTrashFolder,
-} from "../../../common/mailFunctionality/CommonMailUtils.js"
+import { getFolderName, getIndentedFolderNameForDropdown, getPathToFolderString } from "../../../common/mailFunctionality/SharedMailUtils.js"
+import { isSpamOrTrashFolder } from "../../../common/api/common/CommonMailUtils.js"
 
 /**
  * Dialog for Edit and Add folder are the same.

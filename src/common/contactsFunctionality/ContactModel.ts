@@ -1,5 +1,3 @@
-// @bundleInto:common-functionality
-
 import { assertMainOrNode } from "../api/common/Env.js"
 import { Group, GroupInfo, GroupInfoTypeRef, GroupMembership, GroupTypeRef } from "../api/entities/sys/TypeRefs.js"
 import {

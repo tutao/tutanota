@@ -1,5 +1,3 @@
-// @bundleInto:common-functionality
-
 // map of inline image cid to InlineImageReference
 export type InlineImages = Map<string, InlineImageReference>
 

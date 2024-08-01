@@ -14,7 +14,7 @@ import { SearchDropDown } from "./SearchDropDown.js"
 import { findRecipientWithAddress } from "../api/common/utils/CommonCalendarUtils.js"
 import { Icons } from "./base/icons/Icons.js"
 import { theme } from "./theme.js"
-import { getMailAddressDisplayText } from "../mailFunctionality/CommonMailUtils.js"
+import { getMailAddressDisplayText } from "../mailFunctionality/SharedMailUtils.js"
 
 export interface MailRecipientsTextFieldAttrs {
 	label: TranslationKey

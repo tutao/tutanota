@@ -17,7 +17,7 @@ import { GroupType } from "../../api/common/TutanotaConstants"
 import { ColorPicker } from "../../gui/base/ColorPicker"
 import { locator } from "../../api/main/CommonLocator"
 import { LoginButton } from "../../gui/base/buttons/LoginButton.js"
-import { getMailAddressDisplayText } from "../../mailFunctionality/CommonMailUtils.js"
+import { getMailAddressDisplayText } from "../../mailFunctionality/SharedMailUtils.js"
 
 export function showGroupInvitationDialog(invitation: ReceivedGroupInvitation) {
 	const groupType = getInvitationGroupType(invitation)

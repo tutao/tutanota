@@ -30,32 +30,18 @@ export const allowedImports = {
 	boot: ["polyfill-helpers", "common-min"],
 	common: ["polyfill-helpers", "common-min"],
 	"gui-base": ["polyfill-helpers", "common-min", "common", "boot"],
-	main: ["polyfill-helpers", "common-min", "common", "boot", "gui-base", "common-functionality"],
+	main: ["polyfill-helpers", "common-min", "common", "boot", "gui-base"],
 	sanitizer: ["polyfill-helpers", "common-min", "common", "boot", "gui-base"],
 	date: ["polyfill-helpers", "common-min", "common", "boot", "sharing"],
-	"date-gui": ["polyfill-helpers", "common-min", "common", "boot", "gui-base", "main", "sharing", "date", "common-functionality"],
-	"mail-view": ["polyfill-helpers", "common-min", "common", "boot", "gui-base", "main", "common-functionality"],
-	"mail-editor": ["polyfill-helpers", "common-min", "common", "boot", "gui-base", "main", "mail-view", "sanitizer", "sharing", "common-functionality"],
-	search: [
-		"polyfill-helpers",
-		"common-min",
-		"common",
-		"boot",
-		"gui-base",
-		"main",
-		"mail-view",
-		"calendar-view",
-		"contacts",
-		"date",
-		"date-gui",
-		"sharing",
-		"common-functionality",
-	],
+	"date-gui": ["polyfill-helpers", "common-min", "common", "boot", "gui-base", "main", "sharing", "date"],
+	"mail-view": ["polyfill-helpers", "common-min", "common", "boot", "gui-base", "main"],
+	"mail-editor": ["polyfill-helpers", "common-min", "common", "boot", "gui-base", "main", "mail-view", "sanitizer", "sharing"],
+	search: ["polyfill-helpers", "common-min", "common", "boot", "gui-base", "main", "mail-view", "calendar-view", "contacts", "date", "date-gui", "sharing"],
 	// ContactMergeView needs HtmlEditor even though ContactEditor doesn't?
-	contacts: ["polyfill-helpers", "common-min", "common", "boot", "gui-base", "main", "mail-view", "date", "date-gui", "mail-editor", "common-functionality"],
-	"calendar-view": ["polyfill-helpers", "common-min", "common", "boot", "gui-base", "main", "date", "date-gui", "sharing", "common-functionality"],
+	contacts: ["polyfill-helpers", "common-min", "common", "boot", "gui-base", "main", "mail-view", "date", "date-gui", "mail-editor"],
+	"calendar-view": ["polyfill-helpers", "common-min", "common", "boot", "gui-base", "main", "date", "date-gui", "sharing"],
 	login: ["polyfill-helpers", "common-min", "common", "boot", "gui-base", "main"],
-	worker: ["polyfill-helpers", "common-min", "common", "native-common", "native-worker", "wasm", "wasm-fallback", "common-functionality"],
+	worker: ["polyfill-helpers", "common-min", "common", "native-common", "native-worker", "wasm", "wasm-fallback"],
 	settings: [
 		"polyfill-helpers",
 		"common-min",
@@ -71,7 +57,6 @@ export const allowedImports = {
 		"date-gui",
 		"login",
 		"sharing",
-		"common-functionality",
 	],
 	"mail-settings": [
 		"polyfill-helpers",
@@ -90,7 +75,6 @@ export const allowedImports = {
 		"sharing",
 		"settings",
 		"native-main",
-		"common-functionality",
 	],
 	"calendar-settings": [
 		"polyfill-helpers",
@@ -108,7 +92,6 @@ export const allowedImports = {
 		"login",
 		"sharing",
 		"settings",
-		"common-functionality",
 	],
 	"ui-extra": [
 		"polyfill-helpers",
@@ -124,17 +107,15 @@ export const allowedImports = {
 		"sanitizer",
 		"login",
 		"mail-editor",
-		"common-functionality",
 	],
-	"common-functionality": ["polyfill-helpers", "common-min", "common", "boot", "main", "contacts", "gui-base"],
-	sharing: ["polyfill-helpers", "common-min", "common", "boot", "gui-base", "main", "common-functionality"],
+	sharing: ["polyfill-helpers", "common-min", "common", "boot", "gui-base", "main"],
 	"native-common": ["polyfill-helpers", "common-min", "common"],
-	"native-main": ["polyfill-helpers", "common-min", "common", "boot", "gui-base", "main", "native-common", "login", "common-functionality"],
+	"native-main": ["polyfill-helpers", "common-min", "common", "boot", "gui-base", "main", "native-common", "login"],
 	"native-worker": ["polyfill-helpers", "common-min", "common"],
 	"setup-wizard": ["boot", "common-min", "gui-base", "main", "native-common", "native-main", "settings", "mail-settings", "calendar-settings", "ui-extra"],
 	jszip: ["polyfill-helpers"],
 	"worker-lazy": ["common-min", "common", "worker", "worker-search", "date"],
-	"worker-search": ["common-min", "common", "worker", "worker-lazy", "common-functionality"],
+	"worker-search": ["common-min", "common", "worker", "worker-lazy"],
 	linkify: [],
 	invoice: ["common-min"],
 }
@@ -173,11 +154,11 @@ export function getChunkName(moduleId, { getModuleInfo }) {
 	if (code.includes("@bundleInto:common-min") || isIn("libs/stream") || isIn("packages/tutanota-utils") || isIn("packages/tutanota-error")) {
 		// if detecting this does not work even though the comment is there, add a blank line after the annotation.
 		return "common-min"
-	} else if (code.includes("@bundleInto:common-functionality")) {
-		return "common-functionality"
 	} else if (code.includes("@bundleInto:common")) {
 		// if detecting this does not work even though the comment is there, add a blank line after the annotation.
 		return "common"
+	} else if (isIn("src/common/contactsFunctionality") || isIn("src/common/mailFunctionality")) {
+		return "main"
 	} else if (
 		code.includes("assertMainOrNodeBoot") ||
 		isIn("libs/mithril") ||

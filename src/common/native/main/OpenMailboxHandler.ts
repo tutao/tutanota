@@ -2,7 +2,7 @@ import m from "mithril"
 import { locator } from "../../api/main/CommonLocator"
 import { MailFolderType } from "../../api/common/TutanotaConstants.js"
 
-import { assertSystemFolderOfType } from "../../mailFunctionality/CommonMailUtils.js"
+import { assertSystemFolderOfType } from "../../mailFunctionality/SharedMailUtils.js"
 
 export async function openMailbox(userId: Id, mailAddress: string, requestedPath: string | null) {
 	if (locator.logins.isUserLoggedIn() && locator.logins.getUserController().user._id === userId) {

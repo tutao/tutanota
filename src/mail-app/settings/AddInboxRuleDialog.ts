@@ -23,7 +23,7 @@ import {
 	getFolderName,
 	getIndentedFolderNameForDropdown,
 	getPathToFolderString,
-} from "../../common/mailFunctionality/CommonMailUtils.js"
+} from "../../common/mailFunctionality/SharedMailUtils.js"
 
 assertMainOrNode()
 

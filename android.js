@@ -80,22 +80,22 @@ async function buildAndroid({ stage, host, buildType, existing, webClient, app }
 	}
 
 	await prepareMobileBuild(webClient, app)
-
+	const buildDir = app === "mail" ? "build" : "build-calendar-app"
 	try {
-		await $`rm -r build/app-android`
+		await $`rm -r ${buildDir}/app-android`
 	} catch (e) {
 		// Ignoring the error if the folder is not there
 	}
 
 	const appTarget = app === "mail" ? "app" : "calendar"
 	const { version } = JSON.parse(await $`cat package.json`.quiet())
-	const apkName = `tutanota-${app}-tutao-${buildType}-${version}.apk`
+	const apkName = `${app === "mail" ? "tutanota-app" : "calendar"}-tutao-${buildType}-${version}.apk`
 	const apkPath = `app-android/${appTarget}/build/outputs/apk/tutao/${buildType}/${apkName}`
-	const outPath = `./build/app-android/${apkName}`
+	const outPath = `./${buildDir}/app-android/${apkName}`
 	cd("./app-android")
 	await $`./gradlew :${appTarget}:assembleTutao${buildType}`
 	cd("..")
-	await $`mkdir -p build/app-android`
+	await $`mkdir -p ${buildDir}/app-android`
 	await $`mv ${apkPath} ${outPath}`
 
 	log(`Build complete. The APK is located at: ${outPath}`)

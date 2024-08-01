@@ -1359,11 +1359,10 @@ export type GroupKeyRotationData = {
 	adminGroupKeyVersion: null | NumberString;
 	groupEncPreviousGroupKey: Uint8Array;
 	groupKeyVersion: NumberString;
-	userEncGroupKey: Uint8Array;
-	userKeyVersion: NumberString;
 
 	group: Id;
 	groupKeyUpdatesForMembers: GroupKeyUpdateData[];
+	groupMembershipUpdateData: GroupMembershipUpdateData[];
 	keyPair:  null | KeyPair;
 }
 export const GroupKeyRotationInfoGetOutTypeRef: TypeRef<GroupKeyRotationInfoGetOut> = new TypeRef("sys", "GroupKeyRotationInfoGetOut")
@@ -1511,6 +1510,21 @@ export type GroupMembershipKeyData = {
 	symKeyVersion: NumberString;
 
 	group: Id;
+}
+export const GroupMembershipUpdateDataTypeRef: TypeRef<GroupMembershipUpdateData> = new TypeRef("sys", "GroupMembershipUpdateData")
+
+export function createGroupMembershipUpdateData(values: StrippedEntity<GroupMembershipUpdateData>): GroupMembershipUpdateData {
+	return Object.assign(create(typeModels.GroupMembershipUpdateData, GroupMembershipUpdateDataTypeRef), values)
+}
+
+export type GroupMembershipUpdateData = {
+	_type: TypeRef<GroupMembershipUpdateData>;
+
+	_id: Id;
+	userEncGroupKey: Uint8Array;
+	userKeyVersion: NumberString;
+
+	userId: Id;
 }
 export const GroupRootTypeRef: TypeRef<GroupRoot> = new TypeRef("sys", "GroupRoot")
 

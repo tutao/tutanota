@@ -43,7 +43,8 @@ async function run({ platform }) {
 	}
 
 	if (platform === "all" || platform === "android") {
-		await bumpAndroidVersion(currentVersion, newVersionString)
+		await bumpAndroidVersion(currentVersion, newVersionString, "app-android/app/build.gradle")
+		await bumpAndroidVersion(currentVersion, newVersionString, "app-android/calendar/build.gradle.kts")
 	}
 
 	console.log(`Bumped version ${currentVersionString} -> ${newVersionString}`)
@@ -76,12 +77,17 @@ async function bumpIosVersion(newVersionString) {
 /**
  * @param currentVersion {number[]}
  * @param newVersionString {string}
+ * @param buildGradlePath {string}
  * @return {Promise<void>}
  */
-async function bumpAndroidVersion(currentVersion, newVersionString) {
-	const buildGradlePath = "app-android/app/build.gradle"
+async function bumpAndroidVersion(currentVersion, newVersionString, buildGradlePath) {
 	const buildGradleString = await fs.promises.readFile(buildGradlePath, "utf8")
-	const oldVersionCodeMatch = buildGradleString.match(/versionCode (\d+)/)
+
+	const kotlinRegex = /versionCode = (\d+)/
+	const groovyRegex = /versionCode (\d+)/
+
+	const versionRegex = new RegExp(buildGradlePath.endsWith("kts") ? kotlinRegex : groovyRegex)
+	const oldVersionCodeMatch = buildGradleString.match(versionRegex)
 	if (oldVersionCodeMatch == null) {
 		throw new Error(`Android: Could not find versionCode in ${buildGradlePath}! Is it corrupted?`)
 	}
@@ -92,9 +98,11 @@ async function bumpAndroidVersion(currentVersion, newVersionString) {
 	}
 	const newVersionCode = oldVersionCode + 1
 	const newVersionCodeString = String(newVersionCode)
+
+	const versionCodeToWrite = `versionCode ${buildGradlePath.endsWith("kts") ? "= " : ""}${newVersionCodeString}`
 	const newBuildGradleString = buildGradleString
 		.replace(new RegExp(currentVersion.join("\\.")), newVersionString)
-		.replace(new RegExp(/versionCode (\d+)/), `versionCode ${newVersionCodeString}`)
+		.replace(new RegExp(versionRegex), versionCodeToWrite)
 	console.log(`Bumped Android versionCode: ${oldVersionCodeString} -> ${newVersionCodeString}`)
 	await fs.promises.writeFile(buildGradlePath, newBuildGradleString)
 }
