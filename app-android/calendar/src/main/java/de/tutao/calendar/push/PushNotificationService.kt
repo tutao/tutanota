@@ -5,19 +5,22 @@ import android.content.Context
 import android.content.Intent
 import android.util.Log
 import androidx.lifecycle.lifecycleScope
-import de.tutao.calendar.AndroidNativeCryptoFacade
-import de.tutao.calendar.LifecycleJobService
-import de.tutao.calendar.NetworkUtils
+import de.tutao.calendar.BuildConfig
+import de.tutao.tutashared.LifecycleJobService
 import de.tutao.calendar.alarms.AlarmNotificationsManager
 import de.tutao.calendar.alarms.SystemAlarmFacade
-import de.tutao.calendar.atLeastOreo
-import de.tutao.calendar.atLeastTiramisu
-import de.tutao.calendar.createAndroidKeyStoreFacade
-import de.tutao.calendar.credentials.CredentialsEncryptionFactory
-import de.tutao.calendar.data.AppDatabase
-import de.tutao.calendar.data.SseInfo
-import de.tutao.calendar.ipc.NativeCredentialsFacade
 import de.tutao.calendar.push.SseClient.SseListener
+import de.tutao.tutashared.AndroidNativeCryptoFacade
+import de.tutao.tutashared.ModuleBuildConfig
+import de.tutao.tutashared.NetworkUtils
+import de.tutao.tutashared.atLeastOreo
+import de.tutao.tutashared.atLeastTiramisu
+import de.tutao.tutashared.createAndroidKeyStoreFacade
+import de.tutao.tutashared.credentials.CredentialsEncryptionFactory
+import de.tutao.tutashared.data.AppDatabase
+import de.tutao.tutashared.data.SseInfo
+import de.tutao.tutashared.ipc.NativeCredentialsFacade
+import de.tutao.tutashared.push.SseStorage
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
 import okhttp3.OkHttpClient
@@ -71,11 +74,18 @@ class PushNotificationService : LifecycleJobService() {
 
 	override fun onCreate() {
 		super.onCreate()
+
 		Log.d(TAG, "onCreate")
 		state = State.CREATED
 
 		finishJobThread.start()
 
+		ModuleBuildConfig.init(
+			BuildConfig.SYS_MODEL_VERSION,
+			BuildConfig.VERSION_NAME,
+			BuildConfig.TUTANOTA_MODEL_VERSION,
+			BuildConfig.DEBUG
+		)
 
 		val appDatabase: AppDatabase = AppDatabase.getDatabase(this, allowMainThreadAccess = true)
 		val crypto = AndroidNativeCryptoFacade(this)
@@ -84,24 +94,23 @@ class PushNotificationService : LifecycleJobService() {
 		val sseStorage = SseStorage(appDatabase, keyStoreFacade)
 		localNotificationsFacade = LocalNotificationsFacade(this, sseStorage)
 		val alarmNotificationsManager = AlarmNotificationsManager(
-				sseStorage,
-				crypto,
-				SystemAlarmFacade(this),
-				localNotificationsFacade
+			sseStorage,
+			crypto,
+			SystemAlarmFacade(this),
 		)
 		alarmNotificationsManager.reScheduleAlarms()
 		sseClient = SseClient(
-				crypto,
+			crypto,
+			sseStorage,
+			NetworkObserver(this, this),
+			NotificationSseListener(
+				localNotificationsFacade,
 				sseStorage,
-				NetworkObserver(this, this),
-				NotificationSseListener(
-						localNotificationsFacade,
-						sseStorage,
-						nativeCredentialsFacade,
-						alarmNotificationsManager,
-						NetworkUtils.defaultClient
-				),
+				nativeCredentialsFacade,
+				alarmNotificationsManager,
 				NetworkUtils.defaultClient
+			),
+			NetworkUtils.defaultClient
 		)
 		sseStorage.observeUsers().observeForever { userInfos ->
 			Log.d(TAG, "sse storage updated " + userInfos.size)
@@ -116,11 +125,11 @@ class PushNotificationService : LifecycleJobService() {
 					finishJobIfNeeded()
 				} else {
 					sseClient.restartConnectionIfNeeded(
-							SseInfo(
-									sseStorage.getPushIdentifier()!!,
-									userIds,
-									sseStorage.getSseOrigin()!!
-							)
+						SseInfo(
+							sseStorage.getPushIdentifier()!!,
+							userIds,
+							sseStorage.getSseOrigin()!!
+						)
 					)
 				}
 			}
@@ -221,22 +230,22 @@ class PushNotificationService : LifecycleJobService() {
 	}
 
 	private inner class NotificationSseListener(
-			notificationsFacade: LocalNotificationsFacade,
-			sseStorage: SseStorage,
-			nativeCredentialsFacade: NativeCredentialsFacade,
-			alarmNotificationsManager: AlarmNotificationsManager,
-			defaultClient: OkHttpClient
+		notificationsFacade: LocalNotificationsFacade,
+		sseStorage: SseStorage,
+		nativeCredentialsFacade: NativeCredentialsFacade,
+		alarmNotificationsManager: AlarmNotificationsManager,
+		defaultClient: OkHttpClient
 	) : SseListener {
 
 		private val tutanotaNotificationsHandler =
-				TutanotaNotificationsHandler(
-						notificationsFacade,
-						sseStorage,
-						nativeCredentialsFacade,
-						alarmNotificationsManager,
-						defaultClient,
-						lifecycleScope
-				)
+			TutanotaNotificationsHandler(
+				notificationsFacade,
+				sseStorage,
+				nativeCredentialsFacade,
+				alarmNotificationsManager,
+				defaultClient,
+				lifecycleScope
+			)
 
 		override fun onStartingConnection(): Boolean {
 			Log.d(TAG, "onStartingConnection")

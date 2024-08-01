@@ -2,18 +2,19 @@ package de.tutao.calendar.push
 
 import de.tutao.calendar.MainActivity
 import de.tutao.calendar.alarms.AlarmNotificationsManager
-import de.tutao.calendar.ipc.DataWrapper
-import de.tutao.calendar.ipc.EncryptedAlarmNotification
-import de.tutao.calendar.ipc.ExtendedNotificationMode
-import de.tutao.calendar.ipc.NativePushFacade
+import de.tutao.tutashared.ipc.DataWrapper
+import de.tutao.tutashared.ipc.EncryptedAlarmNotification
+import de.tutao.tutashared.ipc.ExtendedNotificationMode
+import de.tutao.tutashared.ipc.NativePushFacade
+import de.tutao.tutashared.push.SseStorage
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.withContext
 
 class AndroidNativePushFacade(
-		private val activity: MainActivity,
-		private val sseStorage: SseStorage,
-		private val alarmNotificationsManager: AlarmNotificationsManager,
-		private val localNotificationsFacade: LocalNotificationsFacade,
+	private val activity: MainActivity,
+	private val sseStorage: SseStorage,
+	private val alarmNotificationsManager: AlarmNotificationsManager,
+	private val localNotificationsFacade: LocalNotificationsFacade,
 ) : NativePushFacade {
 
 	override suspend fun getPushIdentifier(): String? {
@@ -21,11 +22,11 @@ class AndroidNativePushFacade(
 	}
 
 	override suspend fun storePushIdentifierLocally(
-			identifier: String,
-			userId: String,
-			sseOrigin: String,
-			pushIdentifierId: String,
-			pushIdentifierSessionKey: DataWrapper
+		identifier: String,
+		userId: String,
+		sseOrigin: String,
+		pushIdentifierId: String,
+		pushIdentifierSessionKey: DataWrapper
 	) {
 		sseStorage.storePushIdentifier(identifier, sseOrigin)
 		sseStorage.storePushIdentifierSessionKey(userId, pushIdentifierId, pushIdentifierSessionKey.data)

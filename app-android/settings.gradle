@@ -7,3 +7,4 @@ includeBuild("../tuta-sdk/android") {
 }
 include ':calendar'
 project(':calendar').projectDir = new File(rootDir, 'calendar/')
+include ':tutashared'

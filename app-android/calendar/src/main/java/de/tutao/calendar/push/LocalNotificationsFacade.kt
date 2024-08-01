@@ -13,7 +13,6 @@ import android.graphics.Color
 import android.media.AudioAttributes
 import android.media.RingtoneManager
 import android.os.Build
-import android.os.Bundle
 import android.service.notification.StatusBarNotification
 import android.util.Log
 import androidx.annotation.ColorInt
@@ -27,11 +26,9 @@ import androidx.core.net.toUri
 import de.tutao.calendar.BuildConfig
 import de.tutao.calendar.MainActivity
 import de.tutao.calendar.R
-import de.tutao.calendar.atLeastNougat
 import de.tutao.calendar.getMimeType
-import de.tutao.calendar.ipc.ExtendedNotificationMode
+import de.tutao.tutashared.push.SseStorage
 import java.io.File
-import java.security.SecureRandom
 import java.text.SimpleDateFormat
 import java.util.Date
 import java.util.TimeZone
@@ -40,8 +37,6 @@ import kotlin.math.abs
 const val NOTIFICATION_DISMISSED_ADDR_EXTRA = "notificationDismissed"
 private const val EMAIL_NOTIFICATION_CHANNEL_ID = "notifications"
 private val VIBRATION_PATTERN = longArrayOf(100, 200, 100, 200)
-private const val NOTIFICATION_EMAIL_GROUP = "de.tutao.calendar.email"
-private const val SUMMARY_NOTIFICATION_ID = 45
 private const val PERSISTENT_NOTIFICATION_CHANNEL_ID = "service_intent"
 private const val ALARM_NOTIFICATION_CHANNEL_ID = "alarms"
 private const val DOWNLOAD_NOTIFICATION_CHANNEL_ID = "downloads"
@@ -86,50 +81,8 @@ class LocalNotificationsFacade(private val context: Context, private val sseStor
 	}
 
 	fun sendEmailNotifications(mailMetadatas: List<Pair<NotificationInfo, MailMetadata?>>) {
-		for ((notificationInfo, metadata) in mailMetadatas) {
-			val notificationMode = sseStorage.getExtendedNotificationConfig(notificationInfo.userId)
-			val notificationId = 1 + SecureRandom().nextInt(Int.MAX_VALUE - 1)
-
-			@ColorInt val redColor = context.resources.getColor(R.color.red, context.theme)
-			val notificationBuilder = NotificationCompat.Builder(context, EMAIL_NOTIFICATION_CHANNEL_ID)
-				.setLights(redColor, 1000, 1000)
-
-			notificationBuilder
-				.setColor(redColor)
-				.apply {
-					val genericTitle = context.getString(R.string.pushNewMail_msg)
-					when (notificationMode) {
-						ExtendedNotificationMode.NO_SENDER_OR_SUBJECT -> {
-							setContentTitle(genericTitle)
-						}
-
-						ExtendedNotificationMode.ONLY_SENDER, ExtendedNotificationMode.SENDER_AND_SUBJECT -> {
-							setContentTitle(metadata?.sender?.address ?: "")
-							setContentText(genericTitle)
-						}
-					}
-				}
-				// header text, put recipient address in there
-				.setSubText(notificationInfo.mailAddress)
-				.setSmallIcon(R.drawable.ic_status)
-				.setDeleteIntent(intentForDelete(arrayListOf(notificationInfo.mailAddress)))
-				.setContentIntent(intentOpenMailbox(notificationInfo, false))
-				.setGroup(groupIdFor(notificationInfo))
-				.setAutoCancel(true)
-				.setGroupAlertBehavior(if (atLeastNougat()) NotificationCompat.GROUP_ALERT_CHILDREN else NotificationCompat.GROUP_ALERT_SUMMARY)
-				.setDefaults(Notification.DEFAULT_ALL)
-				.setExtras(Bundle().apply {
-					putString(EMAIL_ADDRESS_EXTRA, notificationInfo.mailAddress)
-				})
-
-			notificationManager.notify(notificationId, notificationBuilder.build())
-			sendSummaryNotification(notificationInfo)
-		}
+		throw Error("Calendar shouldn't send mail Notifications")
 	}
-
-	private fun groupIdFor(notificationInfo: NotificationInfo) =
-		// We group by the recipient user, not email address
-		NOTIFICATION_EMAIL_GROUP + notificationInfo.userId
 
 	@TargetApi(Build.VERSION_CODES.Q)
 	fun sendDownloadFinishedNotification(fileName: String?) {
@@ -154,37 +107,6 @@ class LocalNotificationsFacade(private val context: Context, private val sseStor
 			.setAutoCancel(true)
 			.build()
 		notificationManager.notify(mailNotificationId("downloads"), notification)
-	}
-
-	private fun sendSummaryNotification(
-		notificationInfo: NotificationInfo
-	) {
-		val addresses = arrayListOf<String>()
-		val inboxStyle = NotificationCompat.InboxStyle()
-		val builder = NotificationCompat.Builder(context, EMAIL_NOTIFICATION_CHANNEL_ID)
-			.setBadgeIconType(NotificationCompat.BADGE_ICON_SMALL)
-		@ColorInt val red = context.resources.getColor(R.color.red, context.theme)
-		val notification = builder
-			// Header text, put recipient address in there.
-			// Ideally we would put login mail address in here (and we can actually look it up) as a user-visible
-			// "account identifier" but it should also be fine to overwrite it with the latest address.
-			.setSubText(notificationInfo.mailAddress)
-			.setSmallIcon(R.drawable.ic_status)
-			.setGroup(groupIdFor(notificationInfo))
-			.setGroupSummary(true)
-			.setColor(red)
-			.setStyle(inboxStyle)
-			.setContentIntent(intentOpenMailbox(notificationInfo, true))
-			.setDeleteIntent(intentForDelete(addresses))
-			.setAutoCancel(true)
-			// We need to update summary without sound when one of the alarms is cancelled
-			// but we need to use sound if it's API < N because GROUP_ALERT_CHILDREN doesn't
-			// work with sound there (perhaps summary consumes it somehow?) and we must do
-			// summary with sound instead on the old versions.
-			.setDefaults(NotificationCompat.DEFAULT_SOUND)
-			.setGroupAlertBehavior(if (atLeastNougat()) NotificationCompat.GROUP_ALERT_CHILDREN else NotificationCompat.GROUP_ALERT_SUMMARY)
-			.build()
-		notificationManager.notify(abs(SUMMARY_NOTIFICATION_ID + notificationInfo.userId.hashCode()), notification)
 	}
 
 	fun showErrorNotification(@StringRes message: Int, exception: Throwable?) {
@@ -270,39 +192,6 @@ class LocalNotificationsFacade(private val context: Context, private val sseStor
 	private fun mailNotificationId(address: String): Int =
 		abs(1 + address.hashCode())
 
-	private fun intentForDelete(addresses: ArrayList<String>): PendingIntent {
-		val deleteIntent = Intent(context, PushNotificationService::class.java)
-		deleteIntent.putStringArrayListExtra(NOTIFICATION_DISMISSED_ADDR_EXTRA, addresses)
-		return PendingIntent.getService(
-			context.applicationContext,
-			mailNotificationId("dismiss${addresses.joinToString("+")}"),
-			deleteIntent,
-			PendingIntent.FLAG_UPDATE_CURRENT or PendingIntent.FLAG_IMMUTABLE
-		)
-	}
-
-	private fun intentOpenMailbox(
-		notificationInfo: NotificationInfo,
-		isSummary: Boolean,
-	): PendingIntent {
-		val openMailboxIntent = Intent(context, MainActivity::class.java)
-		openMailboxIntent.action = MainActivity.OPEN_USER_MAILBOX_ACTION
-		openMailboxIntent.putExtra(
-			MainActivity.OPEN_USER_MAILBOX_MAIL_ADDRESS_KEY,
-			notificationInfo.mailAddress
-		)
-		openMailboxIntent.putExtra(
-			MainActivity.OPEN_USER_MAILBOX_USERID_KEY,
-			notificationInfo.userId
-		)
-		openMailboxIntent.putExtra(MainActivity.IS_SUMMARY_EXTRA, isSummary)
-		return PendingIntent.getActivity(
-			context.applicationContext,
-			mailNotificationId(notificationInfo.mailAddress + "@isSummary" + isSummary),
-			openMailboxIntent,
-			PendingIntent.FLAG_UPDATE_CURRENT or PendingIntent.FLAG_IMMUTABLE
-		)
-	}
 }
 
 fun notificationDismissedIntent(
@@ -324,7 +213,7 @@ fun showAlarmNotification(context: Context, timestamp: Long, summary: String, in
 		else -> String.format("%1\$ta %1\$td %1\$tb %1\$tR %2\$s", timestamp, summary) // e.g. Fri 25 Nov 12:31 summary
 	}
 	val notificationManager = context.getSystemService(Context.NOTIFICATION_SERVICE) as NotificationManager
-	@ColorInt val red = context.resources.getColor(R.color.red, context.theme)
+	@ColorInt val red = context.resources.getColor(R.color.dark_blue, context.theme)
 	notificationManager.notify(
 		System.currentTimeMillis().toInt(),
 		NotificationCompat.Builder(context, ALARM_NOTIFICATION_CHANNEL_ID)
