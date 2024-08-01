@@ -6,7 +6,6 @@ import android.content.Intent
 import android.net.Uri
 import android.util.Log
 import de.tutao.calendar.MainActivity
-import de.tutao.calendar.push.showAlarmNotification
 import java.util.*
 
 class AlarmBroadcastReceiver : BroadcastReceiver() {
@@ -14,7 +13,7 @@ class AlarmBroadcastReceiver : BroadcastReceiver() {
 		Log.d(TAG, "Received alarm broadcast")
 		val timestamp = intent.getLongExtra(EVENT_DATE_EXTRA, System.currentTimeMillis())
 		val summary = intent.getStringExtra(SUMMARY_EXTRA)
-		showAlarmNotification(context, timestamp, summary!!, intent)
+		de.tutao.calendar.push.showAlarmNotification(context, timestamp, summary!!, intent)
 	}
 
 	companion object {
