@@ -1,7 +1,7 @@
 {
   "images" : [
     {
-      "filename" : "tuta_switch_1024.png",
+      "filename" : "tuta mail icon.svg",
       "idiom" : "universal"
     },
     {
@@ -11,7 +11,7 @@
           "value" : "light"
         }
       ],
-      "filename" : "tuta_switch_1024 1.png",
+      "filename" : "tuta mail icon 1.svg",
       "idiom" : "universal"
     },
     {
@@ -21,7 +21,7 @@
           "value" : "dark"
         }
       ],
-      "filename" : "tuta_switch_dark_1024.png",
+      "filename" : "tuta mail icon 2.svg",
       "idiom" : "universal"
     }
   ],
