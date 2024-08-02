@@ -85,7 +85,7 @@
 			}
 		},
 		"app": "monitor",
-		"version": "28"
+		"version": "27"
 	},
 	"CounterValue": {
 		"name": "CounterValue",
@@ -126,7 +126,7 @@
 		},
 		"associations": {},
 		"app": "monitor",
-		"version": "28"
+		"version": "27"
 	},
 	"ErrorReportData": {
 		"name": "ErrorReportData",
@@ -230,7 +230,7 @@
 		},
 		"associations": {},
 		"app": "monitor",
-		"version": "28"
+		"version": "27"
 	},
 	"ErrorReportFile": {
 		"name": "ErrorReportFile",
@@ -271,7 +271,7 @@
 		},
 		"associations": {},
 		"app": "monitor",
-		"version": "28"
+		"version": "27"
 	},
 	"ReadCounterData": {
 		"name": "ReadCounterData",
@@ -321,7 +321,7 @@
 		},
 		"associations": {},
 		"app": "monitor",
-		"version": "28"
+		"version": "27"
 	},
 	"ReadCounterReturn": {
 		"name": "ReadCounterReturn",
@@ -364,7 +364,7 @@
 			}
 		},
 		"app": "monitor",
-		"version": "28"
+		"version": "27"
 	},
 	"ReportErrorIn": {
 		"name": "ReportErrorIn",
@@ -408,7 +408,7 @@
 			}
 		},
 		"app": "monitor",
-		"version": "28"
+		"version": "27"
 	},
 	"WriteCounterData": {
 		"name": "WriteCounterData",
@@ -467,6 +467,6 @@
 		},
 		"associations": {},
 		"app": "monitor",
-		"version": "28"
+		"version": "27"
 	}
 }
