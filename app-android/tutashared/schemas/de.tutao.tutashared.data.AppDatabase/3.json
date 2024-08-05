@@ -194,17 +194,29 @@
       },
       {
         "tableName": "PersistedCredentials",
-        "createSql": "CREATE TABLE IF NOT EXISTS `${TABLE_NAME}` (`login` TEXT NOT NULL, `type` TEXT NOT NULL, `userId` TEXT NOT NULL, `encryptedPassword` TEXT NOT NULL, `databaseKey` BLOB, `accessToken` BLOB NOT NULL, PRIMARY KEY(`userId`))",
+        "createSql": "CREATE TABLE IF NOT EXISTS `${TABLE_NAME}` (`accessToken` BLOB NOT NULL, `databaseKey` BLOB, `encryptedPassword` TEXT NOT NULL, `login` TEXT NOT NULL, `userId` TEXT NOT NULL, `type` TEXT NOT NULL, PRIMARY KEY(`userId`))",
         "fields": [
           {
-            "fieldPath": "login",
-            "columnName": "login",
+            "fieldPath": "accessToken",
+            "columnName": "accessToken",
+            "affinity": "BLOB",
+            "notNull": true
+          },
+          {
+            "fieldPath": "databaseKey",
+            "columnName": "databaseKey",
+            "affinity": "BLOB",
+            "notNull": false
+          },
+          {
+            "fieldPath": "encryptedPassword",
+            "columnName": "encryptedPassword",
             "affinity": "TEXT",
             "notNull": true
           },
           {
-            "fieldPath": "type",
-            "columnName": "type",
+            "fieldPath": "login",
+            "columnName": "login",
             "affinity": "TEXT",
             "notNull": true
           },
@@ -215,21 +227,9 @@
             "notNull": true
           },
           {
-            "fieldPath": "encryptedPassword",
-            "columnName": "encryptedPassword",
+            "fieldPath": "type",
+            "columnName": "type",
             "affinity": "TEXT",
-            "notNull": true
-          },
-          {
-            "fieldPath": "databaseKey",
-            "columnName": "databaseKey",
-            "affinity": "BLOB",
-            "notNull": false
-          },
-          {
-            "fieldPath": "accessToken",
-            "columnName": "accessToken",
-            "affinity": "BLOB",
             "notNull": true
           }
         ],

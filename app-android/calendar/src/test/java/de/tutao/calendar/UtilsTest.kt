@@ -1,4 +1,4 @@
-package de.tutao.tutanota
+package de.tutao.calendar
 
 import de.tutao.tutashared.isLightHexColor
 import de.tutao.tutashared.parseColor

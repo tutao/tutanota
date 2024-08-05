@@ -31,9 +31,9 @@ android {
 		create("release") {
 			// Provide non-empty placeholders because otherwise configuration will braek even in debug.
 			storeFile = file(System.getenv("APK_SIGN_STORE") ?: "EMPTY")
-			storePassword = System.getenv("APK_SIGN_STORE_PASS" ?: "EMPTY")
-			keyAlias = System.getenv("APK_SIGN_ALIAS" ?: "EMPTY")
-			keyPassword = System.getenv("APK_SIGN_KEY_PASS" ?: "EMPTY")
+			storePassword = System.getenv("APK_SIGN_STORE_PASS") ?: "EMPTY"
+			keyAlias = System.getenv("APK_SIGN_ALIAS") ?: "EMPTY"
+			keyPassword = System.getenv("APK_SIGN_KEY_PASS") ?: "EMPTY"
 
 			enableV1Signing = true
 			enableV2Signing = true
@@ -148,14 +148,6 @@ dependencies {
 	implementation("androidx.biometric:biometric:1.1.0")
 	implementation("androidx.core:core-splashscreen:1.0.1")
 	implementation("androidx.datastore:datastore-preferences:1.1.1")
-
-	if (file("../libs/android-database-sqlcipher-4.5.0.aar").exists()) {
-		val includes: Map<String, Any> = mapOf("include" to arrayOf("*.aar"), "dir" to "../libs")
-		implementation(fileTree(includes))
-	} else {
-		implementation("net.zetetic:android-database-sqlcipher:4.5.0")
-	}
-	implementation("androidx.sqlite:sqlite:2.0.1")
 
 	implementation("androidx.room:room-runtime:$room_version")
 	// For Kotlin use kapt instead of annotationProcessor

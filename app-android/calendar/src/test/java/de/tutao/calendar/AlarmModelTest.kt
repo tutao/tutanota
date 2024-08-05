@@ -1,6 +1,6 @@
-package de.tutao.tutanota
+package de.tutao.calendar
 
-import de.tutao.tutanota.push.isSameDay
+import de.tutao.calendar.push.isSameDay
 import de.tutao.tutashared.alarms.AlarmInterval
 import de.tutao.tutashared.alarms.AlarmIntervalUnit
 import de.tutao.tutashared.alarms.AlarmModel.getAllDayDateUTC
