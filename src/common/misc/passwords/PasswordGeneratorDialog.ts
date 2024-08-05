@@ -5,7 +5,7 @@ import { Button, ButtonType } from "../../gui/base/Button.js"
 import { locator } from "../../api/main/CommonLocator"
 import { px } from "../../gui/size"
 import { copyToClipboard } from "../ClipboardUtils"
-import { lang } from "../LanguageViewModel.js"
+import { InfoLink, lang } from "../LanguageViewModel.js"
 import { LoginButton } from "../../gui/base/buttons/LoginButton.js"
 import { ExternalLink } from "../../gui/base/ExternalLink.js"
 
@@ -76,7 +76,7 @@ class PasswordGeneratorDialog implements Component<PasswordGeneratorDialogAttrs>
 				lang.get("passphraseGeneratorHelp_msg"),
 				" ",
 				m(ExternalLink, {
-					href: "https://tuta.com/faq#passphrase-generator",
+					href: InfoLink.PasswordGenerator,
 					text: lang.get("faqEntry_label"),
 					isCompanySite: true,
 				}),

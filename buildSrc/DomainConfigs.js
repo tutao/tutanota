@@ -77,7 +77,7 @@ export const domainConfigs = {
 		u2fAppId: "https://app.test.tuta.com/u2f-appid.json",
 		giftCardBaseUrl: "https://app.test.tuta.com/giftcard",
 		referralBaseUrl: "https://app.test.tuta.com/signup",
-		websiteBaseUrl: "https://tuta.com",
+		websiteBaseUrl: "https://test.tuta.com",
 	},
 	"app.local.tuta.com": {
 		firstPartyDomain: true,

@@ -18,7 +18,7 @@ import { Checkbox } from "../gui/base/Checkbox.js"
 import type { lazy } from "@tutao/tutanota-utils"
 import { getFirstOrThrow, ofClass } from "@tutao/tutanota-utils"
 import type { TranslationKey } from "../misc/LanguageViewModel"
-import { lang } from "../misc/LanguageViewModel"
+import { InfoLink, lang } from "../misc/LanguageViewModel"
 import { showProgressDialog } from "../gui/dialogs/ProgressDialog"
 import { InvalidDataError } from "../api/common/error/RestError"
 import { locator } from "../api/main/CommonLocator"
@@ -26,12 +26,9 @@ import { CURRENT_PRIVACY_VERSION, CURRENT_TERMS_VERSION, renderTermsAndCondition
 import { UsageTest } from "@tutao/tutanota-usagetests"
 import { runCaptchaFlow } from "./Captcha.js"
 import { EmailDomainData, isPaidPlanDomain } from "../settings/mailaddress/MailAddressesUtils.js"
-import { isIOSApp } from "../api/common/Env.js"
 import { LoginButton } from "../gui/base/buttons/LoginButton.js"
 import { ExternalLink } from "../gui/base/ExternalLink.js"
-import { PasswordModel, PasswordForm } from "../settings/PasswordForm.js"
-
-const faqCustomDomainLink = "https://tuta.com/faq#custom-domain"
+import { PasswordForm, PasswordModel } from "../settings/PasswordForm.js"
 
 export type SignupFormAttrs = {
 	/** Handle a new account signup. if readonly then the argument will always be null */
@@ -190,7 +187,7 @@ export class SignupForm implements Component<SignupFormAttrs> {
 							m(SelectMailAddressForm, mailAddressFormAttrs), // Leave as is
 							a.isPaidSubscription()
 								? m(".small.mt-s", lang.get("configureCustomDomainAfterSignup_msg"), [
-										m(ExternalLink, { href: faqCustomDomainLink, isCompanySite: true }),
+										m(ExternalLink, { href: InfoLink.DomainInfo, isCompanySite: true }),
 								  ])
 								: null,
 							m(PasswordForm, {
