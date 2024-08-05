@@ -10,8 +10,8 @@ interface CredentialsDao {
 	@Insert(onConflict = OnConflictStrategy.REPLACE)
 	fun insertPersistedCredentials(persistedCredentials: PersistedCredentialsEntity)
 
-	@get:Query("SELECT * FROM PersistedCredentials")
-	val allPersistedCredentials: List<PersistedCredentialsEntity>
+	@Query("SELECT * FROM PersistedCredentials")
+	fun allPersistedCredentials(): List<PersistedCredentialsEntity>
 
 	@Query("DELETE FROM PersistedCredentials WHERE userId = :userId")
 	fun deletePersistedCredentials(userId: String)

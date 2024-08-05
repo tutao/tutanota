@@ -3,14 +3,13 @@
 
 package de.tutao.tutashared.ipc
 
-
 import kotlinx.serialization.*
 import kotlinx.serialization.json.*
 
 interface SqlCipherFacade {
 	suspend fun openDb(
-			userId: String,
-			dbKey: DataWrapper,
+		userId: String,
+		dbKey: DataWrapper,
 	): Unit
 	suspend fun closeDb(
 	): Unit

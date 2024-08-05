@@ -1,5 +1,6 @@
 package de.tutao.calendar.push
 
+import android.Manifest
 import android.annotation.TargetApi
 import android.app.DownloadManager
 import android.app.Notification
@@ -9,15 +10,18 @@ import android.app.PendingIntent
 import android.content.ClipData
 import android.content.Context
 import android.content.Intent
+import android.content.pm.PackageManager
 import android.graphics.Color
 import android.media.AudioAttributes
 import android.media.RingtoneManager
 import android.os.Build
+import android.os.Bundle
 import android.service.notification.StatusBarNotification
 import android.util.Log
 import androidx.annotation.ColorInt
 import androidx.annotation.RequiresApi
 import androidx.annotation.StringRes
+import androidx.core.app.ActivityCompat
 import androidx.core.app.NotificationCompat
 import androidx.core.app.NotificationManagerCompat
 import androidx.core.content.ContextCompat
@@ -81,7 +85,7 @@ class LocalNotificationsFacade(private val context: Context, private val sseStor
 	}
 
 	fun sendEmailNotifications(mailMetadatas: List<Pair<NotificationInfo, MailMetadata?>>) {
-		throw Error("Calendar shouldn't send mail Notifications")
+		Log.e(TAG, "Calendar shouldn't send mail Notifications")
 	}
 
 	@TargetApi(Build.VERSION_CODES.Q)
@@ -106,6 +110,13 @@ class LocalNotificationsFacade(private val context: Context, private val sseStor
 			.setSmallIcon(R.drawable.ic_download)
 			.setAutoCancel(true)
 			.build()
+		if (ActivityCompat.checkSelfPermission(
+				context,
+				Manifest.permission.POST_NOTIFICATIONS
+			) != PackageManager.PERMISSION_GRANTED
+		) {
+			return
+		}
 		notificationManager.notify(mailNotificationId("downloads"), notification)
 	}
 
@@ -141,7 +152,6 @@ class LocalNotificationsFacade(private val context: Context, private val sseStor
 		notificationManager.notify(1000, notification)
 	}
 
-	@RequiresApi(Build.VERSION_CODES.O)
 	fun createNotificationChannels() {
 		val mailNotificationChannel = NotificationChannel(
 			EMAIL_NOTIFICATION_CHANNEL_ID,
@@ -172,7 +182,6 @@ class LocalNotificationsFacade(private val context: Context, private val sseStor
 		notificationManager.createNotificationChannel(downloadNotificationsChannel)
 	}
 
-	@RequiresApi(Build.VERSION_CODES.O)
 	private fun NotificationChannel.default(): NotificationChannel {
 		val ringtoneUri = RingtoneManager.getDefaultUri(RingtoneManager.TYPE_NOTIFICATION)
 		val att = AudioAttributes.Builder()
@@ -198,12 +207,10 @@ fun notificationDismissedIntent(
 	context: Context,
 	emailAddresses: ArrayList<String>,
 	sender: String,
-	isSummary: Boolean,
 ): Intent {
 	val deleteIntent = Intent(context, PushNotificationService::class.java)
 	deleteIntent.putStringArrayListExtra(NOTIFICATION_DISMISSED_ADDR_EXTRA, emailAddresses)
 	deleteIntent.putExtra("sender", sender)
-	deleteIntent.putExtra(MainActivity.IS_SUMMARY_EXTRA, isSummary)
 	return deleteIntent
 }
 

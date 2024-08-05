@@ -1,8 +1,6 @@
 package de.tutao.tutanota
 
 import de.tutao.tutanota.alarms.*
-import de.tutao.tutanota.alarms.AlarmModel.getAllDayDateUTC
-import de.tutao.tutanota.alarms.AlarmModel.iterateAlarmOccurrences
 import de.tutao.tutanota.push.isSameDay
 import org.junit.Assert
 import org.junit.Test

@@ -6,13 +6,12 @@ import android.webkit.JavascriptInterface
 import android.webkit.WebMessage
 import android.webkit.WebMessagePort
 import android.webkit.WebMessagePort.WebMessageCallback
-import de.tutao.tutanota.ipc.AndroidGlobalDispatcher
-import de.tutao.tutanota.ipc.NativeInterface
+import de.tutao.tutashared.ipc.AndroidGlobalDispatcher
+import de.tutao.tutashared.ipc.NativeInterface
 import kotlinx.coroutines.DelicateCoroutinesApi
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.GlobalScope
 import kotlinx.coroutines.launch
-import kotlinx.serialization.decodeFromString
 import kotlinx.serialization.json.Json
 import org.json.JSONException
 import org.json.JSONObject
@@ -26,10 +25,10 @@ import kotlin.coroutines.suspendCoroutine
  * Created by mpfau on 4/8/17.
  */
 class RemoteBridge internal constructor(
-		private val json: Json,
-		private val activity: MainActivity,
-		private val globalDispatcher: AndroidGlobalDispatcher,
-		private val commonSystemFacade: AndroidCommonSystemFacade,
+	private val json: Json,
+	private val activity: MainActivity,
+	private val globalDispatcher: AndroidGlobalDispatcher,
+	private val commonSystemFacade: AndroidCommonSystemFacade,
 ) : NativeInterface {
 
 	private val requests = mutableMapOf<String, Continuation<String>>()
@@ -61,8 +60,8 @@ class RemoteBridge internal constructor(
 
 		// We send the port to the web side, this message gets handled by window.onmessage
 		webView.postWebMessage(
-				WebMessage("", arrayOf(incomingPort)),
-				Uri.EMPTY
+			WebMessage("", arrayOf(incomingPort)),
+			Uri.EMPTY
 		)
 	}
 
@@ -82,6 +81,7 @@ class RemoteBridge internal constructor(
 					Log.w(TAG, "No request for id $id")
 				}
 			}
+
 			"request" -> {
 				val requestParts = rest.split("\n")
 				val requestType = requestParts[0]
@@ -94,10 +94,12 @@ class RemoteBridge internal constructor(
 					sendErrorResponse(id, e)
 				}
 			}
+
 			"requestError" -> {
 				val continuation = requests.remove(id)
 				continuation?.resumeWith(Result.failure(RemoteExecutionException(rest)))
 			}
+
 			else -> error("unknown message type")
 		}
 	}
@@ -152,9 +154,9 @@ class RemoteBridge internal constructor(
 			"remote request method must be 'ipc', got $method"
 		}
 		return globalDispatcher.dispatch(
-				json.decodeFromString(args[0]),
-				json.decodeFromString(args[1]),
-				args.slice(2..args.lastIndex),
+			json.decodeFromString(args[0]),
+			json.decodeFromString(args[1]),
+			args.slice(2..args.lastIndex),
 		)
 	}
 

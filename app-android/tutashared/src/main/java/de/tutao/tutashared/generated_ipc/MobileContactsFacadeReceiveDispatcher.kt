@@ -11,7 +11,7 @@ class MobileContactsFacadeReceiveDispatcher(
 	private val json: Json,
 	private val facade: MobileContactsFacade,
 ) {
-
+	
 	suspend fun dispatch(method: String, arg: List<String>): String {
 		when (method) {
 			"findSuggestions" -> {

@@ -2,11 +2,11 @@
 
 
 @file:Suppress("NAME_SHADOWING")
+
 package de.tutao.tutashared.ipc
 
-
-import kotlinx.serialization.*
-import kotlinx.serialization.json.*
+import kotlinx.serialization.encodeToString
+import kotlinx.serialization.json.Json
 
 class NativeCryptoFacadeReceiveDispatcher(
 	private val json: Json,
@@ -26,6 +26,7 @@ class NativeCryptoFacadeReceiveDispatcher(
 				)
 				return json.encodeToString(result)
 			}
+
 			"rsaDecrypt" -> {
 				val privateKey: RsaPrivateKey = json.decodeFromString(arg[0])
 				val data: DataWrapper = json.decodeFromString(arg[1])
@@ -35,6 +36,7 @@ class NativeCryptoFacadeReceiveDispatcher(
 				)
 				return json.encodeToString(result)
 			}
+
 			"aesEncryptFile" -> {
 				val key: DataWrapper = json.decodeFromString(arg[0])
 				val fileUri: String = json.decodeFromString(arg[1])
@@ -46,6 +48,7 @@ class NativeCryptoFacadeReceiveDispatcher(
 				)
 				return json.encodeToString(result)
 			}
+
 			"aesDecryptFile" -> {
 				val key: DataWrapper = json.decodeFromString(arg[0])
 				val fileUri: String = json.decodeFromString(arg[1])
@@ -55,23 +58,17 @@ class NativeCryptoFacadeReceiveDispatcher(
 				)
 				return json.encodeToString(result)
 			}
-			"argon2idHashRaw" -> {
-				val password: DataWrapper = json.decodeFromString(arg[0])
+
+			"argon2idGeneratePassphraseKey" -> {
+				val passphrase: String = json.decodeFromString(arg[0])
 				val salt: DataWrapper = json.decodeFromString(arg[1])
-				val timeCost: Int = json.decodeFromString(arg[2])
-				val memoryCost: Int = json.decodeFromString(arg[3])
-				val parallelism: Int = json.decodeFromString(arg[4])
-				val hashLength: Int = json.decodeFromString(arg[5])
-				val result: DataWrapper = this.facade.argon2idHashRaw(
-					password,
+				val result: DataWrapper = this.facade.argon2idGeneratePassphraseKey(
+					passphrase,
 					salt,
-					timeCost,
-					memoryCost,
-					parallelism,
-					hashLength,
 				)
 				return json.encodeToString(result)
 			}
+
 			"generateKyberKeypair" -> {
 				val seed: DataWrapper = json.decodeFromString(arg[0])
 				val result: KyberKeyPair = this.facade.generateKyberKeypair(
@@ -79,6 +76,7 @@ class NativeCryptoFacadeReceiveDispatcher(
 				)
 				return json.encodeToString(result)
 			}
+
 			"kyberEncapsulate" -> {
 				val publicKey: KyberPublicKey = json.decodeFromString(arg[0])
 				val seed: DataWrapper = json.decodeFromString(arg[1])
@@ -88,6 +86,7 @@ class NativeCryptoFacadeReceiveDispatcher(
 				)
 				return json.encodeToString(result)
 			}
+
 			"kyberDecapsulate" -> {
 				val privateKey: KyberPrivateKey = json.decodeFromString(arg[0])
 				val ciphertext: DataWrapper = json.decodeFromString(arg[1])
@@ -97,6 +96,7 @@ class NativeCryptoFacadeReceiveDispatcher(
 				)
 				return json.encodeToString(result)
 			}
+
 			else -> throw Error("unknown method for NativeCryptoFacade: $method")
 		}
 	}
