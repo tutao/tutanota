@@ -1,11 +1,10 @@
-package de.tutao.tutanota
+package de.tutao.calendar
 
 import android.content.Context
-import android.util.Log
 import androidx.test.ext.junit.runners.AndroidJUnit4
 import androidx.test.platform.app.InstrumentationRegistry
 import com.fasterxml.jackson.databind.ObjectMapper
-import de.tutao.tutanota.testdata.TestData
+import de.tutao.calendar.testdata.TestData
 import de.tutao.tutashared.AndroidNativeCryptoFacade
 import de.tutao.tutashared.AndroidNativeCryptoFacade.Companion.AES256_KEY_LENGTH_BYTES
 import de.tutao.tutashared.AndroidNativeCryptoFacade.Companion.bytesToKey

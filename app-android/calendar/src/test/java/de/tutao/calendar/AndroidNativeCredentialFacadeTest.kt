@@ -1,4 +1,4 @@
-package de.tutao.tutanota
+package de.tutao.calendar
 
 import de.tutao.tutashared.AndroidNativeCryptoFacade
 import de.tutao.tutashared.CredentialType

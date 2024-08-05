@@ -19,12 +19,6 @@ android {
 		versionName = "240.240731.0"
 
 		testInstrumentationRunner = "androidx.test.runner.AndroidJUnitRunner"
-
-		javaCompileOptions {
-			annotationProcessorOptions {
-				this.arguments["room.schemaLocation"] = "$projectDir/schemas"
-			}
-		}
 	}
 
 	signingConfigs {
@@ -120,12 +114,6 @@ android {
 
 	lint {
 		this.disable.add("MissingTranslation")
-	}
-
-	sourceSets {
-		this.getByName("androidTest") {
-			assets.srcDirs(files("$projectDir/schemas"))
-		};
 	}
 }
 

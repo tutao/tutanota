@@ -28,11 +28,31 @@ android {
 	}
 
 	buildTypes {
+		debug {
+			resValue("string", "package_name", "de.tutao.tutashared.debug")
+			manifestPlaceholders.clear()
+			manifestPlaceholders["contentProviderAuthority"] = "de.tutao.fileprovider.debug"
+			isJniDebuggable = true
+		}
 		release {
+			manifestPlaceholders += mapOf()
+			isMinifyEnabled = true
+			resValue("string", "package_name", "de.tutao.tutashared")
+			manifestPlaceholders["contentProviderAuthority"] = "de.tutao.fileprovider"
 			isMinifyEnabled = false
 			proguardFiles(getDefaultProguardFile("proguard-android-optimize.txt"), "proguard-rules.pro")
+
+
+		}
+		create("releaseTest") {
+			initWith(getByName("release"))
+			isMinifyEnabled = true
+			resValue("string", "package_name", "de.tutao.tutashared.test")
+			setProguardFiles(listOf(getDefaultProguardFile("proguard-android.txt"), "proguard-rules.pro"))
+			manifestPlaceholders["contentProviderAuthority"] = "de.tutao.fileprovider.test"
 		}
 	}
+
 	compileOptions {
 		sourceCompatibility = JavaVersion.VERSION_17
 		targetCompatibility = JavaVersion.VERSION_17
@@ -47,6 +67,10 @@ android {
 			this.path(file("src/main/cpp/CMakeLists.txt"))
 			this.version = "3.18.0+"
 		}
+	}
+
+	sourceSets {
+		this.getByName("debug").assets.srcDirs(files("$projectDir/schemas"))
 	}
 }
 

@@ -1,4 +1,4 @@
-package de.tutao.tutanota
+package de.tutao.calendar
 
 import androidx.room.Room
 import androidx.room.testing.MigrationTestHelper
