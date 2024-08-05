@@ -21,23 +21,6 @@ import { locator } from "../../../api/main/CommonLocator.js"
 import { PermissionType } from "../../common/generatedipc/PermissionType.js"
 import { CredentialsProvider } from "../../../misc/credentials/CredentialsProvider.js"
 
-export function renderPermissionButton(permissionName: TranslationKey, isPermissionGranted: boolean, onclick: ClickHandler) {
-	return renderBannerButton(isPermissionGranted ? "granted_msg" : permissionName, onclick, isPermissionGranted)
-}
-
-export function renderBannerButton(text: TranslationKey, onclick: ClickHandler, isDisabled?: boolean, classes?: string) {
-	return m(BannerButton, {
-		text,
-		borderColor: theme.content_accent,
-		color: theme.content_accent,
-		class: "b full-width button-content " + classes,
-		click: (event: MouseEvent, dom: HTMLElement) => {
-			onclick(event, dom)
-		},
-		disabled: isDisabled ?? undefined,
-	})
-}
-
 export async function showSetupWizard(
 	systemPermissionHandler: SystemPermissionHandler,
 	webMobileFacade: WebMobileFacade,
