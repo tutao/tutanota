@@ -215,7 +215,10 @@ export function getChunkName(moduleId, { getModuleInfo }) {
 		isIn("src/common/file") ||
 		isIn("src/common/gui") ||
 		isIn("src/common/serviceworker") ||
-		moduleId.includes(path.normalize("packages/tutanota-usagetests"))
+		moduleId.includes(path.normalize("packages/tutanota-usagetests")) ||
+		moduleId.includes("NotificationContentSelector") ||
+		moduleId.includes("NotificationPermissionsDialog") ||
+		moduleId.includes("SettingsBannerButton")
 	) {
 		// Things which we always need for main thread anyway, at least currently
 		return "main"

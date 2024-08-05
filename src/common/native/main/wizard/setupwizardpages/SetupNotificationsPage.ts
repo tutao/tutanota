@@ -3,11 +3,10 @@ import { WizardPageAttrs } from "../../../../gui/base/WizardDialog.js"
 import { PermissionType } from "../../../common/generatedipc/PermissionType.js"
 import { isAndroidApp } from "../../../../api/common/Env.js"
 import { lang } from "../../../../misc/LanguageViewModel.js"
-import { renderPermissionButton } from "../SetupWizard.js"
 import Stream from "mithril/stream"
 import { SetupPageLayout } from "./SetupPageLayout.js"
-import { locator } from "../../../../api/main/CommonLocator.js"
 import { SystemPermissionHandler } from "../../SystemPermissionHandler.js"
+import { NotificationPermissionsBody } from "../../../../settings/NotificationPermissionsDialog.js"
 
 export interface NotificationPermissionsData {
 	isNotificationPermissionGranted: boolean
@@ -16,20 +15,16 @@ export interface NotificationPermissionsData {
 
 export class SetupNotificationsPage implements Component<SetupNotificationsPageAttrs> {
 	view({ attrs }: Vnode<SetupNotificationsPageAttrs>): Children {
-		return m(SetupPageLayout, { image: "notifications" }, [
-			m("p.mb-s", lang.get("allowNotifications_msg")),
-			renderPermissionButton("grant_notification_permission_action", attrs.data.isNotificationPermissionGranted, () =>
-				attrs.askForNotificationPermission(),
-			),
-			!isAndroidApp()
-				? null
-				: m("section.mt-s.mb", [
-						m("p.mb-s.mt-s", lang.get("allowBatteryPermission_msg")),
-						renderPermissionButton("grant_battery_permission_action", attrs.data.isBatteryPermissionGranted, () =>
-							attrs.askForBatteryNotificationPermission(),
-						),
-				  ]),
-		])
+		return m(
+			SetupPageLayout,
+			{ image: "notifications" },
+			m(NotificationPermissionsBody, {
+				isNotificationPermissionGranted: attrs.data.isNotificationPermissionGranted,
+				isBatteryPermissionGranted: attrs.data.isBatteryPermissionGranted,
+				askForNotificationPermission: (isGranted: boolean) => attrs.setIsNotificationPermissionGranted(isGranted),
+				askForBatteryNotificationPermission: (isGranted) => attrs.setIsBatteryNotificationPermissionGranted(isGranted),
+			}),
+		)
 	}
 }
 
@@ -63,32 +58,18 @@ export class SetupNotificationsPageAttrs implements WizardPageAttrs<Notification
 		})
 	}
 
-	async askForNotificationPermission() {
-		// Ask for the notification permission
-		const isNotificationPermissionGranted = await this.systemPermissionHandler.requestPermission(
-			PermissionType.Notification,
-			"grant_notification_permission_action",
-		)
+	setIsNotificationPermissionGranted(isGranted: boolean) {
 		this.data = {
 			...this.data,
-			isNotificationPermissionGranted,
-		}
-
-		// Register the push notifications if granted
-		if (isNotificationPermissionGranted) {
-			locator.pushService.register()
+			isNotificationPermissionGranted: isGranted,
 		}
 		m.redraw()
 	}
 
-	async askForBatteryNotificationPermission() {
-		// Ask for permission to disable battery optimisations
+	setIsBatteryNotificationPermissionGranted(isGranted: boolean) {
 		this.data = {
 			...this.data,
-			isBatteryPermissionGranted: await this.systemPermissionHandler.requestPermission(
-				PermissionType.IgnoreBatteryOptimization,
-				"allowBatteryPermission_msg",
-			),
+			isBatteryPermissionGranted: isGranted,
 		}
 		m.redraw()
 	}
