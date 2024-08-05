@@ -3,7 +3,6 @@
 
 package de.tutao.tutashared.ipc
 
-import de.tutao.tutashared.DataFile
 import kotlinx.serialization.*
 import kotlinx.serialization.json.*
 
@@ -92,7 +91,7 @@ interface FileFacade {
 	 * Save the unencrypted data file to the disk into a fixed temporary location, not the user's preferred download dir.
 	 */
 	suspend fun writeDataFile(
-			file: DataFile,
+		file: DataFile,
 	): String
 	/**
 	 * read the file at the given location into a DataFile. Returns null if reading fails for any reason.

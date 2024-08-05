@@ -9,7 +9,7 @@ import kotlinx.serialization.json.*
 
 @Serializable
 data class WebAuthnSignChallenge(
-		val challenge: DataWrapper,
-		val domain: String,
-		val keys: List<WebauthnKeyDescriptor>,
+	val challenge: DataWrapper,
+	val domain: String,
+	val keys: List<WebauthnKeyDescriptor>,
 )

@@ -4,21 +4,22 @@ import android.util.Log
 import androidx.lifecycle.LifecycleCoroutineScope
 import de.tutao.tutanota.BuildConfig
 import de.tutao.tutanota.R
-import de.tutao.tutanota.SdkRestClient
-import de.tutao.tutanota.addCommonHeadersWithSysModelVersion
 import de.tutao.tutanota.alarms.AlarmNotificationsManager
-import de.tutao.tutanota.alarms.EncryptedAlarmNotification
-import de.tutao.tutanota.base64ToBase64Url
-import de.tutao.tutanota.data.SseInfo
-import de.tutao.tutanota.ipc.NativeCredentialsFacade
-import de.tutao.tutanota.ipc.wrap
-import de.tutao.tutanota.offline.AndroidSqlCipherFacade
-import de.tutao.tutanota.offline.sqlTagged
-import de.tutao.tutanota.toBase64
 import de.tutao.tutasdk.CredentialType
 import de.tutao.tutasdk.Credentials
 import de.tutao.tutasdk.Sdk
 import de.tutao.tutasdk.serializeMail
+import de.tutao.tutashared.SdkRestClient
+import de.tutao.tutashared.addCommonHeadersWithSysModelVersion
+import de.tutao.tutashared.alarms.EncryptedAlarmNotification
+import de.tutao.tutashared.base64ToBase64Url
+import de.tutao.tutashared.data.SseInfo
+import de.tutao.tutashared.ipc.NativeCredentialsFacade
+import de.tutao.tutashared.ipc.wrap
+import de.tutao.tutashared.offline.AndroidSqlCipherFacade
+import de.tutao.tutashared.offline.sqlTagged
+import de.tutao.tutashared.push.SseStorage
+import de.tutao.tutashared.toBase64
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
 import kotlinx.serialization.json.Json
@@ -255,7 +256,7 @@ class TutanotaNotificationsHandler(
 			login = unencryptedCredentials.credentialInfo.login,
 			userId = unencryptedCredentials.credentialInfo.userId,
 			accessToken = unencryptedCredentials.accessToken,
-			encryptedPassphraseKey = unencryptedCredentials.encryptedPassphraseKey.data,
+			encryptedPassphraseKey = unencryptedCredentials.encryptedPassphraseKey!!.data,
 			credentialType = CredentialType.INTERNAL
 		)
 
@@ -270,7 +271,10 @@ class TutanotaNotificationsHandler(
 			val serializedMail = serializeMail(mail)
 			val sqlCipherFacade = this.getSqlCipherFacade()
 			try {
-				sqlCipherFacade.openDb(unencryptedCredentials.credentialInfo.userId, unencryptedCredentials.databaseKey)
+				sqlCipherFacade.openDb(
+					unencryptedCredentials.credentialInfo.userId,
+					unencryptedCredentials.databaseKey!!
+				)
 				sqlCipherFacade.run(
 					"INSERT OR IGNORE INTO list_entities VALUES (?, ?, ?, ?, ?)", listOf(
 						"tutanota/Mail".sqlTagged(),

@@ -10,13 +10,13 @@ import kotlinx.serialization.json.*
 enum class AppLockMethod(val value: String) {
 	@SerialName("0")
 	NONE("0"),
-
+	
 	@SerialName("1")
 	SYSTEM_PASS_OR_BIOMETRICS("1"),
-
+	
 	@SerialName("2")
 	BIOMETRICS("2");
-
+	
 	companion object {
 		 fun fromValue(
 			value: String,

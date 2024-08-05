@@ -12,6 +12,7 @@ import androidx.fragment.app.FragmentActivity
 import de.tutao.tutashared.AndroidKeyStoreFacade
 import de.tutao.tutashared.CredentialAuthenticationException
 import de.tutao.tutashared.CryptoError
+import de.tutao.tutashared.ModuleResources
 import de.tutao.tutashared.ipc.CredentialEncryptionMode
 import java.security.KeyStoreException
 import javax.crypto.Cipher
@@ -79,8 +80,7 @@ class CredentialsEncryptionFromAPI30(
 		val allowedAuthenticators =
 			if (encryptionMode == CredentialEncryptionMode.BIOMETRICS) Authenticators.BIOMETRIC_STRONG else Authenticators.DEVICE_CREDENTIAL or Authenticators.BIOMETRIC_STRONG
 		val promptInfoBuilder = PromptInfo.Builder()
-			//FIXME R.string.unlockCredentials_action
-			.setTitle("")
+			.setTitle(ModuleResources.getString("unlockCredentials_action"))
 			.setAllowedAuthenticators(allowedAuthenticators)
 		if (encryptionMode == CredentialEncryptionMode.BIOMETRICS) {
 			promptInfoBuilder.setNegativeButtonText(activity.getString(android.R.string.cancel))
@@ -152,15 +152,13 @@ class CredentialsEncryptionFromAPI30(
 	private fun createPromptInfo(mode: CredentialEncryptionMode): PromptInfo {
 		return if (mode === CredentialEncryptionMode.BIOMETRICS) {
 			val promptInfoBuilder = PromptInfo.Builder()
-				//FIXME R.string.unlockCredentials_action
-				.setTitle("") // see AuthenticatorUtils#isSupportedCombination from androidx.biometrics
+				.setTitle(ModuleResources.getString("unlockCredentials_action")) // see AuthenticatorUtils#isSupportedCombination from androidx.biometrics
 				.setAllowedAuthenticators(Authenticators.BIOMETRIC_STRONG)
 				.setNegativeButtonText(activity.getString(android.R.string.cancel))
 			promptInfoBuilder.build()
 		} else if (mode === CredentialEncryptionMode.SYSTEM_PASSWORD) {
 			val promptInfoBuilder = PromptInfo.Builder()
-				//FIXME R.string.unlockCredentials_action
-				.setTitle("") // see AuthenticatorUtils#isSupportedCombination from androidx.biometrics
+				.setTitle(ModuleResources.getString("unlockCredentials_action")) // see AuthenticatorUtils#isSupportedCombination from androidx.biometrics
 				.setAllowedAuthenticators(Authenticators.DEVICE_CREDENTIAL or Authenticators.BIOMETRIC_WEAK)
 			promptInfoBuilder.build()
 		} else {
