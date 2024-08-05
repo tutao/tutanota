@@ -3,7 +3,6 @@
 
 package de.tutao.tutashared.ipc
 
-
 import kotlinx.serialization.*
 import kotlinx.serialization.json.*
 
@@ -14,8 +13,8 @@ interface NativeCryptoFacade {
 		seed: DataWrapper,
 	): DataWrapper
 	suspend fun rsaDecrypt(
-			privateKey: RsaPrivateKey,
-			data: DataWrapper,
+		privateKey: RsaPrivateKey,
+		data: DataWrapper,
 	): DataWrapper
 	/**
 	 * Encrypt file specified by the `fileUri`. Returns URI of the encrypted file.
@@ -32,13 +31,9 @@ interface NativeCryptoFacade {
 		key: DataWrapper,
 		fileUri: String,
 	): String
-	suspend fun argon2idHashRaw(
-		password: DataWrapper,
+	suspend fun argon2idGeneratePassphraseKey(
+		passphrase: String,
 		salt: DataWrapper,
-		timeCost: Int,
-		memoryCost: Int,
-		parallelism: Int,
-		hashLength: Int,
 	): DataWrapper
 	suspend fun generateKyberKeypair(
 		seed: DataWrapper,

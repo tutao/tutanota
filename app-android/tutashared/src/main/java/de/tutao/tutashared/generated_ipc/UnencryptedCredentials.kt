@@ -3,8 +3,7 @@
 
 package de.tutao.tutashared.ipc
 
-import kotlinx.serialization.*
-import kotlinx.serialization.json.*
+import kotlinx.serialization.Serializable
 
 
 /**
@@ -12,8 +11,9 @@ import kotlinx.serialization.json.*
  */
 @Serializable
 data class UnencryptedCredentials(
-		val credentialInfo: CredentialsInfo,
-		val accessToken: String,
-		val databaseKey: DataWrapper?,
-		val encryptedPassword: String,
+	val credentialInfo: CredentialsInfo,
+	val accessToken: String,
+	val databaseKey: DataWrapper?,
+	val encryptedPassword: String,
+	val encryptedPassphraseKey: DataWrapper?,
 )

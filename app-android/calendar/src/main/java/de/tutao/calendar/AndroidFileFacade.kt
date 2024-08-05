@@ -16,7 +16,6 @@ import androidx.core.content.FileProvider
 import androidx.core.net.toUri
 import de.tutao.calendar.push.LocalNotificationsFacade
 import de.tutao.calendar.push.showDownloadNotification
-import de.tutao.tutashared.DataFile
 import de.tutao.tutashared.HashingInputStream
 import de.tutao.tutashared.TempDir
 import de.tutao.tutashared.bytes
@@ -387,7 +386,10 @@ class AndroidFileFacade(
 			var chunk = 0
 			while (chunk * maxChunkSizeBytes <= fileSize) {
 				val tmpFilename = Integer.toHexString(file.hashCode()) + "." + chunk + ".blob"
-				val chunkedInputStream = BoundedInputStream(inputStream, maxChunkSizeBytes.toLong())
+				val chunkedInputStream = BoundedInputStream.builder()
+		  .setInputStream(inputStream)
+		  .setMaxCount(maxChunkSizeBytes.toLong())
+		  .get()
 				val tmpFile = File(tempDir.decrypt, tmpFilename)
 				writeFileStream(tmpFile, chunkedInputStream)
 				chunkUris.add(tmpFile.toUri().toString())

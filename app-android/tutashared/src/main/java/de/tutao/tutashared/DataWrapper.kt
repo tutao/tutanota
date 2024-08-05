@@ -25,6 +25,10 @@ class DataWrapper(
 		val otherWrapper = other as? DataWrapper ?: return false
 		return this.data.contentEquals(otherWrapper.data)
 	}
+
+	override fun toString(): String {
+		return data.joinToString(",", "[", "]")
+	}
 }
 
 object DataWrapperSerializer : KSerializer<DataWrapper> {

@@ -1,6 +1,9 @@
 package de.tutao.tutashared
 
-import kotlinx.serialization.*
+import kotlinx.serialization.ExperimentalSerializationApi
+import kotlinx.serialization.KSerializer
+import kotlinx.serialization.SerialName
+import kotlinx.serialization.Serializable
 import kotlinx.serialization.builtins.ListSerializer
 import kotlinx.serialization.builtins.serializer
 import kotlinx.serialization.descriptors.SerialDescriptor
@@ -24,19 +27,18 @@ enum class OperationType {
 
 @Serializable(with = IdTuple.IdTupleSerializer::class)
 class IdTuple(
-		val listId: String,
-		val elementId: String
+	val listId: String,
+	val elementId: String
 ) {
 
 	@OptIn(ExperimentalSerializationApi::class)
-	@Serializer(forClass = IdTuple::class)
 	companion object IdTupleSerializer : KSerializer<IdTuple> {
 		override val descriptor: SerialDescriptor = listSerialDescriptor<String>()
 
 		override fun serialize(encoder: Encoder, value: IdTuple) {
 			val listEncoder = encoder.beginCollection(
-					ListSerializer(String.serializer()).descriptor,
-					2
+				ListSerializer(String.serializer()).descriptor,
+				2
 			)
 			listEncoder.encodeStringElement(descriptor, 0, value.listId)
 			listEncoder.encodeStringElement(descriptor, 1, value.elementId)
@@ -45,7 +47,7 @@ class IdTuple(
 
 		override fun deserialize(decoder: Decoder): IdTuple {
 			return decoder.decodeStructure(
-					ListSerializer(String.serializer()).descriptor
+				ListSerializer(String.serializer()).descriptor
 			) {
 				var listId = ""
 				var elementId = ""

@@ -42,8 +42,8 @@ fun String.base64ToString(): String = String(this.base64ToBytes())
 
 fun String.base64ToBase64Url(): String {
 	return replace("\\+".toRegex(), "-")
-			.replace("/".toRegex(), "_")
-			.replace("=".toRegex(), "")
+		.replace("/".toRegex(), "_")
+		.replace("=".toRegex(), "")
 }
 
 @Throws(IOException::class)
@@ -76,8 +76,8 @@ fun getFileInfo(context: Context, fileUri: Uri): FileInfo {
 			context.contentResolver.query(fileUri, null, null, null, null).use { cursor ->
 				if (cursor != null && cursor.moveToFirst()) {
 					val filename =
-							cursor.getString(cursor.getColumnIndexOrThrow(OpenableColumns.DISPLAY_NAME))
-									?: fileUri.lastPathSegment
+						cursor.getString(cursor.getColumnIndexOrThrow(OpenableColumns.DISPLAY_NAME))
+							?: fileUri.lastPathSegment
 					return FileInfo(filename!!, cursor.getLong(cursor.getColumnIndexOrThrow(OpenableColumns.SIZE)))
 				}
 			}
@@ -89,11 +89,9 @@ fun getFileInfo(context: Context, fileUri: Uri): FileInfo {
 	throw RuntimeException("could not resolve file name / size for uri $fileUri")
 }
 
-fun atLeastTiramisu() : Boolean = Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU
+fun atLeastTiramisu(): Boolean = Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU
 
-fun atLeastOreo(): Boolean = Build.VERSION.SDK_INT >= Build.VERSION_CODES.O
-
-fun atLeastNougat(): Boolean = Build.VERSION.SDK_INT >= Build.VERSION_CODES.N
+fun atLeastQuinceTart(): Boolean = Build.VERSION.SDK_INT >= Build.VERSION_CODES.Q
 
 @Throws(JSONException::class)
 fun JSONObject.toMap(): MutableMap<String, String> {
@@ -124,13 +122,13 @@ fun parseColor(color: String): Int {
 	require(color[0] == '#' && (color.length == 4 || color.length == 7)) { "Invalid color format: $color" }
 	val normalizedColor = if (color.length == 4) {
 		val chars = charArrayOf(
-				'#',
-				color[1],
-				color[1],
-				color[2],
-				color[2],
-				color[3],
-				color[3]
+			'#',
+			color[1],
+			color[1],
+			color[2],
+			color[2],
+			color[3],
+			color[3]
 		)
 		String(chars)
 	} else {
@@ -152,12 +150,12 @@ fun getDefaultSharedPreferences(context: Context): SharedPreferences {
 }
 
 inline fun Cursor.forEachRow(block: (cursor: Cursor) -> Unit) {
-  while (this.moveToNext()) {
-	block(this)
-  }
+	while (this.moveToNext()) {
+		block(this)
+	}
 }
 
 inline fun <R, C : MutableCollection<in R>> Cursor.mapTo(collection: C, mapper: (cursor: Cursor) -> R): C {
-  forEachRow { collection.add(mapper(this)) }
-  return collection
+	forEachRow { collection.add(mapper(this)) }
+	return collection
 }

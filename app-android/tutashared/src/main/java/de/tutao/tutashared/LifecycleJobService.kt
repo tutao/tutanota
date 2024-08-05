@@ -15,9 +15,9 @@ abstract class LifecycleJobService : JobService(), LifecycleOwner {
 		super.onCreate()
 	}
 
-	override fun onStart(intent: Intent?, startId: Int) {
+	override fun onStartCommand(intent: Intent?, flags: Int, startId: Int): Int {
 		lifecycleRegistry.handleLifecycleEvent(Lifecycle.Event.ON_START)
-		super.onStart(intent, startId)
+		return super.onStartCommand(intent, flags, startId)
 	}
 
 	override fun onDestroy() {
@@ -26,7 +26,6 @@ abstract class LifecycleJobService : JobService(), LifecycleOwner {
 		super.onDestroy()
 	}
 
-	override fun getLifecycle(): Lifecycle {
-		return lifecycleRegistry
-	}
+	override val lifecycle: Lifecycle
+		get() = lifecycleRegistry
 }

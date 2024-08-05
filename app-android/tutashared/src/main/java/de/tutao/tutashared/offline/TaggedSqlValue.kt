@@ -29,3 +29,7 @@ fun TaggedSqlValue.unwrap(): Any? = when (this) {
 	is TaggedSqlValue.Num -> this.value
 	is TaggedSqlValue.Bytes -> this.value.data
 }
+
+fun String.sqlTagged() = TaggedSqlValue.Str(this)
+
+fun DataWrapper.sqlTagged() = TaggedSqlValue.Bytes(this)
