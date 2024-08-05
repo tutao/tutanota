@@ -6,9 +6,7 @@ import { NativeContactsSyncManager } from "../../../../../mail-app/contacts/mode
 import { ContactImporter } from "../../../../../mail-app/contacts/ContactImporter.js"
 import { Dialog } from "../../../../gui/base/Dialog.js"
 import { MobileSystemFacade } from "../../../common/generatedipc/MobileSystemFacade.js"
-import { renderBannerButton } from "../SetupWizard.js"
-import { SystemPermissionHandler } from "../../SystemPermissionHandler.js"
-import { PermissionType } from "../../../common/generatedipc/PermissionType.js"
+import { renderSettingsBannerButton } from "../../../../settings/SettingsBannerButton.js"
 
 export class SetupContactsPage implements Component<SetupContactsPageAttrs> {
 	view({ attrs }: Vnode<SetupContactsPageAttrs>): Children {
@@ -20,11 +18,11 @@ export class SetupContactsPage implements Component<SetupContactsPageAttrs> {
 
 		return [
 			m("p.mb-s", lang.get("importContacts_msg")),
-			renderBannerButton("import_action", () => {
+			renderSettingsBannerButton("import_action", () => {
 				attrs.contactImporter.importContactsFromDeviceSafely()
 			}),
 			m("p.mb-s", lang.get("allowContactSynchronization")),
-			renderBannerButton(
+			renderSettingsBannerButton(
 				isContactSyncEnabled ? "activated_label" : "activate_action",
 				() => {
 					this.enableSync(attrs)
