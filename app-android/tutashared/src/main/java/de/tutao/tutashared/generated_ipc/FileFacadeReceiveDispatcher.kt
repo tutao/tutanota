@@ -4,7 +4,6 @@
 @file:Suppress("NAME_SHADOWING")
 package de.tutao.tutashared.ipc
 
-import de.tutao.tutashared.DataFile
 import kotlinx.serialization.*
 import kotlinx.serialization.json.*
 
@@ -12,7 +11,7 @@ class FileFacadeReceiveDispatcher(
 	private val json: Json,
 	private val facade: FileFacade,
 ) {
-
+	
 	suspend fun dispatch(method: String, arg: List<String>): String {
 		when (method) {
 			"open" -> {

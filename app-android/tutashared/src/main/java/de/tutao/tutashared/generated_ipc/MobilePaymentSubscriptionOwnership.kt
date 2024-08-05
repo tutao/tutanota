@@ -1,30 +1,30 @@
 /* generated file, don't edit. */
 
 
-package de.tutao.tutanota.ipc
+package de.tutao.tutashared.ipc
 
 import kotlinx.serialization.*
 import kotlinx.serialization.json.*
 
 @Serializable
-enum class PermissionType(val value: String) {
+enum class MobilePaymentSubscriptionOwnership(val value: String) {
 	@SerialName("0")
-	CONTACTS("0"),
+	OWNER("0"),
 	
 	@SerialName("1")
-	IGNORE_BATTERY_OPTIMIZATION("1"),
+	NOT_OWNER("1"),
 	
 	@SerialName("2")
-	NOTIFICATION("2");
+	NO_SUBSCRIPTION("2");
 	
 	companion object {
 		 fun fromValue(
 			value: String,
-		): PermissionType?
+		): MobilePaymentSubscriptionOwnership?
 			= when (value) {
-			"0" -> CONTACTS
-			"1" -> IGNORE_BATTERY_OPTIMIZATION
-			"2" -> NOTIFICATION
+			"0" -> OWNER
+			"1" -> NOT_OWNER
+			"2" -> NO_SUBSCRIPTION
 			else -> null
 		}
 	}

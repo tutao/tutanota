@@ -9,9 +9,9 @@ import kotlinx.serialization.json.*
 
 @Serializable
 data class WebAuthnRegistrationChallenge(
-		val challenge: DataWrapper,
-		val userId: String,
-		val name: String,
-		val displayName: String,
-		val domain: String,
+	val challenge: DataWrapper,
+	val userId: String,
+	val name: String,
+	val displayName: String,
+	val domain: String,
 )

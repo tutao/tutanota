@@ -4,7 +4,6 @@
 @file:Suppress("NAME_SHADOWING")
 package de.tutao.tutashared.ipc
 
-
 import kotlinx.serialization.*
 import kotlinx.serialization.json.*
 
@@ -12,7 +11,7 @@ class NativeCredentialsFacadeReceiveDispatcher(
 	private val json: Json,
 	private val facade: NativeCredentialsFacade,
 ) {
-
+	
 	suspend fun dispatch(method: String, arg: List<String>): String {
 		when (method) {
 			"getSupportedEncryptionModes" -> {

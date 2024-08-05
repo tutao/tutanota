@@ -2,6 +2,7 @@ package de.tutao.calendar.alarms
 
 import android.util.Log
 import de.tutao.calendar.*
+import de.tutao.calendar.push.LocalNotificationsFacade
 import de.tutao.tutashared.AndroidNativeCryptoFacade
 import de.tutao.tutashared.CryptoError
 import de.tutao.tutashared.OperationType
@@ -23,6 +24,7 @@ class AlarmNotificationsManager(
 	private val sseStorage: SseStorage,
 	private val crypto: AndroidNativeCryptoFacade,
 	private val systemAlarmFacade: SystemAlarmFacade,
+	private val localNotificationsFacade: LocalNotificationsFacade,
 ) {
 	private val pushKeyResolver: PushKeyResolver = PushKeyResolver(sseStorage)
 
@@ -152,9 +154,7 @@ class AlarmNotificationsManager(
 			}
 		} catch (e: Exception) {
 			Log.e(TAG, "Error when scheduling alarm", e)
-			//FIXME R.string.wantToSendReport_msg
-			//FIXME extract this
-//			localNotificationsFacade.showErrorNotification(0, e)
+			localNotificationsFacade.showErrorNotification(R.string.wantToSendReport_msg, e)
 		}
 	}
 

@@ -11,7 +11,7 @@ class WebAuthnFacadeReceiveDispatcher(
 	private val json: Json,
 	private val facade: WebAuthnFacade,
 ) {
-
+	
 	suspend fun dispatch(method: String, arg: List<String>): String {
 		when (method) {
 			"register" -> {

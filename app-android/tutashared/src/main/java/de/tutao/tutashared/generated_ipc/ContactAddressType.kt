@@ -2,5 +2,4 @@
 
 
 package de.tutao.tutashared.ipc
-
 typealias ContactAddressType = de.tutao.tutashared.contacts.ContactAddressType

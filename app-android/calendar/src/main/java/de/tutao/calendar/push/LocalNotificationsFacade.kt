@@ -81,7 +81,7 @@ class LocalNotificationsFacade(private val context: Context, private val sseStor
 	}
 
 	fun sendEmailNotifications(mailMetadatas: List<Pair<NotificationInfo, MailMetadata?>>) {
-		throw Error("Calendar shouldn't send mail Notifications")
+		Log.e(TAG, "Calendar shouldn't send mail Notifications")
 	}
 
 	@TargetApi(Build.VERSION_CODES.Q)

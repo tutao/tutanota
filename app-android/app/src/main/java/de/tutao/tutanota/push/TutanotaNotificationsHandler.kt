@@ -2,20 +2,16 @@ package de.tutao.tutanota.push
 
 import android.util.Log
 import androidx.lifecycle.LifecycleCoroutineScope
-import de.tutao.tutanota.AndroidNativeCryptoFacade
 import de.tutao.tutanota.R
-import de.tutao.tutanota.addCommonHeadersWithSysModelVersion
-import de.tutao.tutanota.addCommonHeadersWithTutanotaModelVersion
 import de.tutao.tutanota.alarms.AlarmNotificationsManager
-import de.tutao.tutanota.alarms.EncryptedAlarmNotification
-import de.tutao.tutanota.base64ToBase64Url
-import de.tutao.tutanota.credentials.AndroidNativeCredentialsFacade
-import de.tutao.tutanota.credentials.CredentialEncryptionMode
-import de.tutao.tutanota.data.AppDatabase
-import de.tutao.tutanota.data.SseInfo
-import de.tutao.tutanota.decryptString
-import de.tutao.tutanota.ipc.NativeCredentialsFacade
-import de.tutao.tutanota.toBase64
+import de.tutao.tutashared.addCommonHeadersWithSysModelVersion
+import de.tutao.tutashared.addCommonHeadersWithTutanotaModelVersion
+import de.tutao.tutashared.alarms.EncryptedAlarmNotification
+import de.tutao.tutashared.base64ToBase64Url
+import de.tutao.tutashared.data.SseInfo
+import de.tutao.tutashared.ipc.NativeCredentialsFacade
+import de.tutao.tutashared.push.SseStorage
+import de.tutao.tutashared.toBase64
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
 import kotlinx.serialization.json.Json
@@ -258,13 +254,13 @@ class TutanotaNotificationsHandler(
 		val req = requestBuilder.build()
 
 		val response = defaultClient
-				.newBuilder()
-				.connectTimeout(30, TimeUnit.SECONDS)
-				.writeTimeout(20, TimeUnit.SECONDS)
-				.readTimeout(20, TimeUnit.SECONDS)
-				.build()
-				.newCall(req)
-				.execute()
+			.newBuilder()
+			.connectTimeout(30, TimeUnit.SECONDS)
+			.writeTimeout(20, TimeUnit.SECONDS)
+			.readTimeout(20, TimeUnit.SECONDS)
+			.build()
+			.newCall(req)
+			.execute()
 
 		val responseCode = response.code
 		Log.d(TAG, "Notification email metadata response code $responseCode")

@@ -6,11 +6,11 @@ import android.content.Intent
 import android.util.Log
 import androidx.lifecycle.lifecycleScope
 import de.tutao.calendar.BuildConfig
-import de.tutao.tutashared.LifecycleJobService
 import de.tutao.calendar.alarms.AlarmNotificationsManager
 import de.tutao.calendar.alarms.SystemAlarmFacade
 import de.tutao.calendar.push.SseClient.SseListener
 import de.tutao.tutashared.AndroidNativeCryptoFacade
+import de.tutao.tutashared.LifecycleJobService
 import de.tutao.tutashared.ModuleBuildConfig
 import de.tutao.tutashared.NetworkUtils
 import de.tutao.tutashared.atLeastOreo
@@ -97,6 +97,7 @@ class PushNotificationService : LifecycleJobService() {
 			sseStorage,
 			crypto,
 			SystemAlarmFacade(this),
+			localNotificationsFacade
 		)
 		alarmNotificationsManager.reScheduleAlarms()
 		sseClient = SseClient(

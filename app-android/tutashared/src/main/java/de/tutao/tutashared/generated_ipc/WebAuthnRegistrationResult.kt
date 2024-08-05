@@ -12,7 +12,7 @@ import kotlinx.serialization.json.*
  */
 @Serializable
 data class WebAuthnRegistrationResult(
-		val rpId: String,
-		val rawId: DataWrapper,
-		val attestationObject: DataWrapper,
+	val rpId: String,
+	val rawId: DataWrapper,
+	val attestationObject: DataWrapper,
 )

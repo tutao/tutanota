@@ -3,13 +3,12 @@
 
 package de.tutao.tutashared.ipc
 
-
 import kotlinx.serialization.*
 import kotlinx.serialization.json.*
 
 
 @Serializable
 data class KyberEncapsulation(
-		val ciphertext: DataWrapper,
-		val sharedSecret: DataWrapper,
+	val ciphertext: DataWrapper,
+	val sharedSecret: DataWrapper,
 )

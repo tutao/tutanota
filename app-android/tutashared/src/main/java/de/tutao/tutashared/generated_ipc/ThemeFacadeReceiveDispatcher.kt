@@ -11,7 +11,7 @@ class ThemeFacadeReceiveDispatcher(
 	private val json: Json,
 	private val facade: ThemeFacade,
 ) {
-
+	
 	suspend fun dispatch(method: String, arg: List<String>): String {
 		when (method) {
 			"getThemes" -> {

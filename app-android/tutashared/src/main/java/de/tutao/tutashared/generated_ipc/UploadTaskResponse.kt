@@ -12,9 +12,9 @@ import kotlinx.serialization.json.*
  */
 @Serializable
 data class UploadTaskResponse(
-		val statusCode: Int,
-		val errorId: String?,
-		val precondition: String?,
-		val suspensionTime: String?,
-		val responseBody: DataWrapper,
+	val statusCode: Int,
+	val errorId: String?,
+	val precondition: String?,
+	val suspensionTime: String?,
+	val responseBody: DataWrapper,
 )

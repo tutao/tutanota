@@ -13,18 +13,13 @@ android {
 		applicationId "de.tutao.tutanota"
 		minSdkVersion 26
 		targetSdkVersion 33
-		versionCode 396366
+		versionCode 396367
 		versionName "240.240731.0"
 		testInstrumentationRunner "androidx.test.runner.AndroidJUnitRunner"
 
 		javaCompileOptions {
 			annotationProcessorOptions {
 				arguments += ["room.schemaLocation": "$projectDir/schemas".toString()]
-			}
-		}
-		externalNativeBuild {
-			cmake {
-				cppFlags ''
 			}
 		}
 	}
@@ -85,8 +80,8 @@ android {
 	buildTypes.each {
 		it.buildConfigField 'String', 'FILE_PROVIDER_AUTHORITY', '"' + it.manifestPlaceholders['contentProviderAuthority'] + '"'
 		// keep in sync with src/native/main/NativePushServiceApp.ts
-		it.buildConfigField 'String', "SYS_MODEL_VERSION", '"99"'
-		it.buildConfigField 'String', "TUTANOTA_MODEL_VERSION", '"71"'
+		it.buildConfigField 'String', "SYS_MODEL_VERSION", '"105"'
+		it.buildConfigField 'String', "TUTANOTA_MODEL_VERSION", '"73"'
 		it.buildConfigField 'String', 'RES_ADDRESS', '"tutanota"'
 	}
 
@@ -114,12 +109,6 @@ android {
 	}
 
 	namespace 'de.tutao.tutanota'
-	externalNativeBuild {
-		cmake {
-			path file('src/main/cpp/CMakeLists.txt')
-			version "3.18.0+"
-		}
-	}
 }
 
 tasks.withType(Test).configureEach {
@@ -132,6 +121,7 @@ tasks.withType(Test).configureEach {
 
 
 dependencies {
+	implementation project(':tutashared')
 	def room_version = "2.4.2"
 	def lifecycle_version = "2.4.1"
 	def activity_version = "1.4.0"

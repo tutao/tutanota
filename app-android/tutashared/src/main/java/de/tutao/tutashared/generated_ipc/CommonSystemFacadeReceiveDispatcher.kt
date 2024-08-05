@@ -11,7 +11,7 @@ class CommonSystemFacadeReceiveDispatcher(
 	private val json: Json,
 	private val facade: CommonSystemFacade,
 ) {
-
+	
 	suspend fun dispatch(method: String, arg: List<String>): String {
 		when (method) {
 			"initializeRemoteBridge" -> {

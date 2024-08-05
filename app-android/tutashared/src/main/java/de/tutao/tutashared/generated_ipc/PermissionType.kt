@@ -10,13 +10,13 @@ import kotlinx.serialization.json.*
 enum class PermissionType(val value: String) {
 	@SerialName("0")
 	CONTACTS("0"),
-
+	
 	@SerialName("1")
 	IGNORE_BATTERY_OPTIMIZATION("1"),
-
+	
 	@SerialName("2")
 	NOTIFICATION("2");
-
+	
 	companion object {
 		 fun fromValue(
 			value: String,

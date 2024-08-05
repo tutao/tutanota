@@ -12,5 +12,5 @@ import kotlinx.serialization.json.*
  */
 @Serializable
 data class WebauthnKeyDescriptor(
-		val id: DataWrapper,
+	val id: DataWrapper,
 )

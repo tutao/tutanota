@@ -12,8 +12,8 @@ import kotlinx.serialization.json.*
  */
 @Serializable
 data class WebAuthnSignResult(
-		val rawId: DataWrapper,
-		val clientDataJSON: DataWrapper,
-		val signature: DataWrapper,
-		val authenticatorData: DataWrapper,
+	val rawId: DataWrapper,
+	val clientDataJSON: DataWrapper,
+	val signature: DataWrapper,
+	val authenticatorData: DataWrapper,
 )

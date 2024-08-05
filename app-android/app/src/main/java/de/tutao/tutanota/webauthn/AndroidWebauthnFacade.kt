@@ -4,17 +4,20 @@ import android.net.Uri
 import android.util.Log
 import de.tutao.tutanota.BuildConfig
 import de.tutao.tutanota.MainActivity
-import de.tutao.tutanota.base64ToString
-import de.tutao.tutanota.ipc.*
+import de.tutao.tutashared.base64ToString
+import de.tutao.tutashared.ipc.WebAuthnFacade
+import de.tutao.tutashared.ipc.WebAuthnRegistrationChallenge
+import de.tutao.tutashared.ipc.WebAuthnRegistrationResult
+import de.tutao.tutashared.ipc.WebAuthnSignChallenge
+import de.tutao.tutashared.ipc.WebAuthnSignResult
 import kotlinx.serialization.SerialName
 import kotlinx.serialization.Serializable
-import kotlinx.serialization.decodeFromString
 import kotlinx.serialization.encodeToString
 import kotlinx.serialization.json.Json
 
 class AndroidWebauthnFacade(
-		private val activity: MainActivity,
-		private val json: Json
+	private val activity: MainActivity,
+	private val json: Json
 ) : WebAuthnFacade {
 	companion object {
 		private const val TAG = "Webauthn"
@@ -22,9 +25,9 @@ class AndroidWebauthnFacade(
 
 	override suspend fun sign(challenge: WebAuthnSignChallenge): WebAuthnSignResult {
 		val response = sendRequest<_, TaggedWebauthnSignResult>(
-				"sign",
-				challenge.domain,
-				challenge,
+			"sign",
+			challenge.domain,
+			challenge,
 		)
 		when (response) {
 			is TaggedWebauthnSignResult.Success -> return response.value
@@ -34,33 +37,33 @@ class AndroidWebauthnFacade(
 
 	override suspend fun register(challenge: WebAuthnRegistrationChallenge): WebAuthnRegistrationResult {
 		val response = sendRequest<_, TaggedWebauthnRegistrationResult>(
-				"register",
-				challenge.domain,
-				challenge,
+			"register",
+			challenge.domain,
+			challenge,
 		)
 		when (response) {
 			is TaggedWebauthnRegistrationResult.Success -> return response.value
-			is TaggedWebauthnRegistrationResult.Error -> throw  WebauthnError(response.stack)
+			is TaggedWebauthnRegistrationResult.Error -> throw WebauthnError(response.stack)
 		}
 	}
 
 	private suspend inline fun <reified Req, reified Res> sendRequest(
-			action: String,
-			baseUrl: String,
-			value: Req
+		action: String,
+		baseUrl: String,
+		value: Req
 	): Res {
 		// we should use the domain, right?
 		val serializedChallenge = json.encodeToString(value)
 		Log.d(TAG, "Challenge: $serializedChallenge")
 		val url = Uri.parse(baseUrl)
-				.buildUpon()
-				.appendQueryParameter("action", action)
-				.appendQueryParameter(
-						"cbUrl",
-						"intent://webauthn/#Intent;scheme=tutanota;package=${BuildConfig.APPLICATION_ID};S.result={result};end"
-				)
-				.appendQueryParameter("challenge", serializedChallenge)
-				.build()
+			.buildUpon()
+			.appendQueryParameter("action", action)
+			.appendQueryParameter(
+				"cbUrl",
+				"intent://webauthn/#Intent;scheme=tutanota;package=${BuildConfig.APPLICATION_ID};S.result={result};end"
+			)
+			.appendQueryParameter("challenge", serializedChallenge)
+			.build()
 		val stringResult = activity.startWebauthn(url)
 		val jsonResult = stringResult.base64ToString()
 		Log.d(TAG, "got result: $jsonResult")

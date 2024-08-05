@@ -28,7 +28,7 @@ class CommonNativeFacadeSendDispatcher (
 		args.add(json.encodeToString(mailToUrlString))
 		this.transport.sendRequest("ipc", listOf(encodedFacade, encodedMethod) + args)
 	}
-
+	
 	override suspend fun openMailBox(
 		userId: String,
 		address: String,
@@ -42,7 +42,7 @@ class CommonNativeFacadeSendDispatcher (
 		args.add(json.encodeToString(requestedPath))
 		this.transport.sendRequest("ipc", listOf(encodedFacade, encodedMethod) + args)
 	}
-
+	
 	override suspend fun openCalendar(
 		userId: String,
 	): Unit
@@ -52,7 +52,7 @@ class CommonNativeFacadeSendDispatcher (
 		args.add(json.encodeToString(userId))
 		this.transport.sendRequest("ipc", listOf(encodedFacade, encodedMethod) + args)
 	}
-
+	
 	override suspend fun showAlertDialog(
 		translationKey: String,
 	): Unit
@@ -62,7 +62,7 @@ class CommonNativeFacadeSendDispatcher (
 		args.add(json.encodeToString(translationKey))
 		this.transport.sendRequest("ipc", listOf(encodedFacade, encodedMethod) + args)
 	}
-
+	
 	override suspend fun invalidateAlarms(
 	): Unit
 	{
@@ -70,7 +70,7 @@ class CommonNativeFacadeSendDispatcher (
 		val args : MutableList<String> = mutableListOf()
 		this.transport.sendRequest("ipc", listOf(encodedFacade, encodedMethod) + args)
 	}
-
+	
 	override suspend fun updateTheme(
 	): Unit
 	{
@@ -78,7 +78,7 @@ class CommonNativeFacadeSendDispatcher (
 		val args : MutableList<String> = mutableListOf()
 		this.transport.sendRequest("ipc", listOf(encodedFacade, encodedMethod) + args)
 	}
-
+	
 	override suspend fun promptForNewPassword(
 		title: String,
 		oldPassword: String?,
@@ -91,7 +91,7 @@ class CommonNativeFacadeSendDispatcher (
 		val result = this.transport.sendRequest("ipc", listOf(encodedFacade, encodedMethod) + args)
 		return json.decodeFromString(result)
 	}
-
+	
 	override suspend fun promptForPassword(
 		title: String,
 	): String
@@ -102,7 +102,7 @@ class CommonNativeFacadeSendDispatcher (
 		val result = this.transport.sendRequest("ipc", listOf(encodedFacade, encodedMethod) + args)
 		return json.decodeFromString(result)
 	}
-
+	
 	override suspend fun handleFileImport(
 		filesUris: List<String>,
 	): Unit
@@ -112,5 +112,5 @@ class CommonNativeFacadeSendDispatcher (
 		args.add(json.encodeToString(filesUris))
 		this.transport.sendRequest("ipc", listOf(encodedFacade, encodedMethod) + args)
 	}
-
+	
 }

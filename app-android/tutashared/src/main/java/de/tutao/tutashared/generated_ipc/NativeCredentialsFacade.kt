@@ -3,7 +3,6 @@
 
 package de.tutao.tutashared.ipc
 
-
 import kotlinx.serialization.*
 import kotlinx.serialization.json.*
 
@@ -44,8 +43,8 @@ interface NativeCredentialsFacade {
 	 * Migrate existing credentials to native db
 	 */
 	suspend fun migrateToNativeCredentials(
-			credentials: List<PersistedCredentials>,
-			encryptionMode: CredentialEncryptionMode,
-			credentialsKey: DataWrapper,
+		credentials: List<PersistedCredentials>,
+		encryptionMode: CredentialEncryptionMode,
+		credentialsKey: DataWrapper,
 	): Unit
 }

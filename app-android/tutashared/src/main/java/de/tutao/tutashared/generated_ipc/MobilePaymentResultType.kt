@@ -1,30 +1,30 @@
 /* generated file, don't edit. */
 
 
-package de.tutao.tutanota.ipc
+package de.tutao.tutashared.ipc
 
 import kotlinx.serialization.*
 import kotlinx.serialization.json.*
 
 @Serializable
-enum class ExtendedNotificationMode(val value: String) {
+enum class MobilePaymentResultType(val value: String) {
 	@SerialName("0")
-	NO_SENDER_OR_SUBJECT("0"),
+	SUCCESS("0"),
 	
 	@SerialName("1")
-	ONLY_SENDER("1"),
+	CANCELLED("1"),
 	
 	@SerialName("2")
-	SENDER_AND_SUBJECT("2");
+	PENDING("2");
 	
 	companion object {
 		 fun fromValue(
 			value: String,
-		): ExtendedNotificationMode?
+		): MobilePaymentResultType?
 			= when (value) {
-			"0" -> NO_SENDER_OR_SUBJECT
-			"1" -> ONLY_SENDER
-			"2" -> SENDER_AND_SUBJECT
+			"0" -> SUCCESS
+			"1" -> CANCELLED
+			"2" -> PENDING
 			else -> null
 		}
 	}

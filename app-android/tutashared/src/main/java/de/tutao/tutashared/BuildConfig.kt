@@ -21,7 +21,7 @@ class ModuleBuildConfig {
 						"VERSION_NAME: $versionName " +
 						"DEBUG: $debug"
 			)
-			config = BuildConfig(sysModelVersion, versionName, tutanotaModelVersion, debug)
+			config = BuildConfig(sysModelVersion, tutanotaModelVersion, versionName, debug)
 		}
 
 		fun get() = config

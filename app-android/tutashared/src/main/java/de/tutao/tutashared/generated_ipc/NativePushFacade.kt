@@ -3,7 +3,6 @@
 
 package de.tutao.tutashared.ipc
 
-
 import kotlinx.serialization.*
 import kotlinx.serialization.json.*
 
@@ -14,11 +13,11 @@ interface NativePushFacade {
 	suspend fun getPushIdentifier(
 	): String?
 	suspend fun storePushIdentifierLocally(
-			identifier: String,
-			userId: String,
-			sseOrigin: String,
-			pushIdentifierId: String,
-			pushIdentifierSessionKey: DataWrapper,
+		identifier: String,
+		userId: String,
+		sseOrigin: String,
+		pushIdentifierId: String,
+		pushIdentifierSessionKey: DataWrapper,
 	): Unit
 	suspend fun removeUser(
 		userId: String,
