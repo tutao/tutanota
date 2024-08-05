@@ -151,7 +151,7 @@
 
 
 		<service
-				android:name=".credentials.AccountManagerAuthenticatorService"
+				android:name="de.tutao.tutashared.credentials.AccountManagerAuthenticatorService"
 				android:exported="false">
 			<intent-filter>
 				<action android:name="android.accounts.AccountAuthenticator"/>

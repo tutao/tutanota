@@ -11,30 +11,17 @@ import android.net.Uri
 import android.provider.ContactsContract
 import android.provider.ContactsContract.RawContacts
 import android.util.Log
-import de.tutao.tutanota.contacts.AndroidAddress
-import de.tutao.tutanota.contacts.AndroidContact
-import de.tutao.tutanota.contacts.AndroidCustomDate
-import de.tutao.tutanota.contacts.AndroidEmailAddress
-import de.tutao.tutanota.contacts.AndroidPhoneNumber
-import de.tutao.tutanota.contacts.AndroidRelationship
-import de.tutao.tutanota.contacts.AndroidWebsite
-import de.tutao.tutanota.contacts.ContactAddressType
-import de.tutao.tutanota.contacts.ContactCustomDateType
-import de.tutao.tutanota.contacts.ContactPhoneNumberType
-import de.tutao.tutanota.contacts.ContactRelationshipType
-import de.tutao.tutanota.contacts.ContactWebsiteType
-import de.tutao.tutanota.contacts.toAndroidType
-import de.tutao.tutanota.ipc.ContactBook
-import de.tutao.tutanota.ipc.ContactSuggestion
-import de.tutao.tutanota.ipc.ContactSyncResult
-import de.tutao.tutanota.ipc.MobileContactsFacade
-import de.tutao.tutanota.ipc.StructuredAddress
-import de.tutao.tutanota.ipc.StructuredContact
-import de.tutao.tutanota.ipc.StructuredCustomDate
-import de.tutao.tutanota.ipc.StructuredMailAddress
-import de.tutao.tutanota.ipc.StructuredPhoneNumber
-import de.tutao.tutanota.ipc.StructuredRelationship
-import de.tutao.tutanota.ipc.StructuredWebsite
+import de.tutao.tutashared.contacts.AndroidAddress
+import de.tutao.tutashared.contacts.AndroidContact
+import de.tutao.tutashared.contacts.AndroidCustomDate
+import de.tutao.tutashared.contacts.AndroidEmailAddress
+import de.tutao.tutashared.contacts.AndroidPhoneNumber
+import de.tutao.tutashared.contacts.AndroidRelationship
+import de.tutao.tutashared.contacts.AndroidWebsite
+import de.tutao.tutashared.contacts.toAndroidType
+import de.tutao.tutashared.forEachRow
+import de.tutao.tutashared.ipc.*
+import de.tutao.tutashared.mapTo
 import kotlinx.serialization.Serializable
 import kotlinx.serialization.encodeToString
 import kotlinx.serialization.json.Json
@@ -167,19 +154,19 @@ class AndroidMobileContactsFacade(private val activity: MainActivity) : MobileCo
 	}
 
 	private data class MatchContactResult(
-			/** do not exist on the device yet but exists on the server */
+		/** do not exist on the device yet but exists on the server */
 			val newServerContacts: MutableList<StructuredContact> = mutableListOf(),
-			/** exist on the device and the server and are not marked as dirty */
+		/** exist on the device and the server and are not marked as dirty */
 			val existingServerContacts: MutableList<Pair<AndroidContact, StructuredContact>> = mutableListOf(),
-			/** contacts that exist on the device and on the server but we did not map them via sourceId yet */
+		/** contacts that exist on the device and on the server but we did not map them via sourceId yet */
 			val nativeContactWithoutSourceId: MutableList<AndroidContact> = mutableListOf(),
-			/** exists on native (and is not marked deleted or dirty) but doesn't exist on the server anymore */
+		/** exists on native (and is not marked deleted or dirty) but doesn't exist on the server anymore */
 			val deletedOnServer: MutableList<StructuredContact> = mutableListOf(),
-			/** exist in both but are marked as dirty */
+		/** exist in both but are marked as dirty */
 			val editedOnDevice: MutableList<StructuredContact> = mutableListOf(),
-			/** exists on the device but not on the server (and marked as dirty) */
+		/** exists on the device but not on the server (and marked as dirty) */
 			val createdOnDevice: MutableList<StructuredContact> = mutableListOf(),
-			/** exists on the server but marked as deleted (and dirty) on the device; server IDs */
+		/** exists on the server but marked as deleted (and dirty) on the device; server IDs */
 			val deletedOnDevice: MutableList<String> = mutableListOf(),
 	)
 
@@ -649,9 +636,15 @@ class AndroidMobileContactsFacade(private val activity: MainActivity) : MobileCo
 				storedContact.phoneticLast = entityCursor.getNullableString(13)
 			}
 
-			ContactsContract.CommonDataKinds.Email.CONTENT_ITEM_TYPE -> storedContact.emailAddresses.add(AndroidEmailAddress(data1, entityCursor.getInt(5), entityCursor.getNullableString(6)))
-			ContactsContract.CommonDataKinds.Phone.CONTENT_ITEM_TYPE -> storedContact.phoneNumbers.add(AndroidPhoneNumber(data1, entityCursor.getInt(5), entityCursor.getNullableString(6)))
-			ContactsContract.CommonDataKinds.StructuredPostal.CONTENT_ITEM_TYPE -> storedContact.addresses.add(AndroidAddress(data1, entityCursor.getInt(5), entityCursor.getNullableString(6)))
+			ContactsContract.CommonDataKinds.Email.CONTENT_ITEM_TYPE -> storedContact.emailAddresses.add(
+				AndroidEmailAddress(data1, entityCursor.getInt(5), entityCursor.getNullableString(6))
+			)
+			ContactsContract.CommonDataKinds.Phone.CONTENT_ITEM_TYPE -> storedContact.phoneNumbers.add(
+				AndroidPhoneNumber(data1, entityCursor.getInt(5), entityCursor.getNullableString(6))
+			)
+			ContactsContract.CommonDataKinds.StructuredPostal.CONTENT_ITEM_TYPE -> storedContact.addresses.add(
+				AndroidAddress(data1, entityCursor.getInt(5), entityCursor.getNullableString(6))
+			)
 			ContactsContract.CommonDataKinds.Nickname.CONTENT_ITEM_TYPE -> storedContact.nickname = data1 ?: ""
 			ContactsContract.CommonDataKinds.Organization.CONTENT_ITEM_TYPE -> {
 				storedContact.company = data1
@@ -668,7 +661,9 @@ class AndroidMobileContactsFacade(private val activity: MainActivity) : MobileCo
 				}
 			}
 
-			ContactsContract.CommonDataKinds.Relation.CONTENT_ITEM_TYPE -> storedContact.relationships.add(AndroidRelationship(data1, entityCursor.getInt(5), entityCursor.getNullableString(6)))
+			ContactsContract.CommonDataKinds.Relation.CONTENT_ITEM_TYPE -> storedContact.relationships.add(
+				AndroidRelationship(data1, entityCursor.getInt(5), entityCursor.getNullableString(6))
+			)
 			ContactsContract.CommonDataKinds.Website.CONTENT_ITEM_TYPE -> storedContact.websites.add(AndroidWebsite(data1, entityCursor.getInt(5), entityCursor.getNullableString(6)))
 			ContactsContract.CommonDataKinds.Note.CONTENT_ITEM_TYPE -> storedContact.notes = data1 ?: ""
 		}

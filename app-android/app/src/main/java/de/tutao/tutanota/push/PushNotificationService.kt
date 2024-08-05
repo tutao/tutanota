@@ -7,6 +7,7 @@ import android.content.pm.ServiceInfo
 import android.util.Log
 import androidx.lifecycle.Lifecycle
 import androidx.lifecycle.lifecycleScope
+import de.tutao.tutanota.BuildConfig
 import de.tutao.tutanota.AndroidNativeCryptoFacade
 import de.tutao.tutanota.LifecycleJobService
 import de.tutao.tutanota.NetworkUtils
@@ -20,6 +21,18 @@ import de.tutao.tutanota.data.AppDatabase
 import de.tutao.tutanota.data.SseInfo
 import de.tutao.tutanota.ipc.NativeCredentialsFacade
 import de.tutao.tutanota.push.SseClient.SseListener
+import de.tutao.tutashared.AndroidNativeCryptoFacade
+import de.tutao.tutashared.LifecycleJobService
+import de.tutao.tutashared.ModuleBuildConfig
+import de.tutao.tutashared.NetworkUtils
+import de.tutao.tutashared.atLeastOreo
+import de.tutao.tutashared.atLeastTiramisu
+import de.tutao.tutashared.createAndroidKeyStoreFacade
+import de.tutao.tutashared.credentials.CredentialsEncryptionFactory
+import de.tutao.tutashared.data.AppDatabase
+import de.tutao.tutashared.data.SseInfo
+import de.tutao.tutashared.ipc.NativeCredentialsFacade
+import de.tutao.tutashared.push.SseStorage
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
@@ -77,6 +90,13 @@ class PushNotificationService : LifecycleJobService() {
 		state = State.CREATED
 
 		finishJobThread.start()
+
+		ModuleBuildConfig.init(
+			BuildConfig.SYS_MODEL_VERSION,
+			BuildConfig.VERSION_NAME,
+			BuildConfig.TUTANOTA_MODEL_VERSION,
+			BuildConfig.DEBUG
+		)
 
 
 		val appDatabase: AppDatabase = AppDatabase.getDatabase(this, allowMainThreadAccess = true)

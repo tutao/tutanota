@@ -2,5 +2,4 @@
 
 
 package de.tutao.tutashared.ipc
-
 typealias ContactCustomDateType = de.tutao.tutashared.contacts.ContactCustomDateType

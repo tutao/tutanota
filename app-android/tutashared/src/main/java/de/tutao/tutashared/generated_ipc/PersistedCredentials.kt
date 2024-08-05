@@ -3,7 +3,6 @@
 
 package de.tutao.tutashared.ipc
 
-
 import kotlinx.serialization.*
 import kotlinx.serialization.json.*
 
@@ -13,8 +12,8 @@ import kotlinx.serialization.json.*
  */
 @Serializable
 data class PersistedCredentials(
-		val credentialInfo: CredentialsInfo,
-		val accessToken: DataWrapper,
-		val databaseKey: DataWrapper?,
-		val encryptedPassword: String,
+	val credentialInfo: CredentialsInfo,
+	val accessToken: DataWrapper,
+	val databaseKey: DataWrapper?,
+	val encryptedPassword: String,
 )

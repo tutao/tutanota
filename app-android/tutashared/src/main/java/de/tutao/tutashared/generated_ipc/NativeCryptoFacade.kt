@@ -3,7 +3,6 @@
 
 package de.tutao.tutashared.ipc
 
-
 import kotlinx.serialization.*
 import kotlinx.serialization.json.*
 
@@ -14,8 +13,8 @@ interface NativeCryptoFacade {
 		seed: DataWrapper,
 	): DataWrapper
 	suspend fun rsaDecrypt(
-			privateKey: RsaPrivateKey,
-			data: DataWrapper,
+		privateKey: RsaPrivateKey,
+		data: DataWrapper,
 	): DataWrapper
 	/**
 	 * Encrypt file specified by the `fileUri`. Returns URI of the encrypted file.

@@ -7,6 +7,14 @@ import de.tutao.tutanota.R
 import de.tutao.tutanota.SdkRestClient
 import de.tutao.tutanota.addCommonHeadersWithSysModelVersion
 import de.tutao.tutanota.alarms.AlarmNotificationsManager
+import de.tutao.tutashared.addCommonHeadersWithSysModelVersion
+import de.tutao.tutashared.addCommonHeadersWithTutanotaModelVersion
+import de.tutao.tutashared.alarms.EncryptedAlarmNotification
+import de.tutao.tutashared.base64ToBase64Url
+import de.tutao.tutashared.data.SseInfo
+import de.tutao.tutashared.ipc.NativeCredentialsFacade
+import de.tutao.tutashared.push.SseStorage
+import de.tutao.tutashared.toBase64
 import de.tutao.tutanota.alarms.EncryptedAlarmNotification
 import de.tutao.tutanota.base64ToBase64Url
 import de.tutao.tutanota.data.SseInfo

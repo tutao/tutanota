@@ -50,6 +50,7 @@ import de.tutao.calendar.webauthn.AndroidWebauthnFacade
 import de.tutao.tutashared.AndroidNativeCryptoFacade
 import de.tutao.tutashared.CancelledError
 import de.tutao.tutashared.ModuleBuildConfig
+import de.tutao.tutashared.ModuleResources
 import de.tutao.tutashared.NetworkUtils
 import de.tutao.tutashared.atLeastOreo
 import de.tutao.tutashared.createAndroidKeyStoreFacade
@@ -123,6 +124,12 @@ class MainActivity : FragmentActivity() {
 			BuildConfig.DEBUG
 		)
 
+		ModuleResources.init(
+			mapOf(
+				"unlockCredentials_action" to getText(R.string.unlockCredentials_action).toString(),
+			)
+		)
+
 		// App is handling a redelivered intent, ignoring as we probably already handled it
 		if (savedInstanceState != null && (intent.action == OPEN_USER_MAILBOX_ACTION || intent.action == OPEN_CALENDAR_ACTION)) {
 			intent.putExtra(ALREADY_HANDLED_INTENT, true)
@@ -142,7 +149,8 @@ class MainActivity : FragmentActivity() {
 		val alarmNotificationsManager = AlarmNotificationsManager(
 			sseStorage,
 			cryptoFacade,
-			SystemAlarmFacade(this)
+			SystemAlarmFacade(this),
+			localNotificationsFacade
 		)
 		val nativePushFacade = AndroidNativePushFacade(
 			this,
@@ -803,7 +811,7 @@ class MainActivity : FragmentActivity() {
 		}
 
 		init {
-			System.loadLibrary("tutacalendar")
+			System.loadLibrary("tutashared")
 		}
 	}
 }

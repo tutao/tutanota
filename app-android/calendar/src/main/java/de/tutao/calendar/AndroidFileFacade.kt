@@ -16,7 +16,6 @@ import androidx.core.content.FileProvider
 import androidx.core.net.toUri
 import de.tutao.calendar.push.LocalNotificationsFacade
 import de.tutao.calendar.push.showDownloadNotification
-import de.tutao.tutashared.DataFile
 import de.tutao.tutashared.HashingInputStream
 import de.tutao.tutashared.TempDir
 import de.tutao.tutashared.bytes
