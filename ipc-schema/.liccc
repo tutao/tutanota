@@ -1,6 +1,6 @@
 {
 	"__comment": "output paths are relative to this file.",
-	"android": "../app-android/app/src/main/java/de/tutao/tutanota/generated_ipc",
+	"android": "../app-android/tutashared/src/main/java/de/tutao/tutashared/generated_ipc",
 	"web": "../src/common/native/common/generatedipc",
 	"desktop": "../src/common/native/common/generatedipc",
 	"ios": "../app-ios/TutanotaSharedFramework//GeneratedIpc"
