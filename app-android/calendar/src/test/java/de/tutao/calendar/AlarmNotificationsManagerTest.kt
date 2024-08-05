@@ -1,8 +1,8 @@
-package de.tutao.tutanota
+package de.tutao.calendar
 
-import de.tutao.tutanota.alarms.AlarmNotificationsManager
-import de.tutao.tutanota.alarms.SystemAlarmFacade
-import de.tutao.tutanota.push.LocalNotificationsFacade
+import de.tutao.calendar.alarms.AlarmNotificationsManager
+import de.tutao.calendar.alarms.SystemAlarmFacade
+import de.tutao.calendar.push.LocalNotificationsFacade
 import de.tutao.tutashared.AndroidNativeCryptoFacade
 import de.tutao.tutashared.CryptoError
 import de.tutao.tutashared.IdTuple

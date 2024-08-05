@@ -16,12 +16,6 @@ android {
 		versionCode 396367
 		versionName "240.240731.0"
 		testInstrumentationRunner "androidx.test.runner.AndroidJUnitRunner"
-
-		javaCompileOptions {
-			annotationProcessorOptions {
-				arguments += ["room.schemaLocation": "$projectDir/schemas".toString()]
-			}
-		}
 	}
 	signingConfigs {
 		release {
@@ -101,11 +95,6 @@ android {
 	}
 	lint {
 		disable 'MissingTranslation'
-	}
-
-	sourceSets {
-		// Adds exported schema location as test app assets.
-		androidTest.assets.srcDirs += files("$projectDir/schemas".toString())
 	}
 
 	namespace 'de.tutao.tutanota'

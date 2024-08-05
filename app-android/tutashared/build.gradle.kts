@@ -28,11 +28,31 @@ android {
 	}
 
 	buildTypes {
+		debug {
+			resValue("string", "package_name", "de.tutao.tutashared.debug")
+			manifestPlaceholders.clear()
+			manifestPlaceholders["contentProviderAuthority"] = "de.tutao.fileprovider.debug"
+			isJniDebuggable = true
+		}
 		release {
+			manifestPlaceholders += mapOf()
+			isMinifyEnabled = true
+			resValue("string", "package_name", "de.tutao.tutashared")
+			manifestPlaceholders["contentProviderAuthority"] = "de.tutao.fileprovider"
 			isMinifyEnabled = false
 			proguardFiles(getDefaultProguardFile("proguard-android-optimize.txt"), "proguard-rules.pro")
+
+
+		}
+		create("releaseTest") {
+			initWith(getByName("release"))
+			isMinifyEnabled = true
+			resValue("string", "package_name", "de.tutao.tutashared.test")
+			setProguardFiles(listOf(getDefaultProguardFile("proguard-android.txt"), "proguard-rules.pro"))
+			manifestPlaceholders["contentProviderAuthority"] = "de.tutao.fileprovider.test"
 		}
 	}
+
 	compileOptions {
 		sourceCompatibility = JavaVersion.VERSION_17
 		targetCompatibility = JavaVersion.VERSION_17
@@ -47,6 +67,10 @@ android {
 			this.path(file("src/main/cpp/CMakeLists.txt"))
 			this.version = "3.18.0+"
 		}
+	}
+
+	sourceSets {
+		this.getByName("debug").assets.srcDirs(files("$projectDir/schemas"))
 	}
 }
 
@@ -63,16 +87,7 @@ dependencies {
 	implementation("androidx.activity:activity-ktx:$activity_version")
 	implementation("androidx.browser:browser:1.8.0")
 	implementation("androidx.biometric:biometric:1.1.0")
-	implementation("androidx.core:core-splashscreen:1.0.1")
 	implementation("androidx.datastore:datastore-preferences:1.1.1")
-
-	if (file("../libs/android-database-sqlcipher-4.5.0.aar").exists()) {
-		val includes: Map<String, Any> = mapOf("include" to arrayOf("*.aar"), "dir" to "../libs")
-		implementation(fileTree(includes))
-	} else {
-		implementation("net.zetetic:android-database-sqlcipher:4.5.0")
-	}
-	implementation("androidx.sqlite:sqlite:2.0.1")
 
 	implementation("androidx.room:room-runtime:$room_version")
 	// For Kotlin use kapt instead of annotationProcessor
