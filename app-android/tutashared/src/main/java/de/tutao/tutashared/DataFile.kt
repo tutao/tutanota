@@ -1,6 +1,5 @@
-package de.tutao.tutashared
+package de.tutao.tutashared.ipc
 
-import de.tutao.tutashared.ipc.DataWrapper
 import kotlinx.serialization.Serializable
 
 /** Corresponds to DataFile in Typescript */

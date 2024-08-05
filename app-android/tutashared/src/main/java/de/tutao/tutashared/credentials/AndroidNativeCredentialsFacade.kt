@@ -30,7 +30,7 @@ class AndroidNativeCredentialsFacade(
 	}
 
 	override suspend fun loadAll(): List<PersistedCredentials> {
-		return db.credentialsDao().allPersistedCredentials.map { e -> e.toObject() }
+		return db.credentialsDao().allPersistedCredentials().map { e -> e.toObject() }
 	}
 
 	override suspend fun store(credentials: UnencryptedCredentials) {
@@ -61,7 +61,7 @@ class AndroidNativeCredentialsFacade(
 				Log.d(TAG, "Encryption mode migration complete")
 			}
 			val encryptedCredentials =
-				db.credentialsDao().allPersistedCredentials.firstOrNull { e -> e.userId == id }?.toObject()
+				db.credentialsDao().allPersistedCredentials().firstOrNull { e -> e.userId == id }?.toObject()
 			return if (encryptedCredentials != null) this.decryptCredentials(
 				encryptedCredentials,
 				credentialsKey
@@ -150,6 +150,7 @@ class AndroidNativeCredentialsFacade(
 					credentialsKey, persistedCredentials.accessToken.data
 				).decodeToString(),
 				databaseKey = databaseKey,
+				encryptedPassphraseKey = persistedCredentials.encryptedPassphraseKey
 			)
 		} catch (e: KeyPermanentlyInvalidatedException) {
 			throw CryptoError(e)
@@ -175,6 +176,7 @@ class AndroidNativeCredentialsFacade(
 			accessToken = accessToken.wrap(),
 			encryptedPassword = unencryptedCredentials.encryptedPassword,
 			databaseKey = databaseKey,
+			encryptedPassphraseKey = unencryptedCredentials.encryptedPassphraseKey
 		)
 	}
 }

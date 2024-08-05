@@ -4,18 +4,17 @@ import android.content.Context
 import android.net.Uri
 import androidx.annotation.Keep
 import androidx.annotation.VisibleForTesting
+import de.tutao.tutasdk.KyberException
+import de.tutao.tutasdk.kyberDecapsulateWithPrivKey
+import de.tutao.tutasdk.kyberEncapsulateWithPubKey
 import de.tutao.tutashared.ipc.*
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.withContext
 import org.apache.commons.io.IOUtils
-import org.apache.commons.io.input.CountingInputStream
+import org.apache.commons.io.input.BoundedInputStream
 import java.io.*
-import java.math.BigInteger
 import java.security.*
-import java.security.interfaces.RSAPrivateCrtKey
-import java.security.interfaces.RSAPublicKey
-import java.security.spec.InvalidKeySpecException
 import java.security.spec.MGF1ParameterSpec
-import java.security.spec.RSAPrivateKeySpec
-import java.security.spec.RSAPublicKeySpec
 import java.util.*
 import javax.crypto.*
 import javax.crypto.spec.IvParameterSpec
@@ -33,7 +32,6 @@ class AndroidNativeCryptoFacade(
 		const val AES_BLOCK_SIZE_BYTES = 16
 		val FIXED_IV = ByteArray(AES_BLOCK_SIZE_BYTES).apply { fill(0x88.toByte()) }
 		const val RSA_KEY_LENGTH_IN_BITS = 2048
-		const val RSA_ALGORITHM = "RSA/ECB/OAEPWithSHA-256AndMGF1Padding"
 		const val RSA_PUBLIC_EXPONENT = 65537
 
 		/**
@@ -125,60 +123,40 @@ class AndroidNativeCryptoFacade(
 		}
 	}
 
-	@Throws(CryptoError::class)
 	override suspend fun generateKyberKeypair(seed: DataWrapper): KyberKeyPair {
-		return generateKyberKeypairImpl(seed.data)
+		val (publicKey, privateKey) = de.tutao.tutasdk.generateKyberKeypair()
+		return KyberKeyPair(KyberPublicKey(publicKey.wrap()), KyberPrivateKey(privateKey.wrap()))
 	}
 
-	@Throws(CryptoError::class)
-	private external fun generateKyberKeypairImpl(seed: ByteArray): KyberKeyPair
 
 	@Throws(CryptoError::class)
 	override suspend fun kyberEncapsulate(publicKey: KyberPublicKey, seed: DataWrapper): KyberEncapsulation {
-		return this.kyberEncapsulateImpl(publicKey.raw.data, seed.data)
-	}
+		val sdkEncapsulation = try {
+			kyberEncapsulateWithPubKey(publicKey.raw.data)
+		} catch (e: KyberException) {
+			throw CryptoError(e)
+		}
 
-	@Throws(CryptoError::class)
-	private external fun kyberEncapsulateImpl(publicKey: ByteArray, seed: ByteArray): KyberEncapsulation
+		return KyberEncapsulation(sdkEncapsulation.ciphertext.wrap(), sdkEncapsulation.sharedSecret.wrap())
+	}
 
 	@Throws(CryptoError::class)
 	override suspend fun kyberDecapsulate(privateKey: KyberPrivateKey, ciphertext: DataWrapper): DataWrapper {
-		return DataWrapper(this.kyberDecapsulateImpl(ciphertext.data, privateKey.raw.data))
+		return try {
+			kyberDecapsulateWithPrivKey(privateKey.raw.data, ciphertext.data).wrap()
+		} catch (e: KyberException) {
+			throw CryptoError(e)
+		}
+
 	}
 
 	@Throws(CryptoError::class)
-	private external fun kyberDecapsulateImpl(ciphertext: ByteArray, privateKey: ByteArray): ByteArray
-
-	@Throws(CryptoError::class)
-	override suspend fun argon2idHashRaw(
-		password: DataWrapper,
+	override suspend fun argon2idGeneratePassphraseKey(
+		passphrase: String,
 		salt: DataWrapper,
-		timeCost: Int,
-		memoryCost: Int,
-		parallelism: Int,
-		hashLength: Int
 	): DataWrapper {
-		return DataWrapper(
-			this.argon2idHashRawImpl(
-				password.data,
-				salt.data,
-				timeCost,
-				memoryCost,
-				parallelism,
-				hashLength
-			)
-		)
+		return de.tutao.tutasdk.argon2idGenerateKeyFromPassphrase(passphrase, salt.data).wrap()
 	}
-
-	@Throws(CryptoError::class)
-	external fun argon2idHashRawImpl(
-		password: ByteArray,
-		salt: ByteArray,
-		timeCost: Int,
-		memoryCost: Int,
-		parallelism: Int,
-		hashLength: Int
-	): ByteArray
 
 	@Throws(CryptoError::class)
 	override suspend fun rsaEncrypt(
@@ -187,37 +165,14 @@ class AndroidNativeCryptoFacade(
 		seed: DataWrapper,
 	): DataWrapper {
 		try {
-			return this.rsaEncrypt(
-				javaPublicKey(publicKey),
+			return de.tutao.tutasdk.rsaEncryptWithPublicKeyComponents(
 				data.data,
-				seed.data
+				seed.data,
+				publicKey.modulus,
+				publicKey.publicExponent.toUInt()
 			).wrap()
-		} catch (e: InvalidKeySpecException) {
+		} catch (e: de.tutao.tutasdk.RsaException) {
 			// These types of errors can happen and that's okay, they should be handled gracefully.
-			throw CryptoError(e)
-		}
-	}
-
-	/**
-	 * Encrypts an aes key with RSA to a byte array.
-	 */
-	@Throws(CryptoError::class)
-	fun rsaEncrypt(publicKey: PublicKey, data: ByteArray, random: ByteArray): ByteArray {
-		randomizer.setSeed(random)
-		return rsaEncrypt(data, publicKey, randomizer)
-	}
-
-	@Throws(CryptoError::class)
-	private fun rsaEncrypt(data: ByteArray, publicKey: PublicKey, randomizer: SecureRandom): ByteArray {
-		return try {
-			val cipher = Cipher.getInstance(RSA_ALGORITHM)
-			cipher.init(Cipher.ENCRYPT_MODE, publicKey, OAEP_PARAMETER_SPEC, randomizer)
-			cipher.doFinal(data)
-		} catch (e: BadPaddingException) {
-			throw CryptoError(e)
-		} catch (e: IllegalBlockSizeException) {
-			throw CryptoError(e)
-		} catch (e: InvalidKeyException) {
 			throw CryptoError(e)
 		}
 	}
@@ -225,27 +180,15 @@ class AndroidNativeCryptoFacade(
 	@Throws(CryptoError::class)
 	override suspend fun rsaDecrypt(privateKey: RsaPrivateKey, data: DataWrapper): DataWrapper {
 		try {
-			return rsaDecrypt(
-				javaPrivateKey(privateKey),
+			return de.tutao.tutasdk.rsaDecryptWithPrivateKeyComponents(
 				data.data,
+				privateKey.modulus,
+				privateKey.privateExponent,
+				privateKey.primeP,
+				privateKey.primeQ
 			).wrap()
-		} catch (e: InvalidKeySpecException) {
+		} catch (e: de.tutao.tutasdk.RsaException) {
 			// These types of errors can happen and that's okay, they should be handled gracefully.
-			throw CryptoError(e)
-		}
-	}
-
-	@Throws(CryptoError::class)
-	fun rsaDecrypt(privateKey: PrivateKey, encryptedKey: ByteArray): ByteArray {
-		return try {
-			val cipher = Cipher.getInstance(RSA_ALGORITHM)
-			cipher.init(Cipher.DECRYPT_MODE, privateKey, OAEP_PARAMETER_SPEC, randomizer)
-			cipher.doFinal(encryptedKey)
-		} catch (e: BadPaddingException) {
-			throw CryptoError(e)
-		} catch (e: InvalidKeyException) {
-			throw CryptoError(e)
-		} catch (e: IllegalBlockSizeException) {
 			throw CryptoError(e)
 		}
 	}
@@ -254,10 +197,14 @@ class AndroidNativeCryptoFacade(
 	override suspend fun aesEncryptFile(key: DataWrapper, fileUri: String, iv: DataWrapper): EncryptedFileInfo {
 		val parsedFileUri = Uri.parse(fileUri)
 		val outputFile = File(tempDir.encrypt, getFileInfo(context, parsedFileUri).name)
-		val inputStream = CountingInputStream(context.contentResolver.openInputStream(parsedFileUri))
-		val out: OutputStream = FileOutputStream(outputFile)
+		val inputStream = BoundedInputStream.builder()
+			.setInputStream(context.contentResolver.openInputStream(parsedFileUri))
+			.get()
+		val out: OutputStream = withContext(Dispatchers.IO) {
+			FileOutputStream(outputFile)
+		}
 		aesEncrypt(key.data, inputStream, out, iv.data, usePadding = true, useMac = true)
-		return EncryptedFileInfo(outputFile.toUri(), inputStream.byteCount.toInt())
+		return EncryptedFileInfo(outputFile.toUri(), inputStream.count.toInt())
 	}
 
 	@Throws(IOException::class, CryptoError::class)
@@ -488,43 +435,6 @@ class AndroidNativeCryptoFacade(
 			IOUtils.closeQuietly(out)
 		}
 	}
-
-	@Throws(InvalidKeySpecException::class)
-	private fun javaPublicKey(key: RsaPublicKey): PublicKey {
-		val modulus = BigInteger(key.modulus.base64ToBytes())
-		val keyFactory = KeyFactory.getInstance("RSA")
-		return keyFactory.generatePublic(RSAPublicKeySpec(modulus, BigInteger.valueOf(RSA_PUBLIC_EXPONENT.toLong())))
-	}
-
-	@Throws(InvalidKeySpecException::class)
-	private fun javaPrivateKey(key: RsaPrivateKey): PrivateKey {
-		val modulus = BigInteger(key.modulus.base64ToBytes())
-		val privateExponent = BigInteger(key.privateExponent.base64ToBytes())
-		val keyFactory = KeyFactory.getInstance("RSA")
-		return keyFactory.generatePrivate(RSAPrivateKeySpec(modulus, privateExponent))
-	}
-
-	private fun BigInteger.toBase64() = toByteArray().toBase64()
-
-	private fun PrivateKey(javaKey: RSAPrivateCrtKey) = RsaPrivateKey(
-		version = 0,
-		// TODO: is this correct?
-		keyLength = RSA_KEY_LENGTH_IN_BITS,
-		modulus = javaKey.modulus.toBase64(),
-		privateExponent = javaKey.privateExponent.toBase64(),
-		primeP = javaKey.primeP.toBase64(),
-		primeQ = javaKey.primeQ.toBase64(),
-		primeExponentP = javaKey.primeExponentP.toBase64(),
-		primeExponentQ = javaKey.primeExponentQ.toBase64(),
-		crtCoefficient = javaKey.crtCoefficient.toBase64(),
-	)
-
-	private fun PublicKey(javaKey: RSAPublicKey) = RsaPublicKey(
-		version = 0,
-		keyLength = RSA_KEY_LENGTH_IN_BITS,
-		modulus = javaKey.modulus.toBase64(),
-		publicExponent = RSA_PUBLIC_EXPONENT,
-	)
 
 	private fun hasMac(dataLength: Long): Boolean {
 		return dataLength % 2 == 1L

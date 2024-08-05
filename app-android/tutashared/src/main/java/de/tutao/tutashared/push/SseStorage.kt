@@ -1,7 +1,6 @@
 package de.tutao.tutashared.push
 
 import androidx.annotation.WorkerThread
-import androidx.lifecycle.LiveData
 import de.tutao.tutashared.AndroidKeyStoreFacade
 import de.tutao.tutashared.CryptoError
 import de.tutao.tutashared.alarms.AlarmNotificationEntity
@@ -9,6 +8,7 @@ import de.tutao.tutashared.data.AppDatabase
 import de.tutao.tutashared.data.PushIdentifierKey
 import de.tutao.tutashared.data.User
 import de.tutao.tutashared.ipc.ExtendedNotificationMode
+import kotlinx.coroutines.flow.Flow
 import java.security.KeyStoreException
 import java.security.UnrecoverableEntryException
 import java.util.Date
@@ -41,15 +41,10 @@ class SseStorage(
 		//  - If notifications were not used before, enable extended notifications
 		val users = this.getUsers()
 		if (!users.any { it.userId == userId }) {
-			this.setExtendedNotificationConfig(userId, ExtendedNotificationMode.ONLY_SENDER)
+			this.setExtendedNotificationConfig(userId, ExtendedNotificationMode.SENDER_AND_SUBJECT)
 		}
 		val deviceEncSessionKey = keyStoreFacade.encryptKey(pushIdentifierSessionKey)
-		db.userInfoDao().insertPushIdentifierKey(
-			PushIdentifierKey(
-				pushIdentifierId,
-				deviceEncSessionKey
-			)
-		)
+		db.userInfoDao().insertPushIdentifierKey(PushIdentifierKey(pushIdentifierId, deviceEncSessionKey))
 		db.userInfoDao().insertUser(User(userId))
 	}
 
@@ -59,12 +54,12 @@ class SseStorage(
 		return keyStoreFacade.decryptKey(userInfo.deviceEncPushIdentifierKey!!)
 	}
 
-	fun observeUsers(): LiveData<List<User>> {
+	fun observeUsers(): Flow<List<User>> {
 		return db.userInfoDao().observeUsers()
 	}
 
 	fun readAlarmNotifications(): List<AlarmNotificationEntity> {
-		return db.alarmInfoDao().alarmNotifications
+		return db.alarmInfoDao().alarmNotifications()
 	}
 
 	fun insertAlarmNotification(alarmNotification: AlarmNotificationEntity) {
@@ -114,7 +109,7 @@ class SseStorage(
 			?: DEFAULT_EXTENDED_NOTIFCATION_MODE
 	}
 
-	fun getUsers(): List<User> = db.userInfoDao().users
+	fun getUsers(): List<User> = db.userInfoDao().users()
 
 	companion object {
 		private const val LAST_PROCESSED_NOTIFICATION_ID = "lastProcessedNotificationId"
@@ -123,6 +118,8 @@ class SseStorage(
 		private const val SSE_ORIGIN = "sseOrigin"
 		private const val EXTENDED_NOTIFICATION_MODE = "extendedNotificationMode"
 		private const val CONNECT_TIMEOUT_SEC = "connectTimeoutSec"
+
+		// This default is overwritten by another default in `storePushIdentifierSessionKey()`
 		private val DEFAULT_EXTENDED_NOTIFCATION_MODE = ExtendedNotificationMode.NO_SENDER_OR_SUBJECT
 	}
 }

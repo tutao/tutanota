@@ -10,13 +10,13 @@ import kotlinx.serialization.json.*
 enum class ExtendedNotificationMode(val value: String) {
 	@SerialName("0")
 	NO_SENDER_OR_SUBJECT("0"),
-
+	
 	@SerialName("1")
 	ONLY_SENDER("1"),
-
+	
 	@SerialName("2")
 	SENDER_AND_SUBJECT("2");
-
+	
 	companion object {
 		 fun fromValue(
 			value: String,

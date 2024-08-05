@@ -6,9 +6,8 @@ import android.content.res.Configuration.UI_MODE_NIGHT_MASK
 import android.content.res.Configuration.UI_MODE_NIGHT_YES
 import android.graphics.drawable.ColorDrawable
 import android.util.Log
-import android.view.View
 import androidx.annotation.ColorInt
-import de.tutao.tutashared.atLeastOreo
+import androidx.core.view.WindowInsetsControllerCompat
 import de.tutao.tutashared.getDefaultSharedPreferences
 import de.tutao.tutashared.ipc.ThemeFacade
 import de.tutao.tutashared.isLightHexColor
@@ -110,35 +109,22 @@ class AndroidThemeFacade(
 		// It is not an accident that navBg and headerBg seem to be swapped, the original color scheme was reused in
 		// this way.
 
-		val decorView = activity.window.decorView
 		val navBg = getColor(theme, "header_bg")
 
 		@ColorInt val navColor = parseColor(navBg)
 		val isNavBarLight = navBg.isLightHexColor()
-		var visibilityFlags = 0
-		if (atLeastOreo()) {
 			activity.window.navigationBarColor = navColor
-			if (isNavBarLight) {
-				visibilityFlags = visibilityFlags or View.SYSTEM_UI_FLAG_LIGHT_NAVIGATION_BAR
-			}
-		}
+
+		val windowInsetController = WindowInsetsControllerCompat(activity.window, activity.window.decorView)
+
+		windowInsetController.isAppearanceLightNavigationBars = isNavBarLight
 
 		val headerBg = getColor(theme, "navigation_bg")
 		@ColorInt val statusBarColor = parseColor(headerBg)
 		val isStatusBarLight = headerBg.isLightHexColor()
 
-		// Changing status bar color
-		// Before Android M there was no flag to use lightStatusBar (so that text is white or
-		// black). As our primary color is red, Android thinks that the status bar color text
-		// should be white. So we cannot use white status bar color.
-		// So for Android M and above we alternate between white and dark status bar colors and
-		// we change lightStatusBar flag accordingly.
 		activity.window.statusBarColor = statusBarColor
-		if (isStatusBarLight) {
-			visibilityFlags = visibilityFlags or View.SYSTEM_UI_FLAG_LIGHT_STATUS_BAR
-		}
-
-		decorView.systemUiVisibility = visibilityFlags
+		windowInsetController.isAppearanceLightStatusBars = isStatusBarLight
 	}
 
 	private fun getColor(theme: Map<String, String>, key: String): String =

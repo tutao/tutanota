@@ -3,39 +3,35 @@
 
 package de.tutao.tutashared.ipc
 
-import kotlinx.serialization.json.Json
+import kotlinx.serialization.*
+import kotlinx.serialization.json.*
 
-class AndroidGlobalDispatcher(
+import de.tutao.tutashared.ipc.*
+
+class AndroidGlobalDispatcher (
 	json: Json,
-	commonSystemFacade: CommonSystemFacade,
-	fileFacade: FileFacade,
-	mobileContactsFacade: MobileContactsFacade,
-	mobileSystemFacade: MobileSystemFacade,
-	nativeCredentialsFacade: NativeCredentialsFacade,
-	nativeCryptoFacade: NativeCryptoFacade,
-	nativePushFacade: NativePushFacade,
-	sqlCipherFacade: SqlCipherFacade,
-	themeFacade: ThemeFacade,
-	webAuthnFacade: WebAuthnFacade,
+	commonSystemFacade : CommonSystemFacade,
+	fileFacade : FileFacade,
+	mobileContactsFacade : MobileContactsFacade,
+	mobileSystemFacade : MobileSystemFacade,
+	nativeCredentialsFacade : NativeCredentialsFacade,
+	nativeCryptoFacade : NativeCryptoFacade,
+	nativePushFacade : NativePushFacade,
+	sqlCipherFacade : SqlCipherFacade,
+	themeFacade : ThemeFacade,
+	webAuthnFacade : WebAuthnFacade,
 ) {
-	private val commonSystemFacade: CommonSystemFacadeReceiveDispatcher =
-		CommonSystemFacadeReceiveDispatcher(json, commonSystemFacade)
+	private val commonSystemFacade: CommonSystemFacadeReceiveDispatcher = CommonSystemFacadeReceiveDispatcher(json, commonSystemFacade)
 	private val fileFacade: FileFacadeReceiveDispatcher = FileFacadeReceiveDispatcher(json, fileFacade)
-	private val mobileContactsFacade: MobileContactsFacadeReceiveDispatcher =
-		MobileContactsFacadeReceiveDispatcher(json, mobileContactsFacade)
-	private val mobileSystemFacade: MobileSystemFacadeReceiveDispatcher =
-		MobileSystemFacadeReceiveDispatcher(json, mobileSystemFacade)
-	private val nativeCredentialsFacade: NativeCredentialsFacadeReceiveDispatcher =
-		NativeCredentialsFacadeReceiveDispatcher(json, nativeCredentialsFacade)
-	private val nativeCryptoFacade: NativeCryptoFacadeReceiveDispatcher =
-		NativeCryptoFacadeReceiveDispatcher(json, nativeCryptoFacade)
-	private val nativePushFacade: NativePushFacadeReceiveDispatcher =
-		NativePushFacadeReceiveDispatcher(json, nativePushFacade)
-	private val sqlCipherFacade: SqlCipherFacadeReceiveDispatcher =
-		SqlCipherFacadeReceiveDispatcher(json, sqlCipherFacade)
+	private val mobileContactsFacade: MobileContactsFacadeReceiveDispatcher = MobileContactsFacadeReceiveDispatcher(json, mobileContactsFacade)
+	private val mobileSystemFacade: MobileSystemFacadeReceiveDispatcher = MobileSystemFacadeReceiveDispatcher(json, mobileSystemFacade)
+	private val nativeCredentialsFacade: NativeCredentialsFacadeReceiveDispatcher = NativeCredentialsFacadeReceiveDispatcher(json, nativeCredentialsFacade)
+	private val nativeCryptoFacade: NativeCryptoFacadeReceiveDispatcher = NativeCryptoFacadeReceiveDispatcher(json, nativeCryptoFacade)
+	private val nativePushFacade: NativePushFacadeReceiveDispatcher = NativePushFacadeReceiveDispatcher(json, nativePushFacade)
+	private val sqlCipherFacade: SqlCipherFacadeReceiveDispatcher = SqlCipherFacadeReceiveDispatcher(json, sqlCipherFacade)
 	private val themeFacade: ThemeFacadeReceiveDispatcher = ThemeFacadeReceiveDispatcher(json, themeFacade)
 	private val webAuthnFacade: WebAuthnFacadeReceiveDispatcher = WebAuthnFacadeReceiveDispatcher(json, webAuthnFacade)
-
+	
 	suspend fun dispatch(facadeName: String, methodName: String, args: List<String>): String {
 		return when (facadeName) {
 			"CommonSystemFacade" -> this.commonSystemFacade.dispatch(methodName, args)

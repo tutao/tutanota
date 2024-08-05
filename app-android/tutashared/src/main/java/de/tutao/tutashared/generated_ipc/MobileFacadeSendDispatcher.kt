@@ -19,7 +19,7 @@ class MobileFacadeSendDispatcher (
 		val result = this.transport.sendRequest("ipc", listOf(encodedFacade, encodedMethod) + args)
 		return json.decodeFromString(result)
 	}
-
+	
 	override suspend fun visibilityChange(
 		visibility: Boolean,
 	): Unit
@@ -29,7 +29,7 @@ class MobileFacadeSendDispatcher (
 		args.add(json.encodeToString(visibility))
 		this.transport.sendRequest("ipc", listOf(encodedFacade, encodedMethod) + args)
 	}
-
+	
 	override suspend fun keyboardSizeChanged(
 		newSize: Int,
 	): Unit
@@ -39,5 +39,5 @@ class MobileFacadeSendDispatcher (
 		args.add(json.encodeToString(newSize))
 		this.transport.sendRequest("ipc", listOf(encodedFacade, encodedMethod) + args)
 	}
-
+	
 }
