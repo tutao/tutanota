@@ -17,7 +17,8 @@ import de.tutao.tutashared.credentials.PersistedCredentialsEntity
 		AlarmNotificationEntity::class,
 		PersistedCredentialsEntity::class,
 		User::class
-	], autoMigrations = [
+	],
+	autoMigrations = [
 		AutoMigration(from = 1, to = 2),
 		AutoMigration(from = 2, to = 3),
 		AutoMigration(from = 3, to = 4)
@@ -36,8 +37,7 @@ abstract class AppDatabase : RoomDatabase() {
 				context,
 				AppDatabase::class.java,
 				"tuta-db"
-			) // This is important because we access db across processes!
-				.enableMultiInstanceInvalidation()
+			).enableMultiInstanceInvalidation() // This is important because we access db across processes!
 			if (allowMainThreadAccess) {
 				builder.allowMainThreadQueries()
 			}
