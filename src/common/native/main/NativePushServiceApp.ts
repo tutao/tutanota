@@ -47,7 +47,7 @@ export class NativePushServiceApp {
 				const identifier = (await this.loadPushIdentifierFromNative()) ?? (await locator.workerFacade.generateSsePushIdentifer())
 				this._currentIdentifier = identifier
 				const pushIdentifier = (await this.loadPushIdentifier(identifier)) ?? (await this.createPushIdentifierInstance(identifier, PushServiceType.SSE))
-				await this.storePushIdentifierLocally(pushIdentifier)
+				await this.storePushIdentifierLocally(pushIdentifier) // Also sets the extended notification mode to SENDER_AND_SUBJECT if the user is new
 
 				await this.scheduleAlarmsIfNeeded(pushIdentifier)
 				await this.initPushNotifications()
