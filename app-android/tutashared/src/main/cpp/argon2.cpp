@@ -33,7 +33,7 @@ extern "C" JNIEXPORT jbyteArray JNICALL Java_de_tutao_tutashared_AndroidNativeCr
     std::memset(inPassword.getBytes(), 0, inPassword.getLength());
 
     if (retval != ARGON2_OK) {
-        JAVA_THROW_EXCEPTION("de/tutao/calendar/CryptoError",
+        JAVA_THROW_EXCEPTION("de/tutao/tutashared/CryptoError",
                              "argon2id_hash_raw returned %d: %s",
                              retval,
                              argon2_error_message(retval)
