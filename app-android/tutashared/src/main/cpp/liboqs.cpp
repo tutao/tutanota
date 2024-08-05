@@ -16,7 +16,7 @@ static void fillEntropy(JNIEnv *env, jbyteArray seed);
 // Guard to prevent UB
 #define ASSERT_INPUT_LENGTH_EQUALS(name, expectedLength, actualLength) \
     if((expectedLength) != (actualLength)) { \
-        JAVA_THROW_EXCEPTION("de/tutao/calendar/CryptoError", "Bad input length for %s; expected %d, got %d instead", name, expectedLength, actualLength) \
+        JAVA_THROW_EXCEPTION("de/tutao/tutashared/CryptoError", "Bad input length for %s; expected %d, got %d instead", name, expectedLength, actualLength) \
         return nullptr; \
     }
 
@@ -52,7 +52,7 @@ extern "C" JNIEXPORT jobject JNICALL Java_de_tutao_tutashared_AndroidNativeCrypt
                                         reinterpret_cast<std::uint8_t *>(privateKeyBytes.getBytes()));
 
     if (result != OQS_SUCCESS) {
-        JAVA_THROW_EXCEPTION("de/tutao/calendar/CryptoError", "OQS_KEM_keypair returned %d", result);
+        JAVA_THROW_EXCEPTION("de/tutao/tutashared/CryptoError", "OQS_KEM_keypair returned %d", result);
     }
 
     return kyberKeyPair;

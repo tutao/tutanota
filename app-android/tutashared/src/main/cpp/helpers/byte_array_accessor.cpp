@@ -24,7 +24,7 @@ jbyteArray ByteArrayAccessor::getByteArray() const noexcept {
 }
 
 jobject ByteArrayAccessor::createDataWrapper() const noexcept {
-    auto dataWrapperClass = this->env->FindClass("de/tutao/calendar/ipc/DataWrapper");
+    auto dataWrapperClass = this->env->FindClass("de/tutao/tutashared/ipc/DataWrapper");
     return env->NewObject(dataWrapperClass,
                           env->GetMethodID(dataWrapperClass, "<init>", "([B)V"),
                           this->getByteArray());

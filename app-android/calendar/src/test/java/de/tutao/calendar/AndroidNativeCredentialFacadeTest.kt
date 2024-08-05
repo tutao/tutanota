@@ -1,4 +1,4 @@
-package de.tutao.tutanota
+package de.tutao.calendar
 
 import de.tutao.tutashared.AndroidNativeCryptoFacade
 import de.tutao.tutashared.CredentialType
@@ -55,8 +55,7 @@ class AndroidNativeCredentialFacadeTest {
 		),
 		encryptedPassword = "pw1",
 		databaseKey = byteArrayOf(0x01, 0x0d, 0x0e).wrap(),
-		accessToken = byteArrayOf(0x01, 0x0a, 0x0e).wrap(),
-		encryptedPassphraseKey = null,
+		accessToken = byteArrayOf(0x01, 0x0a, 0x0e).wrap()
 	)
 
 	val decryptedCredentials1 = UnencryptedCredentials(
@@ -68,7 +67,6 @@ class AndroidNativeCredentialFacadeTest {
 		encryptedPassword = "pw1",
 		databaseKey = byteArrayOf(0x01, 0x0d, 0x0d).wrap(),
 		accessToken = "decAccessToken1",
-		encryptedPassphraseKey = null,
 	)
 
 	val credentialsEntity1 = PersistedCredentialsEntity(
@@ -77,8 +75,7 @@ class AndroidNativeCredentialFacadeTest {
 		userId = encryptedCredentials1.credentialInfo.userId,
 		encryptedPassword = encryptedCredentials1.encryptedPassword,
 		databaseKey = encryptedCredentials1.databaseKey?.data,
-		accessToken = encryptedCredentials1.accessToken.data,
-		encryptedPassphraseKey = null,
+		accessToken = encryptedCredentials1.accessToken.data
 	)
 
 	val encryptedCredentials2 = PersistedCredentials(
@@ -89,20 +86,7 @@ class AndroidNativeCredentialFacadeTest {
 		),
 		encryptedPassword = "pw2",
 		databaseKey = byteArrayOf(0x02, 0x0d, 0x0e).wrap(),
-		accessToken = byteArrayOf(0x02, 0x0a, 0x0e).wrap(),
-		encryptedPassphraseKey = byteArrayOf(0x02, 0x0b, 0x0e).wrap(),
-	)
-
-	val decryptedCredentials2 = UnencryptedCredentials(
-		credentialInfo = CredentialsInfo(
-			login = "login2@test.com",
-			type = CredentialType.INTERNAL,
-			userId = "user2"
-		),
-		encryptedPassword = "pw2",
-		databaseKey = byteArrayOf(0x02, 0x0d, 0x0d).wrap(),
-		accessToken = "decAccessToken2",
-		encryptedPassphraseKey = byteArrayOf(0x02, 0x0b, 0x0e).wrap(),
+		accessToken = byteArrayOf(0x02, 0x0a, 0x0e).wrap()
 	)
 
 	val credentialsEntity2 = PersistedCredentialsEntity(
@@ -111,8 +95,7 @@ class AndroidNativeCredentialFacadeTest {
 		userId = encryptedCredentials2.credentialInfo.userId,
 		encryptedPassword = encryptedCredentials2.encryptedPassword,
 		databaseKey = encryptedCredentials2.databaseKey?.data,
-		accessToken = encryptedCredentials2.accessToken.data,
-		encryptedPassphraseKey = byteArrayOf(0x02, 0x0b, 0x0e),
+		accessToken = encryptedCredentials2.accessToken.data
 	)
 
 	val encCredentialsKey = byteArrayOf(0x0e)
@@ -155,7 +138,7 @@ class AndroidNativeCredentialFacadeTest {
 	}
 
 	@Test
-	fun `loadByUserId $ when there is a key it is used to decrypt credentials, wo passphraseKey`() = runTest {
+	fun `loadByUserId $ when there is a key it is used to decrypt credentials`() = runTest {
 		sayHadStoredEncryptionKey(encCredentialsKey)
 		sayHadStoredEncryptionMode(CredentialEncryptionMode.DEVICE_LOCK)
 		sayHadCredentials(listOf(credentialsEntity1, credentialsEntity2))
@@ -171,25 +154,6 @@ class AndroidNativeCredentialFacadeTest {
 			decryptedCredentials1.accessToken.toByteArray()
 		)
 		assertEquals(decryptedCredentials1, facade.loadByUserId("user1"))
-	}
-
-	@Test
-	fun `loadByUserId $ when there is a key it is used to decrypt credentials, w passphraseKey`() = runTest {
-		sayHadStoredEncryptionKey(encCredentialsKey)
-		sayHadStoredEncryptionMode(CredentialEncryptionMode.DEVICE_LOCK)
-		sayHadCredentials(listOf(credentialsEntity1, credentialsEntity2))
-		sayCredentialKeyCanBeDecrypted(CredentialEncryptionMode.DEVICE_LOCK)
-		sayCanDecrypt(
-			decCredentialsKey,
-			encryptedCredentials2.databaseKey!!.data,
-			decryptedCredentials2.databaseKey!!.data
-		)
-		sayCanDecrypt(
-			decCredentialsKey,
-			encryptedCredentials2.accessToken.data,
-			decryptedCredentials2.accessToken.toByteArray()
-		)
-		assertEquals(decryptedCredentials2, facade.loadByUserId("user2"))
 	}
 
 	@Test
@@ -335,7 +299,7 @@ class AndroidNativeCredentialFacadeTest {
 
 	private fun sayHadCredentials(credentials: List<PersistedCredentialsEntity>) {
 		credentialsDao.stub {
-			on { allPersistedCredentials() } doReturn credentials
+			on { allPersistedCredentials } doReturn credentials
 		}
 	}
 }

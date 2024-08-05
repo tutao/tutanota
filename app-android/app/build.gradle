@@ -103,11 +103,6 @@ android {
 		disable 'MissingTranslation'
 	}
 
-	sourceSets {
-		// Adds exported schema location as test app assets.
-		androidTest.assets.srcDirs += files("$projectDir/schemas".toString())
-	}
-
 	namespace 'de.tutao.tutanota'
 }
 
