@@ -2,9 +2,19 @@ package de.tutao.calendar.alarms
 
 import android.util.Log
 import de.tutao.calendar.*
-import de.tutao.calendar.ipc.EncryptedAlarmNotification
 import de.tutao.calendar.push.LocalNotificationsFacade
-import de.tutao.calendar.push.SseStorage
+import de.tutao.tutashared.AndroidNativeCryptoFacade
+import de.tutao.tutashared.CryptoError
+import de.tutao.tutashared.OperationType
+import de.tutao.tutashared.alarms.AlarmInterval
+import de.tutao.tutashared.alarms.AlarmModel
+import de.tutao.tutashared.alarms.AlarmNotification
+import de.tutao.tutashared.alarms.AlarmNotificationEntity
+import de.tutao.tutashared.alarms.EncryptedAlarmNotification
+import de.tutao.tutashared.alarms.decrypt
+import de.tutao.tutashared.alarms.toEntity
+import de.tutao.tutashared.base64ToBytes
+import de.tutao.tutashared.push.SseStorage
 import java.security.KeyStoreException
 import java.security.UnrecoverableEntryException
 import java.util.*
@@ -114,6 +124,7 @@ class AlarmNotificationsManager(
 					occurrenceIsTooFar(alarmTime) -> {
 						Log.d(TAG, "Alarm $identifier is too far in the future, skipping")
 					}
+
 					alarmTime.after(now) -> {
 						systemAlarmFacade.scheduleAlarmOccurrenceWithSystem(
 							alarmTime,
@@ -124,6 +135,7 @@ class AlarmNotificationsManager(
 							alarmNotification.user
 						)
 					}
+
 					else -> {
 						Log.d(TAG, "Alarm $identifier is before $now, skipping")
 					}

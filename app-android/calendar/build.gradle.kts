@@ -19,18 +19,6 @@ android {
 		versionName = "240.240731.0"
 
 		testInstrumentationRunner = "androidx.test.runner.AndroidJUnitRunner"
-
-		javaCompileOptions {
-			annotationProcessorOptions {
-				this.arguments["room.schemaLocation"] = "$projectDir/schemas"
-			}
-		}
-
-		externalNativeBuild {
-			cmake {
-				this.cppFlags("")
-			}
-		}
 	}
 
 	signingConfigs {
@@ -65,9 +53,9 @@ android {
 			isJniDebuggable = true
 		}
 		release {
+			manifestPlaceholders += mapOf()
 			isMinifyEnabled = true
 			resValue("string", "package_name", "de.tutao.calendar")
-			setProguardFiles(listOf(getDefaultProguardFile("proguard-android.txt"), "proguard-rules.pro"))
 			manifestPlaceholders["contentProviderAuthority"] = "de.tutao.fileprovider"
 
 		}
@@ -104,8 +92,8 @@ android {
 			"\"" + it.manifestPlaceholders["contentProviderAuthority"] + "\""
 		)
 		// keep in sync with src/native/main/NativePushServiceApp.ts
-		it.buildConfigField("String", "SYS_MODEL_VERSION", "\"99\"")
-		it.buildConfigField("String", "TUTANOTA_MODEL_VERSION", "\"71\"")
+		it.buildConfigField("String", "SYS_MODEL_VERSION", "\"105\"")
+		it.buildConfigField("String", "TUTANOTA_MODEL_VERSION", "\"73\"")
 		it.buildConfigField("String", "RES_ADDRESS", "\"tutanota\"")
 	}
 
@@ -127,22 +115,10 @@ android {
 	lint {
 		this.disable.add("MissingTranslation")
 	}
-
-	sourceSets {
-		this.getByName("androidTest") {
-			assets.srcDirs(files("$projectDir/schemas"))
-		};
-	}
-
-	externalNativeBuild {
-		cmake {
-			this.path(file("src/main/cpp/CMakeLists.txt"))
-			this.version = "3.18.0+"
-		}
-	}
 }
 
 dependencies {
+	implementation(project(":tutashared"))
 	val room_version = "2.4.2"
 	val lifecycle_version = "2.4.1"
 	val activity_version = "1.4.0"

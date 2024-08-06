@@ -1,6 +1,6 @@
 package de.tutao.tutanota.push
 
-import de.tutao.tutanota.alarms.EncryptedAlarmNotification
+import de.tutao.tutashared.alarms.EncryptedAlarmNotification
 import kotlinx.serialization.Serializable
 
 @Serializable

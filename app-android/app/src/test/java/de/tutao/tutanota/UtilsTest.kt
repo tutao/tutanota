@@ -1,5 +1,7 @@
 package de.tutao.tutanota
 
+import de.tutao.tutashared.isLightHexColor
+import de.tutao.tutashared.parseColor
 import org.junit.Assert
 import org.junit.Test
 

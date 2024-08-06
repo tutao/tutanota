@@ -2,10 +2,11 @@ package de.tutao.tutanota.push
 
 import de.tutao.tutanota.MainActivity
 import de.tutao.tutanota.alarms.AlarmNotificationsManager
-import de.tutao.tutanota.ipc.DataWrapper
-import de.tutao.tutanota.ipc.EncryptedAlarmNotification
-import de.tutao.tutanota.ipc.ExtendedNotificationMode
-import de.tutao.tutanota.ipc.NativePushFacade
+import de.tutao.tutashared.ipc.DataWrapper
+import de.tutao.tutashared.ipc.EncryptedAlarmNotification
+import de.tutao.tutashared.ipc.ExtendedNotificationMode
+import de.tutao.tutashared.ipc.NativePushFacade
+import de.tutao.tutashared.push.SseStorage
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.withContext
 

@@ -1,20 +1,24 @@
 package de.tutao.tutanota
 
-import de.tutao.tutanota.alarms.AlarmInterval
-import de.tutao.tutanota.alarms.AlarmIntervalUnit
-import de.tutao.tutanota.alarms.AlarmModel.calculateAlarmTime
-import de.tutao.tutanota.alarms.AlarmNotificationEntity
-import de.tutao.tutanota.alarms.AlarmNotificationEntity.NotificationSessionKey
 import de.tutao.tutanota.alarms.AlarmNotificationsManager
-import de.tutao.tutanota.alarms.EncryptedAlarmInfo
-import de.tutao.tutanota.alarms.EncryptedAlarmNotification
-import de.tutao.tutanota.alarms.EncryptedRepeatRule
-import de.tutao.tutanota.alarms.EndType
-import de.tutao.tutanota.alarms.RepeatPeriod
 import de.tutao.tutanota.alarms.SystemAlarmFacade
-import de.tutao.tutanota.alarms.toEntity
 import de.tutao.tutanota.push.LocalNotificationsFacade
-import de.tutao.tutanota.push.SseStorage
+import de.tutao.tutashared.AndroidNativeCryptoFacade
+import de.tutao.tutashared.CryptoError
+import de.tutao.tutashared.IdTuple
+import de.tutao.tutashared.OperationType
+import de.tutao.tutashared.alarms.AlarmInterval
+import de.tutao.tutashared.alarms.AlarmIntervalUnit
+import de.tutao.tutashared.alarms.AlarmModel.calculateAlarmTime
+import de.tutao.tutashared.alarms.AlarmNotificationEntity
+import de.tutao.tutashared.alarms.EncryptedAlarmInfo
+import de.tutao.tutashared.alarms.EncryptedAlarmNotification
+import de.tutao.tutashared.alarms.EncryptedRepeatRule
+import de.tutao.tutashared.alarms.EndType
+import de.tutao.tutashared.alarms.RepeatPeriod
+import de.tutao.tutashared.alarms.toEntity
+import de.tutao.tutashared.push.SseStorage
+import de.tutao.tutashared.toBase64
 import org.junit.Before
 import org.junit.Test
 import org.junit.runner.RunWith
@@ -148,7 +152,7 @@ class AlarmNotificationsManagerTest {
 		} catch (cryptoError: CryptoError) {
 			throw RuntimeException(cryptoError)
 		}
-		val notificationSessionKey = NotificationSessionKey(
+		val notificationSessionKey = AlarmNotificationEntity.NotificationSessionKey(
 			IdTuple("listId", pushIdentifierElementId),
 			encSessionKey.toBase64()
 		)

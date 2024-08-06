@@ -12,11 +12,11 @@ import androidx.biometric.BiometricPrompt
 import androidx.core.content.ContextCompat.startActivity
 import androidx.core.content.FileProvider
 import androidx.fragment.app.FragmentActivity
-import de.tutao.tutanota.credentials.AuthenticationPrompt
-import de.tutao.tutanota.data.AppDatabase
-import de.tutao.tutanota.ipc.AppLockMethod
-import de.tutao.tutanota.ipc.MobileSystemFacade
-import de.tutao.tutanota.ipc.PermissionType
+import de.tutao.tutashared.CredentialAuthenticationException
+import de.tutao.tutashared.atLeastTiramisu
+import de.tutao.tutashared.credentials.AuthenticationPrompt
+import de.tutao.tutashared.data.AppDatabase
+import de.tutao.tutashared.ipc.*
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.withContext
 import java.io.File

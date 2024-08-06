@@ -17,7 +17,7 @@ export class KotlinGenerator implements LangGenerator {
 	generateGlobalDispatcher(name: string, facadeNames: string[]): string {
 		const acc = new Accumulator()
 		KotlinGenerator.generateImports(acc)
-		acc.line(`import de.tutao.tutanota.ipc.*`)
+		acc.line(`import de.tutao.tutashared.ipc.*`)
 		acc.line()
 		acc.line(`class ${name} (`)
 		const methodAcc = acc.indent()
@@ -66,7 +66,7 @@ export class KotlinGenerator implements LangGenerator {
 	}
 
 	private static generateImports(acc: Accumulator) {
-		acc.line("package de.tutao.tutanota.ipc")
+		acc.line("package de.tutao.tutashared.ipc")
 		acc.line()
 		acc.line("import kotlinx.serialization.*")
 		acc.line("import kotlinx.serialization.json.*")
@@ -202,7 +202,7 @@ export class KotlinGenerator implements LangGenerator {
 	generateTypeRef(outDir: string, definitionPath: string, definition: TypeRefDefinition): string | null {
 		if (definition.location.kotlin) {
 			const acc = new Accumulator()
-			acc.line(`package de.tutao.tutanota.ipc`)
+			acc.line(`package de.tutao.tutashared.ipc`)
 			acc.line(`typealias ${definition.name} = ${definition.location.kotlin}`)
 			return acc.finish()
 		} else {

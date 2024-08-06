@@ -1,7 +1,7 @@
 package de.tutao.tutanota
 
-import de.tutao.tutanota.alarms.AlarmInterval
-import de.tutao.tutanota.alarms.AlarmIntervalUnit
+import de.tutao.tutashared.alarms.AlarmInterval
+import de.tutao.tutashared.alarms.AlarmIntervalUnit
 import org.junit.Assert.assertEquals
 import org.junit.Test
 
