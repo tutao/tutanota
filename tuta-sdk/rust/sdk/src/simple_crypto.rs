@@ -3,11 +3,16 @@
 /// We implement parts of kyber differently than in crypto module to make it more FFI-friendly.
 
 use crate::crypto::kyber;
+use crate::crypto::randomizer_facade::RandomizerFacade;
+use crate::crypto::rsa::{RSAPrivateKey, RSAPublicKey, SeedBufferRng};
+use base64::prelude::*;
+use zeroize::Zeroizing;
 
-/// Error occurred from trying to read a Kyber public/private key.
+/// Error occurred from trying to encapsulate/decapsulate with Kyber
+/// with the simple_crypto kyber_encapsulate/kyber_decapsulate methods.
 #[derive(thiserror::Error, Debug, uniffi::Error)]
 #[uniffi(flat_error)]
-pub enum KyberError {
+enum KyberError {
     #[error("KeyError {reason}")]
     InvalidKey {
         reason: String,
@@ -85,3 +90,56 @@ impl From<kyber::KyberEncapsulation> for KyberEncapsulation {
     }
 }
 
+/// Error occurred from trying to encrypt/decrypt with RSA with the simple_crypto
+/// rsa_encrypt/rsa_decrypt methods.
+#[derive(thiserror::Error, Debug, uniffi::Error)]
+#[uniffi(flat_error)]
+enum RSAError {
+    #[error("InvalidKey {reason}")]
+    InvalidKey {
+        reason: String,
+    },
+    #[error("InvalidCiphertext")]
+    InvalidCiphertextError,
+    #[error("RSAEncryptionError {reason}")]
+    RSAEncryptionError {
+        reason: String,
+    },
+}
+
+/// Decrypt with RSA with the given private key components.
+#[uniffi::export]
+fn rsa_decrypt_with_private_key_components(ciphertext: Vec<u8>, modulus: String, private_exponent: String, prime_p: String, prime_q: String) -> Result<Vec<u8>, RSAError> {
+    let modulus = Zeroizing::new(modulus);
+    let private_exponent = Zeroizing::new(private_exponent);
+    let prime_p = Zeroizing::new(prime_p);
+    let prime_q = Zeroizing::new(prime_q);
+
+    let modulus = Zeroizing::new(BASE64_STANDARD.decode(modulus).map_err(|_| RSAError::InvalidKey { reason: "modulus is not valid base64".to_owned() })?);
+    let private_exponent = Zeroizing::new(BASE64_STANDARD.decode(private_exponent).map_err(|_| RSAError::InvalidKey { reason: "private_exponent is not valid base64".to_owned() })?);
+    let prime_p = Zeroizing::new(BASE64_STANDARD.decode(prime_p).map_err(|_| RSAError::InvalidKey { reason: "prime_p is not valid base64".to_owned() })?);
+    let prime_q = Zeroizing::new(BASE64_STANDARD.decode(prime_q).map_err(|_| RSAError::InvalidKey { reason: "prime_q is not valid base64".to_owned() })?);
+
+    let key = RSAPrivateKey::from_components(&modulus, &private_exponent, &prime_p, &prime_q)
+        .map_err(|e| RSAError::InvalidKey { reason: e.to_string() })?;
+
+    key
+        .decrypt(&ciphertext)
+        .map_err(|_| RSAError::InvalidCiphertextError)
+}
+
+/// Encrypt with RSA with the given public key components.
+#[uniffi::export]
+fn rsa_encrypt_with_public_key_components(data: Vec<u8>, seed: Vec<u8>, modulus: String, public_exponent: u32) -> Result<Vec<u8>, RSAError> {
+    let modulus = Zeroizing::new(BASE64_STANDARD.decode(modulus).map_err(|_| RSAError::InvalidKey { reason: "modulus is not valid base64".to_owned() })?);
+    let key = RSAPublicKey::from_components(&modulus, public_exponent)
+        .map_err(|e| RSAError::InvalidKey { reason: e.to_string() })?;
+
+    // Not very elegant to instantiate this here, but this avoids requiring external state while
+    // letting us use seeded RNG, which is how RSA is presently implemented in Tuta.
+    let randomizer_facade_with_seed = RandomizerFacade::from_core(SeedBufferRng::new(seed));
+
+    key
+        .encrypt(&randomizer_facade_with_seed, &data)
+        .map_err(|e| RSAError::RSAEncryptionError { reason: e.to_string() })
+}
