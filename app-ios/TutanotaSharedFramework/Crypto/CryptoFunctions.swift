@@ -8,7 +8,7 @@ public class CryptoFunctions {
 
 	public func aesDecryptKey(_ encryptedKey: Data, withKey key: Data) throws -> Data { try TutanotaSharedFramework.aesDecryptKey(encryptedKey, withKey: key) }
 
-	public func aesEncryptData(_ data: Data, withKey key: Data, withIV iv: Data = TUTCrypto.generateIv()) throws -> Data {
+	public func aesEncryptData(_ data: Data, withKey key: Data, withIV iv: Data = TutanotaSharedFramework.aesGenerateIV()) throws -> Data {
 		try TutanotaSharedFramework.aesEncryptData(data, withKey: key, withIV: iv)
 	}
 
