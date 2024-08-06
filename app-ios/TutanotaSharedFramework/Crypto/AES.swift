@@ -8,7 +8,9 @@ private let MAC_IDENTIFIER: [UInt8] = [0x01]
 private let TUTAO_FIXED_IV: Data = Data(repeating: 0x88, count: TUTAO_IV_BYTE_SIZE)
 private let MAC_TOTAL_OVERHEAD_LENGTH = MAC_DIGEST_LENGTH + MAC_IDENTIFIER.count
 
-public func aesGenerateKey() -> Data { TUTCrypto.generateAES256Key() }
+public func aesGenerateKey() -> Data { secureRandomData(ofLength: AES_256_KEY_LENGTH_IN_BITS / 8) }
+
+public func aesGenerateIV() -> Data { secureRandomData(ofLength: TUTAO_IV_BYTE_SIZE) }
 
 /// Decrypt the encrypted data with padding.
 ///
@@ -47,7 +49,7 @@ public func aesDecryptKey(_ encryptedKey: Data, withKey key: Data) throws -> Dat
 ///   - withIV: IV to use
 ///
 /// - Returns: Encrypted cyphertext
-public func aesEncryptData(_ data: Data, withKey key: Data, withIV iv: Data = TUTCrypto.generateIv()) throws -> Data {
+public func aesEncryptData(_ data: Data, withKey key: Data, withIV iv: Data = aesGenerateIV()) throws -> Data {
 	try aesEncrypt(data: data, withKey: key, withIV: iv, withPadding: true, withMAC: true)
 }
 
@@ -65,7 +67,7 @@ public func aesEncryptKey(_ keyToBeEncrypted: Data, withKey key: Data) throws ->
 	case kCCKeySizeAES128:
 		let encrypted = try aesEncrypt(data: keyToBeEncrypted, withKey: key, withIV: TUTAO_FIXED_IV, withPadding: false, withMAC: false)
 		return encrypted[TUTAO_IV_BYTE_SIZE...]  // IV is fixed, so we can extract everything after it
-	case kCCKeySizeAES256: return try aesEncrypt(data: keyToBeEncrypted, withKey: key, withIV: TUTCrypto.generateIv(), withPadding: false, withMAC: true)
+	case kCCKeySizeAES256: return try aesEncrypt(data: keyToBeEncrypted, withKey: key, withIV: aesGenerateIV(), withPadding: false, withMAC: true)
 	default: throw TUTErrorFactory.createError(withDomain: TUT_CRYPTO_ERROR, message: "invalid key size \(key.count)")
 	}
 }

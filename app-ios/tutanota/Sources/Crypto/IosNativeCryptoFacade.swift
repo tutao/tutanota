@@ -5,7 +5,6 @@ import tutasdk
 /// Is an actor because we want to have serial execution for all the cryptogaphic operations, doing them in parallel is usually too
 /// much for the device.
 public actor IosNativeCryptoFacade: NativeCryptoFacade {
-	private let crypto: TUTCrypto = TUTCrypto()
 	public init() {}
 
 	public func aesEncryptFile(_ key: DataWrapper, _ fileUri: String, _ iv: DataWrapper) async throws -> EncryptedFileInfo {
@@ -38,11 +37,24 @@ public actor IosNativeCryptoFacade: NativeCryptoFacade {
 	}
 
 	public func rsaEncrypt(_ publicKey: RsaPublicKey, _ data: DataWrapper, _ seed: DataWrapper) async throws -> DataWrapper {
-		try self.crypto.rsaEncrypt(with: publicKey.toObjcKey(), data: data.data, seed: seed.data).wrap()
+		try tutasdk.rsaEncryptWithPublicKeyComponents(
+			data: data.data,
+			seed: seed.data,
+			modulus: publicKey.modulus,
+			publicExponent: UInt32(publicKey.publicExponent)
+		)
+		.wrap()
 	}
 
 	public func rsaDecrypt(_ privateKey: RsaPrivateKey, _ data: DataWrapper) async throws -> DataWrapper {
-		try self.crypto.rsaDecrypt(with: privateKey.toObjcKey(), data: data.data).wrap()
+		try tutasdk.rsaDecryptWithPrivateKeyComponents(
+			ciphertext: data.data,
+			modulus: privateKey.modulus,
+			privateExponent: privateKey.privateExponent,
+			primeP: privateKey.primeP,
+			primeQ: privateKey.primeQ
+		)
+		.wrap()
 	}
 
 	public func argon2idHashRaw(_ password: DataWrapper, _ salt: DataWrapper, _ timeCost: Int, _ memoryCost: Int, _ parallelism: Int, _ hashLength: Int)
