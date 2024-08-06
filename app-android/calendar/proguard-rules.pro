@@ -76,4 +76,4 @@ de.tutao.calendar.IdTuple # <-- List serializable classes with named companions.
 -keep,includedescriptorclasses class net.sqlcipher.** { *; }
 -keep,includedescriptorclasses interface net.sqlcipher.** { *; }
 
--keep public class de.tutao.tutanota.ipc.** { *; }
+-keep public class de.tutao.calendar.ipc.** { *; }
