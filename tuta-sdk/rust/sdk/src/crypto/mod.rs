@@ -25,7 +25,7 @@ pub use argon2_id::generate_key_from_passphrase;
 
 mod ecc;
 pub(crate) mod kyber;
-mod rsa;
+pub(crate) mod rsa;
 
 mod tuta_crypt;
 
