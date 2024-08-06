@@ -1,5 +1,6 @@
 # Shared configuations for XCodeGen projects
 options:
+  xcodeVersion: "15.3"
   minimumXCodeGenVersion: 2.41.0
   createIntermediateGroups: true
   developmentLanguage: "en"
