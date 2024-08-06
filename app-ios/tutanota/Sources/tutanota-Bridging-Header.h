@@ -7,5 +7,4 @@
 #import <TutanotaSharedFramework/TUTLog.h>
 #import <TutanotaSharedFramework/TUTErrorFactory.h>
 #import "Utils/WebviewHacks.h"
-#import <TutanotaSharedFramework/TUTCrypto.h>
 #import "argon2.h"

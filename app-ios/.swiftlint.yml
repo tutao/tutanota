@@ -70,7 +70,6 @@ opt_in_rules:
 excluded:
 - .idea
 - fastlane
-- libcrypto.xcframework
 - releases
 - tutanota.xcodeproj
 - tutanota/build
