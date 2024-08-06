@@ -140,9 +140,8 @@ class CompatibilityTest {
 		for (testData in testData.rsaEncryptionTests) {
 			val publicKeyJSON = hexToPublicKey(testData.publicKey)
 			val encryptedResult: ByteArray = crypto.rsaEncrypt(publicKeyJSON, hexToBytes(testData.input).wrap(), hexToBytes(testData.seed).wrap()).data
-			//String hexResult = bytesToHex(encryptedResultBytes);
-			//assertEquals(testData.getResult(), hexResult);
-			//cannot compare encrypted test data because default android implementation ignores randomizer
+			val hexResult = bytesToHex(encryptedResult)
+			assertEquals(testData.result, hexResult)
 			val plainText = crypto.rsaDecrypt(hexToPrivateKey(testData.privateKey), encryptedResult.wrap()).data
 			assertEquals(testData.input, bytesToHex(plainText))
 			val plainTextFromTestData = crypto.rsaDecrypt(hexToPrivateKey(testData.privateKey), hexToBytes(testData.result).wrap()).data
