@@ -18,7 +18,7 @@ env:
 
 jobs:
   test-swift:
-    runs-on: macos-13 # macos 14 is ARM only and our tests don't run on ARM simulators due to libcrypto
+    runs-on: macos-14
 
     permissions:
       actions: none
@@ -55,7 +55,7 @@ jobs:
           cargo --version
           rustc --version
       - name: Add rust target
-        run: rustup target add x86_64-apple-ios # aarch64-apple-ios-sim
+        run: rustup target add aarch64-apple-ios-sim
       - name: Lint
         working-directory: ./app-ios
         run: ./lint.sh lint:check
