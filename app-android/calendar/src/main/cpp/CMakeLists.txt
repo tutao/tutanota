@@ -1,7 +1,7 @@
 cmake_minimum_required(VERSION 3.18.0)
-project("tutanota"
+project("tutacalendar"
         LANGUAGES C CXX
-        )
+)
 
 set(TUTAMAIL_PROJECT_DIR "${CMAKE_SOURCE_DIR}/../../../../../")
 set(WEBASSEMBLY_LIBS_DIR "${TUTAMAIL_PROJECT_DIR}/libs/webassembly")
@@ -11,9 +11,9 @@ set(C_LIBS_INCLUDE_DIR "${WEBASSEMBLY_LIBS_DIR}/include")
 
 add_custom_target(liboqs_include make -f Makefile_liboqs include
         WORKING_DIRECTORY "${WEBASSEMBLY_LIBS_DIR}"
-        )
+)
 
-add_library(tutanota SHARED
+add_library(tutacalendar SHARED
         argon2.cpp
         liboqs.cpp
         helpers/byte_array_accessor.cpp
@@ -39,27 +39,27 @@ add_library(tutanota SHARED
         "${LIBOQS_DIR}/src/common/sha3/xkcp_low/KeccakP-1600/plain-64bits/KeccakP-1600-opt64.c"
         "${LIBOQS_DIR}/src/common/common.c"
         "${TUTAMAIL_PROJECT_DIR}/packages/tutanota-crypto/lib/encryption/Liboqs/rand.c"
-        )
+)
 
-add_dependencies(tutanota liboqs_include)
+add_dependencies(tutacalendar liboqs_include)
 
-target_compile_definitions(tutanota
+target_compile_definitions(tutacalendar
         PRIVATE OQS_ENABLE_KEM_kyber_1024=1
         PRIVATE OQS_VERSION_TEXT=\"tutakyber\"
         PRIVATE OQS_ENABLE_KEM_kyber_1024=1
         PRIVATE OQS_ENABLE_KEM_KYBER=1
         PRIVATE OQS_DIST_BUILD=1
         PRIVATE KYBER_K=4
-        )
+)
 
-target_include_directories(tutanota
+target_include_directories(tutacalendar
         PRIVATE "${ARGON2_DIR}/include"
         PRIVATE "${LIBOQS_DIR}/src/kem/kyber/pqcrystals-kyber_kyber1024_ref"
         PRIVATE "${LIBOQS_DIR}/src/common/pqclean_shims"
         PRIVATE "${C_LIBS_INCLUDE_DIR}"
-        )
+)
 
-target_compile_options(tutanota PRIVATE "-O3")
+target_compile_options(tutacalendar PRIVATE "-O3")
 
-set_property(TARGET tutanota PROPERTY CXX_STANDARD 17)
-set_property(TARGET tutanota PROPERTY C_STANDARD 11)
+set_property(TARGET tutacalendar PROPERTY CXX_STANDARD 17)
+set_property(TARGET tutacalendar PROPERTY C_STANDARD 11)
