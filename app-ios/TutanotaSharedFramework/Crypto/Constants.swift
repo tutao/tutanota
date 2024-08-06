@@ -1,0 +1,4 @@
+public let RSA_KEY_LENGTH_IN_BITS = 2048
+public let PUBLIC_EXPONENT = 65537
+public let TUTAO_IV_BYTE_SIZE = 16
+public let AES_256_KEY_LENGTH_IN_BITS = 256

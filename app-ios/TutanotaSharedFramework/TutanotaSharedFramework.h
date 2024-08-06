@@ -5,9 +5,7 @@
 #import <TutanotaSharedFramework/sqlite3.h>
 #import <TutanotaSharedFramework/TUTErrorFactory.h>
 #import <TutanotaSharedFramework/TUTLog.h>
-#import <TutanotaSharedFramework/TUTCrypto.h>
 #import <TutanotaSharedFramework/TUTEncodingConverter.h>
-#import <TutanotaSharedFramework/rsa_oaep_sha256.h>
 #import <TutanotaSharedFramework/PSPDFFastEnumeration.h>
 
 //! Project version number for TutanotaSharedFramework.
