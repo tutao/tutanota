@@ -72,7 +72,7 @@ targets:
             "-DSQLITE_HAS_CODEC",
             "-DSQLITE_TEMP_STORE=3",
             "-DSQLCIPHER_CRYPTO_CC",
-            "-DNDEBUG"
+            "-DNDEBUG",
           ]
         SUPPORTS_XR_DESIGNED_FOR_IPHONE_IPAD: "NO"
         SUPPORTS_MAC_DESIGNED_FOR_IPHONE_IPAD: "NO"
@@ -99,8 +99,6 @@ targets:
         embed: false
       - package: DictionaryCoding
       - sdk: Foundation.framework
-        embed: false
-      - framework: libcrypto.xcframework
         embed: false
       - sdk: Security.framework
         embed: false
@@ -244,8 +242,6 @@ targets:
     dependencies:
       - package: DictionaryCoding
         product: "DictionaryCoding"
-      - framework: libcrypto.xcframework
-        embed: false
   TutanotaNotificationExtension:
     type: "app-extension"
     platform: "iOS"

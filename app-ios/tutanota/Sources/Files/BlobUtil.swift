@@ -2,6 +2,7 @@
 //  Created by Tutao GmbH on 9/16/21.
 //
 
+import CryptoKit
 import Foundation
 
 /**
@@ -13,7 +14,7 @@ class BlobUtil {
 		let url = URL(fileURLWithPath: fileUri)
 		let data = try Data(contentsOf: url)
 
-		let hash = TUTCrypto.sha256(data).subdata(in: 0..<6)
+		let hash = Data(CryptoKit.SHA256.hash(data: data)).subdata(in: 0..<6)
 		return hash.base64EncodedString()
 	}
 
@@ -48,7 +49,7 @@ class BlobUtil {
 				break
 			}
 
-			let hash = TUTCrypto.sha256(chunk)
+			let hash = Data(CryptoKit.SHA256.hash(data: chunk))
 			let outputFileName = "\(TUTEncodingConverter.bytes(toHex: hash.subdata(in: 0..<6))).blob"
 			let decryptedDir = try! FileUtils.getDecryptedFolder() as NSString
 			let outputPath = decryptedDir.appendingPathComponent(outputFileName)
