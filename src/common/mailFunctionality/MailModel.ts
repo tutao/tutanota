@@ -383,13 +383,13 @@ export class MailModel {
 				if (this.inboxRuleHandler && this.connectivityModel) {
 					const mailId: IdTuple = [update.instanceListId, update.instanceId]
 					try {
-						const mail = await this.entityClient.load(MailTypeRef, mailId)
-						const folder = this.getMailFolderForMail(mail)
+					const mail = await this.entityClient.load(MailTypeRef, mailId)
+					const folder = this.getMailFolderForMail(mail)
 
-						if (folder && folder.folderType === MailSetKind.INBOX) {
-							// If we don't find another delete operation on this email in the batch, then it should be a create operation,
-							// otherwise it's a move
-							await this.getMailboxDetailsForMail(mail)
+					if (folder && folder.folderType === MailSetKind.INBOX) {
+						// If we don't find another delete operation on this email in the batch, then it should be a create operation,
+						// otherwise it's a move
+						await this.getMailboxDetailsForMail(mail)
 								.then((mailboxDetail) => {
 									// We only apply rules on server if we are the leader in case of incoming messages
 									return (
@@ -401,13 +401,13 @@ export class MailModel {
 										)
 									)
 								})
-								.then((newFolderAndMail) => {
-									if (newFolderAndMail) {
-										this._showNotification(newFolderAndMail.folder, newFolderAndMail.mail)
-									} else {
-										this._showNotification(folder, mail)
-									}
-								})
+							.then((newFolderAndMail) => {
+								if (newFolderAndMail) {
+									this._showNotification(newFolderAndMail.folder, newFolderAndMail.mail)
+								} else {
+									this._showNotification(folder, mail)
+								}
+							})
 								.catch(noOp)
 						}
 					} catch (e) {
