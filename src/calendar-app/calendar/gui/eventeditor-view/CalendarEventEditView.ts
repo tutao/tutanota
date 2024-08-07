@@ -4,26 +4,24 @@ import { AttendeeListEditor, AttendeeListEditorAttrs } from "./AttendeeListEdito
 import { locator } from "../../../../common/api/main/CommonLocator.js"
 import { EventTimeEditor, EventTimeEditorAttrs } from "./EventTimeEditor.js"
 import { RepeatRuleEditor, RepeatRuleEditorAttrs } from "./RepeatRuleEditor.js"
-import { TextField, TextFieldAttrs, TextFieldType } from "../../../../common/gui/base/TextField.js"
+import { TextField, TextFieldAttrs } from "../../../../common/gui/base/TextField.js"
 import { defaultCalendarColor, TimeFormat } from "../../../../common/api/common/TutanotaConstants.js"
 import { lang, TranslationKey } from "../../../../common/misc/LanguageViewModel.js"
 import { RecipientsSearchModel } from "../../../../common/misc/RecipientsSearchModel.js"
 import { DropDownSelector, DropDownSelectorAttrs } from "../../../../common/gui/base/DropDownSelector.js"
 import { BootIcons } from "../../../../common/gui/base/icons/BootIcons.js"
 import { CalendarInfo } from "../../model/CalendarModel.js"
-import { AlarmIntervalUnit } from "../../../../common/calendar/date/CalendarUtils.js"
+import { AlarmInterval } from "../../../../common/calendar/date/CalendarUtils.js"
 import { Icons } from "../../../../common/gui/base/icons/Icons.js"
 import { IconButton } from "../../../../common/gui/base/IconButton.js"
 import { ButtonSize } from "../../../../common/gui/base/ButtonSize.js"
 import { HtmlEditor } from "../../../../common/gui/editor/HtmlEditor.js"
-import { attachDropdown } from "../../../../common/gui/base/Dropdown.js"
 import { BannerType, InfoBanner, InfoBannerAttrs } from "../../../../common/gui/base/InfoBanner.js"
-import { CalendarEventModel, ReadonlyReason } from "../eventeditor-model/CalendarEventModel.js"
-import { Dialog } from "../../../../common/gui/base/Dialog.js"
+import { CalendarEventModel, CalendarOperation, ReadonlyReason } from "../eventeditor-model/CalendarEventModel.js"
 
 import { getSharedGroupName } from "../../../../common/sharing/GroupUtils.js"
 
-import { createAlarmIntervalItems, createCustomRepeatRuleUnitValues, humanDescriptionForAlarmInterval } from "../CalendarGuiUtils.js"
+import { RemindersEditor, RemindersEditorAttrs } from "../RemindersEditor.js"
 
 export type CalendarEventEditViewAttrs = {
 	model: CalendarEventModel
@@ -32,6 +30,7 @@ export type CalendarEventEditViewAttrs = {
 	descriptionEditor: HtmlEditor
 	startOfTheWeekOffset: number
 	timeFormat: TimeFormat
+	defaultAlarms: Map<Id, AlarmInterval[]>
 }
 
 /**
@@ -47,12 +46,19 @@ export class CalendarEventEditView implements Component<CalendarEventEditViewAtt
 	private readonly recipientsSearch: RecipientsSearchModel
 	private readonly timeFormat: TimeFormat
 	private readonly startOfTheWeekOffset: number
+	private readonly defaultAlarms: Map<Id, AlarmInterval[]>
 
 	constructor(vnode: Vnode<CalendarEventEditViewAttrs>) {
 		this.timeFormat = vnode.attrs.timeFormat
 		this.startOfTheWeekOffset = vnode.attrs.startOfTheWeekOffset
 		this.attendeesExpanded = vnode.attrs.model.editModels.whoModel.canModifyGuests && vnode.attrs.model.editModels.whoModel.guests.length > 0
 		this.recipientsSearch = vnode.attrs.recipientsSearch
+		this.defaultAlarms = vnode.attrs.defaultAlarms
+
+		if (vnode.attrs.model.operation == CalendarOperation.Create) {
+			const initialAlarms = vnode.attrs.defaultAlarms.get(vnode.attrs.model.editModels.whoModel.selectedCalendar.group._id) ?? []
+			vnode.attrs.model.editModels.alarmModel.addAll(initialAlarms)
+		}
 	}
 
 	view(vnode: Vnode<CalendarEventEditViewAttrs>): Children {
@@ -183,7 +189,12 @@ export class CalendarEventEditView implements Component<CalendarEventEditViewAtt
 					}
 				}),
 				selectedValue: model.editModels.whoModel.selectedCalendar,
-				selectionChangedHandler: (v) => (model.editModels.whoModel.selectedCalendar = v),
+				selectionChangedHandler: (selectedCalendar) => {
+					model.editModels.alarmModel.removeAll()
+					model.editModels.alarmModel.addAll(this.defaultAlarms.get(selectedCalendar.group._id) ?? [])
+
+					model.editModels.whoModel.selectedCalendar = selectedCalendar
+				},
 				icon: BootIcons.Expand,
 				disabled: !model.canChangeCalendar() || availableCalendars.length < 2,
 				helpLabel: () => this.renderCalendarColor(model.editModels.whoModel.selectedCalendar, vnode.attrs.groupColors),
@@ -205,57 +216,13 @@ export class CalendarEventEditView implements Component<CalendarEventEditViewAtt
 	private renderRemindersEditor(vnode: Vnode<CalendarEventEditViewAttrs>): Children {
 		if (!vnode.attrs.model.editModels.alarmModel.canEditReminders) return null
 		const { alarmModel } = vnode.attrs.model.editModels
-		const textFieldAttrs: Array<TextFieldAttrs> = alarmModel.alarms.map((a) => ({
-			value: humanDescriptionForAlarmInterval(a, lang.languageTag),
-			label: "emptyString_msg",
-			isReadOnly: true,
-			injectionsRight: () =>
-				m(IconButton, {
-					title: "delete_action",
-					icon: Icons.Cancel,
-					click: () => alarmModel.removeAlarm(a),
-				}),
-		}))
 
-		textFieldAttrs.push({
-			value: lang.get("add_action"),
-			label: "emptyString_msg",
-			isReadOnly: true,
-			injectionsRight: () =>
-				m(
-					IconButton,
-					attachDropdown({
-						mainButtonAttrs: {
-							title: "add_action",
-							icon: Icons.Add,
-						},
-						childAttrs: () => [
-							...createAlarmIntervalItems(lang.languageTag).map((i) => ({
-								label: () => i.name,
-								click: () => alarmModel.addAlarm(i.value),
-							})),
-							{
-								label: () => lang.get("calendarReminderIntervalDropdownCustomItem_label"),
-								click: () => {
-									this.showCustomReminderIntervalDialog((value, unit) => {
-										alarmModel.addAlarm({
-											value,
-											unit,
-										})
-									})
-								},
-							},
-						],
-					}),
-				),
-		})
-
-		textFieldAttrs[0].label = "reminderBeforeEvent_label"
-
-		return m(
-			".flex.col.flex-half.pl-s",
-			textFieldAttrs.map((a) => m(TextField, a)),
-		)
+		return m(RemindersEditor, {
+			alarms: alarmModel.alarms,
+			addAlarm: alarmModel.addAlarm.bind(alarmModel),
+			removeAlarm: alarmModel.removeAlarm.bind(alarmModel),
+			label: "reminderBeforeEvent_label",
+		} satisfies RemindersEditorAttrs)
 	}
 
 	private renderLocationField(vnode: Vnode<CalendarEventEditViewAttrs>): Children {
@@ -289,47 +256,5 @@ export class CalendarEventEditView implements Component<CalendarEventEditViewAtt
 		const { model } = vnode.attrs
 		vnode.attrs.descriptionEditor.setReadOnly(!model.isFullyWritable())
 		return m(vnode.attrs.descriptionEditor)
-	}
-
-	private showCustomReminderIntervalDialog(onAddAction: (value: number, unit: AlarmIntervalUnit) => void) {
-		let timeReminderValue = 0
-		let timeReminderUnit: AlarmIntervalUnit = AlarmIntervalUnit.MINUTE
-
-		Dialog.showActionDialog({
-			title: () => lang.get("calendarReminderIntervalCustomDialog_title"),
-			allowOkWithReturn: true,
-			child: {
-				view: () => {
-					const unitItems = createCustomRepeatRuleUnitValues() ?? []
-					return m(".flex full-width pt-s", [
-						m(TextField, {
-							type: TextFieldType.Number,
-							min: 0,
-							label: "calendarReminderIntervalValue_label",
-							value: timeReminderValue.toString(),
-							oninput: (v) => {
-								const time = Number.parseInt(v)
-								const isEmpty = v === ""
-								if (!Number.isNaN(time) || isEmpty) timeReminderValue = isEmpty ? 0 : Math.abs(time)
-							},
-							class: "flex-half no-appearance", //Removes the up/down arrow from input number. Pressing arrow up/down key still working
-						}),
-						m(DropDownSelector, {
-							label: "emptyString_msg",
-							selectedValue: timeReminderUnit,
-							items: unitItems,
-							class: "flex-half pl-s",
-							selectionChangedHandler: (selectedValue: AlarmIntervalUnit) => (timeReminderUnit = selectedValue as AlarmIntervalUnit),
-							disabled: false,
-						}),
-					])
-				},
-			},
-			okActionTextId: "add_action",
-			okAction: (dialog: Dialog) => {
-				onAddAction(timeReminderValue, timeReminderUnit)
-				dialog.close()
-			},
-		})
 	}
 }

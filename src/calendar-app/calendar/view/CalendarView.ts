@@ -11,13 +11,21 @@ import type { CalendarEvent, GroupSettings, UserSettingsGroupRoot } from "../../
 import { createGroupSettings } from "../../../common/api/entities/tutanota/TypeRefs.js"
 import { defaultCalendarColor, GroupType, Keys, reverse, ShareCapability, TabIndex, TimeFormat, WeekStart } from "../../../common/api/common/TutanotaConstants"
 import { locator } from "../../../common/api/main/CommonLocator"
-import { getStartOfTheWeekOffset, getStartOfTheWeekOffsetForUser, getTimeZone, getWeekNumber } from "../../../common/calendar/date/CalendarUtils"
+import {
+	AlarmInterval,
+	getStartOfTheWeekOffset,
+	getStartOfTheWeekOffsetForUser,
+	getTimeZone,
+	getWeekNumber,
+	parseAlarmInterval,
+	serializeAlarmInterval,
+} from "../../../common/calendar/date/CalendarUtils"
 import { ButtonColor } from "../../../common/gui/base/Button.js"
 import { CalendarMonthView } from "./CalendarMonthView"
 import { DateTime } from "luxon"
 import { NotFoundError } from "../../../common/api/common/error/RestError"
 import { CalendarAgendaView, CalendarAgendaViewAttrs } from "./CalendarAgendaView"
-import type { GroupInfo } from "../../../common/api/entities/sys/TypeRefs.js"
+import { createDefaultAlarmInfo, GroupInfo } from "../../../common/api/entities/sys/TypeRefs.js"
 import { showEditCalendarDialog } from "../gui/EditCalendarDialog.js"
 import { styles } from "../../../common/gui/styles"
 import { MultiDayCalendarView } from "./MultiDayCalendarView"
@@ -610,12 +618,13 @@ export class CalendarView extends BaseTopLevelView implements TopLevelView<Calen
 			{
 				name: "",
 				color: Math.random().toString(16).slice(-6),
+				alarms: [],
 			},
 			"add_action",
 			false,
 			async (dialog, properties) => {
 				const calendarModel = await locator.calendarModel()
-				await calendarModel.createCalendar(properties.name, properties.color)
+				await calendarModel.createCalendar(properties.name, properties.color, properties.alarms)
 				dialog.close()
 			},
 			"save_action",
@@ -701,7 +710,7 @@ export class CalendarView extends BaseTopLevelView implements TopLevelView<Calen
 						label: "edit_action",
 						icon: Icons.Edit,
 						size: ButtonSize.Compact,
-						click: () => this.onPressedEditCalendar(groupInfo, colorValue, existingGroupSettings, userSettingsGroupRoot, sharedCalendar),
+						click: () => this.onPressedEditCalendar(calendarInfo, colorValue, existingGroupSettings, userSettingsGroupRoot, sharedCalendar),
 					},
 					{
 						label: "sharing_label",
@@ -774,16 +783,18 @@ export class CalendarView extends BaseTopLevelView implements TopLevelView<Calen
 	}
 
 	private onPressedEditCalendar(
-		groupInfo: GroupInfo,
+		calendarInfo: CalendarInfo,
 		colorValue: string,
 		existingGroupSettings: GroupSettings | null,
 		userSettingsGroupRoot: UserSettingsGroupRoot,
 		shared: boolean,
 	) {
+		const { groupInfo } = calendarInfo
 		showEditCalendarDialog(
 			{
 				name: getSharedGroupName(groupInfo, locator.logins.getUserController(), shared),
 				color: colorValue.substring(1),
+				alarms: existingGroupSettings?.defaultAlarmsList.map((alarm) => parseAlarmInterval(alarm.trigger)) ?? [],
 			},
 			"edit_action",
 			shared,
@@ -794,14 +805,17 @@ export class CalendarView extends BaseTopLevelView implements TopLevelView<Calen
 				}
 
 				// color always set for existing calendar
+				const alarms = properties.alarms.map((alarm) => createDefaultAlarmInfo({ trigger: serializeAlarmInterval(alarm) }))
 				if (existingGroupSettings) {
 					existingGroupSettings.color = properties.color
 					existingGroupSettings.name = shared && properties.name !== groupInfo.name ? properties.name : null
+					existingGroupSettings.defaultAlarmsList = alarms
 				} else {
 					const newGroupSettings = createGroupSettings({
 						group: groupInfo.group,
 						color: properties.color,
 						name: shared && properties.name !== groupInfo.name ? properties.name : null,
+						defaultAlarmsList: alarms,
 					})
 					userSettingsGroupRoot.groupSettings.push(newGroupSettings)
 				}

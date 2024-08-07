@@ -10,7 +10,7 @@ import { Dialog } from "../../../../common/gui/base/Dialog.js"
 import { lang } from "../../../../common/misc/LanguageViewModel.js"
 import { ButtonType } from "../../../../common/gui/base/Button.js"
 import { Keys } from "../../../../common/api/common/TutanotaConstants.js"
-import { getStartOfTheWeekOffsetForUser, getTimeFormatForUser } from "../../../../common/calendar/date/CalendarUtils.js"
+import { AlarmInterval, getStartOfTheWeekOffsetForUser, getTimeFormatForUser, parseAlarmInterval } from "../../../../common/calendar/date/CalendarUtils.js"
 import { client } from "../../../../common/misc/ClientDetector.js"
 import type { DialogHeaderBarAttrs } from "../../../../common/gui/base/DialogHeaderBar.js"
 import { assertNotNull, noOp, Thunk } from "@tutao/tutanota-utils"
@@ -42,10 +42,21 @@ type EditDialogOkHandler = (posRect: PosRect, finish: Thunk) => Promise<unknown>
 async function showCalendarEventEditDialog(model: CalendarEventModel, responseMail: Mail | null, handler: EditDialogOkHandler): Promise<void> {
 	const recipientsSearch = await locator.recipientsSearchModel()
 	const { HtmlEditor } = await import("../../../../common/gui/editor/HtmlEditor.js")
-	const groupColors: Map<Id, string> = locator.logins.getUserController().userSettingsGroupRoot.groupSettings.reduce((acc, gc) => {
+	const groupSettings = locator.logins.getUserController().userSettingsGroupRoot.groupSettings
+
+	const groupColors: Map<Id, string> = groupSettings.reduce((acc, gc) => {
 		acc.set(gc.group, gc.color)
 		return acc
 	}, new Map())
+
+	const defaultAlarms: Map<Id, AlarmInterval[]> = groupSettings.reduce((acc, gc) => {
+		acc.set(
+			gc.group,
+			gc.defaultAlarmsList.map((alarm) => parseAlarmInterval(alarm.trigger)),
+		)
+		return acc
+	}, new Map())
+
 	const descriptionText = convertTextToHtml(model.editModels.description.content)
 	const descriptionEditor: HtmlEditor = new HtmlEditor("description_label")
 		.setMinHeight(400)
@@ -89,6 +100,7 @@ async function showCalendarEventEditDialog(model: CalendarEventModel, responseMa
 			headerDom = dom
 		},
 	}
+
 	const dialog: Dialog = Dialog.editDialog(dialogHeaderBarAttrs, CalendarEventEditView, {
 		model,
 		recipientsSearch,
@@ -96,6 +108,7 @@ async function showCalendarEventEditDialog(model: CalendarEventModel, responseMa
 		startOfTheWeekOffset: getStartOfTheWeekOffsetForUser(locator.logins.getUserController().userSettingsGroupRoot),
 		timeFormat: getTimeFormatForUser(locator.logins.getUserController().userSettingsGroupRoot),
 		groupColors,
+		defaultAlarms,
 	})
 		.addShortcut({
 			key: Keys.ESC,
@@ -113,6 +126,7 @@ async function showCalendarEventEditDialog(model: CalendarEventModel, responseMa
 		// Prevent focusing text field automatically on mobile. It opens keyboard and you don't see all details.
 		dialog.setFocusOnLoadFunction(noOp)
 	}
+
 	dialog.show()
 }
 

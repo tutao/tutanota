@@ -450,6 +450,16 @@
 					"info": "RemoveValue Contact/autoTransmitPassword/78."
 				}
 			]
+		},
+		{
+			"version": 74,
+			"changes": [
+				{
+					"name": "AddAssociation",
+					"sourceType": "GroupSettings",
+					"info": "AddAssociation GroupSettings/defaultAlarmsList/AGGREGATION/1446."
+				}
+			]
 		}
 	]
 }
