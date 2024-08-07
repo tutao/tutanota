@@ -11,7 +11,7 @@ export default {
 		"other"
 	],
 	"created_at": "2015-01-16T12:59:04Z",
-	"updated_at": "2024-07-24T14:00:28Z",
+	"updated_at": "2024-08-07T13:42:48Z",
 	"source_locale": {
 		"id": "fcd7471b347c8e517663e194dcddf237",
 		"name": "en",
@@ -988,6 +988,7 @@ export default {
 		"notificationSettings_action": "Notifications",
 		"notificationSync_msg": "Notifications de synchronisation",
 		"notificationTargets_label": "Objectifs de la notification",
+		"noTitle_label": "<Pas de titre>",
 		"notSigned_msg": "Non signé.",
 		"noUpdateAvailable_msg": "Aucune mise à jour trouvée.",
 		"noValidMembersToAdd_msg": "Vous n'administrez aucun utilisateur qui n'est pas déjà membre de ce groupe.",
@@ -1195,7 +1196,7 @@ export default {
 		"pricing.gdpr_tooltip": "Toutes les données sont stockées en conformité avec les réglementations européennes strictes en matière de protection des données, conformément au RGPD.",
 		"pricing.includesTaxes_msg": "Inclut les taxes.",
 		"pricing.login_title": "Se connecter sur son propre site web",
-		"pricing.login_tooltip": "Ajoutez le login Tuta à votre propre site web pour vos employés.",
+		"pricing.login_tooltip": "Placez le login Tuta sur votre propre site web pour vos employés et vos collaborateurs externes.",
 		"pricing.mailAddressAliasesShort_label": "{amount} adresse(s) e-mail(s) supplémentaire(s)",
 		"pricing.mailAddressAliases_tooltip_markdown": "<p>Adresses e-mail supplémentaires par utilisateur. Les alias d'adresses e-mail permettent de réduire le nombre de spams et d'accélérer le tri des e-mails entrants. Lisez d'autres conseils [sur notre blog] ({blogAliasLink}).</p>\n",
 		"pricing.mailAddressFree_label": "1 adresse e-mail Tuta gratuite",
@@ -1343,6 +1344,7 @@ export default {
 		"resumeSetup_label": "Reprendre l'installation",
 		"retry_action": "Essayez à nouveau",
 		"revealPassword_action": "Révéler le mot de passe",
+		"richNotificationsNewsItem_msg": "Votre application de messagerie préférée peut désormais afficher l'objet et l'expéditeur dans les notifications ! Activez cette fonctionnalité dès maintenant :",
 		"richText_label": "Texte formaté",
 		"role_placeholder": "Rôle",
 		"runInBackground_action": "Exécuter en arrière-plan",
