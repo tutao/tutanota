@@ -470,8 +470,8 @@ export class CalendarSearchView extends BaseTopLevelView implements TopLevelView
 			await showProgressDialog("pleaseWait_msg", calendarInfos)
 		}
 
-		const mailboxDetails = await calendarLocator.mailModel.getUserMailboxDetails()
-		const mailboxProperties = await calendarLocator.mailModel.getMailboxProperties(mailboxDetails.mailboxGroupRoot)
+		const mailboxDetails = await calendarLocator.mailboxModel.getUserMailboxDetails()
+		const mailboxProperties = await calendarLocator.mailboxModel.getMailboxProperties(mailboxDetails.mailboxGroupRoot)
 		const model = await calendarLocator.calendarEventModel(
 			CalendarOperation.Create,
 			getEventWithDefaultTimes(dateToUse),

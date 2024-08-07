@@ -100,7 +100,10 @@ export function sendResponse(event: CalendarEvent, recipient: string, status: Ca
 				return
 			}
 
-			const replyResult = await calendarInviteHandler.replyToEventInvitation(latestEvent, ownAttendee, status, previousMail)
+			const mailboxDetails = await mailLocator.mailModel.getMailboxDetailsForMail(previousMail)
+			if (mailboxDetails == null) return
+
+			const replyResult = await calendarInviteHandler.replyToEventInvitation(latestEvent, ownAttendee, status, previousMail, mailboxDetails)
 			if (replyResult === ReplyResult.ReplySent) {
 				ownAttendee.status = status
 			}

@@ -16,7 +16,7 @@ import { theme } from "../../../common/gui/theme"
 import { client } from "../../../common/misc/ClientDetector"
 import { styles } from "../../../common/gui/styles"
 import { DropdownButtonAttrs, showDropdownAtPosition } from "../../../common/gui/base/Dropdown.js"
-import { replaceCidsWithInlineImages } from "./MailGuiUtils"
+import { isTutanotaTeamMail, replaceCidsWithInlineImages } from "./MailGuiUtils"
 import { getCoordsOfMouseOrTouchEvent } from "../../../common/gui/base/GuiUtils"
 import { copyToClipboard } from "../../../common/misc/ClipboardUtils"
 import { ContentBlockingStatus, MailViewerViewModel } from "./MailViewerViewModel"
@@ -32,7 +32,7 @@ import { locator } from "../../../common/api/main/CommonLocator.js"
 import { PinchZoom } from "../../../common/gui/PinchZoom.js"
 import { responsiveCardHMargin, responsiveCardHPadding } from "../../../common/gui/cards.js"
 import { Dialog } from "../../../common/gui/base/Dialog.js"
-import { createNewContact, getExistingRuleForType, isTutanotaTeamMail } from "../../../common/mailFunctionality/SharedMailUtils.js"
+import { createNewContact, getExistingRuleForType } from "../../../common/mailFunctionality/SharedMailUtils.js"
 
 assertMainOrNode()
 

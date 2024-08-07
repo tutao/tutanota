@@ -930,7 +930,7 @@ export class ContactView extends BaseTopLevelView implements TopLevelView<Contac
 }
 
 export function writeMail(to: PartialRecipient, subject: string = ""): Promise<unknown> {
-	return locator.mailModel.getUserMailboxDetails().then((mailboxDetails) => {
+	return locator.mailboxModel.getUserMailboxDetails().then((mailboxDetails) => {
 		return newMailEditorFromTemplate(
 			mailboxDetails,
 			{
