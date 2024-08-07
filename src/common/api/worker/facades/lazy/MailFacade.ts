@@ -101,7 +101,7 @@ import { BlobFacade } from "./BlobFacade.js"
 import { assertWorkerOrNode, isApp, isDesktop } from "../../../common/Env.js"
 import { EntityClient } from "../../../common/EntityClient.js"
 import { getEnabledMailAddressesForGroupInfo, getUserGroupMemberships } from "../../../common/utils/GroupUtils.js"
-import { containsId, elementIdPart, getLetId, isSameId, listIdPart, stringToCustomId } from "../../../common/utils/EntityUtils.js"
+import { containsId, elementIdPart, getElementId, getLetId, isSameId, listIdPart, stringToCustomId } from "../../../common/utils/EntityUtils.js"
 import { htmlToText } from "../../search/IndexUtils.js"
 import { MailBodyTooLargeError } from "../../../common/error/MailBodyTooLargeError.js"
 import { UNCOMPRESSED_MAX_SIZE } from "../../Compression.js"
@@ -349,8 +349,8 @@ export class MailFacade {
 		return deferredUpdatePromiseWrapper.promise
 	}
 
-	async moveMails(mails: IdTuple[], targetFolder: IdTuple): Promise<void> {
-		await this.serviceExecutor.post(MoveMailService, createMoveMailData({ mails, targetFolder }))
+	async moveMails(mails: IdTuple[], sourceFolder: IdTuple, targetFolder: IdTuple): Promise<void> {
+		await this.serviceExecutor.post(MoveMailService, createMoveMailData({ mails, sourceFolder, targetFolder }))
 	}
 
 	async reportMail(mail: Mail, reportType: MailReportType): Promise<void> {
@@ -644,11 +644,12 @@ export class MailFacade {
 		await this.serviceExecutor.delete(MailFolderService, deleteMailFolderData, { sessionKey: "dummy" as any })
 	}
 
-	async fixupCounterForMailList(groupId: Id, listId: Id, unreadMails: number): Promise<void> {
+	async fixupCounterForFolder(groupId: Id, folder: MailFolder, unreadMails: number): Promise<void> {
+		const counterId = folder.isMailSet ? getElementId(folder) : folder.mails
 		const data = createWriteCounterData({
 			counterType: CounterType.UnreadMails,
 			row: groupId,
-			column: listId,
+			column: counterId,
 			value: String(unreadMails),
 		})
 		await this.serviceExecutor.post(CounterService, data)

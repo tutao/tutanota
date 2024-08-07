@@ -153,7 +153,7 @@ export class SearchModel {
 							continue
 						}
 
-						if (restriction.listIds.length > 0 && !restriction.listIds.includes(listIdPart(event._id))) {
+						if (restriction.folderIds.length > 0 && !restriction.folderIds.includes(listIdPart(event._id))) {
 							// check that the event is in the searched calendar.
 							continue
 						}
@@ -255,7 +255,7 @@ export function isSameSearchRestriction(a: SearchRestriction, b: SearchRestricti
 		a.field === b.field &&
 		isSameAttributeIds &&
 		(a.eventSeries === b.eventSeries || (a.eventSeries === null && b.eventSeries === true) || (a.eventSeries === true && b.eventSeries === null)) &&
-		arrayEquals(a.listIds, b.listIds)
+		arrayEquals(a.folderIds, b.folderIds)
 	)
 }
 

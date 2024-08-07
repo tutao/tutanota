@@ -48,6 +48,7 @@ import { EntityUpdateData, isUpdateForTypeRef } from "../../common/api/common/ut
 import { getDefaultSenderFromUser, getFolderName, getMailAddressDisplayText } from "../../common/mailFunctionality/SharedMailUtils.js"
 import { UpdatableSettingsViewer } from "../../common/settings/Interfaces.js"
 import { mailLocator } from "../mailLocator.js"
+import { elementIdPart } from "../../common/api/common/utils/EntityUtils.js"
 
 assertMainOrNode()
 
@@ -479,7 +480,7 @@ export class MailSettingsViewer implements UpdatableSettingsViewer {
 	}
 
 	_getTextForTarget(mailboxDetail: MailboxDetail, targetFolderId: IdTuple): string {
-		let folder = mailboxDetail.folders.getFolderById(targetFolderId)
+		let folder = mailboxDetail.folders.getFolderById(elementIdPart(targetFolderId))
 
 		if (folder) {
 			return getFolderName(folder)

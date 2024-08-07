@@ -3768,38 +3768,6 @@ export const typeModels = {
         "app": "sys",
         "version": "107"
     },
-    "DefaultAlarmInfo": {
-        "name": "DefaultAlarmInfo",
-        "since": 107,
-        "type": "AGGREGATED_TYPE",
-        "id": 2433,
-        "rootId": "A3N5cwAJgQ",
-        "versioned": false,
-        "encrypted": false,
-        "values": {
-            "_id": {
-                "final": true,
-                "name": "_id",
-                "id": 2434,
-                "since": 107,
-                "type": "CustomId",
-                "cardinality": "One",
-                "encrypted": false
-            },
-            "trigger": {
-                "final": true,
-                "name": "trigger",
-                "id": 2435,
-                "since": 107,
-                "type": "String",
-                "cardinality": "One",
-                "encrypted": true
-            }
-        },
-        "associations": {},
-        "app": "sys",
-        "version": "107"
-    },
     "DeleteCustomerData": {
         "name": "DeleteCustomerData",
         "since": 5,
@@ -14084,9 +14052,9 @@ export const typeModels = {
                 "cardinality": "One",
                 "encrypted": false
             },
-            "mailListId": {
+            "counterId": {
                 "final": false,
-                "name": "mailListId",
+                "name": "counterId",
                 "id": 1490,
                 "since": 41,
                 "type": "GeneratedId",

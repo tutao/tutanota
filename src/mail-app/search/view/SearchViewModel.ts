@@ -4,7 +4,7 @@ import { SearchRestriction, SearchResult } from "../../../common/api/worker/sear
 import { EntityEventsListener, EventController } from "../../../common/api/main/EventController.js"
 import { CalendarEvent, CalendarEventTypeRef, Contact, ContactTypeRef, Mail, MailTypeRef } from "../../../common/api/entities/tutanota/TypeRefs.js"
 import { ListElementEntity, SomeEntity } from "../../../common/api/common/EntityTypes.js"
-import { FULL_INDEXED_TIMESTAMP, MailFolderType, NOTHING_INDEXED_TIMESTAMP, OperationType } from "../../../common/api/common/TutanotaConstants.js"
+import { FULL_INDEXED_TIMESTAMP, MailSetKind, NOTHING_INDEXED_TIMESTAMP, OperationType } from "../../../common/api/common/TutanotaConstants.js"
 import {
 	assertIsEntity,
 	assertIsEntity2,
@@ -216,7 +216,7 @@ export class SearchViewModel {
 	}
 
 	private listIdMatchesRestriction(listId: string, restriction: SearchRestriction): boolean {
-		return restriction.listIds.length === 0 || restriction.listIds.includes(listId)
+		return restriction.folderIds.length === 0 || restriction.folderIds.includes(listId)
 	}
 
 	onNewUrl(args: Record<string, any>, requestedPath: string) {
@@ -279,13 +279,13 @@ export class SearchViewModel {
 				this.selectedMailField = restriction.field
 				this.startDate = restriction.end ? new Date(restriction.end) : null
 				this.endDate = restriction.start ? new Date(restriction.start) : null
-				this.selectedMailFolder = restriction.listIds
+				this.selectedMailFolder = restriction.folderIds
 				this.loadAndSelectIfNeeded(args.id)
 				this.latestMailRestriction = restriction
 			} else if (isSameTypeRef(restriction.type, CalendarEventTypeRef)) {
 				this.startDate = restriction.start ? new Date(restriction.start) : null
 				this.endDate = restriction.end ? new Date(restriction.end) : null
-				this.selectedCalendar = this.extractCalendarListIds(restriction.listIds)
+				this.selectedCalendar = this.extractCalendarListIds(restriction.folderIds)
 				this.includeRepeatingEvents = restriction.eventSeries ?? true
 				this.lazyCalendarInfos.load()
 				this.latestCalendarRestriction = restriction
@@ -555,8 +555,8 @@ export class SearchViewModel {
 
 		// if selected folder no longer exist select another one
 		const selectedMailFolder = this.selectedMailFolder
-		if (selectedMailFolder[0] && mailboxes.every((mailbox) => mailbox.folders.getFolderByMailListId(selectedMailFolder[0]) == null)) {
-			this.selectedMailFolder = [assertNotNull(mailboxes[0].folders.getSystemFolderByType(MailFolderType.INBOX)).mails]
+		if (selectedMailFolder[0] && mailboxes.every((mailbox) => mailbox.folders.getFolderById(selectedMailFolder[0]) == null)) {
+			this.selectedMailFolder = [getElementId(assertNotNull(mailboxes[0].folders.getSystemFolderByType(MailSetKind.INBOX)))]
 		}
 	}
 
@@ -578,8 +578,8 @@ export class SearchViewModel {
 					(email) => update.instanceId === elementIdPart(email) && update.instanceListId !== listIdPart(email),
 				)
 				if (index >= 0) {
-					const restrictionLength = this._searchResult.restriction.listIds.length
-					if ((restrictionLength > 0 && this._searchResult.restriction.listIds.includes(update.instanceListId)) || restrictionLength === 0) {
+					const restrictionLength = this._searchResult.restriction.folderIds.length
+					if ((restrictionLength > 0 && this._searchResult.restriction.folderIds.includes(update.instanceListId)) || restrictionLength === 0) {
 						// We need to update the listId of the updated item, since it was moved to another folder.
 						const newIdTuple: IdTuple = [update.instanceListId, update.instanceId]
 						this._searchResult.results[index] = newIdTuple
@@ -608,7 +608,7 @@ export class SearchViewModel {
 		}
 
 		this.listModel.getUnfilteredAsArray()
-		await this.listModel.entityEventReceived(instanceId, operation)
+		await this.listModel.entityEventReceived(instanceListId, instanceId, operation)
 		// run the mail or contact update after the update on the list is finished to avoid parallel loading
 		if (operation === OperationType.UPDATE && this.listModel?.isItemSelected(elementIdPart(id))) {
 			try {
@@ -705,12 +705,12 @@ export class SearchViewModel {
 
 				return { items: entries, complete }
 			},
-			loadSingle: async (elementId: Id) => {
+			loadSingle: async (_listId: Id, elementId: Id) => {
 				const lastResult = this._searchResult
 				if (!lastResult) {
 					return null
 				}
-				const id = lastResult.results.find((r) => r[1] === elementId)
+				const id = lastResult.results.find((resultId) => elementIdPart(resultId) === elementId)
 				if (id) {
 					return this.entityClient
 						.load(lastResult.restriction.type, id)
@@ -743,7 +743,7 @@ export class SearchViewModel {
 		if (result && isSameTypeRef(typeRef, result.restriction.type)) {
 			// The list id must be null/empty, otherwise the user is filtering by list, and it shouldn't be ignored
 
-			const ignoreList = isSameTypeRef(typeRef, MailTypeRef) && result.restriction.listIds.length === 0
+			const ignoreList = isSameTypeRef(typeRef, MailTypeRef) && result.restriction.folderIds.length === 0
 
 			return result.results.some((r) => this.compareItemId(r, id, ignoreList))
 		}

@@ -3,7 +3,8 @@ import { assertNotNull, clone, defer, downcast, filterInt, getFromMap, isSameDay
 import { CalendarMethod, FeatureType, GroupType, OperationType } from "../../../common/api/common/TutanotaConstants"
 
 import { EventController } from "../../../common/api/main/EventController"
-import { createDefaultAlarmInfo, Group, GroupInfo, User, UserAlarmInfo } from "../../../common/api/entities/sys/TypeRefs.js"
+import type { Group, GroupInfo, User, UserAlarmInfo } from "../../../common/api/entities/sys/TypeRefs.js"
+import { createDefaultAlarmInfo } from "../../../common/api/entities/sys/TypeRefs.js"
 import {
 	createDateWrapper,
 	createMembershipRemoveData,

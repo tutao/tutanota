@@ -1,20 +1,16 @@
 import { OfflineMigration } from "../OfflineStorageMigrator.js"
 import { OfflineStorage } from "../OfflineStorage.js"
-import { migrateAllElements } from "../StandardMigrations.js"
-import { UserSettingsGroupRoot, UserSettingsGroupRootTypeRef } from "../../../entities/tutanota/TypeRefs.js"
+import { addValue, migrateAllElements, migrateAllListElements } from "../StandardMigrations.js"
+import { createMail, createMailBox, MailBoxTypeRef, MailFolderTypeRef, MailTypeRef } from "../../../entities/tutanota/TypeRefs.js"
+import { GENERATED_MIN_ID } from "../../../common/utils/EntityUtils.js"
 
 export const tutanota74: OfflineMigration = {
 	app: "tutanota",
 	version: 74,
 	async migrate(storage: OfflineStorage) {
-		await migrateAllElements(UserSettingsGroupRootTypeRef, storage, [
-			(oldUserSettings: UserSettingsGroupRoot) => {
-				oldUserSettings.groupSettings = oldUserSettings.groupSettings.map((settings) => {
-					return { ...settings, defaultAlarmsList: [] }
-				})
-
-				return oldUserSettings
-			},
-		])
+		// the TutanotaModelV75 introduces MailSets to support import and labels
+		await migrateAllListElements(MailFolderTypeRef, storage, [addValue("isLabel", "0"), addValue("isMailSet", "0"), addValue("entries", GENERATED_MIN_ID)])
+		await migrateAllElements(MailBoxTypeRef, storage, [createMailBox]) // initialize mailbags
+		await migrateAllListElements(MailTypeRef, storage, [createMail]) // initialize sets
 	},
 }

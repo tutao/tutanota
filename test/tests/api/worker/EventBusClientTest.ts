@@ -250,7 +250,7 @@ o.spec("EventBusClientTest", function () {
 	})
 
 	o("on counter update it send message to the main thread", async function () {
-		const counterUpdate = createCounterData({ mailGroupId: "group1", counterValue: 4, listId: "list1" })
+		const counterUpdate = createCounterData({ mailGroupId: "group1", counterValue: 4, counterId: "list1" })
 		await ebc.connect(ConnectMode.Initial)
 
 		await socket.onmessage?.({
@@ -315,9 +315,9 @@ o.spec("EventBusClientTest", function () {
 		return "entityUpdate;" + JSON.stringify(event)
 	}
 
-	type CounterMessageParams = { mailGroupId: Id; counterValue: number; listId: Id }
+	type CounterMessageParams = { mailGroupId: Id; counterValue: number; counterId: Id }
 
-	function createCounterData({ mailGroupId, counterValue, listId }: CounterMessageParams): WebsocketCounterData {
+	function createCounterData({ mailGroupId, counterValue, counterId }: CounterMessageParams): WebsocketCounterData {
 		return createTestEntity(WebsocketCounterDataTypeRef, {
 			_format: "0",
 			mailGroup: mailGroupId,
@@ -325,7 +325,7 @@ o.spec("EventBusClientTest", function () {
 				createTestEntity(WebsocketCounterValueTypeRef, {
 					_id: "counterupdateid",
 					count: String(counterValue),
-					mailListId: listId,
+					counterId,
 				}),
 			],
 		})

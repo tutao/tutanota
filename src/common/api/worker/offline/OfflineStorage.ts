@@ -30,6 +30,7 @@ import { TokenOrNestedTokens } from "cborg/interface"
 import {
 	CalendarEventTypeRef,
 	FileTypeRef,
+	MailBoxTypeRef,
 	MailDetailsBlobTypeRef,
 	MailDetailsDraftTypeRef,
 	MailFolderTypeRef,
@@ -246,6 +247,20 @@ export class OfflineStorage implements CacheStorage, ExposedCacheStorage {
 		}
 		const result = await this.sqlCipherFacade.get(formattedQuery.query, formattedQuery.params)
 		return result?.entity ? this.deserialize(typeRef, result.entity.value as Uint8Array) : null
+	}
+
+	async provideMultiple<T extends ListElementEntity>(typeRef: TypeRef<T>, listId: Id, elementIds: Id[]): Promise<Array<T>> {
+		if (elementIds.length === 0) return []
+		const type = getTypeId(typeRef)
+		const serializedList: ReadonlyArray<Record<string, TaggedSqlValue>> = await this.allChunked(
+			MAX_SAFE_SQL_VARS - 2,
+			elementIds,
+			(c) => sql`SELECT entity FROM list_entities WHERE type = ${type} AND listId = ${listId} AND elementId IN ${paramList(c)}`,
+		)
+		return this.deserializeList(
+			typeRef,
+			serializedList.map((r) => r.entity.value as Uint8Array),
+		)
 	}
 
 	async getIdsInRange<T extends ListElementEntity>(typeRef: TypeRef<T>, listId: Id): Promise<Array<Id>> {
@@ -487,14 +502,25 @@ AND NOT(${firstIdBigger("elementId", upper)})`
 		// lead to an overflow in our 42 bit timestamp in the id.
 		const cutoffTimestamp = now - timeRangeMillisSafe
 		const cutoffId = timestampToGeneratedId(cutoffTimestamp)
-		const folders = await this.getListElementsOfType(MailFolderTypeRef)
-		const folderSystem = new FolderSystem(folders)
-
-		for (const folder of folders) {
-			if (isSpamOrTrashFolder(folderSystem, folder)) {
-				await this.deleteMailList(folder.mails, GENERATED_MAX_ID)
+		const mailBoxes = await this.getElementsOfType(MailBoxTypeRef)
+		for (const mailBox of mailBoxes) {
+			const isMailsetMigrated = mailBox.currentMailBag != null
+			if (isMailsetMigrated) {
+				var mailListIds = [mailBox.currentMailBag!, ...mailBox.archivedMailBags].map((mailbag) => mailbag.mails)
+				for (const mailListId of mailListIds) {
+					await this.deleteMailList(mailListId, cutoffId)
+				}
 			} else {
-				await this.deleteMailList(folder.mails, cutoffId)
+				const folders = await this.getWholeList(MailFolderTypeRef, mailBox.folders!.folders)
+
+				const folderSystem = new FolderSystem(folders)
+				for (const folder of folders) {
+					if (isSpamOrTrashFolder(folderSystem, folder)) {
+						await this.deleteMailList(folder.mails, GENERATED_MAX_ID)
+					} else {
+						await this.deleteMailList(folder.mails, cutoffId)
+					}
+				}
 			}
 		}
 	}
@@ -683,6 +709,23 @@ AND NOT(${firstIdBigger("elementId", upper)})`
 			const formattedQuery = formatter(chunk)
 			await this.sqlCipherFacade.run(formattedQuery.query, formattedQuery.params)
 		}
+	}
+
+	/**
+	 * convenience method to execute a potentially too large query over several chunks.
+	 * chunkSize must be chosen such that the total number of SQL variables in the final query does not exceed MAX_SAFE_SQL_VARS
+	 * */
+	private async allChunked(
+		chunkSize: number,
+		originalList: SqlValue[],
+		formatter: (chunk: SqlValue[]) => FormattedQuery,
+	): Promise<Array<Record<string, TaggedSqlValue>>> {
+		const result: Array<Record<string, TaggedSqlValue>> = []
+		for (const chunk of splitInChunks(chunkSize, originalList)) {
+			const formattedQuery = formatter(chunk)
+			result.push(...(await this.sqlCipherFacade.all(formattedQuery.query, formattedQuery.params)))
+		}
+		return result
 	}
 }
 

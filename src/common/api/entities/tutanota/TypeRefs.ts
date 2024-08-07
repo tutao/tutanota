@@ -561,6 +561,18 @@ export type CustomerAccountCreateData = {
 	userData: UserAccountUserData;
 	userGroupData: InternalGroupData;
 }
+export const DefaultAlarmInfoTypeRef: TypeRef<DefaultAlarmInfo> = new TypeRef("tutanota", "DefaultAlarmInfo")
+
+export function createDefaultAlarmInfo(values: StrippedEntity<DefaultAlarmInfo>): DefaultAlarmInfo {
+	return Object.assign(create(typeModels.DefaultAlarmInfo, DefaultAlarmInfoTypeRef), values)
+}
+
+export type DefaultAlarmInfo = {
+	_type: TypeRef<DefaultAlarmInfo>;
+
+	_id: Id;
+	trigger: string;
+}
 export const DeleteGroupDataTypeRef: TypeRef<DeleteGroupData> = new TypeRef("tutanota", "DeleteGroupData")
 
 export function createDeleteGroupData(values: StrippedEntity<DeleteGroupData>): DeleteGroupData {
@@ -1137,6 +1149,7 @@ export type Mail = {
 	mailDetails:  null | IdTuple;
 	mailDetailsDraft:  null | IdTuple;
 	sender: MailAddress;
+	sets: IdTuple[];
 }
 export const MailAddressTypeRef: TypeRef<MailAddress> = new TypeRef("tutanota", "MailAddress")
 
@@ -1166,6 +1179,19 @@ export type MailAddressProperties = {
 	mailAddress: string;
 	senderName: string;
 }
+export const MailBagTypeRef: TypeRef<MailBag> = new TypeRef("tutanota", "MailBag")
+
+export function createMailBag(values: StrippedEntity<MailBag>): MailBag {
+	return Object.assign(create(typeModels.MailBag, MailBagTypeRef), values)
+}
+
+export type MailBag = {
+	_type: TypeRef<MailBag>;
+
+	_id: Id;
+
+	mails: Id;
+}
 export const MailBoxTypeRef: TypeRef<MailBox> = new TypeRef("tutanota", "MailBox")
 
 export function createMailBox(values: StrippedEntity<MailBox>): MailBox {
@@ -1184,6 +1210,8 @@ export type MailBox = {
 	_permissions: Id;
 	lastInfoDate: Date;
 
+	archivedMailBags: MailBag[];
+	currentMailBag:  null | MailBag;
 	folders:  null | MailFolderRef;
 	mailDetailsDrafts:  null | MailDetailsDraftsRef;
 	receivedAttachments: Id;
@@ -1276,8 +1304,11 @@ export type MailFolder = {
 	_ownerKeyVersion: null | NumberString;
 	_permissions: Id;
 	folderType: NumberString;
+	isLabel: boolean;
+	isMailSet: boolean;
 	name: string;
 
+	entries: Id;
 	mails: Id;
 	parentFolder:  null | IdTuple;
 }
@@ -1293,6 +1324,22 @@ export type MailFolderRef = {
 	_id: Id;
 
 	folders: Id;
+}
+export const MailSetEntryTypeRef: TypeRef<MailSetEntry> = new TypeRef("tutanota", "MailSetEntry")
+
+export function createMailSetEntry(values: StrippedEntity<MailSetEntry>): MailSetEntry {
+	return Object.assign(create(typeModels.MailSetEntry, MailSetEntryTypeRef), values)
+}
+
+export type MailSetEntry = {
+	_type: TypeRef<MailSetEntry>;
+
+	_format: NumberString;
+	_id: IdTuple;
+	_ownerGroup: null | Id;
+	_permissions: Id;
+
+	mail: IdTuple;
 }
 export const MailboxGroupRootTypeRef: TypeRef<MailboxGroupRoot> = new TypeRef("tutanota", "MailboxGroupRoot")
 
@@ -1363,6 +1410,7 @@ export type MoveMailData = {
 	_format: NumberString;
 
 	mails: IdTuple[];
+	sourceFolder:  null | IdTuple;
 	targetFolder: IdTuple;
 }
 export const NewDraftAttachmentTypeRef: TypeRef<NewDraftAttachment> = new TypeRef("tutanota", "NewDraftAttachment")

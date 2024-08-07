@@ -10,6 +10,7 @@ import {
 	MailBoxTypeRef,
 	MailFolder,
 	MailFolderTypeRef,
+	MailSetEntryTypeRef,
 	MailTypeRef,
 } from "../api/entities/tutanota/TypeRefs.js"
 import { Group, GroupInfo, GroupInfoTypeRef, GroupMembership, GroupTypeRef, WebsocketCounterData } from "../api/entities/sys/TypeRefs.js"
@@ -23,18 +24,18 @@ import { EntityClient } from "../api/common/EntityClient.js"
 import { LoginController } from "../api/main/LoginController.js"
 import { WebsocketConnectivityModel } from "../misc/WebsocketConnectivityModel.js"
 import { InboxRuleHandler } from "../../mail-app/mail/model/InboxRuleHandler.js"
-import { assertNotNull, groupBy, lazyMemoized, neverNull, noOp, ofClass, promiseMap, splitInChunks } from "@tutao/tutanota-utils"
+import { assertNotNull, first, groupBy, isNotEmpty, lazyMemoized, neverNull, noOp, ofClass, promiseMap, splitInChunks } from "@tutao/tutanota-utils"
 import {
 	FeatureType,
-	MailFolderType,
 	MailReportType,
+	MailSetKind,
 	MAX_NBR_MOVE_DELETE_MAIL_SERVICE,
 	OperationType,
 	ReportMovedMailsType,
 } from "../api/common/TutanotaConstants.js"
 import { assertSystemFolderOfType, getEnabledMailAddressesWithUser } from "./SharedMailUtils.js"
 import { LockedError, NotFoundError, PreconditionFailedError } from "../api/common/error/RestError.js"
-import { elementIdPart, GENERATED_MAX_ID, getElementId, getListId, isSameId, listIdPart } from "../api/common/utils/EntityUtils.js"
+import { CUSTOM_MIN_ID, elementIdPart, GENERATED_MAX_ID, getElementId, getListId, isSameId } from "../api/common/utils/EntityUtils.js"
 import { containsEventOfType, EntityUpdateData, isUpdateForTypeRef } from "../api/common/utils/EntityUpdateUtils.js"
 import m from "mithril"
 import { lang } from "../misc/LanguageViewModel.js"
@@ -130,12 +131,10 @@ export class MailModel {
 		return this.entityClient.loadAll(MailFolderTypeRef, folderListId).then((folders) => {
 			return folders.filter((f) => {
 				// We do not show spam or archive for external users
-				if (!this.logins.isInternalUserLoggedIn() && (f.folderType === MailFolderType.SPAM || f.folderType === MailFolderType.ARCHIVE)) {
-					return false
-				} else if (this.logins.isEnabled(FeatureType.InternalCommunication) && f.folderType === MailFolderType.SPAM) {
+				if (!this.logins.isInternalUserLoggedIn() && (f.folderType === MailSetKind.SPAM || f.folderType === MailSetKind.ARCHIVE)) {
 					return false
 				} else {
-					return true
+					return !(this.logins.isEnabled(FeatureType.InternalCommunication) && f.folderType === MailSetKind.SPAM)
 				}
 			})
 		})
@@ -163,15 +162,20 @@ export class MailModel {
 		}
 	}
 
-	getMailboxDetailsForMail(mail: Mail): Promise<MailboxDetail | null> {
-		return this.getMailboxDetailsForMailListId(mail._id[0])
+	async getMailboxDetailsForMail(mail: Mail): Promise<MailboxDetail | null> {
+		const mailboxDetails = await this.getMailboxDetails()
+		const detail = mailboxDetails.find((md) => md.folders.getFolderByMail(mail)) ?? null
+		if (detail == null) {
+			console.warn("Mailbox detail for mail does not exist", mail)
+		}
+		return detail
 	}
 
-	async getMailboxDetailsForMailListId(mailListId: Id): Promise<MailboxDetail | null> {
+	async getMailboxDetailsForMailFolder(mailFolder: MailFolder): Promise<MailboxDetail | null> {
 		const mailboxDetails = await this.getMailboxDetails()
-		const detail = mailboxDetails.find((md) => md.folders.getFolderByMailListId(mailListId)) ?? null
+		const detail = mailboxDetails.find((md) => md.folders.getFolderById(getElementId(mailFolder))) ?? null
 		if (detail == null) {
-			console.warn("Mailbox detail for mail list does not exist", mailListId)
+			console.warn("Mailbox detail for mail folder does not exist", mailFolder)
 		}
 		return detail
 	}
@@ -180,30 +184,36 @@ export class MailModel {
 		const mailboxDetails = await this.getMailboxDetails()
 		return assertNotNull(
 			mailboxDetails.find((md) => mailGroupId === md.mailGroup._id),
-			"No mailbox details for mail group",
+			"Mailbox detail for mail group does not exist",
 		)
 	}
 
 	async getUserMailboxDetails(): Promise<MailboxDetail> {
 		const userMailGroupMembership = this.logins.getUserController().getUserMailGroupMembership()
 		const mailboxDetails = await this.getMailboxDetails()
-		return assertNotNull(mailboxDetails.find((md) => md.mailGroup._id === userMailGroupMembership.group))
+		return assertNotNull(
+			mailboxDetails.find((md) => md.mailGroup._id === userMailGroupMembership.group),
+			"Mailbox detail for user does not exist",
+		)
 	}
 
-	getMailboxFolders(mail: Mail): Promise<FolderSystem | null> {
+	async getMailboxFolders(mail: Mail): Promise<FolderSystem | null> {
 		return this.getMailboxDetailsForMail(mail).then((md) => md && md.folders)
 	}
 
-	getMailFolder(mailListId: Id): MailFolder | null {
+	getMailFolderForMail(mail: Mail): MailFolder | null {
 		const mailboxDetails = this.mailboxDetails() || []
 
+		let foundFolder: MailFolder | null = null
 		for (let detail of mailboxDetails) {
-			const f = detail.folders.getFolderByMailListId(mailListId)
-			if (f) {
-				return f
+			if (isNotEmpty(mail.sets)) {
+				foundFolder = detail.folders.getFolderById(elementIdPart(mail.sets[0]))
+			} else {
+				foundFolder = detail.folders.getFolderByMail(mail)
 			}
-		}
 
+			if (foundFolder != null) return foundFolder
+		}
 		return null
 	}
 
@@ -211,14 +221,14 @@ export class MailModel {
 	 * Sends the given folder and all its descendants to the spam folder, reporting mails (if applicable) and removes any empty folders
 	 */
 	async sendFolderToSpam(folder: MailFolder): Promise<void> {
-		const mailboxDetail = await this.getMailboxDetailsForMailListId(folder.mails)
+		const mailboxDetail = await this.getMailboxDetailsForMailFolder(folder)
 		if (mailboxDetail == null) {
 			return
 		}
 
 		let deletedFolder = await this.removeAllEmpty(mailboxDetail, folder)
 		if (!deletedFolder) {
-			return this.mailFacade.updateMailFolderParent(folder, assertSystemFolderOfType(mailboxDetail.folders, MailFolderType.SPAM)._id)
+			return this.mailFacade.updateMailFolderParent(folder, assertSystemFolderOfType(mailboxDetail.folders, MailSetKind.SPAM)._id)
 		}
 	}
 
@@ -229,13 +239,14 @@ export class MailModel {
 	}
 
 	/**
-	 * Finally deletes all given mails. Caller must ensure that mails are only from one folder
+	 * Finally move all given mails. Caller must ensure that mails are only from
+	 * * one folder (because we send one source folder)
+	 * * from one list (for locking it on the server)
 	 */
 	async _moveMails(mails: Mail[], targetMailFolder: MailFolder): Promise<void> {
-		let moveMails = mails.filter((m) => m._id[0] !== targetMailFolder.mails && targetMailFolder._ownerGroup === m._ownerGroup) // prevent moving mails between mail boxes.
-
 		// Do not move if target is the same as the current mailFolder
-		const sourceMailFolder = this.getMailFolder(getListId(mails[0]))
+		const sourceMailFolder = this.getMailFolderForMail(mails[0])
+		let moveMails = mails.filter((m) => sourceMailFolder !== targetMailFolder && targetMailFolder._ownerGroup === m._ownerGroup) // prevent moving mails between mail boxes.
 
 		if (moveMails.length > 0 && sourceMailFolder && !isSameId(targetMailFolder._id, sourceMailFolder._id)) {
 			const mailChunks = splitInChunks(
@@ -244,7 +255,7 @@ export class MailModel {
 			)
 
 			for (const mailChunk of mailChunks) {
-				await this.mailFacade.moveMails(mailChunk, targetMailFolder._id)
+				await this.mailFacade.moveMails(mailChunk, sourceMailFolder._id, targetMailFolder._id)
 			}
 		}
 	}
@@ -255,16 +266,20 @@ export class MailModel {
 	 */
 	async moveMails(mails: ReadonlyArray<Mail>, targetMailFolder: MailFolder): Promise<void> {
 		const mailsPerFolder = groupBy(mails, (mail) => {
-			return getListId(mail)
+			return isNotEmpty(mail.sets) ? elementIdPart(mail.sets[0]) : getListId(mail)
 		})
 
-		for (const [listId, mails] of mailsPerFolder) {
-			const sourceMailFolder = this.getMailFolder(listId)
+		for (const [folderId, mailsInFolder] of mailsPerFolder) {
+			const sourceMailFolder = this.getMailFolderForMail(mailsInFolder[0])
 
 			if (sourceMailFolder) {
-				await this._moveMails(mails, targetMailFolder)
+				// group another time because mails in the same Set can be from different mail bags.
+				const mailsPerList = groupBy(mailsInFolder, (mail) => getListId(mail))
+				for (const [listId, mailsInList] of mailsPerList) {
+					await this._moveMails(mailsInList, targetMailFolder)
+				}
 			} else {
-				console.log("Move mail: no mail folder for list id", listId)
+				console.log("Move mail: no mail folder for folder id", folderId)
 			}
 		}
 	}
@@ -296,30 +311,34 @@ export class MailModel {
 	 * A deletion confirmation must have been show before.
 	 */
 	async deleteMails(mails: ReadonlyArray<Mail>): Promise<void> {
-		const mailsPerFolder = groupBy(mails, (mail) => {
-			return getListId(mail)
-		})
-
 		if (mails.length === 0) {
 			return
 		}
+
+		const mailsPerFolder = groupBy(mails, (mail) => {
+			return isNotEmpty(mail.sets) ? elementIdPart(mail.sets[0]) : getListId(mail)
+		})
+
 		const folders = await this.getMailboxFolders(mails[0])
 		if (folders == null) {
 			return
 		}
-		const trashFolder = assertNotNull(folders.getSystemFolderByType(MailFolderType.TRASH))
+		const trashFolder = assertNotNull(folders.getSystemFolderByType(MailSetKind.TRASH))
 
-		for (const [listId, mails] of mailsPerFolder) {
-			const sourceMailFolder = this.getMailFolder(listId)
+		for (const [folder, mailsInFolder] of mailsPerFolder) {
+			const sourceMailFolder = this.getMailFolderForMail(mailsInFolder[0])
 
-			if (sourceMailFolder) {
-				if (isSpamOrTrashFolder(folders, sourceMailFolder)) {
-					await this._finallyDeleteMails(mails)
+			const mailsPerList = groupBy(mailsInFolder, (mail) => getListId(mail))
+			for (const [listId, mailsInList] of mailsPerList) {
+				if (sourceMailFolder) {
+					if (isSpamOrTrashFolder(folders, sourceMailFolder)) {
+						await this._finallyDeleteMails(mailsInList)
+					} else {
+						await this._moveMails(mailsInList, trashFolder)
+					}
 				} else {
-					await this._moveMails(mails, trashFolder)
+					console.log("Delete mail: no mail folder for list id", folder)
 				}
-			} else {
-				console.log("Delete mail: no mail folder for list id", listId)
 			}
 		}
 	}
@@ -329,7 +348,7 @@ export class MailModel {
 	 */
 	async _finallyDeleteMails(mails: Mail[]): Promise<void> {
 		if (!mails.length) return Promise.resolve()
-		const mailFolder = neverNull(this.getMailFolder(getListId(mails[0])))
+		const mailFolder = neverNull(this.getMailFolderForMail(mails[0]))
 		const mailIds = mails.map((m) => m._id)
 		const mailChunks = splitInChunks(MAX_NBR_MOVE_DELETE_MAIL_SERVICE, mailIds)
 
@@ -356,16 +375,20 @@ export class MailModel {
 					await this._init()
 					m.redraw()
 				}
-			} else if (isUpdateForTypeRef(MailTypeRef, update) && update.operation === OperationType.CREATE) {
+			} else if (
+				isUpdateForTypeRef(MailTypeRef, update) &&
+				update.operation === OperationType.CREATE &&
+				!containsEventOfType(updates, OperationType.DELETE, update.instanceId)
+			) {
 				if (this.inboxRuleHandler && this.connectivityModel) {
-					const folder = this.getMailFolder(update.instanceListId)
+					const mailId: IdTuple = [update.instanceListId, update.instanceId]
+					const mail = await this.entityClient.load(MailTypeRef, mailId)
+					const folder = this.getMailFolderForMail(mail)
 
-					if (folder && folder.folderType === MailFolderType.INBOX && !containsEventOfType(updates, OperationType.DELETE, update.instanceId)) {
+					if (folder && folder.folderType === MailSetKind.INBOX) {
 						// If we don't find another delete operation on this email in the batch, then it should be a create operation,
 						// otherwise it's a move
-						const mailId: IdTuple = [update.instanceListId, update.instanceId]
-						const mail = await this.entityClient.load(MailTypeRef, mailId)
-						await this.getMailboxDetailsForMailListId(update.instanceListId)
+						await this.getMailboxDetailsForMail(mail)
 							.then((mailboxDetail) => {
 								// We only apply rules on server if we are the leader in case of incoming messages
 								return (
@@ -377,7 +400,13 @@ export class MailModel {
 									)
 								)
 							})
-							.then((newId) => this._showNotification(newId || mailId))
+							.then((newFolderAndMail) => {
+								if (newFolderAndMail) {
+									this._showNotification(newFolderAndMail.folder, newFolderAndMail.mail)
+								} else {
+									this._showNotification(folder, mail)
+								}
+							})
 							.catch(noOp)
 					}
 				}
@@ -389,13 +418,13 @@ export class MailModel {
 		const normalized = this.mailboxCounters() || {}
 		const group = normalized[counters.mailGroup] || {}
 		for (const value of counters.counterValues) {
-			group[value.mailListId] = Number(value.count) || 0
+			group[value.counterId] = Number(value.count) || 0
 		}
 		normalized[counters.mailGroup] = group
 		this.mailboxCounters(normalized)
 	}
 
-	_showNotification(mailId: IdTuple) {
+	_showNotification(folder: MailFolder, mail: Mail) {
 		this.notifications.showNotification(
 			NotificationType.Mail,
 			lang.get("newMails_msg"),
@@ -403,21 +432,25 @@ export class MailModel {
 				actions: [],
 			},
 			(_) => {
-				m.route.set(`/mail/${listIdPart(mailId)}/${elementIdPart(mailId)}`)
+				m.route.set(`/mail/${getElementId(folder)}/${getElementId(mail)}`)
 				window.focus()
 			},
 		)
 	}
 
-	getCounterValue(listId: Id): Promise<number | null> {
-		return this.getMailboxDetailsForMailListId(listId)
+	getCounterValue(folder: MailFolder): Promise<number | null> {
+		return this.getMailboxDetailsForMailFolder(folder)
 			.then((mailboxDetails) => {
 				if (mailboxDetails == null) {
 					return null
 				} else {
-					const counters = this.mailboxCounters()
-					const mailGroupCounter = counters[mailboxDetails.mailGroup._id]
-					return mailGroupCounter && mailGroupCounter[listId]
+					const mailGroupCounter = this.mailboxCounters()[mailboxDetails.mailGroup._id]
+					if (mailGroupCounter) {
+						const counterId = folder.isMailSet ? getElementId(folder) : folder.mails
+						return mailGroupCounter[counterId]
+					} else {
+						return null
+					}
 				}
 			})
 			.catch(() => null)
@@ -437,13 +470,13 @@ export class MailModel {
 	 * Sends the given folder and all its descendants to the trash folder, removes any empty folders
 	 */
 	async trashFolderAndSubfolders(folder: MailFolder): Promise<void> {
-		const mailboxDetail = await this.getMailboxDetailsForMailListId(folder.mails)
+		const mailboxDetail = await this.getMailboxDetailsForMailFolder(folder)
 		if (mailboxDetail == null) {
 			return
 		}
 		let deletedFolder = await this.removeAllEmpty(mailboxDetail, folder)
 		if (!deletedFolder) {
-			const trash = assertSystemFolderOfType(mailboxDetail.folders, MailFolderType.TRASH)
+			const trash = assertSystemFolderOfType(mailboxDetail.folders, MailSetKind.TRASH)
 			return this.mailFacade.updateMailFolderParent(folder, trash._id)
 		}
 	}
@@ -460,9 +493,8 @@ export class MailModel {
 		// we don't update folder system quickly enough so we keep track of deleted folders here and consider them "empty" when all their children are here
 		const deleted = new Set<Id>()
 		for (const descendant of descendants) {
-			// Only load one mail, if there is even one we won't remove
 			if (
-				(await this.entityClient.loadRange(MailTypeRef, descendant.folder.mails, GENERATED_MAX_ID, 1, true)).length === 0 &&
+				(await this.isEmptyFolder(descendant.folder)) &&
 				mailboxDetail.folders.getCustomFoldersOfParent(descendant.folder._id).every((f) => deleted.has(getElementId(f)))
 			) {
 				deleted.add(getElementId(descendant.folder))
@@ -471,9 +503,8 @@ export class MailModel {
 				someNonEmpty = true
 			}
 		}
-		// Only load one mail, if there is even one we won't remove
 		if (
-			(await this.entityClient.loadRange(MailTypeRef, folder.mails, GENERATED_MAX_ID, 1, true)).length === 0 &&
+			(await this.isEmptyFolder(folder)) &&
 			mailboxDetail.folders.getCustomFoldersOfParent(folder._id).every((f) => deleted.has(getElementId(f))) &&
 			!someNonEmpty
 		) {
@@ -484,8 +515,17 @@ export class MailModel {
 		}
 	}
 
+	// Only load one mail, if there is even one we won't remove
+	private async isEmptyFolder(descendant: MailFolder) {
+		if (descendant.isMailSet) {
+			return (await this.entityClient.loadRange(MailSetEntryTypeRef, descendant.entries, CUSTOM_MIN_ID, 1, false)).length === 0
+		} else {
+			return (await this.entityClient.loadRange(MailTypeRef, descendant.mails, GENERATED_MAX_ID, 1, true)).length === 0
+		}
+	}
+
 	public async finallyDeleteCustomMailFolder(folder: MailFolder): Promise<void> {
-		if (folder.folderType !== MailFolderType.CUSTOM) {
+		if (folder.folderType !== MailSetKind.CUSTOM) {
 			throw new ProgrammingError("Cannot delete non-custom folder: " + String(folder._id))
 		}
 
@@ -499,9 +539,11 @@ export class MailModel {
 			)
 	}
 
-	async fixupCounterForMailList(listId: Id, unreadMails: number) {
-		const mailboxDetails = await this.getMailboxDetailsForMailListId(listId)
-		mailboxDetails && (await this.mailFacade.fixupCounterForMailList(mailboxDetails.mailGroup._id, listId, unreadMails))
+	async fixupCounterForFolder(folder: MailFolder, unreadMails: number) {
+		const mailboxDetails = await this.getMailboxDetailsForMailFolder(folder)
+		if (mailboxDetails) {
+			await this.mailFacade.fixupCounterForFolder(mailboxDetails.mailGroup._id, folder, unreadMails)
+		}
 	}
 
 	async clearFolder(folder: MailFolder): Promise<void> {

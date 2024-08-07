@@ -3467,7 +3467,7 @@ export type WebsocketCounterValue = {
 
 	_id: Id;
 	count: NumberString;
-	mailListId: Id;
+	counterId: Id;
 }
 export const WebsocketEntityDataTypeRef: TypeRef<WebsocketEntityData> = new TypeRef("sys", "WebsocketEntityData")
 

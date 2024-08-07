@@ -1,7 +1,7 @@
-import { groupBy, partition } from "@tutao/tutanota-utils"
-import { MailFolder } from "../../entities/tutanota/TypeRefs.js"
-import { MailFolderType } from "../TutanotaConstants.js"
-import { elementIdPart, getElementId, isSameId } from "../utils/EntityUtils.js"
+import { groupBy, isNotEmpty, partition } from "@tutao/tutanota-utils"
+import { Mail, MailFolder } from "../../entities/tutanota/TypeRefs.js"
+import { MailSetKind } from "../TutanotaConstants.js"
+import { elementIdPart, getElementId, getListId, isSameId } from "../utils/EntityUtils.js"
 
 export interface IndentedFolder {
 	level: number
@@ -17,7 +17,7 @@ export class FolderSystem {
 		const folderByParent = groupBy(folders, (folder) => (folder.parentFolder ? elementIdPart(folder.parentFolder) : null))
 		const topLevelFolders = folders.filter((f) => f.parentFolder == null)
 
-		const [systemFolders, customFolders] = partition(topLevelFolders, (f) => f.folderType !== MailFolderType.CUSTOM)
+		const [systemFolders, customFolders] = partition(topLevelFolders, (f) => f.folderType !== MailSetKind.CUSTOM)
 
 		this.systemSubtrees = systemFolders.sort(compareSystem).map((f) => this.makeSubtree(folderByParent, f, compareCustom))
 		this.customSubtrees = customFolders.sort(compareCustom).map((f) => this.makeSubtree(folderByParent, f, compareCustom))
@@ -28,16 +28,25 @@ export class FolderSystem {
 	}
 
 	/** Search for a specific folder type. Some mailboxes might not have some system folders! */
-	getSystemFolderByType(type: Omit<MailFolderType, MailFolderType.CUSTOM>): MailFolder | null {
+	getSystemFolderByType(type: Omit<MailSetKind, MailSetKind.CUSTOM>): MailFolder | null {
 		return this.systemSubtrees.find((f) => f.folder.folderType === type)?.folder ?? null
 	}
 
-	getFolderById(folderId: IdTuple): MailFolder | null {
+	getFolderById(folderId: Id): MailFolder | null {
 		const subtree = this.getFolderByIdInSubtrees(this.systemSubtrees, folderId) ?? this.getFolderByIdInSubtrees(this.customSubtrees, folderId)
 		return subtree?.folder ?? null
 	}
 
-	getFolderByMailListId(mailListId: Id): MailFolder | null {
+	getFolderByMail(mail: Mail): MailFolder | null {
+		const sets = mail.sets
+		if (isNotEmpty(sets)) {
+			return this.getFolderById(elementIdPart(sets[0]))
+		} else {
+			return this.getFolderByMailListIdLegacy(getListId(mail))
+		}
+	}
+
+	private getFolderByMailListIdLegacy(mailListId: Id): MailFolder | null {
 		const subtree =
 			this.getFolderByMailListIdInSubtrees(this.systemSubtrees, mailListId) ?? this.getFolderByMailListIdInSubtrees(this.customSubtrees, mailListId)
 		return subtree?.folder ?? null
@@ -49,7 +58,7 @@ export class FolderSystem {
 	 */
 	getCustomFoldersOfParent(parent: IdTuple | null): MailFolder[] {
 		if (parent) {
-			const parentFolder = this.getFolderByIdInSubtrees([...this.customSubtrees, ...this.systemSubtrees], parent)
+			const parentFolder = this.getFolderByIdInSubtrees([...this.customSubtrees, ...this.systemSubtrees], elementIdPart(parent))
 			return parentFolder ? parentFolder.children.map((child) => child.folder) : []
 		} else {
 			return this.customSubtrees.map((subtree) => subtree.folder)
@@ -57,7 +66,7 @@ export class FolderSystem {
 	}
 
 	getDescendantFoldersOfParent(parent: IdTuple): IndentedFolder[] {
-		const parentFolder = this.getFolderByIdInSubtrees([...this.customSubtrees, ...this.systemSubtrees], parent)
+		const parentFolder = this.getFolderByIdInSubtrees([...this.customSubtrees, ...this.systemSubtrees], elementIdPart(parent))
 		if (parentFolder) {
 			return this.getIndentedFolderList([parentFolder]).slice(1)
 		} else {
@@ -78,7 +87,7 @@ export class FolderSystem {
 			} else if (isSameId(currentFolderPointer.parentFolder, potentialAncestorId)) {
 				return true
 			}
-			currentFolderPointer = this.getFolderById(currentFolderPointer.parentFolder)
+			currentFolderPointer = this.getFolderById(elementIdPart(currentFolderPointer.parentFolder))
 		}
 	}
 
@@ -99,8 +108,8 @@ export class FolderSystem {
 		})
 	}
 
-	private getFolderByIdInSubtrees(systems: ReadonlyArray<FolderSubtree>, folderId: IdTuple): FolderSubtree | null {
-		return this.getFolderBy(systems, (system) => isSameId(system.folder._id, folderId))
+	private getFolderByIdInSubtrees(systems: ReadonlyArray<FolderSubtree>, folderId: Id): FolderSubtree | null {
+		return this.getFolderBy(systems, (system) => isSameId(getElementId(system.folder), folderId))
 	}
 
 	private getFolderByMailListIdInSubtrees(systems: ReadonlyArray<FolderSubtree>, mailListId: Id): FolderSubtree | null {
@@ -155,15 +164,16 @@ function compareCustom(folder1: MailFolder, folder2: MailFolder): number {
 	return folder1.name.localeCompare(folder2.name)
 }
 
-type SystemMailFolderTypes = Exclude<MailFolderType, MailFolderType.CUSTOM>
+type SystemMailFolderTypes = Exclude<MailSetKind, MailSetKind.CUSTOM>
 
 const folderTypeToOrder: Record<SystemMailFolderTypes, number> = {
-	[MailFolderType.INBOX]: 0,
-	[MailFolderType.DRAFT]: 1,
-	[MailFolderType.SENT]: 2,
-	[MailFolderType.TRASH]: 4,
-	[MailFolderType.ARCHIVE]: 5,
-	[MailFolderType.SPAM]: 6,
+	[MailSetKind.INBOX]: 0,
+	[MailSetKind.DRAFT]: 1,
+	[MailSetKind.SENT]: 2,
+	[MailSetKind.TRASH]: 4,
+	[MailSetKind.ARCHIVE]: 5,
+	[MailSetKind.SPAM]: 6,
+	[MailSetKind.ALL]: 7,
 }
 
 function compareSystem(folder1: MailFolder, folder2: MailFolder): number {

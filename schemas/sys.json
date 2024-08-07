@@ -380,6 +380,16 @@
 					"info": "AddAssociation GroupKeyRotationData/groupMembershipUpdateData/AGGREGATION/2432."
 				}
 			]
+		},
+		{
+			"version": 107,
+			"changes": [
+				{
+					"name": "RenameAttribute",
+					"sourceType": "WebsocketCounterValue",
+					"info": "RenameAttribute WebsocketCounterValue: mailListId -> counterId."
+				}
+			]
 		}
 	]
 }

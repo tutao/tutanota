@@ -410,6 +410,7 @@ mod tests {
                     ),
                 ],
             ),
+            "sets"=> JsonElement::Array(vec![]),
         }
     }
 }
