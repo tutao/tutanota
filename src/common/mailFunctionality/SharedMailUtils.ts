@@ -14,14 +14,14 @@ import {
 	TutanotaProperties,
 } from "../api/entities/tutanota/TypeRefs.js"
 import { fullNameToFirstAndLastName, mailAddressToFirstAndLastName } from "../misc/parsing/MailAddressParser.js"
-import { assertNotNull, contains, endsWith, first, neverNull } from "@tutao/tutanota-utils"
+import { assertNotNull, contains, endsWith, first, isNotEmpty, neverNull } from "@tutao/tutanota-utils"
 import {
 	ContactAddressType,
 	ConversationType,
 	EncryptionAuthStatus,
 	getMailFolderType,
 	GroupType,
-	MailFolderType,
+	MailSetKind,
 	MailState,
 	MAX_ATTACHMENT_SIZE,
 	ReplyType,
@@ -36,7 +36,7 @@ import { Icons } from "../gui/base/icons/Icons.js"
 import { MailboxDetail, MailModel } from "./MailModel.js"
 import { LoginController } from "../api/main/LoginController.js"
 import { EntityClient } from "../api/common/EntityClient.js"
-import { getListId } from "../api/common/utils/EntityUtils.js"
+import { getListId, isSameId } from "../api/common/utils/EntityUtils.js"
 import type { FolderSystem, IndentedFolder } from "../api/common/mail/FolderSystem.js"
 import { MailFacade } from "../api/worker/facades/lazy/MailFacade.js"
 import { ListFilter } from "../misc/ListModel.js"
@@ -170,27 +170,27 @@ export function getFolderName(folder: MailFolder): string {
 	}
 }
 
-export function getFolderIconByType(folderType: MailFolderType): AllIcons {
+export function getFolderIconByType(folderType: MailSetKind): AllIcons {
 	switch (folderType) {
-		case MailFolderType.CUSTOM:
+		case MailSetKind.CUSTOM:
 			return Icons.Folder
 
-		case MailFolderType.INBOX:
+		case MailSetKind.INBOX:
 			return Icons.Inbox
 
-		case MailFolderType.SENT:
+		case MailSetKind.SENT:
 			return Icons.Send
 
-		case MailFolderType.TRASH:
+		case MailSetKind.TRASH:
 			return Icons.TrashBin
 
-		case MailFolderType.ARCHIVE:
+		case MailSetKind.ARCHIVE:
 			return Icons.Archive
 
-		case MailFolderType.SPAM:
+		case MailSetKind.SPAM:
 			return Icons.Spam
 
-		case MailFolderType.DRAFT:
+		case MailSetKind.DRAFT:
 			return Icons.Draft
 
 		default:
@@ -368,7 +368,15 @@ export async function getMoveTargetFolderSystems(model: MailModel, mails: readon
 		return []
 	}
 	const folderSystem = mailboxDetails.folders
-	return folderSystem.getIndentedList().filter((f: IndentedFolder) => f.folder.mails !== getListId(firstMail))
+
+	return folderSystem.getIndentedList().filter((f: IndentedFolder) => {
+		if (f.folder.isMailSet && isNotEmpty(firstMail.sets)) {
+			const folderId = firstMail.sets[0]
+			return !isSameId(f.folder._id, folderId)
+		} else {
+			return f.folder.mails !== getListId(firstMail)
+		}
+	})
 }
 
 export const MAX_FOLDER_INDENT_LEVEL = 10
@@ -459,11 +467,11 @@ export function isTutanotaMailAddress(mailAddress: string): boolean {
  *
  * Use with caution.
  */
-export function assertSystemFolderOfType(system: FolderSystem, type: Omit<MailFolderType, MailFolderType.CUSTOM>): MailFolder {
+export function assertSystemFolderOfType(system: FolderSystem, type: Omit<MailSetKind, MailSetKind.CUSTOM>): MailFolder {
 	return assertNotNull(system.getSystemFolderByType(type), "System folder of type does not exist!")
 }
 
-export function isOfTypeOrSubfolderOf(system: FolderSystem, folder: MailFolder, type: MailFolderType): boolean {
+export function isOfTypeOrSubfolderOf(system: FolderSystem, folder: MailFolder, type: MailSetKind): boolean {
 	return folder.folderType === type || isSubfolderOfType(system, folder, type)
 }
 

@@ -20,13 +20,15 @@ import {
 	timestampToGeneratedId,
 } from "../../../../../src/common/api/common/utils/EntityUtils.js"
 import type { Base64 } from "@tutao/tutanota-utils"
-import { downcast, groupBy, numberRange, splitInChunks } from "@tutao/tutanota-utils"
+import { groupBy, numberRange, splitInChunks } from "@tutao/tutanota-utils"
 import { appendBinaryBlocks } from "../../../../../src/common/api/worker/search/SearchIndexEncoding.js"
 import { createSearchIndexDbStub, DbStub, DbStubTransaction } from "./DbStub.js"
 import type { BrowserData } from "../../../../../src/common/misc/ClientConstants.js"
 import { browserDataStub, createTestEntity } from "../../../TestUtils.js"
 import { aes256RandomKey, fixedIv } from "@tutao/tutanota-crypto"
 import { ElementDataOS, SearchIndexMetaDataOS, SearchIndexOS } from "../../../../../src/common/api/worker/search/IndexTables.js"
+import { object, when } from "testdouble"
+import { EntityClient } from "../../../../../src/common/api/common/EntityClient.js"
 
 type SearchIndexEntryWithType = SearchIndexEntry & {
 	typeInfo: TypeInfo
@@ -39,8 +41,9 @@ let dbKey
 const contactTypeInfo = typeRefToTypeInfo(ContactTypeRef)
 const mailTypeInfo = typeRefToTypeInfo(MailTypeRef)
 const browserData: BrowserData = browserDataStub
-const entityClinet = downcast({})
+const entityClient: EntityClient = object()
 o.spec("SearchFacade test", () => {
+	let mail = createTestEntity(MailTypeRef)
 	let user = createTestEntity(UserTypeRef)
 	let id1 = "L0YED5d----1"
 	let id2 = "L0YED5d----2"
@@ -65,7 +68,7 @@ o.spec("SearchFacade test", () => {
 			} as any,
 			[],
 			browserData,
-			entityClinet,
+			entityClient,
 		)
 	}
 
@@ -138,7 +141,7 @@ o.spec("SearchFacade test", () => {
 			end: end ?? null,
 			field: null,
 			attributeIds: attributeIds ?? null,
-			listIds: listId != null ? [listId] : [],
+			folderIds: listId != null ? [listId] : [],
 			eventSeries: true,
 		}
 	}
@@ -239,16 +242,38 @@ o.spec("SearchFacade test", () => {
 			[["listId2", id2]],
 		)
 	})
-	o("find listId", () => {
+	o("find folderId legacy MailFolders (non-static mail listIds)", () => {
+		let mail1 = createTestEntity(MailTypeRef, { _id: ["mailListId1", id1] })
+		when(entityClient.load(MailTypeRef, mail1._id)).thenReturn(Promise.resolve(mail1))
+		let mail2 = createTestEntity(MailTypeRef, { _id: ["mailListId2", id2] })
+		when(entityClient.load(MailTypeRef, mail2._id)).thenReturn(Promise.resolve(mail2))
+
 		return testSearch(
 			[createKeyToIndexEntries("test", [createMailEntry(id1, 0, [0]), createMailEntry(id2, 0, [0])])],
-			[
-				["listId1", id1],
-				["listId2", id2],
-			],
+			[mail1._id, mail2._id],
 			"test",
-			createMailRestriction(null, "listId2"),
-			[["listId2", id2]],
+			createMailRestriction(null, listIdPart(mail2._id)),
+			[mail2._id],
+		)
+	})
+	o("find folderId new MailSets (static mail listIds)", () => {
+		const mail1 = createTestEntity(MailTypeRef, {
+			_id: ["mailListId", id1],
+			sets: [["setListId", "folderId1"]],
+		})
+		when(entityClient.load(MailTypeRef, mail1._id)).thenReturn(Promise.resolve(mail1))
+		const mail2 = createTestEntity(MailTypeRef, {
+			_id: ["mailListId", id2],
+			sets: [["setListId", "folderId2"]],
+		})
+		when(entityClient.load(MailTypeRef, mail2._id)).thenReturn(Promise.resolve(mail2))
+
+		return testSearch(
+			[createKeyToIndexEntries("test", [createMailEntry(id1, 0, [0]), createMailEntry(id2, 0, [0])])],
+			[mail1._id, mail2._id],
+			"test",
+			createMailRestriction(null, elementIdPart(mail2.sets[0])),
+			[mail2._id],
 		)
 	})
 	o("find with start time", () => {

@@ -222,6 +222,19 @@ export class EphemeralCacheStorage implements CacheStorage {
 		return result
 	}
 
+	async provideMultiple<T extends ListElementEntity>(typeRef: TypeRef<T>, listId: Id, elementIds: Id[]): Promise<Array<T>> {
+		const listCache = this.lists.get(typeRefToPath(typeRef))?.get(listId)
+
+		if (listCache == null) {
+			return []
+		}
+		let result: T[] = []
+		for (let a = 0; a < elementIds.length; a++) {
+			result.push(clone(listCache.elements.get(elementIds[a]) as T))
+		}
+		return result
+	}
+
 	async getRangeForList<T extends ListElementEntity>(typeRef: TypeRef<T>, listId: Id): Promise<{ lower: Id; upper: Id } | null> {
 		const listCache = this.lists.get(typeRefToPath(typeRef))?.get(listId)
 

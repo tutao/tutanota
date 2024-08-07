@@ -8,8 +8,7 @@ import { AllIcons } from "../../../common/gui/base/Icon"
 import { Icons } from "../../../common/gui/base/icons/Icons"
 import { isApp, isDesktop } from "../../../common/api/common/Env"
 import { assertNotNull, neverNull, noOp, promiseMap } from "@tutao/tutanota-utils"
-import { MailFolderType, MailReportType } from "../../../common/api/common/TutanotaConstants"
-import { getElementId, getListId } from "../../../common/api/common/utils/EntityUtils"
+import { MailReportType, MailSetKind } from "../../../common/api/common/TutanotaConstants"
 import { reportMailsAutomatically } from "./MailReportDialog"
 import { DataFile } from "../../../common/api/common/DataFile"
 import { lang, TranslationKey } from "../../../common/misc/LanguageViewModel"
@@ -20,22 +19,23 @@ import { ConversationViewModel } from "./ConversationViewModel.js"
 import { size } from "../../../common/gui/size.js"
 import { PinchZoom } from "../../../common/gui/PinchZoom.js"
 import { InlineImageReference, InlineImages } from "../../../common/mailFunctionality/inlineImagesUtils.js"
-import { isOfTypeOrSubfolderOf } from "../../../common/mailFunctionality/SharedMailUtils.js"
 import {
 	assertSystemFolderOfType,
 	getFolderIcon,
 	getFolderName,
 	getIndentedFolderNameForDropdown,
 	getMoveTargetFolderSystems,
+	isOfTypeOrSubfolderOf,
 } from "../../../common/mailFunctionality/SharedMailUtils.js"
 import { isSpamOrTrashFolder } from "../../../common/api/common/CommonMailUtils.js"
+import { getElementId } from "../../../common/api/common/utils/EntityUtils.js"
 
 export async function showDeleteConfirmationDialog(mails: ReadonlyArray<Mail>): Promise<boolean> {
 	let trashMails: Mail[] = []
 	let moveMails: Mail[] = []
 	for (let mail of mails) {
-		const folder = locator.mailModel.getMailFolder(mail._id[0])
-		const mailboxDetail = await locator.mailModel.getMailboxDetailsForMailListId(getListId(mail))
+		const folder = locator.mailModel.getMailFolderForMail(mail)
+		const mailboxDetail = await locator.mailModel.getMailboxDetailsForMail(mail)
 		if (mailboxDetail == null) {
 			continue
 		}
@@ -96,7 +96,7 @@ interface MoveMailsParams {
  * @return whether mails were actually moved
  */
 export async function moveMails({ mailModel, mails, targetMailFolder, isReportable = true }: MoveMailsParams): Promise<boolean> {
-	const details = await mailModel.getMailboxDetailsForMailListId(targetMailFolder.mails)
+	const details = await mailModel.getMailboxDetailsForMailFolder(targetMailFolder)
 	if (details == null) {
 		return false
 	}
@@ -104,11 +104,11 @@ export async function moveMails({ mailModel, mails, targetMailFolder, isReportab
 	return mailModel
 		.moveMails(mails, targetMailFolder)
 		.then(async () => {
-			if (isOfTypeOrSubfolderOf(system, targetMailFolder, MailFolderType.SPAM) && isReportable) {
+			if (isOfTypeOrSubfolderOf(system, targetMailFolder, MailSetKind.SPAM) && isReportable) {
 				const reportableMails = mails.map((mail) => {
 					// mails have just been moved
 					const reportableMail = createMail(mail)
-					reportableMail._id = [targetMailFolder.mails, getElementId(mail)]
+					reportableMail._id = targetMailFolder.isMailSet ? mail._id : [targetMailFolder.mails, getElementId(mail)]
 					return reportableMail
 				})
 				const mailboxDetails = await mailModel.getMailboxDetailsForMailGroup(assertNotNull(targetMailFolder._ownerGroup))
@@ -135,7 +135,7 @@ export function archiveMails(mails: Mail[]): Promise<void> {
 				moveMails({
 					mailModel: locator.mailModel,
 					mails: mails,
-					targetMailFolder: assertSystemFolderOfType(folders, MailFolderType.ARCHIVE),
+					targetMailFolder: assertSystemFolderOfType(folders, MailSetKind.ARCHIVE),
 				})
 		})
 	} else {
@@ -151,7 +151,7 @@ export function moveToInbox(mails: Mail[]): Promise<any> {
 				moveMails({
 					mailModel: locator.mailModel,
 					mails: mails,
-					targetMailFolder: assertSystemFolderOfType(folders, MailFolderType.INBOX),
+					targetMailFolder: assertSystemFolderOfType(folders, MailSetKind.INBOX),
 				})
 		})
 	} else {
@@ -160,7 +160,7 @@ export function moveToInbox(mails: Mail[]): Promise<any> {
 }
 
 export function getMailFolderIcon(mail: Mail): AllIcons {
-	let folder = locator.mailModel.getMailFolder(mail._id[0])
+	let folder = locator.mailModel.getMailFolderForMail(mail)
 
 	if (folder) {
 		return getFolderIcon(folder)

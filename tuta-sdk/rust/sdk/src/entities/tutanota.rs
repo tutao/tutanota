@@ -694,6 +694,22 @@ impl Entity for CustomerAccountCreateData {
 
 
 #[derive(uniffi::Record, Clone, Serialize, Deserialize, Debug)]
+pub struct DefaultAlarmInfo {
+    pub _id: CustomId,
+    pub trigger: String,
+}
+
+impl Entity for DefaultAlarmInfo {
+    fn type_ref() -> TypeRef {
+        TypeRef {
+            app: "tutanota",
+            type_: "DefaultAlarmInfo",
+         }
+    }
+}
+
+
+#[derive(uniffi::Record, Clone, Serialize, Deserialize, Debug)]
 pub struct DeleteGroupData {
     pub _format: i64,
     pub restore: bool,
@@ -1144,6 +1160,7 @@ pub struct GroupSettings {
     pub _id: CustomId,
     pub color: String,
     pub name: Option<String>,
+    pub defaultAlarmsList: Vec<DefaultAlarmInfo>,
     pub group: GeneratedId,
 }
 
@@ -1395,6 +1412,7 @@ pub struct Mail {
     pub mailDetails: Option<IdTuple>,
     pub mailDetailsDraft: Option<IdTuple>,
     pub sender: MailAddress,
+    pub sets: Vec<IdTuple>,
 	pub errors: Option<Errors>,
 }
 
@@ -1444,6 +1462,22 @@ impl Entity for MailAddressProperties {
 
 
 #[derive(uniffi::Record, Clone, Serialize, Deserialize, Debug)]
+pub struct MailBag {
+    pub _id: CustomId,
+    pub mails: GeneratedId,
+}
+
+impl Entity for MailBag {
+    fn type_ref() -> TypeRef {
+        TypeRef {
+            app: "tutanota",
+            type_: "MailBag",
+         }
+    }
+}
+
+
+#[derive(uniffi::Record, Clone, Serialize, Deserialize, Debug)]
 pub struct MailBox {
     pub _format: i64,
     pub _id: GeneratedId,
@@ -1453,6 +1487,8 @@ pub struct MailBox {
     pub _ownerKeyVersion: Option<i64>,
     pub _permissions: GeneratedId,
     pub lastInfoDate: DateTime,
+    pub archivedMailBags: Vec<MailBag>,
+    pub currentMailBag: Option<MailBag>,
     pub folders: Option<MailFolderRef>,
     pub mailDetailsDrafts: Option<MailDetailsDraftsRef>,
     pub receivedAttachments: GeneratedId,
@@ -1564,7 +1600,10 @@ pub struct MailFolder {
     pub _ownerKeyVersion: Option<i64>,
     pub _permissions: GeneratedId,
     pub folderType: i64,
+    pub isLabel: bool,
+    pub isMailSet: bool,
     pub name: String,
+    pub entries: GeneratedId,
     pub mails: GeneratedId,
     pub parentFolder: Option<IdTuple>,
 	pub errors: Option<Errors>,
@@ -1591,6 +1630,25 @@ impl Entity for MailFolderRef {
         TypeRef {
             app: "tutanota",
             type_: "MailFolderRef",
+         }
+    }
+}
+
+
+#[derive(uniffi::Record, Clone, Serialize, Deserialize, Debug)]
+pub struct MailSetEntry {
+    pub _format: i64,
+    pub _id: IdTuple,
+    pub _ownerGroup: Option<GeneratedId>,
+    pub _permissions: GeneratedId,
+    pub mail: IdTuple,
+}
+
+impl Entity for MailSetEntry {
+    fn type_ref() -> TypeRef {
+        TypeRef {
+            app: "tutanota",
+            type_: "MailSetEntry",
          }
     }
 }
@@ -1668,6 +1726,7 @@ impl Entity for MailboxServerProperties {
 pub struct MoveMailData {
     pub _format: i64,
     pub mails: Vec<IdTuple>,
+    pub sourceFolder: Option<IdTuple>,
     pub targetFolder: IdTuple,
 }
 

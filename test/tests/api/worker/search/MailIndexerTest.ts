@@ -388,7 +388,6 @@ o.spec("MailIndexer test", () => {
 		const indexer = mock(new MailIndexer(null as any, db, null as any, null as any, null as any, dateProvider, mailFacade), (mocked) => {
 			mocked.indexMailboxes = spy(() => Promise.resolve())
 			mocked.mailIndexingEnabled = false
-			mocked._excludedListIds = []
 
 			mocked._getSpamFolder = (membership) => {
 				o(membership).deepEquals(user.memberships[0])
@@ -398,11 +397,10 @@ o.spec("MailIndexer test", () => {
 		await indexer.enableMailIndexing(user)
 		o(indexer.indexMailboxes.invocations[0]).deepEquals([user, beforeNowInterval])
 		o(indexer.mailIndexingEnabled).equals(true)
-		o(indexer._excludedListIds).deepEquals([spamFolder.mails])
 		o(JSON.stringify(metadata)).equals(
 			JSON.stringify({
 				[MetaData.mailIndexingEnabled]: true,
-				[MetaData.excludedListIds]: [spamFolder.mails],
+				[MetaData.excludedListIds]: [],
 			}),
 		)
 	})
@@ -414,7 +412,7 @@ o.spec("MailIndexer test", () => {
 				if (key == MetaData.mailIndexingEnabled) {
 					return Promise.resolve(true)
 				} else if (key == MetaData.excludedListIds) {
-					return Promise.resolve([1, 2])
+					return Promise.resolve([])
 				}
 
 				throw new Error("wrong key / os")
@@ -429,12 +427,10 @@ o.spec("MailIndexer test", () => {
 		const indexer: any = new MailIndexer(null as any, db, null as any, null as any, null as any, dateProvider, mailFacade)
 		indexer.indexMailboxes = spy()
 		indexer.mailIndexingEnabled = false
-		indexer._excludedListIds = []
 		let user = createTestEntity(UserTypeRef)
 		await await indexer.enableMailIndexing(user)
 		o(indexer.indexMailboxes.callCount).equals(0)
 		o(indexer.mailIndexingEnabled).equals(true)
-		o(indexer._excludedListIds).deepEquals([1, 2])
 	})
 	o("disableMailIndexing", function () {
 		let db: Db = {
@@ -445,10 +441,8 @@ o.spec("MailIndexer test", () => {
 		} as any
 		const indexer: any = new MailIndexer(null as any, db, null as any, null as any, null as any, dateProvider, mailFacade)
 		indexer.mailIndexingEnabled = true
-		indexer._excludedListIds = [1]
 		indexer.disableMailIndexing()
 		o(indexer.mailIndexingEnabled).equals(false)
-		o(indexer._excludedListIds).deepEquals([])
 		// @ts-ignore
 		o(db.dbFacade.deleteDatabase.callCount).equals(1)
 	})

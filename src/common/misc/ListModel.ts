@@ -25,20 +25,20 @@ import { ListFetchResult, PageSize } from "../gui/base/ListUtils.js"
 import { isOfflineError } from "../api/common/utils/ErrorUtils.js"
 import { ListAutoSelectBehavior } from "./DeviceConfig.js"
 
-export interface ListModelConfig<ElementType> {
+export interface ListModelConfig<ListElementType> {
 	topId: Id
 
 	/**
 	 * Get the given number of entities starting after the given id. May return more elements than requested, e.g. if all elements are available on first fetch.
 	 */
-	fetch(startId: Id, count: number): Promise<ListFetchResult<ElementType>>
+	fetch(startId: Id, count: number): Promise<ListFetchResult<ListElementType>>
 
 	/**
 	 * Returns null if the given element could not be loaded
 	 */
-	loadSingle(elementId: Id): Promise<ElementType | null>
+	loadSingle(listId: Id, elementId: Id): Promise<ListElementType | null>
 
-	sortCompare(entity1: ElementType, entity2: ElementType): number
+	sortCompare(entity1: ListElementType, entity2: ListElementType): number
 
 	autoSelectBehavior: () => ListAutoSelectBehavior
 }
@@ -197,10 +197,10 @@ export class ListModel<ElementType extends ListElement> {
 		return this.filter != null
 	}
 
-	async entityEventReceived(elementId: Id, operation: OperationType): Promise<void> {
+	async entityEventReceived(listId: Id, elementId: Id, operation: OperationType): Promise<void> {
 		if (operation === OperationType.CREATE || operation === OperationType.UPDATE) {
 			// load the element without range checks for now
-			const entity = await this.config.loadSingle(elementId)
+			const entity = await this.config.loadSingle(listId, elementId)
 			if (!entity) {
 				return
 			}

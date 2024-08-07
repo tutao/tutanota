@@ -1,4 +1,4 @@
-import { FULL_INDEXED_TIMESTAMP, MailFolderType, MailState, NOTHING_INDEXED_TIMESTAMP, OperationType } from "../../common/TutanotaConstants"
+import { FULL_INDEXED_TIMESTAMP, MailSetKind, MailState, NOTHING_INDEXED_TIMESTAMP, OperationType } from "../../common/TutanotaConstants"
 import type { File as TutanotaFile, Mail, MailBox, MailDetails, MailFolder } from "../../entities/tutanota/TypeRefs.js"
 import {
 	FileTypeRef,
@@ -55,7 +55,6 @@ export class MailIndexer {
 	mailboxIndexingPromise: Promise<void>
 	isIndexing: boolean = false
 	_indexingCancelled: boolean
-	_excludedListIds: Id[]
 	_core: IndexerCore
 	_db: Db
 	_entityRestClient: EntityRestClient
@@ -82,7 +81,6 @@ export class MailIndexer {
 		this.mailIndexingEnabled = false
 		this.mailboxIndexingPromise = Promise.resolve()
 		this._indexingCancelled = false
-		this._excludedListIds = []
 		this._entityRestClient = entityRestClient
 		this._dateProvider = dateProvider
 	}
@@ -146,10 +144,6 @@ export class MailIndexer {
 		mail: Mail
 		keyToIndexEntries: Map<string, SearchIndexEntry[]>
 	} | null> {
-		if (this._isExcluded(event)) {
-			return Promise.resolve(null)
-		}
-
 		return this._defaultCachingEntity
 			.load(MailTypeRef, [event.instanceListId, event.instanceId])
 			.then(async (mail) => {
@@ -213,14 +207,10 @@ export class MailIndexer {
 		return this._db.dbFacade.createTransaction(true, [ElementDataOS]).then((transaction) => {
 			return transaction.get(ElementDataOS, encInstanceId).then((elementData) => {
 				if (elementData) {
-					if (this._isExcluded(event)) {
-						return this._core._processDeleted(event, indexUpdate) // move to spam folder
-					} else {
-						indexUpdate.move.push({
-							encInstanceId,
-							newListId: event.instanceListId,
-						})
-					}
+					indexUpdate.move.push({
+						encInstanceId,
+						newListId: event.instanceListId,
+					})
 				} else {
 					// instance is moved but not yet indexed: handle as new for example moving a mail from non indexed folder like spam to indexed folder
 					return this.processNewMail(event).then((result) => {
@@ -233,42 +223,34 @@ export class MailIndexer {
 		})
 	}
 
-	enableMailIndexing(user: User): Promise<void> {
-		return this._db.dbFacade.createTransaction(true, [MetaDataOS]).then((t) => {
-			return t.get(MetaDataOS, Metadata.mailIndexingEnabled).then((enabled) => {
-				if (!enabled) {
-					return promiseMap(filterMailMemberships(user), (mailGroupMembership) => this._getSpamFolder(mailGroupMembership)).then((spamFolders) => {
-						this._excludedListIds = spamFolders.map((folder) => folder.mails)
-						this.mailIndexingEnabled = true
-						return this._db.dbFacade.createTransaction(false, [MetaDataOS]).then((t2) => {
-							t2.put(MetaDataOS, Metadata.mailIndexingEnabled, true)
-							t2.put(MetaDataOS, Metadata.excludedListIds, this._excludedListIds)
+	async enableMailIndexing(user: User): Promise<void> {
+		const t = await this._db.dbFacade.createTransaction(true, [MetaDataOS])
+		const enabled = await t.get(MetaDataOS, Metadata.mailIndexingEnabled)
+		if (!enabled) {
+			this.mailIndexingEnabled = true
+			const t2 = await this._db.dbFacade.createTransaction(false, [MetaDataOS])
+			t2.put(MetaDataOS, Metadata.mailIndexingEnabled, true)
+			t2.put(MetaDataOS, Metadata.excludedListIds, [])
 
-							// create index in background, termination is handled in Indexer.enableMailIndexing
-							const oldestTimestamp = this._dateProvider.getStartOfDayShiftedBy(-INITIAL_MAIL_INDEX_INTERVAL_DAYS).getTime()
+			// create index in background, termination is handled in Indexer.enableMailIndexing
+			const oldestTimestamp = this._dateProvider.getStartOfDayShiftedBy(-INITIAL_MAIL_INDEX_INTERVAL_DAYS).getTime()
 
-							this.indexMailboxes(user, oldestTimestamp).catch(
-								ofClass(CancelledError, (e) => {
-									console.log("cancelled initial indexing", e)
-								}),
-							)
-							return t2.wait()
-						})
-					})
-				} else {
-					return t.get(MetaDataOS, Metadata.excludedListIds).then((excludedListIds) => {
-						this.mailIndexingEnabled = true
-						this._excludedListIds = excludedListIds || []
-					})
-				}
+			this.indexMailboxes(user, oldestTimestamp).catch(
+				ofClass(CancelledError, (e) => {
+					console.log("cancelled initial indexing", e)
+				}),
+			)
+			return t2.wait()
+		} else {
+			return t.get(MetaDataOS, Metadata.excludedListIds).then((excludedListIds) => {
+				this.mailIndexingEnabled = true
 			})
-		})
+		}
 	}
 
 	disableMailIndexing(userId: Id): Promise<void> {
 		this.mailIndexingEnabled = false
 		this._indexingCancelled = true
-		this._excludedListIds = []
 		return this._db.dbFacade.deleteDatabase(b64UserIdHash(userId))
 	}
 
@@ -580,24 +562,17 @@ export class MailIndexer {
 			})
 	}
 
-	_isExcluded(event: EntityUpdate): boolean {
-		return this._excludedListIds.indexOf(event.instanceListId) !== -1
-	}
-
 	/**
-	 * Provides all non-excluded mail list ids of the given mailbox
+	 * Provides all mail list ids of the given mailbox
 	 */
 	async _loadMailListIds(mailbox: MailBox): Promise<Id[]> {
-		const folders = await this._defaultCachingEntity.loadAll(MailFolderTypeRef, neverNull(mailbox.folders).folders)
-		const mailListIds: Id[] = []
-
-		for (const folder of folders) {
-			if (!this._excludedListIds.includes(folder.mails)) {
-				mailListIds.push(folder.mails)
-			}
+		const isMailsetMigrated = mailbox.currentMailBag != null
+		if (isMailsetMigrated) {
+			return [mailbox.currentMailBag!, ...mailbox.archivedMailBags].map((mailbag) => mailbag.mails)
+		} else {
+			const folders = await this._defaultCachingEntity.loadAll(MailFolderTypeRef, neverNull(mailbox.folders).folders)
+			return folders.map((f) => f.mails)
 		}
-
-		return mailListIds
 	}
 
 	_getSpamFolder(mailGroup: GroupMembership): Promise<MailFolder> {
@@ -607,7 +582,7 @@ export class MailIndexer {
 			.then((mbox) => {
 				return this._defaultCachingEntity
 					.loadAll(MailFolderTypeRef, neverNull(mbox.folders).folders)
-					.then((folders) => neverNull(folders.find((folder) => folder.folderType === MailFolderType.SPAM)))
+					.then((folders) => neverNull(folders.find((folder) => folder.folderType === MailSetKind.SPAM)))
 			})
 	}
 

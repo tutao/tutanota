@@ -133,6 +133,10 @@ export class LateInitializedCacheStorageImpl implements CacheStorageLateInitiali
 		return this.inner.provideFromRange(typeRef, listId, start, count, reverse)
 	}
 
+	provideMultiple<T extends ListElementEntity>(typeRef: TypeRef<T>, listId: string, elementIds: string[]): Promise<T[]> {
+		return this.inner.provideMultiple(typeRef, listId, elementIds)
+	}
+
 	getWholeList<T extends ListElementEntity>(typeRef: TypeRef<T>, listId: Id): Promise<Array<T>> {
 		return this.inner.getWholeList(typeRef, listId)
 	}

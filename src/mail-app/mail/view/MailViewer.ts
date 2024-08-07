@@ -2,7 +2,7 @@ import { px, size } from "../../../common/gui/size"
 import m, { Children, Component, Vnode } from "mithril"
 import stream from "mithril/stream"
 import { windowFacade, windowSizeListener } from "../../../common/misc/WindowFacade"
-import { FeatureType, InboxRuleType, Keys, MailFolderType, SpamRuleFieldType, SpamRuleType } from "../../../common/api/common/TutanotaConstants"
+import { FeatureType, InboxRuleType, Keys, MailSetKind, SpamRuleFieldType, SpamRuleType } from "../../../common/api/common/TutanotaConstants"
 import { File as TutanotaFile, Mail } from "../../../common/api/entities/tutanota/TypeRefs.js"
 import { lang } from "../../../common/misc/LanguageViewModel"
 import { assertMainOrNode } from "../../../common/api/common/Env"
@@ -20,7 +20,6 @@ import { replaceCidsWithInlineImages } from "./MailGuiUtils"
 import { getCoordsOfMouseOrTouchEvent } from "../../../common/gui/base/GuiUtils"
 import { copyToClipboard } from "../../../common/misc/ClipboardUtils"
 import { ContentBlockingStatus, MailViewerViewModel } from "./MailViewerViewModel"
-import { getListId } from "../../../common/api/common/utils/EntityUtils"
 import { createEmailSenderListElement } from "../../../common/api/entities/sys/TypeRefs.js"
 import { UserError } from "../../../common/api/main/UserError"
 import { showUserError } from "../../../common/misc/ErrorHandlerImpl"
@@ -33,8 +32,7 @@ import { locator } from "../../../common/api/main/CommonLocator.js"
 import { PinchZoom } from "../../../common/gui/PinchZoom.js"
 import { responsiveCardHMargin, responsiveCardHPadding } from "../../../common/gui/cards.js"
 import { Dialog } from "../../../common/gui/base/Dialog.js"
-import { createNewContact, getExistingRuleForType } from "../../../common/mailFunctionality/SharedMailUtils.js"
-import { isTutanotaTeamMail } from "../../../common/mailFunctionality/SharedMailUtils.js"
+import { createNewContact, getExistingRuleForType, isTutanotaTeamMail } from "../../../common/mailFunctionality/SharedMailUtils.js"
 
 assertMainOrNode()
 
@@ -655,9 +653,9 @@ export class MailViewer implements Component<MailViewerAttrs> {
 	}
 
 	private addSpamRule(defaultInboxRuleField: InboxRuleType | null, address: string) {
-		const folder = this.viewModel.mailModel.getMailFolder(getListId(this.viewModel.mail))
+		const folder = this.viewModel.mailModel.getMailFolderForMail(this.viewModel.mail)
 
-		const spamRuleType = folder && folder.folderType === MailFolderType.SPAM ? SpamRuleType.WHITELIST : SpamRuleType.BLACKLIST
+		const spamRuleType = folder && folder.folderType === MailSetKind.SPAM ? SpamRuleType.WHITELIST : SpamRuleType.BLACKLIST
 
 		let spamRuleField: SpamRuleFieldType
 		switch (defaultInboxRuleField) {

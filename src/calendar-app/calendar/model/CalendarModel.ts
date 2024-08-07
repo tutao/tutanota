@@ -220,6 +220,7 @@ export class CalendarModel {
 				group: group._id,
 				color: color,
 				name: null,
+				defaultAlarmsList: [],
 			})
 			userSettingsGroupRoot.groupSettings.push(newGroupSettings)
 			await this.entityClient.update(userSettingsGroupRoot)

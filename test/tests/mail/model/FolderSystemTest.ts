@@ -1,37 +1,40 @@
 import o from "@tutao/otest"
-import { createMailFolder, MailFolderTypeRef } from "../../../../src/common/api/entities/tutanota/TypeRefs.js"
-import { MailFolderType } from "../../../../src/common/api/common/TutanotaConstants.js"
+import { MailFolderTypeRef, MailTypeRef } from "../../../../src/common/api/entities/tutanota/TypeRefs.js"
+import { MailSetKind } from "../../../../src/common/api/common/TutanotaConstants.js"
 import { FolderSystem } from "../../../../src/common/api/common/mail/FolderSystem.js"
 import { createTestEntity } from "../../TestUtils.js"
+import { getElementId } from "../../../../src/common/api/common/utils/EntityUtils.js"
 
 o.spec("FolderSystem", function () {
 	const listId = "listId"
-	const inbox = createTestEntity(MailFolderTypeRef, { _id: [listId, "inbox"], folderType: MailFolderType.INBOX })
-	const archive = createTestEntity(MailFolderTypeRef, { _id: [listId, "archive"], folderType: MailFolderType.ARCHIVE })
+	const inbox = createTestEntity(MailFolderTypeRef, { _id: [listId, "inbox"], folderType: MailSetKind.INBOX })
+	const archive = createTestEntity(MailFolderTypeRef, { _id: [listId, "archive"], folderType: MailSetKind.ARCHIVE })
 	const customFolder = createTestEntity(MailFolderTypeRef, {
 		_id: [listId, "custom"],
-		folderType: MailFolderType.CUSTOM,
+		folderType: MailSetKind.CUSTOM,
 		name: "X",
 	})
 	const customSubfolder = createTestEntity(MailFolderTypeRef, {
 		_id: [listId, "customSub"],
-		folderType: MailFolderType.CUSTOM,
+		folderType: MailSetKind.CUSTOM,
 		parentFolder: customFolder._id,
 		name: "AA",
 		mails: "customSubMailList",
 	})
 	const customSubSubfolder = createTestEntity(MailFolderTypeRef, {
 		_id: [listId, "customSubSub"],
-		folderType: MailFolderType.CUSTOM,
+		folderType: MailSetKind.CUSTOM,
 		parentFolder: customSubfolder._id,
 		name: "B",
 	})
 	const customSubSubfolderAnother = createTestEntity(MailFolderTypeRef, {
 		_id: [listId, "customSubSubAnother"],
-		folderType: MailFolderType.CUSTOM,
+		folderType: MailSetKind.CUSTOM,
 		parentFolder: customSubfolder._id,
 		name: "A",
 	})
+
+	const mail = createTestEntity(MailTypeRef, { _id: ["mailListId", "inbox"], sets: [customSubfolder._id] })
 
 	const allFolders = [archive, inbox, customFolder, customSubfolder, customSubSubfolder, customSubSubfolderAnother]
 
@@ -74,12 +77,12 @@ o.spec("FolderSystem", function () {
 	o("indented list sorts stepsiblings correctly", function () {
 		const customFolderAnother = createTestEntity(MailFolderTypeRef, {
 			_id: [listId, "customAnother"],
-			folderType: MailFolderType.CUSTOM,
+			folderType: MailSetKind.CUSTOM,
 			name: "Another top-level custom",
 		})
 		const customFolderAnotherSub = createTestEntity(MailFolderTypeRef, {
 			_id: [listId, "customAnotherSub"],
-			folderType: MailFolderType.CUSTOM,
+			folderType: MailSetKind.CUSTOM,
 			parentFolder: customFolderAnother._id,
 			name: "Y",
 		})
@@ -110,25 +113,24 @@ o.spec("FolderSystem", function () {
 	o("getSystemFolderByType", function () {
 		const system = new FolderSystem(allFolders)
 
-		o(system.getSystemFolderByType(MailFolderType.ARCHIVE)).deepEquals(archive)
+		o(system.getSystemFolderByType(MailSetKind.ARCHIVE)).deepEquals(archive)
 	})
 
 	o("getFolderById", function () {
 		const system = new FolderSystem(allFolders)
 
-		o(system.getFolderById(archive._id)).deepEquals(archive)
+		o(system.getFolderById(getElementId(archive))).deepEquals(archive)
 	})
 
 	o("getFolderById not there returns null", function () {
 		const system = new FolderSystem(allFolders)
 
-		o(system.getFolderById([listId, "randomId"])).equals(null)
+		o(system.getFolderById("randomId")).equals(null)
 	})
 
-	o("getFolderByMailListId", function () {
+	o("getFolderByMail", function () {
 		const system = new FolderSystem(allFolders)
-
-		o(system.getFolderByMailListId(customSubfolder.mails)).equals(customSubfolder)
+		o(system.getFolderByMail(mail)).equals(customSubfolder)
 	})
 
 	o("getCustomFoldersOfParent", function () {

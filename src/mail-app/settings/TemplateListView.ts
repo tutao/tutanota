@@ -97,7 +97,7 @@ export class TemplateListView implements UpdatableSettingsViewer {
 					throw new Error("fetch template entry called for specific start id")
 				}
 			},
-			loadSingle: (elementId) => {
+			loadSingle: (_listId: Id, elementId: Id) => {
 				return this.entityClient.load<EmailTemplate>(EmailTemplateTypeRef, [this.templateListId(), elementId])
 			},
 			autoSelectBehavior: () => ListAutoSelectBehavior.OLDER,
@@ -170,8 +170,9 @@ export class TemplateListView implements UpdatableSettingsViewer {
 
 	async entityEventsReceived(updates: ReadonlyArray<EntityUpdateData>): Promise<void> {
 		for (const update of updates) {
-			if (isUpdateForTypeRef(EmailTemplateTypeRef, update) && isSameId(this.templateListId(), update.instanceListId)) {
-				await this.listModel.entityEventReceived(update.instanceId, update.operation)
+			const { instanceListId, instanceId, operation } = update
+			if (isUpdateForTypeRef(EmailTemplateTypeRef, update) && isSameId(this.templateListId(), instanceListId)) {
+				await this.listModel.entityEventReceived(instanceListId, instanceId, operation)
 			}
 		}
 		// we need to make another search in case items have changed

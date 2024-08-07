@@ -1,4 +1,4 @@
-import { MailFolder, MailTypeRef } from "../../../common/api/entities/tutanota/TypeRefs.js"
+import { Mail, MailFolder, MailSetEntryTypeRef, MailTypeRef } from "../../../common/api/entities/tutanota/TypeRefs.js"
 import { DropDownSelector, SelectorItemList } from "../../../common/gui/base/DropDownSelector.js"
 import m from "mithril"
 import { TextField } from "../../../common/gui/base/TextField.js"
@@ -7,25 +7,26 @@ import { locator } from "../../../common/api/main/CommonLocator.js"
 import { LockedError } from "../../../common/api/common/error/RestError.js"
 import { lang, TranslationKey } from "../../../common/misc/LanguageViewModel.js"
 import { MailboxDetail } from "../../../common/mailFunctionality/MailModel.js"
-import { MailFolderType, MailReportType } from "../../../common/api/common/TutanotaConstants.js"
-import { isSameId } from "../../../common/api/common/utils/EntityUtils.js"
+import { MailReportType, MailSetKind } from "../../../common/api/common/TutanotaConstants.js"
+import { elementIdPart, isSameId, listIdPart } from "../../../common/api/common/utils/EntityUtils.js"
 import { reportMailsAutomatically } from "./MailReportDialog.js"
 import { isOfflineError } from "../../../common/api/common/utils/ErrorUtils.js"
 import { getFolderName, getIndentedFolderNameForDropdown, getPathToFolderString } from "../../../common/mailFunctionality/SharedMailUtils.js"
 import { isSpamOrTrashFolder } from "../../../common/api/common/CommonMailUtils.js"
+import { groupByAndMap } from "@tutao/tutanota-utils"
 
 /**
  * Dialog for Edit and Add folder are the same.
- * @param editFolder if this is null, a folder is being added, otherwise a folder is being edited
+ * @param editedFolder if this is null, a folder is being added, otherwise a folder is being edited
  */
-export async function showEditFolderDialog(mailBoxDetail: MailboxDetail, editFolder: MailFolder | null = null, parentFolder: MailFolder | null = null) {
+export async function showEditFolderDialog(mailBoxDetail: MailboxDetail, editedFolder: MailFolder | null = null, parentFolder: MailFolder | null = null) {
 	const noParentFolderOption = lang.get("comboBoxSelectionNone_msg")
 	const mailGroupId = mailBoxDetail.mailGroup._id
-	let folderNameValue = editFolder?.name ?? ""
+	let folderNameValue = editedFolder?.name ?? ""
 	let targetFolders: SelectorItemList<MailFolder | null> = mailBoxDetail.folders
-		.getIndentedList(editFolder)
+		.getIndentedList(editedFolder)
 		// filter: SPAM and TRASH and descendants are only shown if editing (folders can only be moved there, not created there)
-		.filter((folderInfo) => !(editFolder === null && isSpamOrTrashFolder(mailBoxDetail.folders, folderInfo.folder)))
+		.filter((folderInfo) => !(editedFolder === null && isSpamOrTrashFolder(mailBoxDetail.folders, folderInfo.folder)))
 		.map((folderInfo) => {
 			return {
 				name: getIndentedFolderNameForDropdown(folderInfo),
@@ -36,7 +37,7 @@ export async function showEditFolderDialog(mailBoxDetail: MailboxDetail, editFol
 	let selectedParentFolder = parentFolder
 	let form = () => [
 		m(TextField, {
-			label: editFolder ? "rename_action" : "folderName_label",
+			label: editedFolder ? "rename_action" : "folderName_label",
 			value: folderNameValue,
 			oninput: (newInput) => {
 				folderNameValue = newInput
@@ -51,47 +52,69 @@ export async function showEditFolderDialog(mailBoxDetail: MailboxDetail, editFol
 			helpLabel: () => (selectedParentFolder ? getPathToFolderString(mailBoxDetail.folders, selectedParentFolder) : ""),
 		}),
 	]
+
+	async function getMailIdsGroupedByListId(folder: MailFolder): Promise<Map<Id, Id[]>> {
+		const mailSetEntries = await locator.entityClient.loadAll(MailSetEntryTypeRef, folder.entries)
+		return groupByAndMap(
+			mailSetEntries,
+			(mse) => listIdPart(mse.mail),
+			(mse) => elementIdPart(mse.mail),
+		)
+	}
+
+	async function loadAllMailsOfFolder(folder: MailFolder, reportableMails: Array<Mail>) {
+		if (folder.isMailSet) {
+			const mailIdsPerBag = await getMailIdsGroupedByListId(folder)
+			for (const [mailListId, mailIds] of mailIdsPerBag) {
+				reportableMails.push(...(await locator.entityClient.loadMultiple(MailTypeRef, mailListId, mailIds)))
+			}
+		} else {
+			reportableMails.push(...(await locator.entityClient.loadAll(MailTypeRef, folder.mails)))
+		}
+	}
+
 	const okAction = async (dialog: Dialog) => {
 		// closing right away to prevent duplicate actions
 		dialog.close()
 		try {
 			// if folder is null, create new folder
-			if (editFolder === null) {
+			if (editedFolder === null) {
 				await locator.mailFacade.createMailFolder(folderNameValue, selectedParentFolder?._id ?? null, mailGroupId)
 			} else {
 				// if it is being moved to trash (and not already in trash), ask about trashing
-				if (selectedParentFolder?.folderType === MailFolderType.TRASH && !isSameId(selectedParentFolder._id, editFolder.parentFolder)) {
+				if (selectedParentFolder?.folderType === MailSetKind.TRASH && !isSameId(selectedParentFolder._id, editedFolder.parentFolder)) {
 					const confirmed = await Dialog.confirm(() =>
 						lang.get("confirmDeleteCustomFolder_msg", {
-							"{1}": getFolderName(editFolder),
+							"{1}": getFolderName(editedFolder),
 						}),
 					)
 					if (!confirmed) return
 
-					await locator.mailFacade.updateMailFolderName(editFolder, folderNameValue)
-					await locator.mailModel.trashFolderAndSubfolders(editFolder)
-				} else if (selectedParentFolder?.folderType === MailFolderType.SPAM && !isSameId(selectedParentFolder._id, editFolder.parentFolder)) {
+					await locator.mailFacade.updateMailFolderName(editedFolder, folderNameValue)
+					await locator.mailModel.trashFolderAndSubfolders(editedFolder)
+				} else if (selectedParentFolder?.folderType === MailSetKind.SPAM && !isSameId(selectedParentFolder._id, editedFolder.parentFolder)) {
 					// if it is being moved to spam (and not already in spam), ask about reporting containing emails
 					const confirmed = await Dialog.confirm(() =>
 						lang.get("confirmSpamCustomFolder_msg", {
-							"{1}": getFolderName(editFolder),
+							"{1}": getFolderName(editedFolder),
 						}),
 					)
 					if (!confirmed) return
 
 					// get mails to report before moving to mail model
-					const descendants = mailBoxDetail.folders.getDescendantFoldersOfParent(editFolder._id).sort((l, r) => r.level - l.level)
-					let reportableMails = await locator.entityClient.loadAll(MailTypeRef, editFolder.mails)
+					const descendants = mailBoxDetail.folders.getDescendantFoldersOfParent(editedFolder._id).sort((l, r) => r.level - l.level)
+					let reportableMails: Array<Mail> = []
+					await loadAllMailsOfFolder(editedFolder, reportableMails)
 					for (const descendant of descendants) {
-						reportableMails.push(...(await locator.entityClient.loadAll(MailTypeRef, descendant.folder.mails)))
+						await loadAllMailsOfFolder(descendant.folder, reportableMails)
 					}
 					await reportMailsAutomatically(MailReportType.SPAM, locator.mailModel, mailBoxDetail, reportableMails)
 
-					await locator.mailFacade.updateMailFolderName(editFolder, folderNameValue)
-					await locator.mailModel.sendFolderToSpam(editFolder)
+					await locator.mailFacade.updateMailFolderName(editedFolder, folderNameValue)
+					await locator.mailModel.sendFolderToSpam(editedFolder)
 				} else {
-					await locator.mailFacade.updateMailFolderName(editFolder, folderNameValue)
-					await locator.mailFacade.updateMailFolderParent(editFolder, selectedParentFolder?._id || null)
+					await locator.mailFacade.updateMailFolderName(editedFolder, folderNameValue)
+					await locator.mailFacade.updateMailFolderParent(editedFolder, selectedParentFolder?._id || null)
 				}
 			}
 		} catch (error) {
@@ -102,7 +125,7 @@ export async function showEditFolderDialog(mailBoxDetail: MailboxDetail, editFol
 	}
 
 	Dialog.showActionDialog({
-		title: editFolder ? lang.get("editFolder_action") : lang.get("addFolder_action"),
+		title: editedFolder ? lang.get("editFolder_action") : lang.get("addFolder_action"),
 		child: form,
 		validator: () => checkFolderName(mailBoxDetail, folderNameValue, mailGroupId, selectedParentFolder?._id ?? null),
 		allowOkWithReturn: true,

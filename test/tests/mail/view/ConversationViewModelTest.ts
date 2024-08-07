@@ -16,7 +16,7 @@ import { EntityRestClientMock } from "../../api/worker/rest/EntityRestClientMock
 import { EntityEventsListener, EventController } from "../../../../src/common/api/main/EventController.js"
 import { defer, DeferredObject, delay, noOp } from "@tutao/tutanota-utils"
 import { matchers, object, when } from "testdouble"
-import { MailFolderType, MailState, OperationType } from "../../../../src/common/api/common/TutanotaConstants.js"
+import { MailSetKind, MailState, OperationType } from "../../../../src/common/api/common/TutanotaConstants.js"
 import { isSameId } from "../../../../src/common/api/common/utils/EntityUtils.js"
 import { createTestEntity } from "../../TestUtils.js"
 import { MailboxDetail, MailModel } from "../../../../src/common/mailFunctionality/MailModel.js"
@@ -173,11 +173,11 @@ o.spec("ConversationViewModel", function () {
 			const trashDraftMail = addMail("trashDraftMail")
 			trashDraftMail.state = MailState.DRAFT
 
-			const trash = createTestEntity(MailFolderTypeRef, { _id: [listId, "trashFolder"], folderType: MailFolderType.TRASH })
+			const trash = createTestEntity(MailFolderTypeRef, { _id: [listId, "trashFolder"], folderType: MailSetKind.TRASH })
 			entityRestClientMock.addListInstances(trash)
 
 			when(mailModel.getMailboxDetailsForMail(matchers.anything())).thenResolve(mailboxDetail)
-			when(mailModel.getMailFolder(listId)).thenReturn(trash)
+			when(mailModel.getMailFolderForMail(trashDraftMail)).thenReturn(trash)
 
 			conversation.pop() // since this mail shouldn't actually be a part of the conversation
 
@@ -195,11 +195,11 @@ o.spec("ConversationViewModel", function () {
 			const trashDraftMail = addMail("trashDraftMail")
 			trashDraftMail.state = MailState.DRAFT
 
-			const trash = createTestEntity(MailFolderTypeRef, { _id: [listId, "trashFolder"], folderType: MailFolderType.TRASH })
+			const trash = createTestEntity(MailFolderTypeRef, { _id: [listId, "trashFolder"], folderType: MailSetKind.TRASH })
 			entityRestClientMock.addListInstances(trash)
 
 			when(mailModel.getMailboxDetailsForMail(trashDraftMail)).thenResolve(mailboxDetail)
-			when(mailModel.getMailFolder(listId)).thenReturn(trash)
+			when(mailModel.getMailFolderForMail(trashDraftMail)).thenReturn(trash)
 
 			await makeViewModel(trashDraftMail)
 
@@ -311,7 +311,7 @@ o.spec("ConversationViewModel", function () {
 			await loadingDefer.promise
 
 			conversation.pop()
-			const trash = createTestEntity(MailFolderTypeRef, { _id: ["newListId", "trashFolder"], folderType: MailFolderType.TRASH })
+			const trash = createTestEntity(MailFolderTypeRef, { _id: ["folderListId", "trashFolder"], folderType: MailSetKind.TRASH })
 			entityRestClientMock.addListInstances(trash)
 			// adding new mail (is the same mail, just moved to trash)
 			const newTrashDraftMail = addMail("trashDraftMail")
@@ -320,7 +320,7 @@ o.spec("ConversationViewModel", function () {
 			conversation.pop()
 
 			when(mailModel.getMailboxDetailsForMail(matchers.anything())).thenResolve(mailboxDetail)
-			when(mailModel.getMailFolder("newListId")).thenReturn(trash)
+			when(mailModel.getMailFolderForMail(newTrashDraftMail)).thenReturn(trash)
 
 			await eventCallback(
 				[

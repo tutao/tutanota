@@ -49,7 +49,7 @@
 			}
 		},
 		"app": "tutanota",
-		"version": "73"
+		"version": "74"
 	},
 	"Birthday": {
 		"name": "Birthday",
@@ -99,7 +99,7 @@
 		},
 		"associations": {},
 		"app": "tutanota",
-		"version": "73"
+		"version": "74"
 	},
 	"Body": {
 		"name": "Body",
@@ -140,7 +140,7 @@
 		},
 		"associations": {},
 		"app": "tutanota",
-		"version": "73"
+		"version": "74"
 	},
 	"CalendarDeleteData": {
 		"name": "CalendarDeleteData",
@@ -174,7 +174,7 @@
 			}
 		},
 		"app": "tutanota",
-		"version": "73"
+		"version": "74"
 	},
 	"CalendarEvent": {
 		"name": "CalendarEvent",
@@ -373,7 +373,7 @@
 			}
 		},
 		"app": "tutanota",
-		"version": "73"
+		"version": "74"
 	},
 	"CalendarEventAttendee": {
 		"name": "CalendarEventAttendee",
@@ -416,7 +416,7 @@
 			}
 		},
 		"app": "tutanota",
-		"version": "73"
+		"version": "74"
 	},
 	"CalendarEventIndexRef": {
 		"name": "CalendarEventIndexRef",
@@ -450,7 +450,7 @@
 			}
 		},
 		"app": "tutanota",
-		"version": "73"
+		"version": "74"
 	},
 	"CalendarEventUidIndex": {
 		"name": "CalendarEventUidIndex",
@@ -521,7 +521,7 @@
 			}
 		},
 		"app": "tutanota",
-		"version": "73"
+		"version": "74"
 	},
 	"CalendarEventUpdate": {
 		"name": "CalendarEventUpdate",
@@ -609,7 +609,7 @@
 			}
 		},
 		"app": "tutanota",
-		"version": "73"
+		"version": "74"
 	},
 	"CalendarEventUpdateList": {
 		"name": "CalendarEventUpdateList",
@@ -643,7 +643,7 @@
 			}
 		},
 		"app": "tutanota",
-		"version": "73"
+		"version": "74"
 	},
 	"CalendarGroupRoot": {
 		"name": "CalendarGroupRoot",
@@ -742,7 +742,7 @@
 			}
 		},
 		"app": "tutanota",
-		"version": "73"
+		"version": "74"
 	},
 	"CalendarRepeatRule": {
 		"name": "CalendarRepeatRule",
@@ -821,7 +821,7 @@
 			}
 		},
 		"app": "tutanota",
-		"version": "73"
+		"version": "74"
 	},
 	"Contact": {
 		"name": "Contact",
@@ -1144,7 +1144,7 @@
 			}
 		},
 		"app": "tutanota",
-		"version": "73"
+		"version": "74"
 	},
 	"ContactAddress": {
 		"name": "ContactAddress",
@@ -1194,7 +1194,7 @@
 		},
 		"associations": {},
 		"app": "tutanota",
-		"version": "73"
+		"version": "74"
 	},
 	"ContactCustomDate": {
 		"name": "ContactCustomDate",
@@ -1244,7 +1244,7 @@
 		},
 		"associations": {},
 		"app": "tutanota",
-		"version": "73"
+		"version": "74"
 	},
 	"ContactList": {
 		"name": "ContactList",
@@ -1333,7 +1333,7 @@
 			}
 		},
 		"app": "tutanota",
-		"version": "73"
+		"version": "74"
 	},
 	"ContactListEntry": {
 		"name": "ContactListEntry",
@@ -1410,7 +1410,7 @@
 		},
 		"associations": {},
 		"app": "tutanota",
-		"version": "73"
+		"version": "74"
 	},
 	"ContactListGroupRoot": {
 		"name": "ContactListGroupRoot",
@@ -1489,7 +1489,7 @@
 			}
 		},
 		"app": "tutanota",
-		"version": "73"
+		"version": "74"
 	},
 	"ContactMailAddress": {
 		"name": "ContactMailAddress",
@@ -1539,7 +1539,7 @@
 		},
 		"associations": {},
 		"app": "tutanota",
-		"version": "73"
+		"version": "74"
 	},
 	"ContactMessengerHandle": {
 		"name": "ContactMessengerHandle",
@@ -1589,7 +1589,7 @@
 		},
 		"associations": {},
 		"app": "tutanota",
-		"version": "73"
+		"version": "74"
 	},
 	"ContactPhoneNumber": {
 		"name": "ContactPhoneNumber",
@@ -1639,7 +1639,7 @@
 		},
 		"associations": {},
 		"app": "tutanota",
-		"version": "73"
+		"version": "74"
 	},
 	"ContactPronouns": {
 		"name": "ContactPronouns",
@@ -1680,7 +1680,7 @@
 		},
 		"associations": {},
 		"app": "tutanota",
-		"version": "73"
+		"version": "74"
 	},
 	"ContactRelationship": {
 		"name": "ContactRelationship",
@@ -1730,7 +1730,7 @@
 		},
 		"associations": {},
 		"app": "tutanota",
-		"version": "73"
+		"version": "74"
 	},
 	"ContactSocialId": {
 		"name": "ContactSocialId",
@@ -1780,7 +1780,7 @@
 		},
 		"associations": {},
 		"app": "tutanota",
-		"version": "73"
+		"version": "74"
 	},
 	"ContactWebsite": {
 		"name": "ContactWebsite",
@@ -1830,7 +1830,7 @@
 		},
 		"associations": {},
 		"app": "tutanota",
-		"version": "73"
+		"version": "74"
 	},
 	"ConversationEntry": {
 		"name": "ConversationEntry",
@@ -1919,7 +1919,7 @@
 			}
 		},
 		"app": "tutanota",
-		"version": "73"
+		"version": "74"
 	},
 	"CreateExternalUserGroupData": {
 		"name": "CreateExternalUserGroupData",
@@ -1978,7 +1978,7 @@
 		},
 		"associations": {},
 		"app": "tutanota",
-		"version": "73"
+		"version": "74"
 	},
 	"CreateGroupPostReturn": {
 		"name": "CreateGroupPostReturn",
@@ -2012,7 +2012,7 @@
 			}
 		},
 		"app": "tutanota",
-		"version": "73"
+		"version": "74"
 	},
 	"CreateMailFolderData": {
 		"name": "CreateMailFolderData",
@@ -2082,7 +2082,7 @@
 			}
 		},
 		"app": "tutanota",
-		"version": "73"
+		"version": "74"
 	},
 	"CreateMailFolderReturn": {
 		"name": "CreateMailFolderReturn",
@@ -2116,7 +2116,7 @@
 			}
 		},
 		"app": "tutanota",
-		"version": "73"
+		"version": "74"
 	},
 	"CreateMailGroupData": {
 		"name": "CreateMailGroupData",
@@ -2177,7 +2177,7 @@
 			}
 		},
 		"app": "tutanota",
-		"version": "73"
+		"version": "74"
 	},
 	"CustomerAccountCreateData": {
 		"name": "CustomerAccountCreateData",
@@ -2349,7 +2349,39 @@
 			}
 		},
 		"app": "tutanota",
-		"version": "73"
+		"version": "74"
+	},
+	"DefaultAlarmInfo": {
+		"name": "DefaultAlarmInfo",
+		"since": 74,
+		"type": "AGGREGATED_TYPE",
+		"id": 1446,
+		"rootId": "CHR1dGFub3RhAAWm",
+		"versioned": false,
+		"encrypted": false,
+		"values": {
+			"_id": {
+				"final": true,
+				"name": "_id",
+				"id": 1447,
+				"since": 74,
+				"type": "CustomId",
+				"cardinality": "One",
+				"encrypted": false
+			},
+			"trigger": {
+				"final": true,
+				"name": "trigger",
+				"id": 1448,
+				"since": 74,
+				"type": "String",
+				"cardinality": "One",
+				"encrypted": true
+			}
+		},
+		"associations": {},
+		"app": "tutanota",
+		"version": "74"
 	},
 	"DeleteGroupData": {
 		"name": "DeleteGroupData",
@@ -2392,7 +2424,7 @@
 			}
 		},
 		"app": "tutanota",
-		"version": "73"
+		"version": "74"
 	},
 	"DeleteMailData": {
 		"name": "DeleteMailData",
@@ -2436,7 +2468,7 @@
 			}
 		},
 		"app": "tutanota",
-		"version": "73"
+		"version": "74"
 	},
 	"DeleteMailFolderData": {
 		"name": "DeleteMailFolderData",
@@ -2470,7 +2502,7 @@
 			}
 		},
 		"app": "tutanota",
-		"version": "73"
+		"version": "74"
 	},
 	"DraftAttachment": {
 		"name": "DraftAttachment",
@@ -2532,7 +2564,7 @@
 			}
 		},
 		"app": "tutanota",
-		"version": "73"
+		"version": "74"
 	},
 	"DraftCreateData": {
 		"name": "DraftCreateData",
@@ -2602,7 +2634,7 @@
 			}
 		},
 		"app": "tutanota",
-		"version": "73"
+		"version": "74"
 	},
 	"DraftCreateReturn": {
 		"name": "DraftCreateReturn",
@@ -2636,7 +2668,7 @@
 			}
 		},
 		"app": "tutanota",
-		"version": "73"
+		"version": "74"
 	},
 	"DraftData": {
 		"name": "DraftData",
@@ -2783,7 +2815,7 @@
 			}
 		},
 		"app": "tutanota",
-		"version": "73"
+		"version": "74"
 	},
 	"DraftRecipient": {
 		"name": "DraftRecipient",
@@ -2824,7 +2856,7 @@
 		},
 		"associations": {},
 		"app": "tutanota",
-		"version": "73"
+		"version": "74"
 	},
 	"DraftUpdateData": {
 		"name": "DraftUpdateData",
@@ -2868,7 +2900,7 @@
 			}
 		},
 		"app": "tutanota",
-		"version": "73"
+		"version": "74"
 	},
 	"DraftUpdateReturn": {
 		"name": "DraftUpdateReturn",
@@ -2902,7 +2934,7 @@
 			}
 		},
 		"app": "tutanota",
-		"version": "73"
+		"version": "74"
 	},
 	"EmailTemplate": {
 		"name": "EmailTemplate",
@@ -2999,7 +3031,7 @@
 			}
 		},
 		"app": "tutanota",
-		"version": "73"
+		"version": "74"
 	},
 	"EmailTemplateContent": {
 		"name": "EmailTemplateContent",
@@ -3040,7 +3072,7 @@
 		},
 		"associations": {},
 		"app": "tutanota",
-		"version": "73"
+		"version": "74"
 	},
 	"EncryptTutanotaPropertiesData": {
 		"name": "EncryptTutanotaPropertiesData",
@@ -3092,7 +3124,7 @@
 			}
 		},
 		"app": "tutanota",
-		"version": "73"
+		"version": "74"
 	},
 	"EncryptedMailAddress": {
 		"name": "EncryptedMailAddress",
@@ -3133,7 +3165,7 @@
 		},
 		"associations": {},
 		"app": "tutanota",
-		"version": "73"
+		"version": "74"
 	},
 	"EntropyData": {
 		"name": "EntropyData",
@@ -3174,7 +3206,7 @@
 		},
 		"associations": {},
 		"app": "tutanota",
-		"version": "73"
+		"version": "74"
 	},
 	"ExternalUserData": {
 		"name": "ExternalUserData",
@@ -3307,7 +3339,7 @@
 			}
 		},
 		"app": "tutanota",
-		"version": "73"
+		"version": "74"
 	},
 	"File": {
 		"name": "File",
@@ -3442,7 +3474,7 @@
 			}
 		},
 		"app": "tutanota",
-		"version": "73"
+		"version": "74"
 	},
 	"FileSystem": {
 		"name": "FileSystem",
@@ -3521,7 +3553,7 @@
 			}
 		},
 		"app": "tutanota",
-		"version": "73"
+		"version": "74"
 	},
 	"GroupInvitationDeleteData": {
 		"name": "GroupInvitationDeleteData",
@@ -3555,7 +3587,7 @@
 			}
 		},
 		"app": "tutanota",
-		"version": "73"
+		"version": "74"
 	},
 	"GroupInvitationPostData": {
 		"name": "GroupInvitationPostData",
@@ -3599,7 +3631,7 @@
 			}
 		},
 		"app": "tutanota",
-		"version": "73"
+		"version": "74"
 	},
 	"GroupInvitationPostReturn": {
 		"name": "GroupInvitationPostReturn",
@@ -3653,7 +3685,7 @@
 			}
 		},
 		"app": "tutanota",
-		"version": "73"
+		"version": "74"
 	},
 	"GroupInvitationPutData": {
 		"name": "GroupInvitationPutData",
@@ -3723,7 +3755,7 @@
 			}
 		},
 		"app": "tutanota",
-		"version": "73"
+		"version": "74"
 	},
 	"GroupSettings": {
 		"name": "GroupSettings",
@@ -3763,6 +3795,16 @@
 			}
 		},
 		"associations": {
+			"defaultAlarmsList": {
+				"final": false,
+				"name": "defaultAlarmsList",
+				"id": 1449,
+				"since": 74,
+				"type": "AGGREGATION",
+				"cardinality": "Any",
+				"refType": "DefaultAlarmInfo",
+				"dependency": null
+			},
 			"group": {
 				"final": true,
 				"name": "group",
@@ -3775,7 +3817,7 @@
 			}
 		},
 		"app": "tutanota",
-		"version": "73"
+		"version": "74"
 	},
 	"Header": {
 		"name": "Header",
@@ -3816,7 +3858,7 @@
 		},
 		"associations": {},
 		"app": "tutanota",
-		"version": "73"
+		"version": "74"
 	},
 	"ImapFolder": {
 		"name": "ImapFolder",
@@ -3877,7 +3919,7 @@
 			}
 		},
 		"app": "tutanota",
-		"version": "73"
+		"version": "74"
 	},
 	"ImapSyncConfiguration": {
 		"name": "ImapSyncConfiguration",
@@ -3947,7 +3989,7 @@
 			}
 		},
 		"app": "tutanota",
-		"version": "73"
+		"version": "74"
 	},
 	"ImapSyncState": {
 		"name": "ImapSyncState",
@@ -4008,7 +4050,7 @@
 			}
 		},
 		"app": "tutanota",
-		"version": "73"
+		"version": "74"
 	},
 	"InboxRule": {
 		"name": "InboxRule",
@@ -4060,7 +4102,7 @@
 			}
 		},
 		"app": "tutanota",
-		"version": "73"
+		"version": "74"
 	},
 	"InternalGroupData": {
 		"name": "InternalGroupData",
@@ -4184,7 +4226,7 @@
 			}
 		},
 		"app": "tutanota",
-		"version": "73"
+		"version": "74"
 	},
 	"InternalRecipientKeyData": {
 		"name": "InternalRecipientKeyData",
@@ -4252,7 +4294,7 @@
 		},
 		"associations": {},
 		"app": "tutanota",
-		"version": "73"
+		"version": "74"
 	},
 	"KnowledgeBaseEntry": {
 		"name": "KnowledgeBaseEntry",
@@ -4349,7 +4391,7 @@
 			}
 		},
 		"app": "tutanota",
-		"version": "73"
+		"version": "74"
 	},
 	"KnowledgeBaseEntryKeyword": {
 		"name": "KnowledgeBaseEntryKeyword",
@@ -4381,7 +4423,7 @@
 		},
 		"associations": {},
 		"app": "tutanota",
-		"version": "73"
+		"version": "74"
 	},
 	"ListUnsubscribeData": {
 		"name": "ListUnsubscribeData",
@@ -4433,7 +4475,7 @@
 			}
 		},
 		"app": "tutanota",
-		"version": "73"
+		"version": "74"
 	},
 	"Mail": {
 		"name": "Mail",
@@ -4695,10 +4737,20 @@
 				"cardinality": "One",
 				"refType": "MailAddress",
 				"dependency": null
+			},
+			"sets": {
+				"final": false,
+				"name": "sets",
+				"id": 1465,
+				"since": 74,
+				"type": "LIST_ELEMENT_ASSOCIATION",
+				"cardinality": "Any",
+				"refType": "MailFolder",
+				"dependency": null
 			}
 		},
 		"app": "tutanota",
-		"version": "73"
+		"version": "74"
 	},
 	"MailAddress": {
 		"name": "MailAddress",
@@ -4750,7 +4802,7 @@
 			}
 		},
 		"app": "tutanota",
-		"version": "73"
+		"version": "74"
 	},
 	"MailAddressProperties": {
 		"name": "MailAddressProperties",
@@ -4791,7 +4843,41 @@
 		},
 		"associations": {},
 		"app": "tutanota",
-		"version": "73"
+		"version": "74"
+	},
+	"MailBag": {
+		"name": "MailBag",
+		"since": 74,
+		"type": "AGGREGATED_TYPE",
+		"id": 1460,
+		"rootId": "CHR1dGFub3RhAAW0",
+		"versioned": false,
+		"encrypted": false,
+		"values": {
+			"_id": {
+				"final": true,
+				"name": "_id",
+				"id": 1461,
+				"since": 74,
+				"type": "CustomId",
+				"cardinality": "One",
+				"encrypted": false
+			}
+		},
+		"associations": {
+			"mails": {
+				"final": true,
+				"name": "mails",
+				"id": 1462,
+				"since": 74,
+				"type": "LIST_ASSOCIATION",
+				"cardinality": "One",
+				"refType": "Mail",
+				"dependency": null
+			}
+		},
+		"app": "tutanota",
+		"version": "74"
 	},
 	"MailBox": {
 		"name": "MailBox",
@@ -4867,6 +4953,26 @@
 			}
 		},
 		"associations": {
+			"archivedMailBags": {
+				"final": false,
+				"name": "archivedMailBags",
+				"id": 1463,
+				"since": 74,
+				"type": "AGGREGATION",
+				"cardinality": "Any",
+				"refType": "MailBag",
+				"dependency": null
+			},
+			"currentMailBag": {
+				"final": false,
+				"name": "currentMailBag",
+				"id": 1464,
+				"since": 74,
+				"type": "AGGREGATION",
+				"cardinality": "ZeroOrOne",
+				"refType": "MailBag",
+				"dependency": null
+			},
 			"folders": {
 				"final": true,
 				"name": "folders",
@@ -4919,7 +5025,7 @@
 			}
 		},
 		"app": "tutanota",
-		"version": "73"
+		"version": "74"
 	},
 	"MailDetails": {
 		"name": "MailDetails",
@@ -5001,7 +5107,7 @@
 			}
 		},
 		"app": "tutanota",
-		"version": "73"
+		"version": "74"
 	},
 	"MailDetailsBlob": {
 		"name": "MailDetailsBlob",
@@ -5080,7 +5186,7 @@
 			}
 		},
 		"app": "tutanota",
-		"version": "73"
+		"version": "74"
 	},
 	"MailDetailsDraft": {
 		"name": "MailDetailsDraft",
@@ -5159,7 +5265,7 @@
 			}
 		},
 		"app": "tutanota",
-		"version": "73"
+		"version": "74"
 	},
 	"MailDetailsDraftsRef": {
 		"name": "MailDetailsDraftsRef",
@@ -5193,7 +5299,7 @@
 			}
 		},
 		"app": "tutanota",
-		"version": "73"
+		"version": "74"
 	},
 	"MailFolder": {
 		"name": "MailFolder",
@@ -5267,6 +5373,24 @@
 				"cardinality": "One",
 				"encrypted": false
 			},
+			"isLabel": {
+				"final": false,
+				"name": "isLabel",
+				"id": 1457,
+				"since": 74,
+				"type": "Boolean",
+				"cardinality": "One",
+				"encrypted": false
+			},
+			"isMailSet": {
+				"final": false,
+				"name": "isMailSet",
+				"id": 1458,
+				"since": 74,
+				"type": "Boolean",
+				"cardinality": "One",
+				"encrypted": false
+			},
 			"name": {
 				"final": false,
 				"name": "name",
@@ -5278,6 +5402,16 @@
 			}
 		},
 		"associations": {
+			"entries": {
+				"final": false,
+				"name": "entries",
+				"id": 1459,
+				"since": 74,
+				"type": "LIST_ASSOCIATION",
+				"cardinality": "One",
+				"refType": "MailSetEntry",
+				"dependency": null
+			},
 			"mails": {
 				"final": true,
 				"name": "mails",
@@ -5300,7 +5434,7 @@
 			}
 		},
 		"app": "tutanota",
-		"version": "73"
+		"version": "74"
 	},
 	"MailFolderRef": {
 		"name": "MailFolderRef",
@@ -5334,7 +5468,68 @@
 			}
 		},
 		"app": "tutanota",
-		"version": "73"
+		"version": "74"
+	},
+	"MailSetEntry": {
+		"name": "MailSetEntry",
+		"since": 74,
+		"type": "LIST_ELEMENT_TYPE",
+		"id": 1450,
+		"rootId": "CHR1dGFub3RhAAWq",
+		"versioned": false,
+		"encrypted": false,
+		"values": {
+			"_format": {
+				"final": false,
+				"name": "_format",
+				"id": 1454,
+				"since": 74,
+				"type": "Number",
+				"cardinality": "One",
+				"encrypted": false
+			},
+			"_id": {
+				"final": true,
+				"name": "_id",
+				"id": 1452,
+				"since": 74,
+				"type": "CustomId",
+				"cardinality": "One",
+				"encrypted": false
+			},
+			"_ownerGroup": {
+				"final": true,
+				"name": "_ownerGroup",
+				"id": 1455,
+				"since": 74,
+				"type": "GeneratedId",
+				"cardinality": "ZeroOrOne",
+				"encrypted": false
+			},
+			"_permissions": {
+				"final": true,
+				"name": "_permissions",
+				"id": 1453,
+				"since": 74,
+				"type": "GeneratedId",
+				"cardinality": "One",
+				"encrypted": false
+			}
+		},
+		"associations": {
+			"mail": {
+				"final": true,
+				"name": "mail",
+				"id": 1456,
+				"since": 74,
+				"type": "LIST_ELEMENT_ASSOCIATION",
+				"cardinality": "One",
+				"refType": "Mail",
+				"dependency": null
+			}
+		},
+		"app": "tutanota",
+		"version": "74"
 	},
 	"MailboxGroupRoot": {
 		"name": "MailboxGroupRoot",
@@ -5455,7 +5650,7 @@
 			}
 		},
 		"app": "tutanota",
-		"version": "73"
+		"version": "74"
 	},
 	"MailboxProperties": {
 		"name": "MailboxProperties",
@@ -5543,7 +5738,7 @@
 			}
 		},
 		"app": "tutanota",
-		"version": "73"
+		"version": "74"
 	},
 	"MailboxServerProperties": {
 		"name": "MailboxServerProperties",
@@ -5602,7 +5797,7 @@
 		},
 		"associations": {},
 		"app": "tutanota",
-		"version": "73"
+		"version": "74"
 	},
 	"MoveMailData": {
 		"name": "MoveMailData",
@@ -5634,6 +5829,16 @@
 				"refType": "Mail",
 				"dependency": null
 			},
+			"sourceFolder": {
+				"final": false,
+				"name": "sourceFolder",
+				"id": 1466,
+				"since": 74,
+				"type": "LIST_ELEMENT_ASSOCIATION",
+				"cardinality": "ZeroOrOne",
+				"refType": "MailFolder",
+				"dependency": null
+			},
 			"targetFolder": {
 				"final": false,
 				"name": "targetFolder",
@@ -5646,7 +5851,7 @@
 			}
 		},
 		"app": "tutanota",
-		"version": "73"
+		"version": "74"
 	},
 	"NewDraftAttachment": {
 		"name": "NewDraftAttachment",
@@ -5707,7 +5912,7 @@
 			}
 		},
 		"app": "tutanota",
-		"version": "73"
+		"version": "74"
 	},
 	"NewsId": {
 		"name": "NewsId",
@@ -5748,7 +5953,7 @@
 		},
 		"associations": {},
 		"app": "tutanota",
-		"version": "73"
+		"version": "74"
 	},
 	"NewsIn": {
 		"name": "NewsIn",
@@ -5780,7 +5985,7 @@
 		},
 		"associations": {},
 		"app": "tutanota",
-		"version": "73"
+		"version": "74"
 	},
 	"NewsOut": {
 		"name": "NewsOut",
@@ -5814,7 +6019,7 @@
 			}
 		},
 		"app": "tutanota",
-		"version": "73"
+		"version": "74"
 	},
 	"NotificationMail": {
 		"name": "NotificationMail",
@@ -5882,7 +6087,7 @@
 		},
 		"associations": {},
 		"app": "tutanota",
-		"version": "73"
+		"version": "74"
 	},
 	"OutOfOfficeNotification": {
 		"name": "OutOfOfficeNotification",
@@ -5970,7 +6175,7 @@
 			}
 		},
 		"app": "tutanota",
-		"version": "73"
+		"version": "74"
 	},
 	"OutOfOfficeNotificationMessage": {
 		"name": "OutOfOfficeNotificationMessage",
@@ -6020,7 +6225,7 @@
 		},
 		"associations": {},
 		"app": "tutanota",
-		"version": "73"
+		"version": "74"
 	},
 	"OutOfOfficeNotificationRecipientList": {
 		"name": "OutOfOfficeNotificationRecipientList",
@@ -6054,7 +6259,7 @@
 			}
 		},
 		"app": "tutanota",
-		"version": "73"
+		"version": "74"
 	},
 	"PhishingMarkerWebsocketData": {
 		"name": "PhishingMarkerWebsocketData",
@@ -6097,7 +6302,7 @@
 			}
 		},
 		"app": "tutanota",
-		"version": "73"
+		"version": "74"
 	},
 	"PhotosRef": {
 		"name": "PhotosRef",
@@ -6131,7 +6336,7 @@
 			}
 		},
 		"app": "tutanota",
-		"version": "73"
+		"version": "74"
 	},
 	"ReceiveInfoServiceData": {
 		"name": "ReceiveInfoServiceData",
@@ -6163,7 +6368,7 @@
 		},
 		"associations": {},
 		"app": "tutanota",
-		"version": "73"
+		"version": "74"
 	},
 	"Recipients": {
 		"name": "Recipients",
@@ -6217,7 +6422,7 @@
 			}
 		},
 		"app": "tutanota",
-		"version": "73"
+		"version": "74"
 	},
 	"RemoteImapSyncInfo": {
 		"name": "RemoteImapSyncInfo",
@@ -6287,7 +6492,7 @@
 			}
 		},
 		"app": "tutanota",
-		"version": "73"
+		"version": "74"
 	},
 	"ReportMailPostData": {
 		"name": "ReportMailPostData",
@@ -6339,7 +6544,7 @@
 			}
 		},
 		"app": "tutanota",
-		"version": "73"
+		"version": "74"
 	},
 	"ReportedMailFieldMarker": {
 		"name": "ReportedMailFieldMarker",
@@ -6380,7 +6585,7 @@
 		},
 		"associations": {},
 		"app": "tutanota",
-		"version": "73"
+		"version": "74"
 	},
 	"SecureExternalRecipientKeyData": {
 		"name": "SecureExternalRecipientKeyData",
@@ -6484,7 +6689,7 @@
 		},
 		"associations": {},
 		"app": "tutanota",
-		"version": "73"
+		"version": "74"
 	},
 	"SendDraftData": {
 		"name": "SendDraftData",
@@ -6621,7 +6826,7 @@
 			}
 		},
 		"app": "tutanota",
-		"version": "73"
+		"version": "74"
 	},
 	"SendDraftReturn": {
 		"name": "SendDraftReturn",
@@ -6683,7 +6888,7 @@
 			}
 		},
 		"app": "tutanota",
-		"version": "73"
+		"version": "74"
 	},
 	"SharedGroupData": {
 		"name": "SharedGroupData",
@@ -6787,7 +6992,7 @@
 		},
 		"associations": {},
 		"app": "tutanota",
-		"version": "73"
+		"version": "74"
 	},
 	"SpamResults": {
 		"name": "SpamResults",
@@ -6821,7 +7026,7 @@
 			}
 		},
 		"app": "tutanota",
-		"version": "73"
+		"version": "74"
 	},
 	"Subfiles": {
 		"name": "Subfiles",
@@ -6855,7 +7060,7 @@
 			}
 		},
 		"app": "tutanota",
-		"version": "73"
+		"version": "74"
 	},
 	"SymEncInternalRecipientKeyData": {
 		"name": "SymEncInternalRecipientKeyData",
@@ -6916,7 +7121,7 @@
 			}
 		},
 		"app": "tutanota",
-		"version": "73"
+		"version": "74"
 	},
 	"TemplateGroupRoot": {
 		"name": "TemplateGroupRoot",
@@ -7005,7 +7210,7 @@
 			}
 		},
 		"app": "tutanota",
-		"version": "73"
+		"version": "74"
 	},
 	"TranslationGetIn": {
 		"name": "TranslationGetIn",
@@ -7037,7 +7242,7 @@
 		},
 		"associations": {},
 		"app": "tutanota",
-		"version": "73"
+		"version": "74"
 	},
 	"TranslationGetOut": {
 		"name": "TranslationGetOut",
@@ -7078,7 +7283,7 @@
 		},
 		"associations": {},
 		"app": "tutanota",
-		"version": "73"
+		"version": "74"
 	},
 	"TutanotaProperties": {
 		"name": "TutanotaProperties",
@@ -7267,7 +7472,7 @@
 			}
 		},
 		"app": "tutanota",
-		"version": "73"
+		"version": "74"
 	},
 	"UpdateMailFolderData": {
 		"name": "UpdateMailFolderData",
@@ -7311,7 +7516,7 @@
 			}
 		},
 		"app": "tutanota",
-		"version": "73"
+		"version": "74"
 	},
 	"UserAccountCreateData": {
 		"name": "UserAccountCreateData",
@@ -7364,7 +7569,7 @@
 			}
 		},
 		"app": "tutanota",
-		"version": "73"
+		"version": "74"
 	},
 	"UserAccountUserData": {
 		"name": "UserAccountUserData",
@@ -7585,7 +7790,7 @@
 		},
 		"associations": {},
 		"app": "tutanota",
-		"version": "73"
+		"version": "74"
 	},
 	"UserAreaGroupData": {
 		"name": "UserAreaGroupData",
@@ -7691,7 +7896,7 @@
 			}
 		},
 		"app": "tutanota",
-		"version": "73"
+		"version": "74"
 	},
 	"UserAreaGroupDeleteData": {
 		"name": "UserAreaGroupDeleteData",
@@ -7725,7 +7930,7 @@
 			}
 		},
 		"app": "tutanota",
-		"version": "73"
+		"version": "74"
 	},
 	"UserAreaGroupPostData": {
 		"name": "UserAreaGroupPostData",
@@ -7759,7 +7964,7 @@
 			}
 		},
 		"app": "tutanota",
-		"version": "73"
+		"version": "74"
 	},
 	"UserSettingsGroupRoot": {
 		"name": "UserSettingsGroupRoot",
@@ -7865,6 +8070,6 @@
 			}
 		},
 		"app": "tutanota",
-		"version": "73"
+		"version": "74"
 	}
 }

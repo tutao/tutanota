@@ -91,6 +91,7 @@ export class CustomColorEditorPreview implements Component {
 			movedTime: null,
 			phishingStatus: "0",
 			recipientCount: "0",
+			sets: [],
 		} satisfies Partial<Mail>
 		const mail = createMail({
 			sender: createMailAddress({

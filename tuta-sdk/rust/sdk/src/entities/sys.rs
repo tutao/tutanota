@@ -4294,7 +4294,7 @@ impl Entity for WebsocketCounterData {
 pub struct WebsocketCounterValue {
     pub _id: CustomId,
     pub count: i64,
-    pub mailListId: GeneratedId,
+    pub counterId: GeneratedId,
 }
 
 impl Entity for WebsocketCounterValue {
