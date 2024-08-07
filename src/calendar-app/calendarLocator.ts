@@ -106,6 +106,7 @@ import { theme } from "../common/gui/theme.js"
 import { CalendarSearchModel } from "./calendar/search/model/CalendarSearchModel.js"
 import { SearchIndexStateInfo } from "../common/api/worker/search/SearchTypes.js"
 import { CALENDAR_PREFIX } from "../common/misc/RouteChange.js"
+import { ExternalCalendarFacade } from "../common/native/common/generatedipc/ExternalCalendarFacade.js"
 
 assertMainOrNode()
 
@@ -367,6 +368,10 @@ class CalendarLocator {
 
 	get themeFacade(): ThemeFacade {
 		return this.getNativeInterface("themeFacade")
+	}
+
+	get externalCalendarFacade(): ExternalCalendarFacade {
+		return this.getNativeInterface("externalCalendarFacade")
 	}
 
 	get systemFacade(): MobileSystemFacade {
@@ -739,6 +744,8 @@ class CalendarLocator {
 			this.calendarFacade,
 			this.fileController,
 			timeZone,
+			!isBrowser() ? this.externalCalendarFacade : null,
+			deviceConfig,
 		)
 	})
 

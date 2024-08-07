@@ -229,7 +229,7 @@ function exportCalendarEvents(
 	return locator.fileController.saveDataFile(convertToDataFile(tmpFile, data))
 }
 
-function loadAllEvents(groupRoot: CalendarGroupRoot): Promise<Array<CalendarEvent>> {
+export function loadAllEvents(groupRoot: CalendarGroupRoot): Promise<Array<CalendarEvent>> {
 	return locator.entityClient.loadAll(CalendarEventTypeRef, groupRoot.longEvents).then((longEvents) =>
 		locator.entityClient.loadAll(CalendarEventTypeRef, groupRoot.shortEvents).then((shortEvents) => {
 			return shortEvents.concat(longEvents)

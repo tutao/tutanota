@@ -116,6 +116,7 @@ import { SearchIndexStateInfo } from "../common/api/worker/search/SearchTypes.js
 import { MobilePaymentsFacade } from "../common/native/common/generatedipc/MobilePaymentsFacade.js"
 import { AppStorePaymentPicker } from "../common/misc/AppStorePaymentPicker.js"
 import { MAIL_PREFIX } from "../common/misc/RouteChange.js"
+import { ExternalCalendarFacade } from "../common/native/common/generatedipc/ExternalCalendarFacade.js"
 
 assertMainOrNode()
 
@@ -474,6 +475,10 @@ class MailLocator {
 
 	get themeFacade(): ThemeFacade {
 		return this.getNativeInterface("themeFacade")
+	}
+
+	get externalCalendarFacade(): ExternalCalendarFacade {
+		return this.getNativeInterface("externalCalendarFacade")
 	}
 
 	get systemFacade(): MobileSystemFacade {
@@ -864,6 +869,8 @@ class MailLocator {
 			this.calendarFacade,
 			this.fileController,
 			timeZone,
+			!isBrowser() ? this.externalCalendarFacade : null,
+			deviceConfig,
 		)
 	})
 

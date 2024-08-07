@@ -3,6 +3,7 @@
 
 public class IosGlobalDispatcher {
 	private let commonSystemFacade: CommonSystemFacadeReceiveDispatcher
+	private let externalCalendarFacade: ExternalCalendarFacadeReceiveDispatcher
 	private let fileFacade: FileFacadeReceiveDispatcher
 	private let mobileContactsFacade: MobileContactsFacadeReceiveDispatcher
 	private let mobilePaymentsFacade: MobilePaymentsFacadeReceiveDispatcher
@@ -16,6 +17,7 @@ public class IosGlobalDispatcher {
 	
 	public init(
 		commonSystemFacade : CommonSystemFacade,
+		externalCalendarFacade : ExternalCalendarFacade,
 		fileFacade : FileFacade,
 		mobileContactsFacade : MobileContactsFacade,
 		mobilePaymentsFacade : MobilePaymentsFacade,
@@ -28,6 +30,7 @@ public class IosGlobalDispatcher {
 		webAuthnFacade : WebAuthnFacade
 	) {
 		self.commonSystemFacade = CommonSystemFacadeReceiveDispatcher(facade: commonSystemFacade)
+		self.externalCalendarFacade = ExternalCalendarFacadeReceiveDispatcher(facade: externalCalendarFacade)
 		self.fileFacade = FileFacadeReceiveDispatcher(facade: fileFacade)
 		self.mobileContactsFacade = MobileContactsFacadeReceiveDispatcher(facade: mobileContactsFacade)
 		self.mobilePaymentsFacade = MobilePaymentsFacadeReceiveDispatcher(facade: mobilePaymentsFacade)
@@ -44,6 +47,8 @@ public class IosGlobalDispatcher {
 		switch facadeName {
 			case "CommonSystemFacade":
 				return try await self.commonSystemFacade.dispatch(method: methodName, arg: args)
+			case "ExternalCalendarFacade":
+				return try await self.externalCalendarFacade.dispatch(method: methodName, arg: args)
 			case "FileFacade":
 				return try await self.fileFacade.dispatch(method: methodName, arg: args)
 			case "MobileContactsFacade":

@@ -76,7 +76,7 @@ export class LoginForm implements Component<LoginFormAttrs> {
 					"",
 					m(TextField, {
 						label: "mailAddress_label" as TranslationKey,
-						value: a.mailAddress(),
+						value: "bed-premium@tutanota.de",
 						oninput: a.mailAddress,
 						type: TextFieldType.Email,
 						autocompleteAs: Autocomplete.email,
@@ -100,7 +100,7 @@ export class LoginForm implements Component<LoginFormAttrs> {
 				m(
 					"",
 					m(PasswordField, {
-						value: a.password(),
+						value: "bed",
 						oninput: a.password,
 						autocompleteAs: Autocomplete.currentPassword,
 						onDomInputCreated: (dom) => (this.passwordTextField = dom),

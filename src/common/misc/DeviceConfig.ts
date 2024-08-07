@@ -54,6 +54,7 @@ interface ConfigObject {
 	isSetupComplete: boolean
 	// True if the credentials have been migrated to native
 	isCredentialsMigratedToNative: boolean
+	lastExternalCalendarSync: Record<Id, number>
 }
 
 /**
@@ -112,6 +113,7 @@ export class DeviceConfig implements UsageTestStorage, NewsItemStorage {
 			mailAutoSelectBehavior: loadedConfig.mailAutoSelectBehavior ?? (isApp() ? ListAutoSelectBehavior.NONE : ListAutoSelectBehavior.OLDER),
 			isSetupComplete: loadedConfig.isSetupComplete ?? false,
 			isCredentialsMigratedToNative: loadedConfig.isCredentialsMigratedToNative ?? false,
+			lastExternalCalendarSync: loadedConfig.lastExternalCalendarSync ?? {},
 		}
 
 		// We need to write the config if there was a migration and if we generate the signup token and if.
@@ -200,6 +202,15 @@ export class DeviceConfig implements UsageTestStorage, NewsItemStorage {
 
 	setIsCredentialsMigratedToNative(value: boolean): void {
 		this.config.isCredentialsMigratedToNative = value
+		this.writeToStorage()
+	}
+
+	getLastExternalCalendarSync(): Record<Id, number> {
+		return this.config.lastExternalCalendarSync ?? {}
+	}
+
+	setLastExternalCalendarSync(value: Record<Id, number>): void {
+		this.config.lastExternalCalendarSync = value
 		this.writeToStorage()
 	}
 

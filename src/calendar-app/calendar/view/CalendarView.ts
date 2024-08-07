@@ -30,7 +30,7 @@ import { CalendarProperties, showCreateEditCalendarDialog } from "../gui/EditCal
 import { styles } from "../../../common/gui/styles"
 import { MultiDayCalendarView } from "./MultiDayCalendarView"
 import { Dialog } from "../../../common/gui/base/Dialog"
-import { isApp } from "../../../common/api/common/Env"
+import { isApp, isDesktop } from "../../../common/api/common/Env"
 import { px, size } from "../../../common/gui/size"
 import { FolderColumnView } from "../../../common/gui/FolderColumnView.js"
 import { deviceConfig } from "../../../common/misc/DeviceConfig"
@@ -146,26 +146,27 @@ export class CalendarView extends BaseTopLevelView implements TopLevelView<Calen
 									button: m(IconButton, {
 										title: "addCalendar_action",
 										colors: ButtonColor.Nav,
-										click: findFirstPrivateCalendar(attrs.calendarViewModel.calendarInfos)
-											? createDropdown({
-													lazyButtons: () => [
-														{
-															label: "addCalendar_action",
-															colors: ButtonColor.Nav,
-															click: () => this.onPressedAddCalendar(CalendarType.NORMAL),
-															icon: Icons.Add,
-															size: ButtonSize.Compact,
-														},
-														{
-															// FIXME setup label, and action "From URL"
-															label: "edit_action",
-															icon: Icons.Link,
-															size: ButtonSize.Compact,
-															click: () => this.onPressedAddCalendar(CalendarType.URL),
-														},
-													],
-											  })
-											: () => this.onPressedAddCalendar(CalendarType.NORMAL),
+										click:
+											(isApp() || isDesktop()) && findFirstPrivateCalendar(attrs.calendarViewModel.calendarInfos)
+												? createDropdown({
+														lazyButtons: () => [
+															{
+																label: "addCalendar_action",
+																colors: ButtonColor.Nav,
+																click: () => this.onPressedAddCalendar(CalendarType.NORMAL),
+																icon: Icons.Add,
+																size: ButtonSize.Compact,
+															},
+															{
+																// FIXME setup label, and action "From URL"
+																label: "edit_action",
+																icon: Icons.Link,
+																size: ButtonSize.Compact,
+																click: () => this.onPressedAddCalendar(CalendarType.URL),
+															},
+														],
+												  })
+												: () => this.onPressedAddCalendar(CalendarType.NORMAL),
 										icon: Icons.Add,
 										size: ButtonSize.Compact,
 									}),

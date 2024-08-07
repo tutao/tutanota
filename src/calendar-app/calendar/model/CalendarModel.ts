@@ -1,15 +1,19 @@
-import type { $Promisable, DeferredObject, Require } from "@tutao/tutanota-utils"
+import { $Promisable, deepEqual, DeferredObject, Require } from "@tutao/tutanota-utils"
 import { assertNotNull, clone, defer, downcast, filterInt, getFromMap, isSameDay, symmetricDifference } from "@tutao/tutanota-utils"
-import { CalendarMethod, FeatureType, GroupType, OperationType } from "../../../common/api/common/TutanotaConstants"
+import { CalendarMethod, FeatureType, OperationType } from "../../../common/api/common/TutanotaConstants"
 
 import { EventController } from "../../../common/api/main/EventController"
-import { createDefaultAlarmInfo, Group, GroupInfo, User, UserAlarmInfo } from "../../../common/api/entities/sys/TypeRefs.js"
 import {
 	createDateWrapper,
+	createDefaultAlarmInfo,
 	createMembershipRemoveData,
+	Group,
+	GroupInfo,
 	GroupInfoTypeRef,
 	GroupMembership,
 	GroupTypeRef,
+	User,
+	UserAlarmInfo,
 	UserAlarmInfoTypeRef,
 } from "../../../common/api/entities/sys/TypeRefs.js"
 import {
@@ -19,14 +23,13 @@ import {
 	CalendarEventUpdateTypeRef,
 	CalendarGroupRoot,
 	CalendarGroupRootTypeRef,
-	createCalendarSyncData,
 	createGroupSettings,
 	FileTypeRef,
 } from "../../../common/api/entities/tutanota/TypeRefs.js"
-import { isApp, isDesktop } from "../../../common/api/common/Env"
+import { isApp, isBrowser, isDesktop } from "../../../common/api/common/Env"
 import type { LoginController } from "../../../common/api/main/LoginController"
 import { LockedError, NotAuthorizedError, NotFoundError, PreconditionFailedError } from "../../../common/api/common/error/RestError"
-import { parseCalendarStringData, ParsedCalendarData, ParsedEvent } from "../export/CalendarImporter"
+import { parseCalendarStringData, ParsedCalendarData } from "../export/CalendarImporter"
 import { ParserError } from "../../../common/misc/parsing/ParserCombinator"
 import { ProgressTracker } from "../../../common/api/main/ProgressTracker"
 import type { IProgressMonitor } from "../../../common/api/common/utils/ProgressMonitor"
@@ -57,10 +60,10 @@ import { formatDateWithWeekdayAndTime, formatTime } from "../../../common/misc/F
 import { EntityUpdateData, isUpdateFor, isUpdateForTypeRef } from "../../../common/api/common/utils/EntityUpdateUtils.js"
 import { AlarmInterval, getTimeZone, serializeAlarmInterval } from "../../../common/calendar/date/CalendarUtils.js"
 import { isSharedGroupOwner, loadGroupMembers } from "../../../common/sharing/GroupUtils.js"
-import { showCalendarImportDialog } from "../export/CalendarImporterDialog.js"
-import { showSnackBar } from "../../../common/gui/base/SnackBar.js"
-import { CalendarService, CalendarSyncService } from "../../../common/api/entities/tutanota/Services.js"
-import { aes256RandomKey } from "@tutao/tutanota-crypto"
+import { ExternalCalendarFacade } from "../../../common/native/common/generatedipc/ExternalCalendarFacade.js"
+import { EventImportRejectionReason, loadAllEvents, showCalendarImportDialog, sortOutParsedEvents } from "../export/CalendarImporterDialog.js"
+import { DeviceConfig } from "../../../common/misc/DeviceConfig.js"
+import { locator } from "../../../common/api/main/CommonLocator.js"
 
 const TAG = "[CalendarModel]"
 export type CalendarInfo = {
@@ -107,6 +110,8 @@ export class CalendarModel {
 		private readonly calendarFacade: CalendarFacade,
 		private readonly fileController: FileController,
 		private readonly zone: string,
+		private readonly externalCalendarFacade: ExternalCalendarFacade | null,
+		private readonly deviceConfig: DeviceConfig,
 	) {
 		this.readProgressMonitor = oneShotProgressMonitorGenerator(progressTracker, logins.getUserController())
 		eventController.addEntityListener((updates, eventOwnerGroupId) => this.entityEventsReceived(updates, eventOwnerGroupId))
@@ -197,12 +202,79 @@ export class CalendarModel {
 			})
 		}
 
+		if (isApp() || isDesktop()) {
+			this.syncExternalCalendars(userController, groupInstances)
+		}
+
 		// cleanup inconsistent memberships
 		for (const membership of notFoundMemberships) {
 			// noinspection ES6MissingAwait
 			this.serviceExecutor.delete(MembershipService, createMembershipRemoveData({ user: userController.userId, group: membership.group }))
 		}
 		return calendarInfos
+	}
+
+	private async syncExternalCalendars(userController: UserController, groupInstances: Array<[CalendarGroupRoot, GroupInfo, Group]>) {
+		if (!this.externalCalendarFacade) {
+			return
+		}
+
+		const syncInterval = 60 * 30 * 1000 // 30 minutes
+		for (const { sourceUrl, group } of userController.userSettingsGroupRoot.groupSettings) {
+			if (!sourceUrl) {
+				continue
+			}
+
+			const lastSync = this.deviceConfig.getLastExternalCalendarSync()[group]
+
+			if (Date.now() - lastSync < syncInterval) {
+				continue
+			}
+
+			const rawCalendar = await this.externalCalendarFacade.fetchExternalCalendar(sourceUrl)
+			const remoteEvents = parseCalendarStringData(rawCalendar, getTimeZone()).contents
+
+			const [groupRoot] = groupInstances.find(([groupRoot]) => groupRoot._id === group) ?? [null]
+
+			if (!groupRoot) {
+				throw Error("Trying to sync a calendar the user isn't subscribed to anymore")
+			}
+
+			const existingEventList = await loadAllEvents(groupRoot)
+
+			// const { rejectedEvents, eventsForCreation } = sortOutParsedEvents(remoteEvents, existingEventList, groupRoot, getTimeZone())
+			// const duplicatedEvents = rejectedEvents.get(EventImportRejectionReason.Duplicate) ?? []
+
+			// Clean calendar
+			for (const event of existingEventList) this.deleteEvent(event)
+			this.calendarFacade.saveImportedCalendarEvents(remoteEvents, 0)
+
+			// const remoteDuplicatedEvents = remoteEvents.filter((ev) => duplicatedEvents.find((e) => e.uid === ev.event.uid))
+			//
+			// for (const event of duplicatedEvents) {
+			// 	const remoteEvent = remoteEvents.find((ev) => ev.event.uid === event.uid)
+			// 	if (deepEqual(event, remoteEvent)) {
+			// 		continue
+			// 	}
+			// 	this.calendarFacade.updateCalendarEvent(event)
+			// }
+
+			// this.calendarFacade.updateCalendarEvent()
+
+			// for (const event of remoteEvents) {
+			// 	const eventIndex = existingEventList.findIndex((ev) => ev.uid === event.event.uid)
+			//
+			// 	if (eventIndex === -1) {
+			// 		return this.calendarFacade.saveCalendarEvent()
+			// 	}
+			//
+			// 	if (!deepEqual(event, existingEventList[eventIndex])) {
+			// 		//UPDATE
+			// 	}
+			//
+			// 	existingEventList.splice(eventIndex, 1)
+			// }
+		}
 	}
 
 	private async loadOrCreateCalendarInfo(progressMonitor: IProgressMonitor): Promise<ReadonlyMap<Id, CalendarInfo>> {
@@ -238,43 +310,16 @@ export class CalendarModel {
 			userSettingsGroupRoot.groupSettings.push(newGroupSettings)
 			await this.entityClient.update(userSettingsGroupRoot)
 
-			// const calendarGroupRoot = await this.entityClient.load(CalendarGroupRootTypeRef, newGroupSettings.group)
-			this.handleUrlSubscription(sourceUrl, group)
+			const calendarGroupRoot = await this.entityClient.load(CalendarGroupRootTypeRef, newGroupSettings.group)
+			this.handleUrlSubscription(sourceUrl, calendarGroupRoot)
 		}
 	}
 
-	private async handleUrlSubscription(url: string | null, group: Group) {
-		if (!url) return
-		this.serviceExecutor.post(CalendarSyncService, createCalendarSyncData({ sourceUrl: url, group: group._id }))
-		// FIXME Add translation to inform the user we are syncing calendar events on background
-
-		showSnackBar({
-			message: () => "Syncing calendar events on background...",
-			button: {
-				label: "ok_action",
-				click: () => {},
-			},
-		})
-		// try {
-		// 	const response = await fetch(url)
-		//
-		// 	if (!response.ok) throw new Error(`Response status: ${response.status}`)
-		// 	if (!response.body) throw new Error(`Failed to get response.body: ${response}`)
-		//
-		// 	const reader = response.body.pipeThrough(new TextDecoderStream()).getReader()
-		// 	while (true) {
-		// 		let { value, done } = await reader.read()
-		// 		if (done) break
-		//
-		// 		console.log(value)
-		// 		console.log(value?.length)
-		// 		const { contents } = parseCalendarStringData(value!, getTimeZone())
-		// 		console.log(contents)
-		// 		showCalendarImportDialog(calendarGroupRoot, contents)
-		// 	}
-		// } catch (e) {
-		// 	console.error(e)
-		// }
+	private async handleUrlSubscription(url: string | null, group: CalendarGroupRoot) {
+		if (!url || !this.externalCalendarFacade) return
+		const calendar = await this.externalCalendarFacade.fetchExternalCalendar(url)
+		const events = parseCalendarStringData(calendar, getTimeZone())
+		await showCalendarImportDialog(group, events.contents)
 	}
 
 	private async doCreate(
