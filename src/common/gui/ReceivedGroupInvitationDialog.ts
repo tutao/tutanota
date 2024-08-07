@@ -1,25 +1,26 @@
-import { createDefaultAlarmInfo, createGroupSettings } from "../../api/entities/tutanota/TypeRefs.js"
+import { createDefaultAlarmInfo, createGroupSettings } from "../api/entities/tutanota/TypeRefs.js"
 import m, { Children } from "mithril"
-import { lang } from "../../misc/LanguageViewModel.js"
-import { TextField } from "../../gui/base/TextField.js"
+import { lang } from "../misc/LanguageViewModel.js"
+import { TextField } from "./base/TextField.js"
 import stream from "mithril/stream"
 import Stream from "mithril/stream"
-import { downcast } from "@tutao/tutanota-utils"
-import { Dialog } from "../../gui/base/Dialog.js"
-import { ReceivedGroupInvitation } from "../../api/entities/sys/TypeRefs.js"
-import { isSameId } from "../../api/common/utils/EntityUtils.js"
-import { sendAcceptNotificationEmail, sendRejectNotificationEmail } from "../GroupSharingUtils.js"
-import { getCapabilityText, getDefaultGroupName, getInvitationGroupType, isTemplateGroup } from "../GroupUtils.js"
-import { showPlanUpgradeRequiredDialog } from "../../misc/SubscriptionDialogs.js"
-import type { GroupSharingTexts } from "../GroupGuiUtils.js"
-import { getTextsForGroupType } from "../GroupGuiUtils.js"
-import { GroupType } from "../../api/common/TutanotaConstants.js"
-import { ColorPicker } from "../../gui/base/ColorPicker.js"
-import { locator } from "../../api/main/CommonLocator.js"
-import { LoginButton } from "../../gui/base/buttons/LoginButton.js"
-import { AlarmInterval } from "../../calendar/date/CalendarUtils.js"
-import { getMailAddressDisplayText } from "../../mailFunctionality/SharedMailUtils.js"
-import { serializeAlarmInterval } from "../../api/common/utils/CommonCalendarUtils.js"
+import { deepEqual, downcast } from "@tutao/tutanota-utils"
+import { Dialog } from "./base/Dialog.js"
+import { ReceivedGroupInvitation } from "../api/entities/sys/TypeRefs.js"
+import { isSameId } from "../api/common/utils/EntityUtils.js"
+import { sendAcceptNotificationEmail, sendRejectNotificationEmail } from "../sharing/GroupSharingUtils.js"
+import { getCapabilityText, getDefaultGroupName, getInvitationGroupType, isTemplateGroup } from "../sharing/GroupUtils.js"
+import { showPlanUpgradeRequiredDialog } from "../misc/SubscriptionDialogs.js"
+import type { GroupSharingTexts } from "../sharing/GroupGuiUtils.js"
+import { getTextsForGroupType } from "../sharing/GroupGuiUtils.js"
+import { GroupType } from "../api/common/TutanotaConstants.js"
+import { ColorPicker } from "./base/ColorPicker.js"
+import { locator } from "../api/main/CommonLocator.js"
+import { LoginButton } from "./base/buttons/LoginButton.js"
+import { RemindersEditor } from "../../calendar-app/calendar/gui/RemindersEditor.js"
+import { AlarmInterval } from "../calendar/date/CalendarUtils.js"
+import { getMailAddressDisplayText } from "../mailFunctionality/SharedMailUtils.js"
+import { serializeAlarmInterval } from "../api/common/utils/CommonCalendarUtils.js"
 
 export function showGroupInvitationDialog(invitation: ReceivedGroupInvitation) {
 	const groupType = getInvitationGroupType(invitation)
@@ -94,7 +95,7 @@ export function showGroupInvitationDialog(invitation: ReceivedGroupInvitation) {
 							label: "permissions_label",
 							isReadOnly: true,
 						}),
-						groupType === GroupType.Calendar ? renderCalendarGroupInvitationFields(invitation, colorStream) : null,
+						groupType === GroupType.Calendar ? renderCalendarGroupInvitationFields(invitation, colorStream, alarmsStream) : null,
 					]),
 					isMember
 						? null
@@ -122,14 +123,14 @@ export function showGroupInvitationDialog(invitation: ReceivedGroupInvitation) {
  * @param invitation
  */
 async function checkCanAcceptGroupInvitation(invitation: ReceivedGroupInvitation): Promise<boolean> {
-	const SubscriptionDialogUtils = await import("../../misc/SubscriptionDialogs.js")
+	const SubscriptionDialogUtils = await import("../misc/SubscriptionDialogs.js")
 	const allowed = await SubscriptionDialogUtils.checkPaidSubscription()
 	if (!allowed) {
 		return false
 	}
 	const planConfig = await locator.logins.getUserController().getPlanConfig()
 	if (isTemplateGroup(getInvitationGroupType(invitation)) && !planConfig.templates) {
-		const { getAvailablePlansWithTemplates } = await import("../../subscription/SubscriptionUtils.js")
+		const { getAvailablePlansWithTemplates } = await import("../subscription/SubscriptionUtils.js")
 		const plans = await getAvailablePlansWithTemplates()
 		return showPlanUpgradeRequiredDialog(plans)
 	} else {
@@ -137,12 +138,31 @@ async function checkCanAcceptGroupInvitation(invitation: ReceivedGroupInvitation
 	}
 }
 
-function renderCalendarGroupInvitationFields(invitation: ReceivedGroupInvitation, selectedColourValue: Stream<string>): Children {
+function renderCalendarGroupInvitationFields(
+	invitation: ReceivedGroupInvitation,
+	selectedColourValue: Stream<string>,
+	alarmsStream: Stream<AlarmInterval[]>,
+): Children {
+	let alarms = alarmsStream()
 	return [
 		m(".small.mt.mb-xs", lang.get("color_label")),
 		m(ColorPicker, {
 			value: selectedColourValue(),
 			onValueChange: selectedColourValue,
+		}),
+		m(RemindersEditor, {
+			alarms: alarmsStream(),
+			addAlarm: (alarm: AlarmInterval) => {
+				alarmsStream([...alarms, alarm])
+			},
+			removeAlarm: (alarm: AlarmInterval) => {
+				const index = alarms.findIndex((a: AlarmInterval) => deepEqual(a, alarm))
+				if (index !== -1) {
+					alarms?.splice(index, 1)
+					alarmsStream(alarms)
+				}
+			},
+			label: "calendarDefaultReminder_label",
 		}),
 	]
 }
