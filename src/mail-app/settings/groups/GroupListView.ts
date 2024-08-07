@@ -147,7 +147,7 @@ export class GroupListView implements UpdatableSettingsViewer {
 			const { instanceListId, instanceId, operation } = update
 
 			if (isUpdateForTypeRef(GroupInfoTypeRef, update) && this.listId.getSync() === instanceListId) {
-				await this.listModel.entityEventReceived(instanceId, operation)
+				await this.listModel.entityEventReceived(instanceListId, instanceId, operation)
 			} else if (isUpdateForTypeRef(GroupMemberTypeRef, update)) {
 				this.localAdminGroupMemberships = locator.logins.getUserController().getLocalAdminGroupMemberships()
 				this.listModel.reapplyFilter()

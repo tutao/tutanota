@@ -198,7 +198,7 @@ export class UserListView implements UpdatableSettingsViewer {
 			const { instanceListId, instanceId, operation } = update
 
 			if (isUpdateForTypeRef(GroupInfoTypeRef, update) && this.listId.getSync() === instanceListId) {
-				await this.listModel.entityEventReceived(instanceId, operation)
+				await this.listModel.entityEventReceived(update.instanceListId, instanceId, operation)
 			} else if (isUpdateFor(locator.logins.getUserController().user, update)) {
 				await this.loadAdmins()
 				this.listModel.reapplyFilter()

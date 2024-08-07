@@ -39,12 +39,10 @@ export interface MailListViewAttrs {
 	// but for that we need to rewrite the List
 	onClearFolder: () => unknown
 	mailViewModel: MailViewModel
-	listId: Id
 	onSingleSelection: (mail: Mail) => unknown
 }
 
 export class MailListView implements Component<MailListViewAttrs> {
-	listId: Id
 	// Mails that are currently being or have already been downloaded/bundled/saved
 	// Map of (Mail._id ++ MailExportMode) -> Promise<Filepath>
 	// TODO this currently grows bigger and bigger and bigger if the user goes on an exporting spree.
@@ -84,7 +82,6 @@ export class MailListView implements Component<MailListViewAttrs> {
 
 	constructor({ attrs }: Vnode<MailListViewAttrs>) {
 		this.mailViewModel = attrs.mailViewModel
-		this.listId = attrs.listId
 		this.exportedMails = new Map()
 		this._listDom = null
 		this.mailViewModel.showingTrashOrSpamFolder().then((result) => {
@@ -301,7 +298,7 @@ export class MailListView implements Component<MailListViewAttrs> {
 		this.mailViewModel = vnode.attrs.mailViewModel
 
 		// Save the folder before showing the dialog so that there's no chance that it will change
-		const folder = this.mailViewModel.getSelectedFolder()
+		const folder = this.mailViewModel.getFolder()
 		const purgeButtonAttrs: ButtonAttrs = {
 			label: "clearFolder_action",
 			type: ButtonType.Primary,
@@ -396,7 +393,7 @@ export class MailListView implements Component<MailListViewAttrs> {
 	}
 
 	private async targetInbox(): Promise<boolean> {
-		const selectedFolder = this.mailViewModel.getSelectedFolder()
+		const selectedFolder = this.mailViewModel.getFolder()
 		if (selectedFolder) {
 			const mailDetails = await this.mailViewModel.getMailboxDetails()
 			return isOfTypeOrSubfolderOf(mailDetails.folders, selectedFolder, MailSetKind.ARCHIVE) || selectedFolder.folderType === MailSetKind.TRASH

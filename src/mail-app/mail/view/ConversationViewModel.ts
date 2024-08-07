@@ -1,15 +1,7 @@
 import { ConversationEntry, ConversationEntryTypeRef, Mail, MailTypeRef } from "../../../common/api/entities/tutanota/TypeRefs.js"
 import { MailViewerViewModel } from "./MailViewerViewModel.js"
 import { CreateMailViewerOptions } from "./MailViewer.js"
-import {
-	elementIdPart,
-	firstBiggerThanSecond,
-	getElementId,
-	getListId,
-	haveSameId,
-	isSameId,
-	listIdPart,
-} from "../../../common/api/common/utils/EntityUtils.js"
+import { elementIdPart, firstBiggerThanSecond, getElementId, haveSameId, isSameId, listIdPart } from "../../../common/api/common/utils/EntityUtils.js"
 import { assertNotNull, findLastIndex, groupBy, makeSingleUse } from "@tutao/tutanota-utils"
 import { EntityClient } from "../../../common/api/common/EntityClient.js"
 import { LoadingStateTracker } from "../../../common/offline/LoadingState.js"
@@ -254,7 +246,7 @@ export class ConversationViewModel {
 
 	private async isInTrash(mail: Mail) {
 		const mailboxDetail = await this.mailModel.getMailboxDetailsForMail(mail)
-		const mailFolder = this.mailModel.getMailFolder(getListId(mail))
+		const mailFolder = this.mailModel.getMailFolder(mail)
 		return mailFolder && mailboxDetail && isOfTypeOrSubfolderOf(mailboxDetail.folders, mailFolder, MailSetKind.TRASH)
 	}
 

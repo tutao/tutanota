@@ -644,7 +644,8 @@ export class MailFacade {
 		await this.serviceExecutor.delete(MailFolderService, deleteMailFolderData, { sessionKey: "dummy" as any })
 	}
 
-	async fixupCounterForMailList(groupId: Id, listId: Id, unreadMails: number): Promise<void> {
+	async fixupCounterForFolder(groupId: Id, folder: MailFolder, unreadMails: number): Promise<void> {
+		const listId = folder.isMailSet ? elementIdPart(folder._id) : folder.mails
 		const data = createWriteCounterData({
 			counterType: CounterType.UnreadMails,
 			row: groupId,

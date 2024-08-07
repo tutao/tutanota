@@ -7,7 +7,7 @@ import { lang } from "../../../common/misc/LanguageViewModel"
 import type { MailboxDetail } from "../../../common/mailFunctionality/MailModel.js"
 import { LockedError, PreconditionFailedError } from "../../../common/api/common/error/RestError"
 import type { SelectorItemList } from "../../../common/gui/base/DropDownSelector.js"
-import { getElementId, getListId, isSameId } from "../../../common/api/common/utils/EntityUtils"
+import { elementIdPart, getElementId, getListId, isSameId } from "../../../common/api/common/utils/EntityUtils"
 import { assertMainOrNode } from "../../../common/api/common/Env"
 import { MailFacade } from "../../../common/api/worker/facades/lazy/MailFacade.js"
 import { LoginController } from "../../../common/api/main/LoginController.js"
@@ -104,7 +104,7 @@ export class InboxRuleHandler {
 		const inboxRule = await _findMatchingRule(this.mailFacade, mail, this.logins.getUserController().props.inboxRules)
 		if (inboxRule) {
 			let inboxFolder = assertNotNull(mailboxDetail.folders.getSystemFolderByType(MailSetKind.INBOX))
-			let targetFolder = mailboxDetail.folders.getFolderById(inboxRule.targetFolder)
+			let targetFolder = mailboxDetail.folders.getFolderById(elementIdPart(inboxRule.targetFolder))
 
 			if (targetFolder && targetFolder.folderType !== MailSetKind.INBOX) {
 				if (applyRulesOnServer) {

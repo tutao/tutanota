@@ -13,7 +13,7 @@ import { TextField } from "../../common/gui/base/TextField.js"
 import { neverNull } from "@tutao/tutanota-utils"
 import { LockedError } from "../../common/api/common/error/RestError"
 import { showNotAvailableForFreeDialog } from "../../common/misc/SubscriptionDialogs"
-import { isSameId } from "../../common/api/common/utils/EntityUtils"
+import { elementIdPart, isSameId } from "../../common/api/common/utils/EntityUtils"
 import { assertMainOrNode } from "../../common/api/common/Env"
 import { locator } from "../../common/api/main/CommonLocator"
 import { isOfflineError } from "../../common/api/common/utils/ErrorUtils.js"
@@ -41,7 +41,7 @@ export function show(mailBoxDetail: MailboxDetail, ruleOrTemplate: InboxRuleTemp
 		})
 		const inboxRuleType = stream(ruleOrTemplate.type)
 		const inboxRuleValue = stream(ruleOrTemplate.value)
-		const selectedFolder = ruleOrTemplate.targetFolder == null ? null : mailBoxDetail.folders.getFolderById(ruleOrTemplate.targetFolder)
+		const selectedFolder = ruleOrTemplate.targetFolder == null ? null : mailBoxDetail.folders.getFolderById(elementIdPart(ruleOrTemplate.targetFolder))
 		const inboxRuleTarget = stream(selectedFolder ?? assertSystemFolderOfType(mailBoxDetail.folders, MailSetKind.ARCHIVE))
 
 		let form = () => [

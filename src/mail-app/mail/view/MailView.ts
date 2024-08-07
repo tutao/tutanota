@@ -109,12 +109,12 @@ export class MailView extends BaseTopLevelView implements TopLevelView<MailViewA
 		this.listColumn = new ViewColumn(
 			{
 				view: () => {
-					const listId = this.mailViewModel.getListId()
+					const folder = this.mailViewModel.getFolder()
 					return m(BackgroundColumnLayout, {
 						backgroundColor: theme.navigation_bg,
 						desktopToolbar: () =>
 							m(DesktopListToolbar, m(SelectAllCheckbox, selectionAttrsForList(this.mailViewModel.listModel)), this.renderFilterButton()),
-						columnLayout: listId
+						columnLayout: folder
 							? m(
 									"",
 									{
@@ -123,9 +123,8 @@ export class MailView extends BaseTopLevelView implements TopLevelView<MailViewA
 										},
 									},
 									m(MailListView, {
-										key: listId,
+										key: getElementId(folder),
 										mailViewModel: this.mailViewModel,
-										listId: listId,
 										onSingleSelection: (mail) => {
 											if (!this.mailViewModel.listModel?.state.inMultiselect) {
 												this.viewSlider.focus(this.mailColumn)
@@ -142,7 +141,7 @@ export class MailView extends BaseTopLevelView implements TopLevelView<MailViewA
 											}
 										},
 										onClearFolder: async () => {
-											const folder = this.mailViewModel.getSelectedFolder()
+											const folder = this.mailViewModel.getFolder()
 											if (folder == null) {
 												console.warn("Cannot delete folder, no folder is selected")
 												return
@@ -186,7 +185,7 @@ export class MailView extends BaseTopLevelView implements TopLevelView<MailViewA
 				minWidth: size.second_col_min_width,
 				maxWidth: size.second_col_max_width,
 				headerCenter: () => {
-					const selectedFolder = this.mailViewModel.getSelectedFolder()
+					const selectedFolder = this.mailViewModel.getFolder()
 					return selectedFolder ? getFolderName(selectedFolder) : ""
 				},
 			},
@@ -406,7 +405,7 @@ export class MailView extends BaseTopLevelView implements TopLevelView<MailViewA
 				exec: () => {
 					this.showNewMailDialog().catch(ofClass(PermissionError, noOp))
 				},
-				enabled: () => !!this.mailViewModel.getSelectedFolder() && isNewMailActionAvailable(),
+				enabled: () => !!this.mailViewModel.getFolder() && isNewMailActionAvailable(),
 				help: "newMail_action",
 			},
 			{
@@ -594,7 +593,7 @@ export class MailView extends BaseTopLevelView implements TopLevelView<MailViewA
 		return m(MailFoldersView, {
 			mailboxDetail,
 			expandedFolders: this.expandedState,
-			mailListToSelectedMail: this.mailViewModel.getMailListToSelectedMail(),
+			mailFolderToSelectedMail: this.mailViewModel.getMailFolderToSelectedMail(),
 			onFolderClick: () => {
 				if (!inEditMode) {
 					this.viewSlider.focus(this.listColumn)
@@ -643,7 +642,9 @@ export class MailView extends BaseTopLevelView implements TopLevelView<MailViewA
 			this.viewSlider.focusPreviousColumn()
 		}
 
-		this.mailViewModel.showMail(args.listId, args.mailId)
+		if (args.folderId) {
+			this.mailViewModel.showMailWithFolderId(args.folderId, args.mailId)
+		}
 	}
 
 	private async handleFolderDrop(droppedMailId: string, folder: MailFolder) {

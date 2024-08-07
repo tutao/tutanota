@@ -36,7 +36,7 @@ export interface ListModelConfig<ElementType> {
 	/**
 	 * Returns null if the given element could not be loaded
 	 */
-	loadSingle(elementId: Id): Promise<ElementType | null>
+	loadSingle(listId: Id, elementId: Id): Promise<ElementType | null>
 
 	sortCompare(entity1: ElementType, entity2: ElementType): number
 
@@ -197,10 +197,10 @@ export class ListModel<ElementType extends ListElement> {
 		return this.filter != null
 	}
 
-	async entityEventReceived(elementId: Id, operation: OperationType): Promise<void> {
+	async entityEventReceived(listId: Id, elementId: Id, operation: OperationType): Promise<void> {
 		if (operation === OperationType.CREATE || operation === OperationType.UPDATE) {
 			// load the element without range checks for now
-			const entity = await this.config.loadSingle(elementId)
+			const entity = await this.config.loadSingle(listId, elementId)
 			if (!entity) {
 				return
 			}

@@ -12,6 +12,7 @@ import { TopLevelView } from "../../../TopLevelView.js"
 import stream from "mithril/stream"
 
 import { assertSystemFolderOfType } from "../../mailFunctionality/SharedMailUtils.js"
+import { getElementId } from "../../api/common/utils/EntityUtils.js"
 
 assertMainOrNode()
 
@@ -85,12 +86,12 @@ export class WebMobileFacade implements MobileFacade {
 						.filter((part) => part !== "")
 
 					if (parts.length > 1) {
-						const selectedMailListId = parts[1]
+						const selectedMailFolderId = parts[1]
 						const [mailboxDetail] = await this.mailModel.getMailboxDetails()
-						const inboxMailListId = assertSystemFolderOfType(mailboxDetail.folders, MailSetKind.INBOX).mails
+						const inboxMailFolderId = getElementId(assertSystemFolderOfType(mailboxDetail.folders, MailSetKind.INBOX))
 
-						if (inboxMailListId !== selectedMailListId) {
-							m.route.set(MAIL_PREFIX + "/" + inboxMailListId)
+						if (inboxMailFolderId !== selectedMailFolderId) {
+							m.route.set(MAIL_PREFIX + "/" + inboxMailFolderId)
 							return true
 						} else {
 							return false

@@ -13,10 +13,10 @@ import {
 	ExternalImageRule,
 	FeatureType,
 	MailAuthenticationStatus,
-	MailSetKind,
 	MailMethod,
 	MailPhishingStatus,
 	MailReportType,
+	MailSetKind,
 	MailState,
 	OperationType,
 } from "../../../common/api/common/TutanotaConstants"
@@ -42,7 +42,7 @@ import { lang } from "../../../common/misc/LanguageViewModel"
 import { LoginController } from "../../../common/api/main/LoginController"
 import m from "mithril"
 import { LockedError, NotAuthorizedError, NotFoundError } from "../../../common/api/common/error/RestError"
-import { getListId, haveSameId, isSameId } from "../../../common/api/common/utils/EntityUtils"
+import { haveSameId, isSameId } from "../../../common/api/common/utils/EntityUtils"
 import { getReferencedAttachments, loadInlineImages, moveMails } from "./MailGuiUtils"
 import { SanitizedFragment } from "../../../common/misc/HtmlSanitizer"
 import { CALENDAR_MIME_TYPE, FileController } from "../../../common/file/FileController"
@@ -69,16 +69,18 @@ import { AttachmentType, getAttachmentType } from "../../../common/gui/Attachmen
 import type { ContactImporter } from "../../contacts/ContactImporter.js"
 import { InlineImages, revokeInlineImages } from "../../../common/mailFunctionality/inlineImagesUtils.js"
 import {
-	getPathToFolderString,
+	assertSystemFolderOfType,
+	getDefaultSender,
 	getEnabledMailAddressesWithUser,
-	getMailboxName,
 	getFolderName,
+	getMailboxName,
+	getPathToFolderString,
+	isNoReplyTeamAddress,
+	isSystemNotification,
+	isTutanotaTeamMail,
 	loadMailDetails,
 	loadMailHeaders,
-	getDefaultSender,
-	assertSystemFolderOfType,
 } from "../../../common/mailFunctionality/SharedMailUtils.js"
-import { isSystemNotification, isTutanotaTeamMail, isNoReplyTeamAddress } from "../../../common/mailFunctionality/SharedMailUtils.js"
 import { getDisplayedSender, getMailBodyText, MailAddressAndName } from "../../../common/api/common/CommonMailUtils.js"
 
 export const enum ContentBlockingStatus {
@@ -198,7 +200,7 @@ export class MailViewerViewModel {
 
 	private showFolder() {
 		this.folderMailboxText = null
-		const folder = this.mailModel.getMailFolder(this.mail._id[0])
+		const folder = this.mailModel.getMailFolder(this.mail)
 
 		if (folder) {
 			this.mailModel.getMailboxDetailsForMail(this.mail).then((mailboxDetails) => {
@@ -311,7 +313,7 @@ export class MailViewerViewModel {
 	}
 
 	getFolderInfo(): { folderType: MailSetKind; name: string } | null {
-		const folder = this.mailModel.getMailFolder(getListId(this.mail))
+		const folder = this.mailModel.getMailFolder(this.mail)
 		if (!folder) return null
 		return { folderType: folder.folderType as MailSetKind, name: getFolderName(folder) }
 	}

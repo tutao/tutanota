@@ -32,7 +32,7 @@ export class FolderSystem {
 		return this.systemSubtrees.find((f) => f.folder.folderType === type)?.folder ?? null
 	}
 
-	getFolderById(folderId: IdTuple): MailFolder | null {
+	getFolderById(folderId: Id): MailFolder | null {
 		const subtree = this.getFolderByIdInSubtrees(this.systemSubtrees, folderId) ?? this.getFolderByIdInSubtrees(this.customSubtrees, folderId)
 		return subtree?.folder ?? null
 	}
@@ -49,7 +49,7 @@ export class FolderSystem {
 	 */
 	getCustomFoldersOfParent(parent: IdTuple | null): MailFolder[] {
 		if (parent) {
-			const parentFolder = this.getFolderByIdInSubtrees([...this.customSubtrees, ...this.systemSubtrees], parent)
+			const parentFolder = this.getFolderByIdInSubtrees([...this.customSubtrees, ...this.systemSubtrees], elementIdPart(parent))
 			return parentFolder ? parentFolder.children.map((child) => child.folder) : []
 		} else {
 			return this.customSubtrees.map((subtree) => subtree.folder)
@@ -57,7 +57,7 @@ export class FolderSystem {
 	}
 
 	getDescendantFoldersOfParent(parent: IdTuple): IndentedFolder[] {
-		const parentFolder = this.getFolderByIdInSubtrees([...this.customSubtrees, ...this.systemSubtrees], parent)
+		const parentFolder = this.getFolderByIdInSubtrees([...this.customSubtrees, ...this.systemSubtrees], elementIdPart(parent))
 		if (parentFolder) {
 			return this.getIndentedFolderList([parentFolder]).slice(1)
 		} else {
@@ -78,7 +78,7 @@ export class FolderSystem {
 			} else if (isSameId(currentFolderPointer.parentFolder, potentialAncestorId)) {
 				return true
 			}
-			currentFolderPointer = this.getFolderById(currentFolderPointer.parentFolder)
+			currentFolderPointer = this.getFolderById(elementIdPart(currentFolderPointer.parentFolder))
 		}
 	}
 
@@ -99,8 +99,8 @@ export class FolderSystem {
 		})
 	}
 
-	private getFolderByIdInSubtrees(systems: ReadonlyArray<FolderSubtree>, folderId: IdTuple): FolderSubtree | null {
-		return this.getFolderBy(systems, (system) => isSameId(system.folder._id, folderId))
+	private getFolderByIdInSubtrees(systems: ReadonlyArray<FolderSubtree>, folderId: Id): FolderSubtree | null {
+		return this.getFolderBy(systems, (system) => isSameId(elementIdPart(system.folder._id), folderId))
 	}
 
 	private getFolderByMailListIdInSubtrees(systems: ReadonlyArray<FolderSubtree>, mailListId: Id): FolderSubtree | null {

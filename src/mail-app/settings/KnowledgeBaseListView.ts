@@ -172,7 +172,7 @@ export class KnowledgeBaseListView implements UpdatableSettingsViewer {
 	async entityEventsReceived(updates: ReadonlyArray<EntityUpdateData>): Promise<any> {
 		for (const update of updates) {
 			if (isUpdateForTypeRef(KnowledgeBaseEntryTypeRef, update) && isSameId(this.getListId(), update.instanceListId)) {
-				await this.listModel.entityEventReceived(update.instanceId, update.operation)
+				await this.listModel.entityEventReceived(update.instanceListId, update.instanceId, update.operation)
 			}
 		}
 

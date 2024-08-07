@@ -177,7 +177,7 @@ o.spec("ConversationViewModel", function () {
 			entityRestClientMock.addListInstances(trash)
 
 			when(mailModel.getMailboxDetailsForMail(matchers.anything())).thenResolve(mailboxDetail)
-			when(mailModel.getMailFolder(listId)).thenReturn(trash)
+			when(mailModel.getMailFolder(trashDraftMail)).thenReturn(trash)
 
 			conversation.pop() // since this mail shouldn't actually be a part of the conversation
 
@@ -199,7 +199,7 @@ o.spec("ConversationViewModel", function () {
 			entityRestClientMock.addListInstances(trash)
 
 			when(mailModel.getMailboxDetailsForMail(trashDraftMail)).thenResolve(mailboxDetail)
-			when(mailModel.getMailFolder(listId)).thenReturn(trash)
+			when(mailModel.getMailFolder(trashDraftMail)).thenReturn(trash)
 
 			await makeViewModel(trashDraftMail)
 
@@ -320,7 +320,7 @@ o.spec("ConversationViewModel", function () {
 			conversation.pop()
 
 			when(mailModel.getMailboxDetailsForMail(matchers.anything())).thenResolve(mailboxDetail)
-			when(mailModel.getMailFolder("newListId")).thenReturn(trash)
+			when(mailModel.getMailFolder(trashDraftMail)).thenReturn(trash)
 
 			await eventCallback(
 				[

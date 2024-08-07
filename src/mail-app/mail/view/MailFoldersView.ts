@@ -4,7 +4,7 @@ import { locator } from "../../../common/api/main/CommonLocator.js"
 import { SidebarSection } from "../../../common/gui/SidebarSection.js"
 import { IconButton, IconButtonAttrs } from "../../../common/gui/base/IconButton.js"
 import { FolderSubtree } from "../../../common/api/common/mail/FolderSystem.js"
-import { getElementId } from "../../../common/api/common/utils/EntityUtils.js"
+import { elementIdPart, getElementId, getListId } from "../../../common/api/common/utils/EntityUtils.js"
 import { isSelectedPrefix, NavButtonAttrs, NavButtonColor } from "../../../common/gui/base/NavButton.js"
 import { MAIL_PREFIX } from "../../../common/misc/RouteChange.js"
 import { MailFolderRow } from "./MailFolderRow.js"
@@ -22,7 +22,7 @@ import { isSpamOrTrashFolder } from "../../../common/api/common/CommonMailUtils.
 
 export interface MailFolderViewAttrs {
 	mailboxDetail: MailboxDetail
-	mailListToSelectedMail: ReadonlyMap<Id, Id>
+	mailFolderToSelectedMail: ReadonlyMap<MailFolder, Id>
 	onFolderClick: (folder: MailFolder) => unknown
 	onFolderDrop: (mailId: string, folder: MailFolder) => unknown
 	expandedFolders: ReadonlySet<Id>
@@ -51,7 +51,7 @@ export class MailFoldersView implements Component<MailFolderViewAttrs> {
 		const selectedFolder = mailboxDetail.folders
 			.getIndentedList()
 			.map((f) => f.folder)
-			.find((f) => isSelectedPrefix(MAIL_PREFIX + "/" + f.mails))
+			.find((f) => isSelectedPrefix(MAIL_PREFIX + "/" + f.isMailSet ? getElementId(f) : f.mails))
 		const path = selectedFolder ? mailboxDetail.folders.getPathToFolder(selectedFolder._id) : []
 		const isInternalUser = locator.logins.isInternalUserLoggedIn()
 		const systemChildren = this.renderFolderTree(systemSystems, groupCounters, attrs, path, isInternalUser)
@@ -93,15 +93,16 @@ export class MailFoldersView implements Component<MailFolderViewAttrs> {
 					if (attrs.inEditMode) {
 						return m.route.get()
 					} else {
-						const mailId = attrs.mailListToSelectedMail.get(system.folder.mails)
+						const mailId = attrs.mailFolderToSelectedMail.get(system.folder)
+						const folderId = getElementId(system.folder)
 						if (mailId) {
-							return `/mail/${system.folder.mails}/${mailId}`
+							return `/mail/${folderId}/${mailId}`
 						} else {
-							return `/mail/${system.folder.mails}`
+							return `/mail/${folderId}`
 						}
 					}
 				},
-				isSelectedPrefix: attrs.inEditMode ? false : MAIL_PREFIX + "/" + system.folder.mails,
+				isSelectedPrefix: attrs.inEditMode ? false : MAIL_PREFIX + "/" + system.folder.isMailSet ? getElementId(system.folder) : system.folder.mails,
 				colors: NavButtonColor.Nav,
 				click: () => attrs.onFolderClick(system.folder),
 				dropHandler: (droppedMailId) => attrs.onFolderDrop(droppedMailId, system.folder),
@@ -222,7 +223,7 @@ export class MailFoldersView implements Component<MailFolderViewAttrs> {
 				attrs.onShowFolderAddEditDialog(
 					attrs.mailboxDetail.mailGroup._id,
 					folder,
-					folder.parentFolder ? attrs.mailboxDetail.folders.getFolderById(folder.parentFolder) : null,
+					folder.parentFolder ? attrs.mailboxDetail.folders.getFolderById(elementIdPart(folder.parentFolder)) : null,
 				)
 			},
 		}

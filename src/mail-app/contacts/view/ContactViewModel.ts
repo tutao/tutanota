@@ -87,7 +87,7 @@ export class ContactViewModel {
 	private readonly entityListener: EntityEventsListener = async (updates) => {
 		for (const update of updates) {
 			if (isUpdateForTypeRef(ContactTypeRef, update) && update.instanceListId === this.contactListId) {
-				await this.listModel.entityEventReceived(update.instanceId, update.operation)
+				await this.listModel.entityEventReceived(update.instanceListId, update.instanceId, update.operation)
 			}
 		}
 	}

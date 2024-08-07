@@ -607,7 +607,7 @@ export class SearchViewModel {
 		}
 
 		this.listModel.getUnfilteredAsArray()
-		await this.listModel.entityEventReceived(instanceId, operation)
+		await this.listModel.entityEventReceived(instanceListId, instanceId, operation)
 		// run the mail or contact update after the update on the list is finished to avoid parallel loading
 		if (operation === OperationType.UPDATE && this.listModel?.isItemSelected(elementIdPart(id))) {
 			try {

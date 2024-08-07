@@ -195,7 +195,7 @@ export class ContactListViewModel {
 		for (const update of updates) {
 			if (this.selectedContactList) {
 				if (isUpdateForTypeRef(ContactListEntryTypeRef, update) && isSameId(this.selectedContactList, update.instanceListId)) {
-					await this.listModel?.entityEventReceived(update.instanceId, update.operation)
+					await this.listModel?.entityEventReceived(update.instanceListId, update.instanceId, update.operation)
 				} else if (isUpdateForTypeRef(ContactTypeRef, update)) {
 					this.getContactsForSelectedContactListEntry()
 				}
