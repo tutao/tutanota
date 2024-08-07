@@ -1,4 +1,4 @@
-import type { InboxRule, Mail, MoveMailData } from "../../../common/api/entities/tutanota/TypeRefs.js"
+import type { InboxRule, Mail, MailFolder, MoveMailData } from "../../../common/api/entities/tutanota/TypeRefs.js"
 import { createMoveMailData } from "../../../common/api/entities/tutanota/TypeRefs.js"
 import { InboxRuleType, MailSetKind, MAX_NBR_MOVE_DELETE_MAIL_SERVICE } from "../../../common/api/common/TutanotaConstants"
 import { isDomainName, isRegularExpression } from "../../../common/misc/FormatValidator"
@@ -96,7 +96,7 @@ export class InboxRuleHandler {
 	 * Checks the mail for an existing inbox rule and moves the mail to the target folder of the rule.
 	 * @returns true if a rule matches otherwise false
 	 */
-	async findAndApplyMatchingRule(mailboxDetail: MailboxDetail, mail: Mail, applyRulesOnServer: boolean): Promise<IdTuple | null> {
+	async findAndApplyMatchingRule(mailboxDetail: MailboxDetail, mail: Mail, applyRulesOnServer: boolean): Promise<{ folder: MailFolder; mail: Mail } | null> {
 		if (mail._errors || !mail.unread || !isInboxList(mailboxDetail, getListId(mail)) || !this.logins.getUserController().isPremiumAccount()) {
 			return null
 		}
@@ -124,7 +124,7 @@ export class InboxRuleHandler {
 					applyMatchingRules(this.mailFacade)
 				}
 
-				return [targetFolder.mails, getElementId(mail)]
+				return { folder: targetFolder, mail }
 			} else {
 				return null
 			}

@@ -34,7 +34,7 @@ import {
 } from "../api/common/TutanotaConstants.js"
 import { assertSystemFolderOfType, getEnabledMailAddressesWithUser } from "./SharedMailUtils.js"
 import { LockedError, NotFoundError, PreconditionFailedError } from "../api/common/error/RestError.js"
-import { elementIdPart, GENERATED_MAX_ID, getElementId, getListId, isSameId, listIdPart } from "../api/common/utils/EntityUtils.js"
+import { elementIdPart, GENERATED_MAX_ID, getElementId, getListId, isSameId } from "../api/common/utils/EntityUtils.js"
 import { containsEventOfType, EntityUpdateData, isUpdateForTypeRef } from "../api/common/utils/EntityUpdateUtils.js"
 import m from "mithril"
 import { lang } from "../misc/LanguageViewModel.js"
@@ -380,7 +380,13 @@ export class MailModel {
 									)
 								)
 							})
-							.then((newId) => this._showNotification(newId || mailId))
+							.then((newFolderAndMail) => {
+								if (newFolderAndMail) {
+									this._showNotification(newFolderAndMail.folder, newFolderAndMail.mail)
+								} else {
+									this._showNotification(folder, mail)
+								}
+							})
 							.catch(noOp)
 					}
 				}
@@ -398,7 +404,7 @@ export class MailModel {
 		this.mailboxCounters(normalized)
 	}
 
-	_showNotification(mailId: IdTuple) {
+	_showNotification(folder: MailFolder, mail: Mail) {
 		this.notifications.showNotification(
 			NotificationType.Mail,
 			lang.get("newMails_msg"),
@@ -406,8 +412,7 @@ export class MailModel {
 				actions: [],
 			},
 			(_) => {
-				// FIXME
-				m.route.set(`/mail/${listIdPart(mailId)}/${elementIdPart(mailId)}`)
+				m.route.set(`/mail/${getElementId(folder)}/${getElementId(mail)}`)
 				window.focus()
 			},
 		)
