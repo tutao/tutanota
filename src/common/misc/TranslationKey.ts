@@ -1729,3 +1729,4 @@ export type TranslationKeyType =
 	| "yourMessage_label"
 	| "you_label"
 	| "emptyString_msg"
+	| "calendarDefaultReminder_label"

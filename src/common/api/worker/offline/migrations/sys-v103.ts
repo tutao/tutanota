@@ -7,7 +7,7 @@ import { AccountingInfoTypeRef } from "../../../entities/sys/TypeRefs.js"
 export const sys103: OfflineMigration = {
 	app: "sys",
 	version: 103,
-	async migrate(storage: OfflineStorage, _: SqlCipherFacade) {
+	async migrate(storage: OfflineStorage, sqlCipherFacade: SqlCipherFacade) {
 		// delete AccountingInfo to make sure appStoreSubscription is not missing from offlne db
 		await deleteInstancesOfType(storage, AccountingInfoTypeRef)
 	},

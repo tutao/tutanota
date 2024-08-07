@@ -821,6 +821,7 @@ function showRenameTemplateListDialog(instance: TemplateGroupInstance) {
 					group: getEtId(instance.group),
 					color: "",
 					name: newName,
+					defaultAlarmsList: [],
 				})
 				logins.getUserController().userSettingsGroupRoot.groupSettings.push(newSettings)
 			}

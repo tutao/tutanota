@@ -27,8 +27,9 @@ import WindowsZones from "./WindowsZones"
 import type { ParsedCalendarData } from "./CalendarImporter"
 import { isMailAddress } from "../../../common/misc/FormatValidator"
 import { CalendarAttendeeStatus, CalendarMethod, EndType, RepeatPeriod, reverse } from "../../../common/api/common/TutanotaConstants"
-import { AlarmInterval, AlarmIntervalUnit, serializeAlarmInterval } from "../../../common/calendar/date/CalendarUtils.js"
+import { AlarmInterval, AlarmIntervalUnit } from "../../../common/calendar/date/CalendarUtils.js"
 import { AlarmInfoTemplate } from "../../../common/api/worker/facades/lazy/CalendarFacade.js"
+import { serializeAlarmInterval } from "../../../common/api/common/utils/CommonCalendarUtils.js"
 
 function parseDateString(dateString: string): {
 	year: number

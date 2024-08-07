@@ -782,6 +782,14 @@ export function getEventType(
 		return EventType.SHARED_RO
 	}
 
+	/**
+	 * if the event has a _ownerGroup, it means there is a calendar set to it
+	 * so, if the user is the owner of said calendar they are free to manage the event however they want
+	 **/
+	if ((isOrganizer || existingOrganizer === null) && calendarInfoForEvent.userIsOwner) {
+		return EventType.OWN
+	}
+
 	if (calendarInfoForEvent.shared) {
 		const canWrite = hasCapabilityOnGroup(user, calendarInfoForEvent.group, ShareCapability.Write)
 		if (canWrite) {
