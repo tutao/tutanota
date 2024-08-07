@@ -6,7 +6,7 @@ import { isDomainName, isMailAddress, isRegularExpression } from "../../common/m
 import { getInboxRuleTypeNameMapping } from "../mail/model/InboxRuleHandler"
 import type { InboxRule } from "../../common/api/entities/tutanota/TypeRefs.js"
 import { createInboxRule } from "../../common/api/entities/tutanota/TypeRefs.js"
-import type { MailboxDetail } from "../../common/mailFunctionality/MailModel.js"
+import type { MailboxDetail } from "../../common/mailFunctionality/MailboxModel.js"
 import stream from "mithril/stream"
 import { DropDownSelector } from "../../common/gui/base/DropDownSelector.js"
 import { TextField } from "../../common/gui/base/TextField.js"
@@ -18,12 +18,13 @@ import { assertMainOrNode } from "../../common/api/common/Env"
 import { locator } from "../../common/api/main/CommonLocator"
 import { isOfflineError } from "../../common/api/common/utils/ErrorUtils.js"
 import {
-	assertSystemFolderOfType,
 	getExistingRuleForType,
 	getFolderName,
 	getIndentedFolderNameForDropdown,
 	getPathToFolderString,
 } from "../../common/mailFunctionality/SharedMailUtils.js"
+import { assertSystemFolderOfType } from "../mail/model/MailModel.js"
+import { mailLocator } from "../mailLocator.js"
 
 assertMainOrNode()
 
@@ -32,8 +33,9 @@ export type InboxRuleTemplate = Pick<InboxRule, "type" | "value"> & { _id?: Inbo
 export function show(mailBoxDetail: MailboxDetail, ruleOrTemplate: InboxRuleTemplate) {
 	if (locator.logins.getUserController().isFreeAccount()) {
 		showNotAvailableForFreeDialog()
-	} else if (mailBoxDetail) {
-		let targetFolders = mailBoxDetail.folders.getIndentedList().map((folderInfo) => {
+	} else if (mailBoxDetail && mailBoxDetail.mailbox.folders) {
+		const folders = mailLocator.mailModel.getMailboxFoldersForId(mailBoxDetail.mailbox.folders._id)
+		let targetFolders = folders.getIndentedList().map((folderInfo) => {
 			return {
 				name: getIndentedFolderNameForDropdown(folderInfo),
 				value: folderInfo.folder,
@@ -41,8 +43,8 @@ export function show(mailBoxDetail: MailboxDetail, ruleOrTemplate: InboxRuleTemp
 		})
 		const inboxRuleType = stream(ruleOrTemplate.type)
 		const inboxRuleValue = stream(ruleOrTemplate.value)
-		const selectedFolder = ruleOrTemplate.targetFolder == null ? null : mailBoxDetail.folders.getFolderById(elementIdPart(ruleOrTemplate.targetFolder))
-		const inboxRuleTarget = stream(selectedFolder ?? assertSystemFolderOfType(mailBoxDetail.folders, MailSetKind.ARCHIVE))
+		const selectedFolder = ruleOrTemplate.targetFolder == null ? null : folders.getFolderById(elementIdPart(ruleOrTemplate.targetFolder))
+		const inboxRuleTarget = stream(selectedFolder ?? assertSystemFolderOfType(folders, MailSetKind.ARCHIVE))
 
 		let form = () => [
 			m(DropDownSelector, {
@@ -66,7 +68,7 @@ export function show(mailBoxDetail: MailboxDetail, ruleOrTemplate: InboxRuleTemp
 				selectedValue: inboxRuleTarget(),
 				selectedValueDisplay: getFolderName(inboxRuleTarget()),
 				selectionChangedHandler: inboxRuleTarget,
-				helpLabel: () => getPathToFolderString(mailBoxDetail.folders, inboxRuleTarget(), true),
+				helpLabel: () => getPathToFolderString(folders, inboxRuleTarget(), true),
 			}),
 		]
 

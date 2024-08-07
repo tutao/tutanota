@@ -8,10 +8,11 @@ import { LoadingStateTracker } from "../../../common/offline/LoadingState.js"
 import { EntityEventsListener, EventController } from "../../../common/api/main/EventController.js"
 import { ConversationType, MailSetKind, MailState, OperationType } from "../../../common/api/common/TutanotaConstants.js"
 import { NotAuthorizedError, NotFoundError } from "../../../common/api/common/error/RestError.js"
-import { MailModel } from "../../../common/mailFunctionality/MailModel.js"
+import { MailboxModel } from "../../../common/mailFunctionality/MailboxModel.js"
 import { EntityUpdateData, isUpdateForTypeRef } from "../../../common/api/common/utils/EntityUpdateUtils.js"
 import { ListAutoSelectBehavior } from "../../../common/misc/DeviceConfig.js"
-import { isOfTypeOrSubfolderOf } from "../../../common/mailFunctionality/SharedMailUtils.js"
+
+import { isOfTypeOrSubfolderOf, MailModel } from "../model/MailModel.js"
 
 export type MailViewerViewModelFactory = (options: CreateMailViewerOptions) => MailViewerViewModel
 
@@ -247,7 +248,11 @@ export class ConversationViewModel {
 	private async isInTrash(mail: Mail) {
 		const mailboxDetail = await this.mailModel.getMailboxDetailsForMail(mail)
 		const mailFolder = this.mailModel.getMailFolderForMail(mail)
-		return mailFolder && mailboxDetail && isOfTypeOrSubfolderOf(mailboxDetail.folders, mailFolder, MailSetKind.TRASH)
+		if (mailFolder == null || mailboxDetail == null || mailboxDetail.mailbox.folders == null) {
+			return
+		}
+		const folders = this.mailModel.getMailboxFoldersForId(mailboxDetail.mailbox.folders._id)
+		return isOfTypeOrSubfolderOf(folders, mailFolder, MailSetKind.TRASH)
 	}
 
 	conversationItems(): ReadonlyArray<ConversationItem> {

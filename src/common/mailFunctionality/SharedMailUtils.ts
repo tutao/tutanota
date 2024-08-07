@@ -14,7 +14,7 @@ import {
 	TutanotaProperties,
 } from "../api/entities/tutanota/TypeRefs.js"
 import { fullNameToFirstAndLastName, mailAddressToFirstAndLastName } from "../misc/parsing/MailAddressParser.js"
-import { assertNotNull, contains, endsWith, first, isNotEmpty, neverNull } from "@tutao/tutanota-utils"
+import { assertNotNull, contains, neverNull } from "@tutao/tutanota-utils"
 import {
 	ContactAddressType,
 	ConversationType,
@@ -33,17 +33,18 @@ import { getEnabledMailAddressesForGroupInfo, getGroupInfoDisplayName } from "..
 import { lang, Language, TranslationKey } from "../misc/LanguageViewModel.js"
 import { AllIcons } from "../gui/base/Icon.js"
 import { Icons } from "../gui/base/icons/Icons.js"
-import { MailboxDetail, MailModel } from "./MailModel.js"
+import { MailboxDetail } from "./MailboxModel.js"
 import { LoginController } from "../api/main/LoginController.js"
 import { EntityClient } from "../api/common/EntityClient.js"
-import { getListId, isSameId } from "../api/common/utils/EntityUtils.js"
-import type { FolderSystem, IndentedFolder } from "../api/common/mail/FolderSystem.js"
+import type { FolderSystem } from "../api/common/mail/FolderSystem.js"
 import { MailFacade } from "../api/worker/facades/lazy/MailFacade.js"
 import { ListFilter } from "../misc/ListModel.js"
 import { FontIcons } from "../gui/base/icons/FontIcons.js"
 import { ProgrammingError } from "../api/common/error/ProgrammingError.js"
 import { Attachment } from "./SendMailModel.js"
-import { getDisplayedSender, isDraft, isSubfolderOfType } from "../api/common/CommonMailUtils.js"
+import { getDisplayedSender } from "../api/common/CommonMailUtils.js"
+import { isDraft } from "../../mail-app/mail/model/MailModel.js"
+import { hasValidEncryptionAuthForTeamOrSystemMail } from "../../mail-app/mail/view/MailGuiUtils.js"
 
 assertMainOrNode()
 export const LINE_BREAK = "<br>"
@@ -359,26 +360,6 @@ export enum RecipientField {
 
 export type FolderInfo = { level: number; folder: MailFolder }
 
-export async function getMoveTargetFolderSystems(model: MailModel, mails: readonly Mail[]): Promise<Array<FolderInfo>> {
-	const firstMail = first(mails)
-	if (firstMail == null) return []
-
-	const mailboxDetails = await model.getMailboxDetailsForMail(firstMail)
-	if (mailboxDetails == null) {
-		return []
-	}
-	const folderSystem = mailboxDetails.folders
-
-	return folderSystem.getIndentedList().filter((f: IndentedFolder) => {
-		if (f.folder.isMailSet && isNotEmpty(firstMail.sets)) {
-			const folderId = firstMail.sets[0]
-			return !isSameId(f.folder._id, folderId)
-		} else {
-			return f.folder.mails !== getListId(firstMail)
-		}
-	})
-}
-
 export const MAX_FOLDER_INDENT_LEVEL = 10
 
 export function getIndentedFolderNameForDropdown(folderInfo: FolderInfo) {
@@ -459,58 +440,6 @@ export function getConfidentialIcon(mail: Mail): Icons {
 
 export function isTutanotaMailAddress(mailAddress: string): boolean {
 	return TUTANOTA_MAIL_ADDRESS_DOMAINS.some((tutaDomain) => mailAddress.endsWith("@" + tutaDomain))
-}
-
-/**
- * Gets a system folder of the specified type and unwraps it.
- * Some system folders don't exist in some cases, e.g. spam or archive for external mailboxes!
- *
- * Use with caution.
- */
-export function assertSystemFolderOfType(system: FolderSystem, type: Omit<MailSetKind, MailSetKind.CUSTOM>): MailFolder {
-	return assertNotNull(system.getSystemFolderByType(type), "System folder of type does not exist!")
-}
-
-export function isOfTypeOrSubfolderOf(system: FolderSystem, folder: MailFolder, type: MailSetKind): boolean {
-	return folder.folderType === type || isSubfolderOfType(system, folder, type)
-}
-
-/**
- * NOTE: DOES NOT VERIFY IF THE MESSAGE IS AUTHENTIC - DO NOT USE THIS OUTSIDE OF THIS FILE OR FOR TESTING
- * @VisibleForTesting
- */
-export function isTutanotaTeamAddress(address: string): boolean {
-	return endsWith(address, "@tutao.de") || address === "no-reply@tutanota.de"
-}
-
-function hasValidEncryptionAuthForTeamOrSystemMail({ encryptionAuthStatus }: Mail): boolean {
-	switch (encryptionAuthStatus) {
-		// emails before tuta-crypt had no encryptionAuthStatus
-		case null:
-		case undefined:
-		case EncryptionAuthStatus.RSA_NO_AUTHENTICATION:
-		case EncryptionAuthStatus.TUTACRYPT_AUTHENTICATION_SUCCEEDED:
-		case EncryptionAuthStatus.TUTACRYPT_SENDER: // should only be set for sent NOT received mails
-			return true
-		case EncryptionAuthStatus.AES_NO_AUTHENTICATION:
-		case EncryptionAuthStatus.TUTACRYPT_AUTHENTICATION_FAILED:
-		// we have to be able to handle future cases, to be safe we say that they are not valid encryptionAuth
-		default:
-			return false
-	}
-}
-
-/**
- * Is this a tutao team member email or a system notification
- */
-export function isTutanotaTeamMail(mail: Mail): boolean {
-	const { confidential, sender, state } = mail
-	return (
-		confidential &&
-		state === MailState.RECEIVED &&
-		hasValidEncryptionAuthForTeamOrSystemMail(mail) &&
-		(sender.address === SYSTEM_GROUP_MAIL_ADDRESS || isTutanotaTeamAddress(sender.address))
-	)
 }
 
 /**

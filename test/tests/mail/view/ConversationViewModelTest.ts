@@ -19,7 +19,8 @@ import { matchers, object, when } from "testdouble"
 import { MailSetKind, MailState, OperationType } from "../../../../src/common/api/common/TutanotaConstants.js"
 import { isSameId } from "../../../../src/common/api/common/utils/EntityUtils.js"
 import { createTestEntity } from "../../TestUtils.js"
-import { MailboxDetail, MailModel } from "../../../../src/common/mailFunctionality/MailModel.js"
+import { MailboxDetail, MailboxModel } from "../../../../src/common/mailFunctionality/MailboxModel.js"
+import { MailModel } from "../../../../src/mail-app/mail/model/MailModel.js"
 
 o.spec("ConversationViewModel", function () {
 	let conversation: ConversationEntry[]
@@ -29,6 +30,7 @@ o.spec("ConversationViewModel", function () {
 
 	let viewModel: ConversationViewModel
 	let mailModel: MailModel
+	let mailboxModel: MailboxModel
 	let mailboxDetail: MailboxDetail
 	let entityRestClientMock: EntityRestClientMock
 	let prefProvider: ConversationPrefProvider

@@ -65,7 +65,7 @@ import {
 	MailboxProperties,
 } from "../../../../common/api/entities/tutanota/TypeRefs.js"
 import { User } from "../../../../common/api/entities/sys/TypeRefs.js"
-import { MailboxDetail } from "../../../../common/mailFunctionality/MailModel.js"
+import { MailboxDetail } from "../../../../common/mailFunctionality/MailboxModel.js"
 import {
 	AlarmInterval,
 	areRepeatRulesEqual,

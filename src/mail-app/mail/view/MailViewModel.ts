@@ -1,5 +1,5 @@
 import { ListModel } from "../../../common/misc/ListModel.js"
-import { MailboxDetail, MailModel } from "../../../common/mailFunctionality/MailModel.js"
+import { MailboxDetail, MailboxModel } from "../../../common/mailFunctionality/MailboxModel.js"
 import { EntityClient } from "../../../common/api/common/EntityClient.js"
 import { Mail, MailFolder, MailSetEntry, MailSetEntryTypeRef, MailTypeRef } from "../../../common/api/entities/tutanota/TypeRefs.js"
 import {
@@ -41,8 +41,8 @@ import { Router } from "../../../common/gui/ScopedRouter.js"
 import { ListFetchResult } from "../../../common/gui/base/ListUtils.js"
 import { EntityUpdateData, isUpdateForTypeRef } from "../../../common/api/common/utils/EntityUpdateUtils.js"
 import { EventController } from "../../../common/api/main/EventController.js"
-import { assertSystemFolderOfType, getMailFilterForType, isOfTypeOrSubfolderOf, MailFilterType } from "../../../common/mailFunctionality/SharedMailUtils.js"
-import { isSpamOrTrashFolder, isSubfolderOfType } from "../../../common/api/common/CommonMailUtils.js"
+import { getMailFilterForType, MailFilterType } from "../../../common/mailFunctionality/SharedMailUtils.js"
+import { assertSystemFolderOfType, isOfTypeOrSubfolderOf, isSpamOrTrashFolder, isSubfolderOfType, MailModel } from "../model/MailModel.js"
 
 export interface MailOpenedListener {
 	onEmailOpened(mail: Mail): unknown
@@ -67,6 +67,7 @@ export class MailViewModel {
 	private conversationPref: boolean = false
 
 	constructor(
+		private readonly mailboxModel: MailboxModel,
 		private readonly mailModel: MailModel,
 		private readonly entityClient: EntityClient,
 		private readonly eventController: EventController,
@@ -91,13 +92,15 @@ export class MailViewModel {
 
 	async showMailWithFolderId(folderId?: Id, mailId?: Id): Promise<void> {
 		if (folderId) {
-			const mailboxDetails = await this.mailModel.getMailboxDetails()
-			const mailboxDetail: MailboxDetail | null = mailboxDetails.find((md) => md.folders.getFolderById(folderId)) ?? null
-			const folder = mailboxDetail?.folders.getFolderById(folderId)
-			return this.showMail(folder, mailId)
-		} else {
-			return this.showMail(null, mailId)
+			const folderStructures = this.mailModel.folders()
+			for(const folders of Object.values(folderStructures)) {
+				const folder = folders.getFolderById(folderId)
+				if(folder) {
+					return this.showMail(folder, mailId)
+				}
+			}
 		}
+		return this.showMail(null, mailId)
 	}
 
 	async showMail(folder?: MailFolder | null, mailId?: Id) {
@@ -161,8 +164,9 @@ export class MailViewModel {
 	}
 
 	private async getFolderForUserInbox(): Promise<MailFolder> {
-		const mailboxDetail = await this.mailModel.getUserMailboxDetails()
-		return assertSystemFolderOfType(mailboxDetail.folders, MailSetKind.INBOX)
+		const mailboxDetail = await this.mailboxModel.getUserMailboxDetails()
+		const folders = this.mailModel.getMailboxFoldersForId(assertNotNull(mailboxDetail.mailbox.folders)._id)
+		return assertSystemFolderOfType(folders, MailSetKind.INBOX)
 	}
 
 	init() {
@@ -448,7 +452,11 @@ export class MailViewModel {
 
 	async switchToFolder(folderType: Omit<MailSetKind, MailSetKind.CUSTOM>): Promise<void> {
 		const mailboxDetail = assertNotNull(await this.getMailboxDetails())
-		const folder = assertSystemFolderOfType(mailboxDetail.folders, folderType)
+		if (mailboxDetail == null || mailboxDetail.mailbox.folders == null) {
+			return
+		}
+		const folders = this.mailModel.getMailboxFoldersForId(mailboxDetail.mailbox.folders._id)
+		const folder = assertSystemFolderOfType(folders, folderType)
 		await this.showMail(folder, this.mailFolderToSelectedMail.get(folder))
 	}
 
@@ -461,8 +469,9 @@ export class MailViewModel {
 		if (!this._folder) return false
 		const mailboxDetail = await this.mailModel.getMailboxDetailsForMailFolder(this._folder)
 		const selectedFolder = this.getFolder()
-		if (selectedFolder && mailboxDetail) {
-			return isOfTypeOrSubfolderOf(mailboxDetail.folders, selectedFolder, MailSetKind.DRAFT)
+		if (selectedFolder && mailboxDetail && mailboxDetail.mailbox.folders) {
+			const folders = this.mailModel.getMailboxFoldersForId(mailboxDetail.mailbox.folders._id)
+			return isOfTypeOrSubfolderOf(folders, selectedFolder, MailSetKind.DRAFT)
 		} else {
 			return false
 		}
@@ -470,16 +479,19 @@ export class MailViewModel {
 
 	async showingTrashOrSpamFolder(): Promise<boolean> {
 		const folder = this.getFolder()
-		if (!folder) {
-			return false
+		if (folder) {
+			const mailboxDetail = await this.mailModel.getMailboxDetailsForMailFolder(folder)
+			if (folder && mailboxDetail && mailboxDetail.mailbox.folders) {
+				const folders = this.mailModel.getMailboxFoldersForId(mailboxDetail.mailbox.folders._id)
+				return isSpamOrTrashFolder(folders, folder)
+			}
 		}
-		const mailboxDetail = await this.mailModel.getMailboxDetailsForMailFolder(folder)
-		return mailboxDetail != null && isSpamOrTrashFolder(mailboxDetail.folders, folder)
+		return false
 	}
 
 	private async mailboxDetailForListWithFallback(folder?: MailFolder | null) {
 		const mailboxDetailForListId = folder ? await this.mailModel.getMailboxDetailsForMailFolder(folder) : null
-		return mailboxDetailForListId ?? (await this.mailModel.getUserMailboxDetails())
+		return mailboxDetailForListId ?? (await this.mailboxModel.getUserMailboxDetails())
 	}
 
 	async finallyDeleteAllMailsInSelectedFolder(folder: MailFolder): Promise<void> {
@@ -495,14 +507,17 @@ export class MailViewModel {
 					throw new UserError("operationStillActive_msg")
 				}),
 			)
-		} else if (isSubfolderOfType(mailboxDetail.folders, folder, MailSetKind.TRASH) || isSubfolderOfType(mailboxDetail.folders, folder, MailSetKind.SPAM)) {
-			return this.mailModel.finallyDeleteCustomMailFolder(folder).catch(
-				ofClass(PreconditionFailedError, () => {
-					throw new UserError("operationStillActive_msg")
-				}),
-			)
 		} else {
-			throw new ProgrammingError(`Cannot delete mails in folder ${String(folder._id)} with type ${folder.folderType}`)
+			const folders = this.mailModel.getMailboxFoldersForId(assertNotNull(mailboxDetail.mailbox.folders)._id)
+			if (isSubfolderOfType(folders, folder, MailSetKind.TRASH) || isSubfolderOfType(folders, folder, MailSetKind.SPAM)) {
+				return this.mailModel.finallyDeleteCustomMailFolder(folder).catch(
+					ofClass(PreconditionFailedError, () => {
+						throw new UserError("operationStillActive_msg")
+					}),
+				)
+			} else {
+				throw new ProgrammingError(`Cannot delete mails in folder ${String(folder._id)} with type ${folder.folderType}`)
+			}
 		}
 	}
 }

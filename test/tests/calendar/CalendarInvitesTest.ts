@@ -18,20 +18,24 @@ import { findAttendeeInAddresses } from "../../../src/common/api/common/utils/Co
 import { instance, matchers, when } from "testdouble"
 import { CalendarModel } from "../../../src/calendar-app/calendar/model/CalendarModel.js"
 import { LoginController } from "../../../src/common/api/main/LoginController.js"
-import { FolderSystem } from "../../../src/common/api/common/mail/FolderSystem.js"
 import { GroupInfoTypeRef, GroupTypeRef, User } from "../../../src/common/api/entities/sys/TypeRefs.js"
 import { calendars, makeUserController } from "./CalendarTestUtils.js"
 import { UserController } from "../../../src/common/api/main/UserController.js"
 import { CalendarNotificationSender } from "../../../src/calendar-app/calendar/view/CalendarNotificationSender.js"
 import { mockAttribute } from "@tutao/tutanota-test-utils"
 import { SendMailModel } from "../../../src/common/mailFunctionality/SendMailModel.js"
-import { MailboxDetail, MailModel } from "../../../src/common/mailFunctionality/MailModel.js"
+import { MailboxDetail, MailboxModel } from "../../../src/common/mailFunctionality/MailboxModel.js"
 
 const { anything, argThat } = matchers
 
 o.spec("CalendarInviteHandlerTest", function () {
-	let mailModel: MailModel, calendarIniviteHandler: CalendarInviteHandler, calendarModel: CalendarModel, logins: LoginController, sendMailModel: SendMailModel
+	let maiboxModel: MailboxModel,
+		calendarIniviteHandler: CalendarInviteHandler,
+		calendarModel: CalendarModel,
+		logins: LoginController,
+		sendMailModel: SendMailModel
 	let calendarNotificationSender: CalendarNotificationSender
+	let mailboxDetails: MailboxDetail
 
 	o.beforeEach(function () {
 		const customerId = "customerId"
@@ -42,9 +46,8 @@ o.spec("CalendarInviteHandlerTest", function () {
 		const userSettingsGroupRoot = createTestEntity(UserSettingsGroupRootTypeRef)
 		let userController: Partial<UserController> = makeUserController([], AccountType.FREE, undefined, false, false, user, userSettingsGroupRoot)
 
-		const mailboxDetails: MailboxDetail = {
+		mailboxDetails = {
 			mailbox: createTestEntity(MailBoxTypeRef),
-			folders: new FolderSystem([]),
 			mailGroupInfo: createTestEntity(GroupInfoTypeRef, {
 				mailAddress: "mailgroup@addre.ss",
 			}),
@@ -53,9 +56,8 @@ o.spec("CalendarInviteHandlerTest", function () {
 		}
 		const mailboxProperties: MailboxProperties = createTestEntity(MailboxPropertiesTypeRef, {})
 
-		mailModel = instance(MailModel)
-		when(mailModel.getMailboxDetailsForMail(anything())).thenResolve(mailboxDetails)
-		when(mailModel.getMailboxProperties(anything())).thenResolve(mailboxProperties)
+		maiboxModel = instance(MailboxModel)
+		when(maiboxModel.getMailboxProperties(anything())).thenResolve(mailboxProperties)
 
 		calendarModel = instance(CalendarModel)
 		when(calendarModel.getEventsByUid(anything())).thenResolve({
@@ -73,7 +75,7 @@ o.spec("CalendarInviteHandlerTest", function () {
 
 		sendMailModel = instance(SendMailModel)
 
-		calendarIniviteHandler = new CalendarInviteHandler(mailModel, calendarModel, logins, calendarNotificationSender, async () => {
+		calendarIniviteHandler = new CalendarInviteHandler(maiboxModel, calendarModel, logins, calendarNotificationSender, async () => {
 			return sendMailModel
 		})
 	})
@@ -103,7 +105,9 @@ o.spec("CalendarInviteHandlerTest", function () {
 			let mail = createTestEntity(MailTypeRef)
 			mail.sender = createMailAddress({ address: sender, name: "whatever", contact: null })
 			when(calendarModel.getCalendarInfos()).thenResolve(calendars)
-			o(await calendarIniviteHandler.replyToEventInvitation(event, ownAttendee!, CalendarAttendeeStatus.ACCEPTED, mail)).equals(ReplyResult.ReplySent)
+			o(await calendarIniviteHandler.replyToEventInvitation(event, ownAttendee!, CalendarAttendeeStatus.ACCEPTED, mail, mailboxDetails)).equals(
+				ReplyResult.ReplySent,
+			)
 			o(calendarModel.processCalendarEventMessage.callCount).equals(1)
 		})
 
@@ -131,7 +135,9 @@ o.spec("CalendarInviteHandlerTest", function () {
 			let mail = createTestEntity(MailTypeRef)
 			mail.sender = createMailAddress({ address: sender, name: "whatever", contact: null })
 			when(calendarModel.getCalendarInfos()).thenResolve(calendars)
-			o(await calendarIniviteHandler.replyToEventInvitation(event, ownAttendee!, CalendarAttendeeStatus.DECLINED, mail)).equals(ReplyResult.ReplySent)
+			o(await calendarIniviteHandler.replyToEventInvitation(event, ownAttendee!, CalendarAttendeeStatus.DECLINED, mail, mailboxDetails)).equals(
+				ReplyResult.ReplySent,
+			)
 			o(calendarModel.processCalendarEventMessage.callCount).equals(0)
 		})
 
@@ -160,7 +166,9 @@ o.spec("CalendarInviteHandlerTest", function () {
 			let mail = createTestEntity(MailTypeRef)
 			mail.sender = createMailAddress({ address: sender, name: "whatever", contact: null })
 			when(calendarModel.getCalendarInfos()).thenResolve(new Map())
-			o(await calendarIniviteHandler.replyToEventInvitation(event, ownAttendee!, CalendarAttendeeStatus.DECLINED, mail)).equals(ReplyResult.ReplySent)
+			o(await calendarIniviteHandler.replyToEventInvitation(event, ownAttendee!, CalendarAttendeeStatus.DECLINED, mail, mailboxDetails)).equals(
+				ReplyResult.ReplySent,
+			)
 			o(calendarModel.processCalendarEventMessage.callCount).equals(0)
 		})
 	})

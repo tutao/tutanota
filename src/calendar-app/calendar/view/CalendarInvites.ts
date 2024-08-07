@@ -17,7 +17,7 @@ import { isCustomizationEnabledForCustomer } from "../../../common/api/common/ut
 import { getEventType } from "../gui/CalendarGuiUtils.js"
 import { CalendarModel } from "../model/CalendarModel.js"
 import { LoginController } from "../../../common/api/main/LoginController.js"
-import { MailboxDetail, MailModel } from "../../../common/mailFunctionality/MailModel.js"
+import { MailboxDetail, MailboxModel } from "../../../common/mailFunctionality/MailboxModel.js"
 import { SendMailModel } from "../../../common/mailFunctionality/SendMailModel.js"
 import { RecipientField } from "../../../common/mailFunctionality/SharedMailUtils.js"
 
@@ -70,10 +70,10 @@ export async function showEventDetails(event: CalendarEvent, eventBubbleRect: Cl
 	} else {
 		const [calendarInfos, mailboxDetails, customer] = await Promise.all([
 			(await locator.calendarModel()).getCalendarInfos(),
-			locator.mailModel.getUserMailboxDetails(),
+			locator.mailboxModel.getUserMailboxDetails(),
 			locator.logins.getUserController().loadCustomer(),
 		])
-		const mailboxProperties = await locator.mailModel.getMailboxProperties(mailboxDetails.mailboxGroupRoot)
+		const mailboxProperties = await locator.mailboxModel.getMailboxProperties(mailboxDetails.mailboxGroupRoot)
 		const ownMailAddresses = mailboxProperties.mailAddressProperties.map(({ mailAddress }) => mailAddress)
 		ownAttendee = findAttendeeInAddresses(latestEvent.attendees, ownMailAddresses)
 		eventType = getEventType(latestEvent, calendarInfos, ownMailAddresses, locator.logins.getUserController())
@@ -138,7 +138,7 @@ export const enum ReplyResult {
 
 export class CalendarInviteHandler {
 	constructor(
-		private readonly mailModel: MailModel,
+		private readonly mailboxModel: MailboxModel,
 		private readonly calendarModel: CalendarModel,
 		private readonly logins: LoginController,
 		private readonly calendarNotificationSender: CalendarNotificationSender,
@@ -157,13 +157,17 @@ export class CalendarInviteHandler {
 		attendee: CalendarEventAttendee,
 		decision: CalendarAttendeeStatus,
 		previousMail: Mail,
+		mailboxDetails: MailboxDetail,
 	): Promise<ReplyResult> {
 		const eventClone = clone(event)
 		const foundAttendee = assertNotNull(findAttendeeInAddresses(eventClone.attendees, [attendee.address.address]), "attendee was not found in event clone")
 		foundAttendee.status = decision
 
 		const notificationModel = new CalendarNotificationModel(this.calendarNotificationSender, this.logins)
-		const responseModel = await this.getResponseModelForMail(previousMail, attendee.address.address)
+		//NOTE: mailDetails are getting passed through because the calendar does not have access to the mail folder structure
+		//	which is needed to find mailboxdetails by mail. This may be fixed by static mail ids which are being worked on currently.
+		//  This function is only called by EventBanner from the mail app so this should be okay.
+		const responseModel = await this.getResponseModelForMail(previousMail, mailboxDetails, attendee.address.address)
 
 		try {
 			await notificationModel.send(eventClone, [], { responseModel, inviteModel: null, cancelModel: null, updateModel: null })
@@ -197,10 +201,10 @@ export class CalendarInviteHandler {
 		return ReplyResult.ReplySent
 	}
 
-	async getResponseModelForMail(previousMail: Mail, responder: string): Promise<SendMailModel | null> {
-		const mailboxDetails = await this.mailModel.getMailboxDetailsForMail(previousMail)
-		if (mailboxDetails == null) return null
-		const mailboxProperties = await this.mailModel.getMailboxProperties(mailboxDetails.mailboxGroupRoot)
+	async getResponseModelForMail(previousMail: Mail, mailboxDetails: MailboxDetail, responder: string): Promise<SendMailModel | null> {
+		//NOTE: mailDetails are getting passed through because the calendar does not have access to the mail folder structure
+		//	which is needed to find mailboxdetails by mail. This may be fixed by static mail ids which are being worked on currently
+		const mailboxProperties = await this.mailboxModel.getMailboxProperties(mailboxDetails.mailboxGroupRoot)
 		const model = await this.sendMailModelFactory(mailboxDetails, mailboxProperties)
 		await model.initAsResponse(
 			{

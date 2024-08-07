@@ -36,7 +36,7 @@ import { ExposedCacheStorage } from "../worker/rest/DefaultEntityRestCache.js"
 import { WorkerFacade } from "../worker/facades/WorkerFacade.js"
 import { WorkerRandomizer } from "../worker/WorkerImpl.js"
 import { WebsocketConnectivityModel } from "../../misc/WebsocketConnectivityModel.js"
-import { MailboxDetail, MailModel } from "../../mailFunctionality/MailModel.js"
+import { MailboxDetail, MailboxModel } from "../../mailFunctionality/MailboxModel.js"
 import { EventController } from "./EventController.js"
 import type { ContactModel } from "../../contactsFunctionality/ContactModel.js"
 import { ProgressTracker } from "./ProgressTracker.js"
@@ -115,7 +115,7 @@ export interface CommonLocator {
 	random: WorkerRandomizer
 	connectivityModel: WebsocketConnectivityModel
 
-	mailModel: MailModel
+	mailboxModel: MailboxModel
 
 	calendarModel(): Promise<CalendarModel>
 

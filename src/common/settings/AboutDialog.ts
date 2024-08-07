@@ -73,7 +73,7 @@ export class AboutDialog implements Component<AboutDialogAttrs> {
 	async _sendDeviceLogs(): Promise<void> {
 		const timestamp = new Date()
 		const attachments = await getLogAttachments(timestamp)
-		const mailboxDetails = await locator.mailModel.getUserMailboxDetails()
+		const mailboxDetails = await locator.mailboxModel.getUserMailboxDetails()
 		let { message, type, client } = clientInfoString(timestamp, true)
 		message = message
 			.split("\n")

@@ -1,14 +1,14 @@
-import type { MailModel } from "../../../common/mailFunctionality/MailModel.js"
-import type { File as TutanotaFile, Mail, MailFolder } from "../../../common/api/entities/tutanota/TypeRefs.js"
-import { createMail } from "../../../common/api/entities/tutanota/TypeRefs.js"
+import type { MailboxModel } from "../../../common/mailFunctionality/MailboxModel.js"
+import { createMail, File as TutanotaFile, Mail, MailFolder } from "../../../common/api/entities/tutanota/TypeRefs.js"
 import { LockedError, PreconditionFailedError } from "../../../common/api/common/error/RestError"
 import { Dialog } from "../../../common/gui/base/Dialog"
 import { locator } from "../../../common/api/main/CommonLocator"
 import { AllIcons } from "../../../common/gui/base/Icon"
 import { Icons } from "../../../common/gui/base/icons/Icons"
 import { isApp, isDesktop } from "../../../common/api/common/Env"
-import { assertNotNull, neverNull, noOp, promiseMap } from "@tutao/tutanota-utils"
-import { MailReportType, MailSetKind } from "../../../common/api/common/TutanotaConstants"
+import { assertNotNull, endsWith, neverNull, noOp, promiseMap } from "@tutao/tutanota-utils"
+import { EncryptionAuthStatus, MailSetKind, MailReportType, MailState, SYSTEM_GROUP_MAIL_ADDRESS } from "../../../common/api/common/TutanotaConstants"
+import { getElementId, getListId } from "../../../common/api/common/utils/EntityUtils"
 import { reportMailsAutomatically } from "./MailReportDialog"
 import { DataFile } from "../../../common/api/common/DataFile"
 import { lang, TranslationKey } from "../../../common/misc/LanguageViewModel"
@@ -19,27 +19,20 @@ import { ConversationViewModel } from "./ConversationViewModel.js"
 import { size } from "../../../common/gui/size.js"
 import { PinchZoom } from "../../../common/gui/PinchZoom.js"
 import { InlineImageReference, InlineImages } from "../../../common/mailFunctionality/inlineImagesUtils.js"
-import {
-	assertSystemFolderOfType,
-	getFolderIcon,
-	getFolderName,
-	getIndentedFolderNameForDropdown,
-	getMoveTargetFolderSystems,
-	isOfTypeOrSubfolderOf,
-} from "../../../common/mailFunctionality/SharedMailUtils.js"
-import { isSpamOrTrashFolder } from "../../../common/api/common/CommonMailUtils.js"
-import { getElementId } from "../../../common/api/common/utils/EntityUtils.js"
+import { getFolderIcon, getFolderName, getIndentedFolderNameForDropdown } from "../../../common/mailFunctionality/SharedMailUtils.js"
+import { assertSystemFolderOfType, getMoveTargetFolderSystems, isOfTypeOrSubfolderOf, isSpamOrTrashFolder, MailModel } from "../model/MailModel.js"
+import { mailLocator } from "../../mailLocator.js"
 
 export async function showDeleteConfirmationDialog(mails: ReadonlyArray<Mail>): Promise<boolean> {
 	let trashMails: Mail[] = []
 	let moveMails: Mail[] = []
 	for (let mail of mails) {
-		const folder = locator.mailModel.getMailFolderForMail(mail)
-		const mailboxDetail = await locator.mailModel.getMailboxDetailsForMail(mail)
-		if (mailboxDetail == null) {
+		const folder = mailLocator.mailModel.getMailFolderForMail(mail)
+		const folders = await mailLocator.mailModel.getMailboxFoldersForMail(mail)
+		if (folders == null) {
 			continue
 		}
-		const isFinalDelete = folder && isSpamOrTrashFolder(mailboxDetail.folders, folder)
+		const isFinalDelete = folder && isSpamOrTrashFolder(folders, folder)
 		isFinalDelete ? trashMails.push(mail) : moveMails.push(mail)
 	}
 
@@ -85,6 +78,7 @@ export function promptAndDeleteMails(mailModel: MailModel, mails: ReadonlyArray<
 }
 
 interface MoveMailsParams {
+	mailboxModel: MailboxModel
 	mailModel: MailModel
 	mails: ReadonlyArray<Mail>
 	targetMailFolder: MailFolder
@@ -95,12 +89,12 @@ interface MoveMailsParams {
  * Moves the mails and reports them as spam if the user or settings allow it.
  * @return whether mails were actually moved
  */
-export async function moveMails({ mailModel, mails, targetMailFolder, isReportable = true }: MoveMailsParams): Promise<boolean> {
+export async function moveMails({ mailboxModel, mailModel, mails, targetMailFolder, isReportable = true }: MoveMailsParams): Promise<boolean> {
 	const details = await mailModel.getMailboxDetailsForMailFolder(targetMailFolder)
-	if (details == null) {
+	if (details == null || details.mailbox.folders == null) {
 		return false
 	}
-	const system = details.folders
+	const system = mailModel.getMailboxFoldersForId(details.mailbox.folders._id)
 	return mailModel
 		.moveMails(mails, targetMailFolder)
 		.then(async () => {
@@ -111,8 +105,8 @@ export async function moveMails({ mailModel, mails, targetMailFolder, isReportab
 					reportableMail._id = targetMailFolder.isMailSet ? mail._id : [targetMailFolder.mails, getElementId(mail)]
 					return reportableMail
 				})
-				const mailboxDetails = await mailModel.getMailboxDetailsForMailGroup(assertNotNull(targetMailFolder._ownerGroup))
-				await reportMailsAutomatically(MailReportType.SPAM, mailModel, mailboxDetails, reportableMails)
+				const mailboxDetails = await mailboxModel.getMailboxDetailsForMailGroup(assertNotNull(targetMailFolder._ownerGroup))
+				await reportMailsAutomatically(MailReportType.SPAM, mailboxModel, mailModel, mailboxDetails, reportableMails)
 			}
 
 			return true
@@ -130,10 +124,11 @@ export async function moveMails({ mailModel, mails, targetMailFolder, isReportab
 export function archiveMails(mails: Mail[]): Promise<void> {
 	if (mails.length > 0) {
 		// assume all mails in the array belong to the same Mailbox
-		return locator.mailModel.getMailboxFolders(mails[0]).then((folders) => {
+		return mailLocator.mailModel.getMailboxFoldersForMail(mails[0]).then((folders) => {
 			folders &&
 				moveMails({
-					mailModel: locator.mailModel,
+					mailboxModel: locator.mailboxModel,
+					mailModel: mailLocator.mailModel,
 					mails: mails,
 					targetMailFolder: assertSystemFolderOfType(folders, MailSetKind.ARCHIVE),
 				})
@@ -146,10 +141,11 @@ export function archiveMails(mails: Mail[]): Promise<void> {
 export function moveToInbox(mails: Mail[]): Promise<any> {
 	if (mails.length > 0) {
 		// assume all mails in the array belong to the same Mailbox
-		return locator.mailModel.getMailboxFolders(mails[0]).then((folders) => {
+		return mailLocator.mailModel.getMailboxFoldersForMail(mails[0]).then((folders) => {
 			folders &&
 				moveMails({
-					mailModel: locator.mailModel,
+					mailboxModel: locator.mailboxModel,
+					mailModel: mailLocator.mailModel,
 					mails: mails,
 					targetMailFolder: assertSystemFolderOfType(folders, MailSetKind.INBOX),
 				})
@@ -160,7 +156,7 @@ export function moveToInbox(mails: Mail[]): Promise<any> {
 }
 
 export function getMailFolderIcon(mail: Mail): AllIcons {
-	let folder = locator.mailModel.getMailFolderForMail(mail)
+	let folder = mailLocator.mailModel.getMailFolderForMail(mail)
 
 	if (folder) {
 		return getFolderIcon(folder)
@@ -291,6 +287,7 @@ export function getReferencedAttachments(attachments: Array<TutanotaFile>, refer
 }
 
 export async function showMoveMailsDropdown(
+	mailboxModel: MailboxModel,
 	model: MailModel,
 	origin: PosRect,
 	mails: readonly Mail[],
@@ -307,7 +304,7 @@ export async function showMoveMailsDropdown(
 				text: () => getIndentedFolderNameForDropdown(f),
 				click: () => {
 					onSelected()
-					moveMails({ mailModel: model, mails: mails, targetMailFolder: f.folder })
+					moveMails({ mailboxModel, mailModel: model, mails: mails, targetMailFolder: f.folder })
 				},
 				icon: getFolderIcon(f.folder),
 			} satisfies DropdownChildAttrs),
@@ -334,4 +331,42 @@ export function getConversationTitle(conversationViewModel: ConversationViewMode
 export function getMoveMailBounds(): PosRect {
 	// just putting the move mail dropdown in the left side of the viewport with a bit of margin
 	return new DomRectReadOnlyPolyfilled(size.hpad_large, size.vpad_large, 0, 0)
+}
+
+/**
+ * NOTE: DOES NOT VERIFY IF THE MESSAGE IS AUTHENTIC - DO NOT USE THIS OUTSIDE OF THIS FILE OR FOR TESTING
+ * @VisibleForTesting
+ */
+export function isTutanotaTeamAddress(address: string): boolean {
+	return endsWith(address, "@tutao.de") || address === "no-reply@tutanota.de"
+}
+
+export function hasValidEncryptionAuthForTeamOrSystemMail({ encryptionAuthStatus }: Mail): boolean {
+	switch (encryptionAuthStatus) {
+		// emails before tuta-crypt had no encryptionAuthStatus
+		case null:
+		case undefined:
+		case EncryptionAuthStatus.RSA_NO_AUTHENTICATION:
+		case EncryptionAuthStatus.TUTACRYPT_AUTHENTICATION_SUCCEEDED:
+		case EncryptionAuthStatus.TUTACRYPT_SENDER: // should only be set for sent NOT received mails
+			return true
+		case EncryptionAuthStatus.AES_NO_AUTHENTICATION:
+		case EncryptionAuthStatus.TUTACRYPT_AUTHENTICATION_FAILED:
+		// we have to be able to handle future cases, to be safe we say that they are not valid encryptionAuth
+		default:
+			return false
+	}
+}
+
+/**
+ * Is this a tutao team member email or a system notification
+ */
+export function isTutanotaTeamMail(mail: Mail): boolean {
+	const { confidential, sender, state } = mail
+	return (
+		confidential &&
+		state === MailState.RECEIVED &&
+		hasValidEncryptionAuthForTeamOrSystemMail(mail) &&
+		(sender.address === SYSTEM_GROUP_MAIL_ADDRESS || isTutanotaTeamAddress(sender.address))
+	)
 }

@@ -1,6 +1,6 @@
 import { assertMainOrNode, isAndroidApp, isApp, isBrowser, isDesktop, isElectronClient, isIOSApp, isTest } from "../common/api/common/Env.js"
 import { EventController } from "../common/api/main/EventController.js"
-import { MailboxDetail, MailModel } from "../common/mailFunctionality/MailModel.js"
+import { MailboxDetail, MailboxModel } from "../common/mailFunctionality/MailboxModel.js"
 import { ContactModel } from "../common/contactsFunctionality/ContactModel.js"
 import { EntityClient } from "../common/api/common/EntityClient.js"
 import { ProgressTracker } from "../common/api/main/ProgressTracker.js"
@@ -110,13 +110,14 @@ import { AppType } from "../common/misc/ClientConstants.js"
 import type { ParsedEvent } from "../common/calendar/import/CalendarImporter.js"
 import { ExternalCalendarFacade } from "../common/native/common/generatedipc/ExternalCalendarFacade.js"
 import { locator } from "../common/api/main/CommonLocator.js"
+import m from "mithril"
 
 assertMainOrNode()
 
 class CalendarLocator {
 	eventController!: EventController
 	search!: CalendarSearchModel
-	mailModel!: MailModel
+	mailboxModel!: MailboxModel
 	contactModel!: ContactModel
 	entityClient!: EntityClient
 	progressTracker!: ProgressTracker
@@ -269,8 +270,8 @@ class CalendarLocator {
 		return new CalendarViewModel(
 			this.logins,
 			async (mode: CalendarOperation, event: CalendarEvent) => {
-				const mailboxDetail = await this.mailModel.getUserMailboxDetails()
-				const mailboxProperties = await this.mailModel.getMailboxProperties(mailboxDetail.mailboxGroupRoot)
+				const mailboxDetail = await this.mailboxModel.getUserMailboxDetails()
+				const mailboxProperties = await this.mailboxModel.getMailboxProperties(mailboxDetail.mailboxGroupRoot)
 				return await this.calendarEventModel(mode, event, mailboxDetail, mailboxProperties, null)
 			},
 			(...args) => this.calendarEventPreviewModel(...args),
@@ -282,7 +283,7 @@ class CalendarLocator {
 			deviceConfig,
 			await this.receivedGroupInvitationsModel(GroupType.Calendar),
 			timeZone,
-			this.mailModel,
+			this.mailboxModel,
 		)
 	})
 
@@ -303,13 +304,16 @@ class CalendarLocator {
 				this.mailFacade,
 				this.entityClient,
 				this.logins,
-				this.mailModel,
+				this.mailboxModel,
 				this.contactModel,
 				this.eventController,
 				mailboxDetails,
 				recipientsModel,
 				dateProvider,
 				mailboxProperties,
+				async (mail: Mail) => {
+					return false
+				},
 			)
 	}
 
@@ -425,7 +429,7 @@ class CalendarLocator {
 
 	async ownMailAddressNameChanger(): Promise<MailAddressNameChanger> {
 		const { OwnMailAddressNameChanger } = await import("../mail-app/settings/mailaddress/OwnMailAddressNameChanger.js")
-		return new OwnMailAddressNameChanger(this.mailModel, this.entityClient)
+		return new OwnMailAddressNameChanger(this.mailboxModel, this.entityClient)
 	}
 
 	async adminNameChanger(mailGroupId: Id, userId: Id): Promise<MailAddressNameChanger> {
@@ -571,7 +575,7 @@ class CalendarLocator {
 		this.entropyFacade = entropyFacade
 		this.workerFacade = workerFacade
 		this.connectivityModel = new WebsocketConnectivityModel(eventBus)
-		this.mailModel = new MailModel(notifications, this.eventController, this.mailFacade, this.entityClient, this.logins, null, null)
+		this.mailboxModel = new MailboxModel(this.eventController, this.entityClient, this.logins)
 		this.operationProgressTracker = new OperationProgressTracker()
 		this.infoMessageHandler = new InfoMessageHandler((state: SearchIndexStateInfo) => {
 			// calendar does not have index, so nothing needs to be handled here
@@ -607,18 +611,26 @@ class CalendarLocator {
 			const { WebInterWindowEventFacade } = await import("../common/native/main/WebInterWindowEventFacade.js")
 			const { WebAuthnFacadeSendDispatcher } = await import("../common/native/common/generatedipc/WebAuthnFacadeSendDispatcher.js")
 			const { createNativeInterfaces, createDesktopInterfaces } = await import("../common/native/main/NativeInterfaceFactory.js")
-			this.webMobileFacade = new WebMobileFacade(this.connectivityModel, this.mailModel, CALENDAR_PREFIX)
+			this.webMobileFacade = new WebMobileFacade(this.connectivityModel, this.mailboxModel, CALENDAR_PREFIX)
 			this.nativeInterfaces = createNativeInterfaces(
 				this.webMobileFacade,
 				new WebDesktopFacade(this.logins, async () => this.native),
 				new WebInterWindowEventFacade(this.logins, windowFacade, deviceConfig),
 				new WebCommonNativeFacade(
 					this.logins,
-					this.mailModel,
+					this.mailboxModel,
 					this.usageTestController,
 					async () => this.fileApp,
 					async () => this.pushService,
 					this.handleFileImport.bind(this),
+					async (userId: string, address: string, requestedPath: string | null) => noOp(),
+					async (userId: string) => {
+						if (locator.logins.isUserLoggedIn() && locator.logins.getUserController().user._id === userId) {
+							m.route.set("/calendar/agenda")
+						} else {
+							m.route.set(`/login?noAutoLogin=false&userId=${userId}&requestedPath=${encodeURIComponent("/calendar/agenda")}`)
+						}
+					},
 					AppType.Calendar,
 				),
 				cryptoFacade,
@@ -763,7 +775,7 @@ class CalendarLocator {
 			this.logins,
 			this.progressTracker,
 			this.entityClient,
-			this.mailModel,
+			this.mailboxModel,
 			this.calendarFacade,
 			this.fileController,
 			timeZone,
@@ -775,7 +787,7 @@ class CalendarLocator {
 	readonly calendarInviteHandler: () => Promise<CalendarInviteHandler> = lazyMemoized(async () => {
 		const { CalendarInviteHandler } = await import("./calendar/view/CalendarInvites.js")
 		const { calendarNotificationSender } = await import("./calendar/view/CalendarNotificationSender.js")
-		return new CalendarInviteHandler(this.mailModel, await this.calendarModel(), this.logins, calendarNotificationSender, (...arg) =>
+		return new CalendarInviteHandler(this.mailboxModel, await this.calendarModel(), this.logins, calendarNotificationSender, (...arg) =>
 			this.sendMailModel(...arg),
 		)
 	})
@@ -797,9 +809,9 @@ class CalendarLocator {
 		const { getEventType } = await import("./calendar/gui/CalendarGuiUtils.js")
 		const { CalendarEventPreviewViewModel } = await import("./calendar/gui/eventpopup/CalendarEventPreviewViewModel.js")
 
-		const mailboxDetails = await this.mailModel.getUserMailboxDetails()
+		const mailboxDetails = await this.mailboxModel.getUserMailboxDetails()
 
-		const mailboxProperties = await this.mailModel.getMailboxProperties(mailboxDetails.mailboxGroupRoot)
+		const mailboxProperties = await this.mailboxModel.getMailboxProperties(mailboxDetails.mailboxGroupRoot)
 
 		const userController = this.logins.getUserController()
 		const customer = await userController.loadCustomer()
