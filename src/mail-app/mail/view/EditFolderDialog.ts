@@ -6,13 +6,17 @@ import { Dialog } from "../../../common/gui/base/Dialog.js"
 import { locator } from "../../../common/api/main/CommonLocator.js"
 import { LockedError } from "../../../common/api/common/error/RestError.js"
 import { lang, TranslationKey } from "../../../common/misc/LanguageViewModel.js"
-import { MailboxDetail } from "../../../common/mailFunctionality/MailModel.js"
+import { MailboxDetail } from "../../../common/mailFunctionality/MailboxModel.js"
 import { MailFolderType, MailReportType } from "../../../common/api/common/TutanotaConstants.js"
 import { isSameId } from "../../../common/api/common/utils/EntityUtils.js"
 import { reportMailsAutomatically } from "./MailReportDialog.js"
 import { isOfflineError } from "../../../common/api/common/utils/ErrorUtils.js"
 import { getFolderName, getIndentedFolderNameForDropdown, getPathToFolderString } from "../../../common/mailFunctionality/SharedMailUtils.js"
-import { isSpamOrTrashFolder } from "../../../common/api/common/CommonMailUtils.js"
+
+import { isSpamOrTrashFolder } from "../model/MailModel.js"
+import { mailLocator } from "../../mailLocator.js"
+import { assertNotNull } from "@tutao/tutanota-utils"
+import { FolderSystem } from "../../../common/api/common/mail/FolderSystem.js"
 
 /**
  * Dialog for Edit and Add folder are the same.
@@ -21,11 +25,12 @@ import { isSpamOrTrashFolder } from "../../../common/api/common/CommonMailUtils.
 export async function showEditFolderDialog(mailBoxDetail: MailboxDetail, editFolder: MailFolder | null = null, parentFolder: MailFolder | null = null) {
 	const noParentFolderOption = lang.get("comboBoxSelectionNone_msg")
 	const mailGroupId = mailBoxDetail.mailGroup._id
+	const folders = mailLocator.mailModel.getMailboxFoldersForId(assertNotNull(mailBoxDetail.mailbox.folders)._id)
 	let folderNameValue = editFolder?.name ?? ""
-	let targetFolders: SelectorItemList<MailFolder | null> = mailBoxDetail.folders
+	let targetFolders: SelectorItemList<MailFolder | null> = folders
 		.getIndentedList(editFolder)
 		// filter: SPAM and TRASH and descendants are only shown if editing (folders can only be moved there, not created there)
-		.filter((folderInfo) => !(editFolder === null && isSpamOrTrashFolder(mailBoxDetail.folders, folderInfo.folder)))
+		.filter((folderInfo) => !(editFolder === null && isSpamOrTrashFolder(folders, folderInfo.folder)))
 		.map((folderInfo) => {
 			return {
 				name: getIndentedFolderNameForDropdown(folderInfo),
@@ -48,7 +53,7 @@ export async function showEditFolderDialog(mailBoxDetail: MailboxDetail, editFol
 			selectedValue: selectedParentFolder,
 			selectedValueDisplay: selectedParentFolder ? getFolderName(selectedParentFolder) : noParentFolderOption,
 			selectionChangedHandler: (newFolder: MailFolder | null) => (selectedParentFolder = newFolder),
-			helpLabel: () => (selectedParentFolder ? getPathToFolderString(mailBoxDetail.folders, selectedParentFolder) : ""),
+			helpLabel: () => (selectedParentFolder ? getPathToFolderString(folders, selectedParentFolder) : ""),
 		}),
 	]
 	const okAction = async (dialog: Dialog) => {
@@ -69,7 +74,7 @@ export async function showEditFolderDialog(mailBoxDetail: MailboxDetail, editFol
 					if (!confirmed) return
 
 					await locator.mailFacade.updateMailFolderName(editFolder, folderNameValue)
-					await locator.mailModel.trashFolderAndSubfolders(editFolder)
+					await mailLocator.mailModel.trashFolderAndSubfolders(editFolder)
 				} else if (selectedParentFolder?.folderType === MailFolderType.SPAM && !isSameId(selectedParentFolder._id, editFolder.parentFolder)) {
 					// if it is being moved to spam (and not already in spam), ask about reporting containing emails
 					const confirmed = await Dialog.confirm(() =>
@@ -80,15 +85,15 @@ export async function showEditFolderDialog(mailBoxDetail: MailboxDetail, editFol
 					if (!confirmed) return
 
 					// get mails to report before moving to mail model
-					const descendants = mailBoxDetail.folders.getDescendantFoldersOfParent(editFolder._id).sort((l, r) => r.level - l.level)
+					const descendants = folders.getDescendantFoldersOfParent(editFolder._id).sort((l, r) => r.level - l.level)
 					let reportableMails = await locator.entityClient.loadAll(MailTypeRef, editFolder.mails)
 					for (const descendant of descendants) {
 						reportableMails.push(...(await locator.entityClient.loadAll(MailTypeRef, descendant.folder.mails)))
 					}
-					await reportMailsAutomatically(MailReportType.SPAM, locator.mailModel, mailBoxDetail, reportableMails)
+					await reportMailsAutomatically(MailReportType.SPAM, locator.mailboxModel, mailLocator.mailModel, mailBoxDetail, reportableMails)
 
 					await locator.mailFacade.updateMailFolderName(editFolder, folderNameValue)
-					await locator.mailModel.sendFolderToSpam(editFolder)
+					await mailLocator.mailModel.sendFolderToSpam(editFolder)
 				} else {
 					await locator.mailFacade.updateMailFolderName(editFolder, folderNameValue)
 					await locator.mailFacade.updateMailFolderParent(editFolder, selectedParentFolder?._id || null)
@@ -104,16 +109,22 @@ export async function showEditFolderDialog(mailBoxDetail: MailboxDetail, editFol
 	Dialog.showActionDialog({
 		title: editFolder ? lang.get("editFolder_action") : lang.get("addFolder_action"),
 		child: form,
-		validator: () => checkFolderName(mailBoxDetail, folderNameValue, mailGroupId, selectedParentFolder?._id ?? null),
+		validator: () => checkFolderName(mailBoxDetail, folders, folderNameValue, mailGroupId, selectedParentFolder?._id ?? null),
 		allowOkWithReturn: true,
 		okAction: okAction,
 	})
 }
 
-function checkFolderName(mailboxDetail: MailboxDetail, name: string, mailGroupId: Id, parentFolderId: IdTuple | null): TranslationKey | null {
+function checkFolderName(
+	mailboxDetail: MailboxDetail,
+	folders: FolderSystem,
+	name: string,
+	mailGroupId: Id,
+	parentFolderId: IdTuple | null,
+): TranslationKey | null {
 	if (name.trim() === "") {
 		return "folderNameNeutral_msg"
-	} else if (mailboxDetail.folders.getCustomFoldersOfParent(parentFolderId).some((f) => f.name === name)) {
+	} else if (folders.getCustomFoldersOfParent(parentFolderId).some((f) => f.name === name)) {
 		return "folderNameInvalidExisting_msg"
 	} else {
 		return null

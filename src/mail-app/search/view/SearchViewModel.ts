@@ -46,7 +46,7 @@ import {
 	SearchCategoryTypes,
 } from "../model/SearchUtils.js"
 import Stream from "mithril/stream"
-import { MailboxDetail, MailModel } from "../../../common/mailFunctionality/MailModel.js"
+import { MailboxDetail, MailboxModel } from "../../../common/mailFunctionality/MailboxModel.js"
 import { SearchFacade } from "../../../common/api/worker/search/SearchFacade.js"
 import { LoginController } from "../../../common/api/main/LoginController.js"
 import { Indexer } from "../../../common/api/worker/search/Indexer.js"
@@ -63,6 +63,7 @@ import { ProgressTracker } from "../../../common/api/main/ProgressTracker.js"
 import { ListAutoSelectBehavior } from "../../../common/misc/DeviceConfig.js"
 import { getMailFilterForType, MailFilterType } from "../../../common/mailFunctionality/SharedMailUtils.js"
 import { getStartOfTheWeekOffsetForUser } from "../../../common/calendar/date/CalendarUtils.js"
+import { mailLocator } from "../../mailLocator.js"
 
 const SEARCH_PAGE_SIZE = 100
 
@@ -123,7 +124,7 @@ export class SearchViewModel {
 		readonly router: SearchRouter,
 		private readonly search: SearchModel,
 		private readonly searchFacade: SearchFacade,
-		private readonly mailModel: MailModel,
+		private readonly mailboxModel: MailboxModel,
 		private readonly logins: LoginController,
 		private readonly indexerFacade: Indexer,
 		private readonly entityClient: EntityClient,
@@ -163,7 +164,7 @@ export class SearchViewModel {
 			}
 		})
 
-		this.mailboxSubscription = this.mailModel.mailboxDetails.map((mailboxes) => this.onMailboxesChanged(mailboxes))
+		this.mailboxSubscription = this.mailboxModel.mailboxDetails.map((mailboxes) => this.onMailboxesChanged(mailboxes))
 		this.eventController.addEntityListener(this.entityEventsListener)
 	})
 
@@ -551,11 +552,17 @@ export class SearchViewModel {
 
 	private onMailboxesChanged(mailboxes: MailboxDetail[]) {
 		this.mailboxes = mailboxes
+		const folderStructures = mailLocator.mailModel.folders()
 
 		// if selected folder no longer exist select another one
 		const selectedMailFolder = this.selectedMailFolder
-		if (selectedMailFolder[0] && mailboxes.every((mailbox) => mailbox.folders.getFolderByMailListId(selectedMailFolder[0]) == null)) {
-			this.selectedMailFolder = [assertNotNull(mailboxes[0].folders.getSystemFolderByType(MailFolderType.INBOX)).mails]
+		if (
+			selectedMailFolder[0] &&
+			mailboxes.every((mailbox) => folderStructures[assertNotNull(mailbox.mailbox.folders)._id].getFolderByMailListId(selectedMailFolder[0]) == null)
+		) {
+			this.selectedMailFolder = [
+				assertNotNull(folderStructures[assertNotNull(mailboxes[0].mailbox.folders)._id].getSystemFolderByType(MailFolderType.INBOX)).mails,
+			]
 		}
 	}
 

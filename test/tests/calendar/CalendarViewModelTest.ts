@@ -24,7 +24,7 @@ import {
 } from "../../../src/calendar-app/calendar/view/CalendarViewModel.js"
 import { CalendarInfo, CalendarModel } from "../../../src/calendar-app/calendar/model/CalendarModel.js"
 import { CalendarEventsRepository, DaysToEvents } from "../../../src/common/calendar/date/CalendarEventsRepository.js"
-import { MailModel } from "../../../src/common/mailFunctionality/MailModel.js"
+import { MailboxModel } from "../../../src/common/mailFunctionality/MailboxModel.js"
 import { addDaysForEventInstance, getMonthRange } from "../../../src/common/calendar/date/CalendarUtils.js"
 import { CalendarEventModel, CalendarOperation, EventSaveResult } from "../../../src/calendar-app/calendar/gui/eventeditor-model/CalendarEventModel.js"
 
@@ -72,7 +72,7 @@ o.spec("CalendarViewModel", function () {
 			getUserController: () => userController,
 			isInternalUserLoggedIn: () => true,
 		})
-		const mailModel: MailModel = object()
+		const mailboxModel: MailboxModel = object()
 		const previewModelFactory: CalendarEventPreviewModelFactory = async () => object()
 		const viewModel = new CalendarViewModel(
 			loginController,
@@ -86,7 +86,7 @@ o.spec("CalendarViewModel", function () {
 			deviceConfig,
 			calendarInvitations,
 			zone,
-			mailModel,
+			mailboxModel,
 		)
 		viewModel.allowDrag = () => true
 		return { viewModel, calendarModel, eventsRepository }

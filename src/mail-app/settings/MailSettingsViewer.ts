@@ -9,13 +9,13 @@ import {
 	TutanotaPropertiesTypeRef,
 } from "../../common/api/entities/tutanota/TypeRefs.js"
 import { Const, FeatureType, InboxRuleType, OperationType, ReportMovedMailsType } from "../../common/api/common/TutanotaConstants"
-import { capitalizeFirstLetter, defer, LazyLoaded, noOp, ofClass } from "@tutao/tutanota-utils"
+import { assertNotNull, capitalizeFirstLetter, defer, LazyLoaded, noOp, ofClass } from "@tutao/tutanota-utils"
 import { getInboxRuleTypeName } from "../mail/model/InboxRuleHandler"
 import { MailAddressTable } from "../../common/settings/mailaddress/MailAddressTable.js"
 import { Dialog } from "../../common/gui/base/Dialog"
 import { Icons } from "../../common/gui/base/icons/Icons"
 import { showProgressDialog } from "../../common/gui/dialogs/ProgressDialog"
-import type { MailboxDetail } from "../../common/mailFunctionality/MailModel.js"
+import type { MailboxDetail } from "../../common/mailFunctionality/MailboxModel.js"
 import { locator } from "../../common/api/main/CommonLocator"
 import stream from "mithril/stream"
 import Stream from "mithril/stream"
@@ -97,7 +97,7 @@ export class MailSettingsViewer implements UpdatableSettingsViewer {
 
 		this._mailboxProperties = new LazyLoaded(async () => {
 			const mailboxGroupRoot = await this.getMailboxGroupRoot()
-			return mailLocator.mailModel.getMailboxProperties(mailboxGroupRoot)
+			return mailLocator.mailboxModel.getMailboxProperties(mailboxGroupRoot)
 		})
 
 		this._updateMailboxPropertiesSettings()
@@ -119,7 +119,7 @@ export class MailSettingsViewer implements UpdatableSettingsViewer {
 
 	private async getMailboxGroupRoot(): Promise<MailboxGroupRoot> {
 		// For now we assume user mailbox, in the future we should specify which mailbox we are configuring
-		const { mailboxGroupRoot } = await mailLocator.mailModel.getUserMailboxDetails()
+		const { mailboxGroupRoot } = await mailLocator.mailboxModel.getUserMailboxDetails()
 		return mailboxGroupRoot
 	}
 
@@ -282,7 +282,7 @@ export class MailSettingsViewer implements UpdatableSettingsViewer {
 		const templateRule = createInboxRuleTemplate(InboxRuleType.RECIPIENT_TO_EQUALS, "")
 		const addInboxRuleButtonAttrs: IconButtonAttrs = {
 			title: "addInboxRule_action",
-			click: () => mailLocator.mailModel.getUserMailboxDetails().then((mailboxDetails) => AddInboxRuleDialog.show(mailboxDetails, templateRule)),
+			click: () => mailLocator.mailboxModel.getUserMailboxDetails().then((mailboxDetails) => AddInboxRuleDialog.show(mailboxDetails, templateRule)),
 			icon: Icons.Add,
 			size: ButtonSize.Compact,
 		}
@@ -443,7 +443,7 @@ export class MailSettingsViewer implements UpdatableSettingsViewer {
 	}
 
 	_updateInboxRules(props: TutanotaProperties): void {
-		mailLocator.mailModel.getUserMailboxDetails().then((mailboxDetails) => {
+		mailLocator.mailboxModel.getUserMailboxDetails().then((mailboxDetails) => {
 			this._inboxRulesTableLines(
 				props.inboxRules.map((rule, index) => {
 					return {
@@ -479,7 +479,8 @@ export class MailSettingsViewer implements UpdatableSettingsViewer {
 	}
 
 	_getTextForTarget(mailboxDetail: MailboxDetail, targetFolderId: IdTuple): string {
-		let folder = mailboxDetail.folders.getFolderById(targetFolderId)
+		const folders = mailLocator.mailModel.getMailboxFoldersForId(assertNotNull(mailboxDetail.mailbox.folders)._id)
+		let folder = folders.getFolderById(targetFolderId)
 
 		if (folder) {
 			return getFolderName(folder)

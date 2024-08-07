@@ -11,18 +11,17 @@ import { downcast } from "@tutao/tutanota-utils"
 import { MailFacade } from "../../../src/common/api/worker/facades/lazy/MailFacade.js"
 import { LoginController } from "../../../src/common/api/main/LoginController.js"
 import { matchers, object, when } from "testdouble"
-import { FolderSystem } from "../../../src/common/api/common/mail/FolderSystem.js"
 import { WebsocketConnectivityModel } from "../../../src/common/misc/WebsocketConnectivityModel.js"
 import { UserController } from "../../../src/common/api/main/UserController.js"
 import { createTestEntity } from "../TestUtils.js"
 import { EntityUpdateData } from "../../../src/common/api/common/utils/EntityUpdateUtils.js"
-import { MailboxDetail, MailModel } from "../../../src/common/mailFunctionality/MailModel.js"
+import { MailboxDetail, MailboxModel } from "../../../src/common/mailFunctionality/MailboxModel.js"
 import { InboxRuleHandler } from "../../../src/mail-app/mail/model/InboxRuleHandler.js"
 
 o.spec("MailModelTest", function () {
 	let notifications: Partial<Notifications>
 	let showSpy: Spy
-	let model: MailModel
+	let model: MailboxModel
 	const inboxFolder = createTestEntity(MailFolderTypeRef, { _id: ["folderListId", "inboxId"] })
 	inboxFolder.mails = "instanceListId"
 	inboxFolder.folderType = MailFolderType.INBOX
@@ -34,23 +33,16 @@ o.spec("MailModelTest", function () {
 	let inboxRuleHandler: InboxRuleHandler
 
 	o.beforeEach(function () {
-		mailboxDetails = [
-			{
-				folders: new FolderSystem([inboxFolder]),
-			},
-		]
 		notifications = {}
 		showSpy = notifications.showNotification = spy()
 		const restClient = new EntityRestClientMock()
-		const connectivityModel = object<WebsocketConnectivityModel>()
-		const mailFacade = nodemocker.mock<MailFacade>("mailFacade", {}).set()
 		logins = object()
 		let userController = object<UserController>()
 		when(userController.isUpdateForLoggedInUserInstance(matchers.anything(), matchers.anything())).thenReturn(false)
 		when(logins.getUserController()).thenReturn(userController)
 
 		inboxRuleHandler = object()
-		model = new MailModel(downcast(notifications), downcast({}), mailFacade, new EntityClient(restClient), logins, connectivityModel, inboxRuleHandler)
+		model = new MailboxModel(downcast({}), new EntityClient(restClient), logins)
 		// not pretty, but works
 		model.mailboxDetails(mailboxDetails as MailboxDetail[])
 	})
