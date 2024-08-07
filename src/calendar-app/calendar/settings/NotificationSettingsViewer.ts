@@ -8,10 +8,11 @@ import { lang } from "../../../common/misc/LanguageViewModel.js"
 import { IdentifierRow } from "../../../common/settings/IdentifierRow.js"
 import { noOp, ofClass } from "@tutao/tutanota-utils"
 import { NotFoundError } from "../../../common/api/common/error/RestError.js"
-import { AppType, PushServiceType } from "../../../common/api/common/TutanotaConstants.js"
+import { PushServiceType } from "../../../common/api/common/TutanotaConstants.js"
 import { NotificationTargetsList, NotificationTargetsListAttrs } from "../../../common/settings/NotificationTargetsList.js"
 import { EntityUpdateData, isUpdateForTypeRef } from "../../../common/api/common/utils/EntityUpdateUtils.js"
 import { calendarLocator } from "../../calendarLocator.js"
+import { AppType } from "../../../common/misc/ClientConstants.js"
 
 export class NotificationSettingsViewer implements UpdatableSettingsViewer {
 	private currentIdentifier: string | null = null

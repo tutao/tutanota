@@ -12,12 +12,13 @@ import { ButtonSize } from "../../common/gui/base/ButtonSize.js"
 import { isApp, isDesktop } from "../../common/api/common/Env.js"
 import { noOp, ofClass } from "@tutao/tutanota-utils"
 import { NotFoundError } from "../../common/api/common/error/RestError.js"
-import { AppType, PushServiceType } from "../../common/api/common/TutanotaConstants.js"
+import { PushServiceType } from "../../common/api/common/TutanotaConstants.js"
 import { IdentifierRow } from "../../common/settings/IdentifierRow.js"
 import { mailLocator } from "../mailLocator.js"
 import { UpdatableSettingsViewer } from "../../common/settings/Interfaces.js"
 import { NotificationContentSelector } from "./NotificationContentSelector.js"
 import { NotificationTargetsList, NotificationTargetsListAttrs } from "../../common/settings/NotificationTargetsList.js"
+import { AppType } from "../../common/misc/ClientConstants.js"
 
 export class NotificationSettingsViewer implements UpdatableSettingsViewer {
 	private currentIdentifier: string | null = null
