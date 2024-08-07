@@ -1,5 +1,5 @@
 import m, { Children, Component, Vnode } from "mithril"
-import { MailModel } from "../../../common/mailFunctionality/MailModel.js"
+import { MailboxModel } from "../../../common/mailFunctionality/MailboxModel.js"
 import { Mail } from "../../../common/api/entities/tutanota/TypeRefs.js"
 import { IconButton } from "../../../common/gui/base/IconButton.js"
 import { promptAndDeleteMails, showMoveMailsDropdown } from "./MailGuiUtils.js"
@@ -21,11 +21,13 @@ import { ColumnWidth, Table } from "../../../common/gui/base/Table.js"
 import { ExpanderButton, ExpanderPanel } from "../../../common/gui/base/Expander.js"
 import stream from "mithril/stream"
 import { exportMails } from "../export/Exporter.js"
+import { MailModel } from "../model/MailModel.js"
 
 /*
 	note that mailViewerViewModel has a mailModel, so you do not need to pass both if you pass a mailViewerViewModel
  */
 export interface MailViewerToolbarAttrs {
+	mailboxModel: MailboxModel
 	mailModel: MailModel
 	mailViewerViewModel?: MailViewerViewModel
 	mails: Mail[]
@@ -50,13 +52,13 @@ export class MailViewerActions implements Component<MailViewerToolbarAttrs> {
 		} else if (attrs.mailViewerViewModel) {
 			return [
 				this.renderDeleteButton(mailModel, attrs.mails, attrs.selectNone ?? noOp),
-				attrs.mailViewerViewModel.canForwardOrMove() ? this.renderMoveButton(mailModel, attrs.mails) : null,
+				attrs.mailViewerViewModel.canForwardOrMove() ? this.renderMoveButton(attrs.mailboxModel, mailModel, attrs.mails) : null,
 				attrs.mailViewerViewModel.isDraftMail() ? null : this.renderReadButton(attrs),
 			]
 		} else if (attrs.mails.length > 0) {
 			return [
 				this.renderDeleteButton(mailModel, attrs.mails, attrs.selectNone ?? noOp),
-				attrs.mailModel.isMovingMailsAllowed() ? this.renderMoveButton(mailModel, attrs.mails) : null,
+				attrs.mailModel.isMovingMailsAllowed() ? this.renderMoveButton(attrs.mailboxModel, mailModel, attrs.mails) : null,
 				this.renderReadButton(attrs),
 				this.renderExportButton(attrs),
 			]
@@ -94,11 +96,11 @@ export class MailViewerActions implements Component<MailViewerToolbarAttrs> {
 		})
 	}
 
-	private renderMoveButton(mailModel: MailModel, mails: Mail[]): Children {
+	private renderMoveButton(mailboxModel: MailboxModel, mailModel: MailModel, mails: Mail[]): Children {
 		return m(IconButton, {
 			title: "move_action",
 			icon: Icons.Folder,
-			click: (e, dom) => showMoveMailsDropdown(mailModel, dom.getBoundingClientRect(), mails),
+			click: (e, dom) => showMoveMailsDropdown(mailboxModel, mailModel, dom.getBoundingClientRect(), mails),
 		})
 	}
 

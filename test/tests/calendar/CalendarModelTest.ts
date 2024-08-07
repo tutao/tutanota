@@ -33,7 +33,7 @@ import { createTestEntity } from "../TestUtils.js"
 import { NoopProgressMonitor } from "../../../src/common/api/common/utils/ProgressMonitor.js"
 import { makeAlarmScheduler } from "./CalendarTestUtils.js"
 import { EntityUpdateData } from "../../../src/common/api/common/utils/EntityUpdateUtils.js"
-import { MailModel } from "../../../src/common/mailFunctionality/MailModel.js"
+import { MailboxModel } from "../../../src/common/mailFunctionality/MailboxModel.js"
 import { incrementByRepeatPeriod } from "../../../src/common/calendar/date/CalendarUtils.js"
 import { ExternalCalendarFacade } from "../../../src/common/native/common/generatedipc/ExternalCalendarFacade.js"
 import { DeviceConfig } from "../../../src/common/misc/DeviceConfig.js"
@@ -728,7 +728,7 @@ function makeLoginController(): LoginController {
 	return loginController
 }
 
-function makeMailModel(): MailModel {
+function makeMailModel(): MailboxModel {
 	return downcast({})
 }
 

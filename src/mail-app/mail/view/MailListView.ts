@@ -29,8 +29,10 @@ import { BootIcons } from "../../../common/gui/base/icons/BootIcons.js"
 import { theme } from "../../../common/gui/theme.js"
 import { VirtualRow } from "../../../common/gui/base/ListUtils.js"
 import { isKeyPressed } from "../../../common/misc/KeyManager.js"
-import { assertSystemFolderOfType, canDoDragAndDropExport, isOfTypeOrSubfolderOf } from "../../../common/mailFunctionality/SharedMailUtils.js"
 import { ListModel } from "../../../common/misc/ListModel.js"
+import { canDoDragAndDropExport } from "../../../common/mailFunctionality/SharedMailUtils.js"
+import { assertSystemFolderOfType, isOfTypeOrSubfolderOf } from "../model/MailModel.js"
+import { mailLocator } from "../../mailLocator.js"
 
 assertMainOrNode()
 
@@ -402,14 +404,16 @@ export class MailListView implements Component<MailListViewAttrs> {
 		const selectedFolder = this.mailViewModel.getFolder()
 		if (selectedFolder) {
 			const mailDetails = await this.mailViewModel.getMailboxDetails()
-			return isOfTypeOrSubfolderOf(mailDetails.folders, selectedFolder, MailSetKind.ARCHIVE) || selectedFolder.folderType === MailSetKind.TRASH
-		} else {
-			return false
+			if (mailDetails.mailbox.folders) {
+				const folders = mailLocator.mailModel.getMailboxFoldersForId(mailDetails.mailbox.folders._id)
+				return isOfTypeOrSubfolderOf(folders, selectedFolder, MailSetKind.ARCHIVE) || selectedFolder.folderType === MailSetKind.TRASH
+			}
 		}
+		return false
 	}
 
 	private async onSwipeLeft(listElement: Mail): Promise<ListSwipeDecision> {
-		const wereDeleted = await promptAndDeleteMails(locator.mailModel, [listElement], () => this.mailViewModel.listModel?.selectNone())
+		const wereDeleted = await promptAndDeleteMails(mailLocator.mailModel, [listElement], () => this.mailViewModel.listModel?.selectNone())
 		return wereDeleted ? ListSwipeDecision.Commit : ListSwipeDecision.Cancel
 	}
 
@@ -419,7 +423,7 @@ export class MailListView implements Component<MailListViewAttrs> {
 			this.mailViewModel.listModel?.selectNone()
 			return ListSwipeDecision.Cancel
 		} else {
-			const folders = await locator.mailModel.getMailboxFolders(listElement)
+			const folders = await mailLocator.mailModel.getMailboxFoldersForMail(listElement)
 			if (folders) {
 				//Check if the user is in the trash/spam folder or if it's in Inbox or Archive
 				//to determinate the target folder
@@ -427,7 +431,8 @@ export class MailListView implements Component<MailListViewAttrs> {
 					? this.getRecoverFolder(listElement, folders)
 					: assertNotNull(folders.getSystemFolderByType(this.showingArchive ? MailSetKind.INBOX : MailSetKind.ARCHIVE))
 				const wereMoved = await moveMails({
-					mailModel: locator.mailModel,
+					mailboxModel: locator.mailboxModel,
+					mailModel: mailLocator.mailModel,
 					mails: [listElement],
 					targetMailFolder,
 				})

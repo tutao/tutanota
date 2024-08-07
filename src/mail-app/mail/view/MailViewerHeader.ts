@@ -19,7 +19,7 @@ import { ContentBlockingStatus, MailViewerViewModel } from "./MailViewerViewMode
 import { canSeeTutaLinks } from "../../../common/gui/base/GuiUtils.js"
 import { isNotNull, noOp, resolveMaybeLazy } from "@tutao/tutanota-utils"
 import { IconButton } from "../../../common/gui/base/IconButton.js"
-import { promptAndDeleteMails, showMoveMailsDropdown } from "./MailGuiUtils.js"
+import { isTutanotaTeamMail, promptAndDeleteMails, showMoveMailsDropdown } from "./MailGuiUtils.js"
 import { BootIcons } from "../../../common/gui/base/icons/BootIcons.js"
 import { editDraft, mailViewerMoreActions } from "./MailViewerUtils.js"
 import { liveDataAttrs } from "../../../common/gui/AriaUtils.js"
@@ -28,7 +28,6 @@ import { AttachmentBubble, getAttachmentType } from "../../../common/gui/Attachm
 import { responsiveCardHMargin, responsiveCardHPadding } from "../../../common/gui/cards.js"
 import { companyTeamLabel } from "../../../common/misc/ClientConstants.js"
 import { getConfidentialIcon, getFolderIconByType, getMailAddressDisplayText } from "../../../common/mailFunctionality/SharedMailUtils.js"
-import { isTutanotaTeamMail } from "../../../common/mailFunctionality/SharedMailUtils.js"
 import { MailAddressAndName } from "../../../common/api/common/CommonMailUtils.js"
 
 export type MailAddressDropdownCreator = (args: {
@@ -699,7 +698,8 @@ export class MailViewerHeader implements Component<MailViewerHeaderAttrs> {
 					})
 					actionButtons.push({
 						label: "move_action",
-						click: (_: MouseEvent, dom: HTMLElement) => showMoveMailsDropdown(viewModel.mailModel, dom.getBoundingClientRect(), [viewModel.mail]),
+						click: (_: MouseEvent, dom: HTMLElement) =>
+							showMoveMailsDropdown(viewModel.mailboxModel, viewModel.mailModel, dom.getBoundingClientRect(), [viewModel.mail]),
 						icon: Icons.Folder,
 					})
 					actionButtons.push({
@@ -731,7 +731,7 @@ export class MailViewerHeader implements Component<MailViewerHeaderAttrs> {
 						actionButtons.push({
 							label: "move_action",
 							click: (_: MouseEvent, dom: HTMLElement) =>
-								showMoveMailsDropdown(viewModel.mailModel, dom.getBoundingClientRect(), [viewModel.mail]),
+								showMoveMailsDropdown(viewModel.mailboxModel, viewModel.mailModel, dom.getBoundingClientRect(), [viewModel.mail]),
 							icon: Icons.Folder,
 						})
 					}
