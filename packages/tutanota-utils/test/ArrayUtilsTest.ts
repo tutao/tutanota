@@ -18,6 +18,7 @@ import {
 	splitInChunks,
 	symmetricDifference,
 } from "../lib/index.js"
+import { compare } from "../lib/ArrayUtils.js"
 
 type ObjectWithId = {
 	v: number
@@ -874,5 +875,19 @@ o.spec("array utils", function () {
 		o(arrayOf(1, (idx) => idx + 1 + " one thousand")).deepEquals(["1 one thousand"])
 
 		o(arrayOf(2, (idx) => idx + 1 + " one thousand")).deepEquals(["1 one thousand", "2 one thousand"])
+	})
+
+	o("customId comparision", function () {
+		o(compare(new Uint8Array([]), new Uint8Array([]))).equals(0)
+
+		o(compare(new Uint8Array([1]), new Uint8Array([]))).equals(1)
+
+		o(compare(new Uint8Array([]), new Uint8Array([1]))).equals(-1)
+
+		o(compare(new Uint8Array([1, 1]), new Uint8Array([1, 1]))).equals(0)
+
+		o(compare(new Uint8Array([1, 1, 3]), new Uint8Array([1, 1, 2]))).equals(1)
+
+		o(compare(new Uint8Array([1, 1, 2]), new Uint8Array([1, 1, 3]))).equals(-1)
 	})
 })

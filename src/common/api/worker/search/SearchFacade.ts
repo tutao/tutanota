@@ -1,7 +1,6 @@
 import { MailTypeRef } from "../../entities/tutanota/TypeRefs.js"
 import { DbTransaction } from "./DbFacade"
 import { resolveTypeReference } from "../../common/EntityFunctions"
-import type { PromiseMapFn } from "@tutao/tutanota-utils"
 import {
 	arrayHash,
 	asyncFind,
@@ -9,11 +8,13 @@ import {
 	downcast,
 	getDayShifted,
 	getStartOfDay,
+	isNotEmpty,
 	isNotNull,
 	isSameTypeRef,
 	neverNull,
 	promiseMap,
 	promiseMapCompat,
+	PromiseMapFn,
 	tokenize,
 	TypeRef,
 	uint8ArrayToBase64,
@@ -47,7 +48,7 @@ import {
 	typeRefToTypeInfo,
 } from "./IndexUtils"
 import { FULL_INDEXED_TIMESTAMP, NOTHING_INDEXED_TIMESTAMP } from "../../common/TutanotaConstants"
-import { compareNewestFirst, firstBiggerThanSecond, timestampToGeneratedId } from "../../common/utils/EntityUtils"
+import { compareNewestFirst, elementIdPart, firstBiggerThanSecond, getListId, timestampToGeneratedId } from "../../common/utils/EntityUtils"
 import { INITIAL_MAIL_INDEX_INTERVAL_DAYS, MailIndexer } from "./MailIndexer"
 import { SuggestionFacade } from "./SuggestionFacade"
 import { AssociationType, Cardinality, ValueType } from "../../common/EntityConstants.js"
@@ -490,7 +491,6 @@ export class SearchFacade {
 	 * Reduces the search result by filtering out all mailIds that don't match all search tokens
 	 */
 	_filterByEncryptedId(results: KeyToEncryptedIndexEntries[]): KeyToEncryptedIndexEntries[] {
-		// let matchingEncIds = null
 		let matchingEncIds: Set<number> | null = null
 		for (const keyToEncryptedIndexEntry of results) {
 			if (matchingEncIds == null) {
@@ -626,37 +626,62 @@ export class SearchFacade {
 		// Use separate array to only sort new results and not all of them.
 		return this._db.dbFacade
 			.createTransaction(true, [ElementDataOS])
-			.then(
-				(
-					transaction, // As an attempt to optimize search we look for items in parallel. Promise.map iterates in arbitrary order!
-				) =>
-					// BUT! we have to look at all of them! Otherwise we may return them in the wrong order. We cannot return elements 10, 15, 20 if we didn't
-					// return element 5 first, no one will ask for it later.
-					// The best thing performance-wise would be to split into chunks of certain length and process them in parallel and stop after certain chunk.
-					promiseMap(
-						indexEntries.slice(0, maxResults || indexEntries.length + 1),
-						(entry, index) => {
-							return transaction.get(ElementDataOS, uint8ArrayToBase64(entry.encId)).then((elementData: ElementDataDbRow | null) => {
-								// mark result index id as processed to not query result in next load more operation
-								entriesCopy[index] = null
+			.then((transaction) =>
+				// As an attempt to optimize search we look for items in parallel. Promise.map iterates in arbitrary order!
+				// BUT! we have to look at all of them! Otherwise, we may return them in the wrong order.
+				// We cannot return elements 10, 15, 20 if we didn't return element 5 first, no one will ask for it later.
+				// The best thing performance-wise would be to split into chunks of certain length and process them in parallel and stop after certain chunk.
+				promiseMap(
+					indexEntries.slice(0, maxResults || indexEntries.length + 1),
+					async (entry, index) => {
+						return transaction.get(ElementDataOS, uint8ArrayToBase64(entry.encId)).then((elementData: ElementDataDbRow | null) => {
+							// mark result index id as processed to not query result in next load more operation
+							entriesCopy[index] = null
 
-								if (
-									elementData &&
-									(!(searchResult.restriction.listIds.length > 0) || searchResult.restriction.listIds.includes(elementData[0]))
-								) {
-									return [elementData[0], entry.id] as IdTuple
-								}
-
+							if (elementData) {
+								return [elementData[0], entry.id] as IdTuple
+							} else {
 								return null
-							})
-						},
-						{
-							concurrency: 5,
-						},
-					),
+							}
+						})
+					},
+					{
+						concurrency: 5,
+					},
+				),
 			)
+			.then((intermediateResults) => intermediateResults.filter(isNotNull))
+			.then(async (intermediateResults) => {
+				// apply folder restrictions to intermediateResults
+
+				if (!(searchResult.restriction.folderIds.length > 0)) {
+					// no folder restrictions (ALL)
+					return intermediateResults
+				} else {
+					// some folder restrictions (e.g. INBOX)
+
+					// With the new mailSet architecture (static mail lists) we need to load every mail
+					// in order to check in which mailSet (folder) a mail is included in.
+					const mails = await Promise.all(
+						intermediateResults.map((intermediateResultId) => this._entityClient.load(MailTypeRef, intermediateResultId)),
+					)
+					return mails
+						.filter((mail) => {
+							let folderIds: Array<Id>
+							if (isNotEmpty(mail.sets)) {
+								// new mailSet folders
+								folderIds = mail.sets.map((setId) => elementIdPart(setId))
+							} else {
+								// legacy mail folder (mail list)
+								folderIds = [getListId(mail)]
+							}
+							return folderIds.some((folderId) => searchResult.restriction.folderIds.includes(folderId))
+						})
+						.map((mail) => mail._id)
+				}
+			})
 			.then((newResults) => {
-				searchResult.results.push(...(newResults.filter(isNotNull) as IdTuple[]))
+				searchResult.results.push(...(newResults as IdTuple[]))
 				searchResult.moreResults = entriesCopy.filter(isNotNull)
 			})
 	}

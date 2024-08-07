@@ -34,7 +34,7 @@ export class ContactViewModel {
 			const items = await this.entityClient.loadAll(ContactTypeRef, this.contactListId)
 			return { items, complete: true }
 		},
-		loadSingle: async (elementId: Id) => {
+		loadSingle: async (_listId: Id, elementId: Id) => {
 			const listId = await this.contactModel.getContactListId()
 			if (listId == null) return null
 			return this.entityClient.load(ContactTypeRef, [listId, elementId])
@@ -82,8 +82,9 @@ export class ContactViewModel {
 
 	private readonly entityListener: EntityEventsListener = async (updates) => {
 		for (const update of updates) {
-			if (isUpdateForTypeRef(ContactTypeRef, update) && update.instanceListId === this.contactListId) {
-				await this.listModel.entityEventReceived(update.instanceId, update.operation)
+			const { instanceListId, instanceId, operation } = update
+			if (isUpdateForTypeRef(ContactTypeRef, update) && instanceListId === this.contactListId) {
+				await this.listModel.entityEventReceived(instanceListId, instanceId, operation)
 			}
 		}
 	}

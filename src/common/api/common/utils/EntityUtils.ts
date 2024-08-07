@@ -6,6 +6,7 @@ import {
 	base64ToUint8Array,
 	base64UrlToBase64,
 	clone,
+	compare,
 	hexToBase64,
 	isSameTypeRef,
 	pad,
@@ -108,7 +109,7 @@ export type StrippedEntity<T extends Entity> =
  */
 export function firstBiggerThanSecond(firstId: Id, secondId: Id, typeModel?: TypeModel): boolean {
 	if (typeModel?.values._id.type === ValueType.CustomId) {
-		return firstBiggerThanSecond(customIdToString(firstId), customIdToString(secondId))
+		return firstBiggerThanSecondCustomId(firstId, secondId)
 	} else {
 		// if the number of digits is bigger, then the id is bigger, otherwise we can use the lexicographical comparison
 		if (firstId.length > secondId.length) {
@@ -119,6 +120,17 @@ export function firstBiggerThanSecond(firstId: Id, secondId: Id, typeModel?: Typ
 			return firstId > secondId
 		}
 	}
+}
+
+export function firstBiggerThanSecondCustomId(firstId: Id, secondId: Id): boolean {
+	return compare(customIdToUint8array(firstId), customIdToUint8array(secondId)) === 1
+}
+
+function customIdToUint8array(id: Id): Uint8Array {
+	if (id === "") {
+		return new Uint8Array()
+	}
+	return base64ToUint8Array(base64UrlToBase64(id))
 }
 
 export function compareNewestFirst(id1: Id | IdTuple, id2: Id | IdTuple): number {

@@ -2,7 +2,7 @@ import o from "@tutao/otest"
 import { Notifications } from "../../../src/common/gui/Notifications.js"
 import type { Spy } from "@tutao/tutanota-test-utils"
 import { spy } from "@tutao/tutanota-test-utils"
-import { MailFolderType, OperationType } from "../../../src/common/api/common/TutanotaConstants.js"
+import { MailSetKind, OperationType } from "../../../src/common/api/common/TutanotaConstants.js"
 import { MailFolderTypeRef, MailTypeRef } from "../../../src/common/api/entities/tutanota/TypeRefs.js"
 import { EntityClient } from "../../../src/common/api/common/EntityClient.js"
 import { EntityRestClientMock } from "../api/worker/rest/EntityRestClientMock.js"
@@ -18,30 +18,31 @@ import { createTestEntity } from "../TestUtils.js"
 import { EntityUpdateData } from "../../../src/common/api/common/utils/EntityUpdateUtils.js"
 import { MailboxDetail, MailModel } from "../../../src/common/mailFunctionality/MailModel.js"
 import { InboxRuleHandler } from "../../../src/mail-app/mail/model/InboxRuleHandler.js"
+import { getElementId, getListId } from "../../../src/common/api/common/utils/EntityUtils.js"
 
 o.spec("MailModelTest", function () {
 	let notifications: Partial<Notifications>
 	let showSpy: Spy
 	let model: MailModel
-	const inboxFolder = createTestEntity(MailFolderTypeRef, { _id: ["folderListId", "inboxId"] })
+	const inboxFolder = createTestEntity(MailFolderTypeRef, { _id: ["folderListId", "inboxId"], isMailSet: false })
 	inboxFolder.mails = "instanceListId"
-	inboxFolder.folderType = MailFolderType.INBOX
-	const anotherFolder = createTestEntity(MailFolderTypeRef, { _id: ["folderListId", "archiveId"] })
+	inboxFolder.folderType = MailSetKind.INBOX
+	const anotherFolder = createTestEntity(MailFolderTypeRef, { _id: ["folderListId", "archiveId"], isMailSet: false })
 	anotherFolder.mails = "anotherListId"
-	anotherFolder.folderType = MailFolderType.ARCHIVE
+	anotherFolder.folderType = MailSetKind.ARCHIVE
 	let mailboxDetails: Partial<MailboxDetail>[]
 	let logins: LoginController
 	let inboxRuleHandler: InboxRuleHandler
+	const restClient: EntityRestClientMock = new EntityRestClientMock()
 
 	o.beforeEach(function () {
 		mailboxDetails = [
 			{
-				folders: new FolderSystem([inboxFolder]),
+				folders: new FolderSystem([inboxFolder, anotherFolder]),
 			},
 		]
 		notifications = {}
 		showSpy = notifications.showNotification = spy()
-		const restClient = new EntityRestClientMock()
 		const connectivityModel = object<WebsocketConnectivityModel>()
 		const mailFacade = nodemocker.mock<MailFacade>("mailFacade", {}).set()
 		logins = object()
@@ -55,10 +56,13 @@ o.spec("MailModelTest", function () {
 		model.mailboxDetails(mailboxDetails as MailboxDetail[])
 	})
 	o("doesn't send notification for another folder", async function () {
+		const mail = createTestEntity(MailTypeRef, { _id: [anotherFolder.mails, "mailId"], sets: [] })
+		restClient.addListInstances(mail)
 		await model.entityEventsReceived(
 			[
 				makeUpdate({
-					instanceListId: anotherFolder.mails,
+					instanceListId: getListId(mail),
+					instanceId: getElementId(mail),
 					operation: OperationType.CREATE,
 				}),
 			],
@@ -67,14 +71,18 @@ o.spec("MailModelTest", function () {
 		o(showSpy.invocations.length).equals(0)
 	})
 	o("doesn't send notification for move operation", async function () {
+		const mail = createTestEntity(MailTypeRef, { _id: [inboxFolder.mails, "mailId"], sets: [] })
+		restClient.addListInstances(mail)
 		await model.entityEventsReceived(
 			[
 				makeUpdate({
-					instanceListId: anotherFolder.mails,
+					instanceListId: getListId(mail),
+					instanceId: getElementId(mail),
 					operation: OperationType.DELETE,
 				}),
 				makeUpdate({
-					instanceListId: inboxFolder.mails,
+					instanceListId: getListId(mail),
+					instanceId: getElementId(mail),
 					operation: OperationType.CREATE,
 				}),
 			],
@@ -83,7 +91,7 @@ o.spec("MailModelTest", function () {
 		o(showSpy.invocations.length).equals(0)
 	})
 
-	function makeUpdate(arg: { instanceListId: string; operation: OperationType }): EntityUpdateData {
+	function makeUpdate(arg: { instanceListId: string; instanceId: Id; operation: OperationType }): EntityUpdateData {
 		return Object.assign(
 			{},
 			{

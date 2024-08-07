@@ -1,17 +1,17 @@
-import type { InboxRule, Mail, MoveMailData } from "../../../common/api/entities/tutanota/TypeRefs.js"
+import type { InboxRule, Mail, MailFolder, MoveMailData } from "../../../common/api/entities/tutanota/TypeRefs.js"
 import { createMoveMailData } from "../../../common/api/entities/tutanota/TypeRefs.js"
-import { InboxRuleType, MailFolderType, MAX_NBR_MOVE_DELETE_MAIL_SERVICE } from "../../../common/api/common/TutanotaConstants"
+import { InboxRuleType, MailSetKind, MAX_NBR_MOVE_DELETE_MAIL_SERVICE } from "../../../common/api/common/TutanotaConstants"
 import { isDomainName, isRegularExpression } from "../../../common/misc/FormatValidator"
 import { assertNotNull, asyncFind, debounce, ofClass, promiseMap, splitInChunks } from "@tutao/tutanota-utils"
 import { lang } from "../../../common/misc/LanguageViewModel"
 import type { MailboxDetail } from "../../../common/mailFunctionality/MailModel.js"
 import { LockedError, PreconditionFailedError } from "../../../common/api/common/error/RestError"
 import type { SelectorItemList } from "../../../common/gui/base/DropDownSelector.js"
-import { getElementId, getListId, isSameId } from "../../../common/api/common/utils/EntityUtils"
+import { elementIdPart, isSameId } from "../../../common/api/common/utils/EntityUtils"
 import { assertMainOrNode } from "../../../common/api/common/Env"
 import { MailFacade } from "../../../common/api/worker/facades/lazy/MailFacade.js"
 import { LoginController } from "../../../common/api/main/LoginController.js"
-import { assertSystemFolderOfType, getMailHeaders } from "../../../common/mailFunctionality/SharedMailUtils.js"
+import { getMailHeaders } from "../../../common/mailFunctionality/SharedMailUtils.js"
 
 assertMainOrNode()
 const moveMailDataPerFolder: MoveMailData[] = []
@@ -24,7 +24,8 @@ async function sendMoveMailRequest(mailFacade: MailFacade): Promise<void> {
 		const mailChunks = splitInChunks(MAX_NBR_MOVE_DELETE_MAIL_SERVICE, moveToTargetFolder.mails)
 		await promiseMap(mailChunks, (mailChunk) => {
 			moveToTargetFolder.mails = mailChunk
-			return mailFacade.moveMails(mailChunk, moveToTargetFolder.targetFolder)
+			const sourceFolder = assertNotNull(moveToTargetFolder.sourceFolder) // old clients don't send sourceFolder. assertNotNull can be removed once sourceFolder cardinality is ONE
+			return mailFacade.moveMails(mailChunk, sourceFolder, moveToTargetFolder.targetFolder)
 		})
 			.catch(
 				ofClass(LockedError, (e) => {
@@ -96,16 +97,17 @@ export class InboxRuleHandler {
 	 * Checks the mail for an existing inbox rule and moves the mail to the target folder of the rule.
 	 * @returns true if a rule matches otherwise false
 	 */
-	async findAndApplyMatchingRule(mailboxDetail: MailboxDetail, mail: Mail, applyRulesOnServer: boolean): Promise<IdTuple | null> {
-		if (mail._errors || !mail.unread || !isInboxList(mailboxDetail, getListId(mail)) || !this.logins.getUserController().isPremiumAccount()) {
+	async findAndApplyMatchingRule(mailboxDetail: MailboxDetail, mail: Mail, applyRulesOnServer: boolean): Promise<{ folder: MailFolder; mail: Mail } | null> {
+		if (mail._errors || !mail.unread || !isInboxFolder(mailboxDetail, mail) || !this.logins.getUserController().isPremiumAccount()) {
 			return null
 		}
 
 		const inboxRule = await _findMatchingRule(this.mailFacade, mail, this.logins.getUserController().props.inboxRules)
 		if (inboxRule) {
-			let targetFolder = mailboxDetail.folders.getFolderById(inboxRule.targetFolder)
+			let inboxFolder = assertNotNull(mailboxDetail.folders.getSystemFolderByType(MailSetKind.INBOX))
+			let targetFolder = mailboxDetail.folders.getFolderById(elementIdPart(inboxRule.targetFolder))
 
-			if (targetFolder && targetFolder.folderType !== MailFolderType.INBOX) {
+			if (targetFolder && targetFolder.folderType !== MailSetKind.INBOX) {
 				if (applyRulesOnServer) {
 					let moveMailData = moveMailDataPerFolder.find((folderMoveMailData) => isSameId(folderMoveMailData.targetFolder, inboxRule.targetFolder))
 
@@ -113,6 +115,7 @@ export class InboxRuleHandler {
 						moveMailData.mails.push(mail._id)
 					} else {
 						moveMailData = createMoveMailData({
+							sourceFolder: inboxFolder._id,
 							targetFolder: inboxRule.targetFolder,
 							mails: [mail._id],
 						})
@@ -122,7 +125,7 @@ export class InboxRuleHandler {
 					applyMatchingRules(this.mailFacade)
 				}
 
-				return [targetFolder.mails, getElementId(mail)]
+				return { folder: targetFolder, mail }
 			} else {
 				return null
 			}
@@ -220,6 +223,7 @@ function _checkEmailAddresses(mailAddresses: string[], inboxRule: InboxRule): bo
 	return mailAddress != null
 }
 
-export function isInboxList(mailboxDetail: MailboxDetail, listId: Id): boolean {
-	return isSameId(listId, assertSystemFolderOfType(mailboxDetail.folders, MailFolderType.INBOX).mails)
+export function isInboxFolder(mailboxDetail: MailboxDetail, mail: Mail): boolean {
+	const mailFolder = mailboxDetail.folders.getFolderByMail(mail)
+	return mailFolder?.folderType === MailSetKind.INBOX
 }

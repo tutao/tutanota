@@ -198,7 +198,7 @@ export class UserListView implements UpdatableSettingsViewer {
 			const { instanceListId, instanceId, operation } = update
 
 			if (isUpdateForTypeRef(GroupInfoTypeRef, update) && this.listId.getSync() === instanceListId) {
-				await this.listModel.entityEventReceived(instanceId, operation)
+				await this.listModel.entityEventReceived(instanceListId, instanceId, operation)
 			} else if (isUpdateFor(locator.logins.getUserController().user, update)) {
 				await this.loadAdmins()
 				this.listModel.reapplyFilter()
@@ -228,7 +228,7 @@ export class UserListView implements UpdatableSettingsViewer {
 
 				return { items: allUserGroupInfos, complete: true }
 			},
-			loadSingle: async (elementId) => {
+			loadSingle: async (_listId: Id, elementId: Id) => {
 				const listId = await this.listId.getAsync()
 				try {
 					return await locator.entityClient.load<GroupInfo>(GroupInfoTypeRef, [listId, elementId])

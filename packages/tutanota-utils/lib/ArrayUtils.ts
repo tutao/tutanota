@@ -560,3 +560,26 @@ export function zeroOut(...arrays: (Uint8Array | Int8Array)[]) {
 		a.fill(0)
 	}
 }
+
+/**
+ * @return 1 if first is bigger than second, -1 if second is bigger than first and 0 otherwise
+ */
+export function compare(first: Uint8Array, second: Uint8Array): number {
+	if (first.length > second.length) {
+		return 1
+	} else if (first.length < second.length) {
+		return -1
+	}
+
+	for (let i = 0; i < first.length; i++) {
+		const a = first[i]
+		const b = second[i]
+		if (a > b) {
+			return 1
+		} else if (a < b) {
+			return -1
+		}
+	}
+
+	return 0
+}

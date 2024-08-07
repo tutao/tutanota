@@ -3,7 +3,7 @@ import { ViewSlider } from "../../../common/gui/nav/ViewSlider.js"
 import { ColumnType, ViewColumn } from "../../../common/gui/base/ViewColumn"
 import type { TranslationKey } from "../../../common/misc/LanguageViewModel"
 import { lang } from "../../../common/misc/LanguageViewModel"
-import { FeatureType, Keys, MailFolderType } from "../../../common/api/common/TutanotaConstants"
+import { FeatureType, Keys, MailSetKind } from "../../../common/api/common/TutanotaConstants"
 import { assertMainOrNode } from "../../../common/api/common/Env"
 import { keyManager, Shortcut } from "../../../common/misc/KeyManager"
 import { NavButton, NavButtonColor } from "../../../common/gui/base/NavButton.js"
@@ -648,11 +648,12 @@ export class SearchView extends BaseTopLevelView implements TopLevelView<SearchV
 			const mailboxIndex = mailboxes.indexOf(mailbox)
 			const mailFolders = mailbox.folders.getIndentedList()
 			for (const folderInfo of mailFolders) {
-				if (folderInfo.folder.folderType !== MailFolderType.SPAM) {
+				if (folderInfo.folder.folderType !== MailSetKind.SPAM) {
 					const mailboxLabel = mailboxIndex === 0 ? "" : ` (${getGroupInfoDisplayName(mailbox.mailGroupInfo)})`
+					const folderId = folderInfo.folder.isMailSet ? getElementId(folderInfo.folder) : folderInfo.folder.mails
 					availableMailFolders.push({
 						name: getIndentedFolderNameForDropdown(folderInfo) + mailboxLabel,
-						value: folderInfo.folder.mails,
+						value: folderId,
 					})
 				}
 			}

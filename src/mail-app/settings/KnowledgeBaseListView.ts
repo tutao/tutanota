@@ -98,7 +98,7 @@ export class KnowledgeBaseListView implements UpdatableSettingsViewer {
 					throw new Error("fetch knowledgeBase entry called for specific start id")
 				}
 			},
-			loadSingle: (elementId) => {
+			loadSingle: (_listId: Id, elementId: Id) => {
 				return this.entityClient.load<KnowledgeBaseEntry>(KnowledgeBaseEntryTypeRef, [this.getListId(), elementId])
 			},
 			autoSelectBehavior: () => ListAutoSelectBehavior.OLDER,
@@ -172,7 +172,7 @@ export class KnowledgeBaseListView implements UpdatableSettingsViewer {
 	async entityEventsReceived(updates: ReadonlyArray<EntityUpdateData>): Promise<any> {
 		for (const update of updates) {
 			if (isUpdateForTypeRef(KnowledgeBaseEntryTypeRef, update) && isSameId(this.getListId(), update.instanceListId)) {
-				await this.listModel.entityEventReceived(update.instanceId, update.operation)
+				await this.listModel.entityEventReceived(update.instanceListId, update.instanceId, update.operation)
 			}
 		}
 

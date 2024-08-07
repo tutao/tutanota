@@ -88,7 +88,7 @@ export class ContactListViewModel {
 				const items = await this.getRecipientsForList(listId)
 				return { items, complete: true }
 			},
-			loadSingle: async (elementId: Id) => {
+			loadSingle: async (_listId: Id, elementId: Id) => {
 				return this.entityClient.load(ContactListEntryTypeRef, [listId, elementId])
 			},
 			sortCompare: (rl1, rl2) => rl1.emailAddress.localeCompare(rl2.emailAddress),
@@ -194,8 +194,9 @@ export class ContactListViewModel {
 	private readonly entityEventsReceived: EntityEventsListener = async (updates: ReadonlyArray<EntityUpdateData>): Promise<void> => {
 		for (const update of updates) {
 			if (this.selectedContactList) {
-				if (isUpdateForTypeRef(ContactListEntryTypeRef, update) && isSameId(this.selectedContactList, update.instanceListId)) {
-					await this.listModel?.entityEventReceived(update.instanceId, update.operation)
+				const { instanceListId, instanceId, operation } = update
+				if (isUpdateForTypeRef(ContactListEntryTypeRef, update) && isSameId(this.selectedContactList, instanceListId)) {
+					await this.listModel?.entityEventReceived(instanceListId, instanceId, operation)
 				} else if (isUpdateForTypeRef(ContactTypeRef, update)) {
 					this.getContactsForSelectedContactListEntry()
 				}

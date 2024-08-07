@@ -116,6 +116,11 @@ export interface ExposedCacheStorage {
 	provideFromRange<T extends ListElementEntity>(typeRef: TypeRef<T>, listId: Id, start: Id, count: number, reverse: boolean): Promise<T[]>
 
 	/**
+	 * Load a set of list element entities by id. Missing elements are not returned, no error is thrown.
+	 */
+	provideMultiple<T extends ListElementEntity>(typeRef: TypeRef<T>, listId: Id, elementIds: Id[]): Promise<Array<T>>
+
+	/**
 	 * retrieve all list elements that are in the cache
 	 * @param typeRef
 	 * @param listId

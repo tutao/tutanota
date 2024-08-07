@@ -23,7 +23,7 @@ export const REQUEST_SIZE_LIMIT_MAP: Map<string, number> = new Map([
 
 export const SYSTEM_GROUP_MAIL_ADDRESS = "system@tutanota.de"
 
-export const getMailFolderType = (folder: MailFolder): MailFolderType => downcast(folder.folderType)
+export const getMailFolderType = (folder: MailFolder): MailSetKind => downcast(folder.folderType)
 
 type ObjectPropertyKey = string | number | symbol
 export const reverse = <K extends ObjectPropertyKey, V extends ObjectPropertyKey>(objectMap: Record<K, V>): Record<V, K> =>
@@ -84,7 +84,7 @@ export const enum BucketPermissionType {
 	External = "3",
 }
 
-export enum MailFolderType {
+export enum MailSetKind {
 	CUSTOM = "0",
 	INBOX = "1",
 	SENT = "2",
@@ -92,6 +92,7 @@ export enum MailFolderType {
 	ARCHIVE = "4",
 	SPAM = "5",
 	DRAFT = "6",
+	ALL = "7",
 }
 
 export const enum ReplyType {

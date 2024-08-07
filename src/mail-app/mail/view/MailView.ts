@@ -3,7 +3,7 @@ import { ViewSlider } from "../../../common/gui/nav/ViewSlider.js"
 import { ColumnType, ViewColumn } from "../../../common/gui/base/ViewColumn"
 import { lang } from "../../../common/misc/LanguageViewModel"
 import { Dialog } from "../../../common/gui/base/Dialog"
-import { FeatureType, Keys, MailFolderType } from "../../../common/api/common/TutanotaConstants"
+import { FeatureType, Keys, MailSetKind } from "../../../common/api/common/TutanotaConstants"
 import { AppHeaderAttrs, Header } from "../../../common/gui/Header.js"
 import type { Mail, MailFolder } from "../../../common/api/entities/tutanota/TypeRefs.js"
 import { noOp, ofClass } from "@tutao/tutanota-utils"
@@ -109,12 +109,12 @@ export class MailView extends BaseTopLevelView implements TopLevelView<MailViewA
 		this.listColumn = new ViewColumn(
 			{
 				view: () => {
-					const listId = this.mailViewModel.getListId()
+					const folder = this.mailViewModel.getFolder()
 					return m(BackgroundColumnLayout, {
 						backgroundColor: theme.navigation_bg,
 						desktopToolbar: () =>
 							m(DesktopListToolbar, m(SelectAllCheckbox, selectionAttrsForList(this.mailViewModel.listModel)), this.renderFilterButton()),
-						columnLayout: listId
+						columnLayout: folder
 							? m(
 									"",
 									{
@@ -123,9 +123,8 @@ export class MailView extends BaseTopLevelView implements TopLevelView<MailViewA
 										},
 									},
 									m(MailListView, {
-										key: listId,
+										key: getElementId(folder),
 										mailViewModel: this.mailViewModel,
-										listId: listId,
 										onSingleSelection: (mail) => {
 											if (!this.mailViewModel.listModel?.state.inMultiselect) {
 												this.viewSlider.focus(this.mailColumn)
@@ -142,7 +141,7 @@ export class MailView extends BaseTopLevelView implements TopLevelView<MailViewA
 											}
 										},
 										onClearFolder: async () => {
-											const folder = this.mailViewModel.getSelectedFolder()
+											const folder = this.mailViewModel.getFolder()
 											if (folder == null) {
 												console.warn("Cannot delete folder, no folder is selected")
 												return
@@ -186,7 +185,7 @@ export class MailView extends BaseTopLevelView implements TopLevelView<MailViewA
 				minWidth: size.second_col_min_width,
 				maxWidth: size.second_col_max_width,
 				headerCenter: () => {
-					const selectedFolder = this.mailViewModel.getSelectedFolder()
+					const selectedFolder = this.mailViewModel.getFolder()
 					return selectedFolder ? getFolderName(selectedFolder) : ""
 				},
 			},
@@ -406,7 +405,7 @@ export class MailView extends BaseTopLevelView implements TopLevelView<MailViewA
 				exec: () => {
 					this.showNewMailDialog().catch(ofClass(PermissionError, noOp))
 				},
-				enabled: () => !!this.mailViewModel.getSelectedFolder() && isNewMailActionAvailable(),
+				enabled: () => !!this.mailViewModel.getFolder() && isNewMailActionAvailable(),
 				help: "newMail_action",
 			},
 			{
@@ -458,7 +457,7 @@ export class MailView extends BaseTopLevelView implements TopLevelView<MailViewA
 			{
 				key: Keys.ONE,
 				exec: () => {
-					this.mailViewModel.switchToFolder(MailFolderType.INBOX)
+					this.mailViewModel.switchToFolder(MailSetKind.INBOX)
 					return true
 				},
 				help: "switchInbox_action",
@@ -466,7 +465,7 @@ export class MailView extends BaseTopLevelView implements TopLevelView<MailViewA
 			{
 				key: Keys.TWO,
 				exec: () => {
-					this.mailViewModel.switchToFolder(MailFolderType.DRAFT)
+					this.mailViewModel.switchToFolder(MailSetKind.DRAFT)
 					return true
 				},
 				help: "switchDrafts_action",
@@ -474,7 +473,7 @@ export class MailView extends BaseTopLevelView implements TopLevelView<MailViewA
 			{
 				key: Keys.THREE,
 				exec: () => {
-					this.mailViewModel.switchToFolder(MailFolderType.SENT)
+					this.mailViewModel.switchToFolder(MailSetKind.SENT)
 					return true
 				},
 				help: "switchSentFolder_action",
@@ -482,7 +481,7 @@ export class MailView extends BaseTopLevelView implements TopLevelView<MailViewA
 			{
 				key: Keys.FOUR,
 				exec: () => {
-					this.mailViewModel.switchToFolder(MailFolderType.TRASH)
+					this.mailViewModel.switchToFolder(MailSetKind.TRASH)
 					return true
 				},
 				help: "switchTrash_action",
@@ -490,7 +489,7 @@ export class MailView extends BaseTopLevelView implements TopLevelView<MailViewA
 			{
 				key: Keys.FIVE,
 				exec: () => {
-					this.mailViewModel.switchToFolder(MailFolderType.ARCHIVE)
+					this.mailViewModel.switchToFolder(MailSetKind.ARCHIVE)
 					return true
 				},
 				enabled: () => locator.logins.isInternalUserLoggedIn(),
@@ -499,7 +498,7 @@ export class MailView extends BaseTopLevelView implements TopLevelView<MailViewA
 			{
 				key: Keys.SIX,
 				exec: () => {
-					this.mailViewModel.switchToFolder(MailFolderType.SPAM)
+					this.mailViewModel.switchToFolder(MailSetKind.SPAM)
 					return true
 				},
 				enabled: () => locator.logins.isInternalUserLoggedIn() && !locator.logins.isEnabled(FeatureType.InternalCommunication),
@@ -594,7 +593,7 @@ export class MailView extends BaseTopLevelView implements TopLevelView<MailViewA
 		return m(MailFoldersView, {
 			mailboxDetail,
 			expandedFolders: this.expandedState,
-			mailListToSelectedMail: this.mailViewModel.getMailListToSelectedMail(),
+			mailFolderToSelectedMail: this.mailViewModel.getMailFolderToSelectedMail(),
 			onFolderClick: () => {
 				if (!inEditMode) {
 					this.viewSlider.focus(this.listColumn)
@@ -643,7 +642,7 @@ export class MailView extends BaseTopLevelView implements TopLevelView<MailViewA
 			this.viewSlider.focusPreviousColumn()
 		}
 
-		this.mailViewModel.showMail(args.listId, args.mailId)
+		this.mailViewModel.showMailWithFolderId(args.folderId, args.mailId)
 	}
 
 	private async handleFolderDrop(droppedMailId: string, folder: MailFolder) {
@@ -677,7 +676,7 @@ export class MailView extends BaseTopLevelView implements TopLevelView<MailViewA
 	}
 
 	private async deleteCustomMailFolder(mailboxDetail: MailboxDetail, folder: MailFolder): Promise<void> {
-		if (folder.folderType !== MailFolderType.CUSTOM) {
+		if (folder.folderType !== MailSetKind.CUSTOM) {
 			throw new Error("Cannot delete non-custom folder: " + String(folder._id))
 		}
 
