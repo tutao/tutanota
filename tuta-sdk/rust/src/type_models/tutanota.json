@@ -823,6 +823,49 @@
 		"app": "tutanota",
 		"version": "74"
 	},
+	"CalendarSyncData": {
+		"name": "CalendarSyncData",
+		"since": 74,
+		"type": "DATA_TRANSFER_TYPE",
+		"id": 1448,
+		"rootId": "CHR1dGFub3RhAAWo",
+		"versioned": false,
+		"encrypted": false,
+		"values": {
+			"_format": {
+				"final": false,
+				"name": "_format",
+				"id": 1449,
+				"since": 74,
+				"type": "Number",
+				"cardinality": "One",
+				"encrypted": false
+			},
+			"sourceUrl": {
+				"final": true,
+				"name": "sourceUrl",
+				"id": 1450,
+				"since": 74,
+				"type": "String",
+				"cardinality": "ZeroOrOne",
+				"encrypted": false
+			}
+		},
+		"associations": {
+			"group": {
+				"final": true,
+				"name": "group",
+				"id": 1451,
+				"since": 74,
+				"type": "ELEMENT_ASSOCIATION",
+				"cardinality": "One",
+				"refType": "Group",
+				"dependency": null
+			}
+		},
+		"app": "tutanota",
+		"version": "74"
+	},
 	"Contact": {
 		"name": "Contact",
 		"since": 1,

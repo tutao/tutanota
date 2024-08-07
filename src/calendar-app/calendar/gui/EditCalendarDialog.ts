@@ -91,10 +91,15 @@ export function showCreateEditCalendarDialog(
 				]),
 		},
 		okActionTextId: okTextId,
-		okAction: (dialog: Dialog) => {
+		okAction: async (dialog: Dialog) => {
 			let url: string | null = null
 
 			if (calendarType === CalendarType.URL) {
+				// FIXME Improve this message and add translation
+				const proceed = await Dialog.confirm(
+					() => "Subscribing to an external calendar will expose this action to our servers during each sync operation, do you want to proceed?",
+				)
+				if (!proceed) return
 				const assertResult = assertValidURL(urlStream())
 				// FIXME Add translation for url error
 				if (!assertResult) return Dialog.message(() => "Erro")

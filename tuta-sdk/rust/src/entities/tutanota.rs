@@ -211,6 +211,20 @@ impl Entity for CalendarRepeatRule {
 
 
 #[derive(uniffi::Record, Clone, Serialize, Deserialize)]
+pub struct CalendarSyncData {
+	pub _format: i64,
+	pub sourceUrl: Option<String>,
+	pub group: Id,
+}
+
+impl Entity for CalendarSyncData {
+	fn type_ref() -> TypeRef {
+		TypeRef { app: "tutanota".to_owned(), type_: "CalendarSyncData".to_owned() }
+	}
+}
+
+
+#[derive(uniffi::Record, Clone, Serialize, Deserialize)]
 pub struct Contact {
 	pub _area: i64,
 	pub _format: i64,

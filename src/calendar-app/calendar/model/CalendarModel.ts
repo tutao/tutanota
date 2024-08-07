@@ -19,6 +19,7 @@ import {
 	CalendarEventUpdateTypeRef,
 	CalendarGroupRoot,
 	CalendarGroupRootTypeRef,
+	createCalendarSyncData,
 	createGroupSettings,
 	FileTypeRef,
 } from "../../../common/api/entities/tutanota/TypeRefs.js"
@@ -57,6 +58,9 @@ import { EntityUpdateData, isUpdateFor, isUpdateForTypeRef } from "../../../comm
 import { AlarmInterval, getTimeZone, serializeAlarmInterval } from "../../../common/calendar/date/CalendarUtils.js"
 import { isSharedGroupOwner, loadGroupMembers } from "../../../common/sharing/GroupUtils.js"
 import { showCalendarImportDialog } from "../export/CalendarImporterDialog.js"
+import { showSnackBar } from "../../../common/gui/base/SnackBar.js"
+import { CalendarService, CalendarSyncService } from "../../../common/api/entities/tutanota/Services.js"
+import { aes256RandomKey } from "@tutao/tutanota-crypto"
 
 const TAG = "[CalendarModel]"
 export type CalendarInfo = {
@@ -234,33 +238,43 @@ export class CalendarModel {
 			userSettingsGroupRoot.groupSettings.push(newGroupSettings)
 			await this.entityClient.update(userSettingsGroupRoot)
 
-			const calendarGroupRoot = await this.entityClient.load(CalendarGroupRootTypeRef, newGroupSettings.group)
-			this.handleUrlSubscription(sourceUrl, calendarGroupRoot)
+			// const calendarGroupRoot = await this.entityClient.load(CalendarGroupRootTypeRef, newGroupSettings.group)
+			this.handleUrlSubscription(sourceUrl, group)
 		}
 	}
 
-	private async handleUrlSubscription(url: string | null, calendarGroupRoot: CalendarGroupRoot) {
+	private async handleUrlSubscription(url: string | null, group: Group) {
 		if (!url) return
-		try {
-			const response = await fetch(url)
+		this.serviceExecutor.post(CalendarSyncService, createCalendarSyncData({ sourceUrl: url, group: group._id }))
+		// FIXME Add translation to inform the user we are syncing calendar events on background
 
-			if (!response.ok) throw new Error(`Response status: ${response.status}`)
-			if (!response.body) throw new Error(`Failed to get response.body: ${response}`)
-
-			const reader = response.body.pipeThrough(new TextDecoderStream()).getReader()
-			while (true) {
-				let { value, done } = await reader.read()
-				if (done) break
-
-				console.log(value)
-				console.log(value?.length)
-				const { contents } = parseCalendarStringData(value!, getTimeZone())
-				console.log(contents)
-				showCalendarImportDialog(calendarGroupRoot, contents)
-			}
-		} catch (e) {
-			console.error(e)
-		}
+		showSnackBar({
+			message: () => "Syncing calendar events on background...",
+			button: {
+				label: "ok_action",
+				click: () => {},
+			},
+		})
+		// try {
+		// 	const response = await fetch(url)
+		//
+		// 	if (!response.ok) throw new Error(`Response status: ${response.status}`)
+		// 	if (!response.body) throw new Error(`Failed to get response.body: ${response}`)
+		//
+		// 	const reader = response.body.pipeThrough(new TextDecoderStream()).getReader()
+		// 	while (true) {
+		// 		let { value, done } = await reader.read()
+		// 		if (done) break
+		//
+		// 		console.log(value)
+		// 		console.log(value?.length)
+		// 		const { contents } = parseCalendarStringData(value!, getTimeZone())
+		// 		console.log(contents)
+		// 		showCalendarImportDialog(calendarGroupRoot, contents)
+		// 	}
+		// } catch (e) {
+		// 	console.error(e)
+		// }
 	}
 
 	private async doCreate(

@@ -210,6 +210,20 @@ export type CalendarRepeatRule = {
 
 	excludedDates: DateWrapper[];
 }
+export const CalendarSyncDataTypeRef: TypeRef<CalendarSyncData> = new TypeRef("tutanota", "CalendarSyncData")
+
+export function createCalendarSyncData(values: StrippedEntity<CalendarSyncData>): CalendarSyncData {
+	return Object.assign(create(typeModels.CalendarSyncData, CalendarSyncDataTypeRef), values)
+}
+
+export type CalendarSyncData = {
+	_type: TypeRef<CalendarSyncData>;
+
+	_format: NumberString;
+	sourceUrl: null | string;
+
+	group: Id;
+}
 export const ContactTypeRef: TypeRef<Contact> = new TypeRef("tutanota", "Contact")
 
 export function createContact(values: StrippedEntity<Contact>): Contact {
