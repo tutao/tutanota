@@ -133,8 +133,8 @@ export function getSearchUrl(
 	if (restriction.end) {
 		params.end = restriction.end
 	}
-	if (restriction.listIds.length > 0) {
-		params.list = restriction.listIds
+	if (restriction.folderIds.length > 0) {
+		params.folder = restriction.folderIds
 	}
 	if (restriction.field) {
 		params.field = restriction.field
@@ -161,14 +161,14 @@ export function createRestriction(
 	start: number | null,
 	end: number | null,
 	field: string | null,
-	listIds: Array<string>,
+	folderIds: Array<string>,
 	eventSeries: boolean | null,
 ): SearchRestriction {
 	if (locator.logins.getUserController().isFreeAccount() && searchCategory === SearchCategoryTypes.mail) {
 		start = null
 		end = getFreeSearchStartDate().getTime()
 		field = null
-		listIds = []
+		folderIds = []
 		eventSeries = null
 	}
 
@@ -178,7 +178,7 @@ export function createRestriction(
 		end: end,
 		field: null,
 		attributeIds: null,
-		listIds,
+		folderIds,
 		eventSeries,
 	}
 
@@ -220,7 +220,7 @@ export function getRestriction(route: string): SearchRestriction {
 	let start: number | null = null
 	let end: number | null = null
 	let field: string | null = null
-	let listIds: Array<string> = []
+	let folderIds: Array<string> = []
 	let eventSeries: boolean | null = null
 
 	if (route.startsWith("/mail") || route.startsWith("/search/mail")) {
@@ -243,8 +243,8 @@ export function getRestriction(route: string): SearchRestriction {
 					field = SEARCH_MAIL_FIELDS.find((f) => f.field === fieldString)?.field ?? null
 				}
 
-				if (Array.isArray(params["list"])) {
-					listIds = params["list"]
+				if (Array.isArray(params["folder"])) {
+					folderIds = params["folder"]
 				}
 			} catch (e) {
 				console.log("invalid query: " + route, e)
@@ -268,9 +268,9 @@ export function getRestriction(route: string): SearchRestriction {
 				end = filterInt(params["end"])
 			}
 
-			const list = params["list"]
-			if (Array.isArray(list)) {
-				listIds = list
+			const folder = params["folder"]
+			if (Array.isArray(folder)) {
+				folderIds = folder
 			}
 		} catch (e) {
 			console.log("invalid query: " + route, e)
@@ -292,7 +292,7 @@ export function getRestriction(route: string): SearchRestriction {
 		throw new Error("invalid type " + route)
 	}
 
-	return createRestriction(category, start, end, field, listIds, eventSeries)
+	return createRestriction(category, start, end, field, folderIds, eventSeries)
 }
 
 export function decodeCalendarSearchKey(searchKey: string): { id: Id; start: number } {

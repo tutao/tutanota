@@ -656,7 +656,7 @@ export class SearchView extends BaseTopLevelView implements TopLevelView<SearchV
 					const mailboxLabel = mailboxIndex === 0 ? "" : ` (${getGroupInfoDisplayName(mailbox.mailGroupInfo)})`
 					availableMailFolders.push({
 						name: getIndentedFolderNameForDropdown(folderInfo) + mailboxLabel,
-						value: folderInfo.folder.mails,
+						value: getElementId(folderInfo.folder),
 					})
 				}
 			}

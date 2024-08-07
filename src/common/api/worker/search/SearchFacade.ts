@@ -642,7 +642,7 @@ export class SearchFacade {
 
 								if (
 									elementData &&
-									(!(searchResult.restriction.listIds.length > 0) || searchResult.restriction.listIds.includes(elementData[0]))
+									(!(searchResult.restriction.folderIds.length > 0) || searchResult.restriction.folderIds.includes(elementData[0]))
 								) {
 									return [elementData[0], entry.id] as IdTuple
 								}

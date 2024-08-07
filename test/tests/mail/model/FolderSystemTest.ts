@@ -3,6 +3,7 @@ import { createMailFolder, MailFolderTypeRef } from "../../../../src/common/api/
 import { MailSetKind } from "../../../../src/common/api/common/TutanotaConstants.js"
 import { FolderSystem } from "../../../../src/common/api/common/mail/FolderSystem.js"
 import { createTestEntity } from "../../TestUtils.js"
+import { getElementId } from "../../../../src/common/api/common/utils/EntityUtils.js"
 
 o.spec("FolderSystem", function () {
 	const listId = "listId"
@@ -116,13 +117,19 @@ o.spec("FolderSystem", function () {
 	o("getFolderById", function () {
 		const system = new FolderSystem(allFolders)
 
-		o(system.getFolderById(archive._id)).deepEquals(archive)
+		o(system.getFolderById(getElementId(archive))).deepEquals(archive)
 	})
 
 	o("getFolderById not there returns null", function () {
 		const system = new FolderSystem(allFolders)
 
-		o(system.getFolderById([listId, "randomId"])).equals(null)
+		o(system.getFolderById("randomId")).equals(null)
+	})
+
+	o("getFolderByMail", function () {
+		const system = new FolderSystem(allFolders)
+		// FIXME
+		o(system.getFolderByMail(customSubfolder.mails[0])).equals(customSubfolder)
 	})
 
 	o("getFolderByMailListId", function () {

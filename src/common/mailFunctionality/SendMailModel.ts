@@ -917,7 +917,7 @@ export class SendMailModel {
 
 	private async isMailInTrashOrSpam(draft: Mail): Promise<boolean> {
 		const folders = await this.mailModel.getMailboxFolders(draft)
-		const mailFolder = folders?.getFolderByMailListId(getListId(draft))
+		const mailFolder = folders?.getFolderByMail(draft)
 		return !!mailFolder && (mailFolder.folderType === MailSetKind.TRASH || mailFolder.folderType === MailSetKind.SPAM)
 	}
 

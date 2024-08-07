@@ -130,7 +130,7 @@ export type SearchRestriction = {
 	// must be kept in sync with attributeIds
 	attributeIds: number[] | null
 	// if empty, match anything. otherwise it's an OR-match.
-	listIds: Array<Id>
+	folderIds: Array<Id>
 	// if true, include repeating events in the search
 	eventSeries: boolean | null
 }

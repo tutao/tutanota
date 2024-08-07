@@ -159,7 +159,7 @@ export class CalendarSearchViewModel {
 	}
 
 	private listIdMatchesRestriction(listId: string, restriction: SearchRestriction): boolean {
-		return restriction.listIds.length === 0 || restriction.listIds.includes(listId)
+		return restriction.folderIds.length === 0 || restriction.folderIds.includes(listId)
 	}
 
 	onNewUrl(args: Record<string, any>, requestedPath: string) {
@@ -217,7 +217,7 @@ export class CalendarSearchViewModel {
 
 		this.startDate = restriction.start ? new Date(restriction.start) : null
 		this.endDate = restriction.end ? new Date(restriction.end) : null
-		this.selectedCalendar = this.extractCalendarListIds(restriction.listIds)
+		this.selectedCalendar = this.extractCalendarListIds(restriction.folderIds)
 		this.includeRepeatingEvents = restriction.eventSeries ?? true
 		this.lazyCalendarInfos.load()
 		this.latestCalendarRestriction = restriction
@@ -446,7 +446,7 @@ export class CalendarSearchViewModel {
 		if (result && isSameTypeRef(typeRef, result.restriction.type)) {
 			// The list id must be null/empty, otherwise the user is filtering by list, and it shouldn't be ignored
 
-			const ignoreList = isSameTypeRef(typeRef, MailTypeRef) && result.restriction.listIds.length === 0
+			const ignoreList = isSameTypeRef(typeRef, MailTypeRef) && result.restriction.folderIds.length === 0
 
 			return result.results.some((r) => this.compareItemId(r, id, ignoreList))
 		}

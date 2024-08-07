@@ -1,7 +1,7 @@
-import { groupBy, partition } from "@tutao/tutanota-utils"
-import { MailFolder } from "../../entities/tutanota/TypeRefs.js"
+import { groupBy, isNotEmpty, partition } from "@tutao/tutanota-utils"
+import { Mail, MailFolder } from "../../entities/tutanota/TypeRefs.js"
 import { MailSetKind } from "../TutanotaConstants.js"
-import { elementIdPart, getElementId, isSameId } from "../utils/EntityUtils.js"
+import { elementIdPart, getElementId, getListId, isSameId } from "../utils/EntityUtils.js"
 
 export interface IndentedFolder {
 	level: number
@@ -35,6 +35,15 @@ export class FolderSystem {
 	getFolderById(folderId: Id): MailFolder | null {
 		const subtree = this.getFolderByIdInSubtrees(this.systemSubtrees, folderId) ?? this.getFolderByIdInSubtrees(this.customSubtrees, folderId)
 		return subtree?.folder ?? null
+	}
+
+	getFolderByMail(mail: Mail): MailFolder | null {
+		const sets = mail.sets
+		if (isNotEmpty(sets)) {
+			return this.getFolderById(elementIdPart(sets[0]))
+		} else {
+			return this.getFolderByMailListId(getListId(mail))
+		}
 	}
 
 	getFolderByMailListId(mailListId: Id): MailFolder | null {
