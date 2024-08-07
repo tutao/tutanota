@@ -5,8 +5,9 @@ import m from "mithril"
 import { MailReportType, ReportMovedMailsType } from "../../../common/api/common/TutanotaConstants"
 import { ButtonAttrs, ButtonType } from "../../../common/gui/base/Button.js"
 import { Dialog } from "../../../common/gui/base/Dialog"
-import type { MailboxDetail, MailModel } from "../../../common/mailFunctionality/MailModel.js"
+import type { MailboxDetail, MailboxModel } from "../../../common/mailFunctionality/MailboxModel.js"
 import { showSnackBar } from "../../../common/gui/base/SnackBar"
+import { MailModel } from "../model/MailModel.js"
 
 function confirmMailReportDialog(mailModel: MailModel, mailboxDetails: MailboxDetail): Promise<boolean> {
 	return new Promise((resolve) => {
@@ -60,6 +61,7 @@ function confirmMailReportDialog(mailModel: MailModel, mailboxDetails: MailboxDe
  */
 export async function reportMailsAutomatically(
 	mailReportType: MailReportType,
+	mailboxModel: MailboxModel,
 	mailModel: MailModel,
 	mailboxDetails: MailboxDetail,
 	mails: ReadonlyArray<Mail>,
@@ -68,7 +70,7 @@ export async function reportMailsAutomatically(
 		return
 	}
 
-	const mailboxProperties = await mailModel.getMailboxProperties(mailboxDetails.mailboxGroupRoot)
+	const mailboxProperties = await mailboxModel.getMailboxProperties(mailboxDetails.mailboxGroupRoot)
 	let allowUndoing = true // decides if a snackbar is shown to prevent the server request
 
 	let isReportable = false

@@ -20,7 +20,9 @@ import { px, size } from "../../../common/gui/size.js"
 import { NBSP, noOp } from "@tutao/tutanota-utils"
 import { VirtualRow } from "../../../common/gui/base/ListUtils.js"
 import { companyTeamLabel } from "../../../common/misc/ClientConstants.js"
-import { getConfidentialFontIcon, getSenderOrRecipientHeading, isTutanotaTeamMail } from "../../../common/mailFunctionality/SharedMailUtils.js"
+import { getConfidentialFontIcon, getSenderOrRecipientHeading } from "../../../common/mailFunctionality/SharedMailUtils.js"
+import { isTutanotaTeamMail } from "./MailGuiUtils.js"
+import { mailLocator } from "../../mailLocator.js"
 
 const iconMap: Record<MailSetKind, string> = {
 	[MailSetKind.CUSTOM]: FontIcons.Folder,
@@ -255,7 +257,7 @@ export class MailRow implements VirtualRow<Mail> {
 		let iconText = ""
 
 		if (this.showFolderIcon) {
-			let folder = locator.mailModel.getMailFolderForMail(mail)
+			let folder = mailLocator.mailModel.getMailFolderForMail(mail)
 			iconText += folder ? this.folderIcon(getMailFolderType(folder)) : ""
 		}
 

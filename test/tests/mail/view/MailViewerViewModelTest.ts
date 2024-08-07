@@ -23,10 +23,10 @@ import { MailState } from "../../../../src/common/api/common/TutanotaConstants.j
 import { GroupInfoTypeRef } from "../../../../src/common/api/entities/sys/TypeRefs.js"
 import { CryptoFacade } from "../../../../src/common/api/worker/crypto/CryptoFacade.js"
 import { ContactImporter } from "../../../../src/mail-app/contacts/ContactImporter.js"
-import { MailboxDetail, MailModel } from "../../../../src/common/mailFunctionality/MailModel.js"
+import { MailboxDetail, MailboxModel } from "../../../../src/common/mailFunctionality/MailboxModel.js"
 import { ContactModel } from "../../../../src/common/contactsFunctionality/ContactModel.js"
 import { SendMailModel } from "../../../../src/common/mailFunctionality/SendMailModel.js"
-import { CalendarModel } from "../../../../src/calendar-app/calendar/model/CalendarModel.js"
+import { MailModel } from "../../../../src/mail-app/mail/model/MailModel.js"
 
 o.spec("MailViewerViewModel", function () {
 	let mail: Mail
@@ -34,6 +34,7 @@ o.spec("MailViewerViewModel", function () {
 	let entityClient: EntityClient
 
 	let mailModel: MailModel
+	let mailboxModel: MailboxModel
 	let contactModel: ContactModel
 	let configFacade: ConfigurationDatabase
 	let fileController: FileController
@@ -46,11 +47,11 @@ o.spec("MailViewerViewModel", function () {
 	let sendMailModelFactory: (mailboxDetails: MailboxDetail) => Promise<SendMailModel> = () => Promise.resolve(sendMailModel)
 	let cryptoFacade: CryptoFacade
 	let contactImporter: ContactImporter
-	let calendarModel: CalendarModel
 
 	function makeViewModelWithHeaders(headers: string) {
 		entityClient = object()
 		mailModel = object()
+		mailboxModel = object()
 		contactModel = object()
 		configFacade = object()
 		fileController = object()
@@ -62,13 +63,13 @@ o.spec("MailViewerViewModel", function () {
 		mailFacade = object()
 		cryptoFacade = object()
 		contactImporter = object()
-		calendarModel = object()
 		mail = prepareMailWithHeaders(mailFacade, headers)
 
 		return new MailViewerViewModel(
 			mail,
 			showFolder,
 			entityClient,
+			mailboxModel,
 			mailModel,
 			contactModel,
 			configFacade,
@@ -81,7 +82,6 @@ o.spec("MailViewerViewModel", function () {
 			mailFacade,
 			cryptoFacade,
 			async () => contactImporter,
-			async () => calendarModel,
 		)
 	}
 

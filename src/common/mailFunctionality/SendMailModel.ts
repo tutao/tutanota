@@ -67,7 +67,7 @@ import { MailBodyTooLargeError } from "../api/common/error/MailBodyTooLargeError
 import { createApprovalMail } from "../api/entities/monitor/TypeRefs.js"
 import { CustomerPropertiesTypeRef } from "../api/entities/sys/TypeRefs.js"
 import { isMailAddress } from "../misc/FormatValidator.js"
-import { MailboxDetail, MailModel } from "./MailModel.js"
+import { MailboxDetail, MailboxModel } from "./MailboxModel.js"
 import { ContactModel } from "../contactsFunctionality/ContactModel.js"
 import { getContactDisplayName } from "../contactsFunctionality/ContactUtils.js"
 import { getMailBodyText } from "../api/common/CommonMailUtils.js"
@@ -152,13 +152,14 @@ export class SendMailModel {
 		public readonly mailFacade: MailFacade,
 		public readonly entity: EntityClient,
 		public readonly logins: LoginController,
-		public readonly mailModel: MailModel,
+		public readonly mailboxModel: MailboxModel,
 		public readonly contactModel: ContactModel,
 		private readonly eventController: EventController,
 		public readonly mailboxDetails: MailboxDetail,
 		private readonly recipientsModel: RecipientsModel,
 		private readonly dateProvider: DateProvider,
 		private mailboxProperties: MailboxProperties,
+		private readonly needNewDraft: (mail: Mail) => Promise<boolean>,
 	) {
 		const userProps = logins.getUserController().props
 		this.senderAddress = this.getDefaultSender()
@@ -885,7 +886,7 @@ export class SendMailModel {
 			}).html
 
 			this.draft =
-				this.draft == null || (await this.isMailInTrashOrSpam(this.draft))
+				this.draft == null || (await this.needNewDraft(this.draft))
 					? await this.createDraft(body, attachments, mailMethod)
 					: await this.updateDraft(body, attachments, this.draft)
 
@@ -913,12 +914,6 @@ export class SendMailModel {
 				throw e
 			}
 		}
-	}
-
-	private async isMailInTrashOrSpam(draft: Mail): Promise<boolean> {
-		const folders = await this.mailModel.getMailboxFolders(draft)
-		const mailFolder = folders?.getFolderByMail(draft)
-		return !!mailFolder && (mailFolder.folderType === MailSetKind.TRASH || mailFolder.folderType === MailSetKind.SPAM)
 	}
 
 	private sendApprovalMail(body: string): Promise<unknown> {

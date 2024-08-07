@@ -6,7 +6,7 @@ import { ButtonType } from "../../../common/gui/base/Button.js"
 import { isMailAddress } from "../../../common/misc/FormatValidator"
 import { UserError } from "../../../common/api/main/UserError"
 import { showUserError } from "../../../common/misc/ErrorHandlerImpl"
-import type { MailboxDetail } from "../../../common/mailFunctionality/MailModel.js"
+import type { MailboxDetail } from "../../../common/mailFunctionality/MailboxModel.js"
 import { Keys, MailMethod, TabIndex } from "../../../common/api/common/TutanotaConstants"
 import { progressIcon } from "../../../common/gui/base/Icon"
 import { Editor } from "../../../common/gui/editor/Editor"
@@ -29,7 +29,7 @@ export function openPressReleaseEditor(mailboxDetails: MailboxDetail): void {
 	}
 
 	async function send() {
-		const mailboxProperties = await locator.mailModel.getMailboxProperties(mailboxDetails.mailboxGroupRoot)
+		const mailboxProperties = await locator.mailboxModel.getMailboxProperties(mailboxDetails.mailboxGroupRoot)
 		const body = pressRelease.bodyHtml()
 		const subject = pressRelease.subject()
 		let recipients
@@ -112,7 +112,7 @@ export function openPressReleaseEditor(mailboxDetails: MailboxDetail): void {
 			const bodyWithGreeting = `<p>${recipient.greeting},</p>${body}`
 
 			try {
-				const mailboxProperties = await locator.mailModel.getMailboxProperties(mailboxDetails.mailboxGroupRoot)
+				const mailboxProperties = await locator.mailboxModel.getMailboxProperties(mailboxDetails.mailboxGroupRoot)
 				const sendMailModel = await locator.sendMailModel(mailboxDetails, mailboxProperties)
 				const model = await sendMailModel.initWithTemplate(
 					{

@@ -103,6 +103,7 @@ import { getSharedGroupName } from "../../../common/sharing/GroupUtils.js"
 import { YEAR_IN_MILLIS } from "@tutao/tutanota-utils/dist/DateUtils.js"
 import { getIndentedFolderNameForDropdown } from "../../../common/mailFunctionality/SharedMailUtils.js"
 import { BottomNav } from "../../gui/BottomNav.js"
+import { mailLocator } from "../../mailLocator.js"
 
 assertMainOrNode()
 
@@ -402,7 +403,8 @@ export class SearchView extends BaseTopLevelView implements TopLevelView<SearchV
 			const conversationViewModel = this.searchViewModel.conversationViewModel
 			if (this.searchViewModel.listModel?.state.inMultiselect || !conversationViewModel) {
 				const actions = m(MailViewerActions, {
-					mailModel: locator.mailModel,
+					mailboxModel: locator.mailboxModel,
+					mailModel: mailLocator.mailModel,
 					mails: selectedMails,
 					selectNone: () => this.searchViewModel.listModel.selectNone(),
 				})
@@ -435,6 +437,7 @@ export class SearchView extends BaseTopLevelView implements TopLevelView<SearchV
 				})
 			} else {
 				const actions = m(MailViewerActions, {
+					mailboxModel: conversationViewModel.primaryViewModel().mailboxModel,
 					mailModel: conversationViewModel.primaryViewModel().mailModel,
 					mailViewerViewModel: conversationViewModel.primaryViewModel(),
 					mails: [conversationViewModel.primaryMail],
@@ -603,7 +606,8 @@ export class SearchView extends BaseTopLevelView implements TopLevelView<SearchV
 				return m(MobileMailMultiselectionActionBar, {
 					mails: this.searchViewModel.getSelectedMails(),
 					selectNone: () => this.searchViewModel.listModel.selectNone(),
-					mailModel: locator.mailModel,
+					mailModel: mailLocator.mailModel,
+					mailboxModel: locator.mailboxModel,
 				})
 			} else if (this.viewSlider.focusedColumn === this.resultListColumn) {
 				return m(
@@ -645,8 +649,9 @@ export class SearchView extends BaseTopLevelView implements TopLevelView<SearchV
 		]
 
 		for (const mailbox of mailboxes) {
+			const folderStructures = mailLocator.mailModel.folders()
 			const mailboxIndex = mailboxes.indexOf(mailbox)
-			const mailFolders = mailbox.folders.getIndentedList()
+			const mailFolders = folderStructures[assertNotNull(mailbox.mailbox.folders)._id].getIndentedList()
 			for (const folderInfo of mailFolders) {
 				if (folderInfo.folder.folderType !== MailSetKind.SPAM) {
 					const mailboxLabel = mailboxIndex === 0 ? "" : ` (${getGroupInfoDisplayName(mailbox.mailGroupInfo)})`
@@ -990,8 +995,8 @@ export class SearchView extends BaseTopLevelView implements TopLevelView<SearchV
 			await showProgressDialog("pleaseWait_msg", calendarInfos)
 		}
 
-		const mailboxDetails = await locator.mailModel.getUserMailboxDetails()
-		const mailboxProperties = await locator.mailModel.getMailboxProperties(mailboxDetails.mailboxGroupRoot)
+		const mailboxDetails = await locator.mailboxModel.getUserMailboxDetails()
+		const mailboxProperties = await locator.mailboxModel.getMailboxProperties(mailboxDetails.mailboxGroupRoot)
 		const model = await locator.calendarEventModel(CalendarOperation.Create, getEventWithDefaultTimes(dateToUse), mailboxDetails, mailboxProperties, null)
 
 		if (model) {
@@ -1027,7 +1032,7 @@ export class SearchView extends BaseTopLevelView implements TopLevelView<SearchV
 		const selectedMails = this.searchViewModel.getSelectedMails()
 
 		if (selectedMails.length > 0) {
-			showMoveMailsDropdown(locator.mailModel, getMoveMailBounds(), selectedMails, {
+			showMoveMailsDropdown(locator.mailboxModel, mailLocator.mailModel, getMoveMailBounds(), selectedMails, {
 				onSelected: () => {
 					if (selectedMails.length > 1) {
 						this.searchViewModel.listModel.selectNone()
@@ -1041,7 +1046,7 @@ export class SearchView extends BaseTopLevelView implements TopLevelView<SearchV
 		let selectedMails = this.searchViewModel.getSelectedMails()
 
 		if (selectedMails.length > 0) {
-			locator.mailModel.markMails(selectedMails, !selectedMails[0].unread)
+			mailLocator.mailModel.markMails(selectedMails, !selectedMails[0].unread)
 		}
 	}
 
@@ -1056,7 +1061,7 @@ export class SearchView extends BaseTopLevelView implements TopLevelView<SearchV
 							this.searchViewModel.listModel.selectNone()
 						}
 
-						locator.mailModel.deleteMails(selected)
+						mailLocator.mailModel.deleteMails(selected)
 					}
 				})
 			} else if (isSameTypeRef(this.searchViewModel.searchedType, ContactTypeRef)) {
@@ -1147,6 +1152,6 @@ function getCurrentSearchMode(): SearchCategoryTypes {
 }
 
 async function newMailEditor(): Promise<Dialog> {
-	const [mailboxDetails, { newMailEditor }] = await Promise.all([locator.mailModel.getUserMailboxDetails(), import("../../mail/editor/MailEditor")])
+	const [mailboxDetails, { newMailEditor }] = await Promise.all([locator.mailboxModel.getUserMailboxDetails(), import("../../mail/editor/MailEditor")])
 	return newMailEditor(mailboxDetails)
 }

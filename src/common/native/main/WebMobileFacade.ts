@@ -7,12 +7,11 @@ import { CloseEventBusOption, MailSetKind, SECOND_MS } from "../../api/common/Tu
 import { MobileFacade } from "../common/generatedipc/MobileFacade.js"
 import { styles } from "../../gui/styles"
 import { WebsocketConnectivityModel } from "../../misc/WebsocketConnectivityModel.js"
-import { MailModel } from "../../mailFunctionality/MailModel.js"
+import { MailboxModel } from "../../mailFunctionality/MailboxModel.js"
 import { TopLevelView } from "../../../TopLevelView.js"
 import stream from "mithril/stream"
-import { assertSystemFolderOfType } from "../../mailFunctionality/SharedMailUtils.js"
+import { assertSystemFolderOfType } from "../../../mail-app/mail/model/MailModel.js"
 import { CalendarViewType } from "../../api/common/utils/CommonCalendarUtils.js"
-import { getElementId } from "../../api/common/utils/EntityUtils.js"
 
 assertMainOrNode()
 
@@ -27,8 +26,9 @@ export class WebMobileFacade implements MobileFacade {
 
 	constructor(
 		private readonly connectivityModel: WebsocketConnectivityModel,
-		private readonly mailModel: MailModel,
+		private readonly mailboxModel: MailboxModel,
 		private readonly baseViewPrefix: string,
+		private readonly mailBackNewRoute?: (currentRoute: string) => Promise<string | null>,
 	) {}
 
 	public getIsAppVisible(): stream<boolean> {
@@ -86,28 +86,13 @@ export class WebMobileFacade implements MobileFacade {
 				m.route.set(this.baseViewPrefix)
 				return true
 			} else if (viewSlider && viewSlider.isFirstBackgroundColumnFocused()) {
-				// If the first background column is focused in mail view (showing a folder), move to inbox.
-				// If in inbox already, quit
-				if (m.route.get().startsWith(MAIL_PREFIX)) {
-					const parts = m.route
-						.get()
-						.split("/")
-						.filter((part) => part !== "")
-
-					if (parts.length > 1) {
-						const selectedMailFolderId = parts[1]
-						const [mailboxDetail] = await this.mailModel.getMailboxDetails()
-						const inboxMailFolderId = getElementId(assertSystemFolderOfType(mailboxDetail.folders, MailSetKind.INBOX))
-
-						if (inboxMailFolderId !== selectedMailFolderId) {
-							m.route.set(MAIL_PREFIX + "/" + inboxMailFolderId)
-							return true
-						} else {
-							return false
-						}
+				if (currentRoute.startsWith(MAIL_PREFIX) && this.mailBackNewRoute) {
+					const newRoute = await this.mailBackNewRoute(currentRoute)
+					if (newRoute) {
+						m.route.set(newRoute)
+						return true
 					}
 				}
-
 				return false
 			} else {
 				return false

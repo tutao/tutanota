@@ -40,7 +40,7 @@ import { createTestEntity } from "../../TestUtils.js"
 import { areExcludedDatesEqual, areRepeatRulesEqual } from "../../../../src/common/calendar/date/CalendarUtils.js"
 import { SendMailModel } from "../../../../src/common/mailFunctionality/SendMailModel.js"
 import { FolderSystem } from "../../../../src/common/api/common/mail/FolderSystem.js"
-import { MailboxDetail } from "../../../../src/common/mailFunctionality/MailModel.js"
+import { MailboxDetail } from "../../../../src/common/mailFunctionality/MailboxModel.js"
 
 o.spec("CalendarEventModelTest", function () {
 	let userController: UserController
