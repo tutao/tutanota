@@ -2390,6 +2390,38 @@ export const typeModels = {
         "app": "tutanota",
         "version": "75"
     },
+    "DefaultAlarmInfo": {
+        "name": "DefaultAlarmInfo",
+        "since": 74,
+        "type": "AGGREGATED_TYPE",
+        "id": 1446,
+        "rootId": "CHR1dGFub3RhAAWm",
+        "versioned": false,
+        "encrypted": false,
+        "values": {
+            "_id": {
+                "final": true,
+                "name": "_id",
+                "id": 1447,
+                "since": 74,
+                "type": "CustomId",
+                "cardinality": "One",
+                "encrypted": false
+            },
+            "trigger": {
+                "final": true,
+                "name": "trigger",
+                "id": 1448,
+                "since": 74,
+                "type": "String",
+                "cardinality": "One",
+                "encrypted": true
+            }
+        },
+        "associations": {},
+        "app": "tutanota",
+        "version": "74"
+    },
     "DeleteGroupData": {
         "name": "DeleteGroupData",
         "since": 19,
@@ -4895,6 +4927,40 @@ export const typeModels = {
         "app": "tutanota",
         "version": "75"
     },
+    "MailBag": {
+        "name": "MailBag",
+        "since": 74,
+        "type": "AGGREGATED_TYPE",
+        "id": 1460,
+        "rootId": "CHR1dGFub3RhAAW0",
+        "versioned": false,
+        "encrypted": false,
+        "values": {
+            "_id": {
+                "final": true,
+                "name": "_id",
+                "id": 1461,
+                "since": 74,
+                "type": "CustomId",
+                "cardinality": "One",
+                "encrypted": false
+            }
+        },
+        "associations": {
+            "mails": {
+                "final": true,
+                "name": "mails",
+                "id": 1462,
+                "since": 74,
+                "type": "LIST_ASSOCIATION",
+                "cardinality": "One",
+                "refType": "Mail",
+                "dependency": null
+            }
+        },
+        "app": "tutanota",
+        "version": "74"
+    },
     "MailBox": {
         "name": "MailBox",
         "since": 1,
@@ -5546,6 +5612,67 @@ export const typeModels = {
         },
         "app": "tutanota",
         "version": "75"
+    },
+    "MailSetEntry": {
+        "name": "MailSetEntry",
+        "since": 74,
+        "type": "LIST_ELEMENT_TYPE",
+        "id": 1450,
+        "rootId": "CHR1dGFub3RhAAWq",
+        "versioned": false,
+        "encrypted": false,
+        "values": {
+            "_format": {
+                "final": false,
+                "name": "_format",
+                "id": 1454,
+                "since": 74,
+                "type": "Number",
+                "cardinality": "One",
+                "encrypted": false
+            },
+            "_id": {
+                "final": true,
+                "name": "_id",
+                "id": 1452,
+                "since": 74,
+                "type": "CustomId",
+                "cardinality": "One",
+                "encrypted": false
+            },
+            "_ownerGroup": {
+                "final": true,
+                "name": "_ownerGroup",
+                "id": 1455,
+                "since": 74,
+                "type": "GeneratedId",
+                "cardinality": "ZeroOrOne",
+                "encrypted": false
+            },
+            "_permissions": {
+                "final": true,
+                "name": "_permissions",
+                "id": 1453,
+                "since": 74,
+                "type": "GeneratedId",
+                "cardinality": "One",
+                "encrypted": false
+            }
+        },
+        "associations": {
+            "mail": {
+                "final": true,
+                "name": "mail",
+                "id": 1456,
+                "since": 74,
+                "type": "LIST_ELEMENT_ASSOCIATION",
+                "cardinality": "One",
+                "refType": "Mail",
+                "dependency": null
+            }
+        },
+        "app": "tutanota",
+        "version": "74"
     },
     "MailboxGroupRoot": {
         "name": "MailboxGroupRoot",
