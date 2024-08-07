@@ -4,6 +4,7 @@ import { CalendarMethod, FeatureType, GroupType, OperationType } from "../../../
 
 import { EventController } from "../../../common/api/main/EventController"
 import type { Group, GroupInfo, User, UserAlarmInfo } from "../../../common/api/entities/sys/TypeRefs.js"
+import { createDefaultAlarmInfo } from "../../../common/api/entities/sys/TypeRefs.js"
 import {
 	createDateWrapper,
 	createMembershipRemoveData,
@@ -54,6 +55,7 @@ import { ObservableLazyLoaded } from "../../../common/api/common/utils/Observabl
 import { UserController } from "../../../common/api/main/UserController.js"
 import { formatDateWithWeekdayAndTime, formatTime } from "../../../common/misc/Formatter.js"
 import { EntityUpdateData, isUpdateFor, isUpdateForTypeRef } from "../../../common/api/common/utils/EntityUpdateUtils.js"
+import { AlarmInterval, parseAlarmInterval, serializeAlarmInterval } from "../../../common/calendar/date/CalendarUtils.js"
 
 const TAG = "[CalendarModel]"
 export type CalendarInfo = {
@@ -153,7 +155,7 @@ export class CalendarModel {
 
 	/** Load map from group/groupRoot ID to the calendar info */
 	private async loadCalendarInfos(progressMonitor: IProgressMonitor): Promise<ReadonlyMap<Id, CalendarInfo>> {
-		const user = this.logins.getUserController().user
+		const { user, userSettingsGroupRoot } = this.logins.getUserController()
 
 		const calendarMemberships = user.memberships.filter((m) => m.groupType === GroupType.Calendar)
 		const notFoundMemberships: GroupMembership[] = []
@@ -201,26 +203,26 @@ export class CalendarModel {
 		if (!this.logins.isInternalUserLoggedIn() || findPrivateCalendar(calendarInfos)) {
 			return calendarInfos
 		} else {
-			await this.createCalendar("", null)
+			await this.createCalendar("", null, [])
 			return await this.loadCalendarInfos(progressMonitor)
 		}
 	}
 
-	async createCalendar(name: string, color: string | null): Promise<void> {
+	async createCalendar(name: string, color: string | null, alarms: AlarmInterval[]): Promise<void> {
 		// when a calendar group is added, a group membership is added to the user. we might miss this websocket event
 		// during startup if the websocket is not connected fast enough. Therefore, we explicitly update the user
 		// this should be removed once we handle missed events during startup
 		const { user, group } = await this.calendarFacade.addCalendar(name)
 		this.logins.getUserController().user = user
 
+		const serializedAlarms = alarms.map((alarm) => createDefaultAlarmInfo({ trigger: serializeAlarmInterval(alarm) }))
 		if (color != null) {
 			const { userSettingsGroupRoot } = this.logins.getUserController()
-
 			const newGroupSettings = createGroupSettings({
 				group: group._id,
 				color: color,
 				name: null,
-				defaultAlarmsList: [],
+				defaultAlarmsList: serializedAlarms,
 				sourceUrl: null,
 			})
 			userSettingsGroupRoot.groupSettings.push(newGroupSettings)
@@ -292,7 +294,7 @@ export class CalendarModel {
 			if (calendars.size > 0) {
 				return calendars
 			} else {
-				await this.createCalendar("", null)
+				await this.createCalendar("", null, [])
 				return this.calendarInfos.reload()
 			}
 		})

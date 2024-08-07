@@ -51,6 +51,14 @@ export class CalendarEventAlarmModel {
 		this.uiUpdateCallback()
 	}
 
+	removeAll() {
+		this._alarms.splice(0)
+	}
+
+	addAll(alarmIntervalList: AlarmInterval[]) {
+		this._alarms.push(...alarmIntervalList)
+	}
+
 	get alarms(): ReadonlyArray<AlarmInterval> {
 		return this._alarms
 	}
