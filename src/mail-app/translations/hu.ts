@@ -11,7 +11,7 @@ export default {
 		"other"
 	],
 	"created_at": "2015-04-02T12:56:44Z",
-	"updated_at": "2024-07-31T06:58:18Z",
+	"updated_at": "2024-08-06T14:25:51Z",
 	"source_locale": null,
 	"fallback_locale": null,
 	"keys": {
@@ -1192,7 +1192,7 @@ export default {
 		"pricing.gdpr_tooltip": "Minden adatot a GDPR szerinti szigorú európai adatvédelmi előírásoknak megfelelően tárolunk.",
 		"pricing.includesTaxes_msg": "Tartalmazza az adókat",
 		"pricing.login_title": "Bejelentkezés a saját weboldalon",
-		"pricing.login_tooltip": "Helyezze el a Tuta bejelentkezést a saját weboldalán az alkalmazottak számára!",
+		"pricing.login_tooltip": "Helyezze el a Tuta bejelentkezést a saját weboldalán az alkalmazottai és külsősök számára!",
 		"pricing.mailAddressAliasesShort_label": "{amount} További e-mail címek",
 		"pricing.mailAddressAliases_tooltip_markdown": "<p>Felhasználónként extra e-mail címek. Az e-mail alias címek csökkenthetik a spamek számát és felgyorsíthatják a bejövő e-mailek rendezését. További tippek <a target=\"_blank\" rel=\"noopener noreferrer\" href=\"https://tuta.com/blog/secure-email-alias\">a blogunkon</a>.</p>\n",
 		"pricing.mailAddressFree_label": "1 ingyenes Tuta e-mail cím",
@@ -1340,6 +1340,7 @@ export default {
 		"resumeSetup_label": "Folytatás/visszaszerzés beállítása",
 		"retry_action": "Próbálja újra",
 		"revealPassword_action": "A jelszó felfedése.",
+		"richNotificationsNewsItem_msg": "Az Ön kedvenc e-mail alkalmazása mostantól meg tudja jeleníteni a tárgyat és a feladót az értesítésekben! Engedélyezze ezt a funkciót most:",
 		"richText_label": "Rich text",
 		"role_placeholder": "Szerep",
 		"runInBackground_action": "Fusson a háttérben",
