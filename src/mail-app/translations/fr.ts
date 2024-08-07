@@ -11,7 +11,7 @@ export default {
 		"other"
 	],
 	"created_at": "2015-01-16T12:59:04Z",
-	"updated_at": "2024-07-24T14:00:28Z",
+	"updated_at": "2024-08-06T13:44:10Z",
 	"source_locale": {
 		"id": "fcd7471b347c8e517663e194dcddf237",
 		"name": "en",
@@ -988,6 +988,7 @@ export default {
 		"notificationSettings_action": "Notifications",
 		"notificationSync_msg": "Notifications de synchronisation",
 		"notificationTargets_label": "Objectifs de la notification",
+		"noTitle_label": "<Pas de titre>",
 		"notSigned_msg": "Non signé.",
 		"noUpdateAvailable_msg": "Aucune mise à jour trouvée.",
 		"noValidMembersToAdd_msg": "Vous n'administrez aucun utilisateur qui n'est pas déjà membre de ce groupe.",
@@ -1343,6 +1344,7 @@ export default {
 		"resumeSetup_label": "Reprendre l'installation",
 		"retry_action": "Essayez à nouveau",
 		"revealPassword_action": "Révéler le mot de passe",
+		"richNotificationsNewsItem_msg": "Votre application de messagerie préférée peut désormais afficher l'objet et l'expéditeur dans les notifications ! Activez cette fonctionnalité dès maintenant :",
 		"richText_label": "Texte formaté",
 		"role_placeholder": "Rôle",
 		"runInBackground_action": "Exécuter en arrière-plan",

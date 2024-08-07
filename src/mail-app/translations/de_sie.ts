@@ -11,7 +11,7 @@ export default {
 		"other"
 	],
 	"created_at": "2018-01-12T10:51:54Z",
-	"updated_at": "2024-07-30T14:18:33Z",
+	"updated_at": "2024-08-06T13:44:10Z",
 	"source_locale": {
 		"id": "2001c6fdcc9cd338c1d600cb2636918b",
 		"name": "de",
@@ -1344,6 +1344,7 @@ export default {
 		"resumeSetup_label": "Konfiguration abschließen",
 		"retry_action": "Wiederholen",
 		"revealPassword_action": "Passwort anzeigen",
+		"richNotificationsNewsItem_msg": "Ihre Tuta Mail-App kann jetzt Betreff & Absender in den Benachrichtigungen anzeigen! Aktivieren Sie diese Funktion jetzt:",
 		"richText_label": "Rich Text",
 		"role_placeholder": "Rolle",
 		"runInBackground_action": "Im Hintergrund ausführen",
@@ -1747,8 +1748,6 @@ export default {
 		"yourCalendars_label": "Deine Kalender",
 		"yourFolders_action": "Ihre ORDNER",
 		"yourMessage_label": "Ihre Nachricht",
-		"you_label": "Sie",
-		"richNotifications_title": "Umfangreiche Benachrichtigungen",
-		"richNotificationsNewsItem_msg": "Ihre Lieblings-Mail-App kann jetzt Betreff und Absender in den Benachrichtigungen anzeigen! Aktivieren Sie es jetzt:"
+		"you_label": "Sie"
 	}
 }

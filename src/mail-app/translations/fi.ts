@@ -11,7 +11,7 @@ export default {
 		"other"
 	],
 	"created_at": "2015-03-10T10:52:15Z",
-	"updated_at": "2024-07-13T16:33:00Z",
+	"updated_at": "2024-08-06T13:44:10Z",
 	"source_locale": null,
 	"fallback_locale": null,
 	"keys": {
@@ -617,7 +617,7 @@ export default {
 		"general_label": "Yleiset",
 		"generatePassphrase_action": "Valinnainen: Luo salasana",
 		"germanLanguageFile_label": "Saksankielinen tiedosto",
-		"getCredsFromLegacy_msg": "Voit siirtää tallennetut Tuta-kirjautumistiedot vanhalta kirjautumissivulta napsauttamalla tästä:",
+		"getCredsFromLegacy_msg": "Voit siirtää tallentamasi Tuta-kirjautumistiedot vanhalta kirjautumissivulta napsauttamalla tästä:",
 		"giftCardCopied_msg": "Lahjakortin linkki kopioitu leikepöydälle!",
 		"giftCardCreditNotify_msg": "Tilillesi tallennetaan summa {credit}.",
 		"giftCardLoginError_msg": "Uusi tilisi luotiin, mutta kirjautuminen ei onnistunut eikä lahjakorttiasi lunastettu. Yritä kirjautua  myöhemmin samaa lahjakorttilinkkiä käyttäen lunastaaksesi kortin.",
@@ -984,6 +984,7 @@ export default {
 		"notificationSettings_action": "Ilmoitukset",
 		"notificationSync_msg": "Ilmoituksia synkronoidaan",
 		"notificationTargets_label": "Ilmoituskohteet",
+		"noTitle_label": "<Ei otsikkoa>",
 		"notSigned_msg": "Et ole kirjautunut sisään.",
 		"noUpdateAvailable_msg": "Päivitystä ei löytynyt.",
 		"noValidMembersToAdd_msg": "Et hallinnoi käyttäjiä, jotka eivät olisi jo tässä ryhmässä.",

@@ -11,7 +11,7 @@ export default {
 		"other"
 	],
 	"created_at": "2015-01-13T20:10:13Z",
-	"updated_at": "2024-07-30T14:18:33Z",
+	"updated_at": "2024-08-06T13:48:54Z",
 	"source_locale": null,
 	"fallback_locale": null,
 	"keys": {
@@ -1174,7 +1174,7 @@ export default {
 		"pricing.custom_title": "Custom branding",
 		"pricing.custom_tooltip": "Whitelabel Tuta with your own branding by defining the logos and colors of the Tuta web, mobile and desktop clients.",
 		"pricing.encryptedCalendar_label": "Fully encrypted calendar",
-		"pricing.encryptedCalendar_tooltip": "All data in your Tuta calendars is encrypted, even notifications are sent encrypted to your device.",
+		"pricing.encryptedCalendar_tooltip": "All data in your Tuta Calendars are encrypted, even notifications are sent encrypted to your device.",
 		"pricing.encryptedContacts_label": "Encrypted address book",
 		"pricing.encryptedContacts_tooltip": "All data in your Tuta address book is encrypted, even your contacts' email addresses.",
 		"pricing.encryptedNoTracking_label": "Fully encrypted, no tracking",
@@ -1192,7 +1192,7 @@ export default {
 		"pricing.gdpr_tooltip": "All data is stored in compliance with strict European data protection regulations according to the GDPR.",
 		"pricing.includesTaxes_msg": "Includes taxes.",
 		"pricing.login_title": "Login on own website",
-		"pricing.login_tooltip": "Place the Tuta login on your own website for your employees.",
+		"pricing.login_tooltip": "Place the Tuta login on your own website for your employees and externals.",
 		"pricing.mailAddressAliasesShort_label": "{amount} extra email addresses",
 		"pricing.mailAddressAliases_tooltip_markdown": "<p>Extra email addresses per user. Email alias addresses can reduce spam and help speed up sorting of incoming emails. Read more tips <a target=\"_blank\" rel=\"noopener noreferrer\" href=\"https://tuta.com/blog/secure-email-alias\">on our blog</a>.</p>\n",
 		"pricing.mailAddressFree_label": "1 free Tuta email address",
@@ -1340,6 +1340,7 @@ export default {
 		"resumeSetup_label": "Resume setup",
 		"retry_action": "Try again",
 		"revealPassword_action": "Reveal the password",
+		"richNotificationsNewsItem_msg": "Your favorite email app can now display subject & sender in notifications! Enable this feature now:",
 		"richText_label": "Rich text",
 		"role_placeholder": "Role",
 		"runInBackground_action": "Run in background",
@@ -1743,8 +1744,6 @@ export default {
 		"yourCalendars_label": "Your calendars",
 		"yourFolders_action": "YOUR FOLDERS",
 		"yourMessage_label": "Your message",
-		"you_label": "You",
-		"richNotifications_title": "Rich notifications",
-		"richNotificationsNewsItem_msg": "Your favorite mail app can now display subject & sender in notifications! Enable it now:"
+		"you_label": "You"
 	}
 }
