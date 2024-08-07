@@ -1,4 +1,4 @@
-import { EncryptionAuthStatus, getMailFolderType, MailFolderType, MailState, ReplyType } from "../../../common/api/common/TutanotaConstants"
+import { EncryptionAuthStatus, getMailFolderType, MailSetKind, MailState, ReplyType } from "../../../common/api/common/TutanotaConstants"
 import { FontIcons } from "../../../common/gui/base/icons/FontIcons"
 import type { Mail } from "../../../common/api/entities/tutanota/TypeRefs.js"
 import { formatTimeOrDateOrYesterday } from "../../../common/misc/Formatter.js"
@@ -23,14 +23,15 @@ import { companyTeamLabel } from "../../../common/misc/ClientConstants.js"
 import { getConfidentialFontIcon, getSenderOrRecipientHeading } from "../../../common/mailFunctionality/SharedMailUtils.js"
 import { isTutanotaTeamMail } from "../../../common/mailFunctionality/SharedMailUtils.js"
 
-const iconMap: Record<MailFolderType, string> = {
-	[MailFolderType.CUSTOM]: FontIcons.Folder,
-	[MailFolderType.INBOX]: FontIcons.Inbox,
-	[MailFolderType.SENT]: FontIcons.Sent,
-	[MailFolderType.TRASH]: FontIcons.Trash,
-	[MailFolderType.ARCHIVE]: FontIcons.Archive,
-	[MailFolderType.SPAM]: FontIcons.Spam,
-	[MailFolderType.DRAFT]: FontIcons.Draft,
+const iconMap: Record<MailSetKind, string> = {
+	[MailSetKind.CUSTOM]: FontIcons.Folder,
+	[MailSetKind.INBOX]: FontIcons.Inbox,
+	[MailSetKind.SENT]: FontIcons.Sent,
+	[MailSetKind.TRASH]: FontIcons.Trash,
+	[MailSetKind.ARCHIVE]: FontIcons.Archive,
+	[MailSetKind.SPAM]: FontIcons.Spam,
+	[MailSetKind.DRAFT]: FontIcons.Draft,
+	[MailSetKind.ALL]: FontIcons.Folder,
 }
 
 export const MAIL_ROW_V_MARGIN = 3
@@ -49,7 +50,7 @@ export class MailRow implements VirtualRow<Mail> {
 	private dateDom!: HTMLElement
 	private iconsDom!: HTMLElement
 	private unreadDom!: HTMLElement
-	private folderIconsDom: Record<MailFolderType, HTMLElement>
+	private folderIconsDom: Record<MailSetKind, HTMLElement>
 	private teamLabelDom!: HTMLElement
 	private checkboxDom!: HTMLInputElement
 	private checkboxWasVisible = shouldAlwaysShowMultiselectCheckbox()
@@ -58,7 +59,7 @@ export class MailRow implements VirtualRow<Mail> {
 	constructor(private readonly showFolderIcon: boolean, private readonly onSelected: (mail: Mail, selected: boolean) => unknown) {
 		this.top = 0
 		this.entity = null
-		this.folderIconsDom = {} as Record<MailFolderType, HTMLElement>
+		this.folderIconsDom = {} as Record<MailSetKind, HTMLElement>
 	}
 
 	update(mail: Mail, selected: boolean, isInMultiSelect: boolean): void {
@@ -291,7 +292,7 @@ export class MailRow implements VirtualRow<Mail> {
 		return iconText
 	}
 
-	private folderIcon(type: MailFolderType): string {
+	private folderIcon(type: MailSetKind): string {
 		return iconMap[type]
 	}
 }

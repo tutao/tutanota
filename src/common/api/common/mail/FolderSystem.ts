@@ -1,6 +1,6 @@
 import { groupBy, partition } from "@tutao/tutanota-utils"
 import { MailFolder } from "../../entities/tutanota/TypeRefs.js"
-import { MailFolderType } from "../TutanotaConstants.js"
+import { MailSetKind } from "../TutanotaConstants.js"
 import { elementIdPart, getElementId, isSameId } from "../utils/EntityUtils.js"
 
 export interface IndentedFolder {
@@ -17,7 +17,7 @@ export class FolderSystem {
 		const folderByParent = groupBy(folders, (folder) => (folder.parentFolder ? elementIdPart(folder.parentFolder) : null))
 		const topLevelFolders = folders.filter((f) => f.parentFolder == null)
 
-		const [systemFolders, customFolders] = partition(topLevelFolders, (f) => f.folderType !== MailFolderType.CUSTOM)
+		const [systemFolders, customFolders] = partition(topLevelFolders, (f) => f.folderType !== MailSetKind.CUSTOM)
 
 		this.systemSubtrees = systemFolders.sort(compareSystem).map((f) => this.makeSubtree(folderByParent, f, compareCustom))
 		this.customSubtrees = customFolders.sort(compareCustom).map((f) => this.makeSubtree(folderByParent, f, compareCustom))
@@ -28,7 +28,7 @@ export class FolderSystem {
 	}
 
 	/** Search for a specific folder type. Some mailboxes might not have some system folders! */
-	getSystemFolderByType(type: Omit<MailFolderType, MailFolderType.CUSTOM>): MailFolder | null {
+	getSystemFolderByType(type: Omit<MailSetKind, MailSetKind.CUSTOM>): MailFolder | null {
 		return this.systemSubtrees.find((f) => f.folder.folderType === type)?.folder ?? null
 	}
 
@@ -155,15 +155,16 @@ function compareCustom(folder1: MailFolder, folder2: MailFolder): number {
 	return folder1.name.localeCompare(folder2.name)
 }
 
-type SystemMailFolderTypes = Exclude<MailFolderType, MailFolderType.CUSTOM>
+type SystemMailFolderTypes = Exclude<MailSetKind, MailSetKind.CUSTOM>
 
 const folderTypeToOrder: Record<SystemMailFolderTypes, number> = {
-	[MailFolderType.INBOX]: 0,
-	[MailFolderType.DRAFT]: 1,
-	[MailFolderType.SENT]: 2,
-	[MailFolderType.TRASH]: 4,
-	[MailFolderType.ARCHIVE]: 5,
-	[MailFolderType.SPAM]: 6,
+	[MailSetKind.INBOX]: 0,
+	[MailSetKind.DRAFT]: 1,
+	[MailSetKind.SENT]: 2,
+	[MailSetKind.TRASH]: 4,
+	[MailSetKind.ARCHIVE]: 5,
+	[MailSetKind.SPAM]: 6,
+	[MailSetKind.ALL]: 7,
 }
 
 function compareSystem(folder1: MailFolder, folder2: MailFolder): number {

@@ -8,7 +8,7 @@ import { ListState } from "../../../common/gui/base/List.js"
 import { ConversationPrefProvider, ConversationViewModel, ConversationViewModelFactory } from "./ConversationViewModel.js"
 import { CreateMailViewerOptions } from "./MailViewer.js"
 import { isOfflineError } from "../../../common/api/common/utils/ErrorUtils.js"
-import { MailFolderType } from "../../../common/api/common/TutanotaConstants.js"
+import { MailSetKind } from "../../../common/api/common/TutanotaConstants.js"
 import { WsConnectionState } from "../../../common/api/main/WorkerClient.js"
 import { WebsocketConnectivityModel } from "../../../common/misc/WebsocketConnectivityModel.js"
 import { ExposedCacheStorage } from "../../../common/api/worker/rest/DefaultEntityRestCache.js"
@@ -132,7 +132,7 @@ export class MailViewModel {
 
 	private async getListIdForUserInbox(): Promise<Id> {
 		const mailboxDetail = await this.mailModel.getUserMailboxDetails()
-		return assertSystemFolderOfType(mailboxDetail.folders, MailFolderType.INBOX).mails
+		return assertSystemFolderOfType(mailboxDetail.folders, MailSetKind.INBOX).mails
 	}
 
 	init() {
@@ -309,7 +309,7 @@ export class MailViewModel {
 		}
 	}
 
-	async switchToFolder(folderType: Omit<MailFolderType, MailFolderType.CUSTOM>): Promise<void> {
+	async switchToFolder(folderType: Omit<MailSetKind, MailSetKind.CUSTOM>): Promise<void> {
 		const mailboxDetail = assertNotNull(await this.getMailboxDetails())
 		const listId = assertSystemFolderOfType(mailboxDetail.folders, folderType).mails
 		await this.showMail(listId, this.mailListToSelectedMail.get(listId))
@@ -330,7 +330,7 @@ export class MailViewModel {
 		const mailboxDetail = await this.mailModel.getMailboxDetailsForMailListId(this._listId)
 		const selectedFolder = this.getSelectedFolder()
 		if (selectedFolder && mailboxDetail) {
-			return isOfTypeOrSubfolderOf(mailboxDetail.folders, selectedFolder, MailFolderType.DRAFT)
+			return isOfTypeOrSubfolderOf(mailboxDetail.folders, selectedFolder, MailSetKind.DRAFT)
 		} else {
 			return false
 		}
@@ -359,16 +359,13 @@ export class MailViewModel {
 		const mailboxDetail = await this.getMailboxDetails()
 
 		// the request is handled a little differently if it is the system folder vs a subfolder
-		if (folder.folderType === MailFolderType.TRASH || folder.folderType === MailFolderType.SPAM) {
+		if (folder.folderType === MailSetKind.TRASH || folder.folderType === MailSetKind.SPAM) {
 			return this.mailModel.clearFolder(folder).catch(
 				ofClass(PreconditionFailedError, () => {
 					throw new UserError("operationStillActive_msg")
 				}),
 			)
-		} else if (
-			isSubfolderOfType(mailboxDetail.folders, folder, MailFolderType.TRASH) ||
-			isSubfolderOfType(mailboxDetail.folders, folder, MailFolderType.SPAM)
-		) {
+		} else if (isSubfolderOfType(mailboxDetail.folders, folder, MailSetKind.TRASH) || isSubfolderOfType(mailboxDetail.folders, folder, MailSetKind.SPAM)) {
 			return this.mailModel.finallyDeleteCustomMailFolder(folder).catch(
 				ofClass(PreconditionFailedError, () => {
 					throw new UserError("operationStillActive_msg")

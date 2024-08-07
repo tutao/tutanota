@@ -4,7 +4,7 @@ import { SearchRestriction, SearchResult } from "../../../common/api/worker/sear
 import { EntityEventsListener, EventController } from "../../../common/api/main/EventController.js"
 import { CalendarEvent, CalendarEventTypeRef, Contact, ContactTypeRef, Mail, MailTypeRef } from "../../../common/api/entities/tutanota/TypeRefs.js"
 import { ListElementEntity, SomeEntity } from "../../../common/api/common/EntityTypes.js"
-import { FULL_INDEXED_TIMESTAMP, MailFolderType, NOTHING_INDEXED_TIMESTAMP, OperationType } from "../../../common/api/common/TutanotaConstants.js"
+import { FULL_INDEXED_TIMESTAMP, MailSetKind, NOTHING_INDEXED_TIMESTAMP, OperationType } from "../../../common/api/common/TutanotaConstants.js"
 import {
 	assertIsEntity,
 	assertIsEntity2,
@@ -555,7 +555,7 @@ export class SearchViewModel {
 		// if selected folder no longer exist select another one
 		const selectedMailFolder = this.selectedMailFolder
 		if (selectedMailFolder[0] && mailboxes.every((mailbox) => mailbox.folders.getFolderByMailListId(selectedMailFolder[0]) == null)) {
-			this.selectedMailFolder = [assertNotNull(mailboxes[0].folders.getSystemFolderByType(MailFolderType.INBOX)).mails]
+			this.selectedMailFolder = [assertNotNull(mailboxes[0].folders.getSystemFolderByType(MailSetKind.INBOX)).mails]
 		}
 	}
 

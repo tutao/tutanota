@@ -11,7 +11,7 @@ import {
 	MailDetails,
 	MailTypeRef,
 } from "../api/entities/tutanota/TypeRefs.js"
-import { ApprovalStatus, ConversationType, MailFolderType, MailMethod, MAX_ATTACHMENT_SIZE, OperationType, ReplyType } from "../api/common/TutanotaConstants.js"
+import { ApprovalStatus, ConversationType, MailSetKind, MailMethod, MAX_ATTACHMENT_SIZE, OperationType, ReplyType } from "../api/common/TutanotaConstants.js"
 import { PartialRecipient, Recipient, RecipientList, Recipients, RecipientType } from "../api/common/recipients/Recipient.js"
 import {
 	assertNotNull,
@@ -918,7 +918,7 @@ export class SendMailModel {
 	private async isMailInTrashOrSpam(draft: Mail): Promise<boolean> {
 		const folders = await this.mailModel.getMailboxFolders(draft)
 		const mailFolder = folders?.getFolderByMailListId(getListId(draft))
-		return !!mailFolder && (mailFolder.folderType === MailFolderType.TRASH || mailFolder.folderType === MailFolderType.SPAM)
+		return !!mailFolder && (mailFolder.folderType === MailSetKind.TRASH || mailFolder.folderType === MailSetKind.SPAM)
 	}
 
 	private sendApprovalMail(body: string): Promise<unknown> {

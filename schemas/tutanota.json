@@ -450,6 +450,41 @@
 					"info": "RemoveValue Contact/autoTransmitPassword/78."
 				}
 			]
+		},
+		{
+			"version": 74,
+			"changes": [
+				{
+					"name": "AddValue",
+					"sourceType": "MailFolder",
+					"info": "AddValue MailFolder/isLabel/1453."
+				},
+				{
+					"name": "AddValue",
+					"sourceType": "MailFolder",
+					"info": "AddValue MailFolder/isMailSet/1454."
+				},
+				{
+					"name": "AddAssociation",
+					"sourceType": "MailFolder",
+					"info": "AddAssociation MailFolder/entries/LIST_ASSOCIATION/1455."
+				},
+				{
+					"name": "AddAssociation",
+					"sourceType": "MailBox",
+					"info": "AddAssociation MailBox/archivedMailBags/AGGREGATION/1459."
+				},
+				{
+					"name": "AddAssociation",
+					"sourceType": "MailBox",
+					"info": "AddAssociation MailBox/currentMailBag/AGGREGATION/1460."
+				},
+				{
+					"name": "AddAssociation",
+					"sourceType": "Mail",
+					"info": "AddAssociation Mail/sets/LIST_ELEMENT_ASSOCIATION/1461."
+				}
+			]
 		}
 	]
 }

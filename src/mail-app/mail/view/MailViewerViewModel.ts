@@ -13,7 +13,7 @@ import {
 	ExternalImageRule,
 	FeatureType,
 	MailAuthenticationStatus,
-	MailFolderType,
+	MailSetKind,
 	MailMethod,
 	MailPhishingStatus,
 	MailReportType,
@@ -310,10 +310,10 @@ export class MailViewerViewModel {
 		return this.folderMailboxText
 	}
 
-	getFolderInfo(): { folderType: MailFolderType; name: string } | null {
+	getFolderInfo(): { folderType: MailSetKind; name: string } | null {
 		const folder = this.mailModel.getMailFolder(getListId(this.mail))
 		if (!folder) return null
-		return { folderType: folder.folderType as MailFolderType, name: getFolderName(folder) }
+		return { folderType: folder.folderType as MailSetKind, name: getFolderName(folder) }
 	}
 
 	getSubject(): string {
@@ -512,7 +512,7 @@ export class MailViewerViewModel {
 			if (mailboxDetail == null) {
 				return
 			}
-			const spamFolder = assertSystemFolderOfType(mailboxDetail.folders, MailFolderType.SPAM)
+			const spamFolder = assertSystemFolderOfType(mailboxDetail.folders, MailSetKind.SPAM)
 			// do not report moved mails again
 			await moveMails({ mailModel: this.mailModel, mails: [this.mail], targetMailFolder: spamFolder, isReportable: false })
 		} catch (e) {

@@ -2,7 +2,7 @@ import o from "@tutao/otest"
 import { Notifications } from "../../../src/common/gui/Notifications.js"
 import type { Spy } from "@tutao/tutanota-test-utils"
 import { spy } from "@tutao/tutanota-test-utils"
-import { MailFolderType, OperationType } from "../../../src/common/api/common/TutanotaConstants.js"
+import { MailSetKind, OperationType } from "../../../src/common/api/common/TutanotaConstants.js"
 import { MailFolderTypeRef, MailTypeRef } from "../../../src/common/api/entities/tutanota/TypeRefs.js"
 import { EntityClient } from "../../../src/common/api/common/EntityClient.js"
 import { EntityRestClientMock } from "../api/worker/rest/EntityRestClientMock.js"
@@ -25,10 +25,10 @@ o.spec("MailModelTest", function () {
 	let model: MailModel
 	const inboxFolder = createTestEntity(MailFolderTypeRef, { _id: ["folderListId", "inboxId"] })
 	inboxFolder.mails = "instanceListId"
-	inboxFolder.folderType = MailFolderType.INBOX
+	inboxFolder.folderType = MailSetKind.INBOX
 	const anotherFolder = createTestEntity(MailFolderTypeRef, { _id: ["folderListId", "archiveId"] })
 	anotherFolder.mails = "anotherListId"
-	anotherFolder.folderType = MailFolderType.ARCHIVE
+	anotherFolder.folderType = MailSetKind.ARCHIVE
 	let mailboxDetails: Partial<MailboxDetail>[]
 	let logins: LoginController
 	let inboxRuleHandler: InboxRuleHandler

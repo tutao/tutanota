@@ -1,22 +1,22 @@
 import type { FolderSystem } from "./mail/FolderSystem.js"
 import { Body, Mail, MailFolder } from "../entities/tutanota/TypeRefs.js"
-import { MailFolderType } from "./TutanotaConstants.js"
+import { MailSetKind } from "./TutanotaConstants.js"
 
-export function isSubfolderOfType(system: FolderSystem, folder: MailFolder, type: MailFolderType): boolean {
+export function isSubfolderOfType(system: FolderSystem, folder: MailFolder, type: MailSetKind): boolean {
 	const systemFolder = system.getSystemFolderByType(type)
 	return systemFolder != null && system.checkFolderForAncestor(folder, systemFolder._id)
 }
 
 /**
- * Returns true if given folder is the {@link MailFolderType.SPAM} or {@link MailFolderType.TRASH} folder, or a descendant of those folders.
+ * Returns true if given folder is the {@link MailSetKind.SPAM} or {@link MailSetKind.TRASH} folder, or a descendant of those folders.
  */
 export function isSpamOrTrashFolder(system: FolderSystem, folder: MailFolder): boolean {
 	// not using isOfTypeOrSubfolderOf because checking the type first is cheaper
 	return (
-		folder.folderType === MailFolderType.TRASH ||
-		folder.folderType === MailFolderType.SPAM ||
-		isSubfolderOfType(system, folder, MailFolderType.TRASH) ||
-		isSubfolderOfType(system, folder, MailFolderType.SPAM)
+		folder.folderType === MailSetKind.TRASH ||
+		folder.folderType === MailSetKind.SPAM ||
+		isSubfolderOfType(system, folder, MailSetKind.TRASH) ||
+		isSubfolderOfType(system, folder, MailSetKind.SPAM)
 	)
 }
 

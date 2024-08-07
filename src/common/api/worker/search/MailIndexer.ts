@@ -1,4 +1,4 @@
-import { FULL_INDEXED_TIMESTAMP, MailFolderType, MailState, NOTHING_INDEXED_TIMESTAMP, OperationType } from "../../common/TutanotaConstants"
+import { FULL_INDEXED_TIMESTAMP, MailSetKind, MailState, NOTHING_INDEXED_TIMESTAMP, OperationType } from "../../common/TutanotaConstants"
 import type { File as TutanotaFile, Mail, MailBox, MailDetails, MailFolder } from "../../entities/tutanota/TypeRefs.js"
 import {
 	FileTypeRef,
@@ -607,7 +607,7 @@ export class MailIndexer {
 			.then((mbox) => {
 				return this._defaultCachingEntity
 					.loadAll(MailFolderTypeRef, neverNull(mbox.folders).folders)
-					.then((folders) => neverNull(folders.find((folder) => folder.folderType === MailFolderType.SPAM)))
+					.then((folders) => neverNull(folders.find((folder) => folder.folderType === MailSetKind.SPAM)))
 			})
 	}
 

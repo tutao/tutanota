@@ -1,7 +1,7 @@
 import m, { Children, Component, Vnode } from "mithril"
 import { lang } from "../../../common/misc/LanguageViewModel"
 
-import { Keys, MailFolderType, MailState } from "../../../common/api/common/TutanotaConstants"
+import { Keys, MailSetKind, MailState } from "../../../common/api/common/TutanotaConstants"
 import type { Mail, MailFolder } from "../../../common/api/entities/tutanota/TypeRefs.js"
 import { size } from "../../../common/gui/size"
 import { styles } from "../../../common/gui/styles"
@@ -106,9 +106,9 @@ export class MailListView implements Component<MailListViewAttrs> {
 
 	private getRecoverFolder(mail: Mail, folders: FolderSystem): MailFolder {
 		if (mail.state === MailState.DRAFT) {
-			return assertSystemFolderOfType(folders, MailFolderType.DRAFT)
+			return assertSystemFolderOfType(folders, MailSetKind.DRAFT)
 		} else {
-			return assertSystemFolderOfType(folders, MailFolderType.INBOX)
+			return assertSystemFolderOfType(folders, MailSetKind.INBOX)
 		}
 	}
 
@@ -399,7 +399,7 @@ export class MailListView implements Component<MailListViewAttrs> {
 		const selectedFolder = this.mailViewModel.getSelectedFolder()
 		if (selectedFolder) {
 			const mailDetails = await this.mailViewModel.getMailboxDetails()
-			return isOfTypeOrSubfolderOf(mailDetails.folders, selectedFolder, MailFolderType.ARCHIVE) || selectedFolder.folderType === MailFolderType.TRASH
+			return isOfTypeOrSubfolderOf(mailDetails.folders, selectedFolder, MailSetKind.ARCHIVE) || selectedFolder.folderType === MailSetKind.TRASH
 		} else {
 			return false
 		}
@@ -422,7 +422,7 @@ export class MailListView implements Component<MailListViewAttrs> {
 				//to determinate the target folder
 				const targetMailFolder = this.showingSpamOrTrash
 					? this.getRecoverFolder(listElement, folders)
-					: assertNotNull(folders.getSystemFolderByType(this.showingArchive ? MailFolderType.INBOX : MailFolderType.ARCHIVE))
+					: assertNotNull(folders.getSystemFolderByType(this.showingArchive ? MailSetKind.INBOX : MailSetKind.ARCHIVE))
 				const wereMoved = await moveMails({
 					mailModel: locator.mailModel,
 					mails: [listElement],

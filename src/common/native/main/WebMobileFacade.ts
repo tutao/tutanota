@@ -3,7 +3,7 @@ import { assertMainOrNode } from "../../api/common/Env"
 import { modal } from "../../gui/base/Modal"
 import { CALENDAR_PREFIX, CONTACTS_PREFIX, MAIL_PREFIX, SEARCH_PREFIX, SETTINGS_PREFIX } from "../../misc/RouteChange"
 import { last } from "@tutao/tutanota-utils"
-import { CloseEventBusOption, MailFolderType, SECOND_MS } from "../../api/common/TutanotaConstants.js"
+import { CloseEventBusOption, MailSetKind, SECOND_MS } from "../../api/common/TutanotaConstants.js"
 import { MobileFacade } from "../common/generatedipc/MobileFacade.js"
 import { styles } from "../../gui/styles"
 import { WebsocketConnectivityModel } from "../../misc/WebsocketConnectivityModel.js"
@@ -87,7 +87,7 @@ export class WebMobileFacade implements MobileFacade {
 					if (parts.length > 1) {
 						const selectedMailListId = parts[1]
 						const [mailboxDetail] = await this.mailModel.getMailboxDetails()
-						const inboxMailListId = assertSystemFolderOfType(mailboxDetail.folders, MailFolderType.INBOX).mails
+						const inboxMailListId = assertSystemFolderOfType(mailboxDetail.folders, MailSetKind.INBOX).mails
 
 						if (inboxMailListId !== selectedMailListId) {
 							m.route.set(MAIL_PREFIX + "/" + inboxMailListId)

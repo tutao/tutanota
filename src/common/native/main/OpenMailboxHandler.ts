@@ -1,6 +1,6 @@
 import m from "mithril"
 import { locator } from "../../api/main/CommonLocator"
-import { MailFolderType } from "../../api/common/TutanotaConstants.js"
+import { MailSetKind } from "../../api/common/TutanotaConstants.js"
 
 import { assertSystemFolderOfType } from "../../mailFunctionality/SharedMailUtils.js"
 
@@ -8,7 +8,7 @@ export async function openMailbox(userId: Id, mailAddress: string, requestedPath
 	if (locator.logins.isUserLoggedIn() && locator.logins.getUserController().user._id === userId) {
 		if (!requestedPath) {
 			const [mailboxDetail] = await locator.mailModel.getMailboxDetails()
-			const inbox = assertSystemFolderOfType(mailboxDetail.folders, MailFolderType.INBOX)
+			const inbox = assertSystemFolderOfType(mailboxDetail.folders, MailSetKind.INBOX)
 			m.route.set("/mail/" + inbox.mails)
 		} else {
 			m.route.set("/mail" + requestedPath)

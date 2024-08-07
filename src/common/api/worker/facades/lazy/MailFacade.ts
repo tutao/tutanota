@@ -349,8 +349,8 @@ export class MailFacade {
 		return deferredUpdatePromiseWrapper.promise
 	}
 
-	async moveMails(mails: IdTuple[], targetFolder: IdTuple): Promise<void> {
-		await this.serviceExecutor.post(MoveMailService, createMoveMailData({ mails, targetFolder }))
+	async moveMails(mails: IdTuple[], sourceFolder: IdTuple, targetFolder: IdTuple): Promise<void> {
+		await this.serviceExecutor.post(MoveMailService, createMoveMailData({ mails, sourceFolder, targetFolder }))
 	}
 
 	async reportMail(mail: Mail, reportType: MailReportType): Promise<void> {

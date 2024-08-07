@@ -8,7 +8,7 @@ import { AllIcons } from "../../../common/gui/base/Icon"
 import { Icons } from "../../../common/gui/base/icons/Icons"
 import { isApp, isDesktop } from "../../../common/api/common/Env"
 import { assertNotNull, neverNull, noOp, promiseMap } from "@tutao/tutanota-utils"
-import { MailFolderType, MailReportType } from "../../../common/api/common/TutanotaConstants"
+import { MailSetKind, MailReportType } from "../../../common/api/common/TutanotaConstants"
 import { getElementId, getListId } from "../../../common/api/common/utils/EntityUtils"
 import { reportMailsAutomatically } from "./MailReportDialog"
 import { DataFile } from "../../../common/api/common/DataFile"
@@ -104,7 +104,7 @@ export async function moveMails({ mailModel, mails, targetMailFolder, isReportab
 	return mailModel
 		.moveMails(mails, targetMailFolder)
 		.then(async () => {
-			if (isOfTypeOrSubfolderOf(system, targetMailFolder, MailFolderType.SPAM) && isReportable) {
+			if (isOfTypeOrSubfolderOf(system, targetMailFolder, MailSetKind.SPAM) && isReportable) {
 				const reportableMails = mails.map((mail) => {
 					// mails have just been moved
 					const reportableMail = createMail(mail)
@@ -135,7 +135,7 @@ export function archiveMails(mails: Mail[]): Promise<void> {
 				moveMails({
 					mailModel: locator.mailModel,
 					mails: mails,
-					targetMailFolder: assertSystemFolderOfType(folders, MailFolderType.ARCHIVE),
+					targetMailFolder: assertSystemFolderOfType(folders, MailSetKind.ARCHIVE),
 				})
 		})
 	} else {
@@ -151,7 +151,7 @@ export function moveToInbox(mails: Mail[]): Promise<any> {
 				moveMails({
 					mailModel: locator.mailModel,
 					mails: mails,
-					targetMailFolder: assertSystemFolderOfType(folders, MailFolderType.INBOX),
+					targetMailFolder: assertSystemFolderOfType(folders, MailSetKind.INBOX),
 				})
 		})
 	} else {

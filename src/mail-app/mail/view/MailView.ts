@@ -3,7 +3,7 @@ import { ViewSlider } from "../../../common/gui/nav/ViewSlider.js"
 import { ColumnType, ViewColumn } from "../../../common/gui/base/ViewColumn"
 import { lang } from "../../../common/misc/LanguageViewModel"
 import { Dialog } from "../../../common/gui/base/Dialog"
-import { FeatureType, Keys, MailFolderType } from "../../../common/api/common/TutanotaConstants"
+import { FeatureType, Keys, MailSetKind } from "../../../common/api/common/TutanotaConstants"
 import { AppHeaderAttrs, Header } from "../../../common/gui/Header.js"
 import type { Mail, MailFolder } from "../../../common/api/entities/tutanota/TypeRefs.js"
 import { noOp, ofClass } from "@tutao/tutanota-utils"
@@ -458,7 +458,7 @@ export class MailView extends BaseTopLevelView implements TopLevelView<MailViewA
 			{
 				key: Keys.ONE,
 				exec: () => {
-					this.mailViewModel.switchToFolder(MailFolderType.INBOX)
+					this.mailViewModel.switchToFolder(MailSetKind.INBOX)
 					return true
 				},
 				help: "switchInbox_action",
@@ -466,7 +466,7 @@ export class MailView extends BaseTopLevelView implements TopLevelView<MailViewA
 			{
 				key: Keys.TWO,
 				exec: () => {
-					this.mailViewModel.switchToFolder(MailFolderType.DRAFT)
+					this.mailViewModel.switchToFolder(MailSetKind.DRAFT)
 					return true
 				},
 				help: "switchDrafts_action",
@@ -474,7 +474,7 @@ export class MailView extends BaseTopLevelView implements TopLevelView<MailViewA
 			{
 				key: Keys.THREE,
 				exec: () => {
-					this.mailViewModel.switchToFolder(MailFolderType.SENT)
+					this.mailViewModel.switchToFolder(MailSetKind.SENT)
 					return true
 				},
 				help: "switchSentFolder_action",
@@ -482,7 +482,7 @@ export class MailView extends BaseTopLevelView implements TopLevelView<MailViewA
 			{
 				key: Keys.FOUR,
 				exec: () => {
-					this.mailViewModel.switchToFolder(MailFolderType.TRASH)
+					this.mailViewModel.switchToFolder(MailSetKind.TRASH)
 					return true
 				},
 				help: "switchTrash_action",
@@ -490,7 +490,7 @@ export class MailView extends BaseTopLevelView implements TopLevelView<MailViewA
 			{
 				key: Keys.FIVE,
 				exec: () => {
-					this.mailViewModel.switchToFolder(MailFolderType.ARCHIVE)
+					this.mailViewModel.switchToFolder(MailSetKind.ARCHIVE)
 					return true
 				},
 				enabled: () => locator.logins.isInternalUserLoggedIn(),
@@ -499,7 +499,7 @@ export class MailView extends BaseTopLevelView implements TopLevelView<MailViewA
 			{
 				key: Keys.SIX,
 				exec: () => {
-					this.mailViewModel.switchToFolder(MailFolderType.SPAM)
+					this.mailViewModel.switchToFolder(MailSetKind.SPAM)
 					return true
 				},
 				enabled: () => locator.logins.isInternalUserLoggedIn() && !locator.logins.isEnabled(FeatureType.InternalCommunication),
@@ -677,7 +677,7 @@ export class MailView extends BaseTopLevelView implements TopLevelView<MailViewA
 	}
 
 	private async deleteCustomMailFolder(mailboxDetail: MailboxDetail, folder: MailFolder): Promise<void> {
-		if (folder.folderType !== MailFolderType.CUSTOM) {
+		if (folder.folderType !== MailSetKind.CUSTOM) {
 			throw new Error("Cannot delete non-custom folder: " + String(folder._id))
 		}
 

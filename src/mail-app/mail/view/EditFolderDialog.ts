@@ -7,7 +7,7 @@ import { locator } from "../../../common/api/main/CommonLocator.js"
 import { LockedError } from "../../../common/api/common/error/RestError.js"
 import { lang, TranslationKey } from "../../../common/misc/LanguageViewModel.js"
 import { MailboxDetail } from "../../../common/mailFunctionality/MailModel.js"
-import { MailFolderType, MailReportType } from "../../../common/api/common/TutanotaConstants.js"
+import { MailSetKind, MailReportType } from "../../../common/api/common/TutanotaConstants.js"
 import { isSameId } from "../../../common/api/common/utils/EntityUtils.js"
 import { reportMailsAutomatically } from "./MailReportDialog.js"
 import { isOfflineError } from "../../../common/api/common/utils/ErrorUtils.js"
@@ -60,7 +60,7 @@ export async function showEditFolderDialog(mailBoxDetail: MailboxDetail, editFol
 				await locator.mailFacade.createMailFolder(folderNameValue, selectedParentFolder?._id ?? null, mailGroupId)
 			} else {
 				// if it is being moved to trash (and not already in trash), ask about trashing
-				if (selectedParentFolder?.folderType === MailFolderType.TRASH && !isSameId(selectedParentFolder._id, editFolder.parentFolder)) {
+				if (selectedParentFolder?.folderType === MailSetKind.TRASH && !isSameId(selectedParentFolder._id, editFolder.parentFolder)) {
 					const confirmed = await Dialog.confirm(() =>
 						lang.get("confirmDeleteCustomFolder_msg", {
 							"{1}": getFolderName(editFolder),
@@ -70,7 +70,7 @@ export async function showEditFolderDialog(mailBoxDetail: MailboxDetail, editFol
 
 					await locator.mailFacade.updateMailFolderName(editFolder, folderNameValue)
 					await locator.mailModel.trashFolderAndSubfolders(editFolder)
-				} else if (selectedParentFolder?.folderType === MailFolderType.SPAM && !isSameId(selectedParentFolder._id, editFolder.parentFolder)) {
+				} else if (selectedParentFolder?.folderType === MailSetKind.SPAM && !isSameId(selectedParentFolder._id, editFolder.parentFolder)) {
 					// if it is being moved to spam (and not already in spam), ask about reporting containing emails
 					const confirmed = await Dialog.confirm(() =>
 						lang.get("confirmSpamCustomFolder_msg", {

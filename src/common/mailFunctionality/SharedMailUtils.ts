@@ -21,7 +21,7 @@ import {
 	EncryptionAuthStatus,
 	getMailFolderType,
 	GroupType,
-	MailFolderType,
+	MailSetKind,
 	MailState,
 	MAX_ATTACHMENT_SIZE,
 	ReplyType,
@@ -170,27 +170,27 @@ export function getFolderName(folder: MailFolder): string {
 	}
 }
 
-export function getFolderIconByType(folderType: MailFolderType): AllIcons {
+export function getFolderIconByType(folderType: MailSetKind): AllIcons {
 	switch (folderType) {
-		case MailFolderType.CUSTOM:
+		case MailSetKind.CUSTOM:
 			return Icons.Folder
 
-		case MailFolderType.INBOX:
+		case MailSetKind.INBOX:
 			return Icons.Inbox
 
-		case MailFolderType.SENT:
+		case MailSetKind.SENT:
 			return Icons.Send
 
-		case MailFolderType.TRASH:
+		case MailSetKind.TRASH:
 			return Icons.TrashBin
 
-		case MailFolderType.ARCHIVE:
+		case MailSetKind.ARCHIVE:
 			return Icons.Archive
 
-		case MailFolderType.SPAM:
+		case MailSetKind.SPAM:
 			return Icons.Spam
 
-		case MailFolderType.DRAFT:
+		case MailSetKind.DRAFT:
 			return Icons.Draft
 
 		default:
@@ -459,11 +459,11 @@ export function isTutanotaMailAddress(mailAddress: string): boolean {
  *
  * Use with caution.
  */
-export function assertSystemFolderOfType(system: FolderSystem, type: Omit<MailFolderType, MailFolderType.CUSTOM>): MailFolder {
+export function assertSystemFolderOfType(system: FolderSystem, type: Omit<MailSetKind, MailSetKind.CUSTOM>): MailFolder {
 	return assertNotNull(system.getSystemFolderByType(type), "System folder of type does not exist!")
 }
 
-export function isOfTypeOrSubfolderOf(system: FolderSystem, folder: MailFolder, type: MailFolderType): boolean {
+export function isOfTypeOrSubfolderOf(system: FolderSystem, folder: MailFolder, type: MailSetKind): boolean {
 	return folder.folderType === type || isSubfolderOfType(system, folder, type)
 }
 

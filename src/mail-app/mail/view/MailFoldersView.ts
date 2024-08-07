@@ -14,7 +14,7 @@ import { attachDropdown, DropdownButtonAttrs } from "../../../common/gui/base/Dr
 import { Icons } from "../../../common/gui/base/icons/Icons.js"
 import { ButtonColor } from "../../../common/gui/base/Button.js"
 import { ButtonSize } from "../../../common/gui/base/ButtonSize.js"
-import { MailFolderType } from "../../../common/api/common/TutanotaConstants.js"
+import { MailSetKind } from "../../../common/api/common/TutanotaConstants.js"
 import { px, size } from "../../../common/gui/size.js"
 import { RowButton } from "../../../common/gui/base/buttons/RowButton.js"
 import { getFolderIcon, getFolderName, MAX_FOLDER_INDENT_LEVEL } from "../../../common/mailFunctionality/SharedMailUtils.js"
@@ -115,7 +115,7 @@ export class MailFoldersView implements Component<MailFolderViewAttrs> {
 				hasChildren && currentExpansionState
 					? this.renderFolderTree(system.children, groupCounters, attrs, path, isInternalUser, indentationLevel + 1)
 					: { children: null, numRows: 0 }
-			const isTrashOrSpam = system.folder.folderType === MailFolderType.TRASH || system.folder.folderType === MailFolderType.SPAM
+			const isTrashOrSpam = system.folder.folderType === MailSetKind.TRASH || system.folder.folderType === MailSetKind.SPAM
 			const isRightButtonVisible = this.visibleRow === id
 			const rightButton =
 				isInternalUser && !isTrashOrSpam && (isRightButtonVisible || attrs.inEditMode)
@@ -183,7 +183,7 @@ export class MailFoldersView implements Component<MailFolderViewAttrs> {
 				size: ButtonSize.Compact,
 			},
 			childAttrs: () => {
-				return folder.folderType === MailFolderType.CUSTOM
+				return folder.folderType === MailSetKind.CUSTOM
 					? // cannot add new folder to custom folder in spam or trash folder
 					  isSpamOrTrashFolder(attrs.mailboxDetail.folders, folder)
 						? [this.editButtonAttrs(attrs, folder), this.deleteButtonAttrs(attrs, folder)]

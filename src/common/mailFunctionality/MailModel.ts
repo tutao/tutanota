@@ -26,7 +26,7 @@ import { InboxRuleHandler } from "../../mail-app/mail/model/InboxRuleHandler.js"
 import { assertNotNull, groupBy, lazyMemoized, neverNull, noOp, ofClass, promiseMap, splitInChunks } from "@tutao/tutanota-utils"
 import {
 	FeatureType,
-	MailFolderType,
+	MailSetKind,
 	MailReportType,
 	MAX_NBR_MOVE_DELETE_MAIL_SERVICE,
 	OperationType,
@@ -130,9 +130,9 @@ export class MailModel {
 		return this.entityClient.loadAll(MailFolderTypeRef, folderListId).then((folders) => {
 			return folders.filter((f) => {
 				// We do not show spam or archive for external users
-				if (!this.logins.isInternalUserLoggedIn() && (f.folderType === MailFolderType.SPAM || f.folderType === MailFolderType.ARCHIVE)) {
+				if (!this.logins.isInternalUserLoggedIn() && (f.folderType === MailSetKind.SPAM || f.folderType === MailSetKind.ARCHIVE)) {
 					return false
-				} else if (this.logins.isEnabled(FeatureType.InternalCommunication) && f.folderType === MailFolderType.SPAM) {
+				} else if (this.logins.isEnabled(FeatureType.InternalCommunication) && f.folderType === MailSetKind.SPAM) {
 					return false
 				} else {
 					return true
@@ -218,7 +218,7 @@ export class MailModel {
 
 		let deletedFolder = await this.removeAllEmpty(mailboxDetail, folder)
 		if (!deletedFolder) {
-			return this.mailFacade.updateMailFolderParent(folder, assertSystemFolderOfType(mailboxDetail.folders, MailFolderType.SPAM)._id)
+			return this.mailFacade.updateMailFolderParent(folder, assertSystemFolderOfType(mailboxDetail.folders, MailSetKind.SPAM)._id)
 		}
 	}
 
@@ -244,7 +244,7 @@ export class MailModel {
 			)
 
 			for (const mailChunk of mailChunks) {
-				await this.mailFacade.moveMails(mailChunk, targetMailFolder._id)
+				await this.mailFacade.moveMails(mailChunk, sourceMailFolder._id, targetMailFolder._id)
 			}
 		}
 	}
@@ -307,7 +307,7 @@ export class MailModel {
 		if (folders == null) {
 			return
 		}
-		const trashFolder = assertNotNull(folders.getSystemFolderByType(MailFolderType.TRASH))
+		const trashFolder = assertNotNull(folders.getSystemFolderByType(MailSetKind.TRASH))
 
 		for (const [listId, mails] of mailsPerFolder) {
 			const sourceMailFolder = this.getMailFolder(listId)
@@ -360,7 +360,7 @@ export class MailModel {
 				if (this.inboxRuleHandler && this.connectivityModel) {
 					const folder = this.getMailFolder(update.instanceListId)
 
-					if (folder && folder.folderType === MailFolderType.INBOX && !containsEventOfType(updates, OperationType.DELETE, update.instanceId)) {
+					if (folder && folder.folderType === MailSetKind.INBOX && !containsEventOfType(updates, OperationType.DELETE, update.instanceId)) {
 						// If we don't find another delete operation on this email in the batch, then it should be a create operation,
 						// otherwise it's a move
 						const mailId: IdTuple = [update.instanceListId, update.instanceId]
@@ -443,7 +443,7 @@ export class MailModel {
 		}
 		let deletedFolder = await this.removeAllEmpty(mailboxDetail, folder)
 		if (!deletedFolder) {
-			const trash = assertSystemFolderOfType(mailboxDetail.folders, MailFolderType.TRASH)
+			const trash = assertSystemFolderOfType(mailboxDetail.folders, MailSetKind.TRASH)
 			return this.mailFacade.updateMailFolderParent(folder, trash._id)
 		}
 	}
@@ -485,7 +485,7 @@ export class MailModel {
 	}
 
 	public async finallyDeleteCustomMailFolder(folder: MailFolder): Promise<void> {
-		if (folder.folderType !== MailFolderType.CUSTOM) {
+		if (folder.folderType !== MailSetKind.CUSTOM) {
 			throw new ProgrammingError("Cannot delete non-custom folder: " + String(folder._id))
 		}
 

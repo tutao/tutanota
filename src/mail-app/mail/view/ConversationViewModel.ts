@@ -14,7 +14,7 @@ import { assertNotNull, findLastIndex, groupBy, makeSingleUse } from "@tutao/tut
 import { EntityClient } from "../../../common/api/common/EntityClient.js"
 import { LoadingStateTracker } from "../../../common/offline/LoadingState.js"
 import { EntityEventsListener, EventController } from "../../../common/api/main/EventController.js"
-import { ConversationType, MailFolderType, MailState, OperationType } from "../../../common/api/common/TutanotaConstants.js"
+import { ConversationType, MailSetKind, MailState, OperationType } from "../../../common/api/common/TutanotaConstants.js"
 import { NotAuthorizedError, NotFoundError } from "../../../common/api/common/error/RestError.js"
 import { MailModel } from "../../../common/mailFunctionality/MailModel.js"
 import { EntityUpdateData, isUpdateForTypeRef } from "../../../common/api/common/utils/EntityUpdateUtils.js"
@@ -255,7 +255,7 @@ export class ConversationViewModel {
 	private async isInTrash(mail: Mail) {
 		const mailboxDetail = await this.mailModel.getMailboxDetailsForMail(mail)
 		const mailFolder = this.mailModel.getMailFolder(getListId(mail))
-		return mailFolder && mailboxDetail && isOfTypeOrSubfolderOf(mailboxDetail.folders, mailFolder, MailFolderType.TRASH)
+		return mailFolder && mailboxDetail && isOfTypeOrSubfolderOf(mailboxDetail.folders, mailFolder, MailSetKind.TRASH)
 	}
 
 	conversationItems(): ReadonlyArray<ConversationItem> {

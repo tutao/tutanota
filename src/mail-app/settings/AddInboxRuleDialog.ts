@@ -1,7 +1,7 @@
 import m from "mithril"
 import { Dialog } from "../../common/gui/base/Dialog"
 import { lang, TranslationKey } from "../../common/misc/LanguageViewModel"
-import { InboxRuleType, MailFolderType } from "../../common/api/common/TutanotaConstants"
+import { InboxRuleType, MailSetKind } from "../../common/api/common/TutanotaConstants"
 import { isDomainName, isMailAddress, isRegularExpression } from "../../common/misc/FormatValidator"
 import { getInboxRuleTypeNameMapping } from "../mail/model/InboxRuleHandler"
 import type { InboxRule } from "../../common/api/entities/tutanota/TypeRefs.js"
@@ -42,7 +42,7 @@ export function show(mailBoxDetail: MailboxDetail, ruleOrTemplate: InboxRuleTemp
 		const inboxRuleType = stream(ruleOrTemplate.type)
 		const inboxRuleValue = stream(ruleOrTemplate.value)
 		const selectedFolder = ruleOrTemplate.targetFolder == null ? null : mailBoxDetail.folders.getFolderById(ruleOrTemplate.targetFolder)
-		const inboxRuleTarget = stream(selectedFolder ?? assertSystemFolderOfType(mailBoxDetail.folders, MailFolderType.ARCHIVE))
+		const inboxRuleTarget = stream(selectedFolder ?? assertSystemFolderOfType(mailBoxDetail.folders, MailSetKind.ARCHIVE))
 
 		let form = () => [
 			m(DropDownSelector, {
