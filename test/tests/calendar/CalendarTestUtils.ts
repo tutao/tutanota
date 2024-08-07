@@ -34,7 +34,7 @@ import { Recipient, RecipientType } from "../../../src/common/api/common/recipie
 import { DateTime } from "luxon"
 import { createTestEntity } from "../TestUtils.js"
 import { matchers, object, when } from "testdouble"
-import { MailboxDetail } from "../../../src/common/mailFunctionality/MailModel.js"
+import { MailboxDetail } from "../../../src/common/mailFunctionality/MailboxModel.js"
 import { AlarmScheduler } from "../../../src/common/calendar/date/AlarmScheduler.js"
 
 export const ownerMailAddress = "calendarowner@tutanota.de" as const
@@ -250,7 +250,6 @@ export function makeUserController(
 export function makeMailboxDetail(): MailboxDetail {
 	return {
 		mailbox: createTestEntity(MailBoxTypeRef),
-		folders: new FolderSystem([]),
 		mailGroupInfo: createTestEntity(GroupInfoTypeRef),
 		mailGroup: createTestEntity(GroupTypeRef, {
 			user: ownerId,

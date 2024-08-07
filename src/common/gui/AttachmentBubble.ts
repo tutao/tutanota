@@ -17,8 +17,8 @@ import { getFileBaseName, getFileExtension, isTutanotaFile } from "../api/common
 import { getSafeAreaInsetBottom } from "./HtmlUtils.js"
 import { hasError } from "../api/common/utils/ErrorUtils.js"
 import { BubbleButton, bubbleButtonHeight, bubbleButtonPadding } from "./base/buttons/BubbleButton.js"
-import { CALENDAR_MIME_TYPE, VCARD_MIME_TYPES } from "../file/FileController.js"
 import { BootIcons } from "./base/icons/BootIcons.js"
+import { CALENDAR_MIME_TYPE, VCARD_MIME_TYPES } from "../file/FileController.js"
 
 export enum AttachmentType {
 	GENERIC,

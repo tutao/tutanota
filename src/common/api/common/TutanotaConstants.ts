@@ -1201,3 +1201,4 @@ export enum GroupKeyRotationType {
 export const GroupKeyRotationTypeNameByCode = reverse(GroupKeyRotationType)
 
 export const EXTERNAL_CALENDAR_SYNC_INTERVAL = 60 * 30 * 1000 // 30 minutes
+

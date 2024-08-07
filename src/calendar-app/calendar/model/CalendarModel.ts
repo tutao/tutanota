@@ -48,7 +48,7 @@ import { ProgressTracker } from "../../../common/api/main/ProgressTracker"
 import type { IProgressMonitor } from "../../../common/api/common/utils/ProgressMonitor"
 import { NoopProgressMonitor } from "../../../common/api/common/utils/ProgressMonitor"
 import { EntityClient } from "../../../common/api/common/EntityClient"
-import type { MailModel } from "../../../common/mailFunctionality/MailModel.js"
+import type { MailboxModel } from "../../../common/mailFunctionality/MailboxModel.js"
 import { elementIdPart, getElementId, isSameId, listIdPart, removeTechnicalFields } from "../../../common/api/common/utils/EntityUtils"
 import type { AlarmScheduler } from "../../../common/calendar/date/AlarmScheduler.js"
 import { Notifications, NotificationType } from "../../../common/gui/Notifications"
@@ -134,7 +134,7 @@ export class CalendarModel {
 		private readonly logins: LoginController,
 		private readonly progressTracker: ProgressTracker,
 		private readonly entityClient: EntityClient,
-		private readonly mailModel: MailModel,
+		private readonly mailboxModel: MailboxModel,
 		private readonly calendarFacade: CalendarFacade,
 		private readonly fileController: FileController,
 		private readonly zone: string,
@@ -454,7 +454,7 @@ export class CalendarModel {
 	}
 
 	private async loadAndProcessCalendarUpdates(): Promise<void> {
-		const { mailboxGroupRoot } = await this.mailModel.getUserMailboxDetails()
+		const { mailboxGroupRoot } = await this.mailboxModel.getUserMailboxDetails()
 		const { calendarEventUpdates } = mailboxGroupRoot
 		if (calendarEventUpdates == null) return
 

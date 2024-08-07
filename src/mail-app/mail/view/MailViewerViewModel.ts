@@ -21,7 +21,7 @@ import {
 	OperationType,
 } from "../../../common/api/common/TutanotaConstants"
 import { EntityClient } from "../../../common/api/common/EntityClient"
-import { MailboxDetail, MailModel } from "../../../common/mailFunctionality/MailModel.js"
+import { MailboxDetail, MailboxModel } from "../../../common/mailFunctionality/MailboxModel.js"
 import { ContactModel } from "../../../common/contactsFunctionality/ContactModel.js"
 import { ConfigurationDatabase } from "../../../common/api/worker/facades/lazy/ConfigurationDatabase.js"
 import stream from "mithril/stream"
@@ -43,7 +43,7 @@ import { LoginController } from "../../../common/api/main/LoginController"
 import m from "mithril"
 import { LockedError, NotAuthorizedError, NotFoundError } from "../../../common/api/common/error/RestError"
 import { haveSameId, isSameId } from "../../../common/api/common/utils/EntityUtils"
-import { getReferencedAttachments, loadInlineImages, moveMails } from "./MailGuiUtils"
+import { getReferencedAttachments, isTutanotaTeamMail, loadInlineImages, moveMails } from "./MailGuiUtils"
 import { SanitizedFragment } from "../../../common/misc/HtmlSanitizer"
 import { CALENDAR_MIME_TYPE, FileController } from "../../../common/file/FileController"
 import { exportMails } from "../export/Exporter.js"
@@ -69,20 +69,19 @@ import { AttachmentType, getAttachmentType } from "../../../common/gui/Attachmen
 import type { ContactImporter } from "../../contacts/ContactImporter.js"
 import { InlineImages, revokeInlineImages } from "../../../common/mailFunctionality/inlineImagesUtils.js"
 import {
-	assertSystemFolderOfType,
 	getDefaultSender,
 	getEnabledMailAddressesWithUser,
 	getFolderName,
 	getMailboxName,
 	getPathToFolderString,
-	isNoReplyTeamAddress,
-	isSystemNotification,
-	isTutanotaTeamMail,
 	loadMailDetails,
 	loadMailHeaders,
 } from "../../../common/mailFunctionality/SharedMailUtils.js"
+import { isSystemNotification, isNoReplyTeamAddress } from "../../../common/mailFunctionality/SharedMailUtils.js"
 import { getDisplayedSender, getMailBodyText, MailAddressAndName } from "../../../common/api/common/CommonMailUtils.js"
+import { assertSystemFolderOfType, MailModel } from "../model/MailModel.js"
 import { CalendarModel } from "../../../calendar-app/calendar/model/CalendarModel.js"
+import { mailLocator } from "../../mailLocator.js"
 
 export const enum ContentBlockingStatus {
 	Block = "0",
@@ -137,6 +136,7 @@ export class MailViewerViewModel {
 		private _mail: Mail,
 		showFolder: boolean,
 		readonly entityClient: EntityClient,
+		public readonly mailboxModel: MailboxModel,
 		public readonly mailModel: MailModel,
 		readonly contactModel: ContactModel,
 		private readonly configFacade: ConfigurationDatabase,
@@ -149,7 +149,6 @@ export class MailViewerViewModel {
 		private readonly mailFacade: MailFacade,
 		private readonly cryptoFacade: CryptoFacade,
 		private readonly contactImporter: lazyAsync<ContactImporter>,
-		private readonly calendarModel: lazyAsync<CalendarModel>,
 	) {
 		this.folderMailboxText = null
 		if (showFolder) {
@@ -206,10 +205,11 @@ export class MailViewerViewModel {
 
 		if (folder) {
 			this.mailModel.getMailboxDetailsForMail(this.mail).then((mailboxDetails) => {
-				if (mailboxDetails == null) {
+				if (mailboxDetails == null || mailboxDetails.mailbox.folders == null) {
 					return
 				}
-				const name = getPathToFolderString(mailboxDetails.folders, folder)
+				const folders = this.mailModel.getMailboxFoldersForId(mailboxDetails.mailbox.folders._id)
+				const name = getPathToFolderString(folders, folder)
 				this.folderMailboxText = `${getMailboxName(this.logins, mailboxDetails)} / ${name}`
 				m.redraw()
 			})
@@ -513,12 +513,19 @@ export class MailViewerViewModel {
 				await this.entityClient.update(this.mail)
 			}
 			const mailboxDetail = await this.mailModel.getMailboxDetailsForMail(this.mail)
-			if (mailboxDetail == null) {
+			if (mailboxDetail == null || mailboxDetail.mailbox.folders == null) {
 				return
 			}
-			const spamFolder = assertSystemFolderOfType(mailboxDetail.folders, MailSetKind.SPAM)
+			const folders = this.mailModel.getMailboxFoldersForId(mailboxDetail.mailbox.folders._id)
+			const spamFolder = assertSystemFolderOfType(folders, MailSetKind.SPAM)
 			// do not report moved mails again
-			await moveMails({ mailModel: this.mailModel, mails: [this.mail], targetMailFolder: spamFolder, isReportable: false })
+			await moveMails({
+				mailboxModel: this.mailboxModel,
+				mailModel: this.mailModel,
+				mails: [this.mail],
+				targetMailFolder: spamFolder,
+				isReportable: false,
+			})
 		} catch (e) {
 			if (e instanceof NotFoundError) {
 				console.log("mail already moved")
@@ -1055,7 +1062,7 @@ export class MailViewerViewModel {
 			const { importCalendarFile, parseCalendarFile } = await import("../../../common/calendar/import/CalendarImporter.js")
 			const dataFile = await this.fileController.getAsDataFile(file)
 			const data = parseCalendarFile(dataFile)
-			await importCalendarFile(await this.calendarModel(), this.logins.getUserController(), data.contents)
+			await importCalendarFile(await mailLocator.calendarModel(), this.logins.getUserController(), data.contents)
 		} catch (e) {
 			console.log(e)
 			throw new UserError("errorDuringFileOpen_msg")
