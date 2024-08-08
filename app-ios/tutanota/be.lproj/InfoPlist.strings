@@ -12,3 +12,4 @@ TutaoSettingsAction = "Налады";
 TutaoCalendarAlarmTitle = "Напамін";
 TutaoScheduleAlarmError = "Не атрымалася паставіць напамін. Калі ласка, абнаві праграму.";
 TutaoUnlockCredentialsAction = "Разамкнуць даныя ўваходу";
+TutaoPushNewMail = "Прыйшоў новы ліст.";

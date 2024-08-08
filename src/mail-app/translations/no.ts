@@ -11,7 +11,7 @@ export default {
 		"other"
 	],
 	"created_at": "2015-04-10T11:48:14Z",
-	"updated_at": "2024-07-11T16:34:55Z",
+	"updated_at": "2024-08-07T19:35:23Z",
 	"source_locale": null,
 	"fallback_locale": null,
 	"keys": {
@@ -1169,7 +1169,7 @@ export default {
 		"pricing.gdpr_tooltip": "Alle data er lagret i henhold til strenge europeiske datalagringsdirektiv i samsvar med GDPR.",
 		"pricing.includesTaxes_msg": "Inkludert moms.",
 		"pricing.login_title": "Logg inn på egen nettside",
-		"pricing.login_tooltip": "Legg til Tuta innlogging på din nettside for dine ansatte.",
+		"pricing.login_tooltip": "Plasser Tuta-påloggingen på din egen nettside for dine ansatte og eksterne.",
 		"pricing.mailAddressAliasesShort_label": "{amount} aliaser",
 		"pricing.mailAddressAliases_tooltip_markdown": "<p>E-postaliser kan begrense søppelpost og hjelpe til med å raskere sortere innkommende e-poster. Les flere tips  <a target=\"_blank\" rel=\"noopener noreferrer\" href=\"https://tuta.com/blog/secure-email-alias\">på bloggen vår</a>.</p>\n",
 		"pricing.mailAddressFree_label": "1 gratis Tuta e-postadresse",
@@ -1474,6 +1474,7 @@ export default {
 		"surveyAccountReasonCantAddUsers_label": "Jeg kan ikke legge til flere brukere",
 		"surveyAccountReasonForgotPassword_label": "jeg glemte passordet mitt",
 		"surveyAccountReasonForgotRecoveryCode_label": "Jeg har glemt gjenopprettingskoden min",
+		"surveyChooseReason_label": "Velg en årsak",
 		"survey_label": "Spørreundersøkelse",
 		"suspiciousLink_msg": "Er du sikker på at du vil åpne «{url}»? Lenken kan potensielt kjøre programmer på enheten din. Åpne kun lenker fra pålitelige kilder.",
 		"suspiciousLink_title": "Mistenkelig lenke",
@@ -1568,6 +1569,7 @@ export default {
 		"unencryptedTransmission_msg": "E-post(ene) flyttet til søppelpostmappen vil bli sendt til serveren ukryptert for å forbedre søppelpostbeskyttelsen.",
 		"unknownError_msg": "En uventet feil oppstod. Prøv igjen senere.",
 		"unknownRepetition_msg": "Denne hendelsen er en del av en serie.",
+		"unlimited_label": "Unlimited",
 		"unlockCredentials_action": "Lås opp opplysninger",
 		"unprocessedBookings_msg": "Du har ubehandlede ordre med en total verdi av {amount}. Denne summen vil bli trukket fra din balanse og/eller din valgte betalingsløsning for neste innbetaling.",
 		"unrecognizedU2fDevice_msg": "Din sikkerhetsnøkkel har ikke blitt gjenkjent.",

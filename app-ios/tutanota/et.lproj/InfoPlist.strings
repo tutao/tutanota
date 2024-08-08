@@ -6,3 +6,4 @@ TutaoNoPermissionTitle = "Puudub luba";
 TutaoCancelAction = "Tühista";
 TutaoSettingsAction = "Seaded";
 TutaoCalendarAlarmTitle = "Meeldetuletus";
+TutaoPushNewMail = "Uus e-kiri saabunud.";

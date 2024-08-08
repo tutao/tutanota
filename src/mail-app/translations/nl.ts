@@ -11,7 +11,7 @@ export default {
 		"other"
 	],
 	"created_at": "2015-01-27T13:13:55Z",
-	"updated_at": "2024-07-31T12:04:30Z",
+	"updated_at": "2024-08-06T16:01:29Z",
 	"source_locale": {
 		"id": "fcd7471b347c8e517663e194dcddf237",
 		"name": "en",
@@ -1196,7 +1196,7 @@ export default {
 		"pricing.gdpr_tooltip": "Alle data is opgeslagen volgens de strikte Europese data protectie regelgeving overeenkomstig GDPR.",
 		"pricing.includesTaxes_msg": "Inclusief belastingen.",
 		"pricing.login_title": "Inloggen op eigen website",
-		"pricing.login_tooltip": "Plaats het Tuta loginscherm op uw eigen website voor uw medewerkers.",
+		"pricing.login_tooltip": "Plaats het Tuta loginscherm op uw eigen website voor uw medewerkers en buitenstaanders.",
 		"pricing.mailAddressAliasesShort_label": "{amount} extra e-mail adressen",
 		"pricing.mailAddressAliases_tooltip_markdown": "<p>Extra e-mailadressen per gebruiker. Het gebruik van e-mailaliassen kan spam reduceren en kan helpen om het sorteren van inkomende e-mail te versnellen. Lees meer tips <a target=\"_blank\" rel=\"noopener noreferrer\" href=\"https://tuta.com/blog/secure-email-alias\">op onze blog</a>.</p>\n",
 		"pricing.mailAddressFree_label": "1 gratis Tuta e-mail adres",
@@ -1344,6 +1344,7 @@ export default {
 		"resumeSetup_label": "Configuratie voltooien",
 		"retry_action": "Probeer opnieuw",
 		"revealPassword_action": "Wachtwoord laten zien",
+		"richNotificationsNewsItem_msg": "Uw favoriete e-mailapp kan nu onderwerp en afzender weergeven in meldingen! Schakel deze functie nu in:",
 		"richText_label": "Opgemaakte tekst",
 		"role_placeholder": "Rol",
 		"runInBackground_action": "Op de achtergrond uitvoeren",

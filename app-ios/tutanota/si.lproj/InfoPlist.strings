@@ -12,3 +12,4 @@ TutaoSettingsAction = "සැකසුම්";
 TutaoCalendarAlarmTitle = "සිහිකැඳවුම";
 TutaoScheduleAlarmError = "අනතුරු ඇඟවීමක් පිහිටුවීමට නොහැකි විය. යෙදුම යාවත්කාල කරන්න.";
 TutaoUnlockCredentialsAction = "අක්තපත්‍ර අගුළුහරින්න";
+TutaoPushNewMail = "නව තැපෑලක් ලැබුණි.";

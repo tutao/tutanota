@@ -5,3 +5,4 @@ TutaoNoPermissionTitle = "Nėra Priėjimo";
 TutaoChangePermissionMsg = "Norint įgyti prieigą, jūs turite pakeisti leidimus šiame įrenginyje.";
 TutaoCancelAction = "Atšaukti";
 TutaoSettingsAction = "Nustatymai";
+TutaoPushNewMail = "Gautas naujas laiškas.";

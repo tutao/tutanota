@@ -12,3 +12,4 @@ TutaoSettingsAction = "Настройки";
 TutaoCalendarAlarmTitle = "Напомняне";
 TutaoScheduleAlarmError = "Не можеше да се създаде аларма. Моля актуализирайте приложението.";
 TutaoUnlockCredentialsAction = "Отключване на данни за идентификация";
+TutaoPushNewMail = "Получено е нов имейл.";

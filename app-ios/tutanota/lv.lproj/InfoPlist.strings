@@ -9,3 +9,4 @@ TutaoNoPermissionTitle = "Nav atļaujas";
 TutaoChangePermissionMsg = "Lai piešķirtu piekļuvi, jums ir jāizmaina šīs ierīces atļaujas.";
 TutaoCancelAction = "Atcelt";
 TutaoSettingsAction = "Iestatījumi";
+TutaoPushNewMail = "Ienācies jauns e-pasts";
