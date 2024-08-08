@@ -1,5 +1,5 @@
 import o from "@tutao/otest"
-import { createMailFolder, MailFolderTypeRef } from "../../../../src/common/api/entities/tutanota/TypeRefs.js"
+import { MailFolderTypeRef } from "../../../../src/common/api/entities/tutanota/TypeRefs.js"
 import { MailSetKind } from "../../../../src/common/api/common/TutanotaConstants.js"
 import { FolderSystem } from "../../../../src/common/api/common/mail/FolderSystem.js"
 import { createTestEntity } from "../../TestUtils.js"
@@ -130,12 +130,6 @@ o.spec("FolderSystem", function () {
 		const system = new FolderSystem(allFolders)
 		// FIXME
 		o(system.getFolderByMail(customSubfolder.mails[0])).equals(customSubfolder)
-	})
-
-	o("getFolderByMailListId", function () {
-		const system = new FolderSystem(allFolders)
-
-		o(system.getFolderByMailListId(customSubfolder.mails)).equals(customSubfolder)
 	})
 
 	o("getCustomFoldersOfParent", function () {

@@ -10,6 +10,7 @@ import {
 	MailBoxTypeRef,
 	MailFolder,
 	MailFolderTypeRef,
+	MailSetEntryTypeRef,
 	MailTypeRef,
 } from "../api/entities/tutanota/TypeRefs.js"
 import { Group, GroupInfo, GroupInfoTypeRef, GroupMembership, GroupTypeRef, WebsocketCounterData } from "../api/entities/sys/TypeRefs.js"
@@ -34,7 +35,7 @@ import {
 } from "../api/common/TutanotaConstants.js"
 import { assertSystemFolderOfType, getEnabledMailAddressesWithUser } from "./SharedMailUtils.js"
 import { LockedError, NotFoundError, PreconditionFailedError } from "../api/common/error/RestError.js"
-import { elementIdPart, GENERATED_MAX_ID, getElementId, getListId, isSameId } from "../api/common/utils/EntityUtils.js"
+import { CUSTOM_MIN_ID, elementIdPart, GENERATED_MAX_ID, getElementId, getListId, isSameId } from "../api/common/utils/EntityUtils.js"
 import { containsEventOfType, EntityUpdateData, isUpdateForTypeRef } from "../api/common/utils/EntityUpdateUtils.js"
 import m from "mithril"
 import { lang } from "../misc/LanguageViewModel.js"
@@ -203,7 +204,7 @@ export class MailModel {
 			if (isNotEmpty(mail.sets)) {
 				detail.folders.getFolderById(elementIdPart(mail.sets[0]))
 			} else {
-				return detail.folders.getFolderByMailListId(getListId(mail))
+				return detail.folders.getFolderByMail(mail)
 			}
 		}
 
@@ -232,13 +233,12 @@ export class MailModel {
 	}
 
 	/**
-	 * Finally deletes all given mails. Caller must ensure that mails are only from one folder
+	 * Finally move all given mails. Caller must ensure that mails are only from one folder
 	 */
 	async _moveMails(mails: Mail[], targetMailFolder: MailFolder): Promise<void> {
-		let moveMails = mails.filter((m) => m._id[0] !== targetMailFolder.mails && targetMailFolder._ownerGroup === m._ownerGroup) // prevent moving mails between mail boxes.
-
 		// Do not move if target is the same as the current mailFolder
 		const sourceMailFolder = this.getMailFolder(mails[0])
+		let moveMails = mails.filter((m) => sourceMailFolder !== targetMailFolder && targetMailFolder._ownerGroup === m._ownerGroup) // prevent moving mails between mail boxes.
 
 		if (moveMails.length > 0 && sourceMailFolder && !isSameId(targetMailFolder._id, sourceMailFolder._id)) {
 			const mailChunks = splitInChunks(
@@ -261,13 +261,13 @@ export class MailModel {
 			return isNotEmpty(mail.sets) ? elementIdPart(mail.sets[0]) : getListId(mail)
 		})
 
-		for (const [listId, mails] of mailsPerFolder) {
+		for (const [folderId, mails] of mailsPerFolder) {
 			const sourceMailFolder = this.getMailFolder(mails[0])
 
 			if (sourceMailFolder) {
 				await this._moveMails(mails, targetMailFolder)
 			} else {
-				console.log("Move mail: no mail folder for list id", listId)
+				console.log("Move mail: no mail folder for folder id", folderId)
 			}
 		}
 	}
@@ -473,9 +473,8 @@ export class MailModel {
 		// we don't update folder system quickly enough so we keep track of deleted folders here and consider them "empty" when all their children are here
 		const deleted = new Set<Id>()
 		for (const descendant of descendants) {
-			// Only load one mail, if there is even one we won't remove
 			if (
-				(await this.entityClient.loadRange(MailTypeRef, descendant.folder.mails, GENERATED_MAX_ID, 1, true)).length === 0 &&
+				(await this.isEmptyFolder(descendant.folder)) &&
 				mailboxDetail.folders.getCustomFoldersOfParent(descendant.folder._id).every((f) => deleted.has(getElementId(f)))
 			) {
 				deleted.add(getElementId(descendant.folder))
@@ -484,9 +483,8 @@ export class MailModel {
 				someNonEmpty = true
 			}
 		}
-		// Only load one mail, if there is even one we won't remove
 		if (
-			(await this.entityClient.loadRange(MailTypeRef, folder.mails, GENERATED_MAX_ID, 1, true)).length === 0 &&
+			(await this.isEmptyFolder(folder)) &&
 			mailboxDetail.folders.getCustomFoldersOfParent(folder._id).every((f) => deleted.has(getElementId(f))) &&
 			!someNonEmpty
 		) {
@@ -494,6 +492,16 @@ export class MailModel {
 			return true
 		} else {
 			return false
+		}
+	}
+
+	// Only load one mail, if there is even one we won't remove
+	private async isEmptyFolder(descendant: MailFolder) {
+		let isEmpty
+		if (descendant.isMailSet) {
+			return (await this.entityClient.loadRange(MailSetEntryTypeRef, descendant.entries, CUSTOM_MIN_ID, 1, true)).length === 0
+		} else {
+			return (await this.entityClient.loadRange(MailTypeRef, descendant.mails, GENERATED_MAX_ID, 1, true)).length === 0
 		}
 	}
 

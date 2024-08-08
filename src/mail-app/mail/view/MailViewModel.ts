@@ -13,6 +13,9 @@ import {
 } from "../../../common/api/common/utils/EntityUtils.js"
 import {
 	assertNotNull,
+	base64ToUint8Array,
+	base64UrlToBase64,
+	compare,
 	count,
 	debounce,
 	groupByAndMap,
@@ -327,7 +330,9 @@ export class MailViewModel {
 					mails.push(...(await this.entityClient.loadMultiple(MailTypeRef, listId, mailIds)))
 				}
 				mails.sort((a, b) => {
-					return mailIdToMailSetEntryId.get(elementIdPart(a._id))!.localeCompare(mailIdToMailSetEntryId.get(elementIdPart(b._id))!)
+					let mseA = base64ToUint8Array(base64UrlToBase64(mailIdToMailSetEntryId.get(elementIdPart(a._id))!))
+					let mseB = base64ToUint8Array(base64UrlToBase64(mailIdToMailSetEntryId.get(elementIdPart(b._id))!))
+					return compare(mseA, mseB)
 				})
 				const mailboxDetail = await this.mailModel.getMailboxDetailsForMailFolder(folder)
 				// For inbox rules there are two points where we might want to apply them. The first one is MailModel which applied inbox rules as they are received

@@ -30,6 +30,7 @@ import { TokenOrNestedTokens } from "cborg/interface"
 import {
 	CalendarEventTypeRef,
 	FileTypeRef,
+	MailBoxTypeRef,
 	MailDetailsBlobTypeRef,
 	MailDetailsDraftTypeRef,
 	MailFolderTypeRef,
@@ -487,14 +488,25 @@ AND NOT(${firstIdBigger("elementId", upper)})`
 		// lead to an overflow in our 42 bit timestamp in the id.
 		const cutoffTimestamp = now - timeRangeMillisSafe
 		const cutoffId = timestampToGeneratedId(cutoffTimestamp)
-		const folders = await this.getListElementsOfType(MailFolderTypeRef)
-		const folderSystem = new FolderSystem(folders)
-
-		for (const folder of folders) {
-			if (isSpamOrTrashFolder(folderSystem, folder)) {
-				await this.deleteMailList(folder.mails, GENERATED_MAX_ID)
+		const mailBoxes = await this.getElementsOfType(MailBoxTypeRef)
+		for (const mailBox of mailBoxes) {
+			const isMailsetMigrated = mailBox.currentMailBag != null
+			if (isMailsetMigrated) {
+				var mailListIds = [mailBox.currentMailBag!, ...mailBox.archivedMailBags].map((mailbag) => mailbag.mails)
+				for (const mailListId of mailListIds) {
+					await this.deleteMailList(mailListId, cutoffId)
+				}
 			} else {
-				await this.deleteMailList(folder.mails, cutoffId)
+				const folders = await this.getWholeList(MailFolderTypeRef, mailBox.folders!.folders)
+
+				const folderSystem = new FolderSystem(folders)
+				for (const folder of folders) {
+					if (isSpamOrTrashFolder(folderSystem, folder)) {
+						await this.deleteMailList(folder.mails, GENERATED_MAX_ID)
+					} else {
+						await this.deleteMailList(folder.mails, cutoffId)
+					}
+				}
 			}
 		}
 	}
