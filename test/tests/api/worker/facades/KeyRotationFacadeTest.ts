@@ -54,7 +54,9 @@ import { ShareFacade } from "../../../../../src/common/api/worker/facades/lazy/S
 import { GroupManagementFacade } from "../../../../../src/common/api/worker/facades/lazy/GroupManagementFacade.js"
 import { GroupInvitationPostData, InternalRecipientKeyDataTypeRef } from "../../../../../src/common/api/entities/tutanota/TypeRefs.js"
 import { RecipientsNotFoundError } from "../../../../../src/common/api/common/error/RecipientsNotFoundError.js"
-import { mockAttribute, spy } from "@tutao/tutanota-test-utils"
+import { assertThrows, mockAttribute, spy } from "@tutao/tutanota-test-utils"
+import { LockedError } from "../../../../../src/common/api/common/error/RestError.js"
+
 const { anything } = matchers
 const PQ_SAFE_BITARRAY_KEY_LENGTH = KEY_LENGTH_BYTES_AES_256 / 4
 
@@ -1069,8 +1071,8 @@ o.spec("KeyRotationFacadeTest", function () {
 			})
 		})
 		o.spec("processPendingKeyRotationsAndUpdates error handling", function () {
-			o("loadPendingKeyRotations", async function () {
-				const terror = new Error("test error")
+			o("loadPendingKeyRotations LockedError is caught", async function () {
+				const terror = new LockedError("test error")
 				when(entityClientMock.load(UserGroupRootTypeRef, anything())).thenReject(terror)
 				const log = (console.log = spy(console.log))
 				await keyRotationFacade.processPendingKeyRotationsAndUpdates(object())
@@ -1079,12 +1081,18 @@ o.spec("KeyRotationFacadeTest", function () {
 				o(log.callCount).equals(1)
 				o(log.args[1]).equals(terror)
 			})
+			o("loadPendingKeyRotations other Errors are thrown", async function () {
+				const terror = new Error("test error")
+				when(entityClientMock.load(UserGroupRootTypeRef, anything())).thenReject(terror)
+				const log = (console.log = spy(console.log))
+				assertThrows(Error, async () => keyRotationFacade.processPendingKeyRotationsAndUpdates(object()))
+			})
 
-			o("processPendingKeyRotation", async function () {
+			o("processPendingKeyRotation LockedError is caught", async function () {
 				//ignore errors from  previous function calls
 				mockAttribute(keyRotationFacade, keyRotationFacade.loadPendingKeyRotations, () => {})
 				//make processPendingKeyRotations throw
-				const terror = new Error("test error")
+				const terror = new LockedError("test error")
 				mockAttribute(keyRotationFacade, keyRotationFacade.processPendingKeyRotation, () => {
 					throw terror
 				})
@@ -1095,13 +1103,24 @@ o.spec("KeyRotationFacadeTest", function () {
 				o(log.callCount).equals(1)
 				o(log.args[1]).equals(terror)
 			})
+			o("processPendingKeyRotation other errors are thrown", async function () {
+				//ignore errors from  previous function calls
+				mockAttribute(keyRotationFacade, keyRotationFacade.loadPendingKeyRotations, () => {})
+				//make processPendingKeyRotations throw
+				const terror = new Error("test error")
+				mockAttribute(keyRotationFacade, keyRotationFacade.processPendingKeyRotation, () => {
+					throw terror
+				})
+				const log = (console.log = spy(console.log))
+				assertThrows(Error, async () => keyRotationFacade.processPendingKeyRotationsAndUpdates(object()))
+			})
 
-			o("updateGroupMemberships", async function () {
+			o("updateGroupMemberships LockedError is caught", async function () {
 				//ignore errors from previous function calls
 				mockAttribute(keyRotationFacade, keyRotationFacade.loadPendingKeyRotations, () => {})
 				mockAttribute(keyRotationFacade, keyRotationFacade.processPendingKeyRotation, () => {})
 				//let update membership throw
-				const terror = new Error("test error")
+				const terror = new LockedError("test error")
 				mockAttribute(keyRotationFacade, keyRotationFacade.updateGroupMemberships, () => {
 					throw terror
 				})
@@ -1113,6 +1132,20 @@ o.spec("KeyRotationFacadeTest", function () {
 				//make sure we log the error to console
 				o(log.callCount).equals(1)
 				o(log.args[1]).equals(terror)
+			})
+			o("updateGroupMemberships other errors are thrown", async function () {
+				//ignore errors from previous function calls
+				mockAttribute(keyRotationFacade, keyRotationFacade.loadPendingKeyRotations, () => {})
+				mockAttribute(keyRotationFacade, keyRotationFacade.processPendingKeyRotation, () => {})
+				//let update membership throw
+				const terror = new Error("test error")
+				mockAttribute(keyRotationFacade, keyRotationFacade.updateGroupMemberships, () => {
+					throw terror
+				})
+
+				const log = (console.log = spy(console.log))
+
+				assertThrows(Error, async () => keyRotationFacade.processPendingKeyRotationsAndUpdates(object()))
 			})
 		})
 	})

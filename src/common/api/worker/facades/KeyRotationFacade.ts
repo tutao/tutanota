@@ -58,6 +58,7 @@ import { GroupInvitationPostData, type InternalRecipientKeyData, InternalRecipie
 import { ShareFacade } from "./lazy/ShareFacade.js"
 import { GroupManagementFacade } from "./lazy/GroupManagementFacade.js"
 import { RecipientsNotFoundError } from "../../common/error/RecipientsNotFoundError.js"
+import { LockedError } from "../../common/error/RestError.js"
 
 assertWorkerOrNode()
 
@@ -162,8 +163,12 @@ export class KeyRotationFacade {
 				await this.updateGroupMemberships(this.pendingGroupKeyUpdateIds)
 			}
 		} catch (e) {
-			// we catch here so that we also catch errors in the finally block
-			console.log("error when processing key rotation or group key update", e)
+			if (e instanceof LockedError) {
+				// we catch here so that we also catch errors in the finally block
+				console.log("error when processing key rotation or group key update", e)
+			} else {
+				throw e
+			}
 		}
 	}
 
