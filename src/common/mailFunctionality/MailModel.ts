@@ -202,7 +202,7 @@ export class MailModel {
 
 		for (let detail of mailboxDetails) {
 			if (isNotEmpty(mail.sets)) {
-				detail.folders.getFolderById(elementIdPart(mail.sets[0]))
+				return detail.folders.getFolderById(elementIdPart(mail.sets[0]))
 			} else {
 				return detail.folders.getFolderByMail(mail)
 			}

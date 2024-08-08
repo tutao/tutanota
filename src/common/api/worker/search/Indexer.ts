@@ -323,7 +323,6 @@ export class Indexer {
 		const transaction = await this.db.dbFacade.createTransaction(false, [MetaDataOS, GroupDataOS])
 		await transaction.put(MetaDataOS, Metadata.userEncDbKey, userEncDbKey.key)
 		await transaction.put(MetaDataOS, Metadata.mailIndexingEnabled, this._mail.mailIndexingEnabled)
-		await transaction.put(MetaDataOS, Metadata.excludedListIds, this._mail._excludedListIds)
 		await transaction.put(MetaDataOS, Metadata.encDbIv, aes256EncryptSearchIndexEntry(this.db.key, this.db.iv))
 		await transaction.put(MetaDataOS, Metadata.userGroupKeyVersion, userEncDbKey.encryptingKeyVersion)
 		await transaction.put(MetaDataOS, Metadata.lastEventIndexTimeMs, this._entityRestClient.getRestClient().getServerTimestampMs())
@@ -336,7 +335,6 @@ export class Indexer {
 		this.db.key = decryptKey(userGroupKey, metaData.userEncDbKey)
 		this.db.iv = unauthenticatedAesDecrypt(this.db.key, neverNull(metaData.encDbIv), true)
 		this._mail.mailIndexingEnabled = metaData.mailIndexingEnabled
-		this._mail._excludedListIds = metaData.excludedListIds
 		const groupDiff = await this._loadGroupDiff(user)
 		await this._updateGroups(user, groupDiff)
 		await this._mail.updateCurrentIndexTimestamp(user)

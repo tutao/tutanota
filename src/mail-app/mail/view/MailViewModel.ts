@@ -32,7 +32,7 @@ import { ListState } from "../../../common/gui/base/List.js"
 import { ConversationPrefProvider, ConversationViewModel, ConversationViewModelFactory } from "./ConversationViewModel.js"
 import { CreateMailViewerOptions } from "./MailViewer.js"
 import { isOfflineError } from "../../../common/api/common/utils/ErrorUtils.js"
-import { MailSetKind } from "../../../common/api/common/TutanotaConstants.js"
+import { MailSetKind, OperationType } from "../../../common/api/common/TutanotaConstants.js"
 import { WsConnectionState } from "../../../common/api/main/WorkerClient.js"
 import { WebsocketConnectivityModel } from "../../../common/misc/WebsocketConnectivityModel.js"
 import { ExposedCacheStorage } from "../../../common/api/worker/rest/DefaultEntityRestCache.js"
@@ -298,7 +298,7 @@ export class MailViewModel {
 		this.conversationViewModel = this.conversationViewModelFactory(viewModelParams)
 	}
 
-	async entityEventsReceived(updates: ReadonlyArray<EntityUpdateData>) {
+	async entityEventsReceivedForLegacy(updates: ReadonlyArray<EntityUpdateData>) {
 		for (const update of updates) {
 			if (isUpdateForTypeRef(MailTypeRef, update)) {
 				const listModel = this.listModel
@@ -309,6 +309,34 @@ export class MailViewModel {
 					}
 				}
 			}
+		}
+	}
+
+	async entityEventsReceived(updates: ReadonlyArray<EntityUpdateData>) {
+		const folder = this._folder
+		const listModel = this.listModel
+
+		if (!folder || !listModel) return
+		if (!folder.isMailSet) return this.entityEventsReceivedForLegacy(updates)
+
+		let [mailEvent, oldEntryEvent, newEntryEvent]: EntityUpdateData[] = []
+		for (const event of updates) {
+			isUpdateForTypeRef(MailTypeRef, event)
+				? (mailEvent = event) // update for mail type
+				: isUpdateForTypeRef(MailSetEntryTypeRef, event)
+				? event.operation == OperationType.DELETE
+					? (oldEntryEvent = event) // update for MaiLSetEntry that was deleted
+					: (newEntryEvent = event) // update for MailSetEntry that was created or updated ( but we don't update the entry )
+				: null // this event is neither for mailType nor for MailSetEntry
+		}
+
+		if (!mailEvent || !newEntryEvent) return console.log("newEntry event and mailEvent is always expected") // MailViewModel should never receive non-mail event?
+		if (
+			isSameId(folder.entries, newEntryEvent.instanceListId) || // something was created or updated in this list
+			(oldEntryEvent && isSameId(folder.entries, oldEntryEvent.instanceListId)) // something was removed from this list
+		) {
+			let operation = oldEntryEvent ? OperationType.DELETE : mailEvent.operation
+			await this.listModel?.entityEventReceived(mailEvent.instanceListId, mailEvent.instanceId, operation)
 		}
 	}
 
