@@ -32,9 +32,9 @@ pub struct JsonSerializer {
 
 #[derive(Error, Debug)]
 pub enum InstanceMapperError {
-    #[error("Type not found: {type_ref}")]
+    #[error("InstanceMapperError: Type not found: {type_ref}")]
     TypeNotFound { type_ref: TypeRef },
-    #[error("Invalid value not found: {type_ref} {field}")]
+    #[error("InstanceMapperError: Invalid value: {type_ref} {field}")]
     InvalidValue { type_ref: TypeRef, field: String },
 }
 
