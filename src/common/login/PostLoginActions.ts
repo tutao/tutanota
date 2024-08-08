@@ -52,6 +52,7 @@ export class PostLoginActions implements PostLoginAction {
 		private readonly themeController: ThemeController,
 		private readonly showSetupWizard: () => unknown,
 		private readonly appPartialLoginSuccessActions: () => unknown,
+		private readonly syncExternalCalendars: () => unknown,
 	) {}
 
 	async onPartialLoginSuccess(loggedInEvent: LoggedInEvent): Promise<void> {
@@ -146,6 +147,8 @@ export class PostLoginActions implements PostLoginAction {
 			} else {
 				console.log("Skipping registering for notifications while setup dialog is shown")
 			}
+
+			this.syncExternalCalendars()
 		}
 
 		if (this.logins.isGlobalAdminUserLoggedIn() && !isAdminClient()) {

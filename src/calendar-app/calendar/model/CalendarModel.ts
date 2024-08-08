@@ -25,6 +25,9 @@ import {
 	CalendarGroupRootTypeRef,
 	createGroupSettings,
 	FileTypeRef,
+	GroupSettings,
+	UserSettingsGroupRoot,
+	UserSettingsGroupRootTypeRef,
 } from "../../../common/api/entities/tutanota/TypeRefs.js"
 import { isApp, isBrowser, isDesktop } from "../../../common/api/common/Env"
 import type { LoginController } from "../../../common/api/main/LoginController"
@@ -58,12 +61,13 @@ import { ObservableLazyLoaded } from "../../../common/api/common/utils/Observabl
 import { UserController } from "../../../common/api/main/UserController.js"
 import { formatDateWithWeekdayAndTime, formatTime } from "../../../common/misc/Formatter.js"
 import { EntityUpdateData, isUpdateFor, isUpdateForTypeRef } from "../../../common/api/common/utils/EntityUpdateUtils.js"
-import { AlarmInterval, getTimeZone, serializeAlarmInterval } from "../../../common/calendar/date/CalendarUtils.js"
+import { AlarmInterval, generateUid, getTimeZone, serializeAlarmInterval } from "../../../common/calendar/date/CalendarUtils.js"
 import { isSharedGroupOwner, loadGroupMembers } from "../../../common/sharing/GroupUtils.js"
 import { ExternalCalendarFacade } from "../../../common/native/common/generatedipc/ExternalCalendarFacade.js"
-import { EventImportRejectionReason, loadAllEvents, showCalendarImportDialog, sortOutParsedEvents } from "../export/CalendarImporterDialog.js"
+import { EventImportRejectionReason, loadAllEvents, handleCalendarImport, sortOutParsedEvents } from "../export/CalendarImporterDialog.js"
 import { DeviceConfig } from "../../../common/misc/DeviceConfig.js"
 import { locator } from "../../../common/api/main/CommonLocator.js"
+import { assertEventValidity, assignEventIdentity } from "../gui/eventeditor-model/CalendarEventModel.js"
 
 const TAG = "[CalendarModel]"
 export type CalendarInfo = {
@@ -202,9 +206,9 @@ export class CalendarModel {
 			})
 		}
 
-		if (isApp() || isDesktop()) {
-			this.syncExternalCalendars(userController, groupInstances)
-		}
+		// if (isApp() || isDesktop()) {
+		// 	this.syncExternalCalendars(userController, groupInstances)
+		// }
 
 		// cleanup inconsistent memberships
 		for (const membership of notFoundMemberships) {
@@ -214,13 +218,40 @@ export class CalendarModel {
 		return calendarInfos
 	}
 
-	private async syncExternalCalendars(userController: UserController, groupInstances: Array<[CalendarGroupRoot, GroupInfo, Group]>) {
-		if (!this.externalCalendarFacade) {
+	public async handleSyncExternalCalendars() {
+		if (isApp() || isDesktop()) {
+			const syncInterval = 1 * 30 * 1000 // 30 minutes
+
+			this.syncExternalCalendars(syncInterval)
+			setInterval(() => {
+				this.syncExternalCalendars(syncInterval)
+			}, syncInterval)
+		}
+	}
+
+	public async syncExternalCalendars(syncInterval: number) {
+		if (!this.externalCalendarFacade || !locator.logins.isFullyLoggedIn()) {
 			return
 		}
 
-		const syncInterval = 60 * 30 * 1000 // 30 minutes
-		for (const { sourceUrl, group } of userController.userSettingsGroupRoot.groupSettings) {
+		const userController = this.logins.getUserController()
+
+		const groupRootsPromises: Promise<CalendarGroupRoot>[] = []
+		let calendarGroupRootsList: CalendarGroupRoot[] = []
+		for (const membership of userController.getCalendarMemberships()) {
+			groupRootsPromises.push(this.entityClient.load(CalendarGroupRootTypeRef, membership.group))
+		}
+		calendarGroupRootsList = await Promise.all(groupRootsPromises)
+
+		const { groupSettings } = await locator.entityClient.load(UserSettingsGroupRootTypeRef, userController.user.userGroup.group)
+
+		console.info(`Syncing external calendars: `, {
+			calendarGroupRootsList,
+			groupSettings,
+		})
+
+		console.log({ groupSettings })
+		for (const { sourceUrl, group } of groupSettings) {
 			if (!sourceUrl) {
 				continue
 			}
@@ -234,46 +265,35 @@ export class CalendarModel {
 			const rawCalendar = await this.externalCalendarFacade.fetchExternalCalendar(sourceUrl)
 			const remoteEvents = parseCalendarStringData(rawCalendar, getTimeZone()).contents
 
-			const [groupRoot] = groupInstances.find(([groupRoot]) => groupRoot._id === group) ?? [null]
+			const calendarGroupRoot = calendarGroupRootsList.find((calendarGroupRoot) => isSameId(calendarGroupRoot._id, group)) ?? null
 
-			if (!groupRoot) {
-				throw Error("Trying to sync a calendar the user isn't subscribed to anymore")
+			if (!calendarGroupRoot) {
+				console.error(`Trying to sync a calendar the user isn't subscribed to anymore: ${group}`)
+				continue
 			}
 
-			const existingEventList = await loadAllEvents(groupRoot)
-
-			// const { rejectedEvents, eventsForCreation } = sortOutParsedEvents(remoteEvents, existingEventList, groupRoot, getTimeZone())
-			// const duplicatedEvents = rejectedEvents.get(EventImportRejectionReason.Duplicate) ?? []
+			const existingEventList = await loadAllEvents(calendarGroupRoot)
 
 			// Clean calendar
+			// FIXME Improve updating a calendar(avoid deletion)
 			for (const event of existingEventList) this.deleteEvent(event)
+
+			for (const { event } of remoteEvents) {
+				const { assignEventId } = await import("../../../common/calendar/date/CalendarUtils")
+				assignEventId(event, getTimeZone(), calendarGroupRoot)
+				// Reset ownerEncSessionKey because it cannot be set for new entity, it will be assigned by the CryptoFacade
+				event._ownerEncSessionKey = null
+				if (event.repeatRule != null) {
+					event.repeatRule.excludedDates = event.repeatRule.excludedDates.map(({ date }) => createDateWrapper({ date }))
+				}
+				// Reset permissions because server will assign them
+				downcast(event)._permissions = null
+				event._ownerGroup = calendarGroupRoot._id
+				assertEventValidity(event)
+			}
+
+			this.deviceConfig.updateLastSync(group)
 			this.calendarFacade.saveImportedCalendarEvents(remoteEvents, 0)
-
-			// const remoteDuplicatedEvents = remoteEvents.filter((ev) => duplicatedEvents.find((e) => e.uid === ev.event.uid))
-			//
-			// for (const event of duplicatedEvents) {
-			// 	const remoteEvent = remoteEvents.find((ev) => ev.event.uid === event.uid)
-			// 	if (deepEqual(event, remoteEvent)) {
-			// 		continue
-			// 	}
-			// 	this.calendarFacade.updateCalendarEvent(event)
-			// }
-
-			// this.calendarFacade.updateCalendarEvent()
-
-			// for (const event of remoteEvents) {
-			// 	const eventIndex = existingEventList.findIndex((ev) => ev.uid === event.event.uid)
-			//
-			// 	if (eventIndex === -1) {
-			// 		return this.calendarFacade.saveCalendarEvent()
-			// 	}
-			//
-			// 	if (!deepEqual(event, existingEventList[eventIndex])) {
-			// 		//UPDATE
-			// 	}
-			//
-			// 	existingEventList.splice(eventIndex, 1)
-			// }
 		}
 	}
 
@@ -315,11 +335,12 @@ export class CalendarModel {
 		}
 	}
 
-	private async handleUrlSubscription(url: string | null, group: CalendarGroupRoot) {
+	private async handleUrlSubscription(url: string | null, calendarGroupRoot: CalendarGroupRoot) {
 		if (!url || !this.externalCalendarFacade) return
 		const calendar = await this.externalCalendarFacade.fetchExternalCalendar(url)
 		const events = parseCalendarStringData(calendar, getTimeZone())
-		await showCalendarImportDialog(group, events.contents)
+		this.deviceConfig.updateLastSync(calendarGroupRoot._ownerGroup!)
+		await handleCalendarImport(calendarGroupRoot, events.contents)
 	}
 
 	private async doCreate(

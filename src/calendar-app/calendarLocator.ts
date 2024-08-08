@@ -52,7 +52,14 @@ import { SqlCipherFacade } from "../common/native/common/generatedipc/SqlCipherF
 import { assertNotNull, defer, DeferredObject, lazy, lazyAsync, LazyLoaded, lazyMemoized, noOp, ofClass } from "@tutao/tutanota-utils"
 import { RecipientsModel } from "../common/api/main/RecipientsModel.js"
 import { NoZoneDateProvider } from "../common/api/common/utils/NoZoneDateProvider.js"
-import { CalendarEvent, CalendarEventAttendee, Mail, MailboxProperties } from "../common/api/entities/tutanota/TypeRefs.js"
+import {
+	CalendarEvent,
+	CalendarEventAttendee,
+	CalendarGroupRoot,
+	CalendarGroupRootTypeRef,
+	Mail,
+	MailboxProperties,
+} from "../common/api/entities/tutanota/TypeRefs.js"
 import { SendMailModel } from "../common/mailFunctionality/SendMailModel.js"
 import { OfflineIndicatorViewModel } from "../common/gui/base/OfflineIndicatorViewModel.js"
 import { Router, ScopedRouter, ThrottledRouter } from "../common/gui/ScopedRouter.js"
@@ -78,7 +85,7 @@ import { MobileSystemFacade } from "../common/native/common/generatedipc/MobileS
 import { MobileContactsFacade } from "../common/native/common/generatedipc/MobileContactsFacade.js"
 import { NativeCredentialsFacade } from "../common/native/common/generatedipc/NativeCredentialsFacade.js"
 import { MailAddressNameChanger, MailAddressTableModel } from "../mail-app/settings/mailaddress/MailAddressTableModel.js"
-import { GroupInfo } from "../common/api/entities/sys/TypeRefs.js"
+import { GroupInfo, GroupRoot } from "../common/api/entities/sys/TypeRefs.js"
 import { DrawerMenuAttrs } from "../common/gui/nav/DrawerMenu.js"
 import { DomainConfigProvider } from "../common/api/common/DomainConfigProvider.js"
 import { CredentialRemovalHandler } from "../common/login/CredentialRemovalHandler.js"
@@ -107,6 +114,7 @@ import { CalendarSearchModel } from "./calendar/search/model/CalendarSearchModel
 import { SearchIndexStateInfo } from "../common/api/worker/search/SearchTypes.js"
 import { CALENDAR_PREFIX } from "../common/misc/RouteChange.js"
 import { ExternalCalendarFacade } from "../common/native/common/generatedipc/ExternalCalendarFacade.js"
+import { locator } from "../common/api/main/CommonLocator.js"
 
 assertMainOrNode()
 
@@ -817,6 +825,10 @@ class CalendarLocator {
 			() => this.showSetupWizard(),
 			() => {
 				calendarLocator.fileApp.clearFileData().catch((e) => console.log("Failed to clean file data", e))
+			},
+			async () => {
+				const calendarModel = await locator.calendarModel()
+				calendarModel.handleSyncExternalCalendars()
 			},
 		)
 	})

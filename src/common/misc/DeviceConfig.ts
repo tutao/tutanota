@@ -214,6 +214,11 @@ export class DeviceConfig implements UsageTestStorage, NewsItemStorage {
 		this.writeToStorage()
 	}
 
+	updateLastSync(groupId: Id) {
+		const lastExternalCalendarSync = this.getLastExternalCalendarSync()
+		this.setLastExternalCalendarSync(Object.assign(lastExternalCalendarSync, { [`${groupId}`]: Date.now() }))
+	}
+
 	getLanguage(): LanguageCode | null {
 		return this.config._language
 	}

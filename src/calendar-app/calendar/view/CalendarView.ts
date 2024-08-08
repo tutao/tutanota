@@ -7,20 +7,20 @@ import type { Key, Shortcut } from "../../../common/misc/KeyManager"
 import { isKeyPressed, keyManager } from "../../../common/misc/KeyManager"
 import { Icons } from "../../../common/gui/base/icons/Icons"
 import { downcast, getStartOfDay, isSameDayOfDate, ofClass } from "@tutao/tutanota-utils"
-import type { CalendarEvent, CalendarGroupRoot, GroupSettings, UserSettingsGroupRoot } from "../../../common/api/entities/tutanota/TypeRefs.js"
+import type { CalendarEvent, GroupSettings, UserSettingsGroupRoot } from "../../../common/api/entities/tutanota/TypeRefs.js"
 import { createGroupSettings } from "../../../common/api/entities/tutanota/TypeRefs.js"
 import { defaultCalendarColor, GroupType, Keys, reverse, ShareCapability, TabIndex, TimeFormat, WeekStart } from "../../../common/api/common/TutanotaConstants"
 import { locator } from "../../../common/api/main/CommonLocator"
 import {
-	parseAlarmInterval,
-	serializeAlarmInterval,
+	findFirstPrivateCalendar,
 	getStartOfTheWeekOffset,
 	getStartOfTheWeekOffsetForUser,
 	getTimeZone,
 	getWeekNumber,
-	findFirstPrivateCalendar,
+	parseAlarmInterval,
+	serializeAlarmInterval,
 } from "../../../common/calendar/date/CalendarUtils"
-import { ButtonColor } from "../../../common/gui/base/Button.js"
+import { ButtonColor, getColors } from "../../../common/gui/base/Button.js"
 import { CalendarMonthView } from "./CalendarMonthView"
 import { DateTime } from "luxon"
 import { NotFoundError } from "../../../common/api/common/error/RestError"
@@ -34,7 +34,7 @@ import { isApp, isDesktop } from "../../../common/api/common/Env"
 import { px, size } from "../../../common/gui/size"
 import { FolderColumnView } from "../../../common/gui/FolderColumnView.js"
 import { deviceConfig } from "../../../common/misc/DeviceConfig"
-import { exportCalendar, showCalendarImportDialog } from "../export/CalendarImporterDialog"
+import { exportCalendar, handleCalendarImport } from "../export/CalendarImporterDialog"
 import { showNotAvailableForFreeDialog } from "../../../common/misc/SubscriptionDialogs"
 import { getSharedGroupName, hasCapabilityOnGroup, loadGroupMembers } from "../../../common/sharing/GroupUtils"
 import { showGroupSharingDialog } from "../../../common/sharing/view/GroupSharingDialog"
@@ -65,7 +65,7 @@ import { BaseTopLevelView } from "../../../common/gui/BaseTopLevelView.js"
 import { TopLevelAttrs, TopLevelView } from "../../../TopLevelView.js"
 import { getEventWithDefaultTimes, getNextHalfHour } from "../../../common/api/common/utils/CommonCalendarUtils.js"
 import { BackgroundColumnLayout } from "../../../common/gui/BackgroundColumnLayout.js"
-import { theme } from "../../../common/gui/theme.js"
+import { getContentButtonIconBackground, theme } from "../../../common/gui/theme.js"
 import { CalendarMobileHeader } from "./CalendarMobileHeader.js"
 import { CalendarDesktopToolbar } from "./CalendarDesktopToolbar.js"
 import { LazySearchBar } from "../../../common/misc/LazySearchBar.js"
@@ -74,6 +74,7 @@ import { DaySelectorSidebar } from "../gui/day-selector/DaySelectorSidebar.js"
 import { CalendarOperation } from "../gui/eventeditor-model/CalendarEventModel.js"
 import { DaySelectorPopup } from "../gui/day-selector/DaySelectorPopup.js"
 import { CalendarEventPreviewViewModel } from "../gui/eventpopup/CalendarEventPreviewViewModel.js"
+import { Icon } from "../../../common/gui/base/Icon.js"
 
 export type GroupColors = Map<Id, string>
 
@@ -158,8 +159,7 @@ export class CalendarView extends BaseTopLevelView implements TopLevelView<Calen
 																size: ButtonSize.Compact,
 															},
 															{
-																// FIXME setup label, and action "From URL"
-																label: "edit_action",
+																label: "addCalendarFromURL_action",
 																icon: Icons.Link,
 																size: ButtonSize.Compact,
 																click: () => this.onPressedAddCalendar(CalendarType.URL),
@@ -650,9 +650,7 @@ export class CalendarView extends BaseTopLevelView implements TopLevelView<Calen
 				)
 				break
 			case CalendarType.URL:
-				console.log("URL Motherfucker")
 				showCreateEditCalendarDialog(
-					// FIXME add more descriptive label nad handle the new url field
 					calendarType,
 					"add_action",
 					false,
@@ -723,6 +721,14 @@ export class CalendarView extends BaseTopLevelView implements TopLevelView<Calen
 					groupName,
 				),
 			]),
+			existingGroupSettings?.sourceUrl &&
+				m(Icon, {
+					icon: Icons.Link,
+					large: true,
+					style: {
+						fill: theme.content_button,
+					},
+				}),
 			this.createCalendarActionDropdown(calendarInfo, colorValue, existingGroupSettings, userSettingsGroupRoot, shared),
 		])
 	}
@@ -764,7 +770,7 @@ export class CalendarView extends BaseTopLevelView implements TopLevelView<Calen
 						? {
 								label: "import_action",
 								icon: Icons.Import,
-								click: () => showCalendarImportDialog(groupRoot),
+								click: () => handleCalendarImport(groupRoot),
 						  }
 						: null,
 					!isApp() && group.type === GroupType.Calendar && hasCapabilityOnGroup(user, group, ShareCapability.Read)

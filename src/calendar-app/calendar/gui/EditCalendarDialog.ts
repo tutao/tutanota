@@ -83,9 +83,8 @@ export function showCreateEditCalendarDialog(
 								oninput: urlStream,
 								label: "url_label",
 								disabled: disableUrlInput,
-								// FIXME add translation label
 								type: TextFieldType.Url,
-								helpLabel: () => "To change the URL remove this calendar and create another subscription.",
+								helpLabel: () => lang.get("calendarSourceURL_helperText"),
 							}),
 						]),
 				]),
@@ -95,14 +94,8 @@ export function showCreateEditCalendarDialog(
 			let url: string | null = null
 
 			if (calendarType === CalendarType.URL) {
-				// FIXME Improve this message and add translation
-				const proceed = await Dialog.confirm(
-					() => "Subscribing to an external calendar will expose this action to our servers during each sync operation, do you want to proceed?",
-				)
-				if (!proceed) return
 				const assertResult = assertValidURL(urlStream())
-				// FIXME Add translation for url error
-				if (!assertResult) return Dialog.message(() => "Erro")
+				if (!assertResult) return Dialog.message("invalidURL_msg")
 				url = assertResult.toString()
 			}
 

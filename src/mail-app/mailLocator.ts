@@ -54,7 +54,14 @@ import { SqlCipherFacade } from "../common/native/common/generatedipc/SqlCipherF
 import { assert, assertNotNull, defer, DeferredObject, lazy, lazyAsync, LazyLoaded, lazyMemoized, noOp, ofClass } from "@tutao/tutanota-utils"
 import { RecipientsModel } from "../common/api/main/RecipientsModel.js"
 import { NoZoneDateProvider } from "../common/api/common/utils/NoZoneDateProvider.js"
-import { CalendarEvent, CalendarEventAttendee, Mail, MailboxProperties } from "../common/api/entities/tutanota/TypeRefs.js"
+import {
+	CalendarEvent,
+	CalendarEventAttendee,
+	CalendarGroupRoot,
+	CalendarGroupRootTypeRef,
+	Mail,
+	MailboxProperties,
+} from "../common/api/entities/tutanota/TypeRefs.js"
 import { SendMailModel } from "../common/mailFunctionality/SendMailModel.js"
 import { OfflineIndicatorViewModel } from "../common/gui/base/OfflineIndicatorViewModel.js"
 import { Router, ScopedRouter, ThrottledRouter } from "../common/gui/ScopedRouter.js"
@@ -117,6 +124,8 @@ import { MobilePaymentsFacade } from "../common/native/common/generatedipc/Mobil
 import { AppStorePaymentPicker } from "../common/misc/AppStorePaymentPicker.js"
 import { MAIL_PREFIX } from "../common/misc/RouteChange.js"
 import { ExternalCalendarFacade } from "../common/native/common/generatedipc/ExternalCalendarFacade.js"
+import { calendarLocator } from "../calendar-app/calendarLocator.js"
+import { locator } from "../common/api/main/CommonLocator.js"
 
 assertMainOrNode()
 
@@ -948,6 +957,10 @@ class MailLocator {
 			() => {
 				mailLocator.fileApp.clearFileData().catch((e) => console.log("Failed to clean file data", e))
 				mailLocator.nativeContactsSyncManager()?.syncContacts()
+			},
+			async () => {
+				const calendarModel = await locator.calendarModel()
+				calendarModel.handleSyncExternalCalendars()
 			},
 		)
 	})
