@@ -5,7 +5,7 @@ import { ListModel } from "../../../common/misc/ListModel.js"
 import { Contact, ContactTypeRef } from "../../../common/api/entities/tutanota/TypeRefs.js"
 import { compareContacts } from "./ContactGuiUtils.js"
 import { ListState } from "../../../common/gui/base/List.js"
-import { assertNotNull, memoized } from "@tutao/tutanota-utils"
+import { assertNotNull, lazyMemoized } from "@tutao/tutanota-utils"
 import { GENERATED_MAX_ID, getElementId } from "../../../common/api/common/utils/EntityUtils.js"
 import Stream from "mithril/stream"
 import { Router } from "../../../common/gui/ScopedRouter.js"
@@ -15,6 +15,8 @@ import { ListAutoSelectBehavior } from "../../../common/misc/DeviceConfig.js"
 /** ViewModel for the overall contact view. */
 export class ContactViewModel {
 	contactListId!: Id
+	/** id of the contact we are trying to load based on the url */
+	private targetContactId: Id | null = null
 	sortByFirstName: boolean = true
 	private listModelStateStream: Stream<unknown> | null = null
 
@@ -41,42 +43,41 @@ export class ContactViewModel {
 		autoSelectBehavior: () => ListAutoSelectBehavior.NONE,
 	})
 
-	async init(isSingleColumnLayout: boolean, contactListId?: Id, contactId?: Id) {
-		this.contactListId = contactListId ? contactListId : await this.getContactListId()
+	async init(contactListId?: Id) {
+		// update url if the view was just opened
+		if (contactListId == null) this.updateUrl()
+		if (this.contactListId) return
 
-		this.listModel.loadInitial().then(async () => {
-			// we are loading all contacts at once anyway so we are not worried about starting parallel loads for target
-			typeof contactId === "string" && (await this.loadAndSelect(contactId))
-		})
+		this.contactListId = assertNotNull(await this.contactModel.getContactListId(), "not available for external users")
 
-		this.initOnce(isSingleColumnLayout)
+		this.initOnce()
+		await this.listModel.loadInitial()
 	}
 
-	private readonly initOnce = memoized((isSingleColumnLayout: boolean) => {
+	async selectContact(contactId: Id) {
+		// We are loading all contacts at once anyway so we are not worried about starting parallel loads for target
+		await this.loadAndSelect(contactId)
+	}
+
+	private readonly initOnce = lazyMemoized(() => {
 		this.eventController.addEntityListener(this.entityListener)
 		this.listModelStateStream = this.listModel.stateStream.map(() => {
 			this.updateUi()
-			this.updateUrl(!isSingleColumnLayout) // Avoid keyboard up and down opening the details column in single column layout
+			this.updateUrl()
 		})
 	})
 
-	// Redirects the browser to the contact route with the currently selected contact list and contact as parameters
-	async updateUrl(willLoadContact: boolean) {
+	private updateUrl() {
 		const contactId =
-			!this.listModel.state.inMultiselect && this.listModel.getSelectedAsArray().length === 1
+			this.targetContactId ??
+			(!this.listModel.state.inMultiselect && this.listModel.getSelectedAsArray().length === 1
 				? getElementId(this.listModel.getSelectedAsArray()[0])
-				: null
-		const listId = this.contactListId ? this.contactListId : await this.getContactListId()
-		if (contactId && willLoadContact) {
-			this.router.routeTo(`/contact/:listId/:contactId`, { listId, contactId })
+				: null)
+		if (contactId) {
+			this.router.routeTo(`/contact/:listId/:contactId`, { listId: this.contactListId, contactId: contactId })
 		} else {
-			this.router.routeTo(`/contact/:listId`, { listId })
+			this.router.routeTo(`/contact/:listId`, { listId: this.contactListId })
 		}
-	}
-
-	// Gets the ContactListId from the contact model
-	private async getContactListId(): Promise<Id> {
-		return assertNotNull(await this.contactModel.getContactListId(), "not available for external users")
 	}
 
 	private readonly entityListener: EntityEventsListener = async (updates) => {
@@ -89,7 +90,13 @@ export class ContactViewModel {
 
 	async loadAndSelect(contactId: Id) {
 		const listId = this.contactListId
-		await this.listModel.loadAndSelect(contactId, () => this.contactListId !== listId)
+		this.targetContactId = contactId
+
+		await this.listModel.loadAndSelect(contactId, () => this.contactListId !== listId && this.targetContactId === contactId)
+		// if we reached the goal and the target wasn't swapped in between
+		if (this.targetContactId === contactId) {
+			this.targetContactId = null
+		}
 	}
 
 	setSortByFirstName(sorting: boolean) {

@@ -608,7 +608,7 @@ export class MailViewer implements Component<MailViewerAttrs> {
 						label: "showContact_action",
 						click: () => {
 							const [listId, contactId] = assertNotNull(contact)._id
-							m.route.set("/contact/:listId/:contactId", { listId, contactId })
+							m.route.set("/contact/:listId/:contactId", { listId, contactId, focusItem: true })
 						},
 					})
 				} else {
