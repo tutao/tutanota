@@ -119,17 +119,17 @@ tasks.register("generateBinding") {
 
 tasks.whenTaskAdded {
 	when (name) {
-		"preDebugBuild", "preReleaseBuild" -> {
+		"preDebugBuild", "preReleaseBuild", "preReleaseTestBuild" -> {
 			dependsOn("clean")
 			mustRunAfter("clean")
 		}
 
-		"compileDebugKotlin", "compileReleaseKotlin" -> {
+		"compileDebugKotlin", "compileReleaseKotlin", "compileReleaseTestKotlin" -> {
 			dependsOn("generateBinding")
 			mustRunAfter("generateBinding")
 		}
 
-		"mergeDebugJniLibFolders", "mergeReleaseJniLibFolders" -> {
+		"mergeDebugJniLibFolders", "mergeReleaseJniLibFolders", "mergeReleaseTestJniLibFolders" -> {
 			dependsOn("cargoBuild")
 			mustRunAfter("cargoBuild")
 		}
