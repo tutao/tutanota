@@ -1,18 +1,20 @@
 use std::collections::HashMap;
 use std::sync::Arc;
 
-use base64::{Engine as _, engine::general_purpose::STANDARD as BASE64_STANDARD};
+use base64::{engine::general_purpose::STANDARD as BASE64_STANDARD, Engine as _};
 use thiserror::Error;
 
-use crate::{IdTuple, TypeRef};
 use crate::custom_id::CustomId;
 use crate::date::DateTime;
 use crate::element_value::{ElementValue, ParsedEntity};
 use crate::generated_id::GeneratedId;
-use crate::json_serializer::InstanceMapperError::InvalidValue;
 use crate::json_element::{JsonElement, RawEntity};
-use crate::metamodel::{AssociationType, Cardinality, ElementType, ModelValue, TypeModel, ValueType};
+use crate::json_serializer::InstanceMapperError::InvalidValue;
+use crate::metamodel::{
+    AssociationType, Cardinality, ElementType, ModelValue, TypeModel, ValueType,
+};
 use crate::type_model_provider::TypeModelProvider;
+use crate::{IdTuple, TypeRef};
 
 impl From<&TypeModel> for TypeRef {
     fn from(value: &TypeModel) -> Self {
@@ -65,15 +67,26 @@ impl JsonSerializer {
 
             let mapped_value = match (&value_type.cardinality, value) {
                 (Cardinality::ZeroOrOne, JsonElement::Null) => ElementValue::Null,
-                (Cardinality::One, JsonElement::String(v)) if v == "" => ElementValue::String(String::new()),
-                (Cardinality::One | Cardinality::ZeroOrOne, JsonElement::String(s)) if value_type.encrypted => {
+                (Cardinality::One, JsonElement::String(v)) if v == "" => {
+                    ElementValue::String(String::new())
+                }
+                (Cardinality::One | Cardinality::ZeroOrOne, JsonElement::String(s))
+                    if value_type.encrypted =>
+                {
                     ElementValue::Bytes(BASE64_STANDARD.decode(s).map_err(|_| InvalidValue {
                         type_ref: type_ref.clone(),
                         field: value_name.clone(),
                     })?)
                 }
-                (_, value) if !value_type.encrypted => self.parse_value(&type_model, &value_name, &value_type, value)?,
-                _ => return Err(InvalidValue { type_ref: type_ref.clone(), field: value_name.clone() }),
+                (_, value) if !value_type.encrypted => {
+                    self.parse_value(&type_model, &value_name, &value_type, value)?
+                }
+                _ => {
+                    return Err(InvalidValue {
+                        type_ref: type_ref.clone(),
+                        field: value_name.clone(),
+                    })
+                }
             };
             mapped.insert(value_name, mapped_value);
         }
@@ -104,8 +117,12 @@ impl JsonSerializer {
                     let parsed = self.parse(&association_type_ref, dict)?;
                     mapped.insert(association_name, ElementValue::Dict(parsed));
                 }
-                (AssociationType::Aggregation | AssociationType::ListElementAssociation, Cardinality::Any, JsonElement::Array(elements)) => {
-                    let parsed_aggregates = self.make_parsed_aggregated_array(&association_name, &association_type_ref, elements)?;
+                (AssociationType::Aggregation, Cardinality::Any, JsonElement::Array(elements)) => {
+                    let parsed_aggregates = self.parse_aggregated_array(
+                        &association_name,
+                        &association_type_ref,
+                        elements,
+                    )?;
                     mapped.insert(association_name, ElementValue::Array(parsed_aggregates));
                 }
                 (_, Cardinality::ZeroOrOne, JsonElement::Null) => {
@@ -117,11 +134,14 @@ impl JsonSerializer {
                     JsonElement::String(id),
                 ) => {
                     // FIXME it's not always generated id but it's fine probably
-                    mapped.insert(association_name, ElementValue::IdGeneratedId(GeneratedId(id)));
+                    mapped.insert(
+                        association_name,
+                        ElementValue::IdGeneratedId(GeneratedId(id)),
+                    );
                 }
                 (
                     AssociationType::ListElementAssociation,
-                    Cardinality::One,
+                    Cardinality::One | Cardinality::ZeroOrOne,
                     JsonElement::Array(vec),
                 ) => {
                     let id_tuple = match Self::parse_id_tuple(vec) {
@@ -135,7 +155,20 @@ impl JsonSerializer {
                     };
                     mapped.insert(association_name, ElementValue::IdTupleId(id_tuple));
                 }
-                (AssociationType::BlobElementAssociation, _, JsonElement::Array(vec)) => {
+                (
+                    AssociationType::ListElementAssociation,
+                    Cardinality::Any,
+                    JsonElement::Array(vec),
+                ) => {
+                    let ids = self.parse_id_tuple_list(type_ref, &association_name, vec)?;
+
+                    mapped.insert(association_name, ElementValue::Array(ids));
+                }
+                (
+                    AssociationType::BlobElementAssociation,
+                    Cardinality::One | Cardinality::ZeroOrOne,
+                    JsonElement::Array(vec),
+                ) => {
                     let id_tuple = match Self::parse_id_tuple(vec) {
                         None => {
                             return Err(InvalidValue {
@@ -155,16 +188,18 @@ impl JsonSerializer {
     }
 
     /// Parses an aggregated array from a value of a JSON object containing an entity/instance
-    fn make_parsed_aggregated_array(&self, association_name: &str, association_type_ref: &TypeRef, elements: Vec<JsonElement>) -> Result<Vec<ElementValue>, InstanceMapperError> {
+    fn parse_aggregated_array(
+        &self,
+        association_name: &str,
+        association_type_ref: &TypeRef,
+        elements: Vec<JsonElement>,
+    ) -> Result<Vec<ElementValue>, InstanceMapperError> {
         let mut parsed_aggregates = Vec::new();
         for element in elements {
             match element {
                 JsonElement::Dict(a) => {
                     let parsed = self.parse(&association_type_ref, a)?;
                     parsed_aggregates.push(ElementValue::Dict(parsed));
-                }
-                JsonElement::String(v) => {
-                    parsed_aggregates.push(ElementValue::String(v));
                 }
                 _ => {
                     return Err(InvalidValue {
@@ -175,6 +210,32 @@ impl JsonSerializer {
             };
         }
         Ok(parsed_aggregates)
+    }
+
+    fn parse_id_tuple_list(
+        &self,
+        outer_type_ref: &TypeRef,
+        association_name: &str,
+        elements: Vec<JsonElement>,
+    ) -> Result<Vec<ElementValue>, InstanceMapperError> {
+        elements
+            .into_iter()
+            .map(|json_element| {
+                let id_vec = if let JsonElement::Array(id_vec) = json_element {
+                    id_vec
+                } else {
+                    return Err(InvalidValue {
+                        field: association_name.to_owned(),
+                        type_ref: outer_type_ref.clone(),
+                    });
+                };
+                let id_tuple = Self::parse_id_tuple(id_vec).ok_or_else(|| InvalidValue {
+                    field: association_name.to_owned(),
+                    type_ref: outer_type_ref.clone(),
+                })?;
+                Ok(ElementValue::IdTupleId(id_tuple))
+            })
+            .collect()
     }
 
     /// Transforms an entity/instance into JSON data
@@ -212,7 +273,8 @@ impl JsonSerializer {
 
         for (&association_name, association_type) in &type_model.associations {
             let (association_name, value) =
-                entity.remove_entry(association_name)
+                entity
+                    .remove_entry(association_name)
                     .ok_or_else(|| InvalidValue {
                         type_ref: type_ref.clone(),
                         field: association_name.to_owned(),
@@ -234,8 +296,16 @@ impl JsonSerializer {
                     let serialized = self.serialize(&association_type_ref, dict)?;
                     mapped.insert(association_name, JsonElement::Dict(serialized));
                 }
-                (AssociationType::Aggregation | AssociationType::ListElementAssociation, Cardinality::Any, ElementValue::Array(elements)) => {
-                    let serialized_aggregates = self.make_serialized_aggregated_array(&association_name, &association_type_ref, elements)?;
+                (
+                    AssociationType::Aggregation | AssociationType::ListElementAssociation,
+                    Cardinality::Any,
+                    ElementValue::Array(elements),
+                ) => {
+                    let serialized_aggregates = self.make_serialized_aggregated_array(
+                        &association_name,
+                        &association_type_ref,
+                        elements,
+                    )?;
                     mapped.insert(association_name, JsonElement::Array(serialized_aggregates));
                 }
                 (_, Cardinality::ZeroOrOne, ElementValue::Null) => {
@@ -254,11 +324,21 @@ impl JsonSerializer {
                     Cardinality::One,
                     ElementValue::IdTupleId(id_tuple),
                 ) => {
-                    mapped.insert(association_name, JsonElement::Array(vec![JsonElement::String(id_tuple.list_id.into()), JsonElement::String(id_tuple.element_id.into())]));
+                    mapped.insert(
+                        association_name,
+                        JsonElement::Array(vec![
+                            JsonElement::String(id_tuple.list_id.into()),
+                            JsonElement::String(id_tuple.element_id.into()),
+                        ]),
+                    );
                 }
                 (AssociationType::BlobElementAssociation, _, ElementValue::Array(elements)) => {
                     // Blobs ate copied as-is for now
-                    let serialized_aggregates = self.make_serialized_aggregated_array(&association_name, &association_type_ref, elements)?;
+                    let serialized_aggregates = self.make_serialized_aggregated_array(
+                        &association_name,
+                        &association_type_ref,
+                        elements,
+                    )?;
                     mapped.insert(association_name, JsonElement::Array(serialized_aggregates));
                 }
                 _ => {}
@@ -269,7 +349,12 @@ impl JsonSerializer {
     }
 
     /// Creates a JSON array from an aggregated array
-    fn make_serialized_aggregated_array(&self, association_name: &String, association_type_ref: &TypeRef, elements: Vec<ElementValue>) -> Result<Vec<JsonElement>, InstanceMapperError> {
+    fn make_serialized_aggregated_array(
+        &self,
+        association_name: &String,
+        association_type_ref: &TypeRef,
+        elements: Vec<ElementValue>,
+    ) -> Result<Vec<JsonElement>, InstanceMapperError> {
         let mut serialized_elements: Vec<JsonElement> = Vec::new();
         for element in elements {
             match element {
@@ -317,7 +402,8 @@ impl JsonSerializer {
         };
 
         // FIXME there are more null/empty cases we need to take care of
-        if model_value.cardinality == Cardinality::ZeroOrOne && element_value == ElementValue::Null {
+        if model_value.cardinality == Cardinality::ZeroOrOne && element_value == ElementValue::Null
+        {
             return Ok(JsonElement::Null);
         }
 
@@ -357,7 +443,9 @@ impl JsonSerializer {
             (ValueType::Boolean, ElementValue::Bool(v)) => {
                 Ok(JsonElement::String(if v { "1" } else { "0" }.to_owned()))
             }
-            (ValueType::GeneratedId, ElementValue::IdGeneratedId(v)) => Ok(JsonElement::String(v.into())),
+            (ValueType::GeneratedId, ElementValue::IdGeneratedId(v)) => {
+                Ok(JsonElement::String(v.into()))
+            }
             (ValueType::CustomId, ElementValue::IdCustomId(v)) => Ok(JsonElement::String(v.into())),
             (ValueType::CompressedString, ElementValue::String(_)) => {
                 unimplemented!("compressed string")
@@ -452,8 +540,12 @@ impl JsonSerializer {
                 "1" => Ok(ElementValue::Bool(true)),
                 _ => invalid_value(),
             },
-            (ValueType::GeneratedId, JsonElement::String(v)) => Ok(ElementValue::IdGeneratedId(GeneratedId(v))),
-            (ValueType::CustomId, JsonElement::String(v)) => Ok(ElementValue::IdCustomId(CustomId(v))),
+            (ValueType::GeneratedId, JsonElement::String(v)) => {
+                Ok(ElementValue::IdGeneratedId(GeneratedId(v)))
+            }
+            (ValueType::CustomId, JsonElement::String(v)) => {
+                Ok(ElementValue::IdCustomId(CustomId(v)))
+            }
             (ValueType::CompressedString, JsonElement::String(_)) => {
                 unimplemented!("compressed string")
             }
@@ -464,8 +556,8 @@ impl JsonSerializer {
 
 #[cfg(test)]
 mod tests {
-    use crate::type_model_provider::init_type_model_provider;
     use super::*;
+    use crate::type_model_provider::init_type_model_provider;
 
     #[test]
     fn test_parse_mail() {
@@ -481,5 +573,27 @@ mod tests {
             type_: "Mail",
         };
         mapper.parse(&type_ref, raw_entity).unwrap();
+    }
+
+    #[test]
+    fn test_parse_mail_with_attachments() {
+        let type_model_provider = Arc::new(init_type_model_provider());
+        let mapper = JsonSerializer {
+            type_model_provider,
+        };
+        let email_json = include_str!("../test_data/email_response_attachments.json");
+        let raw_entity = serde_json::from_str::<RawEntity>(email_json).unwrap();
+        let type_ref = TypeRef {
+            app: "tutanota",
+            type_: "Mail",
+        };
+        let parsed = mapper.parse(&type_ref, raw_entity).unwrap();
+        assert_eq!(
+            &ElementValue::Array(vec![ElementValue::IdTupleId(IdTuple::new(
+                GeneratedId("O3lYN71--J-0".to_owned()),
+                GeneratedId("O3lYUQI----0".to_owned()),
+            ))]),
+            parsed.get("attachments").expect("has attachments")
+        )
     }
 }
