@@ -555,7 +555,7 @@ export class SearchViewModel {
 		// if selected folder no longer exist select another one
 		const selectedMailFolder = this.selectedMailFolder
 		if (selectedMailFolder[0] && mailboxes.every((mailbox) => mailbox.folders.getFolderById(selectedMailFolder[0]) == null)) {
-			this.selectedMailFolder = [assertNotNull(mailboxes[0].folders.getSystemFolderByType(MailSetKind.INBOX)).mails]
+			this.selectedMailFolder = [getElementId(assertNotNull(mailboxes[0].folders.getSystemFolderByType(MailSetKind.INBOX)))]
 		}
 	}
 

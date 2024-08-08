@@ -1,4 +1,4 @@
-import { MailFolder, MailTypeRef } from "../../../common/api/entities/tutanota/TypeRefs.js"
+import { Mail, MailFolder, MailSetEntryTypeRef, MailTypeRef } from "../../../common/api/entities/tutanota/TypeRefs.js"
 import { DropDownSelector, SelectorItemList } from "../../../common/gui/base/DropDownSelector.js"
 import m from "mithril"
 import { TextField } from "../../../common/gui/base/TextField.js"
@@ -7,12 +7,13 @@ import { locator } from "../../../common/api/main/CommonLocator.js"
 import { LockedError } from "../../../common/api/common/error/RestError.js"
 import { lang, TranslationKey } from "../../../common/misc/LanguageViewModel.js"
 import { MailboxDetail } from "../../../common/mailFunctionality/MailModel.js"
-import { MailSetKind, MailReportType } from "../../../common/api/common/TutanotaConstants.js"
-import { isSameId } from "../../../common/api/common/utils/EntityUtils.js"
+import { MailReportType, MailSetKind } from "../../../common/api/common/TutanotaConstants.js"
+import { elementIdPart, isSameId, listIdPart } from "../../../common/api/common/utils/EntityUtils.js"
 import { reportMailsAutomatically } from "./MailReportDialog.js"
 import { isOfflineError } from "../../../common/api/common/utils/ErrorUtils.js"
 import { getFolderName, getIndentedFolderNameForDropdown, getPathToFolderString } from "../../../common/mailFunctionality/SharedMailUtils.js"
 import { isSpamOrTrashFolder } from "../../../common/api/common/CommonMailUtils.js"
+import { groupByAndMap } from "@tutao/tutanota-utils"
 
 /**
  * Dialog for Edit and Add folder are the same.
@@ -51,6 +52,19 @@ export async function showEditFolderDialog(mailBoxDetail: MailboxDetail, editFol
 			helpLabel: () => (selectedParentFolder ? getPathToFolderString(mailBoxDetail.folders, selectedParentFolder) : ""),
 		}),
 	]
+
+	async function getMailIdsGroupedByListId(folder: MailFolder): Promise<Map<Id, Id[]>> {
+		const mailSetEntries = await locator.entityClient.loadAll(MailSetEntryTypeRef, folder.entries)
+		const mailsPerBag = groupByAndMap(
+			mailSetEntries,
+			(mse) => {
+				return listIdPart(mse.mail)
+			},
+			(mse) => elementIdPart(mse.mail),
+		)
+		return mailsPerBag
+	}
+
 	const okAction = async (dialog: Dialog) => {
 		// closing right away to prevent duplicate actions
 		dialog.close()
@@ -81,9 +95,24 @@ export async function showEditFolderDialog(mailBoxDetail: MailboxDetail, editFol
 
 					// get mails to report before moving to mail model
 					const descendants = mailBoxDetail.folders.getDescendantFoldersOfParent(editFolder._id).sort((l, r) => r.level - l.level)
-					let reportableMails = await locator.entityClient.loadAll(MailTypeRef, editFolder.mails)
+					let reportableMails: Array<Mail> = []
+					if (editFolder.isMailSet) {
+						const mailIdsPerBag = await getMailIdsGroupedByListId(editFolder)
+						for (const [folderId, mailIds] of mailIdsPerBag) {
+							reportableMails.push(...(await locator.entityClient.loadMultiple(MailTypeRef, folderId, mailIds)))
+						}
+					} else {
+						reportableMails.push(...(await locator.entityClient.loadAll(MailTypeRef, editFolder.mails)))
+					}
 					for (const descendant of descendants) {
-						reportableMails.push(...(await locator.entityClient.loadAll(MailTypeRef, descendant.folder.mails)))
+						if (descendant.folder.isMailSet) {
+							const groupedMailIds = await getMailIdsGroupedByListId(descendant.folder)
+							for (const [folderId, mailIds] of groupedMailIds) {
+								reportableMails.push(...(await locator.entityClient.loadMultiple(MailTypeRef, folderId, mailIds)))
+							}
+						} else {
+							reportableMails.push(...(await locator.entityClient.loadAll(MailTypeRef, descendant.folder.mails)))
+						}
 					}
 					await reportMailsAutomatically(MailReportType.SPAM, locator.mailModel, mailBoxDetail, reportableMails)
 

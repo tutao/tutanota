@@ -7,11 +7,11 @@ import { lang } from "../../../common/misc/LanguageViewModel"
 import type { MailboxDetail } from "../../../common/mailFunctionality/MailModel.js"
 import { LockedError, PreconditionFailedError } from "../../../common/api/common/error/RestError"
 import type { SelectorItemList } from "../../../common/gui/base/DropDownSelector.js"
-import { elementIdPart, getElementId, getListId, isSameId } from "../../../common/api/common/utils/EntityUtils"
+import { elementIdPart, isSameId } from "../../../common/api/common/utils/EntityUtils"
 import { assertMainOrNode } from "../../../common/api/common/Env"
 import { MailFacade } from "../../../common/api/worker/facades/lazy/MailFacade.js"
 import { LoginController } from "../../../common/api/main/LoginController.js"
-import { assertSystemFolderOfType, getMailHeaders } from "../../../common/mailFunctionality/SharedMailUtils.js"
+import { getMailHeaders } from "../../../common/mailFunctionality/SharedMailUtils.js"
 
 assertMainOrNode()
 const moveMailDataPerFolder: MoveMailData[] = []
@@ -97,7 +97,7 @@ export class InboxRuleHandler {
 	 * @returns true if a rule matches otherwise false
 	 */
 	async findAndApplyMatchingRule(mailboxDetail: MailboxDetail, mail: Mail, applyRulesOnServer: boolean): Promise<{ folder: MailFolder; mail: Mail } | null> {
-		if (mail._errors || !mail.unread || !isInboxList(mailboxDetail, getListId(mail)) || !this.logins.getUserController().isPremiumAccount()) {
+		if (mail._errors || !mail.unread || !isInboxFolder(mailboxDetail, mail) || !this.logins.getUserController().isPremiumAccount()) {
 			return null
 		}
 
@@ -222,6 +222,7 @@ function _checkEmailAddresses(mailAddresses: string[], inboxRule: InboxRule): bo
 	return mailAddress != null
 }
 
-export function isInboxList(mailboxDetail: MailboxDetail, listId: Id): boolean {
-	return isSameId(listId, assertSystemFolderOfType(mailboxDetail.folders, MailSetKind.INBOX).mails)
+export function isInboxFolder(mailboxDetail: MailboxDetail, mail: Mail): boolean {
+	const mailFolder = mailboxDetail.folders.getFolderByMail(mail)
+	return mailFolder?.folderType === MailSetKind.INBOX
 }

@@ -9,7 +9,6 @@ import { Icons } from "../../../common/gui/base/icons/Icons"
 import { isApp, isDesktop } from "../../../common/api/common/Env"
 import { assertNotNull, neverNull, noOp, promiseMap } from "@tutao/tutanota-utils"
 import { MailReportType, MailSetKind } from "../../../common/api/common/TutanotaConstants"
-import { getElementId } from "../../../common/api/common/utils/EntityUtils"
 import { reportMailsAutomatically } from "./MailReportDialog"
 import { DataFile } from "../../../common/api/common/DataFile"
 import { lang, TranslationKey } from "../../../common/misc/LanguageViewModel"
@@ -29,6 +28,7 @@ import {
 	isOfTypeOrSubfolderOf,
 } from "../../../common/mailFunctionality/SharedMailUtils.js"
 import { isSpamOrTrashFolder } from "../../../common/api/common/CommonMailUtils.js"
+import { getElementId } from "../../../common/api/common/utils/EntityUtils.js"
 
 export async function showDeleteConfirmationDialog(mails: ReadonlyArray<Mail>): Promise<boolean> {
 	let trashMails: Mail[] = []
@@ -108,7 +108,7 @@ export async function moveMails({ mailModel, mails, targetMailFolder, isReportab
 				const reportableMails = mails.map((mail) => {
 					// mails have just been moved
 					const reportableMail = createMail(mail)
-					reportableMail._id = [targetMailFolder.mails, getElementId(mail)]
+					reportableMail._id = targetMailFolder.isMailSet ? mail._id : [targetMailFolder.mails, getElementId(mail)]
 					return reportableMail
 				})
 				const mailboxDetails = await mailModel.getMailboxDetailsForMailGroup(assertNotNull(targetMailFolder._ownerGroup))

@@ -36,7 +36,7 @@ import { Icons } from "../gui/base/icons/Icons.js"
 import { MailboxDetail, MailModel } from "./MailModel.js"
 import { LoginController } from "../api/main/LoginController.js"
 import { EntityClient } from "../api/common/EntityClient.js"
-import { getListId } from "../api/common/utils/EntityUtils.js"
+import { getListId, isSameId } from "../api/common/utils/EntityUtils.js"
 import type { FolderSystem, IndentedFolder } from "../api/common/mail/FolderSystem.js"
 import { MailFacade } from "../api/worker/facades/lazy/MailFacade.js"
 import { ListFilter } from "../misc/ListModel.js"
@@ -368,7 +368,15 @@ export async function getMoveTargetFolderSystems(model: MailModel, mails: readon
 		return []
 	}
 	const folderSystem = mailboxDetails.folders
-	return folderSystem.getIndentedList().filter((f: IndentedFolder) => f.folder.mails !== getListId(firstMail))
+
+	return folderSystem.getIndentedList().filter((f: IndentedFolder) => {
+		if (f.folder.isMailSet && firstMail.sets.length > 0) {
+			const folderId = firstMail.sets[0]
+			return isSameId(f.folder._id, folderId)
+		} else {
+			return f.folder.mails !== getListId(firstMail)
+		}
+	})
 }
 
 export const MAX_FOLDER_INDENT_LEVEL = 10
