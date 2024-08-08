@@ -49,6 +49,14 @@ jobs:
         run: |
           brew install swiftlint swift-format xcodegen
           brew upgrade rustup
+      - uses: dorny/paths-filter@de90cc6fb38fc0963ad72b210f1f284cd68cea36 #3.0.2
+        id: filter
+        with:
+          filters: |
+            mail:
+              - 'app-ios/tutanota/**'
+            calendar:
+              - 'app-ios/calendar/**'
       - name: Versions
         run: |
           rustup --version
@@ -65,12 +73,18 @@ jobs:
       - name: Xcodegen sdk
         working-directory: tuta-sdk/ios
         run: xcodegen
-      - name: Test
+      - name: Test Calendar
         working-directory: app-ios
+        if: ${{ steps.filter.outputs.calendar == 'true' }}
+        run: |
+          mkdir -p ../build-calendar-app
+          xcodegen --spec calendar-project.yml
+          fastlane test_calendar_github
+      - name: Test Mail
+        working-directory: app-ios
+        if: ${{ steps.filter.outputs.calendar == 'false' || steps.filter.outputs.mail == 'true' }} # Runs mail test also as fallback test
         run: |
           mkdir -p ../build
-          mkdir -p ../build-calendar-app
           xcodegen --spec mail-project.yml
-          xcodegen --spec calendar-project.yml
           fastlane test_github
 

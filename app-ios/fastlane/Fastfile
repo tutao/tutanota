@@ -150,13 +150,20 @@ platform :ios do
 		)
  	end
 
+	desc "Run iOS test cases for Calendar app (Github actions version)"
+	lane :test_calendar_github do
+		run_tests(
+				scheme: "calendar debug",
+		)
+		run_tests(
+				scheme: "TutanotaSharedFramework",
+		)
+	end
+
  	desc "Run iOS test cases (Github actions version)"
  	lane :test_github do
 		run_tests(
 				scheme: "tuta debug",
-		)
-		run_tests(
-				scheme: "calendar debug",
 		)
 		run_tests(
 				scheme: "TutanotaSharedFramework",
