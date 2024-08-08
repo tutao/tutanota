@@ -31,7 +31,7 @@ targets:
       base:
         PRODUCT_NAME: "TutanotaShareExtension"
         PRODUCT_BUNDLE_IDENTIFIER: "$(inherited).TutanotaShareExtension"
-        IPHONEOS_DEPLOYMENT_TARGET: "15.5" # Why?
+        IPHONEOS_DEPLOYMENT_TARGET: "15.5" # Github might be running on slightly lower iOS version
         INFOPLIST_FILE: "TutanotaShareExtension/Info.plist"
         HEADER_SEARCH_PATHS: '"${PROJECT_DIR}/tutanota/include"/**'
         MARKETING_VERSION: "3.104.5"
