@@ -282,7 +282,6 @@ mod tests {
             }),
             failedLogins: Default::default(),
             memberships: vec![],
-            phoneNumbers: vec![],
             pushIdentifierList: None,
             secondFactorAuthentications: Default::default(),
             enabled: false,

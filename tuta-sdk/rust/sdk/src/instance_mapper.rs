@@ -6,9 +6,9 @@ use serde::de::{DeserializeSeed, EnumAccess, IntoDeserializer, MapAccess, Unexpe
 use serde::de::value::{MapDeserializer, SeqDeserializer};
 use serde::ser::{SerializeSeq, SerializeStruct};
 use thiserror::Error;
+
 use crate::custom_id::CustomId;
 use crate::date::DateTime;
-
 use crate::element_value::{ElementValue, ParsedEntity};
 use crate::entities::Entity;
 use crate::generated_id::GeneratedId;
@@ -525,13 +525,14 @@ impl ElementValue {
 
 #[cfg(test)]
 mod tests {
+    use std::sync::Arc;
+
     use crate::entities::sys::{Group, GroupInfo};
     use crate::entities::tutanota::{MailboxGroupRoot, OutOfOfficeNotificationRecipientList};
+    use crate::generated_id::GeneratedId;
     use crate::json_element::RawEntity;
     use crate::json_serializer::JsonSerializer;
     use crate::type_model_provider::init_type_model_provider;
-    use std::sync::Arc;
-    use crate::generated_id::GeneratedId;
     use crate::util::test_utils::generate_random_group;
 
     use super::*;
