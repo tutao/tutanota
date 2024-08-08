@@ -12,3 +12,4 @@ TutaoSettingsAction = "Ustawienia";
 TutaoCalendarAlarmTitle = "Przypomnienie";
 TutaoScheduleAlarmError = "Nie można ustawić alarmu. Zaktualizuj aplikację.";
 TutaoUnlockCredentialsAction = "Odblokuj poświadczenia";
+TutaoPushNewMail = "Otrzymano nową wiadomość.";

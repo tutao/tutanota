@@ -12,3 +12,4 @@ TutaoSettingsAction = "Configuració";
 TutaoCalendarAlarmTitle = "Recordatori";
 TutaoScheduleAlarmError = "No es pot configurar una alarma. Si us plau actualitzeu l'aplicació.";
 TutaoUnlockCredentialsAction = "Desbloquejar credencials";
+TutaoPushNewMail = "Heu rebut un nou correu.";

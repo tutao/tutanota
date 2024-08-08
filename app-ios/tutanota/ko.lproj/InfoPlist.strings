@@ -12,3 +12,4 @@ TutaoSettingsAction = "설정";
 TutaoCalendarAlarmTitle = "다시 알림";
 TutaoScheduleAlarmError = "알람을 설정할 수 없습니다. 애플리케이션을 업데이트 해주세요.";
 TutaoUnlockCredentialsAction = "자격 증명 잠금 해제";
+TutaoPushNewMail = "새로운 메일을 받았습니다.";

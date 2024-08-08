@@ -11,7 +11,7 @@ export default {
 		"other"
 	],
 	"created_at": "2015-03-23T11:36:16Z",
-	"updated_at": "2024-07-30T18:48:35Z",
+	"updated_at": "2024-08-07T16:04:44Z",
 	"source_locale": null,
 	"fallback_locale": null,
 	"keys": {
@@ -1192,7 +1192,7 @@ export default {
 		"pricing.gdpr_tooltip": "Alla uppgifter lagras i enlighet med strikta Europeiska bestämmelser om dataskydd enligt GDPR.",
 		"pricing.includesTaxes_msg": "Inklusive skatter",
 		"pricing.login_title": "Logga in på din egen webbplats",
-		"pricing.login_tooltip": "Placera Tuta inloggningen på din egen webbplats för dina anställda.",
+		"pricing.login_tooltip": "Placera Tuta inloggningen på din egen webbplats för dina anställda och externa användare.",
 		"pricing.mailAddressAliasesShort_label": "{amount} extra e-postadresser",
 		"pricing.mailAddressAliases_tooltip_markdown": "<p>Extra e-postadresser per användare. Aliasadresser kan minska skräppost och underlätta sortering av inkommande e-post. Se fler tips <a target=\"_blank\" rel=\"noopener noreferrer\" href=\"https://tuta.com/blog/secure-email-alias\">på vår blogg</a>.</p>\n",
 		"pricing.mailAddressFree_label": "1 gratis Tuta e-post adress",
@@ -1340,6 +1340,8 @@ export default {
 		"resumeSetup_label": "Fortsätt installationen",
 		"retry_action": "Försök igen",
 		"revealPassword_action": "Visa lösenordet",
+		"richNotificationsNewsItem_msg": "Din Tuta Mail app kan nu visa ämne och avsändare i notiser! Aktivera den här funktionen:",
+		"richNotifications_title": "Aktivera Rich Notifications",
 		"richText_label": "Rich text",
 		"role_placeholder": "Roll",
 		"runInBackground_action": "Kör i bakgrunden",

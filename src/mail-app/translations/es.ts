@@ -11,7 +11,7 @@ export default {
 		"other"
 	],
 	"created_at": "2015-01-27T13:13:02Z",
-	"updated_at": "2024-07-31T11:06:11Z",
+	"updated_at": "2024-08-07T15:46:16Z",
 	"source_locale": {
 		"id": "fcd7471b347c8e517663e194dcddf237",
 		"name": "en",
@@ -1196,7 +1196,7 @@ export default {
 		"pricing.gdpr_tooltip": "Todos los datos se almacenan de conformidad con las estrictas regulaciones europeas de protección de datos de acuerdo con el RGPD.",
 		"pricing.includesTaxes_msg": "Impuestos incluidos.",
 		"pricing.login_title": "Inicia sesión en tu propio sitio web",
-		"pricing.login_tooltip": "Coloca el inicio de sesión de Tuta en tu propio sitio web para tus empleados.",
+		"pricing.login_tooltip": "Coloca el inicio de sesión de Tuta en tu propio sitio web para tus empleados y visitantes.",
 		"pricing.mailAddressAliasesShort_label": "{amount} dirección/es de correo extra",
 		"pricing.mailAddressAliases_tooltip_markdown": "<p>Direcciones de correo electrónico adicionales por usuario. Las direcciones de alias de correo pueden reducir el spam y ayudar a acelerar la clasificación de los correos entrantes. Lee más consejos <a target=\"_blank\" rel=\"noopener noreferrer\" href=\"https://tuta.com/blog/secure-email-alias\">en nuestro blog</a>.</p>\n",
 		"pricing.mailAddressFree_label": "1 dirección de correo gratuita de Tuta",
@@ -1344,6 +1344,8 @@ export default {
 		"resumeSetup_label": "Reanudar la configuración",
 		"retry_action": "Reinténtalo",
 		"revealPassword_action": "Revelar la contraseña",
+		"richNotificationsNewsItem_msg": "Tu aplicación de correo electrónico favorita ya puede mostrar el asunto y el remitente en las notificaciones. Activa esta función ahora:",
+		"richNotifications_title": "Activar notificaciones enriquecidas",
 		"richText_label": "Texto enriquecido",
 		"role_placeholder": "Papel",
 		"runInBackground_action": "Ejecutar en segundo plano",
