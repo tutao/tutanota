@@ -4,6 +4,8 @@
 <dict>
 	<key>CFBundleName</key>
 	<string>TutanotaNotificationExtension</string>
+	<key>CFBundleDisplayName</key>
+	<string>TutanotaNotificationExtension</string>
 	<key>CFBundleExecutable</key>
 	<string>TutanotaNotificationExtension</string>
 	<key>CFBundleIdentifier</key>
