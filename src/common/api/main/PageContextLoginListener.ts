@@ -36,10 +36,16 @@ export class PageContextLoginListener implements LoginListener {
 		// Update the credentials after the full login.
 		// It is needed because we added encryptedPassphraseKey to credentials which is only
 		// available after the full login which happens async.
-		const storedCredentials = await this.credentialsProvider.getDecryptedCredentialsByUserId(credentials.userId)
-		if (storedCredentials != null) {
-			const updatedCredentials = credentialsToUnencrypted(credentials, storedCredentials.databaseKey)
-			await this.credentialsProvider.store(updatedCredentials)
+
+		// First try to fetch credentials info and only then try to get decrypted credentials as it is not valid to
+		// call `getDecryptedCredentialsByUserId()` without storing any credentials first.
+		const areCredentialsStored = (await this.credentialsProvider.getCredentialsInfoByUserId(credentials.userId)) != null
+		if (areCredentialsStored) {
+			const storedCredentials = await this.credentialsProvider.getDecryptedCredentialsByUserId(credentials.userId)
+			if (storedCredentials != null) {
+				const updatedCredentials = credentialsToUnencrypted(credentials, storedCredentials.databaseKey)
+				await this.credentialsProvider.store(updatedCredentials)
+			}
 		}
 
 		this.loginPromise.resolve()
