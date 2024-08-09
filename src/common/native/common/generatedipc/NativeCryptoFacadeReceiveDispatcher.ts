@@ -32,14 +32,10 @@ export class NativeCryptoFacadeReceiveDispatcher {
 				const fileUri: string = arg[1]
 				return this.facade.aesDecryptFile(key, fileUri)
 			}
-			case "argon2idHashRaw": {
-				const password: Uint8Array = arg[0]
+			case "argon2idGeneratePassphraseKey": {
+				const passphrase: string = arg[0]
 				const salt: Uint8Array = arg[1]
-				const timeCost: number = arg[2]
-				const memoryCost: number = arg[3]
-				const parallelism: number = arg[4]
-				const hashLength: number = arg[5]
-				return this.facade.argon2idHashRaw(password, salt, timeCost, memoryCost, parallelism, hashLength)
+				return this.facade.argon2idGeneratePassphraseKey(passphrase, salt)
 			}
 			case "generateKyberKeypair": {
 				const seed: Uint8Array = arg[0]
