@@ -55,7 +55,7 @@ import { ButtonSize } from "../../../common/gui/base/ButtonSize.js"
 import { DrawerMenuAttrs } from "../../../common/gui/nav/DrawerMenu.js"
 import { BaseTopLevelView } from "../../../common/gui/BaseTopLevelView.js"
 import { TopLevelAttrs, TopLevelView } from "../../../TopLevelView.js"
-import { getEventWithDefaultTimes, getNextHalfHour } from "../../../common/api/common/utils/CommonCalendarUtils.js"
+import { getEventWithDefaultTimes, setNextHalfHour } from "../../../common/api/common/utils/CommonCalendarUtils.js"
 import { BackgroundColumnLayout } from "../../../common/gui/BackgroundColumnLayout.js"
 import { theme } from "../../../common/gui/theme.js"
 import { CalendarMobileHeader } from "./CalendarMobileHeader.js"
@@ -106,7 +106,7 @@ export class CalendarView extends BaseTopLevelView implements TopLevelView<Calen
 						button: styles.isDesktopLayout()
 							? {
 									label: "newEvent_action",
-									click: () => this.createNewEventDialog(getNextHalfHour()),
+									click: () => this.createNewEventDialog(),
 							  }
 							: null,
 						content: [
@@ -391,7 +391,7 @@ export class CalendarView extends BaseTopLevelView implements TopLevelView<Calen
 				"short",
 				(viewType, next) => this.viewPeriod(viewType, next),
 			),
-			onCreateEvent: () => this.createNewEventDialog(getNextHalfHour()),
+			onCreateEvent: () => this.createNewEventDialog(),
 			onToday: () => {
 				// in case it has been set, when onToday is called we definitely do not want the time to be ignored
 				this.viewModel.ignoreNextValidTimeSelection = false
@@ -523,7 +523,7 @@ export class CalendarView extends BaseTopLevelView implements TopLevelView<Calen
 	}
 
 	private async createNewEventDialog(date: Date | null = null): Promise<void> {
-		const dateToUse = date ?? this.viewModel.selectedDate()
+		const dateToUse = date ?? setNextHalfHour(new Date(this.viewModel.selectedDate()))
 
 		// Disallow creation of events when there is no existing calendar
 		let calendarInfos = this.viewModel.getCalendarInfosCreateIfNeeded()
