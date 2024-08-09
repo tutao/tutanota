@@ -1,12 +1,13 @@
-/// A module to be used over uniffi for low-level encryption operations.
-///
-/// We implement parts of kyber differently than in crypto module to make it more FFI-friendly.
+//! A module to be used over uniffi for low-level encryption operations.
+//!
+//! We implement parts of kyber differently than in crypto module to make it more FFI-friendly.
 
-use crate::crypto::kyber;
 use crate::crypto::randomizer_facade::RandomizerFacade;
 use crate::crypto::rsa::{RSAPrivateKey, RSAPublicKey, SeedBufferRng};
 use base64::prelude::*;
 use zeroize::Zeroizing;
+use crate::crypto::{argon2_id, kyber};
+use crate::util::{array_cast_slice, ArrayCastingError};
 
 /// Error occurred from trying to encapsulate/decapsulate with Kyber
 /// with the simple_crypto kyber_encapsulate/kyber_decapsulate methods.
@@ -142,4 +143,23 @@ fn rsa_encrypt_with_public_key_components(data: Vec<u8>, seed: Vec<u8>, modulus:
     key
         .encrypt(&randomizer_facade_with_seed, &data)
         .map_err(|e| RSAError::RSAEncryptionError { reason: e.to_string() })
+}
+
+#[derive(thiserror::Error, Debug, uniffi::Error)]
+#[uniffi(flat_error)]
+enum Argon2idError {
+    #[error("InvalidSaltSize: {actual_size}")]
+    InvalidSaltSize {
+        actual_size: usize,
+    }
+}
+
+/// Generate a passphrase key with the given passphrase using Argon2id
+#[uniffi::export]
+fn argon2id_generate_key_from_passphrase(passphrase: String, salt: Vec<u8>) -> Result<Vec<u8>, Argon2idError> {
+    let passphrase = Zeroizing::new(passphrase);
+    let salt = array_cast_slice(&salt, "salt")
+        .map_err(| ArrayCastingError { actual_size, .. } | Argon2idError::InvalidSaltSize { actual_size })?;
+    let passphrase_key = argon2_id::generate_key_from_passphrase(passphrase.as_str(), salt);
+    Ok(passphrase_key.as_bytes().to_vec())
 }
