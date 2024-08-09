@@ -19,7 +19,7 @@ mod hkdf;
 
 pub use hkdf::hkdf;
 
-mod argon2_id;
+pub(crate) mod argon2_id;
 
 pub use argon2_id::generate_key_from_passphrase;
 
