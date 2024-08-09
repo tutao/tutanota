@@ -21,7 +21,7 @@ custom ID one converts a string to Base64URL.
 |---------------------------|-----
 |userIds					|comma-separated list of user IDs who are logged in on this device
 |lastProcessedNotificationId|Last returned lastProcessedNotificationId (explanation below) 
-|v							|(system) model verson
+|v							|(system) model version
 |cv							|client version
 
 lastProcessedNotificationId is the last ID which was fetched and processed by the client. It is returned with
