@@ -15,32 +15,20 @@ class CompatibilityTestSwift: XCTestCase {
 		self.testData = try JSONSerialization.jsonObject(with: jsonData) as? [String: Any]
 	}
 
-	func testArgon2id() {
-		// same parameters we use everywhere else
-		let ARGON2ID_HASH_LENGTH: Int = 32
-		let ARGON2ID_ITERATIONS: UInt = 4
-		let ARGON2ID_PARALLELISM: UInt = 1
-		let ARGON2ID_MEMORY_COST: UInt = 32 * 1024
-
+	func testArgon2id() async throws {
+		let facade = IosNativeCryptoFacade()
 		let tests = (testData!["argon2idTests"] as? [[String: String]])!
 		for test in tests {
-			let password = DataWrapper(data: TUTEncodingConverter.string(toBytes: test["password"]!))
+			let passphrase = test["password"]!
 			let expectedHash = TUTEncodingConverter.hex(toBytes: test["keyHex"]!)
 			let salt = TUTEncodingConverter.hex(toBytes: test["saltHex"]!)
-			let result = try! generateArgon2idHash(
-				ofPassword: password,
-				ofHashLength: ARGON2ID_HASH_LENGTH,
-				withSalt: salt,
-				withIterations: ARGON2ID_ITERATIONS,
-				withParallelism: ARGON2ID_PARALLELISM,
-				withMemoryCost: ARGON2ID_MEMORY_COST
-			)
-			XCTAssert(password.data.allSatisfy { $0 == 0 })
-			XCTAssertEqual(expectedHash, result)
+			let result = try! await facade.argon2idGeneratePassphraseKey(passphrase, salt.wrap())
+			XCTAssertEqual(expectedHash, result.data)
 		}
 	}
 
 	func testRsa() async throws {
+		let facade = IosNativeCryptoFacade()
 		let tests = (testData!["rsaEncryptionTests"] as? [[String: String]])!
 		for test in tests {
 			let publicKey = try hexToRsaPublicKey(test["publicKey"]!)
@@ -49,7 +37,6 @@ class CompatibilityTestSwift: XCTestCase {
 			let encResult = TUTEncodingConverter.hex(toBytes: test["result"]!)
 			let seed = TUTEncodingConverter.hex(toBytes: test["seed"]!)
 
-			let facade = IosNativeCryptoFacade()
 			let encrypted = try await facade.rsaEncrypt(publicKey, plainText.wrap(), seed.wrap())
 			XCTAssertEqual(encResult, encrypted.data)
 			let decrypted = try await facade.rsaDecrypt(privateKey, encResult.wrap())

@@ -43,10 +43,8 @@ targets:
         excludes:
           [
             "tutanota-web",
-            "Sources/Crypto/phc-winner-argon2",
             "Sources/sdktest.swift",
           ]
-        compilerFlags: ["-Itutanota/Sources/Crypto/phc-winner-argon2/include"]
         # XCode will not resolve symbolic links when adding a folder reference, so we will just use a relative path
       - path: "../build"
         name: "build"
@@ -63,7 +61,6 @@ targets:
         HEADER_SEARCH_PATHS:
           [
             "${PROJECT_DIR}/tutanota/include",
-            "tutanota/Sources/Crypto/phc-winner-argon2/include",
           ]
         CLANG_CXX_LANGUAGE_STANDARD: "gnu++14"
         GCC_PREPROCESSOR_DEFINITIONS: ["SQLITE_HAS_CODEC=1", "$(inherited)"]
@@ -111,31 +108,6 @@ targets:
         embed: false
       - framework: StoreKit.framework
         embed: false
-      - target: argon2
-  argon2:
-    type: "library.static"
-    settings:
-      PRODUCT_NAME: "argon2"
-      # Don't show warnings for vendored code
-      WARNING_CFLAGS: "-w"
-    sources:
-      - path: "tutanota/Sources/Crypto/phc-winner-argon2"
-        includes:
-          [
-            "src/argon2.c",
-            "src/core.c",
-            "src/encoding.c",
-            "src/genkat.c",
-            "src/ref.c",
-            "src/blake2/blake2b.c",
-          ]
-        compilerFlags:
-          [
-            "-Itutanota/Sources/Crypto/phc-winner-argon2/include",
-            "-DARGON2_NO_THREADS",
-            "-O3",
-          ]
-    platform: "iOS"
   tutanotaTests:
     templates: ["formatAndLint"]
     type: "bundle.unit-test"
@@ -156,7 +128,6 @@ targets:
       HEADER_SEARCH_PATHS:
         [
           "${PROJECT_DIR}/tutanota/include",
-          "tutanota/Sources/Crypto/phc-winner-argon2/include",
         ]
       TEST_HOST: "$(BUILT_PRODUCTS_DIR)/Tuta D.app/$(BUNDLE_EXECUTABLE_FOLDER_PATH)/Tuta D"
       SWIFT_OBJC_BRIDGING_HEADER: "tutanotaTests/tutanotaTests-Bridging-Header.h"
