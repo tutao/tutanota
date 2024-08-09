@@ -12,3 +12,4 @@ TutaoSettingsAction = "Подешавања";
 TutaoCalendarAlarmTitle = "Подсетник";
 TutaoScheduleAlarmError = "Није могуће поставити аларм. Ажурирајте апликацију.";
 TutaoUnlockCredentialsAction = "Откључај акредитиве";
+TutaoPushNewMail = "Примљена је нова е-пошта.";

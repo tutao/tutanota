@@ -60,11 +60,11 @@ class LocalNotificationsFacade(private val context: Context, private val sseStor
 
 	fun makeConnectionNotification(): Notification {
 		return NotificationCompat.Builder(context, PERSISTENT_NOTIFICATION_CHANNEL_ID)
-				.setContentTitle("Notification service")
-				.setContentText("Syncing notifications")
-				.setSmallIcon(R.drawable.ic_sync)
-				.setProgress(0, 0, true)
-				.build()
+			.setContentTitle("Notification service")
+			.setContentText("Syncing notifications")
+			.setSmallIcon(R.drawable.ic_sync)
+			.setProgress(0, 0, true)
+			.build()
 	}
 
 	fun dismissNotifications(addresses: List<String>) {
@@ -76,7 +76,7 @@ class LocalNotificationsFacade(private val context: Context, private val sseStor
 				notificationManager.cancel(notification.id)
 			} else {
 				remainingPerGroup.getOrPut(notification.groupKey) { mutableListOf() }
-						.add(notification)
+					.add(notification)
 			}
 		}
 		for ((_, notifications) in remainingPerGroup) {
@@ -94,13 +94,17 @@ class LocalNotificationsFacade(private val context: Context, private val sseStor
 
 			@ColorInt val redColor = context.resources.getColor(R.color.red, context.theme)
 			val notificationBuilder = NotificationCompat.Builder(context, EMAIL_NOTIFICATION_CHANNEL_ID)
-					.setLights(redColor, 1000, 1000)
+				.setLights(redColor, 1000, 1000)
 
 			notificationBuilder
-					.setColor(redColor)
-					.apply {
-						val genericTitle = context.getString(R.string.pushNewMail_msg)
-						val sender = metadata?.sender?.name?.ifBlank { metadata.sender.address } ?: ""
+				.setColor(redColor)
+				.apply {
+					val genericTitle = context.getString(R.string.pushNewMail_msg)
+
+					if (metadata == null) {
+						setContentTitle(genericTitle)
+					} else {
+						val sender = metadata.sender.name.ifBlank { metadata.sender.address }
 
 						when (notificationMode) {
 							ExtendedNotificationMode.NO_SENDER_OR_SUBJECT -> {
@@ -113,25 +117,26 @@ class LocalNotificationsFacade(private val context: Context, private val sseStor
 							}
 
 							ExtendedNotificationMode.SENDER_AND_SUBJECT -> {
-								val subject = metadata?.subject ?: ""
+								val subject = metadata.subject
 								setContentTitle(sender)
 								setContentText(subject)
 							}
 						}
-
 					}
-					// header text, put recipient address in there
-					.setSubText(notificationInfo.mailAddress)
-					.setSmallIcon(R.drawable.ic_status)
-					.setDeleteIntent(intentForDelete(arrayListOf(notificationInfo.mailAddress)))
-					.setContentIntent(intentOpenMailbox(notificationInfo, false))
-					.setGroup(groupIdFor(notificationInfo))
-					.setAutoCancel(true)
+
+				}
+				// header text, put recipient address in there
+				.setSubText(notificationInfo.mailAddress)
+				.setSmallIcon(R.drawable.ic_status)
+				.setDeleteIntent(intentForDelete(arrayListOf(notificationInfo.mailAddress)))
+				.setContentIntent(intentOpenMailbox(notificationInfo, false))
+				.setGroup(groupIdFor(notificationInfo))
+				.setAutoCancel(true)
 				.setGroupAlertBehavior(NotificationCompat.GROUP_ALERT_CHILDREN)
-					.setDefaults(Notification.DEFAULT_ALL)
-					.setExtras(Bundle().apply {
-						putString(EMAIL_ADDRESS_EXTRA, notificationInfo.mailAddress)
-					})
+				.setDefaults(Notification.DEFAULT_ALL)
+				.setExtras(Bundle().apply {
+					putString(EMAIL_ADDRESS_EXTRA, notificationInfo.mailAddress)
+				})
 
 			notificationManager.notify(notificationId, notificationBuilder.build())
 			sendSummaryNotification(notificationInfo)
@@ -139,31 +144,31 @@ class LocalNotificationsFacade(private val context: Context, private val sseStor
 	}
 
 	private fun groupIdFor(notificationInfo: NotificationInfo) =
-			// We group by the recipient user, not email address
-			NOTIFICATION_EMAIL_GROUP + notificationInfo.userId
+		// We group by the recipient user, not email address
+		NOTIFICATION_EMAIL_GROUP + notificationInfo.userId
 
 	@TargetApi(Build.VERSION_CODES.Q)
 	fun sendDownloadFinishedNotification(fileName: String?) {
 		val notificationManager = NotificationManagerCompat.from(context)
 		val channel = NotificationChannel(
-				"downloads",
-				"Downloads",
-				NotificationManager.IMPORTANCE_DEFAULT
+			"downloads",
+			"Downloads",
+			NotificationManager.IMPORTANCE_DEFAULT
 		)
 		notificationManager.createNotificationChannel(channel)
 		val pendingIntent = PendingIntent.getActivity(
-				context,
-				1,
-				Intent(DownloadManager.ACTION_VIEW_DOWNLOADS),
-				PendingIntent.FLAG_IMMUTABLE
+			context,
+			1,
+			Intent(DownloadManager.ACTION_VIEW_DOWNLOADS),
+			PendingIntent.FLAG_IMMUTABLE
 		)
 		val notification = Notification.Builder(context, channel.id)
-				.setContentIntent(pendingIntent)
-				.setContentTitle(fileName)
-				.setContentText(context.getText(R.string.downloadCompleted_msg))
-				.setSmallIcon(R.drawable.ic_download)
-				.setAutoCancel(true)
-				.build()
+			.setContentIntent(pendingIntent)
+			.setContentTitle(fileName)
+			.setContentText(context.getText(R.string.downloadCompleted_msg))
+			.setSmallIcon(R.drawable.ic_download)
+			.setAutoCancel(true)
+			.build()
 		if (ActivityCompat.checkSelfPermission(
 				context,
 				Manifest.permission.POST_NOTIFICATIONS
@@ -175,41 +180,41 @@ class LocalNotificationsFacade(private val context: Context, private val sseStor
 	}
 
 	private fun sendSummaryNotification(
-			notificationInfo: NotificationInfo
+		notificationInfo: NotificationInfo
 	) {
 		val addresses = arrayListOf<String>()
 		val inboxStyle = NotificationCompat.InboxStyle()
 		val builder = NotificationCompat.Builder(context, EMAIL_NOTIFICATION_CHANNEL_ID)
-				.setBadgeIconType(NotificationCompat.BADGE_ICON_SMALL)
+			.setBadgeIconType(NotificationCompat.BADGE_ICON_SMALL)
 		@ColorInt val red = context.resources.getColor(R.color.red, context.theme)
 		val notification = builder
-				// Header text, put recipient address in there.
-				// Ideally we would put login mail address in here (and we can actually look it up) as a user-visible
-				// "account identifier" but it should also be fine to overwrite it with the latest address.
-				.setSubText(notificationInfo.mailAddress)
-				.setSmallIcon(R.drawable.ic_status)
-				.setGroup(groupIdFor(notificationInfo))
-				.setGroupSummary(true)
-				.setColor(red)
-				.setStyle(inboxStyle)
-				.setContentIntent(intentOpenMailbox(notificationInfo, true))
-				.setDeleteIntent(intentForDelete(addresses))
-				.setAutoCancel(true)
-				// We need to update summary without sound when one of the alarms is cancelled
-				// but we need to use sound if it's API < N because GROUP_ALERT_CHILDREN doesn't
-				// work with sound there (perhaps summary consumes it somehow?) and we must do
-				// summary with sound instead on the old versions.
-				.setDefaults(NotificationCompat.DEFAULT_SOUND)
+			// Header text, put recipient address in there.
+			// Ideally we would put login mail address in here (and we can actually look it up) as a user-visible
+			// "account identifier" but it should also be fine to overwrite it with the latest address.
+			.setSubText(notificationInfo.mailAddress)
+			.setSmallIcon(R.drawable.ic_status)
+			.setGroup(groupIdFor(notificationInfo))
+			.setGroupSummary(true)
+			.setColor(red)
+			.setStyle(inboxStyle)
+			.setContentIntent(intentOpenMailbox(notificationInfo, true))
+			.setDeleteIntent(intentForDelete(addresses))
+			.setAutoCancel(true)
+			// We need to update summary without sound when one of the alarms is cancelled
+			// but we need to use sound if it's API < N because GROUP_ALERT_CHILDREN doesn't
+			// work with sound there (perhaps summary consumes it somehow?) and we must do
+			// summary with sound instead on the old versions.
+			.setDefaults(NotificationCompat.DEFAULT_SOUND)
 			.setGroupAlertBehavior(NotificationCompat.GROUP_ALERT_CHILDREN)
-				.build()
+			.build()
 		notificationManager.notify(abs(SUMMARY_NOTIFICATION_ID + notificationInfo.userId.hashCode()), notification)
 	}
 
 	fun showErrorNotification(@StringRes message: Int, exception: Throwable?) {
 		val intent = Intent(context, MainActivity::class.java)
-				.setAction(Intent.ACTION_SEND)
-				.setType("text/plain")
-				.putExtra(Intent.EXTRA_SUBJECT, "Alarm error v" + BuildConfig.VERSION_NAME)
+			.setAction(Intent.ACTION_SEND)
+			.setType("text/plain")
+			.putExtra(Intent.EXTRA_SUBJECT, "Alarm error v" + BuildConfig.VERSION_NAME)
 
 		if (exception != null) {
 			val stackTrace = Log.getStackTraceString(exception)
@@ -218,51 +223,51 @@ class LocalNotificationsFacade(private val context: Context, private val sseStor
 		}
 
 		val notification: Notification =
-				NotificationCompat.Builder(context, ALARM_NOTIFICATION_CHANNEL_ID)
-						.setSmallIcon(R.drawable.ic_status)
-						.setContentTitle(context.getString(R.string.app_name))
-						.setContentText(context.getString(message))
-						.setDefaults(NotificationCompat.DEFAULT_ALL)
-						.setStyle(NotificationCompat.BigTextStyle())
-						.setContentIntent(
-								PendingIntent.getActivity(
-										context,
-										(Math.random() * 20000).toInt(),
-										intent,
-										PendingIntent.FLAG_UPDATE_CURRENT or PendingIntent.FLAG_IMMUTABLE
-								)
-						)
-						.setAutoCancel(true)
-						.build()
+			NotificationCompat.Builder(context, ALARM_NOTIFICATION_CHANNEL_ID)
+				.setSmallIcon(R.drawable.ic_status)
+				.setContentTitle(context.getString(R.string.app_name))
+				.setContentText(context.getString(message))
+				.setDefaults(NotificationCompat.DEFAULT_ALL)
+				.setStyle(NotificationCompat.BigTextStyle())
+				.setContentIntent(
+					PendingIntent.getActivity(
+						context,
+						(Math.random() * 20000).toInt(),
+						intent,
+						PendingIntent.FLAG_UPDATE_CURRENT or PendingIntent.FLAG_IMMUTABLE
+					)
+				)
+				.setAutoCancel(true)
+				.build()
 		notificationManager.notify(1000, notification)
 	}
 
 	@RequiresApi(Build.VERSION_CODES.O)
 	fun createNotificationChannels() {
 		val mailNotificationChannel = NotificationChannel(
-				EMAIL_NOTIFICATION_CHANNEL_ID,
-				context.getString(R.string.pushNewMail_msg),
-				NotificationManager.IMPORTANCE_DEFAULT
+			EMAIL_NOTIFICATION_CHANNEL_ID,
+			context.getString(R.string.pushNewMail_msg),
+			NotificationManager.IMPORTANCE_DEFAULT
 		).default()
 
 		notificationManager.createNotificationChannel(mailNotificationChannel)
 		val serviceNotificationChannel = NotificationChannel(
-				PERSISTENT_NOTIFICATION_CHANNEL_ID, context.getString(R.string.notificationSync_msg),
-				NotificationManager.IMPORTANCE_LOW
+			PERSISTENT_NOTIFICATION_CHANNEL_ID, context.getString(R.string.notificationSync_msg),
+			NotificationManager.IMPORTANCE_LOW
 		)
 		notificationManager.createNotificationChannel(serviceNotificationChannel)
 
 		val alarmNotificationsChannel = NotificationChannel(
-				ALARM_NOTIFICATION_CHANNEL_ID,
-				context.getString(R.string.reminder_label),
-				NotificationManager.IMPORTANCE_HIGH
+			ALARM_NOTIFICATION_CHANNEL_ID,
+			context.getString(R.string.reminder_label),
+			NotificationManager.IMPORTANCE_HIGH
 		).default()
 		notificationManager.createNotificationChannel(alarmNotificationsChannel)
 
 		val downloadNotificationsChannel = NotificationChannel(
-				DOWNLOAD_NOTIFICATION_CHANNEL_ID,
-				context.getString(R.string.downloadCompleted_msg),
-				NotificationManager.IMPORTANCE_DEFAULT
+			DOWNLOAD_NOTIFICATION_CHANNEL_ID,
+			context.getString(R.string.downloadCompleted_msg),
+			NotificationManager.IMPORTANCE_DEFAULT
 		)
 		downloadNotificationsChannel.setShowBadge(false)
 		notificationManager.createNotificationChannel(downloadNotificationsChannel)
@@ -272,9 +277,9 @@ class LocalNotificationsFacade(private val context: Context, private val sseStor
 	private fun NotificationChannel.default(): NotificationChannel {
 		val ringtoneUri = RingtoneManager.getDefaultUri(RingtoneManager.TYPE_NOTIFICATION)
 		val att = AudioAttributes.Builder()
-				.setUsage(AudioAttributes.USAGE_NOTIFICATION)
-				.setContentType(AudioAttributes.CONTENT_TYPE_UNKNOWN)
-				.build()
+			.setUsage(AudioAttributes.USAGE_NOTIFICATION)
+			.setContentType(AudioAttributes.CONTENT_TYPE_UNKNOWN)
+			.build()
 
 		setShowBadge(true)
 		setSound(ringtoneUri, att)
@@ -286,48 +291,48 @@ class LocalNotificationsFacade(private val context: Context, private val sseStor
 	}
 
 	private fun mailNotificationId(address: String): Int =
-			abs(1 + address.hashCode())
+		abs(1 + address.hashCode())
 
 	private fun intentForDelete(addresses: ArrayList<String>): PendingIntent {
 		val deleteIntent = Intent(context, PushNotificationService::class.java)
 		deleteIntent.putStringArrayListExtra(NOTIFICATION_DISMISSED_ADDR_EXTRA, addresses)
 		return PendingIntent.getService(
-				context.applicationContext,
-				mailNotificationId("dismiss${addresses.joinToString("+")}"),
-				deleteIntent,
-				PendingIntent.FLAG_UPDATE_CURRENT or PendingIntent.FLAG_IMMUTABLE
+			context.applicationContext,
+			mailNotificationId("dismiss${addresses.joinToString("+")}"),
+			deleteIntent,
+			PendingIntent.FLAG_UPDATE_CURRENT or PendingIntent.FLAG_IMMUTABLE
 		)
 	}
 
 	private fun intentOpenMailbox(
-			notificationInfo: NotificationInfo,
-			isSummary: Boolean,
+		notificationInfo: NotificationInfo,
+		isSummary: Boolean,
 	): PendingIntent {
 		val openMailboxIntent = Intent(context, MainActivity::class.java)
 		openMailboxIntent.action = MainActivity.OPEN_USER_MAILBOX_ACTION
 		openMailboxIntent.putExtra(
-				MainActivity.OPEN_USER_MAILBOX_MAIL_ADDRESS_KEY,
-				notificationInfo.mailAddress
+			MainActivity.OPEN_USER_MAILBOX_MAIL_ADDRESS_KEY,
+			notificationInfo.mailAddress
 		)
 		openMailboxIntent.putExtra(
-				MainActivity.OPEN_USER_MAILBOX_USERID_KEY,
-				notificationInfo.userId
+			MainActivity.OPEN_USER_MAILBOX_USERID_KEY,
+			notificationInfo.userId
 		)
 		openMailboxIntent.putExtra(MainActivity.IS_SUMMARY_EXTRA, isSummary)
 		return PendingIntent.getActivity(
-				context.applicationContext,
-				mailNotificationId(notificationInfo.mailAddress + "@isSummary" + isSummary),
-				openMailboxIntent,
-				PendingIntent.FLAG_UPDATE_CURRENT or PendingIntent.FLAG_IMMUTABLE
+			context.applicationContext,
+			mailNotificationId(notificationInfo.mailAddress + "@isSummary" + isSummary),
+			openMailboxIntent,
+			PendingIntent.FLAG_UPDATE_CURRENT or PendingIntent.FLAG_IMMUTABLE
 		)
 	}
 }
 
 fun notificationDismissedIntent(
-		context: Context,
-		emailAddresses: ArrayList<String>,
-		sender: String,
-		isSummary: Boolean,
+	context: Context,
+	emailAddresses: ArrayList<String>,
+	sender: String,
+	isSummary: Boolean,
 ): Intent {
 	val deleteIntent = Intent(context, PushNotificationService::class.java)
 	deleteIntent.putStringArrayListExtra(NOTIFICATION_DISMISSED_ADDR_EXTRA, emailAddresses)
@@ -344,16 +349,16 @@ fun showAlarmNotification(context: Context, timestamp: Long, summary: String, in
 	val notificationManager = context.getSystemService(Context.NOTIFICATION_SERVICE) as NotificationManager
 	@ColorInt val red = context.resources.getColor(R.color.red, context.theme)
 	notificationManager.notify(
-			System.currentTimeMillis().toInt(),
-			NotificationCompat.Builder(context, ALARM_NOTIFICATION_CHANNEL_ID)
-					.setSmallIcon(R.drawable.ic_alarm)
-					.setContentTitle(context.getString(R.string.reminder_label))
-					.setContentText(contentText)
-					.setDefaults(NotificationCompat.DEFAULT_ALL)
-					.setColor(red)
-					.setContentIntent(openCalendarIntent(context, intent))
-					.setAutoCancel(true)
-					.build()
+		System.currentTimeMillis().toInt(),
+		NotificationCompat.Builder(context, ALARM_NOTIFICATION_CHANNEL_ID)
+			.setSmallIcon(R.drawable.ic_alarm)
+			.setContentTitle(context.getString(R.string.reminder_label))
+			.setContentText(contentText)
+			.setDefaults(NotificationCompat.DEFAULT_ALL)
+			.setColor(red)
+			.setContentIntent(openCalendarIntent(context, intent))
+			.setAutoCancel(true)
+			.build()
 	)
 }
 
@@ -376,10 +381,10 @@ private fun openCalendarIntent(context: Context, alarmIntent: Intent): PendingIn
 	openCalendarEventIntent.action = MainActivity.OPEN_CALENDAR_ACTION
 	openCalendarEventIntent.putExtra(MainActivity.OPEN_USER_MAILBOX_USERID_KEY, userId)
 	return PendingIntent.getActivity(
-			context,
-			alarmIntent.data.toString().hashCode(),
-			openCalendarEventIntent,
-			PendingIntent.FLAG_UPDATE_CURRENT or PendingIntent.FLAG_IMMUTABLE
+		context,
+		alarmIntent.data.toString().hashCode(),
+		openCalendarEventIntent,
+		PendingIntent.FLAG_UPDATE_CURRENT or PendingIntent.FLAG_IMMUTABLE
 	)
 }
 
@@ -397,13 +402,13 @@ fun showDownloadNotification(context: Context, file: File) {
 	}
 	val pendingIntent = PendingIntent.getActivity(context, 0, intent, PendingIntent.FLAG_IMMUTABLE)
 	notificationManager.notify(
-			System.currentTimeMillis().toInt(),
-			NotificationCompat.Builder(context, DOWNLOAD_NOTIFICATION_CHANNEL_ID)
-					.setSmallIcon(R.drawable.ic_download)
-					.setContentTitle(context.getString(R.string.downloadCompleted_msg))
-					.setContentText(file.name)
-					.setContentIntent(pendingIntent)
-					.setAutoCancel(true)
-					.build()
+		System.currentTimeMillis().toInt(),
+		NotificationCompat.Builder(context, DOWNLOAD_NOTIFICATION_CHANNEL_ID)
+			.setSmallIcon(R.drawable.ic_download)
+			.setContentTitle(context.getString(R.string.downloadCompleted_msg))
+			.setContentText(file.name)
+			.setContentIntent(pendingIntent)
+			.setAutoCancel(true)
+			.build()
 	)
 }

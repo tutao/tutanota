@@ -12,3 +12,4 @@ TutaoSettingsAction = "設定";
 TutaoCalendarAlarmTitle = "提醒";
 TutaoScheduleAlarmError = "無法設定提醒。請更新應用程式。";
 TutaoUnlockCredentialsAction = "解鎖登入資料";
+TutaoPushNewMail = "收到新電郵。";

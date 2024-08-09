@@ -10,6 +10,7 @@ use crate::date::DateTime;
 use crate::crypto::key::GenericAesKey;
 use crate::element_value::{ElementValue, ParsedEntity};
 use crate::element_value::ElementValue::Bool;
+use crate::entities::Errors;
 use crate::metamodel::{AssociationType, Cardinality, ModelAssociation, ModelValue, TypeModel, ValueType};
 use crate::type_model_provider::TypeModelProvider;
 
@@ -18,8 +19,6 @@ use crate::type_model_provider::TypeModelProvider;
 pub struct EntityFacade {
     type_model_provider: Arc<TypeModelProvider>,
 }
-
-pub type Errors = HashMap<String, ElementValue>;
 
 #[cfg_attr(test, mockall::automock)]
 impl EntityFacade {
@@ -280,12 +279,11 @@ mod tests {
         let mail: Mail = instance_mapper.parse_entity(decrypted_mail.clone()).unwrap();
 
         assert_eq!(&DateTime::from_millis(1720612041643), decrypted_mail.get("receivedDate").unwrap().assert_date());
-        assert_eq!(&ElementValue::Null, decrypted_mail.get("sentDate").unwrap());
         assert_eq!(true, decrypted_mail.get("confidential").unwrap().assert_bool());
         assert_eq!("Html email features", decrypted_mail.get("subject").unwrap().assert_str());
         assert_eq!("Matthias", decrypted_mail.get("sender").unwrap().assert_dict().get("name").unwrap().assert_str());
         assert_eq!("map-free@tutanota.de", decrypted_mail.get("sender").unwrap().assert_dict().get("address").unwrap().assert_str());
-        assert!(decrypted_mail.get("toRecipients").unwrap().assert_array().is_empty());
+        assert!(decrypted_mail.get("attachments").unwrap().assert_array().is_empty());
     }
 
     fn make_json_entity() -> RawEntity {
@@ -329,9 +327,6 @@ mod tests {
             "subject"=> JsonElement::String(
                 "AVRYAouCyrii0gGUpQ9TcgbBdzQiFUc8n0I32fO5pA0wk+0i6vNke8uML5vPy09NQEzUiozrSYDl3bEzHCdrD9rjQgvrJhaygZiAF5bv8eX/".to_string(),
             ),
-            "bccRecipients"=> JsonElement::Array(
-                vec![],
-            ),
             "movedTime"=> JsonElement::String(
                 "1720612041643".to_string(),
             ),
@@ -349,9 +344,6 @@ mod tests {
             ),
             "body"=> JsonElement::Null,
             "authStatus"=> JsonElement::Null,
-            "ccRecipients"=> JsonElement::Array(
-                vec![],
-            ),
             "firstRecipient"=> JsonElement::Dict(
                 collection! {
                     "address"=> JsonElement::String(
@@ -365,9 +357,6 @@ mod tests {
                     ),
                     "contact"=> JsonElement::Null,
                 },
-            ),
-            "toRecipients"=> JsonElement::Array(
-                vec![],
             ),
             "differentEnvelopeSender"=> JsonElement::Null,
             "listUnsubscribe"=> JsonElement::String(

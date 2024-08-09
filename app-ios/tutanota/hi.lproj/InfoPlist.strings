@@ -12,3 +12,4 @@ TutaoSettingsAction = "सेटिंग";
 TutaoCalendarAlarmTitle = "स्मरण-पत्र";
 TutaoScheduleAlarmError = "अलार्म सेट नहीं कर सका। कृपया एप्लिकेशन को अपडेट करें।";
 TutaoUnlockCredentialsAction = "क्रेडेंशियल अनलॉक करें";
+TutaoPushNewMail = "नया संदेश प्राप्त हुआ ! ";

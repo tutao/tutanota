@@ -12,3 +12,4 @@ TutaoSettingsAction = "Opțiuni";
 TutaoCalendarAlarmTitle = "Reamintire";
 TutaoScheduleAlarmError = "Alarma nu a putut fi pusă. Actualizează aplicația.";
 TutaoUnlockCredentialsAction = "Deblochează datele de autentificare";
+TutaoPushNewMail = "E-mail nou primit.";

@@ -162,12 +162,11 @@ mod tests {
             .unwrap();
 
         assert_eq!(DateTime::from_millis(1470039025474), result.receivedDate);
-        assert_eq!(Some(DateTime::from_millis(1470039021474)), result.sentDate);
         assert_eq!(is_confidential, result.confidential);
         assert_eq!(SUBJECT.to_owned(), result.subject);
         assert_eq!(SENDER_NAME.to_owned(), result.sender.name);
         assert_eq!("hello@tutao.de".to_owned(), result.sender.address);
-        assert_eq!(RECIPIENT_NAME.to_owned(), result.toRecipients[0].name);
-        assert_eq!("support@yahoo.com".to_owned(), result.toRecipients[0].address);
+        assert_eq!(RECIPIENT_NAME.to_owned(), result.firstRecipient.clone().unwrap().name);
+        assert_eq!("support@yahoo.com".to_owned(), result.firstRecipient.clone().unwrap().address);
     }
 }

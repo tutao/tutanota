@@ -12,3 +12,4 @@ TutaoSettingsAction = "Instellingen";
 TutaoCalendarAlarmTitle = "Herinnering";
 TutaoScheduleAlarmError = "Kon geen alarm instellen. Graag het programma updaten.";
 TutaoUnlockCredentialsAction = "Gegevens deblokkeren";
+TutaoPushNewMail = "Nieuwe e-mail ontvangen";

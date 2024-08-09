@@ -12,7 +12,7 @@ export default {
 		"other"
 	],
 	"created_at": "2015-02-18T09:07:31Z",
-	"updated_at": "2024-07-16T13:24:48Z",
+	"updated_at": "2024-08-06T13:44:10Z",
 	"source_locale": {
 		"id": "fcd7471b347c8e517663e194dcddf237",
 		"name": "en",
@@ -989,6 +989,7 @@ export default {
 		"notificationSettings_action": "Notificări",
 		"notificationSync_msg": "Sincronizarea notificărilor",
 		"notificationTargets_label": "Destinații pentru notificări",
+		"noTitle_label": "<Fără titlu>",
 		"notSigned_msg": "Nesemnat.",
 		"noUpdateAvailable_msg": "Nu există o versiune nouă.",
 		"noValidMembersToAdd_msg": "Nu administrezi niciun utilizator care nu este deja membru al acestui grup.",
@@ -1343,6 +1344,7 @@ export default {
 		"resumeSetup_label": "Reia configurarea",
 		"retry_action": "Încearcă din nou",
 		"revealPassword_action": "Dezvăluie parola",
+		"richNotificationsNewsItem_msg": "Aplicația ta preferată de e-mail poate afișa acum subiectul și expeditorul în notificări! Activează acum această caracteristică:",
 		"richText_label": "Text formatat",
 		"role_placeholder": "Funcție",
 		"runInBackground_action": "Funcționare în ascuns",

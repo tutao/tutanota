@@ -12,3 +12,4 @@ TutaoSettingsAction = "Beállítások";
 TutaoCalendarAlarmTitle = "Emlékeztető";
 TutaoScheduleAlarmError = "Nem lehetett beállítani a riasztást. Frissítse az alkalmazást!";
 TutaoUnlockCredentialsAction = "Hitelesítő adatok feloldása.";
+TutaoPushNewMail = "Új levél érkezett.";

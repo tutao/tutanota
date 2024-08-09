@@ -12,3 +12,4 @@ TutaoSettingsAction = "تنظیمات";
 TutaoCalendarAlarmTitle = "یادآور";
 TutaoScheduleAlarmError = "تنظیم کردن زنگ هشدار موفقیت‌آمیز نبود. لطفا اپلیکیشن را به روز کنید.";
 TutaoUnlockCredentialsAction = "باز کردن قفل داده‌های هویتی";
+TutaoPushNewMail = "ایمیل جدیدی رسید.";

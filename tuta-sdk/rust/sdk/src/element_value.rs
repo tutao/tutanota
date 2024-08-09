@@ -105,7 +105,7 @@ impl ElementValue {
         }
     }
 
-    pub(crate) fn get_type_variant_name(&self) -> &'static str {
+    pub(crate) fn type_variant_name(&self) -> &'static str {
         match self {
             Self::Null => "Null",
             Self::String(_) => "String",

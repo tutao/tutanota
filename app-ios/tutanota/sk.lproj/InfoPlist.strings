@@ -12,3 +12,4 @@ TutaoSettingsAction = "Nastavenia";
 TutaoCalendarAlarmTitle = "Pripomienka";
 TutaoScheduleAlarmError = "Alarm sa nepodarilo nastaviť. Prosím, aktualizuj aplikáciu.";
 TutaoUnlockCredentialsAction = "Odomknúť poverenia";
+TutaoPushNewMail = "Prišiel nový e-mail.";

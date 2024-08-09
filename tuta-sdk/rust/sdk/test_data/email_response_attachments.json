@@ -1,0 +1,39 @@
+{
+	"_format": "0",
+	"_id": ["O3lYN72--R-0", "O3lYUQH----0"],
+	"_ownerEncSessionKey": "ATM3X9+VAfiDLdmezj2r8ZiDp30Hn5yCIMk1e+yRCssJmTxBLO2ikYk8SAjblphyFdabNn0jilmPS2xdXB8ck2JpP3ZEE+5Xv/39rJZ6M8li",
+	"_ownerGroup": "O3lYN6z--N-0",
+	"_ownerKeyVersion": "0",
+	"_permissions": "O3lYUQH--g-0",
+	"authStatus": null,
+	"confidential": "AR8zeFN4c98e8Ds8AkusyHbPK0iPTHJsnwisT/nzYPQhyVEMEV9SCk4s20/s5YKWdeU960ddEtcAcCpGRBVSS9Y=",
+	"differentEnvelopeSender": null,
+	"encryptionAuthStatus": "Af715Yrdyl42FlYixEThz/flGIYo0gXFzpSp+H5rkMNLmaCZlP5d759VYf5U3aBVs8AE+N4URjk9RIPKM3ozlyY=",
+	"listUnsubscribe": "",
+	"method": "AQfY+SB4qfB0Eo2Mz7N6pseQIFhKPr39aV5j7n0VB9jwN4mWSeXfK53FhdCfeYHc61IPWR4lyEipwS8yGcNGawc=",
+	"movedTime": "1723113273034",
+	"phishingStatus": "0",
+	"receivedDate": "1723113273034",
+	"recipientCount": "1",
+	"replyType": "",
+	"state": "2",
+	"subject": "AT2IjiolQ+E36x1w8sEC37OUTNxDdhO66UNb33JJ0DfwQE56pz+qPaLD2hoRRs+gDjMlAHwUVXAjmzfN1kjTTv7vfGVQzy6gp9+FVksoMoNW",
+	"unread": "0",
+	"attachments": [["O3lYN71--J-0", "O3lYUQI----0"]],
+	"bucketKey": null,
+	"conversationEntry": ["O3lYUQH--3-0", "O3lYUQH--7-0"],
+	"firstRecipient": {
+		"_id": "HvHzbg",
+		"address": "map-free@tutanota.de",
+		"name": "AYOKFnie29GjgBC1ZOem6yOL69I0bRx3DXuxSJqt5qs34a6LAgqmzll8ToEuQyLLaN4TXUT3KdfqGioM1pDxyNw=",
+		"contact": null
+	},
+	"mailDetails": ["O3lYN70--B-0", "O3lYUQK----0"],
+	"mailDetailsDraft": null,
+	"sender": {
+		"_id": "k5gjqA",
+		"address": "bed-free@tutanota.de",
+		"name": "Aa9WzeZU8eovYX3G6i+5pAk5odHi3cSFvkzQmdQjeyJIBHzw3rf1xkpWCt0TTpZkhA1bw5aqxaJe/EXSHX5PUHg=",
+		"contact": null
+	}
+}
