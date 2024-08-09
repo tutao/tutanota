@@ -107,7 +107,7 @@ fn encrypt_test_entity_dict_with_provider(
             _ => unimplemented!(
                 "can't encrypt {app}/{type_}.{name} => {:?}/{}",
                 value.value_type,
-                value_to_encrypt.get_type_variant_name()
+                value_to_encrypt.type_variant_name()
             ),
         };
         match data {
