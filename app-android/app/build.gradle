@@ -114,12 +114,8 @@ android {
 	}
 
 	namespace 'de.tutao.tutanota'
-	externalNativeBuild {
-		cmake {
-			path file('src/main/cpp/CMakeLists.txt')
-			version "3.18.0+"
-		}
-	}
+
+	externalNativeBuild {}
 }
 
 tasks.withType(Test).configureEach {
