@@ -56,25 +56,13 @@
 			],
 			"ret": "string"
 		},
-		"argon2idHashRaw": {
+		"argon2idGeneratePassphraseKey": {
 			"arg": [
 				{
-					"password": "bytes"
+					"passphrase": "string"
 				},
 				{
 					"salt": "bytes"
-				},
-				{
-					"timeCost": "number"
-				},
-				{
-					"memoryCost": "number"
-				},
-				{
-					"parallelism": "number"
-				},
-				{
-					"hashLength": "number"
 				}
 			],
 			"ret": "bytes"
