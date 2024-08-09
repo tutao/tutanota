@@ -57,18 +57,8 @@ public actor IosNativeCryptoFacade: NativeCryptoFacade {
 		.wrap()
 	}
 
-	public func argon2idHashRaw(_ password: DataWrapper, _ salt: DataWrapper, _ timeCost: Int, _ memoryCost: Int, _ parallelism: Int, _ hashLength: Int)
-		async throws -> DataWrapper
-	{
-		try generateArgon2idHash(
-			ofPassword: password,
-			ofHashLength: hashLength,
-			withSalt: salt.data,
-			withIterations: UInt(timeCost),
-			withParallelism: UInt(parallelism),
-			withMemoryCost: UInt(memoryCost)
-		)
-		.wrap()
+	public func argon2idGeneratePassphraseKey(_ passphrase: String, _ salt: DataWrapper) async throws -> DataWrapper {
+		try tutasdk.argon2idGenerateKeyFromPassphrase(passphrase: passphrase, salt: salt.data).wrap()
 	}
 
 	public func generateKyberKeypair(_ seed: DataWrapper) async throws -> TutanotaSharedFramework.KyberKeyPair {
