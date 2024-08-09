@@ -46,20 +46,12 @@ public class NativeCryptoFacadeReceiveDispatcher {
 				fileUri
 			)
 			return toJson(result)
-		case "argon2idHashRaw":
-			let password = try! JSONDecoder().decode(DataWrapper.self, from: arg[0].data(using: .utf8)!)
+		case "argon2idGeneratePassphraseKey":
+			let passphrase = try! JSONDecoder().decode(String.self, from: arg[0].data(using: .utf8)!)
 			let salt = try! JSONDecoder().decode(DataWrapper.self, from: arg[1].data(using: .utf8)!)
-			let timeCost = try! JSONDecoder().decode(Int.self, from: arg[2].data(using: .utf8)!)
-			let memoryCost = try! JSONDecoder().decode(Int.self, from: arg[3].data(using: .utf8)!)
-			let parallelism = try! JSONDecoder().decode(Int.self, from: arg[4].data(using: .utf8)!)
-			let hashLength = try! JSONDecoder().decode(Int.self, from: arg[5].data(using: .utf8)!)
-			let result = try await self.facade.argon2idHashRaw(
-				password,
-				salt,
-				timeCost,
-				memoryCost,
-				parallelism,
-				hashLength
+			let result = try await self.facade.argon2idGeneratePassphraseKey(
+				passphrase,
+				salt
 			)
 			return toJson(result)
 		case "generateKyberKeypair":

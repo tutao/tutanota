@@ -22,7 +22,7 @@ export interface NativeCryptoFacade {
 	 */
 	aesDecryptFile(key: Uint8Array, fileUri: string): Promise<string>
 
-	argon2idHashRaw(password: Uint8Array, salt: Uint8Array, timeCost: number, memoryCost: number, parallelism: number, hashLength: number): Promise<Uint8Array>
+	argon2idGeneratePassphraseKey(passphrase: string, salt: Uint8Array): Promise<Uint8Array>
 
 	generateKyberKeypair(seed: Uint8Array): Promise<KyberKeyPair>
 

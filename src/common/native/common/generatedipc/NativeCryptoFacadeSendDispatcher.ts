@@ -19,8 +19,8 @@ export class NativeCryptoFacadeSendDispatcher implements NativeCryptoFacade {
 	async aesDecryptFile(...args: Parameters<NativeCryptoFacade["aesDecryptFile"]>) {
 		return this.transport.invokeNative("ipc", ["NativeCryptoFacade", "aesDecryptFile", ...args])
 	}
-	async argon2idHashRaw(...args: Parameters<NativeCryptoFacade["argon2idHashRaw"]>) {
-		return this.transport.invokeNative("ipc", ["NativeCryptoFacade", "argon2idHashRaw", ...args])
+	async argon2idGeneratePassphraseKey(...args: Parameters<NativeCryptoFacade["argon2idGeneratePassphraseKey"]>) {
+		return this.transport.invokeNative("ipc", ["NativeCryptoFacade", "argon2idGeneratePassphraseKey", ...args])
 	}
 	async generateKyberKeypair(...args: Parameters<NativeCryptoFacade["generateKyberKeypair"]>) {
 		return this.transport.invokeNative("ipc", ["NativeCryptoFacade", "generateKyberKeypair", ...args])

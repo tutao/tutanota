@@ -124,15 +124,8 @@ export class DesktopNativeCryptoFacade implements NativeCryptoFacade {
 		throw new Error("not implemented for this platform")
 	}
 
-	async argon2idHashRaw(
-		password: Uint8Array,
-		salt: Uint8Array,
-		timeCost: number,
-		memoryCost: number,
-		parallelism: number,
-		hashLength: number,
-	): Promise<Uint8Array> {
-		const hash = await generateKeyFromPassphraseArgon2id(await this.argon2, utf8Uint8ArrayToString(password), salt)
+	async argon2idGeneratePassphraseKey(passphrase: string, salt: Uint8Array): Promise<Uint8Array> {
+		const hash = await generateKeyFromPassphraseArgon2id(await this.argon2, passphrase, salt)
 		return bitArrayToUint8Array(hash)
 	}
 
