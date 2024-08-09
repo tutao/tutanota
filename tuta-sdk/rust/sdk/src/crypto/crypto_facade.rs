@@ -173,7 +173,7 @@ fn parse_id_field(id_field: Option<&ElementValue>) -> Result<&GeneratedId, Sessi
             reason: "no id present on instance".to_string()
         }),
         Some(actual) => Err(SessionKeyResolutionError {
-            reason: format!("unexpected {} type for id on instance", actual.get_type_variant_name())
+            reason: format!("unexpected {} type for id on instance", actual.type_variant_name())
         }),
     }
 }
@@ -229,7 +229,7 @@ impl<'a> EntityOwnerKeyData<'a> {
                 match $entity.get($field) {
                     Some(ElementValue::$type(q)) => Ok(Some(q)),
                     None | Some(ElementValue::Null) => Ok(None), // none = not present on type, null = present on type but null
-                    Some(actual) => Err(SessionKeyResolutionError { reason: format!("field `{}` is not the expected type, got {} instead", $field, actual.get_type_variant_name()) })
+                    Some(actual) => Err(SessionKeyResolutionError { reason: format!("field `{}` is not the expected type, got {} instead", $field, actual.type_variant_name()) })
                 }
             };
         }
