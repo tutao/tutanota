@@ -9,3 +9,4 @@ app-android/
 app-ios/
 fdroid-metadata-workaround/
 packages/tutanota-crypto/lib/internal/
+tuta-sdk/rust/target
