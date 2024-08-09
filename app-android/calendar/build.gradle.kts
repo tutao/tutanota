@@ -25,12 +25,6 @@ android {
 				this.arguments["room.schemaLocation"] = "$projectDir/schemas"
 			}
 		}
-
-		externalNativeBuild {
-			cmake {
-				this.cppFlags("")
-			}
-		}
 	}
 
 	signingConfigs {
@@ -131,13 +125,6 @@ android {
 	sourceSets {
 		this.getByName("androidTest") {
 			assets.srcDirs(files("$projectDir/schemas"))
-		};
-	}
-
-	externalNativeBuild {
-		cmake {
-			this.path(file("src/main/cpp/CMakeLists.txt"))
-			this.version = "3.18.0+"
 		}
 	}
 }
