@@ -46,6 +46,8 @@ jobs:
           distribution: ${{ env.java-distribution }}
       - name: Setup Android SDK
         uses: android-actions/setup-android@07976c6290703d34c16d382cb36445f98bb43b1f #3.2.0
+      - name: Setup Android NDK
+        run: sdkmanager "ndk;26.1.10909125"
       - name: Setup Rust targets
         run: rustup target add aarch64-linux-android armv7-linux-androideabi x86_64-linux-android i686-linux-android
       - name: Lint

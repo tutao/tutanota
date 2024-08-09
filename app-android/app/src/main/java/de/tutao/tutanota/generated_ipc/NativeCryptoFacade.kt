@@ -31,13 +31,9 @@ interface NativeCryptoFacade {
 		key: DataWrapper,
 		fileUri: String,
 	): String
-	suspend fun argon2idHashRaw(
-		password: DataWrapper,
+	suspend fun argon2idGeneratePassphraseKey(
+		passphrase: String,
 		salt: DataWrapper,
-		timeCost: Int,
-		memoryCost: Int,
-		parallelism: Int,
-		hashLength: Int,
 	): DataWrapper
 	suspend fun generateKyberKeypair(
 		seed: DataWrapper,

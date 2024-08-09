@@ -28,13 +28,9 @@ public protocol NativeCryptoFacade {
 		_ key: DataWrapper,
 		_ fileUri: String
 	) async throws -> String
-	func argon2idHashRaw(
-		_ password: DataWrapper,
-		_ salt: DataWrapper,
-		_ timeCost: Int,
-		_ memoryCost: Int,
-		_ parallelism: Int,
-		_ hashLength: Int
+	func argon2idGeneratePassphraseKey(
+		_ passphrase: String,
+		_ salt: DataWrapper
 	) async throws -> DataWrapper
 	func generateKyberKeypair(
 		_ seed: DataWrapper

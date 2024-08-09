@@ -22,11 +22,6 @@ android {
 			arg("room.schemaLocation", "$projectDir/schemas".toString())
 			arg("room.generateKotlin", "true")
 		}
-		externalNativeBuild {
-			cmake {
-				cppFlags ''
-			}
-		}
 	}
 	signingConfigs {
 		release {
@@ -114,12 +109,6 @@ android {
 	}
 
 	namespace 'de.tutao.tutanota'
-	externalNativeBuild {
-		cmake {
-			path file('src/main/cpp/CMakeLists.txt')
-			version "3.18.0+"
-		}
-	}
 }
 
 tasks.withType(Test).configureEach {
