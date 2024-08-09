@@ -14,7 +14,7 @@ export default {
 		"other"
 	],
 	"created_at": "2016-04-11T12:51:55Z",
-	"updated_at": "2024-08-06T13:44:10Z",
+	"updated_at": "2024-08-09T05:14:45Z",
 	"source_locale": null,
 	"fallback_locale": null,
 	"keys": {
@@ -1195,7 +1195,7 @@ export default {
 		"pricing.gdpr_tooltip": "Tódolos datos gárdanse seguindo as estritas regulacións de protección de datos Europeas de acordo coa GDPR.",
 		"pricing.includesTaxes_msg": "Inclúe as taxas.",
 		"pricing.login_title": "Iniciar sesión en páxina web propia.",
-		"pricing.login_tooltip": "Situa o acceso a Tuta para os teus empregados na túa propia web.",
+		"pricing.login_tooltip": "Situa o acceso a Tuta na túa propia web para persoas alleas e empregadas.",
 		"pricing.mailAddressAliasesShort_label": "{amount} enderezos extra de email",
 		"pricing.mailAddressAliases_tooltip_markdown": "<p>Enderezos de correo extra por usuaria. Os alias de correo electrónico axudan a reducir o spam e melloran a velocidade ao ordenar os correos recibidos. Le máis trucos  <a target=\"_blank\" rel=\"noopener noreferrer\" href=\"https://tuta.com/blog/secure-email-alias\">no noso blog</a>.</p>\n",
 		"pricing.mailAddressFree_label": "1 enderezo de correo de Tuta gratis",
@@ -1342,6 +1342,8 @@ export default {
 		"resumeSetup_label": "Retomar configuración",
 		"retry_action": "Intentar de novo",
 		"revealPassword_action": "Mostrar o contrasinal",
+		"richNotificationsNewsItem_msg": "A túa app de correo favorita agora pode mostrar o asunto e remitente nas notificacións! Activa agora esta característica:",
+		"richNotifications_title": "Activar Notificacións Aumentadas",
 		"richText_label": "Texto enriquecido",
 		"role_placeholder": "Rol",
 		"runInBackground_action": "Executar en segundo plano",

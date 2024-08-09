@@ -11,7 +11,7 @@ export default {
 		"other"
 	],
 	"created_at": "2015-04-02T12:56:44Z",
-	"updated_at": "2024-08-06T14:25:51Z",
+	"updated_at": "2024-08-09T09:29:31Z",
 	"source_locale": null,
 	"fallback_locale": null,
 	"keys": {
@@ -1341,6 +1341,7 @@ export default {
 		"retry_action": "Próbálja újra",
 		"revealPassword_action": "A jelszó felfedése.",
 		"richNotificationsNewsItem_msg": "Az Ön kedvenc e-mail alkalmazása mostantól meg tudja jeleníteni a tárgyat és a feladót az értesítésekben! Engedélyezze ezt a funkciót most:",
+		"richNotifications_title": "Gazdag értesítések engedélyezése",
 		"richText_label": "Rich text",
 		"role_placeholder": "Szerep",
 		"runInBackground_action": "Fusson a háttérben",

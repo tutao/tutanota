@@ -10,7 +10,7 @@ export default {
 		"other"
 	],
 	"created_at": "2019-01-02T11:09:03Z",
-	"updated_at": "2024-08-07T14:36:51Z",
+	"updated_at": "2024-08-09T15:18:46Z",
 	"source_locale": null,
 	"fallback_locale": null,
 	"keys": {
@@ -530,7 +530,7 @@ export default {
 		"enterCustomDomain_title": "輸入您的自訂域名",
 		"enterDetails_msg": "可選填：在此輸入詳情",
 		"enterDomainFieldHelp_label": "您可以使用此自訂電郵域名來建立類似 hello@{domain} 的電郵地址。",
-		"enterDomainGetReady_msg": "您需要更改您的DNS設定。請開啟新瀏覽器視窗，並登入您的域名供應商的管理版面，以套用所需更改。此設定精靈將向您顯示每個步驟所需的DNS記錄。",
+		"enterDomainGetReady_msg": "您需要更改您的DNS設定。請開啟新瀏覽器視窗，並登入您的域名供應商的管理版面，以便在必要時套用變更。此設定精靈將向您顯示每個步驟所需的DNS記錄。",
 		"enterDomainIntroduction_msg": "您只需要數個步驟就可以在Tuta中使用您的自訂電郵域名。",
 		"enterMissingPassword_msg": "沒有偵測到密碼。請輸入密碼。",
 		"enterName_msg": "請輸入名稱。",
