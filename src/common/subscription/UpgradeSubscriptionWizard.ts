@@ -31,7 +31,6 @@ import { formatNameAndAddress } from "../api/common/utils/CommonFormatter.js"
 import { LoginController } from "../api/main/LoginController.js"
 import { MobilePaymentSubscriptionOwnership } from "../native/common/generatedipc/MobilePaymentSubscriptionOwnership.js"
 import { Dialog, DialogType } from "../gui/base/Dialog.js"
-import { showNotAvailableForFreeDialog } from "../misc/SubscriptionDialogs.js"
 
 assertMainOrNode()
 export type SubscriptionParameters = {
@@ -50,7 +49,12 @@ export type UpgradeSubscriptionData = {
 	invoiceData: InvoiceData
 	paymentData: PaymentData
 	type: PlanType
+	// Subscription price as a float
 	price: string
+	// Subscription price as a formatted string with the currency symbol and with decimal separator from local
+	// On iOS: in the local currency
+	// Else: in Euro
+	displayPrice: string
 	priceNextYear: string | null
 	accountingInfo: AccountingInfo | null
 	// not initially set for signup but loaded in InvoiceAndPaymentDataPage
@@ -98,6 +102,7 @@ export async function showUpgradeWizard(logins: LoginController, acceptedPlans: 
 			creditCardData: null,
 		},
 		price: "",
+		displayPrice: "",
 		type: PlanType.Revolutionary,
 		priceNextYear: null,
 		accountingInfo: accountingInfo,
@@ -186,6 +191,7 @@ export async function loadSignupWizard(
 			creditCardData: null,
 		},
 		price: "",
+		displayPrice: "",
 		priceNextYear: null,
 		type: PlanType.Free,
 		accountingInfo: null,

@@ -3,8 +3,6 @@ import stream from "mithril/stream"
 import { lang } from "../misc/LanguageViewModel"
 import type { SubscriptionParameters, UpgradeSubscriptionData } from "./UpgradeSubscriptionWizard"
 import { SubscriptionActionButtons, SubscriptionSelector } from "./SubscriptionSelector"
-import { isApp } from "../api/common/Env"
-import { client } from "../misc/ClientDetector"
 import { Button, ButtonType } from "../gui/base/Button.js"
 import { UpgradeType } from "./SubscriptionUtils"
 import { Dialog, DialogType } from "../gui/base/Dialog"
@@ -193,8 +191,11 @@ export class UpgradeSubscriptionPage implements WizardPageN<UpgradeSubscriptionD
 		data.type = planType
 		const { planPrices, options } = data
 		try {
-			data.price = planPrices.getSubscriptionPriceWithCurrency(options.paymentInterval(), data.type, UpgradePriceType.PlanActualPrice)
-			const nextYear = planPrices.getSubscriptionPriceWithCurrency(options.paymentInterval(), data.type, UpgradePriceType.PlanNextYearsPrice)
+			// `data.price` is used for the amount parameter in the Braintree credit card verification call, so we do not include currency locale outside iOS.
+			const subscriptionPrice = planPrices.getSubscriptionPriceWithCurrency(options.paymentInterval(), data.type, UpgradePriceType.PlanActualPrice)
+			data.price = subscriptionPrice.rawPrice
+			data.displayPrice = subscriptionPrice.displayPrice
+			const nextYear = planPrices.getSubscriptionPriceWithCurrency(options.paymentInterval(), data.type, UpgradePriceType.PlanNextYearsPrice).displayPrice
 			data.priceNextYear = data.price !== nextYear ? nextYear : null
 		} catch (e) {
 			console.error(e)
