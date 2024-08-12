@@ -160,7 +160,7 @@ export class UpgradeConfirmSubscriptionPage implements WizardPageN<UpgradeSubscr
 				}),
 				m(TextField, {
 					label: isYearly ? "priceFirstYear_label" : "price_label",
-					value: buildPriceString(attrs.data.price, attrs.data.options),
+					value: buildPriceString(attrs.data.displayPrice, attrs.data.options),
 					isReadOnly: true,
 				}),
 				this.renderPriceNextYear(attrs),

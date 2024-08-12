@@ -1,8 +1,8 @@
-import { BookingItemFeatureType, Const, NewPersonalPlans, PaymentMethodType, PlanType, PlanTypeToName } from "../api/common/TutanotaConstants"
+import { BookingItemFeatureType, Const, PaymentMethodType, PlanType, PlanTypeToName } from "../api/common/TutanotaConstants"
 import { assertTranslation, lang, TranslationKey } from "../misc/LanguageViewModel"
 import { assertNotNull, downcast, neverNull } from "@tutao/tutanota-utils"
 import type { AccountingInfo, PlanPrices, PriceData, PriceItemData } from "../api/entities/sys/TypeRefs.js"
-import { createPlanPrices, createUpgradePriceServiceData, UpgradePriceServiceReturn } from "../api/entities/sys/TypeRefs.js"
+import { createUpgradePriceServiceData, UpgradePriceServiceReturn } from "../api/entities/sys/TypeRefs.js"
 import { UpgradePriceType, WebsitePlanPrices } from "./FeatureListProvider"
 import { UpgradePriceService } from "../api/entities/sys/Services"
 import { IServiceExecutor } from "../api/common/ServiceRequest"
@@ -115,6 +115,15 @@ export function getPriceFromPriceData(priceData: PriceData | null, featureType: 
 		return 0
 	}
 }
+
+// Contains the price of a subscription as both formatted and unformatted strings
+export type SubscriptionPrice = {
+	// The locale formatted price of a description in the local currency on iOS and in Euro elsewhere
+	displayPrice: string
+	// The raw price in Euro as a float
+	rawPrice: string
+}
+
 export class PriceAndConfigProvider {
 	private upgradePriceData: UpgradePriceServiceReturn | null = null
 	private planPrices: Array<PlanPrices> | null = null
@@ -163,23 +172,26 @@ export class PriceAndConfigProvider {
 			: this.getMonthlySubscriptionPrice(subscription, type)
 	}
 
-	getSubscriptionPriceWithCurrency(paymentInterval: PaymentInterval, subscription: PlanType, type: UpgradePriceType): string {
+	// Returns the subscription price with the currency formatting on iOS and as a plain period seperated number on other platforms
+	getSubscriptionPriceWithCurrency(paymentInterval: PaymentInterval, subscription: PlanType, type: UpgradePriceType): SubscriptionPrice {
+		const price = this.getSubscriptionPrice(paymentInterval, subscription, type)
+		const rawPrice = price.toString()
 		if (isIOSApp()) {
 			const planName = PlanTypeToName[subscription]
 			const mobilePlan = this.getMobilePrices().get(planName.toLowerCase())
 			if (mobilePlan) {
 				switch (paymentInterval) {
 					case PaymentInterval.Monthly:
-						return mobilePlan.monthlyPerMonth
+						return { displayPrice: mobilePlan.monthlyPerMonth, rawPrice }
 					case PaymentInterval.Yearly:
-						return mobilePlan.yearlyPerYear
+						return { displayPrice: mobilePlan.yearlyPerYear, rawPrice }
 				}
 			}
 			throw new Error(`no such iOS plan ${planName}`)
+		} else {
+			const displayPrice = formatPrice(price, true)
+			return { displayPrice, rawPrice }
 		}
-
-		const price = this.getSubscriptionPrice(paymentInterval, subscription, type)
-		return formatPrice(price, true)
 	}
 
 	getRawPricingData(): UpgradePriceServiceReturn {
