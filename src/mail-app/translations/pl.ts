@@ -13,7 +13,7 @@ export default {
 		"other"
 	],
 	"created_at": "2015-01-27T13:13:41Z",
-	"updated_at": "2024-08-08T11:12:25Z",
+	"updated_at": "2024-08-09T18:48:10Z",
 	"source_locale": {
 		"id": "fcd7471b347c8e517663e194dcddf237",
 		"name": "en",
@@ -1195,6 +1195,7 @@ export default {
 		"pricing.gdprDataProcessing_label": "Umowa o przetwarzaniu danych RODO",
 		"pricing.gdpr_label": "Zgodność z RODO",
 		"pricing.gdpr_tooltip": "Wszystkie dane są przechowywane zgodnie z surowymi europejskimi przepisami o ochronie danych osobowych, zgodnie z RODO.",
+		"pricing.getStarted_label": "Rozpocznij",
 		"pricing.includesTaxes_msg": "Zawiera podatek.",
 		"pricing.login_title": "Loguj się na własnej stronie internetowej",
 		"pricing.login_tooltip": "Umieść login Tuta na własnej stronie internetowej dla swoich pracowników oraz innych użytkowników.",

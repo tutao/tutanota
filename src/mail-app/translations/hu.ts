@@ -1190,6 +1190,7 @@ export default {
 		"pricing.gdprDataProcessing_label": "GDPR adatfeldolgozási megállapodás",
 		"pricing.gdpr_label": "GDPR-kompatibilis",
 		"pricing.gdpr_tooltip": "Minden adatot a GDPR szerinti szigorú európai adatvédelmi előírásoknak megfelelően tárolunk.",
+		"pricing.getStarted_label": "Kezdjünk hozzá!",
 		"pricing.includesTaxes_msg": "Tartalmazza az adókat",
 		"pricing.login_title": "Bejelentkezés a saját weboldalon",
 		"pricing.login_tooltip": "Helyezze el a Tuta bejelentkezést a saját weboldalán az alkalmazottai és külsősök számára!",

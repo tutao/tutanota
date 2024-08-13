@@ -11,7 +11,7 @@ export default {
 		"other"
 	],
 	"created_at": "2015-01-27T13:13:55Z",
-	"updated_at": "2024-08-08T11:12:25Z",
+	"updated_at": "2024-08-11T13:14:58Z",
 	"source_locale": {
 		"id": "fcd7471b347c8e517663e194dcddf237",
 		"name": "en",
@@ -1194,6 +1194,7 @@ export default {
 		"pricing.gdprDataProcessing_label": "GDPR gegevens verwerking overeenkomst",
 		"pricing.gdpr_label": "GDPR-conform",
 		"pricing.gdpr_tooltip": "Alle data is opgeslagen volgens de strikte Europese data protectie regelgeving overeenkomstig GDPR.",
+		"pricing.getStarted_label": "Aan de slag",
 		"pricing.includesTaxes_msg": "Inclusief belastingen.",
 		"pricing.login_title": "Inloggen op eigen website",
 		"pricing.login_tooltip": "Plaats het Tuta loginscherm op uw eigen website voor uw medewerkers en buitenstaanders.",
@@ -1345,6 +1346,7 @@ export default {
 		"retry_action": "Probeer opnieuw",
 		"revealPassword_action": "Wachtwoord laten zien",
 		"richNotificationsNewsItem_msg": "Uw favoriete e-mailapp kan nu onderwerp en afzender weergeven in meldingen! Schakel deze functie nu in:",
+		"richNotifications_title": "Uitgebreide meldingen inschakelen",
 		"richText_label": "Opgemaakte tekst",
 		"role_placeholder": "Rol",
 		"runInBackground_action": "Op de achtergrond uitvoeren",
