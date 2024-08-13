@@ -1194,7 +1194,6 @@ export default {
 		"pricing.gdprDataProcessing_label": "Acuerdo de procesamiento de datos RGPD",
 		"pricing.gdpr_label": "Cumple con el RGPD",
 		"pricing.gdpr_tooltip": "Todos los datos se almacenan de conformidad con las estrictas regulaciones europeas de protección de datos de acuerdo con el RGPD.",
-		"pricing.getStarted_label": "Empezar",
 		"pricing.includesTaxes_msg": "Impuestos incluidos.",
 		"pricing.login_title": "Inicia sesión en tu propio sitio web",
 		"pricing.login_tooltip": "Coloca el inicio de sesión de Tuta en tu propio sitio web para tus empleados y visitantes.",

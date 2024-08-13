@@ -1190,7 +1190,6 @@ export default {
 		"pricing.gdprDataProcessing_label": "GDPR databehandlings avtal",
 		"pricing.gdpr_label": "GDPR kompatibel",
 		"pricing.gdpr_tooltip": "Alla uppgifter lagras i enlighet med strikta Europeiska bestämmelser om dataskydd enligt GDPR.",
-		"pricing.getStarted_label": "Kom igång",
 		"pricing.includesTaxes_msg": "Inklusive skatter",
 		"pricing.login_title": "Logga in på din egen webbplats",
 		"pricing.login_tooltip": "Placera Tuta inloggningen på din egen webbplats för dina anställda och externa användare.",
