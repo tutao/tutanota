@@ -822,6 +822,7 @@ function showRenameTemplateListDialog(instance: TemplateGroupInstance) {
 					color: "",
 					name: newName,
 					defaultAlarmsList: [],
+					sourceUrl: null,
 				})
 				logins.getUserController().userSettingsGroupRoot.groupSettings.push(newSettings)
 			}

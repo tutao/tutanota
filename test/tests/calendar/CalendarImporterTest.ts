@@ -19,10 +19,9 @@ import { CalendarAttendeeStatus, EndType, RepeatPeriod } from "../../../src/comm
 import { getAllDayDateUTC } from "../../../src/common/api/common/utils/CommonCalendarUtils.js"
 import { getDateInZone } from "./CalendarTestUtils.js"
 import { Require } from "@tutao/tutanota-utils"
-import { parseCalendarStringData } from "../../../src/common/calendar/import/CalendarImporter.js"
 import { createTestEntity } from "../TestUtils.js"
 import { getAllDayDateUTCFromZone } from "../../../src/common/calendar/date/CalendarUtils.js"
-import { EventImportRejectionReason, sortOutParsedEvents } from "../../../src/common/calendar/import/CalendarImporterDialog.js"
+import { EventImportRejectionReason, parseCalendarStringData, sortOutParsedEvents } from "../../../src/common/calendar/import/ImportExportUtils.js"
 
 const zone = "Europe/Berlin"
 const now = new Date("2019-08-13T14:01:00.630Z")

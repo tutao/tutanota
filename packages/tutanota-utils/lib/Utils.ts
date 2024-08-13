@@ -550,3 +550,11 @@ export class BoundedExecutor {
 		}
 	}
 }
+
+export function assertValidURL(url: string) {
+	try {
+		return new URL(url)
+	} catch (e) {
+		return false
+	}
+}

@@ -53,7 +53,6 @@ import { NativePushFacade } from "../../../../native/common/generatedipc/NativeP
 import { ExposedOperationProgressTracker, OperationId } from "../../../main/OperationProgressTracker.js"
 import { InfoMessageHandler } from "../../../../gui/InfoMessageHandler.js"
 import { ProgrammingError } from "../../../common/error/ProgrammingError.js"
-import { EventWrapper } from "../../../../calendar/import/CalendarImporterDialog.js"
 import {
 	addDaysForEventInstance,
 	addDaysForRecurringEvent,
@@ -64,6 +63,7 @@ import { CalendarInfo } from "../../../../../calendar-app/calendar/model/Calenda
 import { geEventElementMaxId, getEventElementMinId } from "../../../common/utils/CommonCalendarUtils.js"
 import { DaysToEvents } from "../../../../calendar/date/CalendarEventsRepository.js"
 import { isOfflineError } from "../../../common/utils/ErrorUtils.js"
+import type { EventWrapper } from "../../../../calendar/import/ImportExportUtils.js"
 
 assertWorkerOrNode()
 

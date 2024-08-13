@@ -1,4 +1,3 @@
-import { parseCalendarEvents, parseICalendar } from "../../../calendar-app/calendar/export/CalendarParser.js"
 import { DataFile } from "../../api/common/DataFile.js"
 import { Require, utf8Uint8ArrayToString } from "@tutao/tutanota-utils"
 import { getTimeZone } from "../date/CalendarUtils.js"
@@ -21,7 +20,8 @@ import { UserController } from "../../api/main/UserController.js"
 import { ShareCapability } from "../../api/common/TutanotaConstants.js"
 import { renderCalendarColor } from "../../../calendar-app/calendar/gui/CalendarGuiUtils.js"
 import { GroupColors } from "../../../calendar-app/calendar/view/CalendarView.js"
-import { showCalendarImportDialog } from "./CalendarImporterDialog.js"
+import { handleCalendarImport } from "./CalendarImporterDialog.js"
+import { parseCalendarStringData } from "./ImportExportUtils.js"
 
 export type ParsedEvent = {
 	event: Require<"uid", CalendarEvent>
@@ -44,12 +44,6 @@ export function parseCalendarFile(file: DataFile): ParsedCalendarData {
 			throw e
 		}
 	}
-}
-
-/** importer internals exported for testing */
-export function parseCalendarStringData(value: string, zone: string): ParsedCalendarData {
-	const tree = parseICalendar(value)
-	return parseCalendarEvents(tree, zone)
 }
 
 /**
@@ -139,7 +133,7 @@ export async function importCalendarFile(calendarModel: CalendarModel, userContr
 
 	calendarSelectionDialog(Array.from(calendarInfos.values()), userController, groupColors, (dialog, selectedCalendar) => {
 		dialog.close()
-		showCalendarImportDialog(selectedCalendar.groupRoot, events)
+		handleCalendarImport(selectedCalendar.groupRoot, events)
 	})
 }
 
