@@ -1,5 +1,5 @@
 import { $Promisable, assertNotNull, clone, debounce, findAndRemove, getStartOfDay, groupByAndMapUniquely } from "@tutao/tutanota-utils"
-import { CalendarEvent, CalendarEventTypeRef } from "../../../common/api/entities/tutanota/TypeRefs.js"
+import { CalendarEvent, CalendarEventTypeRef, GroupSettings } from "../../../common/api/entities/tutanota/TypeRefs.js"
 import { getWeekStart, GroupType, OperationType, WeekStart } from "../../../common/api/common/TutanotaConstants"
 import { NotAuthorizedError, NotFoundError } from "../../../common/api/common/error/RestError"
 import { getElementId, getListId, isSameId } from "../../../common/api/common/utils/EntityUtils"
@@ -200,7 +200,7 @@ export class CalendarViewModel implements EventDragHandlerCallbacks {
 		const mailboxDetailsArray = this.mailModel.mailboxDetails()
 		const mailboxDetails = assertNotNull(mailboxDetailsArray.find((md) => md.mailGroup._id === userMailGroup))
 		const ownMailAddresses = getEnabledMailAddressesWithUser(mailboxDetails, userController.userGroupInfo)
-		const eventType = getEventType(event, this.calendarInfos, ownMailAddresses, userController.user)
+		const eventType = getEventType(event, this.calendarInfos, ownMailAddresses, userController)
 		return eventType === EventType.OWN || eventType === EventType.SHARED_RW
 	}
 
@@ -494,6 +494,15 @@ export class CalendarViewModel implements EventDragHandlerCallbacks {
 
 	scroll(by: number): void {
 		this.setScrollPosition(this.scrollPosition + by)
+	}
+
+	syncExternal(groupSettings: GroupSettings | null) {
+		if (!groupSettings) {
+			return
+		}
+
+		this.deviceConfig.removeLastSync(groupSettings.group)
+		this.calendarModel.syncExternalCalendars([groupSettings])
 	}
 }
 

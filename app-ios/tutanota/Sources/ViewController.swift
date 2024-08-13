@@ -73,7 +73,8 @@ class ViewController: UIViewController, WKNavigationDelegate, UIScrollViewDelega
 			webAuthnFacade: IosWebauthnFacade(viewController: self),
 			sqlCipherFacade: self.sqlCipherFacade,
 			contactsSynchronization: contactsSynchronization,
-			userPreferencesProvider: userPreferencesProvider
+			userPreferencesProvider: userPreferencesProvider,
+			externalCalendarFacade: ExternalCalendarFacadeImpl()
 		)
 
 	}

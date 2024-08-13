@@ -4,14 +4,13 @@
  * and the scope of the operation (only the clicked instance or all instances)
  * */
 import { CalendarEvent } from "../../../../common/api/entities/tutanota/TypeRefs.js"
-import type { CalendarModel } from "../../model/CalendarModel.js"
+import { assertEventValidity, CalendarModel } from "../../model/CalendarModel.js"
 import { CalendarNotificationModel } from "./CalendarNotificationModel.js"
 import { assertNotNull, identity } from "@tutao/tutanota-utils"
 import { generateUid } from "../../../../common/calendar/date/CalendarUtils.js"
 import {
 	assembleCalendarEventEditResult,
 	assembleEditResultAndAssignFromExisting,
-	assertEventValidity,
 	assignEventIdentity,
 	CalendarEventEditModels,
 	CalendarOperation,

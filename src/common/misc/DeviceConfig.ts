@@ -54,6 +54,7 @@ interface ConfigObject {
 	isSetupComplete: boolean
 	// True if the credentials have been migrated to native
 	isCredentialsMigratedToNative: boolean
+	lastExternalCalendarSync: Record<Id, number>
 }
 
 /**
@@ -112,6 +113,7 @@ export class DeviceConfig implements UsageTestStorage, NewsItemStorage {
 			mailAutoSelectBehavior: loadedConfig.mailAutoSelectBehavior ?? (isApp() ? ListAutoSelectBehavior.NONE : ListAutoSelectBehavior.OLDER),
 			isSetupComplete: loadedConfig.isSetupComplete ?? false,
 			isCredentialsMigratedToNative: loadedConfig.isCredentialsMigratedToNative ?? false,
+			lastExternalCalendarSync: loadedConfig.lastExternalCalendarSync ?? {},
 		}
 
 		// We need to write the config if there was a migration and if we generate the signup token and if.
@@ -201,6 +203,26 @@ export class DeviceConfig implements UsageTestStorage, NewsItemStorage {
 	setIsCredentialsMigratedToNative(value: boolean): void {
 		this.config.isCredentialsMigratedToNative = value
 		this.writeToStorage()
+	}
+
+	getLastExternalCalendarSync(): Map<Id, number> {
+		return new Map(Object.entries(this.config.lastExternalCalendarSync)) ?? new Map()
+	}
+
+	setLastExternalCalendarSync(value: Map<Id, number>): void {
+		this.config.lastExternalCalendarSync = Object.fromEntries(value)
+		this.writeToStorage()
+	}
+
+	updateLastSync(groupId: Id) {
+		console.info(`Update last sync for group: ${groupId} at ${new Date()}`)
+		const lastExternalCalendarSync = this.getLastExternalCalendarSync()
+		this.setLastExternalCalendarSync(lastExternalCalendarSync.set(groupId, Date.now()))
+	}
+
+	removeLastSync(groupId: Id) {
+		const lastExternalCalendarSync = this.getLastExternalCalendarSync()
+		if (lastExternalCalendarSync.delete(groupId)) this.setLastExternalCalendarSync(lastExternalCalendarSync)
 	}
 
 	getLanguage(): LanguageCode | null {
