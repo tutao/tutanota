@@ -19,6 +19,7 @@ export type IconAttrs = {
 	style?: Record<string, any>
 	hoverText?: string | null
 	container?: "span" | "div" // defaults to "span"
+	title?: string // if you want to use native tooltip
 }
 
 export type lazyIcon = lazy<AllIcons>
@@ -45,6 +46,7 @@ export class Icon implements Component<IconAttrs> {
 		return m(
 			containerClasses,
 			{
+				title: vnode.attrs.title ?? "",
 				"aria-hidden": "true",
 				class: this.getClass(vnode.attrs),
 				style: this.getStyle(vnode.attrs.style ?? null),

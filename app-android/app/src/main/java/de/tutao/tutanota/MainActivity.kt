@@ -50,6 +50,7 @@ import de.tutao.tutanota.push.LocalNotificationsFacade
 import de.tutao.tutanota.push.PushNotificationService
 import de.tutao.tutanota.push.notificationDismissedIntent
 import de.tutao.tutanota.webauthn.AndroidWebauthnFacade
+import de.tutao.tutashared.AndroidCalendarFacade
 import de.tutao.tutashared.AndroidNativeCryptoFacade
 import de.tutao.tutashared.CancelledError
 import de.tutao.tutashared.NetworkUtils
@@ -129,6 +130,7 @@ class MainActivity : FragmentActivity() {
 		val localNotificationsFacade = LocalNotificationsFacade(this, sseStorage)
 		val fileFacade =
 			AndroidFileFacade(this, localNotificationsFacade, SecureRandom(), NetworkUtils.defaultClient)
+		val calendarFacade = AndroidCalendarFacade(NetworkUtils.defaultClient)
 		val cryptoFacade = AndroidNativeCryptoFacade(this, fileFacade.tempDir)
 
 
@@ -157,7 +159,7 @@ class MainActivity : FragmentActivity() {
 		val globalDispatcher = AndroidGlobalDispatcher(
 			ipcJson,
 			commonSystemFacade,
-			fileFacade,
+			calendarFacade,fileFacade,
 			AndroidMobileContactsFacade(this),
 			AndroidMobileSystemFacade(fileFacade, this, db),
 			CredentialsEncryptionFactory.create(this, cryptoFacade, db),

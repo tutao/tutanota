@@ -76,7 +76,7 @@ export async function showEventDetails(event: CalendarEvent, eventBubbleRect: Cl
 		const mailboxProperties = await locator.mailModel.getMailboxProperties(mailboxDetails.mailboxGroupRoot)
 		const ownMailAddresses = mailboxProperties.mailAddressProperties.map(({ mailAddress }) => mailAddress)
 		ownAttendee = findAttendeeInAddresses(latestEvent.attendees, ownMailAddresses)
-		eventType = getEventType(latestEvent, calendarInfos, ownMailAddresses, locator.logins.getUserController().user)
+		eventType = getEventType(latestEvent, calendarInfos, ownMailAddresses, locator.logins.getUserController())
 		editModelsFactory = (mode: CalendarOperation) => locator.calendarEventModel(mode, latestEvent, mailboxDetails, mailboxProperties, mail)
 		hasBusinessFeature =
 			isCustomizationEnabledForCustomer(customer, FeatureType.BusinessFeatureEnabled) || (await locator.logins.getUserController().isNewPaidPlan())
@@ -176,8 +176,7 @@ export class CalendarInviteHandler {
 			}
 		}
 		const calendars = await this.calendarModel.getCalendarInfos()
-		const user = this.logins.getUserController().user
-		const type = getEventType(event, calendars, [attendee.address.address], user)
+		const type = getEventType(event, calendars, [attendee.address.address], this.logins.getUserController())
 		if (type === EventType.SHARED_RO || type === EventType.LOCKED) {
 			// if the Event type is shared read only, the event will be updated by the response, trying to update the calendar here will result in error
 			// since there is no write permission. (Same issue can happen with locked, no write permission)

@@ -33,7 +33,8 @@ class RemoteBridge: NSObject, NativeInterface {
 		webAuthnFacade: WebAuthnFacade,
 		sqlCipherFacade: IosSqlCipherFacade,
 		contactsSynchronization: IosMobileContactsFacade,
-		userPreferencesProvider: UserPreferencesProvider
+		userPreferencesProvider: UserPreferencesProvider,
+		externalCalendarFacade: ExternalCalendarFacadeImpl
 	) {
 		self.webView = webView
 		self.viewController = viewController
@@ -54,6 +55,7 @@ class RemoteBridge: NSObject, NativeInterface {
 		)
 		self.globalDispatcher = IosGlobalDispatcher(
 			commonSystemFacade: commonSystemFacade,
+			externalCalendarFacade: externalCalendarFacade,
 			fileFacade: fileFacade,
 			mobileContactsFacade: IosMobileContactsFacade(userDefault: UserDefaults.standard),
 			mobilePaymentsFacade: IosMobilePaymentsFacade(),

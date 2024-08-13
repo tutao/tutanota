@@ -105,6 +105,7 @@ o.spec("DeviceConfig", function () {
 				isCalendarDaySelectorExpanded: false,
 				mailAutoSelectBehavior: ListAutoSelectBehavior.OLDER,
 				isSetupComplete: true,
+				lastExternalCalendarSync: {},
 			}
 
 			when(localStorageMock.getItem(DeviceConfig.LocalStorageKey)).thenReturn(JSON.stringify(storedInLocalStorage))

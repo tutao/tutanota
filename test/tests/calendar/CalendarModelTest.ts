@@ -35,6 +35,8 @@ import { makeAlarmScheduler } from "./CalendarTestUtils.js"
 import { EntityUpdateData } from "../../../src/common/api/common/utils/EntityUpdateUtils.js"
 import { MailModel } from "../../../src/common/mailFunctionality/MailModel.js"
 import { incrementByRepeatPeriod } from "../../../src/common/calendar/date/CalendarUtils.js"
+import { ExternalCalendarFacade } from "../../../src/common/native/common/generatedipc/ExternalCalendarFacade.js"
+import { DeviceConfig } from "../../../src/common/misc/DeviceConfig.js"
 
 o.spec("CalendarModel", function () {
 	o.spec("incrementByRepeatPeriod", function () {
@@ -750,6 +752,14 @@ function makeFileController(): FileController {
 	return downcast({})
 }
 
+function makeExternalCalendarFacade(): ExternalCalendarFacade {
+	return downcast({})
+}
+
+function makeDeviceConfig(): DeviceConfig {
+	return downcast({})
+}
+
 function init({
 	notifications = makeNotifications(),
 	eventController = makeEventController().eventController,
@@ -767,6 +777,8 @@ function init({
 		restClientMock,
 	),
 	fileFacade = makeFileController(),
+	externalCalendarFacade = makeExternalCalendarFacade(),
+	deviceConfig = makeDeviceConfig(),
 }): CalendarModel {
 	const lazyScheduler = async () => alarmScheduler
 
@@ -782,5 +794,7 @@ function init({
 		calendarFacade,
 		fileFacade,
 		"Europe/Berlin",
+		externalCalendarFacade,
+		deviceConfig,
 	)
 }

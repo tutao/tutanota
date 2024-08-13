@@ -36,6 +36,8 @@ import { MobilePaymentsFacade } from "../common/generatedipc/MobilePaymentsFacad
 import { MobilePaymentsFacadeSendDispatcher } from "../common/generatedipc/MobilePaymentsFacadeSendDispatcher.js"
 
 import { AppType } from "../../misc/ClientConstants.js"
+import { ExternalCalendarFacade } from "../common/generatedipc/ExternalCalendarFacade.js"
+import { ExternalCalendarFacadeSendDispatcher } from "../common/generatedipc/ExternalCalendarFacadeSendDispatcher.js"
 
 export type NativeInterfaces = {
 	native: NativeInterfaceMain
@@ -47,6 +49,7 @@ export type NativeInterfaces = {
 	mobileContactsFacade: MobileContactsFacade
 	nativeCredentialsFacade: NativeCredentialsFacade
 	mobilePaymentsFacade: MobilePaymentsFacade
+	externalCalendarFacade: ExternalCalendarFacade
 }
 
 export type DesktopInterfaces = {
@@ -86,6 +89,8 @@ export function createNativeInterfaces(
 	const mobileContactsFacade = new MobileContactsFacadeSendDispatcher(native)
 	const nativeCredentialsFacade = new NativeCredentialsFacadeSendDispatcher(native)
 	const mobilePaymentsFacade = new MobilePaymentsFacadeSendDispatcher(native)
+	const externalCalendarFacade = new ExternalCalendarFacadeSendDispatcher(native)
+
 	return {
 		native,
 		fileApp,
@@ -96,6 +101,7 @@ export function createNativeInterfaces(
 		mobileContactsFacade,
 		nativeCredentialsFacade,
 		mobilePaymentsFacade,
+		externalCalendarFacade,
 	}
 }
 

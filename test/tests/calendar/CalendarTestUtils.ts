@@ -16,7 +16,7 @@ import {
 } from "../../../src/common/api/entities/sys/TypeRefs.js"
 import { GENERATED_MAX_ID } from "../../../src/common/api/common/utils/EntityUtils.js"
 import { downcast, LazyLoaded } from "@tutao/tutanota-utils"
-import type { CalendarEvent } from "../../../src/common/api/entities/tutanota/TypeRefs.js"
+import { CalendarEvent, UserSettingsGroupRoot } from "../../../src/common/api/entities/tutanota/TypeRefs.js"
 import {
 	CalendarEventTypeRef,
 	CalendarGroupRootTypeRef,
@@ -173,6 +173,8 @@ export function makeUserController(
 	defaultSender?: string,
 	businessFeatureOrdered: boolean = false,
 	isNewPaidPlan: boolean = false,
+	user?: User,
+	userSettingsGroupRoot?: UserSettingsGroupRoot,
 ): UserController {
 	const bookingsRef = createTestEntity(BookingsRefTypeRef, {
 		items: GENERATED_MAX_ID,
@@ -199,6 +201,7 @@ export function makeUserController(
 				}),
 			],
 			accountType,
+			...user,
 		}),
 		props: createTestEntity(TutanotaPropertiesTypeRef, {
 			defaultSender: defaultSender || ownerMailAddress,
@@ -214,6 +217,7 @@ export function makeUserController(
 		}),
 		userSettingsGroupRoot: {
 			timeFormat: TimeFormat.TWENTY_FOUR_HOURS,
+			...userSettingsGroupRoot,
 		},
 		isInternalUser: () => true,
 		isFreeAccount: () => true,

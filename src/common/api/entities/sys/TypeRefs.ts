@@ -912,18 +912,6 @@ export type DebitServicePutData = {
 
 	invoice:  null | IdTuple;
 }
-export const DefaultAlarmInfoTypeRef: TypeRef<DefaultAlarmInfo> = new TypeRef("sys", "DefaultAlarmInfo")
-
-export function createDefaultAlarmInfo(values: StrippedEntity<DefaultAlarmInfo>): DefaultAlarmInfo {
-	return Object.assign(create(typeModels.DefaultAlarmInfo, DefaultAlarmInfoTypeRef), values)
-}
-
-export type DefaultAlarmInfo = {
-	_type: TypeRef<DefaultAlarmInfo>;
-
-	_id: Id;
-	trigger: string;
-}
 export const DeleteCustomerDataTypeRef: TypeRef<DeleteCustomerData> = new TypeRef("sys", "DeleteCustomerData")
 
 export function createDeleteCustomerData(values: StrippedEntity<DeleteCustomerData>): DeleteCustomerData {
