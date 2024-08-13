@@ -108,6 +108,8 @@ import { SearchIndexStateInfo } from "../common/api/worker/search/SearchTypes.js
 import { CALENDAR_PREFIX } from "../common/misc/RouteChange.js"
 import { AppType } from "../common/misc/ClientConstants.js"
 import type { ParsedEvent } from "../common/calendar/import/CalendarImporter.js"
+import { ExternalCalendarFacade } from "../common/native/common/generatedipc/ExternalCalendarFacade.js"
+import { locator } from "../common/api/main/CommonLocator.js"
 
 assertMainOrNode()
 
@@ -369,6 +371,10 @@ class CalendarLocator {
 
 	get themeFacade(): ThemeFacade {
 		return this.getNativeInterface("themeFacade")
+	}
+
+	get externalCalendarFacade(): ExternalCalendarFacade {
+		return this.getNativeInterface("externalCalendarFacade")
 	}
 
 	get systemFacade(): MobileSystemFacade {
@@ -761,6 +767,8 @@ class CalendarLocator {
 			this.calendarFacade,
 			this.fileController,
 			timeZone,
+			!isBrowser() ? this.externalCalendarFacade : null,
+			deviceConfig,
 		)
 	})
 
@@ -797,7 +805,7 @@ class CalendarLocator {
 		const customer = await userController.loadCustomer()
 		const ownMailAddresses = getEnabledMailAddressesWithUser(mailboxDetails, userController.userGroupInfo)
 		const ownAttendee: CalendarEventAttendee | null = findAttendeeInAddresses(selectedEvent.attendees, ownMailAddresses)
-		const eventType = getEventType(selectedEvent, calendars, ownMailAddresses, userController.user)
+		const eventType = getEventType(selectedEvent, calendars, ownMailAddresses, userController)
 		const hasBusinessFeature = isCustomizationEnabledForCustomer(customer, FeatureType.BusinessFeatureEnabled) || (await userController.isNewPaidPlan())
 		const lazyIndexEntry = async () => (selectedEvent.uid != null ? this.calendarFacade.getEventsByUid(selectedEvent.uid) : null)
 		const popupModel = new CalendarEventPreviewViewModel(
@@ -830,6 +838,13 @@ class CalendarLocator {
 			this.customerFacade,
 			this.themeController,
 			() => this.showSetupWizard(),
+			() => {
+				calendarLocator.fileApp.clearFileData().catch((e) => console.log("Failed to clean file data", e))
+			},
+			async () => {
+				const calendarModel = await locator.calendarModel()
+				calendarModel.handleSyncExternalCalendars()
+			},
 		)
 	})
 

@@ -1,30 +1,45 @@
 import { Dialog } from "../../../common/gui/base/Dialog.js"
 import m, { Children } from "mithril"
 import stream from "mithril/stream"
-import { TextField } from "../../../common/gui/base/TextField.js"
+import { TextField, TextFieldType } from "../../../common/gui/base/TextField.js"
 import { lang } from "../../../common/misc/LanguageViewModel.js"
 import type { TranslationKeyType } from "../../../common/misc/TranslationKey.js"
 import { deepEqual, downcast } from "@tutao/tutanota-utils"
-import { AlarmInterval } from "../../../common/calendar/date/CalendarUtils.js"
+import { AlarmInterval, CalendarType } from "../../../common/calendar/date/CalendarUtils.js"
 import { RemindersEditor } from "./RemindersEditor.js"
+import { generateRandomColor } from "./CalendarGuiUtils.js"
+import { assertValidURL } from "@tutao/tutanota-utils/dist/Utils.js"
+import { isExternalCalendar } from "../../../common/calendar/import/ImportExportUtils.js"
 
-type CalendarProperties = {
+export type CalendarProperties = {
 	name: string
 	color: string
 	alarms: AlarmInterval[]
+	sourceUrl: string | null
 }
 
-export function showEditCalendarDialog(
-	{ name, color, alarms }: CalendarProperties,
+const defaultCalendarProperties: CalendarProperties = {
+	name: "",
+	color: "",
+	alarms: [],
+	sourceUrl: "",
+}
+
+export function showCreateEditCalendarDialog(
+	calendarType: CalendarType,
 	titleTextId: TranslationKeyType,
 	shared: boolean,
 	okAction: (arg0: Dialog, arg1: CalendarProperties) => unknown,
 	okTextId: TranslationKeyType,
 	warningMessage?: () => Children,
+	{ name, color, alarms, sourceUrl }: CalendarProperties = defaultCalendarProperties,
 ) {
+	if (color === "") color = generateRandomColor()
+
 	const nameStream = stream(name)
-	let colorPickerDom: HTMLInputElement | null
 	const colorStream = stream("#" + color)
+	const urlStream = stream(sourceUrl ?? "")
+	let colorPickerDom: HTMLInputElement | null
 
 	Dialog.showActionDialog({
 		title: () => lang.get(titleTextId),
@@ -48,26 +63,52 @@ export function showEditCalendarDialog(
 							colorStream(target.value)
 						},
 					}),
-					!shared &&
-						m(RemindersEditor, {
-							alarms,
-							addAlarm: (alarm: AlarmInterval) => {
-								alarms?.push(alarm)
-							},
-							removeAlarm: (alarm: AlarmInterval) => {
-								const index = alarms?.findIndex((a: AlarmInterval) => deepEqual(a, alarm))
-								if (index !== -1) alarms?.splice(index, 1)
-							},
-							label: "calendarDefaultReminder_label",
-						}),
+					!shared && !isExternalCalendar(calendarType)
+						? m(RemindersEditor, {
+								alarms,
+								addAlarm: (alarm: AlarmInterval) => {
+									alarms?.push(alarm)
+								},
+								removeAlarm: (alarm: AlarmInterval) => {
+									const index = alarms?.findIndex((a: AlarmInterval) => deepEqual(a, alarm))
+									if (index !== -1) alarms?.splice(index, 1)
+								},
+								label: "calendarDefaultReminder_label",
+						  })
+						: null,
+					isExternalCalendar(calendarType)
+						? m.fragment({}, [
+								m(TextField, {
+									value: urlStream(),
+									oninput: urlStream,
+									label: "url_label",
+									type: TextFieldType.Url,
+								}),
+						  ])
+						: null,
 				]),
 		},
 		okActionTextId: okTextId,
-		okAction: (dialog: Dialog) => {
+		okAction: async (dialog: Dialog) => {
+			let url: string | null = null
+
+			if (isExternalCalendar(calendarType)) {
+				const assertResult = assertValidURL(urlStream())
+				if (!assertResult) return Dialog.message("invalidURL_msg")
+
+				if (!sourceUrl) {
+					const proceed = await Dialog.confirm("externalCalendarProviderWarning_msg")
+					if (!proceed) return
+				}
+
+				url = assertResult.toString()
+			}
+
 			okAction(dialog, {
 				name: nameStream(),
 				color: colorStream().substring(1),
 				alarms,
+				sourceUrl: url,
 			})
 		},
 	})

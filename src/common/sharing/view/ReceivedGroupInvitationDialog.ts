@@ -1,4 +1,4 @@
-import { createGroupSettings } from "../../api/entities/tutanota/TypeRefs.js"
+import { createDefaultAlarmInfo, createGroupSettings } from "../../api/entities/tutanota/TypeRefs.js"
 import m, { Children } from "mithril"
 import { lang } from "../../misc/LanguageViewModel.js"
 import { TextField } from "../../gui/base/TextField.js"
@@ -6,7 +6,7 @@ import stream from "mithril/stream"
 import Stream from "mithril/stream"
 import { downcast } from "@tutao/tutanota-utils"
 import { Dialog } from "../../gui/base/Dialog.js"
-import { createDefaultAlarmInfo, ReceivedGroupInvitation } from "../../api/entities/sys/TypeRefs.js"
+import { ReceivedGroupInvitation } from "../../api/entities/sys/TypeRefs.js"
 import { isSameId } from "../../api/common/utils/EntityUtils.js"
 import { sendAcceptNotificationEmail, sendRejectNotificationEmail } from "../GroupSharingUtils.js"
 import { getCapabilityText, getDefaultGroupName, getInvitationGroupType, isTemplateGroup } from "../GroupUtils.js"
@@ -94,7 +94,7 @@ export function showGroupInvitationDialog(invitation: ReceivedGroupInvitation) {
 							label: "permissions_label",
 							isReadOnly: true,
 						}),
-						groupType === GroupType.Calendar ? renderCalendarGroupInvitationFields(invitation, colorStream, alarmsStream) : null,
+						groupType === GroupType.Calendar ? renderCalendarGroupInvitationFields(invitation, colorStream) : null,
 					]),
 					isMember
 						? null
@@ -137,12 +137,7 @@ async function checkCanAcceptGroupInvitation(invitation: ReceivedGroupInvitation
 	}
 }
 
-function renderCalendarGroupInvitationFields(
-	invitation: ReceivedGroupInvitation,
-	selectedColourValue: Stream<string>,
-	alarmsStream: Stream<AlarmInterval[]>,
-): Children {
-	let alarms = alarmsStream()
+function renderCalendarGroupInvitationFields(invitation: ReceivedGroupInvitation, selectedColourValue: Stream<string>): Children {
 	return [
 		m(".small.mt.mb-xs", lang.get("color_label")),
 		m(ColorPicker, {
