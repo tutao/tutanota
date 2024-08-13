@@ -11,7 +11,7 @@ export default {
 		"other"
 	],
 	"created_at": "2015-01-27T13:15:41Z",
-	"updated_at": "2024-08-08T11:12:25Z",
+	"updated_at": "2024-08-09T18:09:11Z",
 	"source_locale": {
 		"id": "fcd7471b347c8e517663e194dcddf237",
 		"name": "en",
@@ -1171,6 +1171,7 @@ export default {
 		"pricing.gdprDataProcessing_label": "GDPR veri işleme sözleşmesi",
 		"pricing.gdpr_label": "GDPR-uyumlu",
 		"pricing.gdpr_tooltip": "Tüm veriler, GDPR'ye göre sıkı Avrupa veri koruma düzenlemelerine uygun olarak saklanır.",
+		"pricing.getStarted_label": "Başlayın",
 		"pricing.includesTaxes_msg": "Vergiler dahildir.",
 		"pricing.login_title": "Web sayfamızdan giriş yapın",
 		"pricing.login_tooltip": "Tuta girişini çalışanlarınız için kendi web sitenize yerleştirin.",
@@ -1316,6 +1317,7 @@ export default {
 		"retry_action": "Tekrar dene",
 		"revealPassword_action": "Şifreyi göster",
 		"richNotificationsNewsItem_msg": "Favori e-posta uygulamanız artık konu ve göndereni bildirimlerde görüntüleyebilir! Bu özelliği şimdi etkinleştirin:",
+		"richNotifications_title": "Zengin Bildirimleri Etkinleştirin",
 		"richText_label": "Zengin metin",
 		"role_placeholder": "Rol",
 		"runInBackground_action": "Arka planda çalıştır",

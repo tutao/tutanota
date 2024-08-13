@@ -13,7 +13,7 @@ export default {
 		"other"
 	],
 	"created_at": "2015-04-24T12:42:36Z",
-	"updated_at": "2024-08-08T11:12:25Z",
+	"updated_at": "2024-08-12T05:33:45Z",
 	"source_locale": null,
 	"fallback_locale": null,
 	"keys": {
@@ -1192,6 +1192,7 @@ export default {
 		"pricing.gdprDataProcessing_label": "Dohoda o zpracování údajů v souladu s GDPR",
 		"pricing.gdpr_label": "V souladu s GDPR",
 		"pricing.gdpr_tooltip": "Všechna data jsou uchovávána v souladu s přísnými evropskými předpisy o ochraně osobních údajů podle GDPR.",
+		"pricing.getStarted_label": "Začínáme",
 		"pricing.includesTaxes_msg": "Včetně daně.",
 		"pricing.login_title": "Přihlášení na vlastních stránkách",
 		"pricing.login_tooltip": "Umožněte svým zaměstnancům a externistům přihlášení do Tuty přes vaše webové stránky.",

@@ -1174,6 +1174,7 @@ export type TranslationKeyType =
 	| "pricing.gdprDataProcessing_label"
 	| "pricing.gdpr_label"
 	| "pricing.gdpr_tooltip"
+	| "pricing.getStarted_label"
 	| "pricing.includesTaxes_msg"
 	| "pricing.login_title"
 	| "pricing.login_tooltip"
