@@ -571,6 +571,27 @@ class CalendarLocator {
 			noOp()
 		})
 
+		this.usageTestModel = new UsageTestModel(
+			{
+				[StorageBehavior.Persist]: deviceConfig,
+				[StorageBehavior.Ephemeral]: new EphemeralUsageTestStorage(),
+			},
+			{
+				now(): number {
+					return Date.now()
+				},
+				timeZone(): string {
+					throw new Error("Not implemented by this provider")
+				},
+			},
+			this.serviceExecutor,
+			this.entityClient,
+			this.logins,
+			this.eventController,
+			() => this.usageTestController,
+		)
+		this.usageTestController = new UsageTestController(this.usageTestModel)
+
 		this.Const = Const
 		if (!isBrowser()) {
 			const { WebDesktopFacade } = await import("../common/native/main/WebDesktopFacade")
@@ -633,26 +654,6 @@ class CalendarLocator {
 		this.loginListener = new PageContextLoginListener(this.secondFactorHandler, this.credentialsProvider)
 		this.random = random
 
-		this.usageTestModel = new UsageTestModel(
-			{
-				[StorageBehavior.Persist]: deviceConfig,
-				[StorageBehavior.Ephemeral]: new EphemeralUsageTestStorage(),
-			},
-			{
-				now(): number {
-					return Date.now()
-				},
-				timeZone(): string {
-					throw new Error("Not implemented by this provider")
-				},
-			},
-			this.serviceExecutor,
-			this.entityClient,
-			this.logins,
-			this.eventController,
-			() => this.usageTestController,
-		)
-
 		this.newsModel = new NewsModel(this.serviceExecutor, deviceConfig, async (name: string) => {
 			switch (name) {
 				case "usageOptIn":
@@ -687,7 +688,6 @@ class CalendarLocator {
 
 		const { ContactModel } = await import("../common/contactsFunctionality/ContactModel.js")
 		this.contactModel = new ContactModel(this.searchFacade, this.entityClient, this.logins, this.eventController)
-		this.usageTestController = new UsageTestController(this.usageTestModel)
 		this.appStorePaymentPicker = new AppStorePaymentPicker()
 
 		// THEME
