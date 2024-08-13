@@ -71,12 +71,12 @@ import { size } from "../../../common/gui/size.js"
 import { isColorLight, isValidColorCode } from "../../../common/gui/base/Color.js"
 import { GroupColors } from "../view/CalendarView.js"
 import { CalendarInfo } from "../model/CalendarModel.js"
-import { User } from "../../../common/api/entities/sys/TypeRefs.js"
 import { EventType } from "./eventeditor-model/CalendarEventModel.js"
 import { hasCapabilityOnGroup } from "../../../common/sharing/GroupUtils.js"
 import { EventsOnDays } from "../view/CalendarViewModel.js"
 import { CalendarEventPreviewViewModel } from "./eventpopup/CalendarEventPreviewViewModel.js"
 import { createAsyncDropdown } from "../../../common/gui/base/Dropdown.js"
+import { UserController } from "../../../common/api/main/UserController.js"
 
 export function renderCalendarSwitchLeftButton(label: TranslationKey, click: () => unknown): Child {
 	return m(IconButton, {
@@ -742,16 +742,23 @@ export const getGroupColors = memoized((userSettingsGroupRoot: UserSettingsGroup
  * @param existingEvent the event in question.
  * @param calendars a list of calendars that this user has access to.
  * @param ownMailAddresses the list of mail addresses this user might be using.
- * @param user the user accessing the event.
+ * @param userController
  */
 export function getEventType(
 	existingEvent: Partial<CalendarEvent>,
 	calendars: ReadonlyMap<Id, CalendarInfo>,
 	ownMailAddresses: ReadonlyArray<string>,
-	user: User,
+	userController: UserController,
 ): EventType {
+	const { user, userSettingsGroupRoot } = userController
+
 	if (user.accountType === AccountType.EXTERNAL) {
 		return EventType.EXTERNAL
+	}
+
+	const gpSettings = userSettingsGroupRoot.groupSettings.find((gc) => gc.group === existingEvent._ownerGroup)
+	if (gpSettings?.sourceUrl) {
+		return EventType.SHARED_RO
 	}
 
 	const existingOrganizer = existingEvent.organizer
@@ -858,6 +865,12 @@ async function confirmDeleteClose(model: CalendarEventPreviewViewModel, onClose?
 
 export function getDisplayEventTitle(title: string): string {
 	return title ?? title !== "" ? title : lang.get("noTitle_label")
+}
+
+export type ColorString = string
+
+export function generateRandomColor(withHashtag: boolean = false): ColorString {
+	return (withHashtag ? "#" : "") + Math.random().toString(16).slice(-6)
 }
 
 export function renderCalendarColor(selectedCalendar: CalendarInfo | null, groupColors: Map<Id, string>) {

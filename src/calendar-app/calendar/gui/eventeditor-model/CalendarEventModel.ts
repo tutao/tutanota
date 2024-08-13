@@ -69,8 +69,6 @@ import { MailboxDetail } from "../../../../common/mailFunctionality/MailModel.js
 import {
 	AlarmInterval,
 	areRepeatRulesEqual,
-	CalendarEventValidity,
-	checkEventValidity,
 	DefaultDateProvider,
 	getTimeZone,
 	incrementSequence,
@@ -78,7 +76,7 @@ import {
 } from "../../../../common/calendar/date/CalendarUtils.js"
 import { arrayEqualsWithPredicate, assertNonNull, assertNotNull, getFirstOrThrow, identity, lazy, Require } from "@tutao/tutanota-utils"
 import { cleanMailAddress } from "../../../../common/api/common/utils/CommonCalendarUtils.js"
-import { CalendarInfo, CalendarModel } from "../../model/CalendarModel.js"
+import { assertEventValidity, CalendarInfo, CalendarModel } from "../../model/CalendarModel.js"
 import { NotFoundError, PayloadTooLargeError } from "../../../../common/api/common/error/RestError.js"
 import { CalendarNotificationSender } from "../../view/CalendarNotificationSender.js"
 import { SendMailModel } from "../../../../common/mailFunctionality/SendMailModel.js"
@@ -204,7 +202,7 @@ export async function makeCalendarEventModel(
 		initialValues,
 		calendars,
 		ownMailAddresses.map(({ address }) => address),
-		user,
+		logins.getUserController(),
 	)
 
 	const makeEditModels = (initializationEvent: CalendarEvent) => ({
@@ -455,20 +453,6 @@ export function eventHasChanged(now: CalendarEvent, previous: Partial<CalendarEv
 		) || // we ignore the names
 		(now.organizer !== previous.organizer && now.organizer?.address !== previous.organizer?.address)
 	) // we ignore the names
-}
-
-export function assertEventValidity(event: CalendarEvent) {
-	switch (checkEventValidity(event)) {
-		case CalendarEventValidity.InvalidContainsInvalidDate:
-			throw new UserError("invalidDate_msg")
-		case CalendarEventValidity.InvalidEndBeforeStart:
-			throw new UserError("startAfterEnd_label")
-		case CalendarEventValidity.InvalidPre1970:
-			// shouldn't happen while the check in setStartDate is still there, resetting the date each time
-			throw new UserError("pre1970Start_msg")
-		case CalendarEventValidity.Valid:
-		// event is valid, nothing to do
-	}
 }
 
 /**

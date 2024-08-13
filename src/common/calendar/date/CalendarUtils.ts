@@ -26,8 +26,7 @@ import {
 	UserSettingsGroupRoot,
 } from "../../api/entities/tutanota/TypeRefs.js"
 import { CalendarEventTimes, DAYS_SHIFTED_MS, generateEventElementId, isAllDayEvent, isAllDayEventByTimes } from "../../api/common/utils/CommonCalendarUtils"
-import type { RepeatRule } from "../../api/entities/sys/TypeRefs.js"
-import { createDateWrapper, DateWrapper, User } from "../../api/entities/sys/TypeRefs.js"
+import { createDateWrapper, DateWrapper, RepeatRule, User } from "../../api/entities/sys/TypeRefs.js"
 import { isSameId } from "../../api/common/utils/EntityUtils"
 import type { Time } from "./Time.js"
 import { CalendarInfo } from "../../../calendar-app/calendar/model/CalendarModel"
@@ -986,4 +985,9 @@ export function parseAlarmInterval(serialized: string): AlarmInterval {
 	} else {
 		throw new ParserError(`Invalid alarm interval: ${serialized}`)
 	}
+}
+
+export enum CalendarType {
+	NORMAL,
+	URL, // External calendar
 }

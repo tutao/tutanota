@@ -11,15 +11,16 @@ import {
 	MailboxPropertiesTypeRef,
 	MailBoxTypeRef,
 	MailTypeRef,
+	UserSettingsGroupRootTypeRef,
 } from "../../../src/common/api/entities/tutanota/TypeRefs.js"
-import { CalendarAttendeeStatus } from "../../../src/common/api/common/TutanotaConstants.js"
+import { AccountType, CalendarAttendeeStatus } from "../../../src/common/api/common/TutanotaConstants.js"
 import { findAttendeeInAddresses } from "../../../src/common/api/common/utils/CommonCalendarUtils.js"
 import { instance, matchers, when } from "testdouble"
 import { CalendarModel } from "../../../src/calendar-app/calendar/model/CalendarModel.js"
 import { LoginController } from "../../../src/common/api/main/LoginController.js"
 import { FolderSystem } from "../../../src/common/api/common/mail/FolderSystem.js"
 import { GroupInfoTypeRef, GroupTypeRef, User } from "../../../src/common/api/entities/sys/TypeRefs.js"
-import { calendars } from "./CalendarTestUtils.js"
+import { calendars, makeUserController } from "./CalendarTestUtils.js"
 import { UserController } from "../../../src/common/api/main/UserController.js"
 import { CalendarNotificationSender } from "../../../src/calendar-app/calendar/view/CalendarNotificationSender.js"
 import { mockAttribute } from "@tutao/tutanota-test-utils"
@@ -33,13 +34,13 @@ o.spec("CalendarInviteHandlerTest", function () {
 	let calendarNotificationSender: CalendarNotificationSender
 
 	o.beforeEach(function () {
-		let userController: Partial<UserController>
 		const customerId = "customerId"
 		const user = {
 			_id: "userId",
 			customer: customerId,
 		} as User
-		userController = { user }
+		const userSettingsGroupRoot = createTestEntity(UserSettingsGroupRootTypeRef)
+		let userController: Partial<UserController> = makeUserController([], AccountType.FREE, undefined, false, false, user, userSettingsGroupRoot)
 
 		const mailboxDetails: MailboxDetail = {
 			mailbox: createTestEntity(MailBoxTypeRef),

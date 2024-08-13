@@ -19,6 +19,7 @@ import {
 	MailboxProperties,
 	MailboxPropertiesTypeRef,
 	MailBoxTypeRef,
+	UserSettingsGroupRootTypeRef,
 } from "../../../../src/common/api/entities/tutanota/TypeRefs.js"
 import { EntityClient } from "../../../../src/common/api/common/EntityClient.js"
 import { calendars, getDateInZone, makeUserController, otherAddress, ownerAddress, ownerAlias, ownerId, ownerMailAddress } from "../CalendarTestUtils.js"
@@ -103,7 +104,8 @@ o.spec("CalendarEventModelTest", function () {
 			})
 			const recipientsModel: RecipientsModel = object()
 			const logins: LoginController = object()
-			const userController = makeUserController([ownerAlias.address], AccountType.PAID, ownerMailAddress, true)
+			const userSettingsGroupRoot = createTestEntity(UserSettingsGroupRootTypeRef, { groupSettings: [] })
+			const userController = makeUserController([ownerAlias.address], AccountType.PAID, ownerMailAddress, true, false, undefined, userSettingsGroupRoot)
 			when(logins.getUserController()).thenReturn(userController)
 			when(calendarModel.loadAlarms(event.alarmInfos, userController.user)).thenResolve([
 				createTestEntity(UserAlarmInfoTypeRef, {

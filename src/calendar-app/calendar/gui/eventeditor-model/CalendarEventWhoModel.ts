@@ -5,6 +5,7 @@ import {
 	createCalendarEventAttendee,
 	createEncryptedMailAddress,
 	EncryptedMailAddress,
+	GroupSettings,
 	Mail,
 } from "../../../../common/api/entities/tutanota/TypeRefs.js"
 import { PartialRecipient, Recipient, RecipientType } from "../../../../common/api/common/recipients/Recipient.js"
@@ -171,7 +172,8 @@ export class CalendarEventWhoModel {
 	 * Prevent moving the event to another calendar if you only have read permission or if the event has attendees.
 	 * */
 	getAvailableCalendars(): ReadonlyArray<CalendarInfo> {
-		const calendarArray = Array.from(this.calendars.values())
+		const { groupSettings } = this.userController.userSettingsGroupRoot
+		const calendarArray = Array.from(this.calendars.values()).filter((cal) => !this.isExternalCalendar(groupSettings, cal.groupInfo.group))
 
 		if (this.eventType === EventType.LOCKED || this.operation === CalendarOperation.EditThis) {
 			return [this.selectedCalendar]
@@ -193,6 +195,11 @@ export class CalendarEventWhoModel {
 		} else {
 			return calendarArray.filter((calendarInfo) => hasCapabilityOnGroup(this.userController.user, calendarInfo.group, ShareCapability.Write))
 		}
+	}
+
+	private isExternalCalendar(groupSettings: GroupSettings[], groupId: Id) {
+		const existingGroupSettings = groupSettings.find((gc) => gc.group === groupId)
+		return existingGroupSettings?.sourceUrl != null
 	}
 
 	private async resolveAndCacheAddress(a: PartialRecipient): Promise<void> {

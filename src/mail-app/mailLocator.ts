@@ -119,6 +119,8 @@ import { getDisplayedSender } from "../common/api/common/CommonMailUtils.js"
 import { AppType } from "../common/misc/ClientConstants.js"
 import type { ParsedEvent } from "../common/calendar/import/CalendarImporter.js"
 import type { ContactImporter } from "./contacts/ContactImporter.js"
+import { ExternalCalendarFacade } from "../common/native/common/generatedipc/ExternalCalendarFacade.js"
+import { locator } from "../common/api/main/CommonLocator.js"
 
 assertMainOrNode()
 
@@ -483,6 +485,10 @@ class MailLocator {
 
 	get themeFacade(): ThemeFacade {
 		return this.getNativeInterface("themeFacade")
+	}
+
+	get externalCalendarFacade(): ExternalCalendarFacade {
+		return this.getNativeInterface("externalCalendarFacade")
 	}
 
 	get systemFacade(): MobileSystemFacade {
@@ -859,6 +865,8 @@ class MailLocator {
 			this.calendarFacade,
 			this.fileController,
 			timeZone,
+			!isBrowser() ? this.externalCalendarFacade : null,
+			deviceConfig,
 		)
 	})
 
@@ -894,7 +902,7 @@ class MailLocator {
 			}, new Map())
 
 			const { calendarSelectionDialog, parseCalendarFile } = await import("../common/calendar/import/CalendarImporter.js")
-			const { showCalendarImportDialog } = await import("../common/calendar/import/CalendarImporterDialog.js")
+			const { handleCalendarImport } = await import("../common/calendar/import/CalendarImporterDialog.js")
 
 			let parsedEvents: ParsedEvent[] = []
 
@@ -908,7 +916,7 @@ class MailLocator {
 
 			calendarSelectionDialog(Array.from(calendarInfos.values()), this.logins.getUserController(), groupColors, (dialog, selectedCalendar) => {
 				dialog.close()
-				showCalendarImportDialog(selectedCalendar.groupRoot, parsedEvents)
+				handleCalendarImport(selectedCalendar.groupRoot, parsedEvents)
 			})
 		}
 	}
@@ -938,7 +946,7 @@ class MailLocator {
 		const customer = await userController.loadCustomer()
 		const ownMailAddresses = getEnabledMailAddressesWithUser(mailboxDetails, userController.userGroupInfo)
 		const ownAttendee: CalendarEventAttendee | null = findAttendeeInAddresses(selectedEvent.attendees, ownMailAddresses)
-		const eventType = getEventType(selectedEvent, calendars, ownMailAddresses, userController.user)
+		const eventType = getEventType(selectedEvent, calendars, ownMailAddresses, userController)
 		const hasBusinessFeature = isCustomizationEnabledForCustomer(customer, FeatureType.BusinessFeatureEnabled) || (await userController.isNewPaidPlan())
 		const lazyIndexEntry = async () => (selectedEvent.uid != null ? this.calendarFacade.getEventsByUid(selectedEvent.uid) : null)
 		const popupModel = new CalendarEventPreviewViewModel(
@@ -976,6 +984,14 @@ class MailLocator {
 			this.customerFacade,
 			this.themeController,
 			() => this.showSetupWizard(),
+			() => {
+				mailLocator.fileApp.clearFileData().catch((e) => console.log("Failed to clean file data", e))
+				mailLocator.nativeContactsSyncManager()?.syncContacts()
+			},
+			async () => {
+				const calendarModel = await locator.calendarModel()
+				calendarModel.handleSyncExternalCalendars()
+			},
 		)
 	})
 

@@ -1,7 +1,6 @@
 import type { CalendarEvent, CalendarGroupRoot } from "../../api/entities/tutanota/TypeRefs.js"
 import { CalendarEventTypeRef, createFile } from "../../api/entities/tutanota/TypeRefs.js"
 import { CALENDAR_MIME_TYPE, showFileChooser, showNativeFilePicker } from "../../file/FileController.js"
-import { generateEventElementId } from "../../api/common/utils/CommonCalendarUtils.js"
 import { showProgressDialog } from "../../gui/dialogs/ProgressDialog.js"
 import { ParserError } from "../../misc/parsing/ParserCombinator.js"
 import { Dialog } from "../../gui/base/Dialog.js"
@@ -10,28 +9,16 @@ import { serializeCalendar } from "../../../calendar-app/calendar/export/Calenda
 import { parseCalendarFile, ParsedEvent, showEventsImportDialog } from "./CalendarImporter.js"
 import { elementIdPart, isSameId, listIdPart } from "../../api/common/utils/EntityUtils.js"
 import type { UserAlarmInfo } from "../../api/entities/sys/TypeRefs.js"
-import { createDateWrapper, UserAlarmInfoTypeRef } from "../../api/entities/sys/TypeRefs.js"
+import { UserAlarmInfoTypeRef } from "../../api/entities/sys/TypeRefs.js"
 import { convertToDataFile } from "../../api/common/DataFile.js"
 import { locator } from "../../api/main/CommonLocator.js"
-import { getFromMap, groupBy, insertIntoSortedArray, ofClass, promiseMap, stringToUtf8Uint8Array } from "@tutao/tutanota-utils"
-import { assignEventId, CalendarEventValidity, checkEventValidity, getTimeZone } from "../date/CalendarUtils.js"
+import { ofClass, promiseMap, stringToUtf8Uint8Array } from "@tutao/tutanota-utils"
+import { CalendarType, getTimeZone } from "../date/CalendarUtils.js"
 import { ImportError } from "../../api/common/error/ImportError.js"
 import { TranslationKeyType } from "../../misc/TranslationKey.js"
-import { AlarmInfoTemplate } from "../../api/worker/facades/lazy/CalendarFacade.js"
 import { isApp } from "../../api/common/Env.js"
 
-export const enum EventImportRejectionReason {
-	Pre1970,
-	Inversed,
-	InvalidDate,
-	Duplicate,
-}
-
-type RejectedEvents = Map<EventImportRejectionReason, Array<CalendarEvent>>
-export type EventWrapper = {
-	event: CalendarEvent
-	alarms: ReadonlyArray<AlarmInfoTemplate>
-}
+import { EventImportRejectionReason, EventWrapper, isExternalCalendar, sortOutParsedEvents } from "./ImportExportUtils.js"
 
 /**
  * show an error dialog detailing the reason and amount for events that failed to import
@@ -48,8 +35,12 @@ async function partialImportConfirmation(skippedEvents: CalendarEvent[], confirm
 	)
 }
 
-export async function showCalendarImportDialog(calendarGroupRoot: CalendarGroupRoot, events: ParsedEvent[] = []): Promise<void> {
-	const parsedEvents: ParsedEvent[] = events.length > 0 ? events : await showProgressDialog("loading_msg", selectAndParseIcalFile())
+export async function handleCalendarImport(
+	calendarGroupRoot: CalendarGroupRoot,
+	importedParsedEvents: ParsedEvent[] | null = null,
+	calendarType: CalendarType = CalendarType.NORMAL,
+): Promise<void> {
+	const parsedEvents: ParsedEvent[] = importedParsedEvents ?? (await showProgressDialog("loading_msg", selectAndParseIcalFile()))
 	if (parsedEvents.length === 0) return
 	const zone = getTimeZone()
 	const existingEvents = await showProgressDialog("loading_msg", loadAllEvents(calendarGroupRoot))
@@ -62,14 +53,16 @@ export async function showCalendarImportDialog(calendarGroupRoot: CalendarGroupR
 	if (!(await partialImportConfirmation(rejectedEvents.get(EventImportRejectionReason.Pre1970) ?? [], "importPre1970StartInEvent_msg", total))) return
 
 	if (eventsForCreation.length > 0) {
-		showEventsImportDialog(
-			eventsForCreation.map((ev) => ev.event),
-			async (dialog) => {
-				dialog.close()
-				await importEvents(eventsForCreation)
-			},
-			"importEvents_label",
-		)
+		if (isExternalCalendar(calendarType)) await importEvents(eventsForCreation)
+		else
+			showEventsImportDialog(
+				eventsForCreation.map((ev) => ev.event),
+				async (dialog) => {
+					dialog.close()
+					await importEvents(eventsForCreation)
+				},
+				"importEvents_label",
+			)
 	}
 }
 
@@ -94,72 +87,6 @@ async function selectAndParseIcalFile(): Promise<ParsedEvent[]> {
 	}
 }
 
-/** sort the parsed events into the ones we want to create and the ones we want to reject (stating a rejection reason)
- * will assign event id according to the calendarGroupRoot and the long/short event status */
-export function sortOutParsedEvents(
-	parsedEvents: ParsedEvent[],
-	existingEvents: Array<CalendarEvent>,
-	calendarGroupRoot: CalendarGroupRoot,
-	zone: string,
-): {
-	rejectedEvents: RejectedEvents
-	eventsForCreation: Array<EventWrapper>
-} {
-	const instanceIdentifierToEventMap = new Map()
-	for (const existingEvent of existingEvents) {
-		if (existingEvent.uid == null) continue
-		instanceIdentifierToEventMap.set(makeInstanceIdentifier(existingEvent), existingEvent)
-	}
-
-	const rejectedEvents: RejectedEvents = new Map()
-	const eventsForCreation: Array<{ event: CalendarEvent; alarms: Array<AlarmInfoTemplate> }> = []
-	for (const [_, flatParsedEvents] of groupBy(parsedEvents, (e) => e.event.uid)) {
-		let progenitor: { event: CalendarEvent; alarms: Array<AlarmInfoTemplate> } | null = null
-		let alteredInstances: Array<{ event: CalendarEvent; alarms: Array<AlarmInfoTemplate> }> = []
-
-		for (const { event, alarms } of flatParsedEvents) {
-			const rejectionReason = shouldBeSkipped(event, instanceIdentifierToEventMap)
-			if (rejectionReason != null) {
-				getFromMap(rejectedEvents, rejectionReason, () => []).push(event)
-				continue
-			}
-
-			// hashedUid will be set later in calendarFacade to avoid importing the hash function here
-			const repeatRule = event.repeatRule
-			event._ownerGroup = calendarGroupRoot._id
-
-			if (repeatRule != null && repeatRule.timeZone === "") {
-				repeatRule.timeZone = getTimeZone()
-			}
-
-			for (let alarmInfo of alarms) {
-				alarmInfo.alarmIdentifier = generateEventElementId(Date.now())
-			}
-
-			assignEventId(event, zone, calendarGroupRoot)
-			if (event.recurrenceId == null) {
-				// the progenitor must be null here since we would have
-				// rejected the second uid-progenitor event in shouldBeSkipped.
-				progenitor = { event, alarms }
-			} else {
-				if (progenitor?.event.repeatRule != null) {
-					insertIntoSortedArray(
-						createDateWrapper({ date: event.recurrenceId }),
-						progenitor.event.repeatRule.excludedDates,
-						(left, right) => left.date.getTime() - right.date.getTime(),
-						() => true,
-					)
-				}
-				alteredInstances.push({ event, alarms })
-			}
-		}
-		if (progenitor != null) eventsForCreation.push(progenitor)
-		eventsForCreation.push(...alteredInstances)
-	}
-
-	return { rejectedEvents, eventsForCreation }
-}
-
 async function importEvents(eventsForCreation: Array<EventWrapper>): Promise<void> {
 	const operation = locator.operationProgressTracker.startNewOperation()
 	return showProgressDialog("importCalendar_label", locator.calendarFacade.saveImportedCalendarEvents(eventsForCreation, operation.id), operation.progress)
@@ -174,30 +101,6 @@ async function importEvents(eventsForCreation: Array<EventWrapper>): Promise<voi
 			),
 		)
 		.finally(() => operation.done())
-}
-
-/** check if the event should be skipped because it's invalid or already imported. if not, add it to the map. */
-function shouldBeSkipped(event: CalendarEvent, instanceIdentifierToEventMap: Map<string, CalendarEvent>): EventImportRejectionReason | null {
-	if (!event.uid) {
-		// should not happen because calendar parser will generate uids if they do not exist
-		throw new Error("Uid is not set for imported event")
-	}
-
-	switch (checkEventValidity(event)) {
-		case CalendarEventValidity.InvalidContainsInvalidDate:
-			return EventImportRejectionReason.InvalidDate
-		case CalendarEventValidity.InvalidEndBeforeStart:
-			return EventImportRejectionReason.Inversed
-		case CalendarEventValidity.InvalidPre1970:
-			return EventImportRejectionReason.Pre1970
-	}
-	const instanceIdentifier = makeInstanceIdentifier(event)
-	if (!instanceIdentifierToEventMap.has(instanceIdentifier)) {
-		instanceIdentifierToEventMap.set(instanceIdentifier, event)
-		return null
-	} else {
-		return EventImportRejectionReason.Duplicate
-	}
 }
 
 /** export all events from a calendar, using the alarmInfos the current user has access to and ignoring the other ones that may be set on the event. */
@@ -246,10 +149,4 @@ function loadAllEvents(groupRoot: CalendarGroupRoot): Promise<Array<CalendarEven
 			return shortEvents.concat(longEvents)
 		}),
 	)
-}
-
-/** we try to enforce that each calendar only contains each uid once, but we need to take into consideration
- * that altered instances have the same uid as their progenitor.*/
-function makeInstanceIdentifier(event: CalendarEvent): string {
-	return `${event.uid}-${event.recurrenceId?.getTime() ?? "progenitor"}`
 }
