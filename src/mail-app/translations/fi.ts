@@ -1190,7 +1190,6 @@ export default {
 		"pricing.gdprDataProcessing_label": "Yleisen tietosuoja-asetuksen mukainen käsittelysopimus",
 		"pricing.gdpr_label": "GDPR-yhteensopiva",
 		"pricing.gdpr_tooltip": "Kaikki tiedot tallennetaan Euroopan unionin yleisen tietosuoja-asetuksen (GDPR) tiukkojen sääntöjen mukaisesti.",
-		"pricing.getStarted_label": "Aloita tästä",
 		"pricing.includesTaxes_msg": "Sisältää verot.",
 		"pricing.login_title": "Kirjaudu omalla verkkosivullasi",
 		"pricing.login_tooltip": "Lisää Tuta-kirjautumislomake omalle sivustollesi yrityksesi ja ulkoisia työntekijöitä varten.",

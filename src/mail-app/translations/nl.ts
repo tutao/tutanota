@@ -1194,7 +1194,6 @@ export default {
 		"pricing.gdprDataProcessing_label": "GDPR gegevens verwerking overeenkomst",
 		"pricing.gdpr_label": "GDPR-conform",
 		"pricing.gdpr_tooltip": "Alle data is opgeslagen volgens de strikte Europese data protectie regelgeving overeenkomstig GDPR.",
-		"pricing.getStarted_label": "Aan de slag",
 		"pricing.includesTaxes_msg": "Inclusief belastingen.",
 		"pricing.login_title": "Inloggen op eigen website",
 		"pricing.login_tooltip": "Plaats het Tuta loginscherm op uw eigen website voor uw medewerkers en buitenstaanders.",

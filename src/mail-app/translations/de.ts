@@ -1194,7 +1194,6 @@ export default {
 		"pricing.gdprDataProcessing_label": "DSGVO-Vereinbarung zur Datenverarbeitung",
 		"pricing.gdpr_label": "DSGVO-konform",
 		"pricing.gdpr_tooltip": "Alle Daten werden konform mit den strengen europäischen Datenschutz-Bestimmungen gemäß der DSGVO gespeichert.",
-		"pricing.getStarted_label": "Erste Schritte",
 		"pricing.includesTaxes_msg": "Inklusive MwSt.",
 		"pricing.login_title": "Login auf der eigenen Webseite",
 		"pricing.login_tooltip": "Platziere den Tuta-Login auf deiner eigenen Webseite, so dass deine Mitarbeiter*innen und Externe sich direkt dort einloggen können.",

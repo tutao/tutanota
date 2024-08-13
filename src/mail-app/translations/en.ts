@@ -1190,7 +1190,6 @@ export default {
 		"pricing.gdprDataProcessing_label": "GDPR data processing agreement",
 		"pricing.gdpr_label": "GDPR-compliant",
 		"pricing.gdpr_tooltip": "All data is stored in compliance with strict European data protection regulations according to the GDPR.",
-		"pricing.getStarted_label": "Get started",
 		"pricing.includesTaxes_msg": "Includes taxes.",
 		"pricing.login_title": "Login on own website",
 		"pricing.login_tooltip": "Place the Tuta login on your own website for your employees and externals.",

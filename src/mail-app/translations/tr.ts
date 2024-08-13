@@ -1171,7 +1171,6 @@ export default {
 		"pricing.gdprDataProcessing_label": "GDPR veri işleme sözleşmesi",
 		"pricing.gdpr_label": "GDPR-uyumlu",
 		"pricing.gdpr_tooltip": "Tüm veriler, GDPR'ye göre sıkı Avrupa veri koruma düzenlemelerine uygun olarak saklanır.",
-		"pricing.getStarted_label": "Başlayın",
 		"pricing.includesTaxes_msg": "Vergiler dahildir.",
 		"pricing.login_title": "Web sayfamızdan giriş yapın",
 		"pricing.login_tooltip": "Tuta girişini çalışanlarınız için kendi web sitenize yerleştirin.",

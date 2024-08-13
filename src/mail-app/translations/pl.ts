@@ -1195,7 +1195,6 @@ export default {
 		"pricing.gdprDataProcessing_label": "Umowa o przetwarzaniu danych RODO",
 		"pricing.gdpr_label": "Zgodność z RODO",
 		"pricing.gdpr_tooltip": "Wszystkie dane są przechowywane zgodnie z surowymi europejskimi przepisami o ochronie danych osobowych, zgodnie z RODO.",
-		"pricing.getStarted_label": "Rozpocznij",
 		"pricing.includesTaxes_msg": "Zawiera podatek.",
 		"pricing.login_title": "Loguj się na własnej stronie internetowej",
 		"pricing.login_tooltip": "Umieść login Tuta na własnej stronie internetowej dla swoich pracowników oraz innych użytkowników.",
