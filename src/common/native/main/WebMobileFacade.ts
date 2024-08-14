@@ -10,7 +10,6 @@ import { WebsocketConnectivityModel } from "../../misc/WebsocketConnectivityMode
 import { MailboxModel } from "../../mailFunctionality/MailboxModel.js"
 import { TopLevelView } from "../../../TopLevelView.js"
 import stream from "mithril/stream"
-import { assertSystemFolderOfType } from "../../../mail-app/mail/model/MailModel.js"
 import { CalendarViewType } from "../../api/common/utils/CommonCalendarUtils.js"
 
 assertMainOrNode()

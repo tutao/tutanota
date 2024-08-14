@@ -10,8 +10,8 @@ import { Icons } from "../../../common/gui/base/icons/Icons.js"
 import { isNotNull, LazyLoaded } from "@tutao/tutanota-utils"
 import { ParsedIcalFileContent, ReplyResult } from "../../../calendar-app/calendar/view/CalendarInvites.js"
 import { locator } from "../../../common/api/main/CommonLocator.js"
-import { isRepliedTo } from "../../../common/mailFunctionality/SharedMailUtils.js"
 import { mailLocator } from "../../mailLocator.js"
+import { isRepliedTo } from "./MailViewerUtils.js"
 
 export type EventBannerAttrs = {
 	contents: ParsedIcalFileContent

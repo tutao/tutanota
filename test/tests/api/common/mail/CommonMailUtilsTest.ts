@@ -4,10 +4,10 @@ import { EncryptionAuthStatus, MailState } from "../../../../../src/common/api/c
 import { createTestEntity } from "../../../TestUtils.js"
 import { Icons } from "../../../../../src/common/gui/base/icons/Icons.js"
 import { ProgrammingError } from "../../../../../src/common/api/common/error/ProgrammingError.js"
-import { getConfidentialIcon } from "../../../../../src/common/mailFunctionality/SharedMailUtils.js"
-import { isSystemNotification } from "../../../../../src/common/mailFunctionality/SharedMailUtils.js"
 import { getDisplayedSender } from "../../../../../src/common/api/common/CommonMailUtils.js"
-import { isTutanotaTeamAddress, isTutanotaTeamMail } from "../../../../../src/mail-app/mail/view/MailGuiUtils.js"
+import { getConfidentialIcon, isTutanotaTeamAddress, isTutanotaTeamMail } from "../../../../../src/mail-app/mail/view/MailGuiUtils.js"
+
+import { isSystemNotification } from "../../../../../src/mail-app/mail/view/MailViewerUtils.js"
 
 o.spec("MailUtilsTest", function () {
 	function createSystemMail(overrides: Partial<Mail> = {}): Mail {

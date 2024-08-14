@@ -1,9 +1,9 @@
 import m from "mithril"
 import { locator } from "../../api/main/CommonLocator"
 import { MailSetKind } from "../../api/common/TutanotaConstants.js"
-import { assertSystemFolderOfType } from "../../../mail-app/mail/model/MailModel.js"
 import { mailLocator } from "../../../mail-app/mailLocator.js"
 import { assertNotNull } from "@tutao/tutanota-utils"
+import { assertSystemFolderOfType } from "../../../mail-app/mail/model/MailUtils.js"
 import { getElementId } from "../../api/common/utils/EntityUtils.js"
 
 export async function openMailbox(userId: Id, mailAddress: string, requestedPath: string | null) {

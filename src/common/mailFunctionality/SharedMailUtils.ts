@@ -1,49 +1,24 @@
-import { assertMainOrNode, isDesktop } from "../api/common/Env.js"
+import { assertMainOrNode } from "../api/common/Env.js"
 import { CustomerPropertiesTypeRef, GroupInfo, User } from "../api/entities/sys/TypeRefs.js"
-import {
-	Contact,
-	createContact,
-	createContactMailAddress,
-	createEncryptedMailAddress,
-	EncryptedMailAddress,
-	Header,
-	InboxRule,
-	Mail,
-	MailDetails,
-	MailFolder,
-	TutanotaProperties,
-} from "../api/entities/tutanota/TypeRefs.js"
+import { Contact, createContact, createContactMailAddress, Mail } from "../api/entities/tutanota/TypeRefs.js"
 import { fullNameToFirstAndLastName, mailAddressToFirstAndLastName } from "../misc/parsing/MailAddressParser.js"
 import { assertNotNull, contains, neverNull } from "@tutao/tutanota-utils"
 import {
 	ContactAddressType,
-	ConversationType,
-	EncryptionAuthStatus,
+	ConversationType, EncryptionAuthStatus,
 	getMailFolderType,
 	GroupType,
-	MailSetKind,
 	MailState,
-	MAX_ATTACHMENT_SIZE,
-	ReplyType,
-	SYSTEM_GROUP_MAIL_ADDRESS,
-	TUTANOTA_MAIL_ADDRESS_DOMAINS,
+	MAX_ATTACHMENT_SIZE, SYSTEM_GROUP_MAIL_ADDRESS, TUTA_MAIL_ADDRESS_DOMAINS,
 } from "../api/common/TutanotaConstants.js"
 import { UserController } from "../api/main/UserController.js"
 import { getEnabledMailAddressesForGroupInfo, getGroupInfoDisplayName } from "../api/common/utils/GroupUtils.js"
 import { lang, Language, TranslationKey } from "../misc/LanguageViewModel.js"
-import { AllIcons } from "../gui/base/Icon.js"
-import { Icons } from "../gui/base/icons/Icons.js"
 import { MailboxDetail } from "./MailboxModel.js"
 import { LoginController } from "../api/main/LoginController.js"
 import { EntityClient } from "../api/common/EntityClient.js"
-import type { FolderSystem } from "../api/common/mail/FolderSystem.js"
-import { MailFacade } from "../api/worker/facades/lazy/MailFacade.js"
-import { ListFilter } from "../misc/ListModel.js"
-import { FontIcons } from "../gui/base/icons/FontIcons.js"
-import { ProgrammingError } from "../api/common/error/ProgrammingError.js"
 import { Attachment } from "./SendMailModel.js"
-import { getDisplayedSender } from "../api/common/CommonMailUtils.js"
-import { isDraft } from "../../mail-app/mail/model/MailModel.js"
+import { TUTANOTA_MAIL_ADDRESS_DOMAINS } from "../../../.rollup.cache/home/and/dev/repositories/tutanota-3/build/src/common/api/common/TutanotaConstants.js"
 
 assertMainOrNode()
 export const LINE_BREAK = "<br>"
@@ -110,98 +85,6 @@ export function getMailAddressDisplayText(name: string | null, mailAddress: stri
 	}
 }
 
-export function getRecipientHeading(mail: Mail, preferNameOnly: boolean) {
-	let recipientCount = parseInt(mail.recipientCount)
-	if (recipientCount > 0) {
-		let recipient = neverNull(mail.firstRecipient)
-		return getMailAddressDisplayText(recipient.name, recipient.address, preferNameOnly) + (recipientCount > 1 ? ", ..." : "")
-	} else {
-		return ""
-	}
-}
-
-export function getSenderOrRecipientHeading(mail: Mail, preferNameOnly: boolean): string {
-	if (isSystemNotification(mail)) {
-		return ""
-	} else if (mail.state === MailState.RECEIVED) {
-		const sender = getDisplayedSender(mail)
-		return getMailAddressDisplayText(sender.name, sender.address, preferNameOnly)
-	} else {
-		return getRecipientHeading(mail, preferNameOnly)
-	}
-}
-
-/**
- * @return {string} default mail address
- */
-export function getDefaultSenderFromUser({ props, userGroupInfo }: UserController): string {
-	return props.defaultSender && contains(getEnabledMailAddressesForGroupInfo(userGroupInfo), props.defaultSender)
-		? props.defaultSender
-		: neverNull(userGroupInfo.mailAddress)
-}
-
-export function getFolderName(folder: MailFolder): string {
-	switch (folder.folderType) {
-		case "0":
-			return folder.name
-
-		case "1":
-			return lang.get("received_action")
-
-		case "2":
-			return lang.get("sent_action")
-
-		case "3":
-			return lang.get("trash_action")
-
-		case "4":
-			return lang.get("archive_label")
-
-		case "5":
-			return lang.get("spam_action")
-
-		case "6":
-			return lang.get("draft_action")
-
-		default:
-			// do not throw an error - new system folders may cause problems
-			//throw new Error("illegal folder type: " + this.folder.getFolderType())
-			return ""
-	}
-}
-
-export function getFolderIconByType(folderType: MailSetKind): AllIcons {
-	switch (folderType) {
-		case MailSetKind.CUSTOM:
-			return Icons.Folder
-
-		case MailSetKind.INBOX:
-			return Icons.Inbox
-
-		case MailSetKind.SENT:
-			return Icons.Send
-
-		case MailSetKind.TRASH:
-			return Icons.TrashBin
-
-		case MailSetKind.ARCHIVE:
-			return Icons.Archive
-
-		case MailSetKind.SPAM:
-			return Icons.Spam
-
-		case MailSetKind.DRAFT:
-			return Icons.Draft
-
-		default:
-			return Icons.Folder
-	}
-}
-
-export function getFolderIcon(folder: MailFolder): AllIcons {
-	return getFolderIconByType(getMailFolderType(folder))
-}
-
 export function getEnabledMailAddressesWithUser(mailboxDetail: MailboxDetail, userGroupInfo: GroupInfo): Array<string> {
 	if (isUserMailbox(mailboxDetail)) {
 		return getEnabledMailAddressesForGroupInfo(userGroupInfo)
@@ -259,21 +142,6 @@ export interface ImageHandler {
 	insertImage(srcAttr: string, attrs?: Record<string, string>): HTMLElement
 }
 
-/**
- * Check if all mails in the selection are drafts. If there are mixed drafts and non-drafts or the array is empty, return true.
- * @param mails
- */
-export function emptyOrContainsDraftsAndNonDrafts(mails: ReadonlyArray<Mail>): boolean {
-	return mails.length === 0 || (mails.some((mail) => mail.state === MailState.DRAFT) && mails.some((mail) => mail.state !== MailState.DRAFT))
-}
-
-export function copyMailAddress({ address, name }: EncryptedMailAddress): EncryptedMailAddress {
-	return createEncryptedMailAddress({
-		address,
-		name,
-	})
-}
-
 export function getTemplateLanguages(sortedLanguages: Array<Language>, entityClient: EntityClient, loginController: LoginController): Promise<Array<Language>> {
 	return loginController
 		.getUserController()
@@ -308,14 +176,6 @@ export function conversationTypeString(conversationType: ConversationType): stri
 	return lang.get(key)
 }
 
-export function getExistingRuleForType(props: TutanotaProperties, cleanValue: string, type: string): InboxRule | null {
-	return props.inboxRules.find((rule) => type === rule.type && cleanValue === rule.value) ?? null
-}
-
-export function canDoDragAndDropExport(): boolean {
-	return isDesktop()
-}
-
 type AttachmentSizeCheckResult = {
 	attachableFiles: Array<Attachment>
 	tooBigFiles: Array<string>
@@ -343,98 +203,10 @@ export function checkAttachmentSize(files: ReadonlyArray<Attachment>, maxAttachm
 	}
 }
 
-/**
- * @returns {boolean} true if the given mail was already replied to. Otherwise false.
- * Note that it also returns true if the mail was replied to AND forwarded.
- */
-export function isRepliedTo(mail: Mail): boolean {
-	return mail.replyType === ReplyType.REPLY || mail.replyType === ReplyType.REPLY_FORWARD
-}
-
 export enum RecipientField {
 	TO = "to",
 	CC = "cc",
 	BCC = "bcc",
-}
-
-export type FolderInfo = { level: number; folder: MailFolder }
-
-export const MAX_FOLDER_INDENT_LEVEL = 10
-
-export function getIndentedFolderNameForDropdown(folderInfo: FolderInfo) {
-	const indentLevel = Math.min(folderInfo.level, MAX_FOLDER_INDENT_LEVEL)
-	return ". ".repeat(indentLevel) + getFolderName(folderInfo.folder)
-}
-
-export function getPathToFolderString(folderSystem: FolderSystem, folder: MailFolder, omitLast = false) {
-	const folderPath = folderSystem.getPathToFolder(folder._id)
-	if (omitLast) {
-		folderPath.pop()
-	}
-	return folderPath.map(getFolderName).join(" · ")
-}
-
-export async function loadMailDetails(mailFacade: MailFacade, mail: Mail): Promise<MailDetails> {
-	if (isDraft(mail)) {
-		const detailsDraftId = assertNotNull(mail.mailDetailsDraft)
-		return mailFacade.loadMailDetailsDraft(mail)
-	} else {
-		const mailDetailsId = neverNull(mail.mailDetails)
-		return mailFacade.loadMailDetailsBlob(mail)
-	}
-}
-
-export function getMailHeaders(headers: Header): string {
-	return headers.compressedHeaders ?? headers.headers ?? ""
-}
-
-export async function loadMailHeaders(mailDetails: MailDetails): Promise<string | null> {
-	return mailDetails.headers != null ? getMailHeaders(mailDetails.headers) : null
-}
-
-export enum MailFilterType {
-	Unread,
-	Read,
-	WithAttachments,
-}
-
-export function getMailFilterForType(filter: MailFilterType | null): ListFilter<Mail> | null {
-	switch (filter) {
-		case MailFilterType.Read:
-			return (mail) => !mail.unread
-		case MailFilterType.Unread:
-			return (mail) => mail.unread
-		case MailFilterType.WithAttachments:
-			return (mail) => mail.attachments.length > 0
-		case null:
-			return null
-	}
-}
-
-/**
- * Returns the confidential font icon for the given mail which indicates either RSA or PQ encryption.
- * The caller must ensure that the mail is in a confidential state.
- */
-export function getConfidentialFontIcon(mail: Mail): String {
-	const confidentialIcon = getConfidentialIcon(mail)
-	return confidentialIcon === Icons.PQLock ? FontIcons.PQConfidential : FontIcons.Confidential
-}
-
-/**
- * Returns the confidential icon for the given mail which indicates either RSA or PQ encryption.
- * The caller must ensure that the mail is in a confidential state.
- */
-export function getConfidentialIcon(mail: Mail): Icons {
-	if (!mail.confidential) throw new ProgrammingError("mail is not confidential")
-	if (
-		mail.encryptionAuthStatus == EncryptionAuthStatus.TUTACRYPT_AUTHENTICATION_SUCCEEDED ||
-		mail.encryptionAuthStatus == EncryptionAuthStatus.TUTACRYPT_AUTHENTICATION_FAILED ||
-		mail.encryptionAuthStatus == EncryptionAuthStatus.TUTACRYPT_SENDER
-	) {
-		return Icons.PQLock
-	} else {
-		return Icons.Lock
-	}
 }
 
 export function isTutanotaMailAddress(mailAddress: string): boolean {
