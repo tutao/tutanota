@@ -9,8 +9,9 @@ import { DataFile } from "../../../common/api/common/DataFile"
 import { FileController } from "../../../common/file/FileController"
 import { MailFacade } from "../../../common/api/worker/facades/lazy/MailFacade.js"
 import { CryptoFacade } from "../../../common/api/worker/crypto/CryptoFacade.js"
-import { loadMailDetails, loadMailHeaders } from "../../../common/mailFunctionality/SharedMailUtils.js"
 import { getDisplayedSender, getMailBodyText, MailAddressAndName } from "../../../common/api/common/CommonMailUtils.js"
+import { loadMailDetails } from "../view/MailViewerUtils.js"
+import { loadMailHeaders } from "../model/MailUtils.js"
 
 /**
  * Used to pass all downloaded mail stuff to the desktop side to be exported as a file

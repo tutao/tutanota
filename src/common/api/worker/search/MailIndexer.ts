@@ -42,7 +42,8 @@ import { containsEventOfType, EntityUpdateData } from "../../common/utils/Entity
 import { b64UserIdHash } from "./DbFacade.js"
 import { hasError } from "../../common/utils/ErrorUtils.js"
 import { getDisplayedSender, getMailBodyText, MailAddressAndName } from "../../common/CommonMailUtils.js"
-import { isDraft } from "../../../../mail-app/mail/model/MailModel.js"
+
+import { isDraft } from "../../../../mail-app/mail/model/MailUtils.js"
 
 export const INITIAL_MAIL_INDEX_INTERVAL_DAYS = 28
 const ENTITY_INDEXER_CHUNK = 20

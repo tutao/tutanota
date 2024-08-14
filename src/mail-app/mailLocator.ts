@@ -116,13 +116,14 @@ import { MobilePaymentsFacade } from "../common/native/common/generatedipc/Mobil
 import { AppStorePaymentPicker } from "../common/misc/AppStorePaymentPicker.js"
 import { MAIL_PREFIX } from "../common/misc/RouteChange.js"
 import { getDisplayedSender } from "../common/api/common/CommonMailUtils.js"
-import { assertSystemFolderOfType, isMailInSpamOrTrash, MailModel } from "./mail/model/MailModel.js"
+import { MailModel } from "./mail/model/MailModel.js"
 import { locator } from "../common/api/main/CommonLocator.js"
 import { AppType } from "../common/misc/ClientConstants.js"
 import type { ParsedEvent } from "../common/calendar/import/CalendarImporter.js"
-import { ContactImporter, parseContacts } from "./contacts/ContactImporter.js"
+import { ContactImporter } from "./contacts/ContactImporter.js"
 import { ExternalCalendarFacade } from "../common/native/common/generatedipc/ExternalCalendarFacade.js"
 import m from "mithril"
+import { assertSystemFolderOfType, isMailInSpamOrTrash } from "./mail/model/MailUtils.js"
 
 assertMainOrNode()
 
@@ -366,7 +367,7 @@ class MailLocator {
 				dateProvider,
 				mailboxProperties,
 				async (mail: Mail) => {
-					return await isMailInSpamOrTrash(mail)
+					return await isMailInSpamOrTrash(mail, mailLocator.mailModel)
 				},
 			)
 	}

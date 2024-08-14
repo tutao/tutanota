@@ -47,7 +47,7 @@ import { FolderSystem } from "../../common/mail/FolderSystem.js"
 import { Type as TypeId } from "../../common/EntityConstants.js"
 import { OutOfSyncError } from "../../common/error/OutOfSyncError.js"
 import { sql, SqlFragment } from "./Sql.js"
-import { isDraft, isSpamOrTrashFolder } from "../../../../mail-app/mail/model/MailModel.js"
+import { isDraft, isSpamOrTrashFolder } from "../../../../mail-app/mail/model/MailUtils.js"
 
 /**
  * this is the value of SQLITE_MAX_VARIABLE_NUMBER in sqlite3.c

@@ -1,5 +1,13 @@
-import { ALLOWED_IMAGE_FORMATS, Keys, MailReportType, MAX_BASE64_IMAGE_SIZE } from "../../../common/api/common/TutanotaConstants"
-import { ofClass, uint8ArrayToBase64 } from "@tutao/tutanota-utils"
+import {
+	ALLOWED_IMAGE_FORMATS,
+	Keys,
+	MailReportType,
+	MailState,
+	MAX_BASE64_IMAGE_SIZE,
+	ReplyType,
+	SYSTEM_GROUP_MAIL_ADDRESS,
+} from "../../../common/api/common/TutanotaConstants"
+import { assertNotNull, neverNull, ofClass, uint8ArrayToBase64 } from "@tutao/tutanota-utils"
 import { InfoLink, lang } from "../../../common/misc/LanguageViewModel"
 import { Dialog } from "../../../common/gui/base/Dialog"
 import { DataFile } from "../../../common/api/common/DataFile"
@@ -20,8 +28,16 @@ import { LockedError } from "../../../common/api/common/error/RestError.js"
 import { ifAllowedTutaLinks } from "../../../common/gui/base/GuiUtils.js"
 import { ExternalLink } from "../../../common/gui/base/ExternalLink.js"
 import { SourceCodeViewer } from "./SourceCodeViewer.js"
-import { ImageHandler, loadMailDetails } from "../../../common/mailFunctionality/SharedMailUtils.js"
+import { getMailAddressDisplayText, ImageHandler } from "../../../common/mailFunctionality/SharedMailUtils.js"
 import { mailLocator } from "../../mailLocator.js"
+import { Mail, MailDetails } from "../../../common/api/entities/tutanota/TypeRefs.js"
+import { hasValidEncryptionAuthForTeamOrSystemMail } from "./MailGuiUtils.js"
+import { getDisplayedSender } from "../../../common/api/common/CommonMailUtils.js"
+import { MailFacade } from "../../../common/api/worker/facades/lazy/MailFacade.js"
+
+import { isDraft } from "../model/MailUtils.js"
+import { ListFilter } from "../../../common/misc/ListModel.js"
+import { isDesktop } from "../../../common/api/common/Env.js"
 
 export function insertInlineImageB64ClickHandler(ev: Event, handler: ImageHandler) {
 	showFileChooser(true, ALLOWED_IMAGE_FORMATS).then((files) => {
@@ -88,6 +104,16 @@ export async function showHeaderDialog(headersPromise: Promise<string | null>) {
 		})
 		.setCloseHandler(closeHeadersAction)
 		.show()
+}
+
+export async function loadMailDetails(mailFacade: MailFacade, mail: Mail): Promise<MailDetails> {
+	if (isDraft(mail)) {
+		const detailsDraftId = assertNotNull(mail.mailDetailsDraft)
+		return mailFacade.loadMailDetailsDraft(mail)
+	} else {
+		const mailDetailsId = neverNull(mail.mailDetails)
+		return mailFacade.loadMailDetailsBlob(mail)
+	}
 }
 
 export async function editDraft(viewModel: MailViewerViewModel): Promise<void> {
@@ -278,4 +304,76 @@ function reportMail(viewModel: MailViewerViewModel) {
 			),
 		okAction: null,
 	})
+}
+
+export function isNoReplyTeamAddress(address: string): boolean {
+	return address === "no-reply@tutao.de" || address === "no-reply@tutanota.de"
+}
+
+/**
+ * Is this a system notification?
+ */
+export function isSystemNotification(mail: Mail): boolean {
+	const { confidential, sender, state } = mail
+	return (
+		state === MailState.RECEIVED &&
+		confidential &&
+		hasValidEncryptionAuthForTeamOrSystemMail(mail) &&
+		(sender.address === SYSTEM_GROUP_MAIL_ADDRESS ||
+			// New emails will have sender set to system and will only have replyTo set to no-reply
+			// but we should keep displaying old emails correctly.
+			isNoReplyTeamAddress(sender.address))
+	)
+}
+
+export function getRecipientHeading(mail: Mail, preferNameOnly: boolean) {
+	let recipientCount = parseInt(mail.recipientCount)
+	if (recipientCount > 0) {
+		let recipient = neverNull(mail.firstRecipient)
+		return getMailAddressDisplayText(recipient.name, recipient.address, preferNameOnly) + (recipientCount > 1 ? ", ..." : "")
+	} else {
+		return ""
+	}
+}
+
+export function getSenderOrRecipientHeading(mail: Mail, preferNameOnly: boolean): string {
+	if (isSystemNotification(mail)) {
+		return ""
+	} else if (mail.state === MailState.RECEIVED) {
+		const sender = getDisplayedSender(mail)
+		return getMailAddressDisplayText(sender.name, sender.address, preferNameOnly)
+	} else {
+		return getRecipientHeading(mail, preferNameOnly)
+	}
+}
+
+export enum MailFilterType {
+	Unread,
+	Read,
+	WithAttachments,
+}
+
+export function getMailFilterForType(filter: MailFilterType | null): ListFilter<Mail> | null {
+	switch (filter) {
+		case MailFilterType.Read:
+			return (mail) => !mail.unread
+		case MailFilterType.Unread:
+			return (mail) => mail.unread
+		case MailFilterType.WithAttachments:
+			return (mail) => mail.attachments.length > 0
+		case null:
+			return null
+	}
+}
+
+/**
+ * @returns {boolean} true if the given mail was already replied to. Otherwise false.
+ * Note that it also returns true if the mail was replied to AND forwarded.
+ */
+export function isRepliedTo(mail: Mail): boolean {
+	return mail.replyType === ReplyType.REPLY || mail.replyType === ReplyType.REPLY_FORWARD
+}
+
+export function canDoDragAndDropExport(): boolean {
+	return isDesktop()
 }

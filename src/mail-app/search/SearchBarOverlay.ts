@@ -20,8 +20,9 @@ import { companyTeamLabel } from "../../common/misc/ClientConstants.js"
 import { getTimeZone } from "../../common/calendar/date/CalendarUtils.js"
 
 import { formatEventDuration } from "../../calendar-app/calendar/gui/CalendarGuiUtils.js"
-import { getSenderOrRecipientHeading } from "../../common/mailFunctionality/SharedMailUtils.js"
 import { getContactListName } from "../../common/contactsFunctionality/ContactUtils.js"
+
+import { getSenderOrRecipientHeading } from "../mail/view/MailViewerUtils.js"
 
 type SearchBarOverlayAttrs = {
 	state: SearchBarState

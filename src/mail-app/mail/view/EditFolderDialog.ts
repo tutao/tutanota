@@ -11,12 +11,11 @@ import { MailReportType, MailSetKind } from "../../../common/api/common/Tutanota
 import { elementIdPart, isSameId, listIdPart } from "../../../common/api/common/utils/EntityUtils.js"
 import { reportMailsAutomatically } from "./MailReportDialog.js"
 import { isOfflineError } from "../../../common/api/common/utils/ErrorUtils.js"
-import { getFolderName, getIndentedFolderNameForDropdown, getPathToFolderString } from "../../../common/mailFunctionality/SharedMailUtils.js"
-import { isSpamOrTrashFolder } from "../model/MailModel.js"
 import { groupByAndMap } from "@tutao/tutanota-utils"
 import { mailLocator } from "../../mailLocator.js"
 import { assertNotNull } from "@tutao/tutanota-utils"
 import { FolderSystem } from "../../../common/api/common/mail/FolderSystem.js"
+import { getFolderName, getIndentedFolderNameForDropdown, getPathToFolderString, isSpamOrTrashFolder } from "../model/MailUtils.js"
 
 /**
  * Dialog for Edit and Add folder are the same.

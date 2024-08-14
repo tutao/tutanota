@@ -1,8 +1,8 @@
 import Stream from "mithril/stream"
 import stream from "mithril/stream"
 import { MailboxCounters, MailboxDetail, MailboxModel } from "../../../common/mailFunctionality/MailboxModel.js"
-import { FolderSystem, type IndentedFolder } from "../../../common/api/common/mail/FolderSystem.js"
-import { assertNotNull, first, groupBy, isNotEmpty, lazyMemoized, neverNull, noOp, ofClass, promiseMap, splitInChunks } from "@tutao/tutanota-utils"
+import { FolderSystem } from "../../../common/api/common/mail/FolderSystem.js"
+import { assertNotNull, groupBy, isNotEmpty, lazyMemoized, neverNull, noOp, ofClass, promiseMap, splitInChunks } from "@tutao/tutanota-utils"
 import {
 	Mail,
 	MailboxGroupRoot,
@@ -20,8 +20,7 @@ import {
 	OperationType,
 	ReportMovedMailsType,
 } from "../../../common/api/common/TutanotaConstants.js"
-import { CUSTOM_MIN_ID, elementIdPart, GENERATED_MAX_ID, getElementId, getListId, isSameId, listIdPart } from "../../../common/api/common/utils/EntityUtils.js"
-import { FolderInfo } from "../../../common/mailFunctionality/SharedMailUtils.js"
+import { CUSTOM_MIN_ID, elementIdPart, GENERATED_MAX_ID, getElementId, getListId } from "../../../common/api/common/utils/EntityUtils.js"
 import { containsEventOfType, EntityUpdateData, isUpdateForTypeRef } from "../../../common/api/common/utils/EntityUpdateUtils.js"
 import m from "mithril"
 import { WebsocketCounterData } from "../../../common/api/entities/sys/TypeRefs.js"
@@ -36,7 +35,7 @@ import { WebsocketConnectivityModel } from "../../../common/misc/WebsocketConnec
 import { EntityClient } from "../../../common/api/common/EntityClient.js"
 import { LoginController } from "../../../common/api/main/LoginController.js"
 import { MailFacade } from "../../../common/api/worker/facades/lazy/MailFacade.js"
-import { mailLocator } from "../../mailLocator.js"
+import { assertSystemFolderOfType, isSpamOrTrashFolder } from "./MailUtils.js"
 
 export class MailModel {
 	readonly mailboxCounters: Stream<MailboxCounters> = stream({})
@@ -452,70 +451,4 @@ export class MailModel {
 		await this.entityClient.update(mailboxProperties)
 		return mailboxProperties
 	}
-}
-
-export async function getMoveTargetFolderSystems(foldersModel: MailModel, mails: readonly Mail[]): Promise<Array<FolderInfo>> {
-	const firstMail = first(mails)
-	if (firstMail == null) return []
-
-	const mailboxDetails = await foldersModel.getMailboxDetailsForMail(firstMail)
-	if (mailboxDetails == null || mailboxDetails.mailbox.folders == null) {
-		return []
-	}
-	const folderStructures = foldersModel.folders()
-	const folderSystem = folderStructures[mailboxDetails.mailbox.folders._id]
-	return folderSystem.getIndentedList().filter((f: IndentedFolder) => {
-		if (f.folder.isMailSet && isNotEmpty(firstMail.sets)) {
-			const folderId = firstMail.sets[0]
-			return !isSameId(f.folder._id, folderId)
-		} else {
-			return f.folder.mails !== getListId(firstMail)
-		}
-	})
-}
-
-export function isSubfolderOfType(system: FolderSystem, folder: MailFolder, type: MailSetKind): boolean {
-	const systemFolder = system.getSystemFolderByType(type)
-	return systemFolder != null && system.checkFolderForAncestor(folder, systemFolder._id)
-}
-
-export function isDraft(mail: Mail): boolean {
-	return mail.mailDetailsDraft != null
-}
-
-export async function isMailInSpamOrTrash(mail: Mail): Promise<boolean> {
-	const folders = await mailLocator.mailModel.getMailboxFoldersForMail(mail)
-	const mailFolder = folders?.getFolderByMail(mail)
-	if (folders && mailFolder) {
-		return isSpamOrTrashFolder(folders, mailFolder)
-	} else {
-		return false
-	}
-}
-
-/**
- * Returns true if given folder is the {@link MailFolderType.SPAM} or {@link MailFolderType.TRASH} folder, or a descendant of those folders.
- */
-export function isSpamOrTrashFolder(system: FolderSystem, folder: MailFolder): boolean {
-	// not using isOfTypeOrSubfolderOf because checking the type first is cheaper
-	return (
-		folder.folderType === MailSetKind.TRASH ||
-		folder.folderType === MailSetKind.SPAM ||
-		isSubfolderOfType(system, folder, MailSetKind.TRASH) ||
-		isSubfolderOfType(system, folder, MailSetKind.SPAM)
-	)
-}
-
-/**
- * Gets a system folder of the specified type and unwraps it.
- * Some system folders don't exist in some cases, e.g. spam or archive for external mailboxes!
- *
- * Use with caution.
- */
-export function assertSystemFolderOfType(system: FolderSystem, type: Omit<MailSetKind, MailSetKind.CUSTOM>): MailFolder {
-	return assertNotNull(system.getSystemFolderByType(type), "System folder of type does not exist!")
-}
-
-export function isOfTypeOrSubfolderOf(system: FolderSystem, folder: MailFolder, type: MailSetKind): boolean {
-	return folder.folderType === type || isSubfolderOfType(system, folder, type)
 }

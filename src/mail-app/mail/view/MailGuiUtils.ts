@@ -7,8 +7,15 @@ import { AllIcons } from "../../../common/gui/base/Icon"
 import { Icons } from "../../../common/gui/base/icons/Icons"
 import { isApp, isDesktop } from "../../../common/api/common/Env"
 import { assertNotNull, endsWith, neverNull, noOp, promiseMap } from "@tutao/tutanota-utils"
-import { EncryptionAuthStatus, MailSetKind, MailReportType, MailState, SYSTEM_GROUP_MAIL_ADDRESS } from "../../../common/api/common/TutanotaConstants"
-import { getElementId, getListId } from "../../../common/api/common/utils/EntityUtils"
+import {
+	EncryptionAuthStatus,
+	MailSetKind,
+	MailReportType,
+	MailState,
+	SYSTEM_GROUP_MAIL_ADDRESS,
+	getMailFolderType
+} from "../../../common/api/common/TutanotaConstants"
+import { getElementId } from "../../../common/api/common/utils/EntityUtils"
 import { reportMailsAutomatically } from "./MailReportDialog"
 import { DataFile } from "../../../common/api/common/DataFile"
 import { lang, TranslationKey } from "../../../common/misc/LanguageViewModel"
@@ -19,9 +26,18 @@ import { ConversationViewModel } from "./ConversationViewModel.js"
 import { size } from "../../../common/gui/size.js"
 import { PinchZoom } from "../../../common/gui/PinchZoom.js"
 import { InlineImageReference, InlineImages } from "../../../common/mailFunctionality/inlineImagesUtils.js"
-import { getFolderIcon, getFolderName, getIndentedFolderNameForDropdown } from "../../../common/mailFunctionality/SharedMailUtils.js"
-import { assertSystemFolderOfType, getMoveTargetFolderSystems, isOfTypeOrSubfolderOf, isSpamOrTrashFolder, MailModel } from "../model/MailModel.js"
+import { MailModel } from "../model/MailModel.js"
 import { mailLocator } from "../../mailLocator.js"
+import {
+	assertSystemFolderOfType,
+	getFolderName,
+	getIndentedFolderNameForDropdown,
+	getMoveTargetFolderSystems,
+	isOfTypeOrSubfolderOf,
+	isSpamOrTrashFolder,
+} from "../model/MailUtils.js"
+import { FontIcons } from "../../../common/gui/base/icons/FontIcons.js"
+import { ProgrammingError } from "../../../common/api/common/error/ProgrammingError.js"
 
 export async function showDeleteConfirmationDialog(mails: ReadonlyArray<Mail>): Promise<boolean> {
 	let trashMails: Mail[] = []
@@ -153,6 +169,38 @@ export function moveToInbox(mails: Mail[]): Promise<any> {
 	} else {
 		return Promise.resolve()
 	}
+}
+
+export function getFolderIconByType(folderType: MailSetKind): AllIcons {
+	switch (folderType) {
+		case MailSetKind.CUSTOM:
+			return Icons.Folder
+
+		case MailSetKind.INBOX:
+			return Icons.Inbox
+
+		case MailSetKind.SENT:
+			return Icons.Send
+
+		case MailSetKind.TRASH:
+			return Icons.TrashBin
+
+		case MailSetKind.ARCHIVE:
+			return Icons.Archive
+
+		case MailSetKind.SPAM:
+			return Icons.Spam
+
+		case MailSetKind.DRAFT:
+			return Icons.Draft
+
+		default:
+			return Icons.Folder
+	}
+}
+
+export function getFolderIcon(folder: MailFolder): AllIcons {
+	return getFolderIconByType(getMailFolderType(folder))
 }
 
 export function getMailFolderIcon(mail: Mail): AllIcons {
@@ -369,4 +417,30 @@ export function isTutanotaTeamMail(mail: Mail): boolean {
 		hasValidEncryptionAuthForTeamOrSystemMail(mail) &&
 		(sender.address === SYSTEM_GROUP_MAIL_ADDRESS || isTutanotaTeamAddress(sender.address))
 	)
+}
+
+/**
+ * Returns the confidential icon for the given mail which indicates either RSA or PQ encryption.
+ * The caller must ensure that the mail is in a confidential state.
+ */
+export function getConfidentialIcon(mail: Mail): Icons {
+	if (!mail.confidential) throw new ProgrammingError("mail is not confidential")
+	if (
+		mail.encryptionAuthStatus == EncryptionAuthStatus.TUTACRYPT_AUTHENTICATION_SUCCEEDED ||
+		mail.encryptionAuthStatus == EncryptionAuthStatus.TUTACRYPT_AUTHENTICATION_FAILED ||
+		mail.encryptionAuthStatus == EncryptionAuthStatus.TUTACRYPT_SENDER
+	) {
+		return Icons.PQLock
+	} else {
+		return Icons.Lock
+	}
+}
+
+/**
+ * Returns the confidential font icon for the given mail which indicates either RSA or PQ encryption.
+ * The caller must ensure that the mail is in a confidential state.
+ */
+export function getConfidentialFontIcon(mail: Mail): String {
+	const confidentialIcon = getConfidentialIcon(mail)
+	return confidentialIcon === Icons.PQLock ? FontIcons.PQConfidential : FontIcons.Confidential
 }

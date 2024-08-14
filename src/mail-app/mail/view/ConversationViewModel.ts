@@ -12,7 +12,8 @@ import { MailboxModel } from "../../../common/mailFunctionality/MailboxModel.js"
 import { EntityUpdateData, isUpdateForTypeRef } from "../../../common/api/common/utils/EntityUpdateUtils.js"
 import { ListAutoSelectBehavior } from "../../../common/misc/DeviceConfig.js"
 
-import { isOfTypeOrSubfolderOf, MailModel } from "../model/MailModel.js"
+import { MailModel } from "../model/MailModel.js"
+import { isOfTypeOrSubfolderOf } from "../model/MailUtils.js"
 
 export type MailViewerViewModelFactory = (options: CreateMailViewerOptions) => MailViewerViewModel
 

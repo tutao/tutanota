@@ -17,14 +17,14 @@ import { elementIdPart, isSameId } from "../../common/api/common/utils/EntityUti
 import { assertMainOrNode } from "../../common/api/common/Env"
 import { locator } from "../../common/api/main/CommonLocator"
 import { isOfflineError } from "../../common/api/common/utils/ErrorUtils.js"
+import { mailLocator } from "../mailLocator.js"
 import {
+	assertSystemFolderOfType,
 	getExistingRuleForType,
 	getFolderName,
 	getIndentedFolderNameForDropdown,
 	getPathToFolderString,
-} from "../../common/mailFunctionality/SharedMailUtils.js"
-import { assertSystemFolderOfType } from "../mail/model/MailModel.js"
-import { mailLocator } from "../mailLocator.js"
+} from "../mail/model/MailUtils.js"
 
 assertMainOrNode()
 

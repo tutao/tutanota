@@ -101,9 +101,9 @@ import { getEventWithDefaultTimes, setNextHalfHour } from "../../../common/api/c
 import { showNewCalendarEventEditDialog } from "../../../calendar-app/calendar/gui/eventeditor-view/CalendarEventEditDialog.js"
 import { getSharedGroupName } from "../../../common/sharing/GroupUtils.js"
 import { YEAR_IN_MILLIS } from "@tutao/tutanota-utils/dist/DateUtils.js"
-import { getIndentedFolderNameForDropdown } from "../../../common/mailFunctionality/SharedMailUtils.js"
 import { BottomNav } from "../../gui/BottomNav.js"
 import { mailLocator } from "../../mailLocator.js"
+import { getIndentedFolderNameForDropdown } from "../../mail/model/MailUtils.js"
 
 assertMainOrNode()
 

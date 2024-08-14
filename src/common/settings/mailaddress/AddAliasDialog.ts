@@ -1,6 +1,6 @@
 import { lang, TranslationKey } from "../../misc/LanguageViewModel.js"
 import { Dialog } from "../../gui/base/Dialog.js"
-import { DEFAULT_FREE_MAIL_ADDRESS_SIGNUP_DOMAIN, NewPaidPlans, TUTANOTA_MAIL_ADDRESS_DOMAINS } from "../../api/common/TutanotaConstants.js"
+import { DEFAULT_FREE_MAIL_ADDRESS_SIGNUP_DOMAIN, NewPaidPlans, TUTA_MAIL_ADDRESS_DOMAINS } from "../../api/common/TutanotaConstants.js"
 import m from "mithril"
 import { SelectMailAddressForm } from "../SelectMailAddressForm.js"
 import { ExpanderPanel } from "../../gui/base/Expander.js"
@@ -16,7 +16,7 @@ const FAILURE_USER_DISABLED = "mailaddressaliasservice.group_disabled"
 
 export function showAddAliasDialog(model: MailAddressTableModel, isNewPaidPlan: boolean) {
 	model.getAvailableDomains().then((domains) => {
-		const hasCustomDomains = domains.some((domain) => !TUTANOTA_MAIL_ADDRESS_DOMAINS.includes(domain.domain))
+		const hasCustomDomains = domains.some((domain) => !TUTA_MAIL_ADDRESS_DOMAINS.includes(domain.domain))
 		if (model.aliasCount && filterInt(model.aliasCount.usedAliases) >= filterInt(model.aliasCount.totalAliases)) {
 			if (!(isNewPaidPlan && hasCustomDomains)) {
 				model.handleTooManyAliases().catch(ofClass(UpgradeRequiredError, (e) => showPlanUpgradeRequiredDialog(e.plans, e.message)))
@@ -80,7 +80,7 @@ export function showAddAliasDialog(model: MailAddressTableModel, isNewPaidPlan: 
 						m(
 							ExpanderPanel,
 							{
-								expanded: TUTANOTA_MAIL_ADDRESS_DOMAINS.includes(formDomain.domain),
+								expanded: TUTA_MAIL_ADDRESS_DOMAINS.includes(formDomain.domain),
 							},
 							m(".pt", lang.get("permanentAliasWarning_msg")),
 						),
