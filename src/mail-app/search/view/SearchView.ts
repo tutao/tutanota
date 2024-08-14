@@ -97,7 +97,7 @@ import {
 } from "../../../calendar-app/calendar/view/EventDetailsView.js"
 import { showProgressDialog } from "../../../common/gui/dialogs/ProgressDialog.js"
 import { CalendarOperation } from "../../../calendar-app/calendar/gui/eventeditor-model/CalendarEventModel.js"
-import { getEventWithDefaultTimes } from "../../../common/api/common/utils/CommonCalendarUtils.js"
+import { getEventWithDefaultTimes, setNextHalfHour } from "../../../common/api/common/utils/CommonCalendarUtils.js"
 import { showNewCalendarEventEditDialog } from "../../../calendar-app/calendar/gui/eventeditor-view/CalendarEventEditDialog.js"
 import { getSharedGroupName } from "../../../common/sharing/GroupUtils.js"
 import { YEAR_IN_MILLIS } from "@tutao/tutanota-utils/dist/DateUtils.js"
@@ -980,7 +980,7 @@ export class SearchView extends BaseTopLevelView implements TopLevelView<SearchV
 	}
 
 	private async createNewEventDialog(): Promise<void> {
-		const dateToUse = this.searchViewModel.startDate ?? new Date()
+		const dateToUse = this.searchViewModel.startDate ? setNextHalfHour(new Date(this.searchViewModel.startDate)) : setNextHalfHour(new Date())
 
 		// Disallow creation of events when there is no existing calendar
 		const lazyCalendarInfo = this.searchViewModel.getLazyCalendarInfos()

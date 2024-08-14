@@ -28,7 +28,6 @@ import { SettingsViewAttrs } from "../common/settings/Interfaces.js"
 import { CalendarSearchView, CalendarSearchViewAttrs } from "./calendar/search/view/CalendarSearchView.js"
 import { CalendarSettingsView } from "./calendar/settings/CalendarSettingsView.js"
 import { CalendarSearchViewModel } from "./calendar/search/view/CalendarSearchViewModel.js"
-
 import { AppType } from "../common/misc/ClientConstants.js"
 
 assertMainOrNodeBoot()
@@ -132,7 +131,6 @@ import("../mail-app/translations/en.js")
 		}
 
 		styles.init(calendarLocator.themeController)
-		const { CalendarBottomNav } = await import("./gui/CalendarBottomNav.js")
 		const paths = applicationPaths({
 			login: makeViewResolver<LoginViewAttrs, LoginView, { makeViewModel: () => LoginViewModel }>(
 				{
@@ -221,7 +219,7 @@ import("../mail-app/translations/en.js")
 			calendar: makeViewResolver<
 				CalendarViewAttrs,
 				CalendarView,
-				{ drawerAttrsFactory: () => DrawerMenuAttrs; header: AppHeaderAttrs; calendarViewModel: CalendarViewModel; bottomNav: () => Children }
+				{ drawerAttrsFactory: () => DrawerMenuAttrs; header: AppHeaderAttrs; calendarViewModel: CalendarViewModel }
 			>(
 				{
 					prepareRoute: async (cache) => {
@@ -233,15 +231,13 @@ import("../mail-app/translations/en.js")
 								drawerAttrsFactory,
 								header: await calendarLocator.appHeaderAttrs(),
 								calendarViewModel: await calendarLocator.calendarViewModel(),
-								bottomNav: () => m(CalendarBottomNav),
 							},
 						}
 					},
-					prepareAttrs: ({ header, calendarViewModel, drawerAttrsFactory, bottomNav }) => ({
+					prepareAttrs: ({ header, calendarViewModel, drawerAttrsFactory }) => ({
 						drawerAttrs: drawerAttrsFactory(),
 						header,
 						calendarViewModel,
-						bottomNav,
 					}),
 				},
 				calendarLocator.logins,
