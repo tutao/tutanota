@@ -32,7 +32,8 @@ import { locator } from "../../../common/api/main/CommonLocator.js"
 import { PinchZoom } from "../../../common/gui/PinchZoom.js"
 import { responsiveCardHMargin, responsiveCardHPadding } from "../../../common/gui/cards.js"
 import { Dialog } from "../../../common/gui/base/Dialog.js"
-import { createNewContact, getExistingRuleForType } from "../../../common/mailFunctionality/SharedMailUtils.js"
+import { createNewContact } from "../../../common/mailFunctionality/SharedMailUtils.js"
+import { getExistingRuleForType } from "../model/MailUtils.js"
 
 assertMainOrNode()
 

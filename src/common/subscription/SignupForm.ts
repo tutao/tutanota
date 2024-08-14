@@ -10,7 +10,7 @@ import {
 	AccountType,
 	DEFAULT_FREE_MAIL_ADDRESS_SIGNUP_DOMAIN,
 	DEFAULT_PAID_MAIL_ADDRESS_SIGNUP_DOMAIN,
-	TUTANOTA_MAIL_ADDRESS_SIGNUP_DOMAINS,
+	TUTA_MAIL_ADDRESS_SIGNUP_DOMAINS,
 } from "../api/common/TutanotaConstants"
 
 import type { CheckboxAttrs } from "../gui/base/Checkbox.js"
@@ -57,7 +57,7 @@ export class SignupForm implements Component<SignupFormAttrs> {
 	private __signupPaidTest?: UsageTest
 
 	private readonly availableDomains: readonly EmailDomainData[] = (locator.domainConfigProvider().getCurrentDomainConfig().firstPartyDomain
-		? TUTANOTA_MAIL_ADDRESS_SIGNUP_DOMAINS
+		? TUTA_MAIL_ADDRESS_SIGNUP_DOMAINS
 		: getWhitelabelRegistrationDomains()
 	).map((domain) => ({ domain, isPaid: isPaidPlanDomain(domain) }))
 

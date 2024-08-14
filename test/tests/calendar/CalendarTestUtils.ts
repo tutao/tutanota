@@ -29,7 +29,6 @@ import {
 	TutanotaPropertiesTypeRef,
 } from "../../../src/common/api/entities/tutanota/TypeRefs.js"
 import type { CalendarInfo } from "../../../src/calendar-app/calendar/model/CalendarModel"
-import { FolderSystem } from "../../../src/common/api/common/mail/FolderSystem.js"
 import { Recipient, RecipientType } from "../../../src/common/api/common/recipients/Recipient.js"
 import { DateTime } from "luxon"
 import { createTestEntity } from "../TestUtils.js"
