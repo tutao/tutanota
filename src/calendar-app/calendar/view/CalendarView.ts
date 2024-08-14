@@ -12,7 +12,6 @@ import { createGroupSettings } from "../../../common/api/entities/tutanota/TypeR
 import { defaultCalendarColor, GroupType, Keys, reverse, ShareCapability, TabIndex, TimeFormat, WeekStart } from "../../../common/api/common/TutanotaConstants"
 import { locator } from "../../../common/api/main/CommonLocator"
 import {
-	AlarmInterval,
 	getStartOfTheWeekOffset,
 	getStartOfTheWeekOffsetForUser,
 	getTimeZone,
@@ -24,7 +23,7 @@ import { CalendarMonthView } from "./CalendarMonthView"
 import { DateTime } from "luxon"
 import { NotFoundError } from "../../../common/api/common/error/RestError"
 import { CalendarAgendaView, CalendarAgendaViewAttrs } from "./CalendarAgendaView"
-import { createDefaultAlarmInfo, GroupInfo } from "../../../common/api/entities/sys/TypeRefs.js"
+import { createDefaultAlarmInfo } from "../../../common/api/entities/sys/TypeRefs.js"
 import { showEditCalendarDialog } from "../gui/EditCalendarDialog.js"
 import { styles } from "../../../common/gui/styles"
 import { MultiDayCalendarView } from "./MultiDayCalendarView"
@@ -73,6 +72,8 @@ import { DaySelectorSidebar } from "../gui/day-selector/DaySelectorSidebar.js"
 import { CalendarOperation } from "../gui/eventeditor-model/CalendarEventModel.js"
 import { DaySelectorPopup } from "../gui/day-selector/DaySelectorPopup.js"
 import { CalendarEventPreviewViewModel } from "../gui/eventpopup/CalendarEventPreviewViewModel.js"
+import { client } from "../../../common/misc/ClientDetector.js"
+import { FloatingActionButton } from "../../gui/FloatingActionButton.js"
 
 export type GroupColors = Map<Id, string>
 
@@ -80,7 +81,7 @@ export interface CalendarViewAttrs extends TopLevelAttrs {
 	drawerAttrs: DrawerMenuAttrs
 	header: AppHeaderAttrs
 	calendarViewModel: CalendarViewModel
-	bottomNav: () => Children
+	bottomNav?: () => Children
 }
 
 const CalendarViewTypeByValue = reverse(CalendarViewType)
@@ -210,6 +211,7 @@ export class CalendarView extends BaseTopLevelView implements TopLevelView<Calen
 									hiddenCalendars: this.viewModel.hiddenCalendars,
 									dragHandlerCallbacks: this.viewModel,
 								}),
+								floatingActionButton: this.renderFab.bind(this),
 							})
 						case CalendarViewType.DAY:
 							return m(BackgroundColumnLayout, {
@@ -240,6 +242,7 @@ export class CalendarView extends BaseTopLevelView implements TopLevelView<Calen
 									onScrollPositionChange: (newPosition: number) => this.viewModel.setScrollPosition(newPosition),
 									onViewChanged: (vnode) => this.viewModel.setViewParameters(vnode.dom as HTMLElement),
 								}),
+								floatingActionButton: this.renderFab.bind(this),
 							})
 
 						case CalendarViewType.WEEK:
@@ -272,6 +275,7 @@ export class CalendarView extends BaseTopLevelView implements TopLevelView<Calen
 									onScrollPositionChange: (newPosition: number) => this.viewModel.setScrollPosition(newPosition),
 									onViewChanged: (vnode) => this.viewModel.setViewParameters(vnode.dom as HTMLElement),
 								}),
+								floatingActionButton: this.renderFab.bind(this),
 							})
 
 						case CalendarViewType.AGENDA:
@@ -315,6 +319,7 @@ export class CalendarView extends BaseTopLevelView implements TopLevelView<Calen
 									onViewChanged: (vnode) => this.viewModel.setViewParameters(vnode.dom as HTMLElement),
 									onNewEvent: (date) => this.createNewEventDialog(date),
 								} satisfies CalendarAgendaViewAttrs),
+								floatingActionButton: this.renderFab.bind(this),
 							})
 
 						default:
@@ -369,6 +374,19 @@ export class CalendarView extends BaseTopLevelView implements TopLevelView<Calen
 		}
 	}
 
+	private renderFab(): Children {
+		if (client.isCalendarApp()) {
+			return m(FloatingActionButton, {
+				icon: Icons.Add,
+				title: "newEvent_action",
+				colors: ButtonColor.Fab,
+				action: () => this.createNewEventDialog(),
+			})
+		}
+
+		return null
+	}
+
 	private renderDesktopToolbar(): Children {
 		return m(CalendarDesktopToolbar, {
 			navConfig: calendarNavConfiguration(this.currentViewType, this.viewModel.selectedDate(), this.viewModel.weekStart, "detailed", (viewType, next) =>
@@ -398,7 +416,6 @@ export class CalendarView extends BaseTopLevelView implements TopLevelView<Calen
 				"short",
 				(viewType, next) => this.viewPeriod(viewType, next),
 			),
-			onCreateEvent: () => this.createNewEventDialog(),
 			onToday: () => {
 				// in case it has been set, when onToday is called we definitely do not want the time to be ignored
 				this.viewModel.ignoreNextValidTimeSelection = false
@@ -838,7 +855,7 @@ export class CalendarView extends BaseTopLevelView implements TopLevelView<Calen
 						}),
 					...attrs.header,
 				}),
-				bottomNav: attrs.bottomNav(),
+				bottomNav: attrs.bottomNav?.(),
 			}),
 		)
 	}

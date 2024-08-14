@@ -9,8 +9,9 @@ import { ViewHolder } from "../../../common/gui/base/List.js"
 import { styles } from "../../../common/gui/styles.js"
 import { DefaultAnimationTime } from "../../../common/gui/animation/Animations.js"
 
-import { formatEventDuration, getEventColor, getGroupColors } from "../gui/CalendarGuiUtils.js"
+import { formatEventDuration, getDisplayEventTitle, getEventColor, getGroupColors } from "../gui/CalendarGuiUtils.js"
 import { GroupColors } from "./CalendarView.js"
+import { lang } from "../../../common/misc/LanguageViewModel.js"
 
 export class CalendarRow implements VirtualRow<CalendarEvent> {
 	top: number
@@ -31,7 +32,7 @@ export class CalendarRow implements VirtualRow<CalendarEvent> {
 
 	update(event: CalendarEvent, selected: boolean, isInMultiSelect: boolean): void {
 		this.entity = event
-		this.summaryDom.innerText = event.summary
+		this.summaryDom.innerText = getDisplayEventTitle(event.summary)
 		this.calendarIndicatorDom.style.backgroundColor = `#${getEventColor(event, this.colors)}`
 		this.durationDom.innerText = formatEventDuration(this.entity, getTimeZone(), false)
 
