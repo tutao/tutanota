@@ -68,19 +68,11 @@ import { CryptoFacade } from "../../../common/api/worker/crypto/CryptoFacade.js"
 import { AttachmentType, getAttachmentType } from "../../../common/gui/AttachmentBubble.js"
 import type { ContactImporter } from "../../contacts/ContactImporter.js"
 import { InlineImages, revokeInlineImages } from "../../../common/mailFunctionality/inlineImagesUtils.js"
-import {
-	getDefaultSender,
-	getEnabledMailAddressesWithUser,
-	getFolderName,
-	getMailboxName,
-	getPathToFolderString,
-	loadMailDetails,
-	loadMailHeaders,
-} from "../../../common/mailFunctionality/SharedMailUtils.js"
-import { isSystemNotification, isNoReplyTeamAddress } from "../../../common/mailFunctionality/SharedMailUtils.js"
+import { getDefaultSender, getEnabledMailAddressesWithUser, getMailboxName } from "../../../common/mailFunctionality/SharedMailUtils.js"
 import { getDisplayedSender, getMailBodyText, MailAddressAndName } from "../../../common/api/common/CommonMailUtils.js"
-import { assertSystemFolderOfType, MailModel } from "../model/MailModel.js"
-import { CalendarModel } from "../../../calendar-app/calendar/model/CalendarModel.js"
+import { MailModel } from "../model/MailModel.js"
+import { isNoReplyTeamAddress, isSystemNotification, loadMailDetails } from "./MailViewerUtils.js"
+import { assertSystemFolderOfType, getFolderName, getPathToFolderString, loadMailHeaders } from "../model/MailUtils.js"
 import { mailLocator } from "../../mailLocator.js"
 
 export const enum ContentBlockingStatus {

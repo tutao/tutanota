@@ -30,9 +30,9 @@ import { theme } from "../../../common/gui/theme.js"
 import { VirtualRow } from "../../../common/gui/base/ListUtils.js"
 import { isKeyPressed } from "../../../common/misc/KeyManager.js"
 import { ListModel } from "../../../common/misc/ListModel.js"
-import { canDoDragAndDropExport } from "../../../common/mailFunctionality/SharedMailUtils.js"
-import { assertSystemFolderOfType, isOfTypeOrSubfolderOf } from "../model/MailModel.js"
 import { mailLocator } from "../../mailLocator.js"
+import { assertSystemFolderOfType, isOfTypeOrSubfolderOf } from "../model/MailUtils.js"
+import { canDoDragAndDropExport } from "./MailViewerUtils.js"
 
 assertMainOrNode()
 

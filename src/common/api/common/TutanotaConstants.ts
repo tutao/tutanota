@@ -338,7 +338,7 @@ export const Const: ConstType = {
 	EXECUTE_KDF_MIGRATION: false,
 } as const
 
-export const TUTANOTA_MAIL_ADDRESS_DOMAINS: ReadonlyArray<string> = Object.freeze([
+export const TUTA_MAIL_ADDRESS_DOMAINS: ReadonlyArray<string> = Object.freeze([
 	"tuta.com",
 	"tutamail.com",
 	"tuta.io",
@@ -346,7 +346,7 @@ export const TUTANOTA_MAIL_ADDRESS_DOMAINS: ReadonlyArray<string> = Object.freez
 	"tutanota.de",
 	"keemail.me",
 ])
-export const TUTANOTA_MAIL_ADDRESS_SIGNUP_DOMAINS = TUTANOTA_MAIL_ADDRESS_DOMAINS
+export const TUTA_MAIL_ADDRESS_SIGNUP_DOMAINS = TUTA_MAIL_ADDRESS_DOMAINS
 export const DEFAULT_PAID_MAIL_ADDRESS_SIGNUP_DOMAIN = "tuta.com"
 export const DEFAULT_FREE_MAIL_ADDRESS_SIGNUP_DOMAIN = "tutamail.com"
 
@@ -354,7 +354,7 @@ export const enum ConversationType {
 	NEW = "0",
 	REPLY = "1",
 	FORWARD = "2",
-	/**  a message for which no mail exists in Tutanota (unknown external mail or deleted mail) */
+	/**  a message for which no mail exists in Tuta (unknown external mail or deleted mail) */
 	UNKNOWN = "3",
 }
 
