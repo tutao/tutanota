@@ -11,6 +11,7 @@ import { styles } from "../styles.js"
 import { AriaLandmarks } from "../AriaUtils.js"
 import { LayerType } from "../../../RootView.js"
 import { assertMainOrNode } from "../../api/common/Env.js"
+import { client } from "../../misc/ClientDetector.js"
 
 assertMainOrNode()
 export type GestureInfo = {
@@ -28,7 +29,7 @@ export const gestureInfoFromTouch = (touch: Touch): GestureInfo => ({
 
 interface ViewSliderAttrs {
 	header: Children
-	bottomNav: Children
+	bottomNav?: Children
 }
 
 /**
@@ -128,7 +129,7 @@ export class ViewSlider implements Component<ViewSliderAttrs> {
 							}),
 						),
 					),
-					styles.isUsingBottomNavigation() ? attrs.bottomNav : null,
+					styles.isUsingBottomNavigation() && !client.isCalendarApp() ? attrs.bottomNav : null,
 					this.getColumnsForOverlay().map((c) => m(c, {})),
 					this.createModalBackground(),
 				],

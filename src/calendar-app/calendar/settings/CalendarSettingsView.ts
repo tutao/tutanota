@@ -35,16 +35,16 @@ import { ReferralSettingsViewer } from "../../../common/settings/ReferralSetting
 import { GroupDetailsView } from "../../../common/settings/groups/GroupDetailsView.js"
 import { TemplateDetailsViewer } from "../../../mail-app/settings/TemplateDetailsViewer.js"
 import { KnowledgeBaseSettingsDetailsViewer } from "../../../mail-app/settings/KnowledgeBaseListView.js"
-import { NavButtonAttrs, NavButtonColor } from "../../../common/gui/base/NavButton.js"
+import { NavButton, NavButtonAttrs, NavButtonColor } from "../../../common/gui/base/NavButton.js"
 import { CustomerInfoTypeRef, CustomerTypeRef, User } from "../../../common/api/entities/sys/TypeRefs.js"
 import { Dialog } from "../../../common/gui/base/Dialog.js"
 import { AboutDialog } from "../../../common/settings/AboutDialog.js"
 import { SettingsViewAttrs, UpdatableSettingsDetailsViewer, UpdatableSettingsViewer } from "../../../common/settings/Interfaces.js"
 import { NotificationSettingsViewer } from "./NotificationSettingsViewer.js"
 import { GlobalSettingsViewer } from "./GlobalSettingsViewer.js"
-import { CalendarBottomNav } from "../../gui/CalendarBottomNav.js"
 import { calendarLocator } from "../../calendarLocator.js"
 import { locator } from "../../../common/api/main/CommonLocator.js"
+import { CALENDAR_PREFIX } from "../../../common/misc/RouteChange.js"
 
 assertMainOrNode()
 
@@ -153,7 +153,15 @@ export class CalendarSettingsView extends BaseTopLevelView implements TopLevelVi
 								columnType: "first",
 								title: lang.getMaybeLazy(this._selectedFolder.name),
 								actions: [],
-								primaryAction: () => null,
+								primaryAction: () =>
+									m(NavButton, {
+										label: "calendar_label",
+										hideLabel: true,
+										icon: () => BootIcons.Calendar,
+										href: CALENDAR_PREFIX,
+										centred: true,
+										fillSpaceAround: false,
+									}),
 							}),
 						desktopToolbar: () => null,
 					}),
@@ -318,7 +326,6 @@ export class CalendarSettingsView extends BaseTopLevelView implements TopLevelVi
 				header: m(Header, {
 					...attrs.header,
 				}),
-				bottomNav: m(CalendarBottomNav),
 			}),
 		)
 	}

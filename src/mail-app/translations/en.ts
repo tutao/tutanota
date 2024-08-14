@@ -185,6 +185,7 @@ export default {
 		"calendarRepeatStopCondition_label": "Ends",
 		"calendarView_action": "Switch to the calendar view",
 		"calendar_label": "Calendar",
+		"calendarDefaultReminder_label": "Default reminder before event",
 		"callNumber_alt": "Call this number",
 		"cameraUsageDescription_msg": "Take a picture or video for adding it as attachment.",
 		"cancelContactForm_label": "Cancel contact form",
