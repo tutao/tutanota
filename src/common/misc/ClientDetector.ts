@@ -1,4 +1,4 @@
-import { assertMainOrNodeBoot, Mode } from "../api/common/Env"
+import { assertMainOrNodeBoot, isApp, Mode } from "../api/common/Env"
 import { AppType, BrowserData, BrowserType, DeviceType } from "./ClientConstants"
 
 assertMainOrNodeBoot()
@@ -390,6 +390,10 @@ export class ClientDetector {
 
 	compressionStreamSupported(): boolean {
 		return typeof CompressionStream !== "undefined"
+	}
+
+	isCalendarApp() {
+		return isApp() && this.appType === AppType.Calendar
 	}
 }
 

@@ -189,6 +189,7 @@ export default {
 		"calendarRepeatStopCondition_label": "Endet",
 		"calendarView_action": "Zur Kalendar-Ansicht wechseln",
 		"calendar_label": "Kalender",
+		"calendarDefaultReminder_label": "Standarderinnerung vor dem Ereignis",
 		"callNumber_alt": "Diese Telefonnummer anrufen",
 		"cameraUsageDescription_msg": "Die Kamera wird verwendet, um Videos aufzunehmen und diese als Anhang zu versenden.",
 		"cancelContactForm_label": "Abbestellung von Kontaktformular",

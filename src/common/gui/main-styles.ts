@@ -2546,5 +2546,15 @@ styles.registerStyle("main", () => {
 		".overflow-auto": {
 			overflow: "auto",
 		},
+		".float-action-button": {
+			position: "fixed",
+			"border-radius": "25%",
+		},
+		".posb-ml": {
+			bottom: px(size.vpad_ml),
+		},
+		".posr-ml": {
+			right: px(size.vpad_ml),
+		},
 	}
 })
