@@ -35,6 +35,18 @@ android {
 		buildConfig = true
 	}
 
+	buildFeatures {
+		buildConfig = true
+	}
+
+	buildTypes.map {
+		// keep in sync with src/native/main/NativePushServiceApp.ts
+		it.buildConfigField("String", "SYS_MODEL_VERSION", "\"99\"")
+		it.buildConfigField("String", "TUTANOTA_MODEL_VERSION", "\"73\"")
+		it.buildConfigField("String", "RES_ADDRESS", "\"tutanota\"")
+		it.buildConfigField("String", "VERSION_NAME", "\"240.240731.0\"")
+	}
+
 	buildTypes {
 		debug {
 			resValue("string", "package_name", "de.tutao.tutashared.debug")

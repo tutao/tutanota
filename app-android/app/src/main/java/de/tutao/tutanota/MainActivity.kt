@@ -52,8 +52,6 @@ import de.tutao.tutanota.push.notificationDismissedIntent
 import de.tutao.tutanota.webauthn.AndroidWebauthnFacade
 import de.tutao.tutashared.AndroidNativeCryptoFacade
 import de.tutao.tutashared.CancelledError
-import de.tutao.tutashared.ModuleBuildConfig
-import de.tutao.tutashared.ModuleResources
 import de.tutao.tutashared.NetworkUtils
 import de.tutao.tutashared.createAndroidKeyStoreFacade
 import de.tutao.tutashared.credentials.CredentialsEncryptionFactory
@@ -117,19 +115,6 @@ class MainActivity : FragmentActivity() {
 	@SuppressLint("SetJavaScriptEnabled", "StaticFieldLeak")
 	override fun onCreate(savedInstanceState: Bundle?) {
 		Log.d(TAG, "App started")
-
-		ModuleBuildConfig.init(
-			BuildConfig.SYS_MODEL_VERSION,
-			BuildConfig.VERSION_NAME,
-			BuildConfig.TUTANOTA_MODEL_VERSION,
-			BuildConfig.DEBUG
-		)
-
-		ModuleResources.init(
-			mapOf(
-				"unlockCredentials_action" to getText(R.string.unlockCredentials_action).toString(),
-			)
-		)
 
 		// App is handling a redelivered intent, ignoring as we probably already handled it
 		if (savedInstanceState != null && (intent.action == OPEN_USER_MAILBOX_ACTION || intent.action == OPEN_CALENDAR_ACTION)) {
@@ -217,9 +202,9 @@ class MainActivity : FragmentActivity() {
 			cacheMode = WebSettings.LOAD_NO_CACHE
 			// needed for external content in mail
 			mixedContentMode = WebSettings.MIXED_CONTENT_ALWAYS_ALLOW
-				// Safe browsing is not needed because we are loading our own resources only.
-				// Also we don't want to report every URL that we load to Google.
-				// Also it causes random lag in loading resources, see https://github.com/tutao/tutanota/issues/5830
+			// Safe browsing is not needed because we are loading our own resources only.
+			// Also we don't want to report every URL that we load to Google.
+			// Also it causes random lag in loading resources, see https://github.com/tutao/tutanota/issues/5830
 			safeBrowsingEnabled = false
 		}
 
@@ -453,34 +438,34 @@ class MainActivity : FragmentActivity() {
 	}
 
 	private fun handleIntent(intent: Intent) = lifecycleScope.launch {
-			// When we redirect to the app from outside, for example after doing payment verification,
-			// we don't want to do any kind of intent handling
-			val data = intent.data
+		// When we redirect to the app from outside, for example after doing payment verification,
+		// we don't want to do any kind of intent handling
+		val data = intent.data
 
-			if (data != null && data.scheme == "tutanota" && data.host == "webauthn") {
-				handleWebauthn(intent, data)
-			}
+		if (data != null && data.scheme == "tutanota" && data.host == "webauthn") {
+			handleWebauthn(intent, data)
+		}
 
-			if (data != null && data.toString().startsWith("tutanota://")) {
-				return@launch
-			}
+		if (data != null && data.toString().startsWith("tutanota://")) {
+			return@launch
+		}
 
-			if (intent.action != null && !intent.getBooleanExtra(ALREADY_HANDLED_INTENT, false)) {
-				when (intent.action) {
-					Intent.ACTION_SEND, Intent.ACTION_SEND_MULTIPLE, Intent.ACTION_SENDTO -> share(
+		if (intent.action != null && !intent.getBooleanExtra(ALREADY_HANDLED_INTENT, false)) {
+			when (intent.action) {
+				Intent.ACTION_SEND, Intent.ACTION_SEND_MULTIPLE, Intent.ACTION_SENDTO -> share(
 					intent
-					)
+				)
 
-					OPEN_USER_MAILBOX_ACTION -> openMailbox(intent)
-					OPEN_CALENDAR_ACTION -> openCalendar(intent)
-					Intent.ACTION_VIEW -> {
-						when (intent.scheme) {
-							"mailto" -> share(intent)
-							"file" -> view(intent)
-							"content" -> view(intent)
-						}
+				OPEN_USER_MAILBOX_ACTION -> openMailbox(intent)
+				OPEN_CALENDAR_ACTION -> openCalendar(intent)
+				Intent.ACTION_VIEW -> {
+					when (intent.scheme) {
+						"mailto" -> share(intent)
+						"file" -> view(intent)
+						"content" -> view(intent)
 					}
 				}
+			}
 		}
 	}
 
@@ -579,8 +564,9 @@ class MainActivity : FragmentActivity() {
 			activityRequests[requestCode] = continuation
 			// we need requestCode to identify the request which is not possible with new API
 			if (intent != null) {
-			super.startActivityForResult(intent, requestCode)
-		}}
+				super.startActivityForResult(intent, requestCode)
+			}
+		}
 
 	override fun onActivityResult(requestCode: Int, resultCode: Int, data: Intent?) {
 		super.onActivityResult(requestCode, resultCode, data)
