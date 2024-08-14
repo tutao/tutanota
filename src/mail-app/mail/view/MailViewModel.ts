@@ -45,8 +45,9 @@ import { Router } from "../../../common/gui/ScopedRouter.js"
 import { ListFetchResult } from "../../../common/gui/base/ListUtils.js"
 import { EntityUpdateData, isUpdateForTypeRef } from "../../../common/api/common/utils/EntityUpdateUtils.js"
 import { EventController } from "../../../common/api/main/EventController.js"
-import { getMailFilterForType, MailFilterType } from "../../../common/mailFunctionality/SharedMailUtils.js"
-import { assertSystemFolderOfType, isOfTypeOrSubfolderOf, isSpamOrTrashFolder, isSubfolderOfType, MailModel } from "../model/MailModel.js"
+import { MailModel } from "../model/MailModel.js"
+import { assertSystemFolderOfType, isOfTypeOrSubfolderOf, isSpamOrTrashFolder, isSubfolderOfType } from "../model/MailUtils.js"
+import { getMailFilterForType, MailFilterType } from "./MailViewerUtils.js"
 import { CacheMode } from "../../../common/api/worker/rest/EntityRestClient.js"
 
 export interface MailOpenedListener {

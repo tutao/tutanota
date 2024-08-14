@@ -11,10 +11,9 @@ import { elementIdPart, isSameId } from "../../../common/api/common/utils/Entity
 import { assertMainOrNode } from "../../../common/api/common/Env"
 import { MailFacade } from "../../../common/api/worker/facades/lazy/MailFacade.js"
 import { LoginController } from "../../../common/api/main/LoginController.js"
-import { getMailHeaders } from "../../../common/mailFunctionality/SharedMailUtils.js"
 import { throttle } from "@tutao/tutanota-utils/dist/Utils.js"
-import { assertSystemFolderOfType } from "./MailModel.js"
 import { mailLocator } from "../../mailLocator.js"
+import { getMailHeaders } from "./MailUtils.js"
 
 assertMainOrNode()
 const moveMailDataPerFolder: MoveMailData[] = []
