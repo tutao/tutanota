@@ -18,7 +18,7 @@ import { lang, TranslationKey } from "../../../../common/misc/LanguageViewModel.
 import { BackgroundColumnLayout } from "../../../../common/gui/BackgroundColumnLayout.js"
 import { theme } from "../../../../common/gui/theme.js"
 import { DesktopListToolbar, DesktopViewerToolbar } from "../../../../common/gui/DesktopToolbars.js"
-import { SearchListView, CalendarSearchListViewAttrs } from "./SearchListView.js"
+import { CalendarSearchListViewAttrs, SearchListView } from "./SearchListView.js"
 import { isSameId } from "../../../../common/api/common/utils/EntityUtils.js"
 import { keyManager, Shortcut } from "../../../../common/misc/KeyManager.js"
 import { EnterMultiselectIconButton } from "../../../../common/gui/EnterMultiselectIconButton.js"
@@ -50,15 +50,18 @@ import { MultiselectMode } from "../../../../common/gui/base/List.js"
 import { ClickHandler } from "../../../../common/gui/base/GuiUtils.js"
 import { showProgressDialog } from "../../../../common/gui/dialogs/ProgressDialog.js"
 import { CalendarOperation } from "../../gui/eventeditor-model/CalendarEventModel.js"
-import { getEventWithDefaultTimes } from "../../../../common/api/common/utils/CommonCalendarUtils.js"
+import { getEventWithDefaultTimes, setNextHalfHour } from "../../../../common/api/common/utils/CommonCalendarUtils.js"
 import { showNewCalendarEventEditDialog } from "../../gui/eventeditor-view/CalendarEventEditDialog.js"
 import { getSharedGroupName } from "../../../../common/sharing/GroupUtils.js"
 import { CalendarInfo } from "../../model/CalendarModel.js"
 import { Checkbox, CheckboxAttrs } from "../../../../common/gui/base/Checkbox.js"
 import { MobileActionAttrs, MobileActionBar } from "../../../../common/gui/MobileActionBar.js"
-import { assertMainOrNode } from "../../../../common/api/common/Env.js"
-import { CalendarBottomNav } from "../../../gui/CalendarBottomNav.js"
+import { assertMainOrNode, isApp } from "../../../../common/api/common/Env.js"
 import { calendarLocator } from "../../../calendarLocator.js"
+import { client } from "../../../../common/misc/ClientDetector.js"
+import { FloatingActionButton } from "../../../gui/FloatingActionButton.js"
+import { CALENDAR_PREFIX } from "../../../../common/misc/RouteChange.js"
+import { ButtonColor } from "../../../../common/gui/base/Button.js"
 
 assertMainOrNode()
 
@@ -137,6 +140,7 @@ export class CalendarSearchView extends BaseTopLevelView implements TopLevelView
 						desktopToolbar: () => m(DesktopListToolbar, [m(".button-height")]),
 						mobileHeader: () => this.renderMobileListHeader(vnode.attrs.header),
 						columnLayout: this.getResultColumnLayout(),
+						floatingActionButton: this.renderFab.bind(this),
 					})
 				},
 			},
@@ -158,6 +162,19 @@ export class CalendarSearchView extends BaseTopLevelView implements TopLevelView
 			},
 		)
 		this.viewSlider = new ViewSlider([this.folderColumn, this.resultListColumn, this.resultDetailsColumn])
+	}
+
+	private renderFab(): Children {
+		if (client.isCalendarApp()) {
+			return m(FloatingActionButton, {
+				icon: Icons.Add,
+				title: "newEvent_action",
+				colors: ButtonColor.Fab,
+				action: () => this.createNewEventDialog(),
+			})
+		}
+
+		return null
 	}
 
 	private getResultColumnLayout() {
@@ -195,14 +212,6 @@ export class CalendarSearchView extends BaseTopLevelView implements TopLevelView
 
 	private renderMobileListActionsHeader(header: AppHeaderAttrs) {
 		const rightActions = []
-
-		rightActions.push(
-			m(EnterMultiselectIconButton, {
-				clickAction: () => {
-					this.searchViewModel.listModel?.enterMultiselect()
-				},
-			}),
-		)
 
 		if (styles.isSingleColumnLayout()) {
 			rightActions.push(this.renderHeaderRightView())
@@ -259,6 +268,7 @@ export class CalendarSearchView extends BaseTopLevelView implements TopLevelView
 					: !this.getSanitizedPreviewData(selectedEvent).isLoaded()
 					? null
 					: this.renderEventDetails(selectedEvent),
+			floatingActionButton: this.renderFab.bind(this),
 		})
 	}
 
@@ -281,48 +291,49 @@ export class CalendarSearchView extends BaseTopLevelView implements TopLevelView
 		)
 	}
 
-	private renderBottomNav() {
-		if (!styles.isSingleColumnLayout()) return m(CalendarBottomNav)
+	private renderSearchResultActions() {
+		if (this.viewSlider.focusedColumn !== this.resultDetailsColumn) return null
 
-		const isInMultiselect = this.searchViewModel.listModel?.state.inMultiselect ?? false
-
-		if (this.viewSlider.focusedColumn === this.resultDetailsColumn) {
-			const selectedEvent = this.searchViewModel.getSelectedEvents()[0]
-			if (!selectedEvent) {
-				this.viewSlider.focus(this.resultListColumn)
-				return m(MobileActionBar, { actions: [] })
+		const selectedEvent = this.searchViewModel.getSelectedEvents()[0]
+		if (!selectedEvent) {
+			this.viewSlider.focus(this.resultListColumn)
+			return m(MobileActionBar, { actions: [] })
+		}
+		const previewModel = this.getSanitizedPreviewData(selectedEvent).getSync()
+		const actions: Array<MobileActionAttrs> = []
+		if (previewModel) {
+			if (previewModel.canSendUpdates) {
+				actions.push({
+					icon: BootIcons.Mail,
+					title: "sendUpdates_label",
+					action: () => handleSendUpdatesClick(previewModel),
+				})
 			}
-			const previewModel = this.getSanitizedPreviewData(selectedEvent).getSync()
-			const actions: Array<MobileActionAttrs> = []
-			if (previewModel) {
-				if (previewModel.canSendUpdates) {
-					actions.push({
-						icon: BootIcons.Mail,
-						title: "sendUpdates_label",
-						action: () => handleSendUpdatesClick(previewModel),
-					})
-				}
-				if (previewModel.canEdit) {
-					actions.push({
-						icon: Icons.Edit,
-						title: "edit_action",
-						action: (ev: MouseEvent, receiver: HTMLElement) => handleEventEditButtonClick(previewModel, ev, receiver),
-					})
-				}
-				if (previewModel.canDelete) {
-					actions.push({
-						icon: Icons.Trash,
-						title: "delete_action",
-						action: (ev: MouseEvent, receiver: HTMLElement) => handleEventDeleteButtonClick(previewModel, ev, receiver),
-					})
-				}
-			} else {
-				this.getSanitizedPreviewData(selectedEvent).load()
+			if (previewModel.canEdit) {
+				actions.push({
+					icon: Icons.Edit,
+					title: "edit_action",
+					action: (ev: MouseEvent, receiver: HTMLElement) => handleEventEditButtonClick(previewModel, ev, receiver),
+				})
 			}
-			return m(MobileActionBar, { actions })
+			if (previewModel.canDelete) {
+				actions.push({
+					icon: Icons.Trash,
+					title: "delete_action",
+					action: (ev: MouseEvent, receiver: HTMLElement) => handleEventDeleteButtonClick(previewModel, ev, receiver),
+				})
+			}
+		} else {
+			this.getSanitizedPreviewData(selectedEvent).load()
 		}
 
-		return m(CalendarBottomNav)
+		return actions.map((action) =>
+			m(IconButton, {
+				title: action.title,
+				icon: action.icon,
+				click: action.action,
+			}),
+		)
 	}
 
 	private searchBarPlaceholder() {
@@ -340,14 +351,24 @@ export class CalendarSearchView extends BaseTopLevelView implements TopLevelView
 	}
 
 	private renderHeaderRightView(): Children {
-		const restriction = this.searchViewModel.getRestriction()
-
-		if (styles.isUsingBottomNavigation()) {
+		if (styles.isUsingBottomNavigation() && !client.isCalendarApp()) {
 			return m(IconButton, {
 				click: () => this.createNewEventDialog(),
 				title: "newEvent_action",
 				icon: Icons.Add,
 			})
+		} else if (client.isCalendarApp()) {
+			return m.fragment({}, [
+				this.renderSearchResultActions(),
+				m(NavButton, {
+					label: "calendar_label",
+					hideLabel: true,
+					icon: () => BootIcons.Calendar,
+					href: CALENDAR_PREFIX,
+					centred: true,
+					fillSpaceAround: false,
+				}),
+			])
 		}
 	}
 
@@ -434,7 +455,7 @@ export class CalendarSearchView extends BaseTopLevelView implements TopLevelView
 	}
 
 	private async createNewEventDialog(): Promise<void> {
-		const dateToUse = this.searchViewModel.startDate ?? new Date()
+		const dateToUse = this.searchViewModel.startDate ? setNextHalfHour(new Date(this.searchViewModel.startDate)) : setNextHalfHour(new Date())
 
 		// Disallow creation of events when there is no existing calendar
 		const lazyCalendarInfo = this.searchViewModel.getLazyCalendarInfos()
@@ -520,7 +541,6 @@ export class CalendarSearchView extends BaseTopLevelView implements TopLevelView
 						}),
 					...attrs.header,
 				}),
-				bottomNav: this.renderBottomNav(),
 			}),
 		)
 	}
