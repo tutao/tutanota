@@ -1,11 +1,11 @@
 #!/usr/bin/env node
 // @ts-check
 
-import { Option, program } from "commander"
+import {Option, program} from "commander"
 import fs from "node:fs"
 import path from "node:path"
-import { $ } from "zx"
-import { calculateClientVersions } from "./versionUtils.js"
+import {$} from "zx"
+import {calculateClientVersions} from "./versionUtils.js"
 
 await program
 	.addOption(new Option("-p, --platform <platform>", "version for which platform to bump").choices(["all", "webdesktop", "android", "ios"]).default("all"))
@@ -22,9 +22,9 @@ await program
  * @param params.platform {undefined | "webdesktop" | "android" | "ios" | "all"}
  * @return {Promise<void>}
  */
-async function run({ platform }) {
+async function run({platform}) {
 	console.log(`bumping version for ${platform ?? "all"}`)
-	const { currentVersion, currentVersionString, newVersionString } = await calculateClientVersions()
+	const {currentVersion, currentVersionString, newVersionString} = await calculateClientVersions()
 
 	if (platform === "all" || platform === "webdesktop") {
 		await bumpWorkspaces(newVersionString)
@@ -34,7 +34,7 @@ async function run({ platform }) {
 		// are installed with the correct version. otherwise, npm list
 		// from the tutanota-3 postinstall script will complain about
 		// invalid installed versions after npm i.
-		await fs.promises.rm("./node_modules", { recursive: true })
+		await fs.promises.rm("./node_modules", {recursive: true})
 		await $`npm i`
 	}
 
@@ -43,8 +43,11 @@ async function run({ platform }) {
 	}
 
 	if (platform === "all" || platform === "android") {
-		await bumpAndroidVersion(currentVersion, newVersionString, "app-android/app/build.gradle")
-		await bumpAndroidVersion(currentVersion, newVersionString, "app-android/calendar/build.gradle.kts")
+		await bumpAndroidVersion("app-android/app/build.gradle")
+		await bumpAndroidVersion("app-android/calendar/build.gradle.kts")
+		await bumpAndroidVersionName(currentVersion, newVersionString, "app-android/app/build.gradle")
+		await bumpAndroidVersionName(currentVersion, newVersionString, "app-android/calendar/build.gradle.kts")
+		await bumpAndroidVersionName(currentVersion, newVersionString, "app-android/tutashared/build.gradle.kts")
 	}
 
 	console.log(`Bumped version ${currentVersionString} -> ${newVersionString}`)
@@ -82,12 +85,10 @@ async function replaceCfBundleVersion(filePath, newVersionString) {
 }
 
 /**
- * @param currentVersion {number[]}
- * @param newVersionString {string}
  * @param buildGradlePath {string}
  * @return {Promise<void>}
  */
-async function bumpAndroidVersion(currentVersion, newVersionString, buildGradlePath) {
+async function bumpAndroidVersion(buildGradlePath) {
 	const buildGradleString = await fs.promises.readFile(buildGradlePath, "utf8")
 
 	const kotlinRegex = /versionCode = (\d+)/
@@ -98,19 +99,34 @@ async function bumpAndroidVersion(currentVersion, newVersionString, buildGradleP
 	if (oldVersionCodeMatch == null) {
 		throw new Error(`Android: Could not find versionCode in ${buildGradlePath}! Is it corrupted?`)
 	}
+
 	const oldVersionCodeString = oldVersionCodeMatch[1]
 	const oldVersionCode = parseInt(oldVersionCodeString, 10)
 	if (Number.isNaN(oldVersionCode)) {
 		throw new Error(`Android: Detected version code as ${oldVersionCodeMatch[1]} but it is not a number! Is it corrupted`)
 	}
+
 	const newVersionCode = oldVersionCode + 1
 	const newVersionCodeString = String(newVersionCode)
 
 	const versionCodeToWrite = `versionCode ${buildGradlePath.endsWith("kts") ? "= " : ""}${newVersionCodeString}`
 	const newBuildGradleString = buildGradleString
-		.replace(new RegExp(currentVersion.join("\\.")), newVersionString)
 		.replace(new RegExp(versionRegex), versionCodeToWrite)
 	console.log(`Bumped Android versionCode: ${oldVersionCodeString} -> ${newVersionCodeString}`)
+	await fs.promises.writeFile(buildGradlePath, newBuildGradleString)
+}
+
+/**
+ * @param currentVersion {number[]}
+ * @param newVersionString {string}
+ * @param buildGradlePath {string}
+ * @return {Promise<void>}
+ */
+async function bumpAndroidVersionName(currentVersion, newVersionString, buildGradlePath) {
+	const buildGradleString = await fs.promises.readFile(buildGradlePath, "utf8")
+	const newBuildGradleString = buildGradleString
+		.replace(new RegExp(currentVersion.join("\\.")), newVersionString)
+	console.log(`Bumped Android versionName: ${currentVersion.join("\\.")} -> ${newVersionString}`)
 	await fs.promises.writeFile(buildGradlePath, newBuildGradleString)
 }
 
@@ -174,7 +190,7 @@ async function bumpWorkspaceVersion(version, workspace) {
  */
 async function readPackageJsonFromDir(directory) {
 	const packageJsonPath = path.join(directory, "package.json")
-	const packageJsonContents = await fs.promises.readFile(packageJsonPath, { encoding: "utf8" })
+	const packageJsonContents = await fs.promises.readFile(packageJsonPath, {encoding: "utf8"})
 	return JSON.parse(packageJsonContents)
 }
 
@@ -185,10 +201,10 @@ async function readPackageJsonFromDir(directory) {
  * @return {Promise<void>}
  */
 async function updateDependencyForWorkspaces(version, dependency, workspaces) {
-	await updateDependency({ version, dependency, directory: "." })
+	await updateDependency({version, dependency, directory: "."})
 	for (const workspace of workspaces) {
 		const directory = workspace.directory
-		await updateDependency({ version, dependency, directory })
+		await updateDependency({version, dependency, directory})
 	}
 }
 
@@ -196,7 +212,7 @@ async function updateDependencyForWorkspaces(version, dependency, workspaces) {
  * @param {{version: string, dependency: string, directory: string}} params
  * @return {Promise<void>}
  */
-async function updateDependency({ version, dependency, directory }) {
+async function updateDependency({version, dependency, directory}) {
 	const packageJson = await readPackageJsonFromDir(directory)
 
 	if (packageJson.dependencies && dependency in packageJson.dependencies) {
@@ -207,5 +223,5 @@ async function updateDependency({ version, dependency, directory }) {
 		packageJson.devDependencies[dependency] = version
 	}
 
-	await fs.promises.writeFile(path.join(directory, "package.json"), JSON.stringify(packageJson, null, "\t"), { encoding: "utf8" })
+	await fs.promises.writeFile(path.join(directory, "package.json"), JSON.stringify(packageJson, null, "\t"), {encoding: "utf8"})
 }
