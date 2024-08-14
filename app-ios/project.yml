@@ -346,6 +346,7 @@ schemes:
         tutanotaTests: ["test"]
     run:
       config: "Debug Staging"
+      storeKitConfiguration: "Plans.storekit"
     test:
       config: "Debug Staging"
       targets: ["tutanotaTests"]
@@ -358,6 +359,7 @@ schemes:
         tutanotaTests: ["test"]
     run:
       config: "Debug Production"
+      storeKitConfiguration: "Plans.storekit"
     test:
       config: "Debug Production"
       targets: ["tutanotaTests"]
