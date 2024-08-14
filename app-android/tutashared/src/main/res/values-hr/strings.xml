@@ -1,0 +1,9 @@
+<resources>
+    <string name="reminder_label">Podsjetnik</string>
+    <string name="pushNewMail_msg">Nova e-pošta je primljena</string>
+    <string name="notificationSync_msg">Sinkroniziranje obavijesti</string>
+    <string name="scheduleAlarmError_msg">Nije moguće postaviti alarm. Ažurirajte aplikaciju.</string>
+    <string name="wantToSendReport_msg">Nešto je pošlo naopako. Želite li poslati izvještaj o grešci? Možete dodati poruku da nam pomognete riješiti problem.</string>
+    <string name="downloadCompleted_msg">Preuzimanje završeno</string>
+    <string name="unlockCredentials_action">Otključavanje vjerodajnica</string>
+</resources>

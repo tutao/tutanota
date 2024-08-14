@@ -1,0 +1,9 @@
+<resources>
+    <string name="reminder_label">Erinnerung</string>
+    <string name="pushNewMail_msg">Neue E-Mail eingegangen.</string>
+    <string name="notificationSync_msg">Synchronisiere Benachrichtigungen</string>
+    <string name="scheduleAlarmError_msg">Ein Fehler ist beim Erstellen einer Erinnerung aufgetreten. Bitte aktualisiere die Anwendung.</string>
+    <string name="wantToSendReport_msg">Es ist ein unerwarteter Fehler aufgetreten. Möchtest du einen Fehlerbericht senden? Du kannst eine Nachricht hinzufügen, um uns zu helfen, diesen Fehler zu beheben.</string>
+    <string name="downloadCompleted_msg">Download abgeschlossen</string>
+    <string name="unlockCredentials_action">Zugangsdaten Entschlüsseln</string>
+</resources>
