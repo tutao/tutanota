@@ -1,0 +1,9 @@
+<resources>
+    <string name="reminder_label">Υπενθύμιση</string>
+    <string name="pushNewMail_msg">Παραλήφθηκε νέο email.</string>
+    <string name="notificationSync_msg">Συγχρονισμός ειδοποιήσεων</string>
+    <string name="scheduleAlarmError_msg">Δεν ήταν δυνατόν να οριστεί συναγερμός. Ενημερώστε την εφαρμογή.</string>
+    <string name="wantToSendReport_msg">Παρουσιάστηκε ένα μη αναμενόμενο σφάλμα. Θέλετε να στείλετε μια αναφορά σφάλματος; Μπορείτε να προσθέσετε σχόλιο, προκειμένου να μας βοηθήσετε να διορθώσουμε το σφάλμα.</string>
+    <string name="downloadCompleted_msg">Η λήψη ολοκληρώθηκε</string>
+    <string name="unlockCredentials_action">Ξεκλείδωμα πιστοποιητικών.</string>
+</resources>
