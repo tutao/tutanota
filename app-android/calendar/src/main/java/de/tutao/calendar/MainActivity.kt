@@ -49,8 +49,6 @@ import de.tutao.calendar.push.notificationDismissedIntent
 import de.tutao.calendar.webauthn.AndroidWebauthnFacade
 import de.tutao.tutashared.AndroidNativeCryptoFacade
 import de.tutao.tutashared.CancelledError
-import de.tutao.tutashared.ModuleBuildConfig
-import de.tutao.tutashared.ModuleResources
 import de.tutao.tutashared.NetworkUtils
 import de.tutao.tutashared.atLeastOreo
 import de.tutao.tutashared.createAndroidKeyStoreFacade
@@ -116,19 +114,6 @@ class MainActivity : FragmentActivity() {
 	@SuppressLint("SetJavaScriptEnabled", "StaticFieldLeak")
 	override fun onCreate(savedInstanceState: Bundle?) {
 		Log.d(TAG, "App started")
-
-		ModuleBuildConfig.init(
-			BuildConfig.SYS_MODEL_VERSION,
-			BuildConfig.VERSION_NAME,
-			BuildConfig.TUTANOTA_MODEL_VERSION,
-			BuildConfig.DEBUG
-		)
-
-		ModuleResources.init(
-			mapOf(
-				"unlockCredentials_action" to getText(R.string.unlockCredentials_action).toString(),
-			)
-		)
 
 		// App is handling a redelivered intent, ignoring as we probably already handled it
 		if (savedInstanceState != null && (intent.action == OPEN_USER_MAILBOX_ACTION || intent.action == OPEN_CALENDAR_ACTION)) {

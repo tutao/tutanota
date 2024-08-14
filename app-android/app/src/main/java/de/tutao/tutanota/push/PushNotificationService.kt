@@ -23,7 +23,6 @@ import de.tutao.tutanota.ipc.NativeCredentialsFacade
 import de.tutao.tutanota.push.SseClient.SseListener
 import de.tutao.tutashared.AndroidNativeCryptoFacade
 import de.tutao.tutashared.LifecycleJobService
-import de.tutao.tutashared.ModuleBuildConfig
 import de.tutao.tutashared.NetworkUtils
 import de.tutao.tutashared.atLeastOreo
 import de.tutao.tutashared.atLeastTiramisu
@@ -90,14 +89,6 @@ class PushNotificationService : LifecycleJobService() {
 		state = State.CREATED
 
 		finishJobThread.start()
-
-		ModuleBuildConfig.init(
-			BuildConfig.SYS_MODEL_VERSION,
-			BuildConfig.VERSION_NAME,
-			BuildConfig.TUTANOTA_MODEL_VERSION,
-			BuildConfig.DEBUG
-		)
-
 
 		val appDatabase: AppDatabase = AppDatabase.getDatabase(this, allowMainThreadAccess = true)
 		val crypto = AndroidNativeCryptoFacade(this)
