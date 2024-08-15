@@ -1760,6 +1760,10 @@ export default {
 		"yourCalendars_label": "Deine Kalender",
 		"yourFolders_action": "DEINE ORDNER",
 		"yourMessage_label": "Deine Nachricht",
-		"you_label": "Du"
+		"you_label": "Du",
+		"importEvents_label": "Terminen wird importiert",
+		"calendarDefaultReminder_label": "Standard-Terminerinnerung",
+		"calendarImportSelection_label": "Wählen Sie einen Kalender aus, in den Sie Ihre Ereignisse importieren möchten.",
+		"icsInSharingFiles_msg": "Eine oder mehrere Kalenderdateien wurden erkannt. Möchten Sie sie importieren oder anhängen?",
 	}
 }

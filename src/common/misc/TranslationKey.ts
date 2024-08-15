@@ -1742,3 +1742,6 @@ export type TranslationKeyType =
 	| "you_label"
 	| "emptyString_msg"
 	| "calendarDefaultReminder_label"
+	| "importEvents_label"
+	| "calendarImportSelection_label"
+	| "icsInSharingFiles_msg"

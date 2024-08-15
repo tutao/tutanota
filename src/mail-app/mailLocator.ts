@@ -8,7 +8,7 @@ import { EntityClient } from "../common/api/common/EntityClient.js"
 import { ProgressTracker } from "../common/api/main/ProgressTracker.js"
 import { CredentialsProvider } from "../common/misc/credentials/CredentialsProvider.js"
 import { bootstrapWorker, WorkerClient } from "../common/api/main/WorkerClient.js"
-import { FileController, guiDownload } from "../common/file/FileController.js"
+import { CALENDAR_MIME_TYPE, FileController, guiDownload, VCARD_MIME_TYPES } from "../common/file/FileController.js"
 import { SecondFactorHandler } from "../common/misc/2fa/SecondFactorHandler.js"
 import { WebauthnClient } from "../common/misc/2fa/webauthn/WebauthnClient.js"
 import { LoginFacade } from "../common/api/worker/facades/LoginFacade.js"
@@ -75,7 +75,6 @@ import { RecipientsSearchModel } from "../common/misc/RecipientsSearchModel.js"
 import { PermissionError } from "../common/api/common/error/PermissionError.js"
 import { ConversationViewModel, ConversationViewModelFactory } from "./mail/view/ConversationViewModel.js"
 import { CreateMailViewerOptions } from "./mail/view/MailViewer.js"
-import type { ContactImporter } from "./contacts/ContactImporter.js"
 import { MailViewerViewModel } from "./mail/view/MailViewerViewModel.js"
 import { ExternalLoginViewModel } from "./mail/view/ExternalLoginView.js"
 import { NativeInterfaceMain } from "../common/native/main/NativeInterfaceMain.js"
@@ -118,6 +117,8 @@ import { AppStorePaymentPicker } from "../common/misc/AppStorePaymentPicker.js"
 import { MAIL_PREFIX } from "../common/misc/RouteChange.js"
 import { getDisplayedSender } from "../common/api/common/CommonMailUtils.js"
 import { AppType } from "../common/misc/ClientConstants.js"
+import type { ParsedEvent } from "../calendar-app/calendar/export/CalendarImporter.js"
+import type { ContactImporter } from "./contacts/ContactImporter.js"
 
 assertMainOrNode()
 
@@ -279,8 +280,8 @@ class MailLocator {
 	readonly mailOpenedListener: MailOpenedListener = {
 		onEmailOpened: isDesktop()
 			? (mail) => {
-					this.desktopSystemFacade.sendSocketMessage(getDisplayedSender(mail).address)
-			  }
+				this.desktopSystemFacade.sendSocketMessage(getDisplayedSender(mail).address)
+			}
 			: noOp,
 	}
 
@@ -564,7 +565,7 @@ class MailLocator {
 			const domainConfig = isBrowser()
 				? mailLocator.domainConfigProvider().getDomainConfigForHostname(location.hostname, location.protocol, location.port)
 				: // in this case, we know that we have a staticUrl set that we need to use
-				  mailLocator.domainConfigProvider().getCurrentDomainConfig()
+				mailLocator.domainConfigProvider().getCurrentDomainConfig()
 
 			return new LoginViewModel(
 				mailLocator.logins,
@@ -715,7 +716,6 @@ class MailLocator {
 			const { WebInterWindowEventFacade } = await import("../common/native/main/WebInterWindowEventFacade.js")
 			const { WebAuthnFacadeSendDispatcher } = await import("../common/native/common/generatedipc/WebAuthnFacadeSendDispatcher.js")
 			const { createNativeInterfaces, createDesktopInterfaces } = await import("../common/native/main/NativeInterfaceFactory.js")
-			const { parseContacts } = await import("./contacts/ContactImporter.js")
 
 			this.webMobileFacade = new WebMobileFacade(this.connectivityModel, this.mailModel, MAIL_PREFIX)
 			this.nativeInterfaces = createNativeInterfaces(
@@ -728,17 +728,7 @@ class MailLocator {
 					this.usageTestController,
 					async () => this.fileApp,
 					async () => this.pushService,
-					async (filesUris: ReadonlyArray<string>) => {
-						const importer = await mailLocator.contactImporter()
-
-						// For now, we just handle .vcf files, so we don't need to care about the file type
-						const files = await mailLocator.fileApp.getFilesMetaData(filesUris)
-						const contacts = await parseContacts(files, mailLocator.fileApp)
-						const vCardData = contacts.join("\n")
-						const contactListId = assertNotNull(await mailLocator.contactModel.getContactListId())
-
-						await importer.importContactsFromFile(vCardData, contactListId)
-					},
+					this.handleFileImport.bind(this),
 				),
 				cryptoFacade,
 				calendarFacade,
@@ -872,6 +862,49 @@ class MailLocator {
 			this.sendMailModel(...arg),
 		)
 	})
+
+	private async handleFileImport(filesUris: ReadonlyArray<string>) {
+		const files = await this.fileApp.getFilesMetaData(filesUris)
+		const areAllFilesVCard = files.every(file => file.mimeType === VCARD_MIME_TYPES.X_VCARD || file.mimeType === VCARD_MIME_TYPES.VCARD)
+		const areAllFilesICS = files.every(file => file.mimeType === CALENDAR_MIME_TYPE)
+
+		if (areAllFilesVCard) {
+			const importer = await this.contactImporter()
+			const { parseContacts } = await import("../mail-app/contacts/ContactImporter.js")
+			// For now, we just handle .vcf files, so we don't need to care about the file type
+			const contacts = await parseContacts(files, this.fileApp)
+			const vCardData = contacts.join("\n")
+			const contactListId = assertNotNull(await this.contactModel.getContactListId())
+
+			await importer.importContactsFromFile(vCardData, contactListId)
+		} else if (areAllFilesICS) {
+			const calendarModel = await this.calendarModel()
+			const groupSettings = this.logins.getUserController().userSettingsGroupRoot.groupSettings
+			const calendarInfos = await calendarModel.getCalendarInfos()
+			const groupColors: Map<Id, string> = groupSettings.reduce((acc, gc) => {
+				acc.set(gc.group, gc.color)
+				return acc
+			}, new Map())
+
+			const { calendarSelectionDialog, parseCalendarFile } = await import("../calendar-app/calendar/export/CalendarImporter.js")
+			const { showCalendarImportDialog } = await import("../calendar-app/calendar/export/CalendarImporterDialog.js")
+
+			let parsedEvents: ParsedEvent[] = []
+
+			for (const fileRef of files) {
+				const dataFile = await this.fileApp.readDataFile(fileRef.location)
+				if (dataFile == null) continue
+
+				const data = parseCalendarFile(dataFile)
+				parsedEvents.push(...data.contents)
+			}
+
+			calendarSelectionDialog(Array.from(calendarInfos.values()), this.logins.getUserController(), groupColors, (dialog, selectedCalendar) => {
+				dialog.close()
+				showCalendarImportDialog(selectedCalendar.groupRoot, parsedEvents)
+			})
+		}
+	}
 
 	private alarmScheduler: () => Promise<AlarmScheduler> = lazyMemoized(async () => {
 		const { AlarmScheduler } = await import("../common/calendar/date/AlarmScheduler")
