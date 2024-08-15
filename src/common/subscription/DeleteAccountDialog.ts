@@ -34,7 +34,7 @@ export function showDeleteAccountDialog(surveyData: SurveyData | null = null) {
 						oninput: (value) => (password = value),
 						status: {
 							type: "neutral",
-							text: "password1Neutral_msg",
+							text: "passwordEnterNeutral_msg",
 						},
 					}),
 				]),
