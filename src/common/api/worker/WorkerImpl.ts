@@ -43,6 +43,7 @@ import { CryptoError } from "@tutao/tutanota-crypto/error.js"
 import { ContactFacade } from "./facades/lazy/ContactFacade.js"
 import { RecoverCodeFacade } from "./facades/lazy/RecoverCodeFacade.js"
 import { CacheManagementFacade } from "./facades/lazy/CacheManagementFacade.js"
+import { OfflineStorageCleaner } from "./offline/OfflineStorage.js"
 
 assertWorkerOrNode()
 
@@ -108,7 +109,7 @@ export class WorkerImpl implements NativeInterface {
 		this._dispatcher = new MessageDispatcher(new WebWorkerTransport(this._scope), this.queueCommands(this.exposedInterface), "worker-main")
 	}
 
-	async init(browserData: BrowserData): Promise<void> {
+	async init(browserData: BrowserData, offlineStorageCleaner: OfflineStorageCleaner): Promise<void> {
 		// import("tuta-sdk").then(async (module) => {
 		// 	// await module.default("wasm/tutasdk.wasm")
 		// 	const entityClient = new module.EntityClient()
@@ -118,7 +119,7 @@ export class WorkerImpl implements NativeInterface {
 		// 	entityClient.free()
 		// })
 
-		await initLocator(this, browserData)
+		await initLocator(this, browserData, offlineStorageCleaner)
 		const workerScope = this._scope
 
 		// only register oncaught error handler if we are in the *real* worker scope

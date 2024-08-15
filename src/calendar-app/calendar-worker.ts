@@ -1,5 +1,6 @@
-import { WorkerImpl } from "./WorkerImpl"
-import { Logger, replaceNativeLogger } from "../common/Logger"
+import { WorkerImpl } from "../common/api/worker/WorkerImpl"
+import { Logger, replaceNativeLogger } from "../common/api/common/Logger.js"
+import { CalendarOfflineCleaner } from "./offline/CalendarOfflineCleaner.js"
 
 /**
  * Receives the first message from the client and initializes the WorkerImpl to receive all future messages. Sends a response to the client on this first message.
@@ -21,7 +22,7 @@ self.onmessage = function (msg) {
 
 				// @ts-ignore
 				const workerImpl = new WorkerImpl(typeof self !== "undefined" ? self : null)
-				await workerImpl.init(browserData)
+				await workerImpl.init(browserData, new CalendarOfflineCleaner())
 				workerImpl.exposedInterface.entropyFacade().then((entropyFacade) => entropyFacade.addEntropy(initialRandomizerEntropy))
 				self.postMessage({
 					id: data.id,
