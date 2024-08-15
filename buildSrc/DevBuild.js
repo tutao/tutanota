@@ -98,6 +98,7 @@ async function buildWebPart({ stage, host, version, domainConfigs, app }) {
 	const tsConfig = isCalendarBuild ? "tsconfig-calendar-app.json" : "tsconfig.json"
 	const buildDir = isCalendarBuild ? "build-calendar-app" : "build"
 	const entryFile = isCalendarBuild ? "src/calendar-app/calendar-app.ts" : "src/mail-app/app.ts"
+	const workerFile = isCalendarBuild ? "src/calendar-app/calendar-worker.ts" : "src/mail-app/mail-worker.ts"
 
 	await runStep("Web: Assets", async () => {
 		await prepareAssets(stage, host, version, domainConfigs, buildDir)
@@ -113,7 +114,7 @@ importScripts("./worker.js")
 		const { esbuildWasmLoader } = await import("@tutao/tuta-wasm-loader")
 		await esbuild({
 			// Using named entry points so that it outputs build/worker.js and not build/api/worker/worker.js
-			entryPoints: { app: entryFile, worker: "src/common/api/worker/worker.ts" },
+			entryPoints: { app: entryFile, worker: workerFile },
 			outdir: `./${buildDir}/`,
 			tsconfig: tsConfig,
 			// Why bundle at the moment:
