@@ -646,18 +646,16 @@ export class LoginFacade {
 		const accessKey = assertNotNull(sessionData.accessKey, "no access key on session data!")
 		const isExternalUser = externalUserKeyDeriver != null
 
-		let passphrase: string
 		let userPassphraseKey: AesKey
 		let credentialsWithPassphraseKey: Credentials
 
 		// Previously only the encryptedPassword was stored, now we prefer to use the key if it's already there
 		// and keep passphrase for migrating KDF for now.
-		if (credentials.encryptedPassphraseKey != null && credentials.encryptedPassword != null) {
+		if (credentials.encryptedPassphraseKey != null) {
 			userPassphraseKey = decryptKey(accessKey, credentials.encryptedPassphraseKey)
 			credentialsWithPassphraseKey = credentials
-			passphrase = utf8Uint8ArrayToString(aesDecrypt(accessKey, base64ToUint8Array(credentials.encryptedPassword)))
 		} else if (credentials.encryptedPassword) {
-			passphrase = utf8Uint8ArrayToString(aesDecrypt(accessKey, base64ToUint8Array(credentials.encryptedPassword)))
+			const passphrase = utf8Uint8ArrayToString(aesDecrypt(accessKey, base64ToUint8Array(credentials.encryptedPassword)))
 			if (isExternalUser) {
 				await this.checkOutdatedExternalSalt(credentials, sessionData, externalUserKeyDeriver.salt)
 				userPassphraseKey = await this.deriveUserPassphraseKey({ ...externalUserKeyDeriver, passphrase })
@@ -684,7 +682,8 @@ export class LoginFacade {
 
 		// We only need to migrate the kdf in case an internal user resumes the session.
 		const modernKdfType = this.isModernKdfType(asKdfType(user.kdfVersion))
-		if (!isExternalUser && passphrase != null && !modernKdfType) {
+		if (!isExternalUser && credentials.encryptedPassword != null && !modernKdfType) {
+			const passphrase = utf8Uint8ArrayToString(aesDecrypt(accessKey, base64ToUint8Array(credentials.encryptedPassword)))
 			await this.migrateKdfType(KdfType.Argon2id, passphrase, user)
 		}
 		if (!isExternalUser && !isAdminClient()) {
