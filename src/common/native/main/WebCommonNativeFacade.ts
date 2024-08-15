@@ -22,7 +22,8 @@ export class WebCommonNativeFacade implements CommonNativeFacade {
 		private readonly fileApp: lazyAsync<NativeFileApp>,
 		private readonly pushService: lazyAsync<NativePushServiceApp>,
 		private readonly fileImportHandler: (filesUris: ReadonlyArray<string>) => unknown,
-	) {}
+	) {
+	}
 
 	/**
 	 * create a mail editor as requested from the native side, ie because a
@@ -57,10 +58,19 @@ export class WebCommonNativeFacade implements CommonNativeFacade {
 				const fileApp = await this.fileApp()
 				const files = await fileApp.getFilesMetaData(filesUris)
 				const allFilesAreVCards = files.length > 0 && files.every((file) => getAttachmentType(file.mimeType) === AttachmentType.CONTACT)
+				const allFilesAreICS = files.length > 0 && files.every((file) => getAttachmentType(file.mimeType) === AttachmentType.CALENDAR)
 
 				let willImport = false
 				if (allFilesAreVCards) {
 					willImport = await Dialog.choice("vcardInSharingFiles_msg", [
+						{
+							text: "import_action",
+							value: true,
+						},
+						{ text: "attachFiles_action", value: false },
+					])
+				} else if (allFilesAreICS) {
+					willImport = await Dialog.choice("icsInSharingFiles_msg", [
 						{
 							text: "import_action",
 							value: true,
@@ -75,13 +85,13 @@ export class WebCommonNativeFacade implements CommonNativeFacade {
 					const address = (addresses && addresses[0]) || ""
 					const recipients = address
 						? {
-								to: [
-									{
-										name: "",
-										address: address,
-									},
-								],
-						  }
+							to: [
+								{
+									name: "",
+									address: address,
+								},
+							],
+						}
 						: {}
 					editor = await newMailEditorFromTemplate(
 						mailboxDetails,
@@ -185,6 +195,8 @@ export class WebCommonNativeFacade implements CommonNativeFacade {
 	 * @param filesUris List of files URI to be parsed
 	 */
 	async handleFileImport(filesUris: ReadonlyArray<string>): Promise<void> {
+		// Since we might be handling calendar files, we must wait for full login
+		await this.logins.waitForFullLogin()
 		await this.fileImportHandler(filesUris)
 	}
 }

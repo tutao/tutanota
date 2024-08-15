@@ -21,6 +21,7 @@ import { CalendarEventModel, CalendarOperation, ReadonlyReason } from "../evente
 
 import { getSharedGroupName } from "../../../../common/sharing/GroupUtils.js"
 
+import { createAlarmIntervalItems, createCustomRepeatRuleUnitValues, humanDescriptionForAlarmInterval, renderCalendarColor } from "../CalendarGuiUtils.js"
 import { RemindersEditor, RemindersEditorAttrs } from "../RemindersEditor.js"
 
 export type CalendarEventEditViewAttrs = {
@@ -197,20 +198,9 @@ export class CalendarEventEditView implements Component<CalendarEventEditViewAtt
 				},
 				icon: BootIcons.Expand,
 				disabled: !model.canChangeCalendar() || availableCalendars.length < 2,
-				helpLabel: () => this.renderCalendarColor(model.editModels.whoModel.selectedCalendar, vnode.attrs.groupColors),
+				helpLabel: () => renderCalendarColor(model.editModels.whoModel.selectedCalendar, vnode.attrs.groupColors),
 			} satisfies DropDownSelectorAttrs<CalendarInfo>),
 		)
-	}
-
-	private renderCalendarColor(selectedCalendar: CalendarInfo | null, groupColors: Map<Id, string>) {
-		const color = selectedCalendar ? groupColors.get(selectedCalendar.groupInfo.group) ?? defaultCalendarColor : null
-		return m(".mt-xs", {
-			style: {
-				width: "100px",
-				height: "10px",
-				background: color ? "#" + color : "transparent",
-			},
-		})
 	}
 
 	private renderRemindersEditor(vnode: Vnode<CalendarEventEditViewAttrs>): Children {

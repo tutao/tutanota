@@ -1792,6 +1792,10 @@ export default {
 		"yourCalendars_label": "Your calendars",
 		"yourFolders_action": "YOUR FOLDERS",
 		"yourMessage_label": "Your message",
-		"you_label": "You"
+		"you_label": "You",
+		"importEvents_label": "Import Events",
+		"calendarDefaultReminder_label": "Default reminder before event",
+		"calendarImportSelection_label": "Select a calendar to import your events into",
+		"icsInSharingFiles_msg": "One or more calendar files were detected. Would you like to import or attach them?",
 	}
 }
