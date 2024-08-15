@@ -79,6 +79,17 @@
 				<data android:mimeType="text/vcard"/>
 				<data android:mimeType="text/x-vcard"/>
 			</intent-filter>
+			<!--Handler for "open" event for a ics file-->
+			<intent-filter>
+				<action android:name="android.intent.action.VIEW"/>
+
+				<category android:name="android.intent.category.DEFAULT"/>
+				<category android:name="android.intent.category.BROWSABLE"/>
+
+				<data android:scheme="file"/>
+				<data android:scheme="content"/>
+				<data android:mimeType="text/calendar"/>
+			</intent-filter>
 			<!--Handler for "mailto:" links-->
 			<intent-filter>
 				<action android:name="android.intent.action.SEND"/>

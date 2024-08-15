@@ -6,7 +6,7 @@ import { EntityClient } from "../common/api/common/EntityClient.js"
 import { ProgressTracker } from "../common/api/main/ProgressTracker.js"
 import { CredentialsProvider } from "../common/misc/credentials/CredentialsProvider.js"
 import { bootstrapWorker, WorkerClient } from "../common/api/main/WorkerClient.js"
-import { FileController, guiDownload } from "../common/file/FileController.js"
+import { CALENDAR_MIME_TYPE, FileController, guiDownload } from "../common/file/FileController.js"
 import { SecondFactorHandler } from "../common/misc/2fa/SecondFactorHandler.js"
 import { WebauthnClient } from "../common/misc/2fa/webauthn/WebauthnClient.js"
 import { LoginFacade } from "../common/api/worker/facades/LoginFacade.js"
@@ -107,6 +107,7 @@ import { CalendarSearchModel } from "./calendar/search/model/CalendarSearchModel
 import { SearchIndexStateInfo } from "../common/api/worker/search/SearchTypes.js"
 import { CALENDAR_PREFIX } from "../common/misc/RouteChange.js"
 import { AppType } from "../common/misc/ClientConstants.js"
+import type { ParsedEvent } from "./calendar/export/CalendarImporter.js"
 
 assertMainOrNode()
 
@@ -456,7 +457,7 @@ class CalendarLocator {
 			const domainConfig = isBrowser()
 				? calendarLocator.domainConfigProvider().getDomainConfigForHostname(location.hostname, location.protocol, location.port)
 				: // in this case, we know that we have a staticUrl set that we need to use
-				  calendarLocator.domainConfigProvider().getCurrentDomainConfig()
+				calendarLocator.domainConfigProvider().getCurrentDomainConfig()
 
 			return new LoginViewModel(
 				calendarLocator.logins,
@@ -611,7 +612,7 @@ class CalendarLocator {
 					this.usageTestController,
 					async () => this.fileApp,
 					async () => this.pushService,
-					async (filesUris: ReadonlyArray<string>) => noOp(),
+					this.handleFileImport.bind(this),
 				),
 				cryptoFacade,
 				calendarFacade,
@@ -721,6 +722,38 @@ class CalendarLocator {
 		// For native targets WebCommonNativeFacade notifies themeController because Android and Desktop do not seem to work reliably via media queries
 		if (selectedThemeFacade instanceof WebThemeFacade) {
 			selectedThemeFacade.addDarkListener(() => calendarLocator.themeController.reloadTheme())
+		}
+	}
+
+	private async handleFileImport(filesUris: ReadonlyArray<string>) {
+		const files = await this.fileApp.getFilesMetaData(filesUris)
+		const areAllICSFiles = files.every(file => file.mimeType === CALENDAR_MIME_TYPE)
+		if (areAllICSFiles) {
+			const calendarModel = await this.calendarModel()
+			const groupSettings = this.logins.getUserController().userSettingsGroupRoot.groupSettings
+			const calendarInfos = await calendarModel.getCalendarInfos()
+			const groupColors: Map<Id, string> = groupSettings.reduce((acc, gc) => {
+				acc.set(gc.group, gc.color)
+				return acc
+			}, new Map())
+
+			const { calendarSelectionDialog, parseCalendarFile } = await import("../calendar-app/calendar/export/CalendarImporter.js")
+			const { showCalendarImportDialog } = await import("../calendar-app/calendar/export/CalendarImporterDialog.js")
+
+			let parsedEvents: ParsedEvent[] = []
+
+			for (const fileRef of files) {
+				const dataFile = await this.fileApp.readDataFile(fileRef.location)
+				if (dataFile == null) continue
+
+				const data = parseCalendarFile(dataFile)
+				parsedEvents.push(...data.contents)
+			}
+
+			calendarSelectionDialog(Array.from(calendarInfos.values()), this.logins.getUserController(), groupColors, (dialog, selectedCalendar) => {
+				dialog.close()
+				showCalendarImportDialog(selectedCalendar.groupRoot, parsedEvents)
+			})
 		}
 	}
 

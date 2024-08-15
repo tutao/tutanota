@@ -732,7 +732,7 @@ export class CalendarView extends BaseTopLevelView implements TopLevelView<Calen
 						label: "edit_action",
 						icon: Icons.Edit,
 						size: ButtonSize.Compact,
-						click: () => this.onPressedEditCalendar(calendarInfo, colorValue, existingGroupSettings, userSettingsGroupRoot, sharedCalendar),
+						click: () => this.onPressedEditCalendar(groupInfo, colorValue, existingGroupSettings, userSettingsGroupRoot, sharedCalendar),
 					},
 					{
 						label: "sharing_label",
@@ -745,7 +745,7 @@ export class CalendarView extends BaseTopLevelView implements TopLevelView<Calen
 							}
 						},
 					},
-					!isApp() && group.type === GroupType.Calendar && hasCapabilityOnGroup(user, group, ShareCapability.Write)
+					group.type === GroupType.Calendar && hasCapabilityOnGroup(user, group, ShareCapability.Write)
 						? {
 								label: "import_action",
 								icon: Icons.Import,
@@ -805,13 +805,12 @@ export class CalendarView extends BaseTopLevelView implements TopLevelView<Calen
 	}
 
 	private onPressedEditCalendar(
-		calendarInfo: CalendarInfo,
+		groupInfo: GroupInfo,
 		colorValue: string,
 		existingGroupSettings: GroupSettings | null,
 		userSettingsGroupRoot: UserSettingsGroupRoot,
 		shared: boolean,
 	) {
-		const { groupInfo } = calendarInfo
 		showEditCalendarDialog(
 			{
 				name: getSharedGroupName(groupInfo, locator.logins.getUserController(), shared),

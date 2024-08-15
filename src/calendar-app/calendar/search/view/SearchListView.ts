@@ -11,7 +11,7 @@ import { lang } from "../../../../common/misc/LanguageViewModel.js"
 import { theme } from "../../../../common/gui/theme.js"
 import { VirtualRow } from "../../../../common/gui/base/ListUtils.js"
 import { styles } from "../../../../common/gui/styles.js"
-import { KindaCalendarRow } from "../../view/CalendarRow.js"
+import { KindaCalendarRow } from "../../gui/CalendarRow.js"
 
 assertMainOrNode()
 
