@@ -1033,7 +1033,7 @@ export class CalendarView extends BaseTopLevelView implements TopLevelView<Calen
 	}
 
 	private setUrl(view: string, date: Date, replace: boolean = false, resetState: boolean = false) {
-		const dateString = DateTime.fromJSDate(date).toISODate()
+		const dateString = DateTime.fromJSDate(date).toISODate() ?? DateTime.now().toISODate()
 
 		m.route.set(
 			"/calendar/:view/:date",
