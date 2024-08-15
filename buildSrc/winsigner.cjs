@@ -84,7 +84,7 @@ function getHsmArgs(unsignedFileName, hash, signedFileOutPath) {
 	]
 }
 
-function signWithArgs(commandArguments, signedFileOutPath, unsignedFileName) {
+function signWithArgs(commandArguments, signedFileOutPath, unsignedFileName, attempt = 0) {
 	const command = "/usr/bin/osslsigncode"
 
 	if (!fs.existsSync(command)) {
@@ -105,7 +105,13 @@ function signWithArgs(commandArguments, signedFileOutPath, unsignedFileName) {
 
 	return new Promise((resolve, reject) => {
 		child.on('close', (exitCode) => {
-			if (exitCode !== 0) {
+			if (exitCode === 255 && attempt < 3) {
+				const delayMs = (attempt + 1) * 10 * 1000
+				console.log(TAG, `signing failed with 255 for ${unsignedFileName}, trying out again with delay of ${delayMs}ms`)
+				delay(delayMs)
+					.then(() => signWithArgs(commandArguments, signedFileOutPath, unsignedFileName, attempt + 1))
+					.then(resolve, reject)
+			} else if (exitCode !== 0) {
 				console.log(TAG, `signing FAILED with ${exitCode} for ${unsignedFileName} as ${signedFileOutPath}`)
 				reject(exitCode)
 			} else {
@@ -115,6 +121,14 @@ function signWithArgs(commandArguments, signedFileOutPath, unsignedFileName) {
 			}
 		})
 	})
+}
+
+/**
+ * @param ms number
+ * @return Promise<void>
+ */
+function delay(ms) {
+	return new Promise((resolve) => setTimeout(resolve, ms))
 }
 
 module.exports = signer
