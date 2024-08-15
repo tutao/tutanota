@@ -1,13 +1,13 @@
 import type { CalendarEvent, CalendarGroupRoot } from "../../../common/api/entities/tutanota/TypeRefs.js"
 import { CalendarEventTypeRef, createFile } from "../../../common/api/entities/tutanota/TypeRefs.js"
-import { CALENDAR_MIME_TYPE, showFileChooser } from "../../../common/file/FileController"
+import { CALENDAR_MIME_TYPE, showFileChooser, showNativeFilePicker } from "../../../common/file/FileController"
 import { generateEventElementId } from "../../../common/api/common/utils/CommonCalendarUtils"
 import { showProgressDialog } from "../../../common/gui/dialogs/ProgressDialog"
 import { ParserError } from "../../../common/misc/parsing/ParserCombinator"
 import { Dialog } from "../../../common/gui/base/Dialog"
 import { lang } from "../../../common/misc/LanguageViewModel"
 import { serializeCalendar } from "./CalendarExporter.js"
-import { parseCalendarFile, ParsedEvent } from "./CalendarImporter.js"
+import { parseCalendarFile, ParsedEvent, showEventsImportDialog } from "./CalendarImporter.js"
 import { elementIdPart, isSameId, listIdPart } from "../../../common/api/common/utils/EntityUtils"
 import type { UserAlarmInfo } from "../../../common/api/entities/sys/TypeRefs.js"
 import { createDateWrapper, UserAlarmInfoTypeRef } from "../../../common/api/entities/sys/TypeRefs.js"
@@ -18,6 +18,7 @@ import { assignEventId, CalendarEventValidity, checkEventValidity, getTimeZone }
 import { ImportError } from "../../../common/api/common/error/ImportError"
 import { TranslationKeyType } from "../../../common/misc/TranslationKey"
 import { AlarmInfoTemplate } from "../../../common/api/worker/facades/lazy/CalendarFacade.js"
+import { isApp } from "../../../common/api/common/Env.js"
 
 export const enum EventImportRejectionReason {
 	Pre1970,
@@ -47,8 +48,8 @@ async function partialImportConfirmation(skippedEvents: CalendarEvent[], confirm
 	)
 }
 
-export async function showCalendarImportDialog(calendarGroupRoot: CalendarGroupRoot): Promise<void> {
-	const parsedEvents: ParsedEvent[] = await selectAndParseIcalFile()
+export async function showCalendarImportDialog(calendarGroupRoot: CalendarGroupRoot, events: ParsedEvent[] = []): Promise<void> {
+	const parsedEvents: ParsedEvent[] = events.length > 0 ? events : await showProgressDialog("loading_msg", selectAndParseIcalFile())
 	if (parsedEvents.length === 0) return
 	const zone = getTimeZone()
 	const existingEvents = await showProgressDialog("loading_msg", loadAllEvents(calendarGroupRoot))
@@ -60,12 +61,23 @@ export async function showCalendarImportDialog(calendarGroupRoot: CalendarGroupR
 	if (!(await partialImportConfirmation(rejectedEvents.get(EventImportRejectionReason.Inversed) ?? [], "importEndNotAfterStartInEvent_msg", total))) return
 	if (!(await partialImportConfirmation(rejectedEvents.get(EventImportRejectionReason.Pre1970) ?? [], "importPre1970StartInEvent_msg", total))) return
 
-	return await importEvents(eventsForCreation)
+	if (eventsForCreation.length > 0) {
+		showEventsImportDialog(
+			eventsForCreation.map((ev) => ev.event),
+			async (dialog) => {
+				dialog.close()
+				await importEvents(eventsForCreation)
+			},
+			"importEvents_label",
+		)
+	}
 }
 
 async function selectAndParseIcalFile(): Promise<ParsedEvent[]> {
 	try {
-		const dataFiles = await showFileChooser(true, ["ical", "ics", "ifb", "icalendar"])
+		const dataFiles = isApp()
+			? await showNativeFilePicker(["ical", "ics", "ifb", "icalendar"])
+			: await showFileChooser(true, ["ical", "ics", "ifb", "icalendar"])
 		const contents = dataFiles.map((file) => parseCalendarFile(file).contents)
 		return contents.flat()
 	} catch (e) {

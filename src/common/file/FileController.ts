@@ -1,6 +1,6 @@
 import { Dialog } from "../gui/base/Dialog.js"
 import { convertToDataFile, createDataFile, DataFile } from "../api/common/DataFile"
-import { assertMainOrNode } from "../api/common/Env"
+import { assertMainOrNode, isApp } from "../api/common/Env"
 import { assertNotNull, neverNull, promiseMap } from "@tutao/tutanota-utils"
 import { lang, TranslationKey } from "../misc/LanguageViewModel.js"
 import { BrowserType } from "../misc/ClientConstants.js"
@@ -19,6 +19,9 @@ import { elementIdPart, listIdPart } from "../api/common/utils/EntityUtils.js"
 import { BlobReferencingInstance } from "../api/worker/facades/BlobAccessTokenFacade.js"
 import { CryptoError } from "@tutao/tutanota-crypto/error.js"
 import { isOfflineError } from "../api/common/utils/ErrorUtils.js"
+import { locator } from "../api/main/CommonLocator.js"
+import { PermissionError } from "../api/common/error/PermissionError.js"
+import { FileNotFoundError } from "../api/common/error/FileNotFoundError.js"
 
 assertMainOrNode()
 export const CALENDAR_MIME_TYPE = "text/calendar"
@@ -324,4 +327,34 @@ export async function guiDownload(downloadPromise: Promise<void>, progress?: str
 		console.log("downloadAndOpen error", e.message)
 		await handleDownloadErrors(e, Dialog.message)
 	}
+}
+
+export async function showNativeFilePicker(fileTypes?: Array<string>): Promise<ReadonlyArray<DataFile>> {
+	if (isApp()) {
+		const rect = { width: 0, height: 0, left: 0, top: 0 } as DOMRect
+		try {
+			const fileApp = locator.fileApp
+			const fileList = await fileApp.openFileChooser(rect, fileTypes)
+			const readFiles: DataFile[] = []
+			for (const file of fileList) {
+				const data = await fileApp.readDataFile(file.location)
+
+				if (!data) continue
+
+				readFiles.push(data)
+			}
+
+			return Promise.resolve(readFiles)
+		} catch (err) {
+			if (err instanceof PermissionError) {
+				Dialog.message("fileAccessDeniedMobile_msg")
+			} else if (err instanceof FileNotFoundError) {
+				Dialog.message("couldNotAttachFile_msg")
+			}
+
+			console.log("Failed to import calendar files", err)
+		}
+	}
+
+	return Promise.resolve([])
 }
