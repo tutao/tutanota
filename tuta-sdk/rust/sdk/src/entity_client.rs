@@ -9,7 +9,7 @@ use crate::metamodel::TypeModel;
 use crate::rest_client::{HttpMethod, RestClient, RestClientOptions};
 use crate::rest_error::HttpError;
 use crate::type_model_provider::TypeModelProvider;
-use crate::{ApiCallError, AuthHeadersProvider, IdTuple, ListLoadDirection, SdkState, TypeRef};
+use crate::{ApiCallError, HeadersProvider, IdTuple, ListLoadDirection, TypeRef};
 
 /// Denotes an ID that can be serialised into a string and used to access resources
 pub trait IdType: Display + 'static {}
@@ -18,7 +18,7 @@ pub trait IdType: Display + 'static {}
 pub struct EntityClient {
 	rest_client: Arc<dyn RestClient>,
 	base_url: String,
-	sdk_state: Arc<SdkState>,
+	auth_headers_provider: Arc<HeadersProvider>,
 	json_serializer: Arc<JsonSerializer>,
 	type_model_provider: Arc<TypeModelProvider>,
 }
@@ -28,15 +28,15 @@ impl EntityClient {
 	pub(crate) fn new(
 		rest_client: Arc<dyn RestClient>,
 		json_serializer: Arc<JsonSerializer>,
-		base_url: &str,
-		sdk_state: Arc<SdkState>,
+		base_url: String,
+		auth_headers_provider: Arc<HeadersProvider>,
 		type_model_provider: Arc<TypeModelProvider>,
 	) -> Self {
 		EntityClient {
 			rest_client,
 			json_serializer,
-			base_url: base_url.to_owned(),
-			sdk_state,
+			base_url,
+			auth_headers_provider,
 			type_model_provider,
 		}
 	}
@@ -63,7 +63,7 @@ impl EntityClient {
 		})?;
 		let options = RestClientOptions {
 			body: None,
-			headers: self.sdk_state.create_auth_headers(model_version),
+			headers: self.auth_headers_provider.provide_headers(model_version),
 		};
 		let response = self
 			.rest_client
@@ -156,7 +156,7 @@ impl EntityClient {
 		let body = serde_json::to_vec(&raw_entity).unwrap();
 		let options = RestClientOptions {
 			body: Some(body),
-			headers: self.sdk_state.create_auth_headers(model_version),
+			headers: self.auth_headers_provider.provide_headers(model_version),
 		};
 		// FIXME we should look at type model whether it is ET or LET
 		let url = format!(
@@ -196,8 +196,8 @@ mockall::mock! {
 		pub fn new(
 			rest_client: Arc<dyn RestClient>,
 			json_serializer: Arc<JsonSerializer>,
-			base_url: &str,
-			sdk_state: Arc<SdkState>,
+			base_url: String,
+			auth_headers_provider: Arc<HeadersProvider>,
 			type_model_provider: Arc<TypeModelProvider>,
 		) -> Self;
 		pub fn get_type_model(&self, type_ref: &TypeRef) -> Result<&'static TypeModel, ApiCallError>;

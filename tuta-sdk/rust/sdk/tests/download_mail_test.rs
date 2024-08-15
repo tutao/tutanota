@@ -29,10 +29,9 @@ async fn test_download_mail() {
 	let sdk = Sdk::new(
 		"http://localhost:9000".to_string(),
 		rest_client,
-		credentials,
-		"",
+		"".to_owned(),
 	);
-	let logged_in_sdk = sdk.login().await.unwrap();
+	let logged_in_sdk = sdk.login(credentials).await.unwrap();
 	let mail_facade = logged_in_sdk.mail_facade();
 	let mail = mail_facade
 		.load_email_by_id_encrypted(&IdTuple {
