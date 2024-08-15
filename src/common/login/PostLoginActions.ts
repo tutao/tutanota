@@ -102,8 +102,6 @@ export class PostLoginActions implements PostLoginAction {
 		if (isApp() || isDesktop()) {
 			await this.storeNewCustomThemes()
 		}
-
-		this.showSetupWizardIfNeeded()
 	}
 
 	async onFullLoginSuccess(loggedInEvent: LoggedInEvent): Promise<void> {
@@ -113,6 +111,8 @@ export class PostLoginActions implements PostLoginAction {
 
 		// Do not wait
 		this.fullLoginAsyncActions()
+
+		this.showSetupWizardIfNeeded()
 	}
 
 	private async fullLoginAsyncActions() {
