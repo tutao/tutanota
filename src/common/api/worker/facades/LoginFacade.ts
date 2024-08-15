@@ -646,27 +646,24 @@ export class LoginFacade {
 		const accessKey = assertNotNull(sessionData.accessKey, "no access key on session data!")
 		const isExternalUser = externalUserKeyDeriver != null
 
-		let kdfType: KdfType | null = null
-		let passphrase: string | null = null
+		let passphrase: string
 		let userPassphraseKey: AesKey
 		let credentialsWithPassphraseKey: Credentials
 
 		// Previously only the encryptedPassword was stored, now we prefer to use the key if it's already there
 		// and keep passphrase for migrating KDF for now.
-		if (credentials.encryptedPassphraseKey != null) {
+		if (credentials.encryptedPassphraseKey != null && credentials.encryptedPassword != null) {
 			userPassphraseKey = decryptKey(accessKey, credentials.encryptedPassphraseKey)
 			credentialsWithPassphraseKey = credentials
+			passphrase = utf8Uint8ArrayToString(aesDecrypt(accessKey, base64ToUint8Array(credentials.encryptedPassword)))
 		} else if (credentials.encryptedPassword) {
 			passphrase = utf8Uint8ArrayToString(aesDecrypt(accessKey, base64ToUint8Array(credentials.encryptedPassword)))
-			const isExternalUser = externalUserKeyDeriver != null
 			if (isExternalUser) {
 				await this.checkOutdatedExternalSalt(credentials, sessionData, externalUserKeyDeriver.salt)
 				userPassphraseKey = await this.deriveUserPassphraseKey({ ...externalUserKeyDeriver, passphrase })
-				kdfType = null
 			} else {
 				const passphraseData = await this.loadUserPassphraseKey(credentials.login, passphrase)
 				userPassphraseKey = passphraseData.userPassphraseKey
-				kdfType = passphraseData.kdfType
 			}
 			const encryptedPassphraseKey = encryptKey(accessKey, userPassphraseKey)
 			credentialsWithPassphraseKey = { ...credentials, encryptedPassphraseKey }
@@ -686,8 +683,8 @@ export class LoginFacade {
 		}
 
 		// We only need to migrate the kdf in case an internal user resumes the session.
-		const modernKdfType = !!kdfType && this.isModernKdfType(kdfType)
-		if (passphrase != null && !modernKdfType) {
+		const modernKdfType = this.isModernKdfType(asKdfType(user.kdfVersion))
+		if (!isExternalUser && passphrase != null && !modernKdfType) {
 			await this.migrateKdfType(KdfType.Argon2id, passphrase, user)
 		}
 		if (!isExternalUser && !isAdminClient()) {
