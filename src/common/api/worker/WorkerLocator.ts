@@ -39,7 +39,7 @@ import { ServiceExecutor } from "./rest/ServiceExecutor"
 import type { BookingFacade } from "./facades/lazy/BookingFacade.js"
 import type { BlobFacade } from "./facades/lazy/BlobFacade.js"
 import { UserFacade } from "./facades/UserFacade"
-import { OfflineStorage } from "./offline/OfflineStorage.js"
+import { OfflineStorage, OfflineStorageCleaner } from "./offline/OfflineStorage.js"
 import { OFFLINE_STORAGE_MIGRATIONS, OfflineStorageMigrator } from "./offline/OfflineStorageMigrator.js"
 import { modelInfos } from "../common/EntityFunctions.js"
 import { FileFacadeSendDispatcher } from "../../native/common/generatedipc/FileFacadeSendDispatcher.js"
@@ -132,13 +132,14 @@ export type WorkerLocatorType = {
 
 	// used to cache between resets
 	_browserData: BrowserData
+	_offlineStorageCleaner: OfflineStorageCleaner
 
 	//contact
 	contactFacade: lazyAsync<ContactFacade>
 }
 export const locator: WorkerLocatorType = {} as any
 
-export async function initLocator(worker: WorkerImpl, browserData: BrowserData) {
+export async function initLocator(worker: WorkerImpl, browserData: BrowserData, offlineStorageCleaner: OfflineStorageCleaner) {
 	locator.keyCache = new KeyCache()
 	locator.user = new UserFacade(locator.keyCache)
 	locator.workerFacade = new WorkerFacade()
@@ -158,6 +159,7 @@ export async function initLocator(worker: WorkerImpl, browserData: BrowserData) 
 	locator.blobAccessToken = new BlobAccessTokenFacade(locator.serviceExecutor, dateProvider, locator.user)
 	const entityRestClient = new EntityRestClient(locator.user, locator.restClient, () => locator.crypto, locator.instanceMapper, locator.blobAccessToken)
 	locator._browserData = browserData
+	locator._offlineStorageCleaner = offlineStorageCleaner
 
 	locator.native = worker
 	locator.booking = lazyMemoized(async () => {
@@ -174,6 +176,7 @@ export async function initLocator(worker: WorkerImpl, browserData: BrowserData) 
 				new InterWindowEventFacadeSendDispatcher(worker),
 				dateProvider,
 				new OfflineStorageMigrator(OFFLINE_STORAGE_MIGRATIONS, modelInfos),
+				offlineStorageCleaner,
 			)
 		}
 	} else {
@@ -495,7 +498,7 @@ async function initIndexer(worker: WorkerImpl, cacheInfo: CacheInfo, keyLoaderFa
 
 export async function resetLocator(): Promise<void> {
 	await locator.login.resetSession()
-	await initLocator(locator.login.worker, locator._browserData)
+	await initLocator(locator.login.worker, locator._browserData, locator._offlineStorageCleaner)
 }
 
 if (typeof self !== "undefined") {

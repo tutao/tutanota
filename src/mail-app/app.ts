@@ -127,7 +127,10 @@ import("./translations/en.js")
 						mailLocator.nativeContactsSyncManager()?.syncContacts()
 					}
 				},
-				async onFullLoginSuccess() {},
+				async onFullLoginSuccess() {
+					await mailLocator.mailboxModel.init()
+					await mailLocator.mailModel.init()
+				},
 			}
 		})
 
