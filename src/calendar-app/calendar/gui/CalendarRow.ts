@@ -9,8 +9,8 @@ import { ViewHolder } from "../../../common/gui/base/List.js"
 import { styles } from "../../../common/gui/styles.js"
 import { DefaultAnimationTime } from "../../../common/gui/animation/Animations.js"
 
-import { formatEventDuration, getDisplayEventTitle, getEventColor, getGroupColors } from "../gui/CalendarGuiUtils.js"
-import { GroupColors } from "./CalendarView.js"
+import { formatEventDuration, getDisplayEventTitle, getEventColor, getGroupColors } from "./CalendarGuiUtils.js"
+import { GroupColors } from "../view/CalendarView.js"
 import { lang } from "../../../common/misc/LanguageViewModel.js"
 
 export class CalendarRow implements VirtualRow<CalendarEvent> {
