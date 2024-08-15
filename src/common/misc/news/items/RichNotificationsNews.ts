@@ -8,6 +8,7 @@ import { assertNotNull } from "@tutao/tutanota-utils"
 import { Button, ButtonType } from "../../../gui/base/Button.js"
 import { lang } from "../../LanguageViewModel.js"
 import { NotificationContentSelector } from "../../../../mail-app/settings/NotificationContentSelector.js"
+import { isApp } from "../../../api/common/Env.js"
 
 export class RichNotificationsNews implements NewsListItem {
 	private notificationMode: ExtendedNotificationMode | null = null
@@ -15,7 +16,11 @@ export class RichNotificationsNews implements NewsListItem {
 	constructor(private readonly newsModel: NewsModel, private readonly pushApp: NativePushServiceApp | null) {}
 
 	async isShown(_newsId: NewsId): Promise<boolean> {
-		return this.pushApp != null && (this.notificationMode = await this.pushApp.getExtendedNotificationMode()) != ExtendedNotificationMode.SenderAndSubject
+		return (
+			isApp() &&
+			this.pushApp != null &&
+			(this.notificationMode = await this.pushApp.getExtendedNotificationMode()) != ExtendedNotificationMode.SenderAndSubject
+		)
 	}
 
 	render(newsId: NewsId): Children {
