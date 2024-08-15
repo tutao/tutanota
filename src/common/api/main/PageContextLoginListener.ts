@@ -31,21 +31,20 @@ export class PageContextLoginListener implements LoginListener {
 	/**
 	 * Full login reached: any network requests can be made
 	 */
-	async onFullLoginSuccess(_sessionType: SessionType, _cacheInfo: CacheInfo, credentials: Credentials): Promise<void> {
+	async onFullLoginSuccess(_sessionType: SessionType, cacheInfo: CacheInfo, credentials: Credentials): Promise<void> {
 		this.fullLoginFailed = false
+
 		// Update the credentials after the full login.
 		// It is needed because we added encryptedPassphraseKey to credentials which is only
 		// available after the full login which happens async.
 
-		// First try to fetch credentials info and only then try to get decrypted credentials as it is not valid to
-		// call `getDecryptedCredentialsByUserId()` without storing any credentials first.
-		const areCredentialsStored = (await this.credentialsProvider.getCredentialsInfoByUserId(credentials.userId)) != null
-		if (areCredentialsStored) {
-			const storedCredentials = await this.credentialsProvider.getDecryptedCredentialsByUserId(credentials.userId)
-			if (storedCredentials != null) {
-				const updatedCredentials = credentialsToUnencrypted(credentials, storedCredentials.databaseKey)
-				await this.credentialsProvider.store(updatedCredentials)
-			}
+		// First fetch encrypted credentials for the user to figure out if the credentials are stored but are also missing
+		// a passphrase key, and then update if so.
+
+		const persistedCredentials = (await this.credentialsProvider.getAllInternalCredentials()).find((a) => a.credentialInfo.userId === credentials.userId)
+		if (cacheInfo.databaseKey != null && persistedCredentials != null && persistedCredentials.encryptedPassphraseKey == null) {
+			const updatedCredentials = credentialsToUnencrypted(credentials, cacheInfo.databaseKey)
+			await this.credentialsProvider.store(updatedCredentials)
 		}
 
 		this.loginPromise.resolve()

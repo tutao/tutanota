@@ -111,6 +111,7 @@ export type NewSessionData = {
 export type CacheInfo = {
 	isPersistent: boolean
 	isNewOfflineDb: boolean
+	databaseKey: Uint8Array | null
 }
 
 interface ResumeSessionResultData {
@@ -759,9 +760,9 @@ export class LoginFacade {
 	 */
 	private async initCache({ userId, databaseKey, timeRangeDays, forceNewDatabase }: InitCacheOptions): Promise<CacheInfo> {
 		if (databaseKey != null) {
-			return this.cacheInitializer.initialize({ type: "offline", userId, databaseKey, timeRangeDays, forceNewDatabase })
+			return { databaseKey, ...(await this.cacheInitializer.initialize({ type: "offline", userId, databaseKey, timeRangeDays, forceNewDatabase })) }
 		} else {
-			return this.cacheInitializer.initialize({ type: "ephemeral", userId })
+			return { databaseKey: null, ...(await this.cacheInitializer.initialize({ type: "ephemeral", userId })) }
 		}
 	}
 

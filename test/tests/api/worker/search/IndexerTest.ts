@@ -1252,6 +1252,7 @@ o.spec("IndexerTest", () => {
 			const cacheInfo: CacheInfo = {
 				isPersistent: true,
 				isNewOfflineDb: true,
+				databaseKey: new Uint8Array([1, 2, 3]),
 			}
 
 			indexer._mail.enableMailIndexing = func<MailIndexer["enableMailIndexing"]>()
@@ -1267,6 +1268,7 @@ o.spec("IndexerTest", () => {
 			const cacheInfo: CacheInfo = {
 				isPersistent: true,
 				isNewOfflineDb: true,
+				databaseKey: new Uint8Array([1, 2, 3]),
 			}
 			indexer._mail.enableMailIndexing = func<MailIndexer["enableMailIndexing"]>()
 			when(indexer._mail.enableMailIndexing(matchers.anything())).thenResolve(undefined)
@@ -1283,6 +1285,7 @@ o.spec("IndexerTest", () => {
 			const cacheInfo: CacheInfo = {
 				isPersistent: false,
 				isNewOfflineDb: true,
+				databaseKey: new Uint8Array([1, 2, 3]),
 			}
 
 			indexer._mail.enableMailIndexing = func<MailIndexer["enableMailIndexing"]>()
