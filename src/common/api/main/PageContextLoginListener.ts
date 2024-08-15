@@ -42,7 +42,7 @@ export class PageContextLoginListener implements LoginListener {
 		// a passphrase key, and then update if so.
 
 		const persistedCredentials = (await this.credentialsProvider.getAllInternalCredentials()).find((a) => a.credentialInfo.userId === credentials.userId)
-		if (cacheInfo.databaseKey != null && persistedCredentials != null && persistedCredentials.encryptedPassphraseKey == null) {
+		if (persistedCredentials != null && persistedCredentials.encryptedPassphraseKey == null) {
 			const updatedCredentials = credentialsToUnencrypted(credentials, cacheInfo.databaseKey)
 			await this.credentialsProvider.store(updatedCredentials)
 		}
