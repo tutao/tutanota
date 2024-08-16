@@ -36,9 +36,9 @@ class IosWebauthnFacade: WebAuthnFacade {
 			var urlComponents = URLComponents(string: challengeDomain)!
 			urlComponents.queryItems = [
 				URLQueryItem(name: "action", value: actionType), URLQueryItem(name: "challenge", value: challengeJson),
-				URLQueryItem(name: "cbUrl", value: "tutanota://{result}"),
+				URLQueryItem(name: "cbUrl", value: "tutacalendar://{result}"),
 			]
-			let session = ASWebAuthenticationSession(url: urlComponents.url!, callbackURLScheme: "tutanota") { url, error in
+			let session = ASWebAuthenticationSession(url: urlComponents.url!, callbackURLScheme: "tutacalendar") { url, error in
 				if let url {
 					continuation.resume(returning: url)
 				} else {
