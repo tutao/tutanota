@@ -28,7 +28,7 @@
 			<key>CFBundleURLSchemes</key>
 			<array>
 				<string>tutashare</string>
-				<string>calendar</string>
+				<string>tutacalendar</string>
 			</array>
 		</dict>
 	</array>

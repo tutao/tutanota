@@ -28,6 +28,7 @@ import { PaymentInterval } from "./PriceUtils.js"
 import { EntityUpdateData, isUpdateForTypeRef } from "../api/common/utils/EntityUpdateUtils.js"
 import { EntityEventsListener } from "../api/main/EventController.js"
 import { LoginButton } from "../gui/base/buttons/LoginButton.js"
+import { client } from "../misc/ClientDetector.js"
 
 /**
  * Wizard page for editing invoice and payment data.
@@ -401,9 +402,10 @@ function verifyCreditCard(accountingInfo: AccountingInfo, braintree3ds: Braintre
 		}
 
 		locator.eventController.addEntityListener(entityEventListener)
+		const app = client.isCalendarApp() ? "calendar" : "mail"
 		let params = `clientToken=${encodeURIComponent(braintree3ds.clientToken)}&nonce=${encodeURIComponent(braintree3ds.nonce)}&bin=${encodeURIComponent(
 			braintree3ds.bin,
-		)}&price=${encodeURIComponent(price)}&message=${encodeURIComponent(lang.get("creditCardVerification_msg"))}&clientType=${getClientType()}`
+		)}&price=${encodeURIComponent(price)}&message=${encodeURIComponent(lang.get("creditCardVerification_msg"))}&clientType=${getClientType()}&app=${app}`
 		Dialog.message("creditCardVerificationNeededPopup_msg").then(() => {
 			const paymentUrlString = locator.domainConfigProvider().getCurrentDomainConfig().paymentUrl
 			const paymentUrl = new URL(paymentUrlString)

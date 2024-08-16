@@ -95,8 +95,8 @@ import UIKit
 		self.pushTokenCallback = nil
 	}
 
-	/// handles tutanota deep links:
-	/// tutanota:// -> ?
+	/// handles tutacalendar deep links:
+	/// tutacalendar:// -> ?
 	/// tutashare:// -> share requests from the sharing extension
 	func application(_ application: UIApplication, open url: URL, options: [UIApplication.OpenURLOptionsKey: Any] = [:]) -> Bool {
 		switch url.scheme {
