@@ -129,7 +129,7 @@ class LocalNotificationsFacade(private val context: Context, private val sseStor
 				.setSubText(notificationInfo.mailAddress)
 				.setSmallIcon(R.drawable.ic_status)
 				.setDeleteIntent(intentForDelete(arrayListOf(notificationInfo.mailAddress)))
-				.setContentIntent(intentOpenMailbox(notificationInfo, false))
+				.setContentIntent(intentOpenMail(notificationInfo))
 				.setGroup(groupIdFor(notificationInfo))
 				.setAutoCancel(true)
 				.setGroupAlertBehavior(NotificationCompat.GROUP_ALERT_CHILDREN)
@@ -197,7 +197,7 @@ class LocalNotificationsFacade(private val context: Context, private val sseStor
 			.setGroupSummary(true)
 			.setColor(red)
 			.setStyle(inboxStyle)
-			.setContentIntent(intentOpenMailbox(notificationInfo, true))
+			.setContentIntent(intentOpenMail(notificationInfo))
 			.setDeleteIntent(intentForDelete(addresses))
 			.setAutoCancel(true)
 			// We need to update summary without sound when one of the alarms is cancelled
@@ -242,7 +242,6 @@ class LocalNotificationsFacade(private val context: Context, private val sseStor
 		notificationManager.notify(1000, notification)
 	}
 
-	@RequiresApi(Build.VERSION_CODES.O)
 	fun createNotificationChannels() {
 		val mailNotificationChannel = NotificationChannel(
 			EMAIL_NOTIFICATION_CHANNEL_ID,
@@ -273,7 +272,6 @@ class LocalNotificationsFacade(private val context: Context, private val sseStor
 		notificationManager.createNotificationChannel(downloadNotificationsChannel)
 	}
 
-	@RequiresApi(Build.VERSION_CODES.O)
 	private fun NotificationChannel.default(): NotificationChannel {
 		val ringtoneUri = RingtoneManager.getDefaultUri(RingtoneManager.TYPE_NOTIFICATION)
 		val att = AudioAttributes.Builder()
@@ -304,9 +302,8 @@ class LocalNotificationsFacade(private val context: Context, private val sseStor
 		)
 	}
 
-	private fun intentOpenMailbox(
+	private fun intentOpenMail(
 		notificationInfo: NotificationInfo,
-		isSummary: Boolean,
 	): PendingIntent {
 		val openMailboxIntent = Intent(context, MainActivity::class.java)
 		openMailboxIntent.action = MainActivity.OPEN_USER_MAILBOX_ACTION
@@ -318,10 +315,15 @@ class LocalNotificationsFacade(private val context: Context, private val sseStor
 			MainActivity.OPEN_USER_MAILBOX_USERID_KEY,
 			notificationInfo.userId
 		)
-		openMailboxIntent.putExtra(MainActivity.IS_SUMMARY_EXTRA, isSummary)
+		if (notificationInfo.mailId != null) {
+			openMailboxIntent.putExtra(
+				MainActivity.OPEN_USER_MAILBOX_MAILID_KEY,
+				"${notificationInfo.mailId.listId}/${notificationInfo.mailId.listElementId}"
+			)
+		}
 		return PendingIntent.getActivity(
 			context.applicationContext,
-			mailNotificationId(notificationInfo.mailAddress + "@isSummary" + isSummary),
+			mailNotificationId(notificationInfo.mailAddress),
 			openMailboxIntent,
 			PendingIntent.FLAG_UPDATE_CURRENT or PendingIntent.FLAG_IMMUTABLE
 		)
@@ -332,12 +334,10 @@ fun notificationDismissedIntent(
 	context: Context,
 	emailAddresses: ArrayList<String>,
 	sender: String,
-	isSummary: Boolean,
 ): Intent {
 	val deleteIntent = Intent(context, PushNotificationService::class.java)
 	deleteIntent.putStringArrayListExtra(NOTIFICATION_DISMISSED_ADDR_EXTRA, emailAddresses)
 	deleteIntent.putExtra("sender", sender)
-	deleteIntent.putExtra(MainActivity.IS_SUMMARY_EXTRA, isSummary)
 	return deleteIntent
 }
 
