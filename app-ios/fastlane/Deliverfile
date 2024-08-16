@@ -1,4 +1,5 @@
 languages([
+'ar-SA',
 'da',
 'de-DE',
 'el',
@@ -9,6 +10,7 @@ languages([
 'es-ES',
 'es-MX',
 'fi',
+'fr-CA',
 'fr-FR',
 'id',
 'it',
