@@ -702,7 +702,6 @@ class MainActivity : FragmentActivity() {
 	private suspend fun openMailbox(intent: Intent) {
 		val userId = intent.getStringExtra(OPEN_USER_MAILBOX_USERID_KEY)
 		val address = intent.getStringExtra(OPEN_USER_MAILBOX_MAIL_ADDRESS_KEY)
-		val isSummary = intent.getBooleanExtra(IS_SUMMARY_EXTRA, false)
 		if (userId == null || address == null) {
 			return
 		}
@@ -711,11 +710,17 @@ class MainActivity : FragmentActivity() {
 		startService(
 				notificationDismissedIntent(
 						this, addresses,
-						"MainActivity#openMailbox", isSummary
+						"MainActivity#openMailbox"
 				)
 		)
 
-		commonNativeFacade.openMailBox(userId, address, null)
+		val requestedPath = intent.getStringExtra(OPEN_USER_MAILBOX_MAILID_KEY)?.let {
+			val parts = it.split("/")
+			val idParam = "${parts[0]},${parts[1]}"
+			if (parts.size == 2) "?mail=${URLEncoder.encode(idParam, "utf-8")}" else null
+		}
+
+		commonNativeFacade.openMailBox(userId, address, requestedPath)
 	}
 
 	private suspend fun openCalendar(intent: Intent) {
@@ -779,7 +784,7 @@ class MainActivity : FragmentActivity() {
 		const val OPEN_CALENDAR_ACTION = "de.tutao.tutanota.OPEN_CALENDAR_ACTION"
 		const val OPEN_USER_MAILBOX_MAIL_ADDRESS_KEY = "mailAddress"
 		const val OPEN_USER_MAILBOX_USERID_KEY = "userId"
-		const val IS_SUMMARY_EXTRA = "isSummary"
+		const val OPEN_USER_MAILBOX_MAILID_KEY = "mailId"
 		const val ALREADY_HANDLED_INTENT = "alreadyHandledIntent"
 		private const val TAG = "MainActivity"
 		private var requestId = 0
