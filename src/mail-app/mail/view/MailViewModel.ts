@@ -121,6 +121,28 @@ export class MailViewModel {
 		}
 	}
 
+	async showExplicitMailPreview([listId, elementId]: IdTuple): Promise<void> {
+		// If we are already displaying the requested email, do nothing
+		if (this.conversationViewModel && isSameId(this.conversationViewModel.primaryMail._id, elementId)) {
+			return
+		}
+		this.targetMailId = elementId
+		const cached = await this.cacheStorage.get(MailTypeRef, listId, elementId)
+
+		if (this.targetMailId != elementId) return
+
+		if (cached) {
+			console.log("showing cached mail")
+			this.conversationViewModel = this.conversationViewModelFactory({ mail: cached, showFolder: false })
+			this.updateUi()
+
+			const folder = this.mailModel.getMailFolderForMail(cached)
+			const folderToUse = await this.selectFolderToUse(folder ?? null)
+			// make sure that we display *something* in the list
+			await this.setListId(folderToUse)
+		}
+	}
+
 	async showMail(folder?: MailFolder | null, mailId?: Id) {
 		// an optimization to not open an email that we already display
 		if (folder != null && mailId != null && this.conversationViewModel && isSameId(elementIdPart(this.conversationViewModel.primaryMail._id), mailId)) {
@@ -131,19 +153,7 @@ export class MailViewModel {
 		// if we don't set this one before setListId, url update will cause this function to be called again but without target mail, and we will lose the
 		// target URL
 		this.targetMailId = typeof mailId === "string" ? mailId : null
-
-		let folderToUse
-		if (folder) {
-			const mailboxDetail = await this.mailModel.getMailboxDetailsForMailFolder(folder)
-			if (mailboxDetail) {
-				folderToUse = folder
-			} else {
-				folderToUse = await this.getFolderForUserInbox()
-			}
-		} else {
-			folderToUse = this._folder ?? (await this.getFolderForUserInbox())
-		}
-
+		const folderToUse = await this.selectFolderToUse(folder ?? null)
 		await this.setListId(folderToUse)
 
 		// if there is a target id, and we are not loading for this id already then start loading towards that id
@@ -160,6 +170,19 @@ export class MailViewModel {
 			// update URL if the view was just opened without any url params
 			// setListId might not have done it if the list didn't change for us internally but is changed for the view
 			if (folder == null) this.updateUrl()
+		}
+	}
+
+	private async selectFolderToUse(folderArgument: MailFolder | null): Promise<MailFolder> {
+		if (folderArgument) {
+			const mailboxDetail = await this.mailModel.getMailboxDetailsForMailFolder(folderArgument)
+			if (mailboxDetail) {
+				return folderArgument
+			} else {
+				return await this.getFolderForUserInbox()
+			}
+		} else {
+			return this._folder ?? (await this.getFolderForUserInbox())
 		}
 	}
 

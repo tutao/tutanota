@@ -18,7 +18,8 @@ export async function openMailbox(userId: Id, mailAddress: string, requestedPath
 		if (!requestedPath) {
 			m.route.set(`/login?noAutoLogin=false&userId=${userId}&loginWith=${mailAddress}`)
 		} else {
-			m.route.set(`/login?noAutoLogin=false&userId=${userId}&loginWith=${mailAddress}&requestedPath=${encodeURIComponent(requestedPath)}`)
+			const fullRequestedPath = `/mail${requestedPath}`
+			m.route.set(`/login?noAutoLogin=false&userId=${userId}&loginWith=${mailAddress}&requestedPath=${encodeURIComponent(fullRequestedPath)}`)
 		}
 	}
 }

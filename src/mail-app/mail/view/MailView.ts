@@ -642,7 +642,15 @@ export class MailView extends BaseTopLevelView implements TopLevelView<MailViewA
 			this.viewSlider.focusPreviousColumn()
 		}
 
-		this.mailViewModel.showMailWithFolderId(args.folderId, args.mailId)
+		if (typeof args.mail === "string") {
+			const [mailListId, mailId] = args.mail.split(",")
+			if (mailListId && mailId) {
+				this.mailViewModel.showExplicitMailPreview([mailListId, mailId])
+				this.viewSlider.focus(this.mailColumn)
+			}
+		} else {
+			this.mailViewModel.showMailWithFolderId(args.folderId, args.mailId)
+		}
 	}
 
 	private async handleFolderDrop(droppedMailId: string, folder: MailFolder) {
