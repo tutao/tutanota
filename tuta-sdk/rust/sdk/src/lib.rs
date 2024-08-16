@@ -12,6 +12,7 @@ use rest_client::{RestClient, RestClientError};
 
 #[mockall_double::double]
 use crate::crypto::crypto_facade::CryptoFacade;
+use crate::crypto::randomizer_facade::RandomizerFacade;
 #[mockall_double::double]
 use crate::crypto_entity_client::CryptoEntityClient;
 use crate::element_value::ElementValue;
@@ -172,9 +173,11 @@ impl Sdk {
             user_facade.clone(),
             self.typed_entity_client.clone()
         ));
+        let randomizer = RandomizerFacade::from_core(rand_core::OsRng::default());
         let crypto_facade = Arc::new(CryptoFacade::new(
             key_loader.clone(),
             self.instance_mapper.clone(),
+            randomizer,
         ));
         let entity_facade = Arc::new(EntityFacade::new(self.type_model_provider.clone()));
         let crypto_entity_client: Arc<CryptoEntityClient> = Arc::new(CryptoEntityClient::new(
