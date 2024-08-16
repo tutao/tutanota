@@ -428,11 +428,11 @@ class MainActivity : FragmentActivity() {
 		// we don't want to do any kind of intent handling
 		val data = intent.data
 
-		if (data != null && data.scheme == "tutanota" && data.host == "webauthn") {
+		if (data != null && data.scheme == "tutacalendar" && data.host == "webauthn") {
 			handleWebauthn(intent, data)
 		}
 
-		if (data != null && data.toString().startsWith("tutanota://")) {
+		if (data != null && data.toString().startsWith("tutacalendar://")) {
 			return@launchWhenCreated
 		}
 
