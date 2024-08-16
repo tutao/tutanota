@@ -5,6 +5,7 @@ use std::sync::Arc;
 use std::time::SystemTime;
 
 use crate::ApiCallError;
+use crate::crypto::crypto_facade::ResolvedSessionKey;
 use crate::crypto::IV_BYTE_SIZE;
 use crate::date::DateTime;
 use crate::crypto::key::GenericAesKey;
@@ -27,7 +28,13 @@ impl EntityFacade {
             type_model_provider
         }
     }
-    pub fn decrypt_and_map(&self, type_model: &TypeModel, mut entity: ParsedEntity, session_key: &GenericAesKey) -> Result<ParsedEntity, ApiCallError> {
+    pub fn decrypt_and_map(&self, type_model: &TypeModel, mut entity: ParsedEntity, resolved_session_key: ResolvedSessionKey) -> Result<ParsedEntity, ApiCallError> {
+        let mut mapped_decrypted = self.decrypt_and_map_inner(&type_model, entity, &resolved_session_key.session_key)?;
+        mapped_decrypted.insert("_ownerEncSessionKey".to_owned(), ElementValue::Bytes(resolved_session_key.owner_enc_session_key.clone()));
+        Ok(mapped_decrypted)
+    }
+
+    fn decrypt_and_map_inner(&self, type_model: &TypeModel, mut entity: ParsedEntity, session_key: &GenericAesKey) -> Result<ParsedEntity, ApiCallError> {
         let mut mapped_decrypted: HashMap<String, ElementValue> = Default::default();
         let mut mapped_errors: Errors = Default::default();
         let mut mapped_ivs: HashMap<String, ElementValue> = Default::default();
@@ -47,7 +54,7 @@ impl EntityFacade {
 
         for (&association_name, association_model) in type_model.associations.iter() {
             let association_entry = entity.remove(association_name).unwrap_or(ElementValue::Null);
-            let (mapped_association, errors) = self.map_associations(type_model, association_entry, session_key, &association_name, association_model)?;
+            let (mapped_association, errors) = self.map_associations(type_model, association_entry, &session_key, &association_name, association_model)?;
 
             mapped_decrypted.insert(association_name.to_string(), mapped_association);
             if !errors.is_empty() {
@@ -83,7 +90,7 @@ impl EntityFacade {
                     for (index, aggregate) in arr.into_iter().enumerate() {
                         match aggregate {
                             ElementValue::Dict(entity) => {
-                                let mut decrypted_aggregate = self.decrypt_and_map(aggregate_type_model, entity, session_key)?;
+                                let mut decrypted_aggregate = self.decrypt_and_map_inner(aggregate_type_model, entity, session_key)?;
 
                                 // Errors should be grouped inside the top-most object, so they should be
                                 // extracted and removed from aggregates
@@ -101,7 +108,7 @@ impl EntityFacade {
                     Ok((ElementValue::Array(aggregate_vec), errors))
                 }
                 (ElementValue::Dict(dict), Cardinality::One | Cardinality::ZeroOrOne) => {
-                    let decrypted_aggregate = self.decrypt_and_map(aggregate_type_model, dict, session_key);
+                    let decrypted_aggregate = self.decrypt_and_map_inner(aggregate_type_model, dict, session_key);
                     match decrypted_aggregate {
                         Ok(mut dec_aggregate) => {
                             self.extract_errors(association_name, &mut errors, &mut dec_aggregate);
@@ -253,6 +260,7 @@ mod tests {
     use crate::entities::entity_facade::EntityFacade;
     use crate::type_model_provider::init_type_model_provider;
     use crate::{collection, IdTuple, TypeRef};
+    use crate::crypto::crypto_facade::ResolvedSessionKey;
     use crate::entities::Entity;
     use crate::entities::tutanota::Mail;
     use crate::generated_id::GeneratedId;
@@ -263,6 +271,7 @@ mod tests {
     #[test]
     fn test_decrypt_mail() {
         let sk = GenericAesKey::Aes256(Aes256Key::from_bytes(vec![83, 168, 168, 203, 48, 91, 246, 102, 175, 252, 39, 110, 36, 141, 4, 216, 135, 201, 226, 134, 182, 175, 15, 152, 117, 216, 81, 1, 120, 134, 116, 143].as_slice()).unwrap());
+        let owner_enc_session_key = vec![0, 1, 2];
         let iv = Iv::from_bytes(&random::<[u8; 16]>()).unwrap();
         let type_model_provider = Arc::new(init_type_model_provider());
         let raw_entity: RawEntity = make_json_entity();
@@ -274,7 +283,7 @@ mod tests {
         let type_model = type_model_provider.get_type_model(&type_ref.app, &type_ref.type_)
             .unwrap();
 
-        let decrypted_mail = entity_facade.decrypt_and_map(type_model, encrypted_mail, &sk).unwrap();
+        let decrypted_mail = entity_facade.decrypt_and_map(type_model, encrypted_mail, ResolvedSessionKey { session_key: sk, owner_enc_session_key }).unwrap();
         let instance_mapper = InstanceMapper::new();
         let mail: Mail = instance_mapper.parse_entity(decrypted_mail.clone()).unwrap();
 
