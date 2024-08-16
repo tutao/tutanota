@@ -54,11 +54,11 @@
 				<action android:name="android.intent.action.MAIN"/>
 				<category android:name="android.intent.category.LAUNCHER"/>
 			</intent-filter>
-			<!-- handler for custom tutanota://app uri, used for redirecting back from other apps (ie. the browser when
+			<!-- handler for custom tutacalendar://app uri, used for redirecting back from other apps (ie. the browser when
 			obtaining user payment info) -->
 			<intent-filter>
 				<data
-						android:scheme="tutanota"
+						android:scheme="tutacalendar"
 						android:host="app"/>
 
 				<category android:name="android.intent.category.BROWSABLE"/>
@@ -68,7 +68,7 @@
 			</intent-filter>
 			<intent-filter>
 				<data
-						android:scheme="tutanota"
+						android:scheme="tutacalendar"
 						android:host="webauthn"/>
 
 				<category android:name="android.intent.category.BROWSABLE"/>
