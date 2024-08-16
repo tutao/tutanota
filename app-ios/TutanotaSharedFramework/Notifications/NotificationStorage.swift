@@ -20,20 +20,22 @@ public class NotificationStorage {
 	}
 
 	public func store(pushIdentifier: String, userId: String, sseOrigin: String) throws {
-
+		// Provide right defaults for extended notification mode.
+		//  - Start with "nothing" as a conservative default
+		//  - If notifications were not used before, enable extended notifications
 		if var sseInfo = self.sseInfo {
 			sseInfo.pushIdentifier = pushIdentifier
 			sseInfo.sseOrigin = sseOrigin
 			var userIds = sseInfo.userIds
 			if !userIds.contains(userId) {
 				userIds.append(userId)
-				try self.setExtendedNotificationConfig(userId, .only_sender)
+				try self.setExtendedNotificationConfig(userId, .sender_and_subject)
 			}
 			sseInfo.userIds = userIds
 			self.put(sseInfo: sseInfo)
 		} else {
 			let sseInfo = SSEInfo(pushIdentifier: pushIdentifier, sseOrigin: sseOrigin, userIds: [userId])
-			try self.setExtendedNotificationConfig(userId, .only_sender)
+			try self.setExtendedNotificationConfig(userId, .sender_and_subject)
 			self.put(sseInfo: sseInfo)
 		}
 	}
@@ -91,6 +93,7 @@ public class NotificationStorage {
 	}
 
 	public func getExtendedNotificationConfig(_ userId: String) throws -> TutanotaSharedFramework.ExtendedNotificationMode {
+		// This default gets overwritten later when we store the pushIdentifier
 		self.userPreferencesProvider.getObject(forKey: "\(EXTENDED_NOTIFICATION_MODE):\(userId)")
 			.map { mode in ExtendedNotificationMode(rawValue: mode as! String)! } ?? .sender_and_subject
 	}
