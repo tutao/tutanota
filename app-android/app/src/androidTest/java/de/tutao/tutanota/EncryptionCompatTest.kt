@@ -306,9 +306,5 @@ class CompatibilityTest {
 				}
 			}
 		}
-
-		init {
-			System.loadLibrary("tutanota")
-		}
 	}
 }

@@ -788,9 +788,5 @@ class MainActivity : FragmentActivity() {
 			}
 			return requestId
 		}
-
-		init {
-			System.loadLibrary("tutanota")
-		}
 	}
 }
