@@ -233,7 +233,8 @@ impl<'de, 's> Deserializer<'de> for ElementValueDeserializer<'s> {
     where
         V: Visitor<'de>,
     {
-        Err(de::Error::custom("deserialize_any is not supported!"))
+        let type_name = self.value.type_variant_name();
+        Err(de::Error::custom(format_args!("deserialize_any is not supported! key: {} value: {type_name}", self.key)))
     }
 
     fn deserialize_u64<V>(self, visitor: V) -> Result<V::Value, Self::Error>

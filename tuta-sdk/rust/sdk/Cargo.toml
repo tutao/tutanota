@@ -22,7 +22,7 @@ curve25519-dalek = "4.1.2"
 pqcrypto-kyber = { version = "0.7.9", default-features = false, features = ["std"] }
 pqcrypto-traits = "0.3.4"
 rsa = "0.9.6"
-rand_core = "0.6.4"
+rand_core = { version = "0.6.4", features = ["getrandom"] }
 serde_bytes = "0.11.14"
 futures = "0.3.30"
 mockall_double = "0.3.1"

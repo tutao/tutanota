@@ -53,7 +53,7 @@ impl CryptoEntityClient {
                 )?;
             match possible_session_key {
                 Some(session_key) => {
-                    let decrypted_entity = self.entity_facade.decrypt_and_map(type_model, parsed_entity, &session_key)?;
+                    let decrypted_entity = self.entity_facade.decrypt_and_map(type_model, parsed_entity, session_key)?;
                     let typed_entity = self.instance_mapper.parse_entity::<T>(decrypted_entity)
                         .map_err(|e|
                             ApiCallError::InternalSdkError {
@@ -89,7 +89,7 @@ mod tests {
     use std::sync::Arc;
     use rand::random;
     use crate::crypto::{Aes256Key, Iv};
-    use crate::crypto::crypto_facade::MockCryptoFacade;
+    use crate::crypto::crypto_facade::{MockCryptoFacade, ResolvedSessionKey};
     use crate::crypto::key::GenericAesKey;
     use crate::crypto_entity_client::CryptoEntityClient;
     use crate::date::DateTime;
@@ -142,7 +142,7 @@ mod tests {
 
         // Set up the mock of the crypto facade
         let mut mock_crypto_facade = MockCryptoFacade::default();
-        mock_crypto_facade.expect_resolve_session_key().returning(move |_, _| Ok(Some(sk.clone())));
+        mock_crypto_facade.expect_resolve_session_key().returning(move |_, _| Ok(Some(ResolvedSessionKey { session_key: sk.clone(), owner_enc_session_key: vec![1, 2, 3]})));
 
         // TODO: it would be nice to mock this
         let type_model_provider = Arc::new(init_type_model_provider());
