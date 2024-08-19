@@ -97,15 +97,25 @@ export class InstanceMapper {
 			let valueType = model.values[key]
 			let value = i[key]
 
+			let encryptedValue
 			// restore the original encrypted value if it exists. it does not exist if this is a data transfer type or a newly created entity. check against null explicitely because "" is allowed
 			if (valueType.encrypted && valueType.final && i["_finalEncrypted_" + key] != null) {
-				encrypted[key] = i["_finalEncrypted_" + key]
+				encryptedValue = i["_finalEncrypted_" + key]
+			} else if (valueType.encrypted && (i["_finalIvs"]?.[key] as Uint8Array | null)?.length === 0 && isDefaultValue(valueType.type, value)) {
+				// restore the default encrypted value because it has not changed
+				// note: this brunch must be checked *before* the one which reuses IVs as this one checks
+				// the length.
+				encryptedValue = ""
+			} else if (valueType.encrypted && valueType.final && i["_finalIvs"]?.[key] != null) {
+				const finalIv = i["_finalIvs"][key]
+				encryptedValue = encryptValue(key, valueType, value, sk, finalIv)
 			} else if (valueType.encrypted && i["_defaultEncrypted_" + key] === value) {
 				// restore the default encrypted value because it has not changed
-				encrypted[key] = ""
+				encryptedValue = ""
 			} else {
-				encrypted[key] = encryptValue(key, valueType, value, sk)
+				encryptedValue = encryptValue(key, valueType, value, sk)
 			}
+			encrypted[key] = encryptedValue
 		}
 
 		if (model.type === Type.Aggregated && !encrypted._id) {
@@ -142,7 +152,13 @@ export class InstanceMapper {
 }
 
 // Exported for testing
-export function encryptValue(valueName: string, valueType: ModelValue, value: any, sk: AesKey | null): string | Base64 | null {
+export function encryptValue(
+	valueName: string,
+	valueType: ModelValue,
+	value: any,
+	sk: AesKey | null,
+	iv: Uint8Array = random.generateRandomData(IV_BYTE_LENGTH),
+): string | Base64 | null {
 	if (valueName === "_id" || valueName === "_permissions") {
 		return value
 	} else if (value == null) {
@@ -159,7 +175,7 @@ export function encryptValue(valueName: string, valueType: ModelValue, value: an
 			bytes = typeof dbType === "string" ? stringToUtf8Uint8Array(dbType) : dbType
 		}
 
-		return uint8ArrayToBase64(aesEncrypt(assertNotNull(sk), bytes, random.generateRandomData(IV_BYTE_LENGTH), true, ENABLE_MAC))
+		return uint8ArrayToBase64(aesEncrypt(assertNotNull(sk), bytes, iv, true, ENABLE_MAC))
 	} else {
 		const dbType = convertJsToDbType(valueType.type, value)
 
@@ -258,13 +274,38 @@ function valueToDefault(type: Values<typeof ValueType>): Date | Uint8Array | str
 			return new Uint8Array(0)
 
 		case ValueType.Date:
-			return new Date()
+			return new Date(0)
 
 		case ValueType.Boolean:
 			return false
 
 		case ValueType.CompressedString:
 			return ""
+
+		default:
+			throw new ProgrammingError(`${type} is not a valid value type`)
+	}
+}
+
+function isDefaultValue(type: Values<typeof ValueType>, value: unknown): boolean {
+	switch (type) {
+		case ValueType.String:
+			return value === ""
+
+		case ValueType.Number:
+			return value === "0"
+
+		case ValueType.Bytes:
+			return (value as Uint8Array).length === 0
+
+		case ValueType.Date:
+			return (value as Date).getTime() === 0
+
+		case ValueType.Boolean:
+			return value === false
+
+		case ValueType.CompressedString:
+			return value === ""
 
 		default:
 			throw new ProgrammingError(`${type} is not a valid value type`)

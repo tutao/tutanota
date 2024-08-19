@@ -357,32 +357,86 @@ o.spec("InstanceMapper", function () {
 		})
 	})
 
-	o("encrypt instance", async function () {
-		let sk = aes256RandomKey()
-		let address = createTestEntity(ContactAddressTypeRef)
-		address.type = "0"
-		address.address = "Entenhausen"
-		address.customTypeName = "0"
-		let contact = createTestEntity(ContactTypeRef)
-		contact.title = "Dr."
-		contact.firstName = "Max"
-		contact.lastName = "Meier"
-		contact.comment = "what?"
-		contact.company = "WIW"
-		contact.addresses = [address]
-		const ContactTypeModel = await resolveTypeReference(ContactTypeRef)
-		const result: any = await instanceMapper.encryptAndMapToLiteral(ContactTypeModel, contact, sk)
-		o(result._format).equals("0")
-		o(result._ownerGroup).equals(null)
-		o(result._ownerEncSessionKey).equals(null)
-		o(utf8Uint8ArrayToString(aesDecrypt(sk, base64ToUint8Array(result.addresses[0].type)))).equals(contact.addresses[0].type)
-		o(utf8Uint8ArrayToString(aesDecrypt(sk, base64ToUint8Array(result.addresses[0].address)))).equals(contact.addresses[0].address)
-		o(utf8Uint8ArrayToString(aesDecrypt(sk, base64ToUint8Array(result.addresses[0].customTypeName)))).equals(contact.addresses[0].customTypeName)
-		o(utf8Uint8ArrayToString(aesDecrypt(sk, base64ToUint8Array(result.title)))).equals(contact.title)
-		o(utf8Uint8ArrayToString(aesDecrypt(sk, base64ToUint8Array(result.firstName)))).equals(contact.firstName)
-		o(utf8Uint8ArrayToString(aesDecrypt(sk, base64ToUint8Array(result.lastName)))).equals(contact.lastName)
-		o(utf8Uint8ArrayToString(aesDecrypt(sk, base64ToUint8Array(result.comment)))).equals(contact.comment)
-		o(utf8Uint8ArrayToString(aesDecrypt(sk, base64ToUint8Array(result.company)))).equals(contact.company)
+	o.spec("encryptAndMapToLiteral", function () {
+		o.test("encrypt instance", async function () {
+			let sk = aes256RandomKey()
+			let address = createTestEntity(ContactAddressTypeRef)
+			address.type = "0"
+			address.address = "Entenhausen"
+			address.customTypeName = "0"
+			let contact = createTestEntity(ContactTypeRef)
+			contact.title = "Dr."
+			contact.firstName = "Max"
+			contact.lastName = "Meier"
+			contact.comment = "what?"
+			contact.company = "WIW"
+			contact.addresses = [address]
+			const ContactTypeModel = await resolveTypeReference(ContactTypeRef)
+			const result: any = await instanceMapper.encryptAndMapToLiteral(ContactTypeModel, contact, sk)
+			o(result._format).equals("0")
+			o(result._ownerGroup).equals(null)
+			o(result._ownerEncSessionKey).equals(null)
+			o(utf8Uint8ArrayToString(aesDecrypt(sk, base64ToUint8Array(result.addresses[0].type)))).equals(contact.addresses[0].type)
+			o(utf8Uint8ArrayToString(aesDecrypt(sk, base64ToUint8Array(result.addresses[0].address)))).equals(contact.addresses[0].address)
+			o(utf8Uint8ArrayToString(aesDecrypt(sk, base64ToUint8Array(result.addresses[0].customTypeName)))).equals(contact.addresses[0].customTypeName)
+			o(utf8Uint8ArrayToString(aesDecrypt(sk, base64ToUint8Array(result.title)))).equals(contact.title)
+			o(utf8Uint8ArrayToString(aesDecrypt(sk, base64ToUint8Array(result.firstName)))).equals(contact.firstName)
+			o(utf8Uint8ArrayToString(aesDecrypt(sk, base64ToUint8Array(result.lastName)))).equals(contact.lastName)
+			o(utf8Uint8ArrayToString(aesDecrypt(sk, base64ToUint8Array(result.comment)))).equals(contact.comment)
+			o(utf8Uint8ArrayToString(aesDecrypt(sk, base64ToUint8Array(result.company)))).equals(contact.company)
+		})
+
+		o.test("map unencrypted to DB literal", async function () {
+			const dummyDate = new Date()
+			const customerAccountTerminationRequest = createTestEntity(CustomerAccountTerminationRequestTypeRef)
+			customerAccountTerminationRequest._format = "0"
+			customerAccountTerminationRequest.terminationDate = dummyDate
+			customerAccountTerminationRequest.terminationRequestDate = dummyDate
+			customerAccountTerminationRequest.customer = "customerId"
+			const customerAccountTerminationRequestLiteral = {
+				_format: "0",
+				_id: null,
+				_ownerGroup: null,
+				_permissions: null,
+				terminationDate: dummyDate.getTime().toString(),
+				terminationRequestDate: dummyDate.getTime().toString(),
+				customer: "customerId",
+			}
+			const CustomerAccountTerminationRequestTypeModel = await resolveTypeReference(CustomerAccountTerminationRequestTypeRef)
+			const result = await instanceMapper.encryptAndMapToLiteral(CustomerAccountTerminationRequestTypeModel, customerAccountTerminationRequest, null)
+			o(result).deepEquals(customerAccountTerminationRequestLiteral)
+		})
+
+		o.test("when finalIvs has an entry it will reuse the IV", async function () {
+			const sk = aes256RandomKey()
+			const TypeModel = await resolveTypeReference(MailTypeRef)
+			const mail = {
+				...createTestEntity(MailTypeRef),
+				subject: "some subject",
+				sender: createTestEntity(MailAddressTypeRef),
+			}
+			const iv = new Uint8Array(IV_BYTE_LENGTH)
+			iv[1] = 1
+			mail["_finalIvs"] = { subject: new Uint8Array(iv) }
+			const result: any = await instanceMapper.encryptAndMapToLiteral(TypeModel, mail, sk)
+			const encryptedSubject = base64ToUint8Array(result["subject"] as string)
+			o(encryptedSubject.slice(1, IV_BYTE_LENGTH + 1)).deepEquals(iv)
+		})
+
+		o.test("when finalIvs has an empty entry and the value is default it will write default placeholder back", async function () {
+			const sk = aes256RandomKey()
+			const TypeModel = await resolveTypeReference(MailTypeRef)
+			const mail = {
+				...createTestEntity(MailTypeRef),
+				subject: "",
+				sender: createTestEntity(MailAddressTypeRef),
+			}
+			const iv = new Uint8Array([])
+			mail["_finalIvs"] = { subject: new Uint8Array(iv) }
+			const result: any = await instanceMapper.encryptAndMapToLiteral(TypeModel, mail, sk)
+			const encryptedSubject = result["subject"]
+			o(encryptedSubject).equals("")
+		})
 	})
 
 	o("map unencrypted to instance", async function () {
@@ -404,27 +458,6 @@ o.spec("InstanceMapper", function () {
 		o(customerAccountTerminationRequest.customer).equals("customerId")
 		o(customerAccountTerminationRequest.terminationDate).deepEquals(dummyDate)
 		o(customerAccountTerminationRequest.terminationRequestDate).deepEquals(dummyDate)
-	})
-
-	o("map unencrypted to DB literal", async function () {
-		const dummyDate = new Date()
-		const customerAccountTerminationRequest = createTestEntity(CustomerAccountTerminationRequestTypeRef)
-		customerAccountTerminationRequest._format = "0"
-		customerAccountTerminationRequest.terminationDate = dummyDate
-		customerAccountTerminationRequest.terminationRequestDate = dummyDate
-		customerAccountTerminationRequest.customer = "customerId"
-		const customerAccountTerminationRequestLiteral = {
-			_format: "0",
-			_id: null,
-			_ownerGroup: null,
-			_permissions: null,
-			terminationDate: dummyDate.getTime().toString(),
-			terminationRequestDate: dummyDate.getTime().toString(),
-			customer: "customerId",
-		}
-		const CustomerAccountTerminationRequestTypeModel = await resolveTypeReference(CustomerAccountTerminationRequestTypeRef)
-		const result = await instanceMapper.encryptAndMapToLiteral(CustomerAccountTerminationRequestTypeModel, customerAccountTerminationRequest, null)
-		o(result).deepEquals(customerAccountTerminationRequestLiteral)
 	})
 
 	o("decryption errors should be written to _errors field", async function () {
