@@ -74,8 +74,8 @@ impl EntityFacade {
         }
 
         if type_model.encrypted {
-            mapped_decrypted.insert("errors".to_string(), ElementValue::Dict(mapped_errors));
-            mapped_decrypted.insert("final_ivs".to_string(), ElementValue::Dict(mapped_ivs));
+            mapped_decrypted.insert("_errors".to_string(), ElementValue::Dict(mapped_errors));
+            mapped_decrypted.insert("_finalIvs".to_string(), ElementValue::Dict(mapped_ivs));
         }
         Ok(mapped_decrypted)
     }
@@ -107,7 +107,7 @@ impl EntityFacade {
 
                                 // Errors should be grouped inside the top-most object, so they should be
                                 // extracted and removed from aggregates
-                                if decrypted_aggregate.get("errors").is_some() {
+                                if decrypted_aggregate.get("_errors").is_some() {
                                     let error_key = &format!("{}_{}", association_name, index);
                                     self.extract_errors(error_key, &mut errors, &mut decrypted_aggregate);
                                 }
@@ -316,7 +316,7 @@ mod tests {
         assert!(decrypted_mail.get("attachments").unwrap().assert_array().is_empty());
         assert_eq!(
             decrypted_mail
-                .get("final_ivs")
+                .get("_finalIvs")
                 .expect("has_final_ivs")
                 .assert_dict()
                 .get("subject")

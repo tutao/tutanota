@@ -190,7 +190,7 @@ fn create_test_entity_dict_with_provider(provider: &TypeModelProvider, app: &str
     }
 
     if model.encrypted {
-        object.insert("final_ivs".to_owned(), ElementValue::Dict(Default::default()));
+        object.insert("_finalIvs".to_owned(), ElementValue::Dict(Default::default()));
     }
 
     object

@@ -24,7 +24,7 @@ pub trait Entity: 'static {
     fn type_ref() -> TypeRef;
 }
 
-/// A wrapper for the value in final_ivs map on entities.
+/// A wrapper for the value in _finalIvs map on entities.
 /// Once we decrypt a final field we want to be able to re-encrypt it
 /// to the same exact value. For that we need to use the same initialization
 /// vector.
