@@ -1,24 +1,24 @@
-import type { CalendarEvent, CalendarGroupRoot } from "../../../common/api/entities/tutanota/TypeRefs.js"
-import { CalendarEventTypeRef, createFile } from "../../../common/api/entities/tutanota/TypeRefs.js"
-import { CALENDAR_MIME_TYPE, showFileChooser, showNativeFilePicker } from "../../../common/file/FileController"
-import { generateEventElementId } from "../../../common/api/common/utils/CommonCalendarUtils"
-import { showProgressDialog } from "../../../common/gui/dialogs/ProgressDialog"
-import { ParserError } from "../../../common/misc/parsing/ParserCombinator"
-import { Dialog } from "../../../common/gui/base/Dialog"
-import { lang } from "../../../common/misc/LanguageViewModel"
-import { serializeCalendar } from "./CalendarExporter.js"
+import type { CalendarEvent, CalendarGroupRoot } from "../../api/entities/tutanota/TypeRefs.js"
+import { CalendarEventTypeRef, createFile } from "../../api/entities/tutanota/TypeRefs.js"
+import { CALENDAR_MIME_TYPE, showFileChooser, showNativeFilePicker } from "../../file/FileController.js"
+import { generateEventElementId } from "../../api/common/utils/CommonCalendarUtils.js"
+import { showProgressDialog } from "../../gui/dialogs/ProgressDialog.js"
+import { ParserError } from "../../misc/parsing/ParserCombinator.js"
+import { Dialog } from "../../gui/base/Dialog.js"
+import { lang } from "../../misc/LanguageViewModel.js"
+import { serializeCalendar } from "../../../calendar-app/calendar/export/CalendarExporter.js"
 import { parseCalendarFile, ParsedEvent, showEventsImportDialog } from "./CalendarImporter.js"
-import { elementIdPart, isSameId, listIdPart } from "../../../common/api/common/utils/EntityUtils"
-import type { UserAlarmInfo } from "../../../common/api/entities/sys/TypeRefs.js"
-import { createDateWrapper, UserAlarmInfoTypeRef } from "../../../common/api/entities/sys/TypeRefs.js"
-import { convertToDataFile } from "../../../common/api/common/DataFile"
-import { locator } from "../../../common/api/main/CommonLocator"
+import { elementIdPart, isSameId, listIdPart } from "../../api/common/utils/EntityUtils.js"
+import type { UserAlarmInfo } from "../../api/entities/sys/TypeRefs.js"
+import { createDateWrapper, UserAlarmInfoTypeRef } from "../../api/entities/sys/TypeRefs.js"
+import { convertToDataFile } from "../../api/common/DataFile.js"
+import { locator } from "../../api/main/CommonLocator.js"
 import { getFromMap, groupBy, insertIntoSortedArray, ofClass, promiseMap, stringToUtf8Uint8Array } from "@tutao/tutanota-utils"
-import { assignEventId, CalendarEventValidity, checkEventValidity, getTimeZone } from "../../../common/calendar/date/CalendarUtils"
-import { ImportError } from "../../../common/api/common/error/ImportError"
-import { TranslationKeyType } from "../../../common/misc/TranslationKey"
-import { AlarmInfoTemplate } from "../../../common/api/worker/facades/lazy/CalendarFacade.js"
-import { isApp } from "../../../common/api/common/Env.js"
+import { assignEventId, CalendarEventValidity, checkEventValidity, getTimeZone } from "../date/CalendarUtils.js"
+import { ImportError } from "../../api/common/error/ImportError.js"
+import { TranslationKeyType } from "../../misc/TranslationKey.js"
+import { AlarmInfoTemplate } from "../../api/worker/facades/lazy/CalendarFacade.js"
+import { isApp } from "../../api/common/Env.js"
 
 export const enum EventImportRejectionReason {
 	Pre1970,
@@ -75,9 +75,8 @@ export async function showCalendarImportDialog(calendarGroupRoot: CalendarGroupR
 
 async function selectAndParseIcalFile(): Promise<ParsedEvent[]> {
 	try {
-		const dataFiles = isApp()
-			? await showNativeFilePicker(["ical", "ics", "ifb", "icalendar"])
-			: await showFileChooser(true, ["ical", "ics", "ifb", "icalendar"])
+		const allowedExtensions = ["ical", "ics", "ifb", "icalendar"]
+		const dataFiles = isApp() ? await showNativeFilePicker(allowedExtensions) : await showFileChooser(true, allowedExtensions)
 		const contents = dataFiles.map((file) => parseCalendarFile(file).contents)
 		return contents.flat()
 	} catch (e) {

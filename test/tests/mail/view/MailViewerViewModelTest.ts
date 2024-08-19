@@ -26,6 +26,7 @@ import { ContactImporter } from "../../../../src/mail-app/contacts/ContactImport
 import { MailboxDetail, MailModel } from "../../../../src/common/mailFunctionality/MailModel.js"
 import { ContactModel } from "../../../../src/common/contactsFunctionality/ContactModel.js"
 import { SendMailModel } from "../../../../src/common/mailFunctionality/SendMailModel.js"
+import { CalendarModel } from "../../../../src/calendar-app/calendar/model/CalendarModel.js"
 
 o.spec("MailViewerViewModel", function () {
 	let mail: Mail
@@ -45,6 +46,7 @@ o.spec("MailViewerViewModel", function () {
 	let sendMailModelFactory: (mailboxDetails: MailboxDetail) => Promise<SendMailModel> = () => Promise.resolve(sendMailModel)
 	let cryptoFacade: CryptoFacade
 	let contactImporter: ContactImporter
+	let calendarModel: CalendarModel
 
 	function makeViewModelWithHeaders(headers: string) {
 		entityClient = object()
@@ -60,6 +62,7 @@ o.spec("MailViewerViewModel", function () {
 		mailFacade = object()
 		cryptoFacade = object()
 		contactImporter = object()
+		calendarModel = object()
 		mail = prepareMailWithHeaders(mailFacade, headers)
 
 		return new MailViewerViewModel(
@@ -78,6 +81,7 @@ o.spec("MailViewerViewModel", function () {
 			mailFacade,
 			cryptoFacade,
 			async () => contactImporter,
+			async () => calendarModel,
 		)
 	}
 
