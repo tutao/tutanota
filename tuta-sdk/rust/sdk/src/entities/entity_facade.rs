@@ -1,6 +1,7 @@
 #![allow(unused)] // TODO: Remove this when implementing the crypto entity client
 use std::borrow::Borrow;
 use std::collections::HashMap;
+use std::fmt::format;
 use std::sync::Arc;
 use std::time::SystemTime;
 
@@ -21,9 +22,13 @@ pub struct EntityFacade {
     type_model_provider: Arc<TypeModelProvider>,
 }
 
+/// Value after it has been processed
 struct MappedValue {
+    /// The actual decrypted value that will be written to the field
     value: ElementValue,
-    iv: Option<[u8; IV_BYTE_SIZE]>,
+    /// IV that was used for encryption or empty value if the field was default-encrypted (empty)
+    iv: Option<Vec<u8>>,
+    /// Expected encryption errors
     error: Option<String>,
 }
 
@@ -146,16 +151,27 @@ impl EntityFacade {
     }
 
     fn map_value(&self, value: ElementValue, session_key: &GenericAesKey, key: &str, model_value: &ModelValue) -> Result<MappedValue, ApiCallError> {
+        /// If the value is default-encrypted (empty string) then return default value and empty IV
+        if (matches!(model_value.cardinality, Cardinality::One)
+            || matches!(model_value.cardinality, Cardinality::ZeroOrOne))
+            && model_value.encrypted
+            && matches!(value, ElementValue::String(_))
+            && value.assert_string() == ""
+        {
+            let value = self.resolve_default_value(&model_value.value_type);
+            return Ok(MappedValue {
+                value,
+                iv: Some(Vec::new()),
+                error: None,
+            });
+        }
+
         // We want to ensure we use the same IV for final encrypted values, as this will guarantee
         // we get the same value back.
-        let final_iv: Option<[u8; IV_BYTE_SIZE]> = if model_value.encrypted && model_value.is_final {
+        let final_iv: Option<Vec<u8>> = if model_value.encrypted && model_value.is_final {
             match &value {
-                ElementValue::Bytes(bytes) => Some(self.extract_iv(bytes.as_slice())),
+                ElementValue::Bytes(bytes) => Some(self.extract_iv(bytes, key)?),
                 ElementValue::Null => None,
-                ElementValue::String(s) if s == "" => {
-                    let value = self.resolve_default_value(&model_value.value_type);
-                    return Ok(MappedValue { value, iv: None, error: None})
-                },
                 _ => return Err(ApiCallError::InternalSdkError { error_message: format!("Invalid encrypted data {key}. Not bytes, value: {:?}", value) })
             }
         } else {
@@ -167,9 +183,6 @@ impl EntityFacade {
                 return Err(ApiCallError::InternalSdkError { error_message: format!("Value {key} with cardinality ONE can't be null") });
             }
             return Ok(MappedValue {value: ElementValue::Null, iv: final_iv, error: None});
-        } else if model_value.cardinality == Cardinality::One && value == ElementValue::String(String::new()) {
-            let value = self.resolve_default_value(&model_value.value_type);
-            return Ok(MappedValue {value, iv: final_iv, error: None});
         }
 
         if model_value.encrypted {
@@ -187,10 +200,12 @@ impl EntityFacade {
         }
     }
 
-    fn extract_iv(&self, encrypted_data: &[u8]) -> [u8; IV_BYTE_SIZE] {
-        let mut iv_bytes: [u8; IV_BYTE_SIZE] = Default::default();
-        iv_bytes.clone_from_slice(&encrypted_data[0..IV_BYTE_SIZE]);
-        iv_bytes
+    fn extract_iv(&self, encrypted_data: &Vec<u8>, key: &str) -> Result<Vec<u8>, ApiCallError>  {
+        if encrypted_data.len() >= IV_BYTE_SIZE {
+            Ok(encrypted_data.as_slice()[0..IV_BYTE_SIZE].to_vec())
+        } else {
+            Err(ApiCallError::InternalSdkError { error_message: format!("Invalid data length for {key}: {}", encrypted_data.len())})
+        }
     }
 
     fn resolve_default_value(&self, value_type: &ValueType) -> ElementValue {
