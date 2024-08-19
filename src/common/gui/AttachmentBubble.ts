@@ -9,7 +9,7 @@ import { focusNext, focusPrevious, Shortcut } from "../misc/KeyManager.js"
 import { PosRect } from "./base/Dropdown.js"
 import { Keys } from "../api/common/TutanotaConstants.js"
 import { px } from "./size.js"
-import { Icon } from "./base/Icon.js"
+import { AllIcons, Icon } from "./base/Icon.js"
 import { theme } from "./theme.js"
 import { animations, height, opacity, transform, TransformEnum, width } from "./animation/Animations.js"
 import { ease } from "./animation/Easing.js"
@@ -18,6 +18,7 @@ import { getSafeAreaInsetBottom } from "./HtmlUtils.js"
 import { hasError } from "../api/common/utils/ErrorUtils.js"
 import { BubbleButton, bubbleButtonHeight, bubbleButtonPadding } from "./base/buttons/BubbleButton.js"
 import { CALENDAR_MIME_TYPE, VCARD_MIME_TYPES } from "../file/FileController.js"
+import { BootIcons } from "./base/icons/BootIcons.js"
 
 export enum AttachmentType {
 	GENERIC,
@@ -76,10 +77,12 @@ async function showAttachmentDetailsPopup(dom: HTMLElement, attrs: AttachmentBub
 	return panel.deferAfterClose
 }
 
-function getAttachmentIcon(type: AttachmentType): Icons {
+function getAttachmentIcon(type: AttachmentType): AllIcons {
 	switch (type) {
 		case AttachmentType.CONTACT:
 			return Icons.People
+		case AttachmentType.CALENDAR:
+			return BootIcons.Calendar
 		default:
 			return Icons.Attachment
 	}

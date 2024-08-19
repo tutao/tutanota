@@ -1,26 +1,27 @@
-import { parseCalendarEvents, parseICalendar } from "./CalendarParser.js"
-import { DataFile } from "../../../common/api/common/DataFile.js"
+import { parseCalendarEvents, parseICalendar } from "../../../calendar-app/calendar/export/CalendarParser.js"
+import { DataFile } from "../../api/common/DataFile.js"
 import { Require, utf8Uint8ArrayToString } from "@tutao/tutanota-utils"
-import { getTimeZone } from "../../../common/calendar/date/CalendarUtils.js"
-import { ParserError } from "../../../common/misc/parsing/ParserCombinator.js"
-import { CalendarEvent } from "../../../common/api/entities/tutanota/TypeRefs.js"
-import { AlarmInfoTemplate } from "../../../common/api/worker/facades/lazy/CalendarFacade.js"
-import { Dialog, DialogType } from "../../../common/gui/base/Dialog.js"
-import { lang, TranslationText } from "../../../common/misc/LanguageViewModel.js"
-import { List, ListAttrs, ListLoadingState, MultiselectMode, RenderConfig } from "../../../common/gui/base/List.js"
-import { KindaCalendarRow } from "../gui/CalendarRow.js"
-import { size } from "../../../common/gui/size.js"
-import { DialogHeaderBar } from "../../../common/gui/base/DialogHeaderBar.js"
-import { ButtonType } from "../../../common/gui/base/Button.js"
+import { getTimeZone } from "../date/CalendarUtils.js"
+import { ParserError } from "../../misc/parsing/ParserCombinator.js"
+import { CalendarEvent } from "../../api/entities/tutanota/TypeRefs.js"
+import { AlarmInfoTemplate } from "../../api/worker/facades/lazy/CalendarFacade.js"
+import { Dialog, DialogType } from "../../gui/base/Dialog.js"
+import { lang, TranslationText } from "../../misc/LanguageViewModel.js"
+import { List, ListAttrs, ListLoadingState, MultiselectMode, RenderConfig } from "../../gui/base/List.js"
+import { KindaCalendarRow } from "../../../calendar-app/calendar/gui/CalendarRow.js"
+import { size } from "../../gui/size.js"
+import { DialogHeaderBar } from "../../gui/base/DialogHeaderBar.js"
+import { ButtonType } from "../../gui/base/Button.js"
 import m from "mithril"
-import { DropDownSelector, DropDownSelectorAttrs } from "../../../common/gui/base/DropDownSelector.js"
-import { getSharedGroupName, hasCapabilityOnGroup } from "../../../common/sharing/GroupUtils.js"
-import { BootIcons } from "../../../common/gui/base/icons/BootIcons.js"
-import { CalendarInfo } from "../model/CalendarModel.js"
-import { UserController } from "../../../common/api/main/UserController.js"
-import { ShareCapability } from "../../../common/api/common/TutanotaConstants.js"
-import { renderCalendarColor } from "../gui/CalendarGuiUtils.js"
-import { GroupColors } from "../view/CalendarView.js"
+import { DropDownSelector, DropDownSelectorAttrs } from "../../gui/base/DropDownSelector.js"
+import { getSharedGroupName, hasCapabilityOnGroup } from "../../sharing/GroupUtils.js"
+import { BootIcons } from "../../gui/base/icons/BootIcons.js"
+import { CalendarInfo, CalendarModel } from "../../../calendar-app/calendar/model/CalendarModel.js"
+import { UserController } from "../../api/main/UserController.js"
+import { ShareCapability } from "../../api/common/TutanotaConstants.js"
+import { renderCalendarColor } from "../../../calendar-app/calendar/gui/CalendarGuiUtils.js"
+import { GroupColors } from "../../../calendar-app/calendar/view/CalendarView.js"
+import { showCalendarImportDialog } from "./CalendarImporterDialog.js"
 
 export type ParsedEvent = {
 	event: Require<"uid", CalendarEvent>
@@ -52,7 +53,7 @@ export function parseCalendarStringData(value: string, zone: string): ParsedCale
 }
 
 /**
- * Show a dialog with a preview of a given list of events
+ * Shows a dialog with a preview of a given list of events
  * @param events The event list to be previewed
  * @param okAction The action to be executed when the user press the ok or continue button
  * @param title
@@ -109,18 +110,12 @@ export function showEventsImportDialog(events: CalendarEvent[], okAction: (dialo
 							activeIndex: null,
 							selectedItems: new Set(),
 						},
-						onLoadMore() {
-						},
-						onRangeSelectionTowards(item: CalendarEvent) {
-						},
-						onRetryLoading() {
-						},
-						onSingleSelection(item: CalendarEvent) {
-						},
-						onSingleTogglingMultiselection(item: CalendarEvent) {
-						},
-						onStopLoading() {
-						},
+						onLoadMore() {},
+						onRangeSelectionTowards(item: CalendarEvent) {},
+						onRetryLoading() {},
+						onSingleSelection(item: CalendarEvent) {},
+						onSingleTogglingMultiselection(item: CalendarEvent) {},
+						onStopLoading() {},
 					} satisfies ListAttrs<CalendarEvent, KindaCalendarRow>),
 				),
 			]),
@@ -128,6 +123,33 @@ export function showEventsImportDialog(events: CalendarEvent[], okAction: (dialo
 	}).show()
 }
 
+/**
+ * Handle the import of calendar events with preview of events to be imported
+ * @param calendarModel
+ * @param userController
+ * @param events The event list to be previewed and imported
+ */
+export async function importCalendarFile(calendarModel: CalendarModel, userController: UserController, events: ParsedEvent[]) {
+	const groupSettings = userController.userSettingsGroupRoot.groupSettings
+	const calendarInfos = await calendarModel.getCalendarInfos()
+	const groupColors: Map<Id, string> = groupSettings.reduce((acc, gc) => {
+		acc.set(gc.group, gc.color)
+		return acc
+	}, new Map())
+
+	calendarSelectionDialog(Array.from(calendarInfos.values()), userController, groupColors, (dialog, selectedCalendar) => {
+		dialog.close()
+		showCalendarImportDialog(selectedCalendar.groupRoot, events)
+	})
+}
+
+/**
+ * Shows a dialog with user's calendars that are able to receive new events
+ * @param calendars List of user's calendars
+ * @param userController
+ * @param groupColors List of calendar's colors
+ * @param okAction
+ */
 export function calendarSelectionDialog(
 	calendars: CalendarInfo[],
 	userController: UserController,
@@ -176,7 +198,7 @@ export function calendarSelectionDialog(
 					icon: BootIcons.Expand,
 					disabled: availableCalendars.length < 2,
 					helpLabel: () => renderCalendarColor(selectedCalendar, groupColors),
-				} satisfies DropDownSelectorAttrs<CalendarInfo>)
+				} satisfies DropDownSelectorAttrs<CalendarInfo>),
 			]),
 		],
 	}).show()
