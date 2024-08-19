@@ -27,7 +27,7 @@
 			<string>de.tutao.calendar</string>
 			<key>CFBundleURLSchemes</key>
 			<array>
-				<string>tutashare</string>
+				<string>tutacalshare</string>
 				<string>tutacalendar</string>
 			</array>
 		</dict>

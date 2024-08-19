@@ -95,12 +95,12 @@ import UIKit
 		self.pushTokenCallback = nil
 	}
 
-	/// handles tutacalendar deep links:
-	/// tutacalendar:// -> ?
-	/// tutashare:// -> share requests from the sharing extension
+	/// handles tutanota deep links:
+	/// tutanota:// -> ?
+	/// tutacalshare:// -> share requests from the sharing extension
 	func application(_ application: UIApplication, open url: URL, options: [UIApplication.OpenURLOptionsKey: Any] = [:]) -> Bool {
 		switch url.scheme {
-		case TUTANOTA_SHARE_SCHEME: Task { try! await self.viewController.handleShare(url) }
+		case CALENDAR_SHARE_SCHEME: Task { try! await self.viewController.handleShare(url) }
 		case nil: TUTSLog("missing scheme!")
 		default: TUTSLog("unknown scheme? \(url.scheme!)")
 		}
