@@ -98,6 +98,7 @@ pub struct CalendarEvent {
     pub organizer: Option<EncryptedMailAddress>,
     pub repeatRule: Option<CalendarRepeatRule>,
 	pub errors: Option<Errors>,
+	pub final_ivs: HashMap<String, FinalIv>,
 }
 
 impl Entity for CalendarEvent {
@@ -175,6 +176,7 @@ pub struct CalendarEventUpdate {
     pub sender: String,
     pub file: IdTuple,
 	pub errors: Option<Errors>,
+	pub final_ivs: HashMap<String, FinalIv>,
 }
 
 impl Entity for CalendarEventUpdate {
@@ -216,6 +218,7 @@ pub struct CalendarGroupRoot {
     pub longEvents: GeneratedId,
     pub shortEvents: GeneratedId,
 	pub errors: Option<Errors>,
+	pub final_ivs: HashMap<String, FinalIv>,
 }
 
 impl Entity for CalendarGroupRoot {
@@ -286,6 +289,7 @@ pub struct Contact {
     pub socialIds: Vec<ContactSocialId>,
     pub websites: Vec<ContactWebsite>,
 	pub errors: Option<Errors>,
+	pub final_ivs: HashMap<String, FinalIv>,
 }
 
 impl Entity for Contact {
@@ -348,6 +352,7 @@ pub struct ContactList {
     pub contacts: GeneratedId,
     pub photos: Option<PhotosRef>,
 	pub errors: Option<Errors>,
+	pub final_ivs: HashMap<String, FinalIv>,
 }
 
 impl Entity for ContactList {
@@ -371,6 +376,7 @@ pub struct ContactListEntry {
     pub _permissions: GeneratedId,
     pub emailAddress: String,
 	pub errors: Option<Errors>,
+	pub final_ivs: HashMap<String, FinalIv>,
 }
 
 impl Entity for ContactListEntry {
@@ -394,6 +400,7 @@ pub struct ContactListGroupRoot {
     pub _permissions: GeneratedId,
     pub entries: GeneratedId,
 	pub errors: Option<Errors>,
+	pub final_ivs: HashMap<String, FinalIv>,
 }
 
 impl Entity for ContactListGroupRoot {
@@ -585,6 +592,7 @@ pub struct CreateGroupPostReturn {
     pub _format: i64,
     pub group: GeneratedId,
 	pub errors: Option<Errors>,
+	pub final_ivs: HashMap<String, FinalIv>,
 }
 
 impl Entity for CreateGroupPostReturn {
@@ -607,6 +615,7 @@ pub struct CreateMailFolderData {
     pub ownerKeyVersion: i64,
     pub parentFolder: Option<IdTuple>,
 	pub errors: Option<Errors>,
+	pub final_ivs: HashMap<String, FinalIv>,
 }
 
 impl Entity for CreateMailFolderData {
@@ -624,6 +633,7 @@ pub struct CreateMailFolderReturn {
     pub _format: i64,
     pub newFolder: IdTuple,
 	pub errors: Option<Errors>,
+	pub final_ivs: HashMap<String, FinalIv>,
 }
 
 impl Entity for CreateMailFolderReturn {
@@ -748,6 +758,7 @@ pub struct DeleteMailFolderData {
     pub _format: i64,
     pub folders: Vec<IdTuple>,
 	pub errors: Option<Errors>,
+	pub final_ivs: HashMap<String, FinalIv>,
 }
 
 impl Entity for DeleteMailFolderData {
@@ -790,6 +801,7 @@ pub struct DraftCreateData {
     pub previousMessageId: Option<String>,
     pub draftData: DraftData,
 	pub errors: Option<Errors>,
+	pub final_ivs: HashMap<String, FinalIv>,
 }
 
 impl Entity for DraftCreateData {
@@ -869,6 +881,7 @@ pub struct DraftUpdateData {
     pub draft: IdTuple,
     pub draftData: DraftData,
 	pub errors: Option<Errors>,
+	pub final_ivs: HashMap<String, FinalIv>,
 }
 
 impl Entity for DraftUpdateData {
@@ -886,6 +899,7 @@ pub struct DraftUpdateReturn {
     pub _format: i64,
     pub attachments: Vec<IdTuple>,
 	pub errors: Option<Errors>,
+	pub final_ivs: HashMap<String, FinalIv>,
 }
 
 impl Entity for DraftUpdateReturn {
@@ -911,6 +925,7 @@ pub struct EmailTemplate {
     pub title: String,
     pub contents: Vec<EmailTemplateContent>,
 	pub errors: Option<Errors>,
+	pub final_ivs: HashMap<String, FinalIv>,
 }
 
 impl Entity for EmailTemplate {
@@ -1047,6 +1062,7 @@ pub struct TutanotaFile {
     pub parent: Option<IdTuple>,
     pub subFiles: Option<Subfiles>,
 	pub errors: Option<Errors>,
+	pub final_ivs: HashMap<String, FinalIv>,
 }
 
 impl Entity for TutanotaFile {
@@ -1070,6 +1086,7 @@ pub struct FileSystem {
     pub _permissions: GeneratedId,
     pub files: GeneratedId,
 	pub errors: Option<Errors>,
+	pub final_ivs: HashMap<String, FinalIv>,
 }
 
 impl Entity for FileSystem {
@@ -1337,6 +1354,7 @@ pub struct KnowledgeBaseEntry {
     pub title: String,
     pub keywords: Vec<KnowledgeBaseEntryKeyword>,
 	pub errors: Option<Errors>,
+	pub final_ivs: HashMap<String, FinalIv>,
 }
 
 impl Entity for KnowledgeBaseEntry {
@@ -1415,6 +1433,7 @@ pub struct Mail {
     pub sender: MailAddress,
     pub sets: Vec<IdTuple>,
 	pub errors: Option<Errors>,
+	pub final_ivs: HashMap<String, FinalIv>,
 }
 
 impl Entity for Mail {
@@ -1496,6 +1515,7 @@ pub struct MailBox {
     pub sentAttachments: GeneratedId,
     pub spamResults: Option<SpamResults>,
 	pub errors: Option<Errors>,
+	pub final_ivs: HashMap<String, FinalIv>,
 }
 
 impl Entity for MailBox {
@@ -1540,6 +1560,7 @@ pub struct MailDetailsBlob {
     pub _permissions: GeneratedId,
     pub details: MailDetails,
 	pub errors: Option<Errors>,
+	pub final_ivs: HashMap<String, FinalIv>,
 }
 
 impl Entity for MailDetailsBlob {
@@ -1563,6 +1584,7 @@ pub struct MailDetailsDraft {
     pub _permissions: GeneratedId,
     pub details: MailDetails,
 	pub errors: Option<Errors>,
+	pub final_ivs: HashMap<String, FinalIv>,
 }
 
 impl Entity for MailDetailsDraft {
@@ -1608,6 +1630,7 @@ pub struct MailFolder {
     pub mails: GeneratedId,
     pub parentFolder: Option<IdTuple>,
 	pub errors: Option<Errors>,
+	pub final_ivs: HashMap<String, FinalIv>,
 }
 
 impl Entity for MailFolder {
@@ -1692,6 +1715,7 @@ pub struct MailboxProperties {
     pub reportMovedMails: i64,
     pub mailAddressProperties: Vec<MailAddressProperties>,
 	pub errors: Option<Errors>,
+	pub final_ivs: HashMap<String, FinalIv>,
 }
 
 impl Entity for MailboxProperties {
@@ -2184,6 +2208,7 @@ pub struct TemplateGroupRoot {
     pub knowledgeBase: GeneratedId,
     pub templates: GeneratedId,
 	pub errors: Option<Errors>,
+	pub final_ivs: HashMap<String, FinalIv>,
 }
 
 impl Entity for TemplateGroupRoot {
@@ -2253,6 +2278,7 @@ pub struct TutanotaProperties {
     pub inboxRules: Vec<InboxRule>,
     pub lastPushedMail: Option<IdTuple>,
 	pub errors: Option<Errors>,
+	pub final_ivs: HashMap<String, FinalIv>,
 }
 
 impl Entity for TutanotaProperties {
@@ -2431,6 +2457,7 @@ pub struct UserSettingsGroupRoot {
     pub usageDataOptedIn: Option<bool>,
     pub groupSettings: Vec<GroupSettings>,
 	pub errors: Option<Errors>,
+	pub final_ivs: HashMap<String, FinalIv>,
 }
 
 impl Entity for UserSettingsGroupRoot {
