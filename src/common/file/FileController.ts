@@ -352,7 +352,7 @@ export async function showNativeFilePicker(fileTypes?: Array<string>): Promise<R
 				Dialog.message("couldNotAttachFile_msg")
 			}
 
-			console.log("Failed to import calendar files", err)
+			console.log("Failed read files", err)
 		}
 	}
 

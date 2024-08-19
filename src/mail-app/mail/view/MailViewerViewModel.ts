@@ -82,6 +82,7 @@ import {
 	loadMailHeaders,
 } from "../../../common/mailFunctionality/SharedMailUtils.js"
 import { getDisplayedSender, getMailBodyText, MailAddressAndName } from "../../../common/api/common/CommonMailUtils.js"
+import { CalendarModel } from "../../../calendar-app/calendar/model/CalendarModel.js"
 
 export const enum ContentBlockingStatus {
 	Block = "0",
@@ -148,6 +149,7 @@ export class MailViewerViewModel {
 		private readonly mailFacade: MailFacade,
 		private readonly cryptoFacade: CryptoFacade,
 		private readonly contactImporter: lazyAsync<ContactImporter>,
+		private readonly calendarModel: lazyAsync<CalendarModel>,
 	) {
 		this.folderMailboxText = null
 		if (showFolder) {
@@ -1024,8 +1026,11 @@ export class MailViewerViewModel {
 	}
 
 	async importAttachment(file: TutanotaFile) {
-		if (getAttachmentType(file.mimeType ?? "") === AttachmentType.CONTACT) {
+		const attachmentType = getAttachmentType(file.mimeType ?? "")
+		if (attachmentType === AttachmentType.CONTACT) {
 			await this.importContacts(file)
+		} else if (attachmentType === AttachmentType.CALENDAR) {
+			await this.importCalendar(file)
 		}
 	}
 
@@ -1044,8 +1049,25 @@ export class MailViewerViewModel {
 		}
 	}
 
+	private async importCalendar(file: TutanotaFile) {
+		file = (await this.cryptoFacade.enforceSessionKeyUpdateIfNeeded(this._mail, [file]))[0]
+		try {
+			const { importCalendarFile, parseCalendarFile } = await import("../../../common/calendar/import/CalendarImporter.js")
+			const dataFile = await this.fileController.getAsDataFile(file)
+			const data = parseCalendarFile(dataFile)
+			await importCalendarFile(await this.calendarModel(), this.logins.getUserController(), data.contents)
+		} catch (e) {
+			console.log(e)
+			throw new UserError("errorDuringFileOpen_msg")
+		}
+	}
+
 	canImportFile(file: TutanotaFile): boolean {
-		return this.logins.isInternalUserLoggedIn() && file.mimeType != null && getAttachmentType(file.mimeType) === AttachmentType.CONTACT
+		if (!this.logins.isInternalUserLoggedIn() || file.mimeType == null) {
+			return false
+		}
+		const attachmentType = getAttachmentType(file.mimeType)
+		return attachmentType === AttachmentType.CONTACT || attachmentType === AttachmentType.CALENDAR
 	}
 
 	canReplyAll(): boolean {
